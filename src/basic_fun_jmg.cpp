@@ -246,7 +246,7 @@ namespace lib {
     DLongGDL* l_size, *l_dimension;
     if(b_dimension != NULL)
       {
-		l_dimension=static_cast<DLongGDL*>(b_dimension->Convert2(LONG, BaseGDL::COPY));
+	l_dimension=static_cast<DLongGDL*>(b_dimension->Convert2(LONG, BaseGDL::COPY));
 	if(e->NParam() == 0 && size == NULL) 
 	  {
 	    dimension dim(l_dimension->N_Elements(),1);
@@ -322,10 +322,7 @@ namespace lib {
 
     } else {
       return make_array_template< DFloatGDL>( e, dimKey);
-    } else// if (e->KeywordSet(13) || type == FLOAT) {
-
-      return make_array_template< DFloatGDL>( e, dimKey);
-
+    }
     return 0;
   }
 
