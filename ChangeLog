@@ -82,7 +82,9 @@
 	  MESSAGE (prefix).
 
 0.8.8:    Added OBJ_CLASS, OBJ_ISA, N_TAGS, SWAP_ENDIAN, BYTSCL functions.
-	  Added PLOTS (2D only), BYTEORDER procedures.
+	  Added PLOTS, XYOUTS (both 2D only), BYTEORDER procedures.
+	  Improved FFT.
+	  OMIN,OMAX keyword support for HISTOGRAM.
 	  Fixed braced reference argument bug.
 	  Changed equality checking to compatibility checking for
 	  struct array definitions.
@@ -92,4 +94,5 @@
 	  Fixed libfunction returning parameter bug.
 	  Fixed AND, OR operator bug.
 	  Fixed TVLCT bug.
-	
+	  @file now honors !PATH.
+	  
