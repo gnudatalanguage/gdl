@@ -649,10 +649,19 @@ array_def
         }
 	;
 
+struct_identifier
+	:   ( IDENTIFIER 
+        | s:SYSVARNAME  { #s->setType( IDENTIFIER);}  
+        | e:EXCLAMATION { #e->setType( IDENTIFIER);}  
+        ) 
+        // fake IDENTIFIER (struct tag can also be "!" or "!XXXX")
+        // no additinal subtype is needed here, as struct_def already creates
+        // the appropriate node (ie. there is no ambiguity in the parser output)
+    ;
 
 struct_def
 	: LCURLY! 
-        (IDENTIFIER (COMMA! named_tag_def_list)? RCURLY!
+        (struct_identifier (COMMA! named_tag_def_list)? RCURLY!
 			{ #struct_def = 
 				#([NSTRUC_REF, "nstruct_ref"], #struct_def);}
 		| tag_def_list RCURLY!
@@ -662,14 +671,7 @@ struct_def
 	;
 
 tag_def
-	:   ( IDENTIFIER 
-        | s:SYSVARNAME  { #s->setType( IDENTIFIER);}  
-        | e:EXCLAMATION { #e->setType( IDENTIFIER);}  
-        ) 
-        // fake IDENTIFIER (struct tag can also be "!" or "!XXXX")
-        // no additinal subtype is needed here, as struct_def already creates
-        // the appropriate node (ie. there is no ambiguity in the parser output)
-        COLON! expr	
+    : struct_identifier COLON! expr	
 	;	
 
 tag_def_list

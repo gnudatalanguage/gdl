@@ -59,7 +59,7 @@ readline    http://ftp.gnu.org/pub/gnu/readline/readline-4.3.tar.gz
 
 Optional libraries:
 ImageMagick http://www.imagemagick.org/www/download.html
-netCDF      ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-3.5.1.tar.Z
+netCDF      ftp://ftp.unidata.ucar.edu/pub/netcdf
 HDF4        ftp://ftp.ncsa.uiuc.edu/HDF/HDF/HDF_Current
 HDF5        ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/current
 python      http://www.python.org
@@ -123,7 +123,7 @@ netCDF is used by default. If you don't want to use it, use
 --with-netcdf=no
 as a command line option to 'configure'.
 netCDF is available from:
-ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-3.5.1.tar.Z
+ftp://ftp.unidata.ucar.edu/pub/netcdf
 
 In order to read and write images in several formats, GDL uses ImageMagick.
 It is required by default. If you don't want to use it, use 
