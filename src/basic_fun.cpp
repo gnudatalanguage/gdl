@@ -152,7 +152,7 @@ namespace lib {
     try{
       arr( e, dim); 
       if( e->KeywordSet(0)) return new DULongGDL(dim, BaseGDL::NOZERO);
-      return new DLongGDL(dim);
+      return new DULongGDL(dim);
     }
     catch( GDLException ex)
       {
@@ -165,7 +165,7 @@ namespace lib {
     try{
       arr( e, dim); 
       if( e->KeywordSet(0)) return new DLong64GDL(dim, BaseGDL::NOZERO);
-      return new DLongGDL(dim);
+      return new DLong64GDL(dim);
     }
     catch( GDLException ex)
       {
@@ -178,7 +178,7 @@ namespace lib {
     try{
       arr( e, dim); 
       if( e->KeywordSet(0)) return new DULong64GDL(dim, BaseGDL::NOZERO);
-      return new DLongGDL(dim);
+      return new DULong64GDL(dim);
     }
     catch( GDLException ex)
       {

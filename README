@@ -153,7 +153,7 @@ but unless you want to change the grammar (*.g files) you don't need
 ANTLR. All relevant ANTLR files are included in the package.
 For more information on ANTRL see: http://www.antlr.org
 
-GDL is currently developed using KDevelop 3.1.0 under Mandrake Linux
+GDL is currently developed using KDevelop 3.1.0 under fedora core 3
 10.0 and KDevelop 3.1.1 under Fedora Core 3. The KDevelop project file
 is included in the tarball, so if you have KDevelop you should be able
 to use it with GDL seamlessly.

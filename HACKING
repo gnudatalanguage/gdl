@@ -13,7 +13,7 @@ non compatible functions make the (GDL-)names XXX_ROUTINENAME.
 And if you implement a non IDL routine, bear in mind that some
 documentation is needed in order to be able to use it.
 Furthermore please keep in mind that GDL should be able to compile at
-least under linux (GCC), OS X and (soon) windows (MSVC). Therefore the
+least under GNU/Linux (GCC), OS X and (soon) windows (MSVC). Therefore the
 code shouldbe as portable as possible (note that it is not mandatory
 to make it run on all platforms, just portability should be kept in
 mind avoiding any obvious obstacles like compiler specific extensions).
@@ -365,7 +365,7 @@ LINKIMAGE
 
 Joel Gales provided support for the LINKIMAGE procedure. 
 It allows users to add their own routines as dynamic libraries to
-GDL. LINKIMAGE currently only works for the linux version.
+GDL. LINKIMAGE currently only works for the GNU/Linux version.
 Note that you cannot use shared libraries written for IDL without change.
 
 There is a simple example in "src/dll/two.cpp". 
