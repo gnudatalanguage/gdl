@@ -24,7 +24,7 @@ namespace lib {
   BaseGDL* systime(EnvT* e);
   BaseGDL* legendre(EnvT* e);
   BaseGDL* interpol(EnvT* e);
-  //  BaseGDL* exp(EnvT* e);
+  BaseGDL* gsl_exp(EnvT* e);
   BaseGDL* gamma(EnvT* e);
   BaseGDL* lngamma(EnvT* e);
   BaseGDL* igamma(EnvT* e);

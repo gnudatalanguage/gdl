@@ -504,7 +504,7 @@ namespace lib {
       throw GDLException( e->CallingNode(), 
 			  "IGAMMA: Variable is undefined: "+e->GetParString(1));
     nEl=nEl > nElb? nElb:nEl;
-    if(e->KeywordSet("EPS")) 
+    /*    if(e->KeywordSet("EPS")) 
       Message("IGAMMA: EPS Keyword not supported");
     if(e->KeywordSet("ITER")) 
       Message("IGAMMA: ITER Keyword not supported");
@@ -512,7 +512,7 @@ namespace lib {
       Message("IGAMMA: ITMAX Keyword not supported");
     if(e->KeywordSet("METHOD")) 
       Message("IGAMMA: METHOD Keyword not supported");
-    
+    */
     SizeT c;
 
     static DStructGDL *Values =  SysVar::Values();
@@ -580,7 +580,7 @@ namespace lib {
 
     static DStructGDL *Values =  SysVar::Values();
 
-    if(g->Type() == DOUBLE)
+    if(g->Type() == DOUBLE  || e->KeywordSet("DOUBLE"))
       {
 	DDoubleGDL* gd = e->GetParAs<DDoubleGDL>(0);
 	DDoubleGDL* bd = e->GetParAs<DDoubleGDL>(1);
@@ -619,7 +619,7 @@ namespace lib {
   }
 
 
-  BaseGDL* exp(EnvT* e)
+  BaseGDL* gsl_exp(EnvT* e)
   {
     SizeT nParam = e->NParam(1);
     BaseGDL* v=e->GetParDefined(0);   
@@ -628,19 +628,19 @@ namespace lib {
     size_t i;
     if (v->Type() == STRING) {
       throw GDLException( e->CallingNode(), 
-		  "EXP: String expression not allowed in this context: "
+		  "GSL_EXP: String expression not allowed in this context: "
 			  +e->GetParString(0));
     } else if (v->Type() == PTR) {
       throw GDLException( e->CallingNode(), 
-		  "EXP: Pointer expression not allowed in this context: "
+		  "GSL_EXP: Pointer expression not allowed in this context: "
 			  +e->GetParString(0));
     } else if (v->Type() == OBJECT) {
       throw GDLException( e->CallingNode(), 
-		  "EXP: Object expression not allowed in this context: "
+		  "GSL_EXP: Object expression not allowed in this context: "
 			  +e->GetParString(0));
     } else if (v->Type() == STRUCT) {
       throw GDLException( e->CallingNode(), 
-		  "EXP: Struct expression not allowed in this context: "
+		  "GSL_EXP: Struct expression not allowed in this context: "
 			  +e->GetParString(0));		  
     } else   {
       DDoubleGDL* d;
