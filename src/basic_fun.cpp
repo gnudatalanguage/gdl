@@ -2477,6 +2477,120 @@ namespace lib {
     return p0->Rebin( resDim, sample);
   }
 
+  BaseGDL* obj_class( EnvT* e)
+  {
+    SizeT nParam = e->NParam();
+
+    static int countIx = e->KeywordIx( "COUNT");
+    static int superIx = e->KeywordIx( "SUPERCLASS");
+
+    bool super = e->KeywordSet( superIx);
+
+    bool count = e->KeywordPresent( countIx);
+    if( count)
+      e->AssureGlobalKW( countIx);
+
+    if( nParam > 0)
+      {
+	BaseGDL* p0 = e->GetParDefined( 0);
+
+	if( p0->Type() != STRING && p0->Type() != OBJECT)
+	  e->Throw( "Argument must be a scalar object reference or string: "+
+		    e->GetParString(0));
+
+	if( !p0->Scalar())
+	  e->Throw( "Expression must be a scalar or 1 element "
+		    "array in this context: "+e->GetParString(0));
+
+	DStructDesc* objDesc;
+
+	if( p0->Type() == STRING)
+	  {
+	    DString objName;
+	    e->AssureScalarPar<DStringGDL>( 0, objName);
+	    objName = StrUpCase( objName);
+
+	    objDesc = FindInStructList( structList, objName);
+	    if( objDesc == NULL)
+	      {
+		if( count)
+		  e->SetKW( countIx, new DLongGDL( 0));
+		return new DStringGDL( "");
+	      }
+	  }
+	else // OBJECT
+	  {
+	    DObj objRef;
+	    e->AssureScalarPar<DObjGDL>( 0, objRef);
+
+	    if( objRef == 0)
+	      {
+		if( count)
+		  e->SetKW( countIx, new DLongGDL( 0));
+		return new DStringGDL( "");
+	      }
+
+	    DStructGDL* oStruct;
+	    try {
+	      oStruct = e->GetObjHeap( objRef);
+	    }
+	    catch ( GDLInterpreter::HeapException)
+	      { // non valid object
+		if( count)
+		  e->SetKW( countIx, new DLongGDL( 0));
+		return new DStringGDL( "");
+	      }
+
+	    objDesc = oStruct->Desc(); // cannot be NULL
+	  }
+
+	if( !super)
+	  {
+	    if( count)
+	      e->SetKW( countIx, new DLongGDL( 1));
+	    return new DStringGDL( objDesc->Name());
+	  }
+	
+	deque< string> pNames;
+	objDesc->GetParentNames( pNames);
+
+	SizeT nNames = pNames.size();
+	    
+	if( count)
+	  e->SetKW( countIx, new DLongGDL( nNames));
+
+	if( nNames == 0)
+	  {
+	    return new DStringGDL( "");
+	  }
+
+	DStringGDL* res = new DStringGDL( dimension( nNames), 
+					  BaseGDL::NOZERO);
+
+	for( SizeT i=0; i<nNames; ++i)
+	  {
+	    (*res)[i] = pNames[i];
+	  }
+	
+	return res;
+      }
+
+    if( super)
+      e->Throw( "Conflicting keywords.");
+
+    SizeT nObj = structList.size();
+
+    DStringGDL* res = new DStringGDL( dimension( nObj), 
+				      BaseGDL::NOZERO);
+
+    for( SizeT i=0; i<nObj; ++i)
+      {
+	(*res)[i] = structList[i]->Name();
+      }
+	
+    return res;
+  }
+
 } // namespace
 
 

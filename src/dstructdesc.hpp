@@ -81,7 +81,7 @@ class DStructDesc: public DUStructDesc
 {
 private:
   std::string              name;
-  std::deque<DStructDesc*> parent;  // parent classes 
+  StructListT              parent;  // parent classes 
   IDList                   noDirectMembers;
   
   FunListT                 fun; // member functions
@@ -141,7 +141,16 @@ public:
     return false;
   }
 
-  void     AddParent( DStructDesc*);
+  void AddParent( DStructDesc*);
+
+  void GetParentNames( std::deque< std::string>& pNames) const
+  {
+    SizeT nParents=parent.size();
+    for( SizeT i=0; i<nParents; ++i)
+      {
+	pNames.push_back( parent[i]->Name());
+      }
+  }
 
   void AssureEqual( DStructDesc* d);
   DStructDesc* FindEqual( const StructListT& sL);

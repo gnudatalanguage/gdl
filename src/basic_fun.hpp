@@ -122,6 +122,8 @@ namespace lib {
 
   BaseGDL* rebin_fun( EnvT* e);
 
+  BaseGDL* obj_class( EnvT* e);
+
 } // namespace
 
 #endif
