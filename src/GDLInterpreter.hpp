@@ -394,7 +394,6 @@ public:
 	public: BaseGDL*  constant(RefDNode _t);
 	public: BaseGDL*  array_def(RefDNode _t);
 	public:  BaseGDL*  struct_def(RefDNode _t);
-	public:  BaseGDL*  lib_function_call(RefDNode _t);
 	public: BaseGDL*  indexable_expr(RefDNode _t);
 	public: BaseGDL*  simple_var(RefDNode _t);
 	public: BaseGDL*  sys_var(RefDNode _t);
@@ -412,6 +411,8 @@ public:
 	public: BaseGDL*  dot_expr(RefDNode _t);
 	public: BaseGDL*  assign_expr(RefDNode _t);
 	public:  BaseGDL*  function_call(RefDNode _t);
+	public:  BaseGDL*  lib_function_call(RefDNode _t);
+	public:  BaseGDL**  l_lib_function_call(RefDNode _t);
 	public:  BaseGDL**  ref_parameter(RefDNode _t);
 	public:  ArrayIndexT  arrayindex_all(RefDNode _t);
 	public:  ArrayIndexT  arrayindex_range(RefDNode _t);
@@ -442,6 +443,8 @@ private:
 	static const antlr::BitSet _tokenSet_0;
 	static const unsigned long _tokenSet_1_data_[];
 	static const antlr::BitSet _tokenSet_1;
+	static const unsigned long _tokenSet_2_data_[];
+	static const antlr::BitSet _tokenSet_2;
 };
 
 #endif /*INC_GDLInterpreter_hpp_*/

@@ -1217,14 +1217,15 @@ l_ret_expr returns [BaseGDL** res]
             res=&varPtr->var->Data(); // returns BaseGDL* of var (DVar*) 
         }
     | var:VAR // DNode.varIx is index into functions/procedures environment
-        { // check if variable is non-local (because it will be invalid after return then
+        {     // check if variable is non-local 
+              // (because it will be invalid after return otherwise)
             if( !callStack.back()->GlobalKW(var->varIx))
             throw GDLException( _t, 
                 "Attempt to return a local variable from left-function.");
             
             res=&callStack.back()->GetKW(var->varIx); 
         }
-    | #(ASSIGN e1=expr // getting r first makes sure something like a=a+1 works 
+    | #(ASSIGN e1=expr 
             { 
                 auto_ptr<BaseGDL> r_guard;
                 if( !callStack.back()->Contains( e1)) 
@@ -1245,19 +1246,22 @@ l_ret_expr returns [BaseGDL** res]
     | #(ARRAYEXPR
             {
                 throw GDLException( _t, 
-                    "Indexed expression not allowed as left-function return value.");
+                    "Indexed expression not allowed as left-function"
+                    " return value.");
             }
         )
     | #(DOT 
             {
                 throw GDLException( _t, 
-                    "Struct expression not allowed as left-function return value.");
+                    "Struct expression not allowed as left-function"
+                    " return value.");
             }
         )
     | SYSVAR
         {
             throw GDLException( _t, 
-                "System variable not allowed as left-function return value.");
+                "System variable not allowed as left-function"
+                " return value.");
         }
     | e1=r_expr
         {
@@ -1422,7 +1426,7 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
         )
     | res=l_decinc_array_expr[ dec_inc]
     | res=l_decinc_dot_expr[ dec_inc]
-    // no l_function_call here
+    // no l_function_call here because it would be a syntax error
     | e1=r_expr
         {
             delete e1;
@@ -1959,7 +1963,6 @@ r_expr returns [BaseGDL* res]
     | res=constant                  
     | res=array_def
     | res=struct_def
-    | res=lib_function_call // no l_value lib function so far
     ;
 
 indexable_expr returns [BaseGDL* res]
@@ -2161,6 +2164,7 @@ expr returns [BaseGDL* res]
     | res=dot_expr
     | res=assign_expr
     | res=function_call
+    | res=lib_function_call 
     | res=r_expr
     ;
 
@@ -2286,7 +2290,6 @@ function_call returns[ BaseGDL* res]
 //*** MUST always return a defined expression
 lib_function_call returns[ BaseGDL* res]
 {
-    // especially convenient for GDL's EXECUTE function
     StackGuard<EnvStackT> guard(callStack);
 }
 	: #(FCALL_LIB f:IDENTIFIER
@@ -2303,15 +2306,44 @@ lib_function_call returns[ BaseGDL* res]
         )
     ;
 
+l_lib_function_call returns[ BaseGDL** res]
+{
+    StackGuard<EnvStackT> guard(callStack);
+}
+	: #(FCALL_LIB f:IDENTIFIER
+            {
+                EnvT* newEnv=new EnvT( this, f, libFunList[f->funIx]);
+            }
+            parameter_def[ newEnv]
+            {
+                EnvT* callerEnv = callStack.back();
+                // push id.pro onto call stack
+                callStack.push_back(newEnv);
+                // make the call
+                BaseGDL* libRes = 
+                static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
+
+                res = callerEnv->GetPtrTo( libRes);
+                if( res == NULL)
+                throw GDLException( _t, "Library function must return a "
+                    "l-value in this context: "+f->getText());
+            }
+        )
+    ;
+
 // function call can be l_values (within (#EXPR ...) only)
 l_function_call returns[ BaseGDL** res]
 { 
     // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
     StackGuard<EnvStackT> guard(callStack);
     BaseGDL *self;
+    BaseGDL *libRes;
     EnvT*   newEnv;
 }
-	:   ( #(MFCALL 
+    :   (
+            res = l_lib_function_call
+        |
+        ( #(MFCALL 
                 self=expr mp:IDENTIFIER
                 {  
                     auto_ptr<BaseGDL> self_guard(self);
@@ -2352,6 +2384,7 @@ l_function_call returns[ BaseGDL** res]
             res=call_lfun(static_cast<DSubUD*>(
                     newEnv->GetPro())->GetTree());
         }   
+        )
 	;	
 
 /*

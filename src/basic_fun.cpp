@@ -1319,17 +1319,14 @@ namespace lib {
   {
     SizeT nParam=e->NParam();
     if( nParam < 2)
-      throw GDLException( e->CallingNode(),
-			  "REPLICATE: Incorrect number of arguments.");
+      e->Throw( "Incorrect number of arguments.");
     dimension dim;
     arr( e, dim, 1);
 
     BaseGDL* p0=e->GetParDefined( 0);//, "REPLICATE");
     if( !p0->Scalar())
-      throw GDLException( e->CallingNode(),
-			  "REPLICATE: Expression must be a "
-			  "scalar in this context: "+
-			  e->GetParString(0));
+      e->Throw(	"Expression must be a scalar in this context: "+
+		e->GetParString(0));
 
     return p0->New( dim, BaseGDL::INIT);
   }

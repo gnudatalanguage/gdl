@@ -207,7 +207,8 @@ public:
   // make a duplicate on the heap
   DStructGDL* Dup() { return new DStructGDL(*this);}
   
-  DStructGDL* New( dimension dim_,  BaseGDL::InitType noZero=BaseGDL::ZERO)
+  DStructGDL* New( const dimension& dim_,
+		   BaseGDL::InitType noZero=BaseGDL::ZERO)
   {
     if( noZero == BaseGDL::NOZERO)
       {

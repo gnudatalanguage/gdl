@@ -204,8 +204,11 @@ function ret3,b
 return,ret2(b)
 end
 
-function retOverwrite
+function retOverwriteLocal
 a=[['m','a'],['r','c']]
+return,reform(a,4,/OVERWRITE)
+end
+function retOverwriteGlobal,a
 return,reform(a,4,/OVERWRITE)
 end
 
@@ -224,8 +227,12 @@ s={t:0}
 if retTag(s) ne 3 then print,'***RET: ERROR6'
 ;(ret(s))=2
 
-n = retOverwrite()
+n = retOverwriteLocal()
 if n[2] ne "r" then print,'***RET: ERROR7'
+
+a=[[1,2],[3,4]]
+(retOverwriteGlobal(a))--
+if a[1] ne 1 then print,'***RET: ERROR8'
 
 print,'RET: OK';
 end
@@ -651,6 +658,17 @@ if c[0,1] ne 76 then print,"***OPERATOR: ERROR4"
 print,'OPERATORS: OK'
 end
 
+pro left_libfunction_test
+
+u=indgen(4)
+
+(reform(u,4,/OVERWRITE))++
+
+if u[2] ne 3 then print,"***LEFT_LIBFUNCTION: ERROR1"
+
+print,"LEFT_LIBFUNCTION: OK"
+end
+
 pro test_suite
 
 switch_test
@@ -673,5 +691,6 @@ expr_test
 recursion_test
 index_test
 operator_test
+left_libfunction_test
 
 end

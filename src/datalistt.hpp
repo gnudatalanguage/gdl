@@ -130,7 +130,7 @@ public:
  }
 
   // finds the local variable pp points to
-  int FindLocalKW( BaseGDL** pp)
+  int FindLocal( BaseGDL** pp)
   {
     for( SizeT i=0; i<loc.size(); i++)
       if( &loc[i] == pp) return static_cast<int>(i);
@@ -138,11 +138,21 @@ public:
   }
 
   // finds the gloabl variable pp
-  int FindGlobalKW( BaseGDL** pp)
+  int FindGlobal( BaseGDL** pp)
   {
     for( SizeT i=0; i<env.size(); i++)
       if( env[i] == pp) return static_cast<int>(i);
     return -1;
+  }
+
+  BaseGDL** GetPtrTo( BaseGDL* p)
+  {
+    for( SizeT i=0; i<env.size(); i++)
+      {
+	if( loc[i] == p) return &loc[i];
+	if( env[i] != NULL && *env[i] == p) return env[i];
+      }
+    return NULL;
   }
 
   BaseGDL* Loc( SizeT ix)

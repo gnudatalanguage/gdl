@@ -61,7 +61,7 @@ class EnvT
   std::vector<BaseGDL*>  toDestroy;
 
   // finds the local variable pp points to
-  int FindLocalKW( BaseGDL** pp) { return env.FindLocalKW( pp);}
+  int FindLocalKW( BaseGDL** pp) { return env.FindLocal( pp);}
   // used by the interperter returns the keyword index, used for UD functions
   int GetKeywordIx( const std::string& k);
   
@@ -96,13 +96,14 @@ public:
   bool LFun() const { return lFun;} // left-function
 
   // finds the global variable pp (used by arg_present function)
-  int FindGlobalKW( BaseGDL** pp) { return env.FindGlobalKW( pp);}
+  int FindGlobalKW( BaseGDL** pp) { return env.FindGlobal( pp);}
 
   // checks if pp points to a local variable
   bool IsLocalKW( BaseGDL** pp) const { return env.InLoc( pp);}
   // to check if a lib function returned a variable of this env
   bool Contains( BaseGDL* p) const { return env.Contains( p);}
   void RemoveLoc( BaseGDL* p) { env.RemoveLoc( p);}
+  BaseGDL** GetPtrTo( BaseGDL* p) { return env.GetPtrTo( p);}
   SizeT NewObjHeap( SizeT n=1, DStructGDL* v=NULL);
   SizeT NewHeap( SizeT n=1, BaseGDL* v=NULL);
   void FreeObjHeap( DObj id);
