@@ -174,6 +174,8 @@ public:
 		   bool center, int edgeMode);
   BaseGDL* Rebin( const dimension& newDim, bool sample);
 
+  void Assign( BaseGDL* src, SizeT nEl);
+
   BaseGDL* UMinus(); // UMinus for SpDString returns float
   Data_*   NotOp();
   Data_*   AndOp( BaseGDL* r);

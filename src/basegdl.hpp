@@ -192,6 +192,8 @@ public:
   virtual BaseGDL* Convol( BaseGDL* kIn, BaseGDL* scaleIn, 
 			   bool center, int edgeMode);
   virtual BaseGDL* Rebin( const dimension& newDim, bool sample);
+  // for STRUCT_ASSIGN
+  virtual void Assign( BaseGDL* src, SizeT nEl);
 
   // used in r_expr
   virtual BaseGDL* UMinus();              

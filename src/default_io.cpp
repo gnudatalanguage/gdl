@@ -1139,7 +1139,7 @@ ostream& DStructGDL::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   for( SizeT e=0; e<nEl; ++e)
     {
       o << CheckNL( w, actPosPtr, 1) << "{";
-      for( SizeT tIx=0; tIx<nTags; ++tIx)
+      for( SizeT tIx=0; tIx<nTags-1; ++tIx)
 	{
 	  BaseGDL* actEl = Get( tIx, e);
 	  if( actEl == NULL)
@@ -1148,6 +1148,13 @@ ostream& DStructGDL::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 	  actEl->ToStream( o, w, actPosPtr);
 	  if( actEl->Dim().Rank() != 0) InsNL( o, actPosPtr);
 	}
+
+      BaseGDL* actEl = Get( nTags-1, e);
+      if( actEl == NULL)
+	throw 
+	  GDLException("Internal error: Output of UNDEF struct element.");
+      actEl->ToStream( o, w, actPosPtr);
+
       o << CheckNL( w, actPosPtr, 1) << "}";
     }
   return o;

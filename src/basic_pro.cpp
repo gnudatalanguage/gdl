@@ -731,5 +731,90 @@ namespace lib {
 	  }
       }
   }
+
+  void setenv_pro( EnvT* e)
+  {
+    SizeT nParam = e->NParam();
+
+    DStringGDL* name = e->GetParAs<DStringGDL>(0);
+    SizeT nEnv = name->N_Elements();
+
+    for(SizeT i=0; i < nEnv; ++i){
+      DString strEnv = (*name)[i];
+      long len = strEnv.length();
+      long pos = strEnv.find_first_of("=", 0); 
+      if( pos == string::npos) continue;   
+      DString strArg = strEnv.substr(pos+1, len - pos - 1);
+      strEnv = strEnv.substr(0, pos);
+      int ret = setenv(strEnv.c_str(), strArg.c_str(), 1);
+    }
+  } 
+
+  void struct_assign_pro( EnvT* e)
+  {
+    SizeT nParam=e->NParam( 2);
+ 
+    DStructGDL* source = e->GetParAs<DStructGDL>(0);
+    DStructGDL* dest   = e->GetParAs<DStructGDL>(1);
+  
+    static int nozeroIx = e->KeywordIx("NOZERO");
+    bool nozero = e->KeywordSet( nozeroIx); 
+
+    static int verboseIx = e->KeywordIx("VERBOSE");
+    bool verbose = e->KeywordSet( verboseIx);
+
+    string sourceName = (*source).Desc()->Name();
+
+    SizeT nTags = 0;
+
+    // array of struct
+    SizeT nElements = source->N_Elements();
+    SizeT nDestElements = dest->N_Elements();
+    if( nElements > nDestElements)
+      nElements = nDestElements;
+
+    // zero out the destination
+    if( !nozero)
+       (*dest).Clear();
+
+    nTags = (*source).Desc()->NTags();
+
+    // copy the stuff
+    for(int t=0; t < nTags; ++t)
+      {    
+	string sourceTagName = (*source).Desc()->TagName(t);
+	int ix = (*dest).Desc()->TagIndex( sourceTagName );
+	if( ix >= 0)
+	  {
+	    SizeT nTagElements = source->Get( t, 0)->N_Elements();
+	    SizeT nTagDestElements = dest->Get( t, 0)->N_Elements();
+
+	    if( verbose) 
+	      {
+		if( nTagElements > nTagDestElements)
+		  Warning( "STRUCT_ASSIGN: " + sourceName + 
+			   " tag " + sourceTagName + 
+			   " is longer than destination. "
+			   "The end will be clipped.");
+		else if( nTagElements < nTagDestElements)
+		  Warning( "STRUCT_ASSIGN: " + sourceName + 
+			   " tag " + sourceTagName + 
+			   " is shorter than destination. "
+			   "The end will be zero filled.");
+	      }
+
+	    if( nTagElements > nTagDestElements)
+		nTagElements = nTagDestElements;
+
+	    for( SizeT a=0; a< nElements; ++a)
+	      dest->Get( t, a)->Assign( source->Get( t, a), nTagElements);
+	  }
+	else 
+	  if(verbose)
+	    Warning( "STRUCT_ASSIGN: Destination lacks " + sourceName +
+		     " tag " + sourceTagName + ". Not copied.");
+      }
+  }
+
   
 } // namespace

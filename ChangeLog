@@ -95,4 +95,7 @@
 	  Fixed AND, OR operator bug.
 	  Fixed TVLCT bug.
 	  @file now honors !PATH.
-	  
+	  Changed configure.in to support python on OS X (fink)
+	  Added SETENV, STRUCT_ASSIGN pro.
+	  Added GETENV, STREGEX, TAG_NAMES functions.
+	

@@ -66,6 +66,11 @@ namespace lib {
 
   void byteorder( EnvT* e);
 
+  // the following by Peter Messmer 
+  // (messmer@users.sourceforge.net)
+  void setenv_pro( EnvT* e);
+  void struct_assign_pro( EnvT* e);
+
 } // namespace
 
 #endif

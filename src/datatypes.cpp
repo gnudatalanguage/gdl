@@ -2092,6 +2092,24 @@ BaseGDL* Data_<SpDULong>::Rebin( const dimension& newDim, bool sample)
   return actIn;
 }
 
+// plain copy of nEl from src
+// no checking
+template<class Sp>
+void Data_<Sp>::Assign( BaseGDL* src, SizeT nEl)
+{
+  Data_* srcT = dynamic_cast<Data_*>( src);
+  auto_ptr< Data_> srcTGuard;
+  if( srcT == NULL) 
+    {
+      srcT = static_cast<Data_*>( src->Convert2( Data_::t, BaseGDL::COPY));
+      srcTGuard.reset( srcT);
+    }
+
+  for(long k=0; k < nEl; ++k)
+    {
+      dd[ k] = srcT->dd[ k];
+    }
+}
 
 //#include "instantiate_templates.hpp"
 

@@ -463,11 +463,19 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command)
   return CC_OK; // get rid of warning
 }
 
-// execute OS shell command (interactive shell if command == "") 
+// execute OS shell command (interactive shell if command == "")
+// by Peter Messmer
 void DInterpreter::ExecuteShellCommand(const string& command)
 {
-  cout << "Not implemented yet: Execute shell command: " << command << endl;
+ // cout << "Not implemented yet: Execute shell command: " << command << endl;
+ string commandLine = command;
+ if(commandLine == "")
+   commandLine = getenv("SHELL");
+
+ system( commandLine.c_str());
 }
+
+
 
 string GetLine( ifstream* in)
 {

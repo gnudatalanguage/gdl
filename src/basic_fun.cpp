@@ -5,7 +5,8 @@
     copyright            : (C) 2002 by Marc Schellens (exceptions see below)
     email                : m_schellens@hotmail.com
 
- strtok_fun: (C) 2004 by Peter Messmer    
+ strtok_fun, getenv_fun, findfile_fun, tag_names_fun, stregex_fun:
+ (C) 2004 by Peter Messmer    
  
  ***************************************************************************/
 
@@ -29,6 +30,8 @@
 #include "basic_pro.hpp"
 #include "terminfo.hpp"
 #include "typedefs.hpp"
+
+#include <regex.h> // stregex
 
 #define GDL_DEBUG
 //#undef GDL_DEBUG
@@ -2015,132 +2018,6 @@ namespace lib {
   }
 
  
-  BaseGDL* strtok_fun( EnvT* e)
-  {
-    SizeT nParam=e->NParam( 1);
-    
-    DString stringIn;
-    e->AssureStringScalarPar( 0, stringIn);
-
-    DString pattern = " \t";
-    if(nParam > 1) {
-      e->AssureStringScalarPar( 1, pattern);
-    }
-    
-    static int extractIx = e->KeywordIx( "EXTRACT");
-    bool extract = e->KeywordSet( extractIx);
-
-    static int lengthIx = e->KeywordIx( "LENGTH");
-    bool lengthPresent = e->KeywordPresent( lengthIx);
-
-    if( extract && lengthPresent)
-      e->Throw( "Conflicting keywords.");
-    
-    static int pre0Ix = e->KeywordIx( "PRESERVE_NULL");
-    bool pre0 = e->KeywordSet( pre0Ix);
-
-    deque<long> tokenStart;
-    deque<long> tokenLen;
- 
-    int strLen = stringIn.length();
-
-    DString escape = "";
-    e->AssureStringScalarKWIfPresent( "ESCAPE", escape);
-    deque<long> escList;
-    long pos = 0;
-    while(pos != string::npos)
-      {
-	pos = stringIn.find_first_of( escape, pos);
-	if( pos != string::npos)
-	  {
-	    escList.push_back( pos+1); // remember escaped char
-	    pos += 2; // skip escaped char
-	  }
-      }
-    deque<long>::iterator escBeg = escList.begin();
-    deque<long>::iterator escEnd = escList.end();
-
-    long tokB = 0;
-    long nextE = 0;
-    for(;;)
-      {
-	long tokE = stringIn.find_first_of( pattern, nextE);
-	if( tokE == string::npos)
-	  {
-	    long actLen = strLen - tokB;
-	    if( actLen > 0 || pre0)
-	      {
-		tokenStart.push_back( tokB);
-		tokenLen.push_back( actLen);
-	      }
-	    break;
-	  }
-	
-	if( find( escBeg, escEnd, tokE) == escEnd) 
-	  { 
-	    long actLen = tokE - tokB;
-	    if( actLen > 0 || pre0)
-	      {
-		tokenStart.push_back( tokB);
-		tokenLen.push_back( actLen);
-	      }
-	    tokB = tokE+1;
-	  }
-
-	nextE = tokE+1;
-      } // for(;;)
-
-    SizeT nTok = tokenStart.size();
-
-    if( !extract)
-      {    
-	dimension dim(nTok);
-	if( lengthPresent) 
-	  {
-	    e->AssureGlobalKW( lengthIx);
-	    
-	    if( nTok > 0)
-	      {
-		DLongGDL* len = new DLongGDL(dim);
-		for(int i=0; i < nTok; i++)
-		  (*len)[i] = tokenLen[i];
-
-		e->SetKW( lengthIx, len);
-	      }
-	    else
-	      {
-		e->SetKW( lengthIx, new DLongGDL( 0));
-	      }
-	  }
-	
-	if( nTok == 0) return new DLongGDL( 0);
-    
-	DLongGDL* d = new DLongGDL(dim);
-	for(int i=0; i < nTok; i++)
-	  (*d)[i] = tokenStart[i];
-	return d; 
-      } 
-
-  // EXTRACT
-  if( nTok == 0) return new DStringGDL( "");
-
-  dimension dim(nTok);
-  DStringGDL *d = new DStringGDL(dim);
-  for(int i=0; i < nTok; i++) 
-  {
-    (*d)[i] = stringIn.substr(tokenStart[i], tokenLen[i]);	
-
-    // remove escape
-    DString& act = (*d)[i];
-    long escPos = act.find_first_of( escape, 0);
-    while( escPos != string::npos)
-	  {
-	    act = act.substr( 0, escPos)+act.substr( escPos+1);
-	    escPos = act.find_first_of( escape, escPos+1);
-	  }
-      }
-    return d;
-  }
 
   // helper function for sort_fun, recursive
   // optimized version
@@ -2686,6 +2563,287 @@ namespace lib {
 
     return dRes->Convert2( BYTE);
   } 
+
+  BaseGDL* strtok_fun( EnvT* e)
+  {
+    SizeT nParam=e->NParam( 1);
+    
+    DString stringIn;
+    e->AssureStringScalarPar( 0, stringIn);
+
+    DString pattern = " \t";
+    if(nParam > 1) {
+      e->AssureStringScalarPar( 1, pattern);
+    }
+    
+    static int extractIx = e->KeywordIx( "EXTRACT");
+    bool extract = e->KeywordSet( extractIx);
+
+    static int lengthIx = e->KeywordIx( "LENGTH");
+    bool lengthPresent = e->KeywordPresent( lengthIx);
+
+    if( extract && lengthPresent)
+      e->Throw( "Conflicting keywords.");
+    
+    static int pre0Ix = e->KeywordIx( "PRESERVE_NULL");
+    bool pre0 = e->KeywordSet( pre0Ix);
+
+    deque<long> tokenStart;
+    deque<long> tokenLen;
+ 
+    int strLen = stringIn.length();
+
+    DString escape = "";
+    e->AssureStringScalarKWIfPresent( "ESCAPE", escape);
+    deque<long> escList;
+    long pos = 0;
+    while(pos != string::npos)
+      {
+	pos = stringIn.find_first_of( escape, pos);
+	if( pos != string::npos)
+	  {
+	    escList.push_back( pos+1); // remember escaped char
+	    pos += 2; // skip escaped char
+	  }
+      }
+    deque<long>::iterator escBeg = escList.begin();
+    deque<long>::iterator escEnd = escList.end();
+
+    long tokB = 0;
+    long nextE = 0;
+    for(;;)
+      {
+	long tokE = stringIn.find_first_of( pattern, nextE);
+	if( tokE == string::npos)
+	  {
+	    long actLen = strLen - tokB;
+	    if( actLen > 0 || pre0)
+	      {
+		tokenStart.push_back( tokB);
+		tokenLen.push_back( actLen);
+	      }
+	    break;
+	  }
+	
+	if( find( escBeg, escEnd, tokE) == escEnd) 
+	  { 
+	    long actLen = tokE - tokB;
+	    if( actLen > 0 || pre0)
+	      {
+		tokenStart.push_back( tokB);
+		tokenLen.push_back( actLen);
+	      }
+	    tokB = tokE+1;
+	  }
+
+	nextE = tokE+1;
+      } // for(;;)
+
+    SizeT nTok = tokenStart.size();
+
+    if( !extract)
+      {    
+	dimension dim(nTok);
+	if( lengthPresent) 
+	  {
+	    e->AssureGlobalKW( lengthIx);
+	    
+	    if( nTok > 0)
+	      {
+		DLongGDL* len = new DLongGDL(dim);
+		for(int i=0; i < nTok; i++)
+		  (*len)[i] = tokenLen[i];
+
+		e->SetKW( lengthIx, len);
+	      }
+	    else
+	      {
+		e->SetKW( lengthIx, new DLongGDL( 0));
+	      }
+	  }
+	
+	if( nTok == 0) return new DLongGDL( 0);
+    
+	DLongGDL* d = new DLongGDL(dim);
+	for(int i=0; i < nTok; i++)
+	  (*d)[i] = tokenStart[i];
+	return d; 
+      } 
+
+  // EXTRACT
+  if( nTok == 0) return new DStringGDL( "");
+
+  dimension dim(nTok);
+  DStringGDL *d = new DStringGDL(dim);
+  for(int i=0; i < nTok; i++) 
+  {
+    (*d)[i] = stringIn.substr(tokenStart[i], tokenLen[i]);	
+
+    // remove escape
+    DString& act = (*d)[i];
+    long escPos = act.find_first_of( escape, 0);
+    while( escPos != string::npos)
+	  {
+	    act = act.substr( 0, escPos)+act.substr( escPos+1);
+	    escPos = act.find_first_of( escape, escPos+1);
+	  }
+      }
+    return d;
+  }
+
+  BaseGDL* getenv_fun( EnvT* e)
+  {
+    SizeT nParam=e->NParam();
+
+    static int environmentIx = e->KeywordIx( "ENVIRONMENT" );
+    bool environment = e->KeywordSet( environmentIx );
+  
+    SizeT nEnv; 
+    DStringGDL* env;
+
+    if(environment) {
+      // determine number of environment entries
+      for(nEnv = 0; environ[nEnv] != NULL  ; ++nEnv);
+
+      dimension dim( nEnv );
+      env = new DStringGDL(dim);
+
+      // copy stuff into local string array
+      for(SizeT i=0; i < nEnv ; ++i)
+        (*env)[i] = environ[i];
+
+    } else {
+
+      if(nParam != 1) 
+        e->Throw( "Incorrect number of arguments.");
+
+      DStringGDL* name = e->GetParAs<DStringGDL>(0);
+      nEnv = name->N_Elements();
+
+      dimension dim( nEnv );
+      env = new DStringGDL(dim);
+ 
+      // copy the stuff into local string only if param found
+      char *resPtr;
+      for(SizeT i=0; i < nEnv ; ++i){
+	if( (resPtr = getenv((*name)[i].c_str())) ) 
+	  (*env)[i] = resPtr;
+      }
+
+    }
+    
+    return env;
+  }
+
+  BaseGDL* tag_names_fun( EnvT* e)
+  {
+    SizeT nParam=e->NParam();
+    DStructGDL* struc= e->GetParAs<DStructGDL>(0);
+
+    static int structureNameIx = e->KeywordIx( "STRUCTURE_NAME" );
+    bool structureName = e->KeywordSet( structureNameIx );
+    
+    DStringGDL* tagNames;
+
+    if(structureName){
+        
+	tagNames =  new DStringGDL((*struc).Desc()->Name());
+    } else {
+      SizeT nTags = (*struc).Desc()->NTags();
+    
+      tagNames = new DStringGDL(dimension(nTags));
+      for(int i=0; i < nTags; ++i)
+        (*tagNames)[i] = (*struc).Desc()->TagName(i);
+    }
+
+    return tagNames;
+  }
+
+  BaseGDL* stregex_fun( EnvT* e)
+  {
+    SizeT nParam=e->NParam( 2);
+    
+    DStringGDL* stringExpr= e->GetParAs<DStringGDL>(0);
+    DString pattern;
+    e->AssureStringScalarPar(1, pattern);
+
+    static int booleanIx = e->KeywordIx( "BOOLEAN" );
+    bool booleanKW = e->KeywordSet( booleanIx );
+
+    static int extractIx = e->KeywordIx( "EXTRACT" );
+    bool extractKW = e->KeywordSet( extractIx );
+
+    static int foldCaseIx = e->KeywordIx( "FOLD_CASE" );
+    bool foldCaseKW = e->KeywordSet( foldCaseIx );
+
+    static int lengthIx = e->KeywordIx( "LENGTH" );
+    bool lengthKW = e->KeywordSet( lengthIx );
+   
+    static int subexprIx = e->KeywordIx( "SUBEXPR" );
+    bool subexprKW = e->KeywordSet( subexprIx );
+ 
+    if( (lengthKW &&  (booleanKW || extractKW))  ||
+        (subexprKW && booleanKW) ) 
+        e->Throw( "Conflicting keywords.");
+    if( subexprKW) 
+        e->Throw( "Subexpression not yet implemented.");
+
+  
+    int nStr = stringExpr->N_Elements();
+    dimension dim( nStr);
+
+    DLongGDL* len;
+    if( lengthKW) {
+      e->AssureGlobalKW( lengthIx);
+      len = new DLongGDL(dim);
+    } 
+    
+    BaseGDL* result;
+
+    if( booleanKW) 
+      result = new DByteGDL(dim);
+    else if( extractKW)
+      result = new DStringGDL(dim); 
+    else 
+      result = new DLongGDL(dim); 
+ 
+    // compile the regular expression
+    regex_t regexp;
+    int cflags = 0;
+    int compRes = regcomp( &regexp, pattern.c_str(), cflags);
+
+    regmatch_t pmatch[1];
+    int nmatch = 1;
+    int eflags = 0; 
+ 
+    // now match towards the string
+    for(SizeT i=0; i<nStr; ++i){ 
+
+       int matchres = regexec( &regexp, (*stringExpr)[i].c_str(), 
+         nmatch, pmatch, eflags);
+
+       if( booleanKW) 
+	   (* static_cast<DByteGDL*>(result))[i] = (matchres == 0);
+       else if ( extractKW)
+           (* static_cast<DStringGDL*>(result))[i] = (*stringExpr)[i].substr(
+               pmatch[0].rm_so, pmatch[0].rm_eo - pmatch[0].rm_so);
+       else
+           (* static_cast<DLongGDL*>(result))[i] = (matchres == 0) ? 1 : -1;
+       
+
+       if( lengthKW)
+           (*len)[i] = pmatch[0].rm_eo - pmatch[0].rm_so;
+    }
+
+   regfree( &regexp);
+
+   if( lengthKW)
+     e->SetKW( lengthIx, len);    
+
+   return result;
+  }
+
+
 
 } // namespace
 

@@ -106,8 +106,6 @@ namespace lib {
 
   BaseGDL* transpose( EnvT* e);
 
-  BaseGDL* strtok_fun( EnvT* e); // strsplit
-
   BaseGDL* sort_fun( EnvT* e);
 
   BaseGDL* shift_fun( EnvT* e);
@@ -128,6 +126,13 @@ namespace lib {
   BaseGDL* n_tags( EnvT* e);
 
   BaseGDL* bytscl( EnvT* e);
+
+  // the following by Peter Messmer 
+  // (messmer@users.sourceforge.net)
+  BaseGDL* strtok_fun( EnvT* e); // strsplit
+  BaseGDL* getenv_fun( EnvT* e);
+  BaseGDL* tag_names_fun( EnvT* e);
+  BaseGDL* stregex_fun( EnvT* e);
 
 } // namespace
 

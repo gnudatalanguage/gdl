@@ -29,6 +29,7 @@
 #include "dpro.hpp"
 
 #include "basic_fun.hpp"
+#include "basic_pro.hpp"
 
 #ifdef USE_HDF5
 #include "hdf5_fun.hpp"
@@ -44,6 +45,23 @@ void LibInit_mes()
   const string strtokKey[]={"EXTRACT","ESCAPE","LENGTH",
 			    "PRESERVE_NULL",KLISTEND};
   new DLibFun(lib::strtok_fun, string("STRTOK"), 2, strtokKey);
+
+
+  new DLibPro(lib::setenv_pro, string("SETENV"), 1);
+
+  const string getenvKey[]={"ENVIRONMENT", KLISTEND};
+  new DLibFun(lib::getenv_fun, string("GETENV"), 1, getenvKey);
+  
+  const string tagNamesKey[] = {"STRUCTURE_NAME", KLISTEND};
+  new DLibFun(lib::tag_names_fun, string("TAG_NAMES"), 1, tagNamesKey);
+
+  const string stregexKey[] = {"BOOLEAN", "EXTRACT", "LENGTH",
+         "SUBEXPR", "FOLD_CASE", KLISTEND};
+  new DLibFun(lib::stregex_fun, string("STREGEX"), 2, stregexKey);
+ 
+  const string structAssignKey[] = {"NOZERO", "VERBOSE", KLISTEND};
+  new DLibPro(lib::struct_assign_pro, string("STRUCT_ASSIGN"), 2, structAssignKey);
+
   
 #ifdef USE_HDF5
   // hdf5 procedures/functions 

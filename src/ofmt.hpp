@@ -95,8 +95,8 @@ inline void OutFixedZero( std::ostream& os, int w, int d)
     os << std::setw( w) << "0.";
   else 
     {
-      os << std::setw( w-(d<=0?1:d)) << "0.";
-      for( int i=0; i<d; ++i) os << "0";
+      os << std::setw( w-(d<=0?1:d)+1) << "0.";
+      for( int i=1; i<d; ++i) os << "0";
     }
 }
 
