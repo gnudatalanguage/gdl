@@ -64,6 +64,8 @@ namespace lib {
 
   void message( EnvT* e);
 
+  void byteorder( EnvT* e);
+
 } // namespace
 
 #endif

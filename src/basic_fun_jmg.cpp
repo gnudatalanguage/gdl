@@ -302,15 +302,9 @@ namespace lib {
   template< typename T>
   BaseGDL* reform_template( EnvT* e, dimension dim)
   {
-    try{
-      T* res = static_cast<T*>( e->GetParDefined( 0)->Dup());
-      res->SetDim(dim);
-      return res;
-    }
-    catch( GDLException ex)
-      {
-	throw GDLException( e->CallingNode(), "REFORM: "+ex.getMessage());
-      }
+    T* res = static_cast<T*>( e->GetParDefined( 0)->Dup());
+    res->SetDim(dim);
+    return res;
   }
 
   BaseGDL* reform( EnvT* e)
@@ -338,12 +332,16 @@ namespace lib {
 
 
     if (dim.N_Elements() != nEl) 
-      throw GDLException( e->CallingNode(),
-                          "REFORM: New subscripts must not change the number elements in " 
-			  + e->Caller()->GetString( p0));
+      e->Throw( "New subscripts must not change the number elements in " 
+		+ e->Caller()->GetString( p0));
 
 
     if (e->KeywordSet( "OVERWRITE")) {
+
+      // make a copy if p0 is not global
+      if( !e->GlobalPar( 0))
+	p0 = p0->Dup();
+
       p0->SetDim(dim);
       return p0;
     }

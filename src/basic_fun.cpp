@@ -746,28 +746,11 @@ namespace lib {
 		  " expression is out of range: "+e->GetParString(0));
       }
 
-    // do a bytewise copy, element per element (honors alignment)
-    // slow but safe
-    SizeT endByte = offs+nByteCreate;
-    const SizeT srcMod = p0->Sizeof();
-    const SizeT dstMod = res->Sizeof();
-    for( SizeT b=offs; b<endByte; b++)
-      {
-	SizeT sM = b % srcMod;
-	SizeT dM = b % dstMod;
-	SizeT sI = b / srcMod;
-	SizeT dI = b / dstMod;
-
-	char* srcAddr = static_cast<char*>(static_cast<void*>(p0->DataAddr( sI)));
- 	char* dstAddr = static_cast<char*>(static_cast<void*>(&(*res)[dI]));
-	
-	*(dstAddr+dM) = *(srcAddr+sM);
-      }
-
-//     //*** POSSIBLE ERROR because of alignment here
-//     void* srcAddr = static_cast<void*>(p0->DataAddr());
-//     void* dstAddr = static_cast<void*>(&(*res)[0]);
-//     memcpy( dstAddr, srcAddr, nByteCreate);
+    //*** POSSIBLE ERROR because of alignment here
+    void* srcAddr = static_cast<void*>( static_cast<char*>(p0->DataAddr()) + 
+					offs);
+    void* dstAddr = static_cast<void*>(&(*res)[0]);
+    memcpy( dstAddr, srcAddr, nByteCreate);
 
 //     char* srcAddr = reinterpret_cast<char*>(p0->DataAddr());
 //     char* dstAddr = reinterpret_cast<char*>(&(*res)[0]);
@@ -2623,6 +2606,29 @@ namespace lib {
     
     return res;
   }
+
+  BaseGDL* n_tags( EnvT* e)
+  {
+    e->NParam( 1);
+
+    BaseGDL* p0 = e->GetPar( 0);
+    if( p0 == NULL)
+      return new DLongGDL( 0);
+    
+    if( p0->Type() != STRUCT)
+      return new DLongGDL( 0);
+    
+    DStructGDL* s = static_cast<DStructGDL*>( p0);
+
+    static int lengthIx = e->KeywordIx( "LENGTH");
+    bool length = e->KeywordSet( lengthIx);
+    
+    if( length)
+      return new DLongGDL( s->NBytes() / s->N_Elements());
+
+    return new DLongGDL( s->Desc()->NTags());
+  }
+
 
 } // namespace
 

@@ -125,6 +125,8 @@ namespace lib {
   BaseGDL* obj_class( EnvT* e);
   BaseGDL* obj_isa( EnvT* e);
 
+  BaseGDL* n_tags( EnvT* e);
+
 } // namespace
 
 #endif

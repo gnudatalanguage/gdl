@@ -680,5 +680,56 @@ namespace lib {
       cout << msg << endl;
   }
 
+  void byteorder( EnvT* e)
+  {
+    SizeT nParam = e->NParam( 1);
+
+    //    static int sswapIx = e->KeywordIx( "SSWAP");
+    static int lswapIx = e->KeywordIx( "LSWAP");
+    static int l64swapIx = e->KeywordIx( "L64SWAP");
+    static int ifBigIx = e->KeywordIx( "SWAP_IF_BIG_ENDIAN");
+    static int ifLittleIx = e->KeywordIx( "SWAP_IF_LITTLE_ENDIAN");
+
+    bool lswap = e->KeywordSet( lswapIx);
+    bool l64swap = e->KeywordSet( l64swapIx);
+    bool ifBig = e->KeywordSet( ifBigIx);
+    bool ifLittle = e->KeywordSet( ifLittleIx);
+  
+    if( ifBig && !BigEndian()) return;
+    if( ifLittle && BigEndian()) return;
+
+    for( DLong p=nParam-1; p>=0; --p)
+      {
+	BaseGDL* par = e->GetParDefined( p);
+	if( !e->GlobalPar( p))
+	  e->Throw( "Expression must be named variable in this context: "+
+		    e->GetParString(p));		    
+
+	SizeT nBytes = par->NBytes();
+	char* addr = static_cast<char*>(par->DataAddr());
+	
+	SizeT swapSz = 2; 
+	if( l64swap)
+	  swapSz = 8;
+	else if( lswap)
+	  swapSz = 4;
+
+	if( nBytes % swapSz != 0)
+	  e->Throw( "Operand's size must be a multiple of swap "
+		    "datum size: " + e->GetParString(p));		    
+	    
+	SizeT nSwap = nBytes / swapSz;
+
+	for( SizeT i=0; i<nSwap; ++i)
+	  {
+	    for( SizeT s=0; s < (swapSz/2); ++s)
+	      {
+		char tmp = *(addr+i*swapSz+s);
+		*(addr+i*swapSz+s) = *(addr+i*swapSz+swapSz-1-s);
+		*(addr+i*swapSz+swapSz-1-s) = tmp;
+	      }
+	  }
+      }
+  }
   
 } // namespace

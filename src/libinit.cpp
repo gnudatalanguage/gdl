@@ -49,6 +49,14 @@ void LibInit()
 {
   const char KLISTEND[] = "";
 
+  const string n_tagsKey[]={"LENGTH",KLISTEND};
+  new DLibFun(lib::n_tags,string("N_TAGS"),1,n_tagsKey);
+  
+  const string byteorderKey[]={"SSWAP","LSWAP","L64SWAP",
+			       "SWAP_IF_BIG_ENDIAN",
+			       "SWAP_IF_LITTLE_ENDIAN",KLISTEND};
+  new DLibPro(lib::byteorder,string("BYTEORDER"),-1,byteorderKey);
+
   const string obj_classKey[]={"COUNT","SUPERCLASS",KLISTEND};
   new DLibFun(lib::obj_class,string("OBJ_CLASS"),1,obj_classKey);
 
