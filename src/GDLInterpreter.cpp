@@ -1251,6 +1251,7 @@ void GDLInterpreter::decinc_statement(RefDNode _t) {
 			delete returnValue;
 			returnValue=e;
 			retCode=RC_RETURN;
+			callStack.back()->RemoveLoc( e); // steal e from local list
 			
 		}
 		else if ((_tokenSet_1.member(_t->getType()))) {

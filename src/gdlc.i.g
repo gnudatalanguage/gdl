@@ -1027,6 +1027,7 @@ BaseGDL** eL;
                     delete returnValue;
                     returnValue=e;
                     retCode=RC_RETURN;
+                    callStack.back()->RemoveLoc( e); // steal e from local list
                 }
             | eL=l_ret_expr
                 {

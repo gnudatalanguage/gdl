@@ -204,6 +204,11 @@ function ret3,b
 return,ret2(b)
 end
 
+function retOverwrite
+a=[['m','a'],['r','c']]
+return,reform(a,4,/OVERWRITE)
+end
+
 pro ret_test
 
 if ret99() ne 99.0 then print,'***RET: ERROR1'
@@ -218,6 +223,9 @@ if u3 ne 7 then print,'***RET: ERROR5'
 s={t:0}
 if retTag(s) ne 3 then print,'***RET: ERROR6'
 ;(ret(s))=2
+
+n = retOverwrite()
+if n[2] ne "r" then print,'***RET: ERROR7'
 
 print,'RET: OK';
 end

@@ -48,6 +48,16 @@ public:
     return false;
   }
 
+  void RemoveLoc( BaseGDL* p) 
+  {
+    for( SizeT i=0; i<loc.size(); i++)
+      if( loc[i] == p)
+	{
+	  loc[i] = NULL;
+	  return;
+	}
+  }
+
   void push_back( BaseGDL* p)
   {
     loc.push_back(p);

@@ -81,7 +81,8 @@ public:
   ~EnvT()
   {
     for( std::vector<BaseGDL*>::iterator i=toDestroy.begin();
-	 i != toDestroy.end(); ++i) delete *i;
+	 i != toDestroy.end(); ++i) 
+      delete *i;
   }
 
   SizeT NJump() { return nJump;}
@@ -101,6 +102,7 @@ public:
   bool IsLocalKW( BaseGDL** pp) const { return env.InLoc( pp);}
   // to check if a lib function returned a variable of this env
   bool Contains( BaseGDL* p) const { return env.Contains( p);}
+  void RemoveLoc( BaseGDL* p) { env.RemoveLoc( p);}
   SizeT NewObjHeap( SizeT n=1, DStructGDL* v=NULL);
   SizeT NewHeap( SizeT n=1, BaseGDL* v=NULL);
   void FreeObjHeap( DObj id);

@@ -90,7 +90,8 @@ namespace lib {
 
 	RefFMTNode fmtAST = GetFMTAST( fmtString);
 
-	FMTOut Formatter( fmtAST, os, e, parOffset); // formatted output ignores WIDTH
+	// formatted output ignores WIDTH
+	FMTOut Formatter( fmtAST, os, e, parOffset); 
       }
     else // default-format output
       {
@@ -106,14 +107,12 @@ namespace lib {
 	for( SizeT i=parOffset; i<nParam; i++)
 	  {
 	    par=e->GetParDefined( i);
-       //     cout << ":";
 	    par->ToStream( *os, width, &actPos);
-      //      cout << ":"<<endl;
 	  }
         bool singleNullChar = (par->Type() == STRING && 
-                      (*static_cast<DStringGDL*>(par))[0] == "");
+			       (*static_cast<DStringGDL*>(par))[0] == "");
 	if( (par->Dim().Rank() == 0 && !singleNullChar) || 
-	     par->Type() == STRUCT) (*os) << endl;
+	    par->Type() == STRUCT) (*os) << endl;
       }
   }
 
