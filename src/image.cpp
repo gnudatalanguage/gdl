@@ -176,7 +176,9 @@ namespace lib {
 	    exit( EXIT_FAILURE);
 	  }
       }
-    
+
+    actStream->NextPlot( false);
+
     int xSize, ySize, xPos, yPos;
     int actWin = actDevice->ActWin();
     bool success = actDevice->WSize( actWin, &xSize, &ySize, &xPos, &yPos);

@@ -112,8 +112,11 @@
 	  Allow library functions to return their own parameters if used
 	  in a return statement.
 	  Allow library functions as l-functions.
+	  Fixed assignment to indexed array at one position (insert at) for
+	  indices which are 0.
 	  Cleaned up Compiler/Interpreter.
 	  Added NAN keywords to BYTSCL, MIN, MAX.
 	  Added SUBSCRIPT_MIN/MAX keywords to MAX/MIN.
 	  Added NTOHL, NTOHS, HTONL, HTONS keywords to BYTEORDER.
-	  
+
+	
