@@ -34,6 +34,8 @@
 #include "print_tree.hpp"
 #endif
 
+#include <assert.h>
+
 using namespace std;
 
 DCompiler::DCompiler(const string& f, EnvT* e, const std::string& sub)
@@ -53,6 +55,14 @@ DCompiler::~DCompiler()
     }
   else
     delete pro; // NULL or failed to compile function/procedure
+
+  // delete common blocks which are not added to commonList
+  // due to compile error
+  CommonListT::iterator it;
+  for( it=ownCommonList.begin(); it !=ownCommonList.end(); ++it)
+    {
+      delete *it;
+    }
 }
 
 void DCompiler::ForwardFunction(const string& s) // add to function list
@@ -76,10 +86,8 @@ void DCompiler::AddKey(const string& K,const string& V)   // add keyword,valName
   pro->AddKey(K,V);
 }
 
-void DCompiler::EndFunPro()   // resolve gotos
+void DCompiler::EndFunPro()   // resolve gotos, add common blocks
 {
-  const string& name=pro->ObjectName();
-
   if( labelList.size() > 0)
     {
       LabelListT& ll = pro->LabelList();
@@ -91,7 +99,8 @@ void DCompiler::EndFunPro()   // resolve gotos
 
 	  int proLabelIx = ll.Find( gotoLabel);
 	  if( proLabelIx == -1)
-	    throw( GDLException(name+": Undefined label "+gotoLabel+
+	    throw( GDLException(pro->ObjectName()+
+				": Undefined label "+gotoLabel+
 				" referenced in GOTO statement."));
 	  
 	  deque<RefDNode>& gotoNodes = (*i).second;
@@ -105,6 +114,11 @@ void DCompiler::EndFunPro()   // resolve gotos
       // clear for next subroutine
       labelList.clear();
     }
+
+  for( CommonListT::iterator c = ownCommonList.begin();
+       c != ownCommonList.end(); ++c)
+    commonList.push_back( *c);
+  ownCommonList.clear(); // not responsible anymore
 }
 
 void DCompiler::StartPro(const string& n,const string& o)
@@ -224,13 +238,15 @@ void DCompiler::EndFun() // inserts in funList
   if( env != NULL) pro=dynamic_cast<DSubUD*>(env->GetPro()); else pro=NULL;
 }
 
-DCommon* DCompiler::Common(const string& n) // returns common block with name n
+// returns common block with name n
+DCommon* DCompiler::Common(const string& n) 
 {
   CommonListT::iterator f=find_if(commonList.begin(),
 				  commonList.end(),
 				  DCommon_eq(n));
   if( f != commonList.end()) return *f;
-  return NULL;
+  
+  return NULL; //pro->Common( n);
 }
   
 // Common block (re)definition (variables provided)
@@ -238,9 +254,16 @@ DCommonBase* DCompiler::CommonDef(const string& N)
 {
   // search for common block
   DCommonBase* c=Common(N);
-  if( !c) 
-    { // not there -> create new
+
+  // look also in actual subroutine
+  if( c == NULL) 
+      c = pro->Common( N);
+
+  if( c == NULL) 
+    { 
+      // not there -> create new
       c=new DCommon(N);
+      ownCommonList.push_back( static_cast<DCommon*>(c));
     }
   else 
     { // already there -> create reference
@@ -251,12 +274,25 @@ DCommonBase* DCompiler::CommonDef(const string& N)
   return c;
 }
 
+void DCompiler::CommonVar(DCommonBase* c, const string& N)
+{
+  if( pro->Find(N))
+    {
+      DCommonBase* c1st = pro->FindCommon( N);
+      // several definition/declaration of the same common block are ok
+      if( c1st == NULL || c1st->Name() != c->Name())
+	throw( GDLException("Variable: "+N+" ("+c->Name()+") already defined"
+			    " with a conficting definition."));
+    }
+  c->AddVar(N);
+}
+
 // Common block declaration (no variables provided)
 void DCompiler::CommonDecl(const string& N) 
 {
   // search for common block
   DCommon* c=Common(N);
-  if( !c)
+  if( c == NULL)
     {
       throw( GDLException("Common block: "+N+" must contain variables."));
     }
@@ -267,23 +303,15 @@ void DCompiler::CommonDecl(const string& N)
       DVar* cVar=c->Var(u); // variable from common block
       if( pro->Find(cVar->Name()))
 	{
-	  throw( GDLException("Variable: "+cVar->Name()+
-			      " ("+N+") already defined"
-			      " with a conficting definition."));
+	  DCommonBase* c1st = pro->FindCommon( cVar->Name());
+	  // several definition/declaration of the same common block are ok
+	  if( c1st == NULL || c1st->Name() != c->Name())
+	    throw( GDLException("Variable: "+cVar->Name()+
+				" ("+N+") already defined"
+				" with a conficting definition."));
 	}
     }
   pro->AddCommon(c);
-}
-
-void DCompiler::CommonVar(DCommonBase* c, const string& N)
-{
-  bool v=pro->Find(N);
-  if( v) 
-    {
-      throw( GDLException("Variable: "+N+" ("+c->Name()+") already defined"
-			  " with a conficting definition."));
-    }
-  c->AddVar(N);
 }
 
 RefDNode DCompiler::ByReference(RefDNode n)
@@ -344,14 +372,10 @@ void DCompiler::SysVar(RefDNode n)
 
 void DCompiler::SetTree(RefDNode n)
 {
+  assert( pro != NULL);
+
 #ifdef GDL_DEBUG
   cout << "Setting procedure/function tree:" << endl;
-  if( pro != NULL)
-    {
-      cout << "Subroutine: " << pro->Name() << endl;
-    }
-  else cout << "pro == NULL" << endl;
-
   antlr::print_tree pt;
   pt.pr_tree(static_cast<antlr::RefAST>( n));
   cout << endl;

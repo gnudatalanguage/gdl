@@ -129,19 +129,18 @@ DLibFun::DLibFun( LibFun f, const string& n, const int nPar_,
 // DSubUD ****************************************************
 DSubUD::~DSubUD()
 {
-  // delete only common references (but not common blocks)
-  deque<DCommonBase*>::iterator it;
-  for( it=common.begin(); it !=common.end(); it++)
+  // delete only common references (common blocks only if owner)
+  CommonBaseListT::iterator it;
+  for( it=common.begin(); it !=common.end(); ++it)
     {
       DCommonRef* cRef=dynamic_cast<DCommonRef*>(*it);
-      // here a check for NULL is necessary (RTTY)
-      if( cRef) delete cRef;
-      *it=0;
+      delete cRef; // also ok if cRef is NULL
     }
 }
 
 DSubUD::DSubUD(const string& n,const string& o,const string& f) : 
-  DSub(n,o), file(f), tree( static_cast<RefDNode>(antlr::nullAST)),
+  DSub(n,o), file(f),
+  tree( static_cast<RefDNode>(antlr::nullAST)),
   labelList()
 {
   if( o != "")

@@ -227,7 +227,7 @@ public:
   ~DSubUD(); 
 
   void AddCommon(DCommonBase* c) { common.push_back(c);}
-
+  
   LabelListT& LabelList() { return labelList;}
   DNode* GotoTarget( int ix) { return labelList.Get( ix);} 
 //   int LabelOrd( int ix) { return labelList.GetOrd( ix);} 
@@ -253,6 +253,25 @@ public:
       std::find_if(common.begin(),common.end(),DCommon_contains_var(n));
 
     return (c != common.end());
+  }
+
+  // returns common block with name n
+  DCommon* Common(const std::string& n)
+  {
+    CommonBaseListT::iterator c = common.begin();
+    for(; c != common.end(); ++c)
+      if( dynamic_cast< DCommon*>( *c) != NULL && (*c)->Name() == n)
+	return static_cast< DCommon*>( *c);
+    return NULL;
+  }
+
+  // returns common block which holds variable n
+  DCommonBase* FindCommon(const std::string& n)
+  {
+    CommonBaseListT::iterator c=
+      std::find_if(common.begin(),common.end(),DCommon_contains_var(n));
+
+    return (c != common.end())? *c : NULL;
   }
 
   const std::string& GetVarName( SizeT ix)

@@ -24,8 +24,8 @@
 
 #include "basegdl.hpp" // DLong
 
-#define GDL_DEBUG
-//#undef GDL_DEBUG
+//#define GDL_DEBUG
+#undef GDL_DEBUG
 
 #ifdef GDL_DEBUG
 #include <iostream>
@@ -33,16 +33,13 @@
 
 std::string GetEnvString(const char* env);
 
+// convert something to string
 template <typename T>
-inline std::string i2s( T i, SizeT w = 0)      // convert something to string
+inline std::string i2s( T i, SizeT w = 0)      
 {
-  //  static ostringstream os;
-  //  string initStr("");
-  //  os.str( initStr);
   std::ostringstream os;
   os.width(w);
   os << i;
-  //  os << std::setw(w) << i;
   return os.str();
 }
 

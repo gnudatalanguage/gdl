@@ -21,6 +21,8 @@
 #include "GDLInterpreter.hpp"
 #include "envt.hpp"
 
+#include <assert.h> // always as last
+
 using namespace std;
 
 EnvT::EnvT( GDLInterpreter* ipr, RefDNode cN, DSub* pro_, bool lF): 
@@ -449,24 +451,9 @@ void EnvT::OnError()
 
 int EnvT::KeywordIx( const std::string& k)
 {
-#ifdef GDL_DEBUG
-  if( pro == NULL)
-    {
-      std::cerr << "EnvT: Internal error: pro not set. Keyword: " << 
-	k << std::endl;
-      exit( EXIT_FAILURE);
-    }
-  int ix = pro->FindKey( k);
-  if( ix == -1)
-    {
-      std::cerr << "EnvT: Internal error: Keyword " << k << 
-	" not allowed in call to " << pro->Name() << std::endl;
-      exit( EXIT_FAILURE);
-    }
-  return ix;
-#else
+  assert( pro != NULL);
+  assert( pro->FindKey( k) != -1);
   return pro->FindKey( k);
-#endif
 }
 
 const string EnvT::GetString( SizeT ix)
@@ -523,11 +510,8 @@ BaseGDL*& EnvT::GetParGlobal(SizeT pIx)
 
 SizeT EnvT::NParam( SizeT minPar)
 {
-#ifdef GDL_DEBUG
-  DLib* libPro=dynamic_cast<DLib*>(pro);
-  if( libPro == NULL)
-    Warning(pro->ObjectName()+": NParam() called on non lib pro/fun.");
-#endif
+  assert( pro != NULL);
+
   SizeT nPar = parIx - pro->key.size();
   
   if( nPar < minPar)
@@ -624,14 +608,8 @@ int EnvT::GetKeywordIx( const std::string& k)
 // for use within library functions
 bool EnvT::KeywordSet( const std::string& kw)
 {
-#ifdef GDL_DEBUG
-  if( pro == NULL)
-    {
-      std::cerr << "EnvT: Internal error: pro not set. KeywordSet: " << 
-	kw << std::endl;
-      exit( EXIT_FAILURE);
-    }
-#endif
+  assert( pro != NULL);
+
   int ix=pro->FindKey( kw);
   if( ix == -1) return false;
   return KeywordSet( static_cast<SizeT>(ix));

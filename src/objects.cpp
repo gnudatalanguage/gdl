@@ -84,6 +84,7 @@ void InitStructs()
   SpDByte   aByte;
   SpDLong64 aLong64;
   SpDFloat  aFloat;
+  SpDDouble aDouble;
 
   DStructDesc* fstat = new DStructDesc( "FSTAT");
   fstat->AddTag("UNIT", &aLong);
@@ -122,6 +123,23 @@ void InitStructs()
   machar->AddTag("XMAX", &aFloat);
   // insert into structList
   structList.push_back( machar);
+
+  DStructDesc* dmachar = new DStructDesc( "DMACHAR");
+  dmachar->AddTag("IBETA", &aLong);
+  dmachar->AddTag("IT", &aLong);
+  dmachar->AddTag("IRND", &aLong);
+  dmachar->AddTag("NGRD", &aLong);
+  dmachar->AddTag("MACHEP", &aLong);
+  dmachar->AddTag("NEGEP", &aLong);
+  dmachar->AddTag("IEXP", &aLong);
+  dmachar->AddTag("MINEXP", &aLong);
+  dmachar->AddTag("MAXEXP", &aLong);
+  dmachar->AddTag("EPS", &aDouble);
+  dmachar->AddTag("EPSNEG", &aDouble);
+  dmachar->AddTag("XMIN", &aDouble);
+  dmachar->AddTag("XMAX", &aDouble);
+  // insert into structList
+  structList.push_back( dmachar);
 }
 
 void InitObjects()

@@ -354,6 +354,8 @@ end
 
 pro common_test
 common tc,a,b,c
+common tc,d,e,f
+common tc
 
 a=3
 ct1
@@ -362,9 +364,15 @@ ct2
 if a ne 3 then print,'***COMMON: ERROR4'
 if b ne 7 then print,'***COMMON: ERROR5'
 if c ne 9 then print,'***COMMON: ERROR6'
+if d ne 3 then print,'***COMMON: ERROR7'
+if e ne 7 then print,'***COMMON: ERROR8'
+if f ne 9 then print,'***COMMON: ERROR9'
+if x ne 3 then print,'***COMMON: ERROR10'
+if y ne 7 then print,'***COMMON: ERROR11'
+if z ne 9 then print,'***COMMON: ERROR12'
 
 (ct3()) = 2
-if ct3() ne 2 then print,'***COMMON: ERROR7'
+if ct3() ne 2 then print,'***COMMON: ERROR13'
 
 print,'COMMON: OK'
 end

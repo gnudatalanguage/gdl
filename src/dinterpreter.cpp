@@ -278,12 +278,9 @@ bool GDLInterpreter::CompileFile(const string& f, const string& untilPro)
     }
 
 #ifdef GDL_DEBUG
-  //string strlist=theAST->toStringList();
-  //cout << strlist  << endl;
   cout << "Parser output:" << endl;
   antlr::print_tree pt;
   pt.pr_tree(static_cast<antlr::RefAST>(theAST));
-  //  cout << endl;
   cout << "Parser end." << endl;
 #endif
   
@@ -318,7 +315,6 @@ bool GDLInterpreter::CompileFile(const string& f, const string& untilPro)
 #ifdef GDL_DEBUG
   cout << "Tree parser output:" << endl;
   pt.pr_tree(static_cast<antlr::RefAST>(trAST));
-  //  cout << endl;
   cout << "Tree parser end." << endl;
 #endif
   
@@ -596,7 +592,6 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( ifstream* in)
 #ifdef GDL_DEBUG
   cout << "Tree parser output:" << endl;
   pt.pr_tree(static_cast<antlr::RefAST>(trAST));
-  //  cout << endl;
   cout << "Tree parser end." << endl;
 #endif
 
@@ -688,7 +683,11 @@ string DInterpreter::GetLine()
     lineEdit = false;
     sigControlC = false; // reset all control-c which occured during line editing
     
-    if( !cline) exit( EXIT_SUCCESS); //break; // readline encountered eof
+    if( !cline) 
+      {
+	cout << endl;
+	exit( EXIT_SUCCESS); //break; // readline encountered eof
+      }
     
     // make a string
     line = cline;

@@ -28,7 +28,7 @@ using namespace std;
 DCommon::DCommon(const string& n) : name(n)
 {
   // auto insert self into list of common blocks
-  commonList.push_back(this);
+  // now done when subroutine compiles ok // commonList.push_back(this);
 }
 
 DCommon::~DCommon()

@@ -159,34 +159,57 @@ namespace lib {
   BaseGDL* machar_fun( EnvT* e)
   {
     long int ibeta, it, irnd, ngrd, machep, negep, iexp, minexp, maxexp;
-    float eps, epsneg, xmin, xmax;
+    float  eps, epsneg, xmin, xmax;
+    double epsD, epsnegD, xminD, xmaxD;
+    
+    if( e->KeywordSet( "DOUBLE"))
+      {
+	machar_d(&ibeta, &it, &irnd, &ngrd, &machep, 
+		 &negep, &iexp, &minexp, &maxexp, 
+		 &epsD, &epsnegD, &xminD, &xmaxD );
 
-    // not necessary (maximum number of paramters is checked by interpreter
-//     SizeT nParam=e->NParam();
-//     if( nParam != 0) {
-//       throw GDLException( e->CallingNode(), 
-// 			  "MACHAR: Incorrect number of arguments");
-//     }
-    DStructGDL*  machar = new DStructGDL( "MACHAR");
+	DStructGDL*  machar = new DStructGDL( "MACHAR");
 
-    machar_s(&ibeta, &it, &irnd, &ngrd, &machep, &negep, &iexp, &minexp, &maxexp, 
-	     &eps, &epsneg, &xmin, &xmax );
+	machar->InitTag("IBETA", DLongGDL(ibeta));
+	machar->InitTag("IT", DLongGDL(it));
+	machar->InitTag("IRND", DLongGDL(irnd));
+	machar->InitTag("NGRD", DLongGDL(ngrd));
+	machar->InitTag("MACHEP", DLongGDL(machep));
+	machar->InitTag("NEGEP", DLongGDL(negep));
+	machar->InitTag("IEXP", DLongGDL(iexp));
+	machar->InitTag("MINEXP", DLongGDL(minexp));
+	machar->InitTag("MAXEXP", DLongGDL(maxexp));
+	machar->InitTag("EPS", DDoubleGDL(epsD));
+	machar->InitTag("EPSNEG", DDoubleGDL(epsnegD));
+	machar->InitTag("XMIN", DDoubleGDL(xminD));
+	machar->InitTag("XMAX", DDoubleGDL(xmaxD));
 
-    machar->InitTag("IBETA", DLongGDL(ibeta));
-    machar->InitTag("IT", DLongGDL(it));
-    machar->InitTag("IRND", DLongGDL(irnd));
-    machar->InitTag("NGRD", DLongGDL(ngrd));
-    machar->InitTag("MACHEP", DLongGDL(machep));
-    machar->InitTag("NEGEP", DLongGDL(negep));
-    machar->InitTag("IEXP", DLongGDL(iexp));
-    machar->InitTag("MINEXP", DLongGDL(minexp));
-    machar->InitTag("MAXEXP", DLongGDL(maxexp));
-    machar->InitTag("EPS", DFloatGDL(eps));
-    machar->InitTag("EPSNEG", DFloatGDL(epsneg));
-    machar->InitTag("XMIN", DFloatGDL(xmin));
-    machar->InitTag("XMAX", DFloatGDL(xmax));
+	return machar;
+      }
+    else
+      {
+	machar_s(&ibeta, &it, &irnd, &ngrd, &machep, 
+		 &negep, &iexp, &minexp, &maxexp, 
+		 &eps, &epsneg, &xmin, &xmax );
 
-    return machar;
+	DStructGDL*  machar = new DStructGDL( "MACHAR");
+
+	machar->InitTag("IBETA", DLongGDL(ibeta));
+	machar->InitTag("IT", DLongGDL(it));
+	machar->InitTag("IRND", DLongGDL(irnd));
+	machar->InitTag("NGRD", DLongGDL(ngrd));
+	machar->InitTag("MACHEP", DLongGDL(machep));
+	machar->InitTag("NEGEP", DLongGDL(negep));
+	machar->InitTag("IEXP", DLongGDL(iexp));
+	machar->InitTag("MINEXP", DLongGDL(minexp));
+	machar->InitTag("MAXEXP", DLongGDL(maxexp));
+	machar->InitTag("EPS", DFloatGDL(eps));
+	machar->InitTag("EPSNEG", DFloatGDL(epsneg));
+	machar->InitTag("XMIN", DFloatGDL(xmin));
+	machar->InitTag("XMAX", DFloatGDL(xmax));
+
+	return machar;
+      }
   }
 
 #if 0

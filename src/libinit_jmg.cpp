@@ -67,7 +67,8 @@ void LibInit_jmg()
   new DLibFun(lib::histogram_fun,string("HISTOGRAM"),1,histogramKey);
 #endif
 
-  new DLibFun(lib::machar_fun,string("MACHAR"),0);
+  const string macharKey[]={"DOUBLE",KLISTEND};
+  new DLibFun(lib::machar_fun,string("MACHAR"),0,macharKey);
 
   const string finiteKey[]={"INFINITY",KLISTEND};
   new DLibFun(lib::finite_fun,string("FINITE"),1,finiteKey);
