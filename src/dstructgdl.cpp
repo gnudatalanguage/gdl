@@ -257,7 +257,7 @@ void DStructGDL::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
 	  if( nCp == 1)
 	    {
 	      //	      InsAt( src, ixList->GetDim());
-	      InsAt( src, ixList->GetDimIx( 0));
+	      InsAt( src, ixList);
 	    }
 	  else
 	    {
@@ -419,12 +419,17 @@ void DStructGDL::AddParent( DStructDesc* p)
 // inserts srcIn at ixDim
 // respects the exact structure
 // used by Assign -> old data must be freed
-void DStructGDL::InsAt( DStructGDL* srcIn, dimension ixDim)
+void DStructGDL::InsAt( DStructGDL* srcIn, ArrayIndexListT* ixList)
 {
+  SizeT nDim; // max. number of dimensions to copy
+  // ATTENTION: dimension is used as an index here
+  dimension ixDim = ixList->GetDimIx0( nDim);
+  nDim--;
+
   //const DStructGDL* srcArr=static_cast<const DStructGDL*>(srcIn->Convert2( t));
   dimension srcDim=srcIn->Dim();
     
-  SizeT nDim   =RankIx(ixDim.Rank());     // max. number of dimensions to copy
+  //  SizeT nDim   =RankIx(ixDim.Rank());
   SizeT srcNDim=RankIx(srcDim.Rank()); // number of source dimensions
   if( srcNDim < nDim) nDim=srcNDim;
     

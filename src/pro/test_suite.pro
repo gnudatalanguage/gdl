@@ -754,6 +754,29 @@ if c[0,1] ne 76 then print,"***OPERATOR: ERROR4"
 print,'OPERATORS: OK'
 end
 
+pro assignment_test
+
+c = indgen( 4, 4)
+
+t = intarr( 5, 5)
+t[0,0] = c
+if t[3,3] ne 15 then print,"***ASSIGNMENT: ERROR1"
+
+t = intarr( 5, 5)
+t[0,1] = c
+if t[3,3] ne 11 then print,"***ASSIGNMENT: ERROR2"
+
+t = intarr( 5, 5)
+t[1,0] = c
+if t[3,3] ne 14 then print,"***ASSIGNMENT: ERROR3"
+
+t = intarr( 5, 5)
+t[1,1] = c
+if t[3,3] ne 10 then print,"***ASSIGNMENT: ERROR4"
+
+print,"ASSIGNMENT: OK"
+end
+
 pro left_libfunction_test
 
 u=indgen(4)
@@ -792,6 +815,7 @@ expr_test
 recursion_test
 index_test
 operator_test
+assignment_test
 left_libfunction_test
 
 print,"TEST_SUITE finished."

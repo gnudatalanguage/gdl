@@ -1049,7 +1049,7 @@ Optional Packages:
   --with-Magick=DIR       use ImageMagick package (with optional path DIR)
   --with-netcdf=DIR       use netCDF package (with optional path DIR)
   --with-hdf=DIR          use HDF package (with optional path DIR)
-  --with-hdf5=DIR          use HDF5 package (with optional path DIR)
+  --with-hdf5=DIR         use HDF5 package (with optional path DIR)
   --with-python=DIR       use Python package (with optional path DIR)
 
 Some influential environment variables:
@@ -19707,6 +19707,8 @@ else
     echo "Error! ImageMagick version 5.5.7 or later is required but was not found"
     echo "       Use --with-Magick=DIR to specify the ImageMagick directory tree"
     echo "       Use --with-Magick=no  to not use it"
+    echo "       Check the README or use configure --help for other libraries needed"
+    echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
     exit -1
 
 fi
@@ -19809,6 +19811,8 @@ else
 	    echo "Error! netCDF version 3.5.1 or later is required but was not found"
 	    echo "       Use --with-netcdf=DIR to specify the netcdf directory tree"
 	    echo "       Use --with-netcdf=no  to not use it"
+	    echo "       Check the README or use configure --help for other libraries needed"
+	    echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
 	    exit -1
 
 fi
@@ -19911,6 +19915,8 @@ else
     echo "Error! HDF version 4 is required but was not found"
     echo "       Use --with-hdf=DIR to specify the HDF directory tree"
     echo "       Use --with-hdf=no  to not use it"
+    echo "       Check the README or use configure --help for other libraries needed"
+    echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
     exit -1
 
 fi
@@ -19992,6 +19998,8 @@ else
     echo "Error! HDF version 4 or later is required but was not found"
     echo "       Use --with-hdf=DIR to specify the HDF directory tree"
     echo "       Use --with-hdf=no  to not use it"
+    echo "       Check the README or use configure --help for other libraries needed"
+    echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
     exit -1
 
 fi
@@ -20096,6 +20104,8 @@ else
     echo "Error! HDF version 5 is required but was not found"
     echo "       Use --with-hdf5=DIR to specify the HDF5 directory tree"
     echo "       Use --with-hdf5=no  to not use it"
+    echo "       Check the README or use configure --help for other libraries needed"
+    echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
     exit -1
 
 fi

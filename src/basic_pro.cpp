@@ -43,6 +43,15 @@ namespace lib {
 
   void help( EnvT* e)
   {
+    if( e->KeywordSet( "INFO"))
+      {
+	cout << "Homepage: http://gnudatalanguage.sf.net" << endl;
+	cout << "HELP,/LIB for a list of all library functions/procedures." << endl;
+	cout << "Additional subroutines are written in GDL itself, "
+	  "look for *.pro files." << endl;
+	cout << endl;
+      }
+
     if( e->KeywordSet( "LIB"))
       {
 	deque<DString> subList;

@@ -832,9 +832,7 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
 
 	  if( nCp == 1)
 	    {
-	      // ATTENTION: dimension is used as an index here
-	      //	      InsAt( src, ixList->GetDim());
-	      InsAt( src, ixList->GetDimIx( 0));
+	      InsAt( src, ixList);
 	    }
 	  else
 	    {
@@ -1162,12 +1160,17 @@ Data_<Sp>* Data_<Sp>::Index( ArrayIndexListT* ixList)
 // inserts srcIn at index ixDim
 // respects the exact structure of srcIn
 template<class Sp>
-void Data_<Sp>::InsAt( Data_* srcIn, dimension ixDim)
+void Data_<Sp>::InsAt( Data_* srcIn, ArrayIndexListT* ixList)
 {
+  SizeT nDim; // max. number of dimensions to copy
+  // ATTENTION: dimension is used as an index here
+  dimension ixDim = ixList->GetDimIx0( nDim);
+  nDim--;
+
   //  const Data_* srcArr=static_cast<const Data_*>(srcIn->Convert2( this->t));
   dimension srcDim=srcIn->Dim();
     
-  SizeT nDim   =RankIx(ixDim.Rank());  // max. number of dimensions to copy
+  //  SizeT nDim   =RankIx(ixDim.Rank());  
   SizeT srcNDim=RankIx(srcDim.Rank()); // number of source dimensions
   if( srcNDim < nDim) nDim=srcNDim;
 

@@ -152,6 +152,8 @@ if test "x$with_Magick" != "xno"; then
     echo "Error! ImageMagick version 5.5.7 or later is required but was not found"
     echo "       Use --with-Magick=DIR to specify the ImageMagick directory tree"
     echo "       Use --with-Magick=no  to not use it"
+    echo "       Check the README or use configure --help for other libraries needed"
+    echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
     exit -1
     ])
 fi
@@ -185,6 +187,8 @@ dnl  if test "x$with_hdf" == "xno"; then
 	    echo "Error! netCDF version 3.5.1 or later is required but was not found"
 	    echo "       Use --with-netcdf=DIR to specify the netcdf directory tree"
 	    echo "       Use --with-netcdf=no  to not use it"
+	    echo "       Check the README or use configure --help for other libraries needed"
+	    echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
 	    exit -1
 	    ])
 dnl else
@@ -217,6 +221,8 @@ if test "x$with_hdf" != "xno"; then
     echo "Error! HDF version 4 is required but was not found"
     echo "       Use --with-hdf=DIR to specify the HDF directory tree"
     echo "       Use --with-hdf=no  to not use it"
+    echo "       Check the README or use configure --help for other libraries needed"
+    echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
     exit -1
     ])
 
@@ -225,6 +231,8 @@ if test "x$with_hdf" != "xno"; then
     echo "Error! HDF version 4 or later is required but was not found"
     echo "       Use --with-hdf=DIR to specify the HDF directory tree"
     echo "       Use --with-hdf=no  to not use it"
+    echo "       Check the README or use configure --help for other libraries needed"
+    echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
     exit -1
     ])
 
@@ -240,7 +248,7 @@ fi
 
 dnl HDF5
 AC_ARG_WITH(hdf5,	
-	[  --with-hdf5[=DIR]          use HDF5 package (with optional path DIR) ],
+	[  --with-hdf5[=DIR]         use HDF5 package (with optional path DIR) ],
 	[with_hdf5="$withval" ])
 
 dnl HDF5: default is yes, build with HDF5, using default path
@@ -262,6 +270,8 @@ if test "x$with_hdf5" != "xno"; then
     echo "Error! HDF version 5 is required but was not found"
     echo "       Use --with-hdf5=DIR to specify the HDF5 directory tree"
     echo "       Use --with-hdf5=no  to not use it"
+    echo "       Check the README or use configure --help for other libraries needed"
+    echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
     exit -1
     ])
 fi

@@ -37,6 +37,7 @@ using namespace std;
 static void StartupMessage()
 {
   cout << "GDL - GNU Data Language, Version " << VERSION << endl;
+  cout << "For basic information type HELP,/INFO" << endl;
 }
 
 void LibInit(); // defined in libinit.cpp

@@ -254,8 +254,7 @@ private:
 
   // inserts srcIn at ixDim, used by AssignAt(...)
   // respects the exact structure
-  void InsAt( Data_* srcIn, dimension ixDim);
-  
+  void InsAt( Data_* srcIn, ArrayIndexListT* ixList);
   // used for concatenation, called from CatArray
   // assumes that everything is checked (see CatInfo)
   void CatInsert( const Data_* srcArr, const SizeT atDim, SizeT& at);

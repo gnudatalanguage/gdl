@@ -366,7 +366,7 @@ private:
   // inserts srcIn at ixDim
   // respects the exact structure
   // used by Assign -> old data must be freed
-  void InsAt( DStructGDL* srcIn, dimension ixDim);
+  void InsAt( DStructGDL* srcIn, ArrayIndexListT* ixList);
 
   // used for concatenation, called from CatArray
   // assumes that everything is checked (see CatInfo)

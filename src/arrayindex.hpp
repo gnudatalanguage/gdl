@@ -329,20 +329,24 @@ public:
   }
 
   // returns multi-dim index for nTh element
-  // used by AssignAt functions
-  dimension GetDimIx( SizeT nTh)
+  // used by InsAt functions
+  dimension GetDimIx0( SizeT& rank)
   {
+    const SizeT nTh = 0;
     if( accessType == ONEDIM)
       {
+	rank = 1;
 	return dimension( ixList[0].GetIx( nTh));
       }
-
+    
     SizeT actIx[ MAXRANK];
-
+    
     for( SizeT i=0; i < acRank; ++i)
       {
 	actIx[ i] = ixList[i].GetIx( nTh);
       }
+
+    rank = acRank;
     return dimension( actIx, acRank);
   }
   
