@@ -1167,7 +1167,7 @@ namespace lib {
 			  " this operation. Unit: "+i2s( lun));
 
     SizeT offset = 0;
-    if( nParam >= 3) e->AssureLongScalarPar( 2, lun);
+    if( nParam >= 3) e->AssureLongScalarPar( 2, offset);
     
     BaseGDL* arr = e->GetParDefined( 1);
     
