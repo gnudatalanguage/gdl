@@ -57,7 +57,7 @@ void LibInit_cl()
   new DLibFun(lib::lngamma, string("LNGAMMA"),1);
 
   const string igammaKey[]={"DOUBLE",
-			    //"EPS","ITER","ITMAX","METHOD",
+			    "EPS","ITER","ITMAX","METHOD",
 			    KLISTEND};
   new DLibFun(lib::igamma, string("IGAMMA"),2, igammaKey);
 

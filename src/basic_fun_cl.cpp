@@ -504,7 +504,7 @@ namespace lib {
       throw GDLException( e->CallingNode(), 
 			  "IGAMMA: Variable is undefined: "+e->GetParString(1));
     nEl=nEl > nElb? nElb:nEl;
-    /*    if(e->KeywordSet("EPS")) 
+    if(e->KeywordSet("EPS")) 
       Message("IGAMMA: EPS Keyword not supported");
     if(e->KeywordSet("ITER")) 
       Message("IGAMMA: ITER Keyword not supported");
@@ -512,7 +512,6 @@ namespace lib {
       Message("IGAMMA: ITMAX Keyword not supported");
     if(e->KeywordSet("METHOD")) 
       Message("IGAMMA: METHOD Keyword not supported");
-    */
     SizeT c;
 
     static DStructGDL *Values =  SysVar::Values();
