@@ -1085,8 +1085,8 @@ primary_expr
 // only one INC/DEC allowed per target
 decinc_expr
 	: primary_expr 
-        ( i:INC^ { #i->setType( POSTINC);} 
-        | d:DEC^ { #d->setType( POSTDEC);} 
+        ( i:INC^ { #i->setType( POSTINC); #i->setText( "_++");} 
+        | d:DEC^ { #d->setType( POSTDEC); #d->setText( "_--");} 
         | // empty
         )
     | INC^ primary_expr

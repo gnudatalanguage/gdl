@@ -1288,15 +1288,19 @@ l_decinc_indexable_expr [int dec_inc] returns [BaseGDL* res]
     : #(EXPR e = l_expr[ NULL])                       
         {
             res = *e;
-            
+            if( res == NULL)
+            throw GDLException( _t, "Variable is undefined: "+Name(e));
+        }
+    | e=l_function_call
+        {
+            res = *e;
             if( res == NULL)
             throw GDLException( _t, "Variable is undefined: "+Name(e));
         }
     | e=l_deref 
         {
             res = *e;
-            
-            if( res == NULL)
+             if( res == NULL)
             throw GDLException( _t, "Variable is undefined: "+Name(e));
         }
     | e=l_defined_simple_var { res = *e; } // no Dup here
@@ -1446,7 +1450,7 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
         )
     | res=l_decinc_array_expr[ dec_inc]
     | res=l_decinc_dot_expr[ dec_inc]
-    // no l_function_call here because it would be a syntax error
+    // no l_function_call HERE because it would be a syntax error
     | e1=r_expr
         {
             delete e1;
@@ -1455,12 +1459,11 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
         }
     ;
 
-
-
 // l expressions for assignment *************************
 // called from l_array_expr
 l_indexoverwriteable_expr returns [BaseGDL** res]
     : #(EXPR res=l_expr[ NULL])
+    | res=l_function_call
     | res=l_deref
     | res=l_simple_var
     ;
@@ -1473,6 +1476,11 @@ l_indexable_expr returns [BaseGDL** res]
             throw GDLException( _t, "Variable is undefined: "+Name(res));
         }
     | res=l_deref
+        {
+            if( *res == NULL)
+            throw GDLException( _t, "Variable is undefined: "+Name(res));
+        }
+    | res=l_function_call
         {
             if( *res == NULL)
             throw GDLException( _t, "Variable is undefined: "+Name(res));
@@ -1677,7 +1685,7 @@ l_expr [BaseGDL* right] returns [BaseGDL** res]
         )
     | res=l_array_expr[ right]
     | res=l_dot_expr[ right]
-    | { right == NULL}? res=l_function_call
+//    | { right == NULL}? res=l_function_call
     | e1=r_expr
         {
             delete e1;

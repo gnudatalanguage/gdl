@@ -415,8 +415,9 @@ if ct3() ne 2 then print,'***COMMON: ERROR13'
 print,'COMMON: OK'
 end
 
-pro set22,a
+pro set22,a,X=x
 a=2
+x=2
 end
 
 pro ref_test
@@ -438,6 +439,25 @@ ptr_free,p,pp
 a=indgen(3)
 set22,reform(a,1,3,/OVERWRITE)
 if a ne 2 then print,"***REF: ERROR4"
+
+a=4 & x=4
+set22,a++,X=x++
+if a ne 5 or x ne 5 then print,"***REF: ERROR5"
+
+a=1 & x=1
+set22,++a,X=++x
+if a ne 2 or x ne 2 then print,"***REF: ERROR6"
+
+a=1 & x=1
+set22,(a=4),X=(x=4)
+if a ne 2 or x ne 2 then print,"***REF: ERROR7"
+
+a=4 & x=4
+set22,++(a=1),X=++(x=1)
+if a ne 2 or x ne 2 then print,"***REF: ERROR8"
+
+set22,++(a[0]=4),X=++(x[0]=4)
+if a ne 5 or x ne 5 then print,"***REF: ERROR9"
 
 print,'REF: OK'
 end
@@ -510,11 +530,11 @@ t=s[[0]].a
 t=(s[0]).a
 t=(s[[0]]).a
 
-(a=2)
-;((a=2))
-;(a=2)=3
-(a=2)++
-((a=2))++
+b=(a=2)
+if b ne 2 then print,'***SYNTAX_TEST: ERROR1'
+
+;((a=4)) syntax error
+;(a=2)=3  forbidden in GDL (as it hardly makes sense)
 
 end
 
@@ -535,6 +555,18 @@ b[1]++
 ++(b[1])
 
 if b[1] ne 4 then print,"***INC: ERROR2"
+
+(a=2)++
+if a ne 3 then print,'***SYNTAX_TEST: ERROR1'
+
+((a=2))++
+if a ne 3 then print,'***SYNTAX_TEST: ERROR1'
+
+++(a=2)
+if a ne 3 then print,'***SYNTAX_TEST: ERROR1'
+
+++((a=2))
+if a ne 3 then print,'***SYNTAX_TEST: ERROR1'
 
 print,'INC: OK'
 end

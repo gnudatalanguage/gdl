@@ -189,7 +189,7 @@ function_def!
         )
     ;
 
-common_block!
+common_block!//
   : #(COMMONDEF id:IDENTIFIER
 	  {
 		DCommonBase* actCommon=comp.CommonDef(id->getText());
@@ -208,14 +208,15 @@ common_block!
   ;		
 
 // removes last pair of braces (multiple braces already removed in brace_expr)
-unbrace_expr!//
+unbrace_expr! 
 	: ex:expr
 		{
             // remove last pair of braces
-			if( #ex->getType()==EXPR) 
-                #unbrace_expr=#( ex->getFirstChild());
+            if( #ex->getType()==EXPR) 
+                // note: ex_AST is crucial here (ANTLR uses ex instead here)
+                #unbrace_expr= #( NULL, ex_AST->getFirstChild()); 
             else
-                #unbrace_expr=#( ex);
+                #unbrace_expr= #( NULL, ex); 
 		}
     ;
 
@@ -281,8 +282,8 @@ statement
     | forward_function
 	| common_block
 	| block
-    | #(DEC expr)
-    | #(INC expr)
+    | #(DEC unbrace_expr)
+    | #(INC unbrace_expr)
 	| BREAK    // only in loops or switch_statement
 	| CONTINUE // only in loops
 	;
@@ -428,10 +429,14 @@ procedure_call
         )
 	;	    
 
-parameter_def!//
+parameter_def
+    : key_parameter
+    | pos_parameter
+    ;
+
+key_parameter!//
 {
     RefDNode variable;
-    RefDNode varCp;
 }
 	: #(d:KEYDEF i:IDENTIFIER k:unbrace_expr
             {
@@ -441,13 +446,12 @@ parameter_def!//
                     if( variable == #k)
                     {
                         #d=#[KEYDEF_REF,"keydef_ref"];
-                        #parameter_def=#(d,i,variable);
+                        #key_parameter=#(d,i,variable);
                     }
                     else
                     {
                         #d=#[KEYDEF_REF_EXPR,"keydef_ref_expr"];
-                        varCp = #( variable);
-                        #parameter_def=#(d,i,k,varCp);
+                        #key_parameter=#(d,i,k,variable);
                     }
                 }
                 else 
@@ -457,30 +461,33 @@ parameter_def!//
                         t == MFCALL_PARENT_LIB)
                     {
                         #d=#[KEYDEF_REF_CHECK,"keydef_ref_check"];
-                        #parameter_def=#(d,i,k);
+                        #key_parameter=#(d,i,k);
                     }
                     else
                     {
-                        #parameter_def=#(d,i,k);
+                        #key_parameter=#(d,i,k);
                     }
                 }
             }
         )
-	| e:unbrace_expr
+    ;
+
+pos_parameter!//
+{
+    RefDNode variable;
+}
+	: e:unbrace_expr
         {
             variable=comp.ByReference(#e);
             if( variable != static_cast<RefDNode>(antlr::nullAST))
             {
                 if( variable == #e)
                     {
-                        #d=#[REF,"ref"];
-                        #parameter_def=#(d,variable);
+                        #pos_parameter=#([REF,"ref"],variable);
                     }
                     else
                     {
-                        #d=#[REF_EXPR,"ref_expr"];
-                        varCp = #( variable);
-                        #parameter_def=#(d,e,varCp);
+                        #pos_parameter=#([REF_EXPR,"ref_expr"],e,variable);
                     }
             }
             else 
@@ -490,11 +497,11 @@ parameter_def!//
                     t == MFCALL_PARENT_LIB)
                 {
                     // something like: CALLAPRO,reform(a,/OVERWRITE)
-                    #parameter_def=#([REF_CHECK,"ref_check"],e);
+                    #pos_parameter=#([REF_CHECK,"ref_check"],e);
                 }
                 else
                 {
-                    #parameter_def=#( e);
+                    #pos_parameter= #( NULL, e);
                 }
             }
         }
@@ -610,7 +617,7 @@ lassign_expr!//
             throw GDLException(	_t, "Assign expression is not allowed as "
                                     "l-expression in assignment");
 
-            #lassign_expr=#( ex);
+            #lassign_expr=#( NULL, ex);
 		}
     ;
 
@@ -698,18 +705,12 @@ brace_expr!//
 	;
 
 // out parameter_def_list is an expression list here
-arrayindex_list_to_expression_list!// ???
+arrayindex_list_to_expression_list! // ???
 {
     RefDNode variable;
 }
-    : (#(ARRAYIX e:expr)
+    : (#(ARRAYIX e:pos_parameter)
             {
-                variable = comp.ByReference(#e);
-                if( variable != static_cast<RefDNode>(antlr::nullAST))
-                { 
-                    #e=#([REF,"ref"],variable);
-                }
-
                 #arrayindex_list_to_expression_list=
                     #(NULL, arrayindex_list_to_expression_list, e);
             }
@@ -729,9 +730,8 @@ arrayexpr_fn!//
                 id_text=#id->getText(); 
                 isVar = comp.IsVar( id_text);
             }
-            ( 
-                { isVar}? 
-                al:arrayindex_list
+
+            (   { isVar}? al:arrayindex_list
             |   el:arrayindex_list_to_expression_list
             )
             { 
@@ -834,10 +834,10 @@ op_expr
 	|	#(SLASH expr expr)
 	|	#(MOD_OP expr expr)
 	|	#(POW expr expr)
-	|	#(DEC expr)
-	|	#(INC expr)
-	|	#(POSTDEC expr)
-	|	#(POSTINC expr)
+	|	#(DEC unbrace_expr)
+	|	#(INC unbrace_expr)
+	|	#(POSTDEC unbrace_expr)
+	|	#(POSTINC unbrace_expr)
 	|   primary_expr
 	;
 

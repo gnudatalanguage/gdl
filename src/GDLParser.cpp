@@ -6391,7 +6391,7 @@ void GDLParser::decinc_expr() {
 			}
 			match(INC);
 			if ( inputState->guessing==0 ) {
-				i_AST->setType( POSTINC);
+				i_AST->setType( POSTINC); i_AST->setText( "_++");
 			}
 			break;
 		}
@@ -6404,7 +6404,7 @@ void GDLParser::decinc_expr() {
 			}
 			match(DEC);
 			if ( inputState->guessing==0 ) {
-				d_AST->setType( POSTDEC);
+				d_AST->setType( POSTDEC); d_AST->setText( "_--");
 			}
 			break;
 		}

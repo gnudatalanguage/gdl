@@ -27,8 +27,8 @@
 #include "GDLInterpreter.hpp"
 
 // print out AST tree
-#define GDL_DEBUG
-//#undef GDL_DEBUG
+//#define GDL_DEBUG
+#undef GDL_DEBUG
 
 #ifdef GDL_DEBUG
 #include "print_tree.hpp"
@@ -326,6 +326,13 @@ RefDNode DCompiler::ByReference(RefDNode nIn)
 {
   static RefDNode null = static_cast<RefDNode>(antlr::nullAST);
 
+// #ifdef GDL_DEBUG
+//   cout << "ByReference: in:" << endl;
+//   antlr::print_tree pt;
+//   pt.pr_tree(static_cast<antlr::RefAST>( nIn));
+//   cout << endl;
+// #endif
+
   RefDNode n = nIn;
 
   // APRO,++(a=2) is passed like APRO,a
@@ -356,6 +363,12 @@ RefDNode DCompiler::ByReference(RefDNode nIn)
 
   // only var, common block var and deref ptr are passed by reference
   if( t != VAR && t != VARPTR && t != DEREF) return null; 
+
+// #ifdef GDL_DEBUG
+//   cout << "ByReference: out:" << endl;
+//   pt.pr_tree(static_cast<antlr::RefAST>( n));
+//   cout << endl;
+// #endif
 
   return n;
 }  

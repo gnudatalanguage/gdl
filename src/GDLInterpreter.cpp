@@ -2278,6 +2278,10 @@ BaseGDL**  GDLInterpreter::l_expr(RefDNode _t,
 	case ARRAYEXPR:
 	case DEREF:
 	case EXPR:
+	case FCALL:
+	case FCALL_LIB:
+	case MFCALL:
+	case MFCALL_PARENT:
 	case SYSVAR:
 	case VAR:
 	case VARPTR:
@@ -2336,13 +2340,7 @@ BaseGDL**  GDLInterpreter::l_expr(RefDNode _t,
 		break;
 	}
 	default:
-		if (_t == RefDNode(antlr::nullAST) )
-			_t = ASTNULL;
-		if (((_tokenSet_2.member(_t->getType())))&&( right == NULL)) {
-			res=l_function_call(_t);
-			_t = _retTree;
-		}
-	else {
+	{
 		throw antlr::NoViableAltException(antlr::RefAST(_t));
 	}
 	}
@@ -2488,6 +2486,10 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(RefDNode _t,
 	case ARRAYEXPR:
 	case DEREF:
 	case EXPR:
+	case FCALL:
+	case FCALL_LIB:
+	case MFCALL:
+	case MFCALL_PARENT:
 	case SYSVAR:
 	case VAR:
 	case VARPTR:
@@ -3403,7 +3405,20 @@ BaseGDL*  GDLInterpreter::l_decinc_indexable_expr(RefDNode _t,
 		_t = _t->getNextSibling();
 		
 		res = *e;
+		if( res == NULL)
+		throw GDLException( _t, "Variable is undefined: "+Name(e));
 		
+		break;
+	}
+	case FCALL:
+	case FCALL_LIB:
+	case MFCALL:
+	case MFCALL_PARENT:
+	{
+		e=l_function_call(_t);
+		_t = _retTree;
+		
+		res = *e;
 		if( res == NULL)
 		throw GDLException( _t, "Variable is undefined: "+Name(e));
 		
@@ -3415,7 +3430,6 @@ BaseGDL*  GDLInterpreter::l_decinc_indexable_expr(RefDNode _t,
 		_t = _retTree;
 		
 		res = *e;
-		
 		if( res == NULL)
 		throw GDLException( _t, "Variable is undefined: "+Name(e));
 		
@@ -3577,6 +3591,10 @@ BaseGDL*  GDLInterpreter::l_decinc_array_expr(RefDNode _t,
 	}
 	case DEREF:
 	case EXPR:
+	case FCALL:
+	case FCALL_LIB:
+	case MFCALL:
+	case MFCALL_PARENT:
 	case SYSVAR:
 	case VAR:
 	case VARPTR:
@@ -3829,6 +3847,10 @@ void GDLInterpreter::l_dot_array_expr(RefDNode _t,
 	}
 	case DEREF:
 	case EXPR:
+	case FCALL:
+	case FCALL_LIB:
+	case MFCALL:
+	case MFCALL_PARENT:
 	case SYSVAR:
 	case VAR:
 	case VARPTR:
@@ -3935,6 +3957,15 @@ BaseGDL**  GDLInterpreter::l_indexoverwriteable_expr(RefDNode _t) {
 		_t = _t->getNextSibling();
 		break;
 	}
+	case FCALL:
+	case FCALL_LIB:
+	case MFCALL:
+	case MFCALL_PARENT:
+	{
+		res=l_function_call(_t);
+		_t = _retTree;
+		break;
+	}
 	case DEREF:
 	{
 		res=l_deref(_t);
@@ -3983,6 +4014,19 @@ BaseGDL**  GDLInterpreter::l_indexable_expr(RefDNode _t) {
 	case DEREF:
 	{
 		res=l_deref(_t);
+		_t = _retTree;
+		
+		if( *res == NULL)
+		throw GDLException( _t, "Variable is undefined: "+Name(res));
+		
+		break;
+	}
+	case FCALL:
+	case FCALL_LIB:
+	case MFCALL:
+	case MFCALL_PARENT:
+	{
+		res=l_function_call(_t);
 		_t = _retTree;
 		
 		if( *res == NULL)
@@ -4061,6 +4105,10 @@ BaseGDL**  GDLInterpreter::l_array_expr(RefDNode _t,
 	}
 	case DEREF:
 	case EXPR:
+	case FCALL:
+	case FCALL_LIB:
+	case MFCALL:
+	case MFCALL_PARENT:
 	case VAR:
 	case VARPTR:
 	{
@@ -5667,8 +5715,5 @@ const unsigned long GDLInterpreter::_tokenSet_1_data_[] = { 7014496UL, 65017957U
 // PLUS MINUS LTMARK GTMARK "not" "eq" "ne" "le" "lt" "ge" "gt" "and" "or" 
 // "xor" LOG_AND LOG_OR LOG_NEG QUESTION 
 const antlr::BitSet GDLInterpreter::_tokenSet_1(_tokenSet_1_data_,12);
-const unsigned long GDLInterpreter::_tokenSet_2_data_[] = { 6291456UL, 5UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
-// FCALL FCALL_LIB MFCALL MFCALL_PARENT 
-const antlr::BitSet GDLInterpreter::_tokenSet_2(_tokenSet_2_data_,8);
 
 

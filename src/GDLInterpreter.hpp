@@ -443,8 +443,6 @@ private:
 	static const antlr::BitSet _tokenSet_0;
 	static const unsigned long _tokenSet_1_data_[];
 	static const antlr::BitSet _tokenSet_1;
-	static const unsigned long _tokenSet_2_data_[];
-	static const antlr::BitSet _tokenSet_2;
 };
 
 #endif /*INC_GDLInterpreter_hpp_*/

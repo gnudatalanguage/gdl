@@ -79,6 +79,8 @@ public:
 	public: void jump_statement(RefDNode _t);
 	public: void if_statement(RefDNode _t);
 	public: void parameter_def(RefDNode _t);
+	public: void key_parameter(RefDNode _t);
+	public: void pos_parameter(RefDNode _t);
 	public: int  array_def(RefDNode _t);
 	public: void struct_def(RefDNode _t);
 	public: void tag_def(RefDNode _t);
