@@ -98,27 +98,27 @@ const string DLibFun::ToString()
 }
 
 DLibPro::DLibPro( LibPro p, const string& n, const string& o, const int nPar_, 
-	 const string keyNames[])
+	 const string keyNames[], const string warnKeyNames[])
   : DLib(n,o,nPar_,keyNames), pro(p)
 {
   libProList.push_back(this);
 }
 DLibPro::DLibPro( LibPro p, const string& n, const int nPar_, 
-	 const string keyNames[])
+	 const string keyNames[], const string warnKeyNames[])
   : DLib(n,"",nPar_,keyNames), pro(p)
 {
   libProList.push_back(this);
 }
 
 DLibFun::DLibFun( LibFun f, const string& n, const string& o, const int nPar_, 
-	 const string keyNames[])
+	 const string keyNames[], const string warnKeyNames[])
   : DLib(n,o,nPar_,keyNames), fun(f)
 {
   libFunList.push_back(this);
 }
 
 DLibFun::DLibFun( LibFun f, const string& n, const int nPar_, 
-	 const string keyNames[])
+	 const string keyNames[], const string warnKeyNames[])
   : DLib(n,"",nPar_,keyNames), fun(f)
 {
   libFunList.push_back(this);

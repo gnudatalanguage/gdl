@@ -181,11 +181,20 @@ class DLibPro: public DLib
 {
   LibPro pro;
 public:
+  // warnKeyNames are keywords wich are not supported, but which
+  // should not make the compilation fail.
+  // A warning will be issued.
+  // use this for keywords which are truly optional and don't
+  // change the results.
+  // Note that due to their nature, there should never be keywords
+  // on which a value is returned.
   DLibPro( LibPro p, const std::string& n, const int nPar_=0, 
-	   const std::string keyNames[]=NULL);
+	   const std::string keyNames[]=NULL,
+	   const std::string warnKeyNames[]=NULL);
 
   DLibPro( LibPro p, const std::string& n, const std::string& o, const int nPar_=0, 
-	const std::string keyNames[]=NULL);
+	   const std::string keyNames[]=NULL,
+	   const std::string warnKeyNames[]=NULL);
 
   LibPro Pro() { return pro;}
 
@@ -198,10 +207,12 @@ class DLibFun: public DLib
   LibFun fun;
 public:
   DLibFun( LibFun f, const std::string& n, const int nPar_=0, 
-	   const std::string keyNames[]=NULL);
+	   const std::string keyNames[]=NULL,
+	   const std::string warnKeyNames[]=NULL);
 
   DLibFun( LibFun f, const std::string& n, const std::string& o, const int nPar_=0, 
-	const std::string keyNames[]=NULL);
+	   const std::string keyNames[]=NULL,
+	   const std::string warnKeyNames[]=NULL);
 
   LibFun Fun() { return fun;}
 
