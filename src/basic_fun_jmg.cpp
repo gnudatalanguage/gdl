@@ -294,6 +294,8 @@ namespace lib {
 
       return make_array_template< DComplexDblGDL>( e, dimKey);
 
+    } else {
+      return make_array_template< DFloatGDL>( e, dimKey);
     }
     return 0;
   }
