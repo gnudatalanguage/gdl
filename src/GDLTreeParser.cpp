@@ -4222,6 +4222,9 @@ void GDLTreeParser::arrayindex_list_to_expression_list(RefDNode _t) {
 	RefDNode e_AST = RefDNode(antlr::nullAST);
 	RefDNode e = RefDNode(antlr::nullAST);
 	
+	RefDNode variable;
+	
+	
 	{ // ( ... )+
 	int _cnt136=0;
 	for (;;) {
@@ -4247,9 +4250,10 @@ void GDLTreeParser::arrayindex_list_to_expression_list(RefDNode _t) {
 			_t = _t->getNextSibling();
 			arrayindex_list_to_expression_list_AST = RefDNode(currentAST.root);
 			
-			if( comp.ByReference(e_AST))
+			variable = comp.ByReference(e_AST);
+			if( variable != static_cast<RefDNode>(antlr::nullAST))
 			{ 
-			e_AST=RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(REF,"ref")))->add(antlr::RefAST(e_AST))));
+			e_AST=RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(REF,"ref")))->add(antlr::RefAST(variable))));
 			}
 			
 			arrayindex_list_to_expression_list_AST=

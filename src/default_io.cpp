@@ -499,16 +499,16 @@ ostream& Data_<Sp>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   if( nElem == 0)
     throw GDLException("Variable is undefined.");
 
-  if( dim.Rank() == 0)
+  if( this->dim.Rank() == 0)
     {
       o << CheckNL( w, actPosPtr, 8) << setw(8) << dd[0];
       return o;
     }
 
-  SizeT nLoop=nElem/dim.Stride(2);
+  SizeT nLoop=nElem / this->dim.Stride(2);
   SizeT eIx=0; // linear counter
-  SizeT d0=Dim(0); 
-  SizeT d1=Dim(1);
+  SizeT d0=this->Dim(0); 
+  SizeT d1=this->Dim(1);
 
   // d0 cannot be 0
   if( d1 == 0) d1 = 1;
@@ -543,16 +543,16 @@ ostream& Data_<SpDLong>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   if( nElem == 0)
     throw GDLException("Variable is undefined.");
 
-  if( dim.Rank() == 0)
+  if( this->dim.Rank() == 0)
     {
       o << CheckNL( w, actPosPtr, 12) << setw(12) << dd[0];
       return o;
     }
 
-  SizeT nLoop=nElem/dim.Stride(2);
+  SizeT nLoop=nElem / this->dim.Stride(2);
   SizeT eIx=0; // linear counter
-  SizeT d0=Dim(0); 
-  SizeT d1=Dim(1);
+  SizeT d0=this->Dim(0); 
+  SizeT d1=this->Dim(1);
 
   // d0 cannot be 0
   if( d1 == 0) d1 = 1;
@@ -587,16 +587,16 @@ ostream& Data_<SpDULong>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   if( nElem == 0)
     throw GDLException("Variable is undefined.");
 
-  if( dim.Rank() == 0)
+  if( this->dim.Rank() == 0)
     {
       o << CheckNL( w, actPosPtr, 12) << setw(12) << dd[0];
       return o;
     }
 
-  SizeT nLoop=nElem/dim.Stride(2);
+  SizeT nLoop=nElem/this->dim.Stride(2);
   SizeT eIx=0; // linear counter
-  SizeT d0=Dim(0); 
-  SizeT d1=Dim(1);
+  SizeT d0=this->Dim(0); 
+  SizeT d1=this->Dim(1);
 
   // d0 cannot be 0
   if( d1 == 0) d1 = 1;
@@ -631,16 +631,16 @@ ostream& Data_<SpDLong64>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   if( nElem == 0)
     throw GDLException("Variable is undefined.");
 
-  if( dim.Rank() == 0)
+  if( this->dim.Rank() == 0)
     {
       o << CheckNL( w, actPosPtr, 22) << setw(22) << dd[0];
       return o;
     }
 
-  SizeT nLoop=nElem/dim.Stride(2);
+  SizeT nLoop=nElem/this->dim.Stride(2);
   SizeT eIx=0; // linear counter
-  SizeT d0=Dim(0); 
-  SizeT d1=Dim(1);
+  SizeT d0=this->Dim(0); 
+  SizeT d1=this->Dim(1);
 
   // d0 cannot be 0
   if( d1 == 0) d1 = 1;
@@ -675,16 +675,16 @@ ostream& Data_<SpDULong64>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   if( nElem == 0)
     throw GDLException("Variable is undefined.");
 
-  if( dim.Rank() == 0)
+  if( this->dim.Rank() == 0)
     {
       o << CheckNL( w, actPosPtr, 22) << setw(22) << dd[0];
       return o;
     }
 
-  SizeT nLoop=nElem/dim.Stride(2);
+  SizeT nLoop=nElem/this->dim.Stride(2);
   SizeT eIx=0; // linear counter
-  SizeT d0=Dim(0); 
-  SizeT d1=Dim(1);
+  SizeT d0=this->Dim(0); 
+  SizeT d1=this->Dim(1);
 
   // d0 cannot be 0
   if( d1 == 0) d1 = 1;
@@ -719,16 +719,16 @@ ostream& Data_<SpDPtr>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   if( nElem == 0)
     throw GDLException("Variable is undefined.");
 
-  if( dim.Rank() == 0)
+  if( this->dim.Rank() == 0)
     {
       o << CheckNL( w, actPosPtr, 15) << "<PtrHeapVar" << dd[0] << ">";
       return o;
     }
 
-  SizeT nLoop=nElem/dim.Stride(2);
+  SizeT nLoop=nElem/this->dim.Stride(2);
   SizeT eIx=0; // linear counter
-  SizeT d0=Dim(0); 
-  SizeT d1=Dim(1);
+  SizeT d0=this->Dim(0); 
+  SizeT d1=this->Dim(1);
 
   // d0 cannot be 0
   if( d1 == 0) d1 = 1;
@@ -762,16 +762,16 @@ ostream& Data_<SpDObj>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   if( nElem == 0)
     throw GDLException("Variable is undefined.");
 
-  if( dim.Rank() == 0)
+  if( this->dim.Rank() == 0)
     {
       o << CheckNL( w, actPosPtr, 15) << "<ObjHeapVar" << dd[0] << ">";
       return o;
     }
 
-  SizeT nLoop=nElem/dim.Stride(2);
+  SizeT nLoop=nElem/this->dim.Stride(2);
   SizeT eIx=0; // linear counter
-  SizeT d0=Dim(0); 
-  SizeT d1=Dim(1);
+  SizeT d0=this->Dim(0); 
+  SizeT d1=this->Dim(1);
 
   // d0 cannot be 0
   if( d1 == 0) d1 = 1;
@@ -808,17 +808,17 @@ ostream& Data_<SpDFloat>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   if( nElem == 0)
     throw GDLException("Variable is undefined.");
 
-  if( dim.Rank() == 0)
+  if( this->dim.Rank() == 0)
     {
       o << CheckNL( w, actPosPtr, width); 
       OutAuto( o, dd[0], width, prec);
       return o;
     }
 
-  SizeT nLoop=nElem/dim.Stride(2);
+  SizeT nLoop=nElem/this->dim.Stride(2);
   SizeT eIx=0; // linear counter
-  SizeT d0=Dim(0); 
-  SizeT d1=Dim(1);
+  SizeT d0=this->Dim(0); 
+  SizeT d1=this->Dim(1);
 
   // d0 cannot be 0
   if( d1 == 0) d1 = 1;
@@ -861,17 +861,17 @@ ostream& Data_<SpDDouble>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   if( nElem == 0)
     throw GDLException("Variable is undefined.");
 
-  if( dim.Rank() == 0)
+  if( this->dim.Rank() == 0)
     {
       o << CheckNL( w, actPosPtr, width); 
       OutAuto( o, dd[0], width, prec);
       return o;
     }
 
-  SizeT nLoop=nElem/dim.Stride(2);
+  SizeT nLoop=nElem/this->dim.Stride(2);
   SizeT eIx=0; // linear counter
-  SizeT d0=Dim(0); 
-  SizeT d1=Dim(1);
+  SizeT d0=this->Dim(0); 
+  SizeT d1=this->Dim(1);
 
   // d0 cannot be 0
   if( d1 == 0) d1 = 1;
@@ -914,16 +914,16 @@ ostream& Data_<SpDComplex>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   if( nElem == 0)
     throw GDLException("Variable is undefined.");
 
-  if( dim.Rank() == 0)
+  if( this->dim.Rank() == 0)
     {
       o << CheckNL( w, actPosPtr, 2*width+3) << AsComplex< DComplex>( dd[0], width, prec);
       return o;
     }
 
-  SizeT nLoop=nElem/dim.Stride(2);
+  SizeT nLoop=nElem/this->dim.Stride(2);
   SizeT eIx=0; // linear counter
-  SizeT d0=Dim(0); 
-  SizeT d1=Dim(1);
+  SizeT d0=this->Dim(0); 
+  SizeT d1=this->Dim(1);
 
   // d0 cannot be 0
   if( d1 == 0) d1 = 1;
@@ -959,16 +959,16 @@ ostream& Data_<SpDComplexDbl>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   if( nElem == 0)
     throw GDLException("Variable is undefined.");
 
-  if( dim.Rank() == 0)
+  if( this->dim.Rank() == 0)
     {
       o << CheckNL( w, actPosPtr, 2*width+3) << AsComplex< DComplexDbl>( dd[0], width, prec);
       return o;
     }
 
-  SizeT nLoop=nElem/dim.Stride(2);
+  SizeT nLoop=nElem/this->dim.Stride(2);
   SizeT eIx=0; // linear counter
-  SizeT d0=Dim(0); 
-  SizeT d1=Dim(1);
+  SizeT d0=this->Dim(0); 
+  SizeT d1=this->Dim(1);
 
   // d0 cannot be 0
   if( d1 == 0) d1 = 1;
@@ -1005,16 +1005,16 @@ ostream& Data_<SpDByte>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   if( nElem == 0)
     throw GDLException("Variable is undefined.");
 
-  if( dim.Rank() == 0)
+  if( this->dim.Rank() == 0)
     {
       o << CheckNL( w, actPosPtr, width) << setw(width) << static_cast<int>(dd[0]);
       return o;
     }
 
-  SizeT nLoop=nElem/dim.Stride(2);
+  SizeT nLoop=nElem/this->dim.Stride(2);
   SizeT eIx=0; // linear counter
-  SizeT d0=Dim(0); 
-  SizeT d1=Dim(1);
+  SizeT d0=this->Dim(0); 
+  SizeT d1=this->Dim(1);
 
   // d0 cannot be 0
   if( d1 == 0) d1 = 1;
@@ -1050,17 +1050,17 @@ ostream& Data_<SpDString>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
     throw GDLException("Variable is undefined.");
 
   SizeT length;
-  if( dim.Rank() == 0)
+  if( this->dim.Rank() == 0)
     {
       length = dd[0].length();
       o << CheckNL( w, actPosPtr, length) << dd[0];
       return o;
     }
 
-  SizeT nLoop=nElem/dim.Stride(2);
+  SizeT nLoop=nElem/this->dim.Stride(2);
   SizeT eIx=0; // linear counter
-  SizeT d0=Dim(0); 
-  SizeT d1=Dim(1);
+  SizeT d0=this->Dim(0); 
+  SizeT d1=this->Dim(1);
 
   // d0 cannot be 0
   if( d1 == 0) d1 = 1;

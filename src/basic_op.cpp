@@ -607,7 +607,7 @@ Data_<Sp>* Data_<Sp>::XorOp( BaseGDL* r)
   Ty s;
   if( right->Scalar(s)) 
     {
-      if( s != zero)
+      if( s != Sp::zero)
 	for( SizeT i=0; i < sEl; i++)
 	  dd[i] ^= s;
     }
@@ -678,7 +678,7 @@ Data_<SpDByte>* Data_<Sp>::EqOp( BaseGDL* r)
   Ty s;
   if( right->Scalar(s)) 
     {
-      res= new Data_<SpDByte>( dim, BaseGDL::NOZERO);
+      res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
       for( SizeT i=0; i < sEl; i++)
 	(*res)[i] = (dd[i] == s);
     }
@@ -696,7 +696,7 @@ Data_<SpDByte>* Data_<Sp>::EqOp( BaseGDL* r)
     }
   else // ( rEl >= sEl)
     {
-      res= new Data_<SpDByte>( dim, BaseGDL::NOZERO);
+      res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
       for( SizeT i=0; i < sEl; i++)
 	(*res)[i] = (right->dd[i] == dd[i]);
     }
@@ -733,7 +733,7 @@ Data_<SpDByte>* Data_<Sp>::NeOp( BaseGDL* r)
   Ty s;
   if( right->Scalar(s)) 
     {
-      res= new Data_<SpDByte>( dim, BaseGDL::NOZERO);
+      res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
       for( SizeT i=0; i < sEl; i++)
 	(*res)[i] = (dd[i] != s);
     }
@@ -751,7 +751,7 @@ Data_<SpDByte>* Data_<Sp>::NeOp( BaseGDL* r)
     }
   else // ( rEl >= sEl)
     {
-      res= new Data_<SpDByte>( dim, BaseGDL::NOZERO);
+      res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
       for( SizeT i=0; i < sEl; i++)
 	(*res)[i] = (right->dd[i] != dd[i]);
     }
@@ -788,7 +788,7 @@ Data_<SpDByte>* Data_<Sp>::LeOp( BaseGDL* r)
   Ty s;
   if( right->Scalar(s)) 
     {
-      res= new Data_<SpDByte>( dim, BaseGDL::NOZERO);
+      res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
       for( SizeT i=0; i < sEl; i++)
 	(*res)[i] = (dd[i] <= s);
     }
@@ -806,7 +806,7 @@ Data_<SpDByte>* Data_<Sp>::LeOp( BaseGDL* r)
     }
   else // ( rEl >= sEl)
     {
-      res= new Data_<SpDByte>( dim, BaseGDL::NOZERO);
+      res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
       for( SizeT i=0; i < sEl; i++)
 	(*res)[i] = (right->dd[i] >= dd[i]);
     }
@@ -855,7 +855,7 @@ Data_<SpDByte>* Data_<Sp>::LtOp( BaseGDL* r)
   Ty s;
   if( right->Scalar(s)) 
     {
-      res= new Data_<SpDByte>( dim, BaseGDL::NOZERO);
+      res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
       for( SizeT i=0; i < sEl; i++)
 	(*res)[i] = (dd[i] < s);
     }
@@ -873,7 +873,7 @@ Data_<SpDByte>* Data_<Sp>::LtOp( BaseGDL* r)
     }
   else // ( rEl >= sEl)
     {
-      res= new Data_<SpDByte>( dim, BaseGDL::NOZERO);
+      res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
       for( SizeT i=0; i < sEl; i++)
 	(*res)[i] = (right->dd[i] > dd[i]);
     }
@@ -922,7 +922,7 @@ Data_<SpDByte>* Data_<Sp>::GeOp( BaseGDL* r)
   Ty s;
   if( right->Scalar(s)) 
     {
-      res= new Data_<SpDByte>( dim, BaseGDL::NOZERO);
+      res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
       for( SizeT i=0; i < sEl; i++)
 	(*res)[i] = (dd[i] >= s);
     }
@@ -940,7 +940,7 @@ Data_<SpDByte>* Data_<Sp>::GeOp( BaseGDL* r)
     }
   else // ( rEl >= sEl)
     {
-      res= new Data_<SpDByte>( dim, BaseGDL::NOZERO);
+      res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
       for( SizeT i=0; i < sEl; i++)
 	(*res)[i] = (right->dd[i] <= dd[i]);
     }
@@ -989,7 +989,7 @@ Data_<SpDByte>* Data_<Sp>::GtOp( BaseGDL* r)
   Ty s;
   if( right->Scalar(s)) 
     {
-      res= new Data_<SpDByte>( dim, BaseGDL::NOZERO);
+      res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
       for( SizeT i=0; i < sEl; i++)
 	(*res)[i] = (dd[i] > s);
     }
@@ -1007,7 +1007,7 @@ Data_<SpDByte>* Data_<Sp>::GtOp( BaseGDL* r)
     }
   else // ( rEl >= sEl)
     {
-      res= new Data_<SpDByte>( dim, BaseGDL::NOZERO);
+      res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
       for( SizeT i=0; i < sEl; i++)
 	(*res)[i] = (right->dd[i] < dd[i]);
     }
@@ -1899,7 +1899,7 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r)
 
   Data_* res;
 
-  if( dim.Rank() <= 1 && right->dim.Rank() <= 1)
+  if( this->dim.Rank() <= 1 && right->dim.Rank() <= 1)
     {
       // use transposed r if rank of both is <= 1
       // result dim
@@ -1921,7 +1921,7 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r)
   else
     {
       // result dim
-      SizeT nCol=dim[0];
+      SizeT nCol=this->dim[0];
       SizeT nRow=right->dim[1];
 
       if( nCol == 0) nCol=1;

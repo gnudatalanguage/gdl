@@ -613,11 +613,15 @@ brace_expr!//
 
 // out parameter_def_list is an expression list here
 arrayindex_list_to_expression_list!// ???
+{
+    RefDNode variable;
+}
     : (#(ARRAYIX e:expr)
             {
-                if( comp.ByReference(#e))
+                variable = comp.ByReference(#e);
+                if( variable != static_cast<RefDNode>(antlr::nullAST))
                 { 
-                    #e=#([REF,"ref"],e);
+                    #e=#([REF,"ref"],variable);
                 }
 
                 #arrayindex_list_to_expression_list=

@@ -388,6 +388,19 @@ void LibInit()
     };
   new DLibPro(lib::oplot, string("OPLOT"),2,oplotKey);
 
+  const string plotsKey[]=
+    {
+      // GRAPHIC KEYWORDS
+      // 0
+      "CLIP","COLOR", "LINESTYLE", "NOCLIP",
+      // 4
+      "PSYM", "SYMSIZE",  "T3D",  "THICK",
+      // 8
+      "DATA","DEVICE","NORMAL",
+      KLISTEND
+    };
+
+  new DLibPro(lib::plots, string("PLOTS"), 3, plotsKey);
   LibInit_jmg();
   LibInit_cl();
   LibInit_mes();
