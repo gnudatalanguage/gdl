@@ -380,6 +380,8 @@ bool DCompiler::IsVar(const string& n) const
   for( SizeT f=0; f<nLibF; ++f)
     if( libFunList[ f]->Name() == n) return false;
 
+  if( FunIx( n) != -1) return false;
+
   // originally this was done later in the interpreter
   // but something like a = a(0) would not work if a is
   // a function (defined in a.pro)
