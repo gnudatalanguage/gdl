@@ -236,8 +236,39 @@ namespace lib {
   {
     DLong type=0;
     e->AssureLongScalarKWIfPresent( "TYPE", type);
-    DLongGDL* dimKey = e->IfDefGetKWAs<DLongGDL>( 1);
+    DLongGDL* dimKey=NULL;
 
+
+    int sizeix = e->KeywordIx( "SIZE"); 
+    int dimensionix = e->KeywordIx( "DIMENSION"); 
+    BaseGDL* size=e->GetKW(sizeix);
+    BaseGDL* b_dimension=e->GetKW(dimensionix);
+    DLongGDL* l_size, *l_dimension;
+    if(b_dimension != NULL)
+      {
+		l_dimension=static_cast<DLongGDL*>(b_dimension->Convert2(LONG, BaseGDL::COPY));
+	if(e->NParam() == 0 && size == NULL) 
+	  {
+	    dimension dim(l_dimension->N_Elements(),1);
+	    dimKey=new DLongGDL(dim, BaseGDL::NOZERO);
+	    for (int i=0;i<l_dimension->N_Elements();++i)
+	      (*dimKey)[i]=(*l_dimension)[i];
+	  }
+	  
+      } 
+    else if(size != NULL)
+      {
+	l_size=static_cast<DLongGDL*>(size->Convert2(LONG, BaseGDL::COPY));
+	type=(*l_size)[(*l_size)[0]+1];
+	if(e->NParam() == 0) 
+	  {
+	    dimension dim((*l_size)[0],1);
+	    dimKey=new DLongGDL(dim, BaseGDL::NOZERO);
+	    for (int i=1;i<=(*l_size)[0];++i)
+	      (*dimKey)[i-1]=(*l_size)[i];
+	  }
+	    
+      }
 
     // BYTE
     if (e->KeywordSet(6) || type == BYTE) {
@@ -274,11 +305,6 @@ namespace lib {
 
       return make_array_template< DULong64GDL>( e, dimKey);
       
-      // FLOAT
-    } else if (e->KeywordSet(13) || type == FLOAT) {
-
-      return make_array_template< DFloatGDL>( e, dimKey);
-
       // DOUBLE
     } else if (e->KeywordSet(14) || type == DOUBLE) {
 
@@ -296,7 +322,10 @@ namespace lib {
 
     } else {
       return make_array_template< DFloatGDL>( e, dimKey);
-    }
+    } else// if (e->KeywordSet(13) || type == FLOAT) {
+
+      return make_array_template< DFloatGDL>( e, dimKey);
+
     return 0;
   }
 
