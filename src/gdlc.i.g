@@ -1991,26 +1991,26 @@ r_expr returns [BaseGDL* res]
     | res=struct_def
     ;
 
-indexable_expr returns [BaseGDL* res]
-//     : #(EXPR res=expr)                       
-//     | res=simple_var                         
-    : res=simple_var                         
-    | res=sys_var 
-    ;
+// indexable_expr returns [BaseGDL* res]
+// //     : #(EXPR res=expr)                       
+// //     | res=simple_var                         
+//     : res=simple_var                         
+//     | res=sys_var 
+//     ;
 
 array_expr returns [BaseGDL* res]
 {
     ArrayIndexListT* aL;
     BaseGDL* r;
 }
-    : #(ARRAYEXPR aL=arrayindex_list r=indexable_expr
+    : #(ARRAYEXPR aL=arrayindex_list r=expr //indexable_expr
             {
                 auto_ptr<ArrayIndexListT> aL_guard(aL);
                 auto_ptr<BaseGDL>         r_guard(r);
                 res=r->Index( aL);
             }
         )   
-    | res=indexable_expr
+//     | res=expr //indexable_expr
     ;
 
 // for l and r expr
@@ -2205,6 +2205,9 @@ tmp_expr returns [BaseGDL* res]
     | res=assign_expr
     | res=function_call
     | res=r_expr
+        // *********
+    | res=simple_var                         
+    | res=sys_var 
     ;
 
 assign_expr returns [BaseGDL* res]

@@ -54,6 +54,27 @@ int main(int argc, char *argv[])
 {
   if( atexit( AtExit) != 0) cerr << "atexit registration failed." << endl;
 
+  for( SizeT a=1; a< argc; ++a)
+    {
+      if( string( argv[a]) == "--help")
+	{
+	  cout << "Usage: gdl [OPTION]" << endl;
+	  cout << "Start the GDL interpreter (incremental compiler)" << endl;
+	  cout << endl;
+	  cout << "Options:" << endl;
+	  cout << "  --help     display this message" << endl;
+	  cout << "  --version  show version information" << endl;
+	  cout << endl;
+	  cout << "Homepage: http://gnudatalanguage.sf.net" << endl;
+	  return 0;
+	}
+      if( string( argv[a]) == "--version")
+	{
+	  cout << "GDL - GNU Data Language, Version " << VERSION << endl;
+	  return 0;
+	}
+    }
+
   // ncurses blurs the output, initialize TermWidth here
   TermWidth();
 

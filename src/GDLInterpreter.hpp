@@ -395,9 +395,6 @@ public:
 	public: BaseGDL*  constant(RefDNode _t);
 	public: BaseGDL*  array_def(RefDNode _t);
 	public:  BaseGDL*  struct_def(RefDNode _t);
-	public: BaseGDL*  indexable_expr(RefDNode _t);
-	public: BaseGDL*  simple_var(RefDNode _t);
-	public: BaseGDL*  sys_var(RefDNode _t);
 	public: BaseGDL*  array_expr(RefDNode _t);
 	public: void tag_expr(RefDNode _t,
 		DotAccessDescT* aD
@@ -413,6 +410,8 @@ public:
 	public:  BaseGDL*  lib_function_call(RefDNode _t);
 	public: BaseGDL*  assign_expr(RefDNode _t);
 	public:  BaseGDL*  function_call(RefDNode _t);
+	public: BaseGDL*  simple_var(RefDNode _t);
+	public: BaseGDL*  sys_var(RefDNode _t);
 	public:  BaseGDL**  ref_parameter(RefDNode _t);
 	public:  ArrayIndexT  arrayindex_all(RefDNode _t);
 	public:  ArrayIndexT  arrayindex_range(RefDNode _t);

@@ -537,6 +537,8 @@ t=(s[[0]]).a
 b=(a=2)
 if b ne 2 then print,'***SYNTAX_TEST: ERROR1'
 
+a=(byte(1,0,1))[0]
+
 ;((a=4)) syntax error
 ;(a=2)=3  forbidden in GDL (as it hardly makes sense)
 

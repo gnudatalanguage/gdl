@@ -1794,7 +1794,7 @@ void GDLInterpreter::parameter_def(RefDNode _t,
 		switch ( _t->getType()) {
 		case KEYDEF_REF:
 		{
-			RefDNode __t161 = _t;
+			RefDNode __t160 = _t;
 			RefDNode tmp19_AST_in = _t;
 			match(antlr::RefAST(_t),KEYDEF_REF);
 			_t = _t->getFirstChild();
@@ -1806,13 +1806,13 @@ void GDLInterpreter::parameter_def(RefDNode _t,
 			// pass reference
 			actEnv->SetKeyword( knameR->getText(), kvalRef); 
 			
-			_t = __t161;
+			_t = __t160;
 			_t = _t->getNextSibling();
 			break;
 		}
 		case KEYDEF_REF_EXPR:
 		{
-			RefDNode __t162 = _t;
+			RefDNode __t161 = _t;
 			RefDNode tmp20_AST_in = _t;
 			match(antlr::RefAST(_t),KEYDEF_REF_EXPR);
 			_t = _t->getFirstChild();
@@ -1827,13 +1827,13 @@ void GDLInterpreter::parameter_def(RefDNode _t,
 			delete kval;
 			actEnv->SetKeyword( knameE->getText(), kvalRef); 
 			
-			_t = __t162;
+			_t = __t161;
 			_t = _t->getNextSibling();
 			break;
 		}
 		case KEYDEF:
 		{
-			RefDNode __t163 = _t;
+			RefDNode __t162 = _t;
 			RefDNode tmp21_AST_in = _t;
 			match(antlr::RefAST(_t),KEYDEF);
 			_t = _t->getFirstChild();
@@ -1845,13 +1845,13 @@ void GDLInterpreter::parameter_def(RefDNode _t,
 			// pass value
 			actEnv->SetKeyword( kname->getText(), kval);
 			
-			_t = __t163;
+			_t = __t162;
 			_t = _t->getNextSibling();
 			break;
 		}
 		case REF:
 		{
-			RefDNode __t164 = _t;
+			RefDNode __t163 = _t;
 			RefDNode tmp22_AST_in = _t;
 			match(antlr::RefAST(_t),REF);
 			_t = _t->getFirstChild();
@@ -1860,13 +1860,13 @@ void GDLInterpreter::parameter_def(RefDNode _t,
 			// pass reference
 			actEnv->SetNextPar(pvalRef); 
 			
-			_t = __t164;
+			_t = __t163;
 			_t = _t->getNextSibling();
 			break;
 		}
 		case REF_EXPR:
 		{
-			RefDNode __t165 = _t;
+			RefDNode __t164 = _t;
 			RefDNode tmp23_AST_in = _t;
 			match(antlr::RefAST(_t),REF_EXPR);
 			_t = _t->getFirstChild();
@@ -1878,7 +1878,7 @@ void GDLInterpreter::parameter_def(RefDNode _t,
 			delete pval;
 			actEnv->SetNextPar(pvalRef); 
 			
-			_t = __t165;
+			_t = __t164;
 			_t = _t->getNextSibling();
 			break;
 		}
@@ -1937,7 +1937,7 @@ void GDLInterpreter::parameter_def(RefDNode _t,
 		}
 		case KEYDEF_REF_CHECK:
 		{
-			RefDNode __t166 = _t;
+			RefDNode __t165 = _t;
 			RefDNode tmp24_AST_in = _t;
 			match(antlr::RefAST(_t),KEYDEF_REF_CHECK);
 			_t = _t->getFirstChild();
@@ -1957,13 +1957,13 @@ void GDLInterpreter::parameter_def(RefDNode _t,
 			actEnv->SetKeyword(knameCk->getText(), kval); 
 			}
 			
-			_t = __t166;
+			_t = __t165;
 			_t = _t->getNextSibling();
 			break;
 		}
 		case REF_CHECK:
 		{
-			RefDNode __t167 = _t;
+			RefDNode __t166 = _t;
 			RefDNode tmp25_AST_in = _t;
 			match(antlr::RefAST(_t),REF_CHECK);
 			_t = _t->getFirstChild();
@@ -1980,17 +1980,17 @@ void GDLInterpreter::parameter_def(RefDNode _t,
 			actEnv->SetNextPar( pval); 
 			}
 			
-			_t = __t167;
+			_t = __t166;
 			_t = _t->getNextSibling();
 			break;
 		}
 		default:
 		{
-			goto _loop168;
+			goto _loop167;
 		}
 		}
 	}
-	_loop168:;
+	_loop167:;
 	} // ( ... )*
 	
 	actEnv->Extra(); // expand _EXTRA
@@ -2024,7 +2024,7 @@ BaseGDL*  GDLInterpreter::tmp_expr(RefDNode _t) {
 	}
 	case QUESTION:
 	{
-		RefDNode __t135 = _t;
+		RefDNode __t134 = _t;
 		RefDNode tmp26_AST_in = _t;
 		match(antlr::RefAST(_t),QUESTION);
 		_t = _t->getFirstChild();
@@ -2043,14 +2043,11 @@ BaseGDL*  GDLInterpreter::tmp_expr(RefDNode _t) {
 		res=expr(_t);
 		}
 		
-		_t = __t135;
+		_t = __t134;
 		_t = _t->getNextSibling();
 		break;
 	}
 	case ARRAYEXPR:
-	case SYSVAR:
-	case VAR:
-	case VARPTR:
 	{
 		res=array_expr(_t);
 		_t = _retTree;
@@ -2111,6 +2108,19 @@ BaseGDL*  GDLInterpreter::tmp_expr(RefDNode _t) {
 	case LOG_NEG:
 	{
 		res=r_expr(_t);
+		_t = _retTree;
+		break;
+	}
+	case VAR:
+	case VARPTR:
+	{
+		res=simple_var(_t);
+		_t = _retTree;
+		break;
+	}
+	case SYSVAR:
+	{
+		res=sys_var(_t);
 		_t = _retTree;
 		break;
 	}
@@ -2600,7 +2610,7 @@ BaseGDL**  GDLInterpreter::l_deref(RefDNode _t) {
 	switch ( _t->getType()) {
 	case FCALL_LIB:
 	{
-		RefDNode __t152 = _t;
+		RefDNode __t151 = _t;
 		RefDNode tmp32_AST_in = _t;
 		match(antlr::RefAST(_t),FCALL_LIB);
 		_t = _t->getFirstChild();
@@ -2625,7 +2635,7 @@ BaseGDL**  GDLInterpreter::l_deref(RefDNode _t) {
 		throw GDLException( _t, "Library function must return a "
 		"l-value in this context: "+fl->getText());
 		
-		_t = __t152;
+		_t = __t151;
 		_t = _t->getNextSibling();
 		break;
 	}
@@ -2640,7 +2650,7 @@ BaseGDL**  GDLInterpreter::l_deref(RefDNode _t) {
 		switch ( _t->getType()) {
 		case MFCALL:
 		{
-			RefDNode __t155 = _t;
+			RefDNode __t154 = _t;
 			RefDNode tmp33_AST_in = _t;
 			match(antlr::RefAST(_t),MFCALL);
 			_t = _t->getFirstChild();
@@ -2658,13 +2668,13 @@ BaseGDL**  GDLInterpreter::l_deref(RefDNode _t) {
 			
 			parameter_def(_t, newEnv);
 			_t = _retTree;
-			_t = __t155;
+			_t = __t154;
 			_t = _t->getNextSibling();
 			break;
 		}
 		case MFCALL_PARENT:
 		{
-			RefDNode __t156 = _t;
+			RefDNode __t155 = _t;
 			RefDNode tmp34_AST_in = _t;
 			match(antlr::RefAST(_t),MFCALL_PARENT);
 			_t = _t->getFirstChild();
@@ -2686,13 +2696,13 @@ BaseGDL**  GDLInterpreter::l_deref(RefDNode _t) {
 			
 			parameter_def(_t, newEnv);
 			_t = _retTree;
-			_t = __t156;
+			_t = __t155;
 			_t = _t->getNextSibling();
 			break;
 		}
 		case FCALL:
 		{
-			RefDNode __t157 = _t;
+			RefDNode __t156 = _t;
 			RefDNode tmp35_AST_in = _t;
 			match(antlr::RefAST(_t),FCALL);
 			_t = _t->getFirstChild();
@@ -2706,7 +2716,7 @@ BaseGDL**  GDLInterpreter::l_deref(RefDNode _t) {
 			
 			parameter_def(_t, newEnv);
 			_t = _retTree;
-			_t = __t157;
+			_t = __t156;
 			_t = _t->getNextSibling();
 			break;
 		}
@@ -3607,71 +3617,71 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(RefDNode _t) {
 	
 	
 	{ // ( ... )+
-	int _cnt179=0;
+	int _cnt178=0;
 	for (;;) {
 		if (_t == RefDNode(antlr::nullAST) )
 			_t = ASTNULL;
 		switch ( _t->getType()) {
 		case ARRAYIX:
 		{
-			RefDNode __t175 = _t;
+			RefDNode __t174 = _t;
 			RefDNode tmp65_AST_in = _t;
 			match(antlr::RefAST(_t),ARRAYIX);
 			_t = _t->getFirstChild();
 			arrIx=arrayindex(_t);
 			_t = _retTree;
 			arrList->push_back(arrIx);
-			_t = __t175;
+			_t = __t174;
 			_t = _t->getNextSibling();
 			break;
 		}
 		case ARRAYIX_ALL:
 		{
-			RefDNode __t176 = _t;
+			RefDNode __t175 = _t;
 			RefDNode tmp66_AST_in = _t;
 			match(antlr::RefAST(_t),ARRAYIX_ALL);
 			_t = _t->getFirstChild();
 			arrIx=arrayindex_all(_t);
 			_t = _retTree;
 			arrList->push_back(arrIx);
-			_t = __t176;
+			_t = __t175;
 			_t = _t->getNextSibling();
 			break;
 		}
 		case ARRAYIX_ORANGE:
 		{
-			RefDNode __t177 = _t;
+			RefDNode __t176 = _t;
 			RefDNode tmp67_AST_in = _t;
 			match(antlr::RefAST(_t),ARRAYIX_ORANGE);
 			_t = _t->getFirstChild();
 			arrIx=arrayindex_end(_t);
 			_t = _retTree;
 			arrList->push_back(arrIx);
-			_t = __t177;
+			_t = __t176;
 			_t = _t->getNextSibling();
 			break;
 		}
 		case ARRAYIX_RANGE:
 		{
-			RefDNode __t178 = _t;
+			RefDNode __t177 = _t;
 			RefDNode tmp68_AST_in = _t;
 			match(antlr::RefAST(_t),ARRAYIX_RANGE);
 			_t = _t->getFirstChild();
 			arrIx=arrayindex_range(_t);
 			_t = _retTree;
 			arrList->push_back(arrIx);
-			_t = __t178;
+			_t = __t177;
 			_t = _t->getNextSibling();
 			break;
 		}
 		default:
 		{
-			if ( _cnt179>=1 ) { goto _loop179; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
+			if ( _cnt178>=1 ) { goto _loop178; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
 		}
 		}
-		_cnt179++;
+		_cnt178++;
 	}
-	_loop179:;
+	_loop178:;
 	}  // ( ... )+
 	
 	// release
@@ -3864,7 +3874,7 @@ void GDLInterpreter::tag_array_expr(RefDNode _t,
 	switch ( _t->getType()) {
 	case ARRAYEXPR:
 	{
-		RefDNode __t123 = _t;
+		RefDNode __t122 = _t;
 		RefDNode tmp70_AST_in = _t;
 		match(antlr::RefAST(_t),ARRAYEXPR);
 		_t = _t->getFirstChild();
@@ -3873,7 +3883,7 @@ void GDLInterpreter::tag_array_expr(RefDNode _t,
 		aD->AddIx(aL);
 		tag_expr(_t, aD);
 		_t = _retTree;
-		_t = __t123;
+		_t = __t122;
 		_t = _t->getNextSibling();
 		break;
 	}
@@ -4175,12 +4185,12 @@ BaseGDL*  GDLInterpreter::array_def(RefDNode _t) {
 	BaseGDL*           cTypeData;
 	
 	
-	RefDNode __t181 = _t;
+	RefDNode __t180 = _t;
 	a = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 	match(antlr::RefAST(_t),ARRAYDEF);
 	_t = _t->getFirstChild();
 	{ // ( ... )+
-	int _cnt183=0;
+	int _cnt182=0;
 	for (;;) {
 		if (_t == RefDNode(antlr::nullAST) )
 			_t = ASTNULL;
@@ -4261,14 +4271,14 @@ BaseGDL*  GDLInterpreter::array_def(RefDNode _t) {
 			
 		}
 		else {
-			if ( _cnt183>=1 ) { goto _loop183; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
+			if ( _cnt182>=1 ) { goto _loop182; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
 		}
 		
-		_cnt183++;
+		_cnt182++;
 	}
-	_loop183:;
+	_loop182:;
 	}  // ( ... )+
-	_t = __t181;
+	_t = __t180;
 	_t = _t->getNextSibling();
 	
 	res=cTypeData->CatArray(exprList,a->arrayDepth,maxRank);
@@ -4299,7 +4309,7 @@ BaseGDL*  GDLInterpreter::array_def(RefDNode _t) {
 	}
 	case NSTRUC_REF:
 	{
-		RefDNode __t193 = _t;
+		RefDNode __t192 = _t;
 		RefDNode tmp73_AST_in = _t;
 		match(antlr::RefAST(_t),NSTRUC_REF);
 		_t = _t->getFirstChild();
@@ -4313,7 +4323,7 @@ BaseGDL*  GDLInterpreter::array_def(RefDNode _t) {
 		
 		res=new DStructGDL( dStruct);
 		
-		_t = __t193;
+		_t = __t192;
 		_t = _t->getNextSibling();
 		break;
 	}
@@ -4322,99 +4332,6 @@ BaseGDL*  GDLInterpreter::array_def(RefDNode _t) {
 		throw antlr::NoViableAltException(antlr::RefAST(_t));
 	}
 	}
-	_retTree = _t;
-	return res;
-}
-
-BaseGDL*  GDLInterpreter::indexable_expr(RefDNode _t) {
-	BaseGDL* res;
-	RefDNode indexable_expr_AST_in = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
-	
-	if (_t == RefDNode(antlr::nullAST) )
-		_t = ASTNULL;
-	switch ( _t->getType()) {
-	case VAR:
-	case VARPTR:
-	{
-		res=simple_var(_t);
-		_t = _retTree;
-		break;
-	}
-	case SYSVAR:
-	{
-		res=sys_var(_t);
-		_t = _retTree;
-		break;
-	}
-	default:
-	{
-		throw antlr::NoViableAltException(antlr::RefAST(_t));
-	}
-	}
-	_retTree = _t;
-	return res;
-}
-
-BaseGDL*  GDLInterpreter::simple_var(RefDNode _t) {
-	BaseGDL* res;
-	RefDNode simple_var_AST_in = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
-	RefDNode var = RefDNode(antlr::nullAST);
-	RefDNode varPtr = RefDNode(antlr::nullAST);
-	
-	if (_t == RefDNode(antlr::nullAST) )
-		_t = ASTNULL;
-	switch ( _t->getType()) {
-	case VAR:
-	{
-		var = _t;
-		match(antlr::RefAST(_t),VAR);
-		_t = _t->getNextSibling();
-		
-		BaseGDL* vData=callStack.back()->GetKW( var->varIx);
-		
-		if( vData == NULL)
-		throw GDLException( _t, "Variable is undefined: "+var->getText());
-		
-		res=vData->Dup();
-		
-		break;
-	}
-	case VARPTR:
-	{
-		varPtr = _t;
-		match(antlr::RefAST(_t),VARPTR);
-		_t = _t->getNextSibling();
-		
-		BaseGDL* vData=varPtr->var->Data();
-		
-		if( vData == NULL)
-		throw GDLException( _t, "Common block variable is undefined.");
-		
-		res=vData->Dup();
-		
-		break;
-	}
-	default:
-	{
-		throw antlr::NoViableAltException(antlr::RefAST(_t));
-	}
-	}
-	_retTree = _t;
-	return res;
-}
-
-BaseGDL*  GDLInterpreter::sys_var(RefDNode _t) {
-	BaseGDL* res;
-	RefDNode sys_var_AST_in = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
-	
-	BaseGDL* sv;
-	
-	
-	sv=sys_var_nocopy(_t);
-	_t = _retTree;
-	
-	res=sv->Dup();
-	
 	_retTree = _t;
 	return res;
 }
@@ -4427,41 +4344,21 @@ BaseGDL*  GDLInterpreter::array_expr(RefDNode _t) {
 	BaseGDL* r;
 	
 	
-	if (_t == RefDNode(antlr::nullAST) )
-		_t = ASTNULL;
-	switch ( _t->getType()) {
-	case ARRAYEXPR:
-	{
-		RefDNode __t119 = _t;
-		RefDNode tmp74_AST_in = _t;
-		match(antlr::RefAST(_t),ARRAYEXPR);
-		_t = _t->getFirstChild();
-		aL=arrayindex_list(_t);
-		_t = _retTree;
-		r=indexable_expr(_t);
-		_t = _retTree;
-		
-		auto_ptr<ArrayIndexListT> aL_guard(aL);
-		auto_ptr<BaseGDL>         r_guard(r);
-		res=r->Index( aL);
-		
-		_t = __t119;
-		_t = _t->getNextSibling();
-		break;
-	}
-	case SYSVAR:
-	case VAR:
-	case VARPTR:
-	{
-		res=indexable_expr(_t);
-		_t = _retTree;
-		break;
-	}
-	default:
-	{
-		throw antlr::NoViableAltException(antlr::RefAST(_t));
-	}
-	}
+	RefDNode __t118 = _t;
+	RefDNode tmp74_AST_in = _t;
+	match(antlr::RefAST(_t),ARRAYEXPR);
+	_t = _t->getFirstChild();
+	aL=arrayindex_list(_t);
+	_t = _retTree;
+	r=expr(_t);
+	_t = _retTree;
+	
+	auto_ptr<ArrayIndexListT> aL_guard(aL);
+	auto_ptr<BaseGDL>         r_guard(r);
+	res=r->Index( aL);
+	
+	_t = __t118;
+	_t = _t->getNextSibling();
 	_retTree = _t;
 	return res;
 }
@@ -4480,7 +4377,7 @@ void GDLInterpreter::tag_expr(RefDNode _t,
 	switch ( _t->getType()) {
 	case EXPR:
 	{
-		RefDNode __t121 = _t;
+		RefDNode __t120 = _t;
 		RefDNode tmp75_AST_in = _t;
 		match(antlr::RefAST(_t),EXPR);
 		_t = _t->getFirstChild();
@@ -4497,7 +4394,7 @@ void GDLInterpreter::tag_expr(RefDNode _t,
 		
 		aD->Add( tagIx);
 		
-		_t = __t121;
+		_t = __t120;
 		_t = _t->getNextSibling();
 		break;
 	}
@@ -4534,14 +4431,14 @@ BaseGDL*  GDLInterpreter::r_dot_indexable_expr(RefDNode _t,
 	switch ( _t->getType()) {
 	case EXPR:
 	{
-		RefDNode __t125 = _t;
+		RefDNode __t124 = _t;
 		RefDNode tmp76_AST_in = _t;
 		match(antlr::RefAST(_t),EXPR);
 		_t = _t->getFirstChild();
 		res=expr(_t);
 		_t = _retTree;
 		aD->SetOwner( true);
-		_t = __t125;
+		_t = __t124;
 		_t = _t->getNextSibling();
 		break;
 	}
@@ -4609,7 +4506,7 @@ void GDLInterpreter::r_dot_array_expr(RefDNode _t,
 	switch ( _t->getType()) {
 	case ARRAYEXPR:
 	{
-		RefDNode __t127 = _t;
+		RefDNode __t126 = _t;
 		RefDNode tmp77_AST_in = _t;
 		match(antlr::RefAST(_t),ARRAYEXPR);
 		_t = _t->getFirstChild();
@@ -4618,7 +4515,7 @@ void GDLInterpreter::r_dot_array_expr(RefDNode _t,
 		guard.reset(aL);
 		r=r_dot_indexable_expr(_t, aD);
 		_t = _retTree;
-		_t = __t127;
+		_t = __t126;
 		_t = _t->getNextSibling();
 		
 		// check here for object and get struct
@@ -4717,7 +4614,7 @@ BaseGDL*  GDLInterpreter::dot_expr(RefDNode _t) {
 	RefDNode dot_expr_AST_in = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 	RefDNode dot = RefDNode(antlr::nullAST);
 	
-	RefDNode __t129 = _t;
+	RefDNode __t128 = _t;
 	dot = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 	match(antlr::RefAST(_t),DOT);
 	_t = _t->getFirstChild();
@@ -4728,7 +4625,7 @@ BaseGDL*  GDLInterpreter::dot_expr(RefDNode _t) {
 	r_dot_array_expr(_t, aD.get());
 	_t = _retTree;
 	{ // ( ... )+
-	int _cnt131=0;
+	int _cnt130=0;
 	for (;;) {
 		if (_t == RefDNode(antlr::nullAST) )
 			_t = ASTNULL;
@@ -4737,14 +4634,14 @@ BaseGDL*  GDLInterpreter::dot_expr(RefDNode _t) {
 			_t = _retTree;
 		}
 		else {
-			if ( _cnt131>=1 ) { goto _loop131; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
+			if ( _cnt130>=1 ) { goto _loop130; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
 		}
 		
-		_cnt131++;
+		_cnt130++;
 	}
-	_loop131:;
+	_loop130:;
 	}  // ( ... )+
-	_t = __t129;
+	_t = __t128;
 	_t = _t->getNextSibling();
 	res= aD->Resolve();
 	_retTree = _t;
@@ -4760,7 +4657,7 @@ BaseGDL*  GDLInterpreter::dot_expr(RefDNode _t) {
 	StackGuard<EnvStackT> guard(callStack);
 	
 	
-	RefDNode __t144 = _t;
+	RefDNode __t143 = _t;
 	RefDNode tmp78_AST_in = _t;
 	match(antlr::RefAST(_t),FCALL_LIB);
 	_t = _t->getFirstChild();
@@ -4779,7 +4676,7 @@ BaseGDL*  GDLInterpreter::dot_expr(RefDNode _t) {
 	res=static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
 	//*** MUST always return a defined expression
 	
-	_t = __t144;
+	_t = __t143;
 	_t = _t->getNextSibling();
 	_retTree = _t;
 	return res;
@@ -4792,7 +4689,7 @@ BaseGDL*  GDLInterpreter::assign_expr(RefDNode _t) {
 	BaseGDL** l;
 	
 	
-	RefDNode __t137 = _t;
+	RefDNode __t136 = _t;
 	RefDNode tmp79_AST_in = _t;
 	match(antlr::RefAST(_t),ASSIGN);
 	_t = _t->getFirstChild();
@@ -4876,7 +4773,7 @@ BaseGDL*  GDLInterpreter::assign_expr(RefDNode _t) {
 	
 	r_guard.release();
 	
-	_t = __t137;
+	_t = __t136;
 	_t = _t->getNextSibling();
 	_retTree = _t;
 	return res;
@@ -4903,7 +4800,7 @@ BaseGDL*  GDLInterpreter::assign_expr(RefDNode _t) {
 	switch ( _t->getType()) {
 	case MFCALL:
 	{
-		RefDNode __t148 = _t;
+		RefDNode __t147 = _t;
 		RefDNode tmp80_AST_in = _t;
 		match(antlr::RefAST(_t),MFCALL);
 		_t = _t->getFirstChild();
@@ -4921,13 +4818,13 @@ BaseGDL*  GDLInterpreter::assign_expr(RefDNode _t) {
 		
 		parameter_def(_t, newEnv);
 		_t = _retTree;
-		_t = __t148;
+		_t = __t147;
 		_t = _t->getNextSibling();
 		break;
 	}
 	case MFCALL_PARENT:
 	{
-		RefDNode __t149 = _t;
+		RefDNode __t148 = _t;
 		RefDNode tmp81_AST_in = _t;
 		match(antlr::RefAST(_t),MFCALL_PARENT);
 		_t = _t->getFirstChild();
@@ -4949,13 +4846,13 @@ BaseGDL*  GDLInterpreter::assign_expr(RefDNode _t) {
 		
 		parameter_def(_t, newEnv);
 		_t = _retTree;
-		_t = __t149;
+		_t = __t148;
 		_t = _t->getNextSibling();
 		break;
 	}
 	case FCALL:
 	{
-		RefDNode __t150 = _t;
+		RefDNode __t149 = _t;
 		RefDNode tmp82_AST_in = _t;
 		match(antlr::RefAST(_t),FCALL);
 		_t = _t->getFirstChild();
@@ -4969,7 +4866,7 @@ BaseGDL*  GDLInterpreter::assign_expr(RefDNode _t) {
 		
 		parameter_def(_t, newEnv);
 		_t = _retTree;
-		_t = __t150;
+		_t = __t149;
 		_t = _t->getNextSibling();
 		break;
 	}
@@ -4987,6 +4884,70 @@ BaseGDL*  GDLInterpreter::assign_expr(RefDNode _t) {
 	res=call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 	
 	}
+	_retTree = _t;
+	return res;
+}
+
+BaseGDL*  GDLInterpreter::simple_var(RefDNode _t) {
+	BaseGDL* res;
+	RefDNode simple_var_AST_in = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
+	RefDNode var = RefDNode(antlr::nullAST);
+	RefDNode varPtr = RefDNode(antlr::nullAST);
+	
+	if (_t == RefDNode(antlr::nullAST) )
+		_t = ASTNULL;
+	switch ( _t->getType()) {
+	case VAR:
+	{
+		var = _t;
+		match(antlr::RefAST(_t),VAR);
+		_t = _t->getNextSibling();
+		
+		BaseGDL* vData=callStack.back()->GetKW( var->varIx);
+		
+		if( vData == NULL)
+		throw GDLException( _t, "Variable is undefined: "+var->getText());
+		
+		res=vData->Dup();
+		
+		break;
+	}
+	case VARPTR:
+	{
+		varPtr = _t;
+		match(antlr::RefAST(_t),VARPTR);
+		_t = _t->getNextSibling();
+		
+		BaseGDL* vData=varPtr->var->Data();
+		
+		if( vData == NULL)
+		throw GDLException( _t, "Common block variable is undefined.");
+		
+		res=vData->Dup();
+		
+		break;
+	}
+	default:
+	{
+		throw antlr::NoViableAltException(antlr::RefAST(_t));
+	}
+	}
+	_retTree = _t;
+	return res;
+}
+
+BaseGDL*  GDLInterpreter::sys_var(RefDNode _t) {
+	BaseGDL* res;
+	RefDNode sys_var_AST_in = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
+	
+	BaseGDL* sv;
+	
+	
+	sv=sys_var_nocopy(_t);
+	_t = _retTree;
+	
+	res=sv->Dup();
+	
 	_retTree = _t;
 	return res;
 }
@@ -5194,7 +5155,7 @@ BaseGDL*  GDLInterpreter::assign_expr(RefDNode _t) {
 	BaseGDL* ee;
 	
 	
-	RefDNode __t185 = _t;
+	RefDNode __t184 = _t;
 	n = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 	match(antlr::RefAST(_t),NSTRUC);
 	_t = _t->getFirstChild();
@@ -5228,7 +5189,7 @@ BaseGDL*  GDLInterpreter::assign_expr(RefDNode _t) {
 	auto_ptr<DStructGDL> instance_guard(instance);
 	
 	{ // ( ... )+
-	int _cnt187=0;
+	int _cnt186=0;
 	for (;;) {
 		if (_t == RefDNode(antlr::nullAST) )
 			_t = ASTNULL;
@@ -5320,12 +5281,12 @@ BaseGDL*  GDLInterpreter::assign_expr(RefDNode _t) {
 		}
 		default:
 		{
-			if ( _cnt187>=1 ) { goto _loop187; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
+			if ( _cnt186>=1 ) { goto _loop186; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
 		}
 		}
-		_cnt187++;
+		_cnt186++;
 	}
-	_loop187:;
+	_loop186:;
 	}  // ( ... )+
 	
 	// inherit refers to nStructDesc, in case of error both have to
@@ -5351,7 +5312,7 @@ BaseGDL*  GDLInterpreter::assign_expr(RefDNode _t) {
 	instance_guard.release();
 	res=instance;
 	
-	_t = __t185;
+	_t = __t184;
 	_t = _t->getNextSibling();
 	_retTree = _t;
 	return res;
@@ -5374,12 +5335,12 @@ BaseGDL*  GDLInterpreter::assign_expr(RefDNode _t) {
 	BaseGDL* e;
 	
 	
-	RefDNode __t189 = _t;
+	RefDNode __t188 = _t;
 	RefDNode tmp85_AST_in = _t;
 	match(antlr::RefAST(_t),STRUC);
 	_t = _t->getFirstChild();
 	{ // ( ... )+
-	int _cnt191=0;
+	int _cnt190=0;
 	for (;;) {
 		if (_t == RefDNode(antlr::nullAST) )
 			_t = ASTNULL;
@@ -5395,12 +5356,12 @@ BaseGDL*  GDLInterpreter::assign_expr(RefDNode _t) {
 			
 		}
 		else {
-			if ( _cnt191>=1 ) { goto _loop191; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
+			if ( _cnt190>=1 ) { goto _loop190; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
 		}
 		
-		_cnt191++;
+		_cnt190++;
 	}
-	_loop191:;
+	_loop190:;
 	}  // ( ... )+
 	
 	//                 DStructDesc* oStructDesc=nStructDesc->FindEqual( structList);
@@ -5418,7 +5379,7 @@ BaseGDL*  GDLInterpreter::assign_expr(RefDNode _t) {
 	instance_guard.release();
 	res=instance;
 	
-	_t = __t189;
+	_t = __t188;
 	_t = _t->getNextSibling();
 	_retTree = _t;
 	return res;
