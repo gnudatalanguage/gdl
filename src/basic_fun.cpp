@@ -775,6 +775,23 @@ namespace lib {
   }
   BaseGDL* fix_fun( EnvT* e)
   {
+    DIntGDL* type = e->IfDefGetKWAs<DIntGDL>( 0);
+    if (type != NULL) {
+      int typ = (*type)[0];
+      if (typ == BYTE) return type_fun<DByteGDL>( e);
+      if (typ == INT) return type_fun<DIntGDL>( e);
+      if (typ == UINT) return type_fun<DUIntGDL>( e);
+      if (typ == LONG) return type_fun<DLongGDL>( e);
+      if (typ == ULONG) return type_fun<DULongGDL>( e);
+      if (typ == LONG64) return type_fun<DLong64GDL>( e);
+      if (typ == ULONG64) return type_fun<DULong64GDL>( e);
+      if (typ == FLOAT) return type_fun<DFloatGDL>( e);
+      if (typ == DOUBLE) return type_fun<DDoubleGDL>( e);
+      if (typ == COMPLEX) return type_fun<DComplexGDL>( e);
+      if (typ == COMPLEXDBL) return type_fun<DComplexDblGDL>( e);
+      throw GDLException( e->CallingNode(), 
+			  "FIX: Improper TYPE value.");
+    }
     return type_fun<DIntGDL>( e);
   }
   BaseGDL* uint_fun( EnvT* e)
