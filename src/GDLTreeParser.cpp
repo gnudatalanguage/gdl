@@ -1145,9 +1145,11 @@ void GDLTreeParser::unbrace_expr(RefDNode _t) {
 	
 	// remove last pair of braces
 	if( ex_AST->getType()==EXPR) 
-	unbrace_expr_AST= RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(NULL))->add(antlr::RefAST(ex_AST->getFirstChild())))); 
+	unbrace_expr_AST = ex_AST->getFirstChild(); 
+	// note: ex_AST is crucial here (ANTLR uses ex instead here)
+	//                #unbrace_expr= #( NULL, ex_AST->getFirstChild()); 
 	else
-	unbrace_expr_AST= RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(NULL))->add(antlr::RefAST(ex_AST)))); 
+	unbrace_expr_AST = ex_AST; 
 			
 	currentAST.root = unbrace_expr_AST;
 	if ( unbrace_expr_AST!=RefDNode(antlr::nullAST) &&

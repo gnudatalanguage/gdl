@@ -213,10 +213,11 @@ unbrace_expr!
 		{
             // remove last pair of braces
             if( #ex->getType()==EXPR) 
+                #unbrace_expr = #ex->getFirstChild(); 
                 // note: ex_AST is crucial here (ANTLR uses ex instead here)
-                #unbrace_expr= #( NULL, ex_AST->getFirstChild()); 
+//                #unbrace_expr= #( NULL, ex_AST->getFirstChild()); 
             else
-                #unbrace_expr= #( NULL, ex); 
+                #unbrace_expr = #ex; 
 		}
     ;
 
