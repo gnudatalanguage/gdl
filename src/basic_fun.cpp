@@ -2979,10 +2979,12 @@ namespace lib {
 	  {
 	    SizeT n = libFunList.size();
 	    if( n == 0) return new DStringGDL("");
-	    subList.resize( n);
-		
+
+	    DStringGDL* res = new DStringGDL( dimension( n), BaseGDL::NOZERO);
 	    for( SizeT i = 0; i<n; ++i)
-	      subList.push_back( libFunList[ i]->ObjectName());
+	      (*res)[i] = libFunList[ i]->ObjectName();
+
+	    return res;
 	  }
 	else
 	  {
@@ -3000,10 +3002,12 @@ namespace lib {
 	  {
 	    SizeT n = libProList.size();
 	    if( n == 0) return new DStringGDL("");
-	    subList.resize( n);
-		
+
+	    DStringGDL* res = new DStringGDL( dimension( n), BaseGDL::NOZERO);
 	    for( SizeT i = 0; i<n; ++i)
-	      subList.push_back( libProList[ i]->ObjectName());
+	      (*res)[i] = libProList[ i]->ObjectName();
+
+	    return res;
 	  }
 	else
 	  {

@@ -20,6 +20,7 @@
 
 #include "envt.hpp"
 #include "dpro.hpp"
+#include "objects.hpp"
 
 #include "basic_fun.hpp"
 #include "basic_pro.hpp"
@@ -39,14 +40,33 @@
 // for extensions
 #include "new.hpp"
 
+// for sorting lists by name
+struct CompLibFunName: public std::binary_function< DLibFun*, DLibFun*, bool>
+{
+  bool operator() ( DLibFun* f1, DLibFun* f2) const
+  { return f1->ObjectName() < f2->ObjectName();}
+};
+
+struct CompLibProName: public std::binary_function< DLibPro*, DLibPro*, bool>
+{
+  bool operator() ( DLibPro* f1, DLibPro* f2) const
+  { return f1->ObjectName() < f2->ObjectName();}
+};
+
+using namespace std;
+
+// declare here other library init functions
 void LibInit_jmg(); // libinit_jmg.cpp
 void LibInit_cl(); // libinit_cl.cpp
 void LibInit_mes(); // libinit_mes.cpp
 
-using namespace std;
-
 void LibInit()
 {
+  // call other library init functions
+  LibInit_jmg();
+  LibInit_cl();
+  LibInit_mes();
+
   const char KLISTEND[] = "";
 
   new DLibFun(lib::temporary,string("TEMPORARY"),1);
@@ -436,7 +456,8 @@ void LibInit()
       "NOCLIP",KLISTEND
     };
   new DLibPro(lib::xyouts, string("XYOUTS"), 3, xyoutsKey);
-  LibInit_jmg();
-  LibInit_cl();
-  LibInit_mes();
+
+  // sort lists
+  sort( libFunList.begin(), libFunList.end(), CompLibFunName());
+  sort( libProList.begin(), libProList.end(), CompLibProName());
 }
