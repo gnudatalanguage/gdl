@@ -3737,17 +3737,25 @@ BaseGDL*  GDLInterpreter::array_def(RefDNode _t) {
 			
 			// *** here (*newS) != (*oldS) must be set when
 			// unnamed structs not in struct list anymore
+			// WRONG! This speeds up things for named structs
+			// unnamed structs all have their own desc
+			// and thus the next is always true for them
 			if( newS != oldS)
 			{
-			if( (*newS) == (*oldS))
-			{
-			// different structs with same layout
-			// replace desc with first one
-			static_cast<DStructGDL*>(e)->SetDesc( oldS);
-			}
-			else
-			throw 
-			GDLException( _t, 
+			//                                 if( (*newS) == (*oldS))
+			//                                 {
+			// Not needed, CatArray puts the right descriptor
+			//                                     // different structs with same layout
+			//                                     // replace desc with first one
+			//                                     if( oldS->IsUnnamed())
+			//                                         oldS = new DStructDesc( oldS);
+			
+			//                                     static_cast<DStructGDL*>(e)->SetDesc( oldS);
+			//                                 }
+			//                                 else
+			
+			if( (*newS) != (*oldS))
+			throw GDLException( _t, 
 			"Conflicting data structures: "+
 			Name(cTypeData)+", "+Name(e));
 			}
@@ -4771,7 +4779,7 @@ BaseGDL*  GDLInterpreter::assign_expr(RefDNode _t) {
 	{
 	if( oStructDesc != nStructDesc)
 	{
-	oStructDesc->AssureEqual(nStructDesc);
+	oStructDesc->AssureIdentical(nStructDesc);
 	instance->SetDesc(oStructDesc);
 	//delete nStructDesc; // auto_ptr
 	}
@@ -4800,9 +4808,12 @@ BaseGDL*  GDLInterpreter::assign_expr(RefDNode _t) {
 	RefDNode si = RefDNode(antlr::nullAST);
 	
 	// don't forget the struct in extrat.cpp if you change something here
-	auto_ptr<DStructDesc>   nStructDesc(new DStructDesc( "$truct"));
+	// "$" as first char in the name is necessary 
+	// as it defines unnnamed structs (see dstructdesc.hpp)
+	DStructDesc*   nStructDesc = new DStructDesc( "$truct");
 	
-	DStructGDL* instance = new DStructGDL( nStructDesc.get());
+	// instance takes care of nStructDesc since it is unnamed
+	DStructGDL* instance = new DStructGDL( nStructDesc);
 	auto_ptr<DStructGDL> instance_guard(instance);
 	
 	BaseGDL* e;
@@ -4837,12 +4848,6 @@ BaseGDL*  GDLInterpreter::assign_expr(RefDNode _t) {
 	_loop182:;
 	}  // ( ... )+
 	
-	// Note: This search is not necessary as in DStructDesc
-	// operator== and AssureEqual() test for real equality
-	// not pointer equality, but it saves space in the struct list.
-	// possible change: handle unnamed struct descriptors as
-	// belonging to DStructGDL variable
-	// don't forget to look at array_def then!!!
 	//                 DStructDesc* oStructDesc=nStructDesc->FindEqual( structList);
 	//                 if( oStructDesc != NULL)
 	//                 {
@@ -4851,8 +4856,8 @@ BaseGDL*  GDLInterpreter::assign_expr(RefDNode _t) {
 	//                 }
 	//                 else
 	//                 {
-	// insert into struct list
-	structList.push_back( nStructDesc.release());
+	//                     // insert into struct list
+	//                     structList.push_back( nStructDesc.release());
 	//                 }
 	
 	instance_guard.release();

@@ -297,7 +297,9 @@ fi
 
 if test "x$with_python" != "xno"; then
   if test "x$with_python" != "xyes"; then
-    LIBS="$LIBS -L$with_python/lib -lpython2.3"
+    LIBS="$LIBS -L$with_python/lib" dnl "-lpython2.3"
+dnl for Mac OS X 
+    LIBS="$LIBS -L$with_python/lib/python2.3/config -lpython2.3"
     INCLUDES="$INCLUDES -I$with_python/include/python2.3"
   else
     LIBS="$LIBS -lpython2.3"

@@ -672,7 +672,7 @@ void DStructGDL::IFmtAll( SizeT offs, SizeT r,
 
   // find first tag
   SizeT nB = 0;
-  SizeT nTags=desc->NTags();
+  SizeT nTags=NTags();
   SizeT firstTag = 0;
   for( firstTag=0; firstTag < nTags; firstTag++)
       {
@@ -685,7 +685,7 @@ void DStructGDL::IFmtAll( SizeT offs, SizeT r,
 	  }
       }
 
-  firstIn = firstEl * desc->NTags() + firstTag;
+  firstIn = firstEl * NTags() + firstTag;
   firstOffs -= nB;
 }
 SizeT DStructGDL::

@@ -64,7 +64,7 @@ void DStructDesc::AddParent( DStructDesc* p)
 }
 
 // more sophisticated error messages than operator==
-void DStructDesc::AssureEqual( DStructDesc* d)
+void DStructDesc::AssureIdentical( DStructDesc* d)
 {
   // name is the same
   if( NTags() != d->NTags())
@@ -151,7 +151,7 @@ bool operator==(const DStructDesc& left,
 	  DStructDesc* rightD=castRight->Desc();
 	  
 	  // recursive call of operator ==
-	  if( !(*leftD == *rightD)) 
+	  if( (leftD != rightD) && !(*leftD == *rightD)) 
 	    return false;
 	}
     }
@@ -169,14 +169,14 @@ bool operator!=(const DStructDesc& left,
   return !(left == right);
 }
 
-DStructDesc* DStructDesc::FindEqual( const StructListT& sL)
-{
-  for( SizeT i=0; i<sL.size(); i++)
-    {
-      if( *this == *sL[i]) return sL[i];
-    }
-  return NULL;
-}
+// DStructDesc* DStructDesc::FindEqual( const StructListT& sL)
+// {
+//   for( SizeT i=0; i<sL.size(); i++)
+//     {
+//       if( *this == *sL[i]) return sL[i];
+//     }
+//   return NULL;
+// }
 
 DPro* DStructDesc::GetPro( const string& pName)
 {

@@ -67,14 +67,14 @@ public:
     
     SizeT nEl=dim.N_Elements();
 
-    SizeT nTags=desc->NTags();
+    SizeT nTags=NTags();
     
     for( SizeT ii=0; ii < nEl; ii++)
       {
 	SizeT iiTag=ii*nTags;
 	for( SizeT i=0; i < nTags; i++)
 	  {
-	    dd[iiTag+i]=(*desc)[i]->GetInstance();
+	    dd[iiTag+i]=(*Desc())[i]->GetInstance();
 	  }
       }
   }
@@ -82,11 +82,11 @@ public:
   // new scalar
   DStructGDL( DStructDesc* desc_): SpDStruct(desc_), dd(desc_->NTags())
   { 
-    SizeT nTags=desc->NTags();
+    SizeT nTags=NTags();
 
     for( SizeT i=0; i < nTags; i++)
       {
-	dd[i]=(*desc)[i]->GetInstance();
+	dd[i]=(*Desc())[i]->GetInstance();
       }
   }
 
@@ -103,25 +103,7 @@ public:
   // operators
 
   // assignment. 
-  DStructGDL& operator=(const DStructGDL& right)
-  {
-    if( &right == this) return *this; // self assignment
-    dim=right.dim;
-
-    // delete actual data
-    SizeT nD=dd.size();
-    for( SizeT i=0; i < nD; i++) delete dd[i];
-
-    // copy new data
-    SizeT nEl=right.N_Elements();
-    dd.resize(nEl);
-    for( SizeT i=0; i<nEl; i++)
-      {
-	dd[i]=right.dd[i]->Dup();
-      }
-
-    return *this;
-  }
+  //  DStructGDL& operator=(const DStructGDL& right);
 
   DStructGDL* CShift( DLong d);
   DStructGDL* CShift( DLong d[MAXRANK]);
@@ -134,8 +116,8 @@ public:
   bool          EqType( const BaseGDL* r) const 
   { return (SpDStruct::t == r->Type());} 
 
-  const SizeT N_Elements() const { return dd.size()/desc->NTags();}
-  const SizeT Size() const { return dd.size()/desc->NTags();}
+  const SizeT N_Elements() const { return dd.size()/NTags();}
+  const SizeT Size() const { return dd.size()/NTags();}
   const SizeT NBytes() const // for assoc function
   { 
     return (Sizeof() * N_Elements());
@@ -143,7 +125,7 @@ public:
   const SizeT ToTransfer() const // number of elements for IO tranfer  
   { 
     SizeT nB = 0;
-    SizeT nTags=desc->NTags();
+    SizeT nTags=NTags();
     for( SizeT i=0; i < nTags; i++)
       {
 	nB += dd[i]->ToTransfer();
@@ -153,7 +135,7 @@ public:
   const SizeT Sizeof() const
   {
     SizeT nB = 0;
-    SizeT nTags=desc->NTags();
+    SizeT nTags=NTags();
     for( SizeT i=0; i < nTags; i++)
       {
 	nB += dd[i]->NBytes();
@@ -174,7 +156,7 @@ public:
   // single element access. 
   BaseGDL*& Get( SizeT tag, SizeT ix)
   {
-    return dd[ desc->NTags()*ix + tag];
+    return dd[ NTags()*ix + tag];
   }
 
   // single tag access. 
@@ -207,9 +189,9 @@ public:
   template< class DataGDL>
   void InitTag(const std::string& tName, const DataGDL& data)
   {
-    int tIx = desc->TagIndex( tName);
+    int tIx = Desc()->TagIndex( tName);
     if( tIx == -1)
-      throw GDLException("Struct "+desc->Name()+
+      throw GDLException("Struct "+Desc()->Name()+
 			 " does not contain tag "+tName+".");
     static_cast<DataGDL&>(*dd[ tIx]) = data; // copy data
   }
@@ -220,23 +202,31 @@ public:
   int Scalar2index( SizeT& st) const;
   
   bool Scalar() const 
-  { return (dd.size() == desc->NTags());}
+  { return (dd.size() == NTags());}
   
   // make a duplicate on the heap
   DStructGDL* Dup() { return new DStructGDL(*this);}
   
   DStructGDL* New( dimension dim_,  BaseGDL::InitType noZero=BaseGDL::ZERO)
   {
-    if( noZero == BaseGDL::NOZERO) return new DStructGDL( desc, dim_, noZero);
+    if( noZero == BaseGDL::NOZERO)
+      {
+	DStructGDL* res = new DStructGDL( Desc(), dim_, noZero);
+	res->MakeOwnDesc();
+	return res;
+      }
     if( noZero == BaseGDL::INIT)
       {
-	DStructGDL* res =  new DStructGDL( desc, dim_, BaseGDL::NOZERO);
+	DStructGDL* res =  new DStructGDL( Desc(), dim_, BaseGDL::NOZERO);
+	res->MakeOwnDesc();
 	SizeT nEl = res->dd.size();
-	SizeT nTags = desc->NTags();
+	SizeT nTags = NTags();
 	for( SizeT i=0; i<nEl; ++i) res->dd[ i] = dd[ i % nTags]->Dup();
 	return res;
       }
-    return new DStructGDL( desc, dim_);
+    DStructGDL* res = new DStructGDL( Desc(), dim_);
+    res->MakeOwnDesc();
+    return res;
   }
 
   // used by interpreter, calls CatInsert

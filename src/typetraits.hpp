@@ -242,14 +242,25 @@ struct SpDStruct: public BaseGDL
 {
 protected:
   DStructDesc* desc;
+  inline SizeT NTags() const { return desc->NTags();}
 
-public:
   SpDStruct( DStructDesc* desc_=NULL);
   SpDStruct( DStructDesc* desc_, const dimension& dim_);
 
-  inline DStructDesc* Desc() { return desc;}
-  inline void SetDesc( DStructDesc* newDesc) { desc=newDesc;}
-  
+  void MakeOwnDesc()
+  {
+    if( /* desc != NULL && */ desc->IsUnnamed()) desc = new DStructDesc( desc);
+  }
+
+public:
+
+  inline DStructDesc* Desc() const { return desc;}
+  inline void SetDesc( DStructDesc* newDesc) 
+  { 
+    if( desc != NULL && desc->IsUnnamed()) delete desc;
+    desc=newDesc;
+  }
+
   // GetTag returns a tag descriptor (SpType)
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;

@@ -356,7 +356,7 @@ namespace SysVar
     ver->NewTag("OS_FAMILY", new DStringGDL( "unix")); 
     ver->NewTag("OS_NAME", new DStringGDL( uts.sysname)); 
     ver->NewTag("RELEASE", new DStringGDL( "6.0")); 
-    ver->NewTag("BUILD_DATE", new DStringGDL( "Oct 12 2004")); 
+    ver->NewTag("BUILD_DATE", new DStringGDL( "Feb 10 2005")); 
     ver->NewTag("MEMORY_BITS", new DIntGDL( 32)); 
     ver->NewTag("FILE_OFFSET_BITS", new DIntGDL( 32)); 
     DVar *v            = new DVar( "VERSION", ver);

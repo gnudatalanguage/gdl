@@ -35,6 +35,13 @@ public:
   DStructBase()
   {}
   
+  DStructBase( const DStructBase* d_): tags( d_->NTags())
+  {
+    SizeT nTags = d_->NTags();
+    for( SizeT t=0; t<nTags; ++t)
+      tags[t] = d_->tags[t]->GetTag();
+  }
+  
   virtual ~DStructBase();
 
   BaseGDL*& operator[] (const SizeT d1)
@@ -60,6 +67,11 @@ public:
   DUStructDesc(): DStructBase()
   {}
 
+  DUStructDesc( const DUStructDesc* d_): 
+    DStructBase( d_), 
+    tNames( d_->tNames)
+  {}
+  
   //  ~DUStructDesc();
 
   void AddTag( const std::string& tagName, const BaseGDL* data);
@@ -87,11 +99,19 @@ private:
   FunListT                 fun; // member functions
   ProListT                 pro; // member procedures
 
+  DStructDesc( const DStructDesc&) {} // disabeld
+ 
 public:
   DStructDesc( const std::string n): DUStructDesc()
   {
     name=n;
   }
+
+  // this is only used for unnamed structs -> only copy name from 'this'
+  DStructDesc( const DStructDesc* d_): 
+    DUStructDesc( d_), 
+    name( d_->name) // must be "$..."
+  {}
 
   ~DStructDesc();
 
@@ -99,6 +119,10 @@ public:
   friend bool operator!=(const DStructDesc& left, const DStructDesc& right);
 
   const std::string& Name() const { return name;}
+
+  // is this is to be changed, see also:
+  // DStructGDL::DStructGDL( const string& name_) // (dstructgdl.cpp)
+  bool IsUnnamed() const { return (name[0] == '$');}
 
   FunListT& FunList()
   {
@@ -152,8 +176,8 @@ public:
       }
   }
 
-  void AssureEqual( DStructDesc* d);
-  DStructDesc* FindEqual( const StructListT& sL);
+  void AssureIdentical( DStructDesc* d);
+  //  DStructDesc* FindEqual( const StructListT& sL);
 };
 
 

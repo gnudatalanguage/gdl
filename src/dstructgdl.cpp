@@ -32,6 +32,15 @@ DStructGDL::~DStructGDL()
 // intended for internal (C++) use to ease struct definition
 DStructGDL::DStructGDL( const string& name_): SpDStruct( NULL), dd()
 { 
+  if( name_[0] == '$') // unnamed struct 
+    {
+      cerr << "DStructGDL::DStructGDL( const string&) used"
+	" for unnamed struct" << endl;
+      throw exception(); 
+      //      desc = new DStructDesc( name_);
+      //      return;
+    }
+  
   desc = FindInStructList( structList, name_);
                 
   if( desc == NULL)
@@ -41,7 +50,7 @@ DStructGDL::DStructGDL( const string& name_): SpDStruct( NULL), dd()
     }
   else
     { 
-      SizeT nTags=desc->NTags();
+      SizeT nTags=NTags();
 
       dd.resize( nTags);
       
@@ -57,6 +66,8 @@ DStructGDL::DStructGDL(const DStructGDL& d_):
   SpDStruct(d_.desc, d_.dim), 
   dd(d_.dd.size()) 
 {
+  MakeOwnDesc();
+
   SizeT nEl=dd.size();
   for( SizeT i=0; i<nEl; i++)
     {
@@ -64,12 +75,39 @@ DStructGDL::DStructGDL(const DStructGDL& d_):
     }
 }
 
+// // assignment. 
+// DStructGDL& DStructGDL::operator=(const DStructGDL& right)
+// {
+//   //  std::cout << "DStructGDL& operator=(const DStructGDL& right): " << desc <<" "<< right.desc << std::endl;
+  
+//   if( &right == this) return *this; // self assignment
+//   dim=right.dim;
+
+// //   if( right.desc->IsUnnamed())
+// //     SetDesc( new DStructDesc( right.desc));
+
+//   // delete actual data
+//   SizeT nD=dd.size();
+//   for( SizeT i=0; i < nD; i++) delete dd[i];
+
+//   // copy new data
+//   SizeT nEl=right.N_Elements();
+//   dd.resize(nEl);
+//   for( SizeT i=0; i<nEl; i++)
+//     {
+//       dd[i]=right.dd[i]->Dup();
+//     }
+  
+//   return *this;
+// }
+
+
 DStructGDL* DStructGDL::CShift( DLong d)
 {
-  DStructGDL* sh = new DStructGDL( desc, dim, BaseGDL::NOZERO);
+  DStructGDL* sh = new DStructGDL( Desc(), dim, BaseGDL::NOZERO);
 
   SizeT sz = dd.size();
-  d *= desc->NTags();
+  d *= NTags();
   if( d >= 0)
     for( SizeT i=0; i<sz; ++i) sh->dd[(i + d) % sz] = dd[i]->Dup();
   else
@@ -80,12 +118,12 @@ DStructGDL* DStructGDL::CShift( DLong d)
 
 DStructGDL* DStructGDL::CShift( DLong s[MAXRANK])
 {
-  DStructGDL* sh = new DStructGDL( desc, dim, BaseGDL::NOZERO);
+  DStructGDL* sh = new DStructGDL( Desc(), dim, BaseGDL::NOZERO);
 
   SizeT nDim = Rank();
   SizeT nEl = N_Elements();
 
-  SizeT nTags = desc->NTags();
+  SizeT nTags = NTags();
 
   SizeT  stride[ MAXRANK + 1];
   dim.Stride( stride, nDim);
@@ -148,11 +186,11 @@ void DStructGDL::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
   DStructGDL* src=static_cast<DStructGDL*>(srcIn);
 
   // check struct compatibility
-  if( src->desc != this->desc && (*src->desc) != (*this->desc))
+  if( src->Desc() != this->Desc() && (*src->Desc()) != (*this->Desc()))
     throw 
       GDLException( "Conflicting data structures.");
 
-  SizeT nTags=desc->NTags();
+  SizeT nTags=NTags();
   
   bool isScalar= src->N_Elements() == 1;
   if( isScalar) 
@@ -251,7 +289,7 @@ void DStructGDL::InsertAt( SizeT offset, BaseGDL* srcIn,
 {
   DStructGDL* src=static_cast<DStructGDL* >(srcIn);
 
-  SizeT nTags=desc->NTags();
+  SizeT nTags=NTags();
   
   if( ixList == NULL)
     {
@@ -339,7 +377,7 @@ DStructGDL* DStructGDL::Index( ArrayIndexListT* ixList)
   
   DStructGDL* res=New( ixList->GetDim(), BaseGDL::NOZERO);
   
-  SizeT nTags=desc->NTags();
+  SizeT nTags=NTags();
   
   SizeT nCp=ixList->N_Elements();
   for( SizeT c=0; c<nCp; c++)
@@ -363,7 +401,7 @@ void DStructGDL::AddTagGrab(BaseGDL* data)
 }
 void DStructGDL::NewTag(const string& tName, BaseGDL* data)
 {
-  desc->AddTag( tName, data);
+  Desc()->AddTag( tName, data); // makes a copy of data
   AddTagGrab( data);
 }
 
@@ -411,7 +449,7 @@ void DStructGDL::InsAt( DStructGDL* srcIn, dimension ixDim)
 	
   SizeT destStart=dim.LongIndex(ixDim); // starting pos
 
-  SizeT nTags=desc->NTags();
+  SizeT nTags=NTags();
     
   SizeT srcIx=0; // this one simply runs from 0 to N_Elements(srcIn)
   for( SizeT c=1; c<=nCp; c++) // linearized verison of nested loops
@@ -465,7 +503,7 @@ void DStructGDL::CatInsert( const DStructGDL* srcArr, const SizeT atDim, SizeT& 
   // number of elements to skip
   SizeT gap=dim.Stride(atDim+1);    // dest array
 
-  SizeT nTags=desc->NTags();
+  SizeT nTags=NTags();
 
   SizeT srcIx=0;
   for( SizeT c=0; c<nCp; c++)

@@ -161,7 +161,7 @@ namespace lib {
 	//handle the error
 	ncdf_handle_error(e,status,"NCDF_ATTNAME");
 
-
+	// $ is necessary here (see dstructgdl.cpp)
 	DStructDesc* ncdf_attinq=new DStructDesc("$truct");
 	SpDLong aLong;
 	SpDString aString;

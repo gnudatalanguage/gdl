@@ -91,4 +91,5 @@
 	  Fixed offset bug for conversion functions (BYTE, FIX, ...).
 	  Fixed libfunction returning parameter bug.
 	  Fixed AND, OR operator bug.
+	  Fixed TVLCT bug.
 	

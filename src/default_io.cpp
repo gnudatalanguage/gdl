@@ -472,7 +472,7 @@ istream& operator>>(istream& is, Data_<SpDString>& data_)
 
 istream& operator>>(istream& i, DStructGDL& data_)
 {
-  SizeT nTags = data_.desc->NTags();
+  SizeT nTags = data_.NTags();
   SizeT nEl   = data_.N_Elements();
 
   for( SizeT e=0; e<nEl; ++e)
@@ -1133,7 +1133,7 @@ ostream& Data_<SpDString>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 
 ostream& DStructGDL::ToStream(ostream& o, SizeT w, SizeT* actPosPtr) 
 {
-  SizeT nTags = desc->NTags();
+  SizeT nTags = NTags();
   SizeT nEl   = N_Elements();
   
   for( SizeT e=0; e<nEl; ++e)

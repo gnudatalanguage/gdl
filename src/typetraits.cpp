@@ -95,7 +95,12 @@ const std::string& SpDString::TypeStr() const { return str;}
 const DType    SpDStruct::t=STRUCT;      // type ID
 const string   SpDStruct::str("STRUCT"); // type string
 const SpDStruct::Ty  SpDStruct::zero=NULL; // zero struct, special meaning
-BaseGDL* SpDStruct::GetTag() const { return new SpDStruct(*this);}
+BaseGDL* SpDStruct::GetTag() const 
+{ 
+  SpDStruct* newTag = new SpDStruct(*this);
+  newTag->MakeOwnDesc();
+  return newTag;
+}
 const DType   SpDStruct::Type()    const { return t;}
 const std::string& SpDStruct::TypeStr() const { return str;}
 
@@ -141,7 +146,12 @@ BaseGDL* SpDDouble::GetInstance() const { return new Data_<SpDDouble>(dim);}
 BaseGDL* SpDString::GetInstance() const { return new Data_<SpDString>(dim);}
 BaseGDL* SpDPtr::GetInstance() const    { return new Data_<SpDPtr>(dim);}
 BaseGDL* SpDObj::GetInstance() const    { return new Data_<SpDObj>(dim);}
-BaseGDL* SpDStruct::GetInstance() const { return new DStructGDL(desc,dim);}
+BaseGDL* SpDStruct::GetInstance() const 
+{ 
+  SpDStruct* newInstance = new DStructGDL(desc,dim);
+  newInstance->MakeOwnDesc();
+  return newInstance;
+}
 BaseGDL* SpDComplex::GetInstance() const    { return new Data_<SpDComplex>(dim);}
 BaseGDL* SpDComplexDbl::GetInstance() const { return new Data_<SpDComplexDbl>(dim);}
 
@@ -185,10 +195,27 @@ SpDString::SpDString(): BaseGDL() {}
 SpDString::SpDString( const dimension& dim_): BaseGDL(dim_) {}
 SpDString::~SpDString() {}
 
-SpDStruct::SpDStruct( DStructDesc* desc_): BaseGDL(), desc(desc_) {}
+SpDStruct::SpDStruct( DStructDesc* desc_): 
+  BaseGDL(),
+  desc(desc_) 
+{
+  //  if( desc != NULL && desc->IsUnnamed()) 
+  //    desc = new DStructDesc( desc);
+}
+
 SpDStruct::SpDStruct( DStructDesc* desc_, const dimension& dim_): 
-  BaseGDL(dim_), desc(desc_) {}
-SpDStruct::~SpDStruct() {}
+  BaseGDL(dim_),
+  desc(desc_) 
+{
+  //  if( desc == NULL) cout << "SpDStruct::SpDStruct( DStructDesc* desc_, const dimension& dim_): desc_ == NULL" << endl;
+  //  if( desc_ != NULL && desc_->IsUnnamed()) 
+  //    desc = new DStructDesc( desc_);
+}
+
+SpDStruct::~SpDStruct() 
+{
+  if( desc != NULL && desc->IsUnnamed()) delete desc;
+}
 
 SpDPtr::SpDPtr(): BaseGDL() {}
 SpDPtr::SpDPtr( const dimension& dim_): BaseGDL(dim_) {}

@@ -153,7 +153,7 @@ void ExtraT::Resolve()
 	  DStructGDL*  extraStruct = new DStructGDL( extraStructDesc);
 
 	  // from back -> _EXTRA overrides additional keyword
-	  for( int i=nEl-1; i>=0; i--)
+	  for( int i=nEl-1; i>=0; --i)
 	    {
 	      if( extraStructDesc->TagIndex( listName[i]) == -1)
 		{
@@ -171,8 +171,8 @@ void ExtraT::Resolve()
 // 	    }
 // 	  else
 // 	    {
-	      // insert into struct list
-	      structList.push_back( extraStructDesc);
+// 	      // insert into struct list // NOT ANYMORE!!!
+// 	      structList.push_back( extraStructDesc);
 // 	    }
 
 	  //	  structList.push_back( extraStructDesc);
