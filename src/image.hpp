@@ -30,6 +30,8 @@ namespace lib {
   void tv( EnvT* e);
   void loadct( EnvT* e);
 
+  BaseGDL* tvrd( EnvT* e);
+
 } // namespace
 
 #endif
