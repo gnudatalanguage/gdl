@@ -487,15 +487,83 @@ namespace lib {
   BaseGDL* indgen( EnvT* e)
   {
     dimension dim;
-    try{
-      arr( e, dim); 
-      return new DIntGDL(dim, BaseGDL::INDGEN);
-    }
+
+    // Defaulting to INT
+    DType type = INT;
+
+    static int kwIx1 = e->KeywordIx("BYTE");
+    if (e->KeywordSet(kwIx1)){ type = BYTE; }
+
+    static int kwIx2 = e->KeywordIx("COMPLEX");
+    if (e->KeywordSet(kwIx2)){ type = COMPLEX; }
+    
+    static int kwIx3 = e->KeywordIx("DCOMPLEX");
+    if (e->KeywordSet(kwIx3)){ type = COMPLEXDBL; }
+
+    static int kwIx4 = e->KeywordIx("DOUBLE");
+    if (e->KeywordSet(kwIx4)){ type = DOUBLE; }
+
+    static int kwIx5 = e->KeywordIx("FLOAT");
+    if (e->KeywordSet(kwIx5)){ type = FLOAT; }
+    
+    static int kwIx6 = e->KeywordIx("L64");
+    if (e->KeywordSet(kwIx6)){ type = LONG64; }
+
+    static int kwIx7 = e->KeywordIx("LONG");
+    if (e->KeywordSet(kwIx7)){ type = LONG; }
+
+    static int kwIx8 = e->KeywordIx("STRING");
+    if (e->KeywordSet(kwIx8)){ type = STRING; }
+
+    static int kwIx9 = e->KeywordIx("UINT");
+    if (e->KeywordSet(kwIx9)){ type = UINT; }
+
+    static int kwIx10 = e->KeywordIx("UL64");
+    if (e->KeywordSet(kwIx10)){ type = ULONG64; }
+
+    static int kwIx11 = e->KeywordIx("ULONG");
+    if (e->KeywordSet(kwIx11)){ type = ULONG; }
+    
+    try
+      {
+	// Seeing if the user passed in a TYPE code
+	static int kwIx12 = e->KeywordIx("TYPE");
+	if ( e->KeywordPresent(kwIx12)){
+	  DLong temp_long;
+	  e->AssureLongScalarKW(kwIx12, temp_long);
+	  type = static_cast<DType>(temp_long);
+	}
+
+	arr(e, dim);
+
+	switch(type)
+	  {
+	  case INT:        return new DIntGDL(dim, BaseGDL::INDGEN);
+	  case BYTE:       return new DByteGDL(dim, BaseGDL::INDGEN);
+	  case COMPLEX:    return new DComplexGDL(dim, BaseGDL::INDGEN);
+	  case COMPLEXDBL: return new DComplexDblGDL(dim, BaseGDL::INDGEN);
+	  case DOUBLE:     return new DDoubleGDL(dim, BaseGDL::INDGEN);
+	  case FLOAT:      return new DFloatGDL(dim, BaseGDL::INDGEN);
+	  case LONG64:     return new DLong64GDL(dim, BaseGDL::INDGEN);
+	  case LONG:       return new DLongGDL(dim, BaseGDL::INDGEN);
+	  case STRING: {
+	    DULongGDL* iGen = new DULongGDL(dim, BaseGDL::INDGEN);
+	    return iGen->Convert2(STRING);
+	  }
+	  case UINT:       return new DUIntGDL(dim, BaseGDL::INDGEN);
+	  case ULONG64:    return new DULong64GDL(dim, BaseGDL::INDGEN);
+	  case ULONG:      return new DULongGDL(dim, BaseGDL::INDGEN);
+	  default:
+	    e->Throw( "Invalid type code specified.");
+	    break;
+	  }
+      }
     catch( GDLException ex)
       {
-	throw GDLException( e->CallingNode(), "INDGEN: "+ex.getMessage());
+	e->Throw( ex.getMessage());
       }
   }
+
   BaseGDL* uindgen( EnvT* e)
   {
     dimension dim;

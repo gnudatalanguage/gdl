@@ -2,10 +2,6 @@ Known issues to be handled:
 
 Version 0.8:
 
-- Floating point exceptions are not at all handled yet. GDL just terminates.
-
-- INDGEN function does not handle all keywords.
- 
 - HELP procedure does not handle all keywords.
 
 - PLOT procedure does not handle all keywords.
