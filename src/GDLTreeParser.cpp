@@ -4106,14 +4106,16 @@ void GDLTreeParser::sysvar(RefDNode _t) {
 	i = _t;
 	RefDNode i_AST_in = RefDNode(antlr::nullAST);
 	i_AST = astFactory->create(antlr::RefAST(i));
-	match(antlr::RefAST(_t),IDENTIFIER);
+	match(antlr::RefAST(_t),SYSVARNAME);
 	_t = _t->getNextSibling();
 	currentAST = __currentAST128;
 	_t = __t128;
 	_t = _t->getNextSibling();
 	sysvar_AST = RefDNode(currentAST.root);
 	
-		  sysvar_AST=astFactory->create(SYSVAR,i->getText());
+	std::string sysVarName = i->getText();
+	// here we create the real sysvar node      
+		  sysvar_AST=astFactory->create(SYSVAR, sysVarName.substr(1));
 	//	  #sysvar=#[SYSVAR,i->getText()];
 		  comp.SysVar(sysvar_AST); // sets var to NULL
 		
@@ -5593,7 +5595,7 @@ void GDLTreeParser::tag_array_expr(RefDNode _t) {
 
 void GDLTreeParser::initializeASTFactory( antlr::ASTFactory& factory )
 {
-	factory.setMaxNodeType(189);
+	factory.setMaxNodeType(190);
 }
 const char* GDLTreeParser::tokenNames[] = {
 	"<0>",
@@ -5712,6 +5714,8 @@ const char* GDLTreeParser::tokenNames[] = {
 	"RSQUARE",
 	"LCURLY",
 	"RCURLY",
+	"SYSVARNAME",
+	"EXCLAMATION",
 	"\"inherits\"",
 	"CONSTANT_HEX_BYTE",
 	"CONSTANT_HEX_LONG",
@@ -5743,7 +5747,6 @@ const char* GDLTreeParser::tokenNames[] = {
 	"CONSTANT_FLOAT",
 	"CONSTANT_DOUBLE",
 	"ASTERIX",
-	"EXCLAMATION",
 	"DOT",
 	"STRING_LITERAL",
 	"POW",
@@ -5797,7 +5800,7 @@ const unsigned long GDLTreeParser::_tokenSet_0_data_[] = { 805363744UL, 27514634
 // "break" "continue" "repeat" "while" "for" "goto" "return" "on_ioerror" 
 // "if" 
 const antlr::BitSet GDLTreeParser::_tokenSet_0(_tokenSet_0_data_,8);
-const unsigned long GDLTreeParser::_tokenSet_1_data_[] = { 3257604192UL, 246148UL, 4294965248UL, 32768UL, 4292083712UL, 4095UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLTreeParser::_tokenSet_1_data_[] = { 3257604192UL, 246148UL, 4294965248UL, 32768UL, 4289724416UL, 8191UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN ARRAYDEF ARRAYEXPR ARRAYEXPR_FN CONSTANT DEREF EXPR FCALL KEYDEF 
 // MFCALL MFCALL_PARENT NSTRUC_REF POSTDEC POSTINC STRUC SYSVAR UMINUS 
 // VAR DEC INC AND_OP_EQ ASTERIX_EQ EQ_OP_EQ GE_OP_EQ GTMARK_EQ GT_OP_EQ 
@@ -5806,7 +5809,7 @@ const unsigned long GDLTreeParser::_tokenSet_1_data_[] = { 3257604192UL, 246148U
 // POW MATRIX_OP1 MATRIX_OP2 "mod" PLUS MINUS LTMARK GTMARK "not" "eq" 
 // "ne" "le" "lt" "ge" "gt" "and" "or" "xor" LOG_AND LOG_OR LOG_NEG QUESTION 
 const antlr::BitSet GDLTreeParser::_tokenSet_1(_tokenSet_1_data_,12);
-const unsigned long GDLTreeParser::_tokenSet_2_data_[] = { 3224049760UL, 246148UL, 4294965248UL, 32768UL, 4292083712UL, 4095UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLTreeParser::_tokenSet_2_data_[] = { 3224049760UL, 246148UL, 4294965248UL, 32768UL, 4289724416UL, 8191UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN ARRAYDEF ARRAYEXPR ARRAYEXPR_FN CONSTANT DEREF EXPR FCALL MFCALL 
 // MFCALL_PARENT NSTRUC_REF POSTDEC POSTINC STRUC SYSVAR UMINUS VAR DEC 
 // INC AND_OP_EQ ASTERIX_EQ EQ_OP_EQ GE_OP_EQ GTMARK_EQ GT_OP_EQ LE_OP_EQ 

@@ -662,7 +662,14 @@ struct_def
 	;
 
 tag_def
-	: IDENTIFIER COLON! expr	
+	:   ( IDENTIFIER 
+        | s:SYSVARNAME  { #s->setType( IDENTIFIER);}  
+        | e:EXCLAMATION { #e->setType( IDENTIFIER);}  
+        ) 
+        // fake IDENTIFIER (struct tag can also be "!" or "!XXXX")
+        // no additinal subtype is needed here, as struct_def already creates
+        // the appropriate node (ie. there is no ambiguity in the parser output)
+        COLON! expr	
 	;	
 
 tag_def_list
@@ -670,7 +677,7 @@ tag_def_list
 	;	
 
 ntag_def
-	: IDENTIFIER COLON! expr	
+	: tag_def
     | expr
 	;	
 
@@ -835,7 +842,7 @@ arrayindex
 
 // system variable name
 sysvar
-  : EXCLAMATION! IDENTIFIER
+  : SYSVARNAME
 	{ #sysvar = #([SYSVAR,"SYSVAR"],sysvar);}
   	;
 
@@ -1590,6 +1597,14 @@ options
 	testLiterals = true;
 }
 	: (L)(L|D|'$')*
+	{ 
+	  std::string s=StrUpCase( $getText);
+	  $setText( s); 
+	}
+	;
+
+SYSVARNAME
+	: ('!') (L|D|'$')+
 	{ 
 	  std::string s=StrUpCase( $getText);
 	  $setText( s); 

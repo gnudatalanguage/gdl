@@ -581,9 +581,11 @@ comp_assign_expr!
 
 // system variables have as variable ptr NULL initially
 sysvar!//
-  : #(SYSVAR i:IDENTIFIER)
+  : #(SYSVAR i:SYSVARNAME)
 	{ 
-	  #sysvar=astFactory->create(SYSVAR,i->getText());
+      std::string sysVarName = i->getText();
+      // here we create the real sysvar node      
+	  #sysvar=astFactory->create(SYSVAR, sysVarName.substr(1));
 //	  #sysvar=#[SYSVAR,i->getText()];
 	  comp.SysVar(#sysvar); // sets var to NULL
 	}	

@@ -4989,6 +4989,8 @@ const char* GDLInterpreter::tokenNames[] = {
 	"RSQUARE",
 	"LCURLY",
 	"RCURLY",
+	"SYSVARNAME",
+	"EXCLAMATION",
 	"\"inherits\"",
 	"CONSTANT_HEX_BYTE",
 	"CONSTANT_HEX_LONG",
@@ -5020,7 +5022,6 @@ const char* GDLInterpreter::tokenNames[] = {
 	"CONSTANT_FLOAT",
 	"CONSTANT_DOUBLE",
 	"ASTERIX",
-	"EXCLAMATION",
 	"DOT",
 	"STRING_LITERAL",
 	"POW",
@@ -5071,7 +5072,7 @@ const unsigned long GDLInterpreter::_tokenSet_0_data_[] = { 948969504UL, 6039921
 // PCALL PCALL_LIB RETF RETP "switch" "case" DEC INC "break" "continue" 
 // "repeat" "while" "for" "goto" "on_ioerror" "if" 
 const antlr::BitSet GDLInterpreter::_tokenSet_0(_tokenSet_0_data_,8);
-const unsigned long GDLInterpreter::_tokenSet_1_data_[] = { 3228239968UL, 508294UL, 6144UL, 32768UL, 4292083712UL, 4095UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLInterpreter::_tokenSet_1_data_[] = { 3228239968UL, 508294UL, 6144UL, 32768UL, 4289724416UL, 8191UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN ARRAYDEF ARRAYEXPR CONSTANT DEREF EXPR FCALL FCALL_LIB MFCALL 
 // MFCALL_PARENT NSTRUC NSTRUC_REF POSTDEC POSTINC STRUC SYSVAR UMINUS 
 // VAR VARPTR DEC INC SLASH ASTERIX DOT POW MATRIX_OP1 MATRIX_OP2 "mod" 

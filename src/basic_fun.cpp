@@ -22,6 +22,8 @@
 #include <string>
 #include <fstream>
 //#include <memory>
+#include <regex.h> // stregex
+#include <unistd.h>
 
 #include "datatypes.hpp"
 #include "envt.hpp"
@@ -31,7 +33,6 @@
 #include "terminfo.hpp"
 #include "typedefs.hpp"
 
-#include <regex.h> // stregex
 
 #define GDL_DEBUG
 //#undef GDL_DEBUG
@@ -2701,7 +2702,7 @@ namespace lib {
     SizeT nEnv; 
     DStringGDL* env;
 
-    if(environment) {
+    if( environment) {
       // determine number of environment entries
       for(nEnv = 0; environ[nEnv] != NULL  ; ++nEnv);
 

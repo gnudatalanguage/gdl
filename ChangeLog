@@ -98,4 +98,9 @@
 	  Changed configure.in to support python on OS X (fink)
 	  Added SETENV, STRUCT_ASSIGN pro.
 	  Added GETENV, STREGEX, TAG_NAMES functions.
+	  Minor adjustments of default output (no FORMAT keyword).
+	  Widen struct tag name rules: "!", "!$" and "!TEXT" are
+	  allowed.
+	  System variables can be named "!$", or "!$TEXT".
+	
 	

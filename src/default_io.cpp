@@ -1138,7 +1138,7 @@ ostream& DStructGDL::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   
   for( SizeT e=0; e<nEl; ++e)
     {
-      o << CheckNL( w, actPosPtr, 1) << "{";
+      o << CheckNL( w, actPosPtr, 2) << "{ ";
       for( SizeT tIx=0; tIx<nTags-1; ++tIx)
 	{
 	  BaseGDL* actEl = Get( tIx, e);

@@ -236,6 +236,7 @@ public:
 	public: void mCONSTANT_OR_STRING_LITERAL(bool _createToken);
 	public: void mCOMMENT(bool _createToken);
 	public: void mIDENTIFIER(bool _createToken);
+	public: void mSYSVARNAME(bool _createToken);
 	public: void mEND_MARKER(bool _createToken);
 	public: void mWHITESPACE(bool _createToken);
 	protected: void mSKIP_LINES(bool _createToken);
@@ -265,6 +266,8 @@ private:
 	static const antlr::BitSet _tokenSet_9;
 	static const unsigned long _tokenSet_10_data_[];
 	static const antlr::BitSet _tokenSet_10;
+	static const unsigned long _tokenSet_11_data_[];
+	static const antlr::BitSet _tokenSet_11;
 };
 
 #endif /*INC_GDLLexer_hpp_*/
