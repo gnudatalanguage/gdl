@@ -27,8 +27,8 @@
 #include "GDLInterpreter.hpp"
 
 // print out AST tree
-//#define GDL_DEBUG
-#undef GDL_DEBUG
+#define GDL_DEBUG
+//#undef GDL_DEBUG
 
 #ifdef GDL_DEBUG
 #include "print_tree.hpp"
@@ -322,13 +322,37 @@ void DCompiler::CommonDecl(const string& N)
   pro->AddCommon(c);
 }
 
-RefDNode DCompiler::ByReference(RefDNode n)
+RefDNode DCompiler::ByReference(RefDNode nIn)
 {
   static RefDNode null = static_cast<RefDNode>(antlr::nullAST);
+
+  RefDNode n = nIn;
+
+  // APRO,++(a=2) is passed like APRO,a
+  // APRO,(((a=2))=3) // forbidden in GDL
+  // Makes IDL segfault: APRO,++(((a=2))=3)
 
   // expressions (braces) are ignored
   while( n->getType() == EXPR) n = n->getFirstChild();
   int t=n->getType();
+  if( t == DEC || t == INC) // only preinc can be reference
+    {
+      n = n->getFirstChild();
+      int t=n->getType();
+    }
+
+  // expressions (braces) are ignored
+  while( n->getType() == EXPR) n = n->getFirstChild();
+  t=n->getType();
+  if( t == ASSIGN)
+    {
+      n = n->getFirstChild()->getNextSibling();
+      int t=n->getType();
+    }
+
+  // expressions (braces) are ignored
+  while( n->getType() == EXPR) n = n->getFirstChild();
+  t=n->getType();
 
   // only var, common block var and deref ptr are passed by reference
   if( t != VAR && t != VARPTR && t != DEREF) return null; 

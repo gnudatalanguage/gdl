@@ -208,12 +208,14 @@ common_block!
   ;		
 
 // removes last pair of braces (multiple braces already removed in brace_expr)
-unbrace_expr
+unbrace_expr!//
 	: ex:expr
 		{
             // remove last pair of braces
-			if( #ex->getType()==EXPR) #ex=#ex->getFirstChild();
-            #unbrace_expr=#ex;
+			if( #ex->getType()==EXPR) 
+                #unbrace_expr=#( ex->getFirstChild());
+            else
+                #unbrace_expr=#( ex);
 		}
     ;
 
@@ -279,8 +281,8 @@ statement
     | forward_function
 	| common_block
 	| block
-    | #(DEC unbrace_l_expr)
-    | #(INC unbrace_l_expr)
+    | #(DEC expr)
+    | #(INC expr)
 	| BREAK    // only in loops or switch_statement
 	| CONTINUE // only in loops
 	;
@@ -429,14 +431,24 @@ procedure_call
 parameter_def!//
 {
     RefDNode variable;
+    RefDNode varCp;
 }
 	: #(d:KEYDEF i:IDENTIFIER k:unbrace_expr
             {
                 variable=comp.ByReference(#k);
                 if( variable != static_cast<RefDNode>(antlr::nullAST))
                 {
-                    #d=#[KEYDEF_REF,"keydef_ref"];
-                    #parameter_def=#(d,i,variable);
+                    if( variable == #k)
+                    {
+                        #d=#[KEYDEF_REF,"keydef_ref"];
+                        #parameter_def=#(d,i,variable);
+                    }
+                    else
+                    {
+                        #d=#[KEYDEF_REF_EXPR,"keydef_ref_expr"];
+                        varCp = #( variable);
+                        #parameter_def=#(d,i,k,varCp);
+                    }
                 }
                 else 
                 {
@@ -455,18 +467,21 @@ parameter_def!//
             }
         )
 	| e:unbrace_expr
-
-// make sure   ((a=2))=3
-//       and   PROCALL,(a=2) 
-// work correctly
-// hint: check for ref only in interpreter
-// handle assign_expr specially (they are non tmp_expr)
-// ...
         {
             variable=comp.ByReference(#e);
             if( variable != static_cast<RefDNode>(antlr::nullAST))
             {
-                #parameter_def=#([REF,"ref"],variable);
+                if( variable == #e)
+                    {
+                        #d=#[REF,"ref"];
+                        #parameter_def=#(d,variable);
+                    }
+                    else
+                    {
+                        #d=#[REF_EXPR,"ref_expr"];
+                        varCp = #( variable);
+                        #parameter_def=#(d,e,varCp);
+                    }
             }
             else 
             {
@@ -476,14 +491,6 @@ parameter_def!//
                 {
                     // something like: CALLAPRO,reform(a,/OVERWRITE)
                     #parameter_def=#([REF_CHECK,"ref_check"],e);
-                }
-                else if( t == ASSIGN)
-                {
-                    RefDNode target = #e->getFirstChild();
-                    target = target->getNextSibling();
-                    int tt = #e->getType();
-
-                    #parameter_def=#([REF_ASSIGN,"ref_assign"],e,target);
                 }
                 else
                 {
@@ -583,7 +590,7 @@ arrayindex
 
 // removes last pair of braces
 // for non functions
-unbrace_l_expr!//
+lassign_expr!//
 	: ex:expr
 		{
             // remove last pair of braces
@@ -598,54 +605,59 @@ unbrace_l_expr!//
                     cT != MFCALL_PARENT_LIB)
                         #ex=#ex->getFirstChild();
             }
-            #unbrace_l_expr=#ex;
+
+            if( #ex->getType()==ASSIGN)
+            throw GDLException(	_t, "Assign expression is not allowed as "
+                                    "l-expression in assignment");
+
+            #lassign_expr=#( ex);
 		}
     ;
 
 assign_expr!
-	: #(a:ASSIGN l:unbrace_l_expr r:expr)
+	: #(a:ASSIGN l:lassign_expr r:expr)
         { #assign_expr=#(a,r,l);}
     ;
 
 // +=, *=, ...
 comp_assign_expr!
-    : #(a1:AND_OP_EQ l1:unbrace_l_expr r1:expr) 
+    : #(a1:AND_OP_EQ l1:lassign_expr r1:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([AND_OP,"and"],l1,r1),l1);} 
-    | #(a2:ASTERIX_EQ l2:unbrace_l_expr r2:expr) 
+    | #(a2:ASTERIX_EQ l2:lassign_expr r2:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([ASTERIX,"*"],l2,r2),l2);} 
-    | #(a3:EQ_OP_EQ l3:unbrace_l_expr r3:expr) 
+    | #(a3:EQ_OP_EQ l3:lassign_expr r3:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([EQ_OP,"eq"],l3,r3),l3);} 
-    | #(a4:GE_OP_EQ l4:unbrace_l_expr r4:expr) 
+    | #(a4:GE_OP_EQ l4:lassign_expr r4:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([GE_OP,"ge"],l4,r4),l4);}
-    | #(a5:GTMARK_EQ l5:unbrace_l_expr r5:expr) 
+    | #(a5:GTMARK_EQ l5:lassign_expr r5:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([GTMARK,">"],l5,r5),l5);}
-    | #(a6:GT_OP_EQ l6:unbrace_l_expr r6:expr) 
+    | #(a6:GT_OP_EQ l6:lassign_expr r6:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([GT_OP,"gt"],l6,r6),l6);}
-    | #(a7:LE_OP_EQ l7:unbrace_l_expr r7:expr) 
+    | #(a7:LE_OP_EQ l7:lassign_expr r7:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([LE_OP,"le"],l7,r7),l7);}
-    | #(a8:LTMARK_EQ l8:unbrace_l_expr r8:expr) 
+    | #(a8:LTMARK_EQ l8:lassign_expr r8:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([LTMARK,"<"],l8,r8),l8);}
-    | #(a9:LT_OP_EQ l9:unbrace_l_expr r9:expr) 
+    | #(a9:LT_OP_EQ l9:lassign_expr r9:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([LT_OP,"lt"],l9,r9),l9);}
-    | #(a10:MATRIX_OP1_EQ l10:unbrace_l_expr r10:expr) 
+    | #(a10:MATRIX_OP1_EQ l10:lassign_expr r10:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([MATRIX_OP1,"#"],l10,r10),l10);}
-    | #(a11:MATRIX_OP2_EQ l11:unbrace_l_expr r11:expr) 
+    | #(a11:MATRIX_OP2_EQ l11:lassign_expr r11:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([MATRIX_OP2,"##"],l11,r11),l11);}
-    | #(a12:MINUS_EQ l12:unbrace_l_expr r12:expr) 
+    | #(a12:MINUS_EQ l12:lassign_expr r12:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([MINUS,"-"],l12,r12),l12);}
-    | #(a13:MOD_OP_EQ l13:unbrace_l_expr r13:expr) 
+    | #(a13:MOD_OP_EQ l13:lassign_expr r13:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([MOD_OP,"mod"],l13,r13),l13);}
-    | #(a14:NE_OP_EQ l14:unbrace_l_expr r14:expr) 
+    | #(a14:NE_OP_EQ l14:lassign_expr r14:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([NE_OP,"ne"],l14,r14),l14);}
-    | #(a15:OR_OP_EQ l15:unbrace_l_expr r15:expr) 
+    | #(a15:OR_OP_EQ l15:lassign_expr r15:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([OR_OP,"or"],l15,r15),l15);}
-    | #(a16:PLUS_EQ l16:unbrace_l_expr r16:expr) 
+    | #(a16:PLUS_EQ l16:lassign_expr r16:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([PLUS,"+"],l16,r16),l16);}
-    | #(a17:POW_EQ l17:unbrace_l_expr r17:expr) 
+    | #(a17:POW_EQ l17:lassign_expr r17:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([POW,"^"],l17,r17),l17);}
-    | #(a18:SLASH_EQ l18:unbrace_l_expr r18:expr) 
+    | #(a18:SLASH_EQ l18:lassign_expr r18:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([SLASH,"/"],l18,r18),l18);}
-    | #(a19:XOR_OP_EQ l19:unbrace_l_expr r19:expr) 
+    | #(a19:XOR_OP_EQ l19:lassign_expr r19:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([XOR_OP,"xor"],l19,r19),l19);} 
     ;
 
@@ -822,10 +834,10 @@ op_expr
 	|	#(SLASH expr expr)
 	|	#(MOD_OP expr expr)
 	|	#(POW expr expr)
-	|	#(DEC unbrace_l_expr)
-	|	#(INC unbrace_l_expr)
-	|	#(POSTDEC unbrace_l_expr)
-	|	#(POSTINC unbrace_l_expr)
+	|	#(DEC expr)
+	|	#(INC expr)
+	|	#(POSTDEC expr)
+	|	#(POSTINC expr)
 	|   primary_expr
 	;
 

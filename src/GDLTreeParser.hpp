@@ -78,13 +78,13 @@ public:
 	public: void while_statement(RefDNode _t);
 	public: void jump_statement(RefDNode _t);
 	public: void if_statement(RefDNode _t);
-	public: void unbrace_l_expr(RefDNode _t);
 	public: void parameter_def(RefDNode _t);
 	public: int  array_def(RefDNode _t);
 	public: void struct_def(RefDNode _t);
 	public: void tag_def(RefDNode _t);
 	public: void arrayindex_list(RefDNode _t);
 	public: void arrayindex(RefDNode _t);
+	public: void lassign_expr(RefDNode _t);
 	public: void sysvar(RefDNode _t);
 	public: void var(RefDNode _t);
 	public: void brace_expr(RefDNode _t);
@@ -108,10 +108,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 196;
+	static const int NUM_TOKENS = 197;
 #else
 	enum {
-		NUM_TOKENS = 196
+		NUM_TOKENS = 197
 	};
 #endif
 	

@@ -2452,6 +2452,14 @@ parameter_def [EnvT* actEnv]
                     actEnv->SetKeyword( knameR->getText(), kvalRef); 
                 }
             )
+        | #(KEYDEF_REF_EXPR knameE:IDENTIFIER 
+                // execute ++ and assignment
+                kval=expr 
+                kvalRef=ref_parameter
+                {   // pass reference
+                    actEnv->SetKeyword( knameE->getText(), kvalRef); 
+                }
+            )
         | #(KEYDEF kname:IDENTIFIER kval=expr
                 {   // pass value
                     actEnv->SetKeyword( kname->getText(), kval);
@@ -2462,14 +2470,20 @@ parameter_def [EnvT* actEnv]
                     actEnv->SetNextPar(pvalRef); 
                 }   
             )
+        | #(REF_EXPR 
+                // execute ++ and assignment
+                pval=expr 
+                pvalRef=ref_parameter
+                {   // pass reference
+                    actEnv->SetNextPar(pvalRef); 
+                }   
+            )
         | pval=expr
             {   // pass value
                 actEnv->SetNextPar(pval); 
             }
         | #(KEYDEF_REF_CHECK knameCk:IDENTIFIER 
-                ( kval=tmp_expr
-                | kval=check_expr
-                )
+                kval=check_expr
                 {
                     kvalRef = callStack.back()->GetPtrTo( kval);
                     if( kvalRef != NULL)
@@ -2483,10 +2497,7 @@ parameter_def [EnvT* actEnv]
                 }
             )   
         | #(REF_CHECK
-// ***** tmp_expr can be removed
-                ( pval=tmp_expr
-                | pval=check_expr
-                )
+                pval=check_expr
                 {
                     pvalRef = callStack.back()->GetPtrTo( pval);
                     if( pvalRef != NULL)

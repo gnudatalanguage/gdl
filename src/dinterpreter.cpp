@@ -311,11 +311,11 @@ bool GDLInterpreter::CompileFile(const string& f, const string& untilPro)
       if( treeParser.ActiveProCompiled()) RetAll();
       return false;
     }
-  
+
 #ifdef GDL_DEBUG
-  cout << "Tree parser output:" << endl;
-  pt.pr_tree(static_cast<antlr::RefAST>(trAST));
-  cout << "Tree parser end." << endl;
+      cout << "Tree parser output:" << endl;
+      pt.pr_tree(static_cast<antlr::RefAST>(trAST));
+      cout << "Tree parser end." << endl;
 #endif
   
   return true;
