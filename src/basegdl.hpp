@@ -147,7 +147,7 @@ public:
   virtual BaseGDL* Transpose( DUInt* perm);
 
   virtual void MinMax( DLong* minE, DLong* maxE, 
-		       BaseGDL** minVal, BaseGDL** maxVal);
+		       BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN);
 
   virtual void Clear();
   virtual std::ostream& Write( std::ostream& os, bool swapEndian);

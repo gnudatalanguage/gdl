@@ -2009,12 +2009,14 @@ namespace lib {
 
   BaseGDL* min_fun( EnvT* e)
   {
-    SizeT nParam = e->NParam( 1);//, "MIN");
+    SizeT nParam = e->NParam( 1);
     
-    BaseGDL* searchArr = e->GetParDefined( 0);//, "MIN");
+    BaseGDL* searchArr = e->GetParDefined( 0);
 
     DLong    minEl;
     BaseGDL* res;
+    bool omitNaN = e->KeywordPresent( 1); // NAN keyword 
+    bool subMax = e->KeywordPresent( 2);   // SUBSCRIPT_MAX present
 
     if( nParam == 2)
 	e->AssureGlobalPar( 1);
@@ -2026,13 +2028,24 @@ namespace lib {
  
 	DLong maxEl;
 
-	searchArr->MinMax( &minEl, &maxEl, &res, &e->GetKW( 0));
+	searchArr->MinMax( &minEl, &maxEl, &res, &e->GetKW( 0), omitNaN);
+	if ( subMax)
+	  {
+	    e->SetKW( 2, new DLongGDL(maxEl));
+	  }
       }
     else // no MAX keyword
       {
-	searchArr->MinMax( &minEl, NULL, &res, NULL);
+	if( subMax)
+	  {
+	    DLong maxEl;
+	    searchArr->MinMax( &minEl, &maxEl, &res, NULL, omitNaN);
+	    e->SetKW( 2, new DLongGDL(maxEl));
+	  }
+	else
+	  searchArr->MinMax( &minEl, NULL, &res, NULL, omitNaN);
       }
-
+    
     // handle index
     if( nParam == 2)
       {
@@ -2043,18 +2056,19 @@ namespace lib {
       {
 	SysVar::SetC( minEl);
       }
-
     return res;
   }
 
   BaseGDL* max_fun( EnvT* e)
   {
-    SizeT nParam = e->NParam( 1);//, "MAX");
+    SizeT nParam = e->NParam( 1);
     
-    BaseGDL* searchArr = e->GetParDefined( 0);//, "MAX");
+    BaseGDL* searchArr = e->GetParDefined( 0);
 
     DLong    maxEl;
     BaseGDL* res;
+    bool omitNaN = e->KeywordPresent( 1); // NAN keyword 
+    bool subMin = e->KeywordPresent( 2);  // SUBSCRIPT_MIN present
 
     if( nParam == 2)
 	e->AssureGlobalPar( 1);
@@ -2066,11 +2080,22 @@ namespace lib {
  
 	DLong minEl;
 
-	searchArr->MinMax( &minEl, &maxEl, &e->GetKW( 0), &res);
+	searchArr->MinMax( &minEl, &maxEl, &e->GetKW( 0), &res, omitNaN);
+	if( subMin)
+	  {
+	    e->SetKW( 2, new DLongGDL(minEl));
+	  }
       }
-    else // no MAX keyword
+    else // no MIN keyword
       {
-	searchArr->MinMax( NULL, &maxEl, NULL, &res);
+	if( subMin)
+	  {
+	    DLong minEl;
+	    searchArr->MinMax( &minEl, &maxEl, NULL, &res, omitNaN);
+	    e->SetKW( 2, new DLongGDL(minEl));
+	  }
+	else
+	  searchArr->MinMax( NULL, &maxEl, NULL, &res, omitNaN);
       }
 
     // handle index
@@ -2627,6 +2652,7 @@ namespace lib {
     static int minIx = e->KeywordIx( "MIN");
     static int maxIx = e->KeywordIx( "MAX");
     static int topIx = e->KeywordIx( "TOP");
+    bool omitNaN = e->KeywordPresent( 3);
 
     DLong topL=255;
     if( e->GetKW( topIx) != NULL)
@@ -2655,7 +2681,7 @@ namespace lib {
 
     DLong maxEl, minEl;
     if( !maxSet || !minSet)
-      dRes->MinMax( &minEl, &maxEl, NULL, NULL);
+      dRes->MinMax( &minEl, &maxEl, NULL, NULL, omitNaN);
     if( !minSet)
       min = (*dRes)[ minEl];
     if( !maxSet)

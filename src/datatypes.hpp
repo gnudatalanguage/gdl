@@ -95,7 +95,8 @@ public:
   BaseGDL* Transpose( DUInt* perm);
 
   // for use by MIN and MAX functions
-  void MinMax( DLong* minE, DLong* maxE, BaseGDL** minVal, BaseGDL** maxVal);
+  void MinMax( DLong* minE, DLong* maxE, BaseGDL** minVal, BaseGDL** maxVal,
+	       bool omitNaN);
   
   bool EqType( const BaseGDL* r) const;
 
@@ -113,7 +114,8 @@ public:
 
   BaseGDL* AssocVar( int, SizeT);
 
-  std::ostream& ToStream(std::ostream& o, SizeT width = 0, SizeT* actPosPtr = NULL);
+  std::ostream& ToStream(std::ostream& o, SizeT width = 0, 
+			 SizeT* actPosPtr = NULL);
   std::istream& FromStream(std::istream& i);
  
   // used by the interpreter

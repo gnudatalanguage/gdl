@@ -342,10 +342,16 @@ template<>
 bool Data_<SpDComplexDbl>::LogTrue(SizeT i);
 template<> 
 void Data_<SpDComplex>::MinMax( DLong* minE, DLong* maxE, 
-				BaseGDL** minVal, BaseGDL** maxVal);
+ 				BaseGDL** minVal, BaseGDL** maxVal,
+				bool omitNaN);
 template<> 
 void Data_<SpDComplexDbl>::MinMax( DLong* minE, DLong* maxE, 
-				BaseGDL** minVal, BaseGDL** maxVal);
+				   BaseGDL** minVal, BaseGDL** maxVal,
+				   bool omitNaN);
+template<> 
+void Data_<SpDString>::MinMax( DLong* minE, DLong* maxE, 
+			       BaseGDL** minVal, BaseGDL** maxVal,
+			       bool omitNaN);
 
 // default_io.cpp
 template<>  

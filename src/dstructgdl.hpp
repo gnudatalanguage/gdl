@@ -109,7 +109,7 @@ public:
   DStructGDL* CShift( DLong d[MAXRANK]);
 
   // for use by MIN and MAX functions
-  void MinMax( DLong* minE, DLong* maxE, BaseGDL** minVal, BaseGDL** maxVal);
+  void MinMax( DLong* minE, DLong* maxE, BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN);
 
   //  const DType   Type()    const { return SpDStruct::t;}
   //  const std::string& TypeStr() const { return SpDStruct::str;}

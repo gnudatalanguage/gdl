@@ -63,7 +63,7 @@ BaseGDL* BaseGDL::Transpose( DUInt* perm)
 }
 
 void BaseGDL::MinMax( DLong* minE, DLong* maxE, 
-		      BaseGDL** minVal, BaseGDL** maxVal)
+		      BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN)
 {
   throw GDLException("BaseGDL::MinMax(...) called.");
 }

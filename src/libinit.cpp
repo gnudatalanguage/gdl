@@ -79,7 +79,7 @@ void LibInit()
 			    "SH","NOSHELL",KLISTEND};
   new DLibPro(lib::spawn_pro,string("SPAWN"),3,spawnKey);
 
-  const string bytsclKey[]={"MIN","MAX","TOP",KLISTEND};
+  const string bytsclKey[]={"MIN","MAX","TOP","NAN",KLISTEND};
   new DLibFun(lib::bytscl,string("BYTSCL"),1,bytsclKey);
 
   const string n_tagsKey[]={"LENGTH",KLISTEND};
@@ -332,10 +332,15 @@ void LibInit()
   const string array_equalKey[]={"NO_TYPECONV",KLISTEND};
   new DLibFun(lib::array_equal,string("ARRAY_EQUAL"),2,array_equalKey);
   
-  const string minKey[]={"MAX",KLISTEND};
+  const string minKey[]={"MAX","NAN","SUBSCRIPT_MAX",KLISTEND};
   new DLibFun(lib::min_fun,string("MIN"),2,minKey);
-  const string maxKey[]={"MIN",KLISTEND};
+  const string maxKey[]={"MIN","NAN","SUBSCRIPT_MIN",KLISTEND};
   new DLibFun(lib::max_fun,string("MAX"),2,maxKey);
+
+//   const string minKey[]={"MAX",KLISTEND};
+//   new DLibFun(lib::min_fun,string("MIN"),2,minKey);
+//   const string maxKey[]={"MIN",KLISTEND};
+//   new DLibFun(lib::max_fun,string("MAX"),2,maxKey);
 
 #ifdef USE_PYTHON
 

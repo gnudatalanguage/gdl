@@ -1345,7 +1345,7 @@ bool Data_<SpDComplexDbl>::LogTrue(SizeT i)
 // for use by MIN and MAX functions
 template<class Sp>
 void Data_<Sp>::MinMax( DLong* minE, DLong* maxE, 
-			BaseGDL** minVal, BaseGDL** maxVal)
+			BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN)
 {
   if( minE == NULL)
     {
@@ -1353,11 +1353,19 @@ void Data_<Sp>::MinMax( DLong* minE, DLong* maxE,
       Ty    maxV = dd[0];
       DLong nEl = dd.size();
       for( DLong i=1; i<nEl; ++i)
-	if( dd[i] > maxV)
-	  {
-	    maxV = dd[i];
-	    maxEl  = i;
-	  }
+	{
+	  if (omitNaN && isnan(dd[i])) continue;
+	  if( dd[i] > maxV)
+	    {
+	      maxV = dd[i];
+	      maxEl  = i;
+	    }
+	  else if (omitNaN && isnan(maxV))
+	    {
+	      maxV = dd[i];
+	      maxEl  = i;
+	    }
+	}
       *maxE = maxEl;
       if( maxVal != NULL) *maxVal = new Data_( maxV);
       return;
@@ -1368,11 +1376,19 @@ void Data_<Sp>::MinMax( DLong* minE, DLong* maxE,
       Ty    minV = dd[0];
       DLong nEl = dd.size();
       for( DLong i=1; i<nEl; ++i)
-	if( dd[i] < minV)
-	  {
-	    minV = dd[i];
-	    minEl  = i;
-	  }
+	{
+	  if (omitNaN && isnan(dd[i])) continue;
+	  if( dd[i] < minV)
+	    {
+	      minV = dd[i];
+	      minEl  = i;
+	    }
+	  else if (omitNaN && isnan(minV))
+	    {
+	      minV = dd[i];
+	      minEl  = i;
+	    }
+	}
       *minE = minEl;
       if( minVal != NULL) *minVal = new Data_( minV);
       return;
@@ -1386,16 +1402,91 @@ void Data_<Sp>::MinMax( DLong* minE, DLong* maxE,
 
   DLong nEl = dd.size();
   for( DLong i=1; i<nEl; ++i)
-    if( dd[i] > maxV)
-      {
-	maxV = dd[i];
-	maxEl  = i;
-      }
-    else if( dd[i] < minV)
-      {
-	minV = dd[i];
-	minEl  = i;
-      }
+    {
+      if (omitNaN && isnan(dd[i])) continue;
+      if( dd[i] > maxV)
+	{
+	  maxV = dd[i];
+	  maxEl  = i;
+	}
+      else if( dd[i] < minV)
+	{
+	  minV = dd[i];
+	  minEl  = i;
+	}
+      else if (omitNaN && isnan(minV)) // Doesn't matter which one we check here.
+	{
+	  minV = dd[i];
+	  minEl  = i;
+	  maxV = dd[i];
+	  maxEl  = i;
+	}
+    }
+  *maxE = maxEl;
+  if( maxVal != NULL) *maxVal = new Data_( maxV);
+
+  *minE = minEl;
+  if( minVal != NULL) *minVal = new Data_( minV);
+}
+template<>
+void Data_<SpDString>::MinMax( DLong* minE, DLong* maxE, 
+			BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN)
+{
+  if( minE == NULL)
+    {
+      DLong maxEl  = 0;
+      Ty    maxV = dd[0];
+      DLong nEl = dd.size();
+      for( DLong i=1; i<nEl; ++i)
+	{
+	  if( dd[i] > maxV)
+	    {
+	      maxV = dd[i];
+	      maxEl  = i;
+	    }
+	}
+      *maxE = maxEl;
+      if( maxVal != NULL) *maxVal = new Data_( maxV);
+      return;
+    }
+  if( maxE == NULL)
+    {
+      DLong minEl  = 0;
+      Ty    minV = dd[0];
+      DLong nEl = dd.size();
+      for( DLong i=1; i<nEl; ++i)
+	{
+	  if( dd[i] < minV)
+	    {
+	      minV = dd[i];
+	      minEl  = i;
+	    }
+	}
+      *minE = minEl;
+      if( minVal != NULL) *minVal = new Data_( minV);
+      return;
+    }
+
+  DLong maxEl  = 0;
+  Ty    maxV = dd[0];
+
+  DLong minEl  = 0;
+  Ty    minV = dd[0];
+
+  DLong nEl = dd.size();
+  for( DLong i=1; i<nEl; ++i)
+    {
+      if( dd[i] > maxV)
+	{
+	  maxV = dd[i];
+	  maxEl  = i;
+	}
+      else if( dd[i] < minV)
+	{
+	  minV = dd[i];
+	  minEl  = i;
+	}
+    }
   *maxE = maxEl;
   if( maxVal != NULL) *maxVal = new Data_( maxV);
 
@@ -1404,7 +1495,7 @@ void Data_<Sp>::MinMax( DLong* minE, DLong* maxE,
 }
 template<>
 void Data_<SpDComplex>::MinMax( DLong* minE, DLong* maxE, 
-				BaseGDL** minVal, BaseGDL** maxVal)
+				BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN)
 {
   if( minE == NULL)
     {
@@ -1412,11 +1503,19 @@ void Data_<SpDComplex>::MinMax( DLong* minE, DLong* maxE,
       float maxV = dd[0].real();
       DLong nEl = dd.size();
       for( DLong i=1; i<nEl; ++i)
-	if( dd[i].real() > maxV)
-	  {
-	    maxV = dd[i].real();
-	    maxEl  = i;
-	  }
+	{
+	  if (omitNaN && isnan(dd[i].real())) continue;
+	  if( dd[i].real() > maxV)
+	    {
+	      maxV = dd[i].real();
+	      maxEl  = i;
+	    }
+	  else if (omitNaN && isnan(maxV))
+	    {
+	      maxV = dd[i].real();
+	      maxEl  = i;
+	    }
+	}
       *maxE = maxEl;
       if( maxVal != NULL) *maxVal = new Data_( dd[ maxEl]);
       return;
@@ -1427,11 +1526,19 @@ void Data_<SpDComplex>::MinMax( DLong* minE, DLong* maxE,
       float minV = dd[0].real();
       DLong nEl = dd.size();
       for( DLong i=1; i<nEl; ++i)
-	if( dd[i].real() < minV)
-	  {
-	    minV = dd[i].real();
-	    minEl  = i;
-	  }
+	{
+	  if (omitNaN && isnan(dd[i].real())) continue;
+	  if( dd[i].real() < minV)
+	    {
+	      minV = dd[i].real();
+	      minEl  = i;
+	    }
+	  else if (omitNaN && isnan(minV))
+	    {
+	      minV = dd[i].real();
+	      minEl  = i;
+	    }
+	}
       *minE = minEl;
       if( minVal != NULL) *minVal = new Data_( dd[ minEl]);
       return;
@@ -1445,16 +1552,26 @@ void Data_<SpDComplex>::MinMax( DLong* minE, DLong* maxE,
 
   DLong nEl = dd.size();
   for( DLong i=1; i<nEl; ++i)
-    if( dd[i].real() > maxV)
-      {
-	maxV = dd[i].real();
-	maxEl  = i;
-      }
-    else if( dd[i].real() < minV)
-      {
-	minV = dd[i].real();
-	minEl  = i;
-      }
+    {
+      if (omitNaN && isnan(dd[i].real())) continue;
+      if( dd[i].real() > maxV)
+	{
+	  maxV = dd[i].real();
+	  maxEl  = i;
+	}
+      else if( dd[i].real() < minV)
+	{
+	  minV = dd[i].real();
+	  minEl  = i;
+	}
+      else if (omitNaN && isnan(minV)) // Doesn't matter which one we check here.
+	{
+	  minV = dd[i].real();
+	  minEl  = i;
+	  maxV = dd[i].real();
+	  maxEl  = i;
+	}
+    }
   *maxE = maxEl;
   if( maxVal != NULL) *maxVal = new Data_( dd[ maxEl]);
 
@@ -1463,7 +1580,7 @@ void Data_<SpDComplex>::MinMax( DLong* minE, DLong* maxE,
 }
 template<>
 void Data_<SpDComplexDbl>::MinMax( DLong* minE, DLong* maxE, 
-				BaseGDL** minVal, BaseGDL** maxVal)
+				BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN)
 {
   if( minE == NULL)
     {
@@ -1471,11 +1588,19 @@ void Data_<SpDComplexDbl>::MinMax( DLong* minE, DLong* maxE,
       double maxV = dd[0].real();
       DLong nEl = dd.size();
       for( DLong i=1; i<nEl; ++i)
-	if( dd[i].real() > maxV)
-	  {
-	    maxV = dd[i].real();
-	    maxEl  = i;
-	  }
+	{
+	  if (omitNaN && isnan(dd[i].real())) continue;
+	  if( dd[i].real() > maxV)
+	    {
+	      maxV = dd[i].real();
+	      maxEl  = i;
+	    }
+	  else if (omitNaN && isnan(maxV))
+	    {
+	      maxV = dd[i].real();
+	      maxEl  = i;
+	    }
+	}
       *maxE = maxEl;
       if( maxVal != NULL) *maxVal = new Data_( dd[ maxEl]);
       return;
@@ -1486,11 +1611,19 @@ void Data_<SpDComplexDbl>::MinMax( DLong* minE, DLong* maxE,
       double minV = dd[0].real();
       DLong nEl = dd.size();
       for( DLong i=1; i<nEl; ++i)
-	if( dd[i].real() < minV)
-	  {
-	    minV = dd[i].real();
-	    minEl  = i;
-	  }
+	{
+	  if (omitNaN && isnan(dd[i].real())) continue;
+	  if( dd[i].real() < minV)
+	    {
+	      minV = dd[i].real();
+	      minEl  = i;
+	    }
+	  else if (omitNaN && isnan(minV))
+	    {
+	      minV = dd[i].real();
+	      minEl  = i;
+	    }
+	}
       *minE = minEl;
       if( minVal != NULL) *minVal = new Data_( dd[ minEl]);
       return;
@@ -1504,16 +1637,26 @@ void Data_<SpDComplexDbl>::MinMax( DLong* minE, DLong* maxE,
 
   DLong nEl = dd.size();
   for( DLong i=1; i<nEl; ++i)
-    if( dd[i].real() > maxV)
-      {
-	maxV = dd[i].real();
-	maxEl  = i;
-      }
-    else if( dd[i].real() < minV)
-      {
-	minV = dd[i].real();
-	minEl  = i;
-      }
+    {
+      if (omitNaN && isnan(dd[i].real())) continue;
+      if( dd[i].real() > maxV)
+	{
+	  maxV = dd[i].real();
+	  maxEl  = i;
+	}
+      else if( dd[i].real() < minV)
+	{
+	  minV = dd[i].real();
+	  minEl  = i;
+	}
+      else if (omitNaN && isnan(minV)) // Doesn't matter which one we check here.
+	{
+	  minV = dd[i].real();
+	  minEl  = i;
+	  maxV = dd[i].real();
+	  maxEl  = i;
+	}
+    }
   *maxE = maxEl;
   if( maxVal != NULL) *maxVal = new Data_( dd[ maxEl]);
 
@@ -1522,7 +1665,7 @@ void Data_<SpDComplexDbl>::MinMax( DLong* minE, DLong* maxE,
 }
 
 void DStructGDL::MinMax( DLong* minE, DLong* maxE, 
-			 BaseGDL** minVal, BaseGDL** maxVal)
+			 BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN)
 {
   throw GDLException("Struct expression not allowed in this context.");
 }
