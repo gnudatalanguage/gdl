@@ -701,8 +701,11 @@ namespace lib {
       e->AssureLongScalarKWIfPresent( "GAMMA", n);
       for( SizeT i=0; i<nEl; ++i) (*res)[ i] = 
 				    (T2) gsl_ran_gamma_int (r,n);
+    } else if( e->KeywordSet(3)) { // NORMAL
+      SizeT nEl = res->N_Elements();
+      for( SizeT i=0; i<nEl; ++i) (*res)[ i] =
+				    (T2) gsl_ran_ugaussian (r);
     } else if( e->KeywordSet(4)) { // BINOMIAL
-      //      DFloatGDL* binomialKey = e->IfDefGetKWAs<DFloatGDL>( 4);
       if (binomialKey != NULL) {
 	DULong  n = (DULong)  (*binomialKey)[0];
 	DDouble p = (DDouble) (*binomialKey)[1];
@@ -717,10 +720,14 @@ namespace lib {
 	for( SizeT i=0; i<nEl; ++i) (*res)[ i] =
 				      (T2) gsl_ran_poisson (r, mu);
       }
-    } else if (e->GetProName() == "RANDOMU") {
+    } else if( e->KeywordSet(6)) { // UNIFORM
+      SizeT nEl = res->N_Elements();
+      for( SizeT i=0; i<nEl; ++i) (*res)[ i] =
+				    (T2) gsl_rng_uniform (r);
+    } else if ( e->GetProName() == "RANDOMU") {
       for( SizeT i=0; i<nEl; ++i) (*res)[ i] = 
 				    (T2) gsl_rng_uniform (r);
-    } else if (e->GetProName() == "RANDOMN") {
+    } else if ( e->GetProName() == "RANDOMN") {
       for( SizeT i=0; i<nEl; ++i) (*res)[ i] = 
 				    (T2) gsl_ran_ugaussian (r);
     }
