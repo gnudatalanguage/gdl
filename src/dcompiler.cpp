@@ -384,9 +384,13 @@ bool DCompiler::IsVar(const string& n) const
 
   // originally this was done later in the interpreter
   // but something like a = a(0) would not work if a is
-  // a function (defined in a.pro)
-  bool found = GDLInterpreter::SearchCompilePro( n);
-  if( found) return false;
+  // a function (defined in a.pro) and a variable
+  bool success = GDLInterpreter::SearchCompilePro( n);
+  if( success) // even if file exists and compiles it might contain other stuff
+    if( FunIx( n) != -1) return false;
+
+  // Note: It is still possible that 'n' denotes a function:
+  // !PATH might be changed untill the interpretation
 
   return pro->Find(n);
 }
