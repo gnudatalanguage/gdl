@@ -57,11 +57,14 @@ the PRINT procedure)
 (new DLibFun( subroutine name ...) for functions)
 For the keyword list look at libinit.cpp for examples.
 
-The API (from envt.hpp):
 
-new library function:
 
-// this example function simply returns its number of parameters
+The API (from envt.hpp)
+=======================
+
+implement a new library function:
+this example function simply returns its number of parameters
+
 
 #include "envt.hpp"
 
@@ -78,27 +81,31 @@ namespace lib {
 }
 
 
-  // returns the actual number of paramters passed to a library function
-  // minPar is the minimal number of paramters the function needs
-  // (if less it throws), subName is used for error reporting
+returns the actual number of paramters passed to a library function
+minPar is the minimal number of paramters the function needs
+(if less it throws)
+
+
   SizeT NParam( SizeT minPar = 0); 
 
 
-  // raise an exception from within a library function
-  // automatically cares for adding line/column info and the
-  // function name. 's' should be set to the 'raw' error message
-  // saves some typing :-)
+raise an exception from within a library function
+automatically cares for adding line/column info and the
+function name. 's' should be set to the 'raw' error message
+saves some typing :-)
+
   void Throw( const std::string& s);
+
 
 Within our example function the call would look like:
 
   e->Throw( "An error occured.");
   
 
+'guards' a newly created variable which should be deleted
+upon library routines exit (normal or on error)
+elimates the need of auto_ptr
 
-  // 'guards' a newly created variable which should be deleted
-  // upon library routines exit (normal or on error)
-  // elimates the need of auto_ptr
   void Guard( BaseGDL* toGuard);
 
 Eg.:
@@ -106,12 +113,14 @@ Eg.:
   char* tempVal = new DIntGDL( 10);
   e->Guard( tempVal);
 
-  note that all guarded objects are deleted with 'delete', ie. you
-  cannot guard arrays thsi way (which require 'delete[]').
+
+Note that all guarded objects are deleted with 'delete', ie. you
+cannot guard arrays this way (which require 'delete[]').
 
 
-  // for library functions (keyword must be an exact match)
-  // returns the index of keyword k
+for library functions (keyword must be an exact match)
+returns the index of keyword k
+
   int KeywordIx( const std::string& k);
 
 Eg.:
@@ -119,137 +128,184 @@ Eg.:
   static int structureIx = e->KeywordIx( "STRUCTURE");
 
 
-  // returns environment data, by value (but that by C++ reference)
+returns environment data, by value (but that by C++ reference)
+
   BaseGDL*& GetKW(SizeT ix) { return env[ix];}
 
 Eg.:
 
   BaseGDL* structureData = e->GetKW( structureIx);
 
-  // returns the ix'th parameter (NULL if not defined)
+
+returns the ix'th parameter (NULL if not defined)
+	
   BaseGDL*& GetPar(SizeT i);
+
 
 the next are variations of GetKW() or GetPar() with some additional
 checks:
 
-  // get i'th parameter
-  // throws if not defined (ie. never returns NULL)
+get i'th parameter
+throws if not defined (ie. never returns NULL)
+
   BaseGDL*& GetParDefined(SizeT i); //, const std::string& subName = "");
 
-  // throw for STRING, STRUCT, PTR and OBJECT useful if a function
-  // only accepts numeric data
+
+throw for STRING, STRUCT, PTR and OBJECT useful if a function
+only accepts numeric data
+
   BaseGDL*& GetNumericParDefined( SizeT ix);
 
-  // get i'th parameter
-  // throws if not global (might be NULL), for assigning a new variable to
+
+get i'th parameter
+throws if not global (might be NULL), for assigning a new variable to
+
   BaseGDL*& GetParGlobal(SizeT i); 
 
-next asre some variations of GetKW() or GetPar() with perform a
+
+next are some variations of GetKW() or GetPar() with perform a
 conversion into an desired type:
 
-  // get the pIx'th paramter and converts it to T if necessary
-  // implies that the parameter must be defined
-  // if it converts it cares for the destruction of the copy
-  // CAUTION: this is for *read only* data, as the returned data might
-  // be a copy or not
+get the pIx'th paramter and converts it to T if necessary
+implies that the parameter must be defined
+if it converts it cares for the destruction of the copy
+CAUTION: this is for *read only* data, as the returned data might
+be a copy or not
+
   template <typename T> 
   T* GetParAs( SizeT pIx)
 
-  // same as before for keywords
+
+same as before for keywords
+
   template <typename T> 
   T* GetKWAs( SizeT ix)
 
-  // next two same as last two, but return NULL if parameter/keyword is not defined
+
+next two same as last two, but return NULL if parameter/keyword is not defined
+
   template <typename T> 
   T* IfDefGetParAs( SizeT pIx);
 
-  // same as before for keywords
+
+same as before for keywords
+
   template <typename T> 
   T* IfDefGetKWAs( SizeT ix);
 
-  // returns the struct of a valid object reference or throws
+
+returns the struct of a valid object reference or throws
+
   DStructGDL* GetObjectPar( SizeT pIx);
 
-  // for use within library functions
-  // consider to use (note: 'static' is the point here):
-  // static int kwIx = env->KeywordIx( "KEYWORD");
-  // bool kwSet = env->KeywordSet( kwIx);
-  //
-  // instead of:
-  // bool kwSet = env->KeywordSet( "KEYWORD");
-  //
-  // this one adds some overhead, but is easy to use
+
+for use within library functions
+consider to use (note: 'static' is the point here):
+
+  static int kwIx = env->KeywordIx( "KEYWORD");
+  bool kwSet = env->KeywordSet( kwIx);
+
+instead of:
+
+  bool kwSet = env->KeywordSet( "KEYWORD");
+
+  
+this one adds some overhead, but is easy to use
+
   bool KeywordSet( const std::string& kw);
 
-  // this one together with a static int holding the index is faster
-  // (after the first call)
-  bool KeywordSet( SizeT ix);
 
-  // keyword present (but might be an undefined variable)
+this one together with a static int holding the index is faster
+(after the first call)
+
+bool KeywordSet( SizeT ix);
+
+keyword present (but might be an undefined variable)
+
   bool KeywordPresent( SizeT ix);
 
-  // local/global keyword/paramter
-  // global -> passed in GDL by reference
-  // local -> passes in GDL by value
+
+local/global keyword/paramter
+global -> passed in GDL by reference
+local -> passes in GDL by value
+
   bool LocalKW( SizeT ix);
   bool GlobalKW( SizeT ix);
   bool LocalPar( SizeT ix); 
   bool GlobalPar( SizeT ix);
 
-  // next two to set keywords/paramters
-  // note that the value MUST be created in the library function
-  // with operator new
-  // Before it must be tested with KeywordPresent() or NParam() if
-  // the keyword/paramter is present 
-  // this is not done automatically because its more effective, to 
-  // create the data (newVal) only if its necessary
-  // if the functions throw, they delete newVal before -> no
-  // guarding of newVal is needed
+
+next two to set keywords/paramters
+note that the value MUST be created in the library function
+with operator new
+Before it must be tested with KeywordPresent() or NParam() if
+the keyword/paramter is present 
+this is not done automatically because its more effective, to 
+create the data (newVal) only if its necessary
+if the functions throw, they delete newVal before -> no
+guarding of newVal is needed
+
   void SetKW( SizeT ix, BaseGDL* newVal);
   void SetPar( SizeT ix, BaseGDL* newVal);
 
-Assure functions:
-  // if name contains "Par" they must be used for paramters, else for keywords
-  // (the error messages are defined for this usage and the indexing is 
-  // done respectively)
 
-  // next two: NO CONVERSION (throw if wrong type)
-  // NOTE: only few functions need to be so restrictive
-  // converts parameter to scalar, throws if parameter is of different type,
-  // non-scalar or not defined
+Assure functions:
+if name contains "Par" they must be used for paramters, else for keywords
+(the error messages are defined for this usage and the indexing is 
+done respectively)
+
+next two: NO CONVERSION (throw if wrong type)
+NOTE: only few functions need to be so restrictive
+converts parameter to scalar, throws if parameter is of different type,
+non-scalar or not defined
+
   template <typename T> 
   void AssureScalarPar( SizeT pIx, typename T::Ty& scalar);
 
-  // same as before for keywords
+
+same as before for keywords
   template <typename T> 
   void AssureScalarKW( SizeT ix, typename T::Ty& scalar);
 
   void AssureGlobalPar( SizeT pIx);
   void AssureGlobalKW( SizeT ix);
 
-  // if keyword 'kw' is not set, 'scalar' is left unchanged
+if keyword 'kw' is not set, 'scalar' is left unchanged
+ 
   void AssureLongScalarKWIfPresent( const std::string& kw, DLong& scalar);
-  // converts keyword 'kw' if necessary and sets 'scalar' 
+
+
+converts keyword 'kw' if necessary and sets 'scalar' 
+
   void AssureLongScalarKW( const std::string& kw, DLong& scalar);
-  // converts ix'th keyword if necessary and sets 'scalar' 
+
+
+converts ix'th keyword if necessary and sets 'scalar' 
+
   void AssureLongScalarKW( SizeT ix, DLong& scalar);
-  // converts parameter 'ix' if necessary and sets 'scalar' 
+
+
+converts parameter 'ix' if necessary and sets 'scalar' 
+
   void AssureLongScalarPar( SizeT ix, DLong& scalar);
 
-  // same as for Long
+same as for Long
+
   void AssureDoubleScalarKWIfPresent( const std::string& kw, DDouble& scalar);
   void AssureDoubleScalarKW( const std::string& kw, DDouble& scalar);
   void AssureDoubleScalarKW( SizeT ix, DDouble& scalar);
   void AssureDoubleScalarPar( SizeT ix, DDouble& scalar);
 
-  // same as for Long
+same as for Long
   void AssureStringScalarKWIfPresent( const std::string& kw, DString& scalar);
   void AssureStringScalarKW( const std::string& kw, DString& scalar);
   void AssureStringScalarKW( SizeT ix, DString& scalar);
   void AssureStringScalarPar( SizeT ix, DString& scalar);
 
 
-About defining GDL structs in C++:
+
+About defining GDL structs in C++
+=================================
 
 'structList' contains a list of 'DStructDesc*' (struct descriptors).
 For each structure, there must be exactly one descriptor but there
@@ -290,7 +346,8 @@ and 'var->InitTag(...)' should be used.
 ('should' means here 'I cannot think of any other usage so far')
 
 
-Short overview of how GDL works internally:
+Short overview of how GDL works internally
+==========================================
 
 Programs (*.pro files) or command line input is parsed (GDLLexer.cpp,
 GDLParser.cpp generated with ANTLR from gdlc.g). These results in an
@@ -328,3 +385,4 @@ with:
 
 GDL> print,two(findgen(3))
      0.000000      2.00000      4.00000
+

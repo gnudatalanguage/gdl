@@ -2935,6 +2935,77 @@ namespace lib {
    return result;
   }
 
+  BaseGDL* routine_info( EnvT* e)
+  {
+    SizeT nParam=e->NParam();
+
+    static int functionsIx = e->KeywordIx( "FUNCTIONS" );
+    bool functionsKW = e->KeywordSet( functionsIx );
+    static int systemIx = e->KeywordIx( "SYSTEM" );
+    bool systemKW = e->KeywordSet( systemIx );
+    static int disabledIx = e->KeywordIx( "DISABLED" );
+    bool disabledKW = e->KeywordSet( disabledIx );
+
+    // GDL does not have disabled routines
+    if( disabledKW) return new DStringGDL("");
+
+    //    if( functionsKW || systemKW || nParam == 0)
+    //      {
+    deque<DString> subList;
+	    
+    if( functionsKW)
+      {
+	if( systemKW)
+	  {
+	    SizeT n = libFunList.size();
+	    if( n == 0) return new DStringGDL("");
+	    subList.resize( n);
+		
+	    for( SizeT i = 0; i<n; ++i)
+	      subList.push_back( libFunList[ i]->ObjectName());
+	  }
+	else
+	  {
+	    SizeT n = funList.size();
+	    if( n == 0) return new DStringGDL("");
+	    subList.resize( n);
+		
+	    for( SizeT i = 0; i<n; ++i)
+	      subList.push_back( funList[ i]->ObjectName());
+	  }
+      }
+    else
+      {
+	if( systemKW)
+	  {
+	    SizeT n = libProList.size();
+	    if( n == 0) return new DStringGDL("");
+	    subList.resize( n);
+		
+	    for( SizeT i = 0; i<n; ++i)
+	      subList.push_back( libProList[ i]->ObjectName());
+	  }
+	else
+	  {
+	    SizeT n = proList.size();
+	    if( n == 0) return new DStringGDL("");
+	    subList.resize( n);
+		
+	    for( SizeT i = 0; i<n; ++i)
+	      subList.push_back( proList[ i]->ObjectName());
+	  }
+      }
+	
+    sort( subList.begin(), subList.end());
+    SizeT nS = subList.size();
+
+    DStringGDL* res = new DStringGDL( dimension( nS), BaseGDL::NOZERO);
+    for( SizeT s=0; s<nS; ++s)
+      (*res)[ s] = subList[ s];
+
+    return res;
+    //      }
+  }
 
 
 } // namespace

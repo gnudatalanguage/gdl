@@ -102,6 +102,7 @@ template<class Sp>
 bool Data_<Sp>::Equal(SizeT i1, SizeT i2) const
 { return (dd[i1] == dd[i2]);}
 
+
 template<class Sp>
 BaseGDL* Data_<Sp>::CShift( DLong d)
 {

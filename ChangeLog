@@ -103,8 +103,8 @@
 	  allowed.
 	  System variables can be named "!$", or "!$TEXT".
 	
-0.8.9:	  Addem SPAWN function.
-	  Added FINITE function.	
+0.8.9:    Added SPAWN function.
+	  Added FINITE, ROUTINE_INFO function.	
 	  !EXCEPT system variable.
 	  Changed common block compilation.	  
 	

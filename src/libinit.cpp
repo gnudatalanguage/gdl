@@ -49,6 +49,10 @@ void LibInit()
 {
   const char KLISTEND[] = "";
 
+  const string routine_infoKey[]={"FUNCTIONS","SYSTEM","DISABLED","ENABLED",
+				  KLISTEND};
+  new DLibFun(lib::routine_info,string("ROUTINE_INFO"),1,routine_infoKey);
+
   const string spawnKey[]={ "COUNT","EXIT_STATUS","PID",
 			    "SH","NOSHELL",KLISTEND};
   new DLibPro(lib::spawn_pro,string("SPAWN"),3,spawnKey);
