@@ -89,4 +89,6 @@
 	  Added structure compatibility check for assignment to struct
 	  arrays.
 	  Fixed offset bug for conversion functions (BYTE, FIX, ...).
-	  
+	  Fixed libfunction returning parameter bug.
+	  Fixed AND, OR operator bug.
+	

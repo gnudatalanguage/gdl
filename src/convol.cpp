@@ -45,16 +45,16 @@ BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn,
   Data_* kernel = static_cast<Data_*>( kIn);
   Ty scale = static_cast<Data_*>( scaleIn)->dd[0];
   // the result to be returned
-  Data_* res = New( dim, BaseGDL::ZERO);
+  Data_* res = New( this->dim, BaseGDL::ZERO);
   Ty* ker = &kernel->dd[0];
 #endif
-  if( scale == zero) scale = 1;
+  if( scale == this->zero) scale = 1;
 
   SizeT nA = N_Elements();
   SizeT nK = kernel->N_Elements();
 
   // general case (look at kernel rank == 1 later)
-  SizeT nDim = Rank(); // number of dimension to run over
+  SizeT nDim = this->Rank(); // number of dimension to run over
 
   SizeT kStride[MAXRANK+1];
   kernel->Dim().Stride( kStride, nDim);
@@ -79,7 +79,7 @@ BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn,
     }
 
   SizeT  aStride[ MAXRANK + 1];
-  dim.Stride( aStride, nDim);
+  this->dim.Stride( aStride, nDim);
 
   long  aInitIx[ MAXRANK+1];
   for( SizeT aSp=0; aSp<=nDim; ++aSp) aInitIx[ aSp] = 0;
@@ -94,13 +94,13 @@ BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn,
       if( kDim == 0) kDim = 1;
       aBeg[ aSp] = (center) ? kDim/2 : kDim-1; // >= 
       regArr[ aSp] = !aBeg[ aSp];
-      aEnd[ aSp] = (center) ? dim[aSp]-(kDim-1)/2 : dim[aSp]; // <
+      aEnd[ aSp] = (center) ? this->dim[aSp]-(kDim-1)/2 : this->dim[aSp]; // <
     }
 
   Ty* ddP = &dd[0];
 
   // some loop constants
-  SizeT dim0  = dim[0];
+  SizeT dim0  = this->dim[0];
   SizeT aBeg0 = aBeg[0];
   SizeT aEnd0 = aEnd[0];
   SizeT dim0_1     = dim0 - 1;

@@ -26,7 +26,7 @@ for( SizeT a=0; a<nA; ++aInitIx[1])
   bool regular = true;
   for( SizeT aSp=1; aSp<nDim;)
     {
-      if( aInitIx[ aSp] < dim[ aSp])
+      if( aInitIx[ aSp] < this->dim[ aSp])
 	{
 	  regArr[ aSp] = 
 	    aInitIx[aSp] >= aBeg[aSp] && aInitIx[aSp] < aEnd[ aSp];

@@ -1903,7 +1903,7 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r)
     {
       // use transposed r if rank of both is <= 1
       // result dim
-      SizeT nCol=dim[0];
+      SizeT nCol=this->dim[0];
       SizeT nRow=right->dim[0]; // transpose
 
       if( nCol == 0) nCol=1;
@@ -1928,7 +1928,7 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r)
       if( nRow == 0) nRow=1;
 
       // loop dim
-      SizeT nColEl=dim[1];
+      SizeT nColEl=this->dim[1];
       SizeT nRowEl=right->dim[0];
 
       if( nColEl == 0) nColEl=1;
@@ -1986,7 +1986,7 @@ Data_<SpDByte>* Data_<Sp>::LogNeg()
   SizeT nEl = dd.size();
   if( nEl == 0) throw GDLException("Variable is undefined.");  
   
-  DByteGDL* res = new Data_<SpDByte>( dim, BaseGDL::NOZERO);
+  DByteGDL* res = new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
   for( SizeT i=0; i < nEl; i++)
 	(*res)[i] = (dd[i] == 0)? 1 : 0;
   return res;
@@ -1997,7 +1997,7 @@ Data_<SpDByte>* Data_<SpDFloat>::LogNeg()
   SizeT nEl = dd.size();
   if( nEl == 0) throw GDLException("Variable is undefined.");  
   
-  DByteGDL* res = new Data_<SpDByte>( dim, BaseGDL::NOZERO);
+  DByteGDL* res = new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
   for( SizeT i=0; i < nEl; i++)
 	(*res)[i] = (dd[i] == 0.0f)? 1 : 0;
   return res;

@@ -25,7 +25,7 @@ for( SizeT a=0; a<nA; ++aInitIx[1])
   bool regular = true;
   for( SizeT aSp=1; aSp<nDim;)
     {
-      if( aInitIx[ aSp] < dim[ aSp])
+      if( aInitIx[ aSp] < this->dim[ aSp])
 	{
 	  regArr[ aSp] = 
 	    aInitIx[aSp] >= aBeg[aSp] && aInitIx[aSp] < aEnd[ aSp];
@@ -217,8 +217,8 @@ for( SizeT a=0; a<nA; ++aInitIx[1])
 		  long aIx = aInitIx[ rSp] + kIx[ rSp];
 		  if( aIx < 0)
 		    aIx = 0;
-		  else if( aIx >= dim[ rSp])
-		    aIx = dim[ rSp] - 1;
+		  else if( aIx >= this->dim[ rSp])
+		    aIx = this->dim[ rSp] - 1;
 		
 		  aLonIx += aIx * aStride[ rSp];
 		}
@@ -259,8 +259,8 @@ for( SizeT a=0; a<nA; ++aInitIx[1])
 		    long aIx = aInitIx[ rSp] + kIx[ rSp];
 		    if( aIx < 0)
 		      aIx = 0;
-		    else if( aIx >= dim[ rSp])
-		      aIx = dim[ rSp] - 1;
+		    else if( aIx >= this->dim[ rSp])
+		      aIx = this->dim[ rSp] - 1;
 		
 		    aLonIx += aIx * aStride[ rSp];
 		  }
@@ -301,8 +301,8 @@ for( SizeT a=0; a<nA; ++aInitIx[1])
 		    long aIx = aInitIx[ rSp] + kIx[ rSp];
 		    if( aIx < 0)
 		      aIx = 0;
-		    else if( aIx >= dim[ rSp])
-		      aIx = dim[ rSp] - 1;
+		    else if( aIx >= this->dim[ rSp])
+		      aIx = this->dim[ rSp] - 1;
 		
 		    aLonIx += aIx * aStride[ rSp];
 		  }
@@ -347,8 +347,8 @@ for( SizeT a=0; a<nA; ++aInitIx[1])
 		  long aIx = aInitIx[ rSp] + kIx[ rSp];
 		  if( aIx < 0)
 		    aIx = 0;
-		  else if( aIx >= dim[ rSp])
-		    aIx = dim[ rSp] - 1;
+		  else if( aIx >= this->dim[ rSp])
+		    aIx = this->dim[ rSp] - 1;
 		
 		  aLonIx += aIx * aStride[ rSp];
 		}

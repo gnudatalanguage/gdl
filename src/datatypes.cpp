@@ -60,9 +60,9 @@ template<class Sp> Data_<Sp>::Data_(const Ty& d_): Sp(), dd(d_,1)
 
 // new array, zero fields
 template<class Sp> Data_<Sp>::Data_(const dimension& dim_): 
-  Sp( dim_), dd( Sp::zero, dim.N_Elements())
+  Sp( dim_), dd( Sp::zero, this->dim.N_Elements())
 {
-  dim.Purge();
+  this->dim.Purge();
 }
 
 // c-i 
@@ -70,9 +70,9 @@ template<class Sp> Data_<Sp>::Data_(const Data_& d_): Sp(d_.dim), dd(d_.dd) {}
 
 template<class Sp> Data_<Sp>::Data_(const dimension& dim_,
 				    BaseGDL::InitType iT): 
-  Sp( dim_), dd( dim.N_Elements())
+  Sp( dim_), dd( this->dim.N_Elements())
 {
-  dim.Purge();
+  this->dim.Purge();
 
   if( iT == BaseGDL::INDGEN)
     {
@@ -105,7 +105,7 @@ bool Data_<Sp>::Equal(SizeT i1, SizeT i2) const
 template<class Sp>
 BaseGDL* Data_<Sp>::CShift( DLong d)
 {
-  Data_* sh = new Data_( dim, BaseGDL::NOZERO); 
+  Data_* sh = new Data_( this->dim, BaseGDL::NOZERO); 
 
   if( d >= 0)
     d %= dd.size();
@@ -119,13 +119,13 @@ BaseGDL* Data_<Sp>::CShift( DLong d)
 template<class Sp>
 BaseGDL* Data_<Sp>::CShift( DLong s[ MAXRANK])
 {
-  Data_* sh = new Data_( dim, BaseGDL::NOZERO); 
+  Data_* sh = new Data_( this->dim, BaseGDL::NOZERO); 
 
-  SizeT nDim = Rank();
+  SizeT nDim = this->Rank();
   SizeT nEl = N_Elements();
 
   SizeT  stride[ MAXRANK + 1];
-  dim.Stride( stride, nDim);
+  this->dim.Stride( stride, nDim);
 
   long  srcIx[ MAXRANK+1];
   long  dstIx[ MAXRANK+1];
@@ -134,12 +134,12 @@ BaseGDL* Data_<Sp>::CShift( DLong s[ MAXRANK])
     {
       srcIx[ aSp] = 0;
       if( s[ aSp] >= 0)
-	dstIx[ aSp] = s[ aSp] % dim[ aSp];
+	dstIx[ aSp] = s[ aSp] % this->dim[ aSp];
       else
-	dstIx[ aSp] = -(-s[aSp] % dim[ aSp]);
-      if( dstIx[ aSp] < 0) dstIx[ aSp] += dim[ aSp];
+	dstIx[ aSp] = -(-s[aSp] % this->dim[ aSp]);
+      if( dstIx[ aSp] < 0) dstIx[ aSp] += this->dim[ aSp];
 
-      dim_stride[ aSp] = dim[ aSp] * stride[ aSp];
+      dim_stride[ aSp] = this->dim[ aSp] * stride[ aSp];
     }
   srcIx[ nDim] = dstIx[ nDim] = 0;
 
@@ -154,13 +154,13 @@ BaseGDL* Data_<Sp>::CShift( DLong s[ MAXRANK])
     {
       for( SizeT aSp=0; aSp<nDim;)
 	{
-	  if( dstIx[ aSp] >= dim[ aSp]) 
+	  if( dstIx[ aSp] >= this->dim[ aSp]) 
 	    {
 	      // dstIx[ aSp] -= dim[ aSp];
 	      dstIx[ aSp] = 0;
 	      dstLonIx -= dim_stride[ aSp];
 	    }
-	  if( srcIx[ aSp] < dim[ aSp]) break;
+	  if( srcIx[ aSp] < this->dim[ aSp]) break;
 
 	  srcIx[ aSp] = 0;
 	  ++srcIx[ ++aSp];
@@ -189,7 +189,7 @@ DUInt* InitPermDefault()
 template<class Sp> 
 BaseGDL* Data_<Sp>::Transpose( DUInt* perm)
 {
-  SizeT rank = Rank();
+  SizeT rank = this->Rank();
 
   if( rank == 1) // special case: vector
     {
@@ -212,13 +212,13 @@ BaseGDL* Data_<Sp>::Transpose( DUInt* perm)
 
   dimension newDim;
   for( SizeT d=0; d<rank; ++d)
-    newDim.Set( d, dim[ perm[ d]]);
+    newDim.Set( d, this->dim[ perm[ d]]);
   
   Data_* res = new Data_( newDim, BaseGDL::NOZERO);
 
   // src stride
   SizeT srcStride[ MAXRANK];
-  dim.Stride( srcStride, rank);
+  this->dim.Stride( srcStride, rank);
 
   // src multi dim
   SizeT srcDim[MAXRANK];
@@ -239,7 +239,7 @@ BaseGDL* Data_<Sp>::Transpose( DUInt* perm)
 	{
 	  DUInt pi = perm[i];
 	  srcDim[pi]++;
-	  if( srcDim[pi] < dim[pi]) break;
+	  if( srcDim[pi] < this->dim[pi]) break;
 	  srcDim[pi]=0;
 	}
     }
@@ -274,7 +274,7 @@ template<class Sp>
 typename Data_<Sp>::Data_& Data_<Sp>::operator=(const Data_& right)
 {
   if( &right == this) return *this; // self assignment
-  dim = right.dim;
+  this->dim = right.dim;
   dd  = right.dd;
   return *this;
 }
@@ -448,7 +448,7 @@ int Data_<Sp>::Scalar2index( SizeT& st) const
   if( dd[0] < 0) return -1;
 
   st= static_cast<SizeT>(dd[0]);
-  if( dim.Rank() != 0) return 2;
+  if( this->dim.Rank() != 0) return 2;
   return 1;
 }
 
@@ -459,7 +459,7 @@ int Data_<SpDComplex>::Scalar2index( SizeT& st) const
   float r=real(dd[0]);
   if( r < 0.0) return -1;
   st= static_cast<SizeT>(r);
-  if( dim.Rank() != 0) return 2;
+  if( this->dim.Rank() != 0) return 2;
   return 1;
 }
 template<> 
@@ -469,7 +469,7 @@ int Data_<SpDComplexDbl>::Scalar2index( SizeT& st) const
   double r=real(dd[0]);
   if( r < 0.0) return -1;
   st= static_cast<SizeT>(r);
-  if( dim.Rank() != 0) return 2;
+  if( this->dim.Rank() != 0) return 2;
   return 1;
 }
 template<> 
@@ -646,7 +646,7 @@ bool Data_<Sp>::Equal( BaseGDL* r)
     delete r;
     throw GDLException("Expression must be a scalar in this context.");
     }
-  Data_* rr=static_cast<Data_*>(r->Convert2( t));
+  Data_* rr=static_cast<Data_*>(r->Convert2( this->t));
   bool ret= (dd[0] == rr->dd[0]);
   delete rr;
   return ret;
@@ -706,21 +706,21 @@ void Data_<Sp>::ForCheck( BaseGDL** lEnd, BaseGDL** lStep)
     throw GDLException("Loop INCREMENT must be a scalar in this context.");
   
   // only proper types?
-  if( t == UNDEF)
+  if( this->t== UNDEF)
     throw GDLException("Expression is undefined.");
-  if( t == COMPLEX || t == COMPLEXDBL)
+  if( this->t== COMPLEX || this->t == COMPLEXDBL)
     throw GDLException("Complex expression not allowed in this context.");
-  if( t == PTR)
+  if( this->t== PTR)
     throw GDLException("Pointer expression not allowed in this context.");
-  if( t == OBJECT)
+  if( this->t== OBJECT)
     throw GDLException("Object expression not allowed in this context.");
-  if( t == STRING)
+  if( this->t== STRING)
     throw GDLException("String expression not allowed in this context.");
 
   // check here if loop limit is COMPLEX, but *only* if loop init is INT
 
-  *lEnd=(*lEnd)->Convert2( t);
-  if( lStep != NULL) *lStep=(*lStep)->Convert2( t);
+  *lEnd=(*lEnd)->Convert2( this->t);
+  if( lStep != NULL) *lStep=(*lStep)->Convert2( this->t);
 }
 
 void DStructGDL::ForCheck( BaseGDL** lEnd, BaseGDL** lStep)
@@ -1099,7 +1099,7 @@ Data_<Sp>* Data_<Sp>::CatArray( ExprListT& exprList,
   SizeT rankIx = RankIx( rank);
   SizeT maxIx = (catRankIx > rankIx)? catRankIx : rankIx;
 
-  dimension     catArrDim(dim); // list contains at least one element
+  dimension     catArrDim(this->dim); // list contains at least one element
 
   catArrDim.MakeRank( maxIx+1);
   catArrDim.Set(catRankIx,0);     // clear rank which is added up
@@ -1109,7 +1109,7 @@ Data_<Sp>* Data_<Sp>::CatArray( ExprListT& exprList,
   for(; i != exprList.end(); i++)
     {
       // conversion done already here to throw if type is Assoc_<>
-      (*i)=(*i)->Convert2( t);
+      (*i)=(*i)->Convert2( this->t);
 
       for( SizeT dIx=0; dIx<=maxIx; dIx++)
 	{
@@ -1162,7 +1162,7 @@ Data_<Sp>* Data_<Sp>::Index( ArrayIndexListT* ixList)
 template<class Sp>
 void Data_<Sp>::InsAt( Data_* srcIn, dimension ixDim)
 {
-  //  const Data_* srcArr=static_cast<const Data_*>(srcIn->Convert2( t));
+  //  const Data_* srcArr=static_cast<const Data_*>(srcIn->Convert2( this->t));
   dimension srcDim=srcIn->Dim();
     
   SizeT nDim   =RankIx(ixDim.Rank());  // max. number of dimensions to copy
@@ -1172,7 +1172,7 @@ void Data_<Sp>::InsAt( Data_* srcIn, dimension ixDim)
   // check limits (up to Rank to consider)
   for( SizeT dIx=0; dIx <= nDim; dIx++)
     // check if in bounds of a
-    if( (ixDim[dIx]+srcDim[dIx]) > dim[dIx])
+    if( (ixDim[dIx]+srcDim[dIx]) > this->dim[dIx])
       throw GDLException("Out of range subscript encountered.");
 
   SizeT len=srcDim[0]; // length of one segment to copy (one line of srcIn)
@@ -1186,9 +1186,9 @@ void Data_<Sp>::InsAt( Data_* srcIn, dimension ixDim)
   // a magic number, to reset destStart for this dimension
   SizeT resetStep[MAXRANK];
   for( SizeT a=1; a <= nDim; a++) 
-    resetStep[a]=(retStride[a]-1)/retStride[a-1]*dim.Stride(a);
+    resetStep[a]=(retStride[a]-1)/retStride[a-1]*this->dim.Stride(a);
 	
-  SizeT destStart=dim.LongIndex(ixDim); // starting pos
+  SizeT destStart=this->dim.LongIndex(ixDim); // starting pos
 
   SizeT srcIx=0; // this one simply runs from 0 to N_Elements(srcIn)
   for( SizeT c=1; c<=nCp; c++) // linearized verison of nested loops
@@ -1204,7 +1204,7 @@ void Data_<Sp>::InsAt( Data_* srcIn, dimension ixDim)
 	  if( c % retStride[a])
 	    {
 	      // advance to next
-	      destStart += dim.Stride(a);
+	      destStart += this->dim.Stride(a);
 	      break;
 	    }
 	  else
@@ -1229,11 +1229,11 @@ void Data_<Sp>::CatInsert( const Data_* srcArr, const SizeT atDim, SizeT& at)
   SizeT nCp=srcArr->N_Elements()/len;
 
   // initial offset
-  SizeT destStart= dim.Stride(atDim) * at; // dest array
+  SizeT destStart= this->dim.Stride(atDim) * at; // dest array
   SizeT destEnd  = destStart + len;
 
   // number of elements to skip
-  SizeT gap=dim.Stride(atDim+1);    // dest array
+  SizeT gap=this->dim.Stride(atDim+1);    // dest array
 
   SizeT srcIx=0;
   for( SizeT c=0; c<nCp; c++)
@@ -1841,7 +1841,7 @@ template<class Sp>
 BaseGDL* Data_<Sp>::Rebin( const dimension& newDim, bool sample)
 {
   SizeT resRank = newDim.Rank();
-  SizeT srcRank = Rank();
+  SizeT srcRank = this->Rank();
 
   SizeT nDim;
   if( resRank < srcRank) 
@@ -1849,12 +1849,12 @@ BaseGDL* Data_<Sp>::Rebin( const dimension& newDim, bool sample)
   else
     nDim = resRank;
 
-  dimension actDim( dim);
+  dimension actDim( this->dim);
   Data_* actIn = this;
 
   // 1st compress
   for( SizeT d=0; d<nDim; ++d)
-    if( newDim[d] <  dim[d])
+    if( newDim[d] <  this->dim[d])
       { // compress
 	
 	Data_* act = Rebin1( actIn, actDim, d, newDim[d], sample);
@@ -1866,7 +1866,7 @@ BaseGDL* Data_<Sp>::Rebin( const dimension& newDim, bool sample)
 
   // 2nd expand
   for( SizeT d=0; d<nDim; ++d)
-    if( newDim[ d] >  dim[d])
+    if( newDim[ d] >  this->dim[d])
       { // expand
 	
 	Data_* act = Rebin1( actIn, actDim, d, newDim[d], sample);

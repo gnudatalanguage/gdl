@@ -553,7 +553,7 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d,
   DLongGDL* cVal = static_cast<DLongGDL*>
     ( this->Convert2( LONG, BaseGDL::COPY));
   if( w < 0)
-    w = iFmtWidth[ t]; 
+    w = iFmtWidth[ this->t]; 
   SizeT retVal = cVal->OFmtI( os, offs, r, w, d, oMode);
   delete cVal;
   return retVal;
