@@ -113,5 +113,7 @@
 	  in a return statement.
 	  Allow library functions as l-functions.
 	  Cleaned up Compiler/Interpreter.
-	    
+	  Added NAN keywords to BYTSCL, MIN, MAX.
+	  Added SUBSCRIPT_MIN/MAX keywords to MAX/MIN.
+	  Added NTOHL, NTOHS, HTONL, HTONS keywords to BYTEORDER.
 	  

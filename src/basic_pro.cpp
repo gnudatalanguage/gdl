@@ -708,14 +708,26 @@ namespace lib {
     static int l64swapIx = e->KeywordIx( "L64SWAP");
     static int ifBigIx = e->KeywordIx( "SWAP_IF_BIG_ENDIAN");
     static int ifLittleIx = e->KeywordIx( "SWAP_IF_LITTLE_ENDIAN");
+    static int ntohlIx = e->KeywordIx( "NTOHL");
+    static int ntohsIx = e->KeywordIx( "NTOHS");
+    static int htonlIx = e->KeywordIx( "HTONL");
+    static int htonsIx = e->KeywordIx( "HTONS");
 
     bool lswap = e->KeywordSet( lswapIx);
     bool l64swap = e->KeywordSet( l64swapIx);
     bool ifBig = e->KeywordSet( ifBigIx);
     bool ifLittle = e->KeywordSet( ifLittleIx);
-  
+
+    // to-from network conversion (big-endian)
+    bool ntohl = e->KeywordSet( ntohlIx);
+    bool ntohs = e->KeywordSet( ntohsIx);
+    bool htonl = e->KeywordSet( htonlIx);
+    bool htons = e->KeywordSet( htonsIx);
+
     if( ifBig && !BigEndian()) return;
     if( ifLittle && BigEndian()) return;
+
+    if( BigEndian() && (ntohl || ntohs || htonl || htons)) return;
 
     for( DLong p=nParam-1; p>=0; --p)
       {
@@ -730,7 +742,7 @@ namespace lib {
 	SizeT swapSz = 2; 
 	if( l64swap)
 	  swapSz = 8;
-	else if( lswap)
+	else if( lswap || ntohl || htonl)
 	  swapSz = 4;
 
 	if( nBytes % swapSz != 0)

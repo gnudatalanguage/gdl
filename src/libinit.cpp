@@ -87,7 +87,9 @@ void LibInit()
   
   const string byteorderKey[]={"SSWAP","LSWAP","L64SWAP",
 			       "SWAP_IF_BIG_ENDIAN",
-			       "SWAP_IF_LITTLE_ENDIAN",KLISTEND};
+			       "SWAP_IF_LITTLE_ENDIAN",
+			       "NTOHL","NTOHS","HTONL","HTONS",
+			       KLISTEND};
   new DLibPro(lib::byteorder,string("BYTEORDER"),-1,byteorderKey);
 
   const string obj_classKey[]={"COUNT","SUPERCLASS",KLISTEND};
