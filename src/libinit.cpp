@@ -49,6 +49,8 @@ void LibInit()
 {
   const char KLISTEND[] = "";
 
+  new DLibFun(lib::temporary,string("TEMPORARY"),1);
+
   const string routine_infoKey[]={"FUNCTIONS","SYSTEM","DISABLED","ENABLED",
 				  KLISTEND};
   new DLibFun(lib::routine_info,string("ROUTINE_INFO"),1,routine_infoKey);

@@ -129,6 +129,8 @@ namespace lib {
 
   BaseGDL* routine_info( EnvT* e);
 
+  BaseGDL* temporary( EnvT* e);
+
   // the following by Peter Messmer 
   // (messmer@users.sourceforge.net)
   BaseGDL* strtok_fun( EnvT* e); // strsplit

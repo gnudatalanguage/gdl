@@ -1565,7 +1565,7 @@ BaseGDL**  GDLInterpreter::l_ret_expr(RefDNode _t) {
 		match(antlr::RefAST(_t),VAR);
 		_t = _t->getNextSibling();
 		// check if variable is non-local 
-		//(because it will be invalid after return then
+		// (because it will be invalid after return otherwise)
 		if( !callStack.back()->GlobalKW(var->varIx))
 		throw GDLException( _t, 
 		"Attempt to return a local variable from left-function.");

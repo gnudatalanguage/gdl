@@ -311,7 +311,8 @@ namespace lib {
   {
     SizeT nParam=e->NParam(1);
 
-    BaseGDL* p0 = e->GetParDefined( 0);
+    BaseGDL** p0P = &e->GetParDefined( 0);
+    BaseGDL* p0 = *p0P;
 
     SizeT nEl = p0->N_Elements();
     SizeT Rank = p0->Rank();
@@ -339,13 +340,25 @@ namespace lib {
     if (e->KeywordSet( "OVERWRITE")) {
 
       // make a copy if p0 is not global
+      //      if( !e->GlobalPar( 0))
+      //	p0 = p0->Dup();
+      // better: steal p0
       if( !e->GlobalPar( 0))
-	p0 = p0->Dup();
+	*p0P = NULL; // prevent local parameter form deletion
 
       p0->SetDim(dim);
       return p0;
     }
 
+    // steal local parmeter
+    if( !e->GlobalPar( 0))
+      {
+	*p0P = NULL;
+	p0->SetDim( dim);
+	return p0;
+      }
+
+    // global paramter - make a copy
     BaseGDL* res = p0->Dup();
     res->SetDim(dim);
     return res;

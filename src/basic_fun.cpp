@@ -88,7 +88,7 @@ namespace lib {
 	SizeT newDim;
 	int ret=par->Scalar2index( newDim);
 	if( ret < 1 || newDim == 0)
-	  throw GDLException( e->CallingNode(), "Arguments must be all scalar > 0.");
+	  e->Throw( "Arguments must be all scalar > 0.");
 	
 	dim << newDim;
       }
@@ -104,7 +104,7 @@ namespace lib {
     }
     catch( GDLException ex)
       {
-	throw GDLException( e->CallingNode(), "BYTARR: "+ex.getMessage());
+	e->Throw( ex.getMessage());
       }
   }
   BaseGDL* intarr( EnvT* e)
@@ -3025,6 +3025,18 @@ namespace lib {
 
     return res;
     //      }
+  }
+
+  BaseGDL* temporary( EnvT* e)
+  {
+    SizeT nParam=e->NParam(1);
+
+    BaseGDL** p0 = &e->GetParDefined( 0);
+
+    BaseGDL* ret = *p0;
+
+    *p0 = NULL; // make parameter undefined
+    return ret;
   }
 
 

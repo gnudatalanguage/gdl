@@ -211,6 +211,10 @@ end
 function retOverwriteGlobal,a
 return,reform(a,4,/OVERWRITE)
 end
+function retOverwriteExpression
+a=[['m','a'],['r','c']]
+return,reform(a[*],4,/OVERWRITE)
+end
 
 pro ret_test
 
@@ -233,6 +237,9 @@ if n[2] ne "r" then print,'***RET: ERROR7'
 a=[[1,2],[3,4]]
 (retOverwriteGlobal(a))--
 if a[1] ne 1 then print,'***RET: ERROR8'
+
+n = retOverwriteExpression()
+if n[2] ne "r" then print,'***RET: ERROR9'
 
 print,'RET: OK';
 end
