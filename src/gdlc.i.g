@@ -1301,7 +1301,7 @@ l_decinc_indexable_expr [int dec_inc] returns [BaseGDL* res]
     | e=l_deref 
         {
             res = *e;
-             if( res == NULL)
+            if( res == NULL)
             throw GDLException( _t, "Variable is undefined: "+Name(e));
         }
     | e=l_defined_simple_var { res = *e; } // no Dup here
@@ -1338,7 +1338,7 @@ l_decinc_array_expr [int dec_inc] returns [BaseGDL* res]
 
             if( dec_inc == DEC) e->DecAt( aL); 
             else if( dec_inc == INC) e->IncAt( aL);
-
+//
             res=e->Index( aL);
 
             if( dec_inc == POSTDEC) e->DecAt( aL);
@@ -1361,7 +1361,7 @@ l_decinc_array_expr [int dec_inc] returns [BaseGDL* res]
 
             if( dec_inc == DEC) e->Dec();
             else if( dec_inc == INC) e->Inc();
-            
+  //          
             res = e->Dup();
             
             if( dec_inc == POSTDEC) e->Dec();
@@ -1395,7 +1395,7 @@ l_decinc_dot_expr [int dec_inc] returns [BaseGDL* res]
             {
                 if( dec_inc == DEC) aD->Dec(); //*** aD->Assign( dec_inc);
                 else if( dec_inc == INC) aD->Inc();
-                
+//                
                 res=aD->Resolve();
                 
                 if( dec_inc == POSTDEC) aD->Dec();
@@ -1567,14 +1567,6 @@ l_dot_array_expr [DotAccessDescT* aD] // 1st
 
                     // oStruct cannot be "Assoc_"
                     aD->Root( oStruct, guard.release()); 
-
-//                     BaseGDL* obj = (*rP)->Index( aL);
-//                     auto_ptr<BaseGDL> objGuard( obj); // new object -> guard
-                    
-//                     DStructGDL* oStruct = ObjectStructCheckAccess( obj, _t);
-
-//                     // oStruct cannot be "Assoc_"
-//                     aD->Root( oStruct); 
                 }
                 else
                 {
@@ -2466,6 +2458,7 @@ parameter_def [EnvT* actEnv]
                 kval=expr 
                 kvalRef=ref_parameter
                 {   // pass reference
+                    delete kval;
                     actEnv->SetKeyword( knameE->getText(), kvalRef); 
                 }
             )
@@ -2484,6 +2477,7 @@ parameter_def [EnvT* actEnv]
                 pval=expr 
                 pvalRef=ref_parameter
                 {   // pass reference
+                    delete pval;
                     actEnv->SetNextPar(pvalRef); 
                 }   
             )

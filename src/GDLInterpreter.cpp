@@ -1824,6 +1824,7 @@ void GDLInterpreter::parameter_def(RefDNode _t,
 			kvalRef=ref_parameter(_t);
 			_t = _retTree;
 			// pass reference
+			delete kval;
 			actEnv->SetKeyword( knameE->getText(), kvalRef); 
 			
 			_t = __t162;
@@ -1874,6 +1875,7 @@ void GDLInterpreter::parameter_def(RefDNode _t,
 			pvalRef=ref_parameter(_t);
 			_t = _retTree;
 			// pass reference
+			delete pval;
 			actEnv->SetNextPar(pvalRef); 
 			
 			_t = __t165;
@@ -3543,7 +3545,7 @@ BaseGDL*  GDLInterpreter::l_decinc_array_expr(RefDNode _t,
 		
 		if( dec_inc == DEC) e->DecAt( aL); 
 		else if( dec_inc == INC) e->IncAt( aL);
-		
+		//
 		res=e->Index( aL);
 		
 		if( dec_inc == POSTDEC) e->DecAt( aL);
@@ -3578,7 +3580,7 @@ BaseGDL*  GDLInterpreter::l_decinc_array_expr(RefDNode _t,
 		
 		if( dec_inc == DEC) e->Dec();
 		else if( dec_inc == INC) e->Inc();
-		
+		//          
 		res = e->Dup();
 		
 		if( dec_inc == POSTDEC) e->Dec();
@@ -3730,7 +3732,7 @@ BaseGDL*  GDLInterpreter::l_decinc_dot_expr(RefDNode _t,
 	{
 	if( dec_inc == DEC) aD->Dec(); //*** aD->Assign( dec_inc);
 	else if( dec_inc == INC) aD->Inc();
-	
+	//                
 	res=aD->Resolve();
 	
 	if( dec_inc == POSTDEC) aD->Dec();
@@ -3780,14 +3782,6 @@ void GDLInterpreter::l_dot_array_expr(RefDNode _t,
 		
 		// oStruct cannot be "Assoc_"
 		aD->Root( oStruct, guard.release()); 
-		
-		//                     BaseGDL* obj = (*rP)->Index( aL);
-		//                     auto_ptr<BaseGDL> objGuard( obj); // new object -> guard
-		
-		//                     DStructGDL* oStruct = ObjectStructCheckAccess( obj, _t);
-		
-		//                     // oStruct cannot be "Assoc_"
-		//                     aD->Root( oStruct); 
 		}
 		else
 		{

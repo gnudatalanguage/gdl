@@ -105,11 +105,13 @@
 	
 0.8.9:    Added SPAWN procedure.
 	  Added FINITE, ROUTINE_INFO, TEMPORARY functions.	
+	  Added DIST function and TVSCL procedure (as .pro files).
 	  !EXCEPT system variable.
 	  Changed common block compilation.	  
 	  Allow RETURN as jump label (remove it from reserved words)
 	  Allow library functions to return their own parameters if used
 	  in a return statement.
 	  Allow library functions as l-functions.
-	  
+	  Cleaned up Compiler/Interpreter.
+	    
 	  
