@@ -20,45 +20,19 @@
 #include "graphics.hpp"
 #include "image.hpp"
 
+#define ToXColor(a) (((0xFF & (a)) << 8) | (a))
 
 using namespace std;
 
 namespace lib {
 
-  //void plimage_gdl_old(unsigned short *, PLINT, PLINT);
-
-
-  /*------------------------------------------------------------------------*\
-   * PLColor_to_XColor()
-   *
-   * Copies the supplied PLColor to an XColor, padding with bits as necessary
-   * (a PLColor uses 8 bits for color storage, while an XColor uses 16 bits).
-   * The argument types follow the same order as in the function name.
-   *
-   * Taken from Plplot
-   \*-----------------------------------------------------------------------*/
-
-#define ToXColor(a) (((0xFF & (a)) << 8) | (a))
-
-  static void
-  PLColor_to_XColor(PLColor *plcolor, XColor *xcolor)
-  {
-    xcolor->red   = ToXColor(plcolor->r);
-    xcolor->green = ToXColor(plcolor->g);
-    xcolor->blue  = ToXColor(plcolor->b);
-    xcolor->flags = DoRed | DoGreen | DoBlue;
-  }
-
-
-  void plimage_gdl(unsigned short *idata, PLINT nx, PLINT ny)
+  void plimage_gdl(unsigned char *idata, PLINT nx, PLINT ny, DInt tru)
   {
     PLINT ix, iy, xm, ym;
 
     XwDev *dev = (XwDev *) plsc->dev;
     XwDisplay *xwd = (XwDisplay *) dev->xwd;
     XImage *ximg = NULL;
-    XColor curcolor;
-    PLINT icol1;
 
     if (plsc->level < 3) {
       plabort("plimage: window must be set up first");
@@ -86,55 +60,66 @@ namespace lib {
 	return;
     }
 
-    int i, r, ncolors;
-    PLColor cmap1color;
-    XColor xcol;
 
-    ncolors = 200;
-    ncolors = 256;
+    int ncolors;
+    PLINT iclr1, ired, igrn, iblu;
+    if (tru == 0) {
 
-    for( i = 0; i < ncolors; i++ ) {
-      plcol_interp( plsc, &cmap1color, i, ncolors );
-      PLColor_to_XColor( &cmap1color, &xcol );
+      ncolors = 256;
+      for( SizeT i = 0; i < ncolors; i++ ) {
 
-      r = XAllocColor( xwd->display, xwd->map, &xcol );
-
-      if ( r )
-	xwd->cmap1[i] = xcol;
-      else
-	break;
+	xwd->cmap1[i].red   = ToXColor(plsc->cmap1[i].r);
+	xwd->cmap1[i].green = ToXColor(plsc->cmap1[i].g);
+	xwd->cmap1[i].blue  = ToXColor(plsc->cmap1[i].b);
+	xwd->cmap1[i].flags = DoRed | DoGreen | DoBlue;
+	
+	if ( XAllocColor( xwd->display, xwd->map, &xwd->cmap1[i]) == 0)
+	  break;
+      }
+      xwd->ncol1 = ncolors;
     }
-    xwd->ncol1 = ncolors;
 
     PLINT xoff = (PLINT) (plsc->wpxoff/32767 * dev->width  + 1);
     PLINT yoff = (PLINT) (plsc->wpyoff/24575 * dev->height + 1);
     PLINT kx, ky;
 
-    //    cout << "xoff: "; cout << xoff << endl;
-    //cout << "yoff: "; cout << yoff << endl;
-
-
+    XColor curcolor;
     for(ix = 0; ix < nx; ix++) {
       for(iy = 0; iy < ny; iy++) {
-
-	icol1 = idata[ix*(ny)+iy];
-	icol1 = (PLINT) (icol1/(float)USHRT_MAX * (xwd->ncol1-1));
-
-	//	/* only plot points within zmin/zmax range */
-	//if (icol1 < pls->dev_zmin || icol1 > pls->dev_zmax)
-	//  continue;
-
-	if (xwd->color)
-	  curcolor = xwd->cmap1[icol1];
-	else
-	  curcolor = xwd->fgcolor;
-	
-	//	printf("%d %d %X %X %X %X\n", ix,iy, curcolor.pixel,
-	//       curcolor.red,curcolor.green,curcolor.blue);
 
 	kx = xoff + ix;
 	ky = yoff + iy;
 
+	if (tru == 0) {
+	  iclr1 = idata[ix*ny+iy];
+
+	  if (xwd->color)
+	    curcolor = xwd->cmap1[iclr1];
+	  else
+	    curcolor = xwd->fgcolor;
+
+	  //	  printf("ix: %d  iy: %d  pixel: %d\n", ix,iy,curcolor.pixel);
+
+	} else {
+
+	  if (tru == 1) {
+	    ired = idata[3*(iy*nx+ix)+0];
+	    igrn = idata[3*(iy*nx+ix)+1];
+	    iblu = idata[3*(iy*nx+ix)+2];
+	    curcolor.pixel = ired*256*256+igrn*256+iblu;
+	  } else if (tru == 2) {
+	    ired = idata[nx*(iy*3+0)+ix];
+	    igrn = idata[nx*(iy*3+1)+ix];
+	    iblu = idata[nx*(iy*3+2)+ix];
+	    curcolor.pixel = ired*256*256+igrn*256+iblu;
+	  } else if (tru == 3) {
+	    ired = idata[nx*(0*ny+iy)+ix];
+	    igrn = idata[nx*(1*ny+iy)+ix];
+	    iblu = idata[nx*(2*ny+iy)+ix];
+	    curcolor.pixel = ired*256*256+igrn*256+iblu;
+	  }
+
+	}
 	XPutPixel(ximg, kx, dev->height-1-ky, curcolor.pixel);
       }
     }
@@ -159,9 +144,12 @@ namespace lib {
 
     BaseGDL* p0 = e->GetParDefined( 0);
 
-    DLong xLL=0, yLL=0;
-    if (nParam >= 2) e->AssureLongScalarPar( 1, xLL);
-    if (nParam >= 3) e->AssureLongScalarPar( 2, yLL);
+    DLong xLL=0, yLL=0, pos;
+    if (nParam >= 2) e->AssureLongScalarPar( 1, pos);
+    if (nParam >= 3) {
+      e->AssureLongScalarPar( 1, xLL);
+      e->AssureLongScalarPar( 2, yLL);
+    }
 
     GDLGStream* actStream = actDevice->GetStream();
     if( actStream == NULL)
@@ -186,23 +174,46 @@ namespace lib {
     actStream->vpor( 0, 1.0, 0, 1.0);
     actStream->wind( 1-xLL, xSize-xLL, 1-yLL, ySize-yLL);
 
-    DUIntGDL* img = 
-      static_cast<DUIntGDL*>(p0->Convert2( UINT, BaseGDL::COPY));
 
-    int width = p0->Dim(0);
-    int height = p0->Dim(1);
+    DByteGDL* p0B = static_cast<DByteGDL*>( p0);
+    SizeT rank = p0B->Rank();
+    int width, height;
+    DLong tru=0;
+    e->AssureLongScalarKWIfPresent( "TRUE", tru);
+    if (rank == 2) {
+      if (tru != 0)
+	throw GDLException( e->CallingNode(),
+			    "TV: Array must have 3 dimensions: "+
+			    e->GetParString(0));
+      width = p0B->Dim(0);
+      height = p0B->Dim(1);
 
-    unsigned short *img2;
-    img2 = (unsigned short *) calloc(width*height, sizeof(unsigned short));
-    for( SizeT i=0; i<width*height; ++i) {
-      SizeT j = width * (i % height) + (i / height);
-      img2[i] = (*img)[j] * 257;
+    } else if (rank == 3) {
+      XwDev *dev = (XwDev *) plsc->dev;
+      XwDisplay *xwd = (XwDisplay *) dev->xwd;
+      if (tru == 1 && xwd->depth < 24) {
+	throw GDLException( e->CallingNode(), 
+			    "TV: Device depth must be 24 or greater for true color display");
+      return;
     }
-    memcpy(&((*img)[0]), img2, width*height*sizeof(unsigned short));
-    free(img2);
-
-    plimage_gdl(&(*img)[0], (int) width, (int) height);
-    //plimage_gdl_old(&(*img)[0], (int) width, (int) height);
+      if (tru == 1) {
+	width = p0B->Dim(1);
+	height = p0B->Dim(2);
+      } else if (tru == 2) {
+	width = p0B->Dim(0);
+	height = p0B->Dim(2);
+      } else if (tru == 3) {
+	width = p0B->Dim(0);
+	height = p0B->Dim(1);
+      } else {
+	throw GDLException( e->CallingNode(), 
+			    "TV: TRUE must be between 1 and 3");
+      }
+    } else {
+      throw GDLException( e->CallingNode(), 
+			  "Image array must have rank 2 or 3");
+    }
+    plimage_gdl(&(*p0B)[0], (int) width, (int) height, tru);
   }
 
 
@@ -250,17 +261,18 @@ namespace lib {
 
     SizeT nParam=e->NParam(); 
 
+
     /* this variable will contain the attributes of the window. */
-    XWindowAttributes win_attr;
+    //    XWindowAttributes win_attr;
 
     /* query the window's attributes. */
-    Status rc = XGetWindowAttributes(xwd->display, dev->window, &win_attr);
-    SizeT xSize = win_attr.width;
-    SizeT ySize = win_attr.height;
+    // Status rc = XGetWindowAttributes(xwd->display, dev->window, &win_attr);
+    // SizeT xSize = win_attr.width;
+    // SizeT ySize = win_attr.height;
 
-    //    int xSize, ySize, xPos, yPos;
-    //int actWin = actDevice->ActWin();
-    //bool success = actDevice->WSize( actWin, &xSize, &ySize, &xPos, &yPos);
+    int xSize, ySize, xPos, yPos;
+    int actWin = actDevice->ActWin();
+    bool success = actDevice->WSize( actWin, &xSize, &ySize, &xPos, &yPos);
 
     ximg = XGetImage( xwd->display, dev->window, 0, 0, 
 		      xSize, ySize, AllPlanes, ZPixmap);
@@ -286,70 +298,5 @@ namespace lib {
     return res; 
   }
 
-#if 0
-  void plimage_gdl_old(unsigned short *idata, PLINT nx, PLINT ny)
-  {
-    PLINT nnx, nny, ix, iy, ixx, iyy, xm, ym;
-    PLFLT dx, dy;
-    short *Xf, *Yf;
-    PLFLT lzmin, lzmax, tz;
- 
-    cout << "in old" << endl;
-
-    if (plsc->level < 3) {
-      plabort("plimage: window must be set up first");
-      return;
-    }
-
-    if (nx <= 0 || ny <= 0) {
-      plabort("plimage: nx and ny must be positive");
-      return;
-    }
-
-    dx = 1.0;
-    dy = 1.0;
-    nnx = nx;
-    nny = ny;
-
-    /* The X and Y arrays has size nnx*nny */
-    nnx++; nny++;
-
-    Xf = (short *) malloc(nny*nnx*sizeof(short));
-    Yf = (short *) malloc(nny*nnx*sizeof(short));
-
-    /* adjust the step for the X/Y arrays */
-    dx = dx*(nx-1)/nx;
-    dy = dy*(ny-1)/ny;
-
-    for (ix = 0; ix < nnx; ix++)
-      for (iy = 0; iy < nny; iy++) {
-	Xf[ix*nny+iy] =  plP_wcpcx(1 + ix*dx);
-	Yf[ix*nny+iy] =  plP_wcpcy(1 + iy*dy);
-    }
-
-    //    plP_image(Xf, Yf, idata, nnx, nny, 1, 1, dx, dy, 0, USHRT_MAX);
-
-    plsc->dev_ix = Xf;
-    plsc->dev_iy = Yf;
-    plsc->dev_z = idata;
-    plsc->dev_nptsX = nnx;
-    plsc->dev_nptsY = nny;
-    plsc->dev_zmin = 0;
-    plsc->dev_zmax = USHRT_MAX;
-
-    plsc->imclxmin = plsc->phyxmi;
-    plsc->imclymin = plsc->phyymi;
-    plsc->imclxmax = plsc->phyxma;
-    plsc->imclymax = plsc->phyyma;
-
-    plsc->plbuf_write = 0;
-
-    plP_esc(PLESC_IMAGE, NULL);
-   
-    free(Xf);
-    free(Yf);
-  }
-#endif
-
-
 } // namespace
+

@@ -25,7 +25,7 @@
 
 namespace lib {
 
-  void image_gdl(unsigned short *idata, PLINT nx, PLINT ny);
+  void plimage_gdl(unsigned char *idata, PLINT nx, PLINT ny, DInt tru);
 
   void tv( EnvT* e);
   void loadct( EnvT* e);
