@@ -43,7 +43,9 @@ using namespace std;
 void LibInit_cl()
 {
   const char KLISTEND[] = "";
-    
+
+  new DLibPro(lib::journal,string("JOURNAL"),1);
+
   const string systimeKey[]={"JULIAN","SECONDS","UTC",KLISTEND};
   new DLibFun(lib::systime,string("SYSTIME"),2,systimeKey);
 

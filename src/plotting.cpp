@@ -493,7 +493,7 @@ namespace lib {
 	yhigh=yh;
 	ylow=yl;
       }
-    cout<<xlow<<","<<ylow<<","<<xhigh<<","<<yhigh<<endl;
+
     actStream->join(xlow, ylow, xhigh, yhigh);
 
   }
