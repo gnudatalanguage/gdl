@@ -3,7 +3,7 @@
                              -------------------
     begin                : July 22 2002
     copyright            : (C) 2002 by Marc Schellens
-    email                : m_schellens@hotmail.com
+    email                : m_schellens@users.sf.net
  ***************************************************************************/
 
 /***************************************************************************
@@ -580,8 +580,9 @@ namespace lib {
       }
     else 
       {
-    if( yStart > 0.0 && !e->KeywordSet( "YNOZERO") && ((yStyle & 16) == 0))  
-      yStart = 0.0;
+	if( yStart > 0.0 && 
+	    !e->KeywordSet( "YNOZERO") && ((yStyle & 16) == 0))  
+	  yStart = 0.0;
       }
 
     if(xEnd == xStart) xEnd=xStart+1;

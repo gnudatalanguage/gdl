@@ -77,8 +77,10 @@ void GDLGStream::Background( ULong c)
 void GDLGStream::Clear()
 {
   // dummy call to get private function set_stream() called
-  PLFLT a=0.0,b=0.0,c=0.0,d,e,f;
-  RGB_HLS( a,b,c,&d,&e,&f);
+  //  PLFLT a=0.0,b=0.0,c=0.0,d,e,f;
+  //  RGB_HLS( a,b,c,&d,&e,&f);
+  char dummy;
+  gesc( &dummy);
 
   ::c_plclear();
 }

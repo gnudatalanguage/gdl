@@ -2,8 +2,8 @@
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
  <DocsAndViews NumberOfDocuments="1" >
-  <Doc0 NumberOfViews="1" URL="file:/usr/local/home/marc/gdl/src/plotting.cpp" >
-   <View0 line="1152" Type="Source" />
+  <Doc0 NumberOfViews="1" URL="file:/usr/local/gdl/src/plotting.cpp" >
+   <View0 line="655" Type="Source" />
   </Doc0>
  </DocsAndViews>
  <pluginList>
