@@ -47,6 +47,7 @@ public:
 
   virtual void Init()=0;
   virtual void EventHandler() {}
+  virtual void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);
 
   bool Valid() { return valid;}
 

@@ -7,12 +7,18 @@ AC_LANG(C++)
 AC_PROG_CXX
 AM_PROG_LIBTOOL
 
+echo System is:  ${host}
+
 dnl check for specific architecture
 case "${host}" in
   powerpc-*-darwin* )
     dnl PowerPC Darwin based distributions (including Mac OS X)
     LDFLAGS="$LDFLAGS -bind_at_load"
     dnl   LDFLAGS="$LDFLAGS"
+    ;;
+
+  powerpc-*-linux* )
+    LDFLAGS="$LDFLAGS -rdynamic"
     ;;
 
   *linux*)
@@ -270,8 +276,9 @@ fi
 if test "x$with_hdf5" != "xno"; then
   if test "x$with_hdf5" != "xyes"; then
     LIBS="$LIBS -L$with_hdf5/lib -lhdf5"
-    INCLUDES="$INCLUDES -I$with_hdf5/include"
+    INCLUDES="$INCLUDES -I$with_hdf5/include -I$with_hdf5/include/hdf"
   else
+    INCLUDES="$INCLUDES -I/usr/include/hdf"
     LIBS="$LIBS -lhdf5"
   fi
 

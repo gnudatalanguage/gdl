@@ -39,15 +39,18 @@ class DeviceX: public Graphics
     // update !D
     if( wIx >= 0 && wIx < winList.size()) 
       {
+	long xsize,ysize,xoff,yoff;
+	winList[ wIx]->GetGeometry( xsize, ysize, xoff, yoff);
+
 	// window size and pos
-	PLFLT xp; PLFLT yp; 
-	PLINT xleng; PLINT yleng;
-	PLINT xoff; PLINT yoff;
-	winList[ wIx]->gpage( xp, yp, xleng, yleng, xoff, yoff);
-	(*static_cast<DLongGDL*>( dStruct->Get( xSTag, 0)))[0] = xleng;
-	(*static_cast<DLongGDL*>( dStruct->Get( ySTag, 0)))[0] = yleng;
-	(*static_cast<DLongGDL*>( dStruct->Get( xVSTag, 0)))[0] = xleng;
-	(*static_cast<DLongGDL*>( dStruct->Get( yVSTag, 0)))[0] = yleng;
+// 	PLFLT xp; PLFLT yp; 
+// 	PLINT xleng; PLINT yleng;
+// 	PLINT xoff; PLINT yoff;
+// 	winList[ wIx]->gpage( xp, yp, xleng, yleng, xoff, yoff);
+	(*static_cast<DLongGDL*>( dStruct->Get( xSTag, 0)))[0] = xsize;
+	(*static_cast<DLongGDL*>( dStruct->Get( ySTag, 0)))[0] = ysize;
+	(*static_cast<DLongGDL*>( dStruct->Get( xVSTag, 0)))[0] = xsize;
+	(*static_cast<DLongGDL*>( dStruct->Get( yVSTag, 0)))[0] = ysize;
       }	
 
     // window number
@@ -253,10 +256,9 @@ public:
     if( wIx > wLSize || wIx < 0)
       return false;
 
-    PLFLT xp; PLFLT yp; 
-    PLINT xleng; PLINT yleng;
-    PLINT xoff; PLINT yoff;
-    winList[ wIx]->gpage( xp, yp, xleng, yleng, xoff, yoff);
+    long xleng, yleng;
+    long xoff, yoff;
+    winList[ wIx]->GetGeometry( xleng, yleng, xoff, yoff);
 
     *xSize = xleng;
     *ySize = yleng;

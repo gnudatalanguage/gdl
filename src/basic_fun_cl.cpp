@@ -90,6 +90,9 @@ namespace lib {
     time_t t;  //the time
     struct tm *tstruct; //the time structure, from ctime.h
 
+    //    struct timespec tp;
+    //    int cgt = clock_gettime( CLOCK_REALTIME, &tp);  
+
     t=time(0);  
     /*get the time before doing anything else, 
       this hopefully gives a more meaningful "time"
@@ -106,43 +109,43 @@ namespace lib {
       //      default
 
       BaseGDL* val=e->GetParDefined(0); 
-	DIntGDL* v=static_cast<DIntGDL*>(val->Convert2(INT,BaseGDL::COPY));
+      DIntGDL* v=static_cast<DIntGDL*>(val->Convert2(INT,BaseGDL::COPY));
 
-	auto_ptr<DIntGDL> v_a(v);
-	BaseGDL* c= new DIntGDL(1);//compare with 1
+      auto_ptr<DIntGDL> v_a(v);
+      BaseGDL* c= new DIntGDL(1);//compare with 1
 
-	if(v->Equal(c))
-	  ret_seconds=true;
+      if(v->Equal(c))
+	ret_seconds=true;
 	
-      } else if(nParam == 2) {
-	//2 parameters
-	//if the first param is 0, return the date of the second arg
-	//if the first param is 1, return the 'double' of the second arg
+    } else if(nParam == 2) {
+      //2 parameters
+      //if the first param is 0, return the date of the second arg
+      //if the first param is 1, return the 'double' of the second arg
 
-	BaseGDL* val=e->GetParDefined(0); //,"SYSTIME");
-	DIntGDL* v=static_cast<DIntGDL*>(val->Convert2(INT,BaseGDL::COPY));
-	auto_ptr<DIntGDL> v_a(v);
-	BaseGDL* c= new DIntGDL(0);//compare with 0
+      BaseGDL* val=e->GetParDefined(0); //,"SYSTIME");
+      DIntGDL* v=static_cast<DIntGDL*>(val->Convert2(INT,BaseGDL::COPY));
+      auto_ptr<DIntGDL> v_a(v);
+      BaseGDL* c= new DIntGDL(0);//compare with 0
 
-	BaseGDL* v2=e->GetParDefined(1); //,"SYSTIME");
-	if(v->Equal(c)) 
-	  {
-
-
-	    //0, read the second argument as time_t;
-	    DLongGDL *v2_cast=
-	      static_cast<DLongGDL*>(v2->Convert2(LONG,BaseGDL::COPY));
-	    auto_ptr<DLongGDL> v2_a(v2_cast);
-
-	    t=static_cast<time_t>((*v2_cast)[0]);
-
-	  } else {
-	    //1
-	    return static_cast<DDoubleGDL*>(v2->Convert2(DOUBLE,BaseGDL::COPY));
-	  }
+      BaseGDL* v2=e->GetParDefined(1); //,"SYSTIME");
+      if(v->Equal(c)) 
+	{
 
 
-      }
+	  //0, read the second argument as time_t;
+	  DLongGDL *v2_cast=
+	    static_cast<DLongGDL*>(v2->Convert2(LONG,BaseGDL::COPY));
+	  auto_ptr<DLongGDL> v2_a(v2_cast);
+
+	  t=static_cast<time_t>((*v2_cast)[0]);
+
+	} else {
+	  //1
+	  return static_cast<DDoubleGDL*>(v2->Convert2(DOUBLE,BaseGDL::COPY));
+	}
+
+
+    }
 
     //Here, variable 't' contains the time in UTC seconds.
 
@@ -158,12 +161,13 @@ namespace lib {
 	    else
 	      tstruct=localtime(&t);
 	  
-    return new DDoubleGDL(Gregorian2Julian(tstruct));
+	    return new DDoubleGDL(Gregorian2Julian(tstruct));
 	  }
-      else 
-	{
-	return new DDoubleGDL(t);
-	}
+	else 
+	  {
+	    return new DDoubleGDL(t);
+	    //	    return new DDoubleGDL(tp.tv_nsec);
+	  }
       }
     
     //return a string of the time, either UTC or local (default)
@@ -177,7 +181,7 @@ namespace lib {
 
     if(e->KeywordSet("JULIAN"))
       {
-      return new DDoubleGDL(Gregorian2Julian(tstruct)); 
+	return new DDoubleGDL(Gregorian2Julian(tstruct)); 
       }
     else 
       {

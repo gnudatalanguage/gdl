@@ -25,9 +25,12 @@
 #include <csignal>
 #include <cstdlib>
 
+//#include <fenv.h>
+
 #include "str.hpp"
 #include "dinterpreter.hpp"
 #include "terminfo.hpp"
+#include "sigfpehandler.hpp"
 
 using namespace std;
 
@@ -58,7 +61,11 @@ int main(int argc, char *argv[])
 
   LibInit(); // init library functions
     
+  // turn on all floating point exceptions
+  //  feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
+
   signal(SIGINT,ControlCHandler);
+  signal(SIGFPE,SigFPEHandler);
     
   StartupMessage();
 

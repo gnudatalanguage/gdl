@@ -39,6 +39,8 @@ public:
   
   void Init();
   void EventHandler();
+
+  void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);
 };
 
 #endif

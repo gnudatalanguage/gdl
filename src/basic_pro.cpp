@@ -23,6 +23,13 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#ifdef __APPLE__
+# include <crt_externs.h>
+# define environ (*_NSGetEnviron())
+#else
+#include <unistd.h>
+#endif
+
 #include "dinterpreter.hpp"
 #include "datatypes.hpp"
 #include "envt.hpp"

@@ -24,6 +24,9 @@
 //#include "dstructgdl.hpp"
 //#include "arrayindex.hpp"
 
+//#include <csignal>
+#include "sigfpehandler.hpp"
+
 using namespace std;
 
 // Not operation
@@ -1365,19 +1368,41 @@ Data_<Sp>* Data_<Sp>::Div( BaseGDL* r)
   ULong sEl=N_Elements();
   if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
-  if( right->Scalar(s)) 
+
+  if( sigsetjmp( sigFPEJmpBuf, 1) == 0)
     {
-      for( SizeT i=0; i < sEl; i++)
-	dd[i] /= s;
+      if( right->Scalar(s)) 
+	{
+	  for( SizeT i=0; i < sEl; i++)
+	    dd[i] /= s;
+	}
+      else 
+	{
+	  for( SizeT i=0; i < sEl; i++)
+	    dd[i] /= right->dd[i];
+	}
+      delete right;
+      return this;
     }
-  else 
+  else
     {
-      for( SizeT i=0; i < sEl; i++)
-	dd[i] /= right->dd[i];
+      bool zeroEncountered = false;
+      if( !right->Scalar(s)) 
+	{
+	  for( SizeT i=0; i < sEl; i++)
+	    if( !zeroEncountered)
+	      {
+		if( right->dd[i] == this->zero)
+		  zeroEncountered = true;
+	      }
+	    else
+	      if( right->dd[i] != this->zero) dd[i] /= right->dd[i];
+	}
+      delete right;
+      return this;
     }
-  delete right;
-  return this;
 }
+
 // inverse division: left=right/left
 template<class Sp>
 Data_<Sp>* Data_<Sp>::DivInv( BaseGDL* r)
@@ -1388,19 +1413,64 @@ Data_<Sp>* Data_<Sp>::DivInv( BaseGDL* r)
   ULong sEl=N_Elements();
   if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
-  if( right->Scalar(s)) 
+
+  if( sigsetjmp( sigFPEJmpBuf, 1) == 0)
     {
-      for( SizeT i=0; i < sEl; i++)
-	dd[i] = s / dd[i];
+      if( right->Scalar(s)) 
+	{
+	  for( SizeT i=0; i < sEl; i++)
+	    dd[i] = s / dd[i];
+	}
+      else 
+	{
+	  for( SizeT i=0; i < sEl; i++)
+	    dd[i] = right->dd[i] / dd[i];
+	}
+      delete right;
+      return this;
     }
-  else 
+  else
     {
-      for( SizeT i=0; i < sEl; i++)
-	dd[i] = right->dd[i] / dd[i];
+      bool zeroEncountered = false;
+      if( right->Scalar(s)) 
+	{
+	  for( SizeT i=0; i < sEl; i++)
+	    if( !zeroEncountered)
+	      {
+		if( dd[i] == this->zero)
+		  {
+		  zeroEncountered = true;
+		  dd[i] = s;
+		  }
+	      }
+	    else
+	      if( dd[i] != this->zero) 
+		dd[i] = s / dd[i]; 
+	      else 
+		dd[i] = s;
+	}
+      else 
+	{
+	  for( SizeT i=0; i < sEl; i++)
+	    if( !zeroEncountered)
+	      {
+		if( dd[i] == this->zero)
+		  {
+		    zeroEncountered = true;
+		    dd[ i] = right->dd[i];
+		  }
+	      }
+	    else
+	      if( dd[i] != this->zero) 
+		dd[i] = right->dd[i] / dd[i]; 
+	      else
+		dd[i] = right->dd[i];
+	}
+      delete right;
+      return this;
     }
-  delete right;
-  return this;
 }
+
 // invalid types
 DStructGDL* DStructGDL::Div( BaseGDL* r)
 {

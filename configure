@@ -19147,10 +19147,16 @@ LIBTOOL='$(SHELL) $(top_builddir)/libtool'
 
 
 
+echo System is:  ${host}
+
 case "${host}" in
   powerpc-*-darwin* )
         LDFLAGS="$LDFLAGS -bind_at_load"
         ;;
+
+  powerpc-*-linux* )
+    LDFLAGS="$LDFLAGS -rdynamic"
+    ;;
 
   *linux*)
             LDFLAGS="$LDFLAGS -rdynamic -z muldefs"
@@ -20025,8 +20031,9 @@ fi
 if test "x$with_hdf5" != "xno"; then
   if test "x$with_hdf5" != "xyes"; then
     LIBS="$LIBS -L$with_hdf5/lib -lhdf5"
-    INCLUDES="$INCLUDES -I$with_hdf5/include"
+    INCLUDES="$INCLUDES -I$with_hdf5/include -I$with_hdf5/include/hdf"
   else
+    INCLUDES="$INCLUDES -I/usr/include/hdf"
     LIBS="$LIBS -lhdf5"
   fi
 

@@ -123,3 +123,18 @@ void GDLGStream::NextPlot( bool erase)
       if( erase) --(*pMulti)[ 0];
     }
 }
+
+// default is a wrapper for gpage()
+void GDLGStream::GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff)
+{
+  
+  PLFLT xp; PLFLT yp; 
+  PLINT xleng; PLINT yleng;
+  PLINT plxoff; PLINT plyoff;
+  gpage( xp, yp, xleng, yleng, plxoff, plyoff);
+  
+  xSize = xleng;
+  ySize = yleng;
+  xoff = plxoff;
+  yoff = plyoff;
+}

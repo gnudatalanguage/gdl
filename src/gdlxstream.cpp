@@ -62,3 +62,26 @@ void GDLXStream::EventHandler()
   plstream::cmd( PLESC_EH, NULL);
 }
 
+void GDLXStream::GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff)
+{
+  // plplot does not return the real size
+  XwDev *dev = (XwDev *) pls->dev;
+  XwDisplay *xwd = (XwDisplay *) dev->xwd;
+
+  XWindowAttributes win_attr;
+
+  /* query the window's attributes. */
+  Status rc = XGetWindowAttributes(xwd->display,
+				   dev->window,
+				   &win_attr);
+  xSize = win_attr.width;
+  ySize = win_attr.height;
+
+  PLFLT xp; PLFLT yp; 
+  PLINT xleng; PLINT yleng;
+  PLINT plxoff; PLINT plyoff;
+  gpage( xp, yp, xleng, yleng, plxoff, plyoff);
+
+  xoff = plxoff;
+  yoff = plyoff;
+}

@@ -755,7 +755,7 @@ namespace lib {
 	  (p0->Convert2( FLOAT, BaseGDL::COPY));
 	for( SizeT i=0; i<nEl; ++i)
 	  {
-	    (*res)[ i] = sqrt((double) (*res)[ i]); 
+	    (*res)[ i] = sqrt( (*res)[ i]); 
 	  }
 	return res;
       }
