@@ -441,7 +441,8 @@ namespace lib {
 
     SizeT c;
 
-    struct DStructGDL *Values =  new DStructGDL( "!VALUES");
+    static DStructGDL *Values =  SysVar::Values();
+
     if(g->Type() == DOUBLE)
       {
 	DDoubleGDL* gd = e->GetParAs<DDoubleGDL>(0);
@@ -510,7 +511,8 @@ namespace lib {
     
     SizeT c;
 
-    struct DStructGDL *Values =  new DStructGDL( "!VALUES");
+    static DStructGDL *Values =  SysVar::Values();
+
     if(g->Type() == DOUBLE || e->KeywordSet("DOUBLE"))
       {
 	DDoubleGDL* gd = e->GetParAs<DDoubleGDL>(0);
@@ -572,7 +574,8 @@ namespace lib {
     nEl=nEl > nElb? nElb:nEl;
     SizeT c;
 
-    struct DStructGDL *Values =  new DStructGDL( "!VALUES");
+    static DStructGDL *Values =  SysVar::Values();
+
     if(g->Type() == DOUBLE)
       {
 	DDoubleGDL* gd = e->GetParAs<DDoubleGDL>(0);
@@ -612,96 +615,104 @@ namespace lib {
   }
 
 
-//   BaseGDL* exp(EnvT* e)
-//   {
-//     SizeT nParam = e->NParam(1);
-//     BaseGDL* v=e->GetParDefined(0);   
+  BaseGDL* exp(EnvT* e)
+  {
+    SizeT nParam = e->NParam(1);
+    BaseGDL* v=e->GetParDefined(0);   
 
-//     size_t nEl = v->N_Elements();
-//     size_t i;
-//     if (v->Type() == STRING) {
-//       throw GDLException( e->CallingNode(), 
-// 		  "EXP: String expression not allowed in this context: "
-// 			  +e->GetParString(0));
-//     } else if (v->Type() == PTR) {
-//       throw GDLException( e->CallingNode(), 
-// 		  "EXP: Pointer expression not allowed in this context: "
-// 			  +e->GetParString(0));
-//     } else if (v->Type() == OBJECT) {
-//       throw GDLException( e->CallingNode(), 
-// 		  "EXP: Object expression not allowed in this context: "
-// 			  +e->GetParString(0));
-//     } else if (v->Type() == STRUCT) {
-//       throw GDLException( e->CallingNode(), 
-// 		  "EXP: Struct expression not allowed in this context: "
-// 			  +e->GetParString(0));		  
-//     } else   {
-//       DDoubleGDL* d;
-//       DDoubleGDL* dr = new DDoubleGDL(v->Dim(), BaseGDL::NOZERO);
+    size_t nEl = v->N_Elements();
+    size_t i;
+    if (v->Type() == STRING) {
+      throw GDLException( e->CallingNode(), 
+		  "EXP: String expression not allowed in this context: "
+			  +e->GetParString(0));
+    } else if (v->Type() == PTR) {
+      throw GDLException( e->CallingNode(), 
+		  "EXP: Pointer expression not allowed in this context: "
+			  +e->GetParString(0));
+    } else if (v->Type() == OBJECT) {
+      throw GDLException( e->CallingNode(), 
+		  "EXP: Object expression not allowed in this context: "
+			  +e->GetParString(0));
+    } else if (v->Type() == STRUCT) {
+      throw GDLException( e->CallingNode(), 
+		  "EXP: Struct expression not allowed in this context: "
+			  +e->GetParString(0));		  
+    } else   {
+      DDoubleGDL* d;
+      DDoubleGDL* dr = new DDoubleGDL(v->Dim(), BaseGDL::NOZERO);
 
-//       if(v->Type() == COMPLEX) {
-// 	DComplexDblGDL* cd=
-// 	  static_cast<DComplexDblGDL*>(v->Convert2(COMPLEXDBL, BaseGDL::COPY));
-// 	DComplexDblGDL* cdr =
-// 	  new DComplexDblGDL(v->Dim(), BaseGDL::NOZERO);
+      if(v->Type() == COMPLEX) {
+	DComplexDblGDL* cd=
+	  static_cast<DComplexDblGDL*>(v->Convert2(COMPLEXDBL, BaseGDL::COPY));
+	DComplexDblGDL* cdr =
+	  new DComplexDblGDL(v->Dim(), BaseGDL::NOZERO);
 
-// 	if(nEl == 1) 
-// 	  (*cdr)[0]=
-// 	   DComplex((gsl_sf_exp((*cd)[0].real())*cos((*cd)[0].imag())),
-// 		    (gsl_sf_exp((*cd)[0].real())*sin((*cd)[0].imag())));
-// 	else
-// 	  for(i=0;i<nEl;++i) 
-// 	    (*cdr)[i]=
-// 	      DComplex((gsl_sf_exp((*cd)[i].real())*cos((*cd)[i].imag())),
-// 		       (gsl_sf_exp((*cd)[i].real())*sin((*cd)[i].imag())));
+	if(nEl == 1) 
+	  (*cdr)[0]=
+	   DComplex((gsl_sf_exp((*cd)[0].real())*cos((*cd)[0].imag())),
+		    (gsl_sf_exp((*cd)[0].real())*sin((*cd)[0].imag())));
+	else
+	  for(i=0;i<nEl;++i) 
+	    (*cdr)[i]=
+	      DComplex((gsl_sf_exp((*cd)[i].real())*cos((*cd)[i].imag())),
+		       (gsl_sf_exp((*cd)[i].real())*sin((*cd)[i].imag())));
 
-// 	return static_cast<DComplexGDL*>(cdr->Convert2(COMPLEX,BaseGDL::COPY));
+	return static_cast<DComplexGDL*>(cdr->Convert2(COMPLEX,BaseGDL::COPY));
 
-//       } else if(v->Type() == COMPLEXDBL) {
-// 	DComplexDblGDL* cd=
-// 	  static_cast<DComplexDblGDL*>(v->Convert2(COMPLEXDBL, BaseGDL::COPY));
-// 	DComplexDblGDL* cdr =
-// 	  new DComplexDblGDL(v->Dim(), BaseGDL::NOZERO);
+      } else if(v->Type() == COMPLEXDBL) {
+	DComplexDblGDL* cd=
+	  static_cast<DComplexDblGDL*>(v->Convert2(COMPLEXDBL, BaseGDL::COPY));
+	DComplexDblGDL* cdr =
+	  new DComplexDblGDL(v->Dim(), BaseGDL::NOZERO);
 
-// 	if(nEl == 1) 
-// 	  (*cdr)[0]=
-// 	   DComplex((gsl_sf_exp((*cd)[0].real())*cos((*cd)[0].imag())),
-// 		    (gsl_sf_exp((*cd)[0].real())*sin((*cd)[0].imag())));
-// 	else
-// 	  for(i=0;i<nEl;i++) 
-// 	    (*cdr)[i]=
-// 	      DComplex((gsl_sf_exp((*cd)[i].real())*cos((*cd)[i].imag())),
-// 		       (gsl_sf_exp((*cd)[i].real())*sin((*cd)[i].imag())));
+	if(nEl == 1) 
+	  (*cdr)[0]=
+	   DComplex((gsl_sf_exp((*cd)[0].real())*cos((*cd)[0].imag())),
+		    (gsl_sf_exp((*cd)[0].real())*sin((*cd)[0].imag())));
+	else
+	  for(i=0;i<nEl;i++) 
+	    (*cdr)[i]=
+	      DComplex((gsl_sf_exp((*cd)[i].real())*cos((*cd)[i].imag())),
+		       (gsl_sf_exp((*cd)[i].real())*sin((*cd)[i].imag())));
 	
-// 	return cdr;
+	return cdr;
 	
-//       } else if(v->Type() == DOUBLE) {
+      } else if(v->Type() == DOUBLE) {
 	
-// 	d=static_cast<DDoubleGDL*>(v->Convert2(DOUBLE, BaseGDL::COPY));
-// 	if(nEl == 1) 
-// 	  (*dr)[0]=gsl_sf_exp((*d)[0]);
-// 	else
-// 	  for (i=0;i<nEl;++i) (*dr)[i]=gsl_sf_exp((*d)[i]);
+	d=static_cast<DDoubleGDL*>(v->Convert2(DOUBLE, BaseGDL::COPY));
+	if(nEl == 1) 
+	  (*dr)[0]=gsl_sf_exp((*d)[0]);
+	else
+	  for (i=0;i<nEl;++i) (*dr)[i]=gsl_sf_exp((*d)[i]);
 	
-// 	return dr;
-//       } else if(v->Type() == FLOAT || 
-// 		v->Type() == INT ||
-// 		v->Type() == LONG) {
+	return dr;
+      } else if(v->Type() == FLOAT || 
+		v->Type() == INT ||
+		v->Type() == LONG) {
 	
-// 	DFloatGDL *fr;
-// 	fr=new DFloatGDL(v->Dim(), BaseGDL::NOZERO);
-// 	d=static_cast<DDoubleGDL*>(v->Convert2(DOUBLE, BaseGDL::COPY));
+	DFloatGDL *fr;
+	fr=new DFloatGDL(v->Dim(), BaseGDL::NOZERO);
+	d=static_cast<DDoubleGDL*>(v->Convert2(DOUBLE, BaseGDL::COPY));
 
-// 	if(nEl == 1) 
-// 	  (*dr)[0]=gsl_sf_exp((*d)[0]);
-// 	else
-// 	  for (i=0;i<nEl;++i) (*dr)[i]=gsl_sf_exp((*d)[i]);
+	if(nEl == 1) 
+	  (*dr)[0]=gsl_sf_exp((*d)[0]);
+	else
+	  for (i=0;i<nEl;++i) (*dr)[i]=gsl_sf_exp((*d)[i]);
 
-// 	return static_cast<DFloatGDL*>(dr->Convert2(FLOAT,BaseGDL::COPY));
+	return static_cast<DFloatGDL*>(dr->Convert2(FLOAT,BaseGDL::COPY));
 	
-//       }
+      }
 
-//     }
-//   }
-  
+    }
+  }
+
+
+
+
+      
+
+
+			  			  
+ 
 } // namespace
