@@ -1166,7 +1166,7 @@ namespace lib {
 			  "ASSOC: File unit does not allow"
 			  " this operation. Unit: "+i2s( lun));
 
-    SizeT offset = 0;
+    DLong offset = 0;
     if( nParam >= 3) e->AssureLongScalarPar( 2, offset);
     
     BaseGDL* arr = e->GetParDefined( 1);
