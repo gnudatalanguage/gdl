@@ -61,7 +61,7 @@ void LibInit_jmg()
   new DLibFun(lib::fft_fun,string("FFT"),2,fftKey);
 
   const string randomKey[]={"DOUBLE","GAMMA","LONG","NORMAL",
-			    "BINOMIAL","POISSON",KLISTEND};
+			    "BINOMIAL","POISSON","UNIFORM",KLISTEND};
   new DLibFun(lib::random_fun,string("RANDOMU"),MAXRANK,randomKey);
   new DLibFun(lib::random_fun,string("RANDOMN"),MAXRANK,randomKey);
 
