@@ -140,8 +140,6 @@ namespace lib {
 
   void tv( EnvT* e)
   {
-    cout << "TV start" << endl;
-
     Graphics* actDevice = Graphics::GetDevice();
 
     SizeT nParam=e->NParam( 1); 
@@ -216,8 +214,6 @@ namespace lib {
 			  "Image array must have rank 2 or 3");
     }
     plimage_gdl(&(*p0B)[0], width, height, tru);
-
-    cout << "TV end" << endl;
   }
 
 
