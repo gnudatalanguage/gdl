@@ -719,10 +719,10 @@ namespace lib {
 	for( SizeT i=0; i<nEl; ++i) (*res)[ i] =
 				      (T2) gsl_ran_poisson (r, mu);
       }
-    } else if (pro->ObjectName().compare("RANDOMU") == 0) {
+    } else if (e->GetProName() == "RANDOMU") {
       for( SizeT i=0; i<nEl; ++i) (*res)[ i] = 
 				    (T2) gsl_rng_uniform (r);
-    } else if (pro->ObjectName().compare("RANDOMN") == 0) {
+    } else if (e->GetProName() == "RANDOMN") {
       for( SizeT i=0; i<nEl; ++i) (*res)[ i] = 
 				    (T2) gsl_ran_ugaussian (r);
     }

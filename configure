@@ -1954,7 +1954,6 @@ am__tar='${AMTAR} chof - "$$tardir"'; am__untar='${AMTAR} xf -'
 
 
 
-
 ac_ext=cc
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -2689,6 +2688,7 @@ else
   am__fastdepCXX_TRUE='#'
   am__fastdepCXX_FALSE=
 fi
+
 
 
 # Check whether --enable-shared or --disable-shared was given.
@@ -19147,23 +19147,6 @@ LIBTOOL='$(SHELL) $(top_builddir)/libtool'
 
 
 
-echo System is:  ${host}
-
-case "${host}" in
-  powerpc-*-darwin* )
-        LDFLAGS="$LDFLAGS -bind_at_load"
-        ;;
-
-  powerpc-*-linux* )
-    LDFLAGS="$LDFLAGS -rdynamic"
-    ;;
-
-  *linux*)
-            LDFLAGS="$LDFLAGS -rdynamic -z muldefs"
-    ;;
-
-esac
-
 
 # Check whether --with-ncursesdir or --without-ncursesdir was given.
 if test "${with_ncursesdir+set}" = set; then
@@ -20222,10 +20205,27 @@ fi
 
 fi
 
+
+echo System is:  ${host}
+
+case "${host}" in
+  powerpc-*-darwin* )
+        LDFLAGS="$LDFLAGS -bind_at_load"
+        ;;
+
+  powerpc-*-linux* )
+    LDFLAGS="$LDFLAGS -rdynamic"
+    ;;
+
+  *linux*)
+            LDFLAGS="$LDFLAGS -rdynamic -z muldefs"
+    ;;
+
+esac
+
+
 EXT_LIBS="$LIBS"
 EXT_INCLUDES="$INCLUDES"
-
-
 
 
 
