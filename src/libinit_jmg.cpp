@@ -69,6 +69,9 @@ void LibInit_jmg()
 
   new DLibFun(lib::machar_fun,string("MACHAR"),0);
 
+  const string finiteKey[]={"INFINITY",KLISTEND};
+  new DLibFun(lib::finite_fun,string("FINITE"),1,finiteKey);
+
   const string make_arrayKey[]={"NOZERO","DIMENSION","INDEX","SIZE",
 				"TYPE","VALUE","BYTE","INT",
 				"UINT","LONG","ULONG","L64","UL64",
@@ -152,7 +155,10 @@ void LibInit_jmg()
 #endif
 
   const string tvKey[]={"TRUE",KLISTEND};
-  new DLibPro(lib::tv,string("TV"),3,tvKey);
+  new DLibPro(lib::tv,string("TV"),4,tvKey);
+
+  const string tvrdKey[]={"CHANNEL","ORDER","TRUE","WORDS",KLISTEND};
+  new DLibFun(lib::tvrd,string("TVRD"),5,tvrdKey);
 
   new DLibPro(lib::loadct,string("LOADCT"),1);
 
