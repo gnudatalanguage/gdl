@@ -2591,6 +2591,39 @@ namespace lib {
     return res;
   }
 
+  BaseGDL* obj_isa( EnvT* e)
+  {
+    SizeT nParam = e->NParam( 2);
+
+    BaseGDL* p0 = e->GetPar( 0);
+    if( p0 == NULL || p0->Type() != OBJECT)
+      e->Throw( "Object reference type required in this context: "+
+		e->GetParString(0));
+
+    DString className;
+    e->AssureScalarPar<DStringGDL>( 1, className);
+    className = StrUpCase( className);
+
+    DObjGDL* pObj = static_cast<DObjGDL*>( p0);
+
+    DByteGDL* res = new DByteGDL( pObj->Dim()); // zero 
+
+    GDLInterpreter* interpreter = e->Interpreter();
+
+    SizeT nElem = pObj->N_Elements();
+    for( SizeT i=0; i<nElem; ++i)
+      {
+	if( interpreter->ObjValid( (*pObj)[ i])) 
+	  {
+	    DStructGDL* oStruct = e->GetObjHeap( (*pObj)[i]);
+	    if( oStruct->Desc()->IsParent( className))
+	      (*res)[i] = 1;
+	  }
+      }
+    
+    return res;
+  }
+
 } // namespace
 
 

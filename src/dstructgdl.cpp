@@ -147,6 +147,11 @@ void DStructGDL::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
 {
   DStructGDL* src=static_cast<DStructGDL*>(srcIn);
 
+  // check struct compatibility
+  if( src->desc != this->desc && (*src->desc) != (*this->desc))
+    throw 
+      GDLException( "Conflicting data structures.");
+
   SizeT nTags=desc->NTags();
   
   bool isScalar= src->N_Elements() == 1;

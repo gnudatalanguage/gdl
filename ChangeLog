@@ -80,3 +80,12 @@
 	  Added OPLOT procedure.
 	  Bugfixes for ATAN (with 2 floats), CONVOL (1-dim kernel),
 	  MESSAGE (prefix).
+
+0.8.8:    Added OBJ_CLASS, OBJ_ISA function.
+	  Added PLOTS (2D only) procedure.
+	  Fixed braced reference argument bug.
+	  Changed equality checking to compatibility checking for
+	  struct array definitions.
+	  Added structure compatibility check for assignment to struct
+	  arrays.
+	

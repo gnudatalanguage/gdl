@@ -250,7 +250,7 @@ private:
 
 private:
 
-  // inserts srcIn at ixDim, used by Assign(...)
+  // inserts srcIn at ixDim, used by AssignAt(...)
   // respects the exact structure
   void InsAt( Data_* srcIn, dimension ixDim);
   

@@ -125,18 +125,20 @@ void DStructDesc::AssureEqual( DStructDesc* d)
     }
 }
 
+// two structs are equal if the contain the same datatypes in the
+// same order (although names might differ)
 bool operator==(const DStructDesc& left,
 		const DStructDesc& right)
 {
   // name is the same
   if( left.NTags() != right.NTags()) return false;
   // struct layout can be same with different inheritance
-  if( left.parent.size() != right.parent.size()) return false;
+  //  if( left.parent.size() != right.parent.size()) return false;
   // compare all tag names
   // compare the tags (type and dim)
   for( SizeT i=0; i < left.NTags(); i++)
     {
-      if( left.TagName(i) != right.TagName(i)) return false;
+      //      if( left.TagName(i) != right.TagName(i)) return false;
       if( left.tags[i]->Dim() != right.tags[i]->Dim()) return false;
       if( left.tags[i]->Type() != right.tags[i]->Type()) return false;
       if( left.tags[i]->Type() == STRUCT)
@@ -154,10 +156,10 @@ bool operator==(const DStructDesc& left,
 	}
     }
   // compare all parents
-  for( SizeT i=0; i < left.parent.size(); i++)
-    {
-      if( left.parent[i] != right.parent[i]) return false;
-    }
+  //  for( SizeT i=0; i < left.parent.size(); i++)
+  //    {
+  //      if( left.parent[i] != right.parent[i]) return false;
+  //    }
   return true;
 }
 

@@ -123,6 +123,7 @@ namespace lib {
   BaseGDL* rebin_fun( EnvT* e);
 
   BaseGDL* obj_class( EnvT* e);
+  BaseGDL* obj_isa( EnvT* e);
 
 } // namespace
 

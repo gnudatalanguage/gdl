@@ -2569,18 +2569,25 @@ array_def returns [BaseGDL* res]
                         {
                             // check for struct compatibility
                             DStructDesc* newS=
-                            dynamic_cast<DStructGDL*>(e)->Desc();
+                            static_cast<DStructGDL*>(e)->Desc();
                             DStructDesc* oldS=
-                            dynamic_cast<DStructGDL*>(cTypeData)->Desc();
+                            static_cast<DStructGDL*>(cTypeData)->Desc();
 
                             // *** here (*newS) != (*oldS) must be set when
                             // unnamed structs not in struct list anymore
                             if( newS != oldS)
                             {
-                                throw 
-                                GDLException( _t, 
-                                    "Conflicting data structures: "+
-                                    Name(cTypeData)+", "+Name(e));
+                                if( (*newS) == (*oldS))
+                                {
+                                    // different structs with same layout
+                                    // replace desc with first one
+                                    static_cast<DStructGDL*>(e)->SetDesc( oldS);
+                                }
+                                else
+                                    throw 
+                                    GDLException( _t, 
+                                        "Conflicting data structures: "+
+                                        Name(cTypeData)+", "+Name(e));
                             }
                         }
                     }
