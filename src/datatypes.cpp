@@ -86,6 +86,7 @@ template<class Sp> Data_<Sp>::Data_(const dimension& dim_,
     }
 }
 
+
 template<class Sp>
 bool Data_<Sp>::Greater(SizeT i1, SizeT i2) const
 { return (dd[i1] > dd[i2]);}
