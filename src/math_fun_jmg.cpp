@@ -168,7 +168,7 @@ namespace lib {
 		 &negep, &iexp, &minexp, &maxexp, 
 		 &epsD, &epsnegD, &xminD, &xmaxD );
 
-	DStructGDL*  machar = new DStructGDL( "MACHAR");
+	DStructGDL*  machar = new DStructGDL( "DMACHAR");
 
 	machar->InitTag("IBETA", DLongGDL(ibeta));
 	machar->InitTag("IT", DLongGDL(it));
