@@ -1921,17 +1921,25 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r)
   else
     {
       // result dim
-      SizeT nCol=this->dim[0];
+      SizeT nCol, nColEl;
+      if( this->dim.Rank() <= 1)
+	{
+	  nCol=1;
+	  nColEl=this->dim[0];
+	}
+      else
+	{
+	  nCol=this->dim[0];
+	  nColEl=this->dim[1];
+	}
+      if( nColEl == 0) nColEl=1;
+      
       SizeT nRow=right->dim[1];
-
-      if( nCol == 0) nCol=1;
       if( nRow == 0) nRow=1;
 
       // loop dim
-      SizeT nColEl=this->dim[1];
       SizeT nRowEl=right->dim[0];
 
-      if( nColEl == 0) nColEl=1;
       if( nRowEl == 0) nRowEl=1;
 
       if( nColEl != nRowEl)

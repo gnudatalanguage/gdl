@@ -604,6 +604,37 @@ if i[1,2] ne -2 then  print,"***INDEX: ERROR2"
 print,'ARRAY INDEXING: OK'
 end
 
+pro operator_test
+
+a=indgen(4)
+b=indgen(4)
+
+c=a#b
+
+if c[2,3] ne 6 then print,"***OPERATOR: ERROR1"
+
+b=indgen(4,2)
+
+c=a#b
+
+if c[0,1] ne 38 then print,"***OPERATOR: ERROR2"
+
+a=indgen(2,4)
+b=indgen(4)
+
+c=a#b
+
+if c[1] ne 34 then print,"***OPERATOR: ERROR3"
+
+b=indgen(4,2)
+
+c=a#b
+
+if c[0,1] ne 76 then print,"***OPERATOR: ERROR4"
+
+print,'OPERATORS: OK'
+end
+
 pro test_suite
 
 switch_test
@@ -625,5 +656,6 @@ extra_test
 expr_test
 recursion_test
 index_test
+operator_test
 
 end
