@@ -24,14 +24,16 @@
 
 #include <deque>
 
-#include <Python.h>
-#include <numarray/libnumarray.h>
-//#include <numarray/numarray.h>
-
 #include "datatypes.hpp"
 #include "envt.hpp"
 #include "gdlpython.hpp"
 #include "objects.hpp"
+
+// already included from basegdl.hpp
+//#include <Python.h>
+
+#include <numarray/libnumarray.h>
+//#include <numarray/numarray.h>
 
 using namespace std;
 

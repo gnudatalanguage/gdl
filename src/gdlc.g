@@ -79,7 +79,9 @@ tokens {
 	MPCALL;
 	MPCALL_PARENT; // explicit call to parent 
 	MFCALL;
+	MFCALL_LIB;
 	MFCALL_PARENT; // explicit call to parent
+	MFCALL_PARENT_LIB;
   	NOP;     // no operation
 	NSTRUC;     // named struct
 	NSTRUC_REF; // named struct reference
@@ -647,6 +649,7 @@ parameter_def
 		{
             RefDNode c=static_cast<RefDNode>( #[CONSTANT,"1"]);
             c->Text2Int(10);
+            c->SetLine( #id->getLine());
             #parameter_def = #([KEYDEF,"!=!"], id, c);
         }
 	;
@@ -658,7 +661,7 @@ parameter_def_list
 // [expr,...]
 array_def
 	: LSQUARE! expr (COMMA! expr)* RSQUARE!
-		{ #array_def = #(#[ARRAYDEF, "array_def"], #array_def);
+		{ #array_def = #([ARRAYDEF, "array_def"], #array_def);
         }
 	;
 
@@ -709,124 +712,153 @@ numeric_constant!//
 	: c1:CONSTANT_HEX_BYTE    
 		{ #numeric_constant=#[CONSTANT,c1->getText()];
 		  #numeric_constant->Text2Byte(16);	
+		  #numeric_constant->SetLine( c1->getLine());	
 		}  
 	| c2:CONSTANT_HEX_LONG 
 		{ #numeric_constant=#[CONSTANT,c2->getText()];
 		  #numeric_constant->Text2Long(16);	
+		  #numeric_constant->SetLine( c2->getLine());	
 		}  
 	| c3:CONSTANT_HEX_LONG64 
 		{ #numeric_constant=#[CONSTANT,c3->getText()];
 		  #numeric_constant->Text2Long64(16);	
+		  #numeric_constant->SetLine( c3->getLine());	
 		}  
 	| c4:CONSTANT_HEX_INT 
 		{ #numeric_constant=#[CONSTANT,c4->getText()];
 		  #numeric_constant->Text2Int(16);	
+		  #numeric_constant->SetLine( c4->getLine());	
 		}  
 	| c44:CONSTANT_HEX_I 
         // DEFINT32
 		{ #numeric_constant=#[CONSTANT,c44->getText()];
 		  #numeric_constant->Text2Int(16,true);	
+		  #numeric_constant->SetLine( c44->getLine());	
 		}  
     | c5:CONSTANT_HEX_ULONG 
 		{ #numeric_constant=#[CONSTANT,c5->getText()];
 		  #numeric_constant->Text2ULong(16);	
+		  #numeric_constant->SetLine( c5->getLine());	
 		}  
     | c6:CONSTANT_HEX_ULONG64 
 		{ #numeric_constant=#[CONSTANT,c6->getText()];
 		  #numeric_constant->Text2ULong64(16);	
+		  #numeric_constant->SetLine( c6->getLine());	
 		}  
 	| c77:CONSTANT_HEX_UI
         // DEFINT32
 		{ #numeric_constant=#[CONSTANT,c77->getText()];
 		  #numeric_constant->Text2UInt(16,true);	
+		  #numeric_constant->SetLine( c77->getLine());	
 		}  
 	| c7:CONSTANT_HEX_UINT
 		{ #numeric_constant=#[CONSTANT,c7->getText()];
 		  #numeric_constant->Text2UInt(16);	
+		  #numeric_constant->SetLine( c7->getLine());	
 		}  
 	| c8:CONSTANT_BYTE  
 		{ #numeric_constant=#[CONSTANT,c8->getText()];
 		  #numeric_constant->Text2Byte(10);	
+		  #numeric_constant->SetLine( c8->getLine());	
 		}  
 	| c9:CONSTANT_LONG 
 		{ #numeric_constant=#[CONSTANT,c9->getText()];
 		  #numeric_constant->Text2Long(10);	
+		  #numeric_constant->SetLine( c9->getLine());	
 		}  
 	| c10:CONSTANT_LONG64 
 		{ #numeric_constant=#[CONSTANT,c10->getText()];
 		  #numeric_constant->Text2Long64(10);	
+		  #numeric_constant->SetLine( c10->getLine());	
 		}  
 	| c11:CONSTANT_INT
 		{ #numeric_constant=#[CONSTANT,c11->getText()];
 		  #numeric_constant->Text2Int(10);	
+		  #numeric_constant->SetLine( c11->getLine());	
 		}  
 	| c111:CONSTANT_I
         // DEFINT32
 		{ #numeric_constant=#[CONSTANT,c111->getText()];
 		  #numeric_constant->Text2Int(10,true);	
+		  #numeric_constant->SetLine( c111->getLine());	
 		}  
     | c12:CONSTANT_ULONG 
 		{ #numeric_constant=#[CONSTANT,c12->getText()];
 		  #numeric_constant->Text2ULong(10);	
+		  #numeric_constant->SetLine( c12->getLine());	
 		}  
     | c13:CONSTANT_ULONG64 
 		{ #numeric_constant=#[CONSTANT,c13->getText()];
 		  #numeric_constant->Text2ULong64(10);	
+		  #numeric_constant->SetLine( c13->getLine());	
 		}  
 	| c144:CONSTANT_UI
         // DEFINT32
 		{ #numeric_constant=#[CONSTANT,c144->getText()];
 		  #numeric_constant->Text2UInt(10,true);	
+		  #numeric_constant->SetLine( c144->getLine());	
 		}  
 	| c14:CONSTANT_UINT
 		{ #numeric_constant=#[CONSTANT,c14->getText()];
 		  #numeric_constant->Text2UInt(10);	
+		  #numeric_constant->SetLine( c14->getLine());	
 		}  
 	| c15:CONSTANT_OCT_BYTE  
 		{ #numeric_constant=#[CONSTANT,c15->getText()];
 		  #numeric_constant->Text2Byte(8);	
+		  #numeric_constant->SetLine( c15->getLine());	
 		}  
 	| c16:CONSTANT_OCT_LONG 
 		{ #numeric_constant=#[CONSTANT,c16->getText()];
 		  #numeric_constant->Text2Long(8);	
+		  #numeric_constant->SetLine( c16->getLine());	
 		}  
 	| c17:CONSTANT_OCT_LONG64 
 		{ #numeric_constant=#[CONSTANT,c17->getText()];
 		  #numeric_constant->Text2Long64(8);	
+		  #numeric_constant->SetLine( c17->getLine());	
 		}  
 	| c18:CONSTANT_OCT_INT
 		{ #numeric_constant=#[CONSTANT,c18->getText()];
 		  #numeric_constant->Text2Int(8);	
+		  #numeric_constant->SetLine( c18->getLine());	
 		}  
 	| c188:CONSTANT_OCT_I
         // DEFINT32
 		{ #numeric_constant=#[CONSTANT,c188->getText()];
 		  #numeric_constant->Text2Int(8,true);	
+		  #numeric_constant->SetLine( c188->getLine());	
 		}  
     | c19:CONSTANT_OCT_ULONG 
 		{ #numeric_constant=#[CONSTANT,c19->getText()];
 		  #numeric_constant->Text2ULong(8);	
+		  #numeric_constant->SetLine( c19->getLine());	
 		}  
     | c20:CONSTANT_OCT_ULONG64 
 		{ #numeric_constant=#[CONSTANT,c20->getText()];
 		  #numeric_constant->Text2ULong64(8);	
+		  #numeric_constant->SetLine( c20->getLine());	
 		}  
 	| c211:CONSTANT_OCT_UI
         // DEFINT32
 		{ #numeric_constant=#[CONSTANT,c211->getText()];
 		  #numeric_constant->Text2UInt(8,true);	
+		  #numeric_constant->SetLine( c211->getLine());	
 		}  
 	| c21:CONSTANT_OCT_UINT
 		{ #numeric_constant=#[CONSTANT,c21->getText()];
 		  #numeric_constant->Text2UInt(8);	
+		  #numeric_constant->SetLine( c21->getLine());	
 		}  
 	| c22:CONSTANT_FLOAT     
 		{ #numeric_constant=#[CONSTANT,c22->getText()];
 		  #numeric_constant->Text2Float();	
+		  #numeric_constant->SetLine( c22->getLine());	
 		}  
 	| c23:CONSTANT_DOUBLE
 		{ #numeric_constant=#[CONSTANT,c23->getText()];
-			#numeric_constant->Text2Double();	
+          #numeric_constant->Text2Double();	
+		  #numeric_constant->SetLine( c23->getLine());	
 		}  
 	;
 
@@ -932,6 +964,7 @@ deref_expr //!
 
                 dot=#[DOT,"."];
                 dot->SetNDot( nDot);    
+                dot->SetLine( #a1->getLine());
 
                 #deref_expr = #(dot, #deref_expr);
             }		
@@ -955,6 +988,7 @@ array_expr_fn!//
 
             dot=#[DOT,"."];
             dot->SetNDot( nDot);    
+            dot->SetLine( #al->getLine());
   
             #array_expr_fn = 
 	  		#(dot, ([ARRAYEXPR,"arrayexpr"], #al, #v), #t);} 
@@ -1036,6 +1070,7 @@ primary_expr
 	|! sl:STRING_LITERAL // also a CONSTANT
 		{ #primary_expr=#[CONSTANT,sl->getText()];
             #primary_expr->Text2String();	
+            #primary_expr->SetLine( #sl->getLine());
 		}  
     | assign_expr
 	| numeric_constant

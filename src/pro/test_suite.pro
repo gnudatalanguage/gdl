@@ -273,6 +273,10 @@ s={s:indgen(5)}
 ss={ss:s}
 sss={sss:ss}
 
+;p=ptr_new( sss)
+;((*p).sss.ss)[2] = 5
+;print,((*p).ss)[2]
+
 sss.sss.ss.s[2] = 10
 if sss.sss.ss.s[2] ne 10 then print,'***STRUCT: ERROR6'
 
@@ -495,7 +499,31 @@ t=(s[[0]]).a
 ;(a=2)=3
 (a=2)++
 ((a=2))++
+
 end
+
+pro inc_test
+
+a=1
+
+(ret(a))++
+++(ret(a))
+
+if a ne 3 then print,"***INC: ERROR1"
+
+b = intarr(3)
+
+b[1]++
+++b[1]
+(b[1])++
+++(b[1])
+
+if b[1] ne 4 then print,"***INC: ERROR2"
+
+print,'INC: OK'
+end
+
+
 
 pro continuebreak_test
 
@@ -631,6 +659,10 @@ i[1,1]=s
 
 if i[1,2] ne -2 then  print,"***INDEX: ERROR2"
 
+c=intarr(3)
+(((c[1])))=1
+if c[1] ne 1 then print,'***INDEX: ERROR3'
+
 print,'ARRAY INDEXING: OK'
 end
 
@@ -691,6 +723,7 @@ object_test
 common_test
 ref_test
 syntax_test
+inc_test
 inheritance_test
 continuebreak_test
 extra_test

@@ -791,7 +791,7 @@ void GDLTreeParser::statement(RefDNode _t) {
 		currentAST.child = RefDNode(antlr::nullAST);
 		match(antlr::RefAST(_t),DEC);
 		_t = _t->getFirstChild();
-		expr(_t);
+		unbrace_l_expr(_t);
 		_t = _retTree;
 		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 		currentAST = __currentAST53;
@@ -813,7 +813,7 @@ void GDLTreeParser::statement(RefDNode _t) {
 		currentAST.child = RefDNode(antlr::nullAST);
 		match(antlr::RefAST(_t),INC);
 		_t = _t->getFirstChild();
-		expr(_t);
+		unbrace_l_expr(_t);
 		_t = _retTree;
 		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 		currentAST = __currentAST54;
@@ -1134,12 +1134,19 @@ void GDLTreeParser::labeled_expr(RefDNode _t) {
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode labeled_expr_AST = RefDNode(antlr::nullAST);
+	RefDNode ex_AST = RefDNode(antlr::nullAST);
+	RefDNode ex = RefDNode(antlr::nullAST);
 	
+	ex = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 	expr(_t);
 	_t = _retTree;
+	ex_AST = returnAST;
 	astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 	labeled_expr_AST = RefDNode(currentAST.root);
+	
+	if( ex_AST->getType() != EXPR)   
 	labeled_expr_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(EXPR,"expr")))->add(antlr::RefAST(labeled_expr_AST))));
+	
 	currentAST.root = labeled_expr_AST;
 	if ( labeled_expr_AST!=RefDNode(antlr::nullAST) &&
 		labeled_expr_AST->getFirstChild() != RefDNode(antlr::nullAST) )
@@ -1174,13 +1181,13 @@ void GDLTreeParser::expr(RefDNode _t) {
 	}
 	case DOT:
 	{
-		RefDNode __t188 = _t;
+		RefDNode __t189 = _t;
 		RefDNode tmp14_AST = RefDNode(antlr::nullAST);
 		RefDNode tmp14_AST_in = RefDNode(antlr::nullAST);
 		tmp14_AST = astFactory->create(antlr::RefAST(_t));
 		tmp14_AST_in = _t;
 		astFactory->addASTChild(currentAST, antlr::RefAST(tmp14_AST));
-		antlr::ASTPair __currentAST188 = currentAST;
+		antlr::ASTPair __currentAST189 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
 		match(antlr::RefAST(_t),DOT);
@@ -1189,7 +1196,7 @@ void GDLTreeParser::expr(RefDNode _t) {
 		_t = _retTree;
 		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 		{ // ( ... )+
-		int _cnt190=0;
+		int _cnt191=0;
 		for (;;) {
 			if (_t == RefDNode(antlr::nullAST) )
 				_t = ASTNULL;
@@ -1199,28 +1206,28 @@ void GDLTreeParser::expr(RefDNode _t) {
 				astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 			}
 			else {
-				if ( _cnt190>=1 ) { goto _loop190; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
+				if ( _cnt191>=1 ) { goto _loop191; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
 			}
 			
-			_cnt190++;
+			_cnt191++;
 		}
-		_loop190:;
+		_loop191:;
 		}  // ( ... )+
-		currentAST = __currentAST188;
-		_t = __t188;
+		currentAST = __currentAST189;
+		_t = __t189;
 		_t = _t->getNextSibling();
 		expr_AST = RefDNode(currentAST.root);
 		break;
 	}
 	case DEREF:
 	{
-		RefDNode __t191 = _t;
+		RefDNode __t192 = _t;
 		RefDNode tmp15_AST = RefDNode(antlr::nullAST);
 		RefDNode tmp15_AST_in = RefDNode(antlr::nullAST);
 		tmp15_AST = astFactory->create(antlr::RefAST(_t));
 		tmp15_AST_in = _t;
 		astFactory->addASTChild(currentAST, antlr::RefAST(tmp15_AST));
-		antlr::ASTPair __currentAST191 = currentAST;
+		antlr::ASTPair __currentAST192 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
 		match(antlr::RefAST(_t),DEREF);
@@ -1228,8 +1235,8 @@ void GDLTreeParser::expr(RefDNode _t) {
 		expr(_t);
 		_t = _retTree;
 		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-		currentAST = __currentAST191;
-		_t = __t191;
+		currentAST = __currentAST192;
+		_t = __t192;
 		_t = _t->getNextSibling();
 		expr_AST = RefDNode(currentAST.root);
 		break;
@@ -1730,25 +1737,25 @@ void GDLTreeParser::assign_expr(RefDNode _t) {
 	RefDNode r_AST = RefDNode(antlr::nullAST);
 	RefDNode r = RefDNode(antlr::nullAST);
 	
-	RefDNode __t106 = _t;
+	RefDNode __t107 = _t;
 	a = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 	RefDNode a_AST_in = RefDNode(antlr::nullAST);
 	a_AST = astFactory->create(antlr::RefAST(a));
-	antlr::ASTPair __currentAST106 = currentAST;
+	antlr::ASTPair __currentAST107 = currentAST;
 	currentAST.root = currentAST.child;
 	currentAST.child = RefDNode(antlr::nullAST);
 	match(antlr::RefAST(_t),ASSIGN);
 	_t = _t->getFirstChild();
 	l = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
-	expr(_t);
+	unbrace_l_expr(_t);
 	_t = _retTree;
 	l_AST = returnAST;
 	r = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 	expr(_t);
 	_t = _retTree;
 	r_AST = returnAST;
-	currentAST = __currentAST106;
-	_t = __t106;
+	currentAST = __currentAST107;
+	_t = __t107;
 	_t = _t->getNextSibling();
 	assign_expr_AST = RefDNode(currentAST.root);
 	assign_expr_AST=RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(a_AST))->add(antlr::RefAST(r_AST))->add(antlr::RefAST(l_AST))));
@@ -1888,25 +1895,25 @@ void GDLTreeParser::comp_assign_expr(RefDNode _t) {
 	switch ( _t->getType()) {
 	case AND_OP_EQ:
 	{
-		RefDNode __t108 = _t;
+		RefDNode __t109 = _t;
 		a1 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		RefDNode a1_AST_in = RefDNode(antlr::nullAST);
 		a1_AST = astFactory->create(antlr::RefAST(a1));
-		antlr::ASTPair __currentAST108 = currentAST;
+		antlr::ASTPair __currentAST109 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
 		match(antlr::RefAST(_t),AND_OP_EQ);
 		_t = _t->getFirstChild();
 		l1 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
-		expr(_t);
+		unbrace_l_expr(_t);
 		_t = _retTree;
 		l1_AST = returnAST;
 		r1 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		expr(_t);
 		_t = _retTree;
 		r1_AST = returnAST;
-		currentAST = __currentAST108;
-		_t = __t108;
+		currentAST = __currentAST109;
+		_t = __t109;
 		_t = _t->getNextSibling();
 		comp_assign_expr_AST = RefDNode(currentAST.root);
 		comp_assign_expr_AST=RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(ASSIGN,":=")))->add(antlr::RefAST(RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(AND_OP,"and")))->add(antlr::RefAST(l1_AST))->add(antlr::RefAST(r1_AST))))))->add(antlr::RefAST(l1_AST))));
@@ -1921,25 +1928,25 @@ void GDLTreeParser::comp_assign_expr(RefDNode _t) {
 	}
 	case ASTERIX_EQ:
 	{
-		RefDNode __t109 = _t;
+		RefDNode __t110 = _t;
 		a2 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		RefDNode a2_AST_in = RefDNode(antlr::nullAST);
 		a2_AST = astFactory->create(antlr::RefAST(a2));
-		antlr::ASTPair __currentAST109 = currentAST;
+		antlr::ASTPair __currentAST110 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
 		match(antlr::RefAST(_t),ASTERIX_EQ);
 		_t = _t->getFirstChild();
 		l2 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
-		expr(_t);
+		unbrace_l_expr(_t);
 		_t = _retTree;
 		l2_AST = returnAST;
 		r2 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		expr(_t);
 		_t = _retTree;
 		r2_AST = returnAST;
-		currentAST = __currentAST109;
-		_t = __t109;
+		currentAST = __currentAST110;
+		_t = __t110;
 		_t = _t->getNextSibling();
 		comp_assign_expr_AST = RefDNode(currentAST.root);
 		comp_assign_expr_AST=RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(ASSIGN,":=")))->add(antlr::RefAST(RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(ASTERIX,"*")))->add(antlr::RefAST(l2_AST))->add(antlr::RefAST(r2_AST))))))->add(antlr::RefAST(l2_AST))));
@@ -1954,25 +1961,25 @@ void GDLTreeParser::comp_assign_expr(RefDNode _t) {
 	}
 	case EQ_OP_EQ:
 	{
-		RefDNode __t110 = _t;
+		RefDNode __t111 = _t;
 		a3 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		RefDNode a3_AST_in = RefDNode(antlr::nullAST);
 		a3_AST = astFactory->create(antlr::RefAST(a3));
-		antlr::ASTPair __currentAST110 = currentAST;
+		antlr::ASTPair __currentAST111 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
 		match(antlr::RefAST(_t),EQ_OP_EQ);
 		_t = _t->getFirstChild();
 		l3 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
-		expr(_t);
+		unbrace_l_expr(_t);
 		_t = _retTree;
 		l3_AST = returnAST;
 		r3 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		expr(_t);
 		_t = _retTree;
 		r3_AST = returnAST;
-		currentAST = __currentAST110;
-		_t = __t110;
+		currentAST = __currentAST111;
+		_t = __t111;
 		_t = _t->getNextSibling();
 		comp_assign_expr_AST = RefDNode(currentAST.root);
 		comp_assign_expr_AST=RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(ASSIGN,":=")))->add(antlr::RefAST(RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(EQ_OP,"eq")))->add(antlr::RefAST(l3_AST))->add(antlr::RefAST(r3_AST))))))->add(antlr::RefAST(l3_AST))));
@@ -1987,25 +1994,25 @@ void GDLTreeParser::comp_assign_expr(RefDNode _t) {
 	}
 	case GE_OP_EQ:
 	{
-		RefDNode __t111 = _t;
+		RefDNode __t112 = _t;
 		a4 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		RefDNode a4_AST_in = RefDNode(antlr::nullAST);
 		a4_AST = astFactory->create(antlr::RefAST(a4));
-		antlr::ASTPair __currentAST111 = currentAST;
+		antlr::ASTPair __currentAST112 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
 		match(antlr::RefAST(_t),GE_OP_EQ);
 		_t = _t->getFirstChild();
 		l4 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
-		expr(_t);
+		unbrace_l_expr(_t);
 		_t = _retTree;
 		l4_AST = returnAST;
 		r4 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		expr(_t);
 		_t = _retTree;
 		r4_AST = returnAST;
-		currentAST = __currentAST111;
-		_t = __t111;
+		currentAST = __currentAST112;
+		_t = __t112;
 		_t = _t->getNextSibling();
 		comp_assign_expr_AST = RefDNode(currentAST.root);
 		comp_assign_expr_AST=RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(ASSIGN,":=")))->add(antlr::RefAST(RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(GE_OP,"ge")))->add(antlr::RefAST(l4_AST))->add(antlr::RefAST(r4_AST))))))->add(antlr::RefAST(l4_AST))));
@@ -2020,25 +2027,25 @@ void GDLTreeParser::comp_assign_expr(RefDNode _t) {
 	}
 	case GTMARK_EQ:
 	{
-		RefDNode __t112 = _t;
+		RefDNode __t113 = _t;
 		a5 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		RefDNode a5_AST_in = RefDNode(antlr::nullAST);
 		a5_AST = astFactory->create(antlr::RefAST(a5));
-		antlr::ASTPair __currentAST112 = currentAST;
+		antlr::ASTPair __currentAST113 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
 		match(antlr::RefAST(_t),GTMARK_EQ);
 		_t = _t->getFirstChild();
 		l5 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
-		expr(_t);
+		unbrace_l_expr(_t);
 		_t = _retTree;
 		l5_AST = returnAST;
 		r5 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		expr(_t);
 		_t = _retTree;
 		r5_AST = returnAST;
-		currentAST = __currentAST112;
-		_t = __t112;
+		currentAST = __currentAST113;
+		_t = __t113;
 		_t = _t->getNextSibling();
 		comp_assign_expr_AST = RefDNode(currentAST.root);
 		comp_assign_expr_AST=RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(ASSIGN,":=")))->add(antlr::RefAST(RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(GTMARK,">")))->add(antlr::RefAST(l5_AST))->add(antlr::RefAST(r5_AST))))))->add(antlr::RefAST(l5_AST))));
@@ -2053,25 +2060,25 @@ void GDLTreeParser::comp_assign_expr(RefDNode _t) {
 	}
 	case GT_OP_EQ:
 	{
-		RefDNode __t113 = _t;
+		RefDNode __t114 = _t;
 		a6 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		RefDNode a6_AST_in = RefDNode(antlr::nullAST);
 		a6_AST = astFactory->create(antlr::RefAST(a6));
-		antlr::ASTPair __currentAST113 = currentAST;
+		antlr::ASTPair __currentAST114 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
 		match(antlr::RefAST(_t),GT_OP_EQ);
 		_t = _t->getFirstChild();
 		l6 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
-		expr(_t);
+		unbrace_l_expr(_t);
 		_t = _retTree;
 		l6_AST = returnAST;
 		r6 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		expr(_t);
 		_t = _retTree;
 		r6_AST = returnAST;
-		currentAST = __currentAST113;
-		_t = __t113;
+		currentAST = __currentAST114;
+		_t = __t114;
 		_t = _t->getNextSibling();
 		comp_assign_expr_AST = RefDNode(currentAST.root);
 		comp_assign_expr_AST=RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(ASSIGN,":=")))->add(antlr::RefAST(RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(GT_OP,"gt")))->add(antlr::RefAST(l6_AST))->add(antlr::RefAST(r6_AST))))))->add(antlr::RefAST(l6_AST))));
@@ -2086,25 +2093,25 @@ void GDLTreeParser::comp_assign_expr(RefDNode _t) {
 	}
 	case LE_OP_EQ:
 	{
-		RefDNode __t114 = _t;
+		RefDNode __t115 = _t;
 		a7 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		RefDNode a7_AST_in = RefDNode(antlr::nullAST);
 		a7_AST = astFactory->create(antlr::RefAST(a7));
-		antlr::ASTPair __currentAST114 = currentAST;
+		antlr::ASTPair __currentAST115 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
 		match(antlr::RefAST(_t),LE_OP_EQ);
 		_t = _t->getFirstChild();
 		l7 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
-		expr(_t);
+		unbrace_l_expr(_t);
 		_t = _retTree;
 		l7_AST = returnAST;
 		r7 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		expr(_t);
 		_t = _retTree;
 		r7_AST = returnAST;
-		currentAST = __currentAST114;
-		_t = __t114;
+		currentAST = __currentAST115;
+		_t = __t115;
 		_t = _t->getNextSibling();
 		comp_assign_expr_AST = RefDNode(currentAST.root);
 		comp_assign_expr_AST=RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(ASSIGN,":=")))->add(antlr::RefAST(RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(LE_OP,"le")))->add(antlr::RefAST(l7_AST))->add(antlr::RefAST(r7_AST))))))->add(antlr::RefAST(l7_AST))));
@@ -2119,25 +2126,25 @@ void GDLTreeParser::comp_assign_expr(RefDNode _t) {
 	}
 	case LTMARK_EQ:
 	{
-		RefDNode __t115 = _t;
+		RefDNode __t116 = _t;
 		a8 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		RefDNode a8_AST_in = RefDNode(antlr::nullAST);
 		a8_AST = astFactory->create(antlr::RefAST(a8));
-		antlr::ASTPair __currentAST115 = currentAST;
+		antlr::ASTPair __currentAST116 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
 		match(antlr::RefAST(_t),LTMARK_EQ);
 		_t = _t->getFirstChild();
 		l8 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
-		expr(_t);
+		unbrace_l_expr(_t);
 		_t = _retTree;
 		l8_AST = returnAST;
 		r8 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		expr(_t);
 		_t = _retTree;
 		r8_AST = returnAST;
-		currentAST = __currentAST115;
-		_t = __t115;
+		currentAST = __currentAST116;
+		_t = __t116;
 		_t = _t->getNextSibling();
 		comp_assign_expr_AST = RefDNode(currentAST.root);
 		comp_assign_expr_AST=RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(ASSIGN,":=")))->add(antlr::RefAST(RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(LTMARK,"<")))->add(antlr::RefAST(l8_AST))->add(antlr::RefAST(r8_AST))))))->add(antlr::RefAST(l8_AST))));
@@ -2152,25 +2159,25 @@ void GDLTreeParser::comp_assign_expr(RefDNode _t) {
 	}
 	case LT_OP_EQ:
 	{
-		RefDNode __t116 = _t;
+		RefDNode __t117 = _t;
 		a9 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		RefDNode a9_AST_in = RefDNode(antlr::nullAST);
 		a9_AST = astFactory->create(antlr::RefAST(a9));
-		antlr::ASTPair __currentAST116 = currentAST;
+		antlr::ASTPair __currentAST117 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
 		match(antlr::RefAST(_t),LT_OP_EQ);
 		_t = _t->getFirstChild();
 		l9 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
-		expr(_t);
+		unbrace_l_expr(_t);
 		_t = _retTree;
 		l9_AST = returnAST;
 		r9 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		expr(_t);
 		_t = _retTree;
 		r9_AST = returnAST;
-		currentAST = __currentAST116;
-		_t = __t116;
+		currentAST = __currentAST117;
+		_t = __t117;
 		_t = _t->getNextSibling();
 		comp_assign_expr_AST = RefDNode(currentAST.root);
 		comp_assign_expr_AST=RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(ASSIGN,":=")))->add(antlr::RefAST(RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(LT_OP,"lt")))->add(antlr::RefAST(l9_AST))->add(antlr::RefAST(r9_AST))))))->add(antlr::RefAST(l9_AST))));
@@ -2185,25 +2192,25 @@ void GDLTreeParser::comp_assign_expr(RefDNode _t) {
 	}
 	case MATRIX_OP1_EQ:
 	{
-		RefDNode __t117 = _t;
+		RefDNode __t118 = _t;
 		a10 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		RefDNode a10_AST_in = RefDNode(antlr::nullAST);
 		a10_AST = astFactory->create(antlr::RefAST(a10));
-		antlr::ASTPair __currentAST117 = currentAST;
+		antlr::ASTPair __currentAST118 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
 		match(antlr::RefAST(_t),MATRIX_OP1_EQ);
 		_t = _t->getFirstChild();
 		l10 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
-		expr(_t);
+		unbrace_l_expr(_t);
 		_t = _retTree;
 		l10_AST = returnAST;
 		r10 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		expr(_t);
 		_t = _retTree;
 		r10_AST = returnAST;
-		currentAST = __currentAST117;
-		_t = __t117;
+		currentAST = __currentAST118;
+		_t = __t118;
 		_t = _t->getNextSibling();
 		comp_assign_expr_AST = RefDNode(currentAST.root);
 		comp_assign_expr_AST=RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(ASSIGN,":=")))->add(antlr::RefAST(RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(MATRIX_OP1,"#")))->add(antlr::RefAST(l10_AST))->add(antlr::RefAST(r10_AST))))))->add(antlr::RefAST(l10_AST))));
@@ -2218,25 +2225,25 @@ void GDLTreeParser::comp_assign_expr(RefDNode _t) {
 	}
 	case MATRIX_OP2_EQ:
 	{
-		RefDNode __t118 = _t;
+		RefDNode __t119 = _t;
 		a11 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		RefDNode a11_AST_in = RefDNode(antlr::nullAST);
 		a11_AST = astFactory->create(antlr::RefAST(a11));
-		antlr::ASTPair __currentAST118 = currentAST;
+		antlr::ASTPair __currentAST119 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
 		match(antlr::RefAST(_t),MATRIX_OP2_EQ);
 		_t = _t->getFirstChild();
 		l11 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
-		expr(_t);
+		unbrace_l_expr(_t);
 		_t = _retTree;
 		l11_AST = returnAST;
 		r11 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		expr(_t);
 		_t = _retTree;
 		r11_AST = returnAST;
-		currentAST = __currentAST118;
-		_t = __t118;
+		currentAST = __currentAST119;
+		_t = __t119;
 		_t = _t->getNextSibling();
 		comp_assign_expr_AST = RefDNode(currentAST.root);
 		comp_assign_expr_AST=RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(ASSIGN,":=")))->add(antlr::RefAST(RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(MATRIX_OP2,"##")))->add(antlr::RefAST(l11_AST))->add(antlr::RefAST(r11_AST))))))->add(antlr::RefAST(l11_AST))));
@@ -2251,25 +2258,25 @@ void GDLTreeParser::comp_assign_expr(RefDNode _t) {
 	}
 	case MINUS_EQ:
 	{
-		RefDNode __t119 = _t;
+		RefDNode __t120 = _t;
 		a12 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		RefDNode a12_AST_in = RefDNode(antlr::nullAST);
 		a12_AST = astFactory->create(antlr::RefAST(a12));
-		antlr::ASTPair __currentAST119 = currentAST;
+		antlr::ASTPair __currentAST120 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
 		match(antlr::RefAST(_t),MINUS_EQ);
 		_t = _t->getFirstChild();
 		l12 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
-		expr(_t);
+		unbrace_l_expr(_t);
 		_t = _retTree;
 		l12_AST = returnAST;
 		r12 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		expr(_t);
 		_t = _retTree;
 		r12_AST = returnAST;
-		currentAST = __currentAST119;
-		_t = __t119;
+		currentAST = __currentAST120;
+		_t = __t120;
 		_t = _t->getNextSibling();
 		comp_assign_expr_AST = RefDNode(currentAST.root);
 		comp_assign_expr_AST=RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(ASSIGN,":=")))->add(antlr::RefAST(RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(MINUS,"-")))->add(antlr::RefAST(l12_AST))->add(antlr::RefAST(r12_AST))))))->add(antlr::RefAST(l12_AST))));
@@ -2284,25 +2291,25 @@ void GDLTreeParser::comp_assign_expr(RefDNode _t) {
 	}
 	case MOD_OP_EQ:
 	{
-		RefDNode __t120 = _t;
+		RefDNode __t121 = _t;
 		a13 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		RefDNode a13_AST_in = RefDNode(antlr::nullAST);
 		a13_AST = astFactory->create(antlr::RefAST(a13));
-		antlr::ASTPair __currentAST120 = currentAST;
+		antlr::ASTPair __currentAST121 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
 		match(antlr::RefAST(_t),MOD_OP_EQ);
 		_t = _t->getFirstChild();
 		l13 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
-		expr(_t);
+		unbrace_l_expr(_t);
 		_t = _retTree;
 		l13_AST = returnAST;
 		r13 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		expr(_t);
 		_t = _retTree;
 		r13_AST = returnAST;
-		currentAST = __currentAST120;
-		_t = __t120;
+		currentAST = __currentAST121;
+		_t = __t121;
 		_t = _t->getNextSibling();
 		comp_assign_expr_AST = RefDNode(currentAST.root);
 		comp_assign_expr_AST=RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(ASSIGN,":=")))->add(antlr::RefAST(RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(MOD_OP,"mod")))->add(antlr::RefAST(l13_AST))->add(antlr::RefAST(r13_AST))))))->add(antlr::RefAST(l13_AST))));
@@ -2317,25 +2324,25 @@ void GDLTreeParser::comp_assign_expr(RefDNode _t) {
 	}
 	case NE_OP_EQ:
 	{
-		RefDNode __t121 = _t;
+		RefDNode __t122 = _t;
 		a14 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		RefDNode a14_AST_in = RefDNode(antlr::nullAST);
 		a14_AST = astFactory->create(antlr::RefAST(a14));
-		antlr::ASTPair __currentAST121 = currentAST;
+		antlr::ASTPair __currentAST122 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
 		match(antlr::RefAST(_t),NE_OP_EQ);
 		_t = _t->getFirstChild();
 		l14 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
-		expr(_t);
+		unbrace_l_expr(_t);
 		_t = _retTree;
 		l14_AST = returnAST;
 		r14 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		expr(_t);
 		_t = _retTree;
 		r14_AST = returnAST;
-		currentAST = __currentAST121;
-		_t = __t121;
+		currentAST = __currentAST122;
+		_t = __t122;
 		_t = _t->getNextSibling();
 		comp_assign_expr_AST = RefDNode(currentAST.root);
 		comp_assign_expr_AST=RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(ASSIGN,":=")))->add(antlr::RefAST(RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(NE_OP,"ne")))->add(antlr::RefAST(l14_AST))->add(antlr::RefAST(r14_AST))))))->add(antlr::RefAST(l14_AST))));
@@ -2350,25 +2357,25 @@ void GDLTreeParser::comp_assign_expr(RefDNode _t) {
 	}
 	case OR_OP_EQ:
 	{
-		RefDNode __t122 = _t;
+		RefDNode __t123 = _t;
 		a15 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		RefDNode a15_AST_in = RefDNode(antlr::nullAST);
 		a15_AST = astFactory->create(antlr::RefAST(a15));
-		antlr::ASTPair __currentAST122 = currentAST;
+		antlr::ASTPair __currentAST123 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
 		match(antlr::RefAST(_t),OR_OP_EQ);
 		_t = _t->getFirstChild();
 		l15 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
-		expr(_t);
+		unbrace_l_expr(_t);
 		_t = _retTree;
 		l15_AST = returnAST;
 		r15 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		expr(_t);
 		_t = _retTree;
 		r15_AST = returnAST;
-		currentAST = __currentAST122;
-		_t = __t122;
+		currentAST = __currentAST123;
+		_t = __t123;
 		_t = _t->getNextSibling();
 		comp_assign_expr_AST = RefDNode(currentAST.root);
 		comp_assign_expr_AST=RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(ASSIGN,":=")))->add(antlr::RefAST(RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(OR_OP,"or")))->add(antlr::RefAST(l15_AST))->add(antlr::RefAST(r15_AST))))))->add(antlr::RefAST(l15_AST))));
@@ -2383,25 +2390,25 @@ void GDLTreeParser::comp_assign_expr(RefDNode _t) {
 	}
 	case PLUS_EQ:
 	{
-		RefDNode __t123 = _t;
+		RefDNode __t124 = _t;
 		a16 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		RefDNode a16_AST_in = RefDNode(antlr::nullAST);
 		a16_AST = astFactory->create(antlr::RefAST(a16));
-		antlr::ASTPair __currentAST123 = currentAST;
+		antlr::ASTPair __currentAST124 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
 		match(antlr::RefAST(_t),PLUS_EQ);
 		_t = _t->getFirstChild();
 		l16 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
-		expr(_t);
+		unbrace_l_expr(_t);
 		_t = _retTree;
 		l16_AST = returnAST;
 		r16 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		expr(_t);
 		_t = _retTree;
 		r16_AST = returnAST;
-		currentAST = __currentAST123;
-		_t = __t123;
+		currentAST = __currentAST124;
+		_t = __t124;
 		_t = _t->getNextSibling();
 		comp_assign_expr_AST = RefDNode(currentAST.root);
 		comp_assign_expr_AST=RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(ASSIGN,":=")))->add(antlr::RefAST(RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(PLUS,"+")))->add(antlr::RefAST(l16_AST))->add(antlr::RefAST(r16_AST))))))->add(antlr::RefAST(l16_AST))));
@@ -2416,25 +2423,25 @@ void GDLTreeParser::comp_assign_expr(RefDNode _t) {
 	}
 	case POW_EQ:
 	{
-		RefDNode __t124 = _t;
+		RefDNode __t125 = _t;
 		a17 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		RefDNode a17_AST_in = RefDNode(antlr::nullAST);
 		a17_AST = astFactory->create(antlr::RefAST(a17));
-		antlr::ASTPair __currentAST124 = currentAST;
+		antlr::ASTPair __currentAST125 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
 		match(antlr::RefAST(_t),POW_EQ);
 		_t = _t->getFirstChild();
 		l17 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
-		expr(_t);
+		unbrace_l_expr(_t);
 		_t = _retTree;
 		l17_AST = returnAST;
 		r17 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		expr(_t);
 		_t = _retTree;
 		r17_AST = returnAST;
-		currentAST = __currentAST124;
-		_t = __t124;
+		currentAST = __currentAST125;
+		_t = __t125;
 		_t = _t->getNextSibling();
 		comp_assign_expr_AST = RefDNode(currentAST.root);
 		comp_assign_expr_AST=RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(ASSIGN,":=")))->add(antlr::RefAST(RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(POW,"^")))->add(antlr::RefAST(l17_AST))->add(antlr::RefAST(r17_AST))))))->add(antlr::RefAST(l17_AST))));
@@ -2449,25 +2456,25 @@ void GDLTreeParser::comp_assign_expr(RefDNode _t) {
 	}
 	case SLASH_EQ:
 	{
-		RefDNode __t125 = _t;
+		RefDNode __t126 = _t;
 		a18 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		RefDNode a18_AST_in = RefDNode(antlr::nullAST);
 		a18_AST = astFactory->create(antlr::RefAST(a18));
-		antlr::ASTPair __currentAST125 = currentAST;
+		antlr::ASTPair __currentAST126 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
 		match(antlr::RefAST(_t),SLASH_EQ);
 		_t = _t->getFirstChild();
 		l18 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
-		expr(_t);
+		unbrace_l_expr(_t);
 		_t = _retTree;
 		l18_AST = returnAST;
 		r18 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		expr(_t);
 		_t = _retTree;
 		r18_AST = returnAST;
-		currentAST = __currentAST125;
-		_t = __t125;
+		currentAST = __currentAST126;
+		_t = __t126;
 		_t = _t->getNextSibling();
 		comp_assign_expr_AST = RefDNode(currentAST.root);
 		comp_assign_expr_AST=RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(ASSIGN,":=")))->add(antlr::RefAST(RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(SLASH,"/")))->add(antlr::RefAST(l18_AST))->add(antlr::RefAST(r18_AST))))))->add(antlr::RefAST(l18_AST))));
@@ -2482,25 +2489,25 @@ void GDLTreeParser::comp_assign_expr(RefDNode _t) {
 	}
 	case XOR_OP_EQ:
 	{
-		RefDNode __t126 = _t;
+		RefDNode __t127 = _t;
 		a19 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		RefDNode a19_AST_in = RefDNode(antlr::nullAST);
 		a19_AST = astFactory->create(antlr::RefAST(a19));
-		antlr::ASTPair __currentAST126 = currentAST;
+		antlr::ASTPair __currentAST127 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
 		match(antlr::RefAST(_t),XOR_OP_EQ);
 		_t = _t->getFirstChild();
 		l19 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
-		expr(_t);
+		unbrace_l_expr(_t);
 		_t = _retTree;
 		l19_AST = returnAST;
 		r19 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		expr(_t);
 		_t = _retTree;
 		r19_AST = returnAST;
-		currentAST = __currentAST126;
-		_t = __t126;
+		currentAST = __currentAST127;
+		_t = __t127;
 		_t = _t->getNextSibling();
 		comp_assign_expr_AST = RefDNode(currentAST.root);
 		comp_assign_expr_AST=RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(ASSIGN,":=")))->add(antlr::RefAST(RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(XOR_OP,"xor")))->add(antlr::RefAST(l19_AST))->add(antlr::RefAST(r19_AST))))))->add(antlr::RefAST(l19_AST))));
@@ -3083,14 +3090,16 @@ void GDLTreeParser::jump_statement(RefDNode _t) {
 		
 			  if( comp.IsFun())
 			  	{
-				if( !exprThere)	throw GDLException(	_t, "Return statement in functions "
-				  									"must have 1 value.");
+				if( !exprThere)	throw GDLException(	_t, 
+		"Return statement in functions "
+		"must have 1 value.");
 				jump_statement_AST=RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(RETF,"retf")))->add(antlr::RefAST(e_AST))));
 				}
 			  else
 			  	{
-				if( exprThere) throw GDLException(	_t, "Return statement in "
-				  									"procedures cannot have values.");
+				if( exprThere) throw GDLException(	_t, 
+		"Return statement in "
+		"procedures cannot have values.");
 				jump_statement_AST=astFactory->create(RETP,"retp"); // astFactory.create(RETP,"retp");
 			  	}
 			
@@ -3281,6 +3290,45 @@ void GDLTreeParser::if_statement(RefDNode _t) {
 	i_AST->SetLabelRange( labelStart, comp.NDefLabel());
 	
 	returnAST = if_statement_AST;
+	_retTree = _t;
+}
+
+void GDLTreeParser::unbrace_l_expr(RefDNode _t) {
+	RefDNode unbrace_l_expr_AST_in = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
+	returnAST = RefDNode(antlr::nullAST);
+	antlr::ASTPair currentAST;
+	RefDNode unbrace_l_expr_AST = RefDNode(antlr::nullAST);
+	RefDNode ex_AST = RefDNode(antlr::nullAST);
+	RefDNode ex = RefDNode(antlr::nullAST);
+	
+	ex = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
+	expr(_t);
+	_t = _retTree;
+	ex_AST = returnAST;
+	unbrace_l_expr_AST = RefDNode(currentAST.root);
+	
+	// remove last pair of braces
+				if( ex_AST->getType()==EXPR)
+	{
+	int cT = ex_AST->getFirstChild()->getType();
+	if( cT != FCALL && 
+	cT != MFCALL && 
+	cT != MFCALL_PARENT &&
+	cT != FCALL_LIB && 
+	cT != MFCALL_LIB && 
+	cT != MFCALL_PARENT_LIB)
+	ex_AST=ex_AST->getFirstChild();
+	}
+	unbrace_l_expr_AST=ex_AST;
+			
+	currentAST.root = unbrace_l_expr_AST;
+	if ( unbrace_l_expr_AST!=RefDNode(antlr::nullAST) &&
+		unbrace_l_expr_AST->getFirstChild() != RefDNode(antlr::nullAST) )
+		  currentAST.child = unbrace_l_expr_AST->getFirstChild();
+	else
+		currentAST.child = unbrace_l_expr_AST;
+	currentAST.advanceChildToEnd();
+	returnAST = unbrace_l_expr_AST;
 	_retTree = _t;
 }
 
@@ -4093,12 +4141,12 @@ void GDLTreeParser::sysvar(RefDNode _t) {
 	RefDNode i = RefDNode(antlr::nullAST);
 	RefDNode i_AST = RefDNode(antlr::nullAST);
 	
-	RefDNode __t128 = _t;
+	RefDNode __t129 = _t;
 	RefDNode tmp36_AST = RefDNode(antlr::nullAST);
 	RefDNode tmp36_AST_in = RefDNode(antlr::nullAST);
 	tmp36_AST = astFactory->create(antlr::RefAST(_t));
 	tmp36_AST_in = _t;
-	antlr::ASTPair __currentAST128 = currentAST;
+	antlr::ASTPair __currentAST129 = currentAST;
 	currentAST.root = currentAST.child;
 	currentAST.child = RefDNode(antlr::nullAST);
 	match(antlr::RefAST(_t),SYSVAR);
@@ -4108,8 +4156,8 @@ void GDLTreeParser::sysvar(RefDNode _t) {
 	i_AST = astFactory->create(antlr::RefAST(i));
 	match(antlr::RefAST(_t),SYSVARNAME);
 	_t = _t->getNextSibling();
-	currentAST = __currentAST128;
-	_t = __t128;
+	currentAST = __currentAST129;
+	_t = __t129;
 	_t = _t->getNextSibling();
 	sysvar_AST = RefDNode(currentAST.root);
 	
@@ -4138,12 +4186,12 @@ void GDLTreeParser::var(RefDNode _t) {
 	RefDNode i = RefDNode(antlr::nullAST);
 	RefDNode i_AST = RefDNode(antlr::nullAST);
 	
-	RefDNode __t130 = _t;
+	RefDNode __t131 = _t;
 	RefDNode tmp37_AST = RefDNode(antlr::nullAST);
 	RefDNode tmp37_AST_in = RefDNode(antlr::nullAST);
 	tmp37_AST = astFactory->create(antlr::RefAST(_t));
 	tmp37_AST_in = _t;
-	antlr::ASTPair __currentAST130 = currentAST;
+	antlr::ASTPair __currentAST131 = currentAST;
 	currentAST.root = currentAST.child;
 	currentAST.child = RefDNode(antlr::nullAST);
 	match(antlr::RefAST(_t),VAR);
@@ -4153,8 +4201,8 @@ void GDLTreeParser::var(RefDNode _t) {
 	i_AST = astFactory->create(antlr::RefAST(i));
 	match(antlr::RefAST(_t),IDENTIFIER);
 	_t = _t->getNextSibling();
-	currentAST = __currentAST130;
-	_t = __t130;
+	currentAST = __currentAST131;
+	_t = __t131;
 	_t = _t->getNextSibling();
 	var_AST = RefDNode(currentAST.root);
 	
@@ -4183,11 +4231,11 @@ void GDLTreeParser::brace_expr(RefDNode _t) {
 	RefDNode ex_AST = RefDNode(antlr::nullAST);
 	RefDNode ex = RefDNode(antlr::nullAST);
 	
-	RefDNode __t132 = _t;
+	RefDNode __t133 = _t;
 	e = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 	RefDNode e_AST_in = RefDNode(antlr::nullAST);
 	e_AST = astFactory->create(antlr::RefAST(e));
-	antlr::ASTPair __currentAST132 = currentAST;
+	antlr::ASTPair __currentAST133 = currentAST;
 	currentAST.root = currentAST.child;
 	currentAST.child = RefDNode(antlr::nullAST);
 	match(antlr::RefAST(_t),EXPR);
@@ -4196,12 +4244,12 @@ void GDLTreeParser::brace_expr(RefDNode _t) {
 	expr(_t);
 	_t = _retTree;
 	ex_AST = returnAST;
-	currentAST = __currentAST132;
-	_t = __t132;
+	currentAST = __currentAST133;
+	_t = __t133;
 	_t = _t->getNextSibling();
 	brace_expr_AST = RefDNode(currentAST.root);
 	
-	// remove double braces
+	// remove multiple braces
 				while( ex_AST->getType()==EXPR) ex_AST=ex_AST->getFirstChild();
 		  		brace_expr_AST=RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(e_AST))->add(antlr::RefAST(ex_AST))));
 			
@@ -4228,17 +4276,17 @@ void GDLTreeParser::arrayindex_list_to_expression_list(RefDNode _t) {
 	
 	
 	{ // ( ... )+
-	int _cnt136=0;
+	int _cnt137=0;
 	for (;;) {
 		if (_t == RefDNode(antlr::nullAST) )
 			_t = ASTNULL;
 		if ((_t->getType() == ARRAYIX)) {
-			RefDNode __t135 = _t;
+			RefDNode __t136 = _t;
 			RefDNode tmp38_AST = RefDNode(antlr::nullAST);
 			RefDNode tmp38_AST_in = RefDNode(antlr::nullAST);
 			tmp38_AST = astFactory->create(antlr::RefAST(_t));
 			tmp38_AST_in = _t;
-			antlr::ASTPair __currentAST135 = currentAST;
+			antlr::ASTPair __currentAST136 = currentAST;
 			currentAST.root = currentAST.child;
 			currentAST.child = RefDNode(antlr::nullAST);
 			match(antlr::RefAST(_t),ARRAYIX);
@@ -4247,8 +4295,8 @@ void GDLTreeParser::arrayindex_list_to_expression_list(RefDNode _t) {
 			expr(_t);
 			_t = _retTree;
 			e_AST = returnAST;
-			currentAST = __currentAST135;
-			_t = __t135;
+			currentAST = __currentAST136;
+			_t = __t136;
 			_t = _t->getNextSibling();
 			arrayindex_list_to_expression_list_AST = RefDNode(currentAST.root);
 			
@@ -4270,12 +4318,12 @@ void GDLTreeParser::arrayindex_list_to_expression_list(RefDNode _t) {
 			currentAST.advanceChildToEnd();
 		}
 		else {
-			if ( _cnt136>=1 ) { goto _loop136; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
+			if ( _cnt137>=1 ) { goto _loop137; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
 		}
 		
-		_cnt136++;
+		_cnt137++;
 	}
-	_loop136:;
+	_loop137:;
 	}  // ( ... )+
 	returnAST = arrayindex_list_to_expression_list_AST;
 	_retTree = _t;
@@ -4299,21 +4347,21 @@ void GDLTreeParser::arrayexpr_fn(RefDNode _t) {
 	bool isVar;
 	
 	
-	RefDNode __t138 = _t;
+	RefDNode __t139 = _t;
 	RefDNode tmp39_AST = RefDNode(antlr::nullAST);
 	RefDNode tmp39_AST_in = RefDNode(antlr::nullAST);
 	tmp39_AST = astFactory->create(antlr::RefAST(_t));
 	tmp39_AST_in = _t;
-	antlr::ASTPair __currentAST138 = currentAST;
+	antlr::ASTPair __currentAST139 = currentAST;
 	currentAST.root = currentAST.child;
 	currentAST.child = RefDNode(antlr::nullAST);
 	match(antlr::RefAST(_t),ARRAYEXPR_FN);
 	_t = _t->getFirstChild();
-	RefDNode __t139 = _t;
+	RefDNode __t140 = _t;
 	va = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 	RefDNode va_AST_in = RefDNode(antlr::nullAST);
 	va_AST = astFactory->create(antlr::RefAST(va));
-	antlr::ASTPair __currentAST139 = currentAST;
+	antlr::ASTPair __currentAST140 = currentAST;
 	currentAST.root = currentAST.child;
 	currentAST.child = RefDNode(antlr::nullAST);
 	match(antlr::RefAST(_t),VAR);
@@ -4323,8 +4371,8 @@ void GDLTreeParser::arrayexpr_fn(RefDNode _t) {
 	id_AST = astFactory->create(antlr::RefAST(id));
 	match(antlr::RefAST(_t),IDENTIFIER);
 	_t = _t->getNextSibling();
-	currentAST = __currentAST139;
-	_t = __t139;
+	currentAST = __currentAST140;
+	_t = __t140;
 	_t = _t->getNextSibling();
 	
 	id_text=id_AST->getText(); 
@@ -4392,8 +4440,8 @@ void GDLTreeParser::arrayexpr_fn(RefDNode _t) {
 	else
 		currentAST.child = arrayexpr_fn_AST;
 	currentAST.advanceChildToEnd();
-	currentAST = __currentAST138;
-	_t = __t138;
+	currentAST = __currentAST139;
+	_t = __t139;
 	_t = _t->getNextSibling();
 	returnAST = arrayexpr_fn_AST;
 	_retTree = _t;
@@ -4451,13 +4499,13 @@ void GDLTreeParser::primary_expr(RefDNode _t) {
 	}
 	case MFCALL:
 	{
-		RefDNode __t142 = _t;
+		RefDNode __t143 = _t;
 		RefDNode tmp40_AST = RefDNode(antlr::nullAST);
 		RefDNode tmp40_AST_in = RefDNode(antlr::nullAST);
 		tmp40_AST = astFactory->create(antlr::RefAST(_t));
 		tmp40_AST_in = _t;
 		astFactory->addASTChild(currentAST, antlr::RefAST(tmp40_AST));
-		antlr::ASTPair __currentAST142 = currentAST;
+		antlr::ASTPair __currentAST143 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
 		match(antlr::RefAST(_t),MFCALL);
@@ -4482,27 +4530,27 @@ void GDLTreeParser::primary_expr(RefDNode _t) {
 				astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 			}
 			else {
-				goto _loop144;
+				goto _loop145;
 			}
 			
 		}
-		_loop144:;
+		_loop145:;
 		} // ( ... )*
-		currentAST = __currentAST142;
-		_t = __t142;
+		currentAST = __currentAST143;
+		_t = __t143;
 		_t = _t->getNextSibling();
 		primary_expr_AST = RefDNode(currentAST.root);
 		break;
 	}
 	case MFCALL_PARENT:
 	{
-		RefDNode __t145 = _t;
+		RefDNode __t146 = _t;
 		RefDNode tmp42_AST = RefDNode(antlr::nullAST);
 		RefDNode tmp42_AST_in = RefDNode(antlr::nullAST);
 		tmp42_AST = astFactory->create(antlr::RefAST(_t));
 		tmp42_AST_in = _t;
 		astFactory->addASTChild(currentAST, antlr::RefAST(tmp42_AST));
-		antlr::ASTPair __currentAST145 = currentAST;
+		antlr::ASTPair __currentAST146 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
 		match(antlr::RefAST(_t),MFCALL_PARENT);
@@ -4534,26 +4582,26 @@ void GDLTreeParser::primary_expr(RefDNode _t) {
 				astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 			}
 			else {
-				goto _loop147;
+				goto _loop148;
 			}
 			
 		}
-		_loop147:;
+		_loop148:;
 		} // ( ... )*
-		currentAST = __currentAST145;
-		_t = __t145;
+		currentAST = __currentAST146;
+		_t = __t146;
 		_t = _t->getNextSibling();
 		primary_expr_AST = RefDNode(currentAST.root);
 		break;
 	}
 	case FCALL:
 	{
-		RefDNode __t148 = _t;
+		RefDNode __t149 = _t;
 		f = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		RefDNode f_AST_in = RefDNode(antlr::nullAST);
 		f_AST = astFactory->create(antlr::RefAST(f));
 		astFactory->addASTChild(currentAST, antlr::RefAST(f_AST));
-		antlr::ASTPair __currentAST148 = currentAST;
+		antlr::ASTPair __currentAST149 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
 		match(antlr::RefAST(_t),FCALL);
@@ -4574,11 +4622,11 @@ void GDLTreeParser::primary_expr(RefDNode _t) {
 				astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 			}
 			else {
-				goto _loop150;
+				goto _loop151;
 			}
 			
 		}
-		_loop150:;
+		_loop151:;
 		} // ( ... )*
 		
 		// first search library functions
@@ -4596,8 +4644,8 @@ void GDLTreeParser::primary_expr(RefDNode _t) {
 		id_AST->SetFunIx(i);
 		}
 		
-		currentAST = __currentAST148;
-		_t = __t148;
+		currentAST = __currentAST149;
+		_t = __t149;
 		_t = _t->getNextSibling();
 		primary_expr_AST = RefDNode(currentAST.root);
 		break;
@@ -4659,13 +4707,13 @@ void GDLTreeParser::op_expr(RefDNode _t) {
 	switch ( _t->getType()) {
 	case QUESTION:
 	{
-		RefDNode __t152 = _t;
+		RefDNode __t153 = _t;
 		RefDNode tmp46_AST = RefDNode(antlr::nullAST);
 		RefDNode tmp46_AST_in = RefDNode(antlr::nullAST);
 		tmp46_AST = astFactory->create(antlr::RefAST(_t));
 		tmp46_AST_in = _t;
 		astFactory->addASTChild(currentAST, antlr::RefAST(tmp46_AST));
-		antlr::ASTPair __currentAST152 = currentAST;
+		antlr::ASTPair __currentAST153 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
 		match(antlr::RefAST(_t),QUESTION);
@@ -4679,49 +4727,24 @@ void GDLTreeParser::op_expr(RefDNode _t) {
 		expr(_t);
 		_t = _retTree;
 		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-		currentAST = __currentAST152;
-		_t = __t152;
-		_t = _t->getNextSibling();
-		op_expr_AST = RefDNode(currentAST.root);
-		break;
-	}
-	case AND_OP:
-	{
-		RefDNode __t153 = _t;
-		RefDNode tmp47_AST = RefDNode(antlr::nullAST);
-		RefDNode tmp47_AST_in = RefDNode(antlr::nullAST);
-		tmp47_AST = astFactory->create(antlr::RefAST(_t));
-		tmp47_AST_in = _t;
-		astFactory->addASTChild(currentAST, antlr::RefAST(tmp47_AST));
-		antlr::ASTPair __currentAST153 = currentAST;
-		currentAST.root = currentAST.child;
-		currentAST.child = RefDNode(antlr::nullAST);
-		match(antlr::RefAST(_t),AND_OP);
-		_t = _t->getFirstChild();
-		expr(_t);
-		_t = _retTree;
-		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-		expr(_t);
-		_t = _retTree;
-		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 		currentAST = __currentAST153;
 		_t = __t153;
 		_t = _t->getNextSibling();
 		op_expr_AST = RefDNode(currentAST.root);
 		break;
 	}
-	case OR_OP:
+	case AND_OP:
 	{
 		RefDNode __t154 = _t;
-		RefDNode tmp48_AST = RefDNode(antlr::nullAST);
-		RefDNode tmp48_AST_in = RefDNode(antlr::nullAST);
-		tmp48_AST = astFactory->create(antlr::RefAST(_t));
-		tmp48_AST_in = _t;
-		astFactory->addASTChild(currentAST, antlr::RefAST(tmp48_AST));
+		RefDNode tmp47_AST = RefDNode(antlr::nullAST);
+		RefDNode tmp47_AST_in = RefDNode(antlr::nullAST);
+		tmp47_AST = astFactory->create(antlr::RefAST(_t));
+		tmp47_AST_in = _t;
+		astFactory->addASTChild(currentAST, antlr::RefAST(tmp47_AST));
 		antlr::ASTPair __currentAST154 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
-		match(antlr::RefAST(_t),OR_OP);
+		match(antlr::RefAST(_t),AND_OP);
 		_t = _t->getFirstChild();
 		expr(_t);
 		_t = _retTree;
@@ -4735,18 +4758,18 @@ void GDLTreeParser::op_expr(RefDNode _t) {
 		op_expr_AST = RefDNode(currentAST.root);
 		break;
 	}
-	case XOR_OP:
+	case OR_OP:
 	{
 		RefDNode __t155 = _t;
-		RefDNode tmp49_AST = RefDNode(antlr::nullAST);
-		RefDNode tmp49_AST_in = RefDNode(antlr::nullAST);
-		tmp49_AST = astFactory->create(antlr::RefAST(_t));
-		tmp49_AST_in = _t;
-		astFactory->addASTChild(currentAST, antlr::RefAST(tmp49_AST));
+		RefDNode tmp48_AST = RefDNode(antlr::nullAST);
+		RefDNode tmp48_AST_in = RefDNode(antlr::nullAST);
+		tmp48_AST = astFactory->create(antlr::RefAST(_t));
+		tmp48_AST_in = _t;
+		astFactory->addASTChild(currentAST, antlr::RefAST(tmp48_AST));
 		antlr::ASTPair __currentAST155 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
-		match(antlr::RefAST(_t),XOR_OP);
+		match(antlr::RefAST(_t),OR_OP);
 		_t = _t->getFirstChild();
 		expr(_t);
 		_t = _retTree;
@@ -4760,18 +4783,18 @@ void GDLTreeParser::op_expr(RefDNode _t) {
 		op_expr_AST = RefDNode(currentAST.root);
 		break;
 	}
-	case LOG_AND:
+	case XOR_OP:
 	{
 		RefDNode __t156 = _t;
-		RefDNode tmp50_AST = RefDNode(antlr::nullAST);
-		RefDNode tmp50_AST_in = RefDNode(antlr::nullAST);
-		tmp50_AST = astFactory->create(antlr::RefAST(_t));
-		tmp50_AST_in = _t;
-		astFactory->addASTChild(currentAST, antlr::RefAST(tmp50_AST));
+		RefDNode tmp49_AST = RefDNode(antlr::nullAST);
+		RefDNode tmp49_AST_in = RefDNode(antlr::nullAST);
+		tmp49_AST = astFactory->create(antlr::RefAST(_t));
+		tmp49_AST_in = _t;
+		astFactory->addASTChild(currentAST, antlr::RefAST(tmp49_AST));
 		antlr::ASTPair __currentAST156 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
-		match(antlr::RefAST(_t),LOG_AND);
+		match(antlr::RefAST(_t),XOR_OP);
 		_t = _t->getFirstChild();
 		expr(_t);
 		_t = _retTree;
@@ -4785,18 +4808,18 @@ void GDLTreeParser::op_expr(RefDNode _t) {
 		op_expr_AST = RefDNode(currentAST.root);
 		break;
 	}
-	case LOG_OR:
+	case LOG_AND:
 	{
 		RefDNode __t157 = _t;
-		RefDNode tmp51_AST = RefDNode(antlr::nullAST);
-		RefDNode tmp51_AST_in = RefDNode(antlr::nullAST);
-		tmp51_AST = astFactory->create(antlr::RefAST(_t));
-		tmp51_AST_in = _t;
-		astFactory->addASTChild(currentAST, antlr::RefAST(tmp51_AST));
+		RefDNode tmp50_AST = RefDNode(antlr::nullAST);
+		RefDNode tmp50_AST_in = RefDNode(antlr::nullAST);
+		tmp50_AST = astFactory->create(antlr::RefAST(_t));
+		tmp50_AST_in = _t;
+		astFactory->addASTChild(currentAST, antlr::RefAST(tmp50_AST));
 		antlr::ASTPair __currentAST157 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
-		match(antlr::RefAST(_t),LOG_OR);
+		match(antlr::RefAST(_t),LOG_AND);
 		_t = _t->getFirstChild();
 		expr(_t);
 		_t = _retTree;
@@ -4810,18 +4833,18 @@ void GDLTreeParser::op_expr(RefDNode _t) {
 		op_expr_AST = RefDNode(currentAST.root);
 		break;
 	}
-	case EQ_OP:
+	case LOG_OR:
 	{
 		RefDNode __t158 = _t;
-		RefDNode tmp52_AST = RefDNode(antlr::nullAST);
-		RefDNode tmp52_AST_in = RefDNode(antlr::nullAST);
-		tmp52_AST = astFactory->create(antlr::RefAST(_t));
-		tmp52_AST_in = _t;
-		astFactory->addASTChild(currentAST, antlr::RefAST(tmp52_AST));
+		RefDNode tmp51_AST = RefDNode(antlr::nullAST);
+		RefDNode tmp51_AST_in = RefDNode(antlr::nullAST);
+		tmp51_AST = astFactory->create(antlr::RefAST(_t));
+		tmp51_AST_in = _t;
+		astFactory->addASTChild(currentAST, antlr::RefAST(tmp51_AST));
 		antlr::ASTPair __currentAST158 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
-		match(antlr::RefAST(_t),EQ_OP);
+		match(antlr::RefAST(_t),LOG_OR);
 		_t = _t->getFirstChild();
 		expr(_t);
 		_t = _retTree;
@@ -4835,18 +4858,18 @@ void GDLTreeParser::op_expr(RefDNode _t) {
 		op_expr_AST = RefDNode(currentAST.root);
 		break;
 	}
-	case NE_OP:
+	case EQ_OP:
 	{
 		RefDNode __t159 = _t;
-		RefDNode tmp53_AST = RefDNode(antlr::nullAST);
-		RefDNode tmp53_AST_in = RefDNode(antlr::nullAST);
-		tmp53_AST = astFactory->create(antlr::RefAST(_t));
-		tmp53_AST_in = _t;
-		astFactory->addASTChild(currentAST, antlr::RefAST(tmp53_AST));
+		RefDNode tmp52_AST = RefDNode(antlr::nullAST);
+		RefDNode tmp52_AST_in = RefDNode(antlr::nullAST);
+		tmp52_AST = astFactory->create(antlr::RefAST(_t));
+		tmp52_AST_in = _t;
+		astFactory->addASTChild(currentAST, antlr::RefAST(tmp52_AST));
 		antlr::ASTPair __currentAST159 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
-		match(antlr::RefAST(_t),NE_OP);
+		match(antlr::RefAST(_t),EQ_OP);
 		_t = _t->getFirstChild();
 		expr(_t);
 		_t = _retTree;
@@ -4860,18 +4883,18 @@ void GDLTreeParser::op_expr(RefDNode _t) {
 		op_expr_AST = RefDNode(currentAST.root);
 		break;
 	}
-	case LE_OP:
+	case NE_OP:
 	{
 		RefDNode __t160 = _t;
-		RefDNode tmp54_AST = RefDNode(antlr::nullAST);
-		RefDNode tmp54_AST_in = RefDNode(antlr::nullAST);
-		tmp54_AST = astFactory->create(antlr::RefAST(_t));
-		tmp54_AST_in = _t;
-		astFactory->addASTChild(currentAST, antlr::RefAST(tmp54_AST));
+		RefDNode tmp53_AST = RefDNode(antlr::nullAST);
+		RefDNode tmp53_AST_in = RefDNode(antlr::nullAST);
+		tmp53_AST = astFactory->create(antlr::RefAST(_t));
+		tmp53_AST_in = _t;
+		astFactory->addASTChild(currentAST, antlr::RefAST(tmp53_AST));
 		antlr::ASTPair __currentAST160 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
-		match(antlr::RefAST(_t),LE_OP);
+		match(antlr::RefAST(_t),NE_OP);
 		_t = _t->getFirstChild();
 		expr(_t);
 		_t = _retTree;
@@ -4885,18 +4908,18 @@ void GDLTreeParser::op_expr(RefDNode _t) {
 		op_expr_AST = RefDNode(currentAST.root);
 		break;
 	}
-	case LT_OP:
+	case LE_OP:
 	{
 		RefDNode __t161 = _t;
-		RefDNode tmp55_AST = RefDNode(antlr::nullAST);
-		RefDNode tmp55_AST_in = RefDNode(antlr::nullAST);
-		tmp55_AST = astFactory->create(antlr::RefAST(_t));
-		tmp55_AST_in = _t;
-		astFactory->addASTChild(currentAST, antlr::RefAST(tmp55_AST));
+		RefDNode tmp54_AST = RefDNode(antlr::nullAST);
+		RefDNode tmp54_AST_in = RefDNode(antlr::nullAST);
+		tmp54_AST = astFactory->create(antlr::RefAST(_t));
+		tmp54_AST_in = _t;
+		astFactory->addASTChild(currentAST, antlr::RefAST(tmp54_AST));
 		antlr::ASTPair __currentAST161 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
-		match(antlr::RefAST(_t),LT_OP);
+		match(antlr::RefAST(_t),LE_OP);
 		_t = _t->getFirstChild();
 		expr(_t);
 		_t = _retTree;
@@ -4910,18 +4933,18 @@ void GDLTreeParser::op_expr(RefDNode _t) {
 		op_expr_AST = RefDNode(currentAST.root);
 		break;
 	}
-	case GE_OP:
+	case LT_OP:
 	{
 		RefDNode __t162 = _t;
-		RefDNode tmp56_AST = RefDNode(antlr::nullAST);
-		RefDNode tmp56_AST_in = RefDNode(antlr::nullAST);
-		tmp56_AST = astFactory->create(antlr::RefAST(_t));
-		tmp56_AST_in = _t;
-		astFactory->addASTChild(currentAST, antlr::RefAST(tmp56_AST));
+		RefDNode tmp55_AST = RefDNode(antlr::nullAST);
+		RefDNode tmp55_AST_in = RefDNode(antlr::nullAST);
+		tmp55_AST = astFactory->create(antlr::RefAST(_t));
+		tmp55_AST_in = _t;
+		astFactory->addASTChild(currentAST, antlr::RefAST(tmp55_AST));
 		antlr::ASTPair __currentAST162 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
-		match(antlr::RefAST(_t),GE_OP);
+		match(antlr::RefAST(_t),LT_OP);
 		_t = _t->getFirstChild();
 		expr(_t);
 		_t = _retTree;
@@ -4935,18 +4958,18 @@ void GDLTreeParser::op_expr(RefDNode _t) {
 		op_expr_AST = RefDNode(currentAST.root);
 		break;
 	}
-	case GT_OP:
+	case GE_OP:
 	{
 		RefDNode __t163 = _t;
-		RefDNode tmp57_AST = RefDNode(antlr::nullAST);
-		RefDNode tmp57_AST_in = RefDNode(antlr::nullAST);
-		tmp57_AST = astFactory->create(antlr::RefAST(_t));
-		tmp57_AST_in = _t;
-		astFactory->addASTChild(currentAST, antlr::RefAST(tmp57_AST));
+		RefDNode tmp56_AST = RefDNode(antlr::nullAST);
+		RefDNode tmp56_AST_in = RefDNode(antlr::nullAST);
+		tmp56_AST = astFactory->create(antlr::RefAST(_t));
+		tmp56_AST_in = _t;
+		astFactory->addASTChild(currentAST, antlr::RefAST(tmp56_AST));
 		antlr::ASTPair __currentAST163 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
-		match(antlr::RefAST(_t),GT_OP);
+		match(antlr::RefAST(_t),GE_OP);
 		_t = _t->getFirstChild();
 		expr(_t);
 		_t = _retTree;
@@ -4960,19 +4983,22 @@ void GDLTreeParser::op_expr(RefDNode _t) {
 		op_expr_AST = RefDNode(currentAST.root);
 		break;
 	}
-	case NOT_OP:
+	case GT_OP:
 	{
 		RefDNode __t164 = _t;
-		RefDNode tmp58_AST = RefDNode(antlr::nullAST);
-		RefDNode tmp58_AST_in = RefDNode(antlr::nullAST);
-		tmp58_AST = astFactory->create(antlr::RefAST(_t));
-		tmp58_AST_in = _t;
-		astFactory->addASTChild(currentAST, antlr::RefAST(tmp58_AST));
+		RefDNode tmp57_AST = RefDNode(antlr::nullAST);
+		RefDNode tmp57_AST_in = RefDNode(antlr::nullAST);
+		tmp57_AST = astFactory->create(antlr::RefAST(_t));
+		tmp57_AST_in = _t;
+		astFactory->addASTChild(currentAST, antlr::RefAST(tmp57_AST));
 		antlr::ASTPair __currentAST164 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
-		match(antlr::RefAST(_t),NOT_OP);
+		match(antlr::RefAST(_t),GT_OP);
 		_t = _t->getFirstChild();
+		expr(_t);
+		_t = _retTree;
+		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 		expr(_t);
 		_t = _retTree;
 		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
@@ -4982,22 +5008,19 @@ void GDLTreeParser::op_expr(RefDNode _t) {
 		op_expr_AST = RefDNode(currentAST.root);
 		break;
 	}
-	case PLUS:
+	case NOT_OP:
 	{
 		RefDNode __t165 = _t;
-		RefDNode tmp59_AST = RefDNode(antlr::nullAST);
-		RefDNode tmp59_AST_in = RefDNode(antlr::nullAST);
-		tmp59_AST = astFactory->create(antlr::RefAST(_t));
-		tmp59_AST_in = _t;
-		astFactory->addASTChild(currentAST, antlr::RefAST(tmp59_AST));
+		RefDNode tmp58_AST = RefDNode(antlr::nullAST);
+		RefDNode tmp58_AST_in = RefDNode(antlr::nullAST);
+		tmp58_AST = astFactory->create(antlr::RefAST(_t));
+		tmp58_AST_in = _t;
+		astFactory->addASTChild(currentAST, antlr::RefAST(tmp58_AST));
 		antlr::ASTPair __currentAST165 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
-		match(antlr::RefAST(_t),PLUS);
+		match(antlr::RefAST(_t),NOT_OP);
 		_t = _t->getFirstChild();
-		expr(_t);
-		_t = _retTree;
-		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 		expr(_t);
 		_t = _retTree;
 		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
@@ -5007,18 +5030,18 @@ void GDLTreeParser::op_expr(RefDNode _t) {
 		op_expr_AST = RefDNode(currentAST.root);
 		break;
 	}
-	case MINUS:
+	case PLUS:
 	{
 		RefDNode __t166 = _t;
-		RefDNode tmp60_AST = RefDNode(antlr::nullAST);
-		RefDNode tmp60_AST_in = RefDNode(antlr::nullAST);
-		tmp60_AST = astFactory->create(antlr::RefAST(_t));
-		tmp60_AST_in = _t;
-		astFactory->addASTChild(currentAST, antlr::RefAST(tmp60_AST));
+		RefDNode tmp59_AST = RefDNode(antlr::nullAST);
+		RefDNode tmp59_AST_in = RefDNode(antlr::nullAST);
+		tmp59_AST = astFactory->create(antlr::RefAST(_t));
+		tmp59_AST_in = _t;
+		astFactory->addASTChild(currentAST, antlr::RefAST(tmp59_AST));
 		antlr::ASTPair __currentAST166 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
-		match(antlr::RefAST(_t),MINUS);
+		match(antlr::RefAST(_t),PLUS);
 		_t = _t->getFirstChild();
 		expr(_t);
 		_t = _retTree;
@@ -5032,18 +5055,18 @@ void GDLTreeParser::op_expr(RefDNode _t) {
 		op_expr_AST = RefDNode(currentAST.root);
 		break;
 	}
-	case LTMARK:
+	case MINUS:
 	{
 		RefDNode __t167 = _t;
-		RefDNode tmp61_AST = RefDNode(antlr::nullAST);
-		RefDNode tmp61_AST_in = RefDNode(antlr::nullAST);
-		tmp61_AST = astFactory->create(antlr::RefAST(_t));
-		tmp61_AST_in = _t;
-		astFactory->addASTChild(currentAST, antlr::RefAST(tmp61_AST));
+		RefDNode tmp60_AST = RefDNode(antlr::nullAST);
+		RefDNode tmp60_AST_in = RefDNode(antlr::nullAST);
+		tmp60_AST = astFactory->create(antlr::RefAST(_t));
+		tmp60_AST_in = _t;
+		astFactory->addASTChild(currentAST, antlr::RefAST(tmp60_AST));
 		antlr::ASTPair __currentAST167 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
-		match(antlr::RefAST(_t),LTMARK);
+		match(antlr::RefAST(_t),MINUS);
 		_t = _t->getFirstChild();
 		expr(_t);
 		_t = _retTree;
@@ -5057,18 +5080,18 @@ void GDLTreeParser::op_expr(RefDNode _t) {
 		op_expr_AST = RefDNode(currentAST.root);
 		break;
 	}
-	case GTMARK:
+	case LTMARK:
 	{
 		RefDNode __t168 = _t;
-		RefDNode tmp62_AST = RefDNode(antlr::nullAST);
-		RefDNode tmp62_AST_in = RefDNode(antlr::nullAST);
-		tmp62_AST = astFactory->create(antlr::RefAST(_t));
-		tmp62_AST_in = _t;
-		astFactory->addASTChild(currentAST, antlr::RefAST(tmp62_AST));
+		RefDNode tmp61_AST = RefDNode(antlr::nullAST);
+		RefDNode tmp61_AST_in = RefDNode(antlr::nullAST);
+		tmp61_AST = astFactory->create(antlr::RefAST(_t));
+		tmp61_AST_in = _t;
+		astFactory->addASTChild(currentAST, antlr::RefAST(tmp61_AST));
 		antlr::ASTPair __currentAST168 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
-		match(antlr::RefAST(_t),GTMARK);
+		match(antlr::RefAST(_t),LTMARK);
 		_t = _t->getFirstChild();
 		expr(_t);
 		_t = _retTree;
@@ -5082,19 +5105,22 @@ void GDLTreeParser::op_expr(RefDNode _t) {
 		op_expr_AST = RefDNode(currentAST.root);
 		break;
 	}
-	case UMINUS:
+	case GTMARK:
 	{
 		RefDNode __t169 = _t;
-		RefDNode tmp63_AST = RefDNode(antlr::nullAST);
-		RefDNode tmp63_AST_in = RefDNode(antlr::nullAST);
-		tmp63_AST = astFactory->create(antlr::RefAST(_t));
-		tmp63_AST_in = _t;
-		astFactory->addASTChild(currentAST, antlr::RefAST(tmp63_AST));
+		RefDNode tmp62_AST = RefDNode(antlr::nullAST);
+		RefDNode tmp62_AST_in = RefDNode(antlr::nullAST);
+		tmp62_AST = astFactory->create(antlr::RefAST(_t));
+		tmp62_AST_in = _t;
+		astFactory->addASTChild(currentAST, antlr::RefAST(tmp62_AST));
 		antlr::ASTPair __currentAST169 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
-		match(antlr::RefAST(_t),UMINUS);
+		match(antlr::RefAST(_t),GTMARK);
 		_t = _t->getFirstChild();
+		expr(_t);
+		_t = _retTree;
+		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 		expr(_t);
 		_t = _retTree;
 		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
@@ -5104,18 +5130,18 @@ void GDLTreeParser::op_expr(RefDNode _t) {
 		op_expr_AST = RefDNode(currentAST.root);
 		break;
 	}
-	case LOG_NEG:
+	case UMINUS:
 	{
 		RefDNode __t170 = _t;
-		RefDNode tmp64_AST = RefDNode(antlr::nullAST);
-		RefDNode tmp64_AST_in = RefDNode(antlr::nullAST);
-		tmp64_AST = astFactory->create(antlr::RefAST(_t));
-		tmp64_AST_in = _t;
-		astFactory->addASTChild(currentAST, antlr::RefAST(tmp64_AST));
+		RefDNode tmp63_AST = RefDNode(antlr::nullAST);
+		RefDNode tmp63_AST_in = RefDNode(antlr::nullAST);
+		tmp63_AST = astFactory->create(antlr::RefAST(_t));
+		tmp63_AST_in = _t;
+		astFactory->addASTChild(currentAST, antlr::RefAST(tmp63_AST));
 		antlr::ASTPair __currentAST170 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
-		match(antlr::RefAST(_t),LOG_NEG);
+		match(antlr::RefAST(_t),UMINUS);
 		_t = _t->getFirstChild();
 		expr(_t);
 		_t = _retTree;
@@ -5126,22 +5152,19 @@ void GDLTreeParser::op_expr(RefDNode _t) {
 		op_expr_AST = RefDNode(currentAST.root);
 		break;
 	}
-	case ASTERIX:
+	case LOG_NEG:
 	{
 		RefDNode __t171 = _t;
-		RefDNode tmp65_AST = RefDNode(antlr::nullAST);
-		RefDNode tmp65_AST_in = RefDNode(antlr::nullAST);
-		tmp65_AST = astFactory->create(antlr::RefAST(_t));
-		tmp65_AST_in = _t;
-		astFactory->addASTChild(currentAST, antlr::RefAST(tmp65_AST));
+		RefDNode tmp64_AST = RefDNode(antlr::nullAST);
+		RefDNode tmp64_AST_in = RefDNode(antlr::nullAST);
+		tmp64_AST = astFactory->create(antlr::RefAST(_t));
+		tmp64_AST_in = _t;
+		astFactory->addASTChild(currentAST, antlr::RefAST(tmp64_AST));
 		antlr::ASTPair __currentAST171 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
-		match(antlr::RefAST(_t),ASTERIX);
+		match(antlr::RefAST(_t),LOG_NEG);
 		_t = _t->getFirstChild();
-		expr(_t);
-		_t = _retTree;
-		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 		expr(_t);
 		_t = _retTree;
 		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
@@ -5151,18 +5174,18 @@ void GDLTreeParser::op_expr(RefDNode _t) {
 		op_expr_AST = RefDNode(currentAST.root);
 		break;
 	}
-	case MATRIX_OP1:
+	case ASTERIX:
 	{
 		RefDNode __t172 = _t;
-		RefDNode tmp66_AST = RefDNode(antlr::nullAST);
-		RefDNode tmp66_AST_in = RefDNode(antlr::nullAST);
-		tmp66_AST = astFactory->create(antlr::RefAST(_t));
-		tmp66_AST_in = _t;
-		astFactory->addASTChild(currentAST, antlr::RefAST(tmp66_AST));
+		RefDNode tmp65_AST = RefDNode(antlr::nullAST);
+		RefDNode tmp65_AST_in = RefDNode(antlr::nullAST);
+		tmp65_AST = astFactory->create(antlr::RefAST(_t));
+		tmp65_AST_in = _t;
+		astFactory->addASTChild(currentAST, antlr::RefAST(tmp65_AST));
 		antlr::ASTPair __currentAST172 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
-		match(antlr::RefAST(_t),MATRIX_OP1);
+		match(antlr::RefAST(_t),ASTERIX);
 		_t = _t->getFirstChild();
 		expr(_t);
 		_t = _retTree;
@@ -5176,18 +5199,18 @@ void GDLTreeParser::op_expr(RefDNode _t) {
 		op_expr_AST = RefDNode(currentAST.root);
 		break;
 	}
-	case MATRIX_OP2:
+	case MATRIX_OP1:
 	{
 		RefDNode __t173 = _t;
-		RefDNode tmp67_AST = RefDNode(antlr::nullAST);
-		RefDNode tmp67_AST_in = RefDNode(antlr::nullAST);
-		tmp67_AST = astFactory->create(antlr::RefAST(_t));
-		tmp67_AST_in = _t;
-		astFactory->addASTChild(currentAST, antlr::RefAST(tmp67_AST));
+		RefDNode tmp66_AST = RefDNode(antlr::nullAST);
+		RefDNode tmp66_AST_in = RefDNode(antlr::nullAST);
+		tmp66_AST = astFactory->create(antlr::RefAST(_t));
+		tmp66_AST_in = _t;
+		astFactory->addASTChild(currentAST, antlr::RefAST(tmp66_AST));
 		antlr::ASTPair __currentAST173 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
-		match(antlr::RefAST(_t),MATRIX_OP2);
+		match(antlr::RefAST(_t),MATRIX_OP1);
 		_t = _t->getFirstChild();
 		expr(_t);
 		_t = _retTree;
@@ -5201,18 +5224,18 @@ void GDLTreeParser::op_expr(RefDNode _t) {
 		op_expr_AST = RefDNode(currentAST.root);
 		break;
 	}
-	case SLASH:
+	case MATRIX_OP2:
 	{
 		RefDNode __t174 = _t;
-		RefDNode tmp68_AST = RefDNode(antlr::nullAST);
-		RefDNode tmp68_AST_in = RefDNode(antlr::nullAST);
-		tmp68_AST = astFactory->create(antlr::RefAST(_t));
-		tmp68_AST_in = _t;
-		astFactory->addASTChild(currentAST, antlr::RefAST(tmp68_AST));
+		RefDNode tmp67_AST = RefDNode(antlr::nullAST);
+		RefDNode tmp67_AST_in = RefDNode(antlr::nullAST);
+		tmp67_AST = astFactory->create(antlr::RefAST(_t));
+		tmp67_AST_in = _t;
+		astFactory->addASTChild(currentAST, antlr::RefAST(tmp67_AST));
 		antlr::ASTPair __currentAST174 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
-		match(antlr::RefAST(_t),SLASH);
+		match(antlr::RefAST(_t),MATRIX_OP2);
 		_t = _t->getFirstChild();
 		expr(_t);
 		_t = _retTree;
@@ -5226,18 +5249,18 @@ void GDLTreeParser::op_expr(RefDNode _t) {
 		op_expr_AST = RefDNode(currentAST.root);
 		break;
 	}
-	case MOD_OP:
+	case SLASH:
 	{
 		RefDNode __t175 = _t;
-		RefDNode tmp69_AST = RefDNode(antlr::nullAST);
-		RefDNode tmp69_AST_in = RefDNode(antlr::nullAST);
-		tmp69_AST = astFactory->create(antlr::RefAST(_t));
-		tmp69_AST_in = _t;
-		astFactory->addASTChild(currentAST, antlr::RefAST(tmp69_AST));
+		RefDNode tmp68_AST = RefDNode(antlr::nullAST);
+		RefDNode tmp68_AST_in = RefDNode(antlr::nullAST);
+		tmp68_AST = astFactory->create(antlr::RefAST(_t));
+		tmp68_AST_in = _t;
+		astFactory->addASTChild(currentAST, antlr::RefAST(tmp68_AST));
 		antlr::ASTPair __currentAST175 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
-		match(antlr::RefAST(_t),MOD_OP);
+		match(antlr::RefAST(_t),SLASH);
 		_t = _t->getFirstChild();
 		expr(_t);
 		_t = _retTree;
@@ -5251,18 +5274,18 @@ void GDLTreeParser::op_expr(RefDNode _t) {
 		op_expr_AST = RefDNode(currentAST.root);
 		break;
 	}
-	case POW:
+	case MOD_OP:
 	{
 		RefDNode __t176 = _t;
-		RefDNode tmp70_AST = RefDNode(antlr::nullAST);
-		RefDNode tmp70_AST_in = RefDNode(antlr::nullAST);
-		tmp70_AST = astFactory->create(antlr::RefAST(_t));
-		tmp70_AST_in = _t;
-		astFactory->addASTChild(currentAST, antlr::RefAST(tmp70_AST));
+		RefDNode tmp69_AST = RefDNode(antlr::nullAST);
+		RefDNode tmp69_AST_in = RefDNode(antlr::nullAST);
+		tmp69_AST = astFactory->create(antlr::RefAST(_t));
+		tmp69_AST_in = _t;
+		astFactory->addASTChild(currentAST, antlr::RefAST(tmp69_AST));
 		antlr::ASTPair __currentAST176 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
-		match(antlr::RefAST(_t),POW);
+		match(antlr::RefAST(_t),MOD_OP);
 		_t = _t->getFirstChild();
 		expr(_t);
 		_t = _retTree;
@@ -5276,19 +5299,22 @@ void GDLTreeParser::op_expr(RefDNode _t) {
 		op_expr_AST = RefDNode(currentAST.root);
 		break;
 	}
-	case DEC:
+	case POW:
 	{
 		RefDNode __t177 = _t;
-		RefDNode tmp71_AST = RefDNode(antlr::nullAST);
-		RefDNode tmp71_AST_in = RefDNode(antlr::nullAST);
-		tmp71_AST = astFactory->create(antlr::RefAST(_t));
-		tmp71_AST_in = _t;
-		astFactory->addASTChild(currentAST, antlr::RefAST(tmp71_AST));
+		RefDNode tmp70_AST = RefDNode(antlr::nullAST);
+		RefDNode tmp70_AST_in = RefDNode(antlr::nullAST);
+		tmp70_AST = astFactory->create(antlr::RefAST(_t));
+		tmp70_AST_in = _t;
+		astFactory->addASTChild(currentAST, antlr::RefAST(tmp70_AST));
 		antlr::ASTPair __currentAST177 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
-		match(antlr::RefAST(_t),DEC);
+		match(antlr::RefAST(_t),POW);
 		_t = _t->getFirstChild();
+		expr(_t);
+		_t = _retTree;
+		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 		expr(_t);
 		_t = _retTree;
 		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
@@ -5298,20 +5324,20 @@ void GDLTreeParser::op_expr(RefDNode _t) {
 		op_expr_AST = RefDNode(currentAST.root);
 		break;
 	}
-	case INC:
+	case DEC:
 	{
 		RefDNode __t178 = _t;
-		RefDNode tmp72_AST = RefDNode(antlr::nullAST);
-		RefDNode tmp72_AST_in = RefDNode(antlr::nullAST);
-		tmp72_AST = astFactory->create(antlr::RefAST(_t));
-		tmp72_AST_in = _t;
-		astFactory->addASTChild(currentAST, antlr::RefAST(tmp72_AST));
+		RefDNode tmp71_AST = RefDNode(antlr::nullAST);
+		RefDNode tmp71_AST_in = RefDNode(antlr::nullAST);
+		tmp71_AST = astFactory->create(antlr::RefAST(_t));
+		tmp71_AST_in = _t;
+		astFactory->addASTChild(currentAST, antlr::RefAST(tmp71_AST));
 		antlr::ASTPair __currentAST178 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
-		match(antlr::RefAST(_t),INC);
+		match(antlr::RefAST(_t),DEC);
 		_t = _t->getFirstChild();
-		expr(_t);
+		unbrace_l_expr(_t);
 		_t = _retTree;
 		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 		currentAST = __currentAST178;
@@ -5320,20 +5346,20 @@ void GDLTreeParser::op_expr(RefDNode _t) {
 		op_expr_AST = RefDNode(currentAST.root);
 		break;
 	}
-	case POSTDEC:
+	case INC:
 	{
 		RefDNode __t179 = _t;
-		RefDNode tmp73_AST = RefDNode(antlr::nullAST);
-		RefDNode tmp73_AST_in = RefDNode(antlr::nullAST);
-		tmp73_AST = astFactory->create(antlr::RefAST(_t));
-		tmp73_AST_in = _t;
-		astFactory->addASTChild(currentAST, antlr::RefAST(tmp73_AST));
+		RefDNode tmp72_AST = RefDNode(antlr::nullAST);
+		RefDNode tmp72_AST_in = RefDNode(antlr::nullAST);
+		tmp72_AST = astFactory->create(antlr::RefAST(_t));
+		tmp72_AST_in = _t;
+		astFactory->addASTChild(currentAST, antlr::RefAST(tmp72_AST));
 		antlr::ASTPair __currentAST179 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
-		match(antlr::RefAST(_t),POSTDEC);
+		match(antlr::RefAST(_t),INC);
 		_t = _t->getFirstChild();
-		expr(_t);
+		unbrace_l_expr(_t);
 		_t = _retTree;
 		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 		currentAST = __currentAST179;
@@ -5342,24 +5368,46 @@ void GDLTreeParser::op_expr(RefDNode _t) {
 		op_expr_AST = RefDNode(currentAST.root);
 		break;
 	}
-	case POSTINC:
+	case POSTDEC:
 	{
 		RefDNode __t180 = _t;
+		RefDNode tmp73_AST = RefDNode(antlr::nullAST);
+		RefDNode tmp73_AST_in = RefDNode(antlr::nullAST);
+		tmp73_AST = astFactory->create(antlr::RefAST(_t));
+		tmp73_AST_in = _t;
+		astFactory->addASTChild(currentAST, antlr::RefAST(tmp73_AST));
+		antlr::ASTPair __currentAST180 = currentAST;
+		currentAST.root = currentAST.child;
+		currentAST.child = RefDNode(antlr::nullAST);
+		match(antlr::RefAST(_t),POSTDEC);
+		_t = _t->getFirstChild();
+		unbrace_l_expr(_t);
+		_t = _retTree;
+		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+		currentAST = __currentAST180;
+		_t = __t180;
+		_t = _t->getNextSibling();
+		op_expr_AST = RefDNode(currentAST.root);
+		break;
+	}
+	case POSTINC:
+	{
+		RefDNode __t181 = _t;
 		RefDNode tmp74_AST = RefDNode(antlr::nullAST);
 		RefDNode tmp74_AST_in = RefDNode(antlr::nullAST);
 		tmp74_AST = astFactory->create(antlr::RefAST(_t));
 		tmp74_AST_in = _t;
 		astFactory->addASTChild(currentAST, antlr::RefAST(tmp74_AST));
-		antlr::ASTPair __currentAST180 = currentAST;
+		antlr::ASTPair __currentAST181 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
 		match(antlr::RefAST(_t),POSTINC);
 		_t = _t->getFirstChild();
-		expr(_t);
+		unbrace_l_expr(_t);
 		_t = _retTree;
 		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-		currentAST = __currentAST180;
-		_t = __t180;
+		currentAST = __currentAST181;
+		_t = __t181;
 		_t = _t->getNextSibling();
 		op_expr_AST = RefDNode(currentAST.root);
 		break;
@@ -5461,13 +5509,13 @@ void GDLTreeParser::array_expr(RefDNode _t) {
 	switch ( _t->getType()) {
 	case ARRAYEXPR:
 	{
-		RefDNode __t183 = _t;
+		RefDNode __t184 = _t;
 		RefDNode tmp75_AST = RefDNode(antlr::nullAST);
 		RefDNode tmp75_AST_in = RefDNode(antlr::nullAST);
 		tmp75_AST = astFactory->create(antlr::RefAST(_t));
 		tmp75_AST_in = _t;
 		astFactory->addASTChild(currentAST, antlr::RefAST(tmp75_AST));
-		antlr::ASTPair __currentAST183 = currentAST;
+		antlr::ASTPair __currentAST184 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
 		match(antlr::RefAST(_t),ARRAYEXPR);
@@ -5478,8 +5526,8 @@ void GDLTreeParser::array_expr(RefDNode _t) {
 		indexable_expr(_t);
 		_t = _retTree;
 		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-		currentAST = __currentAST183;
-		_t = __t183;
+		currentAST = __currentAST184;
+		_t = __t184;
 		_t = _t->getNextSibling();
 		array_expr_AST = RefDNode(currentAST.root);
 		break;
@@ -5552,13 +5600,13 @@ void GDLTreeParser::tag_array_expr(RefDNode _t) {
 	switch ( _t->getType()) {
 	case ARRAYEXPR:
 	{
-		RefDNode __t186 = _t;
+		RefDNode __t187 = _t;
 		RefDNode tmp77_AST = RefDNode(antlr::nullAST);
 		RefDNode tmp77_AST_in = RefDNode(antlr::nullAST);
 		tmp77_AST = astFactory->create(antlr::RefAST(_t));
 		tmp77_AST_in = _t;
 		astFactory->addASTChild(currentAST, antlr::RefAST(tmp77_AST));
-		antlr::ASTPair __currentAST186 = currentAST;
+		antlr::ASTPair __currentAST187 = currentAST;
 		currentAST.root = currentAST.child;
 		currentAST.child = RefDNode(antlr::nullAST);
 		match(antlr::RefAST(_t),ARRAYEXPR);
@@ -5569,8 +5617,8 @@ void GDLTreeParser::tag_array_expr(RefDNode _t) {
 		tag_expr(_t);
 		_t = _retTree;
 		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-		currentAST = __currentAST186;
-		_t = __t186;
+		currentAST = __currentAST187;
+		_t = __t187;
 		_t = _t->getNextSibling();
 		tag_array_expr_AST = RefDNode(currentAST.root);
 		break;
@@ -5595,7 +5643,7 @@ void GDLTreeParser::tag_array_expr(RefDNode _t) {
 
 void GDLTreeParser::initializeASTFactory( antlr::ASTFactory& factory )
 {
-	factory.setMaxNodeType(190);
+	factory.setMaxNodeType(192);
 }
 const char* GDLTreeParser::tokenNames[] = {
 	"<0>",
@@ -5629,7 +5677,9 @@ const char* GDLTreeParser::tokenNames[] = {
 	"MPCALL",
 	"MPCALL_PARENT",
 	"MFCALL",
+	"MFCALL_LIB",
 	"MFCALL_PARENT",
+	"MFCALL_PARENT_LIB",
 	"NOP",
 	"NSTRUC",
 	"NSTRUC_REF",
@@ -5792,7 +5842,7 @@ const char* GDLTreeParser::tokenNames[] = {
 	0
 };
 
-const unsigned long GDLTreeParser::_tokenSet_0_data_[] = { 805363744UL, 1207963664UL, 4294963201UL, 3933UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLTreeParser::_tokenSet_0_data_[] = { 805363744UL, 536887360UL, 4294950917UL, 15735UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN BLOCK COMMONDECL COMMONDEF MPCALL MPCALL_PARENT PCALL RETURN 
 // "switch" "case" "forward_function" DEC INC AND_OP_EQ ASTERIX_EQ EQ_OP_EQ 
 // GE_OP_EQ GTMARK_EQ GT_OP_EQ LE_OP_EQ LTMARK_EQ LT_OP_EQ MATRIX_OP1_EQ 
@@ -5800,7 +5850,7 @@ const unsigned long GDLTreeParser::_tokenSet_0_data_[] = { 805363744UL, 12079636
 // XOR_OP_EQ "break" "continue" "repeat" "while" "for" "goto" "on_ioerror" 
 // "if" 
 const antlr::BitSet GDLTreeParser::_tokenSet_0(_tokenSet_0_data_,8);
-const unsigned long GDLTreeParser::_tokenSet_1_data_[] = { 3257604192UL, 491908UL, 4294963200UL, 32769UL, 4289724416UL, 8191UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLTreeParser::_tokenSet_1_data_[] = { 1110120544UL, 1967633UL, 4294950912UL, 131079UL, 4273995776UL, 32767UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN ARRAYDEF ARRAYEXPR ARRAYEXPR_FN CONSTANT DEREF EXPR FCALL KEYDEF 
 // MFCALL MFCALL_PARENT NSTRUC_REF POSTDEC POSTINC STRUC SYSVAR UMINUS 
 // VAR DEC INC AND_OP_EQ ASTERIX_EQ EQ_OP_EQ GE_OP_EQ GTMARK_EQ GT_OP_EQ 
@@ -5809,7 +5859,7 @@ const unsigned long GDLTreeParser::_tokenSet_1_data_[] = { 3257604192UL, 491908U
 // POW MATRIX_OP1 MATRIX_OP2 "mod" PLUS MINUS LTMARK GTMARK "not" "eq" 
 // "ne" "le" "lt" "ge" "gt" "and" "or" "xor" LOG_AND LOG_OR LOG_NEG QUESTION 
 const antlr::BitSet GDLTreeParser::_tokenSet_1(_tokenSet_1_data_,12);
-const unsigned long GDLTreeParser::_tokenSet_2_data_[] = { 3224049760UL, 491908UL, 4294963200UL, 32769UL, 4289724416UL, 8191UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLTreeParser::_tokenSet_2_data_[] = { 1076566112UL, 1967633UL, 4294950912UL, 131079UL, 4273995776UL, 32767UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN ARRAYDEF ARRAYEXPR ARRAYEXPR_FN CONSTANT DEREF EXPR FCALL MFCALL 
 // MFCALL_PARENT NSTRUC_REF POSTDEC POSTINC STRUC SYSVAR UMINUS VAR DEC 
 // INC AND_OP_EQ ASTERIX_EQ EQ_OP_EQ GE_OP_EQ GTMARK_EQ GT_OP_EQ LE_OP_EQ 

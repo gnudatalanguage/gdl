@@ -207,11 +207,24 @@ common_block!
 	)
   ;		
 
+// // removes last pair of braces (multiple braces already removed in brace_expr)
+// unbrace_expr!//
+// 	: ex:expr
+// 		{
+//             // remove last pair of braces
+// 			if( #ex->getType()==EXPR) #ex=#ex->getFirstChild();
+//             #unbrace_expr=#ex;
+// 		}
+//     ;
+
 // more than one ELSE is allowed: first is executed, *all*
 // (including expr) later branches are ignored
-labeled_expr //!
-    : expr
-        { #labeled_expr = #([EXPR, "expr"], #labeled_expr);}
+labeled_expr
+    : ex:expr
+        {
+         if( #ex->getType() != EXPR)   
+            #labeled_expr = #([EXPR, "expr"],#labeled_expr);
+        }
     ;
 
 
@@ -266,8 +279,8 @@ statement
     | forward_function
 	| common_block
 	| block
-    | #(DEC expr)
-    | #(INC expr)
+    | #(DEC unbrace_l_expr)
+    | #(INC unbrace_l_expr)
 	| BREAK    // only in loops or switch_statement
 	| CONTINUE // only in loops
 	;
@@ -336,14 +349,16 @@ jump_statement!//
 	{
 	  if( comp.IsFun())
 	  	{
-		if( !exprThere)	throw GDLException(	_t, "Return statement in functions "
-		  									"must have 1 value.");
+		if( !exprThere)	throw GDLException(	_t, 
+                    "Return statement in functions "
+                    "must have 1 value.");
 		#jump_statement=#([RETF,"retf"],e);
 		}
 	  else
 	  	{
-		if( exprThere) throw GDLException(	_t, "Return statement in "
-		  									"procedures cannot have values.");
+		if( exprThere) throw GDLException(	_t, 
+                    "Return statement in "
+                    "procedures cannot have values.");
 		#jump_statement=#[RETP,"retp"]; // astFactory.create(RETP,"retp");
 	  	}
 	}
@@ -531,49 +546,71 @@ arrayindex
 		)
 	;
 
+// removes last pair of braces
+// for non functions
+unbrace_l_expr!//
+	: ex:expr
+		{
+            // remove last pair of braces
+			if( #ex->getType()==EXPR)
+            {
+                int cT = #ex->getFirstChild()->getType();
+                if( cT != FCALL && 
+                    cT != MFCALL && 
+                    cT != MFCALL_PARENT &&
+                    cT != FCALL_LIB && 
+                    cT != MFCALL_LIB && 
+                    cT != MFCALL_PARENT_LIB)
+                        #ex=#ex->getFirstChild();
+            }
+            #unbrace_l_expr=#ex;
+		}
+    ;
+
 assign_expr!
-	: #(a:ASSIGN l:expr r:expr)
+	: #(a:ASSIGN l:unbrace_l_expr r:expr)
         { #assign_expr=#(a,r,l);}
     ;
 
+// +=, *=, ...
 comp_assign_expr!
-    : #(a1:AND_OP_EQ l1:expr r1:expr) 
+    : #(a1:AND_OP_EQ l1:unbrace_l_expr r1:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([AND_OP,"and"],l1,r1),l1);} 
-    | #(a2:ASTERIX_EQ l2:expr r2:expr) 
+    | #(a2:ASTERIX_EQ l2:unbrace_l_expr r2:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([ASTERIX,"*"],l2,r2),l2);} 
-    | #(a3:EQ_OP_EQ l3:expr r3:expr) 
+    | #(a3:EQ_OP_EQ l3:unbrace_l_expr r3:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([EQ_OP,"eq"],l3,r3),l3);} 
-    | #(a4:GE_OP_EQ l4:expr r4:expr) 
+    | #(a4:GE_OP_EQ l4:unbrace_l_expr r4:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([GE_OP,"ge"],l4,r4),l4);}
-    | #(a5:GTMARK_EQ l5:expr r5:expr) 
+    | #(a5:GTMARK_EQ l5:unbrace_l_expr r5:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([GTMARK,">"],l5,r5),l5);}
-    | #(a6:GT_OP_EQ l6:expr r6:expr) 
+    | #(a6:GT_OP_EQ l6:unbrace_l_expr r6:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([GT_OP,"gt"],l6,r6),l6);}
-    | #(a7:LE_OP_EQ l7:expr r7:expr) 
+    | #(a7:LE_OP_EQ l7:unbrace_l_expr r7:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([LE_OP,"le"],l7,r7),l7);}
-    | #(a8:LTMARK_EQ l8:expr r8:expr) 
+    | #(a8:LTMARK_EQ l8:unbrace_l_expr r8:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([LTMARK,"<"],l8,r8),l8);}
-    | #(a9:LT_OP_EQ l9:expr r9:expr) 
+    | #(a9:LT_OP_EQ l9:unbrace_l_expr r9:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([LT_OP,"lt"],l9,r9),l9);}
-    | #(a10:MATRIX_OP1_EQ l10:expr r10:expr) 
+    | #(a10:MATRIX_OP1_EQ l10:unbrace_l_expr r10:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([MATRIX_OP1,"#"],l10,r10),l10);}
-    | #(a11:MATRIX_OP2_EQ l11:expr r11:expr) 
+    | #(a11:MATRIX_OP2_EQ l11:unbrace_l_expr r11:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([MATRIX_OP2,"##"],l11,r11),l11);}
-    | #(a12:MINUS_EQ l12:expr r12:expr) 
+    | #(a12:MINUS_EQ l12:unbrace_l_expr r12:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([MINUS,"-"],l12,r12),l12);}
-    | #(a13:MOD_OP_EQ l13:expr r13:expr) 
+    | #(a13:MOD_OP_EQ l13:unbrace_l_expr r13:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([MOD_OP,"mod"],l13,r13),l13);}
-    | #(a14:NE_OP_EQ l14:expr r14:expr) 
+    | #(a14:NE_OP_EQ l14:unbrace_l_expr r14:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([NE_OP,"ne"],l14,r14),l14);}
-    | #(a15:OR_OP_EQ l15:expr r15:expr) 
+    | #(a15:OR_OP_EQ l15:unbrace_l_expr r15:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([OR_OP,"or"],l15,r15),l15);}
-    | #(a16:PLUS_EQ l16:expr r16:expr) 
+    | #(a16:PLUS_EQ l16:unbrace_l_expr r16:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([PLUS,"+"],l16,r16),l16);}
-    | #(a17:POW_EQ l17:expr r17:expr) 
+    | #(a17:POW_EQ l17:unbrace_l_expr r17:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([POW,"^"],l17,r17),l17);}
-    | #(a18:SLASH_EQ l18:expr r18:expr) 
+    | #(a18:SLASH_EQ l18:unbrace_l_expr r18:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([SLASH,"/"],l18,r18),l18);}
-    | #(a19:XOR_OP_EQ l19:expr r19:expr) 
+    | #(a19:XOR_OP_EQ l19:unbrace_l_expr r19:expr) 
         { #comp_assign_expr=#([ASSIGN,":="],([XOR_OP,"xor"],l19,r19),l19);} 
     ;
 
@@ -607,7 +644,7 @@ var!//
 brace_expr!//
 	: #(e:EXPR ex:expr)
 		{
-            // remove double braces
+            // remove multiple braces
 			while( #ex->getType()==EXPR) #ex=#ex->getFirstChild();
 	  		#brace_expr=#(e, ex);
 		}
@@ -750,21 +787,20 @@ op_expr
 	|	#(SLASH expr expr)
 	|	#(MOD_OP expr expr)
 	|	#(POW expr expr)
-	|	#(DEC expr)
-	|	#(INC expr)
-	|	#(POSTDEC expr)
-	|	#(POSTINC expr)
+	|	#(DEC unbrace_l_expr)
+	|	#(INC unbrace_l_expr)
+	|	#(POSTDEC unbrace_l_expr)
+	|	#(POSTINC unbrace_l_expr)
 	|   primary_expr
 	;
 
 // array and struct accessing
-indexable_expr
+indexable_expr // only used by array_expr
 	: var
 	| sysvar
     | brace_expr
     ;
-
-array_expr
+array_expr // only used by expr
 	: #(ARRAYEXPR arrayindex_list indexable_expr)
 	| indexable_expr
 	;

@@ -51,6 +51,8 @@ public:
     return line;
   }
 
+  void SetLine( SizeT l) { line = l;}
+
   SizeT getColumn() const 
   { 
     //    if( errorNode != static_cast<RefDNode>(antlr::nullAST))

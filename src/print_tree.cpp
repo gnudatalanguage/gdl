@@ -13,6 +13,8 @@
 #include <cstdio>
 #include "print_tree.hpp"
 
+#include "dnode.hpp"
+
 namespace antlr {
 
 /*
@@ -26,8 +28,10 @@ void print_tree::pr_name( RefAST node )
 {
     std::string str;
 
+    RefDNode dNode = static_cast<RefDNode>( node);
+
     str = node->getText();
-    printf("%s ", str.c_str());
+    printf("%s(%d) ", str.c_str(), dNode->getLine());
 } // pr_name
 
 

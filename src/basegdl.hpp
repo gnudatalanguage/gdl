@@ -23,7 +23,11 @@
 #include "dimension.hpp"
 
 #ifdef USE_PYTHON
+#undef _POSIX_C_SOURCE // get rid of warning
 #include <Python.h>
+#ifndef _POSIX_C_SOURCE 
+#warning "_POSIX_C_SOURCE not defined in Python.h (remove #undef)"
+#endif
 #endif
 
 // GDL typecodes

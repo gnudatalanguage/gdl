@@ -456,7 +456,7 @@ statement returns[ GDLInterpreter::RetCode retCode]
             // a real copy must be performed (creating a new BaseGDL)  
             assignment
         |   procedure_call
-        |   lib_procedure_call
+            //        |   lib_procedure_call
         |   decinc_statement
         |   retCode=for_statement 
         |   retCode=repeat_statement
@@ -540,9 +540,14 @@ statement returns[ GDLInterpreter::RetCode retCode]
     exception 
     catch [ GDLException& e] 
     { 
-//        std::cerr << "Caught exception in statement" << std::endl;
-
         lib::write_journal( GetClearActualLine());
+
+        // many low level routines don't have errorNode info
+        // set line number here in this case
+        if( e.getLine() == 0)
+        {
+            e.SetLine( _t->getLine());
+        }
 
         ReportError(e); 
 
@@ -1058,7 +1063,22 @@ procedure_call
     BaseGDL *self;
     EnvT*   newEnv;
 }
-	:   ( #(MPCALL 
+	: #(PCALL_LIB pl:IDENTIFIER
+            {
+                EnvT* newEnv=new EnvT( this, pl, libProList[pl->proIx]);
+            }
+            parameter_def[ newEnv]
+            {
+                // push environment onto call stack
+                callStack.push_back(newEnv);
+
+                // make the call
+                static_cast<DLibPro*>(newEnv->GetPro())->Pro()(newEnv);
+            }   
+        )
+    |
+        (
+        ( #(MPCALL 
                 self=expr mp:IDENTIFIER
                 {  
                     auto_ptr<BaseGDL> self_guard(self);
@@ -1096,36 +1116,15 @@ procedure_call
             // make the call
             call_pro(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
         }   
-	;	
-
-lib_procedure_call
-{
-    StackGuard<EnvStackT> guard(callStack);
-}
-    // create the new env here
-	: #(p:PCALL_LIB 
-        id:IDENTIFIER
-            {
-                EnvT* newEnv=new EnvT( this, p, libProList[id->proIx]);
-            }
-            parameter_def[ newEnv]
-            {
-                // push environment onto call stack
-                callStack.push_back(newEnv);
-
-                // make the call
-                static_cast<DLibPro*>(newEnv->GetPro())->Pro()(newEnv);
-            }   
         )
-    ;
-
+	;	
 
 assignment
 {
     BaseGDL*  r;
     BaseGDL** l;
 }
-    : #(a:ASSIGN r=expr // getting r first makes sure something like a=a+1 works! 
+    : #(a:ASSIGN r=expr
             {
                 auto_ptr<BaseGDL> r_guard;
                 if( !callStack.back()->Contains( r)) 
@@ -1185,6 +1184,7 @@ l_deref returns [BaseGDL** res]
     ;
 
 // return value from functions when used as l var
+// used only from jump_statement and within itself
 l_ret_expr returns [BaseGDL** res]
 {
     BaseGDL*       e1;
@@ -1221,7 +1221,7 @@ l_ret_expr returns [BaseGDL** res]
               // (because it will be invalid after return otherwise)
             if( !callStack.back()->GlobalKW(var->varIx))
             throw GDLException( _t, 
-                "Attempt to return a local variable from left-function.");
+                "Attempt to return a non-global variable from left-function.");
             
             res=&callStack.back()->GetKW(var->varIx); 
         }
@@ -2164,7 +2164,7 @@ expr returns [BaseGDL* res]
     | res=dot_expr
     | res=assign_expr
     | res=function_call
-    | res=lib_function_call 
+        //    | res=lib_function_call 
     | res=r_expr
     ;
 
@@ -2246,7 +2246,22 @@ function_call returns[ BaseGDL* res]
     BaseGDL *self;
     EnvT*   newEnv;
 }
-	:   ( #(MFCALL 
+	: #(FCALL_LIB fl:IDENTIFIER
+            {
+                EnvT* newEnv=new EnvT( this, fl, libFunList[fl->funIx]);
+            }
+            parameter_def[ newEnv]
+            {
+                // push id.pro onto call stack
+                callStack.push_back(newEnv);
+                // make the call
+                res=static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
+                //*** MUST always return a defined expression
+            }
+        )
+    |
+        (
+        ( #(MFCALL 
                 self=expr mp:IDENTIFIER
                 {  
                     auto_ptr<BaseGDL> self_guard(self);
@@ -2284,52 +2299,9 @@ function_call returns[ BaseGDL* res]
             
             // make the call
             res=call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
-        }   
+        } 
+        )
 	;	
-
-//*** MUST always return a defined expression
-lib_function_call returns[ BaseGDL* res]
-{
-    StackGuard<EnvStackT> guard(callStack);
-}
-	: #(FCALL_LIB f:IDENTIFIER
-            {
-                EnvT* newEnv=new EnvT( this, f, libFunList[f->funIx]);
-            }
-            parameter_def[ newEnv]
-            {
-                // push id.pro onto call stack
-                callStack.push_back(newEnv);
-                // make the call
-                res=static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
-            }
-        )
-    ;
-
-l_lib_function_call returns[ BaseGDL** res]
-{
-    StackGuard<EnvStackT> guard(callStack);
-}
-	: #(FCALL_LIB f:IDENTIFIER
-            {
-                EnvT* newEnv=new EnvT( this, f, libFunList[f->funIx]);
-            }
-            parameter_def[ newEnv]
-            {
-                EnvT* callerEnv = callStack.back();
-                // push id.pro onto call stack
-                callStack.push_back(newEnv);
-                // make the call
-                BaseGDL* libRes = 
-                static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
-
-                res = callerEnv->GetPtrTo( libRes);
-                if( res == NULL)
-                throw GDLException( _t, "Library function must return a "
-                    "l-value in this context: "+f->getText());
-            }
-        )
-    ;
 
 // function call can be l_values (within (#EXPR ...) only)
 l_function_call returns[ BaseGDL** res]
@@ -2340,9 +2312,28 @@ l_function_call returns[ BaseGDL** res]
     BaseGDL *libRes;
     EnvT*   newEnv;
 }
-    :   (
-            res = l_lib_function_call
-        |
+
+	: #(FCALL_LIB fl:IDENTIFIER
+            {
+                EnvT* newEnv=new EnvT( this, fl, libFunList[fl->funIx]);
+            }
+            parameter_def[ newEnv]
+            {
+                EnvT* callerEnv = callStack.back();
+                // push id.pro onto call stack
+                callStack.push_back(newEnv);
+                // make the call
+                BaseGDL* libRes = 
+                static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
+                
+                res = callerEnv->GetPtrTo( libRes);
+                if( res == NULL)
+                throw GDLException( _t, "Library function must return a "
+                    "l-value in this context: "+fl->getText());
+            }
+        )
+    |
+        (
         ( #(MFCALL 
                 self=expr mp:IDENTIFIER
                 {  
@@ -2387,14 +2378,6 @@ l_function_call returns[ BaseGDL** res]
         )
 	;	
 
-/*
-as long as there is no lib_function returning a l value
-we don't need this one
-if it will be ever needed don't forget to include this
-into l_expr
-l_lib_function_call returns[ BaseGDL* res]
-*/
-
 ref_parameter returns[ BaseGDL** ret]
     : ret=l_simple_var
     | ret=l_deref
@@ -2416,7 +2399,8 @@ parameter_def [EnvT* actEnv]
            )
         | #(KEYDEF_REF knamer:IDENTIFIER kvalRef=ref_parameter
                 {
-                    actEnv->SetKeyword(knamer->getText(),kvalRef); // pass reference
+                    // pass reference
+                    actEnv->SetKeyword(knamer->getText(),kvalRef); 
                 }
            )
         | #(REF pvalRef=ref_parameter
@@ -2512,16 +2496,18 @@ arrayindex_end returns[ ArrayIndexT arrIx] // ORANGE [s:*]
             {
                 if( s->N_Elements() == 0)
                 throw 
-                GDLException( _t, "Internal error: Scalar2index: 1st index empty"); 
+                GDLException( _t, "Internal error: Scalar2index:"
+                    " 1st index empty"); 
                 else
                 throw 
-                GDLException( _t, "Expression must be a scalar in this context."); 
+                GDLException( _t, "Expression must be a scalar"
+                    " in this context."); 
             }
             if( retMsg == -1) // index < 0
             {
                 throw 
-                GDLException( _t, "Subscript range values of the form low:high " 
-                    "must be >= 0, < size, with low <= high.");
+                GDLException( _t, "Subscript range values of the"
+                    " form low:high must be >= 0, < size, with low <= high.");
             }
             arrIx = ArrayIndexT(ArrayIndexT::ORANGE,sIx);
         }
@@ -2540,14 +2526,16 @@ arrayindex returns[ ArrayIndexT arrIx] // type: 0 [data], 2 [s]
             if( s->N_Elements() == 0) // index empty or array
             {
                 throw 
-                GDLException( _t, "Internal error: Scalar2index: 1st index empty"); 
+                GDLException( _t, "Internal error: Scalar2index: 1st"
+                    " index empty"); 
             }
             
             if( s->Rank() != 0)
             {
                 // INDEXED
                 s_guard.release();
-                arrIx = ArrayIndexT( static_cast< DLongGDL*>(s->Convert2( LONG))); 
+                arrIx = 
+                ArrayIndexT( static_cast< DLongGDL*>(s->Convert2( LONG))); 
             }
             else
             {
@@ -2555,8 +2543,9 @@ arrayindex returns[ ArrayIndexT arrIx] // type: 0 [data], 2 [s]
                 if( retMsg == -1) // index < 0
                 {
                     throw 
-                    GDLException( _t, "Subscript range values of the form low:high " 
-                        "must be >= 0, < size, with low <= high.");
+                    GDLException( _t, "Subscript range values of the"
+                        " form low:high must be >= 0, < size,"
+                        " with low <= high.");
                 }
                 else arrIx = ArrayIndexT(ArrayIndexT::ONE, sIx); // ONE
             }
@@ -2612,7 +2601,8 @@ array_def returns [BaseGDL* res]
                     DType ty=e->Type();
                     if( ty == UNDEF)
                     {
-                        throw GDLException( _t, "Variable is undefined: "+Name(e));
+                        throw GDLException( _t, "Variable is undefined: "+
+                            Name(e));
                     }
                     if( cType == UNDEF) 
                     {
@@ -2626,8 +2616,8 @@ array_def returns [BaseGDL* res]
                             if( DTypeOrder[ty] > 100) // struct, ptr, object
                             {
                                 throw 
-                                GDLException( _t, e->TypeStr()+" is not allowed"
-                                    " in this context.");
+                                GDLException( _t, e->TypeStr()+
+                                    " is not allowed in this context.");
                             }
                             
                             // update order if larger type (or types are equal)

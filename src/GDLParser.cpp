@@ -2967,6 +2967,7 @@ void GDLParser::deref_expr() {
 				
 				dot=astFactory->create(DOT,".");
 				dot->SetNDot( nDot);    
+				dot->SetLine( a1_AST->getLine());
 				
 				deref_expr_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(dot))->add(antlr::RefAST(deref_expr_AST))));
 				
@@ -3940,6 +3941,7 @@ void GDLParser::parameter_def() {
 			
 			RefDNode c=static_cast<RefDNode>( astFactory->create(CONSTANT,"1"));
 			c->Text2Int(10);
+			c->SetLine( id_AST->getLine());
 			parameter_def_AST = RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(KEYDEF,"!=!")))->add(antlr::RefAST(id_AST))->add(antlr::RefAST(c))));
 			
 			currentAST.root = parameter_def_AST;
@@ -4480,6 +4482,7 @@ void GDLParser::numeric_constant() {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c1->getText());
 					  numeric_constant_AST->Text2Byte(16);	
+					  numeric_constant_AST->SetLine( c1->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
 			if ( numeric_constant_AST!=RefDNode(antlr::nullAST) &&
@@ -4502,6 +4505,7 @@ void GDLParser::numeric_constant() {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c2->getText());
 					  numeric_constant_AST->Text2Long(16);	
+					  numeric_constant_AST->SetLine( c2->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
 			if ( numeric_constant_AST!=RefDNode(antlr::nullAST) &&
@@ -4524,6 +4528,7 @@ void GDLParser::numeric_constant() {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c3->getText());
 					  numeric_constant_AST->Text2Long64(16);	
+					  numeric_constant_AST->SetLine( c3->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
 			if ( numeric_constant_AST!=RefDNode(antlr::nullAST) &&
@@ -4546,6 +4551,7 @@ void GDLParser::numeric_constant() {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c4->getText());
 					  numeric_constant_AST->Text2Int(16);	
+					  numeric_constant_AST->SetLine( c4->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
 			if ( numeric_constant_AST!=RefDNode(antlr::nullAST) &&
@@ -4568,6 +4574,7 @@ void GDLParser::numeric_constant() {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c44->getText());
 					  numeric_constant_AST->Text2Int(16,true);	
+					  numeric_constant_AST->SetLine( c44->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
 			if ( numeric_constant_AST!=RefDNode(antlr::nullAST) &&
@@ -4590,6 +4597,7 @@ void GDLParser::numeric_constant() {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c5->getText());
 					  numeric_constant_AST->Text2ULong(16);	
+					  numeric_constant_AST->SetLine( c5->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
 			if ( numeric_constant_AST!=RefDNode(antlr::nullAST) &&
@@ -4612,6 +4620,7 @@ void GDLParser::numeric_constant() {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c6->getText());
 					  numeric_constant_AST->Text2ULong64(16);	
+					  numeric_constant_AST->SetLine( c6->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
 			if ( numeric_constant_AST!=RefDNode(antlr::nullAST) &&
@@ -4634,6 +4643,7 @@ void GDLParser::numeric_constant() {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c77->getText());
 					  numeric_constant_AST->Text2UInt(16,true);	
+					  numeric_constant_AST->SetLine( c77->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
 			if ( numeric_constant_AST!=RefDNode(antlr::nullAST) &&
@@ -4656,6 +4666,7 @@ void GDLParser::numeric_constant() {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c7->getText());
 					  numeric_constant_AST->Text2UInt(16);	
+					  numeric_constant_AST->SetLine( c7->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
 			if ( numeric_constant_AST!=RefDNode(antlr::nullAST) &&
@@ -4678,6 +4689,7 @@ void GDLParser::numeric_constant() {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c8->getText());
 					  numeric_constant_AST->Text2Byte(10);	
+					  numeric_constant_AST->SetLine( c8->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
 			if ( numeric_constant_AST!=RefDNode(antlr::nullAST) &&
@@ -4700,6 +4712,7 @@ void GDLParser::numeric_constant() {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c9->getText());
 					  numeric_constant_AST->Text2Long(10);	
+					  numeric_constant_AST->SetLine( c9->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
 			if ( numeric_constant_AST!=RefDNode(antlr::nullAST) &&
@@ -4722,6 +4735,7 @@ void GDLParser::numeric_constant() {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c10->getText());
 					  numeric_constant_AST->Text2Long64(10);	
+					  numeric_constant_AST->SetLine( c10->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
 			if ( numeric_constant_AST!=RefDNode(antlr::nullAST) &&
@@ -4744,6 +4758,7 @@ void GDLParser::numeric_constant() {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c11->getText());
 					  numeric_constant_AST->Text2Int(10);	
+					  numeric_constant_AST->SetLine( c11->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
 			if ( numeric_constant_AST!=RefDNode(antlr::nullAST) &&
@@ -4766,6 +4781,7 @@ void GDLParser::numeric_constant() {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c111->getText());
 					  numeric_constant_AST->Text2Int(10,true);	
+					  numeric_constant_AST->SetLine( c111->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
 			if ( numeric_constant_AST!=RefDNode(antlr::nullAST) &&
@@ -4788,6 +4804,7 @@ void GDLParser::numeric_constant() {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c12->getText());
 					  numeric_constant_AST->Text2ULong(10);	
+					  numeric_constant_AST->SetLine( c12->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
 			if ( numeric_constant_AST!=RefDNode(antlr::nullAST) &&
@@ -4810,6 +4827,7 @@ void GDLParser::numeric_constant() {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c13->getText());
 					  numeric_constant_AST->Text2ULong64(10);	
+					  numeric_constant_AST->SetLine( c13->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
 			if ( numeric_constant_AST!=RefDNode(antlr::nullAST) &&
@@ -4832,6 +4850,7 @@ void GDLParser::numeric_constant() {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c144->getText());
 					  numeric_constant_AST->Text2UInt(10,true);	
+					  numeric_constant_AST->SetLine( c144->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
 			if ( numeric_constant_AST!=RefDNode(antlr::nullAST) &&
@@ -4854,6 +4873,7 @@ void GDLParser::numeric_constant() {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c14->getText());
 					  numeric_constant_AST->Text2UInt(10);	
+					  numeric_constant_AST->SetLine( c14->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
 			if ( numeric_constant_AST!=RefDNode(antlr::nullAST) &&
@@ -4876,6 +4896,7 @@ void GDLParser::numeric_constant() {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c15->getText());
 					  numeric_constant_AST->Text2Byte(8);	
+					  numeric_constant_AST->SetLine( c15->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
 			if ( numeric_constant_AST!=RefDNode(antlr::nullAST) &&
@@ -4898,6 +4919,7 @@ void GDLParser::numeric_constant() {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c16->getText());
 					  numeric_constant_AST->Text2Long(8);	
+					  numeric_constant_AST->SetLine( c16->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
 			if ( numeric_constant_AST!=RefDNode(antlr::nullAST) &&
@@ -4920,6 +4942,7 @@ void GDLParser::numeric_constant() {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c17->getText());
 					  numeric_constant_AST->Text2Long64(8);	
+					  numeric_constant_AST->SetLine( c17->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
 			if ( numeric_constant_AST!=RefDNode(antlr::nullAST) &&
@@ -4942,6 +4965,7 @@ void GDLParser::numeric_constant() {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c18->getText());
 					  numeric_constant_AST->Text2Int(8);	
+					  numeric_constant_AST->SetLine( c18->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
 			if ( numeric_constant_AST!=RefDNode(antlr::nullAST) &&
@@ -4964,6 +4988,7 @@ void GDLParser::numeric_constant() {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c188->getText());
 					  numeric_constant_AST->Text2Int(8,true);	
+					  numeric_constant_AST->SetLine( c188->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
 			if ( numeric_constant_AST!=RefDNode(antlr::nullAST) &&
@@ -4986,6 +5011,7 @@ void GDLParser::numeric_constant() {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c19->getText());
 					  numeric_constant_AST->Text2ULong(8);	
+					  numeric_constant_AST->SetLine( c19->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
 			if ( numeric_constant_AST!=RefDNode(antlr::nullAST) &&
@@ -5008,6 +5034,7 @@ void GDLParser::numeric_constant() {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c20->getText());
 					  numeric_constant_AST->Text2ULong64(8);	
+					  numeric_constant_AST->SetLine( c20->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
 			if ( numeric_constant_AST!=RefDNode(antlr::nullAST) &&
@@ -5030,6 +5057,7 @@ void GDLParser::numeric_constant() {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c211->getText());
 					  numeric_constant_AST->Text2UInt(8,true);	
+					  numeric_constant_AST->SetLine( c211->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
 			if ( numeric_constant_AST!=RefDNode(antlr::nullAST) &&
@@ -5052,6 +5080,7 @@ void GDLParser::numeric_constant() {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c21->getText());
 					  numeric_constant_AST->Text2UInt(8);	
+					  numeric_constant_AST->SetLine( c21->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
 			if ( numeric_constant_AST!=RefDNode(antlr::nullAST) &&
@@ -5074,6 +5103,7 @@ void GDLParser::numeric_constant() {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c22->getText());
 					  numeric_constant_AST->Text2Float();	
+					  numeric_constant_AST->SetLine( c22->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
 			if ( numeric_constant_AST!=RefDNode(antlr::nullAST) &&
@@ -5095,7 +5125,8 @@ void GDLParser::numeric_constant() {
 		if ( inputState->guessing==0 ) {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c23->getText());
-						numeric_constant_AST->Text2Double();	
+			numeric_constant_AST->Text2Double();	
+					  numeric_constant_AST->SetLine( c23->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
 			if ( numeric_constant_AST!=RefDNode(antlr::nullAST) &&
@@ -5808,6 +5839,7 @@ void GDLParser::array_expr_fn() {
 			
 			dot=astFactory->create(DOT,".");
 			dot->SetNDot( nDot);    
+			dot->SetLine( al_AST->getLine());
 			
 			array_expr_fn_AST = 
 				  		RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(dot))->add(antlr::RefAST(RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(ARRAYEXPR,"arrayexpr")))->add(antlr::RefAST(al_AST))->add(antlr::RefAST(v_AST))))))->add(antlr::RefAST(t))));
@@ -5942,6 +5974,7 @@ void GDLParser::primary_expr() {
 			primary_expr_AST = RefDNode(currentAST.root);
 			primary_expr_AST=astFactory->create(CONSTANT,sl->getText());
 			primary_expr_AST->Text2String();	
+			primary_expr_AST->SetLine( sl_AST->getLine());
 					
 			currentAST.root = primary_expr_AST;
 			if ( primary_expr_AST!=RefDNode(antlr::nullAST) &&
@@ -7096,7 +7129,7 @@ void GDLParser::logical_expr() {
 
 void GDLParser::initializeASTFactory( antlr::ASTFactory& factory )
 {
-	factory.setMaxNodeType(190);
+	factory.setMaxNodeType(192);
 }
 const char* GDLParser::tokenNames[] = {
 	"<0>",
@@ -7130,7 +7163,9 @@ const char* GDLParser::tokenNames[] = {
 	"MPCALL",
 	"MPCALL_PARENT",
 	"MFCALL",
+	"MFCALL_LIB",
 	"MFCALL_PARENT",
+	"MFCALL_PARENT_LIB",
 	"NOP",
 	"NSTRUC",
 	"NSTRUC_REF",
@@ -7293,7 +7328,7 @@ const char* GDLParser::tokenNames[] = {
 	0
 };
 
-const unsigned long GDLParser::_tokenSet_0_data_[] = { 2UL, 3933208576UL, 16381UL, 4287967068UL, 2556428287UL, 2048UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_0_data_[] = { 2UL, 2847932416UL, 65527UL, 4266966384UL, 1635778559UL, 8194UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // EOF "function" "pro" IDENTIFIER "begin" "switch" "else" "case" END_U 
 // "forward_function" "end" "compile_opt" "common" "endif" "endelse" "endcase" 
 // "endswitch" "endfor" "endwhile" "endrep" DEC INC "break" "continue" 
@@ -7307,10 +7342,10 @@ const unsigned long GDLParser::_tokenSet_0_data_[] = { 2UL, 3933208576UL, 16381U
 // CONSTANT_OCT_UINT CONSTANT_FLOAT CONSTANT_DOUBLE ASTERIX STRING_LITERAL 
 // PLUS MINUS "not" LOG_NEG 
 const antlr::BitSet GDLParser::_tokenSet_0(_tokenSet_0_data_,12);
-const unsigned long GDLParser::_tokenSet_1_data_[] = { 0UL, 4194304UL, 0UL, 270336UL, 1048576UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_1_data_[] = { 0UL, 16777216UL, 0UL, 1081344UL, 4194304UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER LBRACE SYSVARNAME ASTERIX 
 const antlr::BitSet GDLParser::_tokenSet_1(_tokenSet_1_data_,12);
-const unsigned long GDLParser::_tokenSet_2_data_[] = { 0UL, 4194304UL, 4294963202UL, 4287963139UL, 2558525439UL, 2048UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_2_data_[] = { 0UL, 16777216UL, 4294950920UL, 4266950671UL, 1644167167UL, 8194UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER EQUAL DEC INC AND_OP_EQ ASTERIX_EQ EQ_OP_EQ GE_OP_EQ GTMARK_EQ 
 // GT_OP_EQ LE_OP_EQ LTMARK_EQ LT_OP_EQ MATRIX_OP1_EQ MATRIX_OP2_EQ MINUS_EQ 
 // MOD_OP_EQ NE_OP_EQ OR_OP_EQ PLUS_EQ POW_EQ SLASH_EQ XOR_OP_EQ MEMBER 
@@ -7323,10 +7358,10 @@ const unsigned long GDLParser::_tokenSet_2_data_[] = { 0UL, 4194304UL, 429496320
 // CONSTANT_OCT_ULONG64 CONSTANT_OCT_UI CONSTANT_OCT_UINT CONSTANT_FLOAT 
 // CONSTANT_DOUBLE ASTERIX DOT STRING_LITERAL PLUS MINUS "not" LOG_NEG 
 const antlr::BitSet GDLParser::_tokenSet_2(_tokenSet_2_data_,12);
-const unsigned long GDLParser::_tokenSet_3_data_[] = { 0UL, 2701131776UL, 0UL, 32UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_3_data_[] = { 0UL, 2214592512UL, 2UL, 128UL, 0UL, 0UL, 0UL, 0UL };
 // COMMA "else" END_U "until" 
 const antlr::BitSet GDLParser::_tokenSet_3(_tokenSet_3_data_,8);
-const unsigned long GDLParser::_tokenSet_4_data_[] = { 0UL, 541065216UL, 12288UL, 4287963136UL, 2556428287UL, 2048UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_4_data_[] = { 0UL, 2164260864UL, 49152UL, 4266950656UL, 1635778559UL, 8194UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER "else" DEC INC LBRACE LSQUARE SYSVARNAME LCURLY CONSTANT_HEX_BYTE 
 // CONSTANT_HEX_LONG CONSTANT_HEX_LONG64 CONSTANT_HEX_INT CONSTANT_HEX_I 
 // CONSTANT_HEX_ULONG CONSTANT_HEX_ULONG64 CONSTANT_HEX_UI CONSTANT_HEX_UINT 
@@ -7337,12 +7372,12 @@ const unsigned long GDLParser::_tokenSet_4_data_[] = { 0UL, 541065216UL, 12288UL
 // CONSTANT_FLOAT CONSTANT_DOUBLE ASTERIX STRING_LITERAL PLUS MINUS "not" 
 // LOG_NEG 
 const antlr::BitSet GDLParser::_tokenSet_4(_tokenSet_4_data_,12);
-const unsigned long GDLParser::_tokenSet_5_data_[] = { 0UL, 1245708288UL, 12313UL, 274268UL, 1048576UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_5_data_[] = { 0UL, 687865856UL, 49253UL, 1097072UL, 4194304UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER "begin" "switch" "case" "forward_function" "compile_opt" 
 // "common" DEC INC "break" "continue" "repeat" "while" "for" "goto" "on_ioerror" 
 // "if" LBRACE SYSVARNAME ASTERIX 
 const antlr::BitSet GDLParser::_tokenSet_5(_tokenSet_5_data_,12);
-const unsigned long GDLParser::_tokenSet_6_data_[] = { 0UL, 3409969152UL, 4294963227UL, 4287967071UL, 2558525439UL, 2048UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_6_data_[] = { 0UL, 754974720UL, 4294951023UL, 4266966399UL, 1644167167UL, 8194UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER COMMA "begin" "switch" "case" END_U "forward_function" EQUAL 
 // "compile_opt" "common" DEC INC AND_OP_EQ ASTERIX_EQ EQ_OP_EQ GE_OP_EQ 
 // GTMARK_EQ GT_OP_EQ LE_OP_EQ LTMARK_EQ LT_OP_EQ MATRIX_OP1_EQ MATRIX_OP2_EQ 
@@ -7357,7 +7392,7 @@ const unsigned long GDLParser::_tokenSet_6_data_[] = { 0UL, 3409969152UL, 429496
 // CONSTANT_OCT_ULONG64 CONSTANT_OCT_UI CONSTANT_OCT_UINT CONSTANT_FLOAT 
 // CONSTANT_DOUBLE ASTERIX DOT STRING_LITERAL PLUS MINUS "not" LOG_NEG 
 const antlr::BitSet GDLParser::_tokenSet_6(_tokenSet_6_data_,12);
-const unsigned long GDLParser::_tokenSet_7_data_[] = { 2UL, 3933208576UL, 16381UL, 4287999836UL, 2556428287UL, 2048UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_7_data_[] = { 2UL, 2847932416UL, 65527UL, 4267097456UL, 1635778559UL, 8194UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // EOF "function" "pro" IDENTIFIER "begin" "switch" "else" "case" END_U 
 // "forward_function" "end" "compile_opt" "common" "endif" "endelse" "endcase" 
 // "endswitch" "endfor" "endwhile" "endrep" DEC INC "break" "continue" 
@@ -7371,7 +7406,7 @@ const unsigned long GDLParser::_tokenSet_7_data_[] = { 2UL, 3933208576UL, 16381U
 // CONSTANT_OCT_UI CONSTANT_OCT_UINT CONSTANT_FLOAT CONSTANT_DOUBLE ASTERIX 
 // STRING_LITERAL PLUS MINUS "not" LOG_NEG 
 const antlr::BitSet GDLParser::_tokenSet_7(_tokenSet_7_data_,12);
-const unsigned long GDLParser::_tokenSet_8_data_[] = { 0UL, 4194304UL, 12288UL, 4287963136UL, 2556428287UL, 2048UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_8_data_[] = { 0UL, 16777216UL, 49152UL, 4266950656UL, 1635778559UL, 8194UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER DEC INC LBRACE LSQUARE SYSVARNAME LCURLY CONSTANT_HEX_BYTE 
 // CONSTANT_HEX_LONG CONSTANT_HEX_LONG64 CONSTANT_HEX_INT CONSTANT_HEX_I 
 // CONSTANT_HEX_ULONG CONSTANT_HEX_ULONG64 CONSTANT_HEX_UI CONSTANT_HEX_UINT 
@@ -7382,7 +7417,7 @@ const unsigned long GDLParser::_tokenSet_8_data_[] = { 0UL, 4194304UL, 12288UL, 
 // CONSTANT_FLOAT CONSTANT_DOUBLE ASTERIX STRING_LITERAL PLUS MINUS "not" 
 // LOG_NEG 
 const antlr::BitSet GDLParser::_tokenSet_8(_tokenSet_8_data_,12);
-const unsigned long GDLParser::_tokenSet_9_data_[] = { 0UL, 2705326080UL, 12288UL, 4288536610UL, 4294967295UL, 8191UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_9_data_[] = { 0UL, 2231369728UL, 49154UL, 4269244552UL, 4294967295UL, 32767UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER COMMA "else" END_U DEC INC MEMBER "until" LBRACE RBRACE SLASH 
 // LSQUARE SYSVARNAME EXCLAMATION LCURLY CONSTANT_HEX_BYTE CONSTANT_HEX_LONG 
 // CONSTANT_HEX_LONG64 CONSTANT_HEX_INT CONSTANT_HEX_I CONSTANT_HEX_ULONG 
@@ -7395,7 +7430,7 @@ const unsigned long GDLParser::_tokenSet_9_data_[] = { 0UL, 2705326080UL, 12288U
 // "mod" PLUS MINUS LTMARK GTMARK "not" "eq" "ne" "le" "lt" "ge" "gt" "and" 
 // "or" "xor" LOG_AND LOG_OR LOG_NEG QUESTION 
 const antlr::BitSet GDLParser::_tokenSet_9(_tokenSet_9_data_,12);
-const unsigned long GDLParser::_tokenSet_10_data_[] = { 0UL, 20971520UL, 12288UL, 4290617346UL, 4294967295UL, 8191UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_10_data_[] = { 0UL, 83886080UL, 49152UL, 4277567496UL, 4294967295UL, 32767UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER COMMA DEC INC MEMBER LBRACE SLASH LSQUARE SYSVARNAME EXCLAMATION 
 // LCURLY RCURLY CONSTANT_HEX_BYTE CONSTANT_HEX_LONG CONSTANT_HEX_LONG64 
 // CONSTANT_HEX_INT CONSTANT_HEX_I CONSTANT_HEX_ULONG CONSTANT_HEX_ULONG64 
@@ -7408,7 +7443,7 @@ const unsigned long GDLParser::_tokenSet_10_data_[] = { 0UL, 20971520UL, 12288UL
 // GTMARK "not" "eq" "ne" "le" "lt" "ge" "gt" "and" "or" "xor" LOG_AND 
 // LOG_OR LOG_NEG QUESTION 
 const antlr::BitSet GDLParser::_tokenSet_10(_tokenSet_10_data_,12);
-const unsigned long GDLParser::_tokenSet_11_data_[] = { 0UL, 4194304UL, 12288UL, 4288487424UL, 2556428287UL, 2048UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_11_data_[] = { 0UL, 16777216UL, 49152UL, 4269047808UL, 1635778559UL, 8194UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER DEC INC LBRACE LSQUARE SYSVARNAME EXCLAMATION LCURLY CONSTANT_HEX_BYTE 
 // CONSTANT_HEX_LONG CONSTANT_HEX_LONG64 CONSTANT_HEX_INT CONSTANT_HEX_I 
 // CONSTANT_HEX_ULONG CONSTANT_HEX_ULONG64 CONSTANT_HEX_UI CONSTANT_HEX_UINT 
@@ -7419,7 +7454,7 @@ const unsigned long GDLParser::_tokenSet_11_data_[] = { 0UL, 4194304UL, 12288UL,
 // CONSTANT_FLOAT CONSTANT_DOUBLE ASTERIX STRING_LITERAL PLUS MINUS "not" 
 // LOG_NEG 
 const antlr::BitSet GDLParser::_tokenSet_11(_tokenSet_11_data_,12);
-const unsigned long GDLParser::_tokenSet_12_data_[] = { 0UL, 88080384UL, 12288UL, 4288667650UL, 4294967295UL, 8191UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_12_data_[] = { 0UL, 352321536UL, 49152UL, 4269768712UL, 4294967295UL, 32767UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER COMMA COLON DEC INC MEMBER LBRACE RBRACE SLASH LSQUARE RSQUARE 
 // SYSVARNAME EXCLAMATION LCURLY CONSTANT_HEX_BYTE CONSTANT_HEX_LONG CONSTANT_HEX_LONG64 
 // CONSTANT_HEX_INT CONSTANT_HEX_I CONSTANT_HEX_ULONG CONSTANT_HEX_ULONG64 
@@ -7432,7 +7467,7 @@ const unsigned long GDLParser::_tokenSet_12_data_[] = { 0UL, 88080384UL, 12288UL
 // GTMARK "not" "eq" "ne" "le" "lt" "ge" "gt" "and" "or" "xor" LOG_AND 
 // LOG_OR LOG_NEG QUESTION 
 const antlr::BitSet GDLParser::_tokenSet_12(_tokenSet_12_data_,12);
-const unsigned long GDLParser::_tokenSet_13_data_[] = { 0UL, 20971520UL, 12288UL, 4288667650UL, 4294967295UL, 8191UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_13_data_[] = { 0UL, 83886080UL, 49152UL, 4269768712UL, 4294967295UL, 32767UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER COMMA DEC INC MEMBER LBRACE RBRACE SLASH LSQUARE RSQUARE 
 // SYSVARNAME EXCLAMATION LCURLY CONSTANT_HEX_BYTE CONSTANT_HEX_LONG CONSTANT_HEX_LONG64 
 // CONSTANT_HEX_INT CONSTANT_HEX_I CONSTANT_HEX_ULONG CONSTANT_HEX_ULONG64 
@@ -7445,7 +7480,7 @@ const unsigned long GDLParser::_tokenSet_13_data_[] = { 0UL, 20971520UL, 12288UL
 // GTMARK "not" "eq" "ne" "le" "lt" "ge" "gt" "and" "or" "xor" LOG_AND 
 // LOG_OR LOG_NEG QUESTION 
 const antlr::BitSet GDLParser::_tokenSet_13(_tokenSet_13_data_,12);
-const unsigned long GDLParser::_tokenSet_14_data_[] = { 0UL, 3040870400UL, 12288UL, 4290244770UL, 4294967295UL, 8191UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_14_data_[] = { 0UL, 3573547008UL, 49154UL, 4276077192UL, 4294967295UL, 32767UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER COMMA COLON "of" "else" END_U DEC INC MEMBER "until" "do" 
 // "then" LBRACE RBRACE SLASH LSQUARE RSQUARE SYSVARNAME LCURLY RCURLY 
 // CONSTANT_HEX_BYTE CONSTANT_HEX_LONG CONSTANT_HEX_LONG64 CONSTANT_HEX_INT 
@@ -7458,7 +7493,7 @@ const unsigned long GDLParser::_tokenSet_14_data_[] = { 0UL, 3040870400UL, 12288
 // POW MATRIX_OP1 MATRIX_OP2 "mod" PLUS MINUS LTMARK GTMARK "not" "eq" 
 // "ne" "le" "lt" "ge" "gt" "and" "or" "xor" LOG_AND LOG_OR LOG_NEG QUESTION 
 const antlr::BitSet GDLParser::_tokenSet_14(_tokenSet_14_data_,12);
-const unsigned long GDLParser::_tokenSet_15_data_[] = { 0UL, 0UL, 0UL, 32768UL, 118489088UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_15_data_[] = { 0UL, 0UL, 0UL, 131072UL, 473956352UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // SLASH ASTERIX MATRIX_OP1 MATRIX_OP2 "mod" 
 const antlr::BitSet GDLParser::_tokenSet_15(_tokenSet_15_data_,12);
 

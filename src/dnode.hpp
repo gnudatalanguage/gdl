@@ -123,26 +123,37 @@ public:
     lineNumber = l_;
   }
 
-  int getLine(void) const
-  {
-    if( lineNumber != 0)
+  int getLine() const
+  { 
+    if( lineNumber != 0 || BaseAST::getFirstChild() == NULL)
       return lineNumber;
-    else {
-      if( BaseAST::getFirstChild() == NULL){
-	if( BaseAST::getNextSibling() == NULL){
-	  return lineNumber;
-	}
-	else {
-	  return 
-	    static_cast<RefDNode>((BaseAST::getNextSibling()))->getLine();
-	}
-	return lineNumber;
-      }
-      else {
-	return 
-	  static_cast<RefDNode>((BaseAST::getFirstChild()))->getLine();
-      }
-    }
+    // this handles inserted nodes
+    return static_cast<RefDNode>(BaseAST::getFirstChild())->getLine();
+
+// This was just too clever :-)
+//     if( lineNumber != 0)
+//       return lineNumber;
+//     else 
+//       {
+// 	if( BaseAST::getFirstChild() == NULL)
+// 	  {
+// 	    if( BaseAST::getNextSibling() == NULL)
+// 	      {
+// 		return lineNumber;
+// 	      }
+// 	    else 
+// 	      {
+// 		return 
+// 		  static_cast<RefDNode>(BaseAST::getNextSibling())->getLine();
+// 	      }
+// 	    return lineNumber;
+// 	  }
+// 	else 
+// 	  {
+// 	    return 
+// 	      static_cast<RefDNode>(BaseAST::getFirstChild())->getLine();
+// 	  }
+//       }
   }
     
   void SetVarIx(int vIx)

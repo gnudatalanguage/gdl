@@ -339,7 +339,6 @@ public:
 	public: void call_pro(RefDNode _t);
 	public: void assignment(RefDNode _t);
 	public: void procedure_call(RefDNode _t);
-	public: void lib_procedure_call(RefDNode _t);
 	public: void decinc_statement(RefDNode _t);
 	public:  GDLInterpreter::RetCode  for_statement(RefDNode _t);
 	public:  GDLInterpreter::RetCode  repeat_statement(RefDNode _t);
@@ -411,8 +410,6 @@ public:
 	public: BaseGDL*  dot_expr(RefDNode _t);
 	public: BaseGDL*  assign_expr(RefDNode _t);
 	public:  BaseGDL*  function_call(RefDNode _t);
-	public:  BaseGDL*  lib_function_call(RefDNode _t);
-	public:  BaseGDL**  l_lib_function_call(RefDNode _t);
 	public:  BaseGDL**  ref_parameter(RefDNode _t);
 	public:  ArrayIndexT  arrayindex_all(RefDNode _t);
 	public:  ArrayIndexT  arrayindex_range(RefDNode _t);
@@ -432,10 +429,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 191;
+	static const int NUM_TOKENS = 193;
 #else
 	enum {
-		NUM_TOKENS = 191
+		NUM_TOKENS = 193
 	};
 #endif
 	
