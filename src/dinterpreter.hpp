@@ -25,6 +25,8 @@
 #include <fstream>
 #include <csignal>
 
+#include <fenv.h>
+
 #include "initsysvar.hpp"
 #include "objects.hpp"
 #include "GDLLexer.hpp"

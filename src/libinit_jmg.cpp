@@ -65,6 +65,9 @@ void LibInit_jmg()
   new DLibFun(lib::random_fun,string("RANDOMU"),MAXRANK,randomKey);
   new DLibFun(lib::random_fun,string("RANDOMN"),MAXRANK,randomKey);
 
+  const string checkmathKey[]={"MASK","NOCLEAR","PRINT",KLISTEND};
+  new DLibFun(lib::check_math_fun,string("CHECK_MATH"),0,checkmathKey);
+
   const string histogramKey[]={"BINSIZE","INPUT","MAX","MIN","NBINS",
 			       "OMAX","OMIN","REVERSE_INDICES",KLISTEND};
   new DLibFun(lib::histogram_fun,string("HISTOGRAM"),1,histogramKey);

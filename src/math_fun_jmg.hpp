@@ -18,6 +18,7 @@
 #ifndef MATH_FUN_HPP_
 #define MATH_FUN_HPP_
 
+#include <fenv.h>
 #include "datatypes.hpp"
 #include "envt.hpp"
 #include "math_utl.hpp"
@@ -26,8 +27,8 @@ namespace lib {
 
 //   BaseGDL* transpose_fun( EnvT* e);
   BaseGDL* machar_fun( EnvT* e);
-
   BaseGDL* finite_fun( EnvT* e);
+  BaseGDL* check_math_fun( EnvT* e);
 
 } // namespace
 

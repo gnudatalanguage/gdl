@@ -712,7 +712,10 @@ string DInterpreter::GetLine()
 // the main loop
 GDLInterpreter::RetCode DInterpreter::InterpreterLoop()
 {
+
   for (;;) {
+    feclearexcept(FE_ALL_EXCEPT);
+
     try
       {
 	DInterpreter::CommandCode ret=ExecuteLine();

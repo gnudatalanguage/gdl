@@ -288,5 +288,57 @@ namespace lib {
     return res;
   }
 
+
+  BaseGDL* check_math_fun( EnvT* e)
+  {
+    DLong value=0;
+    DLong mask=255;
+
+    if( e->KeywordSet( "MASK"))
+      e->AssureLongScalarKWIfPresent( "MASK", mask);	
+
+    if (mask & 16) {
+      if (fetestexcept(FE_DIVBYZERO)) {
+	value = value | 16;
+	if ( e->KeywordSet( "PRINT"))
+	  cout << 
+	    "% Program caused arithmetic error: Floating divide by 0" << endl;
+	if ( !e->KeywordSet( "NOCLEAR")) feclearexcept(FE_DIVBYZERO); 
+      }
+    }
+
+    if (mask & 32) {
+      if (fetestexcept(FE_UNDERFLOW)) {
+	value = value | 32;
+	if ( e->KeywordSet( "PRINT"))
+	  cout << 
+	    "% Program caused arithmetic error: Floating underflow" << endl;
+	if ( !e->KeywordSet( "NOCLEAR")) feclearexcept(FE_UNDERFLOW); 
+      }
+    }
+
+    if (mask & 64) {
+      if (fetestexcept(FE_OVERFLOW)) {
+	value = value | 64;
+	if ( e->KeywordSet( "PRINT"))
+	  cout << 
+	    "% Program caused arithmetic error: Floating overflow" << endl;
+	if ( !e->KeywordSet( "NOCLEAR")) feclearexcept(FE_OVERFLOW); 
+      }
+    }
+
+    if (mask & 128 && value == 0) {
+      if (fetestexcept(FE_INVALID)) {
+	value = value | 128;
+	if ( e->KeywordSet( "PRINT"))
+	  cout << 
+	    "% Program caused arithmetic error: Floating illegal operand" << endl;
+	if ( !e->KeywordSet( "NOCLEAR")) feclearexcept(FE_INVALID); 
+      }
+    }
+
+    return new DLongGDL( value );
+  }
+
 } // namespace
 
