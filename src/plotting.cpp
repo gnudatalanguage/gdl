@@ -361,9 +361,10 @@ namespace lib {
 
   // !P
   void GetPData( DLong& p_background,
-		 DLong& p_noErase, DLong& p_color, DLong& p_psym,DLong& p_linestyle,
+		 DLong& p_noErase, DLong& p_color, DLong& p_psym,
+		 DLong& p_linestyle,
 		 DFloat& p_symsize, DFloat& p_charsize, DFloat& p_thick,
-		 DString& p_title, DString& p_subTitle)
+		 DString& p_title, DString& p_subTitle, DFloat& p_ticklen)
   {
     static DStructGDL* pStruct = SysVar::P();
     static unsigned backgroundTag = pStruct->Desc()->TagIndex( "BACKGROUND");
@@ -374,6 +375,7 @@ namespace lib {
     static unsigned symsizeTag = pStruct->Desc()->TagIndex( "SYMSIZE");
     static unsigned charsizeTag = pStruct->Desc()->TagIndex( "CHARSIZE");
     static unsigned thickTag = pStruct->Desc()->TagIndex( "THICK");
+    static unsigned ticklenTag = pStruct->Desc()->TagIndex( "TICKLEN");
     static unsigned titleTag = pStruct->Desc()->TagIndex( "TITLE");
     static unsigned subTitleTag = pStruct->Desc()->TagIndex( "SUBTITLE");
     p_background = 
@@ -396,17 +398,20 @@ namespace lib {
       (*static_cast<DStringGDL*>( pStruct->Get( titleTag, 0)))[0];
     p_subTitle = 
       (*static_cast<DStringGDL*>( pStruct->Get( subTitleTag, 0)))[0];
+    p_ticklen = 
+      (*static_cast<DFloatGDL*>( pStruct->Get( ticklenTag, 0)))[0];
   }
 
   // !X, !Y, !Z
   void GetAxisData( DStructGDL* xStruct,
 		    DLong& style, DString& title, DFloat& charSize,
-		    DFloat& margin0, DFloat& margin1)
+		    DFloat& margin0, DFloat& margin1, DFloat& ticklen)
   {		    
     static unsigned styleTag = xStruct->Desc()->TagIndex( "STYLE");
     static unsigned marginTag = xStruct->Desc()->TagIndex( "MARGIN");
     static unsigned axisTitleTag = xStruct->Desc()->TagIndex( "TITLE");
     static unsigned axischarsizeTag = xStruct->Desc()->TagIndex( "CHARSIZE");
+    static unsigned ticklenTag = xStruct->Desc()->TagIndex( "TICKLEN");
     style = 
       (*static_cast<DLongGDL*>( xStruct->Get( styleTag, 0)))[0];
     title = 
@@ -417,6 +422,8 @@ namespace lib {
       (*static_cast<DFloatGDL*>( xStruct->Get( marginTag, 0)))[0];
     margin1 = 
       (*static_cast<DFloatGDL*>( xStruct->Get( marginTag, 0)))[1];
+    ticklen = 
+      (*static_cast<DFloatGDL*>( xStruct->Get( ticklenTag, 0)))[0];
   }
 
 
@@ -460,11 +467,12 @@ namespace lib {
     DFloat p_thick; 
     DString p_title; 
     DString p_subTitle; 
+    DFloat p_ticklen; 
     
     GetPData( p_background,
-	      p_noErase, p_color, p_psym,p_linestyle,
+	      p_noErase, p_color, p_psym, p_linestyle,
 	      p_symsize, p_charsize, p_thick,
-	      p_title, p_subTitle);
+	      p_title, p_subTitle, p_ticklen);
 
     // !X, !Y (also used below)
     static DStructGDL* xStruct = SysVar::X();
@@ -479,8 +487,12 @@ namespace lib {
     DFloat xMarginR; 
     DFloat yMarginB; 
     DFloat yMarginT; 
-    GetAxisData( xStruct, xStyle, xTitle, x_CharSize, xMarginL, xMarginR);
-    GetAxisData( yStruct, yStyle, yTitle, y_CharSize, yMarginB, yMarginT);
+    DFloat xTicklen;
+    DFloat yTicklen;
+    GetAxisData( xStruct, xStyle, xTitle, x_CharSize, xMarginL, xMarginR,
+		 xTicklen);
+    GetAxisData( yStruct, yStyle, yTitle, y_CharSize, yMarginB, yMarginT,
+		 yTicklen);
     
     // [XY]STYLE
     e->AssureLongScalarKWIfPresent( "XSTYLE", xStyle);
@@ -591,6 +603,9 @@ namespace lib {
 
     DLong background = p_background;
     e->AssureLongScalarKWIfPresent( "BACKGROUND", background);
+
+    DDouble ticklen = p_ticklen;
+    e->AssureDoubleScalarKWIfPresent( "TICKLEN", ticklen);
 						 
     DLong color = p_color;
 
@@ -672,16 +687,15 @@ namespace lib {
       }
     
     // *** start drawing
-
     actStream->Background( background);
     actStream->Color( color);
 
     actStream->NextPlot( !noErase);
     if( !noErase) actStream->Clear();
-    
+
     // plplot stuff
     // set the charsize (scale factor)
-    actStream->schr( 0.0, charsize * sqrt(yScale));
+    actStream->schr( 0.0, charsize);// * sqrt(yScale));
 
     // get subpage in mm
     PLFLT scrXL, scrXR, scrYB, scrYT;
@@ -957,10 +971,11 @@ namespace lib {
     DFloat p_thick; 
     DString p_title; 
     DString p_subTitle; 
+    DFloat p_ticklen; 
     GetPData( p_background,
 	      p_noErase, p_color, p_psym,p_linestyle,
 	      p_symsize, p_charsize, p_thick,
-	      p_title, p_subTitle);
+	      p_title, p_subTitle, p_ticklen);
 
     // !X, !Y (also used below)
     static DStructGDL* xStruct = SysVar::X();
@@ -975,8 +990,12 @@ namespace lib {
     DFloat xMarginR; 
     DFloat yMarginB; 
     DFloat yMarginT; 
-    GetAxisData( xStruct, xStyle, xTitle, x_CharSize, xMarginL, xMarginR);
-    GetAxisData( yStruct, yStyle, yTitle, y_CharSize, yMarginB, yMarginT);
+    DFloat xTicklen;
+    DFloat yTicklen;
+    GetAxisData( xStruct, xStyle, xTitle, x_CharSize, xMarginL, xMarginR,
+		 xTicklen);
+    GetAxisData( yStruct, yStyle, yTitle, y_CharSize, yMarginB, yMarginT,
+		 yTicklen);
     
     // get ![XY].CRANGE
     static unsigned crangeTag = xStruct->Desc()->TagIndex( "CRANGE");
@@ -1293,10 +1312,11 @@ namespace lib {
     DLong p_background, p_noErase, p_color, p_psym, p_linestyle,psym;
     DFloat p_symsize, p_charsize, p_thick; 
     DString p_title, p_subTitle; 
+    DFloat p_ticklen; 
     GetPData( p_background,
 	      p_noErase, p_color, p_psym,p_linestyle,
 	      p_symsize, p_charsize, p_thick,
-	      p_title, p_subTitle);
+	      p_title, p_subTitle, p_ticklen);
 
     // !X, !Y (also used below)
     static DStructGDL* xStruct = SysVar::X();
@@ -1304,8 +1324,12 @@ namespace lib {
     DLong xStyle, yStyle; 
     DString xTitle, yTitle; 
     DFloat x_CharSize, y_CharSize, xMarginL, xMarginR, yMarginB, yMarginT; 
-    GetAxisData( xStruct, xStyle, xTitle, x_CharSize, xMarginL, xMarginR);
-    GetAxisData( yStruct, yStyle, yTitle, y_CharSize, yMarginB, yMarginT);
+    DFloat xTicklen;
+    DFloat yTicklen;
+    GetAxisData( xStruct, xStyle, xTitle, x_CharSize, xMarginL, xMarginR,
+		 xTicklen);
+    GetAxisData( yStruct, yStyle, yTitle, y_CharSize, yMarginB, yMarginT,
+		 yTicklen);
     
     // get ![XY].CRANGE
     static unsigned crangeTag = xStruct->Desc()->TagIndex( "CRANGE");
@@ -1622,9 +1646,8 @@ namespace lib {
     SizeT xEl, yEl,strEl;
     if(nParam == 1) 
       {
-	//string only...
-	throw 
-	  GDLException("XYOUTS: String only, not implemented");
+	//string only... 
+	  e->Throw("String only, not implemented");
       }
     else if(nParam == 3)
       {
@@ -1637,8 +1660,8 @@ namespace lib {
       }
     else
       {
-	throw 
-	  GDLException("XYOUTS: Not enough parameters. Either 1 parameter or 3 parameters valid.");
+	e->Throw("Not enough parameters. Either 1 parameter or 3 "
+		 "parameters valid.");
       }
     //ok...
     DLong minEl = (xEl < yEl)? xEl:yEl;
@@ -1647,10 +1670,11 @@ namespace lib {
     DLong p_background, p_noErase, p_color, p_psym, p_linestyle,psym;
     DFloat p_symsize, p_charsize, p_thick; 
     DString p_title, p_subTitle; 
+    DFloat p_ticklen; 
     GetPData( p_background,
 	      p_noErase, p_color, p_psym,p_linestyle,
 	      p_symsize, p_charsize, p_thick,
-	      p_title, p_subTitle);
+	      p_title, p_subTitle, p_ticklen);
 
     // !X, !Y (also used below)
     static DStructGDL* xStruct = SysVar::X();
@@ -1658,8 +1682,12 @@ namespace lib {
     DLong xStyle, yStyle; 
     DString xTitle, yTitle; 
     DFloat x_CharSize, y_CharSize, xMarginL, xMarginR,yMarginB, yMarginT; 
-    GetAxisData( xStruct, xStyle, xTitle, x_CharSize, xMarginL, xMarginR);
-    GetAxisData( yStruct, yStyle, yTitle, y_CharSize, yMarginB, yMarginT);
+    DFloat xTicklen;
+    DFloat yTicklen;
+    GetAxisData( xStruct, xStyle, xTitle, x_CharSize, xMarginL, xMarginR,
+		 xTicklen);
+    GetAxisData( yStruct, yStyle, yTitle, y_CharSize, yMarginB, yMarginT,
+		 yTicklen);
     
 
     // get ![XY].CRANGE
@@ -1718,13 +1746,14 @@ namespace lib {
 	  }
       }
 
-
     //start drawing
     actStream->Background( background);
     actStream->Color( color);
+
     // plplot stuff
     PLFLT scrXL, scrXR, scrYB, scrYT;
     actStream->gspa( scrXL, scrXR, scrYB, scrYT);
+
     PLFLT scrX = scrXR-scrXL;
     PLFLT scrY = scrYT-scrYB;
     PLFLT defH, actH;

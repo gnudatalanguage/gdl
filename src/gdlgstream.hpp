@@ -55,6 +55,7 @@ public:
   void Color( ULong c, UInt ix=1);
   void Background( ULong c);
 
+  void DefaultCharSize();
   void NextPlot( bool erase=true); // handles multi plots
 };
 

@@ -83,6 +83,11 @@ void GDLGStream::Clear()
   ::c_plclear();
 }
 
+void GDLGStream::DefaultCharSize()
+{
+  plstream::schr( 1.5, 1.0);
+}
+
 void GDLGStream::NextPlot( bool erase)
 {
   DLongGDL* pMulti = SysVar::GetPMulti();
@@ -99,6 +104,9 @@ void GDLGStream::NextPlot( bool erase)
 
   plstream::ssub( nx, ny);
 
+  // ssub changes the char size
+  DefaultCharSize();
+
   if( (*pMulti)[ 0] <= 0)
     {
       if( erase)
@@ -106,6 +114,7 @@ void GDLGStream::NextPlot( bool erase)
 	  plstream::eop();
 	  plstream::bop();
 	}
+
       plstream::adv(1);
       (*pMulti)[ 0] = nx*ny*nz-1;
     }
@@ -120,6 +129,7 @@ void GDLGStream::NextPlot( bool erase)
 	  int pp = p*nx % (nx*ny) + p/ny + 1;
 	  plstream::adv(pp);
 	}
+
       if( erase) --(*pMulti)[ 0];
     }
 }
