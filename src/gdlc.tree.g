@@ -337,13 +337,13 @@ jump_statement!//
 	  if( comp.IsFun())
 	  	{
 		if( !exprThere)	throw GDLException(	_t, "Return statement in functions "
-		  									"must have a value.");
+		  									"must have 1 value.");
 		#jump_statement=#([RETF,"retf"],e);
 		}
 	  else
 	  	{
 		if( exprThere) throw GDLException(	_t, "Return statement in "
-		  									"procedures can't have values.");
+		  									"procedures cannot have values.");
 		#jump_statement=#[RETP,"retp"]; // astFactory.create(RETP,"retp");
 	  	}
 	}

@@ -54,7 +54,7 @@ namespace lib {
     int nParam=e->NParam()-pOffs;
 
     if( nParam <= 0)
-      throw GDLException( e->CallingNode(), "Incorrect number of arguments.");
+      e->Throw( "Incorrect number of arguments.");
 
     if( nParam == 1 ) {
         BaseGDL* par = e->GetParDefined( pOffs); 
@@ -68,15 +68,17 @@ namespace lib {
 	if( ret == 0) { //  array argument
          DLongGDL* ind = 
 		 static_cast<DLongGDL*>(par->Convert2(LONG, BaseGDL::COPY)); 	 
+	 e->Guard( ind);
+
 	 for(SizeT i =0; i < par->N_Elements(); ++i)
 	   dim << (*ind)[i];	  
-	 
+
 	 return;
 	}
-        throw GDLException( e->CallingNode(), 
-                "arr: should never arrive here!");	
+        e->Throw( "arr: should never arrive here.");	
 	return;
     }
+
     // max number checked in interpreter
     SizeT endIx=nParam+pOffs;
     for( SizeT i=pOffs; i<endIx; i++)

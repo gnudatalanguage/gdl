@@ -92,6 +92,7 @@ tokens {
     DECSTATEMENT; // as a statement
     INCSTATEMENT; // as a statement
     REF;     // expr pass by reference
+    RETURN;  // unspecified return (replaced by tree parser with RETF/RETP)
   	RETF;    // return from function (return argument)
   	RETP;    // return from procedure (no return argument)
 	STRUC;  // struct
@@ -582,7 +583,8 @@ for_block
 
 jump_statement
 	: GOTO^ COMMA! IDENTIFIER
-	| RETURN^ (COMMA! expr)?
+// now handled as a procedure_call because RETURN is no reserved word
+//	| RETURN^ (COMMA! expr)?
 	| ON_IOERROR^ COMMA! IDENTIFIER
 	;
 
@@ -613,9 +615,20 @@ formal_procedure_call
 	: IDENTIFIER (COMMA! parameter_def_list)?
 	;	
 
-procedure_call
-	: formal_procedure_call
-		{ #procedure_call = #([PCALL, "pcall"], #procedure_call);}
+// must handle RETURN also
+procedure_call!//
+// was:
+// formal_procedure_call
+    : id:IDENTIFIER 
+        ( {id->getText() == "RETURN"}?
+            (COMMA! e:expr)?
+            { 
+                #id->setType(RETURN); // text is already "return"
+                #procedure_call = #( #id, #e); // make root
+            }
+        | (COMMA! pa:parameter_def_list)? 
+            { #procedure_call = #([PCALL, "pcall"], #id, #pa);}
+        )
 	;	
 
 // ambiguity with arrays 
@@ -822,7 +835,7 @@ arrayindex_list
 	| LBRACE! arrayindex (COMMA! arrayindex)* RBRACE!
 	;	
 
-all
+all!
 	: ASTERIX { #all = #([ALL,"*"]);}
 	;
 
@@ -1179,7 +1192,7 @@ tokens {
 	OR_OP="or";
 	PRO="pro";
 	REPEAT="repeat";
-	RETURN="return";
+//	RETURN="return";
 	SWITCH="switch";
 	THEN="then";
 	UNTIL="until";

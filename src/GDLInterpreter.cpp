@@ -4917,6 +4917,7 @@ const char* GDLInterpreter::tokenNames[] = {
 	"DECSTATEMENT",
 	"INCSTATEMENT",
 	"REF",
+	"RETURN",
 	"RETF",
 	"RETP",
 	"STRUC",
@@ -4978,7 +4979,6 @@ const char* GDLInterpreter::tokenNames[] = {
 	"\"do\"",
 	"\"for\"",
 	"\"goto\"",
-	"\"return\"",
 	"\"on_ioerror\"",
 	"\"if\"",
 	"\"then\"",
@@ -5067,12 +5067,12 @@ const char* GDLInterpreter::tokenNames[] = {
 	0
 };
 
-const unsigned long GDLInterpreter::_tokenSet_0_data_[] = { 948969504UL, 603992120UL, 6144UL, 3502UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLInterpreter::_tokenSet_0_data_[] = { 948969504UL, 1207984184UL, 12288UL, 3932UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN BLOCK FOR_STEP IF_ELSE LABEL MPCALL MPCALL_PARENT ON_IOERROR_NULL 
 // PCALL PCALL_LIB RETF RETP "switch" "case" DEC INC "break" "continue" 
 // "repeat" "while" "for" "goto" "on_ioerror" "if" 
 const antlr::BitSet GDLInterpreter::_tokenSet_0(_tokenSet_0_data_,8);
-const unsigned long GDLInterpreter::_tokenSet_1_data_[] = { 3228239968UL, 508294UL, 6144UL, 32768UL, 4289724416UL, 8191UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLInterpreter::_tokenSet_1_data_[] = { 3228239968UL, 1016198UL, 12288UL, 32768UL, 4289724416UL, 8191UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN ARRAYDEF ARRAYEXPR CONSTANT DEREF EXPR FCALL FCALL_LIB MFCALL 
 // MFCALL_PARENT NSTRUC NSTRUC_REF POSTDEC POSTINC STRUC SYSVAR UMINUS 
 // VAR VARPTR DEC INC SLASH ASTERIX DOT POW MATRIX_OP1 MATRIX_OP2 "mod" 
