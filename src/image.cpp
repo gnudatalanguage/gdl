@@ -142,10 +142,9 @@ namespace lib {
 
     SizeT nParam=e->NParam( 1); 
 
-    BaseGDL* p0 = e->GetParDefined( 0);
-
-    DLong xLL=0, yLL=0, pos;
-    if (nParam >= 2) e->AssureLongScalarPar( 1, pos);
+    DLong xLL=0, yLL=0, pos=0;
+    if (nParam >= 2) 
+      e->AssureLongScalarPar( 1, pos);
     if (nParam >= 3) {
       e->AssureLongScalarPar( 1, xLL);
       e->AssureLongScalarPar( 2, yLL);
@@ -174,8 +173,7 @@ namespace lib {
     actStream->vpor( 0, 1.0, 0, 1.0);
     actStream->wind( 1-xLL, xSize-xLL, 1-yLL, ySize-yLL);
 
-
-    DByteGDL* p0B = static_cast<DByteGDL*>( p0);
+    DByteGDL* p0B = e->GetParAs<DByteGDL>( 0);
     SizeT rank = p0B->Rank();
     int width, height;
     DLong tru=0;
@@ -213,7 +211,7 @@ namespace lib {
       throw GDLException( e->CallingNode(), 
 			  "Image array must have rank 2 or 3");
     }
-    plimage_gdl(&(*p0B)[0], (int) width, (int) height, tru);
+    plimage_gdl(&(*p0B)[0], width, height, tru);
   }
 
 
