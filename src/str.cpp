@@ -19,6 +19,7 @@
 
 #include "str.hpp"
 #include "gdlexception.hpp"
+#include "initsysvar.hpp" // GDLPath();
 
 using namespace std;
 
@@ -208,4 +209,53 @@ unsigned long int Str2UL( const string& s, int base)
 {
   const char* cStart = s.c_str();
   return Str2UL( cStart, base);
+}
+
+// Tries to find file "fn" along GDLPATH.
+// If found, sets fn to the full pathname.
+// and returns true, else false
+// If fn starts with '/' or ".." or "./", just checks it is readable.
+bool CompleteFileName(string& fn)
+{
+  // try actual directory (or given path)
+  FILE *fp = fopen(fn.c_str(),"r");
+  if(fp)
+    {
+      fclose(fp);
+      return true;
+    }
+
+  if( PathGiven(fn)) return false;
+
+  StrArr path=SysVar::GDLPath();
+  if( path.size() == 0)
+    {
+      string act="./pro/"; // default path if no path is given
+	
+#ifdef GDL_DEBUG
+      cout << "Looking in:" << endl;
+      cout << act << endl;
+#endif
+
+      act=act+fn;
+      fp = fopen(act.c_str(),"r");
+      if(fp) {fclose(fp); fn=act; return true;}
+    }
+  else
+    for(unsigned p=0; p<path.size(); p++)
+      {
+	string act=path[p];
+	
+	AppendIfNeeded(act,"/");
+	
+#ifdef GDL_DEBUG
+	if( p == 0) cout << "Looking in:" << endl;
+	cout << act << endl;
+#endif
+
+	act=act+fn;
+	fp = fopen(act.c_str(),"r");
+	if(fp) {fclose(fp); fn=act; return true;}
+      }
+  return false;
 }

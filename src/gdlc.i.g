@@ -91,7 +91,7 @@ protected:
     class RetAllException {};
     
     // code in: dinterpreter.cpp
-    static bool CompleteFileName(std::string& fn);
+//    static bool CompleteFileName(std::string& fn); -> str.cpp
     static bool CompileFile(const std::string& f, const std::string& untilPro=""); 
     BaseGDL*  returnValue;  // holding the return value for functions
     BaseGDL** returnValueL; // holding the return value for l_functions

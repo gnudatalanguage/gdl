@@ -62,6 +62,12 @@ inline void AppendIfNeeded(std::string &s, const std::string& a)
   if( s.substr(s.size()-a.size(),a.size()) != a) s += a;
 }
 
+// Tries to find file "fn" along GDLPATH.
+// If found, sets fn to the full pathname.
+// and returns true, else false
+// If fn starts with '/' or ".." or "./", just checks it is readable.
+bool CompleteFileName(std::string& fn);
+
 // Strip whitespace from the start and end of a string.
 inline void StrTrim(std::string& s)
 {

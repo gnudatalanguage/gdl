@@ -1301,18 +1301,22 @@ INCLUDE!
 	  	std::string appName=name;
 	  	AppendIfNeeded(appName,".pro");
 
-		std::ifstream* input = new std::ifstream(appName.c_str());
-	  	if (!*input) 
-	  		{
-			delete input;
-			
-			input = new std::ifstream(name.c_str());
-			if (!*input) 
-				{
-		  		delete input;
-		  		cerr << SysVar::MsgPrefix() << "Error opening file. File: " << name << endl;
-				}
-	  		}
+        bool found = CompleteFileName( appName);
+        if( found) 
+            name = appName;
+        else
+            found = CompleteFileName( name);
+            
+        if( !found)
+            throw GDLException( "File not found: " + name);
+
+        std::ifstream* input = new std::ifstream(name.c_str());
+		if (!*input) 
+			{
+		  	delete input;
+            throw GDLException( "Error opening file. File: " + name);
+		  	cerr << SysVar::MsgPrefix() << "Error opening file. File: " << name << endl;
+			}
 
 	  	if( *input) 
 	  		{

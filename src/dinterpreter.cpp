@@ -86,56 +86,6 @@ DStructGDL* GDLInterpreter::ObjectStructCheckAccess( BaseGDL* self, RefDNode mp)
   return oStruct;
 }
 
-
-bool GDLInterpreter::CompleteFileName(string& fn)
-  // Tries to find file "fn" along GDLPATH.
-  // If found, sets fn to the full pathname.
-  // and returns true, else false
-  // If fn starts with '/' or ".." or "./", just checks it is readable.
-{
-  // try actual directory (or given path)
-  FILE *fp = fopen(fn.c_str(),"r");
-  if(fp)
-    {
-      fclose(fp);
-      return true;
-    }
-
-  if( PathGiven(fn)) return false;
-
-  StrArr path=SysVar::GDLPath();
-  if( path.size() == 0)
-    {
-      string act="./pro/"; // default path if no path is given
-	
-#ifdef GDL_DEBUG
-      cout << "Looking in:" << endl;
-      cout << act << endl;
-#endif
-
-      act=act+fn;
-      fp = fopen(act.c_str(),"r");
-      if(fp) {fclose(fp); fn=act; return true;}
-    }
-  else
-    for(unsigned p=0; p<path.size(); p++)
-      {
-	string act=path[p];
-	
-	AppendIfNeeded(act,"/");
-	
-#ifdef GDL_DEBUG
-	if( p == 0) cout << "Looking in:" << endl;
-	cout << act << endl;
-#endif
-
-	act=act+fn;
-	fp = fopen(act.c_str(),"r");
-	if(fp) {fclose(fp); fn=act; return true;}
-      }
-  return false;
-}
-
 // searches and compiles procedure 'pro'
 bool GDLInterpreter::SearchCompilePro(const string& pro)
 {
