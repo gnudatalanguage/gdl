@@ -66,6 +66,8 @@ namespace lib {
 
   void byteorder( EnvT* e);
 
+  void spawn_pro( EnvT* e);
+
   // the following by Peter Messmer 
   // (messmer@users.sourceforge.net)
   void setenv_pro( EnvT* e);

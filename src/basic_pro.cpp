@@ -20,6 +20,9 @@
 #include <memory>
 #include <set>
 
+#include <sys/types.h>
+#include <sys/wait.h>
+
 #include "dinterpreter.hpp"
 #include "datatypes.hpp"
 #include "envt.hpp"
@@ -816,5 +819,191 @@ namespace lib {
       }
   }
 
+  void spawn_pro( EnvT* e)
+  {
+    SizeT nParam = e->NParam();
+
+    static int countIx = e->KeywordIx( "COUNT");
+    bool countKeyword = e->KeywordPresent( countIx);
+    if( countKeyword) e->AssureGlobalKW( countIx);
+
+    static int pidIx = e->KeywordIx( "PID");
+    bool pidKeyword = e->KeywordPresent( pidIx);
+    if( pidKeyword) e->AssureGlobalKW( pidIx);
+    
+    static int exit_statusIx = e->KeywordIx( "EXIT_STATUS");
+    bool exit_statusKeyword = e->KeywordPresent( exit_statusIx);
+    if( exit_statusKeyword) e->AssureGlobalKW( exit_statusIx);
+
+    static int shIx = e->KeywordIx( "SH");
+    bool shKeyword = e->KeywordSet( shIx);
+    
+    static int noshellIx = e->KeywordIx( "NOSHELL");
+    bool noshellKeyword = e->KeywordSet( noshellIx);
+    
+    string shellCmd;
+    if( shKeyword) 
+      shellCmd = "/bin/sh"; // must be there if POSIX
+    else
+      {
+	shellCmd= getenv("SHELL");
+	if(shellCmd == "")
+	  e->Throw( "Error managing child process. "
+		    "Environment variable SHELL not set.");
+      }
+
+    if( nParam == 0)
+      { 
+	system( shellCmd.c_str());
+	if( countKeyword)
+	  e->SetKW( countIx, new DLongGDL( 0));
+	return;
+      }
+
+    DStringGDL* command = e->GetParAs<DStringGDL>( 0);
+    DString cmd = (*command)[0];
+
+    const int bufSize = 1024;
+    char buf[ bufSize];
+
+    if( nParam > 1) e->AssureGlobalPar( 1);
+    if( nParam > 2) e->AssureGlobalPar( 2);
+
+    int coutP[2];
+    if( nParam > 1 && pipe(coutP)) return;	
+
+    int cerrP[2];
+    if( nParam > 2 && pipe(cerrP)) return;	
+	
+    pid_t pid = fork(); // *** fork
+    if( pid == -1) // error in fork
+      {
+	close( coutP[0]); close( coutP[1]);
+	if( nParam > 2) { close( cerrP[0]); close( cerrP[1]);}
+	return;
+      }
+
+    if( pid == 0) // we are child
+      {
+	if( nParam > 1) dup2(coutP[1], 1); // cout
+	if( nParam > 2) dup2(cerrP[1], 2); // cerr
+
+	if( nParam > 1) { close( coutP[0]); close( coutP[1]);}
+	if( nParam > 2) { close( cerrP[0]); close( cerrP[1]);}
+
+	if( noshellKeyword)
+	  {
+	    SizeT nArg = command->N_Elements();
+	    char** argv = new char*[ nArg+1];
+	    argv[ nArg] = NULL;
+	    for( SizeT i=0; i<nArg; ++i)
+	      argv[i] = const_cast<char*>((*command)[i].c_str());
+		
+	    execvp( cmd.c_str(), argv);
+
+	    delete[] argv; // only executes if exec fails
+	  }
+	else
+	  execl( shellCmd.c_str(), shellCmd.c_str(), "-c", 
+		 cmd.c_str(), (char *) NULL);
+
+	Warning( "SPAWN: Error managing child process.");
+	_exit(1); // error in exec
+      }
+    else // we are parent
+      {
+	if( pidKeyword)
+	  e->SetKW( pidIx, new DLongGDL( pid));
+
+	if( nParam > 1) close( coutP[1]);
+	if( nParam > 2) close( cerrP[1]);
+
+	FILE *coutF, *cerrF;
+	if( nParam > 1) 
+	  {
+	    coutF = fdopen( coutP[0], "r");
+	    if( coutF == NULL) close( coutP[0]);
+	  }
+	if( nParam > 2) 
+	  {
+	    cerrF = fdopen( cerrP[0], "r");
+	    if( cerrF == NULL) close( cerrP[0]);
+	  }
+
+	vector<DString> outStr;
+	vector<DString> errStr;
+	    
+	// read cout
+	if( nParam > 1 && coutF != NULL)
+	  {
+	    while( fgets(buf, bufSize, coutF) != NULL)
+	      {
+		SizeT len = strlen( buf);
+		if( len != 0 && buf[ len-1] == '\n') 
+		  buf[ len-1] = 0;
+		outStr.push_back( DString( buf));
+	      }
+	    fclose( coutF);
+	  }
+
+	// read cerr
+	if( nParam > 2 && cerrF != NULL) 
+	  {
+	    while( fgets(buf, bufSize, cerrF) != NULL)
+	      {
+		SizeT len = strlen( buf);
+		if( len != 0 && buf[ len-1] == '\n') 
+		  buf[ len-1] = 0;
+		errStr.push_back( DString( buf));
+	      }
+	    fclose( cerrF);
+	  }
+
+	// wait until child terminates
+	int status;
+	int exitCode = wait( &status);
+
+	if( exit_statusKeyword)
+	  e->SetKW( exit_statusIx, new DLongGDL( exitCode));
+	    
+	SizeT nLines = 0;
+	if( nParam > 1)
+	  {
+	    DStringGDL* result;
+	    nLines = outStr.size();
+	    if( nLines == 0)
+	      result = new DStringGDL("");
+	    else 
+	      {
+		result = new DStringGDL( dimension( nLines), 
+					 BaseGDL::NOZERO);
+		for( SizeT l=0; l<nLines; ++l)
+		  (*result)[ l] = outStr[ l];
+	      }
+	    e->SetPar( 1, result);
+	  }
+
+	if( countKeyword)
+	  e->SetKW( countIx, new DLongGDL( nLines));
+	    
+	if( nParam > 2)
+	  {
+	    DStringGDL* errResult;
+	    SizeT nErrLines = errStr.size();
+	    if( nErrLines == 0)
+	      errResult = new DStringGDL("");
+	    else 
+	      {
+		errResult = new DStringGDL( dimension( nErrLines), 
+					    BaseGDL::NOZERO);
+		for( SizeT l=0; l<nErrLines; ++l)
+		  (*errResult)[ l] = errStr[ l];
+	      }
+	    e->SetPar( 2, errResult);
+	  }
+
+	return;
+      }
+  }
   
 } // namespace

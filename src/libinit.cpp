@@ -49,6 +49,10 @@ void LibInit()
 {
   const char KLISTEND[] = "";
 
+  const string spawnKey[]={ "COUNT","EXIT_STATUS","PID",
+			    "SH","NOSHELL",KLISTEND};
+  new DLibPro(lib::spawn_pro,string("SPAWN"),3,spawnKey);
+
   const string bytsclKey[]={"MIN","MAX","TOP",KLISTEND};
   new DLibFun(lib::bytscl,string("BYTSCL"),1,bytsclKey);
 

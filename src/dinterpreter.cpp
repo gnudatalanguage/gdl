@@ -467,10 +467,12 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command)
 // by Peter Messmer
 void DInterpreter::ExecuteShellCommand(const string& command)
 {
- // cout << "Not implemented yet: Execute shell command: " << command << endl;
  string commandLine = command;
  if(commandLine == "")
    commandLine = getenv("SHELL");
+ if(commandLine == "")
+   throw GDLException( "Error managing child process. Environment variable "
+		       "SHELL not set.");
 
  system( commandLine.c_str());
 }

@@ -89,11 +89,11 @@ PyObject* Data_<Sp>::ToPython()
 
   const NumarrayType item_type = pyType[ Sp::t];
   if( item_type == tAny)
-    throw GDLException("Cannot convert "+TypeStr()+" array to python.");
+    throw GDLException("Cannot convert "+this->TypeStr()+" array to python.");
 
-  int n_dim = dim.Rank();
+  int n_dim = this->Rank();
   maybelong dimArr[ MAXRANK];
-  for( int i=0; i<n_dim; ++i) dimArr[i]=dim[i];
+  for( int i=0; i<n_dim; ++i) dimArr[i]=this->dim[i];
 
   return reinterpret_cast< PyObject*>
     (NA_vNewArray( DataAddr(), item_type, n_dim, dimArr));
@@ -102,7 +102,7 @@ PyObject* Data_<Sp>::ToPython()
 template < typename Sp>
 PyObject* Data_<Sp>::ToPythonScalar()
 {
-  throw GDLException("Cannot convert scalar "+TypeStr()+" to python.");
+  throw GDLException("Cannot convert scalar "+this->TypeStr()+" to python.");
   return NULL;
 }
 template<>
