@@ -93,6 +93,10 @@ namespace lib {
 
     BaseGDL* p0 = e->GetParDefined( 0);
 
+    DLong xLL=0, yLL=0;
+    if (nParam >= 2) e->AssureLongScalarPar( 1, xLL);
+    if (nParam >= 3) e->AssureLongScalarPar( 2, yLL);
+
     GDLGStream* actStream = actDevice->GetStream();
     if( actStream == NULL)
       {
@@ -114,9 +118,8 @@ namespace lib {
     int actWin = actDevice->ActWin();
     bool success = actDevice->WSize( actWin, &xSize, &ySize, &xPos, &yPos);
 
-    actStream->vpor( 0.0, 1.0, 0.0, 1.0);
-    actStream->wind( 1, xSize, 1, ySize);
-
+    actStream->vpor( 0, 1.0, 0, 1.0);
+    actStream->wind( 1-xLL, xSize-xLL, 1-yLL, ySize-yLL);
 
     DUIntGDL* img = 
       static_cast<DUIntGDL*>(p0->Convert2( UINT, BaseGDL::COPY));

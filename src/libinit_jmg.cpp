@@ -151,8 +151,8 @@ void LibInit_jmg()
   new DLibPro(lib::hdf_close_pro,string("HDF_CLOSE"),1);
 #endif
 
-  const string hdf_sd_tvKey[]={"TRUE",KLISTEND};
-  new DLibPro(lib::tv,string("TV"),1,hdf_sd_tvKey);
+  const string tvKey[]={"TRUE",KLISTEND};
+  new DLibPro(lib::tv,string("TV"),3,tvKey);
 
   new DLibPro(lib::loadct,string("LOADCT"),1);
 
