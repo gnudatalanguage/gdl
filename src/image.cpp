@@ -286,10 +286,20 @@ namespace lib {
     DByte mx;
     for( SizeT i=0; i<xSize*ySize; ++i) {
       mx = ximg->data[4*i];
-      for( SizeT j=1; j<=3; ++j) {
+      for( SizeT j=1; j<=2; ++j) {
 	if (ximg->data[4*i+j] > mx) mx = ximg->data[4*i+j];
       }
-      (*res)[ i] = mx;
+      (*res)[ xSize*ySize-1-i] = mx;
+    }
+
+
+    // Reflect about y-axis
+    for( SizeT i=0; i<ySize; ++i) {
+      for( SizeT j=0; j<xSize/2; ++j) {
+	DByte c = (*res)[ i*xSize+(xSize-1-j)];
+	(*res)[ i*xSize+(xSize-1-j)] = (*res)[ i*xSize+j];
+	(*res)[ i*xSize+j] = c;
+      }
     }
 
 
