@@ -27,6 +27,8 @@ namespace lib {
 //   BaseGDL* transpose_fun( EnvT* e);
   BaseGDL* machar_fun( EnvT* e);
 
+  BaseGDL* finite_fun( EnvT* e);
+
 } // namespace
 
 #endif

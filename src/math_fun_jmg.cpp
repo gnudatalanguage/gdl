@@ -189,12 +189,78 @@ namespace lib {
     return machar;
   }
 
+#if 0
+  template< typename T>
+  BaseGDL* finite_fun_template( BaseGDL* p0)
+  {
+    T* p0C = static_cast<T*>( p0);
+    DByteGDL* res = new DByteGDL( p0C->Dim(), BaseGDL::NOZERO);
+    SizeT nEl = p0->N_Elements();
+    for( SizeT i=0; i<nEl; ++i)
+      {
+	if( p0->Type() == COMPLEX) {
+	  float* dptr = (float*) &(*p0C)[0];
+	 } else if( p0->Type() == COMPLEXDBL) {
+	    int a=0;
+	} else {
+	  int out = isfinite((*p0C)[ i]); 
+	  if (out == 0)
+	    (*res)[ i] = 0;
+	  else
+	    (*res)[ i] = 1;
+	}
+      }
+    return res;
+  }
+#endif
+
+  BaseGDL* finite_fun( EnvT* e)
+  {
+    e->NParam( 1);//, "FINITE");
+
+    BaseGDL* p0 = e->GetParDefined( 0);//, "FINITE");
+
+    SizeT nEl = p0->N_Elements();
+    if( nEl == 0)
+      throw GDLException( e->CallingNode(), 
+			  "FINITE: Variable is undefined: "+e->GetParString(0));
+
+    DByteGDL* res = new DByteGDL( p0->Dim(), BaseGDL::NOZERO);
+
+    if( p0->Type() == COMPLEX) {
+      DComplexGDL* p0C = static_cast<DComplexGDL*>( p0);
+      for( SizeT i=0; i<nEl; ++i) {
+	float* dptr = (float*) &(*p0C)[ i];
+	float r_part = *dptr++;
+	float i_part = *dptr;
+	if (isfinite(r_part) == 0 || isfinite(i_part) == 0) 
+	  (*res)[ i] = 0; else (*res)[ i] = 1;
+      }
+    } else if ( p0->Type() == COMPLEXDBL) {
+      DComplexDblGDL* p0C = static_cast<DComplexDblGDL*>( p0);
+      for( SizeT i=0; i<nEl; ++i) {
+        double* dptr = (double*) &(*p0C)[ i];
+	double r_part = *dptr++;
+	double i_part = *dptr;
+	if (isfinite(r_part) == 0 || isfinite(i_part) == 0) 
+	  (*res)[ i] = 0; else (*res)[ i] = 1;
+      }
+    } else if( p0->Type() == DOUBLE) {
+      DDoubleGDL* p0D = static_cast<DDoubleGDL*>( p0);
+      for( SizeT i=0; i<nEl; ++i)
+	if (isfinite((*p0D)[ i]) == 0) (*res)[ i] = 0; else (*res)[ i] = 1;
+    } else if( p0->Type() == FLOAT) {
+      DFloatGDL* p0F = static_cast<DFloatGDL*>( p0);
+      for( SizeT i=0; i<nEl; ++i)
+	if (isfinite((*p0F)[ i]) == 0) (*res)[ i] = 0; else (*res)[ i] = 1;
+    } else {
+      DFloatGDL* p0F = static_cast<DFloatGDL*>
+	(p0->Convert2( FLOAT, BaseGDL::COPY));
+      for( SizeT i=0; i<nEl; ++i)
+	if (isfinite((*p0F)[ i]) == 0) (*res)[ i] = 0; else (*res)[ i] = 1;
+    }
+    return res;
+  }
+
 } // namespace
-
-
-
-
-
-
-
 
