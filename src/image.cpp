@@ -22,6 +22,9 @@
 
 #define ToXColor(a) (((0xFF & (a)) << 8) | (a))
 
+#define free_mem(a) \
+    if (a != NULL) { free((void *) a); a = NULL; }
+
 using namespace std;
 
 namespace lib {
@@ -66,6 +69,12 @@ namespace lib {
     if (tru == 0) {
 
       ncolors = 256;
+
+#if PL_RGB_COLOR == -1
+      free_mem(xwd->cmap1);
+      xwd->cmap1 = (XColor *) calloc(ncolors, (size_t) sizeof(XColor));
+#endif
+
       for( SizeT i = 0; i < ncolors; i++ ) {
 
 	xwd->cmap1[i].red   = ToXColor(plsc->cmap1[i].r);
