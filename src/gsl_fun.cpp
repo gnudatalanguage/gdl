@@ -738,23 +738,63 @@ namespace lib {
 
   BaseGDL* random_fun( EnvT* e)
   {
-    DULongGDL* seed;
-    BaseGDL** p0L = &e->GetPar( 0);
-    if( *p0L != NULL) {
-      seed = static_cast<DULongGDL*>((*p0L)->Convert2( ULONG, BaseGDL::COPY));
-      delete (*p0L); 
-    } else {
-      time_t t1;
-      (void) time(&t1);
-      seed = new DULongGDL( (DULong) t1);
-    }
+    SizeT nParam = e->NParam( 1);
 
     dimension dim;
-    arr( e, dim, 1);
+    if( nParam > 1)
+      arr( e, dim, 1);
 
-    gsl_rng *r = gsl_rng_alloc (gsl_rng_mt19937);
-    gsl_rng_set (r, (*seed)[0]);
+    DLongGDL* seed;
+    static DLong seed0 = 0;
 
+    gsl_rng *r;
+
+    if( e->GlobalPar( 0))
+      {
+	DLongGDL* p0L = e->IfDefGetParAs< DLongGDL>( 0);
+	if( p0L != NULL) // defined global -> use and update
+	  {
+	    seed0 = (*p0L)[ 0];	    
+
+	    r = gsl_rng_alloc (gsl_rng_mt19937);
+	    gsl_rng_set (r, seed0);
+
+	    seed0 += dim.N_Elements(); // avoid repetition in next call
+	    // if called with undefined global
+
+	    (*p0L)[0] = seed0;
+	  }
+	else // undefined global -> init
+	  {
+	    if( seed0 == 0) // first time
+	      {
+		time_t t1;
+		time(&t1);
+		seed0 = static_cast<DLong>( t1);
+	      }
+
+	    r = gsl_rng_alloc (gsl_rng_mt19937);
+	    gsl_rng_set (r, seed0);
+
+	    seed0 += dim.N_Elements(); // avoid repetition in next call
+	    // which would be defined global if used in a loop
+	    
+	    seed = new DLongGDL( seed0);
+	    e->SetPar( 0, seed);
+	  }
+      } 
+    else // local (always defined) -> just use it
+      {
+	seed = e->GetParAs< DLongGDL>( 0);
+	seed0 = (*seed)[0];
+
+	r = gsl_rng_alloc (gsl_rng_mt19937);
+	gsl_rng_set (r, seed0);
+
+	seed0 += dim.N_Elements(); // avoid repetition in next call
+	// if called with undefined global
+      }
+    
     if( e->KeywordSet(2)) { // LONG
 
       DLongGDL* res = new DLongGDL(dim, BaseGDL::NOZERO);
@@ -762,7 +802,7 @@ namespace lib {
       for( SizeT i=0; i<nEl; ++i) (*res)[ i] =
 				    (DLong) (gsl_rng_uniform (r) * 2147483646);
       gsl_rng_free (r);
-      *p0L = new DULongGDL( (DULong) (4294967296.0 * (*res)[0]) );
+      //      *p0L = new DULongGDL( (DULong) (4294967296.0 * (*res)[0]) );
       return res;
     }
 
@@ -777,7 +817,7 @@ namespace lib {
 					    binomialKey, poissonKey);
 
       gsl_rng_free (r);
-      *p0L = new DULongGDL( (DULong) (4294967296.0 * (*res)[0]) );
+      //      *p0L = new DULongGDL( (DULong) (4294967296.0 * (*res)[0]) );
       return res;
     } else {
       DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
@@ -786,7 +826,7 @@ namespace lib {
 					  binomialKey, poissonKey);
 
       gsl_rng_free (r);
-      *p0L = new DULongGDL( (DULong) (4294967296.0 * (*res)[0]) );
+      //      *p0L = new DULongGDL( (DULong) (4294967296.0 * (*res)[0]) );
       return res;
     }
   }
