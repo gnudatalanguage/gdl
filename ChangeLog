@@ -103,4 +103,9 @@
 	  allowed.
 	  System variables can be named "!$", or "!$TEXT".
 	
-0.8.9:	  	
+0.8.9:	  Addem SPAWN function.
+	  Added FINITE function.	
+	  !EXCEPT system variable.
+	  
+	
+	  

@@ -222,26 +222,29 @@ namespace lib {
 
     SizeT nEl = p0->N_Elements();
     if( nEl == 0)
-      throw GDLException( e->CallingNode(), 
-			  "FINITE: Variable is undefined: "+e->GetParString(0));
+      e->Throw( "Variable is undefined: "+e->GetParString(0));
 
     DByteGDL* res = new DByteGDL( p0->Dim(), BaseGDL::NOZERO);
 
     if( p0->Type() == COMPLEX) {
       DComplexGDL* p0C = static_cast<DComplexGDL*>( p0);
       for( SizeT i=0; i<nEl; ++i) {
-	float* dptr = (float*) &(*p0C)[ i];
-	float r_part = *dptr++;
-	float i_part = *dptr;
+// 	float* dptr = (float*) &(*p0C)[ i];
+// 	float r_part = *dptr++;
+// 	float i_part = *dptr;
+	float r_part = (*p0C)[ i].real();
+	float i_part = (*p0C)[ i].imag();
 	if (isfinite(r_part) == 0 || isfinite(i_part) == 0) 
 	  (*res)[ i] = 0; else (*res)[ i] = 1;
       }
     } else if ( p0->Type() == COMPLEXDBL) {
       DComplexDblGDL* p0C = static_cast<DComplexDblGDL*>( p0);
       for( SizeT i=0; i<nEl; ++i) {
-        double* dptr = (double*) &(*p0C)[ i];
-	double r_part = *dptr++;
-	double i_part = *dptr;
+//         double* dptr = (double*) &(*p0C)[ i];
+// 	double r_part = *dptr++;
+// 	double i_part = *dptr;
+	double r_part = (*p0C)[ i].real();
+	double i_part = (*p0C)[ i].imag();
 	if (isfinite(r_part) == 0 || isfinite(i_part) == 0) 
 	  (*res)[ i] = 0; else (*res)[ i] = 1;
       }
