@@ -237,7 +237,8 @@ void LibInit()
 			    "PRINT",KLISTEND};
   new DLibFun(lib::string_fun,string("STRING"),-1,stringKey);
   new DLibFun(lib::byte_fun,string("BYTE"),10);
-  new DLibFun(lib::fix_fun,string("FIX"),10);
+  const string fixKey[]={"TYPE",KLISTEND};
+  new DLibFun(lib::fix_fun,string("FIX"),10,fixKey);
   new DLibFun(lib::uint_fun,string("UINT"),10);
   new DLibFun(lib::long_fun,string("LONG"),10);
   new DLibFun(lib::ulong_fun,string("ULONG"),10);
