@@ -689,7 +689,49 @@ namespace lib {
   }
 
 
-  BaseGDL* randomu_fun( EnvT* e)
+  template< typename T1, typename T2>
+  int random_template( EnvT* e, T1* res, gsl_rng *r, 
+		       dimension dim, 
+		       DDoubleGDL* binomialKey, DDoubleGDL* poissonKey)
+  {
+    DSub* pro=dynamic_cast<DSub*>(e->GetPro());
+
+    SizeT nEl = res->N_Elements();
+
+    if( e->KeywordSet(1)) {// GAMMA
+      DLong n;
+      e->AssureLongScalarKWIfPresent( "GAMMA", n);
+      for( SizeT i=0; i<nEl; ++i) (*res)[ i] = 
+				    (T2) gsl_ran_gamma_int (r,n);
+    } else if( e->KeywordSet(4)) { // BINOMIAL
+      //      DFloatGDL* binomialKey = e->IfDefGetKWAs<DFloatGDL>( 4);
+      if (binomialKey != NULL) {
+	DULong  n = (DULong)  (*binomialKey)[0];
+	DDouble p = (DDouble) (*binomialKey)[1];
+	SizeT nEl = res->N_Elements();
+	for( SizeT i=0; i<nEl; ++i) (*res)[ i] =
+				      (T2) gsl_ran_binomial (r, p, n);
+      }
+    } else if( e->KeywordSet(5)) { // POISSON
+      if (poissonKey != NULL) {
+	DDouble mu = (DDouble) (*poissonKey)[0];
+	SizeT nEl = res->N_Elements();
+	for( SizeT i=0; i<nEl; ++i) (*res)[ i] =
+				      (T2) gsl_ran_poisson (r, mu);
+      }
+    } else if (pro->ObjectName().compare("RANDOMU") == 0) {
+      for( SizeT i=0; i<nEl; ++i) (*res)[ i] = 
+				    (T2) gsl_rng_uniform (r);
+    } else if (pro->ObjectName().compare("RANDOMN") == 0) {
+      for( SizeT i=0; i<nEl; ++i) (*res)[ i] = 
+				    (T2) gsl_ran_ugaussian (r);
+    }
+
+    return 0;
+  }
+
+
+  BaseGDL* random_fun( EnvT* e)
   {
     DULongGDL* seed;
     BaseGDL** p0L = &e->GetPar( 0);
@@ -705,21 +747,43 @@ namespace lib {
     dimension dim;
     arr( e, dim, 1);
 
-    DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
-    SizeT nEl = res->N_Elements();
-
     gsl_rng *r = gsl_rng_alloc (gsl_rng_mt19937);
     gsl_rng_set (r, (*seed)[0]);
 
+    if( e->KeywordSet(2)) { // LONG
 
-    for( SizeT i=0; i<nEl; ++i) {
-      (*res)[ i] = (float) gsl_rng_uniform (r);
+      DLongGDL* res = new DLongGDL(dim, BaseGDL::NOZERO);
+      SizeT nEl = res->N_Elements();
+      for( SizeT i=0; i<nEl; ++i) (*res)[ i] =
+				    (DLong) (gsl_rng_uniform (r) * 2147483646);
+      gsl_rng_free (r);
+      *p0L = new DULongGDL( (DULong) (4294967296.0 * (*res)[0]) );
+      return res;
     }
-    gsl_rng_free (r);
 
-    *p0L = new DULongGDL( (DULong) (4294967296.0 * (*res)[0]) );
+    DSub* pro=dynamic_cast<DSub*>(e->GetPro());
+    DDoubleGDL* binomialKey = e->IfDefGetKWAs<DDoubleGDL>( 4);
+    DDoubleGDL* poissonKey = e->IfDefGetKWAs<DDoubleGDL>( 5);
 
-    return(res);
+    if( e->KeywordSet(0)) { // DOUBLE
+      DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
+
+      random_template< DDoubleGDL, double>( e, res, r, dim, 
+					    binomialKey, poissonKey);
+
+      gsl_rng_free (r);
+      *p0L = new DULongGDL( (DULong) (4294967296.0 * (*res)[0]) );
+      return res;
+    } else {
+      DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
+
+      random_template< DFloatGDL, float>( e, res, r, dim, 
+					  binomialKey, poissonKey);
+
+      gsl_rng_free (r);
+      *p0L = new DULongGDL( (DULong) (4294967296.0 * (*res)[0]) );
+      return res;
+    }
   }
 
 

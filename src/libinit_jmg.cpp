@@ -60,7 +60,10 @@ void LibInit_jmg()
   const string fftKey[]={"DOUBLE","INVERSE","OVERWRITE",KLISTEND};
   new DLibFun(lib::fft_fun,string("FFT"),2,fftKey);
 
-  new DLibFun(lib::randomu_fun,string("RANDOMU"),MAXRANK);
+  const string randomKey[]={"DOUBLE","GAMMA","LONG","NORMAL",
+			    "BINOMIAL","POISSON",KLISTEND};
+  new DLibFun(lib::random_fun,string("RANDOMU"),MAXRANK,randomKey);
+  new DLibFun(lib::random_fun,string("RANDOMN"),MAXRANK,randomKey);
 
   const string histogramKey[]={"BINSIZE","INPUT","MAX","MIN","NBINS",
 			       "OMAX","OMIN","REVERSE_INDICES",KLISTEND};
