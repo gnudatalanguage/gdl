@@ -496,7 +496,7 @@ namespace lib {
     e->AssureStringScalarKWIfPresent( "XTITLE", xTitle);
     e->AssureStringScalarKWIfPresent( "YTITLE", yTitle);
 
-    // MARGIN
+    // MARGIN (in characters)
     static int xMarginEnvIx = e->KeywordIx( "XMARGIN"); 
     static int yMarginEnvIx = e->KeywordIx( "YMARGIN"); 
     BaseGDL* xMargin = e->GetKW( xMarginEnvIx);
@@ -533,7 +533,6 @@ namespace lib {
     DDouble xEnd   = xVal->max(); 
     DDouble yStart = yVal->min(); 
     DDouble yEnd   = yVal->max(); 
-
 
 
     //[x|y]range keyword
@@ -613,6 +612,23 @@ namespace lib {
 	psym = -psym;
       }
 
+    // POSITION
+    PLFLT xScale = 1.0;
+    PLFLT yScale = 1.0;
+    //    PLFLT scale = 1.0;
+    static int positionIx = e->KeywordIx( "POSITION"); 
+    DFloatGDL* pos = e->IfDefGetKWAs<DFloatGDL>( positionIx);
+    PLFLT position[ 4] = { 0.0, 0.0, 1.0, 1.0};
+    if( pos != NULL)
+      {
+      for( SizeT i=0; i<4 && i<pos->N_Elements(); ++i)
+	position[ i] = (*pos)[ i];
+
+      xScale = position[2]-position[0];
+      yScale = position[3]-position[1];
+      //      scale = sqrt( pow( xScale,2) + pow( yScale,2));
+      }
+
     // SYMSIZE
     DDouble symsize = p_symsize;
     e->AssureDoubleScalarKWIfPresent( "SYMSIZE", symsize);
@@ -623,14 +639,17 @@ namespace lib {
     DDouble charsize = p_charsize;
     e->AssureDoubleScalarKWIfPresent( "CHARSIZE", charsize);
     if( charsize <= 0.0) charsize = 1.0;
+    //    charsize *= scale;
 
     // AXIS CHARSIZE
     DDouble xCharSize = x_CharSize;
     e->AssureDoubleScalarKWIfPresent( "XCHARSIZE", xCharSize);
     if( xCharSize <= 0.0) xCharSize = 1.0;
+
     DDouble yCharSize = y_CharSize;
     e->AssureDoubleScalarKWIfPresent( "YCHARSIZE", yCharSize);
     if( yCharSize <= 0.0) yCharSize = 1.0;
+    //    yCharSize *= scale;
 
     // THICK
     DDouble thick = p_thick;
@@ -652,7 +671,7 @@ namespace lib {
 	  }
       }
     
-    // start drawing
+    // *** start drawing
 
     actStream->Background( background);
     actStream->Color( color);
@@ -661,13 +680,16 @@ namespace lib {
     if( !noErase) actStream->Clear();
     
     // plplot stuff
-    // set the charsize
-    actStream->schr( 0.0, charsize);
+    // set the charsize (scale factor)
+    actStream->schr( 0.0, charsize * sqrt(yScale));
 
+    // get subpage in mm
     PLFLT scrXL, scrXR, scrYB, scrYT;
-    actStream->gspa( scrXL, scrXR, scrYB, scrYT);
+    actStream->gspa( scrXL, scrXR, scrYB, scrYT); 
     PLFLT scrX = scrXR-scrXL;
     PLFLT scrY = scrYT-scrYB;
+
+    // get char size in mm (default, actual)
     PLFLT defH, actH;
     actStream->gchr( defH, actH);
 
@@ -685,11 +707,36 @@ namespace lib {
       throw GDLException( e->CallingNode(), 
 			  "PLOT: YMARGIN to large.");
 
-    // viewport
-    actStream->vpor( xML, 1.0-xMR, yMB, 1.0-yMT);
+    PLFLT vpXMin = xML;
+    PLFLT vpXMax = 1.0-xMR;
+    PLFLT vpYMin = yMB;
+    PLFLT vpYMax = 1.0-yMT;
+
+    // viewport - POSITION overrides
+    if( pos != NULL) 
+      {
+// 	PLFLT xM = position[2]-position[0];
+// 	PLFLT yM = position[3]-position[1];
+
+// 	vpXMin *= xM;
+// 	vpXMax *= xM;
+// 	vpYMin *= yM;
+// 	vpYMax *= yM;
+
+//  	vpXMin += position[0];
+//  	vpXMax += position[0];
+//  	vpYMin += position[1];
+//  	vpYMax += position[1];
+
+	actStream->vpor(position[0],position[2],position[1],position[3]);
+      }
+    else
+      {
+	actStream->vpor( xML, 1.0-xMR, yMB, 1.0-yMT);
+      }
+
     if( xLog)
       {
-	
 	if( xStart <= 0.0) xStart = 0.0; else xStart = log10( xStart);
 	if( xEnd   <= 0.0) return; else xEnd = log10( xEnd);
       }
@@ -700,9 +747,6 @@ namespace lib {
       }
     
     actStream->wind( xStart, xEnd, minVal, maxVal);
-
-
-
 
     //linestyle
     DLong linestyle = p_linestyle ;
@@ -767,7 +811,7 @@ namespace lib {
 	    
 	    if(xEl >= 1) wcxs=(*clippingD)[0]; else wcxs=0;
 	    if(xEl >= 2) wcys=(*clippingD)[1]; else wcxe=0;
-	    if(xEl >= 3) wcxe=(*clippingD)[2]; else  wcxe=wcxs;
+	    if(xEl >= 3) wcxe=(*clippingD)[2]; else wcxe=wcxs;
 	    if(xEl >= 4) wcye=(*clippingD)[3]; else wcye=wcys;
 	    if(wcxe < wcxs ) wcxe=wcxs; 
 	    if(wcye < wcys ) wcye=wcys; 
@@ -775,7 +819,9 @@ namespace lib {
 	    cxe=xML+(wcxe)*(1-xML-xMR)/(xEnd-xStart);
 	    cys=yMB+(wcys)*(1-yMT-yMB)/(yEnd-yStart);
 	    cye=yMB+(wcye)*(1-yMT-yMB)/(yEnd-yStart);
+
 	    actStream->vpor(cxs, cxe, cys, cye);
+
 	    xStart=wcxs; xEnd=wcxe; minVal=wcys; maxVal=wcye;
 	    if( xLog)
 	      {
@@ -869,8 +915,7 @@ namespace lib {
     static unsigned ytypeTag = yStruct->Desc()->TagIndex("TYPE");
     (*static_cast<DLongGDL*>(xStruct->Get(xtypeTag, 0)))[0] =xLog;
     (*static_cast<DLongGDL*>(yStruct->Get(xtypeTag, 0)))[0] = yLog;
-
-  }
+  } // plot
 
   void oplot( EnvT* e)
   {
@@ -1766,7 +1811,7 @@ namespace lib {
 	    
 	    if(xEl >= 1) wcxs=(*clippingD)[0]; else wcxs=0;
 	    if(xEl >= 2) wcys=(*clippingD)[1]; else wcxe=0;
-	    if(xEl >= 3) wcxe=(*clippingD)[2]; else  wcxe=wcxs;
+	    if(xEl >= 3) wcxe=(*clippingD)[2]; else wcxe=wcxs;
 	    if(xEl >= 4) wcye=(*clippingD)[3]; else wcye=wcys;
 	    if(wcxe < wcxs ) wcxe=wcxs; 
 	    if(wcye < wcys ) wcye=wcys; 
@@ -1789,7 +1834,7 @@ namespace lib {
 
 	  }
       }
-	    actStream->wind( xStart, xEnd, minVal, maxVal);
+    actStream->wind( xStart, xEnd, minVal, maxVal);
     PLFLT x,y;
     string out;
 
@@ -1828,7 +1873,6 @@ namespace lib {
     e->AssureDoubleScalarKWIfPresent( "CHARSIZE", charsize);
     if( charsize <= 0.0) charsize = 1.0;
     actStream->schr(0.0,charsize);
-
 
     if(minEl == 1)
       {
