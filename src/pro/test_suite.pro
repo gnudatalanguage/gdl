@@ -241,6 +241,18 @@ if a[1] ne 1 then print,'***RET: ERROR8'
 n = retOverwriteExpression()
 if n[2] ne "r" then print,'***RET: ERROR9'
 
+a=1
+c=ret(4*(3+reform(a,1,/OVERWRITE)+1)*2)
+if a ne 1 then print,'***RET: ERROR10'
+if c ne 40 then print,'***RET: ERROR11'
+
+common ret_common,aa
+
+aa=1
+c=ret(4*(3+reform(aa,1,/OVERWRITE)+1)*2)
+if aa ne 1 then print,'***RET: ERROR12'
+if c ne 40 then print,'***RET: ERROR13'
+
 print,'RET: OK';
 end
 
@@ -422,6 +434,10 @@ pp=ptr_new(p)
 set22,**pp
 if **pp ne 2 then print,"***REF: ERROR3"
 ptr_free,p,pp
+
+a=indgen(3)
+set22,reform(a,1,3,/OVERWRITE)
+if a ne 2 then print,"***REF: ERROR4"
 
 print,'REF: OK'
 end
@@ -625,6 +641,11 @@ s2={s}
 sArr=[s2,s2]
 sArr[1].s[1]='test'
 if sArr[1].s[1] ne 'test' then print,'***EXPR: ERROR4'
+
+a=1
+c=4*(3+reform(a,1,/OVERWRITE)+1)*2
+if c ne 40 then print,'***EXPR: ERROR5'
+if a ne 1 then print,'***EXPR: ERROR6'
 
 print,'EXPR: OK'
 end

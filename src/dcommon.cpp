@@ -98,3 +98,8 @@ int DCommonRef::Find(const BaseGDL* data_)
   if( ix >= static_cast<int>(varNames.size())) return -1;
   return ix;
 }
+
+DVar* DCommonRef::Var(unsigned ix)
+{
+  return cRef->Var( ix);
+}

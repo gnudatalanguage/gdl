@@ -31,6 +31,7 @@ public:
   virtual DVar* Find(const std::string&)=0;
   virtual int Find(const BaseGDL*)=0;
   virtual const std::string& VarName(const unsigned i)=0;
+  virtual DVar* Var(unsigned ix)=0;
 };
 
 // common block *******************************************************
@@ -86,6 +87,7 @@ public:
   const std::string& Name() const;
   DVar* Find(const std::string&);
   int Find(const BaseGDL*);
+  DVar* Var(unsigned ix);
 };
 
 typedef std::deque<DCommonBase*> CommonBaseListT;

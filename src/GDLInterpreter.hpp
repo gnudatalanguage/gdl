@@ -355,6 +355,8 @@ public:
 	public: void parameter_def(RefDNode _t,
 		EnvT* actEnv
 	);
+	public: BaseGDL*  tmp_expr(RefDNode _t);
+	public: BaseGDL*  check_expr(RefDNode _t);
 	public: BaseGDL**  l_expr(RefDNode _t,
 		BaseGDL* right
 	);
@@ -408,6 +410,7 @@ public:
 		DotAccessDescT* aD
 	);
 	public: BaseGDL*  dot_expr(RefDNode _t);
+	public:  BaseGDL*  lib_function_call(RefDNode _t);
 	public: BaseGDL*  assign_expr(RefDNode _t);
 	public:  BaseGDL*  function_call(RefDNode _t);
 	public:  BaseGDL**  ref_parameter(RefDNode _t);
@@ -429,10 +432,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 193;
+	static const int NUM_TOKENS = 196;
 #else
 	enum {
-		NUM_TOKENS = 193
+		NUM_TOKENS = 196
 	};
 #endif
 	

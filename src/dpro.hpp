@@ -308,6 +308,20 @@ public:
       }
     return false;
   }
+  BaseGDL** GetCommonVarPtr(const BaseGDL* p)
+  {
+    for( CommonBaseListT::iterator c=common.begin();
+	 c != common.end(); c++)
+      {
+	int vIx = (*c)->Find( p);
+	if( vIx >= 0) 
+	  {
+	    DVar* var = (*c)->Var( vIx);
+	    return &(var->Data());
+	  }
+      }
+    return NULL;
+  }
 
   // returns the variable index (-1 if not found)
   int FindVar(const std::string& s)

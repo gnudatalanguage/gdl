@@ -789,3 +789,16 @@ void EnvT::SetPar( SizeT ix, BaseGDL* newVal)
   delete GetPar( ix);
   GetPar( ix) = guard.release();
 }
+
+bool EnvT::Contains( BaseGDL* p) const 
+{ 
+  if( env.Contains( p)) return true;
+  return (static_cast<DSubUD*>(pro)->GetCommonVarPtr( p) != NULL);
+}
+
+BaseGDL** EnvT::GetPtrTo( BaseGDL* p) 
+{ 
+  BaseGDL** pp = env.GetPtrTo( p);
+  if( pp != NULL) return pp;
+  return static_cast<DSubUD*>(pro)->GetCommonVarPtr( p);
+}

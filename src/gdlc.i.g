@@ -1,9 +1,3 @@
-//TODO: unnamed structs should not be entered into the
-// struct list anymore but instead be owned by their variable
-// problem: unnamed structs might have their desc replaced
-// if inserted to arrays
-// grep FindEqual finds the relevant code pieces
-
 /* *************************************************************************
                           gdlc.i.g 
 the GDL interpreter
@@ -1123,13 +1117,19 @@ assignment
 {
     BaseGDL*  r;
     BaseGDL** l;
+    auto_ptr<BaseGDL> r_guard;
 }
-    : #(a:ASSIGN r=expr
-            {
-                auto_ptr<BaseGDL> r_guard;
-                if( !callStack.back()->Contains( r)) 
+    : #(a:ASSIGN 
+            ( r=tmp_expr
+                {
                     r_guard.reset( r);
-            }
+                }
+            | r=check_expr
+                {
+                    if( !callStack.back()->Contains( r)) 
+                        r_guard.reset( r);
+                }
+            )
             l=l_expr[ r]
 //             {
 //                 // no delete if assigned to itself
@@ -1225,12 +1225,20 @@ l_ret_expr returns [BaseGDL** res]
             
             res=&callStack.back()->GetKW(var->varIx); 
         }
-    | #(ASSIGN e1=expr 
+    | #(ASSIGN 
             { 
                 auto_ptr<BaseGDL> r_guard;
-                if( !callStack.back()->Contains( e1)) 
-                    r_guard.reset( e1);
             } 
+            ( e1=tmp_expr
+                {
+                    r_guard.reset( e1);
+                }
+            | e1=check_expr
+                {
+                    if( !callStack.back()->Contains( e1)) 
+                        r_guard.reset( e1);
+                }
+            )
             res=l_ret_expr
             {
                 if( e1 != (*res))
@@ -1303,7 +1311,10 @@ l_decinc_array_expr [int dec_inc] returns [BaseGDL* res]
     auto_ptr<ArrayIndexListT> guard;
 
 }
-    : #(ARRAYEXPR aL=arrayindex_list { guard.reset( aL);} e=l_decinc_indexable_expr[ dec_inc])   
+    : #(ARRAYEXPR 
+            aL=arrayindex_list 
+            { guard.reset( aL);} 
+            e=l_decinc_indexable_expr[ dec_inc])   
         {
             aL->SetVariable( e);
 
@@ -1408,12 +1419,21 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
                 }
             }
         ) // trinary operator
-    | #(ASSIGN e1=expr
+    | #(ASSIGN 
             { 
                 auto_ptr<BaseGDL> r_guard;
-                if( !callStack.back()->Contains( e1)) 
+            } 
+            ( e1=tmp_expr
+                {
                     r_guard.reset( e1);
-
+                }
+            | e1=check_expr
+                {
+                    if( !callStack.back()->Contains( e1)) 
+                        r_guard.reset( e1);
+                }
+            )
+            { 
                 RefDNode l = _t;
 
                 BaseGDL** tmp;
@@ -1638,12 +1658,17 @@ l_expr [BaseGDL* right] returns [BaseGDL** res]
     | #(ASSIGN e1=expr
             { 
                 auto_ptr<BaseGDL> r_guard;
-
-                // no delete if assigned to itself
-                // only possible from lib function
-                if( !callStack.back()->Contains( e1))
-                    r_guard.reset( e1);
             } 
+            ( e1=tmp_expr
+                {
+                    r_guard.reset( e1);
+                }
+            | e1=check_expr
+                {
+                    if( !callStack.back()->Contains( e1)) 
+                        r_guard.reset( e1);
+                }
+            )
             res=l_expr[ e1]
 //             {
 //                 if( (*res) == e1 || callStack.back()->Contains( e1)) 
@@ -2134,6 +2159,20 @@ dot_expr returns [BaseGDL* res]
 
 // l_expr used as r_expr and true r_expr
 expr returns [BaseGDL* res]
+    : res=tmp_expr
+    | res=check_expr
+        {
+            if( callStack.back()->Contains( res)) 
+                res = res->Dup();
+        }
+    ;
+
+check_expr returns [BaseGDL* res]
+    : res=lib_function_call 
+    ;
+
+// l_expr used as r_expr and true r_expr
+tmp_expr returns [BaseGDL* res]
 {
     BaseGDL*  e1;
     BaseGDL** e2;
@@ -2164,7 +2203,6 @@ expr returns [BaseGDL* res]
     | res=dot_expr
     | res=assign_expr
     | res=function_call
-        //    | res=lib_function_call 
     | res=r_expr
     ;
 
@@ -2172,14 +2210,24 @@ assign_expr returns [BaseGDL* res]
 {
     BaseGDL** l;
 }
-    : #(ASSIGN res=expr // getting r first makes sure something like a=a+1 works 
+    : #(ASSIGN 
             { 
                 auto_ptr<BaseGDL> r_guard;
-                if( !callStack.back()->Contains( res)) 
+            } 
+            ( res=tmp_expr
+                {
                     r_guard.reset( res);
-            }
+                }
+            | res=check_expr
+                {
+                    if( !callStack.back()->Contains( res)) 
+                        r_guard.reset( res);
+                }
+            )
             l=l_expr[ res]
-            { r_guard.release();} // here res is returned!
+            { 
+                r_guard.release();
+            } // here res is returned!
         )
     ;
 
@@ -2239,12 +2287,10 @@ constant returns [BaseGDL* res]
         }
   ;
 
-function_call returns[ BaseGDL* res]
+lib_function_call returns[ BaseGDL* res]
 { 
     // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
     StackGuard<EnvStackT> guard(callStack);
-    BaseGDL *self;
-    EnvT*   newEnv;
 }
 	: #(FCALL_LIB fl:IDENTIFIER
             {
@@ -2259,8 +2305,17 @@ function_call returns[ BaseGDL* res]
                 //*** MUST always return a defined expression
             }
         )
-    |
-        (
+    ;    
+
+
+function_call returns[ BaseGDL* res]
+{ 
+    // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+    StackGuard<EnvStackT> guard(callStack);
+    BaseGDL *self;
+    EnvT*   newEnv;
+}
+    :    (
         ( #(MFCALL 
                 self=expr mp:IDENTIFIER
                 {  
@@ -2392,30 +2447,61 @@ parameter_def [EnvT* actEnv]
     BaseGDL** kvalRef;
     BaseGDL** pvalRef;
 }
-    : (   #(KEYDEF kname:IDENTIFIER kval=expr
-                {
-                    actEnv->SetKeyword(kname->getText(),kval); // pass value
+    : (  #(KEYDEF_REF knameR:IDENTIFIER kvalRef=ref_parameter
+                {   // pass reference
+                    actEnv->SetKeyword( knameR->getText(), kvalRef); 
                 }
-           )
-        | #(KEYDEF_REF knamer:IDENTIFIER kvalRef=ref_parameter
-                {
-                    // pass reference
-                    actEnv->SetKeyword(knamer->getText(),kvalRef); 
+            )
+        | #(KEYDEF kname:IDENTIFIER kval=expr
+                {   // pass value
+                    actEnv->SetKeyword( kname->getText(), kval);
                 }
-           )
+            )
         | #(REF pvalRef=ref_parameter
-                {
-                    actEnv->SetNextPar(pvalRef); // pass reference
+                {   // pass reference
+                    actEnv->SetNextPar(pvalRef); 
                 }   
             )
         | pval=expr
-            { 
-                actEnv->SetNextPar(pval); // pass value
+            {   // pass value
+                actEnv->SetNextPar(pval); 
             }
-      )*        
+        | #(KEYDEF_REF_CHECK knameCk:IDENTIFIER 
+                ( kval=tmp_expr
+                | kval=check_expr
+                )
+                {
+                    kvalRef = callStack.back()->GetPtrTo( kval);
+                    if( kvalRef != NULL)
+                    {   // pass reference
+                        actEnv->SetKeyword(knameCk->getText(), kvalRef); 
+                    }
+                    else 
+                    {   // pass value
+                        actEnv->SetKeyword(knameCk->getText(), kval); 
+                    }
+                }
+            )   
+        | #(REF_CHECK
+// ***** tmp_expr can be removed
+                ( pval=tmp_expr
+                | pval=check_expr
+                )
+                {
+                    pvalRef = callStack.back()->GetPtrTo( pval);
+                    if( pvalRef != NULL)
+                    {   // pass reference
+                        actEnv->SetNextPar( pvalRef); 
+                    }
+                    else 
+                    {   // pass value
+                        actEnv->SetNextPar( pval); 
+                    }
+                }       
+            )
+        )*             
         {
             actEnv->Extra(); // expand _EXTRA
-
             guard.release();
         }
 	;

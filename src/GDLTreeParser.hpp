@@ -62,8 +62,9 @@ public:
 	public: void keyword_declaration(RefDNode _t);
 	public: void statement_list(RefDNode _t);
 	public: void common_block(RefDNode _t);
-	public: void labeled_expr(RefDNode _t);
+	public: void unbrace_expr(RefDNode _t);
 	public: void expr(RefDNode _t);
+	public: void labeled_expr(RefDNode _t);
 	public: void caseswitch_body(RefDNode _t);
 	public: void switch_statement(RefDNode _t);
 	public: void case_statement(RefDNode _t);
@@ -107,10 +108,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 193;
+	static const int NUM_TOKENS = 196;
 #else
 	enum {
-		NUM_TOKENS = 193
+		NUM_TOKENS = 196
 	};
 #endif
 	

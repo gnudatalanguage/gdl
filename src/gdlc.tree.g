@@ -207,15 +207,15 @@ common_block!
 	)
   ;		
 
-// // removes last pair of braces (multiple braces already removed in brace_expr)
-// unbrace_expr!//
-// 	: ex:expr
-// 		{
-//             // remove last pair of braces
-// 			if( #ex->getType()==EXPR) #ex=#ex->getFirstChild();
-//             #unbrace_expr=#ex;
-// 		}
-//     ;
+// removes last pair of braces (multiple braces already removed in brace_expr)
+unbrace_expr
+	: ex:expr
+		{
+            // remove last pair of braces
+			if( #ex->getType()==EXPR) #ex=#ex->getFirstChild();
+            #unbrace_expr=#ex;
+		}
+    ;
 
 // more than one ELSE is allowed: first is executed, *all*
 // (including expr) later branches are ignored
@@ -430,7 +430,7 @@ parameter_def!//
 {
     RefDNode variable;
 }
-	: #(d:KEYDEF i:IDENTIFIER k:expr
+	: #(d:KEYDEF i:IDENTIFIER k:unbrace_expr
             {
                 variable=comp.ByReference(#k);
                 if( variable != static_cast<RefDNode>(antlr::nullAST))
@@ -438,22 +438,57 @@ parameter_def!//
                     #d=#[KEYDEF_REF,"keydef_ref"];
                     #parameter_def=#(d,i,variable);
                 }
-                else
+                else 
                 {
-                    #parameter_def=#(d,i,k);
+                    int t = #k->getType();
+                    if( t == FCALL_LIB || t == MFCALL_LIB || 
+                        t == MFCALL_PARENT_LIB)
+                    {
+                        #d=#[KEYDEF_REF_CHECK,"keydef_ref_check"];
+                        #parameter_def=#(d,i,k);
+                    }
+                    else
+                    {
+                        #parameter_def=#(d,i,k);
+                    }
                 }
             }
         )
-	| e:expr
+	| e:unbrace_expr
+
+// make sure   ((a=2))=3
+//       and   PROCALL,(a=2) 
+// work correctly
+// hint: check for ref only in interpreter
+// handle assign_expr specially (they are non tmp_expr)
+// ...
         {
             variable=comp.ByReference(#e);
             if( variable != static_cast<RefDNode>(antlr::nullAST))
             {
                 #parameter_def=#([REF,"ref"],variable);
             }
-            else
+            else 
             {
-                #parameter_def=#e;
+                int t = #e->getType();
+                if( t == FCALL_LIB || t == MFCALL_LIB || 
+                    t == MFCALL_PARENT_LIB)
+                {
+                    // something like: CALLAPRO,reform(a,/OVERWRITE)
+                    #parameter_def=#([REF_CHECK,"ref_check"],e);
+                }
+                else if( t == ASSIGN)
+                {
+                    RefDNode target = #e->getFirstChild();
+                    target = target->getNextSibling();
+                    int tt = #e->getType();
+
+                    #parameter_def=#([REF_ASSIGN,"ref_assign"],e,target);
+                }
+                else
+                {
+                    #parameter_def=#( e);
+                }
             }
         }
 	;

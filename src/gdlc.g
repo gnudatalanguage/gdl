@@ -75,6 +75,7 @@ tokens {
 	KEYDECL;
 	KEYDEF;
 	KEYDEF_REF; // keyword passed by reference
+	KEYDEF_REF_CHECK; // keyword maybe passed by reference
   	LABEL;
 	MPCALL;
 	MPCALL_PARENT; // explicit call to parent 
@@ -93,7 +94,9 @@ tokens {
     POSTINC; 
     DECSTATEMENT; // as a statement
     INCSTATEMENT; // as a statement
-    REF;     // expr pass by reference
+    REF;        // expr pass by reference
+    REF_CHECK;  // expr maybe be passed by reference
+    REF_ASSIGN; // assign expr as parameter
     RETURN;  // unspecified return (replaced by tree parser with RETF/RETP)
   	RETF;    // return from function (return argument)
   	RETP;    // return from procedure (no return argument)

@@ -73,6 +73,7 @@ public:
   void CommonDecl(const std::string&);        // Common block declaration
   void CommonVar(DCommonBase*, const std::string&); // Common block variable
   RefDNode ByReference(RefDNode n_);  // for parameter passing 
+  //  bool ByReferenceMaybe(RefDNode n_); // for parameter passing 
   bool IsVar(const std::string&) const; // variable already defined in actual context?
   void Var(RefDNode);    // sets var in node
   void SysVar(RefDNode); // sets var in node
