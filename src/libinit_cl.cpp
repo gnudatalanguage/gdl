@@ -43,15 +43,22 @@ using namespace std;
 void LibInit_cl()
 {
   const char KLISTEND[] = "";
-
-  new DLibPro(lib::journal,string("JOURNAL"),1);
-  
+    
   const string systimeKey[]={"JULIAN","SECONDS","UTC",KLISTEND};
   new DLibFun(lib::systime,string("SYSTIME"),2,systimeKey);
 
-  const string legendreKey[]={"DOUBLE",KLISTEND};
+    const string legendreKey[]={"DOUBLE",KLISTEND};
   new DLibFun(lib::legendre,string("LEGENDRE"),3,legendreKey);
 
+  //  new DLibFun(lib::exp, string("EXP"),1);
+  new DLibFun(lib::gamma, string("GAMMA"),1);
+  new DLibFun(lib::lngamma, string("LNGAMMA"),1);
+
+  const string igammaKey[]={"DOUBLE","EPS","ITER","ITMAX","METHOD",KLISTEND};
+  new DLibFun(lib::igamma, string("IGAMMA"),2);
+
+  const string betaKey[]={"DOUBLE",KLISTEND};
+  new DLibFun(lib::beta, string("BETA"),2);
 
   new DLibFun(lib::ncdf_exists,string("NCDF_EXISTS"));
   new DLibFun(lib::magick_exists,string("MAGICK_EXISTS"));

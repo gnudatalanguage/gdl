@@ -29,8 +29,10 @@
 #include <gsl/gsl_sys.h>
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_sf.h>
+#include <gsl/gsl_errno.h>
+#include <gsl/gsl_spline.h>
 
-
+#include "initsysvar.hpp"
 #include "datatypes.hpp"
 #include "envt.hpp"
 //#include "dpro.hpp"
@@ -372,8 +374,334 @@ namespace lib {
     return new DByteGDL(0);
   }
 
+  BaseGDL * gamma(EnvT* e)
+  {
+    SizeT nParam = e->NParam();
+    if(nParam != 1)
+      throw GDLException(e->CallingNode(),
+			 "GAMMA: Incorrect number of arguments.");
+
+    BaseGDL* g=e->GetParDefined(0);
+    SizeT nEl=g->N_Elements();
+    if( nEl == 0)
+      throw GDLException( e->CallingNode(), 
+			  "GAMMA: Variable is undefined: "+e->GetParString(0));
+
+    SizeT c;
+    static DStructGDL *Values =  SysVar::Values();
+
+    if(g->Type() == DOUBLE)
+      {
+	DDoubleGDL* gd = e->GetParAs<DDoubleGDL>(0);
+	DDoubleGDL* resd = new DDoubleGDL(gd->Dim(), BaseGDL::NOZERO);
+	DDouble d_infinity=(*static_cast<DDoubleGDL*>
+			    (Values->Get
+			     (Values->Desc()->TagIndex("D_INFINITY"), 0)))[0];
+
+
+	for (c=0;c<nEl;++c)
+	  if((*gd)[c] >0.0  && (*gd)[c]< GSL_SF_GAMMA_XMAX)
+	    (*resd)[c]=gsl_sf_gamma(static_cast<double>((*gd)[c]));
+	  else
+	    (*resd)[c]=d_infinity;
+
+	return resd;
+      }
+    else
+      {
+	DFloatGDL* gf = e->GetParAs<DFloatGDL>(0);
+	DFloatGDL* resf = new DFloatGDL(gf->Dim(), BaseGDL::NOZERO);
+	DFloat f_infinity=(*static_cast<DFloatGDL*>
+			   (Values->Get
+			    (Values->Desc()->TagIndex("F_INFINITY"), 0)))[0];
+	for (c=0;c<nEl;++c)
+	  if((*gf)[c] >0.0 && (*gf)[c]<GSL_SF_GAMMA_XMAX)
+	    (*resf)[c]=static_cast<DFloat>
+	      (gsl_sf_gamma(static_cast<DDouble>((*gf)[c])));
+	  else
+	    (*resf)[c]=f_infinity;
+	
+
+	return resf;
+      }
+  }
+
+  BaseGDL * lngamma(EnvT* e)
+  {
+    SizeT nParam = e->NParam();
+    if(nParam != 1)
+      throw GDLException(e->CallingNode(),
+			 "LNGAMMA: Incorrect number of arguments.");
+
+    BaseGDL* g=e->GetParDefined(0);
+    SizeT nEl=g->N_Elements();
+    if( nEl == 0)
+      throw GDLException( e->CallingNode(), 
+			  "LNGAMMA: Variable is undefined: "+e->GetParString(0));
+
+    SizeT c;
+
+    struct DStructGDL *Values =  new DStructGDL( "!VALUES");
+    if(g->Type() == DOUBLE)
+      {
+	DDoubleGDL* gd = e->GetParAs<DDoubleGDL>(0);
+	DDoubleGDL* resd = new DDoubleGDL(gd->Dim(), BaseGDL::NOZERO);
+	DDouble d_infinity=(*static_cast<DDoubleGDL*>
+			    (Values->Get
+			     (Values->Desc()->TagIndex("D_INFINITY"), 0)))[0];
+
+
+	for (c=0;c<nEl;++c)
+	  if((*gd)[c] >0.0  && (*gd)[c]< GSL_SF_GAMMA_XMAX)
+	    (*resd)[c]=gsl_sf_lngamma(static_cast<double>((*gd)[c]));
+	  else
+	    (*resd)[c]=d_infinity;
+
+	return resd;
+      }
+    else
+      {
+	DFloatGDL* gf = e->GetParAs<DFloatGDL>(0);
+	DFloatGDL* resf = new DFloatGDL(gf->Dim(), BaseGDL::NOZERO);
+	DFloat f_infinity=(*static_cast<DFloatGDL*>
+			   (Values->Get
+			    (Values->Desc()->TagIndex("F_INFINITY"), 0)))[0];
+	for (c=0;c<nEl;++c)
+	  if((*gf)[c] >0.0 && (*gf)[c]<GSL_SF_GAMMA_XMAX)
+	    (*resf)[c]=static_cast<DFloat>
+	      (gsl_sf_lngamma(static_cast<DDouble>((*gf)[c])));
+	  else
+	    (*resf)[c]=f_infinity;
+	
+
+	return resf;
+      }
+
+
+  }
+
+
+  BaseGDL * igamma(EnvT* e)
+  {
+    SizeT nParam = e->NParam();
+    if(nParam != 2)
+      throw GDLException(e->CallingNode(),
+			 "IGAMMA: Incorrect number of arguments.");
+
+    BaseGDL* g=e->GetParDefined(0);
+    BaseGDL* b=e->GetParDefined(1);
+    SizeT nEl=g->N_Elements();
+    SizeT nElb=b->N_Elements();
+    if( nEl == 0)
+      throw GDLException( e->CallingNode(), 
+			  "IGAMMA: Variable is undefined: "+e->GetParString(0));
+    if( nElb == 0)
+      throw GDLException( e->CallingNode(), 
+			  "IGAMMA: Variable is undefined: "+e->GetParString(1));
+    nEl=nEl > nElb? nElb:nEl;
+    if(e->KeywordSet("EPS")) 
+      Message("IGAMMA: EPS Keyword not supported");
+    if(e->KeywordSet("ITER")) 
+      Message("IGAMMA: ITER Keyword not supported");
+    if(e->KeywordSet("ITMAX")) 
+      Message("IGAMMA: ITMAX Keyword not supported");
+    if(e->KeywordSet("METHOD")) 
+      Message("IGAMMA: METHOD Keyword not supported");
+    
+    SizeT c;
+
+    struct DStructGDL *Values =  new DStructGDL( "!VALUES");
+    if(g->Type() == DOUBLE || e->KeywordSet("DOUBLE"))
+      {
+	DDoubleGDL* gd = e->GetParAs<DDoubleGDL>(0);
+	DDoubleGDL* x = e->GetParAs<DDoubleGDL>(1);
+	DDoubleGDL* resd = new DDoubleGDL(gd->Dim(), BaseGDL::NOZERO);
+	DDouble d_infinity=(*static_cast<DDoubleGDL*>
+			    (Values->Get
+			     (Values->Desc()->TagIndex("D_INFINITY"), 0)))[0];
+
+
+	for (c=0;c<nEl;++c)
+	  if((*gd)[c] >0.0  && (*gd)[c]< GSL_SF_GAMMA_XMAX)
+	    (*resd)[c]=gsl_sf_gamma_inc_P(static_cast<double>((*gd)[c]),static_cast<double>((*x)[c]));
+	  else
+	    (*resd)[c]=d_infinity;
+
+	return resd;
+      }
+    else
+      {
+	DFloatGDL* gf = e->GetParAs<DFloatGDL>(0);
+	DFloatGDL* x = e->GetParAs<DFloatGDL>(1);
+	DFloatGDL* resf = new DFloatGDL(gf->Dim(), BaseGDL::NOZERO);
+	DFloat f_infinity=(*static_cast<DFloatGDL*>
+			   (Values->Get
+			    (Values->Desc()->TagIndex("F_INFINITY"), 0)))[0];
+	for (c=0;c<nEl;++c)
+	  if((*gf)[c] >0.0 && (*gf)[c]<GSL_SF_GAMMA_XMAX)
+	    (*resf)[c]=static_cast<DFloat>
+	      (gsl_sf_gamma_inc_P(static_cast<DDouble>((*gf)[c]),static_cast<double>((*x)[c])));
+	  else
+	    (*resf)[c]=f_infinity;
+	
+
+	return resf;
+      }
+
+
+  }
+
+
+  BaseGDL * beta(EnvT* e)
+  {
+    SizeT nParam = e->NParam();
+    if(nParam != 2)
+      throw GDLException(e->CallingNode(),
+			 "BETA: Incorrect number of arguments.");
+
+    BaseGDL* g=e->GetParDefined(0);
+    BaseGDL* b=e->GetParDefined(1);
+    SizeT nEl=g->N_Elements();
+    SizeT nElb=b->N_Elements();
+    if( nEl == 0)
+      throw GDLException( e->CallingNode(), 
+			  "IGAMMA: Variable is undefined: "+e->GetParString(0));
+    if( nElb == 0)
+      throw GDLException( e->CallingNode(), 
+			  "IGAMMA: Variable is undefined: "+e->GetParString(1));
+    nEl=nEl > nElb? nElb:nEl;
+    SizeT c;
+
+    struct DStructGDL *Values =  new DStructGDL( "!VALUES");
+    if(g->Type() == DOUBLE)
+      {
+	DDoubleGDL* gd = e->GetParAs<DDoubleGDL>(0);
+	DDoubleGDL* bd = e->GetParAs<DDoubleGDL>(1);
+	DDoubleGDL* resd = new DDoubleGDL(gd->Dim(), BaseGDL::NOZERO);
+	DDouble d_infinity=(*static_cast<DDoubleGDL*>
+			    (Values->Get
+			     (Values->Desc()->TagIndex("D_INFINITY"), 0)))[0];
+
+
+	for (c=0;c<nEl;++c)
+	  if((*gd)[c] >0.0  && (*gd)[c]< GSL_SF_GAMMA_XMAX)
+	    (*resd)[c]=gsl_sf_beta(static_cast<double>((*gd)[c]),static_cast<double>((*bd)[c]));
+	  else
+	    (*resd)[c]=d_infinity;
+
+	return resd;
+      }
+    else
+      {
+	DFloatGDL* gf = e->GetParAs<DFloatGDL>(0);
+	DFloatGDL* bf = e->GetParAs<DFloatGDL>(1);
+	DFloatGDL* resf = new DFloatGDL(gf->Dim(), BaseGDL::NOZERO);
+	DFloat f_infinity=(*static_cast<DFloatGDL*>
+			   (Values->Get
+			    (Values->Desc()->TagIndex("F_INFINITY"), 0)))[0];
+	for (c=0;c<nEl;++c)
+	  if((*gf)[c] >0.0 && (*gf)[c]<GSL_SF_GAMMA_XMAX)
+	    (*resf)[c]=static_cast<DFloat>
+	      (gsl_sf_beta(static_cast<DDouble>((*gf)[c]),static_cast<DDouble>((*bf)[c])));
+	  else
+	    (*resf)[c]=f_infinity;
+	
+
+	return resf;
+      }
+  }
+
+
+//   BaseGDL* exp(EnvT* e)
+//   {
+//     SizeT nParam = e->NParam(1);
+//     BaseGDL* v=e->GetParDefined(0);   
+
+//     size_t nEl = v->N_Elements();
+//     size_t i;
+//     if (v->Type() == STRING) {
+//       throw GDLException( e->CallingNode(), 
+// 		  "EXP: String expression not allowed in this context: "
+// 			  +e->GetParString(0));
+//     } else if (v->Type() == PTR) {
+//       throw GDLException( e->CallingNode(), 
+// 		  "EXP: Pointer expression not allowed in this context: "
+// 			  +e->GetParString(0));
+//     } else if (v->Type() == OBJECT) {
+//       throw GDLException( e->CallingNode(), 
+// 		  "EXP: Object expression not allowed in this context: "
+// 			  +e->GetParString(0));
+//     } else if (v->Type() == STRUCT) {
+//       throw GDLException( e->CallingNode(), 
+// 		  "EXP: Struct expression not allowed in this context: "
+// 			  +e->GetParString(0));		  
+//     } else   {
+//       DDoubleGDL* d;
+//       DDoubleGDL* dr = new DDoubleGDL(v->Dim(), BaseGDL::NOZERO);
+
+//       if(v->Type() == COMPLEX) {
+// 	DComplexDblGDL* cd=
+// 	  static_cast<DComplexDblGDL*>(v->Convert2(COMPLEXDBL, BaseGDL::COPY));
+// 	DComplexDblGDL* cdr =
+// 	  new DComplexDblGDL(v->Dim(), BaseGDL::NOZERO);
+
+// 	if(nEl == 1) 
+// 	  (*cdr)[0]=
+// 	   DComplex((gsl_sf_exp((*cd)[0].real())*cos((*cd)[0].imag())),
+// 		    (gsl_sf_exp((*cd)[0].real())*sin((*cd)[0].imag())));
+// 	else
+// 	  for(i=0;i<nEl;++i) 
+// 	    (*cdr)[i]=
+// 	      DComplex((gsl_sf_exp((*cd)[i].real())*cos((*cd)[i].imag())),
+// 		       (gsl_sf_exp((*cd)[i].real())*sin((*cd)[i].imag())));
+
+// 	return static_cast<DComplexGDL*>(cdr->Convert2(COMPLEX,BaseGDL::COPY));
+
+//       } else if(v->Type() == COMPLEXDBL) {
+// 	DComplexDblGDL* cd=
+// 	  static_cast<DComplexDblGDL*>(v->Convert2(COMPLEXDBL, BaseGDL::COPY));
+// 	DComplexDblGDL* cdr =
+// 	  new DComplexDblGDL(v->Dim(), BaseGDL::NOZERO);
+
+// 	if(nEl == 1) 
+// 	  (*cdr)[0]=
+// 	   DComplex((gsl_sf_exp((*cd)[0].real())*cos((*cd)[0].imag())),
+// 		    (gsl_sf_exp((*cd)[0].real())*sin((*cd)[0].imag())));
+// 	else
+// 	  for(i=0;i<nEl;i++) 
+// 	    (*cdr)[i]=
+// 	      DComplex((gsl_sf_exp((*cd)[i].real())*cos((*cd)[i].imag())),
+// 		       (gsl_sf_exp((*cd)[i].real())*sin((*cd)[i].imag())));
+	
+// 	return cdr;
+	
+//       } else if(v->Type() == DOUBLE) {
+	
+// 	d=static_cast<DDoubleGDL*>(v->Convert2(DOUBLE, BaseGDL::COPY));
+// 	if(nEl == 1) 
+// 	  (*dr)[0]=gsl_sf_exp((*d)[0]);
+// 	else
+// 	  for (i=0;i<nEl;++i) (*dr)[i]=gsl_sf_exp((*d)[i]);
+	
+// 	return dr;
+//       } else if(v->Type() == FLOAT || 
+// 		v->Type() == INT ||
+// 		v->Type() == LONG) {
+	
+// 	DFloatGDL *fr;
+// 	fr=new DFloatGDL(v->Dim(), BaseGDL::NOZERO);
+// 	d=static_cast<DDoubleGDL*>(v->Convert2(DOUBLE, BaseGDL::COPY));
+
+// 	if(nEl == 1) 
+// 	  (*dr)[0]=gsl_sf_exp((*d)[0]);
+// 	else
+// 	  for (i=0;i<nEl;++i) (*dr)[i]=gsl_sf_exp((*d)[i]);
+
+// 	return static_cast<DFloatGDL*>(dr->Convert2(FLOAT,BaseGDL::COPY));
+	
+//       }
+
+//     }
+//   }
   
-  
- 
- 
 } // namespace

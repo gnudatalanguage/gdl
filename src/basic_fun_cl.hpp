@@ -23,8 +23,17 @@ namespace lib {
   double Gregorian2Julian(struct tm ts);
   BaseGDL* systime(EnvT* e);
   BaseGDL* legendre(EnvT* e);
+  BaseGDL* interpol(EnvT* e);
+  //  BaseGDL* exp(EnvT* e);
+  BaseGDL* gamma(EnvT* e);
+  BaseGDL* lngamma(EnvT* e);
+  BaseGDL* igamma(EnvT* e);
+  BaseGDL* beta(EnvT* e);
+
+  
   BaseGDL* ncdf_exists(EnvT* e);
   BaseGDL* magick_exists(EnvT* e);
+
 } // namespace
 
 #endif

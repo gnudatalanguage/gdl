@@ -166,6 +166,11 @@ namespace SysVar
     DVar& var = *sysVarList[ vIx];
     return static_cast<DStructGDL*>(var.Data());
   }
+  DStructGDL* Values()
+  {
+    DVar& var = *sysVarList[ valuesIx];
+    return static_cast<DStructGDL*>(var.Data());
+  }
   
   DStructGDL* Error_State()
   {

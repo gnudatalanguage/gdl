@@ -39,6 +39,8 @@ namespace SysVar
 
   DStructGDL* Version();
 
+  DStructGDL* Values();
+
   DStructGDL* Error_State();
   DString MsgPrefix();
 

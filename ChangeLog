@@ -75,7 +75,8 @@
 	  N_ELEMENTS now returns LONG (before ULONG)
 
 0.8.7:    Support for GDL_PATH (falls back to IDL_PATH) environment variable.
-	  Added EXPAND_PATH, ARRAY_INDICES and REBIN function.
+	  Added EXPAND_PATH, ARRAY_INDICES, REBIN, LEGENDRE, IGAMMA,
+	  LNGAMMA, BETA functions.
 	  Added OPLOT procedure.
 	  Bugfixes for ATAN (with 2 floats), CONVOL (1-dim kernel),
 	  MESSAGE (prefix).

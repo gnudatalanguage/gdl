@@ -419,6 +419,85 @@ namespace lib {
       (*static_cast<DFloatGDL*>( xStruct->Get( marginTag, 0)))[1];
   }
 
+
+  void plot_core(PLFLT xl, PLFLT yl, 
+		 PLFLT xh, PLFLT yh, 
+		 PLFLT xmin, PLFLT ymin, 
+		 PLFLT xmax, PLFLT ymax,
+		 PLFLT mg, GDLGStream* actStream)
+  {
+    //mg=(ymax-ymin)/(xmax-xmin)      
+
+    /*Possible cases
+      m'=(ymax-ymin)/(xmax-xmin)       == mg
+      m=(yh-yl)/(xh-xl)
+      xmin < xl < xh < xmax && ymin < yl < yh < ymax
+      Inside the box
+      xmin > xl || ymin > yl
+           m > m'
+	      under the x axis
+	      find the y=0 crossing
+	      yln=ymin, xln=ymin + (yl/m)-xl
+           m < m'
+              left of the y axis
+	      find the x=0 crossing
+	      xln=xmin, yln = yl-m(xl-xmin)
+
+      xmax < xl || ymax < yl
+           m > m'
+	      above the x axis
+	      find the y=0 crossing
+	      yhn=ymax, xhn=ymax + (yh/m)-xh
+           m < m'
+              right of the y axis
+	      find the x=0 crossing
+	      xhn=xmax, yhn = yh-m*(xh-xmax)
+    */
+
+    PLFLT m=(yh-yl)/(xh-xl);
+    PLFLT xlow, ylow, xhigh, yhigh;
+    if(xl < xmin || yl < ymin)
+      {
+	if( m > mg)
+	{
+	  ylow=ymin;
+	  xlow=ymin + (xl-(yl-ymin)/m);
+	}
+	else 
+	{
+	  xlow=xmin;
+	  ylow=yl-m*(xl-xmin);
+	}
+	xhigh=xh;
+	yhigh=yh;
+      }
+    else if(xh > xmax || yh > ymax)
+      {
+	if( m > mg)
+	{
+	  yhigh=ymax;
+	  xhigh=xh-(yh-yhigh)/m;
+	}
+	else 
+	{
+	  xhigh=xmax;
+	  yhigh=yh-m*(xh-xmax);
+	}
+	xlow=xl;
+	ylow=yl;
+      }
+    else 
+      {
+	xhigh=xh;
+	xlow=xl;
+	yhigh=yh;
+	ylow=yl;
+      }
+    cout<<xlow<<","<<ylow<<","<<xhigh<<","<<yhigh<<endl;
+    actStream->join(xlow, ylow, xhigh, yhigh);
+
+  }
+
   void plot( EnvT* e)
   {
     Graphics* actDevice = Graphics::GetDevice();
@@ -694,6 +773,8 @@ namespace lib {
 	if( minVal <= 0.0) minVal = 0.0; else minVal = log10( minVal);
 	if( maxVal <= 0.0) return; else maxVal = log10( maxVal);
       }
+    
+    PLFLT mg=(maxVal-minVal)/(xEnd-xStart);
     actStream->wind( xStart, xEnd, minVal, maxVal);
     //linestyle
     DLong linestyle = p_linestyle ;
@@ -753,7 +834,6 @@ namespace lib {
       {
 	PLFLT y = static_cast<PLFLT>( (*yVal)[i]);
 	if( yLog) if( y <= 0.0) continue; else y = log10( y);
-	if( y < minVal || y > maxVal) continue; 
 	
 	PLFLT x = static_cast<PLFLT>( (*xVal)[i]);
 	if( xLog) if( x <= 0.0) continue; else x = log10( x);
@@ -767,16 +847,14 @@ namespace lib {
 		if( !yLog || y1 > 0.0)
 		  {
 		    if( yLog) y1 = log10( y1);
-		    if( y1 >= minVal && y1 <= maxVal)
+		    PLFLT x1 = static_cast<PLFLT>( (*xVal)[i-1]);
+		    
+		    if( !xLog || x1 > 0.0)
 		      {
-			PLFLT x1 = static_cast<PLFLT>( (*xVal)[i-1]);
-			
-			if( !xLog || x1 > 0.0)
-			  {
-			    if( xLog) x1 = log10( x1);
-
-			    actStream->join(x1,y1,x,y);
-			  }
+			if( xLog) x1 = log10( x1);
+			plot_core(x1,y1,x,y,
+				  xStart,minVal,xEnd,maxVal,
+				  mg,actStream);
 		      }
 		  }
 	      }
@@ -901,33 +979,8 @@ namespace lib {
     DDouble yEnd =
     (*static_cast<DDoubleGDL*>( yStruct->Get( crangeTag, 0)))[1];
 
-    if(xStart == xEnd)
-      {
-	if(xStart != 0.0)
-	  Message("OPLOT !x.CRANGE ERROR, resetting range to data");
-	xStart=xVal->min();
-	xEnd=xVal->max();
-	
-	(*static_cast<DDoubleGDL*>( xStruct->Get( crangeTag, 0)))[0] = xStart;
-	(*static_cast<DDoubleGDL*>( xStruct->Get( crangeTag, 0)))[1] = xEnd;
-      }
-
-    if(yStart == yEnd)
-      {
-	if(yStart != 0.0)
-	  Message("OPLOT !y.CRANGE ERROR, setting to [0,1]");
-	yStart=yVal->min();
-	yEnd=yVal->max();
-	    
-	(*static_cast<DDoubleGDL*>( yStruct->Get( crangeTag, 0)))[0] = yStart;
-	(*static_cast<DDoubleGDL*>( yStruct->Get( crangeTag, 0)))[1] = yEnd;
-      }
-
-
-    DDouble minVal = yStart;
-    DDouble maxVal = yEnd;
-    e->AssureDoubleScalarKWIfPresent( "MIN_VALUE", minVal);
-    e->AssureDoubleScalarKWIfPresent( "MAX_VALUE", maxVal);
+    DDouble minVal;
+    DDouble maxVal;
 
 
     static unsigned xtypeTag = xStruct->Desc()->TagIndex("TYPE");
@@ -1026,7 +1079,37 @@ namespace lib {
 			  "OPLOT: YMARGIN to large.");
 
     // viewport
-    actStream->vpor( xML, 1.0-xMR, yMB, 1.0-yMT);
+
+    if((yStart == yEnd) || (xStart == xEnd))
+      {
+	if(yStart != 0.0 and yStart==yEnd)
+	  Message("OPLOT !y.CRANGE ERROR, setting to [0,1]");
+	yStart=0;//yVal->min();
+	yEnd=1;//yVal->max();
+
+	if(xStart != 0.0 and xStart==xEnd)
+	  Message("OPLOT !x.CRANGE ERROR, resetting range to data");
+	xStart=0;//xVal->min();
+	xEnd=1;//xVal->max();
+	
+	(*static_cast<DDoubleGDL*>( xStruct->Get( crangeTag, 0)))[0] = xStart;
+	(*static_cast<DDoubleGDL*>( xStruct->Get( crangeTag, 0)))[1] = xEnd;
+	    
+	(*static_cast<DDoubleGDL*>( yStruct->Get( crangeTag, 0)))[0] = yStart;
+	(*static_cast<DDoubleGDL*>( yStruct->Get( crangeTag, 0)))[1] = yEnd;
+
+	actStream->vpor(0,1,0,1);
+      }
+    else 
+      {
+	actStream->vpor( xML, 1.0-xMR, yMB, 1.0-yMT);
+      }
+
+    minVal = yStart;
+    maxVal = yEnd;
+    e->AssureDoubleScalarKWIfPresent( "MIN_VALUE", minVal);
+    e->AssureDoubleScalarKWIfPresent( "MAX_VALUE", maxVal);
+
 
     // world coordinates for viewport
     /*    if( xLog)
@@ -1039,6 +1122,7 @@ namespace lib {
 	if( minVal <= 0.0) minVal = 0.0; else minVal = log10( minVal);
 	if( maxVal <= 0.0) return; else maxVal = log10( maxVal);
 	}*/
+    PLFLT mg=(maxVal-minVal)/(xEnd-xStart);
     actStream->wind( xStart, xEnd, minVal, maxVal);
     // pen thickness for axis
     actStream->wid( 0);
@@ -1062,7 +1146,6 @@ namespace lib {
       {
 	PLFLT y = static_cast<PLFLT>( (*yVal)[i]);
 	if( yLog) if( y <= 0.0) continue; else y = log10( y);
-	if( y < minVal || y > maxVal) continue; 
 	
 	PLFLT x = static_cast<PLFLT>( (*xVal)[i]);
 	if( xLog) if( x <= 0.0) continue; else x = log10( x);
@@ -1076,16 +1159,15 @@ namespace lib {
 		if( !yLog || y1 > 0.0)
 		  {
 		    if( yLog) y1 = log10( y1);
-		    if( y1 >= minVal && y1 <= maxVal)
+		    PLFLT x1 = static_cast<PLFLT>( (*xVal)[i-1]);
+		    
+		    if( !xLog || x1 > 0.0)
 		      {
-			PLFLT x1 = static_cast<PLFLT>( (*xVal)[i-1]);
+			if( xLog) x1 = log10( x1);
+			plot_core(x1,y1, x, y, 
+				  xStart, minVal, xEnd, maxVal,
+				  mg, actStream);
 			
-			if( !xLog || x1 > 0.0)
-			  {
-			    if( xLog) x1 = log10( x1);
-
-			    actStream->join(x1,y1,x,y);
-			  }
 		      }
 		  }
 	      }
