@@ -106,9 +106,14 @@ namespace lib {
 	for( SizeT i=parOffset; i<nParam; i++)
 	  {
 	    par=e->GetParDefined( i);
+       //     cout << ":";
 	    par->ToStream( *os, width, &actPos);
+      //      cout << ":"<<endl;
 	  }
-	if( par->Dim().Rank() == 0 || par->Type() == STRUCT) (*os) << endl;
+        bool singleNullChar = (par->Type() == STRING && 
+                      (*static_cast<DStringGDL*>(par))[0] == "");
+	if( (par->Dim().Rank() == 0 && !singleNullChar) || 
+	     par->Type() == STRUCT) (*os) << endl;
       }
   }
 
