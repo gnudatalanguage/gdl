@@ -310,8 +310,8 @@ namespace lib {
 	      actCT->Get( i, (*r)[ ii], (*g)[ ii], (*b)[ ii]);
 
 	    delete p0; p0 = r;
-	    delete p1; p1 = r;
-	    delete p2; p2 = r;
+	    delete p1; p1 = g;
+	    delete p2; p2 = b;
 	  }
 	else
 	  {
