@@ -1,0 +1,684 @@
+/* **************************************************************************
+                          basic_pro.cpp  -  basic GDL library procedures
+                             -------------------
+    begin                : July 22 2002
+    copyright            : (C) 2002 by Marc Schellens
+    email                : m_schellens@hotmail.com
+ ***************************************************************************/
+
+/***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
+
+#include <string>
+#include <fstream>
+#include <memory>
+#include <set>
+
+#include "dinterpreter.hpp"
+#include "datatypes.hpp"
+#include "envt.hpp"
+#include "dpro.hpp"
+#include "io.hpp"
+#include "basic_pro.hpp"
+
+namespace lib {
+ 
+  using namespace std;
+
+  void help( EnvT* e)
+  {
+    if( e->KeywordSet( "LIB"))
+      {
+	deque<DString> subList;
+	SizeT nPro = libProList.size();
+	cout << "Library procedures (" << nPro <<"):" << endl;
+	for( SizeT i = 0; i<nPro; ++i)
+	  subList.push_back(libProList[ i]->ToString());
+
+	sort( subList.begin(), subList.end());
+
+	for( SizeT i = 0; i<nPro; ++i)
+	  cout << subList[ i] << endl;
+
+	subList.clear();
+
+	SizeT nFun = libFunList.size();
+	cout << "Library functions (" << nFun <<"):" << endl;
+	for( SizeT i = 0; i<nPro; ++i)
+	  subList.push_back(libFunList[ i]->ToString());
+
+	sort( subList.begin(), subList.end());
+	    
+	for( SizeT i = 0; i<nPro; ++i)
+	  cout << subList[ i] << endl;
+      }
+
+    SizeT nParam=e->NParam();
+    for( SizeT i=0; i<nParam; i++)
+      {
+	BaseGDL*& par=e->GetPar( i);
+
+	DString parString = e->Caller()->GetString( par);
+	if( parString.length() > 16)
+	  {
+	    cout << e->Caller()->GetString( par) << endl;
+	    cout.width( 16);
+	    cout << left << " ";
+	  }
+	else
+	  {
+	    cout.width(16);
+	    cout << left << e->Caller()->GetString( par);
+	  }
+	if( par == NULL)
+	  {
+	    cout << "UNDEFINED = <Undefined>" << right << endl;
+	  }
+	else
+	  {
+	    if( par->Dim( 0) != 0)
+	      {
+		cout.width(10);
+		cout << left << par->TypeStr() << "= " << par->Dim();
+		cout << right << endl;
+	      }
+	    else
+	      {
+		cout.width(10);
+		cout << left << par->TypeStr() << "= " << right;
+		par->ToStream( cout);
+		cout << endl;
+	      }
+	  }
+      }
+  }
+  
+  void exitgdl( EnvT* e)
+  {
+    BaseGDL* status=e->GetKW( 1);
+    if( status == NULL) exit( EXIT_SUCCESS);
+    
+    if( !status->Scalar())
+      e->Throw( "Expression must be a scalar in this context: "+
+		e->GetString( status));
+
+    DLongGDL* statusL=static_cast<DLongGDL*>(status->Convert2( LONG, 
+							       BaseGDL::COPY));
+    
+    DLong exit_status;
+    statusL->Scalar( exit_status);
+    exit( exit_status);
+  }
+
+
+  void ptr_free( EnvT* e)
+  {
+    SizeT nParam=e->NParam();
+    for( SizeT i=0; i<nParam; i++)
+      {
+	DPtrGDL* par=dynamic_cast<DPtrGDL*>(e->GetPar( i));
+	if( par != NULL) 
+	  {
+	    e->FreeHeap( par);
+	  }
+	else
+	  e->Throw( "Pointer type required"
+		    " in this context: "+e->GetParString(i));
+      }
+  }
+
+  void obj_destroy( EnvT* e)
+  {
+    static set< DObj> inProgress;
+
+    StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
+
+    int nParam=e->NParam();
+    if( nParam == 0) return;
+    
+    BaseGDL* p= e->GetParDefined( 0);
+
+    DObjGDL* op= dynamic_cast<DObjGDL*>(p);
+    if( op == NULL)
+      e->Throw( "Parameter must be an object in"
+		" this context: "+
+		e->GetParString(0));
+
+    SizeT nEl=op->N_Elements();
+    for( SizeT i=0; i<nEl; i++)
+      {
+	DObj actID=(*op)[i];
+	if( actID != 0 && (inProgress.find( actID) == inProgress.end()))
+	  {
+	    DStructGDL* actObj;
+	    try{
+	      actObj=e->GetObjHeap( actID);
+	    }
+	    catch( GDLInterpreter::HeapException){
+	      actObj=NULL;
+	    }
+	    
+	    if( actObj != NULL)
+	      {
+		// call CLEANUP function
+		DPro* objCLEANUP= actObj->Desc()->GetPro( "CLEANUP");
+
+		if( objCLEANUP != NULL)
+		  {
+		    BaseGDL* actObjGDL = new DObjGDL( actID);
+		    auto_ptr<BaseGDL> actObjGDL_guard( actObjGDL);
+
+		    e->PushNewEnv( objCLEANUP, 1, &actObjGDL);
+
+		    inProgress.insert( actID);
+	    
+		    e->Interpreter()->call_pro( objCLEANUP->GetTree());
+
+		    inProgress.erase( actID);
+
+		    e->FreeObjHeap( actID); // the actual freeing
+
+		    delete e->Interpreter()->CallStack().back();
+		    e->Interpreter()->CallStack().pop_back();
+		  }
+	      }
+	  }
+      }
+  }
+  
+  void call_procedure( EnvT* e)
+  {
+    StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
+
+    int nParam=e->NParam();
+    if( nParam == 0)
+      e->Throw( "No procedure specified.");
+    
+    DString callP;
+    e->AssureScalarPar<DStringGDL>( 0, callP);
+
+    // this is a procedure name -> convert to UPPERCASE
+    callP = StrUpCase( callP);
+
+    // first search library procedures
+    int proIx=LibProIx( callP);
+    if( proIx != -1)
+      {
+	e->PushNewEnv( libProList[ proIx], 1);
+	
+	// make the call
+	EnvT* newEnv = e->Interpreter()->CallStack().back();
+	static_cast<DLibPro*>(newEnv->GetPro())->Pro()(newEnv);
+      }
+    else
+      {
+	proIx = DInterpreter::GetProIx( callP);
+	
+	e->PushNewEnv( proList[ proIx], 1);
+	
+	// make the call
+	EnvT* newEnv = e->Interpreter()->CallStack().back();
+	e->Interpreter()->call_pro(static_cast<DSubUD*>(newEnv->GetPro())->
+				   GetTree());
+      }
+  }
+
+  void call_method_procedure( EnvT* e)
+  {
+    StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
+
+    int nParam=e->NParam();
+    if( nParam < 2)
+      e->Throw( "Name and object reference must be specified.");
+    
+    DString callP;
+    e->AssureScalarPar<DStringGDL>( 0, callP);
+
+    // this is a procedure name -> convert to UPPERCASE
+    callP = StrUpCase( callP);
+
+    DStructGDL* oStruct = e->GetObjectPar( 1);
+    
+    DPro* method= oStruct->Desc()->GetPro( callP);
+
+    if( method == NULL)
+      e->Throw( "Method not found: "+callP);
+
+    e->PushNewEnv( method, 2, &e->GetPar( 1));
+    
+    // the call
+    e->Interpreter()->call_pro( method->GetTree());
+  }
+
+  void get_lun( EnvT* e)
+  {
+    int nParam=e->NParam( 1);
+    
+    // not using SetPar later gives a better error message
+    e->AssureGlobalPar( 0);
+    
+    // here lun is the GDL lun, not the internal one
+    DLong lun = GetLUN();
+
+    if( lun == 0)
+      e->Throw( "All available logical units are currently in use.");
+
+    BaseGDL** retLun = &e->GetPar( 0);
+    
+    delete (*retLun); 
+    //            if( *retLun != e->Caller()->Object()) delete (*retLun); 
+    
+    *retLun = new DLongGDL( lun);
+    return;
+  }
+
+  // returns true if lun points to special unit
+  // lun is GDL lun (-2..128)
+  bool check_lun( EnvT* e, DLong lun)
+  {
+    if( lun < -2 || lun > maxLun)
+      e->Throw( "File unit is not within allowed range: "+
+		i2s(lun)+".");
+    return (lun <= 0);
+  }
+  
+  // TODO: handle ON_ERROR, ON_IOERROR, !ERROR_STATE.MSG
+  void open_lun( EnvT* e, fstream::openmode mode)
+  {
+    int nParam=e->NParam( 2);
+    
+    if( e->KeywordSet( "GET_LUN")) get_lun( e);
+    // par 0 contains now the LUN
+
+    DLong lun;
+    e->AssureLongScalarPar( 0, lun);
+
+    bool stdLun = check_lun( e, lun);
+    if( stdLun)
+      e->Throw( "Unit already open. Unit: "+i2s( lun));
+    
+    DString name;
+    // IDL allows here also arrays of length 1
+    e->AssureScalarPar<DStringGDL>( 1, name); 
+
+    // endian
+    bool swapEndian=false;
+    if( e->KeywordSet( "SWAP_ENDIAN"))
+      swapEndian = true;
+    else if( BigEndian())
+      swapEndian = e->KeywordSet( "SWAP_IF_BIG_ENDIAN");
+    else
+      swapEndian = e->KeywordSet( "SWAP_IF_LITTLE_ENDIAN");
+    
+    if( e->KeywordSet( "APPEND")) mode |= fstream::app;
+
+    bool deleteKey = e->KeywordSet( "DELETE");
+    
+    bool errorKeyword = e->KeywordPresent( 4);
+    if( errorKeyword) e->AssureGlobalKW( 4);
+
+    DLong width = defaultStreamWidth;
+    BaseGDL* widthKeyword = e->GetKW( 13); // WIDTH
+    if( widthKeyword != NULL)
+      {
+	e->AssureLongScalarKW( 13, width);
+      }
+
+    try{
+      fileUnits[ lun-1].Open( name, mode, swapEndian, deleteKey, width);
+    } 
+    catch( GDLException& ex) {
+      DString errorMsg = ex.toString()+" Unit: "+i2s( lun)+
+	", File: "+fileUnits[ lun-1].Name();
+      
+      if( !errorKeyword)
+	e->Throw( errorMsg);
+      
+      BaseGDL** err = &e->GetKW( 4);
+      
+      delete (*err); 
+//    if( *err != e->Caller()->Object()) delete (*err); 
+      
+      *err = new DLongGDL( 1);
+      return;
+    }
+
+    if( errorKeyword)
+      {
+	BaseGDL** err = &e->GetKW( 4);
+      
+// 	if( *err != e->Caller()->Object()) delete (*err); 
+	delete (*err); 
+      
+	*err = new DLongGDL( 0);
+      }
+  }
+  
+  void openr( EnvT* e)
+  {
+    open_lun( e, fstream::in);
+  }
+
+  void openw( EnvT* e)
+  {
+    open_lun( e, fstream::in | fstream::out | fstream::trunc);
+  }
+
+  void openu( EnvT* e)
+  {
+    open_lun( e, fstream::in | fstream::out);
+  }
+  
+  void close_free_lun( EnvT* e, bool freeLun)
+  {
+    DLong journalLUN = SysVar::JournalLUN();
+
+    // within GDL, always lun+1 is used
+    if( e->KeywordSet("ALL"))
+      for( int p=maxUserLun; p<maxLun; ++p)
+	{
+	  if( (journalLUN-1) != p)
+	    {
+	      fileUnits[ p].Close();
+	      if( freeLun) fileUnits[ p].Free();
+	    }
+	}
+    
+    if( e->KeywordSet("FILE") || e->KeywordSet("ALL"))
+      for( int p=0; p<maxUserLun; ++p)
+	{
+	  fileUnits[ p].Close();
+	  // freeing not necessary as get_lun does not use them
+	  //if( freeLun) fileUnits[ p].Free();
+	}
+    
+    int nParam=e->NParam();
+    for( int p=0; p<nParam; p++)
+      {
+	DLong lun;
+	e->AssureLongScalarPar( p, lun);
+	if( lun > maxLun)
+	  e->Throw( "File unit is not within allowed range: "+
+		    i2s(lun)+".");
+	if( lun < 1)
+	  e->Throw( "File unit does not allow this operation."
+		    " Unit: "+i2s(lun)+".");
+
+	if( lun == journalLUN)
+	  e->Throw(  "Reserved file cannot be closed in this manner. Unit: "+
+		     i2s( lun));
+	
+	fileUnits[ lun-1].Close();
+	if( freeLun) fileUnits[ lun-1].Free();
+      }
+  }
+
+  void close_lun( EnvT* e)
+  {
+    close_free_lun( e, false);
+  }
+  
+  void free_lun( EnvT* e)
+  {
+    close_free_lun( e, true);
+  }
+
+  void writeu( EnvT* e)
+  {
+    SizeT nParam=e->NParam( 1);
+
+    DLong lun;
+    e->AssureLongScalarPar( 0, lun);
+
+    ostream* os;
+    bool swapEndian = false;
+
+    bool stdLun = check_lun( e, lun);
+    if( stdLun)
+      {
+	if( lun == 0)
+	  e->Throw( "Cannot write to stdin. Unit: "+i2s( lun));
+
+	os = (lun == -1)? &cout : &cerr;
+      }
+    else
+      {
+	os = &fileUnits[ lun-1].OStream();
+	swapEndian = fileUnits[ lun-1].SwapEndian();
+      }
+
+    for( SizeT i=1; i<nParam; i++)
+      {
+	BaseGDL* p = e->GetParDefined( i);
+	p->Write( *os, swapEndian);
+      }
+  }
+
+  void readu( EnvT* e)
+  {
+    SizeT nParam=e->NParam( 1);
+
+    DLong lun;
+    e->AssureLongScalarPar( 0, lun);
+
+    istream* is;
+    bool swapEndian = false;
+
+    bool stdLun = check_lun( e, lun);
+    if( stdLun)
+      {
+	if( lun != 0)
+	  e->Throw( "Cannot read from stdout and stderr."
+		    " Unit: "+i2s( lun));
+	is = &cin;
+      }
+    else
+      {
+	is = &fileUnits[ lun-1].IStream();
+	swapEndian = fileUnits[ lun-1].SwapEndian();
+      }
+
+    for( SizeT i=1; i<nParam; i++)
+      {
+	BaseGDL* p = e->GetParDefined( i);
+	p->Read( *is, swapEndian);
+      }
+  }
+
+  void on_error( EnvT* e)
+  {
+    e->OnError();
+  }
+
+  void catch_pro( EnvT* e)
+  {
+    e->Catch();
+  }
+
+  void strput( EnvT* e)
+  {
+    SizeT nParam = e->NParam( 2);
+    
+    DStringGDL* dest = dynamic_cast<DStringGDL*>( e->GetParGlobal( 0));
+    if( dest == NULL)
+      e->Throw( "String expression required in this context: "+
+		e->GetParString(0));
+    
+    DString source;
+    e->AssureStringScalarPar( 1, source);
+    
+    DLong pos = 0;
+    if (nParam == 3)
+      {
+	e->AssureLongScalarPar( 2, pos);
+	if (pos < 0) pos = 0;
+      }
+
+    SizeT nEl = dest->N_Elements();
+    for( SizeT i=0; i<nEl; ++i)
+	StrPut((*dest)[ i], source, pos);
+  }
+
+  void retall( EnvT* e)
+  {
+    e->Interpreter()->RetAll();
+  }
+
+  void stop( EnvT* e)
+  {
+    if( e->NParam() > 0) print( e);
+    debugMode = DEBUG_STOP;
+  }
+
+  void defsysv( EnvT* e)
+  {
+    SizeT nParam = e->NParam( 1);
+
+    DString sysVarNameFull;
+    e->AssureStringScalarPar( 0, sysVarNameFull);
+    
+    static int existIx = e->KeywordIx( "EXIST");
+    if( e->KeywordPresent( existIx))
+      {
+	if( sysVarNameFull.length() < 2 || sysVarNameFull[0] != '!')
+	  {
+	    e->SetKW( existIx, new DLongGDL( 0));
+	  }
+	
+	DVar* sysVar = FindInVarList( sysVarList,
+				      StrUpCase( sysVarNameFull.substr(1)));
+	if( sysVar == NULL)
+	  e->SetKW( existIx, new DLongGDL( 0));
+	else
+	  e->SetKW( existIx, new DLongGDL( 1));
+	return;
+      }
+    else if( nParam < 2)
+      e->Throw( "Incorrect number of arguments.");
+    
+    // here: nParam >= 2
+    DLong rdOnly = 0;
+    if( nParam >= 3)
+      e->AssureLongScalarPar( 2, rdOnly);
+
+    if( sysVarNameFull.length() < 2 || sysVarNameFull[0] != '!')
+      e->Throw( "Illegal system variable name: "+sysVarNameFull+".");
+    
+    // strip "!", uppercase
+    DString sysVarName = StrUpCase( sysVarNameFull.substr(1)); 
+    
+    DVar* sysVar = FindInVarList( sysVarList, sysVarName);
+    if( sysVar == NULL)
+      {
+	// define new
+	DVar *newSysVar = new DVar( sysVarName, e->GetPar( 1)->Dup());
+	sysVarList.push_back( newSysVar);
+
+	// rdOnly is only set at the first definition
+	if( rdOnly != 0)
+	  sysVarRdOnlyList.push_back( newSysVar);
+	return;
+      }
+
+    // re-set
+    // make sure type and size are kept
+    BaseGDL* oldVar = sysVar->Data();
+    BaseGDL* newVar = e->GetPar( 1);
+    if( oldVar->Type()       != newVar->Type() ||
+	oldVar->N_Elements() != newVar->N_Elements())
+      e->Throw( "Conflicting definition for "+sysVarNameFull+".");
+
+    // if struct -> assure equal descriptors
+    DStructGDL *oldStruct =  dynamic_cast<DStructGDL*>( oldVar);
+    if( oldStruct != NULL)
+      {
+	// types are same -> static cast
+	DStructGDL *newStruct =  static_cast<DStructGDL*>( newVar);
+
+	// note that IDL handles different structs more relaxed
+	// ie. just the structure pattern is compared.
+	if( *oldStruct->Desc() != *newStruct->Desc())
+	  e->Throw( "Conflicting definition for "+sysVarNameFull+".");
+      }
+	
+    DVar* sysVarRdOnly = FindInVarList( sysVarRdOnlyList, sysVarName);
+    if( sysVarRdOnly != NULL)
+      {
+	// rdOnly set and is already rdOnly: do nothing
+	if( rdOnly != 0) return; 
+
+	// else complain
+	e->Throw( "Attempt to write to a readonly variable: "+
+		  sysVarNameFull+".");
+      }
+    else
+      {
+	// not read only
+	delete oldVar;
+	sysVar->Data() = newVar->Dup();
+
+	// only on first definition
+	//	if( rdOnly != 0)
+	//	  sysVarRdOnlyList.push_back( sysVar);
+      }
+  }
+
+  // note: this implemetation does not honor all keywords
+  void message( EnvT* e)
+  {
+    SizeT nParam = e->NParam();
+
+    if( nParam == 0) return;
+
+    static int continueIx = e->KeywordIx( "CONTINUE");
+    static int infoIx = e->KeywordIx( "INFORMATIONAL");
+    static int ioerrorIx = e->KeywordIx( "IOERROR");
+    static int nonameIx = e->KeywordIx( "NONAME");
+    static int noprefixIx = e->KeywordIx( "NOPREFIX");
+    static int noprintIx = e->KeywordIx( "NOPRINT");
+    static int resetIx = e->KeywordIx( "RESET");
+
+    bool continueKW = e->KeywordSet( continueIx);
+    bool info = e->KeywordSet( infoIx);
+    bool ioerror = e->KeywordSet( ioerrorIx);
+    bool noname = e->KeywordSet( nonameIx);
+    bool noprefix = e->KeywordSet( noprefixIx);
+    bool noprint = e->KeywordSet( noprintIx);
+    bool reset = e->KeywordSet( resetIx);
+
+    DString msg;
+    e->AssureScalarPar<DStringGDL>( 0, msg);
+
+    if( !noname)
+      msg = e->Caller()->GetProName() + ": " + msg;
+
+    if( !info)
+      {
+	DStructGDL* errorState = SysVar::Error_State();
+	static unsigned msgTag = errorState->Desc()->TagIndex( "MSG");
+	(*static_cast<DStringGDL*>( errorState->Get( msgTag, 0)))[0] = msg;
+	
+	SysVar::SetErr_String( msg);
+      }
+	
+    if( noprint)
+      msg = "";
+    
+    if( !continueKW && !info)
+      throw GDLException( msg, !noprefix);
+    
+    if( !noprint && !noprefix)
+      msg = SysVar::MsgPrefix() + msg;
+
+    if( !info || (SysVar::Quiet() == 0))
+      cout << msg << endl;
+  }
+
+  
+} // namespace

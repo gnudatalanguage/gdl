@@ -1,0 +1,64 @@
+Writing GDL extensions in python
+================================
+
+Since version 0.7.1 GDL provides two additional subroutines:
+A PYTHON function and a PYTHON procedure.
+
+Both are very similar, the difference is, that any result
+returned in the procedures is quietly ignored, while for
+the function an exception is raised if python's None is
+returned except the DEFAULTRETURN keyword is set to a value, in which
+case that value is returned in case of 'None'.
+
+the syntax is:
+
+PYTHON,python_module[,python_function[,arg1,...,argN]],ARGV=argv
+
+res = PYTHON(python_module[,python_function[,arg1,...,argN]],ARGV=argv,
+             DEFAULTRETURN=defaultreturn)
+
+python_module   the python module to load
+python_function the python function to call. If this paramter is not
+                specified, only the module is loaded and initialized.
+                Note that the module intitialization is done only the
+                first time a python module is loaded.
+
+arg1,...,argN   arguments to be passed to the python function
+                scalars and one dimensional arrays are passed 
+                as python scalars, an array is passed as a python
+                numarray.
+
+Numarray is a popular extension to pyhton. Using it let python be
+integrated in GDL quite seamlessly. See:
+http://www.stsci.edu/resources/software_hardware/numarray
+for details.
+
+ARGV           set this keyword to a string or string array
+               which is set to the command line options for python.
+	       The first element is the (faked) name of the python
+               executable. With this pythons search path for modules
+               (sys.path) can be manipulated. If this keyword is set,
+               no parameter (python_module) need to be specified.
+
+DEFAULTRETURN  default return value, returned if the python function
+               returns 'None'.
+
+Note that for a GDL extension, you probably have to write a GDL
+program file (.pro) containing a function/procedure which uses
+the PYTHON function/procedure and a python module (.py) which gets
+called by PYTHON within your subroutine.
+For an as simple as it gets example see the files
+gdl/py/python_print.py and gdl/pro/py_print.pro
+
+If you have the python package 'matplotlib' installed
+(see: http://matplotlib.sourceforge.net), you can test the (little)
+more elaborate example in. 
+gdl/py/python_plot.py and gdl/pro/py_plot.pro
+(Note that the matplotlib library has much more capabilities then used
+here.)
+
+For the version of python and its packages used please refer to the
+README file.
+
+If you have any suggestions or needs for extensions of the python
+interface please see "CONTACT" in the README file.

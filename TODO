@@ -1,0 +1,18 @@
+Known issues to be handled:
+
+Version 0.8:
+
+- Floating point exceptions are not at all handled yet. GDL just terminates.
+
+- INDGEN function does not handle all keywords.
+ 
+- HELP procedure does not handle all keywords.
+
+- PLOT procedure does not handle all keywords.
+
+- !ERROR, !ERR and !ERROR_STATE are not properly set by all library
+  functions
+
+- ON_ERROR and CATCH are not fully implemented (GDL recognizes them,
+  but does not perform any action, ie. in case of error, the data is
+  not used).

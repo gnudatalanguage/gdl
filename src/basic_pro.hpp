@@ -1,0 +1,69 @@
+/***************************************************************************
+                          basic_pro.hpp  -  basic GDL library procedures
+                             -------------------
+    begin                : July 22 2002
+    copyright            : (C) 2002 by Marc Schellens
+    email                : m_schellens@hotmail.com
+ ***************************************************************************/
+
+/***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
+
+#ifndef BASIC_PRO_HPP_
+#define BASIC_PRO_HPP_
+
+namespace lib {
+
+  // helper function
+  bool check_lun( EnvT* e, DLong lun);
+
+  void ptr_free( EnvT* e);
+  void obj_destroy( EnvT* e);
+  void call_procedure( EnvT* e);
+  void call_method_procedure( EnvT* e);
+
+  void get_lun( EnvT* e);
+  void openr( EnvT* e);
+  void openw( EnvT* e);
+  void openu( EnvT* e);
+  void close_lun( EnvT* e);
+  void free_lun( EnvT* e);
+  void writeu( EnvT* e);
+  void readu( EnvT* e);
+  
+  void help( EnvT* e);
+  void exitgdl( EnvT* e);
+
+  // in print.cpp
+  void print( EnvT* e); 
+  void printf( EnvT* e);
+  void print_os( std::ostream* os, EnvT* e, int parOffset, SizeT width);
+
+  // in read.cpp
+  void read( EnvT* e); 
+  void readf( EnvT* e);
+  void reads( EnvT* e);
+  void read_is( std::istream* is, EnvT* e, int parOffset);
+
+  void on_error( EnvT* e);
+  void catch_pro( EnvT* e);
+
+  void strput( EnvT* e);
+
+  void retall( EnvT* e);
+
+  void stop( EnvT* e);
+
+  void defsysv( EnvT* e);
+
+  void message( EnvT* e);
+
+} // namespace
+
+#endif

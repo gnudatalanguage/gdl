@@ -1,0 +1,340 @@
+AC_INIT(gdl, 0.8)
+
+AM_CONFIG_HEADER(config.h)
+AM_INIT_AUTOMAKE
+
+AC_LANG(C++)
+AC_PROG_CXX
+AM_PROG_LIBTOOL
+
+dnl check for specific architecture
+case "${host}" in
+  powerpc-*-darwin* )
+    dnl PowerPC Darwin based distributions (including Mac OS X)
+    LDFLAGS="$LDFLAGS -bind_at_load"
+    dnl   LDFLAGS="$LDFLAGS"
+    ;;
+
+  *linux*)
+    dnl Linux
+    dnl LINKIMAGE support
+    LDFLAGS="$LDFLAGS -rdynamic -z muldefs"
+    ;;
+
+dnl  *)
+dnl    AC_MSG_ERROR(unknown system type ${host}.)
+dnl    ;;
+esac
+
+AC_ARG_WITH(ncursesdir,
+ 	[  --with-ncursesdir=DIR   specify the ncurses directory tree ],
+	[ LIBS="$LIBS -L$withval/lib"
+         INCLUDES="$INCLUDES -I$withval/include"
+       ])
+
+AC_ARG_WITH(readlinedir,
+ 	[  --with-readlinedir=DIR  specify the readline directory tree ],
+	[ LIBS="$LIBS -L$withval/lib"
+         INCLUDES="$INCLUDES -I$withval/include"
+       ])
+
+dnl Checks for libraries.
+AC_CHECK_LIB(ncurses, initscr)
+AC_CHECK_LIB(readline, readline)
+
+dnl wxWindows
+dnl	LIBS="$LIBS `wx-config --libs`"
+dnl autoconf cannot handle demangled names
+dnl	AC_CHECK_LIB(wx_base-2.5, _Z12wxInitializeiPPc, [
+dnl	AC_DEFINE([HAVE_LIBWXWIDGETS], [1], [wxWidgets library])
+dnl	], [
+dnl	echo ""
+dnl	echo "Error! You must have wxWidgets library 2.5 installed"
+dnl	exit -1
+dnl	])
+
+
+dnl AC_CHECK_LIB(ltdl, lt_dlopen,
+dnl [AC_DEFINE([HAVE_LIBLTDL], [1], [Use libltdl])], 
+dnl [
+dnl echo ""
+dnl echo "Error! ltdl library is required but was not found"
+dnl exit -1
+dnl ])
+
+
+dnl AC_ARG_WITH(gsldir,
+dnl  	[  --with-gsldir=DIR     specify the GSL directory tree ],
+dnl 	[ LIBS="$LIBS -L$withval/lib"
+dnl          INCLUDES="$INCLUDES -I$withval/include"
+dnl        ])
+
+
+dnl GSL
+AC_ARG_WITH(gsldir,	
+	[  --with-gsldir=DIR       specify the GSL directory tree ],
+	[with_gsl="$withval" ])
+
+if test "x$with_gsl" = "x"; then
+  with_gsl=yes
+fi
+
+if test "x$with_gsl" == "xno"; then	
+	echo ""	
+	echo "Error! GSL library is obligatory."
+        exit -1
+fi
+
+if test "x$with_gsl" != "xyes"; then
+    LIBS="$LIBS -L$with_gsl/lib -lgsl -lgslcblas"
+    INCLUDES="$INCLUDES -I$with_gsl/include"
+else
+    LIBS="$LIBS -lgsl -lgslcblas"
+fi
+
+dnl GNU Scientific Library
+AC_CHECK_LIB(gsl, gsl_block_alloc, [], [
+	echo ""
+	echo "Error! You must have the Gnu Scientific Library installed"
+        exit -1
+	])
+AC_CHECK_LIB(gslcblas, cblas_drot, [], [
+	echo ""
+	echo "Error! You must have libgslcblas (part of GSL) installed"
+        exit -1
+	])
+
+dnl plplot 
+dnl AC_CHECK_LIB(plplotcxxd, plsexit, [], [
+dnl 	echo ""
+dnl 	echo "Error! You must have the PLPLOT library installed"
+dnl        exit -1
+dnl 	])
+
+dnl AC_ARG_WITH(plplotdir,
+dnl 	[  --with-plplotdir=DIR     specify the PLPLOT directory tree ],
+dnl 	[ LIBS="$LIBS -L$withval/lib -lstdc++"
+dnl           INCLUDES="$INCLUDES -I$withval/include"
+dnl        ])
+
+dnl plplot
+AC_ARG_WITH(plplotdir,	
+	[  --with-plplotdir=DIR    specify the plplot directory tree ],
+	[with_plplot="$withval" ])
+
+if test "x$with_plplot" = "x"; then
+  with_plplot=yes
+fi
+
+if test "x$with_plplot" == "xno"; then	
+	echo ""	
+	echo "Error! PLPLOT library is obligatory."
+        exit -1
+fi
+
+if test "x$with_plplot" != "xyes"; then
+    LIBS="$LIBS -L$with_plplot/lib -lplplotd -lplplotcxxd"
+    INCLUDES="$INCLUDES -I$with_plplot/include"
+else
+    LIBS="$LIBS -lplplotd -lplplotcxxd"
+fi
+
+AC_CHECK_LIB(plplotcxxd, plsexit, [AC_DEFINE([HAVE_LIBPLPLOTCXXD], [1], [plplot library])], 
+	[
+	echo ""
+	echo "Error! plplot library is required but was not found"
+	echo "       Use --with-plplot=DIR to specify the plplot directory tree"
+	exit -1
+	])
+
+ 
+dnl ImageMagick
+AC_ARG_WITH(Magick,	
+	[  --with-Magick[=DIR]       use ImageMagick package (with optional path DIR) ],
+	[with_Magick="$withval" ])
+
+dnl ImageMagick: default is yes, build with ImageMagick, using default path
+if test "x$with_Magick" = "x"; then
+  with_Magick=yes
+fi
+
+if test "x$with_Magick" != "xno"; then
+  if test "x$with_Magick" != "xyes"; then
+    LIBS="$LIBS -L$with_Magick/lib -lMagick++"
+    INCLUDES="$INCLUDES -I$with_Magick/include"
+  else
+    LIBS="$LIBS -lMagick++"
+  fi
+
+  AC_CHECK_LIB(Magick, GetMagickVersion, [AC_DEFINE([USE_MAGICK], [1], [Define if you want to use ImageMagick])], [
+    echo ""
+    echo "Error! ImageMagick version 5.5.7 or later is required but was not found"
+    echo "       Use --with-Magick=DIR to specify the ImageMagick directory tree"
+    echo "       Use --with-Magick=no  to not use it"
+    exit -1
+    ])
+fi
+
+
+dnl netCDF -- before HDF (as multiple defined symbols should be used from netCDF)
+AC_ARG_WITH(netcdf,	
+	[  --with-netcdf[=DIR]       use netCDF package (with optional path DIR) ],
+	[with_netcdf="$withval" ])
+
+dnl Netcdf: default is yes, build with netcdf, using default path
+if test "x$with_netcdf" = "x"; then
+  with_netcdf=yes
+fi
+
+if test "x$with_netcdf" != "xno"; then
+  if test "x$with_netcdf" != "xyes"; then
+dnl	if test "x$with_hdf" == "xno"; then
+	    LIBS="$LIBS -L$with_netcdf/lib -lnetcdf"
+dnl	fi
+	INCLUDES="$INCLUDES -I$with_netcdf/include"
+  else
+dnl	if test "x$with_hdf" == "xno"; then
+	    LIBS="$LIBS -lnetcdf"
+dnl	fi
+  fi
+
+dnl  if test "x$with_hdf" == "xno"; then
+  	AC_CHECK_LIB(netcdf, nc_open, [AC_DEFINE([USE_NETCDF], [1], [Define if you want to use netCDF])], [
+	    echo ""
+	    echo "Error! netCDF version 3.5.1 or later is required but was not found"
+	    echo "       Use --with-netcdf=DIR to specify the netcdf directory tree"
+	    echo "       Use --with-netcdf=no  to not use it"
+	    exit -1
+	    ])
+dnl else
+dnl	AC_DEFINE([USE_NETCDF], [1], [Define if you want to use netCDF])
+dnl	echo "Using HDF library also for netCDF"
+dnl  fi
+fi
+
+
+dnl HDF (version 4) 
+AC_ARG_WITH(hdf,	
+	[  --with-hdf[=DIR]          use HDF package (with optional path DIR) ],
+	[with_hdf="$withval" ])
+
+dnl HDF: default is yes, build with HDF, using default path
+if test "x$with_hdf" = "x"; then
+  with_hdf=yes
+fi
+
+if test "x$with_hdf" != "xno"; then
+  if test "x$with_hdf" != "xyes"; then
+    LIBS="$LIBS -L$with_hdf/lib -lmfhdf -ldf -ljpeg -lz"
+    INCLUDES="$INCLUDES -I$with_hdf/include"
+  else
+    LIBS="$LIBS -lmfhdf -ldf -ljpeg -lz"
+  fi
+
+  AC_CHECK_LIB(df, Hopen, [AC_DEFINE([USE_HDF], [1], [Define if you want to use HDF])], [
+    echo ""
+    echo "Error! HDF version 4 is required but was not found"
+    echo "       Use --with-hdf=DIR to specify the HDF directory tree"
+    echo "       Use --with-hdf=no  to not use it"
+    exit -1
+    ])
+
+  AC_CHECK_LIB(mfhdf, SDstart, [AC_DEFINE([USE_HDF], [1], [Define if you want to use HDF])], [
+    echo ""
+    echo "Error! HDF version 4 or later is required but was not found"
+    echo "       Use --with-hdf=DIR to specify the HDF directory tree"
+    echo "       Use --with-hdf=no  to not use it"
+    exit -1
+    ])
+
+dnl  AC_CHECK_LIB(mfhdf, SDstart, [AC_DEFINE([USE_HDF], [1], [Define if you want to use HDF])], [
+dnl    echo ""
+dnl    echo "Error! HDF version 4 or later is required but was not found"
+dnl    echo "       Use --with-hdf=DIR to specify the HDF directory tree"
+dnl    echo "       Use --with-hdf=no  to not use it"
+dnl    exit -1
+dnl    ])
+fi
+
+
+dnl HDF5
+AC_ARG_WITH(hdf5,	
+	[  --with-hdf5[=DIR]          use HDF5 package (with optional path DIR) ],
+	[with_hdf5="$withval" ])
+
+dnl HDF5: default is yes, build with HDF5, using default path
+if test "x$with_hdf5" = "x"; then
+  with_hdf5=yes
+fi
+
+if test "x$with_hdf5" != "xno"; then
+  if test "x$with_hdf5" != "xyes"; then
+    LIBS="$LIBS -L$with_hdf5/lib -lhdf5"
+    INCLUDES="$INCLUDES -I$with_hdf5/include"
+  else
+    LIBS="$LIBS -lhdf5"
+  fi
+
+  AC_CHECK_LIB(hdf5, H5Fopen, [AC_DEFINE([USE_HDF5], [1], [Define if you want to use HDF5])], [
+    echo ""
+    echo "Error! HDF version 5 is required but was not found"
+    echo "       Use --with-hdf5=DIR to specify the HDF5 directory tree"
+    echo "       Use --with-hdf5=no  to not use it"
+    exit -1
+    ])
+fi
+
+
+dnl python
+AC_ARG_WITH(python,
+	[  --with-python[=DIR]       use Python package (with optional path DIR) ],
+	[with_python="$withval" ])
+
+dnl Python: default is yes, build with python, using default path
+if test "x$with_python" = "x"; then
+  with_python=yes
+fi
+
+if test "x$with_python" != "xno"; then
+  if test "x$with_python" != "xyes"; then
+    LIBS="$LIBS -L$with_python/lib -lpython2.3"
+    INCLUDES="$INCLUDES -I$with_python/include/python2.3"
+  else
+    LIBS="$LIBS -lpython2.3"
+    INCLUDES="$INCLUDES -I/usr/include/python2.3"
+  fi
+
+  AC_CHECK_LIB(python2.3, Py_Initialize, [AC_DEFINE([USE_PYTHON],[1],[Define if you want to use python])], [
+    echo ""
+    echo "Error! Python version 2.3 is required but was not found"
+    echo "       Use --with-python=DIR to specify the python directory tree"
+    echo "       Use --with-python=no  to not use it"
+    exit -1
+    ])
+fi
+
+EXT_LIBS="$LIBS"
+EXT_INCLUDES="$INCLUDES"
+AC_SUBST(EXT_LIBS)
+AC_SUBST(EXT_INCLUDES)
+
+dnl echo LIBS $LIBS
+dnl echo INCLUDES $INCLUDES
+
+
+dnl Checks for header files.
+dnl AC_HEADER_STDC
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+dnl AC_C_CONST
+
+dnl Checks for library functions.
+dnl AC_CHECK_FUNCS(strdup strtod strtol abs)
+
+dnl perform program name transformation
+dnl AC_ARG_PROGRAM
+
+
+AC_CONFIG_FILES(Makefile src/Makefile src/antlr/Makefile)
+
+AC_OUTPUT

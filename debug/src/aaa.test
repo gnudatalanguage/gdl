@@ -1,0 +1,10 @@
+; GDL Version 6.0 (Linux i686 m32)
+; Journal File for local@rock
+; working directory: /usr/local/gdl/debug/src
+; Date: Wed Oct 19:40:56 2004
+u=uuu
+; % Variable is undefined: UUU
+print,u
+; % PRINT: Variable is undefined: U
+print,1
+;       1

@@ -1,0 +1,330 @@
+GDL HACKING HOWTO
+=================
+
+General:
+One of the main ideas of this project is to be able to eventually
+use the huge code base written in IDL.
+Therefore any extension to GDL should be done with compatibility as
+the highest priority in mind.
+Extensions of the language are welcome also, but then the routine
+names should not collide with IDL routine names.
+Therefore as a standard, if you want to port a library XXX to GDL with
+non compatible functions make the (GDL-)names XXX_ROUTINENAME.
+And if you implement a non IDL routine, bear in mind that some
+documentation is needed in order to be able to use it.
+Furthermore please keep in mind that GDL should be able to compile at
+least under linux (GCC), OS X and (soon) windows (MSVC). Therefore the
+code shouldbe as portable as possible (note that it is not mandatory
+to make it run on all platforms, just portability should be kept in
+mind avoiding any obvious obstacles like compiler specific extensions).
+
+Extensions can be also done in python. See file PYTHON.txt for details.
+
+In the distribution there is an empty file: new.cpp 
+This file is part of the project (will be compiled and linked). It is 
+intended for extensions to GDL. Furthermore there is a new.hpp file
+which is included (#include "new.hpp") in libinit.cpp (see below).
+If you use these files, you don't need to edit the Makefile for your
+extension. Please put in the header the real filename you intend to
+give to your extension. If you send this two files then to me, I will
+rename them and make the renamed files part of the project.
+I think as long as there are not that many contributors, this way is
+easier than putting the code into CVS.
+
+This hacking guide isn't far from complete yet and intended to be extended.
+Please send questions.
+
+
+For now just some basic instructions:
+
+Base class for all GDL data types is declared in basegdl.hpp.
+The data structure is declared in datatypes.hpp (all types except structs)
+and dstructgdl.hpp. For assoc variables in assocdata.hpp.
+
+If you want to write a new library function or procedure, look at
+basic_fun.cpp and basic_pro.cpp for examples.
+The library functions communicate with the rest via the
+environment.
+See envt.hpp for the library function programming interface.
+Three steps to install a new library subroutine:
+1. Write it. Source in new.cpp header in new.hpp
+   (use namespace lib).
+2. Make it known to the interpreter:
+Add (preferable at the bottom) in libinit.cpp:
+new DLibPro( subroutine name, GDL name, max. number of arguments, keyword list);
+if the max. number of args is -1 an arbitrary number is allowed (like for
+the PRINT procedure)
+(new DLibFun( subroutine name ...) for functions)
+For the keyword list look at libinit.cpp for examples.
+
+The API (from envt.hpp):
+
+new library function:
+
+// this example function simply returns its number of parameters
+
+#include "envt.hpp"
+
+namespace lib {
+
+ BaseGDL* example( EnvT* e)	
+  {	  
+  SizeT nPar = e->NParam();
+	  
+  BaseGDL* result = new DUIntGDL( nPar);
+
+  return result;
+  }	  
+}
+
+
+  // returns the actual number of paramters passed to a library function
+  // minPar is the minimal number of paramters the function needs
+  // (if less it throws), subName is used for error reporting
+  SizeT NParam( SizeT minPar = 0); 
+
+
+  // raise an exception from within a library function
+  // automatically cares for adding line/column info and the
+  // function name. 's' should be set to the 'raw' error message
+  // saves some typing :-)
+  void Throw( const std::string& s);
+
+Within our example function the call would look like:
+
+  e->Throw( "An error occured.");
+  
+
+
+  // 'guards' a newly created variable which should be deleted
+  // upon library routines exit (normal or on error)
+  // elimates the need of auto_ptr
+  void Guard( BaseGDL* toGuard);
+
+Eg.:
+
+  char* tempVal = new DIntGDL( 10);
+  e->Guard( tempVal);
+
+  note that all guarded objects are deleted with 'delete', ie. you
+  cannot guard arrays thsi way (which require 'delete[]').
+
+
+  // for library functions (keyword must be an exact match)
+  // returns the index of keyword k
+  int KeywordIx( const std::string& k);
+
+Eg.:
+
+  static int structureIx = e->KeywordIx( "STRUCTURE");
+
+
+  // returns environment data, by value (but that by C++ reference)
+  BaseGDL*& GetKW(SizeT ix) { return env[ix];}
+
+Eg.:
+
+  BaseGDL* structureData = e->GetKW( structureIx);
+
+  // returns the ix'th parameter (NULL if not defined)
+  BaseGDL*& GetPar(SizeT i);
+
+the next are variations of GetKW() or GetPar() with some additional
+checks:
+
+  // get i'th parameter
+  // throws if not defined (ie. never returns NULL)
+  BaseGDL*& GetParDefined(SizeT i); //, const std::string& subName = "");
+
+  // throw for STRING, STRUCT, PTR and OBJECT useful if a function
+  // only accepts numeric data
+  BaseGDL*& GetNumericParDefined( SizeT ix);
+
+  // get i'th parameter
+  // throws if not global (might be NULL), for assigning a new variable to
+  BaseGDL*& GetParGlobal(SizeT i); 
+
+next asre some variations of GetKW() or GetPar() with perform a
+conversion into an desired type:
+
+  // get the pIx'th paramter and converts it to T if necessary
+  // implies that the parameter must be defined
+  // if it converts it cares for the destruction of the copy
+  // CAUTION: this is for *read only* data, as the returned data might
+  // be a copy or not
+  template <typename T> 
+  T* GetParAs( SizeT pIx)
+
+  // same as before for keywords
+  template <typename T> 
+  T* GetKWAs( SizeT ix)
+
+  // next two same as last two, but return NULL if parameter/keyword is not defined
+  template <typename T> 
+  T* IfDefGetParAs( SizeT pIx);
+
+  // same as before for keywords
+  template <typename T> 
+  T* IfDefGetKWAs( SizeT ix);
+
+  // returns the struct of a valid object reference or throws
+  DStructGDL* GetObjectPar( SizeT pIx);
+
+  // for use within library functions
+  // consider to use (note: 'static' is the point here):
+  // static int kwIx = env->KeywordIx( "KEYWORD");
+  // bool kwSet = env->KeywordSet( kwIx);
+  //
+  // instead of:
+  // bool kwSet = env->KeywordSet( "KEYWORD");
+  //
+  // this one adds some overhead, but is easy to use
+  bool KeywordSet( const std::string& kw);
+
+  // this one together with a static int holding the index is faster
+  // (after the first call)
+  bool KeywordSet( SizeT ix);
+
+  // keyword present (but might be an undefined variable)
+  bool KeywordPresent( SizeT ix);
+
+  // local/global keyword/paramter
+  // global -> passed in GDL by reference
+  // local -> passes in GDL by value
+  bool LocalKW( SizeT ix);
+  bool GlobalKW( SizeT ix);
+  bool LocalPar( SizeT ix); 
+  bool GlobalPar( SizeT ix);
+
+  // next two to set keywords/paramters
+  // note that the value MUST be created in the library function
+  // with operator new
+  // Before it must be tested with KeywordPresent() or NParam() if
+  // the keyword/paramter is present 
+  // this is not done automatically because its more effective, to 
+  // create the data (newVal) only if its necessary
+  // if the functions throw, they delete newVal before -> no
+  // guarding of newVal is needed
+  void SetKW( SizeT ix, BaseGDL* newVal);
+  void SetPar( SizeT ix, BaseGDL* newVal);
+
+Assure functions:
+  // if name contains "Par" they must be used for paramters, else for keywords
+  // (the error messages are defined for this usage and the indexing is 
+  // done respectively)
+
+  // next two: NO CONVERSION (throw if wrong type)
+  // NOTE: only few functions need to be so restrictive
+  // converts parameter to scalar, throws if parameter is of different type,
+  // non-scalar or not defined
+  template <typename T> 
+  void AssureScalarPar( SizeT pIx, typename T::Ty& scalar);
+
+  // same as before for keywords
+  template <typename T> 
+  void AssureScalarKW( SizeT ix, typename T::Ty& scalar);
+
+  void AssureGlobalPar( SizeT pIx);
+  void AssureGlobalKW( SizeT ix);
+
+  // if keyword 'kw' is not set, 'scalar' is left unchanged
+  void AssureLongScalarKWIfPresent( const std::string& kw, DLong& scalar);
+  // converts keyword 'kw' if necessary and sets 'scalar' 
+  void AssureLongScalarKW( const std::string& kw, DLong& scalar);
+  // converts ix'th keyword if necessary and sets 'scalar' 
+  void AssureLongScalarKW( SizeT ix, DLong& scalar);
+  // converts parameter 'ix' if necessary and sets 'scalar' 
+  void AssureLongScalarPar( SizeT ix, DLong& scalar);
+
+  // same as for Long
+  void AssureDoubleScalarKWIfPresent( const std::string& kw, DDouble& scalar);
+  void AssureDoubleScalarKW( const std::string& kw, DDouble& scalar);
+  void AssureDoubleScalarKW( SizeT ix, DDouble& scalar);
+  void AssureDoubleScalarPar( SizeT ix, DDouble& scalar);
+
+  // same as for Long
+  void AssureStringScalarKWIfPresent( const std::string& kw, DString& scalar);
+  void AssureStringScalarKW( const std::string& kw, DString& scalar);
+  void AssureStringScalarKW( SizeT ix, DString& scalar);
+  void AssureStringScalarPar( SizeT ix, DString& scalar);
+
+
+About defining GDL structs in C++:
+
+'structList' contains a list of 'DStructDesc*' (struct descriptors).
+For each structure, there must be exactly one descriptor but there
+might be any number of instances (DStructGDL).
+You have to distinguish between instances and descriptors.
+For descriptors (DStructDesc) there is only (dstructdesc.hpp):
+
+  void     AddTag( const std::string& tagName, BaseGDL* data);
+
+this one does NOT grab the data, hence no new operator.
+This is used in 'InitStructs()' (objects.cpp) for defining some
+structures where there is no initial instance.
+
+For instances (actually holding the data) there are (dstructgdl.hpp):
+
+  template< class DataGDL>
+  void InitTag(const std::string& tName, const DataGDL& data)
+
+For already defined structures (DStructDesc exists).
+
+And:
+
+  void DStructGDL::NewTag(const string& tName, BaseGDL* data)
+
+For defining the descriptor AND the instance at the same time.
+Used for example in initsysvar.cpp. This one grabs the data (hence
+it has to be created newly with new).
+
+Note that if there is already an instance elsewhere,
+DStructDesc must not be changed anymore. Within GDL this is checked
+(it is not allowed for a named struct to be redefiend after defiened
+once), but from C++ its the programmers responsibility.
+
+Generally: For defining a system variable NewTag should be used,
+for returning a named struct, its descritor should be defined in
+'InitStructs()' and in the library function 'var = new DstructGDL(...)'
+and 'var->InitTag(...)' should be used.
+('should' means here 'I cannot think of any other usage so far')
+
+
+Short overview of how GDL works internally:
+
+Programs (*.pro files) or command line input is parsed (GDLLexer.cpp,
+GDLParser.cpp generated with ANTLR from gdlc.g). These results in an
+abstract syntax tree (AST) consisting of 'DNode' (dnode.hpp).
+This systax tree is further manipulated (compiled) with a tree parser
+(GDLTreeParser.cpp generated with ANTLR from gdlc.tree.g,
+dcompiler.hpp). Here the AST is splitted into the different
+functions/procedures and the DNode are annotated with further information.
+Then these compiled ASTs are interpreted (GDLInterpreter.cpp generated
+with ANTLR from gdlc.i.g, dinterpreter.cpp).
+
+
+LINKIMAGE
+=========
+
+Joel Gales provided support for the LINKIMAGE procedure. 
+It allows users to add their own routines as dynamic libraries to
+GDL. LINKIMAGE currently only works for the linux version.
+Note that you cannot use shared libraries written for IDL without change.
+
+There is a simple example in "src/dll/two.cpp". 
+
+To use it:
+1. Build the shared library:
+g++ -I/(GDL header file directory) -c two.cpp
+g++ -shared -lm -lc  -o two.so two.o
+
+2. Run LINKIMAGE:
+GDL> linkimage,'TWO','/usr/local/src/gdl-0.8.4/src/dll/two.so',1,'two_fun'
+with:
+'TWO' is the GDL function name
+'/usr/local/src/gdl-0.8.4/src/dll/two.so' is the location of the DLL
+1 tells GDL that the TWO function is a function, use "0" for a procedure
+'two_fun' is the entry point for this function within the "two.cpp" file
+
+GDL> print,two(findgen(3))
+     0.000000      2.00000      4.00000

@@ -1,0 +1,33 @@
+/***************************************************************************
+                       real2int.hpp  -  convert float/double to integer type
+                             -------------------
+    begin                : July 22 2002
+    copyright            : (C) 2002 by Marc Schellens
+    email                : m_schellens@hotmail.com
+ ***************************************************************************/
+
+/***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
+
+#ifndef REAL2INT_HPP_
+#define REAL2INT_HPP_
+
+#include <limits>
+
+template< typename IntT, typename RealT>
+IntT Real2Int( RealT r)
+{
+  if( std::numeric_limits< IntT>::max() < r)
+    return std::numeric_limits< IntT>::max();
+  if( std::numeric_limits< IntT>::min() > r)
+    return std::numeric_limits< IntT>::min();
+  return static_cast< IntT>( r);
+}
+
+#endif

@@ -1,0 +1,219 @@
+                    GDL - GNU Data Language 
+                    =======================
+
+A free IDL (Interactive Data Language) compatible incremental compiler
+(capable of running programs written in IDL/GDL).
+IDL is a registered trademark of Research Systems Inc. 
+(see: http://www.rsinc.com)
+
+
+HOMEPAGE:
+=========
+
+http://gnudatalanguage.sourceforge.net
+
+
+FEATURES:
+=========
+
+Full syntax compatibility with IDL 6.0
+
+All IDL language elements are supported, including:
+
+Pointer, Objects, Structs,
+Arrays, System variables,
+Common blocks, Assoc variables,
+All operators, All datatypes,
+_EXTRA, _STRICT_EXTRA and _REF_EXTRA keywords...
+
+The file input output system is fully implemented
+(Exception: For formatted I/O the C() sub-codes are not supported yet)
+
+netCDF files are fully supported.
+HDF4 files are supported.
+Basic support for HDF5 files.
+
+Overall more than 220 library routines are implemented.
+For a list enter HELP,/LIB at the command prompt and look for
+library routines written in GDL in the src/pro subdirectory.
+
+Graphical output is partially implemented. The PLOT, OPLOT and TV
+commands (along with WINDOW, WDELETE, SET_PLOT, WSET, TVLCT, LOADCT)
+work (important keywords, some !P system variable tags and multi-plots
+are supported) for X windows and postscript output.
+
+GDL has an interface to python. See the file PYTHON.txt for details.
+
+No GUI support (widgets) is implemented so far.
+
+
+REQUIREMENTS:
+=============
+
+In short:
+Obligatory libraries:
+plplot      http://plplot.sourceforge.net/source/index.html
+gsl         http://www.gnu.org/software/gsl
+readline    http://ftp.gnu.org/pub/gnu/readline/readline-4.3.tar.gz
+
+Optional libraries:
+ImageMagick http://www.imagemagick.org/www/download.html
+netCDF      ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-3.5.1.tar.Z
+HDF4        ftp://ftp.ncsa.uiuc.edu/HDF/HDF/HDF_Current
+HDF5        ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/current
+python      http://www.python.org
+Only with python:
+numarray    http://www.stsci.edu/resources/software_hardware/numarray
+matplotlib  http://matplotlib.sourceforge.net
+
+
+At least g++ 3.2 (or a similar C++ standard conforming
+compiler) is needed for compiling GDL.
+Note that due to problems with static casts g++ 3.3.1
+does NOT compile GDL, but 3.3.2 works fine again.
+GDL compiles under Mac OS X (10.2, 10.3) with g++ 3.3 . 
+
+The GNU readline library 4.3 is needed (actually GDL should compile
+without, but its very inconvenient to use that way, furthermore
+proper event handling for graphic windows requires readline).
+You can get it at:
+http://ftp.gnu.org/pub/gnu/readline/readline-4.3.tar.gz
+
+As GDL includes graphics support, the plplot library version 5.3
+is necessary. To download plplot please look at:
+http://plplot.sourceforge.net/source/index.html
+
+Furthermore you need the GNU Scientific Library.
+Joel Gales has start using it to implement GDL library routines.  
+You find it at:
+http://www.gnu.org/software/gsl
+
+The HDF4 format is (not completely yet) supported (thanks to Joel
+Gales). If you want to use it, you need the HDF library (her HDF
+always means version 4).
+Note that if you plan to use netCDF also, it might be necessary to
+install HDF4 before netCDF due to same named but different header
+files which are overwritten by the HDF4 version otherwise.
+HDF4 is required by default. If you don't want to use it, use 
+--with-hdf=no
+Note that HDF in turn needs other libraries. Check out the
+homepage for more information:
+http://hdf.ncsa.uiuc.edu/
+The HDF library can be downloaded from:
+ftp://ftp.ncsa.uiuc.edu/HDF/HDF/HDF_Current
+
+Basic support for HDF5 is now provided (thanks to Peter Messmer).
+If you want to use it, you need the HDF5 library.
+It is required by default. If you don't want to use it, use 
+--with-hdf5=no
+Note that HDF5 in turn needs other libraries. Check out the
+homepage for more information:
+http://hdf.ncsa.uiuc.edu/HDF5
+The HDF5 library can be downloaded from:
+ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/current
+
+The netCDF format is fully supported (thanks to Christopher Lee). If
+you want to use netCDF, you need the netCDF library (even if HDF4 is
+used, the netCDF library is needed, as the HDF library does not
+contain all needed netCDF functions. Note that it might be necessary
+to install netCDF after HDF4 due to same named, but different header
+files.) 
+netCDF is used by default. If you don't want to use it, use 
+--with-netcdf=no
+as a command line option to 'configure'.
+netCDF is available from:
+ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-3.5.1.tar.Z
+
+In order to read and write images in several formats, GDL uses ImageMagick.
+It is required by default. If you don't want to use it, use 
+--with-Magick=no
+ImageMagick can be obtained from:
+http://www.imagemagick.org/www/download.html
+
+GDL has an interface to python (see http://www.python.org). As so far
+there are only two example GDL extensions written in python its use
+is optional for now but required by default. If you don't want to use
+it, use  
+--with-python=no
+as a command line option to 'configure'.
+If you want to use it you need python 2.3 and the python package
+'numarray' version 0.9 or later
+(http://www.stsci.edu/resources/software_hardware/numarray).
+Note: For embedding python as it is done by GDL, the python dynamic
+library is needed which is *not* build by default. You need to run
+'configure' for python with the '--enable-shared' option. Please see
+the python README file for details.
+For nice graphical output the python package matplotlib
+(http://matplotlib.sourceforge.net) is used in one of the examples.
+See the file PYTHON.txt for more details.
+
+GDL 0.8.7 was developed using ANTLR 2.7.4,   
+but unless you want to change the grammar (*.g files) you don't need
+ANTLR. All relevant ANTLR files are included in the package.
+For more information on ANTRL see: http://www.antlr.org
+
+GDL is currently developed using KDevelop 3.1.0 under Mandrake Linux
+10.0. The KDevelop project file is included in the tarball, so if you
+have KDevelop you should be able to use it with GDL seamlessly.
+
+
+INSTALLATION:
+=============
+
+Please see the INSTALL file for details.
+
+
+CONTRIBUTIONS:
+==============
+
+GDL 0.8.7 is actively developed, but still in beta state as of
+December 2004.
+Even though it can already be used for several tasks, there are many
+things to be done.
+Bug reports, feedback in general and interested people who would
+like to join this project are welcome.
+Extensions to GDL can be made in C++, GDL or python.
+ 
+Urgent things to do are:
+Library functions and procedures,
+Porting GDL to other platforms,
+Implementing GUI library functions,
+Completing the graphical output system,
+Testing and test routines written in GDL.
+
+
+HACKING:
+========
+
+please see file HACKING for details.
+There you find also information about LINKIMAGE.
+
+
+CONTACT:
+========
+
+Comments are welcome!!! Let me know what you use GDL for. Or if you don't,
+why not. Which functionality are you missing/would appreciate most for
+comming versions.
+
+Please use for bug reports, complaints, suggestions and comments
+the trackers on the project summary page
+(http://sourceforge.net/projects/gnudatalanguage),
+or write email to m_schellens@users.sourceforge.net
+Please put 'GDL' into the subject field.
+
+
+LICENSE:
+========
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+General Public License for more details.
+
+(It should be included in this package in the file COPYING )
