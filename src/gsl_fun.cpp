@@ -762,7 +762,8 @@ namespace lib {
 	    seed0 += dim.N_Elements(); // avoid repetition in next call
 	    // if called with undefined global
 
-	    (*p0L)[0] = seed0;
+	    seed = new DLongGDL( seed0);
+	    e->SetPar( 0, seed);
 	  }
 	else // undefined global -> init
 	  {
