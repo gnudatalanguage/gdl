@@ -265,24 +265,34 @@ namespace lib {
       return make_array_template< DULongGDL>( e, dimKey);
 
       // LONG64
-    } else if (e->KeywordSet(12) || type == LONG64) {
+    } else if (e->KeywordSet(11) || type == LONG64) {
 
       return make_array_template< DLong64GDL>( e, dimKey);
 
       // ULONG64
-    } else if (e->KeywordSet(13) || type == ULONG64) {
+    } else if (e->KeywordSet(12) || type == ULONG64) {
 
       return make_array_template< DULong64GDL>( e, dimKey);
       
       // FLOAT
-    } else if (e->KeywordSet(14) || type == FLOAT) {
+    } else if (e->KeywordSet(13) || type == FLOAT) {
 
       return make_array_template< DFloatGDL>( e, dimKey);
 
       // DOUBLE
-    } else if (e->KeywordSet(15) || type == DOUBLE) {
+    } else if (e->KeywordSet(14) || type == DOUBLE) {
 
       return make_array_template< DDoubleGDL>( e, dimKey);
+
+      // COMPLEX
+    } else if (e->KeywordSet(15) || type == COMPLEX) {
+
+      return make_array_template< DComplexGDL>( e, dimKey);
+
+      // DCOMPLEX
+    } else if (e->KeywordSet(16) || type == COMPLEXDBL) {
+
+      return make_array_template< DComplexDblGDL>( e, dimKey);
 
     }
     return 0;

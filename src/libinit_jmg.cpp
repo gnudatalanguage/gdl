@@ -57,7 +57,7 @@ void LibInit_jmg()
   const string invertKey[]={"DOUBLE",KLISTEND};
   new DLibFun(lib::invert_fun,string("INVERT"),2,invertKey);
 
-  const string fftKey[]={"DOUBLE","INVERSE",KLISTEND};
+  const string fftKey[]={"DOUBLE","INVERSE","OVERWRITE",KLISTEND};
   new DLibFun(lib::fft_fun,string("FFT"),2,fftKey);
 
   new DLibFun(lib::randomu_fun,string("RANDOMU"),MAXRANK);
@@ -71,7 +71,9 @@ void LibInit_jmg()
 
   const string make_arrayKey[]={"NOZERO","DIMENSION","INDEX","SIZE",
 				"TYPE","VALUE","BYTE","INT",
-				"UINT","LONG","ULONG","L64","UL64",KLISTEND};
+				"UINT","LONG","ULONG","L64","UL64",
+				"FLOAT","DOUBLE","COMPLEX",
+				"DCOMPLEX",KLISTEND};
   new DLibFun(lib::make_array,string("MAKE_ARRAY"),MAXRANK,make_arrayKey);
 
   const string reformKey[]={"OVERWRITE",KLISTEND};

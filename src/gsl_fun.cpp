@@ -35,6 +35,7 @@
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_histogram.h>
 
+
 #define LOG10E 0.434294
 
 //#define GDL_DEBUG
@@ -43,6 +44,9 @@
 namespace lib {
 
   using namespace std;
+
+  int szdbl=sizeof(double);
+  int szflt=sizeof(float);
 
   BaseGDL* invert_fun( EnvT* e)
   {
@@ -77,12 +81,12 @@ namespace lib {
 	gsl_permutation *perm = gsl_permutation_alloc(p0->Dim(0));
 
 	for( SizeT i=0; i<nEl; ++i) {
-	  memcpy(f32_2, &(*p0C)[i], sizeof(double));
+	  memcpy(f32_2, &(*p0C)[i], szdbl);
 	  f64 = (double) f32_2[0];
-	  memcpy(&mat->data[2*i], &f64, sizeof(double));
+	  memcpy(&mat->data[2*i], &f64, szdbl);
 
 	  f64 = (double) f32_2[1];
-	  memcpy(&mat->data[2*i+1], &f64, sizeof(double));
+	  memcpy(&mat->data[2*i+1], &f64, szdbl);
 	}
  
 	gsl_linalg_complex_LU_decomp (mat, perm, &s);
@@ -94,11 +98,11 @@ namespace lib {
 	else singular = 1;
 
 	for( SizeT i=0; i<nEl; ++i) {
-	  memcpy(&f64_2[0], &inverse->data[2*i], sizeof(double)*2);
+	  memcpy(&f64_2[0], &inverse->data[2*i], szdbl*2);
 	  f32_2[0] = (float) f64_2[0];
 	  f32_2[1] = (float) f64_2[1];
 
-	  memcpy(&(*res)[i], &f32_2[0], sizeof(float)*2);
+	  memcpy(&(*res)[i], &f32_2[0], szflt*2);
 	}
 
 	gsl_permutation_free(perm);
@@ -116,7 +120,7 @@ namespace lib {
 	gsl_matrix_complex *inverse = gsl_matrix_complex_calloc(p0->Dim(0), p0->Dim(1));
 	gsl_permutation *perm = gsl_permutation_alloc(p0->Dim(0));
 
-	memcpy(mat->data, &(*p0C)[0], nEl*sizeof(double)*2);
+	memcpy(mat->data, &(*p0C)[0], nEl*szdbl*2);
 
 	gsl_linalg_complex_LU_decomp (mat, perm, &s);
 	det = gsl_linalg_complex_LU_lndet(mat);
@@ -126,7 +130,7 @@ namespace lib {
 	}
 	else singular = 1;
 
-	memcpy(&(*res)[0], inverse->data, nEl*sizeof(double)*2);
+	memcpy(&(*res)[0], inverse->data, nEl*szdbl*2);
 
 	gsl_permutation_free(perm);
 	gsl_matrix_complex_free(mat);
@@ -142,7 +146,7 @@ namespace lib {
 	gsl_matrix *inverse = gsl_matrix_calloc(p0->Dim(0), p0->Dim(1));
 	gsl_permutation *perm = gsl_permutation_alloc(p0->Dim(0));
 
-	memcpy(mat->data, &(*p0D)[0], nEl*sizeof(double));
+	memcpy(mat->data, &(*p0D)[0], nEl*szdbl);
 
 	gsl_linalg_LU_decomp (mat, perm, &s);
 	det = gsl_linalg_LU_lndet(mat);
@@ -158,7 +162,7 @@ namespace lib {
 	    *p1L = new DLongGDL( singular);
 	}
 
-	memcpy(&(*res)[0], inverse->data, nEl*sizeof(double));
+	memcpy(&(*res)[0], inverse->data, nEl*szdbl);
 
 	gsl_permutation_free(perm);
 	gsl_matrix_free(mat);
@@ -195,7 +199,7 @@ namespace lib {
 	  case UINT:  f64 = (double) (*p0UI)[i]; break;
 	  case BYTE:  f64 = (double) (*p0B)[i]; break;
 	  }
-	  memcpy(&mat->data[i], &f64, sizeof(double));
+	  memcpy(&mat->data[i], &f64, szdbl);
 	}
 
 	gsl_linalg_LU_decomp (mat, perm, &s);
@@ -233,10 +237,83 @@ namespace lib {
   }
 
 
+  template< typename T>
+  int radix2_template( BaseGDL* p0, DComplexDblGDL* res)
+  {
+    T* p0c = static_cast<T*>( p0);
+    SizeT nEl = p0->N_Elements();
+    double f64;
+
+    for( SizeT i=0; i<nEl; ++i) {
+      if (p0->Type() == DOUBLE) f64 = (*p0c)[i]; else f64 = (double) (*p0c)[i];
+      memcpy(&(*res)[i], &f64, szdbl);
+
+      f64 = 0;
+      memcpy(((double*) &(*res)[i])+1, &f64, szdbl);
+    }
+    return 0;
+  }
+
+  template< typename T>
+  int radix2_float_template( BaseGDL* p0, DComplexGDL* res)
+  {
+    T* p0c = static_cast<T*>( p0);
+    SizeT nEl = p0->N_Elements();
+    float f32;
+
+    for( SizeT i=0; i<nEl; ++i) {
+      if (p0->Type() == FLOAT) f32 = (*p0c)[i]; else f32 = (float) (*p0c)[i];
+      memcpy(&(*res)[i], &f32, szflt);
+
+      f32 = 0;
+      memcpy(((double*) &(*res)[i])+1, &f32, szflt);
+    }
+    return 0;
+  }
+
+
+  template< typename T>
+  int mxradix_template( BaseGDL* p0, DComplexDblGDL* res)
+  {
+    T* p0c = static_cast<T*>( p0);
+    SizeT nEl = p0->N_Elements();
+    double f64;
+
+    if (p0->Type() == DOUBLE) {
+      memcpy(&(*res)[0], &(*p0c)[0], nEl*szdbl);
+    } else {
+      for( SizeT i=0; i<nEl; ++i) {
+	f64 = (double) (*p0c)[i];
+	memcpy(((double*) &(*res)[i/2])+(i%2), &f64, szdbl);
+      }
+    }
+    return 0;
+  }
+
+  template< typename T>
+  int mxradix_float_template( BaseGDL* p0, DComplexGDL* res)
+  {
+    T* p0c = static_cast<T*>( p0);
+    SizeT nEl = p0->N_Elements();
+    float f32;
+
+    if (p0->Type() == FLOAT) {
+      memcpy(&(*res)[0], &(*p0c)[0], nEl*szflt);
+    } else {
+      for( SizeT i=0; i<nEl; ++i) {
+	f32 = (float) (*p0c)[i];
+	memcpy(((float*) &(*res)[i/2])+(i%2), &f32, szflt);
+      }
+    }
+    return 0;
+  }
+
+
   BaseGDL* fft_fun( EnvT* e)
   {
     SizeT nParam=e->NParam();
-    int s;
+    int s, dbl=0;
+    int overwrite=0;
     float f32[2];
     double f64[2];
     double direct=-1.0;
@@ -263,7 +340,9 @@ namespace lib {
 	static_cast<DDoubleGDL*>(p1->Convert2( DOUBLE, BaseGDL::COPY));
       direct = GSL_SIGN((*direction)[0]);
     }
+    if( e->KeywordSet(0)) dbl = 1;
     if( e->KeywordSet(1)) direct = +1.0;
+    if( e->KeywordSet(2)) overwrite = 1;
 
     SizeT radix2 = 0;
     for( SizeT i=0; i<32; ++i) {
@@ -278,36 +357,21 @@ namespace lib {
 	DComplexGDL* p0C = static_cast<DComplexGDL*>( p0);
 	DComplexGDL* res = new DComplexGDL( p0->Dim(), BaseGDL::NOZERO);
 
-	if (radix2 && direct == -1) {
+	if (radix2 && overwrite == 0) {
 
-	  float *data = new float[2*nEl];
+	  memcpy(&(*res)[0], &(*p0C)[0], szflt*2*nEl);
 
-	  memcpy(&data[0], &(*p0C)[0], sizeof(float)*2*nEl);
+	  if (direct == -1) {
+	    gsl_fft_complex_float_radix2_forward ((float*) &(*res)[0], 1, nEl); 
+	    for( SizeT i=0; i<nEl; ++i) (*res)[i] /= nEl;
+	  } else if (direct == +1) {
+	    gsl_fft_complex_float_radix2_backward ((float*) &(*res)[0], 1, nEl);
+	  }
 
-	  gsl_fft_complex_float_radix2_forward (data, 1, nEl); 
-
-	  for( SizeT i=0; i<2*nEl; ++i) data[i] /= nEl;
-
-	  memcpy(&(*res)[0], &data[0], sizeof(float)*2*nEl);
-	  delete(data);
 	}
-	else if (radix2 && direct == +1) {
+	else if (!radix2 && overwrite == 0) {
 
-	  float *data = new float[2*nEl];
-
-	  memcpy(&data[0], &(*p0C)[0], sizeof(float)*2*nEl);
-
-	  gsl_fft_complex_float_radix2_backward (data, 1, nEl); 
-
-	  memcpy(&(*res)[0], &data[0], sizeof(float)*2*nEl);
-	  delete(data);
-	}
-
-	else if (!radix2 && direct == -1) {
-
-	  float *data = new float[2*nEl];
-
-	  memcpy(&data[0], &(*p0C)[0], sizeof(float)*2*nEl);
+	  memcpy(&(*res)[0], &(*p0C)[0], szflt*2*nEl);
 
 	  gsl_fft_complex_wavetable_float * wavetable;
 	  gsl_fft_complex_workspace_float * workspace;
@@ -315,37 +379,16 @@ namespace lib {
 	  wavetable = gsl_fft_complex_wavetable_float_alloc (nEl);
 	  workspace = gsl_fft_complex_workspace_float_alloc (nEl);
 
-	  gsl_fft_complex_float_forward (data, 1, nEl, 
-					 wavetable, workspace);
-
+	  if (direct == -1) {
+	    gsl_fft_complex_float_forward ((float*) &(*res)[0], 1, nEl, 
+					   wavetable, workspace);
+	    for( SizeT i=0; i<nEl; ++i) (*res)[i] /= nEl;
+	  } else if (direct == +1) {
+	    gsl_fft_complex_float_backward ((float*) &(*res)[0], 1, nEl, 
+					    wavetable, workspace);
+	  }
 	  gsl_fft_complex_wavetable_float_free (wavetable);
 	  gsl_fft_complex_workspace_float_free (workspace);
-
-	  for( SizeT i=0; i<2*nEl; ++i) data[i] /= nEl;
-
-	  memcpy(&(*res)[0], &data[0], sizeof(float)*2*nEl);
-	  delete(data);
-	}
-	else if (!radix2 && direct == +1) {
-
-	  float *data = new float[2*nEl];
-
-	  memcpy(&data[0], &(*p0C)[0], sizeof(float)*2*nEl);
-
-	  gsl_fft_complex_wavetable_float * wavetable;
-	  gsl_fft_complex_workspace_float * workspace;
-
-	  wavetable = gsl_fft_complex_wavetable_float_alloc (nEl);
-	  workspace = gsl_fft_complex_workspace_float_alloc (nEl);
-
-	  gsl_fft_complex_float_backward (data, 1, nEl, 
-					  wavetable, workspace);
-
-	  gsl_fft_complex_wavetable_float_free (wavetable);
-	  gsl_fft_complex_workspace_float_free (workspace);
-
-	  memcpy(&(*res)[0], &data[0], sizeof(float)*2*nEl);
-	  delete(data);
 	}
 	return res;
       }
@@ -355,36 +398,20 @@ namespace lib {
 	DComplexDblGDL* p0C = static_cast<DComplexDblGDL*>( p0);
 	DComplexDblGDL* res = new DComplexDblGDL( p0->Dim(), BaseGDL::NOZERO);
 
-	if (radix2 && direct == -1) {
+	if (radix2 && overwrite == 0) {
 
-	  double *data = new double[2*nEl];
+	  memcpy(&(*res)[0], &(*p0C)[0], szdbl*2*nEl);
 
-	  memcpy(&data[0], &(*p0C)[0], sizeof(double)*2*nEl);
-
-	  gsl_fft_complex_radix2_forward (data, 1, nEl); 
-
-	  for( SizeT i=0; i<2*nEl; ++i) data[i] /= nEl;
-
-	  memcpy(&(*res)[0], &data[0], sizeof(double)*2*nEl);
-	  delete(data);
+	  if (direct == -1) {
+	    gsl_fft_complex_radix2_forward ((double*) &(*res)[0], 1, nEl); 
+	    for( SizeT i=0; i<nEl; ++i) (*res)[i] /= nEl;
+	  } else if (direct == +1) {
+	    gsl_fft_complex_radix2_backward ((double*) &(*res)[0], 1, nEl);
+	  }
 	}
-	else if (radix2 && direct == +1) {
+	else if (!radix2 && overwrite == 0) {
 
-	  double *data = new double[2*nEl];
-
-	  memcpy(&data[0], &(*p0C)[0], sizeof(double)*2*nEl);
-
-	  gsl_fft_complex_radix2_backward (data, 1, nEl); 
-
-	  memcpy(&(*res)[0], &data[0], sizeof(double)*2*nEl);
-	  delete(data);
-	}
-
-	else if (!radix2 && direct == -1) {
-
-	  double *data = new double[2*nEl];
-
-	  memcpy(&data[0], &(*p0C)[0], sizeof(double)*2*nEl);
+	  memcpy(&(*res)[0], &(*p0C)[0], szdbl*2*nEl);
 
 	  gsl_fft_complex_wavetable * wavetable;
 	  gsl_fft_complex_workspace * workspace;
@@ -392,134 +419,115 @@ namespace lib {
 	  wavetable = gsl_fft_complex_wavetable_alloc (nEl);
 	  workspace = gsl_fft_complex_workspace_alloc (nEl);
 
-	  gsl_fft_complex_forward (data, 1, nEl, 
-				   wavetable, workspace);
-
+	  if (direct == -1) {
+	    gsl_fft_complex_forward ((double*) &(*res)[0], 1, nEl, 
+					   wavetable, workspace);
+	    for( SizeT i=0; i<nEl; ++i) (*res)[i] /= nEl;
+	  } else if (direct == +1) {
+	    gsl_fft_complex_backward ((double*) &(*res)[0], 1, nEl, 
+				      wavetable, workspace);
+	  }
 	  gsl_fft_complex_wavetable_free (wavetable);
 	  gsl_fft_complex_workspace_free (workspace);
-
-	  for( SizeT i=0; i<2*nEl; ++i) data[i] /= nEl;
-
-	  memcpy(&(*res)[0], &data[0], sizeof(double)*2*nEl);
-	  delete(data);
-	}
-	else if (!radix2 && direct == +1) {
-
-	  double *data = new double[2*nEl];
-
-	  memcpy(&data[0], &(*p0C)[0], sizeof(double)*2*nEl);
-
-	  gsl_fft_complex_wavetable * wavetable;
-	  gsl_fft_complex_workspace * workspace;
-
-	  wavetable = gsl_fft_complex_wavetable_alloc (nEl);
-	  workspace = gsl_fft_complex_workspace_alloc (nEl);
-
-	  gsl_fft_complex_backward (data, 1, nEl, 
-					  wavetable, workspace);
-
-	  gsl_fft_complex_wavetable_free (wavetable);
-	  gsl_fft_complex_workspace_free (workspace);
-
-	  memcpy(&(*res)[0], &data[0], sizeof(double)*2*nEl);
-	  delete(data);
 	}
 	return res;
       }
-    else if( p0->Type() == DOUBLE)
+    else if( p0->Type() == DOUBLE || dbl) 
       {
-	DDoubleGDL* p0D = static_cast<DDoubleGDL*>( p0);
 	DComplexDblGDL* res = new DComplexDblGDL( p0->Dim(), BaseGDL::NOZERO);
 
-	if (radix2 && direct == -1) {
+	if (radix2) {
 
-	  double *data = new double[nEl];
-	  memcpy(data, &(*p0D)[0], nEl*sizeof(double));
-
-	  gsl_fft_real_radix2_transform (data, 1, nEl);
-	  for( SizeT i=0; i<nEl; ++i) data[i] /= nEl;
-
-	  memcpy(&(*res)[0], &data[0], sizeof(double));
-	  memcpy(&(*res)[nEl/2], &data[nEl/2], sizeof(double));
-	  for( SizeT i=1; i<nEl/2; ++i) {
-	    memcpy(&f64[0], &data[i], sizeof(double));
-	    memcpy(&f64[1], &data[nEl-i], sizeof(double));
-	    memcpy(&(*res)[i], f64, 2*sizeof(double));
-
-	    memcpy(&f64[0], &data[i], sizeof(double));
-	    memcpy(&f64[1], &data[nEl-i], sizeof(double));
-	    f64[1] = -f64[1];
-	    memcpy(&(*res)[nEl-i], f64, 2*sizeof(double));
+	  switch ( p0->Type()) {
+	  case DOUBLE: 
+	    radix2_template< DDoubleGDL>( p0, res);
+	    break;
+	  case FLOAT: 
+	    radix2_template< DFloatGDL>( p0, res);
+	    break;
+	  case LONG: 
+	    radix2_template< DLongGDL>( p0, res);
+	    break;
+	  case ULONG: 
+	    radix2_template< DULongGDL>( p0, res);
+	    break;
+	  case INT: 
+	    radix2_template< DIntGDL>( p0, res);
+	    break;
+	  case UINT: 
+	    radix2_template< DUIntGDL>( p0, res);
+	    break;
+	  case BYTE: 
+	    radix2_template< DByteGDL>( p0, res);
+	    break;
 	  }
-	  delete(data);
+
+	  if (direct == -1) {
+	    gsl_fft_complex_radix2_forward ((double*) &(*res)[0], 1, nEl);
+	    for( SizeT i=0; i<nEl; ++i) (*res)[i] /= nEl;
+	  } else if (direct == +1) {
+	    gsl_fft_complex_radix2_inverse ((double*) &(*res)[0], 1, nEl);
+	    for( SizeT i=0; i<nEl; ++i) (*res)[i] *= nEl;
+	  }
 	}
-	else if (radix2 && direct == +1) {
+	else if (!radix2) {
 
-	  double *data = new double[2*nEl];
-	  for( SizeT i=0; i<nEl; ++i) data[2*i] = (*p0D)[i];
-	  for( SizeT i=0; i<nEl; ++i) data[2*i+1] = 0;
-
-	  gsl_fft_complex_radix2_inverse (data, 1, nEl);
-	  for( SizeT i=0; i<2*nEl; ++i) data[i] *= nEl;
-
-	  memcpy(&(*res)[0], &data[0], 2*nEl*sizeof(double));
-
-	  delete(data);
-	}
-
-	else if (!radix2 && direct == -1) {
+	  switch ( p0->Type()) {
+	  case DOUBLE: 
+	    mxradix_template< DFloatGDL>( p0, res);
+	    break;
+	  case FLOAT: 
+	    mxradix_template< DFloatGDL>( p0, res);
+	    break;
+	  case LONG:
+	    mxradix_template< DLongGDL>( p0, res);
+	    break;
+	  case ULONG: 
+	    mxradix_template< DULongGDL>( p0, res);
+	    break;
+	  case INT: 
+	    mxradix_template< DIntGDL>( p0, res);
+	    break;
+	  case UINT: 
+	    mxradix_template< DUIntGDL>( p0, res);
+	    break;
+	  case BYTE: 
+	    mxradix_template< DByteGDL>( p0, res);
+	    break;
+	  }
 
 	  gsl_fft_real_wavetable *real;
 	  gsl_fft_real_workspace *work;
 
-	  double *data = new double[nEl];
-	  memcpy(data, &(*p0D)[0], nEl*sizeof(double));
-
 	  work = gsl_fft_real_workspace_alloc(nEl);
 	  real = gsl_fft_real_wavetable_alloc(nEl);
 
-	  gsl_fft_real_transform(data, 1, nEl, real, work);
+	  gsl_fft_real_transform((double*) &(*res)[0], 1, nEl, real, work);
 
-	  for( SizeT i=0; i<nEl; ++i) data[i] /= nEl;
+	  if (direct == -1) {
+	    for( SizeT i=0; i<nEl; ++i) (*res)[i] /= nEl;
+	  } else if (direct == +1) {
+	    for( SizeT i=1; i<nEl/2; ++i) {
+	      memcpy(&f64[0], &(*res)[i], szdbl);
+	      f64[0] = -f64[0];
+	      memcpy(&(*res)[i], &f64[0], szdbl);
+	    }
 
-	  gsl_fft_halfcomplex_unpack(data, (double*) &(*res)[0], 1, nEl);
-
-	  gsl_fft_real_wavetable_free(real);
-	  gsl_fft_real_workspace_free(work);
-
-	  delete(data);
-	}
-	else if (!radix2 && direct == +1) {
-
-	  gsl_fft_real_wavetable *real;
-	  gsl_fft_real_workspace *work;
-
-	  double *data = new double[nEl];
-	  memcpy(data, &(*p0D)[0], nEl*sizeof(double));
-
-	  work = gsl_fft_real_workspace_alloc(nEl);
-	  real = gsl_fft_real_wavetable_alloc(nEl);
-
-	  gsl_fft_real_transform(data, 1, nEl, real, work);
-
-	  if ((nEl % 2) == 0)
-	    for( SizeT i=1; i<nEl/2; ++i) data[2*i] *= -1;
-
-	  if ((nEl % 2) != 0) {
-	    for( SizeT i=1; i<nEl/2; ++i) data[2*i] *= -1;
-	    data[nEl-1] *= -1;
+	    if ((nEl % 2) != 0) {
+	      memcpy(&f64[0], &(*res)[(nEl-1)/2], szdbl);
+	      f64[0] = -f64[0];
+	      memcpy(&(*res)[(nEl-1)/2], &f64[0], szdbl);
+	    }
 	  }
 
-	  gsl_fft_halfcomplex_unpack(data, (double*) &(*res)[0], 1, nEl);
+	  unpack_real_mxradix((double*) &(*res)[0], nEl);
 
 	  gsl_fft_real_wavetable_free(real);
 	  gsl_fft_real_workspace_free(work);
-
-	  delete (data);
 	}
+
 	return res;
       }
-    
     else if( p0->Type() == FLOAT ||
 	     p0->Type() == LONG ||
 	     p0->Type() == ULONG ||
@@ -527,277 +535,94 @@ namespace lib {
 	     p0->Type() == UINT ||
 	     p0->Type() == BYTE)
       {
-	DFloatGDL* p0F = static_cast<DFloatGDL*>( p0);
-	DLongGDL* p0L = static_cast<DLongGDL*>( p0);
-	DULongGDL* p0UL = static_cast<DULongGDL*>( p0);
-	DIntGDL* p0I = static_cast<DIntGDL*>( p0);
-	DUIntGDL* p0UI = static_cast<DUIntGDL*>( p0);
-	DByteGDL* p0B = static_cast<DByteGDL*>( p0);
 
-	if (radix2 && direct == -1) {
+	DComplexGDL* res = new DComplexGDL( p0->Dim(), BaseGDL::NOZERO);
 
-	  double *data = new double[nEl];
+	if (radix2) {
 
-	  for( SizeT i=0; i<nEl; ++i) {
-	    switch ( p0->Type()) {
-	    case FLOAT: f64[0] = (double) (*p0F)[i]; break;
-	    case LONG:  f64[0] = (double) (*p0L)[i]; break;
-	    case ULONG: f64[0] = (double) (*p0UL)[i]; break;
-	    case INT:   f64[0] = (double) (*p0I)[i]; break;
-	    case UINT:  f64[0] = (double) (*p0UI)[i]; break;
-	    case BYTE:  f64[0] = (double) (*p0B)[i]; break;
-	    }
-	    memcpy(&data[i], &f64[0], sizeof(double));
+	  switch ( p0->Type()) {
+	  case FLOAT: 
+	    radix2_float_template< DFloatGDL>( p0, res);
+	    break;
+	  case LONG: 
+	    radix2_float_template< DLongGDL>( p0, res);
+	    break;
+	  case ULONG: 
+	    radix2_float_template< DULongGDL>( p0, res);
+	    break;
+	  case INT: 
+	    radix2_float_template< DIntGDL>( p0, res);
+	    break;
+	  case UINT: 
+	    radix2_float_template< DUIntGDL>( p0, res);
+	    break;
+	  case BYTE: 
+	    radix2_float_template< DByteGDL>( p0, res);
+	    break;
 	  }
 
-	  if( e->KeywordSet(0)) {
+	  if (direct == -1) {
+	    gsl_fft_complex_float_radix2_forward ((float*) &(*res)[0], 1, nEl);
+	    for( SizeT i=0; i<nEl; ++i) (*res)[i] /= nEl;
+	  } else if (direct == +1) {
+	    gsl_fft_complex_float_radix2_inverse ((float*) &(*res)[0], 1, nEl);
+	    for( SizeT i=0; i<nEl; ++i) (*res)[i] *= nEl;
+	  }
+	}
+	else if (!radix2) {
 
-	    DComplexDblGDL* res = new DComplexDblGDL( p0->Dim(), BaseGDL::NOZERO);
+	  switch ( p0->Type()) {
+	  case FLOAT: 
+	    mxradix_float_template< DFloatGDL>( p0, res);
+	    break;
+	  case LONG:
+	    mxradix_float_template< DLongGDL>( p0, res);
+	    break;
+	  case ULONG: 
+	    mxradix_float_template< DULongGDL>( p0, res);
+	    break;
+	  case INT: 
+	    mxradix_float_template< DIntGDL>( p0, res);
+	    break;
+	  case UINT: 
+	    mxradix_float_template< DUIntGDL>( p0, res);
+	    break;
+	  case BYTE: 
+	    mxradix_float_template< DByteGDL>( p0, res);
+	    break;
+	  }
 
-	    gsl_fft_real_radix2_transform (data, 1, nEl);
-	    for( SizeT i=0; i<nEl; ++i) data[i] /= nEl;
+	  gsl_fft_real_wavetable_float *real;
+	  gsl_fft_real_workspace_float *work;
 
-	    memcpy(&(*res)[0], &data[0], sizeof(double));
-	    memcpy(&(*res)[nEl/2], &data[nEl/2], sizeof(double));
+	  work = gsl_fft_real_workspace_float_alloc(nEl);
+	  real = gsl_fft_real_wavetable_float_alloc(nEl);
+
+	  gsl_fft_real_float_transform((float*) &(*res)[0], 1, nEl, real, work);
+
+	  if (direct == -1) {
+	    for( SizeT i=0; i<nEl; ++i) (*res)[i] /= nEl;
+	  } else if (direct == +1) {
 	    for( SizeT i=1; i<nEl/2; ++i) {
-	      memcpy(&f64[0], &data[i], sizeof(double));
-	      memcpy(&f64[1], &data[nEl-i], sizeof(double));
-	      memcpy(&(*res)[i], f64, 2*sizeof(double));
-	      
-	      memcpy(&f64[0], &data[i], sizeof(double));
-	      memcpy(&f64[1], &data[nEl-i], sizeof(double));
-	      f64[1] = -f64[1];
-	      memcpy(&(*res)[nEl-i], f64, 2*sizeof(double));
+	      memcpy(&f32[0], &(*res)[i], szflt);
+	      f32[0] = -f32[0];
+	      memcpy(&(*res)[i], &f32[0], szflt);
 	    }
-
-	    return res;
-
-	  } else {
-
-	    DComplexGDL* res = new DComplexGDL( p0->Dim(), BaseGDL::NOZERO);
-
-	    gsl_fft_real_radix2_transform (data, 1, nEl);
-	    for( SizeT i=0; i<nEl; ++i) data[i] /= nEl;
-
-	    f32[0] = (float) data[0];
-	    memcpy(&(*res)[0], &f32[0], sizeof(float));
-	    f32[0] = (float) data[nEl/2];
-	    memcpy(&(*res)[nEl/2], &f32[0], sizeof(float));
-	    for( SizeT i=1; i<nEl/2; ++i) {
-	      f32[0] = data[i];
-	      f32[1] = data[nEl-i];
-	      memcpy(&(*res)[i], f32, 2*sizeof(float));
-	      
-	      f32[0] = data[i];
-	      f32[1] = -data[nEl-i];
-	      memcpy(&(*res)[nEl-i], f32, 2*sizeof(float));
-	    }
-	    return res;
-	  }
-	  delete(data);
-	}
-	else if (radix2 && direct == +1) {
-
-	  double *data = new double[2*nEl];
-	  for( SizeT i=0; i<nEl; ++i) {
-	    switch ( p0->Type()) {
-	    case FLOAT: f64[0] = (double) (*p0F)[i]; break;
-	    case LONG:  f64[0] = (double) (*p0L)[i]; break;
-	    case ULONG: f64[0] = (double) (*p0UL)[i]; break;
-	    case INT:   f64[0] = (double) (*p0I)[i]; break;
-	    case UINT:  f64[0] = (double) (*p0UI)[i]; break;
-	    case BYTE:  f64[0] = (double) (*p0B)[i]; break;
-	    }
-	    memcpy(&data[2*i], &f64[0], sizeof(double));
-	    memset(&data[2*i+1], 0, sizeof(double));
-	  }
-
-	  if( e->KeywordSet(0)) {
-
-	    DComplexDblGDL* res = new DComplexDblGDL( p0->Dim(), BaseGDL::NOZERO);
-
-	    gsl_fft_complex_radix2_inverse (data, 1, nEl);
-	    for( SizeT i=0; i<2*nEl; ++i) data[i] *= nEl;
-
-	    memcpy(&(*res)[0], &data[0], 2*nEl*sizeof(double));
-	    return res;
-	  } else {
-
-	    DComplexGDL* res = new DComplexGDL( p0->Dim(), BaseGDL::NOZERO);
-
-	    gsl_fft_complex_radix2_inverse (data, 1, nEl);
-	    for( SizeT i=0; i<nEl; ++i) {
-	      f32[0] = (float) (data[2*i] * nEl);
-	      f32[1] = (float) (data[2*i+1] * nEl);
-	      memcpy(&(*res)[i], f32, 2*sizeof(float));
-	    }
-	    return res;
-	  }
-	  delete(data);
-
-	}
-	else if (!radix2 && direct == -1) {
-
-	  if( e->KeywordSet(0)) {
-
-	    DComplexDblGDL* res = new DComplexDblGDL( p0->Dim(), BaseGDL::NOZERO);
-	    double *data = new double[nEl];
-
-	    for( SizeT i=0; i<nEl; ++i) {
-	      switch ( p0->Type()) {
-	      case FLOAT: f64[0] = (double) (*p0F)[i]; break;
-	      case LONG:  f64[0] = (double) (*p0L)[i]; break;
-	      case ULONG: f64[0] = (double) (*p0UL)[i]; break;
-	      case INT:   f64[0] = (double) (*p0I)[i]; break;
-	      case UINT:  f64[0] = (double) (*p0UI)[i]; break;
-	      case BYTE:  f64[0] = (double) (*p0B)[i]; break;
-	      }
-	      memcpy(&data[i], &f64[0], sizeof(double));
-	    }
-
-	    gsl_fft_real_wavetable *real;
-	    gsl_fft_real_workspace *work;
-
-	    work = gsl_fft_real_workspace_alloc(nEl);
-	    real = gsl_fft_real_wavetable_alloc(nEl);
-
-	    gsl_fft_real_transform(data, 1, nEl, real, work);
-
-	    for( SizeT i=0; i<nEl; ++i) data[i] /= nEl;
-
-	    gsl_fft_halfcomplex_unpack(data, (double*) &(*res)[0], 1, nEl);
-
-	    gsl_fft_real_wavetable_free(real);
-	    gsl_fft_real_workspace_free(work);
-
-	    delete(data);
-
-	    return res;
-
-	  } else {
-
-	    DComplexGDL* res = new DComplexGDL( p0->Dim(), BaseGDL::NOZERO);
-	    float *data = new float[nEl];
-
-	    for( SizeT i=0; i<nEl; ++i) {
-	      switch ( p0->Type()) {
-	      case FLOAT: f32[0] = (float) (*p0F)[i]; break;
-	      case LONG:  f32[0] = (float) (*p0L)[i]; break;
-	      case ULONG: f32[0] = (float) (*p0UL)[i]; break;
-	      case INT:   f32[0] = (float) (*p0I)[i]; break;
-	      case UINT:  f32[0] = (float) (*p0UI)[i]; break;
-	      case BYTE:  f32[0] = (float) (*p0B)[i]; break;
-	      }
-	      memcpy(&data[i], &f32[0], sizeof(float));
-	    }
-
-	    gsl_fft_real_wavetable_float *real;
-	    gsl_fft_real_workspace_float *work;
-
-	    work = gsl_fft_real_workspace_float_alloc(nEl);
-	    real = gsl_fft_real_wavetable_float_alloc(nEl);
-
-	    gsl_fft_real_float_transform(data, 1, nEl, real, work);
-
-	    for( SizeT i=0; i<nEl; ++i) data[i] /= nEl;
-
-	    gsl_fft_halfcomplex_float_unpack(data, (float*) &(*res)[0], 1, nEl);
-
-	    gsl_fft_real_wavetable_float_free(real);
-	    gsl_fft_real_workspace_float_free(work);
-
-	    delete(data);
-
-	    return res;
-	  }
-	}
-	else if (!radix2 && direct == +1) {
-
-	  if( e->KeywordSet(0)) {
-
-	    DComplexDblGDL* res = new DComplexDblGDL( p0->Dim(), BaseGDL::NOZERO);
-	    double *data = new double[nEl];
-
-	    for( SizeT i=0; i<nEl; ++i) {
-	      switch ( p0->Type()) {
-	      case FLOAT: f64[0] = (double) (*p0F)[i]; break;
-	      case LONG:  f64[0] = (double) (*p0L)[i]; break;
-	      case ULONG: f64[0] = (double) (*p0UL)[i]; break;
-	      case INT:   f64[0] = (double) (*p0I)[i]; break;
-	      case UINT:  f64[0] = (double) (*p0UI)[i]; break;
-	      case BYTE:  f64[0] = (double) (*p0B)[i]; break;
-	      }
-	      memcpy(&data[i], &f64[0], sizeof(double));
-	    }
-
-	    gsl_fft_real_wavetable *real;
-	    gsl_fft_real_workspace *work;
-
-	    work = gsl_fft_real_workspace_alloc(nEl);
-	    real = gsl_fft_real_wavetable_alloc(nEl);
-
-	    gsl_fft_real_transform(data, 1, nEl, real, work);
-
-	    if ((nEl % 2) == 0)
-	      for( SizeT i=1; i<nEl/2; ++i) data[2*i] *= -1;
 
 	    if ((nEl % 2) != 0) {
-	      for( SizeT i=1; i<nEl/2; ++i) data[2*i] *= -1;
-	      data[nEl-1] *= -1;
+	      memcpy(&f32[0], &(*res)[(nEl-1)/2], szflt);
+	      f32[0] = -f32[0];
+	      memcpy(&(*res)[(nEl-1)/2], &f32[0], szflt);
 	    }
-
-	    gsl_fft_halfcomplex_unpack(data, (double*) &(*res)[0], 1, nEl);
-	    
-	    gsl_fft_real_wavetable_free(real);
-	    gsl_fft_real_workspace_free(work);
-
-	    delete(data);
-
-	    return res;
-
-	  } else {
-
-	    DComplexGDL* res = new DComplexGDL( p0->Dim(), BaseGDL::NOZERO);
-	    float *data = new float[nEl];
-
-	    for( SizeT i=0; i<nEl; ++i) {
-	      switch ( p0->Type()) {
-	      case FLOAT: f32[0] = (float) (*p0F)[i]; break;
-	      case LONG:  f32[0] = (float) (*p0L)[i]; break;
-	      case ULONG: f32[0] = (float) (*p0UL)[i]; break;
-	      case INT:   f32[0] = (float) (*p0I)[i]; break;
-	      case UINT:  f32[0] = (float) (*p0UI)[i]; break;
-	      case BYTE:  f32[0] = (float) (*p0B)[i]; break;
-	      }
-	      memcpy(&data[i], &f32[0], sizeof(float));
-	    }
-
-	    gsl_fft_real_wavetable_float *real;
-	    gsl_fft_real_workspace_float *work;
-
-	    work = gsl_fft_real_workspace_float_alloc(nEl);
-	    real = gsl_fft_real_wavetable_float_alloc(nEl);
-
-	    gsl_fft_real_float_transform(data, 1, nEl, real, work);
-
-	    if ((nEl % 2) == 0)
-	      for( SizeT i=1; i<nEl/2; ++i) data[2*i] *= -1;
-
-	    if ((nEl % 2) != 0) {
-	      for( SizeT i=1; i<nEl/2; ++i) data[2*i] *= -1;
-	      data[nEl-1] *= -1;
-	    }
-
-	    gsl_fft_halfcomplex_float_unpack(data, (float*) &(*res)[0], 1, nEl);
-	    
-	    gsl_fft_real_wavetable_float_free(real);
-	    gsl_fft_real_workspace_float_free(work);
-
-	    delete(data);
-
-	    return res;
 	  }
+
+	  unpack_real_mxradix_float((float*) &(*res)[0], nEl);
+
+	  gsl_fft_real_wavetable_float_free(real);
+	  gsl_fft_real_workspace_float_free(work);
 	}
+
+	return res;
       }
     else 
       {
@@ -806,7 +631,6 @@ namespace lib {
 
 	return res;
       }
-
   }
 
   BaseGDL* randomu_fun( EnvT* e)
@@ -952,4 +776,105 @@ namespace lib {
     return(res);
   }
 
+
+  int unpack_real_radix2(double *dptr, SizeT nEl) {
+
+    double f64[2];
+
+    for( SizeT i=0; i<nEl/4+1; ++i) {
+      memcpy(&f64[0], &dptr[2*i], 2*szdbl);
+      if (i == 0)
+	memcpy(&dptr[2*(nEl-i-1)], &f64[1], szdbl);
+      else if (i == nEl/4)
+	memcpy(&dptr[nEl], &f64[0], szdbl);
+      else {
+	memcpy(&dptr[2*(nEl-2*i)],   &f64[0], szdbl);
+	memcpy(&dptr[2*(nEl-2*i-1)], &f64[1], szdbl);
+      }
+    }
+
+    for( SizeT i=nEl/4; i<nEl/2; ++i) {
+      memcpy(&f64[0], &dptr[2*i], 2*szdbl);
+      f64[0] = -f64[0];
+      f64[1] = -f64[1];
+      if (i == nEl/4)
+	memcpy(&dptr[nEl+3], &f64[1], szdbl);
+      else {
+	memcpy(&dptr[4*i+1], &f64[0], szdbl);
+	memcpy(&dptr[4*i+3], &f64[1], szdbl);
+      }
+    }
+    
+    for( SizeT i=nEl/2+1; i<nEl; ++i) {
+      memcpy(&f64[0], &dptr[2*i], 2*szdbl);
+      memcpy(&dptr[2*(nEl-i)], &f64[0], szdbl);
+      
+      f64[1] = -f64[1];
+      memcpy(&dptr[2*(nEl-i)+1], &f64[1], szdbl);
+    }
+    
+    f64[0] = 0;
+    memcpy(&dptr[1], &f64[0], szdbl);
+  }
+
+
+  int unpack_real_mxradix(double *dptr, SizeT nEl) {
+  
+    double f64[2];
+
+    for( SizeT i=1; i<nEl/2+(nEl%2); ++i) {
+      memcpy(&f64[0], &dptr[2*i-1], szdbl);
+      memcpy(&f64[1], &dptr[2*i], szdbl);
+
+      f64[1] = -f64[1];
+      memcpy(&dptr[2*(nEl-i)], &f64[0], szdbl);
+      memcpy(&dptr[2*(nEl-i)+1], &f64[1], szdbl);
+    }
+
+    memcpy(&dptr[nEl], &dptr[nEl-1], szdbl);
+
+    for( SizeT i=1; i<nEl/2+(nEl%2); ++i) {
+      memcpy(&f64[0], &dptr[2*(nEl-i)], szdbl);
+      memcpy(&f64[1], &dptr[2*(nEl-i)+1], szdbl);
+
+      f64[1] = -f64[1];
+
+      memcpy(&dptr[2*i],   &f64[0], szdbl);
+      memcpy(&dptr[2*i+1], &f64[1], szdbl);
+    }
+    f64[1] = 0;
+    memcpy(&dptr[1], &f64[1], szdbl);
+  }
+
+
+  int unpack_real_mxradix_float(float *dptr, SizeT nEl) {
+  
+    float f32[2];
+
+    for( SizeT i=1; i<nEl/2+(nEl%2); ++i) {
+      memcpy(&f32[0], &dptr[2*i-1], szflt);
+      memcpy(&f32[1], &dptr[2*i], szflt);
+
+      f32[1] = -f32[1];
+      memcpy(&dptr[2*(nEl-i)], &f32[0], szflt);
+      memcpy(&dptr[2*(nEl-i)+1], &f32[1], szflt);
+    }
+
+    memcpy(&dptr[nEl], &dptr[nEl-1], szflt);
+
+    for( SizeT i=1; i<nEl/2+(nEl%2); ++i) {
+      memcpy(&f32[0], &dptr[2*(nEl-i)], szflt);
+      memcpy(&f32[1], &dptr[2*(nEl-i)+1], szflt);
+
+      f32[1] = -f32[1];
+
+      memcpy(&dptr[2*i],   &f32[0], szflt);
+      memcpy(&dptr[2*i+1], &f32[1], szflt);
+    }
+    f32[1] = 0;
+    memcpy(&dptr[1], &f32[1], szflt);
+  }
+
+
 } // namespace
+
