@@ -112,6 +112,9 @@ protected:
   ExtraType           extra;
   int                 extraIx; // index of extra keyword
 
+  IDList  warnKey;    // keyword names to accept but warn
+  // (IDList: typedefs.hpp)
+
 public:
   DSub( const std::string& n, const std::string& o=""): 
     name(n), object(o), nPar(0), extra(NONE), extraIx(-1) 
@@ -171,7 +174,8 @@ class DLib: public DSub
 {
 public:
   DLib( const std::string& n, const std::string& o, const int nPar_,
-	const std::string keyNames[]);
+	const std::string keyNames[],
+	const std::string warnKeyNames[]);
 
   virtual const std::string ToString() = 0;
 };

@@ -694,8 +694,6 @@ namespace lib {
 		       dimension dim, 
 		       DDoubleGDL* binomialKey, DDoubleGDL* poissonKey)
   {
-    DSub* pro=dynamic_cast<DSub*>(e->GetPro());
-
     SizeT nEl = res->N_Elements();
 
     if( e->KeywordSet(1)) {// GAMMA

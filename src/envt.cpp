@@ -281,7 +281,10 @@ const string EnvT::GetString( BaseGDL*& p)
 
 void EnvT::SetKeyword( const string& k, BaseGDL* const val) // value
 {
-  int varIx=GetKeywordIx(k);
+  int varIx=GetKeywordIx( k);
+
+  // -4 means ignore (warn keyword)
+  if( varIx == -4) return;
 
   // -2 means _EXTRA keyword
   // -3 means _STRICT_EXTRA keyword
@@ -304,7 +307,10 @@ void EnvT::SetKeyword( const string& k, BaseGDL* const val) // value
 
 void EnvT::SetKeyword( const string& k, BaseGDL** const val) // reference
 {
-  int varIx=GetKeywordIx(k);
+  int varIx=GetKeywordIx( k);
+
+  // -4 means ignore (warn keyword)
+  if( varIx == -4) return;
 
   // -2 means _EXTRA keyword
   // -3 means _STRICT_EXTRA keyword
@@ -557,12 +563,30 @@ void EnvT::SetNextPar( BaseGDL** const nextP) // by reference (reset env)
 // returns the keyword index, used for UD functions
 int EnvT::GetKeywordIx( const std::string& k)
 {
-  // if there are no keywords, even _EXTRA isn't allowed
-  if( pro->key.size() == 0)
-    throw GDLException( callingNode,"Keyword parameters not allowed in call.");
-
   String_abbref_eq strAbbrefEq_k(k);
 
+  // if there are no keywords, even _EXTRA isn't allowed
+  if( pro->key.size() == 0)
+    {
+      if( pro->warnKey.size() == 0)
+	throw GDLException( callingNode,
+			    "Keyword parameters not allowed in call.");
+
+      // look if warnKeyword
+      IDList::iterator wf=std::find_if(pro->warnKey.begin(),
+				       pro->warnKey.end(),
+				       strAbbrefEq_k);
+      if( wf == pro->warnKey.end()) 
+	throw GDLException(callingNode,
+			   "Keyword parameter "+k+" not allowed in call "
+			   "to: "+pro->Name());
+
+      Warning("Warning: Keyword parameter "+k+" not supported in call "
+	      "to: "+pro->Name() + ". Ignored.");
+      
+      return -4;
+    }
+  
   // search keyword
   IDList::iterator f=std::find_if(pro->key.begin(),
 				  pro->key.end(),
@@ -572,12 +596,24 @@ int EnvT::GetKeywordIx( const std::string& k)
       // every routine (which accepts keywords), also accepts (_STRICT)_EXTRA
       if( strAbbrefEq_k("_EXTRA")) return -2;
       if( strAbbrefEq_k("_STRICT_EXTRA")) return -3;
-
+      
       if( pro->Extra() == DSub::NONE)
-	throw GDLException(callingNode,
-			   "Keyword parameter "+k+" not allowed in call "
-			   "to: "+pro->Name());
-
+	{
+	  // look if warnKeyword
+	  IDList::iterator wf=std::find_if(pro->warnKey.begin(),
+					   pro->warnKey.end(),
+					   strAbbrefEq_k);
+	  if( wf == pro->warnKey.end()) 
+	    throw GDLException(callingNode,
+			       "Keyword parameter "+k+" not allowed in call "
+			       "to: "+pro->Name());
+	  
+	  Warning("Warning: Keyword parameter "+k+" not supported in call "
+		  "to: "+pro->Name() + ". Ignored.");
+	  
+	  return -4;
+	}
+      
       // extra keyword
       return -1;
     }
