@@ -751,44 +751,48 @@ namespace lib {
     actStream->ssym( 0.0, symsize);
 
     //CLIPPING
-    static int clippingix = e->KeywordIx( "CLIP"); 
-    BaseGDL* clipping = e->GetKW( clippingix);
-    if( clipping != NULL)
+    DLong noclip=0;
+    e->AssureLongScalarKWIfPresent( "NOCLIP", noclip);
+    if(noclip == 0)
       {
-	DDoubleGDL* clippingD = static_cast<DDoubleGDL*>
-	  ( clipping->Convert2( DOUBLE, BaseGDL::COPY));
-	xEl=clipping->N_Elements();
-	DDouble cxs, cxe,cys, cye;
- 	DDouble wcxs, wcxe,wcys, wcye; 
-
-	if(xEl >= 1) wcxs=(*clippingD)[0]; else wcxs=0;
-	if(xEl >= 2) wcys=(*clippingD)[1]; else wcxe=0;
-	if(xEl >= 3) wcxe=(*clippingD)[2]; else  wcxe=wcxs;
-	if(xEl >= 4) wcye=(*clippingD)[3]; else wcye=wcys;
-	if(wcxe < wcxs ) wcxe=wcxs; 
-	if(wcye < wcys ) wcye=wcys; 
-	cxs=xML+(wcxs)*(1-xML-xMR)/(xEnd-xStart);
-	cxe=xML+(wcxe)*(1-xML-xMR)/(xEnd-xStart);
-	cys=yMB+(wcys)*(1-yMT-yMB)/(yEnd-yStart);
-	cye=yMB+(wcye)*(1-yMT-yMB)/(yEnd-yStart);
-	actStream->vpor(cxs, cxe, cys, cye);
-	xStart=wcxs; xEnd=wcxe; minVal=wcys; maxVal=wcye;
-	if( xLog)
+	static int clippingix = e->KeywordIx( "CLIP"); 
+	BaseGDL* clipping = e->GetKW( clippingix);
+	if( clipping != NULL)
 	  {
+	    DDoubleGDL* clippingD = static_cast<DDoubleGDL*>
+	      ( clipping->Convert2( DOUBLE, BaseGDL::COPY));
+	    xEl=clipping->N_Elements();
+	    DDouble cxs, cxe,cys, cye;
+	    DDouble wcxs, wcxe,wcys, wcye; 
 	    
-	    if( xStart <= 0.0) xStart = 0.0; else xStart = log10( xStart);
-	    if( xEnd   <= 0.0) return; else xEnd = log10( xEnd);
+	    if(xEl >= 1) wcxs=(*clippingD)[0]; else wcxs=0;
+	    if(xEl >= 2) wcys=(*clippingD)[1]; else wcxe=0;
+	    if(xEl >= 3) wcxe=(*clippingD)[2]; else  wcxe=wcxs;
+	    if(xEl >= 4) wcye=(*clippingD)[3]; else wcye=wcys;
+	    if(wcxe < wcxs ) wcxe=wcxs; 
+	    if(wcye < wcys ) wcye=wcys; 
+	    cxs=xML+(wcxs)*(1-xML-xMR)/(xEnd-xStart);
+	    cxe=xML+(wcxe)*(1-xML-xMR)/(xEnd-xStart);
+	    cys=yMB+(wcys)*(1-yMT-yMB)/(yEnd-yStart);
+	    cye=yMB+(wcye)*(1-yMT-yMB)/(yEnd-yStart);
+	    actStream->vpor(cxs, cxe, cys, cye);
+	    xStart=wcxs; xEnd=wcxe; minVal=wcys; maxVal=wcye;
+	    if( xLog)
+	      {
+		
+		if( xStart <= 0.0) xStart = 0.0; else xStart = log10( xStart);
+		if( xEnd   <= 0.0) return; else xEnd = log10( xEnd);
+	      }
+	    if( yLog)
+	      {
+		if( minVal <= 0.0) minVal = 0.0; else minVal = log10( minVal);
+		if( maxVal <= 0.0) return; else maxVal = log10( maxVal);
+	      }
+	    
+	    actStream->wind( xStart, xEnd, minVal, maxVal);
+	    
 	  }
-	if( yLog)
-	  {
-	    if( minVal <= 0.0) minVal = 0.0; else minVal = log10( minVal);
-	    if( maxVal <= 0.0) return; else maxVal = log10( maxVal);
-	  }
-	
-	actStream->wind( xStart, xEnd, minVal, maxVal);
-
       }
-
 
     // plot the data
     actStream->lsty(linestyle);
@@ -1067,45 +1071,49 @@ namespace lib {
     
 
     //CLIPPING
-    static int clippingix = e->KeywordIx( "CLIP"); 
-    BaseGDL* clipping = e->GetKW( clippingix);
-    if( clipping != NULL)
+    DLong noclip=0;
+    e->AssureLongScalarKWIfPresent( "NOCLIP", noclip);
+    if(noclip == 0)
       {
-	DDoubleGDL* clippingD = static_cast<DDoubleGDL*>
-	  ( clipping->Convert2( DOUBLE, BaseGDL::COPY));
-	xEl=clipping->N_Elements();
-	DDouble cxs, cxe,cys, cye;
- 	DDouble wcxs, wcxe,wcys, wcye; 
-
-	if(xEl >= 1) wcxs=(*clippingD)[0]; else wcxs=0;
-	if(xEl >= 2) wcys=(*clippingD)[1]; else wcxe=0;
-	if(xEl >= 3) wcxe=(*clippingD)[2]; else  wcxe=wcxs;
-	if(xEl >= 4) wcye=(*clippingD)[3]; else wcye=wcys;
-	if(wcxe < wcxs ) wcxe=wcxs; 
-	if(wcye < wcys ) wcye=wcys; 
-	cxs=xML+(wcxs)*(1-xML-xMR)/(xEnd-xStart);
-	cxe=xML+(wcxe)*(1-xML-xMR)/(xEnd-xStart);
-	cys=yMB+(wcys)*(1-yMT-yMB)/(yEnd-yStart);
-	cye=yMB+(wcye)*(1-yMT-yMB)/(yEnd-yStart);
-	actStream->vpor(cxs, cxe, cys, cye);
-	xStart=wcxs; xEnd=wcxe; minVal=wcys; maxVal=wcye;
-
-
-	if( xLog)
+	static int clippingix = e->KeywordIx( "CLIP"); 
+	BaseGDL* clipping = e->GetKW( clippingix);
+	if( clipping != NULL)
 	  {
-	    if( xStart <= 0.0) xStart = 0.0; else xStart = log10( xStart);
-	    if( xEnd   <= 0.0) return; else xEnd = log10( xEnd);
+	    DDoubleGDL* clippingD = static_cast<DDoubleGDL*>
+	      ( clipping->Convert2( DOUBLE, BaseGDL::COPY));
+	    xEl=clipping->N_Elements();
+	    DDouble cxs, cxe,cys, cye;
+	    DDouble wcxs, wcxe,wcys, wcye; 
+	    
+	    if(xEl >= 1) wcxs=(*clippingD)[0]; else wcxs=0;
+	    if(xEl >= 2) wcys=(*clippingD)[1]; else wcxe=0;
+	    if(xEl >= 3) wcxe=(*clippingD)[2]; else  wcxe=wcxs;
+	    if(xEl >= 4) wcye=(*clippingD)[3]; else wcye=wcys;
+	    if(wcxe < wcxs ) wcxe=wcxs; 
+	    if(wcye < wcys ) wcye=wcys; 
+	    cxs=xML+(wcxs)*(1-xML-xMR)/(xEnd-xStart);
+	    cxe=xML+(wcxe)*(1-xML-xMR)/(xEnd-xStart);
+	    cys=yMB+(wcys)*(1-yMT-yMB)/(yEnd-yStart);
+	    cye=yMB+(wcye)*(1-yMT-yMB)/(yEnd-yStart);
+	    actStream->vpor(cxs, cxe, cys, cye);
+	    xStart=wcxs; xEnd=wcxe; minVal=wcys; maxVal=wcye;
+	    
+	    
+	    if( xLog)
+	      {
+		if( xStart <= 0.0) xStart = 0.0; else xStart = log10( xStart);
+		if( xEnd   <= 0.0) return; else xEnd = log10( xEnd);
+	      }
+	    if( yLog)
+	      {
+		if( minVal <= 0.0) minVal = 0.0; else minVal = log10( minVal);
+		if( maxVal <= 0.0) return; else maxVal = log10( maxVal);
+	      }
+	    
 	  }
-	if( yLog)
-	  {
-	    if( minVal <= 0.0) minVal = 0.0; else minVal = log10( minVal);
-	    if( maxVal <= 0.0) return; else maxVal = log10( maxVal);
-	  }
-	
       }
-    
-
-    actStream->wind( xStart, xEnd, minVal, maxVal);
+      	actStream->wind( xStart, xEnd, minVal, maxVal);
+      
     // pen thickness for axis
     actStream->wid( 0);
 
@@ -1297,7 +1305,6 @@ namespace lib {
 	  	color=(*l_color_arr)[0];
 
 
-    DLong noErase = 1;
     // PSYM
     psym=p_psym;
     bool line = false;
@@ -1373,7 +1380,6 @@ namespace lib {
 			  "PLOTS: YMARGIN too large.");
 
     // viewport
-
     if(e->KeywordSet("DATA") || 
        (!e->KeywordSet("NORMAL") && !e->KeywordSet("DEVICE")))
       {
@@ -1428,45 +1434,46 @@ namespace lib {
 
 
     //CLIPPING
-    static int clippingix = e->KeywordIx( "CLIP"); 
-    BaseGDL* clipping = e->GetKW( clippingix);
-    if( clipping != NULL)
+    DLong noclip=1;
+    e->AssureLongScalarKWIfPresent( "NOCLIP", noclip);
+    if(noclip == 0)
       {
-	DDoubleGDL* clippingD = static_cast<DDoubleGDL*>
-	  ( clipping->Convert2( DOUBLE, BaseGDL::COPY));
-	xEl=clipping->N_Elements();
-	DDouble cxs, cxe,cys, cye;
- 	DDouble wcxs, wcxe,wcys, wcye; 
-
-	if(xEl >= 1) wcxs=(*clippingD)[0]; else wcxs=0;
-	if(xEl >= 2) wcys=(*clippingD)[1]; else wcxe=0;
-	if(xEl >= 3) wcxe=(*clippingD)[2]; else  wcxe=wcxs;
-	if(xEl >= 4) wcye=(*clippingD)[3]; else wcye=wcys;
-	if(wcxe < wcxs ) wcxe=wcxs; 
-	if(wcye < wcys ) wcye=wcys; 
-	cxs=(-xStart+wcxs)*(1-0)/(xEnd-xStart);
-	cxe=(-xStart+wcxe)*(1-0)/(xEnd-xStart);
-	cys=(-yStart+wcys)*(1-0)/(yEnd-yStart);
-	cye=(-yStart+wcye)*(1-0)/(yEnd-yStart);
-	actStream->vpor(cxs, cxe, cys, cye);
-	xStart=wcxs; xEnd=wcxe; minVal=wcys; maxVal=wcye;
-	if( xLog)
+	static int clippingix = e->KeywordIx( "CLIP"); 
+	BaseGDL* clipping = e->GetKW( clippingix);
+	if( clipping != NULL)
 	  {
-	    if( xStart <= 0.0) xStart = 0.0; else xStart = log10( xStart);
-	    if( xEnd   <= 0.0) return; else xEnd = log10( xEnd);
+	    DDoubleGDL* clippingD = static_cast<DDoubleGDL*>
+	      ( clipping->Convert2( DOUBLE, BaseGDL::COPY));
+	    xEl=clipping->N_Elements();
+	    DDouble cxs, cxe,cys, cye;
+	    DDouble wcxs, wcxe,wcys, wcye; 
+	    
+	    if(xEl >= 1) wcxs=(*clippingD)[0]; else wcxs=0;
+	    if(xEl >= 2) wcys=(*clippingD)[1]; else wcxe=0;
+	    if(xEl >= 3) wcxe=(*clippingD)[2]; else  wcxe=wcxs;
+	    if(xEl >= 4) wcye=(*clippingD)[3]; else wcye=wcys;
+	    if(wcxe < wcxs ) wcxe=wcxs; 
+	    if(wcye < wcys ) wcye=wcys; 
+	    cxs=(-xStart+wcxs)*(1-0)/(xEnd-xStart);
+	    cxe=(-xStart+wcxe)*(1-0)/(xEnd-xStart);
+	    cys=(-yStart+wcys)*(1-0)/(yEnd-yStart);
+	    cye=(-yStart+wcye)*(1-0)/(yEnd-yStart);
+	    actStream->vpor(cxs, cxe, cys, cye);
+	    xStart=wcxs; xEnd=wcxe; minVal=wcys; maxVal=wcye;
+	    if( xLog)
+	      {
+		if( xStart <= 0.0) xStart = 0.0; else xStart = log10( xStart);
+		if( xEnd   <= 0.0) return; else xEnd = log10( xEnd);
+	      }
+	    if( yLog)
+	      {
+		if( minVal <= 0.0) minVal = 0.0; else minVal = log10( minVal);
+		if( maxVal <= 0.0) return; else maxVal = log10( maxVal);
+	      }
+	    actStream->wind( xStart, xEnd, minVal, maxVal);
 	  }
-	if( yLog)
-	  {
-	    if( minVal <= 0.0) minVal = 0.0; else minVal = log10( minVal);
-	    if( maxVal <= 0.0) return; else maxVal = log10( maxVal);
-	  }
-	actStream->wind( xStart, xEnd, minVal, maxVal);
       }
 
-
-
-    // pen thickness for axis
-    actStream->wid( 0);
 
     // pen thickness for plot
     actStream->wid( static_cast<PLINT>(floor( thick-0.5)));
@@ -1563,6 +1570,299 @@ namespace lib {
 
   void xyouts( EnvT* e)
   {
+    Graphics* actDevice=Graphics::GetDevice();
+    SizeT nParam = e->NParam(1);
+    DDoubleGDL* yVal, *xVal;
+    DStringGDL* strVal;
+    SizeT xEl, yEl,strEl;
+    if(nParam == 1) 
+      {
+	//string only...
+	throw 
+	  GDLException("XYOUTS: String only, not implemented");
+      }
+    else if(nParam == 3)
+      {
+	xVal = e->GetParAs< DDoubleGDL>(0);
+	xEl = xVal->N_Elements();
+	yVal = e->GetParAs< DDoubleGDL>(1);
+	yEl = yVal->N_Elements();
+	strVal=e->GetParAs<DStringGDL>(2);
+	strEl=strVal->N_Elements();
+      }
+    else
+      {
+	throw 
+	  GDLException("XYOUTS: Not enough parameters. Either 1 parameter or 3 parameters valid.");
+      }
+    //ok...
+    DLong minEl = (xEl < yEl)? xEl:yEl;
+    minEl=(minEl < strEl)? minEl:strEl;
+    
+    DLong p_background, p_noErase, p_color, p_psym, p_linestyle,psym;
+    DFloat p_symsize, p_charsize, p_thick; 
+    DString p_title, p_subTitle; 
+    GetPData( p_background,
+	      p_noErase, p_color, p_psym,p_linestyle,
+	      p_symsize, p_charsize, p_thick,
+	      p_title, p_subTitle);
+
+    // !X, !Y (also used below)
+    static DStructGDL* xStruct = SysVar::X();
+    static DStructGDL* yStruct = SysVar::Y();
+    DLong xStyle, yStyle; 
+    DString xTitle, yTitle; 
+    DFloat x_CharSize, y_CharSize, xMarginL, xMarginR,yMarginB, yMarginT; 
+    GetAxisData( xStruct, xStyle, xTitle, x_CharSize, xMarginL, xMarginR);
+    GetAxisData( yStruct, yStyle, yTitle, y_CharSize, yMarginB, yMarginT);
+    
+
+    // get ![XY].CRANGE
+    static unsigned crangeTag = xStruct->Desc()->TagIndex( "CRANGE");
+    DDouble xStart = 
+      (*static_cast<DDoubleGDL*>( xStruct->Get( crangeTag, 0)))[0];
+    DDouble xEnd = 
+      (*static_cast<DDoubleGDL*>( xStruct->Get( crangeTag, 0)))[1];
+    DDouble yStart =
+      (*static_cast<DDoubleGDL*>( yStruct->Get( crangeTag, 0)))[0];
+    DDouble yEnd =
+    (*static_cast<DDoubleGDL*>( yStruct->Get( crangeTag, 0)))[1];
+
+    DDouble minVal, maxVal;
+    static unsigned xtypeTag = xStruct->Desc()->TagIndex("TYPE");
+    static unsigned ytypeTag = yStruct->Desc()->TagIndex("TYPE");
+    bool xLog =  
+      (*static_cast<DLongGDL*>(xStruct->Get(xtypeTag, 0)))[0] ? 1:0;
+
+    bool yLog =  
+      (*static_cast<DLongGDL*>(yStruct->Get(xtypeTag, 0)))[0] ? 1:0;
+
+
+    DLong background = p_background;
+    static int cix=e->KeywordIx("COLOR");
+    BaseGDL* color_arr=e->GetKW(cix);
+    DLongGDL* l_color_arr;
+    if(color_arr != NULL)
+      {
+	l_color_arr=static_cast<DLongGDL*>
+	  (color_arr->Convert2(LONG, BaseGDL::COPY));
+	if(color_arr->N_Elements() < minEl && color_arr->N_Elements() > 1)
+	  throw GDLException("XYOUTS: Array "+
+			     e->GetParString(cix)+
+			     " does not have enough elements for COLOR keyword.");
+      }
+    DLong color = p_color;
+
+    if(color_arr != NULL)  
+      if(color_arr->N_Elements() >= 1) 
+	color=(*l_color_arr)[0];
+    
+    GDLGStream* actStream = actDevice->GetStream();
+    if( actStream == NULL)
+      {
+	DString title = "GDL 0";
+	bool success = actDevice->WOpen( 0, title, 640, 512, 0, 0);
+	if( !success)
+	  throw GDLException( e->CallingNode(), 
+			      "XYOUTS: Unable to create window.");
+	actStream = actDevice->GetStream();
+	if( actStream == NULL)
+	  {
+	    cerr << "XYOUTS: Internal error: plstream not set." << endl;
+	    exit( EXIT_FAILURE);
+	  }
+      }
+
+
+    //start drawing
+    actStream->Background( background);
+    actStream->Color( color);
+    // plplot stuff
+    PLFLT scrXL, scrXR, scrYB, scrYT;
+    actStream->gspa( scrXL, scrXR, scrYB, scrYT);
+    PLFLT scrX = scrXR-scrXL;
+    PLFLT scrY = scrYT-scrYB;
+    PLFLT defH, actH;
+    actStream->gchr( defH, actH);
+    PLFLT xML = xMarginL * actH / scrX;
+    PLFLT xMR = xMarginR * actH / scrX;
+
+    const float yCharExtension = 1.5;
+    PLFLT yMB = yMarginB * actH / scrY * yCharExtension;
+    PLFLT yMT = yMarginT * actH / scrY * yCharExtension;
+    if( xML+xMR >= 1.0)
+      throw GDLException( e->CallingNode(), 
+			  "PLOTS: XMARGIN too large.");
+    if( yMB+yMT >= 1.0)
+      throw GDLException( e->CallingNode(), 
+			  "PLOTS: YMARGIN too large.");
+
+    // viewport
+    if(e->KeywordSet("DATA") || 
+       (!e->KeywordSet("NORMAL") && !e->KeywordSet("DEVICE")))
+      {
+	if((yStart == yEnd) || (xStart == xEnd))
+	  {
+	    if(yStart != 0.0 and yStart==yEnd)
+	      Message("PLOTS: !y.CRANGE ERROR, setting to [0,1]");
+	    yStart=0;//yVal->min();
+	    yEnd=1;//yVal->max();
+	    
+	    if(xStart != 0.0 and xStart==xEnd)
+	      Message("PLOTS: !x.CRANGE ERROR, resetting range to data");
+	    xStart=0;//xVal->min();
+	    xEnd=1;//xVal->max();
+	    
+	    (*static_cast<DDoubleGDL*>( xStruct->Get( crangeTag, 0)))[0] =
+	      xStart;
+	    (*static_cast<DDoubleGDL*>( xStruct->Get( crangeTag, 0)))[1] = 
+	      xEnd;
+	    (*static_cast<DDoubleGDL*>( yStruct->Get( crangeTag, 0)))[0] = 
+	      yStart;
+	    (*static_cast<DDoubleGDL*>( yStruct->Get( crangeTag, 0)))[1] = 
+	      yEnd;
+	  }	    
+	
+	minVal=yStart-yMB*(yEnd-yStart)/(1-yMT-yMB);
+	yEnd=yEnd  +yMT*(yEnd-yStart)/(1-yMT-yMB);
+	yStart=minVal;
+	minVal=xStart-xML*(xEnd-xStart)/(1-xML-xMR);
+	xEnd  =xEnd  +xMR*(xEnd-xStart)/(1-xML-xMR);
+	xStart=minVal;
+      } 
+    else if(e->KeywordSet("NORMAL"))
+      {
+	xStart=0;
+	xEnd=1;
+	yStart=0;
+	yEnd=1;
+      }
+    else if(e->KeywordSet("DEVICE"))
+      {
+	PLFLT xpix, ypix;
+	PLINT xleng, yleng, xoff, yoff;
+	actStream->gpage(xpix, ypix,xleng, yleng, xoff, yoff);
+	xStart=0; xEnd=xleng;
+	yStart=0; yEnd=yleng;
+      }
+
+    minVal=yStart; maxVal=yEnd;
+    actStream->vpor(0,1,0,1);
+
+    //CLIPPING
+    DLong noclip=1;
+    e->AssureLongScalarKWIfPresent( "NOCLIP", noclip);
+    if(noclip == 0)
+      {
+	static int clippingix = e->KeywordIx( "CLIP"); 
+	BaseGDL* clipping = e->GetKW( clippingix);
+	if( clipping != NULL)
+	  {
+	    DDoubleGDL* clippingD = static_cast<DDoubleGDL*>
+	      ( clipping->Convert2( DOUBLE, BaseGDL::COPY));
+	    xEl=clipping->N_Elements();
+	    DDouble cxs, cxe,cys, cye;
+	    DDouble wcxs, wcxe,wcys, wcye; 
+	    
+	    if(xEl >= 1) wcxs=(*clippingD)[0]; else wcxs=0;
+	    if(xEl >= 2) wcys=(*clippingD)[1]; else wcxe=0;
+	    if(xEl >= 3) wcxe=(*clippingD)[2]; else  wcxe=wcxs;
+	    if(xEl >= 4) wcye=(*clippingD)[3]; else wcye=wcys;
+	    if(wcxe < wcxs ) wcxe=wcxs; 
+	    if(wcye < wcys ) wcye=wcys; 
+	    cxs=(-xStart+wcxs)*(1-0)/(xEnd-xStart);
+	    cxe=(-xStart+wcxe)*(1-0)/(xEnd-xStart);
+	    cys=(-yStart+wcys)*(1-0)/(yEnd-yStart);
+	    cye=(-yStart+wcye)*(1-0)/(yEnd-yStart);
+	    actStream->vpor(cxs, cxe, cys, cye);
+	    xStart=wcxs; xEnd=wcxe; minVal=wcys; maxVal=wcye;
+	    if( xLog)
+	      {
+		if( xStart <= 0.0) xStart = 0.0; else xStart = log10( xStart);
+		if( xEnd   <= 0.0) return; else xEnd = log10( xEnd);
+	      }
+	    if( yLog)
+	      {
+		if( minVal <= 0.0) minVal = 0.0; else minVal = log10( minVal);
+		if( maxVal <= 0.0) return; else maxVal = log10( maxVal);
+	      }
+
+	  }
+      }
+	    actStream->wind( xStart, xEnd, minVal, maxVal);
+    PLFLT x,y;
+    string out;
+
+    //orientation
+    static int oix=e->KeywordIx("ORIENTATION");
+    BaseGDL* orient=e->GetKW(oix);
+    DDoubleGDL* d_orient;
+    PLFLT p_orient, p_orient_x, p_orient_y;
+    p_orient=0.0;
+    p_orient_x=1.0;
+    p_orient_y=0.0;
+
+    if(orient != NULL)
+      {
+	d_orient=static_cast<DDoubleGDL*>
+	  (orient->Convert2(DOUBLE, BaseGDL::COPY));
+	if(orient->N_Elements() < minEl && orient->N_Elements() > 1)
+	  throw GDLException("XYOUTS: Array "+
+			     e->GetParString(cix)+
+			     " does not have enough elements for ORIENTATION keyword.");
+	p_orient=(*d_orient)[0];
+	  while(p_orient < 0) p_orient+=360.0;
+	  while(p_orient > 360.0) p_orient-=360.0;
+
+      }
+
+    p_orient_x=1.0*cos(p_orient*0.0174533);
+    p_orient_y=1.0*sin(p_orient*0.0174533);
+
+    //ALIGNMENT
+    DDouble alignment = 0.0;
+    e->AssureDoubleScalarKWIfPresent( "ALIGNMENT", alignment);
+
+    //CHARSIZE
+    DDouble charsize=p_charsize;
+    e->AssureDoubleScalarKWIfPresent( "CHARSIZE", charsize);
+    if( charsize <= 0.0) charsize = 1.0;
+    actStream->schr(0.0,charsize);
+
+
+    if(minEl == 1)
+      {
+	x=static_cast<PLFLT>((*xVal)[0]);
+	y=static_cast<PLFLT>((*yVal)[0]);
+	out=(*strVal)[0];
+	actStream->ptex(x,y,p_orient_x, p_orient_y,alignment,out.c_str());
+      }
+    else
+      {
+	for(int i=0; i<minEl;++i)
+	  {
+	    x=static_cast<PLFLT>((*xVal)[i]);
+	    y=static_cast<PLFLT>((*yVal)[i]);
+	    if(orient != NULL)
+	      if(orient->N_Elements() > 1) 
+		{
+		  p_orient=(*d_orient)[i];
+		  while(p_orient < 0) p_orient+=360.0;
+		  while(p_orient > 360.0) p_orient-=360.0;
+		  p_orient_x=1.0*cos(p_orient*0.0174533);
+		  p_orient_y=1.0*sin(p_orient*0.0174533);
+		}
+
+	    if(color_arr != NULL)  
+	      if(color_arr->N_Elements() > 1)
+		actStream->Color((*l_color_arr)[i]);
+
+	    out=(*strVal)[i];
+	    actStream->ptex(x,y,p_orient_x, p_orient_y,alignment,out.c_str());
+	  }
+      }
+
+	actStream->flush();
   }
 } // namespace
 

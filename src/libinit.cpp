@@ -417,6 +417,14 @@ void LibInit()
     };
 
   new DLibPro(lib::plots, string("PLOTS"), 3, plotsKey);
+
+  const string xyoutsKey[]=
+    {
+      "COLOR","DATA","NORMAL","DEVICE","CLIP",
+      "ORIENTATION","ALIGNMENT","CHARSIZE","CHARTHICK",
+      "NOCLIP",KLISTEND
+    };
+  new DLibPro(lib::xyouts, string("XYOUTS"), 3, xyoutsKey);
   LibInit_jmg();
   LibInit_cl();
   LibInit_mes();
