@@ -91,7 +91,7 @@ namespace lib {
 	ky = yoff + iy;
 
 	if (tru == 0) {
-	  iclr1 = idata[ix*ny+iy];
+	  iclr1 = idata[iy*nx+ix];
 
 	  if (xwd->color)
 	    curcolor = xwd->cmap1[iclr1];
