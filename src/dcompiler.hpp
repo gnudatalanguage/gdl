@@ -48,10 +48,14 @@ class DCompiler: public GDLTokenTypes
 
   DCommon* Common(const std::string& n); // returns common block with name n
 
+  void ClearOwnCommon();
+
 public:
+  // should be private, but GDLTreeParser needs it to be public
   DCompiler() 
   { std::cerr<<"DCompiler() called. Abort."<<std::endl; exit( EXIT_FAILURE);}
 
+public:
   DCompiler(const std::string& f, EnvT* e, const std::string& sub);
   ~DCompiler();
 

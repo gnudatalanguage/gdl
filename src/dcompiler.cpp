@@ -56,6 +56,11 @@ DCompiler::~DCompiler()
   else
     delete pro; // NULL or failed to compile function/procedure
 
+  ClearOwnCommon();
+}
+
+void DCompiler::ClearOwnCommon()
+{
   // delete common blocks which are not added to commonList
   // due to compile error
   CommonListT::iterator it;
@@ -63,6 +68,7 @@ DCompiler::~DCompiler()
     {
       delete *it;
     }
+  ownCommonList.clear();
 }
 
 void DCompiler::ForwardFunction(const string& s) // add to function list
@@ -123,11 +129,13 @@ void DCompiler::EndFunPro()   // resolve gotos, add common blocks
 
 void DCompiler::StartPro(const string& n,const string& o)
 {
+  ClearOwnCommon();
   pro = new DPro(n,o,actualFile);
 }
 
 void DCompiler::StartFun(const string& n,const string& o)
 {
+  ClearOwnCommon();
   pro = new DFun(n,o,actualFile);
 }
 
