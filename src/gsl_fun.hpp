@@ -34,9 +34,15 @@ namespace lib {
   BaseGDL* randomu_fun( EnvT* e);
   BaseGDL* histogram_fun( EnvT* e);
 
-  int unpack_real_radix2(double*, SizeT);
+  int fft_1d( BaseGDL*, void*, SizeT, SizeT, SizeT, 
+	      double, SizeT);
+
+  //  int unpack_real_radix2(double*, SizeT);
   int unpack_real_mxradix(double*, SizeT);
   int unpack_real_mxradix_float(float*, SizeT);
+
+  void inplacemxradixfft(double a[], double b[], 
+			 int ntot, int n, int nspan, int isn);
 
 } // namespace
 
