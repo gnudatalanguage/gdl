@@ -1204,7 +1204,7 @@ l_ret_expr returns [BaseGDL** res]
                 }
             }
         ) // trinary operator
-    | #(EXPR res=l_ret_expr)  
+//    | #(EXPR res=l_ret_expr) // does not exist anymore
     | res=l_function_call 
         { // here a local to the actual environment could be returned
             if( callStack.back()->IsLocalKW( res))
@@ -1285,13 +1285,14 @@ l_decinc_indexable_expr [int dec_inc] returns [BaseGDL* res]
 {
     BaseGDL** e;
 }
-    : #(EXPR e = l_expr[ NULL])                       
-        {
-            res = *e;
-            if( res == NULL)
-            throw GDLException( _t, "Variable is undefined: "+Name(e));
-        }
-    | e=l_function_call
+//     : #(EXPR e = l_expr[ NULL])                       
+//         {
+//             res = *e;
+//             if( res == NULL)
+//             throw GDLException( _t, "Variable is undefined: "+Name(e));
+//         }
+//     | e=l_function_call
+    : e=l_function_call
         {
             res = *e;
             if( res == NULL)
@@ -1450,7 +1451,6 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
         )
     | res=l_decinc_array_expr[ dec_inc]
     | res=l_decinc_dot_expr[ dec_inc]
-    // no l_function_call HERE because it would be a syntax error
     | e1=r_expr
         {
             delete e1;
@@ -1462,25 +1462,26 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
 // l expressions for assignment *************************
 // called from l_array_expr
 l_indexoverwriteable_expr returns [BaseGDL** res]
-    : #(EXPR res=l_expr[ NULL])
-    | res=l_function_call
+//     : #(EXPR res=l_expr[ NULL])
+//     | res=l_function_call
+    : res=l_function_call
     | res=l_deref
     | res=l_simple_var
     ;
 
 // an indexable expression must be defined
 l_indexable_expr returns [BaseGDL** res]
-    : #(EXPR res=l_expr[ NULL])
-        {
-            if( *res == NULL)
-            throw GDLException( _t, "Variable is undefined: "+Name(res));
-        }
-    | res=l_deref
+    : #(EXPR res=l_expr[ NULL]) // for l_dot_array_expr
         {
             if( *res == NULL)
             throw GDLException( _t, "Variable is undefined: "+Name(res));
         }
     | res=l_function_call
+        {
+            if( *res == NULL)
+            throw GDLException( _t, "Variable is undefined: "+Name(res));
+        }
+    | res=l_deref
         {
             if( *res == NULL)
             throw GDLException( _t, "Variable is undefined: "+Name(res));
@@ -1999,8 +2000,9 @@ r_expr returns [BaseGDL* res]
     ;
 
 indexable_expr returns [BaseGDL* res]
-    : #(EXPR res=expr)                       
-    | res=simple_var                         
+//     : #(EXPR res=expr)                       
+//     | res=simple_var                         
+    : res=simple_var                         
     | res=sys_var 
     ;
 
@@ -2024,25 +2026,24 @@ tag_expr [DotAccessDescT* aD] // 2nd...
 {
     BaseGDL* e;
 }
-    : (#(EXPR e=expr
-                {
-                    auto_ptr<BaseGDL> e_guard(e);
-
-                    SizeT tagIx;
-                    int ret=e->Scalar2index(tagIx);
-                    if( ret < 1)
-                    throw GDLException( _t, "Expression must be a scalar"
-                        " >= 0 in this context: "+Name(e));
-                    
-                    aD->Add( tagIx);
-                }
-            )                       
-        | i:IDENTIFIER
+    : #(EXPR e=expr
             {
-                std::string tagName=i->getText();
-                aD->Add( tagName);
+                auto_ptr<BaseGDL> e_guard(e);
+                
+                SizeT tagIx;
+                int ret=e->Scalar2index(tagIx);
+                if( ret < 1)
+                throw GDLException( _t, "Expression must be a scalar"
+                    " >= 0 in this context: "+Name(e));
+                
+                aD->Add( tagIx);
             }
-        )
+        )                       
+    | i:IDENTIFIER
+        {
+            std::string tagName=i->getText();
+            aD->Add( tagName);
+        }
     ;
 
 // for l and r expr
@@ -2058,7 +2059,7 @@ r_dot_indexable_expr [DotAccessDescT* aD] returns [BaseGDL* res] // 1st
 {
     BaseGDL** e;
 }
-    : #(EXPR res=expr { aD->SetOwner( true);}) // ({tag:0}).tag should work also
+    : #(EXPR res=expr { aD->SetOwner( true);}) // ({tag:0}).tag should work 
     | e=l_defined_simple_var { res = *e;}
     |   // we cant use l_sys_var here because of copy protection
         // could use sysvar and SetOwner( true), but this is quicker

@@ -207,33 +207,19 @@ common_block!//
 	)
   ;		
 
-// removes last pair of braces (multiple braces already removed in brace_expr)
-unbrace_expr! 
-	: ex:expr
-		{
-            // remove last pair of braces
-            if( #ex->getType()==EXPR) 
-                #unbrace_expr = #ex->getFirstChild(); 
-                // note: ex_AST is crucial here (ANTLR uses ex instead here)
-//                #unbrace_expr= #( NULL, ex_AST->getFirstChild()); 
-            else
-                #unbrace_expr = #ex; 
-		}
-    ;
-
 // more than one ELSE is allowed: first is executed, *all*
 // (including expr) later branches are ignored
-labeled_expr
-    : ex:expr
-        {
-         if( #ex->getType() != EXPR)   
-            #labeled_expr = #([EXPR, "expr"],#labeled_expr);
-        }
-    ;
+// labeled_expr
+//     : ex:expr
+//         {
+//          if( #ex->getType() != EXPR)   
+//             #labeled_expr = #([EXPR, "expr"],#labeled_expr);
+//         }
+//     ;
 
 
 caseswitch_body 
-	: #(BLOCK labeled_expr 
+	: #(BLOCK expr //labeled_expr 
             (statement_list)? 
         )
 	| #(ELSEBLK 
@@ -283,8 +269,8 @@ statement
     | forward_function
 	| common_block
 	| block
-    | #(DEC unbrace_expr)
-    | #(INC unbrace_expr)
+    | #(DEC expr) //unbrace_expr)
+    | #(INC expr) //unbrace_expr)
 	| BREAK    // only in loops or switch_statement
 	| CONTINUE // only in loops
 	;
@@ -439,7 +425,7 @@ key_parameter!//
 {
     RefDNode variable;
 }
-	: #(d:KEYDEF i:IDENTIFIER k:unbrace_expr
+	: #(d:KEYDEF i:IDENTIFIER k:expr //unbrace_expr
             {
                 variable=comp.ByReference(#k);
                 if( variable != static_cast<RefDNode>(antlr::nullAST))
@@ -477,7 +463,7 @@ pos_parameter!//
 {
     RefDNode variable;
 }
-	: e:unbrace_expr
+	: e:expr //unbrace_expr
         {
             variable=comp.ByReference(#e);
             if( variable != static_cast<RefDNode>(antlr::nullAST))
@@ -604,13 +590,13 @@ lassign_expr!//
             // remove last pair of braces
 			if( #ex->getType()==EXPR)
             {
-                int cT = #ex->getFirstChild()->getType();
-                if( cT != FCALL && 
-                    cT != MFCALL && 
-                    cT != MFCALL_PARENT &&
-                    cT != FCALL_LIB && 
-                    cT != MFCALL_LIB && 
-                    cT != MFCALL_PARENT_LIB)
+//                 int cT = #ex->getFirstChild()->getType();
+//                 if( cT != FCALL && 
+//                     cT != MFCALL && 
+//                     cT != MFCALL_PARENT &&
+//                     cT != FCALL_LIB && 
+//                     cT != MFCALL_LIB && 
+//                     cT != MFCALL_PARENT_LIB)
                         #ex=#ex->getFirstChild();
             }
 
@@ -618,7 +604,7 @@ lassign_expr!//
             throw GDLException(	_t, "Assign expression is not allowed as "
                                     "l-expression in assignment");
 
-            #lassign_expr=#( NULL, ex);
+            #lassign_expr= #ex; //#( NULL, ex);
 		}
     ;
 
@@ -695,15 +681,6 @@ var!//
 	  comp.Var(#var);	
 	}
   ;
-
-brace_expr!//
-	: #(e:EXPR ex:expr)
-		{
-            // remove multiple braces
-			while( #ex->getType()==EXPR) #ex=#ex->getFirstChild();
-	  		#brace_expr=#(e, ex);
-		}
-	;
 
 // out parameter_def_list is an expression list here
 arrayindex_list_to_expression_list! // ???
@@ -835,29 +812,70 @@ op_expr
 	|	#(SLASH expr expr)
 	|	#(MOD_OP expr expr)
 	|	#(POW expr expr)
-	|	#(DEC unbrace_expr)
-	|	#(INC unbrace_expr)
-	|	#(POSTDEC unbrace_expr)
-	|	#(POSTINC unbrace_expr)
+	|	#(DEC expr) //unbrace_expr)
+	|	#(INC expr) //unbrace_expr)
+	|	#(POSTDEC expr) //unbrace_expr)
+	|	#(POSTINC expr) //unbrace_expr)
 	|   primary_expr
 	;
+
+// remove multiple braces
+brace_expr!//
+	: #(e:EXPR ex:expr)
+		{
+            while( #ex->getType()==EXPR) 
+                #ex=#ex->getFirstChild();
+            #brace_expr=#(e, ex);
+		}
+	;
+
+// removes all braces
+unbrace_expr! 
+	: #(EXPR ex:expr)
+		{
+            while( #ex->getType()==EXPR) 
+                #ex=#ex->getFirstChild();
+            #unbrace_expr=#ex;
+		}
+	;
+// 	: ex:expr
+// 		{
+//             // remove last pair of braces
+//             if( #ex->getType()==EXPR) 
+//                 #unbrace_expr = #ex->getFirstChild(); 
+//                 // note: ex_AST is crucial here (ANTLR uses ex instead here)
+// //                #unbrace_expr= #( NULL, ex_AST->getFirstChild()); 
+//             else
+//                 #unbrace_expr = #ex; 
+// 		}
+//     ;
 
 // array and struct accessing
 indexable_expr // only used by array_expr
 	: var
 	| sysvar
-    | brace_expr
+//    | brace_expr
+    | unbrace_expr
     ;
 array_expr // only used by expr
 	: #(ARRAYEXPR arrayindex_list indexable_expr)
 	| indexable_expr
 	;
 
+tag_indexable_expr // only used by tag_array_expr_1st
+	: var
+	| sysvar
+    | brace_expr
+    ;
+tag_array_expr_1st // only used by expr
+	: #(ARRAYEXPR arrayindex_list tag_indexable_expr)
+	| tag_indexable_expr
+	;
+
 tag_expr
     : brace_expr
     | IDENTIFIER
     ;
-
 tag_array_expr
 	: #(ARRAYEXPR arrayindex_list tag_expr)
     | tag_expr
@@ -866,7 +884,7 @@ tag_array_expr
 // the everywhere used expression
 expr
 	: array_expr
-    | #(DOT array_expr (tag_array_expr)+)
+    | #(DOT tag_array_expr_1st (tag_array_expr)+)
 	| #(DEREF expr)    // deref
 	| op_expr
 	;

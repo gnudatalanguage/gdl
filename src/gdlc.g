@@ -906,6 +906,7 @@ var
 // this is SYNTACTIALLY ok as an lvalue, but if one try to assign
 // something to an non-var an error is raised
 brace_expr
+    // tags need this
 	:  LBRACE! expr RBRACE!
 		{ #brace_expr = 
 			#([EXPR,"expr"], #brace_expr);}

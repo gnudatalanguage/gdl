@@ -420,21 +420,25 @@ a=2
 x=2
 end
 
-pro ref_test
+pro ref_test,MEMCHECK=mCheck
 
 set22,b
 if b ne 2 then print,"***REF: ERROR1"
 
-p=ptr_new(/alloc)
-set22,*p
-if *p ne 2 then print,"***REF: ERROR2"
-ptr_free,p
+if not keyword_set( mCheck) then begin
 
-p=ptr_new(/alloc)
-pp=ptr_new(p)
-set22,**pp
-if **pp ne 2 then print,"***REF: ERROR3"
-ptr_free,p,pp
+    p=ptr_new(/alloc)
+    set22,*p
+    if *p ne 2 then print,"***REF: ERROR2"
+    ptr_free,p
+
+    p=ptr_new(/alloc)
+    pp=ptr_new(p)
+    set22,**pp
+    if **pp ne 2 then print,"***REF: ERROR3"
+    ptr_free,p,pp
+
+endif
 
 a=indgen(3)
 set22,reform(a,1,3,/OVERWRITE)
@@ -761,7 +765,11 @@ if u[2] ne 3 then print,"***LEFT_LIBFUNCTION: ERROR1"
 print,"LEFT_LIBFUNCTION: OK"
 end
 
-pro test_suite
+;; set MEMCHECK to perform a memeory leak check
+;; as the heap (number of allocated cells) always grows so does
+;; the memory consumption
+;; with MEMCHECK set, no ptr and object allocations are made
+pro test_suite,MEMCHECK=mCheck
 
 switch_test
 case_test
@@ -772,12 +780,12 @@ goto_test
 ret_test
 struct_test
 multi_test
-object_test
+if not keyword_set( mCheck) then object_test
 common_test
-ref_test
+ref_test,MEMCHECK=mCheck
 syntax_test
 inc_test
-inheritance_test
+if not keyword_set( mCheck) then inheritance_test
 continuebreak_test
 extra_test
 expr_test
@@ -786,4 +794,5 @@ index_test
 operator_test
 left_libfunction_test
 
+print,"TEST_SUITE finished."
 end

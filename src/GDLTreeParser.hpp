@@ -62,10 +62,8 @@ public:
 	public: void keyword_declaration(RefDNode _t);
 	public: void statement_list(RefDNode _t);
 	public: void common_block(RefDNode _t);
-	public: void unbrace_expr(RefDNode _t);
-	public: void expr(RefDNode _t);
-	public: void labeled_expr(RefDNode _t);
 	public: void caseswitch_body(RefDNode _t);
+	public: void expr(RefDNode _t);
 	public: void switch_statement(RefDNode _t);
 	public: void case_statement(RefDNode _t);
 	public: void block(RefDNode _t);
@@ -89,13 +87,16 @@ public:
 	public: void lassign_expr(RefDNode _t);
 	public: void sysvar(RefDNode _t);
 	public: void var(RefDNode _t);
-	public: void brace_expr(RefDNode _t);
 	public: void arrayindex_list_to_expression_list(RefDNode _t);
 	public: void arrayexpr_fn(RefDNode _t);
 	public: void primary_expr(RefDNode _t);
 	public: void op_expr(RefDNode _t);
+	public: void brace_expr(RefDNode _t);
+	public: void unbrace_expr(RefDNode _t);
 	public: void indexable_expr(RefDNode _t);
 	public: void array_expr(RefDNode _t);
+	public: void tag_indexable_expr(RefDNode _t);
+	public: void tag_array_expr_1st(RefDNode _t);
 	public: void tag_expr(RefDNode _t);
 	public: void tag_array_expr(RefDNode _t);
 public:
