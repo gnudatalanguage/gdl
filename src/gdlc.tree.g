@@ -706,6 +706,8 @@ arrayexpr_fn!//
             #(va:VAR id:IDENTIFIER)
             { 
                 id_text=#id->getText(); 
+
+                // IsVar already tries to find the function and compile it
                 isVar = comp.IsVar( id_text);
             }
 

@@ -4663,6 +4663,9 @@ BaseGDL*  GDLInterpreter::dot_expr(RefDNode _t) {
 	_t = _t->getFirstChild();
 	fl = _t;
 	match(antlr::RefAST(_t),IDENTIFIER);
+
+	//	cout << _t->getText() << endl;
+
 	_t = _t->getNextSibling();
 	
 	EnvT* newEnv=new EnvT( this, fl, libFunList[fl->funIx]);

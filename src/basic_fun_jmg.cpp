@@ -37,7 +37,6 @@ namespace lib {
   {
     e->NParam( 1); // might be UNDEF, but must be given
 
-    SizeT dims[MAXRANK];
     // BaseGDL* p0 = e->GetParDefined( 0); //, "SIZE");
     BaseGDL* p0 = e->GetPar( 0); //, "SIZE");
 
@@ -52,11 +51,16 @@ namespace lib {
     }
 
     // DIMENSIONS
-    if( e->KeywordSet(1)) { 
+    static int dimIx = e->KeywordIx( "DIMENSIONS");
 
-      dims[0] = Rank;
-      if (dims[0] == 0) dims[0] = 1;
-      dimension dim((SizeT *) &dims, (SizeT) 1);
+    if( e->KeywordSet( dimIx)) { 
+      if( Rank == 0) 
+	if( e->KeywordSet(0))
+	  return new DLong64GDL( 0);
+	else
+	  return new DLongGDL( 0);
+
+      dimension dim( Rank);
 
       if( e->KeywordSet(0)) { // L64
 	DLong64GDL* res = new DLong64GDL( dim, BaseGDL::NOZERO);
@@ -108,8 +112,7 @@ namespace lib {
 
     } else {
 
-      dims[0] = 3 + Rank;
-      dimension dim((SizeT *) &dims, (SizeT) 1);
+      dimension dim( 3 + Rank);
 
       if( e->KeywordSet(0)) {
 	DLong64GDL* res = new DLong64GDL( dim, BaseGDL::NOZERO);
