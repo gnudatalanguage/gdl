@@ -251,7 +251,7 @@ Data_<Sp>* Data_<Sp>::AndOp( BaseGDL* r)
   Ty s;
   if( right->Scalar(s)) 
     {
-      s &= Ty(1);
+      // s &= Ty(1);
       for( SizeT i=0; i < sEl; i++)
 	dd[i] = dd[i] & s;
     }
@@ -440,7 +440,7 @@ Data_<Sp>* Data_<Sp>::OrOp( BaseGDL* r)
   Ty s;
   if( right->Scalar(s)) 
     {
-      s &= Ty(1);
+      //s &= Ty(1);
       for( SizeT i=0; i < sEl; i++)
 	dd[i] = dd[i] | s;
     }

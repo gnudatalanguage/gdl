@@ -2629,6 +2629,63 @@ namespace lib {
     return new DLongGDL( s->Desc()->NTags());
   }
 
+  BaseGDL* bytscl( EnvT* e)
+  {
+    e->NParam( 1);
+
+    BaseGDL* p0=e->GetNumericParDefined( 0);
+
+    static int minIx = e->KeywordIx( "MIN");
+    static int maxIx = e->KeywordIx( "MAX");
+    static int topIx = e->KeywordIx( "TOP");
+
+    DLong topL=255;
+    if( e->GetKW( topIx) != NULL)
+      e->AssureLongScalarKW( topIx, topL);
+    DByte top = static_cast<DByte>(topL);
+    DDouble dTop = static_cast<DDouble>(top);
+
+    DDouble min;
+    bool minSet = false;
+    if( e->GetKW( minIx) != NULL)
+      {
+      e->AssureDoubleScalarKW( minIx, min);
+      minSet = true;
+      }
+
+    DDouble max;
+    bool maxSet = false;
+    if( e->GetKW( maxIx) != NULL)
+      {
+      e->AssureDoubleScalarKW( maxIx, max);
+      maxSet = true;
+      }
+
+    DDoubleGDL* dRes = 
+      static_cast<DDoubleGDL*>(p0->Convert2( DOUBLE, BaseGDL::COPY));
+
+    DLong maxEl, minEl;
+    if( !maxSet || !minSet)
+      dRes->MinMax( &minEl, &maxEl, NULL, NULL);
+    if( !minSet)
+      min = (*dRes)[ minEl];
+    if( !maxSet)
+      max = (*dRes)[ maxEl];
+
+    SizeT nEl = dRes->N_Elements();
+    for( SizeT i=0; i<nEl; ++i)
+      {
+	DDouble& d = (*dRes)[ i];
+	if( d <= min)
+	  (*dRes)[ i] = 0;
+	else if( d >= max)
+	  (*dRes)[ i] = dTop;
+	else
+	  (*dRes)[ i] =  round((d - min) / (max-min) * dTop);
+      }
+
+    return dRes->Convert2( BYTE);
+  } 
 
 } // namespace
 

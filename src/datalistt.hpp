@@ -38,6 +38,16 @@ public:
     return ( !loc.empty() && p >= &loc.front() && p <= &loc.back());
   }
 
+  bool Contains( BaseGDL* p) const
+  {
+    for( SizeT i=0; i<loc.size(); i++)
+      {
+	if( loc[i] == p) return true;
+	if( env[i] != NULL && *env[i] == p) return true;
+      }
+    return false;
+  }
+
   void push_back( BaseGDL* p)
   {
     loc.push_back(p);

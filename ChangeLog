@@ -81,7 +81,7 @@
 	  Bugfixes for ATAN (with 2 floats), CONVOL (1-dim kernel),
 	  MESSAGE (prefix).
 
-0.8.8:    Added OBJ_CLASS, OBJ_ISA, N_TAGS, SWAP_ENDIAN functions.
+0.8.8:    Added OBJ_CLASS, OBJ_ISA, N_TAGS, SWAP_ENDIAN, BYTSCL functions.
 	  Added PLOTS (2D only), BYTEORDER procedures.
 	  Fixed braced reference argument bug.
 	  Changed equality checking to compatibility checking for

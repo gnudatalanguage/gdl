@@ -49,6 +49,9 @@ void LibInit()
 {
   const char KLISTEND[] = "";
 
+  const string bytsclKey[]={"MIN","MAX","TOP",KLISTEND};
+  new DLibFun(lib::bytscl,string("BYTSCL"),1,bytsclKey);
+
   const string n_tagsKey[]={"LENGTH",KLISTEND};
   new DLibFun(lib::n_tags,string("N_TAGS"),1,n_tagsKey);
   

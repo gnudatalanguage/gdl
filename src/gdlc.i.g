@@ -1,3 +1,9 @@
+//TODO: unnamed structs should not be entered into the
+// struct list anymore but instead be owned by their variable
+// problem: unnamed structs might have their desc replaced
+// if inserted to arrays
+// grep FindEqual finds the relevant code pieces
+
 /* *************************************************************************
                           gdlc.i.g 
 the GDL interpreter
@@ -1120,9 +1126,17 @@ assignment
 }
     : #(a:ASSIGN r=expr // getting r first makes sure something like a=a+1 works! 
             {
-                auto_ptr<BaseGDL> r_guard(r); // no release here
+                auto_ptr<BaseGDL> r_guard;
+                if( !callStack.back()->Contains( r)) 
+                    r_guard.reset( r);
             }
             l=l_expr[ r]
+//             {
+//                 // no delete if assigned to itself
+//                 // only possible from lib function
+//                 if( (*l) == r || callStack.back()->Contains( r)) 
+//                     r_guard.release();
+//             }
         )
     ;
 
@@ -1210,11 +1224,19 @@ l_ret_expr returns [BaseGDL** res]
             res=&callStack.back()->GetKW(var->varIx); 
         }
     | #(ASSIGN e1=expr // getting r first makes sure something like a=a+1 works 
-            { auto_ptr<BaseGDL> r_guard(e1);} 
+            { 
+                auto_ptr<BaseGDL> r_guard;
+                if( !callStack.back()->Contains( e1)) 
+                    r_guard.reset( e1);
+            } 
             res=l_ret_expr
             {
-                delete *res;
-                *res = r_guard.release();
+                if( e1 != (*res))
+                    {
+                    delete *res;
+                    *res = e1;
+                    }
+                r_guard.release();
             }
         )
 
@@ -1383,7 +1405,10 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
         ) // trinary operator
     | #(ASSIGN e1=expr
             { 
-                auto_ptr<BaseGDL> r_guard(e1);
+                auto_ptr<BaseGDL> r_guard;
+                if( !callStack.back()->Contains( e1)) 
+                    r_guard.reset( e1);
+
                 RefDNode l = _t;
 
                 BaseGDL** tmp;
@@ -1459,7 +1484,7 @@ l_array_expr [BaseGDL* right] returns [BaseGDL** res]
         }
     | res=l_indexoverwriteable_expr 
         {
-            if( right != NULL)
+            if( right != NULL && right != (*res))
             {
                 // only here non-inplace copy is done
                 delete *res;
@@ -1607,9 +1632,18 @@ l_expr [BaseGDL* right] returns [BaseGDL** res]
         ) // trinary operator
     | #(ASSIGN e1=expr
             { 
-                auto_ptr<BaseGDL> r_guard(e1);
+                auto_ptr<BaseGDL> r_guard;
+
+                // no delete if assigned to itself
+                // only possible from lib function
+                if( !callStack.back()->Contains( e1))
+                    r_guard.reset( e1);
             } 
             res=l_expr[ e1]
+//             {
+//                 if( (*res) == e1 || callStack.back()->Contains( e1)) 
+//                     r_guard.release();
+//             }
         )
     | res=l_array_expr[ right]
     | res=l_dot_expr[ right]
@@ -2134,7 +2168,11 @@ assign_expr returns [BaseGDL* res]
     BaseGDL** l;
 }
     : #(ASSIGN res=expr // getting r first makes sure something like a=a+1 works 
-            { auto_ptr<BaseGDL> r_guard(res);}
+            { 
+                auto_ptr<BaseGDL> r_guard;
+                if( !callStack.back()->Contains( res)) 
+                    r_guard.reset( res);
+            }
             l=l_expr[ res]
             { r_guard.release();} // here res is returned!
         )
@@ -2717,17 +2755,17 @@ unnamed_struct_def returns[ BaseGDL* res]
                 // possible change: handle unnamed struct descriptors as
                 // belonging to DStructGDL variable
                 // don't forget to look at array_def then!!!
-                DStructDesc* oStructDesc=nStructDesc->FindEqual( structList);
-                if( oStructDesc != NULL)
-                {
-                    instance->SetDesc(oStructDesc);
-                    //delete nStructDesc; // auto_ptr
-                }
-                else
-                {
+//                 DStructDesc* oStructDesc=nStructDesc->FindEqual( structList);
+//                 if( oStructDesc != NULL)
+//                 {
+//                     instance->SetDesc(oStructDesc);
+//                     //delete nStructDesc; // auto_ptr
+//                 }
+//                 else
+//                 {
                     // insert into struct list
                     structList.push_back( nStructDesc.release());
-                }
+//                 }
                 
                 instance_guard.release();
                 res=instance;

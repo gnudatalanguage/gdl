@@ -420,7 +420,9 @@ void GDLInterpreter::assignment(RefDNode _t) {
 	r=expr(_t);
 	_t = _retTree;
 	
-	auto_ptr<BaseGDL> r_guard(r); // no release here
+	auto_ptr<BaseGDL> r_guard;
+	if( !callStack.back()->Contains( r)) 
+	r_guard.reset( r);
 	
 	l=l_expr(_t, r);
 	_t = _retTree;
@@ -1572,12 +1574,20 @@ BaseGDL**  GDLInterpreter::l_ret_expr(RefDNode _t) {
 		_t = _t->getFirstChild();
 		e1=expr(_t);
 		_t = _retTree;
-		auto_ptr<BaseGDL> r_guard(e1);
+		
+		auto_ptr<BaseGDL> r_guard;
+		if( !callStack.back()->Contains( e1)) 
+		r_guard.reset( e1);
+		
 		res=l_ret_expr(_t);
 		_t = _retTree;
 		
+		if( e1 != (*res))
+		{
 		delete *res;
-		*res = r_guard.release();
+		*res = e1;
+		}
+		r_guard.release();
 		
 		_t = __t55;
 		_t = _t->getNextSibling();
@@ -1861,7 +1871,12 @@ BaseGDL**  GDLInterpreter::l_expr(RefDNode _t,
 		e1=expr(_t);
 		_t = _retTree;
 		
-		auto_ptr<BaseGDL> r_guard(e1);
+		auto_ptr<BaseGDL> r_guard;
+		
+		// no delete if assigned to itself
+		// only possible from lib function
+		if( !callStack.back()->Contains( e1))
+		r_guard.reset( e1);
 		
 		res=l_expr(_t, e1);
 		_t = _retTree;
@@ -1991,7 +2006,10 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(RefDNode _t,
 		e1=expr(_t);
 		_t = _retTree;
 		
-		auto_ptr<BaseGDL> r_guard(e1);
+		auto_ptr<BaseGDL> r_guard;
+		if( !callStack.back()->Contains( e1)) 
+		r_guard.reset( e1);
+		
 		RefDNode l = _t;
 		
 		BaseGDL** tmp;
@@ -3547,7 +3565,7 @@ BaseGDL**  GDLInterpreter::l_array_expr(RefDNode _t,
 		res=l_indexoverwriteable_expr(_t);
 		_t = _retTree;
 		
-		if( right != NULL)
+		if( right != NULL && right != (*res))
 		{
 		// only here non-inplace copy is done
 		delete *res;
@@ -4293,7 +4311,11 @@ BaseGDL*  GDLInterpreter::assign_expr(RefDNode _t) {
 	_t = _t->getFirstChild();
 	res=expr(_t);
 	_t = _retTree;
-	auto_ptr<BaseGDL> r_guard(res);
+	
+	auto_ptr<BaseGDL> r_guard;
+	if( !callStack.back()->Contains( res)) 
+	r_guard.reset( res);
+	
 	l=l_expr(_t, res);
 	_t = _retTree;
 	r_guard.release();
@@ -4821,17 +4843,17 @@ BaseGDL*  GDLInterpreter::assign_expr(RefDNode _t) {
 	// possible change: handle unnamed struct descriptors as
 	// belonging to DStructGDL variable
 	// don't forget to look at array_def then!!!
-	DStructDesc* oStructDesc=nStructDesc->FindEqual( structList);
-	if( oStructDesc != NULL)
-	{
-	instance->SetDesc(oStructDesc);
-	//delete nStructDesc; // auto_ptr
-	}
-	else
-	{
+	//                 DStructDesc* oStructDesc=nStructDesc->FindEqual( structList);
+	//                 if( oStructDesc != NULL)
+	//                 {
+	//                     instance->SetDesc(oStructDesc);
+	//                     //delete nStructDesc; // auto_ptr
+	//                 }
+	//                 else
+	//                 {
 	// insert into struct list
 	structList.push_back( nStructDesc.release());
-	}
+	//                 }
 	
 	instance_guard.release();
 	res=instance;

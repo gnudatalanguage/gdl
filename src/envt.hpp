@@ -99,6 +99,8 @@ public:
 
   // checks if pp points to a local variable
   bool IsLocalKW( BaseGDL** pp) const { return env.InLoc( pp);}
+  // to check if a lib function returned a variable of this env
+  bool Contains( BaseGDL* p) const { return env.Contains( p);}
   SizeT NewObjHeap( SizeT n=1, DStructGDL* v=NULL);
   SizeT NewHeap( SizeT n=1, BaseGDL* v=NULL);
   void FreeObjHeap( DObj id);

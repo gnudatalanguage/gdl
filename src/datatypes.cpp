@@ -1354,7 +1354,7 @@ void Data_<Sp>::MinMax( DLong* minE, DLong* maxE,
 	    maxEl  = i;
 	  }
       *maxE = maxEl;
-      *maxVal = new Data_( maxV);
+      if( maxVal != NULL) *maxVal = new Data_( maxV);
       return;
     }
   if( maxE == NULL)
@@ -1369,7 +1369,7 @@ void Data_<Sp>::MinMax( DLong* minE, DLong* maxE,
 	    minEl  = i;
 	  }
       *minE = minEl;
-      *minVal = new Data_( minV);
+      if( minVal != NULL) *minVal = new Data_( minV);
       return;
     }
 
@@ -1392,10 +1392,10 @@ void Data_<Sp>::MinMax( DLong* minE, DLong* maxE,
 	minEl  = i;
       }
   *maxE = maxEl;
-  *maxVal = new Data_( maxV);
+  if( maxVal != NULL) *maxVal = new Data_( maxV);
 
   *minE = minEl;
-  *minVal = new Data_( minV);
+  if( minVal != NULL) *minVal = new Data_( minV);
 }
 template<>
 void Data_<SpDComplex>::MinMax( DLong* minE, DLong* maxE, 
@@ -1413,7 +1413,7 @@ void Data_<SpDComplex>::MinMax( DLong* minE, DLong* maxE,
 	    maxEl  = i;
 	  }
       *maxE = maxEl;
-      *maxVal = new Data_( dd[ maxEl]);
+      if( maxVal != NULL) *maxVal = new Data_( dd[ maxEl]);
       return;
     }
   if( maxE == NULL)
@@ -1428,7 +1428,7 @@ void Data_<SpDComplex>::MinMax( DLong* minE, DLong* maxE,
 	    minEl  = i;
 	  }
       *minE = minEl;
-      *minVal = new Data_( dd[ minEl]);
+      if( minVal != NULL) *minVal = new Data_( dd[ minEl]);
       return;
     }
 
@@ -1451,10 +1451,10 @@ void Data_<SpDComplex>::MinMax( DLong* minE, DLong* maxE,
 	minEl  = i;
       }
   *maxE = maxEl;
-  *maxVal = new Data_( dd[ maxEl]);
+  if( maxVal != NULL) *maxVal = new Data_( dd[ maxEl]);
 
   *minE = minEl;
-  *minVal = new Data_( dd[ minEl]);
+  if( minVal != NULL) *minVal = new Data_( dd[ minEl]);
 }
 template<>
 void Data_<SpDComplexDbl>::MinMax( DLong* minE, DLong* maxE, 
@@ -1472,7 +1472,7 @@ void Data_<SpDComplexDbl>::MinMax( DLong* minE, DLong* maxE,
 	    maxEl  = i;
 	  }
       *maxE = maxEl;
-      *maxVal = new Data_( dd[ maxEl]);
+      if( maxVal != NULL) *maxVal = new Data_( dd[ maxEl]);
       return;
     }
   if( maxE == NULL)
@@ -1487,7 +1487,7 @@ void Data_<SpDComplexDbl>::MinMax( DLong* minE, DLong* maxE,
 	    minEl  = i;
 	  }
       *minE = minEl;
-      *minVal = new Data_( dd[ minEl]);
+      if( minVal != NULL) *minVal = new Data_( dd[ minEl]);
       return;
     }
 
@@ -1510,10 +1510,10 @@ void Data_<SpDComplexDbl>::MinMax( DLong* minE, DLong* maxE,
 	minEl  = i;
       }
   *maxE = maxEl;
-  *maxVal = new Data_( dd[ maxEl]);
+  if( maxVal != NULL) *maxVal = new Data_( dd[ maxEl]);
 
   *minE = minEl;
-  *minVal = new Data_( dd[ minEl]);
+  if( minVal != NULL) *minVal = new Data_( dd[ minEl]);
 }
 
 void DStructGDL::MinMax( DLong* minE, DLong* maxE, 

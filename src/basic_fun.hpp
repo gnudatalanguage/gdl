@@ -127,6 +127,8 @@ namespace lib {
 
   BaseGDL* n_tags( EnvT* e);
 
+  BaseGDL* bytscl( EnvT* e);
+
 } // namespace
 
 #endif

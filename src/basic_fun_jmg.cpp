@@ -299,17 +299,17 @@ namespace lib {
   }
 
 
-  template< typename T>
-  BaseGDL* reform_template( EnvT* e, dimension dim)
-  {
-    T* res = static_cast<T*>( e->GetParDefined( 0)->Dup());
-    res->SetDim(dim);
-    return res;
-  }
+//   template< typename T>
+//   BaseGDL* reform_template( EnvT* e, dimension dim)
+//   {
+//     T* res = static_cast<T*>( e->GetParDefined( 0)->Dup());
+//     res->SetDim(dim);
+//     return res;
+//   }
 
   BaseGDL* reform( EnvT* e)
   {
-    SizeT nParam=e->NParam();
+    SizeT nParam=e->NParam(1);
 
     BaseGDL* p0 = e->GetParDefined( 0);
 
@@ -333,7 +333,7 @@ namespace lib {
 
     if (dim.N_Elements() != nEl) 
       e->Throw( "New subscripts must not change the number elements in " 
-		+ e->Caller()->GetString( p0));
+		+ e->GetParString( 0));
 
 
     if (e->KeywordSet( "OVERWRITE")) {
@@ -346,53 +346,56 @@ namespace lib {
       return p0;
     }
 
+    BaseGDL* res = p0->Dup();
+    res->SetDim(dim);
+    return res;
 
-    // BYTE
-    if (Type == BYTE) {
+//     // BYTE
+//     if (Type == BYTE) {
     
-      return reform_template< DByteGDL>( e, dim);
+//       return reform_template< DByteGDL>( e, dim);
     
-      //INT
-    } else if (Type || Type == INT) {
+//       //INT
+//     } else if (Type || Type == INT) {
     
-      return reform_template< DIntGDL>( e, dim);
+//       return reform_template< DIntGDL>( e, dim);
     
-      // UINT
-    } else if (Type == UINT) {
+//       // UINT
+//     } else if (Type == UINT) {
     
-      return reform_template< DUIntGDL>( e, dim);
+//       return reform_template< DUIntGDL>( e, dim);
     
-      // LONG
-    } else if (Type == LONG) {
+//       // LONG
+//     } else if (Type == LONG) {
     
-      return reform_template< DLongGDL>( e, dim);
+//       return reform_template< DLongGDL>( e, dim);
     
-      // ULONG
-    } else if (Type == ULONG) {
+//       // ULONG
+//     } else if (Type == ULONG) {
     
-      return reform_template< DULongGDL>( e, dim);
+//       return reform_template< DULongGDL>( e, dim);
     
-      // LONG64
-    } else if (Type == LONG64) {
+//       // LONG64
+//     } else if (Type == LONG64) {
     
-      return reform_template< DLong64GDL>( e, dim);
+//       return reform_template< DLong64GDL>( e, dim);
     
-      // ULONG64
-    } else if (Type == ULONG64) {
+//       // ULONG64
+//     } else if (Type == ULONG64) {
     
-      return reform_template< DULong64GDL>( e, dim);
+//       return reform_template< DULong64GDL>( e, dim);
       
-      // FLOAT
-    } else if (Type == FLOAT) {
+//       // FLOAT
+//     } else if (Type == FLOAT) {
     
-      return reform_template< DFloatGDL>( e, dim);
+//       return reform_template< DFloatGDL>( e, dim);
     
-      // DOUBLE
-    } else if (Type == DOUBLE) {
+//       // DOUBLE
+//     } else if (Type == DOUBLE) {
     
-      return reform_template< DDoubleGDL>( e, dim);
+//       return reform_template< DDoubleGDL>( e, dim);
     
-    }
+//     }
     
   }
     

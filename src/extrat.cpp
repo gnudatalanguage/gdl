@@ -163,17 +163,17 @@ void ExtraT::Resolve()
 	    }
  
 	  // look if equal is already there (very possible eg. _EXTRA in loops)
-	  DStructDesc* oStructDesc=extraStructDesc->FindEqual( structList);
-	  if( oStructDesc != NULL)
-	    {
-	      extraStruct->SetDesc(oStructDesc);
-	      delete extraStructDesc; 
-	    }
-	  else
-	    {
+// 	  DStructDesc* oStructDesc=extraStructDesc->FindEqual( structList);
+// 	  if( oStructDesc != NULL)
+// 	    {
+// 	      extraStruct->SetDesc(oStructDesc);
+// 	      delete extraStructDesc; 
+// 	    }
+// 	  else
+// 	    {
 	      // insert into struct list
 	      structList.push_back( extraStructDesc);
-	    }
+// 	    }
 
 	  //	  structList.push_back( extraStructDesc);
 	  thisEnv->env.Reset( static_cast<SizeT>(pro->extraIx), 
