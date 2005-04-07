@@ -133,6 +133,8 @@ void FMTParser::f() {
 	RefFMTNode t_AST = RefFMTNode(antlr::nullAST);
 	antlr::RefToken  x = antlr::nullToken;
 	RefFMTNode x_AST = RefFMTNode(antlr::nullAST);
+	antlr::RefToken  xx = antlr::nullToken;
+	RefFMTNode xx_AST = RefFMTNode(antlr::nullAST);
 	
 	int n1;
 	
@@ -251,6 +253,16 @@ void FMTParser::f() {
 		}
 		}
 		}
+		f_AST = RefFMTNode(currentAST.root);
+		break;
+	}
+	case X:
+	{
+		xx = LT(1);
+		xx_AST = astFactory->create(xx);
+		astFactory->addASTChild(currentAST, antlr::RefAST(xx_AST));
+		match(X);
+		xx_AST->setW( 1);
 		f_AST = RefFMTNode(currentAST.root);
 		break;
 	}

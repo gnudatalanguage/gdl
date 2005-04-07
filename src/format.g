@@ -139,6 +139,7 @@ f
     | f_csubcode
     | rep_fmt[ 1]
     | n1=nn (rep_fmt[ n1] | x:X { #x->setW( n1);})
+    | xx:X { #xx->setW( 1);}
     ;
 
 rep_fmt [ int repeat]

@@ -257,7 +257,9 @@ f_csubcode // note: IDL doesn't allow hollerith strings inside C()
     | tr:TR 
         { 
             int    tlVal = tl->getW();
-            os->seekp( tlVal, std::ios_base::cur);
+            for( int i=tlVal; i>0; --i)
+            (*os) << " ";
+//            os->seekp( tlVal, std::ios_base::cur);
         }
     ;
 
@@ -422,7 +424,9 @@ x
             if( _t != static_cast<RefFMTNode>(antlr::nullAST))
             {
                 int    tlVal = #tl->getW();
-                os->seekp( tlVal, std::ios_base::cur);
+                for( int i=tlVal; i>0; --i)
+                (*os) << " ";
+//                os->seekp( tlVal, std::ios_base::cur);
             }
             // for( int r=x->getW(); r > 0; r--) (*os) << ' ';
         }
