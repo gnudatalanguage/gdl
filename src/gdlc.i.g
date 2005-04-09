@@ -2002,11 +2002,21 @@ array_expr returns [BaseGDL* res]
 {
     ArrayIndexListT* aL;
     BaseGDL* r;
+    auto_ptr<BaseGDL> r_guard;
 }
-    : #(ARRAYEXPR aL=arrayindex_list r=expr //indexable_expr
+    : #(ARRAYEXPR aL=arrayindex_list 
             {
                 auto_ptr<ArrayIndexListT> aL_guard(aL);
-                auto_ptr<BaseGDL>         r_guard(r);
+            }
+            ( r=indexable_expr
+            | r=indexable_tmp_expr { r_guard.reset( r);}
+            | r=check_expr
+                {
+                    if( !callStack.back()->Contains( res)) 
+                        r_guard.reset( r); // guard if no global data
+                }
+            )
+            {
                 res=r->Index( aL);
             }
         )   
@@ -2156,6 +2166,55 @@ dot_expr returns [BaseGDL* res]
             (tag_array_expr[ aD.get()] /* nDot times*/ )+ 
         )         
         { res= aD->Resolve();}
+    ;
+
+// indexable expressions are used to minimize copying of data
+// ( via Dup())
+// owned by caller
+indexable_tmp_expr returns [BaseGDL* res]
+{
+    BaseGDL*  e1;
+    BaseGDL** e2;
+}
+	: #(QUESTION e1=expr
+            { 
+                auto_ptr<BaseGDL> e1_guard(e1);
+
+                if( e1->True())
+                {   
+                    res=expr(_t);
+                }
+                else
+                {
+                    _t=_t->GetNextSibling(); // jump over 1st expression
+                    res=expr(_t);
+                }
+            }
+        ) // trinary operator
+        // note: still potentially very slow as copying of
+        // data is done in any case
+    | res=array_expr
+    | res=dot_expr
+    | res=assign_expr
+    | res=function_call
+    | res=r_expr
+    ;
+// not owned by caller 
+indexable_expr returns [BaseGDL* res]
+{
+    BaseGDL** e2;
+}
+    : e2=l_defined_simple_var
+        {
+            res = *e2;
+        }
+    | res=sys_var_nocopy
+    | e2=l_deref 
+        { 
+            if( *e2 == NULL)
+            throw GDLException( _t, "Variable is undefined: "+Name(e2));
+            res = *e2;
+        }
     ;
 
 // l_expr used as r_expr and true r_expr
