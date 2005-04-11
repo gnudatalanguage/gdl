@@ -57,6 +57,8 @@ public:
 
   void DefaultCharSize();
   void NextPlot( bool erase=true); // handles multi plots
+
+  void NoSub(); // no subwindows (/NORM, /DEVICE)
 };
 
 #endif

@@ -78,7 +78,7 @@ class DevicePS: public Graphics
     
     // load font
     actStream->font( 1);
-    actStream->schr( 1.5, 1.0);
+    actStream->DefaultCharSize();
 
     //    (*pMulti)[ 0] = 0;
     actStream->adv(0);

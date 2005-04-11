@@ -525,6 +525,10 @@ if derivInit ne 1 then print,'***INHERITANCE: ERROR7'
 print,'INHERITANCE: OK'
 end
 
+function syntax_test,a,b,c
+return,byte(a,b,c)
+end
+
 pro syntax_test
 
 s={a:0}
@@ -538,6 +542,7 @@ b=(a=2)
 if b ne 2 then print,'***SYNTAX_TEST: ERROR1'
 
 a=(byte(1,0,1))[0]
+a=(syntax_test(1,0,1))[0]
 
 ;((a=4)) syntax error
 ;(a=2)=3  forbidden in GDL (as it hardly makes sense)

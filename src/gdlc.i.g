@@ -1991,13 +1991,6 @@ r_expr returns [BaseGDL* res]
     | res=struct_def
     ;
 
-// indexable_expr returns [BaseGDL* res]
-// //     : #(EXPR res=expr)                       
-// //     | res=simple_var                         
-//     : res=simple_var                         
-//     | res=sys_var 
-//     ;
-
 array_expr returns [BaseGDL* res]
 {
     ArrayIndexListT* aL;
@@ -2174,7 +2167,6 @@ dot_expr returns [BaseGDL* res]
 indexable_tmp_expr returns [BaseGDL* res]
 {
     BaseGDL*  e1;
-    BaseGDL** e2;
 }
 	: #(QUESTION e1=expr
             { 

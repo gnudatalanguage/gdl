@@ -4489,7 +4489,6 @@ BaseGDL*  GDLInterpreter::indexable_tmp_expr(RefDNode _t) {
 	RefDNode indexable_tmp_expr_AST_in = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 	
 	BaseGDL*  e1;
-	BaseGDL** e2;
 	
 	
 	if (_t == RefDNode(antlr::nullAST) )

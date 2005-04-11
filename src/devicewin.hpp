@@ -232,7 +232,7 @@ public:
     
     // load font
     winList[ wIx]->font( 1);
-    winList[ wIx]->schr( 1.5, 1.0);
+    actStream->DefaultCharSize();
 
     //    (*pMulti)[ 0] = nx*ny;
 

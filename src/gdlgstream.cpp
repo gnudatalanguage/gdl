@@ -104,17 +104,14 @@ void GDLGStream::NextPlot( bool erase)
   ny = (ny>0)?ny:1;
   nz = (nz>0)?nz:1;
 
-  plstream::ssub( nx, ny);
-
-  // ssub changes the char size
-  DefaultCharSize();
+  plstream::ssub( nx, ny); // changes charsize
 
   if( (*pMulti)[ 0] <= 0)
     {
       if( erase)
 	{
 	  plstream::eop();
-	  plstream::bop();
+	  plstream::bop(); // changes charsize
 	}
 
       plstream::adv(1);
@@ -134,6 +131,16 @@ void GDLGStream::NextPlot( bool erase)
 
       if( erase) --(*pMulti)[ 0];
     }
+
+  // restore charsize
+  DefaultCharSize();
+}
+
+void GDLGStream::NoSub()
+{
+  plstream::ssub( 1, 1); // changes charsize
+  plstream::adv( 0);
+  DefaultCharSize();
 }
 
 // default is a wrapper for gpage()
