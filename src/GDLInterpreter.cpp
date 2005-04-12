@@ -115,6 +115,7 @@ void GDLInterpreter::execute(RefDNode _t) {
 	RefDNode o = RefDNode(antlr::nullAST);
 	
 	retCode = RC_OK;
+	RefDNode actPos = _t;
 	
 	
 	try {      // for error handling
@@ -240,7 +241,7 @@ void GDLInterpreter::execute(RefDNode _t) {
 		// possible optimization: make sigControlC a debugMode 
 		if( interruptEnable && sigControlC)
 		{
-		DebugMsg( _t, "Interrupted at: "); 
+		DebugMsg( actPos, "Interrupted at: "); 
 		
 		sigControlC = false;
 		
@@ -261,7 +262,7 @@ void GDLInterpreter::execute(RefDNode _t) {
 		{
 		if( debugMode == DEBUG_STOP)
 		{
-		DebugMsg( _t, "Stop encoutered: ");
+		DebugMsg( actPos, "Stop encoutered: ");
 		if( !interruptEnable)
 		debugMode = DEBUG_PROCESS_STOP;
 		}
@@ -270,7 +271,7 @@ void GDLInterpreter::execute(RefDNode _t) {
 		{
 		if( debugMode == DEBUG_PROCESS_STOP)
 		{
-		DebugMsg( _t, "Stepped to: ");
+		DebugMsg( actPos, "Stepped to: ");
 		}
 		
 		debugMode = DEBUG_CLEAR;

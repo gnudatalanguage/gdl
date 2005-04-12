@@ -444,6 +444,7 @@ statement_list returns[ GDLInterpreter::RetCode retCode]
 statement returns[ GDLInterpreter::RetCode retCode]
 {
     retCode = RC_OK;
+    RefDNode actPos = _t;
 }
 	: (
             // note: assignment must take care to update the owner of the lvalue
@@ -476,7 +477,7 @@ statement returns[ GDLInterpreter::RetCode retCode]
            // possible optimization: make sigControlC a debugMode 
            if( interruptEnable && sigControlC)
             {
-                DebugMsg( _t, "Interrupted at: "); 
+                DebugMsg( actPos, "Interrupted at: "); 
 
                 sigControlC = false;
 
@@ -497,7 +498,7 @@ statement returns[ GDLInterpreter::RetCode retCode]
             {
                 if( debugMode == DEBUG_STOP)
                 {
-                    DebugMsg( _t, "Stop encoutered: ");
+                    DebugMsg( actPos, "Stop encoutered: ");
                     if( !interruptEnable)
                         debugMode = DEBUG_PROCESS_STOP;
                 }
@@ -506,7 +507,7 @@ statement returns[ GDLInterpreter::RetCode retCode]
                 {
                     if( debugMode == DEBUG_PROCESS_STOP)
                     {
-                        DebugMsg( _t, "Stepped to: ");
+                        DebugMsg( actPos, "Stepped to: ");
                     }
 
                     debugMode = DEBUG_CLEAR;
