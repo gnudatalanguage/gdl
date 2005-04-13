@@ -35,6 +35,7 @@ namespace lib {
   {
     static int closeFileIx = e->KeywordIx( "CLOSE_FILE"); 
     static int fileNameIx = e->KeywordIx( "FILENAME"); 
+    static int decomposedIx = e->KeywordIx( "DECOMPOSED"); 
     //    static int landscapeIx = e->KeywordIx( "LANDSCAPE"); 
     //    static int portraitIx = e->KeywordIx( "PORTRAIT");
  
@@ -44,10 +45,18 @@ namespace lib {
       {
 	bool success = actDevice->CloseFile();
 	if( !success)
-	  throw GDLException( e->CallingNode(),
-			      "DEVICE: Current device does not support "
-			      "keyword CLOSE_FILE.");
+	  e->Throw( "Current device does not support "
+		    "keyword CLOSE_FILE.");
       }
+
+    BaseGDL* decomposed = e->GetKW( decomposedIx);
+    if( decomposed != NULL)
+	{
+	  bool success = actDevice->Decomposed( e->KeywordSet( decomposedIx));
+	  if( !success)
+	    e->Throw( "Current device does not support "
+		      "keyword DECOMPOSED.");
+	}
 
     BaseGDL* fileName = e->GetKW( fileNameIx);
     if( fileName != NULL)
@@ -55,13 +64,11 @@ namespace lib {
 	DString fName;
 	e->AssureStringScalarKW( fileNameIx, fName);
 	if( fName == "")
-	  throw GDLException( e->CallingNode(),
-			      "DEVICE: Null filename not allowed.");
+	  e->Throw( "Null filename not allowed.");
 	bool success = actDevice->SetFileName( fName);
 	if( !success)
-	  throw GDLException( e->CallingNode(),
-			      "DEVICE: Current device does not support "
-			      "keyword FILENAME.");
+	  e->Throw( "Current device does not support "
+		    "keyword FILENAME.");
       }
   }
 
@@ -69,8 +76,7 @@ namespace lib {
   {
     SizeT nParam=e->NParam();
     if( nParam < 1)
-      throw GDLException( e->CallingNode(),
-			  "SET_PLOT: Incorrect number of arguments.");
+      e->Throw( "Incorrect number of arguments.");
     DString device;
     e->AssureScalarPar<DStringGDL>( 0, device);
 
@@ -79,8 +85,7 @@ namespace lib {
     
     bool success = Graphics::SetDevice( device);
     if( !success)
-      throw GDLException( e->CallingNode(),
-			  "SET_PLOT: Device not supported/unknown: "+device);
+      e->Throw( "Device not supported/unknown: "+device);
   }
 
   void window( EnvT* e)
@@ -88,9 +93,8 @@ namespace lib {
     Graphics* actDevice = Graphics::GetDevice();
     int maxWin = actDevice->MaxWin();
     if( maxWin == 0)
-      throw GDLException( e->CallingNode(),
-			  "WINDOW: Routine is not defined for current "
-			  "graphics device.");
+      e->Throw( "Routine is not defined for current "
+		"graphics device.");
 
     SizeT nParam=e->NParam();
 
@@ -99,8 +103,7 @@ namespace lib {
       {
 	wIx = actDevice->WAdd();
 	if( wIx == -1)
-	  throw GDLException( e->CallingNode(),
-			      "WINDOW: No more window handles left.");
+	  e->Throw( "No more window handles left.");
       }
     else
       {
@@ -108,9 +111,8 @@ namespace lib {
 	  {
 	    e->AssureLongScalarPar( 0, wIx);
 	    if( wIx < 0 || wIx >= maxWin)
-	      throw GDLException( e->CallingNode(),
-				  "WINDOW: Window number "+i2s(wIx)+
-				  " out of range.");
+	      e->Throw( "Window number "+i2s(wIx)+
+			" out of range.");
 	  }
       }
 
@@ -137,13 +139,13 @@ namespace lib {
     e->AssureLongScalarKWIfPresent( "YSIZE", ySize);
 
     if( xSize <= 0 || ySize <= 0 || xPos < 0 || yPos < 0)
-      throw GDLException( e->CallingNode(), "WINDOW: Unable to create window "
-			  "(BadValue (integer parameter out of range for "
-			  "operation)).");
+      e->Throw(  "Unable to create window "
+		 "(BadValue (integer parameter out of range for "
+		 "operation)).");
     
     bool success = actDevice->WOpen( wIx, title, xSize, ySize, xPos, yPos);
     if( !success)
-      throw GDLException( e->CallingNode(), "WINDOW: Unable to create window.");
+      e->Throw(  "Unable to create window.");
   }
 
   void wset( EnvT* e)
@@ -158,8 +160,7 @@ namespace lib {
       }
     if( wIx == -1) wIx = actDevice->ActWin();
     if( wIx == -1) 
-      throw GDLException( e->CallingNode(),
-			  "WSET: Window is closed and unavailable.");
+      e->Throw( "Window is closed and unavailable.");
 
     if( wIx == 0)
       {
@@ -167,16 +168,14 @@ namespace lib {
 	  {
 	    bool success = actDevice->WOpen( 0, "GDL 0", 640, 512, 0, 0);
 	    if( !success)
-	      throw GDLException( e->CallingNode(), 
-				  "WSET: Unable to create window.");
+	      e->Throw( "Unable to create window.");
 	    return;
 	  }
       }
 
     bool success = actDevice->WSet( wIx);
     if( !success)
-      throw GDLException( e->CallingNode(), 
-			  "WSET: Window is closed and unavailable.");
+      e->Throw( "Window is closed and unavailable.");
   }
 
   void wshow( EnvT* e)
@@ -192,8 +191,7 @@ namespace lib {
 	int wIx = actDevice->ActWin();
 	bool success = actDevice->WDelete( wIx);
 	if( !success)
-	  throw GDLException( e->CallingNode(),
-			      "WINDOW: Window number "+i2s(wIx)+
+	  e->Throw( "Window number "+i2s(wIx)+
 			      " out of range or no more windows.");
 	return;
       }
@@ -204,9 +202,8 @@ namespace lib {
 	e->AssureLongScalarPar( i, wIx);
 	bool success = actDevice->WDelete( wIx);
 	if( !success)
-	  throw GDLException( e->CallingNode(),
-			      "WINDOW: Window number "+i2s(wIx)+
-			      " out of range or no more windows.");
+	  e->Throw( "Window number "+i2s(wIx)+
+		    " out of range or no more windows.");
       }
   }
 
@@ -772,8 +769,7 @@ namespace lib {
     DLong psym = p_psym;
     e->AssureLongScalarKWIfPresent( "PSYM", psym);
     if( psym > 10 || psym < -8 || psym == 9)
-      throw GDLException( e->CallingNode(), 
-			  "PLOT: PSYM (plotting symbol) out of range.");
+      e->Throw( "PSYM (plotting symbol) out of range.");
     if( psym <= 0)
       {
 	line = true;
@@ -1347,9 +1343,8 @@ namespace lib {
 	l_color_arr=static_cast<DLongGDL*>
 	  (color_arr->Convert2(LONG, BaseGDL::COPY));
 	if(color_arr->N_Elements() < minEl && color_arr->N_Elements() > 1)
-	  throw GDLException("PLOTS: Array "+
-			     e->GetParString(cix)+
-			     " does not have enough elements for COLOR keyword.");
+	  e->Throw( "Array "+e->GetParString(cix)+
+		    " does not have enough elements for COLOR keyword.");
       }
     DLong color = p_color;
 
@@ -1358,13 +1353,12 @@ namespace lib {
 	  	color=(*l_color_arr)[0];
 
 
-    // PSYM
+    // PSYM, (PLOTS)
     psym=p_psym;
     bool line = false;
     e->AssureLongScalarKWIfPresent( "PSYM", psym);
     if( psym > 10 || psym < -8 || psym == 9)
-      throw GDLException( e->CallingNode(), 
-			  "PLOTS: PSYM (plotting symbol) out of range.");
+      e->Throw( "PSYM (plotting symbol) out of range.");
     if( psym <= 0)
       {
 	line = true;

@@ -368,6 +368,7 @@ void LibInit()
   const string deviceKey[]=
     {
       "CLOSE_FILE","FILENAME","LANDSCAPE","PORTRAIT",
+      "DECOMPOSED",
       KLISTEND
     };
   new DLibPro(lib::device,string("DEVICE"),0,deviceKey);

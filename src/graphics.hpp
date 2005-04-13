@@ -165,6 +165,7 @@ public:
 
   virtual bool CloseFile()                            { return false;}
   virtual bool SetFileName( const std::string& f)     { return false;}
+  virtual bool Decomposed( bool value)                { return false;}
 };
 
 #endif

@@ -30,9 +30,10 @@ const int maxWin=32;
 class DeviceX: public Graphics
 {
   std::vector<GDLGStream*> winList;
-  std::vector<long>      oList;
+  std::vector<long>        oList;
   long oIx;
   int  actWin;
+  bool decomposed; // false -> use color table
 
   void SetActWin( int wIx)
   {
@@ -93,7 +94,7 @@ class DeviceX: public Graphics
   }
 
 public:
-  DeviceX(): Graphics(), oIx( 1), actWin( -1)
+  DeviceX(): Graphics(), oIx( 1), actWin( -1), decomposed( false)
   {
     name = "X";
 
@@ -302,6 +303,12 @@ public:
     ProcessDeleted();
     if( actWin == -1) return NULL;
     return winList[ actWin];
+  }
+
+  bool Decomposed( bool value)                
+  { 
+    decomposed = value;
+    return true;
   }
 
   int MaxWin() { ProcessDeleted(); return maxWin;}
