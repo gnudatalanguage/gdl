@@ -106,7 +106,8 @@ void GDLGStream::NextPlot( bool erase)
 
   plstream::ssub( nx, ny); // changes charsize
 
-  if( (*pMulti)[ 0] <= 0)
+  if( (*pMulti)[ 0] <= 0 || (*pMulti)[ 0] == nx*ny)
+    //  if( (*pMulti)[ 0] <= 0)
     {
       if( erase)
 	{
