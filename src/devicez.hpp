@@ -227,8 +227,9 @@ public:
     DByteGDL* res = new DByteGDL( dimension( xsize, ysize), 
 				  BaseGDL::NOZERO);
     
-    for( SizeT i=0; i<xsize*ysize; ++i)
-      (*res)[ i] = memBuffer[ i * 3];
+    for( SizeT x=0; x<xsize; ++x)
+      for( SizeT y=0; y<ysize; ++y)
+	(*res)[ y*xsize+x] = memBuffer[ ((ysize-y-1)*xsize+x) * 3];
     
     return res;
   }
