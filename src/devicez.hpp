@@ -30,11 +30,14 @@ class DeviceZ: public Graphics
 
   void plimage_gdl(unsigned char *idata, PLINT nx, PLINT ny, DInt tru)
   {
+    DLong xsize = (*static_cast<DLongGDL*>( dStruct->Get( xSTag, 0)))[0];
+    DLong ysize = (*static_cast<DLongGDL*>( dStruct->Get( ySTag, 0)))[0];
+
     PLINT ix, iy; //, xm, ym;
 
     PLINT ired; //, igrn, iblu;
-    for(ix = 0; ix < nx; ix++) {
-      for(iy = 0; iy < ny; iy++) {
+    for(ix = 0; ix < nx; ++ix) {
+      for(iy = 0; iy < ny; ++iy) {
 
 	  if (tru == 0) {
 	    ired = idata[iy*nx+ix];
@@ -55,9 +58,10 @@ class DeviceZ: public Graphics
 	    //	    curcolor.pixel = ired*256*256+igrn*256+iblu;
 	  }
 
-      memBuffer[ iy*nx+ix+0] = ired;
-      memBuffer[ iy*nx+ix+1] = ired;
-      memBuffer[ iy*nx+ix+2] = ired;
+	  SizeT baseIx = ((ysize-1-iy)*xsize+ix) * 3;
+	  memBuffer[ baseIx+0] = ired;
+	  memBuffer[ baseIx+1] = ired;
+	  memBuffer[ baseIx+2] = ired;
       }
     }
   }
@@ -73,8 +77,12 @@ class DeviceZ: public Graphics
 
   void DeleteStream()
   {
+    // note: the plplot documentation says that the user has to
+    //       free this buffer, but plplot does it itself
+    //       even worse: it does it with 'free'
+    //    delete[] memBuffer; memBuffer = NULL;
     delete actStream; actStream = NULL;
-    delete[] memBuffer; memBuffer = NULL;
+    memBuffer =  NULL;
   }
 
   void InitStream()
@@ -91,11 +99,13 @@ class DeviceZ: public Graphics
     DLong& actX = (*static_cast<DLongGDL*>( dStruct->Get( xSTag, 0)))[0];
     DLong& actY = (*static_cast<DLongGDL*>( dStruct->Get( ySTag, 0)))[0];
 
-    // here we allocate the memory
-    memBuffer = new char[ actX * actY * 3];
-    
+    // always allocate the buffer with creating a new stream
     actStream = new GDLZStream( nx, ny);
-
+    // here we allocate the memory
+    // plplot frees this with 'free'
+    //    memBuffer = new char[ actX * actY * 3];
+    memBuffer = (char*) malloc( sizeof( char) * actX * actY * 3);
+    
     // make it known to plplot
     plsmem( actX, actY, memBuffer);
 
@@ -269,7 +279,7 @@ public:
 	if (tru != 0)
 	  e->Throw( "Array must have 3 dimensions: "+
 		    e->GetParString(0));
-	width = p0B->Dim(0);
+	width  = p0B->Dim(0);
 	height = p0B->Dim(1);
       } 
     else if( rank == 3) 

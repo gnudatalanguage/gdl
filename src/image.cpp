@@ -20,10 +20,10 @@
 #include "graphics.hpp"
 #include "image.hpp"
 
-#define ToXColor(a) (((0xFF & (a)) << 8) | (a))
+// #define ToXColor(a) (((0xFF & (a)) << 8) | (a))
 
-#define free_mem(a) \
-    if (a != NULL) { free((void *) a); a = NULL; }
+// #define free_mem(a) \
+//     if (a != NULL) { free((void *) a); a = NULL; }
 
 using namespace std;
 
