@@ -166,6 +166,21 @@ public:
   virtual bool CloseFile()                            { return false;}
   virtual bool SetFileName( const std::string& f)     { return false;}
   virtual bool Decomposed( bool value)                { return false;}
+
+  // Z buffer device
+  virtual bool ZBuffering( bool yes)                  { return false;}
+  virtual bool SetResolution( DLong nx, DLong ny)     { return false;}
+
+  // TVRD function for a device
+  virtual BaseGDL* TVRD( EnvT* e) 
+  {
+    throw GDLException( "Device "+Name()+" does not support TVRD.");
+  }
+  
+  virtual void TV( EnvT* e)
+  {
+    throw GDLException( "Device "+Name()+" does not support TV.");
+  }
 };
 
 #endif

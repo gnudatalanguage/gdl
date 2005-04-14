@@ -1,5 +1,6 @@
 /* *************************************************************************
-                          graphics.cpp  -  GDL classes for graphical output
+                          graphics.cpp  -  GDL base class for all 
+			  graphic devices
                              -------------------
     begin                : July 22 2002
     copyright            : (C) 2002 by Marc Schellens
@@ -25,6 +26,7 @@
 #include "devicex.hpp"
 #endif
 #include "deviceps.hpp"
+#include "devicez.hpp"
 #include "initsysvar.hpp"
 #include "color.hpp"
 
@@ -144,6 +146,7 @@ void Graphics::Init()
   deviceList.push_back( new DeviceX());
 #endif
   deviceList.push_back( new DevicePS());
+  deviceList.push_back( new DeviceZ());
 
 #ifdef _MSC_VER
   if( !SetDevice( "WIN")) 
@@ -171,6 +174,7 @@ void Graphics::DefineDStructDesc()
 
   SpDString aString;
   SpDLong   aLong;
+  SpDLong   aLongArr2( dimension(2));
   SpDFloat  aFloat;
 
   dSysVarDesc->AddTag("NAME",       &aString); 
@@ -188,8 +192,8 @@ void Graphics::DefineDStructDesc()
   dSysVarDesc->AddTag("WINDOW",     &aLong); 
   dSysVarDesc->AddTag("UNIT",       &aLong); 
   dSysVarDesc->AddTag("FLAGS",      &aLong); 
-  dSysVarDesc->AddTag("ORIGIN",     &aLong); 
-  dSysVarDesc->AddTag("ZOOM",       &aLong); 
+  dSysVarDesc->AddTag("ORIGIN",     &aLongArr2); 
+  dSysVarDesc->AddTag("ZOOM",       &aLongArr2); 
   
   structList.push_back( dSysVarDesc);
 

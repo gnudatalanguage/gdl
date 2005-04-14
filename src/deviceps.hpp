@@ -1,5 +1,5 @@
 /* *************************************************************************
-                          deviceps.hpp  -  X windows device
+                          deviceps.hpp  -  postscript device
                              -------------------
     begin                : July 22 2002
     copyright            : (C) 2002 by Marc Schellens
@@ -89,6 +89,11 @@ public:
   {
     name = "PS";
 
+    DLongGDL origin( dimension( 2));
+    DLongGDL zoom( dimension( 2));
+    zoom[0] = 1;
+    zoom[1] = 1;
+
     dStruct = new DStructGDL( "!DEVICE");
     dStruct->InitTag("NAME",       DStringGDL( name)); 
     dStruct->InitTag("X_SIZE",     DLongGDL( 17780)); 
@@ -104,9 +109,9 @@ public:
     dStruct->InitTag("FILL_DIST",  DLongGDL( 0)); 
     dStruct->InitTag("WINDOW",     DLongGDL( -1)); 
     dStruct->InitTag("UNIT",       DLongGDL( 0)); 
-    dStruct->InitTag("FLAGS",      DLongGDL( 0)); 
-    dStruct->InitTag("ORIGIN",     DLongGDL( 0)); 
-    dStruct->InitTag("ZOOM",       DLongGDL( 0)); 
+    dStruct->InitTag("FLAGS",      DLongGDL( 266807)); 
+    dStruct->InitTag("ORIGIN",     origin); 
+    dStruct->InitTag("ZOOM",       zoom); 
   }
   
   ~DevicePS()

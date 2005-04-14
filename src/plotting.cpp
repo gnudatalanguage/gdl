@@ -33,9 +33,12 @@ namespace lib {
 
   void device( EnvT* e)
   {
+    // CLOSE for z-buffer device
     static int closeFileIx = e->KeywordIx( "CLOSE_FILE"); 
     static int fileNameIx = e->KeywordIx( "FILENAME"); 
     static int decomposedIx = e->KeywordIx( "DECOMPOSED"); 
+    static int z_bufferingIx = e->KeywordIx( "Z_BUFFERING"); 
+    static int set_resolutionIx = e->KeywordIx( "SET_RESOLUTION"); 
     //    static int landscapeIx = e->KeywordIx( "LANDSCAPE"); 
     //    static int portraitIx = e->KeywordIx( "PORTRAIT");
  
@@ -49,6 +52,35 @@ namespace lib {
 		    "keyword CLOSE_FILE.");
       }
 
+    BaseGDL* z_buffering = e->GetKW( z_bufferingIx);
+    if( z_buffering != NULL)
+      {
+	bool success = actDevice->ZBuffering( e->KeywordSet( z_bufferingIx));
+	if( !success)
+	  e->Throw( "Current device does not support "
+		    "keyword Z_BUFFERING.");
+      }
+
+    BaseGDL* set_resolution = e->GetKW( set_resolutionIx);
+    if( set_resolution != NULL)
+      {
+	DLongGDL* resolution = e->GetKWAs<DLongGDL>( set_resolutionIx);
+	if( resolution->N_Elements() != 2)
+	  e->Throw( "Keyword array parameter SET_RESOLUTION must have "
+		    "2 elements.");
+	DLong x = (*resolution)[0];
+	DLong y = (*resolution)[1];
+
+	if( x<0 || y<0)
+	  e->Throw( "Value of Resolution is out of allowed range.");
+
+	bool success = actDevice->SetResolution( x, y);
+	if( !success)
+	  e->Throw( "Current device does not support "
+		    "keyword SET_RESOLUTION.");
+      }
+
+
     BaseGDL* decomposed = e->GetKW( decomposedIx);
     if( decomposed != NULL)
 	{
@@ -56,7 +88,7 @@ namespace lib {
 	  if( !success)
 	    e->Throw( "Current device does not support "
 		      "keyword DECOMPOSED.");
-	}
+ 	}
 
     BaseGDL* fileName = e->GetKW( fileNameIx);
     if( fileName != NULL)
