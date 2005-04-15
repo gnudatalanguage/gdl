@@ -219,7 +219,7 @@ public:
       }
 
     actX = nx;
-    actX = ny;
+    actY = ny;
 
     return true;
   }
