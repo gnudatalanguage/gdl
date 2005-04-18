@@ -537,9 +537,8 @@ public:
     actStream->NextPlot( false);
 
     int xSize, ySize, xPos, yPos;
-    int actWin = /* actDevice-> */ ActWin();
-    bool success = /* actDevice-> */ 
-      WSize( actWin, &xSize, &ySize, &xPos, &yPos);
+    int actWin = ActWin();
+    bool success = WSize( actWin, &xSize, &ySize, &xPos, &yPos);
 
     actStream->vpor( 0, 1.0, 0, 1.0);
     actStream->wind( 1-xLL, xSize-xLL, 1-yLL, ySize-yLL);
