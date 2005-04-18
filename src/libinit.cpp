@@ -457,6 +457,62 @@ void LibInit()
 
   new DLibPro(lib::plots, string("PLOTS"), 3, plotsKey);
 
+  const string surfaceKey[]=
+    {
+     // GRAPHIC KEYWORDS
+     // 0
+     "BACKGROUND","CHARSIZE","CHARTHICK","CLIP",
+     // 4
+     "COLOR",     "DATA",    "DEVICE",   "FONT",
+     // 8
+     "LINESTYLE", "NOCLIP",  "NODATA",   "NOERASE", 
+     // 12
+     "NORMAL",    "POSITION",     "SUBTITLE",
+     // 15
+     "T3D",     "THICK",    "TICKLEN", 
+     // 18
+     "TITLE",
+     // 19
+     "XCHARSIZE",    "XGRIDSTYLE", "XMARGIN", "XMINOR",
+     // 23
+     "XRANGE",       "XSTYLE",     "XTHICK",  "XTICKFORMAT",
+     // 27
+     "XTICKINTERVAL","XTICKLAYOUT","XTICKLEN","XTICKNAME",
+     // 31
+     "XTICKS",       "XTICKUNITS", "XTICKV",  "XTICK_GET",
+     // 35
+     "XTITLE",
+     // 36
+     "YCHARSIZE",    "YGRIDSTYLE", "YMARGIN", "YMINOR",
+     // 40
+     "YRANGE",       "YSTYLE",     "YTHICK",  "YTICKFORMAT",
+     // 44
+     "YTICKINTERVAL","YTICKLAYOUT","YTICKLEN","YTICKNAME",
+     // 48
+     "YTICKS",       "YTICKUNITS", "YTICKV",  "YTICK_GET",
+     // 52
+     "YTITLE",
+     // 53
+     "ZCHARSIZE",    "ZGRIDSTYLE", "ZMARGIN", "ZMINOR",
+     // 57
+     "ZRANGE",       "ZSTYLE",     "ZTHICK",  "ZTICKFORMAT",
+     // 61
+     "ZTICKINTERVAL","ZTICKLAYOUT","ZTICKLEN","ZTICKNAME",
+     // 65
+     "ZTICKS",       "ZTICKUNITS", "ZTICKV",  "ZTICK_GET",
+     // 69
+     "ZTITLE",
+     // 70
+     "ZVALUE", 
+
+     // SURFACE keywords
+     // 73
+     "MAX_VALUE", "MIN_VALUE","AX", "AZ"
+     "XLOG",     "YLOG",     "ZLOG", 
+     KLISTEND
+    };
+  new DLibPro(lib::surface,string("SURFACE"),3,surfaceKey);
+
   const string xyoutsKey[]=
     {
       "COLOR","DATA","NORMAL","DEVICE","CLIP",

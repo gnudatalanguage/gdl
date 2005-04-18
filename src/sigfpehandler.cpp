@@ -17,12 +17,16 @@
 
 #include <csetjmp>
 
+#include "gdlexception.hpp"
+
 //#include "sigfpehandler.hpp"
 
 sigjmp_buf sigFPEJmpBuf;
 
 // this is only called from integer division by zero
+// and intager modulo division by zero
 void SigFPEHandler( int signo) 
 {
+  Warning( "Program caused arithmetic error: Integer divide by 0");
   siglongjmp( sigFPEJmpBuf,-1);
 } 

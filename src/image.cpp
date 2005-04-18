@@ -46,11 +46,10 @@ namespace lib {
     e->AssureLongScalarPar( 0, iCT);
 
     if( iCT < 0 || iCT > 40)
-      throw GDLException( e->CallingNode(), 
-  			  "LOADCT: Table number must be from 0 to 40.");
+      e->Throw( "Table number must be from 0 to 40.");
 
     Graphics* actDevice = Graphics::GetDevice();
-    GDLGStream* actStream = actDevice->GetStream();
+    GDLGStream* actStream = actDevice->GetStream( false); // no open
 
     Graphics::LoadCT( iCT);
 
@@ -66,7 +65,6 @@ namespace lib {
 
     if (actStream != NULL)
       actStream->scmap1( rint, gint, bint, 256 );
-
   }
 
 

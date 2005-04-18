@@ -119,9 +119,13 @@ public:
     delete actStream;
   }
 
-  GDLGStream* GetStream()
+  GDLGStream* GetStream( bool open=true)
   {
-    if( actStream == NULL) InitStream();
+    if( actStream == NULL) 
+      {
+	if( !open) return NULL;
+	InitStream();
+      }
     return actStream;
   }
 

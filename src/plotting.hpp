@@ -27,6 +27,7 @@ namespace lib {
   void plot( EnvT* e);
   void oplot( EnvT* e);
   void plots( EnvT* e);
+  void surface( EnvT* e);
   void xyouts( EnvT* e);
   void wset( EnvT* e);
   void window( EnvT* e);

@@ -1386,7 +1386,7 @@ Data_<Sp>* Data_<Sp>::Div( BaseGDL* r)
     }
   else
     {
-      bool zeroEncountered = false;
+      bool zeroEncountered = false; // until zero operation is already done.
       if( !right->Scalar(s)) 
 	{
 	  for( SizeT i=0; i < sEl; i++)
@@ -1518,18 +1518,52 @@ Data_<Sp>* Data_<Sp>::Mod( BaseGDL* r)
   ULong sEl=N_Elements();
   if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
-  if( right->Scalar(s)) 
+
+  if( sigsetjmp( sigFPEJmpBuf, 1) == 0)
     {
-      for( SizeT i=0; i < sEl; i++)
-	dd[i] %= s;
+      if( right->Scalar(s)) 
+	{
+	  for( SizeT i=0; i < sEl; i++)
+	    dd[i] %= s;
+	}
+      else 
+	{
+	  for( SizeT i=0; i < sEl; i++)
+	    dd[i] %= right->dd[i];
+	}
+      delete right;
+      return this;
     }
-  else 
+  else
     {
-      for( SizeT i=0; i < sEl; i++)
-	dd[i] %= right->dd[i];
+      bool zeroEncountered = false; // until zero operation is already done.
+      
+      if( right->Scalar(s)) 
+	{
+	  assert( s == this->zero);
+	  for( SizeT i=0; i < sEl; i++)
+	    dd[i] = 0;
+	}
+      else
+	{
+	  for( SizeT i=0; i < sEl; i++)
+	    if( !zeroEncountered)
+	      {
+		if( right->dd[i] == this->zero)
+		  {
+		    zeroEncountered = true;
+		    dd[i] = this->zero;
+		  }
+	      }
+	    else
+	      if( right->dd[i] != this->zero) 
+		dd[i] %= right->dd[i];
+	      else
+		dd[i] = this->zero;
+	}
+      delete right;
+      return this;
     }
-  delete right;
-  return this;
 }
 // inverse modulo division: left=right % left
 template<class Sp>
@@ -1541,18 +1575,65 @@ Data_<Sp>* Data_<Sp>::ModInv( BaseGDL* r)
   ULong sEl=N_Elements();
   if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
-  if( right->Scalar(s)) 
+
+  if( sigsetjmp( sigFPEJmpBuf, 1) == 0)
     {
-      for( SizeT i=0; i < sEl; i++)
-	dd[i] = s % dd[i];
+      if( right->Scalar(s)) 
+	{
+
+	  for( SizeT i=0; i < sEl; ++i)
+	    {
+	      dd[i] = s % dd[i];
+	    }
+	}
+      else 
+	{
+	  for( SizeT i=0; i < sEl; ++i)
+	    dd[i] = right->dd[i] % dd[i];
+	}
+      delete right;
+      return this;
     }
-  else 
+  else
     {
-      for( SizeT i=0; i < sEl; i++)
-	dd[i] = right->dd[i] % dd[i];
-    }
-  delete right;
-  return this;
+      bool zeroEncountered = false;
+      if( right->Scalar(s)) 
+	{
+	  for( SizeT i=0; i < sEl; i++)
+	    if( !zeroEncountered)
+	      {
+		if( dd[i] == this->zero)
+		  {
+		    zeroEncountered = true;
+		    dd[i] = this->zero;
+		  }
+	      }
+	    else
+	      if( dd[i] != this->zero) 
+		dd[i] = s % dd[i]; 
+	      else 
+		dd[i] = this->zero;
+	}
+      else 
+	{
+	  for( SizeT i=0; i < sEl; i++)
+	    if( !zeroEncountered)
+	      {
+		if( dd[i] == this->zero)
+		  {
+		    zeroEncountered = true;
+		    dd[ i] = this->zero;
+		  }
+	      }
+	    else
+	      if( dd[i] != this->zero) 
+		dd[i] = right->dd[i] % dd[i]; 
+	      else
+		dd[i] = this->zero;
+	}
+      delete right;
+      return this;
+    }    
 }
 // float modulo division: left=left % right
 inline DFloat Modulo( const DFloat& l, const DFloat& r)

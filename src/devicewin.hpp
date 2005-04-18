@@ -274,7 +274,7 @@ public:
   }
 
   // should check for valid streams
-  GDLGStream* GetStream()
+  GDLGStream* GetStream( bool open=true)
   {
     ProcessDeleted();
     if( actWin == -1) return NULL;

@@ -148,7 +148,7 @@ public:
   
   const DString     Name() { return name;}
 
-  virtual GDLGStream* GetStream()                     { return NULL;}
+  virtual GDLGStream* GetStream( bool open=true)      { return NULL;}
   virtual bool WSet( int ix)                          { return false;}
   virtual int  WAdd()                                 { return false;}
   virtual bool WOpen( int ix, const std::string& title,

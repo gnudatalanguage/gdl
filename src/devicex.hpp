@@ -145,7 +145,7 @@ class DeviceX: public Graphics
 
 	}
 
-	//	cout << "XPutPixel:\n"<<kx<<"  "<< dev->height-1-ky << endl;
+	//std::cout << "XPutPixel:\n"<<kx<<"  "<< dev->height-ky << std::endl;
 	XPutPixel(ximg, kx, dev->height-1-ky, curcolor.pixel);
       }
     }
@@ -431,10 +431,23 @@ public:
   }
 
   // should check for valid streams
-  GDLGStream* GetStream()
+  GDLGStream* GetStream( bool open=true)
   {
     ProcessDeleted();
-    if( actWin == -1) return NULL;
+    if( actWin == -1)
+      {
+	if( !open) return NULL;
+
+	DString title = "GDL 0";
+	bool success = WOpen( 0, title, 640, 512, 0, 0);
+	if( !success)
+	  return NULL;
+	if( actWin == -1)
+	  {
+	    std::cerr << "Internal error: plstream not set." << std::endl;
+	    exit( EXIT_FAILURE);
+	  }
+      }
     return winList[ actWin];
   }
 
@@ -514,20 +527,11 @@ public:
       e->AssureLongScalarPar( 2, yLL);
     }
 
-    GDLGStream* actStream = /* actDevice-> */ GetStream();
+    GDLGStream* actStream = GetStream();
     if( actStream == NULL)
       {
-	DString title = "GDL 0";
-	bool success = /* actDevice-> */ WOpen( 0, title, 640, 512, 0, 0);
-	if( !success)
-	  throw GDLException( e->CallingNode(), 
-			      "TV: Unable to create window.");
-	actStream = /* actDevice-> */ GetStream();
-	if( actStream == NULL)
-	  {
-	    std::cerr << "TV: Internal error: plstream not set." << std::endl;
-	    exit( EXIT_FAILURE);
-	  }
+	std::cerr << "TV: Internal error: plstream not set." << std::endl;
+	exit( EXIT_FAILURE);
       }
 
     actStream->NextPlot( false);

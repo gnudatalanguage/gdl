@@ -118,5 +118,6 @@
 	  Added NAN keywords to BYTSCL, MIN, MAX.
 	  Added SUBSCRIPT_MIN/MAX keywords to MAX/MIN.
 	  Added NTOHL, NTOHS, HTONL, HTONS keywords to BYTEORDER.
-
+	  Added z-buffer device
+	  Fixed MOD division by zero for integers.
 	
