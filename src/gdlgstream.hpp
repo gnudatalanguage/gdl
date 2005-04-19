@@ -49,6 +49,8 @@ public:
   virtual void EventHandler() {}
   virtual void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);
 
+  virtual void eop()          { plstream::eop();}
+
   bool Valid() { return valid;}
 
   void Clear();

@@ -31,6 +31,8 @@ public:
   ~GDLZStream()
   {
   }
+
+  void eop() {} // never eop (sets pls->dev to NULL)
   
   void Init();
 };
