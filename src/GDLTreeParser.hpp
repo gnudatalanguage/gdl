@@ -56,11 +56,12 @@ public:
 	public: void procedure_def(RefDNode _t);
 	public: void function_def(RefDNode _t);
 	public: void forward_function(RefDNode _t);
+	public: void main_program(RefDNode _t);
 	public: void interactive(RefDNode _t);
 	public: void statement(RefDNode _t);
+	public: void statement_list(RefDNode _t);
 	public: void parameter_declaration(RefDNode _t);
 	public: void keyword_declaration(RefDNode _t);
-	public: void statement_list(RefDNode _t);
 	public: void common_block(RefDNode _t);
 	public: void caseswitch_body(RefDNode _t);
 	public: void expr(RefDNode _t);

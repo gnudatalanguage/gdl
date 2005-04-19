@@ -281,7 +281,7 @@ bool GDLInterpreter::CompileFile(const string& f, const string& untilPro)
   cout << "Parser output:" << endl;
   antlr::print_tree pt;
   pt.pr_tree(static_cast<antlr::RefAST>(theAST));
-  cout << "Parser end." << endl;
+  cout << "CompileFile: Parser end." << endl;
 #endif
   
 #ifdef GDL_DEBUG
@@ -315,7 +315,7 @@ bool GDLInterpreter::CompileFile(const string& f, const string& untilPro)
 #ifdef GDL_DEBUG
       cout << "Tree parser output:" << endl;
       pt.pr_tree(static_cast<antlr::RefAST>(trAST));
-      cout << "Tree parser end." << endl;
+      cout << "CompileFile: Tree parser end." << endl;
 #endif
   
   return true;
@@ -560,7 +560,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( ifstream* in)
   antlr::print_tree pt;
   cout << "Parser output:" << endl;
   pt.pr_tree(static_cast<antlr::RefAST>(theAST));
-  cout << "Parser end." << endl;
+  cout << "ExecuteLine: Parser end." << endl;
 #endif
 
   RefDNode trAST;
@@ -592,7 +592,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( ifstream* in)
 #ifdef GDL_DEBUG
   cout << "Tree parser output:" << endl;
   pt.pr_tree(static_cast<antlr::RefAST>(trAST));
-  cout << "Tree parser end." << endl;
+  cout << "ExecuteLine: Tree parser end." << endl;
 #endif
 
   try

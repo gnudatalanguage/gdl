@@ -53,6 +53,7 @@ struct LabelT
 class LabelListT
 {
   std::vector<LabelT> list;
+
 public:
   LabelListT(): list() {}
   ~LabelListT() {}
@@ -77,7 +78,10 @@ public:
   {
     return list[ ix].label;
   }
-
+  void Clear()
+  {
+    list.clear();
+  }
 };
 
 // Fun/Pro classes *****************************************************

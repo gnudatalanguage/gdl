@@ -74,6 +74,7 @@ public:
 #endif
   }
   
+  // this is executed at the beginning (gdl.cpp)
   DInterpreter(): GDLInterpreter()
   {
     

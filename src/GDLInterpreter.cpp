@@ -5677,6 +5677,7 @@ const char* GDLInterpreter::tokenNames[] = {
 	"UMINUS",
 	"VAR",
 	"VARPTR",
+	"\"end\"",
 	"\"function\"",
 	"\"pro\"",
 	"IDENTIFIER",
@@ -5691,7 +5692,6 @@ const char* GDLInterpreter::tokenNames[] = {
 	"END_U",
 	"\"forward_function\"",
 	"EQUAL",
-	"\"end\"",
 	"\"compile_opt\"",
 	"\"common\"",
 	"\"endif\"",
@@ -5819,7 +5819,7 @@ const char* GDLInterpreter::tokenNames[] = {
 	0
 };
 
-const unsigned long GDLInterpreter::_tokenSet_0_data_[] = { 3767541792UL, 1573760UL, 786450UL, 251648UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLInterpreter::_tokenSet_0_data_[] = { 3767541792UL, 1573760UL, 786468UL, 251648UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN BLOCK FOR_STEP IF_ELSE LABEL MPCALL MPCALL_PARENT ON_IOERROR_NULL 
 // PCALL PCALL_LIB RETF RETP "switch" "case" DEC INC "break" "continue" 
 // "repeat" "while" "for" "goto" "on_ioerror" "if" 

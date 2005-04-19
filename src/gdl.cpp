@@ -91,6 +91,7 @@ int main(int argc, char *argv[])
     
   StartupMessage();
 
+  // instantiate the interpreter
   DInterpreter interpreter;
 
   string gdlPath=GetEnvString("GDL_PATH");

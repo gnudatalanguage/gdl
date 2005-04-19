@@ -78,10 +78,10 @@ class DeviceZ: public Graphics
   void DeleteStream()
   {
     // note: the plplot documentation says that the user has to
-    //       free this buffer, but plplot does it itself
+    //       free this buffer, but plplot does it itself.
     //       even worse: it does it with 'free'
-    //    delete[] memBuffer; memBuffer = NULL;
     delete actStream; actStream = NULL;
+    // delete[] memBuffer; memBuffer =  NULL;
     memBuffer =  NULL;
   }
 
@@ -104,7 +104,10 @@ class DeviceZ: public Graphics
     // here we allocate the memory
     // plplot frees this with 'free'
     //    memBuffer = new char[ actX * actY * 3];
-    memBuffer = (char*) malloc( sizeof( char) * actX * actY * 3);
+    //    memBuffer = (char*) malloc( sizeof( char) * actX * actY * 3);
+    // plplot mem driver error, lines could be drawn upto actY (rather that
+    // actY-1)
+    memBuffer = (char*) malloc( sizeof( char) * actX * (actY+1) * 3);
     
     // make it known to plplot
     plsmem( actX, actY, memBuffer);

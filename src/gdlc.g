@@ -153,7 +153,8 @@ translation_unit
     subReached=false;
     compileOpt=NONE; // reset compileOpt    
 }
-    :   ( end_unit
+    :   ( options {greedy=true;}: end_unit
+        | forward_function end_unit
         | procedure_def 
             { 
                 compileOpt=NONE; // reset compileOpt    
@@ -164,8 +165,11 @@ translation_unit
                 compileOpt=NONE; // reset compileOpt    
                 if( subReached) goto bailOut;
             }
-        | forward_function end_unit)+
-        (EOF)   // braces necessary because goto crosses initialization otherwise
+        )+
+
+        ( statement_list END! (end_unit)? )? // $MAIN$ program
+
+        (EOF!)   // braces necessary because goto crosses initialization otherwise
         { bailOut:;} // bailout jump label
         // catch lexer exceptions also
         exception 

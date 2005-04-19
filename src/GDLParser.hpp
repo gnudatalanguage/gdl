@@ -88,9 +88,10 @@ public:
 	}
 	public: void translation_unit();
 	public: void end_unit();
+	public: void forward_function();
 	public: void procedure_def();
 	public: void function_def();
-	public: void forward_function();
+	public: void statement_list();
 	public: void interactive_compile();
 	public: void parameter_declaration();
 	public: void interactive();
@@ -101,7 +102,6 @@ public:
 	public: void expr();
 	public: void switch_body();
 	public: void endswitch_mark();
-	public: void statement_list();
 	public: void endswitchelse_mark();
 	public: void case_statement();
 	public: void case_body();
@@ -219,6 +219,8 @@ private:
 	static const antlr::BitSet _tokenSet_14;
 	static const unsigned long _tokenSet_15_data_[];
 	static const antlr::BitSet _tokenSet_15;
+	static const unsigned long _tokenSet_16_data_[];
+	static const antlr::BitSet _tokenSet_16;
 };
 
 #endif /*INC_GDLParser_hpp_*/

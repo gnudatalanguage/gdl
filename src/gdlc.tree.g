@@ -73,9 +73,13 @@ options {
 
 // file parsing
 translation_unit
-	: (   procedure_def
+	: (   options {greedy=true;}: procedure_def
 		| function_def
 		| forward_function)*
+        
+        // optional main program
+        ( main_program)?
+        
         exception 
         catch [ GDLException& e] 
         { 
@@ -112,6 +116,17 @@ interactive
             throw GDLException( e.getLine(), e.getColumn(), "General syntax error: "+e.getMessage());
         }
   ;
+
+main_program!
+    :   {
+            comp.StartPro( "$MAIN$");
+        }
+            statement_list
+        {
+            comp.SetTree( returnAST);
+            comp.EndPro();
+        }
+    ;
 
 forward_function!
 	: #(FORWARD 

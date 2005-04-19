@@ -127,10 +127,19 @@ void DCompiler::EndFunPro()   // resolve gotos, add common blocks
   ownCommonList.clear(); // not responsible anymore
 }
 
+
 void DCompiler::StartPro(const string& n,const string& o)
 {
   ClearOwnCommon();
-  pro = new DPro(n,o,actualFile);
+  if( n != "$MAIN$" || o != "")
+    {
+      pro = new DPro(n,o,actualFile);
+    }
+  else
+    {
+      env = GDLInterpreter::CallStack()[0];
+      pro = static_cast<DSubUD*>( env->GetPro());
+    }
 }
 
 void DCompiler::StartFun(const string& n,const string& o)
@@ -155,46 +164,53 @@ void DCompiler::EndPro() // inserts in proList
   const string& name=pro->Name();
   const string& o=pro->Object();
 
-  ProListT *searchList;
-  if( o == "")
-    searchList= &proList;
-  else
+  if( name != "$MAIN$" || o != "")
     {
-      // find struct 'id'
-      DStructDesc* dStruct=FindInStructList( structList, o);
-      if( dStruct == NULL) 
+      
+      ProListT *searchList;
+      if( o == "")
+	searchList= &proList;
+      else
 	{
-	  dStruct=new DStructDesc( o);
-	  structList.push_back( dStruct);
+	  // find struct 'id'
+	  DStructDesc* dStruct=FindInStructList( structList, o);
+	  if( dStruct == NULL) 
+	    {
+	      dStruct=new DStructDesc( o);
+	      structList.push_back( dStruct);
+	    }
+	  searchList = &dStruct->ProList();
 	}
-      searchList = &dStruct->ProList();
+      
+      // search/replace in proList
+      ProListT::iterator p=find_if((*searchList).begin(),(*searchList).end(),
+				   Is_eq<DPro>(name));
+      if( p != (*searchList).end()) 
+	{
+	  if( *p != NULL)
+	    {
+	      delete *p;
+	      if( IsActivePro( *p))
+		{
+		  Warning( "Procedure was compiled while active: "+
+			   pro->ObjectName()+". Returning.");
+		  activeProCompiled = true;
+		}
+	    }
+	  *p=static_cast<DPro*>(pro);
+	}
+      else
+	(*searchList).push_back(static_cast<DPro*>(pro));
     }
 
-  // search/replace in proList
-  ProListT::iterator p=find_if((*searchList).begin(),(*searchList).end(),
-			       Is_eq<DPro>(name));
-  if( p != (*searchList).end()) 
-    {
-      if( *p != NULL)
-	{
-	  delete *p;
-	  if( IsActivePro( *p))
-	    {
-	      Warning( "Procedure was compiled while active: "+
-		       pro->ObjectName()+". Returning.");
-	      activeProCompiled = true;
-	    }
-	}
-      *p=static_cast<DPro*>(pro);
-    }
-  else
-    (*searchList).push_back(static_cast<DPro*>(pro));
-  
   if( subRoutine == "" || subRoutine == pro->ObjectFileName())
     Message( "Compiled module: "+pro->ObjectName()+"."); 
 
   // reset pro // will be deleted otherwise
-  if( env != NULL) pro=dynamic_cast<DSubUD*>(env->GetPro()); else pro=NULL;
+  if( env != NULL) 
+    pro=dynamic_cast<DSubUD*>(env->GetPro()); 
+  else 
+    pro=NULL;
 }
 
 void DCompiler::EndFun() // inserts in funList

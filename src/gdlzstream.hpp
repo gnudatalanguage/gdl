@@ -18,6 +18,8 @@
 #ifndef GDLZSTREAM_HPP_
 #define GDLZSTREAM_HPP_
 
+#include <iostream>
+
 #include "gdlgstream.hpp"
 
 class GDLZStream: public GDLGStream
@@ -32,7 +34,7 @@ public:
   {
   }
 
-  void eop() {} // never eop (sets pls->dev to NULL)
+  void eop() {} // never eop (mem drivers eop() sets pls->dev to NULL)
   
   void Init();
 };
