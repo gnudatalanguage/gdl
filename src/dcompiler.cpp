@@ -127,6 +127,13 @@ void DCompiler::EndFunPro()   // resolve gotos, add common blocks
   ownCommonList.clear(); // not responsible anymore
 }
 
+void DCompiler::EndInteractiveStatement() // add common blocks
+{
+  for( CommonListT::iterator c = ownCommonList.begin();
+       c != ownCommonList.end(); ++c)
+    commonList.push_back( *c);
+  ownCommonList.clear(); // not responsible anymore
+}
 
 void DCompiler::StartPro(const string& n,const string& o)
 {

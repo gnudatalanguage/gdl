@@ -99,7 +99,7 @@ translation_unit
 
 // intercative usage
 interactive
-  : (statement)+
+    : (statement { comp.EndInteractiveStatement();})+
         exception 
         catch [ GDLException& e] 
         { 

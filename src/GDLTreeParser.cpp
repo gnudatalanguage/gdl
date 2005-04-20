@@ -690,6 +690,7 @@ void GDLTreeParser::interactive(RefDNode _t) {
 				statement(_t);
 				_t = _retTree;
 				astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+				comp.EndInteractiveStatement();
 			}
 			else {
 				if ( _cnt7>=1 ) { goto _loop7; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}

@@ -65,6 +65,7 @@ public:
   void AddKey(const std::string&,const std::string&);   // add keyword,varName
   void StartPro(const std::string&,const std::string& o = "");     
   void EndFunPro();       
+  void EndInteractiveStatement();
   void EndPro();       
   void StartFun(const std::string&,const std::string& o = "");
   void EndFun();  

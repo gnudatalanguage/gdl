@@ -248,7 +248,12 @@ public:
   void AddCommon(DCommonBase* c) { common.push_back(c);}
   
   LabelListT& LabelList() { return labelList;}
-  DNode* GotoTarget( int ix) { return labelList.Get( ix);} 
+  DNode* GotoTarget( int ix) 
+  { 
+    if( ix >= labelList.Size())
+      throw GDLException( "Undefined label.");
+    return labelList.Get( ix);
+  } 
 //   int LabelOrd( int ix) { return labelList.GetOrd( ix);} 
   int NDefLabel() { return labelList.Size();} 
 
