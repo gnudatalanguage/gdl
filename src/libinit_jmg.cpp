@@ -93,6 +93,8 @@ void LibInit_jmg()
 
   new DLibPro(lib::linkimage,string("LINKIMAGE"),4);
 
+  new DLibPro(lib::wait,string("WAIT"),1);
+
 #if defined(USE_HDF)
   const string hdf_openKey[]={"READ","RDWR","CREATE",KLISTEND};
   new DLibFun(lib::hdf_open_fun,string("HDF_OPEN"),2,hdf_openKey);

@@ -141,4 +141,27 @@ namespace lib {
     }
   }
 
+  void wait( EnvT* e) 
+  { 
+    time_t now;
+    time_t later;
+
+    e->NParam( 1);//, "WAIT");
+
+    DDouble waittime;
+    e->AssureDoubleScalarPar( 0, waittime);
+
+    if( waittime < 0)
+      throw GDLException( e->CallingNode(), 
+  			  "WAIT:  Argument must be non-negative"
+			  +e->GetParString( 0));
+
+    now = time((time_t *)NULL);
+    later = time((time_t *)NULL);
+
+    while ( difftime(later, now) < waittime ) {
+      later = time((time_t *)NULL);
+    }
+  }
+
 } // namespace

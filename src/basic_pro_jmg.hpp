@@ -19,11 +19,13 @@
 #define BASIC_PRO_JMG_HPP_
 
 #include <dlfcn.h>
+#include <time.h>
 
 namespace lib {
 
   void point_lun( EnvT* e);
   void linkimage( EnvT* e);
+  void wait( EnvT* e);
 
 } // namespace
 
