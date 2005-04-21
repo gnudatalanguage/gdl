@@ -120,4 +120,5 @@
 	  Added NTOHL, NTOHS, HTONL, HTONS keywords to BYTEORDER.
 	  Added z-buffer device
 	  Fixed MOD division by zero for integers.
-	
+	  Support for files with main programs.
+	  Fixed COMMON and GOTO for interactive use.	

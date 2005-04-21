@@ -59,6 +59,8 @@ private:
 
   // execute GDL command (.run, .step, ...)
   CommandCode ExecuteCommand(const std::string& command);
+  CommandCode CmdCompile(const std::string& command);
+  CommandCode CmdRun(const std::string& command);
 
   // execute OS shell command (interactive shell if command == "") 
   static void ExecuteShellCommand(const std::string& command);
@@ -105,6 +107,8 @@ public:
 
   // the main program for interactive mode
   GDLInterpreter::RetCode InterpreterLoop();  
+  // called within InterpreterLoop()
+  GDLInterpreter::RetCode InnerInterpreterLoop();  
 };
 
 #endif

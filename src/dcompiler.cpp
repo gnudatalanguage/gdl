@@ -96,6 +96,7 @@ void DCompiler::EndFunPro()   // resolve gotos, add common blocks
 {
   if( labelList.size() > 0)
     {
+      // label - target DNode* (other type than this->labelList)
       LabelListT& ll = pro->LabelList();
       
       for(map<string,deque<RefDNode> >::iterator i=labelList.begin(); 
@@ -109,6 +110,7 @@ void DCompiler::EndFunPro()   // resolve gotos, add common blocks
 				": Undefined label "+gotoLabel+
 				" referenced in GOTO statement."));
 	  
+	  // set the nodes of the actual tree to the appropiate index
 	  deque<RefDNode>& gotoNodes = (*i).second;
 	  for( deque<RefDNode>::iterator gN = gotoNodes.begin();
 	       gN != gotoNodes.end(); ++gN)
@@ -146,6 +148,7 @@ void DCompiler::StartPro(const string& n,const string& o)
     {
       env = GDLInterpreter::CallStack()[0];
       pro = static_cast<DSubUD*>( env->GetPro());
+      pro->DelTree();
     }
 }
 

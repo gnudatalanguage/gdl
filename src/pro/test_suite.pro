@@ -827,3 +827,10 @@ left_libfunction_test
 
 print,"TEST_SUITE finished."
 end
+
+
+;; main program
+print,'TEST_SUITE main program called.'
+test_suite
+
+end

@@ -158,6 +158,31 @@ DSubUD::DSubUD(const string& n,const string& o,const string& f) :
     AddPar( "SELF");
 }
 
+// for .RNEW and $MAIN$
+// clears all COMMON blocks, VARIABLES, JUMPLABELS and the CODE
+// name, keywords etc. are kept
+void DSubUD::Reset()
+{
+  var.clear();
+
+  // delete only common references (common blocks only if owner)
+  CommonBaseListT::iterator it;
+  for( it=common.begin(); it !=common.end(); ++it)
+    {
+      DCommonRef* cRef=dynamic_cast<DCommonRef*>(*it);
+      delete cRef; // also ok if cRef is NULL
+    }
+  common.clear();
+
+  DelTree();
+}
+
+void DSubUD::DelTree()
+{
+  labelList.Clear(); // labels are invalid after tree is deleted
+  tree = static_cast<RefDNode>(antlr::nullAST);
+}
+
 void DSubUD::AddPar(const string& p)
 {
   var.push_back(p);

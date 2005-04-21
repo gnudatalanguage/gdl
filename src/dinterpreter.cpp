@@ -321,6 +321,125 @@ bool GDLInterpreter::CompileFile(const string& f, const string& untilPro)
   return true;
 }      
 
+DInterpreter::CommandCode DInterpreter::CmdCompile( const string& command)
+{
+  string cmdstr = command;
+  int sppos = cmdstr.find(" ",0);
+  if (sppos == string::npos) 
+    {
+      cout << "Interactive COMPILE not implemented yet." << endl;
+      return CC_OK;
+    }
+      
+  bool retAll = false; // Remember if Retall is needed
+
+  // Parse each file name
+  int pos = sppos + 1;
+  while (pos < command.length()) 
+    {
+      sppos = command.find(" ",pos);
+      if (sppos == string::npos) sppos = command.length();
+
+      // Found a file
+      if ((sppos - pos) > 0) 
+	{
+	  string argstr  = command.substr(pos, sppos-pos);
+	  string origstr = argstr;
+
+	  if( argstr.length() <= 4 ||
+	      StrLowCase( argstr.substr(argstr.length()-4,4)) != ".pro")
+	    {
+	      argstr += ".pro";
+	    }
+	  
+	  bool found = CompleteFileName(argstr);
+	  if (found) 
+	    {
+	      try {
+		// default is more verbose
+		CompileFile( argstr); //, origstr); 
+	      }
+	      catch( RetAllException)
+		{
+		  // delay the RetAllException until finished
+		  retAll = true;
+		}
+	    } 
+	  else 
+	    {
+	      Message( "Error opening file. File: "+origstr+".");
+	      return CC_OK;
+	    }
+	}
+      pos = sppos + 1;
+    }
+  if( retAll) RetAll();
+
+  return CC_OK;
+}
+
+DInterpreter::CommandCode DInterpreter::CmdRun( const string& command)
+{
+  string cmdstr = command;
+  int sppos = cmdstr.find(" ",0);
+  if (sppos == string::npos) 
+    {
+      cout << "Interactive RUN not implemented yet." << endl;
+      return CC_OK;
+    }
+      
+  bool retAll = false; // Remember if Retall is needed
+
+  // Parse each file name
+  int pos = sppos + 1;
+  while (pos < command.length()) 
+    {
+      sppos = command.find(" ",pos);
+      if (sppos == string::npos) sppos = command.length();
+
+      // Found a file
+      if ((sppos - pos) > 0) 
+	{
+	  string argstr  = command.substr(pos, sppos-pos);
+	  string origstr = argstr;
+
+	  if( argstr.length() <= 4 ||
+	      StrLowCase( argstr.substr(argstr.length()-4,4)) != ".pro")
+	    {
+	      argstr += ".pro";
+	    }
+	  
+	  bool found = CompleteFileName(argstr);
+	  if (found) 
+	    {
+	      try {
+		// default is more verbose
+		CompileFile( argstr); //, origstr); 
+	      }
+	      catch( RetAllException)
+		{
+		  // delay the RetAllException until finished
+		  retAll = true;
+		}
+	    } 
+	  else 
+	    {
+	      Message( "Error opening file. File: "+origstr+".");
+	      return CC_OK;
+	    }
+	}
+      pos = sppos + 1;
+    }
+  if( retAll) 
+    Warning( "You compiled a main program while inside a procedure. "
+	     "Returning.");
+
+  // actual run is perfomed in InterpreterLoop()
+  RetAll( RetAllException::RUN); // throws (always)
+  //  return CC_OK;
+}
+
+
 // execute GDL command (.run, .step, ...)
 DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command)
 {
@@ -336,56 +455,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command)
 
   if( cmd( "COMPILE"))
     {
-      if (sppos == string::npos) 
-	{
-	  cout << "Interactive COMPILE not implemented yet." << endl;
-	  return CC_OK;
-	}
-      
-      bool retAll = false; // Remember if Retall is needed
-
-      // Parse each file name
-      int pos = sppos + 1;
-      while (pos < command.length()) 
-	{
-	  sppos = command.find(" ",pos);
-	  if (sppos == string::npos) sppos = command.length();
-
-	  // Found a file
-	  if ((sppos - pos) > 0) 
-	    {
-	      string argstr  = command.substr(pos, sppos-pos);
-	      string origstr = argstr;
-
-	      if( argstr.length() <= 4 ||
-		  StrLowCase( argstr.substr(argstr.length()-4,4)) != ".pro")
-		{
-		  argstr += ".pro";
-		}
-	  
-	      bool found = CompleteFileName(argstr);
-	      if (found) 
-		{
-		  try {
-		    CompileFile( argstr); //, origstr); // default is more verbose
-		  }
-		  catch( RetAllException)
-		    {
-		      // delay the RetAllException until finished
-		      retAll = true;
-		    }
-		} 
-	      else 
-		{
-		  Message( "Error opening file. File: "+origstr+".");
-		  return CC_OK;
-		}
-	    }
-	  pos = sppos + 1;
-	}
-      if( retAll) RetAll();
-
-      return CC_OK;
+      return CmdCompile( command);
     }
   if( cmd( "CONTINUE"))
     {
@@ -428,8 +498,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command)
     }
   if( cmd( "RUN"))
     {
-      cout << "RUN not implemented yet." << endl;
-      return CC_OK;
+      return CmdRun( command);
     }
   if( cmd( "SIZE"))
     {
@@ -456,6 +525,8 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command)
       cout << "TRACE not implemented yet." << endl;
       return CC_OK;
     }
+  cout << SysVar::MsgPrefix() << 
+    "Unknown command: "<< command << endl;
   return CC_OK; // get rid of warning
 }
 
@@ -709,32 +780,87 @@ string DInterpreter::GetLine()
 }
 
 // reads user input and executes it
+// inner loop (called via Control-C, STOP, error)
+GDLInterpreter::RetCode DInterpreter::InnerInterpreterLoop()
+{
+
+  for (;;) {
+    feclearexcept(FE_ALL_EXCEPT);
+
+//     try
+//       {
+    DInterpreter::CommandCode ret=ExecuteLine();
+    if( ret == CC_RETURN) return RC_RETURN;
+    if( ret == CC_CONTINUE) return RC_OK; 
+//        }
+//     catch( RetAllException&)
+//       {
+//  	throw;
+//       }
+//     catch( exception& e)
+//       {
+// 	cerr << "InnerInterpreterLoop: Exception: " << e.what() << endl;
+//       }
+//     catch (...)
+//       {	
+// 	cerr << "InnerInterpreterLoop: Unhandled Error." << endl;
+//       }
+  }
+}
+
+// reads user input and executes it
 // the main loop
 GDLInterpreter::RetCode DInterpreter::InterpreterLoop()
 {
+  bool runCmd = false; // should tree from $MAIN$ be executed?
+  bool continueCmd = false; // .CONTINUE command given already?
 
   for (;;) {
     feclearexcept(FE_ALL_EXCEPT);
 
     try
       {
-	DInterpreter::CommandCode ret=ExecuteLine();
-	if( ret == CC_RETURN)
+	if( runCmd)
 	  {
-	    if( callStack.size() > 1) return RC_RETURN;
+	  if( static_cast<DSubUD*>
+	      (callStack.back()->GetPro())->GetTree() !=
+	      static_cast<RefDNode>(antlr::nullAST))           
+	    call_pro(static_cast<DSubUD*>
+		     (callStack.back()->GetPro())->GetTree());
+
+	  runCmd = false;
+	  continueCmd = false;
 	  }
-	if( ret == CC_CONTINUE)
+	else
 	  {
-	    if( callStack.size() > 1) return RC_OK; 
-	    cout << SysVar::MsgPrefix() << 
-	      "Cannot continue from this point." << endl;
+	    DInterpreter::CommandCode ret=ExecuteLine();
+
+	    if( ret == CC_CONTINUE)
+	      {
+		if( static_cast<DSubUD*>
+		    (callStack.back()->GetPro())->GetTree() !=
+		    static_cast<RefDNode>(antlr::nullAST))           
+		  {
+		    if( continueCmd) 
+		      runCmd = true;
+		    else
+		      {
+			cout << SysVar::MsgPrefix() << 
+			  "Starting at: $MAIN$" << endl;
+			continueCmd = true;
+		      }
+		  }
+		else
+		  cout << SysVar::MsgPrefix() << 
+		    "Cannot continue from this point." << endl;
+	      }
 	  }
       }
-    catch( RetAllException)
+    catch( RetAllException& retAllEx)
       {
-	if( callStack.size() > 1) throw;
+	runCmd = (retAllEx.Code() == RetAllException::RUN);
       }
-    catch( exception e)
+    catch( exception& e)
       {
 	cerr << "InterpreterLoop: Exception: " << e.what() << endl;
       }

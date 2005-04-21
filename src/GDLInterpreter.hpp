@@ -27,8 +27,8 @@ public:
         RC_OK=0,
         RC_BREAK,
         RC_CONTINUE,
-        RC_RETURN,
-        RC_ABORT
+        RC_RETURN, 
+        RC_ABORT, // checked as retCode >= RC_RETURN
     };  
 
     // code in: dinterpreter.cpp
@@ -48,7 +48,22 @@ private:
 protected:
     std::istringstream executeLine; // actual interactive executed line
 
-    class RetAllException {};
+    class RetAllException 
+    {
+        public:
+        enum ExCode {
+            NONE=0, // normal RETALL
+            RUN     // RETALL from .RUN command
+        };  
+
+        private:
+        ExCode code;
+
+        public:
+        RetAllException( ExCode code_=NONE): code( code_) {}
+
+        ExCode Code() { return code;}
+    };
     
     // code in: dinterpreter.cpp
 //    static bool CompleteFileName(std::string& fn); -> str.cpp
@@ -297,9 +312,9 @@ public:
         std::cerr << std::endl;
     }
 
-    static void RetAll()
+    static void RetAll( RetAllException::ExCode c=RetAllException::NONE)    
     {
-        throw RetAllException();
+        throw RetAllException( c);
     }
 
     static EnvStackT& CallStack() { return callStack;} // the callstack

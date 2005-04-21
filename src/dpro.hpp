@@ -232,7 +232,7 @@ public:
 // User Defined
 class DSubUD: public DSub 
 {
-  std::string file;        // filename were procedure is defined in
+  std::string         file;        // filename were procedure is defined in
 
   IDList              var;    // keyword values, parameters, local variables
 
@@ -244,6 +244,9 @@ class DSubUD: public DSub
 public:
   DSubUD(const std::string&,const std::string& o="",const std::string& f="");
   ~DSubUD(); 
+
+  void Reset();
+  void DelTree();
 
   void AddCommon(DCommonBase* c) { common.push_back(c);}
   

@@ -245,18 +245,11 @@ void GDLInterpreter::execute(RefDNode _t) {
 		
 		sigControlC = false;
 		
-		// only start new InterpreterLoop when not at $MAIN$
-		if( callStack.size() > 1)
-		{
+		// CHANGED: only start new InterpreterLoop when not at $MAIN$
 		DInterpreter* thisDInterpreter =
 		dynamic_cast<DInterpreter*>( this);
 		if( thisDInterpreter != NULL)
-		retCode = thisDInterpreter->InterpreterLoop();
-		}
-		else
-		{
-		retCode = RC_ABORT;
-		}
+		retCode = thisDInterpreter->InnerInterpreterLoop();
 		}
 		else if( debugMode != DEBUG_CLEAR)
 		{
@@ -276,18 +269,11 @@ void GDLInterpreter::execute(RefDNode _t) {
 		
 		debugMode = DEBUG_CLEAR;
 		
-		// only start new InterpreterLoop when not at $MAIN$
-		if( callStack.size() > 1)
-		{
+		// CHANGED: only start new InterpreterLoop when not at $MAIN$
 		DInterpreter* thisDInterpreter =
 		dynamic_cast<DInterpreter*>( this);
 		if( thisDInterpreter != NULL)
-		retCode = thisDInterpreter->InterpreterLoop();
-		}
-		else
-		{
-		retCode = RC_ABORT;
-		}
+		retCode = thisDInterpreter->InnerInterpreterLoop();
 		}
 		else
 		{
@@ -309,22 +295,19 @@ void GDLInterpreter::execute(RefDNode _t) {
 		
 		ReportError(e); 
 		
-		// only start new InterpreterLoop when not at $MAIN$
+		// CHANGED: only start new InterpreterLoop when not at $MAIN$
 		if( interruptEnable)
-		{
-		if( callStack.size() > 1)
 		{
 		DInterpreter* thisDInterpreter =
 		dynamic_cast<DInterpreter*>( this);
 		if( thisDInterpreter != NULL)
-		retCode = thisDInterpreter->InterpreterLoop();
-		}
-		else
-		{
-		retCode = RC_ABORT;
-		// here the statement is already executed
-		_t = statement_AST_in->GetNextSibling();
-		}
+		retCode = thisDInterpreter->InnerInterpreterLoop();
+		//             else
+		//             {
+		//                 retCode = RC_ABORT;
+		//                 // here the statement is already executed
+		//                 _t = statement_AST_in->GetNextSibling();
+		//             }
 		}    
 		else
 		{

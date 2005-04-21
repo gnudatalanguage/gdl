@@ -16,7 +16,7 @@
  ***************************************************************************/
 
 // later this should become a thread
-// right now its called in DInterpreter::InterpreterLoop()
+// right now its called in DInterpreter::NoReadline(...) or via readline
 
 #include "gdleventhandler.hpp"
 #include "graphics.hpp"

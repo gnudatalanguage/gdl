@@ -61,8 +61,8 @@ public:
         RC_OK=0,
         RC_BREAK,
         RC_CONTINUE,
-        RC_RETURN,
-        RC_ABORT
+        RC_RETURN, 
+        RC_ABORT, // checked as retCode >= RC_RETURN
     };  
 
     // code in: dinterpreter.cpp
@@ -82,7 +82,22 @@ private:
 protected:
     std::istringstream executeLine; // actual interactive executed line
 
-    class RetAllException {};
+    class RetAllException 
+    {
+        public:
+        enum ExCode {
+            NONE=0, // normal RETALL
+            RUN     // RETALL from .RUN command
+        };  
+
+        private:
+        ExCode code;
+
+        public:
+        RetAllException( ExCode code_=NONE): code( code_) {}
+
+        ExCode Code() { return code;}
+    };
     
     // code in: dinterpreter.cpp
 //    static bool CompleteFileName(std::string& fn); -> str.cpp
@@ -331,9 +346,9 @@ public:
         std::cerr << std::endl;
     }
 
-    static void RetAll()
+    static void RetAll( RetAllException::ExCode c=RetAllException::NONE)    
     {
-        throw RetAllException();
+        throw RetAllException( c);
     }
 
     static EnvStackT& CallStack() { return callStack;} // the callstack
@@ -481,18 +496,11 @@ statement returns[ GDLInterpreter::RetCode retCode]
 
                 sigControlC = false;
 
-                // only start new InterpreterLoop when not at $MAIN$
-                if( callStack.size() > 1)
-                {
-                    DInterpreter* thisDInterpreter =
-                        dynamic_cast<DInterpreter*>( this);
-                    if( thisDInterpreter != NULL)
-                        retCode = thisDInterpreter->InterpreterLoop();
-                }
-                else
-                {
-                    retCode = RC_ABORT;
-                }
+                // CHANGED: only start new InterpreterLoop when not at $MAIN$
+                DInterpreter* thisDInterpreter =
+                    dynamic_cast<DInterpreter*>( this);
+                if( thisDInterpreter != NULL)
+                    retCode = thisDInterpreter->InnerInterpreterLoop();
             }
             else if( debugMode != DEBUG_CLEAR)
             {
@@ -512,18 +520,11 @@ statement returns[ GDLInterpreter::RetCode retCode]
 
                     debugMode = DEBUG_CLEAR;
                 
-                    // only start new InterpreterLoop when not at $MAIN$
-                    if( callStack.size() > 1)
-                    {
-                        DInterpreter* thisDInterpreter =
+                    // CHANGED: only start new InterpreterLoop when not at $MAIN$
+                    DInterpreter* thisDInterpreter =
                         dynamic_cast<DInterpreter*>( this);
-                        if( thisDInterpreter != NULL)
-                        retCode = thisDInterpreter->InterpreterLoop();
-                    }
-                    else
-                    {
-                        retCode = RC_ABORT;
-                    }
+                    if( thisDInterpreter != NULL)
+                        retCode = thisDInterpreter->InnerInterpreterLoop();
                 }
                 else
                 {
@@ -546,22 +547,19 @@ statement returns[ GDLInterpreter::RetCode retCode]
 
         ReportError(e); 
 
-        // only start new InterpreterLoop when not at $MAIN$
+        // CHANGED: only start new InterpreterLoop when not at $MAIN$
         if( interruptEnable)
         {
-            if( callStack.size() > 1)
-            {
-                DInterpreter* thisDInterpreter =
+            DInterpreter* thisDInterpreter =
                 dynamic_cast<DInterpreter*>( this);
-                if( thisDInterpreter != NULL)
-                retCode = thisDInterpreter->InterpreterLoop();
-            }
-            else
-            {
-                retCode = RC_ABORT;
-                // here the statement is already executed
-                _t = statement_AST_in->GetNextSibling();
-            }
+            if( thisDInterpreter != NULL)
+                retCode = thisDInterpreter->InnerInterpreterLoop();
+//             else
+//             {
+//                 retCode = RC_ABORT;
+//                 // here the statement is already executed
+//                 _t = statement_AST_in->GetNextSibling();
+//             }
         }    
         else
         {
