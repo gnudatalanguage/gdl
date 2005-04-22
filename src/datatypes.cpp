@@ -29,6 +29,22 @@
 #include "assocdata.hpp"
 #include "io.hpp"
 
+// on OS X isnan is not defined
+#if defined(__APPLE__) && !defined(isnan)
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+#define      isnan( x )         ( ( sizeof ( x ) == sizeof(double) ) ?  \
+                              __isnand ( x ) :                          \
+                                ( sizeof ( x ) == sizeof( float) ) ?    \
+                              __isnanf ( x ) :                          \
+                              __isnan  ( x ) )
+#ifdef __cplusplus
+}
+#endif
+#endif
+
 using namespace std;
 
 // this (ugly) including of other sourcefiles has to be done, because

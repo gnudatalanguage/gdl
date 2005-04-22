@@ -795,7 +795,7 @@ if u[2] ne 3 then print,"***LEFT_LIBFUNCTION: ERROR1"
 print,"LEFT_LIBFUNCTION: OK"
 end
 
-;; set MEMCHECK to perform a memeory leak check
+;; set MEMCHECK to perform a memory leak check
 ;; as the heap (number of allocated cells) always grows so does
 ;; the memory consumption
 ;; with MEMCHECK set, no ptr and object allocations are made

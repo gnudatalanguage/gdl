@@ -1,1 +1,128 @@
- 
+0.6:      initial release
+
+0.6.1:    made GDL compile with g++ 3.3 (datatypes.hpp)
+
+0.6.2:    fixed bug with # and ## operator (basic_op.cpp)
+          added -I.. cpp option (Makefile.am)
+
+0.7:      added graphic support (PLOT, WINDOW, WDELETE, SET_PLOT, WSET)
+	  some small bug fixes.
+
+0.7.1:    added 64 bit integer support (LONG64, ULONG64)
+	  added python support (PYTHON function and procedure)
+	  completed type functions for all types (ULONG, UINT, ...)
+	  completed INDGEN and INTARR functions for all types
+	  New library routines: SYSTIME, LEGENDRE, MACHAR, FFT, TVLCT,
+	  MAX, MIN, TOTAL, ARRAY_EQUAL, CATCH, ON_ERROR
+	  Library routines written in GDL (check out *.pro files not
+	  starting with test_)
+	  several bugfixes: conversion between BYTE and STRING.
+	  GOTO within IF statement.
+	  Memory leakage concatenating struct arrays.
+	  
+0.7.2:    Bugfix: dereferenced pointers are now passed by reference
+
+0.8:      added netCDF support.
+	  several new library routines.
+	  support for .COMPILE command.
+	  Improved formatted and unformatted output.
+	  Improved configure script.
+	  Extended and cleaned up the API for library routines (envt.hpp)
+	  Fixed: GOTO,undefined_label made GDL crash. 
+	  Several other bugfixes.
+
+0.8.1:    Updated the configuration files (automake).
+
+0.8.2:    added HDF support.
+	  added support for several image file formats.
+	  changed the code and configuration files to make GDL build 
+	  also on Mac OS X.
+	  bug fix for TRANSPOSE function.
+
+0.8.3:    now netCDF and HDF can be used together (there were linker
+	  errors in 0.8.2).
+	  updated some obsolete commands in configure.in
+	  more complete HDF support.
+	  added DEFSYSV procedure.
+	  addef CONJ and IMAGINARY functions.
+
+0.8.4:    introduced _STRICT_EXTRA
+	  solved remaining problem of using netCDF and HDF together.
+	  HELP now reports variable names correctly.
+	  the line continuation operator ($) is now also recognized in
+	  interactive mode.
+	  Added SORT, UNIQ, SHIFT (1 dim only), STRTOK, FILE_TEST, CD,
+	  HISTOGRAM and REFORM function.
+	  Added LOADCT, CD and TV procedure.
+	  Basic HDF5 support.
+
+0.8.5:    Fixed bug in STRING with PRINT or FORMAT keywords set.
+          Fixed bug in STRMID with 3rd parameter undefined or not given.
+	  Added MESSAGE procedure.
+	  Added FILE_SEARCH, ARG_PRESENT and EOF functions.
+	  Fixed bug in AssignAt functions.
+	  Fixed subtle bug concerning arrays() and function() which
+	  made GDL not recognize library functions when identifier was
+	  used before as array.
+
+0.8.6:    Added CONVOL function (very fast).
+	  Added EXP function.
+	  Added JOURNAL procedure.
+          Completed SHIFT for multiple dimensions.
+	  HISTOGRAM now supports REVERSE_INDICES keyword.
+	  HELP,/LIB sorts now the output.
+	  Made # and ## operators IDL conforming for 1 dimensional arrays.
+	  N_ELEMENTS now returns LONG (before ULONG)
+
+0.8.7:    Support for GDL_PATH (falls back to IDL_PATH) environment variable.
+	  Added EXPAND_PATH, ARRAY_INDICES, REBIN, LEGENDRE, IGAMMA,
+	  LNGAMMA, BETA functions.
+	  Added OPLOT procedure.
+	  Bugfixes for ATAN (with 2 floats), CONVOL (1-dim kernel),
+	  MESSAGE (prefix).
+
+0.8.8:    Added OBJ_CLASS, OBJ_ISA, N_TAGS, SWAP_ENDIAN, BYTSCL functions.
+	  Added PLOTS, XYOUTS (both 2D only), BYTEORDER procedures.
+	  Improved FFT.
+	  OMIN,OMAX keyword support for HISTOGRAM.
+	  Fixed braced reference argument bug.
+	  Changed equality checking to compatibility checking for
+	  struct array definitions.
+	  Added structure compatibility check for assignment to struct
+	  arrays.
+	  Fixed offset bug for conversion functions (BYTE, FIX, ...).
+	  Fixed libfunction returning parameter bug.
+	  Fixed AND, OR operator bug.
+	  Fixed TVLCT bug.
+	  @file now honors !PATH.
+	  Changed configure.in to support python on OS X (fink)
+	  Added SETENV, STRUCT_ASSIGN pro.
+	  Added GETENV, STREGEX, TAG_NAMES functions.
+	  Minor adjustments of default output (no FORMAT keyword).
+	  Widen struct tag name rules: "!", "!$" and "!TEXT" are
+	  allowed.
+	  System variables can be named "!$", or "!$TEXT".
+	
+0.8.9:    Added SPAWN, WAIT procedure.
+	  Added FINITE, ROUTINE_INFO, TEMPORARY functions.	
+	  Added DIST function and TVSCL procedure (as .pro files).
+	  !EXCEPT system variable.
+	  Changed common block compilation.	  
+	  Allow RETURN as jump label (remove it from reserved words)
+	  Allow library functions to return their own parameters if used
+	  in a return statement.
+	  Allow library functions as l-functions.
+	  Fixed assignment to indexed array at one position (insert at) for
+	  indices which are 0.
+	  Cleaned up Compiler/Interpreter.
+	  Added NAN keywords to BYTSCL, MIN, MAX.
+	  Added SUBSCRIPT_MIN/MAX keywords to MAX/MIN.
+	  Added NTOHL, NTOHS, HTONL, HTONS keywords to BYTEORDER.
+	  Added z-buffer device
+	  Fixed MOD division by zero for integers.
+	  Support for files with main programs.
+	  Fixed COMMON and GOTO for interactive use.	
+	  Added .RUN command
+	  True color support for TV (X-device).
+	  
+	

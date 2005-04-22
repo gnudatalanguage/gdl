@@ -121,15 +121,9 @@ int main(int argc, char *argv[])
 	      startup=home+startup;
 	    }
 	}
-      
-      ifstream in(startup.c_str());
-      while( in.good())
-	{
-	  interpreter.ExecuteLine( &in);
-	}
     }
 
-  interpreter.InterpreterLoop();
+  interpreter.InterpreterLoop( startup);
 
   return 0;
 }

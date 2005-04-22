@@ -810,11 +810,48 @@ GDLInterpreter::RetCode DInterpreter::InnerInterpreterLoop()
 
 // reads user input and executes it
 // the main loop
-GDLInterpreter::RetCode DInterpreter::InterpreterLoop()
+GDLInterpreter::RetCode DInterpreter::InterpreterLoop( const string& startup)
 {
+  // process startup file
+  if( startup != "")
+    {
+      ValueGuard<bool> guard( interruptEnable);
+      interruptEnable = false;
+
+      ifstream in(startup.c_str());
+      while( in.good())
+	{
+	  feclearexcept(FE_ALL_EXCEPT);
+
+	  try
+	    {
+	      DInterpreter::CommandCode ret=ExecuteLine( &in);
+	      
+	      if( debugMode != DEBUG_CLEAR)
+		{
+		  debugMode = DEBUG_CLEAR;
+		  Warning( "Prematurely closing batch file: "+startup);
+		  break;
+		}
+	    }
+	  catch( RetAllException& retAllEx)
+	    {
+	    }
+	  catch( exception& e)
+	    {
+	      cerr << startup << ": Exception: " << e.what() << endl;
+	    }
+	  catch (...)
+	    {	
+	      cerr << startup << ": Unhandled Error." << endl;
+	    }
+	} // while
+    } // if( startup...
+
   bool runCmd = false; // should tree from $MAIN$ be executed?
   bool continueCmd = false; // .CONTINUE command given already?
 
+  // go into main loop
   for (;;) {
     feclearexcept(FE_ALL_EXCEPT);
 

@@ -106,7 +106,7 @@ public:
   CommandCode ExecuteLine( std::ifstream* in = NULL);
 
   // the main program for interactive mode
-  GDLInterpreter::RetCode InterpreterLoop();  
+  GDLInterpreter::RetCode InterpreterLoop( const std::string& startup);  
   // called within InterpreterLoop()
   GDLInterpreter::RetCode InnerInterpreterLoop();  
 };
