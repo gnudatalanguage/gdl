@@ -1,3 +1,4 @@
+GDL 0.8.9:
 2005-04-21  m_schellens  <m_schellens@host>
 
 	* src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/dcompiler.cpp, src/dinterpreter.cpp, src/dinterpreter.hpp, src/dpro.cpp, src/dpro.hpp, src/gdlc.i.g, src/gdleventhandler.cpp, src/pro/test_suite.pro, ChangeLog:
@@ -210,29 +211,12 @@
 
 	* src/print.cpp:
 	Removed '\n' if the last element to print is a scalar null string ('').
-	Before:
-	GDL>print, [[1,2],[3,4]], ''
-	       1       2
-	       3       4
-
-	GDL>
-	This is incompatible with the IDL output.
-
-	Now:
-	GDL>print, [[1,2],[3,4]], ''
-	       1       2
-	       3       4
-	GDL>
 
 	* src/basic_fun.cpp:
 	arr was limited to n scalar arguments to specify the array dimension. IDL,
 	however, also allows a single array-valued argument. This little patch
 	should enable now stuff like a = indgen([2,3])  or
 	a =[[1,2],[3,4]] & print, reform(a, [1,4]).
-
-2005-03-04  m_schellens  <m_schellens@host>
-
-	* src/datatypes.cpp: .
 
 2005-03-03  m_schellens  <m_schellens@host>
 
@@ -331,6 +315,8 @@
 	* src/GDLInterpreterTokenTypes.hpp, src/GDLInterpreterTokenTypes.txt, src/GDLLexer.cpp, src/GDLParser.cpp, src/GDLParser.hpp, src/GDLTokenTypes.hpp, src/GDLTokenTypes.txt, src/GDLTreeParser.cpp, src/GDLTreeParserTokenTypes.hpp, src/GDLTreeParserTokenTypes.txt, src/basic_fun.cpp, src/gdlc.g, src/GDLInterpreter.cpp, README:
 	Allow leading '!' also in struct names.
 
+	
+GDL 0.8.8:
 2005-02-14  m_schellens  <m_schellens@host>
 
 	* src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/GDLInterpreterTokenTypes.hpp, src/GDLInterpreterTokenTypes.txt, src/GDLLexer.cpp, src/GDLLexer.hpp, src/GDLParser.cpp, src/GDLParser.hpp, src/GDLTokenTypes.hpp, src/GDLTokenTypes.txt, src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/GDLTreeParserTokenTypes.hpp, src/GDLTreeParserTokenTypes.txt, src/basic_fun.cpp, src/default_io.cpp, src/gdlc.g, src/gdlc.tree.g, ChangeLog, README:
