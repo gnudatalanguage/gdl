@@ -26,6 +26,9 @@
 #include <string>
 #include <fstream>
 #include <memory>
+
+#include <sys/times.h>
+
 #include <gsl/gsl_sys.h>
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_sf.h>
@@ -87,18 +90,19 @@ namespace lib {
 
   BaseGDL* systime(EnvT* e)
   {
-    time_t t;  //the time
     struct tm *tstruct; //the time structure, from ctime.h
+    time_t t=time(0);  
 
-    //    struct timespec tp;
-    //    int cgt = clock_gettime( CLOCK_REALTIME, &tp);  
-
-    t=time(0);  
+    struct tms dummy;
+    double tt = times( &dummy);
+    static long perSecond = sysconf(_SC_CLK_TCK);
+    tt /= static_cast<double>(perSecond);
+    
     /*get the time before doing anything else, 
       this hopefully gives a more meaningful "time"
       than if the t=time(0) call came after an 
       arbitary number of conditional statements.*/
-
+    //    cout << "lib::systime: " << t << endl;
 
     SizeT nParam=e->NParam(0); //,"SYSTIME");
     bool ret_seconds=false;
@@ -165,7 +169,10 @@ namespace lib {
 	  }
 	else 
 	  {
-	    return new DDoubleGDL(t);
+	    // does not (necessaryly) work: time might count backwards
+	    //double tickTime = static_cast<double>(t) + tt - floor( tt); 
+	    
+	    return new DDoubleGDL( tt);
 	    //	    return new DDoubleGDL(tp.tv_nsec);
 	  }
       }

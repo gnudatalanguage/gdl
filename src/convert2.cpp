@@ -65,7 +65,7 @@ template<> BaseGDL* Data_<SpDByte>::Convert2( DType destTy, BaseGDL::Convert2Mod
     case INT:
       {
       	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -73,7 +73,7 @@ template<> BaseGDL* Data_<SpDByte>::Convert2( DType destTy, BaseGDL::Convert2Mod
     case UINT:
       {
       	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -81,7 +81,7 @@ template<> BaseGDL* Data_<SpDByte>::Convert2( DType destTy, BaseGDL::Convert2Mod
     case LONG:
       {
       	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -89,7 +89,7 @@ template<> BaseGDL* Data_<SpDByte>::Convert2( DType destTy, BaseGDL::Convert2Mod
     case ULONG:
       {
       	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -97,7 +97,7 @@ template<> BaseGDL* Data_<SpDByte>::Convert2( DType destTy, BaseGDL::Convert2Mod
     case LONG64:
       {
       	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -105,7 +105,7 @@ template<> BaseGDL* Data_<SpDByte>::Convert2( DType destTy, BaseGDL::Convert2Mod
     case ULONG64:
       {
       	Data_<SpDULong64>* dest=new Data_<SpDULong64>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -113,7 +113,7 @@ template<> BaseGDL* Data_<SpDByte>::Convert2( DType destTy, BaseGDL::Convert2Mod
     case FLOAT: 
       {
       	Data_<SpDFloat>* dest=new Data_<SpDFloat>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i];
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -121,7 +121,7 @@ template<> BaseGDL* Data_<SpDByte>::Convert2( DType destTy, BaseGDL::Convert2Mod
     case DOUBLE: 
       {
       	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -129,7 +129,7 @@ template<> BaseGDL* Data_<SpDByte>::Convert2( DType destTy, BaseGDL::Convert2Mod
     case COMPLEX: 
       {
       	Data_<SpDComplex>* dest=new Data_<SpDComplex>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i];
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -138,7 +138,7 @@ template<> BaseGDL* Data_<SpDByte>::Convert2( DType destTy, BaseGDL::Convert2Mod
       {
       	Data_<SpDComplexDbl>* dest=
 	  new Data_<SpDComplexDbl>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i];
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -148,7 +148,7 @@ template<> BaseGDL* Data_<SpDByte>::Convert2( DType destTy, BaseGDL::Convert2Mod
 	if( mode == BaseGDL::COPY_BYTE_AS_INT)
 	  {
 	    Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
-	    for( SizeT i=0; i < nEl; i++)
+	    for( SizeT i=0; i < nEl; ++i)
 	      (*dest)[i]=i2s(dd[i],4);
 	    if( (mode & BaseGDL::CONVERT) != 0) delete this;
 	    return dest;
@@ -168,7 +168,7 @@ template<> BaseGDL* Data_<SpDByte>::Convert2( DType destTy, BaseGDL::Convert2Mod
 	    buf[ strLen] = 0;
 	    Data_<SpDString>* dest = 
 	      new Data_<SpDString>( strDim, BaseGDL::NOZERO);
-	    for( SizeT i=0; i < nEl; i++)
+	    for( SizeT i=0; i < nEl; ++i)
 	      {
 		SizeT basePtr = i*strLen;
 		for( SizeT b=0; b<strLen; b++)
@@ -201,7 +201,7 @@ template<> BaseGDL* Data_<SpDInt>::Convert2( DType destTy, BaseGDL::Convert2Mode
     case BYTE:
       {
       	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -215,7 +215,7 @@ template<> BaseGDL* Data_<SpDInt>::Convert2( DType destTy, BaseGDL::Convert2Mode
     case LONG:
       {
       	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=static_cast<DLong>(dd[i]);
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -223,7 +223,7 @@ template<> BaseGDL* Data_<SpDInt>::Convert2( DType destTy, BaseGDL::Convert2Mode
     case ULONG:
       {
       	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -231,7 +231,7 @@ template<> BaseGDL* Data_<SpDInt>::Convert2( DType destTy, BaseGDL::Convert2Mode
     case LONG64:
       {
       	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=static_cast<DLong64>(dd[i]);
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -239,7 +239,7 @@ template<> BaseGDL* Data_<SpDInt>::Convert2( DType destTy, BaseGDL::Convert2Mode
     case ULONG64:
       {
       	Data_<SpDULong64>* dest=new Data_<SpDULong64>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -247,7 +247,7 @@ template<> BaseGDL* Data_<SpDInt>::Convert2( DType destTy, BaseGDL::Convert2Mode
     case FLOAT: 
       {
       	Data_<SpDFloat>* dest=new Data_<SpDFloat>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i];
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -255,7 +255,7 @@ template<> BaseGDL* Data_<SpDInt>::Convert2( DType destTy, BaseGDL::Convert2Mode
     case DOUBLE: 
       {
       	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -263,7 +263,7 @@ template<> BaseGDL* Data_<SpDInt>::Convert2( DType destTy, BaseGDL::Convert2Mode
     case STRING: 
       {
       	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=i2s(dd[i],8);
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -271,7 +271,7 @@ template<> BaseGDL* Data_<SpDInt>::Convert2( DType destTy, BaseGDL::Convert2Mode
     case COMPLEX: 
       {
       	Data_<SpDComplex>* dest=new Data_<SpDComplex>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i];
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -280,7 +280,7 @@ template<> BaseGDL* Data_<SpDInt>::Convert2( DType destTy, BaseGDL::Convert2Mode
       {
       	Data_<SpDComplexDbl>* dest=
 	  new Data_<SpDComplexDbl>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i];
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -306,7 +306,7 @@ template<> BaseGDL* Data_<SpDUInt>::Convert2( DType destTy, BaseGDL::Convert2Mod
     case BYTE:
       {
       	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -320,7 +320,7 @@ template<> BaseGDL* Data_<SpDUInt>::Convert2( DType destTy, BaseGDL::Convert2Mod
     case LONG:
       {
       	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -328,7 +328,7 @@ template<> BaseGDL* Data_<SpDUInt>::Convert2( DType destTy, BaseGDL::Convert2Mod
     case ULONG:
       {
       	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -336,7 +336,7 @@ template<> BaseGDL* Data_<SpDUInt>::Convert2( DType destTy, BaseGDL::Convert2Mod
     case LONG64:
       {
       	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -344,7 +344,7 @@ template<> BaseGDL* Data_<SpDUInt>::Convert2( DType destTy, BaseGDL::Convert2Mod
     case ULONG64:
       {
       	Data_<SpDULong64>* dest=new Data_<SpDULong64>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -352,7 +352,7 @@ template<> BaseGDL* Data_<SpDUInt>::Convert2( DType destTy, BaseGDL::Convert2Mod
     case FLOAT: 
       {
       	Data_<SpDFloat>* dest=new Data_<SpDFloat>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i];
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -360,7 +360,7 @@ template<> BaseGDL* Data_<SpDUInt>::Convert2( DType destTy, BaseGDL::Convert2Mod
     case DOUBLE: 
       {
       	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -368,7 +368,7 @@ template<> BaseGDL* Data_<SpDUInt>::Convert2( DType destTy, BaseGDL::Convert2Mod
     case STRING: 
       {
       	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=i2s(dd[i],8);
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -376,7 +376,7 @@ template<> BaseGDL* Data_<SpDUInt>::Convert2( DType destTy, BaseGDL::Convert2Mod
     case COMPLEX: 
       {
       	Data_<SpDComplex>* dest=new Data_<SpDComplex>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i];
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -385,7 +385,7 @@ template<> BaseGDL* Data_<SpDUInt>::Convert2( DType destTy, BaseGDL::Convert2Mod
       {
       	Data_<SpDComplexDbl>* dest=
 	  new Data_<SpDComplexDbl>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i];
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -412,7 +412,7 @@ template<> BaseGDL* Data_<SpDLong>::Convert2( DType destTy, BaseGDL::Convert2Mod
     case BYTE:
       {
       	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -420,7 +420,7 @@ template<> BaseGDL* Data_<SpDLong>::Convert2( DType destTy, BaseGDL::Convert2Mod
     case INT:
       {
       	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -428,7 +428,7 @@ template<> BaseGDL* Data_<SpDLong>::Convert2( DType destTy, BaseGDL::Convert2Mod
     case UINT:
       {
       	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -442,7 +442,7 @@ template<> BaseGDL* Data_<SpDLong>::Convert2( DType destTy, BaseGDL::Convert2Mod
     case LONG64:
       {
       	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -450,7 +450,7 @@ template<> BaseGDL* Data_<SpDLong>::Convert2( DType destTy, BaseGDL::Convert2Mod
     case ULONG64:
       {
       	Data_<SpDULong64>* dest=new Data_<SpDULong64>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -458,7 +458,7 @@ template<> BaseGDL* Data_<SpDLong>::Convert2( DType destTy, BaseGDL::Convert2Mod
     case FLOAT: 
       {
       	Data_<SpDFloat>* dest=new Data_<SpDFloat>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i];
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -466,7 +466,7 @@ template<> BaseGDL* Data_<SpDLong>::Convert2( DType destTy, BaseGDL::Convert2Mod
     case DOUBLE: 
       {
       	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -474,7 +474,7 @@ template<> BaseGDL* Data_<SpDLong>::Convert2( DType destTy, BaseGDL::Convert2Mod
     case STRING: 
       {
       	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=i2s(dd[i],8);
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -482,7 +482,7 @@ template<> BaseGDL* Data_<SpDLong>::Convert2( DType destTy, BaseGDL::Convert2Mod
     case COMPLEX: 
       {
       	Data_<SpDComplex>* dest=new Data_<SpDComplex>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i];
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -491,7 +491,7 @@ template<> BaseGDL* Data_<SpDLong>::Convert2( DType destTy, BaseGDL::Convert2Mod
       {
       	Data_<SpDComplexDbl>* dest=
 	  new Data_<SpDComplexDbl>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i];
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -517,7 +517,7 @@ template<> BaseGDL* Data_<SpDULong>::Convert2( DType destTy, BaseGDL::Convert2Mo
     case BYTE:
       {
       	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -525,7 +525,7 @@ template<> BaseGDL* Data_<SpDULong>::Convert2( DType destTy, BaseGDL::Convert2Mo
     case INT:
       {
       	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -533,7 +533,7 @@ template<> BaseGDL* Data_<SpDULong>::Convert2( DType destTy, BaseGDL::Convert2Mo
     case UINT:
       {
       	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -547,7 +547,7 @@ template<> BaseGDL* Data_<SpDULong>::Convert2( DType destTy, BaseGDL::Convert2Mo
     case LONG64:
       {
       	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -555,7 +555,7 @@ template<> BaseGDL* Data_<SpDULong>::Convert2( DType destTy, BaseGDL::Convert2Mo
     case ULONG64:
       {
       	Data_<SpDULong64>* dest=new Data_<SpDULong64>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -563,7 +563,7 @@ template<> BaseGDL* Data_<SpDULong>::Convert2( DType destTy, BaseGDL::Convert2Mo
     case FLOAT: 
       {
       	Data_<SpDFloat>* dest=new Data_<SpDFloat>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i];
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -571,7 +571,7 @@ template<> BaseGDL* Data_<SpDULong>::Convert2( DType destTy, BaseGDL::Convert2Mo
     case DOUBLE: 
       {
       	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -579,7 +579,7 @@ template<> BaseGDL* Data_<SpDULong>::Convert2( DType destTy, BaseGDL::Convert2Mo
     case STRING: 
       {
       	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=i2s(dd[i],8);
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -587,7 +587,7 @@ template<> BaseGDL* Data_<SpDULong>::Convert2( DType destTy, BaseGDL::Convert2Mo
     case COMPLEX: 
       {
       	Data_<SpDComplex>* dest=new Data_<SpDComplex>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i];
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -596,7 +596,7 @@ template<> BaseGDL* Data_<SpDULong>::Convert2( DType destTy, BaseGDL::Convert2Mo
       {
       	Data_<SpDComplexDbl>* dest=
 	  new Data_<SpDComplexDbl>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i];
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -622,7 +622,7 @@ template<> BaseGDL* Data_<SpDFloat>::Convert2( DType destTy, BaseGDL::Convert2Mo
     case BYTE:
       {
       	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DByte,float>(dd[i]); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -630,7 +630,7 @@ template<> BaseGDL* Data_<SpDFloat>::Convert2( DType destTy, BaseGDL::Convert2Mo
     case INT:
       {
       	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DInt,float>(dd[i]); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -638,7 +638,7 @@ template<> BaseGDL* Data_<SpDFloat>::Convert2( DType destTy, BaseGDL::Convert2Mo
     case UINT:
       {
       	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DUInt,float>(dd[i]); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -646,7 +646,7 @@ template<> BaseGDL* Data_<SpDFloat>::Convert2( DType destTy, BaseGDL::Convert2Mo
     case LONG:
       {
       	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DLong,float>(dd[i]); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -654,7 +654,7 @@ template<> BaseGDL* Data_<SpDFloat>::Convert2( DType destTy, BaseGDL::Convert2Mo
     case ULONG:
       {
       	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DULong,float>(dd[i]); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -662,7 +662,7 @@ template<> BaseGDL* Data_<SpDFloat>::Convert2( DType destTy, BaseGDL::Convert2Mo
     case LONG64:
       {
       	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DLong64,float>(dd[i]); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -670,7 +670,7 @@ template<> BaseGDL* Data_<SpDFloat>::Convert2( DType destTy, BaseGDL::Convert2Mo
     case ULONG64:
       {
       	Data_<SpDULong64>* dest=new Data_<SpDULong64>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DULong64,float>(dd[i]); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -679,7 +679,7 @@ template<> BaseGDL* Data_<SpDFloat>::Convert2( DType destTy, BaseGDL::Convert2Mo
     case DOUBLE: 
       {
       	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -687,7 +687,7 @@ template<> BaseGDL* Data_<SpDFloat>::Convert2( DType destTy, BaseGDL::Convert2Mo
     case STRING: 
       {
       	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=i2s(dd[i],13);
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -695,7 +695,7 @@ template<> BaseGDL* Data_<SpDFloat>::Convert2( DType destTy, BaseGDL::Convert2Mo
     case COMPLEX: 
       {
       	Data_<SpDComplex>* dest=new Data_<SpDComplex>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i];
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -704,7 +704,7 @@ template<> BaseGDL* Data_<SpDFloat>::Convert2( DType destTy, BaseGDL::Convert2Mo
       {
       	Data_<SpDComplexDbl>* dest=
 	  new Data_<SpDComplexDbl>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i];
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -730,7 +730,7 @@ template<> BaseGDL* Data_<SpDDouble>::Convert2( DType destTy, BaseGDL::Convert2M
     case BYTE:
       {
       	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DByte,double>(dd[i]); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -738,7 +738,7 @@ template<> BaseGDL* Data_<SpDDouble>::Convert2( DType destTy, BaseGDL::Convert2M
     case INT:
       {
       	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DInt,double>(dd[i]); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -746,7 +746,7 @@ template<> BaseGDL* Data_<SpDDouble>::Convert2( DType destTy, BaseGDL::Convert2M
     case UINT:
       {
       	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DUInt,double>(dd[i]); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -754,7 +754,7 @@ template<> BaseGDL* Data_<SpDDouble>::Convert2( DType destTy, BaseGDL::Convert2M
     case LONG:
       {
       	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DLong,double>(dd[i]); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -762,7 +762,7 @@ template<> BaseGDL* Data_<SpDDouble>::Convert2( DType destTy, BaseGDL::Convert2M
     case ULONG:
       {
       	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DULong,double>(dd[i]); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -770,7 +770,7 @@ template<> BaseGDL* Data_<SpDDouble>::Convert2( DType destTy, BaseGDL::Convert2M
     case LONG64:
       {
       	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DLong64,double>(dd[i]); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -778,7 +778,7 @@ template<> BaseGDL* Data_<SpDDouble>::Convert2( DType destTy, BaseGDL::Convert2M
     case ULONG64:
       {
       	Data_<SpDULong64>* dest=new Data_<SpDULong64>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DULong64,double>(dd[i]); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -786,7 +786,7 @@ template<> BaseGDL* Data_<SpDDouble>::Convert2( DType destTy, BaseGDL::Convert2M
     case FLOAT: 
       {
       	Data_<SpDFloat>* dest=new Data_<SpDFloat>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -795,7 +795,7 @@ template<> BaseGDL* Data_<SpDDouble>::Convert2( DType destTy, BaseGDL::Convert2M
     case STRING: 
       {
       	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=i2s(dd[i],16);
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -803,7 +803,7 @@ template<> BaseGDL* Data_<SpDDouble>::Convert2( DType destTy, BaseGDL::Convert2M
     case COMPLEX: 
       {
       	Data_<SpDComplex>* dest=new Data_<SpDComplex>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i];
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -812,7 +812,7 @@ template<> BaseGDL* Data_<SpDDouble>::Convert2( DType destTy, BaseGDL::Convert2M
       {
       	Data_<SpDComplexDbl>* dest=
 	  new Data_<SpDComplexDbl>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i];
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -838,14 +838,14 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
     case BYTE: // STRING to BYTE: add first dim
       {
 	SizeT maxLen = 0;
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
 	  if( dd[i].length() > maxLen) maxLen = dd[i].length();
 
 	dimension bytDim( dim);
 	bytDim >> maxLen;
 
       	Data_<SpDByte>* dest=new Data_<SpDByte>( bytDim); // zero fields
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
 	  {
 	    SizeT basePtr = i*maxLen;
 
@@ -859,7 +859,7 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
     case INT:
       {
       	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  {
       	    const char* cStart=dd[i].c_str();
       	    char* cEnd;
@@ -876,7 +876,7 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
     case UINT: 
       {
       	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  {
       	    const char* cStart=dd[i].c_str();
       	    char* cEnd;
@@ -893,7 +893,7 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
     case LONG: 
       {
       	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  {
       	    const char* cStart=dd[i].c_str();
       	    char* cEnd;
@@ -910,7 +910,7 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
     case ULONG: 
       {
       	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  {
       	    const char* cStart=dd[i].c_str();
       	    char* cEnd;
@@ -927,7 +927,7 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
     case LONG64: 
       {
       	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  {
       	    const char* cStart=dd[i].c_str();
       	    char* cEnd;
@@ -944,7 +944,7 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
     case ULONG64: 
       {
       	Data_<SpDULong64>* dest=new Data_<SpDULong64>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  {
       	    const char* cStart=dd[i].c_str();
       	    char* cEnd;
@@ -961,7 +961,7 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
     case FLOAT: 
       {
       	Data_<SpDFloat>* dest=new Data_<SpDFloat>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  {
       	    const char* cStart=dd[i].c_str();
       	    char* cEnd;
@@ -978,7 +978,7 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
     case DOUBLE: 
       {
       	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  {
 	    (*dest)[i] = Str2D( dd[i]);
       	  }
@@ -989,7 +989,7 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
     case COMPLEX: 
       {
       	Data_<SpDComplex>* dest=new Data_<SpDComplex>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  {
       	    const char* cStart=dd[i].c_str();
       	    char* cEnd;
@@ -1007,7 +1007,7 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
       {
       	Data_<SpDComplexDbl>* dest=
 	  new Data_<SpDComplexDbl>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  {
       	    const char* cStart=dd[i].c_str();
       	    char* cEnd;
@@ -1042,7 +1042,7 @@ template<> BaseGDL* Data_<SpDComplex>::Convert2( DType destTy, BaseGDL::Convert2
     case BYTE:
       {
       	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DByte,float>(real(dd[i])); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1050,7 +1050,7 @@ template<> BaseGDL* Data_<SpDComplex>::Convert2( DType destTy, BaseGDL::Convert2
     case INT:
       {
       	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DInt,float>(real(dd[i])); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1058,7 +1058,7 @@ template<> BaseGDL* Data_<SpDComplex>::Convert2( DType destTy, BaseGDL::Convert2
     case UINT:
       {
       	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DUInt,float>(real(dd[i])); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1066,7 +1066,7 @@ template<> BaseGDL* Data_<SpDComplex>::Convert2( DType destTy, BaseGDL::Convert2
     case LONG:
       {
       	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DLong,float>(real(dd[i])); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1074,7 +1074,7 @@ template<> BaseGDL* Data_<SpDComplex>::Convert2( DType destTy, BaseGDL::Convert2
     case ULONG:
       {
       	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DULong,float>(real(dd[i])); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1082,7 +1082,7 @@ template<> BaseGDL* Data_<SpDComplex>::Convert2( DType destTy, BaseGDL::Convert2
     case LONG64:
       {
       	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DLong64,float>(real(dd[i])); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1090,7 +1090,7 @@ template<> BaseGDL* Data_<SpDComplex>::Convert2( DType destTy, BaseGDL::Convert2
     case ULONG64:
       {
       	Data_<SpDULong64>* dest=new Data_<SpDULong64>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DULong64,float>(real(dd[i])); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1098,7 +1098,7 @@ template<> BaseGDL* Data_<SpDComplex>::Convert2( DType destTy, BaseGDL::Convert2
     case FLOAT: 
       {
 	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
-	for( SizeT i=0; i < nEl; i++)
+	for( SizeT i=0; i < nEl; ++i)
 	  (*dest)[i]=real(dd[i]); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
 	return dest;
@@ -1106,7 +1106,7 @@ template<> BaseGDL* Data_<SpDComplex>::Convert2( DType destTy, BaseGDL::Convert2
     case DOUBLE: 
       {
       	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=real(dd[i]); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1114,7 +1114,7 @@ template<> BaseGDL* Data_<SpDComplex>::Convert2( DType destTy, BaseGDL::Convert2
     case STRING: 
       {
       	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]="("+i2s(real(dd[i]))+","+i2s(imag(dd[i]))+")";
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1124,7 +1124,7 @@ template<> BaseGDL* Data_<SpDComplex>::Convert2( DType destTy, BaseGDL::Convert2
       {
       	Data_<SpDComplexDbl>* dest=new Data_<SpDComplexDbl>( dim, 
 							     BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i];
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1149,7 +1149,7 @@ template<> BaseGDL* Data_<SpDComplexDbl>::Convert2( DType destTy, BaseGDL::Conve
     case BYTE:
       {
       	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DByte,double>(real(dd[i])); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1157,7 +1157,7 @@ template<> BaseGDL* Data_<SpDComplexDbl>::Convert2( DType destTy, BaseGDL::Conve
     case INT:
       {
       	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DInt,double>(real(dd[i])); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1165,7 +1165,7 @@ template<> BaseGDL* Data_<SpDComplexDbl>::Convert2( DType destTy, BaseGDL::Conve
     case UINT:
       {
       	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DUInt,double>(real(dd[i])); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1173,7 +1173,7 @@ template<> BaseGDL* Data_<SpDComplexDbl>::Convert2( DType destTy, BaseGDL::Conve
     case LONG:
       {
       	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DLong,double>(real(dd[i])); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1181,7 +1181,7 @@ template<> BaseGDL* Data_<SpDComplexDbl>::Convert2( DType destTy, BaseGDL::Conve
     case ULONG:
       {
       	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DULong,double>(real(dd[i])); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1189,7 +1189,7 @@ template<> BaseGDL* Data_<SpDComplexDbl>::Convert2( DType destTy, BaseGDL::Conve
     case LONG64:
       {
       	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DLong64,double>(real(dd[i])); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1197,7 +1197,7 @@ template<> BaseGDL* Data_<SpDComplexDbl>::Convert2( DType destTy, BaseGDL::Conve
     case ULONG64:
       {
       	Data_<SpDULong64>* dest=new Data_<SpDULong64>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DULong64,double>(real(dd[i])); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1205,7 +1205,7 @@ template<> BaseGDL* Data_<SpDComplexDbl>::Convert2( DType destTy, BaseGDL::Conve
     case FLOAT: 
       {
 	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
-	for( SizeT i=0; i < nEl; i++)
+	for( SizeT i=0; i < nEl; ++i)
 	  (*dest)[i]=real(dd[i]); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
 	return dest;
@@ -1213,7 +1213,7 @@ template<> BaseGDL* Data_<SpDComplexDbl>::Convert2( DType destTy, BaseGDL::Conve
     case DOUBLE: 
       {
       	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=real(dd[i]); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1221,7 +1221,7 @@ template<> BaseGDL* Data_<SpDComplexDbl>::Convert2( DType destTy, BaseGDL::Conve
     case STRING: 
       {
       	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]="("+i2s(real(dd[i]))+","+i2s(imag(dd[i]))+")";
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1229,7 +1229,7 @@ template<> BaseGDL* Data_<SpDComplexDbl>::Convert2( DType destTy, BaseGDL::Conve
     case COMPLEX: 
       {
       	Data_<SpDComplex>* dest=new Data_<SpDComplex>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
 	  (*dest)[i] = DComplex( static_cast<float>(dd[i].real()), 
 				 static_cast<float>(dd[i].imag()) );
 	//      	  (*dest)[i]=dd[i];
@@ -1258,7 +1258,7 @@ template<> BaseGDL* Data_<SpDLong64>::Convert2( DType destTy, BaseGDL::Convert2M
     case BYTE:
       {
       	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1266,7 +1266,7 @@ template<> BaseGDL* Data_<SpDLong64>::Convert2( DType destTy, BaseGDL::Convert2M
     case INT:
       {
       	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1274,7 +1274,7 @@ template<> BaseGDL* Data_<SpDLong64>::Convert2( DType destTy, BaseGDL::Convert2M
     case UINT:
       {
       	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1282,7 +1282,7 @@ template<> BaseGDL* Data_<SpDLong64>::Convert2( DType destTy, BaseGDL::Convert2M
     case LONG:
       {
       	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1290,7 +1290,7 @@ template<> BaseGDL* Data_<SpDLong64>::Convert2( DType destTy, BaseGDL::Convert2M
     case ULONG:
       {
       	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1304,7 +1304,7 @@ template<> BaseGDL* Data_<SpDLong64>::Convert2( DType destTy, BaseGDL::Convert2M
     case FLOAT: 
       {
       	Data_<SpDFloat>* dest=new Data_<SpDFloat>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i];
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1312,7 +1312,7 @@ template<> BaseGDL* Data_<SpDLong64>::Convert2( DType destTy, BaseGDL::Convert2M
     case DOUBLE: 
       {
       	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1320,7 +1320,7 @@ template<> BaseGDL* Data_<SpDLong64>::Convert2( DType destTy, BaseGDL::Convert2M
     case STRING: 
       {
       	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=i2s(dd[i],22);
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1328,7 +1328,7 @@ template<> BaseGDL* Data_<SpDLong64>::Convert2( DType destTy, BaseGDL::Convert2M
     case COMPLEX: 
       {
       	Data_<SpDComplex>* dest=new Data_<SpDComplex>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i];
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1337,7 +1337,7 @@ template<> BaseGDL* Data_<SpDLong64>::Convert2( DType destTy, BaseGDL::Convert2M
       {
       	Data_<SpDComplexDbl>* dest=
 	  new Data_<SpDComplexDbl>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i];
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1363,7 +1363,7 @@ template<> BaseGDL* Data_<SpDULong64>::Convert2( DType destTy, BaseGDL::Convert2
     case BYTE:
       {
       	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1371,7 +1371,7 @@ template<> BaseGDL* Data_<SpDULong64>::Convert2( DType destTy, BaseGDL::Convert2
     case INT:
       {
       	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1379,7 +1379,7 @@ template<> BaseGDL* Data_<SpDULong64>::Convert2( DType destTy, BaseGDL::Convert2
     case UINT:
       {
       	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1387,7 +1387,7 @@ template<> BaseGDL* Data_<SpDULong64>::Convert2( DType destTy, BaseGDL::Convert2
     case LONG:
       {
       	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1395,7 +1395,7 @@ template<> BaseGDL* Data_<SpDULong64>::Convert2( DType destTy, BaseGDL::Convert2
     case ULONG:
       {
       	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1409,7 +1409,7 @@ template<> BaseGDL* Data_<SpDULong64>::Convert2( DType destTy, BaseGDL::Convert2
     case FLOAT: 
       {
       	Data_<SpDFloat>* dest=new Data_<SpDFloat>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i];
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1417,7 +1417,7 @@ template<> BaseGDL* Data_<SpDULong64>::Convert2( DType destTy, BaseGDL::Convert2
     case DOUBLE: 
       {
       	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i]; 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1425,7 +1425,7 @@ template<> BaseGDL* Data_<SpDULong64>::Convert2( DType destTy, BaseGDL::Convert2
     case STRING: 
       {
       	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=i2s(dd[i],22);
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1433,7 +1433,7 @@ template<> BaseGDL* Data_<SpDULong64>::Convert2( DType destTy, BaseGDL::Convert2
     case COMPLEX: 
       {
       	Data_<SpDComplex>* dest=new Data_<SpDComplex>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i];
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -1442,7 +1442,7 @@ template<> BaseGDL* Data_<SpDULong64>::Convert2( DType destTy, BaseGDL::Convert2
       {
       	Data_<SpDComplexDbl>* dest=
 	  new Data_<SpDComplexDbl>( dim, BaseGDL::NOZERO);
-      	for( SizeT i=0; i < nEl; i++)
+      	for( SizeT i=0; i < nEl; ++i)
       	  (*dest)[i]=dd[i];
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;

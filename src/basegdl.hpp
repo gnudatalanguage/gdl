@@ -51,7 +51,7 @@ enum DType {  // Object types (IDL type numbers)
 };
 
 // order of conversion precedence if two types are the same,
-// the first type is used
+// the first type is used // used also by ArrayIndexT
 const int DTypeOrder[]={
   -1, 	//UNDEF
   2, 	//BYTE
@@ -70,6 +70,12 @@ const int DTypeOrder[]={
   5, 	//LONG64,
   5 	//ULONG64
 };	
+
+inline bool IntType( DType t)
+{
+  int o = DTypeOrder[ t];
+  return (t >= 2 && t <= 5);
+}
 
 class   BaseGDL;
 class   ArrayIndexListT;

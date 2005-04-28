@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "datatypes.hpp"
+#include "real2int.hpp"
 
 class ArrayIndexT
 {
@@ -34,56 +35,177 @@ public:
   };
 
 private:
-  IxType      t;
-  SizeT    s,e;
-  DLongGDL* ix;
-  
-public:
+  IxType     t;
+  SizeT      s,e;
+  SizeT*     ix;
+  SizeT      nElem; // for ix
+  dimension* ixDim; // keep dimension of ix
 
-  ~ArrayIndexT() {} // never delete ix -> done by ArrayIndexListT
+  // forbid c-i
+  ArrayIndexT( const ArrayIndexT& r) {}
 
-  // [[ix]] (type 0)
-  ArrayIndexT( DLongGDL* ix_): t(INDEXED), s(0), e(0), ix( ix_) 
-  {} 
-
-  // [*] (type 1)
-  ArrayIndexT(): t(ALL), s(0), e(0), ix(NULL) 
-  {} 
-
-  // [s] (type 2) || [s:*] (type 3)  || [s:e] (type 4) 
-  ArrayIndexT( IxType t_, SizeT s_, SizeT e_=0): t(t_), s(s_), e(e_), ix(NULL) 
-  {}
-  
   // get nth index
   SizeT GetIx( SizeT nth)
   {
-    if( t == 0) return (*ix)[nth]; // from array
+    if( t == 0) return (ix)[nth]; // from array
     //if( t == 2) return s;        // scalar (nth == 0)
     return nth + s;
   }
 
+public:
+
+  SizeT* StealIx() { SizeT* ret = ix; ix = NULL; return ret;} 
+
+  ~ArrayIndexT() 
+  {
+    delete[] ix;
+    delete   ixDim;
+  }
+
+  // [[ix]] (type 0)
+  ArrayIndexT( BaseGDL* ix_): t(INDEXED), s(0), e(0), ix( NULL), ixDim( NULL) 
+  {
+    DType dType = ix_->Type();
+
+    assert( dType != UNDEF);
+
+    int typeCheck = DTypeOrder[ dType];
+    if( typeCheck >= 100)
+      throw GDLException("Type not allowed as subscript.");
+    
+    nElem = ix_->N_Elements();
+
+    ix = new SizeT[ nElem]; // allocate array
+    ixDim = new dimension( ix_->Dim());
+
+    switch( dType)
+      {
+      case BYTE:
+	{
+	  DByteGDL* src = static_cast<DByteGDL*>( ix_);
+	  for( SizeT i=0; i < nElem; ++i)
+	    ix[i]= (*src)[i]; 
+	  return;
+	}
+      case INT:
+	{
+	  DIntGDL* src = static_cast<DIntGDL*>( ix_);
+	  for( SizeT i=0; i < nElem; ++i)
+	    ix[i]= static_cast<DLong>((*src)[i]); 
+	  return;
+	}
+      case UINT:
+	{
+	  DUIntGDL* src = static_cast<DUIntGDL*>( ix_);
+	  for( SizeT i=0; i < nElem; ++i)
+	    ix[i]= (*src)[i]; 
+	  return;
+	}
+      case LONG:
+	{
+	  DLongGDL* src = static_cast<DLongGDL*>( ix_);
+	  for( SizeT i=0; i < nElem; ++i)
+	    ix[i]= (*src)[i]; 
+	  return;
+	}
+      case ULONG:
+	{
+	  DULongGDL* src = static_cast<DULongGDL*>( ix_);
+	  for( SizeT i=0; i < nElem; ++i)
+	    ix[i]= (*src)[i]; 
+	  return;
+	}
+      case LONG64:
+	{
+	  DLong64GDL* src = static_cast<DLong64GDL*>( ix_);
+	  for( SizeT i=0; i < nElem; ++i)
+	    ix[i]= (*src)[i]; 
+	  return;
+      }
+      case ULONG64:
+	{
+	  DULong64GDL* src = static_cast<DULong64GDL*>( ix_);
+	  for( SizeT i=0; i < nElem; ++i)
+	    ix[i]= (*src)[i]; 
+	  return;
+	}
+      case FLOAT: 
+	{
+	  DFloatGDL* src = static_cast<DFloatGDL*>( ix_);
+	  for( SizeT i=0; i < nElem; ++i)
+	    ix[i]= Real2Int<DLong,float>((*src)[i]); 
+	  return;
+	}
+      case DOUBLE: 
+	{
+	  DDoubleGDL* src = static_cast<DDoubleGDL*>( ix_);
+	  for( SizeT i=0; i < nElem; ++i)
+	    ix[i]= Real2Int<DLong,double>((*src)[i]); 
+	  return;
+	}
+      case STRING: 
+	{
+	  DStringGDL* src = static_cast<DStringGDL*>( ix_);
+	  for( SizeT i=0; i < nElem; ++i)
+	    {
+	      const char* cStart=(*src)[i].c_str();
+	      char* cEnd;
+	      ix[i]=strtol(cStart,&cEnd,10);
+	      if( cEnd == cStart)
+		{
+		  Warning("Type conversion error: "
+			  "Unable to convert given STRING to LONG.");
+		}
+	    }
+	  return;
+	}
+      case COMPLEX: 
+	{
+	  DComplexGDL* src = static_cast<DComplexGDL*>( ix_);
+	  for( SizeT i=0; i < nElem; ++i)
+	    ix[i]= Real2Int<DLong,float>(real((*src)[i])); 
+	  return;
+	}
+      case COMPLEXDBL: 
+	{
+	  DComplexDblGDL* src = static_cast<DComplexDblGDL*>( ix_);
+	  for( SizeT i=0; i < nElem; ++i)
+	    ix[i]= Real2Int<DLong,double>(real((*src)[i])); 
+	  return;
+	}
+      }
+  } 
+  
+  // [*] (type 1)
+  ArrayIndexT(): t(ALL), s(0), e(0), ix(NULL), ixDim( NULL)  
+  {} 
+
+  // [s] (type 2) || [s:*] (type 3)  || [s:e] (type 4) 
+  ArrayIndexT( IxType t_, SizeT s_, SizeT e_=0): t(t_), s(s_), e(e_), ix(NULL), ixDim( NULL)  {}
+  
   // number of iterations
   // also checks/adjusts range 
   SizeT NIter( SizeT varDim, bool strictArrSubs) 
   {
     if( t == INDEXED) 
       {
-	SizeT nElem=ix->N_Elements();
-
+	//	SizeT nElem=ix->N_Elements();
+	
+	SizeT upper=varDim-1;
 	if( strictArrSubs)
 	  { // strictArrSubs -> exception if out of bounds
 	    for( SizeT i=0; i < nElem; ++i)
-	      if( ((*ix)[i] < 0) || ((*ix)[i] >= static_cast<DLong>(varDim)))
+	      if( ((ix)[i] < 0) || ((ix)[i] > upper))
 		throw GDLException("Array used to subscript array "
 				   "contains out of range subscript.");
 	  }
 	else
 	  {
-	    SizeT upper=varDim-1;
 	    for( SizeT i=0; i < nElem; ++i)
 	      {
-		if( (*ix)[i] < 0) (*ix)[i]=0; 
-		else if( (*ix)[i] > static_cast<DLong>(upper)) (*ix)[i]=upper;
+		if( (ix)[i] < 0) (ix)[i]=0; 
+		else if( (ix)[i] > upper) (ix)[i]=upper;
+		//else if( (ix)[i] > static_cast<DLong>(upper)) (ix)[i]=upper;
 	      }
 	  }
 	return nElem; 
@@ -128,7 +250,8 @@ public:
 
   dimension GetDim()
   {
-    return ix->Dim();
+    return *ixDim;
+    //    return ix->Dim();
   }
   
   friend class ArrayIndexListT;
@@ -137,15 +260,15 @@ public:
 class ArrayIndexListT
 {
 private:
-  std::vector<ArrayIndexT> ixList;
+  std::vector<ArrayIndexT*> ixList;
 
   bool      strictArrSubs;          // for compile_opt STRICTARRSUBS
   
   enum AccessType {
-    NORMAL=0,
+    NORMAL=0, // mixed
     ONEDIM,
     ALLSAME,
-    ALLONE  // all ONE
+    ALLONE    // all ONE
   };
 
   AccessType accessType;
@@ -155,19 +278,23 @@ private:
   SizeT    varStride[MAXRANK+1]; // variables stride
   SizeT    nIx;                  // number of indexed elements
 
+  SizeT    *allIx;               // index list 
+
 public:    
   ~ArrayIndexListT()
   {
-    for( std::vector<ArrayIndexT>::iterator i=ixList.begin(); 
+    delete[] allIx;
+    for( std::vector<ArrayIndexT*>::iterator i=ixList.begin(); 
 	 i != ixList.end(); ++i)
-      if( i->ix != NULL) delete i->ix;
+      {	delete *i;}
   }
 
   // constructor
   ArrayIndexListT( bool strictArrSubs_ = false):
     strictArrSubs( strictArrSubs_),
     accessType(NORMAL),
-    acRank(0) 
+    acRank(0),
+    allIx( NULL)
   {
     ixList.reserve(MAXRANK); 
   }
@@ -176,11 +303,12 @@ public:
   // and returns true is the list is empty
   bool ToAssocIndex( SizeT& lastIx)
   {
-    ArrayIndexT& ixListEnd = ixList[ ixList.size()-1];
+    ArrayIndexT* ixListEnd = ixList[ ixList.size()-1];
 
-    if( !ixListEnd.Scalar( lastIx))
+    if( !ixListEnd->Scalar( lastIx))
       throw GDLException( "Record number must be a scalar in this context.");
 
+    delete ixListEnd;
     ixList.pop_back();
 
     return ixList.empty();
@@ -205,7 +333,7 @@ public:
     if( acRank == 1)
       {
 	// need varDim here instead of var because of Assoc_<>
-	nIterLimit[0]=ixList[0].NIter( var->Size(), strictArrSubs); 
+	nIterLimit[0]=ixList[0]->NIter( var->Size(), strictArrSubs); 
 	nIx=nIterLimit[0];
 	
 	accessType = ONEDIM;
@@ -217,9 +345,9 @@ public:
 	nIx=1;
 	for( SizeT i=0; i<acRank; ++i)
 	  {
-	    if( !ixList[i].Indexed()) accessType = NORMAL;
+	    if( !ixList[i]->Indexed()) accessType = NORMAL;
 	    
-	    nIterLimit[i]=ixList[i].NIter( (i<varRank)?varDim[i]:1, 
+	    nIterLimit[i]=ixList[i]->NIter( (i<varRank)?varDim[i]:1, 
 					   strictArrSubs); 
 	    nIx *= nIterLimit[i]; // calc number of assignments
 	  }
@@ -251,7 +379,7 @@ public:
 		accessType = ALLONE;
 		for( SizeT i=0; i<acRank; ++i)
 		  {
-		    if( !ixList[i].Scalar())
+		    if( !ixList[i]->Scalar())
 		      {
 			accessType = NORMAL;
 			break;
@@ -268,11 +396,11 @@ public:
     if( accessType == ALLONE) return dimension(); // -> results in scalar
     if( accessType == ONEDIM)
       {
-	if( ixList[0].Indexed())
+	if( ixList[0]->Indexed())
 	  {
-	    return ixList[0].GetDim(); // gets structure of indexing array
+	    return ixList[0]->GetDim(); // gets structure of indexing array
 	  }
- 	else if( ixList[0].Scalar())
+ 	else if( ixList[0]->Scalar())
  	  {
  	    return dimension();
  	  }
@@ -283,7 +411,7 @@ public:
       }
     if( accessType == ALLSAME)
       { // always indexed
-	return ixList[0].GetDim();
+	return ixList[0]->GetDim();
       }
     // accessType == NORMAL -> structure from indices
     return dimension( nIterLimit, acRank);
@@ -294,38 +422,148 @@ public:
     return nIx;
   }
 
-  // returns 1-dim index for nTh element
-  SizeT GetIx( SizeT nTh)
+//   // returns 1-dim index for nTh element
+//   SizeT GetIx( SizeT nTh)
+//   {
+//     if( accessType == ONEDIM)
+//       {
+// 	return ixList[0]->GetIx( nTh);
+//       }
+
+//     if( accessType == ALLSAME)
+//       {
+// 	SizeT actIx=0;
+
+// 	for( SizeT i=0; i < acRank; ++i)
+// 	  {
+// 	    actIx += ixList[i]->GetIx( nTh) * varStride[i];
+// 	  }
+// 	return actIx;
+//       }
+
+//     // NORMAL or ALLONE
+//     // loop only over specified indices
+//     // higher indices of variable are implicitely zero,
+//     // therefore they are not checked in 'SetRoot'
+//     SizeT actIx=0;
+
+//     for( SizeT i=0; i < acRank; ++i)
+//       {
+// 	actIx += ixList[i]->GetIx( (nTh / stride[i]) % nIterLimit[i]) * 
+// 	  varStride[i];
+//       }
+
+//     return actIx;
+//   }
+
+  // returns 1-dim index for all nTh elements
+  SizeT* BuildIx()
   {
     if( accessType == ONEDIM)
       {
-	return ixList[0].GetIx( nTh);
+	if( ixList[0]->t == ArrayIndexT::INDEXED)
+	  allIx = ixList[0]->StealIx();
+	else
+	  {
+	    allIx = new SizeT[ nIx];
+	    SizeT& s = ixList[0]->s;
+	    if( s != 0) 
+	      for( SizeT i=0; i<nIx; ++i)
+		allIx[i] = i + s;
+	    else
+	      for( SizeT i=0; i<nIx; ++i)
+		allIx[i] = i;
+	  }
+	return allIx;
       }
 
     if( accessType == ALLSAME)
       {
-	SizeT actIx=0;
+	// ALLSAME -> all ArrayIndexT::INDEXED
+	allIx = ixList[0]->StealIx();
 
-	for( SizeT i=0; i < acRank; ++i)
+// 	if( varStride[0] != 1) // always 1
+// 	  for( SizeT i=0; i<nIx; ++i)
+// 	    allIx[i] *= varStride[0];
+	
+	for( SizeT l=1; l < acRank; ++l)
 	  {
-	    actIx += ixList[i].GetIx( nTh) * varStride[i];
+	    SizeT* tmpIx = ixList[ l]->StealIx();
+	    
+	    for( SizeT i=0; i<nIx; ++i)
+	      allIx[i] += tmpIx[i] * varStride[l];
+
+	    delete[] tmpIx;
 	  }
-	return actIx;
+	return allIx;
       }
 
     // NORMAL or ALLONE
     // loop only over specified indices
     // higher indices of variable are implicitely zero,
     // therefore they are not checked in 'SetRoot'
-    SizeT actIx=0;
-
-    for( SizeT i=0; i < acRank; ++i)
+    allIx = new SizeT[ nIx];
+    
+    // init allIx from first index
+    if( ixList[0]->t == ArrayIndexT::INDEXED)
       {
-	actIx += ixList[i].GetIx( (nTh / stride[i]) % nIterLimit[i]) * 
-	  varStride[i];
+	SizeT* tmpIx = ixList[0]->StealIx();
+
+	for( SizeT i=0; i<nIx; ++i)
+	  {
+	    allIx[ i] = tmpIx[ i %  nIterLimit[0]];
+	  }
+
+	delete[] tmpIx;
+      }
+    else
+      {
+	SizeT& s = ixList[0]->s;
+	
+	if( s != 0) 
+	  for( SizeT i=0; i<nIx; ++i)
+	    {
+	      allIx[i] = i %  nIterLimit[0] + s; // stride[0], varStride[0] == 1
+	    }
+	else
+	  for( SizeT i=0; i<nIx; ++i)
+	    {
+	      allIx[i] = i %  nIterLimit[0]; // stride[0], varStride[0] == 1
+	    }
       }
 
-    return actIx;
+    for( SizeT l=1; l < acRank; ++l)
+      {
+
+	if( ixList[l]->t == ArrayIndexT::INDEXED)
+	  {
+	    SizeT* tmpIx = ixList[l]->StealIx();
+	    
+	    for( SizeT i=0; i<nIx; ++i)
+	      {
+		allIx[ i] += tmpIx[ (i / stride[l]) %  nIterLimit[l]] * varStride[l];
+	      }
+	    
+	    delete[] tmpIx;
+	  }
+	else
+	  {
+	    SizeT& s = ixList[l]->s;
+	
+	    if( s != 0) 
+	      for( SizeT i=0; i<nIx; ++i)
+		{
+		  allIx[i] += ((i / stride[l]) %  nIterLimit[l] + s) * varStride[l]; 
+		}
+	    else
+	      for( SizeT i=0; i<nIx; ++i)
+		{
+		  allIx[i] += ((i / stride[l]) %  nIterLimit[l]) * varStride[l]; 
+		}
+	  }
+      }
+    
+    return allIx;
   }
 
   // returns multi-dim index for nTh element
@@ -336,25 +574,24 @@ public:
     if( accessType == ONEDIM)
       {
 	rank = 1;
-	return dimension( ixList[0].GetIx( nTh));
+	return dimension( ixList[0]->GetIx( nTh));
       }
     
     SizeT actIx[ MAXRANK];
-    
     for( SizeT i=0; i < acRank; ++i)
       {
-	actIx[ i] = ixList[i].GetIx( nTh);
+	actIx[ i] = ixList[i]->GetIx( nTh);
       }
 
     rank = acRank;
     return dimension( actIx, acRank);
   }
   
-  void push_back( ArrayIndexT& pb)
+  void push_back( ArrayIndexT* pb)
   {
     if( ixList.size() >= MAXRANK)
       throw GDLException("Maximum of "+MAXRANK_STR+" dimensions allowed.");
-    ixList.push_back(pb);
+    ixList.push_back( pb);
   }
 };
 

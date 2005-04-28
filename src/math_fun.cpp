@@ -792,9 +792,10 @@ namespace lib {
 	SizeT nEl = p0->N_Elements();
 	for( SizeT i=0; i<nEl; ++i)
 	  {
-	    DComplex& C = (*p0C)[ i];
-	    float Creal = C.real(), Cimag = C.imag();
-	    (*res)[ i] = sqrt(Creal*Creal + Cimag*Cimag);
+// 	    DComplex& C = (*p0C)[ i];
+// 	    float Creal = C.real(), Cimag = C.imag();
+// 	    (*res)[ i] = sqrt(Creal*Creal + Cimag*Cimag);
+ 	    (*res)[ i] = abs( (*p0C)[ i]); //sqrt(Creal*Creal + Cimag*Cimag);
 	  }
 	return res;
       }
@@ -805,9 +806,10 @@ namespace lib {
 	SizeT nEl = p0->N_Elements();
 	for( SizeT i=0; i<nEl; ++i)
 	  {
-	    DComplexDbl& C = (*p0C)[ i];
-	    double Creal = C.real(), Cimag = C.imag();
-	    (*res)[ i] = sqrt(Creal*Creal + Cimag*Cimag);
+// 	    DComplexDbl& C = (*p0C)[ i];
+// 	    double Creal = C.real(), Cimag = C.imag();
+// 	    (*res)[ i] = sqrt(Creal*Creal + Cimag*Cimag);
+ 	    (*res)[ i] = abs( (*p0C)[ i]); //sqrt(Creal*Creal + Cimag*Cimag);
 	  }
 	return res;
       }

@@ -29,6 +29,9 @@
 #include "assocdata.hpp"
 #include "io.hpp"
 
+// needed with gcc-3.3.2
+#include <assert.h>
+
 // on OS X isnan is not defined
 #if defined(__APPLE__) && !defined(isnan)
 
@@ -82,7 +85,8 @@ template<class Sp> Data_<Sp>::Data_(const dimension& dim_):
 }
 
 // c-i 
-template<class Sp> Data_<Sp>::Data_(const Data_& d_): Sp(d_.dim), dd(d_.dd) {}
+// template<class Sp> Data_<Sp>::Data_(const Data_& d_): 
+// Sp(d_.dim), dd(d_.dd) {}
 
 template<class Sp> Data_<Sp>::Data_(const dimension& dim_,
 				    BaseGDL::InitType iT): 
@@ -284,16 +288,16 @@ typename Data_<Sp>::DataT& Data_<Sp>:: Resize( SizeT n)
   return dd;
 }
 
-template<class Sp> 
-typename Data_<Sp>::Ty& Data_<Sp>::operator[] (const SizeT d1) 
-{ return dd[d1];}
+// template<class Sp> 
+// typename Data_<Sp>::Ty& Data_<Sp>::operator[] (const SizeT d1) 
+// { return dd[d1];}
 
 template<class Sp> 
 typename Data_<Sp>::Data_& Data_<Sp>::operator=(const Data_& right)
 {
   if( &right == this) return *this; // self assignment
   this->dim = right.dim;
-  dd  = right.dd;
+  dd = right.dd;
   return *this;
 }
 
@@ -319,9 +323,9 @@ template< class Sp>
 void Data_<Sp>::Clear() 
 { SizeT nEl = dd.size(); for( SizeT i = 0; i<nEl; ++i) dd[ i] = Sp::zero;}
 
-template< class Sp>
-Data_<Sp>* Data_<Sp>::Dup() 
-{ return new Data_(*this);}
+// template< class Sp>
+// Data_<Sp>* Data_<Sp>::Dup() 
+// { return new Data_(*this);}
 
 template< class Sp>
 Data_<Sp>* Data_<Sp>::New( const dimension& dim_, BaseGDL::InitType noZero)
@@ -337,19 +341,19 @@ Data_<Sp>* Data_<Sp>::New( const dimension& dim_, BaseGDL::InitType noZero)
   return new Data_(dim_);
 }
 
-template< class Sp>
-bool Data_<Sp>::Scalar() const
-{
-  return (dd.size() == 1);
-}
+// template< class Sp>
+// bool Data_<Sp>::Scalar() const
+// {
+//   return (dd.size() == 1);
+// }
 
-template< class Sp>
-bool Data_<Sp>::Scalar(Ty& s) const
-{
-  if( dd.size() != 1) return false;
-  s=dd[0];
-  return true;
-}
+// template< class Sp>
+// bool Data_<Sp>::Scalar(Ty& s) const
+// {
+//   if( dd.size() != 1) return false;
+//   s=dd[0];
+//   return true;
+// }
 
 // string, ptr, obj (cannot be INDGEN, 
 // need not to be zeroed if all intialized later)
@@ -820,9 +824,11 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
       else
 	{
 	  SizeT nCp=ixList->N_Elements();
-	
+	  
+	  SizeT* allIx = ixList->BuildIx();
 	  for( SizeT c=0; c<nCp; c++)
-	    dd[ ixList->GetIx( c)]=scalar;
+	    dd[ allIx[ c]]=scalar;
+	  //	    dd[ ixList->GetIx( c)]=scalar;
 	}
     }
   else
@@ -856,8 +862,10 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
 		throw GDLException("Array subscript must have same size as"
 				   " source expression.");
 	      
+	      SizeT* allIx = ixList->BuildIx();
 	      for( SizeT c=0; c<nCp; c++)
-		dd[ ixList->GetIx( c)]=(*src)[c+offset];
+		dd[ allIx[ c]]=(*src)[c+offset];
+	      //		dd[ ixList->GetIx( c)]=(*src)[c+offset];
 	    }
 	}
     }
@@ -878,9 +886,10 @@ void Data_<Sp>::DecAt( ArrayIndexListT* ixList)
   else
     {
       SizeT nCp=ixList->N_Elements();
-      
+
+      SizeT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; c++)
-	dd[ ixList->GetIx( c)]--;
+	dd[ allIx[ c]]--;
     }
 }
 template<class Sp>
@@ -897,8 +906,9 @@ void Data_<Sp>::IncAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=ixList->N_Elements();
       
+      SizeT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; c++)
-	dd[ ixList->GetIx( c)]++;
+	dd[ allIx[ c]]++;
     }
 }
 // float, double
@@ -915,9 +925,10 @@ void Data_<SpDFloat>::DecAt( ArrayIndexListT* ixList)
   else
     {
       SizeT nCp=ixList->N_Elements();
-      
+
+      SizeT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; c++)
-	dd[ ixList->GetIx( c)] -= 1.0;
+	dd[ allIx[ c]] -= 1.0;
     }
 }
 template<>
@@ -934,8 +945,9 @@ void Data_<SpDFloat>::IncAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=ixList->N_Elements();
       
+      SizeT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; c++)
-	dd[ ixList->GetIx( c)] += 1.0;
+	dd[ allIx[ c]] += 1.0;
     }
 }
 template<>
@@ -952,8 +964,9 @@ void Data_<SpDDouble>::DecAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=ixList->N_Elements();
       
+      SizeT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; c++)
-	dd[ ixList->GetIx( c)] -= 1.0;
+	dd[ allIx[ c]] -= 1.0;
     }
 }
 template<>
@@ -970,8 +983,9 @@ void Data_<SpDDouble>::IncAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=ixList->N_Elements();
       
+      SizeT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; c++)
-	dd[ ixList->GetIx( c)] += 1.0;
+	dd[ allIx[ c]] += 1.0;
     }
 }
 // complex
@@ -989,8 +1003,9 @@ void Data_<SpDComplex>::DecAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=ixList->N_Elements();
       
+      SizeT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; c++)
-	dd[ ixList->GetIx( c)] -= 1.0;
+	dd[ allIx[ c]] -= 1.0;
     }
 }
 template<>
@@ -1007,8 +1022,9 @@ void Data_<SpDComplex>::IncAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=ixList->N_Elements();
       
+      SizeT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; c++)
-	dd[ ixList->GetIx( c)] += 1.0;
+	dd[ allIx[ c]] += 1.0;
     }
 }
 template<>
@@ -1025,8 +1041,9 @@ void Data_<SpDComplexDbl>::DecAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=ixList->N_Elements();
       
+      SizeT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; c++)
-	dd[ ixList->GetIx( c)] -= 1.0;
+	dd[ allIx[ c]] -= 1.0;
     }
 }
 template<>
@@ -1043,8 +1060,9 @@ void Data_<SpDComplexDbl>::IncAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=ixList->N_Elements();
       
+      SizeT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; c++)
-	dd[ ixList->GetIx( c)] += 1.0;
+	dd[ allIx[ c]] += 1.0;
     }
 }
 // forbidden types
@@ -1099,8 +1117,10 @@ void Data_<Sp>::InsertAt( SizeT offset, BaseGDL* srcIn,
     {
       SizeT nCp=ixList->N_Elements();
 
+      SizeT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; c++)
-	dd[ c+offset]=(*src)[ ixList->GetIx( c)];
+	dd[ c+offset]=(*src)[ allIx[ c]];
+      //	dd[ c+offset]=(*src)[ ixList->GetIx( c)];
     }
 }
 
@@ -1167,8 +1187,11 @@ Data_<Sp>* Data_<Sp>::Index( ArrayIndexListT* ixList)
   Data_* res=Data_::New( ixList->GetDim(), BaseGDL::NOZERO);
 
   SizeT nCp=ixList->N_Elements();
+
+  SizeT* allIx = ixList->BuildIx();
   for( SizeT c=0; c<nCp; c++)
-    (*res)[c]=dd[ ixList->GetIx(c)];
+    (*res)[c]=dd[ allIx[ c]];
+  //    (*res)[c]=dd[ ixList->GetIx(c)];
  
   return res;
 }

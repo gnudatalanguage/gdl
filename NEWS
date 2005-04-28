@@ -125,4 +125,7 @@
 	  Added .RUN command
 	  True color support for TV (X-device).
 	  
-0.8.10:   positional keyword for TV	
+0.8.10:   Optimization (~10%): Arrayindexing, non-copy constants, 
+	  Complex (pow, abs).
+
+	

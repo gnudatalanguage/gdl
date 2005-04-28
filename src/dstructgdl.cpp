@@ -213,9 +213,10 @@ void DStructGDL::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
 	{
 	  SizeT nCp=ixList->N_Elements();
 
+	  SizeT* allIx = ixList->BuildIx();
 	  for( SizeT c=0; c<nCp; c++)
 	    {
-	      SizeT cTag=ixList->GetIx( c)*nTags;
+	      SizeT cTag=allIx[ c]*nTags;
 	      for( SizeT tagIx=0; tagIx<nTags; tagIx++)
 		{
 		  delete dd[cTag+tagIx];
@@ -265,9 +266,10 @@ void DStructGDL::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
 		throw GDLException("Array subscript must have"
 				   " same size as source expression.");
 
+	      SizeT* allIx = ixList->BuildIx();
 	      for( SizeT c=0; c<nCp; c++)
 		{
-		  SizeT cTag= ixList->GetIx(c)*nTags;
+		  SizeT cTag= allIx[ c]*nTags;
 		  SizeT srcTag= (c+offset)*nTags;
 		  for( SizeT tagIx=0; tagIx<nTags; tagIx++)
 		    {
@@ -307,10 +309,11 @@ void DStructGDL::InsertAt( SizeT offset, BaseGDL* srcIn,
     {
       SizeT nCp=ixList->N_Elements();
       
+      SizeT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; c++)
 	{
 	  SizeT cTag=(c+offset)*nTags;
-	  SizeT srcTag=ixList->GetIx( c)*nTags;
+	  SizeT srcTag=allIx[ c]*nTags;
 	  for( SizeT tagIx=0; tagIx<nTags; tagIx++)
 	    dd[ cTag+tagIx]=src->dd[srcTag+tagIx]->Dup();
 	}
@@ -380,10 +383,11 @@ DStructGDL* DStructGDL::Index( ArrayIndexListT* ixList)
   SizeT nTags=NTags();
   
   SizeT nCp=ixList->N_Elements();
+  SizeT* allIx = ixList->BuildIx();
   for( SizeT c=0; c<nCp; c++)
     {
       SizeT cTag=c*nTags;
-      SizeT srcTag=ixList->GetIx(c)*nTags;
+      SizeT srcTag=allIx[ c]*nTags;
       for( SizeT tagIx=0; tagIx<nTags; tagIx++)
 	res->dd[cTag+tagIx] = dd[ srcTag+tagIx]->Dup();
     }

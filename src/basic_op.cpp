@@ -1918,6 +1918,8 @@ Data_<SpDFloat>* Data_<SpDFloat>::Pow( BaseGDL* r)
     {
       //      right->dd.resize(sEl);
       //      dd = pow( dd, right->dd); // valarray
+      //      slice sl( 0, sEl, 1);
+      //      dd = pow( dd, right->dd[ sl]); // valarray
       dd = pow( dd, right->Resize(sEl)); // valarray
     }
   delete right;
@@ -1989,6 +1991,182 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowInv( BaseGDL* r)
   delete right;
   return this;
 }
+
+// complex power of value: left=left ^ right
+// complex is special here
+template<>
+Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
+{
+  SizeT sEl = N_Elements();
+
+  assert( sEl > 0);
+  assert( r->N_Elements() > 0);
+
+  if( r->Type() == FLOAT)
+    {
+      Data_<SpDFloat>* right=static_cast<Data_<SpDFloat>* >(r);
+
+      DFloat s;
+      if( right->Scalar(s)) 
+	{
+	  for( SizeT i=0; i<sEl; ++i)
+	    dd[ i] = pow( dd[ i], s);
+	  delete right;
+	  return this;
+	}
+      else 
+	{
+	  SizeT rEl = right->N_Elements();
+	  if( sEl <= rEl)
+	    {
+	      for( SizeT i=0; i<sEl; ++i)
+		dd[ i] = pow( dd[ i], (*right)[ i]);
+	      delete right;
+	      return this;
+	    }
+	  else
+	    {
+	      DComplexGDL* res = new DComplexGDL( right->Dim(), 
+						  BaseGDL::NOZERO);
+	      for( SizeT i=0; i<rEl; ++i)
+		(*res)[ i] = pow( dd[ i], (*right)[ i]);
+	      delete right;
+	      delete this;
+	      return res;
+	    }
+	}
+    }
+
+  Data_* right=static_cast<Data_*>(r);
+
+//   ULong rEl=right->N_Elements();
+//   ULong sEl=N_Elements();
+//   if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  Ty s;
+  if( right->Scalar(s)) 
+    {
+      dd = pow( dd, s); // valarray
+    }
+  else 
+    {
+      //      right->dd.resize(sEl);
+      //      dd = pow( dd, right->dd); // valarray
+      dd = pow( dd, right->Resize(sEl)); // valarray
+    }
+  delete right;
+
+  return this;
+}
+// complex inverse power of value: left=right ^ left
+template<>
+Data_<SpDComplex>* Data_<SpDComplex>::PowInv( BaseGDL* r)
+{
+  Data_* right=static_cast<Data_*>(r);
+
+  ULong rEl=right->N_Elements();
+  ULong sEl=N_Elements();
+  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  Ty s;
+  if( right->Scalar(s)) 
+    {
+      dd = pow( s, dd); // valarray
+    }
+  else 
+    {
+      //      right->dd.resize(sEl);
+      dd = pow( right->Resize(sEl), dd); // valarray
+    }
+  delete right;
+  return this;
+}
+// double complex power of value: left=left ^ right
+template<>
+Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
+{
+  SizeT sEl = N_Elements();
+
+  assert( sEl > 0);
+
+  if( r->Type() == DOUBLE)
+    {
+      Data_<SpDDouble>* right=static_cast<Data_<SpDDouble>* >(r);
+
+      assert( right->N_Elements() > 0);
+
+      DDouble s;
+      if( right->Scalar(s)) 
+	{
+	  for( SizeT i=0; i<sEl; ++i)
+	    dd[ i] = pow( dd[ i], s);
+	  delete right;
+	  return this;
+	}
+      else 
+	{
+	  SizeT rEl = right->N_Elements();
+	  if( sEl <= rEl)
+	    {
+	      for( SizeT i=0; i<sEl; ++i)
+		dd[ i] = pow( dd[ i], (*right)[ i]);
+	      delete right;
+	      return this;
+	    }
+	  else
+	    {
+	      DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
+							BaseGDL::NOZERO);
+	      for( SizeT i=0; i<rEl; ++i)
+		(*res)[ i] = pow( dd[ i], (*right)[ i]);
+	      delete right;
+	      delete this;
+	      return res;
+	    }
+	}
+    }
+
+  Data_* right=static_cast<Data_*>(r);
+
+//   ULong rEl=right->N_Elements();
+//   ULong sEl=N_Elements();
+//   if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  Ty s;
+  if( right->Scalar(s)) 
+    {
+      dd = pow( dd, s); // valarray
+    }
+  else 
+    {
+      //      right->dd.resize(sEl);
+      //      dd = pow( dd, right->dd); // valarray
+      dd = pow( dd, right->Resize(sEl)); // valarray
+    }
+  delete right;
+  return this;
+}
+// double complex inverse power of value: left=right ^ left
+template<>
+Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowInv( BaseGDL* r)
+{
+  Data_* right=static_cast<Data_*>(r);
+
+  ULong rEl=right->N_Elements();
+  ULong sEl=N_Elements();
+  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  Ty s;
+  if( right->Scalar(s)) 
+    {
+      dd = pow( s, dd); // valarray
+    }
+  else 
+    {
+      //      right->dd.resize(sEl);
+      dd = pow( right->Resize(sEl), dd); // valarray
+    }
+  delete right;
+  return this;
+}
+
+
 // invalid types
 DStructGDL* DStructGDL::Pow( BaseGDL* r)
 {
@@ -2107,7 +2285,6 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r)
 	     rIx += nColEl, rowBnCol += nCol) // res dim 1
 	  {
 	    Ty& resEl = res->dd[ rowBnCol + colA];
-	    
 	    resEl = dd[ colA] * right->dd[ rIx];
 	    for( SizeT i=1; i < nColEl; ++i)
 	      resEl += dd[ i*nCol+colA] * right->dd[ rIx+i];

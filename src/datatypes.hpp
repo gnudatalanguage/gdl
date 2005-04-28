@@ -66,7 +66,7 @@ public:
   Data_(const dimension& dim_);
 
   // c-i 
-  Data_(const Data_& d_);
+  Data_(const Data_& d_): Sp(d_.dim), dd(d_.dd) {}
 
   // operators
   // assignment. 
@@ -74,7 +74,7 @@ public:
 
   // one dim array access (unchecked)
   //  inline Ty& operator[] (const SizeT d1) { return dd[d1];}
-  Ty& operator[] (const SizeT d1);
+  Ty& operator[] (const SizeT d1) { return dd[d1];}
 
   template<class Sp2> 
   friend std::istream& operator>>(std::istream& i, Data_<Sp2>& data_); 
@@ -122,11 +122,14 @@ public:
   int Scalar2index( SizeT& st) const;
   
   // make a duplicate on the heap
-  Data_* Dup();
+  Data_* Dup() { return new Data_(*this);}
 
-  bool Scalar() const;
+  bool Scalar() const { return (dd.size() == 1);}
 
-  bool Scalar(Ty& s) const;
+  bool Scalar(Ty& s) const {
+    if( dd.size() != 1) return false;
+    s=dd[0];
+    return true; }
 
   Data_* New( const dimension& dim_, BaseGDL::InitType noZero=BaseGDL::ZERO);
 

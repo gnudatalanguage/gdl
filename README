@@ -33,15 +33,15 @@ netCDF files are fully supported.
 HDF4 files are supported.
 Basic support for HDF5 files.
 
-Overall more than 240 library routines are implemented.
+Overall more than 250 library routines are implemented.
 For a list enter HELP,/LIB at the command prompt and look for
 library routines written in GDL in the src/pro subdirectory.
 
 Graphical output is partially implemented. The PLOT, OPLOT, PLOTS,
-XYOUTS and TV commands (along with WINDOW, WDELETE, SET_PLOT, WSET,
-TVLCT, LOADCT) are working (important keywords, some !P system
-variable tags and multi-plots are supported) for X windows and
-postscript output.
+XYOUTS, SURFACE and TV commands (along with WINDOW, WDELETE, SET_PLOT,
+WSET, TVLCT, LOADCT) are working (important keywords, some !P system
+variable tags and multi-plots are supported) for X windows, z-buffer
+and postscript output.
 
 GDL has an interface to python. See the file PYTHON.txt for details.
 
@@ -148,7 +148,7 @@ For nice graphical output the python package matplotlib
 (http://matplotlib.sourceforge.net) is used in one of the examples.
 See the file PYTHON.txt for more details.
 
-GDL 0.8.9 was developed using ANTLR 2.7.4,   
+GDL 0.8.10 was developed using ANTLR 2.7.4,   
 but unless you want to change the grammar (*.g files) you don't need
 ANTLR. All relevant ANTLR files are included in the package.
 For more information on ANTRL see: http://www.antlr.org
@@ -168,8 +168,8 @@ Please see the INSTALL file for details.
 CONTRIBUTIONS:
 ==============
 
-GDL 0.8.9 is actively developed, but still in beta state as of
-February 2005.
+GDL 0.8.10 is actively developed, but still in beta state as of
+April 2005.
 Even though it can already be used for several tasks, there are many
 things to be done.
 Bug reports, feedback in general and interested people who would

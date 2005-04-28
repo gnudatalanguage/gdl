@@ -54,7 +54,10 @@ options {
   ASTLabelType = "RefDNode";
 //  defaultErrorHandler = true;
   defaultErrorHandler = false;
+//  codeGenMakeSwitchThreshold = 2;
+//  codeGenBitsetTestThreshold = 32;
 }
+
 {
 public: 
     enum RetCode {
@@ -1276,6 +1279,11 @@ l_ret_expr returns [BaseGDL** res]
             throw GDLException( _t, 
                 "Expression not allowed as left-function return value.");
         }
+    | e1=constant_nocopy
+        {
+            throw GDLException( _t, 
+                "Constant not allowed as left-function return value.");
+        }
     ;
 
 // l expressions for DEC/INC ********************************
@@ -1455,6 +1463,11 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
             delete e1;
             throw GDLException( _t, 
                 "Expression not allowed with decrement/increment operator.");
+        }
+    | e1=constant_nocopy
+        {
+            throw GDLException( _t, 
+                "Constant not allowed with decrement/increment operator.");
         }
     ;
 
@@ -1683,6 +1696,11 @@ l_expr [BaseGDL* right] returns [BaseGDL** res]
             delete e1;
             throw GDLException( _t, 
                 "Expression not allowed as l-value.");
+        }
+    | e1=constant_nocopy
+        {
+            throw GDLException( _t, 
+                "Constant not allowed as l-value.");
         }
     ;
 
@@ -1952,6 +1970,38 @@ r_expr returns [BaseGDL* res]
         }
     |	#(POW e1=expr e2=expr)
         {
+            // special handling for complex
+            DType aTy=e1->Type();
+            if( aTy == COMPLEX)
+            {
+                DType bTy=e2->Type();
+                if( IntType( bTy))
+                {
+                    e2 = e2->Convert2( FLOAT);
+                    res = e1->Pow( e2);
+                    goto endPOW;
+                }
+                else if( bTy == FLOAT)
+                {
+                    res = e1->Pow( e2);
+                    goto endPOW;
+                }
+            }
+            else if( aTy == COMPLEXDBL)
+            {
+                DType bTy=e2->Type();
+                if( IntType( bTy))
+                {
+                    e2 = e2->Convert2( DOUBLE);
+                    res = e1->Pow( e2);
+                    goto endPOW;
+                }
+                else if( bTy == DOUBLE)
+                {
+                    res = e1->Pow( e2);
+                    goto endPOW;
+                }
+            }
             AdjustTypes(e1,e2);
             if( e1->Scalar())
             res= e2->PowInv(e1); // scalar+scalar or array+scalar
@@ -1963,6 +2013,7 @@ r_expr returns [BaseGDL* res]
             res= e1->Pow(e2); // smaller_array + larger_array or same size
             else
             res= e2->PowInv(e1); // smaller + larger
+            endPOW:
         }
     |	#(DEC res=l_decinc_expr[ DEC])
     |	#(INC res=l_decinc_expr[ INC])
@@ -1985,7 +2036,7 @@ r_expr returns [BaseGDL* res]
         {
             res = e1->LogNeg();
         }
-    | res=constant                  
+//    | res=constant                  
     | res=array_def
     | res=struct_def
     ;
@@ -2004,7 +2055,7 @@ array_expr returns [BaseGDL* res]
             | r=indexable_tmp_expr { r_guard.reset( r);}
             | r=check_expr
                 {
-                    if( !callStack.back()->Contains( res)) 
+                    if( !callStack.back()->Contains( r)) 
                         r_guard.reset( r); // guard if no global data
                 }
             )
@@ -2200,6 +2251,7 @@ indexable_expr returns [BaseGDL* res]
             res = *e2;
         }
     | res=sys_var_nocopy
+    | res=constant_nocopy
     | e2=l_deref 
         { 
             if( *e2 == NULL)
@@ -2255,6 +2307,7 @@ tmp_expr returns [BaseGDL* res]
     | res=assign_expr
     | res=function_call
     | res=r_expr
+    | res=constant
         // *********
     | res=simple_var                         
     | res=sys_var 
@@ -2335,6 +2388,13 @@ sys_var_nocopy returns [BaseGDL* res]
     ;
 
 constant returns [BaseGDL* res]
+    : c:CONSTANT
+        {
+            res=c->cData->Dup(); 
+        }
+  ;
+
+constant_nocopy returns [BaseGDL* res]
     : c:CONSTANT
         {
             res=c->cData->Dup(); 
@@ -2573,11 +2633,11 @@ parameter_def [EnvT* actEnv]
         }
 	;
 
-arrayindex_all returns[ ArrayIndexT arrIx] // ALL [*]
-    : ALL { arrIx = ArrayIndexT();}
+arrayindex_all returns[ ArrayIndexT* arrIx] // ALL [*]
+    : ALL { arrIx = new ArrayIndexT();}
     ;
 
-arrayindex_range returns[ ArrayIndexT arrIx] // RANGE [s:e]
+arrayindex_range returns[ ArrayIndexT* arrIx] // RANGE [s:e]
 {
     BaseGDL* s;
     BaseGDL* e;
@@ -2630,11 +2690,11 @@ arrayindex_range returns[ ArrayIndexT arrIx] // RANGE [s:e]
                     "must be >= 0, < size, with low <= high");
             }
                             
-            arrIx = ArrayIndexT(ArrayIndexT::RANGE,sIx,eIx);
+            arrIx = new ArrayIndexT(ArrayIndexT::RANGE,sIx,eIx);
             }
     ;
 
-arrayindex_end returns[ ArrayIndexT arrIx] // ORANGE [s:*]
+arrayindex_end returns[ ArrayIndexT* arrIx] // ORANGE [s:*]
 {
     BaseGDL* s;
     SizeT sIx;
@@ -2662,33 +2722,35 @@ arrayindex_end returns[ ArrayIndexT arrIx] // ORANGE [s:*]
                 GDLException( _t, "Subscript range values of the"
                     " form low:high must be >= 0, < size, with low <= high.");
             }
-            arrIx = ArrayIndexT(ArrayIndexT::ORANGE,sIx);
+            arrIx = new ArrayIndexT(ArrayIndexT::ORANGE,sIx);
         }
     ;
 
-arrayindex returns[ ArrayIndexT arrIx] // type: 0 [data], 2 [s]
+arrayindex returns[ ArrayIndexT* arrIx] // type: 0 [data], 2 [s]
 {
     BaseGDL* s;
     SizeT   sIx;
-    int      retMsg=0;
+    int     retMsg=0;
+    auto_ptr<BaseGDL> s_guard;
 }    
-    : s=expr
-        {
-            auto_ptr<BaseGDL> s_guard(s);
-            
-            if( s->N_Elements() == 0) // index empty or array
+    : //s=expr
+        ( s=indexable_expr
+        | s=indexable_tmp_expr { s_guard.reset( s);}
+        | s=check_expr
             {
-                throw 
-                GDLException( _t, "Internal error: Scalar2index: 1st"
-                    " index empty"); 
+                if( !callStack.back()->Contains( s)) 
+                s_guard.reset( s); // guard if no global data
             }
-            
+        ) // s is *never* owned now
+        {
+            assert( s->N_Elements() != 0); // index empty or array
+
             if( s->Rank() != 0)
             {
                 // INDEXED
-                s_guard.release();
-                arrIx = 
-                ArrayIndexT( static_cast< DLongGDL*>(s->Convert2( LONG))); 
+                // s_guard.release(); // never owned
+                arrIx = new ArrayIndexT( s); 
+//                ArrayIndexT( static_cast< DLongGDL*>(s->Convert2( LONG))); 
             }
             else
             {
@@ -2700,7 +2762,7 @@ arrayindex returns[ ArrayIndexT arrIx] // type: 0 [data], 2 [s]
                         " form low:high must be >= 0, < size,"
                         " with low <= high.");
                 }
-                else arrIx = ArrayIndexT(ArrayIndexT::ONE, sIx); // ONE
+                else arrIx = new ArrayIndexT(ArrayIndexT::ONE, sIx); // ONE
             }
         }
     ;
@@ -2711,7 +2773,7 @@ arrayindex_list returns [ArrayIndexListT* aL]
 {
     // auto_ptr -> exception-save
     auto_ptr<ArrayIndexListT> arrList(new ArrayIndexListT());
-    ArrayIndexT arrIx;
+    ArrayIndexT* arrIx;
 }
 	: ( #(ARRAYIX // INDEXED or ONE
                 arrIx=arrayindex

@@ -381,6 +381,7 @@ public:
 	public: BaseGDL**  l_deref(RefDNode _t);
 	public:  BaseGDL**  l_function_call(RefDNode _t);
 	public: BaseGDL*  r_expr(RefDNode _t);
+	public: BaseGDL*  constant_nocopy(RefDNode _t);
 	public: BaseGDL*  l_decinc_indexable_expr(RefDNode _t,
 		int dec_inc
 	);
@@ -407,7 +408,6 @@ public:
 	public: BaseGDL**  l_dot_expr(RefDNode _t,
 		BaseGDL* right
 	);
-	public: BaseGDL*  constant(RefDNode _t);
 	public: BaseGDL*  array_def(RefDNode _t);
 	public:  BaseGDL*  struct_def(RefDNode _t);
 	public: BaseGDL*  array_expr(RefDNode _t);
@@ -427,13 +427,14 @@ public:
 	public: BaseGDL*  assign_expr(RefDNode _t);
 	public:  BaseGDL*  function_call(RefDNode _t);
 	public:  BaseGDL*  lib_function_call(RefDNode _t);
+	public: BaseGDL*  constant(RefDNode _t);
 	public: BaseGDL*  simple_var(RefDNode _t);
 	public: BaseGDL*  sys_var(RefDNode _t);
 	public:  BaseGDL**  ref_parameter(RefDNode _t);
-	public:  ArrayIndexT  arrayindex_all(RefDNode _t);
-	public:  ArrayIndexT  arrayindex_range(RefDNode _t);
-	public:  ArrayIndexT  arrayindex_end(RefDNode _t);
-	public:  ArrayIndexT  arrayindex(RefDNode _t);
+	public:  ArrayIndexT*  arrayindex_all(RefDNode _t);
+	public:  ArrayIndexT*  arrayindex_range(RefDNode _t);
+	public:  ArrayIndexT*  arrayindex_end(RefDNode _t);
+	public:  ArrayIndexT*  arrayindex(RefDNode _t);
 	public:  BaseGDL*  named_struct_def(RefDNode _t);
 	public:  BaseGDL*  unnamed_struct_def(RefDNode _t);
 public:

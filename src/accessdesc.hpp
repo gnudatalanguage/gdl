@@ -74,11 +74,14 @@ private:
 	ArrayIndexListT& actIx= *ix[depth];
 	nCp=actIx.N_Elements();
 
+	SizeT* allIx = actIx.BuildIx();
+
 	if( (depth+1) == tag.size())
 	  {
 	    for( SizeT c=0; c<nCp; c++)
 	      { // the actual assignment
-		BaseGDL* actTop = l->Get( actTag,  actIx.GetIx( c));
+		BaseGDL* actTop = l->Get( actTag,  allIx[ c]);
+		//BaseGDL* actTop = l->Get( actTag,  actIx.GetIx( c));
 		actTop->AssignAt( r, ix[depth+1], rOffset);	
 		rOffset += rStride;
 	      }
@@ -88,7 +91,8 @@ private:
 	    for( SizeT c=0; c<nCp; c++)
 	      {
 		DStructGDL* nextL = static_cast
-		  <DStructGDL*>( l->Get( actTag, actIx.GetIx( c)));
+		  <DStructGDL*>( l->Get( actTag, allIx[ c]));
+		//<DStructGDL*>( l->Get( actTag, actIx.GetIx( c)));
 		DoAssign( nextL, r, depth+1);
 	      }
 	  }
@@ -127,11 +131,14 @@ private:
 	ArrayIndexListT& actIx= *ix[depth];
 	nCp=actIx.N_Elements();
 
+	SizeT* allIx = actIx.BuildIx();
+
 	if( (depth+1) == tag.size())
 	  {
 	    for( SizeT c=0; c<nCp; c++)
 	      { // the actual decrement
-		BaseGDL* actTop = l->Get( actTag,  actIx.GetIx( c));
+		BaseGDL* actTop = l->Get( actTag,  allIx[c]);
+		//BaseGDL* actTop = l->Get( actTag,  actIx.GetIx( c));
 		actTop->DecAt( ix[depth+1]);	
 	      }
 	  }
@@ -140,7 +147,7 @@ private:
 	    for( SizeT c=0; c<nCp; c++)
 	      {
 		DStructGDL* nextL = static_cast
-		  <DStructGDL*>( l->Get( actTag, actIx.GetIx( c)));
+		  <DStructGDL*>( l->Get( actTag, allIx[c]));
 		DoDec( nextL, depth+1);
 	      }
 	  }
@@ -178,11 +185,14 @@ private:
 	ArrayIndexListT& actIx= *ix[depth];
 	nCp=actIx.N_Elements();
 
+	SizeT* allIx = actIx.BuildIx();
+
 	if( (depth+1) == tag.size())
 	  {
 	    for( SizeT c=0; c<nCp; c++)
 	      { // the actual increment
-		BaseGDL* actTop = l->Get( actTag,  actIx.GetIx( c));
+		BaseGDL* actTop = l->Get( actTag,  allIx[c]);
+		//BaseGDL* actTop = l->Get( actTag,  actIx.GetIx( c));
 		actTop->IncAt( ix[depth+1]);	
 	      }
 	  }
@@ -191,7 +201,8 @@ private:
 	    for( SizeT c=0; c<nCp; c++)
 	      {
 		DStructGDL* nextL = static_cast
-		  <DStructGDL*>( l->Get( actTag, actIx.GetIx( c)));
+		  <DStructGDL*>( l->Get( actTag, allIx[c]));
+		//<DStructGDL*>( l->Get( actTag, actIx.GetIx( c)));
 		DoInc( nextL, depth+1);
 	      }
 	  }
@@ -233,11 +244,14 @@ private:
 	ArrayIndexListT& actIx= *ix[depth];
 	nCp=actIx.N_Elements();
 
+	SizeT* allIx = actIx.BuildIx();
+
 	if( (depth+1) == tag.size())
 	  {
 	    for( SizeT c=0; c<nCp; c++)
 	      { // the actual resolving
-		BaseGDL* actTop = l->Get( actTag,  actIx.GetIx( c));
+		BaseGDL* actTop = l->Get( actTag,  allIx[ c]);
+		//BaseGDL* actTop = l->Get( actTag,  actIx.GetIx( c));
 		newVar->InsertAt( rOffset, actTop, ix[depth+1]);	
 		rOffset += rStride;
 	      }
@@ -247,7 +261,8 @@ private:
 	    for( SizeT c=0; c<nCp; c++)
 	      {
 		DStructGDL* nextL = static_cast
-		  <DStructGDL*>( l->Get( actTag, actIx.GetIx( c)));
+		  <DStructGDL*>( l->Get( actTag, allIx[ c]));
+		//<DStructGDL*>( l->Get( actTag, actIx.GetIx( c)));
 		DoResolve( newVar, nextL, depth+1);
 	      }
 	  }

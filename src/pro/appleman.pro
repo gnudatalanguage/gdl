@@ -1,4 +1,4 @@
-;$Id: appleman.pro,v 1.1.1.1 2004-12-09 15:10:20 m_schellens Exp $
+;$Id: appleman.pro,v 1.2 2005-04-28 10:42:40 m_schellens Exp $
 pro AppleMan,xRange,yRange,RESULT=res
 
 ;+
@@ -90,6 +90,7 @@ for i = 0, iter-1 do begin
     if whereIn[0] eq -1 then break
 
     valArr = valArr[ whereIn]
+
     constArr = constArr[ whereIn]
 
     if whereOut[0] ne -1 then begin
