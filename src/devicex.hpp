@@ -24,6 +24,7 @@
 
 //#include <plplot/plstream.h>
 #include <plplot/plplotP.h>
+#include <plplot/drivers.h>
 
 #include "gdlxstream.hpp"
 #include "initsysvar.hpp"
@@ -43,13 +44,18 @@ class DeviceX: public Graphics
   int  actWin;
   bool decomposed; // false -> use color table
 
+
   void plimage_gdl(unsigned char *idata, PLINT nx, PLINT ny, DInt tru)
   {
     PLINT ix, iy, xm, ym;
 
     XwDev *dev = (XwDev *) plsc->dev;
     XwDisplay *xwd = (XwDisplay *) dev->xwd;
-    XImage *ximg = NULL;
+    XImage *ximg = NULL, *ximg_pixmap = NULL;
+
+    int x, y;
+
+    int (*oldErrorHandler)(Display*, XErrorEvent*);
 
     if (plsc->level < 3) {
       plabort("plimage: window must be set up first");
@@ -61,21 +67,33 @@ class DeviceX: public Graphics
       return;
     }
 
+    oldErrorHandler = XSetErrorHandler(GetImageErrorHandler);
+
     XFlush(xwd->display);
-    if (dev->write_to_pixmap)
-	ximg = XGetImage( xwd->display, dev->pixmap, 0, 0, 
-			  dev->width, dev->height,
-			  AllPlanes, ZPixmap);
+    if (dev->write_to_pixmap) {
+      ximg = XGetImage( xwd->display, dev->pixmap, 0, 0, 
+			dev->width, dev->height,
+			AllPlanes, ZPixmap);
+      ximg_pixmap = ximg;
+    }
 
     if (dev->write_to_window)
 	ximg = XGetImage( xwd->display, dev->window, 0, 0, 
 			  dev->width, dev->height,
 			  AllPlanes, ZPixmap);
 
+    XSetErrorHandler(oldErrorHandler);
+
     if (ximg == NULL) {
-	plabort("Can't get image, window partly off-screen,"
-		" move to fit screen");
-	return;
+      XSync(xwd->display, 0);
+      x = 0;
+      y = 0;
+      if (dev->write_to_pixmap) {
+	XCopyArea(xwd->display, dev->pixmap, dev->window, dev->gc,
+		  x, y, dev->width, dev->height, x, y);
+	XSync(xwd->display, 0);
+	ximg = ximg_pixmap;
+      }
     }
 
 
@@ -584,6 +602,25 @@ public:
     }
     plimage_gdl(&(*p0B)[0], width, height, tru);
   }
+
+  /*--------------------------------------------------------------------------*\
+   * GetImageErrorHandler()
+   *
+   * Error handler used in XGetImage() to catch errors when pixmap or window
+   * are not completely viewable.
+   \*--------------------------------------------------------------------------*/
+
+  static int
+  GetImageErrorHandler(Display *display, XErrorEvent *error)
+  {
+    if (error->error_code != BadMatch) {
+      char buffer[256];
+      XGetErrorText(display, error->error_code, buffer, 256);
+      fprintf(stderr, "xwin: Error in XGetImage: %s.\n", buffer);
+    }
+    return 1;
+  }
+
 };
 
 

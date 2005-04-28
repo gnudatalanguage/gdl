@@ -40,6 +40,8 @@ public:
   void Init();
   void EventHandler();
 
+  static int   GetImageErrorHandler(Display *display, XErrorEvent *error);
+
   void GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff);
 };
 
