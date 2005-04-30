@@ -30,7 +30,7 @@
 #include "typedefs.hpp"
 #include "basegdl.hpp"
 #include "typetraits.hpp"
-
+#include "cassert"
 #pragma interface
 
 template<class Sp>
