@@ -666,10 +666,7 @@ namespace lib {
     e->AssureLongScalarKWIfPresent( "YSTYLE", yStyle);
 
     // TITLE
-    DString title = p_title;
-    DString subTitle = p_subTitle;
-    e->AssureStringScalarKWIfPresent( "TITLE", title);
-    e->AssureStringScalarKWIfPresent( "SUBTITLE", subTitle);
+
 
     // AXIS TITLE
     e->AssureStringScalarKWIfPresent( "XTITLE", xTitle);
@@ -730,9 +727,9 @@ namespace lib {
     e->AssureDoubleScalarKWIfPresent( "MIN_VALUE", minVal);
     e->AssureDoubleScalarKWIfPresent( "MAX_VALUE", maxVal);
 
-
-    bool xLog = e->KeywordSet( "XLOG");
-    bool yLog = e->KeywordSet( "YLOG");
+    bool xLog, yLog;
+    get_axis_type("X", xLog);
+    get_axis_type("Y", yLog);
     if( xLog && xStart <= 0.0)
       Warning( "PLOT: Infinite x plot range.");
     if( yLog && minVal <= 0.0)
@@ -846,6 +843,7 @@ namespace lib {
     if( xLog) xOpt += "l";
     if( yLog) yOpt += "l";
     
+
     // axis titles
     actStream->schr( 0.0, actH/defH * xCharSize);
     actStream->mtex("b",3.5,0.5,0.5,xTitle.c_str());
@@ -858,15 +856,13 @@ namespace lib {
     actStream->box( "", 0.0, 0, yOpt.c_str(), 0.0, 0);
     
     // title and sub title
-    actStream->schr( 0.0, 1.25*actH/defH);
-    actStream->mtex("t",1.25,0.5,0.5,title.c_str());
-    actStream->schr( 0.0, actH/defH); // charsize is reset here
-    actStream->mtex("b",5.4,0.5,0.5,subTitle.c_str());
+    gkw_title(e, actStream, actH/defH);
 
     // pen thickness for plot
     gkw_thick(e, actStream);
     gkw_symsize(e, actStream);
     gkw_linestyle(e, actStream);
+
     // plot the data
     if(!e->KeywordSet("NODATA"))
       if(valid)
@@ -876,25 +872,22 @@ namespace lib {
 
     actStream->lsty(1);//reset linestyle
     actStream->flush();
-    
+
     // set ![XY].CRANGE
-    static unsigned crangeTag = xStruct->Desc()->TagIndex( "CRANGE");
-    (*static_cast<DDoubleGDL*>( xStruct->Get( crangeTag, 0)))[0] = xStart;
-    (*static_cast<DDoubleGDL*>( xStruct->Get( crangeTag, 0)))[1] = xEnd;
-    (*static_cast<DDoubleGDL*>( yStruct->Get( crangeTag, 0)))[0] = minVal;
-    (*static_cast<DDoubleGDL*>( yStruct->Get( crangeTag, 0)))[1] = maxVal;
+    set_axis_crange("X", xStart, xEnd);
+    set_axis_crange("Y", yStart, yEnd);    
+
 
     //set ![x|y].type
-    static unsigned xtypeTag = xStruct->Desc()->TagIndex("TYPE");
-    static unsigned ytypeTag = yStruct->Desc()->TagIndex("TYPE");
-    (*static_cast<DLongGDL*>(xStruct->Get(xtypeTag, 0)))[0] = xLog;
-    (*static_cast<DLongGDL*>(yStruct->Get(xtypeTag, 0)))[0] = yLog;
+    set_axis_type("X",xLog);
+    set_axis_type("Y",yLog);
   } // plot
 
   void oplot( EnvT* e)
   {
     SizeT nParam=e->NParam( 1); 
     bool valid, line;
+    valid=true;
     DLong psym;
     DDoubleGDL* yVal;
     DDoubleGDL* xVal;
@@ -957,25 +950,15 @@ namespace lib {
 		 yTicklen);
     
     // get ![XY].CRANGE
-    static unsigned crangeTag = xStruct->Desc()->TagIndex( "CRANGE");
-    DDouble xStart = 
-      (*static_cast<DDoubleGDL*>( xStruct->Get( crangeTag, 0)))[0];
-    DDouble xEnd = 
-      (*static_cast<DDoubleGDL*>( xStruct->Get( crangeTag, 0)))[1];
-    DDouble yStart =
-      (*static_cast<DDoubleGDL*>( yStruct->Get( crangeTag, 0)))[0];
-    DDouble yEnd =
-    (*static_cast<DDoubleGDL*>( yStruct->Get( crangeTag, 0)))[1];
+    DDouble xStart, xEnd, yStart, yEnd;
+    get_axis_crange("X", xStart, xEnd);
+    get_axis_crange("Y", yStart, yEnd);
 
     DDouble minVal;
     DDouble maxVal;
-
-    static unsigned xtypeTag = xStruct->Desc()->TagIndex("TYPE");
-    static unsigned ytypeTag = yStruct->Desc()->TagIndex("TYPE");
-    bool xLog =  
-      (*static_cast<DLongGDL*>(xStruct->Get(xtypeTag, 0)))[0] ? 1:0;
-    bool yLog =  
-      (*static_cast<DLongGDL*>(yStruct->Get(xtypeTag, 0)))[0] ? 1:0;
+    bool xLog, yLog;
+    get_axis_type("X", xLog);
+    get_axis_type("Y", yLog);
     
     //    int just = (e->KeywordSet("ISOTROPIC"))? 1 : 0;
 
@@ -998,14 +981,8 @@ namespace lib {
 	xStart = 0; //xVal->min();
 	xEnd   = 1; //xVal->max();
 	
-	(*static_cast<DDoubleGDL*>( xStruct->Get( crangeTag, 0)))[0] =
-	  xStart;
-	(*static_cast<DDoubleGDL*>( xStruct->Get( crangeTag, 0)))[1] = 
-	  xEnd;
-	(*static_cast<DDoubleGDL*>( yStruct->Get( crangeTag, 0)))[0] = 
-	  yStart;
-	(*static_cast<DDoubleGDL*>( yStruct->Get( crangeTag, 0)))[1] = 
-	  yEnd;
+	set_axis_crange("X", xStart, xEnd);
+	set_axis_crange("Y", yStart, yEnd);
       }	    
     
     minVal = yStart;
@@ -1059,6 +1036,7 @@ namespace lib {
   {
     SizeT nParam=e->NParam( 1); 
     bool valid, line;
+    valid=true;
     DLong psym;
     DDoubleGDL* yVal;
     DDoubleGDL* xVal;
@@ -1125,25 +1103,14 @@ namespace lib {
 		 yTicklen);
     
     // get ![XY].CRANGE
-    static unsigned crangeTag = xStruct->Desc()->TagIndex( "CRANGE");
-    DDouble xStart = 
-      (*static_cast<DDoubleGDL*>( xStruct->Get( crangeTag, 0)))[0];
-    DDouble xEnd = 
-      (*static_cast<DDoubleGDL*>( xStruct->Get( crangeTag, 0)))[1];
-    DDouble yStart =
-      (*static_cast<DDoubleGDL*>( yStruct->Get( crangeTag, 0)))[0];
-    DDouble yEnd =
-    (*static_cast<DDoubleGDL*>( yStruct->Get( crangeTag, 0)))[1];
-
+    DDouble xStart, xEnd, yStart, yEnd;
+    bool xLog, yLog;
+    get_axis_crange("X", xStart, xEnd);
+    get_axis_crange("Y", yStart, yEnd);
+    
     DDouble minVal, maxVal;
-
-    static unsigned xtypeTag = xStruct->Desc()->TagIndex("TYPE");
-    static unsigned ytypeTag = yStruct->Desc()->TagIndex("TYPE");
-    bool xLog =  
-      (*static_cast<DLongGDL*>(xStruct->Get(xtypeTag, 0)))[0] ? 1:0;
-
-    bool yLog =  
-      (*static_cast<DLongGDL*>(yStruct->Get(xtypeTag, 0)))[0] ? 1:0;
+    get_axis_type("X", xLog);
+    get_axis_type("Y", yLog);
     
     //    int just = (e->KeywordSet("ISOTROPIC"))? 1 : 0;
     DLong background = p_background;
@@ -1214,14 +1181,9 @@ namespace lib {
 	    xStart = 0; //xVal->min();
 	    xEnd   = 1; //xVal->max();
 	    
-	    (*static_cast<DDoubleGDL*>( xStruct->Get( crangeTag, 0)))[0] =
-	      xStart;
-	    (*static_cast<DDoubleGDL*>( xStruct->Get( crangeTag, 0)))[1] = 
-	      xEnd;
-	    (*static_cast<DDoubleGDL*>( yStruct->Get( crangeTag, 0)))[0] = 
-	      yStart;
-	    (*static_cast<DDoubleGDL*>( yStruct->Get( crangeTag, 0)))[1] = 
-	      yEnd;
+	    set_axis_crange("X", xStart, xEnd);
+	    set_axis_crange("Y", yStart, yEnd);
+
 	  }	    
 	
 	minVal= yStart-yMB*(yEnd-yStart)/(1-yMT-yMB);
@@ -1954,20 +1916,16 @@ namespace lib {
 
     actStream->lsty(1);//reset linestyle
     actStream->flush();
-    
-    // set ![XY].CRANGE
-    static unsigned crangeTag = xStruct->Desc()->TagIndex( "CRANGE");
-    (*static_cast<DDoubleGDL*>( xStruct->Get( crangeTag, 0)))[0] = xStart;
-    (*static_cast<DDoubleGDL*>( xStruct->Get( crangeTag, 0)))[1] = xEnd;
-    (*static_cast<DDoubleGDL*>( zStruct->Get( crangeTag, 0)))[0] = minVal;
-    (*static_cast<DDoubleGDL*>( zStruct->Get( crangeTag, 0)))[1] = maxVal;
 
-    //set ![x|y|z].type
-    static unsigned xtypeTag = xStruct->Desc()->TagIndex("TYPE");
-    static unsigned ytypeTag = yStruct->Desc()->TagIndex("TYPE");
-    static unsigned ztypeTag = zStruct->Desc()->TagIndex("TYPE");
-    (*static_cast<DLongGDL*>(xStruct->Get(xtypeTag, 0)))[0] = xLog;
-    (*static_cast<DLongGDL*>(yStruct->Get(xtypeTag, 0)))[0] = yLog;
+
+
+    // set ![XY].CRANGE
+    set_axis_crange("X", xStart, xEnd);
+    set_axis_crange("Y", yStart, yEnd);
+
+    //set ![x|y].type
+    set_axis_type("X",xLog);
+    set_axis_type("Y",yLog);
   } // surface
 
 
@@ -2192,6 +2150,81 @@ namespace lib {
     a->lsty(linestyle);
   }
 
+  //TITLE
+  void gkw_title(EnvT* e, GDLGStream *a, PLFLT ad)
+  {
+    DLong thick=0;
+    e->AssureLongScalarKWIfPresent("CHARTHICK",thick);
+    a->wid(thick);
+
+    static DStructGDL* pStruct = SysVar::P();
+    static unsigned titleTag = pStruct->Desc()->TagIndex( "TITLE");
+    static unsigned subTitleTag = pStruct->Desc()->TagIndex( "SUBTITLE");
+    DString title =   
+      (*static_cast<DStringGDL*>( pStruct->Get( titleTag, 0)))[0];
+    DString subTitle =  
+      (*static_cast<DStringGDL*>( pStruct->Get( subTitleTag, 0)))[0];
+    e->AssureStringScalarKWIfPresent( "TITLE", title);
+    e->AssureStringScalarKWIfPresent( "SUBTITLE", subTitle);
+
+    a->schr( 0.0, 1.25*ad);
+    a->mtex("t",1.25,0.5,0.5,title.c_str());
+    a->schr( 0.0, ad); // charsize is reset here
+    a->mtex("b",5.4,0.5,0.5,subTitle.c_str());
+    a->wid(0);
+  }
+
+  //crange to struct
+  void set_axis_crange(string axis, DDouble Start, DDouble End)
+  {
+    DStructGDL* Struct=NULL;
+    if(axis=="X") Struct = SysVar::X();
+    if(axis=="Y") Struct = SysVar::Y();
+    if(Struct!=NULL)
+      {
+	static unsigned crangeTag = Struct->Desc()->TagIndex( "CRANGE");
+	(*static_cast<DDoubleGDL*>( Struct->Get( crangeTag, 0)))[0] = Start;
+	(*static_cast<DDoubleGDL*>( Struct->Get( crangeTag, 0)))[1] = End;
+      }
+  }
+
+  //CRANGE from struct
+  void get_axis_crange(string axis, DDouble &Start, DDouble &End)
+  {
+    DStructGDL* Struct=NULL;
+    if(axis=="X") Struct = SysVar::X();
+    if(axis=="Y") Struct = SysVar::Y();
+    if(Struct!=NULL)
+      {
+	static unsigned crangeTag = Struct->Desc()->TagIndex( "CRANGE");
+	Start = (*static_cast<DDoubleGDL*>( Struct->Get( crangeTag, 0)))[0]; 
+	End = (*static_cast<DDoubleGDL*>( Struct->Get( crangeTag, 0)))[1];
+      }
+  }
+
+   void get_axis_type(string axis,bool &log)
+  {
+    DStructGDL* Struct;
+    if(axis=="X") Struct = SysVar::X();
+    if(axis=="Y") Struct = SysVar::Y();
+    if(Struct !=NULL)
+      log=((*static_cast<DLongGDL*>(Struct->Get(Struct->Desc()->TagIndex("TYPE"))))[0] ? 1:0);
+    else
+      log=0;
+  }
+
+  //axis type (log..)
+  void set_axis_type(string axis, bool Type)
+  {
+    DStructGDL* Struct=NULL;
+    if(axis=="X") Struct = SysVar::X();
+    if(axis=="Y") Struct = SysVar::Y();
+    if(Struct!=NULL)
+      {
+	static unsigned typeTag = Struct->Desc()->TagIndex("TYPE");   
+	(*static_cast<DLongGDL*>(Struct->Get(typeTag, 0)))[0] =Type; 
+      }
+  }
 
 
 } // namespace

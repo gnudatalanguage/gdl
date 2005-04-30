@@ -65,11 +65,15 @@ namespace lib {
   void gkw_thick(EnvT * e, GDLGStream * a);
   //set the linestyle
   void gkw_linestyle(EnvT * e, GDLGStream * a);
-
-  /*
-  //write the title
+  //title
   void gkw_title(EnvT* e, GDLGStream *a, PLFLT ad);
-  */
+  //set the !axis.crange vector
+  void set_axis_crange(string axis, DDouble Start, DDouble End);
+  //get the !axis.crange vector
+  void get_axis_crange(string axis, DDouble &Start, DDouble &End);
+  //axis_type
+  void get_axis_type(string axis, bool &log);
+  void set_axis_type(string axis, bool type);
 
 } // namespace
 
