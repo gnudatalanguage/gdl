@@ -19,9 +19,12 @@
 #define PLOTTING_HPP_
 
 #include "envt.hpp"
+#include "graphics.hpp"
+#include "initsysvar.hpp"
 
 namespace lib {
 
+  using namespace std;
   void set_plot( EnvT* e);
   void device( EnvT* e);
   void plot( EnvT* e);
@@ -34,6 +37,39 @@ namespace lib {
   void wshow( EnvT* e);
   void wdelete( EnvT* e);
   void tvlct( EnvT* e);
+
+
+
+
+  //helper functions
+  template <typename T> 
+  bool draw_polyline(EnvT *e,  GDLGStream *a, T * xVal, T* yVal, 
+		     bool xLog, bool yLog, 
+		     DDouble yStart, DDouble yEnd, DLong psym=0);
+  
+  void gkw_axis_margin(EnvT *e, string axis,DFloat &start, DFloat &end);
+
+  //set the background color
+  void gkw_background(EnvT * e, GDLGStream * a);
+  //set the foreground color
+  void gkw_color(EnvT * e, GDLGStream * a);
+  //set the noerase flag
+  void gkw_noerase(EnvT * e, GDLGStream * a,bool noe=0);
+  //set the symbol shape
+  void gkw_psym(EnvT *e, GDLGStream *a, bool &line, DLong &psym);
+  //set the symbol size
+  void gkw_symsize(EnvT * e, GDLGStream * a);
+  //set the character size
+  void gkw_charsize(EnvT * e, GDLGStream * a);
+  //set the line thickness
+  void gkw_thick(EnvT * e, GDLGStream * a);
+  //set the linestyle
+  void gkw_linestyle(EnvT * e, GDLGStream * a);
+
+  /*
+  //write the title
+  void gkw_title(EnvT* e, GDLGStream *a, PLFLT ad);
+  */
 
 } // namespace
 

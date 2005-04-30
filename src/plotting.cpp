@@ -602,12 +602,10 @@ namespace lib {
   void plot( EnvT* e)
   {
     SizeT nParam=e->NParam( 1); 
+    bool valid=true;
+    DDoubleGDL *yVal, *xVal;
+    SizeT xEl, yEl;
 
-    DDoubleGDL* yVal;
-    DDoubleGDL* xVal;
-
-    SizeT xEl;
-    SizeT yEl;
     if( nParam == 1)
       {
 	yVal = e->GetParAs< DDoubleGDL>( 0);
@@ -620,12 +618,11 @@ namespace lib {
       {
 	xVal = e->GetParAs< DDoubleGDL>( 0);
 	xEl = xVal->N_Elements();
-
 	yVal = e->GetParAs< DDoubleGDL>( 1);
 	yEl = yVal->N_Elements();
       }
-    DLong minEl = (xEl < yEl)? xEl : yEl;
-
+    DLong psym;
+    bool line;
     // !P 
     DLong p_background; 
     DLong p_noErase; 
@@ -678,37 +675,8 @@ namespace lib {
     e->AssureStringScalarKWIfPresent( "XTITLE", xTitle);
     e->AssureStringScalarKWIfPresent( "YTITLE", yTitle);
 
-    // MARGIN (in characters)
-    static int xMarginEnvIx = e->KeywordIx( "XMARGIN"); 
-    static int yMarginEnvIx = e->KeywordIx( "YMARGIN"); 
-    BaseGDL* xMargin = e->GetKW( xMarginEnvIx);
-    BaseGDL* yMargin = e->GetKW( yMarginEnvIx);
-    if( xMargin != NULL)
-      {
-	if( xMargin->N_Elements() > 2)
-	  e->Throw( "Keyword array parameter XMARGIN"
-		    " must have from 1 to 2 elements.");
-	auto_ptr<DFloatGDL> guard;
-	DFloatGDL* xMarginF = static_cast<DFloatGDL*>
-	  ( xMargin->Convert2( FLOAT, BaseGDL::COPY));
-	guard.reset( xMarginF);
-	xMarginL = (*xMarginF)[0];
-	if( xMarginF->N_Elements() > 1)
-	  xMarginR = (*xMarginF)[1];
-      }
-    if( yMargin != NULL)
-      {
-	if( yMargin->N_Elements() > 2)
-	  e->Throw( "Keyword array parameter YMARGIN"
-		    " must have from 1 to 2 elements.");
-	auto_ptr<DFloatGDL> guard;
-	DFloatGDL* yMarginF = static_cast<DFloatGDL*>
-	  ( yMargin->Convert2( FLOAT, BaseGDL::COPY));
-	guard.reset( yMarginF);
-	yMarginB = (*yMarginF)[0];
-	if( yMarginF->N_Elements() > 1)
-	  yMarginT = (*yMarginF)[1];
-      }
+    gkw_axis_margin(e, "X",xMarginL, xMarginR);
+    gkw_axis_margin(e, "Y",yMarginB, yMarginT);
 
     // x and y range
     DDouble xStart = xVal->min(); 
@@ -772,31 +740,14 @@ namespace lib {
 
     //    int just = (e->KeywordSet("ISOTROPIC"))? 1 : 0;
 
-    DLong background = p_background;
-    e->AssureLongScalarKWIfPresent( "BACKGROUND", background);
 
     DDouble ticklen = p_ticklen;
     e->AssureDoubleScalarKWIfPresent( "TICKLEN", ticklen);
 						 
-    DLong color = p_color;
-
-    e->AssureLongScalarKWIfPresent( "COLOR", color);
 
     DLong noErase = p_noErase;
     if( e->KeywordSet( "NOERASE")) noErase = 1;
     
-    // PSYM
-    bool line = false;
-    DLong psym = p_psym;
-    e->AssureLongScalarKWIfPresent( "PSYM", psym);
-    if( psym > 10 || psym < -8 || psym == 9)
-      e->Throw( "PSYM (plotting symbol) out of range.");
-    if( psym <= 0)
-      {
-	line = true;
-	psym = -psym;
-      }
-
     // POSITION
     PLFLT xScale = 1.0;
     PLFLT yScale = 1.0;
@@ -843,11 +794,12 @@ namespace lib {
     GDLGStream* actStream = GetPlotStream( e); 
     
     // *** start drawing
-    actStream->Background( background);
-    actStream->Color( color);
+    gkw_background(e, actStream);
+    gkw_color(e, actStream);
+    gkw_noerase(e, actStream);
+    gkw_psym(e, actStream, line, psym);
 
-    actStream->NextPlot( !noErase);
-    if( !noErase) actStream->Clear();
+
 
     // plplot stuff
     // set the charsize (scale factor)
@@ -884,19 +836,6 @@ namespace lib {
 			    xStart, xEnd, minVal, maxVal);
     if( !okVPWC) return;
     
-
-    //linestyle
-    DLong linestyle = p_linestyle ;
-    DLong temp_linestyle=0;
-    e->AssureLongScalarKWIfPresent( "LINESTYLE", temp_linestyle);
-
-    if((temp_linestyle > 0) && (temp_linestyle < 9) )
-	linestyle=temp_linestyle;
-    else if((linestyle > 0) && (linestyle < 9) )
-	linestyle=linestyle+1;
-    else 
-	linestyle=1;
-
     // pen thickness for axis
     actStream->wid( 0);
 
@@ -925,71 +864,16 @@ namespace lib {
     actStream->mtex("b",5.4,0.5,0.5,subTitle.c_str());
 
     // pen thickness for plot
-    actStream->wid( static_cast<PLINT>(floor( thick-0.5)));
-
-    // symbol size
-    actStream->ssym( 0.0, symsize);
-
+    gkw_thick(e, actStream);
+    gkw_symsize(e, actStream);
+    gkw_linestyle(e, actStream);
     // plot the data
-    actStream->lsty(linestyle);
     if(!e->KeywordSet("NODATA"))
-      for( int i=0; i<minEl; ++i)
-	{
-	  PLFLT y = static_cast<PLFLT>( (*yVal)[i]);
-	  if( yLog) if( y <= 0.0) continue; else y = log10( y);
-	  
-	  PLFLT x = static_cast<PLFLT>( (*xVal)[i]);
-	  if( xLog) if( x <= 0.0) continue; else x = log10( x);
-	  
-	  if( i>0)
-	    {
-	      if( line)
-		{
-		  PLFLT y1 = static_cast<PLFLT>( (*yVal)[i-1]);
-		  
-		  if( !yLog || y1 > 0.0)
-		    {
-		      if( yLog) y1 = log10( y1);
-		      PLFLT x1 = static_cast<PLFLT>( (*xVal)[i-1]);
-		    
-		      if( !xLog || x1 > 0.0)
-			{
-			  if( xLog) x1 = log10( x1);
-			  actStream->join(x1,y1,x,y);
-			}
-		    }
-		}
-	      else if( psym == 10)
-		{	// histogram
-		  PLFLT y1 = static_cast<PLFLT>( (*yVal)[i-1]);
+      if(valid)
+	valid=draw_polyline(e, actStream, 
+			    xVal, yVal, xLog, yLog, 
+			    yStart, yEnd, psym);
 
-		  if( !yLog || y1 > 0.0)
-		    {
-		      if( yLog) y1 = log10( y1);
-		      if( y1 >= minVal && y1 <= maxVal)
-			{
-			  PLFLT x1 = static_cast<PLFLT>( (*xVal)[i-1]);
-			
-			  if( !xLog || x1 > 0.0)
-			    {
-			      if( xLog) x1 = log10( x1);
-			    
-			      actStream->join(x1,y1,(x1+x)/2.0,y1);
-			      actStream->join((x1+x)/2.0,y1,(x1+x)/2.0,y);
-			      actStream->join((x1+x)/2.0,y,x,y);
-			    }
-			}
-		    }
-		}
-	    }
-	  if( psym == 0 || psym == 10) continue;
-
-	  // translation plplot symbols - GDL symbols
-	  // for now usersym is a circle
-	  const PLINT codeArr[]={ 0,2,3,1,11,7,6,5,4};
-	
-	  actStream->poin(1,&x,&y,codeArr[psym]);
-	}
     actStream->lsty(1);//reset linestyle
     actStream->flush();
     
@@ -1010,7 +894,8 @@ namespace lib {
   void oplot( EnvT* e)
   {
     SizeT nParam=e->NParam( 1); 
-
+    bool valid, line;
+    DLong psym;
     DDoubleGDL* yVal;
     DDoubleGDL* xVal;
 
@@ -1094,51 +979,13 @@ namespace lib {
     
     //    int just = (e->KeywordSet("ISOTROPIC"))? 1 : 0;
 
-    DLong background = p_background;
-
-    DLong color = p_color;
-    e->AssureLongScalarKWIfPresent( "COLOR", color);
-
-    DLong noErase = 1;
-    // PSYM
-    bool line = false;
-    DLong psym = p_psym;
-    e->AssureLongScalarKWIfPresent( "PSYM", psym);
-    if( psym > 10 || psym < -8 || psym == 9)
-      e->Throw( "PSYM (plotting symbol) out of range.");
-    if( psym <= 0)
-      {
-	line = true;
-	psym = -psym;
-      }
-
-    //linestyle
-    DLong linestyle = p_linestyle ;
-    DLong temp_linestyle = 0; 
-    e->AssureLongScalarKWIfPresent( "LINESTYLE", linestyle);
-    if((temp_linestyle > 0) && (temp_linestyle < 9) )
-	linestyle=temp_linestyle;
-    else if((linestyle > 0) && (linestyle < 9) )
-	linestyle=linestyle+1;
-    else 
-	linestyle=1;
-
-    // SYMSIZE
-    DDouble symsize = p_symsize;
-    e->AssureDoubleScalarKWIfPresent( "SYMSIZE", symsize);
-    if( symsize < 0.0) symsize = -symsize;
-    if( symsize == 0.0) symsize = 1.0;
-
-    // THICK
-    DDouble thick = p_thick;
-    e->AssureDoubleScalarKWIfPresent( "THICK", thick);
-
     GDLGStream* actStream = GetPlotStream( e); 
     
     // start drawing
-    actStream->Background( background);
-    actStream->Color( color);
-    
+    gkw_color(e, actStream);
+    gkw_noerase(e, actStream,true);
+    gkw_psym(e, actStream, line, psym);
+
     if( (yStart == yEnd) || (xStart == xEnd))
       {
 	if( yStart != 0.0 && yStart == yEnd)
@@ -1193,73 +1040,17 @@ namespace lib {
 
     if( xLog) xOpt += "l";
     if( yLog) yOpt += "l";
-    
     // pen thickness for plot
-    actStream->wid( static_cast<PLINT>(floor( thick-0.5)));
-
-    // symbol size
-    actStream->ssym( 0.0, symsize);
+    gkw_thick(e, actStream);
+    gkw_symsize(e, actStream);
+    gkw_linestyle(e, actStream);
 
     // plot the data
-    actStream->lsty(linestyle);
-    for( int i=0; i<minEl; ++i)
-      {
-	PLFLT y = static_cast<PLFLT>( (*yVal)[i]);
-	if( yLog) if( y <= 0.0) continue; else y = log10( y);
-	
-	PLFLT x = static_cast<PLFLT>( (*xVal)[i]);
-	if( xLog) if( x <= 0.0) continue; else x = log10( x);
+    if(valid)
+      valid=draw_polyline(e, actStream, 
+			  xVal, yVal, xLog, yLog, 
+			  yStart, yEnd, psym);
 
-	if( i>0)
-	  {
-	    if( line)
-	      {
-		PLFLT y1 = static_cast<PLFLT>( (*yVal)[i-1]);
-
-		if( !yLog || y1 > 0.0)
-		  {
-		    if( yLog) y1 = log10( y1);
-		    PLFLT x1 = static_cast<PLFLT>( (*xVal)[i-1]);
-		    
-		    if( !xLog || x1 > 0.0)
-		      {
-			if( xLog) x1 = log10( x1);
-			actStream->join(x1,y1,x,y);
-			
-		      }
-		  }
-	      }
-	    else if( psym == 10)
-	      {	// histogram
-		PLFLT y1 = static_cast<PLFLT>( (*yVal)[i-1]);
-
-		if( !yLog || y1 > 0.0)
-		  {
-		    if( yLog) y1 = log10( y1);
-		    if( y1 >= minVal && y1 <= maxVal)
-		      {
-			PLFLT x1 = static_cast<PLFLT>( (*xVal)[i-1]);
-			
-			if( !xLog || x1 > 0.0)
-			  {
-			    if( xLog) x1 = log10( x1);
-			    
-			    actStream->join(x1,y1,(x1+x)/2.0,y1);
-			    actStream->join((x1+x)/2.0,y1,(x1+x)/2.0,y);
-			    actStream->join((x1+x)/2.0,y,x,y);
-			  }
-		      }
-		  }
-	      }      
-	  }
-	if( psym == 0 || psym == 10) continue;
-
-	// translation plplot symbols - GDL symbols
-	// for now usersym is a circle
-	const PLINT codeArr[]={ 0,2,3,1,11,7,6,5,4};
-	
-	actStream->poin(1,&x,&y,codeArr[psym]);
-      }
     actStream->lsty(1);//reset linestyle
     actStream->flush();
   }
@@ -1267,7 +1058,8 @@ namespace lib {
   void plots( EnvT* e)
   {
     SizeT nParam=e->NParam( 1); 
-
+    bool valid, line;
+    DLong psym;
     DDoubleGDL* yVal;
     DDoubleGDL* xVal;
     SizeT xEl, yEl;
@@ -1310,7 +1102,7 @@ namespace lib {
 
     DLong minEl = (xEl < yEl)? xEl : yEl;
     // !P 
-    DLong p_background, p_noErase, p_color, p_psym, p_linestyle,psym;
+    DLong p_background, p_noErase, p_color, p_psym, p_linestyle;
     DFloat p_symsize, p_charsize, p_thick; 
     DString p_title, p_subTitle; 
     DFloat p_ticklen; 
@@ -1373,45 +1165,17 @@ namespace lib {
       if(color_arr->N_Elements() >= 1) 
 	  	color=(*l_color_arr)[0];
 
-
-    // PSYM, (PLOTS)
-    psym=p_psym;
-    bool line = false;
-    e->AssureLongScalarKWIfPresent( "PSYM", psym);
-    if( psym > 10 || psym < -8 || psym == 9)
-      e->Throw( "PSYM (plotting symbol) out of range.");
-    if( psym <= 0)
-      {
-	line = true;
-	psym = -psym;
-      }
-
-    //linestyle
-    DLong linestyle = p_linestyle ;
-    DLong temp_linestyle = 0; 
-    e->AssureLongScalarKWIfPresent( "LINESTYLE", linestyle);
-    if((temp_linestyle > 0) && (temp_linestyle < 9) )
-	linestyle=temp_linestyle;
-    else if((linestyle > 0) && (linestyle < 9) )
-	linestyle=linestyle+1;
-    else 
-	linestyle=1;
-
-    // SYMSIZE
-    DDouble symsize = p_symsize;
-    e->AssureDoubleScalarKWIfPresent( "SYMSIZE", symsize);
-    if( symsize < 0.0) symsize = -symsize;
-    if( symsize == 0.0) symsize = 1.0;
-
-    // THICK
-    DDouble thick = p_thick;
-    e->AssureDoubleScalarKWIfPresent( "THICK", thick);
-
     GDLGStream* actStream = GetPlotStream( e); 
+
+
     
     // start drawing
     actStream->Background( background);
     actStream->Color( color);
+    gkw_psym(e, actStream, line, psym);
+    gkw_linestyle(e, actStream);
+    gkw_symsize(e, actStream);
+    gkw_thick(e, actStream);
 
     // plplot stuff
     PLFLT scrXL, scrXR, scrYB, scrYT;
@@ -1517,95 +1281,18 @@ namespace lib {
     actStream->wind( xStart, xEnd, minVal, maxVal);
 
     // pen thickness for plot
-    //    actStream->wid( static_cast<PLINT>(floor( thick-0.5)));
-    actStream->wid( static_cast<PLINT>(floor( thick)));
-
-    // symbol size
-    actStream->ssym( 0.0, symsize);
+    gkw_thick(e, actStream);
+    gkw_symsize(e, actStream);
+    gkw_linestyle(e, actStream);
 
     // plot the data
-    actStream->lsty(linestyle);
+    if(valid)
+      valid=draw_polyline(e, actStream, 
+			  xVal, yVal, xLog, yLog, 
+			  yStart, yEnd, psym);
     PLFLT x,y, x1, y1;
     
-    for( int i=0; i<minEl; ++i)
-      {
-	if(yVal->Rank()  > 1)
-	  {
-	    y = static_cast<PLFLT>( (*yVal)[i*2]);
-	    x = static_cast<PLFLT>( (*yVal)[i*2+1]);
-	  }
-	else
-	  {
-	    y = static_cast<PLFLT>( (*yVal)[i]);
-	    x = static_cast<PLFLT>( (*xVal)[i]);
-	  }
 
-	if( yLog) if( y <= 0.0) continue; else y = log10( y);
-	if( xLog) if( x <= 0.0) continue; else x = log10( x);
-
-	if( i>0)
-	  {
-	    if( line)
-	      {
-		if(yVal->Rank()  > 1)
-		  {
-		    y1 = static_cast<PLFLT>( (*yVal)[(i-1)*2]);
-		    x1 = static_cast<PLFLT>( (*yVal)[(i-1)*2+1]);
-		  }
-		else
-		  {
-		    y1 = static_cast<PLFLT>( (*yVal)[i-1]);
-		    x1 = static_cast<PLFLT>( (*xVal)[i-1]);
-		  }
-
-		if( !yLog || y1 > 0.0)
-		  {
-		    if( yLog) y1 = log10( y1);
-
-		    
-		    if( !xLog || x1 > 0.0)
-		      {
-			if( xLog) x1 = log10( x1);
-
-			if(color_arr != NULL)  
-			  if(color_arr->N_Elements() > 1)
-			      actStream->Color((*l_color_arr)[i]);
-			
-			actStream->join(x1,y1,x,y);
-		      }
-		  }
-	      }
-	    else if( psym == 10)
-	      {	// histogram
-		PLFLT y1 = static_cast<PLFLT>( (*yVal)[i-1]);
-
-		if( !yLog || y1 > 0.0)
-		  {
-		    if( yLog) y1 = log10( y1);
-		    if( y1 >= minVal && y1 <= maxVal)
-		      {
-			PLFLT x1 = static_cast<PLFLT>( (*xVal)[i-1]);
-			
-			if( !xLog || x1 > 0.0)
-			  {
-			    if( xLog) x1 = log10( x1);
-			    
-			    actStream->join(x1,y1,(x1+x)/2.0,y1);
-			    actStream->join((x1+x)/2.0,y1,(x1+x)/2.0,y);
-			    actStream->join((x1+x)/2.0,y,x,y);
-			  }
-		      }
-		  }
-	      }      
-	  }
-	if( psym == 0 || psym == 10) continue;
-
-	// translation plplot symbols - GDL symbols
-	// for now usersym is a circle
-	const PLINT codeArr[]={ 0,2,3,1,11,7,6,5,4};
-	
-	actStream->poin(1,&x,&y,codeArr[psym]);
-      }
     actStream->lsty(1);//reset linestyle
     actStream->flush();
   }
@@ -2282,6 +1969,230 @@ namespace lib {
     (*static_cast<DLongGDL*>(xStruct->Get(xtypeTag, 0)))[0] = xLog;
     (*static_cast<DLongGDL*>(yStruct->Get(xtypeTag, 0)))[0] = yLog;
   } // surface
+
+
+  //CORE PLOT FUNCTION -> Draws a line along xVal, yVal
+  template <typename T> bool draw_polyline(EnvT *e,  GDLGStream *a, T * xVal, T* yVal, 
+					   bool xLog, bool yLog, DDouble yStart, DDouble yEnd, DLong psym=0
+					   )
+  {
+    bool line=false;
+    bool valid=true;
+    DLong _psym=0;
+
+    if(psym <0 ) {line=true; _psym=-psym;}
+    else if(psym == 0 ) {line=true;_psym=psym;}
+    else {_psym=psym;}
+    DLong minEl = (xVal->N_Elements() < yVal->N_Elements())? xVal->N_Elements() : yVal->N_Elements();
+    for( int i=0; i<minEl; ++i)
+      {
+	PLFLT y = static_cast<PLFLT>( (*yVal)[i]);
+	if( yLog) if( y <= 0.0) continue; else y = log10( y);
+	
+	PLFLT x = static_cast<PLFLT>( (*xVal)[i]);
+	if( xLog) if( x <= 0.0) continue; else x = log10( x);
+
+	  if( i>0)
+	  {
+	    if( line)
+	      {
+		PLFLT y1 = static_cast<PLFLT>( (*yVal)[i-1]);
+		
+		if( !yLog || y1 > 0.0)
+		  {
+		    if( yLog) y1 = log10( y1);
+		    PLFLT x1 = static_cast<PLFLT>( (*xVal)[i-1]);
+		    
+		    if( !xLog || x1 > 0.0)
+		      {
+			if( xLog) x1 = log10( x1);
+			a->join(x1,y1,x,y);
+		      }
+		  }
+	      }
+	    else if( _psym == 10)
+	      {	// histogram
+		PLFLT y1 = static_cast<PLFLT>( (*yVal)[i-1]);
+		
+		if( !yLog || y1 > 0.0)
+		  {
+		    if( yLog) y1 = log10( y1);
+		    if( y1 >= yStart && y1 <= yEnd)
+		      {
+			PLFLT x1 = static_cast<PLFLT>( (*xVal)[i-1]);
+			
+			if( !xLog || x1 > 0.0)
+			  {
+			    if( xLog) x1 = log10( x1);
+			    
+			    a->join(x1,y1,(x1+x)/2.0,y1);
+			    a->join((x1+x)/2.0,y1,(x1+x)/2.0,y);
+			    a->join((x1+x)/2.0,y,x,y);
+			  }
+		      }
+		  }
+	      }
+	  }
+	if( _psym == 0 || _psym == 10) continue;
+	
+	// translation plplot symbols - GDL symbols
+	// for now usersym is a circle
+	const PLINT codeArr[]={ 0,2,3,1,11,7,6,5,4};
+	
+	a->poin(1,&x,&y,codeArr[_psym]);
+      }
+    
+    return (valid);
+  }
+
+  //MARGIN
+  void gkw_axis_margin(EnvT *e, string axis,DFloat &start, DFloat &end)
+  {
+    DStructGDL* Struct;
+    if(axis=="X") Struct = SysVar::X();
+    if(axis=="Y") Struct = SysVar::Y();
+
+    if(Struct != NULL)
+      {
+	static unsigned marginTag = Struct->Desc()->TagIndex( "MARGIN");
+	start = 
+	  (*static_cast<DFloatGDL*>( Struct->Get( marginTag, 0)))[0];
+	end = 
+	  (*static_cast<DFloatGDL*>( Struct->Get( marginTag, 0)))[1];
+      }
+
+    string MarginName=axis+"MARGIN";
+    BaseGDL* Margin=e->GetKW(e->KeywordIx(MarginName));
+    if(Margin !=NULL)
+      {
+	if(Margin->N_Elements() > 2)
+	  e->Throw("Keyword array parameter "+MarginName+
+		   "must have from 1 to 2 elements.");
+	auto_ptr<DFloatGDL> guard;
+	DFloatGDL* MarginF = static_cast<DFloatGDL*>
+	  ( Margin->Convert2( FLOAT, BaseGDL::COPY));
+	guard.reset( MarginF);
+	start = (*MarginF)[0];
+	if( MarginF->N_Elements() > 1)
+	  end = (*MarginF)[1];
+      }
+  }
+
+  //BACKGROUND COLOR
+  void gkw_background(EnvT * e, GDLGStream* a)
+  {
+    static DStructGDL* pStruct = SysVar::P();
+    DLong background = 
+      (*static_cast<DLongGDL*>
+       (pStruct->Get
+	(pStruct->Desc()->TagIndex("BACKGROUND"), 0)))[0];
+
+    e->AssureLongScalarKWIfPresent( "BACKGROUND", background);
+    a->Background( background);  
+  }
+
+  //COLOR
+  void gkw_color(EnvT * e, GDLGStream* a)
+  {
+    static DStructGDL* pStruct = SysVar::P();
+    DLong color = 
+      (*static_cast<DLongGDL*>( pStruct->Get( pStruct->Desc()->TagIndex("COLOR"), 0)))[0];
+    e->AssureLongScalarKWIfPresent( "COLOR", color);
+    a->Color( color);  
+  }
+
+  //NOERASE
+  void gkw_noerase(EnvT* e,GDLGStream * a, bool noe)
+  {
+    DLong noErase;
+    if(!noe)
+      {
+	static DStructGDL* pStruct = SysVar::P();
+	noErase= (*static_cast<DLongGDL*>( pStruct->Get(pStruct->Desc()->TagIndex("NOERASE"), 0)))[0];
+	if(e->KeywordSet("NOERASE")) noErase=1;
+      }
+    else
+      {
+	noErase=1;
+      }
+      a->NextPlot( !noErase);
+      if( !noErase) a->Clear();
+
+  }
+
+  //PSYM
+  void gkw_psym(EnvT *e, GDLGStream *a, bool &line, DLong &psym)
+  {
+    static DStructGDL* pStruct = SysVar::P();
+    psym= (*static_cast<DLongGDL*>
+	   (pStruct->Get
+	    (pStruct->Desc()->TagIndex("PSYM"), 0)))[0];
+
+    line = false;
+    e->AssureLongScalarKWIfPresent( "PSYM", psym);
+    if( psym > 10 || psym < -8 || psym == 9)
+      throw GDLException( e->CallingNode(), 
+			  "PSYM (plotting symbol) out of range.");
+  }
+
+    //SYMSIZE
+  void gkw_symsize(EnvT * e, GDLGStream* a)
+  {
+    static DStructGDL* pStruct = SysVar::P();
+    DDouble symsize = (*static_cast<DDoubleGDL*>
+		       (pStruct->Get
+			(pStruct->Desc()->TagIndex("SYMSIZE"), 0)))[0];
+    e->AssureDoubleScalarKWIfPresent( "SYMSIZE", symsize);
+    if( symsize <= 0.0) symsize = 1.0;
+    a->ssym(0.0, symsize);  
+  }
+
+  //CHARSIZE
+  void gkw_charsize(EnvT * e, GDLGStream* a)
+  {
+    static DStructGDL* pStruct = SysVar::P();
+    DDouble charsize = (*static_cast<DDoubleGDL*>
+			(pStruct->Get
+			 ( pStruct->Desc()->TagIndex("CHARSIZE"), 0)))[0];
+    e->AssureDoubleScalarKWIfPresent( "CHARSIZE", charsize);
+    if( charsize <= 0.0) charsize = 1.0;
+    a->schr(0.0, charsize);  
+  }
+  //THICK
+  void gkw_thick(EnvT * e, GDLGStream* a)
+  {
+    static DStructGDL* pStruct = SysVar::P();
+    DDouble thick = (*static_cast<DDoubleGDL*>
+		     (pStruct->Get
+		      (pStruct->Desc()->TagIndex("THICK"), 0)))[0];
+
+    e->AssureDoubleScalarKWIfPresent( "THICK", thick);
+    if( thick <= 0.0) thick = 1.0;
+    a->wid( static_cast<PLINT>(floor( thick-0.5)));
+  }
+
+  //LINESTYLE
+  void gkw_linestyle(EnvT *e, GDLGStream * a)
+  {
+    static DStructGDL* pStruct = SysVar::P();
+    DLong linestyle= 
+      (*static_cast<DLongGDL*>
+       (pStruct->Get
+	(pStruct->Desc()->TagIndex("LINESTYLE"), 0)))[0];
+    DLong temp_linestyle=0;
+    e->AssureLongScalarKWIfPresent( "LINESTYLE",temp_linestyle);
+
+    if((temp_linestyle > 0) && (temp_linestyle < 9) )
+	linestyle=temp_linestyle;
+    else if((linestyle > 0) && (linestyle < 9) )
+	linestyle=linestyle+1;
+    else 
+	linestyle=1;
+
+    a->lsty(linestyle);
+  }
+
+
 
 } // namespace
 
