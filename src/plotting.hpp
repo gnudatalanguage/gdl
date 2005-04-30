@@ -50,7 +50,7 @@ namespace lib {
   void gkw_axis_margin(EnvT *e, string axis,DFloat &start, DFloat &end);
 
   //set the background color
-  void gkw_background(EnvT * e, GDLGStream * a);
+  void gkw_background(EnvT * e, GDLGStream * a,bool kw=true);
   //set the foreground color
   void gkw_color(EnvT * e, GDLGStream * a);
   //set the noerase flag
@@ -60,7 +60,7 @@ namespace lib {
   //set the symbol size
   void gkw_symsize(EnvT * e, GDLGStream * a);
   //set the character size
-  void gkw_charsize(EnvT * e, GDLGStream * a);
+  void gkw_charsize(EnvT * e, GDLGStream * a, DDouble& charsize, bool kw=true);
   //set the line thickness
   void gkw_thick(EnvT * e, GDLGStream * a);
   //set the linestyle
@@ -71,9 +71,18 @@ namespace lib {
   void set_axis_crange(string axis, DDouble Start, DDouble End);
   //get the !axis.crange vector
   void get_axis_crange(string axis, DDouble &Start, DDouble &End);
+  void get_axis_margin(string axis, DFloat &low, DFloat &high);
   //axis_type
   void get_axis_type(string axis, bool &log);
   void set_axis_type(string axis, bool type);
+
+  void gkw_axis_charsize(EnvT* e, string axis, DDouble &charsize);
+
+  void gkw_axis_style(EnvT *e, string axis,DLong &style);
+  void gkw_axis_title(EnvT *e, string axis,DString &title);
+  void gkw_axis_range(EnvT *e, string axis,
+		      DDouble &start, DDouble &end, DLong & ynozero);
+
 
 } // namespace
 

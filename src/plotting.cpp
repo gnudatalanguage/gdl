@@ -623,102 +623,35 @@ namespace lib {
       }
     DLong psym;
     bool line;
-    // !P 
-    DLong p_background; 
-    DLong p_noErase; 
-    DLong p_color; 
-    DLong p_psym; 
-    DLong p_linestyle;
-    DFloat p_symsize; 
-    DFloat p_charsize; 
-    DFloat p_thick; 
-    DString p_title; 
-    DString p_subTitle; 
-    DFloat p_ticklen; 
-    
-    GetPData( p_background,
-	      p_noErase, p_color, p_psym, p_linestyle,
-	      p_symsize, p_charsize, p_thick,
-	      p_title, p_subTitle, p_ticklen);
 
     // !X, !Y (also used below)
-    static DStructGDL* xStruct = SysVar::X();
-    static DStructGDL* yStruct = SysVar::Y();
-    DLong xStyle; 
-    DLong yStyle; 
-    DString xTitle; 
-    DString yTitle; 
-    DFloat x_CharSize; 
-    DFloat y_CharSize; 
-    DFloat xMarginL; 
-    DFloat xMarginR; 
-    DFloat yMarginB; 
-    DFloat yMarginT; 
-    DFloat xTicklen;
-    DFloat yTicklen;
-    GetAxisData( xStruct, xStyle, xTitle, x_CharSize, xMarginL, xMarginR,
-		 xTicklen);
-    GetAxisData( yStruct, yStyle, yTitle, y_CharSize, yMarginB, yMarginT,
-		 yTicklen);
-    
+
+    DLong xStyle, yStyle; 
+    DString xTitle, yTitle; 
+    DFloat x_CharSize, y_CharSize; 
+    DFloat xMarginL, xMarginR, yMarginB, yMarginT; 
+    DFloat xTicklen, yTicklen;
+
+
     // [XY]STYLE
-    e->AssureLongScalarKWIfPresent( "XSTYLE", xStyle);
-    e->AssureLongScalarKWIfPresent( "YSTYLE", yStyle);
-
-    // TITLE
-
-
+    gkw_axis_style(e, "X", xStyle);
+    gkw_axis_style(e, "Y", yStyle);
     // AXIS TITLE
-    e->AssureStringScalarKWIfPresent( "XTITLE", xTitle);
-    e->AssureStringScalarKWIfPresent( "YTITLE", yTitle);
-
+    gkw_axis_title(e, "X", xTitle);
+    gkw_axis_title(e, "Y", yTitle);
+    // MARGIN
     gkw_axis_margin(e, "X",xMarginL, xMarginR);
     gkw_axis_margin(e, "Y",yMarginB, yMarginT);
-
     // x and y range
     DDouble xStart = xVal->min(); 
     DDouble xEnd   = xVal->max(); 
     DDouble yStart = yVal->min(); 
     DDouble yEnd   = yVal->max(); 
 
-
+    DLong ynozero, xnozero;
     //[x|y]range keyword
-    static int yRangeEnvIx = e->KeywordIx("YRANGE");
-    static int xRangeEnvIx = e->KeywordIx("XRANGE");
-    BaseGDL* xRange = e->GetKW( xRangeEnvIx);
-    BaseGDL* yRange = e->GetKW( yRangeEnvIx);
-    
-    if(xRange != NULL) 
-      {
-	if(xRange->N_Elements() != 2)
-	  e->Throw("Keyword array parameter XRANGE"
-		   "must have 2 elements.");
-	auto_ptr<DFloatGDL> guard;
-	DFloatGDL* xRangeF = static_cast<DFloatGDL*>
-	  ( xRange->Convert2( FLOAT, BaseGDL::COPY));
-	guard.reset( xRangeF);
-	xStart = (*xRangeF)[0];
-	xEnd = (*xRangeF)[1];
-      }
-
-    if(yRange != NULL)
-      {
-	if(yRange->N_Elements() != 2)
-	  e->Throw("Keyword array parameter YRANGE"
-		   "must have 2 elements.");
-	auto_ptr<DFloatGDL> guard;
-	DFloatGDL* yRangeF = static_cast<DFloatGDL*>
-	  ( yRange->Convert2( FLOAT, BaseGDL::COPY));
-	guard.reset( yRangeF);
-	yStart = (*yRangeF)[0];
-	yEnd = (*yRangeF)[1];
-      }
-    else 
-      {
-	if( yStart > 0.0 && 
-	    !e->KeywordSet( "YNOZERO") && ((yStyle & 16) == 0))  
-	  yStart = 0.0;
-      }
+    gkw_axis_range(e, "X", xStart, xEnd, ynozero);
+    gkw_axis_range(e, "Y", yStart, yEnd, xnozero);
 
     if(xEnd == xStart) xEnd=xStart+1;
 
@@ -738,16 +671,13 @@ namespace lib {
     //    int just = (e->KeywordSet("ISOTROPIC"))? 1 : 0;
 
 
-    DDouble ticklen = p_ticklen;
+    DDouble ticklen = 0.02;
     e->AssureDoubleScalarKWIfPresent( "TICKLEN", ticklen);
 						 
-
-    DLong noErase = p_noErase;
-    if( e->KeywordSet( "NOERASE")) noErase = 1;
-    
     // POSITION
     PLFLT xScale = 1.0;
     PLFLT yScale = 1.0;
+
     //    PLFLT scale = 1.0;
     static int positionIx = e->KeywordIx( "POSITION"); 
     DFloatGDL* pos = e->IfDefGetKWAs<DFloatGDL>( positionIx);
@@ -762,41 +692,16 @@ namespace lib {
       //      scale = sqrt( pow( xScale,2) + pow( yScale,2));
       }
 
-    // SYMSIZE
-    DDouble symsize = p_symsize;
-    e->AssureDoubleScalarKWIfPresent( "SYMSIZE", symsize);
-    if( symsize < 0.0) symsize = -symsize;
-    if( symsize == 0.0) symsize = 1.0;
-    
-    // CHARSIZE
-    DDouble charsize = p_charsize;
-    e->AssureDoubleScalarKWIfPresent( "CHARSIZE", charsize);
-    if( charsize <= 0.0) charsize = 1.0;
-    //    charsize *= scale;
-
-    // AXIS CHARSIZE
-    DDouble xCharSize = x_CharSize;
-    e->AssureDoubleScalarKWIfPresent( "XCHARSIZE", xCharSize);
-    if( xCharSize <= 0.0) xCharSize = 1.0;
-
-    DDouble yCharSize = y_CharSize;
-    e->AssureDoubleScalarKWIfPresent( "YCHARSIZE", yCharSize);
-    if( yCharSize <= 0.0) yCharSize = 1.0;
-    //    yCharSize *= scale;
-
-    // THICK
-    DDouble thick = p_thick;
-    e->AssureDoubleScalarKWIfPresent( "THICK", thick);
-
-    GDLGStream* actStream = GetPlotStream( e); 
-    
+    DDouble charsize, xCharSize, yCharSize;
     // *** start drawing
-    gkw_background(e, actStream);
-    gkw_color(e, actStream);
-    gkw_noerase(e, actStream);
-    gkw_psym(e, actStream, line, psym);
-
-
+    GDLGStream* actStream = GetPlotStream( e); 
+    gkw_background(e, actStream);  //BACKGROUND
+    gkw_color(e, actStream);       //COLOR
+    gkw_noerase(e, actStream);     //NOERASE
+    gkw_psym(e, actStream, line, psym);//PSYM
+    gkw_charsize(e, actStream, charsize);    //CHARSIZE
+    gkw_axis_charsize(e, "X",xCharSize);//XCHARSIZE
+    gkw_axis_charsize(e, "Y",yCharSize);//YCHARSIZE
 
     // plplot stuff
     // set the charsize (scale factor)
@@ -832,7 +737,6 @@ namespace lib {
 			    xMarginL, xMarginR, yMarginB, yMarginT,
 			    xStart, xEnd, minVal, maxVal);
     if( !okVPWC) return;
-    
     // pen thickness for axis
     actStream->wid( 0);
 
@@ -912,48 +816,20 @@ namespace lib {
 	yEl = yVal->N_Elements();
       }
     DLong minEl = (xEl < yEl)? xEl : yEl;
-    // !P 
-    DLong p_background; 
-    DLong p_noErase; 
-    DLong p_color; 
-    DLong p_psym; 
-    DLong p_linestyle;
-    DFloat p_symsize; 
-    DFloat p_charsize; 
-    DFloat p_thick; 
-    DString p_title; 
-    DString p_subTitle; 
-    DFloat p_ticklen; 
-    GetPData( p_background,
-	      p_noErase, p_color, p_psym,p_linestyle,
-	      p_symsize, p_charsize, p_thick,
-	      p_title, p_subTitle, p_ticklen);
+
 
     // !X, !Y (also used below)
-    static DStructGDL* xStruct = SysVar::X();
-    static DStructGDL* yStruct = SysVar::Y();
-    DLong xStyle; 
-    DLong yStyle; 
-    DString xTitle; 
-    DString yTitle; 
-    DFloat x_CharSize; 
-    DFloat y_CharSize; 
-    DFloat xMarginL; 
-    DFloat xMarginR; 
-    DFloat yMarginB; 
-    DFloat yMarginT; 
-    DFloat xTicklen;
-    DFloat yTicklen;
-    GetAxisData( xStruct, xStyle, xTitle, x_CharSize, xMarginL, xMarginR,
-		 xTicklen);
-    GetAxisData( yStruct, yStyle, yTitle, y_CharSize, yMarginB, yMarginT,
-		 yTicklen);
-    
+    DLong xStyle, yStyle; 
+    DString xTitle, yTitle; 
+    DFloat xMarginL, xMarginR, yMarginB, yMarginT; 
+    DFloat xTicklen, yTicklen;
+
+    get_axis_margin("X",xMarginL, xMarginR);
+    get_axis_margin("Y",yMarginB, yMarginT);
     // get ![XY].CRANGE
     DDouble xStart, xEnd, yStart, yEnd;
     get_axis_crange("X", xStart, xEnd);
     get_axis_crange("Y", yStart, yEnd);
-
     DDouble minVal;
     DDouble maxVal;
     bool xLog, yLog;
@@ -965,9 +841,13 @@ namespace lib {
     GDLGStream* actStream = GetPlotStream( e); 
     
     // start drawing
+    gkw_background(e, actStream,false);
     gkw_color(e, actStream);
     gkw_noerase(e, actStream,true);
     gkw_psym(e, actStream, line, psym);
+    DDouble charsize;
+    gkw_charsize(e,actStream, charsize, false);
+
 
     if( (yStart == yEnd) || (xStart == xEnd))
       {
@@ -1007,7 +887,6 @@ namespace lib {
 			    xMarginL, xMarginR, yMarginB, yMarginT,
 			    xStart, xEnd, minVal, maxVal);
     if( !okVPWC) return;
-
     // pen thickness for axis
     actStream->wid( 0);
 
@@ -1079,41 +958,22 @@ namespace lib {
       }
 
     DLong minEl = (xEl < yEl)? xEl : yEl;
-    // !P 
-    DLong p_background, p_noErase, p_color, p_psym, p_linestyle;
-    DFloat p_symsize, p_charsize, p_thick; 
-    DString p_title, p_subTitle; 
-    DFloat p_ticklen; 
-    GetPData( p_background,
-	      p_noErase, p_color, p_psym,p_linestyle,
-	      p_symsize, p_charsize, p_thick,
-	      p_title, p_subTitle, p_ticklen);
 
     // !X, !Y (also used below)
-    static DStructGDL* xStruct = SysVar::X();
-    static DStructGDL* yStruct = SysVar::Y();
-    DLong xStyle, yStyle; 
-    DString xTitle, yTitle; 
-    DFloat x_CharSize, y_CharSize, xMarginL, xMarginR, yMarginB, yMarginT; 
-    DFloat xTicklen;
-    DFloat yTicklen;
-    GetAxisData( xStruct, xStyle, xTitle, x_CharSize, xMarginL, xMarginR,
-		 xTicklen);
-    GetAxisData( yStruct, yStyle, yTitle, y_CharSize, yMarginB, yMarginT,
-		 yTicklen);
-    
+    DFloat xMarginL, xMarginR, yMarginB, yMarginT; 
+    get_axis_margin("X",xMarginL, xMarginR);
+    get_axis_margin("Y",yMarginB, yMarginT);
     // get ![XY].CRANGE
     DDouble xStart, xEnd, yStart, yEnd;
     bool xLog, yLog;
     get_axis_crange("X", xStart, xEnd);
     get_axis_crange("Y", yStart, yEnd);
-    
     DDouble minVal, maxVal;
     get_axis_type("X", xLog);
     get_axis_type("Y", yLog);
     
     //    int just = (e->KeywordSet("ISOTROPIC"))? 1 : 0;
-    DLong background = p_background;
+    /*    DLong background = p_background;
     static int cix=e->KeywordIx("COLOR");
     BaseGDL* color_arr=e->GetKW(cix);
     DLongGDL* l_color_arr;
@@ -1131,18 +991,22 @@ namespace lib {
     if(color_arr != NULL)  
       if(color_arr->N_Elements() >= 1) 
 	  	color=(*l_color_arr)[0];
+    */
 
     GDLGStream* actStream = GetPlotStream( e); 
-
-
     
     // start drawing
-    actStream->Background( background);
-    actStream->Color( color);
+    //    actStream->Background(background);
+    //    actStream->Color(color);
+    gkw_background(e, actStream, false);
+    gkw_color(e, actStream);
+
     gkw_psym(e, actStream, line, psym);
     gkw_linestyle(e, actStream);
     gkw_symsize(e, actStream);
     gkw_thick(e, actStream);
+    DDouble charsize;
+    gkw_charsize(e,actStream, charsize, false);
 
     // plplot stuff
     PLFLT scrXL, scrXR, scrYB, scrYT;
@@ -1150,10 +1014,8 @@ namespace lib {
     PLFLT scrX = scrXR-scrXL;
     PLFLT scrY = scrYT-scrYB;
 
-    PLFLT xMR;
-    PLFLT xML; 
-    PLFLT yMB; 
-    PLFLT yMT;
+    PLFLT xMR, xML, yMB, yMT;
+    
 
     CheckMargin( e, actStream,
 		 xMarginL, 
@@ -1164,7 +1026,6 @@ namespace lib {
 		 xML,
 		 yMB,
 		 yMT);
-
     // viewport
     if(e->KeywordSet("DATA") || 
        (!e->KeywordSet("NORMAL") && !e->KeywordSet("DEVICE")))
@@ -1288,50 +1149,24 @@ namespace lib {
     DLong minEl = (xEl < yEl)? xEl:yEl;
     minEl=(minEl < strEl)? minEl:strEl;
     
-    DLong p_background, p_noErase, p_color, p_psym, p_linestyle,psym;
-    DFloat p_symsize, p_charsize, p_thick; 
-    DString p_title, p_subTitle; 
-    DFloat p_ticklen; 
-    GetPData( p_background,
-	      p_noErase, p_color, p_psym,p_linestyle,
-	      p_symsize, p_charsize, p_thick,
-	      p_title, p_subTitle, p_ticklen);
+    DFloat xMarginL, xMarginR,yMarginB, yMarginT; 
+    get_axis_margin("X", xMarginL, xMarginR);
+    get_axis_margin("Y", yMarginB, yMarginT);
 
-    // !X, !Y (also used below)
-    static DStructGDL* xStruct = SysVar::X();
-    static DStructGDL* yStruct = SysVar::Y();
-    DLong xStyle, yStyle; 
-    DString xTitle, yTitle; 
-    DFloat x_CharSize, y_CharSize, xMarginL, xMarginR,yMarginB, yMarginT; 
-    DFloat xTicklen;
-    DFloat yTicklen;
-    GetAxisData( xStruct, xStyle, xTitle, x_CharSize, xMarginL, xMarginR,
-		 xTicklen);
-    GetAxisData( yStruct, yStyle, yTitle, y_CharSize, yMarginB, yMarginT,
-		 yTicklen);
+
+
     
-
-    // get ![XY].CRANGE
-    static unsigned crangeTag = xStruct->Desc()->TagIndex( "CRANGE");
-    DDouble xStart = 
-      (*static_cast<DDoubleGDL*>( xStruct->Get( crangeTag, 0)))[0];
-    DDouble xEnd = 
-      (*static_cast<DDoubleGDL*>( xStruct->Get( crangeTag, 0)))[1];
-    DDouble yStart =
-      (*static_cast<DDoubleGDL*>( yStruct->Get( crangeTag, 0)))[0];
-    DDouble yEnd =
-      (*static_cast<DDoubleGDL*>( yStruct->Get( crangeTag, 0)))[1];
-
+    DDouble xStart, xEnd, yStart, yEnd;
+    bool xLog, yLog;
     DDouble minVal, maxVal;
-    static unsigned xtypeTag = xStruct->Desc()->TagIndex("TYPE");
-    static unsigned ytypeTag = yStruct->Desc()->TagIndex("TYPE");
-    bool xLog =  
-      (*static_cast<DLongGDL*>(xStruct->Get(xtypeTag, 0)))[0] ? 1:0;
-    bool yLog =  
-      (*static_cast<DLongGDL*>(yStruct->Get(xtypeTag, 0)))[0] ? 1:0;
+
+    get_axis_crange("X", xStart, xEnd);
+    get_axis_crange("Y", yStart, yEnd);
+    get_axis_type("X", xLog);
+    get_axis_type("Y", yLog);
 
 
-    DLong background = p_background;
+    /*    DLong background = p_background;
     static int cix=e->KeywordIx("COLOR");
     BaseGDL* color_arr=e->GetKW(cix);
     DLongGDL* l_color_arr;
@@ -1348,12 +1183,14 @@ namespace lib {
     if(color_arr != NULL)  
       if(color_arr->N_Elements() >= 1) 
 	color=(*l_color_arr)[0];
-    
+    */
     GDLGStream* actStream = GetPlotStream( e); 
     
     //start drawing
-    actStream->Background( background);
-    actStream->Color( color);
+    //    actStream->Background( background);
+    //    actStream->Color( color);
+    gkw_background(e, actStream);
+    gkw_color(e, actStream);
 
     PLFLT xMR, xML, yMB, yMT;
     CheckMargin( e, actStream,
@@ -1378,15 +1215,10 @@ namespace lib {
 	      Message("PLOTS: !X.CRANGE ERROR, resetting range to data");
 	    xStart=0;//xVal->min();
 	    xEnd=1;//xVal->max();
+	
+	    set_axis_crange("X", xStart, xEnd);
+	    set_axis_crange("Y", yStart, yEnd);
 	    
-	    (*static_cast<DDoubleGDL*>( xStruct->Get( crangeTag, 0)))[0] =
-	      xStart;
-	    (*static_cast<DDoubleGDL*>( xStruct->Get( crangeTag, 0)))[1] = 
-	      xEnd;
-	    (*static_cast<DDoubleGDL*>( yStruct->Get( crangeTag, 0)))[0] = 
-	      yStart;
-	    (*static_cast<DDoubleGDL*>( yStruct->Get( crangeTag, 0)))[1] = 
-	      yEnd;
 	  }	    
 	
 	minVal=yStart-yMB*(yEnd-yStart)/(1-yMT-yMB);
@@ -1462,7 +1294,7 @@ namespace lib {
 	d_orient=static_cast<DDoubleGDL*>
 	  (orient->Convert2(DOUBLE, BaseGDL::COPY));
 	if(orient->N_Elements() < minEl && orient->N_Elements() > 1)
-	  e->Throw( "Array "+e->GetParString(cix)+
+	  e->Throw( "Array "+e->GetParString(oix)+
 		    " does not have enough elements for ORIENTATION keyword.");
 	p_orient=(*d_orient)[0];
 	  while(p_orient < 0) p_orient+=360.0;
@@ -1477,10 +1309,8 @@ namespace lib {
     e->AssureDoubleScalarKWIfPresent( "ALIGNMENT", alignment);
 
     //CHARSIZE
-    DDouble charsize=p_charsize;
-    e->AssureDoubleScalarKWIfPresent( "CHARSIZE", charsize);
-    if( charsize <= 0.0) charsize = 1.0;
-    actStream->schr(0.0,charsize);
+    DDouble charsize;
+    gkw_charsize(e, actStream, charsize);
 
     if(minEl == 1)
       {
@@ -1513,10 +1343,10 @@ namespace lib {
 		  p_orient_y=1.0*sin(p_orient*0.0174533);
 		}
 
-	    if(color_arr != NULL)  
+	    /*	    if(color_arr != NULL)  
 	      if(color_arr->N_Elements() > 1)
 		actStream->Color((*l_color_arr)[i]);
-
+	    */
 	    out=(*strVal)[i];
 	    actStream->ptex(x,y,p_orient_x, p_orient_y,alignment,out.c_str());
 	  }
@@ -2037,15 +1867,15 @@ namespace lib {
   }
 
   //BACKGROUND COLOR
-  void gkw_background(EnvT * e, GDLGStream* a)
+  void gkw_background(EnvT * e, GDLGStream* a, bool kw)
   {
     static DStructGDL* pStruct = SysVar::P();
     DLong background = 
       (*static_cast<DLongGDL*>
        (pStruct->Get
 	(pStruct->Desc()->TagIndex("BACKGROUND"), 0)))[0];
-
-    e->AssureLongScalarKWIfPresent( "BACKGROUND", background);
+    if(kw)
+      e->AssureLongScalarKWIfPresent( "BACKGROUND", background);
     a->Background( background);  
   }
 
@@ -2106,13 +1936,15 @@ namespace lib {
   }
 
   //CHARSIZE
-  void gkw_charsize(EnvT * e, GDLGStream* a)
+  void gkw_charsize(EnvT * e, GDLGStream* a, DDouble& charsize, bool kw)
   {
     static DStructGDL* pStruct = SysVar::P();
-    DDouble charsize = (*static_cast<DDoubleGDL*>
+    charsize = (*static_cast<DDoubleGDL*>
 			(pStruct->Get
 			 ( pStruct->Desc()->TagIndex("CHARSIZE"), 0)))[0];
-    e->AssureDoubleScalarKWIfPresent( "CHARSIZE", charsize);
+    if(kw)
+      e->AssureDoubleScalarKWIfPresent( "CHARSIZE", charsize);
+
     if( charsize <= 0.0) charsize = 1.0;
     a->schr(0.0, charsize);  
   }
@@ -2226,6 +2058,95 @@ namespace lib {
       }
   }
 
+  void gkw_axis_charsize(EnvT* e, string axis, DDouble &charsize)
+  {
+    DStructGDL* Struct;
+    if(axis=="X") Struct = SysVar::X();
+    if(axis=="Y") Struct = SysVar::Y();
+
+    if(Struct != NULL)
+      {
+	static unsigned charsizeTag = Struct->Desc()->TagIndex("CHARSIZE");
+	charsize = 
+	  (*static_cast<DDoubleGDL*>( Struct->Get( charsizeTag, 0)))[0];
+      }
+
+    string Charsize_s=axis+"CHARSIZE";
+    e->AssureDoubleScalarKWIfPresent( Charsize_s, charsize);
+    if(charsize <=0.0) charsize=1.0;
+  }
+
+
+  //STYLE
+  void gkw_axis_style(EnvT *e, string axis,DLong &style)
+  {
+    DStructGDL* Struct;
+    if(axis=="X") Struct = SysVar::X();
+    if(axis=="Y") Struct = SysVar::Y();
+    if(Struct != NULL)
+      {
+	static unsigned styleTag = Struct->Desc()->TagIndex( "STYLE");
+	style = 
+	  (*static_cast<DLongGDL*>( Struct->Get( styleTag, 0)))[0];
+      }
+
+    string StyleName=axis+"STYLE";
+
+  }
+
+  void gkw_axis_title(EnvT *e, string axis,DString &title)
+  {
+    DStructGDL* Struct;
+    if(axis=="X") Struct = SysVar::X();
+    if(axis=="Y") Struct = SysVar::Y();
+    
+    if(Struct != NULL)
+      {
+	static unsigned titleTag = Struct->Desc()->TagIndex("TITLE");
+	title = 
+	  (*static_cast<DStringGDL*>( Struct->Get( titleTag, 0)))[0];
+      }
+
+    string TitleName=axis+"TITLE";
+    e->AssureStringScalarKWIfPresent( TitleName, title);
+
+  }
+
+  //GET RANGE
+  void gkw_axis_range(EnvT *e, string axis,DDouble &start, DDouble &end, DLong & ynozero)
+  {
+    DStructGDL* Struct;
+    if(axis=="X") Struct = SysVar::X();
+    if(axis=="Y") Struct = SysVar::Y();
+    string RangeName=axis+"RANGE";
+    BaseGDL* Range=e->GetKW(e->KeywordIx(RangeName));
+    if(Range !=NULL)
+      {
+	if(Range->N_Elements() != 2)
+	  e->Throw("Keyword array parameter "+RangeName+
+		   "must have 2 elements.");
+	auto_ptr<DFloatGDL> guard;
+	DFloatGDL* RangeF = static_cast<DFloatGDL*>
+	  ( Range->Convert2( FLOAT, BaseGDL::COPY));
+	guard.reset( RangeF);
+	start = (*RangeF)[0];
+	end = (*RangeF)[1];
+	if(axis=="Y") ynozero=1;
+      }
+
+  }
+  void get_axis_margin(string axis, DFloat &low, DFloat &high)
+  {
+    DStructGDL* Struct=NULL;
+    if(axis=="X") Struct = SysVar::X();
+    if(axis=="Y") Struct = SysVar::Y();
+    if(Struct!=NULL)
+      {
+	static unsigned marginTag = Struct->Desc()->TagIndex( "MARGIN");
+	low = (*static_cast<DFloatGDL*>( Struct->Get( marginTag, 0)))[0]; 
+	high = (*static_cast<DFloatGDL*>( Struct->Get( marginTag, 0)))[1];
+      }
+  }
 
 } // namespace
 
