@@ -18,13 +18,13 @@
 #ifndef ARRAYINDEX_HPP_
 #define ARRAYINDEX_HPP_
 
-#include <valarray>
+//#include <valarray>
 #include <vector>
 
 #include "datatypes.hpp"
 #include "real2int.hpp"
 
-typedef std::valarray<SizeT> AllIxT;
+typedef std::vector<SizeT> AllIxT;
 
 class ArrayIndexT
 {

@@ -1189,7 +1189,7 @@ namespace lib {
     //start drawing
     //    actStream->Background( background);
     //    actStream->Color( color);
-    gkw_background(e, actStream);
+    //    gkw_background(e, actStream);
     gkw_color(e, actStream);
 
     PLFLT xMR, xML, yMB, yMT;

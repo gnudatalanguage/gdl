@@ -457,6 +457,7 @@ void EnvT::OnError()
 
 int EnvT::KeywordIx( const std::string& k)
 {
+  //  cout << pro->ObjectName() << "  Key: " << k << endl;
   assert( pro != NULL);
   assert( pro->FindKey( k) != -1);
   return pro->FindKey( k);
