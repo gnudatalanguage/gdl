@@ -18,10 +18,13 @@
 #ifndef ARRAYINDEX_HPP_
 #define ARRAYINDEX_HPP_
 
+#include <valarray>
 #include <vector>
 
 #include "datatypes.hpp"
 #include "real2int.hpp"
+
+typedef std::valarray<SizeT> AllIxT;
 
 class ArrayIndexT
 {
@@ -37,8 +40,9 @@ public:
 private:
   IxType     t;
   SizeT      s,e;
-  SizeT*     ix;
-  SizeT      nElem; // for ix
+  AllIxT*    ix;
+  //  SizeT*     ix;
+  //  SizeT      nElem; // for ix
   dimension* ixDim; // keep dimension of ix
 
   // forbid c-i
@@ -47,18 +51,20 @@ private:
   // get nth index
   SizeT GetIx( SizeT nth)
   {
-    if( t == 0) return (ix)[nth]; // from array
+    if( t == 0) return (*ix)[nth]; // from array
     //if( t == 2) return s;        // scalar (nth == 0)
     return nth + s;
   }
 
 public:
 
-  SizeT* StealIx() { SizeT* ret = ix; ix = NULL; return ret;} 
-
+  //  SizeT* StealIx() { SizeT* ret = ix; ix = NULL; return ret;} 
+  AllIxT* StealIx() { AllIxT* ret = ix; ix = NULL; return ret;} 
+  
   ~ArrayIndexT() 
   {
-    delete[] ix;
+    delete ix;
+    //    delete[] ix;
     delete   ixDim;
   }
 
@@ -73,9 +79,10 @@ public:
     if( typeCheck >= 100)
       throw GDLException("Type not allowed as subscript.");
     
-    nElem = ix_->N_Elements();
+    SizeT nElem = ix_->N_Elements();
+    //    ix = new SizeT[ nElem]; // allocate array
+    ix = new AllIxT( nElem);
 
-    ix = new SizeT[ nElem]; // allocate array
     ixDim = new dimension( ix_->Dim());
 
     switch( dType)
@@ -84,63 +91,63 @@ public:
 	{
 	  DByteGDL* src = static_cast<DByteGDL*>( ix_);
 	  for( SizeT i=0; i < nElem; ++i)
-	    ix[i]= (*src)[i]; 
+	    (*ix)[i]= (*src)[i]; 
 	  return;
 	}
       case INT:
 	{
 	  DIntGDL* src = static_cast<DIntGDL*>( ix_);
 	  for( SizeT i=0; i < nElem; ++i)
-	    ix[i]= static_cast<DLong>((*src)[i]); 
+	    (*ix)[i]= static_cast<DLong>((*src)[i]); 
 	  return;
 	}
       case UINT:
 	{
 	  DUIntGDL* src = static_cast<DUIntGDL*>( ix_);
 	  for( SizeT i=0; i < nElem; ++i)
-	    ix[i]= (*src)[i]; 
+	    (*ix)[i]= (*src)[i]; 
 	  return;
 	}
       case LONG:
 	{
 	  DLongGDL* src = static_cast<DLongGDL*>( ix_);
 	  for( SizeT i=0; i < nElem; ++i)
-	    ix[i]= (*src)[i]; 
+	    (*ix)[i]= (*src)[i]; 
 	  return;
 	}
       case ULONG:
 	{
 	  DULongGDL* src = static_cast<DULongGDL*>( ix_);
 	  for( SizeT i=0; i < nElem; ++i)
-	    ix[i]= (*src)[i]; 
+	    (*ix)[i]= (*src)[i]; 
 	  return;
 	}
       case LONG64:
 	{
 	  DLong64GDL* src = static_cast<DLong64GDL*>( ix_);
 	  for( SizeT i=0; i < nElem; ++i)
-	    ix[i]= (*src)[i]; 
+	    (*ix)[i]= (*src)[i]; 
 	  return;
       }
       case ULONG64:
 	{
 	  DULong64GDL* src = static_cast<DULong64GDL*>( ix_);
 	  for( SizeT i=0; i < nElem; ++i)
-	    ix[i]= (*src)[i]; 
+	    (*ix)[i]= (*src)[i]; 
 	  return;
 	}
       case FLOAT: 
 	{
 	  DFloatGDL* src = static_cast<DFloatGDL*>( ix_);
 	  for( SizeT i=0; i < nElem; ++i)
-	    ix[i]= Real2Int<DLong,float>((*src)[i]); 
+	    (*ix)[i]= Real2Int<DLong,float>((*src)[i]); 
 	  return;
 	}
       case DOUBLE: 
 	{
 	  DDoubleGDL* src = static_cast<DDoubleGDL*>( ix_);
 	  for( SizeT i=0; i < nElem; ++i)
-	    ix[i]= Real2Int<DLong,double>((*src)[i]); 
+	    (*ix)[i]= Real2Int<DLong,double>((*src)[i]); 
 	  return;
 	}
       case STRING: 
@@ -150,7 +157,7 @@ public:
 	    {
 	      const char* cStart=(*src)[i].c_str();
 	      char* cEnd;
-	      ix[i]=strtol(cStart,&cEnd,10);
+	      (*ix)[i]=strtol(cStart,&cEnd,10);
 	      if( cEnd == cStart)
 		{
 		  Warning("Type conversion error: "
@@ -163,14 +170,14 @@ public:
 	{
 	  DComplexGDL* src = static_cast<DComplexGDL*>( ix_);
 	  for( SizeT i=0; i < nElem; ++i)
-	    ix[i]= Real2Int<DLong,float>(real((*src)[i])); 
+	    (*ix)[i]= Real2Int<DLong,float>(real((*src)[i])); 
 	  return;
 	}
       case COMPLEXDBL: 
 	{
 	  DComplexDblGDL* src = static_cast<DComplexDblGDL*>( ix_);
 	  for( SizeT i=0; i < nElem; ++i)
-	    ix[i]= Real2Int<DLong,double>(real((*src)[i])); 
+	    (*ix)[i]= Real2Int<DLong,double>(real((*src)[i])); 
 	  return;
 	}
       }
@@ -181,7 +188,9 @@ public:
   {} 
 
   // [s] (type 2) || [s:*] (type 3)  || [s:e] (type 4) 
-  ArrayIndexT( IxType t_, SizeT s_, SizeT e_=0): t(t_), s(s_), e(e_), ix(NULL), ixDim( NULL)  {}
+  ArrayIndexT( IxType t_, SizeT s_, SizeT e_=0): t(t_), s(s_), e(e_), 
+						 ix(NULL), ixDim( NULL)  
+  {}
   
   // number of iterations
   // also checks/adjusts range 
@@ -194,21 +203,21 @@ public:
 	SizeT upper=varDim-1;
 	if( strictArrSubs)
 	  { // strictArrSubs -> exception if out of bounds
-	    for( SizeT i=0; i < nElem; ++i)
-	      if( ((ix)[i] < 0) || ((ix)[i] > upper))
+	    for( SizeT i=0; i < ix->size(); ++i)
+	      if( ((*ix)[i] < 0) || ((*ix)[i] > upper))
 		throw GDLException("Array used to subscript array "
 				   "contains out of range subscript.");
 	  }
 	else
 	  {
-	    for( SizeT i=0; i < nElem; ++i)
+	    for( SizeT i=0; i < ix->size(); ++i)
 	      {
-		if( (ix)[i] < 0) (ix)[i]=0; 
-		else if( (ix)[i] > upper) (ix)[i]=upper;
+		if( (*ix)[i] < 0) (*ix)[i]=0; 
+		else if( (*ix)[i] > upper) (*ix)[i]=upper;
 		//else if( (ix)[i] > static_cast<DLong>(upper)) (ix)[i]=upper;
 	      }
 	  }
-	return nElem; 
+	return ix->size(); 
       }
     if( t == ALL) 
       {
@@ -278,12 +287,14 @@ private:
   SizeT    varStride[MAXRANK+1]; // variables stride
   SizeT    nIx;                  // number of indexed elements
 
-  SizeT    *allIx;               // index list 
+  //  SizeT    *allIx;               // index list 
+  AllIxT* allIx;
 
 public:    
   ~ArrayIndexListT()
   {
-    delete[] allIx;
+    //    delete[] allIx;
+    delete allIx;
     for( std::vector<ArrayIndexT*>::iterator i=ixList.begin(); 
 	 i != ixList.end(); ++i)
       {	delete *i;}
@@ -457,7 +468,7 @@ public:
 //   }
 
   // returns 1-dim index for all nTh elements
-  SizeT* BuildIx()
+  AllIxT* BuildIx()
   {
     if( accessType == ONEDIM)
       {
@@ -465,14 +476,15 @@ public:
 	  allIx = ixList[0]->StealIx();
 	else
 	  {
-	    allIx = new SizeT[ nIx];
+	    //	    allIx = new SizeT[ nIx];
+	    allIx = new AllIxT( nIx);
 	    SizeT& s = ixList[0]->s;
 	    if( s != 0) 
 	      for( SizeT i=0; i<nIx; ++i)
-		allIx[i] = i + s;
+		(*allIx)[i] = i + s;
 	    else
 	      for( SizeT i=0; i<nIx; ++i)
-		allIx[i] = i;
+		(*allIx)[i] = i;
 	  }
 	return allIx;
       }
@@ -484,16 +496,17 @@ public:
 
 // 	if( varStride[0] != 1) // always 1
 // 	  for( SizeT i=0; i<nIx; ++i)
-// 	    allIx[i] *= varStride[0];
+// 	    (*allIx)[i] *= varStride[0];
 	
 	for( SizeT l=1; l < acRank; ++l)
 	  {
-	    SizeT* tmpIx = ixList[ l]->StealIx();
+	    AllIxT* tmpIx = ixList[ l]->StealIx();
 	    
 	    for( SizeT i=0; i<nIx; ++i)
-	      allIx[i] += tmpIx[i] * varStride[l];
-
-	    delete[] tmpIx;
+	      (*allIx)[i] += (*tmpIx)[i] * varStride[l];
+	    
+	    //	    delete[] tmpIx;
+	    delete tmpIx;
 	  }
 	return allIx;
       }
@@ -502,19 +515,22 @@ public:
     // loop only over specified indices
     // higher indices of variable are implicitely zero,
     // therefore they are not checked in 'SetRoot'
-    allIx = new SizeT[ nIx];
+    allIx = new AllIxT( nIx);
+    //    allIx = new SizeT[ nIx];
     
     // init allIx from first index
     if( ixList[0]->t == ArrayIndexT::INDEXED)
       {
-	SizeT* tmpIx = ixList[0]->StealIx();
+	AllIxT* tmpIx = ixList[ 0]->StealIx();
+	//SizeT* tmpIx = ixList[0]->StealIx();
 
 	for( SizeT i=0; i<nIx; ++i)
 	  {
-	    allIx[ i] = tmpIx[ i %  nIterLimit[0]];
+	    (*allIx)[ i] = (*tmpIx)[ i %  nIterLimit[0]];
 	  }
 
-	delete[] tmpIx;
+	//	delete[] tmpIx;
+	delete tmpIx;
       }
     else
       {
@@ -523,12 +539,12 @@ public:
 	if( s != 0) 
 	  for( SizeT i=0; i<nIx; ++i)
 	    {
-	      allIx[i] = i %  nIterLimit[0] + s; // stride[0], varStride[0] == 1
+	      (*allIx)[i] = i %  nIterLimit[0] + s; // stride[0], varStride[0] == 1
 	    }
 	else
 	  for( SizeT i=0; i<nIx; ++i)
 	    {
-	      allIx[i] = i %  nIterLimit[0]; // stride[0], varStride[0] == 1
+	      (*allIx)[i] = i %  nIterLimit[0]; // stride[0], varStride[0] == 1
 	    }
       }
 
@@ -537,14 +553,17 @@ public:
 
 	if( ixList[l]->t == ArrayIndexT::INDEXED)
 	  {
-	    SizeT* tmpIx = ixList[l]->StealIx();
+	    AllIxT* tmpIx = ixList[ l]->StealIx();
+	    //	    SizeT* tmpIx = ixList[l]->StealIx();
 	    
 	    for( SizeT i=0; i<nIx; ++i)
 	      {
-		allIx[ i] += tmpIx[ (i / stride[l]) %  nIterLimit[l]] * varStride[l];
+		(*allIx)[ i] += (*tmpIx)[ (i / stride[l]) %  nIterLimit[l]] * 
+		  varStride[l];
 	      }
 	    
-	    delete[] tmpIx;
+	    //	    delete[] tmpIx;
+	    delete tmpIx;
 	  }
 	else
 	  {
@@ -553,12 +572,14 @@ public:
 	    if( s != 0) 
 	      for( SizeT i=0; i<nIx; ++i)
 		{
-		  allIx[i] += ((i / stride[l]) %  nIterLimit[l] + s) * varStride[l]; 
+		  (*allIx)[i] += ((i / stride[l]) %  nIterLimit[l] + s) * 
+		    varStride[l]; 
 		}
 	    else
 	      for( SizeT i=0; i<nIx; ++i)
 		{
-		  allIx[i] += ((i / stride[l]) %  nIterLimit[l]) * varStride[l]; 
+		  (*allIx)[i] += ((i / stride[l]) %  nIterLimit[l]) * 
+		    varStride[l]; 
 		}
 	  }
       }

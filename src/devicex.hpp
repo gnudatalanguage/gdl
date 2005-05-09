@@ -616,7 +616,7 @@ public:
     if (error->error_code != BadMatch) {
       char buffer[256];
       XGetErrorText(display, error->error_code, buffer, 256);
-      fprintf(stderr, "xwin: Error in XGetImage: %s.\n", buffer);
+      std::cerr << "xwin: Error in XGetImage: " << buffer << std::endl;
     }
     return 1;
   }

@@ -825,9 +825,9 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
 	{
 	  SizeT nCp=ixList->N_Elements();
 	  
-	  SizeT* allIx = ixList->BuildIx();
+	  AllIxT* allIx = ixList->BuildIx();
 	  for( SizeT c=0; c<nCp; c++)
-	    dd[ allIx[ c]]=scalar;
+	    dd[ (*allIx)[ c]]=scalar;
 	  //	    dd[ ixList->GetIx( c)]=scalar;
 	}
     }
@@ -862,9 +862,9 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
 		throw GDLException("Array subscript must have same size as"
 				   " source expression.");
 	      
-	      SizeT* allIx = ixList->BuildIx();
+	      AllIxT* allIx = ixList->BuildIx();
 	      for( SizeT c=0; c<nCp; c++)
-		dd[ allIx[ c]]=(*src)[c+offset];
+		dd[ (*allIx)[ c]]=(*src)[c+offset];
 	      //		dd[ ixList->GetIx( c)]=(*src)[c+offset];
 	    }
 	}
@@ -887,9 +887,9 @@ void Data_<Sp>::DecAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=ixList->N_Elements();
 
-      SizeT* allIx = ixList->BuildIx();
+      AllIxT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; c++)
-	dd[ allIx[ c]]--;
+	dd[ (*allIx)[ c]]--;
     }
 }
 template<class Sp>
@@ -906,9 +906,9 @@ void Data_<Sp>::IncAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=ixList->N_Elements();
       
-      SizeT* allIx = ixList->BuildIx();
+      AllIxT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; c++)
-	dd[ allIx[ c]]++;
+	dd[ (*allIx)[ c]]++;
     }
 }
 // float, double
@@ -926,9 +926,9 @@ void Data_<SpDFloat>::DecAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=ixList->N_Elements();
 
-      SizeT* allIx = ixList->BuildIx();
+      AllIxT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; c++)
-	dd[ allIx[ c]] -= 1.0;
+	dd[ (*allIx)[ c]] -= 1.0;
     }
 }
 template<>
@@ -945,9 +945,9 @@ void Data_<SpDFloat>::IncAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=ixList->N_Elements();
       
-      SizeT* allIx = ixList->BuildIx();
+      AllIxT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; c++)
-	dd[ allIx[ c]] += 1.0;
+	dd[ (*allIx)[ c]] += 1.0;
     }
 }
 template<>
@@ -964,9 +964,9 @@ void Data_<SpDDouble>::DecAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=ixList->N_Elements();
       
-      SizeT* allIx = ixList->BuildIx();
+      AllIxT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; c++)
-	dd[ allIx[ c]] -= 1.0;
+	dd[ (*allIx)[ c]] -= 1.0;
     }
 }
 template<>
@@ -983,9 +983,9 @@ void Data_<SpDDouble>::IncAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=ixList->N_Elements();
       
-      SizeT* allIx = ixList->BuildIx();
+      AllIxT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; c++)
-	dd[ allIx[ c]] += 1.0;
+	dd[ (*allIx)[ c]] += 1.0;
     }
 }
 // complex
@@ -1003,9 +1003,9 @@ void Data_<SpDComplex>::DecAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=ixList->N_Elements();
       
-      SizeT* allIx = ixList->BuildIx();
+      AllIxT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; c++)
-	dd[ allIx[ c]] -= 1.0;
+	dd[ (*allIx)[ c]] -= 1.0;
     }
 }
 template<>
@@ -1022,9 +1022,9 @@ void Data_<SpDComplex>::IncAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=ixList->N_Elements();
       
-      SizeT* allIx = ixList->BuildIx();
+      AllIxT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; c++)
-	dd[ allIx[ c]] += 1.0;
+	dd[ (*allIx)[ c]] += 1.0;
     }
 }
 template<>
@@ -1041,9 +1041,9 @@ void Data_<SpDComplexDbl>::DecAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=ixList->N_Elements();
       
-      SizeT* allIx = ixList->BuildIx();
+      AllIxT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; c++)
-	dd[ allIx[ c]] -= 1.0;
+	dd[ (*allIx)[ c]] -= 1.0;
     }
 }
 template<>
@@ -1060,9 +1060,9 @@ void Data_<SpDComplexDbl>::IncAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=ixList->N_Elements();
       
-      SizeT* allIx = ixList->BuildIx();
+      AllIxT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; c++)
-	dd[ allIx[ c]] += 1.0;
+	dd[ (*allIx)[ c]] += 1.0;
     }
 }
 // forbidden types
@@ -1117,9 +1117,9 @@ void Data_<Sp>::InsertAt( SizeT offset, BaseGDL* srcIn,
     {
       SizeT nCp=ixList->N_Elements();
 
-      SizeT* allIx = ixList->BuildIx();
+      AllIxT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; c++)
-	dd[ c+offset]=(*src)[ allIx[ c]];
+	dd[ c+offset]=(*src)[ (*allIx)[ c]];
       //	dd[ c+offset]=(*src)[ ixList->GetIx( c)];
     }
 }
@@ -1188,9 +1188,9 @@ Data_<Sp>* Data_<Sp>::Index( ArrayIndexListT* ixList)
 
   SizeT nCp=ixList->N_Elements();
 
-  SizeT* allIx = ixList->BuildIx();
+  AllIxT* allIx = ixList->BuildIx();
   for( SizeT c=0; c<nCp; c++)
-    (*res)[c]=dd[ allIx[ c]];
+    (*res)[c]=dd[ (*allIx)[ c]];
   //    (*res)[c]=dd[ ixList->GetIx(c)];
  
   return res;
