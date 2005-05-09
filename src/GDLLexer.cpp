@@ -28,47 +28,45 @@ GDLLexer::GDLLexer(const antlr::LexerSharedInputState& state)
 
 void GDLLexer::initLiterals()
 {
-	literals["endcase"] = 77;
-	literals["case"] = 69;
+	literals["endcase"] = 79;
+	literals["case"] = 71;
 	literals["repeat"] = 106;
 	literals["ne"] = 167;
-	literals["end"] = 58;
+	literals["end"] = 60;
 	literals["le"] = 168;
 	literals["then"] = 114;
-	literals["begin"] = 64;
-	literals["endswitch"] = 78;
+	literals["begin"] = 66;
+	literals["endswitch"] = 80;
 	literals["and"] = 172;
-	literals["endrep"] = 81;
+	literals["endrep"] = 83;
 	literals["not"] = 165;
 	literals["on_ioerror"] = 112;
 	literals["mod"] = 160;
 	literals["do"] = 109;
-	literals["function"] = 59;
-	literals["endfor"] = 79;
+	literals["function"] = 61;
+	literals["endfor"] = 81;
 	literals["gt"] = 171;
 	literals["inherits"] = 124;
-	literals["of"] = 67;
+	literals["of"] = 69;
 	literals["or"] = 173;
 	literals["if"] = 113;
-	literals["pro"] = 60;
+	literals["pro"] = 62;
 	literals["xor"] = 174;
-	literals["compile_opt"] = 73;
+	literals["compile_opt"] = 75;
 	literals["ge"] = 170;
 	literals["goto"] = 111;
 	literals["for"] = 110;
 	literals["eq"] = 166;
-	literals["forward_function"] = 71;
-	literals["endelse"] = 76;
-	literals["continue"] = 105;
+	literals["forward_function"] = 73;
+	literals["endelse"] = 78;
 	literals["until"] = 107;
-	literals["else"] = 68;
+	literals["else"] = 70;
 	literals["lt"] = 169;
-	literals["endwhile"] = 80;
-	literals["switch"] = 66;
-	literals["common"] = 74;
-	literals["endif"] = 75;
+	literals["endwhile"] = 82;
+	literals["switch"] = 68;
+	literals["common"] = 76;
+	literals["endif"] = 77;
 	literals["while"] = 108;
-	literals["break"] = 104;
 }
 
 antlr::RefToken GDLLexer::nextToken()

@@ -62,6 +62,8 @@ tokens {
 	ARRAYEXPR;
 	ARRAYEXPR_FN;
 	BLOCK;
+    BREAK;
+    CONTINUE;
 	COMMONDECL;
 	COMMONDEF;
     CONSTANT;
@@ -532,7 +534,9 @@ statement
 			)
 		)
     | (DEC^ | INC^) expr
-	| procedure_call
+	| procedure_call // next two handled by procedure_call also
+//	| BREAK     // only valid in loops and switch_statement
+//	| CONTINUE  // only valid in loops
 	| for_statement 
 	| repeat_statement
 	| while_statement
@@ -543,8 +547,6 @@ statement
 	| forward_function
 	| common_block
     | compile_opt
-	| BREAK     // only valid in loops and switch_statement
-	| CONTINUE  // only valid in loops
 	;
 
 
@@ -625,7 +627,7 @@ formal_procedure_call
 	: IDENTIFIER (COMMA! parameter_def_list)?
 	;	
 
-// must handle RETURN also
+// must handle RETURN, BREAK, CONTINUE also
 procedure_call!//
 // was:
 // formal_procedure_call
@@ -635,6 +637,16 @@ procedure_call!//
             { 
                 #id->setType(RETURN); // text is already "return"
                 #procedure_call = #( #id, #e); // make root
+            }
+        | {id->getText() == "BREAK"}?
+            {
+                #id->setType(BREAK); // text is already "break"
+                #procedure_call = #id;
+            }
+        | {id->getText() == "CONTINUE"}?
+            {
+                #id->setType(CONTINUE); // text is already "continue"
+                #procedure_call = #id;
             }
         | (COMMA! pa:parameter_def_list)? 
             { #procedure_call = #([PCALL, "pcall"], #id, #pa);}
@@ -1202,11 +1214,11 @@ options {
 tokens {
 	AND_OP="and"; 
 	BEGIN="begin";
-	BREAK="break";
+//	BREAK="break";
 	CASE="case"; 
 	COMMON="common";
 	COMPILE_OPT="compile_opt";
-	CONTINUE="continue";
+//	CONTINUE="continue";
 	DO="do";
 	ELSE="else";
 	END="end";

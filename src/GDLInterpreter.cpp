@@ -194,10 +194,10 @@ void GDLInterpreter::execute(RefDNode _t) {
 			_t = _retTree;
 			break;
 		}
-		case RETF:
-		case RETP:
 		case BREAK:
 		case CONTINUE:
+		case RETF:
+		case RETP:
 		case GOTO:
 		{
 			retCode=jump_statement(_t);
@@ -1224,6 +1224,8 @@ void GDLInterpreter::decinc_statement(RefDNode _t) {
 	switch ( _t->getType()) {
 	case ASSIGN:
 	case BLOCK:
+	case BREAK:
+	case CONTINUE:
 	case FOR_STEP:
 	case IF_ELSE:
 	case LABEL:
@@ -1238,8 +1240,6 @@ void GDLInterpreter::decinc_statement(RefDNode _t) {
 	case CASE:
 	case DEC:
 	case INC:
-	case BREAK:
-	case CONTINUE:
 	case REPEAT:
 	case WHILE:
 	case FOR:
@@ -5762,6 +5762,8 @@ const char* GDLInterpreter::tokenNames[] = {
 	"ARRAYEXPR",
 	"ARRAYEXPR_FN",
 	"BLOCK",
+	"BREAK",
+	"CONTINUE",
 	"COMMONDECL",
 	"COMMONDEF",
 	"CONSTANT",
@@ -5852,8 +5854,6 @@ const char* GDLInterpreter::tokenNames[] = {
 	"SLASH_EQ",
 	"XOR_OP_EQ",
 	"MEMBER",
-	"\"break\"",
-	"\"continue\"",
 	"\"repeat\"",
 	"\"until\"",
 	"\"while\"",
@@ -5948,12 +5948,12 @@ const char* GDLInterpreter::tokenNames[] = {
 	0
 };
 
-const unsigned long GDLInterpreter::_tokenSet_0_data_[] = { 3767541792UL, 1573760UL, 786468UL, 251648UL, 0UL, 0UL, 0UL, 0UL };
-// ASSIGN BLOCK FOR_STEP IF_ELSE LABEL MPCALL MPCALL_PARENT ON_IOERROR_NULL 
-// PCALL PCALL_LIB RETF RETP "switch" "case" DEC INC "break" "continue" 
-// "repeat" "while" "for" "goto" "on_ioerror" "if" 
+const unsigned long GDLInterpreter::_tokenSet_0_data_[] = { 2185289760UL, 6295043UL, 3145872UL, 250880UL, 0UL, 0UL, 0UL, 0UL };
+// ASSIGN BLOCK BREAK CONTINUE FOR_STEP IF_ELSE LABEL MPCALL MPCALL_PARENT 
+// ON_IOERROR_NULL PCALL PCALL_LIB RETF RETP "switch" "case" DEC INC "repeat" 
+// "while" "for" "goto" "on_ioerror" "if" 
 const antlr::BitSet GDLInterpreter::_tokenSet_0(_tokenSet_0_data_,8);
-const unsigned long GDLInterpreter::_tokenSet_1_data_[] = { 6490208UL, 65017957UL, 786432UL, 2097152UL, 3959422976UL, 524287UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLInterpreter::_tokenSet_1_data_[] = { 25954400UL, 260071828UL, 3145728UL, 2097152UL, 3959422976UL, 524287UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN ARRAYDEF ARRAYEXPR CONSTANT DEREF FCALL FCALL_LIB MFCALL MFCALL_PARENT 
 // NSTRUC NSTRUC_REF POSTDEC POSTINC STRUC SYSVAR UMINUS VAR VARPTR DEC 
 // INC SLASH ASTERIX DOT POW MATRIX_OP1 MATRIX_OP2 "mod" PLUS MINUS LTMARK 
