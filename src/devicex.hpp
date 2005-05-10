@@ -537,14 +537,6 @@ public:
 
     SizeT nParam=e->NParam( 1); 
 
-    DLong xLL=0, yLL=0, pos=0;
-    if (nParam >= 2) 
-      e->AssureLongScalarPar( 1, pos);
-    if (nParam >= 3) {
-      e->AssureLongScalarPar( 1, xLL);
-      e->AssureLongScalarPar( 2, yLL);
-    }
-
     GDLGStream* actStream = GetStream();
     if( actStream == NULL)
       {
@@ -552,14 +544,12 @@ public:
 	exit( EXIT_FAILURE);
       }
 
-    actStream->NextPlot( false);
+    //    actStream->NextPlot( false);
+    actStream->NoSub();
 
     int xSize, ySize, xPos, yPos;
     int actWin = ActWin();
     bool success = WSize( actWin, &xSize, &ySize, &xPos, &yPos);
-
-    actStream->vpor( 0, 1.0, 0, 1.0);
-    actStream->wind( 1-xLL, xSize-xLL, 1-yLL, ySize-yLL);
 
     DByteGDL* p0B = e->GetParAs<DByteGDL>( 0);
     SizeT rank = p0B->Rank();
@@ -600,6 +590,26 @@ public:
       throw GDLException( e->CallingNode(), 
 			  "Image array must have rank 2 or 3");
     }
+
+    DLong xLL=0, yLL=0, pos=0;
+    if (nParam == 2) {
+      int nx, ny, ix, iy;
+      e->AssureLongScalarPar( 1, pos);
+      nx = xSize/width;
+      ny = ySize/height;
+      ix = pos % nx;
+      iy = (pos / nx) % ny;
+      xLL= width*ix;
+      yLL= ySize - height*(iy+1);
+    }
+    else if (nParam >= 3) {
+      e->AssureLongScalarPar( 1, xLL);
+      e->AssureLongScalarPar( 2, yLL);
+    }
+
+    actStream->vpor( 0, 1.0, 0, 1.0);
+    actStream->wind( 1-xLL, xSize-xLL, 1-yLL, ySize-yLL);
+
     plimage_gdl(&(*p0B)[0], width, height, tru);
   }
 
