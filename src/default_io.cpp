@@ -28,36 +28,155 @@
 
 using namespace std;
 
-// helper function - reads one line, does error checking
-const string ReadLine(istream& is)
+
+void SkipWS( istream& is)
 {
   if( is.eof())
     throw GDLException( "End of file encountered. "+
 			StreamInfo( &is));
+  char c;
+  do {
+    c = is.get();
 
-  string retStr;
-  getline( is, retStr);
-  
-  if ( (is.rdstate() & ifstream::failbit ) != 0 )
+    if ( (is.rdstate() & ifstream::failbit ) != 0 )
+      {
+	if ( (is.rdstate() & ifstream::eofbit ) != 0 )
+	  throw GDLException( "End 2of file encountered. "+
+			      StreamInfo( &is));
+
+	if ( (is.rdstate() & ifstream::badbit ) != 0 )
+	  throw GDLException( "Error reading stream. "+
+			      StreamInfo( &is));
+	
+	is.clear();
+	return ;
+      }
+  } while( c == ' ' || c == '\t' || c == '\n');
+
+  is.unget();
+}
+
+// helper function - reads one line, does error checking
+const string ReadElement(istream& is)
+{
+  SkipWS( is);
+
+  string buf;
+  char c;
+  for(;;)
     {
-      if ( (is.rdstate() & ifstream::eofbit ) != 0 )
-	throw GDLException( "End of file encountered. "+
-			    StreamInfo( &is));
+      c = is.get();
+      //    int cc = c;
+      //    cout << "ReadEl: " << cc << " " << c << ":" << endl;
       
-      if ( (is.rdstate() & ifstream::badbit ) != 0 )
-	throw GDLException( "Error reading line. "+
-			    StreamInfo( &is));
+      if ( (is.rdstate() & ifstream::failbit ) != 0 )
+	{
+	  if ( (is.rdstate() & ifstream::badbit ) != 0 )
+	    throw GDLException( "Error reading line. "+
+				StreamInfo( &is));
+	  
+	  is.clear();
+	  return buf;
+	}
+
+      if( c == '\n') 
+	return buf;
       
-      is.clear();
-      return "";
+      if( c == ' ' || c == '\t')
+	{
+	  is.unget();
+	  return buf;
+	}
+
+      buf.push_back( c);
     }
 
   if( !is.good())
-    throw GDLException( "Error reading line. "+StreamInfo( &is));
-  
-  //  cout << "Read line: " << retStr << endl;
+    throw GDLException( "Error reading stream. "+StreamInfo( &is));
 
-  return retStr;
+  return buf;
+
+//   // old version (read full line which is then split - does not work with
+//   // different types on the same line)
+//   if( is.eof())
+//     throw GDLException( "End of file encountered. "+
+// 			StreamInfo( &is));
+//   string retStr;
+//   getline( is, retStr);
+  
+//   if ( (is.rdstate() & ifstream::failbit ) != 0 )
+//     {
+//       if ( (is.rdstate() & ifstream::eofbit ) != 0 )
+// 	throw GDLException( "End of file encountered. "+
+// 			    StreamInfo( &is));
+      
+//       if ( (is.rdstate() & ifstream::badbit ) != 0 )
+// 	throw GDLException( "Error reading line. "+
+// 			    StreamInfo( &is));
+      
+//       is.clear();
+//       return "";
+//     }
+
+//   if( !is.good())
+//     throw GDLException( "Error reading line. "+StreamInfo( &is));
+  
+//   cout << "Read line: " << retStr << endl;
+
+//   return retStr;
+}
+
+// no skip of WS
+const string ReadComplexElement(istream& is)
+{
+  SkipWS( is);
+  
+  string buf;
+  char c = is.get();
+  if ( (is.rdstate() & ifstream::failbit ) != 0 )
+    {
+      if ( (is.rdstate() & ifstream::eofbit ) != 0 )
+	throw GDLException( "End 3of file encountered. "+
+			    StreamInfo( &is));
+      if ( (is.rdstate() & ifstream::badbit ) != 0 )
+	throw GDLException( "Error reading stream. "+
+			    StreamInfo( &is));
+      
+      is.clear();
+      return buf;
+    }
+  
+  bool brace = (c == '(');
+
+  if( !brace)
+    {
+      is.unget();
+      return ReadElement( is);
+    }
+
+  buf.push_back( c);
+  for(;;)
+    {
+      c = is.get();
+      
+      if ( (is.rdstate() & ifstream::failbit ) != 0 )
+	{
+	  if ( (is.rdstate() & ifstream::badbit ) != 0 )
+	    throw GDLException( "Error reading line. "+
+				StreamInfo( &is));
+	  
+	  is.clear();
+	  return buf;
+	}
+
+      if( c == '\n') 
+	return buf;
+
+      buf.push_back( c);
+
+      if( c == ')') 
+	return buf;
+    }
 }
 
 inline void InsNL(ostream& o, SizeT* actPosPtr)
@@ -101,38 +220,19 @@ istream& operator>>(istream& i, Data_<Sp>& data_)
 
   while( nTrans > 0)
     {
-      const string& actLine = ReadLine( i);
-      SizeT actPos = 0;
-      SizeT strLen = actLine.length();
+      const string segment = ReadElement( i);
 
-      while( actPos < strLen && nTrans > 0)
+      const char* cStart=segment.c_str();
+      char* cEnd;
+      data_.dd[ assignIx] = strtol( cStart, &cEnd, 10);
+      if( cEnd == cStart)
 	{
-	  // split string
-	  SizeT first = actLine.find_first_not_of(" \t",actPos);
-	  if( first >= strLen)
-	    break;
-
-	  SizeT last  = actLine.find_first_of(" \t",first);
-
-	  if( last >= strLen) last = strLen;
-
-	  actPos = last;
-
-	  string segment = actLine.substr( first, last-first);
-	
-	  // convert segment and assign
-	  const char* cStart=segment.c_str();
-	  char* cEnd;
-	  data_.dd[ assignIx] = strtol( cStart, &cEnd, 10);
-	  if( cEnd == cStart)
-	    {
-	      data_.dd[ assignIx]= -1;
-	      Warning("Input conversion error.");
-	    }
-	  
-	  assignIx++;
-	  nTrans--;
+	  data_.dd[ assignIx]= -1;
+	  Warning("Input conversion error.");
 	}
+	  
+      assignIx++;
+      nTrans--;
     }
 
   return i;
@@ -147,38 +247,18 @@ istream& operator>>(istream& i, Data_<SpDFloat>& data_)
 
   while( nTrans > 0)
     {
-      const string& actLine = ReadLine( i);
-      SizeT actPos = 0;
-      SizeT strLen = actLine.length();
-
-      while( actPos < strLen && nTrans > 0)
+      const string segment = ReadElement( i);
+      const char* cStart=segment.c_str();
+      char* cEnd;
+      data_.dd[ assignIx] = strtod( cStart, &cEnd);
+      if( cEnd == cStart)
 	{
-	  // split string
-	  SizeT first = actLine.find_first_not_of(" \t",actPos);
-	  if( first >= strLen)
-	    break;
-
-	  SizeT last  = actLine.find_first_of(" \t",first);
-
-	  if( last >= strLen) last = strLen;
-
-	  actPos = last;
-
-	  string segment = actLine.substr( first, last-first);
-	
-	  // convert segment and assign
-	  const char* cStart=segment.c_str();
-	  char* cEnd;
-	  data_.dd[ assignIx] = strtod( cStart, &cEnd);
-	  if( cEnd == cStart)
-	    {
-	      data_.dd[ assignIx]= -1;
-	      Warning("Input conversion error.");
-	    }
-	  
-	  assignIx++;
-	  nTrans--;
+	  data_.dd[ assignIx]= -1;
+	  Warning("Input conversion error.");
 	}
+	  
+      assignIx++;
+      nTrans--;
     }
 
   return i;
@@ -192,38 +272,18 @@ istream& operator>>(istream& i, Data_<SpDDouble>& data_)
 
   while( nTrans > 0)
     {
-      const string& actLine = ReadLine( i);
-      SizeT actPos = 0;
-      SizeT strLen = actLine.length();
-
-      while( actPos < strLen && nTrans > 0)
+      const string segment = ReadElement( i);
+      const char* cStart=segment.c_str();
+      char* cEnd;
+      data_.dd[ assignIx] = strtod( cStart, &cEnd);
+      if( cEnd == cStart)
 	{
-	  // split string
-	  SizeT first = actLine.find_first_not_of(" \t",actPos);
-	  if( first >= strLen)
-	    break;
-
-	  SizeT last  = actLine.find_first_of(" \t",first);
-
-	  if( last >= strLen) last = strLen;
-
-	  actPos = last;
-
-	  string segment = actLine.substr( first, last-first);
-	
-	  // convert segment and assign
-	  const char* cStart=segment.c_str();
-	  char* cEnd;
-	  data_.dd[ assignIx] = strtod( cStart, &cEnd);
-	  if( cEnd == cStart)
-	    {
-	      data_.dd[ assignIx]= -1;
-	      Warning("Input conversion error.");
-	    }
-	  
-	  assignIx++;
-	  nTrans--;
+	  data_.dd[ assignIx]= -1;
+	  Warning("Input conversion error.");
 	}
+      
+      assignIx++;
+      nTrans--;
     }
 
   return i;
@@ -237,96 +297,76 @@ istream& operator>>(istream& i, Data_<SpDComplex>& data_)
 
   while( nTrans > 0)
     {
-      const string& actLine = ReadLine( i);
-      SizeT actPos = 0;
+      const string& actLine = ReadComplexElement( i);
       SizeT strLen = actLine.length();
 
-      while( actPos < strLen && nTrans > 0)
+      if( actLine[ 0] == '(')
 	{
-	  // split string
-	  SizeT first = actLine.find_first_not_of(" \t",actPos);
-	  if( first >= strLen)
-	    break;
-
-	  if( actLine[ first] == '(')
-	    {
-	      first++;
-
-	      SizeT mid  = actLine.find_first_of(" \t,",first);
-	      if( mid >= strLen) mid = strLen;
+	  SizeT mid  = actLine.find_first_of(" \t,",1);
+	  if( mid >= strLen) mid = strLen;
 	      
-	      string seg1 = actLine.substr( first, mid-first);
+	  string seg1 = actLine.substr( 1, mid-1);
 
-	      mid++;
-	      SizeT next = actLine.find_first_not_of(" \t",mid);
-	      if( next >= strLen) next = strLen;
+	  mid++;
+	  SizeT next = actLine.find_first_not_of(" \t",mid);
+	  if( next >= strLen) next = strLen;
 
-	      SizeT last = actLine.find_first_of(")",next);
-	      if( last >= strLen) last = strLen;
+	  SizeT last = actLine.find_first_of(")",next);
+	  if( last >= strLen) last = strLen;
 
-	      actPos = last;
-
-	      if( last <= next)
-		{
-		  data_.dd[ assignIx]= DComplex(0.0,0.0);
-		  Warning("Imaginary part of complex missing.");
-		} 
-	      else
-		{
-
-		  string seg2 = actLine.substr( next, last-next);
-
-		  char* cEnd1, *cEnd2;
-		  const char* c1=seg1.c_str();
-		  double re = strtod( c1, &cEnd1);
-		  const char* c2=seg2.c_str();
-		  double im = strtod( c2, &cEnd2);
-		  if( cEnd1 == c1 || cEnd2 == c2)
-		    {
-		      data_.dd[ assignIx]= DComplex(0.0,0.0);
-		      Warning("Input conversion error.");
-		    }
-		  else
-		    {
-		      data_.dd[ assignIx] = DComplex( re, im);
-		    }
-		}
-	    }
+	  if( last <= next)
+	    {
+	      data_.dd[ assignIx]= DComplex(0.0,0.0);
+	      Warning("Imaginary part of complex missing.");
+	    } 
 	  else
-	    { // real part only read, all values are set to this
-	      // the file pointer hangs (ie. a following
-	      // float reads the same value again)
-
-	      SizeT last  = actLine.find_first_of(" \t",first);
-
-	      if( last >= strLen) last = strLen;
-
-	      actPos = last;
-
-	      string segment = actLine.substr( first, last-first);
-	
-	      // convert segment and assign
-	      const char* cStart=segment.c_str();
-	      char* cEnd;
-	      double val = strtod( cStart, &cEnd);
-	      if( cEnd == cStart)
+	    {
+	      
+	      string seg2 = actLine.substr( next, last-next);
+	      
+	      char* cEnd1, *cEnd2;
+	      const char* c1=seg1.c_str();
+	      double re = strtod( c1, &cEnd1);
+	      const char* c2=seg2.c_str();
+	      double im = strtod( c2, &cEnd2);
+	      if( cEnd1 == c1 || cEnd2 == c2)
 		{
 		  data_.dd[ assignIx]= DComplex(0.0,0.0);
 		  Warning("Input conversion error.");
 		}
-	      
-	      for( long int c=assignIx; c<nTrans; c++)
-		data_.dd[ c] = DComplex(val,0.0);
-	      
-	      // i.seekg( pos); // rewind stream
-
-	      return i;
+	      else
+		{
+		  data_.dd[ assignIx] = DComplex( re, im);
+		}
+	    }
+	}
+      else
+	{ // real part only read, all values are set to this
+	  // the file pointer hangs (ie. a following
+	  // float reads the same value again)
+	  
+	  // convert segment and assign
+	  const char* cStart=actLine.c_str();
+	  char* cEnd;
+	  double val = strtod( cStart, &cEnd);
+	  if( cEnd == cStart)
+	    {
+	      data_.dd[ assignIx]= DComplex(0.0,0.0);
+	      Warning("Input conversion error.");
 	    }
 	  
-	  assignIx++;
-	  nTrans--;
+	  for( long int c=assignIx; c<nTrans; c++)
+	    data_.dd[ c] = DComplex(val,0.0);
+	  
+	  // i.seekg( pos); // rewind stream
+	  
+	  return i;
 	}
+	  
+      assignIx++;
+      nTrans--;
     }
+
 
   return i;
 }
@@ -339,96 +379,76 @@ istream& operator>>(istream& i, Data_<SpDComplexDbl>& data_)
 
   while( nTrans > 0)
     {
-      const string& actLine = ReadLine( i);
-      SizeT actPos = 0;
+      const string& actLine = ReadComplexElement( i);
       SizeT strLen = actLine.length();
 
-      while( actPos < strLen && nTrans > 0)
+      if( actLine[ 0] == '(')
 	{
-	  // split string
-	  SizeT first = actLine.find_first_not_of(" \t",actPos);
-	  if( first >= strLen)
-	    break;
-
-	  if( actLine[ first] == '(')
-	    {
-	      first++;
-
-	      SizeT mid  = actLine.find_first_of(" \t,",first);
-	      if( mid >= strLen) mid = strLen;
+	  SizeT mid  = actLine.find_first_of(" \t,",1);
+	  if( mid >= strLen) mid = strLen;
 	      
-	      string seg1 = actLine.substr( first, mid-first);
+	  string seg1 = actLine.substr( 1, mid-1);
 
-	      mid++;
-	      SizeT next = actLine.find_first_not_of(" \t",mid);
-	      if( next >= strLen) next = strLen;
+	  mid++;
+	  SizeT next = actLine.find_first_not_of(" \t",mid);
+	  if( next >= strLen) next = strLen;
 
-	      SizeT last = actLine.find_first_of(")",next);
-	      if( last >= strLen) last = strLen;
+	  SizeT last = actLine.find_first_of(")",next);
+	  if( last >= strLen) last = strLen;
 
-	      actPos = last;
-
-	      if( last <= next)
-		{
-		  data_.dd[ assignIx]= DComplexDbl(0.0,0.0);
-		  Warning("Imaginary part of complex missing.");
-		} 
-	      else
-		{
-
-		  string seg2 = actLine.substr( next, last-next);
-
-		  char* cEnd1, *cEnd2;
-		  const char* c1=seg1.c_str();
-		  double re = strtod( c1, &cEnd1);
-		  const char* c2=seg2.c_str();
-		  double im = strtod( c2, &cEnd2);
-		  if( cEnd1 == c1 || cEnd2 == c2)
-		    {
-		      data_.dd[ assignIx]= DComplexDbl(0.0,0.0);
-		      Warning("Input conversion error.");
-		    }
-		  else
-		    {
-		      data_.dd[ assignIx] = DComplexDbl( re, im);
-		    }
-		}
-	    }
+	  if( last <= next)
+	    {
+	      data_.dd[ assignIx]= DComplexDbl(0.0,0.0);
+	      Warning("Imaginary part of complex missing.");
+	    } 
 	  else
-	    { // real part only read, all values are set to this
-	      // the file pointer hangs (ie. a following
-	      // float reads the same value again)
-
-	      SizeT last  = actLine.find_first_of(" \t",first);
-
-	      if( last >= strLen) last = strLen;
-
-	      actPos = last;
-
-	      string segment = actLine.substr( first, last-first);
-	
-	      // convert segment and assign
-	      const char* cStart=segment.c_str();
-	      char* cEnd;
-	      double val = strtod( cStart, &cEnd);
-	      if( cEnd == cStart)
+	    {
+	      
+	      string seg2 = actLine.substr( next, last-next);
+	      
+	      char* cEnd1, *cEnd2;
+	      const char* c1=seg1.c_str();
+	      double re = strtod( c1, &cEnd1);
+	      const char* c2=seg2.c_str();
+	      double im = strtod( c2, &cEnd2);
+	      if( cEnd1 == c1 || cEnd2 == c2)
 		{
 		  data_.dd[ assignIx]= DComplexDbl(0.0,0.0);
 		  Warning("Input conversion error.");
 		}
-	      
-	      for( long int c=assignIx; c<nTrans; c++)
-		data_.dd[ c] = DComplexDbl(val,0.0);
-	      
-	      // i.seekg( pos); // rewind stream
-
-	      return i;
+	      else
+		{
+		  data_.dd[ assignIx] = DComplexDbl( re, im);
+		}
+	    }
+	}
+      else
+	{ // real part only read, all values are set to this
+	  // the file pointer hangs (ie. a following
+	  // float reads the same value again)
+	  
+	  // convert segment and assign
+	  const char* cStart=actLine.c_str();
+	  char* cEnd;
+	  double val = strtod( cStart, &cEnd);
+	  if( cEnd == cStart)
+	    {
+	      data_.dd[ assignIx]= DComplexDbl(0.0,0.0);
+	      Warning("Input conversion error.");
 	    }
 	  
-	  assignIx++;
-	  nTrans--;
+	  for( long int c=assignIx; c<nTrans; c++)
+	    data_.dd[ c] = DComplexDbl(val,0.0);
+	  
+	  // i.seekg( pos); // rewind stream
+	  
+	  return i;
 	}
+	  
+      assignIx++;
+      nTrans--;
     }
+
 
   return i;
 }
@@ -466,6 +486,7 @@ istream& operator>>(istream& is, Data_<SpDString>& data_)
       if( !is.eof()) is.get(); // remove delimiter
 
       data_.dd[ c] = ioss.str();
+      ioss.str("");
     }
   return is;
 }

@@ -33,19 +33,25 @@ using namespace std;
 
 void ReadNext( istream& is, string& buf)
 {
+  bool trail = false;
   char c;
   for(;;)
     {
       c = is.get();
+
+      //      int cc = c;
+      //      cout << "c: " << cc << " ("<<c<<")"<<endl;
+      
       if( is.eof())  return;
       if( c == '\n') return;
-      if( c == ' ' || c == '\t')
+      if( trail && (c == ' ' || c == '\t'))
 	{
 	  is.unget();
 	  return;
 	}
 
       buf.push_back( c);
+      trail = true;
     }
 }
 

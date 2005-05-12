@@ -82,6 +82,8 @@ public:
     if( fStream == NULL)
       throw GDLException("File unit is not open.");
     
+    fStream->peek(); // trigger EOF if at EOF
+
     return fStream->eof();
   }
 
