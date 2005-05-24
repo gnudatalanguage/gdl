@@ -33,6 +33,7 @@ namespace lib {
   BaseGDL* fft_fun( EnvT* e);
   BaseGDL* random_fun( EnvT* e);
   BaseGDL* histogram_fun( EnvT* e);
+  BaseGDL* interpolate_fun( EnvT* e);
 
   int fft_1d( BaseGDL*, void*, SizeT, SizeT, SizeT, 
 	      double, SizeT);

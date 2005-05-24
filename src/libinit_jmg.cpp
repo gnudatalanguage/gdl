@@ -71,6 +71,9 @@ void LibInit_jmg()
   const string histogramKey[]={"BINSIZE","INPUT","MAX","MIN","NBINS",
 			       "OMAX","OMIN","REVERSE_INDICES",KLISTEND};
   new DLibFun(lib::histogram_fun,string("HISTOGRAM"),1,histogramKey);
+
+  const string interpolateKey[]={"CUBIC","GRID","MISSING",KLISTEND};
+  new DLibFun(lib::interpolate_fun,string("INTERPOLATE"),4,interpolateKey);
 #endif
 
   const string macharKey[]={"DOUBLE",KLISTEND};
@@ -163,7 +166,7 @@ void LibInit_jmg()
   new DLibPro(lib::hdf_close_pro,string("HDF_CLOSE"),1);
 #endif
 
-  const string tvKey[]={"TRUE",KLISTEND};
+  const string tvKey[]={"TRUE","NORMAL",KLISTEND};
   new DLibPro(lib::tv,string("TV"),4,tvKey);
 
   const string tvrdKey[]={"CHANNEL","ORDER","TRUE","WORDS",KLISTEND};

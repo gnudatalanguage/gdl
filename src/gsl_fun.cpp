@@ -34,7 +34,8 @@
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_histogram.h>
-
+#include <gsl/gsl_interp.h>
+#include <gsl/gsl_spline.h>
 
 #define LOG10E 0.434294
 
@@ -956,6 +957,315 @@ namespace lib {
     gsl_histogram_free (h);
 
     return(res);
+  }
+
+
+  void interpolate_linear(SizeT nxa, SizeT nx, const double ya[], 
+			  double x[], double y[])
+  {
+    gsl_interp_accel *acc 
+      = gsl_interp_accel_alloc ();
+
+    gsl_interp *interp = gsl_interp_alloc (gsl_interp_linear, nxa);
+
+    double *xa = new double[nxa];
+    for( SizeT i=0; i<nxa; ++i) xa[i] = (double) i;
+    
+    gsl_interp_init (interp, xa, ya, nxa);
+
+    for( SizeT i=0; i<nx; ++i) {
+	  y[i] = gsl_interp_eval (interp, xa, ya, x[i], acc);
+    }
+
+    gsl_interp_free (interp);
+    gsl_interp_accel_free (acc);
+    delete xa;
+  }
+
+
+  void interpolate_cubic(SizeT nxa, SizeT nx, const double ya[], 
+			 double x[], double y[])
+  {
+    gsl_interp_accel *acc 
+      = gsl_interp_accel_alloc ();
+
+    gsl_spline *spline = gsl_spline_alloc (gsl_interp_cspline, nxa);
+
+    double *xa = new double[nxa];
+    for( SizeT i=0; i<nxa; ++i) xa[i] = (double) i;
+    
+    gsl_spline_init (spline, xa, ya, nxa);
+
+    for( SizeT i=0; i<nx; ++i) {
+	  y[i] = gsl_spline_eval (spline, x[i], acc);
+    }
+
+    gsl_spline_free (spline);
+    gsl_interp_accel_free (acc);
+    delete xa;
+  }
+
+
+
+  BaseGDL* interpolate_fun( EnvT* e)
+  {
+    SizeT nParam=e->NParam();
+
+    if( nParam < 2)
+      throw GDLException( e->CallingNode(), 
+			  "INTERPOLATE: Incorrect number of arguments.");
+
+    BaseGDL* p0 = e->GetParDefined( 0);
+    BaseGDL* p1 = e->GetParDefined( 1);
+    BaseGDL* p2;
+    BaseGDL* p3;
+    if ( nParam == 3) p2 = e->GetParDefined( 2);
+    if ( nParam == 4) p3 = e->GetParDefined( 3);
+
+    DDoubleGDL* p0D;
+    DDoubleGDL* p1D;
+    DDoubleGDL* p2D;
+    DDoubleGDL* p3D;
+
+    if( p0->Rank() < nParam-1)
+      throw GDLException( e->CallingNode(), 
+			  "INTERPOLATE: Number of parameters must agree with dimensions of argument.");
+
+    bool cubic = false;
+    if ( e->KeywordSet(0)) cubic = true;
+
+    bool grid = false;
+    if ( e->KeywordSet(1)) grid = true;
+
+
+    // If not GRID then check that rank and dims match
+    if ( nParam == 3 && !grid) {
+      if (p1->Rank() != p2->Rank())
+	   throw GDLException( e->CallingNode(), 
+			       "INTERPOLATE: Coordinate arrays must have same length if Grid not set.");
+      else {
+	for( SizeT i=0; i<p1->Rank(); ++i) {
+	  if (p1->Dim(i) != p2->Dim(i))
+	    throw GDLException( e->CallingNode(), 
+				"INTERPOLATE: Coordinate arrays must have same length if Grid not set.");
+	}
+      }
+    }
+
+    if (p0->Type() == DOUBLE)
+	p0D = static_cast<DDoubleGDL*> ( p0);
+    else
+	p0D = static_cast<DDoubleGDL*>
+	  (p0->Convert2( DOUBLE, BaseGDL::COPY));
+
+
+    // Determine dimensions of output
+    DDoubleGDL* res;
+    DLong dims[8]={0,0,0,0,0,0,0,0};
+    SizeT resRank;
+    // Linear Interpolation or No GRID
+    if ( nParam == 2 || !grid) {
+      for( SizeT i=0; i<p0->Rank()-(nParam-1); ++i) 
+	dims[i] = p0->Dim(i);
+      for( SizeT i=0; i<p1->Rank(); ++i) 
+	dims[i+p0->Rank()-(nParam-1)] = p1->Dim(i);
+      resRank = p0->Rank()-(nParam-1)+p1->Rank();
+    } else {
+      // GRID
+      for( SizeT i=0; i<p0->Rank()-(nParam-1); ++i) 
+	dims[i] = p0->Dim(i);
+
+      dims[p0->Rank()-(nParam-1)] = p1->Dim(0);
+      for( SizeT i=1; i<p1->Rank(); ++i) 
+	dims[p0->Rank()-(nParam-1)] *= p1->Dim(i);
+
+      dims[p0->Rank()-(nParam-1)+1] = p2->Dim(0);
+      for( SizeT i=1; i<p2->Rank(); ++i) 
+	dims[p0->Rank()-(nParam-1)+1] *= p2->Dim(i);
+
+      resRank = p0->Rank()-(nParam-2)+1;
+    }
+    dimension dim((SizeT *) dims, resRank);
+    res = new DDoubleGDL(dim, BaseGDL::NOZERO);
+
+    // Determine number of interpolations
+    SizeT ninterp = 1;
+    for( SizeT i=0; i<p0->Rank()-(nParam-1); ++i) ninterp *= p0->Dim(i);
+
+
+    // 1D Interpolation
+    if( nParam == 2) {
+
+      if ( p1->Type() == DOUBLE) 
+	p1D = static_cast<DDoubleGDL*> ( p1);
+      else
+	p1D = static_cast<DDoubleGDL*>
+	  (p1->Convert2( DOUBLE, BaseGDL::COPY));
+
+      SizeT nxa = p0->Dim(p0->Rank()-1);
+
+      // Single Interpolation
+      if (ninterp == 1) {
+	if( cubic)
+	  // cubic interpolation
+	  interpolate_cubic(nxa, p1D->N_Elements(), 
+	  		    &(*p0D)[0], &(*p1D)[0], &(*res)[0]);
+	else
+	  // linear interpolation
+	  interpolate_linear(nxa, p1D->N_Elements(), 
+			     &(*p0D)[0], &(*p1D)[0], &(*res)[0]);
+      } else {
+	// Multiple Interpolation
+	for( SizeT i=0; i<ninterp; ++i) {
+	  double *ya = new double[nxa];
+	  for( SizeT j=0; j<nxa; ++j) ya[j] = (*p0D)[j*ninterp+i];
+	  double *y = new double[p1D->N_Elements()];
+	  if( cubic)
+	    // cubic interpolation
+	    interpolate_cubic(nxa, p1D->N_Elements(), 
+			      ya, &(*p1D)[0], y);
+	  else
+	    // linear interpolation
+	    interpolate_linear(nxa, p1D->N_Elements(), 
+			       ya, &(*p1D)[0], y);
+	  for( SizeT j=0; j<p1D->N_Elements(); ++j) 
+	    (*res)[j*ninterp+i] = y[j];
+
+	  delete (ya);
+	  delete (y);
+	}
+      }
+
+    }
+
+
+    // 2D Interpolation
+    if( nParam == 3) {
+
+      if( cubic)
+	throw GDLException( e->CallingNode(), 
+			    "INTERPOLATE: Bicubic interpolation not yet supported.");
+
+      if ( p1->Type() == DOUBLE) 
+	p1D = static_cast<DDoubleGDL*> ( p1);
+      else
+	p1D = static_cast<DDoubleGDL*>
+	  (p1->Convert2( DOUBLE, BaseGDL::COPY));
+
+      if ( p2->Type() == DOUBLE) 
+	p2D = static_cast<DDoubleGDL*> ( p2);
+      else
+	p2D = static_cast<DDoubleGDL*>
+	  (p2->Convert2( DOUBLE, BaseGDL::COPY));
+
+      SizeT nxa = p0->Dim(p0->Rank()-2);
+      SizeT nya = p0->Dim(p0->Rank()-1);
+      
+
+      double **ya = new double*[nya];
+      for( SizeT k=0; k<nya; ++k) ya[k] = new double[nxa];
+
+
+      SizeT nx = 1;
+      if (grid) nx = res->Dim(resRank-2);
+      
+      SizeT ny = res->Dim(resRank-1);
+
+      double **work = new double*[ny];
+      for( SizeT k=0; k<ny; ++k) work[k] = new double[nx];
+
+
+      for( SizeT i=0; i<ninterp; ++i) {
+
+	for( SizeT k=0; k<nya; ++k) {
+	  for( SizeT j=0; j<nxa; ++j) {
+	    ya[k][j] = (*p0D)[i+(ninterp*j)+(ninterp*nxa)*k];
+	    //  cout << k << "  " << j << "  " << ya[k][j] << endl;
+	  }
+	}
+
+	bool first = true;
+	DLong lastrow;
+	double *dptr;
+	for( SizeT k=0; k<ny; ++k) {
+	  //	    printf("k: %d\n", k);
+	  // Interpolate along rows
+	  DLong row = (DLong) floor((*p2D)[k]);
+	  if (grid) dptr = &(*p1D)[0]; else dptr = &(*p1D)[k]; 
+
+	  if (first || (row != lastrow) || !grid) {
+	    if (row < 0) row = 0;
+	    if (row >= nya) row = nya - 1;
+	    interpolate_linear(nxa, nx, ya[row], dptr, &work[0][0]);
+	    if (row < -1) row = -1;
+	    if (row >= nya-1) row = nya - 2;
+	    interpolate_linear(nxa, nx, ya[(row+1)], dptr, &work[1][0]);
+	  }
+	  first = false;
+	  lastrow = row;
+
+	  if (grid) {
+	    // Interpolate between rows
+	    for( SizeT j=0; j<nx; ++j) {
+	      (*res)[i+ninterp*j+(ninterp*nx)*k] = 
+		work[0][j] + (work[1][j]-work[0][j]) * ((*p2D)[k] - row); 
+	    } // column (j) loop
+	  } else {
+	    (*res)[i+ninterp*k] = 
+	      work[0][0] + (work[1][0]-work[0][0]) * ((*p2D)[k] - row); 
+	  }
+
+	} // row (k) loop
+      } // interp loop 
+
+
+      // Free dynamic arrays
+      for( SizeT k=0; k<ny; ++k) delete(work[k]);
+      delete(work);
+
+      for( SizeT k=0; k<nya; ++k) delete(ya[k]);
+      delete(ya);
+
+    } // if( nParam == 3) {
+
+    if (p0->Type() == DOUBLE) {
+      return res;	
+    } else if (p0->Type() == FLOAT) {
+      DFloatGDL* res1 = static_cast<DFloatGDL*>
+	(res->Convert2( FLOAT, BaseGDL::COPY));
+      return res1;
+    } else if (p0->Type() == INT) {
+      DIntGDL* res1 = static_cast<DIntGDL*>
+	(res->Convert2( INT, BaseGDL::COPY));
+      return res1;
+    } else if (p0->Type() == UINT) {
+      DUIntGDL* res1 = static_cast<DUIntGDL*>
+	(res->Convert2( UINT, BaseGDL::COPY));
+      return res1;
+    } else if (p0->Type() == LONG) {
+      DLongGDL* res1 = static_cast<DLongGDL*>
+	(res->Convert2( LONG, BaseGDL::COPY));
+      return res1;
+    } else if (p0->Type() == ULONG) {
+      DULongGDL* res1 = static_cast<DULongGDL*>
+	(res->Convert2( ULONG, BaseGDL::COPY));
+      return res1;
+    } else if (p0->Type() == LONG64) {
+      DLong64GDL* res1 = static_cast<DLong64GDL*>
+	(res->Convert2( LONG64, BaseGDL::COPY));
+      return res1;
+    } else if (p0->Type() == ULONG64) {
+      DULong64GDL* res1 = static_cast<DULong64GDL*>
+	(res->Convert2( ULONG64, BaseGDL::COPY));
+      return res1;
+    }  else if (p0->Type() == BYTE) {
+      DByteGDL* res1 = static_cast<DByteGDL*>
+	(res->Convert2( BYTE, BaseGDL::COPY));
+      return res1;
+    } else {
+      return res;
+    }
+    
   }
 
 } // namespace
