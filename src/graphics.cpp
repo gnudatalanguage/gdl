@@ -219,5 +219,4 @@ void Graphics::LoadCT( UInt iCT)
 {
 
   actCT = CT[iCT];
-
 }

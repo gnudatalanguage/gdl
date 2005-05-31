@@ -17,7 +17,6 @@
 
 #include "basegdl.hpp"
 
-
 #ifdef HAVE_LIBWXWIDGETS
 
 #include "gdlwidget.hpp"

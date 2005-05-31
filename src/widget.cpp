@@ -1,5 +1,7 @@
 /***************************************************************************
                              widget.cpp  -  GDL WIDGET_XXX library functions
+                                            the actual library routines
+                                            (widget system in gdlwidget.cpp)
                              -------------------
     begin                : July 22 2002
     copyright            : (C) 2002 by Marc Schellens

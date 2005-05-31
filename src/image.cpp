@@ -48,6 +48,9 @@ namespace lib {
     if( iCT < 0 || iCT > 40)
       e->Throw( "Table number must be from 0 to 40.");
 
+    static int silentIx = e->KeywordIx( "SILENT"); 
+    bool silent = e->KeywordSet( silentIx);
+
     Graphics* actDevice = Graphics::GetDevice();
     GDLGStream* actStream = actDevice->GetStream( false); // no open
 
@@ -65,6 +68,9 @@ namespace lib {
 
     if (actStream != NULL)
       actStream->scmap1( rint, gint, bint, 256 );
+
+    if( !silent)
+      message( "LOADCT: Loading table "+actCT->Name());
   }
 
 

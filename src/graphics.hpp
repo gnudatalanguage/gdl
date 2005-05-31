@@ -97,6 +97,8 @@ public:
   bool Set( UInt ix, DByte r_, DByte g_, DByte b_); // RGB
   bool SetHLS( UInt ix, DFloat h, DFloat l, DFloat s);
   bool SetHSV( UInt ix, DFloat h, DFloat s, DFloat v);
+
+  std::string Name() { return name;}
 };
 
 
