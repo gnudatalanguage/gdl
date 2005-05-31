@@ -172,8 +172,8 @@ void LibInit_jmg()
   const string tvrdKey[]={"CHANNEL","ORDER","TRUE","WORDS",KLISTEND};
   new DLibFun(lib::tvrd,string("TVRD"),5,tvrdKey);
 
-  const string loadctKey[]={"SILENT",KLISTEND};
-  new DLibPro(lib::loadct,string("LOADCT"),1);
+  const string loadctKey[]={"GET_NAMES",KLISTEND};
+  new DLibPro(lib::loadct,string("LOADCT_INTERNALGDL"),1,loadctKey);
 
 }
 

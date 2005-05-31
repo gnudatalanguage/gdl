@@ -36,26 +36,44 @@ namespace lib {
     actDevice->TV( e);
   }
 
-  void loadct( EnvT* e)
+  BaseGDL* tvrd( EnvT* e)
   {
+    Graphics* actDevice = Graphics::GetDevice();
+    return actDevice->TVRD( e);
+  }
+
+  void loadct( EnvT* e) // LOADCT_INTERNALGDL for exclusive use by LOADCT
+  {
+    SizeT nCT = Graphics::N_CT();
+
+    static int get_namesIx = e->KeywordIx( "GET_NAMES"); 
+    bool get_names = e->KeywordPresent( get_namesIx);
+    if( get_names)
+      {
+	e->AssureGlobalKW( get_namesIx);
+	
+	DStringGDL* names = new DStringGDL( nCT, BaseGDL::NOZERO);
+	for( SizeT i=0; i<nCT; ++i)
+	  (*names)[ i] = Graphics::GetCT( i)->Name();
+
+	e->SetKW( get_namesIx, names);
+      }
+
+    if( e->NParam() == 0) return;
+
     DLong iCT;
 
     DByte r[256], g[256], b[256];
     PLINT rint[256], gint[256], bint[256];
 
     e->AssureLongScalarPar( 0, iCT);
-
-    if( iCT < 0 || iCT > 40)
-      e->Throw( "Table number must be from 0 to 40.");
-
-    static int silentIx = e->KeywordIx( "SILENT"); 
-    bool silent = e->KeywordSet( silentIx);
-
+    if( iCT < 0 || iCT >= nCT)
+      e->Throw( "Table number must be from 0 to "+i2s(nCT-1));
+    
     Graphics* actDevice = Graphics::GetDevice();
     GDLGStream* actStream = actDevice->GetStream( false); // no open
 
     Graphics::LoadCT( iCT);
-
     GDLCT* actCT = Graphics::GetCT();
 
     for( SizeT i=0; i<ctSize; ++i) {
@@ -67,17 +85,7 @@ namespace lib {
     }
 
     if (actStream != NULL)
-      actStream->scmap1( rint, gint, bint, 256 );
-
-    if( !silent)
-      Message( "LOADCT: Loading table "+actCT->Name());
-  }
-
-
-  BaseGDL* tvrd( EnvT* e)
-  {
-    Graphics* actDevice = Graphics::GetDevice();
-    return actDevice->TVRD( e);
+      actStream->scmap1( rint, gint, bint, ctSize);
   }
 
 } // namespace

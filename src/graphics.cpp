@@ -95,7 +95,7 @@ bool GDLCT::SetHSV( UInt ix, DFloat h, DFloat s, DFloat v)
   return true;
 }
 
-std::vector<GDLCT> Graphics::CT; // predefined colortables
+std::vector<GDLCT> Graphics::CT;    // predefined colortables
 GDLCT              Graphics::actCT; // actual used colortable
 
 DeviceListT  Graphics::deviceList;

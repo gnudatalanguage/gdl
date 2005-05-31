@@ -98,7 +98,7 @@ public:
   bool SetHLS( UInt ix, DFloat h, DFloat l, DFloat s);
   bool SetHSV( UInt ix, DFloat h, DFloat s, DFloat v);
 
-  std::string Name() { return name;}
+  std::string Name() const { return name;}
 };
 
 
@@ -144,6 +144,8 @@ public:
   static void LoadCT(UInt iCT);
 
   static GDLCT*      GetCT() { return &actCT;}
+  static GDLCT*      GetCT( SizeT ix) { return &CT[ix];}
+  static SizeT       N_CT() { return CT.size();}
   static bool        SetDevice( const std::string& devName);
   static Graphics*   GetDevice() { return actDevice;}
   static DStructGDL* DStruct()   { return actDevice->dStruct;} 
