@@ -21,9 +21,6 @@
 /* Define to 1 if you have the `readline' library (-lreadline). */
 #undef HAVE_LIBREADLINE
 
-/* wxWidgets library */
-#undef HAVE_LIBWXWIDGETS
-
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 

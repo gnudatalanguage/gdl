@@ -70,7 +70,7 @@ namespace lib {
       actStream->scmap1( rint, gint, bint, 256 );
 
     if( !silent)
-      message( "LOADCT: Loading table "+actCT->Name());
+      Message( "LOADCT: Loading table "+actCT->Name());
   }
 
 
