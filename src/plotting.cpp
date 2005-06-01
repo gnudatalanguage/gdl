@@ -37,6 +37,7 @@ namespace lib {
     static int closeFileIx = e->KeywordIx( "CLOSE_FILE"); 
     static int fileNameIx = e->KeywordIx( "FILENAME"); 
     static int decomposedIx = e->KeywordIx( "DECOMPOSED"); 
+    static int get_decomposedIx = e->KeywordIx( "GET_DECOMPOSED"); 
     static int z_bufferingIx = e->KeywordIx( "Z_BUFFERING"); 
     static int set_resolutionIx = e->KeywordIx( "SET_RESOLUTION"); 
     //    static int landscapeIx = e->KeywordIx( "LANDSCAPE"); 
@@ -89,6 +90,18 @@ namespace lib {
 	    e->Throw( "Current device does not support "
 		      "keyword DECOMPOSED.");
  	}
+
+
+    if( e->KeywordPresent( get_decomposedIx)) {
+      DLong value = actDevice->GetDecomposed();
+      if(value == -1)
+	e->Throw( "Current device does not support "
+		  "keyword GET_DECOMPOSED.");
+      else {
+	e->SetKW( get_decomposedIx, new DLongGDL( value));
+      }
+    }
+
 
     BaseGDL* fileName = e->GetKW( fileNameIx);
     if( fileName != NULL)
@@ -692,7 +705,7 @@ namespace lib {
       //      scale = sqrt( pow( xScale,2) + pow( yScale,2));
       }
 
-    DDouble charsize, xCharSize, yCharSize;
+    DFloat charsize, xCharSize, yCharSize;
     // *** start drawing
     GDLGStream* actStream = GetPlotStream( e); 
     gkw_background(e, actStream);  //BACKGROUND
@@ -845,7 +858,7 @@ namespace lib {
     gkw_color(e, actStream);
     gkw_noerase(e, actStream,true);
     gkw_psym(e, actStream, line, psym);
-    DDouble charsize;
+    DFloat charsize;
     gkw_charsize(e,actStream, charsize, false);
 
 
@@ -1005,7 +1018,7 @@ namespace lib {
     gkw_linestyle(e, actStream);
     gkw_symsize(e, actStream);
     gkw_thick(e, actStream);
-    DDouble charsize;
+    DFloat charsize;
     gkw_charsize(e,actStream, charsize, false);
 
     // plplot stuff
@@ -1309,7 +1322,7 @@ namespace lib {
     e->AssureDoubleScalarKWIfPresent( "ALIGNMENT", alignment);
 
     //CHARSIZE
-    DDouble charsize;
+    DFloat charsize;
     gkw_charsize(e, actStream, charsize);
 
     if(minEl == 1)
@@ -1619,8 +1632,8 @@ namespace lib {
 
 
     // THICK
-    DDouble thick = p_thick;
-    e->AssureDoubleScalarKWIfPresent( "THICK", thick);
+    DFloat thick = p_thick;
+    e->AssureFloatScalarKWIfPresent( "THICK", thick);
 
     GDLGStream* actStream = GetPlotStream( e); 
     
@@ -1927,23 +1940,23 @@ namespace lib {
   void gkw_symsize(EnvT * e, GDLGStream* a)
   {
     static DStructGDL* pStruct = SysVar::P();
-    DDouble symsize = (*static_cast<DDoubleGDL*>
-		       (pStruct->Get
-			(pStruct->Desc()->TagIndex("SYMSIZE"), 0)))[0];
-    e->AssureDoubleScalarKWIfPresent( "SYMSIZE", symsize);
+    DFloat symsize = (*static_cast<DFloatGDL*>
+		      (pStruct->Get
+		       (pStruct->Desc()->TagIndex("SYMSIZE"), 0)))[0];
+    e->AssureFloatScalarKWIfPresent( "SYMSIZE", symsize);
     if( symsize <= 0.0) symsize = 1.0;
     a->ssym(0.0, symsize);  
   }
 
   //CHARSIZE
-  void gkw_charsize(EnvT * e, GDLGStream* a, DDouble& charsize, bool kw)
+  void gkw_charsize(EnvT * e, GDLGStream* a, DFloat& charsize, bool kw)
   {
     static DStructGDL* pStruct = SysVar::P();
-    charsize = (*static_cast<DDoubleGDL*>
+    charsize = (*static_cast<DFloatGDL*>
 			(pStruct->Get
 			 ( pStruct->Desc()->TagIndex("CHARSIZE"), 0)))[0];
     if(kw)
-      e->AssureDoubleScalarKWIfPresent( "CHARSIZE", charsize);
+      e->AssureFloatScalarKWIfPresent( "CHARSIZE", charsize);
 
     if( charsize <= 0.0) charsize = 1.0;
     a->schr(0.0, charsize);  
@@ -1952,11 +1965,11 @@ namespace lib {
   void gkw_thick(EnvT * e, GDLGStream* a)
   {
     static DStructGDL* pStruct = SysVar::P();
-    DDouble thick = (*static_cast<DDoubleGDL*>
-		     (pStruct->Get
-		      (pStruct->Desc()->TagIndex("THICK"), 0)))[0];
+    DFloat thick = (*static_cast<DFloatGDL*>
+		    (pStruct->Get
+		     (pStruct->Desc()->TagIndex("THICK"), 0)))[0];
 
-    e->AssureDoubleScalarKWIfPresent( "THICK", thick);
+    e->AssureFloatScalarKWIfPresent( "THICK", thick);
     if( thick <= 0.0) thick = 1.0;
     a->wid( static_cast<PLINT>(floor( thick-0.5)));
   }
@@ -2058,7 +2071,7 @@ namespace lib {
       }
   }
 
-  void gkw_axis_charsize(EnvT* e, string axis, DDouble &charsize)
+  void gkw_axis_charsize(EnvT* e, string axis, DFloat &charsize)
   {
     DStructGDL* Struct;
     if(axis=="X") Struct = SysVar::X();
@@ -2068,11 +2081,11 @@ namespace lib {
       {
 	static unsigned charsizeTag = Struct->Desc()->TagIndex("CHARSIZE");
 	charsize = 
-	  (*static_cast<DDoubleGDL*>( Struct->Get( charsizeTag, 0)))[0];
+	  (*static_cast<DFloatGDL*>( Struct->Get( charsizeTag, 0)))[0];
       }
 
     string Charsize_s=axis+"CHARSIZE";
-    e->AssureDoubleScalarKWIfPresent( Charsize_s, charsize);
+    e->AssureFloatScalarKWIfPresent( Charsize_s, charsize);
     if(charsize <=0.0) charsize=1.0;
   }
 

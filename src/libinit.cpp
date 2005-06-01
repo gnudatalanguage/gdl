@@ -368,7 +368,7 @@ void LibInit()
   const string deviceKey[]=
     {
       "CLOSE_FILE","FILENAME","LANDSCAPE","PORTRAIT",
-      "DECOMPOSED","Z_BUFFERING","SET_RESOLUTION",
+      "DECOMPOSED","GET_DECOMPOSED","Z_BUFFERING","SET_RESOLUTION",
       KLISTEND
     };
   new DLibPro(lib::device,string("DEVICE"),0,deviceKey);

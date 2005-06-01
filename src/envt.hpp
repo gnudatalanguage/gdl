@@ -391,6 +391,12 @@ public:
   void AssureDoubleScalarPar( SizeT ix, DDouble& scalar);
 
   // same as for Long
+  void AssureFloatScalarKWIfPresent( const std::string& kw, DFloat& scalar);
+  void AssureFloatScalarKW( const std::string& kw, DFloat& scalar);
+  void AssureFloatScalarKW( SizeT ix, DFloat& scalar);
+  void AssureFloatScalarPar( SizeT ix, DFloat& scalar);
+
+  // same as for Long
   void AssureStringScalarKWIfPresent( const std::string& kw, DString& scalar);
   void AssureStringScalarKW( const std::string& kw, DString& scalar);
   void AssureStringScalarKW( SizeT ix, DString& scalar);

@@ -741,6 +741,43 @@ void EnvT::AssureDoubleScalarKW( SizeT eIx, DDouble& scalar)
 		       GetString(eIx));
 }
 
+
+void EnvT::AssureFloatScalarPar( SizeT pIx, DFloat& scalar)
+{
+  BaseGDL* p = GetParDefined( pIx);
+  DFloatGDL* lp = static_cast<DFloatGDL*>(p->Convert2( FLOAT, BaseGDL::COPY));
+  auto_ptr<DFloatGDL> guard_lp( lp);
+  if( !lp->Scalar( scalar))
+    throw GDLException("Parameter must be a scalar in this context: "+
+		       GetParString(pIx));
+}
+void EnvT::AssureFloatScalarKWIfPresent( const std::string& kw, DFloat& scalar)
+{
+  int ix = KeywordIx( kw);
+  if( !KeywordPresent( ix)) return;
+  AssureFloatScalarKW( ix, scalar);
+}
+void EnvT::AssureFloatScalarKW( const std::string& kw, DFloat& scalar)
+{
+  AssureFloatScalarKW( KeywordIx( kw), scalar);
+}
+void EnvT::AssureFloatScalarKW( SizeT eIx, DFloat& scalar)
+{
+  BaseGDL* p = GetKW( eIx);
+  
+  if( p == NULL)
+    throw GDLException("Expression undefined: "+GetString(eIx));
+  
+  DFloatGDL* lp= static_cast<DFloatGDL*>(p->Convert2( FLOAT, BaseGDL::COPY));
+  
+  auto_ptr<DFloatGDL> guard_lp( lp);
+
+  if( !lp->Scalar( scalar))
+    throw GDLException("Expression must be a scalar in this context: "+
+		       GetString(eIx));
+}
+
+
 void EnvT::AssureStringScalarPar( SizeT pIx, DString& scalar)
 {
   BaseGDL* p = GetParDefined( pIx);

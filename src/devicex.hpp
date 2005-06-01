@@ -474,6 +474,11 @@ public:
     decomposed = value;
     return true;
   }
+  DLong GetDecomposed()                
+  { 
+    if( decomposed) return 1;
+    return 0;
+  }
 
   int MaxWin() { ProcessDeleted(); return maxWin;}
   int ActWin() { ProcessDeleted(); return actWin;}

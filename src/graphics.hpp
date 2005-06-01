@@ -169,7 +169,8 @@ public:
 
   virtual bool CloseFile()                            { return false;}
   virtual bool SetFileName( const std::string& f)     { return false;}
-  virtual bool Decomposed( bool value)                { return false;}
+  virtual bool  Decomposed( bool value)               { return false;}
+  virtual DLong GetDecomposed()                       { return -1;}
 
   // Z buffer device
   virtual bool ZBuffering( bool yes)                  { return false;}

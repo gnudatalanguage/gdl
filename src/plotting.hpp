@@ -60,7 +60,7 @@ namespace lib {
   //set the symbol size
   void gkw_symsize(EnvT * e, GDLGStream * a);
   //set the character size
-  void gkw_charsize(EnvT * e, GDLGStream * a, DDouble& charsize, bool kw=true);
+  void gkw_charsize(EnvT * e, GDLGStream * a, DFloat& charsize, bool kw=true);
   //set the line thickness
   void gkw_thick(EnvT * e, GDLGStream * a);
   //set the linestyle
@@ -76,7 +76,7 @@ namespace lib {
   void get_axis_type(string axis, bool &log);
   void set_axis_type(string axis, bool type);
 
-  void gkw_axis_charsize(EnvT* e, string axis, DDouble &charsize);
+  void gkw_axis_charsize(EnvT* e, string axis, DFloat &charsize);
 
   void gkw_axis_style(EnvT *e, string axis,DLong &style);
   void gkw_axis_title(EnvT *e, string axis,DString &title);
