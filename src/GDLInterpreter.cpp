@@ -731,7 +731,7 @@ void GDLInterpreter::decinc_statement(RefDNode _t) {
 		return retCode;
 		}
 		}
-		retCode=RC_OK; // clear RC_BREAK/RC_CONTINUE retCode
+		//                retCode=RC_OK; // clear RC_BREAK/RC_CONTINUE retCode
 		
 		_t = __t29;
 		_t = _t->getNextSibling();

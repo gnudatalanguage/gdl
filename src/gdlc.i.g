@@ -867,7 +867,7 @@ for_statement returns[ GDLInterpreter::RetCode retCode]
                         return retCode;
                     }
                 }
-                retCode=RC_OK; // clear RC_BREAK/RC_CONTINUE retCode
+//                retCode=RC_OK; // clear RC_BREAK/RC_CONTINUE retCode
             }
         )
     | #(fs:FOR_STEP // (VAR|VARPTR) expr expr expr 

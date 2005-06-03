@@ -5,7 +5,7 @@
     copyright            : (C) 2002 by Marc Schellens (exceptions see below)
     email                : m_schellens@users.sf.net
 
- strtok_fun, getenv_fun, findfile_fun, tag_names_fun, stregex_fun:
+ strtok_fun, getenv_fun, tag_names_fun, stregex_fun:
  (C) 2004 by Peter Messmer    
  
  ***************************************************************************/

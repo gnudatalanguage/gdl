@@ -93,10 +93,14 @@ namespace lib {
     struct tm *tstruct; //the time structure, from ctime.h
     time_t t=time(0);  
 
+#ifdef _SC_CLK_TCK
     struct tms dummy;
     double tt = times( &dummy);
     static long perSecond = sysconf(_SC_CLK_TCK);
     tt /= static_cast<double>(perSecond);
+#else
+    double tt = t;
+#endif
     
     /*get the time before doing anything else, 
       this hopefully gives a more meaningful "time"
