@@ -29,16 +29,37 @@ void FMTIn::format(RefFMTNode _t) {
 	for (;;) {
 		if (_t == RefFMTNode(antlr::nullAST) )
 			_t = ASTNULL;
-		if ((_tokenSet_0.member(_t->getType()))) {
+		switch ( _t->getType()) {
+		case FORMAT:
+		case STRING:
+		case TL:
+		case TR:
+		case TERM:
+		case NONL:
+		case Q:
+		case T:
+		case X:
+		case A:
+		case F:
+		case E:
+		case G:
+		case I:
+		case O:
+		case Z:
+		case ZZ:
+		case C:
+		{
 			f(_t);
 			_t = _retTree;
 			q(_t);
 			_t = _retTree;
+			break;
 		}
-		else {
+		default:
+		{
 			if ( _cnt4>=1 ) { goto _loop4; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
 		}
-		
+		}
 		_cnt4++;
 	}
 	_loop4:;
@@ -75,7 +96,7 @@ void FMTIn::format(RefFMTNode _t) {
 	case NONL:
 	case Q: case T: case X: case A:
 	case F: case D: case E: case G:
-	case I: case O: case Z: case C:
+	case I: case O: case Z: case ZZ: case C:
 	{
 	f(_t);
 	if( actPar == NULL && termFlag) goto endFMT;
@@ -401,14 +422,38 @@ void FMTIn::f(RefFMTNode _t) {
 		for (;;) {
 			if (_t == RefFMTNode(antlr::nullAST) )
 				_t = ASTNULL;
-			if ((_tokenSet_1.member(_t->getType()))) {
+			switch ( _t->getType()) {
+			case STRING:
+			case TL:
+			case TR:
+			case X:
+			case CMOA:
+			case CMoA:
+			case CmoA:
+			case CHI:
+			case ChI:
+			case CDWA:
+			case CDwA:
+			case CdwA:
+			case CAPA:
+			case CApA:
+			case CapA:
+			case CMOI:
+			case CDI:
+			case CYI:
+			case CMI:
+			case CSI:
+			case CSF:
+			{
 				csubcode(_t);
 				_t = _retTree;
+				break;
 			}
-			else {
+			default:
+			{
 				if ( _cnt20>=1 ) { goto _loop20; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
 			}
-			
+			}
 			_cnt20++;
 		}
 		_loop20:;
@@ -441,16 +486,37 @@ void FMTIn::format_recursive(RefFMTNode _t) {
 	for (;;) {
 		if (_t == RefFMTNode(antlr::nullAST) )
 			_t = ASTNULL;
-		if ((_tokenSet_0.member(_t->getType()))) {
+		switch ( _t->getType()) {
+		case FORMAT:
+		case STRING:
+		case TL:
+		case TR:
+		case TERM:
+		case NONL:
+		case Q:
+		case T:
+		case X:
+		case A:
+		case F:
+		case E:
+		case G:
+		case I:
+		case O:
+		case Z:
+		case ZZ:
+		case C:
+		{
 			f(_t);
 			_t = _retTree;
 			q(_t);
 			_t = _retTree;
+			break;
 		}
-		else {
+		default:
+		{
 			if ( _cnt8>=1 ) { goto _loop8; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
 		}
-		
+		}
 		_cnt8++;
 	}
 	_loop8:;
@@ -484,7 +550,7 @@ void FMTIn::format_recursive(RefFMTNode _t) {
 	case NONL:
 	case Q: case T: case X: case A:
 	case F: case D: case E: case G:
-	case I: case O: case Z: case C:
+	case I: case O: case Z: case ZZ: case C:
 	{
 	f(_t);
 	if( actPar == NULL && termFlag) goto endFMT;
@@ -519,16 +585,37 @@ void FMTIn::format_reversion(RefFMTNode _t) {
 	for (;;) {
 		if (_t == RefFMTNode(antlr::nullAST) )
 			_t = ASTNULL;
-		if ((_tokenSet_0.member(_t->getType()))) {
+		switch ( _t->getType()) {
+		case FORMAT:
+		case STRING:
+		case TL:
+		case TR:
+		case TERM:
+		case NONL:
+		case Q:
+		case T:
+		case X:
+		case A:
+		case F:
+		case E:
+		case G:
+		case I:
+		case O:
+		case Z:
+		case ZZ:
+		case C:
+		{
 			f(_t);
 			_t = _retTree;
 			q(_t);
 			_t = _retTree;
+			break;
 		}
-		else {
+		default:
+		{
 			goto _loop11;
 		}
-		
+		}
 	}
 	_loop11:;
 	} // ( ... )*
@@ -553,7 +640,7 @@ void FMTIn::format_reversion(RefFMTNode _t) {
 	case NONL:
 	case Q: case T: case X: case A:
 	case F: case D: case E: case G:
-	case I: case O: case Z: case C:
+	case I: case O: case Z: case ZZ: case C:
 	{
 	f(_t);
 	if( actPar == NULL) goto endFMT;
@@ -885,12 +972,5 @@ const char* FMTIn::tokenNames[] = {
 	0
 };
 
-const unsigned long FMTIn::_tokenSet_0_data_[] = { 2214592512UL, 130559UL, 0UL, 0UL };
-// FORMAT STRING "tl" "tr" TERM NONL Q T X A F E G I O Z ZZ C 
-const antlr::BitSet FMTIn::_tokenSet_0(_tokenSet_0_data_,4);
-const unsigned long FMTIn::_tokenSet_1_data_[] = { 2147483648UL, 4294836291UL, 3UL, 0UL, 0UL, 0UL, 0UL, 0UL };
-// STRING "tl" "tr" X CMOA CMoA CmoA CHI ChI CDWA CDwA CdwA CAPA CApA CapA 
-// "cmoi" "cdi" "cyi" "cmi" "csi" "csf" 
-const antlr::BitSet FMTIn::_tokenSet_1(_tokenSet_1_data_,8);
 
 
