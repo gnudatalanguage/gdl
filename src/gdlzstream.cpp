@@ -17,6 +17,8 @@
 
 //#include <iostream>
 
+#include "includefirst.hpp"
+
 #include "gdlzstream.hpp"
 
 using namespace std;

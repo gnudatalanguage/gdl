@@ -28,6 +28,8 @@ Solution: Just re-install netCDF.
 
 #ifdef USE_NETCDF
 
+#include "includefirst.hpp"
+
 #define HDF 1
 
 #include <string>

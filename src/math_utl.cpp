@@ -15,6 +15,8 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "includefirst.hpp"
+
 #include <complex>
 #include <cmath>
 #include <iostream>

@@ -18,6 +18,8 @@
 //#define FMT_DEBUG
 #undef  FMT_DEBUG
 
+#include "includefirst.hpp"
+
 #include "basegdl.hpp"
 #include "fmtnode.hpp"
 #include "print_tree.hpp"

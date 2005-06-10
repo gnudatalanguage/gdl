@@ -15,6 +15,8 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "includefirst.hpp"
+
 #include <algorithm>
 
 #include "datatypes.hpp"

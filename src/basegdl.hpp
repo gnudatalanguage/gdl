@@ -18,17 +18,11 @@
 #ifndef BASEGDL_HPP_
 #define BASEGDL_HPP_
 
-#include <list>
+#include "includefirst.hpp"
 
+#include <list>
 #include "dimension.hpp"
 
-#ifdef USE_PYTHON
-#undef _POSIX_C_SOURCE // get rid of warning
-#include <Python.h>
-#ifndef _POSIX_C_SOURCE 
-#warning "_POSIX_C_SOURCE not defined in Python.h (remove #undef)"
-#endif
-#endif
 
 // GDL typecodes
 enum DType {  // Object types (IDL type numbers)
@@ -252,7 +246,8 @@ public:
   virtual SizeT IFmtI( std::istream* is, SizeT offs, SizeT num, int width, 
 			BaseGDL::IOMode oM = DEC);
 
-#ifdef USE_PYTHON
+#if defined(USE_PYTHON) || defined(PYTHON_MODULE)
+
   virtual PyObject* ToPython();
 #endif
 };

@@ -15,6 +15,8 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "includefirst.hpp"
+
 #include "basegdl.hpp"
 
 using namespace std;

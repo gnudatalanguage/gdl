@@ -24,6 +24,8 @@
 
 #ifdef USE_HDF
 
+#include "includefirst.hpp"
+
 #include "hdf_pro.hpp"
 
 namespace lib {

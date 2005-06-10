@@ -15,6 +15,8 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "includefirst.hpp"
+
 #include <iostream>
 
 #include "gdlwinstream.hpp"

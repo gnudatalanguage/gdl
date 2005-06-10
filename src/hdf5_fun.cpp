@@ -27,6 +27,8 @@
 
 #ifdef USE_HDF5
 
+#include "includefirst.hpp"
+
 #include "hdf5_fun.hpp"
 
 namespace lib {

@@ -22,6 +22,8 @@
 #define USE_HDF5 1
 #endif
 
+#include "includefirst.hpp"
+
 #include <string>
 #include <fstream>
 

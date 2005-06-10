@@ -16,6 +16,8 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "includefirst.hpp"
+
 #include <cstdlib>
 
 #include "objects.hpp"

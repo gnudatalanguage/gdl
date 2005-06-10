@@ -23,6 +23,8 @@
 
 #ifdef USE_NETCDF
 
+#include "includefirst.hpp"
+
 #include <string>
 #include <fstream>
 #include <memory>

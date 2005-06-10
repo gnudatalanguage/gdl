@@ -1,12 +1,10 @@
 /***************************************************************************
-                             widget.cpp  -  GDL WIDGET_XXX library functions
-                                            the actual library routines
-                                            (widget system in gdlwidget.cpp)
+                          includefirst.hpp  -  include this first
                              -------------------
-    begin                : July 22 2002
-    copyright            : (C) 2002 by Marc Schellens
-    email                : m_schellens@users.sf.net
-***************************************************************************/
+    begin                : Wed Apr 18 16:58:14 JST 2005
+    copyright            : (C) 2002-2005 by Marc Schellens
+    email                : m_schellens@users.sourceforge.net
+ ***************************************************************************/
 
 /***************************************************************************
  *                                                                         *
@@ -17,26 +15,22 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "includefirst.hpp"
+#ifndef INCLUDEFIRST_HPP_
+#define INCLUDEFIRST_HPP_
 
-#include <iostream>
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#else
+#define USE_PYTHON 1
+#endif
 
-#include "datatypes.hpp"
-#include "envt.hpp"
-
-#ifdef HAVE_LIBWXWIDGETS
-
-#include "gdlwidget.hpp"
-
-namespace lib {
-  using namespace std;
-
-  BaseGDL* widget_base( EnvT* e)
-  {
-    SizeT nParam = e->NParam();
-    // ...
-  }
-
-} // namespace
+// Python.h must be included before everything else
+#if defined(USE_PYTHON) || defined(PYTHON_MODULE)
+//#undef _POSIX_C_SOURCE // get rid of warning
+#include <Python.h>
+//#ifndef _POSIX_C_SOURCE 
+//#warning "_POSIX_C_SOURCE not defined in Python.h (remove #undef)"
+//#endif
+#endif
 
 #endif

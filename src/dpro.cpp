@@ -17,6 +17,8 @@
 
 // DPro/DFun classes
 
+#include "includefirst.hpp"
+
 #include "dpro.hpp"
 #include "dvar.hpp"
 #include "str.hpp"

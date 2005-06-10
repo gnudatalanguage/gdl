@@ -24,6 +24,8 @@
 #endif
 
 
+#include "includefirst.hpp"
+
 #include <string>
 #include <fstream>
 

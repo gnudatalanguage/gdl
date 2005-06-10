@@ -15,6 +15,8 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "includefirst.hpp"
+
 #include "gdlexception.hpp"
 #include "dcommon.hpp"
 #include "str.hpp"

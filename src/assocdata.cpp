@@ -15,6 +15,8 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "includefirst.hpp"
+
 #include "assocdata.hpp"
 #include "arrayindex.hpp"
 #include "objects.hpp"

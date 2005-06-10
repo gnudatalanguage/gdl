@@ -238,6 +238,10 @@ private:
 	};
 #endif
 	
+	static const unsigned long _tokenSet_0_data_[];
+	static const antlr::BitSet _tokenSet_0;
+	static const unsigned long _tokenSet_1_data_[];
+	static const antlr::BitSet _tokenSet_1;
 };
 
 #endif /*INC_FMTIn_hpp_*/

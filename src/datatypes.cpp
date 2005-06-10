@@ -15,11 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#else
-#define USE_PYTHON 1
-#endif
+#include "includefirst.hpp"
 
 #include <iomanip>
 

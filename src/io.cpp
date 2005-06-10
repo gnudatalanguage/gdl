@@ -15,6 +15,8 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "includefirst.hpp"
+
 #include <cstdio> // std::remove(...)
 
 #include "objects.hpp"

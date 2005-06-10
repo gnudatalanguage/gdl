@@ -15,8 +15,9 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "basegdl.hpp"
+#include "includefirst.hpp"
 
+#include "basegdl.hpp"
 
 //#ifdef HAVE_LIBWXWIDGETS
 

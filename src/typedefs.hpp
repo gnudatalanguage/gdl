@@ -38,6 +38,15 @@
 
 #endif // HAVE_CONFIG_H
 
+// Python.h must be included before everything else
+#if defined(USE_PYTHON) || defined(PYTHON_MODULE)
+//#undef _POSIX_C_SOURCE // get rid of warning
+#include <Python.h>
+//#ifndef _POSIX_C_SOURCE 
+//#warning "_POSIX_C_SOURCE not defined in Python.h (remove #undef)"
+//#endif
+#endif
+
 #include <string>
 #include <deque>
 #include <complex>

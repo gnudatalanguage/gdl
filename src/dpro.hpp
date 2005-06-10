@@ -161,6 +161,9 @@ public:
     return -1;
   }
 
+  const IDList& KeyList() const { return key;}
+  int   NPar() const { return nPar;}
+
   //  bool AKey() { return aKey;} // additional keywords allowed
 
   friend class EnvT;

@@ -15,9 +15,9 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#else
+#include "includefirst.hpp"
+
+#ifndef VERSION
 #define VERSION "0.8"
 #endif
 
@@ -50,6 +50,25 @@ void AtExit()
   ResetObjects();
 }
 
+void InitGDL()
+{
+  // ncurses blurs the output, initialize TermWidth here
+  TermWidth();
+
+  // initializations
+  InitObjects();
+
+  // init library functions
+  LibInit(); 
+    
+  // turn on all floating point exceptions
+  //  feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
+
+  signal(SIGINT,ControlCHandler);
+  signal(SIGFPE,SigFPEHandler);
+}
+
+
 int main(int argc, char *argv[])
 {
   if( atexit( AtExit) != 0) cerr << "atexit registration failed." << endl;
@@ -75,19 +94,7 @@ int main(int argc, char *argv[])
 	}
     }
 
-  // ncurses blurs the output, initialize TermWidth here
-  TermWidth();
-
-  // initializations
-  InitObjects();
-
-  LibInit(); // init library functions
-    
-  // turn on all floating point exceptions
-  //  feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
-
-  signal(SIGINT,ControlCHandler);
-  signal(SIGFPE,SigFPEHandler);
+  InitGDL();
     
   StartupMessage();
 

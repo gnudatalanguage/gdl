@@ -17,6 +17,8 @@
 
 // PLplot is used for direct graphics
 
+#include "includefirst.hpp"
+
 #include "graphics.hpp"
 #include "image.hpp"
 

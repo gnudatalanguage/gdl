@@ -23,6 +23,8 @@
 #define USE_MAGICK 1
 #endif
 
+#include "includefirst.hpp"
+
 #include <string>
 #include <fstream>
 #include <memory>

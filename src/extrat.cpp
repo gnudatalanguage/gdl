@@ -15,6 +15,8 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "includefirst.hpp"
+
 #include "objects.hpp"
 #include "extrat.hpp"
 #include "envt.hpp"

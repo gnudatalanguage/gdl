@@ -47,8 +47,8 @@ options {
   	ASTLabelType = "RefFMTNode";
     defaultErrorHandler = false;
 //    defaultErrorHandler = true;
-    codeGenBitsetTestThreshold=999;
-    codeGenMakeSwitchThreshold=1;
+//    codeGenBitsetTestThreshold=999;
+//    codeGenMakeSwitchThreshold=1;
 }
 
 {

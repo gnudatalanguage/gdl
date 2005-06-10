@@ -19,6 +19,8 @@
 
 // Convert2( DType) functions
 
+#include "includefirst.hpp"
+
 //#include "datatypes.hpp"
 #include "dstructgdl.hpp"
 #include "real2int.hpp"

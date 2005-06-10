@@ -1,5 +1,7 @@
 // define the color tables
 
+#include "includefirst.hpp"
+
 #include "graphics.hpp"
 
 void Graphics::InitCT()

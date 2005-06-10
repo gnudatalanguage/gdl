@@ -18,6 +18,8 @@
 // later this should become a thread
 // right now its called in DInterpreter::NoReadline(...) or via readline
 
+#include "includefirst.hpp"
+
 #include "gdleventhandler.hpp"
 #include "graphics.hpp"
 

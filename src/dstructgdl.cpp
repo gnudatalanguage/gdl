@@ -15,6 +15,8 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "includefirst.hpp"
+
 #include "arrayindex.hpp"
 #include "dstructgdl.hpp"
 #include "accessdesc.hpp"

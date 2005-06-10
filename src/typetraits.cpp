@@ -15,6 +15,8 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "includefirst.hpp"
+
 #include "typetraits.hpp"
 #include "datatypes.hpp"
 #include "dstructgdl.hpp"
