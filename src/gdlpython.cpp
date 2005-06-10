@@ -274,11 +274,20 @@ extern "C" {
     while( PyDict_Next( kwDict, &dictPos, &key, &value)) 
       {
 	// check key name and value
-
+	int keyIsString =  PyString_Check( key);
+	if( !keyIsString)
+	  {
+	    // ERROR too many args
+	    goto ret;
+	  }
+	const char* keyChar = PyString_AsString( key);
+	string keyName = StrUpCase( keyChar);
+	
+	// ... find pos in keyGDL and remeber it
+	
       }
     
 
-    std::vector<BaseGDL*> gdlKW( nKey);
 
     // build the environment
     RefDNode dummyNode; 
