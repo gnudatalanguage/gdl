@@ -269,6 +269,7 @@ extern "C" {
 
     // check keywords
     // PyDictObject kwDict;
+    vector<SizeT> gdlKWIx;
     PyObject *key, *value;
     int dictPos = 0;
     while( PyDict_Next( kwDict, &dictPos, &key, &value)) 
@@ -281,18 +282,42 @@ extern "C" {
 	    goto ret;
 	  }
 	const char* keyChar = PyString_AsString( key);
-	string keyName = StrUpCase( keyChar);
-	
-	// ... find pos in keyGDL and remeber it
-	
-      }
-    
 
+	String_abbref_eq( StrUpCase( keyChar));
+	
+	IDList::iterator f=find_if(keyGDL.begin(),
+				   keyGDL.end(),
+				   String_abbref_eq(StrUpCase( keyChar)));
+	if( f != keyGDL.end())
+	  { 
+	    SizeT kwIx=distance(keyGDL.begin(),f);
+	    gdkKWIx.push_back( kwIx);
+	  }
+	else
+	  {
+	    // ERROR keyword not found
+	    goto ret;
+	  }
+      }
 
     // build the environment
     RefDNode dummyNode; 
-    EnvT  e( interpreter, dummyNode, sub)
+    EnvT  e( interpreter, dummyNode, sub);
 
+    vector<BaseGDL*> parRef;
+    for( SizeT p=0; p<nArg; ++p)
+      {
+	BaseGDL* pP = FromPython( PyTuple_GetItem(argTuple, p+1)); // throws
+	parRef.push_back( pP);
+	e->SetNextPar( &parRef.back());
+      }
+    vector<BaseGDL*> kwRef;
+    for( SizeT k=0; k<nKW; ++k)
+      {
+	BaseGDL* pP = FromPython( ); // throws
+	kwRef.push_back( pP);
+	e->SetKeyword(  , &parRef.back());
+      }
    
 
 
