@@ -483,24 +483,24 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command)
       cout << "OUT not implemented yet." << endl;
       return CC_OK;
     }
-  if( cmd( "RESET_SESSION"))
+  if( cmd( "RUN"))
     {
-      cout << "RESET_SESSION not implemented yet." << endl;
-      return CC_OK;
+      return CmdRun( command);
     }
   if( cmd( "RETURN"))
     {
       cout << "RETURN not implemented yet." << endl;
       return CC_OK;
     }
+  if( cmd( "RESET_SESSION"))
+    {
+      cout << "RESET_SESSION not implemented yet." << endl;
+      return CC_OK;
+    }
   if( cmd( "RNEW"))
     {
       cout << "RNEW not implemented yet." << endl;
       return CC_OK;
-    }
-  if( cmd( "RUN"))
-    {
-      return CmdRun( command);
     }
   if( cmd( "SIZE"))
     {
