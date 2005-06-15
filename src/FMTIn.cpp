@@ -1,4 +1,7 @@
 /* $ANTLR 2.7.4: "format.in.g" -> "FMTIn.cpp"$ */
+
+#include "includefirst.hpp"
+
 #include "FMTIn.hpp"
 #include <antlr/Token.hpp>
 #include <antlr/AST.hpp>

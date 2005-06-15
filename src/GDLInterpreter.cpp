@@ -1,4 +1,7 @@
 /* $ANTLR 2.7.4: "gdlc.i.g" -> "GDLInterpreter.cpp"$ */
+
+#include "includefirst.hpp"
+
 #include "GDLInterpreter.hpp"
 #include <antlr/Token.hpp>
 #include <antlr/AST.hpp>

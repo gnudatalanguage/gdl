@@ -5,7 +5,7 @@ AM_INIT_AUTOMAKE
 AC_LANG(C++)
 AC_PROG_CXX
 
-AM_PROG_LIBTOOL
+AC_PROG_LIBTOOL
 
 dnl check if we build GDL standalone or the python module
 dnl default: build standalone version on GDL
@@ -16,8 +16,12 @@ AC_ARG_ENABLE(python_module,
 	])
 
 if test "x$PYTHON_MODULE" == "xyes"; then
-	AC_DEFINE([PYTHON_MODULE], [1], [Define if you want to build the GDL python module])
+	AC_DEFINE([PYTHON_MODULE], [1], 
+	[Define if you want to build the GDL python module])
 fi
+AM_CONDITIONAL(BUILDASLIBRARY, test "x$PYTHON_MODULE" = "xyes")
+
+
 
 
 AC_ARG_WITH(ncursesdir,

@@ -1,5 +1,9 @@
-bin_PROGRAMS = gdl
-gdl_SOURCES = gdl.cpp accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
+# set the include path found by configure
+INCLUDES = $(EXT_INCLUDES) $(all_includes)
+SUBDIRS = antlr
+noinst_HEADERS =  gdlwidget.hpp
+
+cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 						basegdl.hpp basic_fun_cl.cpp basic_fun_cl.hpp basic_fun.cpp basic_fun.hpp \
 						basic_fun_jmg.cpp basic_fun_jmg.hpp basic_op.cpp basic_pro.cpp basic_pro.hpp \
 						basic_pro_jmg.cpp basic_pro_jmg.hpp CFMTLexer.cpp CFMTLexer.hpp CFMTTokenTypes.hpp \
@@ -31,11 +35,26 @@ gdl_SOURCES = gdl.cpp accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp 
 				convol_inc1.cpp convol_inc2.cpp sigfpehandler.cpp sigfpehandler.hpp devicez.hpp \
 		gdlzstream.cpp gdlzstream.hpp gdlwidget.hpp
 
-# set the include path found by configure
-INCLUDES = $(EXT_INCLUDES) $(all_includes)
 
+# standalone program
+if !BUILDASLIBRARY
+bin_PROGRAMS = gdl
+gdl_SOURCES = $(cpp_hpp_files) gdl.cpp 
+# trigger basename generation
+gdl_CXXFLAGS = $(AM_CXXFLAGS)
 # the library search path.
 gdl_LDFLAGS = $(all_libraries)
-SUBDIRS = antlr
 gdl_LDADD = $(top_builddir)/src/antlr/libantlr.a -L/usr/X11R6/lib -lX11
-noinst_HEADERS =  gdlwidget.hpp
+endif
+
+# build as library (for python module)
+if BUILDASLIBRARY
+lib_LTLIBRARIES = libgdl.la
+libgdl_la_SOURCES = $(cpp_hpp_files) pythongdl.cpp
+
+# netCDF and HDF define some same symbols
+# hence -z muldefs has to be passed to the linker
+libgdl_la_LDFLAGS = $(all_libraries) -Wl,-z,muldefs
+libgdl_la_LIBADD = $(top_builddir)/src/antlr/libantlr.la -L/usr/X11R6/lib -lX11
+endif
+

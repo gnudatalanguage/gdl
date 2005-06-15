@@ -17,9 +17,7 @@
 #ifndef GDL_JOURNAL_C
 #define GDL_JOURNAL_C
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include "includefirst.hpp"
 
 #include <fstream>
 #include <sys/stat.h>

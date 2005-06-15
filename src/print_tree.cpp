@@ -2,12 +2,14 @@
                           print_tree.cpp  -  description
    Print an ANTLR abstract syntax tree in operator prefix form.
    Used for debugging only.
+   Modified from antlr package
                              -------------------
     begin                : ?
-    copyright            : ? (modified from ANTLR package)
+    copyright            : Software rights: http://www.antlr.org/license.html
     email                : ?
  ***************************************************************************/
 
+#include "includefirst.hpp"
 
 #include <cassert>
 #include <cstdio>

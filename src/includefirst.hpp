@@ -20,9 +20,10 @@
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
-#else
-#define USE_PYTHON 1
 #endif
+//#else
+//#error "config.h required. Compile with -DHAVE_CONFIG_H"
+//#endif
 
 // Python.h must be included before everything else
 #if defined(USE_PYTHON) || defined(PYTHON_MODULE)

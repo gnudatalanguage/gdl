@@ -1,4 +1,7 @@
 /* $ANTLR 2.7.4: "format.g" -> "FMTParser.cpp"$ */
+
+#include "includefirst.hpp"
+
 #include "FMTParser.hpp"
 #include <antlr/NoViableAltException.hpp>
 #include <antlr/SemanticException.hpp>

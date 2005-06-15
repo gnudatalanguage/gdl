@@ -15,6 +15,10 @@
  *                                                                         *
  ***************************************************************************/
 
+header "pre_include_cpp" {
+#include "includefirst.hpp"
+}
+
 header {
 #include "antlr/TokenStreamSelector.hpp"
     

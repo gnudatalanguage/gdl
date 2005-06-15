@@ -1,4 +1,7 @@
 /* $ANTLR 2.7.4: "cformat.g" -> "CFMTLexer.cpp"$ */
+
+#include "includefirst.hpp"
+
 #include "CFMTLexer.hpp"
 #include <antlr/CharBuffer.hpp>
 #include <antlr/TokenStreamException.hpp>

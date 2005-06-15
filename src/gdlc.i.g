@@ -17,6 +17,10 @@ interprets the output of the treeparser/compiler
  *                                                                         *
  ***************************************************************************/
 
+header "pre_include_cpp" {
+#include "includefirst.hpp"
+}
+
 header "post_include_cpp" {
     // gets inserted after the antlr generated includes in the cpp file
 #include "dinterpreter.hpp"

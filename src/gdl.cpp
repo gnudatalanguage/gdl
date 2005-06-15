@@ -17,6 +17,9 @@
 
 #include "includefirst.hpp"
 
+// should (Makefile.am) not be used anyway for the python module
+#ifndef PYTHON_MODULE
+
 #ifndef VERSION
 #define VERSION "0.8"
 #endif
@@ -67,7 +70,6 @@ void InitGDL()
   signal(SIGINT,ControlCHandler);
   signal(SIGFPE,SigFPEHandler);
 }
-
 
 int main(int argc, char *argv[])
 {
@@ -134,3 +136,5 @@ int main(int argc, char *argv[])
 
   return 0;
 }
+
+#endif

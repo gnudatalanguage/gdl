@@ -15,8 +15,13 @@
  *                                                                         *
  ***************************************************************************/
 
+#ifndef SIGFPEHANDLER_HPP_
+#define SIGFPEHANDLER_HPP_
+
 #include <csetjmp>
 
 extern sigjmp_buf sigFPEJmpBuf;
 
 void SigFPEHandler( int signo); 
+
+#endif

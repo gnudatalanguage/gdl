@@ -1,4 +1,7 @@
 /* $ANTLR 2.7.4: "format.out.g" -> "FMTOut.cpp"$ */
+
+#include "includefirst.hpp"
+
 #include "FMTOut.hpp"
 #include <antlr/Token.hpp>
 #include <antlr/AST.hpp>

@@ -1,4 +1,7 @@
 /* $ANTLR 2.7.4: "format.g" -> "FMTLexer.cpp"$ */
+
+#include "includefirst.hpp"
+
 #include "FMTLexer.hpp"
 #include <antlr/CharBuffer.hpp>
 #include <antlr/TokenStreamException.hpp>

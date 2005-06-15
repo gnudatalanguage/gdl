@@ -149,7 +149,7 @@ public:
     return extraIx;
   }
 
-  // returns the keyword value index 
+  // returns the (abbreviated) keyword value index 
   int FindKey(const std::string& s)
   {
     String_abbref_eq searchKey(s);
@@ -161,7 +161,7 @@ public:
     return -1;
   }
 
-  const IDList& KeyList() const { return key;}
+  int   NKey() const { return key.size();}
   int   NPar() const { return nPar;}
 
   //  bool AKey() { return aKey;} // additional keywords allowed
