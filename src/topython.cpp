@@ -18,12 +18,12 @@
 // to be included from datatypes.cpp
 #ifdef INCLUDE_TOPYTHON_CPP
 
-#include <Python.h>
-#include <numarray/libnumarray.h>
+//#include <Python.h>
+//#include <numarray/libnumarray.h>
 //#include <numarray/numarray.h>
 
-#include "datatypes.hpp"
-#include "objects.hpp"
+//#include "datatypes.hpp"
+//#include "objects.hpp"
 
 using namespace std;
 

@@ -17,6 +17,10 @@
 
 #include "includefirst.hpp"
 
+#if defined(USE_PYTHON) || defined(PYTHON_MODULE)
+#include <numarray/numarray.h>
+#endif
+
 #include <iomanip>
 
 //#include "datatypes.hpp" // included from arrayindex.hpp
@@ -24,6 +28,8 @@
 #include "arrayindex.hpp"
 #include "assocdata.hpp"
 #include "io.hpp"
+#include "dinterpreter.hpp"
+#include "terminfo.hpp"
 
 // needed with gcc-3.3.2
 #include <assert.h>
@@ -51,15 +57,28 @@ using namespace std;
 // can only be done once
 #define INCLUDE_BASIC_OP_CPP 1
 #include "basic_op.cpp"
+
 #define INCLUDE_DEFAULT_IO_CPP 1
 #include "default_io.cpp"
+
 #define INCLUDE_IFMT_CPP 1
 #include "ifmt.cpp"
+
 #define INCLUDE_OFMT_CPP 1
 #include "ofmt.cpp"
-#ifdef USE_PYTHON
+
+#if defined(USE_PYTHON) || defined(PYTHON_MODULE)
+
 #define INCLUDE_TOPYTHON_CPP 1
 #include "topython.cpp"
+
+#define INCLUDE_GDLPYTHON_CPP 1
+#include "gdlpython.cpp"
+
+#ifdef PYTHON_MODULE
+#define INCLUDE_PYTHONGDL_CPP 1
+#include "pythongdl.cpp"
+#endif
 #endif
 
 

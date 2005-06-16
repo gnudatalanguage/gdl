@@ -15,23 +15,21 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "includefirst.hpp"
+#ifdef INCLUDE_GDLPYTHON_CPP
+
+//#include "includefirst.hpp"
 
 // this part contains variable conversion stuff
 // used by both GDL embedded in pythjon and python embedded in GDL
-#if defined(USE_PYTHON) || defined(PYTHON_MODULE)
+//#if defined(USE_PYTHON) || defined(PYTHON_MODULE)
 
-// already included from basegdl.hpp
-#include <Python.h>
+//#include <deque>
+//#include <iterator>
 
-#include <deque>
-#include <iterator>
+//#include "datatypes.hpp"
+//#include "envt.hpp"
+//#include "objects.hpp"
 
-#include "datatypes.hpp"
-#include "envt.hpp"
-#include "objects.hpp"
-
-#include <numarray/libnumarray.h>
 //#include <numarray/numarray.h>
 
 using namespace std;
@@ -39,7 +37,7 @@ using namespace std;
 void PythonInit()
 {
   if( Py_IsInitialized()) return;
-  Py_Initialize();
+  Py_Initialize(); // signal handlers?
   
   static int argc = 1;
   static char* arg0 = "./py/python.exe";
@@ -96,7 +94,7 @@ BaseGDL* FromPython( PyObject* pyObj)
 	  im = PyComplex_ImagAsDouble( pyObj);
 	  return new DComplexDblGDL( DComplexDbl( re, im));
 	}
-      throw GDLException( "PYTHON: Cannot convert python scalar.") ;
+      throw GDLException( "Cannot convert python scalar.") ;
     }
 
   PyArrayObject* array = reinterpret_cast< PyArrayObject*>( pyObj); 
@@ -105,13 +103,13 @@ BaseGDL* FromPython( PyObject* pyObj)
   // make array contiguous
   array = NA_InputArray( pyObj, item_type, C_ARRAY);
   if( array == NULL)
-    throw GDLException( "PYTHON: Error getting python array.") ;
+    throw GDLException( "Error getting python array.") ;
   
   int nDim = array->nd;
   SizeT dimArr[ MAXRANK];
   if( nDim > MAXRANK)
     {
-    Warning( "PYTHON: Array has more than "+MAXRANK_STR+
+    Warning( "Python array has more than "+MAXRANK_STR+
 	     " dimensions. Extending last one."); 
     SizeT lastDim = array->dimensions[ MAXRANK-1];
     for( SizeT i=MAXRANK; i<nDim; ++i) lastDim *= array->dimensions[ i];
@@ -279,7 +277,7 @@ namespace lib {
 	Py_DECREF(pResult);
 	BaseGDL* defRet = e->GetKW( kIx);
 	if( defRet == NULL)
-	  e->Throw( "PYTHON: Function returned 'None' "
+	  e->Throw( "Function returned 'None' "
 		    "and DEFAULTRETURN not defined.");
 	res = defRet->Dup();
       }
@@ -319,4 +317,6 @@ namespace lib {
 
 #endif // #ifdef USE_PYTHON
 
-#endif // #if defined(USE_PYTHON) || defined(PYTHON_MODULE)
+//#endif // #if defined(USE_PYTHON) || defined(PYTHON_MODULE)
+
+#endif // #ifdef INCLUDE_GDLPYTHON_CPP

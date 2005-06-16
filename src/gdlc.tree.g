@@ -23,6 +23,10 @@ put out trees suitable to be interpreted (gdlc.i.g)
 // #id and id (as label) are not the same because tree generation is ON
 // #id refers to the generated (output) tree id to the input tree
 
+header "pre_include_cpp" {
+#include "includefirst.hpp"
+}
+
 header {
 #include "objects.hpp"
 #include "dcompiler.hpp"

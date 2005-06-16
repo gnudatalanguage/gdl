@@ -33,6 +33,7 @@ class GDLException: public antlr::ANTLRException
   SizeT line;
   SizeT col;
   bool prefix;
+
 public:
   GDLException(): ANTLRException(), 
     errorNode(static_cast<RefDNode>(antlr::nullAST)),
