@@ -138,13 +138,13 @@ public:
 		     BaseGDL::Convert2Mode=BaseGDL::CONVERT);
 
   // not all compilers can handle template friend member functions
-#ifdef TEMPLATE_FRIEND_OK_
+#if defined( TEMPLATE_FRIEND_OK_) || (__GNUC__ >= 4)
   // make all other Convert2 functions friends
   template<class Sp2>  
   friend BaseGDL* Data_<Sp2>::Convert2( DType destTy, 
 					BaseGDL::Convert2Mode);
 #else
-  // this explicit version should work in all cases
+  // this explicit version does not work with GCC 4.0
   friend BaseGDL* Data_<SpDByte>::Convert2( DType destTy, BaseGDL::Convert2Mode);
   friend BaseGDL* Data_<SpDInt>::Convert2( DType destTy, BaseGDL::Convert2Mode);
   friend BaseGDL* Data_<SpDUInt>::Convert2( DType destTy, BaseGDL::Convert2Mode);
