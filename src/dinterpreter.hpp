@@ -81,7 +81,7 @@ public:
   {
     
 #ifdef HAVE_LIBREADLINE
-    // initialize readline
+    // initialize readline (own version - not pythons one)
     char rlName[] = "GDL";
     rl_readline_name = rlName;
     rl_event_hook = GDLEventHandler;
@@ -103,8 +103,10 @@ public:
   }
   
   // execute one line of code
-  CommandCode ExecuteLine( std::ifstream* in = NULL);
+  CommandCode ExecuteLine( std::istream* in = NULL);
 
+  // run a list of commands from 'in'. Used by python module. Returns success
+  bool RunBatch( std::istream* in);
   // the main program for interactive mode
   GDLInterpreter::RetCode InterpreterLoop( const std::string& startup);  
   // called within InterpreterLoop()

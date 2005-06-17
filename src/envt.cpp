@@ -486,6 +486,9 @@ const string EnvT::GetString( SizeT ix)
 BaseGDL*& EnvT::GetParDefined(SizeT i)
 {
   SizeT ix = i + pro->key.size();
+
+  //  cout << i << " -> " << ix << "  " << env.size() << "  env[ix] " << env[ix] << endl;
+
   if( ix >= env.size() || env[ ix] == NULL) 
     throw GDLException( callingNode, pro->ObjectName()+
 			": Variable is undefined: "+
@@ -561,6 +564,9 @@ void EnvT::SetNextPar( BaseGDL** const nextP) // by reference (reset env)
       AddEnv();
     }
   env.Set(parIx++,nextP);
+
+  //  cout << "set: " << parIx-1 << " to "; (*nextP)->ToStream( cout); 
+  //  cout << "  " << nextP << endl;
 }
 
 // returns the keyword index, used for UD functions

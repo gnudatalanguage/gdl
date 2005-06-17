@@ -98,6 +98,7 @@ namespace lib {
     else // default-format output
       {
 	int nParam = e->NParam();
+
 	if( nParam == parOffset) 
 	  {
 	    (*os) << endl;

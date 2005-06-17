@@ -548,7 +548,7 @@ void DInterpreter::ExecuteShellCommand(const string& command)
 
 
 
-string GetLine( ifstream* in)
+string GetLine( istream* in)
 {
   string line = "";
   while( line == "" && in->good()) 
@@ -560,7 +560,7 @@ string GetLine( ifstream* in)
 }
 
 // execute one line of code (commands and statements)
-DInterpreter::CommandCode DInterpreter::ExecuteLine( ifstream* in)
+DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in)
 {
   string line = (in != NULL) ? ::GetLine(in) : GetLine();
 
@@ -810,6 +810,43 @@ GDLInterpreter::RetCode DInterpreter::InnerInterpreterLoop()
   }
 }
 
+// used by pyhton module
+bool DInterpreter::RunBatch( istream* in)
+{
+  ValueGuard<bool> guard( interruptEnable);
+  interruptEnable = false;
+
+  while( in->good())
+    {
+      feclearexcept(FE_ALL_EXCEPT);
+      
+      try
+	{
+	  DInterpreter::CommandCode ret=ExecuteLine( in);
+	      
+	  if( debugMode != DEBUG_CLEAR)
+	    {
+	      debugMode = DEBUG_CLEAR;
+	      Warning( "Prematurely closing batch.");
+	      return false;
+	    }
+	}
+      catch( RetAllException& retAllEx)
+	{
+	}
+      catch( exception& e)
+	{
+	  cerr << "Batch" << ": Exception: " << e.what() << endl;
+	}
+      catch (...)
+	{	
+	  cerr << "Batch" << ": Unhandled Error." << endl;
+	}
+    } // while
+
+  return true;
+}
+
 // reads user input and executes it
 // the main loop
 GDLInterpreter::RetCode DInterpreter::InterpreterLoop( const string& startup)
@@ -817,10 +854,11 @@ GDLInterpreter::RetCode DInterpreter::InterpreterLoop( const string& startup)
   // process startup file
   if( startup != "")
     {
+      ifstream in(startup.c_str());
+
       ValueGuard<bool> guard( interruptEnable);
       interruptEnable = false;
 
-      ifstream in(startup.c_str());
       while( in.good())
 	{
 	  feclearexcept(FE_ALL_EXCEPT);
