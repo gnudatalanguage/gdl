@@ -299,6 +299,7 @@ if test "x$with_hdf5" != "xno"; then
     ])
 fi
 
+PYTHON_VERSION="2.4"
 
 dnl python
 AC_ARG_WITH(python,
@@ -314,16 +315,31 @@ if test "x$with_python" != "xno"; then
   if test "x$with_python" != "xyes"; then
     LIBS="$LIBS -L$with_python/lib" dnl "-lpython2.3"
 dnl for Mac OS X 
-    LIBS="$LIBS -L$with_python/lib/python2.3/config -lpython2.3"
-    INCLUDES="$INCLUDES -I$with_python/include/python2.3"
+    LIBS="$LIBS -L$with_python/lib/python$PYTHON_VERSION/config -lpython$PYTHON_VERSION"
+dnl    LIBS="$LIBS -L$with_python/lib/python2.3/config -lpython2.3"
+    INCLUDES="$INCLUDES -I$with_python/include/python$PYTHON_VERSION"
+dnl    INCLUDES="$INCLUDES -I$with_python/include/python2.3"
   else
-    LIBS="$LIBS -lpython2.3"
-    INCLUDES="$INCLUDES -I/usr/include/python2.3"
+    LIBS="$LIBS -lpython$PYTHON_VERSION"
+dnl    LIBS="$LIBS -lpython2.3"
+    INCLUDES="$INCLUDES -I/usr/include/python$PYTHON_VERSION"
+dnl    INCLUDES="$INCLUDES -I/usr/include/python2.3"
   fi
 
-  AC_CHECK_LIB(python2.3, Py_Initialize, [AC_DEFINE([USE_PYTHON],[1],[Define if you want to use python])], [
+  AC_CHECK_LIB(python$PYTHON_VERSION, Py_Initialize, 
+  [AC_DEFINE([USE_PYTHON],[1],[Define if you want to use python])], 
+  [ 
+dnl  AC_CHECK_LIB(python2.3, Py_Initialize, 
+dnl  [AC_DEFINE([USE_PYTHON],[1],[Define if you want to use python])], 
+dnl  [ echo ""
+dnl    echo "Error! Python version 2.4 or 2.3 is required but was not found"
+dnl    echo "       Use --with-python=DIR to specify the python directory tree"
+dnl    echo "       Use --with-python=no  to not use it"
+dnl    exit -1
+dnl    ])
+
     echo ""
-    echo "Error! Python version 2.3 is required but was not found"
+    echo "Error! Python version $PYTHON_VERSION is required but was not found"
     echo "       Use --with-python=DIR to specify the python directory tree"
     echo "       Use --with-python=no  to not use it"
     exit -1

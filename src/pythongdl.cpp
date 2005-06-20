@@ -82,18 +82,18 @@ bool GetScript( PyObject *argTuple, DString& name)
   return true;
 }
 
-bool GetSubName( PyObject *argTuple, DString& name)
+bool GetFirstString( PyObject *argTuple, DString& name)
 {
   if( argTuple == NULL)
     {
-      PyErr_SetString( gdlError, "No procedure/function name.");
+      PyErr_SetString( gdlError, "No argument.");
       return false;
     }
 
   int nArg = PyTuple_Size( argTuple);
   if( nArg == 0)
     {
-      PyErr_SetString( gdlError, "No procedure/function name.");
+      PyErr_SetString( gdlError, "No argument.");
       return false;
     }
 
@@ -101,12 +101,12 @@ bool GetSubName( PyObject *argTuple, DString& name)
   BaseGDL* proGDL = FromPython( proPy); // throws
   if( proGDL->Type() != STRING || proGDL->N_Elements() != 1)
     {
-      PyErr_SetString( gdlError, "Procedure name must be a scalar string");
+      PyErr_SetString( gdlError, "First argument must be a scalar string");
       delete proGDL;
       return false;
     }
 
-  name = StrUpCase((*(static_cast< DStringGDL*>( proGDL)))[ 0]);
+  name = (*(static_cast< DStringGDL*>( proGDL)))[ 0];
   delete proGDL;
   
   return true;
@@ -287,8 +287,10 @@ PyObject *GDLSub( PyObject *self, PyObject *argTuple, PyObject *kwDict,
     // handle GDL exceptions
     try {
 
-      success = GetSubName( argTuple, pro);
+      success = GetFirstString( argTuple, pro);
       if( !success) goto ret;
+
+      pro = StrUpCase( pro);
 
       DSub*    sub;
       bool     libCall = false;
@@ -433,6 +435,44 @@ extern "C" {
   // Execute a GDL procedure
   PyObject *GDL_script(PyObject *self, PyObject *argTuple, PyObject *kwDict)
   {
+    PyOS_sighandler_t oldControlCHandler = PyOS_setsig(SIGINT,ControlCHandler);
+    PyOS_sighandler_t oldSigFPEHandler   = PyOS_setsig(SIGFPE,SigFPEHandler);
+
+    PyObject *retVal = NULL; // init to error indicator
+
+    bool success;
+    DString file;
+    
+    success = GetFirstString( argTuple, file);
+    if( !success) goto ret;
+
+    {
+      ifstream in(file.c_str());
+      if( !in.good())
+	{
+	  string errString = "Error opening file: "+file;
+	  PyErr_SetString( gdlError, errString.c_str());
+	  goto ret;
+	}
+      
+      success = interpreter->RunBatch( &in);
+      if( !success)
+	{
+	  string errString = "Error in batch file: "+file;
+	  PyErr_SetString( gdlError, errString.c_str());
+	  goto ret;
+	}
+    }
+    
+    Py_INCREF(Py_None);
+    retVal = Py_None;
+
+    ret:
+      // restore old signal handlers
+      PyOS_setsig(SIGINT,oldControlCHandler);
+      PyOS_setsig(SIGFPE,oldSigFPEHandler);
+      
+      return retVal;
   }
 
   // Execute a GDL procedure

@@ -137,7 +137,7 @@ is optional for now but required by default. If you don't want to use
 it, use  
 --with-python=no
 as a command line option to 'configure'.
-If you want to use it you need python 2.3 and the python package
+If you want to use it you need python 2.3 or 2.4 and the python package
 'numarray' version 0.9 or later
 (http://www.stsci.edu/resources/software_hardware/numarray).
 Note: For embedding python as it is done by GDL, the python dynamic
@@ -153,7 +153,7 @@ but unless you want to change the grammar (*.g files) you don't need
 ANTLR. All relevant ANTLR files are included in the package.
 For more information on ANTRL see: http://www.antlr.org
 
-GDL is currently developed using KDevelop 3.1.1 under the GNU/Linux 
+GDL is currently developed using KDevelop 3.2 under the GNU/Linux 
 distribution Fedora Core 3. The KDevelop project file
 is included in the tarball, so if you have KDevelop you should be able
 to use it with GDL seamlessly.

@@ -827,7 +827,6 @@ bool DInterpreter::RunBatch( istream* in)
 	  if( debugMode != DEBUG_CLEAR)
 	    {
 	      debugMode = DEBUG_CLEAR;
-	      Warning( "Prematurely closing batch.");
 	      return false;
 	    }
 	}
