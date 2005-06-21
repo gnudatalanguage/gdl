@@ -1,4 +1,7 @@
 /* $ANTLR 2.7.4: "gdlc.g" -> "GDLParser.cpp"$ */
+
+#include "includefirst.hpp"
+
 #include "GDLParser.hpp"
 #include <antlr/NoViableAltException.hpp>
 #include <antlr/SemanticException.hpp>
@@ -38,8 +41,7 @@ void GDLParser::translation_unit() {
 	
 	
 	try {      // for error handling
-		{ // ( ... )+
-		int _cnt3=0;
+		{ // ( ... )*
 		for (;;) {
 			switch ( LA(1)) {
 			case PRO:
@@ -88,13 +90,12 @@ void GDLParser::translation_unit() {
 					}
 				}
 			else {
-				if ( _cnt3>=1 ) { goto _loop3; } else {throw antlr::NoViableAltException(LT(1), getFilename());}
+				goto _loop3;
 			}
 			}
-			_cnt3++;
 		}
 		_loop3:;
-		}  // ( ... )+
+		} // ( ... )*
 		{
 		switch ( LA(1)) {
 		case IDENTIFIER:

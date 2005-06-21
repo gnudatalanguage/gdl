@@ -1,4 +1,7 @@
 /* $ANTLR 2.7.4: "gdlc.g" -> "GDLLexer.cpp"$ */
+
+#include "includefirst.hpp"
+
 #include "GDLLexer.hpp"
 #include <antlr/CharBuffer.hpp>
 #include <antlr/TokenStreamException.hpp>

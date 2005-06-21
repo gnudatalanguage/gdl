@@ -1,4 +1,7 @@
 /* $ANTLR 2.7.4: "gdlc.tree.g" -> "GDLTreeParser.cpp"$ */
+
+#include "includefirst.hpp"
+
 #include "GDLTreeParser.hpp"
 #include <antlr/Token.hpp>
 #include <antlr/AST.hpp>

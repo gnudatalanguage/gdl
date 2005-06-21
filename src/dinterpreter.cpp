@@ -323,6 +323,19 @@ bool GDLInterpreter::CompileFile(const string& f, const string& untilPro)
   return true;
 }      
 
+void AppendExtension( string& argstr)
+{
+  SizeT slPos = argstr.find_last_of( '/');
+  SizeT dotPos = argstr.find_last_of( '.');
+
+  if( dotPos == string::npos || (slPos != string::npos && slPos > dotPos))
+    //  if( argstr.length() <= 4 || argstr.find( '.', 1) == string::npos) 
+    //	      StrLowCase( argstr.substr(argstr.length()-4,4)) != ".pro")
+    {
+      argstr += ".pro";
+    }
+}
+
 DInterpreter::CommandCode DInterpreter::CmdCompile( const string& command)
 {
   string cmdstr = command;
@@ -348,11 +361,13 @@ DInterpreter::CommandCode DInterpreter::CmdCompile( const string& command)
 	  string argstr  = command.substr(pos, sppos-pos);
 	  string origstr = argstr;
 
-	  if( argstr.length() <= 4 ||
-	      StrLowCase( argstr.substr(argstr.length()-4,4)) != ".pro")
-	    {
-	      argstr += ".pro";
-	    }
+	  AppendExtension( argstr);
+
+// 	  if( argstr.length() <= 4 ||
+// 	      StrLowCase( argstr.substr(argstr.length()-4,4)) != ".pro")
+// 	    {
+// 	      argstr += ".pro";
+// 	    }
 	  
 	  bool found = CompleteFileName(argstr);
 	  if (found) 
@@ -405,11 +420,7 @@ DInterpreter::CommandCode DInterpreter::CmdRun( const string& command)
 	  string argstr  = command.substr(pos, sppos-pos);
 	  string origstr = argstr;
 
-	  if( argstr.length() <= 4 ||
-	      StrLowCase( argstr.substr(argstr.length()-4,4)) != ".pro")
-	    {
-	      argstr += ".pro";
-	    }
+	  AppendExtension( argstr);
 	  
 	  bool found = CompleteFileName(argstr);
 	  if (found) 

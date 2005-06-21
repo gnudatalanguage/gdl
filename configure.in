@@ -299,7 +299,7 @@ if test "x$with_hdf5" != "xno"; then
     ])
 fi
 
-PYTHON_VERSION="2.4"
+PYTHON_VERSION="2.3"
 
 dnl python
 AC_ARG_WITH(python,
