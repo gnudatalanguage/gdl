@@ -432,6 +432,59 @@ void LibInit()
     };
   new DLibPro(lib::plot,string("PLOT"),2,plotKey);
 
+  const string axisKey[]=
+    {
+     // GRAPHIC KEYWORDS
+     // 0
+     "CHARSIZE","CHARTHICK",
+     // 2
+     "COLOR",     "DATA",    "DEVICE",   "FONT",
+     // 6
+     "NODATA",    "NOERASE", 
+     // 8
+     "NORMAL",    "SUBTITLE",
+     // 10
+     "T3D",       "TICKLEN", 
+     // 12
+     "XCHARSIZE", "XGRIDSTYLE", "XMARGIN", "XMINOR",
+     // 16
+     "XRANGE",    "XSTYLE",     "XTHICK",  "XTICKFORMAT",
+     // 20
+     "XTICKLEN",  "XTICKNAME",
+     // 22
+     "XTICKS",    
+     // 23
+     "XTITLE",
+     // 24
+     "YCHARSIZE",  "YGRIDSTYLE", "YMARGIN", "YMINOR",
+     // 28
+     "YRANGE",     "YSTYLE",     "YTHICK",  "YTICKFORMAT",
+     // 30
+     "YTICKLEN",   "YTICKNAME",
+     // 32
+     "YTICKS",
+     // 33
+     "YTITLE",
+     // 34
+     "ZCHARSIZE",  "ZGRIDSTYLE", "ZMARGIN", "ZMINOR",
+     // 38
+     "ZRANGE",     "ZSTYLE",     "ZTHICK",  "ZTICKFORMAT",
+     // 42
+     "ZTICKLEN",   "ZTICKNAME",
+     // 44
+     "ZTICKS",
+     // 45
+     "ZTITLE",
+     // 46
+     "ZVALUE", 
+
+     // AXIS keywords
+     // 47
+     "SAVE", "XAXIS", "YAXIS", "ZXIS", "XLOG", "YNOZERO", "YLOG",
+     KLISTEND
+    };
+  new DLibPro(lib::axis,string("AXIS"),3,axisKey);
+
   const string oplotKey[]=
     {
       // GRAPHIC KEYWORDS
@@ -522,6 +575,8 @@ void LibInit()
       "NOCLIP",KLISTEND
     };
   new DLibPro(lib::xyouts, string("XYOUTS"), 3, xyoutsKey);
+
+  new DLibPro(lib::erase,string("ERASE"),0);
 
   // sort lists
   sort( libFunList.begin(), libFunList.end(), CompLibFunName());
