@@ -146,6 +146,8 @@ void InitStructs()
 
 void InitObjects()
 {
+  
+
   sigControlC = false;
   debugMode   = 0;
 

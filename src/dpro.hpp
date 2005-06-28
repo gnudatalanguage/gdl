@@ -45,9 +45,9 @@ public:
 struct LabelT
 {
   std::string label;
-  DNode* target;
+  ProgNodeP target;
 
-  LabelT( const std::string& l, DNode* t): label( l), target( t) {}
+  LabelT( const std::string& l, ProgNodeP t): label( l), target( t) {}
 };
 
 class LabelListT
@@ -58,7 +58,7 @@ public:
   LabelListT(): list() {}
   ~LabelListT() {}
 
-  void Add( const std::string& l, DNode* t)
+  void Add( const std::string& l, ProgNodeP t)
   {
     list.push_back( LabelT( l, t));
   }
@@ -70,9 +70,14 @@ public:
       if( list[ i].label == s) return static_cast<int>(i);
     return -1;
   }
-  DNode* Get( SizeT ix)
+  ProgNodeP Get( SizeT ix)
   {
     return list[ ix].target;
+  }
+  void SetLabelNode( ProgNodeP t)
+  {
+    int ix = Find( t->getText()); // already checked for presence
+    list[ ix].target = t;
   }
   const std::string& GetLabel( SizeT ix)
   {
@@ -240,9 +245,11 @@ class DSubUD: public DSub
   IDList              var;    // keyword values, parameters, local variables
 
   CommonBaseListT     common; // common blocks or references 
-  RefDNode            tree;   // the 'code'
+  ProgNodeP           tree;   // the 'code'
 
   LabelListT          labelList;
+
+  void ResolveLabel( ProgNodeP);
 
 public:
   DSubUD(const std::string&,const std::string& o="",const std::string& f="");
@@ -253,8 +260,9 @@ public:
 
   void AddCommon(DCommonBase* c) { common.push_back(c);}
   
+  void ResolveAllLabels();
   LabelListT& LabelList() { return labelList;}
-  DNode* GotoTarget( int ix) 
+  ProgNodeP GotoTarget( int ix) 
   { 
     if( ix >= labelList.Size())
       throw GDLException( "Undefined label.");
@@ -356,12 +364,12 @@ public:
     return NULL;
   }
 
-  void SetTree(RefDNode& n)
+  void SetTree( RefDNode n)
   {
-    tree=n; // copied here (operator=)
+    tree = new ProgNode( n); // here the conversion RefDNode -> ProgNode is done
   }
-
-  RefDNode& GetTree()
+  
+  ProgNodeP GetTree()
   {
     return tree;
   }

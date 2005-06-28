@@ -27,7 +27,7 @@
 
 using namespace std;
 
-EnvT::EnvT( GDLInterpreter* ipr, RefDNode cN, DSub* pro_, bool lF): 
+EnvT::EnvT( GDLInterpreter* ipr, ProgNodeP cN, DSub* pro_, bool lF): 
   interpreter(ipr), env(), pro(pro_),
   ioError(NULL), onError( -1), catchVar(NULL), catchNode(NULL), 
   obj(false), 
@@ -61,7 +61,7 @@ EnvT::EnvT( GDLInterpreter* ipr, RefDNode cN, DSub* pro_, bool lF):
 }
 
 // member pro
-EnvT::EnvT( GDLInterpreter* ipr,  RefDNode cN, BaseGDL* self, 
+EnvT::EnvT( GDLInterpreter* ipr,  ProgNodeP cN, BaseGDL* self, 
 	    const string& parent): 
   interpreter(ipr), env(), pro(NULL), 
   ioError(NULL), onError( -1), catchVar(NULL), catchNode(NULL), 
@@ -123,7 +123,7 @@ EnvT::EnvT( GDLInterpreter* ipr,  RefDNode cN, BaseGDL* self,
 
 // member fun
 EnvT::EnvT( GDLInterpreter* ipr, BaseGDL* self, //DStructGDL* oStructGDL,  
-	    RefDNode cN, const string& parent, bool lF): 
+	    ProgNodeP cN, const string& parent, bool lF): 
   interpreter(ipr), env(), pro(NULL), 
   ioError(NULL), onError( -1), catchVar(NULL), catchNode(NULL), 
   obj(true),

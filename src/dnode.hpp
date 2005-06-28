@@ -213,7 +213,6 @@ public:
   void Text2Double();
   void Text2String();
 
-  void SetGotoIx( int ix) { targetIx=ix;}
   void SetNumBranch(const int nB) { numBranch=nB;} 
   void SetArrayDepth(const int aD) { arrayDepth=aD;} 
 
@@ -226,13 +225,16 @@ public:
   void SetLabelRange( const int s, const int e)
   { labelStart = s; labelEnd = e;}
   
-  bool LabelInRange( const int lIx)
-  { return (lIx >= labelStart) && (lIx < labelEnd);}
+  //  bool LabelInRange( const int lIx)
+  //  { return (lIx >= labelStart) && (lIx < labelEnd);}
 
   void DefinedStruct( const bool noTagName)
   { if( noTagName) definedStruct = 1; else definedStruct = 0;}
 
 private:
+
+  BaseGDL* StealCData() { BaseGDL* res = cData; cData=NULL; return res;}
+
   RefDNode down;
   RefDNode right;
 
@@ -264,7 +266,7 @@ private:
   int labelStart; // for loops to determine if to bail out
   int labelEnd; // for loops to determine if to bail out
 
-  friend class GDLInterpreter;
+  friend class ProgNode;
 
 // private:
 //   // forbid usage of these
@@ -273,6 +275,90 @@ private:
 //   DNode( const DNode& cp) 
 //   {} 
 };
+
+class ProgNode;
+typedef ProgNode* ProgNodeP;
+
+// the nodes the programs are made of
+class ProgNode
+{
+private:
+  int ttype;
+  std::string text;
+
+  ProgNodeP down;
+  ProgNodeP right;
+
+  // from DNode (see there)
+  int lineNumber;
+  BaseGDL*   cData;        // constant data
+  DVar*      var;          // ptr to variable 
+  union {
+    int        initInt;    // for c-i not actually used
+    int        numBranch;  // number of branches in switch/case statements
+    int        nDot;       // nesting level for tag access
+    int        arrayDepth; // dimension to cat
+    int        proIx;      // Index into proList
+    int        funIx;      // Index into funList
+    int        varIx;      // Index into variable list
+    int        targetIx;   // Index into label list
+    int        definedStruct; // struct contains entry with no tag name
+    int        compileOpt; // for PRO and FUNCTION nodes
+  };
+
+  int labelStart; // for loops to determine if to bail out
+  int labelEnd; // for loops to determine if to bail out
+
+public:
+  ProgNode();
+
+  ProgNode( const RefDNode& refNode);
+
+  ~ProgNode();
+  
+  ProgNodeP getFirstChild() const
+  {
+    return down;
+  }
+  ProgNodeP GetFirstChild() const
+  {
+    return getFirstChild();
+  }
+  ProgNodeP getNextSibling() const
+  {
+    return right;
+  }
+  ProgNodeP GetNextSibling() const
+  {
+    return getNextSibling();
+  }
+  
+  int getType() { return ttype;}
+  std::string getText() { return text;}
+  int getLine() const { return lineNumber;}
+  void SetGotoIx( int ix) { targetIx=ix;}
+  
+  bool LabelInRange( const int lIx)
+  { return (lIx >= labelStart) && (lIx < labelEnd);}
+  
+  friend class GDLInterpreter;
+};
+
+// used together with some defines do
+// allow using non-ref nodes with ANTLR
+// see gdlc.i.g
+namespace antlr {
+
+  RefAST ConvertAST( ProgNodeP p) 
+  { 
+    RefDNode refNode = RefDNode( new DNode);
+    refNode->setType( p->getType());
+    refNode->setText( p->getText());
+    refNode->SetLine( p->getLine());
+    
+    return static_cast<antlr::RefAST>( refNode);
+  }
+}
 
 #endif
 

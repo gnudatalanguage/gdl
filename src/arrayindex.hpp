@@ -470,6 +470,8 @@ public:
   // returns 1-dim index for all nTh elements
   AllIxT* BuildIx()
   {
+    assert( allIx == NULL);
+
     if( accessType == ONEDIM)
       {
 	if( ixList[0]->t == ArrayIndexT::INDEXED)

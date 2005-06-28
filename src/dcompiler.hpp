@@ -43,12 +43,14 @@ class DCompiler: public GDLTokenTypes
 
   bool            activeProCompiled;
 
-  std::map<std::string,std::deque<RefDNode> > labelList; // resolving goto/label
+  //  std::map<std::string,std::deque<RefDNode> > labelList; // resolving goto/label
   CommonListT   ownCommonList; // common blocks not yet added to commonList
 
   DCommon* Common(const std::string& n); // returns common block with name n
 
   void ClearOwnCommon();
+
+  ProgNodeP tree;
 
 public:
   // should be private, but GDLTreeParser needs it to be public

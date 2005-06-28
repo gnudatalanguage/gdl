@@ -3028,7 +3028,7 @@ void GDLTreeParser::jump_statement(RefDNode _t) {
 		
 			  jump_statement_AST=astFactory->create(GOTO,i1->getText());
 		//	  #jump_statement=#[GOTO,i1->getText()]; // doesn't work
-			  comp.Goto(jump_statement_AST); 
+		//	  comp.Goto(#jump_statement); 
 			
 		currentAST.root = jump_statement_AST;
 		if ( jump_statement_AST!=RefDNode(antlr::nullAST) &&
@@ -3197,7 +3197,7 @@ void GDLTreeParser::jump_statement(RefDNode _t) {
 		{
 		jump_statement_AST=astFactory->create(ON_IOERROR,i2->getText());
 		//	            #jump_statement=#[ON_IOERROR,i2->getText()];
-		comp.Goto(jump_statement_AST); // same handling		 
+		//              comp.Goto(#jump_statement); // same handling		 
 		}
 			
 		currentAST.root = jump_statement_AST;

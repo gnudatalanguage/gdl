@@ -29,7 +29,8 @@
 
 class GDLException: public antlr::ANTLRException
 {
-  RefDNode errorNode;
+  RefDNode  errorNode;
+  ProgNodeP errorNodeP;
   SizeT line;
   SizeT col;
   bool prefix;
@@ -37,16 +38,20 @@ class GDLException: public antlr::ANTLRException
 public:
   GDLException(): ANTLRException(), 
     errorNode(static_cast<RefDNode>(antlr::nullAST)),
+		  errorNodeP( NULL),
 		  line( 0), col( 0), prefix( true)
   {}
   GDLException(const std::string& s, bool pre = true);
   GDLException(const RefDNode eN, const std::string& s);
+  GDLException(const ProgNodeP eN, const std::string& s);
   GDLException(SizeT l, SizeT c, const std::string& s);
 
   ~GDLException() throw() {}
 
   SizeT getLine() const 
   { 
+    if( errorNodeP != NULL)
+      return errorNodeP->getLine();
     if( errorNode != static_cast<RefDNode>(antlr::nullAST))
       return errorNode->getLine();
     return line;

@@ -46,13 +46,13 @@ class EnvT
   DataListT         env;
   DSub*             pro;
   SizeT             parIx;   // ix of next parameter to put
-  RefDNode          ioError; // pointer to an DNode 
+  ProgNodeP         ioError; // pointer to an ProgNodeP
   DLong             onError; // on_error setting
   BaseGDL**         catchVar;
-  RefDNode          catchNode; // pointer to an DNode 
+  ProgNodeP         catchNode; // pointer to an ProgNodeP
   bool              obj;       // member subroutine?
   ExtraT            extra;
-  RefDNode          callingNode;
+  ProgNodeP         callingNode;
   bool              lFun; // assignment paramter for functions as l_value
   SizeT             nJump; // number of jumps in current environment
   int               lastJump; // to which label last jump went
@@ -67,13 +67,13 @@ class EnvT
   
 public:
   // UD pro/fun
-  EnvT( GDLInterpreter*, RefDNode idN, DSub* pro_, bool lF = false);
+  EnvT( GDLInterpreter*, ProgNodeP idN, DSub* pro_, bool lF = false);
   // member procedure
-  EnvT( GDLInterpreter*, RefDNode idN, BaseGDL* self, 
+  EnvT( GDLInterpreter*, ProgNodeP idN, BaseGDL* self, 
 	const std::string& parent="");
   // member function
   EnvT( GDLInterpreter*, BaseGDL* self, 
-	RefDNode idN, 
+	ProgNodeP idN, 
 	const std::string& parent="", bool lF = false);
   // for obj_new and obj_destroy
   EnvT( EnvT* pEnv, DSub* newPro, BaseGDL** self); 
@@ -87,7 +87,7 @@ public:
 
   SizeT NJump() { return nJump;}
   int    LastJump() { return lastJump;}
-  DNode* GotoTarget( int ix)
+  ProgNodeP GotoTarget( int ix)
   { 
     lastJump = ix; //static_cast<DSubUD*>( pro)->LabelOrd( ix);
     ++nJump;
@@ -121,10 +121,10 @@ public:
     else
       ioError = NULL;
   }
-  RefDNode GetIOError() { return ioError;}
+  ProgNodeP GetIOError() { return ioError;}
   // the upper (calling) environment
   EnvT* Caller();
-  RefDNode CallingNode() { return callingNode;}
+  ProgNodeP CallingNode() { return callingNode;}
 
   // called after parameter definition
   void Extra();

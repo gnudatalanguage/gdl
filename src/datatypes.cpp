@@ -798,6 +798,7 @@ bool Data_<SpDComplexDbl>::ForCondDown( BaseGDL*)
 { return false; }
 
 // ForCheck must have been called before
+// general version
 template<class Sp>
 void Data_<Sp>::ForAdd( BaseGDL* addIn)
 {
@@ -811,6 +812,14 @@ void Data_<Sp>::ForAdd( BaseGDL* addIn)
 }
 // cannnot be called, just to make the compiler shut-up
 void DStructGDL::ForAdd( BaseGDL* addIn) {}
+// normal (+1) version
+template<class Sp>
+void Data_<Sp>::ForAdd()
+{
+  dd[0] += 1;
+}
+// cannnot be called, just to make the compiler shut-up
+void DStructGDL::ForAdd() {}
 
 // assigns srcIn to this at ixList, if ixList is NULL does linear copy
 // assumes: ixList has this already set as variable

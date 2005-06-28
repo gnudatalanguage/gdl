@@ -7,6 +7,12 @@
 #include <antlr/TreeParser.hpp>
 
 
+    // antlr header
+
+    // make sure it gets included before the 'tweak'
+#include "GDLParser.hpp" 
+#include "GDLTreeParser.hpp" 
+
 #include <map>
 #include <iomanip>
 //#include <exception>
@@ -19,8 +25,16 @@
 #include "initsysvar.hpp"
 #include "gdljournal.hpp"
 
+// tweaking ANTLR
+#define RefAST( xxx)     ConvertAST( xxx) /* antlr::RefAST( Ref type)  */
+
 class CUSTOM_API GDLInterpreter : public antlr::TreeParser, public GDLInterpreterTokenTypes
 {
+
+private:
+    // ASTNULL replacement
+    static ProgNode  NULLProgNode;
+    static ProgNodeP NULLProgNodeP;
 
 public: 
     enum RetCode {
@@ -35,13 +49,13 @@ public:
     static bool SearchCompilePro(const std::string& pro);
     static int GetFunIx( const std::string& subName);
     static int GetProIx( const std::string& subName);
-    DStructGDL* ObjectStruct( BaseGDL* self, RefDNode mp);
-    DStructGDL* ObjectStructCheckAccess( BaseGDL* self, RefDNode mp);
+    DStructGDL* ObjectStruct( BaseGDL* self, ProgNodeP mp);
+    DStructGDL* ObjectStructCheckAccess( BaseGDL* self, ProgNodeP mp);
 
 private: 
     // code in: dinterpreter.cpp
-    static void SetFunIx( RefDNode& f); // triggers read/compile
-    static void SetProIx( RefDNode& f); // triggers read/compile
+    static void SetFunIx( ProgNodeP f); // triggers read/compile
+    static void SetProIx( ProgNodeP f); // triggers read/compile
     static void AdjustTypes( BaseGDL*&, BaseGDL*&);
 
 
@@ -71,9 +85,6 @@ protected:
     BaseGDL*  returnValue;  // holding the return value for functions
     BaseGDL** returnValueL; // holding the return value for l_functions
 
-    // override method to gain speed (no checking needed in interpreter)
-	void match(antlr::RefAST t, int ttype) {}
-
     bool interruptEnable;
 
     typedef std::map<SizeT, BaseGDL*> HeapT;
@@ -93,7 +104,7 @@ protected:
 
 public:
     // triggers read/compile/interpret
-    DStructDesc* GetStruct(const std::string& name, const RefDNode cN); 
+    DStructDesc* GetStruct(const std::string& name, const ProgNodeP cN); 
 
     // the New... functions 'own' their BaseGDL*
     SizeT NewObjHeap( SizeT n=1, DStructGDL* var=NULL)
@@ -273,8 +284,8 @@ public:
             std::string file = (*upEnv)->GetFilename();
             if( file != "")
             {
-                RefDNode cNode= (*env)->CallingNode();
-                if( cNode != static_cast<RefDNode>(antlr::nullAST))
+                ProgNodeP cNode= (*env)->CallingNode();
+                if( cNode != NULL)
                 {       
                     std::cerr << std::right << std::setw(6) << cNode->getLine();
                 }
@@ -288,7 +299,7 @@ public:
         }
     }
 
-    static void DebugMsg( RefDNode _t, const std::string& msg)
+    static void DebugMsg( ProgNodeP _t, const std::string& msg)
     {    
         DString msgPrefix = SysVar::MsgPrefix();
 
@@ -298,8 +309,8 @@ public:
         std::string file=callStack.back()->GetFilename();
         if( file != "")
         {
-            RefDNode eNode = _t;
-            if( eNode != static_cast<RefDNode>(antlr::nullAST))
+            ProgNodeP eNode = _t;
+            if( eNode != NULL)
             {       
                 std::cerr << std::right << std::setw(6) << eNode->getLine();
             }
@@ -345,98 +356,98 @@ public:
 	{
 		return GDLInterpreter::tokenNames;
 	}
-	public:  GDLInterpreter::RetCode  interactive(RefDNode _t);
-	public:  GDLInterpreter::RetCode  statement_list(RefDNode _t);
-	public: void execute(RefDNode _t);
-	public:  BaseGDL*  call_fun(RefDNode _t);
-	public:  GDLInterpreter::RetCode  statement(RefDNode _t);
-	public:  BaseGDL**  call_lfun(RefDNode _t);
-	public: void call_pro(RefDNode _t);
-	public: void assignment(RefDNode _t);
-	public: void procedure_call(RefDNode _t);
-	public: void decinc_statement(RefDNode _t);
-	public:  GDLInterpreter::RetCode  for_statement(RefDNode _t);
-	public:  GDLInterpreter::RetCode  repeat_statement(RefDNode _t);
-	public:  GDLInterpreter::RetCode  while_statement(RefDNode _t);
-	public:  GDLInterpreter::RetCode  if_statement(RefDNode _t);
-	public:  GDLInterpreter::RetCode  if_else_statement(RefDNode _t);
-	public:  GDLInterpreter::RetCode  case_statement(RefDNode _t);
-	public:  GDLInterpreter::RetCode  switch_statement(RefDNode _t);
-	public:  GDLInterpreter::RetCode  block(RefDNode _t);
-	public:  GDLInterpreter::RetCode  jump_statement(RefDNode _t);
-	public: BaseGDL*  expr(RefDNode _t);
-	public: BaseGDL**  l_simple_var(RefDNode _t);
-	public: BaseGDL**  l_ret_expr(RefDNode _t);
-	public: void parameter_def(RefDNode _t,
+	public:  GDLInterpreter::RetCode  interactive(ProgNodeP _t);
+	public:  GDLInterpreter::RetCode  statement_list(ProgNodeP _t);
+	public: void execute(ProgNodeP _t);
+	public:  BaseGDL*  call_fun(ProgNodeP _t);
+	public:  GDLInterpreter::RetCode  statement(ProgNodeP _t);
+	public:  BaseGDL**  call_lfun(ProgNodeP _t);
+	public: void call_pro(ProgNodeP _t);
+	public: void assignment(ProgNodeP _t);
+	public: void procedure_call(ProgNodeP _t);
+	public: void decinc_statement(ProgNodeP _t);
+	public:  GDLInterpreter::RetCode  for_statement(ProgNodeP _t);
+	public:  GDLInterpreter::RetCode  repeat_statement(ProgNodeP _t);
+	public:  GDLInterpreter::RetCode  while_statement(ProgNodeP _t);
+	public:  GDLInterpreter::RetCode  if_statement(ProgNodeP _t);
+	public:  GDLInterpreter::RetCode  if_else_statement(ProgNodeP _t);
+	public:  GDLInterpreter::RetCode  case_statement(ProgNodeP _t);
+	public:  GDLInterpreter::RetCode  switch_statement(ProgNodeP _t);
+	public:  GDLInterpreter::RetCode  block(ProgNodeP _t);
+	public:  GDLInterpreter::RetCode  jump_statement(ProgNodeP _t);
+	public: BaseGDL*  expr(ProgNodeP _t);
+	public: BaseGDL**  l_simple_var(ProgNodeP _t);
+	public: BaseGDL**  l_ret_expr(ProgNodeP _t);
+	public: void parameter_def(ProgNodeP _t,
 		EnvT* actEnv
 	);
-	public: BaseGDL*  tmp_expr(RefDNode _t);
-	public: BaseGDL*  check_expr(RefDNode _t);
-	public: BaseGDL**  l_expr(RefDNode _t,
+	public: BaseGDL*  tmp_expr(ProgNodeP _t);
+	public: BaseGDL*  check_expr(ProgNodeP _t);
+	public: BaseGDL**  l_expr(ProgNodeP _t,
 		BaseGDL* right
 	);
-	public: BaseGDL*  l_decinc_expr(RefDNode _t,
+	public: BaseGDL*  l_decinc_expr(ProgNodeP _t,
 		int dec_inc
 	);
-	public: BaseGDL**  l_deref(RefDNode _t);
-	public:  BaseGDL**  l_function_call(RefDNode _t);
-	public: BaseGDL*  r_expr(RefDNode _t);
-	public: BaseGDL*  constant_nocopy(RefDNode _t);
-	public: BaseGDL*  l_decinc_indexable_expr(RefDNode _t,
+	public: BaseGDL**  l_deref(ProgNodeP _t);
+	public:  BaseGDL**  l_function_call(ProgNodeP _t);
+	public: BaseGDL*  r_expr(ProgNodeP _t);
+	public: BaseGDL*  constant_nocopy(ProgNodeP _t);
+	public: BaseGDL*  l_decinc_indexable_expr(ProgNodeP _t,
 		int dec_inc
 	);
-	public: BaseGDL**  l_defined_simple_var(RefDNode _t);
-	public: BaseGDL**  l_sys_var(RefDNode _t);
-	public: BaseGDL*  l_decinc_array_expr(RefDNode _t,
+	public: BaseGDL**  l_defined_simple_var(ProgNodeP _t);
+	public: BaseGDL**  l_sys_var(ProgNodeP _t);
+	public: BaseGDL*  l_decinc_array_expr(ProgNodeP _t,
 		int dec_inc
 	);
-	public: ArrayIndexListT*  arrayindex_list(RefDNode _t);
-	public: BaseGDL*  l_decinc_dot_expr(RefDNode _t,
+	public: ArrayIndexListT*  arrayindex_list(ProgNodeP _t);
+	public: BaseGDL*  l_decinc_dot_expr(ProgNodeP _t,
 		int dec_inc
 	);
-	public: void l_dot_array_expr(RefDNode _t,
+	public: void l_dot_array_expr(ProgNodeP _t,
 		DotAccessDescT* aD
 	);
-	public: void tag_array_expr(RefDNode _t,
+	public: void tag_array_expr(ProgNodeP _t,
 		DotAccessDescT* aD
 	);
-	public: BaseGDL**  l_indexoverwriteable_expr(RefDNode _t);
-	public: BaseGDL**  l_indexable_expr(RefDNode _t);
-	public: BaseGDL**  l_array_expr(RefDNode _t,
+	public: BaseGDL**  l_indexoverwriteable_expr(ProgNodeP _t);
+	public: BaseGDL**  l_indexable_expr(ProgNodeP _t);
+	public: BaseGDL**  l_array_expr(ProgNodeP _t,
 		BaseGDL* right
 	);
-	public: BaseGDL**  l_dot_expr(RefDNode _t,
+	public: BaseGDL**  l_dot_expr(ProgNodeP _t,
 		BaseGDL* right
 	);
-	public: BaseGDL*  array_def(RefDNode _t);
-	public:  BaseGDL*  struct_def(RefDNode _t);
-	public: BaseGDL*  array_expr(RefDNode _t);
-	public: BaseGDL*  indexable_expr(RefDNode _t);
-	public: BaseGDL*  indexable_tmp_expr(RefDNode _t);
-	public: void tag_expr(RefDNode _t,
+	public: BaseGDL*  array_def(ProgNodeP _t);
+	public:  BaseGDL*  struct_def(ProgNodeP _t);
+	public: BaseGDL*  array_expr(ProgNodeP _t);
+	public: BaseGDL*  indexable_expr(ProgNodeP _t);
+	public: BaseGDL*  indexable_tmp_expr(ProgNodeP _t);
+	public: void tag_expr(ProgNodeP _t,
 		DotAccessDescT* aD
 	);
-	public: BaseGDL*  r_dot_indexable_expr(RefDNode _t,
+	public: BaseGDL*  r_dot_indexable_expr(ProgNodeP _t,
 		DotAccessDescT* aD
 	);
-	public: BaseGDL*  sys_var_nocopy(RefDNode _t);
-	public: void r_dot_array_expr(RefDNode _t,
+	public: BaseGDL*  sys_var_nocopy(ProgNodeP _t);
+	public: void r_dot_array_expr(ProgNodeP _t,
 		DotAccessDescT* aD
 	);
-	public: BaseGDL*  dot_expr(RefDNode _t);
-	public: BaseGDL*  assign_expr(RefDNode _t);
-	public:  BaseGDL*  function_call(RefDNode _t);
-	public:  BaseGDL*  lib_function_call(RefDNode _t);
-	public: BaseGDL*  constant(RefDNode _t);
-	public: BaseGDL*  simple_var(RefDNode _t);
-	public: BaseGDL*  sys_var(RefDNode _t);
-	public:  BaseGDL**  ref_parameter(RefDNode _t);
-	public:  ArrayIndexT*  arrayindex_all(RefDNode _t);
-	public:  ArrayIndexT*  arrayindex_range(RefDNode _t);
-	public:  ArrayIndexT*  arrayindex_end(RefDNode _t);
-	public:  ArrayIndexT*  arrayindex(RefDNode _t);
-	public:  BaseGDL*  named_struct_def(RefDNode _t);
-	public:  BaseGDL*  unnamed_struct_def(RefDNode _t);
+	public: BaseGDL*  dot_expr(ProgNodeP _t);
+	public: BaseGDL*  assign_expr(ProgNodeP _t);
+	public:  BaseGDL*  function_call(ProgNodeP _t);
+	public:  BaseGDL*  lib_function_call(ProgNodeP _t);
+	public: BaseGDL*  constant(ProgNodeP _t);
+	public: BaseGDL*  simple_var(ProgNodeP _t);
+	public: BaseGDL*  sys_var(ProgNodeP _t);
+	public:  BaseGDL**  ref_parameter(ProgNodeP _t);
+	public:  ArrayIndexT*  arrayindex_all(ProgNodeP _t);
+	public:  ArrayIndexT*  arrayindex_range(ProgNodeP _t);
+	public:  ArrayIndexT*  arrayindex_end(ProgNodeP _t);
+	public:  ArrayIndexT*  arrayindex(ProgNodeP _t);
+	public:  BaseGDL*  named_struct_def(ProgNodeP _t);
+	public:  BaseGDL*  unnamed_struct_def(ProgNodeP _t);
 public:
 	antlr::RefAST getAST()
 	{
@@ -444,8 +455,8 @@ public:
 	}
 	
 protected:
-	RefDNode returnAST;
-	RefDNode _retTree;
+	ProgNodeP returnAST;
+	ProgNodeP _retTree;
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS

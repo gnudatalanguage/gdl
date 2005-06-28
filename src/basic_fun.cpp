@@ -1133,7 +1133,10 @@ namespace lib {
 
     try
       {
-	caller->Interpreter()->execute( trAST);
+	ProgNodeP progAST = new ProgNode( trAST);
+	auto_ptr< ProgNode> progAST_guard( progAST);
+
+	caller->Interpreter()->execute( progAST);
 
 	return new DIntGDL( 1);
       }

@@ -24,6 +24,8 @@
 #include "str.hpp"
 #include "objects.hpp"
 
+#include "GDLTreeParser.hpp"
+
 using namespace std;
 
 // vtable
@@ -149,11 +151,14 @@ DSubUD::~DSubUD()
       DCommonRef* cRef=dynamic_cast<DCommonRef*>(*it);
       delete cRef; // also ok if cRef is NULL
     }
+
+  labelList.Clear();
+  delete tree;
 }
 
 DSubUD::DSubUD(const string& n,const string& o,const string& f) : 
   DSub(n,o), file(f),
-  tree( static_cast<RefDNode>(antlr::nullAST)),
+  tree( NULL),
   labelList()
 {
   if( o != "")
@@ -182,7 +187,8 @@ void DSubUD::Reset()
 void DSubUD::DelTree()
 {
   labelList.Clear(); // labels are invalid after tree is deleted
-  tree = static_cast<RefDNode>(antlr::nullAST);
+  delete tree;
+  tree = NULL; //static_cast<RefDNode>(antlr::nullAST);
 }
 
 void DSubUD::AddPar(const string& p)
@@ -223,4 +229,31 @@ void DSubUD::AddKey(const string& k, const string& v)
   var.push_front(v);
 }
 
+// must be done after the tree is converted
+void DSubUD::ResolveAllLabels()
+{
+  ResolveLabel( tree);
+}
 
+void DSubUD::ResolveLabel( ProgNodeP p)
+{
+  if( p->getType() == GDLTreeParser::ON_IOERROR || 
+      p->getType() == GDLTreeParser::GOTO)
+    {
+      int ix = labelList.Find( p->getText());
+      if( ix == -1)
+	throw GDLException( ObjectName()+": Undefined label "+p->getText()+
+			    " referenced in GOTO statement.");
+      
+      p->SetGotoIx( ix);
+    }
+  else if( p->getType() == GDLTreeParser::LABEL)
+    {
+      labelList.SetLabelNode( p);
+    }
+  
+  if( p->getFirstChild() != NULL)
+    ResolveLabel( p->getFirstChild());
+  if( p->getNextSibling() != NULL)
+    ResolveLabel( p->getNextSibling());
+}

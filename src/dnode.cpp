@@ -18,13 +18,61 @@
 #include "includefirst.hpp"
 
 #include <string>
-
 #include <limits>
+
+#include "antlr/Token.hpp"
 
 #include "dnode.hpp"
 #include "datatypes.hpp"
 
 using namespace std;
+
+ProgNode::ProgNode(): // for NULLProgNode
+  ttype( antlr::Token::NULL_TREE_LOOKAHEAD),
+  text( "NULLProgNode"),
+  down( NULL), 
+  right( NULL),
+  lineNumber( 0),
+  cData( NULL),
+  var( NULL),
+  labelStart( 0),
+  labelEnd( 0)
+{}
+
+ProgNode::ProgNode( const RefDNode& refNode):
+  ttype( refNode->getType()),
+  text( refNode->getText()),
+  down( NULL), 
+  right( NULL),
+  lineNumber( refNode->getLine()),
+  cData( refNode->StealCData()),
+  var( refNode->var),
+  labelStart( refNode->labelStart),
+  labelEnd( refNode->labelEnd)
+{
+  initInt = refNode->initInt;
+  
+  if( refNode->GetFirstChild() != RefDNode(antlr::nullAST))
+    {
+      down = new ProgNode( refNode->GetFirstChild());
+    }
+  if( refNode->GetNextSibling() != RefDNode(antlr::nullAST))
+    {
+      right = new ProgNode( refNode->GetNextSibling());
+    }
+}
+
+
+ProgNode::~ProgNode()
+{
+  // delete cData in case this node is a constant
+  if( (getType() == GDLTokenTypes::CONSTANT) && cData != NULL)
+    {
+      delete cData;
+    }
+  delete down;
+  delete right;
+}
 
 DNode::~DNode()
   {

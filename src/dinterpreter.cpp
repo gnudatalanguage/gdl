@@ -43,8 +43,10 @@ SizeT                     GDLInterpreter::objHeapIx;
 SizeT                     GDLInterpreter::heapIx;
 EnvStackT                 GDLInterpreter::callStack; 
 
+ProgNode GDLInterpreter::NULLProgNode;
+ProgNodeP GDLInterpreter::NULLProgNodeP = &GDLInterpreter::NULLProgNode;
 
-DStructGDL* GDLInterpreter::ObjectStruct( BaseGDL* self, RefDNode mp)
+DStructGDL* GDLInterpreter::ObjectStruct( BaseGDL* self, ProgNodeP mp)
 {
   DObjGDL* obj=dynamic_cast<DObjGDL*>(self);
   if( obj == NULL) 
@@ -72,7 +74,7 @@ DStructGDL* GDLInterpreter::ObjectStruct( BaseGDL* self, RefDNode mp)
   return oStructGDL;
 }
 
-DStructGDL* GDLInterpreter::ObjectStructCheckAccess( BaseGDL* self, RefDNode mp)
+DStructGDL* GDLInterpreter::ObjectStructCheckAccess( BaseGDL* self, ProgNodeP mp)
 {
   DStructGDL* oStruct = ObjectStruct( self, mp);
   
@@ -115,7 +117,7 @@ bool GDLInterpreter::SearchCompilePro(const string& pro)
 // returns the struct descriptor with name 'name'
 // read/compiles 'name'__define.pro if necessary
 // cN is the calling node, passed for (runtime) debug information
-DStructDesc* GDLInterpreter::GetStruct(const string& name, RefDNode cN)
+DStructDesc* GDLInterpreter::GetStruct(const string& name, ProgNodeP cN)
 {                   
   // find struct 'id'
   DStructDesc* dStruct=FindInStructList( structList, name);
@@ -157,7 +159,7 @@ DStructDesc* GDLInterpreter::GetStruct(const string& name, RefDNode cN)
   return dStruct;
 }
 
-void GDLInterpreter::SetFunIx( RefDNode& f)
+void GDLInterpreter::SetFunIx( ProgNodeP f)
 {
   if( f->funIx == -1)
     f->funIx=GetFunIx(f->getText());
@@ -180,7 +182,7 @@ int GDLInterpreter::GetFunIx( const string& subName)
   return funIx;
 }
 
-void GDLInterpreter::SetProIx( RefDNode& f)
+void GDLInterpreter::SetProIx( ProgNodeP f)
 {
   if( f->proIx == -1)
     f->proIx=GetProIx(f->getText());
@@ -681,8 +683,11 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in)
 
   try
     {
-      GDLInterpreter::RetCode retCode = interactive( trAST);
-
+      ProgNodeP progAST = new ProgNode( trAST);
+      auto_ptr< ProgNode> progAST_guard( progAST);
+      
+      GDLInterpreter::RetCode retCode = interactive( progAST);
+      
       // write to journal file
       string actualLine = GetClearActualLine();
       if( actualLine != "") lib::write_journal( actualLine); 
@@ -909,14 +914,13 @@ GDLInterpreter::RetCode DInterpreter::InterpreterLoop( const string& startup)
       {
 	if( runCmd)
 	  {
-	  if( static_cast<DSubUD*>
-	      (callStack.back()->GetPro())->GetTree() !=
-	      static_cast<RefDNode>(antlr::nullAST))           
-	    call_pro(static_cast<DSubUD*>
-		     (callStack.back()->GetPro())->GetTree());
+	    if( static_cast<DSubUD*>
+		(callStack.back()->GetPro())->GetTree() != NULL)
+	      call_pro(static_cast<DSubUD*>
+		       (callStack.back()->GetPro())->GetTree());
 
-	  runCmd = false;
-	  continueCmd = false;
+	    runCmd = false;
+	    continueCmd = false;
 	  }
 	else
 	  {
@@ -925,8 +929,7 @@ GDLInterpreter::RetCode DInterpreter::InterpreterLoop( const string& startup)
 	    if( ret == CC_CONTINUE)
 	      {
 		if( static_cast<DSubUD*>
-		    (callStack.back()->GetPro())->GetTree() !=
-		    static_cast<RefDNode>(antlr::nullAST))           
+		    (callStack.back()->GetPro())->GetTree() != NULL)
 		  {
 		    if( continueCmd) 
 		      runCmd = true;

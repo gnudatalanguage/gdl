@@ -27,18 +27,28 @@ using namespace std;
 GDLException::GDLException(const string& s, bool pre): 
   ANTLRException(s),
   errorNode(static_cast<RefDNode>(antlr::nullAST)),
+  errorNodeP( NULL),
   line( 0), col( 0), prefix( pre)
 {}
 
 GDLException::GDLException(const RefDNode eN, const string& s): 
   ANTLRException(s), 
   errorNode(eN),
+  errorNodeP( NULL),
+  line( 0), col( 0), prefix( true)
+{}
+
+GDLException::GDLException(const ProgNodeP eN, const string& s): 
+  ANTLRException(s), 
+  errorNode(static_cast<RefDNode>(antlr::nullAST)),
+  errorNodeP( eN),
   line( 0), col( 0), prefix( true)
 {}
 
 GDLException::GDLException(SizeT l, SizeT c, const string& s): 
   ANTLRException(s),
   errorNode(static_cast<RefDNode>(antlr::nullAST)),
+  errorNodeP( NULL),
   line( l), col( c), prefix( true)
 {}
 

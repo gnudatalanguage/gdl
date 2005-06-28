@@ -173,7 +173,8 @@ public:
   void ForCheck( BaseGDL**, BaseGDL** =NULL);
   bool ForCondUp( BaseGDL*);
   bool ForCondDown( BaseGDL*);
-  void ForAdd( BaseGDL* add=NULL);
+  void ForAdd();
+  void ForAdd( BaseGDL* add);
 
   BaseGDL* Convol( BaseGDL* kIn, BaseGDL* scaleIn, 
 		   bool center, int edgeMode);

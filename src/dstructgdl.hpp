@@ -282,6 +282,7 @@ public:
   void ForCheck( BaseGDL**, BaseGDL** =NULL);
   bool ForCondUp( BaseGDL*);
   bool ForCondDown( BaseGDL*);
+  void ForAdd();
   void ForAdd( BaseGDL* add=NULL);
 
   BaseGDL* UMinus(); // UMinus for SpDString returns float

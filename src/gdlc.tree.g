@@ -352,7 +352,7 @@ jump_statement!//
 	{ 
 	  #jump_statement=astFactory->create(GOTO,i1->getText());
 //	  #jump_statement=#[GOTO,i1->getText()]; // doesn't work
-	  comp.Goto(#jump_statement); 
+//	  comp.Goto(#jump_statement); 
 	}	
   | #(RETURN {bool exprThere=false;} (e:expr {exprThere=true;})?)
 	{
@@ -382,7 +382,7 @@ jump_statement!//
             {
                 #jump_statement=astFactory->create(ON_IOERROR,i2->getText());
 //	            #jump_statement=#[ON_IOERROR,i2->getText()];
-                comp.Goto(#jump_statement); // same handling		 
+//              comp.Goto(#jump_statement); // same handling		 
             }
 	}
   ;

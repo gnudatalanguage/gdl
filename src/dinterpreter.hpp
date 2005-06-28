@@ -98,7 +98,7 @@ public:
     
     // setup main level environment
     DPro* mainPro=new DPro();        // $MAIN$  NOT inserted into proList
-    EnvT* mainEnv=new EnvT(this, static_cast<RefDNode>(antlr::nullAST), mainPro);
+    EnvT* mainEnv=new EnvT(this, NULL, mainPro);
     callStack.push_back(mainEnv);   // push main environment (necessary)
   }
   
