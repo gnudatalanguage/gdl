@@ -35,6 +35,13 @@ void print_tree::pr_name( RefAST node )
     str = node->getText();
     printf("%s(%d) ", str.c_str(), dNode->getLine());
 } // pr_name
+void print_tree::pr_name( ProgNodeP node )
+{
+    std::string str;
+
+    str = node->getText();
+    printf("%s(%d) ", str.c_str(), node->getLine());
+} // pr_name
 
 
 /*
@@ -44,7 +51,7 @@ void print_tree::pr_name( RefAST node )
    Print indentation for a node.
 
  */
-void print_tree::pr_indent(void)
+void print_tree::pr_indent()
 {
   const SizeT BUFSIZE = 127;
   char buf[ BUFSIZE+1 ];
@@ -59,7 +66,7 @@ void print_tree::pr_indent(void)
 
 
 
-void print_tree::pr_open_angle(void)
+void print_tree::pr_open_angle()
 {
   if ( indent_level )
     printf("\n");
@@ -103,13 +110,28 @@ void print_tree::pr_close_angle(bool first)
 void print_tree::pr_leaves( RefAST top )
 {
   RefAST t;
-
-  For_each_kid(t, top) {
-    if (is_nonleaf( t ))
-      pr_top( t );
-    else
-      pr_name( t );
-  }
+  
+  for( t = ( (top && is_nonleaf(top)) ? top->getFirstChild() : (RefAST)NULL );
+       t; t = t->getNextSibling() )
+    {
+      if (is_nonleaf( t ))
+	pr_top( t );
+      else
+	pr_name( t );
+    }
+} // pr_leaves
+void print_tree::pr_leaves( ProgNodeP top )
+{
+  ProgNodeP t;
+  
+  for( t = ( (top && is_nonleaf(top)) ? top->getFirstChild() : NULL );
+       t; t = t->getNextSibling() )
+    {
+      if (is_nonleaf( t ))
+	pr_top( t );
+      else
+	pr_name( t );
+    }
 } // pr_leaves
 
 
@@ -123,21 +145,44 @@ void print_tree::pr_leaves( RefAST top )
  */
 void print_tree::pr_top( RefAST top )
 {
-  RefAST tmp;
+  RefAST t;
   bool first = true;
-
+  
   pr_open_angle();
-
+  
   pr_name( top );
-
+  
   if (is_nonleaf( top )) {
-    For_each_kid( tmp, top ) {
-      if (is_nonleaf( tmp ))
-	first = false;
-    }
+    for( t = ( (top && is_nonleaf(top)) ? top->getFirstChild() : (RefAST)NULL );
+	 t; t = t->getNextSibling() )
+      {    
+	if (is_nonleaf( t ))
+	  first = false;
+      }
     pr_leaves( top );
   }
-
+  
+  pr_close_angle( first );
+} // pr_top
+void print_tree::pr_top( ProgNodeP top )
+{
+  ProgNodeP t;
+  bool first = true;
+  
+  pr_open_angle();
+  
+  pr_name( top );
+  
+  if (is_nonleaf( top )) {
+    for( t = ( (top && is_nonleaf(top)) ? top->getFirstChild() : NULL );
+	 t; t = t->getNextSibling() )
+      {    
+	if (is_nonleaf( t ))
+	  first = false;
+      }
+    pr_leaves( top );
+  }
+  
   pr_close_angle( first );
 } // pr_top
 
@@ -153,6 +198,16 @@ void print_tree::pr_top( RefAST top )
 void print_tree::pr_tree( RefAST top )
 {
   RefAST t;
+
+  for (t = top; t != NULL; t = t->getNextSibling()) {
+    indent_level = 0;
+    pr_top( t );
+    printf("\n");
+  }
+} // pr_tree
+void print_tree::pr_tree( ProgNodeP top )
+{
+  ProgNodeP t;
 
   for (t = top; t != NULL; t = t->getNextSibling()) {
     indent_level = 0;

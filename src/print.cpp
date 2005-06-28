@@ -112,7 +112,7 @@ namespace lib {
 	    par=e->GetParDefined( i);
 	    par->ToStream( *os, width, &actPos);
 	  }
-        bool singleNullChar = (par->Type() == STRING && 
+        bool singleNullChar = (par->Type() == STRING && (nParam-parOffset)>1 &&
 			       (*static_cast<DStringGDL*>(par))[0] == "");
 	if( (par->Dim().Rank() == 0 && !singleNullChar) || 
 	    par->Type() == STRUCT) (*os) << endl;
