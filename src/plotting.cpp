@@ -403,6 +403,42 @@ namespace lib {
       }
   }
 
+
+
+  PLFLT AutoTick(DDouble x)
+  {
+    DLong n = (DLong) floor(log10(x/3.5));
+    DDouble y = (x / (3.5 * pow(10.,n)));
+    DLong m;
+    if (y >= 1 && y < 2)
+      m = 1;
+    else if (y >= 2 && y < 5)
+      m = 2;
+    else if (y >= 5)
+      m = 5;
+
+    PLFLT intv = (PLFLT) (m * pow(10.,n));
+    return intv;
+  }
+
+
+  PLFLT AutoIntv(DDouble x)
+  {
+    DLong n = (DLong) floor(log10(x/2.82));
+    DDouble y = (x / (2.82 * pow(10.,n)));
+    DLong m;
+    if (y >= 1 && y < 2)
+      m = 1;
+    else if (y >= 2 && y < 4.47)
+      m = 2;
+    else if (y >= 4.47)
+      m = 5;
+
+    PLFLT intv = (PLFLT) (m * pow(10.,n));
+    return intv;
+  }
+
+
   // !P
   void GetPData( DLong& p_background,
 		 DLong& p_noErase, DLong& p_color, DLong& p_psym,
@@ -641,27 +677,44 @@ namespace lib {
 
     // !X, !Y (also used below)
 
-    DLong xStyle, yStyle; 
+    DLong xStyle=0, yStyle=0; 
     DString xTitle, yTitle; 
     DFloat x_CharSize, y_CharSize; 
     DFloat xMarginL, xMarginR, yMarginB, yMarginT; 
-    DFloat xTicklen, yTicklen;
-
 
     // [XY]STYLE
     gkw_axis_style(e, "X", xStyle);
     gkw_axis_style(e, "Y", yStyle);
+
+    e->AssureLongScalarKWIfPresent( "XSTYLE", xStyle);
+    e->AssureLongScalarKWIfPresent( "YSTYLE", yStyle);
+
     // AXIS TITLE
     gkw_axis_title(e, "X", xTitle);
     gkw_axis_title(e, "Y", yTitle);
     // MARGIN
     gkw_axis_margin(e, "X",xMarginL, xMarginR);
     gkw_axis_margin(e, "Y",yMarginB, yMarginT);
+
     // x and y range
     DDouble xStart = xVal->min(); 
     DDouble xEnd   = xVal->max(); 
     DDouble yStart = yVal->min(); 
     DDouble yEnd   = yVal->max(); 
+
+    if ((xStyle & 1) != 1) {
+      PLFLT intv;
+      intv = AutoIntv(xEnd-xStart);
+      xEnd = ceil(xEnd/intv) * intv;
+      xStart = floor(xStart/intv) * intv;
+    }
+
+    if ((yStyle & 1) != 1) {
+      PLFLT intv;
+      intv = AutoIntv(yEnd-yStart);
+      yEnd = ceil(yEnd/intv) * intv;
+      yStart = floor(yStart/intv) * intv;
+    }
 
     DLong ynozero, xnozero;
     //[x|y]range keyword
@@ -670,10 +723,24 @@ namespace lib {
 
     if(xEnd == xStart) xEnd=xStart+1;
 
+
     DDouble minVal = yStart;
     DDouble maxVal = yEnd;
     e->AssureDoubleScalarKWIfPresent( "MIN_VALUE", minVal);
     e->AssureDoubleScalarKWIfPresent( "MAX_VALUE", maxVal);
+
+    DLong xTicks=0, yTicks=0; 
+    e->AssureLongScalarKWIfPresent( "XTICKS", xTicks);
+    e->AssureLongScalarKWIfPresent( "YTICKS", yTicks);
+
+    DLong xMinor=0, yMinor=0; 
+    e->AssureLongScalarKWIfPresent( "XMINOR", xMinor);
+    e->AssureLongScalarKWIfPresent( "YMINOR", yMinor);
+
+    DString xTickformat, yTickformat;
+    e->AssureStringScalarKWIfPresent( "XTICKFORMAT", xTickformat);
+    e->AssureStringScalarKWIfPresent( "YTICKFORMAT", yTickformat);
+
 
     bool xLog, yLog;
     get_axis_type("X", xLog);
@@ -688,6 +755,12 @@ namespace lib {
 
     DDouble ticklen = 0.02;
     e->AssureDoubleScalarKWIfPresent( "TICKLEN", ticklen);
+
+    DFloat xTicklen, yTicklen;
+    e->AssureFloatScalarKWIfPresent( "XTICKLEN", xTicklen);
+    e->AssureFloatScalarKWIfPresent( "YTICKLEN", yTicklen);
+    // plsmin (def, scale);
+
 						 
     // POSITION
     PLFLT xScale = 1.0;
@@ -706,6 +779,7 @@ namespace lib {
       yScale = position[3]-position[1];
       //      scale = sqrt( pow( xScale,2) + pow( yScale,2));
       }
+
 
     DFloat charsize, xCharSize, yCharSize;
     // *** start drawing
@@ -756,24 +830,48 @@ namespace lib {
     actStream->wid( 0);
 
     // axis
-    string xOpt = "bcnst";
-    string yOpt = "bcnstv";
+    string xOpt="bc", yOpt="bc";
+    if ((xStyle & 4) == 4) xOpt = "";
+    if ((xStyle & 8) == 8) xOpt = "b";
+
+    if ((yStyle & 4) == 4) yOpt = "";
+    if ((yStyle & 8) == 8) yOpt = "b";
+
+    if (xTicks == 1) xOpt += "t"; else xOpt += "st";
+    if (yTicks == 1) yOpt += "tv"; else yOpt += "stv";
+
+    if (xTickformat != "(A1)") xOpt += "n";
+    if (yTickformat != "(A1)") yOpt += "n";
+
 
     if( xLog) xOpt += "l";
     if( yLog) yOpt += "l";
-    
+
 
     // axis titles
     actStream->schr( 0.0, actH/defH * xCharSize);
     actStream->mtex("b",3.5,0.5,0.5,xTitle.c_str());
+
     // the axis (separate for x and y axis because of charsize)
-    actStream->box( xOpt.c_str(), 0.0, 0, "", 0.0, 0);
+    PLFLT xintv;
+    if (xTicks == 0) {
+      xintv = AutoTick(xEnd-xStart);
+    } else {
+      xintv = (xEnd - xStart) / xTicks;
+    }
+    actStream->box( xOpt.c_str(), xintv, xMinor, "", 0.0, 0);
 
     actStream->schr( 0.0, actH/defH * yCharSize);
     actStream->mtex("l",5.0,0.5,0.5,yTitle.c_str());
     // the axis (separate for x and y axis because of charsize)
-    actStream->box( "", 0.0, 0, yOpt.c_str(), 0.0, 0);
-    
+    PLFLT yintv;
+    if (yTicks == 0) {
+      yintv = AutoTick(yEnd-yStart);
+    } else {
+      yintv = (yEnd - yStart) / yTicks;
+    }
+    actStream->box( "", 0.0, 0, yOpt.c_str(), yintv, yMinor);
+
     // title and sub title
     gkw_title(e, actStream, actH/defH);
 
@@ -834,10 +932,8 @@ namespace lib {
 
 
     // !X, !Y (also used below)
-    DLong xStyle, yStyle; 
     DString xTitle, yTitle; 
     DFloat xMarginL, xMarginR, yMarginB, yMarginT; 
-    DFloat xTicklen, yTicklen;
 
     get_axis_margin("X",xMarginL, xMarginR);
     get_axis_margin("Y",yMarginB, yMarginT);
@@ -906,11 +1002,11 @@ namespace lib {
     actStream->wid( 0);
 
     // axis
-    string xOpt = "bcnst";
-    string yOpt = "bcnstv";
+    //    string xOpt = "bcnst";
+    //string yOpt = "bcnstv";
 
-    if( xLog) xOpt += "l";
-    if( yLog) yOpt += "l";
+    //    if( xLog) xOpt += "l";
+    //if( yLog) yOpt += "l";
     // pen thickness for plot
     gkw_thick(e, actStream);
     gkw_symsize(e, actStream);
@@ -1774,6 +1870,198 @@ namespace lib {
   } // surface
 
 
+  void axis( EnvT* e)
+  {
+    SizeT nParam=e->NParam( 0); 
+    bool valid=true;
+    DDouble zVal, yVal, xVal;
+
+    if (nParam >= 1) e->AssureDoubleScalarPar( 0, xVal);
+
+    // !X, !Y (also used below)
+
+    DLong xStyle=0, yStyle=0; 
+    DString xTitle, yTitle; 
+    DFloat x_CharSize, y_CharSize; 
+    DFloat xMarginL, xMarginR, yMarginB, yMarginT; 
+    DFloat xTicklen, yTicklen;
+
+    bool xAxis=false, yAxis=false; 
+    static int xaxisIx = e->KeywordIx( "XAXIS");
+    static int yaxisIx = e->KeywordIx( "YAXIS");
+
+    if( e->GetKW( xaxisIx) != NULL) xAxis = true;
+    if( e->GetKW( yaxisIx) != NULL) yAxis = true;
+
+    // [XY]STYLE
+    gkw_axis_style(e, "X", xStyle);
+    gkw_axis_style(e, "Y", yStyle);
+
+    e->AssureLongScalarKWIfPresent( "XSTYLE", xStyle);
+    e->AssureLongScalarKWIfPresent( "YSTYLE", yStyle);
+
+    // AXIS TITLE
+    gkw_axis_title(e, "X", xTitle);
+    gkw_axis_title(e, "Y", yTitle);
+    // MARGIN
+    gkw_axis_margin(e, "X",xMarginL, xMarginR);
+    gkw_axis_margin(e, "Y",yMarginB, yMarginT);
+
+
+    // x and y range
+    DDouble xStart;
+    DDouble xEnd;
+    DDouble yStart;
+    DDouble yEnd;
+
+    if ((xStyle & 1) != 1 && xAxis) {
+      PLFLT intv;
+      intv = AutoIntv(xEnd-xStart);
+      xEnd = ceil(xEnd/intv) * intv;
+      xStart = floor(xStart/intv) * intv;
+    }
+
+    if ((yStyle & 1) != 1 && yAxis) {
+      PLFLT intv;
+      intv = AutoIntv(yEnd-yStart);
+      yEnd = ceil(yEnd/intv) * intv;
+      yStart = floor(yStart/intv) * intv;
+    }
+
+
+    DLong ynozero, xnozero;
+    //[x|y]range keyword
+    gkw_axis_range(e, "X", xStart, xEnd, ynozero);
+    gkw_axis_range(e, "Y", yStart, yEnd, xnozero);
+
+    if(xEnd == xStart) xEnd=xStart+1;
+
+    DDouble minVal = yStart;
+    DDouble maxVal = yEnd;
+
+    DLong xTicks=0, yTicks=0; 
+    e->AssureLongScalarKWIfPresent( "XTICKS", xTicks);
+    e->AssureLongScalarKWIfPresent( "YTICKS", yTicks);
+
+    DLong xMinor=0, yMinor=0; 
+    e->AssureLongScalarKWIfPresent( "XMINOR", xMinor);
+    e->AssureLongScalarKWIfPresent( "YMINOR", yMinor);
+
+    DString xTickformat, yTickformat;
+    e->AssureStringScalarKWIfPresent( "XTICKFORMAT", xTickformat);
+    e->AssureStringScalarKWIfPresent( "YTICKFORMAT", yTickformat);
+
+    bool xLog, yLog;
+    get_axis_type("X", xLog);
+    get_axis_type("Y", yLog);
+    if( xLog && xStart <= 0.0)
+      Warning( "AXIS: Infinite x plot range.");
+    if( yLog && minVal <= 0.0)
+      Warning( "AXIS: Infinite y plot range.");
+
+
+    DDouble ticklen = 0.02;
+    e->AssureDoubleScalarKWIfPresent( "TICKLEN", ticklen);
+						 
+    DFloat charsize, xCharSize, yCharSize;
+    // *** start drawing
+    GDLGStream* actStream = GetPlotStream( e); 
+    gkw_color(e, actStream);       //COLOR
+    gkw_noerase(e, actStream);     //NOERASE
+    gkw_charsize(e, actStream, charsize);    //CHARSIZE
+    gkw_axis_charsize(e, "X",xCharSize);//XCHARSIZE
+    gkw_axis_charsize(e, "Y",yCharSize);//YCHARSIZE
+
+    // plplot stuff
+    // set the charsize (scale factor)
+    DDouble charScale = 1.0;
+    DLongGDL* pMulti = SysVar::GetPMulti();
+    if( (*pMulti)[1] > 2 || (*pMulti)[2] > 2) charScale = 0.5;
+    actStream->schr( 0.0, charsize * charScale);
+
+    // get subpage in mm
+    PLFLT scrXL, scrXR, scrYB, scrYT;
+    actStream->gspa( scrXL, scrXR, scrYB, scrYT); 
+    PLFLT scrX = scrXR-scrXL;
+    PLFLT scrY = scrYT-scrYB;
+
+    // get char size in mm (default, actual)
+    PLFLT defH, actH;
+    actStream->gchr( defH, actH);
+
+    /*
+    // viewport and world coordinates
+    bool okVPWC = SetVP_WC( e, actStream, pos, clippingD, 
+			    xLog, yLog,
+			    xMarginL, xMarginR, yMarginB, yMarginT,
+			    xStart, xEnd, minVal, maxVal);
+    if( !okVPWC) return;
+    */
+
+    // pen thickness for axis
+    actStream->wid( 0);
+
+    // axis
+    string xOpt="bc", yOpt="bc";
+    if ((xStyle & 4) == 4) xOpt = "";
+    if ((xStyle & 8) == 8) xOpt = "b";
+
+    if ((yStyle & 4) == 4) yOpt = "";
+    if ((yStyle & 8) == 8) yOpt = "b";
+
+    if (xTicks == 1) xOpt += "t"; else xOpt += "st";
+    if (yTicks == 1) yOpt += "tv"; else yOpt += "stv";
+
+    if (xTickformat != "(A1)") xOpt += "n";
+    if (yTickformat != "(A1)") yOpt += "n";
+
+    if( xLog) xOpt += "l";
+    if( yLog) yOpt += "l";
+
+    if (xAxis) {
+
+      // axis titles
+      actStream->schr( 0.0, actH/defH * xCharSize);
+      actStream->mtex("b",3.5,0.5,0.5,xTitle.c_str());
+
+      // the axis (separate for x and y axis because of charsize)
+      PLFLT xintv;
+      if (xTicks == 0) {
+	xintv = AutoTick(xEnd-xStart);
+      } else {
+	xintv = (xEnd - xStart) / xTicks;
+      }
+      actStream->box( xOpt.c_str(), xintv, xMinor, "", 0.0, 0);
+    }
+
+    if (yAxis) {
+      actStream->schr( 0.0, actH/defH * yCharSize);
+      actStream->mtex("l",5.0,0.5,0.5,yTitle.c_str());
+      // the axis (separate for x and y axis because of charsize)
+      PLFLT yintv;
+      if (yTicks == 0) {
+	yintv = AutoTick(yEnd-yStart);
+      } else {
+	yintv = (yEnd - yStart) / yTicks;
+      }
+      actStream->box( "", 0.0, 0, yOpt.c_str(), yintv, yMinor);
+    }
+
+    // title and sub title
+    // axis has subtitle but no title, gkw_title requires both
+    //    gkw_title(e, actStream, actH/defH);
+
+    actStream->flush();
+  } // axis
+
+
+  void erase( EnvT* e)
+  {
+    GDLGStream* actStream = GetPlotStream( e); 
+    actStream->Clear();
+  }
+
+
   //CORE PLOT FUNCTION -> Draws a line along xVal, yVal
   template <typename T> bool draw_polyline(EnvT *e,  GDLGStream *a, T * xVal, T* yVal, 
 					   bool xLog, bool yLog, DDouble yStart, DDouble yEnd, DLong psym=0
@@ -1907,21 +2195,41 @@ namespace lib {
   //NOERASE
   void gkw_noerase(EnvT* e,GDLGStream * a, bool noe)
   {
-    DLong noErase;
+    DLong noErase=0;
+    static bool evernoErase = false;
+    DLongGDL* pMulti = SysVar::GetPMulti();
+    if ((*pMulti)[0] == 0) evernoErase = false;
+
     if(!noe)
       {
 	static DStructGDL* pStruct = SysVar::P();
 	noErase= (*static_cast<DLongGDL*>( pStruct->Get(pStruct->Desc()->TagIndex("NOERASE"), 0)))[0];
-	if(e->KeywordSet("NOERASE")) noErase=1;
+	if(e->KeywordSet("NOERASE")) {
+	  noErase=1;
+	  evernoErase = true;
+	}
       }
     else
       {
 	noErase=1;
+	evernoErase = true;
       }
-      a->NextPlot( !noErase);
-      if( !noErase) a->Clear();
+    static int positionIx = e->KeywordIx( "POSITION"); 
+    DFloatGDL* pos = e->IfDefGetKWAs<DFloatGDL>( positionIx);
 
+    if (pos == NULL) a->NextPlot( !noErase);
+    if (pos != NULL) a->NoSub();
+
+    if( !noErase && (*pMulti)[0] != 0 && evernoErase) a->Clear();
+
+    static DStructGDL* pStruct = SysVar::P();
+    if(pStruct!=NULL)
+      {
+	static unsigned typeTag = pStruct->Desc()->TagIndex("NOERASE");   
+	(*static_cast<DLongGDL*>(pStruct->Get(typeTag, 0)))[0] = noErase; 
+      }
   }
+
 
   //PSYM
   void gkw_psym(EnvT *e, GDLGStream *a, bool &line, DLong &psym)

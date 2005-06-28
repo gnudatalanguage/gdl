@@ -28,7 +28,8 @@ class DeviceZ: public Graphics
   char*  memBuffer;
   DInt*  zBuffer;
 
-  void plimage_gdl(unsigned char *idata, PLINT nx, PLINT ny, DInt tru)
+  void plimage_gdl(unsigned char *idata, PLINT nx, PLINT ny, 
+		   PLINT xLL, PLINT yLL, DInt tru)
   {
     DLong xsize = (*static_cast<DLongGDL*>( dStruct->Get( xSTag, 0)))[0];
     DLong ysize = (*static_cast<DLongGDL*>( dStruct->Get( ySTag, 0)))[0];
@@ -58,7 +59,7 @@ class DeviceZ: public Graphics
 	    //	    curcolor.pixel = ired*256*256+igrn*256+iblu;
 	  }
 
-	  SizeT baseIx = ((ysize-1-iy)*xsize+ix) * 3;
+	  SizeT baseIx = ((ysize-1-(iy+yLL))*xsize+(ix+xLL)) * 3;
 	  memBuffer[ baseIx+0] = ired;
 	  memBuffer[ baseIx+1] = ired;
 	  memBuffer[ baseIx+2] = ired;
@@ -107,8 +108,9 @@ class DeviceZ: public Graphics
     //    memBuffer = (char*) malloc( sizeof( char) * actX * actY * 3);
     // plplot mem driver error, lines could be drawn upto actY (rather that
     // actY-1)
-    memBuffer = (char*) malloc( sizeof( char) * actX * (actY+1) * 3);
-    
+
+    memBuffer = (char*) calloc( sizeof( char), actX * (actY+1) * 3);
+
     // make it known to plplot
     plsmem( actX, actY, memBuffer);
 
@@ -228,8 +230,24 @@ public:
     actX = nx;
     actY = ny;
 
+    DLong& actXV = (*static_cast<DLongGDL*>( dStruct->Get( xVSTag, 0)))[0];
+    DLong& actYV = (*static_cast<DLongGDL*>( dStruct->Get( yVSTag, 0)))[0];
+
+    actXV = nx;
+    actYV = ny;
+
     return true;
   }
+
+  void ClearStream()
+  {
+    DLong& actX = (*static_cast<DLongGDL*>( dStruct->Get( xSTag, 0)))[0];
+    DLong& actY = (*static_cast<DLongGDL*>( dStruct->Get( ySTag, 0)))[0];
+
+    for( SizeT i=0; i<actX * (actY+1) * 3; ++i)
+      memBuffer[i] = 0;
+  }
+
 
   BaseGDL* TVRD( EnvT* e)
   {
@@ -256,24 +274,31 @@ public:
     //    Graphics* actDevice = Graphics::GetDevice();
     SizeT nParam=e->NParam( 1); 
 
-    DLong xLL=0, yLL=0, pos=0;
-    if (nParam >= 2) 
-      e->AssureLongScalarPar( 1, pos);
-    if (nParam >= 3) 
-      {
-	e->AssureLongScalarPar( 1, xLL);
-	e->AssureLongScalarPar( 2, yLL);
-      }
-
     GDLGStream* actStream = /* actDevice-> */ GetStream();
 
-    actStream->NextPlot( false);
+    //    actStream->NextPlot( false); // JMG
 
     DLong xsize = (*static_cast<DLongGDL*>( dStruct->Get( xSTag, 0)))[0];
     DLong ysize = (*static_cast<DLongGDL*>( dStruct->Get( ySTag, 0)))[0];
 
-    actStream->vpor( 0, 1.0, 0, 1.0);
-    actStream->wind( 1-xLL, xsize-xLL, 1-yLL, ysize-yLL);
+    DLong xLL=0, yLL=0, pos=0;
+    if (nParam == 2) {
+      e->AssureLongScalarPar( 1, pos);
+    } else if (nParam >= 3) {
+      DDouble xLLf, yLLf;
+      if (e->KeywordSet(1)) { // NORMAL
+	e->AssureDoubleScalarPar( 1, xLLf);
+	e->AssureDoubleScalarPar( 2, yLLf);
+	xLL = (DLong) rint(xLLf * xsize);
+	yLL = (DLong) rint(yLLf * ysize);
+      } else {
+	e->AssureLongScalarPar( 1, xLL);
+	e->AssureLongScalarPar( 2, yLL);
+      }
+    }
+
+    //    actStream->vpor( 0, 1.0, 0, 1.0);
+    // actStream->wind( 1-xLL, xsize-xLL, 1-yLL, ysize-yLL);
 
     DByteGDL* p0B = e->GetParAs<DByteGDL>( 0);
     SizeT rank = p0B->Rank();
@@ -307,10 +332,10 @@ public:
 	e->Throw( "Image array must have rank 2 or 3");
       }
 
-    if( width > xsize || height > ysize)
+    if( width + xLL > xsize || height + yLL > ysize)
       e->Throw( "Value of image coordinates is out of allowed range.");
     
-    plimage_gdl(&(*p0B)[0], width, height, tru);
+    plimage_gdl(&(*p0B)[0], width, height, xLL, yLL, tru);
   }
 
 };

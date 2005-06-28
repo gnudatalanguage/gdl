@@ -248,7 +248,6 @@ public:
     zoom[0] = 1;
     zoom[1] = 1;
 
-
     dStruct = new DStructGDL( "!DEVICE");
     dStruct->InitTag("NAME",       DStringGDL( name)); 
     dStruct->InitTag("X_SIZE",     DLongGDL( 640)); 
@@ -474,6 +473,7 @@ public:
     decomposed = value;
     return true;
   }
+
   DLong GetDecomposed()                
   { 
     if( decomposed) return 1;
@@ -552,6 +552,9 @@ public:
     //    actStream->NextPlot( false);
     actStream->NoSub();
 
+    XwDev *dev = (XwDev *) plsc->dev;
+    XwDisplay *xwd = (XwDisplay *) dev->xwd;
+
     int xSize, ySize, xPos, yPos;
     int actWin = ActWin();
     bool success = WSize( actWin, &xSize, &ySize, &xPos, &yPos);
@@ -570,8 +573,6 @@ public:
       height = p0B->Dim(1);
 
     } else if (rank == 3) {
-      XwDev *dev = (XwDev *) plsc->dev;
-      XwDisplay *xwd = (XwDisplay *) dev->xwd;
       if (tru == 1 && xwd->depth < 24) {
 	throw GDLException( e->CallingNode(), 
 			    "TV: Device depth must be 24 or greater "
@@ -608,8 +609,16 @@ public:
       yLL= ySize - height*(iy+1);
     }
     else if (nParam >= 3) {
-      e->AssureLongScalarPar( 1, xLL);
-      e->AssureLongScalarPar( 2, yLL);
+      if (e->KeywordSet(1)) { // NORMAL
+	DDouble xLLf, yLLf;
+	e->AssureDoubleScalarPar( 1, xLLf);
+	e->AssureDoubleScalarPar( 2, yLLf);
+	xLL = (DLong) rint(xLLf * xSize);
+	yLL = (DLong) rint(yLLf * ySize);
+      } else {
+	e->AssureLongScalarPar( 1, xLL);
+	e->AssureLongScalarPar( 2, yLL);
+      }
     }
 
     actStream->vpor( 0, 1.0, 0, 1.0);

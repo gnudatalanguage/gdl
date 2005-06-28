@@ -37,7 +37,8 @@ namespace lib {
   void wshow( EnvT* e);
   void wdelete( EnvT* e);
   void tvlct( EnvT* e);
-
+  void axis( EnvT* e);
+  void erase( EnvT* e);
 
 
 

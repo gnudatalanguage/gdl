@@ -186,6 +186,11 @@ public:
   {
     throw GDLException( "Device "+Name()+" does not support TV.");
   }
+
+  virtual void ClearStream()
+  {
+    throw GDLException( "Device "+Name()+" does not support ClearStream.");
+  }
 };
 
 #endif

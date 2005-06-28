@@ -23,6 +23,12 @@
 
 using namespace std;
 
+void GDLZStream::eop()
+{
+  Graphics* actDevice=Graphics::GetDevice();
+  actDevice->ClearStream();
+}
+
 void GDLZStream::Init()
 {
   plstream::init();

@@ -20,6 +20,7 @@
 
 #include <iostream>
 
+#include "graphics.hpp"
 #include "gdlgstream.hpp"
 
 class GDLZStream: public GDLGStream
@@ -34,7 +35,9 @@ public:
   {
   }
 
-  void eop() {} // never eop (mem drivers eop() sets pls->dev to NULL)
+  //    void eop() {} // never eop (mem drivers eop() sets pls->dev to NULL)
+
+  void eop();
   
   void Init();
 };
