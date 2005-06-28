@@ -981,7 +981,7 @@ namespace lib {
 
     gsl_interp_free (interp);
     gsl_interp_accel_free (acc);
-    delete xa;
+    delete [] xa;
   }
 
 
@@ -1004,7 +1004,7 @@ namespace lib {
 
     gsl_spline_free (spline);
     gsl_interp_accel_free (acc);
-    delete xa;
+    delete [] xa;
   }
 
 
@@ -1039,6 +1039,9 @@ namespace lib {
     bool grid = false;
     if ( e->KeywordSet(1)) grid = true;
 
+    if ( nParam == 3)
+      if (p1->N_Elements() == 1 && p2->N_Elements() == 1)
+	grid = false;
 
     // If not GRID then check that rank and dims match
     if ( nParam == 3 && !grid) {
@@ -1072,6 +1075,13 @@ namespace lib {
       for( SizeT i=0; i<p1->Rank(); ++i) 
 	dims[i+p0->Rank()-(nParam-1)] = p1->Dim(i);
       resRank = p0->Rank()-(nParam-1)+p1->Rank();
+      if (p1->N_Elements() == 1 && 
+	  p2->N_Elements() == 1 && 
+	  !e->KeywordSet(1) && 
+	  nParam < 3) {
+	dims[0] = 0;
+	resRank = 0;
+      }
     } else {
       // GRID
       for( SizeT i=0; i<p0->Rank()-(nParam-1); ++i) 
@@ -1133,8 +1143,8 @@ namespace lib {
 	  for( SizeT j=0; j<p1D->N_Elements(); ++j) 
 	    (*res)[j*ninterp+i] = y[j];
 
-	  delete (ya);
-	  delete (y);
+	  delete [] ya;
+	  delete [] y;
 	}
       }
 
@@ -1171,14 +1181,16 @@ namespace lib {
       SizeT nx = 1;
       if (grid) nx = res->Dim(resRank-2);
       
-      SizeT ny = res->Dim(resRank-1);
+      SizeT ny = 1;
+      if (resRank != 0 && res->Dim(resRank-1) != 0) ny = res->Dim(resRank-1);
+      if (resRank == 1) ny = 1;
 
-      double **work = new double*[ny];
-      for( SizeT k=0; k<ny; ++k) work[k] = new double[nx];
 
+      SizeT ny2 = (ny == 1) * 2 + (ny > 1) * ny;
+      double **work = new double*[ny2];
+      for( SizeT k=0; k<ny2; ++k) work[k] = new double[nx];
 
       for( SizeT i=0; i<ninterp; ++i) {
-
 	for( SizeT k=0; k<nya; ++k) {
 	  for( SizeT j=0; j<nxa; ++j) {
 	    ya[k][j] = (*p0D)[i+(ninterp*j)+(ninterp*nxa)*k];
@@ -1201,6 +1213,7 @@ namespace lib {
 	    interpolate_linear(nxa, nx, ya[row], dptr, &work[0][0]);
 	    if (row < -1) row = -1;
 	    if (row >= nya-1) row = nya - 2;
+	    //	    interpolate_linear(nxa, nx, ya[(row+1)], dptr, &work[1][0]);
 	    interpolate_linear(nxa, nx, ya[(row+1)], dptr, &work[1][0]);
 	  }
 	  first = false;
@@ -1222,11 +1235,11 @@ namespace lib {
 
 
       // Free dynamic arrays
-      for( SizeT k=0; k<ny; ++k) delete(work[k]);
-      delete(work);
+      for( SizeT k=0; k<ny2; ++k) delete [] work[k];
+      delete [] work;
 
-      for( SizeT k=0; k<nya; ++k) delete(ya[k]);
-      delete(ya);
+      for( SizeT k=0; k<nya; ++k) delete [] ya[k];
+      delete [] ya;
 
     } // if( nParam == 3) {
 
