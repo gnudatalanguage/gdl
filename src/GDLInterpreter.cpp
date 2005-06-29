@@ -3877,7 +3877,7 @@ void GDLInterpreter::l_dot_array_expr(ProgNodeP _t,
 		throw GDLException( _t, "File expression not allowed "
 		"in this context: "+Name(*rP));
 		
-		aD->Root( structR, guard.release()); 
+		aD->Root( structR, guard.release() /* aL */); 
 		}
 		
 		break;
@@ -4487,6 +4487,7 @@ BaseGDL*  GDLInterpreter::array_expr(ProgNodeP _t) {
 	}
 	}
 	
+	aL->SetVariable( r);
 	res=r->Index( aL);
 	
 	_t = __t118;

@@ -328,6 +328,9 @@ public:
   // set the root variable which is indexed by this ArrayIndexListT
   void SetVariable( BaseGDL* var) 
   {
+    //    std::cout << "SetVariable: "; var->ToStream( std::cout); std::cout << std::endl;
+    assert( allIx == NULL);
+
     // set acRank
     acRank = ixList.size();
 
@@ -470,7 +473,7 @@ public:
   // returns 1-dim index for all nTh elements
   AllIxT* BuildIx()
   {
-    assert( allIx == NULL);
+    if( allIx != NULL) return allIx;
 
     if( accessType == ONEDIM)
       {

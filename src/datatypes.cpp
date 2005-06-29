@@ -1207,7 +1207,8 @@ Data_<Sp>* Data_<Sp>::CatArray( ExprListT& exprList,
 template<class Sp>
 Data_<Sp>* Data_<Sp>::Index( ArrayIndexListT* ixList)
 {
-  ixList->SetVariable( this);
+  //  ixList->SetVariable( this);
+
   Data_* res=Data_::New( ixList->GetDim(), BaseGDL::NOZERO);
 
   SizeT nCp=ixList->N_Elements();

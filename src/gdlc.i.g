@@ -1620,7 +1620,7 @@ l_dot_array_expr [DotAccessDescT* aD] // 1st
                 throw GDLException( _t, "File expression not allowed "
                     "in this context: "+Name(*rP));
                 
-                aD->Root( structR, guard.release()); 
+                aD->Root( structR, guard.release() /* aL */); 
             }
         }
     | rP=l_indexable_expr
@@ -2088,6 +2088,7 @@ array_expr returns [BaseGDL* res]
                 }
             )
             {
+                aL->SetVariable( r);
                 res=r->Index( aL);
             }
         )   

@@ -378,7 +378,7 @@ DStructGDL* DStructGDL::CatArray( ExprListT& exprList,
 // returns (*this)[ ixList]
 DStructGDL* DStructGDL::Index( ArrayIndexListT* ixList)
 {
-  ixList->SetVariable( this);
+  //  ixList->SetVariable( this);
   
   DStructGDL* res=New( ixList->GetDim(), BaseGDL::NOZERO);
   

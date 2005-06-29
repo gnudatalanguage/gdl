@@ -127,5 +127,10 @@
 	  
 0.8.10:   Optimization (~10%): Arrayindexing, non-copy constants, 
 	  Complex (pow, abs).
-
-	
+	  Optimization (~>200%): Dedicated ProgNodes for compiled programs
+	  Fixed RETURN statement in FOR loops.
+	  Made GDL compileable as a python module'.
+	  .RUN handle files without subroutines.
+	  GCC 4.0 compilance.
+	  INTERPOLATE function.
+	  Fixed eof detection on input.

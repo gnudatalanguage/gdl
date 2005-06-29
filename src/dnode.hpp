@@ -349,15 +349,7 @@ public:
 // see gdlc.i.g
 namespace antlr {
 
-  RefAST ConvertAST( ProgNodeP p) 
-  { 
-    RefDNode refNode = RefDNode( new DNode);
-    refNode->setType( p->getType());
-    refNode->setText( p->getText());
-    refNode->SetLine( p->getLine());
-    
-    return static_cast<antlr::RefAST>( refNode);
-  }
+  RefAST ConvertAST( ProgNodeP p);
 }
 
 #endif

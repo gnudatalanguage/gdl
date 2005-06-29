@@ -20,12 +20,28 @@
 #include <string>
 #include <limits>
 
+#include "antlr/TreeParser.hpp"
 #include "antlr/Token.hpp"
 
 #include "dnode.hpp"
 #include "datatypes.hpp"
 
 using namespace std;
+
+namespace antlr {
+
+  RefAST ConvertAST( ProgNodeP p) 
+  { 
+    if( p == NULL) return TreeParser::ASTNULL;
+
+    RefDNode refNode = RefDNode( new DNode);
+    refNode->setType( p->getType());
+    refNode->setText( p->getText());
+    refNode->SetLine( p->getLine());
+    
+    return static_cast<antlr::RefAST>( refNode);
+  }
+}
 
 ProgNode::ProgNode(): // for NULLProgNode
   ttype( antlr::Token::NULL_TREE_LOOKAHEAD),
