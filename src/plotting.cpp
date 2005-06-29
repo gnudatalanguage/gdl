@@ -633,8 +633,7 @@ namespace lib {
 	Clipping( clippingD, xStart, xEnd, minVal, maxVal);
 
     if( xLog)
-      {
-	  
+      {	  
 	if( xStart <= 0.0) xStart = 0.0; else xStart = log10( xStart);
 	if( xEnd   <= 0.0) return false; else xEnd = log10( xEnd);
       }
@@ -716,10 +715,14 @@ namespace lib {
       yStart = floor(yStart/intv) * intv;
     }
 
-    DLong ynozero, xnozero;
+    DLong ynozero=0, xnozero=0;
     //[x|y]range keyword
     gkw_axis_range(e, "X", xStart, xEnd, ynozero);
     gkw_axis_range(e, "Y", yStart, yEnd, xnozero);
+    if ( e->KeywordSet( "YNOZERO")) ynozero = 1;
+
+    if (xStart > 0 && xnozero == 0) xStart = 0; 
+    if (yStart > 0 && ynozero == 0) yStart = 0; 
 
     if(xEnd == xStart) xEnd=xStart+1;
 
@@ -2456,8 +2459,8 @@ namespace lib {
 	end = (*RangeF)[1];
 	if(axis=="Y") ynozero=1;
       }
-
   }
+
   void get_axis_margin(string axis, DFloat &low, DFloat &high)
   {
     DStructGDL* Struct=NULL;
