@@ -34,12 +34,14 @@ public:
     ALL,       // *
     ONE,       // scalar
     ORANGE,    // open range s:*
-    RANGE      // s:e
+    RANGE,      // s:e
+    ORANGE_S,    // open range with stride s:*:stride
+    RANGE_S      // s:e:stride
   };
 
 private:
   IxType     t;
-  SizeT      s,e;
+  SizeT      s,e,stride;
   AllIxT*    ix;
   //  SizeT*     ix;
   //  SizeT      nElem; // for ix
@@ -69,7 +71,10 @@ public:
   }
 
   // [[ix]] (type 0)
-  ArrayIndexT( BaseGDL* ix_): t(INDEXED), s(0), e(0), ix( NULL), ixDim( NULL) 
+  ArrayIndexT( BaseGDL* ix_): 
+    t(INDEXED), 
+    s(0), e(0), stride(0), 
+    ix( NULL), ixDim( NULL) 
   {
     DType dType = ix_->Type();
 
@@ -184,12 +189,14 @@ public:
   } 
   
   // [*] (type 1)
-  ArrayIndexT(): t(ALL), s(0), e(0), ix(NULL), ixDim( NULL)  
+  ArrayIndexT(): t(ALL), s(0), e(0), stride(0), ix(NULL), ixDim( NULL)  
   {} 
 
-  // [s] (type 2) || [s:*] (type 3)  || [s:e] (type 4) 
-  ArrayIndexT( IxType t_, SizeT s_, SizeT e_=0): t(t_), s(s_), e(e_), 
-						 ix(NULL), ixDim( NULL)  
+  // [s] (type 2) || [s:*] (type 3)  || [s:e] (type 4) || 
+  // [s:*:stride] (type 5)  || [s:e:stride] (type 6) 
+  ArrayIndexT( IxType t_, SizeT s_, SizeT e_=0, SizeT stride_=0): 
+    t(t_), s(s_), e(e_), stride( stride_), 
+    ix(NULL), ixDim( NULL)  
   {}
   
   // number of iterations
@@ -235,10 +242,24 @@ public:
 	  throw GDLException("Subscript out of range [s:*].");
 	return (varDim - s);
       }
-    // t == RANGE
-    if( e >= varDim)
-      throw GDLException("Subscript out of range [s:e].");
-    return (e - s + 1);
+    if( t == RANGE)
+      {
+	if( e >= varDim)
+	  throw GDLException("Subscript out of range [s:e].");
+	return (e - s + 1);
+      }
+    if( t == ORANGE_S) 
+      {
+	if( s >= varDim)
+	  throw GDLException("Subscript out of range [s:*].");
+	return (varDim - s + stride - 1)/stride;
+      }
+    // if( t == RANGE_S)
+      {
+	if( e >= varDim)
+	  throw GDLException("Subscript out of range [s:e].");
+	return (e - s + stride)/stride;
+      }
   }
 
   bool Scalar()
@@ -483,13 +504,22 @@ public:
 	  {
 	    //	    allIx = new SizeT[ nIx];
 	    allIx = new AllIxT( nIx);
-	    SizeT& s = ixList[0]->s;
-	    if( s != 0) 
-	      for( SizeT i=0; i<nIx; ++i)
-		(*allIx)[i] = i + s;
+	    SizeT s = ixList[0]->s;
+	    SizeT ixStride = ixList[0]->stride;
+	    if( ixStride <= 1) 
+	      if( s != 0) 
+		for( SizeT i=0; i<nIx; ++i)
+		  (*allIx)[i] = i + s;
+	      else
+		for( SizeT i=0; i<nIx; ++i)
+		  (*allIx)[i] = i;
 	    else
-	      for( SizeT i=0; i<nIx; ++i)
-		(*allIx)[i] = i;
+	      if( s != 0) 
+		for( SizeT i=0; i<nIx; ++i)
+		  (*allIx)[i] = i * ixStride + s;
+	      else
+		for( SizeT i=0; i<nIx; ++i)
+		  (*allIx)[i] = i * ixStride;
 	  }
 	return allIx;
       }
@@ -539,18 +569,31 @@ public:
       }
     else
       {
-	SizeT& s = ixList[0]->s;
+	SizeT s = ixList[0]->s;
+	SizeT ixStride = ixList[0]->stride;
 	
-	if( s != 0) 
-	  for( SizeT i=0; i<nIx; ++i)
-	    {
-	      (*allIx)[i] = i %  nIterLimit[0] + s; // stride[0], varStride[0] == 1
-	    }
+	if( ixStride <= 1)
+	  if( s != 0) 
+	    for( SizeT i=0; i<nIx; ++i)
+	      {
+		(*allIx)[i] = (i %  nIterLimit[0]) + s; // stride[0], varStride[0] == 1
+	      }
+	  else
+	    for( SizeT i=0; i<nIx; ++i)
+	      {
+		(*allIx)[i] = (i %  nIterLimit[0]); // stride[0], varStride[0] == 1
+	      }
 	else
-	  for( SizeT i=0; i<nIx; ++i)
-	    {
-	      (*allIx)[i] = i %  nIterLimit[0]; // stride[0], varStride[0] == 1
-	    }
+	  if( s != 0) 
+	    for( SizeT i=0; i<nIx; ++i)
+	      {
+		(*allIx)[i] = (i %  nIterLimit[0]) * ixStride + s; // stride[0], varStride[0] == 1
+	      }
+	  else
+	    for( SizeT i=0; i<nIx; ++i)
+	      {
+		(*allIx)[i] = (i %  nIterLimit[0]) * ixStride; // stride[0], varStride[0] == 1
+	      }
       }
 
     for( SizeT l=1; l < acRank; ++l)
@@ -572,8 +615,10 @@ public:
 	  }
 	else
 	  {
-	    SizeT& s = ixList[l]->s;
-	
+	    SizeT s = ixList[l]->s;
+	    SizeT ixStride = ixList[l]->stride;
+	    
+	    if( ixStride <= 1)
 	    if( s != 0) 
 	      for( SizeT i=0; i<nIx; ++i)
 		{
@@ -585,6 +630,19 @@ public:
 		{
 		  (*allIx)[i] += ((i / stride[l]) %  nIterLimit[l]) * 
 		    varStride[l]; 
+		}
+	    else // ixStride > 1 
+	    if( s != 0) 
+	      for( SizeT i=0; i<nIx; ++i)
+		{
+		  (*allIx)[i] += (((i / stride[l]) %  nIterLimit[l]) 
+				  * ixStride + s) * varStride[l]; 
+		}
+	    else
+	      for( SizeT i=0; i<nIx; ++i)
+		{
+		  (*allIx)[i] += ((i * ixStride / stride[l]) %  nIterLimit[l]) 
+		    * ixStride * varStride[l]; 
 		}
 	  }
       }

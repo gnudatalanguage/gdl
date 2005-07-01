@@ -180,10 +180,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 197;
+	static const int NUM_TOKENS = 199;
 #else
 	enum {
-		NUM_TOKENS = 197
+		NUM_TOKENS = 199
 	};
 #endif
 	
@@ -221,6 +221,8 @@ private:
 	static const antlr::BitSet _tokenSet_15;
 	static const unsigned long _tokenSet_16_data_[];
 	static const antlr::BitSet _tokenSet_16;
+	static const unsigned long _tokenSet_17_data_[];
+	static const antlr::BitSet _tokenSet_17;
 };
 
 #endif /*INC_GDLParser_hpp_*/

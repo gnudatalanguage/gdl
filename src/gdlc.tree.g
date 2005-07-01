@@ -576,7 +576,8 @@ arrayindex_list
 	: (arrayindex)+
 	;	
 
-// type: 0->data, 1-> [*], 2-> [s], 3-> [s:*], 4-> [s:e]
+// type: 0->data, 1-> [*], 2-> [s], 3-> [s:*], 4-> [s:e], 
+//       5->[s:*:stride], 6->[s:e:stride]
 arrayindex
 	: #(ax:ARRAYIX 
 			( ALL 
@@ -585,16 +586,29 @@ arrayindex
                     #ax->setText("*");
                 }
 			| ( expr // 0 or 2
-                    ( !ALL
-                        { 
+                    (   (  !ALL
+                            { 
                             #ax->setType(ARRAYIX_ORANGE); // 3
                             #ax->setText("s:*");
-                        }
-                    | expr
-                        { 
+                            }
+                        )
+                        ( expr
+                            { 
+                            #ax->setType(ARRAYIX_ORANGE_S); // 5
+                            #ax->setText("s:*:s");
+                            }
+                        )?
+                      | expr
+                            { 
                             #ax->setType(ARRAYIX_RANGE); // 4
                             #ax->setText("s:e");
-                        }
+                            }
+                        ( expr
+                            { 
+                            #ax->setType(ARRAYIX_RANGE_S); // 6
+                            #ax->setText("s:e:s");
+                            }
+                        )?
                     )?
                 )
 			)

@@ -2723,6 +2723,84 @@ arrayindex_range returns[ ArrayIndexT* arrIx] // RANGE [s:e]
             }
     ;
 
+arrayindex_range_s returns[ ArrayIndexT* arrIx] // RANGE [s:e:stride]
+{
+    BaseGDL* s;
+    BaseGDL* e;
+    BaseGDL* stride;
+    SizeT sIx,eIx, strideIx;
+    int    retMsg=0;
+}    
+    : s=expr e=expr stride=expr
+        {
+            auto_ptr<BaseGDL> s_guard(s);
+            auto_ptr<BaseGDL> e_guard(e);
+            auto_ptr<BaseGDL> stride_guard(stride);
+
+            retMsg=s->Scalar2index(sIx);
+            if( retMsg == 0) // index empty or array
+            {
+                if( s->N_Elements() == 0)
+                throw 
+                GDLException( _t, "Internal error: Scalar2index: 1st index empty."); 
+                else
+                throw 
+                GDLException( _t, "Expression must be a scalar in this context."); 
+            }
+            if( retMsg == -1) // index < 0
+            {
+                throw 
+                GDLException( _t, "Subscript range values of the form low:high " 
+                    "must be >= 0, < size, with low <= high.");
+            }
+            
+            retMsg=e->Scalar2index(eIx);
+            if( retMsg == 0) // index empty or array
+            {
+                if( e->N_Elements() == 0)
+                throw 
+                GDLException( _t, "Internal error: Scalar2index: 2nd index empty."); 
+                else
+                throw 
+                GDLException( _t, "Expression must be a scalar in this context."); 
+            }
+            if( retMsg == -1) // index < 0
+            {
+                throw 
+                GDLException( _t, "Subscript range values of the form low:high " 
+                    "must be >= 0, < size, with low <= high.");
+            }
+            
+            if( eIx < sIx)
+            {
+                throw 
+                GDLException( _t, " Subscript range values of the form low:high " 
+                    "must be >= 0, < size, with low <= high");
+            }
+                            
+            // stride
+            retMsg=stride->Scalar2index(strideIx);
+            if( retMsg == 0) // index empty or array
+            {
+                if( s->N_Elements() == 0)
+                throw 
+                GDLException( _t, "Internal error: Scalar2index:"
+                    " stride index empty"); 
+                else
+                throw 
+                GDLException( _t, "Expression must be a scalar"
+                    " in this context."); 
+            }
+            if( retMsg == -1 || strideIx == 0) // stride <= 0
+            {
+                throw 
+                GDLException( _t, "Range subscript stride must be >= 1.");
+            }
+
+            arrIx = new ArrayIndexT(ArrayIndexT::RANGE_S,sIx,eIx,strideIx);
+            }
+    ;
+
 arrayindex_end returns[ ArrayIndexT* arrIx] // ORANGE [s:*]
 {
     BaseGDL* s;
@@ -2752,6 +2830,59 @@ arrayindex_end returns[ ArrayIndexT* arrIx] // ORANGE [s:*]
                     " form low:high must be >= 0, < size, with low <= high.");
             }
             arrIx = new ArrayIndexT(ArrayIndexT::ORANGE,sIx);
+        }
+    ;
+
+arrayindex_end_s returns[ ArrayIndexT* arrIx] // ORANGE [s:*:stride]
+{
+    BaseGDL* s;
+    BaseGDL* stride;
+    SizeT sIx,strideIx;
+    int    retMsg=0;
+}    
+    : s=expr stride=expr
+        {
+            auto_ptr<BaseGDL> s_guard(s);
+            auto_ptr<BaseGDL> stride_guard(stride);
+
+            retMsg=s->Scalar2index(sIx);
+            if( retMsg == 0) // index empty or array
+            {
+                if( s->N_Elements() == 0)
+                throw 
+                GDLException( _t, "Internal error: Scalar2index:"
+                    " 1st index empty"); 
+                else
+                throw 
+                GDLException( _t, "Expression must be a scalar"
+                    " in this context."); 
+            }
+            if( retMsg == -1) // index < 0
+            {
+                throw 
+                GDLException( _t, "Subscript range values of the"
+                    " form low:high must be >= 0, < size, with low <= high.");
+            }
+            // stride
+            retMsg=stride->Scalar2index(strideIx);
+            if( retMsg == 0) // index empty or array
+            {
+                if( s->N_Elements() == 0)
+                throw 
+                GDLException( _t, "Internal error: Scalar2index:"
+                    " stride index empty"); 
+                else
+                throw 
+                GDLException( _t, "Expression must be a scalar"
+                    " in this context."); 
+            }
+            if( retMsg == -1 || strideIx == 0) // stride <= 0
+            {
+                throw 
+                GDLException( _t, "Range subscript stride must be >= 1.");
+            }
+
+            arrIx = new ArrayIndexT(ArrayIndexT::ORANGE_S,sIx,0,strideIx);
         }
     ;
 
@@ -2818,6 +2949,14 @@ arrayindex_list returns [ArrayIndexListT* aL]
             )
         |#(ARRAYIX_RANGE // RANGE
                 arrIx=arrayindex_range
+                { arrList->push_back(arrIx);}
+            )
+        |#(ARRAYIX_ORANGE_S // ORANGE with stride
+                arrIx=arrayindex_end_s
+                { arrList->push_back(arrIx);}
+            )
+        |#(ARRAYIX_RANGE_S // RANGE with stride
+                arrIx=arrayindex_range_s
                 { arrList->push_back(arrIx);}
             )
       )+

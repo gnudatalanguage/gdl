@@ -63,6 +63,8 @@ tokens {
 	ARRAYIX_ALL;
 	ARRAYIX_ORANGE;
 	ARRAYIX_RANGE;
+	ARRAYIX_ORANGE_S; // with stride
+	ARRAYIX_RANGE_S;
 	ARRAYEXPR;
 	ARRAYEXPR_FN;
 	BLOCK;
@@ -901,9 +903,19 @@ arrayindex
 	| expr
 	  (COLON! 
 		(
-		  (ASTERIX (COMMA|RBRACE|RSQUARE))=> all
+		  (ASTERIX (COMMA|RBRACE|RSQUARE|COLON))=> all
 		| expr
 		)
+                (COLON! 
+                    (
+                      (ASTERIX (COMMA|RBRACE|RSQUARE))=> ASTERIX!
+                        {
+                        throw 
+                            GDLException( "n:n:* subscript form not allowed.");
+                        }
+                    | expr
+                    )
+                )?
 	  )?
 	)
 	{ #arrayindex = #([ARRAYIX,"arrayix"], #arrayindex);}

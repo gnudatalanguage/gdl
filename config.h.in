@@ -18,7 +18,7 @@
 /* plplot library */
 #undef HAVE_LIBPLPLOTCXXD
 
-/* Define to 1 if you have the `readline' library (-lreadline). */
+/* GNU readline library */
 #undef HAVE_LIBREADLINE
 
 /* Define to 1 if you have the <memory.h> header file. */

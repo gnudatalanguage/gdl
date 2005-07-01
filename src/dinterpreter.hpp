@@ -82,6 +82,7 @@ public:
     
 #ifdef HAVE_LIBREADLINE
     // initialize readline (own version - not pythons one)
+    // in includefirst.hpp readline is disabled for python_module
     char rlName[] = "GDL";
     rl_readline_name = rlName;
     rl_event_hook = GDLEventHandler;

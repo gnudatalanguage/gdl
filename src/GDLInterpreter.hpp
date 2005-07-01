@@ -444,7 +444,9 @@ public:
 	public:  BaseGDL**  ref_parameter(ProgNodeP _t);
 	public:  ArrayIndexT*  arrayindex_all(ProgNodeP _t);
 	public:  ArrayIndexT*  arrayindex_range(ProgNodeP _t);
+	public:  ArrayIndexT*  arrayindex_range_s(ProgNodeP _t);
 	public:  ArrayIndexT*  arrayindex_end(ProgNodeP _t);
+	public:  ArrayIndexT*  arrayindex_end_s(ProgNodeP _t);
 	public:  ArrayIndexT*  arrayindex(ProgNodeP _t);
 	public:  BaseGDL*  named_struct_def(ProgNodeP _t);
 	public:  BaseGDL*  unnamed_struct_def(ProgNodeP _t);
@@ -460,10 +462,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 197;
+	static const int NUM_TOKENS = 199;
 #else
 	enum {
-		NUM_TOKENS = 197
+		NUM_TOKENS = 199
 	};
 #endif
 	

@@ -795,6 +795,29 @@ if u[2] ne 3 then print,"***LEFT_LIBFUNCTION: ERROR1"
 print,"LEFT_LIBFUNCTION: OK"
 end
 
+pro stride_index_test
+
+a=lindgen( 11, 20, 31)
+
+;print,total( a[1:*:3])
+
+if total( a[1:10:4, 2:16:2, 5:29:5]) ne 408480. then print,"***STRIDE_INDEX: ERROR 1"
+if total( a[*, 2:14:2, 20:29:5]) ne 776622. then print,"***STRIDE_INDEX: ERROR 2"
+if total( a[1:6:2, *, 17:29:5]) ne 890550. then print,"***STRIDE_INDEX: ERROR 3"
+if total( a[[7,1], 2:16:2, 5:29:5]) ne 272240. then print,"***STRIDE_INDEX: ERROR 4"
+if total( a[3:9:2, [7,1], 2:*:4]) ne 228480. then print,"***STRIDE_INDEX: ERROR "
+if total( a[*, 5:*:5, [7,1]]) ne 65670. then print,"***STRIDE_INDEX: ERROR 5"
+if total( a[5:7, 2:16:2, 5:29:5]) ne 408600. then print,"***STRIDE_INDEX: ERROR 6"
+if total( a[3:9:2, 5:7, 2:*:4]) ne 344832. then print,"***STRIDE_INDEX: ERROR 7"
+if total( a[*, 5:*:5, 5:7]) ne 142065. then print,"***STRIDE_INDEX: ERROR 8"
+
+b=lindgen(50)
+if total( b[1:32:7]) ne 75. then print,"***STRIDE_INDEX: ERROR 9"
+if total( b[1:*:3]) ne 425. then print,"***STRIDE_INDEX: ERROR 10"
+
+print,"STRIDE_INDEX: OK"
+end
+
 ;; set MEMCHECK to perform a memory leak check
 ;; as the heap (number of allocated cells) always grows so does
 ;; the memory consumption
@@ -824,6 +847,7 @@ index_test
 operator_test
 assignment_test
 left_libfunction_test
+stride_index_test
 
 print,"TEST_SUITE finished."
 end

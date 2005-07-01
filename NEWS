@@ -134,3 +134,4 @@
 	  GCC 4.0 compilance.
 	  INTERPOLATE function.
 	  Fixed eof detection on input.
+	  Implemented strided index support.

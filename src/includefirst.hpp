@@ -32,6 +32,13 @@
 //#ifndef _POSIX_C_SOURCE 
 //#warning "_POSIX_C_SOURCE not defined in Python.h (remove #undef)"
 //#endif
+
+// for the python module pyhton's readline is used
+// this is ok as long as there is no GDL prompt within python
+#ifdef PYTHON_MODULE
+#undef HAVE_LIBREADLINE
+#endif
+
 #endif
 
 #endif
