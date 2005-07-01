@@ -25,6 +25,8 @@
 #include "dinterpreter.hpp"
 #include "gdljournal.hpp"
 
+#include <assert.h>
+
 // print out AST tree
 //#define GDL_DEBUG
 #undef GDL_DEBUG
@@ -45,6 +47,17 @@ EnvStackT                 GDLInterpreter::callStack;
 
 ProgNode GDLInterpreter::NULLProgNode;
 ProgNodeP GDLInterpreter::NULLProgNodeP = &GDLInterpreter::NULLProgNode;
+
+// used in the statement function.
+// runs a new instance of the interpreter if not
+// at main level
+GDLInterpreter::RetCode GDLInterpreter::NewInterpreterInstance()
+{
+  if( callStack.size() <= 1) return RC_ABORT; // stay in main loop 
+  
+  assert( dynamic_cast<DInterpreter*>( this) != NULL);
+  return static_cast<DInterpreter*>( this)->InnerInterpreterLoop();
+}
 
 DStructGDL* GDLInterpreter::ObjectStruct( BaseGDL* self, ProgNodeP mp)
 {

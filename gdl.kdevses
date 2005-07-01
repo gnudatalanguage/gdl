@@ -1,7 +1,17 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
- <DocsAndViews NumberOfDocuments="0" />
+ <DocsAndViews NumberOfDocuments="3" >
+  <Doc0 NumberOfViews="1" URL="file:/usr/local/gdl/src/GDLInterpreter.cpp" >
+   <View0 line="5523" Type="Source" />
+  </Doc0>
+  <Doc1 NumberOfViews="1" URL="file:/usr/local/gdl/src/arrayindex.hpp" >
+   <View0 line="572" Type="Source" />
+  </Doc1>
+  <Doc2 NumberOfViews="1" URL="file:/usr/local/gdl/src/convert2.cpp" >
+   <View0 line="34" Type="Source" />
+  </Doc2>
+ </DocsAndViews>
  <pluginList>
   <kdevbookmarks>
    <bookmarks/>

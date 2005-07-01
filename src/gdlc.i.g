@@ -30,7 +30,7 @@ header "post_include_cpp" {
 #define ASTNULL          NULLProgNodeP
 #define ProgNodeP( xxx ) NULL             /* ProgNodeP(antlr::nullAST) */
 #define RefAST( xxx)     ConvertAST( xxx) /* antlr::RefAST( Ref type)  */
-#define match( a, b)     /* antlr::RefAST( Ref type)  */
+#define match( a, b)     /* remove from source */
 
 using namespace std;
 }
@@ -387,6 +387,8 @@ public:
         return ret;
     }
 
+    RetCode NewInterpreterInstance(); // code in dinterpreter.cpp
+
     ~GDLInterpreter()
     {
     }
@@ -523,11 +525,7 @@ statement returns[ GDLInterpreter::RetCode retCode]
 
                 sigControlC = false;
 
-                // CHANGED: only start new InterpreterLoop when not at $MAIN$
-                DInterpreter* thisDInterpreter =
-                    dynamic_cast<DInterpreter*>( this);
-                if( thisDInterpreter != NULL)
-                    retCode = thisDInterpreter->InnerInterpreterLoop();
+                retCode = NewInterpreterInstance();
             }
             else if( debugMode != DEBUG_CLEAR)
             {
@@ -547,12 +545,8 @@ statement returns[ GDLInterpreter::RetCode retCode]
 
                     debugMode = DEBUG_CLEAR;
                 
-                    // CHANGED: only start new InterpreterLoop when not at $MAIN$
-                    DInterpreter* thisDInterpreter =
-                        dynamic_cast<DInterpreter*>( this);
-                    if( thisDInterpreter != NULL)
-                        retCode = thisDInterpreter->InnerInterpreterLoop();
-                }
+                    retCode = NewInterpreterInstance();
+                }   
                 else
                 {
                     retCode = RC_ABORT;
@@ -574,19 +568,9 @@ statement returns[ GDLInterpreter::RetCode retCode]
 
         ReportError(e); 
 
-        // CHANGED: only start new InterpreterLoop when not at $MAIN$
         if( interruptEnable)
         {
-            DInterpreter* thisDInterpreter =
-                dynamic_cast<DInterpreter*>( this);
-            if( thisDInterpreter != NULL)
-                retCode = thisDInterpreter->InnerInterpreterLoop();
-//             else
-//             {
-//                 retCode = RC_ABORT;
-//                 // here the statement is already executed
-//                 _t = statement_AST_in->GetNextSibling();
-//             }
+            retCode = NewInterpreterInstance();
         }    
         else
         {

@@ -337,6 +337,9 @@ public:
         return ret;
     }
 
+    
+    RetCode NewInterpreterInstance(); // code in dinterpreter.cpp
+
     ~GDLInterpreter()
     {
     }
