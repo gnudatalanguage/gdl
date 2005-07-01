@@ -24,8 +24,17 @@
 //#include "datatypes.hpp"
 #include "dstructgdl.hpp"
 #include "real2int.hpp"
+#include "ofmt.hpp" // OutAuto
 
 using namespace std;
+
+// for double -> string
+inline string double2string( DDouble d)      
+{
+  std::ostringstream os;
+  OutAuto( os, d, 16, 8);
+  return os.str();
+}
 
 // every type need this function which defines its conversion to all other types
 // so for every new type each of this functions has to be extended
@@ -798,7 +807,7 @@ template<> BaseGDL* Data_<SpDDouble>::Convert2( DType destTy, BaseGDL::Convert2M
       {
       	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
       	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=i2s(dd[i],16);
+      	  (*dest)[i]=double2string(dd[i]);
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
