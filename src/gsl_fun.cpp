@@ -1019,8 +1019,8 @@ namespace lib {
 
     BaseGDL* p0 = e->GetParDefined( 0);
     BaseGDL* p1 = e->GetParDefined( 1);
-    BaseGDL* p2;
-    BaseGDL* p3;
+    BaseGDL* p2=NULL;
+    BaseGDL* p3=NULL;
     if ( nParam == 3) p2 = e->GetParDefined( 2);
     if ( nParam == 4) p3 = e->GetParDefined( 3);
 
@@ -1243,39 +1243,55 @@ namespace lib {
 
     } // if( nParam == 3) {
 
+
+    if (p0->Type() != DOUBLE) delete p0D;
+    if (p1->Type() != DOUBLE) delete p1D;
+    if (p2 != NULL)
+      if (p2->Type() != DOUBLE) delete p2D;
+    if (p3 != NULL)
+      if (p3->Type() != DOUBLE) delete p3D;
+
     if (p0->Type() == DOUBLE) {
       return res;	
     } else if (p0->Type() == FLOAT) {
       DFloatGDL* res1 = static_cast<DFloatGDL*>
 	(res->Convert2( FLOAT, BaseGDL::COPY));
+      delete res;
       return res1;
     } else if (p0->Type() == INT) {
       DIntGDL* res1 = static_cast<DIntGDL*>
 	(res->Convert2( INT, BaseGDL::COPY));
+      delete res;
       return res1;
     } else if (p0->Type() == UINT) {
       DUIntGDL* res1 = static_cast<DUIntGDL*>
 	(res->Convert2( UINT, BaseGDL::COPY));
+      delete res;
       return res1;
     } else if (p0->Type() == LONG) {
       DLongGDL* res1 = static_cast<DLongGDL*>
 	(res->Convert2( LONG, BaseGDL::COPY));
+      delete res;
       return res1;
     } else if (p0->Type() == ULONG) {
       DULongGDL* res1 = static_cast<DULongGDL*>
 	(res->Convert2( ULONG, BaseGDL::COPY));
+      delete res;
       return res1;
     } else if (p0->Type() == LONG64) {
       DLong64GDL* res1 = static_cast<DLong64GDL*>
 	(res->Convert2( LONG64, BaseGDL::COPY));
+      delete res;
       return res1;
     } else if (p0->Type() == ULONG64) {
       DULong64GDL* res1 = static_cast<DULong64GDL*>
 	(res->Convert2( ULONG64, BaseGDL::COPY));
+      delete res;
       return res1;
     }  else if (p0->Type() == BYTE) {
       DByteGDL* res1 = static_cast<DByteGDL*>
 	(res->Convert2( BYTE, BaseGDL::COPY));
+      delete res;
       return res1;
     } else {
       return res;
