@@ -1,32 +1,38 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
- <DocsAndViews NumberOfDocuments="3" >
-  <Doc0 NumberOfViews="1" URL="file:/usr/local/gdl/src/GDLInterpreter.cpp" >
-   <View0 line="5523" Type="Source" />
+ <DocsAndViews NumberOfDocuments="6" >
+  <Doc0 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/pythongdl.cpp" >
+   <View0 line="364" Type="Source" />
   </Doc0>
-  <Doc1 NumberOfViews="1" URL="file:/usr/local/gdl/src/arrayindex.hpp" >
-   <View0 line="572" Type="Source" />
+  <Doc1 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/envt.hpp" >
+   <View0 line="126" Type="Source" />
   </Doc1>
-  <Doc2 NumberOfViews="1" URL="file:/usr/local/gdl/src/convert2.cpp" >
-   <View0 line="34" Type="Source" />
+  <Doc2 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/envt.cpp" >
+   <View0 line="634" Type="Source" />
   </Doc2>
+  <Doc3 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/GDLInterpreter.hpp" >
+   <View0 line="286" Type="Source" />
+  </Doc3>
+  <Doc4 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/gdlexception.hpp" >
+   <View0 line="64" Type="Source" />
+  </Doc4>
+  <Doc5 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/gdlexception.cpp" >
+   <View0 line="50" Type="Source" />
+  </Doc5>
  </DocsAndViews>
  <pluginList>
+  <kdevdebugger>
+   <breakpointList/>
+  </kdevdebugger>
   <kdevbookmarks>
    <bookmarks/>
   </kdevbookmarks>
-  <kdevsubversion>
-   <subversion recurseresolve="1" recurserelocate="1" recursemerge="1" recursecommit="1" base="" recursepropget="1" recurseswitch="1" recurseupdate="1" recursepropset="1" recursediff="1" recurserevert="1" forcemove="1" recursecheckout="1" forceremove="1" recurseadd="1" recurseproplist="1" forcemerge="1" />
-  </kdevsubversion>
   <kdevvalgrind>
    <executable path="" params="" />
    <valgrind path="" params="" />
    <calltree path="" params="" />
    <kcachegrind path="" />
   </kdevvalgrind>
-  <kdevdebugger>
-   <breakpointList/>
-  </kdevdebugger>
  </pluginList>
 </KDevPrjSession>

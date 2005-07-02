@@ -362,8 +362,7 @@ PyObject *GDLSub( PyObject *self, PyObject *argTuple, PyObject *kwDict,
       if( !success) goto ret;
       
       // build the environment
-      RefDNode dummyNode; 
-      EnvT  e( interpreter, dummyNode, sub);
+      EnvT  e( interpreter, NULL, sub);
 
       // copy arguments
       success = CopyArgFromPython( parRef, kwRef, e, argTuple, kwDict);

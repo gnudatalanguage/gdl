@@ -45,7 +45,7 @@
         <cxxflags>-O2 -g0</cxxflags>
       </optimized>
       <debug>
-        <configargs>--enable-debug=full --with-python=yes --with-hdf=no --with-hdf5=no --with-netcdf=no --enable-python_module</configargs>
+        <configargs>--enable-debug=full --with-python=yes --with-hdf=no --with-hdf5=no --with-netcdf=/usr/local --disable-python_module</configargs>
         <builddir>debug</builddir>
         <ccompiler>kdevgccoptions</ccompiler>
         <cxxcompiler>kdevgppoptions</cxxcompiler>

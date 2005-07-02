@@ -408,7 +408,7 @@ namespace lib {
   PLFLT AutoTick(DDouble x)
   {
     DLong n = (DLong) floor(log10(x/3.5));
-    DDouble y = (x / (3.5 * pow(10.,n)));
+    DDouble y = (x / (3.5 * pow(10.,static_cast<double>(n))));
     DLong m;
     if (y >= 1 && y < 2)
       m = 1;
@@ -417,7 +417,7 @@ namespace lib {
     else if (y >= 5)
       m = 5;
 
-    PLFLT intv = (PLFLT) (m * pow(10.,n));
+    PLFLT intv = (PLFLT) (m * pow(10.,static_cast<double>(n)));
     return intv;
   }
 
@@ -425,7 +425,7 @@ namespace lib {
   PLFLT AutoIntv(DDouble x)
   {
     DLong n = (DLong) floor(log10(x/2.82));
-    DDouble y = (x / (2.82 * pow(10.,n)));
+    DDouble y = (x / (2.82 * pow(10.,static_cast<double>(n))));
     DLong m;
     if (y >= 1 && y < 2)
       m = 1;
@@ -434,7 +434,7 @@ namespace lib {
     else if (y >= 4.47)
       m = 5;
 
-    PLFLT intv = (PLFLT) (m * pow(10.,n));
+    PLFLT intv = (PLFLT) (m * pow(10.,static_cast<double>(n)));
     return intv;
   }
 

@@ -163,8 +163,10 @@ void OutAuto( std::ostream& os, T val, int w, int d)
   std::ostringstream ossF;
 
   // as its used now, if w == 0 -> d != 0 (SetField())
+  // static cast here is needed for OS X, without we get a *linker* error
+  // (but only if GDL is compiled with Magick)
   if( w == 0 && (powTen < d && powTen > -d) &&
-      (val - std::floor( val) < std::pow( 10.0, -d)))
+      (val - std::floor( val) < std::pow( 10.0, static_cast<double>(-d))))
     ossF << std::fixed << std::setprecision(0) << val; 
   else if( powTen == 0 || (powTen < d && powTen > -d))
     {

@@ -41,6 +41,7 @@
 #include "typedefs.hpp"
 #include "math_utl.hpp"
 #include "magick_cl.hpp"
+
 #define GDL_DEBUG
 //#undef GDL_DEBUG
 
