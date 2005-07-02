@@ -127,7 +127,7 @@ void LibInit_cl()
   //writing NetCDF
   //Put attribute into file
   const string ncdf_attputKey[]={"GLOBAL","LENGTH","BYTE","CHAR","DOUBLE","FLOAT","LONG","SHORT",KLISTEND};
-  new DLibPro(lib::ncdf_attput, string("NCDF_ATTPUT"), 3,ncdf_attputKey);
+  new DLibPro(lib::ncdf_attput, string("NCDF_ATTPUT"), 4,ncdf_attputKey);
 
   //copy attribute between files
   const string ncdf_attcopyKey[]={"IN_GLOBAL","OUT_GLOBAL",KLISTEND};

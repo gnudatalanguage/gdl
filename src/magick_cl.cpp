@@ -920,10 +920,13 @@ namespace lib {
 
     BaseGDL* GDLCol=e->GetParDefined(1);
     DByteGDL * Red=static_cast<DByteGDL*>(GDLCol->Convert2(BYTE,BaseGDL::COPY));
+    e->Guard( Red);
     GDLCol=e->GetParDefined(2);
     DByteGDL * Green=static_cast<DByteGDL*>(GDLCol->Convert2(BYTE,BaseGDL::COPY));
+    e->Guard( Green);
     GDLCol=e->GetParDefined(3);
     DByteGDL *Blue= static_cast<DByteGDL*>(GDLCol->Convert2(BYTE,BaseGDL::COPY));
+    e->Guard( Blue);
 
     if(Red->N_Elements() == Green->N_Elements() && 
        Red->N_Elements() == Blue->N_Elements())
