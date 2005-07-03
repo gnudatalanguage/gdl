@@ -1094,7 +1094,6 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
        e->GetKW(2) == NULL)
       {
 	//put all of the data
-	cout<<"here"<<endl;
 
 	if(v->Type() == DOUBLE)
 	  {
@@ -1167,7 +1166,6 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 
 	//	return;
       } else {
-	cout<<"cos"<<endl;
 	//count, offset or stride
 	size_t count[NC_MAX_VAR_DIMS];
 	size_t  offset[NC_MAX_VAR_DIMS];
