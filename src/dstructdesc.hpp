@@ -120,7 +120,7 @@ public:
 
   const std::string& Name() const { return name;}
 
-  // is this is to be changed, see also:
+  // if this is to be changed, see also:
   // DStructGDL::DStructGDL( const string& name_) // (dstructgdl.cpp)
   bool IsUnnamed() const { return (name[0] == '$');}
 
