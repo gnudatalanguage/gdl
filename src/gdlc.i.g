@@ -1982,7 +1982,7 @@ r_expr returns [BaseGDL* res]
         }
     |	#(POW e1=expr e2=expr)
         {
-            // special handling for complex
+           // special handling for complex
             DType aTy=e1->Type();
             if( aTy == COMPLEX)
             {
@@ -2014,7 +2014,18 @@ r_expr returns [BaseGDL* res]
                     goto endPOW;
                 }
             }
-            AdjustTypes(e1,e2);
+
+            DType convertBackT; 
+
+            // convert back
+            if( IntType( e2->Type()) && 
+                DTypeOrder[e2->Type()] > DTypeOrder[e1->Type()])
+                convertBackT = e1->Type();
+            else
+                convertBackT = UNDEF;
+
+            AdjustTypes(e2,e1); // order crucial here (for converting back)
+
             if( e1->Scalar())
             res= e2->PowInv(e1); // scalar+scalar or array+scalar
             else
@@ -2025,6 +2036,10 @@ r_expr returns [BaseGDL* res]
             res= e1->Pow(e2); // smaller_array + larger_array or same size
             else
             res= e2->PowInv(e1); // smaller + larger
+            if( convertBackT != UNDEF)
+            {
+                res = res->Convert2( convertBackT, BaseGDL::CONVERT);
+            }
             endPOW:
         }
     |	#(DEC res=l_decinc_expr[ DEC])

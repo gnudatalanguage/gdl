@@ -1,5 +1,12 @@
-Writing GDL extensions in python
-================================
+GDL can embed python as well as being
+embedded in python.
+
+1. Writing GDL extensions in python
+2. Calling GDL from python
+
+
+1. Writing GDL extensions in python
+===================================
 
 Since version 0.7.1 GDL provides two additional subroutines:
 A PYTHON function and a PYTHON procedure.
@@ -62,3 +69,48 @@ README file.
 
 If you have any suggestions or needs for extensions of the python
 interface please see "CONTACT" in the README file.
+
+
+2. Calling GDL from python
+==========================
+
+Since version 0.8.9 GDL can be imbedded into python.
+
+See INSTALL to learn how to build the GDL pyhton module.
+
+Form within python, the usage is:
+
+first the GDL module must be imported:
+
+import GDL
+
+then this module provides three python functions:
+
+GDL.pro( PROCEDURE_NAME [, args [, keywords]])
+
+result = GDL.function( FUNCTION_NAME [, args [, keywords]])
+
+GDL.script( SCRIPT_FILE_NAME)
+
+for calling a GDL procedure, function and script file.
+
+PROCEDURE_NAME, FUNCTION_NAME and SCRIPT_FILE_NAME must be
+scalar strings.
+
+args are the arguments. They are converted to GDL.
+keywords are the keywords. They are converted to GDL.
+
+if an arg or a keyword is a tuple, they are NOT copied back
+when the GDL subroutine returns. This is done to save
+resources. (Only the first item of each tuple is passed to GDL).
+
+GDL arrays are passed to/from GDLmust as python numarrays.
+Numarray is a popular extension to pyhton. See:
+http://www.stsci.edu/resources/software_hardware/numarray
+for details. numarray
+
+Example:
+
+>>> import GDL
+>>> print GDL.function("sin",(1,))
+0.841470956802

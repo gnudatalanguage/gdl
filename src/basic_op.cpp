@@ -1815,27 +1815,27 @@ Data_<SpDObj>* Data_<SpDObj>::ModInv( BaseGDL* r)
 
 // Pow
 // C++ defines pow only for floats and doubles
-inline DInt pow( const DByte& l, const DByte& r)
+inline DInt pow( const DByte l, const DByte r)
 { 
   return static_cast<DInt>(pow( static_cast<float>(l),
 				static_cast<float>(r)));
 }
-inline DInt pow( const DInt& l, const DInt& r)
+inline DInt pow( const DInt l, const DInt r)
 { 
   return static_cast<DInt>(pow( static_cast<float>(l),
 				static_cast<float>(r)));
 }
-inline DUInt pow( const DUInt& l, const DUInt& r)
+inline DUInt pow( const DUInt l, const DUInt r)
 { 
   return static_cast<DUInt>(pow( static_cast<float>(l),
 				 static_cast<float>(r)));
 }
-inline DLong pow( const DLong& l, const DLong& r)
+inline DLong pow( const DLong l, const DLong r)
 { 
   return static_cast<DLong>(pow( static_cast<double>(l),
 				 static_cast<double>(r)));
 }
-inline DULong pow( const DULong& l, const DULong& r)
+inline DULong pow( const DULong l, const DULong r)
 { 
   return static_cast<DULong>(pow( static_cast<double>(l),
 				  static_cast<double>(r)));

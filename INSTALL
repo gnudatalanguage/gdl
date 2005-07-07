@@ -21,12 +21,50 @@ That's OK. Please see the comment in datatypes.cpp near the warning
 for an explanation.
 
 
+BUILDING GDL AS A PYTHON MODULE:
+================================
+
+to build the GDL python module, configure must be run with
+the --enable-pyhton_module option (ie. if you wish to use
+the GDL standalone version *and* use GDL from within python,
+you need to build (configure/make) it twice.
+
+For python standards, the installation procedure is
+quite 'unconventional' but simple:
+
+You need to run configure with the --enable-python_module option.
+All other options are the same:
+
+[OS X note: Due to some incompatibilities, on OS X you might have to
+recreate the configure script (this is if the building of libantlr
+aborts with an error message):
+alocal && automake && autoconf ]
+
+./configure --enable-python_module
+make
+
+The result is a dynamic library file "libgdl.so.0.0.0" 
+("libgdl.0.dylib" on OS X) in the "src/.libs" subdir.
+Copy these library into your python site-packages 
+(eg. /usr/lib/python2.3/site-packages) directory as
+GDL.so (same name on OS X) (note the capital letters) and you are done.
+
+See PYTHON.txt for further information.
+
+
 OPTIONS TO CONFIGURE SCRIPT:
 ============================
 
 Apart form the further down mentioned options, the following
 options can be used:
 
+--enable-python_module            build the GDL python module instead of
+                                  the standalone program (default). See above.
+--enable-pyhton_version=VERSION#  the configure script tries to automatically 
+                                  determnine which pyhton version is actually 
+                                  used. Wiht this option the version can be
+                                  expicitely set 
+                                  (eg. --enable-pyhton_version=2.3).
 --with-plplotdir=DIR to specify the plplot directory tree
 --with-ncursesdir=DIR to specify the ncurses directory tree
 --with-readlinedir=DIR to specify the readline directory tree

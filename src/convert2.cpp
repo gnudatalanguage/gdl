@@ -219,10 +219,18 @@ template<> BaseGDL* Data_<SpDInt>::Convert2( DType destTy, BaseGDL::Convert2Mode
       }
       //    case INT:
     case UINT:
-      if( (mode & BaseGDL::CONVERT) != 0)
-	return reinterpret_cast<Data_<SpDUInt>*>(this);
-      else
-	return reinterpret_cast<Data_<SpDUInt>*>(this->Dup());
+      {
+      	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
+      	for( SizeT i=0; i < nEl; ++i)
+      	  (*dest)[i]=dd[i]; 
+	if( (mode & BaseGDL::CONVERT) != 0) delete this;
+      	return dest;
+      }
+// This does not work, as the type constant is not changed 
+//       if( (mode & BaseGDL::CONVERT) != 0)
+// 	return reinterpret_cast<Data_<SpDUInt>*>(this);
+//       else
+// 	return reinterpret_cast<Data_<SpDUInt>*>(this->Dup());
     case LONG:
       {
       	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
@@ -323,10 +331,17 @@ template<> BaseGDL* Data_<SpDUInt>::Convert2( DType destTy, BaseGDL::Convert2Mod
       	return dest;
       }
     case INT:
-      if( (mode & BaseGDL::CONVERT) != 0)
-	return reinterpret_cast<Data_<SpDInt>*>(this);
-      else
-	return reinterpret_cast<Data_<SpDInt>*>(this->Dup());
+      {
+      	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
+      	for( SizeT i=0; i < nEl; ++i)
+      	  (*dest)[i]=dd[i]; 
+	if( (mode & BaseGDL::CONVERT) != 0) delete this;
+      	return dest;
+      }
+//       if( (mode & BaseGDL::CONVERT) != 0)
+// 	return reinterpret_cast<Data_<SpDInt>*>(this);
+//       else
+// 	return reinterpret_cast<Data_<SpDInt>*>(this->Dup());
       //    case UINT:
     case LONG:
       {
@@ -446,10 +461,17 @@ template<> BaseGDL* Data_<SpDLong>::Convert2( DType destTy, BaseGDL::Convert2Mod
       }
       //    case LONG:
     case ULONG:
-      if( (mode & BaseGDL::CONVERT) != 0)
-	return reinterpret_cast<Data_<SpDULong>*>(this);
-      else
-	return reinterpret_cast<Data_<SpDULong>*>(this->Dup());
+      {
+      	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
+      	for( SizeT i=0; i < nEl; ++i)
+      	  (*dest)[i]=dd[i]; 
+	if( (mode & BaseGDL::CONVERT) != 0) delete this;
+      	return dest;
+      }
+//       if( (mode & BaseGDL::CONVERT) != 0)
+// 	return reinterpret_cast<Data_<SpDULong>*>(this);
+//       else
+// 	return reinterpret_cast<Data_<SpDULong>*>(this->Dup());
     case LONG64:
       {
       	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
@@ -550,10 +572,17 @@ template<> BaseGDL* Data_<SpDULong>::Convert2( DType destTy, BaseGDL::Convert2Mo
       	return dest;
       }
     case LONG:
-      if( (mode & BaseGDL::CONVERT) != 0)
-	return reinterpret_cast<Data_<SpDLong>*>(this);
-      else
-	return reinterpret_cast<Data_<SpDLong>*>(this->Dup());
+      {
+      	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
+      	for( SizeT i=0; i < nEl; ++i)
+      	  (*dest)[i]=dd[i]; 
+	if( (mode & BaseGDL::CONVERT) != 0) delete this;
+      	return dest;
+      }
+//       if( (mode & BaseGDL::CONVERT) != 0)
+// 	return reinterpret_cast<Data_<SpDLong>*>(this);
+//       else
+// 	return reinterpret_cast<Data_<SpDLong>*>(this->Dup());
       //    case ULONG:
     case LONG64:
       {
@@ -1308,10 +1337,17 @@ template<> BaseGDL* Data_<SpDLong64>::Convert2( DType destTy, BaseGDL::Convert2M
       }
       //    case LONG64:
     case ULONG64:
-      if( (mode & BaseGDL::CONVERT) != 0)
-	return reinterpret_cast<Data_<SpDULong64>*>(this);
-      else
-	return reinterpret_cast<Data_<SpDULong64>*>(this->Dup());
+      {
+      	Data_<SpDULong64>* dest=new Data_<SpDULong64>( dim, BaseGDL::NOZERO);
+      	for( SizeT i=0; i < nEl; ++i)
+      	  (*dest)[i]=dd[i]; 
+	if( (mode & BaseGDL::CONVERT) != 0) delete this;
+      	return dest;
+      }
+//       if( (mode & BaseGDL::CONVERT) != 0)
+// 	return reinterpret_cast<Data_<SpDULong64>*>(this);
+//       else
+// 	return reinterpret_cast<Data_<SpDULong64>*>(this->Dup());
     case FLOAT: 
       {
       	Data_<SpDFloat>* dest=new Data_<SpDFloat>( dim, BaseGDL::NOZERO);
@@ -1412,10 +1448,17 @@ template<> BaseGDL* Data_<SpDULong64>::Convert2( DType destTy, BaseGDL::Convert2
       	return dest;
       }
     case LONG64:
-      if( (mode & BaseGDL::CONVERT) != 0)
-	return reinterpret_cast<Data_<SpDLong64>*>(this);
-      else
-	return reinterpret_cast<Data_<SpDLong64>*>(this->Dup());
+      {
+      	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
+      	for( SizeT i=0; i < nEl; ++i)
+      	  (*dest)[i]=dd[i]; 
+	if( (mode & BaseGDL::CONVERT) != 0) delete this;
+      	return dest;
+      }
+//       if( (mode & BaseGDL::CONVERT) != 0)
+// 	return reinterpret_cast<Data_<SpDLong64>*>(this);
+//       else
+// 	return reinterpret_cast<Data_<SpDLong64>*>(this->Dup());
 //  case ULONG64:
     case FLOAT: 
       {

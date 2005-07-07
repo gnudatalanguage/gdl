@@ -3272,7 +3272,18 @@ BaseGDL*  GDLInterpreter::r_expr(ProgNodeP _t) {
 		goto endPOW;
 		}
 		}
-		AdjustTypes(e1,e2);
+		
+		DType convertBackT; 
+		
+		// convert back
+		if( IntType( e2->Type()) && 
+		DTypeOrder[e2->Type()] > DTypeOrder[e1->Type()])
+		convertBackT = e1->Type();
+		else
+		convertBackT = UNDEF;
+		
+		AdjustTypes(e2,e1); // order crucial here (for converting back)
+		
 		if( e1->Scalar())
 		res= e2->PowInv(e1); // scalar+scalar or array+scalar
 		else
@@ -3283,6 +3294,10 @@ BaseGDL*  GDLInterpreter::r_expr(ProgNodeP _t) {
 		res= e1->Pow(e2); // smaller_array + larger_array or same size
 		else
 		res= e2->PowInv(e1); // smaller + larger
+		if( convertBackT != UNDEF)
+		{
+		res = res->Convert2( convertBackT, BaseGDL::CONVERT);
+		}
 		endPOW:
 		
 		break;

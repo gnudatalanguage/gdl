@@ -54,7 +54,12 @@ libgdl_la_SOURCES = $(cpp_hpp_files) pythongdl.cpp
 
 # netCDF and HDF define some same symbols
 # hence -z muldefs has to be passed to the linker
+if DARWIN
+libgdl_la_LDFLAGS = $(all_libraries) -Wl,-m
+else
 libgdl_la_LDFLAGS = $(all_libraries) -Wl,-z,muldefs
+endif 
+
 libgdl_la_LIBADD = $(top_builddir)/src/antlr/libantlr.la -L/usr/X11R6/lib -lX11
 endif
 

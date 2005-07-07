@@ -43,7 +43,9 @@ WSET, TVLCT, LOADCT) are working (important keywords, some !P system
 variable tags and multi-plots are supported) for X windows, z-buffer
 and postscript output.
 
-GDL has an interface to python. See the file PYTHON.txt for details.
+GDL has an interface to python.
+Python can be embedded into GDL and GDL can be compiled as a
+python module. See the file PYTHON.txt for details.
 
 No GUI support (widgets) is implemented so far.
 
@@ -131,15 +133,21 @@ It is required by default. If you don't want to use it, use
 ImageMagick can be obtained from:
 http://www.imagemagick.org/www/download.html
 
-GDL has an interface to python (see http://www.python.org). As so far
-there are only two example GDL extensions written in python its use
-is optional for now but required by default. If you don't want to use
+GDL has an interface to python (see http://www.python.org). 
+GDL can be used as a python module and python can be used from
+within GDL. See INSTALL for details on how to build each version.
+As so far there are only two example GDL extensions written in python its
+use is optional for now but required by default. If you don't want to use
 it, use  
 --with-python=no
 as a command line option to 'configure'.
 If you want to use it you need python 2.3 or 2.4 and the python package
 'numarray' version 0.9 or later
 (http://www.stsci.edu/resources/software_hardware/numarray).
+The GDL configure script will determine the installed python version
+automatically. For this the python executable must be installed.
+The python version can be explictely set with 
+--enable-pyhton_version=VERSION# (eg. --enable-pyhton_version=2.3).
 Note: For embedding python as it is done by GDL, the python dynamic
 library is needed which is *not* build by default. You need to run
 'configure' for python with the '--enable-shared' option. Please see
@@ -169,7 +177,7 @@ CONTRIBUTIONS:
 ==============
 
 GDL 0.8.10 is actively developed, but still in beta state as of
-May 2005.
+July 2005.
 Even though it can already be used for several tasks, there are many
 things to be done.
 Bug reports, feedback in general and interested people who would

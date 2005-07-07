@@ -1154,26 +1154,52 @@ ostream& Data_<SpDString>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 
 ostream& DStructGDL::ToStream(ostream& o, SizeT w, SizeT* actPosPtr) 
 {
+  // avoid checking actPosPtr
+  SizeT dummyPos = 0;
+  if( actPosPtr == NULL) actPosPtr = &dummyPos;
+
   SizeT nTags = NTags();
   SizeT nEl   = N_Elements();
   
+  bool arrOut = false; // remember if an array was already put out
+
   for( SizeT e=0; e<nEl; ++e)
     {
-      o << CheckNL( w, actPosPtr, 2) << "{ ";
+      o << CheckNL( w, actPosPtr, 2) << "{";
       for( SizeT tIx=0; tIx<nTags-1; ++tIx)
 	{
 	  BaseGDL* actEl = Get( tIx, e);
-	  if( actEl == NULL)
-	    throw 
-	      GDLException("Internal error: Output of UNDEF struct element.");
+
+	  assert( actEl != NULL);
+// 	  if( actEl == NULL)
+// 	    throw 
+// 	      GDLException("Internal error: Output of UNDEF struct element.");
+	  if( actEl->Type() == STRING)
+	    o << CheckNL( w, actPosPtr, 1) << " ";
+	    
+	  bool isArr = (actEl->Dim().Rank() != 0);
+
+	  if( isArr && arrOut && *actPosPtr != 0)
+	    InsNL( o, actPosPtr);
+
 	  actEl->ToStream( o, w, actPosPtr);
-	  if( actEl->Dim().Rank() != 0) InsNL( o, actPosPtr);
+	  
+	  if( isArr)
+	    {
+	      arrOut = true;
+	      if( *actPosPtr != 0)
+		InsNL( o, actPosPtr);
+	    }
 	}
 
       BaseGDL* actEl = Get( nTags-1, e);
-      if( actEl == NULL)
-	throw 
-	  GDLException("Internal error: Output of UNDEF struct element.");
+      assert( actEl != NULL);
+//    if( actEl == NULL)
+//      throw 
+//        GDLException("Internal error: Output of UNDEF struct element.");
+      if( actEl->Type() == STRING)
+	o << CheckNL( w, actPosPtr, 1) << " ";
+      
       actEl->ToStream( o, w, actPosPtr);
 
       o << CheckNL( w, actPosPtr, 1) << "}";
