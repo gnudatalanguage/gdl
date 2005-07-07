@@ -1815,42 +1815,83 @@ Data_<SpDObj>* Data_<SpDObj>::ModInv( BaseGDL* r)
 
 // Pow
 // C++ defines pow only for floats and doubles
-inline DInt pow( const DByte l, const DByte r)
-{ 
-  return static_cast<DInt>(pow( static_cast<float>(l),
-				static_cast<float>(r)));
+template <typename T> T pow( T r, T l)
+{
+  if( r == 0) return 0;
+  if( r == 1) return 1;
+
+  const int nBits = sizeof(T) * 8;
+
+  // generate power table
+  T arr[ nBits];
+  arr[ 0] = r;
+  for( SizeT i=1; i<nBits; ++i)
+    arr[ i] = arr[i-1]*arr[i-1];
+
+  T res = 1;
+  T mask = 1;
+  for( SizeT i=0; i<nBits; ++i, mask <<= 1)
+    {
+      if( l & mask)
+	res *= arr[i];
+    }
+  
+  return res;
 }
-inline DInt pow( const DInt l, const DInt r)
-{ 
-  return static_cast<DInt>(pow( static_cast<float>(l),
-				static_cast<float>(r)));
-}
-inline DUInt pow( const DUInt l, const DUInt r)
-{ 
-  return static_cast<DUInt>(pow( static_cast<float>(l),
-				 static_cast<float>(r)));
-}
-inline DLong pow( const DLong l, const DLong r)
-{ 
-  return static_cast<DLong>(pow( static_cast<double>(l),
-				 static_cast<double>(r)));
-}
-inline DULong pow( const DULong l, const DULong r)
-{ 
-  return static_cast<DULong>(pow( static_cast<double>(l),
-				  static_cast<double>(r)));
-}
-inline DLong64 pow( const DLong64& l, const DLong64& r)
-{ 
-  return static_cast<DLong64>(pow( static_cast<double>(l),
-				   static_cast<double>(r)));
-}
-inline DULong64 pow( const DULong64& l, const DULong64& r)
-{ 
-  return static_cast<DULong64>(pow( static_cast<double>(l),
-				    static_cast<double>(r)));
-}
+
+
+// inline DInt pow( const DByte l, const DByte r)
+// { 
+//   return static_cast<DInt>(pow( static_cast<float>(l),
+// 				static_cast<float>(r)));
+// }
+// inline DInt pow( const DInt l, const DInt r)
+// { 
+//   return static_cast<DLong>(pow( static_cast<float>(l),
+// 				static_cast<float>(r)));
+// }
+// inline DUInt pow( const DUInt l, const DUInt r)
+// { 
+//   return static_cast<DUInt>(pow( static_cast<float>(l),
+// 				 static_cast<float>(r)));
+// }
+// inline DLong pow( const DLong l, const DLong r)
+// { 
+//   return static_cast<DLong64>(pow( static_cast<double>(l),
+// 				 static_cast<double>(r)));
+// }
+// inline DULong pow( const DULong l, const DULong r)
+// { 
+//   return static_cast<DULong>(pow( static_cast<double>(l),
+// 				  static_cast<double>(r)));
+// }
+// inline DLong64 pow( const DLong64& l, const DLong64& r)
+// { 
+//   if( l < 0)
+//     {
+//       if( (r % 2) == 0)
+// 	return static_cast<DULong64>(pow( static_cast<double>(l),
+// 					  static_cast<double>(r)));
+//       else
+// 	{
+// 	  DLong64 pRes = static_cast<DULong64>(pow( static_cast<double>(-l),
+// 						    static_cast<double>(r)));
+// 	  return -pRes;
+// 	}
+//     }
+//   else
+//     {
+//       return static_cast<DULong64>(pow( static_cast<double>(l),
+// 					static_cast<double>(r)));
+//     }
+// }
+// inline DULong64 pow( const DULong64& l, const DULong64& r)
+// { 
+//   return static_cast<DULong64>(pow( static_cast<double>(l),
+// 				    static_cast<double>(r)));
+// }
 // power of value: left=left ^ right
+// integral types
 template<class Sp>
 Data_<Sp>* Data_<Sp>::Pow( BaseGDL* r)
 {
