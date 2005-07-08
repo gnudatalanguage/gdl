@@ -1815,27 +1815,22 @@ Data_<SpDObj>* Data_<SpDObj>::ModInv( BaseGDL* r)
 
 // Pow
 // C++ defines pow only for floats and doubles
-template <typename T> T pow( T r, T l)
+template <typename T> T pow( const T r, const T l)
 {
   if( r == 0) return 0;
   if( r == 1) return 1;
 
   const int nBits = sizeof(T) * 8;
 
-  // generate power table
-  T arr[ nBits];
-  arr[ 0] = r;
-  for( SizeT i=1; i<nBits; ++i)
-    arr[ i] = arr[i-1]*arr[i-1];
-
+  T arr = r;
   T res = 1;
   T mask = 1;
   for( SizeT i=0; i<nBits; ++i, mask <<= 1)
     {
-      if( l & mask)
-	res *= arr[i];
+      if( l & mask) res *= arr;
+      arr *= arr;
     }
-  
+
   return res;
 }
 
