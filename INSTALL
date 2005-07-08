@@ -44,7 +44,7 @@ alocal && automake && autoconf ]
 make
 
 The result is a dynamic library file "libgdl.so.0.0.0" 
-("libgdl.0.dylib" on OS X) in the "src/.libs" subdir.
+("libgdl.0.0.0.dylib" on OS X) in the "src/.libs" subdir.
 Copy these library into your python site-packages 
 (eg. /usr/lib/python2.3/site-packages) directory as
 GDL.so (same name on OS X) (note the capital letters) and you are done.
