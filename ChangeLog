@@ -1,3 +1,195 @@
+GDL 0.8.10:
+2005-07-08  m_schellens  <m_schellens@users.sf.net>
+
+	* INSTALL: INSTALL update
+
+	* src/basic_op.cpp: POW optimization
+
+2005-07-07  m_schellens  <m_schellens@users.sf.net>
+
+	* src/basic_op.cpp:
+	Changed raise to power calculation for integral types
+
+	* src/antlr/Makefile.in, src/basic_op.cpp, src/convert2.cpp, src/default_io.cpp, src/gdlc.i.g, src/initsysvar.cpp, src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/Makefile.am, src/Makefile.in, configure.in, configure, INSTALL, Makefile.in, PYTHON.txt, README, aclocal.m4:
+	Fixed inconistency with return type of ^ operator for integer types
+
+2005-07-06  m_schellens  <m_schellens@users.sf.net>
+
+	* src/basic_fun_jmg.cpp, src/dstructdesc.hpp:
+	VALUE keyword for MAKE_ARRAY.
+
+2005-07-05  m_schellens  <m_schellens@users.sf.net>
+
+	* src/basic_fun_cl.cpp: Extensions to LEGENDRE. Fixed memory leaks
+
+2005-07-03  m_schellens  <m_schellens@users.sf.net>
+
+	* gdl.kdevelop, gdl.kdevses, src/ncdf_var_cl.cpp:
+	remove some diagnostic prints.
+
+2005-07-02  m_schellens  <m_schellens@users.sf.net>
+
+	* src/libinit_cl.cpp, src/magick_cl.cpp:
+	4 parameters for NCDF_ATTPUT. Fixed memory leak in magick_writeColorTable
+
+	* src/antlr/Makefile.in, src/plotting.cpp, src/pythongdl.cpp, src/Makefile.in, src/magick_cl.cpp, src/ofmt.hpp, gdl.kdevelop, gdl.kdevses, configure, Makefile.in, aclocal.m4:
+	avoid linker error under OS X
+
+2005-07-01  jomoga  <jomoga@rock>
+
+	* src/gsl_fun.cpp: Fix memory leak in INTERPOLATE
+
+2005-07-01  m_schellens  <m_schellens@users.sf.net>
+
+	* src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/dinterpreter.cpp, src/gdlc.i.g, gdl.kdevses:
+	Code refactorization
+
+	* src/convert2.cpp: double to string conversion
+
+	* src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/GDLInterpreterTokenTypes.hpp, src/GDLInterpreterTokenTypes.txt, src/GDLLexer.cpp, src/GDLParser.cpp, src/GDLParser.hpp, src/GDLTokenTypes.hpp, src/GDLTokenTypes.txt, src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/GDLTreeParserTokenTypes.hpp, src/GDLTreeParserTokenTypes.txt, src/arrayindex.hpp, src/dinterpreter.hpp, src/gdlc.g, src/gdlc.i.g, src/gdlc.tree.g, src/includefirst.hpp, src/pro/test_suite.pro, NEWS, config.h.in, configure, configure.in:
+	stride index support ([n:n:n])
+
+2005-06-29  jomoga  <jomoga@rock>
+
+	* src/plotting.cpp: Support for YNOZERO
+
+2005-06-29  m_schellens  <m_schellens@users.sf.net>
+
+	* src/gdlc.i.g, src/GDLInterpreter.cpp, src/arrayindex.hpp, src/datatypes.cpp, src/dnode.cpp, src/dnode.hpp, src/dstructgdl.cpp, NEWS, gdl.kdevses:
+	move ConvertAST to source file. Fixed arrayindex list BuildIx memory leak.
+
+2005-06-28  jomoga  <jomoga@rock>
+
+	* src/devicex.hpp, src/devicez.hpp, src/gdlzstream.cpp, src/gdlzstream.hpp, src/graphics.hpp, src/plotting.cpp, src/plotting.hpp:
+	Support for additional plotting keywords and COLORBAR
+
+	* src/libinit.cpp: Added AXIS,ERASE routines
+
+	* src/gsl_fun.cpp: interpolation scalar bug fix
+
+2005-06-28  m_schellens  <m_schellens@users.sf.net>
+
+	* src/print.cpp, src/print_tree.cpp, src/print_tree.hpp:
+	PRINT, correction.
+
+	* src/GDLInterpreter.hpp, src/GDLTreeParser.cpp, src/arrayindex.hpp, src/basic_fun.cpp, src/datatypes.cpp, src/datatypes.hpp, src/dcompiler.cpp, src/dcompiler.hpp, src/dinterpreter.cpp, src/dinterpreter.hpp, src/dnode.cpp, src/dnode.hpp, src/dpro.cpp, src/dpro.hpp, src/dstructgdl.hpp, src/envt.cpp, src/envt.hpp, src/gdlc.i.g, src/gdlc.tree.g, src/gdlexception.cpp, src/gdlexception.hpp, src/objects.cpp, src/GDLInterpreter.cpp:
+	ProgNode type for interpreter.
+
+2005-06-21  m_schellens  <m_schellens@users.sf.net>
+
+	* src/GDLLexer.cpp, src/GDLParser.cpp, src/GDLTreeParser.cpp, src/Makefile.in, src/antlr/Makefile.in, src/dinterpreter.cpp, src/gdlc.g, configure.in, Makefile.in, aclocal.m4, configure:
+	Make .RUN handle files without subroutine.
+
+2005-06-20  m_schellens  <m_schellens@users.sf.net>
+
+	* src/dinterpreter.cpp, src/pythongdl.cpp, configure.in, gdl.kdevelop, gdl.kdevses, configure, Makefile.in, README, aclocal.m4:
+	python module
+
+2005-06-17  m_schellens  <m_schellens@users.sf.net>
+
+	* src/dinterpreter.cpp, src/dinterpreter.hpp, src/envt.cpp, src/print.cpp, src/pythongdl.cpp:
+	python module
+
+2005-06-16  m_schellens  <m_schellens@users.sf.net>
+
+	* src/antlr/Makefile.in, src/datatypes.hpp, src/Makefile.in:
+	GCC 4.0 compliancy
+
+	* src/datatypes.cpp, src/gdlc.tree.g, src/gdlexception.hpp, src/gdlpython.cpp, src/gdlpython.hpp, src/pythongdl.cpp, src/topython.cpp:
+	python module
+
+2005-06-15  m_schellens  <m_schellens@users.sf.net>
+
+	* src/Makefile.am, src/Makefile.in, src/antlr/Makefile.am, src/antlr/Makefile.in, src/cformat.g, src/dpro.hpp, src/format.g, src/format.in.g, src/format.out.g, src/gdl.cpp, src/gdlc.i.g, src/gdljournal.cpp, src/gdlpython.cpp, src/includefirst.hpp, src/print_tree.cpp, src/pythongdl.cpp, src/sigfpehandler.hpp, src/CFMTLexer.cpp, src/FMTIn.cpp, src/FMTIn.hpp, src/FMTLexer.cpp, src/FMTLexer.hpp, src/FMTOut.cpp, src/FMTOut.hpp, src/FMTParser.cpp, src/FMTParser.hpp, src/GDLInterpreter.cpp, configure.in, gdl.kdevses, ltmain.sh, Makefile.in, config.guess, config.sub, configure:
+	python module
+
+2005-06-13  m_schellens  <m_schellens@users.sf.net>
+
+	* src/dinterpreter.cpp: .R equivalent to .RUN
+
+2005-06-10  m_schellens  <m_schellens@users.sf.net>
+
+	* src/gdlpython.cpp, gdl.kdevelop, gdl.kdevses, Doxyfile, src/envt.cpp, src/extrat.cpp, src/file.cpp, src/format.in.g, src/gdl.cpp, src/gdleventhandler.cpp, src/gdlexception.cpp, src/gdlgstream.cpp, src/gdlpsstream.cpp, src/gdlwidget.cpp, src/gdlwinstream.cpp, src/gdlxstream.cpp, src/gdlzstream.cpp, src/getfmtast.cpp, src/graphics.cpp, src/gsl_fun.cpp, src/hdf5_fun.cpp, src/hdf_fun.cpp, src/hdf_pro.cpp, src/image.cpp, src/includefirst.hpp, src/initct.cpp, src/initsysvar.cpp, src/io.cpp, src/libinit.cpp, src/libinit_cl.cpp, src/libinit_jmg.cpp, src/libinit_mes.cpp, src/magick_cl.cpp, src/math_fun.cpp, src/math_fun_jmg.cpp, src/math_utl.cpp, src/ncdf_att_cl.cpp, src/ncdf_cl.cpp, src/ncdf_dim_cl.cpp, src/ncdf_var_cl.cpp, src/objects.cpp, src/plotting.cpp, src/print.cpp, src/read.cpp, src/sigfpehandler.cpp, src/str.cpp, src/typedefs.hpp, src/typetraits.cpp, src/widget.cpp, src/FMTIn.cpp, src/FMTIn.hpp, src/assocdata.cpp, src/basegdl.cpp, src/basegdl.hpp, src/basic_fun.cpp, src/basic_fun_cl.cpp, src/basic_fun_jmg.cpp, src/basic_pro.cpp, src/basic_pro_jmg.cpp, src/convert2.cpp, src/datatypes.cpp, src/dcommon.cpp, src/dcompiler.cpp, src/dinterpreter.cpp, src/dnode.cpp, src/dpro.cpp, src/dpro.hpp, src/dstructdesc.cpp, src/dstructgdl.cpp, src/dvar.cpp, configure.in, config.h.in, configure:
+	python module
+
+2005-06-06  m_schellens  <m_schellens@users.sf.net>
+
+	* src/FMTIn.cpp, src/FMTIn.hpp, src/format.in.g:
+	Fixed READS 'z' format code bug.
+
+2005-06-03  m_schellens  <m_schellens@users.sf.net>
+
+	* src/basic_fun.cpp, src/basic_fun_cl.cpp, src/gdlc.i.g, src/GDLInterpreter.cpp, configure:
+	Fixed return from FOR bug.
+
+2005-06-01  m_schellens  <m_schellens@users.sf.net>
+
+	* src/devicex.hpp, src/envt.cpp, src/envt.hpp, src/graphics.hpp, src/libinit.cpp, src/plotting.cpp, src/plotting.hpp:
+	DEVICE,GET_DECOMPOSED. Consistent using CHARSIZE as float (instead of double).
+
+2005-05-31  m_schellens  <m_schellens@users.sf.net>
+
+	* src/pro/loadct.pro, src/devicex.hpp, src/graphics.cpp, src/graphics.hpp, src/image.cpp, src/libinit_jmg.cpp:
+	common block COLORS for LOADCT
+
+	* src/image.cpp, config.h.in, configure, configure.in:
+	remove wxWidgets from configure script.
+
+	* src/pro/lmgr.pro, src/Makefile.am, src/Makefile.in, src/gdlwidget.cpp, src/gdlwidget.hpp, src/graphics.cpp, src/graphics.hpp, src/image.cpp, src/libinit_jmg.cpp, src/widget.cpp, configure.in, gdl.kdevses, config.h.in, configure:
+	LMGR function.
+
+2005-05-24  jomoga  <jomoga@rock>
+
+	* src/gsl_fun.cpp, src/gsl_fun.hpp, src/libinit_jmg.cpp:
+	Initial version of INTERPOLATE
+
+2005-05-12  m_schellens  <m_schellens@users.sf.net>
+
+	* src/default_io.cpp, src/ifmt.cpp, src/io.hpp, README:
+	Fixed input and eof detection.
+
+2005-05-10  m_schellens  <m_schellens@users.sf.net>
+
+	* src/devicex.hpp: Second parameter for TV.
+
+2005-05-09  m_schellens  <m_schellens@users.sf.net>
+
+	* src/arrayindex.hpp, src/envt.cpp, src/plotting.cpp:
+	Removed BACKGROUND keyword check from XYOUTS.
+
+	* src/accessdesc.hpp, src/arrayindex.hpp, src/datatypes.cpp, src/devicex.hpp, src/dstructgdl.cpp:
+	Set AllIxT to valarray.
+
+	* src/GDLInterpreter.cpp, src/GDLInterpreterTokenTypes.hpp, src/GDLInterpreterTokenTypes.txt, src/GDLLexer.cpp, src/GDLParser.cpp, src/GDLTokenTypes.hpp, src/GDLTokenTypes.txt, src/GDLTreeParser.cpp, src/GDLTreeParserTokenTypes.hpp, src/GDLTreeParserTokenTypes.txt, src/gdlc.g:
+	Allow BREAK, CONTINUE as identifiers.
+
+2005-04-30  c_lee  <c_lee@rock>
+
+	* src/plotting.cpp, src/plotting.hpp: more refactoring (xyouts)
+
+	* src/plotting.cpp, src/plotting.hpp:
+	refactored to common plot subroutines (crange, type)
+
+	* src/plotting.cpp, src/plotting.hpp:
+	refactored to common plot subroutines (color, background, symsize,psym, line)
+
+	* src/datatypes.hpp: include cassert
+
+2005-04-28  jomoga  <jomoga@rock>
+
+	* src/gdlxstream.hpp, src/devicex.hpp: TV writes to off-screen window
+
+2005-04-28  m_schellens  <m_schellens@users.sf.net>
+
+	* NEWS, src/gdlc.i.g, src/math_fun.cpp, src/pro/appleman.pro, src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/accessdesc.hpp, src/arrayindex.hpp, src/basegdl.hpp, src/basic_fun_cl.cpp, src/basic_op.cpp, src/convert2.cpp, src/datatypes.cpp, src/datatypes.hpp, src/dstructgdl.cpp, ChangeLog, INSTALL, README:
+	Optimization for complex (pow, abs). Non-copy constants
+
+2005-04-22  m_schellens  <m_schellens@users.sf.net>
+
+	* src/basic_pro.cpp, src/datatypes.cpp, src/dinterpreter.cpp, src/dinterpreter.hpp, src/gdl.cpp, src/math_fun_jmg.cpp, src/pro/test_suite.pro, ChangeLog, NEWS:
+	OS X compilance.
+
+	
 GDL 0.8.9:
 2005-04-21  m_schellens  <m_schellens@host>
 
