@@ -1021,13 +1021,13 @@ namespace lib {
     BaseGDL* p1 = e->GetParDefined( 1);
     BaseGDL* p2=NULL;
     BaseGDL* p3=NULL;
-    if ( nParam == 3) p2 = e->GetParDefined( 2);
-    if ( nParam == 4) p3 = e->GetParDefined( 3);
+    if ( nParam >= 3) p2 = e->GetParDefined( 2);
+    if ( nParam >= 4) p3 = e->GetParDefined( 3);
 
     DDoubleGDL* p0D;
     DDoubleGDL* p1D;
     DDoubleGDL* p2D;
-    DDoubleGDL* p3D;
+//    DDoubleGDL* p3D;
 
     if( p0->Rank() < nParam-1)
       throw GDLException( e->CallingNode(), 
@@ -1060,9 +1060,11 @@ namespace lib {
     if (p0->Type() == DOUBLE)
 	p0D = static_cast<DDoubleGDL*> ( p0);
     else
+	{
 	p0D = static_cast<DDoubleGDL*>
 	  (p0->Convert2( DOUBLE, BaseGDL::COPY));
-
+	e->Guard( p0D);
+	}
 
     // Determine dimensions of output
     DDoubleGDL* res;
@@ -1075,8 +1077,8 @@ namespace lib {
       for( SizeT i=0; i<p1->Rank(); ++i) 
 	dims[i+p0->Rank()-(nParam-1)] = p1->Dim(i);
       resRank = p0->Rank()-(nParam-1)+p1->Rank();
-      if (p1->N_Elements() == 1 && 
-	  p2->N_Elements() == 1 && 
+      if (p0->N_Elements() == 1 && 
+	  p1->N_Elements() == 1 && 
 	  !e->KeywordSet(1) && 
 	  nParam < 3) {
 	dims[0] = 0;
@@ -1111,9 +1113,11 @@ namespace lib {
       if ( p1->Type() == DOUBLE) 
 	p1D = static_cast<DDoubleGDL*> ( p1);
       else
+	{
 	p1D = static_cast<DDoubleGDL*>
 	  (p1->Convert2( DOUBLE, BaseGDL::COPY));
-
+	e->Guard( p1D);
+	}	
       SizeT nxa = p0->Dim(p0->Rank()-1);
 
       // Single Interpolation
@@ -1161,15 +1165,19 @@ namespace lib {
       if ( p1->Type() == DOUBLE) 
 	p1D = static_cast<DDoubleGDL*> ( p1);
       else
+	{
 	p1D = static_cast<DDoubleGDL*>
 	  (p1->Convert2( DOUBLE, BaseGDL::COPY));
-
+	e->Guard( p1D);
+	}	
       if ( p2->Type() == DOUBLE) 
 	p2D = static_cast<DDoubleGDL*> ( p2);
       else
+	{
 	p2D = static_cast<DDoubleGDL*>
 	  (p2->Convert2( DOUBLE, BaseGDL::COPY));
-
+	e->Guard( p2D);
+	}	
       SizeT nxa = p0->Dim(p0->Rank()-2);
       SizeT nya = p0->Dim(p0->Rank()-1);
       
@@ -1244,12 +1252,12 @@ namespace lib {
     } // if( nParam == 3) {
 
 
-    if (p0->Type() != DOUBLE) delete p0D;
-    if (p1->Type() != DOUBLE) delete p1D;
-    if (p2 != NULL)
-      if (p2->Type() != DOUBLE) delete p2D;
-    if (p3 != NULL)
-      if (p3->Type() != DOUBLE) delete p3D;
+//    if (p0->Type() != DOUBLE) delete p0D;
+//    if (p1->Type() != DOUBLE) delete p1D;
+//    if (p2 != NULL)
+//      if (p2->Type() != DOUBLE) delete p2D;
+//    if (p3 != NULL)
+//      if (p3->Type() != DOUBLE) delete p3D;
 
     if (p0->Type() == DOUBLE) {
       return res;	
