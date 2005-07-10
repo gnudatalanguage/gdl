@@ -71,12 +71,12 @@ namespace lib {
 
 	SizeT nFun = libFunList.size();
 	cout << "Library functions (" << nFun <<"):" << endl;
-	for( SizeT i = 0; i<nPro; ++i)
+	for( SizeT i = 0; i<nFun; ++i)
 	  subList.push_back(libFunList[ i]->ToString());
 
 	sort( subList.begin(), subList.end());
-	    
-	for( SizeT i = 0; i<nPro; ++i)
+
+	for( SizeT i = 0; i<nFun; ++i)
 	  cout << subList[ i] << endl;
       }
 
