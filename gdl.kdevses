@@ -1,16 +1,10 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
- <DocsAndViews NumberOfDocuments="3" >
-  <Doc0 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/basic_pro.cpp" >
-   <View0 line="79" Type="Source" />
+ <DocsAndViews NumberOfDocuments="1" >
+  <Doc0 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/ncdf_att_cl.cpp" >
+   <View0 line="11" Type="Source" />
   </Doc0>
-  <Doc1 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/basic_fun_jmg.cpp" >
-   <View0 line="0" Type="Source" />
-  </Doc1>
-  <Doc2 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/gsl_fun.cpp" >
-   <View0 line="1292" Type="Source" />
-  </Doc2>
  </DocsAndViews>
  <pluginList>
   <kdevdebugger>

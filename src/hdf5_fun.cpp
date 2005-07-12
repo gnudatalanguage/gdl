@@ -127,8 +127,12 @@ namespace lib {
     // for(int i=0; i< rank; i++) printf("dim = %d\n", dims_out[i]);
 
     // define hyperslab in dataset
-
+#if (H5_VERS_MAJOR < 1) || ((H5_VERS_MAJOR == 1) && (H5_VERS_MINOR < 6)) ||  ((H5_VERS_MAJOR == 1) && (H5_VERS_MINOR == 6) && (H5_VERS_RELEASE <= 3))
     hssize_t offset[MAXRANK];
+#else
+    hsize_t offset[MAXRANK];
+#endif
+
     hsize_t count[MAXRANK];
  
     for(int i=0; i<rank;i++) offset[i]=0;
@@ -140,7 +144,12 @@ namespace lib {
     hid_t memspace = H5Screate_simple(rank, count, NULL); 
    
     // define memory hyperslab
+#if (H5_VERS_MAJOR < 1) || ((H5_VERS_MAJOR == 1) && (H5_VERS_MINOR < 6)) ||  ((H5_VERS_MAJOR == 1) && (H5_VERS_MINOR == 6) && (H5_VERS_RELEASE <= 3))
     hssize_t offset_out[MAXRANK];
+#else
+    hsize_t offset_out[MAXRANK];
+#endif
+
     hsize_t count_out[MAXRANK];
     for(int i=0; i<rank; i++) offset_out[i] = 0;
     for(int i=0; i<rank; i++) count_out[i] = dims_out[i];
