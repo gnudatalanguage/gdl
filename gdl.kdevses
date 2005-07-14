@@ -2,8 +2,8 @@
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
  <DocsAndViews NumberOfDocuments="1" >
-  <Doc0 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/ncdf_att_cl.cpp" >
-   <View0 line="11" Type="Source" />
+  <Doc0 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/README" >
+   <View0 line="69" Type="Source" />
   </Doc0>
  </DocsAndViews>
  <pluginList>

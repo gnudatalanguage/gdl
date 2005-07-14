@@ -41,7 +41,7 @@ void SkipWS( istream& is)
     if ( (is.rdstate() & ifstream::failbit ) != 0 )
       {
 	if ( (is.rdstate() & ifstream::eofbit ) != 0 )
-	  throw GDLException( "End 2of file encountered. "+
+	  throw GDLException( "End of file encountered. "+
 			      StreamInfo( &is));
 
 	if ( (is.rdstate() & ifstream::badbit ) != 0 )
