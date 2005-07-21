@@ -715,7 +715,7 @@ namespace lib {
       yStart = floor(yStart/intv) * intv;
     }
 
-    DLong ynozero=0, xnozero=0;
+    DLong ynozero=0, xnozero=1;
     //[x|y]range keyword
     gkw_axis_range(e, "X", xStart, xEnd, ynozero);
     gkw_axis_range(e, "Y", yStart, yEnd, xnozero);
