@@ -177,6 +177,7 @@ class DeviceX: public Graphics
 		   0, 0, dev->width, dev->height);
 
     XDestroyImage(ximg);
+    XDestroyImage(ximg_pixmap);
   }
 
 
