@@ -1,6 +1,5 @@
-;$Id: variance.pro,v 1.1.1.1 2004-12-09 15:10:19 m_schellens Exp $
-
-function variance, x,double_keyword=double_keyword,nan=nan
+;$Id: variance.pro,v 1.2 2005-07-25 07:33:25 m_schellens Exp $
+function variance, x, double=double, NaN=NaN
 
 
 ;+
@@ -22,8 +21,8 @@ function variance, x,double_keyword=double_keyword,nan=nan
 ;
 ;
 ; KEYWORD PARAMETERS: 
-;     DOUBLE_KEYWORD : Keyword for double precision calculation
-;     NAN    : Flag to ignore IEEE Floating point NaN
+;     DOUBLE : Keyword for double precision calculation
+;     NAN    : Flag to treat IEEE Special Floating-Point values as missing data
 ;
 ; OUTPUTS:
 ;    Result is the variance of input data
@@ -44,13 +43,11 @@ function variance, x,double_keyword=double_keyword,nan=nan
 ;        841.667
 ;
 ; MODIFICATION HISTORY:
-; 	Written by:  2004-03-20 Christopher Lee.
+;   20-Mar-2004 : Written by Christopher Lee
+;   18-Jul-2005 : PC, moment.pro update 
 ;
-;
-;
-;-
 ; LICENCE:
-; Copyright (C) 2004,
+; Copyright (C) 2004, Christopher Lee
 ; This program is free software; you can redistribute it and/or modify  
 ; it under the terms of the GNU General Public License as published by  
 ; the Free Software Foundation; either version 2 of the License, or     
@@ -59,8 +56,9 @@ function variance, x,double_keyword=double_keyword,nan=nan
 ;
 ;-
 
-m=moment(x, nan=nan, double_keyword=double_keyword)
-
-return, m[1]
+ on_error, 2
+ 
+ m = moment(x, double=double, NaN=NaN)
+ return, m[1]
 
 end

@@ -1,6 +1,6 @@
-;$Id: meanabsdev.pro,v 1.1.1.1 2004-12-09 15:10:19 m_schellens Exp $
+;$Id: meanabsdev.pro,v 1.2 2005-07-25 07:33:25 m_schellens Exp $
 
-function meanabsdev, x,double_keyword=double_keyword,nan=nan
+function meanabsdev, x, double=double, NaN=NaN
 
 ;+
 ;
@@ -21,7 +21,7 @@ function meanabsdev, x,double_keyword=double_keyword,nan=nan
 ;
 ;
 ; KEYWORD PARAMETERS: 
-;     DOUBLE_KEYWORD : Keyword for double precision calculation
+;     DOUBLE : Keyword for double precision calculation
 ;     NAN    : Flag to ignore IEEE Floating point NaN
 ;
 ; OUTPUTS:
@@ -43,11 +43,9 @@ function meanabsdev, x,double_keyword=double_keyword,nan=nan
 ;     25.0000
 ;
 ; MODIFICATION HISTORY:
-; 	Written by:  2004-03-20 Christopher Lee.
+;   20-Mar-2004 : Written by Christopher Lee
+;   18-Jul-2005 : PC, moment.pro update
 ;
-;
-;
-;-
 ; LICENCE:
 ; Copyright (C) 2004,
 ; This program is free software; you can redistribute it and/or modify  
@@ -58,10 +56,9 @@ function meanabsdev, x,double_keyword=double_keyword,nan=nan
 ;
 ;-
 
-
-
-m=moment(x, nan=nan, double_keyword=double_keyword,mdev=mdev)
-
-return, mdev
+ on_error, 2
+ 
+ junk = moment(x, mdev=mdev, double=double, NaN=NaN)
+ return, mdev
 
 end

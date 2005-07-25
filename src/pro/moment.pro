@@ -1,5 +1,5 @@
-;$Id: moment.pro,v 1.1.1.1 2004-12-09 15:10:19 m_schellens Exp $
-function moment, x,double_keyword=double_keyword,mdev=mdev,sdev=sdev,nan=nan
+;$Id: moment.pro,v 1.2 2005-07-25 07:33:25 m_schellens Exp $
+function moment, x, mdev=mdev, sdev=sdev, double=double, NaN=NaN
 
 ;+
 ;
@@ -22,20 +22,16 @@ function moment, x,double_keyword=double_keyword,mdev=mdev,sdev=sdev,nan=nan
 ;
 ;
 ; KEYWORD PARAMETERS: 
-;     DOUBLE_KEYWORD : Keyword for double precision calculation
-;     MDEV   : Named variable which will contain the mean absolute deviation
-;     SDEV   : Named variable which will contain the standard deviation
-;     NAN    : Flag to ignore IEEE Floating point NaN
+;     DOUBLE : Keyword for double precision calculation
+;     NAN    : Flag to treat IEEE Special Floating-Point values as missing data
 ;
 ; OUTPUTS:
 ;    Result is a 4 element array, with
 ;    [mean,variance,skewness,kurtosis] as the elements
 ;
-;
-;
 ; OPTIONAL OUTPUTS:
-;    MDEV    : The mean absolute deviation 
-;    SDEV    : Standard deviation
+;     MDEV   : Named variable which will contain the mean absolute deviation
+;     SDEV   : Named variable which will contain the standard deviation
 ;
 ;
 ; RESTRICTIONS:
@@ -45,9 +41,9 @@ function moment, x,double_keyword=double_keyword,mdev=mdev,sdev=sdev,nan=nan
 ; PROCEDURE:
 ;     mean = (1/N)sum(x),
 ;     variance = 1/(N-1) sum((x-mean(x))^2), 
-;     skewness = 1/(N) sum((x-mean(x))^3/sqrt(variance(x))), 
-;     kurtosis  = 1/(N) sum((x-mean(x))^4/sqrt(variance(x))) -3, 
-;     mean absolute deviation = (1/N) sum(abs(x-mean(x))),
+;     skewness = 1/N sum((x-mean(x))^3/sqrt(variance(x))), 
+;     kurtosis = 1/N sum((x-mean(x))^4/sqrt(variance(x))) - 3, 
+;     mean absolute deviation = 1/N sum(abs(x-mean(x))),
 ;     standard deviation = sqrt(variance)
 ;
 ; EXAMPLE:
@@ -57,13 +53,13 @@ function moment, x,double_keyword=double_keyword,mdev=mdev,sdev=sdev,nan=nan
 ;     49.5000    841.667     0.0000   -1.23606
 ;
 ; MODIFICATION HISTORY:
-; 	Written by:  2004-03-20 Christopher Lee.
+;   20-Mar-2004 : Written by Christopher Lee
+;   18-Jul-2005 : Rewritten by Pierre Chanial
 ;
 ;
-;
-;-
 ; LICENCE:
 ; Copyright (C) 2004, Christopher Lee
+;               2005, Pierre Chanial
 ; This program is free software; you can redistribute it and/or modify  
 ; it under the terms of the GNU General Public License as published by  
 ; the Free Software Foundation; either version 2 of the License, or     
@@ -72,49 +68,31 @@ function moment, x,double_keyword=double_keyword,mdev=mdev,sdev=sdev,nan=nan
 ;
 ;-
 
+ on_error, 2
+ 
+ if n_elements(x) le 2 then begin
+    message, 'Input Array must contain 2 OR more elements.'
+ endif
+ 
+ ; we don't reuse code in mean.pro, because we need variable n.
+ if keyword_set(NaN) then begin
+    n = total(finite(x), double=double)
+ endif else begin
+    n = n_elements(x)
+ endelse
+ 
+ ; get the mean value in the required type (FLOAT or DOUBLE)
+ ; subsequent operations will rely on GDL automatic type conversion
+ mean = total(x, double=double, NaN=NaN)/n
+ x0   = x-mean
+ 
+ variance = total(x0^2, NaN=NaN)/(n-1)
+ sdev     = sqrt(variance)
+ skewness = total(x0^3, NaN=NaN)/sdev^3/n
+ kurtosis = (total(x0^4, NaN=NaN)/sdev^4-3)/n
 
-n=n_elements(x)
-;if(keyword_set(nan)) then begin
-;    w=where(abs(x) ne !values.f_nan,c)
-;    if(c eq 0) then begin
-;        if(arg_present(mdev)) then mdev=!values.f_nan
-;        if(arg_present(sdev)) then sdev=!values.f_nan
-;        return, [!values.f_nan,!values.f_nan,!values.f_nan,!values.f_nan]
-;    endif else if(x eq n)
-;    if(keyword_set(double_keyword)) $
-;      then xptr=ptr_new(double(x)) $
-;    else $
-;      xptr=ptr_new(x)
-;
-;    endif else begin
-;    if(keyword_set(double_keyword)) $
-;      then xptr=ptr_new(double(x[w])) $
-;    else $
-;      xptr=ptr_new(x[w])
-;
-;        n=c
-;    endelse
-;endif else begin
-    if(keyword_set(double_keyword)) $
-      then xptr=ptr_new(double(x)) $
-    else $
-      xptr=ptr_new(x)
+ if arg_present(mdev) then mdev = total(abs(x0), NaN=NaN)/n
 
-;endelse
-
-;xptr contains a point to the data, with no values.f_nan
-;n contains the number of elements
-
-mean=total(*xptr)/n
-variance=(1./(n-1.)) * total((*xptr-mean)^2)
-skewness=(1./n) * total((*xptr-mean)^3)/(sqrt(variance))^3
-kurtosis=(1./n) * total((*xptr-mean)^4)/(sqrt(variance))^4 - 3.
-
-
-if(keyword_set(mdev)) then mdev=(1./n) * total(abs(*xptr-mean))
-if(keyword_set(sdev)) then sdev=sqrt(variance)
-
-return, [mean, variance, skewness, kurtosis]
+ return, [mean, variance, skewness, kurtosis]
 
 end
-

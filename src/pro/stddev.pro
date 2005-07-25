@@ -1,6 +1,6 @@
-;$Id: stddev.pro,v 1.1.1.1 2004-12-09 15:10:19 m_schellens Exp $
+;$Id: stddev.pro,v 1.2 2005-07-25 07:33:25 m_schellens Exp $
 
-function stddev, x,double_keyword=double_keyword,nan=nan
+function stddev, x, double=double, NaN=NaN
 
 ;+
 ;
@@ -21,8 +21,8 @@ function stddev, x,double_keyword=double_keyword,nan=nan
 ;
 ;
 ; KEYWORD PARAMETERS: 
-;     DOUBLE_KEYWORD : Keyword for double precision calculation
-;     NAN    : Flag to ignore IEEE Floating point NaN
+;     DOUBLE : Keyword for double precision calculation
+;     NAN    : Flag to treat IEEE Special Floating-Point values as missing data
 ;
 ; OUTPUTS:
 ;    Result is the standard deviation of input data
@@ -38,16 +38,14 @@ function stddev, x,double_keyword=double_keyword,nan=nan
 ;
 ; EXAMPLE:
 ;     a=findgen(100)
-;     result=kurtosis(a)
+;     result=stddev(a)
 ;     print, result
 ;     29.0115
 ;
 ; MODIFICATION HISTORY:
-; 	Written by:  2004-03-20 Christopher Lee.
+;   20-Mar-2004 : Written by Christopher Lee
+;   18-Jul-2005 : PC, moment.pro update
 ;
-;
-;
-;-
 ; LICENCE:
 ; Copyright (C) 2004, Christopher Lee
 ; This program is free software; you can redistribute it and/or modify  
@@ -58,10 +56,9 @@ function stddev, x,double_keyword=double_keyword,nan=nan
 ;
 ;-
 
-
-
-m=moment(x, nan=nan, double_keyword=double_keyword,sdev=sdev)
-
-return, sdev
+ on_error, 2
+ 
+ junk = moment(x, sdev=sdev, double=double, NaN=NaN)
+ return, sdev
 
 end

@@ -136,3 +136,6 @@
 	  Fixed eof detection on input.
 	  Implemented strided index support.
 	  Improved raise to power (^ operator) for integer types.
+
+0.8.11:   Added STRUCTURES keyword to HELP.
+	  Added NAN keyword to TOTAL.

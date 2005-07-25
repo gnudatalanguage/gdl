@@ -1,5 +1,5 @@
-;$Id: skewness.pro,v 1.1.1.1 2004-12-09 15:10:19 m_schellens Exp $
-function skewness, x, double_keyword=double_keyword,nan=nan
+;$Id: skewness.pro,v 1.2 2005-07-25 07:33:25 m_schellens Exp $
+function skewness, x, double=double, NaN=NaN
 
 ;+
 ;
@@ -20,8 +20,8 @@ function skewness, x, double_keyword=double_keyword,nan=nan
 ;
 ;
 ; KEYWORD PARAMETERS: 
-;     DOUBLE_KEYWORD : Keyword for double precision calculation
-;     NAN    : Flag to ignore IEEE Floating point NaN
+;     DOUBLE : Keyword for double precision calculation
+;     NAN    : Flag to treat IEEE Special Floating-Point values as missing data
 ;
 ; OUTPUTS:
 ;    Result is the mean of input data
@@ -32,7 +32,7 @@ function skewness, x, double_keyword=double_keyword,nan=nan
 ;    struct, ptr, object)
 ;
 ; PROCEDURE:
-;     skewness = 1/(N) sum((x-mean(x))^3/sqrt(variance(x))), 
+;     skewness = 1/N sum((x-mean(x))^3/sqrt(variance(x))), 
 ;     Uses the MOMENT function
 ;
 ; EXAMPLE:
@@ -42,11 +42,9 @@ function skewness, x, double_keyword=double_keyword,nan=nan
 ;     0.0000
 ;
 ; MODIFICATION HISTORY:
-; 	Written by:  2004-03-20 Christopher Lee.
+;   20-Mar-2004 : Written by Christopher Lee
+;   18-Jul-2005 : PC, moment.pro update
 ;
-;
-;
-;-
 ; LICENCE:
 ; Copyright (C) 2004,
 ; This program is free software; you can redistribute it and/or modify  
@@ -57,9 +55,9 @@ function skewness, x, double_keyword=double_keyword,nan=nan
 ;
 ;-
 
-
-m=moment(x, nan=nan, double_keyword=double_keyword)
-
-return, m[3]
+ on_error, 2
+ 
+ m = moment(x, double=double, NaN=NaN)
+ return, m[2]
 
 end
