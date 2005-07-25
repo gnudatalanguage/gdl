@@ -107,17 +107,17 @@ namespace lib
 
       DString cur = GetCWD();
 
-      write_journal_comment("working directory: "+cur);
+      write_journal_comment("Working directory: "+cur);
 
       time_t t=time(0);
       struct tm * tstruct;
       tstruct=localtime(&t);
       char *st=new char[MAX_DATE_STRING_LENGTH];
-      const char *format="%a %h %T %Y";//my IDL date format.
+      const char *format="%a %h %d %T %Y";// day,month,day number,time,year
       SizeT res=strftime(st,MAX_DATE_STRING_LENGTH,format,tstruct);
 
       if(res != 0) 
-	write_journal_comment(string("Date: ") + st);
+	write_journal_comment(string("Date: ") + st + string("\n"));
       delete st;
 
       // clear input line (should not be put into the journal file
@@ -182,6 +182,7 @@ namespace lib
   void write_journal_comment(EnvT *e, int offset, SizeT width)
   {
     if(gdljournal == NULL) return;
+    if(e->NParam() == 0) return;
     print_os( &gdljournal->OStream(), e, offset, width);
   }	
 }

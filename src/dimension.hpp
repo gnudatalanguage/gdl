@@ -178,9 +178,9 @@ public:
       }
     else
       {
-	o << " Array[";
+	o << "Array[";
 	for( SizeT i=0; i<(r-1); i++)
-	  o << d.dim[i] << ",";
+	  o << d.dim[i] << ", ";
 	o << d.dim[r-1] << "]";
       }
     return o;

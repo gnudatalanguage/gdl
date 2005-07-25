@@ -1714,11 +1714,67 @@ namespace lib {
     return new DIntGDL( 0);
   }
 
+  // passing 2nd argument by value is slightly better for float and double, 
+  // but incur some overhead for the complex class.
+  template<class T> inline void AddOmitNaN(T& dest, T value)
+  { if (isfinite(value)) dest += value; }
+  template<class T> inline void AddOmitNaNCpx(T& dest, T value)
+  {
+    dest += T(isfinite(value.real())? value.real() : 0,
+	      isfinite(value.imag())? value.imag() : 0);
+  }
+  template<> inline void AddOmitNaN(DComplex& dest, DComplex value)
+  { AddOmitNaNCpx<DComplex>(dest, value); }
+  template<> inline void AddOmitNaN(DComplexDbl& dest, DComplexDbl value)
+  { AddOmitNaNCpx<DComplexDbl>(dest, value); }
+
+  template<class T> inline void NaN2Zero(T& value)
+  { if (!isfinite(value)) value = 0; }
+  template<class T> inline void NaN2ZeroCpx(T& value)
+  {
+    value = T(isfinite(value.real())? value.real() : 0, 
+              isfinite(value.imag())? value.imag() : 0);
+  }
+  template<> inline void NaN2Zero(DComplex& value)
+  { NaN2ZeroCpx< DComplex>(value); }
+  template<> inline void NaN2Zero(DComplexDbl& value)
+  { NaN2ZeroCpx< DComplexDbl>(value); }
+
+  // total over all elements
+  template<class T>
+  BaseGDL* total_template( T* src, bool omitNaN)
+  {
+    if (!omitNaN) return new T(src->Sum());
+    typename T::Ty sum = 0;
+    SizeT nEl = src->N_Elements();
+    for ( SizeT i=0; i<nEl; ++i)
+      {
+	AddOmitNaN(sum, (*src)[ i]);
+      }
+    return new T(sum);
+  }
+  
+  // cumulative over all dims
+  template<typename T>
+  BaseGDL* total_cu_template( T* res, bool omitNaN)
+  {
+    SizeT nEl = res->N_Elements();
+    if (omitNaN)
+      {
+        for( SizeT i=0; i<nEl; ++i)
+          NaN2Zero((*res)[i]);
+      }
+    for( SizeT i=1,ii=0; i<nEl; ++i,++ii)
+      (*res)[i] += (*res)[ii];
+    return res;
+  }
+
   // total over one dim
   template< typename T>
   BaseGDL* total_over_dim_template( T* src, 
 				    const dimension& srcDim, 
-				    SizeT sumDimIx)
+				    SizeT sumDimIx,
+                                    bool omitNaN)
   {
     SizeT nEl = src->N_Elements();
     
@@ -1738,8 +1794,16 @@ namespace lib {
 	{
 	  SizeT oi = o+i;
 	  SizeT oiLimit = sumLimit + oi;
-	  for( SizeT s=oi; s<oiLimit; s += sumStride)
-	    (*res)[ rIx] += (*src)[ s];
+          if( omitNaN)
+            {
+              for( SizeT s=oi; s<oiLimit; s += sumStride)
+                AddOmitNaN((*res)[ rIx], (*src)[ s]);
+	    }
+          else
+            {
+  	      for( SizeT s=oi; s<oiLimit; s += sumStride)
+	        (*res)[ rIx] += (*src)[ s];
+            }
 	  ++rIx;
 	}
     return res;
@@ -1748,10 +1812,16 @@ namespace lib {
   // cumulative over one dim
   template< typename T>
   BaseGDL* total_over_dim_cu_template( T* res, 
-				       SizeT sumDimIx)
+				       SizeT sumDimIx,
+                                       bool omitNaN)
   {
     SizeT nEl = res->N_Elements();
     const dimension& resDim = res->Dim();
+    if (omitNaN)
+      {
+        for( SizeT i=0; i<nEl; ++i)
+          NaN2Zero((*res)[i]);
+      }
     SizeT cumStride = resDim.Stride( sumDimIx); 
     SizeT outerStride = resDim.Stride( sumDimIx + 1);
     for( SizeT o=0; o < nEl; o += outerStride)
@@ -1793,88 +1863,78 @@ namespace lib {
 	  {
 	    if( p0->Type() == DOUBLE)
 	      {
-		return new DDoubleGDL( static_cast<DDoubleGDL*>( p0)->Sum()); 
+		return total_template<DDoubleGDL>
+                  ( static_cast<DDoubleGDL*>(p0), nan); 
 	      }
 	    if( p0->Type() == COMPLEXDBL)
 	      {
-		return 
-		  new DComplexDblGDL( static_cast<DComplexDblGDL*>( p0)->Sum()); 
+		return total_template<DComplexDblGDL>
+                  ( static_cast<DComplexDblGDL*>(p0), nan); 
 	      }
 	    if( !doubleRes)
 	      {
 		if( p0->Type() == FLOAT)
 		  {
-		    return new DFloatGDL( static_cast<DFloatGDL*>( p0)->Sum()); 
+		    return total_template<DFloatGDL>
+		      ( static_cast<DFloatGDL*>(p0), nan); 
 		  }
 		if( p0->Type() == COMPLEX)
 		  {
-		    return 
-		      new DComplexGDL( static_cast<DComplexGDL*>( p0)->Sum()); 
+		    return total_template<DComplexGDL>
+		      ( static_cast<DComplexGDL*>(p0), nan); 
 		  }
-		DFloatGDL* p0F = static_cast<DFloatGDL*>
-		  (p0->Convert2( FLOAT,BaseGDL::COPY));
-		e->Guard( p0F);
-		return new DFloatGDL( p0F->Sum()); 
+ 		DFloatGDL* p0F = static_cast<DFloatGDL*>
+ 		  (p0->Convert2( FLOAT,BaseGDL::COPY));
+ 		e->Guard( p0F);
+		return total_template<DFloatGDL>( p0F, false);
 	      }
 	    if( p0->Type() == COMPLEX)
 	      {
 		DComplexDblGDL* p0D = static_cast<DComplexDblGDL*>
 		  (p0->Convert2( COMPLEXDBL,BaseGDL::COPY));
 		e->Guard( p0D);
-		return new DComplexDblGDL( p0D->Sum()); 
+		return total_template<DComplexDblGDL>( p0D, nan); 
 	      }
 	    
 	    DDoubleGDL* p0D = static_cast<DDoubleGDL*>
-	      (p0->Convert2( DOUBLE,BaseGDL::COPY));
+	      (p0->Convert2( DOUBLE, BaseGDL::COPY));
 	    e->Guard( p0D);
-	    return new DDoubleGDL( p0D->Sum()); 
+	    return total_template<DDoubleGDL>( p0D, nan);
 	  }
 	else // cumulative
 	  {
 	    // special case as DOUBLE type overrides /DOUBLE
 	    if( p0->Type() == DOUBLE)
 	      {
-		DDoubleGDL* res = static_cast<DDoubleGDL*>( p0)->Dup();
-		for( SizeT i=1,ii=0; i<nEl; ++i,++ii)
-		  (*res)[i] += (*res)[ii];
-		return res;
+  	        return total_cu_template< DDoubleGDL>
+		  ( static_cast<DDoubleGDL*>(p0)->Dup(), nan);
 	      }
 	    if( p0->Type() == COMPLEXDBL)
 	      {
-		DComplexDblGDL* res = static_cast<DComplexDblGDL*>( p0)->Dup();
-		for( SizeT i=1,ii=0; i<nEl; ++i,++ii)
-		  (*res)[i] += (*res)[ii];
-		return res;
+  	        return total_cu_template< DComplexDblGDL>
+		  ( static_cast<DComplexDblGDL*>(p0)->Dup(), nan);
 	      }
 	    if( !doubleRes)
 	      {
-		// special case for FLOAT has no advatage here
+		// special case for FLOAT has no advantage here
 		if( p0->Type() == COMPLEX)
 		  {
-		    DComplexGDL* res = static_cast<DComplexGDL*>( p0)->Dup();
-		    for( SizeT i=1,ii=0; i<nEl; ++i,++ii)
-		      (*res)[i] += (*res)[ii];
-		    return res;
+		    return total_cu_template< DComplexGDL>
+                      ( static_cast<DComplexGDL*>(p0)->Dup(), nan);
 		  }
-		DFloatGDL* res = static_cast<DFloatGDL*>
-		  (p0->Convert2( FLOAT,BaseGDL::COPY));
-		for( SizeT i=1,ii=0; i<nEl; ++i,++ii)
-		  (*res)[i] += (*res)[ii];
-		return res;
+    	        return total_cu_template< DFloatGDL>
+		  ( static_cast<DFloatGDL*>( p0->Convert2(FLOAT, 
+                    BaseGDL::COPY)), nan);
 	      }
 	    if( p0->Type() == COMPLEX)
 	      {
-		DComplexDblGDL* res = static_cast<DComplexDblGDL*>
-		  (p0->Convert2( COMPLEXDBL,BaseGDL::COPY));
-		for( SizeT i=1,ii=0; i<nEl; ++i,++ii)
-		  (*res)[i] += (*res)[ii];
-		return res;
+		return total_cu_template< DComplexDblGDL>
+		  ( static_cast<DComplexDblGDL*>(p0->Convert2( COMPLEXDBL, 
+		    BaseGDL::COPY)), nan);
 	      }
-	    DDoubleGDL* res = static_cast<DDoubleGDL*>
-	      (p0->Convert2( DOUBLE,BaseGDL::COPY));
-	    for( SizeT i=1,ii=0; i<nEl; ++i,++ii)
-	      (*res)[i] += (*res)[ii];
-	    return res;
+    	    return total_cu_template< DDoubleGDL>
+	      ( static_cast<DDoubleGDL*>(p0->Convert2( DOUBLE, 
+		BaseGDL::COPY)), nan);
 	  }
       }
 
@@ -1892,31 +1952,31 @@ namespace lib {
 	if( p0->Type() == DOUBLE)
 	  {
 	    return total_over_dim_template< DDoubleGDL>
-	      ( static_cast<DDoubleGDL*>(p0), srcDim, sumDim-1);
+	      ( static_cast<DDoubleGDL*>(p0), srcDim, sumDim-1, nan);
 	  }
 	if( p0->Type() == COMPLEXDBL)
 	  {
 	    return total_over_dim_template< DComplexDblGDL>
-	      ( static_cast<DComplexDblGDL*>(p0), srcDim, sumDim-1);
+	      ( static_cast<DComplexDblGDL*>(p0), srcDim, sumDim-1, nan);
 	  }
 	if( !doubleRes)
 	  {
 	    if( p0->Type() == FLOAT)
 	      {
 		return total_over_dim_template< DFloatGDL>
-		  ( static_cast<DFloatGDL*>(p0), srcDim, sumDim-1);
+		  ( static_cast<DFloatGDL*>(p0), srcDim, sumDim-1, nan);
 	      }
 	    if( p0->Type() == COMPLEX)
 	      {
 		return total_over_dim_template< DComplexGDL>
-		  ( static_cast<DComplexGDL*>(p0), srcDim, sumDim-1);
+		  ( static_cast<DComplexGDL*>(p0), srcDim, sumDim-1, nan);
 	      }
 	    // default for NOT /DOUBLE
 	    DFloatGDL* p0F = static_cast<DFloatGDL*>
 	      (p0->Convert2( FLOAT,BaseGDL::COPY));
 	    e->Guard( p0F);
 	    return total_over_dim_template< DFloatGDL>
-	      ( p0F, srcDim, sumDim-1);
+	      ( p0F, srcDim, sumDim-1, false);
 	  }
 	if( p0->Type() == COMPLEX)
 	  {
@@ -1924,51 +1984,49 @@ namespace lib {
 	      (p0->Convert2( COMPLEXDBL,BaseGDL::COPY));
 	    e->Guard( p0D);
 	    return total_over_dim_template< DComplexDblGDL>
-	      ( p0D, srcDim, sumDim-1);
+	      ( p0D, srcDim, sumDim-1, nan);
 	  }
 	// default for /DOUBLE
 	DDoubleGDL* p0D = static_cast<DDoubleGDL*>
 	  (p0->Convert2( DOUBLE,BaseGDL::COPY));
 	e->Guard( p0D);
-	return total_over_dim_template< DDoubleGDL>( p0D, srcDim, sumDim-1);
+	return total_over_dim_template< DDoubleGDL>( p0D, srcDim, sumDim-1,nan);
       }
     else // cumulative
       {
 	if( p0->Type() == DOUBLE)
 	  {
 	    return total_over_dim_cu_template< DDoubleGDL>
-	      ( static_cast<DDoubleGDL*>(p0)->Dup(), sumDim-1);
+	      ( static_cast<DDoubleGDL*>(p0)->Dup(), sumDim-1, nan);
 	  }
 	if( p0->Type() == COMPLEXDBL)
 	  {
 	    return total_over_dim_cu_template< DComplexDblGDL>
-	      ( static_cast<DComplexDblGDL*>(p0)->Dup(), sumDim-1);
+	      ( static_cast<DComplexDblGDL*>(p0)->Dup(), sumDim-1, nan);
 	  }
 	if( !doubleRes)
 	  {
-	    // special case for FLOAT has no advatage here
+	    // special case for FLOAT has no advantage here
 	    if( p0->Type() == COMPLEX)
 	      {
 		return total_over_dim_cu_template< DComplexGDL>
-		  ( static_cast<DComplexGDL*>(p0)->Dup(), sumDim-1);
+		  ( static_cast<DComplexGDL*>(p0)->Dup(), sumDim-1, nan);
 	      }
 	    // default for NOT /DOUBLE
-	    DFloatGDL* p0F = static_cast<DFloatGDL*>
-	      (p0->Convert2( FLOAT,BaseGDL::COPY));
 	    return total_over_dim_cu_template< DFloatGDL>
-	      ( p0F, sumDim-1);
+	      ( static_cast<DFloatGDL*>( p0->Convert2( FLOAT, 
+                BaseGDL::COPY)), sumDim-1, nan);
 	  }
 	if( p0->Type() == COMPLEX)
 	  {
-	    DComplexDblGDL* p0D = static_cast<DComplexDblGDL*>
-	      (p0->Convert2( COMPLEXDBL,BaseGDL::COPY));
 	    return total_over_dim_cu_template< DComplexDblGDL>
-	      ( p0D, sumDim-1);
+	      ( static_cast<DComplexDblGDL*>(p0->Convert2( COMPLEXDBL,
+	        BaseGDL::COPY)), sumDim-1, nan);
 	  }
 	// default for /DOUBLE
-	DDoubleGDL* p0D = static_cast<DDoubleGDL*>
-	  (p0->Convert2( DOUBLE,BaseGDL::COPY));
-	return total_over_dim_cu_template< DDoubleGDL>( p0D, sumDim-1);
+	return total_over_dim_cu_template< DDoubleGDL>
+	  ( static_cast<DDoubleGDL*>(p0->Convert2( DOUBLE,
+	    BaseGDL::COPY)), sumDim-1, nan);
       }
   }
 

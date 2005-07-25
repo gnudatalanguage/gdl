@@ -37,6 +37,7 @@ namespace lib {
   void writeu( EnvT* e);
   void readu( EnvT* e);
   
+  //  void help_item( BaseGDL* par, DString parString, bool doIndentation);
   void help( EnvT* e);
   void exitgdl( EnvT* e);
 

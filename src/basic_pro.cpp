@@ -43,6 +43,61 @@ namespace lib {
  
   using namespace std;
 
+  // display help for one variable or one structure tag
+  void help_item( BaseGDL* par, DString parString, bool doIndentation)
+  {
+    if( doIndentation) cout << "   ";
+
+    // Name display
+    cout.width(16);
+    cout << left << parString;
+    if( parString.length() >= 16)
+      {
+        cout << endl;
+        cout.width(doIndentation? 19:16);
+        cout << "";
+      }
+
+    // Type display
+    if( !par)
+      {
+        cout << "UNDEFINED = <Undefined>" << endl;
+        return;
+      }
+    cout.width(10);
+    cout << par->TypeStr() << right;
+
+    if( !doIndentation) cout << "= ";
+
+    // Data display
+    if( par->Type() == STRUCT)
+      {
+        DStructGDL* s = static_cast<DStructGDL*>( par);
+        cout << "-> ";
+        cout << (s->Desc()->IsUnnamed()? "<Anonymous>" : s->Desc()->Name());
+      }
+    else if( par->Dim( 0) == 0)
+      {
+        if (par->Type() == STRING)
+	  {
+            // trim string larger than 45 characters
+            DString dataString = (*static_cast<DStringGDL*>(par))[0];
+            cout << "'" << StrMid( dataString,0,45,0) << "'";
+	    if( dataString.length() > 45) cout << "...";
+	  }
+	else
+	  {
+            par->ToStream( cout);
+	  }
+      }
+
+    // Dimension display
+    if( par->Dim( 0) != 0) cout << par->Dim();
+
+    // End of line
+    cout << endl;
+  }
+
   void help( EnvT* e)
   {
     if( e->KeywordSet( "INFO"))
@@ -80,43 +135,30 @@ namespace lib {
 	  cout << subList[ i] << endl;
       }
 
+    bool isKWSetStructures = e->KeywordSet( "STRUCTURES");
     SizeT nParam=e->NParam();
     for( SizeT i=0; i<nParam; i++)
       {
 	BaseGDL*& par=e->GetPar( i);
-
 	DString parString = e->Caller()->GetString( par);
-	if( parString.length() > 16)
+	if( !par || !isKWSetStructures || par->Type() != STRUCT)
+          {
+            help_item( par, parString, false);
+          }
+        else
 	  {
-	    cout << e->Caller()->GetString( par) << endl;
-	    cout.width( 16);
-	    cout << left << " ";
-	  }
-	else
-	  {
-	    cout.width(16);
-	    cout << left << e->Caller()->GetString( par);
-	  }
-	if( par == NULL)
-	  {
-	    cout << "UNDEFINED = <Undefined>" << right << endl;
-	  }
-	else
-	  {
-	    if( par->Dim( 0) != 0)
-	      {
-		cout.width(10);
-		cout << left << par->TypeStr() << "= " << par->Dim();
-		cout << right << endl;
+            DStructGDL* s = static_cast<DStructGDL*>( par);
+            cout << "** Structure ";
+            cout << (s->Desc()->IsUnnamed()? "<Anonymous>" : s->Desc()->Name());
+
+	    SizeT nTags = s->Desc()->NTags();
+            cout << ", " << nTags << " tags:" << endl;
+	    for (SizeT t=0; t < nTags; ++t)
+	      {    
+		DString tagString = s->Desc()->TagName(t);
+                help_item( s->Get(t), tagString, true);
 	      }
-	    else
-	      {
-		cout.width(10);
-		cout << left << par->TypeStr() << "= " << right;
-		par->ToStream( cout);
-		cout << endl;
-	      }
-	  }
+          }
       }
   }
   

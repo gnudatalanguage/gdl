@@ -265,7 +265,7 @@ namespace SysVar
     plt->NewTag("NSUM", new DLongGDL( 0)); 
     plt->NewTag("POSITION", new DFloatGDL( dimension( &positionDim, one))); 
     plt->NewTag("PSYM", new DLongGDL( 0)); 
-    plt->NewTag("REGION", new DLongGDL( dimension( &regionDim, one))); 
+    plt->NewTag("REGION", new DFloatGDL( dimension( &regionDim, one))); 
     plt->NewTag("SUBTITLE", new DStringGDL( "")); 
     plt->NewTag("SYMSIZE", new DFloatGDL( 0.0)); 
     plt->NewTag("T", new DDoubleGDL( dimension( tDim, 2))); 
