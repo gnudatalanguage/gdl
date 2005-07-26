@@ -375,7 +375,7 @@ NUMBER // handles hollerith strings also
                 $setType(STRING); 
                 std::istringstream s(num->getText());
                 s >> n;
-                $setText(""); 
+                $setText(""); // clear string (remove number)
             }
             'H'! 
             (

@@ -717,8 +717,8 @@ namespace lib {
 
     DLong ynozero=0, xnozero=1;
     //[x|y]range keyword
-    gkw_axis_range(e, "X", xStart, xEnd, ynozero);
-    gkw_axis_range(e, "Y", yStart, yEnd, xnozero);
+    gkw_axis_range(e, "X", xStart, xEnd, xnozero);
+    gkw_axis_range(e, "Y", yStart, yEnd, ynozero);
     if ( e->KeywordSet( "YNOZERO")) ynozero = 1;
 
     if (xStart > 0 && xnozero == 0) xStart = 0; 
@@ -2200,6 +2200,7 @@ namespace lib {
   {
     DLong noErase=0;
     static bool evernoErase = false;
+
     DLongGDL* pMulti = SysVar::GetPMulti();
     if ((*pMulti)[0] == 0) evernoErase = false;
 
@@ -2225,12 +2226,12 @@ namespace lib {
 
     if( !noErase && (*pMulti)[0] != 0 && evernoErase) a->Clear();
 
-    static DStructGDL* pStruct = SysVar::P();
-    if(pStruct!=NULL)
-      {
-	static unsigned typeTag = pStruct->Desc()->TagIndex("NOERASE");   
-	(*static_cast<DLongGDL*>(pStruct->Get(typeTag, 0)))[0] = noErase; 
-      }
+//     static DStructGDL* pStruct = SysVar::P();
+//     if(pStruct!=NULL)
+//       {
+// 	static unsigned typeTag = pStruct->Desc()->TagIndex("NOERASE");   
+// 	(*static_cast<DLongGDL*>(pStruct->Get(typeTag, 0)))[0] = noErase; 
+//       }
   }
 
 
