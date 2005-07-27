@@ -1470,6 +1470,7 @@ namespace lib {
     actStream->flush();
   }
 
+
   void surface( EnvT* e)
   {
     SizeT nParam=e->NParam( 1); 
@@ -1483,18 +1484,43 @@ namespace lib {
     SizeT zEl;
     if( nParam == 1)
       {
-	zVal = e->GetParAs< DDoubleGDL>( 0);
-	if(zVal->Rank() != 2)
+	BaseGDL* p0 = e->GetParDefined( 0)->Transpose( NULL);
+	zVal = static_cast<DDoubleGDL*>
+	  (p0->Convert2( DOUBLE, BaseGDL::COPY));
+	e->Guard( p0); // delete upon exit
+
+	xEl = zVal->Dim(1);
+	yEl = zVal->Dim(0);
+
+	if(zVal->Dim(0) == 1)
 	  throw GDLException( e->CallingNode(),
 			      "SURFACE: Array must have 2 dimensions:"
 			      +e->GetParString(0));
-	xEl = zVal->Dim(0);
-	yEl = zVal->Dim(1);
 
 	xVal = new DDoubleGDL( dimension( xEl), BaseGDL::INDGEN);
 	e->Guard( xVal); // delete upon exit
 	yVal = new DDoubleGDL( dimension( yEl), BaseGDL::INDGEN);
 	e->Guard( yVal); // delete upon exit
+      } else if ( nParam == 2 || nParam > 3) {
+	e->Throw( "SURFACE: Incorrect number of arguments.");
+      } else {
+	BaseGDL* p0 = e->GetParDefined( 0)->Transpose( NULL);
+	zVal = static_cast<DDoubleGDL*>
+	  (p0->Convert2( DOUBLE, BaseGDL::COPY));
+	e->Guard( p0); // delete upon exit
+
+	if(zVal->Dim(0) == 1)
+	  throw GDLException( e->CallingNode(),
+			      "SURFACE: Array must have 2 dimensions:"
+			      +e->GetParString(0));
+
+	xVal = e->GetParAs< DDoubleGDL>( 1);
+	yVal = e->GetParAs< DDoubleGDL>( 2);
+	xEl = xVal->Dim(0);
+	yEl = yVal->Dim(0);
+	if(xVal->Rank() != 1 || yVal->Rank() != 1 ||
+	   xEl != zVal->Dim(1) || yEl != zVal->Dim(0))
+	  e->Throw( "SURFACE: X, Y, or Z array dimensions are incompatible.");
       }
 
     // !P 
@@ -1873,6 +1899,484 @@ namespace lib {
   } // surface
 
 
+  void mypltr(PLFLT x, PLFLT y, PLFLT *tx, PLFLT *ty, void *pltr_data)
+  {
+    PLFLT tr [6]={0,0,0,0,0,0};
+    PLFLT *ptr;
+
+    ptr = (PLFLT *) pltr_data;
+
+    memcpy(&tr[0], &ptr[0], sizeof(PLFLT)); 
+    memcpy(&tr[4], &ptr[1], sizeof(PLFLT)); 
+    memcpy(&tr[2], &ptr[2], sizeof(PLFLT)); 
+    memcpy(&tr[5], &ptr[3], sizeof(PLFLT)); 
+
+    *tx = tr[0] * x + tr[1] * y + tr[2];
+    *ty = tr[3] * x + tr[4] * y + tr[5];
+  }
+
+  void contour( EnvT* e)
+  {
+    SizeT nParam=e->NParam( 1); 
+
+    DDoubleGDL* zVal;
+    DDoubleGDL* yVal;
+    DDoubleGDL* xVal;
+
+    SizeT xEl;
+    SizeT yEl;
+    SizeT zEl;
+    if( nParam == 1)
+      {
+	BaseGDL* p0 = e->GetParDefined( 0)->Transpose( NULL);
+	zVal = static_cast<DDoubleGDL*>
+	  (p0->Convert2( DOUBLE, BaseGDL::COPY));
+	e->Guard( p0); // delete upon exit
+
+	xEl = zVal->Dim(1);
+	yEl = zVal->Dim(0);
+
+	if(zVal->Dim(0) == 1)
+	  throw GDLException( e->CallingNode(),
+			      "CONTOUR: Array must have 2 dimensions:"
+			      +e->GetParString(0));
+
+	xVal = new DDoubleGDL( dimension( xEl), BaseGDL::INDGEN);
+	e->Guard( xVal); // delete upon exit
+	yVal = new DDoubleGDL( dimension( yEl), BaseGDL::INDGEN);
+	e->Guard( yVal); // delete upon exit
+      } else if ( nParam == 2 || nParam > 3) {
+	e->Throw( "CONTOUR: Incorrect number of arguments.");
+      } else {
+	BaseGDL* p0 = e->GetParDefined( 0)->Transpose( NULL);
+	zVal = static_cast<DDoubleGDL*>
+	  (p0->Convert2( DOUBLE, BaseGDL::COPY));
+	e->Guard( p0); // delete upon exit
+
+	if(zVal->Dim(0) == 1)
+	  throw GDLException( e->CallingNode(),
+			      "CONTOUR: Array must have 2 dimensions:"
+			      +e->GetParString(0));
+
+	xVal = e->GetParAs< DDoubleGDL>( 1);
+	yVal = e->GetParAs< DDoubleGDL>( 2);
+	xEl = xVal->Dim(0);
+	yEl = yVal->Dim(0);
+	if(xVal->Rank() != 1 || yVal->Rank() != 1 ||
+	   xEl != zVal->Dim(1) || yEl != zVal->Dim(0))
+	  e->Throw( "CONTOUR: X, Y, or Z array dimensions are incompatible.");
+      }
+
+    // !P 
+    DLong p_background; 
+    DLong p_noErase; 
+    DLong p_color; 
+    DLong p_psym; 
+    DLong p_linestyle;
+    DFloat p_symsize; 
+    DFloat p_charsize; 
+    DFloat p_thick; 
+    DString p_title; 
+    DString p_subTitle; 
+    DFloat p_ticklen; 
+    
+    GetPData( p_background,
+	      p_noErase, p_color, p_psym, p_linestyle,
+	      p_symsize, p_charsize, p_thick,
+	      p_title, p_subTitle, p_ticklen);
+
+    // !X, !Y, !Z (also used below)
+    static DStructGDL* xStruct = SysVar::X();
+    static DStructGDL* yStruct = SysVar::Y();
+    static DStructGDL* zStruct = SysVar::Z();
+    DLong xStyle; 
+    DLong yStyle; 
+    DLong zStyle; 
+    DString xTitle; 
+    DString yTitle; 
+    DString zTitle; 
+    DFloat x_CharSize; 
+    DFloat y_CharSize; 
+    DFloat z_CharSize; 
+    DFloat xMarginL; 
+    DFloat xMarginR; 
+    DFloat yMarginB; 
+    DFloat yMarginF; 
+    DFloat zMarginB; 
+    DFloat zMarginT; 
+    DFloat xTicklen;
+    DFloat yTicklen;
+    DFloat zTicklen;
+    GetAxisData( xStruct, xStyle, xTitle, x_CharSize, xMarginL, xMarginR,
+		 xTicklen);
+    GetAxisData( yStruct, yStyle, yTitle, y_CharSize, yMarginB, yMarginF,
+		 yTicklen);
+    GetAxisData( zStruct, zStyle, zTitle, z_CharSize, zMarginB, zMarginT,
+		 zTicklen);
+
+    // [XY]STYLE
+    e->AssureLongScalarKWIfPresent( "XSTYLE", xStyle);
+    e->AssureLongScalarKWIfPresent( "YSTYLE", yStyle);
+    e->AssureLongScalarKWIfPresent( "ZSTYLE", zStyle);
+
+    // TITLE
+    DString title = p_title;
+    DString subTitle = p_subTitle;
+    e->AssureStringScalarKWIfPresent( "TITLE", title);
+    e->AssureStringScalarKWIfPresent( "SUBTITLE", subTitle);
+
+    // AXIS TITLE
+    e->AssureStringScalarKWIfPresent( "XTITLE", xTitle);
+    e->AssureStringScalarKWIfPresent( "YTITLE", yTitle);
+    e->AssureStringScalarKWIfPresent( "ZTITLE", zTitle);
+
+    // MARGIN (in characters)
+    static int xMarginEnvIx = e->KeywordIx( "XMARGIN"); 
+    static int yMarginEnvIx = e->KeywordIx( "YMARGIN"); 
+    static int zMarginEnvIx = e->KeywordIx( "ZMARGIN"); 
+    BaseGDL* xMargin = e->GetKW( xMarginEnvIx);
+    BaseGDL* yMargin = e->GetKW( yMarginEnvIx);
+    BaseGDL* zMargin = e->GetKW( zMarginEnvIx);
+    if( xMargin != NULL)
+      {
+	if( xMargin->N_Elements() > 2)
+	  e->Throw( "Keyword array parameter XMARGIN"
+		    " must have from 1 to 2 elements.");
+	auto_ptr<DFloatGDL> guard;
+	DFloatGDL* xMarginFl = static_cast<DFloatGDL*>
+	  ( xMargin->Convert2( FLOAT, BaseGDL::COPY));
+	guard.reset( xMarginFl);
+	xMarginL = (*xMarginFl)[0];
+	if( xMarginFl->N_Elements() > 1)
+	  xMarginR = (*xMarginFl)[1];
+      }
+    if( yMargin != NULL)
+      {
+	if( yMargin->N_Elements() > 2)
+	  e->Throw( "Keyword array parameter YMARGIN"
+		    " must have from 1 to 2 elements.");
+	auto_ptr<DFloatGDL> guard;
+	DFloatGDL* yMarginFl = static_cast<DFloatGDL*>
+	  ( yMargin->Convert2( FLOAT, BaseGDL::COPY));
+	guard.reset( yMarginFl);
+	yMarginB = (*yMarginFl)[0];
+	if( yMarginFl->N_Elements() > 1)
+	  yMarginF = (*yMarginFl)[1];
+      }
+    if( zMargin != NULL)
+      {
+	if( zMargin->N_Elements() > 2)
+	  e->Throw( "Keyword array parameter ZMARGIN"
+		    " must have from 1 to 2 elements.");
+	auto_ptr<DFloatGDL> guard;
+	DFloatGDL* zMarginFl = static_cast<DFloatGDL*>
+	  ( zMargin->Convert2( FLOAT, BaseGDL::COPY));
+	guard.reset( zMarginFl);
+	zMarginB = (*zMarginFl)[0];
+	if( zMarginFl->N_Elements() > 1)
+	  zMarginT = (*zMarginFl)[1];
+      }
+
+    // x and y and z range
+    DDouble xStart = xVal->min(); 
+    DDouble xEnd   = xVal->max(); 
+    DDouble yStart = yVal->min(); 
+    DDouble yEnd   = yVal->max(); 
+    DDouble zStart = zVal->min(); 
+    DDouble zEnd   = zVal->max(); 
+
+    if ((xStyle & 1) != 1) {
+      PLFLT intv;
+      intv = AutoIntv(xEnd-xStart);
+      xEnd = ceil(xEnd/intv) * intv;
+      xStart = floor(xStart/intv) * intv;
+    }
+
+    if ((yStyle & 1) != 1) {
+      PLFLT intv;
+      intv = AutoIntv(yEnd-yStart);
+      yEnd = ceil(yEnd/intv) * intv;
+      yStart = floor(yStart/intv) * intv;
+    }
+
+
+    //[x|y|z]range keyword
+    static int zRangeEnvIx = e->KeywordIx("ZRANGE");
+    static int yRangeEnvIx = e->KeywordIx("YRANGE");
+    static int xRangeEnvIx = e->KeywordIx("XRANGE");
+    BaseGDL* xRange = e->GetKW( xRangeEnvIx);
+    BaseGDL* yRange = e->GetKW( yRangeEnvIx);
+    BaseGDL* zRange = e->GetKW( zRangeEnvIx);
+    
+    if(xRange != NULL) 
+      {
+	if(xRange->N_Elements() != 2)
+	  e->Throw("Keyword array parameter XRANGE"
+		   "must have 2 elements.");
+	auto_ptr<DFloatGDL> guard;
+	DFloatGDL* xRangeF = static_cast<DFloatGDL*>
+	  ( xRange->Convert2( FLOAT, BaseGDL::COPY));
+	guard.reset( xRangeF);
+	xStart = (*xRangeF)[0];
+	xEnd = (*xRangeF)[1];
+      }
+
+    if(yRange != NULL)
+      {
+	if(yRange->N_Elements() != 2)
+	  e->Throw("Keyword array parameter YRANGE"
+		   "must have 2 elements.");
+	auto_ptr<DFloatGDL> guard;
+	DFloatGDL* yRangeF = static_cast<DFloatGDL*>
+	  ( yRange->Convert2( FLOAT, BaseGDL::COPY));
+	guard.reset( yRangeF);
+	yStart = (*yRangeF)[0];
+	yEnd = (*yRangeF)[1];
+      }
+    if(zRange != NULL)
+      {
+	if(zRange->N_Elements() != 2)
+	  e->Throw("Keyword array parameter ZRANGE"
+		   "must have 2 elements.");
+	auto_ptr<DFloatGDL> guard;
+	DFloatGDL* zRangeF = static_cast<DFloatGDL*>
+	  ( zRange->Convert2( FLOAT, BaseGDL::COPY));
+	guard.reset( zRangeF);
+	zStart = (*zRangeF)[0];
+	zEnd = (*zRangeF)[1];
+      }
+
+
+    if(xEnd == xStart) xEnd=xStart+1;
+
+    DDouble minVal = zStart;
+    DDouble maxVal = zEnd;
+    e->AssureDoubleScalarKWIfPresent( "MIN_VALUE", minVal);
+    e->AssureDoubleScalarKWIfPresent( "MAX_VALUE", maxVal);
+
+    DLong xTicks=0, yTicks=0, zTicks=0;
+    e->AssureLongScalarKWIfPresent( "XTICKS", xTicks);
+    e->AssureLongScalarKWIfPresent( "YTICKS", yTicks);
+    e->AssureLongScalarKWIfPresent( "ZTICKS", zTicks);
+
+    DLong xMinor=0, yMinor=0, zMinor=0; 
+    e->AssureLongScalarKWIfPresent( "XMINOR", xMinor);
+    e->AssureLongScalarKWIfPresent( "YMINOR", yMinor);
+    e->AssureLongScalarKWIfPresent( "ZMINOR", zMinor);
+
+    DString xTickformat, yTickformat, zTickformat;
+    e->AssureStringScalarKWIfPresent( "XTICKFORMAT", xTickformat);
+    e->AssureStringScalarKWIfPresent( "YTICKFORMAT", yTickformat);
+    e->AssureStringScalarKWIfPresent( "ZTICKFORMAT", zTickformat);
+
+
+    bool xLog = e->KeywordSet( "XLOG");
+    bool yLog = e->KeywordSet( "YLOG");
+    bool zLog = e->KeywordSet( "ZLOG");
+    if( xLog && xStart <= 0.0)
+      Warning( "PLOT: Infinite x plot range.");
+    if( yLog && yStart <= 0.0)
+      Warning( "PLOT: Infinite y plot range.");
+    if( zLog && zStart <= 0.0)
+      Warning( "PLOT: Infinite z plot range.");
+
+    DLong background = p_background;
+    e->AssureLongScalarKWIfPresent( "BACKGROUND", background);
+
+
+    DDouble ticklen = p_ticklen;
+    e->AssureDoubleScalarKWIfPresent( "TICKLEN", ticklen);
+						 
+    DLong color = p_color;
+
+    e->AssureLongScalarKWIfPresent( "COLOR", color);
+
+    DLong noErase = p_noErase;
+    if( e->KeywordSet( "NOERASE")) noErase = 1;
+    
+    // POSITION
+    PLFLT xScale = 1.0;
+    PLFLT yScale = 1.0;
+    //    PLFLT scale = 1.0;
+    static int positionIx = e->KeywordIx( "POSITION"); 
+    DFloatGDL* pos = e->IfDefGetKWAs<DFloatGDL>( positionIx);
+    PLFLT position[ 4] = { 0.0, 0.0, 1.0, 1.0};
+    if( pos != NULL)
+      {
+      for( SizeT i=0; i<4 && i<pos->N_Elements(); ++i)
+	position[ i] = (*pos)[ i];
+
+      xScale = position[2]-position[0];
+      yScale = position[3]-position[1];
+      //      scale = sqrt( pow( xScale,2) + pow( yScale,2));
+      }
+
+    // CHARSIZE
+    DDouble charsize = p_charsize;
+    e->AssureDoubleScalarKWIfPresent( "CHARSIZE", charsize);
+    if( charsize <= 0.0) charsize = 1.0;
+    //    charsize *= scale;
+
+    // AXIS CHARSIZE
+    DDouble xCharSize = x_CharSize;
+    e->AssureDoubleScalarKWIfPresent( "XCHARSIZE", xCharSize);
+    if( xCharSize <= 0.0) xCharSize = 1.0;
+
+    DDouble yCharSize = y_CharSize;
+    e->AssureDoubleScalarKWIfPresent( "YCHARSIZE", yCharSize);
+    if( yCharSize <= 0.0) yCharSize = 1.0;
+    //    yCharSize *= scale;
+
+    DDouble zCharSize = z_CharSize;
+    e->AssureDoubleScalarKWIfPresent( "ZCHARSIZE", zCharSize);
+    if( zCharSize <= 0.0) zCharSize = 1.0;
+
+
+    // THICK
+    DFloat thick = p_thick;
+    e->AssureFloatScalarKWIfPresent( "THICK", thick);
+
+
+    GDLGStream* actStream = GetPlotStream( e); 
+    
+    // *** start drawing
+    actStream->Background( background);
+    actStream->Color( color);
+
+    actStream->NextPlot( !noErase);
+    if( !noErase) actStream->Clear();
+
+    // plplot stuff
+    // set the charsize (scale factor)
+    DDouble charScale = 1.0;
+    DLongGDL* pMulti = SysVar::GetPMulti();
+    if( (*pMulti)[1] > 2 || (*pMulti)[2] > 2) charScale = 0.5;
+    actStream->schr( 0.0, charsize * charScale);
+
+#if 0
+    // get subpage in mm
+    PLFLT scrXL, scrXR, scrYB, scrYF;
+    actStream->gspa( scrXL, scrXR, scrYB, scrYF); 
+    PLFLT scrX = scrXR-scrXL;
+    PLFLT scrY = scrYF-scrYB;
+#endif
+
+    // get char size in mm (default, actual)
+    PLFLT defH, actH;
+    actStream->gchr( defH, actH);
+
+    // CLIPPING
+    DDoubleGDL* clippingD=NULL;
+    DLong noclip=0;
+    e->AssureLongScalarKWIfPresent( "NOCLIP", noclip);
+    if(noclip == 0)
+      {
+	static int clippingix = e->KeywordIx( "CLIP"); 
+	clippingD = e->IfDefGetKWAs<DDoubleGDL>( clippingix);
+      }
+    
+
+    // viewport and world coordinates
+    bool okVPWC = SetVP_WC( e, actStream, pos, clippingD, 
+			    xLog, yLog,
+			    xMarginL, xMarginR, yMarginB, yMarginF,
+			    xStart, xEnd, yStart, yEnd);
+    if( !okVPWC) return;
+    
+
+    // pen thickness for axis
+    actStream->wid( 0);
+
+    // axis
+    string xOpt = "bcnst";
+    string yOpt = "bcnstv";
+
+    if( xLog) xOpt += "l";
+    if( yLog) yOpt += "l";
+
+    // axis titles
+    actStream->schr( 0.0, actH/defH * xCharSize);
+    actStream->mtex("b",3.5,0.5,0.5,xTitle.c_str());
+
+    // the axis (separate for x and y axis because of charsize)
+    PLFLT xintv;
+    if (xTicks == 0) {
+      xintv = AutoTick(xEnd-xStart);
+    } else {
+      xintv = (xEnd - xStart) / xTicks;
+    }
+    actStream->box( xOpt.c_str(), xintv, xMinor, "", 0.0, 0);
+
+    actStream->schr( 0.0, actH/defH * yCharSize);
+    actStream->mtex("l",5.0,0.5,0.5,yTitle.c_str());
+
+    // the axis (separate for x and y axis because of charsize)
+    PLFLT yintv;
+    if (yTicks == 0) {
+      yintv = AutoTick(yEnd-yStart);
+    } else {
+      yintv = (yEnd - yStart) / yTicks;
+    }
+    actStream->box( "", 0.0, 0, yOpt.c_str(), yintv, yMinor);
+
+    // pen thickness for plot
+    actStream->wid( static_cast<PLINT>(floor( thick-0.5)));
+
+
+    // plot the data
+
+    PLINT nlevel;
+    PLFLT *clevel;
+
+    static int levelsix = e->KeywordIx( "LEVELS"); 
+
+    BaseGDL* b_levels=e->GetKW(levelsix);
+    if(b_levels != NULL) {
+      DDoubleGDL* d_levels = e->GetKWAs<DDoubleGDL>( levelsix);
+      nlevel = d_levels->N_Elements();
+      clevel = (PLFLT *) &(*d_levels)[0];
+    } else {
+      PLFLT zintv;
+      zintv = AutoTick(zVal->max() - zVal->min());
+      nlevel = (PLINT) floor((zVal->max() - zVal->min()) / zintv);
+      for( SizeT i=1; i<=nlevel; i++) clevel[i-1] = zintv * i;
+    }
+
+
+    PLFLT spa[4];
+    spa[0] = (xVal->max() - xVal->min()) / (xEl - 1);
+    spa[1] = (yVal->max() - yVal->min()) / (yEl - 1);
+    spa[2] = xVal->min(); 
+    spa[3] = yVal->min(); 
+
+    PLFLT** z = new PLFLT*[xEl];
+    for( SizeT i=0; i<xEl; i++) z[i] = &(*zVal)[i*yEl];
+
+    actStream->cont(z, xEl, yEl, 1, xEl, 1, yEl, 
+		    clevel, nlevel, mypltr, (void *) spa);
+
+
+    // title and sub title
+    actStream->schr( 0.0, 1.25*actH/defH);
+    actStream->mtex("t",1.25,0.5,0.5,title.c_str());
+    actStream->schr( 0.0, actH/defH); // charsize is reset here
+    actStream->mtex("b",5.4,0.5,0.5,subTitle.c_str());
+    
+
+    delete[] z;
+
+    actStream->flush();
+
+    // set ![XY].CRANGE
+    set_axis_crange("X", xStart, xEnd);
+    set_axis_crange("Y", yStart, yEnd);
+
+    //set ![x|y].type
+    set_axis_type("X",xLog);
+    set_axis_type("Y",yLog);
+  } // contour
+
+
   void axis( EnvT* e)
   {
     SizeT nParam=e->NParam( 0); 
@@ -2200,7 +2704,6 @@ namespace lib {
   {
     DLong noErase=0;
     static bool evernoErase = false;
-
     DLongGDL* pMulti = SysVar::GetPMulti();
     if ((*pMulti)[0] == 0) evernoErase = false;
 

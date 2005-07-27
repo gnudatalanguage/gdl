@@ -31,6 +31,7 @@ namespace lib {
   void oplot( EnvT* e);
   void plots( EnvT* e);
   void surface( EnvT* e);
+  void contour( EnvT* e);
   void xyouts( EnvT* e);
   void wset( EnvT* e);
   void window( EnvT* e);

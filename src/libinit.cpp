@@ -509,7 +509,6 @@ void LibInit()
       "DATA","DEVICE","NORMAL",
       KLISTEND
     };
-
   new DLibPro(lib::plots, string("PLOTS"), 3, plotsKey);
 
   const string surfaceKey[]=
@@ -567,6 +566,62 @@ void LibInit()
      KLISTEND
     };
   new DLibPro(lib::surface,string("SURFACE"),3,surfaceKey);
+
+  const string contourKey[]=
+    {
+     // GRAPHIC KEYWORDS
+     // 0
+     "BACKGROUND","CHARSIZE","CHARTHICK","CLIP",
+     // 4
+     "COLOR",     "DATA",    "DEVICE",   "FONT",
+     // 8
+     "NOCLIP",  "NODATA",   "NOERASE", 
+     // 11
+     "NORMAL",    "POSITION",     "SUBTITLE",
+     // 14
+     "T3D",     "THICK",    "TICKLEN", 
+     // 17
+     "TITLE",
+     // 18
+     "XCHARSIZE",    "XGRIDSTYLE", "XMARGIN", "XMINOR",
+     // 22
+     "XRANGE",       "XSTYLE",     "XTHICK",  "XTICKFORMAT",
+     // 26
+     "XTICKLEN","XTICKNAME",
+     // 28
+     "XTICKS",       "XTICKV",  "XTICK_GET",
+     // 31
+     "XTITLE",
+     // 32
+     "YCHARSIZE",    "YGRIDSTYLE", "YMARGIN", "YMINOR",
+     // 36
+     "YRANGE",       "YSTYLE",     "YTHICK",  "YTICKFORMAT",
+     // 40
+     "YTICKLEN","YTICKNAME",
+     // 42
+     "YTICKS",       "YTICKV",  "YTICK_GET",
+     // 45
+     "YTITLE",
+     // 46
+     "ZCHARSIZE",    "ZGRIDSTYLE", "ZMARGIN", "ZMINOR",
+     // 50
+     "ZRANGE",       "ZSTYLE",     "ZTHICK",  "ZTICKFORMAT",
+     // 54
+     "ZTICKLEN","ZTICKNAME",
+     // 56
+     "ZTICKS",       "ZTICKV",  "ZTICK_GET",
+     // 59
+     "ZTITLE",
+     // 60
+     "ZVALUE", 
+
+     // CONTOUR keywords
+     // 73
+     "LEVELS", "MAX_VALUE", "MIN_VALUE","AX", "AZ"
+     "XLOG",     "YLOG",     "ZLOG", 
+     KLISTEND
+    };
+  new DLibPro(lib::contour,string("CONTOUR"),3,contourKey);
 
   const string xyoutsKey[]=
     {
