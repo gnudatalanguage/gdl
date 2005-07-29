@@ -232,7 +232,8 @@ void DSubUD::AddKey(const string& k, const string& v)
 // must be done after the tree is converted
 void DSubUD::ResolveAllLabels()
 {
-  ResolveLabel( tree);
+  if( tree != NULL)
+  	ResolveLabel( tree);
 }
 
 void DSubUD::ResolveLabel( ProgNodeP p)

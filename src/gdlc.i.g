@@ -1540,15 +1540,6 @@ l_array_expr [BaseGDL* right] returns [BaseGDL** res]
                 (*res)->AssignAt( rConv, aL); // assigns inplace
             }
         }
-    | res=l_indexoverwriteable_expr 
-        {
-            if( right != NULL && right != (*res))
-            {
-                // only here non-inplace copy is done
-                delete *res;
-                *res = right->Dup();
-            }
-        }
     | { ProgNodeP sysVar = _t;} // for error reporting
         res=l_sys_var // sysvars cannot change their type
         {
@@ -1701,6 +1692,15 @@ l_expr [BaseGDL* right] returns [BaseGDL** res]
 //             }
         )
     | res=l_array_expr[ right]
+    | res=l_indexoverwriteable_expr 
+        {
+            if( right != NULL && right != (*res))
+            {
+                // only here non-inplace copy is done
+                delete *res;
+                *res = right->Dup();
+            }
+        }
     | res=l_dot_expr[ right]
 //    | { right == NULL}? res=l_function_call
     | e1=r_expr

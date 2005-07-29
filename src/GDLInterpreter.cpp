@@ -2264,17 +2264,30 @@ BaseGDL**  GDLInterpreter::l_expr(ProgNodeP _t,
 		break;
 	}
 	case ARRAYEXPR:
+	case SYSVAR:
+	{
+		res=l_array_expr(_t, right);
+		_t = _retTree;
+		break;
+	}
 	case DEREF:
 	case FCALL:
 	case FCALL_LIB:
 	case MFCALL:
 	case MFCALL_PARENT:
-	case SYSVAR:
 	case VAR:
 	case VARPTR:
 	{
-		res=l_array_expr(_t, right);
+		res=l_indexoverwriteable_expr(_t);
 		_t = _retTree;
+		
+		if( right != NULL && right != (*res))
+		{
+		// only here non-inplace copy is done
+		delete *res;
+		*res = right->Dup();
+		}
+		
 		break;
 	}
 	case DOT:
@@ -4147,26 +4160,6 @@ BaseGDL**  GDLInterpreter::l_array_expr(ProgNodeP _t,
 		auto_ptr<BaseGDL> conv_guard( rConv);
 		
 		(*res)->AssignAt( rConv, aL); // assigns inplace
-		}
-		
-		break;
-	}
-	case DEREF:
-	case FCALL:
-	case FCALL_LIB:
-	case MFCALL:
-	case MFCALL_PARENT:
-	case VAR:
-	case VARPTR:
-	{
-		res=l_indexoverwriteable_expr(_t);
-		_t = _retTree;
-		
-		if( right != NULL && right != (*res))
-		{
-		// only here non-inplace copy is done
-		delete *res;
-		*res = right->Dup();
 		}
 		
 		break;
