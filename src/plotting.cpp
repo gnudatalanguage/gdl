@@ -588,6 +588,7 @@ namespace lib {
     xStart=wcxs; xEnd=wcxe; minVal=wcys; maxVal=wcye;
   }
 
+
   bool SetVP_WC( EnvT* e, 
 		 GDLGStream* actStream,
 		 DFloatGDL* pos,
@@ -616,17 +617,62 @@ namespace lib {
 		 xMR, xML, yMB, yMT);
 
     // viewport - POSITION overrides
-    if( pos != NULL)
-      {
-	PLFLT position[ 4] = { 0.0, 0.0, 1.0, 1.0};
-	for( SizeT i=0; i<4 && i<pos->N_Elements(); ++i)
-	  position[ i] = (*pos)[ i];
+    static bool kwP;
+    static PLFLT positionP[ 4]={0,0,0,0};
+    static PLFLT position[ 4];
+    DStructGDL* pStruct = SysVar::P();
+
+    // Get !P.position values
+    if(pStruct != NULL) {
+      static unsigned positionTag = pStruct->Desc()->TagIndex( "POSITION");
+      for( SizeT i=0; i<4; ++i)
+	positionP[i] = (PLFLT)
+	  (*static_cast<DFloatGDL*>(pStruct->Get( positionTag, 0)))[i];
+    }
+
+    // If pos == NULL (oplot)
+    if ( pos == NULL) {
+
+      // If position keyword previously set
+      if (kwP) {
 	actStream->vpor(position[0],position[2],position[1],position[3]);
+      } else {
+	// If !P.position not set
+	if (positionP[0] == 0 && positionP[1] == 0 &&
+	    positionP[2] == 0 && positionP[3] == 0)
+	  actStream->vpor(position[0],position[2],position[1],position[3]);
+	else {
+	  // !P.position set
+	  actStream->vpor(positionP[0],positionP[2],positionP[1],positionP[3]);
+	}
       }
-    else
-      {
-	actStream->vpor( xML, 1.0-xMR, yMB, 1.0-yMT);
+      // New plot
+    } else if ( pos == (DFloatGDL*) 0xF) {
+      kwP = false;
+
+      // If !P.position not set use default values
+      if (positionP[0] == 0 && positionP[1] == 0 &&
+	  positionP[2] == 0 && positionP[3] == 0) {
+
+	// Set to default values
+	position[0] = xML;
+	position[1] = yMB;
+	position[2] = 1.0 - xMR;
+	position[3] = 1.0 - yMT;
+
+	actStream->vpor(position[0],position[2],position[1],position[3]);
+      } else {
+	// !P.position values
+	actStream->vpor(positionP[0],positionP[2],positionP[1],positionP[3]);
       }
+      // Position keyword set
+    } else {
+      kwP = true;
+      for( SizeT i=0; i<4 && i<pos->N_Elements(); ++i)
+	position[ i] = (*pos)[ i];
+      actStream->vpor(position[0],position[2],position[1],position[3]);
+    }
+
 
     // CLIPPING
     if( clippingD != NULL)
@@ -648,6 +694,7 @@ namespace lib {
 
     return true;
   }
+
 
   void plot( EnvT* e)
   {
@@ -772,6 +819,8 @@ namespace lib {
     //    PLFLT scale = 1.0;
     static int positionIx = e->KeywordIx( "POSITION"); 
     DFloatGDL* pos = e->IfDefGetKWAs<DFloatGDL>( positionIx);
+    if (pos == NULL) pos = (DFloatGDL*) 0xF;
+    /*
     PLFLT position[ 4] = { 0.0, 0.0, 1.0, 1.0};
     if( pos != NULL)
       {
@@ -782,6 +831,7 @@ namespace lib {
       yScale = position[3]-position[1];
       //      scale = sqrt( pow( xScale,2) + pow( yScale,2));
       }
+    */
 
 
     DFloat charsize, xCharSize, yCharSize;
@@ -957,7 +1007,7 @@ namespace lib {
     // start drawing
     gkw_background(e, actStream,false);
     gkw_color(e, actStream);
-    gkw_noerase(e, actStream,true);
+    gkw_noerase(e, actStream, true);
     gkw_psym(e, actStream, line, psym);
     DFloat charsize;
     gkw_charsize(e,actStream, charsize, false);
@@ -1726,6 +1776,7 @@ namespace lib {
     //    PLFLT scale = 1.0;
     static int positionIx = e->KeywordIx( "POSITION"); 
     DFloatGDL* pos = e->IfDefGetKWAs<DFloatGDL>( positionIx);
+    /*
     PLFLT position[ 4] = { 0.0, 0.0, 1.0, 1.0};
     if( pos != NULL)
       {
@@ -1736,6 +1787,7 @@ namespace lib {
       yScale = position[3]-position[1];
       //      scale = sqrt( pow( xScale,2) + pow( yScale,2));
       }
+    */
 
     // CHARSIZE
     DDouble charsize = p_charsize;
@@ -2474,7 +2526,7 @@ namespace lib {
     // *** start drawing
     GDLGStream* actStream = GetPlotStream( e); 
     gkw_color(e, actStream);       //COLOR
-    gkw_noerase(e, actStream);     //NOERASE
+    gkw_noerase(e, actStream, true);     //NOERASE
     gkw_charsize(e, actStream, charsize);    //CHARSIZE
     gkw_axis_charsize(e, "X",xCharSize);//XCHARSIZE
     gkw_axis_charsize(e, "Y",yCharSize);//YCHARSIZE
@@ -2703,38 +2755,28 @@ namespace lib {
   void gkw_noerase(EnvT* e,GDLGStream * a, bool noe)
   {
     DLong noErase=0;
-    static bool evernoErase = false;
     DLongGDL* pMulti = SysVar::GetPMulti();
-    if ((*pMulti)[0] == 0) evernoErase = false;
 
     if(!noe)
       {
 	static DStructGDL* pStruct = SysVar::P();
-	noErase= (*static_cast<DLongGDL*>( pStruct->Get(pStruct->Desc()->TagIndex("NOERASE"), 0)))[0];
+	noErase = (*static_cast<DLongGDL*>
+		   ( pStruct->
+		     Get( pStruct->Desc()->TagIndex("NOERASE"), 0)))[0];
 	if(e->KeywordSet("NOERASE")) {
 	  noErase=1;
-	  evernoErase = true;
 	}
       }
     else
       {
 	noErase=1;
-	evernoErase = true;
       }
     static int positionIx = e->KeywordIx( "POSITION"); 
     DFloatGDL* pos = e->IfDefGetKWAs<DFloatGDL>( positionIx);
 
-    if (pos == NULL) a->NextPlot( !noErase);
+    a->NextPlot( !noErase);
+
     if (pos != NULL) a->NoSub();
-
-    if( !noErase && (*pMulti)[0] != 0 && evernoErase) a->Clear();
-
-//     static DStructGDL* pStruct = SysVar::P();
-//     if(pStruct!=NULL)
-//       {
-// 	static unsigned typeTag = pStruct->Desc()->TagIndex("NOERASE");   
-// 	(*static_cast<DLongGDL*>(pStruct->Get(typeTag, 0)))[0] = noErase; 
-//       }
   }
 
 
