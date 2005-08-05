@@ -2771,8 +2771,12 @@ namespace lib {
       {
 	noErase=1;
       }
-    static int positionIx = e->KeywordIx( "POSITION"); 
-    DFloatGDL* pos = e->IfDefGetKWAs<DFloatGDL>( positionIx);
+
+    DSub* pro = e->GetPro();
+    int positionIx = pro->FindKey( "POSITION");
+    DFloatGDL* pos = NULL;
+    if( positionIx != -1)
+      pos = e->IfDefGetKWAs<DFloatGDL>( positionIx);
 
     a->NextPlot( !noErase);
 

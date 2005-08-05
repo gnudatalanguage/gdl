@@ -232,12 +232,13 @@ void DSubUD::AddKey(const string& k, const string& v)
 // must be done after the tree is converted
 void DSubUD::ResolveAllLabels()
 {
-  if( tree != NULL)
-  	ResolveLabel( tree);
+  ResolveLabel( tree);
 }
 
 void DSubUD::ResolveLabel( ProgNodeP p)
 {
+  if( p == NULL) return;
+  
   if( p->getType() == GDLTreeParser::ON_IOERROR || 
       p->getType() == GDLTreeParser::GOTO)
     {
@@ -253,8 +254,6 @@ void DSubUD::ResolveLabel( ProgNodeP p)
       labelList.SetLabelNode( p);
     }
   
-  if( p->getFirstChild() != NULL)
-    ResolveLabel( p->getFirstChild());
-  if( p->getNextSibling() != NULL)
-    ResolveLabel( p->getNextSibling());
+  ResolveLabel( p->getFirstChild());
+  ResolveLabel( p->getNextSibling());
 }
