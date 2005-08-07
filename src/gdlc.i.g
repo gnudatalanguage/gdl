@@ -26,6 +26,8 @@ header "post_include_cpp" {
     // gets inserted after the antlr generated includes in the cpp file
 #include "dinterpreter.hpp"
 
+#include <cassert>
+
 // tweaking ANTLR
 #define ASTNULL          NULLProgNodeP
 #define ProgNodeP( xxx ) NULL             /* ProgNodeP(antlr::nullAST) */
@@ -1133,7 +1135,7 @@ assignment
     BaseGDL** l;
     auto_ptr<BaseGDL> r_guard;
 }
-    : #(a:ASSIGN 
+    : #(ASSIGN 
             ( r=tmp_expr
                 {
                     r_guard.reset( r);
@@ -1151,6 +1153,34 @@ assignment
 //                 if( (*l) == r || callStack.back()->Contains( r)) 
 //                     r_guard.release();
 //             }
+        )
+    | #(ASSIGN_REPLACE 
+            ( r=tmp_expr
+                {
+                    r_guard.reset( r);
+                }
+            | r=check_expr
+                {
+                    if( !callStack.back()->Contains( r)) 
+                        r_guard.reset( r);
+                }
+            )
+            (
+              l=l_function_call   // FCALL_LIB, MFCALL, MFCALL_PARENT, FCALL
+            | l=l_deref           // DEREF
+            | l=l_simple_var      // VAR, VARPTR
+            )
+        {
+            if( r != (*l))
+            {
+                delete *l;
+
+                if( r_guard.get() == r)
+                  *l = r_guard.release();
+                else  
+                  *l = r->Dup();
+            }
+        }
         )
     ;
 
@@ -1239,7 +1269,31 @@ l_ret_expr returns [BaseGDL** res]
             
             res=&callStack.back()->GetKW(var->varIx); 
         }
-    | #(ASSIGN 
+    | #(ASSIGN
+            { 
+                auto_ptr<BaseGDL> r_guard;
+            } 
+            ( e1=tmp_expr
+                {
+                    r_guard.reset( e1);
+                }
+            | e1=check_expr
+                {
+                    if( !callStack.back()->Contains( e1)) 
+                        r_guard.reset( e1);
+                }
+            )
+            res=l_ret_expr
+            {
+                if( e1 != (*res))
+                    {
+                    delete *res;
+                    *res = e1;
+                    }
+                r_guard.release();
+            }
+        )
+    | #(ASSIGN_REPLACE 
             { 
                 auto_ptr<BaseGDL> r_guard;
             } 
@@ -1468,6 +1522,47 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
             }
             res=l_decinc_expr[ dec_inc]
         )
+    | #(ASSIGN_REPLACE 
+            { 
+                auto_ptr<BaseGDL> r_guard;
+            } 
+            ( e1=tmp_expr
+                {
+                    r_guard.reset( e1);
+                }
+            | e1=check_expr
+                {
+                    if( !callStack.back()->Contains( e1)) 
+                        r_guard.reset( e1);
+                }
+            )
+            { 
+                ProgNodeP l = _t;
+
+                BaseGDL** tmp;
+            } 
+//            tmp=l_expr[ e1] // assign
+            (
+              tmp=l_function_call   // FCALL_LIB, MFCALL, MFCALL_PARENT, FCALL
+            | tmp=l_deref           // DEREF
+            | tmp=l_simple_var      // VAR, VARPTR
+            )
+        {
+            if( e1 != (*tmp))
+            {
+                delete *tmp;
+
+                if( r_guard.get() == e1)
+                  *tmp = r_guard.release();
+                else  
+                  *tmp = e1->Dup();
+            }
+        }
+            {
+                _t = l;
+            }
+            res=l_decinc_expr[ dec_inc]
+        )
     | res=l_decinc_array_expr[ dec_inc]
     | res=l_decinc_dot_expr[ dec_inc]
     | e1=r_expr
@@ -1484,14 +1579,6 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
     ;
 
 // l expressions for assignment *************************
-// called from l_array_expr
-l_indexoverwriteable_expr returns [BaseGDL** res]
-//     : #(EXPR res=l_expr[ NULL])
-//     | res=l_function_call
-    : res=l_function_call
-    | res=l_deref
-    | res=l_simple_var
-    ;
 
 // an indexable expression must be defined
 l_indexable_expr returns [BaseGDL** res]
@@ -1539,26 +1626,6 @@ l_array_expr [BaseGDL* right] returns [BaseGDL** res]
                 
                 (*res)->AssignAt( rConv, aL); // assigns inplace
             }
-        }
-    | { ProgNodeP sysVar = _t;} // for error reporting
-        res=l_sys_var // sysvars cannot change their type
-        {
-            if( right == NULL)
-            throw GDLException( _t, 
-                "System variable not allowed in this context.");
-            
-            BaseGDL* rConv = right->Convert2( (*res)->Type(), BaseGDL::COPY);
-            auto_ptr<BaseGDL> conv_guard( rConv);
-                
-            if( right->N_Elements() != 1 && 
-                ((*res)->N_Elements() != right->N_Elements()))
-            {
-                throw GDLException( _t, "Conflicting data structures: <"+
-                    right->TypeStr()+" "+right->Dim().ToString()+">,!"+ 
-                    sysVar->getText());
-            }
-            
-            (*res)->AssignAt( rConv); // linear copy
         }
     ;
 
@@ -1630,26 +1697,6 @@ l_dot_array_expr [DotAccessDescT* aD] // 1st
         }
     ;
 
-// struct assignment
-// MAIN function: called from l_expr
-l_dot_expr [BaseGDL* right] returns [BaseGDL** res]
-    : #(dot:DOT 
-            { 
-                SizeT nDot=dot->nDot;
-                auto_ptr<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
-            } 
-            l_dot_array_expr[ aD.get()] 
-            (tag_array_expr[ aD.get()] /* nDot times*/ )+ 
-        )         
-        {
-            if( right == NULL)
-            throw GDLException( _t, "Struct expression not allowed in this context.");
-            
-            aD->Assign( right);
-
-            res=NULL;
-        }
-    ;
 
 // l_expr is only used in assignment and within itself
 l_expr [BaseGDL* right] returns [BaseGDL** res]
@@ -1691,17 +1738,92 @@ l_expr [BaseGDL* right] returns [BaseGDL** res]
 //                     r_guard.release();
 //             }
         )
-    | res=l_array_expr[ right]
-    | res=l_indexoverwriteable_expr 
+    | #(ASSIGN_REPLACE e1=expr
+            { 
+                auto_ptr<BaseGDL> r_guard;
+            } 
+            ( e1=tmp_expr
+                {
+                    r_guard.reset( e1);
+                }
+            | e1=check_expr
+                {
+                    if( !callStack.back()->Contains( e1)) 
+                        r_guard.reset( e1);
+                }
+            )
+            (
+              res=l_function_call   // FCALL_LIB, MFCALL, MFCALL_PARENT, FCALL
+            | res=l_deref           // DEREF
+            | res=l_simple_var      // VAR, VARPTR
+            )
         {
-            if( right != NULL && right != (*res))
+            if( e1 != (*res))
             {
-                // only here non-inplace copy is done
                 delete *res;
-                *res = right->Dup();
+
+                if( r_guard.get() == e1)
+                  *res = r_guard.release();
+                else  
+                  *res = right->Dup();
             }
         }
-    | res=l_dot_expr[ right]
+        )
+    | res=l_array_expr[ right]
+    | { ProgNodeP sysVar = _t;} // for error reporting
+        res=l_sys_var // sysvars cannot change their type
+        {
+            if( right == NULL)
+            throw GDLException( _t, 
+                "System variable not allowed in this context.");
+            
+            BaseGDL* rConv = right->Convert2( (*res)->Type(), BaseGDL::COPY);
+            auto_ptr<BaseGDL> conv_guard( rConv);
+                
+            if( right->N_Elements() != 1 && 
+                ((*res)->N_Elements() != right->N_Elements()))
+            {
+                throw GDLException( _t, "Conflicting data structures: <"+
+                    right->TypeStr()+" "+right->Dim().ToString()+">,!"+ 
+                    sysVar->getText());
+            }
+            
+            (*res)->AssignAt( rConv); // linear copy
+        }
+//   | res=l_indexoverwriteable_expr 
+     | (
+         res=l_function_call   // FCALL_LIB, MFCALL, MFCALL_PARENT, FCALL
+       | res=l_deref           // DEREF
+       | res=l_simple_var      // VAR, VARPTR
+       )
+     {
+       assert( right == NULL); // assert called only from l_indexable_expr
+     }
+//         {
+//             if( right != NULL && right != (*res))
+//             {
+//                 // only here non-inplace copy is done
+//                 delete *res;
+//                 *res = right->Dup();
+//             }
+//         }
+//    | res=l_dot_expr[ right]
+    | #(dot:DOT  // struct assignment
+            { 
+                SizeT nDot=dot->nDot;
+                auto_ptr<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
+            } 
+            l_dot_array_expr[ aD.get()] 
+            (tag_array_expr[ aD.get()] /* nDot times*/ )+ 
+        )         
+        {
+            if( right == NULL)
+            throw GDLException( _t, "Struct expression not allowed in this context.");
+            
+            aD->Assign( right);
+
+            res=NULL;
+        }
 //    | { right == NULL}? res=l_function_call
     | e1=r_expr
         {
@@ -2363,6 +2485,34 @@ assign_expr returns [BaseGDL* res]
             { 
                 r_guard.release();
             } // here res is returned!
+        )
+    | #(ASSIGN_REPLACE 
+            { 
+                auto_ptr<BaseGDL> r_guard;
+            } 
+            ( res=tmp_expr
+                {
+                    r_guard.reset( res);
+                }
+            | res=check_expr
+                {
+                    if( !callStack.back()->Contains( res)) 
+                        r_guard.reset( res);
+                }
+            )
+            (
+              l=l_function_call   // FCALL_LIB, MFCALL, MFCALL_PARENT, FCALL
+            | l=l_deref           // DEREF
+            | l=l_simple_var      // VAR, VARPTR
+            )
+        {
+            if( res != (*l))
+            {
+                delete *l;
+                *l = res->Dup();
+            } 
+            r_guard.release(); // here res is returned!
+        }
         )
     ;
 

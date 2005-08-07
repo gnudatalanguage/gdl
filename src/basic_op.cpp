@@ -2081,13 +2081,23 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
   Ty s;
   if( right->Scalar(s)) 
     {
+#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
+      for( SizeT i=0; i<sEl; ++i)
+	dd[ i] = pow( dd[ i], s);
+#else
       dd = pow( dd, s); // valarray
+#endif
     }
   else 
     {
       //      right->dd.resize(sEl);
       //      dd = pow( dd, right->dd); // valarray
+#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
+      for( SizeT i=0; i<sEl; ++i)
+	dd[ i] = pow( dd[ i], (*right)[ i]);
+#else
       dd = pow( dd, right->Resize(sEl)); // valarray
+#endif
     }
   delete right;
 
@@ -2105,12 +2115,22 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowInv( BaseGDL* r)
   Ty s;
   if( right->Scalar(s)) 
     {
+#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
+      for( SizeT i=0; i<sEl; ++i)
+	dd[ i] = pow( s, dd[ i]);
+#else
       dd = pow( s, dd); // valarray
+#endif
     }
   else 
     {
+#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
+      for( SizeT i=0; i<sEl; ++i)
+	dd[ i] = pow( (*right)[ i], dd[i]);
+#else
       //      right->dd.resize(sEl);
       dd = pow( right->Resize(sEl), dd); // valarray
+#endif
     }
   delete right;
   return this;
@@ -2168,13 +2188,23 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
   Ty s;
   if( right->Scalar(s)) 
     {
+#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
+      for( SizeT i=0; i<sEl; ++i)
+	dd[ i] = pow( dd[ i], s);
+#else
       dd = pow( dd, s); // valarray
+#endif
     }
   else 
     {
       //      right->dd.resize(sEl);
       //      dd = pow( dd, right->dd); // valarray
+#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
+      for( SizeT i=0; i<sEl; ++i)
+	dd[ i] = pow( dd[ i], (*right)[ i]);
+#else
       dd = pow( dd, right->Resize(sEl)); // valarray
+#endif
     }
   delete right;
   return this;
@@ -2191,12 +2221,22 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowInv( BaseGDL* r)
   Ty s;
   if( right->Scalar(s)) 
     {
+#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
+      for( SizeT i=0; i<sEl; ++i)
+	dd[ i] = pow( s, dd[ i]);
+#else
       dd = pow( s, dd); // valarray
+#endif
     }
   else 
     {
+#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
+      for( SizeT i=0; i<sEl; ++i)
+	dd[ i] = pow( (*right)[ i], dd[i]);
+#else
       //      right->dd.resize(sEl);
       dd = pow( right->Resize(sEl), dd); // valarray
+#endif
     }
   delete right;
   return this;

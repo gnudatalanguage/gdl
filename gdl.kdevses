@@ -1,13 +1,34 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
+<<<<<<< gdl.kdevses
+ <DocsAndViews NumberOfDocuments="5" >
+  <Doc0 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/README" >
+   <View0 Type="Source" />
+=======
  <DocsAndViews NumberOfDocuments="2" >
   <Doc0 NumberOfViews="1" URL="file:/usr/local/gdl/src/dnode.hpp" >
    <View0 Type="Source" />
+>>>>>>> 1.25
   </Doc0>
+<<<<<<< gdl.kdevses
+  <Doc1 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/basic_op.cpp" >
+   <View0 line="2029" Type="Source" />
+  </Doc1>
+  <Doc2 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/datatypes.hpp" >
+   <View0 line="141" Type="Source" />
+  </Doc2>
+  <Doc3 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/configure.in" >
+   <View0 line="361" Type="Source" />
+  </Doc3>
+  <Doc4 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/arrayindex.hpp" >
+   <View0 line="0" Type="Source" />
+  </Doc4>
+=======
   <Doc1 NumberOfViews="1" URL="file:/usr/local/gdl/src/dpro.cpp" >
    <View0 line="259" Type="Source" />
   </Doc1>
+>>>>>>> 1.25
  </DocsAndViews>
  <pluginList>
   <kdevbookmarks>

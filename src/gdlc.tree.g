@@ -54,6 +54,19 @@ options {
   private:
     DCompiler       comp; // each tree parser has its own compiler
 
+// Replaces ASSIGN with ASSIGN_REPLACE if appropiate
+  void AssignReplace( RefDNode& lN, RefDNode& aN)
+{
+        int lT = lN->getType();
+        if( lT == FCALL || lT == MFCALL || lT == MFCALL_PARENT ||
+            lT == FCALL_LIB || lT == MFCALL_LIB || lT == MFCALL_PARENT_LIB ||
+            lT == DEREF || lT == VAR || lT == VARPTR)
+{
+            aN->setType( ASSIGN_REPLACE);
+            aN->setText( "r=");
+}
+}
+
   public:
   // constructor with processed file
   GDLTreeParser(const std::string& f, const std::string& sub)
@@ -643,49 +656,68 @@ lassign_expr!//
 
 assign_expr!
 	: #(a:ASSIGN l:lassign_expr r:expr)
-        { #assign_expr=#(a,r,l);}
+        {
+        AssignReplace( #l, #a);
+
+//         int lT = #l->getType();
+//         if( lT == FCALL || lT == MFCALL || lT == MFCALL_PARENT ||
+//             lT == FCALL_LIB || lT == MFCALL_LIB || lT == MFCALL_PARENT_LIB ||
+//             lT == DEREF || lT == VAR || lT == VARPTR)
+//             #a->setType( ASSIGN_REPLACE);
+	#assign_expr=#(a,r,l);
+        }
     ;
 
+/// *** to be done (ASSIGN_REPLACE)
 // +=, *=, ...
 comp_assign_expr!
-    : #(a1:AND_OP_EQ l1:lassign_expr r1:expr) 
-        { #comp_assign_expr=#([ASSIGN,":="],([AND_OP,"and"],l1,r1),l1);} 
+{
+RefDNode l;
+}
+    : 
+    (
+      #(a1:AND_OP_EQ l1:lassign_expr r1:expr) 
+        { l=#l1; #comp_assign_expr=#([ASSIGN,":="],([AND_OP,"and"],l1,r1),l1);}
     | #(a2:ASTERIX_EQ l2:lassign_expr r2:expr) 
-        { #comp_assign_expr=#([ASSIGN,":="],([ASTERIX,"*"],l2,r2),l2);} 
+        { l=#l2; #comp_assign_expr=#([ASSIGN,":="],([ASTERIX,"*"],l2,r2),l2);} 
     | #(a3:EQ_OP_EQ l3:lassign_expr r3:expr) 
-        { #comp_assign_expr=#([ASSIGN,":="],([EQ_OP,"eq"],l3,r3),l3);} 
+        { l=#l3; #comp_assign_expr=#([ASSIGN,":="],([EQ_OP,"eq"],l3,r3),l3);} 
     | #(a4:GE_OP_EQ l4:lassign_expr r4:expr) 
-        { #comp_assign_expr=#([ASSIGN,":="],([GE_OP,"ge"],l4,r4),l4);}
+        { l=#l4; #comp_assign_expr=#([ASSIGN,":="],([GE_OP,"ge"],l4,r4),l4);}
     | #(a5:GTMARK_EQ l5:lassign_expr r5:expr) 
-        { #comp_assign_expr=#([ASSIGN,":="],([GTMARK,">"],l5,r5),l5);}
+        { l=#l5; #comp_assign_expr=#([ASSIGN,":="],([GTMARK,">"],l5,r5),l5);}
     | #(a6:GT_OP_EQ l6:lassign_expr r6:expr) 
-        { #comp_assign_expr=#([ASSIGN,":="],([GT_OP,"gt"],l6,r6),l6);}
+        { l=#l6; #comp_assign_expr=#([ASSIGN,":="],([GT_OP,"gt"],l6,r6),l6);}
     | #(a7:LE_OP_EQ l7:lassign_expr r7:expr) 
-        { #comp_assign_expr=#([ASSIGN,":="],([LE_OP,"le"],l7,r7),l7);}
+        { l=#l7; #comp_assign_expr=#([ASSIGN,":="],([LE_OP,"le"],l7,r7),l7);}
     | #(a8:LTMARK_EQ l8:lassign_expr r8:expr) 
-        { #comp_assign_expr=#([ASSIGN,":="],([LTMARK,"<"],l8,r8),l8);}
+        { l=#l8; #comp_assign_expr=#([ASSIGN,":="],([LTMARK,"<"],l8,r8),l8);}
     | #(a9:LT_OP_EQ l9:lassign_expr r9:expr) 
-        { #comp_assign_expr=#([ASSIGN,":="],([LT_OP,"lt"],l9,r9),l9);}
+        { l=#l9; #comp_assign_expr=#([ASSIGN,":="],([LT_OP,"lt"],l9,r9),l9);}
     | #(a10:MATRIX_OP1_EQ l10:lassign_expr r10:expr) 
-        { #comp_assign_expr=#([ASSIGN,":="],([MATRIX_OP1,"#"],l10,r10),l10);}
+        { l=#l10; #comp_assign_expr=#([ASSIGN,":="],([MATRIX_OP1,"#"],l10,r10),l10);}
     | #(a11:MATRIX_OP2_EQ l11:lassign_expr r11:expr) 
-        { #comp_assign_expr=#([ASSIGN,":="],([MATRIX_OP2,"##"],l11,r11),l11);}
+        { l=#l11; #comp_assign_expr=#([ASSIGN,":="],([MATRIX_OP2,"##"],l11,r11),l11);}
     | #(a12:MINUS_EQ l12:lassign_expr r12:expr) 
-        { #comp_assign_expr=#([ASSIGN,":="],([MINUS,"-"],l12,r12),l12);}
+        { l=#l12; #comp_assign_expr=#([ASSIGN,":="],([MINUS,"-"],l12,r12),l12);}
     | #(a13:MOD_OP_EQ l13:lassign_expr r13:expr) 
-        { #comp_assign_expr=#([ASSIGN,":="],([MOD_OP,"mod"],l13,r13),l13);}
+        { l=#l13; #comp_assign_expr=#([ASSIGN,":="],([MOD_OP,"mod"],l13,r13),l13);}
     | #(a14:NE_OP_EQ l14:lassign_expr r14:expr) 
-        { #comp_assign_expr=#([ASSIGN,":="],([NE_OP,"ne"],l14,r14),l14);}
+        { l=#l14; #comp_assign_expr=#([ASSIGN,":="],([NE_OP,"ne"],l14,r14),l14);}
     | #(a15:OR_OP_EQ l15:lassign_expr r15:expr) 
-        { #comp_assign_expr=#([ASSIGN,":="],([OR_OP,"or"],l15,r15),l15);}
+        { l=#l15; #comp_assign_expr=#([ASSIGN,":="],([OR_OP,"or"],l15,r15),l15);}
     | #(a16:PLUS_EQ l16:lassign_expr r16:expr) 
-        { #comp_assign_expr=#([ASSIGN,":="],([PLUS,"+"],l16,r16),l16);}
+        { l=#l16; #comp_assign_expr=#([ASSIGN,":="],([PLUS,"+"],l16,r16),l16);}
     | #(a17:POW_EQ l17:lassign_expr r17:expr) 
-        { #comp_assign_expr=#([ASSIGN,":="],([POW,"^"],l17,r17),l17);}
+        { l=#l17; #comp_assign_expr=#([ASSIGN,":="],([POW,"^"],l17,r17),l17);}
     | #(a18:SLASH_EQ l18:lassign_expr r18:expr) 
-        { #comp_assign_expr=#([ASSIGN,":="],([SLASH,"/"],l18,r18),l18);}
+        { l=#l18; #comp_assign_expr=#([ASSIGN,":="],([SLASH,"/"],l18,r18),l18);}
     | #(a19:XOR_OP_EQ l19:lassign_expr r19:expr) 
-        { #comp_assign_expr=#([ASSIGN,":="],([XOR_OP,"xor"],l19,r19),l19);} 
+        { l=#l19; #comp_assign_expr=#([ASSIGN,":="],([XOR_OP,"xor"],l19,r19),l19);} 
+    )
+{
+AssignReplace( l, #comp_assign_expr);
+}
     ;
 
 // the expressions *************************************/

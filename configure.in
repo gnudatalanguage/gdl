@@ -357,7 +357,8 @@ if test "x$PYTHON_VERSION" == "x"; then
 fi
 
   if test "x$with_python" != "xyes"; then
-    LIBS="$LIBS -L$with_python/lib" dnl "-lpython2.3"
+    LIBS="$LIBS -L$with_python/lib" 
+dnl "-lpython2.3"
 dnl for Mac OS X 
     LIBS="$LIBS -L$with_python/lib/python$PYTHON_VERSION/config -lpython$PYTHON_VERSION"
 dnl    LIBS="$LIBS -L$with_python/lib/python2.3/config -lpython2.3"

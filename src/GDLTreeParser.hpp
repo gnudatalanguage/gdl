@@ -17,6 +17,19 @@ class CUSTOM_API GDLTreeParser : public antlr::TreeParser, public GDLTreeParserT
   private:
     DCompiler       comp; // each tree parser has its own compiler
 
+// Replaces ASSIGN with ASSIGN_REPLACE if appropiate
+  void AssignReplace( RefDNode& lN, RefDNode& aN)
+{
+        int lT = lN->getType();
+        if( lT == FCALL || lT == MFCALL || lT == MFCALL_PARENT ||
+            lT == FCALL_LIB || lT == MFCALL_LIB || lT == MFCALL_PARENT_LIB ||
+            lT == DEREF || lT == VAR || lT == VARPTR)
+{
+            aN->setType( ASSIGN_REPLACE);
+            aN->setText( "r=");
+}
+}
+
   public:
   // constructor with processed file
   GDLTreeParser(const std::string& f, const std::string& sub)
@@ -112,10 +125,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 199;
+	static const int NUM_TOKENS = 200;
 #else
 	enum {
-		NUM_TOKENS = 199
+		NUM_TOKENS = 200
 	};
 #endif
 	

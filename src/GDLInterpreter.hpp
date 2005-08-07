@@ -388,11 +388,11 @@ public:
 	public: BaseGDL**  l_expr(ProgNodeP _t,
 		BaseGDL* right
 	);
+	public:  BaseGDL**  l_function_call(ProgNodeP _t);
+	public: BaseGDL**  l_deref(ProgNodeP _t);
 	public: BaseGDL*  l_decinc_expr(ProgNodeP _t,
 		int dec_inc
 	);
-	public: BaseGDL**  l_deref(ProgNodeP _t);
-	public:  BaseGDL**  l_function_call(ProgNodeP _t);
 	public: BaseGDL*  r_expr(ProgNodeP _t);
 	public: BaseGDL*  constant_nocopy(ProgNodeP _t);
 	public: BaseGDL*  l_decinc_indexable_expr(ProgNodeP _t,
@@ -413,12 +413,8 @@ public:
 	public: void tag_array_expr(ProgNodeP _t,
 		DotAccessDescT* aD
 	);
-	public: BaseGDL**  l_indexoverwriteable_expr(ProgNodeP _t);
 	public: BaseGDL**  l_indexable_expr(ProgNodeP _t);
 	public: BaseGDL**  l_array_expr(ProgNodeP _t,
-		BaseGDL* right
-	);
-	public: BaseGDL**  l_dot_expr(ProgNodeP _t,
 		BaseGDL* right
 	);
 	public: BaseGDL*  array_def(ProgNodeP _t);
@@ -464,10 +460,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 199;
+	static const int NUM_TOKENS = 200;
 #else
 	enum {
-		NUM_TOKENS = 199
+		NUM_TOKENS = 200
 	};
 #endif
 	
