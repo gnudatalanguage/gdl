@@ -383,11 +383,13 @@ public:
 	public: void parameter_def(ProgNodeP _t,
 		EnvT* actEnv
 	);
-	public: BaseGDL*  tmp_expr(ProgNodeP _t);
+	public: BaseGDL*  indexable_expr(ProgNodeP _t);
+	public: BaseGDL*  indexable_tmp_expr(ProgNodeP _t);
 	public: BaseGDL*  check_expr(ProgNodeP _t);
 	public: BaseGDL**  l_expr(ProgNodeP _t,
 		BaseGDL* right
 	);
+	public: BaseGDL*  tmp_expr(ProgNodeP _t);
 	public:  BaseGDL**  l_function_call(ProgNodeP _t);
 	public: BaseGDL**  l_deref(ProgNodeP _t);
 	public: BaseGDL*  l_decinc_expr(ProgNodeP _t,
@@ -420,8 +422,6 @@ public:
 	public: BaseGDL*  array_def(ProgNodeP _t);
 	public:  BaseGDL*  struct_def(ProgNodeP _t);
 	public: BaseGDL*  array_expr(ProgNodeP _t);
-	public: BaseGDL*  indexable_expr(ProgNodeP _t);
-	public: BaseGDL*  indexable_tmp_expr(ProgNodeP _t);
 	public: void tag_expr(ProgNodeP _t,
 		DotAccessDescT* aD
 	);

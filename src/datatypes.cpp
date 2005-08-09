@@ -842,7 +842,7 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
 	{
 	  SizeT nCp=Data_::N_Elements();
 
-	  for( SizeT c=0; c<nCp; c++)
+	  for( SizeT c=0; c<nCp; ++c)
 	    dd[ c]=scalar;
 	}
       else
@@ -850,7 +850,7 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
 	  SizeT nCp=ixList->N_Elements();
 	  
 	  AllIxT* allIx = ixList->BuildIx();
-	  for( SizeT c=0; c<nCp; c++)
+	  for( SizeT c=0; c<nCp; ++c)
 	    dd[ (*allIx)[ c]]=scalar;
 	  //	    dd[ ixList->GetIx( c)]=scalar;
 	}
@@ -868,7 +868,7 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
 	    else
 	      throw GDLException("Source expression contains not enough elements.");
 
-	  for( SizeT c=0; c<nCp; c++)
+	  for( SizeT c=0; c<nCp; ++c)
 	    dd[ c]=(*src)[c+offset];
 	}
       else
@@ -887,7 +887,7 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
 				   " source expression.");
 	      
 	      AllIxT* allIx = ixList->BuildIx();
-	      for( SizeT c=0; c<nCp; c++)
+	      for( SizeT c=0; c<nCp; ++c)
 		dd[ (*allIx)[ c]]=(*src)[c+offset];
 	      //		dd[ ixList->GetIx( c)]=(*src)[c+offset];
 	    }
@@ -904,7 +904,7 @@ void Data_<Sp>::DecAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=Data_::N_Elements();
       
-      for( SizeT c=0; c<nCp; c++)
+      for( SizeT c=0; c<nCp; ++c)
 	dd[ c]--;
     }
   else
@@ -912,7 +912,7 @@ void Data_<Sp>::DecAt( ArrayIndexListT* ixList)
       SizeT nCp=ixList->N_Elements();
 
       AllIxT* allIx = ixList->BuildIx();
-      for( SizeT c=0; c<nCp; c++)
+      for( SizeT c=0; c<nCp; ++c)
 	dd[ (*allIx)[ c]]--;
     }
 }
@@ -923,7 +923,7 @@ void Data_<Sp>::IncAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=Data_::N_Elements();
       
-      for( SizeT c=0; c<nCp; c++)
+      for( SizeT c=0; c<nCp; ++c)
 	dd[ c]++;
     }
   else
@@ -931,7 +931,7 @@ void Data_<Sp>::IncAt( ArrayIndexListT* ixList)
       SizeT nCp=ixList->N_Elements();
       
       AllIxT* allIx = ixList->BuildIx();
-      for( SizeT c=0; c<nCp; c++)
+      for( SizeT c=0; c<nCp; ++c)
 	dd[ (*allIx)[ c]]++;
     }
 }
@@ -943,7 +943,7 @@ void Data_<SpDFloat>::DecAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=Data_::N_Elements();
       
-      for( SizeT c=0; c<nCp; c++)
+      for( SizeT c=0; c<nCp; ++c)
 	dd[ c] -= 1.0;
     }
   else
@@ -951,7 +951,7 @@ void Data_<SpDFloat>::DecAt( ArrayIndexListT* ixList)
       SizeT nCp=ixList->N_Elements();
 
       AllIxT* allIx = ixList->BuildIx();
-      for( SizeT c=0; c<nCp; c++)
+      for( SizeT c=0; c<nCp; ++c)
 	dd[ (*allIx)[ c]] -= 1.0;
     }
 }
@@ -962,7 +962,7 @@ void Data_<SpDFloat>::IncAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=Data_::N_Elements();
       
-      for( SizeT c=0; c<nCp; c++)
+      for( SizeT c=0; c<nCp; ++c)
 	dd[ c] += 1.0;
     }
   else
@@ -970,7 +970,7 @@ void Data_<SpDFloat>::IncAt( ArrayIndexListT* ixList)
       SizeT nCp=ixList->N_Elements();
       
       AllIxT* allIx = ixList->BuildIx();
-      for( SizeT c=0; c<nCp; c++)
+      for( SizeT c=0; c<nCp; ++c)
 	dd[ (*allIx)[ c]] += 1.0;
     }
 }
@@ -981,7 +981,7 @@ void Data_<SpDDouble>::DecAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=Data_::N_Elements();
       
-      for( SizeT c=0; c<nCp; c++)
+      for( SizeT c=0; c<nCp; ++c)
 	dd[ c] -= 1.0;
     }
   else
@@ -989,7 +989,7 @@ void Data_<SpDDouble>::DecAt( ArrayIndexListT* ixList)
       SizeT nCp=ixList->N_Elements();
       
       AllIxT* allIx = ixList->BuildIx();
-      for( SizeT c=0; c<nCp; c++)
+      for( SizeT c=0; c<nCp; ++c)
 	dd[ (*allIx)[ c]] -= 1.0;
     }
 }
@@ -1000,7 +1000,7 @@ void Data_<SpDDouble>::IncAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=Data_::N_Elements();
       
-      for( SizeT c=0; c<nCp; c++)
+      for( SizeT c=0; c<nCp; ++c)
 	dd[ c] += 1.0;
     }
   else
@@ -1008,7 +1008,7 @@ void Data_<SpDDouble>::IncAt( ArrayIndexListT* ixList)
       SizeT nCp=ixList->N_Elements();
       
       AllIxT* allIx = ixList->BuildIx();
-      for( SizeT c=0; c<nCp; c++)
+      for( SizeT c=0; c<nCp; ++c)
 	dd[ (*allIx)[ c]] += 1.0;
     }
 }
@@ -1020,7 +1020,7 @@ void Data_<SpDComplex>::DecAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=Data_::N_Elements();
       
-      for( SizeT c=0; c<nCp; c++)
+      for( SizeT c=0; c<nCp; ++c)
 	dd[ c] -= 1.0;
     }
   else
@@ -1028,7 +1028,7 @@ void Data_<SpDComplex>::DecAt( ArrayIndexListT* ixList)
       SizeT nCp=ixList->N_Elements();
       
       AllIxT* allIx = ixList->BuildIx();
-      for( SizeT c=0; c<nCp; c++)
+      for( SizeT c=0; c<nCp; ++c)
 	dd[ (*allIx)[ c]] -= 1.0;
     }
 }
@@ -1039,7 +1039,7 @@ void Data_<SpDComplex>::IncAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=Data_::N_Elements();
       
-      for( SizeT c=0; c<nCp; c++)
+      for( SizeT c=0; c<nCp; ++c)
 	dd[ c] += 1.0;
     }
   else
@@ -1047,7 +1047,7 @@ void Data_<SpDComplex>::IncAt( ArrayIndexListT* ixList)
       SizeT nCp=ixList->N_Elements();
       
       AllIxT* allIx = ixList->BuildIx();
-      for( SizeT c=0; c<nCp; c++)
+      for( SizeT c=0; c<nCp; ++c)
 	dd[ (*allIx)[ c]] += 1.0;
     }
 }
@@ -1058,7 +1058,7 @@ void Data_<SpDComplexDbl>::DecAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=Data_::N_Elements();
       
-      for( SizeT c=0; c<nCp; c++)
+      for( SizeT c=0; c<nCp; ++c)
 	dd[ c] -= 1.0;
     }
   else
@@ -1066,7 +1066,7 @@ void Data_<SpDComplexDbl>::DecAt( ArrayIndexListT* ixList)
       SizeT nCp=ixList->N_Elements();
       
       AllIxT* allIx = ixList->BuildIx();
-      for( SizeT c=0; c<nCp; c++)
+      for( SizeT c=0; c<nCp; ++c)
 	dd[ (*allIx)[ c]] -= 1.0;
     }
 }
@@ -1077,7 +1077,7 @@ void Data_<SpDComplexDbl>::IncAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=Data_::N_Elements();
       
-      for( SizeT c=0; c<nCp; c++)
+      for( SizeT c=0; c<nCp; ++c)
 	dd[ c] += 1.0;
     }
   else
@@ -1085,7 +1085,7 @@ void Data_<SpDComplexDbl>::IncAt( ArrayIndexListT* ixList)
       SizeT nCp=ixList->N_Elements();
       
       AllIxT* allIx = ixList->BuildIx();
-      for( SizeT c=0; c<nCp; c++)
+      for( SizeT c=0; c<nCp; ++c)
 	dd[ (*allIx)[ c]] += 1.0;
     }
 }
@@ -1134,7 +1134,7 @@ void Data_<Sp>::InsertAt( SizeT offset, BaseGDL* srcIn,
     {
       SizeT nCp=src->N_Elements();
 
-      for( SizeT c=0; c<nCp; c++)
+      for( SizeT c=0; c<nCp; ++c)
 	dd[ c+offset]=(*src)[c];
     }
   else
@@ -1142,7 +1142,7 @@ void Data_<Sp>::InsertAt( SizeT offset, BaseGDL* srcIn,
       SizeT nCp=ixList->N_Elements();
 
       AllIxT* allIx = ixList->BuildIx();
-      for( SizeT c=0; c<nCp; c++)
+      for( SizeT c=0; c<nCp; ++c)
 	dd[ c+offset]=(*src)[ (*allIx)[ c]];
       //	dd[ c+offset]=(*src)[ ixList->GetIx( c)];
     }
@@ -1214,7 +1214,7 @@ Data_<Sp>* Data_<Sp>::Index( ArrayIndexListT* ixList)
   SizeT nCp=ixList->N_Elements();
 
   AllIxT* allIx = ixList->BuildIx();
-  for( SizeT c=0; c<nCp; c++)
+  for( SizeT c=0; c<nCp; ++c)
     (*res)[c]=dd[ (*allIx)[ c]];
   //    (*res)[c]=dd[ ixList->GetIx(c)];
  
@@ -1259,13 +1259,15 @@ void Data_<Sp>::InsAt( Data_* srcIn, ArrayIndexListT* ixList)
 	
   SizeT destStart=this->dim.LongIndex(ixDim); // starting pos
 
+  DataT& srcIn_dd = srcIn->dd; 
+
   SizeT srcIx=0; // this one simply runs from 0 to N_Elements(srcIn)
-  for( SizeT c=1; c<=nCp; c++) // linearized verison of nested loops
+  for( SizeT c=1; c<=nCp; ++c) // linearized verison of nested loops
     {
       // copy one segment
       SizeT destEnd=destStart+len;
-      for( SizeT destIx=destStart; destIx< destEnd; destIx++)
-	dd[destIx] = srcIn->dd[ srcIx++];
+      for( SizeT destIx=destStart; destIx<destEnd; ++destIx)
+	dd[destIx] = srcIn_dd[ srcIx++];
 
       // update destStart for all dimensions
       for( SizeT a=1; a<=nDim; a++)
@@ -1305,7 +1307,7 @@ void Data_<Sp>::CatInsert( const Data_* srcArr, const SizeT atDim, SizeT& at)
   SizeT gap=this->dim.Stride(atDim+1);    // dest array
 
   SizeT srcIx=0;
-  for( SizeT c=0; c<nCp; c++)
+  for( SizeT c=0; c<nCp; ++c)
     {
       // copy one segment
       for( SizeT destIx=destStart; destIx< destEnd; destIx++)

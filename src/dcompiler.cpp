@@ -386,8 +386,10 @@ RefDNode DCompiler::ByReference(RefDNode nIn)
   // expressions (braces) are ignored
   while( n->getType() == EXPR) n = n->getFirstChild();
   t=n->getType();
-  if( t == ASSIGN)
+  bool assignReplace = false;
+  if( t == ASSIGN_REPLACE)
     {
+      assignReplace = true;
       n = n->getFirstChild()->getNextSibling();
       int t=n->getType();
     }
@@ -397,7 +399,8 @@ RefDNode DCompiler::ByReference(RefDNode nIn)
   t=n->getType();
 
   // only var, common block var and deref ptr are passed by reference
-  if( t != VAR && t != VARPTR && t != DEREF) return null; 
+  // *** see AssignReplace(...)
+  if( !assignReplace && t != VAR && t != VARPTR && t != DEREF) return null; 
 
 // #ifdef GDL_DEBUG
 //   cout << "ByReference: out:" << endl;

@@ -1136,16 +1136,25 @@ assignment
     auto_ptr<BaseGDL> r_guard;
 }
     : #(ASSIGN 
-            ( r=tmp_expr
-                {
-                    r_guard.reset( r);
-                }
+//             ( r=tmp_expr
+//                 {
+//                     r_guard.reset( r);
+//                 }
+//             | r=check_expr
+//                 {
+//                     if( !callStack.back()->Contains( r)) 
+//                         r_guard.reset( r);
+//                 }
+//             )
+            ( r=indexable_expr
+            | r=indexable_tmp_expr { r_guard.reset( r);}
             | r=check_expr
                 {
                     if( !callStack.back()->Contains( r)) 
-                        r_guard.reset( r);
+                        r_guard.reset( r); // guard if no global data
                 }
             )
+
             l=l_expr[ r]
 //             {
 //                 // no delete if assigned to itself
@@ -1269,7 +1278,8 @@ l_ret_expr returns [BaseGDL** res]
             
             res=&callStack.back()->GetKW(var->varIx); 
         }
-    | #(ASSIGN
+    | // here ASSIGN and ASSIGN_REPLACE are identical
+      #(ASSIGN // can it occur at all?
             { 
                 auto_ptr<BaseGDL> r_guard;
             } 
@@ -1501,14 +1511,22 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
             { 
                 auto_ptr<BaseGDL> r_guard;
             } 
-            ( e1=tmp_expr
-                {
-                    r_guard.reset( e1);
-                }
+//             ( e1=tmp_expr
+//                 {
+//                     r_guard.reset( e1);
+//                 }
+//             | e1=check_expr
+//                 {
+//                     if( !callStack.back()->Contains( e1)) 
+//                         r_guard.reset( e1);
+//                 }
+//             )
+            ( e1=indexable_expr
+            | e1=indexable_tmp_expr { r_guard.reset( e1);}
             | e1=check_expr
                 {
                     if( !callStack.back()->Contains( e1)) 
-                        r_guard.reset( e1);
+                        r_guard.reset( e1); // guard if no global data
                 }
             )
             { 
@@ -1722,14 +1740,22 @@ l_expr [BaseGDL* right] returns [BaseGDL** res]
             { 
                 auto_ptr<BaseGDL> r_guard;
             } 
-            ( e1=tmp_expr
-                {
-                    r_guard.reset( e1);
-                }
+//             ( e1=tmp_expr
+//                 {
+//                     r_guard.reset( e1);
+//                 }
+//             | e1=check_expr
+//                 {
+//                     if( !callStack.back()->Contains( e1)) 
+//                         r_guard.reset( e1);
+//                 }
+//             )
+            ( e1=indexable_expr
+            | e1=indexable_tmp_expr { r_guard.reset( e1);}
             | e1=check_expr
                 {
                     if( !callStack.back()->Contains( e1)) 
-                        r_guard.reset( e1);
+                        r_guard.reset( e1); // guard if no global data
                 }
             )
             res=l_expr[ e1]
@@ -1777,9 +1803,15 @@ l_expr [BaseGDL* right] returns [BaseGDL** res]
             throw GDLException( _t, 
                 "System variable not allowed in this context.");
             
-            BaseGDL* rConv = right->Convert2( (*res)->Type(), BaseGDL::COPY);
-            auto_ptr<BaseGDL> conv_guard( rConv);
-                
+           auto_ptr<BaseGDL> conv_guard; //( rConv);
+           BaseGDL* rConv = right;
+           if( (*res)->EqType( right))
+            {
+                BaseGDL* rConv = right->Convert2( (*res)->Type(), 
+                                                  BaseGDL::COPY);
+                conv_guard.reset( rConv);
+            }
+ 
             if( right->N_Elements() != 1 && 
                 ((*res)->N_Elements() != right->N_Elements()))
             {
@@ -1791,13 +1823,17 @@ l_expr [BaseGDL* right] returns [BaseGDL** res]
             (*res)->AssignAt( rConv); // linear copy
         }
 //   | res=l_indexoverwriteable_expr 
-     | (
-         res=l_function_call   // FCALL_LIB, MFCALL, MFCALL_PARENT, FCALL
+     | // can be called via QUESTION
+       ( res=l_function_call   // FCALL_LIB, MFCALL, MFCALL_PARENT, FCALL
        | res=l_deref           // DEREF
        | res=l_simple_var      // VAR, VARPTR
        )
      {
-       assert( right == NULL); // assert called only from l_indexable_expr
+            if( right != NULL && right != (*res))
+            {
+                delete *res;
+                *res = right->Dup();
+            }
      }
 //         {
 //             if( right != NULL && right != (*res))
@@ -2391,6 +2427,7 @@ indexable_tmp_expr returns [BaseGDL* res]
     | res=function_call
     | res=r_expr
     ;
+
 // not owned by caller 
 indexable_expr returns [BaseGDL* res]
 {
@@ -2466,6 +2503,7 @@ tmp_expr returns [BaseGDL* res]
 assign_expr returns [BaseGDL* res]
 {
     BaseGDL** l;
+    BaseGDL*  r;
 }
     : #(ASSIGN 
             { 
@@ -2483,7 +2521,10 @@ assign_expr returns [BaseGDL* res]
             )
             l=l_expr[ res]
             { 
-                r_guard.release();
+                if( r_guard.get() == res) // owner
+                    r_guard.release();
+                else
+                    res = res->Dup();
             } // here res is returned!
         )
     | #(ASSIGN_REPLACE 
@@ -2505,14 +2546,20 @@ assign_expr returns [BaseGDL* res]
             | l=l_deref           // DEREF
             | l=l_simple_var      // VAR, VARPTR
             )
-        {
-            if( res != (*l))
             {
+                if( res != (*l))
+                {
                 delete *l;
-                *l = res->Dup();
-            } 
-            r_guard.release(); // here res is returned!
-        }
+                *l = res->Dup();     
+
+                if( r_guard.get() == res) // owner
+                {
+                    r_guard.release(); 
+                }
+                else
+                    res = res->Dup();
+                }
+            }
         )
     ;
 

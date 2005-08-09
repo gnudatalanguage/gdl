@@ -207,24 +207,28 @@ public:
       {
 	//	SizeT nElem=ix->N_Elements();
 	
-	SizeT upper=varDim-1;
+	SizeT upper = varDim-1;
+        SizeT ix_size = ix->size();
 	if( strictArrSubs)
 	  { // strictArrSubs -> exception if out of bounds
-	    for( SizeT i=0; i < ix->size(); ++i)
+	    for( SizeT i=0; i < ix_size; ++i)
 	      if( ((*ix)[i] < 0) || ((*ix)[i] > upper))
 		throw GDLException("Array used to subscript array "
 				   "contains out of range subscript.");
 	  }
 	else
 	  {
-	    for( SizeT i=0; i < ix->size(); ++i)
+	    for( SizeT i=0; i < ix_size; ++i)
 	      {
-		if( (*ix)[i] < 0) (*ix)[i]=0; 
-		else if( (*ix)[i] > upper) (*ix)[i]=upper;
+		SizeT& ixI = (*ix)[i];
+		if( ixI < 0) ixI=0; 
+		else if( ixI > upper) ixI=upper;
+// 		if( (*ix)[i] < 0) (*ix)[i]=0; 
+// 		else if( (*ix)[i] > upper) (*ix)[i]=upper;
 		//else if( (ix)[i] > static_cast<DLong>(upper)) (ix)[i]=upper;
 	      }
 	  }
-	return ix->size(); 
+	return ix_size; 
       }
     if( t == ALL) 
       {
@@ -349,7 +353,6 @@ public:
   // set the root variable which is indexed by this ArrayIndexListT
   void SetVariable( BaseGDL* var) 
   {
-    //    std::cout << "SetVariable: "; var->ToStream( std::cout); std::cout << std::endl;
     assert( allIx == NULL);
 
     // set acRank
