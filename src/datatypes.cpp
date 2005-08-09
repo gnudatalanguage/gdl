@@ -1227,37 +1227,53 @@ template<class Sp>
 void Data_<Sp>::InsAt( Data_* srcIn, ArrayIndexListT* ixList)
 {
   SizeT nDim; // max. number of dimensions to copy
+  SizeT destStart; // 1-dim starting index 
   // ATTENTION: dimension is used as an index here
-  dimension ixDim = ixList->GetDimIx0( nDim);
+  dimension ixDim = ixList->GetDimIx0( nDim, destStart);
   nDim--;
 
-  //  const Data_* srcArr=static_cast<const Data_*>(srcIn->Convert2( this->t));
+  if( nDim == 0)
+    {
+      SizeT len = srcIn->Dim( 0); // length of segment to copy
+      // check if in bounds of a
+      if( (destStart+len) > this->dim[0])
+	throw GDLException("Out of range subscript encountered.");
+  
+      DataT& srcIn_dd = srcIn->dd; 
+      SizeT srcIx = 0; // this one simply runs from 0 to N_Elements(srcIn)
+
+      SizeT destEnd = destStart + len;
+      for( SizeT destIx = destStart; destIx < destEnd; ++destIx)
+	dd[ destIx] = srcIn_dd[ srcIx++];
+
+      return;
+    }
+
   dimension srcDim=srcIn->Dim();
-    
+  SizeT len=srcDim[0]; // length of one segment to copy (one line of srcIn)
+
   //  SizeT nDim   =RankIx(ixDim.Rank());  
   SizeT srcNDim=RankIx(srcDim.Rank()); // number of source dimensions
   if( srcNDim < nDim) nDim=srcNDim;
 
   // check limits (up to Rank to consider)
-  for( SizeT dIx=0; dIx <= nDim; dIx++)
+  for( SizeT dIx=0; dIx <= nDim; ++dIx)
     // check if in bounds of a
     if( (ixDim[dIx]+srcDim[dIx]) > this->dim[dIx])
       throw GDLException("Out of range subscript encountered.");
 
-  SizeT len=srcDim[0]; // length of one segment to copy (one line of srcIn)
-  
   SizeT nCp=srcIn->Stride(nDim+1)/len; // number of OVERALL copy actions
 
   // as lines are copied, we need the stride from 2nd dim on
   SizeT retStride[MAXRANK];
-  for( SizeT a=0; a <= nDim; a++) retStride[a]=srcDim.Stride(a+1)/len;
+  for( SizeT a=0; a <= nDim; ++a) retStride[a]=srcDim.Stride(a+1)/len;
     
   // a magic number, to reset destStart for this dimension
   SizeT resetStep[MAXRANK];
-  for( SizeT a=1; a <= nDim; a++) 
+  for( SizeT a=1; a <= nDim; ++a) 
     resetStep[a]=(retStride[a]-1)/retStride[a-1]*this->dim.Stride(a);
 	
-  SizeT destStart=this->dim.LongIndex(ixDim); // starting pos
+  //  SizeT destStart=this->dim.LongIndex(ixDim); // starting pos
 
   DataT& srcIn_dd = srcIn->dd; 
 
@@ -1270,21 +1286,21 @@ void Data_<Sp>::InsAt( Data_* srcIn, ArrayIndexListT* ixList)
 	dd[destIx] = srcIn_dd[ srcIx++];
 
       // update destStart for all dimensions
-      for( SizeT a=1; a<=nDim; a++)
-	{
-	  if( c % retStride[a])
-	    {
-	      // advance to next
-	      destStart += this->dim.Stride(a);
-	      break;
-	    }
-	  else
-	    {
-	      // reset
-	      destStart -= resetStep[a];
-	    }
-	}
-
+      if( c < nCp)
+	for( SizeT a=1; a<=nDim; ++a)
+	  {
+	    if( c % retStride[a])
+	      {
+		// advance to next
+		destStart += this->dim.Stride(a);
+		break;
+	      }
+	    else
+	      {
+		// reset
+		destStart -= resetStep[a];
+	      }
+	  }
     }
 }
   

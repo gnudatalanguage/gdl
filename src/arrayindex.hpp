@@ -655,21 +655,29 @@ public:
 
   // returns multi-dim index for nTh element
   // used by InsAt functions
-  dimension GetDimIx0( SizeT& rank)
+  dimension GetDimIx0( SizeT& rank, SizeT& destStart)
   {
     const SizeT nTh = 0;
     if( accessType == ONEDIM)
       {
 	rank = 1;
-	return dimension( ixList[0]->GetIx( nTh));
+
+	destStart = ixList[0]->GetIx( nTh);
+
+	return dimension( destStart);
       }
     
+    SizeT dStart = 0;
+
     SizeT actIx[ MAXRANK];
     for( SizeT i=0; i < acRank; ++i)
       {
 	actIx[ i] = ixList[i]->GetIx( nTh);
+
+	dStart += actIx[ i] * varStride[ i];
       }
 
+    destStart = dStart;
     rank = acRank;
     return dimension( actIx, acRank);
   }

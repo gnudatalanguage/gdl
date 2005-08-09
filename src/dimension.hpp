@@ -268,8 +268,9 @@ public:
   // multidim index to one dim index
   SizeT LongIndex(const dimension& ix) const
   {
-    SizeT s[MAXRANK+1];    // multiplier for dimension
-    Stride( s, MAXRANK);
+    // SizeT s[MAXRANK+1];    // multiplier for dimension
+    // Stride[ c, MAXRANK];
+    SizeT s = 1; 
 
     SizeT res=0;
     unsigned i;
@@ -277,7 +278,9 @@ public:
       {
       	if( ix.dim[i] >= dim[i])
       	  throw GDLException("Array index out of range (1)");
-      	res += ix.dim[i] * s[i];
+
+      	res += ix.dim[i] * s;
+	if( dim[ i] > 1) s *= dim[ i];
       }
     for(; i<MAXRANK; ++i)
       if( ix.dim[i] > 0)

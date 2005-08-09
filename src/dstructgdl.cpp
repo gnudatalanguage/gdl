@@ -428,8 +428,9 @@ void DStructGDL::AddParent( DStructDesc* p)
 void DStructGDL::InsAt( DStructGDL* srcIn, ArrayIndexListT* ixList)
 {
   SizeT nDim; // max. number of dimensions to copy
+  SizeT destStart;
   // ATTENTION: dimension is used as an index here
-  dimension ixDim = ixList->GetDimIx0( nDim);
+  dimension ixDim = ixList->GetDimIx0( nDim, destStart);
   nDim--;
 
   //const DStructGDL* srcArr=static_cast<const DStructGDL*>(srcIn->Convert2( t));
@@ -458,7 +459,7 @@ void DStructGDL::InsAt( DStructGDL* srcIn, ArrayIndexListT* ixList)
   for( SizeT a=1; a <= nDim; a++) 
     resetStep[a]=(retStride[a]-1)/retStride[a-1]*dim.Stride(a);
 	
-  SizeT destStart=dim.LongIndex(ixDim); // starting pos
+  //  SizeT destStart=dim.LongIndex(ixDim); // starting pos
 
   SizeT nTags=NTags();
     
