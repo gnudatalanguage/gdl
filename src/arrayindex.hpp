@@ -18,13 +18,13 @@
 #ifndef ARRAYINDEX_HPP_
 #define ARRAYINDEX_HPP_
 
-//#include <valarray>
+#include <valarray>
 #include <vector>
 
 #include "datatypes.hpp"
 #include "real2int.hpp"
 
-typedef std::vector<SizeT> AllIxT;
+typedef std::valarray<SizeT> AllIxT;
 typedef std::vector<BaseGDL*> IxExprListT;
 
 class ArrayIndexT
@@ -45,7 +45,7 @@ public:
   virtual bool Scalar( SizeT& s_) { return false;}
   virtual bool Indexed()          { return false;}  
 
-  virtual SizeT NIter( SizeT varDim, bool strictArrSubs)=0; 
+  virtual SizeT NIter( SizeT varDim)=0; 
 
   virtual SizeT NParam()=0;
 };
@@ -54,10 +54,14 @@ public:
 class ArrayIndexIndexed: public ArrayIndexT
 {
 protected:
+  bool      strictArrSubs;          // for compile_opt STRICTARRSUBS
+  
   SizeT s;
 
   AllIxT*    ix;
   dimension* ixDim; // keep dimension of ix
+
+  bool negative; // trace if negative indices appear
 
   // forbid c-i
   ArrayIndexIndexed( const ArrayIndexT& r) {}
@@ -93,12 +97,14 @@ public:
     delete ixDim;
   }
 
-  ArrayIndexIndexed(): 
-    ix( NULL), ixDim( NULL) 
+  ArrayIndexIndexed( bool strictArrSubs_ = false): 
+    strictArrSubs( strictArrSubs_),
+    ix( NULL), ixDim( NULL), negative( false) 
   {}
 
   void Clear()
   {
+    negative = false;
     delete ixDim;
     ixDim = NULL;
     delete ix; 
@@ -124,6 +130,7 @@ public:
     DType dType = ix_->Type();
 
     assert( dType != UNDEF);
+    assert( negative == false);
 
     int typeCheck = DTypeOrder[ dType];
     if( typeCheck >= 100)
@@ -142,63 +149,108 @@ public:
 	  DByteGDL* src = static_cast<DByteGDL*>( ix_);
 	  for( SizeT i=0; i < nElem; ++i)
 	    (*ix)[i]= (*src)[i]; 
-	  return;
+	  break;
 	}
       case INT:
 	{
 	  DIntGDL* src = static_cast<DIntGDL*>( ix_);
-	  for( SizeT i=0; i < nElem; ++i)
-	    (*ix)[i]= static_cast<DLong>((*src)[i]); 
-	  return;
+	  DInt minVal = src->min();
+	  if( minVal < 0)
+	    {
+	      negative = true;
+	      for( SizeT i=0; i < nElem; ++i)
+		if( (*src)[i] < 0)
+		  (*ix)[i] = 0;
+		else
+		  (*ix)[i]= (*src)[i]; 
+	    }
+	  else
+	    for( SizeT i=0; i < nElem; ++i)
+	      (*ix)[i]= (*src)[i]; 
+	  break;
 	}
       case UINT:
 	{
 	  DUIntGDL* src = static_cast<DUIntGDL*>( ix_);
 	  for( SizeT i=0; i < nElem; ++i)
 	    (*ix)[i]= (*src)[i]; 
-	  return;
+	  break;
 	}
-      case LONG:
+      case LONG: // typical type (returned from WHERE)
 	{
 	  DLongGDL* src = static_cast<DLongGDL*>( ix_);
-	  for( SizeT i=0; i < nElem; ++i)
-	    (*ix)[i]= (*src)[i]; 
-	  return;
+	  DLong minVal = src->min();
+	  if( minVal < 0)
+	    {
+	      negative = true;
+	      for( SizeT i=0; i < nElem; ++i)
+		if( (*src)[i] < 0)
+		  (*ix)[i] = 0;
+		else
+		  (*ix)[i]= (*src)[i]; 
+	    }
+	  else
+	    for( SizeT i=0; i < nElem; ++i)
+	      (*ix)[i]= (*src)[i]; 
+	  break;
 	}
       case ULONG:
 	{
 	  DULongGDL* src = static_cast<DULongGDL*>( ix_);
 	  for( SizeT i=0; i < nElem; ++i)
 	    (*ix)[i]= (*src)[i]; 
-	  return;
+	  break;
 	}
       case LONG64:
 	{
 	  DLong64GDL* src = static_cast<DLong64GDL*>( ix_);
-	  for( SizeT i=0; i < nElem; ++i)
-	    (*ix)[i]= (*src)[i]; 
-	  return;
+	  DLong64 minVal = src->min();
+	  if( minVal < 0)
+	    {
+	      negative = true;
+	      for( SizeT i=0; i < nElem; ++i)
+		if( (*src)[i] < 0)
+		  (*ix)[i] = 0;
+		else
+		  (*ix)[i]= (*src)[i]; 
+	    }
+	  else
+	    for( SizeT i=0; i < nElem; ++i)
+	      (*ix)[i]= (*src)[i]; 
+	  break;
       }
       case ULONG64:
 	{
 	  DULong64GDL* src = static_cast<DULong64GDL*>( ix_);
 	  for( SizeT i=0; i < nElem; ++i)
 	    (*ix)[i]= (*src)[i]; 
-	  return;
+	  break;
 	}
       case FLOAT: 
 	{
 	  DFloatGDL* src = static_cast<DFloatGDL*>( ix_);
 	  for( SizeT i=0; i < nElem; ++i)
-	    (*ix)[i]= Real2Int<DLong,float>((*src)[i]); 
-	  return;
+	    if( (*src)[i] <= 0.0)
+	      {
+		(*ix)[i] = 0;
+		if( (*src)[i] <= -1.0) negative = true;
+	      }
+	    else
+	      (*ix)[i]= Real2Int<SizeT,float>((*src)[i]); 
+	  break;
 	}
       case DOUBLE: 
 	{
 	  DDoubleGDL* src = static_cast<DDoubleGDL*>( ix_);
 	  for( SizeT i=0; i < nElem; ++i)
-	    (*ix)[i]= Real2Int<DLong,double>((*src)[i]); 
-	  return;
+	    if( (*src)[i] <= 0.0)
+	      {
+		(*ix)[i] = 0;
+		if( (*src)[i] <= -1.0) negative = true;
+	      }
+	    else
+	      (*ix)[i]= Real2Int<SizeT,double>((*src)[i]); 
+	  break;
 	}
       case STRING: 
 	{
@@ -207,35 +259,58 @@ public:
 	    {
 	      const char* cStart=(*src)[i].c_str();
 	      char* cEnd;
-	      (*ix)[i]=strtol(cStart,&cEnd,10);
+	      long l=strtol(cStart,&cEnd,10);
 	      if( cEnd == cStart)
 		{
 		  Warning("Type conversion error: "
 			  "Unable to convert given STRING to LONG.");
 		}
+	      if( l < 0)
+		{
+		  negative = true;
+		  (*ix)[i] = 0;
+		}
+	      else
+		(*ix)[i] = l;
 	    }
-	  return;
+	  break;
 	}
       case COMPLEX: 
 	{
 	  DComplexGDL* src = static_cast<DComplexGDL*>( ix_);
 	  for( SizeT i=0; i < nElem; ++i)
-	    (*ix)[i]= Real2Int<DLong,float>(real((*src)[i])); 
-	  return;
+	    if( real((*src)[i]) <= 0.0)
+	      {
+		if( real((*src)[i]) <= -1.0) negative = true;
+		(*ix)[i] = 0;
+	      }
+	    else
+	      (*ix)[i]= Real2Int<DLong,float>(real((*src)[i])); 
+	  break;
 	}
       case COMPLEXDBL: 
 	{
 	  DComplexDblGDL* src = static_cast<DComplexDblGDL*>( ix_);
 	  for( SizeT i=0; i < nElem; ++i)
-	    (*ix)[i]= Real2Int<DLong,double>(real((*src)[i])); 
-	  return;
+	  for( SizeT i=0; i < nElem; ++i)
+	    if( real((*src)[i]) <= 0.0)
+	      {
+		if( real((*src)[i]) <= -1.0) negative = true;
+		(*ix)[i] = 0;
+	      }
+	    else
+	      (*ix)[i]= Real2Int<DLong,double>(real((*src)[i])); 
+	  break;
 	}
       }
+    if( negative && strictArrSubs)
+      throw GDLException("Array used to subscript array "
+			 "contains out of range (<0) subscript.");
   } 
 
   // number of iterations
   // also checks/adjusts range 
-  SizeT NIter( SizeT varDim, bool strictArrSubs) 
+  SizeT NIter( SizeT varDim) 
   {
     if( ix == NULL) // ONE
       {
@@ -245,25 +320,27 @@ public:
       }
 
     // INDEXED
-    SizeT upper = varDim-1;
-    SizeT ix_size = ix->size();
+    // note: this should be faster as most arrays are within bounds
+    // (like returned from WHERE function)
+    SizeT maxIx = ix->max();
+    if( maxIx < varDim)
+      return ix->size();
+
     if( strictArrSubs)
       { // strictArrSubs -> exception if out of bounds
-	for( SizeT i=0; i < ix_size; ++i)
-	  if( ((*ix)[i] < 0) || ((*ix)[i] > upper))
-	    throw GDLException("Array used to subscript array "
-			       "contains out of range subscript.");
+	throw GDLException("Array used to subscript array "
+			   "contains out of range subscript.");
       }
     else
       {
+	SizeT upper = varDim-1;
+	SizeT ix_size = ix->size();
 	for( SizeT i=0; i < ix_size; ++i)
 	  {
-	    SizeT& ixI = (*ix)[i];
-	    if( ixI < 0) ixI=0; 
-	    else if( ixI > upper) ixI=upper;
+	    if( (*ix)[i] > upper) (*ix)[i]=upper;
 	  }
+	return ix_size; 
       }
-    return ix_size; 
   }
 
 };
@@ -271,17 +348,75 @@ public:
 // constant version
 class CArrayIndexIndexed: public ArrayIndexIndexed
 {
+private:
+  AllIxT*    ixOri;
+  SizeT      maxIx;
+
 public:
-  CArrayIndexIndexed( BaseGDL* c): ArrayIndexIndexed()
+  ~CArrayIndexIndexed() { delete ixOri;}
+
+  CArrayIndexIndexed( BaseGDL* c, bool strictArrSubs_ = false): 
+    ArrayIndexIndexed( strictArrSubs_), ixOri( NULL), maxIx( 0)
   {
     ArrayIndexIndexed::Init( c);
+    ixOri = ix;
+    ix = NULL;
+    if( ixOri != NULL) maxIx = ixOri->max();
   }
 
   SizeT NParam() { return 0;} // number of parameter to Init(...)
-  void Clear() {}
+  void Clear() { delete ix; ix=NULL;} // note that ixDim is untouched
 
-  // special here no stealing is allowed
-  AllIxT* StealIx() { return new AllIxT( *ix);} 
+  // make the following work even before call to NIter(...)
+  bool Scalar() { return (ixOri == NULL);}
+  bool Scalar( SizeT& s_)
+  { 
+    s_ = s;
+    return (ixOri == NULL);
+  }
+  bool Indexed() { return (ixOri != NULL);}
+
+  // old (before ixOri): special here no stealing is allowed
+  //  AllIxT* StealIx() { return new AllIxT( *ix);} 
+
+  // number of iterations
+  // also checks/adjusts range 
+  SizeT NIter( SizeT varDim) 
+  {
+    if( ixOri == NULL) // ONE
+      {
+	if( s >= varDim)
+	  throw GDLException("Subscript out of range [i].");
+	return 1;
+      }
+
+    // INDEXED
+    assert( ix == NULL);
+    ix = new AllIxT( ixOri->size()); // make copy as changed (see below)
+    SizeT ix_size = ix->size();
+    if( maxIx >= varDim)
+      {
+	if( strictArrSubs)
+	  { // strictArrSubs -> exception if out of bounds
+	    throw GDLException("Array used to subscript array "
+			       "contains out of range subscript.");
+	  }
+
+	SizeT upper = varDim-1;
+	for( SizeT i=0; i < ix_size; ++i)
+	  {
+	    if( (*ixOri)[i] > upper) 
+	      (*ix)[i] = upper;
+	    else
+	      (*ix)[i] = (*ixOri)[i];
+	  }
+      }
+    else
+      for( SizeT i=0; i < ix_size; ++i)
+	(*ix)[i] = (*ixOri)[i];
+    
+    return ix_size; 
+  }
 };
 
 // [*]
@@ -296,7 +431,7 @@ public:
 
   // number of iterations
   // also checks/adjusts range 
-  SizeT NIter( SizeT varDim, bool strictArrSubs) 
+  SizeT NIter( SizeT varDim)
   {
     return varDim;
   }
@@ -337,7 +472,7 @@ public:
       }
   }
 
-  SizeT NIter( SizeT varDim, bool strictArrSubs) 
+  SizeT NIter( SizeT varDim)
   {
     if( s >= varDim)
       throw GDLException("Subscript out of range [s:*].");
@@ -415,7 +550,7 @@ public:
 
   // number of iterations
   // also checks/adjusts range 
-  SizeT NIter( SizeT varDim, bool strictArrSubs) 
+  SizeT NIter( SizeT varDim)
   {
     if( e >= varDim)
       throw GDLException("Subscript out of range [s:e].");
@@ -490,7 +625,7 @@ public:
 
   // number of iterations
   // also checks/adjusts range 
-  SizeT NIter( SizeT varDim, bool strictArrSubs) 
+  SizeT NIter( SizeT varDim)
   {
     if( s >= varDim)
       throw GDLException("Subscript out of range [s:*].");
@@ -587,7 +722,7 @@ public:
 
   // number of iterations
   // also checks/adjusts range 
-  SizeT NIter( SizeT varDim, bool strictArrSubs) 
+  SizeT NIter( SizeT varDim)
   {
     if( e >= varDim)
       {
@@ -614,8 +749,6 @@ class ArrayIndexListT
 private:
   std::vector<ArrayIndexT*> ixList;
 
-  bool      strictArrSubs;          // for compile_opt STRICTARRSUBS
-  
   enum AccessType {
     NORMAL=0, // mixed
     ONEDIM,
@@ -648,8 +781,7 @@ public:
   }
 
   // constructor
-  ArrayIndexListT( bool strictArrSubs_ = false):
-    strictArrSubs( strictArrSubs_),
+  ArrayIndexListT():
     accessType(NORMAL),
     acRank(0),
     allIx( NULL),
@@ -745,7 +877,7 @@ public:
     if( acRank == 1)
       {
 	// need varDim here instead of var because of Assoc_<>
-	nIterLimit[0]=ixList[0]->NIter( var->Size(), strictArrSubs); 
+	nIterLimit[0]=ixList[0]->NIter( var->Size()); 
 	nIx=nIterLimit[0];
 	
 	accessType = ONEDIM;
@@ -759,8 +891,8 @@ public:
 	  {
 	    if( !ixList[i]->Indexed()) accessType = NORMAL;
 	    
-	    nIterLimit[i]=ixList[i]->NIter( (i<varRank)?varDim[i]:1, 
-					    strictArrSubs); 
+	    nIterLimit[i]=ixList[i]->NIter( (i<varRank)?varDim[i]:1); 
+
 	    nIx *= nIterLimit[i]; // calc number of assignments
 	  }
 	

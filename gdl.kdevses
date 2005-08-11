@@ -1,50 +1,29 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
-<<<<<<< gdl.kdevses
- <DocsAndViews NumberOfDocuments="5" >
-  <Doc0 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/README" >
+ <DocsAndViews NumberOfDocuments="3" >
+  <Doc0 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/gdlc.i.g" >
    <View0 Type="Source" />
-=======
- <DocsAndViews NumberOfDocuments="2" >
-  <Doc0 NumberOfViews="1" URL="file:/usr/local/gdl/src/dnode.hpp" >
-   <View0 Type="Source" />
->>>>>>> 1.25
   </Doc0>
-<<<<<<< gdl.kdevses
-  <Doc1 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/basic_op.cpp" >
-   <View0 line="2029" Type="Source" />
+  <Doc1 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/gdlc.tree.g" >
+   <View0 line="512" Type="Source" />
   </Doc1>
-  <Doc2 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/datatypes.hpp" >
-   <View0 line="141" Type="Source" />
+  <Doc2 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/dcompiler.cpp" >
+   <View0 line="408" Type="Source" />
   </Doc2>
-  <Doc3 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/configure.in" >
-   <View0 line="361" Type="Source" />
-  </Doc3>
-  <Doc4 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/arrayindex.hpp" >
-   <View0 line="0" Type="Source" />
-  </Doc4>
-=======
-  <Doc1 NumberOfViews="1" URL="file:/usr/local/gdl/src/dpro.cpp" >
-   <View0 line="259" Type="Source" />
-  </Doc1>
->>>>>>> 1.25
  </DocsAndViews>
  <pluginList>
+  <kdevdebugger>
+   <breakpointList/>
+  </kdevdebugger>
   <kdevbookmarks>
    <bookmarks/>
   </kdevbookmarks>
-  <kdevsubversion>
-   <subversion recurseresolve="1" recurserelocate="1" recursemerge="1" recursecommit="1" base="" recursepropget="1" recurseswitch="1" recurseupdate="1" recursepropset="1" recursediff="1" recurserevert="1" forcemove="1" recursecheckout="1" forceremove="1" recurseadd="1" recurseproplist="1" forcemerge="1" />
-  </kdevsubversion>
   <kdevvalgrind>
    <executable path="" params="" />
    <valgrind path="" params="" />
    <calltree path="" params="" />
    <kcachegrind path="" />
   </kdevvalgrind>
-  <kdevdebugger>
-   <breakpointList/>
-  </kdevdebugger>
  </pluginList>
 </KDevPrjSession>

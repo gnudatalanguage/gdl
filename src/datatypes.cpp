@@ -434,7 +434,7 @@ template<> const SizeT Data_<SpDComplexDbl>::ToTransfer() const
   return N_Elements() * 2;
 }
 
-// note that min and max these are not defined in BaseGDL
+// note that min and max are not defined in BaseGDL
 template<class Sp> 
 typename Data_<Sp>::Ty Data_<Sp>::min() const
 { return dd.min();}
