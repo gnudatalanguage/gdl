@@ -1396,7 +1396,7 @@ l_decinc_array_expr [int dec_inc] returns [BaseGDL* res]
 {
     ArrayIndexListT* aL;
     BaseGDL*         e;
-    auto_ptr<ArrayIndexListT> guard;
+    ArrayIndexListGuard guard;
 
 }
     : #(ARRAYEXPR 
@@ -1623,7 +1623,7 @@ l_indexable_expr returns [BaseGDL** res]
 l_array_expr [BaseGDL* right] returns [BaseGDL** res]
 {
     ArrayIndexListT* aL;
-    auto_ptr<ArrayIndexListT> guard;
+    ArrayIndexListGuard guard;
 }
     : #(ARRAYEXPR aL=arrayindex_list { guard.reset(aL);} res=l_indexable_expr)   
         {
@@ -1652,7 +1652,7 @@ l_dot_array_expr [DotAccessDescT* aD] // 1st
     ArrayIndexListT* aL;
     BaseGDL**        rP;
     DStructGDL*      structR;
-    auto_ptr<ArrayIndexListT> guard;
+    ArrayIndexListGuard guard;
     bool isObj = callStack.back()->IsObject();
 }
     : #(ARRAYEXPR aL=arrayindex_list { guard.reset(aL);} rP=l_indexable_expr)   
@@ -2230,12 +2230,10 @@ array_expr returns [BaseGDL* res]
 {
     ArrayIndexListT* aL;
     BaseGDL* r;
+    ArrayIndexListGuard guard;
     auto_ptr<BaseGDL> r_guard;
 }
-    : #(ARRAYEXPR aL=arrayindex_list 
-            {
-                auto_ptr<ArrayIndexListT> aL_guard(aL);
-            }
+    : #(ARRAYEXPR aL=arrayindex_list { guard.reset(aL);}
             ( r=indexable_expr
             | r=indexable_tmp_expr { r_guard.reset( r);}
             | r=check_expr
@@ -2302,7 +2300,7 @@ r_dot_array_expr [DotAccessDescT* aD] // 1st
     ArrayIndexListT* aL;
     BaseGDL*         r;
     DStructGDL*      structR;
-    auto_ptr<ArrayIndexListT> guard;
+    ArrayIndexListGuard guard;
     bool isObj = callStack.back()->IsObject();
 }
 // NOTE: r is owned by aD or a l_... (r must not be deleted here)
@@ -2858,307 +2856,38 @@ parameter_def [EnvT* actEnv]
         }
 	;
 
-arrayindex_all returns[ ArrayIndexT* arrIx] // ALL [*]
-    : ALL { arrIx = new ArrayIndexT();}
-    ;
-
-arrayindex_range returns[ ArrayIndexT* arrIx] // RANGE [s:e]
-{
-    BaseGDL* s;
-    BaseGDL* e;
-    SizeT sIx,eIx;
-    int    retMsg=0;
-}    
-    : s=expr e=expr
-        {
-            auto_ptr<BaseGDL> s_guard(s);
-            auto_ptr<BaseGDL> e_guard(e);
-
-            retMsg=s->Scalar2index(sIx);
-            if( retMsg == 0) // index empty or array
-            {
-                if( s->N_Elements() == 0)
-                throw 
-                GDLException( _t, "Internal error: Scalar2index: 1st index empty."); 
-                else
-                throw 
-                GDLException( _t, "Expression must be a scalar in this context."); 
-            }
-            if( retMsg == -1) // index < 0
-            {
-                throw 
-                GDLException( _t, "Subscript range values of the form low:high " 
-                    "must be >= 0, < size, with low <= high.");
-            }
-            
-            retMsg=e->Scalar2index(eIx);
-            if( retMsg == 0) // index empty or array
-            {
-                if( e->N_Elements() == 0)
-                throw 
-                GDLException( _t, "Internal error: Scalar2index: 2nd index empty."); 
-                else
-                throw 
-                GDLException( _t, "Expression must be a scalar in this context."); 
-            }
-            if( retMsg == -1) // index < 0
-            {
-                throw 
-                GDLException( _t, "Subscript range values of the form low:high " 
-                    "must be >= 0, < size, with low <= high.");
-            }
-            
-            if( eIx < sIx)
-            {
-                throw 
-                GDLException( _t, " Subscript range values of the form low:high " 
-                    "must be >= 0, < size, with low <= high");
-            }
-                            
-            arrIx = new ArrayIndexT(ArrayIndexT::RANGE,sIx,eIx);
-            }
-    ;
-
-arrayindex_range_s returns[ ArrayIndexT* arrIx] // RANGE [s:e:stride]
-{
-    BaseGDL* s;
-    BaseGDL* e;
-    BaseGDL* stride;
-    SizeT sIx,eIx, strideIx;
-    int    retMsg=0;
-}    
-    : s=expr e=expr stride=expr
-        {
-            auto_ptr<BaseGDL> s_guard(s);
-            auto_ptr<BaseGDL> e_guard(e);
-            auto_ptr<BaseGDL> stride_guard(stride);
-
-            retMsg=s->Scalar2index(sIx);
-            if( retMsg == 0) // index empty or array
-            {
-                if( s->N_Elements() == 0)
-                throw 
-                GDLException( _t, "Internal error: Scalar2index: 1st index empty."); 
-                else
-                throw 
-                GDLException( _t, "Expression must be a scalar in this context."); 
-            }
-            if( retMsg == -1) // index < 0
-            {
-                throw 
-                GDLException( _t, "Subscript range values of the form low:high " 
-                    "must be >= 0, < size, with low <= high.");
-            }
-            
-            retMsg=e->Scalar2index(eIx);
-            if( retMsg == 0) // index empty or array
-            {
-                if( e->N_Elements() == 0)
-                throw 
-                GDLException( _t, "Internal error: Scalar2index: 2nd index empty."); 
-                else
-                throw 
-                GDLException( _t, "Expression must be a scalar in this context."); 
-            }
-            if( retMsg == -1) // index < 0
-            {
-                throw 
-                GDLException( _t, "Subscript range values of the form low:high " 
-                    "must be >= 0, < size, with low <= high.");
-            }
-            
-            if( eIx < sIx)
-            {
-                throw 
-                GDLException( _t, " Subscript range values of the form low:high " 
-                    "must be >= 0, < size, with low <= high");
-            }
-                            
-            // stride
-            retMsg=stride->Scalar2index(strideIx);
-            if( retMsg == 0) // index empty or array
-            {
-                if( s->N_Elements() == 0)
-                throw 
-                GDLException( _t, "Internal error: Scalar2index:"
-                    " stride index empty"); 
-                else
-                throw 
-                GDLException( _t, "Expression must be a scalar"
-                    " in this context."); 
-            }
-            if( retMsg == -1 || strideIx == 0) // stride <= 0
-            {
-                throw 
-                GDLException( _t, "Range subscript stride must be >= 1.");
-            }
-
-            arrIx = new ArrayIndexT(ArrayIndexT::RANGE_S,sIx,eIx,strideIx);
-            }
-    ;
-
-arrayindex_end returns[ ArrayIndexT* arrIx] // ORANGE [s:*]
-{
-    BaseGDL* s;
-    SizeT sIx;
-    int    retMsg=0;
-}    
-    : s=expr
-        {
-            auto_ptr<BaseGDL> s_guard(s);
-
-            retMsg=s->Scalar2index(sIx);
-            if( retMsg == 0) // index empty or array
-            {
-                if( s->N_Elements() == 0)
-                throw 
-                GDLException( _t, "Internal error: Scalar2index:"
-                    " 1st index empty"); 
-                else
-                throw 
-                GDLException( _t, "Expression must be a scalar"
-                    " in this context."); 
-            }
-            if( retMsg == -1) // index < 0
-            {
-                throw 
-                GDLException( _t, "Subscript range values of the"
-                    " form low:high must be >= 0, < size, with low <= high.");
-            }
-            arrIx = new ArrayIndexT(ArrayIndexT::ORANGE,sIx);
-        }
-    ;
-
-arrayindex_end_s returns[ ArrayIndexT* arrIx] // ORANGE [s:*:stride]
-{
-    BaseGDL* s;
-    BaseGDL* stride;
-    SizeT sIx,strideIx;
-    int    retMsg=0;
-}    
-    : s=expr stride=expr
-        {
-            auto_ptr<BaseGDL> s_guard(s);
-            auto_ptr<BaseGDL> stride_guard(stride);
-
-            retMsg=s->Scalar2index(sIx);
-            if( retMsg == 0) // index empty or array
-            {
-                if( s->N_Elements() == 0)
-                throw 
-                GDLException( _t, "Internal error: Scalar2index:"
-                    " 1st index empty"); 
-                else
-                throw 
-                GDLException( _t, "Expression must be a scalar"
-                    " in this context."); 
-            }
-            if( retMsg == -1) // index < 0
-            {
-                throw 
-                GDLException( _t, "Subscript range values of the"
-                    " form low:high must be >= 0, < size, with low <= high.");
-            }
-            // stride
-            retMsg=stride->Scalar2index(strideIx);
-            if( retMsg == 0) // index empty or array
-            {
-                if( s->N_Elements() == 0)
-                throw 
-                GDLException( _t, "Internal error: Scalar2index:"
-                    " stride index empty"); 
-                else
-                throw 
-                GDLException( _t, "Expression must be a scalar"
-                    " in this context."); 
-            }
-            if( retMsg == -1 || strideIx == 0) // stride <= 0
-            {
-                throw 
-                GDLException( _t, "Range subscript stride must be >= 1.");
-            }
-
-            arrIx = new ArrayIndexT(ArrayIndexT::ORANGE_S,sIx,0,strideIx);
-        }
-    ;
-
-arrayindex returns[ ArrayIndexT* arrIx] // type: 0 [data], 2 [s]
-{
-    BaseGDL* s;
-    SizeT   sIx;
-    int     retMsg=0;
-    auto_ptr<BaseGDL> s_guard;
-}    
-    : //s=expr
-        ( s=indexable_expr
-        | s=indexable_tmp_expr { s_guard.reset( s);}
-        | s=check_expr
-            {
-                if( !callStack.back()->Contains( s)) 
-                s_guard.reset( s); // guard if no global data
-            }
-        ) // s is *never* owned now
-        {
-            assert( s->N_Elements() != 0); // index empty or array
-
-            if( s->Rank() != 0)
-            {
-                // INDEXED
-                // s_guard.release(); // never owned
-                arrIx = new ArrayIndexT( s); 
-//                ArrayIndexT( static_cast< DLongGDL*>(s->Convert2( LONG))); 
-            }
-            else
-            {
-                retMsg=s->Scalar2index(sIx);
-                if( retMsg == -1) // index < 0
-                {
-                    throw 
-                    GDLException( _t, "Subscript range values of the"
-                        " form low:high must be >= 0, < size,"
-                        " with low <= high.");
-                }
-                else arrIx = new ArrayIndexT(ArrayIndexT::ONE, sIx); // ONE
-            }
-        }
-    ;
-
-// note: [*:n], [*:*] already filtered out
-// type: 0->data, 1-> [*], 2-> [s], 3-> [s:*], 4-> [s:e]
 arrayindex_list returns [ArrayIndexListT* aL]
 {
-    // auto_ptr -> exception-save
-    auto_ptr<ArrayIndexListT> arrList(new ArrayIndexListT());
-    ArrayIndexT* arrIx;
+    ExprListT        exprList; // for cleanup
+    IxExprListT      ixExprList;
+    SizeT nExpr;
+    BaseGDL* s;
 }
-	: ( #(ARRAYIX // INDEXED or ONE
-                arrIx=arrayindex
-                { arrList->push_back(arrIx);}
-            )
-        |#(ARRAYIX_ALL // ALL 
-                arrIx=arrayindex_all
-                { arrList->push_back(arrIx);}
-            )
-        |#(ARRAYIX_ORANGE // ORANGE
-                arrIx=arrayindex_end
-                { arrList->push_back(arrIx);}
-            )
-        |#(ARRAYIX_RANGE // RANGE
-                arrIx=arrayindex_range
-                { arrList->push_back(arrIx);}
-            )
-        |#(ARRAYIX_ORANGE_S // ORANGE with stride
-                arrIx=arrayindex_end_s
-                { arrList->push_back(arrIx);}
-            )
-        |#(ARRAYIX_RANGE_S // RANGE with stride
-                arrIx=arrayindex_range_s
-                { arrList->push_back(arrIx);}
-            )
-      )+
+	: #(ax:ARRAYIX
+            {
+                aL = ax->arrIxList;
+                assert( aL != NULL);
+
+                nExpr = aL->NParam();
+            }
+            (
+                ( s=indexable_expr
+                | s=check_expr
+                    {
+                        if( !callStack.back()->Contains( s)) 
+                        exprList.push_back( s);
+                    }
+                | s=indexable_tmp_expr { exprList.push_back( s);}
+                )
+                {
+                    ixExprList.push_back( s);
+                    if( ixExprList.size() == nExpr)
+                        break; // allows some manual tuning
+                }
+            )*
+        )
         {
-            // release
-            aL=arrList.release();
+            aL->Init( ixExprList);
         }
     ;
 

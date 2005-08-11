@@ -4377,7 +4377,7 @@ BaseGDL*  GDLInterpreter::l_decinc_array_expr(ProgNodeP _t,
 	
 	ArrayIndexListT* aL;
 	BaseGDL*         e;
-	auto_ptr<ArrayIndexListT> guard;
+	ArrayIndexListGuard guard;
 	
 	
 	
@@ -4470,108 +4470,122 @@ BaseGDL*  GDLInterpreter::l_decinc_array_expr(ProgNodeP _t,
 ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t) {
 	ArrayIndexListT* aL;
 	ProgNodeP arrayindex_list_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP ax = ProgNodeP(antlr::nullAST);
 	
-	// auto_ptr -> exception-save
-	auto_ptr<ArrayIndexListT> arrList(new ArrayIndexListT());
-	ArrayIndexT* arrIx;
+	ExprListT        exprList; // for cleanup
+	IxExprListT      ixExprList;
+	SizeT nExpr;
+	BaseGDL* s;
 	
 	
-	{ // ( ... )+
-	int _cnt201=0;
+	ProgNodeP __t187 = _t;
+	ax = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	match(antlr::RefAST(_t),ARRAYIX);
+	_t = _t->getFirstChild();
+	
+	aL = ax->arrIxList;
+	assert( aL != NULL);
+	
+	nExpr = aL->NParam();
+	
+	{ // ( ... )*
 	for (;;) {
 		if (_t == ProgNodeP(antlr::nullAST) )
 			_t = ASTNULL;
-		switch ( _t->getType()) {
-		case ARRAYIX:
-		{
-			ProgNodeP __t195 = _t;
-			ProgNodeP tmp71_AST_in = _t;
-			match(antlr::RefAST(_t),ARRAYIX);
-			_t = _t->getFirstChild();
-			arrIx=arrayindex(_t);
-			_t = _retTree;
-			arrList->push_back(arrIx);
-			_t = __t195;
-			_t = _t->getNextSibling();
-			break;
+		if ((_tokenSet_1.member(_t->getType()))) {
+			{
+			if (_t == ProgNodeP(antlr::nullAST) )
+				_t = ASTNULL;
+			switch ( _t->getType()) {
+			case CONSTANT:
+			case DEREF:
+			case SYSVAR:
+			case VAR:
+			case VARPTR:
+			{
+				s=indexable_expr(_t);
+				_t = _retTree;
+				break;
+			}
+			case FCALL_LIB:
+			{
+				s=check_expr(_t);
+				_t = _retTree;
+				
+				if( !callStack.back()->Contains( s)) 
+				exprList.push_back( s);
+				
+				break;
+			}
+			case ASSIGN:
+			case ASSIGN_REPLACE:
+			case ARRAYDEF:
+			case ARRAYEXPR:
+			case FCALL:
+			case MFCALL:
+			case MFCALL_PARENT:
+			case NSTRUC:
+			case NSTRUC_REF:
+			case POSTDEC:
+			case POSTINC:
+			case STRUC:
+			case UMINUS:
+			case DEC:
+			case INC:
+			case SLASH:
+			case ASTERIX:
+			case DOT:
+			case POW:
+			case MATRIX_OP1:
+			case MATRIX_OP2:
+			case MOD_OP:
+			case PLUS:
+			case MINUS:
+			case LTMARK:
+			case GTMARK:
+			case NOT_OP:
+			case EQ_OP:
+			case NE_OP:
+			case LE_OP:
+			case LT_OP:
+			case GE_OP:
+			case GT_OP:
+			case AND_OP:
+			case OR_OP:
+			case XOR_OP:
+			case LOG_AND:
+			case LOG_OR:
+			case LOG_NEG:
+			case QUESTION:
+			{
+				s=indexable_tmp_expr(_t);
+				_t = _retTree;
+				exprList.push_back( s);
+				break;
+			}
+			default:
+			{
+				throw antlr::NoViableAltException(antlr::RefAST(_t));
+			}
+			}
+			}
+			
+			ixExprList.push_back( s);
+			if( ixExprList.size() == nExpr)
+			break; // allows some manual tuning
+			
 		}
-		case ARRAYIX_ALL:
-		{
-			ProgNodeP __t196 = _t;
-			ProgNodeP tmp72_AST_in = _t;
-			match(antlr::RefAST(_t),ARRAYIX_ALL);
-			_t = _t->getFirstChild();
-			arrIx=arrayindex_all(_t);
-			_t = _retTree;
-			arrList->push_back(arrIx);
-			_t = __t196;
-			_t = _t->getNextSibling();
-			break;
+		else {
+			goto _loop190;
 		}
-		case ARRAYIX_ORANGE:
-		{
-			ProgNodeP __t197 = _t;
-			ProgNodeP tmp73_AST_in = _t;
-			match(antlr::RefAST(_t),ARRAYIX_ORANGE);
-			_t = _t->getFirstChild();
-			arrIx=arrayindex_end(_t);
-			_t = _retTree;
-			arrList->push_back(arrIx);
-			_t = __t197;
-			_t = _t->getNextSibling();
-			break;
-		}
-		case ARRAYIX_RANGE:
-		{
-			ProgNodeP __t198 = _t;
-			ProgNodeP tmp74_AST_in = _t;
-			match(antlr::RefAST(_t),ARRAYIX_RANGE);
-			_t = _t->getFirstChild();
-			arrIx=arrayindex_range(_t);
-			_t = _retTree;
-			arrList->push_back(arrIx);
-			_t = __t198;
-			_t = _t->getNextSibling();
-			break;
-		}
-		case ARRAYIX_ORANGE_S:
-		{
-			ProgNodeP __t199 = _t;
-			ProgNodeP tmp75_AST_in = _t;
-			match(antlr::RefAST(_t),ARRAYIX_ORANGE_S);
-			_t = _t->getFirstChild();
-			arrIx=arrayindex_end_s(_t);
-			_t = _retTree;
-			arrList->push_back(arrIx);
-			_t = __t199;
-			_t = _t->getNextSibling();
-			break;
-		}
-		case ARRAYIX_RANGE_S:
-		{
-			ProgNodeP __t200 = _t;
-			ProgNodeP tmp76_AST_in = _t;
-			match(antlr::RefAST(_t),ARRAYIX_RANGE_S);
-			_t = _t->getFirstChild();
-			arrIx=arrayindex_range_s(_t);
-			_t = _retTree;
-			arrList->push_back(arrIx);
-			_t = __t200;
-			_t = _t->getNextSibling();
-			break;
-		}
-		default:
-		{
-			if ( _cnt201>=1 ) { goto _loop201; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
-		}
-		}
-		_cnt201++;
+		
 	}
-	_loop201:;
-	}  // ( ... )+
+	_loop190:;
+	} // ( ... )*
+	_t = __t187;
+	_t = _t->getNextSibling();
 	
-	// release
-	aL=arrList.release();
+	aL->Init( ixExprList);
 	
 	_retTree = _t;
 	return aL;
@@ -4647,7 +4661,7 @@ void GDLInterpreter::l_dot_array_expr(ProgNodeP _t,
 	ArrayIndexListT* aL;
 	BaseGDL**        rP;
 	DStructGDL*      structR;
-	auto_ptr<ArrayIndexListT> guard;
+	ArrayIndexListGuard guard;
 	bool isObj = callStack.back()->IsObject();
 	
 	
@@ -4657,7 +4671,7 @@ void GDLInterpreter::l_dot_array_expr(ProgNodeP _t,
 	case ARRAYEXPR:
 	{
 		ProgNodeP __t83 = _t;
-		ProgNodeP tmp77_AST_in = _t;
+		ProgNodeP tmp71_AST_in = _t;
 		match(antlr::RefAST(_t),ARRAYEXPR);
 		_t = _t->getFirstChild();
 		aL=arrayindex_list(_t);
@@ -4761,7 +4775,7 @@ void GDLInterpreter::tag_array_expr(ProgNodeP _t,
 	case ARRAYEXPR:
 	{
 		ProgNodeP __t133 = _t;
-		ProgNodeP tmp78_AST_in = _t;
+		ProgNodeP tmp72_AST_in = _t;
 		match(antlr::RefAST(_t),ARRAYEXPR);
 		_t = _t->getFirstChild();
 		aL=arrayindex_list(_t);
@@ -4799,7 +4813,7 @@ BaseGDL**  GDLInterpreter::l_indexable_expr(ProgNodeP _t) {
 	case EXPR:
 	{
 		ProgNodeP __t79 = _t;
-		ProgNodeP tmp79_AST_in = _t;
+		ProgNodeP tmp73_AST_in = _t;
 		match(antlr::RefAST(_t),EXPR);
 		_t = _t->getFirstChild();
 		res=l_expr(_t, NULL);
@@ -4864,11 +4878,11 @@ BaseGDL**  GDLInterpreter::l_array_expr(ProgNodeP _t,
 	ProgNodeP l_array_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	ArrayIndexListT* aL;
-	auto_ptr<ArrayIndexListT> guard;
+	ArrayIndexListGuard guard;
 	
 	
 	ProgNodeP __t81 = _t;
-	ProgNodeP tmp80_AST_in = _t;
+	ProgNodeP tmp74_AST_in = _t;
 	match(antlr::RefAST(_t),ARRAYEXPR);
 	_t = _t->getFirstChild();
 	aL=arrayindex_list(_t);
@@ -4913,12 +4927,12 @@ BaseGDL*  GDLInterpreter::array_def(ProgNodeP _t) {
 	BaseGDL*           cTypeData;
 	
 	
-	ProgNodeP __t203 = _t;
+	ProgNodeP __t192 = _t;
 	a = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	match(antlr::RefAST(_t),ARRAYDEF);
 	_t = _t->getFirstChild();
 	{ // ( ... )+
-	int _cnt205=0;
+	int _cnt194=0;
 	for (;;) {
 		if (_t == ProgNodeP(antlr::nullAST) )
 			_t = ASTNULL;
@@ -4999,14 +5013,14 @@ BaseGDL*  GDLInterpreter::array_def(ProgNodeP _t) {
 			
 		}
 		else {
-			if ( _cnt205>=1 ) { goto _loop205; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
+			if ( _cnt194>=1 ) { goto _loop194; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
 		}
 		
-		_cnt205++;
+		_cnt194++;
 	}
-	_loop205:;
+	_loop194:;
 	}  // ( ... )+
-	_t = __t203;
+	_t = __t192;
 	_t = _t->getNextSibling();
 	
 	res=cTypeData->CatArray(exprList,a->arrayDepth,maxRank);
@@ -5037,8 +5051,8 @@ BaseGDL*  GDLInterpreter::array_def(ProgNodeP _t) {
 	}
 	case NSTRUC_REF:
 	{
-		ProgNodeP __t215 = _t;
-		ProgNodeP tmp81_AST_in = _t;
+		ProgNodeP __t204 = _t;
+		ProgNodeP tmp75_AST_in = _t;
 		match(antlr::RefAST(_t),NSTRUC_REF);
 		_t = _t->getFirstChild();
 		idRef = _t;
@@ -5051,7 +5065,7 @@ BaseGDL*  GDLInterpreter::array_def(ProgNodeP _t) {
 		
 		res=new DStructGDL( dStruct);
 		
-		_t = __t215;
+		_t = __t204;
 		_t = _t->getNextSibling();
 		break;
 	}
@@ -5070,18 +5084,17 @@ BaseGDL*  GDLInterpreter::array_expr(ProgNodeP _t) {
 	
 	ArrayIndexListT* aL;
 	BaseGDL* r;
+	ArrayIndexListGuard guard;
 	auto_ptr<BaseGDL> r_guard;
 	
 	
 	ProgNodeP __t128 = _t;
-	ProgNodeP tmp82_AST_in = _t;
+	ProgNodeP tmp76_AST_in = _t;
 	match(antlr::RefAST(_t),ARRAYEXPR);
 	_t = _t->getFirstChild();
 	aL=arrayindex_list(_t);
 	_t = _retTree;
-	
-	auto_ptr<ArrayIndexListT> aL_guard(aL);
-	
+	guard.reset(aL);
 	{
 	if (_t == ProgNodeP(antlr::nullAST) )
 		_t = ASTNULL;
@@ -5183,7 +5196,7 @@ void GDLInterpreter::tag_expr(ProgNodeP _t,
 	case EXPR:
 	{
 		ProgNodeP __t131 = _t;
-		ProgNodeP tmp83_AST_in = _t;
+		ProgNodeP tmp77_AST_in = _t;
 		match(antlr::RefAST(_t),EXPR);
 		_t = _t->getFirstChild();
 		e=expr(_t);
@@ -5237,7 +5250,7 @@ BaseGDL*  GDLInterpreter::r_dot_indexable_expr(ProgNodeP _t,
 	case EXPR:
 	{
 		ProgNodeP __t135 = _t;
-		ProgNodeP tmp84_AST_in = _t;
+		ProgNodeP tmp78_AST_in = _t;
 		match(antlr::RefAST(_t),EXPR);
 		_t = _t->getFirstChild();
 		res=expr(_t);
@@ -5302,7 +5315,7 @@ void GDLInterpreter::r_dot_array_expr(ProgNodeP _t,
 	ArrayIndexListT* aL;
 	BaseGDL*         r;
 	DStructGDL*      structR;
-	auto_ptr<ArrayIndexListT> guard;
+	ArrayIndexListGuard guard;
 	bool isObj = callStack.back()->IsObject();
 	
 	
@@ -5312,7 +5325,7 @@ void GDLInterpreter::r_dot_array_expr(ProgNodeP _t,
 	case ARRAYEXPR:
 	{
 		ProgNodeP __t137 = _t;
-		ProgNodeP tmp85_AST_in = _t;
+		ProgNodeP tmp79_AST_in = _t;
 		match(antlr::RefAST(_t),ARRAYEXPR);
 		_t = _t->getFirstChild();
 		aL=arrayindex_list(_t);
@@ -5467,7 +5480,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	case ASSIGN:
 	{
 		ProgNodeP __t150 = _t;
-		ProgNodeP tmp86_AST_in = _t;
+		ProgNodeP tmp80_AST_in = _t;
 		match(antlr::RefAST(_t),ASSIGN);
 		_t = _t->getFirstChild();
 		
@@ -5561,7 +5574,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	case ASSIGN_REPLACE:
 	{
 		ProgNodeP __t152 = _t;
-		ProgNodeP tmp87_AST_in = _t;
+		ProgNodeP tmp81_AST_in = _t;
 		match(antlr::RefAST(_t),ASSIGN_REPLACE);
 		_t = _t->getFirstChild();
 		
@@ -5721,7 +5734,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	case MFCALL:
 	{
 		ProgNodeP __t165 = _t;
-		ProgNodeP tmp88_AST_in = _t;
+		ProgNodeP tmp82_AST_in = _t;
 		match(antlr::RefAST(_t),MFCALL);
 		_t = _t->getFirstChild();
 		self=expr(_t);
@@ -5745,7 +5758,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	case MFCALL_PARENT:
 	{
 		ProgNodeP __t166 = _t;
-		ProgNodeP tmp89_AST_in = _t;
+		ProgNodeP tmp83_AST_in = _t;
 		match(antlr::RefAST(_t),MFCALL_PARENT);
 		_t = _t->getFirstChild();
 		self=expr(_t);
@@ -5773,7 +5786,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	case FCALL:
 	{
 		ProgNodeP __t167 = _t;
-		ProgNodeP tmp90_AST_in = _t;
+		ProgNodeP tmp84_AST_in = _t;
 		match(antlr::RefAST(_t),FCALL);
 		_t = _t->getFirstChild();
 		f = _t;
@@ -5818,7 +5831,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	
 	
 	ProgNodeP __t161 = _t;
-	ProgNodeP tmp91_AST_in = _t;
+	ProgNodeP tmp85_AST_in = _t;
 	match(antlr::RefAST(_t),FCALL_LIB);
 	_t = _t->getFirstChild();
 	fl = _t;
@@ -5950,383 +5963,6 @@ BaseGDL*  GDLInterpreter::sys_var(ProgNodeP _t) {
 	return ret;
 }
 
- ArrayIndexT*  GDLInterpreter::arrayindex_all(ProgNodeP _t) {
-	 ArrayIndexT* arrIx;
-	ProgNodeP arrayindex_all_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
-	
-	ProgNodeP tmp92_AST_in = _t;
-	match(antlr::RefAST(_t),ALL);
-	_t = _t->getNextSibling();
-	arrIx = new ArrayIndexT();
-	_retTree = _t;
-	return arrIx;
-}
-
- ArrayIndexT*  GDLInterpreter::arrayindex_range(ProgNodeP _t) {
-	 ArrayIndexT* arrIx;
-	ProgNodeP arrayindex_range_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
-	
-	BaseGDL* s;
-	BaseGDL* e;
-	SizeT sIx,eIx;
-	int    retMsg=0;
-	
-	
-	s=expr(_t);
-	_t = _retTree;
-	e=expr(_t);
-	_t = _retTree;
-	
-	auto_ptr<BaseGDL> s_guard(s);
-	auto_ptr<BaseGDL> e_guard(e);
-	
-	retMsg=s->Scalar2index(sIx);
-	if( retMsg == 0) // index empty or array
-	{
-	if( s->N_Elements() == 0)
-	throw 
-	GDLException( _t, "Internal error: Scalar2index: 1st index empty."); 
-	else
-	throw 
-	GDLException( _t, "Expression must be a scalar in this context."); 
-	}
-	if( retMsg == -1) // index < 0
-	{
-	throw 
-	GDLException( _t, "Subscript range values of the form low:high " 
-	"must be >= 0, < size, with low <= high.");
-	}
-	
-	retMsg=e->Scalar2index(eIx);
-	if( retMsg == 0) // index empty or array
-	{
-	if( e->N_Elements() == 0)
-	throw 
-	GDLException( _t, "Internal error: Scalar2index: 2nd index empty."); 
-	else
-	throw 
-	GDLException( _t, "Expression must be a scalar in this context."); 
-	}
-	if( retMsg == -1) // index < 0
-	{
-	throw 
-	GDLException( _t, "Subscript range values of the form low:high " 
-	"must be >= 0, < size, with low <= high.");
-	}
-	
-	if( eIx < sIx)
-	{
-	throw 
-	GDLException( _t, " Subscript range values of the form low:high " 
-	"must be >= 0, < size, with low <= high");
-	}
-	
-	arrIx = new ArrayIndexT(ArrayIndexT::RANGE,sIx,eIx);
-	
-	_retTree = _t;
-	return arrIx;
-}
-
- ArrayIndexT*  GDLInterpreter::arrayindex_range_s(ProgNodeP _t) {
-	 ArrayIndexT* arrIx;
-	ProgNodeP arrayindex_range_s_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
-	
-	BaseGDL* s;
-	BaseGDL* e;
-	BaseGDL* stride;
-	SizeT sIx,eIx, strideIx;
-	int    retMsg=0;
-	
-	
-	s=expr(_t);
-	_t = _retTree;
-	e=expr(_t);
-	_t = _retTree;
-	stride=expr(_t);
-	_t = _retTree;
-	
-	auto_ptr<BaseGDL> s_guard(s);
-	auto_ptr<BaseGDL> e_guard(e);
-	auto_ptr<BaseGDL> stride_guard(stride);
-	
-	retMsg=s->Scalar2index(sIx);
-	if( retMsg == 0) // index empty or array
-	{
-	if( s->N_Elements() == 0)
-	throw 
-	GDLException( _t, "Internal error: Scalar2index: 1st index empty."); 
-	else
-	throw 
-	GDLException( _t, "Expression must be a scalar in this context."); 
-	}
-	if( retMsg == -1) // index < 0
-	{
-	throw 
-	GDLException( _t, "Subscript range values of the form low:high " 
-	"must be >= 0, < size, with low <= high.");
-	}
-	
-	retMsg=e->Scalar2index(eIx);
-	if( retMsg == 0) // index empty or array
-	{
-	if( e->N_Elements() == 0)
-	throw 
-	GDLException( _t, "Internal error: Scalar2index: 2nd index empty."); 
-	else
-	throw 
-	GDLException( _t, "Expression must be a scalar in this context."); 
-	}
-	if( retMsg == -1) // index < 0
-	{
-	throw 
-	GDLException( _t, "Subscript range values of the form low:high " 
-	"must be >= 0, < size, with low <= high.");
-	}
-	
-	if( eIx < sIx)
-	{
-	throw 
-	GDLException( _t, " Subscript range values of the form low:high " 
-	"must be >= 0, < size, with low <= high");
-	}
-	
-	// stride
-	retMsg=stride->Scalar2index(strideIx);
-	if( retMsg == 0) // index empty or array
-	{
-	if( s->N_Elements() == 0)
-	throw 
-	GDLException( _t, "Internal error: Scalar2index:"
-	" stride index empty"); 
-	else
-	throw 
-	GDLException( _t, "Expression must be a scalar"
-	" in this context."); 
-	}
-	if( retMsg == -1 || strideIx == 0) // stride <= 0
-	{
-	throw 
-	GDLException( _t, "Range subscript stride must be >= 1.");
-	}
-	
-	arrIx = new ArrayIndexT(ArrayIndexT::RANGE_S,sIx,eIx,strideIx);
-	
-	_retTree = _t;
-	return arrIx;
-}
-
- ArrayIndexT*  GDLInterpreter::arrayindex_end(ProgNodeP _t) {
-	 ArrayIndexT* arrIx;
-	ProgNodeP arrayindex_end_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
-	
-	BaseGDL* s;
-	SizeT sIx;
-	int    retMsg=0;
-	
-	
-	s=expr(_t);
-	_t = _retTree;
-	
-	auto_ptr<BaseGDL> s_guard(s);
-	
-	retMsg=s->Scalar2index(sIx);
-	if( retMsg == 0) // index empty or array
-	{
-	if( s->N_Elements() == 0)
-	throw 
-	GDLException( _t, "Internal error: Scalar2index:"
-	" 1st index empty"); 
-	else
-	throw 
-	GDLException( _t, "Expression must be a scalar"
-	" in this context."); 
-	}
-	if( retMsg == -1) // index < 0
-	{
-	throw 
-	GDLException( _t, "Subscript range values of the"
-	" form low:high must be >= 0, < size, with low <= high.");
-	}
-	arrIx = new ArrayIndexT(ArrayIndexT::ORANGE,sIx);
-	
-	_retTree = _t;
-	return arrIx;
-}
-
- ArrayIndexT*  GDLInterpreter::arrayindex_end_s(ProgNodeP _t) {
-	 ArrayIndexT* arrIx;
-	ProgNodeP arrayindex_end_s_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
-	
-	BaseGDL* s;
-	BaseGDL* stride;
-	SizeT sIx,strideIx;
-	int    retMsg=0;
-	
-	
-	s=expr(_t);
-	_t = _retTree;
-	stride=expr(_t);
-	_t = _retTree;
-	
-	auto_ptr<BaseGDL> s_guard(s);
-	auto_ptr<BaseGDL> stride_guard(stride);
-	
-	retMsg=s->Scalar2index(sIx);
-	if( retMsg == 0) // index empty or array
-	{
-	if( s->N_Elements() == 0)
-	throw 
-	GDLException( _t, "Internal error: Scalar2index:"
-	" 1st index empty"); 
-	else
-	throw 
-	GDLException( _t, "Expression must be a scalar"
-	" in this context."); 
-	}
-	if( retMsg == -1) // index < 0
-	{
-	throw 
-	GDLException( _t, "Subscript range values of the"
-	" form low:high must be >= 0, < size, with low <= high.");
-	}
-	// stride
-	retMsg=stride->Scalar2index(strideIx);
-	if( retMsg == 0) // index empty or array
-	{
-	if( s->N_Elements() == 0)
-	throw 
-	GDLException( _t, "Internal error: Scalar2index:"
-	" stride index empty"); 
-	else
-	throw 
-	GDLException( _t, "Expression must be a scalar"
-	" in this context."); 
-	}
-	if( retMsg == -1 || strideIx == 0) // stride <= 0
-	{
-	throw 
-	GDLException( _t, "Range subscript stride must be >= 1.");
-	}
-	
-	arrIx = new ArrayIndexT(ArrayIndexT::ORANGE_S,sIx,0,strideIx);
-	
-	_retTree = _t;
-	return arrIx;
-}
-
- ArrayIndexT*  GDLInterpreter::arrayindex(ProgNodeP _t) {
-	 ArrayIndexT* arrIx;
-	ProgNodeP arrayindex_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
-	
-	BaseGDL* s;
-	SizeT   sIx;
-	int     retMsg=0;
-	auto_ptr<BaseGDL> s_guard;
-	
-	
-	{
-	if (_t == ProgNodeP(antlr::nullAST) )
-		_t = ASTNULL;
-	switch ( _t->getType()) {
-	case CONSTANT:
-	case DEREF:
-	case SYSVAR:
-	case VAR:
-	case VARPTR:
-	{
-		s=indexable_expr(_t);
-		_t = _retTree;
-		break;
-	}
-	case ASSIGN:
-	case ASSIGN_REPLACE:
-	case ARRAYDEF:
-	case ARRAYEXPR:
-	case FCALL:
-	case MFCALL:
-	case MFCALL_PARENT:
-	case NSTRUC:
-	case NSTRUC_REF:
-	case POSTDEC:
-	case POSTINC:
-	case STRUC:
-	case UMINUS:
-	case DEC:
-	case INC:
-	case SLASH:
-	case ASTERIX:
-	case DOT:
-	case POW:
-	case MATRIX_OP1:
-	case MATRIX_OP2:
-	case MOD_OP:
-	case PLUS:
-	case MINUS:
-	case LTMARK:
-	case GTMARK:
-	case NOT_OP:
-	case EQ_OP:
-	case NE_OP:
-	case LE_OP:
-	case LT_OP:
-	case GE_OP:
-	case GT_OP:
-	case AND_OP:
-	case OR_OP:
-	case XOR_OP:
-	case LOG_AND:
-	case LOG_OR:
-	case LOG_NEG:
-	case QUESTION:
-	{
-		s=indexable_tmp_expr(_t);
-		_t = _retTree;
-		s_guard.reset( s);
-		break;
-	}
-	case FCALL_LIB:
-	{
-		s=check_expr(_t);
-		_t = _retTree;
-		
-		if( !callStack.back()->Contains( s)) 
-		s_guard.reset( s); // guard if no global data
-		
-		break;
-	}
-	default:
-	{
-		throw antlr::NoViableAltException(antlr::RefAST(_t));
-	}
-	}
-	}
-	
-	assert( s->N_Elements() != 0); // index empty or array
-	
-	if( s->Rank() != 0)
-	{
-	// INDEXED
-	// s_guard.release(); // never owned
-	arrIx = new ArrayIndexT( s); 
-	//                ArrayIndexT( static_cast< DLongGDL*>(s->Convert2( LONG))); 
-	}
-	else
-	{
-	retMsg=s->Scalar2index(sIx);
-	if( retMsg == -1) // index < 0
-	{
-	throw 
-	GDLException( _t, "Subscript range values of the"
-	" form low:high must be >= 0, < size,"
-	" with low <= high.");
-	}
-	else arrIx = new ArrayIndexT(ArrayIndexT::ONE, sIx); // ONE
-	}
-	
-	_retTree = _t;
-	return arrIx;
-}
-
  BaseGDL*  GDLInterpreter::named_struct_def(ProgNodeP _t) {
 	 BaseGDL* res;
 	ProgNodeP named_struct_def_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
@@ -6341,7 +5977,7 @@ BaseGDL*  GDLInterpreter::sys_var(ProgNodeP _t) {
 	BaseGDL* ee;
 	
 	
-	ProgNodeP __t207 = _t;
+	ProgNodeP __t196 = _t;
 	n = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	match(antlr::RefAST(_t),NSTRUC);
 	_t = _t->getFirstChild();
@@ -6375,7 +6011,7 @@ BaseGDL*  GDLInterpreter::sys_var(ProgNodeP _t) {
 	auto_ptr<DStructGDL> instance_guard(instance);
 	
 	{ // ( ... )+
-	int _cnt209=0;
+	int _cnt198=0;
 	for (;;) {
 		if (_t == ProgNodeP(antlr::nullAST) )
 			_t = ASTNULL;
@@ -6452,7 +6088,7 @@ BaseGDL*  GDLInterpreter::sys_var(ProgNodeP _t) {
 		}
 		case INHERITS:
 		{
-			ProgNodeP tmp93_AST_in = _t;
+			ProgNodeP tmp86_AST_in = _t;
 			match(antlr::RefAST(_t),INHERITS);
 			_t = _t->getNextSibling();
 			ii = _t;
@@ -6468,12 +6104,12 @@ BaseGDL*  GDLInterpreter::sys_var(ProgNodeP _t) {
 		}
 		default:
 		{
-			if ( _cnt209>=1 ) { goto _loop209; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
+			if ( _cnt198>=1 ) { goto _loop198; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
 		}
 		}
-		_cnt209++;
+		_cnt198++;
 	}
-	_loop209:;
+	_loop198:;
 	}  // ( ... )+
 	
 	// inherit refers to nStructDesc, in case of error both have to
@@ -6499,7 +6135,7 @@ BaseGDL*  GDLInterpreter::sys_var(ProgNodeP _t) {
 	instance_guard.release();
 	res=instance;
 	
-	_t = __t207;
+	_t = __t196;
 	_t = _t->getNextSibling();
 	_retTree = _t;
 	return res;
@@ -6522,12 +6158,12 @@ BaseGDL*  GDLInterpreter::sys_var(ProgNodeP _t) {
 	BaseGDL* e;
 	
 	
-	ProgNodeP __t211 = _t;
-	ProgNodeP tmp94_AST_in = _t;
+	ProgNodeP __t200 = _t;
+	ProgNodeP tmp87_AST_in = _t;
 	match(antlr::RefAST(_t),STRUC);
 	_t = _t->getFirstChild();
 	{ // ( ... )+
-	int _cnt213=0;
+	int _cnt202=0;
 	for (;;) {
 		if (_t == ProgNodeP(antlr::nullAST) )
 			_t = ASTNULL;
@@ -6543,12 +6179,12 @@ BaseGDL*  GDLInterpreter::sys_var(ProgNodeP _t) {
 			
 		}
 		else {
-			if ( _cnt213>=1 ) { goto _loop213; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
+			if ( _cnt202>=1 ) { goto _loop202; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
 		}
 		
-		_cnt213++;
+		_cnt202++;
 	}
-	_loop213:;
+	_loop202:;
 	}  // ( ... )+
 	
 	//                 DStructDesc* oStructDesc=nStructDesc->FindEqual( structList);
@@ -6566,7 +6202,7 @@ BaseGDL*  GDLInterpreter::sys_var(ProgNodeP _t) {
 	instance_guard.release();
 	res=instance;
 	
-	_t = __t211;
+	_t = __t200;
 	_t = _t->getNextSibling();
 	_retTree = _t;
 	return res;

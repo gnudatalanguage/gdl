@@ -25,57 +25,102 @@
 #include "real2int.hpp"
 
 typedef std::vector<SizeT> AllIxT;
+typedef std::vector<BaseGDL*> IxExprListT;
 
 class ArrayIndexT
 {
 public:
-  enum IxType {
-    INDEXED=0, // explicit indices
-    ALL,       // *
-    ONE,       // scalar
-    ORANGE,    // open range s:*
-    RANGE,      // s:e
-    ORANGE_S,    // open range with stride s:*:stride
-    RANGE_S      // s:e:stride
-  };
+  virtual void Init( BaseGDL*) { assert( false);}
+  virtual void Init( BaseGDL*, BaseGDL*) { assert( false);}
+  virtual void Init( BaseGDL*, BaseGDL*, BaseGDL*) { assert( false);}
 
-private:
-  IxType     t;
-  SizeT      s,e,stride;
+  virtual void Clear() {}
+  virtual ~ArrayIndexT() {}
+
+  virtual SizeT GetIx0()=0;
+  virtual SizeT GetS() { return 0;}
+  virtual SizeT GetStride() { return 0;}
+  
+  virtual bool Scalar()           { return false;}
+  virtual bool Scalar( SizeT& s_) { return false;}
+  virtual bool Indexed()          { return false;}  
+
+  virtual SizeT NIter( SizeT varDim, bool strictArrSubs)=0; 
+
+  virtual SizeT NParam()=0;
+};
+
+// INDEXED or ONE [v]
+class ArrayIndexIndexed: public ArrayIndexT
+{
+protected:
+  SizeT s;
+
   AllIxT*    ix;
-  //  SizeT*     ix;
-  //  SizeT      nElem; // for ix
   dimension* ixDim; // keep dimension of ix
 
   // forbid c-i
-  ArrayIndexT( const ArrayIndexT& r) {}
-
-  // get nth index
-  SizeT GetIx( SizeT nth)
-  {
-    if( t == 0) return (*ix)[nth]; // from array
-    //if( t == 2) return s;        // scalar (nth == 0)
-    return nth + s;
-  }
+  ArrayIndexIndexed( const ArrayIndexT& r) {}
 
 public:
+  SizeT NParam() { return 1;} // number of parameter to Init(...)
+
+  SizeT GetS() { return s;}
+
+  bool Scalar() { return (ix == NULL);}
+  bool Scalar( SizeT& s_)
+  { 
+    s_ = s;
+    return (ix == NULL);
+  }
+
+  bool Indexed() { return (ix != NULL);}
+
+  dimension GetDim() { return *ixDim;}
+
+  SizeT GetIx0()
+  {
+    if( ix != NULL) return (*ix)[0]; // from array
+    return s;
+  }
 
   //  SizeT* StealIx() { SizeT* ret = ix; ix = NULL; return ret;} 
   AllIxT* StealIx() { AllIxT* ret = ix; ix = NULL; return ret;} 
-  
-  ~ArrayIndexT() 
+
+  ~ArrayIndexIndexed() 
   {
     delete ix;
-    //    delete[] ix;
-    delete   ixDim;
+    delete ixDim;
   }
 
-  // [[ix]] (type 0)
-  ArrayIndexT( BaseGDL* ix_): 
-    t(INDEXED), 
-    s(0), e(0), stride(0), 
+  ArrayIndexIndexed(): 
     ix( NULL), ixDim( NULL) 
+  {}
+
+  void Clear()
   {
+    delete ixDim;
+    ixDim = NULL;
+    delete ix; 
+    ix = NULL; // marker ONE or INDEXED
+  }
+
+  void Init( BaseGDL* ix_) 
+  {
+    if( ix_->Rank() == 0) // type ONE
+      {
+	int ret = ix_->Scalar2index(s);
+	if( ret == -1) // index < 0
+	  {
+	    throw 
+	      GDLException( "Subscript range values of the"
+			    " form low:high must be >= 0, < size,"
+			    " with low <= high.");
+	  }
+	return;
+      }
+
+    // type INDEXED
     DType dType = ix_->Type();
 
     assert( dType != UNDEF);
@@ -187,108 +232,381 @@ public:
 	}
       }
   } 
-  
-  // [*] (type 1)
-  ArrayIndexT(): t(ALL), s(0), e(0), stride(0), ix(NULL), ixDim( NULL)  
-  {} 
 
-  // [s] (type 2) || [s:*] (type 3)  || [s:e] (type 4) || 
-  // [s:*:stride] (type 5)  || [s:e:stride] (type 6) 
-  ArrayIndexT( IxType t_, SizeT s_, SizeT e_=0, SizeT stride_=0): 
-    t(t_), s(s_), e(e_), stride( stride_), 
-    ix(NULL), ixDim( NULL)  
-  {}
-  
   // number of iterations
   // also checks/adjusts range 
   SizeT NIter( SizeT varDim, bool strictArrSubs) 
   {
-    if( t == INDEXED) 
-      {
-	//	SizeT nElem=ix->N_Elements();
-	
-	SizeT upper = varDim-1;
-        SizeT ix_size = ix->size();
-	if( strictArrSubs)
-	  { // strictArrSubs -> exception if out of bounds
-	    for( SizeT i=0; i < ix_size; ++i)
-	      if( ((*ix)[i] < 0) || ((*ix)[i] > upper))
-		throw GDLException("Array used to subscript array "
-				   "contains out of range subscript.");
-	  }
-	else
-	  {
-	    for( SizeT i=0; i < ix_size; ++i)
-	      {
-		SizeT& ixI = (*ix)[i];
-		if( ixI < 0) ixI=0; 
-		else if( ixI > upper) ixI=upper;
-// 		if( (*ix)[i] < 0) (*ix)[i]=0; 
-// 		else if( (*ix)[i] > upper) (*ix)[i]=upper;
-		//else if( (ix)[i] > static_cast<DLong>(upper)) (ix)[i]=upper;
-	      }
-	  }
-	return ix_size; 
-      }
-    if( t == ALL) 
-      {
-	return varDim;
-      }
-    if( t == ONE) 
+    if( ix == NULL) // ONE
       {
 	if( s >= varDim)
 	  throw GDLException("Subscript out of range [i].");
 	return 1;
       }
-    if( t == ORANGE) 
-      {
-	if( s >= varDim)
-	  throw GDLException("Subscript out of range [s:*].");
-	return (varDim - s);
+
+    // INDEXED
+    SizeT upper = varDim-1;
+    SizeT ix_size = ix->size();
+    if( strictArrSubs)
+      { // strictArrSubs -> exception if out of bounds
+	for( SizeT i=0; i < ix_size; ++i)
+	  if( ((*ix)[i] < 0) || ((*ix)[i] > upper))
+	    throw GDLException("Array used to subscript array "
+			       "contains out of range subscript.");
       }
-    if( t == RANGE)
+    else
       {
-	if( e >= varDim)
-	  throw GDLException("Subscript out of range [s:e].");
-	return (e - s + 1);
+	for( SizeT i=0; i < ix_size; ++i)
+	  {
+	    SizeT& ixI = (*ix)[i];
+	    if( ixI < 0) ixI=0; 
+	    else if( ixI > upper) ixI=upper;
+	  }
       }
-    if( t == ORANGE_S) 
+    return ix_size; 
+  }
+
+};
+
+// constant version
+class CArrayIndexIndexed: public ArrayIndexIndexed
+{
+public:
+  CArrayIndexIndexed( BaseGDL* c): ArrayIndexIndexed()
+  {
+    ArrayIndexIndexed::Init( c);
+  }
+
+  SizeT NParam() { return 0;} // number of parameter to Init(...)
+  void Clear() {}
+
+  // special here no stealing is allowed
+  AllIxT* StealIx() { return new AllIxT( *ix);} 
+};
+
+// [*]
+class ArrayIndexAll: public ArrayIndexT
+{
+public:
+  SizeT NParam() { return 0;} // number of parameter to Init(...)
+
+  void Init() {};
+
+  SizeT GetIx0() { return 0;}
+
+  // number of iterations
+  // also checks/adjusts range 
+  SizeT NIter( SizeT varDim, bool strictArrSubs) 
+  {
+    return varDim;
+  }
+};
+
+// [s:*]
+class ArrayIndexORange: public ArrayIndexT
+{
+private:
+  SizeT s;
+
+public:
+  SizeT NParam() { return 1;} // number of parameter to Init(...)
+
+  SizeT GetS() { return s;}
+  SizeT GetIx0() { return s;}
+
+  void Init( BaseGDL* s_)
+  {
+    int retMsg=s_->Scalar2index(s);
+    if( retMsg == 0) // index empty or array
       {
-	if( s >= varDim)
-	  throw GDLException("Subscript out of range [s:*].");
-	return (varDim - s + stride - 1)/stride;
+	if( s_->N_Elements() == 0)
+	  throw 
+	    GDLException( "Internal error: Scalar2index:"
+			  " 1st index empty"); 
+	else
+	  throw 
+	    GDLException( "Expression must be a scalar"
+			  " in this context."); 
       }
-    // if( t == RANGE_S)
+    if( retMsg == -1) // index < 0
       {
-	if( e >= varDim)
-	  throw GDLException("Subscript out of range [s:e].");
-	return (e - s + stride)/stride;
+	throw 
+	  GDLException( "Subscript range values of the"
+			" form low:high must be >= 0, < size, "
+			"with low <= high.");
       }
   }
 
-  bool Scalar()
+  SizeT NIter( SizeT varDim, bool strictArrSubs) 
   {
-    return (t == ONE);
+    if( s >= varDim)
+      throw GDLException("Subscript out of range [s:*].");
+    return (varDim - s);
+  }
+};
+
+class CArrayIndexORange: public ArrayIndexORange
+{
+public:
+  SizeT NParam() { return 0;} // number of parameter to Init(...)
+
+  CArrayIndexORange( BaseGDL* c): ArrayIndexORange()
+  {
+    ArrayIndexORange::Init( c);
+  }
+};
+
+// [s:e]
+class ArrayIndexRange: public ArrayIndexT
+{
+private:
+  SizeT s,e;
+
+public:
+  SizeT NParam() { return 2;} // number of parameter to Init(...)
+
+  SizeT GetS() { return s;}
+  SizeT GetIx0() { return s;}
+
+  void Init( BaseGDL* s_, BaseGDL* e_)
+  {
+    SizeT retMsg=s_->Scalar2index(s);
+    if( retMsg == 0) // index empty or array
+      {
+	if( s_->N_Elements() == 0)
+	  throw 
+	    GDLException( "Internal error: Scalar2index: 1st index empty."); 
+	else
+	  throw 
+	    GDLException( "Expression must be a scalar in this context."); 
+      }
+    if( retMsg == -1) // index < 0
+      {
+	throw 
+	  GDLException( "Subscript range values of the form low:high " 
+			"must be >= 0, < size, with low <= high.");
+      }
+            
+    retMsg=e_->Scalar2index(e);
+    if( retMsg == 0) // index empty or array
+      {
+	if( e_->N_Elements() == 0)
+	  throw 
+	    GDLException( "Internal error: Scalar2index: 2nd index empty."); 
+	else
+	  throw 
+	    GDLException( "Expression must be a scalar in this context."); 
+      }
+    if( retMsg == -1) // index < 0
+      {
+	throw 
+	  GDLException( "Subscript range values of the form low:high " 
+			"must be >= 0, < size, with low <= high.");
+      }
+    
+    if( e < s)
+      {
+	throw 
+	  GDLException( " Subscript range values of the form low:high " 
+			"must be >= 0, < size, with low <= high");
+      }
   }
 
-  bool Scalar( SizeT& s_)
+
+  // number of iterations
+  // also checks/adjusts range 
+  SizeT NIter( SizeT varDim, bool strictArrSubs) 
   {
-    s_=s;
-    return (t == ONE);
+    if( e >= varDim)
+      throw GDLException("Subscript out of range [s:e].");
+    return (e - s + 1);
+  }
+};
+
+class CArrayIndexRange: public ArrayIndexRange
+{
+public:
+  SizeT NParam() { return 0;} // number of parameter to Init(...)
+
+  CArrayIndexRange( BaseGDL* c1, BaseGDL* c2): ArrayIndexRange()
+  {
+    ArrayIndexRange::Init( c1, c2);
+  }
+};
+
+// [s:*:st]
+class ArrayIndexORangeS: public ArrayIndexT
+{
+private:
+  SizeT s,stride;
+
+public:
+  SizeT NParam() { return 2;} // number of parameter to Init(...)
+
+  SizeT GetS() { return s;}
+  SizeT GetStride() { return stride;}
+  SizeT GetIx0() { return s;}
+
+  void Init( BaseGDL* s_, BaseGDL* stride_)
+  {
+    int retMsg=s_->Scalar2index( s);
+    if( retMsg == 0) // index empty or array
+      {
+	if( s_->N_Elements() == 0)
+	  throw 
+	    GDLException(  "Internal error: Scalar2index:"
+			  " 1st index empty"); 
+	else
+	  throw 
+	    GDLException(  "Expression must be a scalar"
+			  " in this context."); 
+      }
+    if( retMsg == -1) // index < 0
+      {
+	throw 
+	  GDLException(  "Subscript range values of the"
+			" form low:high must be >= 0, < size, with low <= high.");
+      }
+    // stride
+    retMsg=stride_->Scalar2index( stride);
+    if( retMsg == 0) // index empty or array
+      {
+	if( stride_->N_Elements() == 0)
+	  throw 
+	    GDLException(  "Internal error: Scalar2index:"
+			  " stride index empty"); 
+	else
+	  throw 
+	    GDLException(  "Expression must be a scalar"
+			  " in this context."); 
+      }
+    if( retMsg == -1 || stride == 0) // stride <= 0
+      {
+	throw 
+	  GDLException(  "Range subscript stride must be >= 1.");
+      }
   }
 
-  bool Indexed()
+
+  // number of iterations
+  // also checks/adjusts range 
+  SizeT NIter( SizeT varDim, bool strictArrSubs) 
   {
-    return (t == INDEXED);
+    if( s >= varDim)
+      throw GDLException("Subscript out of range [s:*].");
+    return (varDim - s + stride - 1)/stride;
+  }
+};
+
+class CArrayIndexORangeS: public ArrayIndexORangeS
+{
+public:
+  SizeT NParam() { return 0;} // number of parameter to Init(...)
+
+  CArrayIndexORangeS( BaseGDL* c1, BaseGDL* c2): ArrayIndexORangeS()
+  {
+    ArrayIndexORangeS::Init( c1, c2);
+  }
+};
+
+// [s:e:st]
+class ArrayIndexRangeS: public ArrayIndexT
+{
+private:
+  SizeT s,e,stride;
+
+public:
+  SizeT NParam() { return 3;} // number of parameter to Init(...)
+
+  SizeT GetS() { return s;}
+  SizeT GetStride() { return stride;}
+  SizeT GetIx0() { return s;}
+
+  void Init( BaseGDL* s_, BaseGDL* e_, BaseGDL* stride_)
+  {
+    int retMsg=s_->Scalar2index(s);
+    if( retMsg == 0) // index empty or array
+      {
+	if( s_->N_Elements() == 0)
+	  throw 
+	    GDLException(  "Internal error: Scalar2index: 1st index empty."); 
+	else
+	  throw 
+	    GDLException(  "Expression must be a scalar in this context."); 
+      }
+    if( retMsg == -1) // index < 0
+      {
+	throw 
+	  GDLException(  "Subscript range values of the form low:high " 
+			"must be >= 0, < size, with low <= high.");
+      }
+            
+    retMsg=e_->Scalar2index(e);
+    if( retMsg == 0) // index empty or array
+      {
+	if( e_->N_Elements() == 0)
+	  throw 
+	    GDLException(  "Internal error: Scalar2index: 2nd index empty."); 
+	else
+	  throw 
+	    GDLException(  "Expression must be a scalar in this context."); 
+      }
+    if( retMsg == -1) // index < 0
+      {
+	throw 
+	  GDLException(  "Subscript range values of the form low:high " 
+			"must be >= 0, < size, with low <= high.");
+      }
+            
+    if( e < s)
+      {
+	throw 
+	  GDLException(  "Subscript range values of the form low:high " 
+			"must be >= 0, < size, with low <= high");
+      }
+                            
+    // stride
+    retMsg=stride_->Scalar2index(stride);
+    if( retMsg == 0) // index empty or array
+      {
+	if( stride_->N_Elements() == 0)
+	  throw 
+	    GDLException(  "Internal error: Scalar2index:"
+			  " stride index empty"); 
+	else
+	  throw 
+	    GDLException(  "Expression must be a scalar"
+			  " in this context."); 
+      }
+    if( retMsg == -1 || stride == 0) // stride <= 0
+      {
+	throw 
+	  GDLException(  "Range subscript stride must be >= 1.");
+      }
   }
 
-  dimension GetDim()
+  // number of iterations
+  // also checks/adjusts range 
+  SizeT NIter( SizeT varDim, bool strictArrSubs) 
   {
-    return *ixDim;
-    //    return ix->Dim();
+    if( e >= varDim)
+      {
+	throw GDLException("Subscript out of range [s:e:st].");
+      }
+    return (e - s + stride)/stride;
   }
-  
-  friend class ArrayIndexListT;
+};
+
+class CArrayIndexRangeS: public ArrayIndexRangeS
+{
+public:
+  SizeT NParam() { return 0;} // number of parameter to Init(...)
+
+  CArrayIndexRangeS( BaseGDL* c1, BaseGDL* c2, BaseGDL* c3): 
+    ArrayIndexRangeS()
+  {
+    ArrayIndexRangeS::Init( c1, c2, c3);
+  }
 };
 
 class ArrayIndexListT
@@ -312,13 +630,17 @@ private:
   SizeT    varStride[MAXRANK+1]; // variables stride
   SizeT    nIx;                  // number of indexed elements
 
-  //  SizeT    *allIx;               // index list 
   AllIxT* allIx;
 
+  ArrayIndexT* ixListEnd; // for assoc index
+
+  SizeT nParam; // number of (BaseGDL*) parameters
 public:    
+  
+  SizeT NParam() { return nParam;}
+
   ~ArrayIndexListT()
   {
-    //    delete[] allIx;
     delete allIx;
     for( std::vector<ArrayIndexT*>::iterator i=ixList.begin(); 
 	 i != ixList.end(); ++i)
@@ -330,23 +652,75 @@ public:
     strictArrSubs( strictArrSubs_),
     accessType(NORMAL),
     acRank(0),
-    allIx( NULL)
+    allIx( NULL),
+    ixListEnd( NULL),
+    nParam( 0)
   {
-    ixList.reserve(MAXRANK); 
+    //    ixList.reserve(MAXRANK); 
+  }
+  
+  void Clear()
+  {
+    delete allIx;
+    allIx = NULL;
+    
+    if( ixListEnd != NULL) // revert assoc indexing
+      {
+	ixList.push_back( ixListEnd);
+	ixListEnd = NULL;
+      }
+    
+    for( std::vector<ArrayIndexT*>::iterator i=ixList.begin(); 
+	 i != ixList.end(); ++i)
+      {	(*i)->Clear();}
   }
 
+  void Init( IxExprListT& ix)
+  {
+    assert( allIx == NULL);
+    assert( ix.size() == nParam);
+    
+    SizeT pIX = 0;
+    for( SizeT i=0; i<ixList.size(); ++i)
+      {
+	SizeT ixNParam = ixList[ i]->NParam();
+	if( ixNParam == 0) continue;
+	if( ixNParam == 1) 
+	  {
+	    ixList[ i]->Init( ix[ pIX]);
+	    pIX += ixNParam;
+	    continue;
+	  }
+	if( ixNParam == 2) 
+	  {
+	    ixList[ i]->Init( ix[ pIX], ix[ pIX+1]);
+	    pIX += ixNParam;
+	    continue;
+	  }
+	if( ixNParam == 3) 
+	  {
+	    ixList[ i]->Init( ix[ pIX], ix[ pIX+1], ix[ pIX+2]);
+	    pIX += ixNParam;
+	    continue;
+	  }
+      }
+  }
+  
+  // requires special handling
   // used by Assoc_<> returns last index in lastIx, removes it
   // and returns true is the list is empty
   bool ToAssocIndex( SizeT& lastIx)
   {
-    ArrayIndexT* ixListEnd = ixList[ ixList.size()-1];
+    assert( ixListEnd == NULL);
+    
+    ArrayIndexT* ixListEndTmp = ixList[ ixList.size()-1];
 
-    if( !ixListEnd->Scalar( lastIx))
+    if( !ixListEndTmp->Scalar( lastIx))
       throw GDLException( "Record number must be a scalar in this context.");
 
-    delete ixListEnd;
+    ixListEnd = ixListEndTmp;
     ixList.pop_back();
-
+    
     return ixList.empty();
   }
 
@@ -359,7 +733,7 @@ public:
     acRank = ixList.size();
 
     // for assoc variables last index is the record
-    if( var->IsAssoc()) acRank--;
+    if( var->IsAssoc()) --acRank;
     if( acRank == 0) return;
 
     // set varDim from variable
@@ -386,7 +760,7 @@ public:
 	    if( !ixList[i]->Indexed()) accessType = NORMAL;
 	    
 	    nIterLimit[i]=ixList[i]->NIter( (i<varRank)?varDim[i]:1, 
-					   strictArrSubs); 
+					    strictArrSubs); 
 	    nIx *= nIterLimit[i]; // calc number of assignments
 	  }
 	
@@ -436,7 +810,8 @@ public:
       {
 	if( ixList[0]->Indexed())
 	  {
-	    return ixList[0]->GetDim(); // gets structure of indexing array
+	    return static_cast<ArrayIndexIndexed*>(ixList[0])->GetDim(); 
+	    // gets structure of indexing array
 	  }
  	else if( ixList[0]->Scalar())
  	  {
@@ -449,7 +824,7 @@ public:
       }
     if( accessType == ALLSAME)
       { // always indexed
-	return ixList[0]->GetDim();
+	return static_cast<ArrayIndexIndexed*>(ixList[0])->GetDim();
       }
     // accessType == NORMAL -> structure from indices
     return dimension( nIterLimit, acRank);
@@ -460,40 +835,6 @@ public:
     return nIx;
   }
 
-//   // returns 1-dim index for nTh element
-//   SizeT GetIx( SizeT nTh)
-//   {
-//     if( accessType == ONEDIM)
-//       {
-// 	return ixList[0]->GetIx( nTh);
-//       }
-
-//     if( accessType == ALLSAME)
-//       {
-// 	SizeT actIx=0;
-
-// 	for( SizeT i=0; i < acRank; ++i)
-// 	  {
-// 	    actIx += ixList[i]->GetIx( nTh) * varStride[i];
-// 	  }
-// 	return actIx;
-//       }
-
-//     // NORMAL or ALLONE
-//     // loop only over specified indices
-//     // higher indices of variable are implicitely zero,
-//     // therefore they are not checked in 'SetRoot'
-//     SizeT actIx=0;
-
-//     for( SizeT i=0; i < acRank; ++i)
-//       {
-// 	actIx += ixList[i]->GetIx( (nTh / stride[i]) % nIterLimit[i]) * 
-// 	  varStride[i];
-//       }
-
-//     return actIx;
-//   }
-
   // returns 1-dim index for all nTh elements
   AllIxT* BuildIx()
   {
@@ -501,14 +842,14 @@ public:
 
     if( accessType == ONEDIM)
       {
-	if( ixList[0]->t == ArrayIndexT::INDEXED)
-	  allIx = ixList[0]->StealIx();
+	if( ixList[0]->Indexed())
+	  return static_cast< ArrayIndexIndexed*>(ixList[0])->StealIx();
 	else
 	  {
 	    //	    allIx = new SizeT[ nIx];
 	    allIx = new AllIxT( nIx);
-	    SizeT s = ixList[0]->s;
-	    SizeT ixStride = ixList[0]->stride;
+	    SizeT s = ixList[0]->GetS();
+	    SizeT ixStride = ixList[0]->GetStride();
 	    if( ixStride <= 1) 
 	      if( s != 0) 
 		for( SizeT i=0; i<nIx; ++i)
@@ -523,27 +864,22 @@ public:
 	      else
 		for( SizeT i=0; i<nIx; ++i)
 		  (*allIx)[i] = i * ixStride;
+	    return allIx;
 	  }
-	return allIx;
       }
 
     if( accessType == ALLSAME)
       {
 	// ALLSAME -> all ArrayIndexT::INDEXED
-	allIx = ixList[0]->StealIx();
-
-// 	if( varStride[0] != 1) // always 1
-// 	  for( SizeT i=0; i<nIx; ++i)
-// 	    (*allIx)[i] *= varStride[0];
+	allIx = static_cast< ArrayIndexIndexed*>(ixList[0])->StealIx();
 	
 	for( SizeT l=1; l < acRank; ++l)
 	  {
-	    AllIxT* tmpIx = ixList[ l]->StealIx();
+	    AllIxT* tmpIx = static_cast< ArrayIndexIndexed*>(ixList[l])->StealIx();
 	    
 	    for( SizeT i=0; i<nIx; ++i)
 	      (*allIx)[i] += (*tmpIx)[i] * varStride[l];
 	    
-	    //	    delete[] tmpIx;
 	    delete tmpIx;
 	  }
 	return allIx;
@@ -554,26 +890,23 @@ public:
     // higher indices of variable are implicitely zero,
     // therefore they are not checked in 'SetRoot'
     allIx = new AllIxT( nIx);
-    //    allIx = new SizeT[ nIx];
-    
+
     // init allIx from first index
-    if( ixList[0]->t == ArrayIndexT::INDEXED)
+    if( ixList[0]->Indexed())
       {
-	AllIxT* tmpIx = ixList[ 0]->StealIx();
-	//SizeT* tmpIx = ixList[0]->StealIx();
+	AllIxT* tmpIx = static_cast< ArrayIndexIndexed*>(ixList[0])->StealIx();
 
 	for( SizeT i=0; i<nIx; ++i)
 	  {
 	    (*allIx)[ i] = (*tmpIx)[ i %  nIterLimit[0]];
 	  }
 
-	//	delete[] tmpIx;
 	delete tmpIx;
       }
     else
       {
-	SizeT s = ixList[0]->s;
-	SizeT ixStride = ixList[0]->stride;
+	SizeT s = ixList[0]->GetS();
+	SizeT ixStride = ixList[0]->GetStride();
 	
 	if( ixStride <= 1)
 	  if( s != 0) 
@@ -602,9 +935,9 @@ public:
     for( SizeT l=1; l < acRank; ++l)
       {
 
-	if( ixList[l]->t == ArrayIndexT::INDEXED)
+	if( ixList[l]->Indexed())
 	  {
-	    AllIxT* tmpIx = ixList[ l]->StealIx();
+	    AllIxT* tmpIx = static_cast< ArrayIndexIndexed*>(ixList[l])->StealIx();
 	    //	    SizeT* tmpIx = ixList[l]->StealIx();
 	    
 	    for( SizeT i=0; i<nIx; ++i)
@@ -613,13 +946,12 @@ public:
 		  varStride[l];
 	      }
 	    
-	    //	    delete[] tmpIx;
 	    delete tmpIx;
 	  }
 	else
 	  {
-	    SizeT s = ixList[l]->s;
-	    SizeT ixStride = ixList[l]->stride;
+	    SizeT s = ixList[l]->GetS();
+	    SizeT ixStride = ixList[l]->GetStride();
 	    
 	    if( ixStride <= 1)
 	    if( s != 0) 
@@ -653,16 +985,15 @@ public:
     return allIx;
   }
 
-  // returns multi-dim index for nTh element
+  // returns multi-dim index for 1st element
   // used by InsAt functions
   dimension GetDimIx0( SizeT& rank, SizeT& destStart)
   {
-    const SizeT nTh = 0;
     if( accessType == ONEDIM)
       {
 	rank = 1;
 
-	destStart = ixList[0]->GetIx( nTh);
+	destStart = ixList[0]->GetIx0();
 
 	return dimension( destStart);
       }
@@ -672,7 +1003,7 @@ public:
     SizeT actIx[ MAXRANK];
     for( SizeT i=0; i < acRank; ++i)
       {
-	actIx[ i] = ixList[i]->GetIx( nTh);
+	actIx[ i] = ixList[i]->GetIx0();
 
 	dStart += actIx[ i] * varStride[ i];
       }
@@ -684,10 +1015,28 @@ public:
   
   void push_back( ArrayIndexT* pb)
   {
-    if( ixList.size() >= MAXRANK)
-      throw GDLException("Maximum of "+MAXRANK_STR+" dimensions allowed.");
     ixList.push_back( pb);
+
+    if( ixList.size() > MAXRANK)
+      throw GDLException("Maximum of "+MAXRANK_STR+" dimensions allowed.");
+
+    nParam += pb->NParam();
   }
+};
+
+class ArrayIndexListGuard
+{
+private:
+  ArrayIndexListT* aL;
+public:
+  ArrayIndexListGuard(): aL( NULL) {}
+  ~ArrayIndexListGuard() 
+  {
+    if( aL != NULL)
+      aL->Clear();
+  }
+  void reset( ArrayIndexListT* aL_) { aL = aL_;}
+  ArrayIndexListT* release() { ArrayIndexListT* res = aL; aL = NULL; return res;}
 };
 
 #endif

@@ -96,8 +96,10 @@ public:
 	public: int  array_def(RefDNode _t);
 	public: void struct_def(RefDNode _t);
 	public: void tag_def(RefDNode _t);
+	public: void arrayindex(RefDNode _t,
+		ArrayIndexListT* ixList
+	);
 	public: void arrayindex_list(RefDNode _t);
-	public: void arrayindex(RefDNode _t);
 	public: void lassign_expr(RefDNode _t);
 	public: void sysvar(RefDNode _t);
 	public: void var(RefDNode _t);

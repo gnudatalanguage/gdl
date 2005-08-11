@@ -357,6 +357,13 @@ void DCompiler::CommonDecl(const string& N)
   pro->AddCommon(c);
 }
 
+BaseGDL* DCompiler::Constant( RefDNode n)
+{
+  if( n->getType() == CONSTANT)
+    return n->CData();
+  return NULL;
+}
+
 RefDNode DCompiler::ByReference(RefDNode nIn)
 {
   static RefDNode null = static_cast<RefDNode>(antlr::nullAST);

@@ -75,6 +75,7 @@ public:
   DCommonBase* CommonDef(const std::string&); // Common block (re)definition
   void CommonDecl(const std::string&);        // Common block declaration
   void CommonVar(DCommonBase*, const std::string&); // Common block variable
+  BaseGDL* Constant( RefDNode n);
   RefDNode ByReference(RefDNode n_);  // for parameter passing 
   //  bool ByReferenceMaybe(RefDNode n_); // for parameter passing 
   bool IsVar(const std::string&) const; // variable already defined in actual context?

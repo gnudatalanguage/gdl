@@ -38,6 +38,8 @@ class DPro;
 
 class BaseGDL;
 
+class ArrayIndexListT;
+
 class DNode : public antlr::CommonAST {
 
 public:
@@ -45,7 +47,7 @@ public:
   ~DNode();
 
   DNode(): CommonAST(), down(), right(), lineNumber(0), cData(NULL), 
-	   var(NULL), labelStart( -1), labelEnd( -1)
+	   var(NULL), arrIxList(NULL), labelStart( -1), labelEnd( -1)
   {
   }
 
@@ -66,6 +68,7 @@ public:
     labelStart = -1;
     labelEnd   = -1;
     var=NULL;
+    arrIxList=NULL;
   }
 
   // used by DNodeFactory
@@ -231,9 +234,16 @@ public:
   void DefinedStruct( const bool noTagName)
   { if( noTagName) definedStruct = 1; else definedStruct = 0;}
 
+  void SetArrayIndexList( ArrayIndexListT* aL)
+  { arrIxList = aL;}
+
+  BaseGDL* CData() { return cData;}
+
 private:
 
   BaseGDL* StealCData() { BaseGDL* res = cData; cData=NULL; return res;}
+  ArrayIndexListT* StealArrIxList() 
+  { ArrayIndexListT* res = arrIxList; arrIxList=NULL; return res;}
 
   RefDNode down;
   RefDNode right;
@@ -245,6 +255,8 @@ private:
   BaseGDL*   cData;        // constant data
   //  DNode*     gotoTarget;   // for goto statement
   DVar*      var;          // ptr to variable (for system variables and common blocks)
+
+  ArrayIndexListT* arrIxList; // ptr to array index list
 
   union {
     int        initInt;    // for c-i not actually used
@@ -291,8 +303,9 @@ private:
 
   // from DNode (see there)
   int lineNumber;
-  BaseGDL*   cData;        // constant data
-  DVar*      var;          // ptr to variable 
+  BaseGDL*   cData;           // constant data
+  DVar*      var;             // ptr to variable 
+  ArrayIndexListT* arrIxList; // ptr to array index list
   union {
     int        initInt;    // for c-i not actually used
     int        numBranch;  // number of branches in switch/case statements

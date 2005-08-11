@@ -25,6 +25,7 @@
 
 #include "dnode.hpp"
 #include "datatypes.hpp"
+#include "arrayindex.hpp"
 
 using namespace std;
 
@@ -63,6 +64,7 @@ ProgNode::ProgNode( const RefDNode& refNode):
   lineNumber( refNode->getLine()),
   cData( refNode->StealCData()),
   var( refNode->var),
+  arrIxList( refNode->StealArrIxList()),
   labelStart( refNode->labelStart),
   labelEnd( refNode->labelEnd)
 {
@@ -82,9 +84,13 @@ ProgNode::ProgNode( const RefDNode& refNode):
 ProgNode::~ProgNode()
 {
   // delete cData in case this node is a constant
-  if( (getType() == GDLTokenTypes::CONSTANT) && cData != NULL)
+  if( (getType() == GDLTokenTypes::CONSTANT))
     {
       delete cData;
+    }
+  if( (getType() == GDLTokenTypes::ARRAYIX))
+    {
+      delete arrIxList;
     }
   delete down;
   delete right;
@@ -96,6 +102,10 @@ DNode::~DNode()
     if( (getType() == GDLTokenTypes::CONSTANT) && cData != NULL)
       {
 	delete cData;
+      }
+    if( (getType() == GDLTokenTypes::ARRAYIX))
+      {
+	delete arrIxList;
       }
   }
 

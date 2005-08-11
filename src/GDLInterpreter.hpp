@@ -440,12 +440,6 @@ public:
 	public: BaseGDL*  simple_var(ProgNodeP _t);
 	public: BaseGDL*  sys_var(ProgNodeP _t);
 	public:  BaseGDL**  ref_parameter(ProgNodeP _t);
-	public:  ArrayIndexT*  arrayindex_all(ProgNodeP _t);
-	public:  ArrayIndexT*  arrayindex_range(ProgNodeP _t);
-	public:  ArrayIndexT*  arrayindex_range_s(ProgNodeP _t);
-	public:  ArrayIndexT*  arrayindex_end(ProgNodeP _t);
-	public:  ArrayIndexT*  arrayindex_end_s(ProgNodeP _t);
-	public:  ArrayIndexT*  arrayindex(ProgNodeP _t);
 	public:  BaseGDL*  named_struct_def(ProgNodeP _t);
 	public:  BaseGDL*  unnamed_struct_def(ProgNodeP _t);
 public:

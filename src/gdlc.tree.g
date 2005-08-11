@@ -27,6 +27,16 @@ header "pre_include_cpp" {
 #include "includefirst.hpp"
 }
 
+header "post_include_cpp" {
+#include <memory>
+#include "arrayindex.hpp"
+
+// ****
+#include "print_tree.hpp"
+
+using namespace std;
+}
+
 header {
 #include "objects.hpp"
 #include "dcompiler.hpp"
@@ -585,48 +595,143 @@ tag_def
 	: IDENTIFIER expr
 	;	
 
+arrayindex! [ArrayIndexListT* ixList]
+{
+    BaseGDL *c1, *c2, *c3, *c4;
+}
+	: ( #(ARRAYIX  
+                ( ALL
+                     { 
+                         ixList->push_back( new ArrayIndexAll());
+                     }
+                | ( e1:expr // 0 or 2
+                        ( // empty  
+                            {
+                                c1 = comp.Constant( e1); 
+                                if( c1 != NULL)
+                                {
+                                ixList->push_back( new CArrayIndexIndexed( c1));
+                                }
+                                else
+                                {
+                                ## = #e1;
+                                ixList->push_back( new ArrayIndexIndexed());
+                                }
+                            }
+                         | ALL
+                            ( // empty
+                                {
+                                    c1 = comp.Constant( e1); 
+                                    if( c1 != NULL)
+                                    {
+                                        ixList->push_back( new CArrayIndexORange( c1));
+                                    }
+                                    else
+                                    {
+                                        ## = #e1;
+                                        ixList->push_back( new ArrayIndexORange());
+                                    }
+                                }
+                            | e2:expr
+                                { 
+                                    c1 = comp.Constant( e1); 
+                                    c2 = comp.Constant( e2); 
+                                    if( c1 != NULL && c2 != NULL)
+                                    {
+                                        ixList->push_back( new CArrayIndexORangeS( c1, c2));
+                                    }
+                                    else
+                                    {
+                                        ## = #( NULL, e1, e2);
+                                        ixList->push_back( new ArrayIndexORangeS());
+                                    }
+                                }
+                            )
+                        | e3:expr
+                            ( // empty
+                                { 
+                                    c1 = comp.Constant( e1); 
+                                    c3 = comp.Constant( e3); 
+                                    if( c1 != NULL && c3 != NULL)
+                                    {
+                                        ixList->push_back( new CArrayIndexRange( c1, c3));
+                                    }
+                                    else
+                                    {
+                                        ## = #( NULL, e1, e3);
+                                        ixList->push_back( new ArrayIndexRange());
+                                    }
+                                }
+                            | e4:expr
+                                { 
+                                    c1 = comp.Constant( e1); 
+                                    c3 = comp.Constant( e3); 
+                                    c4 = comp.Constant( e4); 
+                                    if( c1 != NULL && c3 != NULL && c4 != NULL)
+                                    {
+                                        ixList->push_back( new CArrayIndexRangeS( c1, c3, c4));
+                                    }
+                                    else
+                                    {
+                                        ## = #( NULL, e1, e3, e4);
+                                        ixList->push_back( new ArrayIndexRangeS());
+                                    }
+                                }
+                            )
+                        )
+                    )
+                )
+            )
+        )
+    ;
+
 arrayindex_list
-	: (arrayindex)+
+{
+std::auto_ptr< ArrayIndexListT> ixList( new ArrayIndexListT()); // compile_opt
+}
+	: ( arrayindex[ ixList.get()])+
+        {
+            #arrayindex_list = #([ARRAYIX,"[...]"], arrayindex_list);
+            #arrayindex_list->SetArrayIndexList( ixList.release());
+        }
 	;	
 
-// type: 0->data, 1-> [*], 2-> [s], 3-> [s:*], 4-> [s:e], 
-//       5->[s:*:stride], 6->[s:e:stride]
-arrayindex
-	: #(ax:ARRAYIX 
-			( ALL 
-                { 
-                    #ax->setType(ARRAYIX_ALL); // 1
-                    #ax->setText("*");
-                }
-			| ( expr // 0 or 2
-                    (   (  !ALL
-                            { 
-                            #ax->setType(ARRAYIX_ORANGE); // 3
-                            #ax->setText("s:*");
-                            }
-                        )
-                        ( expr
-                            { 
-                            #ax->setType(ARRAYIX_ORANGE_S); // 5
-                            #ax->setText("s:*:s");
-                            }
-                        )?
-                      | expr
-                            { 
-                            #ax->setType(ARRAYIX_RANGE); // 4
-                            #ax->setText("s:e");
-                            }
-                        ( expr
-                            { 
-                            #ax->setType(ARRAYIX_RANGE_S); // 6
-                            #ax->setText("s:e:s");
-                            }
-                        )?
-                    )?
-                )
-			)
-		)
-	;
+// arrayindex
+// 	: #(ax:ARRAYIX 
+// 			( ALL 
+//                 { 
+//                     #ax->setType(ARRAYIX_ALL); // 1
+//                     #ax->setText("*");
+//                 }
+// 			| ( expr // 0 or 2
+//                     (   (  !ALL
+//                             { 
+//                             #ax->setType(ARRAYIX_ORANGE); // 3
+//                             #ax->setText("s:*");
+//                             }
+//                         )
+//                         ( expr
+//                             { 
+//                             #ax->setType(ARRAYIX_ORANGE_S); // 5
+//                             #ax->setText("s:*:s");
+//                             }
+//                         )?
+//                       | expr
+//                             { 
+//                             #ax->setType(ARRAYIX_RANGE); // 4
+//                             #ax->setText("s:e");
+//                             }
+//                         ( expr
+//                             { 
+//                             #ax->setType(ARRAYIX_RANGE_S); // 6
+//                             #ax->setText("s:e:s");
+//                             }
+//                         )?
+//                     )?
+//                 )
+// 			)
+// 		)
+// 	;
 
 // removes last pair of braces
 // for non functions
@@ -749,9 +854,9 @@ var!//
 
 // out parameter_def_list is an expression list here
 arrayindex_list_to_expression_list! // ???
-{
-    RefDNode variable;
-}
+//{
+//    RefDNode variable;
+//}
     : (#(ARRAYIX e:pos_parameter)
             {
                 #arrayindex_list_to_expression_list=

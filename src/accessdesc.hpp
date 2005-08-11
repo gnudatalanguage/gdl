@@ -316,9 +316,10 @@ public:
     // delete root struct if owner
     if( owner && dStruct.size() > 0) delete dStruct[0];
     
-    // the indices have to be deleted in any case
+    // the indices have to be cleared in any case
     SizeT nIx=ix.size();
-    for( SizeT i=0; i<nIx; i++) delete ix[i];
+    for( SizeT i=0; i<nIx; i++) 
+      if( ix[i] != NULL) ix[i]->Clear();
   }
   
   void SetOwner( bool o)
