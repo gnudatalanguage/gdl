@@ -99,6 +99,11 @@ template<class Sp> Data_<Sp>::Data_(const dimension& dim_):
   this->dim.Purge();
 }
 
+// new one-dim array fromTy*
+template<class Sp> Data_<Sp>::Data_(const Ty* p, const SizeT nEl): 
+  Sp( dimension( nEl)), dd( p, nEl)
+{}
+
 // c-i 
 // template<class Sp> Data_<Sp>::Data_(const Data_& d_): 
 // Sp(d_.dim), dd(d_.dd) {}

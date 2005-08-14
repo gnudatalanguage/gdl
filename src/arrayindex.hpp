@@ -868,10 +868,6 @@ public:
     if( var->IsAssoc()) --acRank;
     if( acRank == 0) return;
 
-    // set varDim from variable
-    const dimension& varDim  = var->Dim();
-    SizeT            varRank = varDim.Rank();
-
     // init access parameters
     // special case: 1-dim access
     if( acRank == 1)
@@ -884,6 +880,10 @@ public:
       }
     else
       { // normal (multi-dim) access
+	// set varDim from variable
+	const dimension& varDim  = var->Dim();
+	SizeT            varRank = varDim.Rank();
+
 	accessType = ALLSAME;
 	
 	nIx=1;
@@ -978,6 +978,9 @@ public:
 	  return static_cast< ArrayIndexIndexed*>(ixList[0])->StealIx();
 	else
 	  {
+	    if( nIx == 1)
+	      return new AllIxT( ixList[0]->GetS(), 1);
+
 	    //	    allIx = new SizeT[ nIx];
 	    allIx = new AllIxT( nIx);
 	    SizeT s = ixList[0]->GetS();

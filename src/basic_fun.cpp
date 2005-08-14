@@ -42,9 +42,6 @@
 #include "typedefs.hpp"
 
 
-#define GDL_DEBUG
-//#undef GDL_DEBUG
-
 namespace lib {
 
   using namespace std;
@@ -1636,7 +1633,7 @@ namespace lib {
 
     SizeT nEl = p0->N_Elements();
 
-    SizeT count = 0;
+    SizeT count;
 
     DLong* ixList = p0->Where( e->KeywordPresent( 0), count);
     ArrayGuard<DLong> guard( ixList);
@@ -1673,12 +1670,14 @@ namespace lib {
 
     if( count == 0) return new DLongGDL( -1);
 
-    DLongGDL* res = new DLongGDL( dimension( &count, 1), 
-				  BaseGDL::NOZERO);
-    for( SizeT i=0; i<count; ++i)
-      (*res)[ i] = ixList[ i];
+    return new DLongGDL( ixList, count);
 
-    return res;
+//     DLongGDL* res = new DLongGDL( dimension( &count, 1), 
+// 				  BaseGDL::NOZERO);
+//     for( SizeT i=0; i<count; ++i)
+//       (*res)[ i] = ixList[ i];
+
+//     return res;
   }
 
   BaseGDL* n_params( EnvT* e) 

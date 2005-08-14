@@ -65,6 +65,9 @@ public:
   // new array, zero fields
   Data_(const dimension& dim_);
 
+  // new array from Ty[], one dimensional
+  Data_(const Ty* p, SizeT nEl);
+
   // c-i 
   Data_(const Data_& d_): Sp(d_.dim), dd(d_.dd) {}
 
