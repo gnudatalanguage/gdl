@@ -273,6 +273,8 @@ public:
   { throw GDLException("Struct expression not allowed in this context.");}
   bool LogTrue( SizeT ix)
   { throw GDLException("Struct expression not allowed in this context.");}
+  DLong* Where( bool, SizeT&)
+  { throw GDLException("Struct expression not allowed in this context.");}
   Data_<SpDByte>* LogNeg()
   { throw GDLException("Struct expression not allowed in this context.");}
   int  Sgn(); // -1,0,1

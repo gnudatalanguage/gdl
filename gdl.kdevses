@@ -1,16 +1,10 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
- <DocsAndViews NumberOfDocuments="3" >
-  <Doc0 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/gdlc.i.g" >
-   <View0 Type="Source" />
+ <DocsAndViews NumberOfDocuments="1" >
+  <Doc0 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/arrayindex.hpp" >
+   <View0 line="422" Type="Source" />
   </Doc0>
-  <Doc1 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/gdlc.tree.g" >
-   <View0 line="512" Type="Source" />
-  </Doc1>
-  <Doc2 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/dcompiler.cpp" >
-   <View0 line="408" Type="Source" />
-  </Doc2>
  </DocsAndViews>
  <pluginList>
   <kdevdebugger>
@@ -22,8 +16,8 @@
   <kdevvalgrind>
    <executable path="" params="" />
    <valgrind path="" params="" />
-   <calltree path="" params="" />
-   <kcachegrind path="" />
+   <calltree path="calltree" params="" />
+   <kcachegrind path="/usr/bin/kcachegrind" />
   </kdevvalgrind>
  </pluginList>
 </KDevPrjSession>

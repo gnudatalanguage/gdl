@@ -1427,6 +1427,190 @@ bool Data_<SpDComplexDbl>::LogTrue(SizeT i)
 }
 // structs are not allowed
 
+// for WHERE
+// integers, also ptr and object
+template<class Sp>
+DLong* Data_<Sp>::Where( bool comp, SizeT& n)
+{
+  SizeT nEl = N_Elements();
+  DLong* ixList = new DLong[ nEl];
+  SizeT count = 0;
+  if( comp)
+    {
+      SizeT nIx = nEl;
+      for( SizeT i=0; i<nEl; ++i)
+	{
+	  if( dd[i] != 0)
+	    {
+	      ixList[ count++] = i;
+	    }
+	  else
+	    {
+	      ixList[ --nIx] = i;
+	    }
+	}
+    }
+  else
+    for( SizeT i=0; i<nEl; ++i)
+      if( dd[i] != 0)
+	{
+	  ixList[ count++] = i;
+	}
+  n = count;
+  return ixList;
+}
+template<>
+DLong* Data_<SpDFloat>::Where( bool comp, SizeT& n)
+{
+  SizeT nEl = N_Elements();
+  DLong* ixList = new DLong[ nEl];
+  SizeT count = 0;
+  if( comp)
+    {
+      SizeT nIx = nEl;
+      for( SizeT i=0; i<nEl; ++i)
+	{
+	  if( dd[i] != 0.0f)
+	    {
+	      ixList[ count++] = i;
+	    }
+	  else
+	    {
+	      ixList[ --nIx] = i;
+	    }
+	}
+    }
+  else
+    for( SizeT i=0; i<nEl; ++i)
+      if( dd[i] != 0.0f)
+	{
+	  ixList[ count++] = i;
+	}
+  n = count;
+  return ixList;
+}
+template<>
+DLong* Data_<SpDDouble>::Where( bool comp, SizeT& n)
+{
+  SizeT nEl = N_Elements();
+  DLong* ixList = new DLong[ nEl];
+  SizeT count = 0;
+  if( comp)
+    {
+      SizeT nIx = nEl;
+      for( SizeT i=0; i<nEl; ++i)
+	{
+	  if( dd[i] != 0.0)
+	    {
+	      ixList[ count++] = i;
+	    }
+	  else
+	    {
+	      ixList[ --nIx] = i;
+	    }
+	}
+    }
+  else
+    for( SizeT i=0; i<nEl; ++i)
+      if( dd[i] != 0.0)
+	{
+	  ixList[ count++] = i;
+	}
+  n = count;
+  return ixList;
+}
+template<>
+DLong* Data_<SpDString>::Where( bool comp, SizeT& n)
+{
+  SizeT nEl = N_Elements();
+  DLong* ixList = new DLong[ nEl];
+  SizeT count = 0;
+  if( comp)
+    {
+      SizeT nIx = nEl;
+      for( SizeT i=0; i<nEl; ++i)
+	{
+	  if( dd[i] != "")
+	    {
+	      ixList[ count++] = i;
+	    }
+	  else
+	    {
+	      ixList[ --nIx] = i;
+	    }
+	}
+    }
+  else
+    for( SizeT i=0; i<nEl; ++i)
+      if( dd[i] != "")
+	{
+	  ixList[ count++] = i;
+	}
+  n = count;
+  return ixList;
+}
+template<>
+DLong* Data_<SpDComplex>::Where( bool comp, SizeT& n)
+{
+  SizeT nEl = N_Elements();
+  DLong* ixList = new DLong[ nEl];
+  SizeT count = 0;
+  if( comp)
+    {
+      SizeT nIx = nEl;
+      for( SizeT i=0; i<nEl; ++i)
+	{
+	  if( dd[i].real() != 0.0 || dd[i].imag() != 0.0)
+	    {
+	      ixList[ count++] = i;
+	    }
+	  else
+	    {
+	      ixList[ --nIx] = i;
+	    }
+	}
+    }
+  else
+    for( SizeT i=0; i<nEl; ++i)
+      if( dd[i].real() != 0.0 || dd[i].imag() != 0.0)
+	{
+	  ixList[ count++] = i;
+	}
+  n = count;
+  return ixList;
+}
+template<>
+DLong* Data_<SpDComplexDbl>::Where( bool comp, SizeT& n)
+{
+  SizeT nEl = N_Elements();
+  DLong* ixList = new DLong[ nEl];
+  SizeT count = 0;
+  if( comp)
+    {
+      SizeT nIx = nEl;
+      for( SizeT i=0; i<nEl; ++i)
+	{
+	  if( dd[i].real() != 0.0 || dd[i].imag() != 0.0)
+	    {
+	      ixList[ count++] = i;
+	    }
+	  else
+	    {
+	      ixList[ --nIx] = i;
+	    }
+	}
+    }
+  else
+    for( SizeT i=0; i<nEl; ++i)
+      if( dd[i].real() != 0.0 || dd[i].imag() != 0.0)
+	{
+	  ixList[ count++] = i;
+	}
+  n = count;
+  return ixList;
+}
+// structs are not allowed
+
 // for use by MIN and MAX functions
 template<class Sp>
 void Data_<Sp>::MinMax( DLong* minE, DLong* maxE, 

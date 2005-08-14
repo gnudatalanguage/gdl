@@ -341,6 +341,16 @@ bool Data_<SpDComplex>::LogTrue(SizeT i);
 template<> 
 bool Data_<SpDComplexDbl>::LogTrue(SizeT i);
 template<> 
+DLong* Data_<SpDFloat>::Where( bool, SizeT&);
+template<> 
+DLong* Data_<SpDDouble>::Where( bool, SizeT&);
+template<> 
+DLong* Data_<SpDString>::Where( bool, SizeT&);
+template<> 
+DLong* Data_<SpDComplex>::Where( bool, SizeT&);
+template<> 
+DLong* Data_<SpDComplexDbl>::Where( bool, SizeT&);
+template<> 
 void Data_<SpDComplex>::MinMax( DLong* minE, DLong* maxE, 
  				BaseGDL** minVal, BaseGDL** maxVal,
 				bool omitNaN);

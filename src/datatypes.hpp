@@ -166,6 +166,7 @@ public:
   bool False();
   bool LogTrue();
   bool LogTrue( SizeT ix);
+  DLong* Where( bool comp, SizeT& count);
   Data_<SpDByte>* LogNeg();
   int  Sgn(); // returns -1,0,1
   bool Equal( BaseGDL*);

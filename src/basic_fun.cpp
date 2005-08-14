@@ -1637,23 +1637,9 @@ namespace lib {
     SizeT nEl = p0->N_Elements();
 
     SizeT count = 0;
-    SizeT nIx = nEl-1;
 
-    DLong* ixList = new DLong[ nEl];
+    DLong* ixList = p0->Where( e->KeywordPresent( 0), count);
     ArrayGuard<DLong> guard( ixList);
-    
-    for( SizeT i=0; i<nEl; ++i)
-      {
-	if( p0->LogTrue( i))
-	  {
-	    ixList[ count++] = i;
-	  }
-	else
-	  {
-	    ixList[ nIx--] = i;
-	  }
-      }
-    
     SizeT nCount = nEl - count;
 
     if( e->KeywordPresent( 0)) // COMPLEMENT
@@ -1667,9 +1653,9 @@ namespace lib {
 	    DLongGDL* cIxList = new DLongGDL( dimension( &nCount, 1), 
 					      BaseGDL::NOZERO);
 	    
-	    SizeT cIx = nEl - 1;
+	    SizeT cIx = nEl;
 	    for( SizeT i=0; i<nCount; ++i)
-	      (*cIxList)[ i] = ixList[ cIx--];
+	      (*cIxList)[ i] = ixList[ --cIx];
 	    
 	    e->SetKW( 0, cIxList);
 	  }

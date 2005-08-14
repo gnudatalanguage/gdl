@@ -165,6 +165,11 @@ bool BaseGDL::LogTrue( SizeT ix)
   throw GDLException("Operation not defined for UNDEF 4b.");
 }
 
+DLong* BaseGDL::Where( bool, SizeT&)
+{
+  throw GDLException("Operation not defined for UNDEF 4b.");
+}
+
 BaseGDL* BaseGDL::LogNeg()
 {
   throw GDLException("Operation not defined for UNDEF 4c.");
