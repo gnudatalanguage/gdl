@@ -195,6 +195,7 @@ if test "x$with_Magick" != "xno"; then
     INCLUDES="$INCLUDES -I$with_Magick/include"
   else
     LIBS="$LIBS -lMagick++"
+    INCLUDES="$INCLUDES -I/usr/include/magick"
   fi
 
   AC_CHECK_LIB(Magick, GetMagickVersion, [AC_DEFINE([USE_MAGICK], [1], [Define if you want to use ImageMagick])], [
@@ -222,12 +223,13 @@ fi
 if test "x$with_netcdf" != "xno"; then
   if test "x$with_netcdf" != "xyes"; then
 dnl	if test "x$with_hdf" == "xno"; then
-	    LIBS="$LIBS -L$with_netcdf/lib -lnetcdf"
-dnl	fi
+	LIBS="$LIBS -L$with_netcdf/lib -lnetcdf"
 	INCLUDES="$INCLUDES -I$with_netcdf/include"
+dnl	fi
   else
 dnl	if test "x$with_hdf" == "xno"; then
-	    LIBS="$LIBS -lnetcdf"
+	LIBS="$LIBS -L/usr/lib/netcdf-3 -lnetcdf"
+	INCLUDES="$INCLUDES -I/usr/include/netcdf-3"
 dnl	fi
   fi
 
@@ -263,7 +265,8 @@ if test "x$with_hdf" != "xno"; then
     LIBS="$LIBS -L$with_hdf/lib -lmfhdf -ldf -ljpeg -lz"
     INCLUDES="$INCLUDES -I$with_hdf/include"
   else
-    LIBS="$LIBS -lmfhdf -ldf -ljpeg -lz"
+    LIBS="$LIBS -L/usr/lib/hdf -lmfhdf -ldf -ljpeg -lz"
+    INCLUDES="$INCLUDES -I/usr/include/hdf"
   fi
 
   AC_CHECK_LIB(df, Hopen, [AC_DEFINE([USE_HDF], [1], [Define if you want to use HDF])], [

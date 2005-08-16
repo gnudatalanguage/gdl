@@ -19683,6 +19683,7 @@ if test "x$with_Magick" != "xno"; then
     INCLUDES="$INCLUDES -I$with_Magick/include"
   else
     LIBS="$LIBS -lMagick++"
+    INCLUDES="$INCLUDES -I/usr/include/magick"
   fi
 
   echo "$as_me:$LINENO: checking for GetMagickVersion in -lMagick" >&5
@@ -19785,8 +19786,10 @@ if test "x$with_netcdf" != "xno"; then
   if test "x$with_netcdf" != "xyes"; then
 	    LIBS="$LIBS -L$with_netcdf/lib -lnetcdf"
 	INCLUDES="$INCLUDES -I$with_netcdf/include"
+	INCLUDES="$INCLUDES -I/usr/include/netcdf-3"
   else
-	    LIBS="$LIBS -lnetcdf"
+	LIBS="$LIBS -L/usr/lib/netcdf-3 -lnetcdf"
+	INCLUDES="$INCLUDES -I/usr/include/netcdf-3"
   fi
 
   	echo "$as_me:$LINENO: checking for nc_open in -lnetcdf" >&5
@@ -19890,7 +19893,8 @@ if test "x$with_hdf" != "xno"; then
     LIBS="$LIBS -L$with_hdf/lib -lmfhdf -ldf -ljpeg -lz"
     INCLUDES="$INCLUDES -I$with_hdf/include"
   else
-    LIBS="$LIBS -lmfhdf -ldf -ljpeg -lz"
+    LIBS="$LIBS -L/usr/lib/hdf -lmfhdf -ldf -ljpeg -lz"
+    INCLUDES="$INCLUDES -I/usr/include/hdf"
   fi
 
   echo "$as_me:$LINENO: checking for Hopen in -ldf" >&5
