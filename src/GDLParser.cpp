@@ -6944,7 +6944,7 @@ void GDLParser::additive_expr() {
 			astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp191_AST));
 		}
 		match(NOT_OP);
-		additive_expr();
+		multiplicative_expr();
 		if (inputState->guessing==0) {
 			astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 		}
@@ -7064,61 +7064,160 @@ void GDLParser::boolean_expr() {
 	if (inputState->guessing==0) {
 		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 	}
-	{ // ( ... )*
-	for (;;) {
-		if (((LA(1) >= AND_OP && LA(1) <= XOR_OP))) {
-			{
-			switch ( LA(1)) {
-			case AND_OP:
-			{
-				RefDNode tmp198_AST = RefDNode(antlr::nullAST);
-				if ( inputState->guessing == 0 ) {
-					tmp198_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp198_AST));
-				}
-				match(AND_OP);
-				break;
+	{
+	switch ( LA(1)) {
+	case AND_OP:
+	case OR_OP:
+	case XOR_OP:
+	{
+		{
+		switch ( LA(1)) {
+		case AND_OP:
+		{
+			RefDNode tmp198_AST = RefDNode(antlr::nullAST);
+			if ( inputState->guessing == 0 ) {
+				tmp198_AST = astFactory->create(LT(1));
+				astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp198_AST));
 			}
-			case OR_OP:
-			{
-				RefDNode tmp199_AST = RefDNode(antlr::nullAST);
-				if ( inputState->guessing == 0 ) {
-					tmp199_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp199_AST));
-				}
-				match(OR_OP);
-				break;
+			match(AND_OP);
+			break;
+		}
+		case OR_OP:
+		{
+			RefDNode tmp199_AST = RefDNode(antlr::nullAST);
+			if ( inputState->guessing == 0 ) {
+				tmp199_AST = astFactory->create(LT(1));
+				astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp199_AST));
 			}
-			case XOR_OP:
-			{
-				RefDNode tmp200_AST = RefDNode(antlr::nullAST);
-				if ( inputState->guessing == 0 ) {
-					tmp200_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp200_AST));
-				}
-				match(XOR_OP);
-				break;
+			match(OR_OP);
+			break;
+		}
+		case XOR_OP:
+		{
+			RefDNode tmp200_AST = RefDNode(antlr::nullAST);
+			if ( inputState->guessing == 0 ) {
+				tmp200_AST = astFactory->create(LT(1));
+				astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp200_AST));
 			}
-			default:
-			{
-				throw antlr::NoViableAltException(LT(1), getFilename());
-			}
-			}
-			}
-			relational_expr();
+			match(XOR_OP);
+			break;
+		}
+		default:
+		{
+			throw antlr::NoViableAltException(LT(1), getFilename());
+		}
+		}
+		}
+		{
+		switch ( LA(1)) {
+		case IDENTIFIER:
+		case DEC:
+		case INC:
+		case LBRACE:
+		case LSQUARE:
+		case SYSVARNAME:
+		case LCURLY:
+		case CONSTANT_HEX_BYTE:
+		case CONSTANT_HEX_LONG:
+		case CONSTANT_HEX_LONG64:
+		case CONSTANT_HEX_INT:
+		case CONSTANT_HEX_I:
+		case CONSTANT_HEX_ULONG:
+		case CONSTANT_HEX_ULONG64:
+		case CONSTANT_HEX_UI:
+		case CONSTANT_HEX_UINT:
+		case CONSTANT_BYTE:
+		case CONSTANT_LONG:
+		case CONSTANT_LONG64:
+		case CONSTANT_INT:
+		case CONSTANT_I:
+		case CONSTANT_ULONG:
+		case CONSTANT_ULONG64:
+		case CONSTANT_UI:
+		case CONSTANT_UINT:
+		case CONSTANT_OCT_BYTE:
+		case CONSTANT_OCT_LONG:
+		case CONSTANT_OCT_LONG64:
+		case CONSTANT_OCT_INT:
+		case CONSTANT_OCT_I:
+		case CONSTANT_OCT_ULONG:
+		case CONSTANT_OCT_ULONG64:
+		case CONSTANT_OCT_UI:
+		case CONSTANT_OCT_UINT:
+		case CONSTANT_FLOAT:
+		case CONSTANT_DOUBLE:
+		case ASTERIX:
+		case STRING_LITERAL:
+		case PLUS:
+		case MINUS:
+		case NOT_OP:
+		{
+			boolean_expr();
 			if (inputState->guessing==0) {
 				astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 			}
+			break;
 		}
-		else {
-			goto _loop208;
+		case LOG_NEG:
+		{
+			log_neg_expr();
+			if (inputState->guessing==0) {
+				astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+			}
+			break;
 		}
-		
+		default:
+		{
+			throw antlr::NoViableAltException(LT(1), getFilename());
+		}
+		}
+		}
+		break;
 	}
-	_loop208:;
-	} // ( ... )*
+	case COMMA:
+	case COLON:
+	case OF:
+	case ELSE:
+	case END_U:
+	case UNTIL:
+	case DO:
+	case THEN:
+	case RBRACE:
+	case RSQUARE:
+	case RCURLY:
+	case LOG_AND:
+	case LOG_OR:
+	case QUESTION:
+	{
+		break;
+	}
+	default:
+	{
+		throw antlr::NoViableAltException(LT(1), getFilename());
+	}
+	}
+	}
 	boolean_expr_AST = RefDNode(currentAST.root);
 	returnAST = boolean_expr_AST;
+}
+
+void GDLParser::log_neg_expr() {
+	returnAST = RefDNode(antlr::nullAST);
+	antlr::ASTPair currentAST;
+	RefDNode log_neg_expr_AST = RefDNode(antlr::nullAST);
+	
+	RefDNode tmp201_AST = RefDNode(antlr::nullAST);
+	if ( inputState->guessing == 0 ) {
+		tmp201_AST = astFactory->create(LT(1));
+		astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp201_AST));
+	}
+	match(LOG_NEG);
+	boolean_expr();
+	if (inputState->guessing==0) {
+		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+	}
+	log_neg_expr_AST = RefDNode(currentAST.root);
+	returnAST = log_neg_expr_AST;
 }
 
 void GDLParser::logical_expr() {
@@ -7126,6 +7225,7 @@ void GDLParser::logical_expr() {
 	antlr::ASTPair currentAST;
 	RefDNode logical_expr_AST = RefDNode(antlr::nullAST);
 	
+	{
 	switch ( LA(1)) {
 	case IDENTIFIER:
 	case DEC:
@@ -7173,65 +7273,14 @@ void GDLParser::logical_expr() {
 		if (inputState->guessing==0) {
 			astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 		}
-		{ // ( ... )*
-		for (;;) {
-			if ((LA(1) == LOG_AND || LA(1) == LOG_OR)) {
-				{
-				switch ( LA(1)) {
-				case LOG_AND:
-				{
-					RefDNode tmp201_AST = RefDNode(antlr::nullAST);
-					if ( inputState->guessing == 0 ) {
-						tmp201_AST = astFactory->create(LT(1));
-						astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp201_AST));
-					}
-					match(LOG_AND);
-					break;
-				}
-				case LOG_OR:
-				{
-					RefDNode tmp202_AST = RefDNode(antlr::nullAST);
-					if ( inputState->guessing == 0 ) {
-						tmp202_AST = astFactory->create(LT(1));
-						astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp202_AST));
-					}
-					match(LOG_OR);
-					break;
-				}
-				default:
-				{
-					throw antlr::NoViableAltException(LT(1), getFilename());
-				}
-				}
-				}
-				boolean_expr();
-				if (inputState->guessing==0) {
-					astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-				}
-			}
-			else {
-				goto _loop212;
-			}
-			
-		}
-		_loop212:;
-		} // ( ... )*
-		logical_expr_AST = RefDNode(currentAST.root);
 		break;
 	}
 	case LOG_NEG:
 	{
-		RefDNode tmp203_AST = RefDNode(antlr::nullAST);
-		if ( inputState->guessing == 0 ) {
-			tmp203_AST = astFactory->create(LT(1));
-			astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp203_AST));
-		}
-		match(LOG_NEG);
-		logical_expr();
+		log_neg_expr();
 		if (inputState->guessing==0) {
 			astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 		}
-		logical_expr_AST = RefDNode(currentAST.root);
 		break;
 	}
 	default:
@@ -7239,6 +7288,68 @@ void GDLParser::logical_expr() {
 		throw antlr::NoViableAltException(LT(1), getFilename());
 	}
 	}
+	}
+	{
+	switch ( LA(1)) {
+	case LOG_AND:
+	case LOG_OR:
+	{
+		{
+		switch ( LA(1)) {
+		case LOG_AND:
+		{
+			RefDNode tmp202_AST = RefDNode(antlr::nullAST);
+			if ( inputState->guessing == 0 ) {
+				tmp202_AST = astFactory->create(LT(1));
+				astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp202_AST));
+			}
+			match(LOG_AND);
+			break;
+		}
+		case LOG_OR:
+		{
+			RefDNode tmp203_AST = RefDNode(antlr::nullAST);
+			if ( inputState->guessing == 0 ) {
+				tmp203_AST = astFactory->create(LT(1));
+				astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp203_AST));
+			}
+			match(LOG_OR);
+			break;
+		}
+		default:
+		{
+			throw antlr::NoViableAltException(LT(1), getFilename());
+		}
+		}
+		}
+		logical_expr();
+		if (inputState->guessing==0) {
+			astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+		}
+		break;
+	}
+	case COMMA:
+	case COLON:
+	case OF:
+	case ELSE:
+	case END_U:
+	case UNTIL:
+	case DO:
+	case THEN:
+	case RBRACE:
+	case RSQUARE:
+	case RCURLY:
+	case QUESTION:
+	{
+		break;
+	}
+	default:
+	{
+		throw antlr::NoViableAltException(LT(1), getFilename());
+	}
+	}
+	}
+	logical_expr_AST = RefDNode(currentAST.root);
 	returnAST = logical_expr_AST;
 }
 
@@ -7425,9 +7536,9 @@ const char* GDLParser::tokenNames[] = {
 	"\"and\"",
 	"\"or\"",
 	"\"xor\"",
+	"LOG_NEG",
 	"LOG_AND",
 	"LOG_OR",
-	"LOG_NEG",
 	"QUESTION",
 	"STRING",
 	"INCLUDE",
@@ -7455,7 +7566,7 @@ const unsigned long GDLParser::_tokenSet_0_data_[] = { 2UL, 0UL, 25222311UL, 140
 // "compile_opt" "common" DEC INC "repeat" "while" "for" "goto" "on_ioerror" 
 // "if" LBRACE SYSVARNAME ASTERIX 
 const antlr::BitSet GDLParser::_tokenSet_0(_tokenSet_0_data_,12);
-const unsigned long GDLParser::_tokenSet_1_data_[] = { 2UL, 2147483648UL, 33545895UL, 710844416UL, 3221225471UL, 1048880UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_1_data_[] = { 2UL, 2147483648UL, 33545895UL, 710844416UL, 3221225471UL, 262448UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // EOF "end" "function" "pro" IDENTIFIER "begin" "switch" "else" "case" 
 // END_U "forward_function" "compile_opt" "common" "endif" "endelse" "endcase" 
 // "endswitch" "endfor" "endwhile" "endrep" DEC INC "repeat" "while" "for" 
@@ -7474,7 +7585,7 @@ const unsigned long GDLParser::_tokenSet_2_data_[] = { 0UL, 0UL, 25220260UL, 140
 // "common" DEC INC "repeat" "while" "for" "goto" "on_ioerror" "if" LBRACE 
 // SYSVARNAME ASTERIX 
 const antlr::BitSet GDLParser::_tokenSet_2(_tokenSet_2_data_,12);
-const unsigned long GDLParser::_tokenSet_3_data_[] = { 0UL, 0UL, 4286643380UL, 710852607UL, 4294967295UL, 1048880UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_3_data_[] = { 0UL, 0UL, 4286643380UL, 710852607UL, 4294967295UL, 262448UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER COMMA "begin" "switch" "case" END_U "forward_function" EQUAL 
 // "compile_opt" "common" DEC INC AND_OP_EQ ASTERIX_EQ EQ_OP_EQ GE_OP_EQ 
 // GTMARK_EQ GT_OP_EQ LE_OP_EQ LTMARK_EQ LT_OP_EQ MATRIX_OP1_EQ MATRIX_OP2_EQ 
@@ -7492,7 +7603,7 @@ const antlr::BitSet GDLParser::_tokenSet_3(_tokenSet_3_data_,12);
 const unsigned long GDLParser::_tokenSet_4_data_[] = { 0UL, 0UL, 4UL, 138412032UL, 536870912UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER LBRACE SYSVARNAME ASTERIX 
 const antlr::BitSet GDLParser::_tokenSet_4(_tokenSet_4_data_,12);
-const unsigned long GDLParser::_tokenSet_5_data_[] = { 0UL, 0UL, 4286586884UL, 708845567UL, 4294967295UL, 1048880UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_5_data_[] = { 0UL, 0UL, 4286586884UL, 708845567UL, 4294967295UL, 262448UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER EQUAL DEC INC AND_OP_EQ ASTERIX_EQ EQ_OP_EQ GE_OP_EQ GTMARK_EQ 
 // GT_OP_EQ LE_OP_EQ LTMARK_EQ LT_OP_EQ MATRIX_OP1_EQ MATRIX_OP2_EQ MINUS_EQ 
 // MOD_OP_EQ NE_OP_EQ OR_OP_EQ PLUS_EQ POW_EQ SLASH_EQ XOR_OP_EQ MEMBER 
@@ -7508,7 +7619,7 @@ const antlr::BitSet GDLParser::_tokenSet_5(_tokenSet_5_data_,12);
 const unsigned long GDLParser::_tokenSet_6_data_[] = { 0UL, 0UL, 2576UL, 16384UL, 0UL, 0UL, 0UL, 0UL };
 // COMMA "else" END_U "until" 
 const antlr::BitSet GDLParser::_tokenSet_6(_tokenSet_6_data_,8);
-const unsigned long GDLParser::_tokenSet_7_data_[] = { 0UL, 0UL, 25166340UL, 708837376UL, 3221225471UL, 1048880UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_7_data_[] = { 0UL, 0UL, 25166340UL, 708837376UL, 3221225471UL, 262448UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER "else" DEC INC LBRACE LSQUARE SYSVARNAME LCURLY CONSTANT_HEX_BYTE 
 // CONSTANT_HEX_LONG CONSTANT_HEX_LONG64 CONSTANT_HEX_INT CONSTANT_HEX_I 
 // CONSTANT_HEX_ULONG CONSTANT_HEX_ULONG64 CONSTANT_HEX_UI CONSTANT_HEX_UINT 
@@ -7519,7 +7630,7 @@ const unsigned long GDLParser::_tokenSet_7_data_[] = { 0UL, 0UL, 25166340UL, 708
 // CONSTANT_FLOAT CONSTANT_DOUBLE ASTERIX STRING_LITERAL PLUS MINUS "not" 
 // LOG_NEG 
 const antlr::BitSet GDLParser::_tokenSet_7(_tokenSet_7_data_,12);
-const unsigned long GDLParser::_tokenSet_8_data_[] = { 2UL, 2147483648UL, 33545895UL, 727621632UL, 3221225471UL, 1048880UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_8_data_[] = { 2UL, 2147483648UL, 33545895UL, 727621632UL, 3221225471UL, 262448UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // EOF "end" "function" "pro" IDENTIFIER "begin" "switch" "else" "case" 
 // END_U "forward_function" "compile_opt" "common" "endif" "endelse" "endcase" 
 // "endswitch" "endfor" "endwhile" "endrep" DEC INC "repeat" "while" "for" 
@@ -7533,7 +7644,7 @@ const unsigned long GDLParser::_tokenSet_8_data_[] = { 2UL, 2147483648UL, 335458
 // CONSTANT_FLOAT CONSTANT_DOUBLE ASTERIX STRING_LITERAL PLUS MINUS "not" 
 // LOG_NEG 
 const antlr::BitSet GDLParser::_tokenSet_8(_tokenSet_8_data_,12);
-const unsigned long GDLParser::_tokenSet_9_data_[] = { 0UL, 0UL, 25165828UL, 708837376UL, 3221225471UL, 1048880UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_9_data_[] = { 0UL, 0UL, 25165828UL, 708837376UL, 3221225471UL, 262448UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER DEC INC LBRACE LSQUARE SYSVARNAME LCURLY CONSTANT_HEX_BYTE 
 // CONSTANT_HEX_LONG CONSTANT_HEX_LONG64 CONSTANT_HEX_INT CONSTANT_HEX_I 
 // CONSTANT_HEX_ULONG CONSTANT_HEX_ULONG64 CONSTANT_HEX_UI CONSTANT_HEX_UINT 
@@ -7555,7 +7666,7 @@ const unsigned long GDLParser::_tokenSet_10_data_[] = { 0UL, 0UL, 25168404UL, 10
 // CONSTANT_OCT_ULONG64 CONSTANT_OCT_UI CONSTANT_OCT_UINT CONSTANT_FLOAT 
 // CONSTANT_DOUBLE ASTERIX DOT STRING_LITERAL POW MATRIX_OP1 MATRIX_OP2 
 // "mod" PLUS MINUS LTMARK GTMARK "not" "eq" "ne" "le" "lt" "ge" "gt" "and" 
-// "or" "xor" LOG_AND LOG_OR LOG_NEG QUESTION 
+// "or" "xor" LOG_NEG LOG_AND LOG_OR QUESTION 
 const antlr::BitSet GDLParser::_tokenSet_10(_tokenSet_10_data_,12);
 const unsigned long GDLParser::_tokenSet_11_data_[] = { 0UL, 0UL, 25165844UL, 2067795968UL, 4294967295UL, 4194303UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER COMMA DEC INC MEMBER LBRACE SLASH LSQUARE SYSVARNAME EXCLAMATION 
@@ -7567,10 +7678,10 @@ const unsigned long GDLParser::_tokenSet_11_data_[] = { 0UL, 0UL, 25165844UL, 20
 // CONSTANT_OCT_INT CONSTANT_OCT_I CONSTANT_OCT_ULONG CONSTANT_OCT_ULONG64 
 // CONSTANT_OCT_UI CONSTANT_OCT_UINT CONSTANT_FLOAT CONSTANT_DOUBLE ASTERIX 
 // DOT STRING_LITERAL POW MATRIX_OP1 MATRIX_OP2 "mod" PLUS MINUS LTMARK 
-// GTMARK "not" "eq" "ne" "le" "lt" "ge" "gt" "and" "or" "xor" LOG_AND 
-// LOG_OR LOG_NEG QUESTION 
+// GTMARK "not" "eq" "ne" "le" "lt" "ge" "gt" "and" "or" "xor" LOG_NEG 
+// LOG_AND LOG_OR QUESTION 
 const antlr::BitSet GDLParser::_tokenSet_11(_tokenSet_11_data_,12);
-const unsigned long GDLParser::_tokenSet_12_data_[] = { 0UL, 0UL, 25165828UL, 977272832UL, 3221225471UL, 1048880UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_12_data_[] = { 0UL, 0UL, 25165828UL, 977272832UL, 3221225471UL, 262448UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER DEC INC LBRACE LSQUARE SYSVARNAME EXCLAMATION LCURLY CONSTANT_HEX_BYTE 
 // CONSTANT_HEX_LONG CONSTANT_HEX_LONG64 CONSTANT_HEX_INT CONSTANT_HEX_I 
 // CONSTANT_HEX_ULONG CONSTANT_HEX_ULONG64 CONSTANT_HEX_UI CONSTANT_HEX_UINT 
@@ -7591,8 +7702,8 @@ const unsigned long GDLParser::_tokenSet_13_data_[] = { 0UL, 0UL, 25165908UL, 10
 // CONSTANT_OCT_INT CONSTANT_OCT_I CONSTANT_OCT_ULONG CONSTANT_OCT_ULONG64 
 // CONSTANT_OCT_UI CONSTANT_OCT_UINT CONSTANT_FLOAT CONSTANT_DOUBLE ASTERIX 
 // DOT STRING_LITERAL POW MATRIX_OP1 MATRIX_OP2 "mod" PLUS MINUS LTMARK 
-// GTMARK "not" "eq" "ne" "le" "lt" "ge" "gt" "and" "or" "xor" LOG_AND 
-// LOG_OR LOG_NEG QUESTION 
+// GTMARK "not" "eq" "ne" "le" "lt" "ge" "gt" "and" "or" "xor" LOG_NEG 
+// LOG_AND LOG_OR QUESTION 
 const antlr::BitSet GDLParser::_tokenSet_13(_tokenSet_13_data_,12);
 const unsigned long GDLParser::_tokenSet_14_data_[] = { 0UL, 0UL, 80UL, 75497472UL, 0UL, 0UL, 0UL, 0UL };
 // COMMA COLON RBRACE RSQUARE 
@@ -7607,8 +7718,8 @@ const unsigned long GDLParser::_tokenSet_15_data_[] = { 0UL, 0UL, 25165844UL, 10
 // CONSTANT_OCT_INT CONSTANT_OCT_I CONSTANT_OCT_ULONG CONSTANT_OCT_ULONG64 
 // CONSTANT_OCT_UI CONSTANT_OCT_UINT CONSTANT_FLOAT CONSTANT_DOUBLE ASTERIX 
 // DOT STRING_LITERAL POW MATRIX_OP1 MATRIX_OP2 "mod" PLUS MINUS LTMARK 
-// GTMARK "not" "eq" "ne" "le" "lt" "ge" "gt" "and" "or" "xor" LOG_AND 
-// LOG_OR LOG_NEG QUESTION 
+// GTMARK "not" "eq" "ne" "le" "lt" "ge" "gt" "and" "or" "xor" LOG_NEG 
+// LOG_AND LOG_OR QUESTION 
 const antlr::BitSet GDLParser::_tokenSet_15(_tokenSet_15_data_,12);
 const unsigned long GDLParser::_tokenSet_16_data_[] = { 0UL, 0UL, 25168724UL, 1877037056UL, 4294967295UL, 4194303UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER COMMA COLON "of" "else" END_U DEC INC MEMBER "until" "do" 
@@ -7621,7 +7732,7 @@ const unsigned long GDLParser::_tokenSet_16_data_[] = { 0UL, 0UL, 25168724UL, 18
 // CONSTANT_OCT_I CONSTANT_OCT_ULONG CONSTANT_OCT_ULONG64 CONSTANT_OCT_UI 
 // CONSTANT_OCT_UINT CONSTANT_FLOAT CONSTANT_DOUBLE ASTERIX DOT STRING_LITERAL 
 // POW MATRIX_OP1 MATRIX_OP2 "mod" PLUS MINUS LTMARK GTMARK "not" "eq" 
-// "ne" "le" "lt" "ge" "gt" "and" "or" "xor" LOG_AND LOG_OR LOG_NEG QUESTION 
+// "ne" "le" "lt" "ge" "gt" "and" "or" "xor" LOG_NEG LOG_AND LOG_OR QUESTION 
 const antlr::BitSet GDLParser::_tokenSet_16(_tokenSet_16_data_,12);
 const unsigned long GDLParser::_tokenSet_17_data_[] = { 0UL, 0UL, 0UL, 16777216UL, 536870912UL, 14UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // SLASH ASTERIX MATRIX_OP1 MATRIX_OP2 "mod" 

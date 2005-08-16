@@ -168,6 +168,7 @@ public:
 	public: void additive_expr();
 	public: void relational_expr();
 	public: void boolean_expr();
+	public: void log_neg_expr();
 	public: void logical_expr();
 public:
 	antlr::RefAST getAST()

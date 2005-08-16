@@ -451,9 +451,9 @@ void GDLInterpreter::assignment(ProgNodeP _t) {
 		case AND_OP:
 		case OR_OP:
 		case XOR_OP:
+		case LOG_NEG:
 		case LOG_AND:
 		case LOG_OR:
-		case LOG_NEG:
 		case QUESTION:
 		{
 			r=indexable_tmp_expr(_t);
@@ -534,9 +534,9 @@ void GDLInterpreter::assignment(ProgNodeP _t) {
 		case AND_OP:
 		case OR_OP:
 		case XOR_OP:
+		case LOG_NEG:
 		case LOG_AND:
 		case LOG_OR:
-		case LOG_NEG:
 		case QUESTION:
 		{
 			r=tmp_expr(_t);
@@ -1560,9 +1560,9 @@ BaseGDL*  GDLInterpreter::expr(ProgNodeP _t) {
 	case AND_OP:
 	case OR_OP:
 	case XOR_OP:
+	case LOG_NEG:
 	case LOG_AND:
 	case LOG_OR:
-	case LOG_NEG:
 	case QUESTION:
 	{
 		res=tmp_expr(_t);
@@ -1762,9 +1762,9 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 		case AND_OP:
 		case OR_OP:
 		case XOR_OP:
+		case LOG_NEG:
 		case LOG_AND:
 		case LOG_OR:
-		case LOG_NEG:
 		case QUESTION:
 		{
 			e1=tmp_expr(_t);
@@ -1858,9 +1858,9 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 		case AND_OP:
 		case OR_OP:
 		case XOR_OP:
+		case LOG_NEG:
 		case LOG_AND:
 		case LOG_OR:
-		case LOG_NEG:
 		case QUESTION:
 		{
 			e1=tmp_expr(_t);
@@ -1971,9 +1971,9 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 	case AND_OP:
 	case OR_OP:
 	case XOR_OP:
+	case LOG_NEG:
 	case LOG_AND:
 	case LOG_OR:
-	case LOG_NEG:
 	{
 		e1=r_expr(_t);
 		_t = _retTree;
@@ -2156,9 +2156,9 @@ void GDLInterpreter::parameter_def(ProgNodeP _t,
 		case AND_OP:
 		case OR_OP:
 		case XOR_OP:
+		case LOG_NEG:
 		case LOG_AND:
 		case LOG_OR:
-		case LOG_NEG:
 		case QUESTION:
 		{
 			pval=expr(_t);
@@ -2375,9 +2375,9 @@ BaseGDL*  GDLInterpreter::indexable_tmp_expr(ProgNodeP _t) {
 	case AND_OP:
 	case OR_OP:
 	case XOR_OP:
+	case LOG_NEG:
 	case LOG_AND:
 	case LOG_OR:
-	case LOG_NEG:
 	{
 		res=r_expr(_t);
 		_t = _retTree;
@@ -2501,9 +2501,9 @@ BaseGDL**  GDLInterpreter::l_expr(ProgNodeP _t,
 		case AND_OP:
 		case OR_OP:
 		case XOR_OP:
+		case LOG_NEG:
 		case LOG_AND:
 		case LOG_OR:
-		case LOG_NEG:
 		case QUESTION:
 		{
 			e1=indexable_tmp_expr(_t);
@@ -2589,9 +2589,9 @@ BaseGDL**  GDLInterpreter::l_expr(ProgNodeP _t,
 		case AND_OP:
 		case OR_OP:
 		case XOR_OP:
+		case LOG_NEG:
 		case LOG_AND:
 		case LOG_OR:
-		case LOG_NEG:
 		case QUESTION:
 		{
 			e1=tmp_expr(_t);
@@ -2820,9 +2820,9 @@ BaseGDL**  GDLInterpreter::l_expr(ProgNodeP _t,
 	case AND_OP:
 	case OR_OP:
 	case XOR_OP:
+	case LOG_NEG:
 	case LOG_AND:
 	case LOG_OR:
-	case LOG_NEG:
 	{
 		e1=r_expr(_t);
 		_t = _retTree;
@@ -2956,9 +2956,9 @@ BaseGDL*  GDLInterpreter::tmp_expr(ProgNodeP _t) {
 	case AND_OP:
 	case OR_OP:
 	case XOR_OP:
+	case LOG_NEG:
 	case LOG_AND:
 	case LOG_OR:
-	case LOG_NEG:
 	{
 		res=r_expr(_t);
 		_t = _retTree;
@@ -3287,9 +3287,9 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		case AND_OP:
 		case OR_OP:
 		case XOR_OP:
+		case LOG_NEG:
 		case LOG_AND:
 		case LOG_OR:
-		case LOG_NEG:
 		case QUESTION:
 		{
 			e1=indexable_tmp_expr(_t);
@@ -3383,9 +3383,9 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		case AND_OP:
 		case OR_OP:
 		case XOR_OP:
+		case LOG_NEG:
 		case LOG_AND:
 		case LOG_OR:
-		case LOG_NEG:
 		case QUESTION:
 		{
 			e1=tmp_expr(_t);
@@ -3517,9 +3517,9 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 	case AND_OP:
 	case OR_OP:
 	case XOR_OP:
+	case LOG_NEG:
 	case LOG_AND:
 	case LOG_OR:
-	case LOG_NEG:
 	{
 		e1=r_expr(_t);
 		_t = _retTree;
@@ -4553,9 +4553,9 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t) {
 			case AND_OP:
 			case OR_OP:
 			case XOR_OP:
+			case LOG_NEG:
 			case LOG_AND:
 			case LOG_OR:
-			case LOG_NEG:
 			case QUESTION:
 			{
 				s=indexable_tmp_expr(_t);
@@ -5145,9 +5145,9 @@ BaseGDL*  GDLInterpreter::array_expr(ProgNodeP _t) {
 	case AND_OP:
 	case OR_OP:
 	case XOR_OP:
+	case LOG_NEG:
 	case LOG_AND:
 	case LOG_OR:
-	case LOG_NEG:
 	case QUESTION:
 	{
 		r=indexable_tmp_expr(_t);
@@ -5531,9 +5531,9 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 		case AND_OP:
 		case OR_OP:
 		case XOR_OP:
+		case LOG_NEG:
 		case LOG_AND:
 		case LOG_OR:
-		case LOG_NEG:
 		case QUESTION:
 		{
 			res=tmp_expr(_t);
@@ -5625,9 +5625,9 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 		case AND_OP:
 		case OR_OP:
 		case XOR_OP:
+		case LOG_NEG:
 		case LOG_AND:
 		case LOG_OR:
-		case LOG_NEG:
 		case QUESTION:
 		{
 			res=tmp_expr(_t);
@@ -6058,9 +6058,9 @@ BaseGDL*  GDLInterpreter::sys_var(ProgNodeP _t) {
 		case AND_OP:
 		case OR_OP:
 		case XOR_OP:
+		case LOG_NEG:
 		case LOG_AND:
 		case LOG_OR:
-		case LOG_NEG:
 		case QUESTION:
 		{
 			ee=expr(_t);
@@ -6390,9 +6390,9 @@ const char* GDLInterpreter::tokenNames[] = {
 	"\"and\"",
 	"\"or\"",
 	"\"xor\"",
+	"LOG_NEG",
 	"LOG_AND",
 	"LOG_OR",
-	"LOG_NEG",
 	"QUESTION",
 	"STRING",
 	"INCLUDE",
@@ -6425,7 +6425,7 @@ const unsigned long GDLInterpreter::_tokenSet_1_data_[] = { 207634656UL, 2080574
 // MFCALL MFCALL_PARENT NSTRUC NSTRUC_REF POSTDEC POSTINC STRUC SYSVAR 
 // UMINUS VAR VARPTR DEC INC SLASH ASTERIX DOT POW MATRIX_OP1 MATRIX_OP2 
 // "mod" PLUS MINUS LTMARK GTMARK "not" "eq" "ne" "le" "lt" "ge" "gt" "and" 
-// "or" "xor" LOG_AND LOG_OR LOG_NEG QUESTION 
+// "or" "xor" LOG_NEG LOG_AND LOG_OR QUESTION 
 const antlr::BitSet GDLInterpreter::_tokenSet_1(_tokenSet_1_data_,12);
 
 

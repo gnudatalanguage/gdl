@@ -1166,7 +1166,8 @@ additive_expr
 			| GTMARK^
 			) multiplicative_expr
 		)*
-	| NOT_OP^ additive_expr // multiple allowed
+//	| NOT_OP^ additive_expr // multiple allowed
+	| NOT_OP^ multiplicative_expr // multiple not allowed
 	;
 
 
@@ -1189,18 +1190,21 @@ boolean_expr
 			( AND_OP^ 
 			| OR_OP^ 
 			| XOR_OP^ 
-			) relational_expr
-		)*
+			) (boolean_expr | log_neg_expr)
+		)?
 	;
 
+log_neg_expr
+    : LOG_NEG^ boolean_expr // multiple not allowed
+ 	;
+
 logical_expr
-	: boolean_expr
+	: (boolean_expr | log_neg_expr)
 		( 
 			( LOG_AND^ 
 			| LOG_OR^ 
-			) boolean_expr
-		)*
-    | LOG_NEG^ logical_expr // multiple allowed
+			) logical_expr // multiple allowed boolean_expr
+		)?
 	;
 
 // expr is referenced in several places

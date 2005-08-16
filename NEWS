@@ -139,3 +139,4 @@
 
 0.8.11:   Added STRUCTURES keyword to HELP.
 	  Added NAN keyword to TOTAL.
+          Faster array indexing.

@@ -1538,9 +1538,9 @@ void GDLTreeParser::expr(RefDNode _t) {
 	case AND_OP:
 	case OR_OP:
 	case XOR_OP:
+	case LOG_NEG:
 	case LOG_AND:
 	case LOG_OR:
-	case LOG_NEG:
 	case QUESTION:
 	{
 		op_expr(_t);
@@ -2887,9 +2887,9 @@ void GDLTreeParser::for_statement(RefDNode _t) {
 	case AND_OP:
 	case OR_OP:
 	case XOR_OP:
+	case LOG_NEG:
 	case LOG_AND:
 	case LOG_OR:
-	case LOG_NEG:
 	case QUESTION:
 	{
 		expr(_t);
@@ -3142,9 +3142,9 @@ void GDLTreeParser::jump_statement(RefDNode _t) {
 		case AND_OP:
 		case OR_OP:
 		case XOR_OP:
+		case LOG_NEG:
 		case LOG_AND:
 		case LOG_OR:
-		case LOG_NEG:
 		case QUESTION:
 		{
 			e = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
@@ -3450,9 +3450,9 @@ void GDLTreeParser::parameter_def(RefDNode _t) {
 	case AND_OP:
 	case OR_OP:
 	case XOR_OP:
+	case LOG_NEG:
 	case LOG_AND:
 	case LOG_OR:
-	case LOG_NEG:
 	case QUESTION:
 	{
 		pos_parameter(_t);
@@ -3776,9 +3776,9 @@ void GDLTreeParser::struct_def(RefDNode _t) {
 		case AND_OP:
 		case OR_OP:
 		case XOR_OP:
+		case LOG_NEG:
 		case LOG_AND:
 		case LOG_OR:
-		case LOG_NEG:
 		case QUESTION:
 		{
 			{ // ( ... )+
@@ -3846,9 +3846,9 @@ void GDLTreeParser::struct_def(RefDNode _t) {
 				case AND_OP:
 				case OR_OP:
 				case XOR_OP:
+				case LOG_NEG:
 				case LOG_AND:
 				case LOG_OR:
-				case LOG_NEG:
 				case QUESTION:
 				{
 					expr(_t);
@@ -4095,9 +4095,9 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 	case AND_OP:
 	case OR_OP:
 	case XOR_OP:
+	case LOG_NEG:
 	case LOG_AND:
 	case LOG_OR:
-	case LOG_NEG:
 	case QUESTION:
 	{
 		{
@@ -4228,9 +4228,9 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 			case AND_OP:
 			case OR_OP:
 			case XOR_OP:
+			case LOG_NEG:
 			case LOG_AND:
 			case LOG_OR:
-			case LOG_NEG:
 			case QUESTION:
 			{
 				e2 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
@@ -4327,9 +4327,9 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 		case AND_OP:
 		case OR_OP:
 		case XOR_OP:
+		case LOG_NEG:
 		case LOG_AND:
 		case LOG_OR:
-		case LOG_NEG:
 		case QUESTION:
 		{
 			e3 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
@@ -4424,9 +4424,9 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 			case AND_OP:
 			case OR_OP:
 			case XOR_OP:
+			case LOG_NEG:
 			case LOG_AND:
 			case LOG_OR:
-			case LOG_NEG:
 			case QUESTION:
 			{
 				e4 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
@@ -6397,9 +6397,9 @@ const char* GDLTreeParser::tokenNames[] = {
 	"\"and\"",
 	"\"or\"",
 	"\"xor\"",
+	"LOG_NEG",
 	"LOG_AND",
 	"LOG_OR",
-	"LOG_NEG",
 	"QUESTION",
 	"STRING",
 	"INCLUDE",
@@ -6436,7 +6436,7 @@ const unsigned long GDLTreeParser::_tokenSet_1_data_[] = { 1163968672UL, 1006831
 // LE_OP_EQ LTMARK_EQ LT_OP_EQ MATRIX_OP1_EQ MATRIX_OP2_EQ MINUS_EQ MOD_OP_EQ 
 // NE_OP_EQ OR_OP_EQ PLUS_EQ POW_EQ SLASH_EQ XOR_OP_EQ SLASH ASTERIX DOT 
 // POW MATRIX_OP1 MATRIX_OP2 "mod" PLUS MINUS LTMARK GTMARK "not" "eq" 
-// "ne" "le" "lt" "ge" "gt" "and" "or" "xor" LOG_AND LOG_OR LOG_NEG QUESTION 
+// "ne" "le" "lt" "ge" "gt" "and" "or" "xor" LOG_NEG LOG_AND LOG_OR QUESTION 
 const antlr::BitSet GDLTreeParser::_tokenSet_1(_tokenSet_1_data_,12);
 const unsigned long GDLTreeParser::_tokenSet_2_data_[] = { 90226848UL, 1006831776UL, 4286578688UL, 16781311UL, 1610612736UL, 4194303UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN ARRAYDEF ARRAYEXPR ARRAYEXPR_FN CONSTANT DEREF EXPR FCALL MFCALL 
@@ -6445,7 +6445,7 @@ const unsigned long GDLTreeParser::_tokenSet_2_data_[] = { 90226848UL, 100683177
 // LTMARK_EQ LT_OP_EQ MATRIX_OP1_EQ MATRIX_OP2_EQ MINUS_EQ MOD_OP_EQ NE_OP_EQ 
 // OR_OP_EQ PLUS_EQ POW_EQ SLASH_EQ XOR_OP_EQ SLASH ASTERIX DOT POW MATRIX_OP1 
 // MATRIX_OP2 "mod" PLUS MINUS LTMARK GTMARK "not" "eq" "ne" "le" "lt" 
-// "ge" "gt" "and" "or" "xor" LOG_AND LOG_OR LOG_NEG QUESTION 
+// "ge" "gt" "and" "or" "xor" LOG_NEG LOG_AND LOG_OR QUESTION 
 const antlr::BitSet GDLTreeParser::_tokenSet_2(_tokenSet_2_data_,12);
 
 
