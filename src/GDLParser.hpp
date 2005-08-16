@@ -166,9 +166,9 @@ public:
 	public: void multiplicative_expr();
 	public: void signed_multiplicative_expr();
 	public: void additive_expr();
+	public: void neg_expr();
 	public: void relational_expr();
 	public: void boolean_expr();
-	public: void log_neg_expr();
 	public: void logical_expr();
 public:
 	antlr::RefAST getAST()

@@ -442,6 +442,7 @@ void GDLInterpreter::assignment(ProgNodeP _t) {
 		case LTMARK:
 		case GTMARK:
 		case NOT_OP:
+		case LOG_NEG:
 		case EQ_OP:
 		case NE_OP:
 		case LE_OP:
@@ -451,7 +452,6 @@ void GDLInterpreter::assignment(ProgNodeP _t) {
 		case AND_OP:
 		case OR_OP:
 		case XOR_OP:
-		case LOG_NEG:
 		case LOG_AND:
 		case LOG_OR:
 		case QUESTION:
@@ -525,6 +525,7 @@ void GDLInterpreter::assignment(ProgNodeP _t) {
 		case LTMARK:
 		case GTMARK:
 		case NOT_OP:
+		case LOG_NEG:
 		case EQ_OP:
 		case NE_OP:
 		case LE_OP:
@@ -534,7 +535,6 @@ void GDLInterpreter::assignment(ProgNodeP _t) {
 		case AND_OP:
 		case OR_OP:
 		case XOR_OP:
-		case LOG_NEG:
 		case LOG_AND:
 		case LOG_OR:
 		case QUESTION:
@@ -1551,6 +1551,7 @@ BaseGDL*  GDLInterpreter::expr(ProgNodeP _t) {
 	case LTMARK:
 	case GTMARK:
 	case NOT_OP:
+	case LOG_NEG:
 	case EQ_OP:
 	case NE_OP:
 	case LE_OP:
@@ -1560,7 +1561,6 @@ BaseGDL*  GDLInterpreter::expr(ProgNodeP _t) {
 	case AND_OP:
 	case OR_OP:
 	case XOR_OP:
-	case LOG_NEG:
 	case LOG_AND:
 	case LOG_OR:
 	case QUESTION:
@@ -1753,6 +1753,7 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 		case LTMARK:
 		case GTMARK:
 		case NOT_OP:
+		case LOG_NEG:
 		case EQ_OP:
 		case NE_OP:
 		case LE_OP:
@@ -1762,7 +1763,6 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 		case AND_OP:
 		case OR_OP:
 		case XOR_OP:
-		case LOG_NEG:
 		case LOG_AND:
 		case LOG_OR:
 		case QUESTION:
@@ -1849,6 +1849,7 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 		case LTMARK:
 		case GTMARK:
 		case NOT_OP:
+		case LOG_NEG:
 		case EQ_OP:
 		case NE_OP:
 		case LE_OP:
@@ -1858,7 +1859,6 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 		case AND_OP:
 		case OR_OP:
 		case XOR_OP:
-		case LOG_NEG:
 		case LOG_AND:
 		case LOG_OR:
 		case QUESTION:
@@ -1962,6 +1962,7 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 	case LTMARK:
 	case GTMARK:
 	case NOT_OP:
+	case LOG_NEG:
 	case EQ_OP:
 	case NE_OP:
 	case LE_OP:
@@ -1971,7 +1972,6 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 	case AND_OP:
 	case OR_OP:
 	case XOR_OP:
-	case LOG_NEG:
 	case LOG_AND:
 	case LOG_OR:
 	{
@@ -2147,6 +2147,7 @@ void GDLInterpreter::parameter_def(ProgNodeP _t,
 		case LTMARK:
 		case GTMARK:
 		case NOT_OP:
+		case LOG_NEG:
 		case EQ_OP:
 		case NE_OP:
 		case LE_OP:
@@ -2156,7 +2157,6 @@ void GDLInterpreter::parameter_def(ProgNodeP _t,
 		case AND_OP:
 		case OR_OP:
 		case XOR_OP:
-		case LOG_NEG:
 		case LOG_AND:
 		case LOG_OR:
 		case QUESTION:
@@ -2366,6 +2366,7 @@ BaseGDL*  GDLInterpreter::indexable_tmp_expr(ProgNodeP _t) {
 	case LTMARK:
 	case GTMARK:
 	case NOT_OP:
+	case LOG_NEG:
 	case EQ_OP:
 	case NE_OP:
 	case LE_OP:
@@ -2375,7 +2376,6 @@ BaseGDL*  GDLInterpreter::indexable_tmp_expr(ProgNodeP _t) {
 	case AND_OP:
 	case OR_OP:
 	case XOR_OP:
-	case LOG_NEG:
 	case LOG_AND:
 	case LOG_OR:
 	{
@@ -2492,6 +2492,7 @@ BaseGDL**  GDLInterpreter::l_expr(ProgNodeP _t,
 		case LTMARK:
 		case GTMARK:
 		case NOT_OP:
+		case LOG_NEG:
 		case EQ_OP:
 		case NE_OP:
 		case LE_OP:
@@ -2501,7 +2502,6 @@ BaseGDL**  GDLInterpreter::l_expr(ProgNodeP _t,
 		case AND_OP:
 		case OR_OP:
 		case XOR_OP:
-		case LOG_NEG:
 		case LOG_AND:
 		case LOG_OR:
 		case QUESTION:
@@ -2580,6 +2580,7 @@ BaseGDL**  GDLInterpreter::l_expr(ProgNodeP _t,
 		case LTMARK:
 		case GTMARK:
 		case NOT_OP:
+		case LOG_NEG:
 		case EQ_OP:
 		case NE_OP:
 		case LE_OP:
@@ -2589,7 +2590,6 @@ BaseGDL**  GDLInterpreter::l_expr(ProgNodeP _t,
 		case AND_OP:
 		case OR_OP:
 		case XOR_OP:
-		case LOG_NEG:
 		case LOG_AND:
 		case LOG_OR:
 		case QUESTION:
@@ -2811,6 +2811,7 @@ BaseGDL**  GDLInterpreter::l_expr(ProgNodeP _t,
 	case LTMARK:
 	case GTMARK:
 	case NOT_OP:
+	case LOG_NEG:
 	case EQ_OP:
 	case NE_OP:
 	case LE_OP:
@@ -2820,7 +2821,6 @@ BaseGDL**  GDLInterpreter::l_expr(ProgNodeP _t,
 	case AND_OP:
 	case OR_OP:
 	case XOR_OP:
-	case LOG_NEG:
 	case LOG_AND:
 	case LOG_OR:
 	{
@@ -2947,6 +2947,7 @@ BaseGDL*  GDLInterpreter::tmp_expr(ProgNodeP _t) {
 	case LTMARK:
 	case GTMARK:
 	case NOT_OP:
+	case LOG_NEG:
 	case EQ_OP:
 	case NE_OP:
 	case LE_OP:
@@ -2956,7 +2957,6 @@ BaseGDL*  GDLInterpreter::tmp_expr(ProgNodeP _t) {
 	case AND_OP:
 	case OR_OP:
 	case XOR_OP:
-	case LOG_NEG:
 	case LOG_AND:
 	case LOG_OR:
 	{
@@ -3278,6 +3278,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		case LTMARK:
 		case GTMARK:
 		case NOT_OP:
+		case LOG_NEG:
 		case EQ_OP:
 		case NE_OP:
 		case LE_OP:
@@ -3287,7 +3288,6 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		case AND_OP:
 		case OR_OP:
 		case XOR_OP:
-		case LOG_NEG:
 		case LOG_AND:
 		case LOG_OR:
 		case QUESTION:
@@ -3374,6 +3374,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		case LTMARK:
 		case GTMARK:
 		case NOT_OP:
+		case LOG_NEG:
 		case EQ_OP:
 		case NE_OP:
 		case LE_OP:
@@ -3383,7 +3384,6 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		case AND_OP:
 		case OR_OP:
 		case XOR_OP:
-		case LOG_NEG:
 		case LOG_AND:
 		case LOG_OR:
 		case QUESTION:
@@ -3508,6 +3508,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 	case LTMARK:
 	case GTMARK:
 	case NOT_OP:
+	case LOG_NEG:
 	case EQ_OP:
 	case NE_OP:
 	case LE_OP:
@@ -3517,7 +3518,6 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 	case AND_OP:
 	case OR_OP:
 	case XOR_OP:
-	case LOG_NEG:
 	case LOG_AND:
 	case LOG_OR:
 	{
@@ -4173,8 +4173,8 @@ BaseGDL*  GDLInterpreter::r_expr(ProgNodeP _t) {
 		_t = __t125;
 		_t = _t->getNextSibling();
 		
-		if( !e1->LogTrue()) {res = new DByteGDL( 1); break;}
-		if( !e2->LogTrue()) {res = new DByteGDL( 1); break;}
+		if( e1->LogTrue()) {res = new DByteGDL( 1); break;}
+		if( e2->LogTrue()) {res = new DByteGDL( 1); break;}
 		res = new DByteGDL( 0);
 		
 		break;
@@ -4544,6 +4544,7 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t) {
 			case LTMARK:
 			case GTMARK:
 			case NOT_OP:
+			case LOG_NEG:
 			case EQ_OP:
 			case NE_OP:
 			case LE_OP:
@@ -4553,7 +4554,6 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t) {
 			case AND_OP:
 			case OR_OP:
 			case XOR_OP:
-			case LOG_NEG:
 			case LOG_AND:
 			case LOG_OR:
 			case QUESTION:
@@ -5136,6 +5136,7 @@ BaseGDL*  GDLInterpreter::array_expr(ProgNodeP _t) {
 	case LTMARK:
 	case GTMARK:
 	case NOT_OP:
+	case LOG_NEG:
 	case EQ_OP:
 	case NE_OP:
 	case LE_OP:
@@ -5145,7 +5146,6 @@ BaseGDL*  GDLInterpreter::array_expr(ProgNodeP _t) {
 	case AND_OP:
 	case OR_OP:
 	case XOR_OP:
-	case LOG_NEG:
 	case LOG_AND:
 	case LOG_OR:
 	case QUESTION:
@@ -5522,6 +5522,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 		case LTMARK:
 		case GTMARK:
 		case NOT_OP:
+		case LOG_NEG:
 		case EQ_OP:
 		case NE_OP:
 		case LE_OP:
@@ -5531,7 +5532,6 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 		case AND_OP:
 		case OR_OP:
 		case XOR_OP:
-		case LOG_NEG:
 		case LOG_AND:
 		case LOG_OR:
 		case QUESTION:
@@ -5616,6 +5616,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 		case LTMARK:
 		case GTMARK:
 		case NOT_OP:
+		case LOG_NEG:
 		case EQ_OP:
 		case NE_OP:
 		case LE_OP:
@@ -5625,7 +5626,6 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 		case AND_OP:
 		case OR_OP:
 		case XOR_OP:
-		case LOG_NEG:
 		case LOG_AND:
 		case LOG_OR:
 		case QUESTION:
@@ -6049,6 +6049,7 @@ BaseGDL*  GDLInterpreter::sys_var(ProgNodeP _t) {
 		case LTMARK:
 		case GTMARK:
 		case NOT_OP:
+		case LOG_NEG:
 		case EQ_OP:
 		case NE_OP:
 		case LE_OP:
@@ -6058,7 +6059,6 @@ BaseGDL*  GDLInterpreter::sys_var(ProgNodeP _t) {
 		case AND_OP:
 		case OR_OP:
 		case XOR_OP:
-		case LOG_NEG:
 		case LOG_AND:
 		case LOG_OR:
 		case QUESTION:
@@ -6381,6 +6381,7 @@ const char* GDLInterpreter::tokenNames[] = {
 	"LTMARK",
 	"GTMARK",
 	"\"not\"",
+	"LOG_NEG",
 	"\"eq\"",
 	"\"ne\"",
 	"\"le\"",
@@ -6390,7 +6391,6 @@ const char* GDLInterpreter::tokenNames[] = {
 	"\"and\"",
 	"\"or\"",
 	"\"xor\"",
-	"LOG_NEG",
 	"LOG_AND",
 	"LOG_OR",
 	"QUESTION",
@@ -6424,8 +6424,8 @@ const unsigned long GDLInterpreter::_tokenSet_1_data_[] = { 207634656UL, 2080574
 // ASSIGN ASSIGN_REPLACE ARRAYDEF ARRAYEXPR CONSTANT DEREF FCALL FCALL_LIB 
 // MFCALL MFCALL_PARENT NSTRUC NSTRUC_REF POSTDEC POSTINC STRUC SYSVAR 
 // UMINUS VAR VARPTR DEC INC SLASH ASTERIX DOT POW MATRIX_OP1 MATRIX_OP2 
-// "mod" PLUS MINUS LTMARK GTMARK "not" "eq" "ne" "le" "lt" "ge" "gt" "and" 
-// "or" "xor" LOG_NEG LOG_AND LOG_OR QUESTION 
+// "mod" PLUS MINUS LTMARK GTMARK "not" LOG_NEG "eq" "ne" "le" "lt" "ge" 
+// "gt" "and" "or" "xor" LOG_AND LOG_OR QUESTION 
 const antlr::BitSet GDLInterpreter::_tokenSet_1(_tokenSet_1_data_,12);
 
 

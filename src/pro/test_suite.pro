@@ -690,6 +690,8 @@ c=4*(3+reform(a,1,/OVERWRITE)+1)*2
 if c ne 40 then print,'***EXPR: ERROR5'
 if a ne 1 then print,'***EXPR: ERROR6'
 
+if ~1 and ~2 && ~3 and 4 || ~ 5 ne 0 then print,'***EXPR: ERROR7'
+
 print,'EXPR: OK'
 end
 

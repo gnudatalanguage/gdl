@@ -1158,17 +1158,25 @@ signed_multiplicative_expr
     ;
 
 additive_expr
-	: signed_multiplicative_expr
+	: (signed_multiplicative_expr | neg_expr)
 		( 
 			( PLUS^
 			| MINUS^
 			| LTMARK^
 			| GTMARK^
-			) multiplicative_expr
+			) (multiplicative_expr | neg_expr)
 		)*
-//	| NOT_OP^ additive_expr // multiple allowed
-	| NOT_OP^ multiplicative_expr // multiple not allowed
+// //	| NOT_OP^ additive_expr // multiple allowed
+// 	| NOT_OP^ multiplicative_expr // multiple not allowed
+// // true precedence of ~ operator
+//     | LOG_NEG^ multiplicative_expr // multiple not allowed
 	;
+
+neg_expr
+    : NOT_OP^ multiplicative_expr
+// true precedence of ~ operator
+    | LOG_NEG^ multiplicative_expr
+  	;
 
 
 relational_expr
@@ -1190,22 +1198,41 @@ boolean_expr
 			( AND_OP^ 
 			| OR_OP^ 
 			| XOR_OP^ 
-			) (boolean_expr | log_neg_expr)
-		)?
+			) relational_expr
+		)*
 	;
 
-log_neg_expr
-    : LOG_NEG^ boolean_expr // multiple not allowed
- 	;
-
 logical_expr
-	: (boolean_expr | log_neg_expr)
+	: boolean_expr
 		( 
 			( LOG_AND^ 
 			| LOG_OR^ 
-			) logical_expr // multiple allowed boolean_expr
-		)?
+			) boolean_expr
+		)*
 	;
+
+// boolean_expr
+// 	: relational_expr
+// 		( 
+// 			( AND_OP^ 
+// 			| OR_OP^ 
+// 			| XOR_OP^ 
+// 			) (boolean_expr | log_neg_expr)
+// 		)?
+// 	;
+
+// log_neg_expr
+//     : LOG_NEG^ boolean_expr // multiple not allowed
+//  	;
+
+// logical_expr
+// 	: (boolean_expr | log_neg_expr)
+// 		( 
+// 			( LOG_AND^ 
+// 			| LOG_OR^ 
+// 			) logical_expr // multiple allowed boolean_expr
+// 		)?
+// 	;
 
 // expr is referenced in several places
 expr

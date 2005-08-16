@@ -2213,8 +2213,8 @@ r_expr returns [BaseGDL* res]
         }
     |   #(LOG_OR e1=expr e2=expr)
         {
-            if( !e1->LogTrue()) {res = new DByteGDL( 1); break;}
-            if( !e2->LogTrue()) {res = new DByteGDL( 1); break;}
+            if( e1->LogTrue()) {res = new DByteGDL( 1); break;}
+            if( e2->LogTrue()) {res = new DByteGDL( 1); break;}
             res = new DByteGDL( 0);
         }
     |   #(LOG_NEG e1=expr)

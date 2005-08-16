@@ -1529,6 +1529,7 @@ void GDLTreeParser::expr(RefDNode _t) {
 	case LTMARK:
 	case GTMARK:
 	case NOT_OP:
+	case LOG_NEG:
 	case EQ_OP:
 	case NE_OP:
 	case LE_OP:
@@ -1538,7 +1539,6 @@ void GDLTreeParser::expr(RefDNode _t) {
 	case AND_OP:
 	case OR_OP:
 	case XOR_OP:
-	case LOG_NEG:
 	case LOG_AND:
 	case LOG_OR:
 	case QUESTION:
@@ -2878,6 +2878,7 @@ void GDLTreeParser::for_statement(RefDNode _t) {
 	case LTMARK:
 	case GTMARK:
 	case NOT_OP:
+	case LOG_NEG:
 	case EQ_OP:
 	case NE_OP:
 	case LE_OP:
@@ -2887,7 +2888,6 @@ void GDLTreeParser::for_statement(RefDNode _t) {
 	case AND_OP:
 	case OR_OP:
 	case XOR_OP:
-	case LOG_NEG:
 	case LOG_AND:
 	case LOG_OR:
 	case QUESTION:
@@ -3133,6 +3133,7 @@ void GDLTreeParser::jump_statement(RefDNode _t) {
 		case LTMARK:
 		case GTMARK:
 		case NOT_OP:
+		case LOG_NEG:
 		case EQ_OP:
 		case NE_OP:
 		case LE_OP:
@@ -3142,7 +3143,6 @@ void GDLTreeParser::jump_statement(RefDNode _t) {
 		case AND_OP:
 		case OR_OP:
 		case XOR_OP:
-		case LOG_NEG:
 		case LOG_AND:
 		case LOG_OR:
 		case QUESTION:
@@ -3441,6 +3441,7 @@ void GDLTreeParser::parameter_def(RefDNode _t) {
 	case LTMARK:
 	case GTMARK:
 	case NOT_OP:
+	case LOG_NEG:
 	case EQ_OP:
 	case NE_OP:
 	case LE_OP:
@@ -3450,7 +3451,6 @@ void GDLTreeParser::parameter_def(RefDNode _t) {
 	case AND_OP:
 	case OR_OP:
 	case XOR_OP:
-	case LOG_NEG:
 	case LOG_AND:
 	case LOG_OR:
 	case QUESTION:
@@ -3767,6 +3767,7 @@ void GDLTreeParser::struct_def(RefDNode _t) {
 		case LTMARK:
 		case GTMARK:
 		case NOT_OP:
+		case LOG_NEG:
 		case EQ_OP:
 		case NE_OP:
 		case LE_OP:
@@ -3776,7 +3777,6 @@ void GDLTreeParser::struct_def(RefDNode _t) {
 		case AND_OP:
 		case OR_OP:
 		case XOR_OP:
-		case LOG_NEG:
 		case LOG_AND:
 		case LOG_OR:
 		case QUESTION:
@@ -3837,6 +3837,7 @@ void GDLTreeParser::struct_def(RefDNode _t) {
 				case LTMARK:
 				case GTMARK:
 				case NOT_OP:
+				case LOG_NEG:
 				case EQ_OP:
 				case NE_OP:
 				case LE_OP:
@@ -3846,7 +3847,6 @@ void GDLTreeParser::struct_def(RefDNode _t) {
 				case AND_OP:
 				case OR_OP:
 				case XOR_OP:
-				case LOG_NEG:
 				case LOG_AND:
 				case LOG_OR:
 				case QUESTION:
@@ -4086,6 +4086,7 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 	case LTMARK:
 	case GTMARK:
 	case NOT_OP:
+	case LOG_NEG:
 	case EQ_OP:
 	case NE_OP:
 	case LE_OP:
@@ -4095,7 +4096,6 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 	case AND_OP:
 	case OR_OP:
 	case XOR_OP:
-	case LOG_NEG:
 	case LOG_AND:
 	case LOG_OR:
 	case QUESTION:
@@ -4219,6 +4219,7 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 			case LTMARK:
 			case GTMARK:
 			case NOT_OP:
+			case LOG_NEG:
 			case EQ_OP:
 			case NE_OP:
 			case LE_OP:
@@ -4228,7 +4229,6 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 			case AND_OP:
 			case OR_OP:
 			case XOR_OP:
-			case LOG_NEG:
 			case LOG_AND:
 			case LOG_OR:
 			case QUESTION:
@@ -4318,6 +4318,7 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 		case LTMARK:
 		case GTMARK:
 		case NOT_OP:
+		case LOG_NEG:
 		case EQ_OP:
 		case NE_OP:
 		case LE_OP:
@@ -4327,7 +4328,6 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 		case AND_OP:
 		case OR_OP:
 		case XOR_OP:
-		case LOG_NEG:
 		case LOG_AND:
 		case LOG_OR:
 		case QUESTION:
@@ -4415,6 +4415,7 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 			case LTMARK:
 			case GTMARK:
 			case NOT_OP:
+			case LOG_NEG:
 			case EQ_OP:
 			case NE_OP:
 			case LE_OP:
@@ -4424,7 +4425,6 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 			case AND_OP:
 			case OR_OP:
 			case XOR_OP:
-			case LOG_NEG:
 			case LOG_AND:
 			case LOG_OR:
 			case QUESTION:
@@ -6388,6 +6388,7 @@ const char* GDLTreeParser::tokenNames[] = {
 	"LTMARK",
 	"GTMARK",
 	"\"not\"",
+	"LOG_NEG",
 	"\"eq\"",
 	"\"ne\"",
 	"\"le\"",
@@ -6397,7 +6398,6 @@ const char* GDLTreeParser::tokenNames[] = {
 	"\"and\"",
 	"\"or\"",
 	"\"xor\"",
-	"LOG_NEG",
 	"LOG_AND",
 	"LOG_OR",
 	"QUESTION",
@@ -6435,8 +6435,8 @@ const unsigned long GDLTreeParser::_tokenSet_1_data_[] = { 1163968672UL, 1006831
 // VAR DEC INC AND_OP_EQ ASTERIX_EQ EQ_OP_EQ GE_OP_EQ GTMARK_EQ GT_OP_EQ 
 // LE_OP_EQ LTMARK_EQ LT_OP_EQ MATRIX_OP1_EQ MATRIX_OP2_EQ MINUS_EQ MOD_OP_EQ 
 // NE_OP_EQ OR_OP_EQ PLUS_EQ POW_EQ SLASH_EQ XOR_OP_EQ SLASH ASTERIX DOT 
-// POW MATRIX_OP1 MATRIX_OP2 "mod" PLUS MINUS LTMARK GTMARK "not" "eq" 
-// "ne" "le" "lt" "ge" "gt" "and" "or" "xor" LOG_NEG LOG_AND LOG_OR QUESTION 
+// POW MATRIX_OP1 MATRIX_OP2 "mod" PLUS MINUS LTMARK GTMARK "not" LOG_NEG 
+// "eq" "ne" "le" "lt" "ge" "gt" "and" "or" "xor" LOG_AND LOG_OR QUESTION 
 const antlr::BitSet GDLTreeParser::_tokenSet_1(_tokenSet_1_data_,12);
 const unsigned long GDLTreeParser::_tokenSet_2_data_[] = { 90226848UL, 1006831776UL, 4286578688UL, 16781311UL, 1610612736UL, 4194303UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN ARRAYDEF ARRAYEXPR ARRAYEXPR_FN CONSTANT DEREF EXPR FCALL MFCALL 
@@ -6444,8 +6444,8 @@ const unsigned long GDLTreeParser::_tokenSet_2_data_[] = { 90226848UL, 100683177
 // INC AND_OP_EQ ASTERIX_EQ EQ_OP_EQ GE_OP_EQ GTMARK_EQ GT_OP_EQ LE_OP_EQ 
 // LTMARK_EQ LT_OP_EQ MATRIX_OP1_EQ MATRIX_OP2_EQ MINUS_EQ MOD_OP_EQ NE_OP_EQ 
 // OR_OP_EQ PLUS_EQ POW_EQ SLASH_EQ XOR_OP_EQ SLASH ASTERIX DOT POW MATRIX_OP1 
-// MATRIX_OP2 "mod" PLUS MINUS LTMARK GTMARK "not" "eq" "ne" "le" "lt" 
-// "ge" "gt" "and" "or" "xor" LOG_NEG LOG_AND LOG_OR QUESTION 
+// MATRIX_OP2 "mod" PLUS MINUS LTMARK GTMARK "not" LOG_NEG "eq" "ne" "le" 
+// "lt" "ge" "gt" "and" "or" "xor" LOG_AND LOG_OR QUESTION 
 const antlr::BitSet GDLTreeParser::_tokenSet_2(_tokenSet_2_data_,12);
 
 

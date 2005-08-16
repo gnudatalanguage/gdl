@@ -19784,9 +19784,8 @@ fi
 
 if test "x$with_netcdf" != "xno"; then
   if test "x$with_netcdf" != "xyes"; then
-	    LIBS="$LIBS -L$with_netcdf/lib -lnetcdf"
+	LIBS="$LIBS -L$with_netcdf/lib -lnetcdf"
 	INCLUDES="$INCLUDES -I$with_netcdf/include"
-	INCLUDES="$INCLUDES -I/usr/include/netcdf-3"
   else
 	LIBS="$LIBS -L/usr/lib/netcdf-3 -lnetcdf"
 	INCLUDES="$INCLUDES -I/usr/include/netcdf-3"
