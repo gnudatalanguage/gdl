@@ -327,12 +327,8 @@ public:
 
   ProgNode( const RefDNode& refNode);
 
-  ProgNodeP* NewProgNode( const RefDNode& refNode);
-
-  virtual ~ProgNode();
+  ~ProgNode();
   
-  virtual BaseGDL* Eval();
-
   ProgNodeP getFirstChild() const
   {
     return down;
@@ -350,7 +346,7 @@ public:
     return getNextSibling();
   }
   
-  virutal int getType() { return ttype;}
+  int getType() { return ttype;}
   std::string getText() { return text;}
   int getLine() const { return lineNumber;}
   void SetGotoIx( int ix) { targetIx=ix;}
@@ -360,23 +356,6 @@ public:
   
   friend class GDLInterpreter;
 };
-
-class BinaryExpr: public ProgNode
-{
-protected: 
-  BaseGDL* e1;
-  BaseGDL* e2;
-
-public:
-  BinaryExpr( const RefDNode& refNode): ProgNode( refNode) 
-  {
-    right = NewProgNode( refNode->getFirstChild());
-    down  = NewProgNode( refNode->getNextSibling());
-  }
-
-  int getType() { return BINARY_EXPR;}
-}
-
 
 // used together with some defines do
 // allow using non-ref nodes with ANTLR

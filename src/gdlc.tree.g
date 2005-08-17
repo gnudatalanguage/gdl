@@ -769,7 +769,7 @@ assign_expr!
 //             lT == FCALL_LIB || lT == MFCALL_LIB || lT == MFCALL_PARENT_LIB ||
 //             lT == DEREF || lT == VAR || lT == VARPTR)
 //             #a->setType( ASSIGN_REPLACE);
-	#assign_expr=#(a,r,l);
+        #assign_expr=#(a,r,l);  
         }
     ;
 
@@ -820,9 +820,9 @@ RefDNode l;
     | #(a19:XOR_OP_EQ l19:lassign_expr r19:expr) 
         { l=#l19; #comp_assign_expr=#([ASSIGN,":="],([XOR_OP,"xor"],l19,r19),l19);} 
     )
-{
-AssignReplace( l, #comp_assign_expr);
-}
+        {
+            AssignReplace( l, #comp_assign_expr);
+        }
     ;
 
 // the expressions *************************************/
@@ -962,7 +962,7 @@ op_expr
 	|	#(AND_OP expr expr)			// binary/unary operators...
 	|	#(OR_OP expr expr)
 	|	#(XOR_OP expr expr)
-	|	#(LOG_AND expr expr)			// binary/unary operators...
+	|	#(LOG_AND expr expr)	
 	|	#(LOG_OR expr expr)
 	|	#(EQ_OP expr expr)
 	|	#(NE_OP expr expr)
@@ -1001,8 +1001,8 @@ brace_expr!//
 		}
 	;
 
-// removes all braces
-unbrace_expr! 
+// removes ALL braces
+unbrace_expr!// 
 	: #(EXPR ex:expr)
 		{
             while( #ex->getType()==EXPR) 
@@ -1010,17 +1010,6 @@ unbrace_expr!
             #unbrace_expr=#ex;
 		}
 	;
-// 	: ex:expr
-// 		{
-//             // remove last pair of braces
-//             if( #ex->getType()==EXPR) 
-//                 #unbrace_expr = #ex->getFirstChild(); 
-//                 // note: ex_AST is crucial here (ANTLR uses ex instead here)
-// //                #unbrace_expr= #( NULL, ex_AST->getFirstChild()); 
-//             else
-//                 #unbrace_expr = #ex; 
-// 		}
-//     ;
 
 // array and struct accessing
 indexable_expr // only used by array_expr

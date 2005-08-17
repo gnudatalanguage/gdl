@@ -2188,6 +2188,7 @@ namespace lib {
 	DUIntGDL* p1L = static_cast<DUIntGDL*>
 	  (p1->Convert2( UINT, BaseGDL::COPY));
 	for( SizeT i=0; i<rank; ++i) perm[i] = (*p1L)[ i];
+	delete p1L;
 
 	// check permutaion vector
 	for( SizeT i=0; i<rank; ++i) 
