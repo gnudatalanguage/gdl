@@ -48,6 +48,34 @@ EnvStackT                 GDLInterpreter::callStack;
 ProgNode GDLInterpreter::NULLProgNode;
 ProgNodeP GDLInterpreter::NULLProgNodeP = &GDLInterpreter::NULLProgNode;
 
+DInterpreter::DInterpreter(): GDLInterpreter()
+{
+  
+#ifdef HAVE_LIBREADLINE
+  // initialize readline (own version - not pythons one)
+  // in includefirst.hpp readline is disabled for python_module
+  char rlName[] = "GDL";
+  rl_readline_name = rlName;
+  rl_event_hook = GDLEventHandler;
+  stifle_history( 20);
+#endif
+  
+  //    heap.push_back(NULL); // init heap index 0 (used as NULL ptr)
+  //    objHeap.push_back(NULL); // init heap index 0 (used as NULL ptr)
+  interruptEnable = true;
+  objHeapIx=1; // map version (0 is NULL ptr)
+  heapIx=1;    // map version (0 is NULL ptr)
+  returnValue  = NULL;
+  returnValueL = NULL;
+  
+    // setup main level environment
+  DPro* mainPro=new DPro();        // $MAIN$  NOT inserted into proList
+  EnvT* mainEnv=new EnvT(this, NULL, mainPro);
+  callStack.push_back(mainEnv);   // push main environment (necessary)
+    
+  ProgNode::interpreter = this; // interface to expr( ProgNodeP)
+}
+
 // used in the statement function.
 // runs a new instance of the interpreter if not
 // at main level
@@ -696,9 +724,15 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in)
 
   try
     {
-      ProgNodeP progAST = new ProgNode( trAST);
+      ProgNodeP progAST = ProgNode::NewProgNode( trAST);
       auto_ptr< ProgNode> progAST_guard( progAST);
       
+#ifdef GDL_DEBUG
+  cout << "Converted tree:" << endl;
+  pt.pr_tree( progAST);
+  cout << "end." << endl;
+#endif
+
       GDLInterpreter::RetCode retCode = interactive( progAST);
       
       // write to journal file

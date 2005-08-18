@@ -77,31 +77,7 @@ public:
   }
   
   // this is executed at the beginning (gdl.cpp)
-  DInterpreter(): GDLInterpreter()
-  {
-    
-#ifdef HAVE_LIBREADLINE
-    // initialize readline (own version - not pythons one)
-    // in includefirst.hpp readline is disabled for python_module
-    char rlName[] = "GDL";
-    rl_readline_name = rlName;
-    rl_event_hook = GDLEventHandler;
-    stifle_history( 20);
-#endif
-    
-    //    heap.push_back(NULL); // init heap index 0 (used as NULL ptr)
-    //    objHeap.push_back(NULL); // init heap index 0 (used as NULL ptr)
-    interruptEnable = true;
-    objHeapIx=1; // map version (0 is NULL ptr)
-    heapIx=1;    // map version (0 is NULL ptr)
-    returnValue  = NULL;
-    returnValueL = NULL;
-    
-    // setup main level environment
-    DPro* mainPro=new DPro();        // $MAIN$  NOT inserted into proList
-    EnvT* mainEnv=new EnvT(this, NULL, mainPro);
-    callStack.push_back(mainEnv);   // push main environment (necessary)
-  }
+  DInterpreter();
   
   // execute one line of code
   CommandCode ExecuteLine( std::istream* in = NULL);

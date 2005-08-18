@@ -26,6 +26,8 @@
 #include "dnode.hpp"
 #include "datatypes.hpp"
 #include "arrayindex.hpp"
+#include "dinterpreter.hpp"
+
 
 using namespace std;
 
@@ -42,6 +44,20 @@ namespace antlr {
     
     return static_cast<antlr::RefAST>( refNode);
   }
+}
+
+DInterpreter* ProgNode::interpreter;
+
+void DNode::RemoveNextSibling()
+{
+  right = static_cast<BaseAST*>(static_cast<AST*>(antlr::nullAST));
+}
+
+
+BinaryExpr::BinaryExpr( const RefDNode& refNode): DefaultNode( refNode)
+{
+  op1 = GetFirstChild();
+  op2 = GetFirstChild()->GetNextSibling();
 }
 
 ProgNode::ProgNode(): // for NULLProgNode
@@ -70,16 +86,15 @@ ProgNode::ProgNode( const RefDNode& refNode):
 {
   initInt = refNode->initInt;
   
-  if( refNode->GetFirstChild() != RefDNode(antlr::nullAST))
-    {
-      down = new ProgNode( refNode->GetFirstChild());
-    }
-  if( refNode->GetNextSibling() != RefDNode(antlr::nullAST))
-    {
-      right = new ProgNode( refNode->GetNextSibling());
-    }
+//   if( refNode->GetFirstChild() != RefDNode(antlr::nullAST))
+//     {
+//       down = NewProgNode( refNode->GetFirstChild());
+//     }
+//   if( refNode->GetNextSibling() != RefDNode(antlr::nullAST))
+//     {
+//       right = NewProgNode( refNode->GetNextSibling());
+//     }
 }
-
 
 ProgNode::~ProgNode()
 {
@@ -94,6 +109,17 @@ ProgNode::~ProgNode()
     }
   delete down;
   delete right;
+}
+
+void ProgNode::SetNodes( const ProgNodeP r, const ProgNodeP d)
+{
+  right = r;
+  down  = d;
+}
+
+BaseGDL* ProgNode::Eval()
+{ 
+  return ProgNode::interpreter->expr( this);
 }
 
 DNode::~DNode()
@@ -260,4 +286,571 @@ void DNode::initialize( RefDNode t )
   //    initPtr=t->initPtr;
 }
 
- 
+ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
+{
+  switch( refNode->getType())
+    {
+    case GDLTokenTypes::QUESTION:
+      {
+	return new QUESTIONNode( refNode);
+      }
+    case GDLTokenTypes::UMINUS:
+      {
+	return new UMINUSNode( refNode);
+      }
+    case GDLTokenTypes::LOG_NEG:
+      {
+	return new LOG_NEGNode( refNode);
+      }
+    case GDLTokenTypes::NOT_OP:
+      {
+	return new NOT_OPNode( refNode);
+      }
+    case GDLTokenTypes::AND_OP:
+      {
+	return new AND_OPNode( refNode);
+      }
+    case GDLTokenTypes::OR_OP:
+      {
+	return new OR_OPNode( refNode);
+      }
+    case GDLTokenTypes::XOR_OP:
+      {
+	return new XOR_OPNode( refNode);
+      }
+    case GDLTokenTypes::LOG_AND:
+      {
+	return new LOG_ANDNode( refNode);
+      }
+    case GDLTokenTypes::LOG_OR:
+      {
+	return new LOG_ORNode( refNode);
+      }
+    case GDLTokenTypes::EQ_OP:
+      {
+	return new EQ_OPNode( refNode);
+      }
+    case GDLTokenTypes::NE_OP:
+      {
+	return new NE_OPNode( refNode);
+      }
+    case GDLTokenTypes::LE_OP:
+      {
+	return new LE_OPNode( refNode);
+      }
+    case GDLTokenTypes::LT_OP:
+      {
+	return new LT_OPNode( refNode);
+      }
+    case GDLTokenTypes::GE_OP:
+      {
+	return new GE_OPNode( refNode);
+      }
+    case GDLTokenTypes::GT_OP:
+      {
+	return new GT_OPNode( refNode);
+      }
+    case GDLTokenTypes::PLUS:
+      {
+	return new PLUSNode( refNode);
+      }
+    case GDLTokenTypes::MINUS:
+      {
+	return new MINUSNode( refNode);
+      }
+    case GDLTokenTypes::LTMARK:
+      {
+	return new LTMARKNode( refNode);
+      }
+    case GDLTokenTypes::GTMARK:
+      {
+	return new GTMARKNode( refNode);
+      }
+    case GDLTokenTypes::ASTERIX:
+      {
+	return new ASTERIXNode( refNode);
+      }
+    case GDLTokenTypes::MATRIX_OP1:
+      {
+	return new MATRIX_OP1Node( refNode);
+      }
+    case GDLTokenTypes::MATRIX_OP2:
+      {
+	return new MATRIX_OP2Node( refNode);
+      }
+    case GDLTokenTypes::SLASH:
+      {
+	return new SLASHNode( refNode);
+      }
+    case GDLTokenTypes::MOD_OP:
+      {
+	return new MOD_OPNode( refNode);
+      }
+    case GDLTokenTypes::POW:
+      {
+	return new POWNode( refNode);
+      }
+//     case GDLTokenTypes::DEC:
+//       {
+// 	return new DECNode( refNode);
+//       }
+//     case GDLTokenTypes::INC:
+//       {
+// 	return new INCNode( refNode);
+//       }
+//     case GDLTokenTypes::POSTDEC:
+//       {
+// 	return new POSTDECNode( refNode);
+//       }
+//     case GDLTokenTypes::POSTINC:
+//       {
+// 	return new POSTINCNode( refNode);
+//       }
+    default:
+      return new DefaultNode( refNode);
+    }
+}
+
+// converts inferior type to superior type
+void ProgNode::AdjustTypes(auto_ptr<BaseGDL>& a, auto_ptr<BaseGDL>& b)
+{
+  DType aTy=a->Type();
+  DType bTy=b->Type();
+  if( aTy == bTy) return;
+  if( aTy > 100 || bTy > 100)
+    {
+      //exception
+      throw GDLException( "Expressions of this type cannot be converted.");
+    }
+  if( DTypeOrder[aTy] > DTypeOrder[bTy])
+    {
+      // convert b to a
+      b.reset( b.release()->Convert2( aTy));
+    }
+  else
+    {
+      // convert a to b
+      a.reset( a.release()->Convert2( bTy));
+    }
+}
+
+BaseGDL* QUESTIONNode::Eval()
+{
+  auto_ptr<BaseGDL> e1( op1->Eval());
+  if( e1->True())
+    {
+      return op2->Eval(); // right->down
+    }
+  return op3->Eval(); // right->right
+}
+
+BaseGDL* UMINUSNode::Eval()
+{
+  BaseGDL* e1 = down->Eval();
+  return e1->UMinus();
+}
+BaseGDL* LOG_NEGNode::Eval()
+{
+  BaseGDL* e1 = down->Eval();
+  return e1->LogNeg();
+}
+BaseGDL* NOT_OPNode::Eval()
+{
+  BaseGDL* e1 = down->Eval();
+  return e1->NotOp();
+}
+BaseGDL* AND_OPNode::Eval()
+{ BaseGDL* res;
+  auto_ptr<BaseGDL> e1( op1->Eval());
+  auto_ptr<BaseGDL> e2( op2->Eval());
+  AdjustTypes(e1,e2);
+  if( e1->Scalar())
+    res= e2->AndOp(e1.get()); // scalar+scalar or array+scalar
+  else
+    if( e2->Scalar())
+      res= e1->AndOpInv(e2.get()); // array+scalar
+    else
+      if( e1->N_Elements() <= e2->N_Elements())
+	res= e1->AndOpInv(e2.get()); // smaller_array + larger_array or same size
+      else
+	res= e2->AndOp(e1.get()); // smaller + larger
+  e1.release();
+  e2.release();
+  return res;
+}
+BaseGDL* OR_OPNode::Eval()
+{ BaseGDL* res;
+  auto_ptr<BaseGDL> e1( op1->Eval());
+  auto_ptr<BaseGDL> e2( op2->Eval());
+  AdjustTypes(e1,e2);
+  if( e1->Scalar())
+    res= e2->OrOp(e1.get()); // scalar+scalar or array+scalar
+  else
+    if( e2->Scalar())
+      res= e1->OrOpInv(e2.get()); // array+scalar
+    else
+      if( e1->N_Elements() <= e2->N_Elements())
+	res= e1->OrOpInv(e2.get()); // smaller_array + larger_array or same size
+      else
+	res= e2->OrOp(e1.get()); // smaller + larger
+  e1.release();
+  e2.release();
+  return res;
+}
+BaseGDL* XOR_OPNode::Eval()
+{ BaseGDL* res;
+  auto_ptr<BaseGDL> e1( op1->Eval());
+  auto_ptr<BaseGDL> e2( op2->Eval());
+  AdjustTypes(e1,e2);
+  if( e1->N_Elements() <= e2->N_Elements())
+    res= e1->XorOp(e2.get()); // smaller_array + larger_array or same size
+  else
+    res= e2->XorOp(e1.get()); // smaller + larger
+  e1.release();
+  e2.release();
+  return res;
+}
+BaseGDL* LOG_ANDNode::Eval()
+{ BaseGDL* res;
+  auto_ptr<BaseGDL> e1( op1->Eval());
+  auto_ptr<BaseGDL> e2( op2->Eval());
+  if( !e1->LogTrue()) res = new DByteGDL( 0);
+  else if( !e2->LogTrue()) res = new DByteGDL( 0);
+  else res = new DByteGDL( 1);
+  e1.release();
+  e2.release();
+  return res;
+}
+BaseGDL* LOG_ORNode::Eval()
+{ BaseGDL* res;
+  auto_ptr<BaseGDL> e1( op1->Eval());
+  auto_ptr<BaseGDL> e2( op2->Eval());
+  if( e1->LogTrue()) res = new DByteGDL( 1); 
+  else if( e2->LogTrue()) res = new DByteGDL( 1);
+  else res = new DByteGDL( 0);
+  e1.release();
+  e2.release();
+  return res;
+}
+BaseGDL* EQ_OPNode::Eval()
+{ BaseGDL* res;
+  auto_ptr<BaseGDL> e1( op1->Eval());
+  auto_ptr<BaseGDL> e2( op2->Eval());
+  AdjustTypes(e1,e2);
+  res=e1->EqOp(e2.get());
+  e1.release();
+  e2.release();
+  return res;
+}
+BaseGDL* NE_OPNode::Eval()
+{ BaseGDL* res;
+  auto_ptr<BaseGDL> e1( op1->Eval());
+  auto_ptr<BaseGDL> e2( op2->Eval());
+  AdjustTypes(e1,e2);
+  res=e1->NeOp(e2.get());
+  e1.release();
+  e2.release();
+  return res;
+}
+BaseGDL* LE_OPNode::Eval()
+{ BaseGDL* res;
+  auto_ptr<BaseGDL> e1( op1->Eval());
+  auto_ptr<BaseGDL> e2( op2->Eval());
+  AdjustTypes(e1,e2);
+  res=e1->LeOp(e2.get());
+  e1.release();
+  e2.release();
+  return res;
+}
+BaseGDL* LT_OPNode::Eval()
+{ BaseGDL* res;
+  auto_ptr<BaseGDL> e1( op1->Eval());
+  auto_ptr<BaseGDL> e2( op2->Eval());
+  AdjustTypes(e1,e2);
+  res=e1->LtOp(e2.get());
+  e1.release();
+  e2.release();
+  return res;
+}
+BaseGDL* GE_OPNode::Eval()
+{ BaseGDL* res;
+  auto_ptr<BaseGDL> e1( op1->Eval());
+  auto_ptr<BaseGDL> e2( op2->Eval());
+  AdjustTypes(e1,e2);
+  res=e1->GeOp(e2.get());
+  e1.release();
+  e2.release();
+  return res;
+}
+BaseGDL* GT_OPNode::Eval()
+{ BaseGDL* res;
+  auto_ptr<BaseGDL> e1( op1->Eval());
+  auto_ptr<BaseGDL> e2( op2->Eval());
+  AdjustTypes(e1,e2);
+  res=e1->GtOp(e2.get());
+  e1.release();
+  e2.release();
+  return res;
+}
+BaseGDL* PLUSNode::Eval()
+{ BaseGDL* res;
+  auto_ptr<BaseGDL> e1( op1->Eval());
+  auto_ptr<BaseGDL> e2( op2->Eval());
+  AdjustTypes(e1,e2);
+  if( e1->Scalar())
+    res= e2->AddInv(e1.get()); // scalar+scalar or array+scalar
+  else
+    if( e2->Scalar())
+      res= e1->Add(e2.get()); // array+scalar
+    else
+      if( e1->N_Elements() <= e2->N_Elements())
+	res= e1->Add(e2.get()); // smaller_array + larger_array or same size
+      else
+	res= e2->AddInv(e1.get()); // smaller + larger
+  e1.release();
+  e2.release();
+  return res;
+}
+BaseGDL* MINUSNode::Eval()
+{ BaseGDL* res;
+  auto_ptr<BaseGDL> e1( op1->Eval());
+  auto_ptr<BaseGDL> e2( op2->Eval());
+  AdjustTypes(e1,e2);
+  if( e1->Scalar())
+    res= e2->SubInv(e1.get()); // scalar+scalar or array+scalar
+  else
+    if( e2->Scalar())
+      res= e1->Sub(e2.get()); // array+scalar
+    else
+      if( e1->N_Elements() <= e2->N_Elements())
+	res= e1->Sub(e2.get()); // smaller_array + larger_array or same size
+      else
+	res= e2->SubInv(e1.get()); // smaller + larger
+  e1.release();
+  e2.release();
+  return res;
+}
+BaseGDL* LTMARKNode::Eval()
+{ BaseGDL* res;
+  auto_ptr<BaseGDL> e1( op1->Eval());
+  auto_ptr<BaseGDL> e2( op2->Eval());
+  AdjustTypes(e1,e2);
+  if( e1->Scalar())
+    res= e2->LtMark(e1.get()); // scalar+scalar or array+scalar
+  else
+    if( e2->Scalar())
+      res= e1->LtMark(e2.get()); // array+scalar
+    else
+      if( e1->N_Elements() <= e2->N_Elements())
+	res= e1->LtMark(e2.get()); // smaller_array + larger_array or same size
+      else
+	res= e2->LtMark(e1.get()); // smaller + larger
+  e1.release();
+  e2.release();
+  return res;
+}
+BaseGDL* GTMARKNode::Eval()
+{ BaseGDL* res;
+  auto_ptr<BaseGDL> e1( op1->Eval());
+  auto_ptr<BaseGDL> e2( op2->Eval());
+  AdjustTypes(e1,e2);
+  if( e1->Scalar())
+    res= e2->GtMark(e1.get()); // scalar+scalar or array+scalar
+  else
+    if( e2->Scalar())
+      res= e1->GtMark(e2.get()); // array+scalar
+    else
+      if( e1->N_Elements() <= e2->N_Elements())
+	res= e1->GtMark(e2.get()); // smaller_array + larger_array or same size
+      else
+	res= e2->GtMark(e1.get()); // smaller + larger
+  e1.release();
+  e2.release();
+  return res;
+}
+BaseGDL* ASTERIXNode::Eval()
+{ BaseGDL* res;
+  auto_ptr<BaseGDL> e1( op1->Eval());
+  auto_ptr<BaseGDL> e2( op2->Eval());
+  AdjustTypes(e1,e2);
+  if( e1->Scalar())
+    res= e2->Mult(e1.get()); // scalar+scalar or array+scalar
+  else
+    if( e2->Scalar())
+      res= e1->Mult(e2.get()); // array+scalar
+    else
+      if( e1->N_Elements() <= e2->N_Elements())
+	res= e1->Mult(e2.get()); // smaller_array + larger_array or same size
+      else
+	res= e2->Mult(e1.get()); // smaller + larger
+  e1.release();
+  e2.release();
+  return res;
+}
+BaseGDL* MATRIX_OP1Node::Eval()
+{ BaseGDL* res;
+  auto_ptr<BaseGDL> e1( op1->Eval());
+  auto_ptr<BaseGDL> e2( op2->Eval());
+  DType aTy=e1->Type();
+  DType bTy=e2->Type();
+  DType maxTy=(DTypeOrder[aTy] >= DTypeOrder[bTy])? aTy: bTy;
+
+  DType cTy=maxTy;
+  if( maxTy == BYTE || maxTy == INT)
+    cTy=LONG;
+  else if( maxTy == UINT)
+    cTy=ULONG;
+
+  if( aTy != cTy)
+    e1.reset( e1.release()->Convert2( cTy));
+
+  AdjustTypes(e1,e2);
+  res=e1->MatrixOp(e2.get());
+  e1.release();
+  e2.release();
+  return res;
+}
+BaseGDL* MATRIX_OP2Node::Eval()
+{ BaseGDL* res;
+  auto_ptr<BaseGDL> e1( op1->Eval());
+  auto_ptr<BaseGDL> e2( op2->Eval());
+  DType aTy=e1->Type();
+  DType bTy=e2->Type();
+  DType maxTy=(DTypeOrder[aTy] >= DTypeOrder[bTy])? aTy: bTy;
+
+  DType cTy=maxTy;
+  if( maxTy == BYTE || maxTy == INT)
+    cTy=LONG;
+  else if( maxTy == UINT)
+    cTy=ULONG;
+
+  if( aTy != cTy) 
+    e1.reset( e1.release()->Convert2( cTy));
+
+  AdjustTypes(e1,e2);
+  res=e2->MatrixOp(e1.get());
+  e1.release();
+  e2.release();
+  return res;
+}
+BaseGDL* SLASHNode::Eval()
+{ BaseGDL* res;
+  auto_ptr<BaseGDL> e1( op1->Eval());
+  auto_ptr<BaseGDL> e2( op2->Eval());
+  AdjustTypes(e1,e2);
+  if( e1->Scalar())
+    res= e2->DivInv(e1.get()); // scalar+scalar or array+scalar
+  else
+    if( e2->Scalar())
+      res= e1->Div(e2.get()); // array+scalar
+    else
+      if( e1->N_Elements() <= e2->N_Elements())
+	res= e1->Div(e2.get()); // smaller_array + larger_array or same size
+      else
+	res= e2->DivInv(e1.get()); // smaller + larger
+  e1.release();
+  e2.release();
+  return res;
+}
+BaseGDL* MOD_OPNode::Eval()
+{ BaseGDL* res;
+  auto_ptr<BaseGDL> e1( op1->Eval());
+  auto_ptr<BaseGDL> e2( op2->Eval());
+  AdjustTypes(e1,e2);
+  if( e1->Scalar())
+    res= e2->ModInv(e1.get()); // scalar+scalar or array+scalar
+  else
+    if( e2->Scalar())
+      res= e1->Mod(e2.get()); // array+scalar
+    else
+      if( e1->N_Elements() <= e2->N_Elements())
+	res= e1->Mod(e2.get()); // smaller_array + larger_array or same size
+      else
+	res= e2->ModInv(e1.get()); // smaller + larger
+  e1.release();
+  e2.release();
+  return res;
+}
+BaseGDL* POWNode::Eval()
+{ BaseGDL* res;
+  auto_ptr<BaseGDL> e1( op1->Eval());
+  auto_ptr<BaseGDL> e2( op2->Eval());
+  // special handling for complex
+  DType aTy=e1->Type();
+  if( aTy == COMPLEX)
+    {
+      DType bTy=e2->Type();
+      if( IntType( bTy))
+	{
+	  e2.reset( e2.release()->Convert2( FLOAT));
+	  res = e1->Pow( e2.get());
+	  goto endPOW;
+	}
+      else if( bTy == FLOAT)
+	{
+	  res = e1->Pow( e2.get());
+	  goto endPOW;
+	}
+    }
+  else if( aTy == COMPLEXDBL)
+    {
+      DType bTy=e2->Type();
+      if( IntType( bTy))
+	{
+	  e2.reset( e2.release()->Convert2( DOUBLE));
+	  res = e1->Pow( e2.get());
+	  goto endPOW;
+	}
+      else if( bTy == DOUBLE)
+	{
+	  res = e1->Pow( e2.get());
+	  goto endPOW;
+	}
+    }
+
+  DType convertBackT; 
+
+  // convert back
+  if( IntType( e2->Type()) && 
+      DTypeOrder[e2->Type()] > DTypeOrder[e1->Type()])
+    convertBackT = e1->Type();
+  else
+    convertBackT = UNDEF;
+
+  AdjustTypes(e2,e1); // order crucial here (for converting back)
+
+  if( e1->Scalar())
+    res= e2->PowInv(e1.get()); // scalar+scalar or array+scalar
+  else
+    if( e2->Scalar())
+      res= e1->Pow(e2.get()); // array+scalar
+    else
+      if( e1->N_Elements() <= e2->N_Elements())
+	res= e1->Pow(e2.get()); // smaller_array + larger_array or same size
+      else
+	res= e2->PowInv(e1.get()); // smaller + larger
+  if( convertBackT != UNDEF)
+    {
+      res = res->Convert2( convertBackT, BaseGDL::CONVERT);
+    }
+ endPOW:
+  e1.release();
+  e2.release();
+  return res;
+}
+// BaseGDL* DECNode::Eval()
+// { BaseGDL* res;
+//   return new DECNode( refNode);
+// }
+// BaseGDL* INCNode::Eval()
+// { BaseGDL* res;
+//   return new INCNode( refNode);
+// }
+// BaseGDL* POSTDECNode::Eval()
+// { BaseGDL* res;
+//   return new POSTDECNode( refNode);
+// }
+// BaseGDL* POSTINCNode::Eval()
+// { BaseGDL* res;
+//   return new POSTINCNode( refNode);
+// }

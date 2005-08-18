@@ -19,6 +19,7 @@
 #define dnode_hpp__
 
 #include <cmath>
+#include <memory>
 #include <iostream>
 
 #include "typedefs.hpp"
@@ -30,6 +31,8 @@
 //ANTLR_USING_NAMESPACE(std)
 //ANTLR_USING_NAMESPACE(antlr)
   
+class DInterpreter;
+
 class DNode;
 typedef antlr::ASTRefCount<DNode> RefDNode;
 
@@ -46,12 +49,13 @@ public:
 
   ~DNode();
 
-  DNode(): CommonAST(), down(), right(), lineNumber(0), cData(NULL), 
+  DNode(): CommonAST(), //down(), right(), 
+	   lineNumber(0), cData(NULL), 
 	   var(NULL), arrIxList(NULL), labelStart( -1), labelEnd( -1)
   {
   }
 
-  DNode(antlr::RefToken t) : antlr::CommonAST(t), down(), right()
+  DNode(antlr::RefToken t) : antlr::CommonAST(t) //, down(), right()
   {
     //    antlr::CommonAST::setType(t->getType() );
     //    antlr::CommonAST::setText(t->getText() );
@@ -119,6 +123,8 @@ public:
   {
     return static_cast<RefDNode>(BaseAST::getNextSibling());
   }
+
+  void RemoveNextSibling();
 
   // Extensions
   void SetLine(int l_)
@@ -245,8 +251,8 @@ private:
   ArrayIndexListT* StealArrIxList() 
   { ArrayIndexListT* res = arrIxList; arrIxList=NULL; return res;}
 
-  RefDNode down;
-  RefDNode right;
+  //  RefDNode down;
+  //  RefDNode right;
 
   // track line number in node
   int lineNumber;
@@ -295,12 +301,20 @@ typedef ProgNode* ProgNodeP;
 class ProgNode
 {
 private:
+  static DInterpreter* interpreter;
+
+private:
   int ttype;
   std::string text;
 
+protected:
   ProgNodeP down;
   ProgNodeP right;
 
+  static void AdjustTypes(std::auto_ptr<BaseGDL>& a, 
+			  std::auto_ptr<BaseGDL>& b);
+
+private:
   // from DNode (see there)
   int lineNumber;
   BaseGDL*   cData;           // constant data
@@ -327,8 +341,14 @@ public:
 
   ProgNode( const RefDNode& refNode);
 
-  ~ProgNode();
+  static ProgNodeP NewProgNode( const RefDNode& refNode);
+
+  virtual ~ProgNode();
   
+  void SetNodes( const ProgNodeP right, const ProgNodeP down);
+
+  virtual BaseGDL* Eval();
+
   ProgNodeP getFirstChild() const
   {
     return down;
@@ -346,7 +366,7 @@ public:
     return getNextSibling();
   }
   
-  int getType() { return ttype;}
+  virtual int getType() { return ttype;}
   std::string getText() { return text;}
   int getLine() const { return lineNumber;}
   void SetGotoIx( int ix) { targetIx=ix;}
@@ -355,6 +375,54 @@ public:
   { return (lIx >= labelStart) && (lIx < labelEnd);}
   
   friend class GDLInterpreter;
+  friend class DInterpreter;
+};
+
+class DefaultNode: public ProgNode
+{
+public:
+  DefaultNode( const RefDNode& refNode): ProgNode( refNode) 
+  {
+    if( refNode->GetFirstChild() != RefDNode(antlr::nullAST))
+      {
+	down = NewProgNode( refNode->GetFirstChild());
+      }
+    if( refNode->GetNextSibling() != RefDNode(antlr::nullAST))
+      {
+	right = NewProgNode( refNode->GetNextSibling());
+      }
+  }
+};
+class UnaryExpr: public DefaultNode
+{
+public:
+  UnaryExpr( const RefDNode& refNode): DefaultNode( refNode) {}
+
+  int getType() { return GDLTokenTypes::EXPR;}
+};
+class BinaryExpr: public DefaultNode
+{
+protected:
+  ProgNodeP op1, op2;
+
+public:
+  BinaryExpr( const RefDNode& refNode);
+
+  int getType() { return GDLTokenTypes::EXPR;}
+};
+class TrinaryExpr: public DefaultNode
+{
+protected:
+  ProgNodeP op1, op2, op3;
+
+public:
+  TrinaryExpr( const RefDNode& refNode): DefaultNode( refNode) 
+  {
+    op1 = GetFirstChild();
+    op2 = GetFirstChild()->GetNextSibling();
+    op3 = GetFirstChild()->GetNextSibling()->GetNextSibling();
+  }
+  int getType() { return GDLTokenTypes::EXPR;}
 };
 
 // used together with some defines do
@@ -364,6 +432,155 @@ namespace antlr {
 
   RefAST ConvertAST( ProgNodeP p);
 }
+
+// expression nodes
+class QUESTIONNode: public TrinaryExpr
+{ public:
+  QUESTIONNode( const RefDNode& refNode): TrinaryExpr( refNode){}
+  BaseGDL* Eval();
+};
+class UMINUSNode: public UnaryExpr
+{ public:
+  UMINUSNode( const RefDNode& refNode): UnaryExpr( refNode){}
+  BaseGDL* Eval();
+};
+class LOG_NEGNode: public UnaryExpr
+{ public:
+  LOG_NEGNode( const RefDNode& refNode): UnaryExpr( refNode){}
+  BaseGDL* Eval();
+};
+class NOT_OPNode: public UnaryExpr
+{ public:
+  NOT_OPNode( const RefDNode& refNode): UnaryExpr( refNode){}
+  BaseGDL* Eval();
+};
+class AND_OPNode: public BinaryExpr
+{ public:
+  AND_OPNode( const RefDNode& refNode): BinaryExpr( refNode){}
+  BaseGDL* Eval();
+};
+class OR_OPNode: public BinaryExpr
+{ public:
+  OR_OPNode( const RefDNode& refNode): BinaryExpr( refNode){}
+  BaseGDL* Eval();
+};
+class XOR_OPNode: public BinaryExpr
+{ public:
+  XOR_OPNode( const RefDNode& refNode): BinaryExpr( refNode){}
+  BaseGDL* Eval();
+};
+class LOG_ANDNode: public BinaryExpr
+{ public:
+  LOG_ANDNode( const RefDNode& refNode): BinaryExpr( refNode){}
+  BaseGDL* Eval();
+};
+class LOG_ORNode: public BinaryExpr
+{ public:
+  LOG_ORNode( const RefDNode& refNode): BinaryExpr( refNode){}
+  BaseGDL* Eval();
+};
+class EQ_OPNode: public BinaryExpr
+{ public:
+  EQ_OPNode( const RefDNode& refNode): BinaryExpr( refNode){}
+  BaseGDL* Eval();
+};
+class NE_OPNode: public BinaryExpr
+{ public:
+  NE_OPNode( const RefDNode& refNode): BinaryExpr( refNode){}
+  BaseGDL* Eval();
+};
+class LE_OPNode: public BinaryExpr
+{ public:
+  LE_OPNode( const RefDNode& refNode): BinaryExpr( refNode){}
+  BaseGDL* Eval();
+};
+class LT_OPNode: public BinaryExpr
+{ public:
+  LT_OPNode( const RefDNode& refNode): BinaryExpr( refNode){}
+  BaseGDL* Eval();
+};
+class GE_OPNode: public BinaryExpr
+{ public:
+  GE_OPNode( const RefDNode& refNode): BinaryExpr( refNode){}
+  BaseGDL* Eval();
+};
+class GT_OPNode: public BinaryExpr
+{ public:
+  GT_OPNode( const RefDNode& refNode): BinaryExpr( refNode){}
+  BaseGDL* Eval();
+};
+class PLUSNode: public BinaryExpr
+{ public:
+  PLUSNode( const RefDNode& refNode): BinaryExpr( refNode){}
+  BaseGDL* Eval();
+};
+class MINUSNode: public BinaryExpr
+{ public:
+  MINUSNode( const RefDNode& refNode): BinaryExpr( refNode){}
+  BaseGDL* Eval();
+};
+class LTMARKNode: public BinaryExpr
+{ public:
+  LTMARKNode( const RefDNode& refNode): BinaryExpr( refNode){}
+  BaseGDL* Eval();
+};
+class GTMARKNode: public BinaryExpr
+{ public:
+  GTMARKNode( const RefDNode& refNode): BinaryExpr( refNode){}
+  BaseGDL* Eval();
+};
+class ASTERIXNode: public BinaryExpr
+{ public:
+  ASTERIXNode( const RefDNode& refNode): BinaryExpr( refNode){}
+  BaseGDL* Eval();
+};
+class MATRIX_OP1Node: public BinaryExpr
+{ public:
+  MATRIX_OP1Node( const RefDNode& refNode): BinaryExpr( refNode){}
+  BaseGDL* Eval();
+};
+class MATRIX_OP2Node: public BinaryExpr
+{ public:
+  MATRIX_OP2Node( const RefDNode& refNode): BinaryExpr( refNode){}
+  BaseGDL* Eval();
+};
+class SLASHNode: public BinaryExpr
+{ public:
+  SLASHNode( const RefDNode& refNode): BinaryExpr( refNode){}
+  BaseGDL* Eval();
+};
+class MOD_OPNode: public BinaryExpr
+{ public:
+  MOD_OPNode( const RefDNode& refNode): BinaryExpr( refNode){}
+  BaseGDL* Eval();
+};
+class POWNode: public BinaryExpr
+{ public:
+  POWNode( const RefDNode& refNode): BinaryExpr( refNode){}
+  BaseGDL* Eval();
+};
+// class DECNode: public BinaryExpr
+// { public:
+//   DECNode( const RefDNode& refNode): BinaryExpr( refNode){}
+//   BaseGDL* Eval();
+// };
+// class INCNode: public BinaryExpr
+// { public:
+//   INCNode( const RefDNode& refNode): BinaryExpr( refNode){}
+//   BaseGDL* Eval();
+// };
+// class POSTDECNode: public BinaryExpr
+// { public:
+//   POSTDECNode( const RefDNode& refNode): BinaryExpr( refNode){}
+//   BaseGDL* Eval();
+// };
+// class POSTINCNode: public BinaryExpr
+// { public:
+//   POSTINCNode( const RefDNode& refNode): BinaryExpr( refNode){}
+//   BaseGDL* Eval();
+// };
+
+
 
 #endif
 

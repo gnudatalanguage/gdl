@@ -366,7 +366,8 @@ public:
 
   void SetTree( RefDNode n)
   {
-    tree = new ProgNode( n); // here the conversion RefDNode -> ProgNode is done
+    // here the conversion RefDNode -> ProgNode is done
+    tree = ProgNode::NewProgNode( n);
   }
   
   ProgNodeP GetTree()

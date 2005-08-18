@@ -1934,293 +1934,295 @@ l_sys_var returns [BaseGDL** res]
 // expressions which always only return a value
 // expecting to delete any sub-expressions
 r_expr returns [BaseGDL* res]
-{
-    BaseGDL* e1;
-    BaseGDL* e2;
-}
-    :	#(NOT_OP e1=expr { res= e1->NotOp();} )
-    |	#(UMINUS e1=expr { res= e1->UMinus();} )
-    |	#(AND_OP e1=expr e2=expr)			// binary operators...
-        {
-            AdjustTypes(e1,e2);
-            if( e1->Scalar())
-            res= e2->AndOp(e1); // scalar+scalar or array+scalar
-            else
-            if( e2->Scalar())
-            res= e1->AndOpInv(e2); // array+scalar
-            else
-            if( e1->N_Elements() <= e2->N_Elements())
-            res= e1->AndOpInv(e2); // smaller_array + larger_array or same size
-            else
-            res= e2->AndOp(e1); // smaller + larger
-        }
-    |	#(OR_OP  e1=expr e2=expr)
-        {
-            AdjustTypes(e1,e2);
-            if( e1->Scalar())
-            res= e2->OrOp(e1); // scalar+scalar or array+scalar
-            else
-            if( e2->Scalar())
-            res= e1->OrOpInv(e2); // array+scalar
-            else
-            if( e1->N_Elements() <= e2->N_Elements())
-            res= e1->OrOpInv(e2); // smaller_array + larger_array or same size
-            else
-            res= e2->OrOp(e1); // smaller + larger
-        }
-    |	#(XOR_OP e1=expr e2=expr) // xor is only defined for integers
-        {
-            AdjustTypes(e1,e2);
-            if( e1->N_Elements() <= e2->N_Elements())
-            res= e1->XorOp(e2); // smaller_array + larger_array or same size
-            else
-            res= e2->XorOp(e1); // smaller + larger
-        }
-    |	#(EQ_OP e1=expr e2=expr)
-        {
-            AdjustTypes(e1,e2);
-            res=e1->EqOp(e2);
-        }
-    |	#(NE_OP e1=expr e2=expr)
-        {
-            AdjustTypes(e1,e2);
-            res=e1->NeOp(e2);
-        }
-    |	#(LE_OP e1=expr e2=expr)
-        {
-            AdjustTypes(e1,e2);
-            res=e1->LeOp(e2);
-        }
-    |	#(LT_OP e1=expr e2=expr)
-        {
-            AdjustTypes(e1,e2);
-            res=e1->LtOp(e2);
-        }
-    |	#(GE_OP e1=expr e2=expr)
-        {
-            AdjustTypes(e1,e2);
-            res=e1->GeOp(e2);
-        }
-    |	#(GT_OP e1=expr e2=expr)
-        {
-            AdjustTypes(e1,e2);
-            res=e1->GtOp(e2);
-        }
-    |	#(PLUS  e1=expr e2=expr)
-        {
-            AdjustTypes(e1,e2);
-            if( e1->Scalar())
-            res= e2->AddInv(e1); // scalar+scalar or array+scalar
-            else
-            if( e2->Scalar())
-            res= e1->Add(e2); // array+scalar
-            else
-            if( e1->N_Elements() <= e2->N_Elements())
-            res= e1->Add(e2); // smaller_array + larger_array or same size
-            else
-            res= e2->AddInv(e1); // smaller + larger
-        }
-    |	#(MINUS e1=expr e2=expr)
-        {
-            AdjustTypes(e1,e2);
-            if( e1->Scalar())
-            res= e2->SubInv(e1); // scalar+scalar or array+scalar
-            else
-            if( e2->Scalar())
-            res= e1->Sub(e2); // array+scalar
-            else
-            if( e1->N_Elements() <= e2->N_Elements())
-            res= e1->Sub(e2); // smaller_array + larger_array or same size
-            else
-            res= e2->SubInv(e1); // smaller + larger
-        }
-    |	#(LTMARK e1=expr e2=expr)
-        {
-            AdjustTypes(e1,e2);
-            if( e1->Scalar())
-            res= e2->LtMark(e1); // scalar+scalar or array+scalar
-            else
-            if( e2->Scalar())
-            res= e1->LtMark(e2); // array+scalar
-            else
-            if( e1->N_Elements() <= e2->N_Elements())
-            res= e1->LtMark(e2); // smaller_array + larger_array or same size
-            else
-            res= e2->LtMark(e1); // smaller + larger
-        }
-    |	#(GTMARK e1=expr e2=expr)
-        {
-            AdjustTypes(e1,e2);
-            if( e1->Scalar())
-            res= e2->GtMark(e1); // scalar+scalar or array+scalar
-            else
-            if( e2->Scalar())
-            res= e1->GtMark(e2); // array+scalar
-            else
-            if( e1->N_Elements() <= e2->N_Elements())
-            res= e1->GtMark(e2); // smaller_array + larger_array or same size
-            else
-            res= e2->GtMark(e1); // smaller + larger
-        }
-    |	#(ASTERIX e1=expr e2=expr)
-        {
-            AdjustTypes(e1,e2);
-            if( e1->Scalar())
-            res= e2->Mult(e1); // scalar+scalar or array+scalar
-            else
-            if( e2->Scalar())
-            res= e1->Mult(e2); // array+scalar
-            else
-            if( e1->N_Elements() <= e2->N_Elements())
-            res= e1->Mult(e2); // smaller_array + larger_array or same size
-            else
-            res= e2->Mult(e1); // smaller + larger
-        }
-    |	#(MATRIX_OP1 e1=expr e2=expr) // #
-        {
-            DType aTy=e1->Type();
-            DType bTy=e2->Type();
-            DType maxTy=(DTypeOrder[aTy] >= DTypeOrder[bTy])? aTy: bTy;
+    : e:EXPR
+        { res = e->Eval();}
+// {
+//     BaseGDL* e1;
+//     BaseGDL* e2;
+// }
+//     :	#(NOT_OP e1=expr { res= e1->NotOp();} )
+//     |	#(UMINUS e1=expr { res= e1->UMinus();} )
+//     |	#(AND_OP e1=expr e2=expr)			// binary operators...
+//         {
+//             AdjustTypes(e1,e2);
+//             if( e1->Scalar())
+//             res= e2->AndOp(e1); // scalar+scalar or array+scalar
+//             else
+//             if( e2->Scalar())
+//             res= e1->AndOpInv(e2); // array+scalar
+//             else
+//             if( e1->N_Elements() <= e2->N_Elements())
+//             res= e1->AndOpInv(e2); // smaller_array + larger_array or same size
+//             else
+//             res= e2->AndOp(e1); // smaller + larger
+//         }
+//     |	#(OR_OP  e1=expr e2=expr)
+//         {
+//             AdjustTypes(e1,e2);
+//             if( e1->Scalar())
+//             res= e2->OrOp(e1); // scalar+scalar or array+scalar
+//             else
+//             if( e2->Scalar())
+//             res= e1->OrOpInv(e2); // array+scalar
+//             else
+//             if( e1->N_Elements() <= e2->N_Elements())
+//             res= e1->OrOpInv(e2); // smaller_array + larger_array or same size
+//             else
+//             res= e2->OrOp(e1); // smaller + larger
+//         }
+//     |	#(XOR_OP e1=expr e2=expr) // xor is only defined for integers
+//         {
+//             AdjustTypes(e1,e2);
+//             if( e1->N_Elements() <= e2->N_Elements())
+//             res= e1->XorOp(e2); // smaller_array + larger_array or same size
+//             else
+//             res= e2->XorOp(e1); // smaller + larger
+//         }
+//     |	#(EQ_OP e1=expr e2=expr)
+//         {
+//             AdjustTypes(e1,e2);
+//             res=e1->EqOp(e2);
+//         }
+//     |	#(NE_OP e1=expr e2=expr)
+//         {
+//             AdjustTypes(e1,e2);
+//             res=e1->NeOp(e2);
+//         }
+//     |	#(LE_OP e1=expr e2=expr)
+//         {
+//             AdjustTypes(e1,e2);
+//             res=e1->LeOp(e2);
+//         }
+//     |	#(LT_OP e1=expr e2=expr)
+//         {
+//             AdjustTypes(e1,e2);
+//             res=e1->LtOp(e2);
+//         }
+//     |	#(GE_OP e1=expr e2=expr)
+//         {
+//             AdjustTypes(e1,e2);
+//             res=e1->GeOp(e2);
+//         }
+//     |	#(GT_OP e1=expr e2=expr)
+//         {
+//             AdjustTypes(e1,e2);
+//             res=e1->GtOp(e2);
+//         }
+//     |	#(PLUS  e1=expr e2=expr)
+//         {
+//             AdjustTypes(e1,e2);
+//             if( e1->Scalar())
+//             res= e2->AddInv(e1); // scalar+scalar or array+scalar
+//             else
+//             if( e2->Scalar())
+//             res= e1->Add(e2); // array+scalar
+//             else
+//             if( e1->N_Elements() <= e2->N_Elements())
+//             res= e1->Add(e2); // smaller_array + larger_array or same size
+//             else
+//             res= e2->AddInv(e1); // smaller + larger
+//         }
+//     |	#(MINUS e1=expr e2=expr)
+//         {
+//             AdjustTypes(e1,e2);
+//             if( e1->Scalar())
+//             res= e2->SubInv(e1); // scalar+scalar or array+scalar
+//             else
+//             if( e2->Scalar())
+//             res= e1->Sub(e2); // array+scalar
+//             else
+//             if( e1->N_Elements() <= e2->N_Elements())
+//             res= e1->Sub(e2); // smaller_array + larger_array or same size
+//             else
+//             res= e2->SubInv(e1); // smaller + larger
+//         }
+//     |	#(LTMARK e1=expr e2=expr)
+//         {
+//             AdjustTypes(e1,e2);
+//             if( e1->Scalar())
+//             res= e2->LtMark(e1); // scalar+scalar or array+scalar
+//             else
+//             if( e2->Scalar())
+//             res= e1->LtMark(e2); // array+scalar
+//             else
+//             if( e1->N_Elements() <= e2->N_Elements())
+//             res= e1->LtMark(e2); // smaller_array + larger_array or same size
+//             else
+//             res= e2->LtMark(e1); // smaller + larger
+//         }
+//     |	#(GTMARK e1=expr e2=expr)
+//         {
+//             AdjustTypes(e1,e2);
+//             if( e1->Scalar())
+//             res= e2->GtMark(e1); // scalar+scalar or array+scalar
+//             else
+//             if( e2->Scalar())
+//             res= e1->GtMark(e2); // array+scalar
+//             else
+//             if( e1->N_Elements() <= e2->N_Elements())
+//             res= e1->GtMark(e2); // smaller_array + larger_array or same size
+//             else
+//             res= e2->GtMark(e1); // smaller + larger
+//         }
+//     |	#(ASTERIX e1=expr e2=expr)
+//         {
+//             AdjustTypes(e1,e2);
+//             if( e1->Scalar())
+//             res= e2->Mult(e1); // scalar+scalar or array+scalar
+//             else
+//             if( e2->Scalar())
+//             res= e1->Mult(e2); // array+scalar
+//             else
+//             if( e1->N_Elements() <= e2->N_Elements())
+//             res= e1->Mult(e2); // smaller_array + larger_array or same size
+//             else
+//             res= e2->Mult(e1); // smaller + larger
+//         }
+//     |	#(MATRIX_OP1 e1=expr e2=expr) // #
+//         {
+//             DType aTy=e1->Type();
+//             DType bTy=e2->Type();
+//             DType maxTy=(DTypeOrder[aTy] >= DTypeOrder[bTy])? aTy: bTy;
 
-            DType cTy=maxTy;
-            if( maxTy == BYTE || maxTy == INT)
-            cTy=LONG;
-            else if( maxTy == UINT)
-            cTy=ULONG;
+//             DType cTy=maxTy;
+//             if( maxTy == BYTE || maxTy == INT)
+//             cTy=LONG;
+//             else if( maxTy == UINT)
+//             cTy=ULONG;
 
-            if( aTy != cTy) e1=e1->Convert2( cTy);
+//             if( aTy != cTy) e1=e1->Convert2( cTy);
 
-            AdjustTypes(e1,e2);
-            res=e1->MatrixOp(e2);
-        }
-    |	#(MATRIX_OP2 e1=expr e2=expr) // ##
-        {
-            DType aTy=e1->Type();
-            DType bTy=e2->Type();
-            DType maxTy=(DTypeOrder[aTy] >= DTypeOrder[bTy])? aTy: bTy;
+//             AdjustTypes(e1,e2);
+//             res=e1->MatrixOp(e2);
+//         }
+//     |	#(MATRIX_OP2 e1=expr e2=expr) // ##
+//         {
+//             DType aTy=e1->Type();
+//             DType bTy=e2->Type();
+//             DType maxTy=(DTypeOrder[aTy] >= DTypeOrder[bTy])? aTy: bTy;
 
-            DType cTy=maxTy;
-            if( maxTy == BYTE || maxTy == INT)
-            cTy=LONG;
-            else if( maxTy == UINT)
-            cTy=ULONG;
+//             DType cTy=maxTy;
+//             if( maxTy == BYTE || maxTy == INT)
+//             cTy=LONG;
+//             else if( maxTy == UINT)
+//             cTy=ULONG;
 
-            if( aTy != cTy) e1=e1->Convert2( cTy);
+//             if( aTy != cTy) e1=e1->Convert2( cTy);
 
-            AdjustTypes(e1,e2);
-            res=e2->MatrixOp(e1);
-        }
-    |	#(SLASH e1=expr e2=expr)
-        {
-            AdjustTypes(e1,e2);
-            if( e1->Scalar())
-            res= e2->DivInv(e1); // scalar+scalar or array+scalar
-            else
-            if( e2->Scalar())
-            res= e1->Div(e2); // array+scalar
-            else
-            if( e1->N_Elements() <= e2->N_Elements())
-            res= e1->Div(e2); // smaller_array + larger_array or same size
-            else
-            res= e2->DivInv(e1); // smaller + larger
-        }
-    |	#(MOD_OP e1=expr e2=expr)
-        {
-            AdjustTypes(e1,e2);
-            if( e1->Scalar())
-            res= e2->ModInv(e1); // scalar+scalar or array+scalar
-            else
-            if( e2->Scalar())
-            res= e1->Mod(e2); // array+scalar
-            else
-            if( e1->N_Elements() <= e2->N_Elements())
-            res= e1->Mod(e2); // smaller_array + larger_array or same size
-            else
-            res= e2->ModInv(e1); // smaller + larger
-        }
-    |	#(POW e1=expr e2=expr)
-        {
-           // special handling for complex
-            DType aTy=e1->Type();
-            if( aTy == COMPLEX)
-            {
-                DType bTy=e2->Type();
-                if( IntType( bTy))
-                {
-                    e2 = e2->Convert2( FLOAT);
-                    res = e1->Pow( e2);
-                    goto endPOW;
-                }
-                else if( bTy == FLOAT)
-                {
-                    res = e1->Pow( e2);
-                    goto endPOW;
-                }
-            }
-            else if( aTy == COMPLEXDBL)
-            {
-                DType bTy=e2->Type();
-                if( IntType( bTy))
-                {
-                    e2 = e2->Convert2( DOUBLE);
-                    res = e1->Pow( e2);
-                    goto endPOW;
-                }
-                else if( bTy == DOUBLE)
-                {
-                    res = e1->Pow( e2);
-                    goto endPOW;
-                }
-            }
+//             AdjustTypes(e1,e2);
+//             res=e2->MatrixOp(e1);
+//         }
+//     |	#(SLASH e1=expr e2=expr)
+//         {
+//             AdjustTypes(e1,e2);
+//             if( e1->Scalar())
+//             res= e2->DivInv(e1); // scalar+scalar or array+scalar
+//             else
+//             if( e2->Scalar())
+//             res= e1->Div(e2); // array+scalar
+//             else
+//             if( e1->N_Elements() <= e2->N_Elements())
+//             res= e1->Div(e2); // smaller_array + larger_array or same size
+//             else
+//             res= e2->DivInv(e1); // smaller + larger
+//         }
+//     |	#(MOD_OP e1=expr e2=expr)
+//         {
+//             AdjustTypes(e1,e2);
+//             if( e1->Scalar())
+//             res= e2->ModInv(e1); // scalar+scalar or array+scalar
+//             else
+//             if( e2->Scalar())
+//             res= e1->Mod(e2); // array+scalar
+//             else
+//             if( e1->N_Elements() <= e2->N_Elements())
+//             res= e1->Mod(e2); // smaller_array + larger_array or same size
+//             else
+//             res= e2->ModInv(e1); // smaller + larger
+//         }
+//     |	#(POW e1=expr e2=expr)
+//         {
+//            // special handling for complex
+//             DType aTy=e1->Type();
+//             if( aTy == COMPLEX)
+//             {
+//                 DType bTy=e2->Type();
+//                 if( IntType( bTy))
+//                 {
+//                     e2 = e2->Convert2( FLOAT);
+//                     res = e1->Pow( e2);
+//                     goto endPOW;
+//                 }
+//                 else if( bTy == FLOAT)
+//                 {
+//                     res = e1->Pow( e2);
+//                     goto endPOW;
+//                 }
+//             }
+//             else if( aTy == COMPLEXDBL)
+//             {
+//                 DType bTy=e2->Type();
+//                 if( IntType( bTy))
+//                 {
+//                     e2 = e2->Convert2( DOUBLE);
+//                     res = e1->Pow( e2);
+//                     goto endPOW;
+//                 }
+//                 else if( bTy == DOUBLE)
+//                 {
+//                     res = e1->Pow( e2);
+//                     goto endPOW;
+//                 }
+//             }
 
-            DType convertBackT; 
+//             DType convertBackT; 
 
-            // convert back
-            if( IntType( e2->Type()) && 
-                DTypeOrder[e2->Type()] > DTypeOrder[e1->Type()])
-                convertBackT = e1->Type();
-            else
-                convertBackT = UNDEF;
+//             // convert back
+//             if( IntType( e2->Type()) && 
+//                 DTypeOrder[e2->Type()] > DTypeOrder[e1->Type()])
+//                 convertBackT = e1->Type();
+//             else
+//                 convertBackT = UNDEF;
 
-            AdjustTypes(e2,e1); // order crucial here (for converting back)
+//             AdjustTypes(e2,e1); // order crucial here (for converting back)
 
-            if( e1->Scalar())
-            res= e2->PowInv(e1); // scalar+scalar or array+scalar
-            else
-            if( e2->Scalar())
-            res= e1->Pow(e2); // array+scalar
-            else
-            if( e1->N_Elements() <= e2->N_Elements())
-            res= e1->Pow(e2); // smaller_array + larger_array or same size
-            else
-            res= e2->PowInv(e1); // smaller + larger
-            if( convertBackT != UNDEF)
-            {
-                res = res->Convert2( convertBackT, BaseGDL::CONVERT);
-            }
-            endPOW:
-        }
+//             if( e1->Scalar())
+//             res= e2->PowInv(e1); // scalar+scalar or array+scalar
+//             else
+//             if( e2->Scalar())
+//             res= e1->Pow(e2); // array+scalar
+//             else
+//             if( e1->N_Elements() <= e2->N_Elements())
+//             res= e1->Pow(e2); // smaller_array + larger_array or same size
+//             else
+//             res= e2->PowInv(e1); // smaller + larger
+//             if( convertBackT != UNDEF)
+//             {
+//                 res = res->Convert2( convertBackT, BaseGDL::CONVERT);
+//             }
+//             endPOW:
+//         }
     |	#(DEC res=l_decinc_expr[ DEC])
     |	#(INC res=l_decinc_expr[ INC])
     |	#(POSTDEC res=l_decinc_expr[ POSTDEC])
     |	#(POSTINC res=l_decinc_expr[ POSTINC])
-    // logical expressions
-    |   #(LOG_AND e1=expr e2=expr)
-        {
-            if( !e1->LogTrue()) {res = new DByteGDL( 0); break;}
-            if( !e2->LogTrue()) {res = new DByteGDL( 0); break;}
-            res = new DByteGDL( 1);
-        }
-    |   #(LOG_OR e1=expr e2=expr)
-        {
-            if( e1->LogTrue()) {res = new DByteGDL( 1); break;}
-            if( e2->LogTrue()) {res = new DByteGDL( 1); break;}
-            res = new DByteGDL( 0);
-        }
-    |   #(LOG_NEG e1=expr)
-        {
-            res = e1->LogNeg();
-        }
+//     // logical expressions
+//     |   #(LOG_AND e1=expr e2=expr)
+//         {
+//             if( !e1->LogTrue()) {res = new DByteGDL( 0); break;}
+//             if( !e2->LogTrue()) {res = new DByteGDL( 0); break;}
+//             res = new DByteGDL( 1);
+//         }
+//     |   #(LOG_OR e1=expr e2=expr)
+//         {
+//             if( e1->LogTrue()) {res = new DByteGDL( 1); break;}
+//             if( e2->LogTrue()) {res = new DByteGDL( 1); break;}
+//             res = new DByteGDL( 0);
+//         }
+//     |   #(LOG_NEG e1=expr)
+//         {
+//             res = e1->LogNeg();
+//         }
 //    | res=constant                  
     | res=array_def
     | res=struct_def
