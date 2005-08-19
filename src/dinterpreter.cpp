@@ -73,6 +73,7 @@ DInterpreter::DInterpreter(): GDLInterpreter()
   EnvT* mainEnv=new EnvT(this, NULL, mainPro);
   callStack.push_back(mainEnv);   // push main environment (necessary)
     
+  assert( ProgNode::interpreter == NULL);
   ProgNode::interpreter = this; // interface to expr( ProgNodeP)
 }
 

@@ -447,17 +447,17 @@ BaseGDL* QUESTIONNode::Eval()
 BaseGDL* UMINUSNode::Eval()
 {
   BaseGDL* e1 = down->Eval();
-  return e1->UMinus();
-}
-BaseGDL* LOG_NEGNode::Eval()
-{
-  BaseGDL* e1 = down->Eval();
-  return e1->LogNeg();
+  return e1->UMinus(); // might delete e1 (STRING)
 }
 BaseGDL* NOT_OPNode::Eval()
 {
   BaseGDL* e1 = down->Eval();
   return e1->NotOp();
+}
+BaseGDL* LOG_NEGNode::Eval()
+{
+  auto_ptr<BaseGDL> e1( down->Eval());
+  return e1->LogNeg();
 }
 BaseGDL* AND_OPNode::Eval()
 { BaseGDL* res;
@@ -465,37 +465,57 @@ BaseGDL* AND_OPNode::Eval()
   auto_ptr<BaseGDL> e2( op2->Eval());
   AdjustTypes(e1,e2);
   if( e1->Scalar())
+    {
     res= e2->AndOp(e1.get()); // scalar+scalar or array+scalar
+    e2.release();
+    }
   else
     if( e2->Scalar())
+      {
       res= e1->AndOpInv(e2.get()); // array+scalar
+      e1.release();
+      }
     else
       if( e1->N_Elements() <= e2->N_Elements())
+	{
 	res= e1->AndOpInv(e2.get()); // smaller_array + larger_array or same size
+	e1.release();
+	}
       else
+	{
 	res= e2->AndOp(e1.get()); // smaller + larger
-  e1.release();
-  e2.release();
+	e2.release();
+	}
   return res;
 }
 BaseGDL* OR_OPNode::Eval()
 { BaseGDL* res;
-  auto_ptr<BaseGDL> e1( op1->Eval());
-  auto_ptr<BaseGDL> e2( op2->Eval());
-  AdjustTypes(e1,e2);
-  if( e1->Scalar())
-    res= e2->OrOp(e1.get()); // scalar+scalar or array+scalar
-  else
-    if( e2->Scalar())
-      res= e1->OrOpInv(e2.get()); // array+scalar
-    else
-      if( e1->N_Elements() <= e2->N_Elements())
-	res= e1->OrOpInv(e2.get()); // smaller_array + larger_array or same size
-      else
-	res= e2->OrOp(e1.get()); // smaller + larger
-  e1.release();
-  e2.release();
-  return res;
+ auto_ptr<BaseGDL> e1( op1->Eval());
+ auto_ptr<BaseGDL> e2( op2->Eval());
+ AdjustTypes(e1,e2);
+ if( e1->Scalar())
+   {
+     res= e2->OrOp(e1.get()); // scalar+scalar or array+scalar
+     e2.release();
+   }
+ else
+   if( e2->Scalar())
+     {
+       res= e1->OrOpInv(e2.get()); // array+scalar
+       e1.release();
+     }
+   else
+     if( e1->N_Elements() <= e2->N_Elements())
+       {
+	 res= e1->OrOpInv(e2.get()); // smaller_array + larger_array or same size
+	 e1.release();
+       }
+     else
+       {
+	 res= e2->OrOp(e1.get()); // smaller + larger
+	 e2.release();
+       }
+ return res;
 }
 BaseGDL* XOR_OPNode::Eval()
 { BaseGDL* res;
@@ -503,11 +523,15 @@ BaseGDL* XOR_OPNode::Eval()
   auto_ptr<BaseGDL> e2( op2->Eval());
   AdjustTypes(e1,e2);
   if( e1->N_Elements() <= e2->N_Elements())
+    {
     res= e1->XorOp(e2.get()); // smaller_array + larger_array or same size
+	 e1.release();
+    }
   else
+    {
     res= e2->XorOp(e1.get()); // smaller + larger
-  e1.release();
-  e2.release();
+	 e2.release();
+    }
   return res;
 }
 BaseGDL* LOG_ANDNode::Eval()
@@ -517,8 +541,6 @@ BaseGDL* LOG_ANDNode::Eval()
   if( !e1->LogTrue()) res = new DByteGDL( 0);
   else if( !e2->LogTrue()) res = new DByteGDL( 0);
   else res = new DByteGDL( 1);
-  e1.release();
-  e2.release();
   return res;
 }
 BaseGDL* LOG_ORNode::Eval()
@@ -528,18 +550,15 @@ BaseGDL* LOG_ORNode::Eval()
   if( e1->LogTrue()) res = new DByteGDL( 1); 
   else if( e2->LogTrue()) res = new DByteGDL( 1);
   else res = new DByteGDL( 0);
-  e1.release();
-  e2.release();
   return res;
 }
+
 BaseGDL* EQ_OPNode::Eval()
 { BaseGDL* res;
   auto_ptr<BaseGDL> e1( op1->Eval());
   auto_ptr<BaseGDL> e2( op2->Eval());
   AdjustTypes(e1,e2);
   res=e1->EqOp(e2.get());
-  e1.release();
-  e2.release();
   return res;
 }
 BaseGDL* NE_OPNode::Eval()
@@ -548,8 +567,6 @@ BaseGDL* NE_OPNode::Eval()
   auto_ptr<BaseGDL> e2( op2->Eval());
   AdjustTypes(e1,e2);
   res=e1->NeOp(e2.get());
-  e1.release();
-  e2.release();
   return res;
 }
 BaseGDL* LE_OPNode::Eval()
@@ -558,8 +575,6 @@ BaseGDL* LE_OPNode::Eval()
   auto_ptr<BaseGDL> e2( op2->Eval());
   AdjustTypes(e1,e2);
   res=e1->LeOp(e2.get());
-  e1.release();
-  e2.release();
   return res;
 }
 BaseGDL* LT_OPNode::Eval()
@@ -568,8 +583,6 @@ BaseGDL* LT_OPNode::Eval()
   auto_ptr<BaseGDL> e2( op2->Eval());
   AdjustTypes(e1,e2);
   res=e1->LtOp(e2.get());
-  e1.release();
-  e2.release();
   return res;
 }
 BaseGDL* GE_OPNode::Eval()
@@ -578,8 +591,6 @@ BaseGDL* GE_OPNode::Eval()
   auto_ptr<BaseGDL> e2( op2->Eval());
   AdjustTypes(e1,e2);
   res=e1->GeOp(e2.get());
-  e1.release();
-  e2.release();
   return res;
 }
 BaseGDL* GT_OPNode::Eval()
@@ -588,105 +599,155 @@ BaseGDL* GT_OPNode::Eval()
   auto_ptr<BaseGDL> e2( op2->Eval());
   AdjustTypes(e1,e2);
   res=e1->GtOp(e2.get());
-  e1.release();
-  e2.release();
   return res;
 }
+
 BaseGDL* PLUSNode::Eval()
 { BaseGDL* res;
-  auto_ptr<BaseGDL> e1( op1->Eval());
-  auto_ptr<BaseGDL> e2( op2->Eval());
-  AdjustTypes(e1,e2);
-  if( e1->Scalar())
-    res= e2->AddInv(e1.get()); // scalar+scalar or array+scalar
-  else
-    if( e2->Scalar())
-      res= e1->Add(e2.get()); // array+scalar
-    else
-      if( e1->N_Elements() <= e2->N_Elements())
-	res= e1->Add(e2.get()); // smaller_array + larger_array or same size
-      else
-	res= e2->AddInv(e1.get()); // smaller + larger
-  e1.release();
-  e2.release();
-  return res;
+ auto_ptr<BaseGDL> e1( op1->Eval());
+ auto_ptr<BaseGDL> e2( op2->Eval());
+ AdjustTypes(e1,e2);
+ if( e1->Scalar())
+   {
+     res= e2->AddInv(e1.get()); // scalar+scalar or array+scalar
+     e2.release();
+   }
+ else
+   if( e2->Scalar())
+     {
+       res= e1->Add(e2.get()); // array+scalar
+       e1.release();
+     }
+   else
+     if( e1->N_Elements() <= e2->N_Elements())
+       {
+	 res= e1->Add(e2.get()); // smaller_array + larger_array or same size
+	 e1.release();
+       }
+     else
+       {
+	 res= e2->AddInv(e1.get()); // smaller + larger
+	 e2.release();
+       }
+return res;
 }
 BaseGDL* MINUSNode::Eval()
 { BaseGDL* res;
-  auto_ptr<BaseGDL> e1( op1->Eval());
-  auto_ptr<BaseGDL> e2( op2->Eval());
-  AdjustTypes(e1,e2);
-  if( e1->Scalar())
-    res= e2->SubInv(e1.get()); // scalar+scalar or array+scalar
-  else
-    if( e2->Scalar())
-      res= e1->Sub(e2.get()); // array+scalar
-    else
-      if( e1->N_Elements() <= e2->N_Elements())
-	res= e1->Sub(e2.get()); // smaller_array + larger_array or same size
-      else
-	res= e2->SubInv(e1.get()); // smaller + larger
-  e1.release();
-  e2.release();
-  return res;
+ auto_ptr<BaseGDL> e1( op1->Eval());
+ auto_ptr<BaseGDL> e2( op2->Eval());
+ AdjustTypes(e1,e2);
+ if( e1->Scalar())
+   {
+     res= e2->SubInv(e1.get()); // scalar+scalar or array+scalar
+     e2.release();
+   }
+ else
+   if( e2->Scalar())
+     {
+       res= e1->Sub(e2.get()); // array+scalar
+       e1.release();
+     }
+   else
+     if( e1->N_Elements() <= e2->N_Elements())
+       {
+	 res= e1->Sub(e2.get()); // smaller_array + larger_array or same size
+	 e1.release();
+       }
+     else
+       {
+	 res= e2->SubInv(e1.get()); // smaller + larger
+	 e2.release();
+       }
+ return res;
 }
 BaseGDL* LTMARKNode::Eval()
 { BaseGDL* res;
-  auto_ptr<BaseGDL> e1( op1->Eval());
-  auto_ptr<BaseGDL> e2( op2->Eval());
-  AdjustTypes(e1,e2);
-  if( e1->Scalar())
-    res= e2->LtMark(e1.get()); // scalar+scalar or array+scalar
-  else
-    if( e2->Scalar())
-      res= e1->LtMark(e2.get()); // array+scalar
-    else
-      if( e1->N_Elements() <= e2->N_Elements())
-	res= e1->LtMark(e2.get()); // smaller_array + larger_array or same size
-      else
-	res= e2->LtMark(e1.get()); // smaller + larger
-  e1.release();
-  e2.release();
-  return res;
+ auto_ptr<BaseGDL> e1( op1->Eval());
+ auto_ptr<BaseGDL> e2( op2->Eval());
+ AdjustTypes(e1,e2);
+ if( e1->Scalar())
+   {
+     res= e2->LtMark(e1.get()); // scalar+scalar or array+scalar
+     e2.release();
+   }
+ else
+   if( e2->Scalar())
+     {
+       res= e1->LtMark(e2.get()); // array+scalar
+       e1.release();
+     }
+   else
+     if( e1->N_Elements() <= e2->N_Elements())
+       {
+	 res= e1->LtMark(e2.get()); // smaller_array + larger_array or same size
+	 e1.release();
+       }
+     else
+       {
+	 res= e2->LtMark(e1.get()); // smaller + larger
+	 e2.release();
+       }
+ return res;
 }
 BaseGDL* GTMARKNode::Eval()
 { BaseGDL* res;
-  auto_ptr<BaseGDL> e1( op1->Eval());
-  auto_ptr<BaseGDL> e2( op2->Eval());
-  AdjustTypes(e1,e2);
-  if( e1->Scalar())
-    res= e2->GtMark(e1.get()); // scalar+scalar or array+scalar
-  else
-    if( e2->Scalar())
-      res= e1->GtMark(e2.get()); // array+scalar
-    else
-      if( e1->N_Elements() <= e2->N_Elements())
-	res= e1->GtMark(e2.get()); // smaller_array + larger_array or same size
-      else
-	res= e2->GtMark(e1.get()); // smaller + larger
-  e1.release();
-  e2.release();
-  return res;
+ auto_ptr<BaseGDL> e1( op1->Eval());
+ auto_ptr<BaseGDL> e2( op2->Eval());
+ AdjustTypes(e1,e2);
+ if( e1->Scalar())
+   {
+     res= e2->GtMark(e1.get()); // scalar+scalar or array+scalar
+     e2.release();
+   }
+ else
+   if( e2->Scalar())
+     {
+       res= e1->GtMark(e2.get()); // array+scalar
+       e1.release();
+     }
+   else
+     if( e1->N_Elements() <= e2->N_Elements())
+       {
+	 res= e1->GtMark(e2.get()); // smaller_array + larger_array or same size
+	 e1.release();
+       }
+     else
+       {
+	 res= e2->GtMark(e1.get()); // smaller + larger
+	 e2.release();
+       }
+ return res;
 }
 BaseGDL* ASTERIXNode::Eval()
 { BaseGDL* res;
-  auto_ptr<BaseGDL> e1( op1->Eval());
-  auto_ptr<BaseGDL> e2( op2->Eval());
-  AdjustTypes(e1,e2);
-  if( e1->Scalar())
-    res= e2->Mult(e1.get()); // scalar+scalar or array+scalar
-  else
-    if( e2->Scalar())
-      res= e1->Mult(e2.get()); // array+scalar
-    else
-      if( e1->N_Elements() <= e2->N_Elements())
-	res= e1->Mult(e2.get()); // smaller_array + larger_array or same size
-      else
-	res= e2->Mult(e1.get()); // smaller + larger
-  e1.release();
-  e2.release();
-  return res;
+ auto_ptr<BaseGDL> e1( op1->Eval());
+ auto_ptr<BaseGDL> e2( op2->Eval());
+ AdjustTypes(e1,e2);
+ if( e1->Scalar())
+   {
+     res= e2->Mult(e1.get()); // scalar+scalar or array+scalar
+     e2.release();
+   }
+ else
+   if( e2->Scalar())
+     {
+       res= e1->Mult(e2.get()); // array+scalar
+       e1.release();
+     }
+   else
+     if( e1->N_Elements() <= e2->N_Elements())
+       {
+	 res= e1->Mult(e2.get()); // smaller_array + larger_array or same size
+	 e1.release();
+       }
+     else
+       {
+	 res= e2->Mult(e1.get()); // smaller + larger
+	 e2.release();
+       }
+ return res;
 }
+
 BaseGDL* MATRIX_OP1Node::Eval()
 { BaseGDL* res;
   auto_ptr<BaseGDL> e1( op1->Eval());
@@ -706,8 +767,6 @@ BaseGDL* MATRIX_OP1Node::Eval()
 
   AdjustTypes(e1,e2);
   res=e1->MatrixOp(e2.get());
-  e1.release();
-  e2.release();
   return res;
 }
 BaseGDL* MATRIX_OP2Node::Eval()
@@ -729,48 +788,69 @@ BaseGDL* MATRIX_OP2Node::Eval()
 
   AdjustTypes(e1,e2);
   res=e2->MatrixOp(e1.get());
-  e1.release();
-  e2.release();
   return res;
 }
 BaseGDL* SLASHNode::Eval()
 { BaseGDL* res;
-  auto_ptr<BaseGDL> e1( op1->Eval());
-  auto_ptr<BaseGDL> e2( op2->Eval());
-  AdjustTypes(e1,e2);
-  if( e1->Scalar())
-    res= e2->DivInv(e1.get()); // scalar+scalar or array+scalar
-  else
-    if( e2->Scalar())
-      res= e1->Div(e2.get()); // array+scalar
-    else
-      if( e1->N_Elements() <= e2->N_Elements())
-	res= e1->Div(e2.get()); // smaller_array + larger_array or same size
-      else
-	res= e2->DivInv(e1.get()); // smaller + larger
-  e1.release();
-  e2.release();
-  return res;
+ auto_ptr<BaseGDL> e1( op1->Eval());
+ auto_ptr<BaseGDL> e2( op2->Eval());
+ AdjustTypes(e1,e2);
+ if( e1->Scalar())
+   {
+     res= e2->DivInv(e1.get()); // scalar+scalar or array+scalar
+     e2.release();
+   }
+ else
+   if( e2->Scalar())
+     {
+       res= e1->Div(e2.get()); // array+scalar
+       e1.release();
+     }
+   else
+     if( e1->N_Elements() <= e2->N_Elements())
+       {
+	 res= e1->Div(e2.get()); // smaller_array + larger_array or same size
+	 e1.release();
+       }
+     else
+       {
+	 res= e2->DivInv(e1.get()); // smaller + larger
+	 e2.release();
+       }
+
+ return res;
 }
 BaseGDL* MOD_OPNode::Eval()
 { BaseGDL* res;
-  auto_ptr<BaseGDL> e1( op1->Eval());
-  auto_ptr<BaseGDL> e2( op2->Eval());
-  AdjustTypes(e1,e2);
-  if( e1->Scalar())
-    res= e2->ModInv(e1.get()); // scalar+scalar or array+scalar
-  else
-    if( e2->Scalar())
-      res= e1->Mod(e2.get()); // array+scalar
-    else
-      if( e1->N_Elements() <= e2->N_Elements())
-	res= e1->Mod(e2.get()); // smaller_array + larger_array or same size
-      else
-	res= e2->ModInv(e1.get()); // smaller + larger
-  e1.release();
-  e2.release();
-  return res;
+ auto_ptr<BaseGDL> e1( op1->Eval());
+ auto_ptr<BaseGDL> e2( op2->Eval());
+ AdjustTypes(e1,e2);
+ if( e1->Scalar())
+   {
+     res= e2->ModInv(e1.get()); // scalar+scalar or array+scalar
+     e2.release();
+   }
+ else
+   if( e2->Scalar())
+     {
+       res= e1->Mod(e2.get()); // array+scalar
+       e1.release();
+     }
+   else
+     if( e1->N_Elements() <= e2->N_Elements())
+       {
+	 res= e1->Mod(e2.get()); // smaller_array + larger_array or same size
+	 e1.release();
+       }
+     else
+       {
+	 res= e2->ModInv(e1.get()); // smaller + larger
+	 e2.release();
+       }
+ return res;
 }
+
+
 BaseGDL* POWNode::Eval()
 { BaseGDL* res;
   auto_ptr<BaseGDL> e1( op1->Eval());
@@ -784,11 +864,15 @@ BaseGDL* POWNode::Eval()
 	{
 	  e2.reset( e2.release()->Convert2( FLOAT));
 	  res = e1->Pow( e2.get());
+	  if( res == e1.get())
+	    e1.release();
 	  goto endPOW;
 	}
       else if( bTy == FLOAT)
 	{
 	  res = e1->Pow( e2.get());
+	  if( res == e1.get())
+	    e1.release();
 	  goto endPOW;
 	}
     }
@@ -799,11 +883,15 @@ BaseGDL* POWNode::Eval()
 	{
 	  e2.reset( e2.release()->Convert2( DOUBLE));
 	  res = e1->Pow( e2.get());
+	  if( res == e1.get())
+	    e1.release();
 	  goto endPOW;
 	}
       else if( bTy == DOUBLE)
 	{
 	  res = e1->Pow( e2.get());
+	  if( res == e1.get())
+	    e1.release();
 	  goto endPOW;
 	}
     }
@@ -820,22 +908,32 @@ BaseGDL* POWNode::Eval()
   AdjustTypes(e2,e1); // order crucial here (for converting back)
 
   if( e1->Scalar())
-    res= e2->PowInv(e1.get()); // scalar+scalar or array+scalar
+    {
+      res= e2->PowInv(e1.get()); // scalar+scalar or array+scalar
+      e2.release();
+    }
   else
     if( e2->Scalar())
+      {
       res= e1->Pow(e2.get()); // array+scalar
+      e1.release();
+      }
     else
       if( e1->N_Elements() <= e2->N_Elements())
+	{
 	res= e1->Pow(e2.get()); // smaller_array + larger_array or same size
+	e1.release();
+	}
       else
-	res= e2->PowInv(e1.get()); // smaller + larger
+	{
+	  res= e2->PowInv(e1.get()); // smaller + larger
+	  e2.release();
+	}
   if( convertBackT != UNDEF)
     {
       res = res->Convert2( convertBackT, BaseGDL::CONVERT);
     }
  endPOW:
-  e1.release();
-  e2.release();
   return res;
 }
 // BaseGDL* DECNode::Eval()

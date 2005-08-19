@@ -35,7 +35,8 @@ template<class Sp>
 Data_<Sp>* Data_<Sp>::NotOp()
 {
   ULong sEl=N_Elements();
-  if( !sEl) throw GDLException("Variable is undefined.");  
+  assert( sEl != 0);
+  //  if( !sEl) throw GDLException("Variable is undefined.");  
   for( SizeT i=0; i < sEl; i++)
     dd[i] = ~dd[i];
   return this;
@@ -45,7 +46,8 @@ template<>
 Data_<SpDFloat>* Data_<SpDFloat>::NotOp()
 {
   ULong sEl=N_Elements();
-  if( !sEl) throw GDLException("Variable is undefined.");  
+  assert( sEl != 0);
+  //  if( !sEl) throw GDLException("Variable is undefined.");  
   for( SizeT i=0; i < sEl; i++)
     dd[i] = (dd[i] == 0.0f)? 1.0f : 0.0f;
   return this;
@@ -54,7 +56,8 @@ template<>
 Data_<SpDDouble>* Data_<SpDDouble>::NotOp()
 {
   ULong sEl=N_Elements();
-  if( !sEl) throw GDLException("Variable is undefined.");  
+  assert( sEl != 0);
+  //  if( !sEl) throw GDLException("Variable is undefined.");  
   for( SizeT i=0; i < sEl; i++)
     dd[i] = (dd[i] == 0.0)? 1.0 : 0.0;
   return this;
@@ -95,7 +98,8 @@ template<class Sp>
 BaseGDL* Data_<Sp>::UMinus()
 {
   ULong sEl=N_Elements();
-  if( !sEl) throw GDLException("Variable is undefined.");  
+  assert( sEl != 0);
+  //  if( !sEl) throw GDLException("Variable is undefined.");  
   for( SizeT i=0; i < sEl; i++)
     dd[i] = -dd[i];
   return this;
@@ -104,7 +108,8 @@ template<>
 BaseGDL* Data_<SpDString>::UMinus()
 {
   ULong sEl=N_Elements();
-  if( !sEl) throw GDLException("Variable is undefined.");  
+  assert( sEl != 0);
+  //  if( !sEl) throw GDLException("Variable is undefined.");  
   Data_<SpDFloat>* newThis=static_cast<Data_<SpDFloat>*>(this->Convert2( FLOAT));
   //  this is deleted by convert2!!! 
   return static_cast<BaseGDL*>( newThis->UMinus());
@@ -127,7 +132,8 @@ template<class Sp>
 void Data_<Sp>::Dec()
 {
   ULong sEl=N_Elements();
-  if( !sEl) throw GDLException("Variable is undefined.");  
+  assert( sEl != 0);
+  // if( !sEl) throw GDLException("Variable is undefined.");  
   for( SizeT i=0; i < sEl; i++)
     dd[i]--;
 }
@@ -135,7 +141,8 @@ template<class Sp>
 void Data_<Sp>::Inc()
 {
   ULong sEl=N_Elements();
-  if( !sEl) throw GDLException("Variable is undefined.");  
+  assert( sEl != 0);
+  // if( !sEl) throw GDLException("Variable is undefined.");  
   for( SizeT i=0; i < sEl; i++)
     dd[i]++;
 }
@@ -144,7 +151,8 @@ template<>
 void Data_<SpDFloat>::Dec()
 {
   ULong sEl=N_Elements();
-  if( !sEl) throw GDLException("Variable is undefined.");  
+  assert( sEl != 0);
+  // if( !sEl) throw GDLException("Variable is undefined.");  
   for( SizeT i=0; i < sEl; i++)
     dd[i] -= 1.0;
 }
@@ -152,7 +160,8 @@ template<>
 void Data_<SpDFloat>::Inc()
 {
   ULong sEl=N_Elements();
-  if( !sEl) throw GDLException("Variable is undefined.");  
+  assert( sEl != 0);
+  // if( !sEl) throw GDLException("Variable is undefined.");  
   for( SizeT i=0; i < sEl; i++)
     dd[i] += 1.0;
 }
@@ -161,7 +170,8 @@ template<>
 void Data_<SpDDouble>::Dec()
 {
   ULong sEl=N_Elements();
-  if( !sEl) throw GDLException("Variable is undefined.");  
+  assert( sEl != 0);
+  // if( !sEl) throw GDLException("Variable is undefined.");  
   for( SizeT i=0; i < sEl; i++)
     dd[i] -= 1.0;
 }
@@ -169,7 +179,8 @@ template<>
 void Data_<SpDDouble>::Inc()
 {
   ULong sEl=N_Elements();
-  if( !sEl) throw GDLException("Variable is undefined.");  
+  assert( sEl != 0);
+  // if( !sEl) throw GDLException("Variable is undefined.");  
   for( SizeT i=0; i < sEl; i++)
     dd[i] += 1.0;
 }
@@ -178,7 +189,8 @@ template<>
 void Data_<SpDComplex>::Dec()
 {
   ULong sEl=N_Elements();
-  if( !sEl) throw GDLException("Variable is undefined.");  
+  assert( sEl != 0);
+  // if( !sEl) throw GDLException("Variable is undefined.");  
   for( SizeT i=0; i < sEl; i++)
     dd[i] -= 1.0;
 }
@@ -186,7 +198,8 @@ template<>
 void Data_<SpDComplex>::Inc()
 {
   ULong sEl=N_Elements();
-  if( !sEl) throw GDLException("Variable is undefined.");  
+  assert( sEl != 0);
+  // if( !sEl) throw GDLException("Variable is undefined.");  
   for( SizeT i=0; i < sEl; i++)
     dd[i] += 1.0;
 }
@@ -194,7 +207,8 @@ template<>
 void Data_<SpDComplexDbl>::Dec()
 {
   ULong sEl=N_Elements();
-  if( !sEl) throw GDLException("Variable is undefined.");  
+  assert( sEl != 0);
+  // if( !sEl) throw GDLException("Variable is undefined.");  
   for( SizeT i=0; i < sEl; i++)
     dd[i] -= 1.0;
 }
@@ -202,7 +216,8 @@ template<>
 void Data_<SpDComplexDbl>::Inc()
 {
   ULong sEl=N_Elements();
-  if( !sEl) throw GDLException("Variable is undefined.");  
+  assert( sEl != 0);
+  // if( !sEl) throw GDLException("Variable is undefined.");  
   for( SizeT i=0; i < sEl; i++)
     dd[i] += 1.0;
 }
@@ -240,7 +255,7 @@ void Data_<SpDObj>::Inc()
 
 
 // AndOp
-// Ands right to itself, deletes right
+// Ands right to itself, //C deletes right
 // right must always have more or same number of elements
 // for integers
 template<class Sp>
@@ -263,7 +278,7 @@ Data_<Sp>* Data_<Sp>::AndOp( BaseGDL* r)
       for( SizeT i=0; i < sEl; i++)
 	dd[i] = dd[i] & right->dd[i]; // & Ty(1);
     }
-  delete right;
+  //C delete right;
   return this;
 }
 // different for floats
@@ -293,7 +308,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::AndOp( BaseGDL* r)
       for( SizeT i=0; i < sEl; i++)
 	if( dd[i] == zero || right->dd[i] == zero) dd[i]=zero;
     }
-  delete right;
+  //C delete right;
   return this;
 }
 template<>
@@ -319,7 +334,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::AndOpInv( BaseGDL* r)
       for( SizeT i=0; i < sEl; i++)
 	if( dd[i] != zero) dd[i] = right->dd[i];
     }
-  delete right;
+  //C delete right;
   return this;
 }
 // for doubles
@@ -343,7 +358,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOp( BaseGDL* r)
       for( SizeT i=0; i < sEl; i++)
 	if( dd[i] == zero || right->dd[i] == zero) dd[i]=zero;
     }
-  delete right;
+  //C delete right;
   return this;
 }
 template<>
@@ -369,7 +384,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOpInv( BaseGDL* r)
       for( SizeT i=0; i < sEl; i++)
 	if( dd[i] != zero) dd[i] = right->dd[i];
     }
-  delete right;
+  //C delete right;
   return this;
 }
 
@@ -429,7 +444,7 @@ Data_<SpDPtr>* Data_<SpDPtr>::AndOp( BaseGDL* r)
 
 
 // OrOp
-// Ors right to itself, deletes right
+// Ors right to itself, //C deletes right
 // right must always have more or same number of elements
 // for integers
 template<class Sp>
@@ -452,7 +467,7 @@ Data_<Sp>* Data_<Sp>::OrOp( BaseGDL* r)
       for( SizeT i=0; i < sEl; i++)
 	dd[i] = dd[i] | right->dd[i]; // | Ty(1);
     }
-  delete right;
+  //C delete right;
   return this;
 }
 // different for floats
@@ -482,7 +497,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::OrOp( BaseGDL* r)
       for( SizeT i=0; i < sEl; i++)
 	if( dd[i] == zero) dd[i]=right->dd[i];
     }
-  delete right;
+  //C delete right;
   return this;
 }
 template<>
@@ -505,7 +520,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::OrOpInv( BaseGDL* r)
       for( SizeT i=0; i < sEl; i++)
 	if( right->dd[i] != zero) dd[i] = right->dd[i];
     }
-  delete right;
+  //C delete right;
   return this;
 }
 // for doubles
@@ -529,7 +544,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOp( BaseGDL* r)
       for( SizeT i=0; i < sEl; i++)
 	if( dd[i] == zero) dd[i]= right->dd[i];
     }
-  delete right;
+  //C delete right;
   return this;
 }
 template<>
@@ -555,7 +570,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOpInv( BaseGDL* r)
       for( SizeT i=0; i < sEl; i++)
 	if( right->dd[i] != zero) dd[i] = right->dd[i];
     }
-  delete right;
+  //C delete right;
   return this;
 }
 
@@ -596,7 +611,7 @@ Data_<SpDPtr>* Data_<SpDPtr>::OrOp( BaseGDL* r)
 }
 
 // XorOp
-// Xors right to itself, deletes right
+// Xors right to itself, //C deletes right
 // right must always have more or same number of elements
 // for integers
 template<class Sp>
@@ -619,7 +634,7 @@ Data_<Sp>* Data_<Sp>::XorOp( BaseGDL* r)
       for( SizeT i=0; i < sEl; i++)
 	dd[i] ^= right->dd[i];
     }
-  delete right;
+  //C delete right;
   return this;
 }
 // invalid types
@@ -666,7 +681,7 @@ Data_<SpDPtr>* Data_<SpDPtr>::XorOp( BaseGDL* r)
 }
 
 // EqOp
-// returns *this eq *r, deletes itself and right
+// returns *this eq *r, //C deletes itself and right
 template<class Sp>
 Data_<SpDByte>* Data_<Sp>::EqOp( BaseGDL* r)
 {
@@ -703,8 +718,8 @@ Data_<SpDByte>* Data_<Sp>::EqOp( BaseGDL* r)
       for( SizeT i=0; i < sEl; i++)
 	(*res)[i] = (right->dd[i] == dd[i]);
     }
-  delete right;
-  delete this;
+  //C delete right;
+  //C delete this;
   return res;
 }
 // invalid types
@@ -721,7 +736,7 @@ Data_<SpDByte>* Data_<SpDPtr>::EqOp( BaseGDL* r)
 }
 
 // NeOp
-// returns *this ne *r, deletes itself and right
+// returns *this ne *r, //C deletes itself and right
 template<class Sp>
 Data_<SpDByte>* Data_<Sp>::NeOp( BaseGDL* r)
 {
@@ -758,8 +773,8 @@ Data_<SpDByte>* Data_<Sp>::NeOp( BaseGDL* r)
       for( SizeT i=0; i < sEl; i++)
 	(*res)[i] = (right->dd[i] != dd[i]);
     }
-  delete right;
-  delete this;
+  //C delete right;
+  //C delete this;
   return res;
 }
 // invalid types
@@ -776,7 +791,7 @@ Data_<SpDByte>* Data_<SpDPtr>::NeOp( BaseGDL* r)
 }
 
 // LeOp
-// returns *this le *r, deletes itself and right
+// returns *this le *r, //C deletes itself and right
 template<class Sp>
 Data_<SpDByte>* Data_<Sp>::LeOp( BaseGDL* r)
 {
@@ -813,8 +828,8 @@ Data_<SpDByte>* Data_<Sp>::LeOp( BaseGDL* r)
       for( SizeT i=0; i < sEl; i++)
 	(*res)[i] = (right->dd[i] >= dd[i]);
     }
-  delete right;
-  delete this;
+  //C delete right;
+  //C delete this;
   return res;
 }
 // invalid types
@@ -843,7 +858,7 @@ Data_<SpDByte>* Data_<SpDComplexDbl>::LeOp( BaseGDL* r)
 }
 
 // LtOp
-// returns *this lt *r, deletes itself and right
+// returns *this lt *r, //C deletes itself and right
 template<class Sp>
 Data_<SpDByte>* Data_<Sp>::LtOp( BaseGDL* r)
 {
@@ -880,8 +895,8 @@ Data_<SpDByte>* Data_<Sp>::LtOp( BaseGDL* r)
       for( SizeT i=0; i < sEl; i++)
 	(*res)[i] = (right->dd[i] > dd[i]);
     }
-  delete right;
-  delete this;
+  //C delete right;
+  //C delete this;
   return res;
 }
 // invalid types
@@ -910,7 +925,7 @@ Data_<SpDByte>* Data_<SpDComplexDbl>::LtOp( BaseGDL* r)
 }
 
 // GeOp
-// returns *this ge *r, deletes itself and right
+// returns *this ge *r, //C deletes itself and right
 template<class Sp>
 Data_<SpDByte>* Data_<Sp>::GeOp( BaseGDL* r)
 {
@@ -947,8 +962,8 @@ Data_<SpDByte>* Data_<Sp>::GeOp( BaseGDL* r)
       for( SizeT i=0; i < sEl; i++)
 	(*res)[i] = (right->dd[i] <= dd[i]);
     }
-  delete right;
-  delete this;
+  //C delete right;
+  //C delete this;
   return res;
 }
 // invalid types
@@ -977,7 +992,7 @@ Data_<SpDByte>* Data_<SpDComplexDbl>::GeOp( BaseGDL* r)
 }
 
 // GtOp
-// returns *this gt *r, deletes itself and right
+// returns *this gt *r, //C deletes itself and right
 template<class Sp>
 Data_<SpDByte>* Data_<Sp>::GtOp( BaseGDL* r)
 {
@@ -1014,8 +1029,8 @@ Data_<SpDByte>* Data_<Sp>::GtOp( BaseGDL* r)
       for( SizeT i=0; i < sEl; i++)
 	(*res)[i] = (right->dd[i] < dd[i]);
     }
-  delete right;
-  delete this;
+  //C delete right;
+  //C delete this;
   return res;
 }
 // invalid types
@@ -1045,7 +1060,7 @@ Data_<SpDByte>* Data_<SpDComplexDbl>::GtOp( BaseGDL* r)
 
 
 // Add
-// Adds right to itself, deletes right
+// Adds right to itself, //C deletes right
 // right must always have more or same number of elements
 template<class Sp>
 Data_<Sp>* Data_<Sp>::Add( BaseGDL* r)
@@ -1066,7 +1081,7 @@ Data_<Sp>* Data_<Sp>::Add( BaseGDL* r)
       for( SizeT i=0; i < sEl; i++)
 	dd[i] += right->dd[i];
     }
-  delete right;
+  //C delete right;
   return this;
 }
 template<class Sp>
@@ -1094,7 +1109,7 @@ Data_<SpDString>* Data_<SpDString>::AddInv( BaseGDL* r)
       for( SizeT i=0; i < sEl; i++)
 	dd[i] = right->dd[i] + dd[i];
     }
-  delete right;
+  //C delete right;
   return this;
 }
 
@@ -1137,7 +1152,7 @@ Data_<Sp>* Data_<Sp>::Sub( BaseGDL* r)
       for( SizeT i=0; i < sEl; i++)
 	dd[i] -= right->dd[i];
     }
-  delete right;
+  //C delete right;
   return this;
 }
 // inverse substraction: left=right-left
@@ -1160,7 +1175,7 @@ Data_<Sp>* Data_<Sp>::SubInv( BaseGDL* r)
       for( SizeT i=0; i < sEl; i++)
 	dd[i] = right->dd[i] - dd[i];
     }
-  delete right;
+  //C delete right;
   return this;
 }
 // invalid types
@@ -1201,7 +1216,7 @@ Data_<SpDPtr>* Data_<SpDPtr>::SubInv( BaseGDL* r)
 
 // LtMark
 
-// LtMarks right to itself, deletes right
+// LtMarks right to itself, //C deletes right
 // right must always have more or same number of elements
 template<class Sp>
 Data_<Sp>* Data_<Sp>::LtMark( BaseGDL* r)
@@ -1222,7 +1237,7 @@ Data_<Sp>* Data_<Sp>::LtMark( BaseGDL* r)
       for( SizeT i=0; i < sEl; i++)
 	if( dd[i] > right->dd[i]) dd[i]=right->dd[i];
     }
-  delete right;
+  //C delete right;
   return this;
 }
 // invalid types
@@ -1257,7 +1272,7 @@ Data_<SpDPtr>* Data_<SpDPtr>::LtMark( BaseGDL* r)
 }
 
 // GtMark
-// GtMarks right to itself, deletes right
+// GtMarks right to itself, //C deletes right
 // right must always have more or same number of elements
 template<class Sp>
 Data_<Sp>* Data_<Sp>::GtMark( BaseGDL* r)
@@ -1279,7 +1294,7 @@ Data_<Sp>* Data_<Sp>::GtMark( BaseGDL* r)
       for( SizeT i=0; i < sEl; i++)
 	if( dd[i] < right->dd[i]) dd[i]=right->dd[i];
     }
-  delete right;
+  //C delete right;
   return this;
 }
 // invalid types
@@ -1314,7 +1329,7 @@ Data_<SpDPtr>* Data_<SpDPtr>::GtMark( BaseGDL* r)
 }
 
 // Mult
-// Mults right to itself, deletes right
+// Mults right to itself, //C deletes right
 // right must always have more or same number of elements
 template<class Sp>
 Data_<Sp>* Data_<Sp>::Mult( BaseGDL* r)
@@ -1335,7 +1350,7 @@ Data_<Sp>* Data_<Sp>::Mult( BaseGDL* r)
       for( SizeT i=0; i < sEl; i++)
 	dd[i] *= right->dd[i];
     }
-  delete right;
+  //C delete right;
   return this;
 }
 // invalid types
@@ -1381,7 +1396,7 @@ Data_<Sp>* Data_<Sp>::Div( BaseGDL* r)
 	  for( SizeT i=0; i < sEl; i++)
 	    dd[i] /= right->dd[i];
 	}
-      delete right;
+      //C delete right;
       return this;
     }
   else
@@ -1398,7 +1413,7 @@ Data_<Sp>* Data_<Sp>::Div( BaseGDL* r)
 	    else
 	      if( right->dd[i] != this->zero) dd[i] /= right->dd[i];
 	}
-      delete right;
+      //C delete right;
       return this;
     }
 }
@@ -1426,7 +1441,7 @@ Data_<Sp>* Data_<Sp>::DivInv( BaseGDL* r)
 	  for( SizeT i=0; i < sEl; i++)
 	    dd[i] = right->dd[i] / dd[i];
 	}
-      delete right;
+      //C delete right;
       return this;
     }
   else
@@ -1466,7 +1481,7 @@ Data_<Sp>* Data_<Sp>::DivInv( BaseGDL* r)
 	      else
 		dd[i] = right->dd[i];
 	}
-      delete right;
+      //C delete right;
       return this;
     }
 }
@@ -1531,7 +1546,7 @@ Data_<Sp>* Data_<Sp>::Mod( BaseGDL* r)
 	  for( SizeT i=0; i < sEl; i++)
 	    dd[i] %= right->dd[i];
 	}
-      delete right;
+      //C delete right;
       return this;
     }
   else
@@ -1561,7 +1576,7 @@ Data_<Sp>* Data_<Sp>::Mod( BaseGDL* r)
 	      else
 		dd[i] = this->zero;
 	}
-      delete right;
+      //C delete right;
       return this;
     }
 }
@@ -1591,7 +1606,7 @@ Data_<Sp>* Data_<Sp>::ModInv( BaseGDL* r)
 	  for( SizeT i=0; i < sEl; ++i)
 	    dd[i] = right->dd[i] % dd[i];
 	}
-      delete right;
+      //C delete right;
       return this;
     }
   else
@@ -1631,7 +1646,7 @@ Data_<Sp>* Data_<Sp>::ModInv( BaseGDL* r)
 	      else
 		dd[i] = this->zero;
 	}
-      delete right;
+      //C delete right;
       return this;
     }    
 }
@@ -1661,7 +1676,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::Mod( BaseGDL* r)
       for( SizeT i=0; i < sEl; i++)
 	dd[i] = Modulo(dd[i],right->dd[i]);
     }
-  delete right;
+  //C delete right;
   return this;
 }
 // float  inverse modulo division: left=right % left
@@ -1684,7 +1699,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModInv( BaseGDL* r)
       for( SizeT i=0; i < sEl; i++)
 	dd[i] = Modulo(right->dd[i],dd[i]);
     }
-  delete right;
+  //C delete right;
   return this;
 }
 // double modulo division: left=left % right
@@ -1714,7 +1729,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::Mod( BaseGDL* r)
       for( SizeT i=0; i < sEl; i++)
 	dd[i] = Modulo(dd[i],right->dd[i]);
     }
-  delete right;
+  //C delete right;
   return this;
 }
 // double inverse modulo division: left=right % left
@@ -1737,7 +1752,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModInv( BaseGDL* r)
       for( SizeT i=0; i < sEl; i++)
 	dd[i] = Modulo(right->dd[i],dd[i]);
     }
-  delete right;
+  //C delete right;
   return this;
 }
 // invalid types
@@ -1906,7 +1921,7 @@ Data_<Sp>* Data_<Sp>::Pow( BaseGDL* r)
       for( SizeT i=0; i < sEl; i++)
 	dd[i] = pow( dd[i], right->dd[i]); // valarray
     }
-  delete right;
+  //C delete right;
   return this;
 }
 // inverse power of value: left=right ^ left
@@ -1933,7 +1948,7 @@ Data_<Sp>* Data_<Sp>::PowInv( BaseGDL* r)
       for( SizeT i=0; i < sEl; i++)
  	dd[i] = pow( right->dd[i], dd[i]);
     }
-  delete right;
+  //C delete right;
   return this;
 }
 // floats power of value: left=left ^ right
@@ -1956,9 +1971,13 @@ Data_<SpDFloat>* Data_<SpDFloat>::Pow( BaseGDL* r)
       //      dd = pow( dd, right->dd); // valarray
       //      slice sl( 0, sEl, 1);
       //      dd = pow( dd, right->dd[ sl]); // valarray
-      dd = pow( dd, right->Resize(sEl)); // valarray
+      if( rEl == sEl)
+	dd = pow( dd, right->dd); // valarray
+      else
+	for( SizeT i=0; i < sEl; i++)
+	  dd[i] = pow( dd[i], right->dd[i]);
     }
-  delete right;
+  //C delete right;
   return this;
 }
 // floats inverse power of value: left=right ^ left
@@ -1978,9 +1997,13 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowInv( BaseGDL* r)
   else 
     {
       //      right->dd.resize(sEl);
-      dd = pow( right->Resize(sEl), dd); // valarray
+      if( rEl == sEl)
+	dd = pow( right->dd, dd); // valarray
+      else
+	for( SizeT i=0; i < sEl; i++)
+	  dd[i] = pow( right->dd[i], dd[i]);
     }
-  delete right;
+  //C delete right;
   return this;
 }
 // doubles power of value: left=left ^ right
@@ -2000,9 +2023,14 @@ Data_<SpDDouble>* Data_<SpDDouble>::Pow( BaseGDL* r)
   else 
     {
       //      right->dd.resize(sEl);
-      dd = pow( dd, right->Resize(sEl)); // valarray
+      //      dd = pow( dd, right->Resize(sEl)); // valarray
+      if( rEl == sEl)
+	dd = pow( dd, right->dd); // valarray
+      else
+	for( SizeT i=0; i < sEl; i++)
+	  dd[i] = pow( dd[i], right->dd[i]);
     }
-  delete right;
+  //C delete right;
   return this;
 }
 // doubles inverse power of value: left=right ^ left
@@ -2022,9 +2050,14 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowInv( BaseGDL* r)
   else 
     {
       //      right->dd.resize(sEl);
-      dd = pow( right->Resize(sEl), dd); // valarray
+      // dd = pow( right->Resize(sEl), dd); // valarray
+      if( rEl == sEl)
+	dd = pow( right->dd, dd); // valarray
+      else
+	for( SizeT i=0; i < sEl; i++)
+	  dd[i] = pow( right->dd[i], dd[i]);
     }
-  delete right;
+  //C delete right;
   return this;
 }
 
@@ -2047,7 +2080,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
 	{
 	  for( SizeT i=0; i<sEl; ++i)
 	    dd[ i] = pow( dd[ i], s);
-	  delete right;
+	  //C delete right;
 	  return this;
 	}
       else 
@@ -2057,7 +2090,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
 	    {
 	      for( SizeT i=0; i<sEl; ++i)
 		dd[ i] = pow( dd[ i], (*right)[ i]);
-	      delete right;
+	      //C delete right;
 	      return this;
 	    }
 	  else
@@ -2066,8 +2099,8 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
 						  BaseGDL::NOZERO);
 	      for( SizeT i=0; i<rEl; ++i)
 		(*res)[ i] = pow( dd[ i], (*right)[ i]);
-	      delete right;
-	      delete this;
+	      //C delete right;
+	      //C delete this;
 	      return res;
 	    }
 	}
@@ -2096,10 +2129,15 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
       for( SizeT i=0; i<sEl; ++i)
 	dd[ i] = pow( dd[ i], (*right)[ i]);
 #else
-      dd = pow( dd, right->Resize(sEl)); // valarray
+      //      dd = pow( dd, right->Resize(sEl)); // valarray
+      if( r->N_Elements() == sEl)
+	dd = pow( dd, right->dd); // valarray
+      else
+	for( SizeT i=0; i < sEl; i++)
+	  dd[i] = pow( dd[i], right->dd[i]);
 #endif
     }
-  delete right;
+  //C delete right;
 
   return this;
 }
@@ -2129,10 +2167,15 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowInv( BaseGDL* r)
 	dd[ i] = pow( (*right)[ i], dd[i]);
 #else
       //      right->dd.resize(sEl);
-      dd = pow( right->Resize(sEl), dd); // valarray
+      //      dd = pow( right->Resize(sEl), dd); // valarray
+      if( rEl == sEl)
+	dd = pow( right->dd, dd); // valarray
+      else
+	for( SizeT i=0; i < sEl; i++)
+	  dd[i] = pow( right->dd[i], dd[i]);
 #endif
     }
-  delete right;
+  //C delete right;
   return this;
 }
 // double complex power of value: left=left ^ right
@@ -2154,7 +2197,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
 	{
 	  for( SizeT i=0; i<sEl; ++i)
 	    dd[ i] = pow( dd[ i], s);
-	  delete right;
+	  //C delete right;
 	  return this;
 	}
       else 
@@ -2164,7 +2207,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
 	    {
 	      for( SizeT i=0; i<sEl; ++i)
 		dd[ i] = pow( dd[ i], (*right)[ i]);
-	      delete right;
+	      //C delete right;
 	      return this;
 	    }
 	  else
@@ -2173,8 +2216,8 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
 							BaseGDL::NOZERO);
 	      for( SizeT i=0; i<rEl; ++i)
 		(*res)[ i] = pow( dd[ i], (*right)[ i]);
-	      delete right;
-	      delete this;
+	      //C delete right;
+	      //C delete this;
 	      return res;
 	    }
 	}
@@ -2203,10 +2246,15 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
       for( SizeT i=0; i<sEl; ++i)
 	dd[ i] = pow( dd[ i], (*right)[ i]);
 #else
-      dd = pow( dd, right->Resize(sEl)); // valarray
+      //      dd = pow( dd, right->Resize(sEl)); // valarray
+      if( r->N_Elements() == sEl)
+	dd = pow( dd, right->dd); // valarray
+      else
+	for( SizeT i=0; i < sEl; i++)
+	  dd[i] = pow( dd[i], right->dd[i]);
 #endif
     }
-  delete right;
+  //C delete right;
   return this;
 }
 // double complex inverse power of value: left=right ^ left
@@ -2235,10 +2283,15 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowInv( BaseGDL* r)
 	dd[ i] = pow( (*right)[ i], dd[i]);
 #else
       //      right->dd.resize(sEl);
-      dd = pow( right->Resize(sEl), dd); // valarray
+      //      dd = pow( right->Resize(sEl), dd); // valarray
+      if( rEl == sEl)
+	dd = pow( right->dd, dd); // valarray
+      else
+	for( SizeT i=0; i < sEl; i++)
+	  dd[i] = pow( right->dd[i], dd[i]);
 #endif
     }
-  delete right;
+  //C delete right;
   return this;
 }
 
@@ -2292,7 +2345,7 @@ Data_<SpDObj>* Data_<SpDObj>::PowInv( BaseGDL* r)
 }
 
 // MatrixOp
-// returns *this # *r, deletes itself and right
+// returns *this # *r, //C deletes itself and right
 template<class Sp>
 Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r)
 {
@@ -2367,8 +2420,8 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r)
 	  }
     }
 
-  delete right;
-  delete this;
+  //C delete right;
+  //C delete this;
   return res;
 }
 // invalid types
