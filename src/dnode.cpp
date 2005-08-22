@@ -53,11 +53,89 @@ void DNode::RemoveNextSibling()
   right = static_cast<BaseAST*>(static_cast<AST*>(antlr::nullAST));
 }
 
+bool NonCopyNode( int type)
+{
+  return (type == GDLTokenTypes::DEREF) ||
+    (type == GDLTokenTypes::CONSTANT) ||
+    (type == GDLTokenTypes::VAR) ||
+    (type == GDLTokenTypes::SYSVAR) ||
+    (type == GDLTokenTypes::VARPTR);
+}
+
+BaseGDL* ProgNode::EvalNC()
+{
+  if( this->getType() == GDLTokenTypes::VAR)
+    {
+      EnvStackT& callStack=interpreter->CallStack();
+      BaseGDL* res=callStack.back()->GetKW(this->varIx); 
+      if( res == NULL)
+	throw GDLException( this, "Variable is undefined: "+
+			    callStack.back()->GetString(this->varIx));
+      return res;
+    }
+  if( this->getType() == GDLTokenTypes::VARPTR)
+    {
+      BaseGDL* res=this->var->Data();
+      if( res == NULL)
+	{
+	  EnvStackT& callStack=interpreter->CallStack();
+	  throw GDLException( this, "Variable is undefined: "+
+			      callStack.back()->GetString( res));
+	}
+      return res;
+    }
+  if( this->getType() == GDLTokenTypes::CONSTANT)
+    {
+      return this->cData;
+    }
+  if( this->getType() == GDLTokenTypes::SYSVAR)
+    {
+      if( this->var == NULL) 
+	{
+	  this->var=FindInVarList(sysVarList,this->getText());
+	  if( this->var == NULL)		    
+	    throw GDLException( this, "Not a legal system variable: !"+
+				this->getText());
+            }
+      // system variables are always defined
+      return this->var->Data(); // no ->Dup()
+    }
+  if( this->getType() == GDLTokenTypes::DEREF)
+    {
+      BaseGDL* e1 = this->getFirstChild()->Eval();
+      auto_ptr<BaseGDL> e1_guard(e1);
+                
+      DPtrGDL* ptr=dynamic_cast<DPtrGDL*>(e1);
+      if( ptr == NULL)
+	throw GDLException( this, "Pointer type required"
+			    " in this context: "+interpreter->Name(e1));
+      DPtr sc; 
+      if( !ptr->Scalar(sc))
+	throw GDLException( this, "Expression must be a "
+			    "scalar in this context: "+interpreter->Name(e1));
+      if( sc == 0)
+	throw GDLException( this, "Unable to dereference"
+			    " NULL pointer: "+interpreter->Name(e1));
+      
+      try{
+	return interpreter->GetHeap(sc);
+      }
+      catch( GDLInterpreter::HeapException)
+	{
+	  throw GDLException( this, "Invalid pointer: "+interpreter->Name(e1));
+	}
+    }
+}
 
 BinaryExpr::BinaryExpr( const RefDNode& refNode): DefaultNode( refNode)
 {
   op1 = GetFirstChild();
   op2 = GetFirstChild()->GetNextSibling();
+}
+BinaryExprNC::BinaryExprNC( const RefDNode& refNode): BinaryExpr( refNode)
+{
+  op1NC = NonCopyNode( op1->getType());
+  op2NC = NonCopyNode( op2->getType());
 }
 
 ProgNode::ProgNode(): // for NULLProgNode
@@ -433,6 +511,51 @@ void ProgNode::AdjustTypes(auto_ptr<BaseGDL>& a, auto_ptr<BaseGDL>& b)
       a.reset( a.release()->Convert2( bTy));
     }
 }
+void BinaryExprNC::AdjustTypesNC(auto_ptr<BaseGDL>& g1, BaseGDL*& e1,
+				 auto_ptr<BaseGDL>& g2, BaseGDL*& e2)
+{
+  if( op1NC)
+    {
+      e1 = op1->EvalNC();
+    }
+  else
+    {
+      e1 = op1->Eval();
+      g1.reset( e1);
+    }
+  if( op2NC)
+    {
+      e2 = op2->EvalNC();
+    }
+  else
+    {
+      e2 = op2->Eval();
+      g2.reset( e2);
+    }
+
+  DType aTy=e1->Type();
+  DType bTy=e2->Type();
+  if( aTy == bTy) 
+      return;
+
+  if( aTy > 100 || bTy > 100)
+    {
+      throw GDLException( "Expressions of this type cannot be converted.");
+    }
+
+  if( DTypeOrder[aTy] > DTypeOrder[bTy])
+    {
+      // convert e2 to e1
+      e2 = e2->Convert2( aTy, BaseGDL::COPY);
+      g2.reset( e2); // delete former e2
+    }
+  else
+    {
+      // convert e1 to e2
+      e1 = e1->Convert2( aTy, BaseGDL::COPY);
+      g1.reset( e1); // delete former e1
+    }
+}
 
 BaseGDL* QUESTIONNode::Eval()
 {
@@ -599,6 +722,62 @@ BaseGDL* GT_OPNode::Eval()
   auto_ptr<BaseGDL> e2( op2->Eval());
   AdjustTypes(e1,e2);
   res=e1->GtOp(e2.get());
+  return res;
+}
+
+
+BaseGDL* EQ_OPNCNode::Eval()
+{ BaseGDL* res;
+  auto_ptr<BaseGDL> g1;
+  auto_ptr<BaseGDL> g2;
+  BaseGDL *e1, *e2;
+  AdjustTypesNC( g1, e1, g2, e2);
+  res=e1->EqOp(e2);
+  return res;
+}
+BaseGDL* NE_OPNCNode::Eval()
+{ BaseGDL* res;
+  auto_ptr<BaseGDL> g1;
+  auto_ptr<BaseGDL> g2;
+  BaseGDL *e1, *e2;
+  AdjustTypesNC( g1, e1, g2, e2);
+  res=e1->NeOp(e2);
+  return res;
+}
+BaseGDL* LE_OPNCNode::Eval()
+{ BaseGDL* res;
+  auto_ptr<BaseGDL> g1;
+  auto_ptr<BaseGDL> g2;
+  BaseGDL *e1, *e2;
+  AdjustTypesNC( g1, e1, g2, e2);
+  res=e1->LeOp(e2);
+  return res;
+}
+BaseGDL* LT_OPNCNode::Eval()
+{ BaseGDL* res;
+  auto_ptr<BaseGDL> g1;
+  auto_ptr<BaseGDL> g2;
+  BaseGDL *e1, *e2;
+  AdjustTypesNC( g1, e1, g2, e2);
+  res=e1->LtOp(e2);
+  return res;
+}
+BaseGDL* GE_OPNCNode::Eval()
+{ BaseGDL* res;
+  auto_ptr<BaseGDL> g1;
+  auto_ptr<BaseGDL> g2;
+  BaseGDL *e1, *e2;
+  AdjustTypesNC( g1, e1, g2, e2);
+  res=e1->GeOp(e2);
+  return res;
+}
+BaseGDL* GT_OPNCNode::Eval()
+{ BaseGDL* res;
+  auto_ptr<BaseGDL> g1;
+  auto_ptr<BaseGDL> g2;
+  BaseGDL *e1, *e2;
+  AdjustTypesNC( g1, e1, g2, e2);
+  res=e1->GtOp(e2);
   return res;
 }
 

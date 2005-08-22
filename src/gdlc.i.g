@@ -2603,7 +2603,7 @@ sys_var_nocopy returns [BaseGDL* res]
             {
                 sysVar->var=FindInVarList(sysVarList,sysVar->getText());
                 if( sysVar->var == NULL)		    
-                throw GDLException( _t, "Not a legal system variable: "+
+                throw GDLException( _t, "Not a legal system variable: !"+
                                     sysVar->getText());
             }
 

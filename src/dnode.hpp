@@ -348,6 +348,7 @@ public:
   void SetNodes( const ProgNodeP right, const ProgNodeP down);
 
   virtual BaseGDL* Eval();
+  BaseGDL* EvalNC();
 
   ProgNodeP getFirstChild() const
   {
@@ -407,6 +408,20 @@ protected:
 
 public:
   BinaryExpr( const RefDNode& refNode);
+
+  int getType() { return GDLTokenTypes::EXPR;}
+};
+// binary expression with at least one operand non-copy
+class BinaryExprNC: public BinaryExpr
+{
+protected:
+  bool op1NC, op2NC;
+
+public:
+  BinaryExprNC( const RefDNode& refNode);
+
+  void AdjustTypesNC( std::auto_ptr<BaseGDL>& g1, BaseGDL*& e1, 
+		      std::auto_ptr<BaseGDL>& g2, BaseGDL*& e2);
 
   int getType() { return GDLTokenTypes::EXPR;}
 };
@@ -479,6 +494,8 @@ class LOG_ORNode: public BinaryExpr
   LOG_ORNode( const RefDNode& refNode): BinaryExpr( refNode){}
   BaseGDL* Eval();
 };
+
+
 class EQ_OPNode: public BinaryExpr
 { public:
   EQ_OPNode( const RefDNode& refNode): BinaryExpr( refNode){}
@@ -509,6 +526,39 @@ class GT_OPNode: public BinaryExpr
   GT_OPNode( const RefDNode& refNode): BinaryExpr( refNode){}
   BaseGDL* Eval();
 };
+
+class EQ_OPNCNode: public BinaryExprNC
+{ public:
+  EQ_OPNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
+  BaseGDL* Eval();
+};
+class NE_OPNCNode: public BinaryExprNC
+{ public:
+  NE_OPNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
+  BaseGDL* Eval();
+};
+class LE_OPNCNode: public BinaryExprNC
+{ public:
+  LE_OPNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
+  BaseGDL* Eval();
+};
+class LT_OPNCNode: public BinaryExprNC
+{ public:
+  LT_OPNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
+  BaseGDL* Eval();
+};
+class GE_OPNCNode: public BinaryExprNC
+{ public:
+  GE_OPNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
+  BaseGDL* Eval();
+};
+class GT_OPNCNode: public BinaryExprNC
+{ public:
+  GT_OPNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
+  BaseGDL* Eval();
+};
+
+
 class PLUSNode: public BinaryExpr
 { public:
   PLUSNode( const RefDNode& refNode): BinaryExpr( refNode){}
