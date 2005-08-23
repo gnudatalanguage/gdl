@@ -265,7 +265,9 @@ Data_<Sp>* Data_<Sp>::AndOp( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
   if( right->Scalar(s)) 
     {
@@ -318,7 +320,9 @@ Data_<SpDFloat>* Data_<SpDFloat>::AndOpInv( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
   if( right->Scalar(s)) 
     {
@@ -345,7 +349,9 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOp( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
   if( right->Scalar(s)) 
     {
@@ -368,7 +374,9 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOpInv( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
   if( right->Scalar(s)) 
     {
@@ -484,7 +492,9 @@ Data_<SpDFloat>* Data_<SpDFloat>::OrOp( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
   if( right->Scalar(s)) 
     {
@@ -507,7 +517,9 @@ Data_<SpDFloat>* Data_<SpDFloat>::OrOpInv( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
   if( right->Scalar(s)) 
     {
@@ -531,7 +543,9 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOp( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
   if( right->Scalar(s)) 
     {
@@ -554,7 +568,9 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOpInv( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
   if( right->Scalar(s)) 
     {
@@ -621,7 +637,9 @@ Data_<Sp>* Data_<Sp>::XorOp( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
   if( right->Scalar(s)) 
     {
@@ -689,7 +707,9 @@ Data_<SpDByte>* Data_<Sp>::EqOp( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
 
   Data_<SpDByte>* res;
 
@@ -744,7 +764,9 @@ Data_<SpDByte>* Data_<Sp>::NeOp( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
 
   Data_<SpDByte>* res;
 
@@ -799,7 +821,9 @@ Data_<SpDByte>* Data_<Sp>::LeOp( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
 
   Data_<SpDByte>* res;
 
@@ -866,7 +890,9 @@ Data_<SpDByte>* Data_<Sp>::LtOp( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
 
   Data_<SpDByte>* res;
 
@@ -933,7 +959,9 @@ Data_<SpDByte>* Data_<Sp>::GeOp( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
 
   Data_<SpDByte>* res;
 
@@ -1000,7 +1028,9 @@ Data_<SpDByte>* Data_<Sp>::GtOp( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
 
   Data_<SpDByte>* res;
 
@@ -1069,7 +1099,9 @@ Data_<Sp>* Data_<Sp>::Add( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
   if( right->Scalar(s)) 
     {
@@ -1097,7 +1129,9 @@ Data_<SpDString>* Data_<SpDString>::AddInv( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
   if( right->Scalar(s)) 
     {
@@ -1140,7 +1174,9 @@ Data_<Sp>* Data_<Sp>::Sub( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
   if( right->Scalar(s)) 
     {
@@ -1163,7 +1199,9 @@ Data_<Sp>* Data_<Sp>::SubInv( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
   if( right->Scalar(s)) 
     {
@@ -1225,7 +1263,9 @@ Data_<Sp>* Data_<Sp>::LtMark( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
   if( right->Scalar(s)) 
     {
@@ -1281,7 +1321,9 @@ Data_<Sp>* Data_<Sp>::GtMark( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
   if( right->Scalar(s)) 
 
@@ -1338,7 +1380,9 @@ Data_<Sp>* Data_<Sp>::Mult( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
   if( right->Scalar(s)) 
     {
@@ -1381,7 +1425,9 @@ Data_<Sp>* Data_<Sp>::Div( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
 
   if( sigsetjmp( sigFPEJmpBuf, 1) == 0)
@@ -1426,7 +1472,9 @@ Data_<Sp>* Data_<Sp>::DivInv( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
 
   if( sigsetjmp( sigFPEJmpBuf, 1) == 0)
@@ -1531,7 +1579,9 @@ Data_<Sp>* Data_<Sp>::Mod( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
 
   if( sigsetjmp( sigFPEJmpBuf, 1) == 0)
@@ -1588,7 +1638,9 @@ Data_<Sp>* Data_<Sp>::ModInv( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
 
   if( sigsetjmp( sigFPEJmpBuf, 1) == 0)
@@ -1664,7 +1716,9 @@ Data_<SpDFloat>* Data_<SpDFloat>::Mod( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
   if( right->Scalar(s)) 
     {
@@ -1687,7 +1741,9 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModInv( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
   if( right->Scalar(s)) 
     {
@@ -1740,7 +1796,9 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModInv( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
   if( right->Scalar(s)) 
     {
@@ -1909,7 +1967,9 @@ Data_<Sp>* Data_<Sp>::Pow( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
   if( right->Scalar(s)) 
     {
@@ -1932,7 +1992,9 @@ Data_<Sp>* Data_<Sp>::PowInv( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
   if( right->Scalar(s)) 
     {
@@ -1959,7 +2021,9 @@ Data_<SpDFloat>* Data_<SpDFloat>::Pow( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
   if( right->Scalar(s)) 
     {
@@ -1988,7 +2052,9 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowInv( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
   if( right->Scalar(s)) 
     {
@@ -2014,7 +2080,9 @@ Data_<SpDDouble>* Data_<SpDDouble>::Pow( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
   if( right->Scalar(s)) 
     {
@@ -2041,7 +2109,9 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowInv( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
   if( right->Scalar(s)) 
     {
@@ -2076,6 +2146,9 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
       Data_<SpDFloat>* right=static_cast<Data_<SpDFloat>* >(r);
 
       DFloat s;
+      // note: changes here have to be reflected in POWNCNode::Eval() (dnode.cpp)
+      // (concerning when a new variable is created vs. using this)
+      // (must also be consistent with ComplexDbl)
       if( right->Scalar(s)) 
 	{
 	  for( SizeT i=0; i<sEl; ++i)
@@ -2086,7 +2159,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
       else 
 	{
 	  SizeT rEl = right->N_Elements();
-	  if( sEl <= rEl)
+	  if( sEl < rEl)
 	    {
 	      for( SizeT i=0; i<sEl; ++i)
 		dd[ i] = pow( dd[ i], (*right)[ i]);
@@ -2149,7 +2222,9 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowInv( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
   if( right->Scalar(s)) 
     {
@@ -2193,6 +2268,9 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
       assert( right->N_Elements() > 0);
 
       DDouble s;
+
+      // note: changes here have to be reflected in POWNCNode::Eval() (dnode.cpp)
+      // (concerning when a new variable is created vs. using this)
       if( right->Scalar(s)) 
 	{
 	  for( SizeT i=0; i<sEl; ++i)
@@ -2203,7 +2281,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
       else 
 	{
 	  SizeT rEl = right->N_Elements();
-	  if( sEl <= rEl)
+	  if( sEl < rEl)
 	    {
 	      for( SizeT i=0; i<sEl; ++i)
 		dd[ i] = pow( dd[ i], (*right)[ i]);
@@ -2265,7 +2343,9 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowInv( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
   if( right->Scalar(s)) 
     {
@@ -2353,7 +2433,9 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
 
   Data_* res;
 
@@ -2449,7 +2531,8 @@ template<class Sp>
 Data_<SpDByte>* Data_<Sp>::LogNeg()
 {
   SizeT nEl = dd.size();
-  if( nEl == 0) throw GDLException("Variable is undefined.");  
+  assert( nEl);
+  //  if( nEl == 0) throw GDLException("Variable is undefined.");  
   
   DByteGDL* res = new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
   for( SizeT i=0; i < nEl; i++)
@@ -2460,7 +2543,8 @@ template<>
 Data_<SpDByte>* Data_<SpDFloat>::LogNeg()
 {
   SizeT nEl = dd.size();
-  if( nEl == 0) throw GDLException("Variable is undefined.");  
+  assert( nEl);
+  //  if( nEl == 0) throw GDLException("Variable is undefined.");  
   
   DByteGDL* res = new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
   for( SizeT i=0; i < nEl; i++)
@@ -2471,7 +2555,8 @@ template<>
 Data_<SpDByte>* Data_<SpDDouble>::LogNeg()
 {
   SizeT nEl = dd.size();
-  if( nEl == 0) throw GDLException("Variable is undefined.");  
+  assert( nEl);
+  //  if( nEl == 0) throw GDLException("Variable is undefined.");  
   
   DByteGDL* res = new Data_<SpDByte>( dim, BaseGDL::NOZERO);
   for( SizeT i=0; i < nEl; i++)
@@ -2482,7 +2567,8 @@ template<>
 Data_<SpDByte>* Data_<SpDString>::LogNeg()
 {
   SizeT nEl = dd.size();
-  if( nEl == 0) throw GDLException("Variable is undefined.");  
+  assert( nEl);
+  //  if( nEl == 0) throw GDLException("Variable is undefined.");  
   
   DByteGDL* res = new Data_<SpDByte>( dim, BaseGDL::NOZERO);
   for( SizeT i=0; i < nEl; i++)
@@ -2493,7 +2579,8 @@ template<>
 Data_<SpDByte>* Data_<SpDComplex>::LogNeg()
 {
   SizeT nEl = dd.size();
-  if( nEl == 0) throw GDLException("Variable is undefined.");  
+  assert( nEl);
+  //  if( nEl == 0) throw GDLException("Variable is undefined.");  
   
   DByteGDL* res = new Data_<SpDByte>( dim, BaseGDL::NOZERO);
   for( SizeT i=0; i < nEl; i++)
@@ -2504,7 +2591,8 @@ template<>
 Data_<SpDByte>* Data_<SpDComplexDbl>::LogNeg()
 {
   SizeT nEl = dd.size();
-  if( nEl == 0) throw GDLException("Variable is undefined.");  
+  assert( nEl);
+  //  if( nEl == 0) throw GDLException("Variable is undefined.");  
   
   DByteGDL* res = new Data_<SpDByte>( dim, BaseGDL::NOZERO);
   for( SizeT i=0; i < nEl; i++)

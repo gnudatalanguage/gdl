@@ -293,20 +293,20 @@ template<class Sp>
 typename Data_<Sp>::Ty Data_<Sp>::Sum() const 
 { return dd.sum();}
 
-template<class Sp> 
-typename Data_<Sp>::DataT& Data_<Sp>:: Resize( SizeT n)
-{
-  if( n > dd.size())
-    throw GDLException("Internal error: Data_::Resize(...) tried to grow.");
-  if( dd.size() != n) 
-    {
-      DataT rsArr( n);
-      std::copy( &dd[0], &dd[n], &rsArr[0]);
-      dd.resize( n); // discards data
-      std::copy( &rsArr[0], &rsArr[n], &dd[0]);
-    }
-  return dd;
-}
+// template<class Sp> 
+// typename Data_<Sp>::DataT& Data_<Sp>:: Resize( SizeT n)
+// {
+//   if( n > dd.size())
+//     throw GDLException("Internal error: Data_::Resize(...) tried to grow.");
+//   if( dd.size() != n) 
+//     {
+//       DataT rsArr( n);
+//       std::copy( &dd[0], &dd[n], &rsArr[0]);
+//       dd.resize( n); // discards data
+//       std::copy( &rsArr[0], &rsArr[n], &dd[0]);
+//     }
+//   return dd;
+// }
 
 // template<class Sp> 
 // typename Data_<Sp>::Ty& Data_<Sp>::operator[] (const SizeT d1) 

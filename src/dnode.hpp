@@ -300,7 +300,7 @@ typedef ProgNode* ProgNodeP;
 // the nodes the programs are made of
 class ProgNode
 {
-private:
+protected:
   static DInterpreter* interpreter;
 
 private:
@@ -314,12 +314,9 @@ protected:
   static void AdjustTypes(std::auto_ptr<BaseGDL>& a, 
 			  std::auto_ptr<BaseGDL>& b);
 
-private:
-  // from DNode (see there)
-  int lineNumber;
   BaseGDL*   cData;           // constant data
   DVar*      var;             // ptr to variable 
-  ArrayIndexListT* arrIxList; // ptr to array index list
+
   union {
     int        initInt;    // for c-i not actually used
     int        numBranch;  // number of branches in switch/case statements
@@ -333,6 +330,10 @@ private:
     int        compileOpt; // for PRO and FUNCTION nodes
   };
 
+private:
+  // from DNode (see there)
+  int lineNumber;
+  ArrayIndexListT* arrIxList; // ptr to array index list
   int labelStart; // for loops to determine if to bail out
   int labelEnd; // for loops to determine if to bail out
 
@@ -348,7 +349,7 @@ public:
   void SetNodes( const ProgNodeP right, const ProgNodeP down);
 
   virtual BaseGDL* Eval();
-  BaseGDL* EvalNC();
+  virtual BaseGDL* EvalNC(); // non-copy
 
   ProgNodeP getFirstChild() const
   {
@@ -440,6 +441,15 @@ public:
   int getType() { return GDLTokenTypes::EXPR;}
 };
 
+// VAR, SYSVAR, ...
+class LeafNode: public DefaultNode
+{
+public:
+  LeafNode( const RefDNode& refNode): DefaultNode( refNode)
+  {}
+};
+
+
 // used together with some defines do
 // allow using non-ref nodes with ANTLR
 // see gdlc.i.g
@@ -447,6 +457,42 @@ namespace antlr {
 
   RefAST ConvertAST( ProgNodeP p);
 }
+
+class VARNode: public LeafNode
+{
+public:
+  VARNode( const RefDNode& refNode): LeafNode( refNode)
+  {}
+  BaseGDL* EvalNC();
+};
+class VARPTRNode: public LeafNode
+{
+public:
+  VARPTRNode( const RefDNode& refNode): LeafNode( refNode)
+  {}
+  BaseGDL* EvalNC();
+};
+class SYSVARNode: public LeafNode
+{
+public:
+  SYSVARNode( const RefDNode& refNode): LeafNode( refNode)
+  {}
+  BaseGDL* EvalNC();
+};
+class DEREFNode: public LeafNode
+{
+public:
+  DEREFNode( const RefDNode& refNode): LeafNode( refNode)
+  {}
+  BaseGDL* EvalNC();
+};
+class CONSTANTNode: public LeafNode
+{
+public:
+  CONSTANTNode( const RefDNode& refNode): LeafNode( refNode)
+  {}
+  BaseGDL* EvalNC();
+};
 
 // expression nodes
 class QUESTIONNode: public TrinaryExpr
@@ -526,39 +572,6 @@ class GT_OPNode: public BinaryExpr
   GT_OPNode( const RefDNode& refNode): BinaryExpr( refNode){}
   BaseGDL* Eval();
 };
-
-class EQ_OPNCNode: public BinaryExprNC
-{ public:
-  EQ_OPNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
-  BaseGDL* Eval();
-};
-class NE_OPNCNode: public BinaryExprNC
-{ public:
-  NE_OPNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
-  BaseGDL* Eval();
-};
-class LE_OPNCNode: public BinaryExprNC
-{ public:
-  LE_OPNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
-  BaseGDL* Eval();
-};
-class LT_OPNCNode: public BinaryExprNC
-{ public:
-  LT_OPNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
-  BaseGDL* Eval();
-};
-class GE_OPNCNode: public BinaryExprNC
-{ public:
-  GE_OPNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
-  BaseGDL* Eval();
-};
-class GT_OPNCNode: public BinaryExprNC
-{ public:
-  GT_OPNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
-  BaseGDL* Eval();
-};
-
-
 class PLUSNode: public BinaryExpr
 { public:
   PLUSNode( const RefDNode& refNode): BinaryExpr( refNode){}
@@ -627,6 +640,154 @@ class POWNode: public BinaryExpr
 // class POSTINCNode: public BinaryExpr
 // { public:
 //   POSTINCNode( const RefDNode& refNode): BinaryExpr( refNode){}
+//   BaseGDL* Eval();
+// };
+
+// non-copy expression nodes
+// only minimal gain for trinary and unary operators
+// class QUESTIONNCNode: public TrinaryExprNC
+// { public:
+//   QUESTIONNCNode( const RefDNode& refNode): TrinaryExprNC( refNode){}
+//   BaseGDL* Eval();
+// };
+// class UMINUSNCNode: public UnaryExprNC
+// { public:
+//   UMINUSNCNode( const RefDNode& refNode): UnaryExprNC( refNode){}
+//   BaseGDL* Eval();
+// };
+// class LOG_NEGNCNode: public UnaryExprNC
+// { public:
+//   LOG_NEGNCNode( const RefDNode& refNode): UnaryExprNC( refNode){}
+//   BaseGDL* Eval();
+// };
+// class NOT_OPNCNode: public UnaryExprNC
+// { public:
+//   NOT_OPNCNode( const RefDNode& refNode): UnaryExprNC( refNode){}
+//   BaseGDL* Eval();
+// };
+class AND_OPNCNode: public BinaryExprNC
+{ public:
+  AND_OPNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
+  BaseGDL* Eval();
+};
+class OR_OPNCNode: public BinaryExprNC
+{ public:
+  OR_OPNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
+  BaseGDL* Eval();
+};
+class XOR_OPNCNode: public BinaryExprNC
+{ public:
+  XOR_OPNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
+  BaseGDL* Eval();
+};
+class LOG_ANDNCNode: public BinaryExprNC
+{ public:
+  LOG_ANDNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
+  BaseGDL* Eval();
+};
+class LOG_ORNCNode: public BinaryExprNC
+{ public:
+  LOG_ORNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
+  BaseGDL* Eval();
+};
+class EQ_OPNCNode: public BinaryExprNC
+{ public:
+  EQ_OPNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
+  BaseGDL* Eval();
+};
+class NE_OPNCNode: public BinaryExprNC
+{ public:
+  NE_OPNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
+  BaseGDL* Eval();
+};
+class LE_OPNCNode: public BinaryExprNC
+{ public:
+  LE_OPNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
+  BaseGDL* Eval();
+};
+class LT_OPNCNode: public BinaryExprNC
+{ public:
+  LT_OPNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
+  BaseGDL* Eval();
+};
+class GE_OPNCNode: public BinaryExprNC
+{ public:
+  GE_OPNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
+  BaseGDL* Eval();
+};
+class GT_OPNCNode: public BinaryExprNC
+{ public:
+  GT_OPNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
+  BaseGDL* Eval();
+};
+class PLUSNCNode: public BinaryExprNC
+{ public:
+  PLUSNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
+  BaseGDL* Eval();
+};
+class MINUSNCNode: public BinaryExprNC
+{ public:
+  MINUSNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
+  BaseGDL* Eval();
+};
+class LTMARKNCNode: public BinaryExprNC
+{ public:
+  LTMARKNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
+  BaseGDL* Eval();
+};
+class GTMARKNCNode: public BinaryExprNC
+{ public:
+  GTMARKNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
+  BaseGDL* Eval();
+};
+class ASTERIXNCNode: public BinaryExprNC
+{ public:
+  ASTERIXNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
+  BaseGDL* Eval();
+};
+class MATRIX_OP1NCNode: public BinaryExprNC
+{ public:
+  MATRIX_OP1NCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
+  BaseGDL* Eval();
+};
+class MATRIX_OP2NCNode: public BinaryExprNC
+{ public:
+  MATRIX_OP2NCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
+  BaseGDL* Eval();
+};
+class SLASHNCNode: public BinaryExprNC
+{ public:
+  SLASHNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
+  BaseGDL* Eval();
+};
+class MOD_OPNCNode: public BinaryExprNC
+{ public:
+  MOD_OPNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
+  BaseGDL* Eval();
+};
+class POWNCNode: public BinaryExprNC
+{ public:
+  POWNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
+  BaseGDL* Eval();
+};
+// class DECNCNode: public BinaryExprNC
+// { public:
+//   DECNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
+//   BaseGDL* Eval();
+// };
+// class INCNode: public BinaryExprNC
+// { public:
+//   INCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
+//   BaseGDL* Eval();
+// };
+// class POSTDECNCNode: public BinaryExprNC
+// { public:
+//   POSTDECNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
+//   BaseGDL* Eval();
+// };
+// class POSTINCNode: public BinaryExprNC
+// { public:
+//   POSTINCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
 //   BaseGDL* Eval();
 // };
 

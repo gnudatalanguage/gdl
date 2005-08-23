@@ -28,6 +28,7 @@
 #include "arrayindex.hpp"
 #include "dinterpreter.hpp"
 
+#include <assert.h>
 
 using namespace std;
 
@@ -64,17 +65,21 @@ bool NonCopyNode( int type)
 
 BaseGDL* ProgNode::EvalNC()
 {
-  if( this->getType() == GDLTokenTypes::VAR)
-    {
+  assert( 0); // internal error
+}
+
+BaseGDL* VARNode::EvalNC()
+{
       EnvStackT& callStack=interpreter->CallStack();
       BaseGDL* res=callStack.back()->GetKW(this->varIx); 
       if( res == NULL)
 	throw GDLException( this, "Variable is undefined: "+
 			    callStack.back()->GetString(this->varIx));
       return res;
-    }
-  if( this->getType() == GDLTokenTypes::VARPTR)
-    {
+}
+
+BaseGDL* VARPTRNode::EvalNC()
+{
       BaseGDL* res=this->var->Data();
       if( res == NULL)
 	{
@@ -83,47 +88,49 @@ BaseGDL* ProgNode::EvalNC()
 			      callStack.back()->GetString( res));
 	}
       return res;
-    }
-  if( this->getType() == GDLTokenTypes::CONSTANT)
+}
+
+BaseGDL* CONSTANTNode::EvalNC()
+{
+  return this->cData;
+}
+
+BaseGDL* SYSVARNode::EvalNC()
+{
+  if( this->var == NULL) 
     {
-      return this->cData;
+      this->var=FindInVarList(sysVarList,this->getText());
+      if( this->var == NULL)		    
+	throw GDLException( this, "Not a legal system variable: !"+
+			    this->getText());
     }
-  if( this->getType() == GDLTokenTypes::SYSVAR)
+  // system variables are always defined
+  return this->var->Data(); 
+}
+
+BaseGDL* DEREFNode::EvalNC()
+{
+  BaseGDL* e1 = this->getFirstChild()->Eval();
+  auto_ptr<BaseGDL> e1_guard(e1);
+  
+  DPtrGDL* ptr=dynamic_cast<DPtrGDL*>(e1);
+  if( ptr == NULL)
+    throw GDLException( this, "Pointer type required"
+			" in this context: "+interpreter->Name(e1));
+  DPtr sc; 
+  if( !ptr->Scalar(sc))
+    throw GDLException( this, "Expression must be a "
+			"scalar in this context: "+interpreter->Name(e1));
+  if( sc == 0)
+    throw GDLException( this, "Unable to dereference"
+			" NULL pointer: "+interpreter->Name(e1));
+  
+  try{
+    return interpreter->GetHeap(sc);
+  }
+  catch( GDLInterpreter::HeapException)
     {
-      if( this->var == NULL) 
-	{
-	  this->var=FindInVarList(sysVarList,this->getText());
-	  if( this->var == NULL)		    
-	    throw GDLException( this, "Not a legal system variable: !"+
-				this->getText());
-            }
-      // system variables are always defined
-      return this->var->Data(); // no ->Dup()
-    }
-  if( this->getType() == GDLTokenTypes::DEREF)
-    {
-      BaseGDL* e1 = this->getFirstChild()->Eval();
-      auto_ptr<BaseGDL> e1_guard(e1);
-                
-      DPtrGDL* ptr=dynamic_cast<DPtrGDL*>(e1);
-      if( ptr == NULL)
-	throw GDLException( this, "Pointer type required"
-			    " in this context: "+interpreter->Name(e1));
-      DPtr sc; 
-      if( !ptr->Scalar(sc))
-	throw GDLException( this, "Expression must be a "
-			    "scalar in this context: "+interpreter->Name(e1));
-      if( sc == 0)
-	throw GDLException( this, "Unable to dereference"
-			    " NULL pointer: "+interpreter->Name(e1));
-      
-      try{
-	return interpreter->GetHeap(sc);
-      }
-      catch( GDLInterpreter::HeapException)
-	{
-	  throw GDLException( this, "Invalid pointer: "+interpreter->Name(e1));
-	}
+      throw GDLException( this, "Invalid pointer: "+interpreter->Name(e1));
     }
 }
 
@@ -366,12 +373,26 @@ void DNode::initialize( RefDNode t )
 
 ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
 {
+  bool nonCopy = false;
+  if( refNode->GetFirstChild() != RefDNode(antlr::nullAST))
+    {
+      if( NonCopyNode( refNode->GetFirstChild()->getType()))
+	nonCopy = true;
+      if( refNode->GetFirstChild()->GetNextSibling() != 
+	  RefDNode(antlr::nullAST))
+	if( NonCopyNode( refNode->GetFirstChild()->GetNextSibling()->getType()))
+	  nonCopy = true;
+    }
+  
+  if( nonCopy)
   switch( refNode->getType())
     {
     case GDLTokenTypes::QUESTION:
       {
 	return new QUESTIONNode( refNode);
       }
+
+      // unary
     case GDLTokenTypes::UMINUS:
       {
 	return new UMINUSNode( refNode);
@@ -384,109 +405,264 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
       {
 	return new NOT_OPNode( refNode);
       }
+
+      // binary
     case GDLTokenTypes::AND_OP:
       {
-	return new AND_OPNode( refNode);
+	return new AND_OPNCNode( refNode);
       }
     case GDLTokenTypes::OR_OP:
       {
-	return new OR_OPNode( refNode);
+	return new OR_OPNCNode( refNode);
       }
     case GDLTokenTypes::XOR_OP:
       {
-	return new XOR_OPNode( refNode);
+	return new XOR_OPNCNode( refNode);
       }
     case GDLTokenTypes::LOG_AND:
       {
-	return new LOG_ANDNode( refNode);
+	return new LOG_ANDNCNode( refNode);
       }
     case GDLTokenTypes::LOG_OR:
       {
-	return new LOG_ORNode( refNode);
+	return new LOG_ORNCNode( refNode);
       }
     case GDLTokenTypes::EQ_OP:
       {
-	return new EQ_OPNode( refNode);
+	return new EQ_OPNCNode( refNode);
       }
     case GDLTokenTypes::NE_OP:
       {
-	return new NE_OPNode( refNode);
+	return new NE_OPNCNode( refNode);
       }
     case GDLTokenTypes::LE_OP:
       {
-	return new LE_OPNode( refNode);
+	return new LE_OPNCNode( refNode);
       }
     case GDLTokenTypes::LT_OP:
       {
-	return new LT_OPNode( refNode);
+	return new LT_OPNCNode( refNode);
       }
     case GDLTokenTypes::GE_OP:
       {
-	return new GE_OPNode( refNode);
+	return new GE_OPNCNode( refNode);
       }
     case GDLTokenTypes::GT_OP:
       {
-	return new GT_OPNode( refNode);
+	return new GT_OPNCNode( refNode);
       }
     case GDLTokenTypes::PLUS:
       {
-	return new PLUSNode( refNode);
+	return new PLUSNCNode( refNode);
       }
     case GDLTokenTypes::MINUS:
       {
-	return new MINUSNode( refNode);
+	return new MINUSNCNode( refNode);
       }
     case GDLTokenTypes::LTMARK:
       {
-	return new LTMARKNode( refNode);
+	return new LTMARKNCNode( refNode);
       }
     case GDLTokenTypes::GTMARK:
       {
-	return new GTMARKNode( refNode);
+	return new GTMARKNCNode( refNode);
       }
     case GDLTokenTypes::ASTERIX:
       {
-	return new ASTERIXNode( refNode);
+	return new ASTERIXNCNode( refNode);
       }
     case GDLTokenTypes::MATRIX_OP1:
       {
-	return new MATRIX_OP1Node( refNode);
+	return new MATRIX_OP1NCNode( refNode);
       }
     case GDLTokenTypes::MATRIX_OP2:
       {
-	return new MATRIX_OP2Node( refNode);
+	return new MATRIX_OP2NCNode( refNode);
       }
     case GDLTokenTypes::SLASH:
       {
-	return new SLASHNode( refNode);
+	return new SLASHNCNode( refNode);
       }
     case GDLTokenTypes::MOD_OP:
       {
-	return new MOD_OPNode( refNode);
+	return new MOD_OPNCNode( refNode);
       }
     case GDLTokenTypes::POW:
       {
-	return new POWNode( refNode);
+	return new POWNCNode( refNode);
       }
 //     case GDLTokenTypes::DEC:
 //       {
-// 	return new DECNode( refNode);
+// 	return new DECNCNode( refNode);
 //       }
 //     case GDLTokenTypes::INC:
 //       {
-// 	return new INCNode( refNode);
+// 	return new INCNCNode( refNode);
 //       }
 //     case GDLTokenTypes::POSTDEC:
 //       {
-// 	return new POSTDECNode( refNode);
+// 	return new POSTDECNCNode( refNode);
 //       }
 //     case GDLTokenTypes::POSTINC:
 //       {
-// 	return new POSTINCNode( refNode);
+// 	return new POSTINCNCNode( refNode);
 //       }
-    default:
-      return new DefaultNode( refNode);
+//    default:
+//      return new DefaultNode( refNode);
     }
+  else // !nonCopy
+    switch( refNode->getType())
+      {
+      case GDLTokenTypes::QUESTION:
+	{
+	  return new QUESTIONNode( refNode);
+	}
+
+	// unary
+      case GDLTokenTypes::UMINUS:
+	{
+	  return new UMINUSNode( refNode);
+	}
+      case GDLTokenTypes::LOG_NEG:
+	{
+	  return new LOG_NEGNode( refNode);
+	}
+      case GDLTokenTypes::NOT_OP:
+	{
+	  return new NOT_OPNode( refNode);
+	}
+
+	// binary
+      case GDLTokenTypes::AND_OP:
+	{
+	  return new AND_OPNode( refNode);
+	}
+      case GDLTokenTypes::OR_OP:
+	{
+	  return new OR_OPNode( refNode);
+	}
+      case GDLTokenTypes::XOR_OP:
+	{
+	  return new XOR_OPNode( refNode);
+	}
+      case GDLTokenTypes::LOG_AND:
+	{
+	  return new LOG_ANDNode( refNode);
+	}
+      case GDLTokenTypes::LOG_OR:
+	{
+	  return new LOG_ORNode( refNode);
+	}
+      case GDLTokenTypes::EQ_OP:
+	{
+	  return new EQ_OPNode( refNode);
+	}
+      case GDLTokenTypes::NE_OP:
+	{
+	  return new NE_OPNode( refNode);
+	}
+      case GDLTokenTypes::LE_OP:
+	{
+	  return new LE_OPNode( refNode);
+	}
+      case GDLTokenTypes::LT_OP:
+	{
+	  return new LT_OPNode( refNode);
+	}
+      case GDLTokenTypes::GE_OP:
+	{
+	  return new GE_OPNode( refNode);
+	}
+      case GDLTokenTypes::GT_OP:
+	{
+	  return new GT_OPNode( refNode);
+	}
+      case GDLTokenTypes::PLUS:
+	{
+	  return new PLUSNode( refNode);
+	}
+      case GDLTokenTypes::MINUS:
+	{
+	  return new MINUSNode( refNode);
+	}
+      case GDLTokenTypes::LTMARK:
+	{
+	  return new LTMARKNode( refNode);
+	}
+      case GDLTokenTypes::GTMARK:
+	{
+	  return new GTMARKNode( refNode);
+	}
+      case GDLTokenTypes::ASTERIX:
+	{
+	  return new ASTERIXNode( refNode);
+	}
+      case GDLTokenTypes::MATRIX_OP1:
+	{
+	  return new MATRIX_OP1Node( refNode);
+	}
+      case GDLTokenTypes::MATRIX_OP2:
+	{
+	  return new MATRIX_OP2Node( refNode);
+	}
+      case GDLTokenTypes::SLASH:
+	{
+	  return new SLASHNode( refNode);
+	}
+      case GDLTokenTypes::MOD_OP:
+	{
+	  return new MOD_OPNode( refNode);
+	}
+      case GDLTokenTypes::POW:
+	{
+	  return new POWNode( refNode);
+	}
+	//     case GDLTokenTypes::DEC:
+	//       {
+	// 	return new DECNode( refNode);
+	//       }
+	//     case GDLTokenTypes::INC:
+	//       {
+	// 	return new INCNode( refNode);
+	//       }
+	//     case GDLTokenTypes::POSTDEC:
+	//       {
+	// 	return new POSTDECNode( refNode);
+	//       }
+	//     case GDLTokenTypes::POSTINC:
+	//       {
+	// 	return new POSTINCNode( refNode);
+	//       }
+	//      default:
+      }
+
+  // independed of nonCopy:
+  switch( refNode->getType())
+    {
+      case GDLTokenTypes::VAR:
+	{
+	  return new VARNode( refNode);
+	}
+      case GDLTokenTypes::VARPTR:
+	{
+	  return new VARPTRNode( refNode);
+	}
+      case GDLTokenTypes::SYSVAR:
+	{
+	  return new SYSVARNode( refNode);
+	}
+      case GDLTokenTypes::DEREF:
+	{
+	  return new DEREFNode( refNode);
+	}
+      case GDLTokenTypes::CONSTANT:
+	{
+	  return new CONSTANTNode( refNode);
+	}
+    }
+
+  // default
+  return new DefaultNode( refNode);
 }
 
 // converts inferior type to superior type
@@ -552,7 +728,7 @@ void BinaryExprNC::AdjustTypesNC(auto_ptr<BaseGDL>& g1, BaseGDL*& e1,
   else
     {
       // convert e1 to e2
-      e1 = e1->Convert2( aTy, BaseGDL::COPY);
+      e1 = e1->Convert2( bTy, BaseGDL::COPY);
       g1.reset( e1); // delete former e1
     }
 }
@@ -582,6 +758,7 @@ BaseGDL* LOG_NEGNode::Eval()
   auto_ptr<BaseGDL> e1( down->Eval());
   return e1->LogNeg();
 }
+
 BaseGDL* AND_OPNode::Eval()
 { BaseGDL* res;
   auto_ptr<BaseGDL> e1( op1->Eval());
@@ -601,12 +778,12 @@ BaseGDL* AND_OPNode::Eval()
     else
       if( e1->N_Elements() <= e2->N_Elements())
 	{
-	res= e1->AndOpInv(e2.get()); // smaller_array + larger_array or same size
+	res = e1->AndOpInv(e2.get()); // smaller_array + larger_array or same size
 	e1.release();
 	}
       else
 	{
-	res= e2->AndOp(e1.get()); // smaller + larger
+	res = e2->AndOp(e1.get()); // smaller + larger
 	e2.release();
 	}
   return res;
@@ -724,63 +901,6 @@ BaseGDL* GT_OPNode::Eval()
   res=e1->GtOp(e2.get());
   return res;
 }
-
-
-BaseGDL* EQ_OPNCNode::Eval()
-{ BaseGDL* res;
-  auto_ptr<BaseGDL> g1;
-  auto_ptr<BaseGDL> g2;
-  BaseGDL *e1, *e2;
-  AdjustTypesNC( g1, e1, g2, e2);
-  res=e1->EqOp(e2);
-  return res;
-}
-BaseGDL* NE_OPNCNode::Eval()
-{ BaseGDL* res;
-  auto_ptr<BaseGDL> g1;
-  auto_ptr<BaseGDL> g2;
-  BaseGDL *e1, *e2;
-  AdjustTypesNC( g1, e1, g2, e2);
-  res=e1->NeOp(e2);
-  return res;
-}
-BaseGDL* LE_OPNCNode::Eval()
-{ BaseGDL* res;
-  auto_ptr<BaseGDL> g1;
-  auto_ptr<BaseGDL> g2;
-  BaseGDL *e1, *e2;
-  AdjustTypesNC( g1, e1, g2, e2);
-  res=e1->LeOp(e2);
-  return res;
-}
-BaseGDL* LT_OPNCNode::Eval()
-{ BaseGDL* res;
-  auto_ptr<BaseGDL> g1;
-  auto_ptr<BaseGDL> g2;
-  BaseGDL *e1, *e2;
-  AdjustTypesNC( g1, e1, g2, e2);
-  res=e1->LtOp(e2);
-  return res;
-}
-BaseGDL* GE_OPNCNode::Eval()
-{ BaseGDL* res;
-  auto_ptr<BaseGDL> g1;
-  auto_ptr<BaseGDL> g2;
-  BaseGDL *e1, *e2;
-  AdjustTypesNC( g1, e1, g2, e2);
-  res=e1->GeOp(e2);
-  return res;
-}
-BaseGDL* GT_OPNCNode::Eval()
-{ BaseGDL* res;
-  auto_ptr<BaseGDL> g1;
-  auto_ptr<BaseGDL> g2;
-  BaseGDL *e1, *e2;
-  AdjustTypesNC( g1, e1, g2, e2);
-  res=e1->GtOp(e2);
-  return res;
-}
-
 BaseGDL* PLUSNode::Eval()
 { BaseGDL* res;
  auto_ptr<BaseGDL> e1( op1->Eval());
@@ -1128,6 +1248,830 @@ BaseGDL* POWNode::Eval()
 //   return new POSTDECNode( refNode);
 // }
 // BaseGDL* POSTINCNode::Eval()
+// { BaseGDL* res;
+//   return new POSTINCNode( refNode);
+// }
+
+// ***********************
+// **** nonCopy nodes ****
+// ***********************
+BaseGDL* AND_OPNCNode::Eval()
+{ BaseGDL* res;
+ auto_ptr<BaseGDL> g1;
+ auto_ptr<BaseGDL> g2;
+ BaseGDL *e1, *e2; AdjustTypesNC( g1, e1, g2, e2); 
+
+ if( e1->N_Elements() == e2->N_Elements())
+   {
+     if( g1.get() != NULL)
+       {
+	 g1.release();
+	 return e1->AndOpInv(e2);
+       }
+     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+     return e2->AndOp(e1); 
+   }
+
+ if( e1->Scalar())
+   {
+     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+     res= e2->AndOp(e1); // scalar+scalar or array+scalar
+     
+   }
+ else
+   if( e2->Scalar())
+     {
+       res= e1->AndOpInv(e2); // array+scalar
+       
+     }
+   else
+     if( e1->N_Elements() <= e2->N_Elements())
+       {
+	 if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+	 res = e1->AndOpInv(e2); // smaller_array + larger_array or same size
+	 
+       }
+     else
+       {
+	 if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+	 res = e2->AndOp(e1); // smaller + larger
+	 
+       }
+ return res;
+}
+BaseGDL* OR_OPNCNode::Eval()
+{ BaseGDL* res;
+ auto_ptr<BaseGDL> g1;
+ auto_ptr<BaseGDL> g2;
+ BaseGDL *e1, *e2; AdjustTypesNC( g1, e1, g2, e2); 
+
+ if( e1->N_Elements() == e2->N_Elements())
+   {
+     if( g1.get() != NULL)
+       {
+	 g1.release();
+	 return e1->OrOpInv(e2);
+       }
+     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+     return e2->OrOp(e1); 
+   }
+
+ if( e1->Scalar())
+   {
+     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+     res= e2->OrOp(e1); // scalar+scalar or array+scalar
+     
+   }
+ else
+   if( e2->Scalar())
+     {
+       if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+       res= e1->OrOpInv(e2); // array+scalar
+       
+     }
+   else
+     if( e1->N_Elements() <= e2->N_Elements())
+       {
+	 if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+	 res= e1->OrOpInv(e2); // smaller_array + larger_array or same size
+	 
+       }
+     else
+       {
+	 if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+	 res= e2->OrOp(e1); // smaller + larger
+	 
+       }
+ return res;
+}
+BaseGDL* XOR_OPNCNode::Eval()
+{ BaseGDL* res;
+ auto_ptr<BaseGDL> g1;
+ auto_ptr<BaseGDL> g2;
+ BaseGDL *e1, *e2; AdjustTypesNC( g1, e1, g2, e2); 
+ if( e1->N_Elements() == e2->N_Elements())
+   {
+     if( g1.get() != NULL)
+       {
+	 g1.release();
+	 return e1->XorOp(e2);
+       }
+     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+     return e2->XorOp(e1); 
+   }
+
+ if( e1->N_Elements() <= e2->N_Elements())
+   {
+     if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+     res= e1->XorOp(e2); // smaller_array + larger_array or same size
+     
+   }
+ else
+   {
+     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+     res= e2->XorOp(e1); // smaller + larger
+     
+   }
+ return res;
+}
+BaseGDL* LOG_ANDNCNode::Eval()
+{ BaseGDL* res;
+ auto_ptr<BaseGDL> g1;
+ auto_ptr<BaseGDL> g2;
+ BaseGDL *e1, *e2;
+ if( op1NC)
+   {
+     e1 = op1->EvalNC();
+   }
+ else
+   {
+     e1 = op1->Eval();
+     g1.reset( e1);
+   }
+ if( op2NC)
+   {
+     e2 = op2->EvalNC();
+   }
+ else
+   {
+     e2 = op2->Eval();
+     g2.reset( e2);
+   }
+ if( !e1->LogTrue()) res = new DByteGDL( 0);
+ else if( !e2->LogTrue()) res = new DByteGDL( 0);
+ else res = new DByteGDL( 1);
+ return res;
+}
+BaseGDL* LOG_ORNCNode::Eval()
+{ BaseGDL* res;
+ auto_ptr<BaseGDL> g1;
+ auto_ptr<BaseGDL> g2;
+ BaseGDL *e1, *e2;
+ if( op1NC)
+   {
+     e1 = op1->EvalNC();
+   }
+ else
+   {
+     e1 = op1->Eval();
+     g1.reset( e1);
+   }
+ if( op2NC)
+   {
+     e2 = op2->EvalNC();
+   }
+ else
+   {
+     e2 = op2->Eval();
+     g2.reset( e2);
+   }
+ if( e1->LogTrue()) res = new DByteGDL( 1); 
+ else if( e2->LogTrue()) res = new DByteGDL( 1);
+ else res = new DByteGDL( 0);
+ return res;
+}
+
+
+BaseGDL* EQ_OPNCNode::Eval()
+{ BaseGDL* res;
+  auto_ptr<BaseGDL> g1;
+  auto_ptr<BaseGDL> g2;
+  BaseGDL *e1, *e2;
+  AdjustTypesNC( g1, e1, g2, e2);
+  res=e1->EqOp(e2);
+  return res;
+}
+BaseGDL* NE_OPNCNode::Eval()
+{ BaseGDL* res;
+  auto_ptr<BaseGDL> g1;
+  auto_ptr<BaseGDL> g2;
+  BaseGDL *e1, *e2;
+  AdjustTypesNC( g1, e1, g2, e2);
+  res=e1->NeOp(e2);
+  return res;
+}
+BaseGDL* LE_OPNCNode::Eval()
+{ BaseGDL* res;
+  auto_ptr<BaseGDL> g1;
+  auto_ptr<BaseGDL> g2;
+  BaseGDL *e1, *e2;
+  AdjustTypesNC( g1, e1, g2, e2);
+  res=e1->LeOp(e2);
+  return res;
+}
+BaseGDL* LT_OPNCNode::Eval()
+{ BaseGDL* res;
+  auto_ptr<BaseGDL> g1;
+  auto_ptr<BaseGDL> g2;
+  BaseGDL *e1, *e2;
+  AdjustTypesNC( g1, e1, g2, e2);
+  res=e1->LtOp(e2);
+  return res;
+}
+BaseGDL* GE_OPNCNode::Eval()
+{ BaseGDL* res;
+  auto_ptr<BaseGDL> g1;
+  auto_ptr<BaseGDL> g2;
+  BaseGDL *e1, *e2;
+  AdjustTypesNC( g1, e1, g2, e2);
+  res=e1->GeOp(e2);
+  return res;
+}
+BaseGDL* GT_OPNCNode::Eval()
+{ BaseGDL* res;
+  auto_ptr<BaseGDL> g1;
+  auto_ptr<BaseGDL> g2;
+  BaseGDL *e1, *e2;
+  AdjustTypesNC( g1, e1, g2, e2);
+  res=e1->GtOp(e2);
+  return res;
+}
+BaseGDL* PLUSNCNode::Eval()
+{ BaseGDL* res;
+ auto_ptr<BaseGDL> g1;
+ auto_ptr<BaseGDL> g2;
+ BaseGDL *e1, *e2; AdjustTypesNC( g1, e1, g2, e2); 
+
+ if( e1->N_Elements() == e2->N_Elements())
+   {
+     if( g1.get() != NULL)
+       {
+	 g1.release();
+	 return e1->Add(e2);
+       }
+     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+     return e2->AddInv(e1); 
+   }
+
+ if( e1->Scalar())
+   {
+     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+     res= e2->AddInv(e1); // scalar+scalar or array+scalar
+     
+   }
+ else
+   if( e2->Scalar())
+     {
+       if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+       res= e1->Add(e2); // array+scalar
+       
+     }
+   else
+     if( e1->N_Elements() <= e2->N_Elements())
+       {
+	 if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+	 res= e1->Add(e2); // smaller_array + larger_array or same size
+	 
+       }
+     else
+       {
+	 if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+	 res= e2->AddInv(e1); // smaller + larger
+	 
+       }
+ return res;
+}
+BaseGDL* MINUSNCNode::Eval()
+{ BaseGDL* res;
+ auto_ptr<BaseGDL> g1;
+ auto_ptr<BaseGDL> g2;
+ BaseGDL *e1, *e2; AdjustTypesNC( g1, e1, g2, e2); 
+
+ if( e1->N_Elements() == e2->N_Elements())
+   {
+     if( g1.get() != NULL)
+       {
+	 g1.release();
+	 return e1->Sub(e2);
+       }
+     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+     return e2->SubInv(e1); 
+   }
+
+
+ if( e1->Scalar())
+   {
+     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+     res= e2->SubInv(e1); // scalar+scalar or array+scalar
+     
+   }
+ else
+   if( e2->Scalar())
+     {
+       if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+       res= e1->Sub(e2); // array+scalar
+       
+     }
+   else
+     if( e1->N_Elements() <= e2->N_Elements())
+       {
+	 if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+	 res= e1->Sub(e2); // smaller_array + larger_array or same size
+	 
+       }
+     else
+       {
+	 if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+	 res= e2->SubInv(e1); // smaller + larger
+	 
+       }
+ return res;
+}
+BaseGDL* LTMARKNCNode::Eval()
+{ BaseGDL* res;
+ auto_ptr<BaseGDL> g1;
+ auto_ptr<BaseGDL> g2;
+ BaseGDL *e1, *e2; AdjustTypesNC( g1, e1, g2, e2); 
+
+ if( e1->N_Elements() == e2->N_Elements())
+   {
+     if( g1.get() != NULL)
+       {
+	 g1.release();
+	 return e1->LtMark(e2);
+       }
+     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+     return e2->LtMark(e1); 
+   }
+
+
+ if( e1->Scalar())
+   {
+     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+     res= e2->LtMark(e1); // scalar+scalar or array+scalar
+     
+   }
+ else
+   if( e2->Scalar())
+     {
+       if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+       res= e1->LtMark(e2); // array+scalar
+       
+     }
+   else
+     if( e1->N_Elements() <= e2->N_Elements())
+       {
+	 if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+	 res= e1->LtMark(e2); // smaller_array + larger_array or same size
+	 
+       }
+     else
+       {
+	 if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+	 res= e2->LtMark(e1); // smaller + larger
+	 
+       }
+ return res;
+}
+BaseGDL* GTMARKNCNode::Eval()
+{ BaseGDL* res;
+ auto_ptr<BaseGDL> g1;
+ auto_ptr<BaseGDL> g2;
+ BaseGDL *e1, *e2; AdjustTypesNC( g1, e1, g2, e2); 
+
+ if( e1->N_Elements() == e2->N_Elements())
+   {
+     if( g1.get() != NULL)
+       {
+	 g1.release();
+	 return e1->GtMark(e2);
+       }
+     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+     return e2->GtMark(e1); 
+   }
+
+ if( e1->Scalar())
+   {
+     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+     res= e2->GtMark(e1); // scalar+scalar or array+scalar
+     
+   }
+ else
+   if( e2->Scalar())
+     {
+       if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+       res= e1->GtMark(e2); // array+scalar
+       
+     }
+   else
+     if( e1->N_Elements() <= e2->N_Elements())
+       {
+	 if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+	 res= e1->GtMark(e2); // smaller_array + larger_array or same size
+	 
+       }
+     else
+       {
+	 if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+	 res= e2->GtMark(e1); // smaller + larger
+	 
+       }
+ return res;
+}
+BaseGDL* ASTERIXNCNode::Eval()
+{ BaseGDL* res;
+ auto_ptr<BaseGDL> g1;
+ auto_ptr<BaseGDL> g2;
+ BaseGDL *e1, *e2; AdjustTypesNC( g1, e1, g2, e2); 
+
+ if( e1->N_Elements() == e2->N_Elements())
+   {
+     if( g1.get() != NULL)
+       {
+	 g1.release();
+	 return e1->Mult(e2);
+       }
+     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+     return e2->Mult(e1); 
+   }
+
+ if( e1->Scalar())
+   {
+     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+     res= e2->Mult(e1); // scalar+scalar or array+scalar
+     
+   }
+ else
+   if( e2->Scalar())
+     {
+       if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+       res= e1->Mult(e2); // array+scalar
+       
+     }
+   else
+     if( e1->N_Elements() <= e2->N_Elements())
+       {
+	 if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+	 res= e1->Mult(e2); // smaller_array + larger_array or same size
+	 
+       }
+     else
+       {
+	 if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+	 res= e2->Mult(e1); // smaller + larger
+	 
+       }
+ return res;
+}
+
+BaseGDL* MATRIX_OP1NCNode::Eval()
+{ BaseGDL* res;
+ auto_ptr<BaseGDL> g1;
+ auto_ptr<BaseGDL> g2;
+ BaseGDL *e1, *e2;
+ if( op1NC)
+   {
+     e1 = op1->EvalNC();
+   }
+ else
+   {
+     e1 = op1->Eval();
+     g1.reset( e1);
+   }
+ if( op2NC)
+   {
+     e2 = op2->EvalNC();
+   }
+ else
+   {
+     e2 = op2->Eval();
+     g2.reset( e2);
+   }
+ DType aTy=e1->Type();
+ DType bTy=e2->Type();
+ DType maxTy=(DTypeOrder[aTy] >= DTypeOrder[bTy])? aTy: bTy;
+ if( maxTy > 100)
+   {
+     throw GDLException( "Expressions of this type cannot be converted.");
+   }
+
+ DType cTy=maxTy;
+ if( maxTy == BYTE || maxTy == INT)
+   cTy=LONG;
+ else if( maxTy == UINT)
+   cTy=ULONG;
+
+ if( aTy != cTy)
+   {
+     e1 = e1->Convert2( cTy, BaseGDL::COPY);
+     g1.reset( e1);
+   }
+ if( bTy != cTy)
+   {
+     e2 = e2->Convert2( cTy, BaseGDL::COPY);
+     g2.reset( e2);
+   }
+ 
+ res=e1->MatrixOp(e2);
+ return res;
+}
+BaseGDL* MATRIX_OP2NCNode::Eval()
+{ BaseGDL* res;
+ auto_ptr<BaseGDL> g1;
+ auto_ptr<BaseGDL> g2;
+ BaseGDL *e1, *e2;
+ if( op1NC)
+   {
+     e1 = op1->EvalNC();
+   }
+ else
+   {
+     e1 = op1->Eval();
+     g1.reset( e1);
+   }
+ if( op2NC)
+   {
+     e2 = op2->EvalNC();
+   }
+ else
+   {
+     e2 = op2->Eval();
+     g2.reset( e2);
+   }
+ DType aTy=e1->Type();
+ DType bTy=e2->Type();
+ DType maxTy=(DTypeOrder[aTy] >= DTypeOrder[bTy])? aTy: bTy;
+ if( maxTy > 100)
+   {
+     throw GDLException( "Expressions of this type cannot be converted.");
+   }
+
+ DType cTy=maxTy;
+ if( maxTy == BYTE || maxTy == INT)
+   cTy=LONG;
+ else if( maxTy == UINT)
+   cTy=ULONG;
+
+ if( aTy != cTy)
+   {
+     e1 = e1->Convert2( cTy, BaseGDL::COPY);
+     g1.reset( e1);
+   }
+ if( bTy != cTy)
+   {
+     e2 = e2->Convert2( cTy, BaseGDL::COPY);
+     g2.reset( e2);
+   }
+
+ res=e2->MatrixOp(e1);
+ return res;
+}
+BaseGDL* SLASHNCNode::Eval()
+{ BaseGDL* res;
+ auto_ptr<BaseGDL> g1;
+ auto_ptr<BaseGDL> g2;
+ BaseGDL *e1, *e2; AdjustTypesNC( g1, e1, g2, e2); 
+
+ if( e1->N_Elements() == e2->N_Elements())
+   {
+     if( g1.get() != NULL)
+       {
+	 g1.release();
+	 return e1->Div(e2);
+       }
+     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+     return e2->DivInv(e1); 
+   }
+
+
+ if( e1->Scalar())
+   {
+     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+     res= e2->DivInv(e1); // scalar+scalar or array+scalar
+     
+   }
+ else
+   if( e2->Scalar())
+     {
+       if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+       res= e1->Div(e2); // array+scalar
+       
+     }
+   else
+     if( e1->N_Elements() <= e2->N_Elements())
+       {
+	 if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+	 res= e1->Div(e2); // smaller_array + larger_array or same size
+	 
+       }
+     else
+       {
+	 if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+	 res= e2->DivInv(e1); // smaller + larger
+	 
+       }
+
+ return res;
+}
+BaseGDL* MOD_OPNCNode::Eval()
+{ BaseGDL* res;
+ auto_ptr<BaseGDL> g1;
+ auto_ptr<BaseGDL> g2;
+ BaseGDL *e1, *e2; AdjustTypesNC( g1, e1, g2, e2); 
+
+ if( e1->N_Elements() == e2->N_Elements())
+   {
+     if( g1.get() != NULL)
+       {
+	 g1.release();
+	 return e1->Mod(e2);
+       }
+     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+     return e2->ModInv(e1); 
+   }
+
+ if( e1->Scalar())
+   {
+     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+     res= e2->ModInv(e1); // scalar+scalar or array+scalar
+     
+   }
+ else
+   if( e2->Scalar())
+     {
+       if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+       res= e1->Mod(e2); // array+scalar
+       
+     }
+   else
+     if( e1->N_Elements() <= e2->N_Elements())
+       {
+	 if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+	 res= e1->Mod(e2); // smaller_array + larger_array or same size
+	 
+       }
+     else
+       {
+	 if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+	 res= e2->ModInv(e1); // smaller + larger
+	 
+       }
+ return res;
+}
+
+
+BaseGDL* POWNCNode::Eval()
+{ BaseGDL* res;
+ auto_ptr<BaseGDL> g1;
+ auto_ptr<BaseGDL> g2;
+ BaseGDL *e1, *e2;
+ if( op1NC)
+   {
+     e1 = op1->EvalNC();
+   }
+ else
+   {
+     e1 = op1->Eval();
+     g1.reset( e1);
+   }
+ if( op2NC)
+   {
+     e2 = op2->EvalNC();
+   }
+ else
+   {
+     e2 = op2->Eval();
+     g2.reset( e2);
+   }
+
+ DType aTy=e1->Type();
+ if( aTy == COMPLEX)
+   {
+     DType bTy=e2->Type();
+     if( IntType( bTy))
+       {
+	 e2 = e2->Convert2( FLOAT, BaseGDL::COPY);
+	 g2.reset( e2);
+	 if( g1.get() == NULL) 
+	   {
+	     // this logic has to follow Pow(...) (basic_op.cpp)
+	     if( e2->Scalar() || (e1->N_Elements() < e2->N_Elements()))
+	       e1 = e1->Dup(); 
+	   }
+	 else 
+	   g1.release();
+	 return e1->Pow( e2);
+       }
+     else if( bTy == FLOAT)
+       {
+	 if( g1.get() == NULL) 
+	   {
+	     if( e2->Scalar() || (e1->N_Elements() < e2->N_Elements()))
+	       e1 = e1->Dup(); 
+	   }
+	 else 
+	   g1.release();
+	 return e1->Pow( e2);
+       }
+   }
+ else if( aTy == COMPLEXDBL)
+   {
+     DType bTy=e2->Type();
+     if( IntType( bTy))
+       {
+	 e2 = e2->Convert2( DOUBLE, BaseGDL::COPY);
+	 g2.reset( e2);
+	 if( g1.get() == NULL) 
+	   {
+	     if( e2->Scalar() || (e1->N_Elements() < e2->N_Elements()))
+	       e1 = e1->Dup(); 
+	   }
+	 else 
+	   g1.release();
+	 return e1->Pow( e2);
+       }
+     else if( bTy == DOUBLE)
+       {
+	 if( g1.get() == NULL) 
+	   {
+	     if( e2->Scalar() || (e1->N_Elements() < e2->N_Elements()))
+	       e1 = e1->Dup(); 
+	   }
+	 else 
+	   g1.release();
+	 return e1->Pow( e2);
+       }
+   }
+
+ DType convertBackT; 
+ 
+ DType bTy=e2->Type();
+ 
+ // convert back
+ if( IntType( bTy) && 
+     DTypeOrder[ bTy] > DTypeOrder[ aTy])
+   convertBackT = aTy;
+ else
+   convertBackT = UNDEF;
+
+ if( aTy != bTy) 
+   {
+     if( aTy > 100 || bTy > 100)
+       {
+	 throw GDLException( "Expressions of this type cannot be converted.");
+       }
+
+     if( DTypeOrder[aTy] >= DTypeOrder[bTy]) // crucial: '>' -> '>='
+       {
+	 // convert e2 to e1
+	 e2 = e2->Convert2( aTy, BaseGDL::COPY);
+	 g2.reset( e2); // delete former e2
+       }
+     else
+       {
+	 // convert e1 to e2
+	 e1 = e1->Convert2( bTy, BaseGDL::COPY);
+	 g1.reset( e1); // delete former e1
+       }
+   }
+
+ // AdjustTypes(e2,e1); // order crucial here (for converting back)
+
+ if( e1->Scalar())
+   {
+     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+     res= e2->PowInv(e1); // scalar+scalar or array+scalar
+     
+   }
+ else
+   if( e2->Scalar())
+     {
+       if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+       res= e1->Pow(e2); // array+scalar
+       
+     }
+   else
+     if( e1->N_Elements() <= e2->N_Elements())
+       {
+	 if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+	 res= e1->Pow(e2); // smaller_array + larger_array or same size
+	 
+       }
+     else
+       {
+	 if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+	 res= e2->PowInv(e1); // smaller + larger
+	 
+       }
+ if( convertBackT != UNDEF)
+   {
+     res = res->Convert2( convertBackT, BaseGDL::CONVERT);
+   }
+ return res;
+}
+// BaseGDL* DECNCNode::Eval()
+// { BaseGDL* res;
+//   return new DECNode( refNode);
+// }
+// BaseGDL* INCNCNode::Eval()
+// { BaseGDL* res;
+//   return new INCNode( refNode);
+// }
+// BaseGDL* POSTDECNCNode::Eval()
+// { BaseGDL* res;
+//   return new POSTDECNode( refNode);
+// }
+// BaseGDL* POSTINCNCNode::Eval()
 // { BaseGDL* res;
 //   return new POSTINCNode( refNode);
 // }

@@ -62,14 +62,14 @@ readline    http://ftp.gnu.org/pub/gnu/readline/readline-4.3.tar.gz
 Optional libraries:
 ImageMagick http://www.imagemagick.org/www/download.html
 netCDF *)   ftp://ftp.unidata.ucar.edu/pub/netcdf
-HDF4        ftp://ftp.ncsa.uiuc.edu/HDF/HDF/HDF_Current
-HDF5 *)     ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/current
+HDF4 *)     ftp://ftp.ncsa.uiuc.edu/HDF/HDF/HDF_Current
+HDF5        ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/current
 python      http://www.python.org
 Only with python:
 numarray    http://www.stsci.edu/resources/software_hardware/numarray
 matplotlib  http://matplotlib.sourceforge.net
 
-*) please see below for potential problems using netCDF and HDF5
+*) please see below for potential problems using netCDF and HDF4
 
 
 At least g++ 3.2 (or a similar C++ standard conforming
@@ -122,7 +122,7 @@ you want to use netCDF, you need the netCDF library (even if HDF4 is
 used, the netCDF library is needed, as the HDF library does not
 contain all needed netCDF functions. Note that it might be necessary
 to install netCDF after HDF4 due to same named, but different header
-files. If the header files of HDF5 and netCDF are in different directories 
+files. If the header files of HDF4 and netCDF are in different directories 
 make sure, that the directory containing netCDF's version gets searched first,
 ie. put an explicit path for netCDF even if it is in the default include path,
 eg: --with-netcdf=/usr) 

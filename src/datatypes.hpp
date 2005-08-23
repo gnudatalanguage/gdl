@@ -83,7 +83,7 @@ public:
   friend std::istream& operator>>(std::istream& i, Data_<Sp2>& data_); 
   
   // valarrays cannot be resized (without loosing data)
-  inline DataT& Resize( SizeT n);
+  //  inline DataT& Resize( SizeT n);
 
   // note that min and max these are not defined in BaseGDL
   Ty min() const;// { return dd.min();}
