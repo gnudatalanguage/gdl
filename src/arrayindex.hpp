@@ -138,6 +138,9 @@ public:
     
     SizeT nElem = ix_->N_Elements();
     //    ix = new SizeT[ nElem]; // allocate array
+
+    assert( ix == NULL);
+
     ix = new AllIxT( nElem);
 
     ixDim = new dimension( ix_->Dim());
@@ -975,11 +978,17 @@ public:
     if( accessType == ONEDIM)
       {
 	if( ixList[0]->Indexed())
-	  return static_cast< ArrayIndexIndexed*>(ixList[0])->StealIx();
+	  {
+	    allIx = static_cast< ArrayIndexIndexed*>(ixList[0])->StealIx();
+	    return allIx;
+	  }
 	else
 	  {
 	    if( nIx == 1)
-	      return new AllIxT( ixList[0]->GetS(), 1);
+	      {
+		allIx = new AllIxT( ixList[0]->GetS(), 1);
+		return allIx;
+	      }
 
 	    //	    allIx = new SizeT[ nIx];
 	    allIx = new AllIxT( nIx);
