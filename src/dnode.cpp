@@ -1156,54 +1156,57 @@ BaseGDL* POWNode::Eval()
   auto_ptr<BaseGDL> e2( op2->Eval());
   // special handling for complex
   DType aTy=e1->Type();
-  if( aTy == COMPLEX)
+  DType bTy=e2->Type();
+  if( ComplexType( aTy))
     {
-      DType bTy=e2->Type();
       if( IntType( bTy))
 	{
-	  e2.reset( e2.release()->Convert2( FLOAT));
+	  e2.reset( e2.release()->Convert2( LONG));
 	  res = e1->Pow( e2.get());
 	  if( res == e1.get())
 	    e1.release();
-	  goto endPOW;
+	  return res;
 	}
-      else if( bTy == FLOAT)
+      if( aTy == COMPLEX)
 	{
-	  res = e1->Pow( e2.get());
-	  if( res == e1.get())
-	    e1.release();
-	  goto endPOW;
+	  if( bTy == DOUBLE)
+	    {
+	      e1.reset( e1.release()->Convert2( COMPLEXDBL));
+	      aTy = COMPLEXDBL;
+	    }
+	  else if( bTy == FLOAT)
+	    {
+	      res = e1->Pow( e2.get());
+	      if( res == e1.get())
+		e1.release();
+	      return res;
+	    }
 	}
-    }
-  else if( aTy == COMPLEXDBL)
-    {
-      DType bTy=e2->Type();
-      if( IntType( bTy))
+      if( aTy == COMPLEXDBL)
 	{
-	  e2.reset( e2.release()->Convert2( DOUBLE));
-	  res = e1->Pow( e2.get());
-	  if( res == e1.get())
-	    e1.release();
-	  goto endPOW;
-	}
-      else if( bTy == DOUBLE)
-	{
-	  res = e1->Pow( e2.get());
-	  if( res == e1.get())
-	    e1.release();
-	  goto endPOW;
+	  if( bTy == FLOAT)
+	    {
+	      e2.reset( e2.release()->Convert2( DOUBLE));
+	      bTy = DOUBLE;
+	    }
+	  if( bTy == DOUBLE)
+	    {
+	      res = e1->Pow( e2.get());
+	      if( res == e1.get())
+		e1.release();
+	      return res;
+	    }
 	}
     }
 
   DType convertBackT; 
 
   // convert back
-  if( IntType( e2->Type()) && 
-      DTypeOrder[e2->Type()] > DTypeOrder[e1->Type()])
-    convertBackT = e1->Type();
+  if( IntType( bTy) && (DTypeOrder[ bTy] > DTypeOrder[ aTy]))
+    convertBackT = aTy;
   else
     convertBackT = UNDEF;
-
+  
   AdjustTypes(e2,e1); // order crucial here (for converting back)
 
   if( e1->Scalar())
@@ -1268,8 +1271,17 @@ BaseGDL* AND_OPNCNode::Eval()
 	 g1.release();
 	 return e1->AndOpInv(e2);
        }
-     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
-     return e2->AndOp(e1); 
+     if( g2.get() != NULL) 
+       {
+	 g2.release();
+	 res = e2->AndOp(e1);
+	 res->SetDim( e1->Dim());
+	 return res;
+       }
+     else
+       {
+	 return e1->Dup()->AndOpInv(e2);
+       }
    }
 
  if( e1->Scalar())
@@ -1312,8 +1324,17 @@ BaseGDL* OR_OPNCNode::Eval()
 	 g1.release();
 	 return e1->OrOpInv(e2);
        }
-     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
-     return e2->OrOp(e1); 
+     if( g2.get() != NULL) 
+       {
+	 g2.release();
+	 res = e2->OrOp(e1);
+	 res->SetDim( e1->Dim());
+	 return res;
+       }
+     else
+       {
+	 return e1->Dup()->OrOpInv(e2);
+       }
    }
 
  if( e1->Scalar())
@@ -1356,8 +1377,17 @@ BaseGDL* XOR_OPNCNode::Eval()
 	 g1.release();
 	 return e1->XorOp(e2);
        }
-     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
-     return e2->XorOp(e1); 
+     if( g2.get() != NULL) 
+       {
+	 g2.release();
+	 res = e2->XorOp(e1);
+	 res->SetDim( e1->Dim());
+	 return res;
+       }
+     else
+       {
+       return e1->Dup()->XorOp(e2); 
+       }
    }
 
  if( e1->N_Elements() <= e2->N_Elements())
@@ -1388,6 +1418,8 @@ BaseGDL* LOG_ANDNCNode::Eval()
      e1 = op1->Eval();
      g1.reset( e1);
    }
+ if( !e1->LogTrue()) return new DByteGDL( 0);
+
  if( op2NC)
    {
      e2 = op2->EvalNC();
@@ -1397,10 +1429,8 @@ BaseGDL* LOG_ANDNCNode::Eval()
      e2 = op2->Eval();
      g2.reset( e2);
    }
- if( !e1->LogTrue()) res = new DByteGDL( 0);
- else if( !e2->LogTrue()) res = new DByteGDL( 0);
- else res = new DByteGDL( 1);
- return res;
+ if( !e2->LogTrue()) return new DByteGDL( 0);
+ return new DByteGDL( 1);
 }
 BaseGDL* LOG_ORNCNode::Eval()
 { BaseGDL* res;
@@ -1416,6 +1446,7 @@ BaseGDL* LOG_ORNCNode::Eval()
      e1 = op1->Eval();
      g1.reset( e1);
    }
+ if( e1->LogTrue()) return new DByteGDL( 1); 
  if( op2NC)
    {
      e2 = op2->EvalNC();
@@ -1425,10 +1456,8 @@ BaseGDL* LOG_ORNCNode::Eval()
      e2 = op2->Eval();
      g2.reset( e2);
    }
- if( e1->LogTrue()) res = new DByteGDL( 1); 
- else if( e2->LogTrue()) res = new DByteGDL( 1);
- else res = new DByteGDL( 0);
- return res;
+ if( e2->LogTrue()) return new DByteGDL( 1);
+ return new DByteGDL( 0);
 }
 
 
@@ -1499,8 +1528,17 @@ BaseGDL* PLUSNCNode::Eval()
 	 g1.release();
 	 return e1->Add(e2);
        }
-     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
-     return e2->AddInv(e1); 
+     if( g2.get() != NULL) 
+       {
+	 g2.release();
+	 res = e2->AddInv(e1);
+	 res->SetDim( e1->Dim());
+	 return res;
+       }
+     else
+       {
+       return e1->Dup()->Add(e2); 
+       }
    }
 
  if( e1->Scalar())
@@ -1544,8 +1582,17 @@ BaseGDL* MINUSNCNode::Eval()
 	 g1.release();
 	 return e1->Sub(e2);
        }
-     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
-     return e2->SubInv(e1); 
+     if( g2.get() != NULL) 
+       {
+	 g2.release();
+	 res = e2->SubInv(e1);
+	 res->SetDim( e1->Dim());
+	 return res;
+       }
+     else
+       {
+       return e1->Dup()->Sub(e2); 
+       }
    }
 
 
@@ -1590,8 +1637,17 @@ BaseGDL* LTMARKNCNode::Eval()
 	 g1.release();
 	 return e1->LtMark(e2);
        }
-     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
-     return e2->LtMark(e1); 
+     if( g2.get() != NULL) 
+       {
+	 g2.release();
+	 res = e2->LtMark(e1);
+	 res->SetDim( e1->Dim());
+	 return res;
+       }
+     else
+       {
+       return e1->Dup()->LtMark(e2); 
+       }
    }
 
 
@@ -1636,8 +1692,17 @@ BaseGDL* GTMARKNCNode::Eval()
 	 g1.release();
 	 return e1->GtMark(e2);
        }
-     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
-     return e2->GtMark(e1); 
+     if( g2.get() != NULL) 
+       {
+	 g2.release();
+	 res = e2->GtMark(e1);
+	 res->SetDim( e1->Dim());
+	 return res;
+       }
+     else
+       {
+       return e1->Dup()->GtMark(e2); 
+       }
    }
 
  if( e1->Scalar())
@@ -1681,8 +1746,17 @@ BaseGDL* ASTERIXNCNode::Eval()
 	 g1.release();
 	 return e1->Mult(e2);
        }
-     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
-     return e2->Mult(e1); 
+     if( g2.get() != NULL) 
+       {
+	 g2.release();
+	 res = e2->Mult(e1);
+	 res->SetDim( e1->Dim());
+	 return res;
+       }
+     else
+       {
+       return e1->Dup()->Mult(e2); 
+       }
    }
 
  if( e1->Scalar())
@@ -1829,8 +1903,17 @@ BaseGDL* SLASHNCNode::Eval()
 	 g1.release();
 	 return e1->Div(e2);
        }
-     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
-     return e2->DivInv(e1); 
+     if( g2.get() != NULL) 
+       {
+	 g2.release();
+	 res = e2->DivInv(e1);
+	 res->SetDim( e1->Dim());
+	 return res;
+       }
+     else
+       {
+       return e1->Dup()->Div(e2); 
+       }
    }
 
 
@@ -1876,8 +1959,17 @@ BaseGDL* MOD_OPNCNode::Eval()
 	 g1.release();
 	 return e1->Mod(e2);
        }
-     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
-     return e2->ModInv(e1); 
+     if( g2.get() != NULL) 
+       {
+	 g2.release();
+	 res = e2->ModInv(e1);
+	 res->SetDim( e1->Dim());
+	 return res;
+       }
+     else
+       {
+       return e1->Dup()->Mod(e2); 
+       }
    }
 
  if( e1->Scalar())
@@ -1935,12 +2027,12 @@ BaseGDL* POWNCNode::Eval()
    }
 
  DType aTy=e1->Type();
- if( aTy == COMPLEX)
+ DType bTy=e2->Type();
+ if( ComplexType(aTy))
    {
-     DType bTy=e2->Type();
      if( IntType( bTy))
        {
-	 e2 = e2->Convert2( FLOAT, BaseGDL::COPY);
+	 e2 = e2->Convert2( LONG, BaseGDL::COPY);
 	 g2.reset( e2);
 	 if( g1.get() == NULL) 
 	   {
@@ -1952,54 +2044,53 @@ BaseGDL* POWNCNode::Eval()
 	   g1.release();
 	 return e1->Pow( e2);
        }
-     else if( bTy == FLOAT)
+     if( aTy == COMPLEX)
        {
-	 if( g1.get() == NULL) 
+	 if( bTy == DOUBLE)
 	   {
-	     if( e2->Scalar() || (e1->N_Elements() < e2->N_Elements()))
-	       e1 = e1->Dup(); 
+	     e1 = e1->Convert2( COMPLEXDBL, BaseGDL::COPY);
+	     g1.reset( e1); 
+	     aTy = COMPLEXDBL;
 	   }
-	 else 
-	   g1.release();
-	 return e1->Pow( e2);
+	 else if( bTy == FLOAT)
+	   {
+	     if( g1.get() == NULL) 
+	       {
+		 // this logic has to follow Pow(...) (basic_op.cpp)
+		 if( e2->Scalar() || (e1->N_Elements() < e2->N_Elements()))
+		   e1 = e1->Dup(); 
+	       }
+	     else 
+	       g1.release();
+	     return e1->Pow( e2);
+	   }
        }
-   }
- else if( aTy == COMPLEXDBL)
-   {
-     DType bTy=e2->Type();
-     if( IntType( bTy))
+     if( aTy == COMPLEXDBL)
        {
-	 e2 = e2->Convert2( DOUBLE, BaseGDL::COPY);
-	 g2.reset( e2);
-	 if( g1.get() == NULL) 
+	 if( bTy == FLOAT)
 	   {
-	     if( e2->Scalar() || (e1->N_Elements() < e2->N_Elements()))
-	       e1 = e1->Dup(); 
+	     e2 = e2->Convert2( DOUBLE, BaseGDL::COPY);
+	     g2.reset( e2);
+	     bTy = DOUBLE;
 	   }
-	 else 
-	   g1.release();
-	 return e1->Pow( e2);
-       }
-     else if( bTy == DOUBLE)
-       {
-	 if( g1.get() == NULL) 
+	 if( bTy == DOUBLE)
 	   {
-	     if( e2->Scalar() || (e1->N_Elements() < e2->N_Elements()))
-	       e1 = e1->Dup(); 
+	     if( g1.get() == NULL) 
+	       {
+		 if( e2->Scalar() || (e1->N_Elements() < e2->N_Elements()))
+		   e1 = e1->Dup(); 
+	       }
+	     else 
+	       g1.release();
+	     return e1->Pow( e2);
 	   }
-	 else 
-	   g1.release();
-	 return e1->Pow( e2);
        }
    }
 
  DType convertBackT; 
  
- DType bTy=e2->Type();
- 
  // convert back
- if( IntType( bTy) && 
-     DTypeOrder[ bTy] > DTypeOrder[ aTy])
+ if( IntType( bTy) && (DTypeOrder[ bTy] > DTypeOrder[ aTy]))
    convertBackT = aTy;
  else
    convertBackT = UNDEF;
@@ -2026,8 +2117,25 @@ BaseGDL* POWNCNode::Eval()
    }
 
  // AdjustTypes(e2,e1); // order crucial here (for converting back)
-
- if( e1->Scalar())
+ if( e1->N_Elements() == e2->N_Elements())
+   {
+     if( g1.get() != NULL)
+       {
+	 g1.release();
+	 res = e1->Pow(e2);
+       }
+     if( g2.get() != NULL) 
+       {
+	 g2.release();
+	 res = e2->PowInv(e1);
+	 res->SetDim( e1->Dim());
+       }
+     else
+       {
+       res = e1->Dup()->Pow(e2); 
+       }
+   }
+ else if( e1->Scalar())
    {
      if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
      res= e2->PowInv(e1); // scalar+scalar or array+scalar

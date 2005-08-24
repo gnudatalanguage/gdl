@@ -68,7 +68,25 @@ const int DTypeOrder[]={
 inline bool IntType( DType t)
 {
   int o = DTypeOrder[ t];
-  return (t >= 2 && t <= 5);
+  return (o >= 2 && o <= 5);
+}
+inline bool FloatType( DType t)
+{
+  return (t == FLOAT || t == DOUBLE);
+}
+inline bool RealType( DType t) // Float or Int
+{
+  int o = DTypeOrder[ t];
+  return (o >= 2 && o <= 9);
+}
+inline bool ComplexType( DType t)
+{
+  return (t == COMPLEX || t == COMPLEXDBL);
+}
+inline bool NumericType( DType t) // Float or Int or Complex
+{
+  int o = DTypeOrder[ t];
+  return (o >= 2 && o <= 11);
 }
 
 class   BaseGDL;

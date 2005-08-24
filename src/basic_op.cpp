@@ -2178,6 +2178,43 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
 	    }
 	}
     }
+  if( r->Type() == LONG)
+    {
+      Data_<SpDLong>* right=static_cast<Data_<SpDLong>* >(r);
+
+      DLong s;
+      // note: changes here have to be reflected in POWNCNode::Eval() (dnode.cpp)
+      // (concerning when a new variable is created vs. using this)
+      // (must also be consistent with ComplexDbl)
+      if( right->Scalar(s)) 
+	{
+	  for( SizeT i=0; i<sEl; ++i)
+	    dd[ i] = pow( dd[ i], s);
+	  //C delete right;
+	  return this;
+	}
+      else 
+	{
+	  SizeT rEl = right->N_Elements();
+	  if( sEl < rEl)
+	    {
+	      for( SizeT i=0; i<sEl; ++i)
+		dd[ i] = pow( dd[ i], (*right)[ i]);
+	      //C delete right;
+	      return this;
+	    }
+	  else
+	    {
+	      DComplexGDL* res = new DComplexGDL( right->Dim(), 
+						  BaseGDL::NOZERO);
+	      for( SizeT i=0; i<rEl; ++i)
+		(*res)[ i] = pow( dd[ i], (*right)[ i]);
+	      //C delete right;
+	      //C delete this;
+	      return res;
+	    }
+	}
+    }
 
   Data_* right=static_cast<Data_*>(r);
 
@@ -2268,6 +2305,45 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
       assert( right->N_Elements() > 0);
 
       DDouble s;
+
+      // note: changes here have to be reflected in POWNCNode::Eval() (dnode.cpp)
+      // (concerning when a new variable is created vs. using this)
+      if( right->Scalar(s)) 
+	{
+	  for( SizeT i=0; i<sEl; ++i)
+	    dd[ i] = pow( dd[ i], s);
+	  //C delete right;
+	  return this;
+	}
+      else 
+	{
+	  SizeT rEl = right->N_Elements();
+	  if( sEl < rEl)
+	    {
+	      for( SizeT i=0; i<sEl; ++i)
+		dd[ i] = pow( dd[ i], (*right)[ i]);
+	      //C delete right;
+	      return this;
+	    }
+	  else
+	    {
+	      DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
+							BaseGDL::NOZERO);
+	      for( SizeT i=0; i<rEl; ++i)
+		(*res)[ i] = pow( dd[ i], (*right)[ i]);
+	      //C delete right;
+	      //C delete this;
+	      return res;
+	    }
+	}
+    }
+  if( r->Type() == LONG)
+    {
+      Data_<SpDLong>* right=static_cast<Data_<SpDLong>* >(r);
+
+      assert( right->N_Elements() > 0);
+
+      DLong s;
 
       // note: changes here have to be reflected in POWNCNode::Eval() (dnode.cpp)
       // (concerning when a new variable is created vs. using this)
