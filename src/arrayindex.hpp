@@ -57,11 +57,10 @@ protected:
   bool      strictArrSubs;          // for compile_opt STRICTARRSUBS
   
   SizeT s;
+  SizeT maxVal;
 
   AllIxT*    ix;
   dimension* ixDim; // keep dimension of ix
-
-  bool negative; // trace if negative indices appear
 
   // forbid c-i
   ArrayIndexIndexed( const ArrayIndexT& r) {}
@@ -99,12 +98,13 @@ public:
 
   ArrayIndexIndexed( bool strictArrSubs_ = false): 
     strictArrSubs( strictArrSubs_),
-    ix( NULL), ixDim( NULL), negative( false) 
+    maxVal( 0),
+    ix( NULL), ixDim( NULL)
   {}
 
   void Clear()
   {
-    negative = false;
+    maxVal = 0;
     delete ixDim;
     ixDim = NULL;
     delete ix; 
@@ -130,7 +130,7 @@ public:
     DType dType = ix_->Type();
 
     assert( dType != UNDEF);
-    assert( negative == false);
+    assert( maxVal == 0);
 
     int typeCheck = DTypeOrder[ dType];
     if( typeCheck >= 100)
@@ -151,16 +151,46 @@ public:
 	{
 	  DByteGDL* src = static_cast<DByteGDL*>( ix_);
 	  for( SizeT i=0; i < nElem; ++i)
-	    (*ix)[i]= (*src)[i]; 
+	      {
+		(*ix)[i]= (*src)[i]; 
+		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
+	      }
 	  break;
 	}
       case INT:
 	{
 	  DIntGDL* src = static_cast<DIntGDL*>( ix_);
+	  SizeT i = 0;
+	  for(; i < nElem; ++i)
+	    if( (*src)[i] < 0)
+	      {
+		if( strictArrSubs)
+		  throw GDLException("Array used to subscript array "
+				     "contains out of range (<0) subscript.");
+		(*ix)[i++] = 0;
+		break;
+	      }
+	    else
+	      {
+		(*ix)[i]= (*src)[i]; 
+		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
+	      }
+	  
+	  for(; i < nElem; ++i)
+	    if( (*src)[i] < 0)
+	      (*ix)[i] = 0;
+	    else
+	      {
+		(*ix)[i]= (*src)[i]; 
+		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
+	      }
+	  break;
+
+	  // older version
 	  DInt minVal = src->min();
 	  if( minVal < 0)
 	    {
-	      negative = true;
+	      //	      negative = true;
 	      for( SizeT i=0; i < nElem; ++i)
 		if( (*src)[i] < 0)
 		  (*ix)[i] = 0;
@@ -176,16 +206,51 @@ public:
 	{
 	  DUIntGDL* src = static_cast<DUIntGDL*>( ix_);
 	  for( SizeT i=0; i < nElem; ++i)
-	    (*ix)[i]= (*src)[i]; 
+	      {
+		(*ix)[i]= (*src)[i]; 
+		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
+	      }
 	  break;
 	}
       case LONG: // typical type (returned from WHERE)
 	{
 	  DLongGDL* src = static_cast<DLongGDL*>( ix_);
+	  SizeT i = 0;
+	  for(; i < nElem; ++i)
+	    if( (*src)[i] < 0)
+	      {
+		if( strictArrSubs)
+		  throw GDLException("Array used to subscript array "
+				     "contains out of range (<0) subscript.");
+		(*ix)[i++] = 0;
+		break;
+	      }
+	    else
+	      {
+		(*ix)[i]= (*src)[i]; 
+		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
+	      }
+	  
+	  for(; i < nElem; ++i)
+	    if( (*src)[i] < 0)
+	      (*ix)[i] = 0;
+	    else
+	      {
+		(*ix)[i]= (*src)[i]; 
+		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
+	      }
+	  break;
+
+	  // older version
 	  DLong minVal = src->min();
 	  if( minVal < 0)
 	    {
-	      negative = true;
+	      for( SizeT i=0; i < nElem; ++i)
+		if( (*src)[i] < 0)
+		  (*ix)[i] = 0;
+		else
+		  (*ix)[i]= (*src)[i]; 
+	      //	      negative = true;
 	      for( SizeT i=0; i < nElem; ++i)
 		if( (*src)[i] < 0)
 		  (*ix)[i] = 0;
@@ -201,16 +266,46 @@ public:
 	{
 	  DULongGDL* src = static_cast<DULongGDL*>( ix_);
 	  for( SizeT i=0; i < nElem; ++i)
-	    (*ix)[i]= (*src)[i]; 
+	      {
+		(*ix)[i]= (*src)[i]; 
+		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
+	      }
 	  break;
 	}
       case LONG64:
 	{
 	  DLong64GDL* src = static_cast<DLong64GDL*>( ix_);
+	  SizeT i = 0;
+	  for(; i < nElem; ++i)
+	    if( (*src)[i] < 0)
+	      {
+		if( strictArrSubs)
+		  throw GDLException("Array used to subscript array "
+				     "contains out of range (<0) subscript.");
+		(*ix)[i++] = 0;
+		break;
+	      }
+	    else
+	      {
+		(*ix)[i]= (*src)[i]; 
+		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
+	      }
+	  
+	  for(; i < nElem; ++i)
+	    if( (*src)[i] < 0)
+	      (*ix)[i] = 0;
+	    else
+	      {
+		(*ix)[i]= (*src)[i]; 
+		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
+	      }
+	  break;
+
+	  // older version
 	  DLong64 minVal = src->min();
 	  if( minVal < 0)
 	    {
-	      negative = true;
+	      //	      negative = true;
 	      for( SizeT i=0; i < nElem; ++i)
 		if( (*src)[i] < 0)
 		  (*ix)[i] = 0;
@@ -226,7 +321,10 @@ public:
 	{
 	  DULong64GDL* src = static_cast<DULong64GDL*>( ix_);
 	  for( SizeT i=0; i < nElem; ++i)
-	    (*ix)[i]= (*src)[i]; 
+	      {
+		(*ix)[i]= (*src)[i]; 
+		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
+	      }
 	  break;
 	}
       case FLOAT: 
@@ -236,10 +334,15 @@ public:
 	    if( (*src)[i] <= 0.0)
 	      {
 		(*ix)[i] = 0;
-		if( (*src)[i] <= -1.0) negative = true;
+		if( (*src)[i] <= -1.0 && strictArrSubs)
+		  throw GDLException("Array used to subscript array "
+				     "contains out of range (<0) subscript.");
 	      }
 	    else
-	      (*ix)[i]= Real2Int<SizeT,float>((*src)[i]); 
+	      {
+		(*ix)[i]= Real2Int<SizeT,float>((*src)[i]); 
+		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
+	      }
 	  break;
 	}
       case DOUBLE: 
@@ -249,10 +352,15 @@ public:
 	    if( (*src)[i] <= 0.0)
 	      {
 		(*ix)[i] = 0;
-		if( (*src)[i] <= -1.0) negative = true;
+		if( (*src)[i] <= -1.0 && strictArrSubs)
+		  throw GDLException("Array used to subscript array "
+				     "contains out of range (<0) subscript.");
 	      }
 	    else
-	      (*ix)[i]= Real2Int<SizeT,double>((*src)[i]); 
+	      {
+		(*ix)[i]= Real2Int<SizeT,double>((*src)[i]); 
+		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
+	      }
 	  break;
 	}
       case STRING: 
@@ -270,11 +378,16 @@ public:
 		}
 	      if( l < 0)
 		{
-		  negative = true;
+		  if( strictArrSubs)
+		    throw GDLException("Array used to subscript array "
+				       "contains out of range (<0) subscript.");
 		  (*ix)[i] = 0;
 		}
 	      else
-		(*ix)[i] = l;
+		{
+		  (*ix)[i] = l;
+		  if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
+		}
 	    }
 	  break;
 	}
@@ -284,31 +397,37 @@ public:
 	  for( SizeT i=0; i < nElem; ++i)
 	    if( real((*src)[i]) <= 0.0)
 	      {
-		if( real((*src)[i]) <= -1.0) negative = true;
+		if( real((*src)[i]) <= -1.0 && strictArrSubs)
+		  throw GDLException("Array used to subscript array "
+				     "contains out of range (<0) subscript.");
 		(*ix)[i] = 0;
 	      }
 	    else
-	      (*ix)[i]= Real2Int<DLong,float>(real((*src)[i])); 
+	      {
+		(*ix)[i]= Real2Int<DLong,float>(real((*src)[i])); 
+		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
+	      }
 	  break;
 	}
       case COMPLEXDBL: 
 	{
 	  DComplexDblGDL* src = static_cast<DComplexDblGDL*>( ix_);
 	  for( SizeT i=0; i < nElem; ++i)
-	  for( SizeT i=0; i < nElem; ++i)
 	    if( real((*src)[i]) <= 0.0)
 	      {
-		if( real((*src)[i]) <= -1.0) negative = true;
+		if( real((*src)[i]) <= -1.0 && strictArrSubs)
+		  throw GDLException("Array used to subscript array "
+				     "contains out of range (<0) subscript.");
 		(*ix)[i] = 0;
 	      }
 	    else
-	      (*ix)[i]= Real2Int<DLong,double>(real((*src)[i])); 
+	      {
+		(*ix)[i]= Real2Int<DLong,double>(real((*src)[i])); 
+		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
+	      }
 	  break;
 	}
       }
-    if( negative && strictArrSubs)
-      throw GDLException("Array used to subscript array "
-			 "contains out of range (<0) subscript.");
   } 
 
   // number of iterations
@@ -325,8 +444,8 @@ public:
     // INDEXED
     // note: this should be faster as most arrays are within bounds
     // (like returned from WHERE function)
-    SizeT maxIx = ix->max();
-    if( maxIx < varDim)
+    //    SizeT maxIx = ix->max();
+    if( maxVal < varDim)
       return ix->size();
 
     if( strictArrSubs)
