@@ -2037,12 +2037,15 @@ BaseGDL* POWNCNode::Eval()
 	 if( g1.get() == NULL) 
 	   {
 	     // this logic has to follow Pow(...) (basic_op.cpp)
-	     if( e2->Scalar() || (e1->N_Elements() < e2->N_Elements()))
-	       e1 = e1->Dup(); 
+	     //	     if( e2->Scalar() || (e1->N_Elements() < e2->N_Elements()))
+	     //	       e1 = e1->Dup(); 
+	     return e1->PowNew( e2);
 	   }
 	 else 
-	   g1.release();
-	 return e1->Pow( e2);
+	   {
+	     g1.release();
+	     return e1->Pow( e2);
+	   }
        }
      if( aTy == COMPLEX)
        {
@@ -2057,12 +2060,13 @@ BaseGDL* POWNCNode::Eval()
 	     if( g1.get() == NULL) 
 	       {
 		 // this logic has to follow Pow(...) (basic_op.cpp)
-		 if( e2->Scalar() || (e1->N_Elements() < e2->N_Elements()))
-		   e1 = e1->Dup(); 
+		 return e1->PowNew( e2);
 	       }
 	     else 
-	       g1.release();
-	     return e1->Pow( e2);
+	       {
+		 g1.release();
+		 return e1->Pow( e2);
+	       }
 	   }
        }
      if( aTy == COMPLEXDBL)
@@ -2077,12 +2081,13 @@ BaseGDL* POWNCNode::Eval()
 	   {
 	     if( g1.get() == NULL) 
 	       {
-		 if( e2->Scalar() || (e1->N_Elements() < e2->N_Elements()))
-		   e1 = e1->Dup(); 
+		 return e1->PowNew( e2);
 	       }
-	     else 
-	       g1.release();
-	     return e1->Pow( e2);
+	     else
+	       {
+		 g1.release();
+		 return e1->Pow( e2);
+	       }
 	   }
        }
    }
@@ -2132,7 +2137,8 @@ BaseGDL* POWNCNode::Eval()
        }
      else
        {
-       res = e1->Dup()->Pow(e2); 
+	 e1 = e1->Dup();
+	 res = e1->Pow(e2); 
        }
    }
  else if( e1->Scalar())
@@ -2144,16 +2150,30 @@ BaseGDL* POWNCNode::Eval()
  else
    if( e2->Scalar())
      {
-       if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
-       res= e1->Pow(e2); // array+scalar
-       
+       if( g1.get() == NULL) 
+	 {
+	   e1 = e1->Dup();
+	   res = e1->Pow(e2); // array+scalar
+	 }
+       else 
+	 {
+	   g1.release();
+	   res= e1->Pow(e2); // array+scalar
+	 }
      }
    else
      if( e1->N_Elements() <= e2->N_Elements())
        {
-	 if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
-	 res= e1->Pow(e2); // smaller_array + larger_array or same size
-	 
+	 if( g1.get() == NULL) 
+	   {
+	     e1 = e1->Dup();
+	     res= e1->Pow(e2); // smaller_array + larger_array or same size
+	   }
+	 else 
+	   {
+	     g1.release();
+	     res= e1->Pow(e2); // smaller_array + larger_array or same size
+	   }
        }
      else
        {

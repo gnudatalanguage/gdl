@@ -1218,14 +1218,16 @@ Data_<Sp>* Data_<Sp>::Index( ArrayIndexListT* ixList)
 
   SizeT nCp=ixList->N_Elements();
 
-//  cout << "nCP = " << nCp << endl;
-//  cout << "dim = " << this->dim << endl;
+  //  cout << "nCP = " << nCp << endl;
+  //  cout << "dim = " << this->dim << endl;
   
+  //  DataT& res_dd = res->dd; 
   AllIxT* allIx = ixList->BuildIx();
   for( SizeT c=0; c<nCp; ++c)
     (*res)[c]=dd[ (*allIx)[ c]];
+  //    res_dd[c]=dd[ (*allIx)[ c]];
   //    (*res)[c]=dd[ ixList->GetIx(c)];
- 
+  
   return res;
 }
 

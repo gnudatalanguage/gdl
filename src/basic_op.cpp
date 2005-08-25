@@ -1415,6 +1415,12 @@ Data_<SpDPtr>* Data_<SpDPtr>::Mult( BaseGDL* r)
  throw GDLException("Cannot apply operation to datatype PTR.");  
  return this;
 }
+template<>
+Data_<SpDObj>* Data_<SpDObj>::Mult( BaseGDL* r)
+{
+ throw GDLException("Cannot apply operation to datatype OBJECT.");  
+ return this;
+}
 
 // Div
 // division: left=left/right
@@ -2251,6 +2257,136 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
 
   return this;
 }
+template<>
+Data_<SpDComplex>* Data_<SpDComplex>::PowNew( BaseGDL* r)
+{
+  SizeT sEl = N_Elements();
+
+  assert( sEl > 0);
+  assert( r->N_Elements() > 0);
+
+  if( r->Type() == FLOAT)
+    {
+      Data_<SpDFloat>* right=static_cast<Data_<SpDFloat>* >(r);
+
+      DFloat s;
+      // note: changes here have to be reflected in POWNCNode::Eval() (dnode.cpp)
+      // (concerning when a new variable is created vs. using this)
+      // (must also be consistent with ComplexDbl)
+      if( right->Scalar(s)) 
+	{
+	  DComplexGDL* res = new DComplexGDL( this->Dim(), 
+					      BaseGDL::NOZERO);
+	  for( SizeT i=0; i<sEl; ++i)
+	    res->dd[ i] = pow( dd[ i], s);
+	  //C delete right;
+	  return res;
+	}
+      else 
+	{
+	  SizeT rEl = right->N_Elements();
+	  if( sEl < rEl)
+	    {
+	      DComplexGDL* res = new DComplexGDL( this->Dim(), 
+						  BaseGDL::NOZERO);
+	      for( SizeT i=0; i<sEl; ++i)
+		res->dd[ i] = pow( dd[ i], (*right)[ i]);
+	      //C delete right;
+	      return res;
+	    }
+	  else
+	    {
+	      DComplexGDL* res = new DComplexGDL( right->Dim(), 
+						  BaseGDL::NOZERO);
+	      for( SizeT i=0; i<rEl; ++i)
+		res->dd[ i] = pow( dd[ i], (*right)[ i]);
+	      //C delete right;
+	      //C delete this;
+	      return res;
+	    }
+	}
+    }
+  if( r->Type() == LONG)
+    {
+      Data_<SpDLong>* right=static_cast<Data_<SpDLong>* >(r);
+
+      DLong s;
+      // note: changes here have to be reflected in POWNCNode::Eval() (dnode.cpp)
+      // (concerning when a new variable is created vs. using this)
+      // (must also be consistent with ComplexDbl)
+      if( right->Scalar(s)) 
+	{
+	  DComplexGDL* res = new DComplexGDL( this->Dim(), 
+					      BaseGDL::NOZERO);
+	  for( SizeT i=0; i<sEl; ++i)
+	    res->dd[ i] = pow( dd[ i], s);
+	  //C delete right;
+	  return res;
+	}
+      else 
+	{
+	  SizeT rEl = right->N_Elements();
+	  if( sEl < rEl)
+	    {
+	      DComplexGDL* res = new DComplexGDL( this->Dim(), 
+						  BaseGDL::NOZERO);
+	      for( SizeT i=0; i<sEl; ++i)
+		res->dd[ i] = pow( dd[ i], (*right)[ i]);
+	      //C delete right;
+	      return res;
+	    }
+	  else
+	    {
+	      DComplexGDL* res = new DComplexGDL( right->Dim(), 
+						  BaseGDL::NOZERO);
+	      for( SizeT i=0; i<rEl; ++i)
+		res->dd[ i] = pow( dd[ i], (*right)[ i]);
+	      //C delete right;
+	      //C delete this;
+	      return res;
+	    }
+	}
+    }
+
+  Data_* right=static_cast<Data_*>(r);
+
+//   ULong rEl=right->N_Elements();
+//   ULong sEl=N_Elements();
+//   if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  Ty s;
+  if( right->Scalar(s)) 
+    {
+      DComplexGDL* res = new DComplexGDL( this->Dim(), 
+					  BaseGDL::NOZERO);
+#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
+      for( SizeT i=0; i<sEl; ++i)
+	res->dd[ i] = pow( dd[ i], s);
+#else
+      res->dd = pow( dd, s); // valarray
+#endif
+    }
+  else 
+    {
+      DComplexGDL* res = new DComplexGDL( this->Dim(), 
+					  BaseGDL::NOZERO);
+      //      right->dd.resize(sEl);
+      //      dd = pow( dd, right->dd); // valarray
+#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
+      for( SizeT i=0; i<sEl; ++i)
+	res->dd[ i] = pow( dd[ i], (*right)[ i]);
+#else
+      //      dd = pow( dd, right->Resize(sEl)); // valarray
+      if( r->N_Elements() == sEl)
+	res->dd = pow( dd, right->dd); // valarray
+      else
+	for( SizeT i=0; i < sEl; i++)
+	  res->dd[i] = pow( dd[i], right->dd[i]);
+#endif
+    }
+  //C delete right;
+
+  return this;
+}
 // complex inverse power of value: left=right ^ left
 template<>
 Data_<SpDComplex>* Data_<SpDComplex>::PowInv( BaseGDL* r)
@@ -2330,7 +2466,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
 	      DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
 							BaseGDL::NOZERO);
 	      for( SizeT i=0; i<rEl; ++i)
-		(*res)[ i] = pow( dd[ i], (*right)[ i]);
+		res->dd[ i] = pow( dd[ i], (*right)[ i]);
 	      //C delete right;
 	      //C delete this;
 	      return res;
@@ -2369,7 +2505,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
 	      DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
 							BaseGDL::NOZERO);
 	      for( SizeT i=0; i<rEl; ++i)
-		(*res)[ i] = pow( dd[ i], (*right)[ i]);
+		res->dd[ i] = pow( dd[ i], (*right)[ i]);
 	      //C delete right;
 	      //C delete this;
 	      return res;
@@ -2409,6 +2545,136 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
 #endif
     }
   //C delete right;
+  return this;
+}
+template<>
+Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew( BaseGDL* r)
+{
+  SizeT sEl = N_Elements();
+
+  assert( sEl > 0);
+  assert( r->N_Elements() > 0);
+
+  if( r->Type() == DOUBLE)
+    {
+      Data_<SpDDouble>* right=static_cast<Data_<SpDDouble>* >(r);
+
+      DDouble s;
+      // note: changes here have to be reflected in POWNCNode::Eval() (dnode.cpp)
+      // (concerning when a new variable is created vs. using this)
+      // (must also be consistent with ComplexDbl)
+      if( right->Scalar(s)) 
+	{
+	  DComplexDblGDL* res = new DComplexDblGDL( this->Dim(), 
+					      BaseGDL::NOZERO);
+	  for( SizeT i=0; i<sEl; ++i)
+	    res->dd[ i] = pow( dd[ i], s);
+	  //C delete right;
+	  return res;
+	}
+      else 
+	{
+	  SizeT rEl = right->N_Elements();
+	  if( sEl < rEl)
+	    {
+	      DComplexDblGDL* res = new DComplexDblGDL( this->Dim(), 
+						  BaseGDL::NOZERO);
+	      for( SizeT i=0; i<sEl; ++i)
+		res->dd[ i] = pow( dd[ i], (*right)[ i]);
+	      //C delete right;
+	      return res;
+	    }
+	  else
+	    {
+	      DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
+						  BaseGDL::NOZERO);
+	      for( SizeT i=0; i<rEl; ++i)
+		res->dd[ i] = pow( dd[ i], (*right)[ i]);
+	      //C delete right;
+	      //C delete this;
+	      return res;
+	    }
+	}
+    }
+  if( r->Type() == LONG)
+    {
+      Data_<SpDLong>* right=static_cast<Data_<SpDLong>* >(r);
+
+      DLong s;
+      // note: changes here have to be reflected in POWNCNode::Eval() (dnode.cpp)
+      // (concerning when a new variable is created vs. using this)
+      // (must also be consistent with ComplexDbl)
+      if( right->Scalar(s)) 
+	{
+	  DComplexDblGDL* res = new DComplexDblGDL( this->Dim(), 
+					      BaseGDL::NOZERO);
+	  for( SizeT i=0; i<sEl; ++i)
+	    res->dd[ i] = pow( dd[ i], s);
+	  //C delete right;
+	  return res;
+	}
+      else 
+	{
+	  SizeT rEl = right->N_Elements();
+	  if( sEl < rEl)
+	    {
+	      DComplexDblGDL* res = new DComplexDblGDL( this->Dim(), 
+						  BaseGDL::NOZERO);
+	      for( SizeT i=0; i<sEl; ++i)
+		res->dd[ i] = pow( dd[ i], (*right)[ i]);
+	      //C delete right;
+	      return res;
+	    }
+	  else
+	    {
+	      DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
+						  BaseGDL::NOZERO);
+	      for( SizeT i=0; i<rEl; ++i)
+		res->dd[ i] = pow( dd[ i], (*right)[ i]);
+	      //C delete right;
+	      //C delete this;
+	      return res;
+	    }
+	}
+    }
+
+  Data_* right=static_cast<Data_*>(r);
+
+//   ULong rEl=right->N_Elements();
+//   ULong sEl=N_Elements();
+//   if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  Ty s;
+  if( right->Scalar(s)) 
+    {
+      DComplexDblGDL* res = new DComplexDblGDL( this->Dim(), 
+					  BaseGDL::NOZERO);
+#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
+      for( SizeT i=0; i<sEl; ++i)
+	res->dd[ i] = pow( dd[ i], s);
+#else
+      res->dd = pow( dd, s); // valarray
+#endif
+    }
+  else 
+    {
+      DComplexDblGDL* res = new DComplexDblGDL( this->Dim(), 
+					  BaseGDL::NOZERO);
+      //      right->dd.resize(sEl);
+      //      dd = pow( dd, right->dd); // valarray
+#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
+      for( SizeT i=0; i<sEl; ++i)
+	res->dd[ i] = pow( dd[ i], (*right)[ i]);
+#else
+      //      dd = pow( dd, right->Resize(sEl)); // valarray
+      if( r->N_Elements() == sEl)
+	res->dd = pow( dd, right->dd); // valarray
+      else
+	for( SizeT i=0; i < sEl; i++)
+	  res->dd[i] = pow( dd[i], right->dd[i]);
+#endif
+    }
+  //C delete right;
+
   return this;
 }
 // double complex inverse power of value: left=right ^ left
@@ -2675,6 +2941,103 @@ Data_<SpDByte>* Data_<SpDComplexDbl>::LogNeg()
 	(*res)[i] = (dd[i].real() == 0.0 && dd[i].imag() == 0.0)? 1 : 0;
   return res;
 }
+
+  template<class Sp> Data_<Sp>* Data_<Sp>::AndOpNew( BaseGDL* r) {}
+  template<class Sp> Data_<Sp>* Data_<Sp>::AndOpInvNew( BaseGDL* r) {}
+  template<class Sp> Data_<Sp>* Data_<Sp>::OrOpNew( BaseGDL* r) {}    
+  template<class Sp> Data_<Sp>* Data_<Sp>::OrOpInvNew( BaseGDL* r) {} 
+  template<class Sp> Data_<Sp>* Data_<Sp>::XorOpNew( BaseGDL* r) {}    
+  template<class Sp> Data_<Sp>* Data_<Sp>::AddNew( BaseGDL* r) {}      
+  template<class Sp> Data_<Sp>* Data_<Sp>::AddInvNew( BaseGDL* r) {}      
+  template<class Sp> Data_<Sp>* Data_<Sp>::MultNew( BaseGDL* r) {}   
+  template<class Sp> Data_<Sp>* Data_<Sp>::DivNew( BaseGDL* r) {}      
+  template<class Sp> Data_<Sp>* Data_<Sp>::DivInvNew( BaseGDL* r) {}   
+  template<class Sp> Data_<Sp>* Data_<Sp>::ModNew( BaseGDL* r) {}      
+  template<class Sp> Data_<Sp>* Data_<Sp>::ModInvNew( BaseGDL* r) {}   
+  template<class Sp> Data_<Sp>* Data_<Sp>::PowNew( BaseGDL* r) {}     
+  template<class Sp> Data_<Sp>* Data_<Sp>::PowInvNew( BaseGDL* r) {}  
+
+template<class Sp>
+Data_<Sp>* Data_<Sp>::SubNew( BaseGDL* r)
+{
+  Data_* right=static_cast<Data_*>(r);
+
+  ULong rEl=right->N_Elements();
+  ULong sEl=N_Elements();
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+  
+  Data_* res = New( this->Dim(), BaseGDL::NOZERO);
+
+  Ty s;
+  if( right->Scalar(s)) 
+    {
+      for( SizeT i=0; i < sEl; i++)
+	res->dd[i] = dd[i] - s;
+    }
+  else 
+    {
+      for( SizeT i=0; i < sEl; i++)
+	res->dd[i] = dd[i] - right->dd[i];
+    }
+  //C delete right;
+  return res;
+}
+// inverse substraction: left=right-left
+template<class Sp>
+Data_<Sp>* Data_<Sp>::SubInvNew( BaseGDL* r)
+{
+  Data_* right=static_cast<Data_*>(r);
+
+  ULong rEl=right->N_Elements();
+  ULong sEl=N_Elements();
+  assert( rEl);
+  assert( sEl);
+  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
+
+  Data_* res = New( this->Dim(), BaseGDL::NOZERO);
+
+  Ty s;
+  if( right->Scalar(s)) 
+    {
+      for( SizeT i=0; i < sEl; i++)
+	res->dd[i] = s - dd[i];
+    }
+  else 
+    {
+      for( SizeT i=0; i < sEl; i++)
+	res->dd[i] = right->dd[i] - dd[i];
+    }
+  //C delete right;
+  return res;
+}
+// invalid types
+template<>
+Data_<SpDString>* Data_<SpDString>::SubNew( BaseGDL* r)
+{
+ throw GDLException("Cannot apply operation to datatype STRING.");  
+ return this;
+}
+template<>
+Data_<SpDString>* Data_<SpDString>::SubInvNew( BaseGDL* r)
+{
+ throw GDLException("Cannot apply operation to datatype STRING.");  
+ return this;
+}
+template<>
+Data_<SpDPtr>* Data_<SpDPtr>::SubNew( BaseGDL* r)
+{
+ throw GDLException("Cannot apply operation to datatype PTR.");  
+ return this;
+}
+template<>
+Data_<SpDPtr>* Data_<SpDPtr>::SubInvNew( BaseGDL* r)
+{
+ throw GDLException("Cannot apply operation to datatype PTR.");  
+ return this;
+}
+
 
 //#include "instantiate_templates.hpp"
 

@@ -419,3 +419,77 @@ PyObject* BaseGDL::ToPython()
 {throw GDLException("BaseGDL::ToPython(...) called.");}
 #endif
 
+
+
+BaseGDL* BaseGDL::AndOpNew( BaseGDL* r)    
+{
+  throw GDLException("Operation not defined for UNDEF 13.");
+}
+
+BaseGDL* BaseGDL::AndOpInvNew( BaseGDL* r) 
+{
+  throw GDLException("Operation not defined for UNDEF 14.");
+}
+
+BaseGDL* BaseGDL::OrOpNew( BaseGDL* r)    
+{
+  throw GDLException("Operation not defined for UNDEF 13.");
+}
+
+BaseGDL* BaseGDL::OrOpInvNew( BaseGDL* r) 
+{
+  throw GDLException("Operation not defined for UNDEF 14.");
+}
+
+BaseGDL* BaseGDL::XorOpNew( BaseGDL* r)    
+{
+  throw GDLException("Operation not defined for UNDEF 13.");
+}
+BaseGDL* BaseGDL::AddNew( BaseGDL* r)      
+{
+  throw GDLException("Operation not defined for UNDEF 15.");
+}
+BaseGDL* BaseGDL::AddInvNew( BaseGDL* r)      
+{
+  throw GDLException("Operation not defined for UNDEF 15.");
+}
+
+BaseGDL* BaseGDL::SubNew( BaseGDL* r)      
+{
+  throw GDLException("Operation not defined for UNDEF 16.");
+}
+BaseGDL* BaseGDL::SubInvNew( BaseGDL* r)   
+{
+  throw GDLException("Operation not defined for UNDEF 17.");
+}
+BaseGDL* BaseGDL::MultNew( BaseGDL* r)   
+{
+  throw GDLException("Operation not defined for UNDEF 19.");
+}
+
+BaseGDL* BaseGDL::DivNew( BaseGDL* r)      
+{
+  throw GDLException("Operation not defined for UNDEF 16.");
+}
+BaseGDL* BaseGDL::DivInvNew( BaseGDL* r)   
+{
+  throw GDLException("Operation not defined for UNDEF 17.");
+}
+
+BaseGDL* BaseGDL::ModNew( BaseGDL* r)      
+{
+  throw GDLException("Operation not defined for UNDEF 16.");
+}
+BaseGDL* BaseGDL::ModInvNew( BaseGDL* r)   
+{
+  throw GDLException("Operation not defined for UNDEF 17.");
+}
+
+BaseGDL* BaseGDL::PowNew( BaseGDL* r)      
+{
+  throw GDLException("Operation not defined for UNDEF 16.");
+}
+BaseGDL* BaseGDL::PowInvNew( BaseGDL* r)   
+{
+  throw GDLException("Operation not defined for UNDEF 17.");
+}

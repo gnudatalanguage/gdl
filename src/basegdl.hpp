@@ -245,6 +245,22 @@ public:
   virtual BaseGDL* ModInv( BaseGDL* r);   
   virtual BaseGDL* Pow( BaseGDL* r);      
   virtual BaseGDL* PowInv( BaseGDL* r);   
+  virtual BaseGDL* AndOpNew( BaseGDL* r);    // create new result var      
+  virtual BaseGDL* AndOpInvNew( BaseGDL* r); // create new result var      
+  virtual BaseGDL* OrOpNew( BaseGDL* r);    
+  virtual BaseGDL* OrOpInvNew( BaseGDL* r); 
+  virtual BaseGDL* XorOpNew( BaseGDL* r);    
+  virtual BaseGDL* AddNew( BaseGDL* r);      
+  virtual BaseGDL* AddInvNew( BaseGDL* r);      
+  virtual BaseGDL* SubNew( BaseGDL* r);      
+  virtual BaseGDL* SubInvNew( BaseGDL* r);   
+  virtual BaseGDL* MultNew( BaseGDL* r);   
+  virtual BaseGDL* DivNew( BaseGDL* r);      
+  virtual BaseGDL* DivInvNew( BaseGDL* r);   
+  virtual BaseGDL* ModNew( BaseGDL* r);      
+  virtual BaseGDL* ModInvNew( BaseGDL* r);   
+  virtual BaseGDL* PowNew( BaseGDL* r);     
+  virtual BaseGDL* PowInvNew( BaseGDL* r);  
   virtual BaseGDL* MatrixOp( BaseGDL* r);   
   virtual void AssignAt( BaseGDL* srcIn, 
 			 ArrayIndexListT* ixList=NULL, SizeT offset=0);

@@ -208,6 +208,23 @@ public:
   Data_*   PowInv( BaseGDL* r);
   Data_*   MatrixOp( BaseGDL* r);
   
+  Data_* AndOpNew( BaseGDL* r);    // create new result var      
+  Data_* AndOpInvNew( BaseGDL* r); // create new result var      
+  Data_* OrOpNew( BaseGDL* r);    
+  Data_* OrOpInvNew( BaseGDL* r); 
+  Data_* XorOpNew( BaseGDL* r);    
+  Data_* AddNew( BaseGDL* r);      
+  Data_* AddInvNew( BaseGDL* r);      
+  Data_* SubNew( BaseGDL* r);      
+  Data_* SubInvNew( BaseGDL* r);   
+  Data_* MultNew( BaseGDL* r);   
+  Data_* DivNew( BaseGDL* r);      
+  Data_* DivInvNew( BaseGDL* r);   
+  Data_* ModNew( BaseGDL* r);      
+  Data_* ModInvNew( BaseGDL* r);   
+  Data_* PowNew( BaseGDL* r);     
+  Data_* PowInvNew( BaseGDL* r);  
+
   Data_<SpDByte>* EqOp( BaseGDL* r);
   Data_<SpDByte>* NeOp( BaseGDL* r);
   Data_<SpDByte>* GtOp( BaseGDL* r);

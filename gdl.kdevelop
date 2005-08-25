@@ -42,17 +42,17 @@
         <ccompiler>kdevgccoptions</ccompiler>
         <cxxcompiler>kdevgppoptions</cxxcompiler>
         <f77compiler>kdevg77options</f77compiler>
-        <cxxflags>-O2 -g0</cxxflags>
+        <cxxflags>-O3 -g0</cxxflags>
         <envvars/>
         <configargs>--with-python=yes --with-hdf=no --with-hdf5=no --with-netcdf=/usr/local --disable-python_module</configargs>
-        <topsourcedir/>
-        <cppflags/>
-        <ldflags/>
-        <ccompilerbinary/>
-        <cxxcompilerbinary/>
-        <f77compilerbinary/>
-        <cflags/>
-        <f77flags/>
+        <topsourcedir></topsourcedir>
+        <cppflags></cppflags>
+        <ldflags></ldflags>
+        <ccompilerbinary></ccompilerbinary>
+        <cxxcompilerbinary></cxxcompilerbinary>
+        <f77compilerbinary></f77compilerbinary>
+        <cflags></cflags>
+        <f77flags></f77flags>
       </optimized>
       <debug>
         <configargs>--enable-debug=full --with-python=yes --with-hdf=no --with-hdf5=/usr/local --with-netcdf=/usr/local --disable-python_module</configargs>
@@ -72,20 +72,21 @@
         <envvars/>
       </debug>
       <default>
-        <configargs>--with-python=/usr/local</configargs>
+        <configargs>--with-python=yes --with-hdf=no --with-hdf5=no --with-netcdf=/usr/local --disable-python_module</configargs>
         <builddir>default</builddir>
-        <topsourcedir/>
-        <cppflags/>
-        <ldflags/>
+        <topsourcedir></topsourcedir>
+        <cppflags></cppflags>
+        <ldflags>-pg</ldflags>
         <ccompiler>kdevgccoptions</ccompiler>
         <cxxcompiler>kdevgppoptions</cxxcompiler>
         <f77compiler>kdevg77options</f77compiler>
-        <ccompilerbinary/>
-        <cxxcompilerbinary/>
-        <f77compilerbinary/>
-        <cflags/>
-        <cxxflags/>
-        <f77flags/>
+        <ccompilerbinary></ccompilerbinary>
+        <cxxcompilerbinary></cxxcompilerbinary>
+        <f77compilerbinary></f77compilerbinary>
+        <cflags></cflags>
+        <cxxflags>-O2 -g3 -pg</cxxflags>
+        <f77flags></f77flags>
+        <envvars/>
       </default>
     </configurations>
     <make>
