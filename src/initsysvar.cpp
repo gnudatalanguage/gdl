@@ -35,7 +35,7 @@ namespace SysVar
   UInt pathIx, promptIx, edit_inputIx, quietIx, 
     dIx, pIx, xIx, yIx, zIx, vIx, cIx, 
     errorStateIx, errorIx, errIx, err_stringIx, valuesIx,
-    journalIx, exceptIx;
+    journalIx, exceptIx, mapIx;
 
   // !D structs
   const int nDevices = 2;
@@ -426,6 +426,12 @@ namespace SysVar
     DVar *except = new DVar( "EXCEPT", exceptData);
     exceptIx=sysVarList.size();
     sysVarList.push_back( except);
+
+    // !MAP
+    DIntGDL *mapData = new DIntGDL( 1);
+    DVar *map = new DVar( "MAP", mapData);
+    mapIx=sysVarList.size();
+    sysVarList.push_back( map);
 
   }
 
