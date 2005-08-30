@@ -29,6 +29,7 @@ namespace lib {
   BaseGDL* machar_fun( EnvT* e);
   BaseGDL* finite_fun( EnvT* e);
   BaseGDL* check_math_fun( EnvT* e);
+  BaseGDL* radon_fun( EnvT* e);
 
 } // namespace
 

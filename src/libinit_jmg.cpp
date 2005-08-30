@@ -84,6 +84,11 @@ void LibInit_jmg()
   const string finiteKey[]={"INFINITY",KLISTEND};
   new DLibFun(lib::finite_fun,string("FINITE"),1,finiteKey);
 
+  const string radonKey[]={"BACKPROJECT","DOUBLE","DRHO","DX","DY",
+			   "GRAY","LINEAR","NRHO","NTHETA","NX","NY",
+			   "RHO","RMIN","THETA","XMIN","YMIN",KLISTEND};
+  new DLibFun(lib::radon_fun,string("RADON"),1,radonKey);
+
   const string make_arrayKey[]={"NOZERO","DIMENSION","INDEX","SIZE",
 				"TYPE","VALUE","BYTE","INT",
 				"UINT","LONG","ULONG","L64","UL64",

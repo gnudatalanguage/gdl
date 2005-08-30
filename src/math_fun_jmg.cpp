@@ -359,5 +359,211 @@ namespace lib {
     return new DLongGDL( value );
   }
 
+
+  BaseGDL* radon_fun( EnvT* e)
+  {
+    BaseGDL* p0 = e->GetParDefined( 0);
+
+    SizeT nEl = p0->N_Elements();
+    if( nEl == 0)
+      e->Throw( "Variable is undefined: "+e->GetParString(0));
+
+    if (p0->Rank() != 2)
+      e->Throw( "RADON: Array must have 2 dimensions: "+e->GetParString(0));
+
+    DFloatGDL* p0F = static_cast<DFloatGDL*>
+      (p0->Convert2( FLOAT, BaseGDL::COPY));
+
+    DFloat fpi=4*atan(1.0);
+
+    DFloat dx=1, dy=1;
+    DFloat drho = 0.5 * sqrt(dx*dx + dy*dy);
+
+    if( e->KeywordSet( "DX"))
+      e->AssureFloatScalarKWIfPresent( "DX", dx);	
+    if( e->KeywordSet( "DY"))
+      e->AssureFloatScalarKWIfPresent( "DY", dy);
+    if( e->KeywordSet( "DRHO"))
+      e->AssureFloatScalarKWIfPresent( "DRHO", drho);	
+
+    DLong dims[2];
+
+
+    if( e->KeywordSet( "BACKPROJECT")) {
+
+      DLong ntheta=p0->Dim(0);
+      DLong nrho=p0->Dim(1);
+      DFloat dtheta=fpi/ntheta;
+
+      DLong nx=(DLong) floor(2*((drho*nrho/2)/sqrt(dx*dx + dy*dy))+1);
+      DLong ny=nx;
+      if( e->KeywordSet( "NX"))
+	e->AssureLongScalarKWIfPresent( "NX", nx);
+      if( e->KeywordSet( "NY"))
+	e->AssureLongScalarKWIfPresent( "NY", ny);	
+
+      dims[0] = nx;
+      dims[1] = ny;
+
+      dimension dim((SizeT *) dims, 2);
+
+      DFloat xmin = -0.5 * (nx-1);
+      DFloat ymin = -0.5 * (ny-1);
+      DFloat xmax = +0.5 * (nx-1);
+      DFloat ymax = +0.5 * (ny-1);
+
+      if( e->KeywordSet( "XMIN"))
+	e->AssureFloatScalarKWIfPresent( "XMIN", xmin);	
+      if( e->KeywordSet( "YMIN"))
+	e->AssureFloatScalarKWIfPresent( "YMIN", ymin);	
+
+
+      DFloatGDL* res = new DFloatGDL( dim, BaseGDL::NOZERO);
+      for( SizeT i=0; i<nx*ny; ++i) (*res)[i] = 0;
+
+      DFloat rhomin = -0.5 * (nrho-1) * drho;
+
+      for( SizeT n=0; n<ny; ++n) {
+	for( SizeT m=0; m<nx; ++m) {
+
+	  DFloat theta=0;
+	  for( SizeT itheta=0; itheta<ntheta; ++itheta) {
+	    DFloat rho = ((m*dx+xmin)*cos(theta) +
+			  (n*dy+ymin)*sin(theta) -
+			  rhomin) / drho;
+	    DLong indx = (DLong) round(rho);
+	    //	    if (m ==63 && (n==0 || n==127))
+	    // printf("%d %d\n", itheta,indx);
+	    if (indx > 0 && indx < nrho)
+	      (*res)[m+n*nx] += dtheta * (*p0F)[itheta+ntheta*indx];
+	    theta += dtheta;
+	  }
+	}
+      }
+      return res;
+
+    } else {
+      // "Forward Radon Transform"
+
+      DFloat maxr2[4], mrho2;
+
+      DFloat xmin = -0.5 * (p0->Dim(0)-1);
+      DFloat ymin = -0.5 * (p0->Dim(1)-1);
+      DFloat xmax = +0.5 * (p0->Dim(0)-1);
+      DFloat ymax = +0.5 * (p0->Dim(1)-1);
+
+      if( e->KeywordSet( "XMIN"))
+	e->AssureFloatScalarKWIfPresent( "XMIN", xmin);	
+      if( e->KeywordSet( "YMIN"))
+	e->AssureFloatScalarKWIfPresent( "YMIN", xmin);	
+
+      maxr2[0] = xmin*xmin + ymin*ymin;
+      maxr2[1] = xmin*xmin + ymax*ymax;
+      maxr2[2] = xmax*xmax + ymin*ymin;
+      maxr2[3] = xmax*xmax + ymax*ymax;
+      mrho2 = maxr2[0];
+      if (maxr2[1] > mrho2) mrho2 = maxr2[1];
+      if (maxr2[2] > mrho2) mrho2 = maxr2[2];
+      if (maxr2[3] > mrho2) mrho2 = maxr2[3];
+
+      dims[0] = (DLong) ceil(fpi * sqrt((p0->Dim(0)*p0->Dim(0) + 
+				       p0->Dim(1)*p0->Dim(1))/2));
+      dims[1] = 2 * (DLong) ceil(sqrt(mrho2)/drho) + 1;
+
+      if( e->KeywordSet( "NTHETA"))
+	e->AssureLongScalarKWIfPresent( "NTHETA", dims[0]);
+      if( e->KeywordSet( "NRHO"))
+	e->AssureLongScalarKWIfPresent( "NRHO", dims[1]);
+
+      static int thetaIx = e->KeywordIx( "THETA"); 
+      if( e->KeywordPresent( thetaIx)) {
+	DFloatGDL* thetaKW = e->IfDefGetKWAs<DFloatGDL>( thetaIx);
+	if (thetaKW != NULL) dims[0] = thetaKW->N_Elements();
+      }
+
+      DLong ntheta = dims[0];
+      DLong nrho = dims[1];
+
+      dimension dim((SizeT *) dims, 2);
+
+      DFloatGDL* res = new DFloatGDL( dim, BaseGDL::NOZERO);
+      for( SizeT i=0; i<ntheta*nrho; ++i) (*res)[i] = 0;
+
+      DFloat theta=0, dtheta=fpi/ntheta, cs, sn;
+      DFloat rmin=-0.5*(nrho-1)*drho, rho;
+      if( e->KeywordSet( "RMIN"))
+	e->AssureFloatScalarKWIfPresent( "RMIN", rmin);	
+
+
+      for( SizeT itheta=0; itheta<ntheta; ++itheta) {
+	printf("theta: %d %f\n", itheta, theta);
+	sn = sin(theta);
+	cs = cos(theta);
+
+	if (sn > 1/sqrt(2)) {
+	  DFloat a = -(dx/dy) * (cs/sn);
+	  DFloat den = dy * sn;
+	  DFloat num1 = xmin*cs + ymin*sn;
+	  rho = rmin;
+	  for( SizeT irho=0; irho<nrho; ++irho) {
+	    DFloat b = (rho - num1) / den;
+	    for( SizeT m=0; m<p0->Dim(0); ++m) {
+	      DLong indx = (DLong) round(a*m+b);
+	      if (indx < 0 || indx > (p0->Dim(1)-1)) continue;
+	      (*res)[itheta+irho*ntheta] += (*p0F)[m+(p0->Dim(0))*indx];
+	    }
+	    rho += drho;
+	    (*res)[itheta+irho*ntheta] *= dx/abs(sn);
+	  } // irho loop
+	} else {
+	  DFloat a = -(dy/dx) * (sn/cs);
+	  DFloat den = dx * cs;
+	  DFloat num1 = xmin*cs + ymin*sn;
+	  rho = rmin;
+	  for( SizeT irho=0; irho<nrho; ++irho) {
+	    DFloat b = (rho - num1) / den;
+	    for( SizeT n=0; n<p0->Dim(1); ++n) {
+	      DLong indx = (DLong) round(a*n+b);
+	      if (indx < 0 || indx > (p0->Dim(0)-1)) continue;
+	      //	    printf("indx: %d  n: %d  b: %f  rho: %f\n",indx,n,b,rho);
+	      (*res)[itheta+irho*ntheta] += (*p0F)[n*(p0->Dim(0))+indx];
+	    }
+	    rho += drho;
+	    (*res)[itheta+irho*ntheta] *= dy/abs(cs);
+	  } // irho loop
+	}
+	theta += dtheta;
+      } // itheta loop
+
+
+      // Write rho array to KW
+      static int rhoIx = e->KeywordIx( "RHO"); 
+      if( e->KeywordPresent( rhoIx)) {
+	BaseGDL** rhoKW = &e->GetKW( rhoIx);
+	delete (*rhoKW);
+	dimension dim((SizeT *) &nrho, (SizeT) 1);
+	*rhoKW = new DFloatGDL(dim, BaseGDL::NOZERO);
+	for( SizeT irho=0; irho<nrho; ++irho)
+	  (*(DFloatGDL*) *rhoKW)[irho] = rmin + irho*drho;
+      }
+
+      // If THETA KW present but variable doesn't exist then write theta array
+      if( e->KeywordPresent( thetaIx)) {
+	if (e->IfDefGetKWAs<DFloatGDL>( thetaIx) == NULL) {
+	  dimension dim((SizeT *) &ntheta, (SizeT) 1);
+	  BaseGDL** thetaKW = &e->GetKW( thetaIx);
+	  delete (*thetaKW);
+	  *thetaKW = new DFloatGDL(dim, BaseGDL::NOZERO);
+	for( SizeT itheta=0; itheta<ntheta; ++itheta)
+	  (*(DFloatGDL*) *thetaKW)[itheta] = itheta*dtheta;
+	}
+      }	 
+
+      return res;
+    }
+
+
+  }
+
 } // namespace
 
