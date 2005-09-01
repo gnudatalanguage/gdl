@@ -692,6 +692,7 @@ std::auto_ptr< ArrayIndexListT> ixList( new ArrayIndexListT()); // compile_opt
 	: ( arrayindex[ ixList.get()])+
         {
             #arrayindex_list = #([ARRAYIX,"[...]"], arrayindex_list);
+            ixList->Freeze(); // do all initial one-time settings
             #arrayindex_list->SetArrayIndexList( ixList.release());
         }
 	;	
@@ -915,7 +916,7 @@ arrayexpr_fn!//
                     comp.Var(#va);	
 
                     #arrayexpr_fn=
-                    #([ARRAYEXPR,"arrayexpr"], al, va);
+                    #([ARRAYEXPR,"arrayexpr"], va, al);
                 }
             }
         )  
@@ -1019,7 +1020,7 @@ indexable_expr // only used by array_expr
     | unbrace_expr
     ;
 array_expr // only used by expr
-	: #(ARRAYEXPR arrayindex_list indexable_expr)
+	: #(ARRAYEXPR indexable_expr arrayindex_list)
 	| indexable_expr
 	;
 
@@ -1029,7 +1030,7 @@ tag_indexable_expr // only used by tag_array_expr_1st
     | brace_expr
     ;
 tag_array_expr_1st // only used by expr
-	: #(ARRAYEXPR arrayindex_list tag_indexable_expr)
+	: #(ARRAYEXPR tag_indexable_expr arrayindex_list)
 	| tag_indexable_expr
 	;
 
@@ -1038,7 +1039,7 @@ tag_expr
     | IDENTIFIER
     ;
 tag_array_expr
-	: #(ARRAYEXPR arrayindex_list tag_expr)
+	: #(ARRAYEXPR tag_expr arrayindex_list)
     | tag_expr
     ;
 

@@ -5649,7 +5649,7 @@ void GDLParser::array_expr_1st() {
 		if ( inputState->guessing==0 ) {
 			array_expr_1st_AST = RefDNode(currentAST.root);
 			array_expr_1st_AST = 
-							RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(ARRAYEXPR,"arrayexpr")))->add(antlr::RefAST(al_AST))->add(antlr::RefAST(e_AST))));
+							RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(ARRAYEXPR,"arrayexpr")))->add(antlr::RefAST(e_AST))->add(antlr::RefAST(al_AST))));
 			currentAST.root = array_expr_1st_AST;
 			if ( array_expr_1st_AST!=RefDNode(antlr::nullAST) &&
 				array_expr_1st_AST->getFirstChild() != RefDNode(antlr::nullAST) )
@@ -5797,7 +5797,7 @@ void GDLParser::array_expr_nth() {
 		if ( inputState->guessing==0 ) {
 			array_expr_nth_AST = RefDNode(currentAST.root);
 			array_expr_nth_AST = 
-			RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(ARRAYEXPR,"arrayexpr")))->add(antlr::RefAST(al_AST))->add(antlr::RefAST(e_AST))));
+			RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(ARRAYEXPR,"arrayexpr")))->add(antlr::RefAST(e_AST))->add(antlr::RefAST(al_AST))));
 			currentAST.root = array_expr_nth_AST;
 			if ( array_expr_nth_AST!=RefDNode(antlr::nullAST) &&
 				array_expr_nth_AST->getFirstChild() != RefDNode(antlr::nullAST) )
@@ -5957,7 +5957,7 @@ void GDLParser::array_expr_fn() {
 			dot->SetLine( al_AST->getLine());
 			
 			array_expr_fn_AST = 
-				  		RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(dot))->add(antlr::RefAST(RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(ARRAYEXPR,"arrayexpr")))->add(antlr::RefAST(al_AST))->add(antlr::RefAST(v_AST))))))->add(antlr::RefAST(t))));
+				  		RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(dot))->add(antlr::RefAST(RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(ARRAYEXPR,"arrayexpr")))->add(antlr::RefAST(v_AST))->add(antlr::RefAST(al_AST))))))->add(antlr::RefAST(t))));
 			currentAST.root = array_expr_fn_AST;
 			if ( array_expr_fn_AST!=RefDNode(antlr::nullAST) &&
 				array_expr_fn_AST->getFirstChild() != RefDNode(antlr::nullAST) )

@@ -126,6 +126,11 @@ template<class Sp> Data_<Sp>::Data_(const dimension& dim_,
     }
 }
 
+// template<class Sp>
+// BaseGDL* Data_<Sp>::Abs() const
+// {
+//   return new Data_( this->dim, dd.abs());
+// }
 
 template<class Sp>
 bool Data_<Sp>::Greater(SizeT i1, SizeT i2) const

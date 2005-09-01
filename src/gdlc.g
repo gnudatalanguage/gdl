@@ -959,7 +959,7 @@ array_expr_1st!
     : e:array_expr_1st_sub
 		( al:arrayindex_list
 			{ #array_expr_1st = 
-				#([ARRAYEXPR,"arrayexpr"], #al, #e);}
+				#([ARRAYEXPR,"arrayexpr"], #e, #al);}
         | // empty
 			{ #array_expr_1st = #e;}
 		)
@@ -976,7 +976,7 @@ array_expr_nth!
 	: e:array_expr_nth_sub
 		( al:arrayindex_list
 			{ #array_expr_nth = 
-                #([ARRAYEXPR,"arrayexpr"], #al, #e);}
+                #([ARRAYEXPR,"arrayexpr"], #e, #al);}
         | // empty
 			{ #array_expr_nth = #e;}
 		)
@@ -1029,7 +1029,7 @@ array_expr_fn!//
             dot->SetLine( #al->getLine());
   
             #array_expr_fn = 
-	  		#(dot, ([ARRAYEXPR,"arrayexpr"], #al, #v), #t);} 
+	  		#(dot, ([ARRAYEXPR,"arrayexpr"], #v, #al), #t);} 
 
         | // still ambiguous
             { #array_expr_fn = 

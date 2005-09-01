@@ -308,6 +308,26 @@ public:
   DStructGDL*   Pow( BaseGDL* r);
   DStructGDL*   PowInv( BaseGDL* r);
   DStructGDL*   MatrixOp( BaseGDL* r);
+
+
+  DStructGDL*   AndOpS( BaseGDL* r);
+  DStructGDL*   AndOpInvS( BaseGDL* r);
+  DStructGDL*   OrOpS( BaseGDL* r);
+  DStructGDL*   OrOpInvS( BaseGDL* r);
+  DStructGDL*   AddS( BaseGDL* r);
+  DStructGDL*   AddInvS( BaseGDL* r);
+  DStructGDL*   SubS( BaseGDL* r);
+  DStructGDL*   SubInvS( BaseGDL* r);
+  DStructGDL*   GtMarkS( BaseGDL* r);
+  DStructGDL*   LtMarkS( BaseGDL* r);
+  DStructGDL*   MultS( BaseGDL* r);
+  DStructGDL*   DivS( BaseGDL* r);
+  DStructGDL*   DivInvS( BaseGDL* r);
+  DStructGDL*   ModS( BaseGDL* r);
+  DStructGDL*   ModInvS( BaseGDL* r);
+  DStructGDL*   PowS( BaseGDL* r);
+  DStructGDL*   PowInvS( BaseGDL* r);
+
   
   Data_<SpDByte>* EqOp( BaseGDL* r);
   Data_<SpDByte>* NeOp( BaseGDL* r);

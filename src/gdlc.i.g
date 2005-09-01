@@ -1400,10 +1400,10 @@ l_decinc_array_expr [int dec_inc] returns [BaseGDL* res]
 
 }
     : #(ARRAYEXPR 
-            aL=arrayindex_list 
-            { guard.reset( aL);} 
-            e=l_decinc_indexable_expr[ dec_inc])   
+            e=l_decinc_indexable_expr[ dec_inc]   
+            aL=arrayindex_list)
         {
+            guard.reset( aL); 
             aL->SetVariable( e);
 
             if( dec_inc == DECSTATEMENT) 
@@ -1625,7 +1625,7 @@ l_array_expr [BaseGDL* right] returns [BaseGDL** res]
     ArrayIndexListT* aL;
     ArrayIndexListGuard guard;
 }
-    : #(ARRAYEXPR aL=arrayindex_list { guard.reset(aL);} res=l_indexable_expr)   
+    : #(ARRAYEXPR res=l_indexable_expr aL=arrayindex_list { guard.reset(aL);})   
         {
             if( right == NULL)
             throw GDLException( _t, 
@@ -1655,7 +1655,7 @@ l_dot_array_expr [DotAccessDescT* aD] // 1st
     ArrayIndexListGuard guard;
     bool isObj = callStack.back()->IsObject();
 }
-    : #(ARRAYEXPR aL=arrayindex_list { guard.reset(aL);} rP=l_indexable_expr)   
+    : #(ARRAYEXPR rP=l_indexable_expr aL=arrayindex_list { guard.reset(aL);})   
         {
             // check here for object and get struct
             structR=dynamic_cast<DStructGDL*>(*rP);
@@ -2235,7 +2235,7 @@ array_expr returns [BaseGDL* res]
     ArrayIndexListGuard guard;
     auto_ptr<BaseGDL> r_guard;
 }
-    : #(ARRAYEXPR aL=arrayindex_list { guard.reset(aL);}
+    : #(ARRAYEXPR 
             ( r=indexable_expr
             | r=indexable_tmp_expr { r_guard.reset( r);}
             | r=check_expr
@@ -2244,6 +2244,7 @@ array_expr returns [BaseGDL* res]
                         r_guard.reset( r); // guard if no global data
                 }
             )
+            aL=arrayindex_list { guard.reset(aL);}
             {
                 aL->SetVariable( r);
                 res=r->Index( aL);
@@ -2282,8 +2283,8 @@ tag_array_expr  [DotAccessDescT* aD] // 2nd...
 {
     ArrayIndexListT* aL;
 }
-	: #(ARRAYEXPR aL=arrayindex_list { aD->AddIx(aL);} tag_expr[ aD])
-    | { aD->AddIx(NULL);} tag_expr[ aD]
+	: #(ARRAYEXPR tag_expr[ aD] aL=arrayindex_list { aD->AddIx(aL);} )
+    | tag_expr[ aD] { aD->AddIx(NULL);} 
     ;
 
 r_dot_indexable_expr [DotAccessDescT* aD] returns [BaseGDL* res] // 1st
@@ -2306,7 +2307,8 @@ r_dot_array_expr [DotAccessDescT* aD] // 1st
     bool isObj = callStack.back()->IsObject();
 }
 // NOTE: r is owned by aD or a l_... (r must not be deleted here)
-    : #(ARRAYEXPR aL=arrayindex_list { guard.reset(aL);} r=r_dot_indexable_expr[ aD])   
+    : #(ARRAYEXPR r=r_dot_indexable_expr[ aD] 
+            aL=arrayindex_list { guard.reset(aL);} )   
         {
             // check here for object and get struct
             structR=dynamic_cast<DStructGDL*>(r);

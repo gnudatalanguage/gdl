@@ -4518,6 +4518,7 @@ void GDLTreeParser::arrayindex_list(RefDNode _t) {
 	arrayindex_list_AST = RefDNode(currentAST.root);
 	
 	arrayindex_list_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(ARRAYIX,"[...]")))->add(antlr::RefAST(arrayindex_list_AST))));
+	ixList->Freeze(); // do all initial one-time settings
 	arrayindex_list_AST->SetArrayIndexList( ixList.release());
 	
 	currentAST.root = arrayindex_list_AST;
@@ -4823,7 +4824,7 @@ void GDLTreeParser::arrayexpr_fn(RefDNode _t) {
 	comp.Var(va_AST);	
 	
 	arrayexpr_fn_AST=
-	RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(ARRAYEXPR,"arrayexpr")))->add(antlr::RefAST(al_AST))->add(antlr::RefAST(va_AST))));
+	RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(ARRAYEXPR,"arrayexpr")))->add(antlr::RefAST(va_AST))->add(antlr::RefAST(al_AST))));
 	}
 	
 	currentAST.root = arrayexpr_fn_AST;
@@ -5998,10 +5999,10 @@ void GDLTreeParser::array_expr(RefDNode _t) {
 		currentAST.child = RefDNode(antlr::nullAST);
 		match(antlr::RefAST(_t),ARRAYEXPR);
 		_t = _t->getFirstChild();
-		arrayindex_list(_t);
+		indexable_expr(_t);
 		_t = _retTree;
 		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-		indexable_expr(_t);
+		arrayindex_list(_t);
 		_t = _retTree;
 		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 		currentAST = __currentAST193;
@@ -6093,10 +6094,10 @@ void GDLTreeParser::tag_array_expr_1st(RefDNode _t) {
 		currentAST.child = RefDNode(antlr::nullAST);
 		match(antlr::RefAST(_t),ARRAYEXPR);
 		_t = _t->getFirstChild();
-		arrayindex_list(_t);
+		tag_indexable_expr(_t);
 		_t = _retTree;
 		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-		tag_indexable_expr(_t);
+		arrayindex_list(_t);
 		_t = _retTree;
 		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 		currentAST = __currentAST196;
@@ -6184,10 +6185,10 @@ void GDLTreeParser::tag_array_expr(RefDNode _t) {
 		currentAST.child = RefDNode(antlr::nullAST);
 		match(antlr::RefAST(_t),ARRAYEXPR);
 		_t = _t->getFirstChild();
-		arrayindex_list(_t);
+		tag_expr(_t);
 		_t = _retTree;
 		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-		tag_expr(_t);
+		arrayindex_list(_t);
 		_t = _retTree;
 		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 		currentAST = __currentAST199;

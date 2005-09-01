@@ -733,6 +733,7 @@ void BinaryExprNC::AdjustTypesNC(auto_ptr<BaseGDL>& g1, BaseGDL*& e1,
     }
 }
 
+// trinary operator
 BaseGDL* QUESTIONNode::Eval()
 {
   auto_ptr<BaseGDL> e1( op1->Eval());
@@ -743,6 +744,7 @@ BaseGDL* QUESTIONNode::Eval()
   return op3->Eval(); // right->right
 }
 
+// unary operators
 BaseGDL* UMINUSNode::Eval()
 {
   BaseGDL* e1 = down->Eval();
@@ -759,20 +761,21 @@ BaseGDL* LOG_NEGNode::Eval()
   return e1->LogNeg();
 }
 
+// binary operators
 BaseGDL* AND_OPNode::Eval()
 { BaseGDL* res;
   auto_ptr<BaseGDL> e1( op1->Eval());
   auto_ptr<BaseGDL> e2( op2->Eval());
   AdjustTypes(e1,e2);
-  if( e1->Scalar())
+  if( e1->Scalar()) 
     {
-    res= e2->AndOp(e1.get()); // scalar+scalar or array+scalar
+    res= e2->AndOpS(e1.get()); // scalar+scalar or array+scalar
     e2.release();
     }
   else
     if( e2->Scalar())
       {
-      res= e1->AndOpInv(e2.get()); // array+scalar
+      res= e1->AndOpInvS(e2.get()); // array+scalar
       e1.release();
       }
     else
@@ -795,13 +798,13 @@ BaseGDL* OR_OPNode::Eval()
  AdjustTypes(e1,e2);
  if( e1->Scalar())
    {
-     res= e2->OrOp(e1.get()); // scalar+scalar or array+scalar
+     res= e2->OrOpS(e1.get()); // scalar+scalar or array+scalar
      e2.release();
    }
  else
    if( e2->Scalar())
      {
-       res= e1->OrOpInv(e2.get()); // array+scalar
+       res= e1->OrOpInvS(e2.get()); // array+scalar
        e1.release();
      }
    else
@@ -908,13 +911,13 @@ BaseGDL* PLUSNode::Eval()
  AdjustTypes(e1,e2);
  if( e1->Scalar())
    {
-     res= e2->AddInv(e1.get()); // scalar+scalar or array+scalar
+     res= e2->AddInvS(e1.get()); // scalar+scalar or array+scalar
      e2.release();
    }
  else
    if( e2->Scalar())
      {
-       res= e1->Add(e2.get()); // array+scalar
+       res= e1->AddS(e2.get()); // array+scalar
        e1.release();
      }
    else
@@ -937,13 +940,13 @@ BaseGDL* MINUSNode::Eval()
  AdjustTypes(e1,e2);
  if( e1->Scalar())
    {
-     res= e2->SubInv(e1.get()); // scalar+scalar or array+scalar
+     res= e2->SubInvS(e1.get()); // scalar+scalar or array+scalar
      e2.release();
    }
  else
    if( e2->Scalar())
      {
-       res= e1->Sub(e2.get()); // array+scalar
+       res= e1->SubS(e2.get()); // array+scalar
        e1.release();
      }
    else
@@ -966,13 +969,13 @@ BaseGDL* LTMARKNode::Eval()
  AdjustTypes(e1,e2);
  if( e1->Scalar())
    {
-     res= e2->LtMark(e1.get()); // scalar+scalar or array+scalar
+     res= e2->LtMarkS(e1.get()); // scalar+scalar or array+scalar
      e2.release();
    }
  else
    if( e2->Scalar())
      {
-       res= e1->LtMark(e2.get()); // array+scalar
+       res= e1->LtMarkS(e2.get()); // array+scalar
        e1.release();
      }
    else
@@ -995,13 +998,13 @@ BaseGDL* GTMARKNode::Eval()
  AdjustTypes(e1,e2);
  if( e1->Scalar())
    {
-     res= e2->GtMark(e1.get()); // scalar+scalar or array+scalar
+     res= e2->GtMarkS(e1.get()); // scalar+scalar or array+scalar
      e2.release();
    }
  else
    if( e2->Scalar())
      {
-       res= e1->GtMark(e2.get()); // array+scalar
+       res= e1->GtMarkS(e2.get()); // array+scalar
        e1.release();
      }
    else
@@ -1024,13 +1027,13 @@ BaseGDL* ASTERIXNode::Eval()
  AdjustTypes(e1,e2);
  if( e1->Scalar())
    {
-     res= e2->Mult(e1.get()); // scalar+scalar or array+scalar
+     res= e2->MultS(e1.get()); // scalar+scalar or array+scalar
      e2.release();
    }
  else
    if( e2->Scalar())
      {
-       res= e1->Mult(e2.get()); // array+scalar
+       res= e1->MultS(e2.get()); // array+scalar
        e1.release();
      }
    else
@@ -1096,13 +1099,13 @@ BaseGDL* SLASHNode::Eval()
  AdjustTypes(e1,e2);
  if( e1->Scalar())
    {
-     res= e2->DivInv(e1.get()); // scalar+scalar or array+scalar
+     res= e2->DivInvS(e1.get()); // scalar+scalar or array+scalar
      e2.release();
    }
  else
    if( e2->Scalar())
      {
-       res= e1->Div(e2.get()); // array+scalar
+       res= e1->DivS(e2.get()); // array+scalar
        e1.release();
      }
    else
@@ -1126,13 +1129,13 @@ BaseGDL* MOD_OPNode::Eval()
  AdjustTypes(e1,e2);
  if( e1->Scalar())
    {
-     res= e2->ModInv(e1.get()); // scalar+scalar or array+scalar
+     res= e2->ModInvS(e1.get()); // scalar+scalar or array+scalar
      e2.release();
    }
  else
    if( e2->Scalar())
      {
-       res= e1->Mod(e2.get()); // array+scalar
+       res= e1->ModS(e2.get()); // array+scalar
        e1.release();
      }
    else
@@ -1154,7 +1157,7 @@ BaseGDL* POWNode::Eval()
 { BaseGDL* res;
   auto_ptr<BaseGDL> e1( op1->Eval());
   auto_ptr<BaseGDL> e2( op2->Eval());
-  // special handling for complex
+  // special handling for aTy == complex && bTy != complex
   DType aTy=e1->Type();
   DType bTy=e2->Type();
   if( ComplexType( aTy))
@@ -1211,13 +1214,13 @@ BaseGDL* POWNode::Eval()
 
   if( e1->Scalar())
     {
-      res= e2->PowInv(e1.get()); // scalar+scalar or array+scalar
+      res= e2->PowInvS(e1.get()); // scalar+scalar or array+scalar
       e2.release();
     }
   else
     if( e2->Scalar())
       {
-      res= e1->Pow(e2.get()); // array+scalar
+      res= e1->PowS(e2.get()); // array+scalar
       e1.release();
       }
     else
@@ -1287,13 +1290,14 @@ BaseGDL* AND_OPNCNode::Eval()
  if( e1->Scalar())
    {
      if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
-     res= e2->AndOp(e1); // scalar+scalar or array+scalar
+     res= e2->AndOpS(e1); // scalar+scalar or array+scalar
      
    }
  else
    if( e2->Scalar())
      {
-       res= e1->AndOpInv(e2); // array+scalar
+       if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+       res= e1->AndOpInvS(e2); // array+scalar
        
      }
    else
@@ -1340,14 +1344,14 @@ BaseGDL* OR_OPNCNode::Eval()
  if( e1->Scalar())
    {
      if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
-     res= e2->OrOp(e1); // scalar+scalar or array+scalar
+     res= e2->OrOpS(e1); // scalar+scalar or array+scalar
      
    }
  else
    if( e2->Scalar())
      {
        if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
-       res= e1->OrOpInv(e2); // array+scalar
+       res= e1->OrOpInvS(e2); // array+scalar
        
      }
    else
@@ -1544,14 +1548,14 @@ BaseGDL* PLUSNCNode::Eval()
  if( e1->Scalar())
    {
      if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
-     res= e2->AddInv(e1); // scalar+scalar or array+scalar
+     res= e2->AddInvS(e1); // scalar+scalar or array+scalar
      
    }
  else
    if( e2->Scalar())
      {
        if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
-       res= e1->Add(e2); // array+scalar
+       res= e1->AddS(e2); // array+scalar
        
      }
    else
@@ -1591,7 +1595,7 @@ BaseGDL* MINUSNCNode::Eval()
        }
      else
        {
-       return e1->Dup()->Sub(e2); 
+       return e1->SubNew(e2); 
        }
    }
 
@@ -1599,14 +1603,14 @@ BaseGDL* MINUSNCNode::Eval()
  if( e1->Scalar())
    {
      if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
-     res= e2->SubInv(e1); // scalar+scalar or array+scalar
+     res= e2->SubInvS(e1); // scalar+scalar or array+scalar
      
    }
  else
    if( e2->Scalar())
      {
        if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
-       res= e1->Sub(e2); // array+scalar
+       res= e1->SubS(e2); // array+scalar
        
      }
    else
@@ -1654,14 +1658,14 @@ BaseGDL* LTMARKNCNode::Eval()
  if( e1->Scalar())
    {
      if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
-     res= e2->LtMark(e1); // scalar+scalar or array+scalar
+     res= e2->LtMarkS(e1); // scalar+scalar or array+scalar
      
    }
  else
    if( e2->Scalar())
      {
        if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
-       res= e1->LtMark(e2); // array+scalar
+       res= e1->LtMarkS(e2); // array+scalar
        
      }
    else
@@ -1708,14 +1712,14 @@ BaseGDL* GTMARKNCNode::Eval()
  if( e1->Scalar())
    {
      if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
-     res= e2->GtMark(e1); // scalar+scalar or array+scalar
+     res= e2->GtMarkS(e1); // scalar+scalar or array+scalar
      
    }
  else
    if( e2->Scalar())
      {
        if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
-       res= e1->GtMark(e2); // array+scalar
+       res= e1->GtMarkS(e2); // array+scalar
        
      }
    else
@@ -1762,14 +1766,14 @@ BaseGDL* ASTERIXNCNode::Eval()
  if( e1->Scalar())
    {
      if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
-     res= e2->Mult(e1); // scalar+scalar or array+scalar
+     res= e2->MultS(e1); // scalar+scalar or array+scalar
      
    }
  else
    if( e2->Scalar())
      {
        if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
-       res= e1->Mult(e2); // array+scalar
+       res= e1->MultS(e2); // array+scalar
        
      }
    else
@@ -1920,14 +1924,14 @@ BaseGDL* SLASHNCNode::Eval()
  if( e1->Scalar())
    {
      if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
-     res= e2->DivInv(e1); // scalar+scalar or array+scalar
+     res= e2->DivInvS(e1); // scalar+scalar or array+scalar
      
    }
  else
    if( e2->Scalar())
      {
        if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
-       res= e1->Div(e2); // array+scalar
+       res= e1->DivS(e2); // array+scalar
        
      }
    else
@@ -1975,14 +1979,14 @@ BaseGDL* MOD_OPNCNode::Eval()
  if( e1->Scalar())
    {
      if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
-     res= e2->ModInv(e1); // scalar+scalar or array+scalar
+     res= e2->ModInvS(e1); // scalar+scalar or array+scalar
      
    }
  else
    if( e2->Scalar())
      {
        if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
-       res= e1->Mod(e2); // array+scalar
+       res= e1->ModS(e2); // array+scalar
        
      }
    else
@@ -2144,7 +2148,7 @@ BaseGDL* POWNCNode::Eval()
  else if( e1->Scalar())
    {
      if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
-     res= e2->PowInv(e1); // scalar+scalar or array+scalar
+     res= e2->PowInvS(e1); // scalar+scalar or array+scalar
      
    }
  else
@@ -2153,12 +2157,12 @@ BaseGDL* POWNCNode::Eval()
        if( g1.get() == NULL) 
 	 {
 	   e1 = e1->Dup();
-	   res = e1->Pow(e2); // array+scalar
+	   res = e1->PowS(e2); // array+scalar
 	 }
        else 
 	 {
 	   g1.release();
-	   res= e1->Pow(e2); // array+scalar
+	   res= e1->PowS(e2); // array+scalar
 	 }
      }
    else

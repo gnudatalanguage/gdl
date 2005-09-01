@@ -3464,14 +3464,14 @@ BaseGDL*  GDLInterpreter::l_decinc_array_expr(ProgNodeP _t,
 		ProgNodeP tmp46_AST_in = _t;
 		match(antlr::RefAST(_t),ARRAYEXPR);
 		_t = _t->getFirstChild();
-		aL=arrayindex_list(_t);
-		_t = _retTree;
-		guard.reset( aL);
 		e=l_decinc_indexable_expr(_t, dec_inc);
+		_t = _retTree;
+		aL=arrayindex_list(_t);
 		_t = _retTree;
 		_t = __t66;
 		_t = _t->getNextSibling();
 		
+		guard.reset( aL); 
 		aL->SetVariable( e);
 		
 		if( dec_inc == DECSTATEMENT) 
@@ -3725,11 +3725,11 @@ void GDLInterpreter::l_dot_array_expr(ProgNodeP _t,
 		ProgNodeP tmp47_AST_in = _t;
 		match(antlr::RefAST(_t),ARRAYEXPR);
 		_t = _t->getFirstChild();
+		rP=l_indexable_expr(_t);
+		_t = _retTree;
 		aL=arrayindex_list(_t);
 		_t = _retTree;
 		guard.reset(aL);
-		rP=l_indexable_expr(_t);
-		_t = _retTree;
 		_t = __t83;
 		_t = _t->getNextSibling();
 		
@@ -3829,11 +3829,11 @@ void GDLInterpreter::tag_array_expr(ProgNodeP _t,
 		ProgNodeP tmp48_AST_in = _t;
 		match(antlr::RefAST(_t),ARRAYEXPR);
 		_t = _t->getFirstChild();
+		tag_expr(_t, aD);
+		_t = _retTree;
 		aL=arrayindex_list(_t);
 		_t = _retTree;
 		aD->AddIx(aL);
-		tag_expr(_t, aD);
-		_t = _retTree;
 		_t = __t109;
 		_t = _t->getNextSibling();
 		break;
@@ -3841,9 +3841,9 @@ void GDLInterpreter::tag_array_expr(ProgNodeP _t,
 	case EXPR:
 	case IDENTIFIER:
 	{
-		aD->AddIx(NULL);
 		tag_expr(_t, aD);
 		_t = _retTree;
+		aD->AddIx(NULL);
 		break;
 	}
 	default:
@@ -3936,11 +3936,11 @@ BaseGDL**  GDLInterpreter::l_array_expr(ProgNodeP _t,
 	ProgNodeP tmp50_AST_in = _t;
 	match(antlr::RefAST(_t),ARRAYEXPR);
 	_t = _t->getFirstChild();
+	res=l_indexable_expr(_t);
+	_t = _retTree;
 	aL=arrayindex_list(_t);
 	_t = _retTree;
 	guard.reset(aL);
-	res=l_indexable_expr(_t);
-	_t = _retTree;
 	_t = __t81;
 	_t = _t->getNextSibling();
 	
@@ -4143,9 +4143,6 @@ BaseGDL*  GDLInterpreter::array_expr(ProgNodeP _t) {
 	ProgNodeP tmp52_AST_in = _t;
 	match(antlr::RefAST(_t),ARRAYEXPR);
 	_t = _t->getFirstChild();
-	aL=arrayindex_list(_t);
-	_t = _retTree;
-	guard.reset(aL);
 	{
 	if (_t == ProgNodeP(antlr::nullAST) )
 		_t = ASTNULL;
@@ -4199,6 +4196,9 @@ BaseGDL*  GDLInterpreter::array_expr(ProgNodeP _t) {
 	}
 	}
 	}
+	aL=arrayindex_list(_t);
+	_t = _retTree;
+	guard.reset(aL);
 	
 	aL->SetVariable( r);
 	res=r->Index( aL);
@@ -4324,7 +4324,7 @@ BaseGDL*  GDLInterpreter::sys_var_nocopy(ProgNodeP _t) {
 	{
 	sysVar->var=FindInVarList(sysVarList,sysVar->getText());
 	if( sysVar->var == NULL)		    
-	throw GDLException( _t, "Not a legal system variable: "+
+	throw GDLException( _t, "Not a legal system variable: !"+
 	sysVar->getText());
 	}
 	
@@ -4356,11 +4356,11 @@ void GDLInterpreter::r_dot_array_expr(ProgNodeP _t,
 		ProgNodeP tmp55_AST_in = _t;
 		match(antlr::RefAST(_t),ARRAYEXPR);
 		_t = _t->getFirstChild();
+		r=r_dot_indexable_expr(_t, aD);
+		_t = _retTree;
 		aL=arrayindex_list(_t);
 		_t = _retTree;
 		guard.reset(aL);
-		r=r_dot_indexable_expr(_t, aD);
-		_t = _retTree;
 		_t = __t113;
 		_t = _t->getNextSibling();
 		

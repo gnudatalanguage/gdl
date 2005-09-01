@@ -40,6 +40,11 @@ const SizeT BaseGDL::NBytes() const { return 0;} // for assoc function
 const SizeT BaseGDL::ToTransfer() const { return 0;}
 const SizeT BaseGDL::Sizeof() const { return 0;}
 
+// BaseGDL* BaseGDL::Abs() const
+// {
+//   throw GDLException("BaseGDL::Abs() called.");
+// }
+
 bool BaseGDL::Greater(SizeT i1, SizeT i2) const
 {
   throw GDLException("BaseGDL::Greater(SizeT,SizeT) called.");
@@ -426,20 +431,20 @@ BaseGDL* BaseGDL::AndOpNew( BaseGDL* r)
   throw GDLException("Operation not defined for UNDEF 13.");
 }
 
-BaseGDL* BaseGDL::AndOpInvNew( BaseGDL* r) 
-{
-  throw GDLException("Operation not defined for UNDEF 14.");
-}
+// BaseGDL* BaseGDL::AndOpInvNew( BaseGDL* r) 
+// {
+//   throw GDLException("Operation not defined for UNDEF 14.");
+// }
 
 BaseGDL* BaseGDL::OrOpNew( BaseGDL* r)    
 {
   throw GDLException("Operation not defined for UNDEF 13.");
 }
 
-BaseGDL* BaseGDL::OrOpInvNew( BaseGDL* r) 
-{
-  throw GDLException("Operation not defined for UNDEF 14.");
-}
+// BaseGDL* BaseGDL::OrOpInvNew( BaseGDL* r) 
+// {
+//   throw GDLException("Operation not defined for UNDEF 14.");
+// }
 
 BaseGDL* BaseGDL::XorOpNew( BaseGDL* r)    
 {
@@ -449,19 +454,19 @@ BaseGDL* BaseGDL::AddNew( BaseGDL* r)
 {
   throw GDLException("Operation not defined for UNDEF 15.");
 }
-BaseGDL* BaseGDL::AddInvNew( BaseGDL* r)      
-{
-  throw GDLException("Operation not defined for UNDEF 15.");
-}
+// BaseGDL* BaseGDL::AddInvNew( BaseGDL* r)      
+// {
+//   throw GDLException("Operation not defined for UNDEF 15.");
+// }
 
 BaseGDL* BaseGDL::SubNew( BaseGDL* r)      
 {
   throw GDLException("Operation not defined for UNDEF 16.");
 }
-BaseGDL* BaseGDL::SubInvNew( BaseGDL* r)   
-{
-  throw GDLException("Operation not defined for UNDEF 17.");
-}
+// BaseGDL* BaseGDL::SubInvNew( BaseGDL* r)   
+// {
+//   throw GDLException("Operation not defined for UNDEF 17.");
+// }
 BaseGDL* BaseGDL::MultNew( BaseGDL* r)   
 {
   throw GDLException("Operation not defined for UNDEF 19.");
@@ -471,25 +476,109 @@ BaseGDL* BaseGDL::DivNew( BaseGDL* r)
 {
   throw GDLException("Operation not defined for UNDEF 16.");
 }
-BaseGDL* BaseGDL::DivInvNew( BaseGDL* r)   
-{
-  throw GDLException("Operation not defined for UNDEF 17.");
-}
+// BaseGDL* BaseGDL::DivInvNew( BaseGDL* r)   
+// {
+//   throw GDLException("Operation not defined for UNDEF 17.");
+// }
 
 BaseGDL* BaseGDL::ModNew( BaseGDL* r)      
 {
   throw GDLException("Operation not defined for UNDEF 16.");
 }
-BaseGDL* BaseGDL::ModInvNew( BaseGDL* r)   
-{
-  throw GDLException("Operation not defined for UNDEF 17.");
-}
+// BaseGDL* BaseGDL::ModInvNew( BaseGDL* r)   
+// {
+//   throw GDLException("Operation not defined for UNDEF 17.");
+// }
 
 BaseGDL* BaseGDL::PowNew( BaseGDL* r)      
 {
   throw GDLException("Operation not defined for UNDEF 16.");
 }
-BaseGDL* BaseGDL::PowInvNew( BaseGDL* r)   
+// BaseGDL* BaseGDL::PowInvNew( BaseGDL* r)   
+// {
+//   throw GDLException("Operation not defined for UNDEF 17.");
+// }
+
+
+
+
+BaseGDL* BaseGDL::AndOpS( BaseGDL* r)    
+{
+  throw GDLException("Operation not defined for UNDEF 13.");
+}
+
+BaseGDL* BaseGDL::AndOpInvS( BaseGDL* r) 
+{
+  throw GDLException("Operation not defined for UNDEF 14.");
+}
+
+BaseGDL* BaseGDL::OrOpS( BaseGDL* r)    
+{
+  throw GDLException("Operation not defined for UNDEF 13.");
+}
+
+BaseGDL* BaseGDL::OrOpInvS( BaseGDL* r) 
+{
+  throw GDLException("Operation not defined for UNDEF 14.");
+}
+
+BaseGDL* BaseGDL::AddS( BaseGDL* r)      
+{
+  throw GDLException("Operation not defined for UNDEF 15.");
+}
+BaseGDL* BaseGDL::AddInvS( BaseGDL* r)      
+{
+  throw GDLException("Operation not defined for UNDEF 15.");
+}
+
+BaseGDL* BaseGDL::SubS( BaseGDL* r)      
+{
+  throw GDLException("Operation not defined for UNDEF 16.");
+}
+BaseGDL* BaseGDL::SubInvS( BaseGDL* r)   
 {
   throw GDLException("Operation not defined for UNDEF 17.");
 }
+
+BaseGDL* BaseGDL::LtMarkS( BaseGDL* r)   
+{
+  throw GDLException("Operation not defined for UNDEF 18.");
+}
+
+BaseGDL* BaseGDL::GtMarkS( BaseGDL* r)   
+{
+  throw GDLException("Operation not defined for UNDEF 19.");
+}
+
+BaseGDL* BaseGDL::MultS( BaseGDL* r)   
+{
+  throw GDLException("Operation not defined for UNDEF 19.");
+}
+
+BaseGDL* BaseGDL::DivS( BaseGDL* r)      
+{
+  throw GDLException("Operation not defined for UNDEF 16.");
+}
+BaseGDL* BaseGDL::DivInvS( BaseGDL* r)   
+{
+  throw GDLException("Operation not defined for UNDEF 17.");
+}
+
+BaseGDL* BaseGDL::ModS( BaseGDL* r)      
+{
+  throw GDLException("Operation not defined for UNDEF 16.");
+}
+BaseGDL* BaseGDL::ModInvS( BaseGDL* r)   
+{
+  throw GDLException("Operation not defined for UNDEF 17.");
+}
+
+BaseGDL* BaseGDL::PowS( BaseGDL* r)      
+{
+  throw GDLException("Operation not defined for UNDEF 16.");
+}
+BaseGDL* BaseGDL::PowInvS( BaseGDL* r)   
+{
+  throw GDLException("Operation not defined for UNDEF 17.");
+}
+

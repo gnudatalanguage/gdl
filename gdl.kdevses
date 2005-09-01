@@ -2,14 +2,14 @@
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
  <DocsAndViews NumberOfDocuments="3" >
-  <Doc0 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/arrayindex.hpp" >
-   <View0 line="201" Type="Source" />
+  <Doc0 NumberOfViews="1" URL="file:///usr/local/gdl/src/dnode.hpp" >
+   <View0 line="355" Type="Source" />
   </Doc0>
-  <Doc1 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/dnode.hpp" >
-   <View0 line="350" Type="Source" />
+  <Doc1 NumberOfViews="1" URL="file:///usr/local/gdl/src/GDLInterpreter.cpp" >
+   <View0 line="3470" Type="Source" />
   </Doc1>
-  <Doc2 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/dnode.cpp" >
-   <View0 line="71" Type="Source" />
+  <Doc2 NumberOfViews="1" URL="file:///usr/local/gdl/src/arrayindex.hpp" >
+   <View0 line="968" Type="Source" />
   </Doc2>
  </DocsAndViews>
  <pluginList>
@@ -20,7 +20,7 @@
    <bookmarks/>
   </kdevbookmarks>
   <kdevvalgrind>
-   <executable path="/home/marc/gdl/default/src/gdl" params="" />
+   <executable path="/usr/local/gdl/profiling/src/gdl" params="" />
    <valgrind path="" params="" />
    <calltree path="calltree" params="" />
    <kcachegrind path="/usr/bin/kcachegrind" />

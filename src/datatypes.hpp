@@ -68,6 +68,10 @@ public:
   // new array from Ty[], one dimensional
   Data_(const Ty* p, SizeT nEl);
 
+  // new array from DataT
+  Data_(const dimension& dim_, const DataT& dd_):
+    Sp( dim_), dd( dd_) {}
+
   // c-i 
   Data_(const Data_& d_): Sp(d_.dim), dd(d_.dd) {}
 
@@ -76,8 +80,8 @@ public:
   Data_& operator=(const Data_& right);
 
   // one dim array access (unchecked)
-  //  inline Ty& operator[] (const SizeT d1) { return dd[d1];}
-  Ty& operator[] (const SizeT d1) { return dd[d1];}
+  inline Ty& operator[] (const SizeT d1) { return dd[d1];}
+  //  Ty& operator[] (const SizeT d1) { return dd[d1];}
 
   template<class Sp2> 
   friend std::istream& operator>>(std::istream& i, Data_<Sp2>& data_); 
@@ -180,6 +184,8 @@ public:
   void ForAdd();
   void ForAdd( BaseGDL* add);
 
+  BaseGDL* Abs() const;  
+
   BaseGDL* Convol( BaseGDL* kIn, BaseGDL* scaleIn, 
 		   bool center, int edgeMode);
   BaseGDL* Rebin( const dimension& newDim, bool sample);
@@ -207,23 +213,41 @@ public:
   Data_*   Pow( BaseGDL* r);
   Data_*   PowInv( BaseGDL* r);
   Data_*   MatrixOp( BaseGDL* r);
+
+  Data_*   AndOpS( BaseGDL* r);
+  Data_*   AndOpInvS( BaseGDL* r);
+  Data_*   OrOpS( BaseGDL* r);
+  Data_*   OrOpInvS( BaseGDL* r);
+  Data_*   AddS( BaseGDL* r);
+  Data_*   AddInvS( BaseGDL* r);
+  Data_*   SubS( BaseGDL* r);
+  Data_*   SubInvS( BaseGDL* r);
+  Data_*   GtMarkS( BaseGDL* r);
+  Data_*   LtMarkS( BaseGDL* r);
+  Data_*   MultS( BaseGDL* r);
+  Data_*   DivS( BaseGDL* r);
+  Data_*   DivInvS( BaseGDL* r);
+  Data_*   ModS( BaseGDL* r);
+  Data_*   ModInvS( BaseGDL* r);
+  Data_*   PowS( BaseGDL* r);
+  Data_*   PowInvS( BaseGDL* r);
   
   Data_* AndOpNew( BaseGDL* r);    // create new result var      
-  Data_* AndOpInvNew( BaseGDL* r); // create new result var      
+//   Data_* AndOpInvNew( BaseGDL* r); // create new result var      
   Data_* OrOpNew( BaseGDL* r);    
-  Data_* OrOpInvNew( BaseGDL* r); 
+//   Data_* OrOpInvNew( BaseGDL* r); 
   Data_* XorOpNew( BaseGDL* r);    
   Data_* AddNew( BaseGDL* r);      
-  Data_* AddInvNew( BaseGDL* r);      
+//   Data_* AddInvNew( BaseGDL* r);      
   Data_* SubNew( BaseGDL* r);      
-  Data_* SubInvNew( BaseGDL* r);   
+//   Data_* SubInvNew( BaseGDL* r);   
   Data_* MultNew( BaseGDL* r);   
   Data_* DivNew( BaseGDL* r);      
-  Data_* DivInvNew( BaseGDL* r);   
+//   Data_* DivInvNew( BaseGDL* r);   
   Data_* ModNew( BaseGDL* r);      
-  Data_* ModInvNew( BaseGDL* r);   
+//   Data_* ModInvNew( BaseGDL* r);   
   Data_* PowNew( BaseGDL* r);     
-  Data_* PowInvNew( BaseGDL* r);  
+//   Data_* PowInvNew( BaseGDL* r);  
 
   Data_<SpDByte>* EqOp( BaseGDL* r);
   Data_<SpDByte>* NeOp( BaseGDL* r);
