@@ -137,6 +137,9 @@
 	  Implemented strided index support.
 	  Improved raise to power (^ operator) for integer types.
 
-0.8.11:   Added STRUCTURES keyword to HELP.
+0.8.11:   Added CONTOUR procedure.
+          Added RADON function.
+ 	  Added STRUCTURES keyword to HELP.
 	  Added NAN keyword to TOTAL.
           Faster array indexing.
+	  Much faster operators (+-/*^...)

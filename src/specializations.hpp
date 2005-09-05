@@ -351,6 +351,14 @@ DLong* Data_<SpDComplex>::Where( bool, SizeT&);
 template<> 
 DLong* Data_<SpDComplexDbl>::Where( bool, SizeT&);
 template<> 
+void Data_<SpDFloat>::MinMax( DLong* minE, DLong* maxE, 
+			      BaseGDL** minVal, BaseGDL** maxVal,
+			      bool omitNaN);
+template<> 
+void Data_<SpDDouble>::MinMax( DLong* minE, DLong* maxE, 
+			       BaseGDL** minVal, BaseGDL** maxVal,
+			       bool omitNaN);
+template<> 
 void Data_<SpDComplex>::MinMax( DLong* minE, DLong* maxE, 
  				BaseGDL** minVal, BaseGDL** maxVal,
 				bool omitNaN);

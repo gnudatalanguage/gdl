@@ -2873,6 +2873,11 @@ arrayindex_list returns [ArrayIndexListT* aL]
                 assert( aL != NULL);
 
                 nExpr = aL->NParam();
+//                 if( nExpr > 1)
+//                 {
+//                     ixExprList.reserve( nExpr);
+//                     exprList.reserve( nExpr);
+//                 }
             }
             (
                 ( s=indexable_expr

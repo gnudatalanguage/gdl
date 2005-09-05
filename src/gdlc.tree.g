@@ -977,7 +977,7 @@ op_expr
 	|	#(LTMARK expr expr)
 	|	#(GTMARK expr expr)
 //	|	#(UPLUS e:expr { #op_expr=#e;}) // elimintated
-	|	#(UMINUS expr)
+	|	uminus
 	|	#(LOG_NEG expr)
 	|	#(ASTERIX expr expr)
 	|	#(MATRIX_OP1 expr expr)
@@ -991,6 +991,23 @@ op_expr
 	|	#(POSTINC expr) //unbrace_expr)
 	|   primary_expr
 	;
+
+uminus
+    : #(u:UMINUS e:expr)
+        {
+            // eliminate (pre-calculate) uminus for constants
+            if( #e->getType() == CONSTANT)
+            {
+                #e->ResetCData( #e->CData()->UMinus());
+                #e->setText( "-"+#e->getText());
+                #uminus = #e;
+            }
+//             else
+//             {
+//                 #uminus = #( [UMINUS,"u-"], e);
+//             }
+        }
+    ;
 
 // remove multiple braces
 brace_expr!//

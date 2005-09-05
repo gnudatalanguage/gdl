@@ -3561,6 +3561,11 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t) {
 	assert( aL != NULL);
 	
 	nExpr = aL->NParam();
+	//                 if( nExpr > 1)
+	//                 {
+	//                     ixExprList.reserve( nExpr);
+	//                     exprList.reserve( nExpr);
+	//                 }
 	
 	{ // ( ... )*
 	for (;;) {

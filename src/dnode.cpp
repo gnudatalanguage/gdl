@@ -49,6 +49,12 @@ namespace antlr {
 
 DInterpreter* ProgNode::interpreter;
 
+void DNode::ResetCData( BaseGDL* newCData)
+{ 
+  //  delete cData; // as used (UMinus) deletion is done automatically 
+  cData = newCData;
+}
+
 void DNode::RemoveNextSibling()
 {
   right = static_cast<BaseAST*>(static_cast<AST*>(antlr::nullAST));
@@ -138,6 +144,7 @@ BinaryExpr::BinaryExpr( const RefDNode& refNode): DefaultNode( refNode)
 {
   op1 = GetFirstChild();
   op2 = GetFirstChild()->GetNextSibling();
+  setType( GDLTokenTypes::EXPR);
 }
 BinaryExprNC::BinaryExprNC( const RefDNode& refNode): BinaryExpr( refNode)
 {
@@ -384,7 +391,7 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
 	  nonCopy = true;
     }
   
-  if( nonCopy)
+  if( nonCopy) // VAR, VARPTR,...
   switch( refNode->getType())
     {
     case GDLTokenTypes::QUESTION:
@@ -395,6 +402,15 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
       // unary
     case GDLTokenTypes::UMINUS:
       {
+// 	// optimize constant unary minus away
+// 	// CONSTANT is a non-copy node
+// 	if( refNode->GetFirstChild()->getType() == GDLTokenTypes::CONSTANT)
+// 	  {
+// 	    const RefDNode& child = refNode->GetFirstChild();
+// 	    child->ResetCData( child->CData()->UMinus());
+// 	    return NewProgNode( child);
+// 	  }
+// 	else
 	return new UMINUSNode( refNode);
       }
     case GDLTokenTypes::LOG_NEG:
@@ -521,7 +537,7 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
 	// unary
       case GDLTokenTypes::UMINUS:
 	{
-	  return new UMINUSNode( refNode);
+	    return new UMINUSNode( refNode);
 	}
       case GDLTokenTypes::LOG_NEG:
 	{
@@ -1599,7 +1615,6 @@ BaseGDL* MINUSNCNode::Eval()
        }
    }
 
-
  if( e1->Scalar())
    {
      if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
@@ -2040,15 +2055,13 @@ BaseGDL* POWNCNode::Eval()
 	 g2.reset( e2);
 	 if( g1.get() == NULL) 
 	   {
-	     // this logic has to follow Pow(...) (basic_op.cpp)
-	     //	     if( e2->Scalar() || (e1->N_Elements() < e2->N_Elements()))
-	     //	       e1 = e1->Dup(); 
 	     return e1->PowNew( e2);
 	   }
 	 else 
 	   {
-	     g1.release();
-	     return e1->Pow( e2);
+	     res = g1->Pow( e2);
+	     if( res == g1.get())
+	       g1.release();
 	   }
        }
      if( aTy == COMPLEX)
@@ -2063,13 +2076,13 @@ BaseGDL* POWNCNode::Eval()
 	   {
 	     if( g1.get() == NULL) 
 	       {
-		 // this logic has to follow Pow(...) (basic_op.cpp)
 		 return e1->PowNew( e2);
 	       }
 	     else 
 	       {
-		 g1.release();
-		 return e1->Pow( e2);
+		 res = g1->Pow( e2);
+		 if( res == g1.get())
+		   g1.release();
 	       }
 	   }
        }
@@ -2089,8 +2102,9 @@ BaseGDL* POWNCNode::Eval()
 	       }
 	     else
 	       {
-		 g1.release();
-		 return e1->Pow( e2);
+		 res = g1->Pow( e2);
+		 if( res == g1.get())
+		   g1.release();
 	       }
 	   }
        }

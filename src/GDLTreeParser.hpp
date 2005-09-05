@@ -107,6 +107,7 @@ public:
 	public: void arrayexpr_fn(RefDNode _t);
 	public: void primary_expr(RefDNode _t);
 	public: void op_expr(RefDNode _t);
+	public: void uminus(RefDNode _t);
 	public: void brace_expr(RefDNode _t);
 	public: void unbrace_expr(RefDNode _t);
 	public: void indexable_expr(RefDNode _t);

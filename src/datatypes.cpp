@@ -346,7 +346,9 @@ const SizeT Data_<Sp>::Sizeof() const
 
 template< class Sp>
 void Data_<Sp>::Clear() 
-{ SizeT nEl = dd.size(); for( SizeT i = 0; i<nEl; ++i) dd[ i] = Sp::zero;}
+{ dd = Sp::zero;
+  //SizeT nEl = dd.size(); for( SizeT i = 0; i<nEl; ++i) dd[ i] = Sp::zero;
+}
 
 // template< class Sp>
 // Data_<Sp>* Data_<Sp>::Dup() 
@@ -359,8 +361,9 @@ Data_<Sp>* Data_<Sp>::New( const dimension& dim_, BaseGDL::InitType noZero)
   if( noZero == BaseGDL::INIT)
     {
       Data_* res =  new Data_(dim_, BaseGDL::NOZERO);
-      SizeT nEl = res->dd.size();
-      for( SizeT i=0; i<nEl; ++i) (*res)[ i] = dd[ 0]; // set all to scalar
+      res->dd = Sp::zero;
+//       SizeT nEl = res->dd.size();
+//       for( SizeT i=0; i<nEl; ++i) (*res)[ i] = dd[ 0]; // set all to scalar
       return res;
     }
   return new Data_(dim_);
@@ -1624,9 +1627,160 @@ DLong* Data_<SpDComplexDbl>::Where( bool comp, SizeT& n)
 // structs are not allowed
 
 // for use by MIN and MAX functions
+// integer (NaN not an issue)
 template<class Sp>
 void Data_<Sp>::MinMax( DLong* minE, DLong* maxE, 
 			BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN)
+{
+  if( minE == NULL)
+    {
+      DLong maxEl  = 0;
+      Ty    maxV = dd[0];
+      DLong nEl = dd.size();
+      for( DLong i=1; i<nEl; ++i)
+	{
+	  if( dd[i] > maxV)
+	    {
+	      maxV = dd[i];
+	      maxEl  = i;
+	    }
+	}
+      *maxE = maxEl;
+      if( maxVal != NULL) *maxVal = new Data_( maxV);
+      return;
+    }
+  if( maxE == NULL)
+    {
+      DLong minEl  = 0;
+      Ty    minV = dd[0];
+      DLong nEl = dd.size();
+      for( DLong i=1; i<nEl; ++i)
+	{
+	  if( dd[i] < minV)
+	    {
+	      minV = dd[i];
+	      minEl  = i;
+	    }
+	}
+      *minE = minEl;
+      if( minVal != NULL) *minVal = new Data_( minV);
+      return;
+    }
+
+  DLong maxEl  = 0;
+  Ty    maxV = dd[0];
+
+  DLong minEl  = 0;
+  Ty    minV = dd[0];
+
+  DLong nEl = dd.size();
+  for( DLong i=1; i<nEl; ++i)
+    {
+      if( dd[i] > maxV)
+	{
+	  maxV = dd[i];
+	  maxEl  = i;
+	}
+      else if( dd[i] < minV)
+	{
+	  minV = dd[i];
+	  minEl  = i;
+	}
+    }
+  *maxE = maxEl;
+  if( maxVal != NULL) *maxVal = new Data_( maxV);
+
+  *minE = minEl;
+  if( minVal != NULL) *minVal = new Data_( minV);
+}
+template<>
+void Data_<SpDFloat>::MinMax( DLong* minE, DLong* maxE, 
+			      BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN)
+{
+  if( minE == NULL)
+    {
+      DLong maxEl  = 0;
+      Ty    maxV = dd[0];
+      DLong nEl = dd.size();
+      for( DLong i=1; i<nEl; ++i)
+	{
+	  if (omitNaN && isnan(dd[i])) continue;
+	  if( dd[i] > maxV)
+	    {
+	      maxV = dd[i];
+	      maxEl  = i;
+	    }
+	  else if (omitNaN && isnan(maxV))
+	    {
+	      maxV = dd[i];
+	      maxEl  = i;
+	    }
+	}
+      *maxE = maxEl;
+      if( maxVal != NULL) *maxVal = new Data_( maxV);
+      return;
+    }
+  if( maxE == NULL)
+    {
+      DLong minEl  = 0;
+      Ty    minV = dd[0];
+      DLong nEl = dd.size();
+      for( DLong i=1; i<nEl; ++i)
+	{
+	  if (omitNaN && isnan(dd[i])) continue;
+	  if( dd[i] < minV)
+	    {
+	      minV = dd[i];
+	      minEl  = i;
+	    }
+	  else if (omitNaN && isnan(minV))
+	    {
+	      minV = dd[i];
+	      minEl  = i;
+	    }
+	}
+      *minE = minEl;
+      if( minVal != NULL) *minVal = new Data_( minV);
+      return;
+    }
+
+  DLong maxEl  = 0;
+  Ty    maxV = dd[0];
+
+  DLong minEl  = 0;
+  Ty    minV = dd[0];
+
+  DLong nEl = dd.size();
+  for( DLong i=1; i<nEl; ++i)
+    {
+      if (omitNaN && isnan(dd[i])) continue;
+      if( dd[i] > maxV)
+	{
+	  maxV = dd[i];
+	  maxEl  = i;
+	}
+      else if( dd[i] < minV)
+	{
+	  minV = dd[i];
+	  minEl  = i;
+	}
+      else if (omitNaN && isnan(minV)) // Doesn't matter which one we check here.
+	{
+	  minV = dd[i];
+	  minEl  = i;
+	  maxV = dd[i];
+	  maxEl  = i;
+	}
+    }
+  *maxE = maxEl;
+  if( maxVal != NULL) *maxVal = new Data_( maxV);
+
+  *minE = minEl;
+  if( minVal != NULL) *minVal = new Data_( minV);
+}
+template<>
+void Data_<SpDDouble>::MinMax( DLong* minE, DLong* maxE, 
+			       BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN)
 {
   if( minE == NULL)
     {
@@ -1944,7 +2098,6 @@ void Data_<SpDComplexDbl>::MinMax( DLong* minE, DLong* maxE,
   *minE = minEl;
   if( minVal != NULL) *minVal = new Data_( dd[ minEl]);
 }
-
 void DStructGDL::MinMax( DLong* minE, DLong* maxE, 
 			 BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN)
 {
@@ -1984,8 +2137,8 @@ BaseGDL* Data_<SpDComplexDbl>::Rebin( const dimension& newDim, bool sample)
 }
 
 
-  // rebin over dimIx, new value: newDim
-  // newDim != srcDim[ dimIx] -> compress or expand
+// rebin over dimIx, new value: newDim
+// newDim != srcDim[ dimIx] -> compress or expand
 template< typename T>
 T* Rebin1( T* src, 
 	   const dimension& srcDim, 

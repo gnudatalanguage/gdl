@@ -244,6 +244,7 @@ public:
   { arrIxList = aL;}
 
   BaseGDL* CData() { return cData;}
+  void     ResetCData( BaseGDL* newCData);
 
 private:
 
@@ -368,7 +369,8 @@ public:
     return getNextSibling();
   }
   
-  virtual int getType() { return ttype;}
+  int getType() { return ttype;}
+  void setType( int t) { ttype=t;}
   std::string getText() { return text;}
   int getLine() const { return lineNumber;}
   void SetGotoIx( int ix) { targetIx=ix;}
@@ -398,9 +400,10 @@ public:
 class UnaryExpr: public DefaultNode
 {
 public:
-  UnaryExpr( const RefDNode& refNode): DefaultNode( refNode) {}
+  UnaryExpr( const RefDNode& refNode): DefaultNode( refNode) 
+  { setType( GDLTokenTypes::EXPR);}
 
-  int getType() { return GDLTokenTypes::EXPR;}
+  //  int getType() { return GDLTokenTypes::EXPR;}
 };
 class BinaryExpr: public DefaultNode
 {
@@ -410,7 +413,7 @@ protected:
 public:
   BinaryExpr( const RefDNode& refNode);
 
-  int getType() { return GDLTokenTypes::EXPR;}
+  //  int getType() { return GDLTokenTypes::EXPR;}
 };
 // binary expression with at least one operand non-copy
 class BinaryExprNC: public BinaryExpr
@@ -424,7 +427,7 @@ public:
   void AdjustTypesNC( std::auto_ptr<BaseGDL>& g1, BaseGDL*& e1, 
 		      std::auto_ptr<BaseGDL>& g2, BaseGDL*& e2);
 
-  int getType() { return GDLTokenTypes::EXPR;}
+  //  int getType() { return GDLTokenTypes::EXPR;}
 };
 class TrinaryExpr: public DefaultNode
 {
@@ -437,8 +440,9 @@ public:
     op1 = GetFirstChild();
     op2 = GetFirstChild()->GetNextSibling();
     op3 = GetFirstChild()->GetNextSibling()->GetNextSibling();
+    setType( GDLTokenTypes::EXPR);
   }
-  int getType() { return GDLTokenTypes::EXPR;}
+  //  int getType() { return GDLTokenTypes::EXPR;}
 };
 
 // VAR, SYSVAR, ...
