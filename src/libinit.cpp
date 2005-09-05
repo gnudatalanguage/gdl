@@ -118,6 +118,9 @@ void LibInit()
   const string strjoinKey[]={"SINGLE",KLISTEND};
   new DLibFun(lib::strjoin,string("STRJOIN"),2,strjoinKey);
 
+  const string strcmpKey[]={"FOLD_CASE",KLISTEND};
+  new DLibFun(lib::strcmp_fun,string("STRCMP"),3,strcmpKey);
+
   new DLibFun(lib::eof_fun,string("EOF"),1);
 
   new DLibFun(lib::arg_present,string("ARG_PRESENT"),1);

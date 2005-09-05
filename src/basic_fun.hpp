@@ -138,6 +138,8 @@ namespace lib {
   BaseGDL* tag_names_fun( EnvT* e);
   BaseGDL* stregex_fun( EnvT* e);
 
+  BaseGDL* strcmp_fun( EnvT* e);
+
 } // namespace
 
 #endif

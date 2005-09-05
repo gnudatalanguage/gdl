@@ -3119,6 +3119,177 @@ namespace lib {
   }
 
 
+  DByte StrCmp( const string& s1, const string& s2, DLong n, bool fold)
+  {
+    if( n <= 0) return 1;
+    if( fold)
+      {
+	if( StrUpCase( s1.substr(0,n)) == StrUpCase(s2.substr(0,n))) return 1;
+	return 0;
+      }
+    if( s1.substr(0,n) == s2.substr(0,n)) return 1;
+    return 0;
+  }
+  DByte StrCmp( const string& s1, const string& s2, bool fold)
+  {
+    if( fold)
+      {
+	if( StrUpCase( s1) == StrUpCase(s2)) return 1;
+	return 0;
+      }
+    if( s1 == s2) return 1;
+    return 0;
+  }
+
+  BaseGDL* strcmp_fun( EnvT* e)
+  {
+    SizeT nParam=e->NParam(2);
+
+    DStringGDL* s0 = static_cast<DStringGDL*>( e->GetParAs< DStringGDL>( 0));
+    DStringGDL* s1 = static_cast<DStringGDL*>( e->GetParAs< DStringGDL>( 1));
+
+    DLongGDL* l2 = NULL;
+    if( nParam > 2)
+      {
+	l2 = static_cast<DLongGDL*>( e->GetParAs< DLongGDL>( 2));
+      }
+
+    static int foldIx = e->KeywordIx( "FOLD_CASE");
+    bool fold = e->KeywordSet( foldIx );
+    
+    if( s0->Scalar() && s1->Scalar())
+      {
+	if( l2 == NULL)
+	  {
+	    return new DByteGDL( StrCmp( (*s0)[0], (*s1)[0], fold));
+	  }
+	else
+	  {
+	    DByteGDL* res = new DByteGDL( l2->Dim(), BaseGDL::NOZERO);
+	    SizeT nEl = l2->N_Elements();
+	    for( SizeT i=0; i<nEl; ++i)
+	      (*res)[i] = StrCmp( (*s0)[0], (*s1)[0], (*l2)[i], fold);
+	    return res;
+	  }
+      }
+    else // at least one array
+      {
+	if( l2 == NULL)
+	  {
+	    if( s0->Scalar())
+	      {
+		DByteGDL* res = new DByteGDL( s1->Dim(), BaseGDL::NOZERO);
+		SizeT nEl = s1->N_Elements();
+		for( SizeT i=0; i<nEl; ++i)
+		  (*res)[i] = StrCmp( (*s0)[0], (*s1)[i], fold);
+		return res;
+	      }
+	    else if( s1->Scalar())
+	      {
+		DByteGDL* res = new DByteGDL( s0->Dim(), BaseGDL::NOZERO);
+		SizeT nEl = s0->N_Elements();
+		for( SizeT i=0; i<nEl; ++i)
+		  (*res)[i] = StrCmp( (*s0)[i], (*s1)[0], fold);
+		return res;
+	      }
+	    else // both arrays
+	      {
+		DByteGDL* res;
+		SizeT    nEl;
+		if( s0->N_Elements() <= s1->N_Elements())
+		  {
+		    res = new DByteGDL( s0->Dim(), BaseGDL::NOZERO);
+		    nEl = s0->N_Elements();
+		  }
+		else		      
+		  {
+		    res = new DByteGDL( s1->Dim(), BaseGDL::NOZERO);
+		    nEl = s1->N_Elements();
+		  }
+		for( SizeT i=0; i<nEl; ++i)
+		  (*res)[i] = StrCmp( (*s0)[i], (*s1)[0], fold);
+		return res;
+	      }
+	  }
+	else // l2 != NULL
+	  {
+	    DByteGDL* res;
+	    SizeT    nEl;
+	    bool l2Scalar = l2->Scalar();
+	    if( s0->Scalar())
+	      {
+		if( l2Scalar || s1->N_Elements() <= l2->N_Elements())
+		  {
+		    res = new DByteGDL( s1->Dim(), BaseGDL::NOZERO);
+		    nEl = s1->N_Elements();
+		  }
+		else
+		  {
+		    res = new DByteGDL( l2->Dim(), BaseGDL::NOZERO);
+		    nEl = l2->N_Elements();
+		  }
+		for( SizeT i=0; i<nEl; ++i)
+		  (*res)[i] = StrCmp( (*s0)[0], (*s1)[i], (*l2)[l2Scalar?0:i], fold);
+		return res;
+	      }
+	    else if( s1->Scalar())
+	      {
+		if( l2Scalar || s0->N_Elements() <= l2->N_Elements())
+		  {
+		    res = new DByteGDL( s0->Dim(), BaseGDL::NOZERO);
+		    nEl = s0->N_Elements();
+		  }
+		else
+		  {
+		    res = new DByteGDL( l2->Dim(), BaseGDL::NOZERO);
+		    nEl = l2->N_Elements();
+		  }
+		for( SizeT i=0; i<nEl; ++i)
+		  (*res)[i] = StrCmp( (*s0)[i], (*s1)[0], (*l2)[l2Scalar?0:i], fold);
+		return res;
+	      }
+	    else // s1 and s2 are arrays
+	      {
+		if( l2->Scalar() && s0->N_Elements() <= s1->N_Elements())
+		  {
+		    res = new DByteGDL( s0->Dim(), BaseGDL::NOZERO);
+		    nEl = s0->N_Elements();
+		  }
+		else if( l2->Scalar() && s0->N_Elements() > s1->N_Elements())
+		  {
+		    res = new DByteGDL( s1->Dim(), BaseGDL::NOZERO);
+		    nEl = s1->N_Elements();
+		  }
+		else if( s0->N_Elements() <= s1->N_Elements())
+		  if( s0->N_Elements() <= l2->N_Elements())
+		    {
+		      res = new DByteGDL( s0->Dim(), BaseGDL::NOZERO);
+		      nEl = s0->N_Elements();
+		    }
+		  else
+		    {
+		      res = new DByteGDL( l2->Dim(), BaseGDL::NOZERO);
+		      nEl = l2->N_Elements();
+		    }
+		else
+		  if( s1->N_Elements() <= l2->N_Elements())
+		    {
+		      res = new DByteGDL( s1->Dim(), BaseGDL::NOZERO);
+		      nEl = s1->N_Elements();
+		    }
+		  else
+		    {
+		      res = new DByteGDL( l2->Dim(), BaseGDL::NOZERO);
+		      nEl = l2->N_Elements();
+		    }
+		for( SizeT i=0; i<nEl; ++i)
+		  (*res)[i] = StrCmp( (*s0)[i], (*s1)[i], (*l2)[l2Scalar?0:i], fold);
+		return res;
+	      }
+	  }
+      }
+  }
+
 } // namespace
 
 
