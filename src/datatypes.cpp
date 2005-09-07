@@ -2811,6 +2811,7 @@ Data_<Sp>* Data_<Sp>::NewIx( AllIxT* ix, dimension* dIn)
   Data_* res=Data_::New( *dIn, BaseGDL::NOZERO);
   for( SizeT c=0; c<nCp; ++c)
     (*res)[c]=dd[ (*ix)[ c]];
+  return res;
 }
 template<class Sp>
 Data_<Sp>* Data_<Sp>::NewIxFrom( SizeT s)
@@ -2819,6 +2820,7 @@ Data_<Sp>* Data_<Sp>::NewIxFrom( SizeT s)
   Data_* res=Data_::New( dimension( nCp), BaseGDL::NOZERO);
   for( SizeT c=0; c<nCp; ++c)
     (*res)[c]=dd[ s++];
+  return res;
 }
 template<class Sp>
 Data_<Sp>* Data_<Sp>::NewIxFrom( SizeT s, SizeT e)
@@ -2827,6 +2829,7 @@ Data_<Sp>* Data_<Sp>::NewIxFrom( SizeT s, SizeT e)
   Data_* res=Data_::New( dimension( nCp), BaseGDL::NOZERO);
   for( SizeT c=0; c<nCp; ++c)
     (*res)[c]=dd[ s++];
+  return res;
 }
 template<class Sp>
 Data_<Sp>* Data_<Sp>::NewIxFromStride( SizeT s, SizeT stride)
@@ -2835,6 +2838,7 @@ Data_<Sp>* Data_<Sp>::NewIxFromStride( SizeT s, SizeT stride)
   Data_* res=Data_::New( dimension( nCp), BaseGDL::NOZERO);
   for( SizeT c=0; c<nCp; ++c, s += stride)
     (*res)[c]=dd[ s];
+  return res;
 }
 template<class Sp>
 Data_<Sp>* Data_<Sp>::NewIxFromStride( SizeT s, SizeT e, SizeT stride)
@@ -2843,6 +2847,7 @@ Data_<Sp>* Data_<Sp>::NewIxFromStride( SizeT s, SizeT e, SizeT stride)
   Data_* res=Data_::New( dimension( nCp), BaseGDL::NOZERO);
   for( SizeT c=0; c<nCp; ++c, s += stride)
     (*res)[c]=dd[ s];
+  return res;
 }
 
 #define NEWIX_UNSIGNEDINT \
@@ -3274,6 +3279,7 @@ Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
 	assert( 0);
       }
     }
+  assert( 0);
 }
 
 #undef NEWIX_SIGNEDINT

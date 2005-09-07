@@ -4216,6 +4216,8 @@ BaseGDL*  GDLInterpreter::array_expr(ProgNodeP _t) {
 	aL = ax->arrIxList;
 	assert( aL != NULL);
 	
+	guard.reset(aL);
+	
 	nExpr = aL->NParam();
 	//                 if( nExpr > 1)
 	//                 {

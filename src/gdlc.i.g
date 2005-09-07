@@ -2255,6 +2255,8 @@ array_expr returns [BaseGDL* res]
                     aL = ax->arrIxList;
                     assert( aL != NULL);
                     
+                    guard.reset(aL);
+                    
                     nExpr = aL->NParam();
                     //                 if( nExpr > 1)
                     //                 {

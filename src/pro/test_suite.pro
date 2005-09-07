@@ -826,6 +826,8 @@ end
 ;; with MEMCHECK set, no ptr and object allocations are made
 pro test_suite,MEMCHECK=mCheck
 
+s=systime(1)
+
 switch_test
 case_test
 while_test
@@ -851,7 +853,7 @@ assignment_test
 left_libfunction_test
 stride_index_test
 
-print,"TEST_SUITE finished."
+print,"TEST_SUITE finished. Time: ",systime(1)-s
 end
 
 
