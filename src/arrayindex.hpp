@@ -255,6 +255,36 @@ public:
 		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
 	      }
 	  
+// 	  for(; i < nElem; ++i)
+// 	    if( (*src)[i] < 0)
+// 	      (*ix)[i] = 0;
+// 	    else
+// 	      {
+// 		(*ix)[i]= (*src)[i]; 
+// 		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
+// 	      }
+// 	  break;
+
+// 	  // older version
+// 	  DLong minVal = src->min();
+// 	  if( minVal < 0)
+// 	    {
+// 	      for( SizeT i=0; i < nElem; ++i)
+// 		if( (*src)[i] < 0)
+// 		  (*ix)[i] = 0;
+// 		else
+// 		  (*ix)[i]= (*src)[i]; 
+// 	      //	      negative = true;
+// 	      for( SizeT i=0; i < nElem; ++i)
+// 		if( (*src)[i] < 0)
+// 		  (*ix)[i] = 0;
+// 		else
+// 		  (*ix)[i]= (*src)[i]; 
+// 	    }
+// 	  else
+// 	    for( SizeT i=0; i < nElem; ++i)
+// 	      (*ix)[i]= (*src)[i]; 
+// 	  break;
 	  for(; i < nElem; ++i)
 	    if( (*src)[i] < 0)
 	      (*ix)[i] = 0;
@@ -1464,7 +1494,7 @@ public:
   // optimized for one dimensional access
   BaseGDL* Index( BaseGDL* var, IxExprListT& ix)
   {
-    if( ixList.size() == 1 && !var->IsAssoc())
+    if( ixList.size() == 1 && !var->IsAssoc() && var->Type() != STRUCT)
       return ixList[0]->Index( var, ix);
     
     // normal case

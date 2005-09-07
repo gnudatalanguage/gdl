@@ -1,17 +1,7 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
- <DocsAndViews NumberOfDocuments="3" >
-  <Doc0 NumberOfViews="1" URL="file:///usr/local/gdl/src/dnode.hpp" >
-   <View0 line="355" Type="Source" />
-  </Doc0>
-  <Doc1 NumberOfViews="1" URL="file:///usr/local/gdl/src/GDLInterpreter.cpp" >
-   <View0 line="3470" Type="Source" />
-  </Doc1>
-  <Doc2 NumberOfViews="1" URL="file:///usr/local/gdl/src/arrayindex.hpp" >
-   <View0 line="968" Type="Source" />
-  </Doc2>
- </DocsAndViews>
+ <DocsAndViews NumberOfDocuments="0" />
  <pluginList>
   <kdevdebugger>
    <breakpointList/>
@@ -20,7 +10,7 @@
    <bookmarks/>
   </kdevbookmarks>
   <kdevvalgrind>
-   <executable path="/usr/local/gdl/profiling/src/gdl" params="" />
+   <executable path="" params="" />
    <valgrind path="" params="" />
    <calltree path="calltree" params="" />
    <kcachegrind path="/usr/bin/kcachegrind" />

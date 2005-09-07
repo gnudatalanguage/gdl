@@ -2844,15 +2844,60 @@ Data_<Sp>* Data_<Sp>::NewIxFromStride( SizeT s, SizeT e, SizeT stride)
   for( SizeT c=0; c<nCp; ++c, s += stride)
     (*res)[c]=dd[ s];
 }
+
+#define NEWIX_UNSIGNEDINT \
+SizeT i = 0;\
+for( ; i < nElem; ++i)\
+  if( (*src)[i] > upper)\
+    {\
+      if( strict)\
+	throw GDLException("Array used to subscript array "\
+			   "contains out of range (>) subscript.");\
+      (*res)[i++]= upperVal;\
+      break;\
+    }\
+  else\
+    (*res)[i]= dd[ (*src)[i]];\
+for(; i < nElem; ++i)\
+  if( (*src)[i] > upper)\
+    (*res)[i] = upperVal;\
+  else\
+    (*res)[i]= dd[ (*src)[i]];\ 
+return guard.release();
+
+#define NEWIX_SIGNEDINT \
+  SizeT i = 0;\
+for(; i < nElem; ++i)\
+	  if( (*src)[i] < 0)\
+	    {\
+	      if( strict)\
+		throw GDLException("Array used to subscript array "\
+				   "contains out of range (<0) subscript.");\
+	      (*res)[i++]= zeroVal;\
+	      break;\
+	    }\
+	  else if( (*src)[i] > upper)\
+	    {\
+	      if( strict)\
+		throw GDLException("Array used to subscript array "\
+				   "contains out of range (>) subscript.");\
+	      (*res)[i++]= upperVal;\
+	      break;\
+	    }\
+	  else\
+	    (*res)[ i] = dd[ (*src)[ i]];\
+	for(; i < nElem; ++i)\
+	  if( (*src)[i] < 0)\
+	    (*res)[i]= zeroVal;\
+	  else if( (*src)[i] > upper)\
+	    (*res)[i]= upperVal;\
+	  else\
+	    (*res)[ i] = dd[ (*src)[ i]];\
+	return guard.release();
+
 template<class Sp>
 Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
 {
-  DType dType = ix->Type();
-  assert( dType != UNDEF);
-  int typeCheck = DTypeOrder[ dType];
-  if( typeCheck >= 100)
-    throw GDLException("Type not allowed as subscript.");
-    
   SizeT nElem = ix->N_Elements();
 
   Data_* res = New( ix->Dim(), BaseGDL::NOZERO);
@@ -2861,206 +2906,226 @@ Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
   SizeT upper = dd.size() - 1;
   Ty    upperVal = dd[ upper];
   Ty    zeroVal  = dd[ 0];
-
-  switch( dType)
+  switch( ix->Type())
     {
     case BYTE:
       {
 	DByteGDL* src = static_cast<DByteGDL*>( ix);
-	SizeT i = 0;
-	for( ; i < nElem; ++i)
-	  if( (*src)[i] > upper)
-	    {
-	      if( strict)
-		throw GDLException("Array used to subscript array "
-				   "contains out of range (>) subscript.");
-	      (*res)[i++]= upperVal;
-	      break;
-	    }
-	  else
-	    (*res)[i]= dd[ (*src)[i]];
 
-	for(; i < nElem; ++i)
-	  if( (*src)[i] > upper)
-	    (*res)[i] = upperVal;
-	  else
-	    (*res)[i]= dd[ (*src)[i]]; 
+	NEWIX_UNSIGNEDINT
 	
-	return guard.release();
+// 	SizeT i = 0;
+// 	for( ; i < nElem; ++i)
+// 	  if( (*src)[i] > upper)
+// 	    {
+// 	      if( strict)
+// 		throw GDLException("Array used to subscript array "
+// 				   "contains out of range (>) subscript.");
+// 	      (*res)[i++]= upperVal;
+// 	      break;
+// 	    }
+// 	  else
+// 	    (*res)[i]= dd[ (*src)[i]];
+
+// 	for(; i < nElem; ++i)
+// 	  if( (*src)[i] > upper)
+// 	    (*res)[i] = upperVal;
+// 	  else
+// 	    (*res)[i]= dd[ (*src)[i]]; 
+	
+// 	return guard.release();
       }
     case INT:
       {
 	DIntGDL* src = static_cast<DIntGDL*>( ix);
-	SizeT i = 0;
-	for(; i < nElem; ++i)
-	  if( (*src)[i] < 0)
-	    {
-	      if( strict)
-		throw GDLException("Array used to subscript array "
-				   "contains out of range (<0) subscript.");
-	      (*res)[i++]= zeroVal;
-	      break;
-	    }
-	  else if( (*src)[i] > upper)
-	    {
-	      if( strict)
-		throw GDLException("Array used to subscript array "
-				   "contains out of range (>) subscript.");
-	      (*res)[i++]= upperVal;
-	      break;
-	    }
-	  else
-	    (*res)[ i] = dd[ (*src)[ i]];
+
+	NEWIX_SIGNEDINT
+
+// 	SizeT i = 0;
+// 	for(; i < nElem; ++i)
+// 	  if( (*src)[i] < 0)
+// 	    {
+// 	      if( strict)
+// 		throw GDLException("Array used to subscript array "
+// 				   "contains out of range (<0) subscript.");
+// 	      (*res)[i++]= zeroVal;
+// 	      break;
+// 	    }
+// 	  else if( (*src)[i] > upper)
+// 	    {
+// 	      if( strict)
+// 		throw GDLException("Array used to subscript array "
+// 				   "contains out of range (>) subscript.");
+// 	      (*res)[i++]= upperVal;
+// 	      break;
+// 	    }
+// 	  else
+// 	    (*res)[ i] = dd[ (*src)[ i]];
 	
-	for(; i < nElem; ++i)
-	  if( (*src)[i] < 0)
-	    (*res)[i]= zeroVal;
-	  else if( (*src)[i] > upper)
-	    (*res)[i]= upperVal;
-	  else
-	    (*res)[ i] = dd[ (*src)[ i]];
+// 	for(; i < nElem; ++i)
+// 	  if( (*src)[i] < 0)
+// 	    (*res)[i]= zeroVal;
+// 	  else if( (*src)[i] > upper)
+// 	    (*res)[i]= upperVal;
+// 	  else
+// 	    (*res)[ i] = dd[ (*src)[ i]];
 	
-	return guard.release();
+// 	return guard.release();
       }
     case UINT:
       {
 	DUIntGDL* src = static_cast<DUIntGDL*>( ix);
-	SizeT i = 0;
-	for( ; i < nElem; ++i)
-	  if( (*src)[i] > upper)
-	    {
-	      if( strict)
-		throw GDLException("Array used to subscript array "
-				   "contains out of range (>) subscript.");
-	      (*res)[i++]= upperVal;
-	      break;
-	    }
-	  else
-	    (*res)[i]= dd[ (*src)[i]];
 
-	for(; i < nElem; ++i)
-	  if( (*src)[i] >= upper)
-	    (*res)[i] = upperVal;
-	  else
-	    (*res)[i]= dd[ (*src)[i]]; 
+	NEWIX_UNSIGNEDINT
+
+// 	SizeT i = 0;
+// 	for( ; i < nElem; ++i)
+// 	  if( (*src)[i] > upper)
+// 	    {
+// 	      if( strict)
+// 		throw GDLException("Array used to subscript array "
+// 				   "contains out of range (>) subscript.");
+// 	      (*res)[i++]= upperVal;
+// 	      break;
+// 	    }
+// 	  else
+// 	    (*res)[i]= dd[ (*src)[i]];
+
+// 	for(; i < nElem; ++i)
+// 	  if( (*src)[i] >= upper)
+// 	    (*res)[i] = upperVal;
+// 	  else
+// 	    (*res)[i]= dd[ (*src)[i]]; 
 	
-	return guard.release();
+// 	return guard.release();
       }
     case LONG: // typical type (returned from WHERE)
       {
 	DLongGDL* src = static_cast<DLongGDL*>( ix);
-	SizeT i = 0;
-	for(; i < nElem; ++i)
-	  if( (*src)[i] < 0)
-	    {
-	      if( strict)
-		throw GDLException("Array used to subscript array "
-				   "contains out of range (<0) subscript.");
-	      (*res)[i++]= zeroVal;
-	      break;
-	    }
-	  else if( (*src)[i] > upper)
-	    {
-	      if( strict)
-		throw GDLException("Array used to subscript array "
-				   "contains out of range (>) subscript.");
-	      (*res)[i++]= upperVal;
-	      break;
-	    }
-	  else
-	    (*res)[ i] = dd[ (*src)[ i]];
+
+	NEWIX_SIGNEDINT
+
+// 	SizeT i = 0;
+// 	for(; i < nElem; ++i)
+// 	  if( (*src)[i] < 0)
+// 	    {
+// 	      if( strict)
+// 		throw GDLException("Array used to subscript array "
+// 				   "contains out of range (<0) subscript.");
+// 	      (*res)[i++]= zeroVal;
+// 	      break;
+// 	    }
+// 	  else if( (*src)[i] > upper)
+// 	    {
+// 	      if( strict)
+// 		throw GDLException("Array used to subscript array "
+// 				   "contains out of range (>) subscript.");
+// 	      (*res)[i++]= upperVal;
+// 	      break;
+// 	    }
+// 	  else
+// 	    (*res)[ i] = dd[ (*src)[ i]];
 	
-	for(; i < nElem; ++i)
-	  if( (*src)[i] <= 0)
-	    (*res)[i]= zeroVal;
-	  else if( (*src)[i] >= upper)
-	    (*res)[i]= upperVal;
-	  else
-	    (*res)[ i] = dd[ (*src)[ i]];
+// 	for(; i < nElem; ++i)
+// 	  if( (*src)[i] <= 0)
+// 	    (*res)[i]= zeroVal;
+// 	  else if( (*src)[i] >= upper)
+// 	    (*res)[i]= upperVal;
+// 	  else
+// 	    (*res)[ i] = dd[ (*src)[ i]];
 	
-	return guard.release();
+// 	return guard.release();
       }
     case ULONG:
       {
 	DULongGDL* src = static_cast<DULongGDL*>( ix);
-	SizeT i = 0;
-	for( ; i < nElem; ++i)
-	  if( (*src)[i] > upper)
-	    {
-	      if( strict)
-		throw GDLException("Array used to subscript array "
-				   "contains out of range (>) subscript.");
-	      (*res)[i++]= upperVal;
-	      break;
-	    }
-	  else
-	    (*res)[i]= dd[ (*src)[i]];
 
-	for(; i < nElem; ++i)
-	  if( (*src)[i] > upper)
-	    (*res)[i] = upperVal;
-	  else
-	    (*res)[i]= dd[ (*src)[i]]; 
+	NEWIX_UNSIGNEDINT
+
+// 	SizeT i = 0;
+// 	for( ; i < nElem; ++i)
+// 	  if( (*src)[i] > upper)
+// 	    {
+// 	      if( strict)
+// 		throw GDLException("Array used to subscript array "
+// 				   "contains out of range (>) subscript.");
+// 	      (*res)[i++]= upperVal;
+// 	      break;
+// 	    }
+// 	  else
+// 	    (*res)[i]= dd[ (*src)[i]];
+
+// 	for(; i < nElem; ++i)
+// 	  if( (*src)[i] > upper)
+// 	    (*res)[i] = upperVal;
+// 	  else
+// 	    (*res)[i]= dd[ (*src)[i]]; 
 	
-	return guard.release();
+// 	return guard.release();
       }
     case LONG64:
       {
 	DLong64GDL* src = static_cast<DLong64GDL*>( ix);
-	SizeT i = 0;
-	for(; i < nElem; ++i)
-	  if( (*src)[i] < 0)
-	    {
-	      if( strict)
-		throw GDLException("Array used to subscript array "
-				   "contains out of range (<0) subscript.");
-	      (*res)[i++]= zeroVal;
-	      break;
-	    }
-	  else if( (*src)[i] > upper)
-	    {
-	      if( strict)
-		throw GDLException("Array used to subscript array "
-				   "contains out of range (>) subscript.");
-	      (*res)[i++]= upperVal;
-	      break;
-	    }
-	  else
-	    (*res)[ i] = dd[ (*src)[ i]];
+
+	NEWIX_SIGNEDINT
+
+// 	SizeT i = 0;
+// 	for(; i < nElem; ++i)
+// 	  if( (*src)[i] < 0)
+// 	    {
+// 	      if( strict)
+// 		throw GDLException("Array used to subscript array "
+// 				   "contains out of range (<0) subscript.");
+// 	      (*res)[i++]= zeroVal;
+// 	      break;
+// 	    }
+// 	  else if( (*src)[i] > upper)
+// 	    {
+// 	      if( strict)
+// 		throw GDLException("Array used to subscript array "
+// 				   "contains out of range (>) subscript.");
+// 	      (*res)[i++]= upperVal;
+// 	      break;
+// 	    }
+// 	  else
+// 	    (*res)[ i] = dd[ (*src)[ i]];
 	
-	for(; i < nElem; ++i)
-	  if( (*src)[i] < 0)
-	    (*res)[i]= zeroVal;
-	  else if( (*src)[i] > upper)
-	    (*res)[i]= upperVal;
-	  else
-	    (*res)[ i] = dd[ (*src)[ i]];
+// 	for(; i < nElem; ++i)
+// 	  if( (*src)[i] <= 0)
+// 	    (*res)[i]= zeroVal;
+// 	  else if( (*src)[i] >= upper)
+// 	    (*res)[i]= upperVal;
+// 	  else
+// 	    (*res)[i] = dd[ (*src)[i]];
 	
-	return guard.release();
+// 	return guard.release();
       }
     case ULONG64:
       {
 	DULong64GDL* src = static_cast<DULong64GDL*>( ix);
-	SizeT i = 0;
-	for( ; i < nElem; ++i)
-	  if( (*src)[i] > upper)
-	    {
-	      if( strict)
-		throw GDLException("Array used to subscript array "
-				   "contains out of range (>) subscript.");
-	      (*res)[i++]= upperVal;
-	      break;
-	    }
-	  else
-	    (*res)[i]= dd[ (*src)[i]];
 
-	for(; i < nElem; ++i)
-	  if( (*src)[i] > upper)
-	    (*res)[i] = upperVal;
-	  else
-	    (*res)[i]= dd[ (*src)[i]]; 
+	NEWIX_UNSIGNEDINT
+
+// 	SizeT i = 0;
+// 	for( ; i < nElem; ++i)
+// 	  if( (*src)[i] > upper)
+// 	    {
+// 	      if( strict)
+// 		throw GDLException("Array used to subscript array "
+// 				   "contains out of range (>) subscript.");
+// 	      (*res)[i++]= upperVal;
+// 	      break;
+// 	    }
+// 	  else
+// 	    (*res)[i]= dd[ (*src)[i]];
+
+// 	for(; i < nElem; ++i)
+// 	  if( (*src)[i] > upper)
+// 	    (*res)[i] = upperVal;
+// 	  else
+// 	    (*res)[i]= dd[ (*src)[i]]; 
 	
-	return guard.release();
+// 	return guard.release();
       }
     case FLOAT: 
       {
@@ -3197,9 +3262,22 @@ Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
 	    }
 	return guard.release();
       }
+    default:
+      {
+	DType dType = ix->Type();
+	assert( dType != UNDEF);
+    
+	int typeCheck = DTypeOrder[ dType];
+	if( typeCheck >= 100)
+	  throw GDLException("Type not allowed as subscript.");
+
+	assert( 0);
+      }
     }
 }
 
+#undef NEWIX_SIGNEDINT
+#undef NEWIX_UNSIGNEDINT
 
 //#include "instantiate_templates.hpp"
 

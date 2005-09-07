@@ -737,10 +737,10 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r)
 {
   Data_* right=static_cast<Data_*>(r);
 
-  ULong rEl=right->N_Elements();
-  ULong sEl=N_Elements();
-  assert( rEl);
-  assert( sEl);
+//   ULong rEl=right->N_Elements();
+//   ULong sEl=N_Elements();
+//   assert( rEl);
+//   assert( sEl);
   //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
 
   Data_* res;
@@ -847,9 +847,9 @@ Data_<Sp>* Data_<Sp>::AndOp( BaseGDL* r)
 {
   Data_* right=static_cast<Data_*>(r);
 
-  ULong rEl=right->N_Elements();
+  // ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  assert( rEl);
+  // assert( rEl);
   assert( sEl);
   // note: we can't use valarray operation here as right->dd 
   // might be larger than this->dd
@@ -870,9 +870,9 @@ Data_<SpDFloat>* Data_<SpDFloat>::AndOp( BaseGDL* r)
 {
   Data_* right=static_cast<Data_*>(r);
 
-  ULong rEl=right->N_Elements();
+  // ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  assert( rEl);
+  // assert( rEl);
   assert( sEl);
   for( SizeT i=0; i < sEl; i++)
     if( dd[i] == zero || right->dd[i] == zero) dd[i]=zero;
@@ -884,9 +884,9 @@ Data_<SpDFloat>* Data_<SpDFloat>::AndOpInv( BaseGDL* r)
 {
   Data_* right=static_cast<Data_*>(r);
 
-  ULong rEl=right->N_Elements();
+  // ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  assert( rEl);
+  // assert( rEl);
   assert( sEl);
   for( SizeT i=0; i < sEl; i++)
     if( dd[i] != zero) dd[i] = right->dd[i];
@@ -899,9 +899,9 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOp( BaseGDL* r)
 {
   Data_* right=static_cast<Data_*>(r);
 
-  ULong rEl=right->N_Elements();
+  // ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  assert( rEl);
+  // assert( rEl);
   assert( sEl);
   for( SizeT i=0; i < sEl; i++)
     if( dd[i] == zero || right->dd[i] == zero) dd[i]=zero;
@@ -913,9 +913,9 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOpInv( BaseGDL* r)
 {
   Data_* right=static_cast<Data_*>(r);
 
-  ULong rEl=right->N_Elements();
+  // ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  assert( rEl);
+  // assert( rEl);
   assert( sEl);
   for( SizeT i=0; i < sEl; i++)
     if( dd[i] != zero) dd[i] = right->dd[i];
@@ -1129,9 +1129,9 @@ Data_<Sp>* Data_<Sp>::OrOp( BaseGDL* r)
 {
   Data_* right=static_cast<Data_*>(r);
 
-  ULong rEl=right->N_Elements();
+  // ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  assert( rEl);
+  // assert( rEl);
   assert( sEl);
   //if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   for( SizeT i=0; i < sEl; i++)
@@ -1152,9 +1152,9 @@ Data_<SpDFloat>* Data_<SpDFloat>::OrOp( BaseGDL* r)
 {
   Data_* right=static_cast<Data_*>(r);
 
-  ULong rEl=right->N_Elements();
+  // ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  assert( rEl);
+  // assert( rEl);
   assert( sEl);
   //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   for( SizeT i=0; i < sEl; i++)
@@ -1167,9 +1167,9 @@ Data_<SpDFloat>* Data_<SpDFloat>::OrOpInv( BaseGDL* r)
 {
   Data_* right=static_cast<Data_*>(r);
 
-  ULong rEl=right->N_Elements();
+  // ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  assert( rEl);
+  // assert( rEl);
   assert( sEl);
   //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   for( SizeT i=0; i < sEl; i++)
@@ -1183,9 +1183,9 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOp( BaseGDL* r)
 {
   Data_* right=static_cast<Data_*>(r);
 
-  ULong rEl=right->N_Elements();
+  // ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  assert( rEl);
+  // assert( rEl);
   assert( sEl);
   //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   for( SizeT i=0; i < sEl; i++)
@@ -1198,9 +1198,9 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOpInv( BaseGDL* r)
 {
   Data_* right=static_cast<Data_*>(r);
 
-  ULong rEl=right->N_Elements();
+  // ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  assert( rEl);
+  // assert( rEl);
   assert( sEl);
   //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   for( SizeT i=0; i < sEl; i++)
@@ -1382,9 +1382,9 @@ Data_<Sp>* Data_<Sp>::XorOp( BaseGDL* r)
 {
   Data_* right=static_cast<Data_*>(r);
 
-  ULong rEl=right->N_Elements();
+  // ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  assert( rEl);
+  // assert( rEl);
   assert( sEl);
   //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s = right->dd[0];
@@ -1454,9 +1454,9 @@ Data_<Sp>* Data_<Sp>::Add( BaseGDL* r)
 {
   Data_* right=static_cast<Data_*>(r);
 
-  ULong rEl=right->N_Elements();
+  // ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  assert( rEl);
+  // assert( rEl);
   assert( sEl);
   for( SizeT i=0; i < sEl; i++)
     dd[i] += right->dd[i];
@@ -1473,9 +1473,9 @@ Data_<SpDString>* Data_<SpDString>::AddInv( BaseGDL* r)
 {
   Data_* right=static_cast<Data_*>(r);
 
-  ULong rEl=right->N_Elements();
+  // ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  assert( rEl);
+  // assert( rEl);
   assert( sEl);
   //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   for( SizeT i=0; i < sEl; i++)
@@ -1798,7 +1798,7 @@ Data_<Sp>* Data_<Sp>::GtMark( BaseGDL* r)
 
   //  ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  //  assert( rEl);
+  // assert( rEl);
   assert( sEl);
   //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   for( SizeT i=0; i < sEl; i++)
@@ -1891,7 +1891,7 @@ Data_<Sp>* Data_<Sp>::Mult( BaseGDL* r)
 
   //  ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  //  assert( rEl);
+  // assert( rEl);
   assert( sEl);
   //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   for( SizeT i=0; i < sEl; i++)
@@ -2261,9 +2261,9 @@ Data_<SpDFloat>* Data_<SpDFloat>::Mod( BaseGDL* r)
 {
   Data_* right=static_cast<Data_*>(r);
 
-  ULong rEl=right->N_Elements();
+  // ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  assert( rEl);
+  // assert( rEl);
   assert( sEl);
   //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   for( SizeT i=0; i < sEl; i++)
@@ -2277,9 +2277,9 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModInv( BaseGDL* r)
 {
   Data_* right=static_cast<Data_*>(r);
 
-  ULong rEl=right->N_Elements();
+  // ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  assert( rEl);
+  // assert( rEl);
   assert( sEl);
   //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   for( SizeT i=0; i < sEl; i++)
@@ -2299,9 +2299,9 @@ Data_<SpDDouble>* Data_<SpDDouble>::Mod( BaseGDL* r)
 {
   Data_* right=static_cast<Data_*>(r);
 
-  ULong rEl=right->N_Elements();
+  // ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  assert( rEl);
+  // assert( rEl);
   assert( sEl);
   //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   for( SizeT i=0; i < sEl; i++)
@@ -2315,9 +2315,9 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModInv( BaseGDL* r)
 {
   Data_* right=static_cast<Data_*>(r);
 
-  ULong rEl=right->N_Elements();
+  // ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
-  assert( rEl);
+  // assert( rEl);
   assert( sEl);
   //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   for( SizeT i=0; i < sEl; i++)
