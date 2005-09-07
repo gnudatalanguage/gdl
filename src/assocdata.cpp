@@ -45,8 +45,7 @@ void Assoc_<Parent_>::AssignAt( BaseGDL* srcIn,
 				ArrayIndexListT* ixList, 
 				SizeT offset)
 {
-  if( offset != 0)
-    throw GDLException("Internal error: Assoc::AssignAt: offset != 0");
+  assert( offset == 0);
 
   SizeT recordNum;
   bool ixEmpty = ixList->ToAssocIndex( recordNum);
@@ -80,6 +79,53 @@ void Assoc_<Parent_>::AssignAt( BaseGDL* srcIn,
       fileUnits[ lun].SeekPad( fileOffset + recordNum * sliceSize);
       srcIn->Write( ofs, fileUnits[ lun].SwapEndian());
     }
+}
+template<class Parent_>
+void Assoc_<Parent_>::AssignAt( BaseGDL* srcIn, 
+				ArrayIndexListT* ixList) 
+{
+  SizeT recordNum;
+  bool ixEmpty = ixList->ToAssocIndex( recordNum);
+  
+  if( !ixEmpty)
+    {
+      // throw GDLException("File expression cannot be subindexed for output.");
+      SizeT seekPos = fileOffset + recordNum * sliceSize;
+
+      if( fileUnits[ lun].Size() > seekPos)
+	{
+	  fstream& fs = fileUnits[ lun].IStream();
+	  fileUnits[ lun].Seek( seekPos);
+	  Parent_::Read( fs, fileUnits[ lun].SwapEndian());
+	}
+      else
+	{
+	  Parent_::Clear(); // zero fields
+	}
+
+      Parent_::AssignAt( srcIn, ixList);
+
+      fstream& fs = fileUnits[ lun].OStream();
+      fileUnits[ lun].SeekPad( seekPos);
+      Parent_::Write( fs, fileUnits[ lun].SwapEndian());
+    }
+  else
+    {
+      // ix empty -> write direct
+      fstream& ofs = fileUnits[ lun].OStream();
+      fileUnits[ lun].SeekPad( fileOffset + recordNum * sliceSize);
+      srcIn->Write( ofs, fileUnits[ lun].SwapEndian());
+    }
+}
+template<class Parent_>
+void Assoc_<Parent_>::AssignAt( BaseGDL* srcIn) 
+{
+  SizeT recordNum;
+  
+  // ix empty -> write direct
+  fstream& ofs = fileUnits[ lun].OStream();
+  fileUnits[ lun].SeekPad( fileOffset + recordNum * sliceSize);
+  srcIn->Write( ofs, fileUnits[ lun].SwapEndian());
 }
 
 // (writing 2)

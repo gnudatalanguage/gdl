@@ -283,6 +283,151 @@ void DStructGDL::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
  	}
     }
 }
+void DStructGDL::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList) 
+{
+  DStructGDL* src=static_cast<DStructGDL*>(srcIn);
+
+  // check struct compatibility
+  if( src->Desc() != this->Desc() && (*src->Desc()) != (*this->Desc()))
+    throw 
+      GDLException( "Conflicting data structures.");
+
+  SizeT nTags=NTags();
+  
+  bool isScalar= src->N_Elements() == 1;
+  if( isScalar) 
+    { // src is scalar
+      if( ixList == NULL)
+	{
+	  SizeT nCp=N_Elements();
+	  
+	  for( SizeT c=0; c<nCp; c++)
+	    {
+	      SizeT cTag=c*nTags;
+	      for( SizeT tagIx=0; tagIx<nTags; tagIx++)
+		{
+		  delete dd[cTag+tagIx];
+		  dd[ cTag+tagIx]=src->dd[tagIx]->Dup();
+		}
+	    }
+	}
+      else
+	{
+	  SizeT nCp=ixList->N_Elements();
+
+	  AllIxT* allIx = ixList->BuildIx();
+	  for( SizeT c=0; c<nCp; c++)
+	    {
+	      SizeT cTag=(*allIx)[ c]*nTags;
+	      for( SizeT tagIx=0; tagIx<nTags; tagIx++)
+		{
+		  delete dd[cTag+tagIx];
+		  dd[ cTag+tagIx]=src->dd[tagIx]->Dup();
+		}
+	    }
+	}
+    }
+  else
+    {
+      SizeT srcElem=src->N_Elements();
+
+      if( ixList == NULL)
+	{
+	  SizeT nCp=N_Elements();
+	
+	  // if (non-indexed) src is smaller -> just copy its number of elements
+	  if( nCp > srcElem)
+	      nCp=srcElem;
+
+	  for( SizeT c=0; c<nCp; c++)
+	    {
+	      SizeT cTag= c*nTags;
+	      SizeT srcTag= c*nTags;
+	      for( SizeT tagIx=0; tagIx<nTags; tagIx++)
+		{
+		  delete dd[cTag+tagIx];
+		  dd[ cTag+tagIx]=src->dd[srcTag+tagIx]->Dup();
+		}
+	    }
+ 	}
+      else
+	{
+	  SizeT nCp=ixList->N_Elements();
+	
+	  if( nCp == 1)
+	    {
+	      //	      InsAt( src, ixList->GetDim());
+	      InsAt( src, ixList);
+	    }
+	  else
+	    {
+	      if( srcElem < nCp)
+		throw GDLException("Array subscript must have"
+				   " same size as source expression.");
+
+	      AllIxT* allIx = ixList->BuildIx();
+	      for( SizeT c=0; c<nCp; c++)
+		{
+		  SizeT cTag= (*allIx)[ c]*nTags;
+		  SizeT srcTag= c*nTags;
+		  for( SizeT tagIx=0; tagIx<nTags; tagIx++)
+		    {
+		      delete dd[cTag+tagIx];
+		      dd[ cTag+tagIx]=src->dd[srcTag+tagIx]->Dup();
+		    }
+		}
+	    }
+ 	}
+    }
+}
+void DStructGDL::AssignAt( BaseGDL* srcIn)
+{
+  DStructGDL* src=static_cast<DStructGDL*>(srcIn);
+
+  // check struct compatibility
+  if( src->Desc() != this->Desc() && (*src->Desc()) != (*this->Desc()))
+    throw 
+      GDLException( "Conflicting data structures.");
+
+  SizeT nTags=NTags();
+  
+  bool isScalar= src->N_Elements() == 1;
+  if( isScalar) 
+    { // src is scalar
+	  SizeT nCp=N_Elements();
+	  
+	  for( SizeT c=0; c<nCp; c++)
+	    {
+	      SizeT cTag=c*nTags;
+	      for( SizeT tagIx=0; tagIx<nTags; tagIx++)
+		{
+		  delete dd[cTag+tagIx];
+		  dd[ cTag+tagIx]=src->dd[tagIx]->Dup();
+		}
+	    }
+    }
+  else
+    {
+      SizeT srcElem=src->N_Elements();
+
+	  SizeT nCp=N_Elements();
+	
+	  // if (non-indexed) src is smaller -> just copy its number of elements
+	  if( nCp > srcElem)
+	      nCp=srcElem;
+
+	  for( SizeT c=0; c<nCp; c++)
+	    {
+	      SizeT cTag= c*nTags;
+	      SizeT srcTag= c*nTags;
+	      for( SizeT tagIx=0; tagIx<nTags; tagIx++)
+		{
+		  delete dd[cTag+tagIx];
+		  dd[ cTag+tagIx]=src->dd[srcTag+tagIx]->Dup();
+		}
+	    }
+    }
+}
 
 // used by AccessDescT for resolving, no checking is done
 // inserts srcIn[ ixList] at offset

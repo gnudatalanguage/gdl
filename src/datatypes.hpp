@@ -262,8 +262,9 @@ public:
 
   // assigns srcIn to this at ixList, if ixList is NULL does linear copy
   // assumes: ixList has this already set as variable
-  void AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList=NULL, 
-		 SizeT offset=0);
+  void AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT offset);
+  void AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList);
+  void AssignAt( BaseGDL* srcIn);
 
   // decrement (--) and increment (++) operators
   void DecAt( ArrayIndexListT* ixList);
@@ -277,6 +278,15 @@ public:
 
   // returns (*this)[ ixList]
   Data_* Index( ArrayIndexListT* ixList);
+
+  // return a new type of itself
+  Data_* NewIx( SizeT ix);
+  Data_* NewIx( BaseGDL* ix, bool strict);
+  Data_* NewIx( AllIxT* ix, dimension* dIn);
+  Data_* NewIxFrom( SizeT s);
+  Data_* NewIxFrom( SizeT s, SizeT e);
+  Data_* NewIxFromStride( SizeT s, SizeT stride);
+  Data_* NewIxFromStride( SizeT s, SizeT e, SizeT stride);
 
   // binary input/output
   std::ostream& Write( std::ostream& os, bool swapEndian);

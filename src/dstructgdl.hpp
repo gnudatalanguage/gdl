@@ -339,7 +339,9 @@ public:
   // assigns srcIn to this at ixList, if ixList is NULL does linear copy
   // assumes: ixList has this already set as variable
   // frees overwritten members
-  void AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList=NULL, SizeT offset=0);
+  void AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT offset);
+  void AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList);
+  void AssignAt( BaseGDL* srcIn);
 
   void DecAt( ArrayIndexListT* ixList)
   {

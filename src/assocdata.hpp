@@ -44,7 +44,9 @@ public:
 
   Parent_* Dup() { return new Assoc_(*this);}
 
-  void AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList=NULL, SizeT offset=0);
+  void AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT offset);
+  void AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList);
+  void AssignAt( BaseGDL* srcIn);
 
   // used by AccessDescT for resolving, no checking is done
   // inserts srcIn[ ixList] at offset

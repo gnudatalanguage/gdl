@@ -895,16 +895,103 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
 	    }
 	  else
 	    {
-	      if( (srcElem-offset) < nCp)
-		throw GDLException("Array subscript must have same size as"
-				   " source expression.");
-	      
-	      AllIxT* allIx = ixList->BuildIx();
-	      for( SizeT c=0; c<nCp; ++c)
-		dd[ (*allIx)[ c]]=(*src)[c+offset];
-	      //		dd[ ixList->GetIx( c)]=(*src)[c+offset];
+	      if( offset == 0)
+		{
+		  if( srcElem < nCp)
+		    throw GDLException("Array subscript must have same size as"
+				       " source expression.");
+		  
+		  AllIxT* allIx = ixList->BuildIx();
+		  for( SizeT c=0; c<nCp; ++c)
+		    dd[ (*allIx)[ c]]=(*src)[c];
+		  //		dd[ ixList->GetIx( c)]=(*src)[c+offset];
+		}
+	      else
+		{
+		  if( (srcElem-offset) < nCp)
+		    throw GDLException("Array subscript must have same size as"
+				       " source expression.");
+		  
+		  AllIxT* allIx = ixList->BuildIx();
+		  for( SizeT c=0; c<nCp; ++c)
+		    dd[ (*allIx)[ c]]=(*src)[c+offset];
+		  //		dd[ ixList->GetIx( c)]=(*src)[c+offset];
+		}
 	    }
 	}
+    }
+}
+template<class Sp>
+void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList) 
+{
+  assert( ixList != NULL);
+
+  //  breakpoint(); // gdbg can not handle breakpoints in template functions
+  Data_* src = static_cast<Data_*>(srcIn);  
+
+  SizeT srcElem= src->N_Elements();
+  bool  isScalar= (srcElem == 1);
+  if( isScalar) 
+    { // src is scalar
+      Ty scalar=(*src)[0];
+      
+      SizeT nCp=ixList->N_Elements();
+      
+      AllIxT* allIx = ixList->BuildIx();
+      for( SizeT c=0; c<nCp; ++c)
+	dd[ (*allIx)[ c]]=scalar;
+      //	    dd[ ixList->GetIx( c)]=scalar;
+    }
+  else
+    {
+      // crucial part
+      SizeT nCp=ixList->N_Elements();
+      
+      if( nCp == 1)
+	{
+	  InsAt( src, ixList);
+	}
+      else
+	{
+	  if( srcElem < nCp)
+	    throw GDLException("Array subscript must have same size as"
+			       " source expression.");
+	  
+	  AllIxT* allIx = ixList->BuildIx();
+	  for( SizeT c=0; c<nCp; ++c)
+	    dd[ (*allIx)[ c]]=(*src)[c];
+	  //		dd[ ixList->GetIx( c)]=(*src)[c+offset];
+	}
+    }
+}
+template<class Sp>
+void Data_<Sp>::AssignAt( BaseGDL* srcIn)
+{
+  //  breakpoint(); // gdbg can not handle breakpoints in template functions
+  Data_* src = static_cast<Data_*>(srcIn);  
+
+  SizeT srcElem= src->N_Elements();
+  bool  isScalar= (srcElem == 1);
+  if( isScalar) 
+    { // src is scalar
+      Ty scalar=(*src)[0];
+
+      dd = scalar;
+      
+//       SizeT nCp=Data_::N_Elements();
+
+//       for( SizeT c=0; c<nCp; ++c)
+// 	dd[ c]=scalar;
+    }
+  else
+    {
+      SizeT nCp=Data_::N_Elements();
+      
+      // if (non-indexed) src is smaller -> just copy its number of elements
+      if( nCp > srcElem) nCp=srcElem;
+      
+      for( SizeT c=0; c<nCp; ++c)
+	dd[ c]=(*src)[c];
     }
 }
 
@@ -915,10 +1002,11 @@ void Data_<Sp>::DecAt( ArrayIndexListT* ixList)
 {
   if( ixList == NULL)
     {
-      SizeT nCp=Data_::N_Elements();
+      dd -= 1;
+//       SizeT nCp=Data_::N_Elements();
       
-      for( SizeT c=0; c<nCp; ++c)
-	dd[ c]--;
+//       for( SizeT c=0; c<nCp; ++c)
+// 	dd[ c]--;
     }
   else
     {
@@ -934,10 +1022,11 @@ void Data_<Sp>::IncAt( ArrayIndexListT* ixList)
 {
   if( ixList == NULL)
     {
-      SizeT nCp=Data_::N_Elements();
+      dd += 1;
+//       SizeT nCp=Data_::N_Elements();
       
-      for( SizeT c=0; c<nCp; ++c)
-	dd[ c]++;
+//       for( SizeT c=0; c<nCp; ++c)
+// 	dd[ c]++;
     }
   else
     {
@@ -954,10 +1043,12 @@ void Data_<SpDFloat>::DecAt( ArrayIndexListT* ixList)
 {
   if( ixList == NULL)
     {
-      SizeT nCp=Data_::N_Elements();
+      dd -= 1.0f;
       
-      for( SizeT c=0; c<nCp; ++c)
-	dd[ c] -= 1.0;
+//       SizeT nCp=Data_::N_Elements();
+      
+//       for( SizeT c=0; c<nCp; ++c)
+// 	dd[ c] -= 1.0;
     }
   else
     {
@@ -973,10 +1064,12 @@ void Data_<SpDFloat>::IncAt( ArrayIndexListT* ixList)
 {
   if( ixList == NULL)
     {
-      SizeT nCp=Data_::N_Elements();
+      dd += 1.0f;
+
+//       SizeT nCp=Data_::N_Elements();
       
-      for( SizeT c=0; c<nCp; ++c)
-	dd[ c] += 1.0;
+//       for( SizeT c=0; c<nCp; ++c)
+// 	dd[ c] += 1.0;
     }
   else
     {
@@ -992,10 +1085,12 @@ void Data_<SpDDouble>::DecAt( ArrayIndexListT* ixList)
 {
   if( ixList == NULL)
     {
-      SizeT nCp=Data_::N_Elements();
+      dd -= 1.0;
+
+//       SizeT nCp=Data_::N_Elements();
       
-      for( SizeT c=0; c<nCp; ++c)
-	dd[ c] -= 1.0;
+//       for( SizeT c=0; c<nCp; ++c)
+// 	dd[ c] -= 1.0;
     }
   else
     {
@@ -1011,10 +1106,12 @@ void Data_<SpDDouble>::IncAt( ArrayIndexListT* ixList)
 {
   if( ixList == NULL)
     {
-      SizeT nCp=Data_::N_Elements();
+      dd += 1.0;
+
+//       SizeT nCp=Data_::N_Elements();
       
-      for( SizeT c=0; c<nCp; ++c)
-	dd[ c] += 1.0;
+//       for( SizeT c=0; c<nCp; ++c)
+// 	dd[ c] += 1.0;
     }
   else
     {
@@ -1031,10 +1128,12 @@ void Data_<SpDComplex>::DecAt( ArrayIndexListT* ixList)
 {
   if( ixList == NULL)
     {
-      SizeT nCp=Data_::N_Elements();
+      dd -= 1.0f;
+
+//       SizeT nCp=Data_::N_Elements();
       
-      for( SizeT c=0; c<nCp; ++c)
-	dd[ c] -= 1.0;
+//       for( SizeT c=0; c<nCp; ++c)
+// 	dd[ c] -= 1.0;
     }
   else
     {
@@ -1050,10 +1149,12 @@ void Data_<SpDComplex>::IncAt( ArrayIndexListT* ixList)
 {
   if( ixList == NULL)
     {
-      SizeT nCp=Data_::N_Elements();
+      dd += 1.0f;
+
+//       SizeT nCp=Data_::N_Elements();
       
-      for( SizeT c=0; c<nCp; ++c)
-	dd[ c] += 1.0;
+//       for( SizeT c=0; c<nCp; ++c)
+// 	dd[ c] += 1.0;
     }
   else
     {
@@ -1069,10 +1170,12 @@ void Data_<SpDComplexDbl>::DecAt( ArrayIndexListT* ixList)
 {
   if( ixList == NULL)
     {
-      SizeT nCp=Data_::N_Elements();
+      dd -= 1.0;
+
+//       SizeT nCp=Data_::N_Elements();
       
-      for( SizeT c=0; c<nCp; ++c)
-	dd[ c] -= 1.0;
+//       for( SizeT c=0; c<nCp; ++c)
+// 	dd[ c] -= 1.0;
     }
   else
     {
@@ -1088,10 +1191,12 @@ void Data_<SpDComplexDbl>::IncAt( ArrayIndexListT* ixList)
 {
   if( ixList == NULL)
     {
-      SizeT nCp=Data_::N_Elements();
+      dd += 1.0;
+
+//       SizeT nCp=Data_::N_Elements();
       
-      for( SizeT c=0; c<nCp; ++c)
-	dd[ c] += 1.0;
+//       for( SizeT c=0; c<nCp; ++c)
+// 	dd[ c] += 1.0;
     }
   else
     {
@@ -2692,6 +2797,409 @@ void Data_<Sp>::Assign( BaseGDL* src, SizeT nEl)
       dd[ k] = srcT->dd[ k];
     }
 }
+
+// return a new type of itself (only for one dimensional case)
+template<class Sp>
+Data_<Sp>* Data_<Sp>::NewIx( SizeT ix)
+{
+  return new Data_( dd[ ix]);
+}
+template<class Sp>
+Data_<Sp>* Data_<Sp>::NewIx( AllIxT* ix, dimension* dIn)
+{
+  SizeT nCp = ix->size();
+  Data_* res=Data_::New( *dIn, BaseGDL::NOZERO);
+  for( SizeT c=0; c<nCp; ++c)
+    (*res)[c]=dd[ (*ix)[ c]];
+}
+template<class Sp>
+Data_<Sp>* Data_<Sp>::NewIxFrom( SizeT s)
+{
+  SizeT nCp = dd.size() - s;
+  Data_* res=Data_::New( dimension( nCp), BaseGDL::NOZERO);
+  for( SizeT c=0; c<nCp; ++c)
+    (*res)[c]=dd[ s++];
+}
+template<class Sp>
+Data_<Sp>* Data_<Sp>::NewIxFrom( SizeT s, SizeT e)
+{
+  SizeT nCp = e - s + 1;
+  Data_* res=Data_::New( dimension( nCp), BaseGDL::NOZERO);
+  for( SizeT c=0; c<nCp; ++c)
+    (*res)[c]=dd[ s++];
+}
+template<class Sp>
+Data_<Sp>* Data_<Sp>::NewIxFromStride( SizeT s, SizeT stride)
+{
+  SizeT nCp = (dd.size() - s + stride - 1)/stride;
+  Data_* res=Data_::New( dimension( nCp), BaseGDL::NOZERO);
+  for( SizeT c=0; c<nCp; ++c, s += stride)
+    (*res)[c]=dd[ s];
+}
+template<class Sp>
+Data_<Sp>* Data_<Sp>::NewIxFromStride( SizeT s, SizeT e, SizeT stride)
+{
+  SizeT nCp = (e - s + stride)/stride;
+  Data_* res=Data_::New( dimension( nCp), BaseGDL::NOZERO);
+  for( SizeT c=0; c<nCp; ++c, s += stride)
+    (*res)[c]=dd[ s];
+}
+template<class Sp>
+Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
+{
+  DType dType = ix->Type();
+  assert( dType != UNDEF);
+  int typeCheck = DTypeOrder[ dType];
+  if( typeCheck >= 100)
+    throw GDLException("Type not allowed as subscript.");
+    
+  SizeT nElem = ix->N_Elements();
+
+  Data_* res = New( ix->Dim(), BaseGDL::NOZERO);
+  auto_ptr<Data_> guard( res);
+
+  SizeT upper = dd.size() - 1;
+  Ty    upperVal = dd[ upper];
+  Ty    zeroVal  = dd[ 0];
+
+  switch( dType)
+    {
+    case BYTE:
+      {
+	DByteGDL* src = static_cast<DByteGDL*>( ix);
+	SizeT i = 0;
+	for( ; i < nElem; ++i)
+	  if( (*src)[i] > upper)
+	    {
+	      if( strict)
+		throw GDLException("Array used to subscript array "
+				   "contains out of range (>) subscript.");
+	      (*res)[i++]= upperVal;
+	      break;
+	    }
+	  else
+	    (*res)[i]= dd[ (*src)[i]];
+
+	for(; i < nElem; ++i)
+	  if( (*src)[i] > upper)
+	    (*res)[i] = upperVal;
+	  else
+	    (*res)[i]= dd[ (*src)[i]]; 
+	
+	return guard.release();
+      }
+    case INT:
+      {
+	DIntGDL* src = static_cast<DIntGDL*>( ix);
+	SizeT i = 0;
+	for(; i < nElem; ++i)
+	  if( (*src)[i] < 0)
+	    {
+	      if( strict)
+		throw GDLException("Array used to subscript array "
+				   "contains out of range (<0) subscript.");
+	      (*res)[i++]= zeroVal;
+	      break;
+	    }
+	  else if( (*src)[i] > upper)
+	    {
+	      if( strict)
+		throw GDLException("Array used to subscript array "
+				   "contains out of range (>) subscript.");
+	      (*res)[i++]= upperVal;
+	      break;
+	    }
+	  else
+	    (*res)[ i] = dd[ (*src)[ i]];
+	
+	for(; i < nElem; ++i)
+	  if( (*src)[i] < 0)
+	    (*res)[i]= zeroVal;
+	  else if( (*src)[i] > upper)
+	    (*res)[i]= upperVal;
+	  else
+	    (*res)[ i] = dd[ (*src)[ i]];
+	
+	return guard.release();
+      }
+    case UINT:
+      {
+	DUIntGDL* src = static_cast<DUIntGDL*>( ix);
+	SizeT i = 0;
+	for( ; i < nElem; ++i)
+	  if( (*src)[i] > upper)
+	    {
+	      if( strict)
+		throw GDLException("Array used to subscript array "
+				   "contains out of range (>) subscript.");
+	      (*res)[i++]= upperVal;
+	      break;
+	    }
+	  else
+	    (*res)[i]= dd[ (*src)[i]];
+
+	for(; i < nElem; ++i)
+	  if( (*src)[i] >= upper)
+	    (*res)[i] = upperVal;
+	  else
+	    (*res)[i]= dd[ (*src)[i]]; 
+	
+	return guard.release();
+      }
+    case LONG: // typical type (returned from WHERE)
+      {
+	DLongGDL* src = static_cast<DLongGDL*>( ix);
+	SizeT i = 0;
+	for(; i < nElem; ++i)
+	  if( (*src)[i] < 0)
+	    {
+	      if( strict)
+		throw GDLException("Array used to subscript array "
+				   "contains out of range (<0) subscript.");
+	      (*res)[i++]= zeroVal;
+	      break;
+	    }
+	  else if( (*src)[i] > upper)
+	    {
+	      if( strict)
+		throw GDLException("Array used to subscript array "
+				   "contains out of range (>) subscript.");
+	      (*res)[i++]= upperVal;
+	      break;
+	    }
+	  else
+	    (*res)[ i] = dd[ (*src)[ i]];
+	
+	for(; i < nElem; ++i)
+	  if( (*src)[i] <= 0)
+	    (*res)[i]= zeroVal;
+	  else if( (*src)[i] >= upper)
+	    (*res)[i]= upperVal;
+	  else
+	    (*res)[ i] = dd[ (*src)[ i]];
+	
+	return guard.release();
+      }
+    case ULONG:
+      {
+	DULongGDL* src = static_cast<DULongGDL*>( ix);
+	SizeT i = 0;
+	for( ; i < nElem; ++i)
+	  if( (*src)[i] > upper)
+	    {
+	      if( strict)
+		throw GDLException("Array used to subscript array "
+				   "contains out of range (>) subscript.");
+	      (*res)[i++]= upperVal;
+	      break;
+	    }
+	  else
+	    (*res)[i]= dd[ (*src)[i]];
+
+	for(; i < nElem; ++i)
+	  if( (*src)[i] > upper)
+	    (*res)[i] = upperVal;
+	  else
+	    (*res)[i]= dd[ (*src)[i]]; 
+	
+	return guard.release();
+      }
+    case LONG64:
+      {
+	DLong64GDL* src = static_cast<DLong64GDL*>( ix);
+	SizeT i = 0;
+	for(; i < nElem; ++i)
+	  if( (*src)[i] < 0)
+	    {
+	      if( strict)
+		throw GDLException("Array used to subscript array "
+				   "contains out of range (<0) subscript.");
+	      (*res)[i++]= zeroVal;
+	      break;
+	    }
+	  else if( (*src)[i] > upper)
+	    {
+	      if( strict)
+		throw GDLException("Array used to subscript array "
+				   "contains out of range (>) subscript.");
+	      (*res)[i++]= upperVal;
+	      break;
+	    }
+	  else
+	    (*res)[ i] = dd[ (*src)[ i]];
+	
+	for(; i < nElem; ++i)
+	  if( (*src)[i] < 0)
+	    (*res)[i]= zeroVal;
+	  else if( (*src)[i] > upper)
+	    (*res)[i]= upperVal;
+	  else
+	    (*res)[ i] = dd[ (*src)[ i]];
+	
+	return guard.release();
+      }
+    case ULONG64:
+      {
+	DULong64GDL* src = static_cast<DULong64GDL*>( ix);
+	SizeT i = 0;
+	for( ; i < nElem; ++i)
+	  if( (*src)[i] > upper)
+	    {
+	      if( strict)
+		throw GDLException("Array used to subscript array "
+				   "contains out of range (>) subscript.");
+	      (*res)[i++]= upperVal;
+	      break;
+	    }
+	  else
+	    (*res)[i]= dd[ (*src)[i]];
+
+	for(; i < nElem; ++i)
+	  if( (*src)[i] > upper)
+	    (*res)[i] = upperVal;
+	  else
+	    (*res)[i]= dd[ (*src)[i]]; 
+	
+	return guard.release();
+      }
+    case FLOAT: 
+      {
+	DFloat maxF = upper; 
+	DFloatGDL* src = static_cast<DFloatGDL*>( ix);
+	for( SizeT i=0; i < nElem; ++i)
+	  if( (*src)[i] <= 0.0)
+	    {
+	      (*res)[i] = zeroVal;
+	      if( (*src)[i] <= -1.0 && strict)
+		throw GDLException("Array used to subscript array "
+				   "contains out of range (<0) subscript.");
+	    }
+	  else if( (*src)[i] > maxF)
+	    {
+	      (*res)[i] = upperVal;
+	      if( (*src)[i] >= (maxF + 1.0) && strict)
+		throw GDLException("Array used to subscript array "
+				   "contains out of range (>) subscript.");
+	    }
+	  else
+	    {
+	      (*res)[i]= dd[ Real2Int<SizeT,float>((*src)[i])]; 
+	    }
+	return guard.release();
+      }
+    case DOUBLE: 
+      {
+	DDouble maxF = upper; 
+	DDoubleGDL* src = static_cast<DDoubleGDL*>( ix);
+	for( SizeT i=0; i < nElem; ++i)
+	  if( (*src)[i] <= 0.0)
+	    {
+	      (*res)[i] = zeroVal;
+	      if( (*src)[i] <= -1.0 && strict)
+		throw GDLException("Array used to subscript array "
+				   "contains out of range (<0) subscript.");
+	    }
+	  else if( (*src)[i] > maxF)
+	    {
+	      (*res)[i] = upperVal;
+	      if( (*src)[i] >= (maxF + 1.0) && strict)
+		throw GDLException("Array used to subscript array "
+				   "contains out of range (>) subscript.");
+	    }
+	  else
+	    {
+	      (*res)[i]= dd[ Real2Int<SizeT,double>((*src)[i])]; 
+	    }
+	return guard.release();
+      }
+    case STRING: 
+      {
+	DStringGDL* src = static_cast<DStringGDL*>( ix);
+	for( SizeT i=0; i < nElem; ++i)
+	  {
+	    const char* cStart=(*src)[i].c_str();
+	    char* cEnd;
+	    long l=strtol(cStart,&cEnd,10);
+	    if( cEnd == cStart)
+	      {
+		Warning("Type conversion error: "
+			"Unable to convert given STRING to LONG.");
+		(*res)[i] = zeroVal;
+	      }
+	    else if( l < 0)
+	      {
+		if( strict)
+		  throw GDLException("Array used to subscript array "
+				     "contains out of range (<0) subscript.");
+		(*res)[i] = zeroVal;
+	      }
+	    else if( l > upper)
+	      {
+		if( strict)
+		  throw GDLException("Array used to subscript array "
+				     "contains out of range (>) subscript.");
+		(*res)[i] = upperVal;
+	      }
+	    else
+	      {
+		(*res)[i] = dd[ l];
+	      }
+	  }
+	return guard.release();
+      }
+    case COMPLEX: 
+      {
+	DFloat maxF = upper; 
+	DComplexGDL* src = static_cast<DComplexGDL*>( ix);
+	for( SizeT i=0; i < nElem; ++i)
+	  if( real((*src)[i]) <= 0.0)
+	    {
+	      if( real((*src)[i]) <= -1.0 && strict)
+		throw GDLException("Array used to subscript array "
+				   "contains out of range (<0) subscript.");
+	      (*res)[i] = zeroVal;
+	    }
+	  else if( real((*src)[i]) > upper)
+	    {
+	      if( real((*src)[i]) >= upper+1.0 && strict)
+		throw GDLException("Array used to subscript array "
+				   "contains out of range (>) subscript.");
+	      (*res)[i] = upperVal;
+	    }
+	  else
+	    {
+	      (*res)[i]= dd[ Real2Int<DLong,float>(real((*src)[i]))]; 
+	    }
+	return guard.release();
+      }
+    case COMPLEXDBL: 
+      {
+	DDouble maxF = upper; 
+	DComplexDblGDL* src = static_cast<DComplexDblGDL*>( ix);
+	for( SizeT i=0; i < nElem; ++i)
+	  if( real((*src)[i]) <= 0.0)
+	    {
+	      if( real((*src)[i]) <= -1.0 && strict)
+		throw GDLException("Array used to subscript array "
+				   "contains out of range (<0) subscript.");
+	      (*res)[i] = zeroVal;
+	    }
+	  else if( real((*src)[i]) > upper)
+	    {
+	      if( real((*src)[i]) >= upper+1.0 && strict)
+		throw GDLException("Array used to subscript array "
+				   "contains out of range (>) subscript.");
+	      (*res)[i] = upperVal;
+	    }
+	  else
+	    {
+	      (*res)[i]= dd[ Real2Int<DLong,float>(real((*src)[i]))]; 
+	    }
+	return guard.release();
+      }
+    }
+}
+
 
 //#include "instantiate_templates.hpp"
 

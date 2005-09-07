@@ -20,6 +20,7 @@
 
 #include <vector>
 
+#include "typedefs.hpp"
 #include "datatypes.hpp"
 #include "arrayindex.hpp"
 #include "assocdata.hpp"

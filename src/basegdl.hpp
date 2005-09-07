@@ -212,6 +212,15 @@ public:
   virtual BaseGDL* Index( ArrayIndexListT* ixList); 
   //  virtual BaseGDL* Abs() const; 
 
+  // return a new type of itself
+  virtual BaseGDL* NewIx( SizeT ix);
+  virtual BaseGDL* NewIx( BaseGDL* ix, bool strict);
+  virtual BaseGDL* NewIx( AllIxT* ix, dimension* dIn);
+  virtual BaseGDL* NewIxFrom( SizeT s);
+  virtual BaseGDL* NewIxFrom( SizeT s, SizeT e);
+  virtual BaseGDL* NewIxFromStride( SizeT s, SizeT stride);
+  virtual BaseGDL* NewIxFromStride( SizeT s, SizeT e, SizeT stride);
+
   // library functions
   virtual BaseGDL* Convol( BaseGDL* kIn, BaseGDL* scaleIn, 
 			   bool center, int edgeMode);
@@ -283,8 +292,9 @@ public:
   virtual BaseGDL* PowNew( BaseGDL* r);     
   //  virtual BaseGDL* PowInvNew( BaseGDL* r);  
   virtual BaseGDL* MatrixOp( BaseGDL* r);   
-  virtual void AssignAt( BaseGDL* srcIn, 
-			 ArrayIndexListT* ixList=NULL, SizeT offset=0);
+  virtual void AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT offset);
+  virtual void AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList);
+  virtual void AssignAt( BaseGDL* srcIn);
   virtual void DecAt( ArrayIndexListT* ixList);
   virtual void IncAt( ArrayIndexListT* ixList);
   virtual void Dec();

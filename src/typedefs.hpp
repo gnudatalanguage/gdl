@@ -50,6 +50,7 @@
 #include <string>
 #include <deque>
 #include <complex>
+#include <valarray>
 
 typedef size_t              SizeT;
 typedef unsigned int        UInt;
@@ -93,7 +94,7 @@ typedef std::deque<std::string>       StrArr;
 // used by file.cpp and in other places 
 typedef std::deque<DString>           FileListT;
 
-
+typedef std::valarray<SizeT>          AllIxT;
 
 // searches IDList idL for std::string s, returns its position, -1 if not found
 inline int FindInIDList(IDList& idL,const std::string& s)

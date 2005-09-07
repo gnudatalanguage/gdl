@@ -359,10 +359,17 @@ BaseGDL* BaseGDL::MatrixOp( BaseGDL* r)
   throw GDLException("Operation not defined for UNDEF 18.");
 }
 
-void BaseGDL::AssignAt( BaseGDL* srcIn, 
-			ArrayIndexListT* ixList, SizeT offset)
+void BaseGDL::AssignAt( BaseGDL* srcIn,	ArrayIndexListT* ixList, SizeT offset)
 {
   throw GDLException("BaseGDL::AssignAt(...) called.");
+}
+void BaseGDL::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList)
+{
+  throw GDLException("BaseGDL::AssignAt(..) called.");
+}
+void BaseGDL::AssignAt( BaseGDL* srcIn)
+{
+  throw GDLException("BaseGDL::AssignAt(.) called.");
 }
 
 void BaseGDL::DecAt( ArrayIndexListT* ixList)
@@ -582,3 +589,31 @@ BaseGDL* BaseGDL::PowInvS( BaseGDL* r)
   throw GDLException("Operation not defined for UNDEF 17.");
 }
 
+BaseGDL* BaseGDL::NewIx( SizeT ix)
+{
+  throw GDLException("Operation not defined for UNDEF 20.");
+}
+BaseGDL* BaseGDL::NewIx( BaseGDL* ix, bool strict)
+{
+  throw GDLException("Operation not defined for UNDEF 21.");
+}
+BaseGDL* BaseGDL::NewIx( AllIxT* ix, dimension* dIn)
+{
+  throw GDLException("Operation not defined for UNDEF 22.");
+}
+BaseGDL* BaseGDL::NewIxFrom( SizeT s)
+{
+  throw GDLException("Operation not defined for UNDEF 23.");
+}
+BaseGDL* BaseGDL::NewIxFrom( SizeT s, SizeT e)
+{
+  throw GDLException("Operation not defined for UNDEF 24.");
+}
+BaseGDL* BaseGDL::NewIxFromStride( SizeT s, SizeT stride)
+{
+  throw GDLException("Operation not defined for UNDEF 25.");
+}
+BaseGDL* BaseGDL::NewIxFromStride( SizeT s, SizeT e, SizeT stride)
+{
+  throw GDLException("Operation not defined for UNDEF 26.");
+}

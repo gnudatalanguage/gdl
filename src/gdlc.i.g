@@ -2234,6 +2234,11 @@ array_expr returns [BaseGDL* res]
     BaseGDL* r;
     ArrayIndexListGuard guard;
     auto_ptr<BaseGDL> r_guard;
+
+    ExprListT        exprList; // for cleanup
+    IxExprListT      ixExprList;
+    SizeT nExpr;
+    BaseGDL* s;
 }
     : #(ARRAYEXPR 
             ( r=indexable_expr
@@ -2244,10 +2249,42 @@ array_expr returns [BaseGDL* res]
                         r_guard.reset( r); // guard if no global data
                 }
             )
-            aL=arrayindex_list { guard.reset(aL);}
+            //            aL=indexing_list { guard.reset(aL);}
+        #(ax:ARRAYIX
+                {
+                    aL = ax->arrIxList;
+                    assert( aL != NULL);
+                    
+                    nExpr = aL->NParam();
+                    //                 if( nExpr > 1)
+                    //                 {
+                    //                     ixExprList.reserve( nExpr);
+                    //                     exprList.reserve( nExpr);
+                    //                 }
+                    //                if( nExpr == 0) goto empty;
+                }
+                (
+                    ( s=indexable_expr
+                    | s=check_expr
+                        {
+                            if( !callStack.back()->Contains( s)) 
+                            exprList.push_back( s);
+                        }
+                    | s=indexable_tmp_expr { exprList.push_back( s);}
+                    )
+                    {
+                        ixExprList.push_back( s);
+                        if( ixExprList.size() == nExpr)
+                        break; // allows some manual tuning
+                    }
+                )*
+                //            { empty: ;}
+            )
             {
-                aL->SetVariable( r);
-                res=r->Index( aL);
+                res = aL->Index( r, ixExprList);
+//                 aL->Init( ixExprList);
+//                 aL->SetVariable( r);
+//                 res=r->Index( aL);
             }
         )   
 //     | res=expr //indexable_expr
@@ -2878,6 +2915,7 @@ arrayindex_list returns [ArrayIndexListT* aL]
 //                     ixExprList.reserve( nExpr);
 //                     exprList.reserve( nExpr);
 //                 }
+//                if( nExpr == 0) goto empty;
             }
             (
                 ( s=indexable_expr
@@ -2894,6 +2932,7 @@ arrayindex_list returns [ArrayIndexListT* aL]
                         break; // allows some manual tuning
                 }
             )*
+//            { empty: ;}
         )
         {
             aL->Init( ixExprList);
