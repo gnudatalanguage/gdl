@@ -50,6 +50,8 @@ public:
   virtual SizeT NIter( SizeT varDim)=0; 
 
   virtual SizeT NParam()=0;
+
+  virtual ArrayIndexT* Dup() const =0;
 };
 
 // INDEXED or ONE [v]
@@ -104,6 +106,19 @@ public:
     ix( NULL), ixDim( NULL)
   {}
 
+  ArrayIndexT* Dup() const
+  {
+    ArrayIndexIndexed* d =  new ArrayIndexIndexed( strictArrSubs);
+    
+    assert( ix == NULL);
+    assert( ixDim == NULL);
+
+    d->s = s;
+    d->maxVal = maxVal;
+    
+    return d;
+  }
+ 
   void Clear()
   {
     maxVal = 0;
@@ -535,6 +550,24 @@ public:
     if( ixOri != NULL) maxIx = ixOri->max();
   }
 
+  CArrayIndexIndexed( const CArrayIndexIndexed& cp):
+    ArrayIndexIndexed( cp.strictArrSubs), ixOri( NULL), maxIx( cp.maxIx)
+  {
+    assert( cp.ix == NULL);
+
+    s = cp.s;
+    maxVal = cp.maxVal;
+    maxIx  = cp.maxIx;
+
+    if( cp.ixOri != NULL)
+      ixOri = new AllIxT( *cp.ixOri);
+  }
+
+  ArrayIndexT* Dup() const
+  {
+    return new CArrayIndexIndexed( *this);
+  }
+
   SizeT NParam() { return 0;} // number of parameter to Init(...)
   void Clear() { delete ix; ix=NULL;} // note that ixDim is untouched
 
@@ -633,6 +666,11 @@ public:
 
   SizeT GetIx0() { return 0;}
 
+  ArrayIndexT* Dup() const
+  {
+    return new ArrayIndexAll();
+  }
+
   BaseGDL* Index( BaseGDL* var, IxExprListT& ix)
   {
     return var->Dup();
@@ -657,6 +695,13 @@ public:
 
   SizeT GetS() { return s;}
   SizeT GetIx0() { return s;}
+
+  ArrayIndexT* Dup() const
+  {
+    ArrayIndexORange* d = new ArrayIndexORange();
+    d->s = s;
+    return d;
+  }
 
   void Init( BaseGDL* s_)
   {
@@ -709,6 +754,15 @@ public:
     ArrayIndexORange::Init( c);
   }
 
+  CArrayIndexORange() {}
+
+  ArrayIndexT* Dup() const
+  {
+    CArrayIndexORange* d = new CArrayIndexORange();
+    d->s = s;
+    return d;
+  }
+
   BaseGDL* Index( BaseGDL* var, IxExprListT& ix)
   {
     if( s >= var->Size())
@@ -739,6 +793,16 @@ public:
 
     return var->NewIxFrom( s, e);
   }
+
+
+  ArrayIndexT* Dup() const
+  {
+    ArrayIndexRange* d = new ArrayIndexRange();
+    d->s = s;
+    d->e = e;
+    return d;
+  }
+
 
   void Init( BaseGDL* s_, BaseGDL* e_)
   {
@@ -805,6 +869,16 @@ public:
     ArrayIndexRange::Init( c1, c2);
   }
 
+  CArrayIndexRange(){}
+
+  ArrayIndexT* Dup() const
+  {
+    CArrayIndexRange* d = new CArrayIndexRange();
+    d->s = s;
+    d->e = e;
+    return d;
+  }
+
   BaseGDL* Index( BaseGDL* var, IxExprListT& ix)
   {
     if( e >= var->Size())
@@ -826,6 +900,14 @@ public:
   SizeT GetS() { return s;}
   SizeT GetStride() { return stride;}
   SizeT GetIx0() { return s;}
+
+  ArrayIndexT* Dup() const
+  {
+    ArrayIndexORangeS* d = new ArrayIndexORangeS();
+    d->s = s;
+    d->stride = stride;
+    return d;
+  }
 
   void Init( BaseGDL* s_, BaseGDL* stride_)
   {
@@ -897,6 +979,16 @@ public:
     ArrayIndexORangeS::Init( c1, c2);
   }
 
+CArrayIndexORangeS(){}
+
+  ArrayIndexT* Dup() const
+  {
+    CArrayIndexORangeS* d = new CArrayIndexORangeS();
+    d->s = s;
+    d->stride = stride;
+    return d;
+  }
+
   BaseGDL* Index( BaseGDL* var, IxExprListT& ix)
   {
     if( s >= var->Size())
@@ -918,6 +1010,15 @@ public:
   SizeT GetS() { return s;}
   SizeT GetStride() { return stride;}
   SizeT GetIx0() { return s;}
+
+  ArrayIndexT* Dup() const
+  {
+    ArrayIndexRangeS* d = new ArrayIndexRangeS();
+    d->s = s;
+    d->e = e;
+    d->stride = stride;
+    return d;
+  }
 
   void Init( BaseGDL* s_, BaseGDL* e_, BaseGDL* stride_)
   {
@@ -1017,6 +1118,17 @@ public:
     ArrayIndexRangeS::Init( c1, c2, c3);
   }
 
+CArrayIndexRangeS(){}
+
+  ArrayIndexT* Dup() const
+  {
+    CArrayIndexRangeS* d = new CArrayIndexRangeS();
+    d->s = s;
+    d->e = e;
+    d->stride = stride;
+    return d;
+  }
+
   BaseGDL* Index( BaseGDL* var, IxExprListT& ix)
   {
     if( e >= var->Size())
@@ -1040,9 +1152,9 @@ private:
     ALLONE    // all ONE
   };
 
+  AccessType accessType;         // actual access type
   AccessType accessTypeInit;     // possible access type non assoc
   AccessType accessTypeAssocInit;// possible access type for assoc
-  AccessType accessType;         // actual access type
   SizeT    acRank;               // rank upto which indexing is done
   SizeT    nIterLimit[MAXRANK];  // for each dimension, how many iterations
   SizeT    stride[MAXRANK+1];    // for each dimension, how many iterations
@@ -1075,6 +1187,23 @@ public:
     nParam( 0)
   {
     //    ixList.reserve(MAXRANK); 
+  }
+
+  ArrayIndexListT( const ArrayIndexListT& cp):
+    accessType(cp.accessType),
+    accessTypeInit(cp.accessTypeInit),
+    accessTypeAssocInit(cp.accessTypeAssocInit),
+    acRank(cp.acRank),
+    allIx( NULL),
+    ixListEnd( NULL),
+    nParam( cp.nParam)
+  {
+    //    ixList.reserve(MAXRANK); 
+    assert( cp.allIx == NULL);
+    assert( cp.ixListEnd == NULL);
+
+    for( SizeT i=0; i<cp.ixList.size(); ++i)
+      ixList.push_back( cp.ixList[i]->Dup());
   }
   
   void Clear()

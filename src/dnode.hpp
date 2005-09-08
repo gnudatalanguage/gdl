@@ -55,6 +55,8 @@ public:
   {
   }
 
+  DNode( const DNode& cp);
+
   DNode(antlr::RefToken t) : antlr::CommonAST(t) //, down(), right()
   {
     //    antlr::CommonAST::setType(t->getType() );
@@ -91,6 +93,12 @@ public:
     
     //    DNode::SetLine( t->getLine());
     SetLine( t->getLine());
+  }
+
+  antlr::RefAST clone( void ) const
+  {
+    DNode *newNode = new DNode( *this);
+    return antlr::RefAST( newNode);
   }
 
   void setText(const std::string& txt)

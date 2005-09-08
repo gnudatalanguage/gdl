@@ -30,6 +30,13 @@ class CUSTOM_API GDLTreeParser : public antlr::TreeParser, public GDLTreeParserT
 }
 }
 
+  RefDNode RemoveNextSibling( RefDNode l)
+  {
+    RefDNode newNode = RefDNode(astFactory->dupTree( antlr::RefAST(l)));
+    newNode->SetLine( l->getLine());
+    return newNode;
+//    newNode->setNextSibling( RefDNode(antlr::nullAST));
+  }
   public:
   // constructor with processed file
   GDLTreeParser(const std::string& f, const std::string& sub)

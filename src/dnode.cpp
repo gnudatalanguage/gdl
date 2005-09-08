@@ -49,6 +49,18 @@ namespace antlr {
 
 DInterpreter* ProgNode::interpreter;
 
+DNode::DNode( const DNode& cp): 
+  CommonAST( cp), //down(), right(), 
+  lineNumber( cp.getLine()), cData(NULL), 
+  var(cp.var), arrIxList(NULL), labelStart( cp.labelStart), labelEnd( cp.labelEnd)
+{
+  if( cp.cData != NULL) cData = cp.cData->Dup();
+  if( cp.arrIxList != NULL)
+    arrIxList = new ArrayIndexListT( *cp.arrIxList);
+
+  initInt = cp.initInt;
+}
+
 void DNode::ResetCData( BaseGDL* newCData)
 { 
   //  delete cData; // as used (UMinus) deletion is done automatically 
