@@ -466,8 +466,8 @@ namespace lib {
       if (maxr2[2] > mrho2) mrho2 = maxr2[2];
       if (maxr2[3] > mrho2) mrho2 = maxr2[3];
 
-      dims[0] = (DLong) ceil(fpi * sqrt((p0->Dim(0)*p0->Dim(0) + 
-				       p0->Dim(1)*p0->Dim(1))/2));
+      dims[0] = (DLong) ceil(fpi * sqrt(0.5*(p0->Dim(0)*p0->Dim(0) + 
+					     p0->Dim(1)*p0->Dim(1))));
       dims[1] = 2 * (DLong) ceil(sqrt(mrho2)/drho) + 1;
 
       if( e->KeywordSet( "NTHETA"))
@@ -496,11 +496,11 @@ namespace lib {
 
 
       for( SizeT itheta=0; itheta<ntheta; ++itheta) {
-	printf("theta: %d %f\n", itheta, theta);
+	//	printf("theta: %d %f\n", itheta, theta);
 	sn = sin(theta);
 	cs = cos(theta);
 
-	if (sn > 1/sqrt(2)) {
+	if (sn > 1/sqrt(2.0)) {
 	  DFloat a = -(dx/dy) * (cs/sn);
 	  DFloat den = dy * sn;
 	  DFloat num1 = xmin*cs + ymin*sn;
