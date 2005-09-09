@@ -1647,19 +1647,21 @@ l_array_expr [BaseGDL* right] returns [BaseGDL** res]
             throw GDLException( _t, 
                 "Indexed expression not allowed in this context.");
 
-            aL->SetVariable( *res);
+            aL->AssignAt( *res, right);
+
+//             aL->SetVariable( *res);
             
-            if( (*res)->EqType( right))
-            {
-                (*res)->AssignAt( right, aL); // assigns inplace
-            }
-            else
-            {
-                BaseGDL* rConv = right->Convert2( (*res)->Type(), BaseGDL::COPY);
-                auto_ptr<BaseGDL> conv_guard( rConv);
+//             if( (*res)->EqType( right))
+//             {
+//                 (*res)->AssignAt( right, aL); // assigns inplace
+//             }
+//             else
+//             {
+//                 BaseGDL* rConv = right->Convert2( (*res)->Type(), BaseGDL::COPY);
+//                 auto_ptr<BaseGDL> conv_guard( rConv);
                 
-                (*res)->AssignAt( rConv, aL); // assigns inplace
-            }
+//                 (*res)->AssignAt( rConv, aL); // assigns inplace
+//             }
         }
     ;
 

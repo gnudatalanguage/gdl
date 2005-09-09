@@ -866,6 +866,19 @@ void Data_<Sp>::ForAdd()
 // cannnot be called, just to make the compiler shut-up
 void DStructGDL::ForAdd() {}
 
+template<class Sp>
+void Data_<Sp>::AssignAtIx( SizeT ix, BaseGDL* srcIn)
+{
+  if( srcIn->Type() != this->Type())
+    {
+      Data_* rConv = static_cast<Data_*>(srcIn->Convert2( this->Type(), BaseGDL::COPY));
+      auto_ptr<Data_> conv_guard( rConv);
+      dd[ix] = rConv->dd[0];
+    }
+  else
+    dd[ix] = static_cast<Data_*>(srcIn)->dd[0];
+}
+
 // assigns srcIn to this at ixList, if ixList is NULL does linear copy
 // assumes: ixList has this already set as variable
 // used by DotAccessDescT::DoAssign
@@ -965,14 +978,20 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList)
   bool  isScalar= (srcElem == 1);
   if( isScalar) 
     { // src is scalar
-      Ty scalar=(*src)[0];
-      
       SizeT nCp=ixList->N_Elements();
-      
-      AllIxT* allIx = ixList->BuildIx();
-      for( SizeT c=0; c<nCp; ++c)
-	dd[ (*allIx)[ c]]=scalar;
-      //	    dd[ ixList->GetIx( c)]=scalar;
+
+      if( nCp == 1)
+	{
+	  dd[ ixList->LongIx()] = (*src)[0];
+	}
+      else
+	{
+	  Ty scalar=(*src)[0];
+	  AllIxT* allIx = ixList->BuildIx();
+	  for( SizeT c=0; c<nCp; ++c)
+	    dd[ (*allIx)[ c]]=scalar;
+	  //	    dd[ ixList->GetIx( c)]=scalar;
+	}
     }
   else
     {

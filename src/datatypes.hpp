@@ -268,6 +268,8 @@ public:
   void AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList);
   void AssignAt( BaseGDL* srcIn);
 
+  void AssignAtIx( SizeT ix, BaseGDL* srcIn);
+
   // decrement (--) and increment (++) operators
   void DecAt( ArrayIndexListT* ixList);
   void IncAt( ArrayIndexListT* ixList);

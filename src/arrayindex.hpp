@@ -1590,6 +1590,45 @@ public:
     return allIx;
   }
 
+  // returns one sim long ix in case of one element array index
+  // used by AssignAt functions
+  SizeT LongIx()
+  {
+    if( accessType == ONEDIM || acRank == 1)
+	return ixList[0]->GetIx0();
+    
+    SizeT dStart = ixList[0]->GetIx0();
+    for( SizeT i=1; i < acRank; ++i)
+	dStart += ixList[i]->GetIx0() * varStride[ i];
+
+    return dStart;
+  }
+
+  void AssignAt( BaseGDL* var, BaseGDL* right)
+  {
+    // scalar case
+    if( right->N_Elements() == 1 && ixList.size() == 1 && !var->IsAssoc() &&
+	ixList[0]->NIter( var->Size()) == 1 && var->Type() != STRUCT) 
+      {
+	var->AssignAtIx( ixList[0]->GetIx0(), right);
+	return;
+      }
+    
+    SetVariable( var);
+    
+    if( var->EqType( right))
+      {
+	var->AssignAt( right, this); // assigns inplace
+      }
+    else
+      {
+	BaseGDL* rConv = right->Convert2( var->Type(), BaseGDL::COPY);
+	std::auto_ptr<BaseGDL> conv_guard( rConv);
+	
+	var->AssignAt( rConv, this); // assigns inplace
+      }
+  }
+
   // returns multi-dim index for 1st element
   // used by InsAt functions
   dimension GetDimIx0( SizeT& rank, SizeT& destStart)

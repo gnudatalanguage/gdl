@@ -297,6 +297,9 @@ public:
   virtual void AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT offset);
   virtual void AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList);
   virtual void AssignAt( BaseGDL* srcIn);
+
+  virtual void AssignAtIx( SizeT ix, BaseGDL* srcIn);
+
   virtual void DecAt( ArrayIndexListT* ixList);
   virtual void IncAt( ArrayIndexListT* ixList);
   virtual void Dec();
