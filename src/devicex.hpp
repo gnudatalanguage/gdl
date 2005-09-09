@@ -176,8 +176,13 @@ class DeviceX: public Graphics
 	XPutImage( xwd->display, dev->window, dev->gc, ximg, 0, 0,
 		   0, 0, dev->width, dev->height);
 
-    XDestroyImage(ximg);
-    XDestroyImage(ximg_pixmap);
+    if (ximg != ximg_pixmap) {
+      XDestroyImage(ximg);
+      XDestroyImage(ximg_pixmap);
+    } else {
+      XDestroyImage(ximg);
+    }
+
   }
 
 
