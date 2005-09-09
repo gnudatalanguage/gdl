@@ -761,12 +761,18 @@ repeat_statement returns[ GDLInterpreter::RetCode retCode]
                 SizeT nJump = callStack.back()->NJump();
 
                 // remember block and expr nodes
-                ProgNodeP bb =_t;
-                ProgNodeP e  = bb->GetNextSibling();
+                ProgNodeP e =_t;
+                ProgNodeP bb  = e->GetNextSibling();
+
+//                 ProgNodeP bb =_t;
+//                 ProgNodeP e  = bb->GetNextSibling();
+//                 bb = bb->GetFirstChild();
                 
                 auto_ptr<BaseGDL> eVal;
                 do {
-                    retCode=block(bb);
+                    if( bb != NULL)
+                    {
+                    retCode=statement_list(bb);
 
                     if( retCode == RC_CONTINUE) continue;  
                     if( retCode == RC_BREAK) 
@@ -784,7 +790,7 @@ repeat_statement returns[ GDLInterpreter::RetCode retCode]
                         // a jump (goto) occured out of this loop
                         return retCode;
                     }
-
+                    }
                     eVal.reset( expr(e));
                 } while( eVal.get()->False());
                 
@@ -853,7 +859,7 @@ for_statement returns[ GDLInterpreter::RetCode retCode]
                 e_guard.release();
                 e_guard.reset(e);
 
-                ProgNodeP b=_t;
+                ProgNodeP b=_t; //->getFirstChild();
                 
                 // ASSIGNMENT used here also
                 delete (*v);
@@ -861,24 +867,28 @@ for_statement returns[ GDLInterpreter::RetCode retCode]
                 s_guard.release(); // s now hold in *v
                 for((*v)=s; (*v)->ForCondUp( e); (*v)->ForAdd()) 
                 {
-                    retCode=block(b);
+//                    retCode=block(b);
+                    if( b != NULL)
+                    {
+                        retCode=statement_list(b);
                     
-                    if( retCode != RC_OK) // optimization
-                    {
-                        if( retCode == RC_CONTINUE) continue;  
-                        if( retCode == RC_BREAK) 
+                        if( retCode != RC_OK) // optimization
                         {
-                            retCode = RC_OK;
-                            break;        
+                            if( retCode == RC_CONTINUE) continue;  
+                            if( retCode == RC_BREAK) 
+                            {
+                                retCode = RC_OK;
+                                break;        
+                            }
+                            if( retCode >= RC_RETURN) break;
                         }
-                        if( retCode >= RC_RETURN) break;
-                    }
 
-                    if( (callStack_back->NJump() != nJump) &&
-                        !f->LabelInRange( callStack_back->LastJump()))
-                    {
-                        // a jump (goto) occured out of this loop
-                        return retCode;
+                        if( (callStack_back->NJump() != nJump) &&
+                            !f->LabelInRange( callStack_back->LastJump()))
+                        {
+                            // a jump (goto) occured out of this loop
+                            return retCode;
+                        }
                     }
                 }
 //                retCode=RC_OK; // clear RC_BREAK/RC_CONTINUE retCode
@@ -910,21 +920,24 @@ for_statement returns[ GDLInterpreter::RetCode retCode]
                     s_guard.release();
                     for((*v)=s; (*v)->ForCondDown( e); (*v)->ForAdd(st))
                     {
-                        retCode=block(bs);
-                        
-                        if( retCode == RC_CONTINUE) continue;  
-                        if( retCode == RC_BREAK) 
+                        if( bs != NULL)
                         {
-                            retCode = RC_OK;
-                            break;        
-                        }
-                        if( retCode >= RC_RETURN) break;
-
-                        if( (callStack.back()->NJump() != nJump) &&
-                            !fs->LabelInRange( callStack.back()->LastJump()))
-                        {
-                            // a jump (goto) occured out of this loop
-                            return retCode;
+                            retCode=statement_list(bs);
+                            
+                            if( retCode == RC_CONTINUE) continue;  
+                            if( retCode == RC_BREAK) 
+                            {
+                                retCode = RC_OK;
+                                break;        
+                            }
+                            if( retCode >= RC_RETURN) break;
+                            
+                            if( (callStack.back()->NJump() != nJump) &&
+                                !fs->LabelInRange( callStack.back()->LastJump()))
+                            {
+                                // a jump (goto) occured out of this loop
+                                return retCode;
+                            }
                         }
                     }
                 } 
@@ -933,21 +946,24 @@ for_statement returns[ GDLInterpreter::RetCode retCode]
                     s_guard.release();
                     for((*v)=s; (*v)->ForCondUp( e); (*v)->ForAdd(st))
                     {
-                        retCode=block(bs);
+                        if( bs != NULL)
+                        {
+                            retCode=statement_list(bs);
                         
-                        if( retCode == RC_CONTINUE) continue;  
-                        if( retCode == RC_BREAK) 
-                        {
-                            retCode = RC_OK;
-                            break;        
-                        }
-                        if( retCode >= RC_RETURN) break;
-
-                        if( (callStack.back()->NJump() != nJump) &&
-                            !fs->LabelInRange( callStack.back()->LastJump()))
-                        {
-                            // a jump (goto) occured out of this loop
-                            return retCode;
+                            if( retCode == RC_CONTINUE) continue;  
+                            if( retCode == RC_BREAK) 
+                            {
+                                retCode = RC_OK;
+                                break;        
+                            }
+                            if( retCode >= RC_RETURN) break;
+                            
+                            if( (callStack.back()->NJump() != nJump) &&
+                                !fs->LabelInRange( callStack.back()->LastJump()))
+                            {
+                                // a jump (goto) occured out of this loop
+                                return retCode;
+                            }
                         }
                     }
                 }

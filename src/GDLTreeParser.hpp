@@ -88,6 +88,7 @@ public:
 	public: void switch_statement(RefDNode _t);
 	public: void case_statement(RefDNode _t);
 	public: void block(RefDNode _t);
+	public: void unblock(RefDNode _t);
 	public: void label(RefDNode _t);
 	public: void assign_expr(RefDNode _t);
 	public: void comp_assign_expr(RefDNode _t);

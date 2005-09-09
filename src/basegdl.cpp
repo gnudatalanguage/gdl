@@ -617,3 +617,7 @@ BaseGDL* BaseGDL::NewIxFromStride( SizeT s, SizeT e, SizeT stride)
 {
   throw GDLException("Operation not defined for UNDEF 26.");
 }
+BaseGDL* BaseGDL::Log()              
+{ 
+  throw GDLException("Operation not defined for UNDEF 27.");
+}

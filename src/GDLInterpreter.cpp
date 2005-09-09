@@ -29,6 +29,7 @@ GDLInterpreter::GDLInterpreter()
 }
 
  GDLInterpreter::RetCode  GDLInterpreter::interactive(ProgNodeP _t) {
+	Tracer traceInOut(this,"interactive",antlr::RefAST(_t));
 	 GDLInterpreter::RetCode retCode;
 	ProgNodeP interactive_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	
@@ -39,6 +40,7 @@ GDLInterpreter::GDLInterpreter()
 }
 
  GDLInterpreter::RetCode  GDLInterpreter::statement_list(ProgNodeP _t) {
+	Tracer traceInOut(this,"statement_list",antlr::RefAST(_t));
 	 GDLInterpreter::RetCode retCode;
 	ProgNodeP statement_list_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	
@@ -67,6 +69,7 @@ GDLInterpreter::GDLInterpreter()
 }
 
 void GDLInterpreter::execute(ProgNodeP _t) {
+	Tracer traceInOut(this,"execute",antlr::RefAST(_t));
 	ProgNodeP execute_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	GDLInterpreter::RetCode retCode;
@@ -80,6 +83,7 @@ void GDLInterpreter::execute(ProgNodeP _t) {
 }
 
  BaseGDL*  GDLInterpreter::call_fun(ProgNodeP _t) {
+	Tracer traceInOut(this,"call_fun",antlr::RefAST(_t));
 	 BaseGDL* res;
 	ProgNodeP call_fun_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	
@@ -122,6 +126,7 @@ void GDLInterpreter::execute(ProgNodeP _t) {
 }
 
  GDLInterpreter::RetCode  GDLInterpreter::statement(ProgNodeP _t) {
+	Tracer traceInOut(this,"statement",antlr::RefAST(_t));
 	 GDLInterpreter::RetCode retCode;
 	ProgNodeP statement_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP o = ProgNodeP(antlr::nullAST);
@@ -315,6 +320,7 @@ void GDLInterpreter::execute(ProgNodeP _t) {
 }
 
  BaseGDL**  GDLInterpreter::call_lfun(ProgNodeP _t) {
+	Tracer traceInOut(this,"call_lfun",antlr::RefAST(_t));
 	 BaseGDL** res;
 	ProgNodeP call_lfun_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	
@@ -358,6 +364,7 @@ void GDLInterpreter::execute(ProgNodeP _t) {
 }
 
 void GDLInterpreter::call_pro(ProgNodeP _t) {
+	Tracer traceInOut(this,"call_pro",antlr::RefAST(_t));
 	ProgNodeP call_pro_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	GDLInterpreter::RetCode retCode;
@@ -385,6 +392,7 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 }
 
 void GDLInterpreter::assignment(ProgNodeP _t) {
+	Tracer traceInOut(this,"assignment",antlr::RefAST(_t));
 	ProgNodeP assignment_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	BaseGDL*  r;
@@ -572,6 +580,7 @@ void GDLInterpreter::assignment(ProgNodeP _t) {
 }
 
 void GDLInterpreter::procedure_call(ProgNodeP _t) {
+	Tracer traceInOut(this,"procedure_call",antlr::RefAST(_t));
 	ProgNodeP procedure_call_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP pl = ProgNodeP(antlr::nullAST);
 	ProgNodeP mp = ProgNodeP(antlr::nullAST);
@@ -718,6 +727,7 @@ void GDLInterpreter::procedure_call(ProgNodeP _t) {
 }
 
 void GDLInterpreter::decinc_statement(ProgNodeP _t) {
+	Tracer traceInOut(this,"decinc_statement",antlr::RefAST(_t));
 	ProgNodeP decinc_statement_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	BaseGDL* l;
@@ -759,6 +769,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 }
 
  GDLInterpreter::RetCode  GDLInterpreter::for_statement(ProgNodeP _t) {
+	Tracer traceInOut(this,"for_statement",antlr::RefAST(_t));
 	 GDLInterpreter::RetCode retCode;
 	ProgNodeP for_statement_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP f = ProgNodeP(antlr::nullAST);
@@ -797,7 +808,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 		e_guard.release();
 		e_guard.reset(e);
 		
-		ProgNodeP b=_t;
+		ProgNodeP b=_t; //->getFirstChild();
 		
 		// ASSIGNMENT used here also
 		delete (*v);
@@ -805,7 +816,10 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 		s_guard.release(); // s now hold in *v
 		for((*v)=s; (*v)->ForCondUp( e); (*v)->ForAdd()) 
 		{
-		retCode=block(b);
+		//                    retCode=block(b);
+		if( b != NULL)
+		{
+		retCode=statement_list(b);
 		
 		if( retCode != RC_OK) // optimization
 		{
@@ -823,6 +837,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 		{
 		// a jump (goto) occured out of this loop
 		return retCode;
+		}
 		}
 		}
 		//                retCode=RC_OK; // clear RC_BREAK/RC_CONTINUE retCode
@@ -868,7 +883,9 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 		s_guard.release();
 		for((*v)=s; (*v)->ForCondDown( e); (*v)->ForAdd(st))
 		{
-		retCode=block(bs);
+		if( bs != NULL)
+		{
+		retCode=statement_list(bs);
 		
 		if( retCode == RC_CONTINUE) continue;  
 		if( retCode == RC_BREAK) 
@@ -883,6 +900,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 		{
 		// a jump (goto) occured out of this loop
 		return retCode;
+		}
 		}
 		}
 		} 
@@ -891,7 +909,9 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 		s_guard.release();
 		for((*v)=s; (*v)->ForCondUp( e); (*v)->ForAdd(st))
 		{
-		retCode=block(bs);
+		if( bs != NULL)
+		{
+		retCode=statement_list(bs);
 		
 		if( retCode == RC_CONTINUE) continue;  
 		if( retCode == RC_BREAK) 
@@ -906,6 +926,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 		{
 		// a jump (goto) occured out of this loop
 		return retCode;
+		}
 		}
 		}
 		}
@@ -924,6 +945,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 }
 
  GDLInterpreter::RetCode  GDLInterpreter::repeat_statement(ProgNodeP _t) {
+	Tracer traceInOut(this,"repeat_statement",antlr::RefAST(_t));
 	 GDLInterpreter::RetCode retCode;
 	ProgNodeP repeat_statement_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP r = ProgNodeP(antlr::nullAST);
@@ -936,12 +958,18 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 	SizeT nJump = callStack.back()->NJump();
 	
 	// remember block and expr nodes
-	ProgNodeP bb =_t;
-	ProgNodeP e  = bb->GetNextSibling();
+	ProgNodeP e =_t;
+	ProgNodeP bb  = e->GetNextSibling();
+	
+	//                 ProgNodeP bb =_t;
+	//                 ProgNodeP e  = bb->GetNextSibling();
+	//                 bb = bb->GetFirstChild();
 	
 	auto_ptr<BaseGDL> eVal;
 	do {
-	retCode=block(bb);
+	if( bb != NULL)
+	{
+	retCode=statement_list(bb);
 	
 	if( retCode == RC_CONTINUE) continue;  
 	if( retCode == RC_BREAK) 
@@ -959,7 +987,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 	// a jump (goto) occured out of this loop
 	return retCode;
 	}
-	
+	}
 	eVal.reset( expr(e));
 	} while( eVal.get()->False());
 	
@@ -972,6 +1000,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 }
 
  GDLInterpreter::RetCode  GDLInterpreter::while_statement(ProgNodeP _t) {
+	Tracer traceInOut(this,"while_statement",antlr::RefAST(_t));
 	 GDLInterpreter::RetCode retCode;
 	ProgNodeP while_statement_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP w = ProgNodeP(antlr::nullAST);
@@ -1020,6 +1049,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 }
 
  GDLInterpreter::RetCode  GDLInterpreter::if_statement(ProgNodeP _t) {
+	Tracer traceInOut(this,"if_statement",antlr::RefAST(_t));
 	 GDLInterpreter::RetCode retCode;
 	ProgNodeP if_statement_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP i = ProgNodeP(antlr::nullAST);
@@ -1059,6 +1089,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 }
 
  GDLInterpreter::RetCode  GDLInterpreter::if_else_statement(ProgNodeP _t) {
+	Tracer traceInOut(this,"if_else_statement",antlr::RefAST(_t));
 	 GDLInterpreter::RetCode retCode;
 	ProgNodeP if_else_statement_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP i = ProgNodeP(antlr::nullAST);
@@ -1110,6 +1141,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 }
 
  GDLInterpreter::RetCode  GDLInterpreter::case_statement(ProgNodeP _t) {
+	Tracer traceInOut(this,"case_statement",antlr::RefAST(_t));
 	 GDLInterpreter::RetCode retCode;
 	ProgNodeP case_statement_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP c = ProgNodeP(antlr::nullAST);
@@ -1205,6 +1237,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 }
 
  GDLInterpreter::RetCode  GDLInterpreter::switch_statement(ProgNodeP _t) {
+	Tracer traceInOut(this,"switch_statement",antlr::RefAST(_t));
 	 GDLInterpreter::RetCode retCode;
 	ProgNodeP switch_statement_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP s = ProgNodeP(antlr::nullAST);
@@ -1302,6 +1335,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 }
 
  GDLInterpreter::RetCode  GDLInterpreter::block(ProgNodeP _t) {
+	Tracer traceInOut(this,"block",antlr::RefAST(_t));
 	 GDLInterpreter::RetCode retCode;
 	ProgNodeP block_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	
@@ -1363,6 +1397,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 }
 
  GDLInterpreter::RetCode  GDLInterpreter::jump_statement(ProgNodeP _t) {
+	Tracer traceInOut(this,"jump_statement",antlr::RefAST(_t));
 	 GDLInterpreter::RetCode retCode;
 	ProgNodeP jump_statement_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP g = ProgNodeP(antlr::nullAST);
@@ -1467,6 +1502,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 }
 
 BaseGDL*  GDLInterpreter::expr(ProgNodeP _t) {
+	Tracer traceInOut(this,"expr",antlr::RefAST(_t));
 	BaseGDL* res;
 	ProgNodeP expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	
@@ -1520,6 +1556,7 @@ BaseGDL*  GDLInterpreter::expr(ProgNodeP _t) {
 }
 
 BaseGDL**  GDLInterpreter::l_simple_var(ProgNodeP _t) {
+	Tracer traceInOut(this,"l_simple_var",antlr::RefAST(_t));
 	BaseGDL** res;
 	ProgNodeP l_simple_var_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP var = ProgNodeP(antlr::nullAST);
@@ -1558,6 +1595,7 @@ BaseGDL**  GDLInterpreter::l_simple_var(ProgNodeP _t) {
 }
 
 BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
+	Tracer traceInOut(this,"l_ret_expr",antlr::RefAST(_t));
 	BaseGDL** res;
 	ProgNodeP l_ret_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP varPtr = ProgNodeP(antlr::nullAST);
@@ -1868,6 +1906,7 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 void GDLInterpreter::parameter_def(ProgNodeP _t,
 	EnvT* actEnv
 ) {
+	Tracer traceInOut(this,"parameter_def",antlr::RefAST(_t));
 	ProgNodeP parameter_def_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP knameR = ProgNodeP(antlr::nullAST);
 	ProgNodeP knameE = ProgNodeP(antlr::nullAST);
@@ -2072,6 +2111,7 @@ void GDLInterpreter::parameter_def(ProgNodeP _t,
 }
 
 BaseGDL*  GDLInterpreter::indexable_expr(ProgNodeP _t) {
+	Tracer traceInOut(this,"indexable_expr",antlr::RefAST(_t));
 	BaseGDL* res;
 	ProgNodeP indexable_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	
@@ -2124,6 +2164,7 @@ BaseGDL*  GDLInterpreter::indexable_expr(ProgNodeP _t) {
 }
 
 BaseGDL*  GDLInterpreter::indexable_tmp_expr(ProgNodeP _t) {
+	Tracer traceInOut(this,"indexable_tmp_expr",antlr::RefAST(_t));
 	BaseGDL* res;
 	ProgNodeP indexable_tmp_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	
@@ -2209,6 +2250,7 @@ BaseGDL*  GDLInterpreter::indexable_tmp_expr(ProgNodeP _t) {
 }
 
 BaseGDL*  GDLInterpreter::check_expr(ProgNodeP _t) {
+	Tracer traceInOut(this,"check_expr",antlr::RefAST(_t));
 	BaseGDL* res;
 	ProgNodeP check_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	
@@ -2221,6 +2263,7 @@ BaseGDL*  GDLInterpreter::check_expr(ProgNodeP _t) {
 BaseGDL**  GDLInterpreter::l_expr(ProgNodeP _t,
 	BaseGDL* right
 ) {
+	Tracer traceInOut(this,"l_expr",antlr::RefAST(_t));
 	BaseGDL** res;
 	ProgNodeP l_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP dot = ProgNodeP(antlr::nullAST);
@@ -2600,6 +2643,7 @@ BaseGDL**  GDLInterpreter::l_expr(ProgNodeP _t,
 }
 
 BaseGDL*  GDLInterpreter::tmp_expr(ProgNodeP _t) {
+	Tracer traceInOut(this,"tmp_expr",antlr::RefAST(_t));
 	BaseGDL* res;
 	ProgNodeP tmp_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	
@@ -2717,6 +2761,7 @@ BaseGDL*  GDLInterpreter::tmp_expr(ProgNodeP _t) {
 }
 
  BaseGDL**  GDLInterpreter::l_function_call(ProgNodeP _t) {
+	Tracer traceInOut(this,"l_function_call",antlr::RefAST(_t));
 	 BaseGDL** res;
 	ProgNodeP l_function_call_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP fl = ProgNodeP(antlr::nullAST);
@@ -2874,6 +2919,7 @@ BaseGDL*  GDLInterpreter::tmp_expr(ProgNodeP _t) {
 }
 
 BaseGDL**  GDLInterpreter::l_deref(ProgNodeP _t) {
+	Tracer traceInOut(this,"l_deref",antlr::RefAST(_t));
 	BaseGDL** res;
 	ProgNodeP l_deref_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	
@@ -2918,6 +2964,7 @@ BaseGDL**  GDLInterpreter::l_deref(ProgNodeP _t) {
 BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 	int dec_inc
 ) {
+	Tracer traceInOut(this,"l_decinc_expr",antlr::RefAST(_t));
 	BaseGDL* res;
 	ProgNodeP l_decinc_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	
@@ -3205,6 +3252,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 }
 
 BaseGDL*  GDLInterpreter::r_expr(ProgNodeP _t) {
+	Tracer traceInOut(this,"r_expr",antlr::RefAST(_t));
 	BaseGDL* res;
 	ProgNodeP r_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP e = ProgNodeP(antlr::nullAST);
@@ -3292,6 +3340,7 @@ BaseGDL*  GDLInterpreter::r_expr(ProgNodeP _t) {
 }
 
 BaseGDL*  GDLInterpreter::constant_nocopy(ProgNodeP _t) {
+	Tracer traceInOut(this,"constant_nocopy",antlr::RefAST(_t));
 	BaseGDL* res;
 	ProgNodeP constant_nocopy_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP c = ProgNodeP(antlr::nullAST);
@@ -3309,6 +3358,7 @@ BaseGDL*  GDLInterpreter::constant_nocopy(ProgNodeP _t) {
 BaseGDL*  GDLInterpreter::l_decinc_indexable_expr(ProgNodeP _t,
 	int dec_inc
 ) {
+	Tracer traceInOut(this,"l_decinc_indexable_expr",antlr::RefAST(_t));
 	BaseGDL* res;
 	ProgNodeP l_decinc_indexable_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	
@@ -3368,6 +3418,7 @@ BaseGDL*  GDLInterpreter::l_decinc_indexable_expr(ProgNodeP _t,
 }
 
 BaseGDL**  GDLInterpreter::l_defined_simple_var(ProgNodeP _t) {
+	Tracer traceInOut(this,"l_defined_simple_var",antlr::RefAST(_t));
 	BaseGDL** res;
 	ProgNodeP l_defined_simple_var_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP var = ProgNodeP(antlr::nullAST);
@@ -3412,6 +3463,7 @@ BaseGDL**  GDLInterpreter::l_defined_simple_var(ProgNodeP _t) {
 }
 
 BaseGDL**  GDLInterpreter::l_sys_var(ProgNodeP _t) {
+	Tracer traceInOut(this,"l_sys_var",antlr::RefAST(_t));
 	BaseGDL** res;
 	ProgNodeP l_sys_var_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP sysVar = ProgNodeP(antlr::nullAST);
@@ -3446,6 +3498,7 @@ BaseGDL**  GDLInterpreter::l_sys_var(ProgNodeP _t) {
 BaseGDL*  GDLInterpreter::l_decinc_array_expr(ProgNodeP _t,
 	int dec_inc
 ) {
+	Tracer traceInOut(this,"l_decinc_array_expr",antlr::RefAST(_t));
 	BaseGDL* res;
 	ProgNodeP l_decinc_array_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	
@@ -3542,6 +3595,7 @@ BaseGDL*  GDLInterpreter::l_decinc_array_expr(ProgNodeP _t,
 }
 
 ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t) {
+	Tracer traceInOut(this,"arrayindex_list",antlr::RefAST(_t));
 	ArrayIndexListT* aL;
 	ProgNodeP arrayindex_list_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP ax = ProgNodeP(antlr::nullAST);
@@ -3651,6 +3705,7 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t) {
 BaseGDL*  GDLInterpreter::l_decinc_dot_expr(ProgNodeP _t,
 	int dec_inc
 ) {
+	Tracer traceInOut(this,"l_decinc_dot_expr",antlr::RefAST(_t));
 	BaseGDL* res;
 	ProgNodeP l_decinc_dot_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP dot = ProgNodeP(antlr::nullAST);
@@ -3713,6 +3768,7 @@ BaseGDL*  GDLInterpreter::l_decinc_dot_expr(ProgNodeP _t,
 void GDLInterpreter::l_dot_array_expr(ProgNodeP _t,
 	DotAccessDescT* aD
 ) {
+	Tracer traceInOut(this,"l_dot_array_expr",antlr::RefAST(_t));
 	ProgNodeP l_dot_array_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	ArrayIndexListT* aL;
@@ -3821,6 +3877,7 @@ void GDLInterpreter::l_dot_array_expr(ProgNodeP _t,
 void GDLInterpreter::tag_array_expr(ProgNodeP _t,
 	DotAccessDescT* aD
 ) {
+	Tracer traceInOut(this,"tag_array_expr",antlr::RefAST(_t));
 	ProgNodeP tag_array_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	ArrayIndexListT* aL;
@@ -3861,6 +3918,7 @@ void GDLInterpreter::tag_array_expr(ProgNodeP _t,
 }
 
 BaseGDL**  GDLInterpreter::l_indexable_expr(ProgNodeP _t) {
+	Tracer traceInOut(this,"l_indexable_expr",antlr::RefAST(_t));
 	BaseGDL** res;
 	ProgNodeP l_indexable_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	
@@ -3931,6 +3989,7 @@ BaseGDL**  GDLInterpreter::l_indexable_expr(ProgNodeP _t) {
 BaseGDL**  GDLInterpreter::l_array_expr(ProgNodeP _t,
 	BaseGDL* right
 ) {
+	Tracer traceInOut(this,"l_array_expr",antlr::RefAST(_t));
 	BaseGDL** res;
 	ProgNodeP l_array_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	
@@ -3973,6 +4032,7 @@ BaseGDL**  GDLInterpreter::l_array_expr(ProgNodeP _t,
 }
 
 BaseGDL*  GDLInterpreter::array_def(ProgNodeP _t) {
+	Tracer traceInOut(this,"array_def",antlr::RefAST(_t));
 	BaseGDL* res;
 	ProgNodeP array_def_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP a = ProgNodeP(antlr::nullAST);
@@ -4087,6 +4147,7 @@ BaseGDL*  GDLInterpreter::array_def(ProgNodeP _t) {
 }
 
  BaseGDL*  GDLInterpreter::struct_def(ProgNodeP _t) {
+	Tracer traceInOut(this,"struct_def",antlr::RefAST(_t));
 	 BaseGDL* res;
 	ProgNodeP struct_def_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP idRef = ProgNodeP(antlr::nullAST);
@@ -4136,6 +4197,7 @@ BaseGDL*  GDLInterpreter::array_def(ProgNodeP _t) {
 }
 
 BaseGDL*  GDLInterpreter::array_expr(ProgNodeP _t) {
+	Tracer traceInOut(this,"array_expr",antlr::RefAST(_t));
 	BaseGDL* res;
 	ProgNodeP array_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP ax = ProgNodeP(antlr::nullAST);
@@ -4314,6 +4376,7 @@ BaseGDL*  GDLInterpreter::array_expr(ProgNodeP _t) {
 void GDLInterpreter::tag_expr(ProgNodeP _t,
 	DotAccessDescT* aD
 ) {
+	Tracer traceInOut(this,"tag_expr",antlr::RefAST(_t));
 	ProgNodeP tag_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP i = ProgNodeP(antlr::nullAST);
 	
@@ -4368,6 +4431,7 @@ void GDLInterpreter::tag_expr(ProgNodeP _t,
 BaseGDL*  GDLInterpreter::r_dot_indexable_expr(ProgNodeP _t,
 	DotAccessDescT* aD
 ) {
+	Tracer traceInOut(this,"r_dot_indexable_expr",antlr::RefAST(_t));
 	BaseGDL* res;
 	ProgNodeP r_dot_indexable_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	
@@ -4414,6 +4478,7 @@ BaseGDL*  GDLInterpreter::r_dot_indexable_expr(ProgNodeP _t,
 }
 
 BaseGDL*  GDLInterpreter::sys_var_nocopy(ProgNodeP _t) {
+	Tracer traceInOut(this,"sys_var_nocopy",antlr::RefAST(_t));
 	BaseGDL* res;
 	ProgNodeP sys_var_nocopy_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP sysVar = ProgNodeP(antlr::nullAST);
@@ -4440,6 +4505,7 @@ BaseGDL*  GDLInterpreter::sys_var_nocopy(ProgNodeP _t) {
 void GDLInterpreter::r_dot_array_expr(ProgNodeP _t,
 	DotAccessDescT* aD
 ) {
+	Tracer traceInOut(this,"r_dot_array_expr",antlr::RefAST(_t));
 	ProgNodeP r_dot_array_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	ArrayIndexListT* aL;
@@ -4558,6 +4624,7 @@ void GDLInterpreter::r_dot_array_expr(ProgNodeP _t,
 }
 
 BaseGDL*  GDLInterpreter::dot_expr(ProgNodeP _t) {
+	Tracer traceInOut(this,"dot_expr",antlr::RefAST(_t));
 	BaseGDL* res;
 	ProgNodeP dot_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP dot = ProgNodeP(antlr::nullAST);
@@ -4597,6 +4664,7 @@ BaseGDL*  GDLInterpreter::dot_expr(ProgNodeP _t) {
 }
 
 BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
+	Tracer traceInOut(this,"assign_expr",antlr::RefAST(_t));
 	BaseGDL* res;
 	ProgNodeP assign_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	
@@ -4797,6 +4865,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 }
 
  BaseGDL*  GDLInterpreter::function_call(ProgNodeP _t) {
+	Tracer traceInOut(this,"function_call",antlr::RefAST(_t));
 	 BaseGDL* res;
 	ProgNodeP function_call_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP mp = ProgNodeP(antlr::nullAST);
@@ -4906,6 +4975,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 }
 
  BaseGDL*  GDLInterpreter::lib_function_call(ProgNodeP _t) {
+	Tracer traceInOut(this,"lib_function_call",antlr::RefAST(_t));
 	 BaseGDL* res;
 	ProgNodeP lib_function_call_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP fl = ProgNodeP(antlr::nullAST);
@@ -4940,6 +5010,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 }
 
 BaseGDL*  GDLInterpreter::constant(ProgNodeP _t) {
+	Tracer traceInOut(this,"constant",antlr::RefAST(_t));
 	BaseGDL* res;
 	ProgNodeP constant_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP c = ProgNodeP(antlr::nullAST);
@@ -4955,6 +5026,7 @@ BaseGDL*  GDLInterpreter::constant(ProgNodeP _t) {
 }
 
 BaseGDL*  GDLInterpreter::simple_var(ProgNodeP _t) {
+	Tracer traceInOut(this,"simple_var",antlr::RefAST(_t));
 	BaseGDL* res;
 	ProgNodeP simple_var_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP var = ProgNodeP(antlr::nullAST);
@@ -5003,6 +5075,7 @@ BaseGDL*  GDLInterpreter::simple_var(ProgNodeP _t) {
 }
 
 BaseGDL*  GDLInterpreter::sys_var(ProgNodeP _t) {
+	Tracer traceInOut(this,"sys_var",antlr::RefAST(_t));
 	BaseGDL* res;
 	ProgNodeP sys_var_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	
@@ -5019,6 +5092,7 @@ BaseGDL*  GDLInterpreter::sys_var(ProgNodeP _t) {
 }
 
  BaseGDL**  GDLInterpreter::ref_parameter(ProgNodeP _t) {
+	Tracer traceInOut(this,"ref_parameter",antlr::RefAST(_t));
 	 BaseGDL** ret;
 	ProgNodeP ref_parameter_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	
@@ -5048,6 +5122,7 @@ BaseGDL*  GDLInterpreter::sys_var(ProgNodeP _t) {
 }
 
  BaseGDL*  GDLInterpreter::named_struct_def(ProgNodeP _t) {
+	Tracer traceInOut(this,"named_struct_def",antlr::RefAST(_t));
 	 BaseGDL* res;
 	ProgNodeP named_struct_def_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP n = ProgNodeP(antlr::nullAST);
@@ -5203,6 +5278,7 @@ BaseGDL*  GDLInterpreter::sys_var(ProgNodeP _t) {
 }
 
  BaseGDL*  GDLInterpreter::unnamed_struct_def(ProgNodeP _t) {
+	Tracer traceInOut(this,"unnamed_struct_def",antlr::RefAST(_t));
 	 BaseGDL* res;
 	ProgNodeP unnamed_struct_def_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP si = ProgNodeP(antlr::nullAST);

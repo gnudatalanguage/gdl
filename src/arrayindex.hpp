@@ -130,24 +130,32 @@ public:
 
   BaseGDL* Index( BaseGDL* var, IxExprListT& ixL)
   {
-    BaseGDL* ix_ = ixL[0];
-    if( ix_->Rank() == 0) // type ONE
+    int ret = ixL[0]->Scalar2index(s);
+
+    if( ret == 0) // more than one element
+      return var->NewIx( ixL[0], strictArrSubs);
+
+    // scalar (-1,1) or one-element array (-2,2)
+    if( ret >= 1) // type ONE
       {
-	int ret = ix_->Scalar2index(s);
-	if( ret == -1) // index < 0
-	  {
-	    throw 
-	      GDLException( "Subscript range values of the"
-			    " form low:high must be >= 0, < size,"
-			    " with low <= high.");
-	  }
 	if( s >= var->Size())
-	  throw GDLException("Subscript out of range [i].");
+	  {
+	    if( strictArrSubs || ret == 1)
+	      throw GDLException("Subscript out of range [i].");
+	    return var->NewIx( var->Size()-1);
+	  }
 
 	return var->NewIx( s);
       }
-
-    return var->NewIx( ix_, strictArrSubs);
+    if( strictArrSubs || ret == -1) // scalar index < 0
+      {
+	throw 
+	  GDLException( "Subscript range values of the"
+			" form low:high must be >= 0, < size,"
+			" with low <= high.");
+      }
+    // one element array index < 0
+    return var->NewIx( 0);
   }
 
   void Init( BaseGDL* ix_) 

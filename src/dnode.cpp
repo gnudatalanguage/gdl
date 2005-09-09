@@ -2074,6 +2074,7 @@ BaseGDL* POWNCNode::Eval()
 	     res = g1->Pow( e2);
 	     if( res == g1.get())
 	       g1.release();
+	     return res;
 	   }
        }
      if( aTy == COMPLEX)
@@ -2095,6 +2096,7 @@ BaseGDL* POWNCNode::Eval()
 		 res = g1->Pow( e2);
 		 if( res == g1.get())
 		   g1.release();
+		 return res;
 	       }
 	   }
        }
@@ -2117,6 +2119,7 @@ BaseGDL* POWNCNode::Eval()
 		 res = g1->Pow( e2);
 		 if( res == g1.get())
 		   g1.release();
+		 return res;
 	       }
 	   }
        }

@@ -114,6 +114,9 @@ i=i+1
 endrep until (i eq 100)
 
 repeat begin 
+endrep until (i eq 100)
+
+repeat begin 
 endrep until 1
 
 if i eq 100 then print,'REPEAT: OK' else print,'***REPEAT: ERROR'

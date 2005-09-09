@@ -178,6 +178,7 @@ antlr::RefToken GDLLexer::nextToken()
 				break;
 			}
 			case 0x9 /* '\t' */ :
+			case 0xc /* '\14' */ :
 			case 0x20 /* ' ' */ :
 			{
 				mWHITESPACE(true);
@@ -1192,6 +1193,11 @@ void GDLLexer::mW(bool _createToken) {
 	case 0x9 /* '\t' */ :
 	{
 		match('\t');
+		break;
+	}
+	case 0xc /* '\14' */ :
+	{
+		match('\14');
 		break;
 	}
 	default:
@@ -3252,7 +3258,7 @@ void GDLLexer::mWHITESPACE(bool _createToken) {
 	{ // ( ... )+
 	int _cnt428=0;
 	for (;;) {
-		if ((LA(1) == 0x9 /* '\t' */  || LA(1) == 0x20 /* ' ' */ )) {
+		if ((LA(1) == 0x9 /* '\t' */  || LA(1) == 0xc /* '\14' */  || LA(1) == 0x20 /* ' ' */ )) {
 			mW(false);
 		}
 		else {
@@ -3288,6 +3294,7 @@ void GDLLexer::mSKIP_LINES(bool _createToken) {
 			break;
 		}
 		case 0x9 /* '\t' */ :
+		case 0xc /* '\14' */ :
 		case 0x20 /* ' ' */ :
 		{
 			mW(false);

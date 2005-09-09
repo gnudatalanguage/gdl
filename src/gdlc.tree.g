@@ -300,6 +300,14 @@ block
 	: #(BLOCK (statement_list)?)
 	;
 
+unblock!
+	: #(BLOCK 
+            ( s:statement_list { #unblock = #s;}
+            |
+            )
+        )
+	;
+
 statement_list // note: proper syntax is provided already by the parser
     : ( statement | label )+
     ;
@@ -324,13 +332,16 @@ statement
 	| CONTINUE // only in loops
 	;
 
-repeat_statement
+repeat_statement!
 {
     int labelStart = comp.NDefLabel();
 }
-	: #(r:REPEAT block expr)
+	: #(r:REPEAT b:unblock e:expr)
         {
             #r->SetLabelRange( labelStart, comp.NDefLabel());
+            #repeat_statement=#( r, e, b);
+            if( #b == static_cast<RefDNode>(antlr::nullAST))
+            Warning( "Empty REPEAT UNTIL loop found.");
         }
 	;
 
@@ -363,7 +374,7 @@ for_statement //!
                 #f->setText("for_step");
                 }
             )? 
-            block)
+            unblock)
         {
         #f->SetLabelRange( labelStart, comp.NDefLabel());
         }

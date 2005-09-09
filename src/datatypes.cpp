@@ -126,6 +126,33 @@ template<class Sp> Data_<Sp>::Data_(const dimension& dim_,
     }
 }
 
+template<class Sp>
+Data_<Sp>* Data_<Sp>::Log()              
+{ 
+  assert( 0);
+  return NULL;
+}
+template<>
+Data_<SpDFloat>* Data_<SpDFloat>::Log()              
+{ 
+  return new Data_(this->dim, log(dd));
+}
+template<>
+Data_<SpDDouble>* Data_<SpDDouble>::Log()              
+{ 
+  return new Data_(this->dim, log(dd));
+}
+template<>
+Data_<SpDComplex>* Data_<SpDComplex>::Log()              
+{ 
+  return new Data_(this->dim, log(dd));
+}
+template<>
+Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Log()              
+{ 
+  return new Data_(this->dim, log(dd));
+}
+
 // template<class Sp>
 // BaseGDL* Data_<Sp>::Abs() const
 // {
@@ -478,7 +505,8 @@ Data_<SpDComplexDbl>::Ty Data_<SpDComplexDbl>::max() const
 
 // Scalar2index
 // used by the interpreter
-// -1  < 1
+// -2  < 0 array
+// -1  < 0 scalar
 // 0   empty or array
 // 1   scalar
 // 2   one-element array
@@ -495,7 +523,11 @@ int Data_<Sp>::Scalar2index( SizeT& st) const
   // for maintainability. And as any modern C++ compiler will optimize
   // away the superflous (for unsigned data) statement anyway, it is 
   // better to keep the code this way here.
-  if( dd[0] < 0) return -1;
+  if( dd[0] < 0)
+    if( this->dim.Rank() != 0) 
+      return -2;
+    else
+      return -1;
 
   st= static_cast<SizeT>(dd[0]);
   if( this->dim.Rank() != 0) return 2;
@@ -2867,7 +2899,7 @@ for(; i < nElem; ++i)\
   if( (*src)[i] > upper)\
     (*res)[i] = upperVal;\
   else\
-    (*res)[i]= dd[ (*src)[i]];\ 
+    (*res)[i]= dd[ (*src)[i]];\
 return guard.release();
 
 #define NEWIX_SIGNEDINT \

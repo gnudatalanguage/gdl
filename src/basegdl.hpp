@@ -228,6 +228,8 @@ public:
   // for STRUCT_ASSIGN
   virtual void Assign( BaseGDL* src, SizeT nEl);
 
+  virtual BaseGDL* Log();              
+
   // used in r_expr
   virtual BaseGDL* UMinus();              
   virtual BaseGDL* NotOp();               

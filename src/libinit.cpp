@@ -248,9 +248,10 @@ void LibInit()
 			  "VAX_FLOAT","WIDTH","XDR", "BLOCK",
 			  "NOAUTOMODE","BINARY",
 			  KLISTEND};
-  new DLibPro(lib::openr,string("OPENR"),3,openKey);
-  new DLibPro(lib::openw,string("OPENW"),3,openKey);
-  new DLibPro(lib::openu,string("OPENU"),3,openKey);
+  const string openWarnKey[]={"INITIALSIZE","EXTENDSIZE",KLISTEND}; // VAX only
+  new DLibPro(lib::openr,string("OPENR"),3,openKey,openWarnKey);
+  new DLibPro(lib::openw,string("OPENW"),3,openKey,openWarnKey);
+  new DLibPro(lib::openu,string("OPENU"),3,openKey,openWarnKey);
   new DLibPro(lib::get_lun,string("GET_LUN"),1);
 
   const string closeKey[]={"EXIT_STATUS","FORCE","FILE","ALL",KLISTEND};
