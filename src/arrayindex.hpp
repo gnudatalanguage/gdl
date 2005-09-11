@@ -1178,6 +1178,13 @@ public:
   
   SizeT NParam() { return nParam;}
 
+  ArrayIndexT* StealIxList0() 
+  {
+    ArrayIndexT* res = ixList[0];
+    ixList[0] = NULL;
+    return res;
+  }
+
   ~ArrayIndexListT()
   {
     delete allIx;
@@ -1590,7 +1597,7 @@ public:
     return allIx;
   }
 
-  // returns one sim long ix in case of one element array index
+  // returns one dim long ix in case of one element array index
   // used by AssignAt functions
   SizeT LongIx()
   {
@@ -1678,6 +1685,8 @@ public:
     SetVariable( var);
     return var->Index( this);
   }
+
+  SizeT NDim() { return ixList.size();}
 };
 
 class ArrayIndexListGuard

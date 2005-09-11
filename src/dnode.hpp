@@ -272,6 +272,7 @@ private:
   DVar*      var;          // ptr to variable (for system variables and common blocks)
 
   ArrayIndexListT* arrIxList; // ptr to array index list
+//  ArrayIndexT*     arrIx;     // ptr to array index (1-dim)
 
   union {
     int        initInt;    // for c-i not actually used

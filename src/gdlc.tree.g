@@ -64,18 +64,31 @@ options {
   private:
     DCompiler       comp; // each tree parser has its own compiler
 
+    IDList          loopVarStack;
+
 // Replaces ASSIGN with ASSIGN_REPLACE if appropiate
+  bool LoopVar( RefDNode& lN)
+  {
+      int lT = lN->getType();
+      if( lT == VAR || lT == VARPTR)
+          return (FindInIDList( loopVarStack, lN->getText()) != -1)
+      return false;
+  }
+
   void AssignReplace( RefDNode& lN, RefDNode& aN)
-{
-        int lT = lN->getType();
-        if( lT == FCALL || lT == MFCALL || lT == MFCALL_PARENT ||
-            lT == FCALL_LIB || lT == MFCALL_LIB || lT == MFCALL_PARENT_LIB ||
-            lT == DEREF || lT == VAR || lT == VARPTR)
-{
-            aN->setType( ASSIGN_REPLACE);
-            aN->setText( "r=");
-}
-}
+  {
+      if( LoopVar( lN))
+          Warning( "Assignment to FOR loop variable detected.");
+   
+      int lT = lN->getType();
+      if( lT == FCALL || lT == MFCALL || lT == MFCALL_PARENT ||
+          lT == FCALL_LIB || lT == MFCALL_LIB || lT == MFCALL_PARENT_LIB ||
+          lT == DEREF || lT == VAR || lT == VARPTR)
+          {
+              aN->setType( ASSIGN_REPLACE);
+              aN->setText( "r=");
+          }
+  }
 
   RefDNode RemoveNextSibling( RefDNode l)
   {
@@ -360,12 +373,15 @@ while_statement!
 
 for_statement //!
 {
+    StackSizeGuard guard( loopVarStack);
     int labelStart = comp.NDefLabel();
 }
 	: #(f:FOR i:IDENTIFIER 
         	{ 
                 #i->setType(VAR);
                 comp.Var(#i);	
+
+                loopVarStack.push_back(#i->getText());
             }
             expr expr 
             (expr
@@ -711,6 +727,13 @@ std::auto_ptr< ArrayIndexListT> ixList( new ArrayIndexListT()); // compile_opt
         {
             #arrayindex_list = #([ARRAYIX,"[...]"], arrayindex_list);
             ixList->Freeze(); // do all initial one-time settings
+//             if( ixList->NDim() == 1)
+//                 #arrayindex_list = #([ARRAYIX1,"[ix]"], arrayindex_list);
+//             else
+//                 {
+//                     #arrayindex_list = #([ARRAYIX,"[...]"], arrayindex_list);
+//                     ixList->Freeze(); // do all initial one-time settings
+//                 }
             #arrayindex_list->SetArrayIndexList( ixList.release());
         }
 	;	

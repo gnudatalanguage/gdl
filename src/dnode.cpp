@@ -2162,7 +2162,7 @@ BaseGDL* POWNCNode::Eval()
 	 g1.release();
 	 res = e1->Pow(e2);
        }
-     if( g2.get() != NULL) 
+     else if( g2.get() != NULL) 
        {
 	 g2.release();
 	 res = e2->PowInv(e1);
