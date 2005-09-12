@@ -738,8 +738,31 @@ namespace lib {
 				     (p0->Convert2( Float::t,BaseGDL::COPY)));
 	    auto_ptr<Float> p1Float( static_cast<Float*>
 				     (p1->Convert2( Float::t,BaseGDL::COPY)));
-
-	    if( p0Float->N_Elements() >= p1Float->N_Elements())
+	    if( p0Float->Rank() == 0)
+	      {
+		ComplexGDL* res = new ComplexGDL( p1Float->Dim(), 
+						  BaseGDL::NOZERO);
+		
+		SizeT nE=p1Float->N_Elements();
+		for( SizeT i=0; i<nE; i++)
+		  {
+		    (*res)[i]=Complex( (*p0Float)[0], (*p1Float)[i]);
+		  }
+		return res;
+	      }
+	    else if( p1Float->Rank() == 0)
+	      {
+		ComplexGDL* res = new ComplexGDL( p0Float->Dim(), 
+						  BaseGDL::NOZERO);
+		
+		SizeT nE=p0Float->N_Elements();
+		for( SizeT i=0; i<nE; i++)
+		  {
+		    (*res)[i]=Complex( (*p0Float)[i], (*p1Float)[0]);
+		  }
+		return res;
+	      }
+	    else if( p0Float->N_Elements() >= p1Float->N_Elements())
 	      {
 		ComplexGDL* res = new ComplexGDL( p1Float->Dim(), 
 						  BaseGDL::NOZERO);

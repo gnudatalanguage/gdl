@@ -138,7 +138,7 @@
 	  Improved raise to power (^ operator) for integer types.
 
 0.8.11:   Added CONTOUR procedure.
-          Added RADON, STRCMP functions.
+          Added RADON, LAGUERRE, STRCMP functions.
  	  Added STRUCTURES keyword to HELP.
 	  Added NAN keyword to TOTAL.
           Faster array indexing.

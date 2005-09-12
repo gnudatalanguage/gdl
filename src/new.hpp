@@ -14,3 +14,7 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+
+namespace lib {
+  BaseGDL* laguerre(EnvT* e);
+} // namespace

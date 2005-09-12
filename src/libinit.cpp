@@ -636,6 +636,9 @@ void LibInit()
   new DLibPro(lib::xyouts, string("XYOUTS"), 3, xyoutsKey);
 
   new DLibPro(lib::erase,string("ERASE"),0);
+  
+  const string laguerreKey[]={"DOUBLE","COEFFICIENTS",KLISTEND};
+  new DLibFun(lib::laguerre,string("LAGUERRE"),3,laguerreKey);
 
   // sort lists
   sort( libFunList.begin(), libFunList.end(), CompLibFunName());
