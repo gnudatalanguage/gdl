@@ -388,9 +388,8 @@ Data_<Sp>* Data_<Sp>::New( const dimension& dim_, BaseGDL::InitType noZero)
   if( noZero == BaseGDL::INIT)
     {
       Data_* res =  new Data_(dim_, BaseGDL::NOZERO);
-      res->dd = Sp::zero;
-//       SizeT nEl = res->dd.size();
-//       for( SizeT i=0; i<nEl; ++i) (*res)[ i] = dd[ 0]; // set all to scalar
+      SizeT nEl = res->dd.size();
+      for( SizeT i=0; i<nEl; ++i) (*res)[ i] = dd[ 0]; // set all to scalar
       return res;
     }
   return new Data_(dim_);
