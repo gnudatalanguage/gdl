@@ -1519,7 +1519,7 @@ Data_<Sp>* Data_<Sp>::AddS( BaseGDL* r)
 template<class Sp>
 Data_<Sp>* Data_<Sp>::AddInvS( BaseGDL* r)
 {
-  return Add( r);
+  return AddS( r);
 }
 template<>
 Data_<SpDString>* Data_<SpDString>::AddInvS( BaseGDL* r)

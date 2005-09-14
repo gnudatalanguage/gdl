@@ -3970,19 +3970,21 @@ BaseGDL**  GDLInterpreter::l_array_expr(ProgNodeP _t,
 	throw GDLException( _t, 
 	"Indexed expression not allowed in this context.");
 	
-	aL->SetVariable( *res);
+	aL->AssignAt( *res, right);
 	
-	if( (*res)->EqType( right))
-	{
-	(*res)->AssignAt( right, aL); // assigns inplace
-	}
-	else
-	{
-	BaseGDL* rConv = right->Convert2( (*res)->Type(), BaseGDL::COPY);
-	auto_ptr<BaseGDL> conv_guard( rConv);
+	//             aL->SetVariable( *res);
 	
-	(*res)->AssignAt( rConv, aL); // assigns inplace
-	}
+	//             if( (*res)->EqType( right))
+	//             {
+	//                 (*res)->AssignAt( right, aL); // assigns inplace
+	//             }
+	//             else
+	//             {
+	//                 BaseGDL* rConv = right->Convert2( (*res)->Type(), BaseGDL::COPY);
+	//                 auto_ptr<BaseGDL> conv_guard( rConv);
+	
+	//                 (*res)->AssignAt( rConv, aL); // assigns inplace
+	//             }
 	
 	_retTree = _t;
 	return res;

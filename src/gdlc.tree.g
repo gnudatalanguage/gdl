@@ -71,14 +71,14 @@ options {
   {
       int lT = lN->getType();
       if( lT == VAR || lT == VARPTR)
-          return (FindInIDList( loopVarStack, lN->getText()) != -1)
+          return (FindInIDList( loopVarStack, lN->getText()) != -1);
       return false;
   }
 
   void AssignReplace( RefDNode& lN, RefDNode& aN)
   {
       if( LoopVar( lN))
-          Warning( "Assignment to FOR loop variable detected.");
+          Warning( "Warning: Assignment to FOR loop variable detected.");
    
       int lT = lN->getType();
       if( lT == FCALL || lT == MFCALL || lT == MFCALL_PARENT ||
@@ -354,7 +354,7 @@ repeat_statement!
             #r->SetLabelRange( labelStart, comp.NDefLabel());
             #repeat_statement=#( r, e, b);
             if( #b == static_cast<RefDNode>(antlr::nullAST))
-            Warning( "Empty REPEAT UNTIL loop found.");
+            Warning( "Warning: Empty REPEAT UNTIL loop detected.");
         }
 	;
 
@@ -373,7 +373,7 @@ while_statement!
 
 for_statement //!
 {
-    StackSizeGuard guard( loopVarStack);
+    StackSizeGuard<IDList> guard( loopVarStack);
     int labelStart = comp.NDefLabel();
 }
 	: #(f:FOR i:IDENTIFIER 

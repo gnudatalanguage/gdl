@@ -2623,16 +2623,16 @@ namespace lib {
 
   //CORE PLOT FUNCTION -> Draws a line along xVal, yVal
   template <typename T> bool draw_polyline(EnvT *e,  GDLGStream *a, T * xVal, T* yVal, 
-					   bool xLog, bool yLog, DDouble yStart, DDouble yEnd, DLong psym=0
-					   )
+					   bool xLog, bool yLog, 
+					   DDouble yStart, DDouble yEnd, DLong psym)
   {
     bool line=false;
     bool valid=true;
-    DLong _psym=0;
+    DLong psym_=0;
 
-    if(psym <0 ) {line=true; _psym=-psym;}
-    else if(psym == 0 ) {line=true;_psym=psym;}
-    else {_psym=psym;}
+    if(psym <0 ) {line=true; psym_=-psym;}
+    else if(psym == 0 ) {line=true;psym_=psym;}
+    else {psym_=psym;}
     DLong minEl = (xVal->N_Elements() < yVal->N_Elements())? xVal->N_Elements() : yVal->N_Elements();
     for( int i=0; i<minEl; ++i)
       {
@@ -2660,7 +2660,7 @@ namespace lib {
 		      }
 		  }
 	      }
-	    else if( _psym == 10)
+	    else if( psym_ == 10)
 	      {	// histogram
 		PLFLT y1 = static_cast<PLFLT>( (*yVal)[i-1]);
 		
@@ -2683,13 +2683,13 @@ namespace lib {
 		  }
 	      }
 	  }
-	if( _psym == 0 || _psym == 10) continue;
+	if( psym_ == 0 || psym_ == 10) continue;
 	
 	// translation plplot symbols - GDL symbols
 	// for now usersym is a circle
 	const PLINT codeArr[]={ 0,2,3,1,11,7,6,5,4};
 	
-	a->poin(1,&x,&y,codeArr[_psym]);
+	a->poin(1,&x,&y,codeArr[psym_]);
       }
     
     return (valid);

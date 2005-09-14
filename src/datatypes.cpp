@@ -345,7 +345,8 @@ typename Data_<Sp>::Ty Data_<Sp>::Sum() const
 // { return dd[d1];}
 
 template<class Sp> 
-typename Data_<Sp>::Data_& Data_<Sp>::operator=(const Data_& right)
+//typename Data_<Sp>::Data_& Data_<Sp>::operator=(const Data_& right)
+Data_<Sp>& Data_<Sp>::operator=(const Data_& right)
 {
   if( &right == this) return *this; // self assignment
   this->dim = right.dim;

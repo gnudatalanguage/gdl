@@ -17,18 +17,31 @@ class CUSTOM_API GDLTreeParser : public antlr::TreeParser, public GDLTreeParserT
   private:
     DCompiler       comp; // each tree parser has its own compiler
 
+    IDList          loopVarStack;
+
 // Replaces ASSIGN with ASSIGN_REPLACE if appropiate
+  bool LoopVar( RefDNode& lN)
+  {
+      int lT = lN->getType();
+      if( lT == VAR || lT == VARPTR)
+          return (FindInIDList( loopVarStack, lN->getText()) != -1);
+      return false;
+  }
+
   void AssignReplace( RefDNode& lN, RefDNode& aN)
-{
-        int lT = lN->getType();
-        if( lT == FCALL || lT == MFCALL || lT == MFCALL_PARENT ||
-            lT == FCALL_LIB || lT == MFCALL_LIB || lT == MFCALL_PARENT_LIB ||
-            lT == DEREF || lT == VAR || lT == VARPTR)
-{
-            aN->setType( ASSIGN_REPLACE);
-            aN->setText( "r=");
-}
-}
+  {
+      if( LoopVar( lN))
+          Warning( "Warning: Assignment to FOR loop variable detected.");
+   
+      int lT = lN->getType();
+      if( lT == FCALL || lT == MFCALL || lT == MFCALL_PARENT ||
+          lT == FCALL_LIB || lT == MFCALL_LIB || lT == MFCALL_PARENT_LIB ||
+          lT == DEREF || lT == VAR || lT == VARPTR)
+          {
+              aN->setType( ASSIGN_REPLACE);
+              aN->setText( "r=");
+          }
+  }
 
   RefDNode RemoveNextSibling( RefDNode l)
   {

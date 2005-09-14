@@ -2891,6 +2891,7 @@ void GDLTreeParser::for_statement(RefDNode _t) {
 	RefDNode i = RefDNode(antlr::nullAST);
 	RefDNode i_AST = RefDNode(antlr::nullAST);
 	
+	StackSizeGuard<IDList> guard( loopVarStack);
 	int labelStart = comp.NDefLabel();
 	
 	
@@ -2913,6 +2914,8 @@ void GDLTreeParser::for_statement(RefDNode _t) {
 	
 	i_AST->setType(VAR);
 	comp.Var(i_AST);	
+	
+	loopVarStack.push_back(i_AST->getText());
 	
 	expr(_t);
 	_t = _retTree;
@@ -3060,6 +3063,8 @@ void GDLTreeParser::repeat_statement(RefDNode _t) {
 	
 	r_AST->SetLabelRange( labelStart, comp.NDefLabel());
 	repeat_statement_AST=RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(r_AST))->add(antlr::RefAST(e_AST))->add(antlr::RefAST(b_AST))));
+	if( b_AST == static_cast<RefDNode>(antlr::nullAST))
+	Warning( "Warning: Empty REPEAT UNTIL loop detected.");
 	
 	currentAST.root = repeat_statement_AST;
 	if ( repeat_statement_AST!=RefDNode(antlr::nullAST) &&
@@ -4628,6 +4633,13 @@ void GDLTreeParser::arrayindex_list(RefDNode _t) {
 	
 	arrayindex_list_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(ARRAYIX,"[...]")))->add(antlr::RefAST(arrayindex_list_AST))));
 	ixList->Freeze(); // do all initial one-time settings
+	//             if( ixList->NDim() == 1)
+	//                 #arrayindex_list = #([ARRAYIX1,"[ix]"], arrayindex_list);
+	//             else
+	//                 {
+	//                     #arrayindex_list = #([ARRAYIX,"[...]"], arrayindex_list);
+	//                     ixList->Freeze(); // do all initial one-time settings
+	//                 }
 	arrayindex_list_AST->SetArrayIndexList( ixList.release());
 	
 	currentAST.root = arrayindex_list_AST;
