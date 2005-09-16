@@ -31,7 +31,7 @@
 //#define GDL_DEBUG
 #undef GDL_DEBUG
 
-class GDLInterpreter;
+class DInterpreter;
 
 namespace lib {
   BaseGDL* obj_new( EnvT* e);
@@ -42,7 +42,8 @@ class EnvT
 {
   // Please use non library API (see below) function with caution
   // (most of them can be ignored by library function authors)
-  GDLInterpreter*   interpreter;
+  static DInterpreter* interpreter;
+  //  GDLInterpreter*   interpreter;
   DataListT         env;
   DSub*             pro;
   SizeT             parIx;   // ix of next parameter to put
@@ -67,14 +68,15 @@ class EnvT
   
 public:
   // UD pro/fun
-  EnvT( GDLInterpreter*, ProgNodeP idN, DSub* pro_, bool lF = false);
+  EnvT( ProgNodeP idN, DSub* pro_, bool lF = false);
+
   // member procedure
-  EnvT( GDLInterpreter*, ProgNodeP idN, BaseGDL* self, 
+  EnvT( ProgNodeP idN, BaseGDL* self, 
 	const std::string& parent="");
   // member function
-  EnvT( GDLInterpreter*, BaseGDL* self, 
-	ProgNodeP idN, 
+  EnvT( BaseGDL* self, ProgNodeP idN, 
 	const std::string& parent="", bool lF = false);
+
   // for obj_new and obj_destroy
   EnvT( EnvT* pEnv, DSub* newPro, BaseGDL** self); 
 
@@ -110,7 +112,7 @@ public:
   void FreeHeap( DPtrGDL* p);
   DStructGDL* GetObjHeap( DObj ID);
   BaseGDL* GetHeap( DPtr ID);
-  GDLInterpreter* Interpreter() const { return interpreter;}
+  DInterpreter* Interpreter() const { return interpreter;}
   bool IsObject() const { return obj;}
   DSub* GetPro() const { return pro;}
   void SetIOError( int targetIx) 
@@ -177,7 +179,7 @@ public:
   // get name of 'p'
   const std::string GetString( BaseGDL*& p);
 
-
+  friend class DInterpreter;
 
   // *************************
   // API for library functions
@@ -321,6 +323,15 @@ public:
     return ( env.Env( ix) != NULL);
   }
   bool LocalPar( SizeT ix) { return LocalKW( ix + pro->key.size());}
+  bool StealLocalPar( SizeT ix) 
+  { 
+    if( LocalKW( ix + pro->key.size()))
+      {
+	env.Clear( ix + pro->key.size());
+	return true;
+      }
+    return false;
+  }
   bool GlobalPar( SizeT ix) { return GlobalKW( ix + pro->key.size());}
 
   // next two to set keywords/paramters

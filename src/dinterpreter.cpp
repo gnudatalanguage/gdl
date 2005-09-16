@@ -70,11 +70,12 @@ DInterpreter::DInterpreter(): GDLInterpreter()
   
     // setup main level environment
   DPro* mainPro=new DPro();        // $MAIN$  NOT inserted into proList
-  EnvT* mainEnv=new EnvT(this, NULL, mainPro);
+  EnvT* mainEnv=new EnvT(NULL, mainPro);
   callStack.push_back(mainEnv);   // push main environment (necessary)
     
   assert( ProgNode::interpreter == NULL);
   ProgNode::interpreter = this; // interface to expr( ProgNodeP)
+  EnvT::interpreter = this; 
 }
 
 // used in the statement function.
@@ -184,7 +185,7 @@ DStructDesc* GDLInterpreter::GetStruct(const string& name, ProgNodeP cN)
   StackGuard<EnvStackT> guard(callStack);
 
   // interpret it
-  EnvT* newEnv=new EnvT(this, cN, proList[proIx]);
+  EnvT* newEnv=new EnvT( cN, proList[proIx]);
 
   // push id.pro onto call stack
   callStack.push_back(newEnv);

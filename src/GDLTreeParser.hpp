@@ -14,35 +14,40 @@
 class CUSTOM_API GDLTreeParser : public antlr::TreeParser, public GDLTreeParserTokenTypes
 {
 
-  private:
+    private:
     DCompiler       comp; // each tree parser has its own compiler
-
+    
     IDList          loopVarStack;
-
-// Replaces ASSIGN with ASSIGN_REPLACE if appropiate
-  bool LoopVar( RefDNode& lN)
-  {
-      int lT = lN->getType();
-      if( lT == VAR || lT == VARPTR)
-          return (FindInIDList( loopVarStack, lN->getText()) != -1);
-      return false;
-  }
-
-  void AssignReplace( RefDNode& lN, RefDNode& aN)
-  {
-      if( LoopVar( lN))
-          Warning( "Warning: Assignment to FOR loop variable detected.");
-   
-      int lT = lN->getType();
-      if( lT == FCALL || lT == MFCALL || lT == MFCALL_PARENT ||
-          lT == FCALL_LIB || lT == MFCALL_LIB || lT == MFCALL_PARENT_LIB ||
-          lT == DEREF || lT == VAR || lT == VARPTR)
-          {
-              aN->setType( ASSIGN_REPLACE);
-              aN->setText( "r=");
-          }
-  }
-
+    
+    // Replaces ASSIGN with ASSIGN_REPLACE if appropiate
+    bool LoopVar( RefDNode& lN)
+    {
+        int lT = lN->getType();
+        if( lT == VAR || lT == VARPTR)
+        return (FindInIDList( loopVarStack, lN->getText()) != -1);
+        return false;
+    }
+    
+    void AssignReplace( RefDNode& lN, RefDNode& aN)
+    {
+        if( LoopVar( lN))
+        Warning( "Warning: Assignment to FOR loop variable detected.");
+        
+        int lT = lN->getType();
+        if( lT == FCALL || lT == MFCALL || lT == MFCALL_PARENT ||
+            lT == FCALL_LIB || 
+            lT == FCALL_LIB_RETNEW || 
+            lT == MFCALL_LIB || 
+            lT == MFCALL_LIB_RETNEW || 
+            lT == MFCALL_PARENT_LIB ||
+            lT == MFCALL_PARENT_LIB_RETNEW ||
+            lT == DEREF || lT == VAR || lT == VARPTR)
+        {
+            aN->setType( ASSIGN_REPLACE);
+            aN->setText( "r=");
+        }
+    }
+    
   RefDNode RemoveNextSibling( RefDNode l)
   {
     RefDNode newNode = RefDNode(astFactory->dupTree( antlr::RefAST(l)));
@@ -149,10 +154,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 200;
+	static const int NUM_TOKENS = 203;
 #else
 	enum {
-		NUM_TOKENS = 200
+		NUM_TOKENS = 203
 	};
 #endif
 	

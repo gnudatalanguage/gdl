@@ -193,6 +193,7 @@ public:
   void Assign( BaseGDL* src, SizeT nEl);
 
   Data_*   Log();
+  void     LogThis();
 
   BaseGDL* UMinus(); // UMinus for SpDString returns float
   Data_*   NotOp();

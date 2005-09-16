@@ -153,6 +153,32 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Log()
   return new Data_(this->dim, log(dd));
 }
 
+template<class Sp>
+void Data_<Sp>::LogThis()              
+{ 
+  assert( 0);
+}
+template<>
+void Data_<SpDFloat>::LogThis()              
+{ 
+  dd = log(dd);
+}
+template<>
+void Data_<SpDDouble>::LogThis()              
+{ 
+  dd = log(dd);
+}
+template<>
+void Data_<SpDComplex>::LogThis()              
+{ 
+  dd = log(dd);
+}
+template<>
+void Data_<SpDComplexDbl>::LogThis()              
+{ 
+  dd = log(dd);
+}
+
 // template<class Sp>
 // BaseGDL* Data_<Sp>::Abs() const
 // {

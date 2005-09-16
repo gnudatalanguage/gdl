@@ -80,6 +80,7 @@ tokens {
     FOR_STEP; // for with step
 	FCALL;
 	FCALL_LIB; // library function call
+	FCALL_LIB_RETNEW; // library function call always return newly allocated data
     IF_ELSE;
 	KEYDECL;
 	KEYDEF;
@@ -91,8 +92,10 @@ tokens {
 	MPCALL_PARENT; // explicit call to parent 
 	MFCALL;
 	MFCALL_LIB;
+	MFCALL_LIB_RETNEW;
 	MFCALL_PARENT; // explicit call to parent
 	MFCALL_PARENT_LIB;
+	MFCALL_PARENT_LIB_RETNEW;
   	NOP;     // no operation
 	NSTRUC;     // named struct
 	NSTRUC_REF; // named struct reference

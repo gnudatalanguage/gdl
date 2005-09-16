@@ -85,7 +85,7 @@ void LibInit()
   new DLibFun(lib::bytscl,string("BYTSCL"),1,bytsclKey);
 
   const string n_tagsKey[]={"LENGTH",KLISTEND};
-  new DLibFun(lib::n_tags,string("N_TAGS"),1,n_tagsKey);
+  new DLibFunRetNew(lib::n_tags,string("N_TAGS"),1,n_tagsKey);
   
   const string byteorderKey[]={"SSWAP","LSWAP","L64SWAP",
 			       "SWAP_IF_BIG_ENDIAN",
@@ -95,35 +95,35 @@ void LibInit()
   new DLibPro(lib::byteorder,string("BYTEORDER"),-1,byteorderKey);
 
   const string obj_classKey[]={"COUNT","SUPERCLASS",KLISTEND};
-  new DLibFun(lib::obj_class,string("OBJ_CLASS"),1,obj_classKey);
+  new DLibFunRetNew(lib::obj_class,string("OBJ_CLASS"),1,obj_classKey);
 
-  new DLibFun(lib::obj_isa,string("OBJ_ISA"),2);
+  new DLibFunRetNew(lib::obj_isa,string("OBJ_ISA"),2);
 
   const string rebinKey[]={"SAMPLE",KLISTEND};
-  new DLibFun(lib::rebin_fun,string("REBIN"),9,rebinKey);
+  new DLibFunRetNew(lib::rebin_fun,string("REBIN"),9,rebinKey);
 
   const string convolKey[]={"CENTER","EDGE_TRUNCATE","EDGE_WRAP",KLISTEND};
-  new DLibFun(lib::convol,string("CONVOL"),3,convolKey);
+  new DLibFunRetNew(lib::convol,string("CONVOL"),3,convolKey);
 
   const string file_searchKey[]={"COUNT","EXPAND_ENVIRONMENT","EXPAND_TILDE",
 				 "FOLD_CASE","ISSUE_ACCESS_ERROR",
 				 "MARK_DIRECTORY","NOSORT","QUOTE",
 				 "MATCH_INITIAL_DOT",
 				 "MATCH_ALL_INITIAL_DOT",KLISTEND};
-  new DLibFun(lib::file_search,string("FILE_SEARCH"),2,file_searchKey);
+  new DLibFunRetNew(lib::file_search,string("FILE_SEARCH"),2,file_searchKey);
 
   const string expand_pathKey[]={"ARRAY","ALL_DIRS","COUNT",KLISTEND};
-  new DLibFun(lib::expand_path,string("EXPAND_PATH"),1,expand_pathKey);
+  new DLibFunRetNew(lib::expand_path,string("EXPAND_PATH"),1,expand_pathKey);
   
   const string strjoinKey[]={"SINGLE",KLISTEND};
-  new DLibFun(lib::strjoin,string("STRJOIN"),2,strjoinKey);
+  new DLibFunRetNew(lib::strjoin,string("STRJOIN"),2,strjoinKey);
 
   const string strcmpKey[]={"FOLD_CASE",KLISTEND};
-  new DLibFun(lib::strcmp_fun,string("STRCMP"),3,strcmpKey);
+  new DLibFunRetNew(lib::strcmp_fun,string("STRCMP"),3,strcmpKey);
 
-  new DLibFun(lib::eof_fun,string("EOF"),1);
+  new DLibFunRetNew(lib::eof_fun,string("EOF"),1);
 
-  new DLibFun(lib::arg_present,string("ARG_PRESENT"),1);
+  new DLibFunRetNew(lib::arg_present,string("ARG_PRESENT"),1);
 
   const string messageKey[]={"CONTINUE","INFORMATIONAL","IOERROR",
 			     "NONAME","NOPREFIX","NOPRINT",
@@ -138,14 +138,14 @@ void LibInit()
 			       "GET_MODE",
 			       "BLOCK_SPECIAL","CHARACTER_SPECIAL",
 			       "NAMED_PIPE","SOCKET","SYMLINK",KLISTEND};
-  new DLibFun(lib::file_test,string("FILE_TEST"),1,file_testKey);
+  new DLibFunRetNew(lib::file_test,string("FILE_TEST"),1,file_testKey);
 
-  new DLibFun(lib::shift_fun,string("SHIFT"),9);
+  new DLibFunRetNew(lib::shift_fun,string("SHIFT"),9);
 
   const string sortKey[]={"L64",KLISTEND};
-  new DLibFun(lib::sort_fun,string("SORT"),1,sortKey);
+  new DLibFunRetNew(lib::sort_fun,string("SORT"),1,sortKey);
 
-  new DLibFun(lib::transpose,string("TRANSPOSE"),2);
+  new DLibFunRetNew(lib::transpose,string("TRANSPOSE"),2);
 
   new DLibPro(lib::retall,string("RETALL"));
 
@@ -186,32 +186,32 @@ void LibInit()
   new DLibPro(lib::ptr_free,string("PTR_FREE"),-1);
 
   const string arrKey[]={"NOZERO",KLISTEND};
-  new DLibFun(lib::bytarr,string("BYTARR"),MAXRANK,arrKey);
-  new DLibFun(lib::intarr,string("INTARR"),MAXRANK,arrKey);
-  new DLibFun(lib::uintarr,string("UINTARR"),MAXRANK,arrKey);
-  new DLibFun(lib::lonarr,string("LONARR"),MAXRANK,arrKey);
-  new DLibFun(lib::ulonarr,string("ULONARR"),MAXRANK,arrKey);
-  new DLibFun(lib::lon64arr,string("LON64ARR"),MAXRANK,arrKey);
-  new DLibFun(lib::ulon64arr,string("ULON64ARR"),MAXRANK,arrKey);
-  new DLibFun(lib::fltarr,string("FLTARR"),MAXRANK,arrKey);
-  new DLibFun(lib::dblarr,string("DBLARR"),MAXRANK,arrKey);
-  new DLibFun(lib::strarr,string("STRARR"),MAXRANK,arrKey);
-  new DLibFun(lib::complexarr,string("COMPLEXARR"),MAXRANK,arrKey);
-  new DLibFun(lib::dcomplexarr,string("DCOMPLEXARR"),MAXRANK,arrKey);
+  new DLibFunRetNew(lib::bytarr,string("BYTARR"),MAXRANK,arrKey);
+  new DLibFunRetNew(lib::intarr,string("INTARR"),MAXRANK,arrKey);
+  new DLibFunRetNew(lib::uintarr,string("UINTARR"),MAXRANK,arrKey);
+  new DLibFunRetNew(lib::lonarr,string("LONARR"),MAXRANK,arrKey);
+  new DLibFunRetNew(lib::ulonarr,string("ULONARR"),MAXRANK,arrKey);
+  new DLibFunRetNew(lib::lon64arr,string("LON64ARR"),MAXRANK,arrKey);
+  new DLibFunRetNew(lib::ulon64arr,string("ULON64ARR"),MAXRANK,arrKey);
+  new DLibFunRetNew(lib::fltarr,string("FLTARR"),MAXRANK,arrKey);
+  new DLibFunRetNew(lib::dblarr,string("DBLARR"),MAXRANK,arrKey);
+  new DLibFunRetNew(lib::strarr,string("STRARR"),MAXRANK,arrKey);
+  new DLibFunRetNew(lib::complexarr,string("COMPLEXARR"),MAXRANK,arrKey);
+  new DLibFunRetNew(lib::dcomplexarr,string("DCOMPLEXARR"),MAXRANK,arrKey);
 
   const string ptrArrKey[]={"NOZERO","ALLOCATE_HEAP",KLISTEND};
-  new DLibFun(lib::ptrarr,string("PTRARR"),MAXRANK,ptrArrKey);
-  new DLibFun(lib::objarr,string("OBJARR"),MAXRANK,arrKey);
+  new DLibFunRetNew(lib::ptrarr,string("PTRARR"),MAXRANK,ptrArrKey);
+  new DLibFunRetNew(lib::objarr,string("OBJARR"),MAXRANK,arrKey);
 
   const string ptr_newKey[]={"NO_COPY","ALLOCATE_HEAP",KLISTEND};
-  new DLibFun(lib::ptr_new,string("PTR_NEW"),1,ptr_newKey);
+  new DLibFunRetNew(lib::ptr_new,string("PTR_NEW"),1,ptr_newKey);
 
   const string obj_validKey[]={"CAST","COUNT",KLISTEND};
-  new DLibFun(lib::ptr_valid,string("PTR_VALID"),1,obj_validKey);
-  new DLibFun(lib::obj_valid,string("OBJ_VALID"),1,obj_validKey);
+  new DLibFunRetNew(lib::ptr_valid,string("PTR_VALID"),1,obj_validKey);
+  new DLibFunRetNew(lib::obj_valid,string("OBJ_VALID"),1,obj_validKey);
   
   const string obj_newKey[]={"_REF_EXTRA",KLISTEND};
-  new DLibFun(lib::obj_new,string("OBJ_NEW"),-1,obj_newKey);
+  new DLibFunRetNew(lib::obj_new,string("OBJ_NEW"),-1,obj_newKey);
   new DLibPro(lib::obj_destroy,string("OBJ_DESTROY"),-1,obj_newKey);
 
   // call... fun/pro
@@ -223,20 +223,20 @@ void LibInit()
   const string indKey[]={"TYPE","BYTE","COMPLEX","DCOMPLEX",
 			 "DOUBLE","FLOAT","L64","LONG",
 			 "STRING","UINT","UL64","ULONG",KLISTEND};
-  new DLibFun(lib::bindgen,string("BINDGEN"),MAXRANK);
-  new DLibFun(lib::indgen,string("INDGEN"),MAXRANK,indKey);
-  new DLibFun(lib::uindgen,string("UINDGEN"),MAXRANK,indKey);
-  new DLibFun(lib::sindgen,string("SINDGEN"),MAXRANK);
-  new DLibFun(lib::lindgen,string("LINDGEN"),MAXRANK);
-  new DLibFun(lib::ulindgen,string("ULINDGEN"),MAXRANK);
-  new DLibFun(lib::l64indgen,string("L64INDGEN"),MAXRANK);
-  new DLibFun(lib::ul64indgen,string("UL64INDGEN"),MAXRANK);
-  new DLibFun(lib::findgen,string("FINDGEN"),MAXRANK);
-  new DLibFun(lib::dindgen,string("DINDGEN"),MAXRANK);
-  new DLibFun(lib::cindgen,string("CINDGEN"),MAXRANK);
-  new DLibFun(lib::dcindgen,string("DCINDGEN"),MAXRANK);
+  new DLibFunRetNew(lib::bindgen,string("BINDGEN"),MAXRANK);
+  new DLibFunRetNew(lib::indgen,string("INDGEN"),MAXRANK,indKey);
+  new DLibFunRetNew(lib::uindgen,string("UINDGEN"),MAXRANK,indKey);
+  new DLibFunRetNew(lib::sindgen,string("SINDGEN"),MAXRANK);
+  new DLibFunRetNew(lib::lindgen,string("LINDGEN"),MAXRANK);
+  new DLibFunRetNew(lib::ulindgen,string("ULINDGEN"),MAXRANK);
+  new DLibFunRetNew(lib::l64indgen,string("L64INDGEN"),MAXRANK);
+  new DLibFunRetNew(lib::ul64indgen,string("UL64INDGEN"),MAXRANK);
+  new DLibFunRetNew(lib::findgen,string("FINDGEN"),MAXRANK);
+  new DLibFunRetNew(lib::dindgen,string("DINDGEN"),MAXRANK);
+  new DLibFunRetNew(lib::cindgen,string("CINDGEN"),MAXRANK);
+  new DLibFunRetNew(lib::dcindgen,string("DCINDGEN"),MAXRANK);
 
-  new DLibFun(lib::n_elements,string("N_ELEMENTS"),1);
+  new DLibFunRetNew(lib::n_elements,string("N_ELEMENTS"),1);
 
   new DLibFun(lib::execute,string("EXECUTE"),2);
 
@@ -265,85 +265,85 @@ void LibInit()
   new DLibPro(lib::readu,string("READU"),-1,writeuKey);
 
   const string assocKey[]={"PACKED",KLISTEND};
-  new DLibFun(lib::assoc,string("ASSOC"),3,assocKey);
+  new DLibFunRetNew(lib::assoc,string("ASSOC"),3,assocKey);
   
   const string stringKey[]={"FORMAT","AM_PM","DAYS_OF_WEEK","MONTH",
 			    "PRINT",KLISTEND};
-  new DLibFun(lib::string_fun,string("STRING"),-1,stringKey);
-  new DLibFun(lib::byte_fun,string("BYTE"),10);
+  new DLibFunRetNew(lib::string_fun,string("STRING"),-1,stringKey);
+  new DLibFunRetNew(lib::byte_fun,string("BYTE"),10);
   const string fixKey[]={"TYPE",KLISTEND};
-  new DLibFun(lib::fix_fun,string("FIX"),10,fixKey);
-  new DLibFun(lib::uint_fun,string("UINT"),10);
-  new DLibFun(lib::long_fun,string("LONG"),10);
-  new DLibFun(lib::ulong_fun,string("ULONG"),10);
-  new DLibFun(lib::long64_fun,string("LONG64"),10);
-  new DLibFun(lib::ulong64_fun,string("ULONG64"),10);
-  new DLibFun(lib::float_fun,string("FLOAT"),10);
-  new DLibFun(lib::double_fun,string("DOUBLE"),10);
-  new DLibFun(lib::complex_fun,string("COMPLEX"),MAXRANK+2);
-  new DLibFun(lib::dcomplex_fun,string("DCOMPLEX"),MAXRANK+2);
+  new DLibFunRetNew(lib::fix_fun,string("FIX"),10,fixKey);
+  new DLibFunRetNew(lib::uint_fun,string("UINT"),10);
+  new DLibFunRetNew(lib::long_fun,string("LONG"),10);
+  new DLibFunRetNew(lib::ulong_fun,string("ULONG"),10);
+  new DLibFunRetNew(lib::long64_fun,string("LONG64"),10);
+  new DLibFunRetNew(lib::ulong64_fun,string("ULONG64"),10);
+  new DLibFunRetNew(lib::float_fun,string("FLOAT"),10);
+  new DLibFunRetNew(lib::double_fun,string("DOUBLE"),10);
+  new DLibFunRetNew(lib::complex_fun,string("COMPLEX"),MAXRANK+2);
+  new DLibFunRetNew(lib::dcomplex_fun,string("DCOMPLEX"),MAXRANK+2);
 
-  new DLibFun(lib::gdl_logical_and,string("LOGICAL_AND"),2);
-  new DLibFun(lib::gdl_logical_or,string("LOGICAL_OR"),2);
-  new DLibFun(lib::logical_true,string("LOGICAL_TRUE"),1);
+  new DLibFunRetNew(lib::gdl_logical_and,string("LOGICAL_AND"),2);
+  new DLibFunRetNew(lib::gdl_logical_or,string("LOGICAL_OR"),2);
+  new DLibFunRetNew(lib::logical_true,string("LOGICAL_TRUE"),1);
 
-  new DLibFun(lib::replicate,string("REPLICATE"),9);
+  new DLibFunRetNew(lib::replicate,string("REPLICATE"),9);
 
-  new DLibFun(lib::sin_fun,string("SIN"),1);
-  new DLibFun(lib::cos_fun,string("COS"),1);
-  new DLibFun(lib::tan_fun,string("TAN"),1);
+  new DLibFunRetNew(lib::sin_fun,string("SIN"),1);
+  new DLibFunRetNew(lib::cos_fun,string("COS"),1);
+  new DLibFunRetNew(lib::tan_fun,string("TAN"),1);
 
-  new DLibFun(lib::sinh_fun,string("SINH"),1);
-  new DLibFun(lib::cosh_fun,string("COSH"),1);
-  new DLibFun(lib::tanh_fun,string("TANH"),1);
+  new DLibFunRetNew(lib::sinh_fun,string("SINH"),1);
+  new DLibFunRetNew(lib::cosh_fun,string("COSH"),1);
+  new DLibFunRetNew(lib::tanh_fun,string("TANH"),1);
 
-  new DLibFun(lib::asin_fun,string("ASIN"),1);
-  new DLibFun(lib::acos_fun,string("ACOS"),1);
-  new DLibFun(lib::atan_fun,string("ATAN"),2);
+  new DLibFunRetNew(lib::asin_fun,string("ASIN"),1);
+  new DLibFunRetNew(lib::acos_fun,string("ACOS"),1);
+  new DLibFunRetNew(lib::atan_fun,string("ATAN"),2);
 
-  new DLibFun(lib::alog_fun,string("ALOG"),1);
-  new DLibFun(lib::alog10_fun,string("ALOG10"),1);
+  new DLibFunRetNew(lib::alog_fun,string("ALOG"),1);
+  new DLibFunRetNew(lib::alog10_fun,string("ALOG10"),1);
 
-  new DLibFun(lib::sqrt_fun,string("SQRT"),1);
-  new DLibFun(lib::abs_fun,string("ABS"),1);
+  new DLibFunRetNew(lib::sqrt_fun,string("SQRT"),1);
+  new DLibFunRetNew(lib::abs_fun,string("ABS"),1);
 
-  new DLibFun(lib::exp_fun,string("EXP"),1);
+  new DLibFunRetNew(lib::exp_fun,string("EXP"),1);
 
-  new DLibFun(lib::round_fun,string("ROUND"),1);
-  new DLibFun(lib::ceil_fun,string("CEIL"),1);
-  new DLibFun(lib::floor_fun,string("FLOOR"),1);
+  new DLibFunRetNew(lib::round_fun,string("ROUND"),1);
+  new DLibFunRetNew(lib::ceil_fun,string("CEIL"),1);
+  new DLibFunRetNew(lib::floor_fun,string("FLOOR"),1);
 
-  new DLibFun(lib::conj_fun,string("CONJ"),1);
-  new DLibFun(lib::imaginary_fun,string("IMAGINARY"),1);
+  new DLibFunRetNew(lib::conj_fun,string("CONJ"),1);
+  new DLibFunRetNew(lib::imaginary_fun,string("IMAGINARY"),1);
   
   const string strcompressKey[]={"REMOVE_ALL",KLISTEND};
-  new DLibFun(lib::strcompress,string("STRCOMPRESS"),1,strcompressKey);
-  new DLibFun(lib::strlowcase,string("STRLOWCASE"),1);
-  new DLibFun(lib::strupcase,string("STRUPCASE"),1);
-  new DLibFun(lib::strlen,string("STRLEN"),1);
+  new DLibFunRetNew(lib::strcompress,string("STRCOMPRESS"),1,strcompressKey);
+  new DLibFunRetNew(lib::strlowcase,string("STRLOWCASE"),1);
+  new DLibFunRetNew(lib::strupcase,string("STRUPCASE"),1);
+  new DLibFunRetNew(lib::strlen,string("STRLEN"),1);
   const string strmidKey[]={"REVERSE_OFFSET",KLISTEND};
-  new DLibFun(lib::strmid,string("STRMID"),3,strmidKey);
-  new DLibFun(lib::strtrim,string("STRTRIM"),2);
+  new DLibFunRetNew(lib::strmid,string("STRMID"),3,strmidKey);
+  new DLibFunRetNew(lib::strtrim,string("STRTRIM"),2);
   const string strposKey[]={"REVERSE_OFFSET","REVERSE_SEARCH",KLISTEND};
-  new DLibFun(lib::strpos,string("STRPOS"),3,strposKey);
+  new DLibFunRetNew(lib::strpos,string("STRPOS"),3,strposKey);
   new DLibPro(lib::strput,string("STRPUT"),3);
   
   const string whereKey[]={"COMPLEMENT","NCOMPLEMENT",KLISTEND};
-  new DLibFun(lib::where,string("WHERE"),2,whereKey);
+  new DLibFunRetNew(lib::where,string("WHERE"),2,whereKey);
 
   const string totalKey[]={"CUMULATIVE","DOUBLE","NAN",KLISTEND};
-  new DLibFun(lib::total,string("TOTAL"),2,totalKey);
+  new DLibFunRetNew(lib::total,string("TOTAL"),2,totalKey);
 
-  new DLibFun(lib::n_params,string("N_PARAMS"),1); // IDL allows one paramter
-  new DLibFun(lib::keyword_set,string("KEYWORD_SET"),1);
+  new DLibFunRetNew(lib::n_params,string("N_PARAMS"),1); // IDL allows one paramter
+  new DLibFunRetNew(lib::keyword_set,string("KEYWORD_SET"),1);
 
   const string array_equalKey[]={"NO_TYPECONV",KLISTEND};
-  new DLibFun(lib::array_equal,string("ARRAY_EQUAL"),2,array_equalKey);
+  new DLibFunRetNew(lib::array_equal,string("ARRAY_EQUAL"),2,array_equalKey);
   
   const string minKey[]={"MAX","NAN","SUBSCRIPT_MAX",KLISTEND};
-  new DLibFun(lib::min_fun,string("MIN"),2,minKey);
+  new DLibFunRetNew(lib::min_fun,string("MIN"),2,minKey);
   const string maxKey[]={"MIN","NAN","SUBSCRIPT_MIN",KLISTEND};
-  new DLibFun(lib::max_fun,string("MAX"),2,maxKey);
+  new DLibFunRetNew(lib::max_fun,string("MAX"),2,maxKey);
 
 //   const string minKey[]={"MAX",KLISTEND};
 //   new DLibFun(lib::min_fun,string("MIN"),2,minKey);

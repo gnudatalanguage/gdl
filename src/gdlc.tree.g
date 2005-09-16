@@ -61,35 +61,40 @@ options {
     defaultErrorHandler = false;
 }
 {
-  private:
+    private:
     DCompiler       comp; // each tree parser has its own compiler
-
+    
     IDList          loopVarStack;
-
-// Replaces ASSIGN with ASSIGN_REPLACE if appropiate
-  bool LoopVar( RefDNode& lN)
-  {
-      int lT = lN->getType();
-      if( lT == VAR || lT == VARPTR)
-          return (FindInIDList( loopVarStack, lN->getText()) != -1);
-      return false;
-  }
-
-  void AssignReplace( RefDNode& lN, RefDNode& aN)
-  {
-      if( LoopVar( lN))
-          Warning( "Warning: Assignment to FOR loop variable detected.");
-   
-      int lT = lN->getType();
-      if( lT == FCALL || lT == MFCALL || lT == MFCALL_PARENT ||
-          lT == FCALL_LIB || lT == MFCALL_LIB || lT == MFCALL_PARENT_LIB ||
-          lT == DEREF || lT == VAR || lT == VARPTR)
-          {
-              aN->setType( ASSIGN_REPLACE);
-              aN->setText( "r=");
-          }
-  }
-
+    
+    // Replaces ASSIGN with ASSIGN_REPLACE if appropiate
+    bool LoopVar( RefDNode& lN)
+    {
+        int lT = lN->getType();
+        if( lT == VAR || lT == VARPTR)
+        return (FindInIDList( loopVarStack, lN->getText()) != -1);
+        return false;
+    }
+    
+    void AssignReplace( RefDNode& lN, RefDNode& aN)
+    {
+        if( LoopVar( lN))
+        Warning( "Warning: Assignment to FOR loop variable detected.");
+        
+        int lT = lN->getType();
+        if( lT == FCALL || lT == MFCALL || lT == MFCALL_PARENT ||
+            lT == FCALL_LIB || 
+            lT == FCALL_LIB_RETNEW || 
+            lT == MFCALL_LIB || 
+            lT == MFCALL_LIB_RETNEW || 
+            lT == MFCALL_PARENT_LIB ||
+            lT == MFCALL_PARENT_LIB_RETNEW ||
+            lT == DEREF || lT == VAR || lT == VARPTR)
+        {
+            aN->setType( ASSIGN_REPLACE);
+            aN->setText( "r=");
+        }
+    }
+    
   RefDNode RemoveNextSibling( RefDNode l)
   {
     RefDNode newNode = RefDNode(astFactory->dupTree( antlr::RefAST(l)));
@@ -521,7 +526,9 @@ key_parameter!//
                 {
                     int t = #k->getType();
                     if( t == FCALL_LIB || t == MFCALL_LIB || 
-                        t == MFCALL_PARENT_LIB)
+                        t == MFCALL_PARENT_LIB ||
+                        t == FCALL_LIB_RETNEW || t == MFCALL_LIB_RETNEW || 
+                        t == MFCALL_PARENT_LIB_RETNEW) 
                     {
                         #d=#[KEYDEF_REF_CHECK,"keydef_ref_check"];
                         #key_parameter=#(d,i,k);
@@ -557,7 +564,9 @@ pos_parameter!//
             {
                 int t = #e->getType();
                 if( t == FCALL_LIB || t == MFCALL_LIB || 
-                    t == MFCALL_PARENT_LIB)
+                    t == MFCALL_PARENT_LIB ||
+                    t == FCALL_LIB_RETNEW || t == MFCALL_LIB_RETNEW || 
+                    t == MFCALL_PARENT_LIB_RETNEW) 
                 {
                     // something like: CALLAPRO,reform(a,/OVERWRITE)
                     #pos_parameter=#([REF_CHECK,"ref_check"],e);
@@ -935,6 +944,10 @@ arrayexpr_fn!//
                     if( i != -1)
                     {
                         #id->SetFunIx(i);
+                        if( libFunList[ i]->RetNew())
+                        #arrayexpr_fn=
+                        #([FCALL_LIB_RETNEW,"fcall_lib_retnew"], id, el);
+                        else
                         #arrayexpr_fn=
                         #([FCALL_LIB,"fcall_lib"], id, el);
                     }
@@ -981,9 +994,18 @@ int dummy;
                 int i=LibFunIx(id->getText());
                 if( i != -1)
                 {
+                    if( libFunList[ i]->RetNew())
+                    {
+                    #f->setType(FCALL_LIB_RETNEW);
+                    #f->setText("fcall_lib_retnew");
+                    #id->SetFunIx(i);
+                    }
+                    else
+                    {
                     #f->setType(FCALL_LIB);
                     #f->setText("fcall_lib");
                     #id->SetFunIx(i);
+                    }
                 }
                 else
                 {

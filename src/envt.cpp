@@ -20,15 +20,17 @@
 #include <iomanip>
 
 #include "objects.hpp"
-#include "GDLInterpreter.hpp"
+#include "dinterpreter.hpp"
 #include "envt.hpp"
 
 #include <assert.h> // always as last
 
 using namespace std;
 
-EnvT::EnvT( GDLInterpreter* ipr, ProgNodeP cN, DSub* pro_, bool lF): 
-  interpreter(ipr), env(), pro(pro_),
+DInterpreter* EnvT::interpreter;
+
+EnvT::EnvT( ProgNodeP cN, DSub* pro_, bool lF): 
+  env(), pro(pro_),
   ioError(NULL), onError( -1), catchVar(NULL), catchNode(NULL), 
   obj(false), 
   extra(this), callingNode( cN),
@@ -48,7 +50,7 @@ EnvT::EnvT( GDLInterpreter* ipr, ProgNodeP cN, DSub* pro_, bool lF):
     { // Lib fun/pro
       keySize=pro->key.size();
       if( pro->nPar >= 0)
-	envSize=pro->nPar+pro->key.size();
+	envSize=pro->nPar+keySize;
       else
 	{
 	envSize=keySize;
@@ -61,9 +63,9 @@ EnvT::EnvT( GDLInterpreter* ipr, ProgNodeP cN, DSub* pro_, bool lF):
 }
 
 // member pro
-EnvT::EnvT( GDLInterpreter* ipr,  ProgNodeP cN, BaseGDL* self, 
+EnvT::EnvT( ProgNodeP cN, BaseGDL* self, 
 	    const string& parent): 
-  interpreter(ipr), env(), pro(NULL), 
+  env(), pro(NULL), 
   ioError(NULL), onError( -1), catchVar(NULL), catchNode(NULL), 
   obj(true),
   extra(this), callingNode( cN),
@@ -122,9 +124,9 @@ EnvT::EnvT( GDLInterpreter* ipr,  ProgNodeP cN, BaseGDL* self,
 }
 
 // member fun
-EnvT::EnvT( GDLInterpreter* ipr, BaseGDL* self, //DStructGDL* oStructGDL,  
+EnvT::EnvT( BaseGDL* self, //DStructGDL* oStructGDL,  
 	    ProgNodeP cN, const string& parent, bool lF): 
-  interpreter(ipr), env(), pro(NULL), 
+  env(), pro(NULL), 
   ioError(NULL), onError( -1), catchVar(NULL), catchNode(NULL), 
   obj(true),
   extra(this), callingNode( cN),
@@ -184,7 +186,7 @@ EnvT::EnvT( GDLInterpreter* ipr, BaseGDL* self, //DStructGDL* oStructGDL,
 
 // for obj_new, obj_destroy, call_procedure and call_function
 EnvT::EnvT( EnvT* pEnv, DSub* newPro, BaseGDL** self):
-  interpreter( pEnv->interpreter), env(), pro(newPro), 
+  env(), pro(newPro), 
   ioError(NULL), onError( -1), catchVar(NULL), catchNode(NULL),
   obj( (self != NULL)),
   extra(this), callingNode( pEnv->callingNode),

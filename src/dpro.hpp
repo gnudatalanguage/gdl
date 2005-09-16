@@ -208,7 +208,8 @@ public:
 	   const std::string keyNames[]=NULL,
 	   const std::string warnKeyNames[]=NULL);
 
-  DLibPro( LibPro p, const std::string& n, const std::string& o, const int nPar_=0, 
+  DLibPro( LibPro p, const std::string& n, const std::string& o, 
+	   const int nPar_=0, 
 	   const std::string keyNames[]=NULL,
 	   const std::string warnKeyNames[]=NULL);
 
@@ -226,13 +227,33 @@ public:
 	   const std::string keyNames[]=NULL,
 	   const std::string warnKeyNames[]=NULL);
 
-  DLibFun( LibFun f, const std::string& n, const std::string& o, const int nPar_=0, 
+  DLibFun( LibFun f, const std::string& n, const std::string& o, 
+	   const int nPar_=0, 
 	   const std::string keyNames[]=NULL,
 	   const std::string warnKeyNames[]=NULL);
 
   LibFun Fun() { return fun;}
 
   const std::string ToString();
+
+  virtual bool RetNew() { return false;}
+};
+
+// library function which ALWAYS return a new value
+// (as opposite to returning an input value)
+class DLibFunRetNew: public DLibFun
+{
+public:
+  DLibFunRetNew( LibFun f, const std::string& n, const int nPar_=0, 
+		 const std::string keyNames[]=NULL,
+		 const std::string warnKeyNames[]=NULL);
+
+  DLibFunRetNew( LibFun f, const std::string& n, const std::string& o, 
+		 const int nPar_=0, 
+		 const std::string keyNames[]=NULL,
+		 const std::string warnKeyNames[]=NULL);
+
+  bool RetNew() { return true;}
 };
 
 // UD pro/fun ********************************************************

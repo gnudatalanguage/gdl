@@ -1091,7 +1091,7 @@ procedure_call
 }
 	: #(PCALL_LIB pl:IDENTIFIER
             {
-                EnvT* newEnv=new EnvT( this, pl, libProList[pl->proIx]);
+                EnvT* newEnv=new EnvT( pl, libProList[pl->proIx]);
             }
             parameter_def[ newEnv]
             {
@@ -1109,7 +1109,7 @@ procedure_call
                 {  
                     auto_ptr<BaseGDL> self_guard(self);
                     
-                    newEnv=new EnvT( this, mp, self);
+                    newEnv=new EnvT( mp, self);
 
                     self_guard.release();
                 }
@@ -1120,7 +1120,7 @@ procedure_call
                 {
                     auto_ptr<BaseGDL> self_guard(self);
                     
-                    newEnv = new EnvT( this, pp, self, parent->getText());
+                    newEnv = new EnvT( pp, self, parent->getText());
 
                     self_guard.release();
                 }
@@ -1130,7 +1130,7 @@ procedure_call
             {
                 SetProIx( p);
             
-                newEnv = new EnvT( this, p, proList[p->proIx]);
+                newEnv = new EnvT( p, proList[p->proIx]);
             }
             parameter_def[ newEnv]
             )
@@ -2485,6 +2485,7 @@ indexable_tmp_expr returns [BaseGDL* res]
     | res=assign_expr
     | res=function_call
     | res=r_expr
+    | res=lib_function_call_retnew 
     ;
 
 // not owned by caller 
@@ -2557,6 +2558,7 @@ tmp_expr returns [BaseGDL* res]
         // *********
     | res=simple_var                         
     | res=sys_var 
+    | res=lib_function_call_retnew 
     ;
 
 assign_expr returns [BaseGDL* res]
@@ -2692,7 +2694,27 @@ lib_function_call returns[ BaseGDL* res]
 }
 	: #(FCALL_LIB fl:IDENTIFIER
             {
-                EnvT* newEnv=new EnvT( this, fl, libFunList[fl->funIx]);
+                EnvT* newEnv=new EnvT( fl, libFunList[fl->funIx]);
+            }
+            parameter_def[ newEnv]
+            {
+                // push id.pro onto call stack
+                callStack.push_back(newEnv);
+                // make the call
+                res=static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
+                //*** MUST always return a defined expression
+            }
+        )
+    ;    
+
+lib_function_call_retnew returns[ BaseGDL* res]
+{ 
+    // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+    StackGuard<EnvStackT> guard(callStack);
+}
+	: #(FCALL_LIB_RETNEW fl:IDENTIFIER
+            {
+                EnvT* newEnv=new EnvT( fl, libFunList[fl->funIx]);
             }
             parameter_def[ newEnv]
             {
@@ -2719,7 +2741,7 @@ function_call returns[ BaseGDL* res]
                 {  
                     auto_ptr<BaseGDL> self_guard(self);
                     
-                    newEnv=new EnvT( this, self, mp);
+                    newEnv=new EnvT( self, mp);
 
                     self_guard.release();
                 }
@@ -2730,7 +2752,7 @@ function_call returns[ BaseGDL* res]
                 {
                     auto_ptr<BaseGDL> self_guard(self);
                     
-                    newEnv=new EnvT( this, self, p,
+                    newEnv=new EnvT( self, p,
                         parent->getText());
 
                     self_guard.release();
@@ -2741,7 +2763,7 @@ function_call returns[ BaseGDL* res]
                 {
                     SetFunIx( f);
                     
-                    newEnv=new EnvT( this, f, funList[f->funIx]);
+                    newEnv=new EnvT( f, funList[f->funIx]);
                 }
                 parameter_def[ newEnv]
             )
@@ -2768,7 +2790,7 @@ l_function_call returns[ BaseGDL** res]
 
 	: #(FCALL_LIB fl:IDENTIFIER
             {
-                EnvT* newEnv=new EnvT( this, fl, libFunList[fl->funIx]);
+                EnvT* newEnv=new EnvT( fl, libFunList[fl->funIx]);
             }
             parameter_def[ newEnv]
             {
@@ -2792,7 +2814,7 @@ l_function_call returns[ BaseGDL** res]
                 {  
                     auto_ptr<BaseGDL> self_guard(self);
                     
-                    newEnv=new EnvT( this, self, mp, "", true);
+                    newEnv=new EnvT( self, mp, "", true);
 
                     self_guard.release();
                 }
@@ -2803,7 +2825,7 @@ l_function_call returns[ BaseGDL** res]
                 {
                     auto_ptr<BaseGDL> self_guard(self);
                     
-                    newEnv=new EnvT( this, self, p,
+                    newEnv=new EnvT( self, p,
                         parent->getText(), true);
 
                     self_guard.release();
@@ -2815,7 +2837,7 @@ l_function_call returns[ BaseGDL** res]
                 {
                     SetFunIx( f);
                     
-                    newEnv=new EnvT( this, f, funList[f->funIx], true);
+                    newEnv=new EnvT( f, funList[f->funIx], true);
                 }
                 parameter_def[ newEnv]
             )

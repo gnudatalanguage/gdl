@@ -1033,10 +1033,10 @@ namespace lib {
 
 	// wait until child terminates
 	int status;
-	int exitCode = wait( &status);
-
+	pid_t wpid  = wait( &status);
+	
 	if( exit_statusKeyword)
-	  e->SetKW( exit_statusIx, new DLongGDL( exitCode));
+	  e->SetKW( exit_statusIx, new DLongGDL( status));
 	    
 	SizeT nLines = 0;
 	if( nParam > 1)

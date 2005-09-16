@@ -435,6 +435,7 @@ public:
 	public: BaseGDL*  dot_expr(ProgNodeP _t);
 	public: BaseGDL*  assign_expr(ProgNodeP _t);
 	public:  BaseGDL*  function_call(ProgNodeP _t);
+	public:  BaseGDL*  lib_function_call_retnew(ProgNodeP _t);
 	public:  BaseGDL*  lib_function_call(ProgNodeP _t);
 	public: BaseGDL*  constant(ProgNodeP _t);
 	public: BaseGDL*  simple_var(ProgNodeP _t);
@@ -454,10 +455,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 200;
+	static const int NUM_TOKENS = 203;
 #else
 	enum {
-		NUM_TOKENS = 200
+		NUM_TOKENS = 203
 	};
 #endif
 	
@@ -465,6 +466,8 @@ private:
 	static const antlr::BitSet _tokenSet_0;
 	static const unsigned long _tokenSet_1_data_[];
 	static const antlr::BitSet _tokenSet_1;
+	static const unsigned long _tokenSet_2_data_[];
+	static const antlr::BitSet _tokenSet_2;
 };
 
 #endif /*INC_GDLInterpreter_hpp_*/

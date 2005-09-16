@@ -621,6 +621,10 @@ BaseGDL* BaseGDL::Log()
 { 
   throw GDLException("Operation not defined for UNDEF 27.");
 }
+void BaseGDL::LogThis()              
+{ 
+  throw GDLException("Operation not defined for UNDEF 27.");
+}
 
 void BaseGDL::AssignAtIx( SizeT ix, BaseGDL* srcIn)
 { 

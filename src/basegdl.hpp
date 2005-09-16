@@ -229,6 +229,7 @@ public:
   virtual void Assign( BaseGDL* src, SizeT nEl);
 
   virtual BaseGDL* Log();              
+  virtual void     LogThis();
 
   // used in r_expr
   virtual BaseGDL* UMinus();              

@@ -655,7 +655,13 @@ namespace lib {
       e->Throw( "Variable is undefined: "+e->GetParString(0));
     
     if( FloatType( p0->Type()) || ComplexType( p0->Type()))
-      return p0->Log(); //alog_fun_template< DComplexGDL>( p0);
+      if( e->StealLocalPar( 0))
+	{
+	  p0->LogThis();
+	  return p0;
+	}
+      else
+	return p0->Log(); //alog_fun_template< DComplexGDL>( p0);
 //     else if( p0->Type() == COMPLEXDBL)
 //       return p0->Log(); //alog_fun_template< DComplexDblGDL>( p0);
 //     else if( p0->Type() == DOUBLE)

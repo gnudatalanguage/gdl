@@ -138,7 +138,16 @@ DLibFun::DLibFun( LibFun f, const string& n, const int nPar_,
 {
   libFunList.push_back(this);
 }
+DLibFunRetNew::DLibFunRetNew( LibFun f, const string& n, 
+			const string& o, const int nPar_, 
+			const string keyNames[], const string warnKeyNames[])
+  : DLibFun(f,n,o,nPar_,keyNames, warnKeyNames)
+{}
 
+DLibFunRetNew::DLibFunRetNew( LibFun f, const string& n, const int nPar_, 
+			const string keyNames[], const string warnKeyNames[])
+  : DLibFun(f,n,nPar_,keyNames, warnKeyNames)
+{}
 
 
 // DSubUD ****************************************************
