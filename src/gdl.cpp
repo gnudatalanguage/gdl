@@ -27,6 +27,7 @@
 #include <string>
 #include <csignal>
 #include <cstdlib>
+#include <unistd.h> // isatty
 
 //#include <fenv.h>
 
@@ -98,7 +99,7 @@ int main(int argc, char *argv[])
 
   InitGDL();
     
-  StartupMessage();
+  if( isatty(0)) StartupMessage();
 
   // instantiate the interpreter
   DInterpreter interpreter;
@@ -114,7 +115,7 @@ int main(int argc, char *argv[])
   if( startup == "") startup=GetEnvString("IDL_STARTUP");
   if( startup == "")
     {
-      cout << "'GDL_STARTUP'/'IDL_STARTUP' environment "
+      if (isatty(0)) cout << "'GDL_STARTUP'/'IDL_STARTUP' environment "
 	"variables both not set.\n"
 	"No startup file read." << endl;
     }

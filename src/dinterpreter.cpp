@@ -18,6 +18,7 @@
 #include "includefirst.hpp"
 
 #include <iostream>
+#include <unistd.h> // isatty
 
 #include "dnodefactory.hpp"
 #include "str.hpp"
@@ -761,7 +762,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in)
 // if readline is not available or !EDIT_INPUT set to zero
 char* DInterpreter::NoReadline( const string& prompt)
 {
-  cout << prompt << flush;
+  if (isatty(0)) cout << prompt << flush;
 
   ostringstream ostr;
   char ch;
@@ -799,7 +800,7 @@ string DInterpreter::GetLine()
   clog << flush; cout << flush;
 
 #ifdef HAVE_LIBREADLINE
-  int edit_input = SysVar::Edit_Input();
+  int edit_input = SysVar::Edit_Input() && isatty(0);
 #endif
 
   string line;
@@ -823,7 +824,7 @@ string DInterpreter::GetLine()
     
     if( !cline) 
       {
-	cout << endl;
+	if (isatty(0)) cout << endl;
 	exit( EXIT_SUCCESS); //break; // readline encountered eof
       }
     
