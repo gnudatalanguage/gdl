@@ -171,6 +171,7 @@ public:
 
   //  bool AKey() { return aKey;} // additional keywords allowed
 
+  friend class EnvBaseT;
   friend class EnvT;
   friend class ExtraT;
 };
@@ -396,7 +397,7 @@ public:
     return tree;
   }
 
-  friend class EnvT;
+  friend class EnvUDT;
 };
 
 class DPro: public DSubUD

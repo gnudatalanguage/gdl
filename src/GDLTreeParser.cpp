@@ -2857,7 +2857,7 @@ void GDLTreeParser::procedure_call(RefDNode _t) {
 		{
 		p_AST->setType(PCALL_LIB);
 		p_AST->setText("pcall_lib");
-		id_AST->SetProIx(i);
+		id_AST->SetLibPro( libProList[i]);
 		}
 		else
 		{
@@ -4233,12 +4233,23 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 			
 			c1 = comp.Constant( e1); 
 			if( c1 != NULL)
-			{
-			ixList->push_back( new CArrayIndexIndexed( c1));
+			{   
+			if( c1->Rank() == 0)
+			
+			ixList->
+			push_back( new 
+			CArrayIndexScalar( c1));
+			else
+			ixList->
+			push_back( new 
+			CArrayIndexIndexed( c1));
 			}
 			else
 			{
 			arrayindex_AST = e1_AST;
+			if( LoopVar( e1_AST))
+			ixList->push_back( new ArrayIndexScalar());
+			else
 			ixList->push_back( new ArrayIndexIndexed());
 			}
 			
@@ -4926,7 +4937,7 @@ void GDLTreeParser::arrayexpr_fn(RefDNode _t) {
 	int i=LibFunIx(id_text);
 	if( i != -1)
 	{
-	id_AST->SetFunIx(i);
+	id_AST->SetLibFun( libFunList[i]);
 	if( libFunList[ i]->RetNew())
 	arrayexpr_fn_AST=
 	RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(FCALL_LIB_RETNEW,"fcall_lib_retnew")))->add(antlr::RefAST(id_AST))->add(antlr::RefAST(el_AST))));
@@ -5160,13 +5171,15 @@ void GDLTreeParser::primary_expr(RefDNode _t) {
 		{
 		f_AST->setType(FCALL_LIB_RETNEW);
 		f_AST->setText("fcall_lib_retnew");
-		id_AST->SetFunIx(i);
+		id_AST->SetLibFun( libFunList[i]);
+		//                    #id->SetFunIx(i);
 		}
 		else
 		{
 		f_AST->setType(FCALL_LIB);
 		f_AST->setText("fcall_lib");
-		id_AST->SetFunIx(i);
+		id_AST->SetLibFun( libFunList[i]);
+		//                    #id->SetFunIx(i);
 		}
 		}
 		else

@@ -30,7 +30,7 @@ class EnvT;
 
 class ExtraT
 {
-  EnvT* thisEnv;
+  EnvBaseT* thisEnv;
 
   // extra keywords
   IDList            listName;
@@ -46,7 +46,7 @@ class ExtraT
   ExtraT() {}
 
 public:
-  ExtraT( EnvT* e): thisEnv(e), loc(NULL), env(NULL), strict(false) {}
+  ExtraT( EnvBaseT* e): thisEnv(e), loc(NULL), env(NULL), strict(false) {}
 
   ~ExtraT() 
   {

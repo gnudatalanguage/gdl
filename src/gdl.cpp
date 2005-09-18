@@ -118,19 +118,19 @@ int main(int argc, char *argv[])
 	"variables both not set.\n"
 	"No startup file read." << endl;
     }
-  else
-    {
-      // if path not given, add users home
-      if( !PathGiven(startup))
-	{
-	  string home=GetEnvString("HOME");
-	  if( home != "") 
-	    {
-	      AppendIfNeeded(home,"/");
-	      startup=home+startup;
-	    }
-	}
-    }
+//   else
+//     {
+//       // if path not given, add users home
+//       if( !PathGiven(startup))
+// 	{
+// 	  string home=GetEnvString("HOME");
+// 	  if( home != "") 
+// 	    {
+// 	      AppendIfNeeded(home,"/");
+// 	      startup=home+startup;
+// 	    }
+// 	}
+//     }
 
   interpreter.InterpreterLoop( startup);
 

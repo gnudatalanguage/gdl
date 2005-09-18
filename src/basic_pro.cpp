@@ -237,7 +237,7 @@ namespace lib {
 		    BaseGDL* actObjGDL = new DObjGDL( actID);
 		    auto_ptr<BaseGDL> actObjGDL_guard( actObjGDL);
 
-		    e->PushNewEnv( objCLEANUP, 1, &actObjGDL);
+		    e->PushNewEnvUD( objCLEANUP, 1, &actObjGDL);
 
 		    inProgress.insert( actID);
 	    
@@ -276,17 +276,17 @@ namespace lib {
 	e->PushNewEnv( libProList[ proIx], 1);
 	
 	// make the call
-	EnvT* newEnv = e->Interpreter()->CallStack().back();
+	EnvT* newEnv = static_cast<EnvT*>(e->Interpreter()->CallStack().back());
 	static_cast<DLibPro*>(newEnv->GetPro())->Pro()(newEnv);
       }
     else
       {
 	proIx = DInterpreter::GetProIx( callP);
 	
-	e->PushNewEnv( proList[ proIx], 1);
+	e->PushNewEnvUD( proList[ proIx], 1);
 	
 	// make the call
-	EnvT* newEnv = e->Interpreter()->CallStack().back();
+	EnvUDT* newEnv = static_cast<EnvUDT*>(e->Interpreter()->CallStack().back());
 	e->Interpreter()->call_pro(static_cast<DSubUD*>(newEnv->GetPro())->
 				   GetTree());
       }
@@ -313,7 +313,7 @@ namespace lib {
     if( method == NULL)
       e->Throw( "Method not found: "+callP);
 
-    e->PushNewEnv( method, 2, &e->GetPar( 1));
+    e->PushNewEnvUD( method, 2, &e->GetPar( 1));
     
     // the call
     e->Interpreter()->call_pro( method->GetTree());
@@ -379,7 +379,7 @@ namespace lib {
     else
       swapEndian = e->KeywordSet( "SWAP_IF_LITTLE_ENDIAN");
     
-    if( e->KeywordSet( "APPEND")) mode |= fstream::app;
+    if( e->KeywordSet( "APPEND")) mode |= fstream::ate;// fstream::app;
 
     bool deleteKey = e->KeywordSet( "DELETE");
     

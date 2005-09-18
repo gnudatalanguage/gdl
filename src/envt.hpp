@@ -38,95 +38,34 @@ namespace lib {
   void obj_destroy( EnvT* e);
 }
 
-class EnvT
+class EnvBaseT
 {
-  // Please use non library API (see below) function with caution
-  // (most of them can be ignored by library function authors)
+protected:
   static DInterpreter* interpreter;
-  //  GDLInterpreter*   interpreter;
-  DataListT         env;
-  DSub*             pro;
-  SizeT             parIx;   // ix of next parameter to put
-  ProgNodeP         ioError; // pointer to an ProgNodeP
-  DLong             onError; // on_error setting
-  BaseGDL**         catchVar;
-  ProgNodeP         catchNode; // pointer to an ProgNodeP
-  bool              obj;       // member subroutine?
-  ExtraT            extra;
-  ProgNodeP         callingNode;
-  bool              lFun; // assignment paramter for functions as l_value
-  SizeT             nJump; // number of jumps in current environment
-  int               lastJump; // to which label last jump went
-
-  // stores all data which has to deleted upon destruction
-  std::vector<BaseGDL*>  toDestroy;
+  DataListT            env;
+  SizeT                parIx;     // ix of next parameter to put
+  DSub*                pro;
+  ProgNodeP            callingNode;
+  bool                 obj;       // member subroutine?
+  ExtraT               extra;
 
   // finds the local variable pp points to
   int FindLocalKW( BaseGDL** pp) { return env.FindLocal( pp);}
   // used by the interperter returns the keyword index, used for UD functions
   int GetKeywordIx( const std::string& k);
-  
+
 public:
-  // UD pro/fun
-  EnvT( ProgNodeP idN, DSub* pro_, bool lF = false);
+  virtual ~EnvBaseT() {}
 
-  // member procedure
-  EnvT( ProgNodeP idN, BaseGDL* self, 
-	const std::string& parent="");
-  // member function
-  EnvT( BaseGDL* self, ProgNodeP idN, 
-	const std::string& parent="", bool lF = false);
-
-  // for obj_new and obj_destroy
-  EnvT( EnvT* pEnv, DSub* newPro, BaseGDL** self); 
-
-  ~EnvT()
-  {
-    for( std::vector<BaseGDL*>::iterator i=toDestroy.begin();
-	 i != toDestroy.end(); ++i) 
-      delete *i;
-  }
-
-  SizeT NJump() { return nJump;}
-  int    LastJump() { return lastJump;}
-  ProgNodeP GotoTarget( int ix)
-  { 
-    lastJump = ix; //static_cast<DSubUD*>( pro)->LabelOrd( ix);
-    ++nJump;
-    return static_cast<DSubUD*>( pro)->GotoTarget( ix);
-  }
-  bool LFun() const { return lFun;} // left-function
+  EnvBaseT( ProgNodeP cN, DSub* pro_);
 
   // finds the global variable pp (used by arg_present function)
   int FindGlobalKW( BaseGDL** pp) { return env.FindGlobal( pp);}
 
   // checks if pp points to a local variable
   bool IsLocalKW( BaseGDL** pp) const { return env.InLoc( pp);}
-  // to check if a lib function returned a variable of this env
-  bool Contains( BaseGDL* p) const;
+
   void RemoveLoc( BaseGDL* p) { env.RemoveLoc( p);}
-  BaseGDL** GetPtrTo( BaseGDL* p);
-  SizeT NewObjHeap( SizeT n=1, DStructGDL* v=NULL);
-  SizeT NewHeap( SizeT n=1, BaseGDL* v=NULL);
-  void FreeObjHeap( DObj id);
-  void FreeHeap( DPtrGDL* p);
-  DStructGDL* GetObjHeap( DObj ID);
-  BaseGDL* GetHeap( DPtr ID);
-  DInterpreter* Interpreter() const { return interpreter;}
-  bool IsObject() const { return obj;}
-  DSub* GetPro() const { return pro;}
-  void SetIOError( int targetIx) 
-  { // this isn't a jump
-    if( targetIx != -1)
-      ioError = static_cast<DSubUD*>( pro)->GotoTarget( targetIx)->
-	getNextSibling(); 
-    else
-      ioError = NULL;
-  }
-  ProgNodeP GetIOError() { return ioError;}
-  // the upper (calling) environment
-  EnvT* Caller();
-  ProgNodeP CallingNode() { return callingNode;}
 
   // called after parameter definition
   void Extra();
@@ -140,25 +79,31 @@ public:
     return s;
   }
 
+  // returns environment data, by value (but that by C++ reference)
+  BaseGDL*& GetKW(SizeT ix) { return env[ix];}
+
   // next four are used by interpreter
   void SetNextPar( BaseGDL* const nextP); // by value (reset loc)
   void SetNextPar( BaseGDL** const nextP); // by reference (reset env)
   void SetKeyword( const std::string& k, BaseGDL* const val);  // value
   void SetKeyword( const std::string& k, BaseGDL** const val); // reference
-  // used by obj_new (basic_fun.cpp)
-  void PushNewEnv(  DSub* newPro, SizeT skipP, BaseGDL** newObj=NULL);
-  // for exclusive use by lib::on_error
-  void OnError();
-  // for exclusive use by lib::catch_pro
-  void Catch();
 
-  const std::string GetFilename() const
-  {
-    static const std::string internal("<INTERNAL_LIB>");
-    DSubUD* subUD=dynamic_cast<DSubUD*>( pro);
-    if( subUD == NULL) return internal;
-    return subUD->GetFilename();
-  }
+  // to check if a lib function returned a variable of this env
+  bool Contains( BaseGDL* p) const;
+
+  BaseGDL** GetPtrTo( BaseGDL* p);
+
+  DInterpreter* Interpreter() const { return interpreter;}
+
+  bool  IsObject() const { return obj;}
+  DSub* GetPro()   const { return pro;}
+
+  ProgNodeP CallingNode() { return callingNode;}
+
+  // the upper (calling) environment
+  EnvBaseT* Caller();
+
+  SizeT NParam( SizeT minPar = 0); //, const std::string& subName = "");
 
   const std::string GetProName() const
   {
@@ -179,7 +124,122 @@ public:
   // get name of 'p'
   const std::string GetString( BaseGDL*& p);
 
+  virtual const std::string GetFilename() const=0;
+
+  // converts parameter 'ix' if necessary and sets 'scalar' 
+  void AssureLongScalarPar( SizeT ix, DLong& scalar);
+  // get i'th parameter
+  // throws if not defined (ie. never returns NULL)
+  BaseGDL*& GetParDefined(SizeT i); //, const std::string& subName = "");
+  bool KeywordPresent( SizeT ix)
+  { return (env.Loc(ix)!=NULL)||(env.Env(ix)!=NULL);}
+  bool GlobalKW( SizeT ix) 
+  {
+    if( ix >= env.size()) return false;
+    return ( env.Env( ix) != NULL);
+  }
+};
+
+// for UD subroutines (GDL internal use) ********************************
+class EnvUDT: public EnvBaseT
+{
+  ProgNodeP         ioError; 
+  DLong             onError; // on_error setting
+  BaseGDL**         catchVar;
+  ProgNodeP         catchNode; 
+  bool              lFun; // assignment paramter for functions as l_value
+  SizeT             nJump; // number of jumps in current environment
+  int               lastJump; // to which label last jump went
+  
+public:
+  // UD pro/fun
+  EnvUDT( ProgNodeP idN, DSub* pro_, bool lF = false);
+
+  // member procedure
+  EnvUDT( ProgNodeP idN, BaseGDL* self, 
+	const std::string& parent="");
+  // member function
+  EnvUDT( BaseGDL* self, ProgNodeP idN, 
+	const std::string& parent="", bool lF = false);
+
+
+  // for obj_new and obj_destroy
+  EnvUDT( EnvT* pEnv, DSub* newPro, BaseGDL** self); 
+
+  SizeT NJump() { return nJump;}
+  int    LastJump() { return lastJump;}
+  ProgNodeP GotoTarget( int ix)
+  { 
+    lastJump = ix; //static_cast<DSubUD*>( pro)->LabelOrd( ix);
+    ++nJump;
+    return static_cast<DSubUD*>( pro)->GotoTarget( ix);
+  }
+  bool LFun() const { return lFun;} // left-function
+
+  void SetIOError( int targetIx) 
+  { // this isn't a jump
+    if( targetIx != -1)
+      ioError = static_cast<DSubUD*>( pro)->GotoTarget( targetIx)->
+	getNextSibling(); 
+    else
+      ioError = NULL;
+  }
+  ProgNodeP GetIOError() { return ioError;}
+
+  const std::string GetFilename() const
+  {
+    DSubUD* subUD=static_cast<DSubUD*>( pro);
+    return subUD->GetFilename();
+  }
+
   friend class DInterpreter;
+  friend class EnvT;
+};
+
+// for library subroutines **************************************
+// this contains the library function API ***********************
+class EnvT: public EnvBaseT
+{
+  // Please use non library API (see below) function with caution
+  // (most of them can be ignored by library function authors)
+
+protected:
+  // stores all data which has to deleted upon destruction
+  std::vector<BaseGDL*>  toDestroy;
+
+public:
+  ~EnvT()
+  {
+    for( std::vector<BaseGDL*>::iterator i=toDestroy.begin();
+	 i != toDestroy.end(); ++i) 
+      delete *i;
+  }
+
+  EnvT::EnvT( ProgNodeP cN, DSub* pro_);
+
+  // for obj_new and obj_destroy
+  EnvT( EnvT* pEnv, DSub* newPro, BaseGDL** self); 
+
+  SizeT NewObjHeap( SizeT n=1, DStructGDL* v=NULL);
+  SizeT NewHeap( SizeT n=1, BaseGDL* v=NULL);
+  void FreeObjHeap( DObj id);
+  void FreeHeap( DPtrGDL* p);
+  DStructGDL* GetObjHeap( DObj ID);
+  BaseGDL* GetHeap( DPtr ID);
+
+  // used by obj_new (basic_fun.cpp)
+  void PushNewEnv(  DSub* newPro, SizeT skipP, BaseGDL** newObj=NULL);
+  void PushNewEnvUD(  DSub* newPro, SizeT skipP, BaseGDL** newObj=NULL);
+  // for exclusive use by lib::on_error
+  void OnError();
+  // for exclusive use by lib::catch_pro
+  void Catch();
+
+  const std::string GetFilename() const
+  {
+    static const std::string internal("<INTERNAL_LIBRARY>");
+    return internal;
+  }
 
   // *************************
   // API for library functions
@@ -309,7 +369,7 @@ public:
   bool KeywordSet( SizeT ix);
 
   bool KeywordPresent( SizeT ix)
-  { return(env.Loc(ix)!=NULL)||(env.Env(ix)!=NULL);}
+  { return EnvBaseT::KeywordPresent( ix);}
 
   // local/global keyword/paramter
   bool LocalKW( SizeT ix) 
@@ -319,8 +379,7 @@ public:
   }
   bool GlobalKW( SizeT ix) 
   {
-    if( ix >= env.size()) return false;
-    return ( env.Env( ix) != NULL);
+    return EnvBaseT::GlobalKW( ix);
   }
   bool LocalPar( SizeT ix) { return LocalKW( ix + pro->key.size());}
   bool StealLocalPar( SizeT ix) 
@@ -416,7 +475,8 @@ public:
   // to be extended on demand for other data types  
 };
 
-typedef std::deque<EnvT*> EnvStackT;
+
+typedef std::deque<EnvBaseT*> EnvStackT;
 
 #endif
 

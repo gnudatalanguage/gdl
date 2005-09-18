@@ -40,7 +40,7 @@
 
 using namespace std;
 
-DCompiler::DCompiler(const string& f, EnvT* e, const std::string& sub)
+DCompiler::DCompiler(const string& f, EnvBaseT* e, const std::string& sub)
   : actualFile(f), subRoutine( sub), env(e), pro(NULL), 
     activeProCompiled( false), tree( NULL)
 {

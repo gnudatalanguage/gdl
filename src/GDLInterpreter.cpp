@@ -230,7 +230,7 @@ void GDLInterpreter::execute(ProgNodeP _t) {
 			match(antlr::RefAST(_t),ON_IOERROR_NULL);
 			_t = _t->getNextSibling();
 			
-			callStack.back()->SetIOError( -1);
+			static_cast<EnvUDT*>(callStack.back())->SetIOError( -1);
 			
 			break;
 		}
@@ -240,7 +240,8 @@ void GDLInterpreter::execute(ProgNodeP _t) {
 			match(antlr::RefAST(_t),ON_IOERROR);
 			_t = _t->getNextSibling();
 			
-			callStack.back()->SetIOError( o->targetIx);
+			static_cast<EnvUDT*>(callStack.back())->
+			SetIOError( o->targetIx);
 			
 			break;
 		}
@@ -584,7 +585,7 @@ void GDLInterpreter::procedure_call(ProgNodeP _t) {
 	// better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
 	StackGuard<EnvStackT> guard(callStack);
 	BaseGDL *self;
-	EnvT*   newEnv;
+	EnvUDT*   newEnv;
 	
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
@@ -600,7 +601,7 @@ void GDLInterpreter::procedure_call(ProgNodeP _t) {
 		match(antlr::RefAST(_t),IDENTIFIER);
 		_t = _t->getNextSibling();
 		
-		EnvT* newEnv=new EnvT( pl, libProList[pl->proIx]);
+		EnvT* newEnv=new EnvT( pl, pl->libPro);//libProList[pl->proIx]);
 		
 		parameter_def(_t, newEnv);
 		_t = _retTree;
@@ -638,7 +639,7 @@ void GDLInterpreter::procedure_call(ProgNodeP _t) {
 			
 			auto_ptr<BaseGDL> self_guard(self);
 			
-			newEnv=new EnvT( mp, self);
+			newEnv=new EnvUDT( mp, self);
 			
 			self_guard.release();
 			
@@ -665,7 +666,7 @@ void GDLInterpreter::procedure_call(ProgNodeP _t) {
 			
 			auto_ptr<BaseGDL> self_guard(self);
 			
-			newEnv = new EnvT( pp, self, parent->getText());
+			newEnv = new EnvUDT( pp, self, parent->getText());
 			
 			self_guard.release();
 			
@@ -687,7 +688,7 @@ void GDLInterpreter::procedure_call(ProgNodeP _t) {
 			
 			SetProIx( p);
 			
-			newEnv = new EnvT( p, proList[p->proIx]);
+			newEnv = new EnvUDT( p, proList[p->proIx]);
 			
 			parameter_def(_t, newEnv);
 			_t = _retTree;
@@ -792,7 +793,8 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 		auto_ptr<BaseGDL> s_guard(s);
 		auto_ptr<BaseGDL> e_guard(e);
 		
-		EnvT* callStack_back = callStack.back();
+		EnvUDT* callStack_back = 
+		static_cast<EnvUDT*>(callStack.back());
 		SizeT nJump = callStack_back->NJump();
 		
 		s->ForCheck( &e);
@@ -856,7 +858,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 		auto_ptr<BaseGDL> e_guard(e);
 		auto_ptr<BaseGDL> st_guard(st);
 		
-		SizeT nJump = callStack.back()->NJump();
+		SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
 		
 		s->ForCheck( &e, &st);
 		e_guard.release();
@@ -886,8 +888,8 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 		}
 		if( retCode >= RC_RETURN) break;
 		
-		if( (callStack.back()->NJump() != nJump) &&
-		!fs->LabelInRange( callStack.back()->LastJump()))
+		if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+		!fs->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
 		{
 		// a jump (goto) occured out of this loop
 		return retCode;
@@ -912,8 +914,8 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 		}
 		if( retCode >= RC_RETURN) break;
 		
-		if( (callStack.back()->NJump() != nJump) &&
-		!fs->LabelInRange( callStack.back()->LastJump()))
+		if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+		!fs->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
 		{
 		// a jump (goto) occured out of this loop
 		return retCode;
@@ -945,7 +947,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 	match(antlr::RefAST(_t),REPEAT);
 	_t = _t->getFirstChild();
 	
-	SizeT nJump = callStack.back()->NJump();
+	SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
 	
 	// remember block and expr nodes
 	ProgNodeP e =_t;
@@ -971,8 +973,8 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 	// if( retCode == RC_BREAK) break;        
 	// if( retCode >= RC_RETURN) return retCode;
 	
-	if( (callStack.back()->NJump() != nJump) &&
-	!r->LabelInRange( callStack.back()->LastJump()))
+	if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+	!r->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
 	{
 	// a jump (goto) occured out of this loop
 	return retCode;
@@ -1002,7 +1004,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 	match(antlr::RefAST(_t),WHILE);
 	_t = _t->getFirstChild();
 	
-	SizeT nJump = callStack.back()->NJump();
+	SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
 	
 	ProgNodeP s = _t; //->GetFirstChild();  // statement
 	ProgNodeP e =  s->GetNextSibling(); // expr
@@ -1019,8 +1021,8 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 	}
 	if( retCode >= RC_RETURN) break;
 	
-	if( (callStack.back()->NJump() != nJump) &&
-	!w->LabelInRange( callStack.back()->LastJump()))
+	if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+	!w->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
 	{
 	// a jump (goto) occured out of this loop
 	return retCode;
@@ -1055,15 +1057,15 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 	
 	auto_ptr<BaseGDL> e_guard(e);
 	
-	SizeT nJump = callStack.back()->NJump();
+	SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
 	
 	if( e->True())
 	{
 	retCode=statement(_t);
 	//                    if( retCode != RC_OK) return retCode;
 	
-	if( (callStack.back()->NJump() != nJump) &&
-	!i->LabelInRange( callStack.back()->LastJump()))
+	if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+	!i->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
 	{
 	// a jump (goto) occured out of this loop
 	return retCode;
@@ -1093,15 +1095,15 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 	
 	auto_ptr<BaseGDL> e_guard(e);
 	
-	SizeT nJump = callStack.back()->NJump();
+	SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
 	
 	if( e->True())
 	{
 	retCode=statement(_t);
 	//                    if( retCode != RC_OK) return retCode;
 	
-	if( (callStack.back()->NJump() != nJump) &&
-	!i->LabelInRange( callStack.back()->LastJump()))
+	if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+	!i->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
 	{
 	// a jump (goto) occured out of this loop
 	return retCode;
@@ -1113,8 +1115,8 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 	retCode=statement(_t);
 	//                    if( retCode != RC_OK) return retCode;
 	
-	if( (callStack.back()->NJump() != nJump) &&
-	!i->LabelInRange( callStack.back()->LastJump()))
+	if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+	!i->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
 	{
 	// a jump (goto) occured out of this loop
 	return retCode;
@@ -1145,7 +1147,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 	
 	auto_ptr<BaseGDL> e_guard(e);
 	
-	SizeT nJump = callStack.back()->NJump();
+	SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
 	
 	if( !e->Scalar())
 	throw GDLException( _t, "Expression must be a"
@@ -1167,8 +1169,8 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 	//                            if( retCode >= RC_RETURN) return retCode; 
 	if( retCode >= RC_RETURN) break;
 	
-	if( (callStack.back()->NJump() != nJump) &&
-	!c->LabelInRange( callStack.back()->LastJump()))
+	if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+	!c->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
 	{
 	// a jump (goto) occured out of this loop
 	return retCode;
@@ -1198,8 +1200,8 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 	//                                if( retCode >= RC_RETURN) return retCode;
 	if( retCode >= RC_RETURN) break;
 	
-	if( (callStack.back()->NJump() != nJump) &&
-	!c->LabelInRange( callStack.back()->LastJump()))
+	if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+	!c->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
 	{
 	// a jump (goto) occured out of this loop
 	return retCode;
@@ -1240,7 +1242,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 	
 	auto_ptr<BaseGDL> e_guard(e);
 	
-	SizeT nJump = callStack.back()->NJump();
+	SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
 	
 	ProgNodeP b=_t; // remeber block begin (block)
 	
@@ -1264,8 +1266,8 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 	}
 	if( retCode >= RC_RETURN) break; // goto
 	
-	if( (callStack.back()->NJump() != nJump) &&
-	!s->LabelInRange( callStack.back()->LastJump()))
+	if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+	!s->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
 	{
 	// a jump (goto) occured out of this loop
 	return retCode;
@@ -1299,8 +1301,8 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 	}
 	if( retCode >= RC_RETURN) break; // goto
 	
-	if( (callStack.back()->NJump() != nJump) &&
-	!s->LabelInRange( callStack.back()->LastJump()))
+	if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+	!s->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
 	{
 	// a jump (goto) occured out of this loop
 	return retCode;
@@ -1402,7 +1404,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 		// jumping into loops is legal, even then looping is not done
 		
 		// set the jump target - also logs the jump
-		_t = callStack.back()->GotoTarget( g->targetIx);
+		_t = static_cast<EnvUDT*>(callStack.back())->GotoTarget( g->targetIx);
 		_t = _t->GetNextSibling();
 		retCode=RC_OK;
 		
@@ -1417,7 +1419,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 		{
 		if (_t == ProgNodeP(antlr::nullAST) )
 			_t = ASTNULL;
-		if (((_tokenSet_1.member(_t->getType())))&&( !callStack.back()->LFun())) {
+		if (((_tokenSet_1.member(_t->getType())))&&( !static_cast<EnvUDT*>(callStack.back())->LFun())) {
 			e=expr(_t);
 			_t = _retTree;
 			
@@ -1887,7 +1889,7 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 }
 
 void GDLInterpreter::parameter_def(ProgNodeP _t,
-	EnvT* actEnv
+	EnvBaseT* actEnv
 ) {
 	ProgNodeP parameter_def_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP knameR = ProgNodeP(antlr::nullAST);
@@ -1895,7 +1897,7 @@ void GDLInterpreter::parameter_def(ProgNodeP _t,
 	ProgNodeP kname = ProgNodeP(antlr::nullAST);
 	ProgNodeP knameCk = ProgNodeP(antlr::nullAST);
 	
-	auto_ptr<EnvT> guard(actEnv); 
+	auto_ptr<EnvBaseT> guard(actEnv); 
 	BaseGDL*  kval;
 	BaseGDL*  pval;
 	BaseGDL** kvalRef;
@@ -2765,7 +2767,7 @@ BaseGDL*  GDLInterpreter::tmp_expr(ProgNodeP _t) {
 	StackGuard<EnvStackT> guard(callStack);
 	BaseGDL *self;
 	BaseGDL *libRes;
-	EnvT*   newEnv;
+	EnvUDT*   newEnv;
 	
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
@@ -2781,12 +2783,12 @@ BaseGDL*  GDLInterpreter::tmp_expr(ProgNodeP _t) {
 		match(antlr::RefAST(_t),IDENTIFIER);
 		_t = _t->getNextSibling();
 		
-		EnvT* newEnv=new EnvT( fl, libFunList[fl->funIx]);
+		EnvT* newEnv=new EnvT( fl, fl->libFun);//libFunList[fl->funIx]);
 		
 		parameter_def(_t, newEnv);
 		_t = _retTree;
 		
-		EnvT* callerEnv = callStack.back();
+		EnvT* callerEnv = static_cast<EnvT*>(callStack.back());
 		// push id.pro onto call stack
 		callStack.push_back(newEnv);
 		// make the call
@@ -2825,7 +2827,7 @@ BaseGDL*  GDLInterpreter::tmp_expr(ProgNodeP _t) {
 			
 			auto_ptr<BaseGDL> self_guard(self);
 			
-			newEnv=new EnvT( self, mp, "", true);
+			newEnv=new EnvUDT( self, mp, "", true);
 			
 			self_guard.release();
 			
@@ -2852,7 +2854,7 @@ BaseGDL*  GDLInterpreter::tmp_expr(ProgNodeP _t) {
 			
 			auto_ptr<BaseGDL> self_guard(self);
 			
-			newEnv=new EnvT( self, p,
+			newEnv=new EnvUDT( self, p,
 			parent->getText(), true);
 			
 			self_guard.release();
@@ -2875,7 +2877,7 @@ BaseGDL*  GDLInterpreter::tmp_expr(ProgNodeP _t) {
 			
 			SetFunIx( f);
 			
-			newEnv=new EnvT( f, funList[f->funIx], true);
+			newEnv=new EnvUDT( f, funList[f->funIx], true);
 			
 			parameter_def(_t, newEnv);
 			_t = _retTree;
@@ -4852,7 +4854,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	// better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
 	StackGuard<EnvStackT> guard(callStack);
 	BaseGDL *self;
-	EnvT*   newEnv;
+	EnvUDT*   newEnv;
 	
 	
 	{
@@ -4874,7 +4876,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 		
 		auto_ptr<BaseGDL> self_guard(self);
 		
-		newEnv=new EnvT( self, mp);
+		newEnv=new EnvUDT( self, mp);
 		
 		self_guard.release();
 		
@@ -4901,7 +4903,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 		
 		auto_ptr<BaseGDL> self_guard(self);
 		
-		newEnv=new EnvT( self, p,
+		newEnv=new EnvUDT( self, p,
 		parent->getText());
 		
 		self_guard.release();
@@ -4924,7 +4926,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 		
 		SetFunIx( f);
 		
-		newEnv=new EnvT( f, funList[f->funIx]);
+		newEnv=new EnvUDT( f, funList[f->funIx]);
 		
 		parameter_def(_t, newEnv);
 		_t = _retTree;
@@ -4967,7 +4969,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	match(antlr::RefAST(_t),IDENTIFIER);
 	_t = _t->getNextSibling();
 	
-	EnvT* newEnv=new EnvT( fl, libFunList[fl->funIx]);
+	EnvT* newEnv=new EnvT( fl, fl->libFun);//libFunList[fl->funIx]);
 	
 	parameter_def(_t, newEnv);
 	_t = _retTree;
@@ -5001,7 +5003,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	match(antlr::RefAST(_t),IDENTIFIER);
 	_t = _t->getNextSibling();
 	
-	EnvT* newEnv=new EnvT( fl, libFunList[fl->funIx]);
+	EnvT* newEnv=new EnvT( fl, fl->libFun);//libFunList[fl->funIx]);
 	
 	parameter_def(_t, newEnv);
 	_t = _retTree;

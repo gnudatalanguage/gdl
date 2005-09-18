@@ -54,7 +54,140 @@ public:
   virtual ArrayIndexT* Dup() const =0;
 };
 
-// INDEXED or ONE [v]
+// SCALAR
+class ArrayIndexScalar: public ArrayIndexT
+{
+protected:
+  SizeT s;
+
+  // forbid c-i
+  ArrayIndexScalar( const ArrayIndexT& r) {}
+
+public:
+  SizeT NParam() { return 1;} // number of parameter to Init(...)
+
+  SizeT GetS() { return s;}
+
+  bool Scalar() { return true;}
+  bool Scalar( SizeT& s_)
+  { 
+    s_ = s;
+    return true;
+  }
+
+  SizeT GetIx0()
+  {
+    return s;
+  }
+
+  ~ArrayIndexScalar() 
+  {}
+
+  ArrayIndexScalar()
+  {}
+
+  ArrayIndexT* Dup() const
+  {
+    ArrayIndexScalar* d =  new ArrayIndexScalar();
+    d->s = s;
+    return d;
+  }
+ 
+  void Clear()
+  {}
+
+  // if this is used, Init was NOT called before
+  BaseGDL* Index( BaseGDL* var, IxExprListT& ixL)
+  {
+    int ret = ixL[0]->Scalar2index(s);
+
+    assert( ret == 1 || ret == -1);
+
+    if( ret == 1) // type ONE
+      {
+	if( s >= var->Size())
+	  {
+	    throw GDLException("Scalar subscript out of range [>].");
+	  }
+
+	return var->NewIx( s);
+      }
+    throw 
+      GDLException( "Scalar subscript < 0.");
+  }
+
+  void Init( BaseGDL* ix_) 
+  {
+    int ret = ix_->Scalar2index(s);
+
+    assert( ret == 1 || ret == -1);
+
+    if( ret == -1) // index < 0
+      throw GDLException("Scalar subscript out of range [<0].");
+  } 
+
+  // number of iterations
+  // also checks/adjusts range 
+  SizeT NIter( SizeT varDim) 
+  {
+    if( s >= varDim)
+      throw GDLException("Scalar subscript out of range [>].");
+    return 1;
+  }
+
+};
+// constant SCALAR
+class CArrayIndexScalar: public ArrayIndexScalar
+{
+public:
+  SizeT NParam() { return 0;} // number of parameter to Init(...)
+
+  ~CArrayIndexScalar() 
+  {}
+
+  CArrayIndexScalar( BaseGDL* c)
+  {
+    ArrayIndexScalar::Init( c);
+  }
+  CArrayIndexScalar( SizeT s_)
+  {
+    s = s_;
+  }
+
+  ArrayIndexT* Dup() const
+  {
+    return  new CArrayIndexScalar( s);
+  }
+ 
+  void Clear()
+  {}
+
+  // if this is used, Init was NOT called before
+  BaseGDL* Index( BaseGDL* var, IxExprListT& ixL)
+  {
+    if( s >= var->Size())
+      {
+	throw GDLException("Scalar subscript out of range [>].");
+      }
+    return var->NewIx( s);
+  }
+
+  void Init( BaseGDL* ix_) 
+  {
+    assert( 0);
+  } 
+
+  // number of iterations
+  // also checks/adjusts range 
+  SizeT NIter( SizeT varDim) 
+  {
+    if( s >= varDim)
+      throw GDLException("Scalar subscript out of range [>].");
+    return 1;
+  }
+};
+
+// INDEXED or ONE [v] (must handle both)
 class ArrayIndexIndexed: public ArrayIndexT
 {
 protected:

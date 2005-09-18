@@ -52,7 +52,10 @@ DInterpreter* ProgNode::interpreter;
 DNode::DNode( const DNode& cp): 
   CommonAST( cp), //down(), right(), 
   lineNumber( cp.getLine()), cData(NULL), 
-  var(cp.var), arrIxList(NULL), labelStart( cp.labelStart), labelEnd( cp.labelEnd)
+  var(cp.var), arrIxList(NULL), 
+  libFun( cp.libFun),
+  libPro( cp.libPro),
+  labelStart( cp.labelStart), labelEnd( cp.labelEnd)
 {
   if( cp.cData != NULL) cData = cp.cData->Dup();
   if( cp.arrIxList != NULL)
@@ -89,7 +92,7 @@ BaseGDL* ProgNode::EvalNC()
 BaseGDL* VARNode::EvalNC()
 {
       EnvStackT& callStack=interpreter->CallStack();
-      BaseGDL* res=callStack.back()->GetKW(this->varIx); 
+      BaseGDL* res=static_cast<EnvUDT*>(callStack.back())->GetKW(this->varIx); 
       if( res == NULL)
 	throw GDLException( this, "Variable is undefined: "+
 			    callStack.back()->GetString(this->varIx));
@@ -171,11 +174,14 @@ ProgNode::ProgNode(): // for NULLProgNode
   right( NULL),
   lineNumber( 0),
   cData( NULL),
+  libPro( NULL),
+  libFun( NULL),
   var( NULL),
   labelStart( 0),
   labelEnd( 0)
 {}
 
+// tanslation RefDNode -> ProgNode
 ProgNode::ProgNode( const RefDNode& refNode):
   ttype( refNode->getType()),
   text( refNode->getText()),
@@ -183,6 +189,8 @@ ProgNode::ProgNode( const RefDNode& refNode):
   right( NULL),
   lineNumber( refNode->getLine()),
   cData( refNode->StealCData()),
+  libPro( refNode->libPro),
+  libFun( refNode->libFun),
   var( refNode->var),
   arrIxList( refNode->StealArrIxList()),
   labelStart( refNode->labelStart),

@@ -38,7 +38,7 @@ class DCompiler: public GDLTokenTypes
   std::string actualFile;         // actual compiled file (dbg info)
   std::string subRoutine;         // pro/fun to compile (used for messages only)
 
-  EnvT   *env;                    // intial processed environment (interactive)
+  EnvBaseT   *env;                // intial processed environment (interactive)
   DSubUD *pro;                    // actual processed pro/function
 
   bool            activeProCompiled;
@@ -58,7 +58,7 @@ public:
   { std::cerr<<"DCompiler() called. Abort."<<std::endl; exit( EXIT_FAILURE);}
 
 public:
-  DCompiler(const std::string& f, EnvT* e, const std::string& sub);
+  DCompiler(const std::string& f, EnvBaseT* e, const std::string& sub);
   ~DCompiler();
 
   // mainly, every language element should have its corresponding function

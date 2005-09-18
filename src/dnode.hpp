@@ -39,6 +39,9 @@ typedef antlr::ASTRefCount<DNode> RefDNode;
 class DVar;
 class DPro;
 
+class DLibFun;
+class DLibPro;
+
 class BaseGDL;
 
 class ArrayIndexListT;
@@ -51,7 +54,10 @@ public:
 
   DNode(): CommonAST(), //down(), right(), 
 	   lineNumber(0), cData(NULL), 
-	   var(NULL), arrIxList(NULL), labelStart( -1), labelEnd( -1)
+	   var(NULL), 
+	   libFun(NULL),
+	   libPro(NULL),
+	   arrIxList(NULL), labelStart( -1), labelEnd( -1)
   {
   }
 
@@ -71,6 +77,8 @@ public:
 
     lineNumber = 0;
     cData=NULL;
+    libFun=NULL;
+    libPro=NULL;
     labelStart = -1;
     labelEnd   = -1;
     var=NULL;
@@ -235,6 +243,8 @@ public:
 
   void SetFunIx(const int ix) { funIx=ix;}
   void SetProIx(const int ix) { proIx=ix;}
+  void SetLibFun(DLibFun* const l) { libFun=l;}
+  void SetLibPro(DLibPro* const l) { libPro=l;}
   void SetNDot(const int n) { nDot=n;}
 
   void SetCompileOpt(const int n) { compileOpt=n;}
@@ -270,6 +280,9 @@ private:
   BaseGDL*   cData;        // constant data
   //  DNode*     gotoTarget;   // for goto statement
   DVar*      var;          // ptr to variable (for system variables and common blocks)
+
+  DLibFun*   libFun;
+  DLibPro*   libPro;
 
   ArrayIndexListT* arrIxList; // ptr to array index list
 //  ArrayIndexT*     arrIx;     // ptr to array index (1-dim)
@@ -326,6 +339,9 @@ protected:
 
   BaseGDL*   cData;           // constant data
   DVar*      var;             // ptr to variable 
+
+  DLibFun*   libFun;
+  DLibPro*   libPro;
 
   union {
     int        initInt;    // for c-i not actually used

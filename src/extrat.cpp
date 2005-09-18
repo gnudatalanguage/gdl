@@ -77,7 +77,7 @@ void ExtraT::Resolve()
       DStringGDL* extraString= dynamic_cast<DStringGDL*>(thisExtra);
       if( extraString != NULL)
 	{
-	  EnvT* caller=thisEnv->Caller();
+	  EnvBaseT* caller=thisEnv->Caller();
 
 	  // STRING only works, if the *caller* has _REF_EXTRA
 	  if( caller->pro->Extra() == DSub::REFEXTRA)

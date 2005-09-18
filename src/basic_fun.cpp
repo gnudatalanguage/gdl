@@ -473,7 +473,7 @@ namespace lib {
       if( objINIT != NULL)
 	{
 	  // morph to obj environment and push it onto the stack again
-	  e->PushNewEnv( objINIT, 1, &newObj);
+	  e->PushNewEnvUD( objINIT, 1, &newObj);
 	
 	  BaseGDL* res=e->Interpreter()->call_fun( objINIT->GetTree());
 	
@@ -1032,17 +1032,17 @@ namespace lib {
 	e->PushNewEnv( libFunList[ funIx], 1);
 	
 	// make the call
-	EnvT* newEnv = e->Interpreter()->CallStack().back();
+	EnvT* newEnv = static_cast<EnvT*>(e->Interpreter()->CallStack().back());
 	return static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
       }
     else
       {
 	funIx = GDLInterpreter::GetFunIx( callF);
 	
-	e->PushNewEnv( funList[ funIx], 1);
+	e->PushNewEnvUD( funList[ funIx], 1);
 	
 	// make the call
-	EnvT* newEnv = e->Interpreter()->CallStack().back();
+	EnvUDT* newEnv = static_cast<EnvUDT*>(e->Interpreter()->CallStack().back());
 	return e->Interpreter()->
 	  call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
       }
@@ -1098,7 +1098,7 @@ namespace lib {
     e->AssureScalarPar<DStringGDL>( 0, line);
 
     // remove current environment (own one)
-    EnvT* caller = e->Caller();
+    EnvBaseT* caller = e->Caller();
     e->Interpreter()->CallStack().pop_back();
     delete e;
 
@@ -1705,7 +1705,7 @@ namespace lib {
 
   BaseGDL* n_params( EnvT* e) 
   {
-    EnvT* caller = e->Caller();
+    EnvUDT* caller = static_cast<EnvUDT*>(e->Caller());
     if( caller == NULL) return new DLongGDL( 0);
     DLong nP = caller->NParam();
     return new DLongGDL( nP);
@@ -2369,7 +2369,7 @@ namespace lib {
     if( !e->GlobalPar( 0))
       return new DIntGDL( 0);
 
-    EnvT* caller = e->Caller();
+    EnvBaseT* caller = e->Caller();
     if( caller == NULL)
       return new DIntGDL( 0);
 

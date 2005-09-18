@@ -66,7 +66,6 @@ options {
     
     IDList          loopVarStack;
     
-    // Replaces ASSIGN with ASSIGN_REPLACE if appropiate
     bool LoopVar( RefDNode& lN)
     {
         int lT = lN->getType();
@@ -75,6 +74,7 @@ options {
         return false;
     }
     
+    // Replaces ASSIGN with ASSIGN_REPLACE if appropiate
     void AssignReplace( RefDNode& lN, RefDNode& aN)
     {
         if( LoopVar( lN))
@@ -113,7 +113,7 @@ options {
         setASTFactory( &DNodeFactory );
     }
   // constructor for command line/execute
-  GDLTreeParser( EnvT* env)
+  GDLTreeParser( EnvBaseT* env)
     : antlr::TreeParser(), comp( "", env, "")
     {
         initializeASTFactory( DNodeFactory);
@@ -485,7 +485,7 @@ procedure_call
                 {
                     #p->setType(PCALL_LIB);
                     #p->setText("pcall_lib");
-                    #id->SetProIx(i);
+                    #id->SetLibPro( libProList[i]);
                 }
                 else
                 {
@@ -652,13 +652,24 @@ arrayindex! [ArrayIndexListT* ixList]
                             {
                                 c1 = comp.Constant( e1); 
                                 if( c1 != NULL)
-                                {
-                                ixList->push_back( new CArrayIndexIndexed( c1));
-                                }
+                                    {   
+                                        if( c1->Rank() == 0)
+                                            
+                                            ixList->
+                                                push_back( new 
+                                                           CArrayIndexScalar( c1));
+                                        else
+                                            ixList->
+                                                push_back( new 
+                                                           CArrayIndexIndexed( c1));
+                                    }
                                 else
                                 {
                                 ## = #e1;
-                                ixList->push_back( new ArrayIndexIndexed());
+                                    if( LoopVar( #e1))
+                                        ixList->push_back( new ArrayIndexScalar());
+                                    else
+                                        ixList->push_back( new ArrayIndexIndexed());
                                 }
                             }
                          | ALL
@@ -943,7 +954,7 @@ arrayexpr_fn!//
                     int i=LibFunIx(id_text);
                     if( i != -1)
                     {
-                        #id->SetFunIx(i);
+                        #id->SetLibFun( libFunList[i]);
                         if( libFunList[ i]->RetNew())
                         #arrayexpr_fn=
                         #([FCALL_LIB_RETNEW,"fcall_lib_retnew"], id, el);
@@ -998,13 +1009,15 @@ int dummy;
                     {
                     #f->setType(FCALL_LIB_RETNEW);
                     #f->setText("fcall_lib_retnew");
-                    #id->SetFunIx(i);
+                    #id->SetLibFun( libFunList[i]);
+                        //                    #id->SetFunIx(i);
                     }
                     else
                     {
                     #f->setType(FCALL_LIB);
                     #f->setText("fcall_lib");
-                    #id->SetFunIx(i);
+                    #id->SetLibFun( libFunList[i]);
+                        //                    #id->SetFunIx(i);
                     }
                 }
                 else

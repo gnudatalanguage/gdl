@@ -19,7 +19,6 @@ class CUSTOM_API GDLTreeParser : public antlr::TreeParser, public GDLTreeParserT
     
     IDList          loopVarStack;
     
-    // Replaces ASSIGN with ASSIGN_REPLACE if appropiate
     bool LoopVar( RefDNode& lN)
     {
         int lT = lN->getType();
@@ -28,6 +27,7 @@ class CUSTOM_API GDLTreeParser : public antlr::TreeParser, public GDLTreeParserT
         return false;
     }
     
+    // Replaces ASSIGN with ASSIGN_REPLACE if appropiate
     void AssignReplace( RefDNode& lN, RefDNode& aN)
     {
         if( LoopVar( lN))
@@ -66,7 +66,7 @@ class CUSTOM_API GDLTreeParser : public antlr::TreeParser, public GDLTreeParserT
         setASTFactory( &DNodeFactory );
     }
   // constructor for command line/execute
-  GDLTreeParser( EnvT* env)
+  GDLTreeParser( EnvBaseT* env)
     : antlr::TreeParser(), comp( "", env, "")
     {
         initializeASTFactory( DNodeFactory);

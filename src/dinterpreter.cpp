@@ -70,7 +70,7 @@ DInterpreter::DInterpreter(): GDLInterpreter()
   
     // setup main level environment
   DPro* mainPro=new DPro();        // $MAIN$  NOT inserted into proList
-  EnvT* mainEnv=new EnvT(NULL, mainPro);
+  EnvUDT* mainEnv=new EnvUDT(NULL, mainPro);
   callStack.push_back(mainEnv);   // push main environment (necessary)
     
   assert( ProgNode::interpreter == NULL);
@@ -185,7 +185,7 @@ DStructDesc* GDLInterpreter::GetStruct(const string& name, ProgNodeP cN)
   StackGuard<EnvStackT> guard(callStack);
 
   // interpret it
-  EnvT* newEnv=new EnvT( cN, proList[proIx]);
+  EnvUDT* newEnv=new EnvUDT( cN, proList[proIx]);
 
   // push id.pro onto call stack
   callStack.push_back(newEnv);
@@ -919,6 +919,9 @@ GDLInterpreter::RetCode DInterpreter::InterpreterLoop( const string& startup)
   if( startup != "")
     {
       ifstream in(startup.c_str());
+
+      if( in.fail())
+	Warning( "Error opening startup file: "+startup);
 
       ValueGuard<bool> guard( interruptEnable);
       interruptEnable = false;

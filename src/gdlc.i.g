@@ -511,11 +511,12 @@ statement returns[ GDLInterpreter::RetCode retCode]
         |   LABEL
         |   ON_IOERROR_NULL
             {
-                callStack.back()->SetIOError( -1);
+                static_cast<EnvUDT*>(callStack.back())->SetIOError( -1);
             }
         |   o:ON_IOERROR
             {
-                callStack.back()->SetIOError( o->targetIx);
+                static_cast<EnvUDT*>(callStack.back())->
+                    SetIOError( o->targetIx);
             }
         )
         // control c and debugging
@@ -596,7 +597,7 @@ switch_statement returns[ GDLInterpreter::RetCode retCode]
             {
                 auto_ptr<BaseGDL> e_guard(e);
                 
-                SizeT nJump = callStack.back()->NJump();
+                SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
 
                 ProgNodeP b=_t; // remeber block begin (block)
 
@@ -620,8 +621,8 @@ switch_statement returns[ GDLInterpreter::RetCode retCode]
                             }
                             if( retCode >= RC_RETURN) break; // goto
 
-                            if( (callStack.back()->NJump() != nJump) &&
-                                !s->LabelInRange( callStack.back()->LastJump()))
+                            if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+                                !s->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
                             {
                                 // a jump (goto) occured out of this loop
                                 return retCode;
@@ -655,8 +656,8 @@ switch_statement returns[ GDLInterpreter::RetCode retCode]
                             }
                             if( retCode >= RC_RETURN) break; // goto
 
-                            if( (callStack.back()->NJump() != nJump) &&
-                                !s->LabelInRange( callStack.back()->LastJump()))
+                            if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+                                !s->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
                             {
                                 // a jump (goto) occured out of this loop
                                 return retCode;
@@ -681,7 +682,7 @@ case_statement returns[ GDLInterpreter::RetCode retCode]
             {
                 auto_ptr<BaseGDL> e_guard(e);
 
-                SizeT nJump = callStack.back()->NJump();
+                SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
 
                 if( !e->Scalar())
                 throw GDLException( _t, "Expression must be a"
@@ -703,8 +704,8 @@ case_statement returns[ GDLInterpreter::RetCode retCode]
 //                            if( retCode >= RC_RETURN) return retCode; 
                             if( retCode >= RC_RETURN) break;
                             
-                            if( (callStack.back()->NJump() != nJump) &&
-                                !c->LabelInRange( callStack.back()->LastJump()))
+                            if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+                                !c->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
                             {
                                 // a jump (goto) occured out of this loop
                                 return retCode;
@@ -734,8 +735,8 @@ case_statement returns[ GDLInterpreter::RetCode retCode]
 //                                if( retCode >= RC_RETURN) return retCode;
                                 if( retCode >= RC_RETURN) break;
 
-                                if( (callStack.back()->NJump() != nJump) &&
-                                    !c->LabelInRange( callStack.back()->LastJump()))
+                                if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+                                    !c->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
                                 {
                                     // a jump (goto) occured out of this loop
                                     return retCode;
@@ -758,7 +759,7 @@ case_statement returns[ GDLInterpreter::RetCode retCode]
 repeat_statement returns[ GDLInterpreter::RetCode retCode]
 	: #(r:REPEAT // block expr
             {
-                SizeT nJump = callStack.back()->NJump();
+                SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
 
                 // remember block and expr nodes
                 ProgNodeP e =_t;
@@ -784,8 +785,8 @@ repeat_statement returns[ GDLInterpreter::RetCode retCode]
                     // if( retCode == RC_BREAK) break;        
                     // if( retCode >= RC_RETURN) return retCode;
 
-                    if( (callStack.back()->NJump() != nJump) &&
-                        !r->LabelInRange( callStack.back()->LastJump()))
+                    if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+                        !r->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
                     {
                         // a jump (goto) occured out of this loop
                         return retCode;
@@ -805,7 +806,7 @@ while_statement returns[ GDLInterpreter::RetCode retCode]
 }
 	: #(w:WHILE // statement expr 
             {
-                SizeT nJump = callStack.back()->NJump();
+                SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
 
                 ProgNodeP s = _t; //->GetFirstChild();  // statement
                 ProgNodeP e =  s->GetNextSibling(); // expr
@@ -822,8 +823,8 @@ while_statement returns[ GDLInterpreter::RetCode retCode]
                     }
                     if( retCode >= RC_RETURN) break;
                     
-                    if( (callStack.back()->NJump() != nJump) &&
-                        !w->LabelInRange( callStack.back()->LastJump()))
+                    if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+                        !w->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
                     {
                         // a jump (goto) occured out of this loop
                         return retCode;
@@ -852,7 +853,8 @@ for_statement returns[ GDLInterpreter::RetCode retCode]
                 auto_ptr<BaseGDL> s_guard(s);
                 auto_ptr<BaseGDL> e_guard(e);
 
-                EnvT* callStack_back = callStack.back();
+                EnvUDT* callStack_back = 
+                static_cast<EnvUDT*>(callStack.back());
                 SizeT nJump = callStack_back->NJump();
 
                 s->ForCheck( &e);
@@ -902,7 +904,7 @@ for_statement returns[ GDLInterpreter::RetCode retCode]
                 auto_ptr<BaseGDL> e_guard(e);
                 auto_ptr<BaseGDL> st_guard(st);
 
-                SizeT nJump = callStack.back()->NJump();
+                SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
 
                 s->ForCheck( &e, &st);
                 e_guard.release();
@@ -932,8 +934,8 @@ for_statement returns[ GDLInterpreter::RetCode retCode]
                             }
                             if( retCode >= RC_RETURN) break;
                             
-                            if( (callStack.back()->NJump() != nJump) &&
-                                !fs->LabelInRange( callStack.back()->LastJump()))
+                            if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+                                !fs->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
                             {
                                 // a jump (goto) occured out of this loop
                                 return retCode;
@@ -958,8 +960,8 @@ for_statement returns[ GDLInterpreter::RetCode retCode]
                             }
                             if( retCode >= RC_RETURN) break;
                             
-                            if( (callStack.back()->NJump() != nJump) &&
-                                !fs->LabelInRange( callStack.back()->LastJump()))
+                            if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+                                !fs->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
                             {
                                 // a jump (goto) occured out of this loop
                                 return retCode;
@@ -980,15 +982,15 @@ if_statement returns[ GDLInterpreter::RetCode retCode]
             { 
                 auto_ptr<BaseGDL> e_guard(e);
 
-                SizeT nJump = callStack.back()->NJump();
+                SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
 
                 if( e->True())
                 {
                     retCode=statement(_t);
 //                    if( retCode != RC_OK) return retCode;
 
-                        if( (callStack.back()->NJump() != nJump) &&
-                            !i->LabelInRange( callStack.back()->LastJump()))
+                        if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+                            !i->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
                         {
                             // a jump (goto) occured out of this loop
                             return retCode;
@@ -1006,15 +1008,15 @@ if_else_statement returns[ GDLInterpreter::RetCode retCode]
             { 
                 auto_ptr<BaseGDL> e_guard(e);
 
-                SizeT nJump = callStack.back()->NJump();
+                SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
 
                 if( e->True())
                 {
                     retCode=statement(_t);
 //                    if( retCode != RC_OK) return retCode;
 
-                    if( (callStack.back()->NJump() != nJump) &&
-                        !i->LabelInRange( callStack.back()->LastJump()))
+                    if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+                        !i->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
                     {
                         // a jump (goto) occured out of this loop
                         return retCode;
@@ -1026,8 +1028,8 @@ if_else_statement returns[ GDLInterpreter::RetCode retCode]
                     retCode=statement(_t);
 //                    if( retCode != RC_OK) return retCode;
 
-                    if( (callStack.back()->NJump() != nJump) &&
-                        !i->LabelInRange( callStack.back()->LastJump()))
+                    if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+                        !i->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
                     {
                         // a jump (goto) occured out of this loop
                         return retCode;
@@ -1049,11 +1051,11 @@ BaseGDL** eL;
             // jumping into loops is legal, even then looping is not done
 
             // set the jump target - also logs the jump
-            _t = callStack.back()->GotoTarget( g->targetIx);
+            _t = static_cast<EnvUDT*>(callStack.back())->GotoTarget( g->targetIx);
             _t = _t->GetNextSibling();
             retCode=RC_OK;
         }
-    | #(RETF ( { !callStack.back()->LFun()}? e=expr // expr -> r value
+    | #(RETF ( { !static_cast<EnvUDT*>(callStack.back())->LFun()}? e=expr // expr -> r value
                 {
                     delete returnValue;
                     returnValue=e;
@@ -1087,11 +1089,11 @@ procedure_call
     // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
     StackGuard<EnvStackT> guard(callStack);
     BaseGDL *self;
-    EnvT*   newEnv;
+    EnvUDT*   newEnv;
 }
 	: #(PCALL_LIB pl:IDENTIFIER
             {
-                EnvT* newEnv=new EnvT( pl, libProList[pl->proIx]);
+                EnvT* newEnv=new EnvT( pl, pl->libPro);//libProList[pl->proIx]);
             }
             parameter_def[ newEnv]
             {
@@ -1109,7 +1111,7 @@ procedure_call
                 {  
                     auto_ptr<BaseGDL> self_guard(self);
                     
-                    newEnv=new EnvT( mp, self);
+                    newEnv=new EnvUDT( mp, self);
 
                     self_guard.release();
                 }
@@ -1120,7 +1122,7 @@ procedure_call
                 {
                     auto_ptr<BaseGDL> self_guard(self);
                     
-                    newEnv = new EnvT( pp, self, parent->getText());
+                    newEnv = new EnvUDT( pp, self, parent->getText());
 
                     self_guard.release();
                 }
@@ -1130,7 +1132,7 @@ procedure_call
             {
                 SetProIx( p);
             
-                newEnv = new EnvT( p, proList[p->proIx]);
+                newEnv = new EnvUDT( p, proList[p->proIx]);
             }
             parameter_def[ newEnv]
             )
@@ -2694,7 +2696,7 @@ lib_function_call returns[ BaseGDL* res]
 }
 	: #(FCALL_LIB fl:IDENTIFIER
             {
-                EnvT* newEnv=new EnvT( fl, libFunList[fl->funIx]);
+                EnvT* newEnv=new EnvT( fl, fl->libFun);//libFunList[fl->funIx]);
             }
             parameter_def[ newEnv]
             {
@@ -2714,7 +2716,7 @@ lib_function_call_retnew returns[ BaseGDL* res]
 }
 	: #(FCALL_LIB_RETNEW fl:IDENTIFIER
             {
-                EnvT* newEnv=new EnvT( fl, libFunList[fl->funIx]);
+                EnvT* newEnv=new EnvT( fl, fl->libFun);//libFunList[fl->funIx]);
             }
             parameter_def[ newEnv]
             {
@@ -2733,7 +2735,7 @@ function_call returns[ BaseGDL* res]
     // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
     StackGuard<EnvStackT> guard(callStack);
     BaseGDL *self;
-    EnvT*   newEnv;
+    EnvUDT*   newEnv;
 }
     :    (
         ( #(MFCALL 
@@ -2741,7 +2743,7 @@ function_call returns[ BaseGDL* res]
                 {  
                     auto_ptr<BaseGDL> self_guard(self);
                     
-                    newEnv=new EnvT( self, mp);
+                    newEnv=new EnvUDT( self, mp);
 
                     self_guard.release();
                 }
@@ -2752,7 +2754,7 @@ function_call returns[ BaseGDL* res]
                 {
                     auto_ptr<BaseGDL> self_guard(self);
                     
-                    newEnv=new EnvT( self, p,
+                    newEnv=new EnvUDT( self, p,
                         parent->getText());
 
                     self_guard.release();
@@ -2763,7 +2765,7 @@ function_call returns[ BaseGDL* res]
                 {
                     SetFunIx( f);
                     
-                    newEnv=new EnvT( f, funList[f->funIx]);
+                    newEnv=new EnvUDT( f, funList[f->funIx]);
                 }
                 parameter_def[ newEnv]
             )
@@ -2785,16 +2787,16 @@ l_function_call returns[ BaseGDL** res]
     StackGuard<EnvStackT> guard(callStack);
     BaseGDL *self;
     BaseGDL *libRes;
-    EnvT*   newEnv;
+    EnvUDT*   newEnv;
 }
 
 	: #(FCALL_LIB fl:IDENTIFIER
             {
-                EnvT* newEnv=new EnvT( fl, libFunList[fl->funIx]);
+                EnvT* newEnv=new EnvT( fl, fl->libFun);//libFunList[fl->funIx]);
             }
             parameter_def[ newEnv]
             {
-                EnvT* callerEnv = callStack.back();
+                EnvT* callerEnv = static_cast<EnvT*>(callStack.back());
                 // push id.pro onto call stack
                 callStack.push_back(newEnv);
                 // make the call
@@ -2814,7 +2816,7 @@ l_function_call returns[ BaseGDL** res]
                 {  
                     auto_ptr<BaseGDL> self_guard(self);
                     
-                    newEnv=new EnvT( self, mp, "", true);
+                    newEnv=new EnvUDT( self, mp, "", true);
 
                     self_guard.release();
                 }
@@ -2825,7 +2827,7 @@ l_function_call returns[ BaseGDL** res]
                 {
                     auto_ptr<BaseGDL> self_guard(self);
                     
-                    newEnv=new EnvT( self, p,
+                    newEnv=new EnvUDT( self, p,
                         parent->getText(), true);
 
                     self_guard.release();
@@ -2837,7 +2839,7 @@ l_function_call returns[ BaseGDL** res]
                 {
                     SetFunIx( f);
                     
-                    newEnv=new EnvT( f, funList[f->funIx], true);
+                    newEnv=new EnvUDT( f, funList[f->funIx], true);
                 }
                 parameter_def[ newEnv]
             )
@@ -2859,9 +2861,9 @@ ref_parameter returns[ BaseGDL** ret]
     ;
 
 // the environment must be on the callstack
-parameter_def [EnvT* actEnv] 
+parameter_def [EnvBaseT* actEnv] 
 {
-    auto_ptr<EnvT> guard(actEnv); 
+    auto_ptr<EnvBaseT> guard(actEnv); 
     BaseGDL*  kval;
     BaseGDL*  pval;
     BaseGDL** kvalRef;

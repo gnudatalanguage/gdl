@@ -381,7 +381,7 @@ public:
 	public: BaseGDL**  l_simple_var(ProgNodeP _t);
 	public: BaseGDL**  l_ret_expr(ProgNodeP _t);
 	public: void parameter_def(ProgNodeP _t,
-		EnvT* actEnv
+		EnvBaseT* actEnv
 	);
 	public: BaseGDL*  indexable_expr(ProgNodeP _t);
 	public: BaseGDL*  indexable_tmp_expr(ProgNodeP _t);
