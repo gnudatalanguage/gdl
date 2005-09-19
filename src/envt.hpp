@@ -47,7 +47,7 @@ protected:
   DSub*                pro;
   ProgNodeP            callingNode;
   bool                 obj;       // member subroutine?
-  ExtraT               extra;
+  ExtraT*              extra;
 
   // finds the local variable pp points to
   int FindLocalKW( BaseGDL** pp) { return env.FindLocal( pp);}
@@ -55,7 +55,7 @@ protected:
   int GetKeywordIx( const std::string& k);
 
 public:
-  virtual ~EnvBaseT() {}
+  virtual ~EnvBaseT() { delete extra;}
 
   EnvBaseT( ProgNodeP cN, DSub* pro_);
 

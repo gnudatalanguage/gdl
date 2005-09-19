@@ -83,7 +83,8 @@ void ExtraT::Resolve()
 	  if( caller->pro->Extra() == DSub::REFEXTRA)
 	    {
 	      // caller's extra member holds the actual data
-	      ExtraT& cExtra=caller->extra;
+	      assert( caller->extra != NULL);
+	      ExtraT& cExtra=*caller->extra;
 
 	      SizeT nStr=extraString->N_Elements();
 	      for( SizeT t=0; t<nStr; t++)

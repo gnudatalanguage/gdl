@@ -32,7 +32,7 @@ DInterpreter* EnvBaseT::interpreter;
 EnvBaseT::EnvBaseT( ProgNodeP cN, DSub* pro_): 
   env(), 
   pro(pro_),
-  extra(this), 
+  extra(NULL), 
   callingNode( cN),
   obj(false) 
 {}
@@ -294,15 +294,17 @@ void EnvBaseT::SetKeyword( const string& k, BaseGDL* const val) // value
   // -3 means _STRICT_EXTRA keyword
   if( varIx <= -2)
     {
-      extra.Set(val);
-      extra.SetStrict( varIx == -3);
+      if( extra == NULL) extra = new ExtraT( this);
+      extra->Set(val);
+      extra->SetStrict( varIx == -3);
       return;
     }
 
   // -1 means an extra (additional) keyword
   if( varIx == -1)
     {
-      extra.Add(k,val);
+      if( extra == NULL) extra = new ExtraT( this);
+      extra->Add(k,val);
       return;
     }
 
@@ -320,15 +322,17 @@ void EnvBaseT::SetKeyword( const string& k, BaseGDL** const val) // reference
   // -3 means _STRICT_EXTRA keyword
   if( varIx <= -2)
     {
-      extra.Set(val);
-      extra.SetStrict( varIx == -3);
+      if( extra == NULL) extra = new ExtraT( this);
+      extra->Set(val);
+      extra->SetStrict( varIx == -3);
       return;
     }
 
   // -1 means an extra (additional) keyword
   if( varIx == -1)
     {
-      extra.Add(k,val);
+      if( extra == NULL) extra = new ExtraT( this);
+      extra->Add(k,val);
       return;
     }
 
@@ -338,7 +342,7 @@ void EnvBaseT::SetKeyword( const string& k, BaseGDL** const val) // reference
 // called after parameter definition
 void EnvBaseT::Extra()
 {
-  extra.Resolve();
+  if( extra != NULL) extra->Resolve();
 }
 
 EnvBaseT* EnvBaseT::Caller()
@@ -368,9 +372,9 @@ void EnvT::PushNewEnvUD(  DSub* newPro, SizeT skipP, BaseGDL** newObj)
   interpreter->CallStack().push_back( newEnv); 
 
   // _REF_EXTRA is set to the keyword string array
-  newEnv->extra.Set( &env[0]);
-
-  newEnv->extra.Resolve();
+  newEnv->extra = new ExtraT( newEnv);
+  newEnv->extra->Set( &env[0]);
+  newEnv->extra->Resolve();
 }
 // used by obj_new (basic_fun.cpp)
 // and obj_destroy (basic_pro.cpp)
@@ -388,9 +392,9 @@ void EnvT::PushNewEnv(  DSub* newPro, SizeT skipP, BaseGDL** newObj)
   interpreter->CallStack().push_back( newEnv); 
 
   // _REF_EXTRA is set to the keyword string array
-  newEnv->extra.Set( &env[0]);
-
-  newEnv->extra.Resolve();
+  newEnv->extra = new ExtraT( newEnv);
+  newEnv->extra->Set( &env[0]);
+  newEnv->extra->Resolve();
 }
 
 void EnvT::AssureGlobalPar( SizeT pIx)
