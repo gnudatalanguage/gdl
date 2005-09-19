@@ -36,10 +36,8 @@ class dimension
 
 public:
   // structors
-  dimension()
-  {
-    rank = 0;
-  }
+  dimension(): rank(0)
+  {}
 
   // c-i
   dimension(const dimension& dim_)
@@ -226,6 +224,7 @@ public:
   }
 
   // members
+
   // number of elements
   SizeT N_Elements() const
   {
