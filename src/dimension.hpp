@@ -32,39 +32,50 @@ inline SizeT RankIx( const SizeT rank)
 class dimension
 {
   SizeT dim[MAXRANK];         // dimension
+  SizeT rank;                 // how many dim are valid  
 
 public:
   // structors
   dimension()
   {
-    for(unsigned i=0; i<MAXRANK; i++) { dim[i]=0;}
+    rank = 0;
   }
 
   // c-i
   dimension(const dimension& dim_)
   { 
-    for(unsigned i=0; i<MAXRANK; i++)
+    rank = dim_.rank;
+    for(unsigned i=0; i<rank; ++i)
       { dim[i]=dim_.dim[i];}
   }
 
   // initialize from SizeT[ nD] array
   dimension(const SizeT*  d, SizeT nD=MAXRANK)
   {
-    SizeT i;
-    for( i=0; i<nD; i++)
+    rank = nD;
+    for( SizeT i=0; i<rank; ++i)
       dim[i]=d[i];
-    for(; i<MAXRANK; i++)
-      dim[i]=0;
   }
 
   // simplified constructor for one to three dimensions
   dimension(const SizeT d0, const SizeT d1=0, const SizeT d2=0)
   {
+    if( d0 == 0) 
+      {
+	rank = 0; return;
+      }
     dim[0] = d0;
+    if( d1 == 0) 
+      {
+	rank = 1; return;
+      }
     dim[1] = d1;
+    if( d2 == 0) 
+      {
+	rank = 2; return;
+      }
     dim[2] = d2;
-    for( SizeT i=3; i<MAXRANK; i++)
-      dim[i]=0;
+    rank = 3;
   }
 
   // operators
@@ -72,7 +83,8 @@ public:
   dimension& operator=(const dimension& dim_)
   { 
     if( &dim_ == this) return *this; // self assignment
-    for(unsigned i=0; i<MAXRANK; i++) dim[i]=dim_.dim[i];
+    rank = dim_.rank;
+    for(unsigned i=0; i<rank; ++i) dim[i]=dim_.dim[i];
     return *this;
   }
 
@@ -81,36 +93,31 @@ public:
   // cat add to right
   void operator<<(const dimension& add)
   { 
-    SizeT thisRank = Rank();
-    SizeT addRank  = add.Rank();
+    SizeT thisRank = rank;
      
-    SizeT newRank= thisRank+addRank;
-    if( newRank > MAXRANK)
+    rank += add.rank;
+    if( rank > MAXRANK)
       throw GDLException("Only "+MAXRANK_STR+" dimensions allowed.");
 
-    for( SizeT i=thisRank; i<newRank; i++)
+    for( SizeT i=thisRank; i<rank; ++i)
       dim[i]=add.dim[i-thisRank];
   }
 
   // cat one dim to the right
   void operator<<(const SizeT add)
   { 
-    SizeT thisRank = Rank();
-     
-    SizeT newRank= thisRank+1;
-    if( newRank > MAXRANK)
+    if( rank == MAXRANK)
       throw GDLException("Only "+MAXRANK_STR+" dimensions allowed.");
 
-    dim[thisRank]=add;
+    dim[rank++]=add;
   }
 
   // cat one dim to the left
   void operator>>(const SizeT add)
   { 
-    SizeT thisRank = Rank();
+    SizeT thisRank = rank++;
      
-    SizeT newRank= thisRank+1;
-    if( newRank > MAXRANK)
+    if( rank > MAXRANK)
       throw GDLException("Only "+MAXRANK_STR+" dimensions allowed.");
 
     for( int i=thisRank-1; i>=0; i--)
@@ -124,11 +131,11 @@ public:
   // cat add to left
   void operator>>(const dimension& add)
   { 
-    int thisRank = Rank();
-    int addRank  = add.Rank();
+    int thisRank = rank;
+    int addRank  = add.rank;
      
-    int newRank= thisRank+addRank;
-    if( newRank > static_cast<int>(MAXRANK))
+    rank += addRank;
+    if( rank > static_cast<int>(MAXRANK))
       throw GDLException("Only "+MAXRANK_STR+" dimensions allowed.");
 
     // shift dim by addRank
@@ -154,10 +161,15 @@ public:
   // remove dimesion ix (used by total function)
   SizeT Remove( SizeT ix)
   {
+    if( rank == 0) 
+      {
+	assert( ix == 0);
+	return 0;
+      }
     SizeT res = dim[ix];
-    for( SizeT i=ix; i<MAXRANK-1; ++i)
+    rank--;
+    for( SizeT i=ix; i<rank; ++i)
       dim[i]=dim[i+1];
-    dim[MAXRANK-1]=0;
     return res;
   }
 
@@ -170,7 +182,7 @@ public:
 
   friend std::ostream& operator<<(std::ostream& o, const dimension& d)
   {
-    SizeT r=d.Rank();
+    SizeT r=d.rank;
     if( r == 0)
       {
 	o << "scalar ";
@@ -179,7 +191,7 @@ public:
     else
       {
 	o << "Array[";
-	for( SizeT i=0; i<(r-1); i++)
+	for( SizeT i=0; i<(r-1); ++i)
 	  o << d.dim[i] << ", ";
 	o << d.dim[r-1] << "]";
       }
@@ -190,7 +202,8 @@ public:
     operator==(const dimension& left,
                const dimension& right)
   {
-    for( SizeT i=0; i<MAXRANK; i++)
+    if( left.rank != right.rank) return false;
+    for( SizeT i=0; i<left.rank; ++i)
       if( left.dim[i] != right.dim[i]) return false;
     return true;
   }
@@ -199,7 +212,8 @@ public:
     operator!=(const dimension& left,
                const dimension& right)
   {
-    for( SizeT i=0; i<MAXRANK; i++)
+    if( left.rank != right.rank) return true;
+    for( SizeT i=0; i<left.rank; ++i)
       if( left.dim[i] != right.dim[i]) return true;
     return false;
   }
@@ -207,6 +221,7 @@ public:
   // one dim array access (unchecked)
   SizeT operator[] (const SizeT d1) const
   {
+    if( d1 >= rank) return 0;
     return dim[d1];
   }
 
@@ -215,19 +230,21 @@ public:
   SizeT N_Elements() const
   {
     SizeT res=1;
-    for(unsigned i=0; i<MAXRANK && dim[i] != 0; i++) res *= dim[i];
+    for(unsigned i=0; i<rank; ++i) res *= dim[i];
     return res;
   }
 
   void Set(const SizeT ix, const SizeT d) 
   {
+    assert( ix < rank);
     dim[ix]=d;
   }
 
   SizeT Stride(const SizeT i) const
   {
     SizeT ret=1;
-    for(unsigned m=1; m<=i && (dim[m-1] != 0); m++)
+    SizeT l = (i<rank)?i:rank;
+    for(unsigned m=1; m<=l; ++m)
       ret *= dim[m-1];
 
     return ret;
@@ -236,33 +253,41 @@ public:
   void Stride( SizeT s[], SizeT upto) const
   {
     s[0]=1; // upto must be at least 1
-    for(unsigned m=1; m<=upto; m++)
-      s[m] = s[m-1] * (dim[m-1]?dim[m-1]:1);
+    unsigned m=1;
+    if( upto <= rank)
+      for(; m<=upto; ++m)
+	s[m] = s[m-1] * dim[m-1];
+    else
+      {
+      for(; m<=rank; ++m)
+	s[m] = s[m-1] * dim[m-1];
+      for(; m<=upto; ++m)
+	s[m] = s[m-1];
+      }
   }
 
   // actual rank (0->scalar .. MAXRANK)
   // dim[rank]=0 for rank<MAXRANK
   SizeT Rank() const
   {
-    SizeT i;
-    for(i=0; i<MAXRANK && dim[i]; i++); 
-    return i;
+    return rank;
   }
 
   // throw away unused ranks (ie. ranks == 1)
   void Purge()
   {
-    for(SizeT i=MAXRANK-1; i>0 && dim[i] <= 1; i--) dim[i]=0;
+    for(; rank>1 && dim[rank-1] <= 1; --rank);
   }
 
   // set the rank to r (pads 1s) if it is smaller than r
   void MakeRank(SizeT r)
   {
-    SizeT rNow=Rank();
+    SizeT rNow=rank;
     if( rNow >= r) return;
     if( r > MAXRANK)
       throw GDLException("Maximum "+MAXRANK_STR+" dimensions are allowed.");
-    for( SizeT i=rNow; i<r; i++) dim[i]=1;
+    for( SizeT i=rNow; i<r; ++i) dim[i]=1;
+    rank = r;
   }
 
   // multidim index to one dim index
@@ -274,18 +299,17 @@ public:
 
     SizeT res=0;
     unsigned i;
-    for( i=0; dim[i] && i<MAXRANK; ++i)
+    for( i=0; i<rank; ++i)
       {
-      	if( ix.dim[i] >= dim[i])
-      	  throw GDLException("Array index out of range (1)");
+	if( ix.dim[i] >= dim[i])
+	  throw GDLException("Array index out of range (1)");
 
-      	res += ix.dim[i] * s;
-	if( dim[ i] > 1) s *= dim[ i];
+	res += ix.dim[i] * s;
+	s *= dim[ i];
       }
-    for(; i<MAXRANK; ++i)
+    for(; i<ix.rank; ++i)
       if( ix.dim[i] > 0)
 	throw GDLException("Array index out of range (2)");
-
     return res;
   }
 };
