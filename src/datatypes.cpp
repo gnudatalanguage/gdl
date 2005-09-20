@@ -230,16 +230,19 @@ BaseGDL* Data_<Sp>::CShift( DLong s[ MAXRANK])
   long  srcIx[ MAXRANK+1];
   long  dstIx[ MAXRANK+1];
   SizeT dim_stride[ MAXRANK];
+  SizeT this_dim[ MAXRANK];
   for( SizeT aSp=0; aSp<nDim; ++aSp) 
     {
+      this_dim[ aSp] = this->dim[ aSp];
+
       srcIx[ aSp] = 0;
       if( s[ aSp] >= 0)
-	dstIx[ aSp] = s[ aSp] % this->dim[ aSp];
+	dstIx[ aSp] = s[ aSp] % this_dim[ aSp];
       else
-	dstIx[ aSp] = -(-s[aSp] % this->dim[ aSp]);
-      if( dstIx[ aSp] < 0) dstIx[ aSp] += this->dim[ aSp];
+	dstIx[ aSp] = -(-s[aSp] % this_dim[ aSp]);
+      if( dstIx[ aSp] < 0) dstIx[ aSp] += this_dim[ aSp];
 
-      dim_stride[ aSp] = this->dim[ aSp] * stride[ aSp];
+      dim_stride[ aSp] = this_dim[ aSp] * stride[ aSp];
     }
   srcIx[ nDim] = dstIx[ nDim] = 0;
 
@@ -254,13 +257,13 @@ BaseGDL* Data_<Sp>::CShift( DLong s[ MAXRANK])
     {
       for( SizeT aSp=0; aSp<nDim;)
 	{
-	  if( dstIx[ aSp] >= this->dim[ aSp]) 
+	  if( dstIx[ aSp] >= this_dim[ aSp]) 
 	    {
 	      // dstIx[ aSp] -= dim[ aSp];
 	      dstIx[ aSp] = 0;
 	      dstLonIx -= dim_stride[ aSp];
 	    }
-	  if( srcIx[ aSp] < this->dim[ aSp]) break;
+	  if( srcIx[ aSp] < this_dim[ aSp]) break;
 
 	  srcIx[ aSp] = 0;
 	  ++srcIx[ ++aSp];
@@ -311,9 +314,13 @@ BaseGDL* Data_<Sp>::Transpose( DUInt* perm)
       perm = &permDefault[ MAXRANK - rank];
 
   dimension newDim;
+  SizeT this_dim[ MAXRANK]; // permutated!
   for( SizeT d=0; d<rank; ++d)
-    newDim.Set( d, this->dim[ perm[ d]]);
-  
+    {
+      this_dim[ d] = this->dim[ perm[ d]];
+      newDim.Set( d, this_dim[ d]);
+    }
+
   Data_* res = new Data_( newDim, BaseGDL::NOZERO);
 
   // src stride
@@ -339,7 +346,7 @@ BaseGDL* Data_<Sp>::Transpose( DUInt* perm)
 	{
 	  DUInt pi = perm[i];
 	  srcDim[pi]++;
-	  if( srcDim[pi] < this->dim[pi]) break;
+	  if( srcDim[pi] < this_dim[i]) break;
 	  srcDim[pi]=0;
 	}
     }

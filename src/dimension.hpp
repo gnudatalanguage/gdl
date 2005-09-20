@@ -235,7 +235,7 @@ public:
 
   void Set(const SizeT ix, const SizeT d) 
   {
-    assert( ix < rank);
+    if( ix >= rank) rank = ix+1;
     dim[ix]=d;
   }
 

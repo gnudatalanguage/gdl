@@ -3185,7 +3185,10 @@ namespace lib {
       {
 	if( l2 == NULL)
 	  {
-	    return new DByteGDL( StrCmp( (*s0)[0], (*s1)[0], fold));
+	    if( fold)
+	      return new DByteGDL( StrCmpFold( (*s0)[0], (*s1)[0]));
+	    else
+	      return new DByteGDL( StrCmp( (*s0)[0], (*s1)[0]));
 	  }
 	else
 	  {
