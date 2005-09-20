@@ -1,23 +1,7 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
- <DocsAndViews NumberOfDocuments="5" >
-  <Doc0 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/GDLTreeParser.hpp" >
-   <View0 Type="Source" />
-  </Doc0>
-  <Doc1 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/arrayindex.hpp" >
-   <View0 line="1205" Type="Source" />
-  </Doc1>
-  <Doc2 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/dnode.hpp" >
-   <View0 line="274" Type="Source" />
-  </Doc2>
-  <Doc3 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/datalistt.hpp" >
-   <View0 line="84" Type="Source" />
-  </Doc3>
-  <Doc4 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/envt.hpp" >
-   <View0 line="199" Type="Source" />
-  </Doc4>
- </DocsAndViews>
+ <DocsAndViews NumberOfDocuments="0" />
  <pluginList>
   <kdevdebugger>
    <breakpointList/>

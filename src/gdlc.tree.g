@@ -664,17 +664,17 @@ arrayindex! [ArrayIndexListT* ixList]
                                                            CArrayIndexIndexed( c1));
                                     }
                                 else
-                                {
-                                ## = #e1;
-                                    if( LoopVar( #e1))
-                                        ixList->push_back( new ArrayIndexScalar());
-                                    else
-                                        ixList->push_back( new ArrayIndexIndexed());
-                                }
+                                    {
+                                        ## = #e1;
+                                        if( LoopVar( #e1))
+                                            ixList->push_back( new ArrayIndexScalar());
+                                        else
+                                            ixList->push_back( new ArrayIndexIndexed());
+                                    }
                             }
-                         | ALL
+                        | ALL
                             ( // empty
-                                {
+                            {
                                     c1 = comp.Constant( e1); 
                                     if( c1 != NULL)
                                     {

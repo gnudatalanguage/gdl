@@ -672,10 +672,11 @@ namespace lib {
       {
 	DFloatGDL* res = static_cast<DFloatGDL*>
 	  (p0->Convert2( FLOAT, BaseGDL::COPY));
-	for( SizeT i=0; i<nEl; ++i)
-	  {
-	    (*res)[ i] = log((*res)[ i]); 
-	  }
+	res->LogThis();
+// 	for( SizeT i=0; i<nEl; ++i)
+// 	  {
+// 	    (*res)[ i] = log((*res)[ i]); 
+// 	  }
 	return res;
       }
   }

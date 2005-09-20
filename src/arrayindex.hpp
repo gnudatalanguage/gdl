@@ -1827,6 +1827,18 @@ public:
       }
   }
 
+  // optimized for one dimensional access
+  BaseGDL* Index( BaseGDL* var, IxExprListT& ix)
+  {
+    if( ixList.size() == 1 && !var->IsAssoc() && var->Type() != STRUCT)
+      return ixList[0]->Index( var, ix);
+    
+    // normal case
+    Init( ix);
+    SetVariable( var);
+    return var->Index( this);
+  }
+
   // returns multi-dim index for 1st element
   // used by InsAt functions
   dimension GetDimIx0( SizeT& rank, SizeT& destStart)
@@ -1863,18 +1875,6 @@ public:
       throw GDLException("Maximum of "+MAXRANK_STR+" dimensions allowed.");
 
     nParam += pb->NParam();
-  }
-
-  // optimized for one dimensional access
-  BaseGDL* Index( BaseGDL* var, IxExprListT& ix)
-  {
-    if( ixList.size() == 1 && !var->IsAssoc() && var->Type() != STRUCT)
-      return ixList[0]->Index( var, ix);
-    
-    // normal case
-    Init( ix);
-    SetVariable( var);
-    return var->Index( this);
   }
 
   SizeT NDim() { return ixList.size();}
