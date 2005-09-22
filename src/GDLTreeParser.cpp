@@ -11,7 +11,6 @@
 #include <antlr/BitSet.hpp>
 
 #include <memory>
-#include "arrayindex.hpp"
 
 // ****
 #include "print_tree.hpp"
@@ -4108,7 +4107,7 @@ void GDLTreeParser::tag_def(RefDNode _t) {
 }
 
 void GDLTreeParser::arrayindex(RefDNode _t,
-	ArrayIndexListT* ixList
+	ArrayIndexVectorT* ixList
 ) {
 	RefDNode arrayindex_AST_in = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 	returnAST = RefDNode(antlr::nullAST);
@@ -4248,9 +4247,11 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 			{
 			arrayindex_AST = e1_AST;
 			if( LoopVar( e1_AST))
-			ixList->push_back( new ArrayIndexScalar());
+			ixList->push_back( new 
+			ArrayIndexScalar());
 			else
-			ixList->push_back( new ArrayIndexIndexed());
+			ixList->push_back( new 
+			ArrayIndexIndexed());
 			}
 			
 			currentAST.root = arrayindex_AST;
@@ -4372,12 +4373,14 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 				c2 = comp.Constant( e2); 
 				if( c1 != NULL && c2 != NULL)
 				{
-				ixList->push_back( new CArrayIndexORangeS( c1, c2));
+				ixList->push_back( new 
+				CArrayIndexORangeS( c1, c2));
 				}
 				else
 				{
 				arrayindex_AST = RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(NULL))->add(antlr::RefAST(e1_AST))->add(antlr::RefAST(e2_AST))));
-				ixList->push_back( new ArrayIndexORangeS());
+				ixList->push_back( new 
+				ArrayIndexORangeS());
 				}
 				
 				currentAST.root = arrayindex_AST;
@@ -4477,7 +4480,8 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 				c3 = comp.Constant( e3); 
 				if( c1 != NULL && c3 != NULL)
 				{
-				ixList->push_back( new CArrayIndexRange( c1, c3));
+				ixList->push_back( new 
+				CArrayIndexRange( c1, c3));
 				}
 				else
 				{
@@ -4623,7 +4627,9 @@ void GDLTreeParser::arrayindex_list(RefDNode _t) {
 	antlr::ASTPair currentAST;
 	RefDNode arrayindex_list_AST = RefDNode(antlr::nullAST);
 	
-	std::auto_ptr< ArrayIndexListT> ixList( new ArrayIndexListT()); // compile_opt
+	//std::auto_ptr< ArrayIndexListT> ixList( new ArrayIndexListT()); // compile_opt
+	ArrayIndexVectorT* ixList = new ArrayIndexVectorT();
+	PtrGuard< ArrayIndexVectorT> guard( ixList);
 	
 	
 	{ // ( ... )+
@@ -4632,7 +4638,7 @@ void GDLTreeParser::arrayindex_list(RefDNode _t) {
 		if (_t == RefDNode(antlr::nullAST) )
 			_t = ASTNULL;
 		if ((_t->getType() == ARRAYIX)) {
-			arrayindex(_t, ixList.get());
+			arrayindex(_t, ixList);
 			_t = _retTree;
 			astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 		}
@@ -4647,7 +4653,8 @@ void GDLTreeParser::arrayindex_list(RefDNode _t) {
 	arrayindex_list_AST = RefDNode(currentAST.root);
 	
 	arrayindex_list_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(ARRAYIX,"[...]")))->add(antlr::RefAST(arrayindex_list_AST))));
-	ixList->Freeze(); // do all initial one-time settings
+	
+	//            ixList->Freeze(); // do all initial one-time settings
 	//             if( ixList->NDim() == 1)
 	//                 #arrayindex_list = #([ARRAYIX1,"[ix]"], arrayindex_list);
 	//             else
@@ -4655,7 +4662,11 @@ void GDLTreeParser::arrayindex_list(RefDNode _t) {
 	//                     #arrayindex_list = #([ARRAYIX,"[...]"], arrayindex_list);
 	//                     ixList->Freeze(); // do all initial one-time settings
 	//                 }
-	arrayindex_list_AST->SetArrayIndexList( ixList.release());
+	
+	guard.Release();
+	ArrayIndexListT* arrayIndex = MakeArrayIndex( ixList);
+	delete ixList;
+	arrayindex_list_AST->SetArrayIndexList( arrayIndex);
 	
 	currentAST.root = arrayindex_list_AST;
 	if ( arrayindex_list_AST!=RefDNode(antlr::nullAST) &&

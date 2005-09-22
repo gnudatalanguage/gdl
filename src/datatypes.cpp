@@ -25,7 +25,7 @@
 
 //#include "datatypes.hpp" // included from arrayindex.hpp
 #include "dstructgdl.hpp"
-#include "arrayindex.hpp"
+#include "arrayindexlistt.hpp"
 #include "assocdata.hpp"
 #include "io.hpp"
 #include "dinterpreter.hpp"

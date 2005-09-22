@@ -50,6 +50,7 @@
 #include <string>
 #include <deque>
 #include <complex>
+#include <vector>
 #include <valarray>
 
 typedef size_t              SizeT;
@@ -95,6 +96,9 @@ typedef std::deque<std::string>       StrArr;
 typedef std::deque<DString>           FileListT;
 
 typedef std::valarray<SizeT>          AllIxT;
+
+class ArrayIndexT;
+typedef std::vector<ArrayIndexT*> ArrayIndexVectorT;
 
 // searches IDList idL for std::string s, returns its position, -1 if not found
 inline int FindInIDList(IDList& idL,const std::string& s)
@@ -189,6 +193,33 @@ public:
   {
     val = oldVal;
   }
+};
+
+// like stackguard, but allows releasing
+template <class T>
+class PtrGuard
+{
+private:
+  T*     container;
+  SizeT  cSize;
+  
+public:
+  PtrGuard( T* c): container( c)
+  {
+    cSize=container->size();
+  }
+  
+  ~PtrGuard()
+  {
+    if( container != NULL)
+      for( SizeT s=container->size(); s > cSize; s--)
+	{
+	  delete container->back();
+	  container->pop_back();
+	}
+  }
+
+  T* Release() { T* r=container; container=NULL; return r;}
 };
 
 #endif

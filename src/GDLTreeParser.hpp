@@ -10,6 +10,7 @@
 #include "objects.hpp"
 #include "dcompiler.hpp"
 #include "dnodefactory.hpp"
+#include "arrayindexlistt.hpp"
 
 class CUSTOM_API GDLTreeParser : public antlr::TreeParser, public GDLTreeParserTokenTypes
 {
@@ -19,6 +20,31 @@ class CUSTOM_API GDLTreeParser : public antlr::TreeParser, public GDLTreeParserT
     
     IDList          loopVarStack;
     
+    // called after structure is fixed
+    ArrayIndexListT* MakeArrayIndex( ArrayIndexVectorT* ixList)
+    {
+        assert( ixList->size() != 0); // must be, from compiler
+        
+        if( ixList->size() == 1)
+        if( dynamic_cast< ArrayIndexScalar*>((*ixList)[0]))
+            if( dynamic_cast< CArrayIndexScalar*>((*ixList)[0]))
+                return new ArrayIndexListOneConstScalarT( ixList);
+            else
+                return new ArrayIndexListOneScalarT( ixList);
+        else
+            return new ArrayIndexListOneT( ixList);
+
+        SizeT nScalar  = 0;
+        for( SizeT i=0; i<ixList->size(); ++i)
+        {
+            if( dynamic_cast< ArrayIndexScalar*>((*ixList)[i]))  nScalar++;
+        }
+        if( nScalar == ixList->size())
+        return new ArrayIndexListScalarT( ixList);
+        
+        return new ArrayIndexListMultiT( ixList);
+    }
+
     bool LoopVar( RefDNode& lN)
     {
         int lT = lN->getType();
@@ -123,7 +149,7 @@ public:
 	public: void struct_def(RefDNode _t);
 	public: void tag_def(RefDNode _t);
 	public: void arrayindex(RefDNode _t,
-		ArrayIndexListT* ixList
+		ArrayIndexVectorT* ixList
 	);
 	public: void arrayindex_list(RefDNode _t);
 	public: void lassign_expr(RefDNode _t);

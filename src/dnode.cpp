@@ -25,7 +25,7 @@
 
 #include "dnode.hpp"
 #include "datatypes.hpp"
-#include "arrayindex.hpp"
+#include "arrayindexlistt.hpp"
 #include "dinterpreter.hpp"
 
 #include <assert.h>

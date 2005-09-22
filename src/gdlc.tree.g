@@ -29,7 +29,6 @@ header "pre_include_cpp" {
 
 header "post_include_cpp" {
 #include <memory>
-#include "arrayindex.hpp"
 
 // ****
 #include "print_tree.hpp"
@@ -41,6 +40,7 @@ header {
 #include "objects.hpp"
 #include "dcompiler.hpp"
 #include "dnodefactory.hpp"
+#include "arrayindexlistt.hpp"
 }
 
 options {
@@ -66,6 +66,31 @@ options {
     
     IDList          loopVarStack;
     
+    // called after structure is fixed
+    ArrayIndexListT* MakeArrayIndex( ArrayIndexVectorT* ixList)
+    {
+        assert( ixList->size() != 0); // must be, from compiler
+        
+        if( ixList->size() == 1)
+        if( dynamic_cast< ArrayIndexScalar*>((*ixList)[0]))
+            if( dynamic_cast< CArrayIndexScalar*>((*ixList)[0]))
+                return new ArrayIndexListOneConstScalarT( ixList);
+            else
+                return new ArrayIndexListOneScalarT( ixList);
+        else
+            return new ArrayIndexListOneT( ixList);
+
+        SizeT nScalar  = 0;
+        for( SizeT i=0; i<ixList->size(); ++i)
+        {
+            if( dynamic_cast< ArrayIndexScalar*>((*ixList)[i]))  nScalar++;
+        }
+        if( nScalar == ixList->size())
+        return new ArrayIndexListScalarT( ixList);
+        
+        return new ArrayIndexListMultiT( ixList);
+    }
+
     bool LoopVar( RefDNode& lN)
     {
         int lT = lN->getType();
@@ -638,7 +663,7 @@ tag_def
 	: IDENTIFIER expr
 	;	
 
-arrayindex! [ArrayIndexListT* ixList]
+arrayindex! [ArrayIndexVectorT* ixList]
 {
     BaseGDL *c1, *c2, *c3, *c4;
 }
@@ -667,9 +692,11 @@ arrayindex! [ArrayIndexListT* ixList]
                                     {
                                         ## = #e1;
                                         if( LoopVar( #e1))
-                                            ixList->push_back( new ArrayIndexScalar());
+                                            ixList->push_back( new 
+                                                ArrayIndexScalar());
                                         else
-                                            ixList->push_back( new ArrayIndexIndexed());
+                                            ixList->push_back( new 
+                                                ArrayIndexIndexed());
                                     }
                             }
                         | ALL
@@ -692,12 +719,14 @@ arrayindex! [ArrayIndexListT* ixList]
                                     c2 = comp.Constant( e2); 
                                     if( c1 != NULL && c2 != NULL)
                                     {
-                                        ixList->push_back( new CArrayIndexORangeS( c1, c2));
+                                        ixList->push_back( new 
+                                            CArrayIndexORangeS( c1, c2));
                                     }
                                     else
                                     {
                                         ## = #( NULL, e1, e2);
-                                        ixList->push_back( new ArrayIndexORangeS());
+                                        ixList->push_back( new 
+                                            ArrayIndexORangeS());
                                     }
                                 }
                             )
@@ -708,7 +737,8 @@ arrayindex! [ArrayIndexListT* ixList]
                                     c3 = comp.Constant( e3); 
                                     if( c1 != NULL && c3 != NULL)
                                     {
-                                        ixList->push_back( new CArrayIndexRange( c1, c3));
+                                        ixList->push_back( new 
+                                            CArrayIndexRange( c1, c3));
                                     }
                                     else
                                     {
@@ -741,12 +771,15 @@ arrayindex! [ArrayIndexListT* ixList]
 
 arrayindex_list
 {
-std::auto_ptr< ArrayIndexListT> ixList( new ArrayIndexListT()); // compile_opt
+//std::auto_ptr< ArrayIndexListT> ixList( new ArrayIndexListT()); // compile_opt
+ArrayIndexVectorT* ixList = new ArrayIndexVectorT();
+PtrGuard< ArrayIndexVectorT> guard( ixList);
 }
-	: ( arrayindex[ ixList.get()])+
+	: ( arrayindex[ ixList])+
         {
             #arrayindex_list = #([ARRAYIX,"[...]"], arrayindex_list);
-            ixList->Freeze(); // do all initial one-time settings
+
+//            ixList->Freeze(); // do all initial one-time settings
 //             if( ixList->NDim() == 1)
 //                 #arrayindex_list = #([ARRAYIX1,"[ix]"], arrayindex_list);
 //             else
@@ -754,7 +787,11 @@ std::auto_ptr< ArrayIndexListT> ixList( new ArrayIndexListT()); // compile_opt
 //                     #arrayindex_list = #([ARRAYIX,"[...]"], arrayindex_list);
 //                     ixList->Freeze(); // do all initial one-time settings
 //                 }
-            #arrayindex_list->SetArrayIndexList( ixList.release());
+
+            guard.Release();
+            ArrayIndexListT* arrayIndex = MakeArrayIndex( ixList);
+            delete ixList;
+            #arrayindex_list->SetArrayIndexList( arrayIndex);
         }
 	;	
 
