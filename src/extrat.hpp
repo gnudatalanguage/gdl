@@ -26,7 +26,7 @@
 #include "datatypes.hpp"
 #include "datalistt.hpp"
 
-class EnvT;
+class EnvBaseT;
 
 class ExtraT
 {

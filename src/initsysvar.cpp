@@ -35,7 +35,7 @@ namespace SysVar
   UInt pathIx, promptIx, edit_inputIx, quietIx, 
     dIx, pIx, xIx, yIx, zIx, vIx, cIx, 
     errorStateIx, errorIx, errIx, err_stringIx, valuesIx,
-    journalIx, exceptIx, mapIx;
+    journalIx, exceptIx, mapIx, dirIx;
 
   // !D structs
   const int nDevices = 2;
@@ -432,6 +432,15 @@ namespace SysVar
     DVar *map = new DVar( "MAP", mapData);
     mapIx=sysVarList.size();
     sysVarList.push_back( map);
+
+    // !DIR
+#ifndef EXEC_PREFIX
+#define EXEC_PREFIX ""
+#endif
+    DStringGDL *dirData = new DStringGDL( EXEC_PREFIX);
+    DVar *dir = new DVar( "DIR", dirData);
+    dirIx=sysVarList.size();
+    sysVarList.push_back( dir);
 
   }
 

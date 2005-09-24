@@ -1,7 +1,11 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
- <DocsAndViews NumberOfDocuments="0" />
+ <DocsAndViews NumberOfDocuments="1" >
+  <Doc0 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/GDLInterpreter.cpp" >
+   <View0 line="3571" Type="Source" />
+  </Doc0>
+ </DocsAndViews>
  <pluginList>
   <kdevdebugger>
    <breakpointList/>

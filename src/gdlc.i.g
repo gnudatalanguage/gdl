@@ -114,6 +114,15 @@ private:
 protected:
     std::istringstream executeLine; // actual interactive executed line
 
+//     std::vector<BaseGDL*> tmpList;
+//     void ClearTmpList()
+//     {
+//         std::vector<BaseGDL*>::iterator i;
+//         for(i = tmpList.begin(); i != tmpList.end(); ++i) 
+//             { delete *i;}
+//         tmpList.clear();
+//     }
+
     class RetAllException 
     {
         public:
@@ -2307,6 +2316,7 @@ array_expr returns [BaseGDL* res]
 //                 aL->Init( ixExprList);
 //                 aL->SetVariable( r);
 //                 res=r->Index( aL);
+//                ClearTmpList();
             }
         )   
 //     | res=expr //indexable_expr

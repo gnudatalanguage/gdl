@@ -4349,6 +4349,7 @@ BaseGDL*  GDLInterpreter::array_expr(ProgNodeP _t) {
 	//                 aL->Init( ixExprList);
 	//                 aL->SetVariable( r);
 	//                 res=r->Index( aL);
+	//                ClearTmpList();
 	
 	_t = __t104;
 	_t = _t->getNextSibling();
