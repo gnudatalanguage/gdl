@@ -390,6 +390,7 @@ public:
     }
 
     static EnvStackT& CallStack() { return callStack;} // the callstack
+    static EnvBaseT*  CallStackBack() { return callStack.back();} 
     
     std::string GetClearActualLine()
     {

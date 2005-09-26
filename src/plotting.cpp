@@ -793,8 +793,16 @@ namespace lib {
 
 
     bool xLog, yLog;
-    get_axis_type("X", xLog);
-    get_axis_type("Y", yLog);
+    // PLOT defines the setting but does not read it
+    //    get_axis_type("X", xLog);
+    //    get_axis_type("Y", yLog);
+
+    // keyword overrides
+    static int xLogIx = e->KeywordIx( "XLOG");
+    static int yLogIx = e->KeywordIx( "YLOG");
+    xLog = e->KeywordSet( xLogIx);
+    yLog = e->KeywordSet( yLogIx);
+
     if( xLog && xStart <= 0.0)
       Warning( "PLOT: Infinite x plot range.");
     if( yLog && minVal <= 0.0)
@@ -879,6 +887,7 @@ namespace lib {
 			    xMarginL, xMarginR, yMarginB, yMarginT,
 			    xStart, xEnd, minVal, maxVal);
     if( !okVPWC) return;
+
     // pen thickness for axis
     actStream->wid( 0);
 
