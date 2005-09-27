@@ -2288,6 +2288,11 @@ array_expr returns [BaseGDL* res]
                     guard.reset(aL);
                     
                     nExpr = aL->NParam();
+
+                    if( nExpr == 0)
+                    {
+                        goto empty;
+                    }
                     //                 if( nExpr > 1)
                     //                 {
                     //                     ixExprList.reserve( nExpr);
@@ -2313,6 +2318,7 @@ array_expr returns [BaseGDL* res]
                 //            { empty: ;}
             )
             {
+empty:
                 res = aL->Index( r, ixExprList);
 //                 aL->Init( ixExprList);
 //                 aL->SetVariable( r);
@@ -2965,6 +2971,12 @@ arrayindex_list returns [ArrayIndexListT* aL]
                 assert( aL != NULL);
 
                 nExpr = aL->NParam();
+                if( nExpr == 0)
+                {
+                    aL->Init();
+                    goto empty;
+                }
+
 //                 if( nExpr > 1)
 //                 {
 //                     ixExprList.reserve( nExpr);
@@ -2991,6 +3003,7 @@ arrayindex_list returns [ArrayIndexListT* aL]
         )
         {
             aL->Init( ixExprList);
+            empty:
         }
     ;
 

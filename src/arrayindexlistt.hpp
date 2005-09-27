@@ -30,7 +30,7 @@ public:
   
   SizeT NParam() { return nParam;}
 
-  virtual ~ArrayIndexListT() {}
+  virtual ~ArrayIndexListT();
 
   // constructor
   ArrayIndexListT() {}
@@ -41,7 +41,8 @@ public:
   
   virtual void Clear() {}
 
-  virtual void Init( IxExprListT& ix) {}
+  virtual void Init( IxExprListT& ix) { assert( 0);}
+  virtual void Init() { assert( 0);}
   
   virtual bool ToAssocIndex( SizeT& lastIx) {}
 
@@ -54,7 +55,7 @@ public:
   virtual SizeT N_Elements() {}
 
   // returns 1-dim index for all elements
-  virtual AllIxT* BuildIx() {}
+  virtual AllIxT* BuildIx();
 
   // returns one dim long ix in case of one element array index
   // used by AssignAt functions
@@ -67,10 +68,11 @@ public:
 
   // returns multi-dim index for 1st element
   // used by InsAt functions
-  virtual dimension GetDimIx0( SizeT& rank, SizeT& destStart) {}
+  virtual dimension GetDimIx0( SizeT& destStart) {}
+  virtual SizeT NDim() {}
 };
 
-
+// only one index [ix],[s:e],...
 class ArrayIndexListOneT: public ArrayIndexListT
 {
 private:
@@ -268,19 +270,24 @@ public:
 
   // returns multi-dim index for 1st element
   // used by InsAt functions
-  dimension GetDimIx0( SizeT& rank, SizeT& destStart)
+  dimension GetDimIx0( SizeT& destStart)
   {
-    rank = 1;
-    
     destStart = ix->GetIx0();
 
     return dimension( destStart);
   }
+
+  SizeT NDim()
+  { 
+    return 1;
+  }
 };
 
+// loop index
 class ArrayIndexListOneScalarT: public ArrayIndexListT
 {
 protected:
+  SizeT varIx;
   SizeT s;
 
   AllIxT* allIx;
@@ -294,11 +301,13 @@ public:
 
   // constructor
   ArrayIndexListOneScalarT():
+    varIx( 0),
     allIx( NULL)
-  { nParam = 1;}
+  { nParam = 0;}
 
   ArrayIndexListOneScalarT( const ArrayIndexListOneScalarT& cp):
     ArrayIndexListT( cp),
+    varIx( cp.varIx),
     s( cp.s),
     allIx( NULL)
   {
@@ -309,24 +318,17 @@ public:
   ArrayIndexListOneScalarT( ArrayIndexVectorT* aIV):
     allIx( NULL)
   {
-    nParam = 1;
+    nParam = 0;
+    
+    varIx = static_cast<ArrayIndexScalar*>((*aIV)[0])->GetVarIx();
+
     delete (*aIV)[0];
   }    
   
   void Clear()
   {}
 
-  void Init( IxExprListT& ix_)
-  {
-    assert( ix_.size() == 1);
-    
-    int ret = ix_[0]->Scalar2index(s);
-
-    assert( ret == 1 || ret == -1);
-
-    if( ret == -1) // index < 0
-      throw GDLException("Scalar subscript out of range [<0].");
-  }
+  void Init();// IxExprListT& ix_);
 
   // requires special handling
   // used by Assoc_<> returns last index in lastIx, removes it
@@ -343,7 +345,7 @@ public:
     // for assoc variables last index is the record
     if( var->IsAssoc()) return;
     if( s >= var->Size())
-      throw GDLException("Scalar subscript out of range [>].");
+      throw GDLException("Scalar subscript out of range [>].1");
   }
   
   // structure of indexed expression
@@ -384,7 +386,274 @@ public:
     if( right->N_Elements() == 1 && !var->IsAssoc() && var->Type() != STRUCT) 
       {
 	if( s >= var->Size())
-	  throw GDLException("Scalar subscript out of range [>].");
+	  throw GDLException("Scalar subscript out of range [>].2");
+	var->AssignAtIx( s, right);
+	return;
+      }
+    
+    SetVariable( var);
+    if( var->EqType( right))
+      {
+	var->AssignAt( right, this); // assigns inplace
+      }
+    else
+      {
+	BaseGDL* rConv = right->Convert2( var->Type(), BaseGDL::COPY);
+	std::auto_ptr<BaseGDL> conv_guard( rConv);
+	
+	var->AssignAt( rConv, this); // assigns inplace
+      }
+  }
+
+  // optimized for one dimensional access
+  BaseGDL* Index( BaseGDL* var, IxExprListT& ix_);
+
+  // returns multi-dim index for 1st element
+  // used by InsAt functions
+  dimension GetDimIx0( SizeT& destStart)
+  {
+    destStart = s;
+    return dimension( destStart);
+  }
+
+  SizeT NDim()
+  { 
+    return 1;
+  }
+
+};
+class ArrayIndexListOneScalarVPT: public ArrayIndexListT
+{
+protected:
+  DVar* varPtr;
+
+  SizeT s;
+
+  AllIxT* allIx;
+
+public:    
+  
+  ~ArrayIndexListOneScalarVPT()
+  {
+    delete allIx;
+  }
+
+  // constructor
+  ArrayIndexListOneScalarVPT():
+    varPtr( NULL),
+    allIx( NULL)
+  { nParam = 0;}
+
+  ArrayIndexListOneScalarVPT( const ArrayIndexListOneScalarVPT& cp):
+    ArrayIndexListT( cp),
+    varPtr( cp.varPtr),
+    s( cp.s),
+    allIx( NULL)
+  {
+    assert( cp.allIx == NULL);
+  }
+
+  // called after structure is fixed
+  ArrayIndexListOneScalarVPT( ArrayIndexVectorT* aIV):
+    allIx( NULL)
+  {
+    nParam = 0;
+    
+    varPtr = static_cast<ArrayIndexScalarVP*>((*aIV)[0])->GetVarPtr();
+
+    delete (*aIV)[0];
+  }    
+  
+  void Clear()
+  {}
+
+  void Init();// IxExprListT& ix_);
+
+  // requires special handling
+  // used by Assoc_<> returns last index in lastIx, removes it
+  // and returns true is the list is empty
+  bool ToAssocIndex( SizeT& lastIx)
+  {
+    lastIx = s;
+    return true;
+  }
+
+  // set the root variable which is indexed by this ArrayIndexListT
+  void SetVariable( BaseGDL* var) 
+  {
+    // for assoc variables last index is the record
+    if( var->IsAssoc()) return;
+    if( s >= var->Size())
+      throw GDLException("Scalar subscript out of range [>].1");
+  }
+  
+  // structure of indexed expression
+  dimension GetDim()
+  {
+    return dimension();
+  }
+
+  SizeT N_Elements()
+  {
+    return 1;
+  }
+
+  // returns 1-dim index for all elements
+  AllIxT* BuildIx()
+  {
+    if( allIx != NULL)
+      {
+	allIx[0] = s;
+	return allIx;
+      }
+
+    allIx = new AllIxT( s, 1);
+    return allIx;
+  }
+
+  // returns one dim long ix in case of one element array index
+  // used by AssignAt functions
+  SizeT LongIx()
+  {
+    return s;
+  }
+
+  void AssignAt( BaseGDL* var, BaseGDL* right)
+  {
+    // Init() was already called
+    // scalar case
+    if( right->N_Elements() == 1 && !var->IsAssoc() && var->Type() != STRUCT) 
+      {
+	if( s >= var->Size())
+	  throw GDLException("Scalar subscript out of range [>].2");
+	var->AssignAtIx( s, right);
+	return;
+      }
+    
+    SetVariable( var);
+    if( var->EqType( right))
+      {
+	var->AssignAt( right, this); // assigns inplace
+      }
+    else
+      {
+	BaseGDL* rConv = right->Convert2( var->Type(), BaseGDL::COPY);
+	std::auto_ptr<BaseGDL> conv_guard( rConv);
+	
+	var->AssignAt( rConv, this); // assigns inplace
+      }
+  }
+
+  // optimized for one dimensional access
+  BaseGDL* Index( BaseGDL* var, IxExprListT& ix_);
+
+  // returns multi-dim index for 1st element
+  // used by InsAt functions
+  dimension GetDimIx0( SizeT& destStart)
+  {
+    destStart = s;
+    return dimension( destStart);
+  }
+  SizeT NDim()
+  { 
+    return 1;
+  }
+
+};
+
+class ArrayIndexListOneConstScalarT: public ArrayIndexListT
+{
+  SizeT s;
+
+  AllIxT* allIx;
+
+public:    
+  
+  ~ArrayIndexListOneConstScalarT() 
+  {
+    delete allIx;
+  }
+
+  // constructor
+  ArrayIndexListOneConstScalarT(): allIx( NULL)
+  {
+    nParam = 0;
+  }
+
+  ArrayIndexListOneConstScalarT( const ArrayIndexListOneConstScalarT& cp):
+    ArrayIndexListT( cp),
+    s( cp.s),
+    allIx( NULL)
+  {
+    assert( cp.allIx == NULL);
+  }
+
+  // called after structure is fixed
+  ArrayIndexListOneConstScalarT( ArrayIndexVectorT* aIV):
+    allIx( NULL)
+  {
+    s = (*aIV)[0]->GetS();
+    nParam = 0;
+
+    delete (*aIV)[0];
+  }    
+  
+  void Clear()
+  {}
+
+  void Init()// IxExprListT& ix_)
+  {
+    //    assert( ix_.size() == 0);
+  }
+
+  SizeT N_Elements()
+  {
+    return 1;
+  }
+
+  // returns 1-dim index for all elements
+  AllIxT* BuildIx()
+  {
+    if( allIx != NULL)
+      return allIx;
+
+    allIx = new AllIxT( s, 1);
+    return allIx;
+  }
+
+  // requires special handling
+  // used by Assoc_<> returns last index in lastIx, removes it
+  // and returns true is the list is empty
+  bool ToAssocIndex( SizeT& lastIx)
+  {
+    lastIx = s;
+    return true;
+  }
+
+  // set the root variable which is indexed by this ArrayIndexListT
+  void SetVariable( BaseGDL* var) 
+  {
+    // for assoc variables last index is the record
+    if( var->IsAssoc()) return;
+    if( s >= var->Size())
+      throw GDLException("Scalar subscript out of range [>].1");
+  }
+
+  // returns one dim long ix in case of one element array index
+  // used by AssignAt functions
+  SizeT LongIx()
+  {
+    return s;
+  }
+
+  void AssignAt( BaseGDL* var, BaseGDL* right)
+  {
+    // Init() was already called
+    // scalar case
+    if( right->N_Elements() == 1 && !var->IsAssoc() && var->Type() != STRUCT) 
+      {
+	if( s >= var->Size())
+	  throw GDLException("Scalar subscript out of range [>].2");
 	var->AssignAtIx( s, right);
 	return;
       }
@@ -409,102 +678,37 @@ public:
     // Init() not called
     if( !var->IsAssoc() && var->Type() != STRUCT)
       {
-	int ret = ix_[0]->Scalar2index(s);
-
-	assert( ret == 1 || ret == -1);
-
-	if( ret == 1) 
-	  {
-	    if( s >= var->Size())
-	      {
-		throw GDLException("Scalar subscript out of range [>].");
-	      }
-	    
-	    return var->NewIx( s);
-	  }
-	throw 
-	  GDLException( "Scalar subscript < 0.");
-      }
-    
-    // normal case
-    Init( ix_);
-    SetVariable( var);
-    return var->Index( this);
-  }
-
-  // returns multi-dim index for 1st element
-  // used by InsAt functions
-  dimension GetDimIx0( SizeT& rank, SizeT& destStart)
-  {
-    destStart = s;
-    return dimension( destStart);
-  }
-};
-
-class ArrayIndexListOneConstScalarT: public ArrayIndexListOneScalarT
-{
-public:    
-  
-  ~ArrayIndexListOneConstScalarT() {}
-
-  // constructor
-  ArrayIndexListOneConstScalarT()
-  {
-    allIx = NULL;
-    nParam = 0;
-  }
-
-  ArrayIndexListOneConstScalarT( const ArrayIndexListOneConstScalarT& cp):
-    ArrayIndexListOneScalarT( cp)
-  {
-    assert( cp.allIx == NULL);
-  }
-
-  // called after structure is fixed
-  ArrayIndexListOneConstScalarT( ArrayIndexVectorT* aIV)
-  {
-    allIx = NULL;
-
-    s = (*aIV)[0]->GetS();
-    nParam = 0;
-
-    delete (*aIV)[0];
-  }    
-  
-  void Init( IxExprListT& ix_)
-  {
-    assert( ix_.size() == 0);
-  }
-
-  // returns 1-dim index for all elements
-  AllIxT* BuildIx()
-  {
-    if( allIx != NULL)
-      return allIx;
-
-    allIx = new AllIxT( s, 1);
-    return allIx;
-  }
-
-  // optimized for one dimensional access
-  BaseGDL* Index( BaseGDL* var, IxExprListT& ix_)
-  {
-    // Init() not called
-    if( !var->IsAssoc() && var->Type() != STRUCT)
-      {
 	if( s >= var->Size())
 	  {
-	    throw GDLException("Scalar subscript out of range [>].");
+	    std::cout << s << " var->Size():" << var->Size() << std::endl;
+	    throw GDLException("Scalar subscript out of range [>].3");
 	  }
 	    
 	return var->NewIx( s);
       }
     
     // normal case
-    Init( ix_);
+    Init();// ix_);
     SetVariable( var);
     return var->Index( this);
   }
+
+  dimension GetDim()
+  {
+    return dimension();
+  }
+
+  dimension GetDimIx0( SizeT& destStart)
+  {
+    destStart = s;
+    return dimension( destStart);
+  }
+
+  SizeT NDim()
+  { 
+    return 1;
+  }
+
 };
 
 
@@ -594,16 +798,18 @@ public:
 //       {	(*i)->Clear();}
   }
 
-  void Init( IxExprListT& ix)
-  {
-    assert( allIx == NULL);
-    assert( ix.size() == nParam);
+//   void Init( IxExprListT& ix)
+//   {
+//     assert( allIx == NULL);
+//     assert( ix.size() == nParam);
     
-    for( SizeT i=0; i<nParam; ++i)
-      {
-	ixList[ paramPresent[i]]->Init( ix[ i]);
-      }
-  }
+//     for( SizeT i=0; i<nParam; ++i)
+//       {
+// 	ixList[ paramPresent[i]]->Init( ix[ i]);
+//       }
+//   }
+  void Init()
+  {}
   
 
   // requires special handling
@@ -635,6 +841,9 @@ public:
 	acRank--;
 	// if( acRank == 0) return; // multi dim
       }
+
+    for( SizeT i=0; i<acRank; ++i)
+      ixList[i]->NIter( var->Dim(i)); // check boundary
 
     var->Dim().Stride( varStride,acRank); // copy variables stride into varStride
     nIx = 1;
@@ -701,14 +910,14 @@ public:
   // optimized for one dimensional access
   BaseGDL* Index( BaseGDL* var, IxExprListT& ix)
   {
-    Init( ix);
+    Init();
     SetVariable( var);
     return var->Index( this);
   }
 
   // returns multi-dim index for 1st element
   // used by InsAt functions
-  dimension GetDimIx0( SizeT& rank, SizeT& destStart)
+  dimension GetDimIx0( SizeT& destStart)
   {
     SizeT dStart = 0;
 
@@ -721,12 +930,13 @@ public:
       }
 
     destStart = dStart;
-    rank = acRank;
     return dimension( actIx, acRank);
   }
   
-
-  //  SizeT NDim() { return ixList.size();}
+  SizeT NDim()
+  { 
+    return acRank;
+  }
 };
 
 // general case (mixed, multi-dim)
@@ -1189,7 +1399,7 @@ public:
 
   // returns multi-dim index for 1st element
   // used by InsAt functions
-  dimension GetDimIx0( SizeT& rank, SizeT& destStart)
+  dimension GetDimIx0( SizeT& destStart)
   {
     SizeT dStart = 0;
 
@@ -1202,9 +1412,12 @@ public:
       }
 
     destStart = dStart;
-    rank = acRank;
     return dimension( actIx, acRank);
   }
+
+  SizeT NDim()
+  { return acRank;}
+
 };
 
 

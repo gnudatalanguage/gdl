@@ -628,6 +628,86 @@ int Data_<SpDObj>::Scalar2index( SizeT& st) const
   return 0; // get rid of warning
 }
 
+// for FOR loop *indices*
+template<class Sp> 
+SizeT Data_<Sp>::LoopIndex() const
+{
+  //  if( dd.size() != 1) return 0;
+
+  // the next statement gives a warning for unsigned integer types:
+  // "comparison is always false due to limited range of data type"
+  // This is because the same template is used here for signed and 
+  // unsigned data. A template specialization for the unsigned integer
+  // types would result in three identical specializations, which is bad
+  // for maintainability. And as any modern C++ compiler will optimize
+  // away the superflous (for unsigned data) statement anyway, it is 
+  // better to keep the code this way here.
+  if( dd[0] < 0)
+    throw GDLException( "Loop index variable <0.");
+
+  return static_cast<SizeT>(dd[0]);
+}
+template<> 
+SizeT Data_<SpDFloat>::LoopIndex() const
+{
+  if( dd[0] < 0.0f)
+    if( dd[0] <= 1.0f)
+      throw GDLException( "Loop index variable <0.");
+    else
+      return 0;
+
+  return static_cast<SizeT>(dd[0]);
+}
+template<> 
+SizeT Data_<SpDDouble>::LoopIndex() const
+{
+  if( dd[0] < 0.0)
+    if( dd[0] <= 1.0)
+      throw GDLException( "Loop index variable <0.");
+    else
+      return 0;
+
+  return static_cast<SizeT>(dd[0]);
+}
+template<> 
+SizeT Data_<SpDComplex>::LoopIndex() const
+{
+  throw GDLException( "Complex expression not allowed as FOR loop index.");
+  return 0;
+}
+template<> 
+SizeT Data_<SpDComplexDbl>::LoopIndex() const
+{
+  throw GDLException( "Complex expression not allowed as FOR loop index.");
+  return 0;
+}
+template<> 
+SizeT Data_<SpDString>::LoopIndex() const
+{
+  throw GDLException( "String expression not allowed as FOR loop index.");
+  return 0;
+}
+// SizeT DStructGDL::LoopIndex() const
+// {
+//   throw GDLException("STRUCT expression not allowed in this context.");
+//   return 0; // get rid of warning
+// }
+
+template<> 
+SizeT Data_<SpDPtr>::LoopIndex() const
+{
+  throw GDLException("PTR expression not allowed in this context.");
+  return 0; // get rid of warning
+}
+
+template<> 
+SizeT Data_<SpDObj>::LoopIndex() const
+{
+  throw GDLException("Object expression not allowed in this context.");
+  return 0; // get rid of warning
+}
+
+
 // True
 template<class Sp>
 bool Data_<Sp>::True()
@@ -1433,14 +1513,13 @@ Data_<Sp>* Data_<Sp>::Index( ArrayIndexListT* ixList)
 template<class Sp>
 void Data_<Sp>::InsAt( Data_* srcIn, ArrayIndexListT* ixList)
 {
-  SizeT nDim; // max. number of dimensions to copy
-  SizeT destStart; // 1-dim starting index 
-  // ATTENTION: dimension is used as an index here
-  dimension ixDim = ixList->GetDimIx0( nDim, destStart);
-  nDim--;
-
-  if( nDim == 0)
+  // max. number of dimensions to copy
+  SizeT nDim = ixList->NDim();
+ 
+  if( nDim == 1)
     {
+      SizeT destStart = ixList->LongIx();
+
       SizeT len = srcIn->Dim( 0); // length of segment to copy
       // check if in bounds of a
       if( (destStart+len) > this->dim[0])
@@ -1455,6 +1534,11 @@ void Data_<Sp>::InsAt( Data_* srcIn, ArrayIndexListT* ixList)
 
       return;
     }
+
+  // ATTENTION: dimension is used as an index here
+  SizeT destStart; // 1-dim starting index 
+  dimension ixDim = ixList->GetDimIx0( destStart);
+  nDim--;
 
   dimension srcDim=srcIn->Dim();
   SizeT len=srcDim[0]; // length of one segment to copy (one line of srcIn)

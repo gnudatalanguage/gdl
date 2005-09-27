@@ -3601,6 +3601,12 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t) {
 	assert( aL != NULL);
 	
 	nExpr = aL->NParam();
+	if( nExpr == 0)
+	{
+	aL->Init();
+	goto empty;
+	}
+	
 	//                 if( nExpr > 1)
 	//                 {
 	//                     ixExprList.reserve( nExpr);
@@ -3684,6 +3690,7 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t) {
 	_t = _t->getNextSibling();
 	
 	aL->Init( ixExprList);
+	empty:
 	
 	_retTree = _t;
 	return aL;
@@ -4263,6 +4270,11 @@ BaseGDL*  GDLInterpreter::array_expr(ProgNodeP _t) {
 	guard.reset(aL);
 	
 	nExpr = aL->NParam();
+	
+	if( nExpr == 0)
+	{
+	goto empty;
+	}
 	//                 if( nExpr > 1)
 	//                 {
 	//                     ixExprList.reserve( nExpr);
@@ -4345,6 +4357,7 @@ BaseGDL*  GDLInterpreter::array_expr(ProgNodeP _t) {
 	_t = __t106;
 	_t = _t->getNextSibling();
 	
+	empty:
 	res = aL->Index( r, ixExprList);
 	//                 aL->Init( ixExprList);
 	//                 aL->SetVariable( r);

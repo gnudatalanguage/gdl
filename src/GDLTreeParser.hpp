@@ -26,13 +26,18 @@ class CUSTOM_API GDLTreeParser : public antlr::TreeParser, public GDLTreeParserT
         assert( ixList->size() != 0); // must be, from compiler
         
         if( ixList->size() == 1)
-        if( dynamic_cast< ArrayIndexScalar*>((*ixList)[0]))
+        {
             if( dynamic_cast< CArrayIndexScalar*>((*ixList)[0]))
                 return new ArrayIndexListOneConstScalarT( ixList);
-            else
+
+            if( dynamic_cast< ArrayIndexScalar*>((*ixList)[0]))
                 return new ArrayIndexListOneScalarT( ixList);
-        else
+
+            if( dynamic_cast< ArrayIndexScalarVP*>((*ixList)[0]))
+                return new ArrayIndexListOneScalarVPT( ixList);
+
             return new ArrayIndexListOneT( ixList);
+        }
 
         SizeT nScalar  = 0;
         for( SizeT i=0; i<ixList->size(); ++i)

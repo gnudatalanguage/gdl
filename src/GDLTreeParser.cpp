@@ -4245,13 +4245,15 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 			}
 			else
 			{
-			arrayindex_AST = e1_AST;
 			if( LoopVar( e1_AST))
 			ixList->push_back( new 
-			ArrayIndexScalar());
+			ArrayIndexScalar( e1_AST));
 			else
+			{
+			arrayindex_AST = e1_AST;
 			ixList->push_back( new 
 			ArrayIndexIndexed());
+			}
 			}
 			
 			currentAST.root = arrayindex_AST;

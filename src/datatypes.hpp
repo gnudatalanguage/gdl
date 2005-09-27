@@ -127,6 +127,7 @@ public:
  
   // used by the interpreter
   int Scalar2index( SizeT& st) const;
+  SizeT LoopIndex() const; 
   
   // make a duplicate on the heap
   Data_* Dup() { return new Data_(*this);}

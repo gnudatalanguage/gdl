@@ -192,6 +192,7 @@ public:
   virtual BaseGDL* GetTag() const; 
   virtual BaseGDL* GetInstance() const;
   virtual int Scalar2index(SizeT& ret) const; 
+  virtual SizeT LoopIndex() const; 
   virtual bool True();
   virtual bool False();
   virtual bool LogTrue();

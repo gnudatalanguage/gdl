@@ -264,6 +264,9 @@ public:
   BaseGDL* CData() { return cData;}
   void     ResetCData( BaseGDL* newCData);
 
+  DVar*    GetVar()   { return var;}
+  int      GetVarIx() { return varIx;}
+
 private:
 
   BaseGDL* StealCData() { BaseGDL* res = cData; cData=NULL; return res;}

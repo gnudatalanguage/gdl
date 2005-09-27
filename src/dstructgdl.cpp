@@ -572,10 +572,10 @@ void DStructGDL::AddParent( DStructDesc* p)
 // used by Assign -> old data must be freed
 void DStructGDL::InsAt( DStructGDL* srcIn, ArrayIndexListT* ixList)
 {
-  SizeT nDim; // max. number of dimensions to copy
+  SizeT nDim = ixList->NDim(); // max. number of dimensions to copy
   SizeT destStart;
   // ATTENTION: dimension is used as an index here
-  dimension ixDim = ixList->GetDimIx0( nDim, destStart);
+  dimension ixDim = ixList->GetDimIx0( destStart);
   nDim--;
 
   //const DStructGDL* srcArr=static_cast<const DStructGDL*>(srcIn->Convert2( t));

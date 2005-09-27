@@ -174,7 +174,8 @@ am__gdl_SOURCES_DIST = accessdesc.hpp arrayindex.hpp assocdata.cpp \
 	image.cpp image.hpp gdljournal.cpp gdljournal.hpp convol.cpp \
 	convol_inc0.cpp convol_inc1.cpp convol_inc2.cpp \
 	sigfpehandler.cpp sigfpehandler.hpp devicez.hpp gdlzstream.cpp \
-	gdlzstream.hpp gdlwidget.hpp gdl.cpp arrayindexlistt.hpp
+	gdlzstream.hpp gdlwidget.hpp gdl.cpp arrayindexlistt.hpp \
+	arrayindex.cpp
 am__objects_2 = gdl-assocdata.$(OBJEXT) gdl-basic_fun_cl.$(OBJEXT) \
 	gdl-basic_fun.$(OBJEXT) gdl-basic_fun_jmg.$(OBJEXT) \
 	gdl-basic_op.$(OBJEXT) gdl-basic_pro.$(OBJEXT) \
@@ -216,7 +217,8 @@ am__objects_2 = gdl-assocdata.$(OBJEXT) gdl-basic_fun_cl.$(OBJEXT) \
 	gdl-convol_inc1.$(OBJEXT) gdl-convol_inc2.$(OBJEXT) \
 	gdl-sigfpehandler.$(OBJEXT) gdl-gdlzstream.$(OBJEXT)
 @BUILDASLIBRARY_FALSE@am_gdl_OBJECTS = $(am__objects_2) \
-@BUILDASLIBRARY_FALSE@	gdl-gdl.$(OBJEXT)
+@BUILDASLIBRARY_FALSE@	gdl-gdl.$(OBJEXT) \
+@BUILDASLIBRARY_FALSE@	gdl-arrayindex.$(OBJEXT)
 gdl_OBJECTS = $(am_gdl_OBJECTS)
 @BUILDASLIBRARY_FALSE@gdl_DEPENDENCIES =  \
 @BUILDASLIBRARY_FALSE@	$(top_builddir)/src/antlr/libantlr.a
@@ -392,7 +394,7 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 				convol_inc1.cpp convol_inc2.cpp sigfpehandler.cpp sigfpehandler.hpp devicez.hpp \
 		gdlzstream.cpp gdlzstream.hpp gdlwidget.hpp
 
-@BUILDASLIBRARY_FALSE@gdl_SOURCES = $(cpp_hpp_files) gdl.cpp arrayindexlistt.hpp
+@BUILDASLIBRARY_FALSE@gdl_SOURCES = $(cpp_hpp_files) gdl.cpp arrayindexlistt.hpp arrayindex.cpp
 # trigger basename generation
 @BUILDASLIBRARY_FALSE@gdl_CXXFLAGS = $(AM_CXXFLAGS)
 # the library search path.
@@ -554,6 +556,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-GDLLexer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-GDLParser.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-GDLTreeParser.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-arrayindex.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-assocdata.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-basegdl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-basic_fun.Po@am__quote@
@@ -1873,6 +1876,20 @@ gdl-gdl.obj: gdl.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='gdl.cpp' object='gdl-gdl.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-gdl.obj `if test -f 'gdl.cpp'; then $(CYGPATH_W) 'gdl.cpp'; else $(CYGPATH_W) '$(srcdir)/gdl.cpp'; fi`
+
+gdl-arrayindex.o: arrayindex.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-arrayindex.o -MD -MP -MF "$(DEPDIR)/gdl-arrayindex.Tpo" -c -o gdl-arrayindex.o `test -f 'arrayindex.cpp' || echo '$(srcdir)/'`arrayindex.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/gdl-arrayindex.Tpo" "$(DEPDIR)/gdl-arrayindex.Po"; else rm -f "$(DEPDIR)/gdl-arrayindex.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='arrayindex.cpp' object='gdl-arrayindex.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-arrayindex.o `test -f 'arrayindex.cpp' || echo '$(srcdir)/'`arrayindex.cpp
+
+gdl-arrayindex.obj: arrayindex.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-arrayindex.obj -MD -MP -MF "$(DEPDIR)/gdl-arrayindex.Tpo" -c -o gdl-arrayindex.obj `if test -f 'arrayindex.cpp'; then $(CYGPATH_W) 'arrayindex.cpp'; else $(CYGPATH_W) '$(srcdir)/arrayindex.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/gdl-arrayindex.Tpo" "$(DEPDIR)/gdl-arrayindex.Po"; else rm -f "$(DEPDIR)/gdl-arrayindex.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='arrayindex.cpp' object='gdl-arrayindex.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-arrayindex.obj `if test -f 'arrayindex.cpp'; then $(CYGPATH_W) 'arrayindex.cpp'; else $(CYGPATH_W) '$(srcdir)/arrayindex.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
