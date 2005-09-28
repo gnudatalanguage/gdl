@@ -2261,6 +2261,8 @@ namespace lib {
     //    PLFLT scale = 1.0;
     static int positionIx = e->KeywordIx( "POSITION"); 
     DFloatGDL* pos = e->IfDefGetKWAs<DFloatGDL>( positionIx);
+    if (pos == NULL) pos = (DFloatGDL*) 0xF;
+    /*
     PLFLT position[ 4] = { 0.0, 0.0, 1.0, 1.0};
     if( pos != NULL)
       {
@@ -2271,6 +2273,7 @@ namespace lib {
       yScale = position[3]-position[1];
       //      scale = sqrt( pow( xScale,2) + pow( yScale,2));
       }
+    */
 
     // CHARSIZE
     DDouble charsize = p_charsize;
