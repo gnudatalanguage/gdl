@@ -3107,6 +3107,7 @@ named_struct_def returns[ BaseGDL* res]
 }
 	: #(n:NSTRUC id:IDENTIFIER 
             {
+                // definedStruct: no tags present
                 if( n->definedStruct == 1) GetStruct( id->getText(), _t);
 
                 // find struct 'id' (for compatibility check)

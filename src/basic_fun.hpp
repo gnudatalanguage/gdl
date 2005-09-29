@@ -140,6 +140,8 @@ namespace lib {
 
   BaseGDL* strcmp_fun( EnvT* e);
 
+  BaseGDL* create_struct( EnvT* e);
+
 } // namespace
 
 #endif

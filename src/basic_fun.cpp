@@ -3349,6 +3349,184 @@ namespace lib {
       }
   }
 
+  string TagName( EnvT* e, const string& name)
+  {
+    string n = StrUpCase( name);
+    SizeT len = n.size();
+    if( n[0] != '_' && (n[0] < 'A' || n[0] > 'Z'))
+      e->Throw( "Illegal tag name: "+name+".");
+    for( SizeT i=1; i<len; ++i)
+      {
+	if( n[i] != '_' && n[i] != '$' && 
+	    (n[i] < 'A' || n[i] > 'Z') &&
+	    (n[i] < '0' || n[i] > '9'))
+	  e->Throw( "Illegal tag name: "+name+".");
+      }
+    return n;
+  }
+
+  BaseGDL* create_struct( EnvT* e)
+  {
+    static int nameIx = e->KeywordIx( "NAME" );
+    DString name = "$truct";
+    if( e->KeywordPresent( nameIx))
+      e->AssureStringScalarKW( nameIx, name);
+
+    if( name != "$truct") // named struct
+      {
+	name = StrUpCase( name);
+	
+	SizeT nParam=e->NParam();
+
+	if( nParam == 0)
+	  {
+	    DStructDesc* desc = 
+	      e->Interpreter()->GetStruct( name, e->CallingNode());
+	   
+	    return new DStructGDL( desc);
+	  }
+
+	DStructDesc*          nStructDesc;
+	auto_ptr<DStructDesc> nStructDescGuard;
+	
+	DStructDesc* oStructDesc=
+	  FindInStructList( structList, name);
+	
+	if( oStructDesc == NULL || oStructDesc->NTags() > 0)
+	  {
+	    // not defined at all yet (-> define now)
+	    // or completely defined  (-> define now and check equality)
+	    nStructDesc= new DStructDesc( name);
+                    
+	    // guard it
+	    nStructDescGuard.reset( nStructDesc); 
+	  }
+	else
+	  {   
+	    // NTags() == 0
+	    // not completely defined (only name in list)
+	    nStructDesc= oStructDesc;
+	  }
+                
+	// the instance variable
+	DStructGDL* instance= new DStructGDL( nStructDesc); 
+	auto_ptr<DStructGDL> instance_guard(instance);
+
+	for( SizeT p=0; p<nParam; ++p)
+	  {
+	    BaseGDL* par = e->GetParDefined( p);
+	    DStructGDL* parStruct = dynamic_cast<DStructGDL*>( par);
+	    if( parStruct != NULL)
+	      {
+		// add struct
+		if( !parStruct->Scalar())
+		  e->Throw("Expression must be a scalar in this context: "+
+			   e->GetParString( p));
+		
+		DStructDesc* desc = parStruct->Desc();
+		for( SizeT t=0; t< desc->NTags(); ++t)
+		  {
+		    instance->NewTag( desc->TagName( t), 
+				      parStruct->Get( t, 0)->Dup());
+		  }
+	      }
+	    else
+	      {
+		// add tag value pair
+		DStringGDL* tagNames = e->GetParAs<DStringGDL>( p);
+		SizeT nTags = tagNames->N_Elements();
+
+		SizeT tagStart = p+1;
+		SizeT tagEnd   = p+nTags;
+		if( tagEnd >= nParam)
+		  e->Throw( "Incorrect number of arguments.");
+
+		do{
+		    ++p;
+		    BaseGDL* value = e->GetParDefined( p);
+		    
+		    // add 
+		    instance->NewTag( TagName( e, (*tagNames)[ p-tagStart]),
+				      value->Dup());
+		  } 
+		while( p<tagEnd);
+	      }
+	  }
+
+	if( oStructDesc != NULL)
+	  {
+	    if( oStructDesc != nStructDesc)
+	      {
+		oStructDesc->AssureIdentical(nStructDesc);
+		instance->SetDesc(oStructDesc);
+		//delete nStructDesc; // auto_ptr
+	      }
+	  }
+	else
+	  {
+	    // release from guard (if not NULL)
+	    nStructDescGuard.release();
+	    // insert into struct list 
+	    structList.push_back(nStructDesc);
+	  }
+	
+	instance_guard.release();
+	return instance;
+      }
+    else 
+      { // unnamed struct
+	SizeT nParam=e->NParam(1);
+
+	DStructDesc*          nStructDesc = new DStructDesc( "$truct");
+	// instance takes care of nStructDesc since it is unnamed
+	DStructGDL* instance = new DStructGDL( nStructDesc);
+	auto_ptr<DStructGDL> instance_guard(instance);
+
+	for( SizeT p=0; p<nParam; ++p)
+	  {
+	    BaseGDL* par = e->GetParDefined( p);
+	    DStructGDL* parStruct = dynamic_cast<DStructGDL*>( par);
+	    if( parStruct != NULL)
+	      {
+		// add struct
+		if( !parStruct->Scalar())
+		  e->Throw("Expression must be a scalar in this context: "+
+			   e->GetParString( p));
+		
+		DStructDesc* desc = parStruct->Desc();
+		for( SizeT t=0; t< desc->NTags(); ++t)
+		  {
+		    instance->NewTag( desc->TagName( t), 
+				      parStruct->Get( t, 0)->Dup());
+		  }
+	      }
+	    else
+	      {
+		// add tag value pair
+		DStringGDL* tagNames = e->GetParAs<DStringGDL>( p);
+		SizeT nTags = tagNames->N_Elements();
+
+		SizeT tagStart = p+1;
+		SizeT tagEnd   = p+nTags;
+		if( tagEnd >= nParam)
+		  e->Throw( "Incorrect number of arguments.");
+
+		for(++p; p<tagEnd; ++p)
+		  {
+		    BaseGDL* value = e->GetParDefined( p);
+
+		    // add 
+		    instance->NewTag( TagName( e, (*tagNames)[ p-tagStart]),
+				      value->Dup());
+		  }
+	      }
+	  }
+	
+	instance_guard.release();
+	return instance;
+      }
+  }
+
 } // namespace
 
 

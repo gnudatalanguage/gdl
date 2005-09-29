@@ -345,6 +345,9 @@ void LibInit()
   const string maxKey[]={"MIN","NAN","SUBSCRIPT_MIN",KLISTEND};
   new DLibFunRetNew(lib::max_fun,string("MAX"),2,maxKey);
 
+  const string create_structKey[]={"NAME",KLISTEND};
+  new DLibFunRetNew(lib::create_struct,string("CREATE_STRUCT"),-1,create_structKey);
+
 //   const string minKey[]={"MAX",KLISTEND};
 //   new DLibFun(lib::min_fun,string("MIN"),2,minKey);
 //   const string maxKey[]={"MIN",KLISTEND};
