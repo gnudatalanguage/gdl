@@ -74,6 +74,12 @@ SizeT ArrayIndexScalarVP::NIter( SizeT varDim)
   return 1;
 }
 
+void ArrayIndexScalar::Init() 
+{
+  s = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
+}
+
+
 // void ArrayIndexListOneScalarT::Init( IxExprListT& ix_)
 // {
 //   s = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
@@ -84,11 +90,13 @@ SizeT ArrayIndexScalarVP::NIter( SizeT varDim)
 // }
 void ArrayIndexListOneScalarT::Init()
 {
-  s = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
+  assert( 0);
+  //  s = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
 }
 void ArrayIndexListOneScalarVPT::Init()
 {
-  s = varPtr->Data()->LoopIndex();
+  assert( 0);
+  //  s = varPtr->Data()->LoopIndex();
 }
 
 // optimized for one dimensional access
@@ -108,7 +116,7 @@ BaseGDL* ArrayIndexListOneScalarT::Index( BaseGDL* var, IxExprListT& ix_)
       }
     
     // normal case
-    Init();
+    //    Init();
     SetVariable( var);
     return var->Index( this);
   }
@@ -128,10 +136,53 @@ BaseGDL* ArrayIndexListOneScalarVPT::Index( BaseGDL* var, IxExprListT& ix_)
       }
     
     // normal case
-    Init();
+    //    Init();
     SetVariable( var);
     return var->Index( this);
   }
+
+bool ArrayIndexListOneScalarT::ToAssocIndex( SizeT& lastIx)
+  {
+    s = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
+    lastIx = s;
+    return true;
+  }
+void ArrayIndexListOneScalarT::SetVariable( BaseGDL* var) 
+  {
+    s = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
+
+    // for assoc variables last index is the record
+    if( var->IsAssoc()) return;
+    if( s >= var->Size())
+      throw GDLException("Scalar subscript out of range [>].1");
+  }
+void ArrayIndexListOneScalarT::AssignAt( BaseGDL* var, BaseGDL* right)
+  {
+    // Init() was already called
+    // scalar case
+    if( right->N_Elements() == 1 && !var->IsAssoc() && var->Type() != STRUCT) 
+      {
+	s = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
+	if( s >= var->Size())
+	  throw GDLException("Scalar subscript out of range [>].2");
+	var->AssignAtIx( s, right);
+	return;
+      }
+    
+    SetVariable( var);
+    if( var->EqType( right))
+      {
+	var->AssignAt( right, this); // assigns inplace
+      }
+    else
+      {
+	BaseGDL* rConv = right->Convert2( var->Type(), BaseGDL::COPY);
+	std::auto_ptr<BaseGDL> conv_guard( rConv);
+	
+	var->AssignAt( rConv, this); // assigns inplace
+      }
+  }
+
 
 // vtable
 ArrayIndexListT::~ArrayIndexListT() {}

@@ -42,7 +42,7 @@ public:
   virtual void Clear() {}
 
   virtual void Init( IxExprListT& ix) { assert( 0);}
-  virtual void Init() { assert( 0);}
+  virtual void Init() {}
   
   virtual bool ToAssocIndex( SizeT& lastIx) {}
 
@@ -73,6 +73,7 @@ public:
 };
 
 // only one index [ix],[s:e],...
+// NEVER ArrayIndexScalar types (they have their own ArrayIndexListT)
 class ArrayIndexListOneT: public ArrayIndexListT
 {
 private:
@@ -142,11 +143,14 @@ public:
       }
   }
 
+  void Init() {} // eg. a[*]
+
   // requires special handling
   // used by Assoc_<> returns last index in lastIx, removes it
   // and returns true is the list is empty
   bool ToAssocIndex( SizeT& lastIx)
   {
+    // cannot be ArrayIndexScalar[VP] ix->Init();
     if( !ix->Scalar( lastIx))
       throw GDLException( "Record number must be a scalar in this context.");
     return true;
@@ -159,6 +163,10 @@ public:
 
     // for assoc variables last index is the record
     if( var->IsAssoc()) return;
+
+    // ArrayIndexScalar[VP] are not initialized
+    // they need the NIter call, but
+    // for only one index they have their own ArrayIndexListT
     nIx=ix->NIter( var->Size());
   }
   
@@ -281,7 +289,7 @@ public:
   { 
     return 1;
   }
-};
+}; //class ArrayIndexListOneT: public ArrayIndexListT
 
 // loop index
 class ArrayIndexListOneScalarT: public ArrayIndexListT
@@ -328,25 +336,15 @@ public:
   void Clear()
   {}
 
-  void Init();// IxExprListT& ix_);
+  void Init();
 
   // requires special handling
   // used by Assoc_<> returns last index in lastIx, removes it
   // and returns true is the list is empty
-  bool ToAssocIndex( SizeT& lastIx)
-  {
-    lastIx = s;
-    return true;
-  }
+  bool ToAssocIndex( SizeT& lastIx);
 
   // set the root variable which is indexed by this ArrayIndexListT
-  void SetVariable( BaseGDL* var) 
-  {
-    // for assoc variables last index is the record
-    if( var->IsAssoc()) return;
-    if( s >= var->Size())
-      throw GDLException("Scalar subscript out of range [>].1");
-  }
+  void SetVariable( BaseGDL* var);
   
   // structure of indexed expression
   dimension GetDim()
@@ -379,31 +377,7 @@ public:
     return s;
   }
 
-  void AssignAt( BaseGDL* var, BaseGDL* right)
-  {
-    // Init() was already called
-    // scalar case
-    if( right->N_Elements() == 1 && !var->IsAssoc() && var->Type() != STRUCT) 
-      {
-	if( s >= var->Size())
-	  throw GDLException("Scalar subscript out of range [>].2");
-	var->AssignAtIx( s, right);
-	return;
-      }
-    
-    SetVariable( var);
-    if( var->EqType( right))
-      {
-	var->AssignAt( right, this); // assigns inplace
-      }
-    else
-      {
-	BaseGDL* rConv = right->Convert2( var->Type(), BaseGDL::COPY);
-	std::auto_ptr<BaseGDL> conv_guard( rConv);
-	
-	var->AssignAt( rConv, this); // assigns inplace
-      }
-  }
+  void AssignAt( BaseGDL* var, BaseGDL* right);
 
   // optimized for one dimensional access
   BaseGDL* Index( BaseGDL* var, IxExprListT& ix_);
@@ -421,7 +395,8 @@ public:
     return 1;
   }
 
-};
+}; // class ArrayIndexListOneScalarT: public ArrayIndexListT
+
 class ArrayIndexListOneScalarVPT: public ArrayIndexListT
 {
 protected:
@@ -467,13 +442,14 @@ public:
   void Clear()
   {}
 
-  void Init();// IxExprListT& ix_);
+  void Init();
 
   // requires special handling
   // used by Assoc_<> returns last index in lastIx, removes it
   // and returns true is the list is empty
   bool ToAssocIndex( SizeT& lastIx)
   {
+    s = varPtr->Data()->LoopIndex();
     lastIx = s;
     return true;
   }
@@ -481,6 +457,8 @@ public:
   // set the root variable which is indexed by this ArrayIndexListT
   void SetVariable( BaseGDL* var) 
   {
+    s = varPtr->Data()->LoopIndex();
+
     // for assoc variables last index is the record
     if( var->IsAssoc()) return;
     if( s >= var->Size())
@@ -524,6 +502,7 @@ public:
     // scalar case
     if( right->N_Elements() == 1 && !var->IsAssoc() && var->Type() != STRUCT) 
       {
+	s = varPtr->Data()->LoopIndex();
 	if( s >= var->Size())
 	  throw GDLException("Scalar subscript out of range [>].2");
 	var->AssignAtIx( s, right);
@@ -559,12 +538,11 @@ public:
     return 1;
   }
 
-};
+}; // class ArrayIndexListOneScalarVPT: public ArrayIndexListT
 
 class ArrayIndexListOneConstScalarT: public ArrayIndexListT
 {
   SizeT s;
-
   AllIxT* allIx;
 
 public:    
@@ -585,7 +563,7 @@ public:
     s( cp.s),
     allIx( NULL)
   {
-    assert( cp.allIx == NULL);
+    assert( cp.allIx == NULL); // all copying should be done before using.
   }
 
   // called after structure is fixed
@@ -601,10 +579,8 @@ public:
   void Clear()
   {}
 
-  void Init()// IxExprListT& ix_)
-  {
-    //    assert( ix_.size() == 0);
-  }
+  void Init()
+  {}
 
   SizeT N_Elements()
   {
@@ -709,8 +685,7 @@ public:
     return 1;
   }
 
-};
-
+}; // class ArrayIndexListOneConstScalarT: public ArrayIndexListT
 
 // all scalar elements (multi-dim)
 class ArrayIndexListScalarT: public ArrayIndexListT
@@ -808,6 +783,7 @@ public:
 // 	ixList[ paramPresent[i]]->Init( ix[ i]);
 //       }
 //   }
+
   void Init()
   {}
   
@@ -822,6 +798,9 @@ public:
     ixListEnd = ixList.back();
     ixList.pop_back();
     
+    // init in case of ixListEnd->NParam == 0
+    ixListEnd->Init();
+
     ixListEnd->Scalar( lastIx);
 
     return false; // multi dim
@@ -842,6 +821,8 @@ public:
 	// if( acRank == 0) return; // multi dim
       }
 
+    // ArrayIndexScalar[VP] need this call to read their actual data
+    // as their are not initalized (nParam == 0)
     for( SizeT i=0; i<acRank; ++i)
       ixList[i]->NIter( var->Dim(i)); // check boundary
 
@@ -910,7 +891,7 @@ public:
   // optimized for one dimensional access
   BaseGDL* Index( BaseGDL* var, IxExprListT& ix)
   {
-    Init();
+    //    Init();
     SetVariable( var);
     return var->Index( this);
   }
@@ -937,7 +918,7 @@ public:
   { 
     return acRank;
   }
-};
+}; // class ArrayIndexListScalarT: public ArrayIndexListT
 
 // general case (mixed, multi-dim)
 class ArrayIndexListMultiT: public ArrayIndexListT
@@ -1101,7 +1082,7 @@ public:
     assert( ixListEnd == NULL);
     
     ArrayIndexT* ixListEndTmp = ixList.back();
-
+    ixListEndTmp->Init();
     if( !ixListEndTmp->Scalar( lastIx))
       throw GDLException( "Record number must be a scalar in this context.");
 
@@ -1418,8 +1399,7 @@ public:
   SizeT NDim()
   { return acRank;}
 
-};
-
+}; //class ArrayIndexListMultiT: public ArrayIndexListT
 
 class ArrayIndexListGuard
 {

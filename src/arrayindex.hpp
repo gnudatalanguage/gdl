@@ -30,6 +30,10 @@ typedef std::vector<BaseGDL*>     IxExprListT;
 class ArrayIndexT
 {
 public:
+// this may be called from ArrayIndexListT::ToAssocIndex
+  virtual void Init() {} 
+  
+  // the following should never be called
   virtual void Init( BaseGDL*) { assert( false);}
   virtual void Init( BaseGDL*, BaseGDL*) { assert( false);}
   virtual void Init( BaseGDL*, BaseGDL*, BaseGDL*) { assert( false);}
@@ -98,6 +102,8 @@ public:
     return new ArrayIndexScalar(*this);
   }
  
+  void Init();
+
   void Clear()
   {}
 
@@ -128,6 +134,11 @@ public:
   { 
     s_ = s;
     return true;
+  }
+
+  void Init() 
+  {
+    s = varPtr->Data()->LoopIndex();
   }
 
   SizeT GetIx0()
