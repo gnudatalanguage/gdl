@@ -635,3 +635,9 @@ SizeT BaseGDL::LoopIndex() const
 { 
   throw GDLException("Operation not defined for UNDEF 29.");
 }
+
+BaseGDL* BaseGDL::Rotate( DLong dir)
+{ 
+  throw GDLException("Operation not defined for UNDEF 30.");
+}
+

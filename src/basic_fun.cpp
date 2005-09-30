@@ -3530,6 +3530,25 @@ namespace lib {
       }
   }
 
+  BaseGDL* rotate( EnvT* e)
+  {
+    e->NParam(2);
+
+    BaseGDL* p0 = e->GetParDefined( 0);
+    if( p0->Rank() != 1 && p0->Rank() != 2)
+      e->Throw( "Expression must be a scalar or 1 element array in this context: "+
+		e->GetParString( 0));
+
+    if( p0->Type() == STRUCT)
+      e->Throw( "STRUCT expression not allowed in this context: "+
+		e->GetParString( 0));
+    
+    DLong dir;
+    e->AssureLongScalarPar( 1, dir);
+
+    return p0->Rotate( dir);
+  }
+
 } // namespace
 
 

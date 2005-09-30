@@ -142,6 +142,8 @@ namespace lib {
 
   BaseGDL* create_struct( EnvT* e);
 
+  BaseGDL* rotate( EnvT* e);
+
 } // namespace
 
 #endif

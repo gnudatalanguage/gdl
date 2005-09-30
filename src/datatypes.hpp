@@ -100,6 +100,7 @@ public:
   BaseGDL* CShift( DLong d[MAXRANK]); 
 
   BaseGDL* Transpose( DUInt* perm);
+  BaseGDL* Rotate( DLong dir);
 
   // for use by MIN and MAX functions
   void MinMax( DLong* minE, DLong* maxE, BaseGDL** minVal, BaseGDL** maxVal,

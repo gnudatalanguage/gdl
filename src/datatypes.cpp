@@ -354,6 +354,81 @@ BaseGDL* Data_<Sp>::Transpose( DUInt* perm)
   return res;
 }
 
+// rank must be 1 or 2 (already checked)
+template<class Sp> 
+BaseGDL* Data_<Sp>::Rotate( DLong dir)
+{
+  dir = (dir%8+8)%8; // bring into 0..7 range
+
+  if( dir == 0) return Dup();
+  if( dir == 2)
+    {
+      Data_* res = new Data_( this->dim, BaseGDL::NOZERO);
+      SizeT nEl = N_Elements();
+      
+      for( SizeT i=0; i<nEl; ++i)
+	  res->dd[i] = dd[ nEl-1-i];
+      return res;
+    }
+
+  if( this->Rank() == 1)
+    {
+      if( dir == 7) return Dup();
+      
+      if( dir == 1 || dir == 4)
+	{
+	  return new Data_( dimension( 1, N_Elements()), dd);
+	}
+      if( dir == 5) // || dir == 2
+	{
+	  Data_* res = new Data_( this->dim, BaseGDL::NOZERO);
+	  SizeT nEl = N_Elements();
+	  for( SizeT i=0; i<nEl; ++i)
+	    res->dd[ i] = dd[ nEl-1-i];
+	  return res;
+	}
+      // 3 || 6
+      Data_* res = new Data_( dimension( 1, N_Elements()), BaseGDL::NOZERO);
+      SizeT nEl = N_Elements();
+      for( SizeT i=0; i<nEl; ++i)
+	res->dd[ i] = dd[ nEl-1-i];
+      return res;
+    }
+
+  // rank == 2, dir == 0 and dir == 2 already handled
+  bool keepDim = (dir == 5) || (dir == 7);
+
+  Data_* res;
+  if( keepDim)
+    {
+      res = new Data_( this->dim, BaseGDL::NOZERO);
+    }
+  else
+    {
+      res = new Data_( dimension( this->dim[1], this->dim[0]), BaseGDL::NOZERO);
+    }
+
+  bool flipX = dir == 3 || dir == 5 || dir == 6;
+  bool flipY = dir == 1 || dir == 6 || dir == 7;
+
+  SizeT xEl = this->dim[0];
+  SizeT yEl = this->dim[1];
+  SizeT i = 0;
+  for( SizeT y=0; y<yEl; ++y)
+    {
+      SizeT yR = flipY?yEl-1-y:y;
+      for( SizeT x=0; x<xEl; ++x)
+	{
+	  SizeT xR = flipX?xEl-1-x:x;
+	  
+	  SizeT ix = keepDim? yR * xEl + xR: xR * yEl + yR;
+	  
+	  res->dd[ix] = dd[ i++];
+	}
+    }
+  return res;
+}
+
 template<class Sp> 
 typename Data_<Sp>::Ty Data_<Sp>::Sum() const 
 { return dd.sum();}

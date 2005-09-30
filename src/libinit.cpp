@@ -348,6 +348,8 @@ void LibInit()
   const string create_structKey[]={"NAME",KLISTEND};
   new DLibFunRetNew(lib::create_struct,string("CREATE_STRUCT"),-1,create_structKey);
 
+  new DLibFunRetNew(lib::rotate,string("ROTATE"),2);
+
 //   const string minKey[]={"MAX",KLISTEND};
 //   new DLibFun(lib::min_fun,string("MIN"),2,minKey);
 //   const string maxKey[]={"MIN",KLISTEND};
