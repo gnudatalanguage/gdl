@@ -80,24 +80,24 @@ void ArrayIndexScalar::Init()
 }
 
 
-// void ArrayIndexListOneScalarT::Init( IxExprListT& ix_)
+// // void ArrayIndexListOneScalarT::Init( IxExprListT& ix_)
+// // {
+// //   s = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
+// // }
+// // void ArrayIndexListOneScalarVPT::Init( IxExprListT& ix_)
+// // {
+// //   s = varPtr->Data()->LoopIndex();
+// // }
+// void ArrayIndexListOneScalarT::Init()
 // {
-//   s = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
+//   //  assert( 0);
+//   //  s = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
 // }
-// void ArrayIndexListOneScalarVPT::Init( IxExprListT& ix_)
+// void ArrayIndexListOneScalarVPT::Init()
 // {
-//   s = varPtr->Data()->LoopIndex();
+//   //  assert( 0);
+//   //  s = varPtr->Data()->LoopIndex();
 // }
-void ArrayIndexListOneScalarT::Init()
-{
-  assert( 0);
-  //  s = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
-}
-void ArrayIndexListOneScalarVPT::Init()
-{
-  assert( 0);
-  //  s = varPtr->Data()->LoopIndex();
-}
 
 // optimized for one dimensional access
 BaseGDL* ArrayIndexListOneScalarT::Index( BaseGDL* var, IxExprListT& ix_)

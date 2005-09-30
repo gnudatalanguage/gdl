@@ -336,7 +336,7 @@ public:
   void Clear()
   {}
 
-  void Init();
+  void Init() {}
 
   // requires special handling
   // used by Assoc_<> returns last index in lastIx, removes it
@@ -442,7 +442,7 @@ public:
   void Clear()
   {}
 
-  void Init();
+  void Init() {}
 
   // requires special handling
   // used by Assoc_<> returns last index in lastIx, removes it
