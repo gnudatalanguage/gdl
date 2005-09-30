@@ -108,7 +108,7 @@ void OutFixed( std::ostream& os, T val, int w, int d)
       if( w == 0)
 	os << "0.000000";
       else
-	OutFixedZero<T>( os, w, d);
+	OutFixedZero<T>( os, w, d+1);
     return;
     }
   std::ostringstream oss;

@@ -3357,10 +3357,13 @@ namespace lib {
       e->Throw( "Illegal tag name: "+name+".");
     for( SizeT i=1; i<len; ++i)
       {
-	if( n[i] != '_' && n[i] != '$' && 
-	    (n[i] < 'A' || n[i] > 'Z') &&
-	    (n[i] < '0' || n[i] > '9'))
-	  e->Throw( "Illegal tag name: "+name+".");
+	if( n[i] == ' ')
+	  n[i] = '_';
+	else 
+	  if( n[i] != '_' && n[i] != '$' && 
+	      (n[i] < 'A' || n[i] > 'Z') &&
+	      (n[i] < '0' || n[i] > '9'))
+	    e->Throw( "Illegal tag name: "+name+".");
       }
     return n;
   }
