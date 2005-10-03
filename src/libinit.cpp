@@ -645,6 +645,8 @@ void LibInit()
   const string laguerreKey[]={"DOUBLE","COEFFICIENTS",KLISTEND};
   new DLibFun(lib::laguerre,string("LAGUERRE"),3,laguerreKey);
 
+  new DLibFun(lib::gauss_pdf,string("GAUSS_PDF"),1);
+  new DLibFun(lib::gauss_cvf,string("GAUSS_CVF"),1);
   // sort lists
   sort( libFunList.begin(), libFunList.end(), CompLibFunName());
   sort( libProList.begin(), libProList.end(), CompLibProName());

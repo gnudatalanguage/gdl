@@ -50,6 +50,11 @@ namespace lib {
 
   BaseGDL* exp_fun( EnvT* e);
 
+  // by medericboquien@users.sourceforge.net
+  BaseGDL* gauss_pdf(EnvT* e);
+  BaseGDL* gauss_cvf(EnvT* e);
+  BaseGDL* laguerre(EnvT* e);
+
 } // namespace
 
 #endif

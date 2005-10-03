@@ -29,7 +29,7 @@
 #include <fstream>
 #include <memory>
 
-#include <sys/times.h>
+#include <sys/time.h>
 
 #include <gsl/gsl_sys.h>
 #include <gsl/gsl_linalg.h>
@@ -89,135 +89,97 @@ namespace lib {
 
   }
 
-
   BaseGDL* systime(EnvT* e)
   {
-    struct tm *tstruct; //the time structure, from ctime.h
-    time_t t=time(0);  
-
-#ifdef _SC_CLK_TCK
-    struct tms dummy;
-    double tt = times( &dummy);
-    static long perSecond = sysconf(_SC_CLK_TCK);
-    tt /= static_cast<double>(perSecond);
-#else
-    double tt = t;
-#endif
+    struct timeval tval;
+    struct timezone tzone;
     
     /*get the time before doing anything else, 
       this hopefully gives a more meaningful "time"
       than if the t=time(0) call came after an 
       arbitary number of conditional statements.*/
     //    cout << "lib::systime: " << t << endl;
+    gettimeofday(&tval,&tzone);
+    double tt = tval.tv_sec+tval.tv_usec/1e+6; // time in UTC seconds
 
     SizeT nParam=e->NParam(0); //,"SYSTIME");
     bool ret_seconds=false;
 
-    if(nParam == 1) {
+    if (nParam == 1) {
       //1 parameter, 
       //      1->current UTC time seconds
       //      default
+      DIntGDL* v = static_cast<DIntGDL*>(e->GetParDefined(0)->Convert2(INT,BaseGDL::COPY));
+      e->Guard(v);
 
-      BaseGDL* val=e->GetParDefined(0); 
-      DIntGDL* v=static_cast<DIntGDL*>(val->Convert2(INT,BaseGDL::COPY));
-      auto_ptr<DIntGDL> v_a(v);
-
-      BaseGDL* c= new DIntGDL(1);//compare with 1
-
-      if(v->Equal(c))
-	ret_seconds=true;
-	
-    } else if(nParam == 2) {
+      if (v->Equal(new DIntGDL(1)))
+        ret_seconds=true;
+    } else if (nParam == 2) {
       //2 parameters
       //if the first param is 0, return the date of the second arg
       //if the first param is 1, return the 'double' of the second arg
+      DIntGDL* v1 = static_cast<DIntGDL*>(e->GetParDefined(0)->Convert2(INT,BaseGDL::COPY));
+      e->Guard(v1);
+      DDoubleGDL* v2 = static_cast<DDoubleGDL*>(e->GetParDefined(1)->Convert2(DOUBLE,BaseGDL::COPY));
 
-      BaseGDL* val=e->GetParDefined(0); //,"SYSTIME");
-      DIntGDL* v=static_cast<DIntGDL*>(val->Convert2(INT,BaseGDL::COPY));
-      auto_ptr<DIntGDL> v_a(v);
-
-      BaseGDL* c= new DIntGDL(0);//compare with 0
-
-      BaseGDL* v2=e->GetParDefined(1); //,"SYSTIME");
-      if(v->Equal(c)) 
-	{
-
-
-	  //0, read the second argument as time_t;
-	  DLongGDL *v2_cast=
-	    static_cast<DLongGDL*>(v2->Convert2(LONG,BaseGDL::COPY));
-	  auto_ptr<DLongGDL> v2_a(v2_cast);
-
-	  t=static_cast<time_t>((*v2_cast)[0]);
-
-	} else {
-	  //1
-	  return static_cast<DDoubleGDL*>(v2->Convert2(DOUBLE,BaseGDL::COPY));
-	}
-
-
+      if(v1->Equal(new DIntGDL(0))) { //0, read the second argument as time_t;
+        tval.tv_sec = static_cast<long int>((*v2)[0]);
+        tval.tv_usec = static_cast<long int>(((*v2)[0]-tval.tv_sec)*1e+6);
+        delete v2; // we delete v2 here as it is not guarded. Avoids a "new" in the following "else"
+      } else { //1
+        return v2;
+      }
     }
-
-    //Here, variable 't' contains the time in UTC seconds.
 
     //return the variable in seconds, either JULIAN, JULIAN+UTC, 
     //or no other keywords
-
+    struct tm *tstruct;
     if( ret_seconds || e->KeywordSet("SECONDS") )
       {
-	if( e->KeywordSet("JULIAN") )
-	  {
-	    if( e->KeywordSet("UTC") )
-	      tstruct=gmtime(&t);
-	    else
-	      tstruct=localtime(&t);
-	  
-	    return new DDoubleGDL(Gregorian2Julian(tstruct));
-	  }
-	else 
-	  {
-	    // does not (necessaryly) work: time might count backwards
-	    //double tickTime = static_cast<double>(t) + tt - floor( tt); 
-	    
-	    return new DDoubleGDL( tt);
-	    //	    return new DDoubleGDL(tp.tv_nsec);
-	  }
+       if( e->KeywordSet("JULIAN") )
+         {
+           if( e->KeywordSet("UTC") )
+             tstruct=gmtime(&tval.tv_sec);
+           else
+             tstruct=localtime(&tval.tv_sec);
+         
+           return new DDoubleGDL(Gregorian2Julian(tstruct));
+         }
+       else 
+         {
+           // does not (necessaryly) work: time might count backwards
+           //double tickTime = static_cast<double>(t) + tt - floor( tt);
+           return new DDoubleGDL(static_cast<double>(tt));
+         }
       }
     
     //return a string of the time, either UTC or local (default)
-
     if(e->KeywordSet("UTC"))
-      tstruct= gmtime(&t);
+      tstruct= gmtime(&tval.tv_sec);
     else
-      tstruct= localtime(&t);
+      tstruct= localtime(&tval.tv_sec);
     
     //Convert the time to JULIAN or NOT
-
     if(e->KeywordSet("JULIAN"))
-      {
-	return new DDoubleGDL(Gregorian2Julian(tstruct)); 
-      }
+        return new DDoubleGDL(Gregorian2Julian(tstruct)); 
     else 
       {
+       char *st=new char[MAX_DATE_STRING_LENGTH];
+       const char *format="%a %h %d %T %Y";//my IDL date format.
+       DStringGDL *S;
+                 
+       SizeT res=strftime(st,MAX_DATE_STRING_LENGTH,format,tstruct);
 
-	char *st=new char[MAX_DATE_STRING_LENGTH];
-	const char *format="%a %h %T %Y";//my IDL date format.
-	DStringGDL *S;
+       if(res != 0) 
+         S=new DStringGDL(st);
+       else
+         S=new DStringGDL("");
 
-		  
-	SizeT res=strftime(st,MAX_DATE_STRING_LENGTH,format,tstruct);
+       delete st;
 
-	if(res != 0) 
-	  S=new DStringGDL(st);
-	else
-	  S=new DStringGDL("");
-
-	delete st;
-
-	return S;
+       return S;
       }
   }
-
 
   BaseGDL* legendre(EnvT* e)
   {
