@@ -144,4 +144,4 @@
 	  Added !DIR system variable
           Much faster array indexing.
 	  Much faster operators (+-/*^...)
-	
+	  Faster FFT (requires FFTW library: http://www.fftw.org/download.html)

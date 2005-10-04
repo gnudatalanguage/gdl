@@ -88,8 +88,8 @@ am__libgdl_la_SOURCES_DIST = accessdesc.hpp arrayindex.hpp \
 	GDLTreeParser.cpp GDLTreeParser.hpp \
 	GDLTreeParserTokenTypes.hpp gdlwinstream.cpp gdlwinstream.hpp \
 	gdlxstream.cpp gdlxstream.hpp getfmtast.cpp getfmtast.hpp \
-	graphics.cpp graphics.hpp gsl_fun.cpp gsl_fun.hpp gstream.hpp \
-	ifmt.cpp initct.cpp initsysvar.cpp initsysvar.hpp io.cpp \
+	graphics.cpp graphics.hpp gsl_fun.cpp gsl_fun.hpp fftw.cpp fftw.hpp \
+	gstream.hpp ifmt.cpp initct.cpp initsysvar.cpp initsysvar.hpp io.cpp \
 	io.hpp libinit_cl.cpp libinit.cpp libinit_jmg.cpp Makefile.am \
 	Makefile.in math_fun.cpp math_fun.hpp math_fun_jmg.cpp \
 	math_fun_jmg.hpp math_utl.cpp math_utl.hpp ncdf_att_cl.cpp \
@@ -115,7 +115,7 @@ am__objects_1 = assocdata.lo basic_fun_cl.lo basic_fun.lo \
 	gdleventhandler.lo gdlexception.lo gdlgstream.lo \
 	GDLInterpreter.lo GDLLexer.lo GDLParser.lo gdlpsstream.lo \
 	gdlpython.lo GDLTreeParser.lo gdlwinstream.lo gdlxstream.lo \
-	getfmtast.lo graphics.lo gsl_fun.lo ifmt.lo initct.lo \
+	getfmtast.lo graphics.lo gsl_fun.lo fftw.lo ifmt.lo initct.lo \
 	initsysvar.lo io.lo libinit_cl.lo libinit.lo libinit_jmg.lo \
 	math_fun.lo math_fun_jmg.lo math_utl.lo ncdf_att_cl.lo \
 	ncdf_cl.lo ncdf_dim_cl.lo ncdf_var_cl.lo new.lo objects.lo \
@@ -157,8 +157,8 @@ am__gdl_SOURCES_DIST = accessdesc.hpp arrayindex.hpp assocdata.cpp \
 	GDLTreeParser.cpp GDLTreeParser.hpp \
 	GDLTreeParserTokenTypes.hpp gdlwinstream.cpp gdlwinstream.hpp \
 	gdlxstream.cpp gdlxstream.hpp getfmtast.cpp getfmtast.hpp \
-	graphics.cpp graphics.hpp gsl_fun.cpp gsl_fun.hpp gstream.hpp \
-	ifmt.cpp initct.cpp initsysvar.cpp initsysvar.hpp io.cpp \
+	graphics.cpp graphics.hpp gsl_fun.cpp gsl_fun.hpp fftw.cpp fftw.hpp \
+	gstream.hpp ifmt.cpp initct.cpp initsysvar.cpp initsysvar.hpp io.cpp \
 	io.hpp libinit_cl.cpp libinit.cpp libinit_jmg.cpp Makefile.am \
 	Makefile.in math_fun.cpp math_fun.hpp math_fun_jmg.cpp \
 	math_fun_jmg.hpp math_utl.cpp math_utl.hpp ncdf_att_cl.cpp \
@@ -196,6 +196,7 @@ am__objects_2 = gdl-assocdata.$(OBJEXT) gdl-basic_fun_cl.$(OBJEXT) \
 	gdl-GDLTreeParser.$(OBJEXT) gdl-gdlwinstream.$(OBJEXT) \
 	gdl-gdlxstream.$(OBJEXT) gdl-getfmtast.$(OBJEXT) \
 	gdl-graphics.$(OBJEXT) gdl-gsl_fun.$(OBJEXT) \
+	gdl-fftw.$(OBJEXT) \
 	gdl-ifmt.$(OBJEXT) gdl-initct.$(OBJEXT) \
 	gdl-initsysvar.$(OBJEXT) gdl-io.$(OBJEXT) \
 	gdl-libinit_cl.$(OBJEXT) gdl-libinit.$(OBJEXT) \
@@ -380,7 +381,8 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 						GDLParser.hpp gdlpsstream.cpp gdlpsstream.hpp gdlpython.cpp gdlpython.hpp \
 						GDLTokenTypes.hpp GDLTreeParser.cpp GDLTreeParser.hpp GDLTreeParserTokenTypes.hpp \
 						gdlwinstream.cpp gdlwinstream.hpp gdlxstream.cpp gdlxstream.hpp getfmtast.cpp \
-						getfmtast.hpp graphics.cpp graphics.hpp gsl_fun.cpp gsl_fun.hpp gstream.hpp ifmt.cpp \
+						getfmtast.hpp graphics.cpp graphics.hpp gsl_fun.cpp gsl_fun.hpp fftw.cpp fftw.hpp \
+						gstream.hpp ifmt.cpp \
 						initct.cpp initsysvar.cpp initsysvar.hpp io.cpp io.hpp libinit_cl.cpp libinit.cpp \
 						libinit_jmg.cpp Makefile.am Makefile.in math_fun.cpp math_fun.hpp math_fun_jmg.cpp \
 						math_fun_jmg.hpp math_utl.cpp math_utl.hpp ncdf_att_cl.cpp ncdf_cl.cpp ncdf_cl.hpp \
@@ -599,6 +601,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-getfmtast.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-graphics.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-gsl_fun.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-fftw.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-hdf5_fun.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-hdf_fun.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-hdf_pro.Po@am__quote@
@@ -645,6 +648,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/getfmtast.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/graphics.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gsl_fun.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fftw.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hdf5_fun.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hdf_fun.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hdf_pro.Plo@am__quote@
@@ -1274,6 +1278,20 @@ gdl-gsl_fun.obj: gsl_fun.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='gsl_fun.cpp' object='gdl-gsl_fun.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-gsl_fun.obj `if test -f 'gsl_fun.cpp'; then $(CYGPATH_W) 'gsl_fun.cpp'; else $(CYGPATH_W) '$(srcdir)/gsl_fun.cpp'; fi`
+
+gdl-fftw.o: fftw.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-fftw.o -MD -MP -MF "$(DEPDIR)/gdl-fftw.Tpo" -c -o gdl-fftw.o `test -f 'fftw.cpp' || echo '$(srcdir)/'`fftw.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/gdl-fftw.Tpo" "$(DEPDIR)/gdl-fftw.Po"; else rm -f "$(DEPDIR)/gdl-fftw.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='fftw.cpp' object='gdl-fftw.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-fftw.o `test -f 'fftw.cpp' || echo '$(srcdir)/'`fftw.cpp
+
+gdl-fftw.obj: fftw.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-fftw.obj -MD -MP -MF "$(DEPDIR)/gdl-fftw.Tpo" -c -o gdl-fftw.obj `if test -f 'fftw.cpp'; then $(CYGPATH_W) 'fftw.cpp'; else $(CYGPATH_W) '$(srcdir)/fftw.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/gdl-fftw.Tpo" "$(DEPDIR)/gdl-fftw.Po"; else rm -f "$(DEPDIR)/gdl-fftw.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='fftw.cpp' object='gdl-fftw.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-fftw.obj `if test -f 'fftw.cpp'; then $(CYGPATH_W) 'fftw.cpp'; else $(CYGPATH_W) '$(srcdir)/fftw.cpp'; fi`
 
 gdl-ifmt.o: ifmt.cpp
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-ifmt.o -MD -MP -MF "$(DEPDIR)/gdl-ifmt.Tpo" -c -o gdl-ifmt.o `test -f 'ifmt.cpp' || echo '$(srcdir)/'`ifmt.cpp; \

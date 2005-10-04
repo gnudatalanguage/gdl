@@ -20,6 +20,7 @@
 #else
 // default: assume we have HDF
 #define USE_HDF 1
+#define USE_FFTW 1
 #endif
 
 #include "includefirst.hpp"
@@ -43,6 +44,11 @@
 #include "hdf_pro.hpp"
 #endif
 
+#if defined(USE_FFTW)
+#include "fftw.hpp"
+#endif
+
+
 using namespace std;
 
 void LibInit_jmg()
@@ -60,7 +66,11 @@ void LibInit_jmg()
   new DLibFun(lib::invert_fun,string("INVERT"),2,invertKey);
 
   const string fftKey[]={"DOUBLE","INVERSE","OVERWRITE",KLISTEND};
+#if defined(USE_FFTW)
+  new DLibFun(lib::fftw_fun,string("FFT"),2,fftKey);
+#else
   new DLibFun(lib::fft_fun,string("FFT"),2,fftKey);
+#endif
 
   const string randomKey[]={"DOUBLE","GAMMA","LONG","NORMAL",
 			    "BINOMIAL","POISSON","UNIFORM",KLISTEND};
