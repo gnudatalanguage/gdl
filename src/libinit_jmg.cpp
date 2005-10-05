@@ -15,13 +15,14 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#else
-// default: assume we have HDF
-#define USE_HDF 1
-#define USE_FFTW 1
-#endif
+// the following is already done in "includefirst.hpp"
+// #ifdef HAVE_CONFIG_H
+// #include <config.h>
+// #else
+// // default: assume we have HDF
+// #define USE_HDF 1
+// #define USE_FFTW 1
+// #endif
 
 #include "includefirst.hpp"
 

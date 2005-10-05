@@ -337,7 +337,8 @@ AC_ARG_WITH(fftw,
 
 dnl FFTW: default is yes, build with FFTW, using default path
 if test "x$with_fftw" = "x"; then
-  with_fftw=yes
+  with_fftw=no
+  echo "FFTW lib not explicitely enabled. Using GSL version for FFT."
 fi
 
 if test "x$with_fftw" != "xno"; then
@@ -351,7 +352,7 @@ if test "x$with_fftw" != "xno"; then
 
   AC_CHECK_LIB(fftw3, fftw_malloc, [AC_DEFINE([USE_FFTW], [1], [Define if you want to use FFTW])], [
     echo ""
-    echo "Error! FFW3 version 3 is required but was not found"
+    echo "Error! FFTW3 version 3 is required but was not found"
     echo "       Use --with-fftw=DIR to specify the FFTW directory tree"
     echo "       Use --with-fftw=no  to not use it"
     echo "       Check the README or use configure --help for other libraries needed"

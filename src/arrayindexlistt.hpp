@@ -1051,7 +1051,11 @@ public:
     for( SizeT i=0; i<ixList.size(); ++i)
       {
 	SizeT ixNParam = ixList[ i]->NParam();
-	if( ixNParam == 0) continue;
+	if( ixNParam == 0) 	    
+	  {
+	    ixList[ i]->Init();
+	    continue;
+	  }
 	if( ixNParam == 1) 
 	  {
 	    ixList[ i]->Init( ix[ pIX]);
@@ -1123,12 +1127,13 @@ public:
 	for(; i<acRank; ++i)
 	  if( !ixList[i]->Scalar())
 	      break;
+
 	if( i == acRank) // counted up to acRank
 	  {
 	    accessType = ALLONE;
 	    var->Dim().Stride( varStride,acRank); // copy variables stride into varStride
 	    nIx = 1;
-	    return;
+	    return; 
 	  }
 	// after break
 	if( i > 0 || accessType == INDEXED_ONE)

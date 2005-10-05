@@ -5164,6 +5164,7 @@ BaseGDL*  GDLInterpreter::sys_var(ProgNodeP _t) {
 	match(antlr::RefAST(_t),IDENTIFIER);
 	_t = _t->getNextSibling();
 	
+	// definedStruct: no tags present
 	if( n->definedStruct == 1) GetStruct( id->getText(), _t);
 	
 	// find struct 'id' (for compatibility check)

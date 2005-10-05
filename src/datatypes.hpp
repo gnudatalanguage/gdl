@@ -81,6 +81,7 @@ public:
 
   // one dim array access (unchecked)
   inline Ty& operator[] (const SizeT d1) { return dd[d1];}
+  inline const Ty& operator[] (const SizeT d1) const { return dd[d1];}
   //  Ty& operator[] (const SizeT d1) { return dd[d1];}
 
   template<class Sp2> 

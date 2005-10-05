@@ -15,16 +15,9 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#else
-// default: assume we have HDF5
-#define USE_FFTW 1
-#endif
+#include "includefirst.hpp"
 
 #ifdef USE_FFTW
-
-#include "includefirst.hpp"
 
 #include <complex>
 #include <cmath>
@@ -192,4 +185,4 @@ namespace lib {
 
 } // namespace
 
-#endif
+#endif // USE_FFTW

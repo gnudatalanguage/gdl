@@ -72,6 +72,9 @@
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
+/* Define if you want to use FFTW */
+#undef USE_FFTW
+
 /* Define if you want to use HDF */
 #undef USE_HDF
 

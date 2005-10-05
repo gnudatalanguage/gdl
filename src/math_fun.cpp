@@ -1250,7 +1250,8 @@ namespace lib {
    BaseGDL* gauss_pdf(EnvT* e)
   {
     SizeT nParam = e->NParam(1);
-    DDoubleGDL* v = static_cast<DDoubleGDL*>(e->GetParDefined(0)->Convert2(DOUBLE,BaseGDL::COPY));
+    DDoubleGDL* v = static_cast<DDoubleGDL*>(e->GetParDefined(0)->
+					     Convert2(DOUBLE,BaseGDL::COPY));
     SizeT nv = v->N_Elements();
 
     for (int count = 0;count < nv;++count)
@@ -1267,10 +1268,12 @@ namespace lib {
    BaseGDL* gauss_cvf(EnvT* e)
   {
     SizeT nParam = e->NParam(1);
-    DDoubleGDL* p = static_cast<DDoubleGDL*>(e->GetParDefined(0)->Convert2(DOUBLE,BaseGDL::COPY));
+    DDoubleGDL* p = static_cast<DDoubleGDL*>(e->GetParDefined(0)->
+					     Convert2(DOUBLE,BaseGDL::COPY));
      
     if (p->N_Elements() != 1)
-      e->Throw("Parameter must be scalar or one element array: "+e->GetParString(0));
+      e->Throw("Parameter must be scalar or one element array: "+
+	       e->GetParString(0));
     if ((*p)[0] < 0. || (*p)[0] > 1.)
       e->Throw("Parameter must be in [0,1]: "+e->GetParString(0));
 
