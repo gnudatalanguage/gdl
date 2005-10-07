@@ -138,7 +138,8 @@
 	  Improved raise to power (^ operator) for integer types.
 
 0.8.11:   Added CONTOUR procedure.
-          Added CREATE_STRUCT, RADON, LAGUERRE, STRCMP functions.
+          Added CREATE_STRUCT, RADON, LAGUERRE, STRCMP, GAUSS_PDF, GAUSS_CVF
+	  functions.
  	  Added STRUCTURES keyword to HELP.
 	  Added NAN keyword to TOTAL.
 	  Added !DIR system variable
