@@ -154,8 +154,8 @@ void FMTIn::f(RefFMTNode _t) {
 	RefFMTNode f_AST_in = (_t == ASTNULL) ? RefFMTNode(antlr::nullAST) : _t;
 	RefFMTNode t = RefFMTNode(antlr::nullAST);
 	RefFMTNode a = RefFMTNode(antlr::nullAST);
-	RefFMTNode f = RefFMTNode(antlr::nullAST);
-	RefFMTNode e = RefFMTNode(antlr::nullAST);
+	RefFMTNode ff = RefFMTNode(antlr::nullAST);
+	RefFMTNode ee = RefFMTNode(antlr::nullAST);
 	RefFMTNode g = RefFMTNode(antlr::nullAST);
 	RefFMTNode i = RefFMTNode(antlr::nullAST);
 	RefFMTNode o = RefFMTNode(antlr::nullAST);
@@ -262,18 +262,18 @@ void FMTIn::f(RefFMTNode _t) {
 		switch ( _t->getType()) {
 		case F:
 		{
-			f = _t;
+			ff = _t;
 			match(antlr::RefAST(_t),F);
 			_t = _t->getNextSibling();
-			actNode = f;
+			actNode = ff;
 			break;
 		}
 		case E:
 		{
-			e = _t;
+			ee = _t;
 			match(antlr::RefAST(_t),E);
 			_t = _t->getNextSibling();
-			actNode = e;
+			actNode = ee;
 			break;
 		}
 		case G:

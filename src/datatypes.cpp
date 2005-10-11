@@ -2522,8 +2522,6 @@ T* Rebin1( T* src,
 	{
 	  T* res = new T( destDim, BaseGDL::NOZERO);
     
-	  SizeT ratio = srcDimIx / newDim;
- 
 	  for( SizeT o=0; o < nEl; o += outerStride) // outer dim
 	    for( SizeT i=0; i < dimStride; ++i) // src element offset (lower dim)
 	      {

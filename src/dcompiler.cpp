@@ -387,7 +387,7 @@ RefDNode DCompiler::ByReference(RefDNode nIn)
   if( t == DEC || t == INC) // only preinc can be reference
     {
       n = n->getFirstChild();
-      int t=n->getType();
+      t=n->getType();
     }
 
   // expressions (braces) are ignored
@@ -398,7 +398,7 @@ RefDNode DCompiler::ByReference(RefDNode nIn)
     {
       assignReplace = true;
       n = n->getFirstChild()->getNextSibling();
-      int t=n->getType();
+      t=n->getType();
     }
 
   // expressions (braces) are ignored

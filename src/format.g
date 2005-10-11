@@ -115,7 +115,7 @@ cformat
           c:CD { #c->setW( w); #c->setD( d); #c->setType( I);}
         | e:CE { #e->setW( w); #e->setD( d); #e->setType( E);}
         | i:CI { #i->setW( w); #i->setD( d); #i->setType( I);}
-        | f:CF { #f->setW( w); #f->setD( d); #f->setType( F);}
+        | ff:CF { #ff->setW( w); #ff->setD( d); #ff->setType( F);}
         | g:CG { #g->setW( w); #g->setD( d); #g->setType( G);}
         | o:CO { #o->setW( w); #o->setD( d); #o->setType( O);}
         | x:CX { #x->setW( w); #x->setD( d); #x->setType( Z);}
@@ -153,7 +153,7 @@ rep_fmt [ int repeat]
 }
     : format[ repeat] 
     | a:A (n1=nn { #a->setW( n1);})? { #a->setRep( repeat);}
-    | f:F w_d  [ #f] { #f->setRep( repeat);} // F and D are the same -> D->F
+    | ff:F w_d  [ #ff] { #ff->setRep( repeat);} // F and D are the same -> D->F
     | d:D w_d  [ #d] { #d->setRep( repeat); #d->setText("f"); #d->setType(F);}
     | e:E w_d_e[ #e] { #e->setRep( repeat);}
     | g:G w_d_e[ #g] { #g->setRep( repeat);}

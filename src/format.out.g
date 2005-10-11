@@ -293,13 +293,13 @@ f
                 if( actPar == NULL) break;
             } while( r>0);
         }
-    | f:F
+    | ff:F
         {
             if( actPar == NULL) break;
             
-            int r = f->getRep();
-            int w = f->getW();
-            int d = f->getD();
+            int r = ff->getRep();
+            int w = ff->getW();
+            int d = ff->getD();
             do {
                 SizeT tCount = actPar->OFmtF( os, valIx, r, w, d);
                 r -= tCount;
@@ -308,13 +308,13 @@ f
             } while( r>0);
         }
 //  | d:D // D is transformed to F
-    | e:E
+    | ee:E
         {
             if( actPar == NULL) break;
             
-            int r = e->getRep();
-            int w = e->getW();
-            int d = e->getD();
+            int r = ee->getRep();
+            int w = ee->getW();
+            int d = ee->getD();
             do {
                 SizeT tCount = actPar->OFmtF( os, valIx, r, w, d, 
                                                BaseGDL::SCIENTIFIC);

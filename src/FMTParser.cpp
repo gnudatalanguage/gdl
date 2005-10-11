@@ -425,8 +425,8 @@ void FMTParser::cformat() {
 	RefFMTNode e_AST = RefFMTNode(antlr::nullAST);
 	antlr::RefToken  i = antlr::nullToken;
 	RefFMTNode i_AST = RefFMTNode(antlr::nullAST);
-	antlr::RefToken  f = antlr::nullToken;
-	RefFMTNode f_AST = RefFMTNode(antlr::nullAST);
+	antlr::RefToken  ff = antlr::nullToken;
+	RefFMTNode ff_AST = RefFMTNode(antlr::nullAST);
 	antlr::RefToken  g = antlr::nullToken;
 	RefFMTNode g_AST = RefFMTNode(antlr::nullAST);
 	antlr::RefToken  o = antlr::nullToken;
@@ -526,11 +526,11 @@ void FMTParser::cformat() {
 	}
 	case CF:
 	{
-		f = LT(1);
-		f_AST = astFactory->create(f);
-		astFactory->addASTChild(currentAST, antlr::RefAST(f_AST));
+		ff = LT(1);
+		ff_AST = astFactory->create(ff);
+		astFactory->addASTChild(currentAST, antlr::RefAST(ff_AST));
 		match(CF);
-		f_AST->setW( w); f_AST->setD( d); f_AST->setType( F);
+		ff_AST->setW( w); ff_AST->setD( d); ff_AST->setType( F);
 		break;
 	}
 	case CG:
@@ -615,8 +615,8 @@ void FMTParser::rep_fmt(
 	RefFMTNode rep_fmt_AST = RefFMTNode(antlr::nullAST);
 	antlr::RefToken  a = antlr::nullToken;
 	RefFMTNode a_AST = RefFMTNode(antlr::nullAST);
-	antlr::RefToken  f = antlr::nullToken;
-	RefFMTNode f_AST = RefFMTNode(antlr::nullAST);
+	antlr::RefToken  ff = antlr::nullToken;
+	RefFMTNode ff_AST = RefFMTNode(antlr::nullAST);
 	antlr::RefToken  d = antlr::nullToken;
 	RefFMTNode d_AST = RefFMTNode(antlr::nullAST);
 	antlr::RefToken  e = antlr::nullToken;
@@ -678,13 +678,13 @@ void FMTParser::rep_fmt(
 	}
 	case F:
 	{
-		f = LT(1);
-		f_AST = astFactory->create(f);
-		astFactory->addASTChild(currentAST, antlr::RefAST(f_AST));
+		ff = LT(1);
+		ff_AST = astFactory->create(ff);
+		astFactory->addASTChild(currentAST, antlr::RefAST(ff_AST));
 		match(F);
-		w_d( f_AST);
+		w_d( ff_AST);
 		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-		f_AST->setRep( repeat);
+		ff_AST->setRep( repeat);
 		rep_fmt_AST = RefFMTNode(currentAST.root);
 		break;
 	}

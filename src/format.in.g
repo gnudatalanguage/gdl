@@ -454,8 +454,8 @@ f
                 if( actPar == NULL) break;
             } while( r>0);
         }
-    | (   f:F { actNode = f;}
-        | e:E { actNode = e;}
+    | (   ff:F { actNode = ff;}
+        | ee:E { actNode = ee;}
         | g:G { actNode = g;}
             //  | d:D // D is transformed to F
         )

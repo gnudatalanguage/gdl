@@ -1330,7 +1330,7 @@ void FMTLexer::mNUMBER(bool _createToken) {
 		_ttype = STRING; 
 		std::istringstream s(num->getText());
 		s >> n;
-		{ text.erase(_begin); text += ""; }; 
+		{ text.erase(_begin); text += ""; }; // clear string (remove number)
 		
 		_saveIndex = text.length();
 		match('H');

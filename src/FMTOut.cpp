@@ -154,8 +154,8 @@ void FMTOut::f(RefFMTNode _t) {
 	RefFMTNode f_AST_in = (_t == ASTNULL) ? RefFMTNode(antlr::nullAST) : _t;
 	RefFMTNode t = RefFMTNode(antlr::nullAST);
 	RefFMTNode a = RefFMTNode(antlr::nullAST);
-	RefFMTNode f = RefFMTNode(antlr::nullAST);
-	RefFMTNode e = RefFMTNode(antlr::nullAST);
+	RefFMTNode ff = RefFMTNode(antlr::nullAST);
+	RefFMTNode ee = RefFMTNode(antlr::nullAST);
 	RefFMTNode g = RefFMTNode(antlr::nullAST);
 	RefFMTNode i = RefFMTNode(antlr::nullAST);
 	RefFMTNode o = RefFMTNode(antlr::nullAST);
@@ -241,15 +241,15 @@ void FMTOut::f(RefFMTNode _t) {
 	}
 	case F:
 	{
-		f = _t;
+		ff = _t;
 		match(antlr::RefAST(_t),F);
 		_t = _t->getNextSibling();
 		
 		if( actPar == NULL) break;
 		
-		int r = f->getRep();
-		int w = f->getW();
-		int d = f->getD();
+		int r = ff->getRep();
+		int w = ff->getW();
+		int d = ff->getD();
 		do {
 		SizeT tCount = actPar->OFmtF( os, valIx, r, w, d);
 		r -= tCount;
@@ -261,15 +261,15 @@ void FMTOut::f(RefFMTNode _t) {
 	}
 	case E:
 	{
-		e = _t;
+		ee = _t;
 		match(antlr::RefAST(_t),E);
 		_t = _t->getNextSibling();
 		
 		if( actPar == NULL) break;
 		
-		int r = e->getRep();
-		int w = e->getW();
-		int d = e->getD();
+		int r = ee->getRep();
+		int w = ee->getW();
+		int d = ee->getD();
 		do {
 		SizeT tCount = actPar->OFmtF( os, valIx, r, w, d, 
 		BaseGDL::SCIENTIFIC);

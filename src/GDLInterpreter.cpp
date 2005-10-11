@@ -2484,9 +2484,9 @@ BaseGDL**  GDLInterpreter::l_expr(ProgNodeP _t,
 		
 		auto_ptr<BaseGDL> conv_guard; //( rConv);
 		BaseGDL* rConv = right;
-		if( (*res)->EqType( right))
+		if( !(*res)->EqType( right))
 		{
-		BaseGDL* rConv = right->Convert2( (*res)->Type(), 
+		rConv = right->Convert2( (*res)->Type(), 
 		BaseGDL::COPY);
 		conv_guard.reset( rConv);
 		}
