@@ -96,7 +96,7 @@ public:
   //  const string& TypeStr() const; 
 
   //Don't overwrite New method
-  Parent_* New( dimension dim_, BaseGDL::InitType noZero=BaseGDL::ZERO)
+  Parent_* New( const dimension& dim_, BaseGDL::InitType noZero=BaseGDL::ZERO)
   {
     throw GDLException("Assoc_::New(...) called.");
   }

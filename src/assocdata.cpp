@@ -120,7 +120,7 @@ void Assoc_<Parent_>::AssignAt( BaseGDL* srcIn,
 template<class Parent_>
 void Assoc_<Parent_>::AssignAt( BaseGDL* srcIn) 
 {
-  SizeT recordNum;
+  SizeT recordNum = 0;
   
   // ix empty -> write direct
   fstream& ofs = fileUnits[ lun].OStream();

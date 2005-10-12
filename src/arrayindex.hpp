@@ -1001,7 +1001,7 @@ public:
 
   void Init( BaseGDL* s_, BaseGDL* e_)
   {
-    SizeT retMsg=s_->Scalar2index(s);
+    int retMsg=s_->Scalar2index(s);
     if( retMsg == 0) // index empty or array
       {
 	if( s_->N_Elements() == 0)

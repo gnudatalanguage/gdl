@@ -215,7 +215,7 @@ public:
       delete *i;
   }
 
-  EnvT::EnvT( ProgNodeP cN, DSub* pro_);
+  EnvT( ProgNodeP cN, DSub* pro_);
 
   // for obj_new and obj_destroy
   EnvT( EnvT* pEnv, DSub* newPro, BaseGDL** self); 
