@@ -41,8 +41,13 @@ const string StreamInfo( ios* searchStream)
 
 void GDLStream::Open( const string& name_,
 		     ios_base::openmode mode_,
-		     bool swapEndian_, bool dOC, SizeT width_)
+		     bool swapEndian_, bool dOC, 
+		      SizeT width_,
+		      bool f77)
 { 
+  if( f77)
+    throw GDLException("F77_UNFORMATTED format not supported.");
+
   if( fStream == NULL)
     fStream = new fstream();
   else if( fStream->is_open())

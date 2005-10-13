@@ -73,7 +73,8 @@ public:
 
   void Open( const std::string& name_,
 	     std::ios_base::openmode,
-	     bool swapEndian_, bool deleteOnClose_, SizeT width);
+	     bool swapEndian_, bool deleteOnClose_, 
+	     SizeT width, bool f77);
   
   void Close(); 
 

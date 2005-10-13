@@ -381,20 +381,25 @@ namespace lib {
     
     if( e->KeywordSet( "APPEND")) mode |= fstream::ate;// fstream::app;
 
+    static int f77Ix = e->KeywordIx( "F77_UNFORMATTED");
+    bool f77 = e->KeywordSet( f77Ix);
+
     bool deleteKey = e->KeywordSet( "DELETE");
     
-    bool errorKeyword = e->KeywordPresent( 4);
-    if( errorKeyword) e->AssureGlobalKW( 4);
+    static int errorIx = e->KeywordIx( "ERROR");
+    bool errorKeyword = e->KeywordPresent( errorIx);
+    if( errorKeyword) e->AssureGlobalKW( errorIx);
 
     DLong width = defaultStreamWidth;
-    BaseGDL* widthKeyword = e->GetKW( 13); // WIDTH
+    static int widthIx = e->KeywordIx( "WIDTH");
+    BaseGDL* widthKeyword = e->GetKW( widthIx);
     if( widthKeyword != NULL)
       {
-	e->AssureLongScalarKW( 13, width);
+	e->AssureLongScalarKW( widthIx, width);
       }
 
     try{
-      fileUnits[ lun-1].Open( name, mode, swapEndian, deleteKey, width);
+      fileUnits[ lun-1].Open( name, mode, swapEndian, deleteKey, width, f77);
     } 
     catch( GDLException& ex) {
       DString errorMsg = ex.toString()+" Unit: "+i2s( lun)+
@@ -403,7 +408,7 @@ namespace lib {
       if( !errorKeyword)
 	e->Throw( errorMsg);
       
-      BaseGDL** err = &e->GetKW( 4);
+      BaseGDL** err = &e->GetKW( errorIx);
       
       delete (*err); 
 //    if( *err != e->Caller()->Object()) delete (*err); 
@@ -414,7 +419,7 @@ namespace lib {
 
     if( errorKeyword)
       {
-	BaseGDL** err = &e->GetKW( 4);
+	BaseGDL** err = &e->GetKW( errorIx);
       
 // 	if( *err != e->Caller()->Object()) delete (*err); 
 	delete (*err); 

@@ -60,7 +60,7 @@
         <ccompiler>kdevgccoptions</ccompiler>
         <cxxcompiler>kdevgppoptions</cxxcompiler>
         <f77compiler>kdevg77options</f77compiler>
-        <cxxflags>-O0 -g3 -Wshadow</cxxflags>
+        <cxxflags>-O0 -g3</cxxflags>
         <topsourcedir></topsourcedir>
         <cppflags></cppflags>
         <ldflags></ldflags>
