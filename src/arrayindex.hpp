@@ -141,6 +141,9 @@ public:
     s = varPtr->Data()->LoopIndex();
   }
 
+  void Clear()
+  {}
+
   SizeT GetIx0()
   {
     return s;
@@ -162,9 +165,6 @@ public:
     return new ArrayIndexScalarVP(*this);
   }
  
-  void Clear()
-  {}
-
   // if this is used, Init was NOT called before
   BaseGDL* Index( BaseGDL* var, IxExprListT& ixL);
 
