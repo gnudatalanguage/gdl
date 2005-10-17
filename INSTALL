@@ -73,17 +73,20 @@ options can be used:
 --with-netcdf=DIR to specify the netcdf directory tree
 --with-netcdf=no  to not use netcdf
 
---with-hdf=DIR to specify the HDF4 directory tree
---with-hdf=no  to not use HDF4
+--with-hdf=DIR    to specify the HDF4 directory tree
+--with-hdf=no     to not use HDF4
 
---with-hdf5=DIR to specify the HDF5 directory tree
---with-hdf5=no  to not use HDF5
+--with-hdf5=DIR   to specify the HDF5 directory tree
+--with-hdf5=no    to not use HDF5
 
 --with-python=DIR to specify the python directory tree
 --with-python=no  to not use python
 
 --with-Magick=DIR to specify the ImageMagick directory tree
 --with-Magick=no  to not use ImageMagick
+
+--with-fftw=DIR   to specify the FFTW directory tree
+--with-fftw=no    to not use FFTW (this is the default)
 
 
 Eg. if you have python installed in /usr/local, use

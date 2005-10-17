@@ -64,6 +64,7 @@ ImageMagick http://www.imagemagick.org/www/download.html
 netCDF *)   ftp://ftp.unidata.ucar.edu/pub/netcdf
 HDF4 *)     ftp://ftp.ncsa.uiuc.edu/HDF/HDF/HDF_Current
 HDF5        ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/current
+FFTW        http://www.fftw.org/download.html
 python      http://www.python.org
 Only with python:
 numarray    http://www.stsci.edu/resources/software_hardware/numarray
@@ -138,6 +139,17 @@ It is required by default. If you don't want to use it, use
 ImageMagick can be obtained from:
 http://www.imagemagick.org/www/download.html
 
+The FFTW library is (optionally) used for the FFT function.
+It is available at: http://www.fftw.org/download.html
+It is NOT used by default.
+If you want to use it, use 
+--with-fftw=DIR 
+as a command line option to 'configure', where DIR denotes the
+directory into which FFTW was installed
+('/lib' is appended for the library, '/include' for the include files).
+Using FFTW results in an about double as fast FFT function.
+If not used the default (GSL) fft routine is used instead.
+
 GDL has an interface to python (see http://www.python.org). 
 GDL can be used as a python module and python can be used from
 within GDL. See INSTALL for details on how to build each version.
@@ -182,7 +194,7 @@ CONTRIBUTIONS:
 ==============
 
 GDL 0.8.11 is actively developed, but still in beta state as of
-August 2005.
+October 2005.
 Even though it can already be used for several tasks, there are many
 things to be done.
 Bug reports, feedback in general and interested people who would

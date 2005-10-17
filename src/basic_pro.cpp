@@ -103,7 +103,7 @@ namespace lib {
     if( e->KeywordSet( "INFO"))
       {
 	cout << "Homepage: http://gnudatalanguage.sf.net" << endl;
-	cout << "HELP,/LIB for a list of all library functions/procedures." << endl;
+	cout << "HELP,/LIB for a list of all internal library functions/procedures." << endl;
 	cout << "Additional subroutines are written in GDL language, "
 	  "look for *.pro files." << endl;
 	cout << endl;

@@ -142,6 +142,7 @@
 	  functions.
  	  Added STRUCTURES keyword to HELP.
 	  Added NAN keyword to TOTAL.
+	  Sub-millisecond resolution for SYSTIME function
 	  Added !DIR system variable
           Much faster array indexing.
 	  Much faster operators (+-/*^...)
