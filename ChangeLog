@@ -1,3 +1,328 @@
+GDL 0.8.11:
+2005-10-17  m_schellens  <m_schellens@rock>
+
+	* AUTHORS, HACKING, INSTALL, NEWS, README, src/basic_pro.cpp: update
+
+2005-10-14  m_schellens  <m_schellens@rock>
+
+	* src/arrayindex.hpp: sync
+
+2005-10-13  m_schellens  <m_schellens@rock>
+
+	* gdl.kdevelop, src/basic_pro.cpp, src/gdljournal.cpp, src/io.cpp, src/io.hpp:
+	Added F77_UNFORMATTED error message (OPEN)
+
+2005-10-12  m_schellens  <m_schellens@rock>
+
+	* src/assocdata.cpp, src/assocdata.hpp, src/envt.hpp, src/arrayindex.hpp:
+	Some bugfixes
+
+2005-10-11  m_schellens  <m_schellens@rock>
+
+	* gdl.kdevelop, src/FMTIn.cpp, src/FMTLexer.cpp, src/FMTOut.cpp, src/FMTParser.cpp, src/GDLInterpreter.cpp, src/Makefile.am, src/Makefile.in, src/datatypes.cpp, src/dcompiler.cpp, src/format.g, src/format.in.g, src/format.out.g, src/gdlc.i.g:
+	Fixed: some shadowed variables
+
+2005-10-07  medericboquien  <medericboquien@rock>
+
+	* NEWS: Adding GAUSS_PDF and GAUSS_CVF functions
+
+2005-10-05  m_schellens  <m_schellens@rock>
+
+	* src/GDLInterpreter.cpp, src/Makefile.in, src/arrayindexlistt.hpp, src/datatypes.hpp, src/dcompiler.cpp, src/fftw.cpp, src/libinit_jmg.cpp, src/math_fun.cpp, config.h.in, configure, configure.in, gdl.kdevelop:
+	Fixed array indexing error
+
+2005-10-04  jomoga  <jomoga@rock>
+
+	* NEWS, configure.in, src/Makefile.in, src/libinit_jmg.cpp:
+	Support for FFTW
+
+	* src/fftw.cpp, src/fftw.hpp: Initial import
+
+2005-10-03  m_schellens  <m_schellens@rock>
+
+	* src/basic_fun_cl.cpp, src/libinit.cpp, src/math_fun.cpp, src/math_fun.hpp, src/new.cpp, src/new.hpp:
+	Added GAUSS_PDF and GAUSS_CVF functions. More precise SYSTIME function
+
+2005-09-30  m_schellens  <m_schellens@rock>
+
+	* src/basegdl.cpp, src/basegdl.hpp, src/basic_fun.cpp, src/basic_fun.hpp, src/datatypes.cpp, src/datatypes.hpp, src/libinit.cpp:
+	Added ROTATE function (alpha status)
+
+	* src/basic_fun.cpp, src/ofmt.hpp: fixed F FORMAT bug
+
+	* src/arrayindex.cpp, src/arrayindexlistt.hpp, NEWS:
+	fixed array index bug
+
+2005-09-29  m_schellens  <m_schellens@rock>
+
+	* src/basic_fun.cpp, src/basic_fun.hpp, src/gdlc.i.g, src/libinit.cpp:
+	Added CREATE_STRUCT function
+
+	* src/arrayindex.cpp, src/arrayindex.hpp, src/arrayindexlistt.hpp:
+	array index bugfix
+
+2005-09-28  jomoga  <jomoga@rock>
+
+	* src/plotting.cpp: Fix plvpor bug in CONTOUR
+
+2005-09-27  m_schellens  <m_schellens@rock>
+
+	* src/arrayindex.cpp: add file
+
+	* src/GDLTreeParser.hpp, src/Makefile.am, src/Makefile.in, src/arrayindex.hpp, src/arrayindexlistt.hpp, src/basegdl.cpp, src/basegdl.hpp, src/datatypes.cpp, src/datatypes.hpp, src/dnode.hpp, src/dstructgdl.cpp, src/gdlc.i.g, src/gdlc.tree.g, src/GDLInterpreter.cpp, src/GDLTreeParser.cpp:
+	scalar array index optimization
+
+2005-09-26  m_schellens  <m_schellens@rock>
+
+	* Makefile.in, aclocal.m4, configure, gdl.kdevses, src/GDLInterpreter.hpp, src/Makefile.in, src/antlr/Makefile.in, src/gdlc.i.g, src/plotting.cpp:
+	Fixed recognition of PLOT,/[XY]LOG keywords
+
+2005-09-24  m_schellens  <m_schellens@rock>
+
+	* Makefile.in, aclocal.m4, config.h.in, configure, configure.in, gdl.kdevelop, gdl.kdevses, src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/Makefile.in, src/antlr/Makefile.in, src/dinterpreter.cpp, src/extrat.hpp, src/gdlc.i.g, src/initsysvar.cpp:
+	Added DIR system variable
+
+2005-09-22  m_schellens  <m_schellens@rock>
+
+	* src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/Makefile.am, src/Makefile.in, src/accessdesc.hpp, src/antlr/Makefile.in, src/arrayindex.hpp, src/arrayindexlistt.hpp, src/assocdata.cpp, src/datatypes.cpp, src/dnode.cpp, src/dstructgdl.cpp, src/gdlc.tree.g, src/typedefs.hpp, Makefile.in, aclocal.m4, configure, gdl.kdevelop:
+	array index optimization
+
+2005-09-20  m_schellens  <m_schellens@rock>
+
+	* gdl.kdevses, src/Makefile.in, src/antlr/Makefile.in, src/arrayindex.hpp, src/gdlc.tree.g, src/math_fun.cpp, Makefile.in, aclocal.m4, configure:
+	optimizations
+
+	* Makefile.in, aclocal.m4, configure, src/Makefile.in, src/antlr/Makefile.in, src/arrayindex.hpp, src/basic_fun.cpp, src/datatypes.cpp, src/dimension.hpp:
+	array index optimization
+
+2005-09-19  m_schellens  <m_schellens@rock>
+
+	* src/dimension.hpp: dimension optimization
+
+	* configure, configure.in, src/envt.cpp, src/envt.hpp, src/extrat.cpp:
+	Subroutine call optimization (EnvT)
+
+2005-09-18  m_schellens  <m_schellens@rock>
+
+	* src/dinterpreter.cpp, src/gdl.cpp: Make GDL handle non-tty input.
+
+	* Makefile.in, aclocal.m4, configure, gdl.kdevelop, gdl.kdevses, src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/Makefile.in, src/antlr/Makefile.in, src/arrayindex.hpp, src/basic_fun.cpp, src/basic_pro.cpp, src/dcompiler.cpp, src/dcompiler.hpp, src/dinterpreter.cpp, src/dnode.cpp, src/dnode.hpp, src/dpro.hpp, src/envt.cpp, src/envt.hpp, src/extrat.cpp, src/extrat.hpp, src/gdl.cpp, src/gdlc.i.g, src/gdlc.tree.g:
+	EnvT optimization. Startup file is not prepended with users home anymore.
+
+2005-09-16  m_schellens  <m_schellens@rock>
+
+	* src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/GDLInterpreterTokenTypes.hpp, src/GDLInterpreterTokenTypes.txt, src/GDLLexer.cpp, src/GDLParser.cpp, src/GDLParser.hpp, src/GDLTokenTypes.hpp, src/GDLTokenTypes.txt, src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/GDLTreeParserTokenTypes.hpp, src/GDLTreeParserTokenTypes.txt, src/basegdl.cpp, src/basegdl.hpp, src/basic_pro.cpp, src/datatypes.cpp, src/datatypes.hpp, src/dinterpreter.cpp, src/dpro.cpp, src/dpro.hpp, src/envt.cpp, src/envt.hpp, src/gdlc.g, src/gdlc.i.g, src/gdlc.tree.g, src/libinit.cpp, src/math_fun.cpp:
+	Fixed EXIT_STATUS for SPAWN procedure
+
+2005-09-14  m_schellens  <m_schellens@rock>
+
+	* src/GDLInterpreter.cpp, src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/basic_op.cpp, src/datatypes.cpp, src/gdlc.tree.g, src/plotting.cpp, src/pro/read_pict.pro:
+	Fixed scalar +(operator) array bug
+
+2005-09-13  m_schellens  <m_schellens@rock>
+
+	* src/datatypes.cpp: Fixed problem with New( dim, BaseGDL::INIT)
+
+2005-09-12  m_schellens  <m_schellens@rock>
+
+	* configure, src/Makefile.in, src/antlr/Makefile.in, src/basic_fun.cpp, src/libinit.cpp, src/new.cpp, src/new.hpp, Makefile.in, NEWS, aclocal.m4:
+	Fixed bug in COMPLEX(arr,scalar)
+
+2005-09-11  m_schellens  <m_schellens@rock>
+
+	* Makefile.in, aclocal.m4, configure, gdl.kdevses, src/Makefile.in, src/antlr/Makefile.in, src/arrayindex.hpp, src/dnode.cpp, src/dnode.hpp, src/gdlc.tree.g:
+	Fixed ^ operator bug.
+
+2005-09-09  jomoga  <jomoga@rock>
+
+	* src/devicex.hpp: Fix closed window core dump
+
+	* src/math_fun_jmg.cpp: Fix ambiguous sqrt call in radon
+
+2005-09-09  m_schellens  <m_schellens@rock>
+
+	* src/GDLInterpreter.cpp, src/arrayindex.hpp, src/basegdl.cpp, src/basegdl.hpp, src/datatypes.cpp, src/datatypes.hpp, src/gdlc.i.g:
+	AssignAt optimization
+
+	* Makefile.in, aclocal.m4, configure, src/GDLInterpreter.cpp, src/GDLLexer.cpp, src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/Makefile.in, src/antlr/Makefile.in, src/arrayindex.hpp, src/basegdl.cpp, src/basegdl.hpp, src/datatypes.cpp, src/datatypes.hpp, src/dnode.cpp, src/gdlc.g, src/gdlc.i.g, src/gdlc.tree.g, src/libinit.cpp, src/math_fun.cpp, src/pro/test_suite.pro:
+	Index optimization
+
+2005-09-08  m_schellens  <m_schellens@rock>
+
+	* gdl.kdevelop, src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/arrayindex.hpp, src/dinterpreter.cpp, src/dnode.cpp, src/dnode.hpp, src/gdlc.tree.g:
+	comp_assign_expr (+=,*=,...) fix.
+
+2005-09-07  m_schellens  <m_schellens@rock>
+
+	* configure, src/GDLInterpreter.cpp, src/datatypes.cpp, src/gdlc.i.g, src/pro/test_suite.pro:
+	NewIx... return statement fix
+
+	* src/antlr/Makefile.in, Makefile.in, aclocal.m4, configure, configure.in, gdl.kdevelop, gdl.kdevses, src/Makefile.in, src/arrayindex.hpp, src/basic_op.cpp, src/datatypes.cpp:
+	Index optimization
+
+	* src/GDLInterpreter.cpp, src/accessdesc.hpp, src/arrayindex.hpp, src/assocdata.cpp, src/assocdata.hpp, src/basegdl.cpp, src/basegdl.hpp, src/basic_fun.cpp, src/datatypes.cpp, src/datatypes.hpp, src/dstructgdl.cpp, src/dstructgdl.hpp, src/gdlc.i.g, src/typedefs.hpp:
+	Indexing optimization.
+
+2005-09-05  m_schellens  <m_schellens@rock>
+
+	* NEWS, src/basic_fun.cpp, src/basic_fun.hpp, src/libinit.cpp:
+	STRCMP function
+
+	* NEWS, src/GDLInterpreter.cpp, src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/basic_op.cpp, src/datatypes.cpp, src/dnode.cpp, src/dnode.hpp, src/gdlc.i.g, src/gdlc.tree.g, src/specializations.hpp:
+	unary minus optimization for constants
+
+2005-09-01  m_schellens  <m_schellens@rock>
+
+	* Makefile.in, aclocal.m4, configure, gdl.kdevses, src/GDLInterpreter.cpp, src/GDLParser.cpp, src/GDLTreeParser.cpp, src/Makefile.in, src/antlr/Makefile.in, src/arrayindex.hpp, src/basegdl.cpp, src/basegdl.hpp, src/basic_op.cpp, src/datatypes.cpp, src/datatypes.hpp, src/dnode.cpp, src/dstructgdl.hpp, src/gdlc.g, src/gdlc.i.g, src/gdlc.tree.g:
+	Operator optimizations.
+
+2005-08-30  jomoga  <jomoga@rock>
+
+	* src/libinit_jmg.cpp, src/math_fun_jmg.cpp, src/math_fun_jmg.hpp:
+	Add support for RADON function
+
+	* src/initsysvar.cpp: Add MAP system variable
+
+2005-08-25  m_schellens  <m_schellens@rock>
+
+	* gdl.kdevelop, gdl.kdevses, src/basegdl.cpp, src/basegdl.hpp, src/basic_op.cpp, src/datatypes.cpp, src/datatypes.hpp, src/dnode.cpp:
+	Optimize ^ r expressions
+
+	* src/arrayindex.hpp: array index optimization
+
+2005-08-24  m_schellens  <m_schellens@rock>
+
+	* src/basegdl.hpp, src/basic_op.cpp, src/dnode.cpp:
+	Significant speedup for complex^int
+
+2005-08-23  m_schellens  <m_schellens@rock>
+
+	* Makefile.in, aclocal.m4, configure, gdl.kdevelop, gdl.kdevses, src/arrayindex.hpp:
+	Fixed array index memory leak
+
+	* README, src/basic_op.cpp, src/datatypes.cpp, src/datatypes.hpp, src/dnode.cpp, src/dnode.hpp:
+	Avoid copying in r_expr
+
+2005-08-22  m_schellens  <m_schellens@rock>
+
+	* src/Makefile.in, src/antlr/Makefile.in, src/dnode.cpp, src/dnode.hpp, src/gdlc.i.g:
+	Avoid copying in r_expr
+
+2005-08-19  m_schellens  <m_schellens@rock>
+
+	* src/basic_op.cpp, src/dinterpreter.cpp, src/dnode.cpp, gdl.kdevses:
+	Cleaned up right expression evaluation
+
+2005-08-18  m_schellens  <m_schellens@rock>
+
+	* src/GDLInterpreter.cpp, src/GDLTreeParser.cpp, src/basic_fun.cpp, src/dinterpreter.cpp, src/dinterpreter.hpp, src/dnode.cpp, src/dnode.hpp, src/dpro.hpp, src/gdlc.i.g:
+	Introduced heterogenous AST
+
+2005-08-17  m_schellens  <m_schellens@rock>
+
+	* src/basic_fun.cpp, src/dinterpreter.cpp, src/dnode.cpp, src/dnode.hpp, src/gdlc.tree.g, gdl.kdevelop:
+	transfer files
+
+2005-08-16  m_schellens  <m_schellens@rock>
+
+	* src/GDLInterpreter.cpp, src/GDLInterpreterTokenTypes.hpp, src/GDLInterpreterTokenTypes.txt, src/GDLLexer.cpp, src/GDLParser.cpp, src/GDLParser.hpp, src/GDLTokenTypes.hpp, src/GDLTokenTypes.txt, src/GDLTreeParser.cpp, src/GDLTreeParserTokenTypes.hpp, src/GDLTreeParserTokenTypes.txt, src/gdlc.g, src/gdlc.i.g, src/pro/test_suite.pro, configure:
+	Fixed || operator bug
+
+	* configure, configure.in: FC4 complicance for netCDF HDF4 and Magick
+
+	* INSTALL, Makefile.in, NEWS, README, aclocal.m4, configure, src/GDLInterpreter.cpp, src/GDLInterpreterTokenTypes.hpp, src/GDLInterpreterTokenTypes.txt, src/GDLLexer.cpp, src/GDLParser.cpp, src/GDLParser.hpp, src/GDLTokenTypes.hpp, src/GDLTokenTypes.txt, src/GDLTreeParser.cpp, src/GDLTreeParserTokenTypes.hpp, src/GDLTreeParserTokenTypes.txt, src/Makefile.in, src/antlr/Makefile.in, src/gdlc.g, src/print_tree.cpp:
+	Fixed LOG_NEG (~) operator syntax bug.
+
+2005-08-14  m_schellens  <m_schellens@rock>
+
+	* src/arrayindex.hpp, src/basic_fun.cpp, src/datatypes.cpp, src/datatypes.hpp, gdl.kdevelop, gdl.kdevses, src/basegdl.cpp, src/basegdl.hpp, src/dstructgdl.hpp, src/specializations.hpp:
+	WHERE optimization
+
+2005-08-11  m_schellens  <m_schellens@rock>
+
+	* src/Makefile.in, src/antlr/Makefile.in, src/arrayindex.hpp, src/datatypes.cpp, Makefile.in, aclocal.m4, configure, gdl.kdevses, src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/accessdesc.hpp, src/dcompiler.cpp, src/dcompiler.hpp, src/dnode.cpp, src/dnode.hpp, src/gdlc.i.g, src/gdlc.tree.g:
+	Array index optimization
+
+2005-08-09  m_schellens  <m_schellens@rock>
+
+	* src/arrayindex.hpp, src/datatypes.cpp, src/dimension.hpp, src/dstructgdl.cpp, src/initct.cpp:
+	Optimization for InsAt (b[0]=a)
+
+	* src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/Makefile.in, src/antlr/Makefile.in, src/arrayindex.hpp, src/datatypes.cpp, src/dcompiler.cpp, src/gdlc.i.g, configure, Makefile.in, aclocal.m4:
+	Avoid extra copying in replace assignment
+
+2005-08-07  m_schellens  <m_schellens@rock>
+
+	* src/antlr/Makefile.in, src/gdlc.g, src/gdlc.i.g, src/gdlc.tree.g, src/GDLTreeParser.hpp, src/GDLTreeParserTokenTypes.hpp, src/GDLTreeParserTokenTypes.txt, src/Makefile.in, src/basic_op.cpp, src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/GDLInterpreterTokenTypes.hpp, src/GDLInterpreterTokenTypes.txt, src/GDLLexer.cpp, src/GDLParser.cpp, src/GDLParser.hpp, src/GDLTokenTypes.hpp, src/GDLTokenTypes.txt, src/GDLTreeParser.cpp, configure.in, gdl.kdevses, configure, Makefile.in, aclocal.m4:
+	Avoid additional copy in replace assignment
+
+2005-08-05  m_schellens  <m_schellens@rock>
+
+	* src/plotting.cpp, src/dpro.cpp, gdl.kdevses: Fixed AXIS bug
+
+2005-08-03  jomoga  <jomoga@rock>
+
+	* src/plotting.cpp: Fix plot/oplot/erase bugs
+
+2005-07-29  m_schellens  <m_schellens@rock>
+
+	* src/dpro.cpp, src/gdlc.i.g, gdl.kdevses, src/GDLInterpreter.cpp:
+	Fixed bug which made GDL crash on empty subroutines
+
+2005-07-27  jomoga  <jomoga@rock>
+
+	* src/libinit.cpp, src/plotting.hpp, src/plotting.cpp:
+	Preliminary version of CONTOUR
+
+2005-07-26  m_schellens  <m_schellens@rock>
+
+	* src/format.g, src/plotting.cpp: Fixed PLOT/OPLOT no erase bug.
+
+2005-07-25  jomoga  <jomoga@rock>
+
+	* src/devicex.hpp: Fix memory leak in plimage_gdl
+
+2005-07-25  m_schellens  <m_schellens@rock>
+
+	* src/pro/regression-total.pro, src/FMTLexer.cpp, src/format.g:
+	Fixed H format code.
+
+	* src/pro/dist.pro, src/pro/kurtosis.pro, src/pro/mean.pro, src/pro/meanabsdev.pro, src/pro/moment.pro, src/pro/skewness.pro, src/pro/stddev.pro, src/pro/strsplit.pro, src/pro/variance.pro, NEWS:
+	NAN keyword for MOMENT related functions.
+
+	* src/Makefile.in, src/antlr/Makefile.in, src/basic_fun.cpp, src/basic_pro.cpp, src/basic_pro.hpp, src/dimension.hpp, src/gdljournal.cpp, src/initsysvar.cpp, configure, Makefile.in, aclocal.m4:
+	Added keywords: NAN for TOTAL, STRUCTURES fro HELP. Small correction for JOUNRAL.
+
+2005-07-21  jomoga  <jomoga@rock>
+
+	* src/plotting.cpp: Fix xrange plot bug
+
+2005-07-14  m_schellens  <m_schellens@rock>
+
+	* src/default_io.cpp, src/io.hpp, gdl.kdevelop, gdl.kdevses:
+	EOF function: EOF status was not reset properly. Fixed.
+
+2005-07-12  m_schellens  <m_schellens@rock>
+
+	* src/pro/primes.pro: file removal
+
+	* README: Update HDF5 and netCDF problems.
+
+	* src/hdf5_fun.cpp, gdl.kdevelop, gdl.kdevses:
+	Compliance with HDF 1.6.4
+
+2005-07-12  c_lee  <c_lee@rock>
+
+	* src/pro/poly.pro: POLY function to calculate polynomials
+
+2005-07-10  m_schellens  <m_schellens@rock>
+
+	* src/gsl_fun.cpp, gdl.kdevelop, gdl.kdevses: Fixed INTERPOLATE bug.
+
+	* src/Makefile.in, src/antlr/Makefile.in, src/basic_pro.cpp, gdl.kdevelop, gdl.kdevses, configure, Makefile.in, aclocal.m4:
+	Fixed HELP,/LIB: number of printed functions.
+
+
 GDL 0.8.10:
 2005-07-08  m_schellens  <m_schellens@users.sf.net>
 
