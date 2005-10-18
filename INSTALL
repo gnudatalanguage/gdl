@@ -4,12 +4,12 @@ QUICK INSTALLATION:
 (If you encounter any problems, please read on further, also have a
 look at the REQUIREMENTS section in the README file.)
 
-Unpack the tarball under any directory (tar xfvz gdl-0.8.11.tar.gz)
-change to the new subdirectory gdl-0.8.11
+Unpack the tarball under any directory (tar xfvz gdl-0.8.12.tar.gz)
+change to the new subdirectory gdl-0.8.12
 type ./configure
 type make
 The executable (named 'gdl') should then be in the src subdirectory
-(gdl-0.8.11/src/gdl).
+(gdl-0.8.12/src/gdl).
 
 If you know IDL, you should feel very familiar with GDL.
 Some GDL test files are in the gdl/pro subdirectory (test_*.pro)

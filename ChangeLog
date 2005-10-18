@@ -46,7 +46,7 @@ GDL 0.8.11:
 2005-09-30  m_schellens  <m_schellens@rock>
 
 	* src/basegdl.cpp, src/basegdl.hpp, src/basic_fun.cpp, src/basic_fun.hpp, src/datatypes.cpp, src/datatypes.hpp, src/libinit.cpp:
-	Added ROTATE function (alpha status)
+	Added ROTATE function
 
 	* src/basic_fun.cpp, src/ofmt.hpp: fixed F FORMAT bug
 

@@ -173,7 +173,7 @@ For nice graphical output the python package matplotlib
 (http://matplotlib.sourceforge.net) is used in one of the examples.
 See the file PYTHON.txt for more details.
 
-GDL 0.8.11 was developed using ANTLR 2.7.4,   
+GDL 0.8.12 was developed using ANTLR 2.7.4,   
 but unless you want to change the grammar (*.g files) you don't need
 ANTLR. All relevant ANTLR files are included in the package.
 For more information on ANTRL see: http://www.antlr.org
@@ -193,7 +193,7 @@ Please see the INSTALL file for details.
 CONTRIBUTIONS:
 ==============
 
-GDL 0.8.11 is actively developed, but still in beta state as of
+GDL 0.8.12 is actively developed, but still in beta state as of
 October 2005.
 Even though it can already be used for several tasks, there are many
 things to be done.
