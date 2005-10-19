@@ -36,7 +36,6 @@
 #pragma interface
 #endif
 
-#pragma interface
 
 template<class Sp>
 class Data_: public Sp
