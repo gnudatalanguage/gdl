@@ -866,7 +866,7 @@ namespace lib {
     SizeT nEl = p0->N_Elements();
     for( SizeT i=0; i<nEl; ++i)
       {
-	(*res)[ i] = (int) rint((*p0C)[ i]); 
+	(*res)[ i] = static_cast<DLong>( round((*p0C)[ i])); 
       }
     return res;
   }
@@ -890,7 +890,7 @@ namespace lib {
 	for( SizeT i=0; i<nEl; ++i)
 	  {
 	    DComplex& C = (*p0C)[ i];
-	    (*res)[ i] = (int) rint(C.real());
+	    (*res)[ i] = static_cast<DLong>( rint(C.real()));
 	  }
 	return res;
       }
@@ -902,7 +902,7 @@ namespace lib {
 	for( SizeT i=0; i<nEl; ++i)
 	  {
 	    DComplexDbl& C = (*p0C)[ i];
-	    (*res)[ i] = (int) rint(C.real());
+	    (*res)[ i] = static_cast<DLong>( rint(C.real()));
 	  }
 	return res;
       }
@@ -931,7 +931,7 @@ namespace lib {
 	SizeT nEl = p0->N_Elements();
 	for( SizeT i=0; i<nEl; ++i)
 	  {
-	    (*res)[ i] = (int) rint((double) (*p0F)[ i]); 
+	    (*res)[ i] = static_cast<DLong>( round((double) (*p0F)[ i])); 
 	  }
 	return res;
       }
