@@ -890,7 +890,7 @@ namespace lib {
 	for( SizeT i=0; i<nEl; ++i)
 	  {
 	    DComplex& C = (*p0C)[ i];
-	    (*res)[ i] = static_cast<DLong>( rint(C.real()));
+	    (*res)[ i] = static_cast<DLong>( round(C.real()));
 	  }
 	return res;
       }
@@ -902,7 +902,7 @@ namespace lib {
 	for( SizeT i=0; i<nEl; ++i)
 	  {
 	    DComplexDbl& C = (*p0C)[ i];
-	    (*res)[ i] = static_cast<DLong>( rint(C.real()));
+	    (*res)[ i] = static_cast<DLong>( round(C.real()));
 	  }
 	return res;
       }
@@ -926,12 +926,12 @@ namespace lib {
       return p0->Dup();
     else 
       {
-	DFloatGDL* p0F = static_cast<DFloatGDL*>( p0);
+	DFloatGDL* p0F = e->GetParAs<DFloatGDL>( 0);
 	DLongGDL* res = new DLongGDL(p0->Dim(), BaseGDL::NOZERO);
 	SizeT nEl = p0->N_Elements();
 	for( SizeT i=0; i<nEl; ++i)
 	  {
-	    (*res)[ i] = static_cast<DLong>( round((double) (*p0F)[ i])); 
+	    (*res)[ i] = static_cast<DLong>( round( (*p0F)[ i])); 
 	  }
 	return res;
       }
@@ -1006,7 +1006,7 @@ namespace lib {
       return p0->Dup();
     else 
       {
-	DFloatGDL* p0F = static_cast<DFloatGDL*>( p0);
+	DFloatGDL* p0F = e->GetParAs<DFloatGDL>( 0);
 	DLongGDL* res = new DLongGDL(p0->Dim(), BaseGDL::NOZERO);
 	SizeT nEl = p0->N_Elements();
 	for( SizeT i=0; i<nEl; ++i)
@@ -1085,7 +1085,7 @@ namespace lib {
       return p0->Dup();
     else 
       {
-	DFloatGDL* p0F = static_cast<DFloatGDL*>( p0);
+	DFloatGDL* p0F = e->GetParAs<DFloatGDL>( 0);
 	DLongGDL* res = new DLongGDL(p0->Dim(), BaseGDL::NOZERO);
 	SizeT nEl = p0->N_Elements();
 	for( SizeT i=0; i<nEl; ++i)
