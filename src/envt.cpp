@@ -728,7 +728,8 @@ void EnvT::AssureLongScalarPar( SizeT pIx, DLong& scalar)
 void EnvT::AssureLongScalarKWIfPresent( const std::string& kw, DLong& scalar)
 {
   int ix = KeywordIx( kw);
-  if( !KeywordPresent( ix)) return;
+  if( env[ix] == NULL) return;
+  //  if( !KeywordPresent( ix)) return;
   AssureLongScalarKW( ix, scalar);
 }
 // converts keyword 'kw' if necessary and sets 'scalar' 
@@ -764,7 +765,8 @@ void EnvT::AssureDoubleScalarPar( SizeT pIx, DDouble& scalar)
 void EnvT::AssureDoubleScalarKWIfPresent( const std::string& kw, DDouble& scalar)
 {
   int ix = KeywordIx( kw);
-  if( !KeywordPresent( ix)) return;
+  if( env[ix] == NULL) return;
+  //  if( !KeywordPresent( ix)) return;
   AssureDoubleScalarKW( ix, scalar);
 }
 void EnvT::AssureDoubleScalarKW( const std::string& kw, DDouble& scalar)
@@ -800,7 +802,8 @@ void EnvT::AssureFloatScalarPar( SizeT pIx, DFloat& scalar)
 void EnvT::AssureFloatScalarKWIfPresent( const std::string& kw, DFloat& scalar)
 {
   int ix = KeywordIx( kw);
-  if( !KeywordPresent( ix)) return;
+  if( env[ix] == NULL) return;
+  //  if( !KeywordPresent( ix)) return;
   AssureFloatScalarKW( ix, scalar);
 }
 void EnvT::AssureFloatScalarKW( const std::string& kw, DFloat& scalar)
@@ -836,7 +839,8 @@ void EnvT::AssureStringScalarPar( SizeT pIx, DString& scalar)
 void EnvT::AssureStringScalarKWIfPresent( const std::string& kw, DString& scalar)
 {
   int ix = KeywordIx( kw);
-  if( !KeywordPresent( ix)) return;
+  if( env[ix] == NULL) return;
+  //  if( !KeywordPresent( ix)) return;
   AssureStringScalarKW( ix, scalar);
 }
 void EnvT::AssureStringScalarKW( const std::string& kw, DString& scalar)
