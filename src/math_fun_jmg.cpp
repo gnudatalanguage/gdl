@@ -29,23 +29,6 @@
 //#define GDL_DEBUG
 #undef GDL_DEBUG
 
-// on OS X isfinite is not defined
-#if defined(__APPLE__) && !defined(isfinite)
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-#define      isfinite( x )      ( ( sizeof ( x ) == sizeof(double) ) ?       \
-                              __isfinited ( x ) :                            \
-                                ( sizeof ( x ) == sizeof( float) ) ?         \
-                              __isfinitef ( x ) :                            \
-                              __isfinite  ( x ) )
-#ifdef __cplusplus
-}
-#endif
-#endif
-
-
 using namespace std;
 
 namespace lib {
