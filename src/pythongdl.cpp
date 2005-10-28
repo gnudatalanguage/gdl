@@ -145,7 +145,7 @@ bool CheckSub( DSub* sub, PyObject *argTuple, PyObject *kwDict)
 
 bool CopyArgFromPython( vector<BaseGDL*>& parRef,
 			vector<BaseGDL*>& kwRef,
-			EnvT& e,
+			EnvBaseT& e,
 			PyObject *argTuple, PyObject *kwDict)
 {
   int nArg = PyTuple_Size( argTuple);
@@ -225,7 +225,7 @@ bool CopyArgFromPython( vector<BaseGDL*>& parRef,
 
 bool CopyArgToPython( vector<BaseGDL*>& parRef,
 		      vector<BaseGDL*>& kwRef,
-		      EnvT& e,
+		      EnvBaseT& e,
 		      PyObject *argTuple, PyObject *kwDict)
 {
   int nArg = PyTuple_Size( argTuple);
@@ -271,162 +271,171 @@ int GDLEventHandlerPy()
 // Execute a GDL subroutine
 PyObject *GDLSub( PyObject *self, PyObject *argTuple, PyObject *kwDict,
 		  bool functionCall)
-  {
-    feclearexcept(FE_ALL_EXCEPT);
+{
+  feclearexcept(FE_ALL_EXCEPT);
 
-    PyOS_sighandler_t oldControlCHandler = PyOS_setsig(SIGINT,ControlCHandler);
-    PyOS_sighandler_t oldSigFPEHandler   = PyOS_setsig(SIGFPE,SigFPEHandler);
+  PyOS_sighandler_t oldControlCHandler = PyOS_setsig(SIGINT,ControlCHandler);
+  PyOS_sighandler_t oldSigFPEHandler   = PyOS_setsig(SIGFPE,SigFPEHandler);
 
-    PyObject *retVal = NULL; // init to error indicator
+  PyObject *retVal = NULL; // init to error indicator
 
-    vector<BaseGDL*> parRef;
-    vector<BaseGDL*> kwRef;
-    bool success;
-    DString pro;
+  vector<BaseGDL*> parRef;
+  vector<BaseGDL*> kwRef;
+  bool success;
+  DString pro;
     
-    // handle GDL exceptions
-    try {
+  // handle GDL exceptions
+  try {
 
-      success = GetFirstString( argTuple, pro);
-      if( !success) goto ret;
+    success = GetFirstString( argTuple, pro);
+    if( !success) goto ret;
 
-      pro = StrUpCase( pro);
+    pro = StrUpCase( pro);
 
-      DSub*    sub;
-      bool     libCall = false;
+    DSub*    sub;
+    bool     libCall = false;
 
-      if( functionCall)
-	{
-	  // search for function pro
-	  // first search library functions
-	  int proIx = LibFunIx( pro);
-	  if( proIx != -1)
-	    {
-	      // PCALL_LIB
-	      sub = libFunList[ proIx];
-	      libCall = true;
-	    }
-	  else
-	    {
-	      // FCALL - user defined procedures
-	      proIx = FunIx( pro);
-	      if( proIx == -1)
-		{
-		  /*bool found=*/ interpreter->SearchCompilePro( pro);
-	      
-		  proIx = FunIx( pro);
-		  if( proIx == -1)
-		    {
-		      string errString = "Function " + pro + " not found.";
-		      PyErr_SetString( gdlError, errString.c_str());
-		      goto ret;
-		    }
-		}
-	  
-	      sub = proList[ proIx];
-	    }
-	}
-      else
-	{
-      // search for procedure pro
-      // first search library procedures
-      int proIx = LibProIx( pro);
-      if( proIx != -1)
-	{
-	  // PCALL_LIB
-	  sub = libProList[ proIx];
-	  libCall = true;
-	}
-      else
-	{
-	  // PCALL - user defined procedures
-	  proIx = ProIx( pro);
-	  if( proIx == -1)
-	    {
-	      /*bool found=*/ interpreter->SearchCompilePro( pro);
-	      
-	      proIx = ProIx( pro);
-	      if( proIx == -1)
-		{
-		  string errString = "Procedure " + pro + " not found.";
-		  PyErr_SetString( gdlError, errString.c_str());
-		  goto ret;
-		}
-	    }
-	  
-	  sub = proList[ proIx];
-	}
-	}
-      
-      success = CheckSub( sub, argTuple, kwDict);
-      if( !success) goto ret;
-      
-      // build the environment
-      EnvT  e( interpreter, NULL, sub);
-
-      // copy arguments
-      success = CopyArgFromPython( parRef, kwRef, e, argTuple, kwDict);
-      if( !success) goto ret;
-
-      // make the call
-      StackSizeGuard<EnvStackT> guard( GDLInterpreter::CallStack());
-      GDLInterpreter::CallStack().push_back( &e);
-
-      BaseGDL* retValGDL = NULL;
-      auto_ptr<BaseGDL> retValGDL_guard;
-      if( functionCall)
-	{
-	  if( libCall) 
-	    retValGDL = static_cast<DLibFun*>(e.GetPro())->Fun()(&e);
-	  else
-            retValGDL = interpreter->call_fun(static_cast<DSubUD*>
-					      (e.GetPro())->GetTree());
-	  retValGDL_guard.reset( retValGDL);
-	}
-      else
-	{
-	  if( libCall) 
-	    static_cast<DLibPro*>(e.GetPro())->Pro()(&e); // throws
-	  else
-	    interpreter->call_pro(static_cast<DSubUD*>
-				  (e.GetPro())->GetTree()); //throws
-	}
-
-      // copy back args and keywords
-      success = CopyArgToPython( parRef, kwRef, e, argTuple, kwDict);
-      if( !success) goto ret;
-
-      if( retValGDL != NULL)
-	{
-	  retVal = retValGDL->ToPython();
-	}
-    }
-    catch ( GDLException ex)
+    if( functionCall)
       {
-	// ERROR GDL exception
-	string errString = "Calling " + pro + ": " + ex.toString();
-	PyErr_SetString( gdlError, errString.c_str());
-	goto ret;
+	// search for function pro
+	// first search library functions
+	int proIx = LibFunIx( pro);
+	if( proIx != -1)
+	  {
+	    // PCALL_LIB
+	    sub = libFunList[ proIx];
+	    libCall = true;
+	  }
+	else
+	  {
+	    // FCALL - user defined procedures
+	    proIx = FunIx( pro);
+	    if( proIx == -1)
+	      {
+		/*bool found=*/ interpreter->SearchCompilePro( pro);
+	      
+		proIx = FunIx( pro);
+		if( proIx == -1)
+		  {
+		    string errString = "Function " + pro + " not found.";
+		    PyErr_SetString( gdlError, errString.c_str());
+		    goto ret;
+		  }
+	      }
+	  
+	    sub = proList[ proIx];
+	  }
+      }
+    else
+      {
+	// search for procedure pro
+	// first search library procedures
+	int proIx = LibProIx( pro);
+	if( proIx != -1)
+	  {
+	    // PCALL_LIB
+	    sub = libProList[ proIx];
+	    libCall = true;
+	  }
+	else
+	  {
+	    // PCALL - user defined procedures
+	    proIx = ProIx( pro);
+	    if( proIx == -1)
+	      {
+		/*bool found=*/ interpreter->SearchCompilePro( pro);
+	      
+		proIx = ProIx( pro);
+		if( proIx == -1)
+		  {
+		    string errString = "Procedure " + pro + " not found.";
+		    PyErr_SetString( gdlError, errString.c_str());
+		    goto ret;
+		  }
+	      }
+	  
+	    sub = proList[ proIx];
+	  }
+      }
+      
+    success = CheckSub( sub, argTuple, kwDict);
+    if( !success) goto ret;
+      
+    // build the environment
+    EnvBaseT* e;
+
+    if( libCall)
+      e = new EnvT( NULL, sub);
+    else
+      e = new EnvUDT( NULL, sub);
+
+    auto_ptr< EnvBaseT> e_guard( e);
+
+    // copy arguments
+    success = CopyArgFromPython( parRef, kwRef, *e, argTuple, kwDict);
+    if( !success) goto ret;
+
+    // make the call
+    StackSizeGuard<EnvStackT> guard( GDLInterpreter::CallStack());
+    GDLInterpreter::CallStack().push_back( e);
+
+    BaseGDL* retValGDL = NULL;
+    auto_ptr<BaseGDL> retValGDL_guard;
+    if( functionCall)
+      {
+	if( libCall) 
+	  retValGDL = static_cast<DLibFun*>(static_cast<EnvT*>(e)->
+					    GetPro())->Fun()( static_cast<EnvT*>(e));
+	else
+	  retValGDL = interpreter->call_fun(static_cast<DSubUD*>
+					    (static_cast<EnvUDT*>(e)
+					     ->GetPro())->GetTree());
+	retValGDL_guard.reset( retValGDL);
+      }
+    else
+      {
+	if( libCall) 
+	  static_cast<DLibPro*>(e->GetPro())->Pro()(static_cast<EnvT*>(e)); // throws
+	else
+	  interpreter->call_pro(static_cast<DSubUD*>
+				(e->GetPro())->GetTree()); //throws
       }
 
-    if( retVal == NULL)
+    // copy back args and keywords
+    success = CopyArgToPython( parRef, kwRef, *e, argTuple, kwDict);
+    if( !success) goto ret;
+
+    if( retValGDL != NULL)
       {
-	// no error: return Py_None from procedure
-	Py_INCREF(Py_None);
-	retVal = Py_None;
+	retVal = retValGDL->ToPython();
       }
-
-  ret:
-    // free GDL parameters and keywords
-    Purge( parRef);
-    Purge( kwRef);
-
-    // restore old signal handlers
-    PyOS_setsig(SIGINT,oldControlCHandler);
-    PyOS_setsig(SIGFPE,oldSigFPEHandler);
-    
-    return retVal;
   }
+  catch ( GDLException ex)
+    {
+      // ERROR GDL exception
+      string errString = "Calling " + pro + ": " + ex.toString();
+      PyErr_SetString( gdlError, errString.c_str());
+      goto ret;
+    }
+
+  if( retVal == NULL)
+    {
+      // no error: return Py_None from procedure
+      Py_INCREF(Py_None);
+      retVal = Py_None;
+    }
+
+ ret:
+  // free GDL parameters and keywords
+  Purge( parRef);
+  Purge( kwRef);
+
+  // restore old signal handlers
+  PyOS_setsig(SIGINT,oldControlCHandler);
+  PyOS_setsig(SIGFPE,oldSigFPEHandler);
+    
+  return retVal;
+}
 
 // GDL is a C++ program
 extern "C" {
