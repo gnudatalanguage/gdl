@@ -104,7 +104,7 @@ void LibInit_jmg()
 				"TYPE","VALUE","BYTE","INT",
 				"UINT","LONG","ULONG","L64","UL64",
 				"FLOAT","DOUBLE","COMPLEX",
-				"DCOMPLEX",KLISTEND};
+				"DCOMPLEX","STRING",KLISTEND};
   new DLibFun(lib::make_array,string("MAKE_ARRAY"),MAXRANK,make_arrayKey);
 
   const string reformKey[]={"OVERWRITE",KLISTEND};

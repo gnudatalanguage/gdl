@@ -369,6 +369,11 @@ namespace lib {
 
       return make_array_template< DComplexDblGDL>( e, dimKey, value);
 
+      // STRING (added by MS 29.10.2005)
+    } else if (e->KeywordSet(17) || type == STRING) {
+
+      return make_array_template< DStringGDL>( e, dimKey, value);
+
       // STRUCT
     } else if ( type == STRUCT) {
       
