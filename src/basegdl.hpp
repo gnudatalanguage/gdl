@@ -156,11 +156,11 @@ public:
   virtual bool IsAssoc() const;
   virtual BaseGDL* AssocVar( int, SizeT);
 
-  virtual const SizeT N_Elements() const;
-  virtual const SizeT Size() const;
-  virtual const SizeT NBytes() const;
-  virtual const SizeT ToTransfer() const;
-  virtual const SizeT Sizeof() const;
+  virtual SizeT N_Elements() const;
+  virtual SizeT Size() const;
+  virtual SizeT NBytes() const;
+  virtual SizeT ToTransfer() const;
+  virtual SizeT Sizeof() const;
   
   virtual BaseGDL* Transpose( DUInt* perm);
   virtual BaseGDL* Rotate( DLong dir);
@@ -183,7 +183,7 @@ public:
   virtual BaseGDL* CShift( DLong d[MAXRANK]); // circular shift multi dim
 
   virtual bool Scalar() const;
-  virtual const DType   Type() const;
+  virtual DType   Type() const;
   virtual const std::string& TypeStr() const;
   virtual bool          EqType( const BaseGDL*) const;
   virtual void* DataAddr( SizeT elem=0);

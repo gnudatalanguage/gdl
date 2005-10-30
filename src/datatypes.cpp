@@ -471,13 +471,13 @@ void* Data_<Sp>::DataAddr( SizeT elem)
 { return &dd[elem];}
 
 template< class Sp>
-const SizeT Data_<Sp>::N_Elements() const 
+SizeT Data_<Sp>::N_Elements() const 
 { return dd.size();}
 template< class Sp>
-const SizeT Data_<Sp>::Size() const 
+SizeT Data_<Sp>::Size() const 
 { return dd.size();}
 template< class Sp>
-const SizeT Data_<Sp>::Sizeof() const 
+SizeT Data_<Sp>::Sizeof() const 
 { return sizeof(Ty);}
 
 template< class Sp>
@@ -550,34 +550,34 @@ template<> Data_<SpDObj>::Data_(const dimension& dim_,
 }
 
 template<class Sp>
-const SizeT Data_<Sp>::NBytes() const 
+SizeT Data_<Sp>::NBytes() const 
 { return (dd.size() * sizeof(Ty));}
 // string, ptr, obj cannot calculate their bytes
 // only used by assoc function
-template<> const SizeT Data_<SpDString>::NBytes() const
+template<> SizeT Data_<SpDString>::NBytes() const
 {
   throw GDLException("string data");
 }
-template<> const SizeT Data_<SpDObj>::NBytes() const
+template<> SizeT Data_<SpDObj>::NBytes() const
 {
   throw GDLException("object references");
 }
-template<> const SizeT Data_<SpDPtr>::NBytes() const
+template<> SizeT Data_<SpDPtr>::NBytes() const
 {
   throw GDLException("pointers");
 }
 
 template<class Sp>
-const SizeT Data_<Sp>::ToTransfer() const
+SizeT Data_<Sp>::ToTransfer() const
 {
   return dd.size();
 }
 // complex has 2 elements to transfer
-template<> const SizeT Data_<SpDComplex>::ToTransfer() const
+template<> SizeT Data_<SpDComplex>::ToTransfer() const
 {
   return N_Elements() * 2;
 }
-template<> const SizeT Data_<SpDComplexDbl>::ToTransfer() const
+template<> SizeT Data_<SpDComplexDbl>::ToTransfer() const
 {
   return N_Elements() * 2;
 }

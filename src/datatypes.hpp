@@ -117,11 +117,11 @@ public:
 
   Ty Sum() const;
 
-  const SizeT N_Elements() const;
-  const SizeT Size() const;
-  const SizeT NBytes() const;
-  const SizeT ToTransfer() const; // IO transfer count
-  const SizeT Sizeof() const;
+  SizeT N_Elements() const;
+  SizeT Size() const;
+  SizeT NBytes() const;
+  SizeT ToTransfer() const; // IO transfer count
+  SizeT Sizeof() const;
 
   void Clear();
 

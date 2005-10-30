@@ -79,6 +79,6 @@ int LibFunIx(const std::string& n);
 
 bool IsFun(antlr::RefToken); // used by Lexer and Parser
 
-const bool BigEndian();
+bool BigEndian();
 
 #endif

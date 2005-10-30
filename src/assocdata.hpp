@@ -55,7 +55,7 @@ public:
   // returns (*this)[ ixList]
   Parent_* Index( ArrayIndexListT* ixList);
 
-  const SizeT N_Elements() const { return 1;}
+  SizeT N_Elements() const { return 1;}
 
   bool IsAssoc() const { return true;}
 
@@ -67,7 +67,7 @@ public:
     throw GDLException("Assoc_::Operator[](...) called.");
   }
 
-  const SizeT NBytes() const 
+  SizeT NBytes() const 
   {
     throw GDLException("Assoc_::NBytes() called.");
   }

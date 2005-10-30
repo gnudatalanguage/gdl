@@ -238,7 +238,7 @@ int LibFunIx(const string& n)
 }
 
 // returns the endian of the current machine
-const bool BigEndian()
+bool BigEndian()
 {
   // a long should at least have two bytes
   // big endian -> msb first (msb is 0 here)

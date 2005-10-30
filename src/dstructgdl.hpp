@@ -116,13 +116,13 @@ public:
   bool          EqType( const BaseGDL* r) const 
   { return (SpDStruct::t == r->Type());} 
 
-  const SizeT N_Elements() const { return dd.size()/NTags();}
-  const SizeT Size() const { return dd.size()/NTags();}
-  const SizeT NBytes() const // for assoc function
+  SizeT N_Elements() const { return dd.size()/NTags();}
+  SizeT Size() const { return dd.size()/NTags();}
+  SizeT NBytes() const // for assoc function
   { 
     return (Sizeof() * N_Elements());
   }
-  const SizeT ToTransfer() const // number of elements for IO tranfer  
+  SizeT ToTransfer() const // number of elements for IO tranfer  
   { 
     SizeT nB = 0;
     SizeT nTags=NTags();
@@ -132,7 +132,7 @@ public:
       }
     return ( nB * N_Elements());
   }
-  const SizeT Sizeof() const
+  SizeT Sizeof() const
   {
     SizeT nB = 0;
     SizeT nTags=NTags();

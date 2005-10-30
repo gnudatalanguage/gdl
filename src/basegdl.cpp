@@ -34,11 +34,11 @@ BaseGDL* BaseGDL::AssocVar( int, SizeT)
   throw GDLException("BaseGDL::AssocVar(...) called.");
 }
 
-const SizeT BaseGDL::N_Elements() const { return dim.N_Elements();}
-const SizeT BaseGDL::Size() const { return 0;}
-const SizeT BaseGDL::NBytes() const { return 0;} // for assoc function
-const SizeT BaseGDL::ToTransfer() const { return 0;}
-const SizeT BaseGDL::Sizeof() const { return 0;}
+SizeT BaseGDL::N_Elements() const { return dim.N_Elements();}
+SizeT BaseGDL::Size() const { return 0;}
+SizeT BaseGDL::NBytes() const { return 0;} // for assoc function
+SizeT BaseGDL::ToTransfer() const { return 0;}
+SizeT BaseGDL::Sizeof() const { return 0;}
 
 // BaseGDL* BaseGDL::Abs() const
 // {
@@ -106,7 +106,7 @@ std::istream& BaseGDL::FromStream(std::istream& i)
 }
 
 bool BaseGDL::Scalar() const { return false;}
-const DType   BaseGDL::Type() const { return UNDEF;}
+DType   BaseGDL::Type() const { return UNDEF;}
 const std::string& BaseGDL::TypeStr() const
 { static const std::string s("UNDEF"); return s;}
 bool BaseGDL::EqType( const BaseGDL*) const
