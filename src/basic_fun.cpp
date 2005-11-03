@@ -33,6 +33,10 @@
 #include <unistd.h>
 #endif
 
+#if defined(__FreeBSD__)
+    extern "C" char **environ;
+#endif
+
 #include "datatypes.hpp"
 #include "envt.hpp"
 #include "dpro.hpp"

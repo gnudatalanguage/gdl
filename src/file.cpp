@@ -514,7 +514,7 @@ namespace lib {
     if( noSort)
       flags |= GLOB_NOSORT;
 
-#ifndef __APPLE__
+#if !defined(__APPLE__) && !defined(__FreeBSD__)
     if( !quote) // n/a on OS X
       flags |= GLOB_NOESCAPE;
 

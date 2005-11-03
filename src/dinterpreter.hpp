@@ -25,7 +25,14 @@
 #include <fstream>
 #include <csignal>
 
-#include <fenv.h>
+#ifdef __cplusplus
+  extern "C" {
+#  include <fenv.h>
+#  if defined(__FreeBSD__)
+#    pragma STDC FENV_ACCESS ON
+#  endif
+}
+#endif
 
 #include "initsysvar.hpp"
 #include "objects.hpp"
