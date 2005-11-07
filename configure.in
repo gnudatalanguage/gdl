@@ -15,7 +15,7 @@ AC_ARG_ENABLE(python_module,
 	[ PYTHON_MODULE="$enableval"
 	])
 
-if test "x$PYTHON_MODULE" == "xyes"; then
+if test "x$PYTHON_MODULE" = "xyes"; then
 	AC_DEFINE([PYTHON_MODULE], [1], 
 	[Define if you want to build the GDL python module])
 fi
@@ -110,7 +110,7 @@ if test "x$with_gsl" = "x"; then
   with_gsl=yes
 fi
 
-if test "x$with_gsl" == "xno"; then	
+if test "x$with_gsl" = "xno"; then	
 	echo ""	
 	echo "Error! GSL library is obligatory."
         exit -1
@@ -157,7 +157,7 @@ if test "x$with_plplot" = "x"; then
   with_plplot=yes
 fi
 
-if test "x$with_plplot" == "xno"; then	
+if test "x$with_plplot" = "xno"; then	
 	echo ""	
 	echo "Error! PLPLOT library is obligatory."
         exit -1
@@ -222,18 +222,18 @@ fi
 
 if test "x$with_netcdf" != "xno"; then
   if test "x$with_netcdf" != "xyes"; then
-dnl	if test "x$with_hdf" == "xno"; then
+dnl	if test "x$with_hdf" = "xno"; then
 	LIBS="$LIBS -L$with_netcdf/lib -lnetcdf"
 	INCLUDES="$INCLUDES -I$with_netcdf/include"
 dnl	fi
   else
-dnl	if test "x$with_hdf" == "xno"; then
+dnl	if test "x$with_hdf" = "xno"; then
 	LIBS="$LIBS -L/usr/lib/netcdf-3 -lnetcdf"
 	INCLUDES="$INCLUDES -I/usr/include/netcdf-3"
 dnl	fi
   fi
 
-dnl  if test "x$with_hdf" == "xno"; then
+dnl  if test "x$with_hdf" = "xno"; then
   	AC_CHECK_LIB(netcdf, nc_open, [AC_DEFINE([USE_NETCDF], [1], [Define if you want to use netCDF])], [
 	    echo ""
 	    echo "Error! netCDF version 3.5.1 or later is required but was not found"
@@ -380,7 +380,7 @@ AC_ARG_ENABLE(python_version,
 	[ PYTHON_VERSION="$enableval"
 	])
 
-if test "x$PYTHON_VERSION" == "x"; then
+if test "x$PYTHON_VERSION" = "x"; then
 
    echo -n "Automatic determination of python version."
 

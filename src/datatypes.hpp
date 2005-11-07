@@ -30,7 +30,7 @@
 #include "typedefs.hpp"
 #include "basegdl.hpp"
 #include "typetraits.hpp"
-#include "cassert"
+
 #if defined(__GNUC__) && !defined(__INTEL_COMPILER)
 // by default intel C++ defines __GNUC__
 #pragma interface

@@ -18,6 +18,8 @@
 #ifndef DIMENSION_HPP_
 #define DIMENSION_HPP_
 
+#include <cassert>
+
 #include "typedefs.hpp"
 #include "gdlexception.hpp"
 

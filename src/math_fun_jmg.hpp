@@ -21,9 +21,9 @@
 #ifdef __cplusplus
   extern "C" {
 #  include <fenv.h>
-#  if defined(__FreeBSD__)
+    //#  if defined(__FreeBSD__)
 #    pragma STDC FENV_ACCESS ON
-#  endif
+    //#  endif
 }
 #endif
 
