@@ -826,7 +826,12 @@ namespace lib {
       if( pos == string::npos) continue;   
       DString strArg = strEnv.substr(pos+1, len - pos - 1);
       strEnv = strEnv.substr(0, pos);
+      // putenv() is POSIX unlike setenv()
+      #if defined(__hpux__)
+      int ret = putenv((strEnv+"="+strArg).c_str());
+      #else
       int ret = setenv(strEnv.c_str(), strArg.c_str(), 1);
+      #endif
     }
   } 
 
