@@ -18,7 +18,7 @@
 #include "includefirst.hpp"
 
 #if defined(USE_PYTHON) || defined(PYTHON_MODULE)
-#include <numarray/numarray.h>
+#include <numarray/libnumarray.h>
 #endif
 
 #include <iomanip>
@@ -32,7 +32,7 @@
 #include "terminfo.hpp"
 
 // needed with gcc-3.3.2
-#include <assert.h>
+#include <cassert>
 
 // on OS X isnan is not defined
 #if defined(__APPLE__) && !defined(isnan)

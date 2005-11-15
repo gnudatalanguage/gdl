@@ -30,7 +30,7 @@
 //#include "envt.hpp"
 //#include "objects.hpp"
 
-//#include <numarray/numarray.h>
+//#include <numarray/libnumarray.h>
 
 using namespace std;
 
