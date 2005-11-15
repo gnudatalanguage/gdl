@@ -55,7 +55,7 @@
         <f77flags/>
       </optimized>
       <debug>
-        <configargs>--enable-debug=full --with-python=yes --with-hdf=no --with-hdf5=/usr/local --with-netcdf=/usr/local --enable-python_module</configargs>
+        <configargs>--enable-debug=full --with-python=yes --with-hdf=no --with-hdf5=/usr/local --with-netcdf=/usr/local --disable-python_module</configargs>
         <builddir>debug</builddir>
         <ccompiler>kdevgccoptions</ccompiler>
         <cxxcompiler>kdevgppoptions</cxxcompiler>

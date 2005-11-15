@@ -20,6 +20,8 @@
 #include <sys/utsname.h>
 #include <cmath>
 
+#include <limits>
+
 #include "objects.hpp"
 #include "dstructgdl.hpp"
 #include "graphics.hpp"
@@ -405,9 +407,28 @@ namespace SysVar
 
     // !VALUES
     DStructGDL*  valuesData = new DStructGDL( "!VALUES");
-    valuesData->NewTag("F_INFINITY", new DFloatGDL((float)1.0/0.0)); 
+    if( std::numeric_limits< DFloat>::has_infinity)
+      {
+	valuesData->NewTag("F_INFINITY", 
+			   new DFloatGDL( std::numeric_limits< DFloat>::infinity())); 
+      }
+    else
+      {
+	valuesData->NewTag("F_INFINITY", new DFloatGDL((float)1.0/0.0)); 
+      }
+
     valuesData->NewTag("F_NAN", new DFloatGDL(-sqrt((float) -1.0))); 
-    valuesData->NewTag("D_INFINITY", new DDoubleGDL( (double)1.0/0.0)); 
+
+    if( std::numeric_limits< DDouble>::has_infinity)
+      {
+	valuesData->NewTag("D_INFINITY", 
+			   new DDoubleGDL( std::numeric_limits< DDouble>::infinity())); 
+      }
+    else
+      {
+	valuesData->NewTag("D_INFINITY", new DDoubleGDL( (double)1.0/0.0)); 
+      }
+
     valuesData->NewTag("D_NAN", new DDoubleGDL(-sqrt((double) -1.0)));
     DVar *values       = new DVar( "VALUES", valuesData);
     valuesIx           = sysVarList.size();
