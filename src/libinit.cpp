@@ -246,7 +246,7 @@ void LibInit()
 			  "SWAP_ENDIAN","SWAP_IF_BIG_ENDIAN",
 			  "SWAP_IF_LITTLE_ENDIAN" /*12*/,
 			  "VAX_FLOAT","WIDTH","XDR", "BLOCK",
-			  "NOAUTOMODE","BINARY",
+			  "NOAUTOMODE","BINARY","STREAM",
 			  KLISTEND};
   const string openWarnKey[]={"INITIALSIZE","EXTENDSIZE",KLISTEND}; // VAX only
   new DLibPro(lib::openr,string("OPENR"),3,openKey,openWarnKey);
