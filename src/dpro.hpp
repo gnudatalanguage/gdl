@@ -302,6 +302,9 @@ public:
   void     AddPar(const std::string&); // add paramter
   unsigned AddVar(const std::string&); // add local variable
   void     AddKey(const std::string&, const std::string&); // add keyword=value
+
+
+  SizeT Size() { return var.size();}
   
   // search for variable returns true if its found in var or common blocks
   bool Find(const std::string& n)
