@@ -25,6 +25,7 @@
 #include "envt.hpp"
 #include "basic_fun.hpp"
 #include "io.hpp"
+#include "dinterpreter.hpp"
 #include "objects.hpp"
 #include "basic_fun_jmg.hpp"
 
@@ -34,6 +35,7 @@
 namespace lib {
 
   using namespace std;
+  using namespace antlr;
 
   BaseGDL* size( EnvT* e) 
   {
@@ -507,7 +509,141 @@ namespace lib {
 //     }
     
   }
-    
+
+
+  BaseGDL* routine_names( EnvT* e) 
+  {
+    SizeT nParam=e->NParam();
+
+    EnvStackT& callStack = e->Interpreter()->CallStack();
+    DLong curlevnum = callStack.size()-1;
+
+    if (e->KeywordSet( "LEVEL")) {
+      return new DLongGDL( curlevnum );
+    }
+
+    static int variablesIx = e->KeywordIx( "VARIABLES" );
+    static int fetchIx = e->KeywordIx( "FETCH" );
+    static int arg_namesIx = e->KeywordIx( "ARG_NAME" );
+    static int storeIx = e->KeywordIx( "STORE" );
+    bool var=false, fetch=false, arg=false, store=false;
+
+    DLongGDL* level;
+    level = e->IfDefGetKWAs<DLongGDL>( variablesIx);
+    if (level != NULL) {
+      var = true;
+    } else {
+      level = e->IfDefGetKWAs<DLongGDL>( fetchIx);
+      if (level != NULL) {
+	fetch = true;
+      } else {
+	level = e->IfDefGetKWAs<DLongGDL>( arg_namesIx);
+	if (level != NULL) {
+	  arg = true;
+	} else {
+	  level = e->IfDefGetKWAs<DLongGDL>( storeIx);
+	  if (level != NULL) {
+	    store = true;
+	  }
+	}
+      }
+    }
+
+    DString varName;
+
+    if (level != NULL) {
+      DLong desiredlevnum = (*level)[0];
+      if (desiredlevnum <= 0) desiredlevnum += curlevnum;
+      if (desiredlevnum < 1) return new DStringGDL("");
+
+      EnvBaseT* caller;
+      caller = e;
+      for( SizeT i=curlevnum; i>desiredlevnum; --i) {
+	caller = caller->Caller();
+	caller->Interpreter()->CallStack().pop_back();
+      }
+
+      DSubUD* pro = static_cast<DSubUD*>(caller->Caller()->GetPro());
+      SizeT nVar = pro->Size(); // # var in GDL for desired level 
+
+      if (var) {
+	if( nVar == 0) return new DStringGDL("");
+
+	DStringGDL* res = new DStringGDL( dimension( nVar), BaseGDL::NOZERO);
+	for( SizeT i = 0; i<nVar; ++i) {
+	  string vname = pro->GetVarName( i);
+	  (*res)[i] = vname;
+	}
+	return res;
+      } else if (fetch) { // FETCH
+
+	e->AssureScalarPar<DStringGDL>( 0, varName);
+	int xI = pro->FindVar(StrUpCase( varName));
+	//	cout << xI << endl;
+	if (xI != -1) {
+	  BaseGDL*& par = ((EnvT*)(caller->Caller()))->GetPar( xI);
+	  //	  char* addr = static_cast<char*>(par->DataAddr());
+	  return par->Dup();
+	}
+	
+      } else if (arg) { // ARG_NAME
+
+	if( nParam == 0) return new DStringGDL("");
+
+	DStringGDL* res = new DStringGDL( dimension( nParam), BaseGDL::NOZERO);
+
+	SizeT nCall = caller->NParam();
+	for( SizeT i = 0; i<nParam; ++i) {
+	  for( SizeT j = 0; j<nCall; ++j) {
+	    if (e->GetParString(i) == caller->GetParString(j)) {
+	      //	      cout << "Calling param: " << j+1 << endl;
+	      BaseGDL* p = e->GetPar( i);
+	      if (p == NULL) {
+		(*res)[i]="UNDEFINED";
+		break;
+	      }
+	      //    cout << p << endl;
+
+	      for( SizeT xI=0; xI<nVar; ++xI) {
+		string vname = pro->GetVarName( xI);
+		BaseGDL*& par = ((EnvT*)(caller->Caller()))->GetPar( xI);
+		if (par == p) {
+		  //		  cout << vname << " " << par << endl;
+		  (*res)[i] = vname;
+		  break;
+		}
+	      } // xI loop
+	      break;
+	    }
+	  } // j loop
+	} // i loop
+
+	return res;
+      } else { // STORE
+
+	if( nParam != 2)
+	  throw GDLException( e->CallingNode(),
+			      "ROUTINE_NAMES: Incorrect number of arguments.");
+
+	SizeT s;
+	e->AssureScalarPar<DStringGDL>( 0, varName); 
+	int xI = pro->FindVar(StrUpCase( varName));
+	if (xI == -1) {
+	  SizeT u = pro->AddVar(StrUpCase(varName));
+	  s = caller->Caller()->AddEnv();
+	} else {
+	  s = xI;
+	}
+	BaseGDL*& par = ((EnvT*)(caller->Caller()))->GetPar( s);
+
+	BaseGDL* res = e->GetPar( 1)->Dup();
+	char* addr = static_cast<char*>(res->DataAddr());
+	memcpy(&par, &res, 4); 
+
+	return new DIntGDL( 1);
+      }
+    }
+  }
     
 } // namespace
 
