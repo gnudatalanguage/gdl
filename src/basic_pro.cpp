@@ -761,6 +761,10 @@ namespace lib {
     static int ntohsIx = e->KeywordIx( "NTOHS");
     static int htonlIx = e->KeywordIx( "HTONL");
     static int htonsIx = e->KeywordIx( "HTONS");
+    static int ftoxdrIx = e->KeywordIx( "FTOXDR");
+    static int dtoxdrIx = e->KeywordIx( "DTOXDR");
+    static int xdrtofIx = e->KeywordIx( "XDRTOF");
+    static int xdrtodIx = e->KeywordIx( "XDRTOD");
 
     bool lswap = e->KeywordSet( lswapIx);
     bool l64swap = e->KeywordSet( l64swapIx);
@@ -772,6 +776,12 @@ namespace lib {
     bool ntohs = e->KeywordSet( ntohsIx);
     bool htonl = e->KeywordSet( htonlIx);
     bool htons = e->KeywordSet( htonsIx);
+
+    // XDR to-from conversion
+    bool ftoxdr = e->KeywordSet( ftoxdrIx);
+    bool dtoxdr = e->KeywordSet( dtoxdrIx);
+    bool xdrtof = e->KeywordSet( xdrtofIx);
+    bool xdrtod = e->KeywordSet( xdrtodIx);
 
     if( ifBig && !BigEndian()) return;
     if( ifLittle && BigEndian()) return;
@@ -789,9 +799,9 @@ namespace lib {
 	char* addr = static_cast<char*>(par->DataAddr());
 	
 	SizeT swapSz = 2; 
-	if( l64swap)
+	if( l64swap || dtoxdr || xdrtod)
 	  swapSz = 8;
-	else if( lswap || ntohl || htonl)
+	else if( lswap || ntohl || htonl || ftoxdr || xdrtof)
 	  swapSz = 4;
 
 	if( nBytes % swapSz != 0)

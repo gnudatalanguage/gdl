@@ -91,6 +91,7 @@ void LibInit()
 			       "SWAP_IF_BIG_ENDIAN",
 			       "SWAP_IF_LITTLE_ENDIAN",
 			       "NTOHL","NTOHS","HTONL","HTONS",
+			       "FTOXDR","DTOXDR","XDRTOF","XDRTOD",
 			       KLISTEND};
   new DLibPro(lib::byteorder,string("BYTEORDER"),-1,byteorderKey);
 
