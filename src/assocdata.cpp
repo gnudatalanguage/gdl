@@ -28,13 +28,27 @@ template< class Parent_>
 Assoc_< Parent_>::Assoc_( int lun_, Parent_* assoc_, SizeT fileOffset_): 
     Parent_( assoc_->Dim(), BaseGDL::NOZERO),
     lun( lun_-1), fileOffset( fileOffset_), sliceSize( assoc_->NBytes())
-{}
+{
+  if( assoc_->Type() == STRING)
+    throw GDLException( "ASSOC: Expression containing string data not allowed in this context.");
+  if( assoc_->Type() == PTR)
+    throw GDLException( "ASSOC: Expression containing pointers not allowed in this context.");
+  if( assoc_->Type() == OBJECT)
+    throw GDLException( "ASSOC: Expression containing object references not allowed in this context.");
+}
 
 template<>
 Assoc_< DStructGDL>::Assoc_( int lun_, DStructGDL* assoc_, SizeT fileOffset_): 
     DStructGDL( assoc_->Desc(), assoc_->Dim(), BaseGDL::NOZERO),
     lun( lun_-1), fileOffset( fileOffset_), sliceSize( assoc_->NBytes())
-{}
+{
+  if( assoc_->Type() == STRING)
+    throw GDLException( "ASSOC: Expression containing string data not allowed in this context.");
+  if( assoc_->Type() == PTR)
+    throw GDLException( "ASSOC: Expression containing pointers not allowed in this context.");
+  if( assoc_->Type() == OBJECT)
+    throw GDLException( "ASSOC: Expression containing object references not allowed in this context.");
+}
 
 // writing 1
 // assigns srcIn to this at ixList, if ixList is NULL does linear copy
