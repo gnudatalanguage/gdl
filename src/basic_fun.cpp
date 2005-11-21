@@ -2714,7 +2714,7 @@ namespace lib {
     bool length = e->KeywordSet( lengthIx);
     
     if( length)
-      return new DLongGDL( s->NBytes() / s->N_Elements());
+      return new DLongGDL( s->Sizeof());
 
     return new DLongGDL( s->Desc()->NTags());
   }

@@ -552,20 +552,21 @@ template<> Data_<SpDObj>::Data_(const dimension& dim_,
 template<class Sp>
 SizeT Data_<Sp>::NBytes() const 
 { return (dd.size() * sizeof(Ty));}
+
 // string, ptr, obj cannot calculate their bytes
 // only used by assoc function
-template<> SizeT Data_<SpDString>::NBytes() const
-{
-  throw GDLException("string data");
-}
-template<> SizeT Data_<SpDObj>::NBytes() const
-{
-  throw GDLException("object references");
-}
-template<> SizeT Data_<SpDPtr>::NBytes() const
-{
-  throw GDLException("pointers");
-}
+// template<> SizeT Data_<SpDString>::NBytes() const
+// {
+//   throw GDLException("string data");
+// }
+// template<> SizeT Data_<SpDObj>::NBytes() const
+// {
+//   throw GDLException("object references");
+// }
+// template<> SizeT Data_<SpDPtr>::NBytes() const
+// {
+//   throw GDLException("pointers");
+// }
 
 template<class Sp>
 SizeT Data_<Sp>::ToTransfer() const

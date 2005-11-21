@@ -1,10 +1,13 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
- <DocsAndViews NumberOfDocuments="1" >
+ <DocsAndViews NumberOfDocuments="2" >
   <Doc0 NumberOfViews="1" URL="file:///usr/local/gdl/src/math_fun.cpp" >
    <View0 line="904" Type="Source" />
   </Doc0>
+  <Doc1 NumberOfViews="1" URL="file:///usr/local/gdl/src/pythongdl.cpp" >
+   <View0 line="397" Type="Source" />
+  </Doc1>
  </DocsAndViews>
  <pluginList>
   <kdevdebugger>
