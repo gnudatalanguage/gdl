@@ -201,6 +201,16 @@ namespace lib {
     DString dir;
     e->AssureScalarPar<DStringGDL>( 0, dir);
    
+    // expand tilde
+    if( dir[0] == '~')
+      {
+	char* homeDir = getenv( "HOME");
+	if( homeDir != NULL)
+	  {
+	    dir = string( homeDir) + dir.substr(1);
+	  }
+      }
+
     int success = chdir( dir.c_str());
     if( success != 0)
       e->Throw( "Unable to change current directory to: "+dir);
