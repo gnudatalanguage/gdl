@@ -5,10 +5,6 @@
     copyright            : (C) 2004 by Christopher Lee
     email                : leec_gdl@publius.co.uk
 
-Note: If this file fails to compile, it might be that HDF4 was installed 
-after netCDF and overwrote some netCDF header files (netcdf.h) with its
-version.
-Solution: Just re-install netCDF.
  ***************************************************************************/
 
 /***************************************************************************
@@ -38,7 +34,7 @@ Solution: Just re-install netCDF.
 #include <gsl/gsl_sys.h>
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_sf.h>
-#include <netcdf.h>
+#include <netcdfcpp.h>
 
 #include "datatypes.hpp"
 #include "math_utl.hpp"

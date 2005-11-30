@@ -30,7 +30,7 @@
 #include <gsl/gsl_sys.h>
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_sf.h>
-#include <netcdf.h>
+#include <netcdfcpp.h>
 
 #include "datatypes.hpp"
 #include "math_utl.hpp"

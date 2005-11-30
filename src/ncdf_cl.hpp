@@ -17,17 +17,20 @@
 
 #ifndef NCDF_HPP_CL_
 #define NCDF_HPP_CL_
-#include <netcdf.h>
+
+#include <netcdfcpp.h>
 #include <string>
 
 namespace lib {
+
   using namespace std;
   using namespace antlr;
 
 
   void ncdf_handle_error(EnvT* e, int status, const char * function);
 
-  template <typename T>void ncdf_handle_error(EnvT* e, int status, const char * function, T* data);
+  template <typename T>void ncdf_handle_error(EnvT* e, int status, 
+					      const char * function, T* data);
 
   DStringGDL ncdf_gdl_typename(nc_type type);
 
@@ -69,7 +72,9 @@ namespace lib {
   BaseGDL* ncdf_varid(EnvT* e);
   BaseGDL* ncdf_vardef(EnvT* e);
 
-  template <typename T> void ncdf_var_handle_error(EnvT *e, int status, const char *function,T* data);
+  template <typename T> void ncdf_var_handle_error(EnvT *e, int status,
+						   const char *function,
+						   T* data);
 
 
 
@@ -85,7 +90,9 @@ namespace lib {
   BaseGDL* ncdf_attcopy(EnvT* e);
 
 
-  template <typename T> void ncdf_att_handle_error(EnvT *e, int status, const char *function,T* data);
+  template <typename T> void ncdf_att_handle_error(EnvT *e, int status, 
+						   const char *function,
+						   T* data);
   //----------------
 
 } // namespace

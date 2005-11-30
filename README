@@ -133,6 +133,18 @@ as a command line option to 'configure'.
 netCDF is available from:
 ftp://ftp.unidata.ucar.edu/pub/netcdf
 
+From the HDF4 INSTALL file:
+        To use the HDF/MFHDF libraries(libdf.a, libmfhdf.a) with the
+        original netCDF library(libnetcdf.a) the HDF/MFHDF distribution
+        must be compiled with the option '-DHAVE_NETCDF'. This will
+        rename the HDF version of the C-interface(ncxxx) of the netCDF API
+        to sd_ncxxx to avoid clashing with the original netCDF API from
+        libnetcdf.a. Currently there is no support for renaming the 
+        netCDF Fortran interface stubs. As such the HDF/MFHDF distribution 
+        must be compiled without fortran support. HDF Users can still access
+        HDF/netCDF files through the SDxxx interface but not through the
+        ncxxx interface unless the renamed interface is used(sd_ncxxx).
+
 In order to read and write images in several formats, GDL uses ImageMagick.
 It is required by default. If you don't want to use it, use 
 --with-Magick=no
