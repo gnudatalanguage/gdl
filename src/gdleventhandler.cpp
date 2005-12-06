@@ -20,6 +20,10 @@
 
 #include "includefirst.hpp"
 
+#ifdef __APPLE__
+#include <time.h>
+#endif
+
 #include "gdleventhandler.hpp"
 #include "graphics.hpp"
 
@@ -28,6 +32,14 @@ using namespace std;
 int GDLEventHandler()
 {
   Graphics::HandleEvents();
+
+#ifdef __APPLE__
+  // under OS X the event loop burns to much CPU time
+  struct timespec delay;
+  delay.tv_sec=0;
+  delay.tv_nsec = 10000000; // 10ms
+  nanosleep(&delay,NULL);
+#endif
 
   return 0;
 }

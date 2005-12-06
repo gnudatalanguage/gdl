@@ -57,12 +57,7 @@ DInterpreter::DInterpreter(): GDLInterpreter()
   // in includefirst.hpp readline is disabled for python_module
   char rlName[] = "GDL";
   rl_readline_name = rlName;
-
-  // this burns too much CPU time on OS X 10.4
-#ifndef __APPLE__
   rl_event_hook = GDLEventHandler;
-#endif
-  
   stifle_history( 20);
 #endif
   
@@ -820,19 +815,11 @@ string DInterpreter::GetLine()
 #ifdef HAVE_LIBREADLINE
     
     if( edit_input != 0)
-      {
-#ifdef __APPLE__
-	// rl_event_hook not set
-	GDLEventHandler(); 
-	cline = readline(const_cast<char*>(SysVar::Prompt().c_str()));
-	GDLEventHandler(); 
-#else
-	cline = readline(const_cast<char*>(SysVar::Prompt().c_str()));
-#endif
-      }
+      cline = readline(const_cast<char*>(SysVar::Prompt().c_str()));
     else
       cline = NoReadline(SysVar::Prompt().c_str());
 #else
+    
     cline = NoReadline(SysVar::Prompt().c_str());
 #endif
     
