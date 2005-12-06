@@ -284,7 +284,7 @@ namespace lib {
       } 
     else if(size != NULL)
       {
-	DLongGDL* l_size = e->GetKWAs<DLongGDL>( dimensionix);
+	DLongGDL* l_size = e->GetKWAs<DLongGDL>( sizeix);
 	if( l_size->N_Elements() < 4 || l_size->N_Elements() > 11)
 	  e->Throw("Keyword array parameter SIZE must have from "
 		   "4 to 11 elements.");
