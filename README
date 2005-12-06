@@ -84,12 +84,6 @@ without, but its very inconvenient to use that way, furthermore
 proper event handling for graphic windows requires readline).
 You can get it at:
 http://ftp.gnu.org/pub/gnu/readline/readline-4.3.tar.gz
-For OS X: Under OS X, readline seems to call the event handler
-in a different way than under linux, leading to a high CPU load
-if GDL is just waiting at the command prompt.
-Therefore here the event handler is NOT called periodically, but
-just before and after a command is entered. This leads to delayed
-destruction of graphic windows under OS X.
 
 As GDL includes graphics support, the plplot library version 5.3
 is necessary. To download plplot please look at:
