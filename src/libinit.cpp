@@ -648,6 +648,9 @@ void LibInit()
 
   new DLibFun(lib::gauss_pdf,string("GAUSS_PDF"),1);
   new DLibFun(lib::gauss_cvf,string("GAUSS_CVF"),1);
+
+  new DLibFun(lib::t_pdf,string("T_PDF"),2);
+
   // sort lists
   sort( libFunList.begin(), libFunList.end(), CompLibFunName());
   sort( libProList.begin(), libProList.end(), CompLibProName());

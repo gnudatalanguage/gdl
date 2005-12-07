@@ -53,6 +53,7 @@ namespace lib {
   // by medericboquien@users.sourceforge.net
   BaseGDL* gauss_pdf(EnvT* e);
   BaseGDL* gauss_cvf(EnvT* e);
+  BaseGDL* t_pdf(EnvT* e);
   BaseGDL* laguerre(EnvT* e);
 
 } // namespace
