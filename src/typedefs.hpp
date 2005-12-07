@@ -120,9 +120,17 @@ private:
   T*      guarded;
   
 public:
+  ArrayGuard(): guarded( NULL)
+  {}
   ArrayGuard( T* c): guarded( c)
   {}
   
+  void Reset( T* newGuarded)
+  {
+    delete guarded;
+    guarded = newGuarded;
+  }  
+
   ~ArrayGuard()
   {
     delete[] guarded;

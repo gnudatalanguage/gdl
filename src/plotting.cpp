@@ -1965,12 +1965,17 @@ namespace lib {
     PLFLT tr [6]={0,0,0,0,0,0};
     PLFLT *ptr;
 
-    ptr = (PLFLT *) pltr_data;
+    ptr = static_cast<PLFLT*>( pltr_data);
 
-    memcpy(&tr[0], &ptr[0], sizeof(PLFLT)); 
-    memcpy(&tr[4], &ptr[1], sizeof(PLFLT)); 
-    memcpy(&tr[2], &ptr[2], sizeof(PLFLT)); 
-    memcpy(&tr[5], &ptr[3], sizeof(PLFLT)); 
+    tr[0] = ptr[0];
+    tr[4] = ptr[1];
+    tr[2] = ptr[2];
+    tr[5] = ptr[4];
+
+//     memcpy(&tr[0], &ptr[0], sizeof(PLFLT)); 
+//     memcpy(&tr[4], &ptr[1], sizeof(PLFLT)); 
+//     memcpy(&tr[2], &ptr[2], sizeof(PLFLT)); 
+//     memcpy(&tr[5], &ptr[3], sizeof(PLFLT)); 
 
     *tx = tr[0] * x + tr[1] * y + tr[2];
     *ty = tr[3] * x + tr[4] * y + tr[5];
@@ -1989,11 +1994,13 @@ namespace lib {
     SizeT zEl;
     if( nParam == 1)
       {
-	BaseGDL* p0 = e->GetParDefined( 0)->Transpose( NULL);
+	BaseGDL* p0T = e->GetParDefined( 0)->Transpose( NULL);
+	e->Guard( p0T); // transpose creates a new variable
+	
 	zVal = static_cast<DDoubleGDL*>
-	  (p0->Convert2( DOUBLE, BaseGDL::COPY));
-	e->Guard( p0); // delete upon exit
-
+	  (p0T->Convert2( DOUBLE, BaseGDL::COPY));
+	e->Guard( zVal); // delete upon exit
+	
 	xEl = zVal->Dim(1);
 	yEl = zVal->Dim(0);
 
@@ -2006,13 +2013,16 @@ namespace lib {
 	e->Guard( xVal); // delete upon exit
 	yVal = new DDoubleGDL( dimension( yEl), BaseGDL::INDGEN);
 	e->Guard( yVal); // delete upon exit
-      } else if ( nParam == 2 || nParam > 3) {
-	e->Throw( "CONTOUR: Incorrect number of arguments.");
-      } else {
+      } 
+    else if ( nParam == 2 || nParam > 3) {
+	e->Throw( "Incorrect number of arguments.");
+      } 
+    else { // nParam == 3
 	BaseGDL* p0 = e->GetParDefined( 0)->Transpose( NULL);
 	zVal = static_cast<DDoubleGDL*>
 	  (p0->Convert2( DOUBLE, BaseGDL::COPY));
-	e->Guard( p0); // delete upon exit
+	delete p0; // transpose creates a new variable
+	e->Guard( zVal); // delete upon exit
 
 	if(zVal->Dim(0) == 1)
 	  throw GDLException( e->CallingNode(),
@@ -2391,6 +2401,7 @@ namespace lib {
 
     PLINT nlevel;
     PLFLT *clevel;
+    ArrayGuard<PLFLT> clevel_guard;
 
     static int levelsix = e->KeywordIx( "LEVELS"); 
 
@@ -2403,6 +2414,8 @@ namespace lib {
       PLFLT zintv;
       zintv = AutoTick(zVal->max() - zVal->min());
       nlevel = (PLINT) floor((zVal->max() - zVal->min()) / zintv);
+      clevel = new PLFLT[nlevel];
+      clevel_guard.Reset( clevel);
       for( SizeT i=1; i<=nlevel; i++) clevel[i-1] = zintv * i;
     }
 
@@ -2417,8 +2430,9 @@ namespace lib {
     for( SizeT i=0; i<xEl; i++) z[i] = &(*zVal)[i*yEl];
 
     actStream->cont(z, xEl, yEl, 1, xEl, 1, yEl, 
-		    clevel, nlevel, mypltr, (void *) spa);
+		    clevel, nlevel, mypltr, static_cast<void*>( spa));
 
+    delete[] z;
 
     // title and sub title
     actStream->schr( 0.0, 1.25*actH/defH);
@@ -2426,8 +2440,6 @@ namespace lib {
     actStream->schr( 0.0, actH/defH); // charsize is reset here
     actStream->mtex("b",5.4,0.5,0.5,subTitle.c_str());
     
-
-    delete[] z;
 
     actStream->flush();
 
