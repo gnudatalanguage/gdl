@@ -37,7 +37,7 @@ int GDLEventHandler()
   // under OS X the event loop burns to much CPU time
   struct timespec delay;
   delay.tv_sec=0;
-  delay.tv_nsec = 10000000; // 10ms
+  delay.tv_nsec = 20000000; // 20ms
   nanosleep(&delay,NULL);
 #endif
 
