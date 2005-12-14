@@ -372,7 +372,8 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 			retCode=statement(_t);
 			_t = _retTree;
 			
-			if( retCode == RC_RETURN) break;
+			// added RC_ABORT here
+			if( retCode >= RC_RETURN) break;
 			
 		}
 		else {

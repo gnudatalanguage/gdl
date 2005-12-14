@@ -483,7 +483,8 @@ call_pro
 }
     : (retCode=statement
             {
-                if( retCode == RC_RETURN) break;
+                // added RC_ABORT here
+                if( retCode >= RC_RETURN) break;
             }
         )*
     ;

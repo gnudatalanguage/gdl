@@ -1962,10 +1962,8 @@ namespace lib {
 
   void mypltr(PLFLT x, PLFLT y, PLFLT *tx, PLFLT *ty, void *pltr_data)
   {
-    PLFLT tr [6]={0,0,0,0,0,0};
-    PLFLT *ptr;
-
-    ptr = static_cast<PLFLT*>( pltr_data);
+    PLFLT tr[6]={0.0,0.0,0.0,0.0,0.0,0.0};
+    PLFLT *ptr = static_cast<PLFLT*>( pltr_data);
 
     tr[0] = ptr[0];
     tr[4] = ptr[1];
@@ -1976,9 +1974,11 @@ namespace lib {
 //     memcpy(&tr[4], &ptr[1], sizeof(PLFLT)); 
 //     memcpy(&tr[2], &ptr[2], sizeof(PLFLT)); 
 //     memcpy(&tr[5], &ptr[3], sizeof(PLFLT)); 
+//     *tx = tr[0] * x + tr[1] * y + tr[2];
+//     *ty = tr[3] * x + tr[4] * y + tr[5];
 
-    *tx = tr[0] * x + tr[1] * y + tr[2];
-    *ty = tr[3] * x + tr[4] * y + tr[5];
+    *tx = tr[0] * x + tr[2];
+    *ty = tr[4] * y + tr[5];
   }
 
   void contour( EnvT* e)
@@ -2646,9 +2646,11 @@ namespace lib {
 
 
   //CORE PLOT FUNCTION -> Draws a line along xVal, yVal
-  template <typename T> bool draw_polyline(EnvT *e,  GDLGStream *a, T * xVal, T* yVal, 
+  template <typename T> bool draw_polyline(EnvT *e,  GDLGStream *a,
+					   T * xVal, T* yVal, 
 					   bool xLog, bool yLog, 
-					   DDouble yStart, DDouble yEnd, DLong psym)
+					   DDouble yStart, DDouble yEnd, 
+					   DLong psym)
   {
     bool line=false;
     bool valid=true;
@@ -2657,7 +2659,8 @@ namespace lib {
     if(psym <0 ) {line=true; psym_=-psym;}
     else if(psym == 0 ) {line=true;psym_=psym;}
     else {psym_=psym;}
-    DLong minEl = (xVal->N_Elements() < yVal->N_Elements())? xVal->N_Elements() : yVal->N_Elements();
+    DLong minEl = (xVal->N_Elements() < yVal->N_Elements())? 
+      xVal->N_Elements() : yVal->N_Elements();
     for( int i=0; i<minEl; ++i)
       {
 	PLFLT y = static_cast<PLFLT>( (*yVal)[i]);
