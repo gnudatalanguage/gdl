@@ -36,6 +36,10 @@
 #include "terminfo.hpp"
 #include "sigfpehandler.hpp"
 
+#ifdef USE_MPI
+#include "mpi.h"
+#endif
+
 using namespace std;
 
 static void StartupMessage()
@@ -98,7 +102,7 @@ int main(int argc, char *argv[])
     }
 
   InitGDL();
-    
+
   if( isatty(0)) StartupMessage();
 
   // instantiate the interpreter
@@ -132,6 +136,22 @@ int main(int argc, char *argv[])
 // 	    }
 // 	}
 //     }
+
+#ifdef USE_MPI
+  MPI_Init(&argc, &argv);
+  int myrank = 0;
+  MPI_Comm_rank( MPI_COMM_WORLD, &myrank);
+  int size; 
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+  int tag = 0;
+  char* mpi_procedure = getenv("GDL_MPI");
+  if (myrank == 0 && mpi_procedure != NULL){
+    for( SizeT i = 0; i < size; i++)
+      MPI_Send(mpi_procedure, strlen(mpi_procedure)+1, MPI_CHAR, i, 
+	       tag, MPI_COMM_WORLD);
+  }
+#endif
 
   interpreter.InterpreterLoop( startup);
 

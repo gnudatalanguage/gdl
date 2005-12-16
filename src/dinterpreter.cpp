@@ -26,6 +26,10 @@
 #include "dinterpreter.hpp"
 #include "gdljournal.hpp"
 
+#ifdef USE_MPI
+#include "mpi.h"
+#endif
+
 #include <assert.h>
 
 // print out AST tree
@@ -959,6 +963,26 @@ GDLInterpreter::RetCode DInterpreter::InterpreterLoop( const string& startup)
 	    }
 	} // while
     } // if( startup...
+
+
+#ifdef USE_MPI
+  int myrank = 0;
+  int tag = 0;
+  char mpi_procedure[256];
+  MPI_Status status;
+  MPI_Comm_rank( MPI_COMM_WORLD, &myrank);
+  int size; 
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
+  if (size > 1) {
+    MPI_Recv(mpi_procedure, 256, MPI_CHAR, 0, tag, MPI_COMM_WORLD, &status);
+
+    istringstream istr(StrUpCase(mpi_procedure) + "\n");
+    DInterpreter::CommandCode ret=ExecuteLine( &istr);
+
+    MPI_Finalize();
+    exit( EXIT_SUCCESS);
+  }
+#endif
 
   bool runCmd = false; // should tree from $MAIN$ be executed?
   bool continueCmd = false; // .CONTINUE command given already?

@@ -335,7 +335,7 @@ AC_ARG_WITH(fftw,
 	[  --with-fftw[=DIR]         use FFTW package (with optional path DIR) ],
 	[with_fftw="$withval" ])
 
-dnl FFTW: default is yes, build with FFTW, using default path
+dnl FFTW: default is no
 if test "x$with_fftw" = "x"; then
   with_fftw=no
   echo "FFTW lib not explicitely enabled. Using GSL version for FFT."
@@ -344,7 +344,7 @@ fi
 if test "x$with_fftw" != "xno"; then
   if test "x$with_fftw" != "xyes"; then
     LIBS="$LIBS -L$with_fftw/lib -lfftw3 -lfftw3f"
-    INCLUDES="$INCLUDES -I$with_fftw/include -I$with_fftw/include"
+    INCLUDES="$INCLUDES -I$with_fftw/include"
   else
     INCLUDES="$INCLUDES -I/usr/include"
     LIBS="$LIBS -lfftw3 -lfftw3f"
@@ -355,6 +355,38 @@ if test "x$with_fftw" != "xno"; then
     echo "Error! FFTW3 version 3 is required but was not found"
     echo "       Use --with-fftw=DIR to specify the FFTW directory tree"
     echo "       Use --with-fftw=no  to not use it"
+    echo "       Check the README or use configure --help for other libraries needed"
+    echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
+    exit -1
+    ])
+fi
+
+
+dnl MPICH
+AC_ARG_WITH(mpich,	
+	[  --with-mpich[=DIR]         use MPICH (with optional path DIR) ],
+	[with_mpich="$withval" ])
+
+dnl MPICH: default is no
+if test "x$with_mpich" = "x"; then
+  with_mpich=no
+  echo "MPICH lib not explicitely enabled."
+fi
+
+if test "x$with_mpich" != "xno"; then
+  if test "x$with_mpich" != "xyes"; then
+    LIBS="$LIBS -L$with_mpich/lib -lmpich"
+    INCLUDES="$INCLUDES -I$with_mpich/include"
+  else
+    INCLUDES="$INCLUDES -I/usr/include"
+    LIBS="$LIBS -lmpich"
+  fi
+
+  AC_CHECK_LIB(mpich, MPI_Init, [AC_DEFINE([USE_MPI], [1], [Define if you want to use MPI])], [
+    echo ""
+    echo "Error! MPICH is required but was not found"
+    echo "       Use --with-mpich=DIR to specify the MPICH directory tree"
+    echo "       Use --with-mpich=no  to not use it"
     echo "       Check the README or use configure --help for other libraries needed"
     echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
     exit -1

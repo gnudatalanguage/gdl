@@ -37,10 +37,15 @@
 #include "hdf5_fun.hpp"
 #endif
 
+#include "mpi.hpp"
+
 using namespace std;
 
 void LibInit_mes()
 {
+
+
+
   const char KLISTEND[] = "";
   
   // general procedures/functions 
@@ -64,7 +69,27 @@ void LibInit_mes()
   const string structAssignKey[] = {"NOZERO", "VERBOSE", KLISTEND};
   new DLibPro(lib::struct_assign_pro, string("STRUCT_ASSIGN"), 2, structAssignKey);
 
-  
+  //  new DLibPro(lib::wait_pro, string("WAIT"), 1);
+
+  //  new DLibFun(lib::clock_fun, string("CLOCK"),0);
+
+#ifdef USE_MPI
+  // MPI Functions/Procedures
+  const string mpiSendKey[] = {"DEST", "TAG", KLISTEND};
+  new DLibPro(lib::mpi_send_pro, string("MPIDL_SEND"), 1, mpiSendKey);
+
+  const string mpiRecvKey[] = {"SOURCE", "TAG", "COUNT", KLISTEND};
+  new DLibFun(lib::mpi_recv_fun, string("MPIDL_RECV"), 0, mpiRecvKey);
+
+  const string mpiAllreduceKey[] = {"SUM", "PRODUCT", "COUNT", KLISTEND};
+  new DLibFun(lib::mpi_allreduce_fun, string("MPIDL_ALLREDUCE"), 1, mpiAllreduceKey);
+
+  new DLibFun(lib::mpi_comm_rank_fun, string("MPIDL_COMM_RANK"), 0);
+  new DLibFun(lib::mpi_comm_size_fun, string("MPIDL_COMM_SIZE"), 0);
+
+  new DLibPro(lib::mpi_finalize_pro, string("MPIDL_FINALIZE"), 0);
+#endif
+
 #ifdef USE_HDF5
   // hdf5 procedures/functions 
   new DLibFun(lib::h5f_open_fun, string("H5F_OPEN"), 1);
