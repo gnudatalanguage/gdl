@@ -604,6 +604,10 @@ namespace lib {
 		 DDouble& minVal,
 		 DDouble& maxVal)
   {
+    //    cout << "xStart " << xStart << "  xEnd "<<xEnd<<endl;
+    //    cout << "yStart " << minVal << "  yEnd "<<maxVal<<endl;
+
+
     PLFLT xMR;
     PLFLT xML; 
     PLFLT yMB; 
@@ -634,7 +638,7 @@ namespace lib {
     if ( pos == NULL) {
 
       // If position keyword previously set
-      if (kwP) {
+      if( kwP) {
 	actStream->vpor(position[0],position[2],position[1],position[3]);
       } else {
 	// If !P.position not set
@@ -678,19 +682,26 @@ namespace lib {
     if( clippingD != NULL)
 	Clipping( clippingD, xStart, xEnd, minVal, maxVal);
 
-    if( xLog)
-      {	  
-	if( xStart <= 0.0) xStart = 0.0; else xStart = log10( xStart);
-	if( xEnd   <= 0.0) return false; else xEnd = log10( xEnd);
-      }
-    if( yLog)
+    // for OPLOT start and end values are already log
+    if( pos != NULL)
       {
-	if( minVal <= 0.0) minVal = 0.0; else minVal = log10( minVal);
-	if( maxVal <= 0.0) return false; else maxVal = log10( maxVal);
+	if( xLog)
+	  {	  
+	    if( xStart <= 0.0) xStart = 0.0; else xStart = log10( xStart);
+	    if( xEnd   <= 0.0) return false; else xEnd = log10( xEnd);
+	  }
+	if( yLog)
+	  {
+	    if( minVal <= 0.0) minVal = 0.0; else minVal = log10( minVal);
+	    if( maxVal <= 0.0) return false; else maxVal = log10( maxVal);
+	  }
       }
 	  
     // set world coordinates
     actStream->wind( xStart, xEnd, minVal, maxVal);
+
+    //    cout << "xStart " << xStart << "  xEnd "<<xEnd<<endl;
+    //    cout << "yStart " << minVal << "  yEnd "<<maxVal<<endl;
 
     return true;
   }
@@ -748,6 +759,9 @@ namespace lib {
     DDouble yStart = yVal->min(); 
     DDouble yEnd   = yVal->max(); 
 
+    DDouble xStartRaw = xStart;
+    DDouble yStartRaw = yStart;
+
     if ((xStyle & 1) != 1) {
       PLFLT intv;
       intv = AutoIntv(xEnd-xStart);
@@ -766,12 +780,14 @@ namespace lib {
     //[x|y]range keyword
     gkw_axis_range(e, "X", xStart, xEnd, xnozero);
     gkw_axis_range(e, "Y", yStart, yEnd, ynozero);
+
     if ( e->KeywordSet( "YNOZERO")) ynozero = 1;
 
-    if (xStart > 0 && xnozero == 0) xStart = 0; 
-    if (yStart > 0 && ynozero == 0) yStart = 0; 
+    if( xStart > 0 && xnozero == 0) xStart = 0; 
+    if( yStart > 0 && ynozero == 0) yStart = 0; 
 
     if(xEnd == xStart) xEnd=xStart+1;
+
 
 
     DDouble minVal = yStart;
@@ -803,9 +819,9 @@ namespace lib {
     xLog = e->KeywordSet( xLogIx);
     yLog = e->KeywordSet( yLogIx);
 
-    if( xLog && xStart <= 0.0)
+    if( xLog && xStartRaw <= 0.0)
       Warning( "PLOT: Infinite x plot range.");
-    if( yLog && minVal <= 0.0)
+    if( yLog && yStartRaw <= 0.0)
       Warning( "PLOT: Infinite y plot range.");
 
     //    int just = (e->KeywordSet("ISOTROPIC"))? 1 : 0;
@@ -954,7 +970,7 @@ namespace lib {
 
     // set ![XY].CRANGE
     set_axis_crange("X", xStart, xEnd);
-    set_axis_crange("Y", yStart, yEnd);    
+    set_axis_crange("Y", minVal, maxVal);    
 
 
     //set ![x|y].type
@@ -1005,7 +1021,9 @@ namespace lib {
     get_axis_crange("Y", yStart, yEnd);
     DDouble minVal;
     DDouble maxVal;
-    bool xLog, yLog;
+
+    bool xLog;
+    bool yLog;
     get_axis_type("X", xLog);
     get_axis_type("Y", yLog);
     
@@ -1079,6 +1097,7 @@ namespace lib {
       valid=draw_polyline(e, actStream, 
 			  xVal, yVal, xLog, yLog, 
 			  yStart, yEnd, psym);
+
 
     actStream->lsty(1);//reset linestyle
     actStream->flush();
@@ -2667,8 +2686,12 @@ namespace lib {
 	if( yLog) if( y <= 0.0) continue; else y = log10( y);
 	
 	PLFLT x = static_cast<PLFLT>( (*xVal)[i]);
-	if( xLog) if( x <= 0.0) continue; else x = log10( x);
-
+	if( xLog) 
+	  if( x <= 0.0) 
+	    continue; 
+	  else 
+	    x = log10( x);
+	
 	  if( i>0)
 	  {
 	    if( line)
@@ -2684,6 +2707,9 @@ namespace lib {
 		      {
 			if( xLog) x1 = log10( x1);
 			a->join(x1,y1,x,y);
+
+//			cout << "join( "<<x1<<", "<<y1<<", "<<
+//			  x<<", "<<y<<")"<<endl;
 		      }
 		  }
 	      }
@@ -2942,8 +2968,10 @@ namespace lib {
     DStructGDL* Struct;
     if(axis=="X") Struct = SysVar::X();
     if(axis=="Y") Struct = SysVar::Y();
-    if(Struct !=NULL)
-      log=((*static_cast<DLongGDL*>(Struct->Get(Struct->Desc()->TagIndex("TYPE"))))[0] ? 1:0);
+    if(axis=="Z") Struct = SysVar::Z();
+    if(Struct != NULL)
+      log=((*static_cast<DLongGDL*>(Struct->Get(Struct->Desc()->
+						TagIndex("TYPE"))))[0] ? 1:0);
     else
       log=0;
   }
@@ -2954,6 +2982,7 @@ namespace lib {
     DStructGDL* Struct=NULL;
     if(axis=="X") Struct = SysVar::X();
     if(axis=="Y") Struct = SysVar::Y();
+    if(axis=="Z") Struct = SysVar::Z();
     if(Struct!=NULL)
       {
 	static unsigned typeTag = Struct->Desc()->TagIndex("TYPE");   
