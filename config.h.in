@@ -84,6 +84,9 @@
 /* Define if you want to use ImageMagick */
 #undef USE_MAGICK
 
+/* Define if you want to use MPI */
+#undef USE_MPI
+
 /* Define if you want to use netCDF */
 #undef USE_NETCDF
 

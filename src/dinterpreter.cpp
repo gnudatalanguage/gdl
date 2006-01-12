@@ -413,15 +413,17 @@ DInterpreter::CommandCode DInterpreter::CmdCompile( const string& command)
 	  string argstr  = command.substr(pos, sppos-pos);
 	  string origstr = argstr;
 
+	  // try first with extension
 	  AppendExtension( argstr);
+	  bool found = CompleteFileName( argstr);
 
-// 	  if( argstr.length() <= 4 ||
-// 	      StrLowCase( argstr.substr(argstr.length()-4,4)) != ".pro")
-// 	    {
-// 	      argstr += ".pro";
-// 	    }
-	  
-	  bool found = CompleteFileName(argstr);
+	  // 2nd try without extension
+	  if( !found)
+	    {
+	      argstr = origstr;
+	      found = CompleteFileName( argstr);
+	    }
+
 	  if (found) 
 	    {
 	      try {
@@ -472,9 +474,17 @@ DInterpreter::CommandCode DInterpreter::CmdRun( const string& command)
 	  string argstr  = command.substr(pos, sppos-pos);
 	  string origstr = argstr;
 
+	  // try 1st with extension
 	  AppendExtension( argstr);
-	  
 	  bool found = CompleteFileName(argstr);
+
+	  // 2nd try without extension
+	  if( !found)
+	    {
+	      argstr = origstr;
+	      found = CompleteFileName( argstr);
+	    }
+
 	  if (found) 
 	    {
 	      try {

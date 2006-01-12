@@ -1,29 +1,19 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
- <DocsAndViews NumberOfDocuments="6" >
-  <Doc0 NumberOfViews="1" URL="file:///usr/local/gdl/src/dnode.cpp" >
-   <View0 line="221" Type="Source" />
+ <DocsAndViews NumberOfDocuments="2" >
+  <Doc0 NumberOfViews="1" URL="file:///usr/local/gdl/src/GDLInterpreter.cpp" >
+   <View0 line="374" Type="Source" />
   </Doc0>
-  <Doc1 NumberOfViews="1" URL="file:///usr/local/gdl/src/dnode.hpp" >
-   <View0 line="431" Type="Source" />
+  <Doc1 NumberOfViews="1" URL="file:///usr/local/gdl/src/dinterpreter.cpp" >
+   <View0 line="92" Type="Source" />
   </Doc1>
-  <Doc2 NumberOfViews="1" URL="file:///usr/local/gdl/src/dinterpreter.cpp" >
-   <View0 line="731" Type="Source" />
-  </Doc2>
-  <Doc3 NumberOfViews="1" URL="file:///usr/include/c%2B%2B/3.4.3/memory" >
-   <View0 line="259" Type="Source" />
-  </Doc3>
-  <Doc4 NumberOfViews="1" URL="file:///usr/local/gdl/src/GDLInterpreter.cpp" >
-   <View0 line="612" Type="Source" />
-  </Doc4>
-  <Doc5 NumberOfViews="1" URL="file:///usr/local/gdl/src/plotting.cpp" >
-   <View0 line="2428" Type="Source" />
-  </Doc5>
  </DocsAndViews>
  <pluginList>
   <kdevdebugger>
-   <breakpointList/>
+   <breakpointList>
+    <breakpoint0 location="/usr/local/gdl/src/GDLInterpreter.cpp:302" type="1" condition="" enabled="1" />
+   </breakpointList>
   </kdevdebugger>
   <kdevbookmarks>
    <bookmarks/>
