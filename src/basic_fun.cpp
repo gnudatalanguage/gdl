@@ -3004,7 +3004,7 @@ namespace lib {
 
   
     int nStr = stringExpr->N_Elements();
-    dimension dim( nStr);
+    dimension dim = stringExpr->Dim();
 
     DLongGDL* len;
     if( lengthKW) {
