@@ -3042,9 +3042,8 @@ namespace lib {
            (* static_cast<DStringGDL*>(result))[i] = (*stringExpr)[i].substr(
                pmatch[0].rm_so, pmatch[0].rm_eo - pmatch[0].rm_so);
        else
-           (* static_cast<DLongGDL*>(result))[i] = (matchres == 0) ? 1 : -1;
+           (* static_cast<DLongGDL*>(result))[i] = matchres? -1:pmatch[0].rm_so;
        
-
        if( lengthKW)
            (*len)[i] = pmatch[0].rm_eo - pmatch[0].rm_so;
     }
