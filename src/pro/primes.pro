@@ -47,7 +47,7 @@ function primes, n
  ; number of prime numbers already calculated
  nprimes = 2l
  
- while nprimes le n-1 do begin
+ while nprimes lt n do begin
     for iprimes=1l, nprimes do begin           ; upper limit is never reached
        prime = primes[iprimes]
        if candidate mod prime eq 0 then break  ; it is not a prime number
