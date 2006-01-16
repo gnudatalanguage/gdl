@@ -77,7 +77,8 @@ function filepath, filename, root_dir=root_dir, subdirectory=subdirectory, termi
  
  if keyword_set(tmp) then begin
     root_dir = getenv('GDL_TMPDIR') ; IDL has an IDL_TMPDIR variable
-    root_dir = '/tmp'
+    if root_dir eq '' then root_dir = getenv('IDL_TMPDIR') 
+    if root_dir eq '' then root_dir = '/tmp'
     path = root_dir
  endif else begin
     if n_elements(root_dir) eq 0 then root_dir = !dir
