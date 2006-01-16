@@ -3481,14 +3481,14 @@ namespace lib {
       }
     else 
       { // unnamed struct
-	SizeT nParam=e->NParam(1);
+	SizeT nParam=e->NParam(2);
 
 	DStructDesc*          nStructDesc = new DStructDesc( "$truct");
 	// instance takes care of nStructDesc since it is unnamed
 	DStructGDL* instance = new DStructGDL( nStructDesc);
 	auto_ptr<DStructGDL> instance_guard(instance);
 
-	for( SizeT p=0; p<nParam; ++p)
+	for( SizeT p=0; p<nParam;)
 	  {
 	    BaseGDL* par = e->GetParDefined( p);
 	    DStructGDL* parStruct = dynamic_cast<DStructGDL*>( par);
@@ -3505,6 +3505,7 @@ namespace lib {
 		    instance->NewTag( desc->TagName( t), 
 				      parStruct->Get( t, 0)->Dup());
 		  }
+		++p;
 	      }
 	    else
 	      {
@@ -3517,7 +3518,7 @@ namespace lib {
 		if( tagEnd >= nParam)
 		  e->Throw( "Incorrect number of arguments.");
 
-		for(++p; p<tagEnd; ++p)
+		for(++p; p<=tagEnd; ++p)
 		  {
 		    BaseGDL* value = e->GetParDefined( p);
 
