@@ -2934,16 +2934,29 @@ namespace lib {
       DStringGDL* name = e->GetParAs<DStringGDL>(0);
       nEnv = name->N_Elements();
 
-      dimension dim( nEnv );
-      env = new DStringGDL(dim);
+      env = new DStringGDL( name->Dim());
  
       // copy the stuff into local string only if param found
       char *resPtr;
-      for(SizeT i=0; i < nEnv ; ++i){
-	if( (resPtr = getenv((*name)[i].c_str())) ) 
-	  (*env)[i] = resPtr;
-      }
+      for(SizeT i=0; i < nEnv ; ++i)
+	{
+	  // handle special environment variables
+	  // GDL_TMPDIR, IDL_TMPDIR
+	  if( (*name)[i] == "GDL_TMPDIR" || (*name)[i] == "IDL_TMPDIR")
+	    {
+	      resPtr = getenv((*name)[i].c_str());
 
+	      if( resPtr != NULL)
+		  (*env)[i] = resPtr;
+	      else
+		(*env)[i] = SysVar::Dir();
+
+	      AppendIfNeeded( (*env)[i], "/");
+	    }
+	  else // normal environment variables
+	    if( (resPtr = getenv((*name)[i].c_str())) ) 
+	      (*env)[i] = resPtr;
+	}
     }
     
     return env;

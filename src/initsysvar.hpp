@@ -37,6 +37,9 @@ namespace SysVar
   DStructGDL* Y();
   DStructGDL* Z();
 
+  // returns !DIR
+  const DString& Dir();
+
   DStructGDL* Version();
 
   DStructGDL* Values();

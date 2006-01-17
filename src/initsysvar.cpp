@@ -73,6 +73,13 @@ namespace SysVar
       path += ":" + sArr[i];
   }
 
+  // returns !DIR (as a plain DString)
+  const DString& Dir()
+  {
+    DVar& dirSysVar = *sysVarList[ dirIx];
+    return static_cast<DStringGDL&>( *dirSysVar.Data())[0];
+  }
+  
   // returns array of path strings
   const StrArr& GDLPath()
   {
