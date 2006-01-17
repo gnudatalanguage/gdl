@@ -1,0 +1,9 @@
+   
+; this is the header
+; it is not long, but sufficient
+aaa  1.1 r -1 4 1e6  
+bbb  r.2 g -2 5 Inf   ; a little comment here
+ccc  3.3 b -3 6 1e8
+                   
+ddd  4.4 l    ^ 1e9
+eee  5.5   -5 8 
