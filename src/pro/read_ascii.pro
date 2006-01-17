@@ -224,7 +224,15 @@ function read_ascii, filename, count=linecount, $
     endfor
  endif
  
- linecount = n_elements(text)
+ 
+ ;--------------------
+ ; remove blank lines
+ ;--------------------
+
+ text = strtrim(text, 2)
+ index = where(strlen(text) ne 0, linecount)
+ if linecount eq 0 then return, 0
+ text = text[index]
 
  
  ;---------------------------
