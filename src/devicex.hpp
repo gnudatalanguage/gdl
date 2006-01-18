@@ -126,8 +126,15 @@ class DeviceX: public Graphics
     PLINT kx, ky;
 
     XColor curcolor;
-    for(ix = 0; ix < nx; ix++) {
-      for(iy = 0; iy < ny; iy++) {
+
+    PLINT kxLimit = dev->width - xoff;
+    PLINT kyLimit = dev->height - yoff;
+
+    if( nx < kxLimit) kxLimit = nx;
+    if( ny < kyLimit) kyLimit = ny;
+    
+    for(ix = 0; ix < kxLimit; ++ix) {
+      for(iy = 0; iy < kyLimit; ++iy) {
 
 	kx = xoff + ix;
 	ky = yoff + iy;
@@ -163,7 +170,8 @@ class DeviceX: public Graphics
 
 	}
 
-	//std::cout << "XPutPixel:\n"<<kx<<"  "<< dev->height-ky << std::endl;
+	//std::cout << "XPutPixel: "<<kx<<"  "<< dev->height-ky-1 << std::endl;
+	//	if( ky < dev->height && kx < dev->width)
 	XPutPixel(ximg, kx, dev->height-1-ky, curcolor.pixel);
       }
     }
