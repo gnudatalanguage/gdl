@@ -1318,7 +1318,7 @@ Data_<SpDPtr>* Data_<SpDPtr>::OrOp( BaseGDL* r)
 template<>
 Data_<SpDObj>* Data_<SpDObj>::OrOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.");  
   return this;
 }
 // OrOp
@@ -1453,7 +1453,7 @@ Data_<SpDPtr>* Data_<SpDPtr>::OrOpS( BaseGDL* r)
 template<>
 Data_<SpDObj>* Data_<SpDObj>::OrOpS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.");  
   return this;
 }
 
@@ -1532,7 +1532,7 @@ Data_<SpDPtr>* Data_<SpDPtr>::XorOp( BaseGDL* r)
 template<>
 Data_<SpDObj>* Data_<SpDObj>::XorOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.");  
   return this;
 }
 
@@ -1593,7 +1593,7 @@ Data_<SpDPtr>* Data_<SpDPtr>::Add( BaseGDL* r)
 template<>
 Data_<SpDObj>* Data_<SpDObj>::Add( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.");  
   return this;
 }
 template<class Sp>
@@ -1653,7 +1653,7 @@ Data_<SpDPtr>* Data_<SpDPtr>::AddS( BaseGDL* r)
 template<>
 Data_<SpDObj>* Data_<SpDObj>::AddS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.");  
   return this;
 }
 
@@ -1734,13 +1734,13 @@ Data_<SpDPtr>* Data_<SpDPtr>::SubInv( BaseGDL* r)
 template<>
 Data_<SpDObj>* Data_<SpDObj>::Sub( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.");  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::SubInv( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.");  
   return this;
 }
 template<class Sp>
@@ -1812,13 +1812,13 @@ Data_<SpDPtr>* Data_<SpDPtr>::SubInvS( BaseGDL* r)
 template<>
 Data_<SpDObj>* Data_<SpDObj>::SubS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.");  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::SubInvS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.");  
   return this;
 }
 
@@ -1873,7 +1873,7 @@ Data_<SpDPtr>* Data_<SpDPtr>::LtMark( BaseGDL* r)
 template<>
 Data_<SpDObj>* Data_<SpDObj>::LtMark( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.");  
   return this;
 }
 template<class Sp>
@@ -1923,7 +1923,7 @@ Data_<SpDPtr>* Data_<SpDPtr>::LtMarkS( BaseGDL* r)
 template<>
 Data_<SpDObj>* Data_<SpDObj>::LtMarkS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.");  
   return this;
 }
 // GtMark
@@ -1977,7 +1977,7 @@ Data_<SpDPtr>* Data_<SpDPtr>::GtMark( BaseGDL* r)
 template<>
 Data_<SpDObj>* Data_<SpDObj>::GtMark( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.");  
   return this;
 }
 template<class Sp>
@@ -2027,7 +2027,7 @@ Data_<SpDPtr>* Data_<SpDPtr>::GtMarkS( BaseGDL* r)
 template<>
 Data_<SpDObj>* Data_<SpDObj>::GtMarkS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.");  
   return this;
 }
 
@@ -2225,13 +2225,13 @@ Data_<SpDPtr>* Data_<SpDPtr>::DivInv( BaseGDL* r)
 template<>
 Data_<SpDObj>* Data_<SpDObj>::Div( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.");  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::DivInv( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.");  
   return this;
 }
 template<class Sp>
@@ -2332,13 +2332,13 @@ Data_<SpDPtr>* Data_<SpDPtr>::DivInvS( BaseGDL* r)
 template<>
 Data_<SpDObj>* Data_<SpDObj>::DivS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.");  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::DivInvS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.");  
   return this;
 }
 
