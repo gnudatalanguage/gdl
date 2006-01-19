@@ -257,8 +257,6 @@ function read_ascii, filename, count=linecount, $
  endif
  
  rnumber = '^[+-]?([0-9]*\.?[0-9]*[ed]?[+-]?[0-9]+\.?[0-9]*|NaN|Inf|Infinity)$'
- ;XXX atm, some characters need to be escaped in GDL: ()|?+
- rnumber = '^[+-]\?\([0-9]*\.\?[0-9]*[ed]\?[+-]\?[0-9]\+\.\?[0-9]*\|NaN\|Inf\|Infinity\)$'
 
  
  ;------------------
