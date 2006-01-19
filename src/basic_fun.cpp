@@ -45,6 +45,8 @@
 #include "terminfo.hpp"
 #include "typedefs.hpp"
 
+ /* max regexp error message length */
+#define MAX_REGEXPERR_LENGTH 80
 
 namespace lib {
 
@@ -3003,14 +3005,14 @@ namespace lib {
     static int foldCaseIx = e->KeywordIx( "FOLD_CASE" );
     bool foldCaseKW = e->KeywordSet( foldCaseIx );
 
+    //XXXpch: this is wrong, should check arg_present
     static int lengthIx = e->KeywordIx( "LENGTH" );
     bool lengthKW = e->KeywordSet( lengthIx );
    
     static int subexprIx = e->KeywordIx( "SUBEXPR" );
     bool subexprKW = e->KeywordSet( subexprIx );
  
-    if( (lengthKW &&  (booleanKW || extractKW))  ||
-        (subexprKW && booleanKW) ) 
+    if( booleanKW && (subexprKW || extractKW || lengthKW))
         e->Throw( "Conflicting keywords.");
     if( subexprKW) 
         e->Throw( "Subexpression not yet implemented.");
@@ -3033,11 +3035,26 @@ namespace lib {
       result = new DStringGDL(dim); 
     else 
       result = new DLongGDL(dim); 
- 
+
+    char err_msg[MAX_REGEXPERR_LENGTH];
+
+    // set the compile flags 
+    int cflags = REG_EXTENDED;
+    if (foldCaseKW)
+      cflags |= REG_ICASE;
+    if (booleanKW)
+      cflags |= REG_NOSUB;
+
     // compile the regular expression
     regex_t regexp;
-    int cflags = 0;
     int compRes = regcomp( &regexp, pattern.c_str(), cflags);
+    
+    if (compRes) {
+      regerror(compRes, &regexp, err_msg, MAX_REGEXPERR_LENGTH);
+      throw GDLException(e->CallingNode(), 
+                         "STREGEX: Error processing regular expression: "+
+                         pattern+"\n           "+string(err_msg)+".");
+    }
 
     regmatch_t pmatch[1];
     int nmatch = 1;
