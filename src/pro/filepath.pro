@@ -23,12 +23,11 @@
 ;       root_dir     Scalar string of the directory
 ;       subdirectory Scalar or Array of subdirectories which will be
 ;                    concatenated to root_dir
+;
 ; KEYWORDS:
 ;       tmp          If set, returns a directory for temporary files
 ;       terminal     If set, returns the filename of the user's terminal
 ;
-; RESTRICTION:
-;       the tmp directory is hardcoded to /usr/tmp...
 ;
 ; MODIFICATION HISTORY:
 ;   12-Jan-2006 : written by Pierre Chanial
@@ -50,11 +49,7 @@ function filepath_concat, dir1_, dir2_
  dir1 = dir1_
  dir2 = dir2_
  
- case !version.os_family of
-    'Windows': sep = '\'
-    'unix'   : sep = '/'
-    else     : message, 'Operating System not handled.'
- endcase
+ sep = path_sep()
  
  if strmid(dir1, 0, /reverse_offset) eq sep then begin
     dir1 = strmid(dir1, 0, strlen(dir1)-1)
