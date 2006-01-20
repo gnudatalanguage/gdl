@@ -1,0 +1,330 @@
+===============================================================================
+Implementation status of the IDL 5.4 routine library
+===============================================================================
+Codes:
+= : implementation complete
+# : implementation complete (but in C++)
++ : implementation complete + added functionality
+~ : partial implementation
+- : implementation not required
+! : non-implemented routines having priority
+    Most important are:
+      congrid, crossp, crvlength, curvefit, determ, hist_equal, interpol, 
+      int_tabulated, lin_fit, poly_fit, reverse, rot, spline, svdfit
+===============================================================================
+
+!a_correlate.pro
+ adapt_hist_equal.pro
+!amoeba.pro
+ annotate.pro
+ arrow.pro
+ ascii_template.pro
+!bar_plot.pro
+#beta.pro
+!bilinear.pro
+ binary_template.pro
+ bin_date.pro
+!binomial.pro
+ bisect_pdf.pro
+ blk_con.pro
+ box_cursor.pro
+!c_correlate.pro
+ caldat.pro
+ calendar.pro
+ cdf_exists.pro
+!chebyshev.pro
+!chisqr_cvf.pro
+!chisqr_pdf.pro
+ cir_3pnt.pro
+ colormap_applicable.pro
+!comfit.pro
+!complexround.pro
+ cond.pro
+!congrid.pro
+!coord2to3.pro
+!correlate.pro
+!cramer.pro
+ create_view.pro
+!crossp.pro
+!crvlength.pro
+ ct_luminance.pro
+ cti_test.pro
+!curvefit.pro
+ cv_coord.pro
+ cvttobm.pro
+ cw_animate.pro
+ cw_arcball.pro
+ cw_bgroup.pro
+ cw_clr_index.pro
+ cw_colorsel.pro
+ cw_defroi.pro
+ cw_dice.pro
+ cw_field.pro
+ cw_filesel.pro
+ cw_form.pro
+ cw_fslider.pro
+ cw_light_editor.pro
+ cw_orient.pro
+ cw_palette_editor.pro
+ cw_pdmenu.pro
+ cw_rgbslider.pro
+ cw_tmpl.pro
+ cw_zoom.pro
+ defroi.pro
+!deriv.pro
+ derivsig.pro
+!determ.pro
+ dialog_read_image.pro
+ dialog_write_image.pro
+ digital_filter.pro
+ dissolve.pro
+=dist.pro
+ dl_dos.pro
+ dl_mac.pro
+ dl_unix.pro
+ dl_vms.pro
+ doc_library.pro
+ efont.pro
+!eigenvec.pro
+ eos_exists.pro
+ eos_gd_query.pro
+ eos_pt_query.pro
+ eos_query.pro
+ eos_sw_query.pro
+!errplot.pro
+ expand.pro
+ extrac.pro
+ extract_slice.pro
+!f_cvf.pro
+=factorial.pro
+!file_which.pro
+=file_sep.pro
+=filepath.pro                 ; /tmp is hardcoded
+ flick.pro
+ flow3.pro
+!f_pdf.pro
+ funct.pro
+ fv_test.pro
+!fx_root.pro
+ gamma_ct.pro
+#gamma.pro
+!gauss2dfit.pro
+#gauss_cvf.pro
+!gaussfit.pro
+#gauss_pdf.pro
+ get_screen_size.pro
+-graphics_times2.pro
+-graphics_times3.pro
+-graphics_times.pro
+ gs_iter.pro
+!hanning.pro
+ hdf_exists.pro
+!h_eq_ct.pro
+!h_eq_int.pro
+!hilbert.pro
+!hist_2d.pro
+!hist_equal.pro
+ hls.pro
+ hsv.pro
+!ibeta.pro
+=identity.pro
+ idl_crank.pro
+ idlgrarc__define.pro
+ idlgrcolorbar__define.pro
+ idlgrlegend__define.pro
+-idlinfo.pro
+#igamma.pro
+ image_cont.pro
+ insget.pro
+ insput.pro
+ insvis.pro
+!int_2d.pro
+!int_3d.pro
+!int_tabulated_2d.pro
+!int_tabulated.pro
+!interpol.pro
+ julday.pro
+ krig2d.pro
+=kurtosis.pro
+ kw_test.pro
+ label_date.pro
+!ladfit.pro
+#laguerre.pro
+ leefilt.pro
+!linfit.pro
+ ljlct.pro
+ ll_arc_distance.pro
+!lmfit.pro
+!lmfunct.pro
+=loadct.pro
+ lu_complex.pro
+!m_correlate.pro
+ map_2points.pro
+ map_continents.pro
+ map_grid.pro
+ map_image.pro
+ map_patch.pro
+ map_set.pro
+ md_test.pro
+=meanabsdev.pro
+=mean.pro
+ mesh_obj.pro
+!min_curve_surf.pro
+ mk_html_help.pro
+ modifyct.pro
+=moment.pro
+ morph_close.pro
+ morph_gradient.pro
+ morph_hitormiss.pro
+ morph_open.pro
+ morph_thin.pro
+ morph_tophat.pro
+ mpeg_close.pro
+ mpeg_open.pro
+ mpeg_put.pro
+ mpeg_save.pro
+ multi.pro
+#ncdf_exists.pro
+=norm.pro
+!oploterr.pro
+!p_correlate.pro
+ plot_3dbox.pro
+!ploterr.pro
+ plot_field.pro
+!pnt_line.pro
+ polar_contour.pro
+ polar_surface.pro
+ poly_area.pro
+!poly_fit.pro
+=poly.pro
+ polywarp.pro
+=popd.pro
+=primes.pro
+=printd.pro
+ profile.pro
+ profiles.pro
+ project_vol.pro
+ ps_show_fonts.pro
+ psafm.pro
+ pseudo.pro
+=pushd.pro
+ query_bmp.pro
+ query_dicom.pro
+ query_gif.pro
+ query_image.pro
+ query_pict.pro
+ query_ppm.pro
+ query_srf.pro
+ query_wav.pro
+!r_correlate.pro
+!r_test.pro
+ ranks.pro
+ rb_routines.pro
+ rdpix.pro
+=read_ascii.pro
+-read_binary.pro              ; TEMPLATE keyword missing
+=read_bmp.pro
+=read_dicom.pro
+ read_gif.pro
+ read_image.pro
+ read_interfile.pro
+=read_pict.pro
+ read_ppm.pro
+ read_spr.pro
+ read_srf.pro
+ read_sylk.pro
+ read_wave.pro
+ read_wav.pro
+ read_x11_bitmap.pro
+=read_xwd.pro
+ recon3.pro
+ reduce_colors.pro
+!regress.pro
+ resolve_all.pro
+!reverse.pro
+!rot.pro
+ rs_test.pro
+!s_test.pro
+ savgol.pro
+ scale3d.pro
+ scale3.pro
+ search2d.pro
+ search3d.pro
+ setup_keys.pro
+!sfit.pro
+ shade_surf_irr.pro
+ show3.pro
+ showfont.pro
+ showinfo.pro
+=skewness.pro
+ skey_dec.pro
+ skey_hp.pro
+ skey_ibm.pro
+ skey_mips.pro
+ skey_sgi.pro
+ skey_sun.pro
+ slicer3.pro
+ slide_image.pro
+ sph_4pnt.pro
+ spher_harm.pro
+ sph_scat.pro
+!spline_p.pro
+!spline.pro
+!standardize.pro
+=stddev.pro
+ streamline.pro
+ stretch.pro
+=strsplit.pro
+ surfr.pro
+!svdfit.pro
+ svdfunct.pro
+ svdleg.pro
+=swap_endian.pro
+!t_cvf.pro
+!t_pdf.pro
+!t3d.pro
+ tek_color.pro
+-testdemo.pro
+-test_hp.pro
+-test_lj.pro
+-test_pcl.pro
+-test_true.pro
+ threed.pro
+ timegen.pro
+-time_test2.pro
+-time_test3.pro
+-time_test.pro
+ tm_test.pro
++trace.pro                    ; allow scalar and 1~element vector
+ trackball__define.pro
+ tri_surf.pro
+ ts_coef.pro
+ ts_diff.pro
+ ts_fcast.pro
+ ts_smooth.pro
+=uniq.pro
+=variance.pro
+ vector_field.pro
+ velovect.pro
+ vel.pro
+ vert_t3d.pro
+!voronoi.pro
+ warp_tri.pro
+ wf_draw.pro
+=write_bmp.pro
+ write_gif.pro
+ write_image.pro
+ write_nrif.pro
+=write_pict.pro
+ write_ppm.pro
+ write_spr.pro
+ write_srf.pro
+ write_sylk.pro
+ write_wave.pro
+ write_wav.pro
+ xmanager.pro
+ xmng_tmpl.pro
+ xregistered.pro
+!xsq_test.pro
+ zoom_24.pro
+ zoom.pro
