@@ -222,7 +222,7 @@ Codes:
  rb_routines.pro
  rdpix.pro
 =read_ascii.pro
--read_binary.pro              ; TEMPLATE keyword missing
+~read_binary.pro              ; TEMPLATE keyword missing
 =read_bmp.pro
 =read_dicom.pro
  read_gif.pro
