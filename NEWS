@@ -148,5 +148,8 @@
 	  Much faster operators (+-/*^...)
 	  Faster FFT (requires FFTW library: http://www.fftw.org/download.html)
 
-0.8.12:   Added FILEPATH, READ_ASCII, PUSHD, POPD, PRINTD, PRIMES, NORM routines
+0.8.12:   Added FILEPATH, READ_ASCII, PUSHD, POPD, PRINTD, PRIMES, 
+	  NORM routines
           Fixed positional index (value and dimension) returned by STREGEX
+	  HELP without paramters and keywords puts out a list of all local
+	  variables
