@@ -82,6 +82,9 @@ public:
   // returns environment data, by value (but that by C++ reference)
   BaseGDL*& GetKW(SizeT ix) { return env[ix];}
 
+  // used by HELP
+  SizeT EnvSize() { return env.size();}
+
   // next four are used by interpreter
   void SetNextPar( BaseGDL* const nextP); // by value (reset loc)
   void SetNextPar( BaseGDL** const nextP); // by reference (reset env)

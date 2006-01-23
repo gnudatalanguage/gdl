@@ -157,7 +157,8 @@ void LibInit()
   const string exitKey[]={"NO_CONFIRM","STATUS",KLISTEND};
   new DLibPro(lib::exitgdl,string("EXIT"),0,exitKey);
   
-  const string helpKey[]={"STRUCTURES","LIB","INFO",KLISTEND};
+  const string helpKey[]={"STRUCTURES","LIB","INFO","ROUTINES","BRIEF",
+			  KLISTEND};
   new DLibPro(lib::help,string("HELP"),-1,helpKey);
 
   // printKey, readKey and stringKey are closely associated

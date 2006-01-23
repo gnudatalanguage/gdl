@@ -100,8 +100,12 @@ namespace lib {
 
   void help( EnvT* e)
   {
+    bool kw = false;
+
     if( e->KeywordSet( "INFO"))
       {
+	kw = true;
+
 	cout << "Homepage: http://gnudatalanguage.sf.net" << endl;
 	cout << "HELP,/LIB for a list of all internal library functions/procedures." << endl;
 	cout << "Additional subroutines are written in GDL language, "
@@ -111,6 +115,8 @@ namespace lib {
 
     if( e->KeywordSet( "LIB"))
       {
+	kw = true;
+
 	deque<DString> subList;
 	SizeT nPro = libProList.size();
 	cout << "Library procedures (" << nPro <<"):" << endl;
@@ -136,6 +142,8 @@ namespace lib {
       }
 
     bool isKWSetStructures = e->KeywordSet( "STRUCTURES");
+    if( isKWSetStructures) kw = true;
+
     SizeT nParam=e->NParam();
     for( SizeT i=0; i<nParam; i++)
       {
@@ -159,6 +167,34 @@ namespace lib {
                 help_item( s->Get(t), tagString, true);
 	      }
           }
+      }
+
+    static int routinesKWIx = e->KeywordIx("ROUTINES");
+    static int briefKWIx = e->KeywordIx("BRIEF");
+    bool routinesKW = e->KeywordSet( routinesKWIx);
+    bool briefKW = e->KeywordSet( briefKWIx);
+    
+    if( routinesKW || briefKW) kw = true;
+
+    if( nParam == 0 && !kw)
+      {
+	routinesKW = true;
+	briefKW = true;
+
+	// list all variables of caller
+	EnvBaseT* caller = e->Caller();
+
+	SizeT nEnv = caller->EnvSize();
+	for( SizeT i=0; i<nEnv; ++i)
+	  {
+	    BaseGDL*& par=caller->GetKW( i);
+	    if( par == NULL) 
+	      continue;
+	    
+	    DString parString = caller->GetString( par);
+
+	    help_item( par, parString, false);
+	  }
       }
   }
   
