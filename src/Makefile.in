@@ -106,7 +106,7 @@ am__libgdl_la_SOURCES_DIST = accessdesc.hpp arrayindex.hpp \
 	convol_inc0.cpp convol_inc1.cpp convol_inc2.cpp \
 	sigfpehandler.cpp sigfpehandler.hpp devicez.hpp gdlzstream.cpp \
 	gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp \
-	arrayindex.cpp fftw.cpp fftw.hpp pythongdl.cpp
+	arrayindex.cpp fftw.cpp fftw.hpp mpi.cpp pythongdl.cpp
 am__objects_1 = assocdata.lo basic_fun_cl.lo basic_fun.lo \
 	basic_fun_jmg.lo basic_op.lo basic_pro.lo basic_pro_jmg.lo \
 	CFMTLexer.lo color.lo convert2.lo datatypes.lo dcommon.lo \
@@ -125,7 +125,7 @@ am__objects_1 = assocdata.lo basic_fun_cl.lo basic_fun.lo \
 	magick_cl.lo gdlwidget.lo widget.lo basegdl.lo hdf5_fun.lo \
 	libinit_mes.lo file.lo image.lo gdljournal.lo convol.lo \
 	convol_inc0.lo convol_inc1.lo convol_inc2.lo sigfpehandler.lo \
-	gdlzstream.lo arrayindex.lo fftw.lo
+	gdlzstream.lo arrayindex.lo fftw.lo mpi.lo
 @BUILDASLIBRARY_TRUE@am_libgdl_la_OBJECTS = $(am__objects_1) \
 @BUILDASLIBRARY_TRUE@	pythongdl.lo
 libgdl_la_OBJECTS = $(am_libgdl_la_OBJECTS)
@@ -176,7 +176,7 @@ am__gdl_SOURCES_DIST = accessdesc.hpp arrayindex.hpp assocdata.cpp \
 	convol_inc0.cpp convol_inc1.cpp convol_inc2.cpp \
 	sigfpehandler.cpp sigfpehandler.hpp devicez.hpp gdlzstream.cpp \
 	gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp \
-	arrayindex.cpp fftw.cpp fftw.hpp gdl.cpp
+	arrayindex.cpp fftw.cpp fftw.hpp gdl.cpp mpi.cpp
 am__objects_2 = gdl-assocdata.$(OBJEXT) gdl-basic_fun_cl.$(OBJEXT) \
 	gdl-basic_fun.$(OBJEXT) gdl-basic_fun_jmg.$(OBJEXT) \
 	gdl-basic_op.$(OBJEXT) gdl-basic_pro.$(OBJEXT) \
@@ -217,7 +217,8 @@ am__objects_2 = gdl-assocdata.$(OBJEXT) gdl-basic_fun_cl.$(OBJEXT) \
 	gdl-convol.$(OBJEXT) gdl-convol_inc0.$(OBJEXT) \
 	gdl-convol_inc1.$(OBJEXT) gdl-convol_inc2.$(OBJEXT) \
 	gdl-sigfpehandler.$(OBJEXT) gdl-gdlzstream.$(OBJEXT) \
-	gdl-arrayindex.$(OBJEXT) gdl-fftw.$(OBJEXT)
+	gdl-arrayindex.$(OBJEXT) gdl-fftw.$(OBJEXT) \
+	gdl-mpi.$(OBJEXT)
 @BUILDASLIBRARY_FALSE@am_gdl_OBJECTS = $(am__objects_2) \
 @BUILDASLIBRARY_FALSE@	gdl-gdl.$(OBJEXT)
 gdl_OBJECTS = $(am_gdl_OBJECTS)
@@ -393,7 +394,7 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 		widget.cpp basegdl.cpp hdf5_fun.cpp hdf5_fun.hpp libinit_mes.cpp file.cpp file.hpp \
 		image.cpp image.hpp gdljournal.cpp gdljournal.hpp convol.cpp convol_inc0.cpp \
 		convol_inc1.cpp convol_inc2.cpp sigfpehandler.cpp sigfpehandler.hpp devicez.hpp \
-		gdlzstream.cpp gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp arrayindex.cpp fftw.cpp fftw.hpp
+		gdlzstream.cpp gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp arrayindex.cpp fftw.cpp fftw.hpp mpi.cpp
 
 @BUILDASLIBRARY_FALSE@gdl_SOURCES = $(cpp_hpp_files) gdl.cpp 
 # trigger basename generation
@@ -548,6 +549,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/envt.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/extrat.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fftw.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mpi.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/file.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fmtnode.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-CFMTLexer.Po@am__quote@
@@ -587,6 +589,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-envt.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-extrat.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-fftw.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-mpi.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-file.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-fmtnode.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-gdl.Po@am__quote@
@@ -1894,6 +1897,20 @@ gdl-fftw.obj: fftw.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='fftw.cpp' object='gdl-fftw.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-fftw.obj `if test -f 'fftw.cpp'; then $(CYGPATH_W) 'fftw.cpp'; else $(CYGPATH_W) '$(srcdir)/fftw.cpp'; fi`
+
+gdl-mpi.o: mpi.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-mpi.o -MD -MP -MF "$(DEPDIR)/gdl-mpi.Tpo" -c -o gdl-mpi.o `test -f 'mpi.cpp' || echo '$(srcdir)/'`mpi.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/gdl-mpi.Tpo" "$(DEPDIR)/gdl-mpi.Po"; else rm -f "$(DEPDIR)/gdl-mpi.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='mpi.cpp' object='gdl-mpi.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-mpi.o `test -f 'mpi.cpp' || echo '$(srcdir)/'`mpi.cpp
+
+gdl-mpi.obj: mpi.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-mpi.obj -MD -MP -MF "$(DEPDIR)/gdl-mpi.Tpo" -c -o gdl-mpi.obj `if test -f 'mpi.cpp'; then $(CYGPATH_W) 'mpi.cpp'; else $(CYGPATH_W) '$(srcdir)/mpi.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/gdl-mpi.Tpo" "$(DEPDIR)/gdl-mpi.Po"; else rm -f "$(DEPDIR)/gdl-mpi.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='mpi.cpp' object='gdl-mpi.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-mpi.obj `if test -f 'mpi.cpp'; then $(CYGPATH_W) 'mpi.cpp'; else $(CYGPATH_W) '$(srcdir)/mpi.cpp'; fi`
 
 gdl-gdl.o: gdl.cpp
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-gdl.o -MD -MP -MF "$(DEPDIR)/gdl-gdl.Tpo" -c -o gdl-gdl.o `test -f 'gdl.cpp' || echo '$(srcdir)/'`gdl.cpp; \
