@@ -74,6 +74,12 @@ interface please see "CONTACT" in the README file.
 2. Calling GDL from python
 ==========================
 
+NOTE: Due to the neglectible feedback, the python module
+development is currently on hold.
+If you use it it, you are urged to let us know.
+
+
+
 Since version 0.8.9 GDL can be imbedded into python.
 
 See INSTALL to learn how to build the GDL pyhton module.

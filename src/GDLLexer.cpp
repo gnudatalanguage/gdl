@@ -11,6 +11,9 @@
 #include <antlr/CharStreamIOException.hpp>
 #include <antlr/NoViableAltForCharException.hpp>
 
+
+#include <errno.h>
+
 GDLLexer::GDLLexer(std::istream& in)
 	: antlr::CharScanner(new antlr::CharBuffer(in),false)
 {
@@ -436,6 +439,8 @@ void GDLLexer::mINCLUDE(bool _createToken) {
 			  	std::string appName=name;
 			  	AppendIfNeeded(appName,".pro");
 		
+		errno = 0; // zero it to detect errors
+		
 		bool found = CompleteFileName( appName);
 		if( found) 
 		name = appName;
@@ -443,7 +448,12 @@ void GDLLexer::mINCLUDE(bool _createToken) {
 		found = CompleteFileName( name);
 		
 		if( !found)
+		{
+		if( errno == EMFILE)
+		throw GDLException( "Too many open files (recursive '@'?): " + name);
+		else 
 		throw GDLException( "File not found: " + name);
+		}
 		
 		std::ifstream* input = new std::ifstream(name.c_str());
 				if (!*input) 

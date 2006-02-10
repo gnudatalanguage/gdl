@@ -45,7 +45,7 @@ gdl_SOURCES = $(cpp_hpp_files) gdl.cpp
 gdl_CXXFLAGS = $(AM_CXXFLAGS)
 # the library search path.
 gdl_LDFLAGS = $(all_libraries)
-gdl_LDADD = $(top_builddir)/src/antlr/libantlr.a -L/usr/X11R6/lib -lX11
+gdl_LDADD = $(top_builddir)/src/antlr/libantlr.a -L/usr/X11R6/lib -L/usr/X11R6/lib64 -lX11
 endif
 
 # build as library (for python module)
@@ -61,6 +61,6 @@ else
 libgdl_la_LDFLAGS = $(all_libraries) -Wl,-z,muldefs
 endif 
 
-libgdl_la_LIBADD = $(top_builddir)/src/antlr/libantlr.la -L/usr/X11R6/lib -lX11
+libgdl_la_LIBADD = $(top_builddir)/src/antlr/libantlr.la -L/usr/X11R6/lib -L/usr/X11R6/lib64 -lX11
 endif
 

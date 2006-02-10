@@ -18,6 +18,9 @@
 header "pre_include_cpp" {
 #include "includefirst.hpp"
 }
+header "post_include_cpp" {
+#include <errno.h>
+}
 
 header {
 #include <fstream>
@@ -1436,6 +1439,8 @@ INCLUDE!
 	  	std::string appName=name;
 	  	AppendIfNeeded(appName,".pro");
 
+        errno = 0; // zero it to detect errors
+
         bool found = CompleteFileName( appName);
         if( found) 
             name = appName;
@@ -1443,7 +1448,12 @@ INCLUDE!
             found = CompleteFileName( name);
             
         if( !found)
-            throw GDLException( "File not found: " + name);
+            {
+                if( errno == EMFILE)
+                    throw GDLException( "Too many open files (recursive use of '@'?): " + name);
+                else 
+                    throw GDLException( "File not found: " + name);
+           }
 
         std::ifstream* input = new std::ifstream(name.c_str());
 		if (!*input) 

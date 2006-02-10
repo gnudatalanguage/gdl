@@ -28,6 +28,12 @@ WidgetListT                 GDLWidget::widgetList;
 
 IMPLEMENT_APP_NO_MAIN( GDLApp)
 
+bool GDLApp::OnInit()
+{
+  SetExitOnFrameDelete( FALSE);
+  return TRUE;
+}
+
 // ID for widget (called from widgets constructor)
 DLong GDLWidget::WidgetID( GDLWidget* w)
 {
@@ -49,12 +55,6 @@ GDLWidget* GDLWidget::GetWidget( DLong widID)
   WidgetListT::iterator it=widgetList.find( widID);
   if( it == widgetList.end()) return NULL;
   return it->second;
-}
-
-bool GDLApp::OnInit()
-{
-  SetExitOnFrameDelete( FALSE);
-  return TRUE;
 }
 
 void GDLWidget::Init()

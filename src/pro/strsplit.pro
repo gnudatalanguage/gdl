@@ -26,10 +26,14 @@
 ;
 ;-
 
-function strsplit, input1, input2, _ref_extra = extra
+function strsplit, input1, input2, _ref_extra = extra, REGEX=regex
 
  on_error, 2
  
+if keyword_set( regex) then begin
+    message,'REGEX keyword not implemented yet.'
+endif
+
  if size(input1, /type) ne 7 or size(input1, /n_dimensions) ne 0 then begin
     message, 'Invalid input string.'
  endif
@@ -37,8 +41,8 @@ function strsplit, input1, input2, _ref_extra = extra
     if n_elements(input2) eq 0 then begin
        message, 'Undefined pattern string.'
     endif
-    return, strtok(input1, input2, _extra = extra)
+    return, strtok(input1, input2, _extra = extra);, REGEX=regex)
  endif
  
- return, strtok(input1, _extra = extra)
+ return, strtok(input1, _extra = extra);, REGEX=regex)
 end

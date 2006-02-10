@@ -68,22 +68,27 @@ fi
 
 
 dnl wxWindows
-dnl if test "x$with_wxWidgets" != "xno"; then
-dnl	LIBS="$LIBS `wx-config --libs`"
-dnl	INCLUDES="$INCLUDES `wx-config --cxxflags`"
-dnl	LIBS="$LIBS `wx-config --libs` `wx-config --cxxflags`"
+dnl default no (for now)
+if test "x$with_wxWidgets" == "x"; then
+   with_wxWidgets=no
+fi
+
+if test "x$with_wxWidgets" != "xno"; then
+	LIBS="$LIBS `wx-config --libs`"
+	INCLUDES="$INCLUDES `wx-config --cxxflags`"
+	LIBS="$LIBS `wx-config --libs` `wx-config --cxxflags`"
 dnl autoconf cannot handle demangled names
-dnl	AC_CHECK_LIB(wx_base-2.6, _Z12wxInitializeiPPc, [
-dnl	AC_DEFINE([HAVE_LIBWXWIDGETS], [1], [wxWidgets library])
-dnl	], [
-dnl	echo ""
-dnl	echo "Error! You must have wxWidgets library 2.6 installed"
-dnl	echo "       Use --with-wxWidgets=no to expicitely disable it"
-dnl	echo "       Check the README or use configure --help for other libraries needed"
-dnl     echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
-dnl	exit -1
-dnl	])
-dnl fi
+	AC_CHECK_LIB(wx_base-2.6, _Z12wxInitializeiPPc, [
+	AC_DEFINE([HAVE_LIBWXWIDGETS], [1], [wxWidgets library])
+	], [
+	echo ""
+	echo "Error! You must have wxWidgets library 2.6 installed"
+	echo "       Use --with-wxWidgets=no to expicitely disable it"
+	echo "       Check the README or use configure --help for other libraries needed"
+     echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
+	exit -1
+	])
+fi
 
 dnl AC_CHECK_LIB(ltdl, lt_dlopen,
 dnl [AC_DEFINE([HAVE_LIBLTDL], [1], [Use libltdl])], 

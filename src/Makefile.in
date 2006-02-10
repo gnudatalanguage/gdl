@@ -401,7 +401,7 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 @BUILDASLIBRARY_FALSE@gdl_CXXFLAGS = $(AM_CXXFLAGS)
 # the library search path.
 @BUILDASLIBRARY_FALSE@gdl_LDFLAGS = $(all_libraries)
-@BUILDASLIBRARY_FALSE@gdl_LDADD = $(top_builddir)/src/antlr/libantlr.a -L/usr/X11R6/lib -lX11
+@BUILDASLIBRARY_FALSE@gdl_LDADD = $(top_builddir)/src/antlr/libantlr.a -L/usr/X11R6/lib -L/usr/X11R6/lib64 -lX11
 
 # build as library (for python module)
 @BUILDASLIBRARY_TRUE@lib_LTLIBRARIES = libgdl.la
@@ -411,7 +411,7 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 # netCDF and HDF define some same symbols
 # hence -z muldefs has to be passed to the linker
 @BUILDASLIBRARY_TRUE@@DARWIN_TRUE@libgdl_la_LDFLAGS = $(all_libraries) -Wl,-m
-@BUILDASLIBRARY_TRUE@libgdl_la_LIBADD = $(top_builddir)/src/antlr/libantlr.la -L/usr/X11R6/lib -lX11
+@BUILDASLIBRARY_TRUE@libgdl_la_LIBADD = $(top_builddir)/src/antlr/libantlr.la -L/usr/X11R6/lib -L/usr/X11R6/lib64 -lX11
 all: all-recursive
 
 .SUFFIXES:

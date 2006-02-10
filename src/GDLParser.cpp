@@ -6,6 +6,9 @@
 #include <antlr/NoViableAltException.hpp>
 #include <antlr/SemanticException.hpp>
 #include <antlr/ASTFactory.hpp>
+
+#include <errno.h>
+
 GDLParser::GDLParser(antlr::TokenBuffer& tokenBuf, int k)
 : antlr::LLkParser(tokenBuf,k)
 {

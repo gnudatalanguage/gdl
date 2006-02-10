@@ -2044,17 +2044,17 @@ namespace lib {
 	e->Guard( zVal); // delete upon exit
 
 	if(zVal->Dim(0) == 1)
-	  throw GDLException( e->CallingNode(),
-			      "CONTOUR: Array must have 2 dimensions:"
-			      +e->GetParString(0));
+	  e->Throw( "Array must have 2 dimensions:"+e->GetParString(0));
 
 	xVal = e->GetParAs< DDoubleGDL>( 1);
 	yVal = e->GetParAs< DDoubleGDL>( 2);
 	xEl = xVal->Dim(0);
 	yEl = yVal->Dim(0);
-	if(xVal->Rank() != 1 || yVal->Rank() != 1 ||
-	   xEl != zVal->Dim(1) || yEl != zVal->Dim(0))
-	  e->Throw( "CONTOUR: X, Y, or Z array dimensions are incompatible.");
+
+	// IDL handles 2D arrays as well
+	if( xVal->Rank() != 1 || yVal->Rank() != 1 ||
+	    xEl != zVal->Dim(1) || yEl != zVal->Dim(0))
+	  e->Throw( "X, Y, or Z array dimensions are incompatible.");
       }
 
     // !P 

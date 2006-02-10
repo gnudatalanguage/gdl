@@ -26,6 +26,8 @@
 #include "typedefs.hpp"
 
 class GDLWidget;
+
+// global widget list type
 typedef std::map<DLong, GDLWidget*> WidgetListT;
 
 // main App class
@@ -76,11 +78,14 @@ class GDLWidgetBase: public GDLWidget
 {
 private:
   typedef std::deque<DLong>::iterator cIter;
-  std::deque<DLong> children;
+  std::deque<DLong>                   children;
 
 public:
-  GDLWidgetBase( DLong p=0, BaseGDL* uV=NULL, bool s=true,
-		 DLong xO=0, DLong yO=0, DLong xS=0, DLong yS=0);
+  GDLWidgetBase( DLong p=0,               // parent
+		 BaseGDL* uV=NULL,        // UVALUE
+		 bool s=true,             // SENSITIVE
+		 DLong xO=0, DLong yO=0,  // offset 
+		 DLong xS=0, DLong yS=0); // size
   virtual ~GDLWidgetBase();
 
   void AddChild( DLong c) 
