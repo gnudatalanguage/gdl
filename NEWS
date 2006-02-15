@@ -153,3 +153,4 @@
           Fixed positional index (value and dimension) returned by STREGEX
 	  HELP without parameters and keywords puts out a list of all local
 	  variables
+	  Made GDL compile under x86_64 linux

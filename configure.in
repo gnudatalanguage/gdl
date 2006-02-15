@@ -519,6 +519,43 @@ EXT_INCLUDES="$EXT_INCLUDES $INCLUDES"
 AC_SUBST(EXT_LIBS)
 AC_SUBST(EXT_INCLUDES)
 
+
+
+
+dnl some stuff copied from wxWindows
+
+dnl install checks
+dnl   defines INSTALL with the appropriate command
+AC_PROG_INSTALL
+
+dnl   make install path absolute (if not already);
+dnl   will fail with (some) MSDOS paths
+case ${INSTALL} in
+  /* ) # Absolute
+     ;;
+  ?:* ) # Drive letter, considered as absolute.
+     ;;
+  *)
+     INSTALL=`pwd`/${INSTALL} ;;
+esac
+
+
+case "${host}" in
+
+    dnl The other BSD's should probably go in here too, since this is
+    dnl to workaround a strange static lib BSDism.
+    dnl Mac OS X install seems to ignore -p option...
+    *-*-darwin* )
+        INSTALL_PROGRAM="cp -fp"
+        INSTALL_DATA="cp -fp"
+        ;;
+    *)
+        ;;
+esac
+
+
+
+
 dnl echo LIBS $LIBS
 dnl echo INCLUDES $INCLUDES
 

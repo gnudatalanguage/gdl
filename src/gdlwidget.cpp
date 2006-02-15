@@ -23,7 +23,8 @@
 
 #include "gdlwidget.hpp"
 
-DLong                       GDLWidget::widgetIx;
+// instantiation
+WidgetIDT                       GDLWidget::widgetIx;
 WidgetListT                 GDLWidget::widgetList;
 
 IMPLEMENT_APP_NO_MAIN( GDLApp)
@@ -34,29 +35,28 @@ bool GDLApp::OnInit()
   return TRUE;
 }
 
+// next are the abstraction to access all widgets only by their
+// handle ID
 // ID for widget (called from widgets constructor)
-DLong GDLWidget::WidgetID( GDLWidget* w)
+WidgetIDT GDLWidget::WidgetID( GDLWidget* w)
 {
-  DLong tmpIx = widgetIx;
+  WidgetIDT tmpIx = widgetIx;
   widgetList.insert( widgetList.end(),
-		     std::pair<DLong, GDLWidget*>( widgetIx++, w));
+		     std::pair<WidgetIDT, GDLWidget*>( widgetIx++, w));
   return tmpIx;
 }
-
 // removes a widget, (called from widgets destructor -> don't delete)
-void GDLWidget::WidgetRemove( DLong widID)
+void GDLWidget::WidgetRemove( WidgetIDT widID)
 {
   widgetList.erase( widID); 
 }
-
 // widget from ID
-GDLWidget* GDLWidget::GetWidget( DLong widID)
+GDLWidget* GDLWidget::GetWidget( WidgetIDT widID)
 {
   WidgetListT::iterator it=widgetList.find( widID);
   if( it == widgetList.end()) return NULL;
   return it->second;
 }
-
 void GDLWidget::Init()
 {
   widgetIx = wxID_HIGHEST; // use same wx ID and GDL ID 
@@ -64,7 +64,9 @@ void GDLWidget::Init()
 }
 
 
-GDLWidget::GDLWidget( DLong p, BaseGDL* uV, bool s,
+
+
+GDLWidget::GDLWidget( WidgetIDT p, BaseGDL* uV, bool s,
 		      DLong xO, DLong yO, DLong xS, DLong yS): 
   wxWidget( NULL),
   parent( p), uValue( uV), sensitive( s),
@@ -84,6 +86,7 @@ GDLWidget::~GDLWidget()
   if( parent != 0) 
     {
       GDLWidgetBase* base = dynamic_cast< GDLWidgetBase*>( GetWidget( parent));
+      assert( base != NULL);
       base->RemoveChild( widgetID);
     }
   delete uValue;
@@ -91,7 +94,7 @@ GDLWidget::~GDLWidget()
 }
 
 
-GDLWidgetBase::GDLWidgetBase( DLong p, BaseGDL* uV, bool s,
+GDLWidgetBase::GDLWidgetBase( WidgetIDT p, BaseGDL* uV, bool s,
 			      DLong xO, DLong yO, DLong xS, DLong yS): 
   GDLWidget( p, uV, s, xO, yO, xS, yS)
 {}

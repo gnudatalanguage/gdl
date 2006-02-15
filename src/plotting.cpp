@@ -699,6 +699,7 @@ namespace lib {
 	  
     // set world coordinates
     actStream->wind( xStart, xEnd, minVal, maxVal);
+    // cout << "VP wind: "<<xStart<<" "<<xEnd<<" "<<minVal<<" "<<maxVal<<endl;
 
     //    cout << "xStart " << xStart << "  xEnd "<<xEnd<<endl;
     //    cout << "yStart " << minVal << "  yEnd "<<maxVal<<endl;
@@ -1101,8 +1102,9 @@ namespace lib {
 
     actStream->lsty(1);//reset linestyle
     actStream->flush();
-  }
+  } // oplot
 
+  // PLOTS
   void plots( EnvT* e)
   {
     SizeT nParam=e->NParam( 1); 
@@ -1164,6 +1166,17 @@ namespace lib {
     get_axis_type("X", xLog);
     get_axis_type("Y", yLog);
     
+//     if( xLog)
+//       {
+// 	xStart = pow(10.0,xStart);
+// 	xEnd   = pow(10.0,xEnd);
+//       }
+//     if( yLog)
+//       {
+// 	yStart = pow(10.0,yStart);
+// 	yEnd   = pow(10.0,yEnd);
+//       }
+    
     //    int just = (e->KeywordSet("ISOTROPIC"))? 1 : 0;
     /*    DLong background = p_background;
     static int cix=e->KeywordIx("COLOR");
@@ -1207,7 +1220,6 @@ namespace lib {
     PLFLT scrY = scrYT-scrYB;
 
     PLFLT xMR, xML, yMB, yMT;
-    
 
     CheckMargin( e, actStream,
 		 xMarginL, 
@@ -1218,6 +1230,7 @@ namespace lib {
 		 xML,
 		 yMB,
 		 yMT);
+
     // viewport
     if(e->KeywordSet("DATA") || 
        (!e->KeywordSet("NORMAL") && !e->KeywordSet("DEVICE")))
@@ -1225,20 +1238,23 @@ namespace lib {
 	if( (yStart == yEnd) || (xStart == xEnd))
 	  {
 	    if( yStart != 0.0 && yStart == yEnd)
-	      Message("PLOTS: !Y.CRANGE ERROR, setting to [0,1]");
-	    yStart = 0; //yVal->min();
-	    yEnd   = 1; //yVal->max();
-	    
-	    if(xStart != 0.0 && xStart == xEnd)
-	      Message("PLOTS: !X.CRANGE ERROR, resetting range to data");
-	    xStart = 0; //xVal->min();
-	    xEnd   = 1; //xVal->max();
-	    
-	    set_axis_crange("X", xStart, xEnd);
-	    set_axis_crange("Y", yStart, yEnd);
+	      {
+		Message("PLOTS: !Y.CRANGE ERROR, setting to [0,1]");
+		yStart = 0; //yVal->min();
+		yEnd   = 1; //yVal->max();
+		set_axis_crange("Y", yStart, yEnd);
+	      }
 
+	    if(xStart != 0.0 && xStart == xEnd)
+	      {
+		Message("PLOTS: !X.CRANGE ERROR, resetting range to data");
+		xStart = 0; //xVal->min();
+		xEnd   = 1; //xVal->max();
+		set_axis_crange("X", xStart, xEnd);
+	      }
 	  }	    
 	
+	// "synchronize" with plot range from PLOT
 	minVal= yStart-yMB*(yEnd-yStart)/(1-yMT-yMB);
 	yEnd  = yEnd  +yMT*(yEnd-yStart)/(1-yMT-yMB);
 	yStart= minVal;
@@ -1269,25 +1285,27 @@ namespace lib {
     minVal=yStart; maxVal=yEnd;
 
     //CLIPPING
-    DLong noclip=1;
+    DLong noclip = 1;
     e->AssureLongScalarKWIfPresent( "NOCLIP", noclip);
-    if(noclip == 0)
+    if( noclip == 0)
       {
 	static int clippingix = e->KeywordIx( "CLIP"); 
 	DDoubleGDL* clippingD = e->IfDefGetKWAs<DDoubleGDL>( clippingix);
 	if( clippingD != NULL)
 	    Clipping( clippingD, xStart, xEnd, minVal, maxVal);
-      }
-
-    if( xLog)
-      {
-	if( xStart <= 0.0) xStart = 0.0; else xStart = log10( xStart);
-	if( xEnd   <= 0.0) return; else xEnd = log10( xEnd);
-      }
-    if( yLog)
-      {
-	if( minVal <= 0.0) minVal = 0.0; else minVal = log10( minVal);
-	if( maxVal <= 0.0) return; else maxVal = log10( maxVal);
+	
+	// clipping sets new xStart,... values
+	// in the other case, values are already log
+	if( xLog)
+	  {
+	    if( xStart <= 0.0) xStart = 0.0; else xStart = log10( xStart);
+	    if( xEnd   <= 0.0) return; else xEnd = log10( xEnd);
+	  }
+	if( yLog)
+	  {
+	    if( minVal <= 0.0) minVal = 0.0; else minVal = log10( minVal);
+	    if( maxVal <= 0.0) return; else maxVal = log10( maxVal);
+	  }
       }
 
     // viewport (full (sub-)window 
@@ -1305,12 +1323,10 @@ namespace lib {
       valid=draw_polyline(e, actStream, 
 			  xVal, yVal, xLog, yLog, 
 			  yStart, yEnd, psym);
-    PLFLT x,y, x1, y1;
-    
 
     actStream->lsty(1);//reset linestyle
     actStream->flush();
-  }
+  } // plots
 
   void xyouts( EnvT* e)
   {
@@ -2683,15 +2699,17 @@ namespace lib {
     for( int i=0; i<minEl; ++i)
       {
 	PLFLT y = static_cast<PLFLT>( (*yVal)[i]);
+
 	if( yLog) if( y <= 0.0) continue; else y = log10( y);
 	
 	PLFLT x = static_cast<PLFLT>( (*xVal)[i]);
+
 	if( xLog) 
 	  if( x <= 0.0) 
 	    continue; 
 	  else 
 	    x = log10( x);
-	
+
 	  if( i>0)
 	  {
 	    if( line)
@@ -2708,8 +2726,8 @@ namespace lib {
 			if( xLog) x1 = log10( x1);
 			a->join(x1,y1,x,y);
 
-//			cout << "join( "<<x1<<", "<<y1<<", "<<
-//			  x<<", "<<y<<")"<<endl;
+// 			cout << "join( "<<x1<<", "<<y1<<", "<<
+// 			  x<<", "<<y<<")"<<endl;
 		      }
 		  }
 	      }

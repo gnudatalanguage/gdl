@@ -28,7 +28,8 @@
 class GDLWidget;
 
 // global widget list type
-typedef std::map<DLong, GDLWidget*> WidgetListT;
+typedef DLong                       WidgetIDT;
+typedef std::map<WidgetIDT, GDLWidget*> WidgetListT;
 
 // main App class
 class GDLApp: public wxApp
@@ -38,36 +39,39 @@ class GDLApp: public wxApp
 
 // GUI base class **********************************
 class GDLWidget
-{
+{ 
+  // static part is used for the abstraction
+  // all widgets are refered to as IDs
 private:
-  static DLong                       widgetIx;
+  // the global widget list and the actual index for new widgets
+  // shared among all widgets
+  static WidgetIDT                       widgetIx;
   static WidgetListT                 widgetList;
-
 protected:
   // ID for widget (called from widgets constructor)
-  static DLong WidgetID( GDLWidget* w);
-
+  static WidgetIDT WidgetID( GDLWidget* w);
   // removes a widget, (called from widgets destructor -> don't delete)
-  static void WidgetRemove( DLong widID);
+  static void WidgetRemove( WidgetIDT widID);
 
-  // widget from ID
-  static GDLWidget* GetWidget( DLong widID);
+  // get widget from ID
+  static GDLWidget* GetWidget( WidgetIDT widID);
+public:
+  static void Init(); // GUI intialization upon GDL startup
 
   
 protected:
   wxObject* wxWidget; // deleted only from TLB as the rest is deleted 
                       // automatic
 
-  DLong    widgetID;  // own index to widgetList
-  DLong    parent;    // parent ID (0 for TLBs)
+  WidgetIDT    widgetID;  // own index to widgetList
+  WidgetIDT    parent;    // parent ID (0 for TLBs)
   BaseGDL* uValue;    // the UVALUE
   bool     sensitive; 
   DLong    xOffset, yOffset, xSize, ySize;
 
-public:
-  static void Init(); // GUI intialization upon GDL startup
   
-  GDLWidget( DLong p=0, BaseGDL* uV=NULL, bool s=true,
+public:
+  GDLWidget( WidgetIDT p=0, BaseGDL* uV=NULL, bool s=true,
 	     DLong xO=0, DLong yO=0, DLong xS=0, DLong yS=0);
   virtual ~GDLWidget();
 };
@@ -77,20 +81,20 @@ public:
 class GDLWidgetBase: public GDLWidget
 {
 private:
-  typedef std::deque<DLong>::iterator cIter;
-  std::deque<DLong>                   children;
+  typedef std::deque<WidgetIDT>::iterator cIter;
+  std::deque<WidgetIDT>                   children;
 
 public:
-  GDLWidgetBase( DLong p=0,               // parent
+  GDLWidgetBase( WidgetIDT p=0,               // parent
 		 BaseGDL* uV=NULL,        // UVALUE
 		 bool s=true,             // SENSITIVE
 		 DLong xO=0, DLong yO=0,  // offset 
 		 DLong xS=0, DLong yS=0); // size
   virtual ~GDLWidgetBase();
 
-  void AddChild( DLong c) 
+  void AddChild( WidgetIDT c) 
   { children.push_back( c);}
-  void RemoveChild( DLong  c)
+  void RemoveChild( WidgetIDT  c)
   { children.erase( find( children.begin(), children.end(), c));}
 };
 

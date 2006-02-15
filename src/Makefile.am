@@ -33,7 +33,8 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 		widget.cpp basegdl.cpp hdf5_fun.cpp hdf5_fun.hpp libinit_mes.cpp file.cpp file.hpp \
 		image.cpp image.hpp gdljournal.cpp gdljournal.hpp convol.cpp convol_inc0.cpp \
 		convol_inc1.cpp convol_inc2.cpp sigfpehandler.cpp sigfpehandler.hpp devicez.hpp \
-		gdlzstream.cpp gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp arrayindex.cpp fftw.cpp fftw.hpp
+		gdlzstream.cpp gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp arrayindex.cpp \
+		fftw.cpp fftw.hpp
 
 
 
@@ -45,7 +46,7 @@ gdl_SOURCES = $(cpp_hpp_files) gdl.cpp
 gdl_CXXFLAGS = $(AM_CXXFLAGS)
 # the library search path.
 gdl_LDFLAGS = $(all_libraries)
-gdl_LDADD = $(top_builddir)/src/antlr/libantlr.a -L/usr/X11R6/lib -L/usr/X11R6/lib64 -lX11
+gdl_LDADD = $(top_builddir)/src/antlr/libantlr.a -L/usr/X11R6/lib64 -L/usr/X11R6/lib -lX11
 endif
 
 # build as library (for python module)
@@ -61,6 +62,6 @@ else
 libgdl_la_LDFLAGS = $(all_libraries) -Wl,-z,muldefs
 endif 
 
-libgdl_la_LIBADD = $(top_builddir)/src/antlr/libantlr.la -L/usr/X11R6/lib -L/usr/X11R6/lib64 -lX11
+libgdl_la_LIBADD = $(top_builddir)/src/antlr/libantlr.la -L/usr/X11R6/lib64 -L/usr/X11R6/lib -lX11
 endif
 

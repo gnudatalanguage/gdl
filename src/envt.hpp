@@ -450,6 +450,7 @@ public:
 
   // if keyword 'kw' is not set, 'scalar' is left unchanged
   void AssureLongScalarKWIfPresent( const std::string& kw, DLong& scalar);
+  void AssureLongScalarKWIfPresent( SizeT ix, DLong& scalar);
   // converts keyword 'kw' if necessary and sets 'scalar' 
   void AssureLongScalarKW( const std::string& kw, DLong& scalar);
   // converts ix'th keyword if necessary and sets 'scalar' 
@@ -459,18 +460,21 @@ public:
 
   // same as for Long
   void AssureDoubleScalarKWIfPresent( const std::string& kw, DDouble& scalar);
+  void AssureDoubleScalarKWIfPresent( SizeT ix, DDouble& scalar);
   void AssureDoubleScalarKW( const std::string& kw, DDouble& scalar);
   void AssureDoubleScalarKW( SizeT ix, DDouble& scalar);
   void AssureDoubleScalarPar( SizeT ix, DDouble& scalar);
 
   // same as for Long
   void AssureFloatScalarKWIfPresent( const std::string& kw, DFloat& scalar);
+  void AssureFloatScalarKWIfPresent( SizeT ix, DFloat& scalar);
   void AssureFloatScalarKW( const std::string& kw, DFloat& scalar);
   void AssureFloatScalarKW( SizeT ix, DFloat& scalar);
   void AssureFloatScalarPar( SizeT ix, DFloat& scalar);
 
   // same as for Long
   void AssureStringScalarKWIfPresent( const std::string& kw, DString& scalar);
+  void AssureStringScalarKWIfPresent( SizeT ix, DString& scalar);
   void AssureStringScalarKW( const std::string& kw, DString& scalar);
   void AssureStringScalarKW( SizeT ix, DString& scalar);
   void AssureStringScalarPar( SizeT ix, DString& scalar);
