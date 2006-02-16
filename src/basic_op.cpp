@@ -815,38 +815,56 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r)
     }
   else
     {
-      // result dim
-      SizeT nCol, nColEl;
-      if( this->dim.Rank() <= 1)
-	{
-	  nCol=1;
-	  nColEl=this->dim[0];
-	}
-      else
-	{
-	  nCol=this->dim[0];
-	  nColEl=this->dim[1];
-	}
-      if( nColEl == 0) nColEl=1;
-      
+      // [n] # [1,n] -> [n,n] ([n] -> [n,1]) 
+      // [n] # [n,m] -> [1,m] ([n] -> [1,n])
+
+      // right op 1st
       SizeT nRow=right->dim[1];
       if( nRow == 0) nRow=1;
 
       // loop dim
       SizeT nRowEl=right->dim[0];
-
       if( nRowEl == 0) nRowEl=1;
+
+      // result dim
+      SizeT nCol, nColEl;
+      if( this->dim.Rank() <= 1)
+	{
+	  nColEl=this->dim[0];
+	  if( nColEl == 0) // scalar
+	    {
+	      nColEl=1;
+	      nCol  =1;
+	    }
+	  else if( nRowEl == 1)
+	    {
+	      nCol   = nColEl;
+	      nColEl = 1;
+	    }
+	  else
+	    {
+	      nCol = 1;
+	    }
+	}
+      else
+	{ 
+	  nCol=this->dim[0];
+	  nColEl=this->dim[1];
+	  assert( nColEl > 0); // rank is two -> cannot be zero
+	  //	  if( nColEl == 0) nColEl=1;
+	}
+      
+//       cout << "nColEl, nRowEl: " << nColEl << " " << nRowEl << endl;
+//       cout << "nCol, nRow:     " << nCol << " " << nRow << endl;
 
       if( nColEl != nRowEl)
 	throw GDLException("Operands of matrix multiply have"
 			   " incompatible dimensions.");  
 
       if( nRow > 1)
-	res=New(dimension(nCol,nRow)); // zero values
+	res=New(dimension(nCol,nRow),BaseGDL::NOZERO);
       else
-	res=New(dimension(nCol)); // zero values
-//       res = New( dimension( nCol, nRow), BaseGDL::NOZERO);
-//       res->Purge();
+	res=New(dimension(nCol),BaseGDL::NOZERO);
      
       SizeT rIxEnd = nRow * nColEl;
       
@@ -855,7 +873,7 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r)
 	     rIx += nColEl, rowBnCol += nCol) // res dim 1
 	  {
 	    Ty& resEl = res->dd[ rowBnCol + colA];
-	    resEl = dd[ colA] * right->dd[ rIx];
+	    resEl = dd[ colA] * right->dd[ rIx]; // initialization
 	    for( SizeT i=1; i < nColEl; ++i)
 	      resEl += dd[ i*nCol+colA] * right->dd[ rIx+i];
 	  }
