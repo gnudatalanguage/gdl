@@ -45,17 +45,18 @@ class GDLWidget
 private:
   // the global widget list and the actual index for new widgets
   // shared among all widgets
-  static WidgetIDT                       widgetIx;
+  static WidgetIDT                   widgetIx;
   static WidgetListT                 widgetList;
 protected:
-  // ID for widget (called from widgets constructor)
-  static WidgetIDT WidgetID( GDLWidget* w);
   // removes a widget, (called from widgets destructor -> don't delete)
   static void WidgetRemove( WidgetIDT widID);
 
+public:
+  // ID for widget (called from widgets constructor)
+  static WidgetIDT NewWidget( GDLWidget* w);
   // get widget from ID
   static GDLWidget* GetWidget( WidgetIDT widID);
-public:
+
   static void Init(); // GUI intialization upon GDL startup
 
   
@@ -65,27 +66,60 @@ protected:
 
   WidgetIDT    widgetID;  // own index to widgetList
   WidgetIDT    parent;    // parent ID (0 for TLBs)
-  BaseGDL* uValue;    // the UVALUE
-  bool     sensitive; 
-  DLong    xOffset, yOffset, xSize, ySize;
+  BaseGDL*     uValue;    // the UVALUE
+  bool         sensitive; 
+  DLong        xOffset, yOffset, xSize, ySize;
 
-  
 public:
   GDLWidget( WidgetIDT p=0, BaseGDL* uV=NULL, bool s=true,
 	     DLong xO=0, DLong yO=0, DLong xS=0, DLong yS=0);
   virtual ~GDLWidget();
+
+  wxObject* WxWidget() { return wxWidget;}
+  
+  virtual void Realize() {} 
+
+  WidgetIDT WidgetID() { return widgetID;}
 };
 
 
 // base widget **************************************************
+class GDLWidgetMbar;
+class GDLWidgetButton;
+
 class GDLWidgetBase: public GDLWidget
 {
-private:
+protected:
   typedef std::deque<WidgetIDT>::iterator cIter;
   std::deque<WidgetIDT>                   children;
+  
+  bool                                    modal;
+  WidgetIDT                               mbarID;
 
 public:
-  GDLWidgetBase( WidgetIDT p=0,               // parent
+  GDLWidgetBase( WidgetIDT parentID, 
+		 BaseGDL* uvalue, DString uname,
+		 bool sensitive, bool mapWid,
+		 WidgetIDT mBarID, bool modal, 
+		 WidgetIDT group_leader,
+		 DLong col, DLong row,
+		 long events,
+		 int exclusiveMode, 
+		 bool floating,
+		 DString event_func, DString event_pro,
+		 DString pro_set_value, DString func_get_value,
+		 DString notify_realize, DString kill_notify,
+		 DString resource_name, DString rname_mbar,
+		 DString title,
+		 DLong frame, DLong units,
+		 DString display_name,
+		 DLong xpad, DLong ypad,
+		 DLong xoffset, DLong yoffset,
+		 DLong xsize, DLong ysize,
+		 DLong scr_xsize, DLong scr_ysize,
+		 DLong x_scroll_size, DLong y_scroll_size);
+
+  GDLWidgetBase( WidgetIDT p=0,           // parent
 		 BaseGDL* uV=NULL,        // UVALUE
 		 bool s=true,             // SENSITIVE
 		 DLong xO=0, DLong yO=0,  // offset 
@@ -96,6 +130,13 @@ public:
   { children.push_back( c);}
   void RemoveChild( WidgetIDT  c)
   { children.erase( find( children.begin(), children.end(), c));}
+
+  void Realize();
 };
+
+class GDLWidgetMBar: public GDLWidgetBase
+{
+};
+
 
 #endif

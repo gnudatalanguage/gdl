@@ -108,6 +108,8 @@ namespace lib {
 
   BaseGDL* sort_fun( EnvT* e);
 
+  BaseGDL* median( EnvT* e);
+
   BaseGDL* shift_fun( EnvT* e);
 
   BaseGDL* arg_present( EnvT* e);

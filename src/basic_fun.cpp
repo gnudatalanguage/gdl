@@ -2343,6 +2343,67 @@ namespace lib {
     return res;
   }
 
+  // uses MergeSort
+  BaseGDL* median( EnvT* e)
+  {
+    SizeT nParam = e->NParam( 1);
+    
+    if( nParam > 1)
+      e->Throw( "Median filtering not implemented yet.");
+
+    BaseGDL* p0 = e->GetParDefined( 0);
+
+    if( p0->Type() == STRUCT)
+      e->Throw( "Struct expression not allowed in this context: "+
+		e->GetParString(0));
+
+    if( p0->Rank() == 0)
+      e->Throw( "Expression must be an array in this context: "+
+		e->GetParString(0));
+    
+    SizeT nEl = p0->N_Elements();
+
+    static int evenIx = e->KeywordIx( "EVEN");
+    
+    // helper arrays
+    DLong *hh = new DLong[ nEl];
+    for( DLong i=0; i<nEl; ++i) hh[i] = i;
+    //    ArrayGuard< DLong> hhGuard( hh);
+
+    DLong* h1 = new DLong[ nEl/2];
+    DLong* h2 = new DLong[ (nEl+1)/2];
+    // call the sort routine
+    MergeSortOpt<DLong>( p0, hh, h1, h2, nEl);
+    delete[] h1;
+    delete[] h2;
+    DLong medEl = hh[ nEl/2];
+    delete[] hh;
+
+    if( (nEl % 2) == 1 ||  !e->KeywordSet( evenIx))
+      if( p0->Type() == DOUBLE || p0->Type() == COMPLEXDBL)
+	return (p0->NewIx( medEl))->Convert2( DOUBLE);
+      else
+	return (p0->NewIx( medEl))->Convert2( FLOAT);
+    
+    if( p0->Type() == DOUBLE || p0->Type() == COMPLEXDBL)
+      {
+	DDoubleGDL* op1 = static_cast<DDoubleGDL*>((p0->NewIx( medEl))->Convert2( DOUBLE)); 
+	e->Guard( op1);
+	DDoubleGDL* op2 = static_cast<DDoubleGDL*>((p0->NewIx( medEl-1))->Convert2( DOUBLE)); 
+	static DDoubleGDL* op3 = new DDoubleGDL( 2.0);
+	return op2->Add( op1)->Div( op3);
+      }
+    else 
+      {
+	DFloatGDL* op1 = static_cast<DFloatGDL*>((p0->NewIx( medEl))->Convert2( FLOAT)); 
+	e->Guard( op1);
+	DFloatGDL* op2 = static_cast<DFloatGDL*>((p0->NewIx( medEl-1))->Convert2( FLOAT)); 
+	static DFloatGDL* op3 = new DFloatGDL( 2.0);
+	return op2->Add( op1)->Div( op3);
+      }
+  }
+
+
   BaseGDL* shift_fun( EnvT* e)
   {
     SizeT nParam = e->NParam( 2);

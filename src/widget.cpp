@@ -128,7 +128,7 @@ namespace lib {
     bool floating = e->KeywordSet( floatingIx);
     bool grid_layout = e->KeywordSet( grid_layoutIx);
     bool kbrd_focus_events = e->KeywordSet( kbrd_focus_eventsIx);
-    bool map = e->KeywordSet( mapIx);
+    bool mapWid = e->KeywordSet( mapIx);
     bool no_copy = e->KeywordSet( no_copyIx);
     bool scroll = e->KeywordSet( scrollIx);
     bool sensitive = e->KeywordSet( sensitiveIx);
@@ -141,11 +141,6 @@ namespace lib {
     bool toolbar = e->KeywordSet( toolbarIx);
     bool tracking_events = e->KeywordSet( tracking_eventsIx);
 
-    bool xoffset = e->KeywordSet( xoffsetIx);
-    bool xpad = e->KeywordSet( xpadIx);
-    bool yoffset = e->KeywordSet( yoffsetIx);
-    bool ypad = e->KeywordSet( ypadIx);
-
     // non-bool
     WidgetIDT group_leader = 0;
     e->AssureLongScalarKWIfPresent( group_leaderIx, group_leader);
@@ -156,6 +151,15 @@ namespace lib {
     e->AssureLongScalarKWIfPresent( columnIx, column);
     DLong row = 0;
     e->AssureLongScalarKWIfPresent( rowIx, row);
+
+    DLong xoffset = 0;
+    e->AssureLongScalarKWIfPresent( xoffsetIx, xoffset);
+    DLong xpad = 0;
+    e->AssureLongScalarKWIfPresent( xpadIx, xpad);
+    DLong yoffset = 0;
+    e->AssureLongScalarKWIfPresent( yoffsetIx, yoffset);
+    DLong ypad = 0;
+    e->AssureLongScalarKWIfPresent( ypadIx, ypad);
 
     DLong frame = 0;
     e->AssureLongScalarKWIfPresent( frameIx, frame);
@@ -222,8 +226,69 @@ namespace lib {
     // consistency
     if( nonexclusive && exclusive)
       e->Throw( "Conflicting keywords.");
+
+    if( mbarPresent)
+      {
+	if( parentID != 0)
+	  e->Throw( "Only top level bases allow a menubar.");
+	e->AssureGlobalKW( mbarIx);
+      }
+
+    if( modal && group_leader == 0)
+      e->Throw( "MODAL top level bases must have a group leader specified.");
+
+    if( parentID != 0)
+      { 
+	GDLWidget* p = GDLWidget::GetWidget( parentID);
+	if( p == NULL)
+	  e->Throw( "Invalid widget identifier: "+i2s(parentID));
+	
+	GDLWidgetBase* bp = dynamic_cast< GDLWidgetBase*>( p);
+	if( p == NULL)
+	  e->Throw( "Parent is of incorrect type.");
+      }
     //...
+
+    // generate widget
+    WidgetIDT mBarID = 0;
+    if( mbarPresent)
+      {
+	GDLWidgetMBar* mBar = new GDLWidgetMBar(); 
+	mBarID = GDLWidget::NewWidget( mBar);
+	e->SetKW( mbarIx, new DLongGDL( mBarID));
+      }
+
+    int exclusiveMode = 0;
+    if( exclusive)    exclusiveMode = 1;
+    if( nonexclusive) exclusiveMode = 2;
+
+    DLong events;
     
+    GDLWidgetBase* base = new GDLWidgetBase( parentID, 
+					     uvalue, uname,
+					     sensitive, mapWid,
+					     mBarID, modal, group_leader,
+					     column, row,
+					     events,
+					     exclusiveMode, 
+					     floating,
+					     event_func, event_pro,
+					     pro_set_value, func_get_value,
+					     notify_realize, kill_notify,
+					     resource_name, rname_mbar,
+					     title,
+					     frame, units,
+					     display_name,
+					     xpad, ypad,
+					     xoffset, yoffset,
+					     xsize, ysize,
+					     scr_xsize, scr_ysize,
+					     x_scroll_size, y_scroll_size);
+    
+    // some more properties
+
+    // return widget ID
+    return new DLongGDL( base->WidgetID());
   }
 
 } // namespace
