@@ -51,7 +51,7 @@ on_error, 2
  for i = 1l, n/2 do begin
     dist = sqrt(x + i^2.) ; i^2. is slightly faster than float(i)^2
     result[0,i  ] = dist  ; [0,i] is way faster than [*,i]
-    result[0,m-i] = dist
+    result[0,n-i] = dist
  endfor
 
 return, result
