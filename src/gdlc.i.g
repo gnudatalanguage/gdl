@@ -575,7 +575,7 @@ statement returns[ GDLInterpreter::RetCode retCode]
 
         // many low level routines don't have errorNode info
         // set line number here in this case
-        if( e.getLine() == 0)
+        if( e.getLine() == 0 && _t != NULL)
         {
             e.SetLine( _t->getLine());
         }
