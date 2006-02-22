@@ -2797,22 +2797,25 @@ Data_<SpDObj>* Data_<SpDObj>::ModInvS( BaseGDL* r)
 // C++ defines pow only for floats and doubles
 template <typename T> T pow( const T r, const T l)
 {
-  if( r == 0) return 0;
-  if( r == 1) return 1;
+  if( l == 0) return 1;
+  if( l < 0)  return 0;
 
   const int nBits = sizeof(T) * 8;
 
   T arr = r;
   T res = 1;
   T mask = 1;
-  for( SizeT i=0; i<nBits; ++i, mask <<= 1)
+  for( SizeT i=0; i<nBits; ++i)
     {
       if( l & mask) res *= arr;
+      mask <<= 1;
+      if( l < mask) return res;
       arr *= arr;
     }
 
   return res;
 }
+
 // power of value: left=left ^ right
 // integral types
 template<class Sp>
