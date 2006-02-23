@@ -85,6 +85,7 @@ namespace lib {
   void gkw_axis_range(EnvT *e, string axis,
 		      DDouble &start, DDouble &end, DLong & ynozero);
 
+  void mesh_nr(PLFLT *, PLFLT *, PLFLT **, PLINT, PLINT, PLINT);
 
 } // namespace
 

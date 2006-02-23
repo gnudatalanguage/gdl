@@ -1572,6 +1572,7 @@ namespace lib {
     DDoubleGDL* zVal;
     DDoubleGDL* yVal;
     DDoubleGDL* xVal;
+    DDoubleGDL* zValT;
 
     SizeT xEl;
     SizeT yEl;
@@ -1598,10 +1599,7 @@ namespace lib {
       } else if ( nParam == 2 || nParam > 3) {
 	e->Throw( "SURFACE: Incorrect number of arguments.");
       } else {
-	BaseGDL* p0 = e->GetParDefined( 0)->Transpose( NULL);
-	zVal = static_cast<DDoubleGDL*>
-	  (p0->Convert2( DOUBLE, BaseGDL::COPY));
-	e->Guard( p0); // delete upon exit
+	zVal = e->GetParAs< DDoubleGDL>( 0);
 
 	if(zVal->Dim(0) == 1)
 	  throw GDLException( e->CallingNode(),
@@ -1610,11 +1608,38 @@ namespace lib {
 
 	xVal = e->GetParAs< DDoubleGDL>( 1);
 	yVal = e->GetParAs< DDoubleGDL>( 2);
-	xEl = xVal->Dim(0);
-	yEl = yVal->Dim(0);
-	if(xVal->Rank() != 1 || yVal->Rank() != 1 ||
-	   xEl != zVal->Dim(1) || yEl != zVal->Dim(0))
+
+	zValT = static_cast<DDoubleGDL*> (zVal->Transpose( NULL));
+
+	if (xVal->Rank() > 2)
 	  e->Throw( "SURFACE: X, Y, or Z array dimensions are incompatible.");
+
+	if (yVal->Rank() > 2)
+	  e->Throw( "SURFACE: X, Y, or Z array dimensions are incompatible.");
+
+	if (xVal->Rank() == 1) {
+	  xEl = xVal->Dim(0);
+
+	  if(xEl != zVal->Dim(0))
+	    e->Throw( "SURFACE: X, Y, or Z array dimensions are incompatible.");
+	}
+
+	if (yVal->Rank() == 1) {
+	  yEl = yVal->Dim(0);
+
+	  if(yEl != zVal->Dim(1))
+	    e->Throw( "SURFACE: X, Y, or Z array dimensions are incompatible.");
+	}
+
+	if (xVal->Rank() == 2) {
+	  if((xVal->Dim(0) != zVal->Dim(0)) && (xVal->Dim(1) != zVal->Dim(1)))
+	    e->Throw( "SURFACE: X, Y, or Z array dimensions are incompatible.");
+	}
+
+	if (yVal->Rank() == 2) {
+	  if((yVal->Dim(0) != zVal->Dim(0)) && (yVal->Dim(1) != zVal->Dim(1)))
+	    e->Throw( "SURFACE: X, Y, or Z array dimensions are incompatible.");
+	}
       }
 
     // !P 
@@ -1948,8 +1973,6 @@ namespace lib {
 
     // plot the data
     actStream->lsty(linestyle);
-    PLFLT** z = new PLFLT*[xEl];
-    for( SizeT i=0; i<xEl; i++) z[i] = &(*zVal)[i*yEl];
 
     actStream->vpor(0.0, 1.0, 0.0, 0.9);
     actStream->wind(-1.0, 1.0, -1.0, 1.5);
@@ -1966,10 +1989,57 @@ namespace lib {
 		     "bcdmnstuv", zTitle.c_str(), 0.0, 4 );
 
 
-    actStream->mesh(static_cast<PLFLT*> (&(*xVal)[0]), 
-		    static_cast<PLFLT*> (&(*yVal)[0]), 
-		    z, (long int) xEl, (long int) yEl, 3);
+    // 1 DIM X & Y
+    if (xVal->Rank() == 1 && yVal->Rank() == 1) {
+      PLFLT** z = new PLFLT*[xEl];
 
+      for( SizeT i=0; i<xEl; i++) z[i] = &(*zVal)[i*yEl];
+
+      actStream->mesh(static_cast<PLFLT*> (&(*xVal)[0]), 
+		      static_cast<PLFLT*> (&(*yVal)[0]), 
+		      z, (long int) xEl, (long int) yEl, 3);
+      delete[] z;
+    }
+
+
+    // 2 DIM X & Y
+    //    printf("%d %d\n", xVal->Dim(0), xVal->Dim(1));
+    if (xVal->Rank() == 2 && yVal->Rank() == 2) {
+      PLFLT** z1 = new PLFLT*[xVal->Dim(0)];
+
+      for( SizeT j=0; j<xVal->Dim(1); j++) {
+	for( SizeT i=0; i<xVal->Dim(0); i++) 
+	  z1[i] = &(*zVal)[j*(xVal->Dim(0))+i];
+
+	mesh_nr(static_cast<PLFLT*> (&(*xVal)[j*(xVal->Dim(0))]), 
+		static_cast<PLFLT*> (&(*yVal)[j*(xVal->Dim(0))]), 
+		z1, (long int) xVal->Dim(0), 1, 1);
+      }
+      delete[] z1;
+
+
+      PLFLT** z2 = new PLFLT*[xVal->Dim(1)];
+
+      PLFLT* xVec = new PLFLT[xVal->Dim(1)];
+      PLFLT* yVec = new PLFLT[yVal->Dim(1)];
+
+      for( SizeT j=0; j<xVal->Dim(0); j++) {
+	for( SizeT i=0; i<xVal->Dim(1); i++) 
+	  z2[i] = &(*zValT)[j*(xVal->Dim(1))+i];
+
+	for( SizeT i=0; i<xVal->Dim(1); i++) {
+	  xVec[i] = (*xVal)[i*(xVal->Dim(0))+j];
+	  yVec[i] = (*yVal)[i*(yVal->Dim(0))+j];
+	  //	  printf("%d %f %f\n", i,xVec[i],yVec[i]);
+	}
+
+	mesh_nr(xVec, yVec,
+		z2, 1, (long int) yVal->Dim(1), 2);
+      }
+      delete[] z2;
+      delete xVec;
+      delete yVec;
+    }
 
     // title and sub title
     actStream->schr( 0.0, 1.25*actH/defH);
@@ -1977,12 +2047,8 @@ namespace lib {
     actStream->schr( 0.0, actH/defH); // charsize is reset here
     actStream->mtex("b",5.4,0.5,0.5,subTitle.c_str());
     
-
-    delete[] z;
-
     actStream->lsty(1);//reset linestyle
     actStream->flush();
-
 
 
     // set ![XY].CRANGE
@@ -2003,7 +2069,8 @@ namespace lib {
     tr[0] = ptr[0];
     tr[4] = ptr[1];
     tr[2] = ptr[2];
-    tr[5] = ptr[4];
+    //    tr[5] = ptr[4];
+    tr[5] = ptr[3];
 
 //     memcpy(&tr[0], &ptr[0], sizeof(PLFLT)); 
 //     memcpy(&tr[4], &ptr[1], sizeof(PLFLT)); 
@@ -2014,6 +2081,7 @@ namespace lib {
 
     *tx = tr[0] * x + tr[2];
     *ty = tr[4] * y + tr[5];
+    printf("%f %f %f %f\n", x,y,*tx, *ty);
   }
 
   void contour( EnvT* e)
@@ -2023,19 +2091,18 @@ namespace lib {
     DDoubleGDL* zVal;
     DDoubleGDL* yVal;
     DDoubleGDL* xVal;
+    DDoubleGDL* zValT;
 
     SizeT xEl;
     SizeT yEl;
     SizeT zEl;
     if( nParam == 1)
       {
-	BaseGDL* p0T = e->GetParDefined( 0)->Transpose( NULL);
-	e->Guard( p0T); // transpose creates a new variable
-	
+	BaseGDL* p0 = e->GetParDefined( 0)->Transpose( NULL);
 	zVal = static_cast<DDoubleGDL*>
-	  (p0T->Convert2( DOUBLE, BaseGDL::COPY));
-	e->Guard( zVal); // delete upon exit
-	
+	  (p0->Convert2( DOUBLE, BaseGDL::COPY));
+	e->Guard( p0); // delete upon exit
+
 	xEl = zVal->Dim(1);
 	yEl = zVal->Dim(0);
 
@@ -2048,29 +2115,53 @@ namespace lib {
 	e->Guard( xVal); // delete upon exit
 	yVal = new DDoubleGDL( dimension( yEl), BaseGDL::INDGEN);
 	e->Guard( yVal); // delete upon exit
-      } 
-    else if ( nParam == 2 || nParam > 3) {
-	e->Throw( "Incorrect number of arguments.");
-      } 
-    else { // nParam == 3
+      } else if ( nParam == 2 || nParam > 3) {
+	e->Throw( "CONTOUR: Incorrect number of arguments.");
+      } else {
 	BaseGDL* p0 = e->GetParDefined( 0)->Transpose( NULL);
 	zVal = static_cast<DDoubleGDL*>
 	  (p0->Convert2( DOUBLE, BaseGDL::COPY));
-	delete p0; // transpose creates a new variable
-	e->Guard( zVal); // delete upon exit
+	e->Guard( p0); // delete upon exit
 
 	if(zVal->Dim(0) == 1)
-	  e->Throw( "Array must have 2 dimensions:"+e->GetParString(0));
+	  throw GDLException( e->CallingNode(),
+			      "CONTOUR: Array must have 2 dimensions:"
+			      +e->GetParString(0));
 
 	xVal = e->GetParAs< DDoubleGDL>( 1);
 	yVal = e->GetParAs< DDoubleGDL>( 2);
-	xEl = xVal->Dim(0);
-	yEl = yVal->Dim(0);
 
-	// IDL handles 2D arrays as well
-	if( xVal->Rank() != 1 || yVal->Rank() != 1 ||
-	    xEl != zVal->Dim(1) || yEl != zVal->Dim(0))
-	  e->Throw( "X, Y, or Z array dimensions are incompatible.");
+	zValT = static_cast<DDoubleGDL*> (zVal->Transpose( NULL));
+
+	if (xVal->Rank() > 2)
+	  e->Throw( "CONTOUR: X, Y, or Z array dimensions are incompatible.");
+
+	if (yVal->Rank() > 2)
+	  e->Throw( "CONTOUR: X, Y, or Z array dimensions are incompatible.");
+
+	if (xVal->Rank() == 1) {
+	  xEl = xVal->Dim(0);
+
+	  if(xEl != zVal->Dim(1))
+	    e->Throw( "CONTOUR: X, Y, or Z array dimensions are incompatible.");
+	}
+
+	if (yVal->Rank() == 1) {
+	  yEl = yVal->Dim(0);
+
+	  if(yEl != zVal->Dim(0))
+	    e->Throw( "CONTOUR: X, Y, or Z array dimensions are incompatible.");
+	}
+
+	if (xVal->Rank() == 2) {
+	  if((xVal->Dim(0) != zVal->Dim(1)) && (xVal->Dim(1) != zVal->Dim(0)))
+	    e->Throw( "CONTOUR: X, Y, or Z array dimensions are incompatible.");
+	}
+
+	if (yVal->Rank() == 2) {
+	  if((yVal->Dim(0) != zVal->Dim(1)) && (yVal->Dim(1) != zVal->Dim(0)))
+	    e->Throw( "CONTOUR: X, Y, or Z array dimensions are incompatible.");
+	}
       }
 
     // !P 
@@ -2455,19 +2546,49 @@ namespace lib {
     }
 
 
-    PLFLT spa[4];
-    spa[0] = (xVal->max() - xVal->min()) / (xEl - 1);
-    spa[1] = (yVal->max() - yVal->min()) / (yEl - 1);
-    spa[2] = xVal->min(); 
-    spa[3] = yVal->min(); 
+    // 1 DIM X & Y
+    if (xVal->Rank() == 1 && yVal->Rank() == 1) {
+      PLFLT spa[4];
+      spa[0] = (xVal->max() - xVal->min()) / (xEl - 1);
+      spa[1] = (yVal->max() - yVal->min()) / (yEl - 1);
+      spa[2] = xVal->min(); 
+      spa[3] = yVal->min(); 
 
-    PLFLT** z = new PLFLT*[xEl];
-    for( SizeT i=0; i<xEl; i++) z[i] = &(*zVal)[i*yEl];
+      PLFLT** z = new PLFLT*[xEl];
+      for( SizeT i=0; i<xEl; i++) z[i] = &(*zVal)[i*yEl];
 
-    actStream->cont(z, xEl, yEl, 1, xEl, 1, yEl, 
-		    clevel, nlevel, mypltr, static_cast<void*>( spa));
+      actStream->cont(z, xEl, yEl, 1, xEl, 1, yEl, 
+		      clevel, nlevel, mypltr, static_cast<void*>( spa));
 
-    delete[] z;
+      delete[] z;
+    }
+
+    if (xVal->Rank() == 2 && yVal->Rank() == 2) {
+
+      PLcGrid2 cgrid2;
+      actStream->Alloc2dGrid(&cgrid2.xg,xVal->Dim(0),xVal->Dim(1));
+      actStream->Alloc2dGrid(&cgrid2.yg,xVal->Dim(0),xVal->Dim(1));
+      cgrid2.nx = xVal->Dim(0);
+      cgrid2.ny = xVal->Dim(1);
+
+      for( SizeT i=0; i<xVal->Dim(0); i++) {
+	for( SizeT j=0; j<xVal->Dim(1); j++) {
+ 	  cgrid2.xg[i][j] = (*xVal)[j*(xVal->Dim(0))+i];
+	  cgrid2.yg[i][j] = (*yVal)[j*(xVal->Dim(0))+i];
+	}
+      }
+
+      PLFLT** z = new PLFLT*[xVal->Dim(0)];
+      for( SizeT i=0; i<xVal->Dim(0); i++) z[i] = &(*zVal)[i*xVal->Dim(1)];
+
+      actStream->cont(z, xVal->Dim(0), xVal->Dim(1), 
+		      1, xVal->Dim(0), 1, xVal->Dim(1), clevel, nlevel,
+		      plstream::tr2, (void *) &cgrid2 );
+
+      actStream->Free2dGrid(cgrid2.xg,xVal->Dim(0),xVal->Dim(1));
+      actStream->Free2dGrid(cgrid2.yg,xVal->Dim(0),xVal->Dim(1));
+    }
+
 
     // title and sub title
     actStream->schr( 0.0, 1.25*actH/defH);
