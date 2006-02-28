@@ -56,6 +56,13 @@ public:
     for( SizeT i=0; i<rank; ++i)
       dim[i]=d[i];
   }
+  // initialize from DLong[ nD] array
+  dimension(const DLong*  d, SizeT nD=MAXRANK)
+  {
+    rank = nD;
+    for( SizeT i=0; i<rank; ++i)
+      dim[i]= d[i];
+  }
 
   // simplified constructor for one to three dimensions
   dimension(const SizeT d0, const SizeT d1=0, const SizeT d2=0)

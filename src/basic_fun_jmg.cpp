@@ -221,7 +221,7 @@ namespace lib {
     try{
       if (dimKey != NULL) {
 	SizeT ndim = dimKey->N_Elements();
-	dimension dim((SizeT *) &(*dimKey)[0], (SizeT) ndim);
+	dimension dim( &(*dimKey)[0], ndim);
 	if( value != NULL)
 	  {
 	    T* v = static_cast<T*>( value);
@@ -267,8 +267,8 @@ namespace lib {
     static int sizeix = e->KeywordIx( "SIZE"); 
     static int dimensionix = e->KeywordIx( "DIMENSION"); 
 
-    BaseGDL* size=e->GetKW(sizeix);
-    BaseGDL* b_dimension=e->GetKW(dimensionix);
+    BaseGDL* size = e->GetKW(sizeix);
+    BaseGDL* b_dimension = e->GetKW(dimensionix);
     if(b_dimension != NULL)
       {
 	DLongGDL* l_dimension = e->GetKWAs<DLongGDL>( dimensionix);

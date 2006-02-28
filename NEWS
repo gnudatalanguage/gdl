@@ -155,3 +155,4 @@
 	  variables
 	  Made GDL compile under x86_64 linux
 	  Fixed incompatibility with # operator and one-dim vectors
+	  Speedup for ^ operator for integral types

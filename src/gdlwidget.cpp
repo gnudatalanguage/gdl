@@ -140,7 +140,7 @@ GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID,
 
 GDLWidgetBase::~GDLWidgetBase()
 {
-  // delete all children
+  // delete all (GDL) children
   for( cIter cI = children.begin(); cI != children.end(); ++cI)
     {
       delete GetWidget( *cI);

@@ -2081,7 +2081,7 @@ namespace lib {
 
     *tx = tr[0] * x + tr[2];
     *ty = tr[4] * y + tr[5];
-    printf("%f %f %f %f\n", x,y,*tx, *ty);
+    //    printf("%f %f %f %f\n", x,y,*tx, *ty);
   }
 
   void contour( EnvT* e)

@@ -3304,8 +3304,10 @@ Data_<Sp>* Data_<Sp>::PowS( BaseGDL* r)
   //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s = right->dd[0];
   // right->Scalar(s); 
+
   for( SizeT i=0; i < sEl; ++i)
     dd[i] = pow( dd[i], s); 
+
   //C delete right;
   return this;
 }
