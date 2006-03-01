@@ -10,18 +10,21 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 		cformat.g color.cpp color.hpp convert2.cpp datalistt.hpp datatypes.cpp \
 		datatypes.hpp dcommon.cpp dcommon.hpp dcompiler.cpp dcompiler.hpp default_io.cpp \
 		deviceps.hpp devicewin.hpp devicex.hpp dimension.hpp dinterpreter.cpp \
-		dinterpreter.hpp dnode.cpp dnodefactory.hpp dnode.hpp dpro.cpp dpro.hpp dstructdesc.cpp \
+		dinterpreter.hpp dnode.cpp dnodefactory.hpp dnode.hpp dpro.cpp dpro.hpp \
+		dstructdesc.cpp \
 		dstructdesc.hpp dstructgdl.cpp dstructgdl.hpp dvar.cpp dvar.hpp envt.cpp envt.hpp \
 		extrat.cpp extrat.hpp FMTIn.cpp FMTIn.hpp FMTInTokenTypes.hpp FMTLexer.cpp \
 		FMTLexer.hpp fmtnode.cpp fmtnode.hpp FMTOut.cpp FMTOut.hpp FMTOutTokenTypes.hpp \
 		FMTParser.cpp FMTParser.hpp FMTTokenTypes.hpp format.g format.in.g format.out.g \
 		gdlc.g gdlc.i.g gdlc.tree.g gdleventhandler.cpp gdleventhandler.hpp \
 		gdlexception.cpp gdlexception.hpp gdlgstream.cpp gdlgstream.hpp GDLInterpreter.cpp \
-		GDLInterpreter.hpp GDLInterpreterTokenTypes.hpp GDLLexer.cpp GDLLexer.hpp GDLParser.cpp \
+		GDLInterpreter.hpp GDLInterpreterTokenTypes.hpp GDLLexer.cpp \
+		GDLLexer.hpp GDLParser.cpp \
 		GDLParser.hpp gdlpsstream.cpp gdlpsstream.hpp gdlpython.cpp gdlpython.hpp \
 		GDLTokenTypes.hpp GDLTreeParser.cpp GDLTreeParser.hpp GDLTreeParserTokenTypes.hpp \
 		gdlwinstream.cpp gdlwinstream.hpp gdlxstream.cpp gdlxstream.hpp getfmtast.cpp \
-		getfmtast.hpp graphics.cpp graphics.hpp gsl_fun.cpp gsl_fun.hpp gstream.hpp ifmt.cpp \
+		getfmtast.hpp graphics.cpp graphics.hpp gsl_fun.cpp gsl_fun.hpp \
+		gstream.hpp ifmt.cpp \
 		initct.cpp initsysvar.cpp initsysvar.hpp io.cpp io.hpp libinit_cl.cpp libinit.cpp \
 		libinit_jmg.cpp Makefile.am Makefile.in math_fun.cpp math_fun.hpp math_fun_jmg.cpp \
 		math_fun_jmg.hpp math_utl.cpp math_utl.hpp ncdf_att_cl.cpp ncdf_cl.cpp ncdf_cl.hpp \
@@ -34,7 +37,7 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 		image.cpp image.hpp gdljournal.cpp gdljournal.hpp convol.cpp convol_inc0.cpp \
 		convol_inc1.cpp convol_inc2.cpp sigfpehandler.cpp sigfpehandler.hpp devicez.hpp \
 		gdlzstream.cpp gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp arrayindex.cpp \
-		fftw.cpp fftw.hpp plot3d_nr.cpp
+		fftw.cpp fftw.hpp mpi.cpp mpi.hpp plot3d_nr.cpp
 
 
 

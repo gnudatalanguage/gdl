@@ -106,7 +106,8 @@ am__libgdl_la_SOURCES_DIST = accessdesc.hpp arrayindex.hpp \
 	convol_inc0.cpp convol_inc1.cpp convol_inc2.cpp \
 	sigfpehandler.cpp sigfpehandler.hpp devicez.hpp gdlzstream.cpp \
 	gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp \
-	arrayindex.cpp fftw.cpp fftw.hpp plot3d_nr.cpp pythongdl.cpp
+	arrayindex.cpp fftw.cpp fftw.hpp mpi.cpp mpi.hpp plot3d_nr.cpp \
+	pythongdl.cpp
 am__objects_1 = assocdata.lo basic_fun_cl.lo basic_fun.lo \
 	basic_fun_jmg.lo basic_op.lo basic_pro.lo basic_pro_jmg.lo \
 	CFMTLexer.lo color.lo convert2.lo datatypes.lo dcommon.lo \
@@ -125,7 +126,7 @@ am__objects_1 = assocdata.lo basic_fun_cl.lo basic_fun.lo \
 	magick_cl.lo gdlwidget.lo widget.lo basegdl.lo hdf5_fun.lo \
 	libinit_mes.lo file.lo image.lo gdljournal.lo convol.lo \
 	convol_inc0.lo convol_inc1.lo convol_inc2.lo sigfpehandler.lo \
-	gdlzstream.lo arrayindex.lo fftw.lo plot3d_nr.lo
+	gdlzstream.lo arrayindex.lo fftw.lo mpi.lo plot3d_nr.lo
 @BUILDASLIBRARY_TRUE@am_libgdl_la_OBJECTS = $(am__objects_1) \
 @BUILDASLIBRARY_TRUE@	pythongdl.lo
 libgdl_la_OBJECTS = $(am_libgdl_la_OBJECTS)
@@ -176,7 +177,8 @@ am__gdl_SOURCES_DIST = accessdesc.hpp arrayindex.hpp assocdata.cpp \
 	convol_inc0.cpp convol_inc1.cpp convol_inc2.cpp \
 	sigfpehandler.cpp sigfpehandler.hpp devicez.hpp gdlzstream.cpp \
 	gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp \
-	arrayindex.cpp fftw.cpp fftw.hpp plot3d_nr.cpp gdl.cpp
+	arrayindex.cpp fftw.cpp fftw.hpp mpi.cpp mpi.hpp plot3d_nr.cpp \
+	gdl.cpp
 am__objects_2 = gdl-assocdata.$(OBJEXT) gdl-basic_fun_cl.$(OBJEXT) \
 	gdl-basic_fun.$(OBJEXT) gdl-basic_fun_jmg.$(OBJEXT) \
 	gdl-basic_op.$(OBJEXT) gdl-basic_pro.$(OBJEXT) \
@@ -217,7 +219,7 @@ am__objects_2 = gdl-assocdata.$(OBJEXT) gdl-basic_fun_cl.$(OBJEXT) \
 	gdl-convol.$(OBJEXT) gdl-convol_inc0.$(OBJEXT) \
 	gdl-convol_inc1.$(OBJEXT) gdl-convol_inc2.$(OBJEXT) \
 	gdl-sigfpehandler.$(OBJEXT) gdl-gdlzstream.$(OBJEXT) \
-	gdl-arrayindex.$(OBJEXT) gdl-fftw.$(OBJEXT) \
+	gdl-arrayindex.$(OBJEXT) gdl-fftw.$(OBJEXT) gdl-mpi.$(OBJEXT) \
 	gdl-plot3d_nr.$(OBJEXT)
 @BUILDASLIBRARY_FALSE@am_gdl_OBJECTS = $(am__objects_2) \
 @BUILDASLIBRARY_FALSE@	gdl-gdl.$(OBJEXT)
@@ -371,18 +373,21 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 		cformat.g color.cpp color.hpp convert2.cpp datalistt.hpp datatypes.cpp \
 		datatypes.hpp dcommon.cpp dcommon.hpp dcompiler.cpp dcompiler.hpp default_io.cpp \
 		deviceps.hpp devicewin.hpp devicex.hpp dimension.hpp dinterpreter.cpp \
-		dinterpreter.hpp dnode.cpp dnodefactory.hpp dnode.hpp dpro.cpp dpro.hpp dstructdesc.cpp \
+		dinterpreter.hpp dnode.cpp dnodefactory.hpp dnode.hpp dpro.cpp dpro.hpp \
+		dstructdesc.cpp \
 		dstructdesc.hpp dstructgdl.cpp dstructgdl.hpp dvar.cpp dvar.hpp envt.cpp envt.hpp \
 		extrat.cpp extrat.hpp FMTIn.cpp FMTIn.hpp FMTInTokenTypes.hpp FMTLexer.cpp \
 		FMTLexer.hpp fmtnode.cpp fmtnode.hpp FMTOut.cpp FMTOut.hpp FMTOutTokenTypes.hpp \
 		FMTParser.cpp FMTParser.hpp FMTTokenTypes.hpp format.g format.in.g format.out.g \
 		gdlc.g gdlc.i.g gdlc.tree.g gdleventhandler.cpp gdleventhandler.hpp \
 		gdlexception.cpp gdlexception.hpp gdlgstream.cpp gdlgstream.hpp GDLInterpreter.cpp \
-		GDLInterpreter.hpp GDLInterpreterTokenTypes.hpp GDLLexer.cpp GDLLexer.hpp GDLParser.cpp \
+		GDLInterpreter.hpp GDLInterpreterTokenTypes.hpp GDLLexer.cpp \
+		GDLLexer.hpp GDLParser.cpp \
 		GDLParser.hpp gdlpsstream.cpp gdlpsstream.hpp gdlpython.cpp gdlpython.hpp \
 		GDLTokenTypes.hpp GDLTreeParser.cpp GDLTreeParser.hpp GDLTreeParserTokenTypes.hpp \
 		gdlwinstream.cpp gdlwinstream.hpp gdlxstream.cpp gdlxstream.hpp getfmtast.cpp \
-		getfmtast.hpp graphics.cpp graphics.hpp gsl_fun.cpp gsl_fun.hpp gstream.hpp ifmt.cpp \
+		getfmtast.hpp graphics.cpp graphics.hpp gsl_fun.cpp gsl_fun.hpp \
+		gstream.hpp ifmt.cpp \
 		initct.cpp initsysvar.cpp initsysvar.hpp io.cpp io.hpp libinit_cl.cpp libinit.cpp \
 		libinit_jmg.cpp Makefile.am Makefile.in math_fun.cpp math_fun.hpp math_fun_jmg.cpp \
 		math_fun_jmg.hpp math_utl.cpp math_utl.hpp ncdf_att_cl.cpp ncdf_cl.cpp ncdf_cl.hpp \
@@ -395,7 +400,7 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 		image.cpp image.hpp gdljournal.cpp gdljournal.hpp convol.cpp convol_inc0.cpp \
 		convol_inc1.cpp convol_inc2.cpp sigfpehandler.cpp sigfpehandler.hpp devicez.hpp \
 		gdlzstream.cpp gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp arrayindex.cpp \
-		fftw.cpp fftw.hpp plot3d_nr.cpp
+		fftw.cpp fftw.hpp mpi.cpp mpi.hpp plot3d_nr.cpp
 
 @BUILDASLIBRARY_FALSE@gdl_SOURCES = $(cpp_hpp_files) gdl.cpp 
 # trigger basename generation
@@ -621,6 +626,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-math_fun.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-math_fun_jmg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-math_utl.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-mpi.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-ncdf_att_cl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-ncdf_cl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-ncdf_dim_cl.Po@am__quote@
@@ -668,6 +674,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/math_fun.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/math_fun_jmg.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/math_utl.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mpi.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ncdf_att_cl.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ncdf_cl.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ncdf_dim_cl.Plo@am__quote@
@@ -1898,6 +1905,20 @@ gdl-fftw.obj: fftw.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='fftw.cpp' object='gdl-fftw.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-fftw.obj `if test -f 'fftw.cpp'; then $(CYGPATH_W) 'fftw.cpp'; else $(CYGPATH_W) '$(srcdir)/fftw.cpp'; fi`
+
+gdl-mpi.o: mpi.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-mpi.o -MD -MP -MF "$(DEPDIR)/gdl-mpi.Tpo" -c -o gdl-mpi.o `test -f 'mpi.cpp' || echo '$(srcdir)/'`mpi.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/gdl-mpi.Tpo" "$(DEPDIR)/gdl-mpi.Po"; else rm -f "$(DEPDIR)/gdl-mpi.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='mpi.cpp' object='gdl-mpi.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-mpi.o `test -f 'mpi.cpp' || echo '$(srcdir)/'`mpi.cpp
+
+gdl-mpi.obj: mpi.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-mpi.obj -MD -MP -MF "$(DEPDIR)/gdl-mpi.Tpo" -c -o gdl-mpi.obj `if test -f 'mpi.cpp'; then $(CYGPATH_W) 'mpi.cpp'; else $(CYGPATH_W) '$(srcdir)/mpi.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/gdl-mpi.Tpo" "$(DEPDIR)/gdl-mpi.Po"; else rm -f "$(DEPDIR)/gdl-mpi.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='mpi.cpp' object='gdl-mpi.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-mpi.obj `if test -f 'mpi.cpp'; then $(CYGPATH_W) 'mpi.cpp'; else $(CYGPATH_W) '$(srcdir)/mpi.cpp'; fi`
 
 gdl-plot3d_nr.o: plot3d_nr.cpp
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-plot3d_nr.o -MD -MP -MF "$(DEPDIR)/gdl-plot3d_nr.Tpo" -c -o gdl-plot3d_nr.o `test -f 'plot3d_nr.cpp' || echo '$(srcdir)/'`plot3d_nr.cpp; \
