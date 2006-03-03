@@ -450,7 +450,8 @@ void GDLLexer::mINCLUDE(bool _createToken) {
 		if( !found)
 		{
 		if( errno == EMFILE)
-		throw GDLException( "Too many open files (recursive '@'?): " + name);
+		throw GDLException( "Too many open files "
+		"(recursive use of '@'?): " + name);
 		else 
 		throw GDLException( "File not found: " + name);
 		}

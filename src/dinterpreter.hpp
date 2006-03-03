@@ -88,6 +88,7 @@ public:
   
   // execute one line of code
   CommandCode ExecuteLine( std::istream* in = NULL);
+  void        ExecuteFile( const std::string& file);  
 
   // run a list of commands from 'in'. Used by python module. Returns success
   bool RunBatch( std::istream* in);

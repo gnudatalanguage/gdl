@@ -506,7 +506,7 @@ DInterpreter::CommandCode DInterpreter::CmdRun( const string& command)
       pos = sppos + 1;
     }
   if( retAll) 
-    Warning( "You compiled a main program while inside a procedure. "
+    Warning( "Compiled a main program while inside a procedure. "
 	     "Returning.");
 
   // actual run is perfomed in InterpreterLoop()
@@ -637,16 +637,41 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in)
 {
   string line = (in != NULL) ? ::GetLine(in) : GetLine();
 
+  //  cout << "ExecuteLine: " << line << endl;
+
+  string firstChar = line.substr(0,1);
+
   // command
-  if( line.substr(0,1) == ".") 
+  if( firstChar == ".") 
     {
       return ExecuteCommand( line.substr(1));
     }
 
   // shell command
-  if( line.substr(0,1) == "$") 
+  if( firstChar == "$") 
     {
       ExecuteShellCommand( line.substr(1));
+      return CC_OK;
+    }
+
+  // include (only when at $MAIN$)
+  // during compilation this is handled by the interpreter
+  if( firstChar == "@" && callStack.size() <= 1) 
+    {
+      string fileRaw = line.substr(1);
+      StrTrim( fileRaw);
+
+      string file = fileRaw;
+      AppendExtension( file);
+      
+      bool found = CompleteFileName( file);
+      if( !found)
+	{
+	  file = fileRaw;
+	  CompleteFileName( file);
+	}
+
+      ExecuteFile( file);
       return CC_OK;
     }
 
@@ -782,7 +807,7 @@ char* DInterpreter::NoReadline( const string& prompt)
 
   ostringstream ostr;
   char ch;
-  if( feof(stdin)) return 0;
+  if( feof(stdin)) return NULL;
   for(;;)
     {
       GDLEventHandler(); 
@@ -870,27 +895,28 @@ string DInterpreter::GetLine()
 GDLInterpreter::RetCode DInterpreter::InnerInterpreterLoop()
 {
 
+  bool runCmd = false;
   for (;;) {
     feclearexcept(FE_ALL_EXCEPT);
 
-//     try
-//       {
-    DInterpreter::CommandCode ret=ExecuteLine();
-    if( ret == CC_RETURN) return RC_RETURN;
-    if( ret == CC_CONTINUE) return RC_OK; 
-//        }
-//     catch( RetAllException&)
-//       {
-//  	throw;
-//       }
-//     catch( exception& e)
-//       {
-// 	cerr << "InnerInterpreterLoop: Exception: " << e.what() << endl;
-//       }
-//     catch (...)
-//       {	
-// 	cerr << "InnerInterpreterLoop: Unhandled Error." << endl;
-//       }
+    try
+      {
+	DInterpreter::CommandCode ret=ExecuteLine();
+	if( ret == CC_RETURN) return RC_RETURN;
+	if( ret == CC_CONTINUE) return RC_OK; 
+      }
+    catch( RetAllException&)
+      {
+ 	throw;
+      }
+    //     catch( exception& e)
+    //       {
+    // 	cerr << "InnerInterpreterLoop: Exception: " << e.what() << endl;
+    //       }
+    //     catch (...)
+    //       {	
+    // 	cerr << "InnerInterpreterLoop: Unhandled Error." << endl;
+    //       }
   }
 }
 
@@ -930,6 +956,62 @@ bool DInterpreter::RunBatch( istream* in)
   return true;
 }
 
+// used for @file
+// Note: As long as we are in batch mode we are at $MAIN$
+void DInterpreter::ExecuteFile( const string& file)
+{
+  ifstream in(file.c_str());
+  
+  if( in.fail())
+    Warning( "Error opening file: "+file);
+
+  //  ValueGuard<bool> guard( interruptEnable);
+  //  interruptEnable = false;
+
+  bool runCmd = false;
+  while( in.good())
+    {
+      feclearexcept(FE_ALL_EXCEPT);
+
+      try
+ 	{
+	  if( runCmd)
+	    {
+	      if( static_cast<DSubUD*>
+		  (callStack.back()->GetPro())->GetTree() != NULL)
+		call_pro(static_cast<DSubUD*>
+			 (callStack.back()->GetPro())->GetTree());
+
+	      runCmd = false;
+	    }
+	  else
+	    {		  
+	      DInterpreter::CommandCode ret=ExecuteLine( &in);
+	      
+	      if( debugMode != DEBUG_CLEAR)
+		{
+		  debugMode = DEBUG_CLEAR;
+		  // Warning( "Prematurely closing batch file: "+startup);
+		  break;
+		}
+	    }
+	}
+      catch( RetAllException& retAllEx)
+	{
+	  runCmd = (retAllEx.Code() == RetAllException::RUN);
+	  if( !runCmd) throw;
+	}
+      //       catch( exception& e)
+      // 	{
+      // 	  cerr << file << ": Exception: " << e.what() << endl;
+      // 	}
+      //       catch (...)
+      // 	{	
+      // 	  cerr << file << ": Unhandled Error." << endl;
+      // 	}
+    } // while
+}
+
 // reads user input and executes it
 // the main loop
 GDLInterpreter::RetCode DInterpreter::InterpreterLoop( const string& startup)
@@ -945,33 +1027,54 @@ GDLInterpreter::RetCode DInterpreter::InterpreterLoop( const string& startup)
       ValueGuard<bool> guard( interruptEnable);
       interruptEnable = false;
 
-      while( in.good())
+      bool runCmd = false;
+      try
 	{
-	  feclearexcept(FE_ALL_EXCEPT);
+	  while( in.good())
+	    {
+	      feclearexcept(FE_ALL_EXCEPT);
 
-	  try
-	    {
-	      DInterpreter::CommandCode ret=ExecuteLine( &in);
-	      
-	      if( debugMode != DEBUG_CLEAR)
+	      try
 		{
-		  debugMode = DEBUG_CLEAR;
-		  Warning( "Prematurely closing batch file: "+startup);
-		  break;
+		  if( runCmd)
+		    {
+		      if( static_cast<DSubUD*>
+			  (callStack.back()->GetPro())->GetTree() != NULL)
+			call_pro(static_cast<DSubUD*>
+				 (callStack.back()->GetPro())->GetTree());
+
+		      runCmd = false;
+		    }
+		  else
+		    {		  
+		      DInterpreter::CommandCode ret=ExecuteLine( &in);
+	      
+		      if( debugMode != DEBUG_CLEAR)
+			{
+			  debugMode = DEBUG_CLEAR;
+			  Warning( "Prematurely closing batch file: "+startup);
+			  break;
+			}
+		    }
 		}
-	    }
-	  catch( RetAllException& retAllEx)
-	    {
-	    }
-	  catch( exception& e)
-	    {
-	      cerr << startup << ": Exception: " << e.what() << endl;
-	    }
-	  catch (...)
-	    {	
-	      cerr << startup << ": Unhandled Error." << endl;
-	    }
-	} // while
+	      catch( RetAllException& retAllEx)
+		{
+		  runCmd = (retAllEx.Code() == RetAllException::RUN);
+		  if( !runCmd) throw;
+		}
+	      catch( exception& e)
+		{
+		  cerr << startup << ": Exception: " << e.what() << endl;
+		}
+	      catch (...)
+		{	
+		  cerr << startup << ": Unhandled Error." << endl;
+		}
+	    } // while
+	}
+      catch( RetAllException& retAllEx)
+	{
+	}
     } // if( startup...
 
 

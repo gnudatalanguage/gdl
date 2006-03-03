@@ -1450,7 +1450,8 @@ INCLUDE!
         if( !found)
             {
                 if( errno == EMFILE)
-                    throw GDLException( "Too many open files (recursive use of '@'?): " + name);
+                    throw GDLException( "Too many open files "
+                    "(recursive use of '@'?): " + name);
                 else 
                     throw GDLException( "File not found: " + name);
            }
