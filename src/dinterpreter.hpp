@@ -74,6 +74,8 @@ private:
   
   std::string GetLine(); // get one line of input, trims it
   
+  void RunDelTree();
+
 public:
   ~DInterpreter() 
   {

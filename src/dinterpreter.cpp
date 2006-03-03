@@ -899,16 +899,16 @@ GDLInterpreter::RetCode DInterpreter::InnerInterpreterLoop()
   for (;;) {
     feclearexcept(FE_ALL_EXCEPT);
 
-    try
-      {
+//     try
+//       {
 	DInterpreter::CommandCode ret=ExecuteLine();
 	if( ret == CC_RETURN) return RC_RETURN;
 	if( ret == CC_CONTINUE) return RC_OK; 
-      }
-    catch( RetAllException&)
-      {
- 	throw;
-      }
+//       }
+//     catch( RetAllException&)
+//       {
+//  	throw;
+//       }
     //     catch( exception& e)
     //       {
     // 	cerr << "InnerInterpreterLoop: Exception: " << e.what() << endl;
@@ -977,12 +977,8 @@ void DInterpreter::ExecuteFile( const string& file)
  	{
 	  if( runCmd)
 	    {
-	      if( static_cast<DSubUD*>
-		  (callStack.back()->GetPro())->GetTree() != NULL)
-		call_pro(static_cast<DSubUD*>
-			 (callStack.back()->GetPro())->GetTree());
-
 	      runCmd = false;
+	      RunDelTree();
 	    }
 	  else
 	    {		  
@@ -1012,6 +1008,30 @@ void DInterpreter::ExecuteFile( const string& file)
     } // while
 }
 
+// this must be run only from $MAIN$
+void DInterpreter::RunDelTree()
+{
+  if( static_cast<DSubUD*>
+      (callStack.back()->GetPro())->GetTree() != NULL)
+    {
+      try
+	{
+	  call_pro(static_cast<DSubUD*>
+		   (callStack.back()->GetPro())->GetTree());
+
+	  static_cast<DSubUD*>
+	    (callStack.back()->GetPro())->DelTree();
+	}
+      catch( RetAllException&)
+	{
+	  static_cast<DSubUD*>
+	    (callStack.back()->GetPro())->DelTree();
+	  throw;
+	}
+    }
+}
+
+
 // reads user input and executes it
 // the main loop
 GDLInterpreter::RetCode DInterpreter::InterpreterLoop( const string& startup)
@@ -1038,12 +1058,8 @@ GDLInterpreter::RetCode DInterpreter::InterpreterLoop( const string& startup)
 		{
 		  if( runCmd)
 		    {
-		      if( static_cast<DSubUD*>
-			  (callStack.back()->GetPro())->GetTree() != NULL)
-			call_pro(static_cast<DSubUD*>
-				 (callStack.back()->GetPro())->GetTree());
-
 		      runCmd = false;
+		      RunDelTree();
 		    }
 		  else
 		    {		  
@@ -1108,13 +1124,9 @@ GDLInterpreter::RetCode DInterpreter::InterpreterLoop( const string& startup)
       {
 	if( runCmd)
 	  {
-	    if( static_cast<DSubUD*>
-		(callStack.back()->GetPro())->GetTree() != NULL)
-	      call_pro(static_cast<DSubUD*>
-		       (callStack.back()->GetPro())->GetTree());
-
 	    runCmd = false;
 	    continueCmd = false;
+	    RunDelTree();
 	  }
 	else
 	  {
