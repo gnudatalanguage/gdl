@@ -855,6 +855,11 @@ namespace lib {
 			  "HISTOGRAM: Complex expression not allowed in this context: "
 			  +e->GetParString(0));
 
+    if( p0->Type() == STRING)
+      throw GDLException( e->CallingNode(), 
+			  "HISTOGRAM: String expression not allowed in this context: "
+			  +e->GetParString(0));
+
     DDoubleGDL* binsize = e->IfDefGetKWAs<DDoubleGDL>( 0);
     DLongGDL* input = e->IfDefGetKWAs<DLongGDL>( 1);
     DDoubleGDL* max = e->IfDefGetKWAs<DDoubleGDL>( 2);
@@ -893,8 +898,8 @@ namespace lib {
     a -= 1e-15;
     b += 1e-15;
 
+    if (binsize != NULL) bsize = (*binsize)[0];
     nh = (DULong) ((b - a) / bsize + 1);
-    if (binsize != NULL) nh = (DULong) ((b - a) / (*binsize)[0] + 1);
     if (nbins != NULL) nh = (*nbins)[0];
 
     gsl_histogram * h = gsl_histogram_alloc (nh);
@@ -933,19 +938,25 @@ namespace lib {
     if( e->KeywordPresent( 7)) {
       BaseGDL** revindKW = &e->GetKW( 7);
       delete (*revindKW);
-      nri = nh + nEl + 1;
-      dimension dim( nri);
-      //      dimension dim(&nri, (SizeT) 1); 
-      *revindKW = new DLongGDL( dim, BaseGDL::NOZERO);
 
       DULong bin;
-      DULong k=0;
+      DULong k = 0;
+      for( SizeT j=0; j<nEl; ++j)
+	if ((*p0D)[j] >= a && (*p0D)[j] <= b) k++;
+
+      nri = nh + k + 1;
+      dimension dim( nri);
+      *revindKW = new DLongGDL( dim, BaseGDL::NOZERO);
+
+      k = 0;
       for( SizeT i=0; i<nh; ++i) {
 	for( SizeT j=0; j<nEl; ++j) {
-	  gsl_histogram_find (h, (*p0D)[j], (size_t*) &bin);
-	  if (bin == i) {
-	    (*(DLongGDL*) *revindKW)[nh+1+k] = j;
-	    k++;
+	  if ((*p0D)[j] >= a && (*p0D)[j] <= b) {
+	    gsl_histogram_find (h, (*p0D)[j], (size_t*) &bin);
+	    if (bin == i) {
+	      (*(DLongGDL*) *revindKW)[nh+1+k] = j;
+	      k++;
+	    }
 	  }
 	}
       }
@@ -953,8 +964,56 @@ namespace lib {
       k = 0;
       for( SizeT i=1; i<=nh; ++i) {
 	k += (*res)[i-1];
-	(*(DLongGDL*) *revindKW)[i] = k+ nh + 1;
+	(*(DLongGDL*) *revindKW)[i] = k + nh + 1;
       }
+    }
+
+    // LOCATIONS
+    if( e->KeywordPresent( 8)) {
+      BaseGDL** locationsKW = &e->GetKW( 8);
+      delete (*locationsKW);
+
+      a += 1e-15;
+
+      dimension dim( nh);
+      if( p0->Type() == DOUBLE) {
+	*locationsKW = new DDoubleGDL( dim, BaseGDL::NOZERO);
+	for( SizeT i=0; i<nh; ++i)
+	  (*(DDoubleGDL*) *locationsKW)[i] = (DDouble) (a + bsize * i);
+      } else if (p0->Type() == FLOAT) {
+	*locationsKW = new DFloatGDL( dim, BaseGDL::NOZERO);
+	for( SizeT i=0; i<nh; ++i)
+	  (*(DFloatGDL*) *locationsKW)[i] = (DFloat) (a + bsize * i);
+      } else if (p0->Type() == LONG) {
+	*locationsKW = new DLongGDL( dim, BaseGDL::NOZERO);
+	for( SizeT i=0; i<nh; ++i)
+	  (*(DLongGDL*) *locationsKW)[i] = (DLong) (a + bsize * i);
+      } else if (p0->Type() == ULONG) {
+	*locationsKW = new DULongGDL( dim, BaseGDL::NOZERO);
+	for( SizeT i=0; i<nh; ++i)
+	  (*(DULongGDL*) *locationsKW)[i] = (DULong) (a + bsize * i);
+      } else if (p0->Type() == LONG64) {
+	*locationsKW = new DLong64GDL( dim, BaseGDL::NOZERO);
+	for( SizeT i=0; i<nh; ++i)
+	  (*(DLong64GDL*) *locationsKW)[i] = (DLong64) (a + bsize * i);
+      } else if (p0->Type() == ULONG64) {
+	*locationsKW = new DULong64GDL( dim, BaseGDL::NOZERO);
+	for( SizeT i=0; i<nh; ++i)
+	  (*(DULong64GDL*) *locationsKW)[i] = (DULong64) (a + bsize * i);
+      } else if (p0->Type() == INT) {
+	*locationsKW = new DIntGDL( dim, BaseGDL::NOZERO);
+	for( SizeT i=0; i<nh; ++i)
+	  (*(DIntGDL*) *locationsKW)[i] = (DInt) (a + bsize * i);
+      } else if (p0->Type() == UINT) {
+	*locationsKW = new DUIntGDL( dim, BaseGDL::NOZERO);
+	for( SizeT i=0; i<nh; ++i)
+	  (*(DUIntGDL*) *locationsKW)[i] = (DUInt) (a + bsize * i);
+      } else if (p0->Type() == BYTE) {
+	*locationsKW = new DByteGDL( dim, BaseGDL::NOZERO);
+	for( SizeT i=0; i<nh; ++i)
+	  (*(DByteGDL*) *locationsKW)[i] = (DByte) (a + bsize * i);
+      }
+
     }
     gsl_histogram_free (h);
 
