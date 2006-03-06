@@ -19,6 +19,8 @@
 
 #include <cstdlib>
 
+#include <wordexp.h>
+
 #include "str.hpp"
 #include "gdlexception.hpp"
 #include "initsysvar.hpp" // GDLPath();
@@ -213,12 +215,26 @@ unsigned long int Str2UL( const string& s, int base)
   return Str2UL( cStart, base);
 }
 
+void WordExp( string& s)
+{
+  wordexp_t p;
+  int ok0 = wordexp( s.c_str(), &p, 0);
+  if( ok0 == 0) 
+    {
+      if( p.we_wordc > 0)
+	s = p.we_wordv[0];
+      wordfree( &p);
+    }
+}
+
 // Tries to find file "fn" along GDLPATH.
 // If found, sets fn to the full pathname.
 // and returns true, else false
 // If fn starts with '/' or ".." or "./", just checks it is readable.
 bool CompleteFileName(string& fn)
 {
+  WordExp( fn);
+
   // try actual directory (or given path)
   FILE *fp = fopen(fn.c_str(),"r");
   if(fp)

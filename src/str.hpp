@@ -59,6 +59,9 @@ inline void AppendIfNeeded(std::string &s, const std::string& a)
   if( s.substr(s.size()-a.size(),a.size()) != a) s += a;
 }
 
+// wrapper for wordexp
+void WordExp( std::string& s);
+
 // Tries to find file "fn" along GDLPATH.
 // If found, sets fn to the full pathname.
 // and returns true, else false

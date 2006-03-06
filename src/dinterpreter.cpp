@@ -20,6 +20,8 @@
 #include <iostream>
 #include <unistd.h> // isatty
 
+//#include <wordexp.h>
+
 #include "dnodefactory.hpp"
 #include "str.hpp"
 #include "envt.hpp"
@@ -30,7 +32,7 @@
 #include "mpi.h"
 #endif
 
-#include <assert.h>
+#include <cassert>
 
 // print out AST tree
 //#define GDL_DEBUG
