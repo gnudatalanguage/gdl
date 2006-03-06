@@ -1863,9 +1863,12 @@ namespace lib {
 			  "TOTAL: String expression not allowed "
 			  "in this context: "+e->GetParString(0));
     
-    bool cumulative = e->KeywordSet( 0);
-    bool doubleRes  = e->KeywordSet( 1);
-    bool nan        = e->KeywordSet( 2);
+    static int cumIx = e->KeywordIx( "CUMULATIVE");
+    static int doubleIx = e->KeywordIx( "DOUBLE");
+    static int nanIx = e->KeywordIx( "NAN");
+    bool cumulative = e->KeywordSet( cumIx);
+    bool doubleRes  = e->KeywordSet( doubleIx);
+    bool nan        = e->KeywordSet( nanIx);
 
     DLong sumDim = 0;
     if( nParam == 2)
@@ -2039,6 +2042,265 @@ namespace lib {
 	  }
 	// default for /DOUBLE
 	return total_over_dim_cu_template< DDoubleGDL>
+	  ( static_cast<DDoubleGDL*>(p0->Convert2( DOUBLE,
+	    BaseGDL::COPY)), sumDim-1, nan);
+      }
+  }
+
+  // passing 2nd argument by value is slightly better for float and double, 
+  // but incur some overhead for the complex class.
+  template<class T> inline void MultOmitNaN(T& dest, T value)
+  { if (isfinite(value)) dest *= value; }
+  template<class T> inline void MultOmitNaNCpx(T& dest, T value)
+  {
+    dest *= T(isfinite(value.real())? value.real() : 1,
+	      isfinite(value.imag())? value.imag() : 1);
+  }
+  template<> inline void MultOmitNaN(DComplex& dest, DComplex value)
+  { MultOmitNaNCpx<DComplex>(dest, value); }
+  template<> inline void MultOmitNaN(DComplexDbl& dest, DComplexDbl value)
+  { MultOmitNaNCpx<DComplexDbl>(dest, value); }
+
+  template<class T> inline void Nan2One(T& value)
+  { if (!isfinite(value)) value = 1; }
+  template<class T> inline void Nan2OneCpx(T& value)
+  {
+    value = T(isfinite(value.real())? value.real() : 1, 
+              isfinite(value.imag())? value.imag() : 1);
+  }
+  template<> inline void Nan2One(DComplex& value)
+  { Nan2OneCpx< DComplex>(value); }
+  template<> inline void Nan2One(DComplexDbl& value)
+  { Nan2OneCpx< DComplexDbl>(value); }
+
+  // product over all elements
+  template<class T>
+  BaseGDL* product_template( T* src, bool omitNaN)
+  {
+    typename T::Ty sum = 1;
+    SizeT nEl = src->N_Elements();
+    if( !omitNaN) 
+      for ( SizeT i=0; i<nEl; ++i)
+	{
+	  sum *= (*src)[ i];
+	}
+    else
+      for ( SizeT i=0; i<nEl; ++i)
+	{
+	  MultOmitNaN( sum, (*src)[ i]);
+	}
+    return new T( sum);
+  }
+  
+  // cumulative over all dims
+  template<typename T>
+  BaseGDL* product_cu_template( T* res, bool omitNaN)
+  {
+    SizeT nEl = res->N_Elements();
+    if( omitNaN)
+      {
+        for( SizeT i=0; i<nEl; ++i)
+          Nan2One( (*res)[i]);
+      }
+    for( SizeT i=1,ii=0; i<nEl; ++i,++ii)
+      (*res)[i] *= (*res)[ii];
+    return res;
+  }
+
+  // product over one dim
+  template< typename T>
+  BaseGDL* product_over_dim_template( T* src, 
+				    const dimension& srcDim, 
+				    SizeT sumDimIx,
+                                    bool omitNaN)
+  {
+    SizeT nEl = src->N_Elements();
+    
+    // get dest dim and number of summations
+    dimension destDim = srcDim;
+    SizeT nSum = destDim.Remove( sumDimIx);
+
+    T* res = new T( destDim, BaseGDL::NOZERO);
+
+    // sumStride is also the number of linear src indexing
+    SizeT sumStride = srcDim.Stride( sumDimIx); 
+    SizeT outerStride = srcDim.Stride( sumDimIx + 1);
+    SizeT sumLimit = nSum * sumStride;
+    SizeT rIx=0;
+    for( SizeT o=0; o < nEl; o += outerStride)
+      for( SizeT i=0; i < sumStride; ++i)
+	{
+	  (*res)[ rIx] = 1;
+	  SizeT oi = o+i;
+	  SizeT oiLimit = sumLimit + oi;
+          if( omitNaN)
+            {
+              for( SizeT s=oi; s<oiLimit; s += sumStride)
+                MultOmitNaN((*res)[ rIx], (*src)[ s]);
+	    }
+          else
+            {
+  	      for( SizeT s=oi; s<oiLimit; s += sumStride)
+	        (*res)[ rIx] *= (*src)[ s];
+            }
+	  ++rIx;
+	}
+    return res;
+  }
+
+  // cumulative over one dim
+  template< typename T>
+  BaseGDL* product_over_dim_cu_template( T* res, 
+				       SizeT sumDimIx,
+                                       bool omitNaN)
+  {
+    SizeT nEl = res->N_Elements();
+    const dimension& resDim = res->Dim();
+    if (omitNaN)
+      {
+        for( SizeT i=0; i<nEl; ++i)
+          Nan2One((*res)[i]);
+      }
+    SizeT cumStride = resDim.Stride( sumDimIx); 
+    SizeT outerStride = resDim.Stride( sumDimIx + 1);
+    for( SizeT o=0; o < nEl; o += outerStride)
+      {
+	SizeT cumLimit = o+outerStride;
+	for( SizeT i=o+cumStride, ii=o; i<cumLimit; ++i, ++ii)
+	  (*res)[ i] *= (*res)[ ii];
+      }
+    return res;
+  }
+
+  BaseGDL* product( EnvT* e)
+  {
+    SizeT nParam = e->NParam( 1);
+
+    BaseGDL* p0 = e->GetParDefined( 0);
+
+    SizeT nEl = p0->N_Elements();
+    if( nEl == 0)
+      e->Throw( "Variable is undefined: "+e->GetParString(0));
+
+    if( p0->Type() == STRING)
+      e->Throw( "String expression not allowed "
+		"in this context: "+e->GetParString(0));
+    
+    static int cumIx = e->KeywordIx( "CUMULATIVE");
+    static int nanIx = e->KeywordIx( "NAN");
+    bool cumulative = e->KeywordSet( cumIx);
+    bool nan        = e->KeywordSet( nanIx);
+
+    DLong sumDim = 0;
+    if( nParam == 2)
+      e->AssureLongScalarPar( 1, sumDim);
+
+    if( sumDim == 0)
+      {
+	if( !cumulative)
+	  {
+	    if( p0->Type() == DOUBLE)
+	      {
+		return product_template<DDoubleGDL>
+                  ( static_cast<DDoubleGDL*>(p0), nan); 
+	      }
+	    if( p0->Type() == COMPLEXDBL)
+	      {
+		return product_template<DComplexDblGDL>
+                  ( static_cast<DComplexDblGDL*>(p0), nan); 
+	      }
+	    if( p0->Type() == COMPLEX)
+	      {
+		DComplexDblGDL* p0D = static_cast<DComplexDblGDL*>
+		  (p0->Convert2( COMPLEXDBL,BaseGDL::COPY));
+		e->Guard( p0D);
+		return product_template<DComplexDblGDL>( p0D, nan); 
+	      }
+	    
+	    DDoubleGDL* p0D = static_cast<DDoubleGDL*>
+	      (p0->Convert2( DOUBLE, BaseGDL::COPY));
+	    e->Guard( p0D);
+	    return product_template<DDoubleGDL>( p0D, nan);
+	  }
+	else // cumulative
+	  {
+	    // special case as DOUBLE type overrides /DOUBLE
+	    if( p0->Type() == DOUBLE)
+	      {
+  	        return product_cu_template< DDoubleGDL>
+		  ( static_cast<DDoubleGDL*>(p0)->Dup(), nan);
+	      }
+	    if( p0->Type() == COMPLEXDBL)
+	      {
+  	        return product_cu_template< DComplexDblGDL>
+		  ( static_cast<DComplexDblGDL*>(p0)->Dup(), nan);
+	      }
+	    if( p0->Type() == COMPLEX)
+	      {
+		return product_cu_template< DComplexDblGDL>
+		  ( static_cast<DComplexDblGDL*>(p0->Convert2( COMPLEXDBL, 
+		    BaseGDL::COPY)), nan);
+	      }
+    	    return product_cu_template< DDoubleGDL>
+	      ( static_cast<DDoubleGDL*>(p0->Convert2( DOUBLE, 
+		BaseGDL::COPY)), nan);
+	  }
+      }
+
+    // product over sumDim
+    dimension srcDim = p0->Dim();
+    SizeT srcRank = srcDim.Rank();
+
+    if( sumDim < 1 || sumDim > srcRank)
+      e->Throw( "Array must have "+i2s(sumDim)+
+		" dimensions: "+e->GetParString(0));
+
+    if( !cumulative)
+      {
+	if( p0->Type() == DOUBLE)
+	  {
+	    return product_over_dim_template< DDoubleGDL>
+	      ( static_cast<DDoubleGDL*>(p0), srcDim, sumDim-1, nan);
+	  }
+	if( p0->Type() == COMPLEXDBL)
+	  {
+	    return product_over_dim_template< DComplexDblGDL>
+	      ( static_cast<DComplexDblGDL*>(p0), srcDim, sumDim-1, nan);
+	  }
+	if( p0->Type() == COMPLEX)
+	  {
+	    DComplexDblGDL* p0D = static_cast<DComplexDblGDL*>
+	      (p0->Convert2( COMPLEXDBL,BaseGDL::COPY));
+	    e->Guard( p0D);
+	    return product_over_dim_template< DComplexDblGDL>
+	      ( p0D, srcDim, sumDim-1, nan);
+	  }
+
+	DDoubleGDL* p0D = static_cast<DDoubleGDL*>
+	  (p0->Convert2( DOUBLE,BaseGDL::COPY));
+	e->Guard( p0D);
+	return product_over_dim_template< DDoubleGDL>( p0D, srcDim, sumDim-1,nan);
+      }
+    else // cumulative
+      {
+	if( p0->Type() == DOUBLE)
+	  {
+	    return product_over_dim_cu_template< DDoubleGDL>
+	      ( static_cast<DDoubleGDL*>(p0)->Dup(), sumDim-1, nan);
+	  }
+	if( p0->Type() == COMPLEXDBL)
+	  {
+	    return product_over_dim_cu_template< DComplexDblGDL>
+	      ( static_cast<DComplexDblGDL*>(p0)->Dup(), sumDim-1, nan);
+	  }
+	if( p0->Type() == COMPLEX)
+	  {
+	    return product_over_dim_cu_template< DComplexDblGDL>
+	      ( static_cast<DComplexDblGDL*>(p0->Convert2( COMPLEXDBL,
+	        BaseGDL::COPY)), sumDim-1, nan);
+	  }
+
+	return product_over_dim_cu_template< DDoubleGDL>
 	  ( static_cast<DDoubleGDL*>(p0->Convert2( DOUBLE,
 	    BaseGDL::COPY)), sumDim-1, nan);
       }

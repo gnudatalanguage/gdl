@@ -95,6 +95,7 @@ namespace lib {
 
   BaseGDL* where( EnvT* e);
   BaseGDL* total( EnvT* e);
+  BaseGDL* product( EnvT* e);
 
   BaseGDL* n_params( EnvT* e);
   BaseGDL* keyword_set( EnvT* e);

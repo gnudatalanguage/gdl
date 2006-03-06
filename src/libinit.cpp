@@ -339,6 +339,9 @@ void LibInit()
   const string totalKey[]={"CUMULATIVE","DOUBLE","NAN",KLISTEND};
   new DLibFunRetNew(lib::total,string("TOTAL"),2,totalKey);
 
+  const string productKey[]={"CUMULATIVE","NAN",KLISTEND};
+  new DLibFunRetNew(lib::product,string("PRODUCT"),2,productKey);
+
   new DLibFunRetNew(lib::n_params,string("N_PARAMS"),1); // IDL allows one paramter
   new DLibFunRetNew(lib::keyword_set,string("KEYWORD_SET"),1);
 
