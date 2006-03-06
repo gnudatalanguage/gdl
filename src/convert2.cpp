@@ -1137,7 +1137,7 @@ template<> BaseGDL* Data_<SpDComplex>::Convert2( DType destTy, BaseGDL::Convert2
       }
     case FLOAT: 
       {
-	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
+	Data_<SpDFloat>* dest=new Data_<SpDFloat>( dim, BaseGDL::NOZERO);
 	for( SizeT i=0; i < nEl; ++i)
 	  (*dest)[i]=real(dd[i]); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
@@ -1244,7 +1244,7 @@ template<> BaseGDL* Data_<SpDComplexDbl>::Convert2( DType destTy, BaseGDL::Conve
       }
     case FLOAT: 
       {
-	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
+	Data_<SpDFloat>* dest=new Data_<SpDFloat>( dim, BaseGDL::NOZERO);
 	for( SizeT i=0; i < nEl; ++i)
 	  (*dest)[i]=real(dd[i]); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
