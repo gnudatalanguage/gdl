@@ -125,7 +125,9 @@ function read_binary, input, template=template, data_start=datastart, $
  ;----------------
  filesize = read_binary_filesize(filename)-datastart
  
- linesize = product(datadims>1)*nbytes[datatypes]
+; 03/2006 m_schellens
+ linesize = (datadims>1)*nbytes[datatypes]
+; linesize = product(datadims>1)*nbytes[datatypes]
  linecount = filesize / linesize
  
  
