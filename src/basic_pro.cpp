@@ -44,37 +44,38 @@ namespace lib {
   using namespace std;
 
   // display help for one variable or one structure tag
-  void help_item( BaseGDL* par, DString parString, bool doIndentation)
+  void help_item( ostream* os,
+		  BaseGDL* par, DString parString, bool doIndentation)
   {
-    if( doIndentation) cout << "   ";
+    if( doIndentation) (*os) << "   ";
 
     // Name display
-    cout.width(16);
-    cout << left << parString;
+    (*os).width(16);
+    (*os) << left << parString;
     if( parString.length() >= 16)
       {
-        cout << endl;
-        cout.width(doIndentation? 19:16);
-        cout << "";
+        (*os) << endl;
+        (*os).width(doIndentation? 19:16);
+        (*os) << "";
       }
 
     // Type display
     if( !par)
       {
-        cout << "UNDEFINED = <Undefined>" << endl;
+        (*os) << "UNDEFINED = <Undefined>" << endl;
         return;
       }
-    cout.width(10);
-    cout << par->TypeStr() << right;
+    (*os).width(10);
+    (*os) << par->TypeStr() << right;
 
-    if( !doIndentation) cout << "= ";
+    if( !doIndentation) (*os) << "= ";
 
     // Data display
     if( par->Type() == STRUCT)
       {
         DStructGDL* s = static_cast<DStructGDL*>( par);
-        cout << "-> ";
-        cout << (s->Desc()->IsUnnamed()? "<Anonymous>" : s->Desc()->Name());
+        (*os) << "-> ";
+        (*os) << (s->Desc()->IsUnnamed()? "<Anonymous>" : s->Desc()->Name());
       }
     else if( par->Dim( 0) == 0)
       {
@@ -82,20 +83,20 @@ namespace lib {
 	  {
             // trim string larger than 45 characters
             DString dataString = (*static_cast<DStringGDL*>(par))[0];
-            cout << "'" << StrMid( dataString,0,45,0) << "'";
-	    if( dataString.length() > 45) cout << "...";
+            (*os) << "'" << StrMid( dataString,0,45,0) << "'";
+	    if( dataString.length() > 45) (*os) << "...";
 	  }
 	else
 	  {
-            par->ToStream( cout);
+            par->ToStream( (*os));
 	  }
       }
 
     // Dimension display
-    if( par->Dim( 0) != 0) cout << par->Dim();
+    if( par->Dim( 0) != 0) (*os) << par->Dim();
 
     // End of line
-    cout << endl;
+    (*os) << endl;
   }
 
   void help( EnvT* e)
@@ -151,7 +152,7 @@ namespace lib {
 	DString parString = e->Caller()->GetString( par);
 	if( !par || !isKWSetStructures || par->Type() != STRUCT)
           {
-            help_item( par, parString, false);
+            help_item( &cout, par, parString, false);
           }
         else
 	  {
@@ -164,7 +165,7 @@ namespace lib {
 	    for (SizeT t=0; t < nTags; ++t)
 	      {    
 		DString tagString = s->Desc()->TagName(t);
-                help_item( s->Get(t), tagString, true);
+                help_item(  &cout, s->Get(t), tagString, true);
 	      }
           }
       }
@@ -185,6 +186,8 @@ namespace lib {
 	EnvBaseT* caller = e->Caller();
 
 	SizeT nEnv = caller->EnvSize();
+
+	stringstream strS;
 	for( SizeT i=0; i<nEnv; ++i)
 	  {
 	    BaseGDL*& par=caller->GetKW( i);
@@ -193,7 +196,20 @@ namespace lib {
 	    
 	    DString parString = caller->GetString( par);
 
-	    help_item( par, parString, false);
+	    help_item(  &strS, par, parString, false);
+	  }
+
+	deque<DString> toSort;
+	for( SizeT i=0; i<nEnv; ++i)
+	  {
+	    char buf[ 256];
+	    strS.getline( buf, 256);
+	    toSort.push_back( buf);
+	  }
+	sort( toSort.begin(), toSort.end());
+	for( SizeT i=0; i<nEnv; ++i)
+	  {
+	    cout << toSort[ i] << endl;
 	  }
       }
   }
