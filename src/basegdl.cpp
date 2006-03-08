@@ -85,11 +85,11 @@ void BaseGDL::Assign( BaseGDL* src, SizeT nEl)
   throw GDLException("BaseGDL::Assign(...) called.");
 }
 
-std::ostream& BaseGDL::Write( std::ostream& os, bool swapEndian)
+std::ostream& BaseGDL::Write( std::ostream& os, bool swapEndian, bool f77)
 {
   throw GDLException("BaseGDL::Write(...) called.");
 }
-std::istream& BaseGDL::Read( std::istream& os, bool swapEndian)
+std::istream& BaseGDL::Read( std::istream& os, bool swapEndian, bool f77)
 {
   throw GDLException("BaseGDL::Read(...) called.");
 }

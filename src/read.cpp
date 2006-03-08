@@ -35,8 +35,7 @@ namespace lib {
   {
     SizeT nParam=e->NParam();
     if( nParam < 1)
-      throw GDLException( e->CallingNode(),
-			  "READF: Incorrect number of arguments.");
+      e->Throw( "Incorrect number of arguments.");
 
     DLong lun;
     e->AssureLongScalarPar( 0, lun);
@@ -47,13 +46,16 @@ namespace lib {
     if( stdLun)
       {
 	if( lun != 0)
-	  throw GDLException( e->CallingNode(),
-			      "READF: Cannot read from stdout and stderr."
-			      " Unit: "+i2s( lun));
+	  e->Throw( "Cannot read from stdout and stderr."
+		    " Unit: "+i2s( lun));
 	is = &cin;
       }
     else
       {
+	if( fileUnits[ lun-1].F77())
+	  e->Throw( "Formatted IO not allowed with F77_UNFORMATTED "
+		    "files. Unit: "+i2s( lun));
+	
 	is = &fileUnits[ lun-1].IStream();
       }
 

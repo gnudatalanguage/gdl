@@ -40,12 +40,14 @@ const string StreamInfo( ios* searchStream)
 }
 
 void GDLStream::Open( const string& name_,
-		     ios_base::openmode mode_,
-		     bool swapEndian_, bool dOC, 
+		      ios_base::openmode mode_,
+		      bool swapEndian_, bool dOC, 
 		      SizeT width_,
-		      bool f77)
+		      bool f77_)
 { 
-  if( f77)
+  f77 = f77_;
+
+  if( f77_)
     throw GDLException("F77_UNFORMATTED format not supported.");
 
   if( fStream == NULL)
@@ -81,6 +83,7 @@ void GDLStream::Close()
 	std::remove(name.c_str());
     }
   name="";
+  f77=false;
   swapEndian=false;
   deleteOnClose=false;
   width = defaultStreamWidth;

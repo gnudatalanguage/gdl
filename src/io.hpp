@@ -28,8 +28,6 @@
 
 // the file IO system consists of 128 GDLStream objects
 
-//using namespace std;
-
 const int maxLun=128;    // within GDL, internal max LUN is 127
 const int maxUserLun=99; // within GDL, internal always lun-1 is used
 
@@ -44,6 +42,7 @@ class GDLStream
 
   std::fstream* fStream;
 
+  bool f77; // FORTRAN unformatted
   bool swapEndian;
   bool deleteOnClose;
 
@@ -60,6 +59,7 @@ public:
     name(), 
     mode(), 
     fStream(NULL), 
+    f77(false),
     swapEndian(false),
     deleteOnClose(false),
     width( defaultStreamWidth),
@@ -77,6 +77,8 @@ public:
 	     SizeT width, bool f77);
   
   void Close(); 
+  
+  bool F77() { return f77;}
 
   bool Eof()
   {

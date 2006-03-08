@@ -1209,10 +1209,32 @@ ostream& DStructGDL::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 
 
 // unformatted ***************************************** 
+// TODO:
+// f77 for srtrings
+// check f77 for structs (counted as one or multiple records)
 template<class Sp>
-ostream& Data_<Sp>::Write( ostream& os, bool swapEndian)
+ostream& Data_<Sp>::Write( ostream& os, bool swapEndian, bool f77)
 {
   SizeT count = dd.size();
+
+  // F77 before
+  assert( sizeof( DLong) == 4);
+  DLong tCount;
+  char swapTCount[ sizeof( DLong)];
+  if( f77)
+    {
+      tCount = count * sizeof(Ty);
+      if( swapEndian)
+	{
+	  for( SizeT i=0; i<sizeof( DLong); ++i)
+	    swapTCount[i] = reinterpret_cast<char*>(&tCount)[ sizeof( DLong)-1-i];
+	  os.write(swapTCount,sizeof( DLong));
+	}
+      else
+	{
+	  os.write(reinterpret_cast<char*>(&tCount),sizeof( DLong));
+	}
+    }
 
   if( swapEndian && (sizeof(Ty) != 1))
     {
@@ -1232,9 +1254,22 @@ ostream& Data_<Sp>::Write( ostream& os, bool swapEndian)
     }
   else
     {
-      os.write( reinterpret_cast<char*>(&dd[0]),
-		count * sizeof(Ty));
+      os.write( reinterpret_cast<char*>(&dd[0]), count * sizeof(Ty));
     }
+
+  // F77 after
+  if( f77)
+    {
+      if( swapEndian)
+	{
+	  os.write(swapTCount,sizeof( DLong));
+	}
+      else
+	{
+	  os.write(reinterpret_cast<char*>(&tCount),sizeof( DLong));
+	}
+    }
+
   
   if( os.eof())
     {
@@ -1252,10 +1287,17 @@ ostream& Data_<Sp>::Write( ostream& os, bool swapEndian)
 }
 
 template<class Sp>
-istream& Data_<Sp>::Read( istream& os, bool swapEndian)
+istream& Data_<Sp>::Read( istream& os, bool swapEndian, bool f77)
 {
   SizeT count = dd.size();
   
+  assert( sizeof( DLong) == 4);
+  char f77Check[ sizeof( DLong)];
+  if( f77)
+    {
+      os.read( f77Check, sizeof( DLong));
+    }
+
   if( swapEndian && (sizeof(Ty) != 1))
     {
       char* cData = reinterpret_cast<char*>(&dd[0]);
@@ -1278,6 +1320,15 @@ istream& Data_<Sp>::Read( istream& os, bool swapEndian)
 		count * sizeof(Ty));
     }
   
+  if( f77)
+    {
+      char f77CheckAft[ sizeof( DLong)];
+      os.read( f77CheckAft, sizeof( DLong));
+      for( SizeT i=0; i<sizeof( DLong); ++i)
+	if( f77Check[i] != f77CheckAft[i])
+	  throw GDLException("Error in F77_UNFORMATTED data.");
+    }
+
   if( os.eof())
     {
       os.clear();
@@ -1292,10 +1343,10 @@ istream& Data_<Sp>::Read( istream& os, bool swapEndian)
 }
 
 template<>
-ostream& Data_<SpDString>::Write( ostream& os, bool swapEndian)
+ostream& Data_<SpDString>::Write( ostream& os, bool swapEndian, bool f77)
 {
   SizeT count = dd.size();
-  
+
   for( SizeT i=0; i<count; i++)
     {
       os.write( dd[i].c_str(), dd[i].size());
@@ -1315,7 +1366,7 @@ ostream& Data_<SpDString>::Write( ostream& os, bool swapEndian)
 }
 
 template<>
-istream& Data_<SpDString>::Read( istream& os, bool swapEndian)
+istream& Data_<SpDString>::Read( istream& os, bool swapEndian, bool f77)
 {
   SizeT count = dd.size();
   

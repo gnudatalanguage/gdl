@@ -37,8 +37,7 @@ namespace lib {
   {
     SizeT nParam=e->NParam();
     if( nParam < 1)
-      throw GDLException( e->CallingNode(),
-			  "PRINTF: Incorrect number of arguments.");
+      e->Throw( "Incorrect number of arguments.");
 
     DLong lun;
     e->AssureLongScalarPar( 0, lun);
@@ -50,15 +49,18 @@ namespace lib {
     if( stdLun)
       {
 	if( lun == 0)
-	  throw GDLException( e->CallingNode(),
-			      "WRITEU: Cannot write to stdin. Unit: "+i2s( lun));
-      
+	  e->Throw( "Cannot write to stdin. Unit: "+i2s( lun));
+	
 	os = (lun == -1)? &cout : &cerr;
-
+	
 	width = TermWidth();
       }
     else
       {
+	if( fileUnits[ lun-1].F77())
+	  e->Throw( "Formatted IO not allowed with F77_UNFORMATTED "
+		    "files. Unit: "+i2s( lun));
+	
 	os = &fileUnits[ lun-1].OStream();
 	width = fileUnits[ lun-1].Width();
       }

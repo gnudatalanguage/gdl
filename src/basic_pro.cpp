@@ -574,6 +574,7 @@ namespace lib {
     e->AssureLongScalarPar( 0, lun);
 
     ostream* os;
+    bool f77 = false;
     bool swapEndian = false;
 
     bool stdLun = check_lun( e, lun);
@@ -587,13 +588,14 @@ namespace lib {
     else
       {
 	os = &fileUnits[ lun-1].OStream();
+	f77 = fileUnits[ lun-1].F77();
 	swapEndian = fileUnits[ lun-1].SwapEndian();
       }
 
     for( SizeT i=1; i<nParam; i++)
       {
 	BaseGDL* p = e->GetParDefined( i);
-	p->Write( *os, swapEndian);
+	p->Write( *os, swapEndian, f77);
       }
   }
 
@@ -605,6 +607,7 @@ namespace lib {
     e->AssureLongScalarPar( 0, lun);
 
     istream* is;
+    bool f77 = false;
     bool swapEndian = false;
 
     bool stdLun = check_lun( e, lun);
@@ -618,13 +621,14 @@ namespace lib {
     else
       {
 	is = &fileUnits[ lun-1].IStream();
+	f77 = fileUnits[ lun-1].F77();
 	swapEndian = fileUnits[ lun-1].SwapEndian();
       }
 
     for( SizeT i=1; i<nParam; i++)
       {
 	BaseGDL* p = e->GetParDefined( i);
-	p->Read( *is, swapEndian);
+	p->Read( *is, swapEndian, f77);
       }
   }
 

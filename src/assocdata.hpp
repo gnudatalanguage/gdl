@@ -72,11 +72,11 @@ public:
     throw GDLException("Assoc_::NBytes() called.");
   }
   
-  std::ostream& Write( std::ostream& os, bool swapEndian)
+  std::ostream& Write( std::ostream& os, bool swapEndian, bool f77)
   {
     throw GDLException("Assoc_::Write(...) called.");
   }
-  std::istream& Read( std::istream& os, bool swapEndian)
+  std::istream& Read( std::istream& os, bool swapEndian, bool f77)
   {
     throw GDLException("Assoc_::Read(...) called.");
   }
