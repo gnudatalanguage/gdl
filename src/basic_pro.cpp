@@ -44,38 +44,38 @@ namespace lib {
   using namespace std;
 
   // display help for one variable or one structure tag
-  void help_item( ostream* os,
+  void help_item( ostream& os,
 		  BaseGDL* par, DString parString, bool doIndentation)
   {
-    if( doIndentation) (*os) << "   ";
+    if( doIndentation) os << "   ";
 
     // Name display
-    (*os).width(16);
-    (*os) << left << parString;
+    os.width(16);
+    os << left << parString;
     if( parString.length() >= 16)
       {
-        (*os) << endl;
-        (*os).width(doIndentation? 19:16);
-        (*os) << "";
+        os << endl;
+        os.width(doIndentation? 19:16);
+        os << "";
       }
 
     // Type display
     if( !par)
       {
-        (*os) << "UNDEFINED = <Undefined>" << endl;
+        os << "UNDEFINED = <Undefined>" << endl;
         return;
       }
-    (*os).width(10);
-    (*os) << par->TypeStr() << right;
+    os.width(10);
+    os << par->TypeStr() << right;
 
-    if( !doIndentation) (*os) << "= ";
+    if( !doIndentation) os << "= ";
 
     // Data display
     if( par->Type() == STRUCT)
       {
         DStructGDL* s = static_cast<DStructGDL*>( par);
-        (*os) << "-> ";
-        (*os) << (s->Desc()->IsUnnamed()? "<Anonymous>" : s->Desc()->Name());
+        os << "-> ";
+        os << (s->Desc()->IsUnnamed()? "<Anonymous>" : s->Desc()->Name());
       }
     else if( par->Dim( 0) == 0)
       {
@@ -83,20 +83,20 @@ namespace lib {
 	  {
             // trim string larger than 45 characters
             DString dataString = (*static_cast<DStringGDL*>(par))[0];
-            (*os) << "'" << StrMid( dataString,0,45,0) << "'";
-	    if( dataString.length() > 45) (*os) << "...";
+            os << "'" << StrMid( dataString,0,45,0) << "'";
+	    if( dataString.length() > 45) os << "...";
 	  }
 	else
 	  {
-            par->ToStream( (*os));
+            par->ToStream( os);
 	  }
       }
 
     // Dimension display
-    if( par->Dim( 0) != 0) (*os) << par->Dim();
+    if( par->Dim( 0) != 0) os << par->Dim();
 
     // End of line
-    (*os) << endl;
+    os << endl;
   }
 
   void help( EnvT* e)
@@ -152,7 +152,7 @@ namespace lib {
 	DString parString = e->Caller()->GetString( par);
 	if( !par || !isKWSetStructures || par->Type() != STRUCT)
           {
-            help_item( &cout, par, parString, false);
+            help_item( cout, par, parString, false);
           }
         else
 	  {
@@ -165,7 +165,7 @@ namespace lib {
 	    for (SizeT t=0; t < nTags; ++t)
 	      {    
 		DString tagString = s->Desc()->TagName(t);
-                help_item(  &cout, s->Get(t), tagString, true);
+                help_item(  cout, s->Get(t), tagString, true);
 	      }
           }
       }
@@ -187,30 +187,47 @@ namespace lib {
 
 	SizeT nEnv = caller->EnvSize();
 
-	stringstream strS;
-	for( SizeT i=0; i<nEnv; ++i)
+	set<string> helpStr;
+	for ( int i = 0; i < nEnv; ++i ) 
 	  {
 	    BaseGDL*& par=caller->GetKW( i);
 	    if( par == NULL) 
 	      continue;
 	    
 	    DString parString = caller->GetString( par);
+	    
+	    stringstream ss;
+	    help_item( ss, par, parString, false);
+	    
+	    helpStr.insert( ss.str() );
+	  }
+	copy( helpStr.begin(), helpStr.end(),
+	      ostream_iterator<string>( cout) );
 
-	    help_item(  &strS, par, parString, false);
-	  }
+// 	stringstream strS;
+// 	for( SizeT i=0; i<nEnv; ++i)
+// 	  {
+// 	    BaseGDL*& par=caller->GetKW( i);
+// 	    if( par == NULL) 
+// 	      continue;
+	    
+// 	    DString parString = caller->GetString( par);
 
-	deque<DString> toSort;
-	for( SizeT i=0; i<nEnv; ++i)
-	  {
-	    char buf[ 256];
-	    strS.getline( buf, 256);
-	    toSort.push_back( buf);
-	  }
-	sort( toSort.begin(), toSort.end());
-	for( SizeT i=0; i<nEnv; ++i)
-	  {
-	    cout << toSort[ i] << endl;
-	  }
+// 	    help_item(  &strS, par, parString, false);
+// 	  }
+
+// 	deque<DString> toSort;
+// 	for( SizeT i=0; i<nEnv; ++i)
+// 	  {
+// 	    char buf[ 256];
+// 	    strS.getline( buf, 256);
+// 	    toSort.push_back( buf);
+// 	  }
+// 	sort( toSort.begin(), toSort.end());
+// 	for( SizeT i=0; i<nEnv; ++i)
+// 	  {
+// 	    cout << toSort[ i] << endl;
+// 	  }
       }
   }
   

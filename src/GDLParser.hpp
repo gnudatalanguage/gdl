@@ -145,7 +145,8 @@ public:
 	public: void tag_def_list();
 	public: void tag_def();
 	public: void ntag_def();
-	public: void ntag_def_list();
+	public: void ntag_defs();
+	public: void named_tag_def_entry();
 	public: void numeric_constant();
 	public: void arrayindex_list();
 	public: void arrayindex();
@@ -224,6 +225,8 @@ private:
 	static const antlr::BitSet _tokenSet_16;
 	static const unsigned long _tokenSet_17_data_[];
 	static const antlr::BitSet _tokenSet_17;
+	static const unsigned long _tokenSet_18_data_[];
+	static const antlr::BitSet _tokenSet_18;
 };
 
 #endif /*INC_GDLParser_hpp_*/

@@ -732,13 +732,18 @@ ntag_def
     | expr
 	;	
 
-ntag_def_list
+ntag_defs
 	: ntag_def (options {greedy=true;} : COMMA! ntag_def)*
 	;	
 
+named_tag_def_entry
+    :   ( (INHERITS)=> INHERITS IDENTIFIER
+        | ntag_defs 
+        )
+    ;
+
 named_tag_def_list
-	: (ntag_def_list | INHERITS IDENTIFIER)
-		( COMMA! (ntag_def_list | INHERITS IDENTIFIER))*
+	: named_tag_def_entry ( COMMA! named_tag_def_entry)*
 	;	
 
 numeric_constant!//
@@ -938,9 +943,12 @@ sysvar
 
 // variable name
 var
-  : IDENTIFIER
-	{ #var = #([VAR,"VAR"],var);}
-  ;
+    :   ( IDENTIFIER
+        | i:INHERITS { #i->setType( IDENTIFIER);}  
+        // fake IDENTIFIER (variable name can be "INHERITS")
+        )
+        { #var = #([VAR,"VAR"],var);}
+    ;
 
 // this is SYNTACTIALLY ok as an lvalue, but if one try to assign
 // something to an non-var an error is raised
