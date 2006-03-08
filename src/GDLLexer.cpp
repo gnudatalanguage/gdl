@@ -52,7 +52,7 @@ void GDLLexer::initLiterals()
 	literals["function"] = 67;
 	literals["endfor"] = 87;
 	literals["gt"] = 178;
-	literals["inherits"] = 130;
+	literals["inherits"] = 128;
 	literals["of"] = 75;
 	literals["or"] = 180;
 	literals["if"] = 119;

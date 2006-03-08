@@ -227,6 +227,8 @@ private:
 	static const antlr::BitSet _tokenSet_17;
 	static const unsigned long _tokenSet_18_data_[];
 	static const antlr::BitSet _tokenSet_18;
+	static const unsigned long _tokenSet_19_data_[];
+	static const antlr::BitSet _tokenSet_19;
 };
 
 #endif /*INC_GDLParser_hpp_*/

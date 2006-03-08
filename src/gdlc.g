@@ -702,6 +702,7 @@ struct_identifier
 	:   ( IDENTIFIER 
         | s:SYSVARNAME  { #s->setType( IDENTIFIER);}  
         | e:EXCLAMATION { #e->setType( IDENTIFIER);}  
+        | i:INHERITS    { #i->setType( IDENTIFIER);}  
         ) 
         // fake IDENTIFIER (struct tag can also be "!" or "!XXXX")
         // no additinal subtype is needed here, as struct_def already creates
@@ -729,7 +730,7 @@ tag_def_list
 
 ntag_def
 	: tag_def
-    | expr
+    | expr // for named structs, just the definition is ok
 	;	
 
 ntag_defs
@@ -737,7 +738,7 @@ ntag_defs
 	;	
 
 named_tag_def_entry
-    :   ( (INHERITS)=> INHERITS IDENTIFIER
+    :   ( (INHERITS) => INHERITS struct_identifier
         | ntag_defs 
         )
     ;
@@ -942,12 +943,18 @@ sysvar
   	;
 
 // variable name
-var
-    :   ( IDENTIFIER
-        | i:INHERITS { #i->setType( IDENTIFIER);}  
+var!
+    :   ( id:IDENTIFIER
+            { 
+                #var = #([VAR,"VAR"],id);
+            }
+        | ih:INHERITS 
+            { 
+                #ih->setType( IDENTIFIER);
+                #var = #([VAR,"VAR"],ih);
+            }  
         // fake IDENTIFIER (variable name can be "INHERITS")
         )
-        { #var = #([VAR,"VAR"],var);}
     ;
 
 // this is SYNTACTIALLY ok as an lvalue, but if one try to assign
@@ -978,7 +985,6 @@ array_expr_1st!
 			{ #array_expr_1st = #e;}
 		)
 	;	
-
 
 array_expr_nth_sub
 	: IDENTIFIER
