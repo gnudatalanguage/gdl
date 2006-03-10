@@ -237,7 +237,7 @@ template<>
 Data_<SpDByte>* Data_<SpDComplexDbl>::LogNeg();
 
 // datatypes.cpp
-// template<>  SizeT Data_<SpDString>::NBytes() const;
+template<>  SizeT Data_<SpDString>::NBytes() const;
 // template<>  SizeT Data_<SpDObj>::NBytes() const;
 // template<>  SizeT Data_<SpDPtr>::NBytes() const;
 template<>  SizeT Data_<SpDComplex>::ToTransfer() const;

@@ -47,8 +47,8 @@ void GDLStream::Open( const string& name_,
 { 
   f77 = f77_;
 
-  if( f77_)
-    throw GDLException("F77_UNFORMATTED format not supported.");
+//   if( f77_)
+//     throw GDLException("F77_UNFORMATTED format not supported.");
 
   if( fStream == NULL)
     fStream = new fstream();

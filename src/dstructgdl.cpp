@@ -696,18 +696,3 @@ BaseGDL* DStructGDL::Get( SizeT tag)
   return aD.Resolve();
 }
 
-ostream& DStructGDL::Write( ostream& os, bool swapEndian, bool f77)
-{
-  SizeT count = dd.size();
-  for( SizeT i=0; i<count; i++)
-    dd[i]->Write( os, swapEndian, f77);
-  return os;
-}
-
-istream& DStructGDL::Read( istream& os, bool swapEndian, bool f77)
-{
-  SizeT count = dd.size();
-  for( SizeT i=0; i<count; i++)
-    dd[i]->Read( os, swapEndian, f77);
-  return os;
-}

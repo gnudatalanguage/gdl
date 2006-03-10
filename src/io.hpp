@@ -125,6 +125,9 @@ public:
     if( fStream == NULL)
       throw GDLException("File unit is not open.");
 
+    if( fStream->eof())
+      fStream->clear();
+
     SizeT fSize = Size();
     if( pos > fSize) Pad( pos - fSize);
 

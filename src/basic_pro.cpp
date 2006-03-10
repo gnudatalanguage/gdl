@@ -627,7 +627,13 @@ namespace lib {
 
     for( SizeT i=1; i<nParam; i++)
       {
-	BaseGDL* p = e->GetParDefined( i);
+	BaseGDL* p = e->GetPar( i);
+	if( p == NULL)
+	  {
+	    e->AssureGlobalPar( i);
+	    p = new DFloatGDL( 0.0);
+	    e->SetPar( i, p);
+	  }
 	p->Read( *is, swapEndian, f77);
       }
   }

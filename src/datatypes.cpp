@@ -555,10 +555,14 @@ SizeT Data_<Sp>::NBytes() const
 
 // string, ptr, obj cannot calculate their bytes
 // only used by assoc function
-// template<> SizeT Data_<SpDString>::NBytes() const
-// {
-//   throw GDLException("string data");
-// }
+template<> SizeT Data_<SpDString>::NBytes() const
+{
+  SizeT nEl = dd.size();
+  SizeT nB = 0;
+  for( SizeT i=0; i<nEl; ++i)
+    nB += dd[i].size();
+  return nB;
+}
 // template<> SizeT Data_<SpDObj>::NBytes() const
 // {
 //   throw GDLException("object references");
