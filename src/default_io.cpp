@@ -1501,7 +1501,6 @@ istream& DStructGDL::Read( istream& os, bool swapEndian, bool f77)
     {
       if( os.eof())
 	throw GDLException("End of file encountered.");
-
       DULong tCountRd = F77Read( os, swapEndian);
   
       SizeT relPos = 0;
@@ -1535,11 +1534,11 @@ istream& DStructGDL::Read( istream& os, bool swapEndian, bool f77)
 				ios_base::in | ios_base::out);
       
       DULong tCountRdAft = F77Read( os, swapEndian);
-      
       if( os.eof())
 	throw GDLException("End of file encountered.");
       if( !os.good())
 	throw GDLException("Error reading data.");
+
       if( tCountRd != tCountRdAft)
 	throw GDLException("Error in F77_UNFORMATTED data.");
     }
