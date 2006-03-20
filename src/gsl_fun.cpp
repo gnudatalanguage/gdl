@@ -860,13 +860,18 @@ namespace lib {
 			  "HISTOGRAM: String expression not allowed in this context: "
 			  +e->GetParString(0));
 
-    DDoubleGDL* binsize = e->IfDefGetKWAs<DDoubleGDL>( 0);
+    BaseGDL* binsizeKW = e->GetKW( 0);
+    DDouble binsize;
+    if( binsizeKW != NULL)
+      e->AssureDoubleScalarKW( 0, binsize);
+
+    // the following should be changed like 'binsize'
     DLongGDL* input = e->IfDefGetKWAs<DLongGDL>( 1);
     DDoubleGDL* max = e->IfDefGetKWAs<DDoubleGDL>( 2);
     DDoubleGDL* min = e->IfDefGetKWAs<DDoubleGDL>( 3);
     DLongGDL* nbins = e->IfDefGetKWAs<DLongGDL>( 4);
 
-    if (binsize != NULL && nbins != NULL && max != NULL)
+    if (binsizeKW != NULL && nbins != NULL && max != NULL)
       throw GDLException( e->CallingNode(), 
 			  "HISTOGRAM: Conflicting keywords.");
 
@@ -874,32 +879,44 @@ namespace lib {
       (p0->Convert2( DOUBLE, BaseGDL::COPY));
     e->Guard( p0D);
 
-    if (min == NULL) {
-      if( p0->Type() == BYTE)
-	a = 0.0;
-      else {
-	a = (*p0D)[0];
-	for( SizeT i=1; i<nEl; ++i) {
-	  if ((*p0D)[i] < a) a = (*p0D)[i];
-	}
-      }
-    } else a = (*min)[0];
+    // get min max
+    DDouble minVal = (*p0D)[0];
+    DDouble maxVal = minVal;
+    for( SizeT i=1; i<nEl; ++i)
+      if ((*p0D)[i] < minVal) 
+	minVal = (*p0D)[i];
+      else if ((*p0D)[i] > maxVal) 
+	maxVal = (*p0D)[i];
 
-    if (max == NULL) {
-      if (binsize != NULL && nbins != NULL) {
-	b = a + (*binsize)[0] * (*nbins)[0];
-      } else {
-	b = (*p0D)[0];
-	for( SizeT i=1; i<nEl; ++i) {
-	  if ((*p0D)[i] > b) b = (*p0D)[i];
-	}
-      }
-    } else b = (*max)[0];
+    if (min == NULL) 
+      {
+	if( p0->Type() == BYTE)
+	  a = 0.0;
+	else 
+	  a = minVal;
+      } 
+    else 
+      e->AssureDoubleScalarKW( 3, a);
+    
+    // max
+    if (max == NULL) 
+      {
+	if (binsizeKW != NULL && nbins != NULL) 
+	  b = a + binsize * (*nbins)[0];
+	else 
+	  b = maxVal;
+      } 
+    else 
+      e->AssureDoubleScalarKW( 2, b);
 
-    a -= 1e-15;
-    b += 1e-15;
+    if( a > maxVal || b < minVal || binsize <= 0)
+      e->Throw( "Illegal binsize or max/min.");
+    
+    // ???
+    a -= a * 1e-15;
+    b += b * 1e-15;
 
-    if (binsize != NULL) bsize = (*binsize)[0];
+    if (binsizeKW != NULL) bsize = binsize;
     nh = (DULong) ((b - a) / bsize + 1);
     if (nbins != NULL) nh = (*nbins)[0];
 
@@ -968,7 +985,7 @@ namespace lib {
 	(*(DLongGDL*) *revindKW)[i] = k + nh + 1;
       }
     }
-
+    
     // LOCATIONS
     if( e->KeywordPresent( 8)) {
       BaseGDL** locationsKW = &e->GetKW( 8);
