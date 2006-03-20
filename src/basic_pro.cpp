@@ -592,11 +592,35 @@ namespace lib {
 	swapEndian = fileUnits[ lun-1].SwapEndian();
       }
 
-    for( SizeT i=1; i<nParam; i++)
+    if( f77)
       {
-	BaseGDL* p = e->GetParDefined( i);
-	p->Write( *os, swapEndian, f77);
+	// count record length
+	SizeT nBytesAll = 0;
+	for( SizeT i=1; i<nParam; i++)
+	  {
+	    BaseGDL* p = e->GetParDefined( i);
+	    nBytesAll += p->NBytes();
+	  }
+	
+	// write record length
+	fileUnits[ lun-1].F77Write( nBytesAll);
+
+	// write data
+	for( SizeT i=1; i<nParam; i++)
+	  {
+	    BaseGDL* p = e->GetPar( i); // defined already checked
+	    p->Write( *os, swapEndian);
+	  }
+
+	// write record length
+	fileUnits[ lun-1].F77Write( nBytesAll);
       }
+    else
+      for( SizeT i=1; i<nParam; i++)
+	{
+	  BaseGDL* p = e->GetParDefined( i);
+	  p->Write( *os, swapEndian);
+	}
   }
 
   void readu( EnvT* e)
@@ -625,17 +649,47 @@ namespace lib {
 	swapEndian = fileUnits[ lun-1].SwapEndian();
       }
 
-    for( SizeT i=1; i<nParam; i++)
+    if( f77)
       {
-	BaseGDL* p = e->GetPar( i);
-	if( p == NULL)
+	SizeT recordLength = fileUnits[ lun-1].F77ReadStart();
+
+	SizeT relPos = 0;
+	for( SizeT i=1; i<nParam; i++)
 	  {
-	    e->AssureGlobalPar( i);
-	    p = new DFloatGDL( 0.0);
-	    e->SetPar( i, p);
+	    BaseGDL* p = e->GetPar( i);
+	    if( p == NULL)
+	      {
+		e->AssureGlobalPar( i);
+		p = new DFloatGDL( 0.0);
+		e->SetPar( i, p);
+	      }
+
+	    SizeT nBytes = p->NBytes();
+
+	    if( (relPos + nBytes) > recordLength)
+	      e->Throw( "Attempt to read past end of F77_UNFORMATTED "
+			"file record.");
+
+	    p->Read( *is, swapEndian);
+
+	    relPos += nBytes;
 	  }
-	p->Read( *is, swapEndian, f77);
+
+	// forward to next record if necessary
+	fileUnits[ lun-1].F77ReadEnd();
       }
+    else
+      for( SizeT i=1; i<nParam; i++)
+	{
+	  BaseGDL* p = e->GetPar( i);
+	  if( p == NULL)
+	    {
+	      e->AssureGlobalPar( i);
+	      p = new DFloatGDL( 0.0);
+	      e->SetPar( i, p);
+	    }
+	  p->Read( *is, swapEndian);
+	}
   }
 
   void on_error( EnvT* e)

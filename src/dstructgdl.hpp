@@ -262,8 +262,8 @@ public:
 
 #endif
 
-  std::ostream& Write( std::ostream& os, bool swapEndian, bool f77);
-  std::istream& Read( std::istream& os, bool swapEndian, bool f77);
+  std::ostream& Write( std::ostream& os, bool swapEndian);
+  std::istream& Read( std::istream& os, bool swapEndian);
 
   bool True()
   { throw GDLException("Struct expression not allowed in this context.");}

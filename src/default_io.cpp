@@ -1209,53 +1209,12 @@ ostream& DStructGDL::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 
 
 // unformatted ***************************************** 
-// TODO:
-// f77 for strings
-// check f77 for structs (counted as one or multiple records)
-
-void F77Write( ostream& os, DULong tCount, bool swapEndian)
-{
-  assert( sizeof( DULong) == 4);
-  if( swapEndian)
-    {
-      char swapTCount[ sizeof( DULong)];
-      for( SizeT i=0; i<sizeof( DULong); ++i)
-	swapTCount[i] = reinterpret_cast<char*>(&tCount)[ sizeof( DULong)-1-i];
-      os.write(swapTCount,sizeof( DULong));
-    }
-  else
-    {
-      os.write(reinterpret_cast<char*>(&tCount),sizeof( DULong));
-    }
-}
-
-DULong F77Read( istream& os, bool swapEndian)
-{
-  assert( sizeof( DULong) == 4);
-  DULong tCountRd;
-  if( swapEndian)
-    {
-      char swapTCount[ sizeof( DULong)];
-      os.read( swapTCount, sizeof( DULong));
-      for( SizeT i=0; i<sizeof( DULong); ++i)
-	reinterpret_cast<char*>(&tCountRd)[ sizeof( DULong)-1-i] = swapTCount[i];
-    }
-  else
-    {
-      os.read(reinterpret_cast<char*>(&tCountRd),sizeof( DULong));
-    }
-  return tCountRd;
-}
-
 template<class Sp>
-ostream& Data_<Sp>::Write( ostream& os, bool swapEndian, bool f77)
+ostream& Data_<Sp>::Write( ostream& os, bool swapEndian)
 {
   if( os.eof()) os.clear();
 
   SizeT count = dd.size();
-
-  if( f77)
-    F77Write( os, count * sizeof(Ty), swapEndian);
 
   if( swapEndian && (sizeof(Ty) != 1))
     {
@@ -1275,11 +1234,14 @@ ostream& Data_<Sp>::Write( ostream& os, bool swapEndian, bool f77)
     }
   else
     {
-      os.write( reinterpret_cast<char*>(&dd[0]), count * sizeof(Ty));
+      os.write( reinterpret_cast<char*>(&dd[0]),
+		count * sizeof(Ty));
     }
-
-  if( f77)
-    F77Write( os, count * sizeof(Ty), swapEndian);
+  
+//   if( os.eof())
+//     {
+//       os.clear();
+//     }
 
   if( !os.good())
     {
@@ -1292,26 +1254,17 @@ ostream& Data_<Sp>::Write( ostream& os, bool swapEndian, bool f77)
 }
 
 template<class Sp>
-istream& Data_<Sp>::Read( istream& os, bool swapEndian, bool f77)
+istream& Data_<Sp>::Read( istream& os, bool swapEndian)
 {
   if( os.eof())
     throw GDLException("End of file encountered.");
 
   SizeT count = dd.size();
-  SizeT cCount = count * sizeof(Ty);
   
-  DULong tCountRd;
-  if( f77)
-    {
-      tCountRd = F77Read( os, swapEndian);
-      
-      // truncate to record size
-      if( tCountRd < cCount) cCount = tCountRd;
-    }
-
   if( swapEndian && (sizeof(Ty) != 1))
     {
       char* cData = reinterpret_cast<char*>(&dd[0]);
+      SizeT cCount = count * sizeof(Ty);
 
       char swap[ sizeof(Ty)];
       for( SizeT i=0; i<cCount; i += sizeof(Ty))
@@ -1326,60 +1279,42 @@ istream& Data_<Sp>::Read( istream& os, bool swapEndian, bool f77)
     }
   else
     {
-      os.read( reinterpret_cast<char*>(&dd[0]), cCount);
+      os.read( reinterpret_cast<char*>(&dd[0]),
+		count * sizeof(Ty));
     }
   
-  if( f77)
-    {
-      DLong dist = tCountRd - count * sizeof(Ty);
-      
-      // forward position pointer if data smaller than record
-      if( dist > 0)
-	os.rdbuf()->pubseekoff( dist, ios_base::cur, ios_base::in | ios_base::out);
-
-      DULong tCountRdAft = F77Read( os, swapEndian);
-      
-      if( tCountRd != tCountRdAft)
-	throw GDLException("Error in F77_UNFORMATTED data.");
-      
-      if( dist < 0)
-	throw GDLException("Attempt to read past end of F77_UNFORMATTED "
-			   "file record.");
-    }
-
   if( os.eof())
     throw GDLException("End of file encountered.");
 
+//   if( os.eof())
+//     {
+//       os.clear();
+//     }
+
   if( !os.good())
     {
-//       if( !os.eof())
       throw GDLException("Error reading data.");
     }
-  
+
   return os;
 }
 
 template<>
-ostream& Data_<SpDString>::Write( ostream& os, bool swapEndian, bool f77)
+ostream& Data_<SpDString>::Write( ostream& os, bool swapEndian)
 {
   if( os.eof()) os.clear();
 
   SizeT count = dd.size();
-
-  DULong tCount;
-  if( f77)
-    {
-      tCount = NBytes();
-      F77Write( os, tCount, swapEndian);
-    }
-
+  
   for( SizeT i=0; i<count; i++)
     {
       os.write( dd[i].c_str(), dd[i].size());
     }
   
-  if( f77)
-    F77Write( os, tCount, swapEndian);
+//   if( os.eof()) 
+//     {
+//       os.clear();
+//     }
 
   if( !os.good())
     {
@@ -1390,45 +1325,19 @@ ostream& Data_<SpDString>::Write( ostream& os, bool swapEndian, bool f77)
 }
 
 template<>
-istream& Data_<SpDString>::Read( istream& os, bool swapEndian, bool f77)
+istream& Data_<SpDString>::Read( istream& os, bool swapEndian)
 {
   if( os.eof())
     throw GDLException("End of file encountered.");
 
   SizeT count = dd.size();
   
-  DULong tCountRd;
-  SizeT relPos;
-  if( f77)
-    {
-      relPos = 0;
-      tCountRd = F77Read( os, swapEndian);
-    }
-
   SizeT maxLen = 1024;
   vector<char> buf( maxLen);
 
   for( SizeT i=0; i<count; i++)
     {
       SizeT nChar = dd[i].size();
-
-      if( f77)
-	{
-	  relPos += nChar;
-	  if( relPos > tCountRd)
-	    {
-	      relPos -= nChar;
-	      DLong dist = tCountRd - relPos;
-
-	      // forward position pointer if data smaller than record
-	      if( dist > 0)
-		os.rdbuf()->pubseekoff( dist, ios_base::cur, 
-					ios_base::in | ios_base::out);
-
-	      throw GDLException("Attempt to read past end of F77_UNFORMATTED "
-				 "file record.");
-	    }
-	}
 
       if( nChar > 0)
 	{
@@ -1444,24 +1353,13 @@ istream& Data_<SpDString>::Read( istream& os, bool swapEndian, bool f77)
 	}
     }
 
-  if( f77)
-    {
-      DLong dist = tCountRd - relPos;
-      
-      // forward position pointer if data smaller than record
-      if( dist > 0)
-	os.rdbuf()->pubseekoff( dist, ios_base::cur, 
-				ios_base::in | ios_base::out);
-      
-      DULong tCountRdAft = F77Read( os, swapEndian);
-      
-      if( tCountRd != tCountRdAft)
-	throw GDLException("Error in F77_UNFORMATTED data.");
-    }
-  
+//   if( os.eof())
+//     {
+//       os.clear();
+//     }
   if( os.eof())
     throw GDLException("End of file encountered.");
-  
+
   if( !os.good())
     {
       throw GDLException("Error reading data.");
@@ -1470,84 +1368,19 @@ istream& Data_<SpDString>::Read( istream& os, bool swapEndian, bool f77)
   return os;
 }
 
-ostream& DStructGDL::Write( ostream& os, bool swapEndian, bool f77)
+ostream& DStructGDL::Write( ostream& os, bool swapEndian)
 {
-  DULong tCount;
-  if( f77)
-    {
-      if( os.eof()) os.clear();
-      tCount = NBytes();
-      F77Write( os, tCount, swapEndian);
-    }
-  
   SizeT count = dd.size();
   for( SizeT i=0; i<count; i++)
-    dd[i]->Write( os, swapEndian, false);
-  
-  if( f77)
-    {
-      F77Write( os, tCount, swapEndian);
-      if( !os.good())
-	throw GDLException("Error writing data.");
-    }
-  
+    dd[i]->Write( os, swapEndian);
   return os;
 }
 
-istream& DStructGDL::Read( istream& os, bool swapEndian, bool f77)
+istream& DStructGDL::Read( istream& os, bool swapEndian)
 {
-  DULong tCountRd;
-  if( f77)
-    {
-      if( os.eof())
-	throw GDLException("End of file encountered.");
-      DULong tCountRd = F77Read( os, swapEndian);
-  
-      SizeT relPos = 0;
-      
-      SizeT count = dd.size();
-      for( SizeT i=0; i<count; i++)
-	{
-	  relPos += dd[i]->NBytes();
-	  if( relPos > tCountRd)
-	    {
-	      relPos -= dd[i]->NBytes();
-	      DLong dist = tCountRd - relPos;
-	      
-	      // forward position pointer if data smaller than record
-	      if( dist > 0)
-		os.rdbuf()->pubseekoff( dist, ios_base::cur, 
-					ios_base::in | ios_base::out);
-
-	      throw GDLException("Attempt to read past end of F77_UNFORMATTED "
-				 "file record.");
-	    }
-
-	  dd[i]->Read( os, swapEndian, false);
-	}
-      
-      DLong dist = tCountRd - relPos;
-      
-      // forward position pointer if data smaller than record
-      if( dist > 0)
-	os.rdbuf()->pubseekoff( dist, ios_base::cur, 
-				ios_base::in | ios_base::out);
-      
-      DULong tCountRdAft = F77Read( os, swapEndian);
-      if( os.eof())
-	throw GDLException("End of file encountered.");
-      if( !os.good())
-	throw GDLException("Error reading data.");
-
-      if( tCountRd != tCountRdAft)
-	throw GDLException("Error in F77_UNFORMATTED data.");
-    }
-  else
-    {
-      SizeT count = dd.size();
-      for( SizeT i=0; i<count; i++)
-	dd[i]->Read( os, swapEndian, false);
-    }
+  SizeT count = dd.size();
+  for( SizeT i=0; i<count; i++)
+    dd[i]->Read( os, swapEndian);
   return os;
 }
 

@@ -23,6 +23,7 @@
 #include <iostream>
 #include <string>
 #include <cmath>
+#include <cassert>
 
 #include "gdlexception.hpp"
 
@@ -50,7 +51,9 @@ class GDLStream
 
   SizeT lastSeekPos;
 
+  // for F77
   SizeT lastRecord;
+  SizeT lastRecordStart;
   
   void Pad( SizeT nBytes); // puts out nBytes zero bytes
 
@@ -63,7 +66,9 @@ public:
     swapEndian(false),
     deleteOnClose(false),
     width( defaultStreamWidth),
-    lastSeekPos( 0)
+    lastSeekPos( 0),
+    lastRecord( 0),
+    lastRecordStart( 0)
   {}
 
   ~GDLStream() 
@@ -78,8 +83,6 @@ public:
   
   void Close(); 
   
-  bool F77() { return f77;}
-
   bool Eof()
   {
     if( fStream == NULL)
@@ -96,6 +99,9 @@ public:
   {
     if( fStream == NULL)
       throw GDLException("File unit is not open.");
+
+    if( fStream->eof())
+      fStream->clear();
 
     fStream->rdbuf()->pubseekpos( pos, std::ios_base::in | std::ios_base::out);
   
@@ -155,6 +161,14 @@ public:
   std::fstream& OStream(); 
 
   friend const std::string StreamInfo( std::ios* searchStream);
+
+  // F77_UNFORMATTED stuff
+  bool F77() { return f77;}
+
+  void F77Write( DULong tCount);
+
+  DULong F77ReadStart();
+  void   F77ReadEnd();
 };
 
 

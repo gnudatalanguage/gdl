@@ -70,6 +70,8 @@ void GDLStream::Open( const string& name_,
   swapEndian = swapEndian_;
   deleteOnClose = dOC;
   lastSeekPos = 0;
+  lastRecord = 0;
+  lastRecordStart = 0;
   width = width_;
 }
 
@@ -126,3 +128,99 @@ void GDLStream::Pad( SizeT nBytes)
   for( SizeT i=0; i<nBuf; i++) fStream->write( buf, bufSize);
   if( lastBytes > 0) fStream->write( buf, lastBytes);
 }
+
+void GDLStream::F77Write( DULong tCount)
+{
+  if( fStream->eof()) fStream->clear();
+
+  assert( sizeof( DULong) == 4);
+  if( swapEndian)
+    {
+      char swapTCount[ sizeof( DULong)];
+      for( SizeT i=0; i<sizeof( DULong); ++i)
+	swapTCount[i] = 
+	  reinterpret_cast<char*>(&tCount)[ sizeof( DULong)-1-i];
+      fStream->write(swapTCount,sizeof( DULong));
+    }
+  else
+    {
+      fStream->write(reinterpret_cast<char*>(&tCount),sizeof( DULong));
+    }
+
+  if( !fStream->good())
+    {
+      throw GDLException("Error writing F77_UNFORMATTED record data.");
+    }  
+}
+
+DULong GDLStream::F77ReadStart()
+{
+  if( fStream->eof())
+    throw GDLException("End of file encountered.");
+
+  assert( sizeof( DULong) == 4);
+  DULong tCountRd;
+  if( swapEndian)
+    {
+      char swapTCount[ sizeof( DULong)];
+      fStream->read( swapTCount, sizeof( DULong));
+      for( SizeT i=0; i<sizeof( DULong); ++i)
+	reinterpret_cast<char*>(&tCountRd)[ sizeof( DULong)-1-i] = 
+	  swapTCount[i];
+    }
+  else
+    {
+      fStream->read(reinterpret_cast<char*>(&tCountRd),sizeof( DULong));
+    }
+
+  if( fStream->eof())
+    throw GDLException("End of file encountered.");
+
+  if( !fStream->good())
+    {
+      throw GDLException("Error reading F77_UNFORMATTED record data.");
+    }  
+
+  lastRecord = tCountRd;
+  lastRecordStart = Tell();
+  return tCountRd;
+}
+
+void GDLStream::F77ReadEnd()
+{
+  if( fStream->eof())
+    throw GDLException("End of file encountered.");
+
+  SizeT actPos = Tell();
+  if( actPos > (lastRecordStart+lastRecord))
+    throw GDLException( "Read past end of Record of F77_UNFORAMTTED file.");
+
+  if( actPos < (lastRecordStart+lastRecord))
+    Seek( lastRecordStart+lastRecord);
+  
+  DULong tCountRd;
+  if( swapEndian)
+    {
+      char swapTCount[ sizeof( DULong)];
+      fStream->read( swapTCount, sizeof( DULong));
+      for( SizeT i=0; i<sizeof( DULong); ++i)
+	reinterpret_cast<char*>(&tCountRd)[ sizeof( DULong)-1-i] = 
+	  swapTCount[i];
+    }
+  else
+    {
+      fStream->read(reinterpret_cast<char*>(&tCountRd),sizeof( DULong));
+    }
+
+  if( fStream->eof())
+    throw GDLException("End of file encountered.");
+
+  if( !fStream->good())
+    {
+      throw GDLException("Error reading F77_UNFORMATTED record data.");
+    }  
+
+  if( lastRecord != tCountRd)
+    throw GDLException( "Logical error in F77_UNFORAMTTED file.");
+}
+

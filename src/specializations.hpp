@@ -403,9 +403,9 @@ std::ostream& Data_<SpDByte>::ToStream(std::ostream& o, SizeT w, SizeT* actPosPt
 template<>  
 std::ostream& Data_<SpDString>::ToStream(std::ostream& o, SizeT w, SizeT* actPosPtr); 
 template<> 
-std::ostream& Data_<SpDString>::Write( std::ostream& os, bool swapEndian, bool f77);
+std::ostream& Data_<SpDString>::Write( std::ostream& os, bool swapEndian);
 template<> 
-std::istream& Data_<SpDString>::Read( std::istream& os, bool swapEndian, bool f77);
+std::istream& Data_<SpDString>::Read( std::istream& os, bool swapEndian);
 
 // ifmt.cpp
 template<>  SizeT Data_<SpDString>::
