@@ -872,6 +872,7 @@ namespace lib {
 
     DDoubleGDL *p0D = static_cast<DDoubleGDL*>
       (p0->Convert2( DOUBLE, BaseGDL::COPY));
+    e->Guard( p0D);
 
     if (min == NULL) {
       if( p0->Type() == BYTE)
