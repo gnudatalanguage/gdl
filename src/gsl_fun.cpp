@@ -840,40 +840,49 @@ namespace lib {
 
   BaseGDL* histogram_fun( EnvT* e)
   {
+    const double smallVal = 1e-15;
+
     double a;
     double b;
-    double bsize=1;
-    DULong nh, nri;
+    DULong nri;
 
     SizeT nParam=e->NParam();
 
-    BaseGDL* p0 = e->GetParDefined( 0);
+    BaseGDL* p0 = e->GetNumericParDefined( 0);
     SizeT nEl = p0->N_Elements();
 
     if( p0->Type() == COMPLEX || p0->Type() == COMPLEXDBL)
-      throw GDLException( e->CallingNode(), 
-			  "HISTOGRAM: Complex expression not allowed in this context: "
-			  +e->GetParString(0));
-
-    if( p0->Type() == STRING)
-      throw GDLException( e->CallingNode(), 
-			  "HISTOGRAM: String expression not allowed in this context: "
-			  +e->GetParString(0));
+      e->Throw( "Complex expression not allowed in this context: "
+		+e->GetParString(0));
+    
+    // INPUT not supported yet
+    DLongGDL* input = e->IfDefGetKWAs<DLongGDL>( 1);
+    if( input != NULL)
+      e->Throw( "INPUT not supported.");
 
     BaseGDL* binsizeKW = e->GetKW( 0);
-    DDouble binsize;
+    DDouble bsize = 1.0;
     if( binsizeKW != NULL)
-      e->AssureDoubleScalarKW( 0, binsize);
+      {
+	e->AssureDoubleScalarKW( 0, bsize);
+	if( bsize <= 0.0)
+	  e->Throw( "Illegal BINSIZE.");
+      }
 
-    // the following should be changed like 'binsize'
-    DLongGDL* input = e->IfDefGetKWAs<DLongGDL>( 1);
-    DDoubleGDL* max = e->IfDefGetKWAs<DDoubleGDL>( 2);
-    DDoubleGDL* min = e->IfDefGetKWAs<DDoubleGDL>( 3);
-    DLongGDL* nbins = e->IfDefGetKWAs<DLongGDL>( 4);
+    BaseGDL* maxKW = e->GetKW( 2);
+//     DDouble max;
+//     if( maxKW != NULL)
+//       e->AssureDoubleScalarKW( 2, max);
 
-    if (binsizeKW != NULL && nbins != NULL && max != NULL)
-      throw GDLException( e->CallingNode(), 
-			  "HISTOGRAM: Conflicting keywords.");
+    BaseGDL* minKW = e->GetKW( 3);
+//     DDouble min;
+//     if( minKW != NULL)
+//       e->AssureDoubleScalarKW( 3, min);
+
+    BaseGDL* nbinsKW = e->GetKW( 4);
+
+    if( binsizeKW != NULL && nbinsKW != NULL && maxKW != NULL)
+      e->Throw( "Conflicting keywords.");
 
     DDoubleGDL *p0D = static_cast<DDoubleGDL*>
       (p0->Convert2( DOUBLE, BaseGDL::COPY));
@@ -888,7 +897,8 @@ namespace lib {
       else if ((*p0D)[i] > maxVal) 
 	maxVal = (*p0D)[i];
 
-    if (min == NULL) 
+    // min
+    if (minKW == NULL) 
       {
 	if( p0->Type() == BYTE)
 	  a = 0.0;
@@ -898,92 +908,105 @@ namespace lib {
     else 
       e->AssureDoubleScalarKW( 3, a);
     
-    // max
-    if (max == NULL) 
+    DLong nh;
+    if( nbinsKW != NULL)
       {
-	if (binsizeKW != NULL && nbins != NULL) 
-	  b = a + binsize * (*nbins)[0];
+	e->AssureLongScalarKW( 4, nh);
+	if( nh < 0)
+	  e->Throw( "Illegal NBINS.");
+      }
+
+    // max
+    if (maxKW == NULL) 
+      {
+	if (binsizeKW != NULL && nbinsKW != NULL) 
+	  b = a + bsize * nh;
 	else 
 	  b = maxVal;
       } 
     else 
       e->AssureDoubleScalarKW( 2, b);
 
-    if( a > maxVal || b < minVal || binsize <= 0)
-      e->Throw( "Illegal binsize or max/min.");
+    if( a > maxVal || b < minVal)
+      e->Throw( "Illegal BINSIZE or MAX/MIN.");
     
-    // ???
-    a -= a * 1e-15;
-    b += b * 1e-15;
+    // gsl histogram needs this adjustment
+    double aOri = a;
+    if( b != a)
+      {
+	a -= (b-a) * smallVal;
+	b += (b-a) * smallVal;
+      }
+    else
+      {
+	a = -smallVal;
+	b =  smallVal;
+      }
 
-    if (binsizeKW != NULL) bsize = binsize;
-    nh = (DULong) ((b - a) / bsize + 1);
-    if (nbins != NULL) nh = (*nbins)[0];
+    if( nbinsKW == NULL)
+      nh = static_cast< DLong>( floor( (b - a) / bsize) + 1);
 
-    gsl_histogram * h = gsl_histogram_alloc (nh);
-    gsl_histogram_set_ranges_uniform (h, a, b);
+    gsl_histogram* hh = gsl_histogram_alloc( nh);
+    gsl_histogram_set_ranges_uniform( hh, a, b);
 
     for( SizeT i=0; i<nEl; ++i) {
-      gsl_histogram_increment (h, (*p0D)[i]);
+      gsl_histogram_increment(hh, (*p0D)[i]);
     }
 
-    //    dimension dim(&nh, (SizeT) 1);
-    dimension dim( nh); // ambiguous on OS X:  (&n, (SizeT) 1);
+    dimension dim( nh);
     DLongGDL* res = new DLongGDL(dim, BaseGDL::NOZERO);
 
     for( SizeT i=0; i<nh; ++i) {
-      (*res)[i] = (DLong) gsl_histogram_get (h, i);
+      (*res)[i] = static_cast<DLong>( gsl_histogram_get(hh, i));
     }
-
 
     // OMAX
     if( e->KeywordPresent( 5)) {
-      BaseGDL** omaxKW = &e->GetKW( 5);
-      delete (*omaxKW); 
-      *omaxKW = new DDoubleGDL( gsl_histogram_max(h));
+      e->SetKW( 5, new DDoubleGDL( gsl_histogram_max(hh)));
     }
 
 
     // OMIN
     if( e->KeywordPresent( 6)) {
-      BaseGDL** ominKW = &e->GetKW( 6);
-      delete (*ominKW); 
-      *ominKW = new DDoubleGDL( gsl_histogram_min(h));
+      e->SetKW( 6, new DDoubleGDL( gsl_histogram_min(hh)));
     }
 
 
     // REVERSE_INDICES
     if( e->KeywordPresent( 7)) {
-      BaseGDL** revindKW = &e->GetKW( 7);
-      delete (*revindKW);
 
-      DULong bin;
       DULong k = 0;
       for( SizeT j=0; j<nEl; ++j)
-	if ((*p0D)[j] >= a && (*p0D)[j] <= b) k++;
+	if( (*p0D)[j] >= a && (*p0D)[j] <= b) k++;
 
       nri = nh + k + 1;
       dimension dim( nri);
-      *revindKW = new DLongGDL( dim, BaseGDL::NOZERO);
+      DLongGDL* revindKW = new DLongGDL( dim, BaseGDL::NOZERO);
 
       k = 0;
       for( SizeT i=0; i<nh; ++i) {
 	for( SizeT j=0; j<nEl; ++j) {
-	  if ((*p0D)[j] >= a && (*p0D)[j] <= b) {
-	    gsl_histogram_find (h, (*p0D)[j], (size_t*) &bin);
-	    if (bin == i) {
-	      (*(DLongGDL*) *revindKW)[nh+1+k] = j;
-	      k++;
+	  if( (*p0D)[j] >= a && (*p0D)[j] <= b) 
+	    {
+	      size_t bin;
+	      gsl_histogram_find (hh, (*p0D)[j], &bin);
+	      
+	      if( bin == i) 
+		{
+		  (*revindKW)[nh+1+k] = j;
+		  k++;
+		}
 	    }
-	  }
 	}
       }
-      (*(DLongGDL*) *revindKW)[0] = nh + 1;
+      (*revindKW)[0] = nh + 1;
       k = 0;
       for( SizeT i=1; i<=nh; ++i) {
 	k += (*res)[i-1];
-	(*(DLongGDL*) *revindKW)[i] = k + nh + 1;
+	(*revindKW)[i] = k + nh + 1;
       }
+
+      e->SetKW( 7, revindKW);
     }
     
     // LOCATIONS
@@ -991,49 +1014,73 @@ namespace lib {
       BaseGDL** locationsKW = &e->GetKW( 8);
       delete (*locationsKW);
 
-      a += 1e-15;
-
       dimension dim( nh);
       if( p0->Type() == DOUBLE) {
+
 	*locationsKW = new DDoubleGDL( dim, BaseGDL::NOZERO);
 	for( SizeT i=0; i<nh; ++i)
-	  (*(DDoubleGDL*) *locationsKW)[i] = (DDouble) (a + bsize * i);
+	  (*static_cast<DDoubleGDL*>( *locationsKW))[i] = 
+	    static_cast<DDouble>(aOri + bsize * i);
+
       } else if (p0->Type() == FLOAT) {
+
 	*locationsKW = new DFloatGDL( dim, BaseGDL::NOZERO);
 	for( SizeT i=0; i<nh; ++i)
-	  (*(DFloatGDL*) *locationsKW)[i] = (DFloat) (a + bsize * i);
+	  (*static_cast<DFloatGDL*>( *locationsKW))[i] = 
+	    static_cast<DFloat>(aOri + bsize * i);
+
       } else if (p0->Type() == LONG) {
+
 	*locationsKW = new DLongGDL( dim, BaseGDL::NOZERO);
 	for( SizeT i=0; i<nh; ++i)
-	  (*(DLongGDL*) *locationsKW)[i] = (DLong) (a + bsize * i);
+	  (*static_cast<DLongGDL*>( *locationsKW))[i] = 
+	    static_cast<DLong>(aOri + bsize * i);
+
       } else if (p0->Type() == ULONG) {
+
 	*locationsKW = new DULongGDL( dim, BaseGDL::NOZERO);
 	for( SizeT i=0; i<nh; ++i)
-	  (*(DULongGDL*) *locationsKW)[i] = (DULong) (a + bsize * i);
+	  (*static_cast<DULongGDL*>( *locationsKW))[i] = 
+	    static_cast<DULong>(aOri + bsize * i);
+
       } else if (p0->Type() == LONG64) {
+
 	*locationsKW = new DLong64GDL( dim, BaseGDL::NOZERO);
 	for( SizeT i=0; i<nh; ++i)
-	  (*(DLong64GDL*) *locationsKW)[i] = (DLong64) (a + bsize * i);
+	  (*static_cast<DLong64GDL*>( *locationsKW))[i] = 
+	    static_cast<DLong64>(aOri + bsize * i);
+
       } else if (p0->Type() == ULONG64) {
+
 	*locationsKW = new DULong64GDL( dim, BaseGDL::NOZERO);
 	for( SizeT i=0; i<nh; ++i)
-	  (*(DULong64GDL*) *locationsKW)[i] = (DULong64) (a + bsize * i);
+	  (*static_cast<DULong64GDL*>( *locationsKW))[i] = 
+	    static_cast<DULong64>(aOri + bsize * i);
+
       } else if (p0->Type() == INT) {
+
 	*locationsKW = new DIntGDL( dim, BaseGDL::NOZERO);
 	for( SizeT i=0; i<nh; ++i)
-	  (*(DIntGDL*) *locationsKW)[i] = (DInt) (a + bsize * i);
+	  (*static_cast<DIntGDL*>( *locationsKW))[i] = 
+	    static_cast<DInt>(aOri + bsize * i);
+
       } else if (p0->Type() == UINT) {
+
 	*locationsKW = new DUIntGDL( dim, BaseGDL::NOZERO);
 	for( SizeT i=0; i<nh; ++i)
-	  (*(DUIntGDL*) *locationsKW)[i] = (DUInt) (a + bsize * i);
+	  (*static_cast<DUIntGDL*>( *locationsKW))[i] = 
+	    static_cast<DUInt>(aOri + bsize * i);
+
       } else if (p0->Type() == BYTE) {
+
 	*locationsKW = new DByteGDL( dim, BaseGDL::NOZERO);
 	for( SizeT i=0; i<nh; ++i)
-	  (*(DByteGDL*) *locationsKW)[i] = (DByte) (a + bsize * i);
+	  (*static_cast<DByteGDL*>( *locationsKW))[i] = 
+	    static_cast<DByte>(aOri + bsize * i);
       }
 
     }
-    gsl_histogram_free (h);
+    gsl_histogram_free (hh);
 
     return(res);
   }
