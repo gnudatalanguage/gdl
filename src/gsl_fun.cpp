@@ -939,8 +939,16 @@ namespace lib {
       }
     else
       {
-	a = -smallVal;
-	b =  smallVal;
+	if( a != 0.0)
+	  {
+	    a -=  a * smallVal;
+	    b +=  b * smallVal;
+	  }
+	else
+	  {
+	    a = -smallVal;
+	    b =  smallVal;
+	  }
       }
 
     if( nbinsKW == NULL)
