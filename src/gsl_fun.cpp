@@ -17,7 +17,7 @@
 
 #include "includefirst.hpp"
 
-#include <complex>
+#include <map>
 #include <cmath>
 
 #include "datatypes.hpp"
@@ -39,18 +39,16 @@
 #include <gsl/gsl_interp.h>
 #include <gsl/gsl_spline.h>
 
-#define LOG10E 0.434294
 
-//#define GDL_DEBUG
-#undef GDL_DEBUG
+#define LOG10E 0.434294
 
 
 namespace lib {
 
   using namespace std;
 
-  int szdbl=sizeof(double);
-  int szflt=sizeof(float);
+  const int szdbl=sizeof(double);
+  const int szflt=sizeof(float);
 
   BaseGDL* invert_fun( EnvT* e)
   {
@@ -991,33 +989,31 @@ namespace lib {
       dimension dim( nri);
       DLongGDL* revindKW = new DLongGDL( dim, BaseGDL::NOZERO);
 
-      vector<size_t> binV;
-      binV.reserve( k);
-      vector<SizeT> jV;
-      jV.reserve( k);
-      
+      multimap< size_t, SizeT> bin_j;
       for( SizeT j=0; j<nEl; ++j) {
 	if( (*p0D)[j] >= a && (*p0D)[j] <= b) 
 	  {
 	    size_t bin;
 	    gsl_histogram_find (hh, (*p0D)[j], &bin);
-	    
-	    binV.push_back( bin);
-	    jV.push_back( j);
+
+	    bin_j.insert( make_pair( bin, j));
 	  }
       }
 
       k = 0;
       for( SizeT i=0; i<nh; ++i) 
 	{
-	  // find i in binV
-	  for( SizeT b=0; b<binV.size(); ++b)
-	    if( binV[b] == i)
-	      {
-		(*revindKW)[nh+1+k] = jV[b];
-		k++;
-	      }
+	  typedef multimap< size_t, SizeT>::const_iterator mmI;
+	  
+	  pair< mmI, mmI> b = bin_j.equal_range( i);
+	  
+	  for( mmI j = b.first; j != b.second; ++j)
+	    {
+	      (*revindKW)[nh+1+k] = j->second;
+	      k++;
+	    }	    
 	}
+
 //       for( SizeT i=nh+1; i<nri; ++i)
 // 	cout << (*revindKW)[i] << " ";
 //       cout << endl;
