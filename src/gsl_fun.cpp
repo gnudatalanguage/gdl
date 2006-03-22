@@ -882,9 +882,12 @@ namespace lib {
     if( binsizeKW != NULL && nbinsKW != NULL && maxKW != NULL)
       e->Throw( "Conflicting keywords.");
 
-    DDoubleGDL *p0D = static_cast<DDoubleGDL*>
-      (p0->Convert2( DOUBLE, BaseGDL::COPY));
-    e->Guard( p0D);
+    DDoubleGDL *p0D = dynamic_cast<DDoubleGDL*>(p0);
+    if( p0D == NULL)
+      {
+	p0D = static_cast<DDoubleGDL*>(p0->Convert2( DOUBLE, BaseGDL::COPY));
+	e->Guard( p0D);
+      }
 
     // get min max
     DDouble minVal = (*p0D)[0];
@@ -982,22 +985,21 @@ namespace lib {
     if( e->KeywordPresent( 7)) {
 
       DULong k = 0;
-      for( SizeT j=0; j<nEl; ++j)
-	if( (*p0D)[j] >= a && (*p0D)[j] <= b) k++;
-
-      nri = nh + k + 1;
-      DLongGDL* revindKW = new DLongGDL( dimension( nri), BaseGDL::NOZERO);
-
       multimap< size_t, SizeT> bin_j;
       for( SizeT j=0; j<nEl; ++j) {
 	if( (*p0D)[j] >= a && (*p0D)[j] <= b) 
 	  {
+	    ++k;
+
 	    size_t bin;
 	    gsl_histogram_find (hh, (*p0D)[j], &bin);
 
 	    bin_j.insert( make_pair( bin, j));
 	  }
       }
+
+      nri = nh + k + 1;
+      DLongGDL* revindKW = new DLongGDL( dimension( nri), BaseGDL::NOZERO);
 
       k = 0;
       for( SizeT i=0; i<nh; ++i) 
