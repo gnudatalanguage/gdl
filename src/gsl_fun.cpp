@@ -868,16 +868,18 @@ namespace lib {
       }
 
     BaseGDL* maxKW = e->GetKW( 2);
-//     DDouble max;
-//     if( maxKW != NULL)
-//       e->AssureDoubleScalarKW( 2, max);
-
     BaseGDL* minKW = e->GetKW( 3);
-//     DDouble min;
-//     if( minKW != NULL)
-//       e->AssureDoubleScalarKW( 3, min);
 
     BaseGDL* nbinsKW = e->GetKW( 4);
+    DLong nbins;
+    if( nbinsKW != NULL)
+      {
+	e->AssureLongScalarKW( 4, nbins);
+	if( nbins < 0)
+	  e->Throw( "Illegal NBINS (<0).");
+	if( nbins == 0) // NBINS=0 is ignored
+	  nbinsKW = NULL;
+      }
 
     if( binsizeKW != NULL && nbinsKW != NULL && maxKW != NULL)
       e->Throw( "Conflicting keywords.");
@@ -890,6 +892,7 @@ namespace lib {
       }
 
     // get min max
+    // use MinMax here when NAN will be supported
     DDouble minVal = (*p0D)[0];
     DDouble maxVal = minVal;
     for( SizeT i=1; i<nEl; ++i)
@@ -909,26 +912,27 @@ namespace lib {
     else 
       e->AssureDoubleScalarKW( 3, a);
     
-    DLong nh;
-    if( nbinsKW != NULL)
-      {
-	e->AssureLongScalarKW( 4, nh);
-	if( nh < 0)
-	  e->Throw( "Illegal NBINS.");
-      }
-
     // max
     if (maxKW == NULL) 
       {
+	// !MAX && BINSIZE && NBINS -> determine MAX
 	if (binsizeKW != NULL && nbinsKW != NULL) 
-	  b = a + bsize * nh;
+	  b = a + bsize * nbins;
+	else if( p0->Type() == BYTE)
+	  b = 255.0;
 	else 
 	  b = maxVal;
       } 
-    else 
-      e->AssureDoubleScalarKW( 2, b);
+    else
+      {
+	e->AssureDoubleScalarKW( 2, b);
 
-    if( a > maxVal || b < minVal)
+	// MAX && !BINSIZE && NBINS -> determine BINSIZE
+	if( binsizeKW == NULL && nbinsKW != NULL)
+	  bsize = (b - a) / nbins;
+      }
+
+    if( a > maxVal || b < minVal || a > b)
       e->Throw( "Illegal BINSIZE or MAX/MIN.");
     
     // gsl histogram needs this adjustment
@@ -952,20 +956,21 @@ namespace lib {
 	  }
       }
 
+    // -> NBINS
     if( nbinsKW == NULL)
-      nh = static_cast< DLong>( floor( (b - a) / bsize) + 1);
+      nbins = static_cast< DLong>( floor( (b - a) / bsize) + 1);
 
-    gsl_histogram* hh = gsl_histogram_alloc( nh);
+    gsl_histogram* hh = gsl_histogram_alloc( nbins);
     gsl_histogram_set_ranges_uniform( hh, a, b);
 
     for( SizeT i=0; i<nEl; ++i) {
       gsl_histogram_increment(hh, (*p0D)[i]);
     }
 
-    dimension dim( nh);
+    dimension dim( nbins);
     DLongGDL* res = new DLongGDL(dim, BaseGDL::NOZERO);
 
-    for( SizeT i=0; i<nh; ++i) {
+    for( SizeT i=0; i<nbins; ++i) {
       (*res)[i] = static_cast<DLong>( gsl_histogram_get(hh, i));
     }
 
@@ -998,11 +1003,11 @@ namespace lib {
 	  }
       }
 
-      nri = nh + k + 1;
+      nri = nbins + k + 1;
       DLongGDL* revindKW = new DLongGDL( dimension( nri), BaseGDL::NOZERO);
 
       k = 0;
-      for( SizeT i=0; i<nh; ++i) 
+      for( SizeT i=0; i<nbins; ++i) 
 	{
 	  typedef multimap< size_t, SizeT>::const_iterator mmI;
 	  
@@ -1010,18 +1015,18 @@ namespace lib {
 	  
 	  for( mmI j = b.first; j != b.second; ++j)
 	    {
-	      (*revindKW)[nh+1+k] = j->second;
+	      (*revindKW)[nbins+1+k] = j->second;
 	      k++;
 	    }	    
 	}
 
-//       for( SizeT i=nh+1; i<nri; ++i)
+//       for( SizeT i=nbins+1; i<nri; ++i)
 // 	cout << (*revindKW)[i] << " ";
 //       cout << endl;
 
 
 //       k = 0;
-//       for( SizeT i=0; i<nh; ++i) {
+//       for( SizeT i=0; i<nbins; ++i) {
 // 	for( SizeT j=0; j<nEl; ++j) {
 
 // 	  if( (*p0D)[j] >= a && (*p0D)[j] <= b) 
@@ -1031,22 +1036,22 @@ namespace lib {
 	      
 // 	      if( bin == i) 
 // 		{
-// 		  (*revindKW)[nh+1+k] = j;
+// 		  (*revindKW)[nbins+1+k] = j;
 // 		  k++;
 // 		}
 // 	    }
 // 	}
 //       }
 
-//       for( SizeT i=nh+1; i<nri; ++i)
+//       for( SizeT i=nbins+1; i<nri; ++i)
 // 	cout << (*revindKW)[i] << " ";
 //       cout << endl;
 
-      (*revindKW)[0] = nh + 1;
+      (*revindKW)[0] = nbins + 1;
       k = 0;
-      for( SizeT i=1; i<=nh; ++i) {
+      for( SizeT i=1; i<=nbins; ++i) {
 	k += (*res)[i-1];
-	(*revindKW)[i] = k + nh + 1;
+	(*revindKW)[i] = k + nbins + 1;
       }
 
       e->SetKW( 7, revindKW);
@@ -1057,67 +1062,67 @@ namespace lib {
       BaseGDL** locationsKW = &e->GetKW( 8);
       delete (*locationsKW);
 
-      dimension dim( nh);
+      dimension dim( nbins);
       if( p0->Type() == DOUBLE) {
 
 	*locationsKW = new DDoubleGDL( dim, BaseGDL::NOZERO);
-	for( SizeT i=0; i<nh; ++i)
+	for( SizeT i=0; i<nbins; ++i)
 	  (*static_cast<DDoubleGDL*>( *locationsKW))[i] = 
 	    static_cast<DDouble>(aOri + bsize * i);
 
       } else if (p0->Type() == FLOAT) {
 
 	*locationsKW = new DFloatGDL( dim, BaseGDL::NOZERO);
-	for( SizeT i=0; i<nh; ++i)
+	for( SizeT i=0; i<nbins; ++i)
 	  (*static_cast<DFloatGDL*>( *locationsKW))[i] = 
 	    static_cast<DFloat>(aOri + bsize * i);
 
       } else if (p0->Type() == LONG) {
 
 	*locationsKW = new DLongGDL( dim, BaseGDL::NOZERO);
-	for( SizeT i=0; i<nh; ++i)
+	for( SizeT i=0; i<nbins; ++i)
 	  (*static_cast<DLongGDL*>( *locationsKW))[i] = 
 	    static_cast<DLong>(aOri + bsize * i);
 
       } else if (p0->Type() == ULONG) {
 
 	*locationsKW = new DULongGDL( dim, BaseGDL::NOZERO);
-	for( SizeT i=0; i<nh; ++i)
+	for( SizeT i=0; i<nbins; ++i)
 	  (*static_cast<DULongGDL*>( *locationsKW))[i] = 
 	    static_cast<DULong>(aOri + bsize * i);
 
       } else if (p0->Type() == LONG64) {
 
 	*locationsKW = new DLong64GDL( dim, BaseGDL::NOZERO);
-	for( SizeT i=0; i<nh; ++i)
+	for( SizeT i=0; i<nbins; ++i)
 	  (*static_cast<DLong64GDL*>( *locationsKW))[i] = 
 	    static_cast<DLong64>(aOri + bsize * i);
 
       } else if (p0->Type() == ULONG64) {
 
 	*locationsKW = new DULong64GDL( dim, BaseGDL::NOZERO);
-	for( SizeT i=0; i<nh; ++i)
+	for( SizeT i=0; i<nbins; ++i)
 	  (*static_cast<DULong64GDL*>( *locationsKW))[i] = 
 	    static_cast<DULong64>(aOri + bsize * i);
 
       } else if (p0->Type() == INT) {
 
 	*locationsKW = new DIntGDL( dim, BaseGDL::NOZERO);
-	for( SizeT i=0; i<nh; ++i)
+	for( SizeT i=0; i<nbins; ++i)
 	  (*static_cast<DIntGDL*>( *locationsKW))[i] = 
 	    static_cast<DInt>(aOri + bsize * i);
 
       } else if (p0->Type() == UINT) {
 
 	*locationsKW = new DUIntGDL( dim, BaseGDL::NOZERO);
-	for( SizeT i=0; i<nh; ++i)
+	for( SizeT i=0; i<nbins; ++i)
 	  (*static_cast<DUIntGDL*>( *locationsKW))[i] = 
 	    static_cast<DUInt>(aOri + bsize * i);
 
       } else if (p0->Type() == BYTE) {
 
 	*locationsKW = new DByteGDL( dim, BaseGDL::NOZERO);
-	for( SizeT i=0; i<nh; ++i)
+	for( SizeT i=0; i<nbins; ++i)
 	  (*static_cast<DByteGDL*>( *locationsKW))[i] = 
 	    static_cast<DByte>(aOri + bsize * i);
       }
