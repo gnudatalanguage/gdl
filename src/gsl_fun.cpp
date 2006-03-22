@@ -991,22 +991,60 @@ namespace lib {
       dimension dim( nri);
       DLongGDL* revindKW = new DLongGDL( dim, BaseGDL::NOZERO);
 
-      k = 0;
-      for( SizeT i=0; i<nh; ++i) {
-	for( SizeT j=0; j<nEl; ++j) {
-	  if( (*p0D)[j] >= a && (*p0D)[j] <= b) 
-	    {
-	      size_t bin;
-	      gsl_histogram_find (hh, (*p0D)[j], &bin);
-	      
-	      if( bin == i) 
-		{
-		  (*revindKW)[nh+1+k] = j;
-		  k++;
-		}
-	    }
-	}
+      vector<size_t> binV;
+      binV.reserve( k);
+      vector<SizeT> jV;
+      jV.reserve( k);
+      
+      for( SizeT j=0; j<nEl; ++j) {
+	if( (*p0D)[j] >= a && (*p0D)[j] <= b) 
+	  {
+	    size_t bin;
+	    gsl_histogram_find (hh, (*p0D)[j], &bin);
+	    
+	    binV.push_back( bin);
+	    jV.push_back( j);
+	  }
       }
+
+      k = 0;
+      for( SizeT i=0; i<nh; ++i) 
+	{
+	  // find i in binV
+	  for( SizeT b=0; b<binV.size(); ++b)
+	    if( binV[b] == i)
+	      {
+		(*revindKW)[nh+1+k] = jV[b];
+		k++;
+	      }
+	}
+//       for( SizeT i=nh+1; i<nri; ++i)
+// 	cout << (*revindKW)[i] << " ";
+//       cout << endl;
+
+
+//       k = 0;
+//       for( SizeT i=0; i<nh; ++i) {
+// 	for( SizeT j=0; j<nEl; ++j) {
+
+// 	  if( (*p0D)[j] >= a && (*p0D)[j] <= b) 
+// 	    {
+// 	      size_t bin;
+// 	      gsl_histogram_find (hh, (*p0D)[j], &bin);
+	      
+// 	      if( bin == i) 
+// 		{
+// 		  (*revindKW)[nh+1+k] = j;
+// 		  k++;
+// 		}
+// 	    }
+// 	}
+//       }
+
+//       for( SizeT i=nh+1; i<nri; ++i)
+// 	cout << (*revindKW)[i] << " ";
+//       cout << endl;
+
       (*revindKW)[0] = nh + 1;
       k = 0;
       for( SizeT i=1; i<=nh; ++i) {
