@@ -986,8 +986,7 @@ namespace lib {
 	if( (*p0D)[j] >= a && (*p0D)[j] <= b) k++;
 
       nri = nh + k + 1;
-      dimension dim( nri);
-      DLongGDL* revindKW = new DLongGDL( dim, BaseGDL::NOZERO);
+      DLongGDL* revindKW = new DLongGDL( dimension( nri), BaseGDL::NOZERO);
 
       multimap< size_t, SizeT> bin_j;
       for( SizeT j=0; j<nEl; ++j) {
