@@ -157,6 +157,7 @@
 	  Made GDL compile under x86_64 linux.
 	  Fixed incompatibility with # operator and one-dim vectors.
 	  Speedup for ^ operator for integral types.
+	  Speedup (>100x!) for REVERSE_INDICES of HISTOGRAM.
 	  Support for SAVE and RESTORE through Craig Markwardt's CMSVLIB
 	  library.
 	  Support for non-rectangular (x,y 2d arrays) calls to SURFACE and

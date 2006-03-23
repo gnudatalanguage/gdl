@@ -2,7 +2,7 @@
                                typetraits.hpp
                              -------------------
     begin                : July 22 2002
-    copyright            : (C) 2002 by Marc Schellens
+    copyright            : (C) 2002-2006 by Marc Schellens
     email                : m_schellens@users.sf.net
  ***************************************************************************/
 
@@ -42,6 +42,11 @@ struct SpDByte: public BaseGDL
   static const std::string str; 
   static const DByte zero;
 
+  static const bool IS_INTEGER;
+  static const bool IS_SIGNED;
+  static const bool IS_NUMERIC;
+  static const bool IS_COMPLEX;
+
   DType   Type()    const;
   const std::string& TypeStr() const;
 
@@ -62,6 +67,11 @@ struct SpDInt: public BaseGDL
   static const DType t;
   static const std::string str; 
   static const DInt zero;
+
+  static const bool IS_INTEGER;
+  static const bool IS_SIGNED;
+  static const bool IS_NUMERIC;
+  static const bool IS_COMPLEX;
 
   DType   Type()    const;
   const std::string& TypeStr() const;
@@ -84,6 +94,11 @@ struct SpDUInt: public BaseGDL
   static const std::string str; 
   static const DUInt zero;
 
+  static const bool IS_INTEGER;
+  static const bool IS_SIGNED;
+  static const bool IS_NUMERIC;
+  static const bool IS_COMPLEX;
+
   DType   Type()    const;
   const std::string& TypeStr() const;
 
@@ -104,6 +119,11 @@ struct SpDLong: public BaseGDL
   static const DType  t;
   static const std::string str; 
   static const DLong  zero;
+
+  static const bool IS_INTEGER;
+  static const bool IS_SIGNED;
+  static const bool IS_NUMERIC;
+  static const bool IS_COMPLEX;
 
   DType   Type()    const;
   const std::string& TypeStr() const;
@@ -126,6 +146,11 @@ struct SpDULong: public BaseGDL
   static const std::string str; 
   static const DULong zero;
 
+  static const bool IS_INTEGER;
+  static const bool IS_SIGNED;
+  static const bool IS_NUMERIC;
+  static const bool IS_COMPLEX;
+
   DType   Type()    const;
   const std::string& TypeStr() const;
 
@@ -146,6 +171,11 @@ struct SpDLong64: public BaseGDL
   static const DType  t;
   static const std::string str; 
   static const DLong64  zero;
+
+  static const bool IS_INTEGER;
+  static const bool IS_SIGNED;
+  static const bool IS_NUMERIC;
+  static const bool IS_COMPLEX;
 
   DType   Type()    const;
   const std::string& TypeStr() const;
@@ -168,6 +198,11 @@ struct SpDULong64: public BaseGDL
   static const std::string str; 
   static const DULong64 zero;
 
+  static const bool IS_INTEGER;
+  static const bool IS_SIGNED;
+  static const bool IS_NUMERIC;
+  static const bool IS_COMPLEX;
+
   DType   Type()    const;
   const std::string& TypeStr() const;
 
@@ -188,6 +223,11 @@ struct SpDFloat: public BaseGDL
   static const DType  t;
   static const std::string str; 
   static const DFloat zero;
+
+  static const bool IS_INTEGER;
+  static const bool IS_SIGNED;
+  static const bool IS_NUMERIC;
+  static const bool IS_COMPLEX;
 
   DType   Type()    const;
   const std::string& TypeStr() const;
@@ -210,6 +250,11 @@ struct SpDDouble: public BaseGDL
   static const std::string str; 
   static const DDouble zero;
 
+  static const bool IS_INTEGER;
+  static const bool IS_SIGNED;
+  static const bool IS_NUMERIC;
+  static const bool IS_COMPLEX;
+
   DType   Type()    const;
   const std::string& TypeStr() const;
 
@@ -230,6 +275,11 @@ struct SpDString: public BaseGDL
   static const DType    t;
   static const std::string str; 
   static const Ty       zero;
+
+  static const bool IS_INTEGER;
+  static const bool IS_SIGNED;
+  static const bool IS_NUMERIC;
+  static const bool IS_COMPLEX;
 
   DType   Type()    const;
   const std::string& TypeStr() const;
@@ -272,6 +322,11 @@ public:
   static const std::string str; 
   static const Ty     zero;
 
+  static const bool IS_INTEGER;
+  static const bool IS_SIGNED;
+  static const bool IS_NUMERIC;
+  static const bool IS_COMPLEX;
+
   DType   Type()    const;
   const std::string& TypeStr() const;
 
@@ -293,6 +348,11 @@ struct SpDPtr: public BaseGDL
   static const DType    t;
   static const std::string str; 
   static const Ty       zero;
+
+  static const bool IS_INTEGER;
+  static const bool IS_SIGNED;
+  static const bool IS_NUMERIC;
+  static const bool IS_COMPLEX;
 
   DType   Type()    const;
   const std::string& TypeStr() const;
@@ -316,6 +376,11 @@ struct SpDObj: public BaseGDL
   static const std::string str; 
   static const Ty       zero;
 
+  static const bool IS_INTEGER;
+  static const bool IS_SIGNED;
+  static const bool IS_NUMERIC;
+  static const bool IS_COMPLEX;
+
   DType   Type()    const;
   const std::string& TypeStr() const;
 
@@ -337,6 +402,11 @@ struct SpDComplex: public BaseGDL
   static const std::string str; 
   static const DComplex zero;
 
+  static const bool IS_INTEGER;
+  static const bool IS_SIGNED;
+  static const bool IS_NUMERIC;
+  static const bool IS_COMPLEX;
+
   DType   Type()    const;
   const std::string& TypeStr() const;
 
@@ -357,6 +427,11 @@ struct SpDComplexDbl: public BaseGDL
   static const DType  t;
   static const std::string str; 
   static const DComplexDbl zero;
+
+  static const bool IS_INTEGER;
+  static const bool IS_SIGNED;
+  static const bool IS_NUMERIC;
+  static const bool IS_COMPLEX;
 
   DType   Type()    const;
   const std::string& TypeStr() const;

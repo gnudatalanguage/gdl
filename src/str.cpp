@@ -172,7 +172,7 @@ double Str2D( const char* cStart)
   if( cEnd == cStart)
     {
       Warning("Type conversion error: "
-	      "Unable to convert given STRING to FLOAT.");
+	      "Unable to convert given STRING to DOUBLE.");
     }
   return ret;
 }

@@ -2,7 +2,7 @@
                           typetraits.cpp  -  type parameterization
                              -------------------
     begin                : July 22 2002
-    copyright            : (C) 2002 by Marc Schellens
+    copyright            : (C) 2002-2006 by Marc Schellens
     email                : m_schellens@users.sf.net
 ***************************************************************************/
 
@@ -26,6 +26,10 @@ using namespace std;
 const DType  SpDByte::t=BYTE; // type ID
 const string SpDByte::str("BYTE"); // type string
 const DByte  SpDByte::zero=0;
+const bool SpDByte::IS_INTEGER=true;
+const bool SpDByte::IS_SIGNED=false;
+const bool SpDByte::IS_NUMERIC=true;
+const bool SpDByte::IS_COMPLEX=false;
 BaseGDL* SpDByte::GetTag() const { return new SpDByte(*this);}
 DType   SpDByte::Type()    const { return t;}
 const std::string& SpDByte::TypeStr() const { return str;}
@@ -33,6 +37,10 @@ const std::string& SpDByte::TypeStr() const { return str;}
 const DType  SpDInt::t=INT; // type ID
 const string SpDInt::str("INT"); // type string
 const DInt   SpDInt::zero=0;
+const bool SpDInt::IS_INTEGER=true;
+const bool SpDInt::IS_SIGNED=true;
+const bool SpDInt::IS_NUMERIC=true;
+const bool SpDInt::IS_COMPLEX=false;
 BaseGDL* SpDInt::GetTag() const { return new SpDInt(*this);}
 DType   SpDInt::Type()    const { return t;}
 const std::string& SpDInt::TypeStr() const { return str;}
@@ -40,6 +48,10 @@ const std::string& SpDInt::TypeStr() const { return str;}
 const DType  SpDUInt::t=UINT; // type ID
 const string SpDUInt::str("UINT"); // type string
 const DUInt  SpDUInt::zero=0;
+const bool SpDUInt::IS_INTEGER=true;
+const bool SpDUInt::IS_SIGNED=false;
+const bool SpDUInt::IS_NUMERIC=true;
+const bool SpDUInt::IS_COMPLEX=false;
 BaseGDL* SpDUInt::GetTag() const { return new SpDUInt(*this);}
 DType   SpDUInt::Type()    const { return t;}
 const std::string& SpDUInt::TypeStr() const { return str;}
@@ -48,6 +60,10 @@ const std::string& SpDUInt::TypeStr() const { return str;}
 const DType  SpDLong::t=LONG; // type ID
 const string SpDLong::str("LONG"); // type string
 const DLong  SpDLong::zero=0;
+const bool SpDLong::IS_INTEGER=true;
+const bool SpDLong::IS_SIGNED=true;
+const bool SpDLong::IS_NUMERIC=true;
+const bool SpDLong::IS_COMPLEX=false;
 BaseGDL* SpDLong::GetTag() const { return new SpDLong(*this);}
 DType   SpDLong::Type()    const { return t;}
 const std::string& SpDLong::TypeStr() const { return str;}
@@ -55,6 +71,10 @@ const std::string& SpDLong::TypeStr() const { return str;}
 const DType  SpDULong::t=ULONG; // type ID
 const string SpDULong::str("ULONG"); // type string
 const DULong SpDULong::zero=0;
+const bool SpDULong::IS_INTEGER=true;
+const bool SpDULong::IS_SIGNED=false;
+const bool SpDULong::IS_NUMERIC=true;
+const bool SpDULong::IS_COMPLEX=false;
 BaseGDL* SpDULong::GetTag() const { return new SpDULong(*this);}
 DType   SpDULong::Type()    const { return t;}
 const std::string& SpDULong::TypeStr() const { return str;}
@@ -62,6 +82,10 @@ const std::string& SpDULong::TypeStr() const { return str;}
 const DType  SpDLong64::t=LONG64; // type ID
 const string SpDLong64::str("LONG64"); // type string
 const DLong64  SpDLong64::zero=0;
+const bool SpDLong64::IS_INTEGER=true;
+const bool SpDLong64::IS_SIGNED=true;
+const bool SpDLong64::IS_NUMERIC=true;
+const bool SpDLong64::IS_COMPLEX=false;
 BaseGDL* SpDLong64::GetTag() const { return new SpDLong64(*this);}
 DType   SpDLong64::Type()    const { return t;}
 const std::string& SpDLong64::TypeStr() const { return str;}
@@ -69,6 +93,10 @@ const std::string& SpDLong64::TypeStr() const { return str;}
 const DType  SpDULong64::t=ULONG64; // type ID
 const string SpDULong64::str("ULONG64"); // type string
 const DULong64 SpDULong64::zero=0;
+const bool SpDULong64::IS_INTEGER=true;
+const bool SpDULong64::IS_SIGNED=false;
+const bool SpDULong64::IS_NUMERIC=true;
+const bool SpDULong64::IS_COMPLEX=false;
 BaseGDL* SpDULong64::GetTag() const { return new SpDULong64(*this);}
 DType   SpDULong64::Type()    const { return t;}
 const std::string& SpDULong64::TypeStr() const { return str;}
@@ -76,6 +104,10 @@ const std::string& SpDULong64::TypeStr() const { return str;}
 const DType  SpDFloat::t=FLOAT; // type ID
 const string SpDFloat::str("FLOAT"); // type string
 const DFloat SpDFloat::zero=0.0;
+const bool SpDFloat::IS_INTEGER=false;
+const bool SpDFloat::IS_SIGNED=true;
+const bool SpDFloat::IS_NUMERIC=true;
+const bool SpDFloat::IS_COMPLEX=false;
 BaseGDL* SpDFloat::GetTag() const { return new SpDFloat(*this);}
 DType   SpDFloat::Type()    const { return t;}
 const std::string& SpDFloat::TypeStr() const { return str;}
@@ -83,6 +115,10 @@ const std::string& SpDFloat::TypeStr() const { return str;}
 const DType   SpDDouble::t=DOUBLE; // type ID
 const string  SpDDouble::str("DOUBLE"); // type string
 const DDouble SpDDouble::zero=0.0;
+const bool SpDDouble::IS_INTEGER=false;
+const bool SpDDouble::IS_SIGNED=true;
+const bool SpDDouble::IS_NUMERIC=true;
+const bool SpDDouble::IS_COMPLEX=false;
 BaseGDL* SpDDouble::GetTag() const { return new SpDDouble(*this);}
 DType   SpDDouble::Type()    const { return t;}
 const std::string& SpDDouble::TypeStr() const { return str;}
@@ -90,6 +126,10 @@ const std::string& SpDDouble::TypeStr() const { return str;}
 const DType   SpDString::t=STRING; // type ID
 const string  SpDString::str("STRING"); // type string
 const DString SpDString::zero(""); // zero string
+const bool SpDString::IS_INTEGER=false;
+const bool SpDString::IS_SIGNED=false;
+const bool SpDString::IS_NUMERIC=false;
+const bool SpDString::IS_COMPLEX=false;
 BaseGDL* SpDString::GetTag() const { return new SpDString(*this);}
 DType   SpDString::Type()    const { return t;}
 const std::string& SpDString::TypeStr() const { return str;}
@@ -97,6 +137,10 @@ const std::string& SpDString::TypeStr() const { return str;}
 const DType    SpDStruct::t=STRUCT;      // type ID
 const string   SpDStruct::str("STRUCT"); // type string
 const SpDStruct::Ty  SpDStruct::zero=NULL; // zero struct, special meaning
+const bool SpDStruct::IS_INTEGER=false;
+const bool SpDStruct::IS_SIGNED=false;
+const bool SpDStruct::IS_NUMERIC=false;
+const bool SpDStruct::IS_COMPLEX=false;
 BaseGDL* SpDStruct::GetTag() const 
 { 
   SpDStruct* newTag = new SpDStruct(*this);
@@ -109,6 +153,10 @@ const std::string& SpDStruct::TypeStr() const { return str;}
 const DType   SpDPtr::t=PTR;   // type ID
 const string  SpDPtr::str("PTR"); // type string
 const DPtr    SpDPtr::zero=0;  // zero ptr
+const bool SpDPtr::IS_INTEGER=false;
+const bool SpDPtr::IS_SIGNED=false;
+const bool SpDPtr::IS_NUMERIC=false;
+const bool SpDPtr::IS_COMPLEX=false;
 BaseGDL* SpDPtr::GetTag() const { return new SpDPtr(*this);}
 DType   SpDPtr::Type()    const { return t;}
 const std::string& SpDPtr::TypeStr() const { return str;}
@@ -116,6 +164,10 @@ const std::string& SpDPtr::TypeStr() const { return str;}
 const DType   SpDObj::t=OBJECT;   // type ID
 const string  SpDObj::str("OBJECT"); // type string
 const DObj    SpDObj::zero=0;  // zero ptr/obj
+const bool SpDObj::IS_INTEGER=false;
+const bool SpDObj::IS_SIGNED=false;
+const bool SpDObj::IS_NUMERIC=false;
+const bool SpDObj::IS_COMPLEX=false;
 BaseGDL* SpDObj::GetTag() const { return new SpDObj(*this);}
 DType   SpDObj::Type()    const { return t;}
 const std::string& SpDObj::TypeStr() const { return str;}
@@ -123,6 +175,10 @@ const std::string& SpDObj::TypeStr() const { return str;}
 const DType  SpDComplex::t=COMPLEX; // type ID
 const string SpDComplex::str("COMPLEX"); // type string
 const DComplex SpDComplex::zero(0.0,0.0);
+const bool SpDComplex::IS_INTEGER=false;
+const bool SpDComplex::IS_SIGNED=true;
+const bool SpDComplex::IS_NUMERIC=true;
+const bool SpDComplex::IS_COMPLEX=true;
 BaseGDL* SpDComplex::GetTag() const { return new SpDComplex(*this);}
 DType   SpDComplex::Type()    const { return t;}
 const std::string& SpDComplex::TypeStr() const { return str;}
@@ -130,6 +186,10 @@ const std::string& SpDComplex::TypeStr() const { return str;}
 const DType  SpDComplexDbl::t=COMPLEXDBL; // type ID
 const string SpDComplexDbl::str("DCOMPLEX"); // type string
 const DComplexDbl SpDComplexDbl::zero(0.0,0.0);
+const bool SpDComplexDbl::IS_INTEGER=false;
+const bool SpDComplexDbl::IS_SIGNED=true;
+const bool SpDComplexDbl::IS_NUMERIC=true;
+const bool SpDComplexDbl::IS_COMPLEX=true;
 BaseGDL* SpDComplexDbl::GetTag() const { return new SpDComplexDbl(*this);}
 DType   SpDComplexDbl::Type()    const { return t;}
 const std::string& SpDComplexDbl::TypeStr() const { return str;}

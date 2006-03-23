@@ -95,7 +95,7 @@ void LibInit_jmg()
   const string macharKey[]={"DOUBLE",KLISTEND};
   new DLibFun(lib::machar_fun,string("MACHAR"),0,macharKey);
 
-  const string finiteKey[]={"INFINITY",KLISTEND};
+  const string finiteKey[]={"INFINITY","NAN",KLISTEND};
   new DLibFun(lib::finite_fun,string("FINITE"),1,finiteKey);
 
   const string radonKey[]={"BACKPROJECT","DOUBLE","DRHO","DX","DY",

@@ -33,131 +33,6 @@ using namespace std;
 
 namespace lib {
 
-//   template< typename T>
-//   BaseGDL* transpose_fun_template( BaseGDL* p0,  
-// 				   SizeT Rank, dimension dim, SizeT dims[],
-// 				   DType type, long perm[])
-//   {
-//     SizeT sz = sizeof( typename T::Ty);
-//     T* p0C = static_cast<T*>( p0);
-//     T* res = new T( dim, BaseGDL::NOZERO);
-//     memcpy(&(*res)[0], &(*p0C)[0], p0C->N_Elements()*sz);
-//     transpose_perm((char *) &(*res)[0], Rank, dims, sz, p0->Type(), perm);
-//     return res;
-//   }
-
-//   BaseGDL* transpose_fun_jmg( EnvT* e)
-//   {
-//     SizeT nParam=e->NParam( 1); //, "TRANSPOSE");
-//     SizeT dims[MAXRANK];
-//     SizeT new_dims[MAXRANK];
-//     SizeT j;
-
-//     BaseGDL* p0 = e->GetParDefined( 0); //, "TRANSPOSE");
-
-//     SizeT nEl = p0->N_Elements();
-//     if( nEl == 0)
-//       throw GDLException( e->CallingNode(), 
-// 			  "TRANSPOSE: Variable is undefined: "+
-// 			  e->GetParString(0));
-    
-//     SizeT Rank = p0->Rank();
-//     if( Rank == 0)
-//       throw GDLException( e->CallingNode(), 
-// 			  "TRANSPOSE: Expression must be an array "
-// 			  "in this context: "+
-// 			  e->GetParString(0));
-
-//     long *perm = NULL;
-//     if( nParam == 2) 
-//       {
-// 	BaseGDL* p1 = e->GetParDefined( 1); //, "TRANSPOSE");
-// 	if (p1->N_Elements() != Rank)
-// 	  throw GDLException( e->CallingNode(), 
-// 			      "TRANSPOSE: Incorrect number of elements "
-// 			      "in permutation");
-
-// 	perm = new long[Rank];
-// 	DLongGDL* p1L = static_cast<DLongGDL*>
-// 	  (p1->Convert2( LONG, BaseGDL::COPY));
-// 	for( SizeT i=0; i<Rank; ++i) perm[i] = (*p1L)[ i];
-
-// 	for( SizeT i=0; i<Rank; ++i) {
-// 	  for( j=0; j<Rank; ++j) 
-// 	    if ((SizeT) perm[j] == i) break;
-// 	  if (j == Rank)
-// 	    throw GDLException( e->CallingNode(), 
-// 				"TRANSPOSE: Incorrect permutation vector");
-// 	}
-//       }
-
-//     for( SizeT i=0; i<Rank; ++i) dims[i] = p0->Dim(i);
-//     if (perm == NULL)
-//       for( SizeT i=0; i<Rank; ++i) new_dims[i] = dims[Rank-i-1];
-//     else
-//       for( SizeT i=0; i<Rank; ++i) new_dims[i] = dims[perm[i]];
-
-//     dimension dim((SizeT *) &new_dims, (SizeT) Rank);
-
-
-//     if (p0->Type() == COMPLEXDBL) {
-//       return transpose_fun_template< DComplexDblGDL>(p0, 
-// 						     Rank, dim, dims, 
-// 						     p0->Type(), perm);
-      
-//     } else if (p0->Type() == COMPLEX) {
-//       return transpose_fun_template< DComplexGDL>(p0, 
-// 						  Rank, dim, dims, 
-// 						  p0->Type(), perm);
-
-//     } else if (p0->Type() == DOUBLE) {
-//       return transpose_fun_template< DDoubleGDL>(p0, 
-// 						 Rank, dim, dims, 
-// 						 p0->Type(), perm);
-
-//     } else if (p0->Type() == FLOAT) {
-//       return transpose_fun_template< DFloatGDL>(p0, 
-// 						Rank, dim, dims, 
-// 						p0->Type(), perm);
-
-//     } else if (p0->Type() == LONG) {
-//       return transpose_fun_template< DLongGDL>(p0, 
-// 					       Rank, dim, dims, 
-// 					       p0->Type(), perm);
-
-//     } else if (p0->Type() == ULONG) {
-//       return transpose_fun_template< DULongGDL>(p0, 
-// 						Rank, dim, dims, 
-// 						p0->Type(), perm);
-
-//     } else if (p0->Type() == INT) {
-//       return transpose_fun_template< DIntGDL>(p0, 
-// 					      Rank, dim, dims, 
-// 					      p0->Type(), perm);
-
-//     } else if (p0->Type() == UINT) {
-//       return transpose_fun_template< DUIntGDL>(p0, 
-// 					       Rank, dim, dims, 
-// 					       p0->Type(), perm);
-
-//     } else if (p0->Type() == BYTE) {
-//       return transpose_fun_template< DByteGDL>(p0, 
-// 					       Rank, dim, dims, 
-// 					       p0->Type(), perm);
-
-//     } else if (p0->Type() == STRING) {
-//       return transpose_fun_template< DStringGDL>(p0, 
-// 						 Rank, dim, dims, 
-// 						 p0->Type(), perm);
-      
-//     }
-//     cout << "TRANSPOSE: Type " << p0->TypeStr() << " not handled." << endl;
-//     exit( EXIT_FAILURE);
-    
-//     return p0->Dup(); // (library-) functions always return by value
-//   }
-
-
   BaseGDL* machar_fun( EnvT* e)
   {
     long int ibeta, it, irnd, ngrd, machep, negep, iexp, minexp, maxexp;
@@ -214,81 +89,186 @@ namespace lib {
       }
   }
 
-#if 0
-  template< typename T>
-  BaseGDL* finite_fun_template( BaseGDL* p0)
-  {
-    T* p0C = static_cast<T*>( p0);
-    DByteGDL* res = new DByteGDL( p0C->Dim(), BaseGDL::NOZERO);
-    SizeT nEl = p0->N_Elements();
-    for( SizeT i=0; i<nEl; ++i)
-      {
-	if( p0->Type() == COMPLEX) {
-	  float* dptr = (float*) &(*p0C)[0];
-	 } else if( p0->Type() == COMPLEXDBL) {
-	    int a=0;
-	} else {
-	  int out = isfinite((*p0C)[ i]); 
-	  if (out == 0)
-	    (*res)[ i] = 0;
-	  else
-	    (*res)[ i] = 1;
-	}
-      }
-    return res;
-  }
-#endif
+// #if 0
+//   template< typename T>
+//   BaseGDL* finite_fun_template( BaseGDL* p0)
+//   {
+//     T* p0C = static_cast<T*>( p0);
+//     DByteGDL* res = new DByteGDL( p0C->Dim(), BaseGDL::NOZERO);
+//     SizeT nEl = p0->N_Elements();
+//     for( SizeT i=0; i<nEl; ++i)
+//       {
+// 	if( p0->Type() == COMPLEX) {
+// 	  float* dptr = (float*) &(*p0C)[0];
+// 	 } else if( p0->Type() == COMPLEXDBL) {
+// 	    int a=0;
+// 	} else {
+// 	  int out = isfinite((*p0C)[ i]); 
+// 	  if (out == 0)
+// 	    (*res)[ i] = 0;
+// 	  else
+// 	    (*res)[ i] = 1;
+// 	}
+//       }
+//     return res;
+//   }
+// #endif
 
-  BaseGDL* finite_fun( EnvT* e)
-  {
-    e->NParam( 1);//, "FINITE");
+//   BaseGDL* finite_fun( EnvT* e)
+//   {
+//     e->NParam( 1);//, "FINITE");
 
-    BaseGDL* p0 = e->GetParDefined( 0);//, "FINITE");
+//     BaseGDL* p0 = e->GetParDefined( 0);//, "FINITE");
 
-    SizeT nEl = p0->N_Elements();
-    if( nEl == 0)
-      e->Throw( "Variable is undefined: "+e->GetParString(0));
+//     SizeT nEl = p0->N_Elements();
+//     if( nEl == 0)
+//       e->Throw( "Variable is undefined: "+e->GetParString(0));
 
-    DByteGDL* res = new DByteGDL( p0->Dim(), BaseGDL::NOZERO);
+//     DByteGDL* res = new DByteGDL( p0->Dim(), BaseGDL::NOZERO);
 
-    if( p0->Type() == COMPLEX) {
-      DComplexGDL* p0C = static_cast<DComplexGDL*>( p0);
-      for( SizeT i=0; i<nEl; ++i) {
-// 	float* dptr = (float*) &(*p0C)[ i];
-// 	float r_part = *dptr++;
-// 	float i_part = *dptr;
-	float r_part = (*p0C)[ i].real();
-	float i_part = (*p0C)[ i].imag();
-	if (isfinite(r_part) == 0 || isfinite(i_part) == 0) 
-	  (*res)[ i] = 0; else (*res)[ i] = 1;
-      }
-    } else if ( p0->Type() == COMPLEXDBL) {
-      DComplexDblGDL* p0C = static_cast<DComplexDblGDL*>( p0);
-      for( SizeT i=0; i<nEl; ++i) {
-//         double* dptr = (double*) &(*p0C)[ i];
-// 	double r_part = *dptr++;
-// 	double i_part = *dptr;
-	double r_part = (*p0C)[ i].real();
-	double i_part = (*p0C)[ i].imag();
-	if (isfinite(r_part) == 0 || isfinite(i_part) == 0) 
-	  (*res)[ i] = 0; else (*res)[ i] = 1;
-      }
-    } else if( p0->Type() == DOUBLE) {
-      DDoubleGDL* p0D = static_cast<DDoubleGDL*>( p0);
-      for( SizeT i=0; i<nEl; ++i)
-	if (isfinite((*p0D)[ i]) == 0) (*res)[ i] = 0; else (*res)[ i] = 1;
-    } else if( p0->Type() == FLOAT) {
-      DFloatGDL* p0F = static_cast<DFloatGDL*>( p0);
-      for( SizeT i=0; i<nEl; ++i)
-	if (isfinite((*p0F)[ i]) == 0) (*res)[ i] = 0; else (*res)[ i] = 1;
-    } else {
-      DFloatGDL* p0F = static_cast<DFloatGDL*>
-	(p0->Convert2( FLOAT, BaseGDL::COPY));
-      for( SizeT i=0; i<nEl; ++i)
-	if (isfinite((*p0F)[ i]) == 0) (*res)[ i] = 0; else (*res)[ i] = 1;
-    }
-    return res;
-  }
+//     if( p0->Type() == COMPLEX) {
+//       DComplexGDL* p0C = static_cast<DComplexGDL*>( p0);
+//       for( SizeT i=0; i<nEl; ++i) {
+// // 	float* dptr = (float*) &(*p0C)[ i];
+// // 	float r_part = *dptr++;
+// // 	float i_part = *dptr;
+// 	float r_part = (*p0C)[ i].real();
+// 	float i_part = (*p0C)[ i].imag();
+// 	if (isfinite(r_part) == 0 || isfinite(i_part) == 0) 
+// 	  (*res)[ i] = 0; else (*res)[ i] = 1;
+//       }
+//     } else if ( p0->Type() == COMPLEXDBL) {
+//       DComplexDblGDL* p0C = static_cast<DComplexDblGDL*>( p0);
+//       for( SizeT i=0; i<nEl; ++i) {
+// //         double* dptr = (double*) &(*p0C)[ i];
+// // 	double r_part = *dptr++;
+// // 	double i_part = *dptr;
+// 	double r_part = (*p0C)[ i].real();
+// 	double i_part = (*p0C)[ i].imag();
+// 	if (isfinite(r_part) == 0 || isfinite(i_part) == 0) 
+// 	  (*res)[ i] = 0; else (*res)[ i] = 1;
+//       }
+//     } else if( p0->Type() == DOUBLE) {
+//       DDoubleGDL* p0D = static_cast<DDoubleGDL*>( p0);
+//       for( SizeT i=0; i<nEl; ++i)
+// 	if (isfinite((*p0D)[ i]) == 0) (*res)[ i] = 0; else (*res)[ i] = 1;
+//     } else if( p0->Type() == FLOAT) {
+//       DFloatGDL* p0F = static_cast<DFloatGDL*>( p0);
+//       for( SizeT i=0; i<nEl; ++i)
+// 	if (isfinite((*p0F)[ i]) == 0) (*res)[ i] = 0; else (*res)[ i] = 1;
+//     } else {
+//       DFloatGDL* p0F = static_cast<DFloatGDL*>
+// 	(p0->Convert2( FLOAT, BaseGDL::COPY));
+//       for( SizeT i=0; i<nEl; ++i)
+// 	if (isfinite((*p0F)[ i]) == 0) (*res)[ i] = 0; else (*res)[ i] = 1;
+//     }
+//     return res;
+//   }
+
+
+  // FINITE function 
+  // by Pierre Chanial, pchanial@users.sourceforge.net
+  // slightly modified by Marc Schellens, m_schellens@users.sourceforge.net
+
+  // general template
+   template< typename T, bool> struct finite_helper
+   {
+     inline static BaseGDL* do_it(T* src, bool kwNaN, bool kwInfinity)
+     {
+       DByteGDL* res = new DByteGDL( src->Dim(), BaseGDL::NOZERO);
+       SizeT nEl = src->N_Elements();
+       if (kwNaN)
+         for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = isnan((*src)[ i]);
+       else if (kwInfinity)
+         for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = isinf((*src)[ i]);
+       else
+         for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = isfinite((*src)[ i]);
+       return res;
+     }
+   };
+
+   // partial specialization for COMPLEX, DCOMPLEX
+   template< typename T> struct finite_helper<T, true>
+   {
+     inline static BaseGDL* do_it(T* src, bool kwNaN, bool kwInfinity)
+     {
+       DByteGDL* res = new DByteGDL( src->Dim(), BaseGDL::NOZERO);
+       SizeT nEl = src->N_Elements();
+       if (kwNaN)
+         for ( SizeT i=0; i<nEl; ++i) 
+     	    (*res)[ i] = isnan((*src)[ i].real()) || isnan((*src)[ i].imag());
+       else if (kwInfinity)
+         for ( SizeT i=0; i<nEl; ++i)
+           (*res)[ i] = isinf((*src)[ i].real()) || isinf((*src)[ i].imag());
+       else
+         for ( SizeT i=0; i<nEl; ++i)
+           (*res)[ i] = isfinite((*src)[ i].real()) && 
+                        isfinite((*src)[ i].imag());
+       return res;
+     }
+   };
+
+   template< typename T, bool IS_COMPLEX>
+   inline BaseGDL* finite_template( BaseGDL* src, bool kwNaN, bool kwInfinity)
+   {
+     return finite_helper<T, IS_COMPLEX>::
+       do_it(static_cast<T*>(src), kwNaN, kwInfinity);
+   };
+
+   BaseGDL* finite_fun( EnvT* e)
+   {
+     e->NParam( 1);
+
+     BaseGDL* p0     = e->GetParDefined( 0);
+     
+     static int nanIx = e->KeywordIx( "NAN");
+     bool kwNaN      = e->KeywordSet( nanIx);
+
+     static int infinityIx = e->KeywordIx( "INFINITY");
+     bool kwInfinity = e->KeywordSet( infinityIx);
+
+     if( kwNaN && kwInfinity)
+       e->Throw("Conflicting keywords.");
+
+     switch (p0->Type()) 
+       {
+       case FLOAT: 
+	return finite_template<DFloatGDL, false>(p0, kwNaN, kwInfinity);
+       case DOUBLE:
+	return finite_template<DDoubleGDL, false>(p0, kwNaN, kwInfinity);
+       case COMPLEX:
+	return finite_template<DComplexGDL, true>(p0, kwNaN, kwInfinity);
+       case COMPLEXDBL:
+	return finite_template<DComplexDblGDL, true>(p0, kwNaN, kwInfinity);
+       case STRING:
+	 DFloatGDL* p0F = 
+	   static_cast<DFloatGDL*>(p0->Convert2(FLOAT,BaseGDL::COPY));
+	 e->Guard( p0F);
+	 return finite_template<DFloatGDL, false>(p0F, kwNaN, kwInfinity);
+
+       case STRUCT:
+       case PTR:
+       case OBJECT:
+	 e->Throw( p0->TypeStr() + " not allowed in this context: " +
+		   e->GetParString( 0));
+
+       default: // integer types
+	 if( kwNaN || kwInfinity)
+	   return new DByteGDL( p0->Dim()); // zero
+
+         DByteGDL* res = new DByteGDL( p0->Dim(), BaseGDL::NOZERO); 
+         SizeT nEl = p0->N_Elements();
+         for (SizeT i=0; i<nEl; i++)
+           (*res)[i] = 1;
+         return res;
+       }
+   }
+
+
+
+
+
+
 
 
   BaseGDL* check_math_fun( EnvT* e)

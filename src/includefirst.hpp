@@ -2,7 +2,7 @@
                           includefirst.hpp  -  include this first
                              -------------------
     begin                : Wed Apr 18 16:58:14 JST 2005
-    copyright            : (C) 2002-2005 by Marc Schellens
+    copyright            : (C) 2002-2006 by Marc Schellens
     email                : m_schellens@users.sourceforge.net
  ***************************************************************************/
 
