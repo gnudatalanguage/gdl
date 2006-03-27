@@ -233,34 +233,46 @@ namespace lib {
      switch (p0->Type()) 
        {
        case FLOAT: 
-	return finite_template<DFloatGDL, false>(p0, kwNaN, kwInfinity);
+	 {
+	   return finite_template<DFloatGDL, false>(p0, kwNaN, kwInfinity);
+	 }
        case DOUBLE:
-	return finite_template<DDoubleGDL, false>(p0, kwNaN, kwInfinity);
+	 {
+	   return finite_template<DDoubleGDL, false>(p0, kwNaN, kwInfinity);
+	 }
        case COMPLEX:
-	return finite_template<DComplexGDL, true>(p0, kwNaN, kwInfinity);
+	 {
+	   return finite_template<DComplexGDL, true>(p0, kwNaN, kwInfinity);
+	 }
        case COMPLEXDBL:
-	return finite_template<DComplexDblGDL, true>(p0, kwNaN, kwInfinity);
+	 {
+	   return finite_template<DComplexDblGDL, true>(p0, kwNaN, kwInfinity);
+	 }
        case STRING:
-	 DFloatGDL* p0F = 
-	   static_cast<DFloatGDL*>(p0->Convert2(FLOAT,BaseGDL::COPY));
-	 e->Guard( p0F);
-	 return finite_template<DFloatGDL, false>(p0F, kwNaN, kwInfinity);
-
+	 {
+	   DFloatGDL* p0F = 
+	     static_cast<DFloatGDL*>(p0->Convert2(FLOAT,BaseGDL::COPY));
+	   e->Guard( p0F);
+	   return finite_template<DFloatGDL, false>(p0F, kwNaN, kwInfinity);
+	 }
        case STRUCT:
        case PTR:
        case OBJECT:
-	 e->Throw( p0->TypeStr() + " not allowed in this context: " +
-		   e->GetParString( 0));
-
+	 {
+	   e->Throw( p0->TypeStr() + " not allowed in this context: " +
+		     e->GetParString( 0));
+	 }
        default: // integer types
-	 if( kwNaN || kwInfinity)
-	   return new DByteGDL( p0->Dim()); // zero
+	 {
+	   if( kwNaN || kwInfinity)
+	     return new DByteGDL( p0->Dim()); // zero
 
-         DByteGDL* res = new DByteGDL( p0->Dim(), BaseGDL::NOZERO); 
-         SizeT nEl = p0->N_Elements();
-         for (SizeT i=0; i<nEl; i++)
-           (*res)[i] = 1;
-         return res;
+	   DByteGDL* res = new DByteGDL( p0->Dim(), BaseGDL::NOZERO); 
+	   SizeT nEl = p0->N_Elements();
+	   for (SizeT i=0; i<nEl; i++)
+	     (*res)[i] = 1;
+	   return res;
+	 }
        }
    }
 
