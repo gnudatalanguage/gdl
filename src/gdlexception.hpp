@@ -27,6 +27,8 @@
 
 //using namespace std;
 
+class EnvUDT;
+
 class GDLException: public antlr::ANTLRException
 {
   RefDNode  errorNode;
@@ -35,11 +37,14 @@ class GDLException: public antlr::ANTLRException
   SizeT col;
   bool prefix;
 
+  EnvUDT* targetEnv; // where to stop (depending on ON_ERROR)
+
 public:
   GDLException(): ANTLRException(), 
     errorNode(static_cast<RefDNode>(antlr::nullAST)),
 		  errorNodeP( NULL),
-		  line( 0), col( 0), prefix( true)
+		  line( 0), col( 0), prefix( true),
+		  targetEnv( NULL)
   {}
   GDLException(const std::string& s, bool pre = true);
   GDLException(const RefDNode eN, const std::string& s);
@@ -70,7 +75,18 @@ public:
   { 
     return prefix;
   }
+
+  void SetTargetEnv( EnvUDT* tEnv)
+  {
+    targetEnv = tEnv;
+  }
+
+  EnvUDT* GetTargetEnv()
+  {
+    return targetEnv;
+  }
 };
+
 
 // warnings ignore !QUIET
 void Warning(const std::string& s);

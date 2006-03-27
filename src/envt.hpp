@@ -143,7 +143,7 @@ public:
   }
 };
 
-// for UD subroutines (GDL internal use) ********************************
+// for UD subroutines (written in GDL) ********************************
 class EnvUDT: public EnvBaseT
 {
   ProgNodeP         ioError; 
@@ -168,6 +168,8 @@ public:
 
   // for obj_new and obj_destroy
   EnvUDT( EnvT* pEnv, DSub* newPro, BaseGDL** self); 
+
+  DLong GetOnError() { return onError;}
 
   SizeT NJump() { return nJump;}
   int    LastJump() { return lastJump;}

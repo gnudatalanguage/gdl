@@ -571,6 +571,63 @@ statement returns[ GDLInterpreter::RetCode retCode]
     exception 
     catch [ GDLException& e] 
     { 
+EnvUDT* targetEnv = e.GetTargetEnv();
+if( targetEnv == NULL)
+{
+  // initial exception, set target env
+  // look if ON_ERROR is set somewhere
+  for( EnvStackT::reverse_iterator i = callStack.rbegin();
+       i != callStack.rend(); ++i)
+    {
+            DLong oE = static_cast<EnvUDT*>(*i)->GetOnError();
+
+     if( oE != -1) 
+	{ // oE was set
+
+	  // 0 -> stop here
+	  if( oE == 0) 
+        targetEnv = static_cast<EnvUDT*>(callStack.back()); 
+	  // 1 -> $MAIN$
+	  else if( oE == 1) 
+	    {
+	      EnvUDT* cS_begin = static_cast<EnvUDT*>(*callStack.begin());
+	      targetEnv = cS_begin;  
+	    }
+	  // 2 -> caller of routine which called ON_ERROR
+	  else if( oE == 2)
+	    {
+	      ++i; // set to caller
+	      if( i == callStack.rend())
+		{
+		  EnvUDT* cS_begin = static_cast<EnvUDT*>(*callStack.begin());
+		  targetEnv = cS_begin;
+		}
+	      else
+		{
+		  EnvUDT* iUDT = static_cast<EnvUDT*>(*i);
+		  targetEnv = iUDT;
+		}
+	    }   
+	  // 3 -> routine which called ON_ERROR
+	  else if( oE == 3)
+	    {
+	      EnvUDT* iUDT = static_cast<EnvUDT*>(*i);
+	      targetEnv = iUDT;
+	    }
+
+	  // remeber where to stop
+	  e.SetTargetEnv( targetEnv);
+
+	  // break on first occurence of set oE
+	  break;
+	}
+    }
+}
+        
+        if( targetEnv != NULL && targetEnv != callStack.back())
+    {
+            throw e; // rethrow
+    }
         lib::write_journal( GetClearActualLine());
 
         // many low level routines don't have errorNode info
