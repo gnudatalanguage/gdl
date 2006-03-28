@@ -565,6 +565,8 @@ namespace lib {
 
       DSubUD* pro = static_cast<DSubUD*>(caller->Caller()->GetPro());
       SizeT nVar = pro->Size(); // # var in GDL for desired level 
+      int nKey = pro->NKey();
+      //      cout << "nKey:" << nKey << endl;
 
       if (var) {
 	if( nVar == 0) return new DStringGDL("");
@@ -592,7 +594,9 @@ namespace lib {
 
 	DStringGDL* res = new DStringGDL( dimension( nParam), BaseGDL::NOZERO);
 
+	//	cout << "nVar:" << nVar << endl;
 	SizeT nCall = caller->NParam();
+	//	cout << "nCall:" << nCall << "curlevnum:" << curlevnum << endl;
 	for( SizeT i = 0; i<nParam; ++i) {
 	  for( SizeT j = 0; j<nCall; ++j) {
 	    if (e->GetParString(i) == caller->GetParString(j)) {
@@ -602,13 +606,14 @@ namespace lib {
 		(*res)[i]="UNDEFINED";
 		break;
 	      }
-	      //    cout << p << endl;
+	      //	      cout << "p:" << p << endl;
 
 	      for( SizeT xI=0; xI<nVar; ++xI) {
 		string vname = pro->GetVarName( xI);
-		BaseGDL*& par = ((EnvT*)(caller->Caller()))->GetPar( xI);
+		BaseGDL*& par = ((EnvT*)(caller->Caller()))->GetPar( xI-nKey);
+		//		cout << "xI:" << xI << " " << vname.c_str() << endl;
+		//		cout << "par:" << par << endl;
 		if (par == p) {
-		  //		  cout << vname << " " << par << endl;
 		  (*res)[i] = vname;
 		  break;
 		}
