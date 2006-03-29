@@ -240,11 +240,13 @@ public:
     static void ReportCompileError( GDLException& e, const std::string& file = "");
 
     // interpreter
-    static void ReportError( GDLException& e)
+    static void ReportError( GDLException& e, const std::string emsg, 
+                             bool dumpStack=true)
     {
         DString msgPrefix = SysVar::MsgPrefix();
 
         std::cout << std::flush;
+        if( dumpStack)
         if( e.Prefix())
         {
             std::cerr << msgPrefix << e.toString() << std::endl;
@@ -256,7 +258,7 @@ public:
             lib::write_journal_comment(e.toString());
         }
 
-        std::cerr << msgPrefix << "Execution halted at:  " << 
+        std::cerr << msgPrefix << emsg << " " << 
         std::left << std::setw(16) << callStack.back()->GetProName();
         std::string file=callStack.back()->GetFilename();
         if( file != "")
@@ -274,10 +276,10 @@ public:
         }
         std::cerr << std::endl;
         
-        DumpStack();
+        if( dumpStack) DumpStack( emsg.size() + 1);
     }
     
-    static void DumpStack()
+    static void DumpStack( SizeT w)
     {
         DString msgPrefix = SysVar::MsgPrefix();
 
@@ -287,7 +289,7 @@ public:
             upEnv != callStack.rend();
             ++upEnv, ++env)
         {
-            std::cerr << msgPrefix << "                      ";
+            std::cerr << msgPrefix << std::right << std::setw( w) << "";
             std::cerr << std::left << std::setw(16) << (*upEnv)->GetProName();
 
             std::string file = (*upEnv)->GetFilename();

@@ -301,45 +301,53 @@ void GDLInterpreter::execute(ProgNodeP _t) {
 		DLong oE = static_cast<EnvUDT*>(*i)->GetOnError();
 		
 		if( oE != -1) 
-			{ // oE was set
+		{ // oE was set
 		
-			  // 0 -> stop here
-			  if( oE == 0) 
+		// 0 -> stop here
+		if( oE == 0) 
 		targetEnv = static_cast<EnvUDT*>(callStack.back()); 
-			  // 1 -> $MAIN$
-			  else if( oE == 1) 
-			    {
-			      EnvUDT* cS_begin = static_cast<EnvUDT*>(*callStack.begin());
-			      targetEnv = cS_begin;  
-			    }
-			  // 2 -> caller of routine which called ON_ERROR
-			  else if( oE == 2)
-			    {
-			      ++i; // set to caller
-			      if( i == callStack.rend())
-				{
-				  EnvUDT* cS_begin = static_cast<EnvUDT*>(*callStack.begin());
-				  targetEnv = cS_begin;
-				}
-			      else
-				{
-				  EnvUDT* iUDT = static_cast<EnvUDT*>(*i);
-				  targetEnv = iUDT;
-				}
-			    }   
-			  // 3 -> routine which called ON_ERROR
-			  else if( oE == 3)
-			    {
-			      EnvUDT* iUDT = static_cast<EnvUDT*>(*i);
-			      targetEnv = iUDT;
-			    }
+		// 1 -> $MAIN$
+		else if( oE == 1) 
+		{
+		EnvUDT* cS_begin = 
+		static_cast<EnvUDT*>(*callStack.begin());
+		targetEnv = cS_begin;  
+		}
+		// 2 -> caller of routine which called ON_ERROR
+		else if( oE == 2)
+		{
+		++i; // set to caller
+		if( i == callStack.rend())
+		{
+		EnvUDT* cS_begin = 
+		static_cast<EnvUDT*>(*callStack.begin());
+		targetEnv = cS_begin;
+		}
+		else
+		{
+		EnvUDT* iUDT = static_cast<EnvUDT*>(*i);
+		targetEnv = iUDT;
+		}
+		}   
+		// 3 -> routine which called ON_ERROR
+		else if( oE == 3)
+		{
+		EnvUDT* iUDT = static_cast<EnvUDT*>(*i);
+		targetEnv = iUDT;
+		}
 		
-			  // remeber where to stop
-			  e.SetTargetEnv( targetEnv);
+		// remeber where to stop
+		e.SetTargetEnv( targetEnv);
 		
-			  // break on first occurence of set oE
-			  break;
-			}
+		// State where error occured
+		if( e.getLine() == 0 && _t != NULL)
+		e.SetLine( _t->getLine());
+		
+		ReportError(e, "Error occurred at:");
+		
+		// break on first occurence of set oE
+		break;
+		}
 		}
 		}
 		
@@ -356,7 +364,8 @@ void GDLInterpreter::execute(ProgNodeP _t) {
 		e.SetLine( _t->getLine());
 		}
 		
-		ReportError(e); 
+		// tell where we are
+		ReportError(e, "Execution halted at:", targetEnv == NULL); 
 		
 		if( interruptEnable)
 		{

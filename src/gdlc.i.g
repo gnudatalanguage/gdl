@@ -292,11 +292,13 @@ public:
     static void ReportCompileError( GDLException& e, const std::string& file = "");
 
     // interpreter
-    static void ReportError( GDLException& e)
+    static void ReportError( GDLException& e, const std::string emsg, 
+                             bool dumpStack=true)
     {
         DString msgPrefix = SysVar::MsgPrefix();
 
         std::cout << std::flush;
+        if( dumpStack)
         if( e.Prefix())
         {
             std::cerr << msgPrefix << e.toString() << std::endl;
@@ -308,7 +310,7 @@ public:
             lib::write_journal_comment(e.toString());
         }
 
-        std::cerr << msgPrefix << "Execution halted at:  " << 
+        std::cerr << msgPrefix << emsg << " " << 
         std::left << std::setw(16) << callStack.back()->GetProName();
         std::string file=callStack.back()->GetFilename();
         if( file != "")
@@ -326,10 +328,10 @@ public:
         }
         std::cerr << std::endl;
         
-        DumpStack();
+        if( dumpStack) DumpStack( emsg.size() + 1);
     }
     
-    static void DumpStack()
+    static void DumpStack( SizeT w)
     {
         DString msgPrefix = SysVar::MsgPrefix();
 
@@ -339,7 +341,7 @@ public:
             upEnv != callStack.rend();
             ++upEnv, ++env)
         {
-            std::cerr << msgPrefix << "                      ";
+            std::cerr << msgPrefix << std::right << std::setw( w) << "";
             std::cerr << std::left << std::setw(16) << (*upEnv)->GetProName();
 
             std::string file = (*upEnv)->GetFilename();
@@ -571,63 +573,71 @@ statement returns[ GDLInterpreter::RetCode retCode]
     exception 
     catch [ GDLException& e] 
     { 
-EnvUDT* targetEnv = e.GetTargetEnv();
-if( targetEnv == NULL)
-{
-  // initial exception, set target env
-  // look if ON_ERROR is set somewhere
-  for( EnvStackT::reverse_iterator i = callStack.rbegin();
-       i != callStack.rend(); ++i)
-    {
-            DLong oE = static_cast<EnvUDT*>(*i)->GetOnError();
-
-     if( oE != -1) 
-	{ // oE was set
-
-	  // 0 -> stop here
-	  if( oE == 0) 
-        targetEnv = static_cast<EnvUDT*>(callStack.back()); 
-	  // 1 -> $MAIN$
-	  else if( oE == 1) 
-	    {
-	      EnvUDT* cS_begin = static_cast<EnvUDT*>(*callStack.begin());
-	      targetEnv = cS_begin;  
-	    }
-	  // 2 -> caller of routine which called ON_ERROR
-	  else if( oE == 2)
-	    {
-	      ++i; // set to caller
-	      if( i == callStack.rend())
-		{
-		  EnvUDT* cS_begin = static_cast<EnvUDT*>(*callStack.begin());
-		  targetEnv = cS_begin;
-		}
-	      else
-		{
-		  EnvUDT* iUDT = static_cast<EnvUDT*>(*i);
-		  targetEnv = iUDT;
-		}
-	    }   
-	  // 3 -> routine which called ON_ERROR
-	  else if( oE == 3)
-	    {
-	      EnvUDT* iUDT = static_cast<EnvUDT*>(*i);
-	      targetEnv = iUDT;
-	    }
-
-	  // remeber where to stop
-	  e.SetTargetEnv( targetEnv);
-
-	  // break on first occurence of set oE
-	  break;
-	}
-    }
-}
+        EnvUDT* targetEnv = e.GetTargetEnv();
+        if( targetEnv == NULL)
+        {
+            // initial exception, set target env
+            // look if ON_ERROR is set somewhere
+            for( EnvStackT::reverse_iterator i = callStack.rbegin();
+                i != callStack.rend(); ++i)
+            {
+                DLong oE = static_cast<EnvUDT*>(*i)->GetOnError();
+                
+                if( oE != -1) 
+                { // oE was set
+                    
+                    // 0 -> stop here
+                    if( oE == 0) 
+                    targetEnv = static_cast<EnvUDT*>(callStack.back()); 
+                    // 1 -> $MAIN$
+                    else if( oE == 1) 
+                    {
+                        EnvUDT* cS_begin = 
+                        static_cast<EnvUDT*>(*callStack.begin());
+                        targetEnv = cS_begin;  
+                    }
+                    // 2 -> caller of routine which called ON_ERROR
+                    else if( oE == 2)
+                    {
+                        ++i; // set to caller
+                        if( i == callStack.rend())
+                        {
+                            EnvUDT* cS_begin = 
+                            static_cast<EnvUDT*>(*callStack.begin());
+                            targetEnv = cS_begin;
+                        }
+                        else
+                        {
+                            EnvUDT* iUDT = static_cast<EnvUDT*>(*i);
+                            targetEnv = iUDT;
+                        }
+                    }   
+                    // 3 -> routine which called ON_ERROR
+                    else if( oE == 3)
+                    {
+                        EnvUDT* iUDT = static_cast<EnvUDT*>(*i);
+                        targetEnv = iUDT;
+                    }
+                    
+                    // remeber where to stop
+                    e.SetTargetEnv( targetEnv);
+                    
+                    // State where error occured
+                    if( e.getLine() == 0 && _t != NULL)
+                        e.SetLine( _t->getLine());
+                    
+                    ReportError(e, "Error occurred at:");
+                    
+                    // break on first occurence of set oE
+                    break;
+                }
+            }
+        }
         
         if( targetEnv != NULL && targetEnv != callStack.back())
-    {
+        {
             throw e; // rethrow
-    }
+        }
         lib::write_journal( GetClearActualLine());
 
         // many low level routines don't have errorNode info
@@ -637,7 +647,8 @@ if( targetEnv == NULL)
             e.SetLine( _t->getLine());
         }
 
-        ReportError(e); 
+        // tell where we are
+        ReportError(e, "Execution halted at:", targetEnv == NULL); 
 
         if( interruptEnable)
         {

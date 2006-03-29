@@ -55,11 +55,13 @@ public:
 
   SizeT getLine() const 
   { 
+    if( line != 0) 
+      return line;
     if( errorNodeP != NULL)
       return errorNodeP->getLine();
     if( errorNode != static_cast<RefDNode>(antlr::nullAST))
       return errorNode->getLine();
-    return line;
+    return 0;
   }
 
   void SetLine( SizeT l) { line = l;}

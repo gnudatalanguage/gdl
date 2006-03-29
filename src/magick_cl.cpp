@@ -457,15 +457,16 @@ namespace lib {
 	    rows=GDLimage->Dim(2);
 	    if(e->GetKW(0) != NULL)//RGB
 	      {
-		DInt rgb;
-		e->AssureScalarKW<DIntGDL>(0,rgb);
-		
+		DLong rgb;
+		e->AssureLongScalarKW(0,rgb);
+
 		if(rgb==0) map="BGR";
 		else if(rgb==1) map="RGB";
 		else if(rgb==2) map="RBG";
 		else if(rgb==3) map="BRG";
 		else if(rgb==4) map="GRB";
 		else if(rgb==5) map="GBR";
+		else
 		{
 		  string s="MAGICK_WRITE: RGB order type not supported (";
 		  s+=GDLutos(rgb);
@@ -481,6 +482,8 @@ namespace lib {
 		DByteGDL * bImage=
 		  static_cast<DByteGDL*>(GDLimage->Convert2(BYTE,BaseGDL::COPY));
 		image.read(columns,rows,map, CharPixel,&(*bImage)[0]);
+
+		delete bImage;
 		/*	      }
 	    else if(image.depth() == 16)
 	      {
@@ -504,10 +507,7 @@ namespace lib {
       }
     catch (Exception &error_ )
       {
-	string s;
-	s="MAGICK_WRITE: ";
-	s+=error_.what();
-	throw GDLException(e->CallingNode(),s);
+	e->Throw( error_.what());
       }
   }
 
