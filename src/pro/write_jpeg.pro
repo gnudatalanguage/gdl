@@ -1,4 +1,4 @@
-;$Id: write_jpeg.pro,v 1.2 2006-03-29 05:25:30 m_schellens Exp $
+;$Id: write_jpeg.pro,v 1.3 2006-03-29 07:48:21 m_schellens Exp $
 
 pro write_jpeg, filename, image,$
                 ORDER=ORDER,QUALITY=QUALITY, TRUE=TRUE,UNIT=UNIT,$
@@ -63,7 +63,7 @@ pro write_jpeg, filename, image,$
 ;
 ;-
 
-
+rgb=1
 if(keyword_set(unit)) then message, "UNIT not supported"
 
 if(keyword_set(unit)) then begin
@@ -80,11 +80,6 @@ if(keyword_set(TRUE)) then begin
 endif
 
 n=size(image, /n_dimensions)
-
-if n ne 2 then begin
-    message, "Array must have 2 dimensions."
-endif
-
 s=size(image,/dimensions)
 q=75
 

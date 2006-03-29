@@ -1,4 +1,4 @@
-;$Id: write_png.pro,v 1.2 2006-03-28 17:09:58 jomoga Exp $
+;$Id: write_png.pro,v 1.3 2006-03-29 07:48:21 m_schellens Exp $
 
 pro write_png, filename, image,red, green, blue, $
                ORDER=ORDER,VERBOSE=VERBOSE,TRANSPARENT=TRANSPARENT
@@ -48,9 +48,6 @@ pro write_png, filename, image,red, green, blue, $
 ; MODIFICATION HISTORY:
 ; 	Written by: Christopher Lee 2004-05-28
 ;
-; 03/28/06
-; Exchange R & B to correspond to IDL order
-; J. Gales
 ;
 ;
 ;-
@@ -63,7 +60,7 @@ pro write_png, filename, image,red, green, blue, $
 ;
 ;
 ;-
-
+rgb=1
 n=size(image, /n_dimensions)
 s=size(image,/dimensions)
 
@@ -90,7 +87,6 @@ if(n eq 2) then begin
                           [[green[image]]],$
                           [[red[image]]]],$
                          [2,0,1])
-
     endelse
     
     magick_write,mid,_image,rgb=rgb
@@ -106,11 +102,6 @@ if(n eq 2) then begin
     
 endif else if(n eq 3) then begin
     mid=magick_create(s[1],s[2])
-
-    tmp = reform(image[2,*,*])
-    image[2,*,*] = image[0,*,*]
-    image[0,*,*] = tmp
-
     magick_write,mid,image,rgb=rgb
     magick_writefile,mid,filename,"PNG"
     magick_close,mid

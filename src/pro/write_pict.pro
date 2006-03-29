@@ -1,4 +1,4 @@
-;$Id: write_pict.pro,v 1.1.1.1 2004-12-09 15:10:19 m_schellens Exp $
+;$Id: write_pict.pro,v 1.2 2006-03-29 07:48:21 m_schellens Exp $
 
 pro write_pict, filename, image,red, green, blue
 ;+
@@ -52,7 +52,7 @@ pro write_pict, filename, image,red, green, blue
 ;
 ;-
 
-
+rgb=1
 n=size(image, /n_dimensions)
 s=size(image,/dimensions)
 

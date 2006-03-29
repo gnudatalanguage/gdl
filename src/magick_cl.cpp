@@ -159,6 +159,7 @@ namespace lib {
 	  e->AssureScalarPar<DStringGDL>(2,col);
 	  Image a(g,Color(col));
 	  unsigned int mid;
+	  a.matte(false);
 	  mid=magick_image(e, a);
 	  return new DUIntGDL (mid);
 	}
@@ -166,6 +167,7 @@ namespace lib {
 	{
 	  Image a(g,Color("black"));
 	  unsigned int mid;
+	  a.matte(false);
 	  mid=magick_image(e, a);
 	  return new DUIntGDL (mid);
 	}
@@ -457,8 +459,8 @@ namespace lib {
 	    rows=GDLimage->Dim(2);
 	    if(e->GetKW(0) != NULL)//RGB
 	      {
-		DLong rgb;
-		e->AssureLongScalarKW(0,rgb);
+		DInt rgb;
+		e->AssureScalarKW<DIntGDL>(0,rgb);
 
 		if(rgb==0) map="BGR";
 		else if(rgb==1) map="RGB";
@@ -482,8 +484,6 @@ namespace lib {
 		DByteGDL * bImage=
 		  static_cast<DByteGDL*>(GDLimage->Convert2(BYTE,BaseGDL::COPY));
 		image.read(columns,rows,map, CharPixel,&(*bImage)[0]);
-
-		delete bImage;
 		/*	      }
 	    else if(image.depth() == 16)
 	      {
@@ -507,8 +507,12 @@ namespace lib {
       }
     catch (Exception &error_ )
       {
-	e->Throw( error_.what());
+	string s;
+	s="MAGICK_WRITE: ";
+	s+=error_.what();
+	throw GDLException(e->CallingNode(),s);
       }
+
   }
 
   void magick_writefile(EnvT* e)
