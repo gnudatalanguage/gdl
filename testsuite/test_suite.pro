@@ -763,6 +763,18 @@ c=a#b
 
 if c[0,1] ne 76 then print,"***OPERATOR: ERROR4"
 
+x=indgen(10) # transpose(intarr(10)+1)
+
+if x[9,9] ne 9 then print,"***OPERATOR: ERROR5"
+
+;; with scalar
+r= 4 # indgen(1,4)
+if r[0,2] ne 8 then print,"***OPERATOR: ERROR6"
+
+r= indgen(4) # 4
+if r[1] ne 4 then print,"***OPERATOR: ERROR7"
+
+
 print,'OPERATORS: OK'
 end
 

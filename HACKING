@@ -378,13 +378,14 @@ g++ -I/(GDL header file directory) -c two.cpp
 g++ -shared -lm -lc  -o two.so two.o
 
 2. Run LINKIMAGE:
-GDL> linkimage,'TWO','/usr/local/src/gdl-0.8.4/src/dll/two.so',1,'two_fun'
+GDL> linkimage,'TWO','/usr/local/src/gdl-0.9/src/dll/two.so',1,'two_fun'
 with:
 'TWO' is the GDL function name
-'/usr/local/src/gdl-0.8.4/src/dll/two.so' is the location of the DLL
+'/usr/local/src/gdl-0.9/src/dll/two.so' is the location of the DLL
 1 tells GDL that the TWO function is a function, use "0" for a procedure
 'two_fun' is the entry point for this function within the "two.cpp" file
 
 GDL> print,two(findgen(3))
      0.000000      2.00000      4.00000
+
 

@@ -26,22 +26,23 @@ Common blocks, Assoc variables,
 All operators, All datatypes,
 _EXTRA, _STRICT_EXTRA and _REF_EXTRA keywords...
 
-The file input output system is fully implemented
+The file input output system is fully implemented including full support of 
+F77_UNFORMATTED.
 (Exception: For formatted I/O the C() sub-codes are not supported yet)
 
 netCDF files are fully supported.
 HDF4 files are supported.
 Basic support for HDF5 files.
 
-Overall more than 250 library routines are implemented.
+Overall more than 300 library routines are implemented.
 For a list enter HELP,/LIB at the command prompt and look for
 library routines written in GDL in the src/pro subdirectory.
 
 Graphical output is partially implemented. The PLOT, OPLOT, PLOTS,
-XYOUTS, SURFACE and TV commands (along with WINDOW, WDELETE, SET_PLOT,
-WSET, TVLCT, LOADCT) are working (important keywords, some !P system
-variable tags and multi-plots are supported) for X windows, z-buffer
-and postscript output.
+XYOUTS, SURFACE, CONTOUR and TV commands (along with WINDOW, WDELETE,
+SET_PLOT, WSET, TVLCT, LOADCT) are working (important keywords,
+some !P system variable tags and multi-plots are supported) for X windows,
+z-buffer and postscript output.
 
 GDL has an interface to python.
 Python can be embedded into GDL and GDL can be compiled as a
@@ -72,6 +73,10 @@ matplotlib  http://matplotlib.sourceforge.net
 
 *) please see below for potential problems using netCDF and HDF4
 
+Since version 0.9 GDL compiles Craig Markwardt's CMSVLIB.
+If installed, the SAVE and RESTORE commands (data only) are
+available through wrapper routines. You get CMSVLIB here: 
+http://cow.physics.wisc.edu/~craigm/idl/down/cmsvlib.tar.gz
 
 At least g++ 3.2 (or a similar C++ standard conforming
 compiler) is needed for compiling GDL.
@@ -185,13 +190,13 @@ For nice graphical output the python package matplotlib
 (http://matplotlib.sourceforge.net) is used in one of the examples.
 See the file PYTHON.txt for more details.
 
-GDL 0.8.12 was developed using ANTLR 2.7.4,   
+GDL 0.9 was developed using ANTLR 2.7.4,   
 but unless you want to change the grammar (*.g files) you don't need
 ANTLR. All relevant ANTLR files are included in the package.
 For more information on ANTRL see: http://www.antlr.org
 
 GDL is currently developed using KDevelop 3.2 under the GNU/Linux 
-distribution Fedora Core 3. The KDevelop project file
+distribution Fedora Core 4. The KDevelop project file
 is included in the tarball, so if you have KDevelop you should be able
 to use it with GDL seamlessly.
 
@@ -205,8 +210,8 @@ Please see the INSTALL file for details.
 CONTRIBUTIONS:
 ==============
 
-GDL 0.8.12 is actively developed, but still in beta state as of
-October 2005.
+GDL 0.9 is actively developed, but still in beta state as of
+March 2006.
 Even though it can already be used for several tasks, there are many
 things to be done.
 Bug reports, feedback in general and interested people who would

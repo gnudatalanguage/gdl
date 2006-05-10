@@ -1035,7 +1035,7 @@ namespace lib {
     // start drawing
     gkw_background(e, actStream,false);
     gkw_color(e, actStream);
-    //    gkw_noerase(e, actStream, true);
+    gkw_noerase(e, actStream, true);
     gkw_psym(e, actStream, line, psym);
     DFloat charsize;
     gkw_charsize(e,actStream, charsize, false);
@@ -1832,8 +1832,9 @@ namespace lib {
     DDouble ticklen = p_ticklen;
     e->AssureDoubleScalarKWIfPresent( "TICKLEN", ticklen);
 						 
-    //    DLong color = p_color;
-    //e->AssureLongScalarKWIfPresent( "COLOR", color);
+    DLong color = p_color;
+
+    e->AssureLongScalarKWIfPresent( "COLOR", color);
 
     DLong noErase = p_noErase;
     if( e->KeywordSet( "NOERASE")) noErase = 1;
@@ -1886,8 +1887,7 @@ namespace lib {
     
     // *** start drawing
     actStream->Background( background);
-    //    actStream->Color( color);
-    gkw_color(e, actStream);       //COLOR
+    actStream->Color( color);
 
     actStream->NextPlot( !noErase);
     if( !noErase) actStream->Clear();
@@ -2384,8 +2384,9 @@ namespace lib {
     DDouble ticklen = p_ticklen;
     e->AssureDoubleScalarKWIfPresent( "TICKLEN", ticklen);
 						 
-    //    DLong color = p_color;
-    //e->AssureLongScalarKWIfPresent( "COLOR", color);
+    DLong color = p_color;
+
+    e->AssureLongScalarKWIfPresent( "COLOR", color);
 
     DLong noErase = p_noErase;
     if( e->KeywordSet( "NOERASE")) noErase = 1;
@@ -2440,8 +2441,7 @@ namespace lib {
     
     // *** start drawing
     actStream->Background( background);
-    //    actStream->Color( color);
-    gkw_color(e, actStream);       //COLOR
+    actStream->Color( color);
 
     actStream->NextPlot( !noErase);
     if( !noErase) actStream->Clear();
@@ -2937,13 +2937,10 @@ namespace lib {
   void gkw_color(EnvT * e, GDLGStream* a)
   {
     static DStructGDL* pStruct = SysVar::P();
-    ULong ncolor = 
-      (*static_cast<DLongGDL*>( pStruct->Get( pStruct->Desc()->TagIndex("COLOR"), 0)))[0] + 1;
-    DLong color = ncolor - 1;
-    
+    DLong color = 
+      (*static_cast<DLongGDL*>( pStruct->Get( pStruct->Desc()->TagIndex("COLOR"), 0)))[0];
     e->AssureLongScalarKWIfPresent( "COLOR", color);
-
-    a->Color( color, ncolor);  
+    a->Color( color);  
   }
 
   //NOERASE

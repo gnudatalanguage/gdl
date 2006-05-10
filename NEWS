@@ -148,8 +148,10 @@
 	  Much faster operators (+-/*^...)
 	  Faster FFT (requires FFTW library: http://www.fftw.org/download.html)
 
-0.8.12:   Added PRODUCT, FILEPATH, MEDIAN (no filtering), READ_ASCII,
+0.9:      Added PRODUCT, FILEPATH, MEDIAN (no filtering), READ_ASCII,
 	  PUSHD, POPD, PRINTD, PRIMES, NORM, T_PDF routines.
+	  Support for SAVE and RESTORE through Craig Markwardt's CMSVLIB
+	  library.
 	  Full support of F77_UNFORMATTED.
           Fixed positional index (value and dimension) returned by STREGEX.
 	  HELP without parameters and keywords puts out a list of all local
@@ -158,10 +160,7 @@
 	  Fixed incompatibility with # operator and one-dim vectors.
 	  Speedup for ^ operator for integral types.
 	  Speedup (>100x!) for REVERSE_INDICES of HISTOGRAM.
-	  Support for SAVE and RESTORE through Craig Markwardt's CMSVLIB
-	  library.
 	  Support for non-rectangular (x,y 2d arrays) calls to SURFACE and
 	  CONTOUR.
-	  Preliminary support for MPI (message-passing).
 
 

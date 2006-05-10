@@ -1,4 +1,4 @@
-AC_INIT(gdl, 0.8.12)
+AC_INIT(gdl, 0.9)
 
 AM_CONFIG_HEADER(config.h)
 AM_INIT_AUTOMAKE
@@ -69,7 +69,7 @@ fi
 
 dnl wxWindows
 dnl default no (for now)
-if test "x$with_wxWidgets" == "x"; then
+if test "x$with_wxWidgets" = "x"; then
    with_wxWidgets=no
 fi
 
@@ -369,13 +369,13 @@ fi
 
 dnl MPICH
 AC_ARG_WITH(mpich,	
-	[  --with-mpich[=DIR]         use MPICH (with optional path DIR) ],
+	[  --with-mpich[=DIR]         use MPICH (experimental) (with optional path DIR) ],
 	[with_mpich="$withval" ])
 
 dnl MPICH: default is no
 if test "x$with_mpich" = "x"; then
   with_mpich=no
-  echo "MPICH lib not explicitely enabled."
+#  echo "MPICH lib not explicitely enabled."
 fi
 
 if test "x$with_mpich" != "xno"; then

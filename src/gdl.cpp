@@ -2,7 +2,7 @@
                           gdl.cpp  -  main program
                              -------------------
     begin                : Wed Apr 18 16:58:14 JST 2001
-    copyright            : (C) 2002-2004 by Marc Schellens
+    copyright            : (C) 2002-2006 by Marc Schellens
     email                : m_schellens@users.sourceforge.net
  ***************************************************************************/
 
@@ -21,7 +21,7 @@
 #ifndef PYTHON_MODULE
 
 #ifndef VERSION
-#define VERSION "0.8"
+#define VERSION "0.9"
 #endif
 
 #include <string>

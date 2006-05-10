@@ -42,10 +42,10 @@ void GDLGStream::SetErrorHandlers()
   plsabort( PLPlotAbortHandler);
 }
 
-void GDLGStream::Color( ULong c, ULong ncolor, UInt ix)
+void GDLGStream::Color( ULong c, UInt ix)
 {
   DByte r,g,b;
-  if( c < ctSize && ncolor == 256)
+  if( c < ctSize)
     {
       Graphics::GetCT()->Get( c, r, g, b);
     }
