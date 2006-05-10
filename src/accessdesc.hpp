@@ -356,8 +356,8 @@ public:
     SizeT lRank=dim.Rank();
     SizeT rRank=r->Rank();
 
-    if( rRank > lRank)
-      throw GDLException("Conflicting data structures (rank).");
+//     if( rRank > lRank)
+//       throw GDLException("Conflicting data structures (rank).");
 
     SizeT topRank=top->Rank();
 
@@ -373,8 +373,8 @@ public:
     if( rElem <= topElem)
       {
 	 // IDL seems to allow a maximum of one rank more for the r-value
-	if( rRank > (topRank+1))
-	  throw GDLException("Conflicting data structures (top-rank).");
+// 	if( rRank > (topRank+1))
+// 	  throw GDLException("Conflicting data structures (top-rank).");
 
 	// inplace copy to every instance of top
 	// just loop over all top elements and insert (at appropriate indices)
