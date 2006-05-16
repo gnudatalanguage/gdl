@@ -1,18 +1,13 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
- <DocsAndViews NumberOfDocuments="2" >
-  <Doc0 NumberOfViews="1" URL="file:///usr/local/gdl/src/GDLInterpreter.cpp" >
-   <View0 line="374" Type="Source" />
-  </Doc0>
-  <Doc1 NumberOfViews="1" URL="file:///usr/local/gdl/src/dinterpreter.cpp" >
-   <View0 line="92" Type="Source" />
-  </Doc1>
- </DocsAndViews>
+ <DocsAndViews NumberOfDocuments="0" />
  <pluginList>
   <kdevdebugger>
    <breakpointList>
-    <breakpoint0 location="/usr/local/gdl/src/GDLInterpreter.cpp:302" type="1" condition="" enabled="1" />
+    <breakpoint0 location="/usr/local/gdl/src/GDLInterpreter.cpp:302" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
+     <tracedExpressions/>
+    </breakpoint0>
    </breakpointList>
   </kdevdebugger>
   <kdevbookmarks>

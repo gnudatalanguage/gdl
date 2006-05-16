@@ -54,7 +54,7 @@ public:
   bool Valid() { return valid;}
 
   void Clear();
-  void Color( ULong c, UInt ix=1);
+  void Color( ULong c, ULong ncolor=256, UInt ix=1);
   void Background( ULong c);
 
   void DefaultCharSize();
