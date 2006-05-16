@@ -34,6 +34,9 @@ netCDF files are fully supported.
 HDF4 files are supported.
 Basic support for HDF5 files.
 
+DICOM files are supported via the GDLffDICOM object
+(src/pro/dicom subdirectory).
+
 Overall more than 300 library routines are implemented.
 For a list enter HELP,/LIB at the command prompt and look for
 library routines written in GDL in the src/pro subdirectory.

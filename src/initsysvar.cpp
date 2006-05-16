@@ -37,7 +37,7 @@ namespace SysVar
   UInt pathIx, promptIx, edit_inputIx, quietIx, 
     dIx, pIx, xIx, yIx, zIx, vIx, cIx, 
     errorStateIx, errorIx, errIx, err_stringIx, valuesIx,
-    journalIx, exceptIx, mapIx, dirIx;
+    journalIx, exceptIx, mapIx, dirIx, warnIx;
 
   // !D structs
   const int nDevices = 2;
@@ -469,6 +469,16 @@ namespace SysVar
     DVar *dir = new DVar( "DIR", dirData);
     dirIx=sysVarList.size();
     sysVarList.push_back( dir);
+
+    // !WARN
+    DStructGDL*  warnData = new DStructGDL( "!WARN");
+    warnData->NewTag("OBS_ROUTINES", new DByteGDL( 0)); 
+    warnData->NewTag("OBS_SYSVARS", new DByteGDL( 0)); 
+    warnData->NewTag("PARENS", new DByteGDL( 0)); 
+    DVar *warn = new DVar( "WARN", warnData);
+    warnIx     = sysVarList.size();
+    sysVarList.push_back(warn);
+
 
   }
 
