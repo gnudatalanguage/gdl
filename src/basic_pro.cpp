@@ -425,6 +425,9 @@ namespace lib {
   {
     int nParam=e->NParam( 2);
     
+    if( e->KeywordSet( "XDR"))
+      e->Throw( "XDR format not supported.");
+
     if( e->KeywordSet( "GET_LUN")) get_lun( e);
     // par 0 contains now the LUN
 
