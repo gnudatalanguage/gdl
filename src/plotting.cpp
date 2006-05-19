@@ -1428,10 +1428,36 @@ namespace lib {
 	    set_axis_crange("Y", yStart, yEnd);
 	    
 	  }	    
-	
+
+    if( xLog)
+      {
+	if( xStart <= 0.0) xStart = 0.0; else xStart = log10( xStart);
+	if( xEnd   <= 0.0) return; else xEnd = log10( xEnd);
+
+	cout << "xlog " << xStart << " " << xEnd << endl;
+
+      }
+    if( yLog)
+      {
+	cout << "ylog " << yStart << " " << yEnd << endl;
+
+	if( yStart <= 0.0) yStart = 0.0; else yStart = log10( yStart);
+	if( yEnd <= 0.0) return; else yEnd = log10( yEnd);
+
+	cout << "ylog " << yStart << " " << yEnd << endl;
+      }
+
+
+	cout << "Y" << endl;
+	cout << yStart << " " << yEnd << endl;	
+
 	minVal=yStart-yMB*(yEnd-yStart)/(1-yMT-yMB);
 	yEnd=yEnd  +yMT*(yEnd-yStart)/(1-yMT-yMB);
 	yStart=minVal;
+
+	cout << minVal << " " << yEnd << endl;	
+
+
 	minVal=xStart-xML*(xEnd-xStart)/(1-xML-xMR);
 	xEnd  =xEnd  +xMR*(xEnd-xStart)/(1-xML-xMR);
 	xStart=minVal;
@@ -1467,17 +1493,6 @@ namespace lib {
 	DDoubleGDL* clippingD = e->IfDefGetKWAs<DDoubleGDL>( clippingix);
 	if( clippingD != NULL)
 	    Clipping( clippingD, xStart, xEnd, minVal, maxVal);
-      }
-
-    if( xLog)
-      {
-	if( xStart <= 0.0) xStart = 0.0; else xStart = log10( xStart);
-	if( xEnd   <= 0.0) return; else xEnd = log10( xEnd);
-      }
-    if( yLog)
-      {
-	if( minVal <= 0.0) minVal = 0.0; else minVal = log10( minVal);
-	if( maxVal <= 0.0) return; else maxVal = log10( maxVal);
       }
 
     // viewport (full (sub-)window 
@@ -1528,6 +1543,9 @@ namespace lib {
 	if( yLog) if( y <= 0.0) goto skip; else y = log10( y);
 	if( xLog) if( x <= 0.0) goto skip; else x = log10( x);
 
+	cout << "1  x,y: " << x << " , " << y << endl;
+
+
 	out=(*strVal)[0];
 	actStream->ptex(x,y,p_orient_x, p_orient_y,alignment,out.c_str());
       }
@@ -1540,6 +1558,9 @@ namespace lib {
 
 	    if( yLog) if( y <= 0.0) continue; else y = log10( y);
 	    if( xLog) if( x <= 0.0) continue; else x = log10( x);
+
+	    cout << "M  x,y: " << x << " , " << y << endl;
+
 
 	    if(orient != NULL)
 	      if(orient->N_Elements() > 1) 

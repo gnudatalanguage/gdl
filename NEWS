@@ -162,5 +162,5 @@
 	  Speedup (>100x!) for REVERSE_INDICES of HISTOGRAM.
 	  Support for non-rectangular (x,y 2d arrays) calls to SURFACE and
 	  CONTOUR.
-
+	  Support for DICOM files (GDLffDICOM object).
 
