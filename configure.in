@@ -267,8 +267,8 @@ fi
 
 if test "x$with_hdf" != "xno"; then
   if test "x$with_hdf" != "xyes"; then
-    LIBS="$LIBS -L$with_hdf/lib -lmfhdf -ldf -ljpeg -lz"
-    INCLUDES="$INCLUDES -I$with_hdf/include"
+    LIBS="$LIBS -L$with_hdf/lib -L$with_hdf/lib/hdf -lmfhdf -ldf -ljpeg -lz"
+    INCLUDES="$INCLUDES -I$with_hdf/include -I$with_hdf/include/hdf"
   else
     LIBS="$LIBS -L/usr/lib/hdf -lmfhdf -ldf -ljpeg -lz"
     INCLUDES="$INCLUDES -I/usr/include/hdf"
@@ -316,11 +316,11 @@ fi
 
 if test "x$with_hdf5" != "xno"; then
   if test "x$with_hdf5" != "xyes"; then
-    LIBS="$LIBS -L$with_hdf5/lib -lhdf5"
-    INCLUDES="$INCLUDES -I$with_hdf5/include -I$with_hdf5/include/hdf"
+    LIBS="$LIBS -L$with_hdf5/lib -L$with_hdf5/lib/hdf -L$with_hdf5/lib/hdf5 -lhdf5"
+    INCLUDES="$INCLUDES -I$with_hdf5/include -I$with_hdf5/include/hdf -I$with_hdf5/include/hdf5"
   else
-    INCLUDES="$INCLUDES -I/usr/include/hdf"
-    LIBS="$LIBS -lhdf5"
+    INCLUDES="$INCLUDES -I/usr/include/hdf -I/usr/include/hdf5"
+    LIBS="$LIBS -L/usr/lib/hdf -L/usr/lib/hdf5 -lhdf5"
   fi
 
   AC_CHECK_LIB(hdf5, H5Fopen, [AC_DEFINE([USE_HDF5], [1], [Define if you want to use HDF5])], [

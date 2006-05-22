@@ -1,10 +1,13 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
- <DocsAndViews NumberOfDocuments="1" >
+ <DocsAndViews NumberOfDocuments="2" >
   <Doc0 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/dimension.hpp" >
    <View0 line="28" Type="Source" />
   </Doc0>
+  <Doc1 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/plotting.cpp" >
+   <View0 line="1458" Type="Source" />
+  </Doc1>
  </DocsAndViews>
  <pluginList>
   <kdevdebugger>
