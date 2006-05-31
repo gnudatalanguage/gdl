@@ -76,6 +76,14 @@ matplotlib  http://matplotlib.sourceforge.net
 
 *) please see below for potential problems using netCDF and HDF4
 
+NOTE: If you install the libraries as precompiled
+packages rather than compiling them from sources, please note that
+depending on your distribution, you may need development packages
+as well. Examples are (for FC5):
+plplot-devel
+ImageMagick-devel
+ImageMagick-c++-devel
+
 Since version 0.9 GDL compiles Craig Markwardt's CMSVLIB.
 If installed, the SAVE and RESTORE commands (data only) are
 available through wrapper routines. You get CMSVLIB here: 
