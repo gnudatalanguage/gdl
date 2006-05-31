@@ -543,6 +543,21 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d,
 // I code ****************************************************
 // other
 
+template <typename longT> void ZeroPad( ostream* os, SizeT w, longT dd)
+{
+  std::ostringstream ossF;
+  ossF << dd;
+  SizeT ddLen = ossF.str().size();
+  if( w < ddLen) 
+    {
+      OutStars( *os, w);
+      return;
+    }
+  for( SizeT i=ddLen; i<w; ++i)
+    (*os) << "0";
+  (*os) << ossF.str();
+}
+
 const int iFmtWidth[] = { -1,  7,  7, 12, 12, 12, 12, 12,  // UNDEF-STRING
 			  -1, 12, -1, -1,  7, 12, 22, 22}; // STRUCT-ULONG64
 
@@ -575,7 +590,8 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d,
 
   if( oMode == DEC)
     for( SizeT i=offs; i<endEl; ++i)
-      (*os) << dec << setw(w) << dd[ i];
+      ZeroPad( os, w, dd[ i]);
+  //      (*os) << dec << setw(w) << dd[ i];
   else if ( oMode == OCT)
     for( SizeT i=offs; i<endEl; ++i)
       (*os) << oct << setw(w) << dd[ i];
@@ -602,10 +618,11 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d,
   if( r < tCount) tCount = r;
 
   SizeT endEl = offs + tCount;
-
+  
   if( oMode == DEC)
     for( SizeT i=offs; i<endEl; ++i)
-      (*os) << dec << setw(w) << dd[ i];
+      ZeroPad( os, w, dd[ i]);
+  //      (*os) << dec << setw(w) << dd[ i];
   else if ( oMode == OCT)
     for( SizeT i=offs; i<endEl; ++i)
       (*os) << oct << setw(w) << dd[ i];
@@ -635,7 +652,8 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d,
 
   if( oMode == DEC)
     for( SizeT i=offs; i<endEl; ++i)
-      (*os) << dec << setw(w) << dd[ i];
+      ZeroPad( os, w, dd[ i]);
+  //      (*os) << dec << setw(w) << dd[ i];
   else if ( oMode == OCT)
     for( SizeT i=offs; i<endEl; ++i)
       (*os) << oct << setw(w) << dd[ i];
@@ -665,7 +683,8 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d,
 
   if( oMode == DEC)
     for( SizeT i=offs; i<endEl; ++i)
-      (*os) << dec << setw(w) << dd[ i];
+      ZeroPad( os, w, dd[ i]);
+  //      (*os) << dec << setw(w) << dd[ i];
   else if ( oMode == OCT)
     for( SizeT i=offs; i<endEl; ++i)
       (*os) << oct << setw(w) << dd[ i];
