@@ -904,7 +904,7 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
       	    const char* cStart=dd[i].c_str();
       	    char* cEnd;
       	    (*dest)[i]=strtol(cStart,&cEnd,10);
-      	    if( cEnd == cStart)
+      	    if( cEnd == cStart && dd[i] != "")
       	      {
 		Warning("Type conversion error: "
 			"Unable to convert given STRING to INT.");
@@ -921,7 +921,7 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
       	    const char* cStart=dd[i].c_str();
       	    char* cEnd;
       	    (*dest)[i]=strtoul(cStart,&cEnd,10);
-      	    if( cEnd == cStart)
+      	    if( cEnd == cStart && dd[i] != "")
       	      {
 		Warning("Type conversion error: "
 			"Unable to convert given STRING to UINT.");
@@ -938,7 +938,7 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
       	    const char* cStart=dd[i].c_str();
       	    char* cEnd;
       	    (*dest)[i]=strtol(cStart,&cEnd,10);
-      	    if( cEnd == cStart)
+      	    if( cEnd == cStart && dd[i] != "")
       	      {
 		Warning("Type conversion error: "
 			"Unable to convert given STRING to LONG.");
@@ -955,7 +955,7 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
       	    const char* cStart=dd[i].c_str();
       	    char* cEnd;
       	    (*dest)[i]=strtoul(cStart,&cEnd,10);
-      	    if( cEnd == cStart)
+      	    if( cEnd == cStart && dd[i] != "")
       	      {
 		Warning("Type conversion error: "
 			"Unable to convert given STRING to ULONG.");
@@ -972,7 +972,7 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
       	    const char* cStart=dd[i].c_str();
       	    char* cEnd;
       	    (*dest)[i]=strtol(cStart,&cEnd,10);
-      	    if( cEnd == cStart)
+      	    if( cEnd == cStart && dd[i] != "")
       	      {
 		Warning("Type conversion error: "
 			"Unable to convert given STRING to LONG64.");
@@ -989,7 +989,7 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
       	    const char* cStart=dd[i].c_str();
       	    char* cEnd;
       	    (*dest)[i]=strtoul(cStart,&cEnd,10);
-      	    if( cEnd == cStart)
+      	    if( cEnd == cStart && dd[i] != "")
       	      {
 		Warning("Type conversion error: "
 			"Unable to convert given STRING to ULONG64.");
@@ -1006,7 +1006,7 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
       	    const char* cStart=dd[i].c_str();
       	    char* cEnd;
       	    (*dest)[i]=strtod(cStart,&cEnd);
-      	    if( cEnd == cStart)
+      	    if( cEnd == cStart && dd[i] != "")
       	      {
 		Warning("Type conversion error: "
 			"Unable to convert given STRING to FLOAT.");
@@ -1034,10 +1034,10 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
       	    const char* cStart=dd[i].c_str();
       	    char* cEnd;
       	    (*dest)[i]=strtod(cStart,&cEnd);
-      	    if( cEnd == cStart)
+      	    if( cEnd == cStart && dd[i] != "")
       	      {
 		Warning("Type conversion error: "
-			"Unable to convert given STRING to LONG.");
+			"Unable to convert given STRING to COMPLEX.");
       	      }
       	  }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
@@ -1052,10 +1052,10 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
       	    const char* cStart=dd[i].c_str();
       	    char* cEnd;
       	    (*dest)[i]=strtod(cStart,&cEnd);
-      	    if( cEnd == cStart)
+      	    if( cEnd == cStart && dd[i] != "")
       	      {
 		Warning("Type conversion error: "
-			"Unable to convert given STRING to LONG.");
+			"Unable to convert given STRING to DCOMPLEX.");
       	      }
       	  }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;

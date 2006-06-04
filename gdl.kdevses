@@ -1,16 +1,25 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
- <DocsAndViews NumberOfDocuments="3" >
+ <DocsAndViews NumberOfDocuments="6" >
   <Doc0 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/dimension.hpp" >
    <View0 Type="Source" />
   </Doc0>
   <Doc1 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/plotting.cpp" >
-   <View0 line="1458" Type="Source" />
+   <View0 Type="Source" />
   </Doc1>
   <Doc2 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/gdl.cpp" >
-   <View0 line="92" Type="Source" />
+   <View0 Type="Source" />
   </Doc2>
+  <Doc3 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/ofmt.cpp" >
+   <View0 Type="Source" />
+  </Doc3>
+  <Doc4 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/datatypes.cpp" >
+   <View0 Type="Source" />
+  </Doc4>
+  <Doc5 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/basic_op.cpp" >
+   <View0 line="2800" Type="Source" />
+  </Doc5>
  </DocsAndViews>
  <pluginList>
   <kdevdebugger>
