@@ -1724,7 +1724,7 @@ CONSTANT_OR_STRING_LITERAL
 	| (D)+ 		  		{ _ttype=CONSTANT_I; }
 		( 's'!          { _ttype=CONSTANT_INT; }
 		| 'b'!			{ _ttype=CONSTANT_BYTE; }
-		| 'u'('s')?!	{ _ttype=CONSTANT_UINT; }
+		| 'u'!('s'!)?	{ _ttype=CONSTANT_UINT; }
 		| "ub"!			{ _ttype=CONSTANT_BYTE; }
 		| 'l'!    		{ _ttype=CONSTANT_LONG; }
 		| "ll"!    		{ _ttype=CONSTANT_LONG64; }

@@ -3006,10 +3006,14 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 								}
 							}
 							else if ((LA(1) == 0x75 /* 'u' */ ) && (true)) {
+								_saveIndex = text.length();
 								match('u');
+								text.erase(_saveIndex);
 								{
 								if ((LA(1) == 0x73 /* 's' */ )) {
+									_saveIndex = text.length();
 									match('s');
+									text.erase(_saveIndex);
 								}
 								else {
 								}
