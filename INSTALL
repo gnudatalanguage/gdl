@@ -25,7 +25,7 @@ BUILDING GDL AS A PYTHON MODULE:
 ================================
 
 to build the GDL python module, configure must be run with
-the --enable-pyhton_module option (i.e. if you wish to use
+the --enable-python_module option (i.e. if you wish to use
 the GDL standalone version *and* use GDL from within python,
 you need to build (configure/make) it twice.
 
@@ -60,11 +60,11 @@ options can be used:
 
 --enable-python_module            build the GDL python module instead of
                                   the standalone program (default). See above.
---enable-pyhton_version=VERSION#  the configure script tries to automatically 
-                                  determine which pyhton version is actually 
+--enable-python_version=VERSION#  the configure script tries to automatically 
+                                  determine which python version is actually 
                                   used. With this option the version can be
                                   expicitely set 
-                                  (e.g. --enable-pyhton_version=2.3).
+                                  (e.g. --enable-python_version=2.3).
 --with-plplotdir=DIR to specify the plplot directory tree
 --with-ncursesdir=DIR to specify the ncurses directory tree
 --with-readlinedir=DIR to specify the readline directory tree

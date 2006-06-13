@@ -192,7 +192,7 @@ If you want to use it you need python 2.3 or 2.4 and the python package
 The GDL configure script will determine the installed python version
 automatically. For this the python executable must be installed.
 The python version can be explictely set with 
---enable-pyhton_version=VERSION# (eg. --enable-pyhton_version=2.3).
+--enable-python_version=VERSION# (eg. --enable-python_version=2.3).
 Note: For embedding python as it is done by GDL, the python dynamic
 library is needed which is *not* build by default. You need to run
 'configure' for python with the '--enable-shared' option. Please see

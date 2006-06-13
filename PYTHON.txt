@@ -35,7 +35,7 @@ arg1,...,argN   arguments to be passed to the python function
                 as python scalars, an array is passed as a python
                 numarray.
 
-Numarray is a popular extension to pyhton. Using it let python be
+Numarray is a popular extension to python. Using it let python be
 integrated in GDL quite seamlessly. See:
 http://www.stsci.edu/resources/software_hardware/numarray
 for details.
@@ -82,7 +82,7 @@ If you use it it, you are urged to let us know.
 
 Since version 0.8.9 GDL can be imbedded into python.
 
-See INSTALL to learn how to build the GDL pyhton module.
+See INSTALL to learn how to build the GDL python module.
 
 Form within python, the usage is:
 
@@ -111,7 +111,7 @@ when the GDL subroutine returns. This is done to save
 resources. (Only the first item of each tuple is passed to GDL).
 
 GDL arrays are passed to/from GDLmust as python numarrays.
-Numarray is a popular extension to pyhton. See:
+Numarray is a popular extension to python. See:
 http://www.stsci.edu/resources/software_hardware/numarray
 for details. numarray
 
