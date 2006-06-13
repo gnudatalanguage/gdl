@@ -1847,6 +1847,7 @@ namespace lib {
     return res;
   }
 
+
   BaseGDL* total( EnvT* e)
   {
     SizeT nParam = e->NParam( 1);//, "TOTAL");
@@ -1855,18 +1856,19 @@ namespace lib {
 
     SizeT nEl = p0->N_Elements();
     if( nEl == 0)
-      throw GDLException( e->CallingNode(), 
-			  "TOTAL: Variable is undefined: "+e->GetParString(0));
+      e->Throw( "Variable is undefined: "+e->GetParString(0));
 
     if( p0->Type() == STRING)
-      throw GDLException( e->CallingNode(), 
-			  "TOTAL: String expression not allowed "
+      e->Throw( "String expression not allowed "
 			  "in this context: "+e->GetParString(0));
     
     static int cumIx = e->KeywordIx( "CUMULATIVE");
+    static int intIx = e->KeywordIx("INTEGER");
     static int doubleIx = e->KeywordIx( "DOUBLE");
     static int nanIx = e->KeywordIx( "NAN");
+
     bool cumulative = e->KeywordSet( cumIx);
+    bool intRes  = e->KeywordSet( intIx);
     bool doubleRes  = e->KeywordSet( doubleIx);
     bool nan        = e->KeywordSet( nanIx);
 
@@ -1878,6 +1880,32 @@ namespace lib {
       {
 	if( !cumulative)
 	  {
+
+	    // Integer parts by Erin Sheldon
+	    // In IDL total(), the INTEGER keyword takes precedence 
+	    if( intRes )
+	      {
+		// We use LONG64 unless the input is ULONG64
+		if ( p0->Type() == LONG64 )
+		  {
+		    return total_template<DLong64GDL>
+		      ( static_cast<DLong64GDL*>(p0), nan );
+		  }
+		if ( p0->Type() == ULONG64 )
+		  {
+		    return total_template<DULong64GDL>
+		      ( static_cast<DULong64GDL*>(p0), nan );
+		  }
+
+		// Conver to Long64
+		DLong64GDL* p0L64 = static_cast<DLong64GDL*>
+		  (p0->Convert2( LONG64, BaseGDL::COPY));
+		e->Guard( p0L64);
+		return total_template<DLong64GDL>( p0L64, nan);
+
+	      } // integer results
+
+
 	    if( p0->Type() == DOUBLE)
 	      {
 		return total_template<DDoubleGDL>
@@ -1888,6 +1916,7 @@ namespace lib {
 		return total_template<DComplexDblGDL>
                   ( static_cast<DComplexDblGDL*>(p0), nan); 
 	      }
+
 	    if( !doubleRes)
 	      {
 		if( p0->Type() == FLOAT)
@@ -1920,6 +1949,30 @@ namespace lib {
 	  }
 	else // cumulative
 	  {
+
+	    // INTEGER keyword takes precedence
+	    if( intRes )
+	      {
+		// We use LONG64 unless the input is ULONG64
+		if ( p0->Type() == LONG64 )
+		  {
+		    return total_cu_template<DLong64GDL>
+		      ( static_cast<DLong64GDL*>(p0)->Dup(), nan );
+		  }
+		if ( p0->Type() == ULONG64 )
+		  {
+		    return total_cu_template<DULong64GDL>
+		      ( static_cast<DULong64GDL*>(p0)->Dup(), nan );
+		  }
+
+		// Convert to Long64
+		return total_cu_template<DLong64GDL>
+		  ( static_cast<DLong64GDL*>
+		    (p0->Convert2( LONG64, BaseGDL::COPY)), nan);
+						     
+	      } // integer results
+
+
 	    // special case as DOUBLE type overrides /DOUBLE
 	    if( p0->Type() == DOUBLE)
 	      {
@@ -1931,6 +1984,9 @@ namespace lib {
   	        return total_cu_template< DComplexDblGDL>
 		  ( static_cast<DComplexDblGDL*>(p0)->Dup(), nan);
 	      }
+
+
+
 	    if( !doubleRes)
 	      {
 		// special case for FLOAT has no advantage here
@@ -1966,6 +2022,32 @@ namespace lib {
 
     if( !cumulative)
       {
+
+	// INTEGER keyword takes precedence 
+	if( intRes )
+	  {
+	    // We use LONG64 unless the input is ULONG64
+	    if ( p0->Type() == LONG64 )
+	      {
+		return total_over_dim_template<DLong64GDL>
+		  ( static_cast<DLong64GDL*>(p0), srcDim, sumDim-1, nan );
+	      }
+	    if ( p0->Type() == ULONG64 )
+	      {
+		return total_over_dim_template<DULong64GDL>
+		  ( static_cast<DULong64GDL*>(p0), srcDim, sumDim-1, nan );
+	      }
+	    
+	    // Conver to Long64
+	    DLong64GDL* p0L64 = static_cast<DLong64GDL*>
+	      (p0->Convert2( LONG64, BaseGDL::COPY));
+	    e->Guard( p0L64);
+	    return total_over_dim_template<DLong64GDL>
+	      ( p0L64, srcDim, sumDim-1, nan);
+	    
+	  } // integer results
+
+
 	if( p0->Type() == DOUBLE)
 	  {
 	    return total_over_dim_template< DDoubleGDL>
@@ -2011,6 +2093,30 @@ namespace lib {
       }
     else // cumulative
       {
+
+	// INTEGER keyword takes precedence
+	if( intRes )
+	  {
+	    // We use LONG64 unless the input is ULONG64
+	    if ( p0->Type() == LONG64 )
+	      {
+		return total_over_dim_cu_template<DLong64GDL>
+		  ( static_cast<DLong64GDL*>(p0)->Dup(), sumDim-1, nan );
+	      }
+	    if ( p0->Type() == ULONG64 )
+	      {
+		return total_over_dim_cu_template<DULong64GDL>
+		  ( static_cast<DULong64GDL*>(p0)->Dup(), sumDim-1, nan );
+	      }
+	    
+	    // Convert to Long64
+	    return total_over_dim_cu_template<DLong64GDL>
+	      ( static_cast<DLong64GDL*>
+		(p0->Convert2( LONG64, BaseGDL::COPY)), sumDim-1, nan);
+	    
+	  } // integer results
+
+
 	if( p0->Type() == DOUBLE)
 	  {
 	    return total_over_dim_cu_template< DDoubleGDL>
@@ -2046,6 +2152,7 @@ namespace lib {
 	    BaseGDL::COPY)), sumDim-1, nan);
       }
   }
+
 
   // passing 2nd argument by value is slightly better for float and double, 
   // but incur some overhead for the complex class.

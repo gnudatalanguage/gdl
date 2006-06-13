@@ -163,4 +163,4 @@
 	  Support for non-rectangular (x,y 2d arrays) calls to SURFACE and
 	  CONTOUR.
 	  Support for DICOM files (GDLffDICOM object).
-
+	  INTEGER keyword for TOTAL

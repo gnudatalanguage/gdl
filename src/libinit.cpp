@@ -336,7 +336,7 @@ void LibInit()
   const string whereKey[]={"COMPLEMENT","NCOMPLEMENT",KLISTEND};
   new DLibFunRetNew(lib::where,string("WHERE"),2,whereKey);
 
-  const string totalKey[]={"CUMULATIVE","DOUBLE","NAN",KLISTEND};
+  const string totalKey[]={"CUMULATIVE","DOUBLE","NAN","INTEGER",KLISTEND};
   new DLibFunRetNew(lib::total,string("TOTAL"),2,totalKey);
 
   const string productKey[]={"CUMULATIVE","NAN",KLISTEND};
