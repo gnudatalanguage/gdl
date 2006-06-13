@@ -403,18 +403,18 @@ Data_<SpDByte>* DStructGDL::EqOp( BaseGDL* r)
   throw GDLException("Cannot apply operation to datatype STRUCT.");  
   return NULL;
 }
-template<>
-Data_<SpDByte>* Data_<SpDPtr>::EqOp( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype PTR.");  
-  return NULL;
-}
-template<>
-Data_<SpDByte>* Data_<SpDObj>::EqOp( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
-  return NULL;
-}
+// template<>
+// Data_<SpDByte>* Data_<SpDPtr>::EqOp( BaseGDL* r)
+// {
+//   throw GDLException("Cannot apply operation to datatype PTR.");  
+//   return NULL;
+// }
+// template<>
+// Data_<SpDByte>* Data_<SpDObj>::EqOp( BaseGDL* r)
+// {
+//   throw GDLException("Cannot apply operation to datatype OBJECT.");  
+//   return NULL;
+// }
 
 // NeOp
 // returns *this ne *r, //C deletes itself and right
@@ -466,18 +466,18 @@ Data_<SpDByte>* DStructGDL::NeOp( BaseGDL* r)
   throw GDLException("Cannot apply operation to datatype STRUCT.");  
   return NULL;
 }
-template<>
-Data_<SpDByte>* Data_<SpDPtr>::NeOp( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype PTR.");  
-  return NULL;
-}
-template<>
-Data_<SpDByte>* Data_<SpDObj>::NeOp( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
-  return NULL;
-}
+// template<>
+// Data_<SpDByte>* Data_<SpDPtr>::NeOp( BaseGDL* r)
+// {
+//   throw GDLException("Cannot apply operation to datatype PTR.");  
+//   return NULL;
+// }
+// template<>
+// Data_<SpDByte>* Data_<SpDObj>::NeOp( BaseGDL* r)
+// {
+//   throw GDLException("Cannot apply operation to datatype OBJECT.");  
+//   return NULL;
+// }
 
 // LeOp
 // returns *this le *r, //C deletes itself and right

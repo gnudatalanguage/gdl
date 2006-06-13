@@ -105,10 +105,10 @@ template<>
 Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::XorOp( BaseGDL* r);
 template<> 
 Data_<SpDPtr>* Data_<SpDPtr>::XorOp( BaseGDL* r);
-template<> 
-Data_<SpDByte>* Data_<SpDPtr>::EqOp( BaseGDL* r);
-template<> 
-Data_<SpDByte>* Data_<SpDPtr>::NeOp( BaseGDL* r);
+// template<> 
+// Data_<SpDByte>* Data_<SpDPtr>::EqOp( BaseGDL* r);
+// template<> 
+// Data_<SpDByte>* Data_<SpDPtr>::NeOp( BaseGDL* r);
 template<> 
 Data_<SpDByte>* Data_<SpDPtr>::LeOp( BaseGDL* r);
 template<> 
