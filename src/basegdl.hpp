@@ -183,6 +183,7 @@ public:
   virtual BaseGDL* CShift( DLong d[MAXRANK]); // circular shift multi dim
 
   virtual bool Scalar() const;
+  virtual bool StrictScalar() const;
   virtual DType   Type() const;
   virtual const std::string& TypeStr() const;
   virtual bool          EqType( const BaseGDL*) const;

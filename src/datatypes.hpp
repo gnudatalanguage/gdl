@@ -139,9 +139,14 @@ public:
   Data_* Dup() { return new Data_(*this);}
 
   bool Scalar() const { return (dd.size() == 1);}
+  bool StrictScalar() const { return (this->Rank() == 0);}
 
   bool Scalar(Ty& s) const {
     if( dd.size() != 1) return false;
+    s=dd[0];
+    return true; }
+  bool StrictScalar(Ty& s) const {
+    if( this->Rank() != 0) return false;
     s=dd[0];
     return true; }
 

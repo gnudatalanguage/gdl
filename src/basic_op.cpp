@@ -369,13 +369,13 @@ Data_<SpDByte>* Data_<Sp>::EqOp( BaseGDL* r)
   Data_<SpDByte>* res;
 
   Ty s;
-  if( right->Scalar(s)) 
+  if( right->StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
       for( SizeT i=0; i < sEl; ++i)
 	(*res)[i] = (dd[i] == s);
     }
-  else if( Scalar(s)) 
+  else if( StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( right->dim, BaseGDL::NOZERO);
       for( SizeT i=0; i < rEl; ++i)
@@ -432,13 +432,13 @@ Data_<SpDByte>* Data_<Sp>::NeOp( BaseGDL* r)
   Data_<SpDByte>* res;
 
   Ty s;
-  if( right->Scalar(s)) 
+  if( right->StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
       for( SizeT i=0; i < sEl; ++i)
 	(*res)[i] = (dd[i] != s);
     }
-  else if( Scalar(s)) 
+  else if( StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( right->dim, BaseGDL::NOZERO);
       for( SizeT i=0; i < rEl; ++i)
@@ -495,13 +495,13 @@ Data_<SpDByte>* Data_<Sp>::LeOp( BaseGDL* r)
   Data_<SpDByte>* res;
 
   Ty s;
-  if( right->Scalar(s)) 
+  if( right->StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
       for( SizeT i=0; i < sEl; ++i)
 	(*res)[i] = (dd[i] <= s);
     }
-  else if( Scalar(s)) 
+  else if( StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( right->dim, BaseGDL::NOZERO);
       for( SizeT i=0; i < rEl; ++i)
@@ -570,13 +570,13 @@ Data_<SpDByte>* Data_<Sp>::LtOp( BaseGDL* r)
   Data_<SpDByte>* res;
 
   Ty s;
-  if( right->Scalar(s)) 
+  if( right->StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
       for( SizeT i=0; i < sEl; ++i)
 	(*res)[i] = (dd[i] < s);
     }
-  else if( Scalar(s)) 
+  else if( StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( right->dim, BaseGDL::NOZERO);
       for( SizeT i=0; i < rEl; ++i)
@@ -645,13 +645,13 @@ Data_<SpDByte>* Data_<Sp>::GeOp( BaseGDL* r)
   Data_<SpDByte>* res;
 
   Ty s;
-  if( right->Scalar(s)) 
+  if( right->StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
       for( SizeT i=0; i < sEl; ++i)
 	(*res)[i] = (dd[i] >= s);
     }
-  else if( Scalar(s)) 
+  else if( StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( right->dim, BaseGDL::NOZERO);
       for( SizeT i=0; i < rEl; ++i)
@@ -720,13 +720,13 @@ Data_<SpDByte>* Data_<Sp>::GtOp( BaseGDL* r)
   Data_<SpDByte>* res;
 
   Ty s;
-  if( right->Scalar(s)) 
+  if( right->StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
       for( SizeT i=0; i < sEl; ++i)
 	(*res)[i] = (dd[i] > s);
     }
-  else if( Scalar(s)) 
+  else if( StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( right->dim, BaseGDL::NOZERO);
       for( SizeT i=0; i < rEl; ++i)
@@ -1490,7 +1490,7 @@ Data_<Sp>* Data_<Sp>::XorOp( BaseGDL* r)
   assert( sEl);
   //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s = right->dd[0];
-  if( right->Scalar(s))
+  if( right->StrictScalar(s))
     {
       if( s != Sp::zero)
 	dd ^= s;
@@ -2955,7 +2955,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
       // note: changes here have to be reflected in POWNCNode::Eval() (dnode.cpp)
       // (concerning when a new variable is created vs. using this)
       // (must also be consistent with ComplexDbl)
-      if( right->Scalar(s)) 
+      if( right->StrictScalar(s)) 
 	{
 	  for( SizeT i=0; i<sEl; ++i)
 	    dd[ i] = pow( dd[ i], s);
@@ -2968,7 +2968,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
 	  if( sEl < rEl)
 	    {
 	      DComplex s;
-	      if( Scalar(s)) 
+	      if( StrictScalar(s)) 
 		{
 		  DComplexGDL* res = new DComplexGDL( right->Dim(), 
 						      BaseGDL::NOZERO);
@@ -3003,7 +3003,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
       // note: changes here have to be reflected in POWNCNode::Eval() (dnode.cpp)
       // (concerning when a new variable is created vs. using this)
       // (must also be consistent with ComplexDbl)
-      if( right->Scalar(s)) 
+      if( right->StrictScalar(s)) 
 	{
 	  for( SizeT i=0; i<sEl; ++i)
 	    dd[ i] = pow( dd[ i], s);
@@ -3016,7 +3016,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
 	  if( sEl < rEl)
 	    {
 	      DComplex s;
-	      if( Scalar(s)) 
+	      if( StrictScalar(s)) 
 		{
 		  DComplexGDL* res = new DComplexGDL( right->Dim(), 
 						      BaseGDL::NOZERO);
@@ -3109,7 +3109,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
 
       // note: changes here have to be reflected in POWNCNode::Eval() (dnode.cpp)
       // (concerning when a new variable is created vs. using this)
-      if( right->Scalar(s)) 
+      if( right->StrictScalar(s)) 
 	{
 	  for( SizeT i=0; i<sEl; ++i)
 	    dd[ i] = pow( dd[ i], s);
@@ -3122,7 +3122,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
 	  if( sEl < rEl)
 	    {
 	      DComplexDbl s;
-	      if( Scalar(s)) 
+	      if( StrictScalar(s)) 
 		{
 		  DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
 							    BaseGDL::NOZERO);
@@ -3159,7 +3159,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
 
       // note: changes here have to be reflected in POWNCNode::Eval() (dnode.cpp)
       // (concerning when a new variable is created vs. using this)
-      if( right->Scalar(s)) 
+      if( right->StrictScalar(s)) 
 	{
 	  for( SizeT i=0; i<sEl; ++i)
 	    dd[ i] = pow( dd[ i], s);
@@ -3172,7 +3172,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
 	  if( sEl < rEl)
 	    {
 	      DComplexDbl s;
-	      if( Scalar(s)) 
+	      if( StrictScalar(s)) 
 		{
 		  DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
 							    BaseGDL::NOZERO);
@@ -3402,7 +3402,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowS( BaseGDL* r)
       // note: changes here have to be reflected in POWNCNode::Eval() (dnode.cpp)
       // (concerning when a new variable is created vs. using this)
       // (must also be consistent with ComplexDbl)
-      if( right->Scalar(s)) 
+      if( right->StrictScalar(s)) 
 	{
 	  for( SizeT i=0; i<sEl; ++i)
 	    dd[ i] = pow( dd[ i], s);
@@ -3415,7 +3415,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowS( BaseGDL* r)
 	  if( sEl < rEl)
 	    {
 	      DComplex s;
-	      if( Scalar(s)) 
+	      if( StrictScalar(s)) 
 		{
 		  DComplexGDL* res = new DComplexGDL( right->Dim(), 
 						      BaseGDL::NOZERO);
@@ -3450,7 +3450,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowS( BaseGDL* r)
       // note: changes here have to be reflected in POWNCNode::Eval() (dnode.cpp)
       // (concerning when a new variable is created vs. using this)
       // (must also be consistent with ComplexDbl)
-      if( right->Scalar(s)) 
+      if( right->StrictScalar(s)) 
 	{
 	  for( SizeT i=0; i<sEl; ++i)
 	    dd[ i] = pow( dd[ i], s);
@@ -3463,7 +3463,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowS( BaseGDL* r)
 	  if( sEl < rEl)
 	    {
 	      DComplex s;
-	      if( Scalar(s)) 
+	      if( StrictScalar(s)) 
 		{
 		  DComplexGDL* res = new DComplexGDL( right->Dim(), 
 						      BaseGDL::NOZERO);
@@ -3548,7 +3548,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowS( BaseGDL* r)
 
       // note: changes here have to be reflected in POWNCNode::Eval() (dnode.cpp)
       // (concerning when a new variable is created vs. using this)
-      if( right->Scalar(s)) 
+      if( right->StrictScalar(s)) 
 	{
 	  for( SizeT i=0; i<sEl; ++i)
 	    dd[ i] = pow( dd[ i], s);
@@ -3561,7 +3561,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowS( BaseGDL* r)
 	  if( sEl < rEl)
 	    {
 	      DComplexDbl s;
-	      if( Scalar(s)) 
+	      if( StrictScalar(s)) 
 		{
 		  DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
 							    BaseGDL::NOZERO);
@@ -3598,7 +3598,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowS( BaseGDL* r)
 
       // note: changes here have to be reflected in POWNCNode::Eval() (dnode.cpp)
       // (concerning when a new variable is created vs. using this)
-      if( right->Scalar(s)) 
+      if( right->StrictScalar(s)) 
 	{
 	  for( SizeT i=0; i<sEl; ++i)
 	    dd[ i] = pow( dd[ i], s);
@@ -3611,7 +3611,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowS( BaseGDL* r)
 	  if( sEl < rEl)
 	    {
 	      DComplexDbl s;
-	      if( Scalar(s)) 
+	      if( StrictScalar(s)) 
 		{
 		  DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
 							    BaseGDL::NOZERO);
@@ -3746,7 +3746,7 @@ Data_<Sp>* Data_<Sp>::SubNew( BaseGDL* r)
   Data_* res = New( this->Dim(), BaseGDL::NOZERO);
 
   Ty s;
-  if( right->Scalar(s)) 
+  if( right->StrictScalar(s)) 
     {
       for( SizeT i=0; i < sEl; ++i)
 	res->dd[i] = dd[i] - s;
@@ -3794,7 +3794,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew( BaseGDL* r)
       // note: changes here have to be reflected in POWNCNode::Eval() (dnode.cpp)
       // (concerning when a new variable is created vs. using this)
       // (must also be consistent with ComplexDbl)
-      if( right->Scalar(s)) 
+      if( right->StrictScalar(s)) 
 	{
 	  DComplexGDL* res = new DComplexGDL( this->Dim(), 
 					      BaseGDL::NOZERO);
@@ -3809,7 +3809,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew( BaseGDL* r)
 	  if( sEl < rEl)
 	    {
 	      DComplex s;
-	      if( Scalar(s)) 
+	      if( StrictScalar(s)) 
 		{
 		  DComplexGDL* res = new DComplexGDL( right->Dim(), 
 						      BaseGDL::NOZERO);
@@ -3846,7 +3846,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew( BaseGDL* r)
       // note: changes here have to be reflected in POWNCNode::Eval() (dnode.cpp)
       // (concerning when a new variable is created vs. using this)
       // (must also be consistent with ComplexDbl)
-      if( right->Scalar(s)) 
+      if( right->StrictScalar(s)) 
 	{
 	  DComplexGDL* res = new DComplexGDL( this->Dim(), 
 					      BaseGDL::NOZERO);
@@ -3861,7 +3861,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew( BaseGDL* r)
 	  if( sEl < rEl)
 	    {
 	      DComplex s;
-	      if( Scalar(s)) 
+	      if( StrictScalar(s)) 
 		{
 		  DComplexGDL* res = new DComplexGDL( right->Dim(), 
 						      BaseGDL::NOZERO);
@@ -3897,7 +3897,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew( BaseGDL* r)
   //   ULong sEl=N_Elements();
   //   if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
-  if( right->Scalar(s)) 
+  if( right->StrictScalar(s)) 
     {
       DComplexGDL* res = new DComplexGDL( this->Dim(), 
 					  BaseGDL::NOZERO);
@@ -3946,7 +3946,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew( BaseGDL* r)
       // note: changes here have to be reflected in POWNCNode::Eval() (dnode.cpp)
       // (concerning when a new variable is created vs. using this)
       // (must also be consistent with ComplexDbl)
-      if( right->Scalar(s)) 
+      if( right->StrictScalar(s)) 
 	{
 	  DComplexDblGDL* res = new DComplexDblGDL( this->Dim(), 
 						    BaseGDL::NOZERO);
@@ -3961,7 +3961,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew( BaseGDL* r)
 	  if( sEl < rEl)
 	    {
 	      DComplexDbl s;
-	      if( Scalar(s)) 
+	      if( StrictScalar(s)) 
 		{
 		  DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
 							    BaseGDL::NOZERO);
@@ -3998,7 +3998,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew( BaseGDL* r)
       // note: changes here have to be reflected in POWNCNode::Eval() (dnode.cpp)
       // (concerning when a new variable is created vs. using this)
       // (must also be consistent with ComplexDbl)
-      if( right->Scalar(s)) 
+      if( right->StrictScalar(s)) 
 	{
 	  DComplexDblGDL* res = new DComplexDblGDL( this->Dim(), 
 						    BaseGDL::NOZERO);
@@ -4013,7 +4013,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew( BaseGDL* r)
 	  if( sEl < rEl)
 	    {
 	      DComplexDbl s;
-	      if( Scalar(s)) 
+	      if( StrictScalar(s)) 
 		{
 		  DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
 							    BaseGDL::NOZERO);
@@ -4049,7 +4049,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew( BaseGDL* r)
   //   ULong sEl=N_Elements();
   //   if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s;
-  if( right->Scalar(s)) 
+  if( right->StrictScalar(s)) 
     {
       DComplexDblGDL* res = new DComplexDblGDL( this->Dim(), 
 						BaseGDL::NOZERO);

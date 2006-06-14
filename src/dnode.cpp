@@ -826,13 +826,13 @@ BaseGDL* AND_OPNode::Eval()
   auto_ptr<BaseGDL> e1( op1->Eval());
   auto_ptr<BaseGDL> e2( op2->Eval());
   AdjustTypes(e1,e2);
-  if( e1->Scalar()) 
+  if( e1->StrictScalar()) 
     {
     res= e2->AndOpS(e1.get()); // scalar+scalar or array+scalar
     e2.release();
     }
   else
-    if( e2->Scalar())
+    if( e2->StrictScalar())
       {
       res= e1->AndOpInvS(e2.get()); // array+scalar
       e1.release();
@@ -855,13 +855,13 @@ BaseGDL* OR_OPNode::Eval()
  auto_ptr<BaseGDL> e1( op1->Eval());
  auto_ptr<BaseGDL> e2( op2->Eval());
  AdjustTypes(e1,e2);
- if( e1->Scalar())
+ if( e1->StrictScalar())
    {
      res= e2->OrOpS(e1.get()); // scalar+scalar or array+scalar
      e2.release();
    }
  else
-   if( e2->Scalar())
+   if( e2->StrictScalar())
      {
        res= e1->OrOpInvS(e2.get()); // array+scalar
        e1.release();
@@ -968,13 +968,13 @@ BaseGDL* PLUSNode::Eval()
  auto_ptr<BaseGDL> e1( op1->Eval());
  auto_ptr<BaseGDL> e2( op2->Eval());
  AdjustTypes(e1,e2);
- if( e1->Scalar())
+ if( e1->StrictScalar())
    {
      res= e2->AddInvS(e1.get()); // scalar+scalar or array+scalar
      e2.release();
    }
  else
-   if( e2->Scalar())
+   if( e2->StrictScalar())
      {
        res= e1->AddS(e2.get()); // array+scalar
        e1.release();
@@ -997,13 +997,13 @@ BaseGDL* MINUSNode::Eval()
  auto_ptr<BaseGDL> e1( op1->Eval());
  auto_ptr<BaseGDL> e2( op2->Eval());
  AdjustTypes(e1,e2);
- if( e1->Scalar())
+ if( e1->StrictScalar())
    {
      res= e2->SubInvS(e1.get()); // scalar+scalar or array+scalar
      e2.release();
    }
  else
-   if( e2->Scalar())
+   if( e2->StrictScalar())
      {
        res= e1->SubS(e2.get()); // array+scalar
        e1.release();
@@ -1026,13 +1026,13 @@ BaseGDL* LTMARKNode::Eval()
  auto_ptr<BaseGDL> e1( op1->Eval());
  auto_ptr<BaseGDL> e2( op2->Eval());
  AdjustTypes(e1,e2);
- if( e1->Scalar())
+ if( e1->StrictScalar())
    {
      res= e2->LtMarkS(e1.get()); // scalar+scalar or array+scalar
      e2.release();
    }
  else
-   if( e2->Scalar())
+   if( e2->StrictScalar())
      {
        res= e1->LtMarkS(e2.get()); // array+scalar
        e1.release();
@@ -1055,13 +1055,13 @@ BaseGDL* GTMARKNode::Eval()
  auto_ptr<BaseGDL> e1( op1->Eval());
  auto_ptr<BaseGDL> e2( op2->Eval());
  AdjustTypes(e1,e2);
- if( e1->Scalar())
+ if( e1->StrictScalar())
    {
      res= e2->GtMarkS(e1.get()); // scalar+scalar or array+scalar
      e2.release();
    }
  else
-   if( e2->Scalar())
+   if( e2->StrictScalar())
      {
        res= e1->GtMarkS(e2.get()); // array+scalar
        e1.release();
@@ -1084,13 +1084,13 @@ BaseGDL* ASTERIXNode::Eval()
  auto_ptr<BaseGDL> e1( op1->Eval());
  auto_ptr<BaseGDL> e2( op2->Eval());
  AdjustTypes(e1,e2);
- if( e1->Scalar())
+ if( e1->StrictScalar())
    {
      res= e2->MultS(e1.get()); // scalar+scalar or array+scalar
      e2.release();
    }
  else
-   if( e2->Scalar())
+   if( e2->StrictScalar())
      {
        res= e1->MultS(e2.get()); // array+scalar
        e1.release();
@@ -1156,13 +1156,13 @@ BaseGDL* SLASHNode::Eval()
  auto_ptr<BaseGDL> e1( op1->Eval());
  auto_ptr<BaseGDL> e2( op2->Eval());
  AdjustTypes(e1,e2);
- if( e1->Scalar())
+ if( e1->StrictScalar())
    {
      res= e2->DivInvS(e1.get()); // scalar+scalar or array+scalar
      e2.release();
    }
  else
-   if( e2->Scalar())
+   if( e2->StrictScalar())
      {
        res= e1->DivS(e2.get()); // array+scalar
        e1.release();
@@ -1186,13 +1186,13 @@ BaseGDL* MOD_OPNode::Eval()
  auto_ptr<BaseGDL> e1( op1->Eval());
  auto_ptr<BaseGDL> e2( op2->Eval());
  AdjustTypes(e1,e2);
- if( e1->Scalar())
+ if( e1->StrictScalar())
    {
      res= e2->ModInvS(e1.get()); // scalar+scalar or array+scalar
      e2.release();
    }
  else
-   if( e2->Scalar())
+   if( e2->StrictScalar())
      {
        res= e1->ModS(e2.get()); // array+scalar
        e1.release();
@@ -1271,13 +1271,13 @@ BaseGDL* POWNode::Eval()
   
   AdjustTypes(e2,e1); // order crucial here (for converting back)
 
-  if( e1->Scalar())
+  if( e1->StrictScalar())
     {
       res= e2->PowInvS(e1.get()); // scalar+scalar or array+scalar
       e2.release();
     }
   else
-    if( e2->Scalar())
+    if( e2->StrictScalar())
       {
       res= e1->PowS(e2.get()); // array+scalar
       e1.release();
@@ -1346,14 +1346,14 @@ BaseGDL* AND_OPNCNode::Eval()
        }
    }
 
- if( e1->Scalar())
+ if( e1->StrictScalar())
    {
      if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
      res= e2->AndOpS(e1); // scalar+scalar or array+scalar
      
    }
  else
-   if( e2->Scalar())
+   if( e2->StrictScalar())
      {
        if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
        res= e1->AndOpInvS(e2); // array+scalar
@@ -1400,14 +1400,14 @@ BaseGDL* OR_OPNCNode::Eval()
        }
    }
 
- if( e1->Scalar())
+ if( e1->StrictScalar())
    {
      if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
      res= e2->OrOpS(e1); // scalar+scalar or array+scalar
      
    }
  else
-   if( e2->Scalar())
+   if( e2->StrictScalar())
      {
        if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
        res= e1->OrOpInvS(e2); // array+scalar
@@ -1604,14 +1604,14 @@ BaseGDL* PLUSNCNode::Eval()
        }
    }
 
- if( e1->Scalar())
+ if( e1->StrictScalar())
    {
      if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
      res= e2->AddInvS(e1); // scalar+scalar or array+scalar
      
    }
  else
-   if( e2->Scalar())
+   if( e2->StrictScalar())
      {
        if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
        res= e1->AddS(e2); // array+scalar
@@ -1658,14 +1658,14 @@ BaseGDL* MINUSNCNode::Eval()
        }
    }
 
- if( e1->Scalar())
+ if( e1->StrictScalar())
    {
      if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
      res= e2->SubInvS(e1); // scalar+scalar or array+scalar
      
    }
  else
-   if( e2->Scalar())
+   if( e2->StrictScalar())
      {
        if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
        res= e1->SubS(e2); // array+scalar
@@ -1713,14 +1713,14 @@ BaseGDL* LTMARKNCNode::Eval()
    }
 
 
- if( e1->Scalar())
+ if( e1->StrictScalar())
    {
      if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
      res= e2->LtMarkS(e1); // scalar+scalar or array+scalar
      
    }
  else
-   if( e2->Scalar())
+   if( e2->StrictScalar())
      {
        if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
        res= e1->LtMarkS(e2); // array+scalar
@@ -1767,14 +1767,14 @@ BaseGDL* GTMARKNCNode::Eval()
        }
    }
 
- if( e1->Scalar())
+ if( e1->StrictScalar())
    {
      if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
      res= e2->GtMarkS(e1); // scalar+scalar or array+scalar
      
    }
  else
-   if( e2->Scalar())
+   if( e2->StrictScalar())
      {
        if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
        res= e1->GtMarkS(e2); // array+scalar
@@ -1821,14 +1821,14 @@ BaseGDL* ASTERIXNCNode::Eval()
        }
    }
 
- if( e1->Scalar())
+ if( e1->StrictScalar())
    {
      if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
      res= e2->MultS(e1); // scalar+scalar or array+scalar
      
    }
  else
-   if( e2->Scalar())
+   if( e2->StrictScalar())
      {
        if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
        res= e1->MultS(e2); // array+scalar
@@ -1979,14 +1979,14 @@ BaseGDL* SLASHNCNode::Eval()
    }
 
 
- if( e1->Scalar())
+ if( e1->StrictScalar())
    {
      if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
      res= e2->DivInvS(e1); // scalar+scalar or array+scalar
      
    }
  else
-   if( e2->Scalar())
+   if( e2->StrictScalar())
      {
        if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
        res= e1->DivS(e2); // array+scalar
@@ -2034,14 +2034,14 @@ BaseGDL* MOD_OPNCNode::Eval()
        }
    }
 
- if( e1->Scalar())
+ if( e1->StrictScalar())
    {
      if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
      res= e2->ModInvS(e1); // scalar+scalar or array+scalar
      
    }
  else
-   if( e2->Scalar())
+   if( e2->StrictScalar())
      {
        if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
        res= e1->ModS(e2); // array+scalar
@@ -2205,14 +2205,14 @@ BaseGDL* POWNCNode::Eval()
 	 res = e1->Pow(e2); 
        }
    }
- else if( e1->Scalar())
+ else if( e1->StrictScalar())
    {
      if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
      res= e2->PowInvS(e1); // scalar+scalar or array+scalar
      
    }
  else
-   if( e2->Scalar())
+   if( e2->StrictScalar())
      {
        if( g1.get() == NULL) 
 	 {
