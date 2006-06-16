@@ -739,7 +739,7 @@ ntag_defs
 
 named_tag_def_entry
     :   ( (INHERITS) => INHERITS struct_identifier
-        | ntag_defs 
+        | ntag_def
         )
     ;
 
