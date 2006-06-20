@@ -646,7 +646,7 @@ namespace lib {
     } else   {
       //      DDoubleGDL* d;
       DDoubleGDL* dr = new DDoubleGDL(v->Dim(), BaseGDL::NOZERO);
-      e->Guard( dr);
+      //      e->Guard( dr);
 
       if(v->Type() == COMPLEX) {
 	DComplexDblGDL* cd=
