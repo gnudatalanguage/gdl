@@ -3234,6 +3234,11 @@ namespace lib {
     static int pre0Ix = e->KeywordIx( "PRESERVE_NULL");
     bool pre0 = e->KeywordSet( pre0Ix);
 
+    static int regexIx = e->KeywordIx( "REGEX");
+    bool regex = e->KeywordPresent( regexIx);
+    char err_msg[MAX_REGEXPERR_LENGTH];
+    regex_t regexp;
+    
     deque<long> tokenStart;
     deque<long> tokenLen;
  
@@ -3256,13 +3261,34 @@ namespace lib {
     deque<long>::iterator escEnd = escList.end();
 
     long tokB = 0;
+    long tokE;
     long nextE = 0;
+    long actLen;
+
+    // If regex then compile regex
+    if( regex) {
+      int compRes = regcomp( &regexp, pattern.c_str(), REG_EXTENDED);
+      if (compRes) {
+	regerror(compRes, &regexp, err_msg, MAX_REGEXPERR_LENGTH);
+	throw GDLException(e->CallingNode(), 
+			   "STREGEX: Error processing regular expression: "+
+			   pattern+"\n           "+string(err_msg)+".");
+      }
+    }
+
     for(;;)
       {
-	long tokE = stringIn.find_first_of( pattern, nextE);
+	regmatch_t pmatch[1];
+	if( regex) {
+	  int matchres = regexec( &regexp, stringIn.c_str()+nextE, 1, pmatch, 0);
+	  tokE = matchres? -1:pmatch[0].rm_so;
+	} else { 
+	  tokE = stringIn.find_first_of( pattern, nextE);
+	}
+
 	if( tokE == string::npos)
 	  {
-	    long actLen = strLen - tokB;
+	    actLen = strLen - tokB;
 	    if( actLen > 0 || pre0)
 	      {
 		tokenStart.push_back( tokB);
@@ -3270,20 +3296,21 @@ namespace lib {
 	      }
 	    break;
 	  }
-	
+
 	if( find( escBeg, escEnd, tokE) == escEnd) 
-	  { 
-	    long actLen = tokE - tokB;
+	  {
+	    if (regex) actLen = tokE; else actLen = tokE - tokB;
 	    if( actLen > 0 || pre0)
 	      {
 		tokenStart.push_back( tokB);
 		tokenLen.push_back( actLen);
 	      }
-	    tokB = tokE+1;
+	    if (regex) tokB += pmatch[0].rm_eo; else tokB = tokE + 1;
 	  }
-
-	nextE = tokE+1;
+	if (regex) nextE += pmatch[0].rm_eo; else nextE = tokE + 1;
       } // for(;;)
+
+    if (regex) regfree( &regexp);
 
     SizeT nTok = tokenStart.size();
 
@@ -4014,5 +4041,4 @@ namespace lib {
   }
 
 } // namespace
-
 
