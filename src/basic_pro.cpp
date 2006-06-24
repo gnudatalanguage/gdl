@@ -1018,7 +1018,7 @@ namespace lib {
 	if( ix >= 0)
 	  {
 	    SizeT nTagElements = source->Get( t, 0)->N_Elements();
-	    SizeT nTagDestElements = dest->Get( t, 0)->N_Elements();
+	    SizeT nTagDestElements = dest->Get( ix, 0)->N_Elements();
 
 	    if( verbose) 
 	      {
@@ -1038,7 +1038,7 @@ namespace lib {
 		nTagElements = nTagDestElements;
 
 	    for( SizeT a=0; a< nElements; ++a)
-	      dest->Get( t, a)->Assign( source->Get( t, a), nTagElements);
+	      dest->Get( ix, a)->Assign( source->Get( t, a), nTagElements);
 	  }
 	else 
 	  if(verbose)

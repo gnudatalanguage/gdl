@@ -1002,8 +1002,10 @@ public:
     for( SizeT i=0; (i+1)<ixList.size(); ++i)
       {
 	// note: here we examine the actual type
-	if( dynamic_cast< ArrayIndexScalar*>(ixList[i]))  nScalar++;
-	if( dynamic_cast<ArrayIndexIndexed*>(ixList[i])) nIndexed++;
+	if( dynamic_cast< ArrayIndexScalar*>(ixList[i]) ||
+	    dynamic_cast< CArrayIndexScalar*>(ixList[i])) nScalar++;
+	if( dynamic_cast< ArrayIndexIndexed*>(ixList[i]) ||
+	    dynamic_cast< CArrayIndexIndexed*>(ixList[i])) nIndexed++;
       }
     if( nScalar == ixList.size()-1)
       accessTypeAssocInit = ALLONE;
@@ -1014,8 +1016,10 @@ public:
     else
       accessTypeAssocInit = INDEXED_ONE;
     
-    if( dynamic_cast< ArrayIndexScalar*>(ixList[ixList.size()-1]))  nScalar++;
-    if( dynamic_cast<ArrayIndexIndexed*>(ixList[ixList.size()-1])) nIndexed++;
+    if( dynamic_cast< ArrayIndexScalar*>(ixList[ixList.size()-1]) ||
+	dynamic_cast< CArrayIndexScalar*>(ixList[ixList.size()-1])) nScalar++;
+    if( dynamic_cast<ArrayIndexIndexed*>(ixList[ixList.size()-1]) ||
+	dynamic_cast<CArrayIndexIndexed*>(ixList[ixList.size()-1]) ) nIndexed++;
     
     if( nScalar == ixList.size())
       accessTypeInit = ALLONE;

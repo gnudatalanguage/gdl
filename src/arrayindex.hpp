@@ -212,7 +212,7 @@ public:
   BaseGDL* Index( BaseGDL* var, IxExprListT& ixL)
   {
     if( s >= var->Size())
-      throw GDLException("Scalar subscript out of range [>].");
+      throw GDLException("Scalar subscript out of range [>].h1");
     return var->NewIx( s);
   }
 
@@ -225,8 +225,8 @@ public:
   // also checks/adjusts range 
   SizeT NIter( SizeT varDim) 
   {
-    if( s >= varDim)
-      throw GDLException("Scalar subscript out of range [>].");
+    if( s > 0 && s >= varDim)
+      throw GDLException("Scalar subscript out of range [>].h2");
     return 1;
   }
 };

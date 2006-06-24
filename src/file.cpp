@@ -356,6 +356,8 @@ namespace lib {
     if( dirN.length() == 1) // dirN == "+" 
       return;
 
+    // dirN == "+DIRNAME"
+
     // do first a glob because of '~'
     int flags = GLOB_TILDE | GLOB_NOSORT;
     glob_t p;

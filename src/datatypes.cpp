@@ -3031,6 +3031,7 @@ template<class Sp>
 void Data_<Sp>::Assign( BaseGDL* src, SizeT nEl)
 {
   Data_* srcT = dynamic_cast<Data_*>( src);
+
   auto_ptr< Data_> srcTGuard;
   if( srcT == NULL) 
     {

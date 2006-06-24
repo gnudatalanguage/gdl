@@ -40,7 +40,7 @@ BaseGDL* ArrayIndexScalar::Index( BaseGDL* var, IxExprListT& ixL)
 
   if( s >= var->Size())
     {
-      throw GDLException("Scalar subscript out of range [>].");
+      throw GDLException("Scalar subscript out of range [>].a");
     }
   
   return var->NewIx( s);
@@ -51,7 +51,7 @@ BaseGDL* ArrayIndexScalarVP::Index( BaseGDL* var, IxExprListT& ixL)
 
   if( s >= var->Size())
     {
-      throw GDLException("Scalar subscript out of range [>].");
+      throw GDLException("Scalar subscript out of range [>].b");
     }
   
   return var->NewIx( s);
@@ -62,7 +62,7 @@ SizeT ArrayIndexScalar::NIter( SizeT varDim)
   s = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
 
   if( s >= varDim)
-    throw GDLException("Scalar subscript out of range [>].");
+    throw GDLException("Scalar subscript out of range [>].c");
   return 1;
 }
 SizeT ArrayIndexScalarVP::NIter( SizeT varDim) 
@@ -70,7 +70,7 @@ SizeT ArrayIndexScalarVP::NIter( SizeT varDim)
   s = varPtr->Data()->LoopIndex();
 
   if( s >= varDim)
-    throw GDLException("Scalar subscript out of range [>].");
+    throw GDLException("Scalar subscript out of range [>].d");
   return 1;
 }
 
@@ -109,7 +109,7 @@ BaseGDL* ArrayIndexListOneScalarT::Index( BaseGDL* var, IxExprListT& ix_)
 	  
 	if( s >= var->Size())
 	  {
-	    throw GDLException("Scalar subscript out of range [>].");
+	    throw GDLException("Scalar subscript out of range [>].e");
 	  }
 	    
 	return var->NewIx( s);
@@ -129,7 +129,7 @@ BaseGDL* ArrayIndexListOneScalarVPT::Index( BaseGDL* var, IxExprListT& ix_)
 
 	if( s >= var->Size())
 	  {
-	    throw GDLException("Scalar subscript out of range [>].");
+	    throw GDLException("Scalar subscript out of range [>].f");
 	  }
 	    
 	return var->NewIx( s);
@@ -154,7 +154,7 @@ void ArrayIndexListOneScalarT::SetVariable( BaseGDL* var)
     // for assoc variables last index is the record
     if( var->IsAssoc()) return;
     if( s >= var->Size())
-      throw GDLException("Scalar subscript out of range [>].1");
+      throw GDLException("Scalar subscript out of range [>].g");
   }
 void ArrayIndexListOneScalarT::AssignAt( BaseGDL* var, BaseGDL* right)
   {
@@ -164,7 +164,7 @@ void ArrayIndexListOneScalarT::AssignAt( BaseGDL* var, BaseGDL* right)
       {
 	s = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
 	if( s >= var->Size())
-	  throw GDLException("Scalar subscript out of range [>].2");
+	  throw GDLException("Scalar subscript out of range [>].h");
 	var->AssignAtIx( s, right);
 	return;
       }
