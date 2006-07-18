@@ -31,6 +31,33 @@
 #include "envt.hpp"
 #include "math_utl.hpp"
 
+typedef struct _2D_POLY_ {
+        DLong  nc;            /* number of coefficients in px, py, c */
+        DLong* px;            /* powers of x                         */
+        DLong* py;            /* powers of y                         */
+        DDouble* c;           /* polynomial coefficients             */
+} poly2d ;
+
+typedef double	pixelvalue ;
+
+typedef struct _image_
+{
+	/* Size of the image in x and y */
+    int             	lx, ly ;
+	/* Pointer to pixel buffer as a 1d buffer */
+    pixelvalue      *	data ;
+} image_t ;
+
+#define TABSPERPIX      (1000)
+#define KERNEL_WIDTH    (2.0)
+#define KERNEL_SAMPLES  (1+(int)(TABSPERPIX * KERNEL_WIDTH))
+#define PI_NUMB     (3.1415926535897932384626433832795)
+#define MAX_COLUMN_NUMBER               (40000)
+#define MAX_LINE_NUMBER                 (40000)
+
+#define LINEAR  1
+#define GENERIC 2
+ 
 namespace lib {
 
 //   BaseGDL* transpose_fun( EnvT* e);
@@ -38,6 +65,20 @@ namespace lib {
   BaseGDL* finite_fun( EnvT* e);
   BaseGDL* check_math_fun( EnvT* e);
   BaseGDL* radon_fun( EnvT* e);
+  BaseGDL* poly_2d_fun( EnvT* e);
+
+  double ipow(double x, int p);
+  double sinc(double x);
+  double poly2d_compute(poly2d *p, double x, double y);
+  double * generate_interpolation_kernel(char * kernel_type, DDouble cubic);
+
+  image_t * image_warp(SizeT, SizeT, SizeT, SizeT, DType, void*, 
+		       char *kernel_type,
+		       DDouble *param, poly2d *poly_u, poly2d *poly_v, 
+		       DLong interp, DDouble cubic, DLong warpType);
+
+  image_t * image_new(int size_x, int size_y);
+  void image_del(image_t *d);
 
 } // namespace
 

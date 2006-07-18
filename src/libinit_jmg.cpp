@@ -103,6 +103,9 @@ void LibInit_jmg()
 			   "RHO","RMIN","THETA","XMIN","YMIN",KLISTEND};
   new DLibFun(lib::radon_fun,string("RADON"),1,radonKey);
 
+  const string poly_2dKey[]={"CUBIC","MISSING",KLISTEND};
+  new DLibFun(lib::poly_2d_fun,string("POLY_2D"),6,poly_2dKey);
+
   const string make_arrayKey[]={"NOZERO","DIMENSION","INDEX","SIZE",
 				"TYPE","VALUE","BYTE","INT",
 				"UINT","LONG","ULONG","L64","UL64",
