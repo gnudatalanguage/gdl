@@ -641,11 +641,11 @@ namespace lib {
 
     if (p1->N_Elements() == 1)
       e->Throw( "POLY_2D: Value of Polynomial degree is out of allowed range.");
-    if ((DLong) sqrt(p1->N_Elements()) != sqrt(p1->N_Elements()))
+    if ((DLong) sqrt(p1->N_Elements()) != (DLong) sqrt(p1->N_Elements()))
       e->Throw( "POLY_2D: Value of Polynomial degree is out of allowed range.");
     if (p2->N_Elements() == 1)
       e->Throw( "POLY_2D: Coefficient arrays must have (degree+1)^2 elements");
-    if ((DLong) sqrt(p2->N_Elements()) != sqrt(p2->N_Elements()))
+    if ((DLong) sqrt(p2->N_Elements()) != (DLong) sqrt(p2->N_Elements()))
       e->Throw( "POLY_2D: Coefficient arrays must have (degree+1)^2 elements");
 
     DLong nDegree = (DLong) sqrt(p1->N_Elements()) - 1;
