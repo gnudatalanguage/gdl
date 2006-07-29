@@ -4246,8 +4246,12 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 			else
 			{
 			if( LoopVar( e1_AST))
+			if( e1_AST->getType() == VAR)
 			ixList->push_back( new 
 			ArrayIndexScalar( e1_AST));
+			else
+			ixList->push_back( new 
+			ArrayIndexScalarVP( e1_AST));
 			else
 			{
 			arrayindex_AST = e1_AST;

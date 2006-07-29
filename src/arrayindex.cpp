@@ -60,8 +60,8 @@ BaseGDL* ArrayIndexScalarVP::Index( BaseGDL* var, IxExprListT& ixL)
 SizeT ArrayIndexScalar::NIter( SizeT varDim) 
 {
   s = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
-
-  if( s >= varDim)
+  
+  if( s>0 && s >= varDim)
     throw GDLException("Scalar subscript out of range [>].c");
   return 1;
 }
@@ -69,7 +69,7 @@ SizeT ArrayIndexScalarVP::NIter( SizeT varDim)
 {
   s = varPtr->Data()->LoopIndex();
 
-  if( s >= varDim)
+  if( s>0 && s >= varDim)
     throw GDLException("Scalar subscript out of range [>].d");
   return 1;
 }

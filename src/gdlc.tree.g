@@ -89,6 +89,7 @@ options {
         for( SizeT i=0; i<ixList->size(); ++i)
         {
             if( dynamic_cast< ArrayIndexScalar*>((*ixList)[i]) ||
+                dynamic_cast< ArrayIndexScalarVP*>((*ixList)[i]) ||
                 dynamic_cast< CArrayIndexScalar*>((*ixList)[i])) ++nScalar;
         }
         if( nScalar == ixList->size())
@@ -697,8 +698,12 @@ arrayindex! [ArrayIndexVectorT* ixList]
                                 else
                                     {
                                         if( LoopVar( #e1))
+if( #e1->getType() == VAR)
                                             ixList->push_back( new 
                                                 ArrayIndexScalar( #e1));
+else
+                                            ixList->push_back( new 
+                                                ArrayIndexScalarVP( #e1));
                                         else
                                     {
                                         ## = #e1;

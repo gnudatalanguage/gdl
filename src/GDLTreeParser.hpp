@@ -43,6 +43,7 @@ class CUSTOM_API GDLTreeParser : public antlr::TreeParser, public GDLTreeParserT
         for( SizeT i=0; i<ixList->size(); ++i)
         {
             if( dynamic_cast< ArrayIndexScalar*>((*ixList)[i]) ||
+                dynamic_cast< ArrayIndexScalarVP*>((*ixList)[i]) ||
                 dynamic_cast< CArrayIndexScalar*>((*ixList)[i])) ++nScalar;
         }
         if( nScalar == ixList->size())
