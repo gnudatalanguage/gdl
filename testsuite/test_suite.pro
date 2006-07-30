@@ -649,8 +649,8 @@ end
 
 pro extra_test,_REF_EXTRA=ex
 
-eval,b='b',a='a'
-eref,b='b',a='a'
+eval,b='b',a='a',c=u ;;
+eref,b='b',a='a',c=u
 
 eret,r1=r1,r2=r2
 

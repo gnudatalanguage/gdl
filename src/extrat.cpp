@@ -158,7 +158,8 @@ void ExtraT::Resolve()
 	  // from back -> _EXTRA overrides additional keyword
 	  for( int i=nEl-1; i>=0; --i)
 	    {
-	      if( extraStructDesc->TagIndex( listName[i]) == -1)
+	      if( listEnv[i] != NULL && // if undef just skip (pass by value) 
+		  extraStructDesc->TagIndex( listName[i]) == -1)
 		{
 		  extraStructDesc->AddTag( listName[i], listEnv[i]); 
 		  extraStruct->AddTagGrab( listEnv.Grab(i));
