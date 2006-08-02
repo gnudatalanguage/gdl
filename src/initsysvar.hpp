@@ -55,6 +55,9 @@ namespace SysVar
   // set !D
   void SetD( BaseGDL* newD);
 
+  // returns !MAP
+  DStructGDL* Map();
+
   const std::string& Prompt();
   int   Edit_Input();
   DLong Quiet();

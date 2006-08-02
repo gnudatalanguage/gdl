@@ -189,6 +189,12 @@ namespace SysVar
     return static_cast<DStructGDL*>(var.Data());
   }
 
+  DStructGDL* Map()
+  {
+    DVar& var = *sysVarList[ mapIx];
+    return static_cast<DStructGDL*>(var.Data());
+  }
+
   DString MsgPrefix()
   {
     DStructGDL* errorState = Error_State();
@@ -456,8 +462,32 @@ namespace SysVar
     sysVarList.push_back( except);
 
     // !MAP
-    DIntGDL *mapData = new DIntGDL( 1);
-    DVar *map = new DVar( "MAP", mapData);
+    DStructGDL* mapData = new DStructGDL( "!MAP");
+    mapData->NewTag("PROJECTION", new DLongGDL( 0)); 
+    mapData->NewTag("SIMPLE", new DLongGDL( 0)); 
+    mapData->NewTag("FILL_METHOD", new DLongGDL( 0)); 
+    mapData->NewTag("UP_FLAGS", new DLongGDL( 0)); 
+    mapData->NewTag("UP_NAMES", new DStringGDL( "")); 
+    mapData->NewTag("P0LON", new DDoubleGDL( 0.0));  
+    mapData->NewTag("P0LAT", new DDoubleGDL( 0.0));  
+    mapData->NewTag("U0", new DDoubleGDL( 0.0));  
+    mapData->NewTag("V0", new DDoubleGDL( 0.0));  
+    mapData->NewTag("SINO", new DDoubleGDL( 0.0));  
+    mapData->NewTag("COSO", new DDoubleGDL( 0.0));  
+    mapData->NewTag("ROTATION", new DDoubleGDL( 0.0));
+    mapData->NewTag("SINR", new DDoubleGDL( 0.0));  
+    mapData->NewTag("COSR", new DDoubleGDL( 0.0));    
+    mapData->NewTag("A", new DDoubleGDL( 0.0));    
+    mapData->NewTag("E2", new DDoubleGDL( 0.0));    
+    mapData->NewTag("UV", new DDoubleGDL( dimension( 2)));
+    mapData->NewTag("POLE", new DDoubleGDL( dimension( 7)));
+    mapData->NewTag("UV_BOX", new DDoubleGDL( dimension( 4)));
+    mapData->NewTag("LL_BOX", new DDoubleGDL( dimension( 4)));
+    mapData->NewTag("SEGMENT_LENGTH", new DDoubleGDL( 0.0));  
+    mapData->NewTag("P", new DDoubleGDL( dimension( 16)));  
+    mapData->NewTag("PIPELINE", new DDoubleGDL( dimension( 8, 12)));  
+
+    DVar *map=new DVar( "MAP", mapData);
     mapIx=sysVarList.size();
     sysVarList.push_back( map);
 
