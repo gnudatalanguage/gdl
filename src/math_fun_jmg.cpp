@@ -639,16 +639,22 @@ namespace lib {
 
     SizeT nEl;
 
+    DDouble sqp1 = sqrt((DDouble) p1->N_Elements());
+    DLong lsqp1 = (DLong) sqp1;
+    DDouble sqp2 = sqrt((DDouble) p2->N_Elements());
+    DLong lsqp2 = (DLong) sqp2;
+
     if (p1->N_Elements() == 1)
       e->Throw( "POLY_2D: Value of Polynomial degree is out of allowed range.");
-    if ((DLong) sqrt(p1->N_Elements()) != (DLong) sqrt(p1->N_Elements()))
+    if (sqp1 != lsqp1)
       e->Throw( "POLY_2D: Value of Polynomial degree is out of allowed range.");
+
     if (p2->N_Elements() == 1)
       e->Throw( "POLY_2D: Coefficient arrays must have (degree+1)^2 elements");
-    if ((DLong) sqrt(p2->N_Elements()) != (DLong) sqrt(p2->N_Elements()))
+    if (sqp2 != lsqp2)
       e->Throw( "POLY_2D: Coefficient arrays must have (degree+1)^2 elements");
 
-    DLong nDegree = (DLong) sqrt(p1->N_Elements()) - 1;
+    DLong nDegree = lsqp1 - 1;
     DLong nc = (nDegree + 1) * (nDegree + 1);
 
     DDoubleGDL* P = static_cast<DDoubleGDL*>
