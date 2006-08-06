@@ -37,7 +37,7 @@ void ExtraT::Resolve()
   DSub::ExtraType extraType= pro->Extra();
 
   DStructGDL* extraStruct= dynamic_cast<DStructGDL*>(thisExtra);
-  if( extraStruct != NULL)
+  if( extraStruct != NULL) // _EXTRA
     {
       DStructDesc* desc=extraStruct->Desc();
 
@@ -72,7 +72,7 @@ void ExtraT::Resolve()
 	    }
 	}
     }
-  else
+  else // _REF_EXTRA
     {
       DStringGDL* extraString= dynamic_cast<DStringGDL*>(thisExtra);
       if( extraString != NULL)
@@ -152,17 +152,28 @@ void ExtraT::Resolve()
       if( nEl > 0)
 	{
 
-	  DStructDesc* extraStructDesc = new DStructDesc( "$truct");
-	  DStructGDL*  extraStruct = new DStructGDL( extraStructDesc);
+	  DStructDesc* extraStructDesc;
+	  DStructGDL*  extraStruct = NULL;
 
 	  // from back -> _EXTRA overrides additional keyword
 	  for( int i=nEl-1; i>=0; --i)
 	    {
-	      if( listEnv[i] != NULL && // if undef just skip (pass by value) 
-		  extraStructDesc->TagIndex( listName[i]) == -1)
+	      if( listEnv[i] != NULL) // if undef just skip (pass by value) 
 		{
-		  extraStructDesc->AddTag( listName[i], listEnv[i]); 
-		  extraStruct->AddTagGrab( listEnv.Grab(i));
+		  if( extraStruct == NULL)
+		    {
+		      extraStructDesc = new DStructDesc( "$truct");
+		      extraStruct = new DStructGDL( extraStructDesc);
+
+		      extraStructDesc->AddTag( listName[i], listEnv[i]); 
+		      extraStruct->AddTagGrab( listEnv.Grab(i));
+		    }
+		  else
+		    if( extraStructDesc->TagIndex( listName[i]) == -1)
+		      {
+			extraStructDesc->AddTag( listName[i], listEnv[i]); 
+			extraStruct->AddTagGrab( listEnv.Grab(i));
+		      }
 		}
 	    }
  
