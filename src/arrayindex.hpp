@@ -868,7 +868,10 @@ public:
 
   BaseGDL* Index( BaseGDL* var, IxExprListT& ix)
   {
-    return var->Dup();
+    // make index 1-dim
+    BaseGDL* clone =  var->Dup();
+    clone->SetDim( dimension( clone->N_Elements()));
+    return clone;
   }
 
   // number of iterations

@@ -1,7 +1,7 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
- <DocsAndViews NumberOfDocuments="6" >
+ <DocsAndViews NumberOfDocuments="8" >
   <Doc0 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/datatypes.hpp" >
    <View0 Type="Source" />
   </Doc0>
@@ -20,6 +20,12 @@
   <Doc5 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/arrayindexlistt.hpp" >
    <View0 line="1189" Type="Source" />
   </Doc5>
+  <Doc6 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/dstructdesc.cpp" >
+   <View0 line="56" Type="Source" />
+  </Doc6>
+  <Doc7 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/extrat.cpp" >
+   <View0 line="162" Type="Source" />
+  </Doc7>
  </DocsAndViews>
  <pluginList>
   <kdevdebugger>
