@@ -1,4 +1,4 @@
-/* **************************************************************************
+/***************************************************************************
                           basic_pro.cpp  -  basic GDL library procedures
                              -------------------
     begin                : July 22 2002
@@ -425,8 +425,10 @@ namespace lib {
   {
     int nParam=e->NParam( 2);
     
+    /*
     if( e->KeywordSet( "XDR"))
       e->Throw( "XDR format not supported.");
+    */
 
     if( e->KeywordSet( "GET_LUN")) get_lun( e);
     // par 0 contains now the LUN
@@ -451,6 +453,12 @@ namespace lib {
     else
       swapEndian = e->KeywordSet( "SWAP_IF_LITTLE_ENDIAN");
     
+    // xdr
+    XDR *xdrs=NULL;
+    if( e->KeywordSet( "XDR")) {
+      xdrs = new XDR;
+    }
+
     if( e->KeywordSet( "APPEND")) mode |= fstream::ate;// fstream::app;
 
     static int f77Ix = e->KeywordIx( "F77_UNFORMATTED");
@@ -471,7 +479,8 @@ namespace lib {
       }
 
     try{
-      fileUnits[ lun-1].Open( name, mode, swapEndian, deleteKey, width, f77);
+      fileUnits[ lun-1].Open( name, mode, swapEndian, deleteKey, 
+			      xdrs, width, f77);
     } 
     catch( GDLException& ex) {
       DString errorMsg = ex.toString()+" Unit: "+i2s( lun)+
@@ -579,6 +588,7 @@ namespace lib {
     ostream* os;
     bool f77 = false;
     bool swapEndian = false;
+    XDR *xdrs;
 
     bool stdLun = check_lun( e, lun);
     if( stdLun)
@@ -593,6 +603,7 @@ namespace lib {
 	os = &fileUnits[ lun-1].OStream();
 	f77 = fileUnits[ lun-1].F77();
 	swapEndian = fileUnits[ lun-1].SwapEndian();
+	xdrs = fileUnits[ lun-1].Xdr();
       }
 
     if( f77)
@@ -612,7 +623,7 @@ namespace lib {
 	for( SizeT i=1; i<nParam; i++)
 	  {
 	    BaseGDL* p = e->GetPar( i); // defined already checked
-	    p->Write( *os, swapEndian);
+	    p->Write( *os, swapEndian, xdrs);
 	  }
 
 	// write record length
@@ -622,7 +633,7 @@ namespace lib {
       for( SizeT i=1; i<nParam; i++)
 	{
 	  BaseGDL* p = e->GetParDefined( i);
-	  p->Write( *os, swapEndian);
+	  p->Write( *os, swapEndian, xdrs);
 	}
   }
 
@@ -636,6 +647,7 @@ namespace lib {
     istream* is;
     bool f77 = false;
     bool swapEndian = false;
+    XDR *xdrs;
 
     bool stdLun = check_lun( e, lun);
     if( stdLun)
@@ -650,6 +662,7 @@ namespace lib {
 	is = &fileUnits[ lun-1].IStream();
 	f77 = fileUnits[ lun-1].F77();
 	swapEndian = fileUnits[ lun-1].SwapEndian();
+	xdrs = fileUnits[ lun-1].Xdr();
       }
 
     if( f77)
@@ -673,7 +686,7 @@ namespace lib {
 	      e->Throw( "Attempt to read past end of F77_UNFORMATTED "
 			"file record.");
 
-	    p->Read( *is, swapEndian);
+	    p->Read( *is, swapEndian, xdrs);
 
 	    relPos += nBytes;
 	  }
@@ -685,13 +698,14 @@ namespace lib {
       for( SizeT i=1; i<nParam; i++)
 	{
 	  BaseGDL* p = e->GetPar( i);
+	  //	  cout << p->Rank() << endl; // JMG
 	  if( p == NULL)
 	    {
 	      e->AssureGlobalPar( i);
 	      p = new DFloatGDL( 0.0);
 	      e->SetPar( i, p);
 	    }
-	  p->Read( *is, swapEndian);
+	  p->Read( *is, swapEndian, xdrs);
 	}
   }
 

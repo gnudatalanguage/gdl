@@ -1208,9 +1208,66 @@ ostream& DStructGDL::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 }
 
 
+int xdr_convert(XDR *xdrs, DByte *buf)
+{
+  return (xdr_u_char(xdrs, (unsigned char *) buf));
+}
+
+int xdr_convert(XDR *xdrs, DInt *buf)
+{
+  return (xdr_short(xdrs, (short int *) buf));
+}
+
+int xdr_convert(XDR *xdrs, DUInt *buf)
+{
+  return (xdr_u_short(xdrs, (unsigned short int *) buf));
+}
+
+int xdr_convert(XDR *xdrs, DLong *buf)
+{
+  return (xdr_long(xdrs, (long *) buf));
+}
+
+int xdr_convert(XDR *xdrs, DULong *buf)
+{
+  return (xdr_u_long(xdrs, (unsigned long *) buf));
+}
+
+int xdr_convert(XDR *xdrs, DLong64 *buf)
+{
+  //  return (xdr_longlong(xdrs, (long long *) buf));
+}
+
+int xdr_convert(XDR *xdrs, DULong64 *buf)
+{
+  //  return (xdr_u_longlong(xdrs, (unsigned long long *) buf));
+}
+
+int xdr_convert(XDR *xdrs, DFloat *buf)
+{
+  return (xdr_float(xdrs, (float *) buf));
+}
+
+int xdr_convert(XDR *xdrs, DDouble *buf)
+{
+  return (xdr_double(xdrs, (double *) buf));
+}
+
+int xdr_convert(XDR *xdrs, DComplex *buf)
+{
+  return (0);
+}
+
+int xdr_convert(XDR *xdrs, DComplexDbl *buf)
+{
+  return (0);
+}
+
+
+
 // unformatted ***************************************** 
 template<class Sp>
-ostream& Data_<Sp>::Write( ostream& os, bool swapEndian)
+ostream& Data_<Sp>::Write( ostream& os, bool swapEndian, XDR *xdrs)
 {
   if( os.eof()) os.clear();
 
@@ -1231,6 +1288,29 @@ ostream& Data_<Sp>::Write( ostream& os, bool swapEndian)
 	  
 	  os.write(swap,sizeof(Ty));
 	}
+    }
+  else if (xdrs != NULL)
+    {
+      char* cData = reinterpret_cast<char*>(&dd[0]);
+      SizeT cCount = count * sizeof(Ty);
+      long fac = 1;
+      if (sizeof(Ty) == 2) fac = 2;
+
+      char buf[ cCount*fac];
+      memset(buf, 0, cCount*fac);
+
+      xdrmem_create(xdrs, buf, sizeof(buf), XDR_ENCODE);
+
+      for( SizeT i=0; i<count; i++)
+	memcpy(&buf[i*sizeof(Ty)*fac], &cData[i*sizeof(Ty)], sizeof(Ty));
+
+      for( SizeT i=0; i<count; i++) {
+	xdr_convert(xdrs, (Ty *) &buf[i*sizeof(Ty)*fac]); 
+      }
+ 
+      os.write(buf,cCount*fac);
+
+      xdr_destroy(xdrs);
     }
   else
     {
@@ -1254,7 +1334,7 @@ ostream& Data_<Sp>::Write( ostream& os, bool swapEndian)
 }
 
 template<class Sp>
-istream& Data_<Sp>::Read( istream& os, bool swapEndian)
+istream& Data_<Sp>::Read( istream& os, bool swapEndian, XDR *xdrs)
 {
   if( os.eof())
     throw GDLException("End of file encountered.");
@@ -1276,6 +1356,28 @@ istream& Data_<Sp>::Read( istream& os, bool swapEndian)
 	  for( SizeT dst=0; dst<sizeof(Ty); dst++)
 	    cData[ src--] = swap[dst];
 	}
+    }
+  else if (xdrs != NULL)
+    {
+      char* cData = reinterpret_cast<char*>(&dd[0]);
+      SizeT cCount = count * sizeof(Ty);
+      long fac = 1;
+      if (sizeof(Ty) == 2) fac = 2;
+
+      char buf[ cCount*fac];
+      memset(buf, 0, cCount*fac);
+
+      xdrmem_create(xdrs, buf, sizeof(buf), XDR_DECODE);
+
+      os.read(buf,cCount*fac);
+
+      for( SizeT i=0; i<count; i++)
+	xdr_convert(xdrs, (Ty *) &buf[i*sizeof(Ty)*fac]); 
+
+      for( SizeT i=0; i<count; i++)
+	memcpy(&cData[i*sizeof(Ty)], &buf[i*sizeof(Ty)*fac], sizeof(Ty));
+
+      xdr_destroy(xdrs);
     }
   else
     {
@@ -1300,7 +1402,7 @@ istream& Data_<Sp>::Read( istream& os, bool swapEndian)
 }
 
 template<>
-ostream& Data_<SpDString>::Write( ostream& os, bool swapEndian)
+ostream& Data_<SpDString>::Write( ostream& os, bool swapEndian, XDR *xdrs)
 {
   if( os.eof()) os.clear();
 
@@ -1308,7 +1410,27 @@ ostream& Data_<SpDString>::Write( ostream& os, bool swapEndian)
   
   for( SizeT i=0; i<count; i++)
     {
-      os.write( dd[i].c_str(), dd[i].size());
+      if (xdrs != NULL)
+	{
+	  int bufsize = 8 + 4 * ((dd[i].size() - 1) / 4 + 1);
+	  char buf[ bufsize];
+
+	  // IDL adds an addition string length
+	  xdrmem_create(xdrs, &buf[0], 4, XDR_ENCODE);
+	  short int length = dd[i].size();
+	  xdr_short(xdrs, (short int *) &length);
+	  xdr_destroy(xdrs);
+
+	  xdrmem_create(xdrs, &buf[4], bufsize-4, XDR_ENCODE);
+	  char* bufptr = (char *) dd[i].c_str();
+	  xdr_string(xdrs, &bufptr, dd[i].size());
+	  xdr_destroy(xdrs);
+	  os.write( buf, bufsize);
+	}
+      else
+	{
+	  os.write( dd[i].c_str(), dd[i].size());
+	}
     }
   
 //   if( os.eof()) 
@@ -1325,7 +1447,7 @@ ostream& Data_<SpDString>::Write( ostream& os, bool swapEndian)
 }
 
 template<>
-istream& Data_<SpDString>::Read( istream& os, bool swapEndian)
+istream& Data_<SpDString>::Read( istream& os, bool swapEndian, XDR *xdrs)
 {
   if( os.eof())
     throw GDLException("End of file encountered.");
@@ -1335,9 +1457,24 @@ istream& Data_<SpDString>::Read( istream& os, bool swapEndian)
   SizeT maxLen = 1024;
   vector<char> buf( maxLen);
 
+  int jump = 0;
   for( SizeT i=0; i<count; i++)
     {
       SizeT nChar = dd[i].size();
+
+      if (xdrs != NULL)
+	{
+	  os.seekg (jump, ios::cur);
+
+	  os.read( (char *) &nChar, 4);
+	  xdrmem_create(xdrs, (char *) &nChar, 4, XDR_DECODE);
+	  xdr_long(xdrs, (long *) &nChar);
+	  xdr_destroy(xdrs);
+
+	  os.seekg (4, ios::cur);
+
+	  jump = nChar % 4;
+	}
 
       if( nChar > 0)
 	{
@@ -1346,9 +1483,8 @@ istream& Data_<SpDString>::Read( istream& os, bool swapEndian)
 	      maxLen = nChar;
 	      buf.resize( maxLen);
 	    }
-	  
 	  os.read(&buf[0],nChar);
-	  
+	      
 	  dd[i].assign(&buf[0],nChar);
 	}
     }
@@ -1368,19 +1504,19 @@ istream& Data_<SpDString>::Read( istream& os, bool swapEndian)
   return os;
 }
 
-ostream& DStructGDL::Write( ostream& os, bool swapEndian)
+ostream& DStructGDL::Write( ostream& os, bool swapEndian, XDR *xdrs)
 {
   SizeT count = dd.size();
   for( SizeT i=0; i<count; i++)
-    dd[i]->Write( os, swapEndian);
+    dd[i]->Write( os, swapEndian, xdrs);
   return os;
 }
 
-istream& DStructGDL::Read( istream& os, bool swapEndian)
+istream& DStructGDL::Read( istream& os, bool swapEndian, XDR *xdrs)
 {
   SizeT count = dd.size();
   for( SizeT i=0; i<count; i++)
-    dd[i]->Read( os, swapEndian);
+    dd[i]->Read( os, swapEndian, xdrs);
   return os;
 }
 

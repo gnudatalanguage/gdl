@@ -24,6 +24,7 @@
 //#include <vector>
 #include <valarray>
 #include <string>
+
 //#include <complex>
 //#include <deque>
 
@@ -306,8 +307,8 @@ public:
   Data_* NewIxFromStride( SizeT s, SizeT e, SizeT stride);
 
   // binary input/output
-  std::ostream& Write( std::ostream& os, bool swapEndian);
-  std::istream& Read( std::istream& os, bool swapEndian);
+  std::ostream& Write( std::ostream& os, bool swapEndian, XDR *xdrs);
+  std::istream& Read( std::istream& os, bool swapEndian, XDR *xdrs);
   
   SizeT OFmtA( std::ostream* os, SizeT offset, SizeT num, int width);
   SizeT OFmtF( std::ostream* os, SizeT offs, SizeT num, int width, 

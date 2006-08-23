@@ -60,6 +60,10 @@ namespace lib {
 	if( fileUnits[ lun-1].F77())
 	  e->Throw( "Formatted IO not allowed with F77_UNFORMATTED "
 		    "files. Unit: "+i2s( lun));
+
+	if( fileUnits[ lun-1].Xdr() != NULL)
+	  e->Throw( "Formatted IO not allowed with XDR "
+		    "files. Unit: "+i2s( lun));
 	
 	os = &fileUnits[ lun-1].OStream();
 	width = fileUnits[ lun-1].Width();

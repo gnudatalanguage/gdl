@@ -21,6 +21,8 @@
 #include "includefirst.hpp"
 
 #include <list>
+#include <rpc/rpc.h>
+
 #include "dimension.hpp"
 
 
@@ -169,8 +171,8 @@ public:
 		       BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN);
 
   virtual void Clear();
-  virtual std::ostream& Write( std::ostream& os, bool swapEndian);
-  virtual std::istream& Read( std::istream& os, bool swapEndian);
+  virtual std::ostream& Write( std::ostream& os, bool swapEndian, XDR *xdrs);
+  virtual std::istream& Read( std::istream& os, bool swapEndian, XDR *xdrs);
 
   virtual std::ostream& ToStream(std::ostream& o, SizeT width = 0, 
 			    SizeT* actPosPtr = NULL);
