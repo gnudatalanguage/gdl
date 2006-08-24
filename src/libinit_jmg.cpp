@@ -39,6 +39,7 @@
 
 #include "gsl_fun.hpp"
 #include "image.hpp"
+#include "plotting.hpp"
 
 #if defined(USE_HDF)
 #include "hdf_fun.hpp"
@@ -48,7 +49,6 @@
 #if defined(USE_FFTW)
 #include "fftw.hpp"
 #endif
-
 
 using namespace std;
 
@@ -64,6 +64,7 @@ void LibInit_jmg()
   const string routine_namesKey[]={"LEVEL","VARIABLES","FETCH","ARG_NAME",
 				   "STORE",KLISTEND};
   new DLibFun(lib::routine_names,string("ROUTINE_NAMES"),-1,routine_namesKey);
+
 #if defined(HAVE_LIBGSL) && defined(HAVE_LIBGSLCBLAS)
   const string invertKey[]={"DOUBLE",KLISTEND};
   new DLibFun(lib::invert_fun,string("INVERT"),2,invertKey);
@@ -94,6 +95,23 @@ void LibInit_jmg()
 
   const string macharKey[]={"DOUBLE",KLISTEND};
   new DLibFun(lib::machar_fun,string("MACHAR"),0,macharKey);
+
+#if defined(USE_LIBPROJ4)
+  const string map_proj_forwardKey[]={"CONNECTIVITY","FILL",
+				      "MAP_STRUCTURE","POLYGONS",
+				      "POLYLINES","RADIANS",KLISTEND};
+  new DLibFun(lib::map_proj_forward_fun,
+	      string("MAP_PROJ_FORWARD"),3,map_proj_forwardKey);
+
+  const string map_proj_inverseKey[]={"RADIANS",KLISTEND};
+  new DLibFun(lib::map_proj_inverse_fun,
+	      string("MAP_PROJ_INVERSE"),3,map_proj_inverseKey);
+#endif
+
+  const string convert_coordKey[]={"DATA","DEVICE","NORMAL","T3D","DOUBLE",
+				   "TO_DATA","TO_DEVICE","TO_NORMAL",KLISTEND};
+  new DLibFun(lib::convert_coord,string("CONVERT_COORD"),3,convert_coordKey);
+
 
   const string finiteKey[]={"INFINITY","NAN",KLISTEND};
   new DLibFun(lib::finite_fun,string("FINITE"),1,finiteKey);

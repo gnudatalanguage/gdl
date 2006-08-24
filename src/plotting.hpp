@@ -78,6 +78,9 @@ namespace lib {
   void get_axis_type(string axis, bool &log);
   void set_axis_type(string axis, bool type);
 
+  // mapset
+  void get_mapset(bool &mapset);
+
   void gkw_axis_charsize(EnvT* e, string axis, DFloat &charsize);
 
   void gkw_axis_style(EnvT *e, string axis,DLong &style);
@@ -86,6 +89,22 @@ namespace lib {
 		      DDouble &start, DDouble &end, DLong & ynozero);
 
   void mesh_nr(PLFLT *, PLFLT *, PLFLT **, PLINT, PLINT, PLINT);
+
+
+  // Map stuff
+#ifdef USE_LIBPROJ4
+#define COMPLEX COMPLEX2
+
+extern "C" {
+#include "lib_proj.h"
+}
+
+  void map_init();
+  BaseGDL* map_proj_forward_fun( EnvT* e);
+  BaseGDL* map_proj_inverse_fun( EnvT* e);
+#endif
+
+  BaseGDL* convert_coord( EnvT* e);
 
 } // namespace
 

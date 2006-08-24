@@ -31,6 +31,10 @@
 
 namespace lib {
 
+#ifdef USE_LIBPROJ4
+  static PJ *ref;
+#endif
+
   using namespace std;
 
   void device( EnvT* e)
@@ -663,7 +667,6 @@ namespace lib {
 	position[1] = yMB;
 	position[2] = 1.0 - xMR;
 	position[3] = 1.0 - yMT;
-
 	actStream->vpor(position[0],position[2],position[1],position[3]);
       } else {
 	// !P.position values
@@ -698,9 +701,9 @@ namespace lib {
       }
 	  
     // set world coordinates
-    actStream->wind( xStart, xEnd, minVal, maxVal);
     // cout << "VP wind: "<<xStart<<" "<<xEnd<<" "<<minVal<<" "<<maxVal<<endl;
-
+    //    printf("data lim (setv): %f %f %f %f\n", xStart, xEnd, minVal, maxVal);
+    actStream->wind( xStart, xEnd, minVal, maxVal);
     //    cout << "xStart " << xStart << "  xEnd "<<xEnd<<endl;
     //    cout << "yStart " << minVal << "  yEnd "<<maxVal<<endl;
 
@@ -870,6 +873,7 @@ namespace lib {
     gkw_axis_charsize(e, "X",xCharSize);//XCHARSIZE
     gkw_axis_charsize(e, "Y",yCharSize);//YCHARSIZE
 
+
     // plplot stuff
     // set the charsize (scale factor)
     DDouble charScale = 1.0;
@@ -910,10 +914,7 @@ namespace lib {
 
     // axis
     string xOpt="bc", yOpt="bc";
-    if ((xStyle & 4) == 4) xOpt = "";
     if ((xStyle & 8) == 8) xOpt = "b";
-
-    if ((yStyle & 4) == 4) yOpt = "";
     if ((yStyle & 8) == 8) yOpt = "b";
 
     if (xTicks == 1) xOpt += "t"; else xOpt += "st";
@@ -922,10 +923,11 @@ namespace lib {
     if (xTickformat != "(A1)") xOpt += "n";
     if (yTickformat != "(A1)") yOpt += "n";
 
-
     if( xLog) xOpt += "l";
     if( yLog) yOpt += "l";
 
+    if ((xStyle & 4) == 4) xOpt = "";
+    if ((yStyle & 4) == 4) yOpt = "";
 
     // axis titles
     actStream->schr( 0.0, actH/defH * xCharSize);
@@ -959,6 +961,37 @@ namespace lib {
     gkw_symsize(e, actStream);
     gkw_linestyle(e, actStream);
 
+    // Get viewpoint parameters and store in WINDOW & S
+    PLFLT p_xmin, p_xmax, p_ymin, p_ymax;
+    actStream->gvpd (p_xmin, p_xmax, p_ymin, p_ymax);
+
+    DStructGDL* Struct=NULL;
+    Struct = SysVar::X();
+    static unsigned windowTag = Struct->Desc()->TagIndex( "WINDOW");
+    static unsigned sTag = Struct->Desc()->TagIndex( "S");
+    if(Struct != NULL) {
+      (*static_cast<DFloatGDL*>( Struct->Get( windowTag, 0)))[0] = p_xmin;
+      (*static_cast<DFloatGDL*>( Struct->Get( windowTag, 0)))[1] = p_xmax;
+
+      (*static_cast<DDoubleGDL*>( Struct->Get( sTag, 0)))[0] = 
+	(p_xmin*xEnd - p_xmax*xStart) / (xEnd - xStart);
+      (*static_cast<DDoubleGDL*>( Struct->Get( sTag, 0)))[1] = 
+	(p_xmax - p_xmin) / (xEnd - xStart);
+      
+    }
+
+    Struct = SysVar::Y();
+    if(Struct != NULL) {
+      (*static_cast<DFloatGDL*>( Struct->Get( windowTag, 0)))[0] = p_ymin;
+      (*static_cast<DFloatGDL*>( Struct->Get( windowTag, 0)))[1] = p_ymax;
+
+      (*static_cast<DDoubleGDL*>( Struct->Get( sTag, 0)))[0] = 
+	(p_ymin*yEnd - p_ymax*yStart) / (yEnd - yStart);
+      (*static_cast<DDoubleGDL*>( Struct->Get( sTag, 0)))[1] = 
+	(p_ymax - p_ymin) / (yEnd - yStart);
+    }
+
+
     // plot the data
     if(!e->KeywordSet("NODATA"))
       if(valid)
@@ -977,6 +1010,7 @@ namespace lib {
     //set ![x|y].type
     set_axis_type("X",xLog);
     set_axis_type("Y",yLog);
+
   } // plot
 
   void oplot( EnvT* e)
@@ -1111,34 +1145,34 @@ namespace lib {
     bool valid, line;
     valid=true;
     DLong psym;
-    DDoubleGDL* yVal;
     DDoubleGDL* xVal;
-    SizeT xEl, yEl;
+    DDoubleGDL* yVal;
+    DDoubleGDL* zVal;
+    SizeT xEl, yEl, zEl;
+  
     if( nParam == 1)
       {
-	yVal = e->GetParAs< DDoubleGDL>( 0);
-	yEl = yVal->N_Elements();
-	if(yVal->Rank() ==2)
-	  {
-	    if(yVal->Dim(0) != 2)
-	      e->Throw( "When only 1 param, dims must be (2,n) or (3,n)");
-	    yVal = e->GetParAs< DDoubleGDL>( 0);
-	    yEl=yVal->Dim(1);
-	  }
-	else if(yVal->Rank()==3)
-	  {
-	    if(yVal->Dim(0) != 3)
-	      e->Throw( "When only 1 param, dims must be (2,n) or (3,n)");
-	    yVal = e->GetParAs< DDoubleGDL>( 0);
-	    yEl=yVal->Dim(1);
-	    e->Throw( "(3,n) not implemented");
-	  }
-	else
-	  {
-	    e->Throw( "When only 1 param, dims must be (2,n) or (3,n)");
-	  }
+	BaseGDL* p0;
+	p0 = e->GetParDefined( 0);  
+	if (p0->Dim(0) != 2)
+	  e->Throw( "When only 1 param, dims must be (2,n)");
+
+	DDoubleGDL *val = e->GetParAs< DDoubleGDL>( 0);
+
+	xEl = p0->N_Elements() / p0->Dim(0);
+	xVal = new DDoubleGDL( dimension( xEl), BaseGDL::NOZERO);
+	e->Guard( xVal); // delete upon exit
+
+	yEl = p0->N_Elements() / p0->Dim(0);
+	yVal = new DDoubleGDL( dimension( yEl), BaseGDL::NOZERO);
+	e->Guard( yVal); // delete upon exit
+
+	for( SizeT i = 0; i < xEl; i++) {
+	  (*xVal)[i] = (*val)[2*i];
+	  (*yVal)[i] = (*val)[2*i+1];
+	}
       }
-    else if(nParam ==2)
+    else if(nParam == 2)
       {
 	xVal = e->GetParAs< DDoubleGDL>( 0);
 	xEl = xVal->N_Elements();
@@ -1146,12 +1180,21 @@ namespace lib {
 	yVal = e->GetParAs< DDoubleGDL>( 1);
 	yEl = yVal->N_Elements();
       }
-    else 
+    else if(nParam == 3)
       {
-	e->Throw( "Three dimensional PLOTS not yet implemented.");
-      }
+	zVal = e->GetParAs< DDoubleGDL>( 2);
+	zEl = zVal->N_Elements();
 
-    DLong minEl = (xEl < yEl)? xEl : yEl;
+	if ((*zVal)[0] == 0 && zEl == 1) {
+	  xVal = e->GetParAs< DDoubleGDL>( 0);
+	  xEl = xVal->N_Elements();
+
+	  yVal = e->GetParAs< DDoubleGDL>( 1);
+	  yEl = yVal->N_Elements();
+	} else {
+	  e->Throw( "Three dimensional PLOTS not yet implemented.");
+	}
+      }
 
     // !X, !Y (also used below)
     DFloat xMarginL, xMarginR, yMarginB, yMarginT; 
@@ -1231,47 +1274,32 @@ namespace lib {
 		 yMB,
 		 yMT);
 
-    // viewport
-    if(e->KeywordSet("DATA") || 
-       (!e->KeywordSet("NORMAL") && !e->KeywordSet("DEVICE")))
-      {
-	if( (yStart == yEnd) || (xStart == xEnd))
-	  {
-	    if( yStart != 0.0 && yStart == yEnd)
-	      {
-		Message("PLOTS: !Y.CRANGE ERROR, setting to [0,1]");
-		yStart = 0; //yVal->min();
-		yEnd   = 1; //yVal->max();
-		set_axis_crange("Y", yStart, yEnd);
-	      }
+    // Determine data coordinate limits
+    // These are computed from window and scaling axis system
+    // variable because map routines change these directly.
+    DDouble *sx;
+    DDouble *sy;
+    DStructGDL* xStruct = SysVar::X();
+    DStructGDL* yStruct = SysVar::Y();
+    unsigned sxTag = xStruct->Desc()->TagIndex( "S");
+    unsigned syTag = yStruct->Desc()->TagIndex( "S");
+    sx = &(*static_cast<DDoubleGDL*>( xStruct->Get( sxTag, 0)))[0];
+    sy = &(*static_cast<DDoubleGDL*>( yStruct->Get( syTag, 0)))[0];
+    
+    DFloat *wx;
+    DFloat *wy;
+    unsigned xwindowTag = xStruct->Desc()->TagIndex( "WINDOW");
+    unsigned ywindowTag = yStruct->Desc()->TagIndex( "WINDOW");
+    wx = &(*static_cast<DFloatGDL*>( xStruct->Get( xwindowTag, 0)))[0];
+    wy = &(*static_cast<DFloatGDL*>( yStruct->Get( ywindowTag, 0)))[0];
+    
+    xStart = (wx[0] - sx[0]) / sx[1];
+    xEnd   = (wx[1] - sx[0]) / sx[1];
+    yStart = (wy[0] - sy[0]) / sy[1];
+    yEnd   = (wy[1] - sy[0]) / sy[1];
 
-	    if(xStart != 0.0 && xStart == xEnd)
-	      {
-		Message("PLOTS: !X.CRANGE ERROR, resetting range to data");
-		xStart = 0; //xVal->min();
-		xEnd   = 1; //xVal->max();
-		set_axis_crange("X", xStart, xEnd);
-	      }
-	  }	    
-	
-	// "synchronize" with plot range from PLOT
-	minVal= yStart-yMB*(yEnd-yStart)/(1-yMT-yMB);
-	yEnd  = yEnd  +yMT*(yEnd-yStart)/(1-yMT-yMB);
-	yStart= minVal;
-	minVal= xStart-xML*(xEnd-xStart)/(1-xML-xMR);
-	xEnd  = xEnd  +xMR*(xEnd-xStart)/(1-xML-xMR);
-	xStart= minVal;
-      } 
-    else if(e->KeywordSet("NORMAL"))
-      {
-	xStart = 0;
-	xEnd   = 1;
-	yStart = 0;
-	yEnd   = 1;
-	xLog = false; yLog = false;
-	actStream->NoSub();
-      }
-    else if(e->KeywordSet("DEVICE"))
+
+    if(e->KeywordSet("DEVICE"))
       {
 	PLFLT xpix, ypix;
 	PLINT xleng, yleng, xoff, yoff;
@@ -1280,7 +1308,16 @@ namespace lib {
 	yStart=0; yEnd=yleng;
 	xLog = false; yLog = false;
 	actStream->NoSub();
+      } else {
+	actStream->vpor(wx[0], wx[1], wy[0], wy[1]);
       }
+
+    /*
+    printf("DATA:   %d  NORMAL: %d  DEVICE: %d\n", 
+	   e->KeywordSet("DATA"), 
+	   e->KeywordSet("NORMAL"), 
+	   e->KeywordSet("DEVICE"));
+    */
 
     minVal=yStart; maxVal=yEnd;
 
@@ -1293,25 +1330,21 @@ namespace lib {
 	DDoubleGDL* clippingD = e->IfDefGetKWAs<DDoubleGDL>( clippingix);
 	if( clippingD != NULL)
 	    Clipping( clippingD, xStart, xEnd, minVal, maxVal);
-	
-	// clipping sets new xStart,... values
-	// in the other case, values are already log
-	if( xLog)
-	  {
-	    if( xStart <= 0.0) xStart = 0.0; else xStart = log10( xStart);
-	    if( xEnd   <= 0.0) return; else xEnd = log10( xEnd);
-	  }
-	if( yLog)
-	  {
-	    if( minVal <= 0.0) minVal = 0.0; else minVal = log10( minVal);
-	    if( maxVal <= 0.0) return; else maxVal = log10( maxVal);
-	  }
       }
 
-    // viewport (full (sub-)window 
-    actStream->vpor( 0, 1, 0, 1);
-    // world coordinates
-    actStream->wind( xStart, xEnd, minVal, maxVal);
+    if( xLog)
+      {
+	if( xStart <= 0.0) xStart = 0.0; else xStart = log10( xStart);
+	if( xEnd   <= 0.0) return; else xEnd = log10( xEnd);
+      }
+    if( yLog)
+      {
+	if( yStart <= 0.0) yStart = 0.0; else yStart = log10( yStart);
+	if( yEnd   <= 0.0) return; else yEnd = log10( yEnd);
+      }
+
+    actStream->wind( xStart, xEnd, yStart, yEnd);
+
 
     // pen thickness for plot
     gkw_thick(e, actStream);
@@ -1412,12 +1445,12 @@ namespace lib {
 	if((yStart == yEnd) || (xStart == xEnd))
 	  {
 	    if(yStart != 0.0 and yStart==yEnd)
-	      Message("PLOTS: !Y.CRANGE ERROR, setting to [0,1]");
+	      Message("XYOUTS: !Y.CRANGE ERROR, setting to [0,1]");
 	    yStart=0;//yVal->min();
 	    yEnd=1;//yVal->max();
 	    
 	    if(xStart != 0.0 and xStart==xEnd)
-	      Message("PLOTS: !X.CRANGE ERROR, resetting range to data");
+	      Message("XYOUTS: !X.CRANGE ERROR, resetting range to data");
 	    xStart=0;//xVal->min();
 	    xEnd=1;//xVal->max();
 	
@@ -1480,6 +1513,7 @@ namespace lib {
 
     // viewport (full (sub-)window 
     actStream->vpor( 0, 1, 0, 1);
+
     // world coordinates
     actStream->wind( xStart, xEnd, minVal, maxVal);
 
@@ -1935,12 +1969,16 @@ namespace lib {
     DLong temp_linestyle=0;
     e->AssureLongScalarKWIfPresent( "LINESTYLE", temp_linestyle);
 
+    /*
     if((temp_linestyle > 0) && (temp_linestyle < 9) )
 	linestyle=temp_linestyle;
     else if((linestyle > 0) && (linestyle < 9) )
 	linestyle=linestyle+1;
     else 
 	linestyle=1;
+    */
+
+    linestyle=temp_linestyle+1;
 
     // pen thickness for axis
     actStream->wid( 0);
@@ -2001,7 +2039,6 @@ namespace lib {
 
 
     // 2 DIM X & Y
-    //    printf("%d %d\n", xVal->Dim(0), xVal->Dim(1));
     if (xVal->Rank() == 2 && yVal->Rank() == 2) {
       PLFLT** z1 = new PLFLT*[xVal->Dim(0)];
 
@@ -2028,7 +2065,6 @@ namespace lib {
 	for( SizeT i=0; i<xVal->Dim(1); i++) {
 	  xVec[i] = (*xVal)[i*(xVal->Dim(0))+j];
 	  yVec[i] = (*yVal)[i*(yVal->Dim(0))+j];
-	  //	  printf("%d %f %f\n", i,xVec[i],yVec[i]);
 	}
 
 	mesh_nr(xVec, yVec,
@@ -2079,7 +2115,6 @@ namespace lib {
 
     *tx = tr[0] * x + tr[2];
     *ty = tr[4] * y + tr[5];
-    //    printf("%f %f %f %f\n", x,y,*tx, *ty);
   }
 
   void contour( EnvT* e)
@@ -2740,10 +2775,7 @@ namespace lib {
 
     // axis
     string xOpt="bc", yOpt="bc";
-    if ((xStyle & 4) == 4) xOpt = "";
     if ((xStyle & 8) == 8) xOpt = "b";
-
-    if ((yStyle & 4) == 4) yOpt = "";
     if ((yStyle & 8) == 8) yOpt = "b";
 
     if (xTicks == 1) xOpt += "t"; else xOpt += "st";
@@ -2754,6 +2786,9 @@ namespace lib {
 
     if( xLog) xOpt += "l";
     if( yLog) yOpt += "l";
+
+    if ((xStyle & 4) == 4) xOpt = "";
+    if ((yStyle & 4) == 4) yOpt = "";
 
     if (xAxis) {
 
@@ -2815,13 +2850,57 @@ namespace lib {
     else {psym_=psym;}
     DLong minEl = (xVal->N_Elements() < yVal->N_Elements())? 
       xVal->N_Elements() : yVal->N_Elements();
+    // if scalar x
+    if (xVal->N_Elements() == 1 && xVal->Rank() == 0) 
+      minEl = yVal->N_Elements();
+    // if scalar y
+    if (yVal->N_Elements() == 1 && yVal->Rank() == 0) 
+      minEl = xVal->N_Elements();
+
+
+    DDouble *sx;
+    DDouble *sy;
+    static DStructGDL* xStruct = SysVar::X();
+    static DStructGDL* yStruct = SysVar::Y();
+    static unsigned sxTag = xStruct->Desc()->TagIndex( "S");
+    static unsigned syTag = yStruct->Desc()->TagIndex( "S");
+    sx = &(*static_cast<DDoubleGDL*>( xStruct->Get( sxTag, 0)))[0];
+    sy = &(*static_cast<DDoubleGDL*>( yStruct->Get( syTag, 0)))[0];
+
+    DLong ll=0;
+#ifdef USE_LIBPROJ4
+    // Map Stuff (xtype = 3)
+    LP idata;
+    XY odata;
+    DStructGDL* Struct = SysVar::X();
+    if(Struct != NULL) {
+      static unsigned typeTag = Struct->Desc()->TagIndex( "TYPE");
+      ll = (*static_cast<DLongGDL*>(Struct->Get( typeTag, 0)))[0];
+    }
+
+    if (ll == 3) {
+      map_init();
+      if (! (ref) ) {
+	e->Throw( "Projection initialization failed.");
+      }
+    }
+#endif
+
     for( int i=0; i<minEl; ++i)
       {
-	PLFLT y = static_cast<PLFLT>( (*yVal)[i]);
+	PLFLT y;
+	if (yVal->N_Elements() == 1 && yVal->Rank() == 0) 
+	  y = static_cast<PLFLT>( (*yVal)[0]);
+	else
+	  y = static_cast<PLFLT>( (*yVal)[i]);
 
 	if( yLog) if( y <= 0.0) continue; else y = log10( y);
 	
-	PLFLT x = static_cast<PLFLT>( (*xVal)[i]);
+	PLFLT x;
+	if (xVal->N_Elements() == 1 && xVal->Rank() == 0) 
+	  x = static_cast<PLFLT>( (*xVal)[0]);
+	else
+	  x = static_cast<PLFLT>( (*xVal)[i]);
 
 	if( xLog) 
 	  if( x <= 0.0) 
@@ -2829,24 +2908,64 @@ namespace lib {
 	  else 
 	    x = log10( x);
 
-	  if( i>0)
+#ifdef USE_LIBPROJ4
+	if (ll == 3 && !e->KeywordSet("NORMAL")) {
+	  idata.lam = x * DEG_TO_RAD;
+	  idata.phi = y * DEG_TO_RAD;
+	  odata = pj_fwd(idata, ref);
+	  x = odata.x;
+	  y = odata.y;
+	  if (!isfinite(x) || !isfinite(y)) continue;
+	}
+#endif
+
+	if( i>0)
 	  {
 	    if( line)
 	      {
-		PLFLT y1 = static_cast<PLFLT>( (*yVal)[i-1]);
-		
+		PLFLT y1;
+		if (yVal->N_Elements() == 1 && yVal->Rank() == 0) 
+		  y1 = static_cast<PLFLT>( (*yVal)[0]);
+		else
+		  y1 = static_cast<PLFLT>( (*yVal)[i-1]);
+
 		if( !yLog || y1 > 0.0)
 		  {
 		    if( yLog) y1 = log10( y1);
-		    PLFLT x1 = static_cast<PLFLT>( (*xVal)[i-1]);
+
+		    PLFLT x1;
+		    if (xVal->N_Elements() == 1 && xVal->Rank() == 0) 
+		      x1 = static_cast<PLFLT>( (*xVal)[0]);
+		    else
+		      x1 = static_cast<PLFLT>( (*xVal)[i-1]);
 		    
 		    if( !xLog || x1 > 0.0)
 		      {
 			if( xLog) x1 = log10( x1);
+
+#ifdef USE_LIBPROJ4
+			// Convert from lon/lat in degrees to radians
+			// Convert from lon/lat in radians to data coord
+			if (ll == 3 && !e->KeywordSet("NORMAL")) {
+			  idata.lam = x1 * DEG_TO_RAD;
+			  idata.phi = y1 * DEG_TO_RAD;
+			  odata = pj_fwd(idata, ref);
+			  x1 = odata.x;
+			  y1 = odata.y;
+			  if (!isfinite(x1) || !isfinite(y1)) continue;
+			}
+#endif
+			if(ll == 3 && e->KeywordSet("NORMAL")) {
+			  x  = (x  - sx[0]) / sx[1];
+			  y  = (y  - sy[0]) / sy[1];
+			  x1 = (x1 - sx[0]) / sx[1];
+			  y1 = (y1 - sy[0]) / sy[1];
+			}		
+
 			a->join(x1,y1,x,y);
 
-// 			cout << "join( "<<x1<<", "<<y1<<", "<<
-// 			  x<<", "<<y<<")"<<endl;
+			//  cout << "join( "<<x1<<", "<<y1<<", "<<
+ 			//  x<<", "<<y<<")"<<endl;
 		      }
 		  }
 	      }
@@ -2864,7 +2983,16 @@ namespace lib {
 			if( !xLog || x1 > 0.0)
 			  {
 			    if( xLog) x1 = log10( x1);
-			    
+	
+#ifdef USE_LIBPROJ4
+			    if (ll == 3 && !e->KeywordSet("NORMAL")) {
+			      idata.lam = x1 * DEG_TO_RAD;
+			      idata.phi = y1 * DEG_TO_RAD;
+			      odata = pj_fwd(idata, ref);
+			      x1 = odata.x * sx[1] + sx[0];
+			      y1 = odata.y * sy[1] + sy[0];
+			    }
+#endif		    
 			    a->join(x1,y1,(x1+x)/2.0,y1);
 			    a->join((x1+x)/2.0,y1,(x1+x)/2.0,y);
 			    a->join((x1+x)/2.0,y,x,y);
@@ -2878,10 +3006,15 @@ namespace lib {
 	// translation plplot symbols - GDL symbols
 	// for now usersym is a circle
 	const PLINT codeArr[]={ 0,2,3,1,11,7,6,5,4};
-	
-	a->poin(1,&x,&y,codeArr[psym_]);
+
+	if (isfinite(x) && isfinite(y)) {
+	  if(ll == 3 && e->KeywordSet("NORMAL")) {
+	    x = (x - sx[0]) / sx[1];
+	    y = (y - sy[0]) / sy[1];
+	  }
+	  a->poin(1,&x,&y,codeArr[psym_]);
+	}
       }
-    
     return (valid);
   }
 
@@ -3041,12 +3174,16 @@ namespace lib {
     DLong temp_linestyle=0;
     e->AssureLongScalarKWIfPresent( "LINESTYLE",temp_linestyle);
 
+    /*
     if((temp_linestyle > 0) && (temp_linestyle < 9) )
 	linestyle=temp_linestyle;
     else if((linestyle > 0) && (linestyle < 9) )
 	linestyle=linestyle+1;
     else 
 	linestyle=1;
+    */
+
+    linestyle=temp_linestyle+1;
 
     a->lsty(linestyle);
   }
@@ -3109,12 +3246,28 @@ namespace lib {
     if(axis=="X") Struct = SysVar::X();
     if(axis=="Y") Struct = SysVar::Y();
     if(axis=="Z") Struct = SysVar::Z();
-    if(Struct != NULL)
-      log=((*static_cast<DLongGDL*>(Struct->Get(Struct->Desc()->
-						TagIndex("TYPE"))))[0] ? 1:0);
-    else
-      log=0;
+    if(Struct != NULL) {
+      static unsigned typeTag = Struct->Desc()->TagIndex( "TYPE");
+      if ((*static_cast<DLongGDL*>(Struct->Get( typeTag, 0)))[0] == 1)
+	log = 1;
+      else
+	log=0;
+    }
   }
+
+  void get_mapset(bool &mapset)
+  {
+    DStructGDL* Struct = SysVar::X();
+    if(Struct != NULL) {
+      static unsigned typeTag = Struct->Desc()->TagIndex( "TYPE");
+
+      if ((*static_cast<DLongGDL*>(Struct->Get( typeTag, 0)))[0] == 3)
+	mapset = 1;
+      else
+	mapset = 0;
+    }
+  }
+  
 
   //axis type (log..)
   void set_axis_type(string axis, bool Type)
@@ -3126,7 +3279,7 @@ namespace lib {
     if(Struct!=NULL)
       {
 	static unsigned typeTag = Struct->Desc()->TagIndex("TYPE");   
-	(*static_cast<DLongGDL*>(Struct->Get(typeTag, 0)))[0] =Type; 
+	(*static_cast<DLongGDL*>(Struct->Get(typeTag, 0)))[0] = Type; 
       }
   }
 
@@ -3219,6 +3372,544 @@ namespace lib {
 	high = (*static_cast<DFloatGDL*>( Struct->Get( marginTag, 0)))[1];
       }
   }
+
+
+#ifdef USE_LIBPROJ4
+  void map_init()
+  {
+    static DStructGDL* mapStruct = SysVar::Map();
+    static unsigned projectionTag = mapStruct->Desc()->TagIndex( "PROJECTION");
+    static unsigned p0lonTag = mapStruct->Desc()->TagIndex( "P0LON");
+    static unsigned p0latTag = mapStruct->Desc()->TagIndex( "P0LAT");
+    static unsigned aTag = mapStruct->Desc()->TagIndex( "A");
+    static unsigned e2Tag = mapStruct->Desc()->TagIndex( "E2");
+
+    DLong map_projection = 
+      (*static_cast<DLongGDL*>( mapStruct->Get( projectionTag, 0)))[0];
+    DDouble map_p0lon = 
+      (*static_cast<DDoubleGDL*>( mapStruct->Get( p0lonTag, 0)))[0];
+    DDouble map_p0lat = 
+      (*static_cast<DDoubleGDL*>( mapStruct->Get( p0latTag, 0)))[0];
+    DDouble map_a = 
+      (*static_cast<DDoubleGDL*>( mapStruct->Get( aTag, 0)))[0];
+    DDouble map_e2 = 
+      (*static_cast<DDoubleGDL*>( mapStruct->Get( e2Tag, 0)))[0];
+
+    char proj[64];
+    char p0lon[64];
+    char p0lat[64];
+    char a[64];
+    char e2[64];
+
+    static char *parms[32];
+    static DLong last_proj = 0;
+    static DDouble last_p0lon = -9999;
+    static DDouble last_p0lat = -9999;
+    static DDouble last_a = -9999;
+    static DDouble last_e2 = -9999;
+
+    if (map_projection != last_proj ||
+	map_p0lon != last_p0lon ||
+	map_p0lat != last_p0lat ||
+	map_a != last_a ||
+	map_e2 != last_e2) {
+
+      if (map_p0lon >= 0) {
+	sprintf(p0lon, "lon_0=%lf", map_p0lon);
+	strcat(p0lon, "E");
+      } else {
+	sprintf(p0lon, "lon_0=%lf", fabs(map_p0lon));
+	strcat(p0lon, "W");
+      }
+      
+      if (map_p0lat >= 0) {
+	sprintf(p0lat, "lat_0=%lf", map_p0lat);
+	strcat(p0lat, "N");
+      } else {
+	sprintf(p0lat, "lat_0=%lf", fabs(map_p0lat));
+	strcat(p0lat, "S");
+      }
+
+      if (map_e2 == 0.0) {
+	sprintf(a, "R=%lf", map_a);
+      } else {
+	sprintf(a, "a=%lf", map_a);
+	sprintf(e2, "es=%lf", map_e2);
+      }
+
+      //	strcpy(parms[1], "ellps=clrk66");
+
+      DLong nparms = 0;
+      parms[nparms++] = &p0lon[0];
+      parms[nparms++] = &p0lat[0];
+      parms[nparms++] = &a[0];
+      if (map_e2 != 0.0) parms[nparms++] = &e2[0];
+
+      if (map_projection == 1) {
+	strcpy(proj, "proj=stere");
+	parms[nparms++] = &proj[0];
+      }
+
+      if (map_projection == 2) {
+	strcpy(proj, "proj=ortho");
+	parms[nparms++] = &proj[0];
+      }
+
+      last_proj = map_projection;
+      last_p0lon = map_p0lon;
+      last_p0lat = map_p0lat;
+      last_a = map_a;
+      last_e2 = map_e2;
+
+      ref = pj_init(nparms, parms);
+    }
+  }
+
+  BaseGDL* map_proj_forward_fun( EnvT* e)
+  {
+    // lonlat -> xy
+
+    SizeT nParam=e->NParam();
+    if( nParam < 1)
+      e->Throw( "MAP_PROJ_FORWARD: Incorrect number of arguments.");
+
+    LP idata;
+    XY odata;
+
+    map_init();
+    if (! (ref) ) {
+      e->Throw( "MAP_PROJ_FORWARD: Projection initialization failed.");
+    }
+
+    BaseGDL* p0;
+    BaseGDL* p1;
+
+    DDoubleGDL* lon;
+    DDoubleGDL* lat;
+    DDoubleGDL* ll;
+    DDoubleGDL* res;
+    DLong dims[2];
+
+    if ( nParam == 1) {
+      p0 = e->GetParDefined( 0);
+      DDoubleGDL* ll = static_cast<DDoubleGDL*>
+	(p0->Convert2( DOUBLE, BaseGDL::COPY));
+
+      dims[0] = 2;
+      if (p0->Rank() == 1) {
+	dimension dim((SizeT *) dims, 1);
+	res = new DDoubleGDL( dim, BaseGDL::NOZERO);
+      } else {
+	dims[1] = p0->Dim(1);
+	dimension dim((SizeT *) dims, 2);
+	res = new DDoubleGDL( dim, BaseGDL::NOZERO);
+      }
+
+      SizeT nEl = p0->N_Elements();
+      for( SizeT i=0; i<nEl/2; ++i) {
+	idata.lam = (*ll)[2*i]   * DEG_TO_RAD;
+	idata.phi = (*ll)[2*i+1] * DEG_TO_RAD;
+	odata = pj_fwd(idata, ref);
+	(*res)[2*i]   = odata.x;
+	(*res)[2*i+1] = odata.y;
+      }
+      return res;
+
+    } else if ( nParam == 2) {
+      p0 = e->GetParDefined( 0);
+      p1 = e->GetParDefined( 1);
+      DDoubleGDL* lon = static_cast<DDoubleGDL*>
+	(p0->Convert2( DOUBLE, BaseGDL::COPY));
+      DDoubleGDL* lat = static_cast<DDoubleGDL*>
+	(p1->Convert2( DOUBLE, BaseGDL::COPY));
+
+      dims[0] = 2;
+      if (p0->Rank() == 0 || p0->Rank() == 1) {
+	dimension dim((SizeT *) dims, 1);
+	res = new DDoubleGDL( dim, BaseGDL::NOZERO);
+      } else {
+	dims[1] = p0->Dim(0);
+	dimension dim((SizeT *) dims, 2);
+	res = new DDoubleGDL( dim, BaseGDL::NOZERO);
+      }
+
+      SizeT nEl = p0->N_Elements();
+      for( SizeT i=0; i<nEl; ++i) {
+	idata.lam = (*lon)[i] * DEG_TO_RAD;
+	idata.phi = (*lat)[i] * DEG_TO_RAD;
+	odata = pj_fwd(idata, ref);
+	(*res)[2*i]   = odata.x;
+	(*res)[2*i+1] = odata.y;
+      }
+      return res;
+    }
+  }
+
+
+  BaseGDL* map_proj_inverse_fun( EnvT* e)
+  {
+    // xy -> lonlat
+    SizeT nParam=e->NParam();
+    if( nParam < 1)
+      e->Throw( "MAP_PROJ_INVERSE: Incorrect number of arguments.");
+
+    XY idata;
+    LP odata;
+
+    map_init();
+    if (! (ref) ) {
+      e->Throw( "MAP_PROJ_INVERSE: Projection initialization failed.");
+    }
+
+    BaseGDL* p0;
+    BaseGDL* p1;
+
+    DDoubleGDL* x;
+    DDoubleGDL* y;
+    DDoubleGDL* xy;
+    DDoubleGDL* res;
+    DLong dims[2];
+
+    if ( nParam == 1) {
+      p0 = e->GetParDefined( 0);
+      DDoubleGDL* xy = static_cast<DDoubleGDL*>
+	(p0->Convert2( DOUBLE, BaseGDL::COPY));
+
+      dims[0] = 2;
+      if (p0->Rank() == 1) {
+	dimension dim((SizeT *) dims, 1);
+	res = new DDoubleGDL( dim, BaseGDL::NOZERO);
+      } else {
+	dims[1] = p0->Dim(1);
+	dimension dim((SizeT *) dims, 2);
+	res = new DDoubleGDL( dim, BaseGDL::NOZERO);
+      }
+
+      SizeT nEl = p0->N_Elements();
+      for( SizeT i=0; i<nEl/2; ++i) {
+	idata.x = (*xy)[2*i];
+	idata.y = (*xy)[2*i+1];
+	odata = pj_inv(idata, ref);
+	(*res)[2*i]   = odata.lam * RAD_TO_DEG;
+	(*res)[2*i+1] = odata.phi * RAD_TO_DEG;
+      }
+      return res;
+
+    } else if ( nParam == 2) {
+      p0 = e->GetParDefined( 0);
+      p1 = e->GetParDefined( 1);
+      DDoubleGDL* x = static_cast<DDoubleGDL*>
+	(p0->Convert2( DOUBLE, BaseGDL::COPY));
+      DDoubleGDL* y = static_cast<DDoubleGDL*>
+	(p1->Convert2( DOUBLE, BaseGDL::COPY));
+
+      dims[0] = 2;
+      if (p0->Rank() == 0 || p0->Rank() == 1) {
+	dimension dim((SizeT *) dims, 1);
+	res = new DDoubleGDL( dim, BaseGDL::NOZERO);
+      } else {
+	dims[1] = p0->Dim(0);
+	dimension dim((SizeT *) dims, 2);
+	res = new DDoubleGDL( dim, BaseGDL::NOZERO);
+      }
+
+      SizeT nEl = p0->N_Elements();
+      for( SizeT i=0; i<nEl; ++i) {
+	idata.x = (*x)[i];
+	idata.y = (*y)[i];
+	odata = pj_inv(idata, ref);
+	(*res)[2*i]   = odata.lam * RAD_TO_DEG;
+	(*res)[2*i+1] = odata.phi * RAD_TO_DEG;
+      }
+      return res;
+    }
+  }
+#endif
+
+  template< typename T1, typename T2>
+  BaseGDL* convert_coord_template( EnvT* e, 
+				   BaseGDL* p0, BaseGDL* p1, BaseGDL* p2,
+				   DDouble *sx, DDouble *sy, DDouble *sz,
+				   DLong xv, DLong yv, DLong xt, DLong yt)
+  {
+    DLong dims[2]={3,0};
+    if( e->NParam() == 1) {
+      if (p0->Dim(0) != 2 && p0->Dim(0) != 3)
+	e->Throw( "CONVERT_COORD: When only 1 param, dims must be (2,n) or (3,n)");
+    }
+
+    DType aTy;
+    if (p0->Type() == DOUBLE || e->KeywordSet("DOUBLE"))
+      aTy = DOUBLE;
+    else
+      aTy = FLOAT;
+
+    T1* res;
+    SizeT nrows;
+
+    if (p0->Rank() == 0) {
+      nrows = 1;
+      dimension dim((SizeT *) dims, 1);
+      res = new T1( dim, BaseGDL::ZERO);
+    } else if (p0->Rank() == 1) {
+      if (e->NParam() == 1) {
+	nrows = 1;
+	dimension dim((SizeT *) dims, 1);
+	res = new T1( dim, BaseGDL::ZERO);
+      } else {
+	nrows = p0->Dim(0);
+	dims[1] = nrows;
+	dimension dim((SizeT *) dims, 2);
+	res = new T1( dim, BaseGDL::ZERO);
+      }
+    } else {
+      nrows = p0->Dim(1);
+      dims[1] = nrows;
+      dimension dim((SizeT *) dims, 2);
+      res = new T1( dim, BaseGDL::ZERO);
+    }
+
+    T1 *in, *in1, *in2, *in3;
+    T2 *ptr1, *ptr2, *ptr3;
+    DLong deln=1, ires=0;
+    bool third = false;
+    if( e->NParam() == 1) { 
+      in = static_cast<T1*>(p0->Convert2( aTy, BaseGDL::COPY));
+      ptr1 = &(*in)[0];
+      ptr2 = &(*in)[1];
+      if (p0->Dim(0) == 3) {
+	ptr3 = &(*in)[2];
+	third = true;
+      }
+      deln = p0->Dim(0);
+    } else if( e->NParam() == 2) {
+      in1 = static_cast<T1*>(p0->Convert2( aTy, BaseGDL::COPY));
+      in2 = static_cast<T1*>(p1->Convert2( aTy, BaseGDL::COPY));
+      ptr1 = &(*in1)[0];
+      ptr2 = &(*in2)[0];
+      ptr3 = NULL;
+    } else {
+      in1 = static_cast<T1*>(p0->Convert2( aTy, BaseGDL::COPY));
+      in2 = static_cast<T1*>(p1->Convert2( aTy, BaseGDL::COPY));
+      in3 = static_cast<T1*>(p2->Convert2( aTy, BaseGDL::COPY));
+      ptr1 = &(*in1)[0];
+      ptr2 = &(*in2)[0];
+      ptr3 = &(*in3)[0];
+      third = true;
+    }
+
+#ifdef USE_LIBPROJ4
+    // MAP conversion (st = 3)
+    if (xt == 3) {
+      map_init();
+      if (! (ref) ) {
+	e->Throw( "CONVERT_COORD: Projection initialization failed.");
+      }
+
+      // ll -> xy
+      // lam = longitude  phi = latitude
+      if (e->KeywordSet("DATA") || (!e->KeywordSet("DEVICE") && 
+				    !e->KeywordSet("NORMAL"))) {
+	if (!e->KeywordSet("TO_DEVICE") && 
+	    !e->KeywordSet("TO_NORMAL")) {
+	  for( SizeT i = 0; i<nrows; ++i) {	
+	    (*res)[ires++] = (*ptr1);
+	    (*res)[ires++] = (*ptr2);
+	    ptr1++;
+	    ptr2++;
+	    ires++;
+	  }
+	} else {
+	  LP idata;
+	  XY odata;
+	  for( SizeT i = 0; i<nrows; ++i) {	
+	    idata.lam = (*ptr1) * DEG_TO_RAD;
+	    idata.phi = (*ptr2) * DEG_TO_RAD;
+	    odata = pj_fwd(idata, ref);
+	    (*res)[ires++] = odata.x * sx[1] + sx[0];
+	    (*res)[ires++] = odata.y * sy[1] + sy[0];
+	    ptr1++;
+	    ptr2++;
+	    ires++;
+	  }
+	}
+	// xy -> ll
+      } else if (e->KeywordSet("NORMAL")) {
+	XY idata;
+	LP odata;
+	for( SizeT i = 0; i<nrows; ++i) {	
+	  idata.x = ((*ptr1) - sx[0]) / sx[1];
+	  idata.y = ((*ptr2) - sy[0]) / sy[1];
+	  odata = pj_inv(idata, ref);
+	  (*res)[ires++] = odata.lam * RAD_TO_DEG;
+	  (*res)[ires++] = odata.phi * RAD_TO_DEG;
+	  ptr1++;
+	  ptr2++;
+	  ires++;
+	}
+      }
+      return res;
+    }
+#endif
+
+    // in: DATA  out: NORMAL/DEVICE
+    if (e->KeywordSet("DATA") || (!e->KeywordSet("DEVICE") && 
+	!e->KeywordSet("NORMAL"))) {
+      for( SizeT i = 0; i<nrows; ++i) {	
+	if (xt == 0)
+	  (*res)[ires++] = xv * (sx[0] + sx[1] * (*ptr1));
+	else
+	  (*res)[ires++] = xv * (sx[0] + sx[1] * log10((*ptr1)));
+
+	if (yt == 0)
+	  (*res)[ires++] = yv * (sy[0] + sy[1] * (*ptr2));
+	else
+	  (*res)[ires++] = yv * (sy[0] + sy[1] * log10((*ptr2)));
+
+	if (third)
+	  (*res)[ires++] = sz[0] + sz[1] * (*ptr3);
+	else
+	  ires++;
+	ptr1 += deln;
+	ptr2 += deln;
+	ptr3 += deln;
+      }
+    // in: NORMAL  out: DEVICE/DATA
+    } else if (e->KeywordSet("NORMAL")) {
+      if (e->KeywordSet("TO_DEVICE")) {
+	for( SizeT i = 0; i<nrows; ++i) {
+	  (*res)[ires++] = xv * (*ptr1);
+	  (*res)[ires++] = yv * (*ptr2);
+	  if (third)
+	    (*res)[ires++] = (*ptr3);
+	  else
+	    ires++;
+	  ptr1 += deln;
+	  ptr2 += deln;
+	  ptr3 += deln;
+	}
+      } else if (!e->KeywordSet("TO_NORMAL")) {
+	for( SizeT i = 0; i<nrows; ++i) {
+	  if (xt == 0)
+	    (*res)[ires++] = ((*ptr1) - sx[0]) / sx[1];
+	  else
+	    (*res)[ires++] = pow(10.,((*ptr1) - sx[0]) / sx[1]);
+	
+	  if (yt == 0)
+	    (*res)[ires++] = ((*ptr2) - sy[0]) / sy[1];
+	  else
+	    (*res)[ires++] = pow(10.,((*ptr2) - sy[0]) / sy[1]);
+
+	  if (third)
+	    (*res)[ires++] = ((*ptr3) - sz[0]) / sz[1];
+	  else
+	    ires++;
+	  ptr1 += deln;
+	  ptr2 += deln;
+	  ptr3 += deln;
+	}
+      }
+    // in: DEVICE  out: NORMAL/DATA
+    } else if (e->KeywordSet("DEVICE")) {
+      if (e->KeywordSet("TO_NORMAL")) {
+	for( SizeT i = 0; i<nrows; ++i) {
+	  (*res)[ires++] = (*ptr1) / xv;
+	  (*res)[ires++] = (*ptr2) / yv;
+	  if (third)
+	    (*res)[ires++] = (*ptr3);
+	  else
+	    ires++;
+	  ptr1 += deln;
+	  ptr2 += deln;
+	  ptr3 += deln;
+	}
+      } else if (!e->KeywordSet("TO_DEVICE")) {
+	for( SizeT i = 0; i<nrows; ++i) {
+	  if (xt == 0)
+	    (*res)[ires++] = ((*ptr1) / xv - sx[0]) / sx[1];
+	  else
+	    (*res)[ires++] = pow(10.,((*ptr1) / xv - sx[0]) / sx[1]);
+	  
+	  if (yt == 0)
+	    (*res)[ires++] = ((*ptr2) / yv - sx[0]) / sy[1];
+	  else
+	    (*res)[ires++] = pow(10.,((*ptr2) / yv - sy[0]) / sy[1]);
+	  
+	  if (third)
+	    (*res)[ires++] = ((*ptr3) - sz[0]) / sz[1];
+	  else
+	    ires++;
+	  ptr1 += deln;
+	  ptr2 += deln;
+	  ptr3 += deln;
+	}
+      }	
+    }
+    return res;
+  }
+
+
+  BaseGDL* convert_coord( EnvT* e) 
+  {
+    SizeT nParam=e->NParam();
+    if( nParam < 1)
+      e->Throw( "CONVERT_COORD: Incorrect number of arguments.");
+
+    BaseGDL* p0;
+    BaseGDL* p1;
+    BaseGDL* p2;
+
+    p0 = e->GetParDefined( 0);
+    if (nParam >= 2)
+      p1 = e->GetParDefined( 1);
+    if (nParam == 3)
+      p2 = e->GetParDefined( 2);
+
+    static DStructGDL* xStruct = SysVar::X();
+    static DStructGDL* yStruct = SysVar::Y();
+    static DStructGDL* zStruct = SysVar::Z();
+    static unsigned sxTag = xStruct->Desc()->TagIndex( "S");
+    static unsigned syTag = yStruct->Desc()->TagIndex( "S");
+    static unsigned szTag = zStruct->Desc()->TagIndex( "S");
+    DDouble *sx = &(*static_cast<DDoubleGDL*>( xStruct->Get( sxTag, 0)))[0];
+    DDouble *sy = &(*static_cast<DDoubleGDL*>( yStruct->Get( syTag, 0)))[0];
+    DDouble *sz = &(*static_cast<DDoubleGDL*>( zStruct->Get( szTag, 0)))[0];
+    static unsigned xtTag = xStruct->Desc()->TagIndex( "TYPE");
+    static unsigned ytTag = yStruct->Desc()->TagIndex( "TYPE");
+    static unsigned ztTag = zStruct->Desc()->TagIndex( "TYPE");
+    DLong xt = (*static_cast<DLongGDL*>( xStruct->Get( xtTag, 0)))[0];
+    DLong yt = (*static_cast<DLongGDL*>( xStruct->Get( ytTag, 0)))[0];
+
+    DLong xv=1, yv=1;
+    int xSize, ySize, xPos, yPos;
+    // Use Size in lieu of VSize
+    Graphics* actDevice = Graphics::GetDevice();
+    DLong wIx = actDevice->ActWin();
+    if( wIx == -1) 
+      printf( "%% CONVERT_COORD: Window is closed and unavailable.\n");
+    bool success = actDevice->WSize(wIx, &xSize, &ySize, &xPos, &yPos);
+    if ( e->KeywordSet("DEVICE") || e->KeywordSet("TO_DEVICE")) {
+      xv = xSize;
+      yv = ySize;
+    }
+
+    /*
+    static xVSTag = dSysVarDesc->TagIndex( "X_VSIZE");
+    static yVSTag = dSysVarDesc->TagIndex( "Y_VSIZE");
+
+    DLong xv = (*static_cast<DLongGDL*>( dStruct->Get( xvTag, 0)))[0];
+    DLong yv = (*static_cast<DLongGDL*>( dStruct->Get( yvTag, 0)))[0];
+    */
+
+    if (p0->Type() == DOUBLE || e->KeywordSet("DOUBLE")) {
+      return convert_coord_template<DDoubleGDL, DDouble>
+	( e, p0, p1, p2, sx, sy, sz, xv, yv, xt, yt);
+    } else {
+      return convert_coord_template<DFloatGDL, DFloat>
+	( e, p0, p1, p2, sx, sy, sz, xv, yv, xt, yt);
+    }
+  }
+
 
 } // namespace
 

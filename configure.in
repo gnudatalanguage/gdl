@@ -367,9 +367,41 @@ if test "x$with_fftw" != "xno"; then
 fi
 
 
+dnl LIBPROJ4
+AC_ARG_WITH(libproj4,	
+	[  --with-libproj4[=DIR]     use LIBPROJ4 package (with optional path DIR) ],
+	[with_libproj4="$withval" ])
+
+dnl LIBPROJ4: default is no
+if test "x$with_libproj4" = "x"; then
+  with_libproj4=no
+  echo "LIBPROJ4 lib not explicitely enabled. Map projection routines not supported."
+fi
+
+if test "x$with_libproj4" != "xno"; then
+  if test "x$with_libproj4" != "xyes"; then
+    LIBS="$LIBS -L$with_libproj4/lib -lproj4"
+    INCLUDES="$INCLUDES -I$with_libproj4/include"
+  else
+    INCLUDES="$INCLUDES -I/usr/include"
+    LIBS="$LIBS -lproj4"
+  fi
+
+  AC_CHECK_LIB(proj4, pj_init, [AC_DEFINE([USE_LIBPROJ4], [1], [Define if you want to use LIBPROJ4])], [
+    echo ""
+    echo "Error! LIBPROJ4 is required but was not found"
+    echo "       Use --with-libproj4=DIR to specify the LIBPROJ4 directory tree"
+    echo "       Use --with-libproj4=no  to not use it"
+    echo "       Check the README or use configure --help for other libraries needed"
+    echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
+    exit -1
+    ])
+fi
+
+
 dnl MPICH
 AC_ARG_WITH(mpich,	
-	[  --with-mpich[=DIR]         use MPICH (experimental) (with optional path DIR) ],
+	[  --with-mpich[=DIR]        use MPICH (experimental) (with optional path DIR) ],
 	[with_mpich="$withval" ])
 
 dnl MPICH: default is no
