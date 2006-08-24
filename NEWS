@@ -165,3 +165,5 @@
 	  CONTOUR.
 	  Support for DICOM files (GDLffDICOM object).
 	  INTEGER keyword for TOTAL
+	  Preliminary support for map projections. (requires libproj4 from
+	  %http://members.verizon.net/~vze2hc4d/proj4/lbp4_050319S.tar.gz)

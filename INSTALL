@@ -65,28 +65,31 @@ options can be used:
                                   used. With this option the version can be
                                   expicitely set 
                                   (e.g. --enable-python_version=2.3).
---with-plplotdir=DIR to specify the plplot directory tree
---with-ncursesdir=DIR to specify the ncurses directory tree
+--with-plplotdir=DIR   to specify the plplot directory tree
+--with-ncursesdir=DIR  to specify the ncurses directory tree
 --with-readlinedir=DIR to specify the readline directory tree
---with-gsldir=DIR to specify the GSL directory tree
+--with-gsldir=DIR      to specify the GSL directory tree
 
---with-netcdf=DIR to specify the netcdf directory tree
---with-netcdf=no  to not use netcdf
+--with-netcdf=DIR      to specify the netcdf directory tree
+--with-netcdf=no       to not use netcdf
 
---with-hdf=DIR    to specify the HDF4 directory tree
---with-hdf=no     to not use HDF4
+--with-hdf=DIR         to specify the HDF4 directory tree
+--with-hdf=no          to not use HDF4
 
---with-hdf5=DIR   to specify the HDF5 directory tree
---with-hdf5=no    to not use HDF5
+--with-hdf5=DIR        to specify the HDF5 directory tree
+--with-hdf5=no         to not use HDF5
 
---with-python=DIR to specify the python directory tree
---with-python=no  to not use python
+--with-python=DIR      to specify the python directory tree
+--with-python=no       to not use python
 
---with-Magick=DIR to specify the ImageMagick directory tree
---with-Magick=no  to not use ImageMagick
+--with-Magick=DIR      to specify the ImageMagick directory tree
+--with-Magick=no       to not use ImageMagick
 
---with-fftw=DIR   to specify the FFTW directory tree
---with-fftw=no    to not use FFTW (this is the default)
+--with-fftw=DIR        to specify the FFTW directory tree
+--with-fftw=no         to not use FFTW (this is the default)
+
+--with-libproj4=DIR    to specify the libproj4 directory tree
+--with-libproj4        to not use libproj4 (this is the default)
 
 
 For example, if you have python installed in /usr/local, use
