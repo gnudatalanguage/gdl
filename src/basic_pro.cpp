@@ -535,7 +535,8 @@ namespace lib {
 	  if( (journalLUN-1) != p)
 	    {
 	      fileUnits[ p].Close();
-	      if( freeLun) fileUnits[ p].Free();
+	      //	      if( freeLun) 
+	      fileUnits[ p].Free();
 	    }
 	}
     
