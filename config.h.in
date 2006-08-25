@@ -84,6 +84,9 @@
 /* Define if you want to use HDF5 */
 #undef USE_HDF5
 
+/* Define if you want to use LIBPROJ4 */
+#undef USE_LIBPROJ4
+
 /* Define if you want to use ImageMagick */
 #undef USE_MAGICK
 
