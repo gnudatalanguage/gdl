@@ -58,6 +58,9 @@ namespace SysVar
   // returns !MAP
   DStructGDL* Map();
 
+  // returns !CPU
+  DStructGDL* Cpu();
+
   const std::string& Prompt();
   int   Edit_Input();
   DLong Quiet();

@@ -37,7 +37,7 @@ namespace SysVar
   UInt pathIx, promptIx, edit_inputIx, quietIx, 
     dIx, pIx, xIx, yIx, zIx, vIx, cIx, 
     errorStateIx, errorIx, errIx, err_stringIx, valuesIx,
-    journalIx, exceptIx, mapIx, dirIx, warnIx;
+    journalIx, exceptIx, mapIx, cpuIx, dirIx, warnIx;
 
   // !D structs
   const int nDevices = 2;
@@ -192,6 +192,12 @@ namespace SysVar
   DStructGDL* Map()
   {
     DVar& var = *sysVarList[ mapIx];
+    return static_cast<DStructGDL*>(var.Data());
+  }
+
+  DStructGDL* Cpu()
+  {
+    DVar& var = *sysVarList[ cpuIx];
     return static_cast<DStructGDL*>(var.Data());
   }
 
@@ -490,6 +496,19 @@ namespace SysVar
     DVar *map=new DVar( "MAP", mapData);
     mapIx=sysVarList.size();
     sysVarList.push_back( map);
+
+    // !CPU
+    DStructGDL* cpuData = new DStructGDL( "!CPU");
+    cpuData->NewTag("HW_VECTOR", new DLongGDL( 0)); 
+    cpuData->NewTag("VECTOR_ENABLE", new DLongGDL( 0)); 
+    cpuData->NewTag("HW_NCPU", new DLongGDL( 0)); 
+    cpuData->NewTag("TPOOL_NTHREADS", new DLongGDL( 0)); 
+    cpuData->NewTag("TPOOL_MIN_ELTS", new DLongGDL( 0)); 
+    cpuData->NewTag("TPOOL_MAX_ELTS", new DLongGDL( 0)); 
+
+    DVar *cpu=new DVar( "CPU", cpuData);
+    cpuIx=sysVarList.size();
+    sysVarList.push_back( cpu);
 
     // !DIR
 #ifndef EXEC_PREFIX
