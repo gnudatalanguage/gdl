@@ -99,7 +99,61 @@ namespace lib {
     // STRUCTURE
     } else if( e->KeywordSet(5)) { 
 
-      e->Throw( "STRUCTURE not supported yet.");
+      SpDString aString;
+      SpDLong   aLong;
+      SpDLong   aLongArr8( dimension(8));
+      SpDInt    aInt;
+
+      DStructDesc* size_struct = new DStructDesc( "IDL_SIZE");
+      size_struct->AddTag("TYPE_NAME", &aString);
+      size_struct->AddTag("STRUCTURE_NAME", &aString);
+      size_struct->AddTag("TYPE", &aInt);
+      size_struct->AddTag("FILE_LUN", &aInt);
+      size_struct->AddTag("FILE_OFFSET",  &aLong);
+      size_struct->AddTag("N_ELEMENTS",  &aLong);
+      size_struct->AddTag("N_DIMENSIONS",  &aLong);
+      size_struct->AddTag("DIMENSIONS",  &aLongArr8);
+
+      structList.push_back(size_struct);
+
+      DStructGDL* res = new DStructGDL( "IDL_SIZE");
+
+      DString tname;
+      DString sname;
+      if (vType == STRUCT) {
+	tname = "STRUCT";
+	DStructGDL* s = static_cast<DStructGDL*>( p0);
+	if (s->Desc()->IsUnnamed())
+	  sname = "";
+	else
+	  sname = s->Desc()->Name();
+      } else {
+	tname = p0->TypeStr();
+	sname = "";
+      }
+
+      DULongGDL *dims_res = new DULongGDL(dimension(8), BaseGDL::ZERO);
+      for( SizeT i=0; i<Rank; ++i) {
+	(*dims_res)[ i] = p0->Dim(i);
+      }
+      if (vType == STRUCT && nEl == 1 && p0->Dim(0) == 0) (*dims_res)[0] = 1;
+
+      res->InitTag("TYPE_NAME", DStringGDL(tname));
+      res->InitTag("STRUCTURE_NAME", DStringGDL(sname));
+      res->InitTag("TYPE", DIntGDL(vType));
+      res->InitTag("FILE_LUN", DIntGDL(0));
+      res->InitTag("FILE_OFFSET", DLongGDL(0));
+      res->InitTag("N_ELEMENTS",  DLongGDL(nEl));
+      if (Rank == 0 && vType == STRUCT)
+	res->InitTag("N_DIMENSIONS",  DLongGDL(1));
+      else if (Rank == 0 && vType != STRUCT)
+	res->InitTag("N_DIMENSIONS",  DLongGDL(0));
+      else
+	res->InitTag("N_DIMENSIONS",  DLongGDL(Rank));
+      res->InitTag("DIMENSIONS",  *dims_res);
+
+      return res;
+      //e->Throw( "STRUCTURE not supported yet.");
 
     // TNAME
     } else if( e->KeywordSet(6)) { 
@@ -651,5 +705,4 @@ namespace lib {
   }
     
 } // namespace
-
 
