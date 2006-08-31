@@ -3865,8 +3865,11 @@ namespace lib {
   {
     static int nameIx = e->KeywordIx( "NAME" );
     DString name = "$truct";
-    if( e->KeywordPresent( nameIx))
-      e->AssureStringScalarKW( nameIx, name);
+    if( e->KeywordPresent( nameIx)) {
+      // Check if name exists, if not then treat as unnamed
+      if (e->GetKW( nameIx) != NULL)
+	e->AssureStringScalarKW( nameIx, name);
+    }
 
     if( name != "$truct") // named struct
       {
