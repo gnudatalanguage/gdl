@@ -136,7 +136,6 @@ namespace lib {
       for( SizeT i=0; i<Rank; ++i) {
 	(*dims_res)[ i] = p0->Dim(i);
       }
-      if (vType == STRUCT && nEl == 1 && p0->Dim(0) == 0) (*dims_res)[0] = 1;
 
       res->InitTag("TYPE_NAME", DStringGDL(tname));
       res->InitTag("STRUCTURE_NAME", DStringGDL(sname));
@@ -144,12 +143,7 @@ namespace lib {
       res->InitTag("FILE_LUN", DIntGDL(0));
       res->InitTag("FILE_OFFSET", DLongGDL(0));
       res->InitTag("N_ELEMENTS",  DLongGDL(nEl));
-      if (Rank == 0 && vType == STRUCT)
-	res->InitTag("N_DIMENSIONS",  DLongGDL(1));
-      else if (Rank == 0 && vType != STRUCT)
-	res->InitTag("N_DIMENSIONS",  DLongGDL(0));
-      else
-	res->InitTag("N_DIMENSIONS",  DLongGDL(Rank));
+      res->InitTag("N_DIMENSIONS",  DLongGDL(Rank));
       res->InitTag("DIMENSIONS",  *dims_res);
 
       return res;
@@ -696,7 +690,6 @@ namespace lib {
 	BaseGDL*& par = ((EnvT*)(caller->Caller()))->GetPar( s);
 
 	BaseGDL* res = e->GetPar( 1)->Dup();
-	char* addr = static_cast<char*>(res->DataAddr());
 	memcpy(&par, &res, 4); 
 
 	return new DIntGDL( 1);
