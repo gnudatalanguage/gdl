@@ -4237,7 +4237,9 @@ BaseGDL*  GDLInterpreter::array_def(ProgNodeP _t) {
 		// returns it or throws an exception
 		DStructDesc* dStruct=GetStruct( idRef->getText(), _t);
 		
-		res=new DStructGDL( dStruct);
+		dimension dim((size_t) 1, (size_t) 1);
+		res = new DStructGDL( dStruct, dim);
+		//		res=new DStructGDL( dStruct);
 		
 		_t = __t186;
 		_t = _t->getNextSibling();
@@ -5254,7 +5256,9 @@ BaseGDL*  GDLInterpreter::sys_var(ProgNodeP _t) {
 	}
 	
 	// the instance variable
-	DStructGDL* instance= new DStructGDL( nStructDesc); 
+	dimension dim((size_t) 1, (size_t) 1);
+	DStructGDL* instance = new DStructGDL( nStructDesc, dim);
+	//	DStructGDL* instance= new DStructGDL( nStructDesc); 
 	auto_ptr<DStructGDL> instance_guard(instance);
 	
 	{ // ( ... )+
@@ -5377,7 +5381,9 @@ BaseGDL*  GDLInterpreter::sys_var(ProgNodeP _t) {
 	DStructDesc*   nStructDesc = new DStructDesc( "$truct");
 	
 	// instance takes care of nStructDesc since it is unnamed
-	DStructGDL* instance = new DStructGDL( nStructDesc);
+	dimension dim((size_t) 1, (size_t) 1);
+	DStructGDL* instance = new DStructGDL( nStructDesc, dim);
+	//	DStructGDL* instance = new DStructGDL( nStructDesc);
 	auto_ptr<DStructGDL> instance_guard(instance);
 	
 	BaseGDL* e;
