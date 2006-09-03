@@ -76,6 +76,7 @@ namespace lib {
         DStructGDL* s = static_cast<DStructGDL*>( par);
         os << "-> ";
         os << (s->Desc()->IsUnnamed()? "<Anonymous>" : s->Desc()->Name());
+	os << " ";
       }
     else if( par->Dim( 0) == 0)
       {
@@ -145,31 +146,87 @@ namespace lib {
     bool isKWSetStructures = e->KeywordSet( "STRUCTURES");
     if( isKWSetStructures) kw = true;
 
+
     SizeT nParam=e->NParam();
+
+    // If OUTPUT keyword set then set up output string array (outputKW)
+    BaseGDL** outputKW = NULL;
+    static int outputIx = e->KeywordIx( "OUTPUT");
+    if( e->KeywordPresent( outputIx)) {
+      SizeT n = 0;
+      // Determine the number of entries in the output array
+      for( SizeT i=0; i<nParam; i++)
+      {
+	BaseGDL*& par=e->GetPar( i);
+	DString parString = e->Caller()->GetString( par);
+	if( !par || !isKWSetStructures || par->Type() != STRUCT) {
+	  n++;
+	} else {
+	  DStructGDL* s = static_cast<DStructGDL*>( par);
+	  SizeT nTags = s->Desc()->NTags();
+	  n++;
+	  n += nTags;
+	}
+      }
+      outputKW = &e->GetKW( outputIx);
+      delete (*outputKW);
+      dimension dim(&n, (size_t) 1);
+      *outputKW = new DStringGDL(dim, BaseGDL::NOZERO);
+    }
+
+    SizeT n = 0;
     for( SizeT i=0; i<nParam; i++)
       {
 	BaseGDL*& par=e->GetPar( i);
 	DString parString = e->Caller()->GetString( par);
+	// NON-STRUCTURES
 	if( !par || !isKWSetStructures || par->Type() != STRUCT)
           {
-            help_item( cout, par, parString, false);
+	    // If no OUTPUT keyword send to stdout
+	    if (outputKW == NULL) {
+	      help_item( cout, par, parString, false);
+	    } else {
+	      // else send to string stream & store in outputKW (remove CR)
+	      std::ostringstream ostr;
+	      help_item( ostr, par, parString, false);
+	      (*(DStringGDL *) *outputKW)[n++] = 
+		ostr.rdbuf()->str().erase(ostr.rdbuf()->str().length()-1,1); 
+	    }
           }
         else
 	  {
+	    // STRUCTURES
             DStructGDL* s = static_cast<DStructGDL*>( par);
-            cout << "** Structure ";
-            cout << (s->Desc()->IsUnnamed()? "<Anonymous>" : s->Desc()->Name());
-
 	    SizeT nTags = s->Desc()->NTags();
-            cout << ", " << nTags << " tags:" << endl;
-	    for (SizeT t=0; t < nTags; ++t)
-	      {    
-		DString tagString = s->Desc()->TagName(t);
-                help_item(  cout, s->Get(t), tagString, true);
-	      }
-          }
-      }
+	    if (outputKW == NULL) {
+	      cout << "** Structure ";
+	      cout << (s->Desc()->IsUnnamed()? "<Anonymous> " : s->Desc()->Name());
+	      cout << ", " << nTags << " tags:" << endl;
+	      for (SizeT t=0; t < nTags; ++t)
+		{    
+		  DString tagString = s->Desc()->TagName(t);
+		  help_item( cout, s->Get(t), tagString, true);
+		}
+	    } else {
+	      // OUTPUT KEYWORD SET
+	      std::ostringstream ostr;
+	      ostr << "** Structure ";
+	      ostr << (s->Desc()->IsUnnamed()? "<Anonymous> " : s->Desc()->Name());
+	      ostr << ", " << nTags << " tags:";
+	      (*(DStringGDL *) *outputKW)[n++] = ostr.rdbuf()->str();
+	      ostr.seekp(0);
 
+	      for (SizeT t=0; t < nTags; ++t)
+		{    
+		  DString tagString = s->Desc()->TagName(t);
+		  help_item( ostr, s->Get(t), tagString, true);
+		  (*(DStringGDL *) *outputKW)[n++] = 
+		    ostr.rdbuf()->str().erase(ostr.rdbuf()->str().length()-1,1);
+		  ostr.seekp(0);
+		}
+	    }
+	  }
+      }
     static int routinesKWIx = e->KeywordIx("ROUTINES");
     static int briefKWIx = e->KeywordIx("BRIEF");
     bool routinesKW = e->KeywordSet( routinesKWIx);
