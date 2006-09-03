@@ -3436,7 +3436,11 @@ namespace lib {
 
     if(structureName){
         
+      if ((*struc).Desc()->Name() != "$truct")
 	tagNames =  new DStringGDL((*struc).Desc()->Name());
+      else
+	tagNames =  new DStringGDL("");
+
     } else {
       SizeT nTags = (*struc).Desc()->NTags();
     
@@ -3882,7 +3886,8 @@ namespace lib {
 	    DStructDesc* desc = 
 	      e->Interpreter()->GetStruct( name, e->CallingNode());
 	   
-	    return new DStructGDL( desc);
+	    dimension dim((size_t) 1, (size_t) 1);
+	    return new DStructGDL( desc, dim);
 	  }
 
 	DStructDesc*          nStructDesc;
@@ -3908,7 +3913,8 @@ namespace lib {
 	  }
                 
 	// the instance variable
-	DStructGDL* instance= new DStructGDL( nStructDesc); 
+	dimension dim((size_t) 1, (size_t) 1);
+	DStructGDL* instance = new DStructGDL( nStructDesc, dim);
 	auto_ptr<DStructGDL> instance_guard(instance);
 
 	for( SizeT p=0; p<nParam; ++p)
@@ -3973,12 +3979,20 @@ namespace lib {
 	return instance;
       }
     else 
-      { // unnamed struct
-	SizeT nParam=e->NParam(2);
+      { // unnamed struc
+
+	// Handle case of single structure parameter
+	SizeT nParam;
+	nParam = e->NParam();
+	BaseGDL* par = e->GetParDefined( 0);
+	DStructGDL* parStruct = dynamic_cast<DStructGDL*>( par);
+	if (nParam != 1 || parStruct == NULL)
+	  nParam=e->NParam(2);
 
 	DStructDesc*          nStructDesc = new DStructDesc( "$truct");
 	// instance takes care of nStructDesc since it is unnamed
-	DStructGDL* instance = new DStructGDL( nStructDesc);
+	dimension dim((size_t) 1, (size_t) 1);
+	DStructGDL* instance = new DStructGDL( nStructDesc, dim);
 	auto_ptr<DStructGDL> instance_guard(instance);
 
 	for( SizeT p=0; p<nParam;)
