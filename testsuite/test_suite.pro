@@ -41,9 +41,15 @@ switch a of
     else: e=1
 endswitch
 
-if abc ne 1 then print,'***CASE: ERROR'
-if fall ne abc+1 then print,'***CASE: ERROR'
-if e ne 1 then print,'***CASE: ERROR'
+if abc ne 1 then print,'***SWITCH: ERROR'
+if fall ne abc+1 then print,'***SWITCH: ERROR'
+if e ne 1 then print,'***SWITCH: ERROR'
+
+switch 1 of
+   0: print,"***SWITCH: ERROR"
+   0: print,"***SWITCH: ERROR"
+   1:       
+endswitch
 
 print,'SWITCH: OK'
 end
@@ -79,6 +85,12 @@ case a of
 end
 
 if e ne 1 then print,'***CASE: ERROR'
+
+case 1 of
+   0: print,"***CASE: ERROR"
+   0: print,"***CASE: ERROR"
+   1:       
+endcase
 
 print,'CASE: OK'
 end

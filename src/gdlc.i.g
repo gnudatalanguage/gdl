@@ -806,7 +806,7 @@ case_statement returns[ GDLInterpreter::RetCode retCode]
 
                         if( equalexpr)
                         {
-                            if(_t != NULL)
+                            if(bb != NULL)
                             {
                                 // statement there
                                 retCode=statement_list(bb);

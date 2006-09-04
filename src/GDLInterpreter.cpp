@@ -1259,7 +1259,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 	
 	if( equalexpr)
 	{
-	if(_t != NULL)
+	if(bb != NULL)
 	{
 	// statement there
 	retCode=statement_list(bb);
