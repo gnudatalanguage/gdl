@@ -3886,8 +3886,8 @@ namespace lib {
 	    DStructDesc* desc = 
 	      e->Interpreter()->GetStruct( name, e->CallingNode());
 	   
-	    dimension dim((size_t) 1, (size_t) 1);
-	    return new DStructGDL( desc, dim);
+	    //	    dimension dim((size_t) 1, (size_t) 1);
+	    return new DStructGDL( desc); //, dim);
 	  }
 
 	DStructDesc*          nStructDesc;
@@ -3913,8 +3913,8 @@ namespace lib {
 	  }
                 
 	// the instance variable
-	dimension dim((size_t) 1, (size_t) 1);
-	DStructGDL* instance = new DStructGDL( nStructDesc, dim);
+	//dimension dim((size_t) 1, (size_t) 1);
+	DStructGDL* instance = new DStructGDL( nStructDesc); //, dim);
 	auto_ptr<DStructGDL> instance_guard(instance);
 
 	for( SizeT p=0; p<nParam; ++p)
@@ -3991,8 +3991,8 @@ namespace lib {
 
 	DStructDesc*          nStructDesc = new DStructDesc( "$truct");
 	// instance takes care of nStructDesc since it is unnamed
-	dimension dim((size_t) 1, (size_t) 1);
-	DStructGDL* instance = new DStructGDL( nStructDesc, dim);
+	//	dimension dim((size_t) 1, (size_t) 1);
+	DStructGDL* instance = new DStructGDL( nStructDesc);//, dim);
 	auto_ptr<DStructGDL> instance_guard(instance);
 
 	for( SizeT p=0; p<nParam;)
