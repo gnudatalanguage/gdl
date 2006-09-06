@@ -205,7 +205,7 @@ namespace lib {
 	      for (SizeT t=0; t < nTags; ++t)
 		{    
 		  DString tagString = s->Desc()->TagName(t);
-		  help_item( cout, s->Get(t), tagString, true);
+		  help_item( cout, s->Get(t,0), tagString, true);
 		}
 	    } else {
 	      // OUTPUT KEYWORD SET
@@ -219,7 +219,7 @@ namespace lib {
 	      for (SizeT t=0; t < nTags; ++t)
 		{    
 		  DString tagString = s->Desc()->TagName(t);
-		  help_item( ostr, s->Get(t), tagString, true);
+		  help_item( ostr, s->Get(t,0), tagString, true);
 		  (*(DStringGDL *) *outputKW)[n++] = 
 		    ostr.rdbuf()->str().erase(ostr.rdbuf()->str().length()-1,1);
 		  ostr.seekp(0);
