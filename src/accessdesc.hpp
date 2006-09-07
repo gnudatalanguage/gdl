@@ -29,9 +29,9 @@
 class DotAccessDescT
 {
 private:
-  BaseGDL*                 top;
+  BaseGDL*                      top;
   std::vector<DStructGDL*>      dStruct; // structures
-  std::vector<SizeT>           tag;     // tag index
+  std::vector<SizeT>            tag;     // tag index
   std::vector<ArrayIndexListT*> ix;      // array index
 
   dimension dim;
@@ -276,17 +276,18 @@ private:
     // calculate dimension
     SizeT nDot=tag.size();
     SizeT d;
-    for( d=0; d<nDot; d++)
+    for( d=0; d<nDot; ++d)
       {
 	if( ix[d] == NULL)
 	  { // loop over all elements
-	    dimension actDim=dStruct[d]->Dim();
-	    dim >> actDim;
+	    if( dStruct[d]->N_Elements() > 1)
+	      dim >> dStruct[d]->Dim();
 	  }
 	else
 	  {
 	    ix[d]->SetVariable( dStruct[d]);
-	    dim >> ix[d]->GetDim();
+	    if( ix[d]->N_Elements() > 1) 
+	      dim >> ix[d]->GetDim();
 	  }
       }
     dimension topDim;
