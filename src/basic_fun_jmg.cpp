@@ -614,7 +614,9 @@ namespace lib {
       DSubUD* pro = static_cast<DSubUD*>(caller->Caller()->GetPro());
       SizeT nVar = pro->Size(); // # var in GDL for desired level 
       int nKey = pro->NKey();
-      //      cout << "nKey:" << nKey << endl;
+      //cout << "nKey:" << nKey << endl;
+      //cout << "nVar:" << nVar << endl;
+      //cout << pro->Name() << endl;
 
       if (var) {
 	if( nVar == 0) return new DStringGDL("");
@@ -659,8 +661,8 @@ namespace lib {
 	      for( SizeT xI=0; xI<nVar; ++xI) {
 		string vname = pro->GetVarName( xI);
 		BaseGDL*& par = ((EnvT*)(caller->Caller()))->GetPar( xI-nKey);
-		//		cout << "xI:" << xI << " " << vname.c_str() << endl;
-		//		cout << "par:" << par << endl;
+		//    cout << "xI:" << xI << " " << vname.c_str() << endl;
+		//    cout << "par:" << par << endl;
 		if (par == p) {
 		  (*res)[i] = vname;
 		  break;
@@ -681,15 +683,25 @@ namespace lib {
 	SizeT s;
 	e->AssureScalarPar<DStringGDL>( 0, varName); 
 	int xI = pro->FindVar(StrUpCase( varName));
+	// cout << "varName: " << StrUpCase( varName) << " xI: " << xI << endl;
 	if (xI == -1) {
 	  SizeT u = pro->AddVar(StrUpCase(varName));
 	  s = caller->Caller()->AddEnv();
+
+	  //cout << "AddVar u: " << u << endl;
+	  //cout << "AddEnv s: " << s << endl;
+
 	} else {
 	  s = xI;
+	  //cout << "FindVar s: " << s << endl;
 	}
-	BaseGDL*& par = ((EnvT*)(caller->Caller()))->GetPar( s);
 
+	BaseGDL*& par = ((EnvT*)(caller->Caller()))->GetPar( s-nKey);
+
+	// "res" points to variables to be restored
 	BaseGDL* res = e->GetPar( 1)->Dup();
+
+	//	cout << "par: " << &par << endl << endl;
 	memcpy(&par, &res, 4); 
 
 	return new DIntGDL( 1);
