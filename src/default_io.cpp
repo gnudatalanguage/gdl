@@ -485,7 +485,11 @@ istream& operator>>(istream& is, Data_<SpDString>& data_)
   
       if( !is.eof()) is.get(); // remove delimiter
 
-      data_.dd[ c] = ioss.str();
+      const string& str = ioss.str();
+      if( str.length() > 0 && str[ str.length()-1] == '\r')
+	data_.dd[ c] = str.substr(0,str.length()-1);
+      else
+	data_.dd[ c] = str;
       ioss.str("");
     }
   return is;
