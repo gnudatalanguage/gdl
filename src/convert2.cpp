@@ -1020,7 +1020,7 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
       	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
       	for( SizeT i=0; i < nEl; ++i)
       	  {
-	    (*dest)[i] = Str2D( dd[i]);
+	    (*dest)[i] = (dd[i] == "")? 0.0: Str2D( dd[i]);
       	  }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
