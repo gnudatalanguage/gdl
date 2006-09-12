@@ -1005,7 +1005,7 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
       	  {
       	    const char* cStart=dd[i].c_str();
       	    char* cEnd;
-      	    (*dest)[i]=strtod(cStart,&cEnd);
+      	    (*dest)[i] = strtod(cStart,&cEnd);
       	    if( cEnd == cStart && dd[i] != "")
       	      {
 		Warning("Type conversion error: "
@@ -1020,7 +1020,14 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
       	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
       	for( SizeT i=0; i < nEl; ++i)
       	  {
-	    (*dest)[i] = (dd[i] == "")? 0.0: Str2D( dd[i]);
+      	    const char* cStart=dd[i].c_str();
+	    char* cEnd;
+	    (*dest)[i] = strtod( cStart, &cEnd);
+	    if( cEnd == cStart && dd[i] != "")
+	      {
+		Warning("Type conversion error: "
+			"Unable to convert given STRING to DOUBLE.");
+	      }
       	  }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
