@@ -3455,6 +3455,16 @@ namespace lib {
 	parms[nparms++] = &proj[0];
       }
 
+      if (map_projection == 5) {
+	strcpy(proj, "proj=gnom");
+	parms[nparms++] = &proj[0];
+      }
+
+      if (map_projection == 6) {
+	strcpy(proj, "proj=aeqd");
+	parms[nparms++] = &proj[0];
+      }
+
       last_proj = map_projection;
       last_p0lon = map_p0lon;
       last_p0lat = map_p0lat;
@@ -3663,7 +3673,11 @@ namespace lib {
 	res = new T1( dim, BaseGDL::ZERO);
       }
     } else {
-      nrows = p0->Dim(1);
+      // rank == 2
+      nrows = 1;
+      for( SizeT i = 0; i<2; ++i) {	
+	nrows  *= p0->Dim(i);
+      }
       dims[1] = nrows;
       dimension dim((SizeT *) dims, 2);
       res = new T1( dim, BaseGDL::ZERO);
@@ -3747,6 +3761,11 @@ namespace lib {
 	  ptr2++;
 	  ires++;
 	}
+      }
+      // Change Inf to Nan
+      for( SizeT i = 0; i<res->N_Elements(); ++i) {	
+	if (isinf((DDouble) (*res)[i]) != 0)
+	  (*res)[i] = 1e300000/1e300000;
       }
       return res;
     }
