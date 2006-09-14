@@ -1615,8 +1615,8 @@ void Data_<Sp>::InsAt( Data_* srcIn, ArrayIndexListT* ixList)
       return;
     }
 
-  // ATTENTION: dimension is used as an index here
   SizeT destStart; // 1-dim starting index 
+  // ATTENTION: dimension is used as an index here
   dimension ixDim = ixList->GetDimIx0( destStart);
   nDim--;
 

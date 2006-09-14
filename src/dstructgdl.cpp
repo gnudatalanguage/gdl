@@ -572,7 +572,37 @@ void DStructGDL::AddParent( DStructDesc* p)
 // used by Assign -> old data must be freed
 void DStructGDL::InsAt( DStructGDL* srcIn, ArrayIndexListT* ixList)
 {
+  SizeT nTags=NTags();
   SizeT nDim = ixList->NDim(); // max. number of dimensions to copy
+
+  if( nDim == 1)
+    {
+      SizeT destStart = ixList->LongIx();
+
+      SizeT len = srcIn->Dim( 0); // length of segment to copy
+      // check if in bounds of a
+      if( (destStart+len) > this->N_Elements()) //dim[0])
+	throw GDLException("Out of range subscript encountered.");
+  
+      SizeT srcIx = 0; // this one simply runs from 0 to N_Elements(srcIn)
+
+      SizeT destEnd = destStart + len;
+      for( SizeT destIx = destStart; destIx < destEnd; ++destIx)
+	{
+	  SizeT destIxTag = destIx*nTags;
+	  SizeT srcIxTag  = srcIx*nTags;
+	  for( SizeT tagIx=0; tagIx<nTags; ++tagIx)
+	    {
+	      delete dd[destIxTag+tagIx];
+	      dd[destIxTag+tagIx] = srcIn->dd[ srcIxTag+tagIx]->Dup();
+	    }
+	  srcIx++;
+	}
+
+      return;
+    }
+
+
   SizeT destStart;
   // ATTENTION: dimension is used as an index here
   dimension ixDim = ixList->GetDimIx0( destStart);
@@ -605,8 +635,6 @@ void DStructGDL::InsAt( DStructGDL* srcIn, ArrayIndexListT* ixList)
     resetStep[a]=(retStride[a]-1)/retStride[a-1]*dim.Stride(a);
 	
   //  SizeT destStart=dim.LongIndex(ixDim); // starting pos
-
-  SizeT nTags=NTags();
     
   SizeT srcIx=0; // this one simply runs from 0 to N_Elements(srcIn)
   for( SizeT c=1; c<=nCp; c++) // linearized verison of nested loops
