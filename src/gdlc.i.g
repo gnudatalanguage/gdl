@@ -571,6 +571,9 @@ statement returns[ GDLInterpreter::RetCode retCode]
         }
 	;
     exception 
+//     catch [ GDLIOException& e] 
+//     { // TODO
+//     }
     catch [ GDLException& e] 
     { 
         EnvUDT* targetEnv = e.GetTargetEnv();

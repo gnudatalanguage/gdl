@@ -89,6 +89,23 @@ public:
   }
 };
 
+// for ON_IOERROR
+class GDLIOException: public GDLException
+{
+public:
+  GDLIOException(): 
+    GDLException()
+  {}
+
+  GDLIOException(const std::string& s, bool pre = true):
+    GDLException( s, pre)
+  {}
+    
+  GDLIOException(const ProgNodeP eN, const std::string& s):
+    GDLException( eN, s)
+  {}
+
+};
 
 // warnings ignore !QUIET
 void Warning(const std::string& s);

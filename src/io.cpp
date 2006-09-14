@@ -63,7 +63,7 @@ void GDLStream::Open( const string& name_,
     {
       delete fStream;
       fStream = NULL;
-      throw GDLException("Error opening file.");
+      throw GDLIOException("Error opening file.");
     }
     
   mode=mode_;
@@ -151,14 +151,14 @@ void GDLStream::F77Write( DULong tCount)
 
   if( !fStream->good())
     {
-      throw GDLException("Error writing F77_UNFORMATTED record data.");
+      throw GDLIOException("Error writing F77_UNFORMATTED record data.");
     }  
 }
 
 DULong GDLStream::F77ReadStart()
 {
   if( fStream->eof())
-    throw GDLException("End of file encountered.");
+    throw GDLIOException("End of file encountered.");
 
   assert( sizeof( DULong) == 4);
   DULong tCountRd;
@@ -176,11 +176,11 @@ DULong GDLStream::F77ReadStart()
     }
 
   if( fStream->eof())
-    throw GDLException("End of file encountered.");
+    throw GDLIOException("End of file encountered.");
 
   if( !fStream->good())
     {
-      throw GDLException("Error reading F77_UNFORMATTED record data.");
+      throw GDLIOException("Error reading F77_UNFORMATTED record data.");
     }  
 
   lastRecord = tCountRd;
@@ -191,11 +191,11 @@ DULong GDLStream::F77ReadStart()
 void GDLStream::F77ReadEnd()
 {
   if( fStream->eof())
-    throw GDLException("End of file encountered.");
+    throw GDLIOException("End of file encountered.");
 
   SizeT actPos = Tell();
   if( actPos > (lastRecordStart+lastRecord))
-    throw GDLException( "Read past end of Record of F77_UNFORAMTTED file.");
+    throw GDLIOException( "Read past end of Record of F77_UNFORAMTTED file.");
 
   if( actPos < (lastRecordStart+lastRecord))
     Seek( lastRecordStart+lastRecord);
@@ -215,14 +215,14 @@ void GDLStream::F77ReadEnd()
     }
 
   if( fStream->eof())
-    throw GDLException("End of file encountered.");
+    throw GDLIOException("End of file encountered.");
 
   if( !fStream->good())
     {
-      throw GDLException("Error reading F77_UNFORMATTED record data.");
+      throw GDLIOException("Error reading F77_UNFORMATTED record data.");
     }  
 
   if( lastRecord != tCountRd)
-    throw GDLException( "Logical error in F77_UNFORAMTTED file.");
+    throw GDLIOException( "Logical error in F77_UNFORAMTTED file.");
 }
 

@@ -810,6 +810,18 @@ t = intarr( 5, 5)
 t[1,1] = c
 if t[3,3] ne 10 then print,"***ASSIGNMENT: ERROR4"
 
+t = intarr( 5, 5)
+a=indgen(3,3)
+t[1,1]=a
+if t[2,2] ne 4 then print,"***ASSIGNMENT: ERROR5"
+
+t = intarr( 5, 5)
+a=indgen(3,3)
+t[1]=a
+if t[3,0] ne 2 then print,"***ASSIGNMENT: ERROR6"
+
+
+
 print,"ASSIGNMENT: OK"
 end
 

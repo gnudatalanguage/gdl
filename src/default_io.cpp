@@ -32,7 +32,7 @@ using namespace std;
 void SkipWS( istream& is)
 {
   if( is.eof())
-    throw GDLException( "End of file encountered. "+
+    throw GDLIOException( "End of file encountered. "+
 			StreamInfo( &is));
   char c;
   do {
@@ -41,11 +41,11 @@ void SkipWS( istream& is)
     if ( (is.rdstate() & ifstream::failbit ) != 0 )
       {
 	if ( (is.rdstate() & ifstream::eofbit ) != 0 )
-	  throw GDLException( "End of file encountered. "+
+	  throw GDLIOException( "End of file encountered. "+
 			      StreamInfo( &is));
 
 	if ( (is.rdstate() & ifstream::badbit ) != 0 )
-	  throw GDLException( "Error reading stream. "+
+	  throw GDLIOException( "Error reading stream. "+
 			      StreamInfo( &is));
 	
 	is.clear();
@@ -72,7 +72,7 @@ const string ReadElement(istream& is)
       if ( (is.rdstate() & ifstream::failbit ) != 0 )
 	{
 	  if ( (is.rdstate() & ifstream::badbit ) != 0 )
-	    throw GDLException( "Error reading line. "+
+	    throw GDLIOException( "Error reading line. "+
 				StreamInfo( &is));
 	  
 	  is.clear();
@@ -92,14 +92,14 @@ const string ReadElement(istream& is)
     }
 
   if( !is.good())
-    throw GDLException( "Error reading stream. "+StreamInfo( &is));
+    throw GDLIOException( "Error reading stream. "+StreamInfo( &is));
 
   return buf;
 
 //   // old version (read full line which is then split - does not work with
 //   // different types on the same line)
 //   if( is.eof())
-//     throw GDLException( "End of file encountered. "+
+//     throw GDLIOException( "End of file encountered. "+
 // 			StreamInfo( &is));
 //   string retStr;
 //   getline( is, retStr);
@@ -107,11 +107,11 @@ const string ReadElement(istream& is)
 //   if ( (is.rdstate() & ifstream::failbit ) != 0 )
 //     {
 //       if ( (is.rdstate() & ifstream::eofbit ) != 0 )
-// 	throw GDLException( "End of file encountered. "+
+// 	throw GDLIOException( "End of file encountered. "+
 // 			    StreamInfo( &is));
       
 //       if ( (is.rdstate() & ifstream::badbit ) != 0 )
-// 	throw GDLException( "Error reading line. "+
+// 	throw GDLIOException( "Error reading line. "+
 // 			    StreamInfo( &is));
       
 //       is.clear();
@@ -119,7 +119,7 @@ const string ReadElement(istream& is)
 //     }
 
 //   if( !is.good())
-//     throw GDLException( "Error reading line. "+StreamInfo( &is));
+//     throw GDLIOException( "Error reading line. "+StreamInfo( &is));
   
 //   cout << "Read line: " << retStr << endl;
 
@@ -136,10 +136,10 @@ const string ReadComplexElement(istream& is)
   if ( (is.rdstate() & ifstream::failbit ) != 0 )
     {
       if ( (is.rdstate() & ifstream::eofbit ) != 0 )
-	throw GDLException( "End 3of file encountered. "+
+	throw GDLIOException( "End of file encountered. "+
 			    StreamInfo( &is));
       if ( (is.rdstate() & ifstream::badbit ) != 0 )
-	throw GDLException( "Error reading stream. "+
+	throw GDLIOException( "Error reading stream. "+
 			    StreamInfo( &is));
       
       is.clear();
@@ -162,7 +162,7 @@ const string ReadComplexElement(istream& is)
       if ( (is.rdstate() & ifstream::failbit ) != 0 )
 	{
 	  if ( (is.rdstate() & ifstream::badbit ) != 0 )
-	    throw GDLException( "Error reading line. "+
+	    throw GDLIOException( "Error reading line. "+
 				StreamInfo( &is));
 	  
 	  is.clear();
@@ -466,11 +466,11 @@ istream& operator>>(istream& is, Data_<SpDString>& data_)
       if ( (is.rdstate() & ifstream::failbit ) != 0 )
 	{
 	  if ( (is.rdstate() & ifstream::eofbit ) != 0 )
-	    throw GDLException( "End of file encountered. "+
+	    throw GDLIOException( "End of file encountered. "+
 				StreamInfo( &is));
       
 	  if ( (is.rdstate() & ifstream::badbit ) != 0 )
-	    throw GDLException( "Error reading STRING. "+
+	    throw GDLIOException( "Error reading STRING. "+
 				StreamInfo( &is));
       
 	  is.clear();
@@ -481,7 +481,7 @@ istream& operator>>(istream& is, Data_<SpDString>& data_)
 	}
 
       if( !is.good())
-	throw GDLException( "Error reading STRING. "+StreamInfo( &is));
+	throw GDLIOException( "Error reading STRING. "+StreamInfo( &is));
   
       if( !is.eof()) is.get(); // remove delimiter
 
@@ -1332,7 +1332,7 @@ ostream& Data_<Sp>::Write( ostream& os, bool swapEndian, XDR *xdrs)
 //       if( os.rdstate() & istream::eofbit) cout << "eof." << endl;
 //       if( os.rdstate() & istream::badbit) cout << "bad." << endl;
 //       if( os.rdstate() & istream::failbit) cout << "fail." << endl;
-      throw GDLException("Error writing data.");
+      throw GDLIOException("Error writing data.");
     }
   return os;
 }
@@ -1341,7 +1341,7 @@ template<class Sp>
 istream& Data_<Sp>::Read( istream& os, bool swapEndian, XDR *xdrs)
 {
   if( os.eof())
-    throw GDLException("End of file encountered.");
+    throw GDLIOException("End of file encountered.");
 
   SizeT count = dd.size();
   
@@ -1390,7 +1390,7 @@ istream& Data_<Sp>::Read( istream& os, bool swapEndian, XDR *xdrs)
     }
   
   if( os.eof())
-    throw GDLException("End of file encountered.");
+    throw GDLIOException("End of file encountered.");
 
 //   if( os.eof())
 //     {
@@ -1399,7 +1399,7 @@ istream& Data_<Sp>::Read( istream& os, bool swapEndian, XDR *xdrs)
 
   if( !os.good())
     {
-      throw GDLException("Error reading data.");
+      throw GDLIOException("Error reading data.");
     }
 
   return os;
@@ -1444,7 +1444,7 @@ ostream& Data_<SpDString>::Write( ostream& os, bool swapEndian, XDR *xdrs)
 
   if( !os.good())
     {
-      throw GDLException("Error writing data.");
+      throw GDLIOException("Error writing data.");
     }  
 
   return os;
@@ -1454,7 +1454,7 @@ template<>
 istream& Data_<SpDString>::Read( istream& os, bool swapEndian, XDR *xdrs)
 {
   if( os.eof())
-    throw GDLException("End of file encountered.");
+    throw GDLIOException("End of file encountered.");
 
   SizeT count = dd.size();
   
@@ -1498,11 +1498,11 @@ istream& Data_<SpDString>::Read( istream& os, bool swapEndian, XDR *xdrs)
 //       os.clear();
 //     }
   if( os.eof())
-    throw GDLException("End of file encountered.");
+    throw GDLIOException("End of file encountered.");
 
   if( !os.good())
     {
-      throw GDLException("Error reading data.");
+      throw GDLIOException("Error reading data.");
     }
   
   return os;

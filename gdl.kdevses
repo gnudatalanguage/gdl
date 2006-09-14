@@ -1,31 +1,13 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
- <DocsAndViews NumberOfDocuments="8" >
-  <Doc0 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/datatypes.hpp" >
-   <View0 Type="Source" />
-  </Doc0>
-  <Doc1 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/dnode.cpp" >
-   <View0 Type="Source" />
-  </Doc1>
-  <Doc2 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/basic_fun.cpp" >
-   <View0 Type="Source" />
-  </Doc2>
-  <Doc3 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/GDLInterpreter.cpp" >
-   <View0 Type="Source" />
-  </Doc3>
-  <Doc4 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/arrayindex.cpp" >
-   <View0 Type="Source" />
-  </Doc4>
-  <Doc5 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/arrayindexlistt.hpp" >
-   <View0 Type="Source" />
-  </Doc5>
-  <Doc6 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/dstructdesc.cpp" >
-   <View0 Type="Source" />
-  </Doc6>
-  <Doc7 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/extrat.cpp" >
+ <DocsAndViews NumberOfDocuments="2" >
+  <Doc0 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/extrat.cpp" >
    <View0 line="179" Type="Source" />
-  </Doc7>
+  </Doc0>
+  <Doc1 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/FMTIn.hpp" >
+   <View0 line="139" Type="Source" />
+  </Doc1>
  </DocsAndViews>
  <pluginList>
   <kdevdebugger>

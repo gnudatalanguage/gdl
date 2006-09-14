@@ -172,8 +172,9 @@ private:
         else 
         {
             if( is->eof())
-            throw GDLException( e->CallingNode(), "End of file encountered. "+
-                StreamInfo( is));
+            throw GDLIOException( e->CallingNode(), 
+                                  "End of file encountered. "+
+                                  StreamInfo( is));
         }
 
 //        std::string retStr;

@@ -1602,7 +1602,7 @@ void Data_<Sp>::InsAt( Data_* srcIn, ArrayIndexListT* ixList)
 
       SizeT len = srcIn->Dim( 0); // length of segment to copy
       // check if in bounds of a
-      if( (destStart+len) > this->dim[0])
+      if( (destStart+len) > this->N_Elements()) //dim[0])
 	throw GDLException("Out of range subscript encountered.");
   
       DataT& srcIn_dd = srcIn->dd; 
