@@ -29,7 +29,7 @@ class DeviceZ: public Graphics
   DInt*  zBuffer;
 
   void plimage_gdl(unsigned char *idata, PLINT nx, PLINT ny, 
-		   PLINT xLL, PLINT yLL, DInt tru)
+		   PLINT xLL, PLINT yLL, DLong tru, DLong chan)
   {
     DLong xsize = (*static_cast<DLongGDL*>( dStruct->Get( xSTag, 0)))[0];
     DLong ysize = (*static_cast<DLongGDL*>( dStruct->Get( ySTag, 0)))[0];
@@ -334,8 +334,9 @@ public:
 
     if( width + xLL > xsize || height + yLL > ysize)
       e->Throw( "Value of image coordinates is out of allowed range.");
-    
-    plimage_gdl(&(*p0B)[0], width, height, xLL, yLL, tru);
+
+    DLong chan = 0;
+    plimage_gdl(&(*p0B)[0], width, height, xLL, yLL, tru, chan);
   }
 
 };

@@ -45,7 +45,8 @@ class DeviceX: public Graphics
   bool decomposed; // false -> use color table
 
 
-  void plimage_gdl(unsigned char *idata, PLINT nx, PLINT ny, DInt tru)
+  void plimage_gdl(unsigned char *idata, PLINT nx, PLINT ny, 
+		   DLong tru, DLong chan)
   {
     PLINT ix, iy, xm, ym;
 
@@ -99,7 +100,7 @@ class DeviceX: public Graphics
 
     int ncolors;
     PLINT iclr1, ired, igrn, iblu;
-    if (tru == 0) {
+    if (tru == 0 && chan == 0) {
 
       ncolors = 256;
 
@@ -139,7 +140,7 @@ class DeviceX: public Graphics
 	kx = xoff + ix;
 	ky = yoff + iy;
 
-	if (tru == 0) {
+	if (tru == 0  && chan == 0) {
 	  iclr1 = idata[iy*nx+ix];
 
 	  if (xwd->color)
@@ -150,24 +151,37 @@ class DeviceX: public Graphics
 	  //	  printf("ix: %d  iy: %d  pixel: %d\n", ix,iy,curcolor.pixel);
 
 	} else {
-
-	  if (tru == 1) {
-	    ired = idata[3*(iy*nx+ix)+0];
-	    igrn = idata[3*(iy*nx+ix)+1];
-	    iblu = idata[3*(iy*nx+ix)+2];
+	  if (chan == 0) {
+	    if (tru == 1) {
+	      ired = idata[3*(iy*nx+ix)+0];
+	      igrn = idata[3*(iy*nx+ix)+1];
+	      iblu = idata[3*(iy*nx+ix)+2];
+	    } else if (tru == 2) {
+	      ired = idata[nx*(iy*3+0)+ix];
+	      igrn = idata[nx*(iy*3+1)+ix];
+	      iblu = idata[nx*(iy*3+2)+ix];
+	    } else if (tru == 3) {
+	      ired = idata[nx*(0*ny+iy)+ix];
+	      igrn = idata[nx*(1*ny+iy)+ix];
+	      iblu = idata[nx*(2*ny+iy)+ix];
+	    }
 	    curcolor.pixel = ired*256*256+igrn*256+iblu;
-	  } else if (tru == 2) {
-	    ired = idata[nx*(iy*3+0)+ix];
-	    igrn = idata[nx*(iy*3+1)+ix];
-	    iblu = idata[nx*(iy*3+2)+ix];
-	    curcolor.pixel = ired*256*256+igrn*256+iblu;
-	  } else if (tru == 3) {
-	    ired = idata[nx*(0*ny+iy)+ix];
-	    igrn = idata[nx*(1*ny+iy)+ix];
-	    iblu = idata[nx*(2*ny+iy)+ix];
-	    curcolor.pixel = ired*256*256+igrn*256+iblu;
+	  } else if (chan == 1) {
+	    unsigned long pixel = 
+	      XGetPixel(ximg, ix, dev->height-1-ky) & 0x00ffff;
+	    ired = idata[1*(iy*nx+ix)+0];
+	    curcolor.pixel = ired*256*256 + pixel;
+	  } else if (chan == 2) {
+	    unsigned long pixel = 
+	      XGetPixel(ximg, ix, dev->height-1-ky) & 0xff00ff;
+	    igrn = idata[1*(iy*nx+ix)+1];
+	    curcolor.pixel = igrn*256 + pixel;
+	  } else if (chan == 3) {
+	    unsigned long pixel = 
+	      XGetPixel(ximg, ix, dev->height-1-ky) & 0xffff00;
+	    iblu = idata[1*(iy*nx+ix)+2];
+	    curcolor.pixel = iblu + pixel;
 	  }
-
 	}
 
 	//std::cout << "XPutPixel: "<<kx<<"  "<< dev->height-ky-1 << std::endl;
@@ -190,7 +204,7 @@ class DeviceX: public Graphics
     } else {
       XDestroyImage(ximg);
     }
-
+    return;
   }
 
 
@@ -581,8 +595,9 @@ public:
     if (rank == 2) {
       if (tru != 0)
 	throw GDLException( e->CallingNode(),
-			    "TV: Array must have 3 dimensions: "+
-			    e->GetParString(0));
+			    "TV:  Array must have 3 dimensions: "
+			    +e->GetParString(0));
+
       width = p0B->Dim(0);
       height = p0B->Dim(1);
 
@@ -602,9 +617,9 @@ public:
       } else if (tru == 3) {
 	width = p0B->Dim(0);
 	height = p0B->Dim(1);
-      } else {
+      } else if (tru > 3) {
 	throw GDLException( e->CallingNode(), 
-			    "TV: TRUE must be between 1 and 3");
+			    "TV: Value of TRUE keyword is out of allowed range.");
       }
     } else {
       throw GDLException( e->CallingNode(), 
@@ -638,15 +653,40 @@ public:
     actStream->vpor( 0, 1.0, 0, 1.0);
     actStream->wind( 1-xLL, xSize-xLL, 1-yLL, ySize-yLL);
 
-    plimage_gdl(&(*p0B)[0], width, height, tru);
+    DLong channel=0;
+    e->AssureLongScalarKWIfPresent( "CHANNEL", channel);
+    if (channel < 0 || channel > 3)
+	throw GDLException( e->CallingNode(),
+			    "TV: Value of Channel is out of allowed range.");
+
+    if (channel == 0) {
+      plimage_gdl(&(*p0B)[0], width, height, tru, channel);
+    } else if (rank == 3) {
+      // Rank == 3 w/channel
+      SizeT dims[2];
+      dims[0] = width;
+      dims[1] = height;
+      dimension dim( dims, 2); 
+      DByteGDL* p0B_chan = new DByteGDL( dim, BaseGDL::ZERO);
+      for( SizeT i=(channel-1); i<p0B->N_Elements(); i+=3) {
+	(*p0B_chan)[i/3] = (*p0B)[i];
+      }
+      // Send just single channel
+      plimage_gdl(&(*p0B_chan)[0], width, height, tru, channel);
+      e->Guard( p0B_chan); // delete upon exit
+    } else if (rank == 2) {
+      // Rank = 2 w/channel
+      plimage_gdl(&(*p0B)[0], width, height, tru, channel);
+    }
+
   }
 
-  /*--------------------------------------------------------------------------*\
+  /*------------------------------------------------------------------------*\
    * GetImageErrorHandler()
    *
    * Error handler used in XGetImage() to catch errors when pixmap or window
    * are not completely viewable.
-   \*--------------------------------------------------------------------------*/
+   \*-----------------------------------------------------------------------*/
 
   static int
   GetImageErrorHandler(Display *display, XErrorEvent *error)
