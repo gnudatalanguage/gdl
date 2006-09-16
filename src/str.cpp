@@ -172,7 +172,7 @@ double Str2D( const char* cStart)
   if( cEnd == cStart)
     {
       Warning("Type conversion error: "
-	      "Unable to convert given STRING to DOUBLE.");
+	      "Unable to convert given STRING: '"+string(cStart)+"' to DOUBLE.");
     }
   return ret;
 }
@@ -183,7 +183,7 @@ long int Str2L( const char* cStart, int base)
   if( cEnd == cStart)
     {
       Warning("Type conversion error: "
-	      "Unable to convert given STRING to LONG.");
+	      "Unable to convert given STRING: '"+string(cStart)+"' to LONG.");
     }
   return ret;
 }
@@ -194,7 +194,7 @@ unsigned long int Str2UL( const char* cStart, int base)
   if( cEnd == cStart)
     {
       Warning("Type conversion error: "
-	      "Unable to convert given STRING to ULONG.");
+	      "Unable to convert given STRING: '"+string(cStart)+"' to ULONG.");
     }
   return ret;
 }

@@ -543,20 +543,20 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d,
 // I code ****************************************************
 // other
 
-// template <typename longT> void ZeroPad( ostream* os, SizeT w, longT dd)
-// {
-//   std::ostringstream ossF;
-//   ossF << dd;
-//   SizeT ddLen = ossF.str().size();
-//   if( w < ddLen) 
-//     {
-//       OutStars( *os, w);
-//       return;
-//     }
-//   for( SizeT i=ddLen; i<w; ++i)
-//     (*os) << "0";
-//   (*os) << ossF.str();
-// }
+template <typename longT> void ZeroPad( ostream* os, SizeT w, longT dd)
+{
+  std::ostringstream ossF;
+  ossF << dd;
+  SizeT ddLen = ossF.str().size();
+  if( w < ddLen) 
+    {
+      OutStars( *os, w);
+      return;
+    }
+  for( SizeT i=ddLen; i<w; ++i)
+    (*os) << "0";
+  (*os) << ossF.str();
+}
 
 const int iFmtWidth[] = { -1,  7,  7, 12, 12, 12, 12, 12,  // UNDEF-STRING
 			  -1, 12, -1, -1,  7, 12, 22, 22}; // STRUCT-ULONG64

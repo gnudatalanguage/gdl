@@ -26,6 +26,7 @@ header "post_include_cpp" {
 header {
 
 #include <fstream>
+#include <cassert>
 
 //***test
 #include "print_tree.hpp"
@@ -275,7 +276,8 @@ f
     | t:T
         { 
             int    tVal = t->getW();
-            os->seekp( tVal, std::ios_base::beg);
+            assert( tVal >= 1);
+            os->seekp( tVal-11, std::ios_base::beg);
         }
     | f_csubcode
     | x

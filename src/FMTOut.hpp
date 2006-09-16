@@ -9,6 +9,7 @@
 
 
 #include <fstream>
+#include <cassert>
 
 //***test
 #include "print_tree.hpp"

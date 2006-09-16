@@ -202,6 +202,7 @@ nn! returns[ int n]
         }
     ;
 
+// TODO: Zero padding (width starting with 0 (e.g. I=03)
 w_d! [ RefFMTNode fNode]
 {
     int n1, n2;

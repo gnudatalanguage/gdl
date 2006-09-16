@@ -196,7 +196,8 @@ void FMTOut::f(RefFMTNode _t) {
 		_t = _t->getNextSibling();
 		
 		int    tVal = t->getW();
-		os->seekp( tVal, std::ios_base::beg);
+		assert( tVal >= 1);
+		os->seekp( tVal-11, std::ios_base::beg);
 		
 		break;
 	}
