@@ -209,7 +209,8 @@ void FMTIn::f(RefFMTNode _t) {
 		_t = _t->getNextSibling();
 		
 		int    tVal = t->getW();
-		ioss.seekg( tVal, std::ios_base::beg);
+		assert( tVal >= 1);
+		ioss.seekg( tVal-1, std::ios_base::beg);
 		
 		break;
 	}

@@ -277,7 +277,7 @@ f
         { 
             int    tVal = t->getW();
             assert( tVal >= 1);
-            os->seekp( tVal-11, std::ios_base::beg);
+            os->seekp( tVal-1, std::ios_base::beg);
         }
     | f_csubcode
     | x

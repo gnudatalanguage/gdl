@@ -437,7 +437,8 @@ f
     | t:T
         { 
             int    tVal = t->getW();
-            ioss.seekg( tVal, std::ios_base::beg);
+            assert( tVal >= 1);
+            ioss.seekg( tVal-1, std::ios_base::beg);
         }
     | f_csubcode
     | x
