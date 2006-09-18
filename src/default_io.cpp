@@ -1214,27 +1214,27 @@ ostream& DStructGDL::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 
 int xdr_convert(XDR *xdrs, DByte *buf)
 {
-  return (xdr_u_char(xdrs, (unsigned char *) buf));
+  return (xdr_u_char(xdrs, buf));
 }
 
 int xdr_convert(XDR *xdrs, DInt *buf)
 {
-  return (xdr_short(xdrs, (short int *) buf));
+  return (xdr_short(xdrs, buf));
 }
 
 int xdr_convert(XDR *xdrs, DUInt *buf)
 {
-  return (xdr_u_short(xdrs, (unsigned short int *) buf));
+  return (xdr_u_short(xdrs, buf));
 }
 
 int xdr_convert(XDR *xdrs, DLong *buf)
 {
-  return (xdr_long(xdrs, (long *) buf));
+  return (xdr_long(xdrs, reinterpret_cast<long int*>(buf)));
 }
 
 int xdr_convert(XDR *xdrs, DULong *buf)
 {
-  return (xdr_u_long(xdrs, (unsigned long *) buf));
+  return (xdr_u_long(xdrs, reinterpret_cast<u_long*>(buf)));
 }
 
 int xdr_convert(XDR *xdrs, DLong64 *buf)
@@ -1249,12 +1249,12 @@ int xdr_convert(XDR *xdrs, DULong64 *buf)
 
 int xdr_convert(XDR *xdrs, DFloat *buf)
 {
-  return (xdr_float(xdrs, (float *) buf));
+  return (xdr_float(xdrs, buf));
 }
 
 int xdr_convert(XDR *xdrs, DDouble *buf)
 {
-  return (xdr_double(xdrs, (double *) buf));
+  return (xdr_double(xdrs, buf));
 }
 
 int xdr_convert(XDR *xdrs, DComplex *buf)

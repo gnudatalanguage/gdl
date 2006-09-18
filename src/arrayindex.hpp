@@ -688,6 +688,7 @@ public:
   // also checks/adjusts range 
   SizeT NIter( SizeT varDim) 
   {
+
     if( ix == NULL) // ONE
       {
 	if( s >= varDim)

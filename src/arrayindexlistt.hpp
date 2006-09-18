@@ -656,7 +656,7 @@ public:
       {
 	if( s >= var->Size())
 	  {
-	    std::cout << s << " var->Size():" << var->Size() << std::endl;
+// 	    std::cout << s << " var->Size():" << var->Size() << std::endl;
 	    throw GDLException("Scalar subscript out of range [>].3");
 	  }
 	    
@@ -1121,6 +1121,13 @@ public:
     if( accessType == ALLONE)
       {
 	var->Dim().Stride( varStride,acRank); // copy variables stride into varStride
+
+	// check boundary
+	const dimension& varDim  = var->Dim();
+	SizeT            varRank = varDim.Rank();
+	for(SizeT i=0; i<acRank; ++i)
+	  ixList[i]->NIter( (i<varRank)?varDim[i]:1);
+
 	nIx = 1;
 	return;
       }
@@ -1136,6 +1143,13 @@ public:
 	  {
 	    accessType = ALLONE;
 	    var->Dim().Stride( varStride,acRank); // copy variables stride into varStride
+
+	    // check boundary
+	    const dimension& varDim  = var->Dim();
+	    SizeT            varRank = varDim.Rank();
+	    for(SizeT i=0; i<acRank; ++i)
+	      ixList[i]->NIter( (i<varRank)?varDim[i]:1);
+
 	    nIx = 1;
 	    return; 
 	  }
@@ -1152,6 +1166,7 @@ public:
 	      accessType = NORMAL;
 	  }
       }
+
     // accessType can be at this point:
     // NORMAL
     // ALLINDEXED

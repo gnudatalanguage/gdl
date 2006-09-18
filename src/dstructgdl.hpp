@@ -238,7 +238,7 @@ public:
   BaseGDL* Convert2( DType destTy, 
 		     BaseGDL::Convert2Mode mode = BaseGDL::CONVERT);
   
-#ifdef TEMPLATE_FRIEND_OK_
+#if defined( TEMPLATE_FRIEND_OK_) || (__GNUC__ >= 4)
   // make all other Convert2 functions friends
   template<class Sp2>  
   friend BaseGDL* Data_<Sp2>::Convert2( DType destTy, 
