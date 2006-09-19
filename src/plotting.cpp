@@ -239,7 +239,7 @@ namespace lib {
     SizeT nParam=e->NParam();
     if( nParam == 0)
       {
-	int wIx = actDevice->ActWin();
+	DLong wIx = actDevice->ActWin();
 	bool success = actDevice->WDelete( wIx);
 	if( !success)
 	  e->Throw( "Window number "+i2s(wIx)+
@@ -249,7 +249,7 @@ namespace lib {
 
     for( SizeT i=0; i<nParam; i++)
       {
-	int wIx;
+	DLong wIx;
 	e->AssureLongScalarPar( i, wIx);
 	bool success = actDevice->WDelete( wIx);
 	if( !success)
