@@ -53,7 +53,12 @@
 #include <vector>
 #include <valarray>
 
-typedef size_t              SizeT;
+#if defined(HAVE_64BIT_OS)
+typedef unsigned long long int      SizeT;
+#else
+typedef unsigned int        SizeT;
+#endif
+//typedef size_t              SizeT;
 typedef unsigned int        UInt;
 typedef unsigned long       ULong;
 
