@@ -7,6 +7,24 @@ AC_PROG_CXX
 
 AC_PROG_LIBTOOL
 
+dnl ========================================================
+dnl Checking for 64-bit OS
+dnl ========================================================
+AC_LANG_SAVE
+AC_LANG_C
+AC_MSG_CHECKING(for 64-bit OS)
+AC_TRY_RUN([ int main () {
+    if (sizeof(long) == 8) { return 0; } return 1; } ],
+        result="yes", result="no", result="maybe" )
+AC_MSG_RESULT("$result")
+if test "$result" = "yes"; then
+    AC_DEFINE(HAVE_64BIT_OS)
+    HAVE_64BIT_OS=1
+fi
+AC_SUBST(HAVE_64BIT_OS)
+
+AC_LANG_RESTORE
+
 dnl check if we build GDL standalone or the python module
 dnl default: build standalone version on GDL
 PYTHON_MODULE="no"

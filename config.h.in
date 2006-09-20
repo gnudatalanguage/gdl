@@ -3,6 +3,9 @@
 /* --exec-prefix or default */
 #undef EXEC_PREFIX
 
+/* Define to 1 if you have 64-bit OS. */
+#undef HAVE_64BIT_OS
+
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 
