@@ -237,6 +237,14 @@ template<>
 Data_<SpDByte>* Data_<SpDComplexDbl>::LogNeg();
 
 // datatypes.cpp
+// patch [1561592]
+template<>
+Data_<SpDString>::Data_(const dimension& dim_, BaseGDL::InitType iT);
+template<>
+Data_<SpDPtr>::Data_(const dimension& dim_, BaseGDL::InitType iT);
+template<>
+Data_<SpDObj>::Data_(const dimension& dim_, BaseGDL::InitType iT);
+
 template<>  SizeT Data_<SpDString>::NBytes() const;
 // template<>  SizeT Data_<SpDObj>::NBytes() const;
 // template<>  SizeT Data_<SpDPtr>::NBytes() const;
