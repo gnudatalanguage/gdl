@@ -20,6 +20,7 @@
 #include <string>
 #include <fstream>
 #include <memory>
+#include <sys/stat.h>
 
 #include "datatypes.hpp"
 #include "envt.hpp"
@@ -28,6 +29,7 @@
 #include "dinterpreter.hpp"
 #include "objects.hpp"
 #include "basic_fun_jmg.hpp"
+
 
 //#define GDL_DEBUG
 #undef GDL_DEBUG
@@ -248,6 +250,9 @@ namespace lib {
 	if( !actUnit.IsOpen()) 
 	  return fstat; // OPEN tag is init to zero (SpDByte::GetInstance())
 
+	struct stat buffer;
+	int status = stat(actUnit.Name().c_str(), &buffer);
+
 	fstat->InitTag("NAME", DStringGDL( actUnit.Name()));
 	fstat->InitTag("SIZE", DLongGDL( actUnit.Size())); 
 	fstat->InitTag("OPEN", DByteGDL( 1)); 
@@ -257,6 +262,9 @@ namespace lib {
 	// fstat->InitTag("COMPRESS", DByteGDL( 0)); 
 	fstat->InitTag("READ", DByteGDL( actUnit.IsReadable()?1:0)); 
 	fstat->InitTag("WRITE", DByteGDL( actUnit.IsWriteable()?1:0)); 
+	fstat->InitTag("ATIME", DLong64GDL( buffer.st_atim.tv_sec)); 
+	fstat->InitTag("CTIME", DLong64GDL( buffer.st_ctim.tv_sec)); 
+	fstat->InitTag("MTIME", DLong64GDL( buffer.st_mtim.tv_sec)); 
         fstat->InitTag("CUR_PTR", DLongGDL( actUnit.Tell()));
       }
 
