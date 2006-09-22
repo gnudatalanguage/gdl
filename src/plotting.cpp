@@ -411,7 +411,9 @@ namespace lib {
 
   PLFLT AutoTick(DDouble x)
   {
-    DLong n = (DLong) floor(log10(x/3.5));
+    if( x == 0.0) return 1.0;
+
+    DLong n = static_cast<DLong>( floor(log10(x/3.5)));
     DDouble y = (x / (3.5 * pow(10.,static_cast<double>(n))));
     DLong m;
     if (y >= 1 && y < 2)
@@ -428,7 +430,9 @@ namespace lib {
 
   PLFLT AutoIntv(DDouble x)
   {
-    DLong n = (DLong) floor(log10(x/2.82));
+    if( x == 0.0) return 1.0;
+
+    DLong n = static_cast<DLong>( floor(log10(x/2.82)));
     DDouble y = (x / (2.82 * pow(10.,static_cast<double>(n))));
     DLong m;
     if (y >= 1 && y < 2)
@@ -766,6 +770,9 @@ namespace lib {
     DDouble xStartRaw = xStart;
     DDouble yStartRaw = yStart;
 
+//     bool x0Range = (xStart == xEnd);
+//     bool y0Range = (yStart == yEnd);
+
     if ((xStyle & 1) != 1) {
       PLFLT intv;
       intv = AutoIntv(xEnd-xStart);
@@ -829,7 +836,6 @@ namespace lib {
       Warning( "PLOT: Infinite y plot range.");
 
     //    int just = (e->KeywordSet("ISOTROPIC"))? 1 : 0;
-
 
     DDouble ticklen = 0.02;
     e->AssureDoubleScalarKWIfPresent( "TICKLEN", ticklen);

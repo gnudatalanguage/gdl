@@ -1,7 +1,7 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
- <DocsAndViews NumberOfDocuments="5" >
+ <DocsAndViews NumberOfDocuments="8" >
   <Doc0 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/extrat.cpp" >
    <View0 Type="Source" />
   </Doc0>
@@ -15,8 +15,17 @@
    <View0 Type="Source" />
   </Doc3>
   <Doc4 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/datatypes.cpp" >
-   <View0 line="3550" Type="Source" />
+   <View0 Type="Source" />
   </Doc4>
+  <Doc5 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/default_io.cpp" >
+   <View0 Type="Source" />
+  </Doc5>
+  <Doc6 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/arrayindexlistt.hpp" >
+   <View0 Type="Source" />
+  </Doc6>
+  <Doc7 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/dinterpreter.cpp" >
+   <View0 line="1134" Type="Source" />
+  </Doc7>
  </DocsAndViews>
  <pluginList>
   <kdevdebugger>
@@ -24,15 +33,12 @@
     <breakpoint0 location="/usr/local/gdl/src/GDLInterpreter.cpp:302" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
      <tracedExpressions/>
     </breakpoint0>
-    <breakpoint1 location="/usr/local/home/marc/gdl/src/arrayindexlistt.hpp:827" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
+    <breakpoint1 location="/usr/local/home/marc/gdl/src/arrayindex.cpp:64" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
      <tracedExpressions/>
     </breakpoint1>
-    <breakpoint2 location="/usr/local/home/marc/gdl/src/arrayindex.cpp:64" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
+    <breakpoint2 location="/usr/local/home/marc/gdl/src/arrayindex.cpp:72" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
      <tracedExpressions/>
     </breakpoint2>
-    <breakpoint3 location="/usr/local/home/marc/gdl/src/arrayindex.cpp:72" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
-     <tracedExpressions/>
-    </breakpoint3>
    </breakpointList>
   </kdevdebugger>
   <kdevbookmarks>
