@@ -262,9 +262,9 @@ namespace lib {
 	// fstat->InitTag("COMPRESS", DByteGDL( 0)); 
 	fstat->InitTag("READ", DByteGDL( actUnit.IsReadable()?1:0)); 
 	fstat->InitTag("WRITE", DByteGDL( actUnit.IsWriteable()?1:0)); 
-	fstat->InitTag("ATIME", DLong64GDL( buffer.st_atim.tv_sec)); 
-	fstat->InitTag("CTIME", DLong64GDL( buffer.st_ctim.tv_sec)); 
-	fstat->InitTag("MTIME", DLong64GDL( buffer.st_mtim.tv_sec)); 
+	fstat->InitTag("ATIME", DLong64GDL( buffer.st_atime)); 
+	fstat->InitTag("CTIME", DLong64GDL( buffer.st_ctime)); 
+	fstat->InitTag("MTIME", DLong64GDL( buffer.st_mtime)); 
         fstat->InitTag("CUR_PTR", DLongGDL( actUnit.Tell()));
       }
 
