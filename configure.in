@@ -624,3 +624,4 @@ dnl AC_ARG_PROGRAM
 AC_CONFIG_FILES(Makefile src/Makefile src/antlr/Makefile)
 
 AC_OUTPUT
+

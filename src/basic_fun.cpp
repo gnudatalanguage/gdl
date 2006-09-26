@@ -860,7 +860,9 @@ namespace lib {
     e->AssureLongScalarPar( 1, offs);
 
     dimension dim;
-    arr( e, dim, 2);
+
+    if( nParam > 2)
+      arr( e, dim, 2);
     
     TargetClass* res=new TargetClass( dim, BaseGDL::NOZERO);
 
@@ -868,7 +870,7 @@ namespace lib {
       
     SizeT nByteSource=p0->NBytes(); // net size of src
       
-    if( (offs+nByteCreate) > nByteSource)
+    if( offs < 0 || (offs+nByteCreate) > nByteSource)
       {
 	delete res;
 	e->Throw( "Specified offset to"
