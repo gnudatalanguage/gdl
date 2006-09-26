@@ -296,10 +296,13 @@ void GDLInterpreter::execute(ProgNodeP _t) {
 		// initial exception, set target env
 		// look if ON_ERROR is set somewhere
 		for( EnvStackT::reverse_iterator i = callStack.rbegin();
-		i != callStack.rend(); ++i)
+		     i != callStack.rend(); ++i)
 		{
+		ProgNodeP _t = static_cast<EnvUDT*>(*i)->GetIOError();
+		if (_t != NULL) return RC_BREAK;
+
 		DLong oE = static_cast<EnvUDT*>(*i)->GetOnError();
-		
+
 		if( oE != -1) 
 		{ // oE was set
 		
@@ -1463,7 +1466,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 	switch ( _t->getType()) {
 	case GOTO:
 	{
-		g = _t;
+	        g = _t;
 		match(antlr::RefAST(_t),GOTO);
 		_t = _t->getNextSibling();
 		
