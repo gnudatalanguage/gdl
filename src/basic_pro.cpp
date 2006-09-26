@@ -174,6 +174,10 @@ namespace lib {
       *outputKW = new DStringGDL(dim, BaseGDL::NOZERO);
     }
 
+    // switch to dec output (might be changed from formatted output)
+    if( outputKW == NULL)
+      cout << dec;
+
     SizeT n = 0;
     for( SizeT i=0; i<nParam; i++)
       {

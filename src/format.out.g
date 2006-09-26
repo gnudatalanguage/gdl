@@ -172,7 +172,7 @@ format
                         case NONL:
                         case Q: case T: case X: case A:
                         case F: case D: case E: case G:
-                        case I: case O: case Z: case C:
+                        case I: case O: case Z: case ZZ: case C:
                             {
                                 f(_t);
                                 if( actPar == NULL && termFlag) goto endFMT;
@@ -218,7 +218,7 @@ format_reversion
                 case NONL:
                 case Q: case T: case X: case A:
                 case F: case D: case E: case G:
-                case I: case O: case Z: case C:
+                case I: case O: case Z: case ZZ: case C:
                     {
                         f(_t);
                         if( actPar == NULL) goto endFMT;
