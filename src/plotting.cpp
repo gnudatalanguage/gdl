@@ -239,7 +239,7 @@ namespace lib {
     SizeT nParam=e->NParam();
     if( nParam == 0)
       {
-	int wIx = actDevice->ActWin();
+	DLong wIx = actDevice->ActWin();
 	bool success = actDevice->WDelete( wIx);
 	if( !success)
 	  e->Throw( "Window number "+i2s(wIx)+
@@ -249,7 +249,7 @@ namespace lib {
 
     for( SizeT i=0; i<nParam; i++)
       {
-	int wIx;
+	DLong wIx;
 	e->AssureLongScalarPar( i, wIx);
 	bool success = actDevice->WDelete( wIx);
 	if( !success)
@@ -773,14 +773,25 @@ namespace lib {
 //     bool x0Range = (xStart == xEnd);
 //     bool y0Range = (yStart == yEnd);
 
-    if ((xStyle & 1) != 1) {
+    // PLOT defines the setting but does not read it
+    //    get_axis_type("X", xLog);
+    //    get_axis_type("Y", yLog);
+
+    // keyword overrides
+    bool xLog, yLog;
+    static int xLogIx = e->KeywordIx( "XLOG");
+    static int yLogIx = e->KeywordIx( "YLOG");
+    xLog = e->KeywordSet( xLogIx);
+    yLog = e->KeywordSet( yLogIx);
+
+    if ((xStyle & 1) != 1 && xLog == false) {
       PLFLT intv;
       intv = AutoIntv(xEnd-xStart);
       xEnd = ceil(xEnd/intv) * intv;
       xStart = floor(xStart/intv) * intv;
     }
 
-    if ((yStyle & 1) != 1) {
+    if ((yStyle & 1) != 1 && yLog == false) {
       PLFLT intv;
       intv = AutoIntv(yEnd-yStart);
       yEnd = ceil(yEnd/intv) * intv;
@@ -794,12 +805,10 @@ namespace lib {
 
     if ( e->KeywordSet( "YNOZERO")) ynozero = 1;
 
-    if( xStart > 0 && xnozero == 0) xStart = 0; 
-    if( yStart > 0 && ynozero == 0) yStart = 0; 
+    if( xStart > 0 && xnozero == 0 && xLog == false) xStart = 0; 
+    if( yStart > 0 && ynozero == 0 && yLog == false) yStart = 0; 
 
     if(xEnd == xStart) xEnd=xStart+1;
-
-
 
     DDouble minVal = yStart;
     DDouble maxVal = yEnd;
@@ -817,18 +826,6 @@ namespace lib {
     DString xTickformat, yTickformat;
     e->AssureStringScalarKWIfPresent( "XTICKFORMAT", xTickformat);
     e->AssureStringScalarKWIfPresent( "YTICKFORMAT", yTickformat);
-
-
-    bool xLog, yLog;
-    // PLOT defines the setting but does not read it
-    //    get_axis_type("X", xLog);
-    //    get_axis_type("Y", yLog);
-
-    // keyword overrides
-    static int xLogIx = e->KeywordIx( "XLOG");
-    static int yLogIx = e->KeywordIx( "YLOG");
-    xLog = e->KeywordSet( xLogIx);
-    yLog = e->KeywordSet( yLogIx);
 
     if( xLog && xStartRaw <= 0.0)
       Warning( "PLOT: Infinite x plot range.");
@@ -1338,11 +1335,13 @@ namespace lib {
 	    Clipping( clippingD, xStart, xEnd, minVal, maxVal);
       }
 
-    if( xLog)
-      {
-	if( xStart <= 0.0) xStart = 0.0; else xStart = log10( xStart);
-	if( xEnd   <= 0.0) return; else xEnd = log10( xEnd);
-      }
+//    Comment out to fix bug [1560714] JMG 06/09/27
+//    if( xLog)
+//      {
+//	if( xStart <= 0.0) xStart = 0.0; else xStart = log10( xStart);
+//	if( xEnd   <= 0.0) return; else xEnd = log10( xEnd);
+//      }
+
     if( yLog)
       {
 	if( yStart <= 0.0) yStart = 0.0; else yStart = log10( yStart);
@@ -3389,6 +3388,7 @@ namespace lib {
     static unsigned p0latTag = mapStruct->Desc()->TagIndex( "P0LAT");
     static unsigned aTag = mapStruct->Desc()->TagIndex( "A");
     static unsigned e2Tag = mapStruct->Desc()->TagIndex( "E2");
+    static unsigned pTag = mapStruct->Desc()->TagIndex( "P");
 
     DLong map_projection = 
       (*static_cast<DLongGDL*>( mapStruct->Get( projectionTag, 0)))[0];
@@ -3400,12 +3400,18 @@ namespace lib {
       (*static_cast<DDoubleGDL*>( mapStruct->Get( aTag, 0)))[0];
     DDouble map_e2 = 
       (*static_cast<DDoubleGDL*>( mapStruct->Get( e2Tag, 0)))[0];
+    DDouble map_lat1 = 
+      (*static_cast<DDoubleGDL*>( mapStruct->Get( pTag, 0)))[3];
+    DDouble map_lat2 = 
+      (*static_cast<DDoubleGDL*>( mapStruct->Get( pTag, 0)))[4];
 
     char proj[64];
     char p0lon[64];
     char p0lat[64];
     char a[64];
     char e2[64];
+    char lat_1[64];
+    char lat_2[64];
 
     static char *parms[32];
     static DLong last_proj = 0;
@@ -3413,12 +3419,16 @@ namespace lib {
     static DDouble last_p0lat = -9999;
     static DDouble last_a = -9999;
     static DDouble last_e2 = -9999;
+    static DDouble last_lat1 = -9999;
+    static DDouble last_lat2 = -9999;
 
     if (map_projection != last_proj ||
 	map_p0lon != last_p0lon ||
 	map_p0lat != last_p0lat ||
 	map_a != last_a ||
-	map_e2 != last_e2) {
+	map_e2 != last_e2 || 
+	map_lat1 != last_lat1 ||
+	map_lat2 != last_lat2) {
 
       if (map_p0lon >= 0) {
 	sprintf(p0lon, "lon_0=%lf", map_p0lon);
@@ -3443,6 +3453,7 @@ namespace lib {
 	sprintf(e2, "es=%lf", map_e2);
       }
 
+
       //	strcpy(parms[1], "ellps=clrk66");
 
       DLong nparms = 0;
@@ -3461,11 +3472,43 @@ namespace lib {
 	parms[nparms++] = &proj[0];
       }
 
+      if (map_projection == 3) {
+	strcpy(proj, "proj=lcc");
+	parms[nparms++] = &proj[0];
+	sprintf(lat_1, "lat_1=%lf", map_lat1 * RAD_TO_DEG);
+	sprintf(lat_2, "lat_2=%lf", map_lat2 * RAD_TO_DEG);
+	parms[nparms++] = &lat_1[0];
+	parms[nparms++] = &lat_2[0];
+      }
+
+      if (map_projection == 4) {
+	strcpy(proj, "proj=leac");
+	parms[nparms++] = &proj[0];
+      }
+
+      if (map_projection == 5) {
+	strcpy(proj, "proj=gnom");
+	parms[nparms++] = &proj[0];
+
+      }
+
+      if (map_projection == 6) {
+	strcpy(proj, "proj=aeqd");
+	parms[nparms++] = &proj[0];
+      }
+
+      if (map_projection == 12) {
+	strcpy(proj, "proj=aitoff");
+	parms[nparms++] = &proj[0];
+      }
+
       last_proj = map_projection;
       last_p0lon = map_p0lon;
       last_p0lat = map_p0lat;
       last_a = map_a;
       last_e2 = map_e2;
+      last_lat1 = map_lat1;
+      last_lat2 = map_lat2;
 
       ref = pj_init(nparms, parms);
     }
@@ -3669,7 +3712,11 @@ namespace lib {
 	res = new T1( dim, BaseGDL::ZERO);
       }
     } else {
-      nrows = p0->Dim(1);
+      // rank == 2
+      nrows = 1;
+      for( SizeT i = 0; i<2; ++i) {	
+	nrows  *= p0->Dim(i);
+      }
       dims[1] = nrows;
       dimension dim((SizeT *) dims, 2);
       res = new T1( dim, BaseGDL::ZERO);
@@ -3753,6 +3800,11 @@ namespace lib {
 	  ptr2++;
 	  ires++;
 	}
+      }
+      // Change Inf to Nan
+      for( SizeT i = 0; i<res->N_Elements(); ++i) {	
+	if (isinf((DDouble) (*res)[i]) != 0)
+	  (*res)[i] = 1e300000/1e300000;
       }
       return res;
     }
