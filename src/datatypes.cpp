@@ -126,6 +126,7 @@ template<class Sp> Data_<Sp>::Data_(const dimension& dim_,
     }
 }
 
+
 template<class Sp>
 Data_<Sp>* Data_<Sp>::Log()              
 { 
@@ -135,22 +136,58 @@ Data_<Sp>* Data_<Sp>::Log()
 template<>
 Data_<SpDFloat>* Data_<SpDFloat>::Log()              
 { 
+#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+
+  Data_* n = this->New( this->dim, BaseGDL::NOZERO);
+  SizeT nEl = n->N_Elements();
+  for( SizeT i=0; i<nEl; ++i)
+    n->dd[ i] = log( dd[ i]);
+  return n;
+#else
   return new Data_(this->dim, log(dd));
+#endif
 }
 template<>
 Data_<SpDDouble>* Data_<SpDDouble>::Log()              
 { 
+#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+
+  Data_* n = this->New( this->dim, BaseGDL::NOZERO);
+  SizeT nEl = n->N_Elements();
+  for( SizeT i=0; i<nEl; ++i)
+    n->dd[ i] = log( dd[ i]);
+  return n;
+#else
   return new Data_(this->dim, log(dd));
+#endif
 }
 template<>
 Data_<SpDComplex>* Data_<SpDComplex>::Log()              
 { 
+#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+
+  Data_* n = this->New( this->dim, BaseGDL::NOZERO);
+  SizeT nEl = n->N_Elements();
+  for( SizeT i=0; i<nEl; ++i)
+    n->dd[ i] = log( dd[ i]);
+  return n;
+#else
   return new Data_(this->dim, log(dd));
+#endif
 }
 template<>
 Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Log()              
 { 
+#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+
+  Data_* n = this->New( this->dim, BaseGDL::NOZERO);
+  SizeT nEl = n->N_Elements();
+  for( SizeT i=0; i<nEl; ++i)
+    n->dd[ i] = log( dd[ i]);
+  return n;
+#else
   return new Data_(this->dim, log(dd));
+#endif
 }
 
 template<class Sp>
@@ -161,23 +198,170 @@ void Data_<Sp>::LogThis()
 template<>
 void Data_<SpDFloat>::LogThis()              
 { 
+#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+
+  SizeT nEl = N_Elements();
+  for( SizeT i=0; i<nEl; ++i)
+    dd[ i] = log( dd[ i]);
+#else
   dd = log(dd);
+#endif
 }
 template<>
 void Data_<SpDDouble>::LogThis()              
 { 
+#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+
+  SizeT nEl = N_Elements();
+  for( SizeT i=0; i<nEl; ++i)
+    dd[ i] = log( dd[ i]);
+#else
   dd = log(dd);
+#endif
 }
 template<>
 void Data_<SpDComplex>::LogThis()              
 { 
+#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+
+  SizeT nEl = N_Elements();
+  for( SizeT i=0; i<nEl; ++i)
+    dd[ i] = log( dd[ i]);
+#else
   dd = log(dd);
+#endif
 }
 template<>
 void Data_<SpDComplexDbl>::LogThis()              
 { 
+#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+
+  SizeT nEl = N_Elements();
+  for( SizeT i=0; i<nEl; ++i)
+    dd[ i] = log( dd[ i]);
+#else
   dd = log(dd);
+#endif
 }
+
+template<class Sp>
+Data_<Sp>* Data_<Sp>::Log10()              
+{ 
+  assert( 0);
+  return NULL;
+}
+template<>
+Data_<SpDFloat>* Data_<SpDFloat>::Log10()              
+{ 
+#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+
+  Data_* n = this->New( this->dim, BaseGDL::NOZERO);
+  SizeT nEl = n->N_Elements();
+  for( SizeT i=0; i<nEl; ++i)
+    n->dd[ i] = log10( dd[ i]);
+  return n;
+#else
+  return new Data_(this->dim, log10(dd));
+#endif
+}
+template<>
+Data_<SpDDouble>* Data_<SpDDouble>::Log10()              
+{ 
+#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+
+  Data_* n = this->New( this->dim, BaseGDL::NOZERO);
+  SizeT nEl = n->N_Elements();
+  for( SizeT i=0; i<nEl; ++i)
+    n->dd[ i] = log10( dd[ i]);
+  return n;
+#else
+  return new Data_(this->dim, log10(dd));
+#endif
+}
+template<>
+Data_<SpDComplex>* Data_<SpDComplex>::Log10()              
+{ 
+#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+
+  Data_* n = this->New( this->dim, BaseGDL::NOZERO);
+  SizeT nEl = n->N_Elements();
+  for( SizeT i=0; i<nEl; ++i)
+    n->dd[ i] = log10( dd[ i]);
+  return n;
+#else
+  return new Data_(this->dim, log10(dd));
+#endif
+}
+template<>
+Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Log10()              
+{ 
+#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+
+  Data_* n = this->New( this->dim, BaseGDL::NOZERO);
+  SizeT nEl = n->N_Elements();
+  for( SizeT i=0; i<nEl; ++i)
+    n->dd[ i] = log10( dd[ i]);
+  return n;
+#else
+  return new Data_(this->dim, log10(dd));
+#endif
+}
+
+template<class Sp>
+void Data_<Sp>::Log10This()              
+{ 
+  assert( 0);
+}
+template<>
+void Data_<SpDFloat>::Log10This()              
+{ 
+#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+
+  SizeT nEl = N_Elements();
+  for( SizeT i=0; i<nEl; ++i)
+    dd[ i] = log10( dd[ i]);
+#else
+  dd = log10(dd);
+#endif
+}
+template<>
+void Data_<SpDDouble>::Log10This()              
+{ 
+#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+
+  SizeT nEl = N_Elements();
+  for( SizeT i=0; i<nEl; ++i)
+    dd[ i] = log10( dd[ i]);
+#else
+  dd = log10(dd);
+#endif
+}
+template<>
+void Data_<SpDComplex>::Log10This()              
+{ 
+#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+
+  SizeT nEl = N_Elements();
+  for( SizeT i=0; i<nEl; ++i)
+    dd[ i] = log10( dd[ i]);
+#else
+  dd = log10(dd);
+#endif
+}
+template<>
+void Data_<SpDComplexDbl>::Log10This()              
+{ 
+#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+
+  SizeT nEl = N_Elements();
+  for( SizeT i=0; i<nEl; ++i)
+    dd[ i] = log10( dd[ i]);
+#else
+  dd = log10(dd);
+#endif
+}
+
+
 
 // template<class Sp>
 // BaseGDL* Data_<Sp>::Abs() const

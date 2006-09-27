@@ -235,6 +235,8 @@ public:
 
   virtual BaseGDL* Log();              
   virtual void     LogThis();
+  virtual BaseGDL* Log10();              
+  virtual void     Log10This();
 
   // used in r_expr
   virtual BaseGDL* UMinus();              

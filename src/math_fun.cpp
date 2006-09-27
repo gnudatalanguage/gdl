@@ -686,46 +686,73 @@ namespace lib {
       }
   }
 
-  template< typename T>
-  BaseGDL* alog10_fun_template( BaseGDL* p0)
-  {
-    T* p0C = static_cast<T*>( p0);
-    T* res = new T( p0C->Dim(), BaseGDL::NOZERO);
-    SizeT nEl = p0->N_Elements();
-    for( SizeT i=0; i<nEl; ++i)
-      {
-	(*res)[ i] = log10((*p0C)[ i]); 
-      }
-    return res;
-  }
+//   template< typename T>
+//   BaseGDL* alog10_fun_template( BaseGDL* p0)
+//   {
+//     T* p0C = static_cast<T*>( p0);
+//     T* res = new T( p0C->Dim(), BaseGDL::NOZERO);
+//     SizeT nEl = p0->N_Elements();
+//     for( SizeT i=0; i<nEl; ++i)
+//       {
+// 	(*res)[ i] = log10((*p0C)[ i]); 
+//       }
+//     return res;
+//   }
+
+//   BaseGDL* alog10_fun( EnvT* e)
+//   {
+//     e->NParam( 1);//, "ALOG10");
+
+//     BaseGDL* p0 = e->GetParDefined( 0);//, "ALOG10");
+
+//     SizeT nEl = p0->N_Elements();
+//     if( nEl == 0)
+//       throw GDLException( e->CallingNode(), 
+// 			  "ALOG10: Variable is undefined: "+e->GetParString(0));
+    
+//     if( p0->Type() == COMPLEX)
+// 	return alog10_fun_template< DComplexGDL>( p0);
+//     else if( p0->Type() == COMPLEXDBL)
+// 	return alog10_fun_template< DComplexDblGDL>( p0);
+//     else if( p0->Type() == DOUBLE)
+// 	return alog10_fun_template< DDoubleGDL>( p0);
+//     else if( p0->Type() == FLOAT)
+// 	return alog10_fun_template< DFloatGDL>( p0);
+//     else 
+//       {
+// 	DFloatGDL* res = static_cast<DFloatGDL*>
+// 	  (p0->Convert2( FLOAT, BaseGDL::COPY));
+// 	for( SizeT i=0; i<nEl; ++i)
+// 	  {
+// 	    (*res)[ i] = log10((*res)[ i]); 
+// 	  }
+// 	return res;
+//       }
+//   }
 
   BaseGDL* alog10_fun( EnvT* e)
   {
-    e->NParam( 1);//, "ALOG10");
+    e->NParam( 1);
 
-    BaseGDL* p0 = e->GetParDefined( 0);//, "ALOG10");
+    BaseGDL* p0 = e->GetParDefined( 0);
 
     SizeT nEl = p0->N_Elements();
     if( nEl == 0)
-      throw GDLException( e->CallingNode(), 
-			  "ALOG10: Variable is undefined: "+e->GetParString(0));
+      e->Throw( "Variable is undefined: "+e->GetParString(0));
     
-    if( p0->Type() == COMPLEX)
-	return alog10_fun_template< DComplexGDL>( p0);
-    else if( p0->Type() == COMPLEXDBL)
-	return alog10_fun_template< DComplexDblGDL>( p0);
-    else if( p0->Type() == DOUBLE)
-	return alog10_fun_template< DDoubleGDL>( p0);
-    else if( p0->Type() == FLOAT)
-	return alog10_fun_template< DFloatGDL>( p0);
+    if( FloatType( p0->Type()) || ComplexType( p0->Type()))
+      if( e->StealLocalPar( 0))
+	{
+	  p0->Log10This();
+	  return p0;
+	}
+      else
+	return p0->Log10();
     else 
       {
 	DFloatGDL* res = static_cast<DFloatGDL*>
 	  (p0->Convert2( FLOAT, BaseGDL::COPY));
-	for( SizeT i=0; i<nEl; ++i)
-	  {
-	    (*res)[ i] = log10((*res)[ i]); 
-	  }
+	res->Log10This();
 	return res;
       }
   }

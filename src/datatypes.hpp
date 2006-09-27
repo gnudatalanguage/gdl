@@ -208,6 +208,9 @@ public:
   Data_*   Log();
   void     LogThis();
 
+  Data_*   Log10();
+  void     Log10This();
+
   BaseGDL* UMinus(); // UMinus for SpDString returns float
   Data_*   NotOp();
   Data_*   AndOp( BaseGDL* r);

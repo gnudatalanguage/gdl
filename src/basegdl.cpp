@@ -620,11 +620,19 @@ BaseGDL* BaseGDL::NewIxFromStride( SizeT s, SizeT e, SizeT stride)
 }
 BaseGDL* BaseGDL::Log()              
 { 
-  throw GDLException("Operation not defined for UNDEF 27.");
+  throw GDLException("Operation not defined for UNDEF 27a.");
 }
 void BaseGDL::LogThis()              
 { 
-  throw GDLException("Operation not defined for UNDEF 27.");
+  throw GDLException("Operation not defined for UNDEF 27b.");
+}
+BaseGDL* BaseGDL::Log10()              
+{ 
+  throw GDLException("Operation not defined for UNDEF 27c.");
+}
+void BaseGDL::Log10This()              
+{ 
+  throw GDLException("Operation not defined for UNDEF 27d.");
 }
 
 void BaseGDL::AssignAtIx( SizeT ix, BaseGDL* srcIn)
