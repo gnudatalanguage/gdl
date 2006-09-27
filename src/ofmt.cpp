@@ -543,18 +543,31 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d,
 // I code ****************************************************
 // other
 
-template <typename longT> void ZeroPad( ostream* os, SizeT w, longT dd)
+template <typename longT> 
+void ZeroPad( ostream* os, int w, int d, longT dd)
 {
   std::ostringstream ossF;
   ossF << dd;
-  SizeT ddLen = ossF.str().size();
-  if( w < ddLen) 
+  int ddLen = ossF.str().size();
+  if( w < ddLen || d > w) 
     {
       OutStars( *os, w);
       return;
     }
-  for( SizeT i=ddLen; i<w; ++i)
-    (*os) << "0";
+  if( d <= ddLen)
+    {
+      for( SizeT i = ddLen; i<w; ++i)
+	(*os) << " ";
+    }
+  else
+    {
+      for( SizeT i=0; i<(w-d); ++i)
+	(*os) << " ";
+
+      int nZero = d-ddLen;
+      for( SizeT i=0; i<nZero; ++i)
+	(*os) << "0";
+    }
   (*os) << ossF.str();
 }
 
@@ -590,8 +603,8 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d,
 
   if( oMode == DEC)
     for( SizeT i=offs; i<endEl; ++i)
-//       ZeroPad( os, w, dd[ i]);
-      (*os) << dec << setw(w) << dd[ i];
+      ZeroPad( os, w, d, dd[ i]);
+  //      (*os) << dec << setw(w) << dd[ i];
   else if ( oMode == OCT)
     for( SizeT i=offs; i<endEl; ++i)
       (*os) << oct << setw(w) << dd[ i];
@@ -621,8 +634,8 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d,
   
   if( oMode == DEC)
     for( SizeT i=offs; i<endEl; ++i)
-//       ZeroPad( os, w, dd[ i]);
-      (*os) << dec << setw(w) << dd[ i];
+      ZeroPad( os, w, d, dd[ i]);
+  //      (*os) << dec << setw(w) << dd[ i];
   else if ( oMode == OCT)
     for( SizeT i=offs; i<endEl; ++i)
       (*os) << oct << setw(w) << dd[ i];
@@ -652,8 +665,8 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d,
 
   if( oMode == DEC)
     for( SizeT i=offs; i<endEl; ++i)
-//       ZeroPad( os, w, dd[ i]);
-      (*os) << dec << setw(w) << dd[ i];
+      ZeroPad( os, w, d, dd[ i]);
+  //      (*os) << dec << setw(w) << dd[ i];
   else if ( oMode == OCT)
     for( SizeT i=offs; i<endEl; ++i)
       (*os) << oct << setw(w) << dd[ i];
@@ -683,8 +696,8 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d,
 
   if( oMode == DEC)
     for( SizeT i=offs; i<endEl; ++i)
-//       ZeroPad( os, w, dd[ i]);
-      (*os) << dec << setw(w) << dd[ i];
+      ZeroPad( os, w, d, dd[ i]);
+  //      (*os) << dec << setw(w) << dd[ i];
   else if ( oMode == OCT)
     for( SizeT i=offs; i<endEl; ++i)
       (*os) << oct << setw(w) << dd[ i];
