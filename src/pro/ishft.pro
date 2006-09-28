@@ -4,7 +4,7 @@ function ishft, p1, n, _extra=_extra
 ;
 ;
 ; NAME:
-; ARRAY_INDICES
+; ISHFT
 ;
 ; PURPOSE:
 ; Replacement for IDL intrisic function ISHFT
