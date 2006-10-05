@@ -954,7 +954,7 @@ for_statement returns[ GDLInterpreter::RetCode retCode]
 // problem:
 // EXECUTE may call DataListT.loc.resize(), as v points to the
 // old sequence v might be invalidated -> segfault
-// note that the value (*v) is preserved 
+// note that the value (*v) is preserved by resize()
                 s_guard.release(); // s hold in *v after this
                 for((*v)=s; (*v)->ForCondUp( e); 
                     v=l_simple_var( sv), (*v)->ForAdd()) 
