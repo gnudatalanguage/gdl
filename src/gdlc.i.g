@@ -929,6 +929,9 @@ for_statement returns[ GDLInterpreter::RetCode retCode]
     retCode = RC_OK;
 }
     : #(f:FOR // (VAR|VARPTR) expr expr 
+            {
+                ProgNodeP sv = _t;
+            }
             v=l_simple_var
             s=expr e=expr
             {
@@ -948,8 +951,13 @@ for_statement returns[ GDLInterpreter::RetCode retCode]
                 // ASSIGNMENT used here also
                 delete (*v);
 
-                s_guard.release(); // s now hold in *v
-                for((*v)=s; (*v)->ForCondUp( e); (*v)->ForAdd()) 
+// problem:
+// EXECUTE may call DataListT.loc.resize(), as v points to the
+// old sequence v might be invalidated -> segfault
+// note that the value (*v) is preserved 
+                s_guard.release(); // s hold in *v after this
+                for((*v)=s; (*v)->ForCondUp( e); 
+                    v=l_simple_var( sv), (*v)->ForAdd()) 
                 {
 //                    retCode=block(b);
                     if( b != NULL)
@@ -979,6 +987,9 @@ for_statement returns[ GDLInterpreter::RetCode retCode]
             }
         )
     | #(fs:FOR_STEP // (VAR|VARPTR) expr expr expr 
+            {
+                ProgNodeP sv = _t;
+            }
             v=l_simple_var
             s=expr e=expr st=expr
             {
@@ -1002,7 +1013,8 @@ for_statement returns[ GDLInterpreter::RetCode retCode]
                 if( st->Sgn() == -1) 
                 {
                     s_guard.release();
-                    for((*v)=s; (*v)->ForCondDown( e); (*v)->ForAdd(st))
+                    for((*v)=s; (*v)->ForCondDown( e); 
+                        v=l_simple_var( sv), (*v)->ForAdd(st))
                     {
                         if( bs != NULL)
                         {
@@ -1028,8 +1040,9 @@ for_statement returns[ GDLInterpreter::RetCode retCode]
                 else
                 {
                     s_guard.release();
-                    for((*v)=s; (*v)->ForCondUp( e); (*v)->ForAdd(st))
-                    {
+                    for((*v)=s; (*v)->ForCondUp( e);
+                        v=l_simple_var( sv), (*v)->ForAdd(st))
+                        {
                         if( bs != NULL)
                         {
                             retCode=statement_list(bs);
@@ -1270,6 +1283,7 @@ assignment
                 }
             | r=check_expr
                 {
+
                     if( !callStack.back()->Contains( r)) 
                         r_guard.reset( r);
                 }
@@ -1980,6 +1994,7 @@ l_expr [BaseGDL* right] returns [BaseGDL** res]
 l_simple_var returns [BaseGDL** res]
     : var:VAR // DNode.varIx is index into functions/procedures environment
         {
+
             res=&callStack.back()->GetKW(var->varIx); 
         }
     | varPtr:VARPTR // DNode.var   is ptr to common block variable

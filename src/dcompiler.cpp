@@ -465,6 +465,7 @@ void DCompiler::Var(RefDNode n)
 	  throw GDLException("env and pro out of sync."); 
       }
     n->SetVarIx(static_cast<int>(u));
+//     cout << "Added Var "<<V<<" as #" << u << endl;
 }
 
 void DCompiler::SysVar(RefDNode n)

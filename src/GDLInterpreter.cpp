@@ -296,13 +296,10 @@ void GDLInterpreter::execute(ProgNodeP _t) {
 		// initial exception, set target env
 		// look if ON_ERROR is set somewhere
 		for( EnvStackT::reverse_iterator i = callStack.rbegin();
-		     i != callStack.rend(); ++i)
+		i != callStack.rend(); ++i)
 		{
-		ProgNodeP _t = static_cast<EnvUDT*>(*i)->GetIOError();
-		if (_t != NULL) return RC_BREAK;
-
 		DLong oE = static_cast<EnvUDT*>(*i)->GetOnError();
-
+		
 		if( oE != -1) 
 		{ // oE was set
 		
@@ -577,6 +574,7 @@ void GDLInterpreter::assignment(ProgNodeP _t) {
 		{
 			r=check_expr(_t);
 			_t = _retTree;
+			
 			
 			if( !callStack.back()->Contains( r)) 
 			r_guard.reset( r);
@@ -853,6 +851,9 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 		f = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 		match(antlr::RefAST(_t),FOR);
 		_t = _t->getFirstChild();
+		
+		ProgNodeP sv = _t;
+		
 		v=l_simple_var(_t);
 		_t = _retTree;
 		s=expr(_t);
@@ -876,8 +877,13 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 		// ASSIGNMENT used here also
 		delete (*v);
 		
-		s_guard.release(); // s now hold in *v
-		for((*v)=s; (*v)->ForCondUp( e); (*v)->ForAdd()) 
+		// problem:
+		// EXECUTE may call DataListT.loc.resize(), as v points to the
+		// old sequence v might be invalidated -> segfault
+		// note that the value (*v) is preserved 
+		s_guard.release(); // s hold in *v after this
+		for((*v)=s; (*v)->ForCondUp( e); 
+		v=l_simple_var( sv), (*v)->ForAdd()) 
 		{
 		//                    retCode=block(b);
 		if( b != NULL)
@@ -915,6 +921,9 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 		fs = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 		match(antlr::RefAST(_t),FOR_STEP);
 		_t = _t->getFirstChild();
+		
+		ProgNodeP sv = _t;
+		
 		v=l_simple_var(_t);
 		_t = _retTree;
 		s=expr(_t);
@@ -944,7 +953,8 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 		if( st->Sgn() == -1) 
 		{
 		s_guard.release();
-		for((*v)=s; (*v)->ForCondDown( e); (*v)->ForAdd(st))
+		for((*v)=s; (*v)->ForCondDown( e); 
+		v=l_simple_var( sv), (*v)->ForAdd(st))
 		{
 		if( bs != NULL)
 		{
@@ -970,7 +980,8 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 		else
 		{
 		s_guard.release();
-		for((*v)=s; (*v)->ForCondUp( e); (*v)->ForAdd(st))
+		for((*v)=s; (*v)->ForCondUp( e);
+		v=l_simple_var( sv), (*v)->ForAdd(st))
 		{
 		if( bs != NULL)
 		{
@@ -1466,7 +1477,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 	switch ( _t->getType()) {
 	case GOTO:
 	{
-	        g = _t;
+		g = _t;
 		match(antlr::RefAST(_t),GOTO);
 		_t = _t->getNextSibling();
 		
@@ -1624,6 +1635,7 @@ BaseGDL**  GDLInterpreter::l_simple_var(ProgNodeP _t) {
 		var = _t;
 		match(antlr::RefAST(_t),VAR);
 		_t = _t->getNextSibling();
+		
 		
 		res=&callStack.back()->GetKW(var->varIx); 
 		
@@ -4240,9 +4252,7 @@ BaseGDL*  GDLInterpreter::array_def(ProgNodeP _t) {
 		// returns it or throws an exception
 		DStructDesc* dStruct=GetStruct( idRef->getText(), _t);
 		
-		dimension dim((size_t) 1, (size_t) 1);
-		res = new DStructGDL( dStruct, dim);
-		//		res=new DStructGDL( dStruct);
+		res=new DStructGDL( dStruct);
 		
 		_t = __t186;
 		_t = _t->getNextSibling();
@@ -5259,9 +5269,7 @@ BaseGDL*  GDLInterpreter::sys_var(ProgNodeP _t) {
 	}
 	
 	// the instance variable
-	dimension dim((size_t) 1, (size_t) 1);
-	DStructGDL* instance = new DStructGDL( nStructDesc, dim);
-	//	DStructGDL* instance= new DStructGDL( nStructDesc); 
+	DStructGDL* instance= new DStructGDL( nStructDesc); 
 	auto_ptr<DStructGDL> instance_guard(instance);
 	
 	{ // ( ... )+
@@ -5384,9 +5392,7 @@ BaseGDL*  GDLInterpreter::sys_var(ProgNodeP _t) {
 	DStructDesc*   nStructDesc = new DStructDesc( "$truct");
 	
 	// instance takes care of nStructDesc since it is unnamed
-	dimension dim((size_t) 1, (size_t) 1);
-	DStructGDL* instance = new DStructGDL( nStructDesc, dim);
-	//	DStructGDL* instance = new DStructGDL( nStructDesc);
+	DStructGDL* instance = new DStructGDL( nStructDesc);
 	auto_ptr<DStructGDL> instance_guard(instance);
 	
 	BaseGDL* e;
