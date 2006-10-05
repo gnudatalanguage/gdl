@@ -152,6 +152,7 @@
 	  PUSHD, POPD, PRINTD, PRIMES, NORM, T_PDF, POLY_2D routines.
 	  Support for SAVE and RESTORE through Craig Markwardt's CMSVLIB
 	  library.
+	  Added SMOOTH and DERIV as external functions.
 	  Full support of F77_UNFORMATTED.
 	  Support for XDR I/O
           Fixed positional index (value and dimension) returned by STREGEX.
