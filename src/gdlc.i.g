@@ -3217,7 +3217,8 @@ named_struct_def returns[ BaseGDL* res]
                 }
                 
                 // the instance variable
-                DStructGDL* instance= new DStructGDL( nStructDesc); 
+                DStructGDL* instance= new DStructGDL( nStructDesc,
+                                                      dimension(1)); 
                 auto_ptr<DStructGDL> instance_guard(instance);
             }
 
@@ -3282,7 +3283,7 @@ unnamed_struct_def returns[ BaseGDL* res]
     DStructDesc*   nStructDesc = new DStructDesc( "$truct");
 
     // instance takes care of nStructDesc since it is unnamed
-    DStructGDL* instance = new DStructGDL( nStructDesc);
+    DStructGDL* instance = new DStructGDL( nStructDesc, dimension(1));
     auto_ptr<DStructGDL> instance_guard(instance);
 
     BaseGDL* e;
@@ -3324,7 +3325,7 @@ struct_def returns[ BaseGDL* res]
                 // returns it or throws an exception
                 DStructDesc* dStruct=GetStruct( idRef->getText(), _t);
                 
-                res=new DStructGDL( dStruct);
+                res=new DStructGDL( dStruct, dimension(1));
             }
         )
 	;

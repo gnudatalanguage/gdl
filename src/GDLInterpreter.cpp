@@ -880,7 +880,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 		// problem:
 		// EXECUTE may call DataListT.loc.resize(), as v points to the
 		// old sequence v might be invalidated -> segfault
-		// note that the value (*v) is preserved 
+		// note that the value (*v) is preserved by resize()
 		s_guard.release(); // s hold in *v after this
 		for((*v)=s; (*v)->ForCondUp( e); 
 		v=l_simple_var( sv), (*v)->ForAdd()) 
@@ -4252,7 +4252,7 @@ BaseGDL*  GDLInterpreter::array_def(ProgNodeP _t) {
 		// returns it or throws an exception
 		DStructDesc* dStruct=GetStruct( idRef->getText(), _t);
 		
-		res=new DStructGDL( dStruct);
+		res=new DStructGDL( dStruct, dimension(1));
 		
 		_t = __t186;
 		_t = _t->getNextSibling();
@@ -5269,7 +5269,8 @@ BaseGDL*  GDLInterpreter::sys_var(ProgNodeP _t) {
 	}
 	
 	// the instance variable
-	DStructGDL* instance= new DStructGDL( nStructDesc); 
+	DStructGDL* instance= new DStructGDL( nStructDesc,
+	dimension(1)); 
 	auto_ptr<DStructGDL> instance_guard(instance);
 	
 	{ // ( ... )+
@@ -5392,7 +5393,7 @@ BaseGDL*  GDLInterpreter::sys_var(ProgNodeP _t) {
 	DStructDesc*   nStructDesc = new DStructDesc( "$truct");
 	
 	// instance takes care of nStructDesc since it is unnamed
-	DStructGDL* instance = new DStructGDL( nStructDesc);
+	DStructGDL* instance = new DStructGDL( nStructDesc, dimension(1));
 	auto_ptr<DStructGDL> instance_guard(instance);
 	
 	BaseGDL* e;
