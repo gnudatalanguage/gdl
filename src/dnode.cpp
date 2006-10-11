@@ -724,7 +724,8 @@ void ProgNode::AdjustTypes(auto_ptr<BaseGDL>& a, auto_ptr<BaseGDL>& b)
       return;
     }
 
-  if( DTypeOrder[aTy] > DTypeOrder[bTy])
+  // Change > to >= JMG
+  if( DTypeOrder[aTy] >= DTypeOrder[bTy])
     {
       // convert b to a
       b.reset( b.release()->Convert2( aTy));
@@ -778,7 +779,8 @@ void BinaryExprNC::AdjustTypesNC(auto_ptr<BaseGDL>& g1, BaseGDL*& e1,
       return;
     }
 
-  if( DTypeOrder[aTy] > DTypeOrder[bTy])
+  // Change > to >= JMG
+  if( DTypeOrder[aTy] >= DTypeOrder[bTy])
     {
       // convert e2 to e1
       e2 = e2->Convert2( aTy, BaseGDL::COPY);
@@ -1269,7 +1271,9 @@ BaseGDL* POWNode::Eval()
   else
     convertBackT = UNDEF;
   
-  AdjustTypes(e2,e1); // order crucial here (for converting back)
+  //  first operand determines type JMG
+  //  AdjustTypes(e2,e1); // order crucial here (for converting back)
+  AdjustTypes(e1,e2); // order crucial here (for converting back)
 
   if( e1->StrictScalar())
     {
