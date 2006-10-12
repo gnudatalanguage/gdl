@@ -3072,14 +3072,20 @@ namespace lib {
   //COLOR
   void gkw_color(EnvT * e, GDLGStream* a)
   {
-    static DStructGDL* pStruct = SysVar::P();
-    ULong ncolor = 
-      (*static_cast<DLongGDL*>( pStruct->Get( pStruct->Desc()->TagIndex("COLOR"), 0)))[0] + 1;
+    // Get # of colors from DEVICE system variable
+    DVar *var=FindInVarList(sysVarList,"D");
+    DStructGDL* s = static_cast<DStructGDL*>( var->Data());
+    DLong ncolor = (*static_cast<DLongGDL*>
+                    (s->Get(s->Desc()->TagIndex("N_COLORS"), 0)))[0];
+
+    // Get decomposed value
+    Graphics* actDevice = Graphics::GetDevice();
+    DLong decomposed = actDevice->GetDecomposed();
+
     DLong color = ncolor - 1;
-    
     e->AssureLongScalarKWIfPresent( "COLOR", color);
 
-    a->Color( color, ncolor);  
+    a->Color( color, decomposed);  
   }
 
   //NOERASE
