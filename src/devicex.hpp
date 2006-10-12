@@ -286,7 +286,7 @@ public:
     dStruct->InitTag("Y_CH_SIZE",  DLongGDL( 9)); 
     dStruct->InitTag("X_PX_CM",    DFloatGDL( 40.0)); 
     dStruct->InitTag("Y_PX_CM",    DFloatGDL( 40.0)); 
-    dStruct->InitTag("N_COLORS",   DLongGDL( 256)); 
+    dStruct->InitTag("N_COLORS",   DLongGDL( 16777216)); 
     dStruct->InitTag("TABLE_SIZE", DLongGDL( ctSize)); 
     dStruct->InitTag("FILL_DIST",  DLongGDL( 0)); 
     dStruct->InitTag("WINDOW",     DLongGDL( -1)); 
