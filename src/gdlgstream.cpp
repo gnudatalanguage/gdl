@@ -42,10 +42,12 @@ void GDLGStream::SetErrorHandlers()
   plsabort( PLPlotAbortHandler);
 }
 
-void GDLGStream::Color( ULong c, ULong ncolor, UInt ix)
+void GDLGStream::Color( ULong c, DLong decomposed, UInt ix)
 {
   DByte r,g,b;
-  if( c < ctSize && ncolor == 256)
+  if (decomposed == 0) c = c & 0x0000FF;
+
+  if( c < ctSize && decomposed == 0)
     {
       Graphics::GetCT()->Get( c, r, g, b);
     }
