@@ -300,6 +300,13 @@ namespace SysVar
     sysVarList.push_back(p);
 
     // some constants
+
+    // !GDL (to allow distinguish IDL/GDL with DEFSYSV, '!gdl', exists=exists )
+    DStringGDL *gdlData = new DStringGDL( "GDL");
+    DVar *gdl = new DVar( "GDL", gdlData);
+    sysVarList.push_back( gdl);
+    sysVarRdOnlyList.push_back( gdl);
+
     // !DPI
     DDoubleGDL *dpiData = new DDoubleGDL( (double)(4*atan(1.0)) );
     DVar *dpi = new DVar( "DPI", dpiData);
