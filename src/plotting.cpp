@@ -871,6 +871,12 @@ namespace lib {
     gkw_background(e, actStream);  //BACKGROUND
     gkw_color(e, actStream);       //COLOR
     gkw_noerase(e, actStream);     //NOERASE
+
+    //JMG
+    DLong noErase = 0;
+    if( e->KeywordSet( "NOERASE")) noErase = 1;
+    if( !noErase) actStream->Clear();
+
     gkw_psym(e, actStream, line, psym);//PSYM
     gkw_charsize(e, actStream, charsize);    //CHARSIZE
     gkw_axis_charsize(e, "X",xCharSize);//XCHARSIZE
@@ -1247,8 +1253,6 @@ namespace lib {
     GDLGStream* actStream = GetPlotStream( e); 
     
     // start drawing
-    //    actStream->Background(background);
-    //    actStream->Color(color);
     gkw_background(e, actStream, false);
     gkw_color(e, actStream);
 
@@ -1691,7 +1695,7 @@ namespace lib {
     DString p_title; 
     DString p_subTitle; 
     DFloat p_ticklen; 
-    
+
     GetPData( p_background,
 	      p_noErase, p_color, p_psym, p_linestyle,
 	      p_symsize, p_charsize, p_thick,
@@ -1863,18 +1867,12 @@ namespace lib {
     if( zLog && zStart <= 0.0)
       Warning( "PLOT: Infinite z plot range.");
 
-    DLong background = p_background;
-    e->AssureLongScalarKWIfPresent( "BACKGROUND", background);
+    DLong noErase = p_noErase;
+    if( e->KeywordSet( "NOERASE")) noErase = 1;
 
     DDouble ticklen = p_ticklen;
     e->AssureDoubleScalarKWIfPresent( "TICKLEN", ticklen);
-						 
-    //    DLong color = p_color;
-    //e->AssureLongScalarKWIfPresent( "COLOR", color);
 
-    DLong noErase = p_noErase;
-    if( e->KeywordSet( "NOERASE")) noErase = 1;
-    
     // POSITION
     PLFLT xScale = 1.0;
     PLFLT yScale = 1.0;
@@ -1922,8 +1920,7 @@ namespace lib {
     GDLGStream* actStream = GetPlotStream( e); 
     
     // *** start drawing
-    actStream->Background( background);
-    //    actStream->Color( color);
+    gkw_background(e, actStream);  //BACKGROUND   
     gkw_color(e, actStream);       //COLOR
 
     actStream->NextPlot( !noErase);
@@ -2415,16 +2412,9 @@ namespace lib {
     if( zLog && zStart <= 0.0)
       Warning( "PLOT: Infinite z plot range.");
 
-    DLong background = p_background;
-    e->AssureLongScalarKWIfPresent( "BACKGROUND", background);
-
-
     DDouble ticklen = p_ticklen;
     e->AssureDoubleScalarKWIfPresent( "TICKLEN", ticklen);
 						 
-    //    DLong color = p_color;
-    //e->AssureLongScalarKWIfPresent( "COLOR", color);
-
     DLong noErase = p_noErase;
     if( e->KeywordSet( "NOERASE")) noErase = 1;
     
@@ -2477,8 +2467,7 @@ namespace lib {
     GDLGStream* actStream = GetPlotStream( e); 
     
     // *** start drawing
-    actStream->Background( background);
-    //    actStream->Color( color);
+    gkw_background(e, actStream);  //BACKGROUND
     gkw_color(e, actStream);       //COLOR
 
     actStream->NextPlot( !noErase);
@@ -3066,24 +3055,37 @@ namespace lib {
 	(pStruct->Desc()->TagIndex("BACKGROUND"), 0)))[0];
     if(kw)
       e->AssureLongScalarKWIfPresent( "BACKGROUND", background);
-    a->Background( background);  
+
+    // Get decomposed value
+    Graphics* actDevice = Graphics::GetDevice();
+    DLong decomposed = actDevice->GetDecomposed();
+
+    a->Background( background, decomposed);  
   }
 
   //COLOR
   void gkw_color(EnvT * e, GDLGStream* a)
   {
+    // Get COLOR from PLOT system variable
+    static DStructGDL* pStruct = SysVar::P();
+    DLong color = 
+      (*static_cast<DLongGDL*>
+       (pStruct->Get
+	(pStruct->Desc()->TagIndex("COLOR"), 0)))[0];
+
     // Get # of colors from DEVICE system variable
     DVar *var=FindInVarList(sysVarList,"D");
     DStructGDL* s = static_cast<DStructGDL*>( var->Data());
     DLong ncolor = (*static_cast<DLongGDL*>
                     (s->Get(s->Desc()->TagIndex("N_COLORS"), 0)))[0];
 
+    if (ncolor > 256 && color == 255) color = ncolor - 1;
+
+    e->AssureLongScalarKWIfPresent( "COLOR", color);
+
     // Get decomposed value
     Graphics* actDevice = Graphics::GetDevice();
     DLong decomposed = actDevice->GetDecomposed();
-
-    DLong color = ncolor - 1;
-    e->AssureLongScalarKWIfPresent( "COLOR", color);
 
     a->Color( color, decomposed);  
   }
