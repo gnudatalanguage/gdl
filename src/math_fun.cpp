@@ -964,18 +964,28 @@ namespace lib {
       }
   }
 
-
   template< typename T>
-  BaseGDL* ceil_fun_template( BaseGDL* p0)
+  BaseGDL* ceil_fun_template( BaseGDL* p0, bool isKWSetL64)
   {
     T* p0C = static_cast<T*>( p0);
-    DLongGDL* res = new DLongGDL( p0C->Dim(), BaseGDL::NOZERO);
     SizeT nEl = p0->N_Elements();
-    for( SizeT i=0; i<nEl; ++i)
-      {
-	(*res)[ i] = (int) ceil((*p0C)[ i]); 
-      }
-    return res;
+
+    // L64 keyword support
+    if (isKWSetL64) {
+      DLong64GDL* res = new DLong64GDL(p0C->Dim(), BaseGDL::NOZERO);
+      for( SizeT i=0; i<nEl; ++i)
+	{
+	  (*res)[ i] = (DLong64) ceil((*p0C)[ i]); 
+	}
+      return res;
+    } else {
+      DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
+      for( SizeT i=0; i<nEl; ++i)
+	{
+	  (*res)[ i] = (int) ceil((*p0C)[ i]); 
+	}
+      return res;
+    }
   }
 
   BaseGDL* ceil_fun( EnvT* e)
@@ -988,35 +998,61 @@ namespace lib {
     if( nEl == 0)
       throw GDLException( e->CallingNode(), 
 			  "CEIL: Variable is undefined: "+e->GetParString(0));
-    
+
+    bool isKWSetL64 = e->KeywordSet( "L64");
+
     if( p0->Type() == COMPLEX)
       {
 	DComplexGDL* p0C = static_cast<DComplexGDL*>( p0);
-	DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
 	SizeT nEl = p0->N_Elements();
-	for( SizeT i=0; i<nEl; ++i)
-	  {
-	    DComplex& C = (*p0C)[ i];
-	    (*res)[ i] = (int) ceil(C.real());
-	  }
-	return res;
+
+	// L64 keyword support
+	if (isKWSetL64) {
+	  DLong64GDL* res = new DLong64GDL(p0C->Dim(), BaseGDL::NOZERO);
+	  for( SizeT i=0; i<nEl; ++i)
+	    {
+	      DComplex& C = (*p0C)[ i];
+	      (*res)[ i] = (DLong64) ceil(C.real());
+	    }
+	  return res;
+	} else {
+	  DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
+	  for( SizeT i=0; i<nEl; ++i)
+	    {
+	      DComplex& C = (*p0C)[ i];
+	      (*res)[ i] = (int) ceil(C.real());
+	    }
+	  return res;
+	}
       }
     else if( p0->Type() == COMPLEXDBL)
       {
 	DComplexDblGDL* p0C = static_cast<DComplexDblGDL*>( p0);
-	DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
 	SizeT nEl = p0->N_Elements();
-	for( SizeT i=0; i<nEl; ++i)
-	  {
-	    DComplexDbl& C = (*p0C)[ i];
-	    (*res)[ i] = (int) ceil(C.real());
-	  }
-	return res;
+
+	// L64 keyword support
+	if (isKWSetL64) {
+	  DLong64GDL* res = new DLong64GDL(p0C->Dim(), BaseGDL::NOZERO);
+	  for( SizeT i=0; i<nEl; ++i)
+	    {
+	      DComplexDbl& C = (*p0C)[ i];
+	      (*res)[ i] = (DLong64) ceil(C.real());
+	    }
+	  return res;
+	} else {
+	  DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
+	  for( SizeT i=0; i<nEl; ++i)
+	    {
+	      DComplexDbl& C = (*p0C)[ i];
+	      (*res)[ i] = (int) ceil(C.real());
+	    }
+	  return res;
+	}
       }
     else if( p0->Type() == DOUBLE)
-	return ceil_fun_template< DDoubleGDL>( p0);
+      return ceil_fun_template< DDoubleGDL>( p0, isKWSetL64);
     else if( p0->Type() == FLOAT)
-	return ceil_fun_template< DFloatGDL>( p0);
+      return ceil_fun_template< DFloatGDL>( p0, isKWSetL64);
     else if( p0->Type() == LONG64)
       return p0->Dup();
     else if( p0->Type() == LONG)
@@ -1045,16 +1081,27 @@ namespace lib {
   }
 
   template< typename T>
-  BaseGDL* floor_fun_template( BaseGDL* p0)
+  BaseGDL* floor_fun_template( BaseGDL* p0, bool isKWSetL64)
   {
     T* p0C = static_cast<T*>( p0);
-    DLongGDL* res = new DLongGDL( p0C->Dim(), BaseGDL::NOZERO);
     SizeT nEl = p0->N_Elements();
-    for( SizeT i=0; i<nEl; ++i)
-      {
-	(*res)[ i] = (int) floor((*p0C)[ i]); 
-      }
-    return res;
+
+    // L64 keyword support
+    if (isKWSetL64) {
+      DLong64GDL* res = new DLong64GDL(p0C->Dim(), BaseGDL::NOZERO);
+      for( SizeT i=0; i<nEl; ++i)
+	{
+	  (*res)[ i] = (DLong64) floor((*p0C)[ i]); 
+	}
+      return res;
+    } else {
+      DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
+      for( SizeT i=0; i<nEl; ++i)
+	{
+	  (*res)[ i] = (int) floor((*p0C)[ i]); 
+	}
+      return res;
+    }
   }
 
   BaseGDL* floor_fun( EnvT* e)
@@ -1067,35 +1114,61 @@ namespace lib {
     if( nEl == 0)
       throw GDLException( e->CallingNode(), 
 			  "FLOOR: Variable is undefined: "+e->GetParString(0));
-    
+
+    bool isKWSetL64 = e->KeywordSet( "L64");
+
     if( p0->Type() == COMPLEX)
       {
 	DComplexGDL* p0C = static_cast<DComplexGDL*>( p0);
-	DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
 	SizeT nEl = p0->N_Elements();
-	for( SizeT i=0; i<nEl; ++i)
-	  {
-	    DComplex& C = (*p0C)[ i];
-	    (*res)[ i] = (int) floor(C.real());
-	  }
-	return res;
+
+	// L64 keyword support
+	if (isKWSetL64) {
+	  DLong64GDL* res = new DLong64GDL(p0C->Dim(), BaseGDL::NOZERO);
+	  for( SizeT i=0; i<nEl; ++i)
+	    {
+	      DComplex& C = (*p0C)[ i];
+	      (*res)[ i] = (DLong64) floor(C.real());
+	    }
+	  return res;
+	} else {
+	  DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
+	  for( SizeT i=0; i<nEl; ++i)
+	    {
+	      DComplex& C = (*p0C)[ i];
+	      (*res)[ i] = (int) floor(C.real());
+	    }
+	  return res;
+	}
       }
     else if( p0->Type() == COMPLEXDBL)
       {
 	DComplexDblGDL* p0C = static_cast<DComplexDblGDL*>( p0);
-	DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
 	SizeT nEl = p0->N_Elements();
-	for( SizeT i=0; i<nEl; ++i)
-	  {
-	    DComplexDbl& C = (*p0C)[ i];
-	    (*res)[ i] = (int) floor(C.real());
-	  }
-	return res;
+
+	// L64 keyword support
+	if (isKWSetL64) {
+	  DLong64GDL* res = new DLong64GDL(p0C->Dim(), BaseGDL::NOZERO);
+	  for( SizeT i=0; i<nEl; ++i)
+	    {
+	      DComplexDbl& C = (*p0C)[ i];
+	      (*res)[ i] = (DLong64) floor(C.real());
+	    }
+	  return res;
+	} else {
+	  DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
+	  for( SizeT i=0; i<nEl; ++i)
+	    {
+	      DComplexDbl& C = (*p0C)[ i];
+	      (*res)[ i] = (int) floor(C.real());
+	    }
+	  return res;
+	}
       }
     else if( p0->Type() == DOUBLE)
-	return floor_fun_template< DDoubleGDL>( p0);
+      return floor_fun_template< DDoubleGDL>( p0, isKWSetL64);
     else if( p0->Type() == FLOAT)
-	return floor_fun_template< DFloatGDL>( p0);
+      return floor_fun_template< DFloatGDL>( p0, isKWSetL64);
     else if( p0->Type() == LONG64)
       return p0->Dup();
     else if( p0->Type() == LONG)
