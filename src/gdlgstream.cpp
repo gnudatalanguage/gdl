@@ -61,8 +61,22 @@ void GDLGStream::Color( ULong c, DLong decomposed, UInt ix)
   plstream::col0( ix);
 }
 
-void GDLGStream::Background( ULong c)
+void GDLGStream::Background( ULong c, DLong decomposed)
 {
+  DByte r,g,b;
+  if (decomposed == 0) c = c & 0x0000FF;
+
+  if( c < ctSize && decomposed == 0)
+    {
+      Graphics::GetCT()->Get( c, r, g, b);
+    }
+  else
+    {
+      r = c & 0xFF;
+      g = (c >> 8)  & 0xFF;
+      b = (c >> 16) & 0xFF;
+    }
+  /*
   DByte r,g,b;
   if( c < ctSize)
     {
@@ -74,6 +88,7 @@ void GDLGStream::Background( ULong c)
       g = (c >> 8)  & 0xFF;
       b = (c >> 16) & 0xFF;
     }
+  */
   plstream::scolbg( r, g, b);
 }
 
