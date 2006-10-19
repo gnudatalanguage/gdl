@@ -102,6 +102,8 @@
 ;   Written and documented, 7-aug-2006
 ;   Case of XBINS having only one element, CM, 29 Apr 2001
 ;   Handle case of VALUES exactly hitting REF points, CM, 13 Oct 2001
+;   19-Oct-2006 - modified to return array with same dimensions as
+;    second argument as with the IDL intrinsic
 ; 
 ;  
 ;
@@ -123,7 +125,7 @@ nx  = n_elements(x) + one
 nu  = n_elements(u)*one
 mm  = (last_item(x) > max(u) )*1.01
 xx  = [x,mm]
-c   = [xx, u]
+c   = [xx, u[*]]
 
 ord = sort(c)
 d   = [-1,where( ord lt nx), nx]
@@ -159,9 +161,10 @@ end
 function value_locate, x, u, l64=l64
 
 ;increasing or decreasing
- 
-return, last_item(x) lt x[0] ? n_elements(x)-2- val_loc_inc(reverse(x), u, l64=l64): $
-	val_loc_inc(x, u, l64=l64)
+default, l64,0
+
+out = make_array( long = 1-l64, l64 = l64, dim=size(/dim, u))
+return, out +( last_item(x) lt x[0] ? n_elements(x)-2- val_loc_inc(reverse(x), u, l64=l64): $
+	val_loc_inc(x, u, l64=l64))
 	
 end
-
