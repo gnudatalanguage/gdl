@@ -853,11 +853,6 @@ namespace lib {
       e->Throw( "Complex expression not allowed in this context: "
 		+e->GetParString(0));
     
-    // INPUT not supported yet
-    DLongGDL* input = e->IfDefGetKWAs<DLongGDL>( 1);
-    if( input != NULL)
-      e->Throw( "INPUT not supported.");
-
     BaseGDL* binsizeKW = e->GetKW( 0);
     DDouble bsize = 1.0;
     if( binsizeKW != NULL)
@@ -932,9 +927,9 @@ namespace lib {
 	  bsize = (b - a) / nbins;
       }
 
-    if( a > maxVal || b < minVal || a > b)
-      e->Throw( "Illegal BINSIZE or MAX/MIN.");
-    
+    if( bsize < 0 || a > b)
+      e->Throw( "Illegal binsize or max/min.");
+
     // gsl histogram needs this adjustment
     double aOri = a;
     if( b != a)
@@ -960,11 +955,32 @@ namespace lib {
     if( nbinsKW == NULL)
       nbins = static_cast< DLong>( floor( (b - a) / bsize) + 1);
 
+    // INPUT keyword
+    static int inputIx = e->KeywordIx( "INPUT"); 
+    DLongGDL* input = e->IfDefGetKWAs<DLongGDL>( inputIx);
+    if (input != NULL)
+      if (input->N_Elements() < nbins)
+	throw GDLException( e->CallingNode(), 
+			    "HISTOGRAM: Array " +e->GetString(inputIx) + 
+			    " does not have enough elements.");
+      else if (input->N_Elements() > nbins)
+	nbins = input->N_Elements();
+ 
+    // Adjust "b" if binsize specified otherwise gsl_histogram_set_ranges_uniform
+    // will change bsize to (b-a)/nbins
+    if( binsizeKW != NULL) b = a+nbins*bsize;
+ 
     gsl_histogram* hh = gsl_histogram_alloc( nbins);
     gsl_histogram_set_ranges_uniform( hh, a, b);
 
+
+    // Set maxVal from keyword if present
+    if (maxKW != NULL) e->AssureDoubleScalarKW( 2, maxVal);
+
+    // Generate histogram
     for( SizeT i=0; i<nEl; ++i) {
-      gsl_histogram_increment(hh, (*p0D)[i]);
+      if ((*p0D)[i] <= maxVal)
+	gsl_histogram_increment(hh, (*p0D)[i]);
     }
 
     dimension dim( nbins);
@@ -973,6 +989,10 @@ namespace lib {
     for( SizeT i=0; i<nbins; ++i) {
       (*res)[i] = static_cast<DLong>( gsl_histogram_get(hh, i));
     }
+
+    // Add input to output if present
+    if (input != NULL)
+      for( SizeT i=0; i<nbins; ++i) (*res)[i] += (*input)[i];
 
     // OMAX
     if( e->KeywordPresent( 5)) {
@@ -988,6 +1008,10 @@ namespace lib {
 
     // REVERSE_INDICES
     if( e->KeywordPresent( 7)) {
+
+      if (input != NULL)
+	throw GDLException( e->CallingNode(), 
+			    "HISTOGRAM: Conflicting keywords.");
 
       DULong k = 0;
       multimap< size_t, SizeT> bin_j;
