@@ -103,6 +103,27 @@ DStructGDL::DStructGDL(const DStructGDL& d_):
 //   return *this;
 // }
 
+// called from GDLInterpreter and basic_fun 
+// NOT for array of struct
+// DStructDesc::AssureIdentical already passed
+void DStructGDL::SetDesc( DStructDesc* nDesc)
+{
+  SizeT nTags = nDesc->NTags();
+  for( SizeT t=0; t < nTags; t++)
+    {
+      BaseGDL* actTag = (*nDesc)[t];
+      DType actTType = actTag->Type(); // convert to this type
+
+      if( ConvertableType( actTType))     // not for struct, obj, ptr
+	{
+	  if( dd[ t]->Type() != actTType)
+	    dd[ t] = dd[ t]->Convert2( actTType);
+	}
+    }
+  // finally replace the descriptor
+  this->SpDStruct::SetDesc( nDesc);
+}
+
 
 DStructGDL* DStructGDL::CShift( DLong d)
 {

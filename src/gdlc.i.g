@@ -3256,7 +3256,7 @@ named_struct_def returns[ BaseGDL* res]
                     if( oStructDesc != nStructDesc)
                     {
                         oStructDesc->AssureIdentical(nStructDesc);
-                        instance->SetDesc(oStructDesc);
+                        instance->DStructGDL::SetDesc(oStructDesc);
                         //delete nStructDesc; // auto_ptr
                     }
                 }

@@ -3965,7 +3965,7 @@ namespace lib {
 	    if( oStructDesc != nStructDesc)
 	      {
 		oStructDesc->AssureIdentical(nStructDesc);
-		instance->SetDesc(oStructDesc);
+		instance->DStructGDL::SetDesc(oStructDesc);
 		//delete nStructDesc; // auto_ptr
 	      }
 	  }

@@ -1,53 +1,7 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
- <DocsAndViews NumberOfDocuments="15" >
-  <Doc0 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/GDLInterpreter.cpp" >
-   <View0 line="889" Type="Source" />
-  </Doc0>
-  <Doc1 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/envt.hpp" >
-   <View0 line="77" Type="Source" />
-  </Doc1>
-  <Doc2 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/dpro.hpp" >
-   <View0 line="235" Type="Source" />
-  </Doc2>
-  <Doc3 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/basic_fun.cpp" >
-   <View0 line="1142" Type="Source" />
-  </Doc3>
-  <Doc4 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/antlr/ASTRefCount.hpp" >
-   <View0 line="54" Type="Source" />
-  </Doc4>
-  <Doc5 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/GDLTreeParser.cpp" >
-   <View0 line="4807" Type="Source" />
-  </Doc5>
-  <Doc6 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/arrayindex.cpp" >
-   <View0 line="63" Type="Source" />
-  </Doc6>
-  <Doc7 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/dcompiler.cpp" >
-   <View0 line="459" Type="Source" />
-  </Doc7>
-  <Doc8 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/dpro.cpp" >
-   <View0 line="212" Type="Source" />
-  </Doc8>
-  <Doc9 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/datalistt.hpp" >
-   <View0 line="80" Type="Source" />
-  </Doc9>
-  <Doc10 NumberOfViews="1" URL="file:///usr/include/c%2B%2B/4.1.1/bits/stl_vector.h" >
-   <View0 line="425" Type="Source" />
-  </Doc10>
-  <Doc11 NumberOfViews="1" URL="file:///usr/include/c%2B%2B/4.1.1/bits/stl_iterator.h" >
-   <View0 line="808" Type="Source" />
-  </Doc11>
-  <Doc12 NumberOfViews="1" URL="file:///usr/include/c%2B%2B/4.1.1/bits/vector.tcc" >
-   <View0 line="385" Type="Source" />
-  </Doc12>
-  <Doc13 NumberOfViews="1" URL="file:///usr/include/c%2B%2B/4.1.1/bits/stl_algobase.h" >
-   <View0 line="212" Type="Source" />
-  </Doc13>
-  <Doc14 NumberOfViews="1" URL="file:///usr/include/c%2B%2B/4.1.1/ext/new_allocator.h" >
-   <View0 line="87" Type="Source" />
-  </Doc14>
- </DocsAndViews>
+ <DocsAndViews NumberOfDocuments="0" />
  <pluginList>
   <kdevdebugger>
    <breakpointList>
@@ -68,11 +22,11 @@
      <mark line="889" />
      <mark line="574" />
     </bookmark>
-    <bookmark url="/usr/local/home/marc/gdl/src/dcompiler.cpp" >
-     <mark line="459" />
-    </bookmark>
     <bookmark url="/usr/local/home/marc/gdl/src/basic_fun.cpp" >
      <mark line="1142" />
+    </bookmark>
+    <bookmark url="/usr/local/home/marc/gdl/src/dcompiler.cpp" >
+     <mark line="459" />
     </bookmark>
     <bookmark url="/usr/local/home/marc/gdl/src/datalistt.hpp" >
      <mark line="79" />

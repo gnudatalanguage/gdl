@@ -321,6 +321,9 @@ s4=[sss,sss]
 s5=[[s4],[s4]]
 if s5[1,1].sss.ss.s[3] ne 3 then print,'***STRUCT: ERROR11'
 
+a = {a0, var1: 0, var2: 0.0d0}
+b = {a0, '0L', ' 1.0'}
+
 print,'STRUCT: OK'
 end
 

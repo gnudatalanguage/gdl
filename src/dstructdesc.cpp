@@ -94,7 +94,11 @@ void DStructDesc::AssureIdentical( DStructDesc* d)
 			      " tag dimension "
 			      "differs in redefinition.");
 	} 
-      if( tags[i]->Type() != d->tags[i]->Type())
+
+      // tag type is converted for convertable types
+      if( (!ConvertableType( tags[i]->Type()) || 
+	   !ConvertableType( d->tags[i]->Type())) && 
+	  tags[i]->Type() != d->tags[i]->Type())
 	{
 	  throw GDLException( "STRUCT: "+name+": "+TagName(i)+
 			      " tag type differs in redefinition.");

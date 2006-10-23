@@ -90,6 +90,11 @@ inline bool NumericType( DType t) // Float or Int or Complex
   int o = DTypeOrder[ t];
   return (o >= 2 && o <= 11);
 }
+inline bool ConvertableType( DType t) // everything except Struct, Ptr, Obj
+{
+  int o = DTypeOrder[ t];
+  return (o >= 1 && o <= 11);
+}
 
 class   BaseGDL;
 class   ArrayIndexListT;

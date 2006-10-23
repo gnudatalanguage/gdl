@@ -104,6 +104,10 @@ public:
 
   // assignment. 
   //  DStructGDL& operator=(const DStructGDL& right);
+  
+  // used for named struct definition 
+  // (GDLInterpreter, basic_fun (create_struct))
+  void SetDesc( DStructDesc* newDesc); 
 
   DStructGDL* CShift( DLong d);
   DStructGDL* CShift( DLong d[MAXRANK]);
