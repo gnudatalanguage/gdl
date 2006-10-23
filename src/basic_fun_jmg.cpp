@@ -718,7 +718,7 @@ namespace lib {
 
 	return new DIntGDL( 1);
       }
-    }
+    } else return new DStringGDL("");
   }
     
 } // namespace
