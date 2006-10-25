@@ -718,7 +718,35 @@ namespace lib {
 
 	return new DIntGDL( 1);
       }
-    } else return new DStringGDL("");
+    } else {
+      // Get Compiled Procedures & Functions 
+      DLong n = proList.size() + funList.size() + 1;
+
+      // Add $MAIN$ to list
+      deque<DString> pfList;
+      pfList.push_back("$MAIN$");
+
+      // Procedures
+      for( ProListT::iterator i=proList.begin(); i != proList.end(); i++) {
+	pfList.push_back((*i)->ObjectName());
+      }
+
+      // Functions
+      for( FunListT::iterator i=funList.begin(); i != funList.end(); i++) {
+	pfList.push_back((*i)->ObjectName());
+      }
+
+      // Sort
+      sort( pfList.begin(), pfList.end());
+
+      // Fill return variable
+      dimension dim(&n, (size_t) 1);
+      DStringGDL* res = new DStringGDL(dim, BaseGDL::NOZERO);
+      for( SizeT i = 0; i<n; ++i) {
+	(*res)[i] = pfList[ i];
+      }
+      return res;
+    }
   }
     
 } // namespace
