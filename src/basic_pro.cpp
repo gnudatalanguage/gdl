@@ -168,6 +168,10 @@ namespace lib {
 	  n += nTags;
 	}
       }
+
+      // Add space for compiled procedures & functions
+      n += 4;
+
       outputKW = &e->GetKW( outputIx);
       delete (*outputKW);
       dimension dim(&n, (size_t) 1);
@@ -178,7 +182,44 @@ namespace lib {
     if( outputKW == NULL)
       cout << dec;
 
-    SizeT n = 0;
+    // Compiled Procedures & Functions
+    deque<DString> pList;
+    DLong np = proList.size() + 1;
+    pList.push_back("$MAIN$");
+    for( ProListT::iterator i=proList.begin(); i != proList.end(); i++)
+      pList.push_back((*i)->ObjectName());
+    sort( pList.begin(), pList.end());
+
+    deque<DString> fList;
+    DLong nf = funList.size();
+    for( FunListT::iterator i=funList.begin(); i != funList.end(); i++)
+      fList.push_back((*i)->ObjectName());
+    sort( fList.begin(), fList.end());
+
+    SizeT nOut = 0;
+
+    if (outputKW == NULL) {
+      cout << "Compiled Procedures:" << endl;
+      for( SizeT i=0; i<np; i++) cout << pList[i] << " ";
+      cout << endl << endl;
+      cout << "Compiled Functions:" << endl;
+      for( SizeT i=0; i<nf; i++) cout << fList[i] << " ";
+      cout << endl << endl;
+    } else {
+      std::ostringstream ostr[4];
+      ostr[0] << "Compiled Procedures:";
+      (*(DStringGDL *) *outputKW)[nOut++] = ostr[0].rdbuf()->str();
+
+      for( SizeT i=0; i<np; i++) ostr[1] << pList[i] << " ";
+      (*(DStringGDL *) *outputKW)[nOut++] = ostr[1].rdbuf()->str();
+
+      ostr[2] << "Compiled Functions:";
+      (*(DStringGDL *) *outputKW)[nOut++] = ostr[2].rdbuf()->str();
+
+      for( SizeT i=0; i<nf; i++) ostr[3] << fList[i] << " ";
+      (*(DStringGDL *) *outputKW)[nOut++] = ostr[3].rdbuf()->str();
+    }
+
     for( SizeT i=0; i<nParam; i++)
       {
 	BaseGDL*& par=e->GetPar( i);
@@ -193,7 +234,7 @@ namespace lib {
 	      // else send to string stream & store in outputKW (remove CR)
 	      std::ostringstream ostr;
 	      help_item( ostr, par, parString, false);
-	      (*(DStringGDL *) *outputKW)[n++] = 
+	      (*(DStringGDL *) *outputKW)[nOut++] = 
 		ostr.rdbuf()->str().erase(ostr.rdbuf()->str().length()-1,1); 
 	    }
           }
@@ -217,14 +258,14 @@ namespace lib {
 	      ostr << "** Structure ";
 	      ostr << (s->Desc()->IsUnnamed()? "<Anonymous> " : s->Desc()->Name());
 	      ostr << ", " << nTags << " tags:";
-	      (*(DStringGDL *) *outputKW)[n++] = ostr.rdbuf()->str();
+	      (*(DStringGDL *) *outputKW)[nOut++] = ostr.rdbuf()->str();
 	      ostr.seekp(0);
 
 	      for (SizeT t=0; t < nTags; ++t)
 		{    
 		  DString tagString = s->Desc()->TagName(t);
 		  help_item( ostr, s->Get(t,0), tagString, true);
-		  (*(DStringGDL *) *outputKW)[n++] = 
+		  (*(DStringGDL *) *outputKW)[nOut++] = 
 		    ostr.rdbuf()->str().erase(ostr.rdbuf()->str().length()-1,1);
 		  ostr.seekp(0);
 		}
@@ -240,6 +281,9 @@ namespace lib {
 
     if( nParam == 0 && !kw)
       {
+	if (outputKW != NULL)
+	  e->Throw( "OUTPUT keyword not yet supported without parameters.");
+
 	routinesKW = true;
 	briefKW = true;
 
