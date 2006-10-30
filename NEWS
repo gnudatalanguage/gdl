@@ -157,14 +157,18 @@
 	  Support for XDR I/O
           Fixed positional index (value and dimension) returned by STREGEX.
 	  HELP without parameters and keywords puts out a list of all local
-	  variables.
+	  variables as well as compiled procedures and functions.
 	  Made GDL compile under x86_64 linux.
 	  Fixed incompatibility with # operator and one-dim vectors.
 	  Speedup for ^ operator for integral types.
 	  Speedup (>100x!) for REVERSE_INDICES of HISTOGRAM.
+	  Implement INPUT keyword in HISTOGRAM
 	  Support for non-rectangular (x,y 2d arrays) calls to SURFACE and
 	  CONTOUR.
 	  Support for DICOM files (GDLffDICOM object).
 	  INTEGER keyword for TOTAL
+	  Add support for CHANNEL keyword in TV/TVSCL
+	  Add REGEX keyword support to STRTOK
+	  Add preliminary support for MPI
 	  Preliminary support for map projections. (requires libproj4 from
 	  %http://members.verizon.net/~vze2hc4d/proj4/lbp4_050319S.tar.gz)
