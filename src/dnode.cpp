@@ -59,10 +59,18 @@ DNode::DNode( const DNode& cp):
 {
   if( cp.cData != NULL) cData = cp.cData->Dup();
   if( cp.arrIxList != NULL)
-    arrIxList = new ArrayIndexListT( *cp.arrIxList);
+    arrIxList = cp.arrIxList->Clone();
+//     arrIxList = new ArrayIndexListT( *cp.arrIxList);
 
   initInt = cp.initInt;
 }
+
+ArrayIndexListT* DNode::CloneArrIxList() 
+  { 
+    if( arrIxList == NULL) 
+      return NULL;
+    return arrIxList->Clone();
+  }
 
 void DNode::ResetCData( BaseGDL* newCData)
 { 
@@ -193,6 +201,7 @@ ProgNode::ProgNode( const RefDNode& refNode):
   libFun( refNode->libFun),
   var( refNode->var),
   arrIxList( refNode->StealArrIxList()),
+//   arrIxList( refNode->CloneArrIxList()),
   labelStart( refNode->labelStart),
   labelEnd( refNode->labelEnd)
 {

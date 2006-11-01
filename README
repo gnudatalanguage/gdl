@@ -106,12 +106,12 @@ is necessary. To download plplot please look at:
 http://plplot.sourceforge.net/source/index.html
 
 Furthermore you need the GNU Scientific Library.
-Joel Gales has start using it to implement GDL library routines.  
+(Note that version 1.1.1 was reported to NOT work with GDL)
 You find it at:
 http://www.gnu.org/software/gsl
 
 The HDF4 format is (not completely yet) supported (thanks to Joel
-Gales). If you want to use it, you need the HDF library (her HDF
+Gales). If you want to use it, you need the HDF library (here HDF
 always means version 4).
 Note that if you plan to use netCDF also, it might be necessary to
 install HDF4 before netCDF due to same named but different header

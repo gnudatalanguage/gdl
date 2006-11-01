@@ -1276,6 +1276,22 @@ assignment
 //                     r_guard.release();
 //             }
         )
+//     | #(ASSIGN_INPLACE // ;=, *=, ...
+//             {
+//                  ProgNodeP op = _t;
+//                 _t = _t->getNextSibling();
+//             }
+//             ( r=indexable_expr
+//             | r=indexable_tmp_expr { r_guard.reset( r);}
+//             | r=check_expr
+//                 {
+//                     if( !callStack.back()->Contains( r)) 
+//                         r_guard.reset( r); // guard if no global data
+//                 }
+//             )
+// // don't forget ASSIGN_EXPR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//             l=l_inplace_expr[ op, r]
+//         )
     | #(ASSIGN_REPLACE 
             ( r=tmp_expr
                 {
@@ -1852,10 +1868,38 @@ l_expr [BaseGDL* right] returns [BaseGDL** res]
                 }
             }
         ) // trinary operator
-    | #(ASSIGN e1=expr
-            { 
-                auto_ptr<BaseGDL> r_guard;
-            } 
+//     | #(ASSIGN //???e1=expr
+//             { 
+//                 auto_ptr<BaseGDL> r_guard;
+//             } 
+// //             ( e1=tmp_expr
+// //                 {
+// //                     r_guard.reset( e1);
+// //                 }
+// //             | e1=check_expr
+// //                 {
+// //                     if( !callStack.back()->Contains( e1)) 
+// //                         r_guard.reset( e1);
+// //                 }
+// //             )
+//             ( e1=indexable_expr
+//             | e1=indexable_tmp_expr { r_guard.reset( e1);}
+//             | e1=check_expr
+//                 {
+//                     if( !callStack.back()->Contains( e1)) 
+//                         r_guard.reset( e1); // guard if no global data
+//                 }
+//             )
+//             res=l_expr[ e1]
+// //             {
+// //                 if( (*res) == e1 || callStack.back()->Contains( e1)) 
+// //                     r_guard.release();
+// //             }
+//         )
+//     | #(ASSIGN_REPLACE //???e1=expr
+//             { 
+//                 auto_ptr<BaseGDL> r_guard;
+//             } 
 //             ( e1=tmp_expr
 //                 {
 //                     r_guard.reset( e1);
@@ -1866,51 +1910,23 @@ l_expr [BaseGDL* right] returns [BaseGDL** res]
 //                         r_guard.reset( e1);
 //                 }
 //             )
-            ( e1=indexable_expr
-            | e1=indexable_tmp_expr { r_guard.reset( e1);}
-            | e1=check_expr
-                {
-                    if( !callStack.back()->Contains( e1)) 
-                        r_guard.reset( e1); // guard if no global data
-                }
-            )
-            res=l_expr[ e1]
+//             (
+//               res=l_function_call   // FCALL_LIB, MFCALL, MFCALL_PARENT, FCALL
+//             | res=l_deref           // DEREF
+//             | res=l_simple_var      // VAR, VARPTR
+//             )
+//         {
+//             if( e1 != (*res))
 //             {
-//                 if( (*res) == e1 || callStack.back()->Contains( e1)) 
-//                     r_guard.release();
-//             }
-        )
-    | #(ASSIGN_REPLACE e1=expr
-            { 
-                auto_ptr<BaseGDL> r_guard;
-            } 
-            ( e1=tmp_expr
-                {
-                    r_guard.reset( e1);
-                }
-            | e1=check_expr
-                {
-                    if( !callStack.back()->Contains( e1)) 
-                        r_guard.reset( e1);
-                }
-            )
-            (
-              res=l_function_call   // FCALL_LIB, MFCALL, MFCALL_PARENT, FCALL
-            | res=l_deref           // DEREF
-            | res=l_simple_var      // VAR, VARPTR
-            )
-        {
-            if( e1 != (*res))
-            {
-                delete *res;
+//                 delete *res;
 
-                if( r_guard.get() == e1)
-                  *res = r_guard.release();
-                else  
-                  *res = right->Dup();
-            }
-        }
-        )
+//                 if( r_guard.get() == e1)
+//                   *res = r_guard.release();
+//                 else  
+//                   *res = right->Dup();
+//             }
+//         }
+//         )
     | res=l_array_expr[ right]
     | { ProgNodeP sysVar = _t;} // for error reporting
         res=l_sys_var // sysvars cannot change their type
@@ -2569,23 +2585,23 @@ indexable_tmp_expr returns [BaseGDL* res]
 {
     BaseGDL*  e1;
 }
-	: #(QUESTION e1=expr
-            { 
-                auto_ptr<BaseGDL> e1_guard(e1);
+	: #(q:QUESTION 
+            { res = q->Eval(); }
+//                 e1=expr
+//             { 
+//                 auto_ptr<BaseGDL> e1_guard(e1);
 
-                if( e1->True())
-                {   
-                    res=expr(_t);
-                }
-                else
-                {
-                    _t=_t->GetNextSibling(); // jump over 1st expression
-                    res=expr(_t);
-                }
-            }
+//                 if( e1->True())
+//                 {   
+//                     res=expr(_t);
+//                 }
+//                 else
+//                 {
+//                     _t=_t->GetNextSibling(); // jump over 1st expression
+//                     res=expr(_t);
+//                 }
+//             }
         ) // trinary operator
-        // note: still potentially very slow as copying of
-        // data is done in any case
     | res=array_expr
     | res=dot_expr
     | res=assign_expr
@@ -2640,20 +2656,22 @@ tmp_expr returns [BaseGDL* res]
             
             res = (*e2)->Dup();
         }
-	| #(QUESTION e1=expr
-            { 
-                auto_ptr<BaseGDL> e1_guard(e1);
+	| #(q:QUESTION 
+            { res = q->Eval();}
+//                 e1=expr
+//             { 
+//                 auto_ptr<BaseGDL> e1_guard(e1);
 
-                if( e1->True())
-                {
-                    res=expr(_t);
-                }
-                else
-                {
-                    _t=_t->GetNextSibling(); // jump over 1st expression
-                    res=expr(_t);
-                }
-            }
+//                 if( e1->True())
+//                 {
+//                     res=expr(_t);
+//                 }
+//                 else
+//                 {
+//                     _t=_t->GetNextSibling(); // jump over 1st expression
+//                     res=expr(_t);
+//                 }
+//             }
         ) // trinary operator
     | res=array_expr
     | res=dot_expr

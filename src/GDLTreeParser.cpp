@@ -6425,7 +6425,7 @@ void GDLTreeParser::tag_array_expr(RefDNode _t) {
 
 void GDLTreeParser::initializeASTFactory( antlr::ASTFactory& factory )
 {
-	factory.setMaxNodeType(202);
+	factory.setMaxNodeType(203);
 }
 const char* GDLTreeParser::tokenNames[] = {
 	"<0>",
@@ -6434,6 +6434,7 @@ const char* GDLTreeParser::tokenNames[] = {
 	"NULL_TREE_LOOKAHEAD",
 	"ALL",
 	"ASSIGN",
+	"ASSIGN_INPLACE",
 	"ASSIGN_REPLACE",
 	"ARRAYDEF",
 	"ARRAYIX",
@@ -6634,14 +6635,14 @@ const char* GDLTreeParser::tokenNames[] = {
 	0
 };
 
-const unsigned long GDLTreeParser::_tokenSet_0_data_[] = { 2031648UL, 67174448UL, 4227900416UL, 16089087UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLTreeParser::_tokenSet_0_data_[] = { 4063264UL, 134348896UL, 4160833536UL, 32178175UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN BLOCK BREAK CONTINUE COMMONDECL COMMONDEF MPCALL MPCALL_PARENT 
 // PCALL RETURN "switch" "case" "forward_function" DEC INC AND_OP_EQ ASTERIX_EQ 
 // EQ_OP_EQ GE_OP_EQ GTMARK_EQ GT_OP_EQ LE_OP_EQ LTMARK_EQ LT_OP_EQ MATRIX_OP1_EQ 
 // MATRIX_OP2_EQ MINUS_EQ MOD_OP_EQ NE_OP_EQ OR_OP_EQ PLUS_EQ POW_EQ SLASH_EQ 
 // XOR_OP_EQ "repeat" "while" "for" "goto" "on_ioerror" "if" 
 const antlr::BitSet GDLTreeParser::_tokenSet_0(_tokenSet_0_data_,8);
-const unsigned long GDLTreeParser::_tokenSet_1_data_[] = { 2237710496UL, 3759686208UL, 4227858433UL, 134250495UL, 0UL, 33554427UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLTreeParser::_tokenSet_1_data_[] = { 180453664UL, 3224405121UL, 4160749571UL, 268500991UL, 0UL, 67108854UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN ARRAYDEF ARRAYEXPR ARRAYEXPR_FN CONSTANT DEREF EXPR FCALL KEYDEF 
 // MFCALL MFCALL_PARENT NSTRUC_REF POSTDEC POSTINC STRUC SYSVAR UMINUS 
 // VAR DEC INC AND_OP_EQ ASTERIX_EQ EQ_OP_EQ GE_OP_EQ GTMARK_EQ GT_OP_EQ 
@@ -6650,7 +6651,7 @@ const unsigned long GDLTreeParser::_tokenSet_1_data_[] = { 2237710496UL, 3759686
 // POW MATRIX_OP1 MATRIX_OP2 "mod" PLUS MINUS LTMARK GTMARK "not" LOG_NEG 
 // "eq" "ne" "le" "lt" "ge" "gt" "and" "or" "xor" LOG_AND LOG_OR QUESTION 
 const antlr::BitSet GDLTreeParser::_tokenSet_1(_tokenSet_1_data_,12);
-const unsigned long GDLTreeParser::_tokenSet_2_data_[] = { 90226848UL, 3759686208UL, 4227858433UL, 134250495UL, 0UL, 33554427UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLTreeParser::_tokenSet_2_data_[] = { 180453664UL, 3224405120UL, 4160749571UL, 268500991UL, 0UL, 67108854UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN ARRAYDEF ARRAYEXPR ARRAYEXPR_FN CONSTANT DEREF EXPR FCALL MFCALL 
 // MFCALL_PARENT NSTRUC_REF POSTDEC POSTINC STRUC SYSVAR UMINUS VAR DEC 
 // INC AND_OP_EQ ASTERIX_EQ EQ_OP_EQ GE_OP_EQ GTMARK_EQ GT_OP_EQ LE_OP_EQ 

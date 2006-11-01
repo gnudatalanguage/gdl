@@ -61,6 +61,7 @@ options {
 tokens {
 	ALL;		// arrayindex (*, e.g. [1:*])
 	ASSIGN;
+	ASSIGN_INPLACE;
 	ASSIGN_REPLACE;
 	ARRAYDEF;
 	ARRAYIX;

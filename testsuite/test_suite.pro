@@ -585,17 +585,20 @@ b[1]++
 
 if b[1] ne 4 then print,"***INC: ERROR2"
 
+b[[1,2]]+=1
+if b[1] ne 5 then print,"***INC: ERROR3"
+
 (a=2)++
-if a ne 3 then print,'***SYNTAX_TEST: ERROR1'
+if a ne 3 then print,'***INC_TEST: ERROR4'
 
 ((a=2))++
-if a ne 3 then print,'***SYNTAX_TEST: ERROR1'
+if a ne 3 then print,'***INC_TEST: ERROR5'
 
 ++(a=2)
-if a ne 3 then print,'***SYNTAX_TEST: ERROR1'
+if a ne 3 then print,'***INC_TEST: ERROR6'
 
 ++((a=2))
-if a ne 3 then print,'***SYNTAX_TEST: ERROR1'
+if a ne 3 then print,'***INC_TEST: ERROR7'
 
 print,'INC: OK'
 end
@@ -823,6 +826,10 @@ a=indgen(3,3)
 t[1]=a
 if t[3,0] ne 2 then print,"***ASSIGNMENT: ERROR6"
 
+a=(1?0:9)
+b=0
+(1?a:b) = 2
+if a ne 2 then print,"***ASSIGNMENT: ERROR7"
 
 
 print,"ASSIGNMENT: OK"

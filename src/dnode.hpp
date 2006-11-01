@@ -272,6 +272,7 @@ private:
   BaseGDL* StealCData() { BaseGDL* res = cData; cData=NULL; return res;}
   ArrayIndexListT* StealArrIxList() 
   { ArrayIndexListT* res = arrIxList; arrIxList=NULL; return res;}
+  ArrayIndexListT* CloneArrIxList(); 
 
   //  RefDNode down;
   //  RefDNode right;
@@ -468,7 +469,7 @@ public:
     op1 = GetFirstChild();
     op2 = GetFirstChild()->GetNextSibling();
     op3 = GetFirstChild()->GetNextSibling()->GetNextSibling();
-    setType( GDLTokenTypes::EXPR);
+    //    setType( GDLTokenTypes::EXPR); Can be l_expr!!!
   }
   //  int getType() { return GDLTokenTypes::EXPR;}
 };

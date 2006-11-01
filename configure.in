@@ -560,7 +560,7 @@ dnl    AC_MSG_ERROR(unknown system type ${host}.)
 dnl    ;;
 esac
 
-dnl for src/Makefile.am: OS X linked does not know -z
+dnl for src/Makefile.am: OS X linker does not know -z
 AM_CONDITIONAL(DARWIN, test "x$DARWIN" = "xyes")
 
 

@@ -937,6 +937,56 @@ RefDNode l;
         }
     ;
 
+
+
+// NEW for correct behaviour
+// comp_assign_expr!//
+// {
+// RefDNode l;
+// }
+//     : 
+//       #(a1:AND_OP_EQ l1:lassign_expr r1:expr) 
+//         { #comp_assign_expr=#([ASSIGN_INPLACE,"op="],a1,r1,l1);}
+//     | #(a2:ASTERIX_EQ l2:lassign_expr r2:expr) 
+//         { #comp_assign_expr=#([ASSIGN_INPLACE,"op="],a2,r2,l2);}
+//     | #(a3:EQ_OP_EQ l3:lassign_expr r3:expr) 
+//         { #comp_assign_expr=#([ASSIGN_INPLACE,"op="],a3,r3,l3);}
+//     | #(a4:GE_OP_EQ l4:lassign_expr r4:expr) 
+//         { #comp_assign_expr=#([ASSIGN_INPLACE,"op="],a4,r4,l4);}
+//     | #(a5:GTMARK_EQ l5:lassign_expr r5:expr) 
+//         { #comp_assign_expr=#([ASSIGN_INPLACE,"op="],a5,r5,l5);}
+//     | #(a6:GT_OP_EQ l6:lassign_expr r6:expr) 
+//         { #comp_assign_expr=#([ASSIGN_INPLACE,"op="],a6,r6,l6);}
+//     | #(a7:LE_OP_EQ l7:lassign_expr r7:expr) 
+//         { #comp_assign_expr=#([ASSIGN_INPLACE,"op="],a7,r7,l7);}
+//     | #(a8:LTMARK_EQ l8:lassign_expr r8:expr) 
+//         { #comp_assign_expr=#([ASSIGN_INPLACE,"op="],a8,r8,l8);}
+//     | #(a9:LT_OP_EQ l9:lassign_expr r9:expr) 
+//         { #comp_assign_expr=#([ASSIGN_INPLACE,"op="],a9,r9,l9);}
+//     | #(a10:MATRIX_OP1_EQ l10:lassign_expr r10:expr) 
+//         { #comp_assign_expr=#([ASSIGN_INPLACE,"op="],a10,r10,l10);}
+//     | #(a11:MATRIX_OP2_EQ l11:lassign_expr r11:expr) 
+//         { #comp_assign_expr=#([ASSIGN_INPLACE,"op="],a11,r11,l11);}
+//     | #(a12:MINUS_EQ l12:lassign_expr r12:expr) 
+//         { #comp_assign_expr=#([ASSIGN_INPLACE,"op="],a12,r12,l12);}
+//     | #(a13:MOD_OP_EQ l13:lassign_expr r13:expr) 
+//         { #comp_assign_expr=#([ASSIGN_INPLACE,"op="],a13,r13,l13);}
+//     | #(a14:NE_OP_EQ l14:lassign_expr r14:expr) 
+//         { #comp_assign_expr=#([ASSIGN_INPLACE,"op="],a14,r14,l14);}
+//     | #(a15:OR_OP_EQ l15:lassign_expr r15:expr) 
+//         { #comp_assign_expr=#([ASSIGN_INPLACE,"op="],a15,r15,l15);}
+//     | #(a16:PLUS_EQ l16:lassign_expr r16:expr) 
+//         { #comp_assign_expr=#([ASSIGN_INPLACE,"op="],a16,r15,l16);}
+//     | #(a17:POW_EQ l17:lassign_expr r17:expr) 
+//         { #comp_assign_expr=#([ASSIGN_INPLACE,"op="],a17,r17,l17);}
+//     | #(a18:SLASH_EQ l18:lassign_expr r18:expr) 
+//         { #comp_assign_expr=#([ASSIGN_INPLACE,"op="],a18,r18,l18);}
+//     | #(a19:XOR_OP_EQ l19:lassign_expr r19:expr) 
+//         { #comp_assign_expr=#([ASSIGN_INPLACE,"op="],a19,r19,l19);}
+//     ;
+
+
+
 // the expressions *************************************/
 
 // system variables have as variable ptr NULL initially

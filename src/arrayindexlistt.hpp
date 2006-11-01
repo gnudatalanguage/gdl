@@ -41,6 +41,8 @@ public:
   
   virtual void Clear() {}
 
+  virtual ArrayIndexListT* Clone() { assert( 0); return NULL;}
+
   virtual void Init( IxExprListT& ix) { assert( 0);}
   virtual void Init() {}
   
@@ -120,6 +122,8 @@ public:
     
     ix->Clear();
   }
+
+  ArrayIndexListT* Clone() { return new ArrayIndexListOneT( *this);}
 
   void Init( IxExprListT& ix_)
   {
@@ -336,6 +340,8 @@ public:
   void Clear()
   {}
 
+  ArrayIndexListT* Clone() { return new ArrayIndexListOneScalarT( *this);}
+
   void Init() {}
 
   // requires special handling
@@ -441,6 +447,8 @@ public:
   
   void Clear()
   {}
+
+  ArrayIndexListT* Clone() { return new ArrayIndexListOneScalarVPT( *this);}
 
   void Init() {}
 
@@ -578,6 +586,8 @@ public:
   
   void Clear()
   {}
+
+  ArrayIndexListT* Clone() { return new ArrayIndexListOneConstScalarT( *this);}
 
   void Init()
   {}
@@ -783,6 +793,9 @@ public:
 // 	ixList[ paramPresent[i]]->Init( ix[ i]);
 //       }
 //   }
+
+  ArrayIndexListT* Clone() { return new ArrayIndexListScalarT( *this);}
+
 
   void Init()
   {}
@@ -1045,6 +1058,9 @@ public:
     for( ArrayIndexVectorT::iterator i=ixList.begin(); i != ixList.end(); ++i)
       {	(*i)->Clear();}
   }
+
+  ArrayIndexListT* Clone() { return new ArrayIndexListMultiT( *this);}
+
 
   void Init( IxExprListT& ix)
   {
