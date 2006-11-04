@@ -104,6 +104,8 @@
 ;   Handle case of VALUES exactly hitting REF points, CM, 13 Oct 2001
 ;   19-Oct-2006 - modified to return array with same dimensions as
 ;    second argument as with the IDL intrinsic
+;   1-nov-2006, ras, protect against differing input dimensions
+;	causing concatenation problems
 ; 
 ;  
 ;
@@ -124,7 +126,7 @@ one = y64 ? 1LL : 1L
 nx  = n_elements(x) + one
 nu  = n_elements(u)*one
 mm  = (last_item(x) > max(u) )*1.01
-xx  = [x,mm]
+xx  = [x[*],mm[*]]
 c   = [xx, u[*]]
 
 ord = sort(c)
@@ -163,8 +165,10 @@ function value_locate, x, u, l64=l64
 ;increasing or decreasing
 default, l64,0
 
-out = make_array( long = 1-l64, l64 = l64, dim=size(/dim, u))
-return, out +( last_item(x) lt x[0] ? n_elements(x)-2- val_loc_inc(reverse(x), u, l64=l64): $
-	val_loc_inc(x, u, l64=l64))
-	
+out = is_scalar(u) ? 0 : make_array( long = 1-l64, l64 = l64, dim=size(/dim, u))
+temp = (last_item(x) lt x[0]) ? n_elements(x)-2- val_loc_inc(reverse(x), u, l64=l64) : $
+	val_loc_inc(x, u, l64=l64)
+
+out = out + temporary( temp)
+return, out
 end
