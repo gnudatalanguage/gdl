@@ -887,6 +887,8 @@ assign_expr!
 
 /// *** to be done (ASSIGN_REPLACE)
 // +=, *=, ...
+// ATTENTION: This gives a different result than IDL on something like:
+// a=intarr(3)&i=1&a[[i++]]+=1&print,i,a
 comp_assign_expr!//
 {
 RefDNode l;

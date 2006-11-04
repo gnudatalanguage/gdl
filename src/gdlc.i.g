@@ -1868,35 +1868,7 @@ l_expr [BaseGDL* right] returns [BaseGDL** res]
                 }
             }
         ) // trinary operator
-//     | #(ASSIGN //???e1=expr
-//             { 
-//                 auto_ptr<BaseGDL> r_guard;
-//             } 
-// //             ( e1=tmp_expr
-// //                 {
-// //                     r_guard.reset( e1);
-// //                 }
-// //             | e1=check_expr
-// //                 {
-// //                     if( !callStack.back()->Contains( e1)) 
-// //                         r_guard.reset( e1);
-// //                 }
-// //             )
-//             ( e1=indexable_expr
-//             | e1=indexable_tmp_expr { r_guard.reset( e1);}
-//             | e1=check_expr
-//                 {
-//                     if( !callStack.back()->Contains( e1)) 
-//                         r_guard.reset( e1); // guard if no global data
-//                 }
-//             )
-//             res=l_expr[ e1]
-// //             {
-// //                 if( (*res) == e1 || callStack.back()->Contains( e1)) 
-// //                     r_guard.release();
-// //             }
-//         )
-//     | #(ASSIGN_REPLACE //???e1=expr
+    | #(ASSIGN //???e1=expr
 //             { 
 //                 auto_ptr<BaseGDL> r_guard;
 //             } 
@@ -1910,23 +1882,57 @@ l_expr [BaseGDL* right] returns [BaseGDL** res]
 //                         r_guard.reset( e1);
 //                 }
 //             )
-//             (
-//               res=l_function_call   // FCALL_LIB, MFCALL, MFCALL_PARENT, FCALL
-//             | res=l_deref           // DEREF
-//             | res=l_simple_var      // VAR, VARPTR
-//             )
-//         {
-//             if( e1 != (*res))
-//             {
-//                 delete *res;
+            ( e1=indexable_expr
+            | e1=indexable_tmp_expr { delete e1;}
+//            | e1=indexable_tmp_expr { r_guard.reset( e1);}
+            | e1=check_expr
+                {
+                    if( !callStack.back()->Contains( e1)) 
+                        delete e1; // guard if no global data
+//                        r_guard.reset( e1); // guard if no global data
+                }
+            )
 
-//                 if( r_guard.get() == e1)
-//                   *res = r_guard.release();
-//                 else  
-//                   *res = right->Dup();
+            res=l_expr[ right]
+//             {
+//                 if( (*res) == e1 || callStack.back()->Contains( e1)) 
+//                     r_guard.release();
 //             }
-//         }
-//         )
+        )
+    | #(ASSIGN_REPLACE //???e1=expr
+//             { 
+//                 auto_ptr<BaseGDL> r_guard;
+//             } 
+            ( e1=tmp_expr
+                {
+                    delete e1;
+//                    r_guard.reset( e1);
+                }
+            | e1=check_expr
+                {
+                    if( !callStack.back()->Contains( e1)) 
+                        delete e1;
+//                        r_guard.reset( e1);
+                }
+            )
+            (
+              res=l_function_call   // FCALL_LIB, MFCALL, MFCALL_PARENT, FCALL
+            | res=l_deref           // DEREF
+            | res=l_simple_var      // VAR, VARPTR
+            )
+        {
+            if( right != (*res))
+//            if( e1 != (*res))
+            {
+                delete *res;
+//
+//                if( r_guard.get() == e1)
+//                  *res = r_guard.release();
+//                else  
+                  *res = right->Dup();
+            }
+        }
+        )
     | res=l_array_expr[ right]
     | { ProgNodeP sysVar = _t;} // for error reporting
         res=l_sys_var // sysvars cannot change their type

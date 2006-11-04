@@ -832,6 +832,9 @@ b=0
 if a ne 2 then print,"***ASSIGNMENT: ERROR7"
 
 
+((a=3))=2
+if a ne 2 then print,"***ASSIGNMENT: ERROR8"
+
 print,"ASSIGNMENT: OK"
 end
 
