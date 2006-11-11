@@ -20274,6 +20274,33 @@ case "${host}" in
 
 esac
 
+case "${host}" in
+
+  *darwin6*)
+
+cat >>confdefs.h <<\_ACEOF
+#define OLD_DARWIN 1
+_ACEOF
+]
+    ;;
+  *darwin7*)
+
+cat >>confdefs.h <<\_ACEOF
+#define OLD_DARWIN 1
+_ACEOF
+]
+    ;;
+  *darwin8*)
+
+cat >>confdefs.h <<\_ACEOF
+#define OLD_DARWIN 1
+_ACEOF
+]
+    ;;
+esac
+
+
+
 
 
 if test "x$DARWIN" = "xyes"; then

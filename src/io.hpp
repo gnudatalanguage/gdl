@@ -75,12 +75,13 @@ public:
 
   ~GDLStream() 
   {
+    delete xdrs;
     delete fStream;
   }  
 
   void Open( const std::string& name_,
 	     std::ios_base::openmode,
-	     bool swapEndian_, bool deleteOnClose_, XDR *xdrs, 
+	     bool swapEndian_, bool deleteOnClose_, bool xdr_, 
 	     SizeT width, bool f77);
   
   void Close(); 

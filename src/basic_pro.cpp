@@ -559,10 +559,7 @@ namespace lib {
       swapEndian = e->KeywordSet( "SWAP_IF_LITTLE_ENDIAN");
     
     // xdr
-    XDR *xdrs=NULL;
-    if( e->KeywordSet( "XDR")) {
-      xdrs = new XDR;
-    }
+    bool xdr = e->KeywordSet( "XDR");
 
     if( e->KeywordSet( "APPEND")) mode |= fstream::ate;// fstream::app;
 
@@ -585,7 +582,7 @@ namespace lib {
 
     try{
       fileUnits[ lun-1].Open( name, mode, swapEndian, deleteKey, 
-			      xdrs, width, f77);
+			      xdr, width, f77);
     } 
     catch( GDLException& ex) {
       DString errorMsg = ex.toString()+" Unit: "+i2s( lun)+
@@ -694,7 +691,7 @@ namespace lib {
     ostream* os;
     bool f77 = false;
     bool swapEndian = false;
-    XDR *xdrs;
+    XDR *xdrs = NULL;
 
     bool stdLun = check_lun( e, lun);
     if( stdLun)
@@ -753,7 +750,7 @@ namespace lib {
     istream* is;
     bool f77 = false;
     bool swapEndian = false;
-    XDR *xdrs;
+    XDR *xdrs = NULL;
 
     bool stdLun = check_lun( e, lun);
     if( stdLun)

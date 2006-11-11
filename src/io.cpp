@@ -41,7 +41,7 @@ const string StreamInfo( ios* searchStream)
 
 void GDLStream::Open( const string& name_,
 		      ios_base::openmode mode_,
-		      bool swapEndian_, bool dOC, XDR *xdrs_, 
+		      bool swapEndian_, bool dOC, bool xdr_, 
 		      SizeT width_,
 		      bool f77_)
 { 
@@ -69,7 +69,10 @@ void GDLStream::Open( const string& name_,
   mode=mode_;
   swapEndian = swapEndian_;
   deleteOnClose = dOC;
-  xdrs = xdrs_;
+
+  if( xdr_)
+    xdrs = new XDR;
+
   lastSeekPos = 0;
   lastRecord = 0;
   lastRecordStart = 0;
@@ -89,7 +92,10 @@ void GDLStream::Close()
   f77=false;
   swapEndian=false;
   deleteOnClose=false;
+
+  delete xdrs;
   xdrs == NULL;
+
   width = defaultStreamWidth;
 }
 

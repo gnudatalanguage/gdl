@@ -1239,11 +1239,13 @@ int xdr_convert(XDR *xdrs, DULong *buf)
 
 int xdr_convert(XDR *xdrs, DLong64 *buf)
 {
+  throw GDLException( "XDR conversion of LONG64 not yet supported.");
   //  return (xdr_longlong(xdrs, (long long *) buf));
 }
 
 int xdr_convert(XDR *xdrs, DULong64 *buf)
 {
+  throw GDLException( "XDR conversion of ULONG64 not yet supported.");
   //  return (xdr_u_longlong(xdrs, (unsigned long long *) buf));
 }
 

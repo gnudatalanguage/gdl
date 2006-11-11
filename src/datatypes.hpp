@@ -362,7 +362,7 @@ typedef Data_<SpDComplexDbl> DComplexDblGDL;
 // DStructGDL defined separately
 
 // on OS X isfinite is not defined
-#if defined(__APPLE__) && !defined(isfinite)
+#if defined(__APPLE__) && defined(OLD_DARWIN) && !defined(isfinite)
 
 #ifdef __cplusplus
 extern "C" {
