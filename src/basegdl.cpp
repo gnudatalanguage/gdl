@@ -109,7 +109,7 @@ bool BaseGDL::Scalar() const { return false;}
 bool BaseGDL::StrictScalar() const { return false;}
 DType   BaseGDL::Type() const { return UNDEF;}
 const std::string& BaseGDL::TypeStr() const
-{ static const std::string s("UNDEF"); return s;}
+{ static const std::string s("UNDEFINED"); return s;}
 bool BaseGDL::EqType( const BaseGDL*) const
 {
   throw GDLException("BaseGDL::EqType(...) called.");

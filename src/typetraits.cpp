@@ -151,7 +151,7 @@ DType   SpDStruct::Type()    const { return t;}
 const std::string& SpDStruct::TypeStr() const { return str;}
 
 const DType   SpDPtr::t=PTR;   // type ID
-const string  SpDPtr::str("PTR"); // type string
+const string  SpDPtr::str("POINTER"); // type string
 const DPtr    SpDPtr::zero=0;  // zero ptr
 const bool SpDPtr::IS_INTEGER=false;
 const bool SpDPtr::IS_SIGNED=false;
@@ -162,7 +162,7 @@ DType   SpDPtr::Type()    const { return t;}
 const std::string& SpDPtr::TypeStr() const { return str;}
 
 const DType   SpDObj::t=OBJECT;   // type ID
-const string  SpDObj::str("OBJECT"); // type string
+const string  SpDObj::str("OBJREF"); // type string
 const DObj    SpDObj::zero=0;  // zero ptr/obj
 const bool SpDObj::IS_INTEGER=false;
 const bool SpDObj::IS_SIGNED=false;
