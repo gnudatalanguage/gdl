@@ -66,8 +66,8 @@ if test "x$with_readlinedir" != "xno"; then
   if test "x$with_readlinedir" != "xyes"; then
 dnl make sure this directory get in the path first 
 dnl as OS X provides another readline library
-    LIBS="-L$with_readlinedir/lib $LIBS -lreadline"
-    INCLUDES="$INCLUDES -I$with_readlinedir/include"
+    LIBS="-L$with_readlinedir/lib -L$with_readlinedir $LIBS -lreadline"
+    INCLUDES="$INCLUDES -I$with_readlinedir/include -I$with_readlinedir"
   else
     LIBS="$LIBS -lreadline"
   fi

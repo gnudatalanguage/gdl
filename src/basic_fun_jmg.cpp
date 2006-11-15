@@ -475,18 +475,21 @@ namespace lib {
     dimension dim;
 
     if (nParam == 1) {
-      // SizeT j=0;
-      SizeT j=1;
-      for( SizeT i=0; i<MAXRANK; ++i) {
-	if (p0->Dim(i) == 0) break;
-	if (p0->Dim(i) != 1) {
-	  j *= p0->Dim(i);
+      //      SizeT j=1;
+      for( SizeT i=0; i<p0->Rank(); ++i) {
+	//	if (p0->Dim(i) == 0) break;
+	if (p0->Dim(i) > 1)
+	  {
+	    dim << p0->Dim( i);  
+	  //	  j *= p0->Dim(i);
 	  //	  cout << j << p0->Dim(i) << endl;
 	  //	  dim.Set(j,p0->Dim(i));
 	  //j++;
-	}
+	  }
       }
-      dim.Set(0, j);
+      if( dim.Rank() == 0)
+	dim << 1;
+      //     dim.Set(0, j);
     } else arr( e, dim, 1);
 
 
