@@ -94,7 +94,7 @@ void GDLStream::Close()
   deleteOnClose=false;
 
   delete xdrs;
-  xdrs == NULL;
+  xdrs = NULL;
 
   width = defaultStreamWidth;
 }
