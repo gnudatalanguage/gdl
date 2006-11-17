@@ -158,6 +158,7 @@
           Fixed positional index (value and dimension) returned by STREGEX.
 	  HELP without parameters and keywords puts out a list of all local
 	  variables as well as compiled procedures and functions.
+	  Add support for PROCEDURES & FUNCTIONS keywords in HELP
 	  Made GDL compile under x86_64 linux.
 	  Fixed incompatibility with # operator and one-dim vectors.
 	  Speedup for ^ operator for integral types.
