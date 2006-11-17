@@ -480,7 +480,7 @@ namespace SysVar
     mapData->NewTag("SIMPLE", new DLongGDL( 0)); 
     mapData->NewTag("FILL_METHOD", new DLongGDL( 0)); 
     mapData->NewTag("UP_FLAGS", new DLongGDL( 0)); 
-    mapData->NewTag("UP_NAMES", new DStringGDL( "")); 
+    mapData->NewTag("UP_NAME", new DStringGDL( "")); 
     mapData->NewTag("P0LON", new DDoubleGDL( 0.0));  
     mapData->NewTag("P0LAT", new DDoubleGDL( 0.0));  
     mapData->NewTag("U0", new DDoubleGDL( 0.0));  
