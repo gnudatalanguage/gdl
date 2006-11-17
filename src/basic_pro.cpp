@@ -104,77 +104,62 @@ namespace lib {
   {
     bool kw = false;
 
-    if( e->KeywordSet( "INFO"))
-      {
-	kw = true;
-
-	cout << "Homepage: http://gnudatalanguage.sf.net" << endl;
-	cout << "HELP,/LIB for a list of all internal library functions/procedures." << endl;
-	cout << "Additional subroutines are written in GDL language, "
-	  "look for *.pro files." << endl;
-	cout << endl;
-      }
-
-    if( e->KeywordSet( "LIB"))
-      {
-	kw = true;
-
-	deque<DString> subList;
-	SizeT nPro = libProList.size();
-	cout << "Library procedures (" << nPro <<"):" << endl;
-	for( SizeT i = 0; i<nPro; ++i)
-	  subList.push_back(libProList[ i]->ToString());
-
-	sort( subList.begin(), subList.end());
-
-	for( SizeT i = 0; i<nPro; ++i)
-	  cout << subList[ i] << endl;
-
-	subList.clear();
-
-	SizeT nFun = libFunList.size();
-	cout << "Library functions (" << nFun <<"):" << endl;
-	for( SizeT i = 0; i<nFun; ++i)
-	  subList.push_back(libFunList[ i]->ToString());
-
-	sort( subList.begin(), subList.end());
-
-	for( SizeT i = 0; i<nFun; ++i)
-	  cout << subList[ i] << endl;
-      }
-
     bool isKWSetStructures = e->KeywordSet( "STRUCTURES");
     if( isKWSetStructures) kw = true;
 
+    bool isKWSetProcedures = e->KeywordSet( "PROCEDURES");
+    bool isKWSetFunctions  = e->KeywordSet( "FUNCTIONS");
+
+    if (isKWSetStructures && (isKWSetProcedures || isKWSetFunctions))
+	e->Throw( "Conflicting keywords.");	
 
     SizeT nParam=e->NParam();
+    std::ostringstream ostr;
+
+    // Compiled Procedures & Functions
+    DLong np = proList.size() + 1;
+    DLong nf = funList.size();
+    deque<DString> pList;
+    deque<DString> fList;
 
     // If OUTPUT keyword set then set up output string array (outputKW)
     BaseGDL** outputKW = NULL;
     static int outputIx = e->KeywordIx( "OUTPUT");
     if( e->KeywordPresent( outputIx)) {
-      SizeT n = 0;
-      // Determine the number of entries in the output array
-      for( SizeT i=0; i<nParam; i++)
-      {
-	BaseGDL*& par=e->GetPar( i);
-	DString parString = e->Caller()->GetString( par);
-	if( !par || !isKWSetStructures || par->Type() != STRUCT) {
-	  n++;
-	} else {
-	  DStructGDL* s = static_cast<DStructGDL*>( par);
-	  SizeT nTags = s->Desc()->NTags();
-	  n++;
-	  n += nTags;
+      SizeT nlines = 0;
+      if (isKWSetProcedures) {
+	nlines = np + 1;
+      } else if (isKWSetFunctions) {
+	nlines = nf + 1;
+      } else {
+	// Determine the number of entries in the output array
+	for( SizeT i=0; i<nParam; i++)
+	  {
+	    BaseGDL*& par=e->GetPar( i);
+	    DString parString = e->Caller()->GetString( par);
+	    if( !par || !isKWSetStructures || par->Type() != STRUCT) {
+	      nlines++;
+	    } else {
+	      DStructGDL* s = static_cast<DStructGDL*>( par);
+	      SizeT nTags = s->Desc()->NTags();
+	      nlines++;
+	      nlines += nTags;
+	    }
+	  }
+
+	// Add space for compiled procedures & functions
+	if (nParam == 0) {
+	  // list all variables of caller
+	  EnvBaseT* caller = e->Caller();
+	  SizeT nEnv = caller->EnvSize();
+	  nlines = nEnv + 5;
 	}
       }
 
-      // Add space for compiled procedures & functions
-      n += 4;
-
+      // Setup output return variable
       outputKW = &e->GetKW( outputIx);
       delete (*outputKW);
-      dimension dim(&n, (size_t) 1);
+      dimension dim(&nlines, (size_t) 1);
       *outputKW = new DStringGDL(dim, BaseGDL::NOZERO);
     }
 
@@ -182,42 +167,125 @@ namespace lib {
     if( outputKW == NULL)
       cout << dec;
 
-    // Compiled Procedures & Functions
-    deque<DString> pList;
-    DLong np = proList.size() + 1;
-    pList.push_back("$MAIN$");
-    for( ProListT::iterator i=proList.begin(); i != proList.end(); i++)
-      pList.push_back((*i)->ObjectName());
-    sort( pList.begin(), pList.end());
-
-    deque<DString> fList;
-    DLong nf = funList.size();
-    for( FunListT::iterator i=funList.begin(); i != funList.end(); i++)
-      fList.push_back((*i)->ObjectName());
-    sort( fList.begin(), fList.end());
-
+    static int routinesKWIx = e->KeywordIx("ROUTINES");
+    static int briefKWIx = e->KeywordIx("BRIEF");
+    bool routinesKW = e->KeywordSet( routinesKWIx);
+    bool briefKW = e->KeywordSet( briefKWIx);
     SizeT nOut = 0;
+    
+    if (nParam == 0 || isKWSetFunctions || isKWSetProcedures) {
 
-    if (outputKW == NULL) {
-      cout << "Compiled Procedures:" << endl;
-      for( SizeT i=0; i<np; i++) cout << pList[i] << " ";
-      cout << endl << endl;
-      cout << "Compiled Functions:" << endl;
-      for( SizeT i=0; i<nf; i++) cout << fList[i] << " ";
-      cout << endl << endl;
-    } else {
-      std::ostringstream ostr[4];
-      ostr[0] << "Compiled Procedures:";
-      (*(DStringGDL *) *outputKW)[nOut++] = ostr[0].rdbuf()->str();
+      if (nParam == 0 && !isKWSetFunctions && !isKWSetProcedures) {
+	// Tell where we are
+	EnvBaseT* caller;
+	DSubUD* pro = static_cast<DSubUD*>(caller->Caller()->Caller()->
+					   GetPro());
+	if (outputKW == NULL) {
+	  cout << "% At " << pro->ObjectName() << endl;
+	} else {
+	  ostr << "% At " << pro->ObjectName();
+	  (*(DStringGDL *) *outputKW)[nOut++] = ostr.rdbuf()->str();
+	  ostr.str("");
+	}
+      }
 
-      for( SizeT i=0; i<np; i++) ostr[1] << pList[i] << " ";
-      (*(DStringGDL *) *outputKW)[nOut++] = ostr[1].rdbuf()->str();
+      // Get list of user procedures
+      pList.push_back("$MAIN$");
+      for( ProListT::iterator i=proList.begin(); i != proList.end(); i++)
+	pList.push_back((*i)->ObjectName());
+      sort( pList.begin(), pList.end());
 
-      ostr[2] << "Compiled Functions:";
-      (*(DStringGDL *) *outputKW)[nOut++] = ostr[2].rdbuf()->str();
+      // Get list of user functions
+      for( FunListT::iterator i=funList.begin(); i != funList.end(); i++)
+	fList.push_back((*i)->ObjectName());
+      sort( fList.begin(), fList.end());
 
-      for( SizeT i=0; i<nf; i++) ostr[3] << fList[i] << " ";
-      (*(DStringGDL *) *outputKW)[nOut++] = ostr[3].rdbuf()->str();
+      // PROCEDURES keyword
+      if (isKWSetProcedures) {
+	if (outputKW == NULL) {
+	    cout << "Compiled Procedures:" << endl;
+	} else {
+	  ostr << "Compiled Procedures:";
+	  (*(DStringGDL *) *outputKW)[nOut++] = ostr.rdbuf()->str();
+	  ostr.str("");
+	}
+
+	// Loop through procedures
+	for( SizeT i=0; i<np; i++) {
+	  // Add $MAIN$
+	  if (i == 0) {
+	    if (outputKW == NULL) {
+	      cout << "$MAIN$";
+	    } else {
+	      ostr << "$MAIN$";
+	      (*(DStringGDL *) *outputKW)[nOut++] = ostr.rdbuf()->str();
+	      ostr.str("");
+	    }
+	  }
+
+	  // Find DPro pointer for pList[i]
+	  ProListT::iterator p=std::find_if(proList.begin(),proList.end(),
+					    Is_eq<DPro>(pList[i]));
+	  if( p != proList.end()) {
+	    DPro *pro = *p;
+	    int nPar = pro->NPar();
+	    int nKey = pro->NKey();
+
+	    // Loop through parameters
+	    if (outputKW == NULL) {
+	      cout << setw(25) << left << pro->ObjectName() << setw(0);
+	      for( SizeT j=0; j<nPar; j++)
+		cout << StrLowCase(pro->GetVarName(nKey+j)) << " ";
+	    } else {
+	      ostr << setw(25) << left << pro->ObjectName() << setw(0);
+	      for( SizeT j=0; j<nPar; j++)
+		ostr << StrLowCase(pro->GetVarName(nKey+j)) << " ";
+	      (*(DStringGDL *) *outputKW)[nOut++] = ostr.rdbuf()->str();
+	      ostr.str("");
+	    }
+	  }
+	  if (outputKW == NULL) cout << endl;
+	}
+	// FUNCTIONS keyword
+      } else if (isKWSetFunctions) {
+
+	if (outputKW == NULL) {
+	  cout << "Compiled Functions:" << endl;
+	} else {
+	  ostr << "Compiled Functions:";
+	  (*(DStringGDL *) *outputKW)[nOut++] = ostr.rdbuf()->str();
+	  ostr.str("");
+	}
+
+	// Loop through functions
+	for( SizeT i=0; i<nf; i++) {
+
+	  // Find DFun pointer for fList[i]
+	  FunListT::iterator p=std::find_if(funList.begin(),funList.end(),
+					    Is_eq<DFun>(fList[i]));
+	  if( p != funList.end()) {
+	    DFun *pro = *p;
+	    int nPar = pro->NPar();
+	    int nKey = pro->NKey();
+
+	    // Loop through parameters
+	    if (outputKW == NULL) {
+	      cout << setw(25) << left << pro->ObjectName() << setw(0);
+	      for( SizeT j=0; j<nPar; j++)
+		cout << StrLowCase(pro->GetVarName(nKey+j)) << " ";
+	    } else {
+	      ostr << setw(25) << left << pro->ObjectName() << setw(0);
+	      for( SizeT j=0; j<nPar; j++)
+		ostr << StrLowCase(pro->GetVarName(nKey+j)) << " ";
+	      (*(DStringGDL *) *outputKW)[nOut++] = ostr.rdbuf()->str();
+	      ostr.str("");
+	    }
+	  }
+	  if (outputKW == NULL) cout << endl;
+	}
+      }
+      if( isKWSetProcedures) return;
+      if( isKWSetFunctions)  return;
     }
 
     for( SizeT i=0; i<nParam; i++)
@@ -232,10 +300,10 @@ namespace lib {
 	      help_item( cout, par, parString, false);
 	    } else {
 	      // else send to string stream & store in outputKW (remove CR)
-	      std::ostringstream ostr;
 	      help_item( ostr, par, parString, false);
 	      (*(DStringGDL *) *outputKW)[nOut++] = 
 		ostr.rdbuf()->str().erase(ostr.rdbuf()->str().length()-1,1); 
+	      ostr.str("");
 	    }
           }
         else
@@ -245,7 +313,8 @@ namespace lib {
 	    SizeT nTags = s->Desc()->NTags();
 	    if (outputKW == NULL) {
 	      cout << "** Structure ";
-	      cout << (s->Desc()->IsUnnamed()? "<Anonymous> " : s->Desc()->Name());
+	      cout << (s->Desc()->IsUnnamed() ? "<Anonymous> " : 
+		       s->Desc()->Name());
 	      cout << ", " << nTags << " tags:" << endl;
 	      for (SizeT t=0; t < nTags; ++t)
 		{    
@@ -254,36 +323,29 @@ namespace lib {
 		}
 	    } else {
 	      // OUTPUT KEYWORD SET
-	      std::ostringstream ostr;
 	      ostr << "** Structure ";
-	      ostr << (s->Desc()->IsUnnamed()? "<Anonymous> " : s->Desc()->Name());
+	      ostr << (s->Desc()->IsUnnamed() ? "<Anonymous> " : 
+		       s->Desc()->Name());
 	      ostr << ", " << nTags << " tags:";
 	      (*(DStringGDL *) *outputKW)[nOut++] = ostr.rdbuf()->str();
-	      ostr.seekp(0);
+	      ostr.str("");
 
 	      for (SizeT t=0; t < nTags; ++t)
 		{    
 		  DString tagString = s->Desc()->TagName(t);
 		  help_item( ostr, s->Get(t,0), tagString, true);
 		  (*(DStringGDL *) *outputKW)[nOut++] = 
-		    ostr.rdbuf()->str().erase(ostr.rdbuf()->str().length()-1,1);
-		  ostr.seekp(0);
+		    ostr.rdbuf()->str().erase(ostr.rdbuf()->str().
+					      length()-1,1);
+		  ostr.str("");
 		}
 	    }
 	  }
       }
-    static int routinesKWIx = e->KeywordIx("ROUTINES");
-    static int briefKWIx = e->KeywordIx("BRIEF");
-    bool routinesKW = e->KeywordSet( routinesKWIx);
-    bool briefKW = e->KeywordSet( briefKWIx);
-    
     if( routinesKW || briefKW) kw = true;
 
     if( nParam == 0 && !kw)
       {
-	if (outputKW != NULL)
-	  e->Throw( "OUTPUT keyword not yet supported without parameters.");
-
 	routinesKW = true;
 	briefKW = true;
 
@@ -292,13 +354,13 @@ namespace lib {
 
 	SizeT nEnv = caller->EnvSize();
 
-	set<string> helpStr;
+	set<string> helpStr;  // "Sorted List" 
 	for ( int i = 0; i < nEnv; ++i ) 
 	  {
 	    BaseGDL*& par=caller->GetKW( i);
 	    if( par == NULL) 
 	      continue;
-	    
+
 	    DString parString = caller->GetString( par);
 	    
 	    stringstream ss;
@@ -306,8 +368,59 @@ namespace lib {
 	    
 	    helpStr.insert( ss.str() );
 	  }
-	copy( helpStr.begin(), helpStr.end(),
-	      ostream_iterator<string>( cout) );
+
+	  if (outputKW == NULL) {
+	    copy( helpStr.begin(), helpStr.end(),
+		  ostream_iterator<string>( cout) );
+	  }
+
+
+	// Display compiled procedures & functions
+	if (!isKWSetProcedures && !isKWSetFunctions) {
+	  // StdOut
+	  if (outputKW == NULL) {
+	    cout << "Compiled Procedures:" << endl;
+	    for( SizeT i=0; i<np; i++) cout << pList[i] << " ";
+	    cout << endl << endl;
+
+	    cout << "Compiled Functions:" << endl;
+	    for( SizeT i=0; i<nf; i++) cout << fList[i] << " ";
+	    cout << endl;
+	  } else {
+	    // Keyword Output
+
+	    // Output variables
+	    set<string>::iterator it = helpStr.begin(); 
+	    while(it != helpStr.end()) { 
+	      ostr << *it;
+
+	      (*(DStringGDL *) *outputKW)[nOut++] = 
+		ostr.rdbuf()->str().erase(ostr.rdbuf()->str().length()-1,1); 
+
+	      ++it;
+	      ostr.str("");
+	    } 
+
+	    // Output procedures & functions
+	    ostr << "Compiled Procedures:";
+	    (*(DStringGDL *) *outputKW)[nOut++] = ostr.rdbuf()->str();
+	    ostr.str("");
+
+	    for( SizeT i=0; i<np; i++) ostr << pList[i] << " ";
+	    (*(DStringGDL *) *outputKW)[nOut++] = ostr.rdbuf()->str();
+	    ostr.str("");
+
+	    ostr << "Compiled Functions:";
+	    (*(DStringGDL *) *outputKW)[nOut++] = ostr.rdbuf()->str();
+	    ostr.str("");
+
+	    for( SizeT i=0; i<nf; i++) ostr << fList[i] << " ";
+	    (*(DStringGDL *) *outputKW)[nOut++] = ostr.rdbuf()->str();
+	    ostr.str("");
+	  }
+
+	}
+    }
 
 // 	stringstream strS;
 // 	for( SizeT i=0; i<nEnv; ++i)
@@ -333,7 +446,6 @@ namespace lib {
 // 	  {
 // 	    cout << toSort[ i] << endl;
 // 	  }
-      }
   }
   
   void exitgdl( EnvT* e)
