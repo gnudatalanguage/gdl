@@ -642,11 +642,6 @@ namespace lib {
   {
     int nParam=e->NParam( 2);
     
-    /*
-    if( e->KeywordSet( "XDR"))
-      e->Throw( "XDR format not supported.");
-    */
-
     if( e->KeywordSet( "GET_LUN")) get_lun( e);
     // par 0 contains now the LUN
 
@@ -692,9 +687,14 @@ namespace lib {
 	e->AssureLongScalarKW( widthIx, width);
       }
 
+    // stream
+    bool streamVMS=false;
+    if( e->KeywordSet( "STREAM"))
+      streamVMS = true;
+
     try{
       fileUnits[ lun-1].Open( name, mode, swapEndian, deleteKey, 
-			      xdr, width, f77);
+			      xdr, width, f77, streamVMS);
     } 
     catch( GDLException& ex) {
       DString errorMsg = ex.toString()+" Unit: "+i2s( lun)+
@@ -861,6 +861,7 @@ namespace lib {
 
     istream* is;
     bool f77 = false;
+    bool streamVMS = false;
     bool swapEndian = false;
     XDR *xdrs = NULL;
 
@@ -876,9 +877,14 @@ namespace lib {
       {
 	is = &fileUnits[ lun-1].IStream();
 	f77 = fileUnits[ lun-1].F77();
+	streamVMS = fileUnits[ lun-1].StreamVMS();
 	swapEndian = fileUnits[ lun-1].SwapEndian();
 	xdrs = fileUnits[ lun-1].Xdr();
       }
+
+    // Skip the record header for VMS variable-length (stream) records
+    if( streamVMS)
+      is->seekg(4, ios::cur);
 
     if( f77)
       {

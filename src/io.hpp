@@ -46,6 +46,7 @@ class GDLStream
   bool f77; // FORTRAN unformatted
   bool swapEndian;
   bool deleteOnClose;
+  bool streamVMS;
   XDR *xdrs;
 
   SizeT width;
@@ -82,7 +83,7 @@ public:
   void Open( const std::string& name_,
 	     std::ios_base::openmode,
 	     bool swapEndian_, bool deleteOnClose_, bool xdr_, 
-	     SizeT width, bool f77);
+	     SizeT width, bool f77, bool streamVMS_);
   
   void Close(); 
   
@@ -159,6 +160,8 @@ public:
   const std::string& Name() { return name;}
   
   bool SwapEndian() { return swapEndian;}
+
+  bool StreamVMS() { return streamVMS;}
 
   XDR *Xdr() { return xdrs;}
 

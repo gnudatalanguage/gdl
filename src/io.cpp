@@ -43,8 +43,10 @@ void GDLStream::Open( const string& name_,
 		      ios_base::openmode mode_,
 		      bool swapEndian_, bool dOC, bool xdr_, 
 		      SizeT width_,
-		      bool f77_)
-{ 
+		      bool f77_,
+		      bool streamVMS_)
+{
+ 
   f77 = f77_;
 
 //   if( f77_)
@@ -69,6 +71,7 @@ void GDLStream::Open( const string& name_,
   mode=mode_;
   swapEndian = swapEndian_;
   deleteOnClose = dOC;
+  streamVMS = streamVMS_;
 
   if( xdr_)
     xdrs = new XDR;
