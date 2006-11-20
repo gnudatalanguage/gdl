@@ -168,6 +168,7 @@
 	  CONTOUR.
 	  Support for DICOM files (GDLffDICOM object).
 	  INTEGER keyword for TOTAL
+	  Add support for STREAM keyword in OPEN
 	  Add support for CHANNEL keyword in TV/TVSCL
 	  Add REGEX keyword support to STRTOK
 	  Add preliminary support for MPI
