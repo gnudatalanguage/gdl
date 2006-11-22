@@ -729,8 +729,17 @@ namespace lib {
 
     // stream
     bool streamVMS=false;
-    if( e->KeywordSet( "STREAM"))
-      streamVMS = true;
+    if( e->KeywordSet( "STREAM")) {
+
+      // Check for OS; STREAM only supported for VMS
+      DStructGDL* version = SysVar::Version();
+      static unsigned osTag = version->Desc()->TagIndex( "OS");
+      DString os = 
+	(*static_cast<DStringGDL*>( version->Get( osTag, 0)))[0];
+
+      if( StrUpCase( os) == "VMS") streamVMS = true;
+    }
+
 
     try{
       fileUnits[ lun-1].Open( name, mode, swapEndian, deleteKey, 
