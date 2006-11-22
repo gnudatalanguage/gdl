@@ -62,9 +62,13 @@ namespace lib {
       return;
 
     } else {
-
       DLong pos;
       e->AssureLongScalarPar( 1, pos);
+
+      // stream kludge to conpensate for 4 byte record header(JMG)
+      bool streamVMS = fileUnits[ lun-1].StreamVMS();
+      if (streamVMS) pos -=4;
+
       actUnit.Seek( pos);
     }
   }
