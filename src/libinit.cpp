@@ -161,7 +161,8 @@ void LibInit()
   new DLibPro(lib::exitgdl,string("EXIT"),0,exitKey);
   
   const string helpKey[]={"STRUCTURES","ROUTINES","BRIEF",
-			  "OUTPUT","PROCEDURES","FUNCTIONS",KLISTEND};
+			  "OUTPUT","PROCEDURES","FUNCTIONS",
+			  "INFO","LIB",KLISTEND};
   new DLibPro(lib::help,string("HELP"),-1,helpKey);
 
   // printKey, readKey and stringKey are closely associated

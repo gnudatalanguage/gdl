@@ -40,6 +40,9 @@ namespace SysVar
   // returns !DIR
   const DString& Dir();
 
+  // updates !STIME
+  void UpdateSTime();
+
   DStructGDL* Version();
 
   DStructGDL* Values();

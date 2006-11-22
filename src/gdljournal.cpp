@@ -79,7 +79,7 @@ namespace lib
       SysVar::JournalLUN( jLUN);
 		
       gdljournal= &fileUnits[ jLUN-1];
-      gdljournal->Open(gdljournal_filename,fstream::out,false,false,NULL,
+      gdljournal->Open(gdljournal_filename,fstream::out,false,false,false,
 		       defaultStreamWidth,false,false);
 		
       //message  

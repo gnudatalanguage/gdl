@@ -104,6 +104,46 @@ namespace lib {
   {
     bool kw = false;
 
+    if( e->KeywordSet( "INFO"))
+      {
+	kw = true;
+
+	cout << "Homepage: http://gnudatalanguage.sf.net" << endl;
+	cout << "HELP,/LIB for a list of all internal library "
+	  "functions/procedures." << endl;
+	cout << "Additional subroutines are written in GDL language, "
+	  "look for *.pro files." << endl;
+	cout << endl;
+      }
+
+    if( e->KeywordSet( "LIB"))
+      {
+	kw = true;
+
+	deque<DString> subList;
+	SizeT nPro = libProList.size();
+	cout << "Library procedures (" << nPro <<"):" << endl;
+	for( SizeT i = 0; i<nPro; ++i)
+	  subList.push_back(libProList[ i]->ToString());
+
+	sort( subList.begin(), subList.end());
+
+	for( SizeT i = 0; i<nPro; ++i)
+	  cout << subList[ i] << endl;
+
+	subList.clear();
+
+	SizeT nFun = libFunList.size();
+	cout << "Library functions (" << nFun <<"):" << endl;
+	for( SizeT i = 0; i<nFun; ++i)
+	  subList.push_back(libFunList[ i]->ToString());
+
+	sort( subList.begin(), subList.end());
+
+	for( SizeT i = 0; i<nFun; ++i)
+	  cout << subList[ i] << endl;
+      }
+
     bool isKWSetStructures = e->KeywordSet( "STRUCTURES");
     if( isKWSetStructures) kw = true;
 

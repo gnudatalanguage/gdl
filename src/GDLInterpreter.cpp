@@ -4539,6 +4539,8 @@ BaseGDL*  GDLInterpreter::sys_var_nocopy(ProgNodeP _t) {
 	sysVar->getText());
 	}
 	
+	if( sysVar->getText() == "STIME") SysVar::UpdateSTime();
+	
 	// system variables are always defined
 	res=sysVar->var->Data(); // no ->Dup()
 	

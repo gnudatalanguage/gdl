@@ -19,6 +19,7 @@
 
 #include <sys/utsname.h>
 #include <cmath>
+#include <sys/time.h>
 
 #include <limits>
 
@@ -37,11 +38,14 @@ namespace SysVar
   UInt pathIx, promptIx, edit_inputIx, quietIx, 
     dIx, pIx, xIx, yIx, zIx, vIx, cIx, 
     errorStateIx, errorIx, errIx, err_stringIx, valuesIx,
-    journalIx, exceptIx, mapIx, cpuIx, dirIx, warnIx;
+    journalIx, exceptIx, mapIx, cpuIx, dirIx, stimeIx, warnIx;
 
   // !D structs
   const int nDevices = 2;
   DStructGDL* devices[ 2]; // X, PS
+
+  // !STIME
+  const SizeT MAX_STIME_STRING_LENGTH=80;
 
   void SetGDLPath( const DString& newPath)
   {
@@ -79,7 +83,27 @@ namespace SysVar
     DVar& dirSysVar = *sysVarList[ dirIx];
     return static_cast<DStringGDL&>( *dirSysVar.Data())[0];
   }
-  
+
+  // updates !STIME (as a plain DString)
+  void UpdateSTime()
+  {
+    DVar& stimeSysVar = *sysVarList[ stimeIx];
+    DString& stime=static_cast<DStringGDL&>(*stimeSysVar.Data())[0];
+
+    struct timeval tval;
+    struct timezone tzone;
+    struct tm *tstruct;
+
+    gettimeofday(&tval,&tzone);
+    tstruct= localtime((time_t *)&tval.tv_sec);
+
+    char st[MAX_STIME_STRING_LENGTH];
+    const char *format="%d-%h-%Y %T.00";// !STIME format.
+    SizeT res=strftime( st, MAX_STIME_STRING_LENGTH, format, tstruct);
+
+    stime = st;
+  }
+
   // returns array of path strings
   const StrArr& GDLPath()
   {
@@ -526,6 +550,13 @@ namespace SysVar
     dirIx=sysVarList.size();
     sysVarList.push_back( dir);
 
+    // !STIME
+    DStringGDL *stimeData = new DStringGDL( "");
+    DVar *stime = new DVar( "STIME", stimeData);
+    stimeIx=sysVarList.size();
+    sysVarList.push_back( stime);
+    sysVarRdOnlyList.push_back( stime); // make it read only
+
     // !WARN
     DStructGDL*  warnData = new DStructGDL( "!WARN");
     warnData->NewTag("OBS_ROUTINES", new DByteGDL( 0)); 
@@ -534,7 +565,6 @@ namespace SysVar
     DVar *warn = new DVar( "WARN", warnData);
     warnIx     = sysVarList.size();
     sysVarList.push_back(warn);
-
 
   }
 

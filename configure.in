@@ -565,15 +565,21 @@ case "${host}" in
 
   *darwin6*)
     dnl Jaguar
-    AC_DEFINE([OLD_DARWIN], [1], [Pre-10.5 version of OS X])]
+    AC_DEFINE([OLD_DARWIN], [1], [Pre-10.5 version of OS X])
     ;;
   *darwin7*)
     dnl Panther
-    AC_DEFINE([OLD_DARWIN], [1], [Pre-10.5 version of OS X])]
+    AC_DEFINE([OLD_DARWIN], [1], [Pre-10.5 version of OS X])
+    ;;
+  *darwin8.8*)
+    dnl newer Tiger
+    ;;
+  *darwin8.9*)
+    dnl newer Tiger (if ever released)
     ;;
   *darwin8*)
     dnl Tiger
-    AC_DEFINE([OLD_DARWIN], [1], [Pre-10.5 version of OS X])]
+    AC_DEFINE([OLD_DARWIN], [1], [Pre-10.4.8 version of OS X])
     ;;
 esac
 

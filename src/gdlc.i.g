@@ -2798,6 +2798,8 @@ sys_var_nocopy returns [BaseGDL* res]
                                     sysVar->getText());
             }
 
+            if( sysVar->getText() == "STIME") SysVar::UpdateSTime();
+
             // system variables are always defined
             res=sysVar->var->Data(); // no ->Dup()
         }
