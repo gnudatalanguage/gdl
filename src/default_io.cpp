@@ -1214,7 +1214,7 @@ ostream& DStructGDL::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 
 int xdr_convert(XDR *xdrs, DByte *buf)
 {
-  return (xdr_u_char(xdrs, buf));
+  //  return (xdr_u_char(xdrs, buf));
 }
 
 int xdr_convert(XDR *xdrs, DInt *buf)
