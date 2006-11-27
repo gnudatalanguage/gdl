@@ -727,23 +727,12 @@ namespace lib {
 	e->AssureLongScalarKW( widthIx, width);
       }
 
-    // stream
-    bool streamVMS=false;
-    if( e->KeywordSet( "STREAM")) {
-
-      // Check for OS; STREAM only supported for VMS
-      DStructGDL* version = SysVar::Version();
-      static unsigned osTag = version->Desc()->TagIndex( "OS");
-      DString os = 
-	(*static_cast<DStringGDL*>( version->Get( osTag, 0)))[0];
-
-      if( StrUpCase( os) == "VMS") streamVMS = true;
-    }
-
+    // Assume variable-length VMS file initially
+    fileUnits[ lun-1].PutVarLenVMS( true);
 
     try{
       fileUnits[ lun-1].Open( name, mode, swapEndian, deleteKey, 
-			      xdr, width, f77, streamVMS);
+			      xdr, width, f77);
     } 
     catch( GDLException& ex) {
       DString errorMsg = ex.toString()+" Unit: "+i2s( lun)+
@@ -910,7 +899,7 @@ namespace lib {
 
     istream* is;
     bool f77 = false;
-    bool streamVMS = false;
+    bool varlenVMS = false;
     bool swapEndian = false;
     XDR *xdrs = NULL;
 
@@ -926,14 +915,11 @@ namespace lib {
       {
 	is = &fileUnits[ lun-1].IStream();
 	f77 = fileUnits[ lun-1].F77();
-	streamVMS = fileUnits[ lun-1].StreamVMS();
+	varlenVMS = fileUnits[ lun-1].VarLenVMS();
 	swapEndian = fileUnits[ lun-1].SwapEndian();
 	xdrs = fileUnits[ lun-1].Xdr();
       }
 
-    // Skip the record header for VMS variable-length (stream) records
-    if( streamVMS)
-      is->seekg(4, ios::cur);
 
     if( f77)
       {
@@ -975,7 +961,41 @@ namespace lib {
 	      p = new DFloatGDL( 0.0);
 	      e->SetPar( i, p);
 	    }
-	  p->Read( *is, swapEndian, xdrs);
+
+	  // Check if VMS variable-length file
+	  if (varlenVMS && i == 1) {
+	    char hdr[4], tmp;
+
+	    // Read possible record header
+	    is->read(hdr, 4);
+
+	    DLong nRec1;
+	    memcpy(&nRec1, hdr, 4);
+
+	    // switch endian
+	    tmp = hdr[3]; hdr[3] = hdr[0]; hdr[0] = tmp;
+	    tmp = hdr[2]; hdr[2] = hdr[1]; hdr[1] = tmp;
+
+	    DLong nRec2;
+	    memcpy(&nRec2, hdr, 4);
+	    SizeT nBytes = p->NBytes();
+
+	    // In variable length VMS files, each record is prefixed 
+	    // with a count byte that contains the number of bytes 
+	    // in the record.  This step checks whether the length
+	    // of the possible header record actually corresponds
+	    // to the total length of the desired fields in the
+	    // call to READU.
+
+	    // if not VMS v.l.f then backup 4 bytes and tag files
+	    // as not variable-length
+	    if (nRec1 != nBytes && nRec2 != nBytes) { 	     
+	      is->seekg(-4, ios::cur);
+	      fileUnits[ lun-1].PutVarLenVMS( false);
+	    }
+	    p->Read( *is, swapEndian, xdrs);
+	  }
+	  else p->Read( *is, swapEndian, xdrs);
 	}
   }
 
