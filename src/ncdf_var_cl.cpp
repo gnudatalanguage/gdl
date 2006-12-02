@@ -161,7 +161,7 @@ namespace lib {
     DStructGDL* inq=new DStructGDL(ncdf_varinq);
     inq->InitTag("NAME",DStringGDL(var_name));
 
-    dimension dim((size_t *) &var_ndims, (size_t) 1);
+    dimension dim((const SizeT *) &var_ndims, (SizeT) 1);
     DULongGDL* dims_res = new DULongGDL(dim, BaseGDL::NOZERO);
     for( size_t i=0; i<var_ndims; ++i) {
       (*dims_res)[ i] = var_dims[i];
@@ -271,7 +271,7 @@ namespace lib {
 
 
     size_t one=1;
-    dimension dim((size_t *) &one, (size_t) 1);
+    dimension dim((const SizeT *) &one, (SizeT) 1);
     if(var_type == NC_DOUBLE){
 
       double dvar;
@@ -436,7 +436,7 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 
 
 
-	dimension dim(transposed_dim_length, var_ndims);
+	dimension dim((const SizeT *) transposed_dim_length, (SizeT) var_ndims);
 	if(var_type == NC_DOUBLE){
 	  double* dvar=new double[array_size];
 	  
@@ -631,7 +631,7 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 	      transposed_dim_length[trans[i]]=cou[i];
 	      array_size=array_size*cou[i];
 	    }
-	    dimension dim(transposed_dim_length, var_ndims);
+	    dimension dim((const SizeT *) transposed_dim_length, (SizeT) var_ndims);
 	    if(var_type == NC_DOUBLE)
 	      {
 		double* dvar=new double[array_size];
@@ -818,7 +818,7 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 	      transposed_dim_length[trans[i]]=cou[i];
 	      array_size=array_size*cou[i];
 	    }
-	    dimension dim(transposed_dim_length, var_ndims);
+	    dimension dim((const SizeT *) transposed_dim_length, (SizeT) var_ndims);
 	    	  
 	    if(var_type == NC_DOUBLE)
 	      {
