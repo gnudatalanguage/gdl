@@ -161,7 +161,7 @@
 	  Add support for PROCEDURES & FUNCTIONS keywords in HELP
 	  Made GDL compile under x86_64 linux.
 	  Fixed incompatibility with # operator and one-dim vectors.
-	  Speedup for ^ operator for integral types.
+	  Speedup for ^ operator for integer types.
 	  Speedup (>100x!) for REVERSE_INDICES of HISTOGRAM.
 	  Implement INPUT keyword in HISTOGRAM.
 	  Support for non-rectangular (x,y 2d arrays) calls to SURFACE and
