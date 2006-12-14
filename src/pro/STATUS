@@ -11,6 +11,7 @@ Codes:
     Most important are:
       congrid, crossp, crvlength, curvefit, determ, hist_equal, interpol, 
       int_tabulated, lin_fit, poly_fit, reverse, rot, spline, svdfit
+    See the file UrgentNeed.txt for atributed tasks
 ===============================================================================
 
 !a_correlate.pro
@@ -71,7 +72,7 @@ Codes:
  cw_tmpl.pro
  cw_zoom.pro
  defroi.pro
-!deriv.pro
++deriv.pro
  derivsig.pro
 !determ.pro
  dialog_read_image.pro
@@ -186,10 +187,10 @@ Codes:
  multi.pro
 #ncdf_exists.pro
 =norm.pro
-!oploterr.pro
+!oploterr.pro             <-- should easily be derived from PLOTERR
 !p_correlate.pro
  plot_3dbox.pro
-!ploterr.pro
++ploterr.pro              <-- extra useful keyword (hat ...)
  plot_field.pro
 !pnt_line.pro
  polar_contour.pro
