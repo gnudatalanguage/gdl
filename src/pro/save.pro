@@ -3,10 +3,16 @@
 ;
 ; PURPOSE:
 ;       Serves as a wrapper around CMSAVE from Craig B. Markwardt
-;       CMVSLIB library.
+;       CMVSLIB library. You must download and install yourself this
+;       CMVSLIB library in your GDL_PATH. This library can be found here:
+;       http://cow.physics.wisc.edu/~craigm/idl/cmsave.html
 ;
 ; MODIFICATION HISTORY:
 ;   01-Sep-2006 : written by Joel Gales
+;   15-dec-2006 : 1/ explicite link to CMVSLIB library 
+;                 2/ test via EXECUTE() in pro (by Alain Coulais)
+;                 3/ final test if we need to do or not since CMSAVE
+;                 crash if nothing to do
 ;
 ; LICENCE:
 ; Copyright (C) 2006, J. Gales
@@ -26,6 +32,11 @@ pro save,    p0,  p1,  p2,  p3,  p4,  p5,  p6,  p7,  p8,  p9, $
              names=names, data=data, pass_method=method, $
              errmsg=errmsg, quiet=quiet, nocatch=nocatch, useunit=useunit
 
+; is the external CMSVlib present ?
+if (EXECUTE('CMSVLIB(/QUERY)') EQ 1) then begin
+   print, "% SAVE: Missing CMSVlib in your IDL PATH"
+   return
+endif
 
 ; Positional Parameters
 parm = 'cmsave,'
@@ -61,7 +72,11 @@ if (n_elements(useunit) ne 0) then parm = parm + ',useunit=useunit'
 
 ;print,parm
 
-stat=execute(parm)
+;AC 15/12/06: when calling without argument, CMSAVE gives a segmentation fault
+;
+if (STRCOMPRESS(STRUPCASE(parm),/remove_all) NE 'CMSAVE') then begin
+   stat=execute(parm)
+endif
 
 return
 end

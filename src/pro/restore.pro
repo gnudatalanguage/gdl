@@ -3,10 +3,14 @@
 ;
 ; PURPOSE:
 ;       Serves as a wrapper around CMRESTORE from Craig B. Markwardt
-;       CMVSLIB library.
+;       CMVSLIB library. You must download and install yourself this
+;       CMVSLIB library in your GDL_PATH. This library can be found here:
+;       http://cow.physics.wisc.edu/~craigm/idl/cmsave.html
 ;
 ; MODIFICATION HISTORY:
 ;   01-Sep-2006 : written by Joel Gales
+;   15-dec-2006 : explicite link to CMVSLIB library 
+;                 and test via EXECUTE() in pro (by Alain Coulais)
 ;
 ; LICENCE:
 ; Copyright (C) 2006, J. Gales
@@ -18,6 +22,11 @@
 ;-
 
 pro restore,     filename0,verbose=verbose
+
+if (EXECUTE('CMSVLIB(/QUERY)') EQ 0) then begin
+	print, "% RESTORE: Missing CMSVlib in your IDL PATH"
+	return
+endif
 
 if (n_elements(filename0) ne 0) then begin
     sz = size(filename0)
