@@ -138,13 +138,26 @@ void ExtraT::Resolve()
   if( extraType == DSub::REFEXTRA)
     { // make string array
       SizeT nEl = listName.size();
-      dimension dim( &nEl, 1);
-      DStringGDL* extraString = new DStringGDL( dim);
-      for( SizeT i=0; i<nEl; i++)
-	(*extraString)[i] = listName[i];
+      if( nEl > 0)
+	{
+	  dimension dim( &nEl, 1);
+	  DStringGDL* extraString = new DStringGDL( dim);
+	  for( SizeT i=0; i<nEl; i++)
+	    (*extraString)[i] = listName[i];
 
-      thisEnv->env.Reset( static_cast<SizeT>(pro->extraIx), 
-		      static_cast<BaseGDL*>(extraString));
+	  assert( thisEnv->env.Loc(static_cast<SizeT>(pro->extraIx)) == NULL);
+	  assert( thisEnv->env.Env(static_cast<SizeT>(pro->extraIx)) == NULL);
+
+ 	  thisEnv->env.Set( static_cast<SizeT>(pro->extraIx), 
+ 			      static_cast<BaseGDL*>(extraString));
+// 	  thisEnv->env.Reset( static_cast<SizeT>(pro->extraIx), 
+// 			      static_cast<BaseGDL*>(extraString));
+	}
+      else
+	{
+	  assert( thisEnv->env.Loc(static_cast<SizeT>(pro->extraIx)) == NULL);
+	  assert( thisEnv->env.Env(static_cast<SizeT>(pro->extraIx)) == NULL);
+	}
     }
   else if( extraType == DSub::EXTRA)
     { // make structure
@@ -191,8 +204,17 @@ void ExtraT::Resolve()
 // 	    }
 
 	  //	  structList.push_back( extraStructDesc);
-	  thisEnv->env.Reset( static_cast<SizeT>(pro->extraIx), 
-			      static_cast<BaseGDL*>(extraStruct));
+
+
+	  assert( thisEnv->env.Loc(static_cast<SizeT>(pro->extraIx)) == NULL);
+	  assert( thisEnv->env.Env(static_cast<SizeT>(pro->extraIx)) == NULL);
+
+ 	  thisEnv->env.Set( static_cast<SizeT>(pro->extraIx), 
+ 			      static_cast<BaseGDL*>(extraStruct));
+
+
+// 	  thisEnv->env.Reset( static_cast<SizeT>(pro->extraIx), 
+// 			      static_cast<BaseGDL*>(extraStruct));
 	}
     }
 }
