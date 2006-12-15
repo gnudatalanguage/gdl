@@ -48,7 +48,7 @@ Please indicate what you are doing and starting time
 !lmfunct.pro
 !m_correlate.pro
 !min_curve_surf.pro
-!oploterr.pro         <-- should easilt be derived from PLOTERR
+!oploterr.pro         <-- should easily be derived from PLOTERR
 !p_correlate.pro
 !pnt_line.pro
 !poly_fit.pro

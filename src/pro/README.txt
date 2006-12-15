@@ -1,17 +1,22 @@
 
-some informations about these files dans this directory
+some informations about these files and this directory
 
 1/ procedures from the IDL library
 
 Most of the files here are re-implementation of the
 open source files avaiblable in the IDL lib directory.
-Since this libreary is under Copyrigth, we cannot copy then in GDL.
-Then we need to develop a clone for some of the most useful procedures
-in this library.
+Since the original library is under Copyrigth, we cannot copy it
+directly in GDL. Then we need to develop a clone for some of the 
+most useful procedures in this library.
 
 Please see STATUS for a list of the files,
 if they are needed, or not, written (in GDL or C++)
 with perfect clone or less perfect
+
+Please see UrgentNeed.txt for the most urgent needed procedures.
+You can notify me (at : alaingdl AT users.sourceforge.net )
+if you start to work on one of these procedures.
+I can help you to put them in the CVS.
 
 2/ Other files
 
@@ -28,4 +33,5 @@ write_jpeg.pro
 write_png.pro
 file_lines.pro
 tvscl.pro
+smooth.pro
 
