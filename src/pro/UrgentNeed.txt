@@ -1,4 +1,8 @@
 
+Some of these routines can be find and downloaded from
+http://idlastro.gsfc.nasa.gov/idllibsrch.html
+but we cannot includ them now in GDL.
+
 ! : non-implemented routines having priority
 
 Please indicate what you are doing and starting time

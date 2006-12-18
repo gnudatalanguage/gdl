@@ -9,6 +9,10 @@ Since the original library is under Copyrigth, we cannot copy it
 directly in GDL. Then we need to develop a clone for some of the 
 most useful procedures in this library.
 
+Some of these routines can be find and downloaded from
+http://idlastro.gsfc.nasa.gov/idllibsrch.html
+but we cannot includ them now in GDL.
+
 Please see STATUS for a list of the files,
 if they are needed, or not, written (in GDL or C++)
 with perfect clone or less perfect
