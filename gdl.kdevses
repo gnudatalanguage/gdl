@@ -1,10 +1,28 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
- <DocsAndViews NumberOfDocuments="1" >
-  <Doc0 NumberOfViews="1" URL="file:///home/marc/gdl/src/GDLInterpreter.cpp" >
-   <View0 line="5362" Type="Source" />
+ <DocsAndViews NumberOfDocuments="7" >
+  <Doc0 NumberOfViews="1" URL="file:///home/marc/gdl/src/arrayindexlistt.hpp" >
+   <View0 line="1449" Type="Source" />
   </Doc0>
+  <Doc1 NumberOfViews="1" URL="file:///home/marc/gdl/src/basic_op.cpp" >
+   <View0 line="186" Type="Source" />
+  </Doc1>
+  <Doc2 NumberOfViews="1" URL="file:///home/marc/gdl/src/datatypes.cpp" >
+   <View0 line="0" Type="Source" />
+  </Doc2>
+  <Doc3 NumberOfViews="1" URL="file:///home/marc/gdl/src/GDLInterpreter.cpp" >
+   <View0 line="69" Type="Source" />
+  </Doc3>
+  <Doc4 NumberOfViews="1" URL="file:///home/marc/gdl/src/dinterpreter.cpp" >
+   <View0 line="781" Type="Source" />
+  </Doc4>
+  <Doc5 NumberOfViews="1" URL="file:///home/marc/gdl/src/basic_fun.cpp" >
+   <View0 line="1169" Type="Source" />
+  </Doc5>
+  <Doc6 NumberOfViews="1" URL="file:///home/marc/gdl/src/envt.hpp" >
+   <View0 line="98" Type="Source" />
+  </Doc6>
  </DocsAndViews>
  <pluginList>
   <kdevdebugger>
@@ -18,6 +36,21 @@
     <breakpoint2 location="/usr/local/home/marc/gdl/src/datalistt.hpp:79" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
      <tracedExpressions/>
     </breakpoint2>
+    <breakpoint3 location="/home/marc/gdl/src/arrayindexlistt.hpp:1125" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
+     <tracedExpressions/>
+    </breakpoint3>
+    <breakpoint4 location="/home/marc/gdl/src/arrayindexlistt.hpp:1139" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
+     <tracedExpressions/>
+    </breakpoint4>
+    <breakpoint5 location="/home/marc/gdl/src/arrayindexlistt.hpp:1250" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
+     <tracedExpressions/>
+    </breakpoint5>
+    <breakpoint6 location="/home/marc/gdl/src/arrayindexlistt.hpp:1450" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
+     <tracedExpressions/>
+    </breakpoint6>
+    <breakpoint7 location="/home/marc/gdl/src/basic_fun.cpp:1167" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
+     <tracedExpressions/>
+    </breakpoint7>
    </breakpointList>
   </kdevdebugger>
   <kdevbookmarks>
@@ -26,11 +59,11 @@
      <mark line="889" />
      <mark line="574" />
     </bookmark>
-    <bookmark url="/usr/local/home/marc/gdl/src/basic_fun.cpp" >
-     <mark line="1142" />
-    </bookmark>
     <bookmark url="/usr/local/home/marc/gdl/src/dcompiler.cpp" >
      <mark line="459" />
+    </bookmark>
+    <bookmark url="/usr/local/home/marc/gdl/src/basic_fun.cpp" >
+     <mark line="1142" />
     </bookmark>
     <bookmark url="/usr/local/home/marc/gdl/src/datalistt.hpp" >
      <mark line="79" />
