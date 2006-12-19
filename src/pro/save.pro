@@ -2,15 +2,17 @@
 ; NAME: SAVE
 ;
 ; PURPOSE:
-;       Serves as a wrapper around CMSAVE from Craig B. Markwardt
-;       CMVSLIB library. You must download and install yourself this
-;       CMVSLIB library in your GDL_PATH. This library can be found here:
+;       Serves as a wrapper around CMSAVE from Craig B. Markwardt CMVSLIB
+;       library. You must download and install yourself this CMVSLIB library
+;       then add it PATH in your GDL_PATH. This library can be found here:
 ;       http://cow.physics.wisc.edu/~craigm/idl/cmsave.html
 ;
 ; MODIFICATION HISTORY:
 ;   01-Sep-2006 : written by Joel Gales
-;   15-dec-2006 : 1/ explicite link to CMVSLIB library 
-;                 2/ test via EXECUTE() in pro (by Alain Coulais)
+;   15-dec-2006 : by Alain Coulais
+;                 1/ explicite HTTP link in header to external CMVSLIB library 
+;                 2/ test via EXECUTE() in pro to warn new users for missing
+;                    external CMVSLIB library  
 ;                 3/ final test if we need to do or not since CMSAVE
 ;                 crash if nothing to do
 ;
@@ -33,8 +35,9 @@ pro save,    p0,  p1,  p2,  p3,  p4,  p5,  p6,  p7,  p8,  p9, $
              errmsg=errmsg, quiet=quiet, nocatch=nocatch, useunit=useunit
 
 ; is the external CMSVlib present ?
-if (EXECUTE('CMSVLIB(/QUERY)') EQ 1) then begin
+if (EXECUTE('res=CMSVLIB(/QUERY)') EQ 0) then begin
    print, "% SAVE: Missing CMSVlib in your IDL PATH"
+	print, "% SAVE: please read SAVE header for help."
    return
 endif
 
