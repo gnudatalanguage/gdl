@@ -1042,6 +1042,8 @@ public:
       accessTypeInit = NORMAL;
     else
       accessTypeInit = INDEXED_ONE;
+
+//     std::cout << "accessTypeInit: " << accessTypeInit << std::endl;
   }
   
   void Clear()
@@ -1231,6 +1233,9 @@ public:
   // structure of indexed expression
   dimension GetDim()
   {
+    // should be changed to ALLINDEXED or ALLONE by now
+    assert( accessType != INDEXED_ONE); 
+
     if( accessType == ALLONE) return dimension(); // -> results in scalar
     if( accessType == ALLINDEXED)
       { // always indexed

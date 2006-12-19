@@ -182,6 +182,13 @@ private:
 public:
   SizeT NParam() { return 0;} // number of parameter to Init(...)
 
+  bool Scalar() { return true;}
+  bool Scalar( SizeT& s_)
+  { 
+    s_ = s;
+    return true;
+  }
+
   SizeT GetIx0()
   {
     return s;
