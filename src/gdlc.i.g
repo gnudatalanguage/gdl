@@ -418,9 +418,9 @@ interactive returns[ GDLInterpreter::RetCode retCode]
     ;
 
 // execute statement
-execute
+execute returns[ GDLInterpreter::RetCode retCode]
 {
-    GDLInterpreter::RetCode retCode;
+//    GDLInterpreter::RetCode retCode;
     ValueGuard<bool> guard( interruptEnable);
     interruptEnable = false;
 }
@@ -650,17 +650,30 @@ statement returns[ GDLInterpreter::RetCode retCode]
             e.SetLine( _t->getLine());
         }
 
-        // tell where we are
-        ReportError(e, "Execution halted at:", targetEnv == NULL); 
-
         if( interruptEnable)
-        {
-            retCode = NewInterpreterInstance();
-        }    
+            {
+                // tell where we are
+                ReportError(e, "Execution halted at:", targetEnv == NULL); 
+
+                retCode = NewInterpreterInstance();
+            }    
         else
-        {
-            retCode = RC_ABORT;
-        }
+            {
+
+                DString msgPrefix = SysVar::MsgPrefix();
+                if( e.Prefix())
+                    {
+                        std::cerr << msgPrefix << e.toString() << std::endl;
+                        lib::write_journal_comment(msgPrefix+e.toString());
+                    }
+                else
+                    {
+                        std::cerr << e.toString() << std::endl;
+                        lib::write_journal_comment(e.toString());
+                    }
+
+                retCode = RC_ABORT;
+            }
     }
 
 block returns[ GDLInterpreter::RetCode retCode]

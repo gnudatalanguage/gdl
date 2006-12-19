@@ -66,10 +66,11 @@ GDLInterpreter::GDLInterpreter()
 	return retCode;
 }
 
-void GDLInterpreter::execute(ProgNodeP _t) {
+ GDLInterpreter::RetCode  GDLInterpreter::execute(ProgNodeP _t) {
+	 GDLInterpreter::RetCode retCode;
 	ProgNodeP execute_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
 	
-	GDLInterpreter::RetCode retCode;
+	//    GDLInterpreter::RetCode retCode;
 	ValueGuard<bool> guard( interruptEnable);
 	interruptEnable = false;
 	
@@ -77,6 +78,7 @@ void GDLInterpreter::execute(ProgNodeP _t) {
 	retCode=statement_list(_t);
 	_t = _retTree;
 	_retTree = _t;
+	return retCode;
 }
 
  BaseGDL*  GDLInterpreter::call_fun(ProgNodeP _t) {
@@ -364,15 +366,28 @@ void GDLInterpreter::execute(ProgNodeP _t) {
 		e.SetLine( _t->getLine());
 		}
 		
+		if( interruptEnable)
+		{
 		// tell where we are
 		ReportError(e, "Execution halted at:", targetEnv == NULL); 
 		
-		if( interruptEnable)
-		{
 		retCode = NewInterpreterInstance();
 		}    
 		else
 		{
+		
+		DString msgPrefix = SysVar::MsgPrefix();
+		if( e.Prefix())
+		{
+		std::cerr << msgPrefix << e.toString() << std::endl;
+		lib::write_journal_comment(msgPrefix+e.toString());
+		}
+		else
+		{
+		std::cerr << e.toString() << std::endl;
+		lib::write_journal_comment(e.toString());
+		}
+		
 		retCode = RC_ABORT;
 		}
 		

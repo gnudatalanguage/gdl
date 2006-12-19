@@ -1164,9 +1164,13 @@ namespace lib {
 	ProgNodeP progAST = ProgNode::NewProgNode( trAST);
 	auto_ptr< ProgNode> progAST_guard( progAST);
 
-	caller->Interpreter()->execute( progAST);
+	GDLInterpreter::RetCode retCode =
+	  caller->Interpreter()->execute( progAST);
 
-	return new DIntGDL( 1);
+	if( retCode == GDLInterpreter::RC_OK)
+	  return new DIntGDL( 1);
+	else
+	  return new DIntGDL( 0);
       }
     catch( GDLException ex)
       {
