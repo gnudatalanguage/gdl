@@ -1387,7 +1387,7 @@ namespace lib {
       
       SizeT ny = 1;
       if (resRank != 0 && res->Dim(resRank-1) != 0) ny = res->Dim(resRank-1);
-      if (resRank == 1) ny = 1;
+      if (resRank == 1) ny = dims[0];
 
 
       SizeT ny2 = (ny == 1) * 2 + (ny > 1) * ny;
