@@ -132,10 +132,7 @@ void DCompiler::EndFunPro()   // resolve gotos, add common blocks
 //       labelList.clear();
 //     }
 
-  for( CommonListT::iterator c = ownCommonList.begin();
-       c != ownCommonList.end(); ++c)
-    commonList.push_back( *c);
-  ownCommonList.clear(); // not responsible anymore
+  EndInteractiveStatement();
 }
 
 void DCompiler::EndInteractiveStatement() // add common blocks
@@ -418,7 +415,7 @@ RefDNode DCompiler::ByReference(RefDNode nIn)
   return n;
 }  
 
-bool DCompiler::IsVar(const string& n) const
+bool DCompiler::IsVar(const string& n)
 {
   // check if lib fun
   SizeT nLibF = libFunList.size();
@@ -427,15 +424,24 @@ bool DCompiler::IsVar(const string& n) const
 
   if( FunIx( n) != -1) return false;
 
+  // Note: problem here when actual compiled
+  // sub has still its own private common block list, which newly compiled
+  // sub would not find but possibly create the same common block again
+  // sollution:
+  // purge common blocks
+  // disadvantage:
+  // if compilation fails later, common blocks are not removed but stay defined
+  EndInteractiveStatement();
+
   // originally this was done later in the interpreter
-  // but something like a = a(0) would not work if a is
-  // a function (defined in a.pro) and a variable
+  // but something like x = x(0) would not work if x is
+  // a function (defined in x.pro) and a variable
   bool success = GDLInterpreter::SearchCompilePro( n);
   if( success) // even if file exists and compiles it might contain other stuff
     if( FunIx( n) != -1) return false;
 
   // Note: It is still possible that 'n' denotes a function:
-  // !PATH might be changed untill the interpretation
+  // !PATH might be changed till run time
 
   return pro->Find(n);
 }

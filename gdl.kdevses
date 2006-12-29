@@ -3,22 +3,22 @@
 <KDevPrjSession>
  <DocsAndViews NumberOfDocuments="7" >
   <Doc0 NumberOfViews="1" URL="file:///home/marc/gdl/src/arrayindexlistt.hpp" >
-   <View0 line="1449" Type="Source" />
+   <View0 Type="Source" />
   </Doc0>
   <Doc1 NumberOfViews="1" URL="file:///home/marc/gdl/src/basic_op.cpp" >
-   <View0 line="186" Type="Source" />
+   <View0 Type="Source" />
   </Doc1>
   <Doc2 NumberOfViews="1" URL="file:///home/marc/gdl/src/datatypes.cpp" >
-   <View0 line="0" Type="Source" />
+   <View0 Type="Source" />
   </Doc2>
   <Doc3 NumberOfViews="1" URL="file:///home/marc/gdl/src/GDLInterpreter.cpp" >
-   <View0 line="69" Type="Source" />
+   <View0 Type="Source" />
   </Doc3>
   <Doc4 NumberOfViews="1" URL="file:///home/marc/gdl/src/dinterpreter.cpp" >
-   <View0 line="781" Type="Source" />
+   <View0 Type="Source" />
   </Doc4>
   <Doc5 NumberOfViews="1" URL="file:///home/marc/gdl/src/basic_fun.cpp" >
-   <View0 line="1169" Type="Source" />
+   <View0 Type="Source" />
   </Doc5>
   <Doc6 NumberOfViews="1" URL="file:///home/marc/gdl/src/envt.hpp" >
    <View0 line="98" Type="Source" />
