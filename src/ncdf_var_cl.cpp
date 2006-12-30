@@ -161,7 +161,7 @@ namespace lib {
     DStructGDL* inq=new DStructGDL(ncdf_varinq);
     inq->InitTag("NAME",DStringGDL(var_name));
 
-    dimension dim((const SizeT *) &var_ndims, (SizeT) 1);
+    dimension dim( var_ndims);
     DULongGDL* dims_res = new DULongGDL(dim, BaseGDL::NOZERO);
     for( size_t i=0; i<var_ndims; ++i) {
       (*dims_res)[ i] = var_dims[i];
@@ -269,9 +269,7 @@ namespace lib {
       }
 
 
-
-    size_t one=1;
-    dimension dim((const SizeT *) &one, (SizeT) 1);
+    dimension dim( 1);
     if(var_type == NC_DOUBLE){
 
       double dvar;
@@ -363,8 +361,8 @@ else if(var_type == NC_LONG)
    
     int status,var_ndims,var_dims[NC_MAX_VAR_DIMS],var_natts;
     size_t index[NC_MAX_VAR_DIMS],
-      dim_length[NC_MAX_VAR_DIMS],
-      transposed_dim_length[NC_MAX_VAR_DIMS];
+      dim_length[NC_MAX_VAR_DIMS];
+    SizeT transposed_dim_length[NC_MAX_VAR_DIMS];
     long trans[NC_MAX_VAR_DIMS];
 
     nc_type var_type;
@@ -1048,8 +1046,8 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
     //definitions
     int status, i, status_tr,total;
 
-    size_t var_ndims, value_nelem,dim_length[MAXRANK],
-      transposed_dim_length[NC_MAX_VAR_DIMS];
+    size_t var_ndims, value_nelem,dim_length[MAXRANK];
+    SizeT transposed_dim_length[NC_MAX_VAR_DIMS];
     long trans[NC_MAX_VAR_DIMS], retrans[NC_MAX_VAR_DIMS];
 
     nc_type type;

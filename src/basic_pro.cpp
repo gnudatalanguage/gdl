@@ -104,6 +104,34 @@ namespace lib {
   {
     bool kw = false;
 
+    static int callsKWIx = e->KeywordIx("CALLS");
+    bool callsKW = e->KeywordPresent( callsKWIx);
+    if( callsKW)
+      {
+	EnvStackT& cS = e->Interpreter()->CallStack();
+
+	SizeT level = cS.size();
+
+	assert( level > 1); // HELP, $MAIN$
+
+	DStringGDL* retVal = new DStringGDL( dimension( level-1), BaseGDL::NOZERO);
+	SizeT rIx = 0;
+
+	// fill retVal...
+	for( EnvStackT::reverse_iterator r = ++cS.rbegin(); r != cS.rend(); ++r)
+	  {
+	    EnvBaseT* actEnv = *r;
+	    //	    DSub* actSub = actEnv->GetPro();
+	    //	    assert( actSub != NULL);
+	    DString actString = actEnv->GetProName();
+	    
+	    (*retVal)[ rIx++] = actString;
+	  }
+
+	e->SetKW( callsKWIx, retVal);
+	return;
+      }
+
     if( e->KeywordSet( "INFO"))
       {
 	kw = true;

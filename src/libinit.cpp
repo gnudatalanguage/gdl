@@ -162,7 +162,7 @@ void LibInit()
   
   const string helpKey[]={"STRUCTURES","ROUTINES","BRIEF",
 			  "OUTPUT","PROCEDURES","FUNCTIONS",
-			  "INFO","LIB",KLISTEND};
+			  "INFO","LIB","CALLS",KLISTEND};
   new DLibPro(lib::help,string("HELP"),-1,helpKey);
 
   // printKey, readKey and stringKey are closely associated

@@ -237,7 +237,7 @@ namespace lib {
 	    ncdf_att_handle_error(e,status,"NCDF_ATTGET",ip);
 
 
-	    dimension dim((const SizeT *) &length, (SizeT) 1);
+	    dimension dim( length);
 	    DLongGDL* temp=new DLongGDL(dim, BaseGDL::NOZERO);
 	    memcpy(&(*temp)[0],&(*ip),length*sizeof(int));	      
 	    delete ip;
@@ -254,8 +254,8 @@ namespace lib {
 				);
 	  ncdf_att_handle_error(e,status,"NCDF_ATTGET",sp);
 	  
-	  
-	  dimension dim((const SizeT *) &length, (SizeT) 1);
+
+	  dimension dim( length);
 	  DIntGDL* temp=new DIntGDL(dim, BaseGDL::NOZERO);
 	  
 	  memcpy(&(*temp)[0],&(*sp),length*sizeof(short));	      
@@ -276,8 +276,7 @@ namespace lib {
 				  );
 	    ncdf_att_handle_error(e,status,"NCDF_ATTGET",fp);
 
-
-	    dimension dim((const SizeT *) &length, (SizeT) 1);
+	    dimension dim( length);
 	    DFloatGDL* temp=new DFloatGDL(dim, BaseGDL::NOZERO);
 
 	    memcpy(&(*temp)[0],&(*fp),length*sizeof(float));	      
@@ -299,7 +298,7 @@ namespace lib {
 	  
 	  ncdf_att_handle_error(e,status,"NCDF_ATTGET",dp);
 	  
-	  dimension dim((const SizeT *) &length, (SizeT) 1);
+	  dimension dim( length);
 	  DDoubleGDL* temp=new DDoubleGDL(dim, BaseGDL::NOZERO);
 	  
 	  memcpy(&(*temp)[0],&(*dp),length*sizeof(double));	      	 
@@ -319,7 +318,7 @@ namespace lib {
 	  
 	  ncdf_att_handle_error(e,status,"NCDF_ATTGET",cp);
 
-	  dimension dim(1, (size_t) 1);
+	  //dimension dim(1);
 	  DStringGDL* temp=new DStringGDL(cp);
 	  //dim, BaseGDL::NOZERO);
 	  //memcpy(&(*temp)[0],&(*cp),length*sizeof(char));      
@@ -339,7 +338,7 @@ namespace lib {
 	  
 	  ncdf_att_handle_error(e,status,"NCDF_ATTGET",bp);
 	  
-	  dimension dim((const SizeT *) &length, (SizeT) 1);
+	  dimension dim( length);
 	  DByteGDL* temp=new DByteGDL(dim, BaseGDL::NOZERO);
 	  
 	  memcpy(&(*temp)[0],&(*bp),length*sizeof(unsigned char));	      	 
