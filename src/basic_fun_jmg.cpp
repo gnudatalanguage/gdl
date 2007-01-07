@@ -619,14 +619,8 @@ namespace lib {
       if (desiredlevnum <= 0) desiredlevnum += curlevnum;
       if (desiredlevnum < 1) return new DStringGDL("");
 
-      EnvBaseT* caller;
-      caller = e;
-      for( SizeT i=curlevnum; i>desiredlevnum; --i) {
-	caller = caller->Caller();
-	caller->Interpreter()->CallStack().pop_back();
-      }
+      DSubUD* pro = static_cast<DSubUD*>(callStack[desiredlevnum-1]->GetPro());
 
-      DSubUD* pro = static_cast<DSubUD*>(caller->Caller()->GetPro());
       SizeT nVar = pro->Size(); // # var in GDL for desired level 
       int nKey = pro->NKey();
       //cout << "nKey:" << nKey << endl;
@@ -648,7 +642,7 @@ namespace lib {
 	int xI = pro->FindVar(StrUpCase( varName));
 	//	cout << xI << endl;
 	if (xI != -1) {
-	  BaseGDL*& par = ((EnvT*)(caller->Caller()))->GetPar( xI);
+	  BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI);
 	  //	  char* addr = static_cast<char*>(par->DataAddr());
 	  return par->Dup();
 	}
@@ -660,11 +654,15 @@ namespace lib {
 	DStringGDL* res = new DStringGDL( dimension( nParam), BaseGDL::NOZERO);
 
 	//	cout << "nVar:" << nVar << endl;
-	SizeT nCall = caller->NParam();
+
+	SizeT nCall = callStack[desiredlevnum]->NParam();
+
 	//	cout << "nCall:" << nCall << "curlevnum:" << curlevnum << endl;
 	for( SizeT i = 0; i<nParam; ++i) {
 	  for( SizeT j = 0; j<nCall; ++j) {
-	    if (e->GetParString(i) == caller->GetParString(j)) {
+
+	    if (e->GetParString(i) == 
+		callStack[desiredlevnum]->GetParString(j)) {
 	      //	      cout << "Calling param: " << j+1 << endl;
 	      BaseGDL* p = e->GetPar( i);
 	      if (p == NULL) {
@@ -675,7 +673,9 @@ namespace lib {
 
 	      for( SizeT xI=0; xI<nVar; ++xI) {
 		string vname = pro->GetVarName( xI);
-		BaseGDL*& par = ((EnvT*)(caller->Caller()))->GetPar( xI-nKey);
+		BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->
+		  GetPar( xI-nKey);
+
 		//    cout << "xI:" << xI << " " << vname.c_str() << endl;
 		//    cout << "par:" << par << endl;
 		if (par == p) {
@@ -701,7 +701,7 @@ namespace lib {
 	// cout << "varName: " << StrUpCase( varName) << " xI: " << xI << endl;
 	if (xI == -1) {
 	  SizeT u = pro->AddVar(StrUpCase(varName));
-	  s = caller->Caller()->AddEnv();
+	  s = callStack[desiredlevnum-1]->AddEnv();
 
 	  //cout << "AddVar u: " << u << endl;
 	  //cout << "AddEnv s: " << s << endl;
@@ -711,7 +711,7 @@ namespace lib {
 	  //cout << "FindVar s: " << s << endl;
 	}
 
-	BaseGDL*& par = ((EnvT*)(caller->Caller()))->GetPar( s-nKey);
+	BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( s-nKey);
 
 	// "res" points to variables to be restored
 	BaseGDL* res = e->GetPar( 1)->Dup();
