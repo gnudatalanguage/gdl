@@ -55,11 +55,55 @@ namespace lib {
 	if( fileUnits[ lun-1].F77())
 	  e->Throw( "Formatted IO not allowed with F77_UNFORMATTED "
 		    "files. Unit: "+i2s( lun));
-	
-	is = &fileUnits[ lun-1].IStream();
+
+	int sockNum = fileUnits[ lun-1].SockNum();
+	//cout << "sockNum: " << sockNum << endl;
+
+       	if (sockNum == -1) {
+	  // *** File Read *** //
+	  is = &fileUnits[ lun-1].IStream();
+
+	} else {
+	  //  *** Socket Read *** //
+	  string *recvBuf = &fileUnits[ lun-1].RecvBuf();
+
+	  // Setup recv buffer & string
+	  const int MAXRECV = 2048*8;
+	  char buf[MAXRECV+1];
+
+	  // Read socket until finished & store in recv string
+	  int totalread = 0;
+	  while (1) {
+	    memset(buf, 0, MAXRECV+1);
+	    int status = recv(sockNum, buf, MAXRECV, 0);
+	    //	    cout << "Bytes received: " << status << endl;
+	    if (status == 0) break;
+	    for( SizeT i=0; i<status; i++) 
+	      recvBuf->push_back(buf[i]);
+	    totalread += status;
+	    //cout << "recvBuf size: " << recvBuf->size() << endl;
+	    //cout << "Total bytes read: " << totalread << endl << endl;
+	  }
+	  //  if (totalread > 0) cout << "Total bytes read: " << totalread << endl;
+
+	  // Get istringstream, write recv string, & assign to istream
+	  istringstream *iss = &fileUnits[ lun-1].ISocketStream();
+	  iss->str(*recvBuf);
+	  is = iss;
+	}
       }
 
     read_is( is, e, 1);
+
+    // If socket strip off leading line
+    if (fileUnits[ lun-1].SockNum() != -1) {
+      string *recvBuf = &fileUnits[ lun-1].RecvBuf();
+      int pos = is->tellg();
+      recvBuf->erase(0, pos);
+
+      //      int pos = recvBuf->find("\n", 0);
+      //recvBuf->erase(0, pos+1);
+    }
   }
 
   void read( EnvT* e)

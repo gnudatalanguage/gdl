@@ -2838,13 +2838,19 @@ namespace lib {
     if( stdLun)
       return new DIntGDL( 0);
 
-    // nicer error message
-    if( !fileUnits[ lun-1].IsOpen())
-      e->Throw( "File unit is not open: "+i2s( lun)+".");
+    // nicer error message (Disregard if socket)
+    if ( fileUnits[ lun-1].SockNum() == -1) {
+      if( !fileUnits[ lun-1].IsOpen())
+	e->Throw( "File unit is not open: "+i2s( lun)+".");
 
-    if( fileUnits[ lun-1].Eof())
-      return new DIntGDL( 1);
-
+      if( fileUnits[ lun-1].Eof())
+	return new DIntGDL( 1);
+    } else {
+      // Socket
+      string *recvBuf = &fileUnits[ lun-1].RecvBuf();
+      if (recvBuf->size() == 0)
+	return new DIntGDL( 1);
+    }
     return new DIntGDL( 0);
   }
 

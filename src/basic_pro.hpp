@@ -32,6 +32,7 @@ namespace lib {
   void openr( EnvT* e);
   void openw( EnvT* e);
   void openu( EnvT* e);
+  void socket( EnvT* e);
   void close_lun( EnvT* e);
   void free_lun( EnvT* e);
   void writeu( EnvT* e);

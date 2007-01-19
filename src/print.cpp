@@ -43,9 +43,13 @@ namespace lib {
     e->AssureLongScalarPar( 0, lun);
 
     ostream* os;
+    ostringstream oss;
 
     bool stdLun = check_lun( e, lun);
     SizeT width;
+
+    int sockNum = fileUnits[ lun-1].SockNum();
+
     if( stdLun)
       {
 	if( lun == 0)
@@ -65,11 +69,25 @@ namespace lib {
 	  e->Throw( "Formatted IO not allowed with XDR "
 		    "files. Unit: "+i2s( lun));
 	
-	os = &fileUnits[ lun-1].OStream();
+	if (sockNum == -1) 
+	  os = &fileUnits[ lun-1].OStream();
+	else
+	  os = &oss;
+
 	width = fileUnits[ lun-1].Width();
       }
     
     print_os( os, e, 1, width);
+
+    // Socket send
+    if (sockNum != -1) {
+      int status = send(sockNum, oss.rdbuf()->str().c_str(), 
+			oss.rdbuf()->str().size(), MSG_NOSIGNAL);
+
+      if (status != oss.rdbuf()->str().size())
+	e->Throw( "SEND error Unit: "+i2s( lun)+":"+oss.rdbuf()->str());
+    }
+  
     if( stdLun)
       {
 	GDLInterpreter* ip = e->Interpreter();
@@ -126,3 +144,5 @@ namespace lib {
   }
 
 } // namespace
+
+

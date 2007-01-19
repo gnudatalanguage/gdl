@@ -260,6 +260,14 @@ void LibInit()
   new DLibPro(lib::openu,string("OPENU"),3,openKey,openWarnKey);
   new DLibPro(lib::get_lun,string("GET_LUN"),1);
 
+  const string socketKey[]={"ERROR","GET_LUN","STDIO",
+			    "SWAP_ENDIAN","SWAP_IF_BIG_ENDIAN",
+			    "SWAP_IF_LITTLE_ENDIAN","WIDTH",
+			    "CONNECT_TIMEOUT","READ_TIMEOUT",
+			    "WRITE_TIMEOUT",
+			    KLISTEND};
+  new DLibPro(lib::socket,string("SOCKET"),3,socketKey);
+
   const string closeKey[]={"EXIT_STATUS","FORCE","FILE","ALL",KLISTEND};
   new DLibPro(lib::close_lun,string("CLOSE"),-1,closeKey);
   

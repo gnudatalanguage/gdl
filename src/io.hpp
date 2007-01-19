@@ -25,7 +25,15 @@
 #include <cmath>
 #include <cassert>
 
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+
 #include "gdlexception.hpp"
+
 
 // the file IO system consists of 128 GDLStream objects
 
@@ -49,6 +57,13 @@ class GDLStream
   bool varlenVMS;
   XDR *xdrs;
 
+  std::istringstream* iSocketStream;
+  int sockNum;
+  std::string* recvBuf;
+  DDouble c_timeout;
+  DDouble r_timeout;
+  DDouble w_timeout;
+
   SizeT width;
 
   SizeT lastSeekPos;
@@ -68,6 +83,14 @@ public:
     swapEndian(false),
     deleteOnClose(false),
     xdrs(NULL),
+
+    iSocketStream(NULL), 
+    sockNum( -1),
+    recvBuf(NULL),
+    c_timeout(0.0),
+    r_timeout(0.0),
+    w_timeout(0.0),
+
     width( defaultStreamWidth),
     lastSeekPos( 0),
     lastRecord( 0),
@@ -85,6 +108,10 @@ public:
 	     bool swapEndian_, bool deleteOnClose_, bool xdr_, 
 	     SizeT width, bool f77);
   
+  void Socket( const std::string& host,
+	       DUInt port, bool swapEndian_,
+	       DDouble c_timeout, DDouble r_timeout, DDouble w_timeout);
+
   void Close(); 
   
   bool Eof()
@@ -169,11 +196,17 @@ public:
   std::fstream& IStream(); 
   std::fstream& OStream(); 
 
+  int SockNum() { return sockNum;}
+  std::istringstream& ISocketStream(); 
+  std::string& RecvBuf() { return *recvBuf;}
+  DDouble cTimeout() { return c_timeout;}
+  DDouble rTimeout() { return r_timeout;}
+  DDouble wTimeout() { return w_timeout;}
+
   friend const std::string StreamInfo( std::ios* searchStream);
 
   // F77_UNFORMATTED stuff
   bool F77() { return f77;}
-
   void F77Write( DULong tCount);
 
   DULong F77ReadStart();

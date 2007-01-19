@@ -812,6 +812,103 @@ namespace lib {
     open_lun( e, fstream::in | fstream::out);
   }
   
+  void socket( EnvT* e)
+  {
+    int nParam=e->NParam( 3);
+    
+    if( e->KeywordSet( "GET_LUN")) get_lun( e);
+    // par 0 contains now the LUN
+
+    DLong lun;
+    e->AssureLongScalarPar( 0, lun);
+
+    bool stdLun = check_lun( e, lun);
+    if( stdLun)
+      e->Throw( "Unit already open. Unit: "+i2s( lun));
+    
+    DString host;
+    // IDL allows here also arrays of length 1
+    e->AssureScalarPar<DStringGDL>( 1, host); 
+
+    DUInt port;
+    BaseGDL* p2 = e->GetParDefined( 2);
+    if (p2->Type() == STRING) {
+      // look up /etc/services
+    } else if (p2->Type() == UINT) {
+      e->AssureScalarPar<DUIntGDL>( 2, port);
+    } else if (p2->Type() == INT) {
+      DInt p;
+      e->AssureScalarPar<DIntGDL>( 2, p);
+      port = p;
+    } else if (p2->Type() == LONG) {
+      DLong p;
+      e->AssureScalarPar<DLongGDL>( 2, p);
+      port = p;
+    } else if (p2->Type() == ULONG) {
+      DULong p;
+      e->AssureScalarPar<DULongGDL>( 2, p);
+      port = p;
+    }
+
+    // endian
+    bool swapEndian=false;
+    if( e->KeywordSet( "SWAP_ENDIAN"))
+      swapEndian = true;
+    else if( BigEndian())
+      swapEndian = e->KeywordSet( "SWAP_IF_BIG_ENDIAN");
+    else
+      swapEndian = e->KeywordSet( "SWAP_IF_LITTLE_ENDIAN");
+
+    DDouble c_timeout=0.0;
+    e->AssureDoubleScalarKWIfPresent( "CONNECT_TIMEOUT", c_timeout);
+    DDouble r_timeout=0.0;
+    e->AssureDoubleScalarKWIfPresent( "READ_TIMEOUT",    r_timeout);
+    DDouble w_timeout=0.0;
+    e->AssureDoubleScalarKWIfPresent( "WRITE_TIMEOUT",   w_timeout);
+   
+    static int errorIx = e->KeywordIx( "ERROR");
+    bool errorKeyword = e->KeywordPresent( errorIx);
+    if( errorKeyword) e->AssureGlobalKW( errorIx);
+
+    DLong width = defaultStreamWidth;
+    static int widthIx = e->KeywordIx( "WIDTH");
+    BaseGDL* widthKeyword = e->GetKW( widthIx);
+    if( widthKeyword != NULL)
+      {
+	e->AssureLongScalarKW( widthIx, width);
+      }
+
+    try{
+      fileUnits[ lun-1].Socket( host, port, swapEndian,
+				c_timeout, r_timeout, c_timeout);
+    } 
+    catch( GDLException& ex) {
+      DString errorMsg = ex.toString()+" Unit: "+i2s( lun)+
+	", File: "+fileUnits[ lun-1].Name();
+      
+      if( !errorKeyword)
+	e->Throw( errorMsg);
+      
+      BaseGDL** err = &e->GetKW( errorIx);
+      
+      delete (*err); 
+//    if( *err != e->Caller()->Object()) delete (*err); 
+      
+      *err = new DLongGDL( 1);
+      return;
+    }
+
+    if( errorKeyword)
+      {
+	BaseGDL** err = &e->GetKW( errorIx);
+      
+// 	if( *err != e->Caller()->Object()) delete (*err); 
+	delete (*err); 
+      
+	*err = new DLongGDL( 0);
+      }
+  }
+
   void close_free_lun( EnvT* e, bool freeLun)
   {
     DLong journalLUN = SysVar::JournalLUN();
@@ -938,6 +1035,7 @@ namespace lib {
     bool varlenVMS = false;
     bool swapEndian = false;
     XDR *xdrs = NULL;
+    int sockNum = fileUnits[ lun-1].SockNum();
 
     bool stdLun = check_lun( e, lun);
     if( stdLun)
@@ -946,6 +1044,31 @@ namespace lib {
 	  e->Throw( "Cannot read from stdout and stderr."
 		    " Unit: "+i2s( lun));
 	is = &cin;
+      }
+    else if (sockNum != -1)
+      {
+	swapEndian = fileUnits[ lun-1].SwapEndian();
+
+	string *recvBuf = &fileUnits[ lun-1].RecvBuf();
+
+	// Setup recv buffer & string
+	const int MAXRECV = 2048*8;
+	char buf[MAXRECV+1];
+
+	// Read socket until finished & store in recv string
+	while (1) {
+	  memset (buf, 0, MAXRECV+1);
+	  int status = recv(sockNum, buf, MAXRECV, 0);
+	  //	  cout << "Bytes received: " << status << endl;
+	  if (status == 0) break;
+	  for( SizeT i=0; i<status; i++) 
+	    recvBuf->push_back(buf[i]);
+	}
+
+	// Get istringstream, write recv string, & assign to istream
+	istringstream *iss = &fileUnits[ lun-1].ISocketStream();
+	iss->str(*recvBuf);
+	is = iss;
       }
     else
       {
@@ -1032,6 +1155,12 @@ namespace lib {
 	    p->Read( *is, swapEndian, xdrs);
 	  }
 	  else p->Read( *is, swapEndian, xdrs);
+	  if (sockNum != -1) {
+	    int pos = is->tellg();
+	    string *recvBuf = &fileUnits[ lun-1].RecvBuf();
+	    //	    cout << "pos: " << pos << endl;
+	    recvBuf->erase(0, pos);
+	  }
 	}
   }
 
