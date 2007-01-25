@@ -170,7 +170,9 @@
 	  INTEGER keyword for TOTAL.
 	  Add support for variable-length VMS files.	  
 	  Add support for CHANNEL keyword in TV/TVSCL.
+	  Add support for DIMENSION keyword in FFT.
 	  Add REGEX keyword support to STRTOK.
 	  Add preliminary support for MPI.
+	  Add initial support for SOCKET.
 	  Preliminary support for map projections. (requires libproj4 from
 	  %http://members.verizon.net/~vze2hc4d/proj4/lbp4_050319S.tar.gz)
