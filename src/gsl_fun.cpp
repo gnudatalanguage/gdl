@@ -246,11 +246,12 @@ namespace lib {
 
   template< typename T1, typename T2>
   int cp2data2_template( BaseGDL* p0, T2* data, SizeT nEl, 
-			 SizeT offset, SizeT stride)
+			 SizeT offset, SizeT stride_in, SizeT stride_out)
   {
     T1* p0c = static_cast<T1*>( p0);
+
     for( SizeT i=0; i<nEl; ++i) 
-      data[2*(i*stride+offset)] = (T2) (*p0c)[i*stride+offset]; 
+      data[2*(i*stride_out+offset)] = (T2) (*p0c)[i*stride_in+offset]; 
 
     return 0;
   }
@@ -258,29 +259,36 @@ namespace lib {
 
   template< typename T>
   int cp2data_template( BaseGDL* p0, T* data, SizeT nEl, 
-			 SizeT offset, SizeT stride)
+			 SizeT offset, SizeT stride_in, SizeT stride_out)
   {
     switch ( p0->Type()) {
     case DOUBLE: 
-      cp2data2_template< DDoubleGDL, T>( p0, data, nEl, offset, stride);
+      cp2data2_template< DDoubleGDL, T>( p0, data, nEl, offset, 
+					 stride_in, stride_out);
       break;
     case FLOAT: 
-      cp2data2_template< DFloatGDL, T>( p0, data, nEl, offset, stride);
+      cp2data2_template< DFloatGDL, T>( p0, data, nEl, offset, 
+					stride_in, stride_out);
       break;
     case LONG:
-      cp2data2_template< DLongGDL, T>( p0, data, nEl, offset, stride);
+      cp2data2_template< DLongGDL, T>( p0, data, nEl, offset, 
+				       stride_in, stride_out);
       break;
     case ULONG: 
-      cp2data2_template< DULongGDL, T>( p0, data, nEl, offset, stride);
+      cp2data2_template< DULongGDL, T>( p0, data, nEl, offset, 
+					stride_in, stride_out);
       break;
     case INT: 
-      cp2data2_template< DIntGDL, T>( p0, data, nEl, offset, stride);
+      cp2data2_template< DIntGDL, T>( p0, data, nEl, offset, 
+				      stride_in, stride_out);
       break;
     case UINT: 
-      cp2data2_template< DUIntGDL, T>( p0, data, nEl, offset, stride);
+      cp2data2_template< DUIntGDL, T>( p0, data, nEl, offset, 
+				       stride_in, stride_out);
       break;
     case BYTE: 
-      cp2data2_template< DByteGDL, T>( p0, data, nEl, offset, stride);
+      cp2data2_template< DByteGDL, T>( p0, data, nEl, offset, 
+				       stride_in, stride_out);
       break;
     }
   }
@@ -322,7 +330,8 @@ namespace lib {
   template< typename T, typename T1, typename T2>
   int real_fft_transform_template(BaseGDL* p0, T *dptr, SizeT nEl, 
 				  double direct, 
-				  SizeT offset, SizeT stride, SizeT radix2,
+				  SizeT offset, SizeT stride_in, SizeT stride_out,
+				  SizeT radix2,
 				  int (*complex_radix2_forward) 
 				  (T[], const size_t, size_t),
 				  int (*complex_radix2_backward) 
@@ -335,17 +344,16 @@ namespace lib {
 				  void (*wavetable_free)(T1*),
 				  void (*workspace_free)(T2*))
   {
-
-    cp2data_template< T>( p0, dptr, nEl, offset, stride);
+    cp2data_template< T>( p0, dptr, nEl, offset, stride_in, stride_out);
 
     if (radix2) {
 
       if (direct == -1) {
-	(*complex_radix2_forward) (&dptr[2*offset], stride, nEl);
+	(*complex_radix2_forward) (&dptr[2*offset], stride_out, nEl);
 	for( SizeT i=0; i<nEl; ++i) 
-	  ((std::complex<T> &) dptr[2*(i*stride+offset)]) /= nEl;
+	  ((std::complex<T> &) dptr[2*(i*stride_out+offset)]) /= nEl;
       } else if (direct == +1) {
-	(*complex_radix2_backward) (&dptr[2*offset], stride, nEl);
+	(*complex_radix2_backward) (&dptr[2*offset], stride_out, nEl);
       }
     }
     else if (!radix2) {
@@ -356,9 +364,9 @@ namespace lib {
       work = (*workspace_alloc) (nEl);
       wave = (*wavetable_alloc) (nEl);
 
-      (*real_transform) (&dptr[2*offset], 2*stride, nEl, wave, work);
+      (*real_transform) (&dptr[2*offset], 2*stride_out, nEl, wave, work);
 
-      unpack_real_mxradix_template< T>( dptr, nEl, direct, offset, stride);
+      unpack_real_mxradix_template< T>( dptr, nEl, direct, offset, stride_out);
 
       (*workspace_free) (work);
       (*wavetable_free) (wave);
@@ -422,7 +430,8 @@ namespace lib {
 
   template < typename T>
   T* fft_template(BaseGDL* p0,
-		  SizeT nEl, SizeT dbl, SizeT overwrite, double direct)
+		  SizeT nEl, SizeT dbl, SizeT overwrite, 
+		  double direct, DLong dimension)
   {
     SizeT offset;
     SizeT stride;
@@ -430,32 +439,32 @@ namespace lib {
     T* res;
 
     if (overwrite == 0)
-      res = new T( p0->Dim(), BaseGDL::ZERO);
+      if (dimension == 0)
+	res = new T( p0->Dim(), BaseGDL::ZERO);
+      else
+	res = new T( p0->Dim(dimension-1), BaseGDL::ZERO);
     else
       res = (T*) p0;
 
 
-    if( p0->Rank() == 1) {
-      offset=0;
-      stride=1;
-	fft_1d( p0, &(*res)[0], nEl, offset, stride, 
-		direct, dbl);
-    }
+    if( p0->Rank() == 1 || dimension > 0) {
+	offset=0;
+	stride=1;
 
-    if( p0->Rank() == 2) {
+	fft_1d( p0, &(*res)[0], nEl, offset, stride, 
+		direct, dbl, dimension);
+    } else if ( p0->Rank() == 2) {
       stride=p0->Dim(0);
       for( SizeT i=0; i<p0->Dim(0); ++i) {
 	fft_1d( p0, &(*res)[0], p0->Dim(1), i, stride, 
-		direct, dbl);
+		direct, dbl, dimension);
       }
       for( SizeT i=0; i<p0->Dim(1); ++i) {
 	fft_1d( res, &(*res)[0], 
 		p0->Dim(0), i*p0->Dim(0), 1, 
-		direct, dbl);
+		direct, dbl, dimension);
       }
-    }
-
-    if( p0->Rank() >= 3) {
+    } else if( p0->Rank() >= 3) {
       unsigned char *used = new unsigned char [nEl];
 
       stride = nEl;
@@ -474,10 +483,10 @@ namespace lib {
 	      used[offset+i*stride] = 1;
 	    if (k == p0->Rank())
 	      fft_1d( p0, &(*res)[0], p0->Dim(k-1), offset, stride, 
-		      direct, dbl);
+		      direct, dbl, dimension);
 	    else
 	      fft_1d( res, &(*res)[0], p0->Dim(k-1), offset, stride, 
-		      direct, dbl);
+		      direct, dbl, dimension);
 	  }
 	  offset++;
 	}
@@ -491,6 +500,17 @@ namespace lib {
 
   BaseGDL* fft_fun( EnvT* e)
   {
+    /*
+      Program Flow
+      ------------
+      fft_fun
+         fft_template
+	    fft_1d
+	       (real/complex)_fft_transform_template
+	          cp2data_template (real only)
+		     cp2data_2_template (real only)
+    */
+
     SizeT nParam=e->NParam();
     SizeT overwrite=0, dbl=0;
     SizeT stride;
@@ -525,16 +545,27 @@ namespace lib {
     if( e->KeywordSet(1)) direct = +1.0;
     if( e->KeywordSet(2)) overwrite = 1;
 
+    // Check for dimension keyword
+    DLong dimension=0;
+    if(e->KeywordSet(3)) {
+      e->AssureLongScalarKW( 3, dimension);
+      for( SizeT i=0; i<p0->Rank(); ++i)
+	if (i != (dimension-1)) nEl /= p0->Dim(i);
+      overwrite = 0;  // Disable overwrite
+    }
+
     if( p0->Type() == COMPLEXDBL || p0->Type() == DOUBLE || dbl) { 
 
-      return fft_template< DComplexDblGDL> (p0, nEl, dbl, overwrite, direct);
+      return fft_template< DComplexDblGDL> (p0, nEl, dbl, overwrite, 
+					    direct, dimension);
 
     }
     else if( p0->Type() == COMPLEX) {
 
       DComplexGDL* res;
 
-      return fft_template< DComplexGDL> (p0, nEl, dbl, overwrite, direct);
+      return fft_template< DComplexGDL> (p0, nEl, dbl, overwrite, 
+					 direct, dimension);
 
     }
     else if (p0->Type() == FLOAT ||
@@ -545,7 +576,8 @@ namespace lib {
 	     p0->Type() == BYTE) {
 
       overwrite = 0;
-      return fft_template< DComplexGDL> (p0, nEl, dbl, overwrite, direct);
+      return fft_template< DComplexGDL> (p0, nEl, dbl, overwrite, 
+					 direct, dimension);
 
     } else {
       DFloatGDL* res = static_cast<DFloatGDL*>
@@ -558,7 +590,7 @@ namespace lib {
 
 
   int fft_1d( BaseGDL* p0, void* data, SizeT nEl, SizeT offset, SizeT stride, 
-	      double direct, SizeT dbl)
+	      double direct, SizeT dbl, DLong dimension)
   {
     float f32[2];
     double f64[2];
@@ -572,18 +604,34 @@ namespace lib {
       }
     }
 
+    // Determine input stride
+    SizeT stride_in=1;
+    if (dimension > 0)
+      for( SizeT i=0; i<dimension-1; ++i) stride_in *= p0->Dim(i);
+    else
+      stride_in = stride;
+
     if( p0->Type() == COMPLEX && dbl == 0)
       {
 	DComplexGDL* p0C = static_cast<DComplexGDL*>( p0);
 	float *dptr;
 	dptr = (float*) data;
 
-	if (stride == 1 && offset == 0) {
-	  if ((void*) dptr != (void*) &(*p0C)[0]) 
-	    memcpy(dptr, &(*p0C)[0], szflt*2*nEl);
-	} else {
+	if (dimension > 0) {
 	  for( SizeT i=0; i<nEl; ++i) {
-	    memcpy(&dptr[2*(i*stride+offset)], &(*p0C)[i*stride+offset], szflt*2);
+	    memcpy(&dptr[2*(i*stride+offset)], 
+		   &(*p0C)[i*stride_in+offset], szflt*2);
+	  }
+	} else {
+	  // NO dimension Keyword
+	  if (stride == 1 && offset == 0) {
+	    if ((void*) dptr != (void*) &(*p0C)[0]) 
+	      memcpy(dptr, &(*p0C)[0], szflt*2*nEl);
+	  } else {
+	    for( SizeT i=0; i<nEl; ++i) {
+	      memcpy(&dptr[2*(i*stride+offset)], 
+		     &(*p0C)[i*stride+offset], szflt*2);
+	    }
 	  }
 	}
 
@@ -614,17 +662,18 @@ namespace lib {
 	if( p0->Type() == COMPLEXDBL) {
 	  for( SizeT i=0; i<nEl; ++i) {
 	    memcpy(&dptr[2*(i*stride+offset)], 
-		   &(*p0C)[i*stride+offset], szdbl*2);
+		   &(*p0C)[i*stride_in+offset], szdbl*2);
 	  }
 	}
 	else if( p0->Type() == COMPLEX) {
 	  DComplexDbl c128;
+
 	  for( SizeT i=0; i<nEl; ++i) {
-	    c128 = (*p0CF)[i*stride+offset];
-	    memcpy(&dptr[2*(i*stride+offset)], &c128, 2*szdbl);
+	    c128 = (*p0CF)[i*stride_in+offset];
+	      memcpy(&dptr[2*(i*stride+offset)], &c128, 2*szdbl);
 	  }
 	}
-
+	
 	complex_fft_transform_template<double, 
 	  gsl_fft_complex_wavetable,
 	  gsl_fft_complex_workspace> 
@@ -648,7 +697,7 @@ namespace lib {
 	real_fft_transform_template<double, 
 	  gsl_fft_real_wavetable,
 	  gsl_fft_real_workspace> 
-	  (p0, dptr, nEl, direct, offset, stride, radix2,
+	  (p0, dptr, nEl, direct, offset, stride_in, stride, radix2,
 	   gsl_fft_complex_radix2_forward,
 	   gsl_fft_complex_radix2_backward,
 	   gsl_fft_real_transform,
@@ -674,7 +723,7 @@ namespace lib {
 	real_fft_transform_template<float, 
 	  gsl_fft_real_wavetable_float,
 	  gsl_fft_real_workspace_float> 
-	  (p0, dptr, nEl, direct, offset, stride, radix2,
+	  (p0, dptr, nEl, direct, offset, stride_in, stride, radix2,
 	   gsl_fft_complex_float_radix2_forward,
 	   gsl_fft_complex_float_radix2_backward,
 	   gsl_fft_real_float_transform,

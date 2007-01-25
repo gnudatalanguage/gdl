@@ -27,6 +27,7 @@
 #include "basic_fun.hpp"
 #include "fftw3.h"
 #include <gsl/gsl_math.h>
+#include "gsl_fun.hpp"
 
 #undef GDL_DEBUG
 
@@ -67,7 +68,8 @@ namespace lib {
       in = (fftw_complex *) &(*p0C)[0];
       out = (fftw_complex *) &dptr[0];
 
-      p = fftw_plan_dft((int) p0->Rank(), dim, in, out, (int) direct, FFTW_ESTIMATE);
+      p = fftw_plan_dft((int) p0->Rank(), dim, in, out, (int) direct, 
+			FFTW_ESTIMATE);
 
       fftw_execute(p);
 
@@ -87,7 +89,8 @@ namespace lib {
       in_f = (fftwf_complex *) &(*p0CF)[0];
       out_f = (fftwf_complex *) &dptrf[0];
 
-      p_f = fftwf_plan_dft((int) p0->Rank(), dim, in_f, out_f, (int) direct, FFTW_ESTIMATE);
+      p_f = fftwf_plan_dft((int) p0->Rank(), dim, in_f, out_f, (int) direct, 
+			   FFTW_ESTIMATE);
 
       fftwf_execute(p_f);
 
@@ -109,6 +112,11 @@ namespace lib {
     SizeT overwrite=0, dbl=0;
     SizeT stride;
     SizeT offset;
+
+    // If DIMENSION keyword set then use GSL fft
+    if(e->KeywordSet(3)) {
+      return fft_fun(e);
+    }
 
     double direct=-1.0;
 
@@ -180,8 +188,6 @@ namespace lib {
 
     }
   }
-
-
 
 } // namespace
 
