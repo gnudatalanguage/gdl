@@ -2851,7 +2851,6 @@ namespace lib {
     if (yVal->N_Elements() == 1 && yVal->Rank() == 0) 
       minEl = xVal->N_Elements();
 
-
     DDouble *sx;
     DDouble *sy;
     static DStructGDL* xStruct = SysVar::X();
@@ -2872,12 +2871,17 @@ namespace lib {
       ll = (*static_cast<DLongGDL*>(Struct->Get( typeTag, 0)))[0];
     }
 
+    DDouble xStart, xEnd;
+    get_axis_crange("X", xStart, xEnd);
+
     if (ll == 3) {
       map_init();
       if (! (ref) ) {
 	e->Throw( "Projection initialization failed.");
       }
     }
+
+
 #endif
 
     for( int i=0; i<minEl; ++i)
@@ -2947,6 +2951,9 @@ namespace lib {
 			  x1 = odata.x;
 			  y1 = odata.y;
 			  if (!isfinite(x1) || !isfinite(y1)) continue;
+
+			  // Break "jumps" across maps (kludge!)
+			  if (fabs(x-x1) > 0.5*(xEnd-xStart)) continue;
 			}
 #endif
 			if(ll == 3 && e->KeywordSet("NORMAL")) {
@@ -2958,8 +2965,8 @@ namespace lib {
 
 			a->join(x1,y1,x,y);
 
-			//  cout << "join( "<<x1<<", "<<y1<<", "<<
- 			//  x<<", "<<y<<")"<<endl;
+			// cout << "join( "<<x1<<", "<<y1<<", "<<
+			// x<<", "<<y<<")"<<endl;
 		      }
 		  }
 	      }
@@ -3420,6 +3427,7 @@ namespace lib {
     char e2[64];
     char lat_1[64];
     char lat_2[64];
+    char lat_ts[64];
 
     static char *parms[32];
     static DLong last_proj = 0;
@@ -3470,16 +3478,37 @@ namespace lib {
       parms[nparms++] = &a[0];
       if (map_e2 != 0.0) parms[nparms++] = &e2[0];
 
+      // stereographic iproj =  1
+      // orthographic  iproj =  2
+      // conic         iproj =  3
+      // lambert       iproj =  4
+      // gnomic        iproj =  5
+      // azimuth       iproj =  6
+      // satellite     iproj =  7
+      // mercator      iproj =  9
+      // mollweide     iproj = 10
+      // sinusoidal    iproj = 11
+      // aitoff        iproj = 12
+      // hammer        iproj = 13
+      // albers        iproj = 14
+      // utm           iproj = 15
+      // miller        iproj = 16
+      // robinson      iproj = 17
+      // goodes        iproj = 19
+
+      // Stereographic Projection
       if (map_projection == 1) {
 	strcpy(proj, "proj=stere");
 	parms[nparms++] = &proj[0];
       }
 
+      // Orthographic Projection
       if (map_projection == 2) {
 	strcpy(proj, "proj=ortho");
 	parms[nparms++] = &proj[0];
       }
 
+      // Lambert Conformal Conic
       if (map_projection == 3) {
 	strcpy(proj, "proj=lcc");
 	parms[nparms++] = &proj[0];
@@ -3489,22 +3518,33 @@ namespace lib {
 	parms[nparms++] = &lat_2[0];
       }
 
+      // Lambert Equal Area Conic
       if (map_projection == 4) {
 	strcpy(proj, "proj=leac");
 	parms[nparms++] = &proj[0];
       }
 
+      // Gnomonic
       if (map_projection == 5) {
 	strcpy(proj, "proj=gnom");
 	parms[nparms++] = &proj[0];
-
       }
 
+      // Azimuthal Equidistant
       if (map_projection == 6) {
 	strcpy(proj, "proj=aeqd");
 	parms[nparms++] = &proj[0];
       }
 
+      // Mercator
+      if (map_projection == 9) {
+	strcpy(proj, "proj=merc");
+	sprintf(lat_ts, "lat_ts=%lf", 0);
+	parms[nparms++] = &proj[0];
+	//	parms[nparms++] = &lat_ts[0];
+      }
+
+      // Aitoff
       if (map_projection == 12) {
 	strcpy(proj, "proj=aitoff");
 	parms[nparms++] = &proj[0];
