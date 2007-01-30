@@ -157,23 +157,15 @@ void GDLStream::Close()
 void GDLStream::Free()
 { 
   Close();
-  if( fStream != NULL) 
-    {
-      delete fStream;
-      fStream = NULL;
-    }
 
-  if( iSocketStream != NULL) 
-    {
-      delete iSocketStream;
-      iSocketStream = NULL;
-    }
+  delete fStream;
+  fStream = NULL;
 
-  if( recvBuf != NULL) 
-    {
-      delete recvBuf;
-      recvBuf = NULL;
-    }
+  delete iSocketStream;
+  iSocketStream = NULL;
+
+  delete recvBuf;
+  recvBuf = NULL;
 }
  
 fstream& GDLStream::IStream()

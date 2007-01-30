@@ -54,7 +54,7 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
-/* Pre-10.5 version of OS X */
+/* Pre-10.4.8 version of OS X */
 #undef OLD_DARWIN
 
 /* Name of package */

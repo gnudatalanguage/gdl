@@ -139,10 +139,12 @@ void Assoc_<Parent_>::AssignAt( BaseGDL* srcIn,
       // ix empty -> write direct
       fstream& ofs = fileUnits[ lun].OStream();
       fileUnits[ lun].SeekPad( fileOffset + recordNum * sliceSize);
-      //      srcIn->Write( ofs, fileUnits[ lun].SwapEndian());
-      Parent_::Write( ofs, 
+      srcIn->Write( ofs, 
+		fileUnits[ lun].SwapEndian(),
+		fileUnits[ lun].Xdr());
+/*      Parent_::Write( ofs, 
 		      fileUnits[ lun].SwapEndian(),
-		      fileUnits[ lun].Xdr());
+		      fileUnits[ lun].Xdr());*/
     }
 }
 template<class Parent_>
@@ -153,10 +155,12 @@ void Assoc_<Parent_>::AssignAt( BaseGDL* srcIn)
   // ix empty -> write direct
   fstream& ofs = fileUnits[ lun].OStream();
   fileUnits[ lun].SeekPad( fileOffset + recordNum * sliceSize);
-  //  srcIn->Write( ofs, fileUnits[ lun].SwapEndian());
-  Parent_::Write( ofs, 
+  srcIn->Write( ofs, 
+		fileUnits[ lun].SwapEndian(),
+		fileUnits[ lun].Xdr());
+/*  Parent_::Write( ofs, 
 		  fileUnits[ lun].SwapEndian(),
-		  fileUnits[ lun].Xdr());
+		  fileUnits[ lun].Xdr());*/
 }
 
 // (writing 2)

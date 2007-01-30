@@ -2581,16 +2581,15 @@ namespace lib {
       e->Throw( "Expression must be an array "
 		"in this context: "+ e->GetParString(0));
     
-    DUInt* perm = NULL;
-    auto_ptr<DUInt> perm_guard;
     if( nParam == 2) 
       {
+ 
 	BaseGDL* p1 = e->GetParDefined( 1);
 	if( p1->N_Elements() != rank)
 	  e->Throw("Incorrect number of elements in permutation.");
 
-	perm = new DUInt[rank];
-	perm_guard.reset( perm);
+	DUInt* perm = new DUInt[rank];
+	auto_ptr<DUInt> perm_guard( perm);
 
 	DUIntGDL* p1L = static_cast<DUIntGDL*>
 	  (p1->Convert2( UINT, BaseGDL::COPY));
@@ -2605,10 +2604,11 @@ namespace lib {
 	    if (j == rank)
 	      e->Throw( "Incorrect permutation vector.");
 	  }
-      }
+	return p0->Transpose( perm);
+     }
 
-    return p0->Transpose( perm);
-  }
+   return p0->Transpose( NULL);
+   }
 
  
 

@@ -45,7 +45,7 @@
         <f77compiler>kdevg77options</f77compiler>
         <cxxflags>-O2 -g0 -DNDEBUG</cxxflags>
         <envvars/>
-        <configargs>--with-python=no --with-hdf=no --with-hdf5=no --with-netcdf=no --disable-python_module</configargs>
+        <configargs>--enable-debug=full --with-netcdf=/home/marc/netcdf-3.6.1 --with-python=yes --with-hdf=no --with-hdf5=no --with-plplot=/usr --with-python=no --disable-python_module --with-wxWidgets=no --with-Magick=no--enable-debug=full --with-netcdf=/home/marc/netcdf-3.6.1 --with-python=yes --with-hdf=no --with-hdf5=no --with-plplot=/usr --with-pyt--with-netcdf=/home/marc/netcdf-3.6.1 --with-python=yes --with-hdf=no --with-hdf5=no --with-plplot=/usr --with-python=no --disable-python_module --with-wxWidgets=no --with-Magick=no</configargs>
         <topsourcedir/>
         <cppflags/>
         <ldflags/>
@@ -56,7 +56,7 @@
         <f77flags/>
       </optimized>
       <debug>
-        <configargs>--enable-debug=full --with-python=yes --with-hdf=no --with-hdf5=no --with-netcdf=no --with-plplot=/usr/local --with-python=no --disable-python_module --with-wxWidgets=no</configargs>
+        <configargs>--enable-debug=full --with-netcdf=/home/marc/netcdf-3.6.1 --with-python=yes --with-hdf=no --with-hdf5=no --with-plplot=/usr --with-python=no --disable-python_module --with-wxWidgets=no --with-Magick=no</configargs>
         <builddir>debug</builddir>
         <ccompiler>kdevgccoptions</ccompiler>
         <cxxcompiler>kdevgppoptions</cxxcompiler>

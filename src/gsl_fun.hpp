@@ -35,8 +35,10 @@ namespace lib {
   BaseGDL* histogram_fun( EnvT* e);
   BaseGDL* interpolate_fun( EnvT* e);
 
-  int fft_1d( BaseGDL*, void*, SizeT, SizeT, SizeT, 
-	      double, SizeT);
+//  int fft_1d( BaseGDL*, void*, SizeT, SizeT, //SizeT, 
+//	      double, SizeT);
+  int fft_1d( BaseGDL* p0, void* data, SizeT nEl, SizeT offset, SizeT stride, 
+	      double direct, SizeT dbl, DLong dimension);
 
   //  int unpack_real_radix2(double*, SizeT);
   int unpack_real_mxradix(double*, SizeT);

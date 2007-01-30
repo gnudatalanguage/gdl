@@ -527,7 +527,47 @@ BaseGDL* Data_<Sp>::Transpose( DUInt* perm)
   // 2 - MAXRANK
   static DUInt* permDefault = InitPermDefault(); 
   if( perm == NULL)
+    {
+      if( rank == 2)
+	{
+	  Data_* res = new Data_( dimension( this->dim[1], this->dim[0]), 
+				  BaseGDL::NOZERO);
+
+	  SizeT srcStride1 = this->dim.Stride( 1);
+
+	  SizeT nElem = dd.size();
+	  for( SizeT e = 0, ix = 0, srcDim0 = 0; e<nElem; ++e)
+	    {
+	      res->dd[ e] = dd[ ix];
+	      ix += srcStride1;
+	      if( ix >= nElem) 
+		  ix = ++srcDim0;
+	    }
+	  return res;
+
+// 	  SizeT srcDim1 = 0;
+
+// 	  SizeT nElem = dd.size();
+// 	  for( SizeT e=0; e<nElem; ++e)
+// 	    {
+// 	      // multi src dim to one dim index
+// 	      SizeT ix = srcDim0 + srcDim1 * srcStride1;
+      
+// 	      res->dd[ e] = dd[ ix];
+	      
+// 	      // update dest multi dim
+// 	      if( ++srcDim1 >= this->dim[ 1]) 
+// 		{
+// 		  srcDim1=0;
+// 		  if( ++srcDim0 >= this->dim[0]) srcDim0=0;
+// 		}
+// 	    }
+
+// 	  return res;
+	}
+
       perm = &permDefault[ MAXRANK - rank];
+    }
 
   dimension newDim;
   SizeT this_dim[ MAXRANK]; // permutated!

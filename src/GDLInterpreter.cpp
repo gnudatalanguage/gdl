@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.4: "gdlc.i.g" -> "GDLInterpreter.cpp"$ */
+/* $ANTLR 2.7.6 (2005-12-22): "gdlc.i.g" -> "GDLInterpreter.cpp"$ */
 
     // gets inserted before the antlr generated includes in the cpp file
 #include "includefirst.hpp"
@@ -30,7 +30,7 @@ GDLInterpreter::GDLInterpreter()
 
  GDLInterpreter::RetCode  GDLInterpreter::interactive(ProgNodeP _t) {
 	 GDLInterpreter::RetCode retCode;
-	ProgNodeP interactive_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP interactive_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	retCode=statement_list(_t);
 	_t = _retTree;
@@ -40,7 +40,7 @@ GDLInterpreter::GDLInterpreter()
 
  GDLInterpreter::RetCode  GDLInterpreter::statement_list(ProgNodeP _t) {
 	 GDLInterpreter::RetCode retCode;
-	ProgNodeP statement_list_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP statement_list_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	{ // ( ... )+
 	int _cnt14=0;
@@ -68,7 +68,7 @@ GDLInterpreter::GDLInterpreter()
 
  GDLInterpreter::RetCode  GDLInterpreter::execute(ProgNodeP _t) {
 	 GDLInterpreter::RetCode retCode;
-	ProgNodeP execute_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP execute_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	//    GDLInterpreter::RetCode retCode;
 	ValueGuard<bool> guard( interruptEnable);
@@ -83,7 +83,7 @@ GDLInterpreter::GDLInterpreter()
 
  BaseGDL*  GDLInterpreter::call_fun(ProgNodeP _t) {
 	 BaseGDL* res;
-	ProgNodeP call_fun_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP call_fun_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	
 	res = NULL;
@@ -125,7 +125,7 @@ GDLInterpreter::GDLInterpreter()
 
  GDLInterpreter::RetCode  GDLInterpreter::statement(ProgNodeP _t) {
 	 GDLInterpreter::RetCode retCode;
-	ProgNodeP statement_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP o = ProgNodeP(antlr::nullAST);
 	
 	retCode = RC_OK;
@@ -398,7 +398,7 @@ GDLInterpreter::GDLInterpreter()
 
  BaseGDL**  GDLInterpreter::call_lfun(ProgNodeP _t) {
 	 BaseGDL** res;
-	ProgNodeP call_lfun_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP call_lfun_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	res = NULL;
 	returnValueL = NULL;
@@ -440,7 +440,7 @@ GDLInterpreter::GDLInterpreter()
 }
 
 void GDLInterpreter::call_pro(ProgNodeP _t) {
-	ProgNodeP call_pro_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP call_pro_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	GDLInterpreter::RetCode retCode;
 	
@@ -468,7 +468,7 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 }
 
 void GDLInterpreter::assignment(ProgNodeP _t) {
-	ProgNodeP assignment_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP assignment_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	BaseGDL*  r;
 	BaseGDL** l;
@@ -658,7 +658,7 @@ void GDLInterpreter::assignment(ProgNodeP _t) {
 }
 
 void GDLInterpreter::procedure_call(ProgNodeP _t) {
-	ProgNodeP procedure_call_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP procedure_call_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP pl = ProgNodeP(antlr::nullAST);
 	ProgNodeP mp = ProgNodeP(antlr::nullAST);
 	ProgNodeP parent = ProgNodeP(antlr::nullAST);
@@ -804,7 +804,7 @@ void GDLInterpreter::procedure_call(ProgNodeP _t) {
 }
 
 void GDLInterpreter::decinc_statement(ProgNodeP _t) {
-	ProgNodeP decinc_statement_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP decinc_statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	BaseGDL* l;
 	
@@ -846,7 +846,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 
  GDLInterpreter::RetCode  GDLInterpreter::for_statement(ProgNodeP _t) {
 	 GDLInterpreter::RetCode retCode;
-	ProgNodeP for_statement_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP for_statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP f = ProgNodeP(antlr::nullAST);
 	ProgNodeP fs = ProgNodeP(antlr::nullAST);
 	
@@ -863,7 +863,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 	case FOR:
 	{
 		ProgNodeP __t29 = _t;
-		f = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+		f = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 		match(antlr::RefAST(_t),FOR);
 		_t = _t->getFirstChild();
 		
@@ -933,7 +933,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 	case FOR_STEP:
 	{
 		ProgNodeP __t30 = _t;
-		fs = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+		fs = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 		match(antlr::RefAST(_t),FOR_STEP);
 		_t = _t->getFirstChild();
 		
@@ -1035,11 +1035,11 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 
  GDLInterpreter::RetCode  GDLInterpreter::repeat_statement(ProgNodeP _t) {
 	 GDLInterpreter::RetCode retCode;
-	ProgNodeP repeat_statement_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP repeat_statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP r = ProgNodeP(antlr::nullAST);
 	
 	ProgNodeP __t25 = _t;
-	r = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	r = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	match(antlr::RefAST(_t),REPEAT);
 	_t = _t->getFirstChild();
 	
@@ -1089,14 +1089,14 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 
  GDLInterpreter::RetCode  GDLInterpreter::while_statement(ProgNodeP _t) {
 	 GDLInterpreter::RetCode retCode;
-	ProgNodeP while_statement_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP while_statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP w = ProgNodeP(antlr::nullAST);
 	
 	retCode = RC_OK;
 	
 	
 	ProgNodeP __t27 = _t;
-	w = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	w = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	match(antlr::RefAST(_t),WHILE);
 	_t = _t->getFirstChild();
 	
@@ -1137,7 +1137,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 
  GDLInterpreter::RetCode  GDLInterpreter::if_statement(ProgNodeP _t) {
 	 GDLInterpreter::RetCode retCode;
-	ProgNodeP if_statement_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP if_statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP i = ProgNodeP(antlr::nullAST);
 	
 	BaseGDL* e;
@@ -1145,7 +1145,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 	
 	
 	ProgNodeP __t32 = _t;
-	i = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	i = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	match(antlr::RefAST(_t),IF);
 	_t = _t->getFirstChild();
 	e=expr(_t);
@@ -1176,14 +1176,14 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 
  GDLInterpreter::RetCode  GDLInterpreter::if_else_statement(ProgNodeP _t) {
 	 GDLInterpreter::RetCode retCode;
-	ProgNodeP if_else_statement_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP if_else_statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP i = ProgNodeP(antlr::nullAST);
 	
 	BaseGDL* e;
 	
 	
 	ProgNodeP __t34 = _t;
-	i = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	i = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	match(antlr::RefAST(_t),IF_ELSE);
 	_t = _t->getFirstChild();
 	e=expr(_t);
@@ -1227,7 +1227,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 
  GDLInterpreter::RetCode  GDLInterpreter::case_statement(ProgNodeP _t) {
 	 GDLInterpreter::RetCode retCode;
-	ProgNodeP case_statement_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP case_statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP c = ProgNodeP(antlr::nullAST);
 	
 	BaseGDL* e;
@@ -1235,7 +1235,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 	
 	
 	ProgNodeP __t23 = _t;
-	c = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	c = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	match(antlr::RefAST(_t),CASE);
 	_t = _t->getFirstChild();
 	e=expr(_t);
@@ -1322,7 +1322,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 
  GDLInterpreter::RetCode  GDLInterpreter::switch_statement(ProgNodeP _t) {
 	 GDLInterpreter::RetCode retCode;
-	ProgNodeP switch_statement_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP switch_statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP s = ProgNodeP(antlr::nullAST);
 	
 	BaseGDL* e;
@@ -1330,7 +1330,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 	
 	
 	ProgNodeP __t21 = _t;
-	s = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	s = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	match(antlr::RefAST(_t),SWITCH);
 	_t = _t->getFirstChild();
 	e=expr(_t);
@@ -1419,7 +1419,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 
  GDLInterpreter::RetCode  GDLInterpreter::block(ProgNodeP _t) {
 	 GDLInterpreter::RetCode retCode;
-	ProgNodeP block_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP block_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	retCode = RC_OK;
 	
@@ -1480,7 +1480,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 
  GDLInterpreter::RetCode  GDLInterpreter::jump_statement(ProgNodeP _t) {
 	 GDLInterpreter::RetCode retCode;
-	ProgNodeP jump_statement_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP jump_statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP g = ProgNodeP(antlr::nullAST);
 	
 	BaseGDL*  e;
@@ -1584,7 +1584,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 
 BaseGDL*  GDLInterpreter::expr(ProgNodeP _t) {
 	BaseGDL* res;
-	ProgNodeP expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
 		_t = ASTNULL;
@@ -1638,7 +1638,7 @@ BaseGDL*  GDLInterpreter::expr(ProgNodeP _t) {
 
 BaseGDL**  GDLInterpreter::l_simple_var(ProgNodeP _t) {
 	BaseGDL** res;
-	ProgNodeP l_simple_var_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP l_simple_var_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP var = ProgNodeP(antlr::nullAST);
 	ProgNodeP varPtr = ProgNodeP(antlr::nullAST);
 	
@@ -1677,7 +1677,7 @@ BaseGDL**  GDLInterpreter::l_simple_var(ProgNodeP _t) {
 
 BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 	BaseGDL** res;
-	ProgNodeP l_ret_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP l_ret_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP varPtr = ProgNodeP(antlr::nullAST);
 	ProgNodeP var = ProgNodeP(antlr::nullAST);
 	
@@ -1988,7 +1988,7 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 void GDLInterpreter::parameter_def(ProgNodeP _t,
 	EnvBaseT* actEnv
 ) {
-	ProgNodeP parameter_def_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP parameter_def_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP knameR = ProgNodeP(antlr::nullAST);
 	ProgNodeP knameE = ProgNodeP(antlr::nullAST);
 	ProgNodeP kname = ProgNodeP(antlr::nullAST);
@@ -2194,7 +2194,7 @@ void GDLInterpreter::parameter_def(ProgNodeP _t,
 
 BaseGDL*  GDLInterpreter::indexable_expr(ProgNodeP _t) {
 	BaseGDL* res;
-	ProgNodeP indexable_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP indexable_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	BaseGDL** e2;
 	
@@ -2246,7 +2246,7 @@ BaseGDL*  GDLInterpreter::indexable_expr(ProgNodeP _t) {
 
 BaseGDL*  GDLInterpreter::indexable_tmp_expr(ProgNodeP _t) {
 	BaseGDL* res;
-	ProgNodeP indexable_tmp_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP indexable_tmp_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP q = ProgNodeP(antlr::nullAST);
 	
 	BaseGDL*  e1;
@@ -2258,7 +2258,7 @@ BaseGDL*  GDLInterpreter::indexable_tmp_expr(ProgNodeP _t) {
 	case QUESTION:
 	{
 		ProgNodeP __t123 = _t;
-		q = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+		q = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 		match(antlr::RefAST(_t),QUESTION);
 		_t = _t->getFirstChild();
 		res = q->Eval();
@@ -2324,7 +2324,7 @@ BaseGDL*  GDLInterpreter::indexable_tmp_expr(ProgNodeP _t) {
 
 BaseGDL*  GDLInterpreter::check_expr(ProgNodeP _t) {
 	BaseGDL* res;
-	ProgNodeP check_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP check_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	res=lib_function_call(_t);
 	_t = _retTree;
@@ -2336,7 +2336,7 @@ BaseGDL**  GDLInterpreter::l_expr(ProgNodeP _t,
 	BaseGDL* right
 ) {
 	BaseGDL** res;
-	ProgNodeP l_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP l_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP dot = ProgNodeP(antlr::nullAST);
 	
 	BaseGDL*       e1;
@@ -2633,7 +2633,7 @@ BaseGDL**  GDLInterpreter::l_expr(ProgNodeP _t,
 	case DOT:
 	{
 		ProgNodeP __t92 = _t;
-		dot = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+		dot = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 		match(antlr::RefAST(_t),DOT);
 		_t = _t->getFirstChild();
 		
@@ -2711,7 +2711,7 @@ BaseGDL**  GDLInterpreter::l_expr(ProgNodeP _t,
 
 BaseGDL*  GDLInterpreter::tmp_expr(ProgNodeP _t) {
 	BaseGDL* res;
-	ProgNodeP tmp_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP tmp_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP q = ProgNodeP(antlr::nullAST);
 	
 	BaseGDL*  e1;
@@ -2736,7 +2736,7 @@ BaseGDL*  GDLInterpreter::tmp_expr(ProgNodeP _t) {
 	case QUESTION:
 	{
 		ProgNodeP __t128 = _t;
-		q = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+		q = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 		match(antlr::RefAST(_t),QUESTION);
 		_t = _t->getFirstChild();
 		res = q->Eval();
@@ -2821,7 +2821,7 @@ BaseGDL*  GDLInterpreter::tmp_expr(ProgNodeP _t) {
 
  BaseGDL**  GDLInterpreter::l_function_call(ProgNodeP _t) {
 	 BaseGDL** res;
-	ProgNodeP l_function_call_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP l_function_call_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP fl = ProgNodeP(antlr::nullAST);
 	ProgNodeP mp = ProgNodeP(antlr::nullAST);
 	ProgNodeP parent = ProgNodeP(antlr::nullAST);
@@ -2978,7 +2978,7 @@ BaseGDL*  GDLInterpreter::tmp_expr(ProgNodeP _t) {
 
 BaseGDL**  GDLInterpreter::l_deref(ProgNodeP _t) {
 	BaseGDL** res;
-	ProgNodeP l_deref_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP l_deref_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	BaseGDL*       e1;
 	
@@ -3022,7 +3022,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 	int dec_inc
 ) {
 	BaseGDL* res;
-	ProgNodeP l_decinc_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP l_decinc_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	BaseGDL*       e1;
 	
@@ -3311,7 +3311,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 
 BaseGDL*  GDLInterpreter::r_expr(ProgNodeP _t) {
 	BaseGDL* res;
-	ProgNodeP r_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP r_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP e = ProgNodeP(antlr::nullAST);
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
@@ -3398,7 +3398,7 @@ BaseGDL*  GDLInterpreter::r_expr(ProgNodeP _t) {
 
 BaseGDL*  GDLInterpreter::constant_nocopy(ProgNodeP _t) {
 	BaseGDL* res;
-	ProgNodeP constant_nocopy_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP constant_nocopy_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP c = ProgNodeP(antlr::nullAST);
 	
 	c = _t;
@@ -3415,7 +3415,7 @@ BaseGDL*  GDLInterpreter::l_decinc_indexable_expr(ProgNodeP _t,
 	int dec_inc
 ) {
 	BaseGDL* res;
-	ProgNodeP l_decinc_indexable_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP l_decinc_indexable_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	BaseGDL** e;
 	
@@ -3474,7 +3474,7 @@ BaseGDL*  GDLInterpreter::l_decinc_indexable_expr(ProgNodeP _t,
 
 BaseGDL**  GDLInterpreter::l_defined_simple_var(ProgNodeP _t) {
 	BaseGDL** res;
-	ProgNodeP l_defined_simple_var_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP l_defined_simple_var_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP var = ProgNodeP(antlr::nullAST);
 	ProgNodeP varPtr = ProgNodeP(antlr::nullAST);
 	
@@ -3518,7 +3518,7 @@ BaseGDL**  GDLInterpreter::l_defined_simple_var(ProgNodeP _t) {
 
 BaseGDL**  GDLInterpreter::l_sys_var(ProgNodeP _t) {
 	BaseGDL** res;
-	ProgNodeP l_sys_var_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP l_sys_var_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP sysVar = ProgNodeP(antlr::nullAST);
 	
 	sysVar = _t;
@@ -3552,7 +3552,7 @@ BaseGDL*  GDLInterpreter::l_decinc_array_expr(ProgNodeP _t,
 	int dec_inc
 ) {
 	BaseGDL* res;
-	ProgNodeP l_decinc_array_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP l_decinc_array_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	ArrayIndexListT* aL;
 	BaseGDL*         e;
@@ -3648,7 +3648,7 @@ BaseGDL*  GDLInterpreter::l_decinc_array_expr(ProgNodeP _t,
 
 ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t) {
 	ArrayIndexListT* aL;
-	ProgNodeP arrayindex_list_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP arrayindex_list_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP ax = ProgNodeP(antlr::nullAST);
 	
 	ExprListT        exprList; // for cleanup
@@ -3658,7 +3658,7 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t) {
 	
 	
 	ProgNodeP __t169 = _t;
-	ax = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ax = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	match(antlr::RefAST(_t),ARRAYIX);
 	_t = _t->getFirstChild();
 	
@@ -3765,11 +3765,11 @@ BaseGDL*  GDLInterpreter::l_decinc_dot_expr(ProgNodeP _t,
 	int dec_inc
 ) {
 	BaseGDL* res;
-	ProgNodeP l_decinc_dot_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP l_decinc_dot_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP dot = ProgNodeP(antlr::nullAST);
 	
 	ProgNodeP __t68 = _t;
-	dot = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	dot = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	match(antlr::RefAST(_t),DOT);
 	_t = _t->getFirstChild();
 	
@@ -3826,7 +3826,7 @@ BaseGDL*  GDLInterpreter::l_decinc_dot_expr(ProgNodeP _t,
 void GDLInterpreter::l_dot_array_expr(ProgNodeP _t,
 	DotAccessDescT* aD
 ) {
-	ProgNodeP l_dot_array_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP l_dot_array_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	ArrayIndexListT* aL;
 	BaseGDL**        rP;
@@ -3934,7 +3934,7 @@ void GDLInterpreter::l_dot_array_expr(ProgNodeP _t,
 void GDLInterpreter::tag_array_expr(ProgNodeP _t,
 	DotAccessDescT* aD
 ) {
-	ProgNodeP tag_array_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP tag_array_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	ArrayIndexListT* aL;
 	
@@ -3975,7 +3975,7 @@ void GDLInterpreter::tag_array_expr(ProgNodeP _t,
 
 BaseGDL**  GDLInterpreter::l_indexable_expr(ProgNodeP _t) {
 	BaseGDL** res;
-	ProgNodeP l_indexable_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP l_indexable_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
 		_t = ASTNULL;
@@ -4045,7 +4045,7 @@ BaseGDL**  GDLInterpreter::l_array_expr(ProgNodeP _t,
 	BaseGDL* right
 ) {
 	BaseGDL** res;
-	ProgNodeP l_array_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP l_array_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	ArrayIndexListT* aL;
 	ArrayIndexListGuard guard;
@@ -4089,7 +4089,7 @@ BaseGDL**  GDLInterpreter::l_array_expr(ProgNodeP _t,
 
 BaseGDL*  GDLInterpreter::array_def(ProgNodeP _t) {
 	BaseGDL* res;
-	ProgNodeP array_def_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP array_def_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP a = ProgNodeP(antlr::nullAST);
 	
 	DType  cType=UNDEF; // conversion type
@@ -4100,7 +4100,7 @@ BaseGDL*  GDLInterpreter::array_def(ProgNodeP _t) {
 	
 	
 	ProgNodeP __t174 = _t;
-	a = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	a = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	match(antlr::RefAST(_t),ARRAYDEF);
 	_t = _t->getFirstChild();
 	{ // ( ... )+
@@ -4203,7 +4203,7 @@ BaseGDL*  GDLInterpreter::array_def(ProgNodeP _t) {
 
  BaseGDL*  GDLInterpreter::struct_def(ProgNodeP _t) {
 	 BaseGDL* res;
-	ProgNodeP struct_def_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP struct_def_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP idRef = ProgNodeP(antlr::nullAST);
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
@@ -4252,7 +4252,7 @@ BaseGDL*  GDLInterpreter::array_def(ProgNodeP _t) {
 
 BaseGDL*  GDLInterpreter::array_expr(ProgNodeP _t) {
 	BaseGDL* res;
-	ProgNodeP array_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP array_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP ax = ProgNodeP(antlr::nullAST);
 	
 	ArrayIndexListT* aL;
@@ -4325,7 +4325,7 @@ BaseGDL*  GDLInterpreter::array_expr(ProgNodeP _t) {
 	}
 	}
 	ProgNodeP __t106 = _t;
-	ax = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ax = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	match(antlr::RefAST(_t),ARRAYIX);
 	_t = _t->getFirstChild();
 	
@@ -4438,7 +4438,7 @@ BaseGDL*  GDLInterpreter::array_expr(ProgNodeP _t) {
 void GDLInterpreter::tag_expr(ProgNodeP _t,
 	DotAccessDescT* aD
 ) {
-	ProgNodeP tag_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP tag_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP i = ProgNodeP(antlr::nullAST);
 	
 	BaseGDL* e;
@@ -4493,7 +4493,7 @@ BaseGDL*  GDLInterpreter::r_dot_indexable_expr(ProgNodeP _t,
 	DotAccessDescT* aD
 ) {
 	BaseGDL* res;
-	ProgNodeP r_dot_indexable_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP r_dot_indexable_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	BaseGDL** e;
 	
@@ -4539,7 +4539,7 @@ BaseGDL*  GDLInterpreter::r_dot_indexable_expr(ProgNodeP _t,
 
 BaseGDL*  GDLInterpreter::sys_var_nocopy(ProgNodeP _t) {
 	BaseGDL* res;
-	ProgNodeP sys_var_nocopy_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP sys_var_nocopy_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP sysVar = ProgNodeP(antlr::nullAST);
 	
 	sysVar = _t;
@@ -4566,7 +4566,7 @@ BaseGDL*  GDLInterpreter::sys_var_nocopy(ProgNodeP _t) {
 void GDLInterpreter::r_dot_array_expr(ProgNodeP _t,
 	DotAccessDescT* aD
 ) {
-	ProgNodeP r_dot_array_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP r_dot_array_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	ArrayIndexListT* aL;
 	BaseGDL*         r;
@@ -4685,11 +4685,11 @@ void GDLInterpreter::r_dot_array_expr(ProgNodeP _t,
 
 BaseGDL*  GDLInterpreter::dot_expr(ProgNodeP _t) {
 	BaseGDL* res;
-	ProgNodeP dot_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP dot_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP dot = ProgNodeP(antlr::nullAST);
 	
 	ProgNodeP __t119 = _t;
-	dot = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	dot = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	match(antlr::RefAST(_t),DOT);
 	_t = _t->getFirstChild();
 	
@@ -4724,7 +4724,7 @@ BaseGDL*  GDLInterpreter::dot_expr(ProgNodeP _t) {
 
 BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	BaseGDL* res;
-	ProgNodeP assign_expr_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP assign_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	BaseGDL** l;
 	BaseGDL*  r;
@@ -4926,7 +4926,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 
  BaseGDL*  GDLInterpreter::function_call(ProgNodeP _t) {
 	 BaseGDL* res;
-	ProgNodeP function_call_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP function_call_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP mp = ProgNodeP(antlr::nullAST);
 	ProgNodeP parent = ProgNodeP(antlr::nullAST);
 	ProgNodeP p = ProgNodeP(antlr::nullAST);
@@ -5035,7 +5035,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 
  BaseGDL*  GDLInterpreter::lib_function_call_retnew(ProgNodeP _t) {
 	 BaseGDL* res;
-	ProgNodeP lib_function_call_retnew_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP lib_function_call_retnew_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP fl = ProgNodeP(antlr::nullAST);
 	
 	// better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
@@ -5069,7 +5069,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 
  BaseGDL*  GDLInterpreter::lib_function_call(ProgNodeP _t) {
 	 BaseGDL* res;
-	ProgNodeP lib_function_call_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP lib_function_call_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP fl = ProgNodeP(antlr::nullAST);
 	
 	// better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
@@ -5103,7 +5103,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 
 BaseGDL*  GDLInterpreter::constant(ProgNodeP _t) {
 	BaseGDL* res;
-	ProgNodeP constant_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP constant_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP c = ProgNodeP(antlr::nullAST);
 	
 	c = _t;
@@ -5118,7 +5118,7 @@ BaseGDL*  GDLInterpreter::constant(ProgNodeP _t) {
 
 BaseGDL*  GDLInterpreter::simple_var(ProgNodeP _t) {
 	BaseGDL* res;
-	ProgNodeP simple_var_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP simple_var_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP var = ProgNodeP(antlr::nullAST);
 	ProgNodeP varPtr = ProgNodeP(antlr::nullAST);
 	
@@ -5166,7 +5166,7 @@ BaseGDL*  GDLInterpreter::simple_var(ProgNodeP _t) {
 
 BaseGDL*  GDLInterpreter::sys_var(ProgNodeP _t) {
 	BaseGDL* res;
-	ProgNodeP sys_var_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP sys_var_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	BaseGDL* sv;
 	
@@ -5182,7 +5182,7 @@ BaseGDL*  GDLInterpreter::sys_var(ProgNodeP _t) {
 
  BaseGDL**  GDLInterpreter::ref_parameter(ProgNodeP _t) {
 	 BaseGDL** ret;
-	ProgNodeP ref_parameter_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP ref_parameter_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
 		_t = ASTNULL;
@@ -5211,7 +5211,7 @@ BaseGDL*  GDLInterpreter::sys_var(ProgNodeP _t) {
 
  BaseGDL*  GDLInterpreter::named_struct_def(ProgNodeP _t) {
 	 BaseGDL* res;
-	ProgNodeP named_struct_def_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP named_struct_def_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP n = ProgNodeP(antlr::nullAST);
 	ProgNodeP id = ProgNodeP(antlr::nullAST);
 	ProgNodeP i = ProgNodeP(antlr::nullAST);
@@ -5224,7 +5224,7 @@ BaseGDL*  GDLInterpreter::sys_var(ProgNodeP _t) {
 	
 	
 	ProgNodeP __t178 = _t;
-	n = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	n = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	match(antlr::RefAST(_t),NSTRUC);
 	_t = _t->getFirstChild();
 	id = _t;
@@ -5369,7 +5369,7 @@ BaseGDL*  GDLInterpreter::sys_var(ProgNodeP _t) {
 
  BaseGDL*  GDLInterpreter::unnamed_struct_def(ProgNodeP _t) {
 	 BaseGDL* res;
-	ProgNodeP unnamed_struct_def_AST_in = (_t == ASTNULL) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP unnamed_struct_def_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP si = ProgNodeP(antlr::nullAST);
 	
 	// don't forget the struct in extrat.cpp if you change something here

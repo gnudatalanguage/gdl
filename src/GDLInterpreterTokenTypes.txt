@@ -1,4 +1,4 @@
-// $ANTLR 2.7.4: gdlc.i.g -> GDLInterpreterTokenTypes.txt$
+// $ANTLR 2.7.6 (2005-12-22): gdlc.i.g -> GDLInterpreterTokenTypes.txt$
 GDLInterpreter    // output token vocab name
 ALL=4
 ASSIGN=5

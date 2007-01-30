@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.4: "format.in.g" -> "FMTIn.cpp"$ */
+/* $ANTLR 2.7.6 (2005-12-22): "format.in.g" -> "FMTIn.cpp"$ */
 
 #include "includefirst.hpp"
 
@@ -17,11 +17,11 @@ FMTIn::FMTIn()
 }
 
 void FMTIn::format(RefFMTNode _t) {
-	RefFMTNode format_AST_in = (_t == ASTNULL) ? RefFMTNode(antlr::nullAST) : _t;
+	RefFMTNode format_AST_in = (_t == RefFMTNode(ASTNULL)) ? RefFMTNode(antlr::nullAST) : _t;
 	RefFMTNode fmt = RefFMTNode(antlr::nullAST);
 	
 	RefFMTNode __t2 = _t;
-	fmt = (_t == ASTNULL) ? RefFMTNode(antlr::nullAST) : _t;
+	fmt = (_t == RefFMTNode(ASTNULL)) ? RefFMTNode(antlr::nullAST) : _t;
 	match(antlr::RefAST(_t),FORMAT);
 	_t = _t->getFirstChild();
 	goto realCode;
@@ -102,7 +102,7 @@ void FMTIn::format(RefFMTNode _t) {
 }
 
 void FMTIn::q(RefFMTNode _t) {
-	RefFMTNode q_AST_in = (_t == ASTNULL) ? RefFMTNode(antlr::nullAST) : _t;
+	RefFMTNode q_AST_in = (_t == RefFMTNode(ASTNULL)) ? RefFMTNode(antlr::nullAST) : _t;
 	RefFMTNode s = RefFMTNode(antlr::nullAST);
 	
 	{
@@ -151,7 +151,7 @@ void FMTIn::q(RefFMTNode _t) {
 }
 
 void FMTIn::f(RefFMTNode _t) {
-	RefFMTNode f_AST_in = (_t == ASTNULL) ? RefFMTNode(antlr::nullAST) : _t;
+	RefFMTNode f_AST_in = (_t == RefFMTNode(ASTNULL)) ? RefFMTNode(antlr::nullAST) : _t;
 	RefFMTNode t = RefFMTNode(antlr::nullAST);
 	RefFMTNode a = RefFMTNode(antlr::nullAST);
 	RefFMTNode ff = RefFMTNode(antlr::nullAST);
@@ -397,7 +397,7 @@ void FMTIn::f(RefFMTNode _t) {
 	case C:
 	{
 		RefFMTNode __t18 = _t;
-		c = (_t == ASTNULL) ? RefFMTNode(antlr::nullAST) : _t;
+		c = (_t == RefFMTNode(ASTNULL)) ? RefFMTNode(antlr::nullAST) : _t;
 		match(antlr::RefAST(_t),C);
 		_t = _t->getFirstChild();
 		{ // ( ... )+
@@ -430,11 +430,11 @@ void FMTIn::f(RefFMTNode _t) {
 }
 
 void FMTIn::format_recursive(RefFMTNode _t) {
-	RefFMTNode format_recursive_AST_in = (_t == ASTNULL) ? RefFMTNode(antlr::nullAST) : _t;
+	RefFMTNode format_recursive_AST_in = (_t == RefFMTNode(ASTNULL)) ? RefFMTNode(antlr::nullAST) : _t;
 	RefFMTNode fmt = RefFMTNode(antlr::nullAST);
 	
 	RefFMTNode __t6 = _t;
-	fmt = (_t == ASTNULL) ? RefFMTNode(antlr::nullAST) : _t;
+	fmt = (_t == RefFMTNode(ASTNULL)) ? RefFMTNode(antlr::nullAST) : _t;
 	match(antlr::RefAST(_t),FORMAT);
 	_t = _t->getFirstChild();
 	goto realCode;
@@ -512,7 +512,7 @@ void FMTIn::format_recursive(RefFMTNode _t) {
 }
 
 void FMTIn::format_reversion(RefFMTNode _t) {
-	RefFMTNode format_reversion_AST_in = (_t == ASTNULL) ? RefFMTNode(antlr::nullAST) : _t;
+	RefFMTNode format_reversion_AST_in = (_t == RefFMTNode(ASTNULL)) ? RefFMTNode(antlr::nullAST) : _t;
 	
 	format(_t);
 	_t = _retTree;
@@ -576,7 +576,7 @@ void FMTIn::format_reversion(RefFMTNode _t) {
 }
 
 void FMTIn::f_csubcode(RefFMTNode _t) {
-	RefFMTNode f_csubcode_AST_in = (_t == ASTNULL) ? RefFMTNode(antlr::nullAST) : _t;
+	RefFMTNode f_csubcode_AST_in = (_t == RefFMTNode(ASTNULL)) ? RefFMTNode(antlr::nullAST) : _t;
 	RefFMTNode s = RefFMTNode(antlr::nullAST);
 	RefFMTNode tl = RefFMTNode(antlr::nullAST);
 	RefFMTNode tr = RefFMTNode(antlr::nullAST);
@@ -626,7 +626,7 @@ void FMTIn::f_csubcode(RefFMTNode _t) {
 }
 
 void FMTIn::x(RefFMTNode _t) {
-	RefFMTNode x_AST_in = (_t == ASTNULL) ? RefFMTNode(antlr::nullAST) : _t;
+	RefFMTNode x_AST_in = (_t == RefFMTNode(ASTNULL)) ? RefFMTNode(antlr::nullAST) : _t;
 	RefFMTNode tl = RefFMTNode(antlr::nullAST);
 	
 	tl = _t;
@@ -643,7 +643,7 @@ void FMTIn::x(RefFMTNode _t) {
 }
 
 void FMTIn::csubcode(RefFMTNode _t) {
-	RefFMTNode csubcode_AST_in = (_t == ASTNULL) ? RefFMTNode(antlr::nullAST) : _t;
+	RefFMTNode csubcode_AST_in = (_t == RefFMTNode(ASTNULL)) ? RefFMTNode(antlr::nullAST) : _t;
 	RefFMTNode c1 = RefFMTNode(antlr::nullAST);
 	RefFMTNode c2 = RefFMTNode(antlr::nullAST);
 	RefFMTNode c3 = RefFMTNode(antlr::nullAST);

@@ -140,7 +140,7 @@ IFmtA( istream* is, SizeT offs, SizeT r, int w)
 
   SizeT endEl = offs + tCount;
 
-  if( w <= 0)
+   if( w <= 0)
     for( SizeT i=offs; i<endEl; i++)
       getline( *is, dd[ i]);
   else
@@ -151,6 +151,13 @@ IFmtA( istream* is, SizeT offs, SizeT r, int w)
 	{
 	  is->get( buf, w);
 	  dd[ i] = buf; //string( buf);
+	  if( is->eof()) // ignore if length is too short
+	    {
+	      if( i == (endEl-1))
+		is->clear();
+
+	      assert( is->good());
+	    }
 	}
     }
 

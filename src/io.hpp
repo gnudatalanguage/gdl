@@ -101,6 +101,7 @@ public:
   {
     delete xdrs;
     delete fStream;
+    delete iSocketStream;
   }  
 
   void Open( const std::string& name_,
