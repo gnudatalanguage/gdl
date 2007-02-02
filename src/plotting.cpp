@@ -910,6 +910,8 @@ namespace lib {
 	clippingD = e->IfDefGetKWAs<DDoubleGDL>( clippingix);
       }
     
+    // Turn off map projection processing
+    set_mapset(0);
 
     // viewport and world coordinates
     bool okVPWC = SetVP_WC( e, actStream, pos, clippingD, 
@@ -1283,7 +1285,7 @@ namespace lib {
 
     // Determine data coordinate limits
     // These are computed from window and scaling axis system
-    // variable because map routines change these directly.
+    // variables because map routines change these directly.
     DDouble *sx;
     DDouble *sy;
     DStructGDL* xStruct = SysVar::X();
@@ -1306,25 +1308,25 @@ namespace lib {
     yEnd   = (wy[1] - sy[0]) / sy[1];
 
 
-    if(e->KeywordSet("DEVICE"))
-      {
-	PLFLT xpix, ypix;
-	PLINT xleng, yleng, xoff, yoff;
-	actStream->gpage(xpix, ypix,xleng, yleng, xoff, yoff);
-	xStart=0; xEnd=xleng;
-	yStart=0; yEnd=yleng;
-	xLog = false; yLog = false;
-	actStream->NoSub();
-      } else {
-	actStream->vpor(wx[0], wx[1], wy[0], wy[1]);
-      }
-
-    /*
-    printf("DATA:   %d  NORMAL: %d  DEVICE: %d\n", 
-	   e->KeywordSet("DATA"), 
-	   e->KeywordSet("NORMAL"), 
-	   e->KeywordSet("DEVICE"));
-    */
+    if(e->KeywordSet("DEVICE")) {
+      PLFLT xpix, ypix;
+      PLINT xleng, yleng, xoff, yoff;
+      actStream->gpage(xpix, ypix,xleng, yleng, xoff, yoff);
+      xStart=0; xEnd=xleng;
+      yStart=0; yEnd=yleng;
+      xLog = false; yLog = false;
+      actStream->NoSub();
+    } else if(e->KeywordSet("NORMAL")) {
+      xStart = 0;
+      xEnd   = 1;
+      yStart = 0;
+      yEnd   = 1;
+      actStream->vpor(0, 1, 0, 1);
+      xLog = false; yLog = false;
+      actStream->NoSub();
+    } else {
+      actStream->vpor(wx[0], wx[1], wy[0], wy[1]);
+    }
 
     minVal=yStart; maxVal=yEnd;
 
@@ -1447,53 +1449,52 @@ namespace lib {
 		 yMarginT,
 		 xMR, xML, yMB, yMT);
 
-    // viewport
-    if(e->KeywordSet("DATA") || 
-       (!e->KeywordSet("NORMAL") && !e->KeywordSet("DEVICE")))
-      {
-	if((yStart == yEnd) || (xStart == xEnd))
-	  {
-	    if(yStart != 0.0 and yStart==yEnd)
-	      Message("XYOUTS: !Y.CRANGE ERROR, setting to [0,1]");
-	    yStart=0;//yVal->min();
-	    yEnd=1;//yVal->max();
-	    
-	    if(xStart != 0.0 and xStart==xEnd)
-	      Message("XYOUTS: !X.CRANGE ERROR, resetting range to data");
-	    xStart=0;//xVal->min();
-	    xEnd=1;//xVal->max();
-	
-	    set_axis_crange("X", xStart, xEnd);
-	    set_axis_crange("Y", yStart, yEnd);
-	    
-	  }	    
-	
-	minVal=yStart-yMB*(yEnd-yStart)/(1-yMT-yMB);
-	yEnd=yEnd  +yMT*(yEnd-yStart)/(1-yMT-yMB);
-	yStart=minVal;
-	minVal=xStart-xML*(xEnd-xStart)/(1-xML-xMR);
-	xEnd  =xEnd  +xMR*(xEnd-xStart)/(1-xML-xMR);
-	xStart=minVal;
-      } 
-    else if(e->KeywordSet("NORMAL"))
-      {
-	xStart=0;
-	xEnd=1;
-	yStart=0;
-	yEnd=1;
-	xLog = false; yLog = false;
-	actStream->NoSub();
-      }
-    else if(e->KeywordSet("DEVICE"))
-      {
-	PLFLT xpix, ypix;
-	PLINT xleng, yleng, xoff, yoff;
-	actStream->gpage(xpix, ypix,xleng, yleng, xoff, yoff);
-	xStart=0; xEnd=xleng;
-	yStart=0; yEnd=yleng;
-	xLog = false; yLog = false;
-	actStream->NoSub();
-      }
+
+
+    // Determine data coordinate limits
+    // These are computed from window and scaling axis system
+    // variables because map routines change these directly.
+    DDouble *sx;
+    DDouble *sy;
+    DStructGDL* xStruct = SysVar::X();
+    DStructGDL* yStruct = SysVar::Y();
+    unsigned sxTag = xStruct->Desc()->TagIndex( "S");
+    unsigned syTag = yStruct->Desc()->TagIndex( "S");
+    sx = &(*static_cast<DDoubleGDL*>( xStruct->Get( sxTag, 0)))[0];
+    sy = &(*static_cast<DDoubleGDL*>( yStruct->Get( syTag, 0)))[0];
+    
+    DFloat *wx;
+    DFloat *wy;
+    unsigned xwindowTag = xStruct->Desc()->TagIndex( "WINDOW");
+    unsigned ywindowTag = yStruct->Desc()->TagIndex( "WINDOW");
+    wx = &(*static_cast<DFloatGDL*>( xStruct->Get( xwindowTag, 0)))[0];
+    wy = &(*static_cast<DFloatGDL*>( yStruct->Get( ywindowTag, 0)))[0];
+    
+    xStart = (wx[0] - sx[0]) / sx[1];
+    xEnd   = (wx[1] - sx[0]) / sx[1];
+    yStart = (wy[0] - sy[0]) / sy[1];
+    yEnd   = (wy[1] - sy[0]) / sy[1];
+
+
+    if(e->KeywordSet("DEVICE")) {
+      PLFLT xpix, ypix;
+      PLINT xleng, yleng, xoff, yoff;
+      actStream->gpage(xpix, ypix,xleng, yleng, xoff, yoff);
+      xStart=0; xEnd=xleng;
+      yStart=0; yEnd=yleng;
+      xLog = false; yLog = false;
+      actStream->NoSub();
+    } else if(e->KeywordSet("NORMAL")) {
+      xStart = 0;
+      xEnd   = 1;
+      yStart = 0;
+      yEnd   = 1;
+      actStream->vpor(0, 1, 0, 1);
+      xLog = false; yLog = false;
+      actStream->NoSub();
+    } else {
+      actStream->vpor(wx[0], wx[1], wy[0], wy[1]);
+    }
 
     minVal=yStart; maxVal=yEnd;
 
@@ -1508,6 +1509,14 @@ namespace lib {
 	    Clipping( clippingD, xStart, xEnd, minVal, maxVal);
       }
 
+    if( yLog)
+      {
+	if( yStart <= 0.0) yStart = 0.0; else yStart = log10( yStart);
+	if( yEnd   <= 0.0) return; else yEnd = log10( yEnd);
+      }
+
+    actStream->wind( xStart, xEnd, yStart, yEnd);
+
     // ranges are already log10
 //     if( xLog)
 //       {
@@ -1519,12 +1528,6 @@ namespace lib {
 // 	if( minVal <= 0.0) minVal = 0.0; else minVal = log10( minVal);
 // 	if( maxVal <= 0.0) return; else maxVal = log10( maxVal);
 //       }
-
-    // viewport (full (sub-)window 
-    actStream->vpor( 0, 1, 0, 1);
-
-    // world coordinates
-    actStream->wind( xStart, xEnd, minVal, maxVal);
 
     PLFLT x,y;
     string out;
@@ -1561,6 +1564,23 @@ namespace lib {
     DFloat charsize;
     gkw_charsize(e, actStream, charsize);
 
+
+    bool mapType=false;
+#ifdef USE_LIBPROJ4
+    // Map Stuff (xtype = 3)
+    LP idata;
+    XY odata;
+
+    get_mapset(mapType);
+
+    if ( mapType) {
+      map_init();
+      if (! (ref) ) {
+	e->Throw( "Projection initialization failed.");
+      }
+    }
+#endif
+
     if(minEl == 1)
       {
 	x=static_cast<PLFLT>((*xVal)[0]);
@@ -1568,6 +1588,16 @@ namespace lib {
 
 	if( yLog) if( y <= 0.0) goto skip; else y = log10( y);
 	if( xLog) if( x <= 0.0) goto skip; else x = log10( x);
+
+#ifdef USE_LIBPROJ4
+	if (mapType && !e->KeywordSet("NORMAL")) {
+	  idata.lam = x * DEG_TO_RAD;
+	  idata.phi = y * DEG_TO_RAD;
+	  odata = pj_fwd(idata, ref);
+	  x = odata.x;
+	  y = odata.y;
+	}
+#endif
 
 	out=(*strVal)[0];
 	actStream->ptex(x,y,p_orient_x, p_orient_y,alignment,out.c_str());
@@ -1582,6 +1612,16 @@ namespace lib {
 	    if( yLog) if( y <= 0.0) continue; else y = log10( y);
 	    if( xLog) if( x <= 0.0) continue; else x = log10( x);
 
+#ifdef USE_LIBPROJ4
+	    if (mapType && !e->KeywordSet("NORMAL")) {
+	      idata.lam = x * DEG_TO_RAD;
+	      idata.phi = y * DEG_TO_RAD;
+	      odata = pj_fwd(idata, ref);
+	      x = odata.x;
+	      y = odata.y;
+	      if (!isfinite(x) || !isfinite(y)) continue;
+	    }
+#endif
 	    if(orient != NULL)
 	      if(orient->N_Elements() > 1) 
 		{
@@ -2860,28 +2900,23 @@ namespace lib {
     sx = &(*static_cast<DDoubleGDL*>( xStruct->Get( sxTag, 0)))[0];
     sy = &(*static_cast<DDoubleGDL*>( yStruct->Get( syTag, 0)))[0];
 
-    DLong ll=0;
+    bool mapType=false;
 #ifdef USE_LIBPROJ4
     // Map Stuff (xtype = 3)
     LP idata;
     XY odata;
-    DStructGDL* Struct = SysVar::X();
-    if(Struct != NULL) {
-      static unsigned typeTag = Struct->Desc()->TagIndex( "TYPE");
-      ll = (*static_cast<DLongGDL*>(Struct->Get( typeTag, 0)))[0];
-    }
+
+    get_mapset(mapType);
 
     DDouble xStart, xEnd;
     get_axis_crange("X", xStart, xEnd);
 
-    if (ll == 3) {
+    if ( mapType) {
       map_init();
       if (! (ref) ) {
 	e->Throw( "Projection initialization failed.");
       }
     }
-
-
 #endif
 
     for( int i=0; i<minEl; ++i)
@@ -2907,7 +2942,7 @@ namespace lib {
 	    x = log10( x);
 
 #ifdef USE_LIBPROJ4
-	if (ll == 3 && !e->KeywordSet("NORMAL")) {
+	if (mapType && !e->KeywordSet("NORMAL")) {
 	  idata.lam = x * DEG_TO_RAD;
 	  idata.phi = y * DEG_TO_RAD;
 	  odata = pj_fwd(idata, ref);
@@ -2944,7 +2979,7 @@ namespace lib {
 #ifdef USE_LIBPROJ4
 			// Convert from lon/lat in degrees to radians
 			// Convert from lon/lat in radians to data coord
-			if (ll == 3 && !e->KeywordSet("NORMAL")) {
+			if (mapType && !e->KeywordSet("NORMAL")) {
 			  idata.lam = x1 * DEG_TO_RAD;
 			  idata.phi = y1 * DEG_TO_RAD;
 			  odata = pj_fwd(idata, ref);
@@ -2956,12 +2991,6 @@ namespace lib {
 			  if (fabs(x-x1) > 0.5*(xEnd-xStart)) continue;
 			}
 #endif
-			if(ll == 3 && e->KeywordSet("NORMAL")) {
-			  x  = (x  - sx[0]) / sx[1];
-			  y  = (y  - sy[0]) / sy[1];
-			  x1 = (x1 - sx[0]) / sx[1];
-			  y1 = (y1 - sy[0]) / sy[1];
-			}		
 
 			a->join(x1,y1,x,y);
 
@@ -2986,12 +3015,12 @@ namespace lib {
 			    if( xLog) x1 = log10( x1);
 	
 #ifdef USE_LIBPROJ4
-			    if (ll == 3 && !e->KeywordSet("NORMAL")) {
+			    if (mapType && !e->KeywordSet("NORMAL")) {
 			      idata.lam = x1 * DEG_TO_RAD;
 			      idata.phi = y1 * DEG_TO_RAD;
 			      odata = pj_fwd(idata, ref);
-			      x1 = odata.x * sx[1] + sx[0];
-			      y1 = odata.y * sy[1] + sy[0];
+			      x1 = odata.x;
+			      y1 = odata.y;
 			    }
 #endif		    
 			    a->join(x1,y1,(x1+x)/2.0,y1);
@@ -3009,10 +3038,6 @@ namespace lib {
 	const PLINT codeArr[]={ 0,2,3,1,11,7,6,5,4};
 
 	if (isfinite(x) && isfinite(y)) {
-	  if(ll == 3 && e->KeywordSet("NORMAL")) {
-	    x = (x - sx[0]) / sx[1];
-	    y = (y - sy[0]) / sy[1];
-	  }
 	  a->poin(1,&x,&y,codeArr[psym_]);
 	}
       }
@@ -3286,6 +3311,16 @@ namespace lib {
       else
 	mapset = 0;
     }
+  }
+
+  void set_mapset(bool mapset)
+  {
+    DStructGDL* Struct = SysVar::X();
+    if(Struct!=NULL)
+      {
+	static unsigned typeTag = Struct->Desc()->TagIndex( "TYPE");
+	(*static_cast<DDoubleGDL*>( Struct->Get( typeTag, 0)))[0] = mapset;
+      }
   }
   
 
@@ -3841,6 +3876,19 @@ namespace lib {
 	for( SizeT i = 0; i<nrows; ++i) {	
 	  idata.x = ((*ptr1) - sx[0]) / sx[1];
 	  idata.y = ((*ptr2) - sy[0]) / sy[1];
+	  odata = pj_inv(idata, ref);
+	  (*res)[ires++] = odata.lam * RAD_TO_DEG;
+	  (*res)[ires++] = odata.phi * RAD_TO_DEG;
+	  ptr1++;
+	  ptr2++;
+	  ires++;
+	}
+      } else if (e->KeywordSet("DEVICE")) {
+	XY idata;
+	LP odata;
+	for( SizeT i = 0; i<nrows; ++i) {	
+	  idata.x = ((*ptr1) / xv - sx[0]) / sx[1];
+	  idata.y = ((*ptr2) / yv - sy[0]) / sy[1];
 	  odata = pj_inv(idata, ref);
 	  (*res)[ires++] = odata.lam * RAD_TO_DEG;
 	  (*res)[ires++] = odata.phi * RAD_TO_DEG;

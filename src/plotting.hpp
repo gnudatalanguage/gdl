@@ -80,6 +80,7 @@ namespace lib {
 
   // mapset
   void get_mapset(bool &mapset);
+  void set_mapset(bool mapset);
 
   void gkw_axis_charsize(EnvT* e, string axis, DFloat &charsize);
 
