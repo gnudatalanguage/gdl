@@ -208,7 +208,7 @@ void LibInit_jmg()
   new DLibPro(lib::hdf_close_pro,string("HDF_CLOSE"),1);
 #endif
 
-  const string tvKey[]={"TRUE","NORMAL","CHANNEL",KLISTEND};
+  const string tvKey[]={"TRUE","NORMAL","CHANNEL","XSIZE","YSIZE",KLISTEND};
   new DLibPro(lib::tv,string("TV"),4,tvKey);
 
   const string tvrdKey[]={"CHANNEL","ORDER","TRUE","WORDS",KLISTEND};
