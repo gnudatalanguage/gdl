@@ -3571,6 +3571,12 @@ namespace lib {
 	parms[nparms++] = &proj[0];
       }
 
+      // Cylindrical Equidistant
+      if (map_projection == 8) {
+	strcpy(proj, "proj=eqc");
+	parms[nparms++] = &proj[0];
+      }
+
       // Mercator
       if (map_projection == 9) {
 	strcpy(proj, "proj=merc");
@@ -3835,7 +3841,7 @@ namespace lib {
     }
 
 #ifdef USE_LIBPROJ4
-    // MAP conversion (st = 3)
+    // MAP conversion (xt = 3)
     if (xt == 3) {
       map_init();
       if (! (ref) ) {
@@ -3855,7 +3861,7 @@ namespace lib {
 	    ptr2++;
 	    ires++;
 	  }
-	} else {
+	} else if (e->KeywordSet("TO_NORMAL")) {
 	  LP idata;
 	  XY odata;
 	  for( SizeT i = 0; i<nrows; ++i) {	
@@ -3864,6 +3870,19 @@ namespace lib {
 	    odata = pj_fwd(idata, ref);
 	    (*res)[ires++] = odata.x * sx[1] + sx[0];
 	    (*res)[ires++] = odata.y * sy[1] + sy[0];
+	    ptr1++;
+	    ptr2++;
+	    ires++;
+	  }
+	} else if (e->KeywordSet("TO_DEVICE")) {
+	  LP idata;
+	  XY odata;
+	  for( SizeT i = 0; i<nrows; ++i) {	
+	    idata.lam = (*ptr1) * DEG_TO_RAD;
+	    idata.phi = (*ptr2) * DEG_TO_RAD;
+	    odata = pj_fwd(idata, ref);
+	    (*res)[ires++] = xv * (odata.x * sx[1] + sx[0]);
+	    (*res)[ires++] = yv * (odata.y * sy[1] + sy[0]);
 	    ptr1++;
 	    ptr2++;
 	    ires++;
