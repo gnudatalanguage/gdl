@@ -1,4 +1,4 @@
-;$Id: read_jpeg.pro,v 1.1.1.1 2004-12-09 15:10:19 m_schellens Exp $
+;$Id: read_jpeg.pro,v 1.2 2007-02-05 19:06:37 jomoga Exp $
 
 pro read_jpeg, filename, unit=unit,image, colortable,buffer=buffer,$
               colors=colors,dither=dither,grayscale=grayscale,order=order,$
@@ -58,7 +58,7 @@ pro read_jpeg, filename, unit=unit,image, colortable,buffer=buffer,$
 ;
 ; MODIFICATION HISTORY:
 ; 	Written by: Christopher Lee 2004-05-17
-;
+;       Add convert to byte if 16-bit image     Joel Gales  02/05/06
 ;
 ;
 ;-
@@ -77,7 +77,7 @@ if(keyword_set(buffer)) then Message, "Keyword BUFFER not supported"
 
 
 if(not keyword_set(unit)) then mid=magick_open(filename)
-
+help,mid
 ;;DITHER if necessary
 
 if(keyword_set(GRAYSCALE)) then begin
@@ -102,6 +102,14 @@ if(magick_IndexedColor(mid)) then begin
 endif else begin
     image=magick_read(mid)
 endelse
+
+; if 16-bit (unsigned short int) image convert to byte
+sz = size(image)
+if (sz[1] eq 3) then begin
+    print, 'Converting 16-bit image to byte'
+    image = image / 256
+    image = byte(image)
+endif
 
 if(not keyword_set(unit)) then magick_close,mid
 
