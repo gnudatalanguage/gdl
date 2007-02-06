@@ -1207,51 +1207,22 @@ namespace lib {
   }
 
 
-  void interpolate_linear(SizeT nxa, SizeT nx, const double ya[], 
+  void interpolate_linear(gsl_interp_accel *acc, gsl_interp *interp, 
+			  double *xa, SizeT nx, const double ya[], 
 			  double x[], double y[])
   {
-    gsl_interp_accel *acc 
-      = gsl_interp_accel_alloc ();
-
-    gsl_interp *interp = gsl_interp_alloc (gsl_interp_linear, nxa);
-
-    double *xa = new double[nxa];
-    for( SizeT i=0; i<nxa; ++i) xa[i] = (double) i;
-    
-    gsl_interp_init (interp, xa, ya, nxa);
-
-    for( SizeT i=0; i<nx; ++i) {
-	  y[i] = gsl_interp_eval (interp, xa, ya, x[i], acc);
-    }
-
-    gsl_interp_free (interp);
-    gsl_interp_accel_free (acc);
-    delete [] xa;
+    for( SizeT i=0; i<nx; ++i)
+      y[i] = gsl_interp_eval (interp, xa, ya, x[i], acc);
   }
 
 
-  void interpolate_cubic(SizeT nxa, SizeT nx, const double ya[], 
+  void interpolate_cubic(gsl_interp_accel *acc, gsl_spline *spline, 
+			 double *xa, SizeT nx, const double ya[], 
 			 double x[], double y[])
   {
-    gsl_interp_accel *acc 
-      = gsl_interp_accel_alloc ();
-
-    gsl_spline *spline = gsl_spline_alloc (gsl_interp_cspline, nxa);
-
-    double *xa = new double[nxa];
-    for( SizeT i=0; i<nxa; ++i) xa[i] = (double) i;
-    
-    gsl_spline_init (spline, xa, ya, nxa);
-
-    for( SizeT i=0; i<nx; ++i) {
-	  y[i] = gsl_spline_eval (spline, x[i], acc);
-    }
-
-    gsl_spline_free (spline);
-    gsl_interp_accel_free (acc);
-    delete [] xa;
+    for( SizeT i=0; i<nx; ++i)
+      y[i] = gsl_spline_eval (spline, x[i], acc);
   }
-
 
 
   BaseGDL* interpolate_fun( EnvT* e)
@@ -1351,6 +1322,24 @@ namespace lib {
     SizeT ninterp = 1;
     for( SizeT i=0; i<p0->Rank()-(nParam-1); ++i) ninterp *= p0->Dim(i);
 
+    // Setup interpolation arrays
+    gsl_interp_accel *acc = gsl_interp_accel_alloc ();
+    gsl_interp *interp;
+    gsl_spline *spline;
+
+    // Determine number and value of input points along x-axis
+    SizeT nxa = p0->Dim(p0->Rank()-nParam+1);
+    double *xa = new double[nxa];
+    for( SizeT i=0; i<nxa; ++i) xa[i] = (double) i;
+      
+    // Allocate and initialize interpolation arrays
+    if( cubic) {
+      spline = gsl_spline_alloc (gsl_interp_cspline, nxa);
+      gsl_spline_init (spline, xa, &(*p0D)[0], nxa);
+    } else {
+      interp = gsl_interp_alloc (gsl_interp_linear, nxa);
+      gsl_interp_init (interp, xa, &(*p0D)[0], nxa);
+    }
 
     // 1D Interpolation
     if( nParam == 2) {
@@ -1363,40 +1352,42 @@ namespace lib {
 	  (p1->Convert2( DOUBLE, BaseGDL::COPY));
 	e->Guard( p1D);
 	}	
-      SizeT nxa = p0->Dim(p0->Rank()-1);
 
       // Single Interpolation
       if (ninterp == 1) {
 	if( cubic)
 	  // cubic interpolation
-	  interpolate_cubic(nxa, p1D->N_Elements(), 
-	  		    &(*p0D)[0], &(*p1D)[0], &(*res)[0]);
+	  interpolate_cubic(acc, spline, xa, p1D->N_Elements(), 
+			    &(*p0D)[0], &(*p1D)[0], &(*res)[0]);
 	else
 	  // linear interpolation
-	  interpolate_linear(nxa, p1D->N_Elements(), 
+	  interpolate_linear(acc, interp, xa, p1D->N_Elements(), 
 			     &(*p0D)[0], &(*p1D)[0], &(*res)[0]);
       } else {
 	// Multiple Interpolation
 	for( SizeT i=0; i<ninterp; ++i) {
+
 	  double *ya = new double[nxa];
 	  for( SizeT j=0; j<nxa; ++j) ya[j] = (*p0D)[j*ninterp+i];
+
 	  double *y = new double[p1D->N_Elements()];
+
 	  if( cubic)
 	    // cubic interpolation
-	    interpolate_cubic(nxa, p1D->N_Elements(), 
-			      ya, &(*p1D)[0], y);
+	    interpolate_cubic(acc, spline, xa, p1D->N_Elements(), 
+			      ya, &(*p1D)[0], &(*res)[0]);
 	  else
 	    // linear interpolation
-	    interpolate_linear(nxa, p1D->N_Elements(), 
+	    interpolate_linear(acc, interp, xa, p1D->N_Elements(), 
 			       ya, &(*p1D)[0], y);
-	  for( SizeT j=0; j<p1D->N_Elements(); ++j) 
-	    (*res)[j*ninterp+i] = y[j];
+
+	  // Write to output array
+	  for( SizeT j=0; j<p1D->N_Elements(); ++j) (*res)[j*ninterp+i] = y[j];
 
 	  delete [] ya;
 	  delete [] y;
 	}
       }
-
     }
 
 
@@ -1423,27 +1414,30 @@ namespace lib {
 	  (p2->Convert2( DOUBLE, BaseGDL::COPY));
 	e->Guard( p2D);
 	}	
-      SizeT nxa = p0->Dim(p0->Rank()-2);
-      SizeT nya = p0->Dim(p0->Rank()-1);
-      
 
+      // Determine number and value of input points along y-axis
+      SizeT nya = p0->Dim(p0->Rank()-1);
       double **ya = new double*[nya];
       for( SizeT k=0; k<nya; ++k) ya[k] = new double[nxa];
 
-
+      // Compute nx,ny (number of interpolated points along each dimension
       SizeT nx = 1;
       if (grid) nx = res->Dim(resRank-2);
       
       SizeT ny = 1;
       if (resRank != 0 && res->Dim(resRank-1) != 0) ny = res->Dim(resRank-1);
       if (resRank == 1) ny = dims[0];
+      if (!grid) ny = p1->N_Elements();
 
-
+      // Allocate "work" arrays
       SizeT ny2 = (ny == 1) * 2 + (ny > 1) * ny;
       double **work = new double*[ny2];
       for( SizeT k=0; k<ny2; ++k) work[k] = new double[nx];
 
+
       for( SizeT i=0; i<ninterp; ++i) {
+
+	// Get input y-axis values
 	for( SizeT k=0; k<nya; ++k) {
 	  for( SizeT j=0; j<nxa; ++j) {
 	    ya[k][j] = (*p0D)[i+(ninterp*j)+(ninterp*nxa)*k];
@@ -1461,13 +1455,20 @@ namespace lib {
 	  if (grid) dptr = &(*p1D)[0]; else dptr = &(*p1D)[k]; 
 
 	  if (first || (row != lastrow) || !grid) {
+
+	    // Correct if row out of bounds
 	    if (row < 0) row = 0;
 	    if (row >= nya) row = nya - 1;
-	    interpolate_linear(nxa, nx, ya[row], dptr, &work[0][0]);
+
+	    interpolate_linear(acc, interp, xa, nx, 
+			       ya[row], dptr, &work[0][0]);
+
+	    // Correct if row out of bounds
 	    if (row < -1) row = -1;
 	    if (row >= nya-1) row = nya - 2;
-	    //	    interpolate_linear(nxa, nx, ya[(row+1)], dptr, &work[1][0]);
-	    interpolate_linear(nxa, nx, ya[(row+1)], dptr, &work[1][0]);
+
+	    interpolate_linear(acc, interp, xa, nx, 
+			       ya[(row+1)], dptr, &work[1][0]);
 	  }
 	  first = false;
 	  lastrow = row;
@@ -1488,11 +1489,22 @@ namespace lib {
 
 
       // Free dynamic arrays
-      for( SizeT k=0; k<ny2; ++k) delete [] work[k];
+      for( SizeT k=0; k<ny2; ++k) 
+	delete [] work[k];
       delete [] work;
 
-      for( SizeT k=0; k<nya; ++k) delete [] ya[k];
+      for( SizeT k=0; k<nya; ++k) 
+	delete [] ya[k];
       delete [] ya;
+
+      gsl_interp_accel_free (acc);
+
+      if (cubic)
+	gsl_spline_free (spline);
+      else
+	gsl_interp_free (interp);
+
+      delete [] xa;
 
     } // if( nParam == 3) {
 
