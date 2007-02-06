@@ -75,6 +75,10 @@ namespace lib {
   void setenv_pro( EnvT* e);
   void struct_assign_pro( EnvT* e);
 
+  // the following by Sergio Gelato
+  // (Sergio.Gelato@astro.su.se)
+  void replicate_inplace_pro( EnvT* e);
+  
 } // namespace
 
 #endif

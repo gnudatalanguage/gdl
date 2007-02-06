@@ -1461,4 +1461,7 @@ public:
   ArrayIndexListT* release() { ArrayIndexListT* res = aL; aL = NULL; return res;}
 };
 
+// called after structure is fixed (code in arrayindex.cpp)
+ArrayIndexListT* MakeArrayIndex( ArrayIndexVectorT* ixList);
+
 #endif

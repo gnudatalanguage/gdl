@@ -3,7 +3,7 @@
 
 #include <antlr/config.hpp>
 #include "GDLTreeParserTokenTypes.hpp"
-/* $ANTLR 2.7.4: "gdlc.tree.g" -> "GDLTreeParser.hpp"$ */
+/* $ANTLR 2.7.6 (2005-12-22): "gdlc.tree.g" -> "GDLTreeParser.hpp"$ */
 #include <antlr/TreeParser.hpp>
 
 
@@ -20,37 +20,37 @@ class CUSTOM_API GDLTreeParser : public antlr::TreeParser, public GDLTreeParserT
     
     IDList          loopVarStack;
     
-    // called after structure is fixed
-    ArrayIndexListT* MakeArrayIndex( ArrayIndexVectorT* ixList)
-    {
-        assert( ixList->size() != 0); // must be, from compiler
+//     // called after structure is fixed
+//     ArrayIndexListT* MakeArrayIndex( ArrayIndexVectorT* ixList)
+//     {
+//         assert( ixList->size() != 0); // must be, from compiler
         
-        if( ixList->size() == 1)
-        {
-            if( dynamic_cast< CArrayIndexScalar*>((*ixList)[0]))
-                return new ArrayIndexListOneConstScalarT( ixList);
+//         if( ixList->size() == 1)
+//         {
+//             if( dynamic_cast< CArrayIndexScalar*>((*ixList)[0]))
+//                 return new ArrayIndexListOneConstScalarT( ixList);
 
-            if( dynamic_cast< ArrayIndexScalar*>((*ixList)[0]))
-                return new ArrayIndexListOneScalarT( ixList);
+//             if( dynamic_cast< ArrayIndexScalar*>((*ixList)[0]))
+//                 return new ArrayIndexListOneScalarT( ixList);
 
-            if( dynamic_cast< ArrayIndexScalarVP*>((*ixList)[0]))
-                return new ArrayIndexListOneScalarVPT( ixList);
+//             if( dynamic_cast< ArrayIndexScalarVP*>((*ixList)[0]))
+//                 return new ArrayIndexListOneScalarVPT( ixList);
 
-            return new ArrayIndexListOneT( ixList);
-        }
+//             return new ArrayIndexListOneT( ixList);
+//         }
 
-        SizeT nScalar  = 0;
-        for( SizeT i=0; i<ixList->size(); ++i)
-        {
-            if( dynamic_cast< ArrayIndexScalar*>((*ixList)[i]) ||
-                dynamic_cast< ArrayIndexScalarVP*>((*ixList)[i]) ||
-                dynamic_cast< CArrayIndexScalar*>((*ixList)[i])) ++nScalar;
-        }
-        if( nScalar == ixList->size())
-        return new ArrayIndexListScalarT( ixList);
+//         SizeT nScalar  = 0;
+//         for( SizeT i=0; i<ixList->size(); ++i)
+//         {
+//             if( dynamic_cast< ArrayIndexScalar*>((*ixList)[i]) ||
+//                 dynamic_cast< ArrayIndexScalarVP*>((*ixList)[i]) ||
+//                 dynamic_cast< CArrayIndexScalar*>((*ixList)[i])) ++nScalar;
+//         }
+//         if( nScalar == ixList->size())
+//         return new ArrayIndexListScalarT( ixList);
         
-        return new ArrayIndexListMultiT( ixList);
-    }
+//         return new ArrayIndexListMultiT( ixList);
+//     }
 
     bool LoopVar( RefDNode& lN)
     {

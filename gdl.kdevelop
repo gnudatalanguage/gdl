@@ -56,7 +56,7 @@
         <f77flags/>
       </optimized>
       <debug>
-        <configargs>--enable-debug=full --with-netcdf=/home/marc/netcdf-3.6.1 --with-python=yes --with-hdf=no --with-hdf5=no --with-plplot=/usr --with-python=no --disable-python_module --with-wxWidgets=no --with-Magick=no</configargs>
+        <configargs>--enable-debug=full --with-readlinedir=yes --with-netcdf=/home/marc/netcdf-3.6.1 --with-python=yes --with-hdf=no --with-hdf5=no --with-plplot=/usr --with-python=no --disable-python_module --with-wxWidgets=no --with-Magick=no</configargs>
         <builddir>debug</builddir>
         <ccompiler>kdevgccoptions</ccompiler>
         <cxxcompiler>kdevgppoptions</cxxcompiler>

@@ -1702,5 +1702,84 @@ namespace lib {
 	return;
       }
   }
+
+  void replicate_inplace_pro( EnvT* e)
+  {
+    SizeT nParam = e->NParam( 2);
+
+    if( nParam % 2)
+      e->Throw( "Incorrect number of arguments.");
+
+    BaseGDL* p0 = e->GetNumericParDefined( 0);
+    if( !e->GlobalPar( 0))
+      e->Throw( "Expression must be named variable in this context: "+
+		e->GetParString(0));
+    
+    BaseGDL* p1 = e->GetParDefined( 1);
+    if( !p1->Scalar())
+      e->Throw( "Expression must be a scalar in this context: "+
+		e->GetParString(1));
+    p1 = p1->Convert2( p0->Type(), BaseGDL::COPY);
+    
+    if (nParam == 2)
+      {
+        p0->AssignAt( p1);
+	return;
+      } 
+    else 
+      {
+	BaseGDL* p2 = e->GetNumericParDefined( 2);
+	if( !p2->StrictScalar())
+	  e->Throw( "Expression must be a scalar in this context: "+
+		    e->GetParString(2));
+	
+	SizeT d1;
+	int ret = p2->Scalar2index( d1);
+	if( d1 < 1 || d1 > p0->Rank())
+	  e->Throw( "D1 (3rd) argument is out of range: "+
+		    e->GetParString(2));
+	
+// 	BaseGDL* p3 = e->GetNumericParDefined( 3);
+	DLongGDL* p3 = e->GetParAs< DLongGDL>( 3);
+	if( p3->N_Elements() != p0->Rank())
+	  e->Throw( "Loc1 (4th) argument must have the same number of "
+		    "elements as the dimensions of the X (1st) argument: "+
+		    e->GetParString(3));
+
+	SizeT d2 = 0;
+	BaseGDL* p4;
+	BaseGDL* p5;
+	if (nParam > 4) 
+	  {
+	    p4 = e->GetNumericParDefined( 4);
+	    if( !p4->StrictScalar())
+	      e->Throw( "Expression must be a scalar in this context: "+
+		        e->GetParString(4));
+	    ret = p4->Scalar2index( d2);
+	    if( d2 < 1 || d2 > p0->Rank())
+	      e->Throw( "D5 (5th) argument is out of range: "+
+		        e->GetParString(4));
+
+	    p5 = e->GetNumericParDefined( 5);
+	  }
+
+	ArrayIndexVectorT* ixList = new ArrayIndexVectorT();
+	auto_ptr< ArrayIndexVectorT> ixList_guard( ixList);
+// 	BaseGDL* loc1 = p3->Dup();
+// 	loc1->SetDim (dimension( loc1->N_Elements()));
+	ixList->reserve( p3->N_Elements());
+	for (size_t i=0; i<p3->N_Elements(); i++)
+	  if( (i+1) == d1)
+	    ixList->push_back( new ArrayIndexAll());
+	  else if( (i+1) == d2)
+	    ixList->push_back( new CArrayIndexIndexed( p5, true));
+	  else
+	    ixList->push_back( new CArrayIndexScalar( (*p3)[ i]));//p3->NewIx(i)));
+	ArrayIndexListT* ixL = MakeArrayIndex( ixList);
+	auto_ptr< ArrayIndexListT> ixL_guard( ixL);
+	ixL->AssignAt( p0, p1);	
+	return;
+      }
+  }
   
 } // namespace

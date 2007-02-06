@@ -302,6 +302,7 @@ void LibInit()
   new DLibFunRetNew(lib::logical_true,string("LOGICAL_TRUE"),1);
 
   new DLibFunRetNew(lib::replicate,string("REPLICATE"),9);
+  new DLibPro(lib::replicate_inplace_pro,string("REPLICATE_INPLACE"),6);
 
   new DLibFunRetNew(lib::sin_fun,string("SIN"),1);
   new DLibFunRetNew(lib::cos_fun,string("COS"),1);

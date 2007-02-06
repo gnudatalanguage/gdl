@@ -188,3 +188,36 @@ void ArrayIndexListOneScalarT::AssignAt( BaseGDL* var, BaseGDL* right)
 ArrayIndexListT::~ArrayIndexListT() {}
 
 AllIxT* ArrayIndexListT::BuildIx() {}
+
+
+// called after structure is fixed
+ArrayIndexListT* MakeArrayIndex( ArrayIndexVectorT* ixList)
+{
+  assert( ixList->size() != 0); // must be, from compiler
+  
+  if( ixList->size() == 1)
+    {
+      if( dynamic_cast< CArrayIndexScalar*>((*ixList)[0]))
+	return new ArrayIndexListOneConstScalarT( ixList);
+      
+      if( dynamic_cast< ArrayIndexScalar*>((*ixList)[0]))
+	return new ArrayIndexListOneScalarT( ixList);
+      
+      if( dynamic_cast< ArrayIndexScalarVP*>((*ixList)[0]))
+	return new ArrayIndexListOneScalarVPT( ixList);
+      
+      return new ArrayIndexListOneT( ixList);
+    }
+  
+  SizeT nScalar  = 0;
+  for( SizeT i=0; i<ixList->size(); ++i)
+    {
+      if( dynamic_cast< ArrayIndexScalar*>((*ixList)[i]) ||
+	  dynamic_cast< ArrayIndexScalarVP*>((*ixList)[i]) ||
+	  dynamic_cast< CArrayIndexScalar*>((*ixList)[i])) ++nScalar;
+    }
+  if( nScalar == ixList->size())
+    return new ArrayIndexListScalarT( ixList);
+  
+  return new ArrayIndexListMultiT( ixList);
+}
