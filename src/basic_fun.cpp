@@ -3282,6 +3282,7 @@ namespace lib {
 
     // If regex then compile regex
     if( regex) {
+      if (pattern == " \t") pattern = " "; // regcomp doesn't like "\t" JMG
       int compRes = regcomp( &regexp, pattern.c_str(), REG_EXTENDED);
       if (compRes) {
 	regerror(compRes, &regexp, err_msg, MAX_REGEXPERR_LENGTH);
