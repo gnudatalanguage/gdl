@@ -78,8 +78,12 @@ namespace lib {
 	    int status = recv(sockNum, buf, MAXRECV, 0);
 	    //	    cout << "Bytes received: " << status << endl;
 	    if (status == 0) break;
-	    for( SizeT i=0; i<status; i++) 
-	      recvBuf->push_back(buf[i]);
+
+	    recvBuf->append(buf, status);
+
+	    //	    for( SizeT i=0; i<status; i++) 
+	    // recvBuf->push_back(buf[i]);
+
 	    totalread += status;
 	    //cout << "recvBuf size: " << recvBuf->size() << endl;
 	    //cout << "Total bytes read: " << totalread << endl << endl;
