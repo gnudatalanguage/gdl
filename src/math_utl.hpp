@@ -38,6 +38,20 @@ namespace lib {
 		  long int *machep, long int *negep, long int *iexp, long int *minexp,
 		  long int *maxexp, double *eps, double *epsneg, double *xmin, double *xmax );
 
+#ifdef USE_LIBPROJ4
+#define COMPLEX COMPLEX2
+
+extern "C" {
+#include "lib_proj.h"
+}
+
+  PJ *map_init();
+  static PJ *ref;
+  static PJ *prev_ref;
+
+#define COMPLEX2 COMPLEX
+#endif
+
 } // namespace
 
 #endif

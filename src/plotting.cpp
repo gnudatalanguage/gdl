@@ -28,12 +28,9 @@
 
 #include "graphics.hpp"
 #include "plotting.hpp"
+#include "math_utl.hpp"
 
 namespace lib {
-
-#ifdef USE_LIBPROJ4
-  static PJ *ref;
-#endif
 
   using namespace std;
 
@@ -1574,8 +1571,8 @@ namespace lib {
     get_mapset(mapType);
 
     if ( mapType) {
-      map_init();
-      if (! (ref) ) {
+      ref = map_init();
+      if ( ref == NULL) {
 	e->Throw( "Projection initialization failed.");
       }
     }
@@ -2912,8 +2909,8 @@ namespace lib {
     get_axis_crange("X", xStart, xEnd);
 
     if ( mapType) {
-      map_init();
-      if (! (ref) ) {
+      ref = map_init();
+      if ( ref == NULL) {
 	e->Throw( "Projection initialization failed.");
       }
     }
@@ -3430,178 +3427,6 @@ namespace lib {
 
 
 #ifdef USE_LIBPROJ4
-  void map_init()
-  {
-    static DStructGDL* mapStruct = SysVar::Map();
-    static unsigned projectionTag = mapStruct->Desc()->TagIndex( "PROJECTION");
-    static unsigned p0lonTag = mapStruct->Desc()->TagIndex( "P0LON");
-    static unsigned p0latTag = mapStruct->Desc()->TagIndex( "P0LAT");
-    static unsigned aTag = mapStruct->Desc()->TagIndex( "A");
-    static unsigned e2Tag = mapStruct->Desc()->TagIndex( "E2");
-    static unsigned pTag = mapStruct->Desc()->TagIndex( "P");
-
-    DLong map_projection = 
-      (*static_cast<DLongGDL*>( mapStruct->Get( projectionTag, 0)))[0];
-    DDouble map_p0lon = 
-      (*static_cast<DDoubleGDL*>( mapStruct->Get( p0lonTag, 0)))[0];
-    DDouble map_p0lat = 
-      (*static_cast<DDoubleGDL*>( mapStruct->Get( p0latTag, 0)))[0];
-    DDouble map_a = 
-      (*static_cast<DDoubleGDL*>( mapStruct->Get( aTag, 0)))[0];
-    DDouble map_e2 = 
-      (*static_cast<DDoubleGDL*>( mapStruct->Get( e2Tag, 0)))[0];
-    DDouble map_lat1 = 
-      (*static_cast<DDoubleGDL*>( mapStruct->Get( pTag, 0)))[3];
-    DDouble map_lat2 = 
-      (*static_cast<DDoubleGDL*>( mapStruct->Get( pTag, 0)))[4];
-
-    char proj[64];
-    char p0lon[64];
-    char p0lat[64];
-    char a[64];
-    char e2[64];
-    char lat_1[64];
-    char lat_2[64];
-    char lat_ts[64];
-
-    static char *parms[32];
-    static DLong last_proj = 0;
-    static DDouble last_p0lon = -9999;
-    static DDouble last_p0lat = -9999;
-    static DDouble last_a = -9999;
-    static DDouble last_e2 = -9999;
-    static DDouble last_lat1 = -9999;
-    static DDouble last_lat2 = -9999;
-
-    if (map_projection != last_proj ||
-	map_p0lon != last_p0lon ||
-	map_p0lat != last_p0lat ||
-	map_a != last_a ||
-	map_e2 != last_e2 || 
-	map_lat1 != last_lat1 ||
-	map_lat2 != last_lat2) {
-
-      if (map_p0lon >= 0) {
-	sprintf(p0lon, "lon_0=%lf", map_p0lon);
-	strcat(p0lon, "E");
-      } else {
-	sprintf(p0lon, "lon_0=%lf", fabs(map_p0lon));
-	strcat(p0lon, "W");
-      }
-      
-      if (map_p0lat >= 0) {
-	sprintf(p0lat, "lat_0=%lf", map_p0lat);
-	strcat(p0lat, "N");
-      } else {
-	sprintf(p0lat, "lat_0=%lf", fabs(map_p0lat));
-	strcat(p0lat, "S");
-      }
-
-      if (map_e2 == 0.0) {
-	sprintf(a, "R=%lf", map_a);
-      } else {
-	sprintf(a, "a=%lf", map_a);
-	sprintf(e2, "es=%lf", map_e2);
-      }
-
-
-      //	strcpy(parms[1], "ellps=clrk66");
-
-      DLong nparms = 0;
-      parms[nparms++] = &p0lon[0];
-      parms[nparms++] = &p0lat[0];
-      parms[nparms++] = &a[0];
-      if (map_e2 != 0.0) parms[nparms++] = &e2[0];
-
-      // stereographic iproj =  1
-      // orthographic  iproj =  2
-      // conic         iproj =  3
-      // lambert       iproj =  4
-      // gnomic        iproj =  5
-      // azimuth       iproj =  6
-      // satellite     iproj =  7
-      // mercator      iproj =  9
-      // mollweide     iproj = 10
-      // sinusoidal    iproj = 11
-      // aitoff        iproj = 12
-      // hammer        iproj = 13
-      // albers        iproj = 14
-      // utm           iproj = 15
-      // miller        iproj = 16
-      // robinson      iproj = 17
-      // goodes        iproj = 19
-
-      // Stereographic Projection
-      if (map_projection == 1) {
-	strcpy(proj, "proj=stere");
-	parms[nparms++] = &proj[0];
-      }
-
-      // Orthographic Projection
-      if (map_projection == 2) {
-	strcpy(proj, "proj=ortho");
-	parms[nparms++] = &proj[0];
-      }
-
-      // Lambert Conformal Conic
-      if (map_projection == 3) {
-	strcpy(proj, "proj=lcc");
-	parms[nparms++] = &proj[0];
-	sprintf(lat_1, "lat_1=%lf", map_lat1 * RAD_TO_DEG);
-	sprintf(lat_2, "lat_2=%lf", map_lat2 * RAD_TO_DEG);
-	parms[nparms++] = &lat_1[0];
-	parms[nparms++] = &lat_2[0];
-      }
-
-      // Lambert Equal Area Conic
-      if (map_projection == 4) {
-	strcpy(proj, "proj=leac");
-	parms[nparms++] = &proj[0];
-      }
-
-      // Gnomonic
-      if (map_projection == 5) {
-	strcpy(proj, "proj=gnom");
-	parms[nparms++] = &proj[0];
-      }
-
-      // Azimuthal Equidistant
-      if (map_projection == 6) {
-	strcpy(proj, "proj=aeqd");
-	parms[nparms++] = &proj[0];
-      }
-
-      // Cylindrical Equidistant
-      if (map_projection == 8) {
-	strcpy(proj, "proj=eqc");
-	parms[nparms++] = &proj[0];
-      }
-
-      // Mercator
-      if (map_projection == 9) {
-	strcpy(proj, "proj=merc");
-	sprintf(lat_ts, "lat_ts=%lf", 0);
-	parms[nparms++] = &proj[0];
-	//	parms[nparms++] = &lat_ts[0];
-      }
-
-      // Aitoff
-      if (map_projection == 12) {
-	strcpy(proj, "proj=aitoff");
-	parms[nparms++] = &proj[0];
-      }
-
-      last_proj = map_projection;
-      last_p0lon = map_p0lon;
-      last_p0lat = map_p0lat;
-      last_a = map_a;
-      last_e2 = map_e2;
-      last_lat1 = map_lat1;
-      last_lat2 = map_lat2;
-
-      ref = pj_init(nparms, parms);
-    }
-  }
 
   BaseGDL* map_proj_forward_fun( EnvT* e)
   {
@@ -3614,8 +3439,8 @@ namespace lib {
     LP idata;
     XY odata;
 
-    map_init();
-    if (! (ref) ) {
+    ref = map_init();
+    if ( ref == NULL) {
       e->Throw( "MAP_PROJ_FORWARD: Projection initialization failed.");
     }
 
@@ -3694,8 +3519,8 @@ namespace lib {
     XY idata;
     LP odata;
 
-    map_init();
-    if (! (ref) ) {
+    ref = map_init();
+    if ( ref == NULL) {
       e->Throw( "MAP_PROJ_INVERSE: Projection initialization failed.");
     }
 
@@ -3843,8 +3668,8 @@ namespace lib {
 #ifdef USE_LIBPROJ4
     // MAP conversion (xt = 3)
     if (xt == 3) {
-      map_init();
-      if (! (ref) ) {
+      ref = map_init();
+      if ( ref == NULL) {
 	e->Throw( "CONVERT_COORD: Projection initialization failed.");
       }
 

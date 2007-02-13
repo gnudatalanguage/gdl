@@ -94,13 +94,6 @@ namespace lib {
 
   // Map stuff
 #ifdef USE_LIBPROJ4
-#define COMPLEX COMPLEX2
-
-extern "C" {
-#include "lib_proj.h"
-}
-
-  void map_init();
   BaseGDL* map_proj_forward_fun( EnvT* e);
   BaseGDL* map_proj_inverse_fun( EnvT* e);
 #endif
