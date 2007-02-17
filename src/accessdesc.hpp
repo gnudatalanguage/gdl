@@ -402,7 +402,11 @@ public:
 
 	// copy only topRank dimensions each time (topElem elements)
 	// topRank is the dim to start the outer loop with
-	rStride=r->Stride(topRank);
+/*	if( ix[ tag.size()]->N_Elements() == 1 &&
+	    ix[ tag.size()]->NDim() == 1)
+		rStride = 1;
+	else*/
+		rStride=r->Stride(topRank);
 	rOffset=0;
 
 	if( r->Type() != top->Type())

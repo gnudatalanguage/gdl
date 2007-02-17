@@ -1355,7 +1355,7 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
 
 	  if( nCp == 1)
 	    {
-	      InsAt( src, ixList);
+	      InsAt( src, ixList, offset);
 	    }
 	  else
 	    {
@@ -1817,26 +1817,52 @@ Data_<Sp>* Data_<Sp>::Index( ArrayIndexListT* ixList)
 // inserts srcIn at index ixDim
 // respects the exact structure of srcIn
 template<class Sp>
-void Data_<Sp>::InsAt( Data_* srcIn, ArrayIndexListT* ixList)
+void Data_<Sp>::InsAt( Data_* srcIn, ArrayIndexListT* ixList, SizeT offset)
 {
   // max. number of dimensions to copy
   SizeT nDim = ixList->NDim();
  
   if( nDim == 1)
-    {
+//     {
+//       SizeT destStart = ixList->LongIx();
+
+//       SizeT len = srcIn->Dim( 0); // length of segment to copy
+//       // check if in bounds of a
+//       if( (destStart+len) > this->N_Elements()) //dim[0])
+// 	throw GDLException("Out of range subscript encountered (1).");
+  
+//       DataT& srcIn_dd = srcIn->dd; 
+//       SizeT srcIx = 0; // this one simply runs from 0 to N_Elements(srcIn)
+
+//       SizeT destEnd = destStart + len;
+//       for( SizeT destIx = destStart; destIx < destEnd; ++destIx)
+// 	dd[ destIx] = srcIn_dd[ srcIx++];
+
+//       return;
+//     }
+     {
       SizeT destStart = ixList->LongIx();
 
-      SizeT len = srcIn->Dim( 0); // length of segment to copy
-      // check if in bounds of a
-      if( (destStart+len) > this->N_Elements()) //dim[0])
-	throw GDLException("Out of range subscript encountered (1).");
-  
-      DataT& srcIn_dd = srcIn->dd; 
-      SizeT srcIx = 0; // this one simply runs from 0 to N_Elements(srcIn)
+      SizeT len;
+      if( this->N_Elements() == 1)
+	{
+	  //	  len = 1;
+	  SizeT rStride = srcIn->Stride(this->Rank());
+	  dd[ destStart] = srcIn->dd[ offset/rStride];
+	}
+      else 
+	{
+	  len = srcIn->Dim( 0); // length of segment to copy
+	  if( (destStart+len) > this->N_Elements()) //dim[0])
+	    throw GDLException("Out of range subscript encountered (1).");
 
-      SizeT destEnd = destStart + len;
-      for( SizeT destIx = destStart; destIx < destEnd; ++destIx)
-	dd[ destIx] = srcIn_dd[ srcIx++];
+	  DataT& srcIn_dd = srcIn->dd; 
+	  SizeT srcIx = 0; // this one simply runs from 0 to N_Elements(srcIn)
+
+	  SizeT destEnd = destStart + len;
+	  for( SizeT destIx = destStart; destIx < destEnd; ++destIx)
+	    dd[ destIx] = srcIn_dd[ srcIx++];
+	}
 
       return;
     }
