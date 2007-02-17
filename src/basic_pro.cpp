@@ -1710,7 +1710,7 @@ namespace lib {
     if( nParam % 2)
       e->Throw( "Incorrect number of arguments.");
 
-    BaseGDL* p0 = e->GetNumericParDefined( 0);
+    BaseGDL* p0 = e->GetParDefined( 0);
     if( !e->GlobalPar( 0))
       e->Throw( "Expression must be named variable in this context: "+
 		e->GetParString(0));
@@ -1728,7 +1728,7 @@ namespace lib {
       } 
     else 
       {
-	BaseGDL* p2 = e->GetNumericParDefined( 2);
+ 	BaseGDL* p2 = e->GetNumericParDefined( 2);
 	if( !p2->StrictScalar())
 	  e->Throw( "Expression must be a scalar in this context: "+
 		    e->GetParString(2));

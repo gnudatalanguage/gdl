@@ -1,7 +1,7 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
- <DocsAndViews NumberOfDocuments="3" >
+ <DocsAndViews NumberOfDocuments="4" >
   <Doc0 NumberOfViews="1" URL="file:///home/marc/gdl/src/GDLInterpreter.cpp" >
    <View0 Type="Source" />
   </Doc0>
@@ -9,8 +9,11 @@
    <View0 Type="Source" />
   </Doc1>
   <Doc2 NumberOfViews="1" URL="file:///home/marc/gdl/src/gsl_fun.cpp" >
-   <View0 line="579" Type="Source" />
+   <View0 Type="Source" />
   </Doc2>
+  <Doc3 NumberOfViews="1" URL="file:///home/marc/gdl/src/arrayindex.hpp" >
+   <View0 line="353" Type="Source" />
+  </Doc3>
  </DocsAndViews>
  <pluginList>
   <kdevdebugger>
