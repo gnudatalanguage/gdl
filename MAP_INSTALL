@@ -1,0 +1,71 @@
+
+To provide map projections support the following additional files must
+be acquired and placed in the appropriate directories:
+
+map_continents.pro
+map_grid.pro
+map_horizon.pro
+map_image.pro
+map_patch.pro
+map_point_valid.pro
+map_proj_image.pro
+map_proj_info.pro
+map_proj_init_commonblock.pro
+map_proj_init_common.pro
+map_proj_init.pro
+map_set.pro
+map_struct_append.pro
+
+These files can be found by entering the following URL into your web
+browser:
+
+http://idlastro.gsfc.nasa.gov/cgi-bin/idllibsrch?keyword=map_
+
+clicking on the appropriate file and saving it to your computer.
+
+They can be placed in any directory within you GDL path.
+
+
+To provide support for MAP_CONTINENTS the database files must be
+downloaded:
+
+blow.dat
+blow.ndx
+clow.dat
+clow.ndx
+plow.dat
+plow.ndx
+rlow.dat
+rlow.ndx
+
+These files can be found at:
+
+http://comm.nsdl.org/viewcvs/viewcvs.cgi/ddtoolkitnfndry/ETA_Viewer/Development/resource/maps/low/
+
+These files should be placed in the "resource/maps/low" subdirectory
+of the !DIR directory which can be found by starting GDL and printing
+the !DIR system variable.
+
+Note: Only low-resolution boundaries are currently supported.
+
+
+The following projections are at least partially supported:
+
+Stereographic Projection:  (1)
+Orthographic Projection:   (2)
+Lambert Conformal Conic:   (3)
+Lambert Equal Area Conic:  (4)
+Gnomonic:                  (5)
+Azimuthal Equidistant:     (6)
+Cylindrical Equidistant:   (8)
+Mercator:                  (9)
+Aitoff:                   (12)
+
+
+NOTE: Map projection support in GDL is a work in progress.  There are
+BUGS!!  These will be fixed as time permits.  Additional projections
+will also be added in the same manner.  Bug reports and projection
+requests are appreciated.
+
+Joel Gales
+
