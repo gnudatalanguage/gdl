@@ -121,6 +121,10 @@ void LibInit_jmg()
 			   "RHO","RMIN","THETA","XMIN","YMIN",KLISTEND};
   new DLibFun(lib::radon_fun,string("RADON"),1,radonKey);
 
+  const string trigridKey[]={"MAX_VALUE","MISSING","NX","NY","MAP",
+			     KLISTEND};
+  new DLibFun(lib::trigrid_fun,string("TRIGRID"),6,trigridKey);
+
   const string poly_2dKey[]={"CUBIC","MISSING",KLISTEND};
   new DLibFun(lib::poly_2d_fun,string("POLY_2D"),6,poly_2dKey);
 

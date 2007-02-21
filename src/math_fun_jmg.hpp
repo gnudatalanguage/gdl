@@ -65,6 +65,7 @@ namespace lib {
   BaseGDL* finite_fun( EnvT* e);
   BaseGDL* check_math_fun( EnvT* e);
   BaseGDL* radon_fun( EnvT* e);
+  BaseGDL* trigrid_fun( EnvT* e);
   BaseGDL* poly_2d_fun( EnvT* e);
 
   double ipow(double x, int p);
