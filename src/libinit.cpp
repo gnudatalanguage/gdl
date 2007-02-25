@@ -324,7 +324,8 @@ void LibInit()
 
   new DLibFunRetNew(lib::exp_fun,string("EXP"),1);
 
-  new DLibFunRetNew(lib::round_fun,string("ROUND"),1);
+  const string roundKey[]={"L64",KLISTEND};
+  new DLibFunRetNew(lib::round_fun,string("ROUND"),1,roundKey);
   const string ceilfloorKey[]={"L64",KLISTEND};
   new DLibFunRetNew(lib::ceil_fun,string("CEIL"),1,ceilfloorKey);
   new DLibFunRetNew(lib::floor_fun,string("FLOOR"),1,ceilfloorKey);

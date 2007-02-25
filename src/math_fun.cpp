@@ -886,16 +886,27 @@ namespace lib {
 
 
   template< typename T>
-  BaseGDL* round_fun_template( BaseGDL* p0)
+  BaseGDL* round_fun_template( BaseGDL* p0, bool isKWSetL64)
   {
     T* p0C = static_cast<T*>( p0);
-    DLongGDL* res = new DLongGDL( p0C->Dim(), BaseGDL::NOZERO);
     SizeT nEl = p0->N_Elements();
-    for( SizeT i=0; i<nEl; ++i)
-      {
-	(*res)[ i] = static_cast<DLong>( round((*p0C)[ i])); 
-      }
-    return res;
+
+    // L64 keyword support
+    if (isKWSetL64) {
+      DLong64GDL* res = new DLong64GDL(p0C->Dim(), BaseGDL::NOZERO);
+      for( SizeT i=0; i<nEl; ++i)
+	{
+	  (*res)[ i] = (DLong64) round((*p0C)[ i]); 
+	}
+      return res;
+    } else {
+      DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
+      for( SizeT i=0; i<nEl; ++i)
+	{
+	  (*res)[ i] = (int) round((*p0C)[ i]); 
+	}
+      return res;
+    }
   }
 
   BaseGDL* round_fun( EnvT* e)
@@ -908,35 +919,61 @@ namespace lib {
     if( nEl == 0)
       throw GDLException( e->CallingNode(), 
 			  "ROUND: Variable is undefined: "+e->GetParString(0));
-    
+
+    bool isKWSetL64 = e->KeywordSet( "L64");
+
     if( p0->Type() == COMPLEX)
       {
 	DComplexGDL* p0C = static_cast<DComplexGDL*>( p0);
-	DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
 	SizeT nEl = p0->N_Elements();
-	for( SizeT i=0; i<nEl; ++i)
-	  {
-	    DComplex& C = (*p0C)[ i];
-	    (*res)[ i] = static_cast<DLong>( round(C.real()));
-	  }
-	return res;
+
+	// L64 keyword support
+	if (isKWSetL64) {
+	  DLong64GDL* res = new DLong64GDL(p0C->Dim(), BaseGDL::NOZERO);
+	  for( SizeT i=0; i<nEl; ++i)
+	    {
+	      DComplex& C = (*p0C)[ i];
+	      (*res)[ i] = (DLong64) round(C.real());
+	    }
+	  return res;
+	} else {
+	  DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
+	  for( SizeT i=0; i<nEl; ++i)
+	    {
+	      DComplex& C = (*p0C)[ i];
+	      (*res)[ i] = (int) round(C.real());
+	    }
+	  return res;
+	}
       }
     else if( p0->Type() == COMPLEXDBL)
       {
 	DComplexDblGDL* p0C = static_cast<DComplexDblGDL*>( p0);
-	DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
 	SizeT nEl = p0->N_Elements();
-	for( SizeT i=0; i<nEl; ++i)
-	  {
-	    DComplexDbl& C = (*p0C)[ i];
-	    (*res)[ i] = static_cast<DLong>( round(C.real()));
-	  }
-	return res;
+
+	// L64 keyword support
+	if (isKWSetL64) {
+	  DLong64GDL* res = new DLong64GDL(p0C->Dim(), BaseGDL::NOZERO);
+	  for( SizeT i=0; i<nEl; ++i)
+	    {
+	      DComplexDbl& C = (*p0C)[ i];
+	      (*res)[ i] = (DLong64) round(C.real());
+	    }
+	  return res;
+	} else {
+	  DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
+	  for( SizeT i=0; i<nEl; ++i)
+	    {
+	      DComplexDbl& C = (*p0C)[ i];
+	      (*res)[ i] = (int) round(C.real());
+	    }
+	  return res;
+	}
       }
     else if( p0->Type() == DOUBLE)
-	return round_fun_template< DDoubleGDL>( p0);
+      return round_fun_template< DDoubleGDL>( p0, isKWSetL64);
     else if( p0->Type() == FLOAT)
-	return round_fun_template< DFloatGDL>( p0);
+      return round_fun_template< DFloatGDL>( p0, isKWSetL64);
     else if( p0->Type() == LONG64)
       return p0->Dup();
     else if( p0->Type() == LONG)
@@ -958,7 +995,7 @@ namespace lib {
 	SizeT nEl = p0->N_Elements();
 	for( SizeT i=0; i<nEl; ++i)
 	  {
-	    (*res)[ i] = static_cast<DLong>( round( (*p0F)[ i])); 
+	    (*res)[ i] = (int) round((double) (*p0F)[ i]); 
 	  }
 	return res;
       }
