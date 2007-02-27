@@ -1,6 +1,15 @@
 
-To provide map projections support the following additional files must
-be acquired and placed in the appropriate directories:
+To provide map projections support your first need to make sure the libproj4
+library is installed.  The source code for this can be found at:
+
+http://members.verizon.net/~vze2hc4d/proj4/lbp4_050319S.tar.gz
+
+The "--with-libproj4=DIR" switch in configure can be used give the location
+of this library.
+
+
+The following additional PRO files must be acquired and placed in the
+appropriate directories:
 
 map_continents.pro
 map_grid.pro

@@ -89,7 +89,7 @@ options can be used:
 --with-fftw=no         to not use FFTW (this is the default)
 
 --with-libproj4=DIR    to specify the libproj4 directory tree
---with-libproj4        to not use libproj4 (this is the default)
+--with-libproj4=no     to not use libproj4 (this is the default)
 
 
 For example, if you have python installed in /usr/local, use
