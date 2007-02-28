@@ -78,3 +78,7 @@ requests are appreciated.
 
 Joel Gales
 
+
+PS (by AC): a demo ("test_map.pro") is now available in the testsuite/.
+This demo is fully working on x86_32. Last example does not
+work now on x86_64 due to limit= keyword
