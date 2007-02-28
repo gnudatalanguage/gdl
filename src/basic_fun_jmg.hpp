@@ -1,5 +1,5 @@
 /***************************************************************************
-                          basic_fun.hpp  -  basic GDL library functions
+                          basic_fun_jmg.hpp  -  basic GDL library functions
                              -------------------
     begin                : 2004
     copyright            : (C) 2004 by Joel Gales
