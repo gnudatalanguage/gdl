@@ -30,8 +30,6 @@
 #include <fstream>
 
 #include "envt.hpp"
-#include "dpro.hpp"
-
 
 #include "basic_fun_jmg.hpp"
 #include "math_fun_jmg.hpp"
