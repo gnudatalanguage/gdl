@@ -366,16 +366,36 @@ fi
 
 if test "x$with_fftw" != "xno"; then
   if test "x$with_fftw" != "xyes"; then
-    LIBS="$LIBS -L$with_fftw/lib -lfftw3 -lfftw3f"
+    LIBS="$LIBS -L$with_fftw/lib -lfftw3"
     INCLUDES="$INCLUDES -I$with_fftw/include"
   else
     INCLUDES="$INCLUDES -I/usr/include"
-    LIBS="$LIBS -lfftw3 -lfftw3f"
+    LIBS="$LIBS -lfftw3"
   fi
 
   AC_CHECK_LIB(fftw3, fftw_malloc, [AC_DEFINE([USE_FFTW], [1], [Define if you want to use FFTW])], [
     echo ""
     echo "Error! FFTW3 version 3 is required but was not found"
+    echo "       Use --with-fftw=DIR to specify the FFTW directory tree"
+    echo "       Use --with-fftw=no  to not use it"
+    echo "       Check the README or use configure --help for other libraries needed"
+    echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
+    exit -1
+    ])
+fi
+
+if test "x$with_fftw" != "xno"; then
+  if test "x$with_fftw" != "xyes"; then
+    LIBS="$LIBS -L$with_fftw/lib -lfftw3f"
+    INCLUDES="$INCLUDES -I$with_fftw/include"
+  else
+    INCLUDES="$INCLUDES -I/usr/include"
+    LIBS="$LIBS -lfftw3f"
+  fi
+
+  AC_CHECK_LIB(fftw3f, fftwf_malloc, [AC_DEFINE([USE_FFTW], [1], [Define if you want to use FFTW])], [
+    echo ""
+    echo "Error! FFTW3F version 3 is required but was not found"
     echo "       Use --with-fftw=DIR to specify the FFTW directory tree"
     echo "       Use --with-fftw=no  to not use it"
     echo "       Check the README or use configure --help for other libraries needed"
