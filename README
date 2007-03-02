@@ -170,13 +170,20 @@ http://www.imagemagick.org/www/download.html
 The FFTW library is (optionally) used for the FFT function.
 It is available at: http://www.fftw.org/download.html
 It is NOT used by default.
-If you want to use it, use 
---with-fftw=DIR 
+If you want to use it, use --with-fftw=DIR 
 as a command line option to 'configure', where DIR denotes the
 directory into which FFTW was installed
 ('/lib' is appended for the library, '/include' for the include files).
 Using FFTW results in an about double as fast FFT function.
-If not used the default (GSL) fft routine is used instead.
+Take care that you have to compile the "normal" and the "single"
+version of the library (resp. libfftw3.a and libfftw3f.a).
+First one is the default. You have to activate the single flag
+(./configure --enable-single) when recompiling FFTw3.
+Please also notice that the test when runnig GDL configure
+"checking for fftw_malloc in -lfftw3... yes"
+will failed if libfftw3f.a is missing.
+As mentionned in the log. of ./configure,
+if FFTw is not used, the default (GSL) fft routine is used instead.
 
 GDL has an interface to python (see http://www.python.org). 
 GDL can be used as a python module and python can be used from
