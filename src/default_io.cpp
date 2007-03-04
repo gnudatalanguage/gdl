@@ -1,4 +1,4 @@
-/* *************************************************************************
+/**************************************************************************
                           default_io.cpp  -  input/output, no FORMAT keyword
                              -------------------
     begin                : July 22 2002
@@ -1273,7 +1273,8 @@ int xdr_convert(XDR *xdrs, DComplexDbl *buf)
 
 // unformatted ***************************************** 
 template<class Sp>
-ostream& Data_<Sp>::Write( ostream& os, bool swapEndian, XDR *xdrs)
+ostream& Data_<Sp>::Write( ostream& os, bool swapEndian, 
+			   bool compress, XDR *xdrs)
 {
   if( os.eof()) os.clear();
 
@@ -1340,7 +1341,8 @@ ostream& Data_<Sp>::Write( ostream& os, bool swapEndian, XDR *xdrs)
 }
 
 template<class Sp>
-istream& Data_<Sp>::Read( istream& os, bool swapEndian, XDR *xdrs)
+istream& Data_<Sp>::Read( istream& os, bool swapEndian, 
+			  bool compress, XDR *xdrs)
 {
   if( os.eof())
     throw GDLIOException("End of file encountered.");
@@ -1385,6 +1387,14 @@ istream& Data_<Sp>::Read( istream& os, bool swapEndian, XDR *xdrs)
 
       xdr_destroy(xdrs);
     }
+  else if (compress)
+    {
+      char* cData = reinterpret_cast<char*>(&dd[0]);
+      SizeT cCount = count * sizeof(Ty);
+      char c;
+      for( SizeT i=0; i<cCount; i += sizeof(Ty))
+	os.get( cData[ i]);
+    }    
   else
     {
       os.read( reinterpret_cast<char*>(&dd[0]),
@@ -1408,7 +1418,8 @@ istream& Data_<Sp>::Read( istream& os, bool swapEndian, XDR *xdrs)
 }
 
 template<>
-ostream& Data_<SpDString>::Write( ostream& os, bool swapEndian, XDR *xdrs)
+ostream& Data_<SpDString>::Write( ostream& os, bool swapEndian, 
+				  bool compress, XDR *xdrs)
 {
   if( os.eof()) os.clear();
 
@@ -1453,7 +1464,8 @@ ostream& Data_<SpDString>::Write( ostream& os, bool swapEndian, XDR *xdrs)
 }
 
 template<>
-istream& Data_<SpDString>::Read( istream& os, bool swapEndian, XDR *xdrs)
+istream& Data_<SpDString>::Read( istream& os, bool swapEndian, 
+				 bool compress, XDR *xdrs)
 {
   if( os.eof())
     throw GDLIOException("End of file encountered.");
@@ -1489,8 +1501,16 @@ istream& Data_<SpDString>::Read( istream& os, bool swapEndian, XDR *xdrs)
 	      maxLen = nChar;
 	      buf.resize( maxLen);
 	    }
-	  os.read(&buf[0],nChar);
-	      
+	  if (compress) {
+	    char c;
+	    buf.clear();
+	    for( SizeT i=0; i<nChar; i++) {
+	      os.get(c);
+	      buf.push_back( c);
+	    }
+	  } else {
+	    os.read(&buf[0],nChar);
+	  }
 	  dd[i].assign(&buf[0],nChar);
 	}
     }
@@ -1510,19 +1530,21 @@ istream& Data_<SpDString>::Read( istream& os, bool swapEndian, XDR *xdrs)
   return os;
 }
 
-ostream& DStructGDL::Write( ostream& os, bool swapEndian, XDR *xdrs)
+ostream& DStructGDL::Write( ostream& os, bool swapEndian, 
+			    bool compress, XDR *xdrs)
 {
   SizeT count = dd.size();
   for( SizeT i=0; i<count; i++)
-    dd[i]->Write( os, swapEndian, xdrs);
+    dd[i]->Write( os, swapEndian, compress, xdrs);
   return os;
 }
 
-istream& DStructGDL::Read( istream& os, bool swapEndian, XDR *xdrs)
+istream& DStructGDL::Read( istream& os, bool swapEndian, 
+			   bool compress, XDR *xdrs)
 {
   SizeT count = dd.size();
   for( SizeT i=0; i<count; i++)
-    dd[i]->Read( os, swapEndian, xdrs);
+    dd[i]->Read( os, swapEndian, compress, xdrs);
   return os;
 }
 

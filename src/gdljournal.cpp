@@ -80,7 +80,7 @@ namespace lib
 		
       gdljournal= &fileUnits[ jLUN-1];
       gdljournal->Open(gdljournal_filename,fstream::out,false,false,false,
-		       defaultStreamWidth,false);
+		       defaultStreamWidth,false,false);
 		
       //message  
       DStructGDL* version = SysVar::Version();

@@ -75,6 +75,7 @@ void Assoc_<Parent_>::AssignAt( BaseGDL* srcIn,
 	  fileUnits[ lun].Seek( seekPos);
 	  Parent_::Read( fs, 
 			 fileUnits[ lun].SwapEndian(),
+			 fileUnits[ lun].Compress(),
 			 fileUnits[ lun].Xdr());
 	}
       else
@@ -88,6 +89,7 @@ void Assoc_<Parent_>::AssignAt( BaseGDL* srcIn,
       fileUnits[ lun].SeekPad( seekPos);
       Parent_::Write( fs, 
 		      fileUnits[ lun].SwapEndian(),
+		      fileUnits[ lun].Compress(),
 		      fileUnits[ lun].Xdr());
     }
   else
@@ -97,6 +99,7 @@ void Assoc_<Parent_>::AssignAt( BaseGDL* srcIn,
       fileUnits[ lun].SeekPad( fileOffset + recordNum * sliceSize);
       srcIn->Write( ofs,
 		    fileUnits[ lun].SwapEndian(),
+		    fileUnits[ lun].Compress(),
 		    fileUnits[ lun].Xdr());
     }
 }
@@ -118,6 +121,7 @@ void Assoc_<Parent_>::AssignAt( BaseGDL* srcIn,
 	  fileUnits[ lun].Seek( seekPos);
 	  Parent_::Read( fs, 
 			 fileUnits[ lun].SwapEndian(),
+			 fileUnits[ lun].Compress(),
 			 fileUnits[ lun].Xdr());
 	}
       else
@@ -132,6 +136,7 @@ void Assoc_<Parent_>::AssignAt( BaseGDL* srcIn,
       //      Parent_::Write( fs, fileUnits[ lun].SwapEndian());
       Parent_::Write( fs,
 		    fileUnits[ lun].SwapEndian(),
+		    fileUnits[ lun].Compress(),
 		    fileUnits[ lun].Xdr());
     }
   else
@@ -141,6 +146,7 @@ void Assoc_<Parent_>::AssignAt( BaseGDL* srcIn,
       fileUnits[ lun].SeekPad( fileOffset + recordNum * sliceSize);
       srcIn->Write( ofs, 
 		fileUnits[ lun].SwapEndian(),
+		fileUnits[ lun].Compress(),
 		fileUnits[ lun].Xdr());
 /*      Parent_::Write( ofs, 
 		      fileUnits[ lun].SwapEndian(),
@@ -157,6 +163,7 @@ void Assoc_<Parent_>::AssignAt( BaseGDL* srcIn)
   fileUnits[ lun].SeekPad( fileOffset + recordNum * sliceSize);
   srcIn->Write( ofs, 
 		fileUnits[ lun].SwapEndian(),
+		fileUnits[ lun].Compress(),
 		fileUnits[ lun].Xdr());
 /*  Parent_::Write( ofs, 
 		  fileUnits[ lun].SwapEndian(),
@@ -187,6 +194,7 @@ void Assoc_<Parent_>::InsertAt( SizeT offset,
       //      Parent_::Write( ofs, fileUnits[ lun].SwapEndian());
       Parent_::Write( ofs, 
 		      fileUnits[ lun].SwapEndian(),
+		      fileUnits[ lun].Compress(),
 		      fileUnits[ lun].Xdr());
     }
   else
@@ -196,6 +204,7 @@ void Assoc_<Parent_>::InsertAt( SizeT offset,
       fileUnits[ lun].Seek( fileOffset + recordNum * sliceSize);
       Parent_::Read( fs, 
 		     fileUnits[ lun].SwapEndian(),
+		     fileUnits[ lun].Compress(),
 		     fileUnits[ lun].Xdr());
 
       Parent_::InsertAt( offset, srcIn, ixList);
@@ -204,6 +213,7 @@ void Assoc_<Parent_>::InsertAt( SizeT offset,
       //      Parent_::Write( fs, fileUnits[ lun].SwapEndian());
       Parent_::Write( fs, 
 		      fileUnits[ lun].SwapEndian(),
+		      fileUnits[ lun].Compress(),
 		      fileUnits[ lun].Xdr());
       return;
     }
@@ -221,6 +231,7 @@ Parent_* Assoc_<Parent_>::Index( ArrayIndexListT* ixList)
   fileUnits[ lun].Seek( fileOffset + recordNum * sliceSize);
   Parent_::Read( fs, 
 		 fileUnits[ lun].SwapEndian(),
+		 fileUnits[ lun].Compress(),
 		 fileUnits[ lun].Xdr());
 
   if( ixEmpty)

@@ -310,8 +310,10 @@ public:
   Data_* NewIxFromStride( SizeT s, SizeT e, SizeT stride);
 
   // binary input/output
-  std::ostream& Write( std::ostream& os, bool swapEndian, XDR *xdrs);
-  std::istream& Read( std::istream& os, bool swapEndian, XDR *xdrs);
+  std::ostream& Write( std::ostream& os, bool swapEndian, bool compress,
+		       XDR *xdrs);
+  std::istream& Read( std::istream& os, bool swapEndian, bool compress,
+		      XDR *xdrs);
   
   SizeT OFmtA( std::ostream* os, SizeT offset, SizeT num, int width);
   SizeT OFmtF( std::ostream* os, SizeT offs, SizeT num, int width, 

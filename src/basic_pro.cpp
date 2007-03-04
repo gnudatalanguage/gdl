@@ -741,6 +741,11 @@ namespace lib {
     else
       swapEndian = e->KeywordSet( "SWAP_IF_LITTLE_ENDIAN");
     
+    // compress
+    bool compress=false;
+    if( e->KeywordSet( "COMPRESS"))
+      compress = true;
+
     // xdr
     bool xdr = e->KeywordSet( "XDR");
 
@@ -768,7 +773,7 @@ namespace lib {
 
     try{
       fileUnits[ lun-1].Open( name, mode, swapEndian, deleteKey, 
-			      xdr, width, f77);
+			      xdr, width, f77, compress);
     } 
     catch( GDLException& ex) {
       DString errorMsg = ex.toString()+" Unit: "+i2s( lun)+
@@ -974,6 +979,7 @@ namespace lib {
     ostream* os;
     bool f77 = false;
     bool swapEndian = false;
+    bool compress = false;
     XDR *xdrs = NULL;
 
     bool stdLun = check_lun( e, lun);
@@ -989,6 +995,7 @@ namespace lib {
 	os = &fileUnits[ lun-1].OStream();
 	f77 = fileUnits[ lun-1].F77();
 	swapEndian = fileUnits[ lun-1].SwapEndian();
+	compress = fileUnits[ lun-1].Compress();
 	xdrs = fileUnits[ lun-1].Xdr();
       }
 
@@ -1009,7 +1016,7 @@ namespace lib {
 	for( SizeT i=1; i<nParam; i++)
 	  {
 	    BaseGDL* p = e->GetPar( i); // defined already checked
-	    p->Write( *os, swapEndian, xdrs);
+	    p->Write( *os, swapEndian, compress, xdrs);
 	  }
 
 	// write record length
@@ -1019,7 +1026,7 @@ namespace lib {
       for( SizeT i=1; i<nParam; i++)
 	{
 	  BaseGDL* p = e->GetParDefined( i);
-	  p->Write( *os, swapEndian, xdrs);
+	  p->Write( *os, swapEndian, compress, xdrs);
 	}
   }
 
@@ -1031,9 +1038,11 @@ namespace lib {
     e->AssureLongScalarPar( 0, lun);
 
     istream* is;
+    igzstream* igzs;
     bool f77 = false;
     bool varlenVMS = false;
     bool swapEndian = false;
+    bool compress = false;
     XDR *xdrs = NULL;
     int sockNum = fileUnits[ lun-1].SockNum();
 
@@ -1047,7 +1056,10 @@ namespace lib {
       }
     else if (sockNum != -1)
       {
+	// Socket Read
 	swapEndian = fileUnits[ lun-1].SwapEndian();
+
+	compress = fileUnits[ lun-1].Compress();
 
 	string *recvBuf = &fileUnits[ lun-1].RecvBuf();
 
@@ -1073,9 +1085,11 @@ namespace lib {
     else
       {
 	is = &fileUnits[ lun-1].IStream();
+	igzs = &fileUnits[ lun-1].IgzStream();
 	f77 = fileUnits[ lun-1].F77();
 	varlenVMS = fileUnits[ lun-1].VarLenVMS();
 	swapEndian = fileUnits[ lun-1].SwapEndian();
+	compress = fileUnits[ lun-1].Compress();
 	xdrs = fileUnits[ lun-1].Xdr();
       }
 
@@ -1101,7 +1115,7 @@ namespace lib {
 	      e->Throw( "Attempt to read past end of F77_UNFORMATTED "
 			"file record.");
 
-	    p->Read( *is, swapEndian, xdrs);
+	    p->Read( *is, swapEndian, compress, xdrs);
 
 	    relPos += nBytes;
 	  }
@@ -1121,8 +1135,10 @@ namespace lib {
 	      e->SetPar( i, p);
 	    }
 
-	  // Check if VMS variable-length file
-	  if (varlenVMS && i == 1) {
+	  if (compress) {
+	    p->Read( *igzs, swapEndian, compress, xdrs);
+	  } else if (varlenVMS && i == 1) {
+	    // Check if VMS variable-length file
 	    char hdr[4], tmp;
 
 	    // Read possible record header
@@ -1152,9 +1168,11 @@ namespace lib {
 	      is->seekg(-4, ios::cur);
 	      fileUnits[ lun-1].PutVarLenVMS( false);
 	    }
-	    p->Read( *is, swapEndian, xdrs);
+	    p->Read( *is, swapEndian, compress, xdrs);
 	  }
-	  else p->Read( *is, swapEndian, xdrs);
+	  else p->Read( *is, swapEndian, compress, xdrs);
+
+	  // Socket Read
 	  if (sockNum != -1) {
 	    int pos = is->tellg();
 	    string *recvBuf = &fileUnits[ lun-1].RecvBuf();

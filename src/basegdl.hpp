@@ -176,8 +176,10 @@ public:
 		       BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN);
 
   virtual void Clear();
-  virtual std::ostream& Write( std::ostream& os, bool swapEndian, XDR *xdrs);
-  virtual std::istream& Read( std::istream& os, bool swapEndian, XDR *xdrs);
+  virtual std::ostream& Write( std::ostream& os, bool swapEndian, 
+			       bool compress, XDR *xdrs);
+  virtual std::istream& Read( std::istream& os, bool swapEndian, 
+			      bool compress, XDR *xdrs);
 
   virtual std::ostream& ToStream(std::ostream& o, SizeT width = 0, 
 			    SizeT* actPosPtr = NULL);

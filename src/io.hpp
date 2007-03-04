@@ -32,6 +32,9 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 
+#include <string.h>  // for memcpy
+#include "gzstream.hpp"
+
 #include "gdlexception.hpp"
 
 
@@ -50,11 +53,13 @@ class GDLStream
   std::ios_base::openmode mode;
 
   std::fstream* fStream;
+  igzstream* igzStream; // for gzip compressed input
 
   bool f77; // FORTRAN unformatted
   bool swapEndian;
   bool deleteOnClose;
   bool varlenVMS;
+  bool compress;
   XDR *xdrs;
 
   std::istringstream* iSocketStream;
@@ -79,6 +84,7 @@ public:
     name(), 
     mode(), 
     fStream(NULL), 
+    igzStream(NULL), 
     f77(false),
     swapEndian(false),
     deleteOnClose(false),
@@ -101,13 +107,14 @@ public:
   {
     delete xdrs;
     delete fStream;
+    delete igzStream;
     delete iSocketStream;
   }  
 
   void Open( const std::string& name_,
 	     std::ios_base::openmode,
 	     bool swapEndian_, bool deleteOnClose_, bool xdr_, 
-	     SizeT width, bool f77);
+	     SizeT width, bool f77, bool compress);
   
   void Socket( const std::string& host,
 	       DUInt port, bool swapEndian_,
@@ -191,6 +198,10 @@ public:
 
   bool VarLenVMS() { return varlenVMS;}
   void PutVarLenVMS( bool varlenVMS_) { varlenVMS = varlenVMS_;}
+
+  bool Compress() { return compress;}
+  void PutCompress( bool compress_) { compress = compress_;}
+  igzstream& IgzStream(); 
 
   XDR *Xdr() { return xdrs;}
 
