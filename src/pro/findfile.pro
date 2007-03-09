@@ -77,7 +77,7 @@ function FINDFILE, filtre_, count=count, $
 ON_ERROR, 2
 ;
 ;
-if not(KEYWORD(quiet)) then begin
+if not(KEYWORD_SET(quiet)) then begin
    print, 'This functionality is obsolete.'
    print, 'You are adviced to use FILE_SEARCH() instead.'
 endif
