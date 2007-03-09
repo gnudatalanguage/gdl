@@ -31,7 +31,9 @@ public:
   ~GDLPSStream()
   {
   }
-  
+ 
+  void eop() {};
+
   void Init();
 };
 

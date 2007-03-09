@@ -130,7 +130,7 @@ void GDLGStream::NextPlot( bool erase)
     {
       if( erase)
 	{
-	  eop();           // overridden (for Z-buffer)  
+	  eop();           // overridden (for Z-buffer & PS)  
 	  plstream::bop(); // changes charsize
 	}
 
