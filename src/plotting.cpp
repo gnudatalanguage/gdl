@@ -3316,7 +3316,7 @@ namespace lib {
     if(Struct!=NULL)
       {
 	static unsigned typeTag = Struct->Desc()->TagIndex( "TYPE");
-	(*static_cast<DDoubleGDL*>( Struct->Get( typeTag, 0)))[0] = mapset;
+	(*static_cast<DLongGDL*>( Struct->Get( typeTag, 0)))[0] = mapset;
       }
   }
   
