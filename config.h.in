@@ -30,6 +30,9 @@
 /* wxWidgets library */
 #undef HAVE_LIBWXWIDGETS
 
+/* Zlib library */
+#undef HAVE_LIBZ
+
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 

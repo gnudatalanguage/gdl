@@ -62,6 +62,7 @@ Obligatory libraries:
 plplot      http://plplot.sourceforge.net/source/index.html
 gsl         http://www.gnu.org/software/gsl
 readline    http://ftp.gnu.org/pub/gnu/readline/readline-4.3.tar.gz
+zlib        http://www.zlib.net/
 
 Optional libraries:
 ImageMagick http://www.imagemagick.org/www/download.html
@@ -70,9 +71,12 @@ HDF4 *)     ftp://ftp.ncsa.uiuc.edu/HDF/HDF/HDF_Current
 HDF5        ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/current
 FFTW        http://www.fftw.org/download.html
 python      http://www.python.org
+libproj4    http://members.verizon.net/~vze2hc4d/proj4/
+
 Only with python:
 numarray    http://www.stsci.edu/resources/software_hardware/numarray
 matplotlib  http://matplotlib.sourceforge.net
+
 
 *) please see below for potential problems using netCDF and HDF4
 
@@ -106,7 +110,8 @@ is necessary. To download plplot please look at:
 http://plplot.sourceforge.net/source/index.html
 
 Furthermore you need the GNU Scientific Library.
-(Note that version 1.1.1 was reported to NOT work with GDL)
+(Minimal version is 1.4, which is now checked via "gsl.m4".
+Note that version 1.1.1 was reported to NOT work with GDL)
 You find it at:
 http://www.gnu.org/software/gsl
 
@@ -161,7 +166,8 @@ From the HDF4 INSTALL file:
         HDF/netCDF files through the SDxxx interface but not through the
         ncxxx interface unless the renamed interface is used(sd_ncxxx).
 
-In order to read and write images in several formats, GDL uses ImageMagick.
+In order to read and write images in several formats
+(e.g. JPEG, PNG), GDL uses ImageMagick.
 It is required by default. If you don't want to use it, use 
 --with-Magick=no
 ImageMagick can be obtained from:
@@ -184,6 +190,12 @@ Please also notice that the test when runnig GDL configure
 will failed if libfftw3f.a is missing.
 As mentionned in the log. of ./configure,
 if FFTw is not used, the default (GSL) fft routine is used instead.
+
+GDL contains now a preliminary support to MAP projection,
+using the libproj4 http://members.verizon.net/~vze2hc4d/proj4/
+library. Please see MAP_INSTALL file.
+It is NOT used by default.
+If you want to use it, use --with-libproj4=DIR
 
 GDL has an interface to python (see http://www.python.org). 
 GDL can be used as a python module and python can be used from
@@ -223,6 +235,12 @@ INSTALLATION:
 =============
 
 Please see the INSTALL file for details.
+
+
+For french readers, please have a look to
+http://aramis.obspm.fr/~coulais/IDL_et_GDL/memo_GDL0.8.11.html
+which explain how to install GDL and most libraries
+from scratch and without being root.
 
 
 CONTRIBUTIONS:

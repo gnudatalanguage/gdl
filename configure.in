@@ -83,7 +83,39 @@ dnl as OS X provides another readline library
 	])
 fi
 
+dnl end of READLINE
+dnl beginning of Zlib
 
+AC_ARG_WITH(zlibdir,	
+	[  --with-zlibdir=DIR      specify the Zlib directory tree ],
+	[with_zlib="$withval" ])
+
+if test "x$with_zlib" = "x"; then
+  with_zlib=yes
+fi
+
+if test "x$with_zlib" = "xno"; then
+	echo ""	
+	echo "Error! ZLIB library is obligatory."
+        exit -1
+fi
+
+if test "x$with_zlib" != "xyes"; then
+    LIBS="$LIBS -L$with_zlib/lib -lz"
+    INCLUDES="$INCLUDES -I$with_zlib/include"
+else
+    LIBS="$LIBS -lz"
+fi
+
+AC_CHECK_LIB(z, gzopen, [AC_DEFINE([HAVE_LIBZ], [1], [Zlib library])], 
+ 	[
+ 	echo ""
+ 	echo "Error! zlib library is required but was not found"
+ 	echo "       Use --with-zlibdir=DIR to specify the zlib directory tree"
+ 	exit -1
+ 	])
+
+dnl End of Zlib
 
 dnl wxWindows
 dnl default no (for now)
@@ -157,6 +189,13 @@ AC_CHECK_LIB(gslcblas, cblas_drot, [], [
 	echo "Error! You must have libgslcblas (part of GSL) installed"
         exit -1
 	])
+
+dnl We check GSL library version
+
+sinclude(gsl.m4)
+AM_PATH_GSL(1.4,,
+	AC_MSG_ERROR('minimal version of GSL is 1.4'))
+
 
 dnl plplot 
 dnl AC_CHECK_LIB(plplotcxxd, plsexit, [], [

@@ -69,6 +69,7 @@ options can be used:
 --with-ncursesdir=DIR  to specify the ncurses directory tree
 --with-readlinedir=DIR to specify the readline directory tree
 --with-gsldir=DIR      to specify the GSL directory tree
+--with-libzdir=DIR     to specify the Zlib directory tree
 
 --with-netcdf=DIR      to specify the netcdf directory tree
 --with-netcdf=no       to not use netcdf
