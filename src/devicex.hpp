@@ -239,31 +239,36 @@ class DeviceX: public Graphics
   {
     int wLSize = winList.size();
 
-//     bool redo;
-//     do { // it seems that the event queue is only searched a few events deep
-//       redo = false;
-      for( int i=0; i<wLSize; i++)
-	if( winList[ i] != NULL && !winList[ i]->Valid()) 
-	  {
-	    delete winList[ i];
-	    winList[ i] = NULL;
-	    oList[ i] = 0;
-// 	    redo = true;
-	  }
-//     } while( redo);
+    //     bool redo;
+    //     do { // it seems that the event queue is only searched a few events deep
+    //       redo = false;
+    for( int i=0; i<wLSize; i++)
+      if( winList[ i] != NULL && !winList[ i]->Valid()) 
+	{
+	  delete winList[ i];
+	  winList[ i] = NULL;
+	  oList[ i] = 0;
+	  // 	    redo = true;
+	}
+    //     } while( redo);
 
-    // set to most recently created
-    std::vector< long>::iterator mEl = 
-      std::max_element( oList.begin(), oList.end());
-    
-    // no window open
-    if( *mEl == 0) 
+
+    // set new actWin IF NOT VALID ANY MORE
+    if( actWin < 0 || actWin >= wLSize || !winList[ actWin]->Valid())
       {
-	SetActWin( -1);
-	oIx = 1;
+	// set to most recently created
+	std::vector< long>::iterator mEl = 
+	  std::max_element( oList.begin(), oList.end());
+    
+	// no window open
+	if( *mEl == 0) 
+	  {
+	    SetActWin( -1);
+	    oIx = 1;
+	  }
+	else
+	  SetActWin( std::distance( oList.begin(), mEl)); 
       }
-    else
-      SetActWin( std::distance( oList.begin(), mEl)); 
   }
 
 public:

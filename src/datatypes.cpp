@@ -1843,7 +1843,7 @@ void Data_<Sp>::InsAt( Data_* srcIn, ArrayIndexListT* ixList, SizeT offset)
      {
       SizeT destStart = ixList->LongIx();
 
-      SizeT len;
+      //SizeT len;
       if( this->N_Elements() == 1)
 	{
 	  //	  len = 1;
@@ -1852,7 +1852,7 @@ void Data_<Sp>::InsAt( Data_* srcIn, ArrayIndexListT* ixList, SizeT offset)
 	}
       else 
 	{
-	  len = srcIn->Dim( 0); // length of segment to copy
+	  SizeT len = srcIn->Dim( 0); // length of segment to copy
 	  if( (destStart+len) > this->N_Elements()) //dim[0])
 	    throw GDLException("Out of range subscript encountered (1).");
 

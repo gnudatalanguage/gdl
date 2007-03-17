@@ -1,20 +1,7 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
- <DocsAndViews NumberOfDocuments="4" >
-  <Doc0 NumberOfViews="1" URL="file:///home/marc/gdl/src/GDLInterpreter.cpp" >
-   <View0 Type="Source" />
-  </Doc0>
-  <Doc1 NumberOfViews="1" URL="file:///home/marc/gdl/src/gsl_fun.hpp" >
-   <View0 Type="Source" />
-  </Doc1>
-  <Doc2 NumberOfViews="1" URL="file:///home/marc/gdl/src/gsl_fun.cpp" >
-   <View0 Type="Source" />
-  </Doc2>
-  <Doc3 NumberOfViews="1" URL="file:///home/marc/gdl/src/arrayindex.hpp" >
-   <View0 line="353" Type="Source" />
-  </Doc3>
- </DocsAndViews>
+ <DocsAndViews NumberOfDocuments="0" />
  <pluginList>
   <kdevdebugger>
    <breakpointList>
@@ -27,6 +14,15 @@
     <breakpoint2 location="/home/marc/gdl/src/assocdata.cpp:145" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
      <tracedExpressions/>
     </breakpoint2>
+    <breakpoint3 location="/home/marc/gdl/src/basic_pro.cpp:53" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
+     <tracedExpressions/>
+    </breakpoint3>
+    <breakpoint4 location="/home/marc/gdl/src/objects.cpp:255" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
+     <tracedExpressions/>
+    </breakpoint4>
+    <breakpoint5 location="/home/marc/gdl/src/datatypes.cpp:1831" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
+     <tracedExpressions/>
+    </breakpoint5>
    </breakpointList>
   </kdevdebugger>
   <kdevbookmarks>
