@@ -365,16 +365,19 @@ void EnvT::HeapGC( bool doPtr, bool doObj, bool verbose)
       for( SizeT h=0; h<nH; ++h)
 	{
 	  DObj& p = (*heap)[ h];
-	  if( p != 0 && objAccessible.find( p) == objAccessible.end())
-	    {
-	      if( verbose)
-		{
-		  BaseGDL* hV = GetObjHeap( p);		  
-		  Message( "<ObjHeapVar"+i2s(p)+">  "+
-			   GetString( hV));
-		}
-	      ObjCleanup( p);
-	    }
+	  if( p != 0)
+	    if( objAccessible.find( p) == objAccessible.end())
+	      {
+		if( verbose)
+		  {
+		    BaseGDL* hV = GetObjHeap( p);		  
+		    Message( "<ObjHeapVar"+i2s(p)+">  "+
+			     GetString( hV));
+		  }
+		ObjCleanup( p);
+	      }
+// 	    else
+// 	      objAccessible.erase( p);
 	}
     }
   if( doPtr)
@@ -386,16 +389,19 @@ void EnvT::HeapGC( bool doPtr, bool doObj, bool verbose)
       for( SizeT h=0; h<nH; ++h)
 	{
 	  DPtr& p = (*heap)[ h];
-	  if( p != 0 && ptrAccessible.find( p) == ptrAccessible.end())
-	    {
-	      if( verbose)
-		{
-		  BaseGDL* hV = GetHeap( p);
-		  Message( "<PtrHeapVar"+i2s(p)+">  "+
-			   GetString( hV));
-		}
-	      interpreter->FreeHeap( p);
-	    }
+	  if( p != 0)
+	    if( ptrAccessible.find( p) == ptrAccessible.end())
+	      {
+		if( verbose)
+		  {
+		    BaseGDL* hV = GetHeap( p);
+		    Message( "<PtrHeapVar"+i2s(p)+">  "+
+			     GetString( hV));
+		  }
+		interpreter->FreeHeap( p);
+	      }
+// 	    else
+// 	      ptrAccessible.erase( p);
 	}
     }
 }
