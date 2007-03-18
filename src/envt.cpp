@@ -359,7 +359,8 @@ void EnvT::HeapGC( bool doPtr, bool doObj, bool verbose)
   if( doObj)
     {
       DObjGDL* heap = interpreter->GetAllObjHeap();
-      
+      auto_ptr< BaseGDL> heap_guard( heap);
+
       SizeT nH = heap->N_Elements();
       for( SizeT h=0; h<nH; ++h)
 	{
@@ -379,6 +380,7 @@ void EnvT::HeapGC( bool doPtr, bool doObj, bool verbose)
   if( doPtr)
     {
       DPtrGDL* heap = interpreter->GetAllHeap();
+      auto_ptr< BaseGDL> heap_guard( heap);
       
       SizeT nH = heap->N_Elements();
       for( SizeT h=0; h<nH; ++h)
