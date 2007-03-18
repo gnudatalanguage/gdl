@@ -179,19 +179,19 @@ else
 fi
 
 dnl GNU Scientific Library
-AC_CHECK_LIB(gsl, gsl_block_alloc, [], [
+dnl AC_CHECK_LIB(gsl, gsl_block_alloc, [], [
+AC_CHECK_LIB(gsl, gsl_cdf_ugaussian_P, [], [
 	echo ""
-	echo "Error! You must have the Gnu Scientific Library installed"
+	echo "Error! Gnu Scientific Library (1.4 or higher) is mandatory"
         exit -1
 	])
 AC_CHECK_LIB(gslcblas, cblas_drot, [], [
 	echo ""
-	echo "Error! You must have libgslcblas (part of GSL) installed"
+	echo "Error! libgslcblas (part of GSL) is mandatory"
         exit -1
 	])
 
 dnl We check GSL library version
-
 sinclude(gsl.m4)
 AM_PATH_GSL(1.4,,
 	AC_MSG_ERROR('minimal version of GSL is 1.4'))

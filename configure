@@ -19144,9 +19144,9 @@ else
 fi
 
 
-echo "$as_me:$LINENO: checking for gsl_block_alloc in -lgsl" >&5
-echo $ECHO_N "checking for gsl_block_alloc in -lgsl... $ECHO_C" >&6
-if test "${ac_cv_lib_gsl_gsl_block_alloc+set}" = set; then
+echo "$as_me:$LINENO: checking for gsl_cdf_ugaussian_P in -lgsl" >&5
+echo $ECHO_N "checking for gsl_cdf_ugaussian_P in -lgsl... $ECHO_C" >&6
+if test "${ac_cv_lib_gsl_gsl_cdf_ugaussian_P+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   ac_check_lib_save_LIBS=$LIBS
@@ -19164,11 +19164,11 @@ extern "C"
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
-char gsl_block_alloc ();
+char gsl_cdf_ugaussian_P ();
 int
 main ()
 {
-gsl_block_alloc ();
+gsl_cdf_ugaussian_P ();
   ;
   return 0;
 }
@@ -19195,20 +19195,20 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   ac_status=$?
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
-  ac_cv_lib_gsl_gsl_block_alloc=yes
+  ac_cv_lib_gsl_gsl_cdf_ugaussian_P=yes
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
-ac_cv_lib_gsl_gsl_block_alloc=no
+ac_cv_lib_gsl_gsl_cdf_ugaussian_P=no
 fi
 rm -f conftest.err conftest.$ac_objext \
       conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-echo "$as_me:$LINENO: result: $ac_cv_lib_gsl_gsl_block_alloc" >&5
-echo "${ECHO_T}$ac_cv_lib_gsl_gsl_block_alloc" >&6
-if test $ac_cv_lib_gsl_gsl_block_alloc = yes; then
+echo "$as_me:$LINENO: result: $ac_cv_lib_gsl_gsl_cdf_ugaussian_P" >&5
+echo "${ECHO_T}$ac_cv_lib_gsl_gsl_cdf_ugaussian_P" >&6
+if test $ac_cv_lib_gsl_gsl_cdf_ugaussian_P = yes; then
   cat >>confdefs.h <<_ACEOF
 #define HAVE_LIBGSL 1
 _ACEOF
@@ -19218,7 +19218,7 @@ _ACEOF
 else
 
 	echo ""
-	echo "Error! You must have the Gnu Scientific Library installed"
+	echo "Error! Gnu Scientific Library (1.4 or higher) is mandatory"
         exit -1
 
 fi
@@ -19298,11 +19298,10 @@ _ACEOF
 else
 
 	echo ""
-	echo "Error! You must have libgslcblas (part of GSL) installed"
+	echo "Error! libgslcblas (part of GSL) is mandatory"
         exit -1
 
 fi
-
 
 
 # Configure path for the GNU Scientific Library
