@@ -221,6 +221,225 @@ EnvUDT::EnvUDT( EnvT* pEnv, DSub* newPro, BaseGDL** self):
     env.Set( parIx++, self); //static_cast<BaseGDL*>(oStructGDL));
 }
 
+
+void EnvBaseT::AddStruct( DPtrListT& ptrAccessible, 
+			  DPtrListT& objAccessible, DStructGDL* stru)
+{
+  if( stru == NULL) return;
+
+  SizeT nEl = stru->N_Elements();
+
+  const DStructDesc* desc = stru->Desc();
+
+  SizeT nTags = desc->NTags();
+  for( SizeT t=0; t<nTags; ++t)
+    {
+      if( (*desc)[ t]->Type() == PTR)
+	{
+	  for( SizeT e = 0; e<nEl; ++e)
+	    {
+	      DPtrGDL* ptr = static_cast< DPtrGDL*>( stru->Get( t, e));
+	      AddPtr( ptrAccessible, objAccessible, ptr);
+	    }
+	}
+      else if( (*desc)[ t]->Type() == STRUCT)
+	{
+	  for( SizeT e = 0; e<nEl; ++e)
+	    {
+	      DStructGDL* ptr = static_cast< DStructGDL*>( stru->Get( t, e));
+	      AddStruct( ptrAccessible, objAccessible, ptr);
+	    }
+	}
+     else if( (*desc)[ t]->Type() == OBJECT)
+	{
+	  for( SizeT e = 0; e<nEl; ++e)
+	    {
+	      DObjGDL* obj = static_cast< DObjGDL*>( stru->Get( t, e));
+	      AddObj( ptrAccessible, objAccessible, obj);
+	    }
+	}
+
+    }
+}
+void EnvBaseT::AddPtr( DPtrListT& ptrAccessible, DPtrListT& objAccessible, 
+		       DPtrGDL* ptr)
+{
+  if( ptr == NULL) return;
+
+  SizeT nEl = ptr->N_Elements();
+
+  for( SizeT e = 0; e<nEl; ++e)
+    {
+      DPtr p = (*ptr)[ e];
+      if( p != 0 && interpreter->PtrValid( p))
+	{
+	  if( ptrAccessible.find( p) == ptrAccessible.end())
+	    {
+	      ptrAccessible.insert( p);
+	      Add( ptrAccessible, objAccessible, interpreter->GetHeap( p));
+	    }
+	}
+    }
+}
+void EnvBaseT::AddObj( DPtrListT& ptrAccessible, DPtrListT& objAccessible, 
+		       DObjGDL* ptr)
+{
+  if( ptr == NULL) return;
+
+  SizeT nEl = ptr->N_Elements();
+  for( SizeT e = 0; e<nEl; ++e)
+    {
+      DObj p = (*ptr)[ e];
+      if( p != 0 && interpreter->ObjValid( p))
+	{
+	  if( objAccessible.find( p) == objAccessible.end())
+	    {
+	      objAccessible.insert( p);
+	      AddStruct( ptrAccessible, objAccessible, 
+			 interpreter->GetObjHeap( p));
+	    }
+	}
+    }
+}
+void EnvBaseT::Add( DPtrListT& ptrAccessible, DPtrListT& objAccessible, 
+		    BaseGDL* p)
+{
+  DPtrGDL* ptr = dynamic_cast< DPtrGDL*>( p);
+  AddPtr( ptrAccessible,  objAccessible, ptr);
+  DStructGDL* stru = dynamic_cast< DStructGDL*>( p);
+  AddStruct( ptrAccessible, objAccessible, stru);
+  DObjGDL* obj = dynamic_cast< DObjGDL*>( p);
+  AddObj( ptrAccessible, objAccessible, obj);
+}
+void EnvBaseT::AddEnv( DPtrListT& ptrAccessible, DPtrListT& objAccessible)
+{
+  for( SizeT e=0; e<env.size(); ++e)
+    {
+      Add( ptrAccessible, objAccessible, env[ e]);
+    }
+}
+void EnvT::HeapGC( bool doPtr, bool doObj, bool verbose)
+{
+  DPtrListT ptrAccessible;
+  DPtrListT objAccessible;
+  
+  // search common blocks
+  for( CommonListT::iterator c = commonList.begin();
+       c != commonList.end(); ++c)
+    {
+      DCommon* common = *c;
+      SizeT nVar = common->NVar();
+      for( SizeT v = 0; v < nVar; ++v)
+	{
+	  DVar* var = common->Var( v);
+	  if( var != NULL)
+	    {
+	      Add( ptrAccessible, objAccessible, var->Data());
+	    }
+	}
+    }
+
+  SizeT nVar = sysVarList.size();
+  for( SizeT v=0; v<nVar; ++v)
+    {
+      DVar* var = sysVarList[ v];
+      if( var != NULL)
+	{
+	  Add( ptrAccessible, objAccessible, var->Data());
+	}
+    }
+
+  EnvStackT& cS=interpreter->CallStack();
+  for( EnvStackT::reverse_iterator r = cS.rbegin(); r != cS.rend(); ++r) 
+    {
+      (*r)->AddEnv( ptrAccessible, objAccessible);
+    }
+
+  // do OBJ first as the cleanup might need the PTR
+  if( doObj)
+    {
+      DObjGDL* heap = interpreter->GetAllObjHeap();
+      
+      SizeT nH = heap->N_Elements();
+      for( SizeT h=0; h<nH; ++h)
+	{
+	  DObj& p = (*heap)[ h];
+	  if( p != 0 && objAccessible.find( p) == objAccessible.end())
+	    {
+	      if( verbose)
+		{
+		  BaseGDL* hV = GetObjHeap( p);		  
+		  Message( "<ObjHeapVar"+i2s(p)+">  "+
+			   GetString( hV));
+		}
+	      ObjCleanup( p);
+	    }
+	}
+    }
+  if( doPtr)
+    {
+      DPtrGDL* heap = interpreter->GetAllHeap();
+      
+      SizeT nH = heap->N_Elements();
+      for( SizeT h=0; h<nH; ++h)
+	{
+	  DPtr& p = (*heap)[ h];
+	  if( p != 0 && ptrAccessible.find( p) == ptrAccessible.end())
+	    {
+	      if( verbose)
+		{
+		  BaseGDL* hV = GetHeap( p);
+		  Message( "<PtrHeapVar"+i2s(p)+">  "+
+			   GetString( hV));
+		}
+	      interpreter->FreeHeap( p);
+	    }
+	}
+    }
+}
+void EnvT::ObjCleanup( DObj actID)
+{
+  static set< DObj> inProgress;
+
+  if( actID != 0 && (inProgress.find( actID) == inProgress.end()))
+    {
+      DStructGDL* actObj;
+      try{
+	actObj=GetObjHeap( actID);
+      }
+      catch( GDLInterpreter::HeapException){
+	actObj=NULL;
+      }
+	    
+      if( actObj != NULL)
+	{
+	  // call CLEANUP function
+	  DPro* objCLEANUP= actObj->Desc()->GetPro( "CLEANUP");
+
+	  if( objCLEANUP != NULL)
+	    {
+	      BaseGDL* actObjGDL = new DObjGDL( actID);
+	      auto_ptr<BaseGDL> actObjGDL_guard( actObjGDL);
+	      
+	      PushNewEnvUD( objCLEANUP, 1, &actObjGDL);
+	      
+	      inProgress.insert( actID);
+	      
+	      interpreter->call_pro( objCLEANUP->GetTree());
+	      
+	      inProgress.erase( actID);
+	      
+	      FreeObjHeap( actID); // the actual freeing
+	      
+	      delete interpreter->CallStack().back();
+	      interpreter->CallStack().pop_back();
+	    }
+	}
+    }
+}
+
+
+
 // these two functions should be inlined
 SizeT EnvT::NewObjHeap( SizeT n, DStructGDL* v) 
 {

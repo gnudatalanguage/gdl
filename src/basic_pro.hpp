@@ -62,6 +62,8 @@ namespace lib {
 
   void stop( EnvT* e);
 
+  void heap_gc( EnvT* e);
+
   void defsysv( EnvT* e);
 
   void message( EnvT* e);

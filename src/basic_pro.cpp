@@ -541,6 +541,19 @@ namespace lib {
     exit( exit_status);
   }
 
+  void heap_gc( EnvT* e)
+  {
+    static SizeT objIx = e->KeywordIx( "OBJ");
+    static SizeT ptrIx = e->KeywordIx( "PTR");
+    static SizeT verboseIx = e->KeywordIx( "VERBOSE");
+    bool doObj = e->KeywordSet( objIx);
+    bool doPtr = e->KeywordSet( ptrIx);
+    bool verbose =  e->KeywordSet( verboseIx);
+    if( !doObj && !doPtr)
+      doObj = doPtr = true;
+
+    e->HeapGC( doPtr, doObj, verbose);
+  }
 
   void ptr_free( EnvT* e)
   {
@@ -560,8 +573,6 @@ namespace lib {
 
   void obj_destroy( EnvT* e)
   {
-    static set< DObj> inProgress;
-
     StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
 
     int nParam=e->NParam();
@@ -579,41 +590,7 @@ namespace lib {
     for( SizeT i=0; i<nEl; i++)
       {
 	DObj actID=(*op)[i];
-	if( actID != 0 && (inProgress.find( actID) == inProgress.end()))
-	  {
-	    DStructGDL* actObj;
-	    try{
-	      actObj=e->GetObjHeap( actID);
-	    }
-	    catch( GDLInterpreter::HeapException){
-	      actObj=NULL;
-	    }
-	    
-	    if( actObj != NULL)
-	      {
-		// call CLEANUP function
-		DPro* objCLEANUP= actObj->Desc()->GetPro( "CLEANUP");
-
-		if( objCLEANUP != NULL)
-		  {
-		    BaseGDL* actObjGDL = new DObjGDL( actID);
-		    auto_ptr<BaseGDL> actObjGDL_guard( actObjGDL);
-
-		    e->PushNewEnvUD( objCLEANUP, 1, &actObjGDL);
-
-		    inProgress.insert( actID);
-	    
-		    e->Interpreter()->call_pro( objCLEANUP->GetTree());
-
-		    inProgress.erase( actID);
-
-		    e->FreeObjHeap( actID); // the actual freeing
-
-		    delete e->Interpreter()->CallStack().back();
-		    e->Interpreter()->CallStack().pop_back();
-		  }
-	      }
-	  }
+	e->ObjCleanup( actID);
       }
   }
   

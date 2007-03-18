@@ -196,22 +196,27 @@ public:
             }
         }
     }
-    static void FreeHeap( DPtrGDL* p)
+    static void FreeHeap( DPtr id)
+    {
+        if( id != 0)
+            {
+                HeapT::iterator it=heap.find( id);
+                if( it != heap.end()) 
+                    { 
+                        delete (*it).second;
+                        heap.erase( id); 
+                    }
+            }
+    }
+
+   static void FreeHeap( DPtrGDL* p)
     {
         SizeT nEl=p->N_Elements();
         for( SizeT ix=0; ix < nEl; ix++)
         {
             DPtr id= (*p)[ix];
-            if( id != 0)
-            {
-                HeapT::iterator it=heap.find( id);
-                if( it != heap.end()) 
-                { 
-                    delete (*it).second;
-                    heap.erase( id); 
-                }
-            }
-        }
+            FreeHeap( id);
+       }
     }
 
     class HeapException {};

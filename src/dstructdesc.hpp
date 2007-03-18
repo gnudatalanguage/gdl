@@ -46,6 +46,8 @@ public:
 
   BaseGDL*& operator[] (const SizeT d1)
   { return tags[d1];}
+  const BaseGDL* operator[] (const SizeT d1) const
+  { return tags[d1];}
 
   void Add( BaseGDL* t)   { tags.push_back(t);} // grabs
   void Remove( SizeT ix)  { tags.erase( tags.begin() + ix);}

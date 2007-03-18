@@ -189,6 +189,10 @@ void LibInit()
   const string defsysvKey[]={"EXISTS",KLISTEND};
   new DLibPro(lib::defsysv,string("DEFSYSV"),3,defsysvKey); 
 
+  const string heap_gcKey[]={"PTR","OBJ","VERBOSE",KLISTEND};
+  new DLibPro(lib::heap_gc,string("HEAP_GC"),0,heap_gcKey); 
+
+
   new DLibPro(lib::ptr_free,string("PTR_FREE"),-1);
 
   const string arrKey[]={"NOZERO",KLISTEND};

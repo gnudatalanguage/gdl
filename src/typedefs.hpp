@@ -47,6 +47,7 @@
 //#endif
 #endif
 
+#include <set>
 #include <string>
 #include <deque>
 #include <complex>
@@ -101,6 +102,8 @@ typedef std::deque<std::string>       StrArr;
 typedef std::deque<DString>           FileListT;
 
 typedef std::valarray<SizeT>          AllIxT;
+
+typedef std::set< DPtr>               DPtrListT;
 
 class ArrayIndexT;
 typedef std::vector<ArrayIndexT*> ArrayIndexVectorT;

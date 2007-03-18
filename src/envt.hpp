@@ -21,6 +21,7 @@
 #include <vector>
 #include <cstdlib>
 
+#include "typedefs.hpp"
 #include "str.hpp"
 #include "dpro.hpp"
 #include "datatypes.hpp"
@@ -54,7 +55,19 @@ protected:
   // used by the interperter returns the keyword index, used for UD functions
   int GetKeywordIx( const std::string& k);
 
+  // for HEAP_GC
+  void AddStruct( DPtrListT& ptrAccessible,  DPtrListT& objAccessible, 
+		  DStructGDL* stru);
+  void AddPtr( DPtrListT& ptrAccessible, DPtrListT& objAccessible, 
+	       DPtrGDL* ptr);
+  void AddObj( DPtrListT& ptrAccessible, DPtrListT& objAccessible, 
+	       DObjGDL* obj);
+  void Add( DPtrListT& ptrAccessible, DPtrListT& objAccessible, 
+	    BaseGDL* p);
+
 public:
+  void AddEnv( DPtrListT& ptrAccessible, DPtrListT& objAccessible);
+
   virtual ~EnvBaseT() { delete extra;}
 
   EnvBaseT( ProgNodeP cN, DSub* pro_);
@@ -225,9 +238,14 @@ public:
   // for obj_new and obj_destroy
   EnvT( EnvT* pEnv, DSub* newPro, BaseGDL** self); 
 
+  void HeapGC( bool doPtr, bool doObj, bool verbose);
+  void ObjCleanup( DObj actID);
+
+
   SizeT NewObjHeap( SizeT n=1, DStructGDL* v=NULL);
   SizeT NewHeap( SizeT n=1, BaseGDL* v=NULL);
   void FreeObjHeap( DObj id);
+  void FreeHeap( DPtr id);
   void FreeHeap( DPtrGDL* p);
   DStructGDL* GetObjHeap( DObj ID);
   BaseGDL* GetHeap( DPtr ID);

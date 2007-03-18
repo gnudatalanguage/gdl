@@ -896,14 +896,14 @@ namespace lib {
       DLong64GDL* res = new DLong64GDL(p0C->Dim(), BaseGDL::NOZERO);
       for( SizeT i=0; i<nEl; ++i)
 	{
-	  (*res)[ i] = (DLong64) round((*p0C)[ i]); 
+	  (*res)[ i] = static_cast<DLong64>( round((*p0C)[ i])); 
 	}
       return res;
     } else {
       DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
       for( SizeT i=0; i<nEl; ++i)
 	{
-	  (*res)[ i] = (int) round((*p0C)[ i]); 
+	  (*res)[ i] = static_cast<DLong>( round((*p0C)[ i])); 
 	}
       return res;
     }
@@ -920,7 +920,8 @@ namespace lib {
       throw GDLException( e->CallingNode(), 
 			  "ROUND: Variable is undefined: "+e->GetParString(0));
 
-    bool isKWSetL64 = e->KeywordSet( "L64");
+    static SizeT l64Ix = e->KeywordIx( "L64");
+    bool isKWSetL64 = e->KeywordSet( l64Ix);
 
     if( p0->Type() == COMPLEX)
       {
