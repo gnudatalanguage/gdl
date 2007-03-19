@@ -64,6 +64,9 @@ namespace SysVar
   // returns !CPU
   DStructGDL* Cpu();
 
+  // returns !D
+  DStructGDL* D();
+
   const std::string& Prompt();
   int   Edit_Input();
   DLong Quiet();

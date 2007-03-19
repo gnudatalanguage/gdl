@@ -225,6 +225,12 @@ namespace SysVar
     return static_cast<DStructGDL*>(var.Data());
   }
 
+  DStructGDL* D()
+  {
+    DVar& var = *sysVarList[ dIx];
+    return static_cast<DStructGDL*>(var.Data());
+  }
+
   DString MsgPrefix()
   {
     DStructGDL* errorState = Error_State();
