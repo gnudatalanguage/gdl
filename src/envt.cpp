@@ -267,7 +267,6 @@ void EnvBaseT::AddPtr( DPtrListT& ptrAccessible, DPtrListT& objAccessible,
   if( ptr == NULL) return;
 
   SizeT nEl = ptr->N_Elements();
-
   for( SizeT e = 0; e<nEl; ++e)
     {
       DPtr p = (*ptr)[ e];
@@ -359,7 +358,7 @@ void EnvT::HeapGC( bool doPtr, bool doObj, bool verbose)
   if( doObj)
     {
       DObjGDL* heap = interpreter->GetAllObjHeap();
-      auto_ptr< BaseGDL> heap_guard( heap);
+      auto_ptr< DObjGDL> heap_guard( heap);
 
       SizeT nH = heap->N_Elements();
       for( SizeT h=0; h<nH; ++h)
@@ -423,7 +422,7 @@ void EnvT::ObjCleanup( DObj actID)
 	{
 	  // call CLEANUP function
 	  DPro* objCLEANUP= actObj->Desc()->GetPro( "CLEANUP");
-
+	  
 	  if( objCLEANUP != NULL)
 	    {
 	      BaseGDL* actObjGDL = new DObjGDL( actID);
@@ -436,12 +435,12 @@ void EnvT::ObjCleanup( DObj actID)
 	      interpreter->call_pro( objCLEANUP->GetTree());
 	      
 	      inProgress.erase( actID);
-	      
-	      FreeObjHeap( actID); // the actual freeing
-	      
+
 	      delete interpreter->CallStack().back();
 	      interpreter->CallStack().pop_back();
 	    }
+	  
+	  FreeObjHeap( actID); // the actual freeing
 	}
     }
 }
