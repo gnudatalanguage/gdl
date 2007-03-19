@@ -116,6 +116,20 @@
 ; unmodified copies is granted, provided this copyright and disclaimer
 ; are included unchanged.
 ;-
+
+FUNCTION is_defined, var 
+; debug,'V1.0 FH 1998-01-20' 
+a = SIZE(var) 
+n = N_ELEMENTS(a) 
+RETURN, a[n - 2] NE 0 
+END
+
+FUNCTION is_scalar, var 
+; debug,'V1.0 FH 1998-01-23' 
+RETURN, ((SIZE(var))[0] EQ 0) AND is_defined(var) 
+END
+
+
 function val_loc_inc, x, u, l64=l64
 
 on_error, 2
@@ -163,7 +177,9 @@ end
 function value_locate, x, u, l64=l64
 
 ;increasing or decreasing
-default, l64,0
+;default, l64,0
+
+if (keyword_set(l64) eq 0) then l64 = 0
 
 out = is_scalar(u) ? 0 : make_array( long = 1-l64, l64 = l64, dim=size(/dim, u))
 temp = (last_item(x) lt x[0]) ? n_elements(x)-2- val_loc_inc(reverse(x), u, l64=l64) : $
