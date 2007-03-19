@@ -1242,6 +1242,10 @@ namespace lib {
     DString sysVarName = StrUpCase( sysVarNameFull.substr(1)); 
     
     DVar* sysVar = FindInVarList( sysVarList, sysVarName);
+
+    // check if the variable is defined
+    BaseGDL* p1 = e->GetParDefined(1);
+
     if( sysVar == NULL)
       {
 	// define new
