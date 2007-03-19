@@ -366,8 +366,6 @@ namespace lib {
     DString sdsName;
     e->AssureScalarPar<DStringGDL>( 1, sdsName);
 
-    printf("%s\n", sdsName.c_str());
-
     DLong index = SDnametoindex(sd_id, sdsName.c_str());
     
     return new DLongGDL( index );
