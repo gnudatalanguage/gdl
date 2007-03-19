@@ -1310,7 +1310,8 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
   Data_* src = static_cast<Data_*>(srcIn);  
 
   SizeT srcElem= src->N_Elements();
-  bool  isScalar= (srcElem == 1);
+//  bool  isScalar= (srcElem == 1);
+  bool  isScalar= (srcElem == 1) && (src->Rank() == 0);
   if( isScalar) 
     { // src is scalar
       Ty scalar=(*src)[0];
