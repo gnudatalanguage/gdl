@@ -404,7 +404,7 @@ void LibInit()
     {
       "CLOSE_FILE","FILENAME","LANDSCAPE","PORTRAIT",
       "DECOMPOSED","GET_DECOMPOSED","Z_BUFFERING","SET_RESOLUTION",
-      KLISTEND
+      "SET_CHARACTER_SIZE",KLISTEND
     };
   new DLibPro(lib::device,string("DEVICE"),0,deviceKey);
 
@@ -664,7 +664,7 @@ void LibInit()
     };
   new DLibPro(lib::xyouts, string("XYOUTS"), 3, xyoutsKey);
 
-  new DLibPro(lib::erase,string("ERASE"),0);
+  new DLibPro(lib::erase,string("ERASE"),1);
   
   const string laguerreKey[]={"DOUBLE","COEFFICIENTS",KLISTEND};
   new DLibFun(lib::laguerre,string("LAGUERRE"),3,laguerreKey);
