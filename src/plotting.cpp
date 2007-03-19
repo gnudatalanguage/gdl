@@ -3883,9 +3883,15 @@ namespace lib {
     // Use Size in lieu of VSize
     Graphics* actDevice = Graphics::GetDevice();
     DLong wIx = actDevice->ActWin();
-    if( wIx == -1) 
-      printf( "%% CONVERT_COORD: Window is closed and unavailable.\n");
-    bool success = actDevice->WSize(wIx, &xSize, &ySize, &xPos, &yPos);
+    if( wIx == -1) {
+      static DStructGDL* dStruct = SysVar::D();
+      static unsigned xsizeTag = dStruct->Desc()->TagIndex( "X_SIZE");
+      static unsigned ysizeTag = dStruct->Desc()->TagIndex( "Y_SIZE");
+      xSize = (*static_cast<DLongGDL*>( dStruct->Get( xsizeTag, 0)))[0];
+      ySize = (*static_cast<DLongGDL*>( dStruct->Get( ysizeTag, 0)))[0];
+    } else {
+      bool success = actDevice->WSize(wIx, &xSize, &ySize, &xPos, &yPos);
+    }
     if ( e->KeywordSet("DEVICE") || e->KeywordSet("TO_DEVICE")) {
       xv = xSize;
       yv = ySize;
