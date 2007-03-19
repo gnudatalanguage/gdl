@@ -1134,7 +1134,7 @@ namespace lib {
     }
 
     if (p0->Type() == BYTE) {
-      for ( SizeT i=0; i<p0->N_Elements(); ++i) {
+      for ( SizeT i=0; i<nCol*nRow; ++i) {
 	if (warped->data[i] < 0)   warped->data[i] = 0;
 	if (warped->data[i] > 255) warped->data[i] = 255;
       }
