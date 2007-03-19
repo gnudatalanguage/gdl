@@ -149,16 +149,20 @@ void LibInit_jmg()
   new DLibFun(lib::hdf_vg_getid_fun,string("HDF_VG_GETID"),2);
 
   const string hdf_vg_attachKey[]={"READ","WRITE",KLISTEND};
-  new DLibFun(lib::hdf_vg_attach_fun,string("HDF_VG_ATTACH"),2,hdf_vg_attachKey);
+  new DLibFun(lib::hdf_vg_attach_fun,string("HDF_VG_ATTACH"),2,
+	      hdf_vg_attachKey);
 
   const string hdf_vd_attachKey[]={"READ","WRITE",KLISTEND};
-  new DLibFun(lib::hdf_vd_attach_fun,string("HDF_VD_ATTACH"),2,hdf_vd_attachKey);
+  new DLibFun(lib::hdf_vd_attach_fun,string("HDF_VD_ATTACH"),2,
+	      hdf_vd_attachKey);
   new DLibFun(lib::hdf_vd_find_fun,string("HDF_VD_FIND"),2);
 
-  const string hdf_vd_readKey[]={"FIELDS","NRECORDS","FULL_INTERLACE","NO_INTERLACE",KLISTEND};
+  const string hdf_vd_readKey[]={"FIELDS","NRECORDS","FULL_INTERLACE",
+				 "NO_INTERLACE",KLISTEND};
   new DLibFun(lib::hdf_vd_read_fun,string("HDF_VD_READ"),2,hdf_vd_readKey);
 
-  const string hdf_vg_getinfoKey[]={"CLASS","NAME","NENTRIES","REF","TAG",KLISTEND};
+  const string hdf_vg_getinfoKey[]={"CLASS","NAME","NENTRIES","REF","TAG",
+				    KLISTEND};
   new DLibPro(lib::hdf_vg_getinfo_pro,string("HDF_VG_GETINFO"),1,
 	      hdf_vg_getinfoKey);
 
@@ -196,7 +200,9 @@ void LibInit_jmg()
   new DLibPro(lib::hdf_sd_fileinfo_pro,string("HDF_SD_FILEINFO"),3);
 
   const string hdf_sd_getinfoKey[]={"DIMS","HDF_TYPE","NAME",
-				    "NATTS","NDIMS","TYPE",KLISTEND};
+				    "NATTS","NDIMS","TYPE",
+				    "LABEL","UNIT","FORMAT","COORDSYS",
+				    KLISTEND};
   new DLibPro(lib::hdf_sd_getinfo_pro,string("HDF_SD_GETINFO"),1,
 	      hdf_sd_getinfoKey);
 
