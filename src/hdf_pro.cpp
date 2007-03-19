@@ -99,8 +99,22 @@ namespace lib {
       memcpy(stride, &(*strideKW)[0], rank*sizeof(int32));
     }
 
+
+    // Reverse order of edges for setting up GDL array(
+    for( SizeT i = 0; i < rank/2; i++) {
+      int32 tempedge = edges[i];
+      edges[i] = edges[rank-1];
+      edges[rank-1] = tempedge;
+    }
+
     dimension dim((SizeT *) edges, rank);
 
+    // Return to original edge values for HDF read
+    for( SizeT i = 0; i < rank/2; i++) {
+      int32 tempedge = edges[i];
+      edges[i] = edges[rank-1];
+      edges[rank-1] = tempedge;
+    }
 
     switch ( dtype) {
 
@@ -249,11 +263,19 @@ namespace lib {
     status = SDgetinfo(sds_id, fieldname, &rank, dims, &dtype, &nattrs);
 
     // Write SDS dimensions array to KW
+
     if( e->KeywordPresent( 0)) {
       BaseGDL** dimKW = &e->GetKW( 0);
       delete (*dimKW);
       dimension dim((SizeT *) &rank, (SizeT) 1);
       *dimKW = new DLongGDL(dim, BaseGDL::NOZERO);
+
+      // Reverse order of dimensions
+      for( SizeT i = 0; i < rank/2; i++) {
+	int32 tempdim = dims[i];
+	dims[i] = dims[rank-1];
+	dims[rank-1] = tempdim;
+      }
 
       memcpy(&(*(DLongGDL*) *dimKW)[0], dims, sizeof(int32)*rank);
     }
@@ -280,6 +302,45 @@ namespace lib {
       BaseGDL** ndimsKW = &e->GetKW( 4);
       delete (*ndimsKW); 
       *ndimsKW = new DLongGDL( rank);
+    }
+
+    if( e->KeywordPresent( 5)) {
+      BaseGDL** typeKW = &e->GetKW( 5);
+      delete(*typeKW);
+
+      switch ( dtype) {
+
+      case DFNT_FLOAT64: {
+	*typeKW = new DStringGDL( "DOUBLE");
+	 break;
+       }
+       case DFNT_FLOAT32: {
+	 *typeKW = new DStringGDL( "FLOAT");
+	 break;
+       }
+       case DFNT_UINT32: {
+	*typeKW = new DStringGDL( "ULONG");
+	 break;
+       }
+       case DFNT_INT32: {
+	*typeKW = new DStringGDL( "LONG");
+	 break;
+       }
+       case DFNT_UINT16: {
+	*typeKW = new DStringGDL( "UINT");
+	 break;
+       }
+       case DFNT_INT16: {
+	*typeKW = new DStringGDL( "INT");
+	 break;
+       }
+      case DFNT_UINT8:
+      case DFNT_INT8: {
+	*typeKW = new DStringGDL( "BYTE");
+	 break;
+       }
+      }
+
     }
   }
 
@@ -325,6 +386,38 @@ namespace lib {
 	   *dataKW = new DFloatGDL(dim, BaseGDL::NOZERO);
 	   SDreadattr(s_id, attrindex, (VOIDP) &(*(DFloatGDL*) *dataKW)[0]);
 	   break;
+	 }
+
+         case DFNT_INT32: {
+	   *dataKW = new DLongGDL(dim, BaseGDL::NOZERO);
+	   SDreadattr(s_id, attrindex, (VOIDP) &(*(DLongGDL*) *dataKW)[0]);
+	   break;
+	 }
+
+         case DFNT_INT16: {
+	   *dataKW = new DIntGDL(dim, BaseGDL::NOZERO);
+	   SDreadattr(s_id, attrindex, (VOIDP) &(*(DIntGDL*) *dataKW)[0]);
+	   break;
+	 }
+
+         case DFNT_UINT32: {
+	   *dataKW = new DULongGDL(dim, BaseGDL::NOZERO);
+	   SDreadattr(s_id, attrindex, (VOIDP) &(*(DULongGDL*) *dataKW)[0]);
+	   break;
+	 }
+
+         case DFNT_UINT16: {
+	   *dataKW = new DUIntGDL(dim, BaseGDL::NOZERO);
+	   SDreadattr(s_id, attrindex, (VOIDP) &(*(DUIntGDL*) *dataKW)[0]);
+	   break;
+	 }
+
+         case DFNT_CHAR: {
+	   char* attrstr = new char[count+1];
+	   memset(attrstr, 0, count+1);
+	   SDreadattr(s_id, attrindex, (VOIDP) attrstr);
+	   *dataKW = new DStringGDL( attrstr);
+	   delete attrstr;
 	 }
       }
     }
