@@ -22,6 +22,7 @@
 #include "objects.hpp"
 #include "dinterpreter.hpp"
 #include "envt.hpp"
+#include "basic_pro.hpp"
 
 #include <assert.h> // always as last
 
@@ -370,8 +371,9 @@ void EnvT::HeapGC( bool doPtr, bool doObj, bool verbose)
 		if( verbose)
 		  {
 		    BaseGDL* hV = GetObjHeap( p);		  
-		    Message( "<ObjHeapVar"+i2s(p)+">  "+
-			     GetString( hV));
+		    lib::help_item( cout, 
+			       hV, DString( "<ObjHeapVar")+i2s(p)+">",
+			       false);
 		  }
 		ObjCleanup( p);
 	      }
@@ -394,8 +396,9 @@ void EnvT::HeapGC( bool doPtr, bool doObj, bool verbose)
 		if( verbose)
 		  {
 		    BaseGDL* hV = GetHeap( p);
-		    Message( "<PtrHeapVar"+i2s(p)+">  "+
-			     GetString( hV));
+		    lib::help_item( cout, 
+			       hV, DString( "<PtrHeapVar")+i2s(p)+">",
+			       false);
 		  }
 		interpreter->FreeHeap( p);
 	      }
