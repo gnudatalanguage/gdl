@@ -254,7 +254,8 @@ class DeviceX: public Graphics
 
 
     // set new actWin IF NOT VALID ANY MORE
-    if( actWin < 0 || actWin >= wLSize || !winList[ actWin]->Valid())
+    if( actWin < 0 || actWin >= wLSize || 
+	winList[ actWin] == NULL || !winList[ actWin]->Valid())
       {
 	// set to most recently created
 	std::vector< long>::iterator mEl = 
