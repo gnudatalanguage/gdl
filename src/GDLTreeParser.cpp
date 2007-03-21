@@ -671,14 +671,18 @@ void GDLTreeParser::main_program(RefDNode _t) {
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode main_program_AST = RefDNode(antlr::nullAST);
+	RefDNode retAST_AST = RefDNode(antlr::nullAST);
+	RefDNode retAST = RefDNode(antlr::nullAST);
 	
 	
 	comp.StartPro( "$MAIN$");
 	
+	retAST = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 	statement_list(_t);
 	_t = _retTree;
+	retAST_AST = returnAST;
 	
-	comp.SetTree( returnAST);
+	comp.SetTree( retAST_AST);
 	comp.EndPro();
 	
 	returnAST = main_program_AST;

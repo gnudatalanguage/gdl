@@ -1244,12 +1244,12 @@ namespace lib {
     DVar* sysVar = FindInVarList( sysVarList, sysVarName);
 
     // check if the variable is defined
-    BaseGDL* p1 = e->GetParDefined(1);
+    BaseGDL* p1 = e->GetParDefined( 1);
 
     if( sysVar == NULL)
       {
 	// define new
-	DVar *newSysVar = new DVar( sysVarName, e->GetPar( 1)->Dup());
+	DVar *newSysVar = new DVar( sysVarName, p1->Dup());
 	sysVarList.push_back( newSysVar);
 
 	// rdOnly is only set at the first definition
@@ -1261,7 +1261,7 @@ namespace lib {
     // re-set
     // make sure type and size are kept
     BaseGDL* oldVar = sysVar->Data();
-    BaseGDL* newVar = e->GetPar( 1);
+    BaseGDL* newVar = p1;
     if( oldVar->Type()       != newVar->Type() ||
 	oldVar->N_Elements() != newVar->N_Elements())
       e->Throw( "Conflicting definition for "+sysVarNameFull+".");

@@ -205,9 +205,9 @@ main_program!
     :   {
             comp.StartPro( "$MAIN$");
         }
-            statement_list
+           retAST:statement_list
         {
-            comp.SetTree( returnAST);
+            comp.SetTree( #retAST);
             comp.EndPro();
         }
     ;

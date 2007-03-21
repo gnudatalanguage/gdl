@@ -409,6 +409,9 @@ void DNode::initialize( RefDNode t )
 
 ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
 {
+  // this can happen in case of a subroutine with only common blocks
+  if( refNode == RefDNode(antlr::nullAST)) return NULL;
+
   bool nonCopy = false;
   if( refNode->GetFirstChild() != RefDNode(antlr::nullAST))
     {
