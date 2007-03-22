@@ -48,7 +48,7 @@ namespace lib {
     bool stdLun = check_lun( e, lun);
     SizeT width;
 
-    int sockNum = fileUnits[ lun-1].SockNum();
+    int sockNum = -1; 
 
     if( stdLun)
       {
@@ -69,6 +69,8 @@ namespace lib {
 	  e->Throw( "Formatted IO not allowed with XDR "
 		    "files. Unit: "+i2s( lun));
 	
+	sockNum = fileUnits[ lun-1].SockNum();
+
 	if (sockNum == -1) 
 	  os = &fileUnits[ lun-1].OStream();
 	else

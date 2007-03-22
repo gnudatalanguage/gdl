@@ -364,7 +364,7 @@ void EnvT::HeapGC( bool doPtr, bool doObj, bool verbose)
       SizeT nH = heap->N_Elements();
       for( SizeT h=0; h<nH; ++h)
 	{
-	  DObj& p = (*heap)[ h];
+	  DObj p = (*heap)[ h];
 	  if( p != 0)
 	    if( objAccessible.find( p) == objAccessible.end())
 	      {
@@ -389,7 +389,7 @@ void EnvT::HeapGC( bool doPtr, bool doObj, bool verbose)
       SizeT nH = heap->N_Elements();
       for( SizeT h=0; h<nH; ++h)
 	{
-	  DPtr& p = (*heap)[ h];
+	  DPtr p = (*heap)[ h];
 	  if( p != 0)
 	    if( ptrAccessible.find( p) == ptrAccessible.end())
 	      {
