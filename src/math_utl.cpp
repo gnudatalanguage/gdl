@@ -1215,6 +1215,11 @@ Esko G. Cate & David W. Twigg
     char lat_2[64];
     char lat_ts[64];
 
+    // Oblique projection parameters
+    char ob_proj[64];
+    char ob_lon[64];
+    char ob_lat[64];
+
     static char *parms[32];
     static DLong last_proj = 0;
     static DDouble last_p0lon = -9999;
@@ -1259,8 +1264,6 @@ Esko G. Cate & David W. Twigg
       //	strcpy(parms[1], "ellps=clrk66");
 
       DLong nparms = 0;
-      parms[nparms++] = &p0lon[0];
-      parms[nparms++] = &p0lat[0];
       parms[nparms++] = &a[0];
       if (map_e2 != 0.0) parms[nparms++] = &e2[0];
 
@@ -1286,12 +1289,16 @@ Esko G. Cate & David W. Twigg
       if (map_projection == 1) {
 	strcpy(proj, "proj=stere");
 	parms[nparms++] = &proj[0];
+	parms[nparms++] = &p0lon[0];
+	parms[nparms++] = &p0lat[0];
       }
 
       // Orthographic Projection
       if (map_projection == 2) {
 	strcpy(proj, "proj=ortho");
 	parms[nparms++] = &proj[0];
+	parms[nparms++] = &p0lon[0];
+	parms[nparms++] = &p0lat[0];
       }
 
       // Lambert Conformal Conic
@@ -1308,24 +1315,53 @@ Esko G. Cate & David W. Twigg
       if (map_projection == 4) {
 	strcpy(proj, "proj=leac");
 	parms[nparms++] = &proj[0];
+	parms[nparms++] = &p0lon[0];
+	parms[nparms++] = &p0lat[0];
       }
 
       // Gnomonic
       if (map_projection == 5) {
 	strcpy(proj, "proj=gnom");
 	parms[nparms++] = &proj[0];
+	parms[nparms++] = &p0lon[0];
+	parms[nparms++] = &p0lat[0];
       }
 
       // Azimuthal Equidistant
       if (map_projection == 6) {
 	strcpy(proj, "proj=aeqd");
 	parms[nparms++] = &proj[0];
+	parms[nparms++] = &p0lon[0];
+	parms[nparms++] = &p0lat[0];
       }
 
       // Cylindrical Equidistant
       if (map_projection == 8) {
-	strcpy(proj, "proj=eqc");
-	parms[nparms++] = &proj[0];
+	if (map_p0lat == 0) {
+	  strcpy(proj, "proj=eqc");
+	  parms[nparms++] = &proj[0];
+	  parms[nparms++] = &p0lon[0];
+	} else {
+	  strcpy(ob_proj, "proj=ob_tran");
+	  parms[nparms++] = &ob_proj[0];
+	  strcpy(proj, "o_proj=eqc");
+	  parms[nparms++] = &proj[0];
+	  parms[nparms++] = &p0lon[0];
+
+	  /*
+	  if (map_p0lon >= 0) {
+	    sprintf(ob_lon, "o_lon_0=%lf", map_p0lon);
+	    strcat(ob_lon, "E");
+	  } else {
+	    sprintf(ob_lon, "o_lon_0=%lf", fabs(map_p0lon));
+	    strcat(ob_lon, "W");
+	  }
+	  parms[nparms++] = &ob_lon[0];
+	  */
+
+	  sprintf(ob_lat, "o_lat_p=%lf", 90-map_p0lat);
+	  parms[nparms++] = &ob_lat[0];
+	}
       }
 
       // Mercator
@@ -1340,6 +1376,8 @@ Esko G. Cate & David W. Twigg
       if (map_projection == 12) {
 	strcpy(proj, "proj=aitoff");
 	parms[nparms++] = &proj[0];
+	parms[nparms++] = &p0lon[0];
+	parms[nparms++] = &p0lat[0];
       }
 
       last_proj = map_projection;
