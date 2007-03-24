@@ -38,6 +38,9 @@ public:
   //    void eop() {} // never eop (mem drivers eop() sets pls->dev to NULL)
 
   void eop();
+
+  void Clear();
+  void Clear( DLong bColor);
   
   void Init();
 };

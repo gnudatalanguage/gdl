@@ -187,7 +187,7 @@ public:
     throw GDLException( "Device "+Name()+" does not support TV.");
   }
 
-  virtual void ClearStream()
+  virtual void ClearStream( DLong bColor)
   {
     throw GDLException( "Device "+Name()+" does not support ClearStream.");
   }

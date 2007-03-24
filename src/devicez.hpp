@@ -239,13 +239,13 @@ public:
     return true;
   }
 
-  void ClearStream()
+  void ClearStream( DLong bColor)
   {
     DLong& actX = (*static_cast<DLongGDL*>( dStruct->Get( xSTag, 0)))[0];
     DLong& actY = (*static_cast<DLongGDL*>( dStruct->Get( ySTag, 0)))[0];
 
     for( SizeT i=0; i<actX * (actY+1) * 3; ++i)
-      memBuffer[i] = 0;
+      memBuffer[i] = bColor;
   }
 
 

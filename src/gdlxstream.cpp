@@ -19,6 +19,7 @@
 
 #include <iostream>
 
+#include "graphics.hpp"
 #include "gdlxstream.hpp"
 
 using namespace std;
@@ -86,4 +87,47 @@ void GDLXStream::GetGeometry( long& xSize, long& ySize, long& xoff, long& yoff)
 
   xoff = plxoff;
   yoff = plyoff;
+}
+
+// plplot 5.3 does not provide the clear function for c++
+void GDLXStream::Clear()
+{
+  // dummy call to get private function set_stream() called
+  //  PLFLT a=0.0,b=0.0,c=0.0,d,e,f;
+  //  RGB_HLS( a,b,c,&d,&e,&f);
+  char dummy;
+  gesc( &dummy);
+
+  ::c_plclear();
+}
+
+void GDLXStream::Clear( DLong bColor)
+{
+  // dummy call to get private function set_stream() called
+  //  PLFLT a=0.0,b=0.0,c=0.0,d,e,f;
+  //  RGB_HLS( a,b,c,&d,&e,&f);
+  char dummy;
+  gesc( &dummy);
+
+  PLINT r0,g0,b0;
+  PLINT r1,g1,b1;
+  DByte rb, gb, bb;
+
+  // Get current background color
+  plgcolbg (&r0, &g0, &b0);
+
+  // Get desired background color
+  GDLCT* actCT = Graphics::GetCT();
+  actCT->Get( bColor, rb, gb, bb);
+
+  // Convert to PLINT from BYTE
+  r1 = (PLINT) rb;
+  g1 = (PLINT) gb;
+  b1 = (PLINT) bb;
+
+  plscolbg (r1, g1, b1);
+
+  ::c_plclear();
+
+  plscolbg (r0, g0, b0);
 }

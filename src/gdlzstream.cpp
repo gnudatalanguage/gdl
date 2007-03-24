@@ -26,7 +26,19 @@ using namespace std;
 void GDLZStream::eop()
 {
   Graphics* actDevice=Graphics::GetDevice();
-  actDevice->ClearStream();
+  actDevice->ClearStream( (DLong) 0);
+}
+
+void GDLZStream::Clear()
+{
+  Graphics* actDevice=Graphics::GetDevice();
+  actDevice->ClearStream( (DLong) 0);
+}
+
+void GDLZStream::Clear( DLong bColor)
+{
+  Graphics* actDevice=Graphics::GetDevice();
+  actDevice->ClearStream( bColor);
 }
 
 void GDLZStream::Init()

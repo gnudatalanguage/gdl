@@ -51,9 +51,12 @@ public:
 
   virtual void eop()          { plstream::eop();}
 
+  virtual void Clear()          {}
+  virtual void Clear( DLong bColor)          {}
+
   bool Valid() { return valid;}
 
-  void Clear();
+  //  void Clear();
   void Color( ULong c, DLong decomposed=0, UInt ix=1);
   void Background( ULong c, DLong decomposed=0);
 
