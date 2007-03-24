@@ -362,6 +362,8 @@ Data_<SpDByte>* Data_<Sp>::EqOp( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong sEl=N_Elements();
+//   if( sEl == 0)
+// 	 sEl=N_Elements();
   assert( rEl);
   assert( sEl);
   //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
