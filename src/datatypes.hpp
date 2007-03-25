@@ -231,6 +231,8 @@ public:
   Data_*   ModInv( BaseGDL* r);
   Data_*   Pow( BaseGDL* r);
   Data_*   PowInv( BaseGDL* r);
+  Data_*   PowInt( BaseGDL* r);      
+  Data_*   PowIntNew( BaseGDL* r);   
   Data_*   MatrixOp( BaseGDL* r);
 
   Data_*   AndOpS( BaseGDL* r);

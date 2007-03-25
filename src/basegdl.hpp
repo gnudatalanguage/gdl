@@ -273,6 +273,9 @@ public:
   virtual BaseGDL* Pow( BaseGDL* r);      
   virtual BaseGDL* PowInv( BaseGDL* r);   
 
+  virtual BaseGDL* PowInt( BaseGDL* r);      
+  virtual BaseGDL* PowIntNew( BaseGDL* r);   
+
   virtual BaseGDL* AndOpS( BaseGDL* r);    
   virtual BaseGDL* AndOpInvS( BaseGDL* r); 
   virtual BaseGDL* OrOpS( BaseGDL* r);    

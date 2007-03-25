@@ -314,6 +314,14 @@ public:
   {
     throw GDLException("File expression not allowed in this context.");
   }
+  Parent_* PowInt( BaseGDL* r)   
+  {
+    throw GDLException("File expression not allowed in this context.");
+  }
+  Parent_* PowIntNew( BaseGDL* r)   
+  {
+    throw GDLException("File expression not allowed in this context.");
+  }
 
   Parent_* MatrixOp( BaseGDL* r)   
   {

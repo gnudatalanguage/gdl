@@ -356,6 +356,14 @@ BaseGDL* BaseGDL::PowInv( BaseGDL* r)
 {
   throw GDLException("Operation not defined for UNDEF 17.");
 }
+BaseGDL* BaseGDL::PowInt( BaseGDL* r)      
+{
+  throw GDLException("Operation not defined for UNDEF 170.");
+}
+BaseGDL* BaseGDL::PowIntNew( BaseGDL* r)   
+{
+  throw GDLException("Operation not defined for UNDEF 171.");
+}
 
 BaseGDL* BaseGDL::MatrixOp( BaseGDL* r)   
 {

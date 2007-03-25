@@ -314,6 +314,8 @@ public:
   DStructGDL*   ModInv( BaseGDL* r);
   DStructGDL*   Pow( BaseGDL* r);
   DStructGDL*   PowInv( BaseGDL* r);
+  DStructGDL*   PowInt( BaseGDL* r);
+  DStructGDL*   PowIntNew( BaseGDL* r);
   DStructGDL*   MatrixOp( BaseGDL* r);
 
 

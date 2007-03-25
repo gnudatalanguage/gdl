@@ -2797,16 +2797,19 @@ Data_<SpDObj>* Data_<SpDObj>::ModInvS( BaseGDL* r)
 
 // Pow
 // C++ defines pow only for floats and doubles
+//template <typename T, typename TT> T pow( const T r, const TT l)
 template <typename T> T pow( const T r, const T l)
 {
+  typedef T TT;
+
   if( l == 0) return 1;
   if( l < 0)  return 0;
 
-  const int nBits = sizeof(T) * 8;
+  const int nBits = sizeof(TT) * 8;
 
   T arr = r;
   T res = 1;
-  T mask = 1;
+  TT mask = 1;
   for( SizeT i=0; i<nBits; ++i)
     {
       if( l & mask) res *= arr;
@@ -2864,19 +2867,199 @@ Data_<SpDFloat>* Data_<SpDFloat>::Pow( BaseGDL* r)
   ULong sEl=N_Elements();
   assert( rEl);
   assert( sEl);
-  //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
-  //      right->dd.resize(sEl);
-  //      dd = pow( dd, right->dd); // valarray
-  //      slice sl( 0, sEl, 1);
-  //      dd = pow( dd, right->dd[ sl]); // valarray
   if( rEl == sEl)
-    dd = pow( dd, right->dd); // valarray
+    {
+      dd = pow( dd, right->dd); // valarray
+    }
   else
+    {
     for( SizeT i=0; i < sEl; ++i)
       dd[i] = pow( dd[i], right->dd[i]);
-  //C delete right;
+    }
   return this;
 }
+
+// PowInt and PowIntNew can only be called for FLOAT and DOUBLE
+template<class Sp>
+Data_<Sp>* Data_<Sp>::PowInt( BaseGDL* r)
+{
+  assert( 0);
+  return this;
+}
+template<class Sp>
+Data_<Sp>* Data_<Sp>::PowIntNew( BaseGDL* r)
+{
+  assert( 0);
+  return this;
+}
+DStructGDL* DStructGDL::PowInt( BaseGDL* r)
+{
+  assert( 0);
+  return this;
+}
+DStructGDL* DStructGDL::PowIntNew( BaseGDL* r)
+{
+  assert( 0);
+  return this;
+}
+// floats power of value with LONG: left=left ^ right
+template<>
+Data_<SpDFloat>* Data_<SpDFloat>::PowInt( BaseGDL* r)
+{
+  DLongGDL* right=static_cast<DLongGDL*>(r);
+
+  ULong rEl=right->N_Elements();
+  ULong sEl=N_Elements();
+  assert( rEl);
+  assert( sEl);
+  if( r->StrictScalar())
+    {
+      DLong r0 = (*right)[0];  
+      for( SizeT i=0; i < sEl; ++i)
+	dd[i] = pow( dd[i], r0);
+      return this;
+    }
+  if( StrictScalar())
+    {
+      Data_* res = new Data_( right->Dim(), BaseGDL::NOZERO);
+      Ty s0 = dd[ 0];  
+      for( SizeT i=0; i < rEl; ++i)
+	(*res)[ i] = pow( s0, (*right)[ i]);
+      return res;
+    }
+  if( sEl <= rEl)
+    {
+      for( SizeT i=0; i < sEl; ++i)
+	dd[i] = pow( dd[i], (*right)[i]);
+      return this;
+    }
+  else
+    {
+      Data_* res = new Data_( right->Dim(), BaseGDL::NOZERO);
+      for( SizeT i=0; i < rEl; ++i)
+	(*res)[i] = pow( dd[i], (*right)[i]);
+      return res;
+    }
+}
+template<>
+Data_<SpDFloat>* Data_<SpDFloat>::PowIntNew( BaseGDL* r)
+{
+  DLongGDL* right=static_cast<DLongGDL*>(r);
+
+  ULong rEl=right->N_Elements();
+  ULong sEl=N_Elements();
+  assert( rEl);
+  assert( sEl);
+  if( r->StrictScalar())
+    {
+      Data_* res = new Data_( Dim(), BaseGDL::NOZERO);
+      DLong r0 = (*right)[0];  
+      for( SizeT i=0; i < sEl; ++i)
+	(*res)[i] = pow( dd[i], r0);
+      return res;
+    }
+  if( StrictScalar())
+    {
+      Data_* res = new Data_( right->Dim(), BaseGDL::NOZERO);
+      Ty s0 = dd[ 0];  
+      for( SizeT i=0; i < rEl; ++i)
+	(*res)[ i] = pow( s0, (*right)[ i]);
+      return res;
+    }
+  if( sEl <= rEl)
+    {
+      Data_* res = new Data_( Dim(), BaseGDL::NOZERO);
+      for( SizeT i=0; i < sEl; ++i)
+	(*res)[i] = pow( dd[i], (*right)[i]);
+      return res;
+    }
+  else
+    {
+      Data_* res = new Data_( right->Dim(), BaseGDL::NOZERO);
+      for( SizeT i=0; i < rEl; ++i)
+	(*res)[i] = pow( dd[i], (*right)[i]);
+      return res;
+    }
+}
+template<>
+Data_<SpDDouble>* Data_<SpDDouble>::PowInt( BaseGDL* r)
+{
+  DLongGDL* right=static_cast<DLongGDL*>(r);
+
+  ULong rEl=right->N_Elements();
+  ULong sEl=N_Elements();
+  assert( rEl);
+  assert( sEl);
+  if( r->StrictScalar())
+    {
+      DLong r0 = (*right)[0];  
+      for( SizeT i=0; i < sEl; ++i)
+	dd[i] = pow( dd[i], r0);
+      return this;
+    }
+  if( StrictScalar())
+    {
+      Data_* res = new Data_( right->Dim(), BaseGDL::NOZERO);
+      Ty s0 = dd[ 0];  
+      for( SizeT i=0; i < rEl; ++i)
+	(*res)[ i] = pow( s0, (*right)[ i]);
+      return res;
+    }
+  if( sEl <= rEl)
+    {
+      for( SizeT i=0; i < sEl; ++i)
+	dd[i] = pow( dd[i], (*right)[i]);
+      return this;
+    }
+  else
+    {
+      Data_* res = new Data_( right->Dim(), BaseGDL::NOZERO);
+      for( SizeT i=0; i < rEl; ++i)
+	(*res)[i] = pow( dd[i], (*right)[i]);
+      return res;
+    }
+}
+template<>
+Data_<SpDDouble>* Data_<SpDDouble>::PowIntNew( BaseGDL* r)
+{
+  DLongGDL* right=static_cast<DLongGDL*>(r);
+
+  ULong rEl=right->N_Elements();
+  ULong sEl=N_Elements();
+  assert( rEl);
+  assert( sEl);
+  if( r->StrictScalar())
+    {
+      Data_* res = new Data_( Dim(), BaseGDL::NOZERO);
+      DLong r0 = (*right)[0];  
+      for( SizeT i=0; i < sEl; ++i)
+	(*res)[i] = pow( dd[i], r0);
+      return res;
+    }
+  if( StrictScalar())
+    {
+      Data_* res = new Data_( right->Dim(), BaseGDL::NOZERO);
+      Ty s0 = dd[ 0];  
+      for( SizeT i=0; i < rEl; ++i)
+	(*res)[ i] = pow( s0, (*right)[ i]);
+      return res;
+    }
+  if( sEl <= rEl)
+    {
+      Data_* res = new Data_( Dim(), BaseGDL::NOZERO);
+      for( SizeT i=0; i < sEl; ++i)
+	(*res)[i] = pow( dd[i], (*right)[i]);
+      return res;
+    }
+  else
+    {
+      Data_* res = new Data_( right->Dim(), BaseGDL::NOZERO);
+      for( SizeT i=0; i < rEl; ++i)
+	(*res)[i] = pow( dd[i], (*right)[i]);
+      return res;
+    }
+}
+
 // floats inverse power of value: left=right ^ left
 template<>
 Data_<SpDFloat>* Data_<SpDFloat>::PowInv( BaseGDL* r)

@@ -206,6 +206,18 @@ Data_<SpDFloat>* Data_<SpDFloat>::Pow( BaseGDL* r);
 template<> 
 Data_<SpDFloat>* Data_<SpDFloat>::PowInv( BaseGDL* r);
 template<> 
+Data_<SpDFloat>* Data_<SpDFloat>::PowInt( BaseGDL* r);
+template<> 
+Data_<SpDFloat>* Data_<SpDFloat>::PowIntNew( BaseGDL* r);
+template<> 
+Data_<SpDDouble>* Data_<SpDDouble>::PowInt( BaseGDL* r);
+template<> 
+Data_<SpDDouble>* Data_<SpDDouble>::PowIntNew( BaseGDL* r);
+template<> 
+Data_<SpDFloat>* Data_<SpDFloat>::PowInt( BaseGDL* r);
+template<> 
+Data_<SpDFloat>* Data_<SpDFloat>::PowIntNew( BaseGDL* r);
+template<> 
 Data_<SpDDouble>* Data_<SpDDouble>::Pow( BaseGDL* r);
 template<> 
 Data_<SpDDouble>* Data_<SpDDouble>::PowInv( BaseGDL* r);
