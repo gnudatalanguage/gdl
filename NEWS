@@ -170,6 +170,7 @@
 	  INTEGER keyword for TOTAL.
 	  Add support for variable-length VMS files.	  
 	  Add support for CHANNEL keyword in TV/TVSCL.
+	  Add support for TRUE/CHANNEL keywords in TVRD (X only)
 	  Add support for DIMENSION keyword in FFT.
 	  Add REGEX keyword support to STRTOK.
 	  Add preliminary support for MPI.

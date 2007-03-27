@@ -525,6 +525,13 @@ public:
     XwDisplay *xwd = (XwDisplay *) dev->xwd;
     XImage *ximg = NULL;
 
+    if (e->KeywordSet("ORDER"))
+      throw GDLException( e->CallingNode(), 
+			  "TVRD: ORDER keyword not yet supported.");
+    if (e->KeywordSet("WORDS"))
+      throw GDLException( e->CallingNode(), 
+			  "TVRD: WORDS keyword not yet supported.");
+
     /* this variable will contain the attributes of the window. */
     //    XWindowAttributes win_attr;
 
@@ -540,33 +547,91 @@ public:
     ximg = XGetImage( xwd->display, dev->window, 0, 0, 
 		      xSize, ySize, AllPlanes, ZPixmap);
 
-    SizeT dims[2];
-    dims[0] = xSize;
-    dims[1] = ySize;
-    dimension dim(dims, (SizeT) 2);
-    DByteGDL* res = new DByteGDL( dim, BaseGDL::NOZERO);
 
-    DByte mx;
-    for( SizeT i=0; i<xSize*ySize; ++i) {
-      mx = ximg->data[4*i];
-      for( SizeT j=1; j<=2; ++j) {
-	if (ximg->data[4*i+j] > mx) mx = ximg->data[4*i+j];
-      }
-      (*res)[ xSize*ySize-1-i] = mx;
-    }
+    SizeT dims[3];
     
-    // Reflect about y-axis
-    for( SizeT i=0; i<ySize; ++i) {
-      for( SizeT j=0; j<xSize/2; ++j) {
-	DByte c = (*res)[ i*xSize+(xSize-1-j)];
-	(*res)[ i*xSize+(xSize-1-j)] = (*res)[ i*xSize+j];
-	(*res)[ i*xSize+j] = c;
+    DByteGDL* res;
+
+    DLong tru=0;
+    e->AssureLongScalarKWIfPresent( "TRUE", tru);
+
+    DLong channel=-1;
+    e->AssureLongScalarKWIfPresent( "CHANNEL", channel);
+    if (channel > 3)
+      throw GDLException( e->CallingNode(), 
+			  "TVRD: Value of Channel is out of allowed range.");
+
+    if (tru == 0 || channel != -1) {
+      dims[0] = xSize;
+      dims[1] = ySize;
+      dimension dim(dims, (SizeT) 2);
+      res = new DByteGDL( dim, BaseGDL::ZERO);
+
+      if (channel <= 0) { 
+	DByte mx, mx1;
+	for( SizeT i=0; i<xSize*ySize; ++i) {
+	  mx = (DByte) ximg->data[4*i];
+	  for( SizeT j=1; j<=2; ++j) {
+	    mx1 = (DByte) ximg->data[4*i+j];
+	    if (mx1 > mx) mx = mx1;
+	  }
+	  (*res)[ xSize*ySize-1-i] = mx;
+	}
+      } else {
+	for( SizeT i=0; i<xSize*ySize; ++i) {
+	  (*res)[ xSize*ySize-1-i] = ximg->data[4*i+(3-channel)];
+	}
+      }
+
+      // Reflect about y-axis
+      for( SizeT i=0; i<ySize; ++i) {
+	for( SizeT j=0; j<xSize/2; ++j) {
+	  DByte c = (*res)[ i*xSize+(xSize-1-j)];
+	  (*res)[ i*xSize+(xSize-1-j)] = (*res)[ i*xSize+j];
+	  (*res)[ i*xSize+j] = c;
+	}
+      }
+      return res;
+
+    } else {
+      if (tru > 3)
+	throw GDLException( e->CallingNode(), 
+			    "TVRD: Value of TRUE keyword is out of allowed range.");
+
+      dims[0] = 3;
+      dims[1] = xSize;
+      dims[2] = ySize;
+      dimension dim(dims, (SizeT) 3);
+      res = new DByteGDL( dim, BaseGDL::NOZERO);
+
+      for( SizeT i=0; i<ySize; ++i) {
+	for( SizeT j=0; j<xSize; ++j) {
+	  for( SizeT k=0; k<4; ++k) {
+	    if (k < 3) {
+	      (*res)[(ySize-i-1)*xSize*3 + j*3 + 2-k] = 
+		ximg->data[i*xSize*4 + j*4 + k];
+	    }
+	  }
+	}
       }
     }
-    
+
     XDestroyImage(ximg);
-    
-    return res; 
+
+    DUInt* perm = new DUInt[3];
+    if (tru == 1) {
+      return res;
+    } else if (tru == 2) {
+      perm[0] = 1;
+      perm[1] = 0;
+      perm[2] = 2;
+      return res->Transpose( perm);
+    } else if (tru = 3) {
+      perm[0] = 1;
+      perm[1] = 2;
+      perm[2] = 0;
+      return res->Transpose( perm);
+    }
   }
 
 
