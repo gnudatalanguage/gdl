@@ -29,6 +29,10 @@
 #include "gdljournal.hpp"
 #include "dinterpreter.hpp"
 
+#ifndef MSG_NOSIGNAL
+#define MSG_NOSIGNAL 0x2000
+#endif 
+
 namespace lib {
 
   using namespace std;
