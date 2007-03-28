@@ -320,92 +320,120 @@ void EnvBaseT::AddEnv( DPtrListT& ptrAccessible, DPtrListT& objAccessible)
 }
 void EnvT::HeapGC( bool doPtr, bool doObj, bool verbose)
 {
-  DPtrListT ptrAccessible;
-  DPtrListT objAccessible;
+  // within CLEANUP method HEAP_GC could be called again
+  // within CLEANUP common block or global variables may be freed
+  // thus HEAP_GC has to be called again if called (but only once)
+  static SizeT inProgress = 0;
+  if( inProgress > 0) 
+    {
+      inProgress = 2;
+      return;
+    }
+
+ startGC:
+  inProgress = 1;
+
+  try {
+    DPtrListT ptrAccessible;
+    DPtrListT objAccessible;
   
-  // search common blocks
-  for( CommonListT::iterator c = commonList.begin();
-       c != commonList.end(); ++c)
-    {
-      DCommon* common = *c;
-      SizeT nVar = common->NVar();
-      for( SizeT v = 0; v < nVar; ++v)
-	{
-	  DVar* var = common->Var( v);
-	  if( var != NULL)
-	    {
-	      Add( ptrAccessible, objAccessible, var->Data());
-	    }
-	}
-    }
-
-  SizeT nVar = sysVarList.size();
-  for( SizeT v=0; v<nVar; ++v)
-    {
-      DVar* var = sysVarList[ v];
-      if( var != NULL)
-	{
-	  Add( ptrAccessible, objAccessible, var->Data());
-	}
-    }
-
-  EnvStackT& cS=interpreter->CallStack();
-  for( EnvStackT::reverse_iterator r = cS.rbegin(); r != cS.rend(); ++r) 
-    {
-      (*r)->AddEnv( ptrAccessible, objAccessible);
-    }
-
-  // do OBJ first as the cleanup might need the PTR
-  if( doObj)
-    {
-      DObjGDL* heap = interpreter->GetAllObjHeap();
-      auto_ptr< DObjGDL> heap_guard( heap);
-
-      SizeT nH = heap->N_Elements();
-      for( SizeT h=0; h<nH; ++h)
-	{
-	  DObj p = (*heap)[ h];
-	  if( p != 0)
-	    if( objAccessible.find( p) == objAccessible.end())
+    // search common blocks
+    for( CommonListT::iterator c = commonList.begin();
+	 c != commonList.end(); ++c)
+      {
+	DCommon* common = *c;
+	SizeT nVar = common->NVar();
+	for( SizeT v = 0; v < nVar; ++v)
+	  {
+	    DVar* var = common->Var( v);
+	    if( var != NULL)
 	      {
-		if( verbose)
-		  {
-		    BaseGDL* hV = GetObjHeap( p);		  
-		    lib::help_item( cout, 
-			       hV, DString( "<ObjHeapVar")+i2s(p)+">",
-			       false);
-		  }
-		ObjCleanup( p);
+		Add( ptrAccessible, objAccessible, var->Data());
 	      }
-// 	    else
-// 	      objAccessible.erase( p);
-	}
-    }
-  if( doPtr)
-    {
-      DPtrGDL* heap = interpreter->GetAllHeap();
-      auto_ptr< BaseGDL> heap_guard( heap);
+	  }
+      }
+
+    SizeT nVar = sysVarList.size();
+    for( SizeT v=0; v<nVar; ++v)
+      {
+	DVar* var = sysVarList[ v];
+	if( var != NULL)
+	  {
+	    Add( ptrAccessible, objAccessible, var->Data());
+	  }
+      }
+
+    EnvStackT& cS=interpreter->CallStack();
+    for( EnvStackT::reverse_iterator r = cS.rbegin(); r != cS.rend(); ++r) 
+      {
+	(*r)->AddEnv( ptrAccessible, objAccessible);
+      }
+
+    // do OBJ first as the cleanup might need the PTR
+    if( doObj)
+      {
+	DObjGDL* heap = interpreter->GetAllObjHeap();
+	auto_ptr< DObjGDL> heap_guard( heap);
+
+	SizeT nH = heap->N_Elements();
+	for( SizeT h=0; h<nH; ++h)
+	  {
+	    DObj p = (*heap)[ h];
+	    if( p != 0)
+	      if( objAccessible.find( p) == objAccessible.end())
+		{
+		  if( verbose)
+		    {
+		      BaseGDL* hV = GetObjHeap( p);		  
+		      lib::help_item( cout, 
+				      hV, DString( "<ObjHeapVar")+i2s(p)+">",
+				      false);
+		    }
+		  ObjCleanup( p);
+		}
+	    // 	    else
+	    // 	      objAccessible.erase( p);
+	  }
+      }
+    if( doPtr)
+      {
+	DPtrGDL* heap = interpreter->GetAllHeap();
+	auto_ptr< BaseGDL> heap_guard( heap);
       
-      SizeT nH = heap->N_Elements();
-      for( SizeT h=0; h<nH; ++h)
-	{
-	  DPtr p = (*heap)[ h];
-	  if( p != 0)
-	    if( ptrAccessible.find( p) == ptrAccessible.end())
-	      {
-		if( verbose)
-		  {
-		    BaseGDL* hV = GetHeap( p);
-		    lib::help_item( cout, 
-			       hV, DString( "<PtrHeapVar")+i2s(p)+">",
-			       false);
-		  }
-		interpreter->FreeHeap( p);
-	      }
-// 	    else
-// 	      ptrAccessible.erase( p);
-	}
+	SizeT nH = heap->N_Elements();
+	for( SizeT h=0; h<nH; ++h)
+	  {
+	    DPtr p = (*heap)[ h];
+	    if( p != 0)
+	      if( ptrAccessible.find( p) == ptrAccessible.end())
+		{
+		  if( verbose)
+		    {
+		      BaseGDL* hV = GetHeap( p);
+		      lib::help_item( cout, 
+				      hV, DString( "<PtrHeapVar")+i2s(p)+">",
+				      false);
+		    }
+		  interpreter->FreeHeap( p);
+		}
+	    // 	    else
+	    // 	      ptrAccessible.erase( p);
+	  }
+      }
+  }
+  catch( ...)
+    {
+      // make sure HEAP_GC stays not disabled in case of unhandled error
+      inProgress = 0;
+      throw;
     }
+
+  if( inProgress == 2)
+    {
+      inProgress = 1;
+      goto startGC;
+    }
+  inProgress = 0;
 }
 void EnvT::ObjCleanup( DObj actID)
 {
