@@ -374,50 +374,56 @@ void EnvT::HeapGC( bool doPtr, bool doObj, bool verbose)
       {
 	DObjGDL* heap = interpreter->GetAllObjHeap();
 	auto_ptr< DObjGDL> heap_guard( heap);
-
-	SizeT nH = heap->N_Elements();
-	for( SizeT h=0; h<nH; ++h)
+	if( (*heap)[0] != 0)
 	  {
-	    DObj p = (*heap)[ h];
-	    if( p != 0)
-	      if( objAccessible.find( p) == objAccessible.end())
-		{
-		  if( verbose)
+	    SizeT nH = heap->N_Elements();
+	    for( SizeT h=0; h<nH; ++h)
+	      {
+		DObj p = (*heap)[ h];
+		if( interpreter->ObjValid( p))
+		  if( objAccessible.find( p) == objAccessible.end())
 		    {
-		      BaseGDL* hV = GetObjHeap( p);		  
-		      lib::help_item( cout, 
-				      hV, DString( "<ObjHeapVar")+i2s(p)+">",
-				      false);
+		      if( verbose)
+			{
+			  BaseGDL* hV = GetObjHeap( p);		  
+			  lib::help_item( cout, 
+					  hV, DString( "<ObjHeapVar")+
+					  i2s(p)+">",
+					  false);
+			}
+		      ObjCleanup( p);
 		    }
-		  ObjCleanup( p);
-		}
-	    // 	    else
-	    // 	      objAccessible.erase( p);
+		// 	    else
+		// 	      objAccessible.erase( p);
+	      }
 	  }
       }
     if( doPtr)
       {
 	DPtrGDL* heap = interpreter->GetAllHeap();
 	auto_ptr< BaseGDL> heap_guard( heap);
-      
-	SizeT nH = heap->N_Elements();
-	for( SizeT h=0; h<nH; ++h)
+	if( (*heap)[0] != 0)
 	  {
-	    DPtr p = (*heap)[ h];
-	    if( p != 0)
-	      if( ptrAccessible.find( p) == ptrAccessible.end())
-		{
-		  if( verbose)
+	    SizeT nH = heap->N_Elements();
+	    for( SizeT h=0; h<nH; ++h)
+	      {
+		DPtr p = (*heap)[ h];
+		if( interpreter->PtrValid( p))
+		  if( ptrAccessible.find( p) == ptrAccessible.end())
 		    {
-		      BaseGDL* hV = GetHeap( p);
-		      lib::help_item( cout, 
-				      hV, DString( "<PtrHeapVar")+i2s(p)+">",
-				      false);
+		      if( verbose)
+			{
+			  BaseGDL* hV = GetHeap( p);
+			  lib::help_item( cout, 
+					  hV, DString( "<PtrHeapVar")+
+					  i2s(p)+">",
+					  false);
+			}
+		      interpreter->FreeHeap( p);
 		    }
-		  interpreter->FreeHeap( p);
-		}
-	    // 	    else
-	    // 	      ptrAccessible.erase( p);
+		// 	    else
+		// 	      ptrAccessible.erase( p);
+	      }
 	  }
       }
   }
