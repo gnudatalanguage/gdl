@@ -417,33 +417,36 @@ RefDNode DCompiler::ByReference(RefDNode nIn)
 
 bool DCompiler::IsVar(const string& n)
 {
-  // check if lib fun
-  SizeT nLibF = libFunList.size();
-  for( SizeT f=0; f<nLibF; ++f)
-    if( libFunList[ f]->Name() == n) return false;
-
-  if( FunIx( n) != -1) return false;
-
-  // Note: problem here when actual compiled
-  // sub has still its own private common block list, which newly compiled
-  // sub would not find but possibly create the same common block again
-  // sollution:
-  // purge common blocks
-  // disadvantage:
-  // if compilation fails later, common blocks are not removed but stay defined
-  EndInteractiveStatement();
-
-  // originally this was done later in the interpreter
-  // but something like x = x(0) would not work if x is
-  // a function (defined in x.pro) and a variable
-  bool success = GDLInterpreter::SearchCompilePro( n);
-  if( success) // even if file exists and compiles it might contain other stuff
-    if( FunIx( n) != -1) return false;
-
-  // Note: It is still possible that 'n' denotes a function:
-  // !PATH might be changed till run time
-
+  // variables are searched first
   return pro->Find(n);
+
+//    // check if lib fun
+//   SizeT nLibF = libFunList.size();
+//   for( SizeT f=0; f<nLibF; ++f)
+//     if( libFunList[ f]->Name() == n) return false;
+
+//   if( FunIx( n) != -1) return false;
+
+//   // Note: problem here when actual compiled
+//   // sub has still its own private common block list, which newly compiled
+//   // sub would not find but possibly create the same common block again
+//   // sollution:
+//   // purge common blocks
+//   // disadvantage:
+//   // if compilation fails later, common blocks are not removed but stay defined
+//   EndInteractiveStatement();
+
+//   // originally this was done later in the interpreter
+//   // but something like x = x(0) would not work if x is
+//   // a function (defined in x.pro) and a variable
+//   bool success = GDLInterpreter::SearchCompilePro( n);
+//   if( success) // even if file exists and compiles it might contain other stuff
+//     if( FunIx( n) != -1) return false;
+
+//   // Note: It is still possible that 'n' denotes a function:
+//   // !PATH might be changed till run time
+
+//   return pro->Find(n);
 }
 
 // variable (parameter, keyword-value) reference
