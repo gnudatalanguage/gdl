@@ -877,7 +877,7 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
     {
     case BYTE: // STRING to BYTE: add first dim
       {
-	SizeT maxLen = 0;
+	SizeT maxLen = 1; // empty string is converted to 0b
       	for( SizeT i=0; i < nEl; ++i)
 	  if( dd[i].length() > maxLen) maxLen = dd[i].length();
 
