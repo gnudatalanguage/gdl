@@ -103,7 +103,10 @@ namespace lib {
   {
     dimension dim;
     try{
-      arr( e, dim); 
+      arr( e, dim);
+      if (dim[0] == 0)
+	throw GDLException( "Array dimensions must be greater than 0");
+
       if( e->KeywordSet(0)) return new DByteGDL(dim, BaseGDL::NOZERO);
       return new DByteGDL(dim);
     }
@@ -117,6 +120,9 @@ namespace lib {
     dimension dim;
     try{
       arr( e, dim); 
+      if (dim[0] == 0)
+	throw GDLException( "Array dimensions must be greater than 0");
+
       if( e->KeywordSet(0)) return new DIntGDL(dim, BaseGDL::NOZERO);
       return new DIntGDL(dim);
     }
@@ -130,6 +136,9 @@ namespace lib {
     dimension dim;
     try{
       arr( e, dim); 
+      if (dim[0] == 0)
+	throw GDLException( "Array dimensions must be greater than 0");
+
       if( e->KeywordSet(0)) return new DUIntGDL(dim, BaseGDL::NOZERO);
       return new DUIntGDL(dim);
     }
@@ -143,6 +152,9 @@ namespace lib {
     dimension dim;
     try{
       arr( e, dim); 
+      if (dim[0] == 0)
+	throw GDLException( "Array dimensions must be greater than 0");
+
       if( e->KeywordSet(0)) return new DLongGDL(dim, BaseGDL::NOZERO);
       return new DLongGDL(dim);
     }
@@ -156,6 +168,9 @@ namespace lib {
     dimension dim;
     try{
       arr( e, dim); 
+      if (dim[0] == 0)
+	throw GDLException( "Array dimensions must be greater than 0");
+
       if( e->KeywordSet(0)) return new DULongGDL(dim, BaseGDL::NOZERO);
       return new DULongGDL(dim);
     }
@@ -169,6 +184,9 @@ namespace lib {
     dimension dim;
     try{
       arr( e, dim); 
+      if (dim[0] == 0)
+	throw GDLException( "Array dimensions must be greater than 0");
+
       if( e->KeywordSet(0)) return new DLong64GDL(dim, BaseGDL::NOZERO);
       return new DLong64GDL(dim);
     }
@@ -182,6 +200,9 @@ namespace lib {
     dimension dim;
     try{
       arr( e, dim); 
+      if (dim[0] == 0)
+	throw GDLException( "Array dimensions must be greater than 0");
+
       if( e->KeywordSet(0)) return new DULong64GDL(dim, BaseGDL::NOZERO);
       return new DULong64GDL(dim);
     }
@@ -195,6 +216,9 @@ namespace lib {
     dimension dim;
     try{
       arr( e, dim); 
+      if (dim[0] == 0)
+	throw GDLException( "Array dimensions must be greater than 0");
+
       if( e->KeywordSet(0)) return new DFloatGDL(dim, BaseGDL::NOZERO);
       return new DFloatGDL(dim);
     }
@@ -208,6 +232,9 @@ namespace lib {
     dimension dim;
     try{
       arr( e, dim); 
+      if (dim[0] == 0)
+	throw GDLException( "Array dimensions must be greater than 0");
+
       if( e->KeywordSet(0)) return new DDoubleGDL(dim, BaseGDL::NOZERO);
       return new DDoubleGDL(dim);
     }
@@ -221,6 +248,9 @@ namespace lib {
     dimension dim;
     try{
       arr( e, dim); 
+      if (dim[0] == 0)
+	throw GDLException( "Array dimensions must be greater than 0");
+
       if( e->KeywordSet(0)) 
 	throw GDLException( e->CallingNode(), "Keyword parameters not allowed in call.");
       return new DStringGDL(dim);
@@ -235,6 +265,9 @@ namespace lib {
     dimension dim;
     try{
       arr( e, dim); 
+      if (dim[0] == 0)
+	throw GDLException( "Array dimensions must be greater than 0");
+
       if( e->KeywordSet(0)) return new DComplexGDL(dim, BaseGDL::NOZERO);
       return new DComplexGDL(dim);
     }
@@ -248,6 +281,8 @@ namespace lib {
     dimension dim;
     try{
       arr( e, dim); 
+      if (dim[0] == 0)
+
       if( e->KeywordSet(0)) return new DComplexDblGDL(dim, BaseGDL::NOZERO);
       return new DComplexDblGDL(dim);
     }
@@ -261,6 +296,8 @@ namespace lib {
     dimension dim;
     try{
       arr( e, dim); 
+      if (dim[0] == 0)
+	throw GDLException( "Array dimensions must be greater than 0");
 
       DPtrGDL* ret;
 
@@ -287,6 +324,9 @@ namespace lib {
     dimension dim;
     try{
       arr( e, dim); 
+      if (dim[0] == 0)
+	throw GDLException( "Array dimensions must be greater than 0");
+
       if( e->KeywordSet(0)) return new DObjGDL(dim, BaseGDL::NOZERO);
       return new DObjGDL(dim);
     }
@@ -504,6 +544,9 @@ namespace lib {
     dimension dim;
     try{
       arr( e, dim); 
+      if (dim[0] == 0)
+	throw GDLException( "Array dimensions must be greater than 0");
+
       return new DByteGDL(dim, BaseGDL::INDGEN);
     }
     catch( GDLException ex)
@@ -563,6 +606,8 @@ namespace lib {
 	}
 
 	arr(e, dim);
+	if (dim[0] == 0)
+	  throw GDLException( "Array dimensions must be greater than 0");
 
 	switch(type)
 	  {
@@ -597,6 +642,9 @@ namespace lib {
     dimension dim;
     try{
       arr( e, dim); 
+      if (dim[0] == 0)
+	throw GDLException( "Array dimensions must be greater than 0");
+
       return new DUIntGDL(dim, BaseGDL::INDGEN);
     }
     catch( GDLException ex)
@@ -609,6 +657,9 @@ namespace lib {
     dimension dim;
     try{
       arr( e, dim); 
+      if (dim[0] == 0)
+	throw GDLException( "Array dimensions must be greater than 0");
+
       DULongGDL* iGen = new DULongGDL(dim, BaseGDL::INDGEN);
       return iGen->Convert2( STRING);
     }
@@ -634,6 +685,9 @@ namespace lib {
     dimension dim;
     try{
       arr( e, dim); 
+      if (dim[0] == 0)
+	throw GDLException( "Array dimensions must be greater than 0");
+
       return new DULongGDL(dim, BaseGDL::INDGEN);
     }
     catch( GDLException ex)
@@ -646,6 +700,9 @@ namespace lib {
     dimension dim;
     try{
       arr( e, dim); 
+      if (dim[0] == 0)
+	throw GDLException( "Array dimensions must be greater than 0");
+
       return new DLong64GDL(dim, BaseGDL::INDGEN);
     }
     catch( GDLException ex)
@@ -658,6 +715,9 @@ namespace lib {
     dimension dim;
     try{
       arr( e, dim); 
+      if (dim[0] == 0)
+	throw GDLException( "Array dimensions must be greater than 0");
+
       return new DULong64GDL(dim, BaseGDL::INDGEN);
     }
     catch( GDLException ex)
@@ -670,6 +730,9 @@ namespace lib {
     dimension dim;
     try{
       arr( e, dim); 
+      if (dim[0] == 0)
+	throw GDLException( "Array dimensions must be greater than 0");
+
       return new DFloatGDL(dim, BaseGDL::INDGEN);
     }
     catch( GDLException ex)
@@ -682,6 +745,9 @@ namespace lib {
     dimension dim;
     try{
       arr( e, dim); 
+      if (dim[0] == 0)
+	throw GDLException( "Array dimensions must be greater than 0");
+
       return new DDoubleGDL(dim, BaseGDL::INDGEN);
     }
     catch( GDLException ex)
@@ -694,6 +760,9 @@ namespace lib {
     dimension dim;
     try{
       arr( e, dim); 
+      if (dim[0] == 0)
+	throw GDLException( "Array dimensions must be greater than 0");
+
       return new DComplexGDL(dim, BaseGDL::INDGEN);
     }
     catch( GDLException ex)
@@ -706,6 +775,9 @@ namespace lib {
     dimension dim;
     try{
       arr( e, dim); 
+      if (dim[0] == 0)
+	throw GDLException( "Array dimensions must be greater than 0");
+
       return new DComplexDblGDL(dim, BaseGDL::INDGEN);
     }
     catch( GDLException ex)
