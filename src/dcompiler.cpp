@@ -417,15 +417,15 @@ RefDNode DCompiler::ByReference(RefDNode nIn)
 
 bool DCompiler::IsVar(const string& n)
 {
-  // variables are searched first
-  return pro->Find(n);
+   // check if lib fun
+  SizeT nLibF = libFunList.size();
+  for( SizeT f=0; f<nLibF; ++f)
+    if( libFunList[ f]->Name() == n) return false;
 
-//    // check if lib fun
-//   SizeT nLibF = libFunList.size();
-//   for( SizeT f=0; f<nLibF; ++f)
-//     if( libFunList[ f]->Name() == n) return false;
+  // check already compiled fun
+  if( FunIx( n) != -1) return false;
 
-//   if( FunIx( n) != -1) return false;
+  // No functions are compiled during var/fun lookup
 
 //   // Note: problem here when actual compiled
 //   // sub has still its own private common block list, which newly compiled
@@ -446,7 +446,8 @@ bool DCompiler::IsVar(const string& n)
 //   // Note: It is still possible that 'n' denotes a function:
 //   // !PATH might be changed till run time
 
-//   return pro->Find(n);
+  // variables 
+  return pro->Find(n);
 }
 
 // variable (parameter, keyword-value) reference
