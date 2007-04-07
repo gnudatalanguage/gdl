@@ -913,20 +913,18 @@ BaseGDL* XOR_OPNode::Eval()
 BaseGDL* LOG_ANDNode::Eval()
 { BaseGDL* res;
   auto_ptr<BaseGDL> e1( op1->Eval());
+  if( !e1->LogTrue()) return new DByteGDL( 0);
   auto_ptr<BaseGDL> e2( op2->Eval());
-  if( !e1->LogTrue()) res = new DByteGDL( 0);
-  else if( !e2->LogTrue()) res = new DByteGDL( 0);
-  else res = new DByteGDL( 1);
-  return res;
+  if( !e2->LogTrue()) return new DByteGDL( 0);
+  return new DByteGDL( 1);
 }
 BaseGDL* LOG_ORNode::Eval()
 { BaseGDL* res;
   auto_ptr<BaseGDL> e1( op1->Eval());
+  if( e1->LogTrue()) return new DByteGDL( 1); 
   auto_ptr<BaseGDL> e2( op2->Eval());
-  if( e1->LogTrue()) res = new DByteGDL( 1); 
-  else if( e2->LogTrue()) res = new DByteGDL( 1);
-  else res = new DByteGDL( 0);
-  return res;
+  if( e2->LogTrue()) return new DByteGDL( 1);
+  return new DByteGDL( 0);
 }
 
 BaseGDL* EQ_OPNode::Eval()
