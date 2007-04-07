@@ -267,6 +267,11 @@ BaseGDL* BaseGDL::XorOp( BaseGDL* r)
   throw GDLException("Operation not defined for UNDEF 13.");
 }
 
+BaseGDL* BaseGDL::XorOpS( BaseGDL* r)    
+{
+  throw GDLException("Operation not defined for UNDEF 13a.");
+}
+
 BaseGDL* BaseGDL::EqOp( BaseGDL* r)    
 {
   throw GDLException("Operation not defined for UNDEF 13.");

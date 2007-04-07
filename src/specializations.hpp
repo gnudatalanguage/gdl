@@ -105,6 +105,18 @@ template<>
 Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::XorOp( BaseGDL* r);
 template<> 
 Data_<SpDPtr>* Data_<SpDPtr>::XorOp( BaseGDL* r);
+template<> 
+Data_<SpDFloat>* Data_<SpDFloat>::XorOpS( BaseGDL* r);
+template<> 
+Data_<SpDDouble>* Data_<SpDDouble>::XorOpS( BaseGDL* r);
+template<> 
+Data_<SpDString>* Data_<SpDString>::XorOpS( BaseGDL* r);
+template<> 
+Data_<SpDComplex>* Data_<SpDComplex>::XorOpS( BaseGDL* r);
+template<> 
+Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::XorOpS( BaseGDL* r);
+template<> 
+Data_<SpDPtr>* Data_<SpDPtr>::XorOpS( BaseGDL* r);
 // template<> 
 // Data_<SpDByte>* Data_<SpDPtr>::EqOp( BaseGDL* r);
 // template<> 

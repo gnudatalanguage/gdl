@@ -280,6 +280,7 @@ public:
   virtual BaseGDL* AndOpInvS( BaseGDL* r); 
   virtual BaseGDL* OrOpS( BaseGDL* r);    
   virtual BaseGDL* OrOpInvS( BaseGDL* r); 
+  virtual BaseGDL* XorOpS( BaseGDL* r);    
   virtual BaseGDL* AddS( BaseGDL* r);      
   virtual BaseGDL* AddInvS( BaseGDL* r);      
   virtual BaseGDL* SubS( BaseGDL* r);      

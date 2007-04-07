@@ -1555,6 +1555,71 @@ Data_<SpDObj>* Data_<SpDObj>::XorOp( BaseGDL* r)
   throw GDLException("Cannot apply operation to datatype OBJECT.");  
   return this;
 }
+template<class Sp>
+Data_<Sp>* Data_<Sp>::XorOpS( BaseGDL* r)
+{
+  Data_* right=static_cast<Data_*>(r);
+
+  ULong sEl=N_Elements();
+  assert( sEl);
+  Ty s = right->dd[0];
+  dd ^= s;
+//   for( SizeT i=0; i < sEl; ++i)
+//     dd[i] = dd[i] ^ s;
+  //C delete right;
+  return this;
+}
+// different for floats
+// for floats
+template<>
+Data_<SpDFloat>* Data_<SpDFloat>::XorOpS( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype FLOAT.");  
+  return this;
+}
+// for doubles
+template<>
+Data_<SpDDouble>* Data_<SpDDouble>::XorOpS( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype DOUBLE.");  
+  return this;
+}
+// invalid types
+DStructGDL* DStructGDL::XorOpS( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  return this;
+}
+template<>
+Data_<SpDString>* Data_<SpDString>::XorOpS( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRING.");  
+  return this;
+}
+template<>
+Data_<SpDComplex>* Data_<SpDComplex>::XorOpS( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  return this;
+}
+template<>
+Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::XorOpS( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  return this;
+}
+template<>
+Data_<SpDPtr>* Data_<SpDPtr>::XorOpS( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype PTR.");  
+  return this;
+}
+template<>
+Data_<SpDObj>* Data_<SpDObj>::XorOpS( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  return this;
+}
 
 // Add
 // Adds right to itself, //C deletes right

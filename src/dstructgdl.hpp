@@ -323,6 +323,7 @@ public:
   DStructGDL*   AndOpInvS( BaseGDL* r);
   DStructGDL*   OrOpS( BaseGDL* r);
   DStructGDL*   OrOpInvS( BaseGDL* r);
+  DStructGDL*   XorOpS( BaseGDL* r);
   DStructGDL*   AddS( BaseGDL* r);
   DStructGDL*   AddInvS( BaseGDL* r);
   DStructGDL*   SubS( BaseGDL* r);

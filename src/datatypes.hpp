@@ -239,6 +239,7 @@ public:
   Data_*   AndOpInvS( BaseGDL* r);
   Data_*   OrOpS( BaseGDL* r);
   Data_*   OrOpInvS( BaseGDL* r);
+  Data_*   XorOpS( BaseGDL* r);
   Data_*   AddS( BaseGDL* r);
   Data_*   AddInvS( BaseGDL* r);
   Data_*   SubS( BaseGDL* r);
