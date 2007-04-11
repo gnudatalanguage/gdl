@@ -51,14 +51,25 @@ namespace lib {
       }
   }
 
+  template< typename srcT, typename destT>
+  void FromToGSL(  srcT* src, destT* dest, SizeT nEl)
+  {
+    for( SizeT d = 0; d<nEl; ++d)
+      {
+	dest[ d] = src[ d];
+      }
+  }
+
   void svdc( EnvT* e)
   {
     e->NParam( 4);
 
     static int doubleKWIx = e->KeywordIx( "DOUBLE");
-    bool doubleKW = e->KeywordPresent( doubleKWIx);
+    bool doubleKW = e->KeywordSet( doubleKWIx);
 
-    BaseGDL* A;
+    BaseGDL* A = e->GetParDefined( 0);
+    doubleKW = doubleKW || (dynamic_cast< DDoubleGDL*>( A) != NULL) || (dynamic_cast< DComplexDblGDL*>( A) != NULL);
+
     if( doubleKW)
       {
 	A = e->GetParAs< DDoubleGDL>( 0);
@@ -75,7 +86,7 @@ namespace lib {
     e->AssureGlobalPar( 3); // V
     
     static int columnKWIx = e->KeywordIx( "COLUMN");
-    bool columnKW = e->KeywordPresent( columnKWIx);
+    bool columnKW = e->KeywordSet( columnKWIx);
     static int itmaxKWIx  = e->KeywordIx( "ITMAX");
     DLong itMax = 30;
     e->AssureLongScalarKWIfPresent( itmaxKWIx, itMax);
@@ -92,10 +103,12 @@ namespace lib {
 	n = A->Dim( 0);
 	m = A->Dim( 1);
       }
+    if( m < n)
+      e->Throw( "SVD of NxM matrix with N>M is not implemented yet.");
 
     DLong nEl = A->N_Elements();
 
-    if( true || doubleKW)
+    if( doubleKW)
       {
 	DDoubleGDL* AA = static_cast<DDoubleGDL*>( A);
 
@@ -136,6 +149,50 @@ namespace lib {
 	// W
 	DDoubleGDL* W = new DDoubleGDL( dimension( n), BaseGDL::NOZERO);
 	memcpy( &(*W)[0], wGSL->data, n*sizeof( double));
+	gsl_vector_free( wGSL);
+	e->SetPar( 1, W);
+      }
+    else // float
+      {
+	DFloatGDL* AA = static_cast<DFloatGDL*>( A);
+
+	gsl_matrix *aGSL = gsl_matrix_alloc( m, n);
+	if( !columnKW)
+	  FromToGSL< DFloat, double>( &(*AA)[0], aGSL->data, nEl);
+	else
+	  TransposeFromToGSL< DFloat, double>( &(*AA)[0], aGSL->data, AA->Dim( 0), nEl);
+
+	gsl_matrix *vGSL = gsl_matrix_alloc( n, n);
+	gsl_vector *wGSL = gsl_vector_alloc( n);
+
+	gsl_vector *work = gsl_vector_alloc( n);
+	gsl_linalg_SV_decomp( aGSL, vGSL, wGSL, work);
+	gsl_vector_free( work);
+
+	// aGSL -> uGSL
+	gsl_matrix *uGSL = aGSL;
+
+	// U
+	DFloatGDL* U = new DFloatGDL( AA->Dim(), BaseGDL::NOZERO);
+	if( !columnKW)
+	  FromToGSL< double, DFloat>( uGSL->data, &(*U)[0], nEl);
+	else
+	  TransposeFromToGSL< double, DFloat>( uGSL->data, &(*U)[0], U->Dim( 1), nEl);
+	gsl_matrix_free( uGSL);
+	e->SetPar( 2, U);
+
+	// V
+	DFloatGDL* V = new DFloatGDL( dimension( n, n), BaseGDL::NOZERO);
+	if( !columnKW)
+	  FromToGSL< double, DFloat>( vGSL->data, &(*V)[0], n*n);
+	else
+	  TransposeFromToGSL< double, DFloat>( vGSL->data, &(*V)[0], n, n*n);
+	gsl_matrix_free( vGSL);
+	e->SetPar( 3, V);
+
+	// W
+	DFloatGDL* W = new DFloatGDL( dimension( n), BaseGDL::NOZERO);
+	FromToGSL< double, DFloat>( wGSL->data, &(*W)[0], n);
 	gsl_vector_free( wGSL);
 	e->SetPar( 1, W);
       }
