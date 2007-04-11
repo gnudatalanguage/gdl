@@ -20795,7 +20795,7 @@ case "${host}" in
     ;;
 
   *linux*)
-            LDFLAGS="$LDFLAGS -ltermcap -rdynamic -z muldefs"
+                    LDFLAGS="$LDFLAGS -rdynamic -z muldefs"
     ;;
 
 esac

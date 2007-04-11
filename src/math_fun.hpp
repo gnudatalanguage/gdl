@@ -23,6 +23,8 @@
 
 namespace lib {
 
+  void svdc( EnvT* e);
+
   BaseGDL* sin_fun( EnvT* e);
   BaseGDL* cos_fun( EnvT* e);
   BaseGDL* tan_fun( EnvT* e);

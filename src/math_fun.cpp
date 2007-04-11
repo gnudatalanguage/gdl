@@ -25,6 +25,7 @@
 #include <gsl/gsl_sf_laguerre.h>
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_cdf.h>
+#include <gsl/gsl_linalg.h>
 
 #include "datatypes.hpp"
 #include "envt.hpp"
@@ -37,6 +38,109 @@
 namespace lib {
 
   using namespace std;
+
+  template< typename srcT, typename destT>
+  void TransposeFromToGSL(  srcT* src, destT* dest, SizeT srcStride1, SizeT nEl)
+  {
+    for( SizeT d = 0, ix = 0, srcDim0 = 0; d<nEl; ++d)
+      {
+	dest[ d] = src[ ix];
+	ix += srcStride1;
+	if( ix >= nEl) 
+	  ix = ++srcDim0;
+      }
+  }
+
+  void svdc( EnvT* e)
+  {
+    e->NParam( 4);
+
+    static int doubleKWIx = e->KeywordIx( "DOUBLE");
+    bool doubleKW = e->KeywordPresent( doubleKWIx);
+
+    BaseGDL* A;
+    if( doubleKW)
+      {
+	A = e->GetParAs< DDoubleGDL>( 0);
+      }
+    else
+      {
+	A = e->GetParAs< DFloatGDL>( 0);
+      }
+    if( A->Rank() != 2)
+      e->Throw( "Argument must be a 2-D matrix: "+e->GetParString(0));
+    
+    e->AssureGlobalPar( 1); // W
+    e->AssureGlobalPar( 2); // U
+    e->AssureGlobalPar( 3); // V
+    
+    static int columnKWIx = e->KeywordIx( "COLUMN");
+    bool columnKW = e->KeywordPresent( columnKWIx);
+    static int itmaxKWIx  = e->KeywordIx( "ITMAX");
+    DLong itMax = 30;
+    e->AssureLongScalarKWIfPresent( itmaxKWIx, itMax);
+
+    DLong n;
+    DLong m;
+    if( columnKW)
+      {
+	n = A->Dim( 1);
+	m = A->Dim( 0);
+      }
+    else
+      {
+	n = A->Dim( 0);
+	m = A->Dim( 1);
+      }
+
+    DLong nEl = A->N_Elements();
+
+    if( true || doubleKW)
+      {
+	DDoubleGDL* AA = static_cast<DDoubleGDL*>( A);
+
+	gsl_matrix *aGSL = gsl_matrix_alloc( m, n);
+	if( !columnKW)
+	  memcpy(aGSL->data, &(*AA)[0], nEl*sizeof( double));
+	else
+	  TransposeFromToGSL< DDouble, double>( &(*AA)[0], aGSL->data, AA->Dim( 0), nEl);
+
+	gsl_matrix *vGSL = gsl_matrix_alloc( n, n);
+	gsl_vector *wGSL = gsl_vector_alloc( n);
+
+	gsl_vector *work = gsl_vector_alloc( n);
+	gsl_linalg_SV_decomp( aGSL, vGSL, wGSL, work);
+	gsl_vector_free( work);
+
+	// aGSL -> uGSL
+	gsl_matrix *uGSL = aGSL;
+
+	// U
+	DDoubleGDL* U = new DDoubleGDL( AA->Dim(), BaseGDL::NOZERO);
+	if( !columnKW)
+	  memcpy( &(*U)[0], uGSL->data, nEl*sizeof( double));
+	else
+	  TransposeFromToGSL< double, DDouble>( uGSL->data, &(*U)[0], U->Dim( 1), nEl);
+	gsl_matrix_free( uGSL);
+	e->SetPar( 2, U);
+
+	// V
+	DDoubleGDL* V = new DDoubleGDL( dimension( n, n), BaseGDL::NOZERO);
+	if( !columnKW)
+	  memcpy( &(*V)[0], vGSL->data, n*n*sizeof( double));
+	else
+	  TransposeFromToGSL< double, DDouble>( vGSL->data, &(*V)[0], n, n*n);
+	gsl_matrix_free( vGSL);
+	e->SetPar( 3, V);
+
+	// W
+	DDoubleGDL* W = new DDoubleGDL( dimension( n), BaseGDL::NOZERO);
+	memcpy( &(*W)[0], wGSL->data, n*sizeof( double));
+	gsl_vector_free( wGSL);
+	e->SetPar( 1, W);
+      }
+  }
+
 
   template< typename T>
   BaseGDL* sin_fun_template( BaseGDL* p0)

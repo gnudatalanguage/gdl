@@ -612,7 +612,9 @@ case "${host}" in
   *linux*)
     dnl Linux
     dnl LINKIMAGE support
-    LDFLAGS="$LDFLAGS -ltermcap -rdynamic -z muldefs"
+    dnl (-ltermcap was reported to solve problems with readline)
+    dnl LDFLAGS="$LDFLAGS -ltermcap -rdynamic -z muldefs"
+    LDFLAGS="$LDFLAGS -rdynamic -z muldefs"
     ;;
 
 dnl  *)

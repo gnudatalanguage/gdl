@@ -1,7 +1,11 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
- <DocsAndViews NumberOfDocuments="0" />
+ <DocsAndViews NumberOfDocuments="1" >
+  <Doc0 NumberOfViews="1" URL="file:///home/marc/gdl/src/math_fun.cpp" >
+   <View0 line="42" Type="Source" />
+  </Doc0>
+ </DocsAndViews>
  <pluginList>
   <kdevdebugger>
    <breakpointList>
@@ -47,6 +51,12 @@
     <breakpoint13 location="/home/marc/gdl/src/basic_op.cpp:2955" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
      <tracedExpressions/>
     </breakpoint13>
+    <breakpoint14 location="/home/marc/gdl/src/dnode.cpp:843" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
+     <tracedExpressions/>
+    </breakpoint14>
+    <breakpoint15 location="/home/marc/gdl/src/dnode.cpp:1367" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
+     <tracedExpressions/>
+    </breakpoint15>
    </breakpointList>
   </kdevdebugger>
   <kdevbookmarks>
