@@ -32,7 +32,7 @@ public:
   {
   }
  
-  void eop() {};
+  //  void eop() {};
 
   void Init();
 };
