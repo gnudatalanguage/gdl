@@ -134,6 +134,12 @@ namespace lib {
     bool success = Graphics::SetDevice( device);
     if( !success)
       e->Throw( "Device not supported/unknown: "+device);
+
+    if (device == "PS") {
+      static DStructGDL* pStruct = SysVar::P();
+      static unsigned noEraseTag = pStruct->Desc()->TagIndex( "NOERASE");
+      (*static_cast<DLongGDL*>( pStruct->Get( noEraseTag, 0)))[0] = 1;
+    }
   }
 
   void window( EnvT* e)
@@ -867,12 +873,6 @@ namespace lib {
     GDLGStream* actStream = GetPlotStream( e); 
     gkw_background(e, actStream);  //BACKGROUND
     gkw_color(e, actStream);       //COLOR
-    gkw_noerase(e, actStream);     //NOERASE
-
-    //JMG
-    DLong noErase = 0;
-    if( e->KeywordSet( "NOERASE")) noErase = 1;
-    if( !noErase) actStream->Clear();
 
     gkw_psym(e, actStream, line, psym);//PSYM
     gkw_charsize(e, actStream, charsize);    //CHARSIZE
@@ -909,6 +909,24 @@ namespace lib {
     
     // Turn off map projection processing
     set_mapset(0);
+
+    gkw_noerase(e, actStream);     //NOERASE
+
+    DLong noErase = 0;
+    if( e->KeywordSet( "NOERASE")) noErase = 1;
+    if( !noErase) actStream->Clear();
+
+    // Get device name
+    static DStructGDL* dStruct = SysVar::D();
+    static unsigned nameTag = dStruct->Desc()->TagIndex( "NAME");
+    DString d_name = 
+      (*static_cast<DStringGDL*>( dStruct->Get( nameTag, 0)))[0];
+    // if PS and not noErase (ie, erase) then set !p.noerase=0    
+    if (d_name == "PS" && !noErase) {
+      static DStructGDL* pStruct = SysVar::P();
+      static unsigned noEraseTag = pStruct->Desc()->TagIndex( "NOERASE");
+      (*static_cast<DLongGDL*>( pStruct->Get( noEraseTag, 0)))[0] = 0;
+    }
 
     // viewport and world coordinates
     bool okVPWC = SetVP_WC( e, actStream, pos, clippingD, 
@@ -1018,7 +1036,6 @@ namespace lib {
     //set ![x|y].type
     set_axis_type("X",xLog);
     set_axis_type("Y",yLog);
-
   } // plot
 
   void oplot( EnvT* e)
