@@ -1305,6 +1305,8 @@ Esko G. Cate & David W. Twigg
       if (map_projection == 3) {
 	strcpy(proj, "proj=lcc");
 	parms[nparms++] = &proj[0];
+	parms[nparms++] = &p0lon[0];
+	parms[nparms++] = &p0lat[0];
 	sprintf(lat_1, "lat_1=%lf", map_lat1 * RAD_TO_DEG);
 	sprintf(lat_2, "lat_2=%lf", map_lat2 * RAD_TO_DEG);
 	parms[nparms++] = &lat_1[0];
