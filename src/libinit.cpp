@@ -28,6 +28,7 @@
 #include "basic_pro.hpp"
 
 #include "math_fun.hpp"
+#include "math_fun_ac.hpp"
 
 #include "plotting.hpp"
 
@@ -61,6 +62,7 @@ using namespace std;
 void LibInit_jmg(); // libinit_jmg.cpp
 void LibInit_cl(); // libinit_cl.cpp
 void LibInit_mes(); // libinit_mes.cpp
+void LibInit_ac(); // libinit_ac.cpp
 
 void LibInit()
 {
@@ -68,6 +70,7 @@ void LibInit()
   LibInit_jmg();
   LibInit_cl();
   LibInit_mes();
+  LibInit_ac();
 
   const char KLISTEND[] = "";
 
