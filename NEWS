@@ -177,3 +177,5 @@
 	  Add initial support for SOCKET.
 	  Preliminary support for map projections. (requires libproj4 from
 	  (http://members.verizon.net/~vze2hc4d/proj4/lbp4_050319S.tar.gz)
+          Add initial support for BESELI, BESELJ, BESELK and BESELY but only for integer order due to limitations of GSL Bessel functions
+
