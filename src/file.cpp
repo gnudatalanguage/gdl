@@ -447,7 +447,18 @@ namespace lib {
 
     DString root = dirN;
     if( root != "")
-      root += "/";
+      {
+	 long endR; 
+	 for( endR = root.length()-1; endR >= 0; --endR)
+	   {
+	     if( root[ endR] != '/')
+	       break;
+	   }
+	 if( endR >= 0)
+	   root = root.substr( 0, endR+1) + "/";
+	 else
+	   root = "/";
+      }
 
     DString prefix = prefixIn;
     if( prefix != "")
@@ -506,7 +517,7 @@ namespace lib {
 	//	cout << "Recursive looking in: " << recurDir[d] << endl;
 	PatternSearch( fL, recurDir[d], pat, accErr, quote, 
 		       match_dot,
-		       prefix + recurDir[d]);
+		       /*prefix +*/ recurDir[d]);
       }
   }
 

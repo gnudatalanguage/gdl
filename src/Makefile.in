@@ -92,7 +92,8 @@ am__libgdl_la_SOURCES_DIST = accessdesc.hpp arrayindex.hpp \
 	Makefile.in math_fun.cpp math_fun.hpp math_fun_jmg.cpp \
 	math_fun_jmg.hpp math_utl.cpp math_utl.hpp ncdf_att_cl.cpp \
 	ncdf_cl.cpp ncdf_cl.hpp ncdf_dim_cl.cpp ncdf_var_cl.cpp \
-	new.cpp new.hpp objects.cpp objects.hpp ofmt.cpp ofmt.hpp \
+	new.cpp new.hpp objects.cpp objects.hpp ofmt.cpp \
+	math_fun_ac.hpp math_fun_ac.cpp libinit_ac.cpp ofmt.hpp \
 	plotting.cpp plotting.hpp print.cpp print_tree.cpp \
 	print_tree.hpp read.cpp real2int.hpp str.cpp str.hpp \
 	terminfo.cpp terminfo.hpp topython.cpp typedefs.hpp \
@@ -119,12 +120,13 @@ am__objects_1 = assocdata.lo basic_fun_cl.lo basic_fun.lo \
 	initsysvar.lo io.lo libinit_cl.lo libinit.lo libinit_jmg.lo \
 	math_fun.lo math_fun_jmg.lo math_utl.lo ncdf_att_cl.lo \
 	ncdf_cl.lo ncdf_dim_cl.lo ncdf_var_cl.lo new.lo objects.lo \
-	ofmt.lo plotting.lo print.lo print_tree.lo read.lo str.lo \
-	terminfo.lo topython.lo typetraits.lo hdf_fun.lo hdf_pro.lo \
-	magick_cl.lo gdlwidget.lo widget.lo basegdl.lo hdf5_fun.lo \
-	libinit_mes.lo file.lo image.lo gdljournal.lo convol.lo \
-	convol_inc0.lo convol_inc1.lo convol_inc2.lo sigfpehandler.lo \
-	gdlzstream.lo arrayindex.lo fftw.lo mpi.lo plot3d_nr.lo
+	ofmt.lo math_fun_ac.lo libinit_ac.lo plotting.lo print.lo \
+	print_tree.lo read.lo str.lo terminfo.lo topython.lo \
+	typetraits.lo hdf_fun.lo hdf_pro.lo magick_cl.lo gdlwidget.lo \
+	widget.lo basegdl.lo hdf5_fun.lo libinit_mes.lo file.lo \
+	image.lo gdljournal.lo convol.lo convol_inc0.lo convol_inc1.lo \
+	convol_inc2.lo sigfpehandler.lo gdlzstream.lo arrayindex.lo \
+	fftw.lo mpi.lo plot3d_nr.lo
 @BUILDASLIBRARY_TRUE@am_libgdl_la_OBJECTS = $(am__objects_1) \
 @BUILDASLIBRARY_TRUE@	pythongdl.lo
 libgdl_la_OBJECTS = $(am_libgdl_la_OBJECTS)
@@ -163,7 +165,8 @@ am__gdl_SOURCES_DIST = accessdesc.hpp arrayindex.hpp assocdata.cpp \
 	Makefile.in math_fun.cpp math_fun.hpp math_fun_jmg.cpp \
 	math_fun_jmg.hpp math_utl.cpp math_utl.hpp ncdf_att_cl.cpp \
 	ncdf_cl.cpp ncdf_cl.hpp ncdf_dim_cl.cpp ncdf_var_cl.cpp \
-	new.cpp new.hpp objects.cpp objects.hpp ofmt.cpp ofmt.hpp \
+	new.cpp new.hpp objects.cpp objects.hpp ofmt.cpp \
+	math_fun_ac.hpp math_fun_ac.cpp libinit_ac.cpp ofmt.hpp \
 	plotting.cpp plotting.hpp print.cpp print_tree.cpp \
 	print_tree.hpp read.cpp real2int.hpp str.cpp str.hpp \
 	terminfo.cpp terminfo.hpp topython.cpp typedefs.hpp \
@@ -205,6 +208,7 @@ am__objects_2 = gdl-assocdata.$(OBJEXT) gdl-basic_fun_cl.$(OBJEXT) \
 	gdl-ncdf_att_cl.$(OBJEXT) gdl-ncdf_cl.$(OBJEXT) \
 	gdl-ncdf_dim_cl.$(OBJEXT) gdl-ncdf_var_cl.$(OBJEXT) \
 	gdl-new.$(OBJEXT) gdl-objects.$(OBJEXT) gdl-ofmt.$(OBJEXT) \
+	gdl-math_fun_ac.$(OBJEXT) gdl-libinit_ac.$(OBJEXT) \
 	gdl-plotting.$(OBJEXT) gdl-print.$(OBJEXT) \
 	gdl-print_tree.$(OBJEXT) gdl-read.$(OBJEXT) gdl-str.$(OBJEXT) \
 	gdl-terminfo.$(OBJEXT) gdl-topython.$(OBJEXT) \
@@ -395,6 +399,7 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 		libinit_jmg.cpp Makefile.am Makefile.in math_fun.cpp math_fun.hpp math_fun_jmg.cpp \
 		math_fun_jmg.hpp math_utl.cpp math_utl.hpp ncdf_att_cl.cpp ncdf_cl.cpp ncdf_cl.hpp \
 		ncdf_dim_cl.cpp ncdf_var_cl.cpp new.cpp new.hpp objects.cpp objects.hpp ofmt.cpp \
+		math_fun_ac.hpp math_fun_ac.cpp libinit_ac.cpp \
 		ofmt.hpp plotting.cpp plotting.hpp print.cpp print_tree.cpp print_tree.hpp \
 		read.cpp real2int.hpp str.cpp str.hpp terminfo.cpp terminfo.hpp topython.cpp \
 		typedefs.hpp typetraits.cpp typetraits.hpp hdf_fun.cpp hdf_fun.hpp hdf_pro.cpp \
@@ -622,11 +627,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-initsysvar.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-io.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-libinit.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-libinit_ac.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-libinit_cl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-libinit_jmg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-libinit_mes.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-magick_cl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-math_fun.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-math_fun_ac.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-math_fun_jmg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-math_utl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-mpi.Po@am__quote@
@@ -670,11 +677,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/initsysvar.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/io.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libinit.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libinit_ac.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libinit_cl.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libinit_jmg.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libinit_mes.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/magick_cl.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/math_fun.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/math_fun_ac.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/math_fun_jmg.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/math_utl.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mpi.Plo@am__quote@
@@ -1530,6 +1539,34 @@ gdl-ofmt.obj: ofmt.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ofmt.cpp' object='gdl-ofmt.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-ofmt.obj `if test -f 'ofmt.cpp'; then $(CYGPATH_W) 'ofmt.cpp'; else $(CYGPATH_W) '$(srcdir)/ofmt.cpp'; fi`
+
+gdl-math_fun_ac.o: math_fun_ac.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-math_fun_ac.o -MD -MP -MF "$(DEPDIR)/gdl-math_fun_ac.Tpo" -c -o gdl-math_fun_ac.o `test -f 'math_fun_ac.cpp' || echo '$(srcdir)/'`math_fun_ac.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/gdl-math_fun_ac.Tpo" "$(DEPDIR)/gdl-math_fun_ac.Po"; else rm -f "$(DEPDIR)/gdl-math_fun_ac.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='math_fun_ac.cpp' object='gdl-math_fun_ac.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-math_fun_ac.o `test -f 'math_fun_ac.cpp' || echo '$(srcdir)/'`math_fun_ac.cpp
+
+gdl-math_fun_ac.obj: math_fun_ac.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-math_fun_ac.obj -MD -MP -MF "$(DEPDIR)/gdl-math_fun_ac.Tpo" -c -o gdl-math_fun_ac.obj `if test -f 'math_fun_ac.cpp'; then $(CYGPATH_W) 'math_fun_ac.cpp'; else $(CYGPATH_W) '$(srcdir)/math_fun_ac.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/gdl-math_fun_ac.Tpo" "$(DEPDIR)/gdl-math_fun_ac.Po"; else rm -f "$(DEPDIR)/gdl-math_fun_ac.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='math_fun_ac.cpp' object='gdl-math_fun_ac.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-math_fun_ac.obj `if test -f 'math_fun_ac.cpp'; then $(CYGPATH_W) 'math_fun_ac.cpp'; else $(CYGPATH_W) '$(srcdir)/math_fun_ac.cpp'; fi`
+
+gdl-libinit_ac.o: libinit_ac.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-libinit_ac.o -MD -MP -MF "$(DEPDIR)/gdl-libinit_ac.Tpo" -c -o gdl-libinit_ac.o `test -f 'libinit_ac.cpp' || echo '$(srcdir)/'`libinit_ac.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/gdl-libinit_ac.Tpo" "$(DEPDIR)/gdl-libinit_ac.Po"; else rm -f "$(DEPDIR)/gdl-libinit_ac.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='libinit_ac.cpp' object='gdl-libinit_ac.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-libinit_ac.o `test -f 'libinit_ac.cpp' || echo '$(srcdir)/'`libinit_ac.cpp
+
+gdl-libinit_ac.obj: libinit_ac.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-libinit_ac.obj -MD -MP -MF "$(DEPDIR)/gdl-libinit_ac.Tpo" -c -o gdl-libinit_ac.obj `if test -f 'libinit_ac.cpp'; then $(CYGPATH_W) 'libinit_ac.cpp'; else $(CYGPATH_W) '$(srcdir)/libinit_ac.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/gdl-libinit_ac.Tpo" "$(DEPDIR)/gdl-libinit_ac.Po"; else rm -f "$(DEPDIR)/gdl-libinit_ac.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='libinit_ac.cpp' object='gdl-libinit_ac.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-libinit_ac.obj `if test -f 'libinit_ac.cpp'; then $(CYGPATH_W) 'libinit_ac.cpp'; else $(CYGPATH_W) '$(srcdir)/libinit_ac.cpp'; fi`
 
 gdl-plotting.o: plotting.cpp
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-plotting.o -MD -MP -MF "$(DEPDIR)/gdl-plotting.Tpo" -c -o gdl-plotting.o `test -f 'plotting.cpp' || echo '$(srcdir)/'`plotting.cpp; \
