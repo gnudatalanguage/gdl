@@ -460,9 +460,21 @@ namespace lib {
 	   root = "/";
       }
 
-    DString prefix = prefixIn;
-    if( prefix != "")
-      prefix += "/";
+     DString prefix = root;
+//     DString prefix = prefixIn;
+//     if( prefix != "")
+//       {
+// 	 long endR; 
+// 	 for( endR = prefix.length()-1; endR >= 0; --endR)
+// 	   {
+// 	     if( prefix[ endR] != '/')
+// 	       break;
+// 	   }
+// 	 if( endR >= 0)
+// 	   prefix = prefix.substr( 0, endR+1) + "/";
+// 	 else
+// 	   prefix = "/";
+//       }
 
     struct stat    statStruct;
 
