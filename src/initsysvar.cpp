@@ -552,6 +552,9 @@ namespace SysVar
 #define EXEC_PREFIX ""
 #endif
     DStringGDL *dirData = new DStringGDL( EXEC_PREFIX);
+    string gdlDir=GetEnvString("GDL_DIR");
+    if( gdlDir == "") gdlDir=GetEnvString("IDL_DIR");
+    if( gdlDir != "") dirData = new DStringGDL( gdlDir);
     DVar *dir = new DVar( "DIR", dirData);
     dirIx=sysVarList.size();
     sysVarList.push_back( dir);
