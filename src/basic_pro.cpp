@@ -709,6 +709,10 @@ namespace lib {
     // IDL allows here also arrays of length 1
     e->AssureScalarPar<DStringGDL>( 1, name); 
 
+    // Change leading "~" to home directory
+    if (name.substr(0,2) == "~/")
+      name = getenv("HOME") + name.substr(1,name.size()-1);
+
     // endian
     bool swapEndian=false;
     if( e->KeywordSet( "SWAP_ENDIAN"))
