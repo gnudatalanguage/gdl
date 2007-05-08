@@ -1313,51 +1313,49 @@ namespace lib {
     }
 #endif
 
-    if (mapSet) {
-      // Determine data coordinate limits (if mapSet is true)
-      // These are computed from window and scaling axis system
-      // variables because map routines change these directly.
-      DDouble *sx;
-      DDouble *sy;
-      DStructGDL* xStruct = SysVar::X();
-      DStructGDL* yStruct = SysVar::Y();
-      unsigned sxTag = xStruct->Desc()->TagIndex( "S");
-      unsigned syTag = yStruct->Desc()->TagIndex( "S");
-      sx = &(*static_cast<DDoubleGDL*>( xStruct->Get( sxTag, 0)))[0];
-      sy = &(*static_cast<DDoubleGDL*>( yStruct->Get( syTag, 0)))[0];
+    // Determine data coordinate limits (if mapSet is true)
+    // These are computed from window and scaling axis system
+    // variables because map routines change these directly.
+    DDouble *sx;
+    DDouble *sy;
+    DStructGDL* xStruct = SysVar::X();
+    DStructGDL* yStruct = SysVar::Y();
+    unsigned sxTag = xStruct->Desc()->TagIndex( "S");
+    unsigned syTag = yStruct->Desc()->TagIndex( "S");
+    sx = &(*static_cast<DDoubleGDL*>( xStruct->Get( sxTag, 0)))[0];
+    sy = &(*static_cast<DDoubleGDL*>( yStruct->Get( syTag, 0)))[0];
     
-      DFloat *wx;
-      DFloat *wy;
-      unsigned xwindowTag = xStruct->Desc()->TagIndex( "WINDOW");
-      unsigned ywindowTag = yStruct->Desc()->TagIndex( "WINDOW");
-      wx = &(*static_cast<DFloatGDL*>( xStruct->Get( xwindowTag, 0)))[0];
-      wy = &(*static_cast<DFloatGDL*>( yStruct->Get( ywindowTag, 0)))[0];
+    DFloat *wx;
+    DFloat *wy;
+    unsigned xwindowTag = xStruct->Desc()->TagIndex( "WINDOW");
+    unsigned ywindowTag = yStruct->Desc()->TagIndex( "WINDOW");
+    wx = &(*static_cast<DFloatGDL*>( xStruct->Get( xwindowTag, 0)))[0];
+    wy = &(*static_cast<DFloatGDL*>( yStruct->Get( ywindowTag, 0)))[0];
     
-      xStart = (wx[0] - sx[0]) / sx[1];
-      xEnd   = (wx[1] - sx[0]) / sx[1];
-      yStart = (wy[0] - sy[0]) / sy[1];
-      yEnd   = (wy[1] - sy[0]) / sy[1];
+    xStart = (wx[0] - sx[0]) / sx[1];
+    xEnd   = (wx[1] - sx[0]) / sx[1];
+    yStart = (wy[0] - sy[0]) / sy[1];
+    yEnd   = (wy[1] - sy[0]) / sy[1];
 
 
-      if(e->KeywordSet("DEVICE")) {
-	PLFLT xpix, ypix;
-	PLINT xleng, yleng, xoff, yoff;
-	actStream->gpage(xpix, ypix,xleng, yleng, xoff, yoff);
-	xStart=0; xEnd=xleng;
-	yStart=0; yEnd=yleng;
-	xLog = false; yLog = false;
-	actStream->NoSub();
-      } else if(e->KeywordSet("NORMAL")) {
-	xStart = 0;
-	xEnd   = 1;
-	yStart = 0;
-	yEnd   = 1;
-	actStream->vpor(0, 1, 0, 1);
-	xLog = false; yLog = false;
-	actStream->NoSub();
-      } else {
-	actStream->vpor(wx[0], wx[1], wy[0], wy[1]);
-      }
+    if(e->KeywordSet("DEVICE")) {
+      PLFLT xpix, ypix;
+      PLINT xleng, yleng, xoff, yoff;
+      actStream->gpage(xpix, ypix,xleng, yleng, xoff, yoff);
+      xStart=0; xEnd=xleng;
+      yStart=0; yEnd=yleng;
+      xLog = false; yLog = false;
+      actStream->NoSub();
+    } else if(e->KeywordSet("NORMAL")) {
+      xStart = 0;
+      xEnd   = 1;
+      yStart = 0;
+      yEnd   = 1;
+      actStream->vpor(0, 1, 0, 1);
+      xLog = false; yLog = false;
+      actStream->NoSub();
+    } else {
+      actStream->vpor(wx[0], wx[1], wy[0], wy[1]);
     }
 
     minVal=yStart; maxVal=yEnd;
@@ -1499,51 +1497,49 @@ namespace lib {
 #endif
 
 
-    if (mapSet) {
-      // Determine data coordinate limits
-      // These are computed from window and scaling axis system
-      // variables because map routines change these directly.
-      DDouble *sx;
-      DDouble *sy;
-      DStructGDL* xStruct = SysVar::X();
-      DStructGDL* yStruct = SysVar::Y();
-      unsigned sxTag = xStruct->Desc()->TagIndex( "S");
-      unsigned syTag = yStruct->Desc()->TagIndex( "S");
-      sx = &(*static_cast<DDoubleGDL*>( xStruct->Get( sxTag, 0)))[0];
-      sy = &(*static_cast<DDoubleGDL*>( yStruct->Get( syTag, 0)))[0];
+    // Determine data coordinate limits
+    // These are computed from window and scaling axis system
+    // variables because map routines change these directly.
+    DDouble *sx;
+    DDouble *sy;
+    DStructGDL* xStruct = SysVar::X();
+    DStructGDL* yStruct = SysVar::Y();
+    unsigned sxTag = xStruct->Desc()->TagIndex( "S");
+    unsigned syTag = yStruct->Desc()->TagIndex( "S");
+    sx = &(*static_cast<DDoubleGDL*>( xStruct->Get( sxTag, 0)))[0];
+    sy = &(*static_cast<DDoubleGDL*>( yStruct->Get( syTag, 0)))[0];
     
-      DFloat *wx;
-      DFloat *wy;
-      unsigned xwindowTag = xStruct->Desc()->TagIndex( "WINDOW");
-      unsigned ywindowTag = yStruct->Desc()->TagIndex( "WINDOW");
-      wx = &(*static_cast<DFloatGDL*>( xStruct->Get( xwindowTag, 0)))[0];
-      wy = &(*static_cast<DFloatGDL*>( yStruct->Get( ywindowTag, 0)))[0];
+    DFloat *wx;
+    DFloat *wy;
+    unsigned xwindowTag = xStruct->Desc()->TagIndex( "WINDOW");
+    unsigned ywindowTag = yStruct->Desc()->TagIndex( "WINDOW");
+    wx = &(*static_cast<DFloatGDL*>( xStruct->Get( xwindowTag, 0)))[0];
+    wy = &(*static_cast<DFloatGDL*>( yStruct->Get( ywindowTag, 0)))[0];
     
-      xStart = (wx[0] - sx[0]) / sx[1];
-      xEnd   = (wx[1] - sx[0]) / sx[1];
-      yStart = (wy[0] - sy[0]) / sy[1];
-      yEnd   = (wy[1] - sy[0]) / sy[1];
+    xStart = (wx[0] - sx[0]) / sx[1];
+    xEnd   = (wx[1] - sx[0]) / sx[1];
+    yStart = (wy[0] - sy[0]) / sy[1];
+    yEnd   = (wy[1] - sy[0]) / sy[1];
 
 
-      if(e->KeywordSet("DEVICE")) {
-	PLFLT xpix, ypix;
-	PLINT xleng, yleng, xoff, yoff;
-	actStream->gpage(xpix, ypix,xleng, yleng, xoff, yoff);
-	xStart=0; xEnd=xleng;
-	yStart=0; yEnd=yleng;
-	xLog = false; yLog = false;
-	actStream->NoSub();
-      } else if(e->KeywordSet("NORMAL")) {
-	xStart = 0;
-	xEnd   = 1;
-	yStart = 0;
-	yEnd   = 1;
-	actStream->vpor(0, 1, 0, 1);
-	xLog = false; yLog = false;
-	actStream->NoSub();
-      } else {
-	actStream->vpor(wx[0], wx[1], wy[0], wy[1]);
-      }
+    if(e->KeywordSet("DEVICE")) {
+      PLFLT xpix, ypix;
+      PLINT xleng, yleng, xoff, yoff;
+      actStream->gpage(xpix, ypix,xleng, yleng, xoff, yoff);
+      xStart=0; xEnd=xleng;
+      yStart=0; yEnd=yleng;
+      xLog = false; yLog = false;
+      actStream->NoSub();
+    } else if(e->KeywordSet("NORMAL")) {
+      xStart = 0;
+      xEnd   = 1;
+      yStart = 0;
+      yEnd   = 1;
+      actStream->vpor(0, 1, 0, 1);
+      xLog = false; yLog = false;
+      actStream->NoSub();
+    } else {
+      actStream->vpor(wx[0], wx[1], wy[0], wy[1]);
     }
 
     minVal=yStart; maxVal=yEnd;
