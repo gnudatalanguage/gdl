@@ -1410,7 +1410,7 @@ namespace lib {
 	if (dims[i] != 0) resRank++;
       }
     }
-    dimension dim((SizeT *) dims, resRank);
+    dimension dim((DLong *) dims, resRank);
     res = new DDoubleGDL(dim, BaseGDL::NOZERO);
 
     // Determine number of interpolations

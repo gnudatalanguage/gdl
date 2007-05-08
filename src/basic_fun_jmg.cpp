@@ -440,7 +440,7 @@ namespace lib {
       DStructGDL* v = static_cast<DStructGDL*>( value);
       if (dimKey != NULL) {
 	SizeT ndim = dimKey->N_Elements();
-	dimension dim((SizeT *) &(*dimKey)[0], (SizeT) ndim);
+	dimension dim((DLong *) &(*dimKey)[0], (SizeT) ndim);
 	return v->New( dim, BaseGDL::INIT);
       } else {
 	dimension dim;

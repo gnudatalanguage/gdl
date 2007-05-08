@@ -434,7 +434,7 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 
 
 
-	dimension dim((const SizeT *) transposed_dim_length, (SizeT) var_ndims);
+	dimension dim((const DLong *) transposed_dim_length, (SizeT) var_ndims);
 	if(var_type == NC_DOUBLE){
 	  double* dvar=new double[array_size];
 	  
@@ -629,7 +629,7 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 	      transposed_dim_length[trans[i]]=cou[i];
 	      array_size=array_size*cou[i];
 	    }
-	    dimension dim((const SizeT *) transposed_dim_length, (SizeT) var_ndims);
+	    dimension dim((const DLong *) transposed_dim_length, (SizeT) var_ndims);
 	    if(var_type == NC_DOUBLE)
 	      {
 		double* dvar=new double[array_size];
@@ -816,7 +816,7 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 	      transposed_dim_length[trans[i]]=cou[i];
 	      array_size=array_size*cou[i];
 	    }
-	    dimension dim((const SizeT *) transposed_dim_length, (SizeT) var_ndims);
+	    dimension dim((const DLong *) transposed_dim_length, (SizeT) var_ndims);
 	    	  
 	    if(var_type == NC_DOUBLE)
 	      {

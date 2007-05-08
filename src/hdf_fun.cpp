@@ -221,7 +221,7 @@ namespace lib {
       rank = 2;
     }
 
-    dimension dim((SizeT *) dims, rank);
+    dimension dim((DLong *) dims, rank);
 
     if (diffType == 1) {
       hdf_vd_read_template< DByteGDL>( e, dim, vd_id, 

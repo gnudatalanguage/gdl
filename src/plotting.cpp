@@ -3510,11 +3510,11 @@ namespace lib {
 
       dims[0] = 2;
       if (p0->Rank() == 1) {
-	dimension dim((SizeT *) dims, 1);
+	dimension dim((DLong *) dims, 1);
 	res = new DDoubleGDL( dim, BaseGDL::NOZERO);
       } else {
 	dims[1] = p0->Dim(1);
-	dimension dim((SizeT *) dims, 2);
+	dimension dim((DLong *) dims, 2);
 	res = new DDoubleGDL( dim, BaseGDL::NOZERO);
       }
 
@@ -3538,11 +3538,11 @@ namespace lib {
 
       dims[0] = 2;
       if (p0->Rank() == 0 || p0->Rank() == 1) {
-	dimension dim((SizeT *) dims, 1);
+	dimension dim((DLong *) dims, 1);
 	res = new DDoubleGDL( dim, BaseGDL::NOZERO);
       } else {
 	dims[1] = p0->Dim(0);
-	dimension dim((SizeT *) dims, 2);
+	dimension dim((DLong *) dims, 2);
 	res = new DDoubleGDL( dim, BaseGDL::NOZERO);
       }
 
@@ -3590,11 +3590,11 @@ namespace lib {
 
       dims[0] = 2;
       if (p0->Rank() == 1) {
-	dimension dim((SizeT *) dims, 1);
+	dimension dim((DLong *) dims, 1);
 	res = new DDoubleGDL( dim, BaseGDL::NOZERO);
       } else {
 	dims[1] = p0->Dim(1);
-	dimension dim((SizeT *) dims, 2);
+	dimension dim((DLong *) dims, 2);
 	res = new DDoubleGDL( dim, BaseGDL::NOZERO);
       }
 
@@ -3618,11 +3618,11 @@ namespace lib {
 
       dims[0] = 2;
       if (p0->Rank() == 0 || p0->Rank() == 1) {
-	dimension dim((SizeT *) dims, 1);
+	dimension dim((DLong *) dims, 1);
 	res = new DDoubleGDL( dim, BaseGDL::NOZERO);
       } else {
 	dims[1] = p0->Dim(0);
-	dimension dim((SizeT *) dims, 2);
+	dimension dim((DLong *) dims, 2);
 	res = new DDoubleGDL( dim, BaseGDL::NOZERO);
       }
 
@@ -3662,17 +3662,17 @@ namespace lib {
 
     if (p0->Rank() == 0) {
       nrows = 1;
-      dimension dim((SizeT *) dims, 1);
+      dimension dim((DLong *) dims, 1);
       res = new T1( dim, BaseGDL::ZERO);
     } else if (p0->Rank() == 1) {
       if (e->NParam() == 1) {
 	nrows = 1;
-	dimension dim((SizeT *) dims, 1);
+	dimension dim((DLong *) dims, 1);
 	res = new T1( dim, BaseGDL::ZERO);
       } else {
 	nrows = p0->Dim(0);
 	dims[1] = nrows;
-	dimension dim((SizeT *) dims, 2);
+	dimension dim((DLong *) dims, 2);
 	res = new T1( dim, BaseGDL::ZERO);
       }
     } else {
@@ -3682,7 +3682,7 @@ namespace lib {
 	nrows  *= p0->Dim(i);
       }
       dims[1] = nrows;
-      dimension dim((SizeT *) dims, 2);
+      dimension dim((DLong *) dims, 2);
       res = new T1( dim, BaseGDL::ZERO);
     }
 

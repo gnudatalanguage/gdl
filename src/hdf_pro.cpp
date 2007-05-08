@@ -107,7 +107,7 @@ namespace lib {
       edges[rank-1] = tempedge;
     }
 
-    dimension dim((SizeT *) edges, rank);
+    dimension dim((DLong *) edges, rank);
 
     // Return to original edge values for HDF read
     for( SizeT i = 0; i < rank/2; i++) {
@@ -267,7 +267,7 @@ namespace lib {
     if( e->KeywordPresent( 0)) {
       BaseGDL** dimKW = &e->GetKW( 0);
       delete (*dimKW);
-      dimension dim((SizeT *) &rank, (SizeT) 1);
+      dimension dim((DLong *) &rank, (SizeT) 1);
       *dimKW = new DLongGDL(dim, BaseGDL::NOZERO);
 
       // Reverse order of dimensions
@@ -369,7 +369,7 @@ namespace lib {
     }
 
     if( e->KeywordPresent( 1)) {
-      dimension dim((SizeT *) &count, 1);
+      dimension dim((DLong *) &count, 1);
 
       BaseGDL** dataKW = &e->GetKW( 1);
       delete (*dataKW);
@@ -513,7 +513,7 @@ namespace lib {
 
     Vinquire(vg_id, &nentries, groupname);
 
-    dimension dim((SizeT *) &nentries, (SizeT) 1);
+    dimension dim((DLong *) &nentries, (SizeT) 1);
 
 
     BaseGDL** p1L = &e->GetPar( 1);

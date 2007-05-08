@@ -378,7 +378,7 @@ namespace lib {
       dims[0] = nx;
       dims[1] = ny;
 
-      dimension dim((SizeT *) dims, 2);
+      dimension dim((DLong *) dims, 2);
 
       DFloat xmin = -0.5 * (nx-1);
       DFloat ymin = -0.5 * (ny-1);
@@ -457,7 +457,7 @@ namespace lib {
       DLong ntheta = dims[0];
       DLong nrho = dims[1];
 
-      dimension dim((SizeT *) dims, 2);
+      dimension dim((DLong *) dims, 2);
 
       DFloatGDL* res = new DFloatGDL( dim, BaseGDL::NOZERO);
       for( SizeT i=0; i<ntheta*nrho; ++i) (*res)[i] = 0;
@@ -514,7 +514,7 @@ namespace lib {
       if( e->KeywordPresent( rhoIx)) {
 	BaseGDL** rhoKW = &e->GetKW( rhoIx);
 	delete (*rhoKW);
-	dimension dim((SizeT *) &nrho, (SizeT) 1);
+	dimension dim((DLong *) &nrho, (SizeT) 1);
 	*rhoKW = new DFloatGDL(dim, BaseGDL::NOZERO);
 	for( SizeT irho=0; irho<nrho; ++irho)
 	  (*(DFloatGDL*) *rhoKW)[irho] = rmin + irho*drho;
@@ -523,7 +523,7 @@ namespace lib {
       // If THETA KW present but variable doesn't exist then write theta array
       if( e->KeywordPresent( thetaIx)) {
 	if (e->IfDefGetKWAs<DFloatGDL>( thetaIx) == NULL) {
-	  dimension dim((SizeT *) &ntheta, (SizeT) 1);
+	  dimension dim((DLong *) &ntheta, (SizeT) 1);
 	  BaseGDL** thetaKW = &e->GetKW( thetaIx);
 	  delete (*thetaKW);
 	  *thetaKW = new DFloatGDL(dim, BaseGDL::NOZERO);
@@ -763,7 +763,7 @@ namespace lib {
     DLong dims[2];
     dims[0] = n_segx + 1;
     dims[1] = n_segy + 1;
-    dimension dim((SizeT *) dims, 2);
+    dimension dim((DLong *) dims, 2);
     DDoubleGDL* res = new DDoubleGDL( dim, BaseGDL::ZERO);
 
     bool *found = new bool [(n_segx+1)*(n_segy+1)];
