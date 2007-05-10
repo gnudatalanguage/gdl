@@ -14,10 +14,13 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-
+/*
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+*/
+#include "includefirst.hpp"
+#include "stdio.h"
 
 #include "terminfo.hpp"
 
@@ -42,6 +45,29 @@ int TermHeight()
   return bufinfo.srWindow.Bottom + 1;
 }
 
+#elif defined(HAVE_LIBREADLINE)
+
+#include <readline/readline.h>
+#include <readline/history.h>
+
+int TermWidth()
+{
+  int cols;
+  int rows;
+
+  rl_get_screen_size(&rows, &cols);
+  return cols;
+}
+
+int TermHeight()
+{
+  int cols;
+  int rows;
+
+  rl_get_screen_size(&rows, &cols);
+  return rows;
+}
+
 #elif defined(HAVE_LIBNCURSES) || defined(HAVE_LIBCURSES)
 
 #ifdef HAVE_LIBNCURSES 
@@ -53,11 +79,19 @@ int TermHeight()
 int TermWidth()
 {
   static int cols = 0;
- 
+  static SCREEN *screen;
+
   if( cols != 0) return cols;
 
-  initscr();
-  cols = COLS;
+  // original line follows:
+  // initscr();
+
+  screen = newterm((char *) NULL, stdout, stdin);
+  if((void *)screen == NULL)
+    cols = 80;
+  else
+    cols = COLS;
+
   endwin();
 
   return cols;
