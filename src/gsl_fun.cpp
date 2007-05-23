@@ -767,8 +767,15 @@ namespace lib {
       if (poissonKey != NULL) {
 	DDouble mu = (DDouble) (*poissonKey)[0];
 	SizeT nEl = res->N_Elements();
-	for( SizeT i=0; i<nEl; ++i) (*res)[ i] =
-				      (T2) gsl_ran_poisson (r, mu);
+	if (mu < 100000) {
+	  for( SizeT i=0; i<nEl; ++i) (*res)[ i] =
+					(T2) gsl_ran_poisson (r, mu);
+	} else {
+	  for( SizeT i=0; i<nEl; ++i) (*res)[ i] =
+					(T2) gsl_ran_ugaussian (r);
+	  for( SizeT i=0; i<nEl; ++i) (*res)[ i] *= sqrt(mu);
+	  for( SizeT i=0; i<nEl; ++i) (*res)[ i] += mu;
+	}
       }
     } else if( e->KeywordSet(6)) { // UNIFORM
       SizeT nEl = res->N_Elements();
