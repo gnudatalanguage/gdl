@@ -30,6 +30,7 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 		math_fun_jmg.hpp math_utl.cpp math_utl.hpp ncdf_att_cl.cpp ncdf_cl.cpp ncdf_cl.hpp \
 		ncdf_dim_cl.cpp ncdf_var_cl.cpp new.cpp new.hpp objects.cpp objects.hpp ofmt.cpp \
 		math_fun_ac.hpp math_fun_ac.cpp libinit_ac.cpp \
+                math_fun_gm.hpp math_fun_gm.cpp libinit_gm.cpp \
 		ofmt.hpp plotting.cpp plotting.hpp print.cpp print_tree.cpp print_tree.hpp \
 		read.cpp real2int.hpp str.cpp str.hpp terminfo.cpp terminfo.hpp topython.cpp \
 		typedefs.hpp typetraits.cpp typetraits.hpp hdf_fun.cpp hdf_fun.hpp hdf_pro.cpp \
@@ -45,7 +46,7 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 # standalone program
 if !BUILDASLIBRARY
 bin_PROGRAMS = gdl
-gdl_SOURCES = $(cpp_hpp_files) gdl.cpp 
+gdl_SOURCES = $(cpp_hpp_files) gdl.cpp
 # trigger basename generation
 gdl_CXXFLAGS = $(AM_CXXFLAGS)
 # the library search path.
