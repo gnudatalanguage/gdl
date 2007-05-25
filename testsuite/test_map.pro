@@ -1,5 +1,6 @@
 ;
-; AC, le 27-fev-2007. updated 17-avr-2007
+; AC, le 27-fev-2007. updated 17-avr-2007. 
+; Updated 25-May-2007 since Joel x86_64 bug' corrections
 ;
 ; A very simple test for MAP library
 ; (not to forgot how to call !!)
@@ -38,7 +39,9 @@ map_set, 0, 139, /continent, title='continent'
 suite='' & read, 'Press Enter', suite
 ;
 print, 'Exemple2: Should plot the whole world centered on the North America'
-if (is_it_gdl EQ 1) then print, 'WARNING AC 17/04/2007: not working in GDL on x86_64'
+; AC 25/05/2007 no more useful, bug corrected 
+; if (is_it_gdl EQ 1) then $
+; print, 'WARNING AC 17/04/2007: not working in GDL on x86_64'
 map_set, 40,-105, /continent, title='continent (rotated)'
 suite='' & read, 'Press Enter', suite
 ;
@@ -51,7 +54,9 @@ map_set,/cont, 48.83,2.33,/grid,/gno,/iso, scale=3.e7, title='Europa'
 suite='' & read, 'Press Enter', suite
 ;
 print, 'Exemple5: Should plot North America'
-if (is_it_gdl EQ 1) then print, 'WARNING AC 17/04/2007: not working in GDL on x86_64'
+; AC 25/05/2007 no more useful, bug corrected 
+; if (is_it_gdl EQ 1) then $
+; print, 'WARNING AC 17/04/2007: not working in GDL on x86_64'
 map_set,/gnomic,/iso,40,-105,/cont, limit=[20,-130,70,-70]
 ;
 print, 'last demo done'
