@@ -29,6 +29,7 @@
 
 #include "math_fun.hpp"
 #include "math_fun_ac.hpp"
+#include "math_fun_gm.hpp"
 
 #include "plotting.hpp"
 
@@ -63,6 +64,7 @@ void LibInit_jmg(); // libinit_jmg.cpp
 void LibInit_cl(); // libinit_cl.cpp
 void LibInit_mes(); // libinit_mes.cpp
 void LibInit_ac(); // libinit_ac.cpp
+void LibInit_gm(); // libinit_gm.cpp
 
 void LibInit()
 {
@@ -71,6 +73,7 @@ void LibInit()
   LibInit_cl();
   LibInit_mes();
   LibInit_ac();
+  LibInit_gm();
 
   const char KLISTEND[] = "";
 
