@@ -204,18 +204,38 @@ namespace lib
   } // erf_fun
 
   BaseGDL* errorf_fun(EnvT* e)
-  { 
-    
+  {
+
     // ERRORF is the IDL old name of the ERF function. It is implemented to keep old syntax active.
 
     return erf_fun(e);
   } // errorf_fun
 
+  BaseGDL* gaussint_fun(EnvT* e)
+  {
+    GM_5P0(1);
+    GM_DF1();
+
+    for (SizeT c = 0; c < nElp0; ++c)
+    {
+        if ((*p0)[c] == d_infinity)
+            (*res)[c] = 1.0;
+        else if ((*p0)[c] == -d_infinity)
+            (*res)[c] = 0.0;
+        else if (isnan((*p0)[c]) == 1)
+            (*res)[c] = d_nan;
+        else
+            (*res)[c] = 0.5*(1.+gsl_sf_erf((*p0)[c]/sqrt(2.)));
+    }
+
+    GM_CV1();
+  } // gaussint_fun
+
   BaseGDL* erfc_fun(EnvT* e)
   {
     GM_5P0(1);
     GM_DF1();
- 
+
     for (SizeT c = 0; c < nElp0; ++c)
     {
         if ((*p0)[c] == d_infinity)

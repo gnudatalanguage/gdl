@@ -17,7 +17,6 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "includefirst.hpp"
 
 #if defined(HAVE_LIBGSL)
@@ -59,7 +58,10 @@ void LibInit_gm()
   const string expintKey[]={"DOUBLE",KLISTEND};
   new DLibFun(lib::expint_fun,string("EXPINT"),2,expintKey);
 
+  const string gaussintKey[]={"DOUBLE",KLISTEND};
+  new DLibFun(lib::gaussint_fun,string("GAUSSINT"),1,gaussintKey);
+
 #endif
- 
+
 }
 
