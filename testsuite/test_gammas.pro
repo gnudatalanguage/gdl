@@ -13,8 +13,14 @@ pro test_gamma_plot
 
 x = findgen(1000)/100-5
 
+y=gamma(x)
+
+ok=WHERE(FINITE(y))
+x_ok=x[ok]
+y_ok=y[ok]
+
     ; plot gamma function:
-plot, x, gamma(x), title = 'Gamma function', xrange = [-5, 5], $
+plot, x_ok, y_ok, title = 'Gamma function', xrange = [-5, 5], $
 	yrange = [-5, 5], xtitle = 'x', ytitle = 'G(x)'
 
 end
