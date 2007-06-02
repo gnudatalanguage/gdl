@@ -1262,28 +1262,24 @@ namespace lib {
 
   BaseGDL* assoc( EnvT* e)
   {
-    SizeT nParam=e->NParam();
-    if( nParam < 2)
-      throw GDLException( e->CallingNode(),
-			  "ASSOC: Incorrect number of arguments.");
+    SizeT nParam=e->NParam( 2);
+
     DLong lun;
     e->AssureLongScalarPar( 0, lun);
 
     bool stdLun = check_lun( e, lun);
     if( stdLun)
-      throw GDLException( e->CallingNode(),
-			  "ASSOC: File unit does not allow"
-			  " this operation. Unit: "+i2s( lun));
+      e->Throw( "File unit does not allow"
+		" this operation. Unit: "+i2s( lun));
 
     DLong offset = 0;
     if( nParam >= 3) e->AssureLongScalarPar( 2, offset);
     
     BaseGDL* arr = e->GetParDefined( 1);
     
-    if( arr->Scalar())
-      throw GDLException( e->CallingNode(),
-			  "ASSOC: Scalar variable not allowed in this"
-			  " context: "+e->GetParString(1));
+    if( arr->StrictScalar())
+      e->Throw( "Scalar variable not allowed in this"
+		" context: "+e->GetParString(1));
     
     return arr->AssocVar( lun, offset);
   }

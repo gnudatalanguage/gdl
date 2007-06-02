@@ -42,12 +42,7 @@ Assoc_< DStructGDL>::Assoc_( int lun_, DStructGDL* assoc_, SizeT fileOffset_):
     DStructGDL( assoc_->Desc(), assoc_->Dim(), BaseGDL::NOZERO),
     lun( lun_-1), fileOffset( fileOffset_), sliceSize( assoc_->NBytes())
 {
-  if( assoc_->Type() == STRING)
-    throw GDLException( "ASSOC: Expression containing string data not allowed in this context.");
-  if( assoc_->Type() == PTR)
-    throw GDLException( "ASSOC: Expression containing pointers not allowed in this context.");
-  if( assoc_->Type() == OBJECT)
-    throw GDLException( "ASSOC: Expression containing object references not allowed in this context.");
+  MakeOwnDesc();
 }
 
 // writing 1
