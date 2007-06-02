@@ -43,14 +43,7 @@ private:
   //public:
   DataT dd;           // the data
     
-public:
-  //structors
-  ~DStructGDL(); 
-
-  // default (needed for test instantiation)
-  //  DStructGDL(): SpDStruct(), d() {}
-
-  // new array, don't init fields
+  // new array, don't init fields (only for New())
   DStructGDL( DStructDesc* desc_, const dimension& dim_, BaseGDL::InitType iT): 
     SpDStruct( desc_, dim_), 
     dd(dim.N_Elements()*desc_->NTags(),SpDStruct::zero)
@@ -58,11 +51,18 @@ public:
     assert( iT == BaseGDL::NOZERO);
     dim.Purge();
   }
+
+public:
+  //structors
+  ~DStructGDL(); 
+
+  // default (needed for test instantiation)
+  //  DStructGDL(): SpDStruct(), d() {}
   
   // new array
   DStructGDL( DStructDesc* desc_, const dimension& dim_): 
     SpDStruct( desc_, dim_), 
-    dd(dim.N_Elements()*desc_->NTags(),SpDStruct::zero)
+    dd(dim.N_Elements()*desc_->NTags()) //,SpDStruct::zero)
   {
     dim.Purge();
     
@@ -216,12 +216,13 @@ public:
   DStructGDL* New( const dimension& dim_,
 		   BaseGDL::InitType noZero=BaseGDL::ZERO)
   {
-    if( noZero == BaseGDL::NOZERO)
-      {
-	DStructGDL* res = new DStructGDL( Desc(), dim_, noZero);
-	res->MakeOwnDesc();
-	return res;
-      }
+// No NOZERO for structs  
+//     if( noZero == BaseGDL::NOZERO)
+//       {
+// 	DStructGDL* res = new DStructGDL( Desc(), dim_, noZero);
+// 	res->MakeOwnDesc();
+// 	return res;
+//       }
     if( noZero == BaseGDL::INIT)
       {
 	DStructGDL* res =  new DStructGDL( Desc(), dim_, BaseGDL::NOZERO);

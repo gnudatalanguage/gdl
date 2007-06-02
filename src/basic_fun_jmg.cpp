@@ -281,10 +281,11 @@ namespace lib {
 	if( value != NULL)
 	  {
 	    T* v = static_cast<T*>( value);
-	    T* res = new T(dim, BaseGDL::NOZERO);
-	    SizeT nEl = dim.N_Elements();
-	    for( SizeT i=0; i<nEl; ++i)
-	      (*res)[i] = (*v)[0];
+// 	    T* res = new T(dim, BaseGDL::NOZERO);
+// 	    SizeT nEl = dim.N_Elements();
+// 	    for( SizeT i=0; i<nEl; ++i)
+// 	      (*res)[i] = (*v)[0];
+	    T* res = v->New( dim, BaseGDL::INIT);
 	    return res;
 	  }
 	if( e->KeywordSet(0)) return new T(dim, BaseGDL::NOZERO);
@@ -296,10 +297,11 @@ namespace lib {
 	if( value != NULL)
 	  {
 	    T* v = static_cast<T*>( value);
-	    T* res = new T(dim, BaseGDL::NOZERO);
-	    SizeT nEl = dim.N_Elements();
-	    for( SizeT i=0; i<nEl; ++i)
-	      (*res)[i] = (*v)[0];
+// 	    T* res = new T(dim, BaseGDL::NOZERO);
+// 	    SizeT nEl = dim.N_Elements();
+// 	    for( SizeT i=0; i<nEl; ++i)
+// 	      (*res)[i] = (*v)[0];
+	    T* res = v->New( dim, BaseGDL::INIT);
 	    return res;
 	  }
 	if( e->KeywordSet(0)) return new T(dim, BaseGDL::NOZERO);
@@ -307,7 +309,7 @@ namespace lib {
 	return new T(dim);
       } 
     }
-    catch( GDLException ex)
+    catch( GDLException& ex)
       {
 	e->Throw( ex.getMessage());
       }
@@ -316,7 +318,8 @@ namespace lib {
   BaseGDL* make_array( EnvT* e)
   {
     DLong type=0;
-    e->AssureLongScalarKWIfPresent( "TYPE", type);
+    static int typeIx = e->KeywordIx( "TYPE"); 
+    e->AssureLongScalarKWIfPresent( typeIx, type);
 
     DLongGDL* dimKey=NULL;
 
