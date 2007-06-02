@@ -55,6 +55,7 @@ public:
     SpDStruct( desc_, dim_), 
     dd(dim.N_Elements()*desc_->NTags(),SpDStruct::zero)
   {
+    assert( iT == BaseGDL::NOZERO);
     dim.Purge();
   }
   

@@ -39,7 +39,7 @@ Assoc_< Parent_>::Assoc_( int lun_, Parent_* assoc_, SizeT fileOffset_):
 
 template<>
 Assoc_< DStructGDL>::Assoc_( int lun_, DStructGDL* assoc_, SizeT fileOffset_): 
-    DStructGDL( assoc_->Desc(), assoc_->Dim(), BaseGDL::NOZERO),
+  DStructGDL( assoc_->Desc(), assoc_->Dim()), // BaseGDL::NOZERO), // an instance is needed (for storing the data slice)
     lun( lun_-1), fileOffset( fileOffset_), sliceSize( assoc_->NBytes())
 {
   MakeOwnDesc();
