@@ -715,27 +715,34 @@ namespace lib {
 
     // endian
     bool swapEndian=false;
-    if( e->KeywordSet( "SWAP_ENDIAN"))
+    static int swapIx = e->KeywordSet( "SWAP_ENDIAN");
+    static int swapIfBigIx = e->KeywordSet( "SWAP_IF_BIG_ENDIAN");
+    static int swapIfLittleIx = e->KeywordSet( "SWAP_IF_LITTLE_ENDIAN");
+    if( e->KeywordSet( swapIx))
       swapEndian = true;
     else if( BigEndian())
-      swapEndian = e->KeywordSet( "SWAP_IF_BIG_ENDIAN");
+      swapEndian = e->KeywordSet( swapIfBigIx);
     else
-      swapEndian = e->KeywordSet( "SWAP_IF_LITTLE_ENDIAN");
+      swapEndian = e->KeywordSet( swapIfLittleIx);
     
     // compress
     bool compress=false;
-    if( e->KeywordSet( "COMPRESS"))
+    static int compressIx = e->KeywordIx( "COMPRESS");
+    if( e->KeywordSet( compressIx))
       compress = true;
 
     // xdr
-    bool xdr = e->KeywordSet( "XDR");
+    static int xdrIx = e->KeywordIx( "XDR");
+    bool xdr = e->KeywordSet( xdrIx);
 
-    if( e->KeywordSet( "APPEND")) mode |= fstream::ate;// fstream::app;
+    static int appendIx = e->KeywordIx( "APPEND");
+    if( e->KeywordSet( appendIx)) mode |= fstream::ate;// fstream::app;
 
     static int f77Ix = e->KeywordIx( "F77_UNFORMATTED");
     bool f77 = e->KeywordSet( f77Ix);
 
-    bool deleteKey = e->KeywordSet( "DELETE");
+    static int delIx = e->KeywordIx( "DELETE");
+    bool deleteKey = e->KeywordSet( delIx);
     
     static int errorIx = e->KeywordIx( "ERROR");
     bool errorKeyword = e->KeywordPresent( errorIx);
@@ -790,7 +797,15 @@ namespace lib {
 
   void openw( EnvT* e)
   {
-    open_lun( e, fstream::in | fstream::out | fstream::trunc);
+    static int appendKWIx = e->KeywordIx( "APPEND");
+    if( e->KeywordSet( appendKWIx)) 
+      {
+	open_lun( e, fstream::in | fstream::out);
+      } 
+    else 
+      {
+	open_lun( e, fstream::in | fstream::out | fstream::trunc);
+      }
   }
 
   void openu( EnvT* e)

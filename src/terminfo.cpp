@@ -99,6 +99,10 @@ int TermWidth()
 
 #else
 
+// default
+
+// note: TermHeight() not yet used
+
 int TermWidth()
 {
   return 80;

@@ -226,8 +226,7 @@ am__objects_2 = gdl-assocdata.$(OBJEXT) gdl-basic_fun_cl.$(OBJEXT) \
 	gdl-arrayindex.$(OBJEXT) gdl-fftw.$(OBJEXT) gdl-mpi.$(OBJEXT) \
 	gdl-plot3d_nr.$(OBJEXT)
 @BUILDASLIBRARY_FALSE@am_gdl_OBJECTS = $(am__objects_2) \
-@BUILDASLIBRARY_FALSE@	gdl-gdl.$(OBJEXT) \
-@BUILDASLIBRARY_FALSE@	gdl-math_fun_gm.$(OBJEXT)
+@BUILDASLIBRARY_FALSE@	gdl-gdl.$(OBJEXT)
 gdl_OBJECTS = $(am_gdl_OBJECTS)
 @BUILDASLIBRARY_FALSE@gdl_DEPENDENCIES =  \
 @BUILDASLIBRARY_FALSE@	$(top_builddir)/src/antlr/libantlr.a
@@ -323,6 +322,7 @@ PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 RANLIB = @RANLIB@
+SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
@@ -413,7 +413,7 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 		gdlzstream.cpp gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp arrayindex.cpp \
 		fftw.cpp fftw.hpp mpi.cpp mpi.hpp plot3d_nr.cpp
 
-@BUILDASLIBRARY_FALSE@gdl_SOURCES = $(cpp_hpp_files) gdl.cpp math_fun_gm.cpp
+@BUILDASLIBRARY_FALSE@gdl_SOURCES = $(cpp_hpp_files) gdl.cpp
 # trigger basename generation
 @BUILDASLIBRARY_FALSE@gdl_CXXFLAGS = $(AM_CXXFLAGS)
 # the library search path.
