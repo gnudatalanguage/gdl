@@ -45,7 +45,7 @@ int TermHeight()
   return bufinfo.srWindow.Bottom + 1;
 }
 
-#elif defined(HAVE_LIBREADLINE)
+#elif defined(HAVE_LIBREADLINE) && defined(RL_GET_SCREEN_SIZE)
 
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -78,8 +78,8 @@ int TermHeight()
 
 int TermWidth()
 {
-  static int cols = 0;
-  static SCREEN *screen;
+  int cols = 0;
+  SCREEN *screen;
 
   if( cols != 0) return cols;
 

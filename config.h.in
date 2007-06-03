@@ -81,6 +81,9 @@
 /* Define if you want to build the GDL python module */
 #undef PYTHON_MODULE
 
+/* GNU readline with rl_get_screen_size */
+#undef RL_GET_SCREEN_SIZE
+
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 

@@ -29,7 +29,7 @@ dnl check if we build GDL standalone or the python module
 dnl default: build standalone version on GDL
 PYTHON_MODULE="no"
 AC_ARG_ENABLE(python_module,	
- 	[  --enable-python_module  make GDL python module (default: standalone version)],	
+ 	[  --enable-python_module  make GDL python module (default: standalone version)],
 	[ PYTHON_MODULE="$enableval"
 	])
 
@@ -72,8 +72,9 @@ dnl as OS X provides another readline library
     LIBS="$LIBS -lreadline"
   fi
 
-  AC_CHECK_LIB(readline, stifle_history,[
-       AC_DEFINE([HAVE_LIBREADLINE], [1], [GNU readline library]) ],[
+  AC_CHECK_LIB(readline, stifle_history,
+  	[ AC_DEFINE( [HAVE_LIBREADLINE], [1], [GNU readline library])],
+        [
 	echo ""
 	echo "Error! GNU readline was not found."
 	echo "       Use --with-readlinedir=no to expicitely disable it"
@@ -81,6 +82,16 @@ dnl as OS X provides another readline library
 
 	exit -1
 	])
+
+  AC_CHECK_LIB(readline, rl_get_screen_size,[
+       AC_DEFINE([RL_GET_SCREEN_SIZE], [1], [GNU readline with rl_get_screen_size])],
+        [
+	echo ""
+	echo "Warning! Older GNU readline without 'rl_get_screen_size' was found."
+	echo "         For resized terminals the size might not be updated correctly"
+	echo "         If this is a problem please install a recent version of readline"
+	])
+
 fi
 
 dnl end of READLINE
@@ -167,7 +178,7 @@ fi
 
 if test "x$with_gsl" = "xno"; then	
 	echo ""	
-	echo "Error! GSL library is obligatory."
+	echo "Error! Gnu Scientific Library (1.4 or higher) is mandatory"
         exit -1
 fi
 
@@ -191,10 +202,11 @@ AC_CHECK_LIB(gslcblas, cblas_drot, [], [
         exit -1
 	])
 
+dnl On OS X determining the version number fails
 dnl We check GSL library version
-sinclude(gsl.m4)
-AM_PATH_GSL(1.4,,
-	AC_MSG_ERROR('minimal version of GSL is 1.4'))
+dnl sinclude(gsl.m4)
+dnl AM_PATH_GSL(1.4,,
+dnl 	AC_MSG_ERROR('minimal version of GSL is 1.4'))
 
 
 dnl plplot 

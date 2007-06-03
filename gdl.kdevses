@@ -4,56 +4,7 @@
  <DocsAndViews NumberOfDocuments="0" />
  <pluginList>
   <kdevdebugger>
-   <breakpointList>
-    <breakpoint0 location="/home/marc/gdl/src/arrayindexlistt.hpp:650" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
-     <tracedExpressions/>
-    </breakpoint0>
-    <breakpoint1 location="/home/marc/gdl/src/assocdata.cpp:128" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
-     <tracedExpressions/>
-    </breakpoint1>
-    <breakpoint2 location="/home/marc/gdl/src/assocdata.cpp:145" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
-     <tracedExpressions/>
-    </breakpoint2>
-    <breakpoint3 location="/home/marc/gdl/src/objects.cpp:255" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
-     <tracedExpressions/>
-    </breakpoint3>
-    <breakpoint4 location="/home/marc/gdl/src/envt.cpp:361" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
-     <tracedExpressions/>
-    </breakpoint4>
-    <breakpoint5 location="/home/marc/gdl/src/accessdesc.hpp:47" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
-     <tracedExpressions/>
-    </breakpoint5>
-    <breakpoint6 location="/home/marc/gdl/src/datatypes.cpp:1833" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
-     <tracedExpressions/>
-    </breakpoint6>
-    <breakpoint7 location="/home/marc/gdl/src/print.cpp:53" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
-     <tracedExpressions/>
-    </breakpoint7>
-    <breakpoint8 location="/home/marc/gdl/src/basic_op.cpp:365" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
-     <tracedExpressions/>
-    </breakpoint8>
-    <breakpoint9 location="/home/marc/gdl/src/basic_op.cpp:366" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
-     <tracedExpressions/>
-    </breakpoint9>
-    <breakpoint10 location="/home/marc/gdl/src/basic_op.cpp:364" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
-     <tracedExpressions/>
-    </breakpoint10>
-    <breakpoint11 location="/home/marc/gdl/src/dnode.cpp:1292" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
-     <tracedExpressions/>
-    </breakpoint11>
-    <breakpoint12 location="/home/marc/gdl/src/dnode.cpp:2223" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
-     <tracedExpressions/>
-    </breakpoint12>
-    <breakpoint13 location="/home/marc/gdl/src/basic_op.cpp:2955" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
-     <tracedExpressions/>
-    </breakpoint13>
-    <breakpoint14 location="/home/marc/gdl/src/dnode.cpp:843" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
-     <tracedExpressions/>
-    </breakpoint14>
-    <breakpoint15 location="/home/marc/gdl/src/dnode.cpp:1367" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
-     <tracedExpressions/>
-    </breakpoint15>
-   </breakpointList>
+   <breakpointList/>
   </kdevdebugger>
   <kdevbookmarks>
    <bookmarks>
@@ -61,11 +12,11 @@
      <mark line="889" />
      <mark line="574" />
     </bookmark>
-    <bookmark url="/usr/local/home/marc/gdl/src/dcompiler.cpp" >
-     <mark line="459" />
-    </bookmark>
     <bookmark url="/usr/local/home/marc/gdl/src/basic_fun.cpp" >
      <mark line="1142" />
+    </bookmark>
+    <bookmark url="/usr/local/home/marc/gdl/src/dcompiler.cpp" >
+     <mark line="459" />
     </bookmark>
     <bookmark url="/usr/local/home/marc/gdl/src/datalistt.hpp" >
      <mark line="79" />
