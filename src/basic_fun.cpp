@@ -2538,7 +2538,9 @@ namespace lib {
 
     DLong    minEl;
     BaseGDL* res;
-    bool omitNaN = e->KeywordPresent( 1); // NAN keyword 
+    // bool omitNaN = e->KeywordPresent( 1); // NAN keyword 
+    bool omitNaN = e->KeywordSet( "NAN");
+
     bool subMax = e->KeywordPresent( 2);   // SUBSCRIPT_MAX present
 
     if( nParam == 2)
@@ -2590,7 +2592,9 @@ namespace lib {
 
     DLong    maxEl;
     BaseGDL* res;
-    bool omitNaN = e->KeywordPresent( 1); // NAN keyword 
+    //bool omitNaN = e->KeywordPresent( 1); // NAN keyword 
+    bool omitNaN = e->KeywordSet( "NAN");
+
     bool subMin = e->KeywordPresent( 2);  // SUBSCRIPT_MIN present
 
     if( nParam == 2)

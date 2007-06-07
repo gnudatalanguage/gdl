@@ -4,7 +4,7 @@
     begin                : July 22 2002
     copyright            : (C) 2002 by Marc Schellens
     email                : m_schellens@users.sf.net
- ***************************************************************************/
+***************************************************************************/
 
 /***************************************************************************
  *                                                                         *
@@ -541,29 +541,29 @@ BaseGDL* Data_<Sp>::Transpose( DUInt* perm)
 	      res->dd[ e] = dd[ ix];
 	      ix += srcStride1;
 	      if( ix >= nElem) 
-		  ix = ++srcDim0;
+		ix = ++srcDim0;
 	    }
 	  return res;
 
-// 	  SizeT srcDim1 = 0;
+	  // 	  SizeT srcDim1 = 0;
 
-// 	  SizeT nElem = dd.size();
-// 	  for( SizeT e=0; e<nElem; ++e)
-// 	    {
-// 	      // multi src dim to one dim index
-// 	      SizeT ix = srcDim0 + srcDim1 * srcStride1;
+	  // 	  SizeT nElem = dd.size();
+	  // 	  for( SizeT e=0; e<nElem; ++e)
+	  // 	    {
+	  // 	      // multi src dim to one dim index
+	  // 	      SizeT ix = srcDim0 + srcDim1 * srcStride1;
       
-// 	      res->dd[ e] = dd[ ix];
+	  // 	      res->dd[ e] = dd[ ix];
 	      
-// 	      // update dest multi dim
-// 	      if( ++srcDim1 >= this->dim[ 1]) 
-// 		{
-// 		  srcDim1=0;
-// 		  if( ++srcDim0 >= this->dim[0]) srcDim0=0;
-// 		}
-// 	    }
+	  // 	      // update dest multi dim
+	  // 	      if( ++srcDim1 >= this->dim[ 1]) 
+	  // 		{
+	  // 		  srcDim1=0;
+	  // 		  if( ++srcDim0 >= this->dim[0]) srcDim0=0;
+	  // 		}
+	  // 	    }
 
-// 	  return res;
+	  // 	  return res;
 	}
 
       perm = &permDefault[ MAXRANK - rank];
@@ -623,7 +623,7 @@ BaseGDL* Data_<Sp>::Rotate( DLong dir)
       SizeT nEl = N_Elements();
       
       for( SizeT i=0; i<nEl; ++i)
-	  res->dd[i] = dd[ nEl-1-i];
+	res->dd[i] = dd[ nEl-1-i];
       return res;
     }
 
@@ -739,7 +739,7 @@ SizeT Data_<Sp>::Sizeof() const
 template< class Sp>
 void Data_<Sp>::Clear() 
 { dd = Sp::zero;
-  //SizeT nEl = dd.size(); for( SizeT i = 0; i<nEl; ++i) dd[ i] = Sp::zero;
+//SizeT nEl = dd.size(); for( SizeT i = 0; i<nEl; ++i) dd[ i] = Sp::zero;
 }
 
 // template< class Sp>
@@ -1144,8 +1144,8 @@ bool Data_<Sp>::Equal( BaseGDL* r)
 {
   if( !r->Scalar())
     {
-    delete r;
-    throw GDLException("Expression must be a scalar in this context.");
+      delete r;
+      throw GDLException("Expression must be a scalar in this context.");
     }
   Data_* rr=static_cast<Data_*>(r->Convert2( this->t));
   bool ret= (dd[0] == rr->dd[0]);
@@ -1169,15 +1169,15 @@ bool Data_<Sp>::ArrayEqual( BaseGDL* rIn)
   SizeT rEl = r->N_Elements();
   if( rEl == 1)
     {
-    for( SizeT i=0; i<nEl; ++i)
-      if( dd[i] != (*r)[0]) return false;
-    return true;
+      for( SizeT i=0; i<nEl; ++i)
+	if( dd[i] != (*r)[0]) return false;
+      return true;
     }
   if( nEl == 1)
     {
-    for( SizeT i=0; i<rEl; ++i)
-      if( dd[0] != (*r)[i]) return false;
-    return true;
+      for( SizeT i=0; i<rEl; ++i)
+	if( dd[0] != (*r)[i]) return false;
+      return true;
     }
   if( nEl != rEl) return false;
   for( SizeT i=0; i<nEl; ++i)
@@ -1310,7 +1310,7 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
   Data_* src = static_cast<Data_*>(srcIn);  
 
   SizeT srcElem= src->N_Elements();
-//  bool  isScalar= (srcElem == 1);
+  //  bool  isScalar= (srcElem == 1);
   bool  isScalar= (srcElem == 1) && (src->Rank() == 0);
   if( isScalar) 
     { // src is scalar
@@ -1449,10 +1449,10 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn)
 
       dd = scalar;
       
-//       SizeT nCp=Data_::N_Elements();
+      //       SizeT nCp=Data_::N_Elements();
 
-//       for( SizeT c=0; c<nCp; ++c)
-// 	dd[ c]=scalar;
+      //       for( SizeT c=0; c<nCp; ++c)
+      // 	dd[ c]=scalar;
     }
   else
     {
@@ -1474,10 +1474,10 @@ void Data_<Sp>::DecAt( ArrayIndexListT* ixList)
   if( ixList == NULL)
     {
       dd -= 1;
-//       SizeT nCp=Data_::N_Elements();
+      //       SizeT nCp=Data_::N_Elements();
       
-//       for( SizeT c=0; c<nCp; ++c)
-// 	dd[ c]--;
+      //       for( SizeT c=0; c<nCp; ++c)
+      // 	dd[ c]--;
     }
   else
     {
@@ -1494,10 +1494,10 @@ void Data_<Sp>::IncAt( ArrayIndexListT* ixList)
   if( ixList == NULL)
     {
       dd += 1;
-//       SizeT nCp=Data_::N_Elements();
+      //       SizeT nCp=Data_::N_Elements();
       
-//       for( SizeT c=0; c<nCp; ++c)
-// 	dd[ c]++;
+      //       for( SizeT c=0; c<nCp; ++c)
+      // 	dd[ c]++;
     }
   else
     {
@@ -1516,10 +1516,10 @@ void Data_<SpDFloat>::DecAt( ArrayIndexListT* ixList)
     {
       dd -= 1.0f;
       
-//       SizeT nCp=Data_::N_Elements();
+      //       SizeT nCp=Data_::N_Elements();
       
-//       for( SizeT c=0; c<nCp; ++c)
-// 	dd[ c] -= 1.0;
+      //       for( SizeT c=0; c<nCp; ++c)
+      // 	dd[ c] -= 1.0;
     }
   else
     {
@@ -1537,10 +1537,10 @@ void Data_<SpDFloat>::IncAt( ArrayIndexListT* ixList)
     {
       dd += 1.0f;
 
-//       SizeT nCp=Data_::N_Elements();
+      //       SizeT nCp=Data_::N_Elements();
       
-//       for( SizeT c=0; c<nCp; ++c)
-// 	dd[ c] += 1.0;
+      //       for( SizeT c=0; c<nCp; ++c)
+      // 	dd[ c] += 1.0;
     }
   else
     {
@@ -1558,10 +1558,10 @@ void Data_<SpDDouble>::DecAt( ArrayIndexListT* ixList)
     {
       dd -= 1.0;
 
-//       SizeT nCp=Data_::N_Elements();
+      //       SizeT nCp=Data_::N_Elements();
       
-//       for( SizeT c=0; c<nCp; ++c)
-// 	dd[ c] -= 1.0;
+      //       for( SizeT c=0; c<nCp; ++c)
+      // 	dd[ c] -= 1.0;
     }
   else
     {
@@ -1579,10 +1579,10 @@ void Data_<SpDDouble>::IncAt( ArrayIndexListT* ixList)
     {
       dd += 1.0;
 
-//       SizeT nCp=Data_::N_Elements();
+      //       SizeT nCp=Data_::N_Elements();
       
-//       for( SizeT c=0; c<nCp; ++c)
-// 	dd[ c] += 1.0;
+      //       for( SizeT c=0; c<nCp; ++c)
+      // 	dd[ c] += 1.0;
     }
   else
     {
@@ -1601,10 +1601,10 @@ void Data_<SpDComplex>::DecAt( ArrayIndexListT* ixList)
     {
       dd -= 1.0f;
 
-//       SizeT nCp=Data_::N_Elements();
+      //       SizeT nCp=Data_::N_Elements();
       
-//       for( SizeT c=0; c<nCp; ++c)
-// 	dd[ c] -= 1.0;
+      //       for( SizeT c=0; c<nCp; ++c)
+      // 	dd[ c] -= 1.0;
     }
   else
     {
@@ -1622,10 +1622,10 @@ void Data_<SpDComplex>::IncAt( ArrayIndexListT* ixList)
     {
       dd += 1.0f;
 
-//       SizeT nCp=Data_::N_Elements();
+      //       SizeT nCp=Data_::N_Elements();
       
-//       for( SizeT c=0; c<nCp; ++c)
-// 	dd[ c] += 1.0;
+      //       for( SizeT c=0; c<nCp; ++c)
+      // 	dd[ c] += 1.0;
     }
   else
     {
@@ -1643,10 +1643,10 @@ void Data_<SpDComplexDbl>::DecAt( ArrayIndexListT* ixList)
     {
       dd -= 1.0;
 
-//       SizeT nCp=Data_::N_Elements();
+      //       SizeT nCp=Data_::N_Elements();
       
-//       for( SizeT c=0; c<nCp; ++c)
-// 	dd[ c] -= 1.0;
+      //       for( SizeT c=0; c<nCp; ++c)
+      // 	dd[ c] -= 1.0;
     }
   else
     {
@@ -1664,10 +1664,10 @@ void Data_<SpDComplexDbl>::IncAt( ArrayIndexListT* ixList)
     {
       dd += 1.0;
 
-//       SizeT nCp=Data_::N_Elements();
+      //       SizeT nCp=Data_::N_Elements();
       
-//       for( SizeT c=0; c<nCp; ++c)
-// 	dd[ c] += 1.0;
+      //       for( SizeT c=0; c<nCp; ++c)
+      // 	dd[ c] += 1.0;
     }
   else
     {
@@ -1824,24 +1824,24 @@ void Data_<Sp>::InsAt( Data_* srcIn, ArrayIndexListT* ixList, SizeT offset)
   SizeT nDim = ixList->NDim();
  
   if( nDim == 1)
-//     {
-//       SizeT destStart = ixList->LongIx();
+    //     {
+    //       SizeT destStart = ixList->LongIx();
 
-//       SizeT len = srcIn->Dim( 0); // length of segment to copy
-//       // check if in bounds of a
-//       if( (destStart+len) > this->N_Elements()) //dim[0])
-// 	throw GDLException("Out of range subscript encountered (1).");
+    //       SizeT len = srcIn->Dim( 0); // length of segment to copy
+    //       // check if in bounds of a
+    //       if( (destStart+len) > this->N_Elements()) //dim[0])
+    // 	throw GDLException("Out of range subscript encountered (1).");
   
-//       DataT& srcIn_dd = srcIn->dd; 
-//       SizeT srcIx = 0; // this one simply runs from 0 to N_Elements(srcIn)
+    //       DataT& srcIn_dd = srcIn->dd; 
+    //       SizeT srcIx = 0; // this one simply runs from 0 to N_Elements(srcIn)
 
-//       SizeT destEnd = destStart + len;
-//       for( SizeT destIx = destStart; destIx < destEnd; ++destIx)
-// 	dd[ destIx] = srcIn_dd[ srcIx++];
+    //       SizeT destEnd = destStart + len;
+    //       for( SizeT destIx = destStart; destIx < destEnd; ++destIx)
+    // 	dd[ destIx] = srcIn_dd[ srcIx++];
 
-//       return;
-//     }
-     {
+    //       return;
+    //     }
+    {
       SizeT destStart = ixList->LongIx();
 
       //SizeT len;
@@ -2299,6 +2299,12 @@ void Data_<Sp>::MinMax( DLong* minE, DLong* maxE,
   *minE = minEl;
   if( minVal != NULL) *minVal = new Data_( minV);
 }
+
+// the code for <SpDFloat>::MinMax is a "template" for Double, Complex and DoubleComplex ...
+// Please note that IDL does not take care of order for {-Inf, Nan, Inf}
+// when NaN is present with Inf and -Inf ONLY. We follow this rule ...
+// (we took the last one)
+
 template<>
 void Data_<SpDFloat>::MinMax( DLong* minE, DLong* maxE, 
 			      BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN)
@@ -2308,20 +2314,30 @@ void Data_<SpDFloat>::MinMax( DLong* minE, DLong* maxE,
       DLong maxEl  = 0;
       Ty    maxV = dd[0];
       DLong nEl = dd.size();
-      for( DLong i=1; i<nEl; ++i)
-	{
-	  if (omitNaN && isnan(dd[i])) continue;
-	  if( dd[i] > maxV)
-	    {
-	      maxV = dd[i];
-	      maxEl  = i;
-	    }
-	  else if (omitNaN && isnan(maxV))
-	    {
-	      maxV = dd[i];
-	      maxEl  = i;
-	    }
+      DLong i, i_min=1;
+
+      if (omitNaN) {
+	i=0;
+	int flag=1;
+	while (flag == 1) {
+	  if (!isnan(dd[i]) && isfinite(dd[i])) { flag =0;}
+	  if (i == nEl-1) { flag =0;}
+	  i=i+1;
 	}
+	maxV = dd[i-1];
+	maxEl  = i-1;
+	i_min=i;
+      }
+        
+      for( i=i_min; i<nEl; ++i) {
+	if (omitNaN) {
+	  if (isnan(dd[i]) || !isfinite(dd[i])) continue;
+	}
+	if (dd[i] > maxV) {
+	  maxV = dd[i];
+	  maxEl  = i;
+	}
+      }
       *maxE = maxEl;
       if( maxVal != NULL) *maxVal = new Data_( maxV);
       return;
@@ -2331,82 +2347,115 @@ void Data_<SpDFloat>::MinMax( DLong* minE, DLong* maxE,
       DLong minEl  = 0;
       Ty    minV = dd[0];
       DLong nEl = dd.size();
-      for( DLong i=1; i<nEl; ++i)
-	{
-	  if (omitNaN && isnan(dd[i])) continue;
-	  if( dd[i] < minV)
-	    {
-	      minV = dd[i];
-	      minEl  = i;
-	    }
-	  else if (omitNaN && isnan(minV))
-	    {
-	      minV = dd[i];
-	      minEl  = i;
-	    }
+      DLong i, i_min=1;
+
+      if (omitNaN) {
+	i=0;
+	int flag=1;
+	while (flag == 1) {
+	  if (!isnan(dd[i]) && isfinite(dd[i])) { flag =0;}
+	  if (i == nEl-1) { flag =0;}
+	  i=i+1;
 	}
+	minV = dd[i-1];
+	minEl  = i-1;
+	i_min=i;
+      }
+   
+      for (i=i_min; i<nEl; ++i) {
+	if (omitNaN) {
+	  if (isnan(dd[i]) || !isfinite(dd[i])) continue;
+	} 
+	if (dd[i] < minV) {
+	  minV = dd[i];
+	  minEl  = i;
+	}
+      }
       *minE = minEl;
       if( minVal != NULL) *minVal = new Data_( minV);
       return;
     }
-
+  
   DLong maxEl  = 0;
   Ty    maxV = dd[0];
 
   DLong minEl  = 0;
   Ty    minV = dd[0];
-
+  DLong i, i_min=1;
   DLong nEl = dd.size();
-  for( DLong i=1; i<nEl; ++i)
-    {
-      if (omitNaN && isnan(dd[i])) continue;
-      if( dd[i] > maxV)
-	{
-	  maxV = dd[i];
-	  maxEl  = i;
-	}
-      else if( dd[i] < minV)
-	{
-	  minV = dd[i];
-	  minEl  = i;
-	}
-      else if (omitNaN && isnan(minV)) // Doesn't matter which one we check here.
-	{
-	  minV = dd[i];
-	  minEl  = i;
-	  maxV = dd[i];
-	  maxEl  = i;
-	}
+  
+  if (omitNaN) {
+    i=0;
+    int flag=1;
+    while (flag == 1) {
+      if (!isnan(dd[i]) && isfinite(dd[i])) { flag =0;}
+      if (i == nEl-1) { flag =0;}
+      i=i+1;
     }
+    minV = dd[i-1];
+    minEl  = i-1;
+    maxV = dd[i-1];
+    maxEl  = i-1;
+    i_min=i;
+  }
+
+  for( i=i_min; i<nEl; ++i) {
+    if (omitNaN){
+      if (isnan(dd[i]) || !isfinite(dd[i])) continue;
+    }
+    if (dd[i] > maxV)
+      {
+	maxV = dd[i];
+	maxEl  = i;
+      }
+    else if( dd[i] < minV)
+      {
+	minV = dd[i];
+	minEl  = i;
+      }
+  }
   *maxE = maxEl;
   if( maxVal != NULL) *maxVal = new Data_( maxV);
-
+  
   *minE = minEl;
   if( minVal != NULL) *minVal = new Data_( minV);
 }
+
+
 template<>
 void Data_<SpDDouble>::MinMax( DLong* minE, DLong* maxE, 
 			       BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN)
+
 {
   if( minE == NULL)
     {
       DLong maxEl  = 0;
       Ty    maxV = dd[0];
       DLong nEl = dd.size();
-      for( DLong i=1; i<nEl; ++i)
-	{
-	  if (omitNaN && isnan(dd[i])) continue;
-	  if( dd[i] > maxV)
-	    {
-	      maxV = dd[i];
-	      maxEl  = i;
-	    }
-	  else if (omitNaN && isnan(maxV))
-	    {
-	      maxV = dd[i];
-	      maxEl  = i;
-	    }
+      DLong i, i_min=1;
+
+      if (omitNaN) {
+	i=0;
+	int flag=1;
+	while (flag == 1) {
+	  if (!isnan(dd[i]) && isfinite(dd[i])) { flag =0;}
+	  if (i == nEl-1) { flag =0;}
+	  i=i+1;
 	}
+	maxV = dd[i-1];
+	maxEl  = i-1;
+	i_min=i;
+      }
+        
+      for( i=i_min; i<nEl; ++i) {
+	if (omitNaN) {
+	  if (isnan(dd[i]) || !isfinite(dd[i])) continue;
+	}
+	if (dd[i] > maxV) {
+	  maxV = dd[i];
+	  maxEl  = i;
+	}
+      }
       *maxE = maxEl;
       if( maxVal != NULL) *maxVal = new Data_( maxV);
       return;
@@ -2416,62 +2465,83 @@ void Data_<SpDDouble>::MinMax( DLong* minE, DLong* maxE,
       DLong minEl  = 0;
       Ty    minV = dd[0];
       DLong nEl = dd.size();
-      for( DLong i=1; i<nEl; ++i)
-	{
-	  if (omitNaN && isnan(dd[i])) continue;
-	  if( dd[i] < minV)
-	    {
-	      minV = dd[i];
-	      minEl  = i;
-	    }
-	  else if (omitNaN && isnan(minV))
-	    {
-	      minV = dd[i];
-	      minEl  = i;
-	    }
+      DLong i, i_min=1;
+
+      if (omitNaN) {
+	i=0;
+	int flag=1;
+	while (flag == 1) {
+	  if (!isnan(dd[i]) && isfinite(dd[i])) { flag =0;}
+	  if (i == nEl-1) { flag =0;}
+	  i=i+1;
 	}
+	minV = dd[i-1];
+	minEl  = i-1;
+	i_min=i;
+      }
+   
+      for (i=i_min; i<nEl; ++i) {
+	if (omitNaN) {
+	  if (isnan(dd[i]) || !isfinite(dd[i])) continue;
+	} 
+	if (dd[i] < minV) {
+	  minV = dd[i];
+	  minEl  = i;
+	}
+      }
       *minE = minEl;
       if( minVal != NULL) *minVal = new Data_( minV);
       return;
     }
-
+  
   DLong maxEl  = 0;
   Ty    maxV = dd[0];
 
   DLong minEl  = 0;
   Ty    minV = dd[0];
-
+  DLong i, i_min=1;
   DLong nEl = dd.size();
-  for( DLong i=1; i<nEl; ++i)
-    {
-      if (omitNaN && isnan(dd[i])) continue;
-      if( dd[i] > maxV)
-	{
-	  maxV = dd[i];
-	  maxEl  = i;
-	}
-      else if( dd[i] < minV)
-	{
-	  minV = dd[i];
-	  minEl  = i;
-	}
-      else if (omitNaN && isnan(minV)) // Doesn't matter which one we check here.
-	{
-	  minV = dd[i];
-	  minEl  = i;
-	  maxV = dd[i];
-	  maxEl  = i;
-	}
+  
+  if (omitNaN) {
+    i=0;
+    int flag=1;
+    while (flag == 1) {
+      if (!isnan(dd[i]) && isfinite(dd[i])) { flag =0;}
+      if (i == nEl-1) { flag =0;}
+      i=i+1;
     }
+    minV = dd[i-1];
+    minEl  = i-1;
+    maxV = dd[i-1];
+    maxEl  = i-1;
+    i_min=i;
+  }
+
+  for( i=i_min; i<nEl; ++i) {
+    if (omitNaN){
+      if (isnan(dd[i]) || !isfinite(dd[i])) continue;
+    }
+    if (dd[i] > maxV)
+      {
+	maxV = dd[i];
+	maxEl  = i;
+      }
+    else if( dd[i] < minV)
+      {
+	minV = dd[i];
+	minEl  = i;
+      }
+  }
   *maxE = maxEl;
   if( maxVal != NULL) *maxVal = new Data_( maxV);
-
+  
   *minE = minEl;
   if( minVal != NULL) *minVal = new Data_( minV);
 }
+
 template<>
 void Data_<SpDString>::MinMax( DLong* minE, DLong* maxE, 
-			BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN)
+			       BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN)
 {
   if( minE == NULL)
     {
@@ -2537,26 +2607,37 @@ void Data_<SpDString>::MinMax( DLong* minE, DLong* maxE,
 template<>
 void Data_<SpDComplex>::MinMax( DLong* minE, DLong* maxE, 
 				BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN)
+
 {
   if( minE == NULL)
     {
       DLong maxEl  = 0;
       float maxV = dd[0].real();
       DLong nEl = dd.size();
-      for( DLong i=1; i<nEl; ++i)
-	{
-	  if (omitNaN && isnan(dd[i].real())) continue;
-	  if( dd[i].real() > maxV)
-	    {
-	      maxV = dd[i].real();
-	      maxEl  = i;
-	    }
-	  else if (omitNaN && isnan(maxV))
-	    {
-	      maxV = dd[i].real();
-	      maxEl  = i;
-	    }
+      DLong i, i_min=1;
+
+      if (omitNaN) {
+	i=0;
+	int flag=1;
+	while (flag == 1) {
+	  if (!isnan(dd[i].real()) && isfinite(dd[i].real())) { flag =0;}
+	  if (i == nEl-1) { flag =0;}
+	  i=i+1;
 	}
+	maxV = dd[i-1].real();
+	maxEl  = i-1;
+	i_min=i;
+      }
+        
+      for( i=i_min; i<nEl; ++i) {
+	if (omitNaN) {
+	  if (isnan(dd[i].real()) || !isfinite(dd[i].real())) continue;
+	}
+	if (dd[i].real() > maxV) {
+	  maxV = dd[i].real();
+	  maxEl  = i;
+	}
+      }
       *maxE = maxEl;
       if( maxVal != NULL) *maxVal = new Data_( dd[ maxEl]);
       return;
@@ -2566,82 +2647,115 @@ void Data_<SpDComplex>::MinMax( DLong* minE, DLong* maxE,
       DLong minEl  = 0;
       float minV = dd[0].real();
       DLong nEl = dd.size();
-      for( DLong i=1; i<nEl; ++i)
-	{
-	  if (omitNaN && isnan(dd[i].real())) continue;
-	  if( dd[i].real() < minV)
-	    {
-	      minV = dd[i].real();
-	      minEl  = i;
-	    }
-	  else if (omitNaN && isnan(minV))
-	    {
-	      minV = dd[i].real();
-	      minEl  = i;
-	    }
+      DLong i, i_min=1;
+
+      if (omitNaN) {
+	i=0;
+	int flag=1;
+	while (flag == 1) {
+	  if (!isnan(dd[i].real()) && isfinite(dd[i].real())) { flag =0;}
+	  if (i == nEl-1) { flag =0;}
+	  i=i+1;
 	}
+	minV = dd[i-1].real();
+	minEl  = i-1;
+	i_min=i;
+      }
+   
+      for (i=i_min; i<nEl; ++i) {
+	if (omitNaN) {
+	  if (isnan(dd[i].real()) || !isfinite(dd[i].real())) continue;
+	} 
+	if (dd[i].real() < minV) {
+	  minV = dd[i].real();
+	  minEl  = i;
+	}
+      }
       *minE = minEl;
       if( minVal != NULL) *minVal = new Data_( dd[ minEl]);
       return;
     }
-
+  
   DLong maxEl  = 0;
   float maxV = dd[0].real();
 
   DLong minEl  = 0;
   float minV = dd[0].real();
-
+  DLong i, i_min=1;
   DLong nEl = dd.size();
-  for( DLong i=1; i<nEl; ++i)
-    {
-      if (omitNaN && isnan(dd[i].real())) continue;
-      if( dd[i].real() > maxV)
-	{
-	  maxV = dd[i].real();
-	  maxEl  = i;
-	}
-      else if( dd[i].real() < minV)
-	{
-	  minV = dd[i].real();
-	  minEl  = i;
-	}
-      else if (omitNaN && isnan(minV)) // Doesn't matter which one we check here.
-	{
-	  minV = dd[i].real();
-	  minEl  = i;
-	  maxV = dd[i].real();
-	  maxEl  = i;
-	}
+  
+  if (omitNaN) {
+    i=0;
+    int flag=1;
+    while (flag == 1) {
+      if (!isnan(dd[i].real()) && isfinite(dd[i].real())) { flag =0;}
+      if (i == nEl-1) { flag =0;}
+      i=i+1;
     }
+    minV = dd[i-1].real();
+    minEl  = i-1;
+    maxV = dd[i-1].real();
+    maxEl  = i-1;
+    i_min=i;
+  }
+
+  for( i=i_min; i<nEl; ++i) {
+    if (omitNaN){
+      if (isnan(dd[i].real()) || !isfinite(dd[i].real())) continue;
+    }
+    if (dd[i].real() > maxV)
+      {
+	maxV = dd[i].real();
+	maxEl  = i;
+      }
+    else if( dd[i].real() < minV)
+      {
+	minV = dd[i].real();
+	minEl  = i;
+      }
+  }
   *maxE = maxEl;
   if( maxVal != NULL) *maxVal = new Data_( dd[ maxEl]);
-
+  
   *minE = minEl;
   if( minVal != NULL) *minVal = new Data_( dd[ minEl]);
+
 }
+
 template<>
 void Data_<SpDComplexDbl>::MinMax( DLong* minE, DLong* maxE, 
-				BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN)
+				   BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN)
+
 {
   if( minE == NULL)
     {
       DLong maxEl  = 0;
       double maxV = dd[0].real();
       DLong nEl = dd.size();
-      for( DLong i=1; i<nEl; ++i)
-	{
-	  if (omitNaN && isnan(dd[i].real())) continue;
-	  if( dd[i].real() > maxV)
-	    {
-	      maxV = dd[i].real();
-	      maxEl  = i;
-	    }
-	  else if (omitNaN && isnan(maxV))
-	    {
-	      maxV = dd[i].real();
-	      maxEl  = i;
-	    }
+      DLong i, i_min=1;
+
+      if (omitNaN) {
+	i=0;
+	int flag=1;
+	while (flag == 1) {
+	  if (!isnan(dd[i].real()) && isfinite(dd[i].real())) { flag =0;}
+	  if (i == nEl-1) { flag =0;}
+	  i=i+1;
 	}
+	maxV = dd[i-1].real();
+	maxEl  = i-1;
+	i_min=i;
+      }
+        
+      for( i=i_min; i<nEl; ++i) {
+	if (omitNaN) {
+	  if (isnan(dd[i].real()) || !isfinite(dd[i].real())) continue;
+	}
+	if (dd[i].real() > maxV) {
+	  maxV = dd[i].real();
+	  maxEl  = i;
+	}
+      }
       *maxE = maxEl;
       if( maxVal != NULL) *maxVal = new Data_( dd[ maxEl]);
       return;
@@ -2651,59 +2765,81 @@ void Data_<SpDComplexDbl>::MinMax( DLong* minE, DLong* maxE,
       DLong minEl  = 0;
       double minV = dd[0].real();
       DLong nEl = dd.size();
-      for( DLong i=1; i<nEl; ++i)
-	{
-	  if (omitNaN && isnan(dd[i].real())) continue;
-	  if( dd[i].real() < minV)
-	    {
-	      minV = dd[i].real();
-	      minEl  = i;
-	    }
-	  else if (omitNaN && isnan(minV))
-	    {
-	      minV = dd[i].real();
-	      minEl  = i;
-	    }
+      DLong i, i_min=1;
+
+      if (omitNaN) {
+	i=0;
+	int flag=1;
+	while (flag == 1) {
+	  if (!isnan(dd[i].real()) && isfinite(dd[i].real())) { flag =0;}
+	  if (i == nEl-1) { flag =0;}
+	  i=i+1;
 	}
+	minV = dd[i-1].real();
+	minEl  = i-1;
+	i_min=i;
+      }
+   
+      for (i=i_min; i<nEl; ++i) {
+	if (omitNaN) {
+	  if (isnan(dd[i].real()) || !isfinite(dd[i].real())) continue;
+	} 
+	if (dd[i].real() < minV) {
+	  minV = dd[i].real();
+	  minEl  = i;
+	}
+      }
       *minE = minEl;
       if( minVal != NULL) *minVal = new Data_( dd[ minEl]);
       return;
     }
-
+  
   DLong maxEl  = 0;
   double maxV = dd[0].real();
 
   DLong minEl  = 0;
   double minV = dd[0].real();
-
+  DLong i, i_min=1;
   DLong nEl = dd.size();
-  for( DLong i=1; i<nEl; ++i)
-    {
-      if (omitNaN && isnan(dd[i].real())) continue;
-      if( dd[i].real() > maxV)
-	{
-	  maxV = dd[i].real();
-	  maxEl  = i;
-	}
-      else if( dd[i].real() < minV)
-	{
-	  minV = dd[i].real();
-	  minEl  = i;
-	}
-      else if (omitNaN && isnan(minV)) // Doesn't matter which one we check here.
-	{
-	  minV = dd[i].real();
-	  minEl  = i;
-	  maxV = dd[i].real();
-	  maxEl  = i;
-	}
+  
+  if (omitNaN) {
+    i=0;
+    int flag=1;
+    while (flag == 1) {
+      if (!isnan(dd[i].real()) && isfinite(dd[i].real())) { flag =0;}
+      if (i == nEl-1) { flag =0;}
+      i=i+1;
     }
+    minV = dd[i-1].real();
+    minEl  = i-1;
+    maxV = dd[i-1].real();
+    maxEl  = i-1;
+    i_min=i;
+  }
+
+  for( i=i_min; i<nEl; ++i) {
+    if (omitNaN){
+      if (isnan(dd[i].real()) || !isfinite(dd[i].real())) continue;
+    }
+    if (dd[i].real() > maxV)
+      {
+	maxV = dd[i].real();
+	maxEl  = i;
+      }
+    else if( dd[i].real() < minV)
+      {
+	minV = dd[i].real();
+	minEl  = i;
+      }
+  }
   *maxE = maxEl;
   if( maxVal != NULL) *maxVal = new Data_( dd[ maxEl]);
-
+  
   *minE = minEl;
   if( minVal != NULL) *minVal = new Data_( dd[ minEl]);
+
 }
+
 void DStructGDL::MinMax( DLong* minE, DLong* maxE, 
 			 BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN)
 {
@@ -3419,219 +3555,219 @@ Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
 
 	NEWIX_UNSIGNEDINT
 	
-// 	SizeT i = 0;
-// 	for( ; i < nElem; ++i)
-// 	  if( (*src)[i] > upper)
-// 	    {
-// 	      if( strict)
-// 		throw GDLException("Array used to subscript array "
-// 				   "contains out of range (>) subscript.");
-// 	      (*res)[i++]= upperVal;
-// 	      break;
-// 	    }
-// 	  else
-// 	    (*res)[i]= dd[ (*src)[i]];
+	  // 	SizeT i = 0;
+	  // 	for( ; i < nElem; ++i)
+	  // 	  if( (*src)[i] > upper)
+	  // 	    {
+	  // 	      if( strict)
+	  // 		throw GDLException("Array used to subscript array "
+	  // 				   "contains out of range (>) subscript.");
+	  // 	      (*res)[i++]= upperVal;
+	  // 	      break;
+	  // 	    }
+	  // 	  else
+	  // 	    (*res)[i]= dd[ (*src)[i]];
 
-// 	for(; i < nElem; ++i)
-// 	  if( (*src)[i] > upper)
-// 	    (*res)[i] = upperVal;
-// 	  else
-// 	    (*res)[i]= dd[ (*src)[i]]; 
+	  // 	for(; i < nElem; ++i)
+	  // 	  if( (*src)[i] > upper)
+	  // 	    (*res)[i] = upperVal;
+	  // 	  else
+	  // 	    (*res)[i]= dd[ (*src)[i]]; 
 	
-// 	return guard.release();
-      }
+	  // 	return guard.release();
+	  }
     case INT:
       {
 	DIntGDL* src = static_cast<DIntGDL*>( ix);
 
 	NEWIX_SIGNEDINT
 
-// 	SizeT i = 0;
-// 	for(; i < nElem; ++i)
-// 	  if( (*src)[i] < 0)
-// 	    {
-// 	      if( strict)
-// 		throw GDLException("Array used to subscript array "
-// 				   "contains out of range (<0) subscript.");
-// 	      (*res)[i++]= zeroVal;
-// 	      break;
-// 	    }
-// 	  else if( (*src)[i] > upper)
-// 	    {
-// 	      if( strict)
-// 		throw GDLException("Array used to subscript array "
-// 				   "contains out of range (>) subscript.");
-// 	      (*res)[i++]= upperVal;
-// 	      break;
-// 	    }
-// 	  else
-// 	    (*res)[ i] = dd[ (*src)[ i]];
+	  // 	SizeT i = 0;
+	  // 	for(; i < nElem; ++i)
+	  // 	  if( (*src)[i] < 0)
+	  // 	    {
+	  // 	      if( strict)
+	  // 		throw GDLException("Array used to subscript array "
+	  // 				   "contains out of range (<0) subscript.");
+	  // 	      (*res)[i++]= zeroVal;
+	  // 	      break;
+	  // 	    }
+	  // 	  else if( (*src)[i] > upper)
+	  // 	    {
+	  // 	      if( strict)
+	  // 		throw GDLException("Array used to subscript array "
+	  // 				   "contains out of range (>) subscript.");
+	  // 	      (*res)[i++]= upperVal;
+	  // 	      break;
+	  // 	    }
+	  // 	  else
+	  // 	    (*res)[ i] = dd[ (*src)[ i]];
 	
-// 	for(; i < nElem; ++i)
-// 	  if( (*src)[i] < 0)
-// 	    (*res)[i]= zeroVal;
-// 	  else if( (*src)[i] > upper)
-// 	    (*res)[i]= upperVal;
-// 	  else
-// 	    (*res)[ i] = dd[ (*src)[ i]];
+	  // 	for(; i < nElem; ++i)
+	  // 	  if( (*src)[i] < 0)
+	  // 	    (*res)[i]= zeroVal;
+	  // 	  else if( (*src)[i] > upper)
+	  // 	    (*res)[i]= upperVal;
+	  // 	  else
+	  // 	    (*res)[ i] = dd[ (*src)[ i]];
 	
-// 	return guard.release();
-      }
+	  // 	return guard.release();
+	  }
     case UINT:
       {
 	DUIntGDL* src = static_cast<DUIntGDL*>( ix);
 
 	NEWIX_UNSIGNEDINT
 
-// 	SizeT i = 0;
-// 	for( ; i < nElem; ++i)
-// 	  if( (*src)[i] > upper)
-// 	    {
-// 	      if( strict)
-// 		throw GDLException("Array used to subscript array "
-// 				   "contains out of range (>) subscript.");
-// 	      (*res)[i++]= upperVal;
-// 	      break;
-// 	    }
-// 	  else
-// 	    (*res)[i]= dd[ (*src)[i]];
+	  // 	SizeT i = 0;
+	  // 	for( ; i < nElem; ++i)
+	  // 	  if( (*src)[i] > upper)
+	  // 	    {
+	  // 	      if( strict)
+	  // 		throw GDLException("Array used to subscript array "
+	  // 				   "contains out of range (>) subscript.");
+	  // 	      (*res)[i++]= upperVal;
+	  // 	      break;
+	  // 	    }
+	  // 	  else
+	  // 	    (*res)[i]= dd[ (*src)[i]];
 
-// 	for(; i < nElem; ++i)
-// 	  if( (*src)[i] >= upper)
-// 	    (*res)[i] = upperVal;
-// 	  else
-// 	    (*res)[i]= dd[ (*src)[i]]; 
+	  // 	for(; i < nElem; ++i)
+	  // 	  if( (*src)[i] >= upper)
+	  // 	    (*res)[i] = upperVal;
+	  // 	  else
+	  // 	    (*res)[i]= dd[ (*src)[i]]; 
 	
-// 	return guard.release();
-      }
+	  // 	return guard.release();
+	  }
     case LONG: // typical type (returned from WHERE)
       {
 	DLongGDL* src = static_cast<DLongGDL*>( ix);
 
 	NEWIX_SIGNEDINT
 
-// 	SizeT i = 0;
-// 	for(; i < nElem; ++i)
-// 	  if( (*src)[i] < 0)
-// 	    {
-// 	      if( strict)
-// 		throw GDLException("Array used to subscript array "
-// 				   "contains out of range (<0) subscript.");
-// 	      (*res)[i++]= zeroVal;
-// 	      break;
-// 	    }
-// 	  else if( (*src)[i] > upper)
-// 	    {
-// 	      if( strict)
-// 		throw GDLException("Array used to subscript array "
-// 				   "contains out of range (>) subscript.");
-// 	      (*res)[i++]= upperVal;
-// 	      break;
-// 	    }
-// 	  else
-// 	    (*res)[ i] = dd[ (*src)[ i]];
+	  // 	SizeT i = 0;
+	  // 	for(; i < nElem; ++i)
+	  // 	  if( (*src)[i] < 0)
+	  // 	    {
+	  // 	      if( strict)
+	  // 		throw GDLException("Array used to subscript array "
+	  // 				   "contains out of range (<0) subscript.");
+	  // 	      (*res)[i++]= zeroVal;
+	  // 	      break;
+	  // 	    }
+	  // 	  else if( (*src)[i] > upper)
+	  // 	    {
+	  // 	      if( strict)
+	  // 		throw GDLException("Array used to subscript array "
+	  // 				   "contains out of range (>) subscript.");
+	  // 	      (*res)[i++]= upperVal;
+	  // 	      break;
+	  // 	    }
+	  // 	  else
+	  // 	    (*res)[ i] = dd[ (*src)[ i]];
 	
-// 	for(; i < nElem; ++i)
-// 	  if( (*src)[i] <= 0)
-// 	    (*res)[i]= zeroVal;
-// 	  else if( (*src)[i] >= upper)
-// 	    (*res)[i]= upperVal;
-// 	  else
-// 	    (*res)[ i] = dd[ (*src)[ i]];
+	  // 	for(; i < nElem; ++i)
+	  // 	  if( (*src)[i] <= 0)
+	  // 	    (*res)[i]= zeroVal;
+	  // 	  else if( (*src)[i] >= upper)
+	  // 	    (*res)[i]= upperVal;
+	  // 	  else
+	  // 	    (*res)[ i] = dd[ (*src)[ i]];
 	
-// 	return guard.release();
-      }
+	  // 	return guard.release();
+	  }
     case ULONG:
       {
 	DULongGDL* src = static_cast<DULongGDL*>( ix);
 
 	NEWIX_UNSIGNEDINT
 
-// 	SizeT i = 0;
-// 	for( ; i < nElem; ++i)
-// 	  if( (*src)[i] > upper)
-// 	    {
-// 	      if( strict)
-// 		throw GDLException("Array used to subscript array "
-// 				   "contains out of range (>) subscript.");
-// 	      (*res)[i++]= upperVal;
-// 	      break;
-// 	    }
-// 	  else
-// 	    (*res)[i]= dd[ (*src)[i]];
+	  // 	SizeT i = 0;
+	  // 	for( ; i < nElem; ++i)
+	  // 	  if( (*src)[i] > upper)
+	  // 	    {
+	  // 	      if( strict)
+	  // 		throw GDLException("Array used to subscript array "
+	  // 				   "contains out of range (>) subscript.");
+	  // 	      (*res)[i++]= upperVal;
+	  // 	      break;
+	  // 	    }
+	  // 	  else
+	  // 	    (*res)[i]= dd[ (*src)[i]];
 
-// 	for(; i < nElem; ++i)
-// 	  if( (*src)[i] > upper)
-// 	    (*res)[i] = upperVal;
-// 	  else
-// 	    (*res)[i]= dd[ (*src)[i]]; 
+	  // 	for(; i < nElem; ++i)
+	  // 	  if( (*src)[i] > upper)
+	  // 	    (*res)[i] = upperVal;
+	  // 	  else
+	  // 	    (*res)[i]= dd[ (*src)[i]]; 
 	
-// 	return guard.release();
-      }
+	  // 	return guard.release();
+	  }
     case LONG64:
       {
 	DLong64GDL* src = static_cast<DLong64GDL*>( ix);
 
 	NEWIX_SIGNEDINT
 
-// 	SizeT i = 0;
-// 	for(; i < nElem; ++i)
-// 	  if( (*src)[i] < 0)
-// 	    {
-// 	      if( strict)
-// 		throw GDLException("Array used to subscript array "
-// 				   "contains out of range (<0) subscript.");
-// 	      (*res)[i++]= zeroVal;
-// 	      break;
-// 	    }
-// 	  else if( (*src)[i] > upper)
-// 	    {
-// 	      if( strict)
-// 		throw GDLException("Array used to subscript array "
-// 				   "contains out of range (>) subscript.");
-// 	      (*res)[i++]= upperVal;
-// 	      break;
-// 	    }
-// 	  else
-// 	    (*res)[ i] = dd[ (*src)[ i]];
+	  // 	SizeT i = 0;
+	  // 	for(; i < nElem; ++i)
+	  // 	  if( (*src)[i] < 0)
+	  // 	    {
+	  // 	      if( strict)
+	  // 		throw GDLException("Array used to subscript array "
+	  // 				   "contains out of range (<0) subscript.");
+	  // 	      (*res)[i++]= zeroVal;
+	  // 	      break;
+	  // 	    }
+	  // 	  else if( (*src)[i] > upper)
+	  // 	    {
+	  // 	      if( strict)
+	  // 		throw GDLException("Array used to subscript array "
+	  // 				   "contains out of range (>) subscript.");
+	  // 	      (*res)[i++]= upperVal;
+	  // 	      break;
+	  // 	    }
+	  // 	  else
+	  // 	    (*res)[ i] = dd[ (*src)[ i]];
 	
-// 	for(; i < nElem; ++i)
-// 	  if( (*src)[i] <= 0)
-// 	    (*res)[i]= zeroVal;
-// 	  else if( (*src)[i] >= upper)
-// 	    (*res)[i]= upperVal;
-// 	  else
-// 	    (*res)[i] = dd[ (*src)[i]];
+	  // 	for(; i < nElem; ++i)
+	  // 	  if( (*src)[i] <= 0)
+	  // 	    (*res)[i]= zeroVal;
+	  // 	  else if( (*src)[i] >= upper)
+	  // 	    (*res)[i]= upperVal;
+	  // 	  else
+	  // 	    (*res)[i] = dd[ (*src)[i]];
 	
-// 	return guard.release();
-      }
+	  // 	return guard.release();
+	  }
     case ULONG64:
       {
 	DULong64GDL* src = static_cast<DULong64GDL*>( ix);
 
 	NEWIX_UNSIGNEDINT
 
-// 	SizeT i = 0;
-// 	for( ; i < nElem; ++i)
-// 	  if( (*src)[i] > upper)
-// 	    {
-// 	      if( strict)
-// 		throw GDLException("Array used to subscript array "
-// 				   "contains out of range (>) subscript.");
-// 	      (*res)[i++]= upperVal;
-// 	      break;
-// 	    }
-// 	  else
-// 	    (*res)[i]= dd[ (*src)[i]];
+	  // 	SizeT i = 0;
+	  // 	for( ; i < nElem; ++i)
+	  // 	  if( (*src)[i] > upper)
+	  // 	    {
+	  // 	      if( strict)
+	  // 		throw GDLException("Array used to subscript array "
+	  // 				   "contains out of range (>) subscript.");
+	  // 	      (*res)[i++]= upperVal;
+	  // 	      break;
+	  // 	    }
+	  // 	  else
+	  // 	    (*res)[i]= dd[ (*src)[i]];
 
-// 	for(; i < nElem; ++i)
-// 	  if( (*src)[i] > upper)
-// 	    (*res)[i] = upperVal;
-// 	  else
-// 	    (*res)[i]= dd[ (*src)[i]]; 
+	  // 	for(; i < nElem; ++i)
+	  // 	  if( (*src)[i] > upper)
+	  // 	    (*res)[i] = upperVal;
+	  // 	  else
+	  // 	    (*res)[i]= dd[ (*src)[i]]; 
 	
-// 	return guard.release();
-      }
+	  // 	return guard.release();
+	  }
     case FLOAT: 
       {
 	DFloat maxF = upper; 
