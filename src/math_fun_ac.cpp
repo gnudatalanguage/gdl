@@ -97,7 +97,8 @@ namespace lib {
     //if ITER present, not used (return -1)
     if(e->KeywordPresent(coefKWIx)) {
       cout << "ITER keyword not used, always return -1)";
-      coefKWIx = -1 ;
+      e->SetKW( coefKWIx, new DLongGDL( -1));
+//       coefKWIx = -1 ;
     }
 
     static DInt doubleKWIx = e->KeywordIx("DOUBLE");
@@ -160,7 +161,8 @@ namespace lib {
     //if ITER present, not used (return -1)
     if(e->KeywordPresent(coefKWIx)) {
       cout << "ITER keyword not used, always return -1)";
-      coefKWIx = -1 ;
+      e->SetKW( coefKWIx, new DLongGDL( -1));
+//       coefKWIx = -1 ;
     }
 
     static DInt doubleKWIx = e->KeywordIx("DOUBLE");
@@ -240,7 +242,8 @@ namespace lib {
     //if ITER present, not used (return -1)
     if(e->KeywordPresent(coefKWIx)) {
       cout << "ITER keyword not used, always return -1)";
-      coefKWIx = -1 ;
+      e->SetKW( coefKWIx, new DLongGDL( -1));
+//       coefKWIx = -1 ;
     }
 
     static DInt doubleKWIx = e->KeywordIx("DOUBLE");
@@ -321,7 +324,8 @@ namespace lib {
     //if ITER present, not used (return -1)
     if(e->KeywordPresent(coefKWIx)) {
       cout << "ITER keyword not used, always return -1)";
-      coefKWIx = -1 ;
+      e->SetKW( coefKWIx, new DLongGDL( -1));
+//       coefKWIx = -1 ;
     }
 
     static DInt doubleKWIx = e->KeywordIx("DOUBLE");
