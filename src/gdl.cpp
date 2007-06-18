@@ -60,6 +60,16 @@ void AtExit()
 
 void InitGDL()
 {
+#ifdef HAVE_LIBREADLINE
+  // initialize readline (own version - not pythons one)
+  // in includefirst.hpp readline is disabled for python_module
+  rl_initialize();
+  char rlName[] = "GDL";
+  rl_readline_name = rlName;
+  rl_event_hook = GDLEventHandler;
+  stifle_history( 20);
+#endif
+  
   // ncurses blurs the output, initialize TermWidth here
   TermWidth();
 

@@ -30,9 +30,11 @@
       <terminal>true</terminal>
       <directoryradio>executable</directoryradio>
       <customdirectory>/</customdirectory>
-      <programargs/>
+      <programargs></programargs>
       <autocompile>true</autocompile>
-      <envvars/>
+      <envvars>
+        <envvar value="startup.pro" name="GDL_STARTUP" />
+      </envvars>
       <runarguments>
         <gdl/>
       </runarguments>
@@ -62,14 +64,14 @@
         <cxxcompiler>kdevgppoptions</cxxcompiler>
         <f77compiler>kdevg77options</f77compiler>
         <cxxflags>-O0 -g3</cxxflags>
-        <topsourcedir></topsourcedir>
-        <cppflags></cppflags>
-        <ldflags></ldflags>
-        <ccompilerbinary></ccompilerbinary>
-        <cxxcompilerbinary></cxxcompilerbinary>
-        <f77compilerbinary></f77compilerbinary>
-        <cflags></cflags>
-        <f77flags></f77flags>
+        <topsourcedir/>
+        <cppflags/>
+        <ldflags/>
+        <ccompilerbinary/>
+        <cxxcompilerbinary/>
+        <f77compilerbinary/>
+        <cflags/>
+        <f77flags/>
         <envvars/>
       </debug>
       <default>

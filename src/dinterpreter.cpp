@@ -58,15 +58,6 @@ ProgNodeP GDLInterpreter::NULLProgNodeP = &GDLInterpreter::NULLProgNode;
 DInterpreter::DInterpreter(): GDLInterpreter()
 {
   
-#ifdef HAVE_LIBREADLINE
-  // initialize readline (own version - not pythons one)
-  // in includefirst.hpp readline is disabled for python_module
-  char rlName[] = "GDL";
-  rl_readline_name = rlName;
-  rl_event_hook = GDLEventHandler;
-  stifle_history( 20);
-#endif
-  
   //    heap.push_back(NULL); // init heap index 0 (used as NULL ptr)
   //    objHeap.push_back(NULL); // init heap index 0 (used as NULL ptr)
   interruptEnable = true;
