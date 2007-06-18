@@ -433,7 +433,10 @@ namespace lib {
 
   PLFLT AutoIntv(DDouble x)
   {
-    if( x == 0.0) return 1.0;
+    if( x == 0.0) {
+      //      cout << "zero"<<endl;
+      return 1.0;
+    }
 
     DLong n = static_cast<DLong>( floor(log10(x/2.82)));
     DDouble y = (x / (2.82 * pow(10.,static_cast<double>(n))));
@@ -444,8 +447,88 @@ namespace lib {
       m = 2;
     else if (y >= 4.47)
       m = 5;
+    
+    //    cout << "AutoIntv" << x << " " << y << endl;
 
     PLFLT intv = (PLFLT) (m * pow(10.,static_cast<double>(n)));
+    return intv;
+  }
+
+  //improved version of "AutoIntv" for:
+  // 1/ better managing ranges when all the data have same value
+  // 2/ mimic IDL behavior when data are all posivite
+  // please notice that (val_min, val_max) will be changed
+  // and "epsilon" is a coefficient if "extended range" is expected
+  PLFLT AutoIntvAC(DDouble & val_min, DDouble & val_max, bool StartAtZero)
+  {
+    PLFLT intv = 1.;
+    int cas = 0 ;
+    DDouble x; 
+    bool debug = false ;
+    if (debug) {cout << "init: " <<  val_min << " " << val_max << endl;}
+
+    // case "all below ABS((MACHAR()).xmin)
+    if ((abs(val_min) < 1e-38) && (abs(val_max) < 1e-38)) 
+      {
+	val_min=DDouble(-1.);
+	val_max=DDouble( 1.);
+	intv = (PLFLT) (2.);
+	cas = 1 ;
+      }
+
+    // case "all values are equal"
+    if (cas == 0)
+      {
+	x=val_max-val_min;
+	if (abs(x) < 1e-30) {
+	  DDouble val_ref;
+          val_ref=val_max;
+          if (0.98*val_min < val_ref) { // positive case
+            val_max=1.02*val_ref;
+            val_min=0.98*val_ref;
+          } else {     // negative case
+            val_max=0.98*val_ref;
+            val_min=1.02*val_ref;
+          }
+          if (debug) {cout << "Rescale : " << val_min << " " << val_max << endl;}
+	}
+      }
+ 
+    // case "all data positive, must start at Zero" (mimic IDL behavior)
+    if ((cas == 0) && (val_min >= 0.0)) // && (StartAtZero))
+      {
+      cas = 2 ;
+      DDouble resu, val_norm ;
+      // we used redudant scale (1.,1.2 and 10., 12. to avoid roundoff problem in log10)
+      DDouble levels[12]={1.,1.2,1.5,2.,2.5,3.,4.,5.,6.,8.,10.,12.};
+      int nb_levels= 12;
+      
+      DLong n = static_cast<DLong>( floor(log10(val_max)));
+      DDouble scale= pow(10.,static_cast<double>(n));
+ 
+      val_norm=val_max/scale;
+     
+      resu=levels[0];
+      for (int c = 0; c < nb_levels; c++) {
+	if ((val_norm > levels[c]) && (val_norm <= levels[c+1])) resu=levels[c+1] ;
+      }
+      //cout << scale << " "<< val_norm << "" << val_max << " "<< resu << endl;
+      if (StartAtZero) {val_min=0.0;}
+      val_max=resu*scale;
+      intv = (PLFLT)(val_max);
+    }
+    
+    // general case (only negative OR negative and positive)
+    if (cas == 0)
+      {  
+	x=val_max-val_min;	
+	intv = AutoIntv( x);
+	val_max = ceil(val_max/intv) * intv;
+	val_min = floor(val_min/intv) * intv;
+      }
+    
+    if (debug) {cout << "new range: "<<  val_min << " " << val_max << endl;}
+
     return intv;
   }
 
@@ -646,6 +729,7 @@ namespace lib {
     }
 
     // If pos == NULL (oplot)
+
     if ( pos == NULL) {
 
       // If position keyword previously set
@@ -740,6 +824,11 @@ namespace lib {
 	yVal = e->GetParAs< DDoubleGDL>( 1);
 	yEl = yVal->N_Elements();
       }
+    
+    if ( e->KeywordSet( "POLAR")) {
+       e->Throw( "Sorry, POLAR keyword not ready");
+      }
+
     DLong psym;
     bool line;
 
@@ -765,10 +854,32 @@ namespace lib {
     gkw_axis_margin(e, "Y",yMarginB, yMarginT);
 
     // x and y range
-    DDouble xStart = xVal->min(); 
-    DDouble xEnd   = xVal->max(); 
-    DDouble yStart = yVal->min(); 
-    DDouble yEnd   = yVal->max(); 
+    //    DDouble xStart = xVal->min(); 
+    //DDouble xEnd   = xVal->max(); 
+    //DDouble yStart = yVal->min(); 
+    //DDouble yEnd   = yVal->max(); 
+    //    cout << xStart << " " << xEnd << endl;
+    
+    bool debug=false;
+    DLong MyXminEl;
+    DLong MyXmaxEl;
+    //   BaseGDL *x, *y;
+    xVal->MinMax( &MyXminEl, &MyXmaxEl, NULL, NULL, true);
+    DDouble xStart = (*xVal)[MyXminEl];
+    DDouble xEnd = (*xVal)[MyXmaxEl];
+    if (debug) { cout << "X indices (min,max) " << MyXminEl << " " << MyXmaxEl << endl;
+    cout << "X values (min,max)  " << xStart << " " << xEnd << endl;}
+
+    DLong MyYminEl;
+    DLong MyYmaxEl;
+    //   BaseGDL *x, *y;
+    yVal->MinMax( &MyYminEl, &MyYmaxEl, NULL, NULL, true);
+    DDouble yStart = (*yVal)[MyYminEl];
+    DDouble yEnd = (*yVal)[MyYmaxEl];
+    if (debug) {cout << "Y indices (min,max) " << MyYminEl << " " << MyYmaxEl << endl;
+    cout << "Y values (min,max)  " << yStart << " " << yEnd << endl;}
+
+    //    cout << yStart << " " << yEnd << endl;
 
     DDouble xStartRaw = xStart;
     DDouble yStartRaw = yStart;
@@ -789,16 +900,14 @@ namespace lib {
 
     if ((xStyle & 1) != 1 && xLog == false) {
       PLFLT intv;
-      intv = AutoIntv(xEnd-xStart);
-      xEnd = ceil(xEnd/intv) * intv;
-      xStart = floor(xStart/intv) * intv;
+      intv = AutoIntvAC(xStart, xEnd, false);
+      //      cout << " X range" << xStart << " e "<< xEnd << endl;
     }
 
     if ((yStyle & 1) != 1 && yLog == false) {
       PLFLT intv;
-      intv = AutoIntv(yEnd-yStart);
-      yEnd = ceil(yEnd/intv) * intv;
-      yStart = floor(yStart/intv) * intv;
+      intv = AutoIntvAC(yStart, yEnd, false);
+      //      cout << " Y range" << yStart << " e "<< yEnd << endl;
     }
 
     DLong ynozero=0, xnozero=1;
@@ -808,10 +917,15 @@ namespace lib {
 
     if ( e->KeywordSet( "YNOZERO")) ynozero = 1;
 
+    // AC: should be now useless (done in AutoInvAC)
     if( xStart > 0 && xnozero == 0 && xLog == false) xStart = 0; 
     if( yStart > 0 && ynozero == 0 && yLog == false) yStart = 0; 
 
-    if(xEnd == xStart) xEnd=xStart+1;
+    // no more useful
+    //    if(xEnd == xStart) xEnd=xStart+1;
+    // AC
+    //if(yEnd == yStart) yEnd=yStart+1;
+     if (debug) {cout << " Y range" << yStart << " e "<< yEnd << endl;}
 
     DDouble minVal = yStart;
     DDouble maxVal = yEnd;
@@ -1047,6 +1161,10 @@ namespace lib {
     DDoubleGDL* yVal;
     DDoubleGDL* xVal;
 
+    if ( e->KeywordSet( "POLAR")) {
+       e->Throw( "Soory, POLAR keyword not ready");
+      }
+
     SizeT xEl;
     SizeT yEl;
     if( nParam == 1)
@@ -1067,7 +1185,6 @@ namespace lib {
 	yEl = yVal->N_Elements();
       }
     DLong minEl = (xEl < yEl)? xEl : yEl;
-
 
     // !X, !Y (also used below)
     DString xTitle, yTitle; 
@@ -1918,7 +2035,7 @@ namespace lib {
 	zEnd = (*zRangeF)[1];
       }
 
-
+    // AC is it useful ? Why not for Y ?
     if(xEnd == xStart) xEnd=xStart+1;
 
     DDouble minVal = zStart;
@@ -2389,18 +2506,13 @@ namespace lib {
 
     if ((xStyle & 1) != 1) {
       PLFLT intv;
-      intv = AutoIntv(xEnd-xStart);
-      xEnd = ceil(xEnd/intv) * intv;
-      xStart = floor(xStart/intv) * intv;
+      intv = AutoIntvAC(xStart, xEnd, false );
     }
 
     if ((yStyle & 1) != 1) {
       PLFLT intv;
-      intv = AutoIntv(yEnd-yStart);
-      yEnd = ceil(yEnd/intv) * intv;
-      yStart = floor(yStart/intv) * intv;
+      intv = AutoIntvAC(yStart, yEnd, false );
     }
-
 
     //[x|y|z]range keyword
     static int zRangeEnvIx = e->KeywordIx("ZRANGE");
@@ -2448,8 +2560,7 @@ namespace lib {
 	zEnd = (*zRangeF)[1];
       }
 
-
-    if(xEnd == xStart) xEnd=xStart+1;
+    //no more usefull    if(xEnd == xStart) xEnd=xStart+1;
 
     DDouble minVal = zStart;
     DDouble maxVal = zEnd;
@@ -2654,6 +2765,17 @@ namespace lib {
       PLFLT** z = new PLFLT*[xEl];
       for( SizeT i=0; i<xEl; i++) z[i] = &(*zVal)[i*yEl];
 
+      //      gkw_linestyle(e, actStream);
+      //actStream->lsty(2);
+      //
+      // AC 18 juin 2007 LineStyle and contour
+      // NOT READY NOW
+      // here we plot the axis 
+      // actStream->cont(z, xEl, yEl, 1, xEl, 1, yEl, 
+      //		      clevel, 0, mypltr, static_cast<void*>( spa));
+      // we recover the linestyle if a !p.linestyle does exist
+      //gkw_linestyle_c(e, actStream, TRUE);
+
       actStream->cont(z, xEl, yEl, 1, xEl, 1, yEl, 
 		      clevel, nlevel, mypltr, static_cast<void*>( spa));
 
@@ -2684,6 +2806,9 @@ namespace lib {
 
       actStream->Free2dGrid(cgrid2.xg,xVal->Dim(0),xVal->Dim(1));
       actStream->Free2dGrid(cgrid2.yg,xVal->Dim(0),xVal->Dim(1));
+
+      // AC june 07 : symetry for the previous case
+      delete[] z;
     }
 
 
@@ -2695,6 +2820,7 @@ namespace lib {
     
 
     actStream->flush();
+    actStream->lsty(1);//reset linestyle
 
     // set ![XY].CRANGE
     set_axis_crange("X", xStart, xEnd);
@@ -2752,16 +2878,18 @@ namespace lib {
 
     if ((xStyle & 1) != 1 && xAxis) {
       PLFLT intv;
-      intv = AutoIntv(xEnd-xStart);
-      xEnd = ceil(xEnd/intv) * intv;
-      xStart = floor(xStart/intv) * intv;
+      intv = AutoIntvAC(xStart, xEnd, false );
+      //      intv = AutoIntv(xEnd-xStart);
+      // xEnd = ceil(xEnd/intv) * intv;
+      // xStart = floor(xStart/intv) * intv;
     }
 
     if ((yStyle & 1) != 1 && yAxis) {
       PLFLT intv;
-      intv = AutoIntv(yEnd-yStart);
-      yEnd = ceil(yEnd/intv) * intv;
-      yStart = floor(yStart/intv) * intv;
+      intv = AutoIntvAC(xStart, xEnd, false );
+      //      intv = AutoIntv(yEnd-yStart);
+      //yEnd = ceil(yEnd/intv) * intv;
+      //yStart = floor(yStart/intv) * intv;
     }
 
 
@@ -2770,7 +2898,8 @@ namespace lib {
     gkw_axis_range(e, "X", xStart, xEnd, ynozero);
     gkw_axis_range(e, "Y", yStart, yEnd, xnozero);
 
-    if(xEnd == xStart) xEnd=xStart+1;
+    // AC nomore useful
+    // if(xEnd == xStart) xEnd=xStart+1;
 
     DDouble minVal = yStart;
     DDouble maxVal = yEnd;
@@ -2911,8 +3040,181 @@ namespace lib {
   }
 
 
+  void ac_histo(GDLGStream *a, int i_buff, PLFLT *x_buff, PLFLT *y_buff )
+  {
+    PLFLT x,x1,y,y1;
+    for ( int jj=1; jj<i_buff; ++jj){
+      x1=x_buff[jj-1];
+      x=x_buff[jj];
+      y1=y_buff[jj-1];
+      y=y_buff[jj];
+      a->join(x1,y1,(x1+x)/2.0,y1);
+      a->join((x1+x)/2.0,y1,(x1+x)/2.0,y);
+      a->join((x1+x)/2.0,y,x,y);
+    }
+  }
+
   //CORE PLOT FUNCTION -> Draws a line along xVal, yVal
   template <typename T> bool draw_polyline(EnvT *e,  GDLGStream *a,
+					   T * xVal, T* yVal, 
+					   bool xLog, bool yLog, 
+					   DDouble yStart, DDouble yEnd, 
+					   DLong psym)
+  {
+    bool line=false;
+    bool valid=true;
+    DLong psym_=0;
+
+    if(psym <0 ) {line=true; psym_=-psym;}
+    else if(psym == 0 ) {line=true;psym_=psym;}
+    else {psym_=psym;}
+    DLong minEl = (xVal->N_Elements() < yVal->N_Elements())? 
+      xVal->N_Elements() : yVal->N_Elements();
+    // if scalar x
+    if (xVal->N_Elements() == 1 && xVal->Rank() == 0) 
+      minEl = yVal->N_Elements();
+    // if scalar y
+    if (yVal->N_Elements() == 1 && yVal->Rank() == 0) 
+      minEl = xVal->N_Elements();
+
+    DDouble *sx;
+    DDouble *sy;
+    static DStructGDL* xStruct = SysVar::X();
+    static DStructGDL* yStruct = SysVar::Y();
+    static unsigned sxTag = xStruct->Desc()->TagIndex( "S");
+    static unsigned syTag = yStruct->Desc()->TagIndex( "S");
+    sx = &(*static_cast<DDoubleGDL*>( xStruct->Get( sxTag, 0)))[0];
+    sy = &(*static_cast<DDoubleGDL*>( yStruct->Get( syTag, 0)))[0];
+
+    bool mapSet=false;
+#ifdef USE_LIBPROJ4
+    // Map Stuff (xtype = 3)
+    LP idata;
+    XY odata;
+
+    get_mapset(mapSet);
+
+    DDouble xStart, xEnd;
+    get_axis_crange("X", xStart, xEnd);
+
+    if ( mapSet) {
+      ref = map_init();
+      if ( ref == NULL) {
+	e->Throw( "Projection initialization failed.");
+      }
+    }
+#endif
+
+    // is one of the 2 "arrays" a singleton or not ?
+
+    PLFLT y, y1, yMapBefore, y_ref;
+    int flag_y_const =0;
+    y_ref = static_cast<PLFLT>( (*yVal)[0]);
+    if (yVal->N_Elements() == 1 && yVal->Rank() == 0) flag_y_const=1 ;
+
+    PLFLT x, x1, xMapBefore, x_ref;
+    int flag_x_const =0;
+    x_ref = static_cast<PLFLT>( (*xVal)[0]);
+    if (xVal->N_Elements() == 1 && xVal->Rank() == 0) flag_x_const=1 ;
+
+    // AC 070601 we use a buffer to use the fast ->line method
+    // instead of the slow ->join one.
+    // 2 tricks: 
+    // trick 1/ size of buffer is limited to 1e4 (compromize syze/speed) in order to be able to manage very
+    //    large among of data whitout duplicating all the arrays
+    // trick 2/ when we have a NaN or and Inf, we realize the plot, then reset.
+    
+    int n_buff_max=500000; // idl default seems to be more than 2e6 !!
+    if (minEl < n_buff_max)  n_buff_max=minEl;
+    int i_buff=0;
+    PLFLT *x_buff = new PLFLT[n_buff_max];
+    PLFLT *y_buff = new PLFLT[n_buff_max];
+   
+    // flag to reset Buffer when a NaN or a Infinity are founded
+    int reset=0;
+
+    // translation plplot symbols - GDL symbols
+    // for now usersym is a circle
+    const PLINT codeArr[]={ 0,2,3,1,11,7,6,5,4};
+
+    for( int i=0; i<minEl; ++i)
+      {
+	if (!flag_x_const) x = static_cast<PLFLT>( (*xVal)[i]); else x=x_ref;
+	if (!flag_y_const) y = static_cast<PLFLT>( (*yVal)[i]); else y=y_ref;
+
+#ifdef USE_LIBPROJ4
+	if (mapSet && !e->KeywordSet("NORMAL")) {
+	  idata.lam = x * DEG_TO_RAD;
+	  idata.phi = y * DEG_TO_RAD;
+	  if (i >0) {
+	    xMapBefore=odata.x;
+	    yMapBefore=odata.y;
+	  }
+	  odata = pj_fwd(idata, ref);
+	  x = odata.x;
+	  y = odata.y;	  
+	}
+#endif	
+	if (!isfinite(x) || !isfinite(y) || isnan(x) || isnan(y)) {
+	  reset=1;
+	  if (i_buff > 0) {
+	    if (line) { a->line (i_buff, x_buff, y_buff);}
+	    if (psym_ > 0 && psym_ < 10) { a->poin(i_buff, x_buff, y_buff, codeArr[psym_]);}
+	    if (psym_ == 10) {  ac_histo( a, i_buff, x_buff, y_buff ); }
+	    i_buff=0;
+	  }
+	  continue;
+	}
+
+#ifdef USE_LIBPROJ4
+	if (mapSet && !e->KeywordSet("NORMAL")) {
+	  if (i >0 ) //;&& (i_buff >0))
+	    {
+	      x1=xMapBefore;
+	      if (!isfinite(xMapBefore) || !isfinite(yMapBefore)) continue;
+
+	      // Break "jumps" across maps (kludge!)
+	      if (fabs(x-x1) > 0.5*(xEnd-xStart)) {
+		reset=1;
+		if ((i_buff > 0) && (line)) {
+		  a->line (i_buff, x_buff, y_buff);
+		  //		  x_buff[0]=x_buff[i_buff-1];
+		  //y_buff[0]=y_buff[i_buff-1];
+		  i_buff=0;
+		}
+		continue;
+	      }
+	    }
+	}
+#endif
+
+	if( xLog) if( x <= 0.0) continue; else x = log10( x);
+	if( yLog) if( y <= 0.0) continue; else y = log10( y);
+
+	x_buff[i_buff]=x;
+	y_buff[i_buff]=y;
+	i_buff=i_buff+1;
+	
+	if ((i_buff == n_buff_max-1) || (i == minEl-1 )) {
+	  if (line) { a->line(i_buff, x_buff, y_buff); };
+	  if (psym_ > 0 && psym_ < 10) { a->poin(i_buff, x_buff, y_buff, codeArr[psym_]);}
+	  if (psym_ == 10) {  ac_histo( a, i_buff, x_buff, y_buff ); }
+	    
+	  // we must recopy the last point since the line must continue (tested via small buffer ...)
+	  x_buff[0]=x_buff[i_buff-1];
+	  y_buff[0]=y_buff[i_buff-1];
+	  i_buff=1;
+	}
+      }
+    
+    delete[] x_buff;
+    delete[] y_buff;
+    
+    return (valid);
+  }
+  
+  //CORE PLOT FUNCTION -> Draws a line along xVal, yVal
+  template <typename T> bool draw_polyline_ref(EnvT *e,  GDLGStream *a,
 					   T * xVal, T* yVal, 
 					   bool xLog, bool yLog, 
 					   DDouble yStart, DDouble yEnd, 
@@ -3251,6 +3553,33 @@ namespace lib {
     a->wid( static_cast<PLINT>(floor( thick-0.5)));
   }
 
+  // AC 18 juin 2007 
+  // NOT READY NOW
+  //LINESTYLE for contour
+  void gkw_linestyle_c(EnvT *e, GDLGStream * a, bool OnlyPline)
+  {
+    if (OnlyPline == false) {
+      // if the LINESTYLE keyword is present, the value will be change
+      DLong temp_linestyle=-1111;
+      e->AssureLongScalarKWIfPresent( "LINESTYLE",temp_linestyle);
+    }
+    static DStructGDL* pStruct = SysVar::P();
+    DLong linestyle= 
+      (*static_cast<DLongGDL*>
+       (pStruct->Get
+	(pStruct->Desc()->TagIndex("LINESTYLE"), 0)))[0];
+
+    if (linestyle < 0 ) {linestyle=0;}
+    if (linestyle > 5 ) {linestyle=5;}
+
+    //    if (linestyle == 1) { // dots
+      static PLINT nbp=1;
+      static PLINT mark[] = {75};
+      static PLINT space[] = {1500};
+      a->styl(nbp, mark, space);
+    
+    
+  }
   //LINESTYLE
   void gkw_linestyle(EnvT *e, GDLGStream * a)
   {
@@ -3259,21 +3588,58 @@ namespace lib {
       (*static_cast<DLongGDL*>
        (pStruct->Get
 	(pStruct->Desc()->TagIndex("LINESTYLE"), 0)))[0];
-    DLong temp_linestyle=0;
+
+    // if the LINESTYLE keyword is present, the value will be change
+    DLong temp_linestyle=-1111;
     e->AssureLongScalarKWIfPresent( "LINESTYLE",temp_linestyle);
+    
+    bool debug=false;
+    if (debug) {
+      cout << "temp_linestyle " <<  temp_linestyle << endl;
+      cout << "     linestyle " <<  linestyle << endl;
+    }
+    if (temp_linestyle != -1111) {linestyle=temp_linestyle;}//+1;
+    if (linestyle < 0 ) {linestyle=0;}
+    if (linestyle > 5 ) {linestyle=5;}
 
-    /*
-    if((temp_linestyle > 0) && (temp_linestyle < 9) )
-	linestyle=temp_linestyle;
-    else if((linestyle > 0) && (linestyle < 9) )
-	linestyle=linestyle+1;
-    else 
-	linestyle=1;
-    */
+      // see
+      // file:///home/coulais/SoftsExternes/plplot-5.5.3/examples/c++/x09.cc
+      // file:///home/coulais/SoftsExternes/plplot-5.5.3/doc/docbook/src/plstyl.html
 
-    linestyle=temp_linestyle+1;
-
-    a->lsty(linestyle);
+    if (linestyle == 0) { // solid (continuous line)
+      static PLINT nbp=0;
+      a->styl(nbp, NULL, NULL);
+    }
+    if (linestyle == 1) { // dots
+      static PLINT nbp=1;
+      static PLINT mark[] = {75};
+      static PLINT space[] = {1500};
+      a->styl(nbp, mark, space);
+    }
+    if (linestyle == 2) { // dashed
+      static PLINT nbp=1;
+      static PLINT mark[] = {1500};
+      static PLINT space[] = {1500};
+      a->styl(nbp, mark, space);
+  }
+    if (linestyle == 3) { // dash dot
+      static PLINT nbp=2;
+      static PLINT mark[] = {1500,100};
+      static PLINT space[] = {1000,1000};
+      a->styl(nbp, mark, space);
+    }
+    if (linestyle == 4) { // dash dot dot
+      static PLINT nbp=4;
+      static PLINT mark[] = {1500,100,100,100};
+      static PLINT space[] = {1000,1000,1000,1000};
+      a->styl(nbp, mark, space);
+    }
+    if (linestyle == 5) { // long dash
+      static PLINT nbp=1;
+      static PLINT mark[] = {3000};
+      static PLINT space[] = {1500}; 
+      a->styl(nbp, mark, space);
+    }
   }
 
   //TITLE
