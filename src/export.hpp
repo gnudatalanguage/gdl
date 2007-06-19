@@ -22,7 +22,7 @@ T2* GDL_MakeTempArray( DLong rank, DLong *dim, BaseGDL::InitType iT,
   return (T2 *) data->DataAddr();
 }
 
-void GDL_VarCopy( EnvT* e, DLong ipar, GDL_VPTR v_src)
+void GDL_VarCopy( EnvT* e, GDL_VPTR v_src, DLong ipar) 
 {
   BaseGDL** p = &e->GetPar( ipar);
   *p = v_src;
