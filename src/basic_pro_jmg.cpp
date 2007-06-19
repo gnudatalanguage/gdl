@@ -96,6 +96,7 @@ namespace lib {
 
     DString funcName;
     e->AssureScalarPar<DStringGDL>( 0, funcName);
+    DString upCasefuncName = StrUpCase( funcName);
 
     DString shrdimgName;
     e->AssureScalarPar<DStringGDL>( 1, shrdimgName);
@@ -109,7 +110,8 @@ namespace lib {
     /* Load dynamically loaded library */
     module[count] = dlopen(shrdimgName.c_str(), RTLD_LAZY);
     if (!module[count]) {
-      fprintf(stderr, "Couldn't open %s: %s\n", shrdimgName.c_str(), dlerror());
+      fprintf(stderr, "Couldn't open %s: %s\n", 
+	      shrdimgName.c_str(), dlerror());
       return;
     }
 
@@ -134,10 +136,10 @@ namespace lib {
     }
 
     if (funcType == 0){
-      new DLibPro(lib::dynPro[count_pro],funcName.c_str(),8);
+      new DLibPro(lib::dynPro[count_pro], upCasefuncName.c_str(), 16);
       count_pro++;
     } else if (funcType == 1) {
-      new DLibFun(lib::dynFun[count_fun],funcName.c_str(),8);
+      new DLibFun(lib::dynFun[count_fun], upCasefuncName.c_str(), 16);
       count_fun++;
     }
   }
