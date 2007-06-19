@@ -768,7 +768,8 @@ namespace lib {
 	", File: "+fileUnits[ lun-1].Name();
       
       if( !errorKeyword)
-	e->Throw( errorMsg);
+	throw GDLIOException( e->CallingNode(), e->GetPro()->ObjectName()+
+			  ": "+errorMsg);
       
       BaseGDL** err = &e->GetKW( errorIx);
       

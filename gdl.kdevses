@@ -1,7 +1,14 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
- <DocsAndViews NumberOfDocuments="0" />
+ <DocsAndViews NumberOfDocuments="2" >
+  <Doc0 NumberOfViews="1" URL="file:///home/marc/gdl/src/print.cpp" >
+   <View0 line="107" Type="Source" />
+  </Doc0>
+  <Doc1 NumberOfViews="1" URL="file:///home/marc/gdl/src/terminfo.cpp" >
+   <View0 line="42" Type="Source" />
+  </Doc1>
+ </DocsAndViews>
  <pluginList>
   <kdevdebugger>
    <breakpointList/>
@@ -12,11 +19,11 @@
      <mark line="889" />
      <mark line="574" />
     </bookmark>
-    <bookmark url="/usr/local/home/marc/gdl/src/basic_fun.cpp" >
-     <mark line="1142" />
-    </bookmark>
     <bookmark url="/usr/local/home/marc/gdl/src/dcompiler.cpp" >
      <mark line="459" />
+    </bookmark>
+    <bookmark url="/usr/local/home/marc/gdl/src/basic_fun.cpp" >
+     <mark line="1142" />
     </bookmark>
     <bookmark url="/usr/local/home/marc/gdl/src/datalistt.hpp" >
      <mark line="79" />

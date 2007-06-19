@@ -58,7 +58,7 @@ void GDLStream::Open( const string& name_,
   if( fStream == NULL)
     fStream = new fstream();
   else if( fStream->is_open())
-    throw GDLException("File unit is already open.");
+    throw GDLIOException("File unit is already open.");
 
   fStream->open( name_.c_str(), mode_);
 
@@ -191,25 +191,25 @@ igzstream& GDLStream::IgzStream()
 fstream& GDLStream::IStream()
 {
   if( fStream == NULL || !fStream->is_open()) 
-    throw GDLException("File unit is not open.");
+    throw GDLIOException("File unit is not open.");
   if( !(mode & ios::in))
-    throw GDLException("File unit is not open for reading.");
+    throw GDLIOException("File unit is not open for reading.");
   return *fStream;
 }
 
 fstream& GDLStream::OStream()
 {
   if( fStream == NULL || !fStream->is_open()) 
-    throw GDLException("File unit is not open.");
+    throw GDLIOException("File unit is not open.");
   if( !(mode & ios::out))
-    throw GDLException("File unit is not open for writing.");
+    throw GDLIOException("File unit is not open for writing.");
   return *fStream;
 }
 
 istringstream& GDLStream::ISocketStream()
 {
   if( iSocketStream == NULL) 
-    throw GDLException("Socket unit is not open.");
+    throw GDLIOException("Socket unit is not open.");
   return *iSocketStream;
 }
 
@@ -340,8 +340,8 @@ void GDLStream::F77ReadEnd()
 // ============================================================================
 //
 // File          : gzstream.C
-// Revision      : $Revision: 1.16 $
-// Revision_date : $Date: 2007-03-04 19:17:11 $
+// Revision      : $Revision: 1.17 $
+// Revision_date : $Date: 2007-06-19 23:37:02 $
 // Author(s)     : Deepak Bandyopadhyay, Lutz Kettner
 // 
 // Standard streambuf implementation following Nicolai Josuttis, "The 

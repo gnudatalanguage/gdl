@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.6 (2005-12-22): "gdlc.i.g" -> "GDLInterpreter.cpp"$ */
+/* $ANTLR 2.7.7 (2006-11-01): "gdlc.i.g" -> "GDLInterpreter.cpp"$ */
 
     // gets inserted before the antlr generated includes in the cpp file
 #include "includefirst.hpp"
@@ -291,6 +291,20 @@ GDLInterpreter::GDLInterpreter()
 		
 	}
 	catch ( GDLException& e) {
+		
+		if( dynamic_cast< GDLIOException*>( &e) != NULL)
+		{
+		// set the jump target - also logs the jump
+		ProgNodeP onIOErr = static_cast<EnvUDT*>(callStack.back())->GetIOError();
+		if( onIOErr != NULL)
+		{
+		_t = onIOErr;
+		retCode=RC_OK;		
+		
+		_retTree = _t;
+		return retCode;
+		}
+		}
 		
 		EnvUDT* targetEnv = e.GetTargetEnv();
 		if( targetEnv == NULL)

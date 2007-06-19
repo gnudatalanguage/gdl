@@ -576,11 +576,22 @@ statement returns[ GDLInterpreter::RetCode retCode]
         }
 	;
     exception 
-//     catch [ GDLIOException& e] 
-//     { // TODO
-//     }
     catch [ GDLException& e] 
     { 
+        if( dynamic_cast< GDLIOException*>( &e) != NULL)
+            {
+                // set the jump target - also logs the jump
+                ProgNodeP onIOErr = static_cast<EnvUDT*>(callStack.back())->GetIOError();
+                if( onIOErr != NULL)
+                    {
+                        _t = onIOErr;
+                        retCode=RC_OK;		
+
+                        _retTree = _t;
+                        return retCode;
+                    }
+            }
+
         EnvUDT* targetEnv = e.GetTargetEnv();
         if( targetEnv == NULL)
         {
