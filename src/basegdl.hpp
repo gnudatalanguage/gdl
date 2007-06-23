@@ -122,7 +122,9 @@ public:
   enum Convert2Mode {
     CONVERT=1,
     COPY=2,
-    COPY_BYTE_AS_INT= (4|2) // for STRING function
+    COPY_BYTE_AS_INT=(4|2),  // for STRING function
+    THROWIOERROR=8,           // for DStringGDL::Convert2()
+    COPY_THROWIOERROR=(8|2)   // for DStringGDL::Convert2()
   };
 
   enum IOMode {

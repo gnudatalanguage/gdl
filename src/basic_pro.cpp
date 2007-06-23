@@ -253,9 +253,7 @@ namespace lib {
 
       if (nParam == 0 && !isKWSetFunctions && !isKWSetProcedures) {
 	// Tell where we are
-	EnvBaseT* caller;
-	DSubUD* pro = static_cast<DSubUD*>(caller->Caller()->Caller()->
-					   GetPro());
+	DSubUD* pro = static_cast<DSubUD*>( e->Caller()->GetPro());
 	if (outputKW == NULL) {
 	  cout << "% At " << pro->ObjectName() << endl;
 	} else {

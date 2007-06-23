@@ -614,9 +614,12 @@ EnvBaseT* EnvBaseT::Caller()
 
   if( callStack.size() <= 1) return NULL;
 
-  if( callStack.back() != this) return callStack.back();
+  if( callStack.back() != this) 
+    return callStack.back();
+//     return static_cast< EnvUDT*>( callStack.back());
 
   return callStack[ callStack.size()-2];
+//   return static_cast< EnvUDT*>( callStack[ callStack.size()-2]);
 }
 
 // used by obj_new (basic_fun.cpp)

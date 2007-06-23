@@ -92,6 +92,12 @@ public:
     return s;
   }
 
+  // the upper (calling) environment
+  // a EnvT must have always a EnvUDT caller
+  // i.e. library functions never call each other
+  // with a new EnvT environment
+  EnvBaseT* Caller();
+
   // returns environment data, by value (but that by C++ reference)
   BaseGDL*& GetKW(SizeT ix) { return env[ix];}
 
@@ -115,9 +121,6 @@ public:
   DSub* GetPro()   const { return pro;}
 
   ProgNodeP CallingNode() { return callingNode;}
-
-  // the upper (calling) environment
-  EnvBaseT* Caller();
 
   SizeT NParam( SizeT minPar = 0); //, const std::string& subName = "");
 

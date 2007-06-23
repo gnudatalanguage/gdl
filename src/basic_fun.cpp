@@ -921,8 +921,15 @@ namespace lib {
     if( nParam == 1)
       {
 	BaseGDL* p0=e->GetParDefined( 0);
+
+	assert( dynamic_cast< EnvUDT*>( e->Caller()) != NULL);
+
 	// type_fun( expr) just convert
-	return p0->Convert2( TargetClass::t, BaseGDL::COPY);
+	if( static_cast< EnvUDT*>( e->Caller())->GetIOError() != NULL) 
+	  return p0->Convert2( TargetClass::t, 
+			       BaseGDL::COPY_THROWIOERROR);
+	else
+	  return p0->Convert2( TargetClass::t, BaseGDL::COPY);
       }
     
     BaseGDL* p0=e->GetNumericParDefined( 0);

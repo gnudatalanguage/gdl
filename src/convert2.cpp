@@ -867,6 +867,13 @@ template<> BaseGDL* Data_<SpDDouble>::Convert2( DType destTy, BaseGDL::Convert2M
   return NULL; 
 }  
 
+inline void StringConversionError( BaseGDL::Convert2Mode mode, const string& msg)
+{
+  if( (mode & BaseGDL::THROWIOERROR) != 0)
+    throw GDLIOException( msg);
+  Warning( msg);
+}
+
 template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2Mode mode)
 {
   if( destTy == t) return (((mode & BaseGDL::COPY) != 0)?Dup():this);
@@ -906,8 +913,9 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
       	    (*dest)[i]=strtol(cStart,&cEnd,10);
       	    if( cEnd == cStart && dd[i] != "")
       	      {
-		Warning("Type conversion error: "
-			"Unable to convert given STRING: '"+dd[i]+"' to INT.");
+		StringConversionError( mode, "Type conversion error: "
+				       "Unable to convert given STRING: '"+
+				       dd[i]+"' to INT.");
       	      }
 	  }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
@@ -923,8 +931,9 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
       	    (*dest)[i]=strtoul(cStart,&cEnd,10);
       	    if( cEnd == cStart && dd[i] != "")
       	      {
-		Warning("Type conversion error: "
-			"Unable to convert given STRING: '"+dd[i]+"' to UINT.");
+		StringConversionError( mode, "Type conversion error: "
+				       "Unable to convert given STRING: '"+
+				       dd[i]+"' to UINT.");
       	      }
       	  }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
@@ -940,8 +949,9 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
       	    (*dest)[i]=strtol(cStart,&cEnd,10);
       	    if( cEnd == cStart && dd[i] != "")
       	      {
-		Warning("Type conversion error: "
-			"Unable to convert given STRING: '"+dd[i]+"' to LONG.");
+		StringConversionError( mode, "Type conversion error: "
+				       "Unable to convert given STRING: '"+
+				       dd[i]+"' to LONG.");
       	      }
       	  }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
@@ -957,8 +967,9 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
       	    (*dest)[i]=strtoul(cStart,&cEnd,10);
       	    if( cEnd == cStart && dd[i] != "")
       	      {
-		Warning("Type conversion error: "
-			"Unable to convert given STRING: '"+dd[i]+"' to ULONG.");
+		StringConversionError( mode, "Type conversion error: "
+				       "Unable to convert given STRING: '"+
+				       dd[i]+"' to ULONG.");
       	      }
       	  }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
@@ -974,8 +985,9 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
       	    (*dest)[i]=strtol(cStart,&cEnd,10);
       	    if( cEnd == cStart && dd[i] != "")
       	      {
-		Warning("Type conversion error: "
-			"Unable to convert given STRING: '"+dd[i]+"' to LONG64.");
+		StringConversionError( mode, "Type conversion error: "
+				       "Unable to convert given STRING: '"+
+				       dd[i]+"' to LONG64.");
       	      }
       	  }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
@@ -991,8 +1003,9 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
       	    (*dest)[i]=strtoul(cStart,&cEnd,10);
       	    if( cEnd == cStart && dd[i] != "")
       	      {
-		Warning("Type conversion error: "
-			"Unable to convert given STRING: '"+dd[i]+"' to ULONG64.");
+		StringConversionError( mode, "Type conversion error: "
+				       "Unable to convert given STRING: '"+
+				       dd[i]+"' to ULONG64.");
       	      }
       	  }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
@@ -1008,8 +1021,9 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
       	    (*dest)[i] = strtod(cStart,&cEnd);
       	    if( cEnd == cStart && dd[i] != "")
       	      {
-		Warning("Type conversion error: "
-			"Unable to convert given STRING: '"+dd[i]+"' to FLOAT.");
+		StringConversionError( mode, "Type conversion error: "
+				       "Unable to convert given STRING: '"+
+				       dd[i]+"' to FLOAT.");
       	      }
       	  }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
@@ -1025,8 +1039,9 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
 	    (*dest)[i] = strtod( cStart, &cEnd);
 	    if( cEnd == cStart && dd[i] != "")
 	      {
-		Warning("Type conversion error: "
-			"Unable to convert given STRING: '"+dd[i]+"' to DOUBLE.");
+		StringConversionError( mode, "Type conversion error: "
+				       "Unable to convert given STRING: '"+
+				       dd[i]+"' to DOUBLE.");
 	      }
       	  }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
@@ -1043,8 +1058,9 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
       	    (*dest)[i]=strtod(cStart,&cEnd);
       	    if( cEnd == cStart && dd[i] != "")
       	      {
-		Warning("Type conversion error: "
-			"Unable to convert given STRING: '"+dd[i]+"' to COMPLEX.");
+		StringConversionError( mode, "Type conversion error: "
+				       "Unable to convert given STRING: '"+
+				       dd[i]+"' to COMPLEX.");
       	      }
       	  }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
@@ -1061,8 +1077,9 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
       	    (*dest)[i]=strtod(cStart,&cEnd);
       	    if( cEnd == cStart && dd[i] != "")
       	      {
-		Warning("Type conversion error: "
-			"Unable to convert given STRING: '"+dd[i]+"' to DCOMPLEX.");
+		StringConversionError( mode, "Type conversion error: "
+				       "Unable to convert given STRING: '"+
+				       dd[i]+"' to DCOMPLEX.");
       	      }
       	  }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
@@ -1074,7 +1091,7 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
     case UNDEF: throw GDLException("Cannot convert to this type.");
     }
 
-   // get rid of warning
+  // get rid of warning
   return NULL; 
 }  
 
