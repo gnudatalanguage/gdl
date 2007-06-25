@@ -30,18 +30,19 @@ end
 ; similar to TEST_PLOT_BENCH_ONE but
 ; loop at different scales (10^n, from n=1 to n=6) 
 ;
-pro TEST_PLOT_BENCHMARK, test=test, all=all, power=power
+pro TEST_PLOT_BENCHMARK, test=test, all=all, power=power, help=help
 ;
 if (N_ELEMENTS(test) EQ 0) then test=0
 if (N_ELEMENTS(power) EQ 0) then power=6
 ;
-if test EQ 0 then begin
+if (test EQ 0) OR KEYWORD_SET(help) then begin
     print, 'TEST_PLOT_BENCHMARK, test=test, all=all, power=power'
     print, '   if keyword test=1, then findgen only'
     print, '   if keyword test=2, then RandomU only'
     print, '   if keyword test=3, then RandomN only'
     print, '   if keyword test=4, then Findgen containing 10 or 100 <<Nan>> !'
     print, ' if /all, all tests (1,2, 3 and 4)'
+    return
 endif
 ;
 !p.multi=[0,2,0]

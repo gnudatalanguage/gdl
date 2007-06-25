@@ -150,8 +150,7 @@
 
 0.9:      Added HEAP_GC, PRODUCT, FILEPATH, MEDIAN (no filtering), READ_ASCII,
 	  PUSHD, POPD, PRINTD, PRIMES, NORM, T_PDF, POLY_2D routines.
-	  Support for SAVE and RESTORE through Craig Markwardt's CMSVLIB
-	  library.
+	  Support for SAVE and RESTORE through Craig Markwardt's CMSVLIB library.
 	  Added SMOOTH and DERIV as external functions.
 	  Full support of F77_UNFORMATTED.
 	  Support for XDR I/O.
@@ -164,8 +163,7 @@
 	  Speedup for ^ operator for integer types.
 	  Speedup (>100x!) for REVERSE_INDICES of HISTOGRAM.
 	  Implement INPUT keyword in HISTOGRAM.
-	  Support for non-rectangular (x,y 2d arrays) calls to SURFACE and
-	  CONTOUR.
+	  Support for non-rectangular (x,y 2d arrays) calls to SURFACE and CONTOUR.
 	  Support for DICOM files (GDLffDICOM object).
 	  INTEGER keyword for TOTAL.
 	  Add support for variable-length VMS files.	  
@@ -178,5 +176,9 @@
 	  Preliminary support for map projections. (requires libproj4 from
 	  (http://members.verizon.net/~vze2hc4d/proj4/lbp4_050319S.tar.gz)
           Add initial support for BESELI, BESELJ, BESELK and BESELY but only for integer order due to limitations of GSL Bessel functions
-	  Added Erf() [and Errorf() for compatibility], Erfc(), Expint(), Gaussint()
-	  Fixed I/O of Gamma(), Igamma(), LnGamma() and Beta()
+	  Added Erf() [and Errorf() for compatibility], Erfc(), Expint(), Gaussint().
+	  Fixed I/O of Gamma(), Igamma(), LnGamma() and Beta().
+	  +-Inf now managed in MIN and MAX (if called with /Nan)
+	  NaN and +-Inf now properly managed in PLOT, OPLOT, PLOTS
+	  Speedup in PLOT, OPLOT, PLOTS for large data sets (see test_plot_benchmark.pro)
+	  Add 6 linestyles (via !p.linestyle or keyword) for PLOT, OPLOT, PLOTS
