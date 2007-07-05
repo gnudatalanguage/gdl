@@ -713,9 +713,9 @@ namespace lib {
 
     // endian
     bool swapEndian=false;
-    static int swapIx = e->KeywordSet( "SWAP_ENDIAN");
-    static int swapIfBigIx = e->KeywordSet( "SWAP_IF_BIG_ENDIAN");
-    static int swapIfLittleIx = e->KeywordSet( "SWAP_IF_LITTLE_ENDIAN");
+    static int swapIx = e->KeywordIx( "SWAP_ENDIAN");
+    static int swapIfBigIx = e->KeywordIx( "SWAP_IF_BIG_ENDIAN");
+    static int swapIfLittleIx = e->KeywordIx( "SWAP_IF_LITTLE_ENDIAN");
     if( e->KeywordSet( swapIx))
       swapEndian = true;
     else if( BigEndian())

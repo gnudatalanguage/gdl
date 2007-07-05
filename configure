@@ -21182,6 +21182,18 @@ _ACEOF
         ;;
   *darwin8.9*)
         ;;
+  *darwin8.10*)
+        ;;
+  *darwin8.11*)
+        ;;
+  *darwin8.12*)
+        ;;
+  *darwin8.13*)
+        ;;
+  *darwin8.14*)
+        ;;
+  *darwin9*)
+        ;;
   *darwin8*)
 
 cat >>confdefs.h <<\_ACEOF

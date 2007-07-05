@@ -650,7 +650,25 @@ case "${host}" in
     dnl newer Tiger
     ;;
   *darwin8.9*)
-    dnl newer Tiger (if ever released)
+    dnl newer Tiger
+    ;;
+  *darwin8.10*)
+    dnl newer Tiger
+    ;;
+  *darwin8.11*)
+    dnl newer Tiger
+    ;;
+  *darwin8.12*)
+    dnl newer Tiger
+    ;;
+  *darwin8.13*)
+    dnl newer Tiger
+    ;;
+  *darwin8.14*)
+    dnl newer Tiger
+    ;;
+  *darwin9*)
+    dnl post Tiger
     ;;
   *darwin8*)
     dnl Tiger
