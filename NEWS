@@ -152,6 +152,7 @@
 	  PUSHD, POPD, PRINTD, PRIMES, NORM, T_PDF, POLY_2D routines.
 	  Support for SAVE and RESTORE through Craig Markwardt's CMSVLIB library.
 	  Added SMOOTH and DERIV as external functions.
+	  Full support of ON_IOERROR
 	  Full support of F77_UNFORMATTED.
 	  Support for XDR I/O.
           Fixed positional index (value and dimension) returned by STREGEX.
@@ -175,7 +176,11 @@
 	  Add initial support for SOCKET.
 	  Preliminary support for map projections. (requires libproj4 from
 	  (http://members.verizon.net/~vze2hc4d/proj4/lbp4_050319S.tar.gz)
-          Add initial support for BESELI, BESELJ, BESELK and BESELY but only for integer order due to limitations of GSL Bessel functions
+          Add initial support for BESELI, BESELJ, BESELK and BESELY but only for
+	  integer order due to limitations of GSL Bessel functions
+	  Added Erf() [and Errorf() for compatibility], Erfc(), Expint(), Gaussint()
+	  Fixed I/O of Gamma(), Igamma(), LnGamma() and Beta()
+          Add initial support for BESELI, BESELJ, BESELK and BESELY (only integer order)
 	  Added Erf() [and Errorf() for compatibility], Erfc(), Expint(), Gaussint().
 	  Fixed I/O of Gamma(), Igamma(), LnGamma() and Beta().
 	  +-Inf now managed in MIN and MAX (if called with /Nan)

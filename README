@@ -226,7 +226,7 @@ ANTLR. All relevant ANTLR files are included in the package.
 For more information on ANTRL see: http://www.antlr.org
 
 GDL is currently developed using KDevelop 3.2 under the GNU/Linux 
-distribution Fedora Core 4. The KDevelop project file
+distribution Fedora 7. The KDevelop project file
 is included in the tarball, so if you have KDevelop you should be able
 to use it with GDL seamlessly.
 
