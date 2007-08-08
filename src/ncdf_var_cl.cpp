@@ -164,7 +164,8 @@ namespace lib {
     dimension dim( var_ndims);
     DULongGDL* dims_res = new DULongGDL(dim, BaseGDL::NOZERO);
     for( size_t i=0; i<var_ndims; ++i) {
-      (*dims_res)[ i] = var_dims[i];
+      // reverse index order (fix from Sylwester Arabas)
+      (*dims_res)[ i] = var_dims[var_ndims-(i+1)];
     }
 
     inq->InitTag("DATATYPE",ncdf_gdl_typename(var_type));

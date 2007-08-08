@@ -182,8 +182,10 @@ namespace lib {
   void ncdf_attget(EnvT* e)
   {
     size_t nParam=e->NParam(2);
-    if(nParam > 4) throw GDLException(e->CallingNode(),
-				      "NCDF_ATTGET: Incorrect number of arguments.");
+// m_schellens: check fro max parameters not necessary, done automatically with
+// data provided to DLibPro constructor (in libinit_cl.cpp) 
+//     if(nParam > 4) throw GDLException(e->CallingNode(),
+// 				      "NCDF_ATTGET: Incorrect number of arguments.");
     if(nParam >3 && e->KeywordSet(0))
       {
 	throw GDLException(e->CallingNode(),

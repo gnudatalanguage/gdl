@@ -180,6 +180,8 @@
 	  integer order due to limitations of GSL Bessel functions
 	  Added Erf() [and Errorf() for compatibility], Erfc(), Expint(), Gaussint().
 	  Fixed I/O of Gamma(), Igamma(), LnGamma() and Beta().
+	  Added Erf() [and Errorf() for compatibility], Erfc(), Expint(), Gaussint()
+	  Fixed I/O of Gamma(), Igamma(), LnGamma() and Beta()
 	  +-Inf now managed in MIN and MAX (if called with /Nan)
 	  NaN and +-Inf now properly managed in PLOT, OPLOT, PLOTS
 	  Speedup in PLOT, OPLOT, PLOTS for large data sets (see test_plot_benchmark.pro)

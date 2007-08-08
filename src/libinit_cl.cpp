@@ -102,7 +102,7 @@ void LibInit_cl()
 
   //Get attribute
   const string ncdf_attgetKey[]={"GLOBAL",KLISTEND};
-  new DLibPro(lib::ncdf_attget,string("NCDF_ATTGET"),3,ncdf_attgetKey);
+  new DLibPro(lib::ncdf_attget,string("NCDF_ATTGET"),4,ncdf_attgetKey);
 
   //Inquire attribute (datatype, size?)
   const string ncdf_attinqKey[]={"GLOBAL",KLISTEND};
