@@ -2834,6 +2834,7 @@ namespace lib {
     delete[] h1;
     delete[] h2;
     DLong medEl = hh[ nEl/2];
+    DLong medEl_1 = hh[ nEl/2 - 1];
     delete[] hh;
 
     if( (nEl % 2) == 1 ||  !e->KeywordSet( evenIx))
@@ -2846,7 +2847,7 @@ namespace lib {
       {
 	DDoubleGDL* op1 = static_cast<DDoubleGDL*>((p0->NewIx( medEl))->Convert2( DOUBLE)); 
 	e->Guard( op1);
-	DDoubleGDL* op2 = static_cast<DDoubleGDL*>((p0->NewIx( medEl-1))->Convert2( DOUBLE)); 
+	DDoubleGDL* op2 = static_cast<DDoubleGDL*>((p0->NewIx( medEl_1))->Convert2( DOUBLE)); 
 	static DDoubleGDL* op3 = new DDoubleGDL( 2.0);
 	return op2->Add( op1)->Div( op3);
       }
@@ -2854,7 +2855,7 @@ namespace lib {
       {
 	DFloatGDL* op1 = static_cast<DFloatGDL*>((p0->NewIx( medEl))->Convert2( FLOAT)); 
 	e->Guard( op1);
-	DFloatGDL* op2 = static_cast<DFloatGDL*>((p0->NewIx( medEl-1))->Convert2( FLOAT)); 
+	DFloatGDL* op2 = static_cast<DFloatGDL*>((p0->NewIx( medEl_1))->Convert2( FLOAT)); 
 	static DFloatGDL* op3 = new DFloatGDL( 2.0);
 	return op2->Add( op1)->Div( op3);
       }
