@@ -2,7 +2,7 @@
 #define INC_GDLParser_hpp_
 
 #include <antlr/config.hpp>
-/* $ANTLR 2.7.4: "gdlc.g" -> "GDLParser.hpp"$ */
+/* $ANTLR 2.7.7 (2006-11-01): "gdlc.g" -> "GDLParser.hpp"$ */
 #include <antlr/TokenStream.hpp>
 #include <antlr/TokenBuffer.hpp>
 #include "GDLTokenTypes.hpp"

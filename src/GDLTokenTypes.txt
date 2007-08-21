@@ -1,4 +1,4 @@
-// $ANTLR 2.7.4: gdlc.g -> GDLTokenTypes.txt$
+// $ANTLR 2.7.7 (2006-11-01): gdlc.g -> GDLTokenTypes.txt$
 GDL    // output token vocab name
 ALL=4
 ASSIGN=5

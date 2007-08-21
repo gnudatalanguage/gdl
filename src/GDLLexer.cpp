@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.4: "gdlc.g" -> "GDLLexer.cpp"$ */
+/* $ANTLR 2.7.7 (2006-11-01): "gdlc.g" -> "GDLLexer.cpp"$ */
 
 #include "includefirst.hpp"
 
@@ -156,7 +156,7 @@ antlr::RefToken GDLLexer::nextToken()
 				theRetToken=_returnToken;
 				break;
 			}
-			case 0x22 /* '"' */ :
+			case 0x22 /* '\"' */ :
 			case 0x27 /* '\'' */ :
 			case 0x2e /* '.' */ :
 			case 0x30 /* '0' */ :
@@ -384,9 +384,9 @@ tryAgain:;
 }
 
 void GDLLexer::mSTRING(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = STRING;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	{ // ( ... )*
 	for (;;) {
@@ -411,13 +411,13 @@ void GDLLexer::mSTRING(bool _createToken) {
 }
 
 void GDLLexer::mINCLUDE(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = INCLUDE;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	antlr::RefToken f;
 	
 	_saveIndex = text.length();
-	match('@');
+	match('@' /* charlit */ );
 	text.erase(_saveIndex);
 	_saveIndex = text.length();
 	mSTRING(true);
@@ -480,12 +480,12 @@ void GDLLexer::mINCLUDE(bool _createToken) {
 }
 
 void GDLLexer::mAND_OP_EQ(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = AND_OP_EQ;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if (!( LA(4) == '='))
-		throw antlr::SemanticException(" LA(4) == '='");
+		throw antlr::SemanticException(" LA(4) == \'=\'");
 	match("and=");
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -496,9 +496,9 @@ void GDLLexer::mAND_OP_EQ(bool _createToken) {
 }
 
 void GDLLexer::mASTERIX_EQ(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = ASTERIX_EQ;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	match("*=");
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
@@ -510,9 +510,9 @@ void GDLLexer::mASTERIX_EQ(bool _createToken) {
 }
 
 void GDLLexer::mEQ_OP_EQ(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = EQ_OP_EQ;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	match("eq=");
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
@@ -524,9 +524,9 @@ void GDLLexer::mEQ_OP_EQ(bool _createToken) {
 }
 
 void GDLLexer::mGE_OP_EQ(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = GE_OP_EQ;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	match("ge=");
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
@@ -538,9 +538,9 @@ void GDLLexer::mGE_OP_EQ(bool _createToken) {
 }
 
 void GDLLexer::mGTMARK_EQ(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = GTMARK_EQ;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	match(">=");
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
@@ -552,9 +552,9 @@ void GDLLexer::mGTMARK_EQ(bool _createToken) {
 }
 
 void GDLLexer::mGT_OP_EQ(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = GT_OP_EQ;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	match("gt=");
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
@@ -566,9 +566,9 @@ void GDLLexer::mGT_OP_EQ(bool _createToken) {
 }
 
 void GDLLexer::mLE_OP_EQ(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = LE_OP_EQ;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	match("le=");
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
@@ -580,9 +580,9 @@ void GDLLexer::mLE_OP_EQ(bool _createToken) {
 }
 
 void GDLLexer::mLTMARK_EQ(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = LTMARK_EQ;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	match("<=");
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
@@ -594,9 +594,9 @@ void GDLLexer::mLTMARK_EQ(bool _createToken) {
 }
 
 void GDLLexer::mLT_OP_EQ(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = LT_OP_EQ;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	match("lt=");
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
@@ -608,9 +608,9 @@ void GDLLexer::mLT_OP_EQ(bool _createToken) {
 }
 
 void GDLLexer::mMATRIX_OP1_EQ(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = MATRIX_OP1_EQ;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	match("#=");
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
@@ -622,9 +622,9 @@ void GDLLexer::mMATRIX_OP1_EQ(bool _createToken) {
 }
 
 void GDLLexer::mMATRIX_OP2_EQ(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = MATRIX_OP2_EQ;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	match("##=");
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
@@ -636,9 +636,9 @@ void GDLLexer::mMATRIX_OP2_EQ(bool _createToken) {
 }
 
 void GDLLexer::mMINUS_EQ(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = MINUS_EQ;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	match("-=");
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
@@ -650,12 +650,12 @@ void GDLLexer::mMINUS_EQ(bool _createToken) {
 }
 
 void GDLLexer::mMOD_OP_EQ(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = MOD_OP_EQ;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if (!( LA(4) == '='))
-		throw antlr::SemanticException(" LA(4) == '='");
+		throw antlr::SemanticException(" LA(4) == \'=\'");
 	match("mod=");
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -666,9 +666,9 @@ void GDLLexer::mMOD_OP_EQ(bool _createToken) {
 }
 
 void GDLLexer::mNE_OP_EQ(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = NE_OP_EQ;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	match("ne=");
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
@@ -680,9 +680,9 @@ void GDLLexer::mNE_OP_EQ(bool _createToken) {
 }
 
 void GDLLexer::mOR_OP_EQ(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = OR_OP_EQ;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	match("or=");
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
@@ -694,9 +694,9 @@ void GDLLexer::mOR_OP_EQ(bool _createToken) {
 }
 
 void GDLLexer::mPLUS_EQ(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = PLUS_EQ;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	match("+=");
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
@@ -708,9 +708,9 @@ void GDLLexer::mPLUS_EQ(bool _createToken) {
 }
 
 void GDLLexer::mPOW_EQ(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = POW_EQ;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	match("^=");
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
@@ -722,9 +722,9 @@ void GDLLexer::mPOW_EQ(bool _createToken) {
 }
 
 void GDLLexer::mSLASH_EQ(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = SLASH_EQ;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	match("/=");
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
@@ -736,12 +736,12 @@ void GDLLexer::mSLASH_EQ(bool _createToken) {
 }
 
 void GDLLexer::mXOR_OP_EQ(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = XOR_OP_EQ;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if (!( LA(4) == '='))
-		throw antlr::SemanticException(" LA(4) == '='");
+		throw antlr::SemanticException(" LA(4) == \'=\'");
 	match("xor=");
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -752,11 +752,11 @@ void GDLLexer::mXOR_OP_EQ(bool _createToken) {
 }
 
 void GDLLexer::mMATRIX_OP1(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = MATRIX_OP1;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
-	match('#');
+	match('#' /* charlit */ );
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
 	   _token->setText(text.substr(_begin, text.length()-_begin));
@@ -766,9 +766,9 @@ void GDLLexer::mMATRIX_OP1(bool _createToken) {
 }
 
 void GDLLexer::mMATRIX_OP2(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = MATRIX_OP2;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	match("##");
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
@@ -780,9 +780,9 @@ void GDLLexer::mMATRIX_OP2(bool _createToken) {
 }
 
 void GDLLexer::mMETHOD(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = METHOD;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	match("::");
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
@@ -794,9 +794,9 @@ void GDLLexer::mMETHOD(bool _createToken) {
 }
 
 void GDLLexer::mMEMBER(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = MEMBER;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	match("->");
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
@@ -808,11 +808,11 @@ void GDLLexer::mMEMBER(bool _createToken) {
 }
 
 void GDLLexer::mCOMMA(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = COMMA;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
-	match(',');
+	match(',' /* charlit */ );
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
 	   _token->setText(text.substr(_begin, text.length()-_begin));
@@ -822,11 +822,11 @@ void GDLLexer::mCOMMA(bool _createToken) {
 }
 
 void GDLLexer::mCOLON(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = COLON;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
-	match(':');
+	match(':' /* charlit */ );
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
 	   _token->setText(text.substr(_begin, text.length()-_begin));
@@ -836,11 +836,11 @@ void GDLLexer::mCOLON(bool _createToken) {
 }
 
 void GDLLexer::mEQUAL(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = EQUAL;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
-	match('=');
+	match('=' /* charlit */ );
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
 	   _token->setText(text.substr(_begin, text.length()-_begin));
@@ -850,11 +850,11 @@ void GDLLexer::mEQUAL(bool _createToken) {
 }
 
 void GDLLexer::mLCURLY(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = LCURLY;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
-	match('{');
+	match('{' /* charlit */ );
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
 	   _token->setText(text.substr(_begin, text.length()-_begin));
@@ -864,11 +864,11 @@ void GDLLexer::mLCURLY(bool _createToken) {
 }
 
 void GDLLexer::mRCURLY(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = RCURLY;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
-	match('}');
+	match('}' /* charlit */ );
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
 	   _token->setText(text.substr(_begin, text.length()-_begin));
@@ -878,11 +878,11 @@ void GDLLexer::mRCURLY(bool _createToken) {
 }
 
 void GDLLexer::mLSQUARE(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = LSQUARE;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
-	match('[');
+	match('[' /* charlit */ );
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
 	   _token->setText(text.substr(_begin, text.length()-_begin));
@@ -892,11 +892,11 @@ void GDLLexer::mLSQUARE(bool _createToken) {
 }
 
 void GDLLexer::mRSQUARE(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = RSQUARE;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
-	match(']');
+	match(']' /* charlit */ );
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
 	   _token->setText(text.substr(_begin, text.length()-_begin));
@@ -906,11 +906,11 @@ void GDLLexer::mRSQUARE(bool _createToken) {
 }
 
 void GDLLexer::mLBRACE(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = LBRACE;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
-	match('(');
+	match('(' /* charlit */ );
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
 	   _token->setText(text.substr(_begin, text.length()-_begin));
@@ -920,11 +920,11 @@ void GDLLexer::mLBRACE(bool _createToken) {
 }
 
 void GDLLexer::mRBRACE(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = RBRACE;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
-	match(')');
+	match(')' /* charlit */ );
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
 	   _token->setText(text.substr(_begin, text.length()-_begin));
@@ -934,11 +934,11 @@ void GDLLexer::mRBRACE(bool _createToken) {
 }
 
 void GDLLexer::mQUESTION(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = QUESTION;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
-	match('?');
+	match('?' /* charlit */ );
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
 	   _token->setText(text.substr(_begin, text.length()-_begin));
@@ -948,11 +948,11 @@ void GDLLexer::mQUESTION(bool _createToken) {
 }
 
 void GDLLexer::mEXCLAMATION(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = EXCLAMATION;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
-	match('!');
+	match('!' /* charlit */ );
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
 	   _token->setText(text.substr(_begin, text.length()-_begin));
@@ -962,11 +962,11 @@ void GDLLexer::mEXCLAMATION(bool _createToken) {
 }
 
 void GDLLexer::mPOW(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = POW;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
-	match('^');
+	match('^' /* charlit */ );
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
 	   _token->setText(text.substr(_begin, text.length()-_begin));
@@ -976,11 +976,11 @@ void GDLLexer::mPOW(bool _createToken) {
 }
 
 void GDLLexer::mASTERIX(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = ASTERIX;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
-	match('*');
+	match('*' /* charlit */ );
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
 	   _token->setText(text.substr(_begin, text.length()-_begin));
@@ -990,11 +990,11 @@ void GDLLexer::mASTERIX(bool _createToken) {
 }
 
 void GDLLexer::mSLASH(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = SLASH;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
-	match('/');
+	match('/' /* charlit */ );
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
 	   _token->setText(text.substr(_begin, text.length()-_begin));
@@ -1004,11 +1004,11 @@ void GDLLexer::mSLASH(bool _createToken) {
 }
 
 void GDLLexer::mMINUS(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = MINUS;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
-	match('-');
+	match('-' /* charlit */ );
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
 	   _token->setText(text.substr(_begin, text.length()-_begin));
@@ -1018,11 +1018,11 @@ void GDLLexer::mMINUS(bool _createToken) {
 }
 
 void GDLLexer::mPLUS(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = PLUS;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
-	match('+');
+	match('+' /* charlit */ );
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
 	   _token->setText(text.substr(_begin, text.length()-_begin));
@@ -1032,9 +1032,9 @@ void GDLLexer::mPLUS(bool _createToken) {
 }
 
 void GDLLexer::mINC(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = INC;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	match("++");
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
@@ -1046,9 +1046,9 @@ void GDLLexer::mINC(bool _createToken) {
 }
 
 void GDLLexer::mDEC(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = DEC;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	match("--");
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
@@ -1060,11 +1060,11 @@ void GDLLexer::mDEC(bool _createToken) {
 }
 
 void GDLLexer::mGTMARK(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = GTMARK;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
-	match('>');
+	match('>' /* charlit */ );
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
 	   _token->setText(text.substr(_begin, text.length()-_begin));
@@ -1074,11 +1074,11 @@ void GDLLexer::mGTMARK(bool _createToken) {
 }
 
 void GDLLexer::mLTMARK(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = LTMARK;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
-	match('<');
+	match('<' /* charlit */ );
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
 	   _token->setText(text.substr(_begin, text.length()-_begin));
@@ -1088,9 +1088,9 @@ void GDLLexer::mLTMARK(bool _createToken) {
 }
 
 void GDLLexer::mLOG_AND(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = LOG_AND;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	match("&&");
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
@@ -1102,9 +1102,9 @@ void GDLLexer::mLOG_AND(bool _createToken) {
 }
 
 void GDLLexer::mLOG_OR(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = LOG_OR;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	match("||");
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
@@ -1116,11 +1116,11 @@ void GDLLexer::mLOG_OR(bool _createToken) {
 }
 
 void GDLLexer::mLOG_NEG(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = LOG_NEG;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
-	match('~');
+	match('~' /* charlit */ );
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
 	   _token->setText(text.substr(_begin, text.length()-_begin));
@@ -1130,9 +1130,9 @@ void GDLLexer::mLOG_NEG(bool _createToken) {
 }
 
 void GDLLexer::mEND_U(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = END_U;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1143,9 +1143,9 @@ void GDLLexer::mEND_U(bool _createToken) {
 }
 
 void GDLLexer::mEOL(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = EOL;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	{
 	bool synPredMatched276 = false;
@@ -1168,10 +1168,10 @@ void GDLLexer::mEOL(bool _createToken) {
 		match("\r\n");
 	}
 	else if ((LA(1) == 0xa /* '\n' */ )) {
-		match('\n');
+		match('\n' /* charlit */ );
 	}
 	else if ((LA(1) == 0xd /* '\r' */ ) && (true) && (true)) {
-		match('\r');
+		match('\r' /* charlit */ );
 	}
 	else {
 		throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());
@@ -1190,25 +1190,25 @@ void GDLLexer::mEOL(bool _createToken) {
 }
 
 void GDLLexer::mW(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = W;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	{
 	switch ( LA(1)) {
 	case 0x20 /* ' ' */ :
 	{
-		match(' ');
+		match(' ' /* charlit */ );
 		break;
 	}
 	case 0x9 /* '\t' */ :
 	{
-		match('\t');
+		match('\t' /* charlit */ );
 		break;
 	}
 	case 0xc /* '\14' */ :
 	{
-		match('\14');
+		match('\14' /* charlit */ );
 		break;
 	}
 	default:
@@ -1226,9 +1226,9 @@ void GDLLexer::mW(bool _createToken) {
 }
 
 void GDLLexer::mD(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = D;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	{
 	matchRange('0','9');
@@ -1242,9 +1242,9 @@ void GDLLexer::mD(bool _createToken) {
 }
 
 void GDLLexer::mL(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = L;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	{
 	switch ( LA(1)) {
@@ -1280,7 +1280,7 @@ void GDLLexer::mL(bool _createToken) {
 	}
 	case 0x5f /* '_' */ :
 	{
-		match('_');
+		match('_' /* charlit */ );
 		break;
 	}
 	default:
@@ -1298,9 +1298,9 @@ void GDLLexer::mL(bool _createToken) {
 }
 
 void GDLLexer::mH(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = H;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	{
 	switch ( LA(1)) {
@@ -1343,9 +1343,9 @@ void GDLLexer::mH(bool _createToken) {
 }
 
 void GDLLexer::mO(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = O;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	{
 	matchRange('0','7');
@@ -1359,22 +1359,22 @@ void GDLLexer::mO(bool _createToken) {
 }
 
 void GDLLexer::mEXP(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = EXP;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	{
-	match('e');
+	match('e' /* charlit */ );
 	{
 	switch ( LA(1)) {
 	case 0x2b /* '+' */ :
 	{
-		match('+');
+		match('+' /* charlit */ );
 		break;
 	}
 	case 0x2d /* '-' */ :
 	{
-		match('-');
+		match('-' /* charlit */ );
 		break;
 	}
 	case 0x30 /* '0' */ :
@@ -1420,11 +1420,11 @@ void GDLLexer::mEXP(bool _createToken) {
 }
 
 void GDLLexer::mDBL_E(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = DBL_E;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
-	match('d');
+	match('d' /* charlit */ );
 	if ( inputState->guessing==0 ) {
 		{ text.erase(_begin); text +=  "E"; };
 	}
@@ -1437,9 +1437,9 @@ void GDLLexer::mDBL_E(bool _createToken) {
 }
 
 void GDLLexer::mDBL(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = DBL;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	{
 	mDBL_E(false);
@@ -1449,12 +1449,12 @@ void GDLLexer::mDBL(bool _createToken) {
 		switch ( LA(1)) {
 		case 0x2b /* '+' */ :
 		{
-			match('+');
+			match('+' /* charlit */ );
 			break;
 		}
 		case 0x2d /* '-' */ :
 		{
-			match('-');
+			match('-' /* charlit */ );
 			break;
 		}
 		case 0x30 /* '0' */ :
@@ -1505,9 +1505,9 @@ void GDLLexer::mDBL(bool _createToken) {
 }
 
 void GDLLexer::mCONSTANT_HEX_BYTE(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CONSTANT_HEX_BYTE;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1518,9 +1518,9 @@ void GDLLexer::mCONSTANT_HEX_BYTE(bool _createToken) {
 }
 
 void GDLLexer::mCONSTANT_HEX_LONG(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CONSTANT_HEX_LONG;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1531,9 +1531,9 @@ void GDLLexer::mCONSTANT_HEX_LONG(bool _createToken) {
 }
 
 void GDLLexer::mCONSTANT_HEX_LONG64(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CONSTANT_HEX_LONG64;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1544,9 +1544,9 @@ void GDLLexer::mCONSTANT_HEX_LONG64(bool _createToken) {
 }
 
 void GDLLexer::mCONSTANT_HEX_I(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CONSTANT_HEX_I;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1557,9 +1557,9 @@ void GDLLexer::mCONSTANT_HEX_I(bool _createToken) {
 }
 
 void GDLLexer::mCONSTANT_HEX_INT(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CONSTANT_HEX_INT;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1570,9 +1570,9 @@ void GDLLexer::mCONSTANT_HEX_INT(bool _createToken) {
 }
 
 void GDLLexer::mCONSTANT_HEX_ULONG(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CONSTANT_HEX_ULONG;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1583,9 +1583,9 @@ void GDLLexer::mCONSTANT_HEX_ULONG(bool _createToken) {
 }
 
 void GDLLexer::mCONSTANT_HEX_ULONG64(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CONSTANT_HEX_ULONG64;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1596,9 +1596,9 @@ void GDLLexer::mCONSTANT_HEX_ULONG64(bool _createToken) {
 }
 
 void GDLLexer::mCONSTANT_HEX_UI(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CONSTANT_HEX_UI;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1609,9 +1609,9 @@ void GDLLexer::mCONSTANT_HEX_UI(bool _createToken) {
 }
 
 void GDLLexer::mCONSTANT_HEX_UINT(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CONSTANT_HEX_UINT;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1622,9 +1622,9 @@ void GDLLexer::mCONSTANT_HEX_UINT(bool _createToken) {
 }
 
 void GDLLexer::mCONSTANT_BYTE(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CONSTANT_BYTE;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1635,9 +1635,9 @@ void GDLLexer::mCONSTANT_BYTE(bool _createToken) {
 }
 
 void GDLLexer::mCONSTANT_LONG(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CONSTANT_LONG;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1648,9 +1648,9 @@ void GDLLexer::mCONSTANT_LONG(bool _createToken) {
 }
 
 void GDLLexer::mCONSTANT_LONG64(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CONSTANT_LONG64;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1661,9 +1661,9 @@ void GDLLexer::mCONSTANT_LONG64(bool _createToken) {
 }
 
 void GDLLexer::mCONSTANT_I(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CONSTANT_I;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1674,9 +1674,9 @@ void GDLLexer::mCONSTANT_I(bool _createToken) {
 }
 
 void GDLLexer::mCONSTANT_INT(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CONSTANT_INT;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1687,9 +1687,9 @@ void GDLLexer::mCONSTANT_INT(bool _createToken) {
 }
 
 void GDLLexer::mCONSTANT_ULONG(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CONSTANT_ULONG;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1700,9 +1700,9 @@ void GDLLexer::mCONSTANT_ULONG(bool _createToken) {
 }
 
 void GDLLexer::mCONSTANT_ULONG64(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CONSTANT_ULONG64;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1713,9 +1713,9 @@ void GDLLexer::mCONSTANT_ULONG64(bool _createToken) {
 }
 
 void GDLLexer::mCONSTANT_UI(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CONSTANT_UI;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1726,9 +1726,9 @@ void GDLLexer::mCONSTANT_UI(bool _createToken) {
 }
 
 void GDLLexer::mCONSTANT_UINT(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CONSTANT_UINT;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1739,9 +1739,9 @@ void GDLLexer::mCONSTANT_UINT(bool _createToken) {
 }
 
 void GDLLexer::mCONSTANT_OCT_BYTE(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CONSTANT_OCT_BYTE;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1752,9 +1752,9 @@ void GDLLexer::mCONSTANT_OCT_BYTE(bool _createToken) {
 }
 
 void GDLLexer::mCONSTANT_OCT_LONG(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CONSTANT_OCT_LONG;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1765,9 +1765,9 @@ void GDLLexer::mCONSTANT_OCT_LONG(bool _createToken) {
 }
 
 void GDLLexer::mCONSTANT_OCT_LONG64(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CONSTANT_OCT_LONG64;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1778,9 +1778,9 @@ void GDLLexer::mCONSTANT_OCT_LONG64(bool _createToken) {
 }
 
 void GDLLexer::mCONSTANT_OCT_I(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CONSTANT_OCT_I;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1791,9 +1791,9 @@ void GDLLexer::mCONSTANT_OCT_I(bool _createToken) {
 }
 
 void GDLLexer::mCONSTANT_OCT_INT(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CONSTANT_OCT_INT;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1804,9 +1804,9 @@ void GDLLexer::mCONSTANT_OCT_INT(bool _createToken) {
 }
 
 void GDLLexer::mCONSTANT_OCT_ULONG(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CONSTANT_OCT_ULONG;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1817,9 +1817,9 @@ void GDLLexer::mCONSTANT_OCT_ULONG(bool _createToken) {
 }
 
 void GDLLexer::mCONSTANT_OCT_ULONG64(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CONSTANT_OCT_ULONG64;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1830,9 +1830,9 @@ void GDLLexer::mCONSTANT_OCT_ULONG64(bool _createToken) {
 }
 
 void GDLLexer::mCONSTANT_OCT_UI(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CONSTANT_OCT_UI;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1843,9 +1843,9 @@ void GDLLexer::mCONSTANT_OCT_UI(bool _createToken) {
 }
 
 void GDLLexer::mCONSTANT_OCT_UINT(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CONSTANT_OCT_UINT;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1856,9 +1856,9 @@ void GDLLexer::mCONSTANT_OCT_UINT(bool _createToken) {
 }
 
 void GDLLexer::mCONSTANT_FLOAT(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CONSTANT_FLOAT;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1869,9 +1869,9 @@ void GDLLexer::mCONSTANT_FLOAT(bool _createToken) {
 }
 
 void GDLLexer::mCONSTANT_DOUBLE(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CONSTANT_DOUBLE;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1882,9 +1882,9 @@ void GDLLexer::mCONSTANT_DOUBLE(bool _createToken) {
 }
 
 void GDLLexer::mSTRING_LITERAL(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = STRING_LITERAL;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1895,9 +1895,9 @@ void GDLLexer::mSTRING_LITERAL(bool _createToken) {
 }
 
 void GDLLexer::mDOT(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = DOT;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1908,9 +1908,9 @@ void GDLLexer::mDOT(bool _createToken) {
 }
 
 void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CONSTANT_OR_STRING_LITERAL;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	bool synPredMatched344 = false;
 	if (((LA(1) == 0x27 /* '\'' */ ) && (_tokenSet_4.member(LA(2))) && (_tokenSet_5.member(LA(3))))) {
@@ -1919,7 +1919,7 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 		inputState->guessing++;
 		try {
 			{
-			match('\'');
+			match('\'' /* charlit */ );
 			{ // ( ... )+
 			int _cnt342=0;
 			for (;;) {
@@ -1934,7 +1934,7 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 			}
 			_loop342:;
 			}  // ( ... )+
-			match('\'');
+			match('\'' /* charlit */ );
 			{
 			if ((LA(1) == 0x78 /* 'x' */ ) && (LA(2) == 0x75 /* 'u' */ ) && (LA(3) == 0x73 /* 's' */ )) {
 				match("xus");
@@ -1958,7 +1958,7 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 				match("xu");
 			}
 			else if ((LA(1) == 0x78 /* 'x' */ ) && (true)) {
-				match('x');
+				match('x' /* charlit */ );
 			}
 			else {
 				throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());
@@ -1976,7 +1976,7 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 	if ( synPredMatched344 ) {
 		{
 		_saveIndex = text.length();
-		match('\'');
+		match('\'' /* charlit */ );
 		text.erase(_saveIndex);
 		{ // ( ... )+
 		int _cnt347=0;
@@ -1993,17 +1993,17 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 		_loop347:;
 		}  // ( ... )+
 		_saveIndex = text.length();
-		match('\'');
+		match('\'' /* charlit */ );
 		text.erase(_saveIndex);
 		_saveIndex = text.length();
-		match('x');
+		match('x' /* charlit */ );
 		text.erase(_saveIndex);
 		{
 		switch ( LA(1)) {
 		case 0x73 /* 's' */ :
 		{
 			_saveIndex = text.length();
-			match('s');
+			match('s' /* charlit */ );
 			text.erase(_saveIndex);
 			if ( inputState->guessing==0 ) {
 				_ttype=CONSTANT_HEX_INT;
@@ -2013,7 +2013,7 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 		case 0x62 /* 'b' */ :
 		{
 			_saveIndex = text.length();
-			match('b');
+			match('b' /* charlit */ );
 			text.erase(_saveIndex);
 			if ( inputState->guessing==0 ) {
 				_ttype=CONSTANT_HEX_BYTE;
@@ -2063,7 +2063,7 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 			}
 			else if ((LA(1) == 0x75 /* 'u' */ ) && (true)) {
 				_saveIndex = text.length();
-				match('u');
+				match('u' /* charlit */ );
 				text.erase(_saveIndex);
 				if ( inputState->guessing==0 ) {
 					_ttype=CONSTANT_HEX_UI;
@@ -2071,7 +2071,7 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 			}
 			else if ((LA(1) == 0x6c /* 'l' */ ) && (true)) {
 				_saveIndex = text.length();
-				match('l');
+				match('l' /* charlit */ );
 				text.erase(_saveIndex);
 				if ( inputState->guessing==0 ) {
 					_ttype=CONSTANT_HEX_LONG;
@@ -2094,7 +2094,7 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 			inputState->guessing++;
 			try {
 				{
-				match('\'');
+				match('\'' /* charlit */ );
 				{ // ( ... )+
 				int _cnt351=0;
 				for (;;) {
@@ -2109,7 +2109,7 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 				}
 				_loop351:;
 				}  // ( ... )+
-				match('\'');
+				match('\'' /* charlit */ );
 				{
 				if ((LA(1) == 0x6f /* 'o' */ ) && (LA(2) == 0x75 /* 'u' */ ) && (LA(3) == 0x6c /* 'l' */ )) {
 					match("oul");
@@ -2124,7 +2124,7 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 					match("ou");
 				}
 				else if ((LA(1) == 0x6f /* 'o' */ ) && (true)) {
-					match('o');
+					match('o' /* charlit */ );
 				}
 				else {
 					throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());
@@ -2142,7 +2142,7 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 		if ( synPredMatched353 ) {
 			{
 			_saveIndex = text.length();
-			match('\'');
+			match('\'' /* charlit */ );
 			text.erase(_saveIndex);
 			{ // ( ... )+
 			int _cnt356=0;
@@ -2159,17 +2159,17 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 			_loop356:;
 			}  // ( ... )+
 			_saveIndex = text.length();
-			match('\'');
+			match('\'' /* charlit */ );
 			text.erase(_saveIndex);
 			_saveIndex = text.length();
-			match('o');
+			match('o' /* charlit */ );
 			text.erase(_saveIndex);
 			{
 			switch ( LA(1)) {
 			case 0x73 /* 's' */ :
 			{
 				_saveIndex = text.length();
-				match('s');
+				match('s' /* charlit */ );
 				text.erase(_saveIndex);
 				if ( inputState->guessing==0 ) {
 					_ttype=CONSTANT_OCT_INT;
@@ -2179,7 +2179,7 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 			case 0x62 /* 'b' */ :
 			{
 				_saveIndex = text.length();
-				match('b');
+				match('b' /* charlit */ );
 				text.erase(_saveIndex);
 				if ( inputState->guessing==0 ) {
 					_ttype=CONSTANT_OCT_BYTE;
@@ -2229,7 +2229,7 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 				}
 				else if ((LA(1) == 0x75 /* 'u' */ ) && (true)) {
 					_saveIndex = text.length();
-					match('u');
+					match('u' /* charlit */ );
 					text.erase(_saveIndex);
 					if ( inputState->guessing==0 ) {
 						_ttype=CONSTANT_OCT_UI;
@@ -2237,7 +2237,7 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 				}
 				else if ((LA(1) == 0x6c /* 'l' */ ) && (true)) {
 					_saveIndex = text.length();
-					match('l');
+					match('l' /* charlit */ );
 					text.erase(_saveIndex);
 					if ( inputState->guessing==0 ) {
 						_ttype=CONSTANT_OCT_LONG;
@@ -2254,13 +2254,13 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 		}
 		else {
 			bool synPredMatched335 = false;
-			if (((LA(1) == 0x22 /* '"' */ ) && ((LA(2) >= 0x30 /* '0' */  && LA(2) <= 0x37 /* '7' */ )) && (true))) {
+			if (((LA(1) == 0x22 /* '\"' */ ) && ((LA(2) >= 0x30 /* '0' */  && LA(2) <= 0x37 /* '7' */ )) && (true))) {
 				int _m335 = mark();
 				synPredMatched335 = true;
 				inputState->guessing++;
 				try {
 					{
-					match('"');
+					match('\"' /* charlit */ );
 					{ // ( ... )+
 					int _cnt333=0;
 					for (;;) {
@@ -2279,17 +2279,17 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 					switch ( LA(1)) {
 					case 0x62 /* 'b' */ :
 					{
-						match('b');
+						match('b' /* charlit */ );
 						break;
 					}
 					case 0x73 /* 's' */ :
 					{
-						match('s');
+						match('s' /* charlit */ );
 						break;
 					}
 					case 0x6c /* 'l' */ :
 					{
-						match('l');
+						match('l' /* charlit */ );
 						break;
 					}
 					default:
@@ -2303,7 +2303,7 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 							match("ul");
 						}
 						else if ((LA(1) == 0x75 /* 'u' */ ) && (true)) {
-							match('u');
+							match('u' /* charlit */ );
 						}
 						else {
 						}
@@ -2320,7 +2320,7 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 			if ( synPredMatched335 ) {
 				{
 				_saveIndex = text.length();
-				match('"');
+				match('\"' /* charlit */ );
 				text.erase(_saveIndex);
 				{ // ( ... )+
 				int _cnt338=0;
@@ -2344,7 +2344,7 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 				case 0x73 /* 's' */ :
 				{
 					_saveIndex = text.length();
-					match('s');
+					match('s' /* charlit */ );
 					text.erase(_saveIndex);
 					if ( inputState->guessing==0 ) {
 						_ttype=CONSTANT_OCT_INT;
@@ -2354,7 +2354,7 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 				case 0x62 /* 'b' */ :
 				{
 					_saveIndex = text.length();
-					match('b');
+					match('b' /* charlit */ );
 					text.erase(_saveIndex);
 					if ( inputState->guessing==0 ) {
 						_ttype=CONSTANT_OCT_BYTE;
@@ -2404,7 +2404,7 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 					}
 					else if ((LA(1) == 0x75 /* 'u' */ ) && (true)) {
 						_saveIndex = text.length();
-						match('u');
+						match('u' /* charlit */ );
 						text.erase(_saveIndex);
 						if ( inputState->guessing==0 ) {
 							_ttype=CONSTANT_OCT_UI;
@@ -2412,7 +2412,7 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 					}
 					else if ((LA(1) == 0x6c /* 'l' */ ) && (true)) {
 						_saveIndex = text.length();
-						match('l');
+						match('l' /* charlit */ );
 						text.erase(_saveIndex);
 						if ( inputState->guessing==0 ) {
 							_ttype=CONSTANT_OCT_LONG;
@@ -2468,7 +2468,7 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 							}
 							case 0x2e /* '.' */ :
 							{
-								match('.');
+								match('.' /* charlit */ );
 								{ // ( ... )*
 								for (;;) {
 									if (((LA(1) >= 0x30 /* '0' */  && LA(1) <= 0x39 /* '9' */ ))) {
@@ -2497,7 +2497,7 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 						}
 						case 0x2e /* '.' */ :
 						{
-							match('.');
+							match('.' /* charlit */ );
 							{ // ( ... )+
 							int _cnt375=0;
 							for (;;) {
@@ -2568,7 +2568,7 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 						}
 						case 0x2e /* '.' */ :
 						{
-							match('.');
+							match('.' /* charlit */ );
 							{ // ( ... )*
 							for (;;) {
 								if (((LA(1) >= 0x30 /* '0' */  && LA(1) <= 0x39 /* '9' */ ))) {
@@ -2597,7 +2597,7 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 					}
 					case 0x2e /* '.' */ :
 					{
-						match('.');
+						match('.' /* charlit */ );
 						{ // ( ... )+
 						int _cnt387=0;
 						for (;;) {
@@ -2671,7 +2671,7 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 								}
 								case 0x2e /* '.' */ :
 								{
-									match('.');
+									match('.' /* charlit */ );
 									{ // ( ... )*
 									for (;;) {
 										if (((LA(1) >= 0x30 /* '0' */  && LA(1) <= 0x39 /* '9' */ ))) {
@@ -2705,7 +2705,7 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 							}
 							case 0x2e /* '.' */ :
 							{
-								match('.');
+								match('.' /* charlit */ );
 								{ // ( ... )+
 								int _cnt398=0;
 								for (;;) {
@@ -2781,7 +2781,7 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 							}
 							case 0x2e /* '.' */ :
 							{
-								match('.');
+								match('.' /* charlit */ );
 								{ // ( ... )*
 								for (;;) {
 									if (((LA(1) >= 0x30 /* '0' */  && LA(1) <= 0x39 /* '9' */ ))) {
@@ -2815,7 +2815,7 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 						}
 						case 0x2e /* '.' */ :
 						{
-							match('.');
+							match('.' /* charlit */ );
 							{ // ( ... )+
 							int _cnt410=0;
 							for (;;) {
@@ -2850,16 +2850,16 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 							_ttype=CONSTANT_FLOAT;
 						}
 					}
-					else if ((LA(1) == 0x22 /* '"' */ ) && (true) && (true)) {
+					else if ((LA(1) == 0x22 /* '\"' */ ) && (true) && (true)) {
 						_saveIndex = text.length();
-						match('"');
+						match('\"' /* charlit */ );
 						text.erase(_saveIndex);
 						{ // ( ... )*
 						for (;;) {
-							if ((LA(1) == 0x22 /* '"' */ ) && (LA(2) == 0x22 /* '"' */ )) {
-								match('"');
+							if ((LA(1) == 0x22 /* '\"' */ ) && (LA(2) == 0x22 /* '\"' */ )) {
+								match('\"' /* charlit */ );
 								_saveIndex = text.length();
-								match('"');
+								match('\"' /* charlit */ );
 								text.erase(_saveIndex);
 							}
 							else if ((_tokenSet_10.member(LA(1)))) {
@@ -2875,9 +2875,9 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 						_loop360:;
 						} // ( ... )*
 						{
-						if ((LA(1) == 0x22 /* '"' */ )) {
+						if ((LA(1) == 0x22 /* '\"' */ )) {
 							_saveIndex = text.length();
-							match('"');
+							match('\"' /* charlit */ );
 							text.erase(_saveIndex);
 						}
 						else {
@@ -2890,14 +2890,14 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 					}
 					else if ((LA(1) == 0x27 /* '\'' */ ) && (true) && (true)) {
 						_saveIndex = text.length();
-						match('\'');
+						match('\'' /* charlit */ );
 						text.erase(_saveIndex);
 						{ // ( ... )*
 						for (;;) {
 							if ((LA(1) == 0x27 /* '\'' */ ) && (LA(2) == 0x27 /* '\'' */ )) {
-								match('\'');
+								match('\'' /* charlit */ );
 								_saveIndex = text.length();
-								match('\'');
+								match('\'' /* charlit */ );
 								text.erase(_saveIndex);
 							}
 							else if ((_tokenSet_11.member(LA(1)))) {
@@ -2915,7 +2915,7 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 						{
 						if ((LA(1) == 0x27 /* '\'' */ )) {
 							_saveIndex = text.length();
-							match('\'');
+							match('\'' /* charlit */ );
 							text.erase(_saveIndex);
 						}
 						else {
@@ -2927,7 +2927,7 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 						}
 					}
 					else if ((LA(1) == 0x2e /* '.' */ ) && (true)) {
-						match('.');
+						match('.' /* charlit */ );
 						if ( inputState->guessing==0 ) {
 							_ttype=DOT;
 						}
@@ -2955,7 +2955,7 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 						case 0x73 /* 's' */ :
 						{
 							_saveIndex = text.length();
-							match('s');
+							match('s' /* charlit */ );
 							text.erase(_saveIndex);
 							if ( inputState->guessing==0 ) {
 								_ttype=CONSTANT_INT;
@@ -2965,7 +2965,7 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 						case 0x62 /* 'b' */ :
 						{
 							_saveIndex = text.length();
-							match('b');
+							match('b' /* charlit */ );
 							text.erase(_saveIndex);
 							if ( inputState->guessing==0 ) {
 								_ttype=CONSTANT_BYTE;
@@ -3007,12 +3007,12 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 							}
 							else if ((LA(1) == 0x75 /* 'u' */ ) && (true)) {
 								_saveIndex = text.length();
-								match('u');
+								match('u' /* charlit */ );
 								text.erase(_saveIndex);
 								{
 								if ((LA(1) == 0x73 /* 's' */ )) {
 									_saveIndex = text.length();
-									match('s');
+									match('s' /* charlit */ );
 									text.erase(_saveIndex);
 								}
 								else {
@@ -3025,7 +3025,7 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 							}
 							else if ((LA(1) == 0x6c /* 'l' */ ) && (true)) {
 								_saveIndex = text.length();
-								match('l');
+								match('l' /* charlit */ );
 								text.erase(_saveIndex);
 								if ( inputState->guessing==0 ) {
 									_ttype=CONSTANT_LONG;
@@ -3049,11 +3049,11 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 }
 
 void GDLLexer::mCOMMENT(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = COMMENT;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
-	match(';');
+	match(';' /* charlit */ );
 	{ // ( ... )*
 	for (;;) {
 		if ((_tokenSet_2.member(LA(1))) && (true) && (true)) {
@@ -3080,9 +3080,9 @@ void GDLLexer::mCOMMENT(bool _createToken) {
 }
 
 void GDLLexer::mIDENTIFIER(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = IDENTIFIER;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	{
 	mL(false);
@@ -3137,7 +3137,7 @@ void GDLLexer::mIDENTIFIER(bool _createToken) {
 		}
 		case 0x24 /* '$' */ :
 		{
-			match('$');
+			match('$' /* charlit */ );
 			break;
 		}
 		default:
@@ -3164,12 +3164,12 @@ void GDLLexer::mIDENTIFIER(bool _createToken) {
 }
 
 void GDLLexer::mSYSVARNAME(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = SYSVARNAME;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	{
-	match('!');
+	match('!' /* charlit */ );
 	}
 	{ // ( ... )+
 	int _cnt427=0;
@@ -3222,7 +3222,7 @@ void GDLLexer::mSYSVARNAME(bool _createToken) {
 		}
 		case 0x24 /* '$' */ :
 		{
-			match('$');
+			match('$' /* charlit */ );
 			break;
 		}
 		default:
@@ -3249,11 +3249,11 @@ void GDLLexer::mSYSVARNAME(bool _createToken) {
 }
 
 void GDLLexer::mEND_MARKER(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = END_MARKER;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
-	match('&');
+	match('&' /* charlit */ );
 	if ( inputState->guessing==0 ) {
 		_ttype=END_U;
 	}
@@ -3266,9 +3266,9 @@ void GDLLexer::mEND_MARKER(bool _createToken) {
 }
 
 void GDLLexer::mWHITESPACE(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = WHITESPACE;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	{ // ( ... )+
 	int _cnt431=0;
@@ -3296,9 +3296,9 @@ void GDLLexer::mWHITESPACE(bool _createToken) {
 }
 
 void GDLLexer::mSKIP_LINES(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = SKIP_LINES;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	{ // ( ... )*
 	for (;;) {
@@ -3338,11 +3338,11 @@ void GDLLexer::mSKIP_LINES(bool _createToken) {
 }
 
 void GDLLexer::mCONT_STATEMENT(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CONT_STATEMENT;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
-	match('$');
+	match('$' /* charlit */ );
 	{ // ( ... )*
 	for (;;) {
 		if ((_tokenSet_2.member(LA(1)))) {
@@ -3374,9 +3374,9 @@ void GDLLexer::mCONT_STATEMENT(bool _createToken) {
 }
 
 void GDLLexer::mEND_OF_LINE(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = END_OF_LINE;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	mEOL(false);
 	mSKIP_LINES(false);
@@ -3401,16 +3401,16 @@ const unsigned long GDLLexer::_tokenSet_1_data_[] = { 0UL, 0UL, 2147483648UL, 13
 const antlr::BitSet GDLLexer::_tokenSet_1(_tokenSet_1_data_,10);
 const unsigned long GDLLexer::_tokenSet_2_data_[] = { 4294958072UL, 4294967295UL, 4294967295UL, 4294967295UL, 4294967295UL, 4294967295UL, 4294967295UL, 4294967295UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // 0x3 0x4 0x5 0x6 0x7 0x8 0x9 0xb 0xc 0xe 0xf 0x10 0x11 0x12 0x13 0x14 
-// 0x15 0x16 0x17 0x18 0x19 0x1a 0x1b 0x1c 0x1d 0x1e 0x1f   ! " # $ % & 
-// \' ( ) * + , - . / 0 1 2 3 4 5 6 7 8 9 : ; < = > ? @ A B C D E F G H 
-// I J K L M N O P Q R S T U V W X Y Z [ \\ ] ^ _ ` a b c d e f g h i j 
-// k l m n o p q r s t u v w x y z { | } ~ 0x7f 0x80 0x81 0x82 0x83 0x84 
-// 0x85 0x86 0x87 0x88 0x89 0x8a 0x8b 0x8c 0x8d 0x8e 0x8f 0x90 0x91 0x92 
-// 0x93 0x94 0x95 0x96 0x97 0x98 0x99 0x9a 0x9b 0x9c 0x9d 0x9e 0x9f 0xa0 
-// 0xa1 0xa2 0xa3 0xa4 0xa5 0xa6 0xa7 0xa8 0xa9 0xaa 0xab 0xac 0xad 0xae 
-// 0xaf 0xb0 0xb1 0xb2 0xb3 0xb4 0xb5 0xb6 0xb7 0xb8 0xb9 0xba 0xbb 0xbc 
-// 0xbd 0xbe 0xbf 0xc0 0xc1 0xc2 0xc3 0xc4 0xc5 0xc6 0xc7 0xc8 0xc9 0xca 
-// 0xcb 
+// 0x15 0x16 0x17 0x18 0x19 0x1a 0x1b 0x1c 0x1d 0x1e 0x1f   ! \" # $ % 
+// & \' ( ) * + , - . / 0 1 2 3 4 5 6 7 8 9 : ; < = > ? @ A B C D E F G 
+// H I J K L M N O P Q R S T U V W X Y Z [ 0x5c ] ^ _ ` a b c d e f g h 
+// i j k l m n o p q r s t u v w x y z { | } ~ 0x7f 0x80 0x81 0x82 0x83 
+// 0x84 0x85 0x86 0x87 0x88 0x89 0x8a 0x8b 0x8c 0x8d 0x8e 0x8f 0x90 0x91 
+// 0x92 0x93 0x94 0x95 0x96 0x97 0x98 0x99 0x9a 0x9b 0x9c 0x9d 0x9e 0x9f 
+// 0xa0 0xa1 0xa2 0xa3 0xa4 0xa5 0xa6 0xa7 0xa8 0xa9 0xaa 0xab 0xac 0xad 
+// 0xae 0xaf 0xb0 0xb1 0xb2 0xb3 0xb4 0xb5 0xb6 0xb7 0xb8 0xb9 0xba 0xbb 
+// 0xbc 0xbd 0xbe 0xbf 0xc0 0xc1 0xc2 0xc3 0xc4 0xc5 0xc6 0xc7 0xc8 0xc9 
+// 0xca 0xcb 
 const antlr::BitSet GDLLexer::_tokenSet_2(_tokenSet_2_data_,16);
 const unsigned long GDLLexer::_tokenSet_3_data_[] = { 0UL, 67053568UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // + - 0 1 2 3 4 5 6 7 8 9 
@@ -3437,8 +3437,8 @@ const unsigned long GDLLexer::_tokenSet_10_data_[] = { 4294958072UL, 4294967291U
 // 0x3 0x4 0x5 0x6 0x7 0x8 0x9 0xb 0xc 0xe 0xf 0x10 0x11 0x12 0x13 0x14 
 // 0x15 0x16 0x17 0x18 0x19 0x1a 0x1b 0x1c 0x1d 0x1e 0x1f   ! # $ % & \' 
 // ( ) * + , - . / 0 1 2 3 4 5 6 7 8 9 : ; < = > ? @ A B C D E F G H I 
-// J K L M N O P Q R S T U V W X Y Z [ \\ ] ^ _ ` a b c d e f g h i j k 
-// l m n o p q r s t u v w x y z { | } ~ 0x7f 0x80 0x81 0x82 0x83 0x84 
+// J K L M N O P Q R S T U V W X Y Z [ 0x5c ] ^ _ ` a b c d e f g h i j 
+// k l m n o p q r s t u v w x y z { | } ~ 0x7f 0x80 0x81 0x82 0x83 0x84 
 // 0x85 0x86 0x87 0x88 0x89 0x8a 0x8b 0x8c 0x8d 0x8e 0x8f 0x90 0x91 0x92 
 // 0x93 0x94 0x95 0x96 0x97 0x98 0x99 0x9a 0x9b 0x9c 0x9d 0x9e 0x9f 0xa0 
 // 0xa1 0xa2 0xa3 0xa4 0xa5 0xa6 0xa7 0xa8 0xa9 0xaa 0xab 0xac 0xad 0xae 
@@ -3448,10 +3448,10 @@ const unsigned long GDLLexer::_tokenSet_10_data_[] = { 4294958072UL, 4294967291U
 const antlr::BitSet GDLLexer::_tokenSet_10(_tokenSet_10_data_,16);
 const unsigned long GDLLexer::_tokenSet_11_data_[] = { 4294958072UL, 4294967167UL, 4294967295UL, 4294967295UL, 4294967295UL, 4294967295UL, 4294967295UL, 4294967295UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // 0x3 0x4 0x5 0x6 0x7 0x8 0x9 0xb 0xc 0xe 0xf 0x10 0x11 0x12 0x13 0x14 
-// 0x15 0x16 0x17 0x18 0x19 0x1a 0x1b 0x1c 0x1d 0x1e 0x1f   ! " # $ % & 
-// ( ) * + , - . / 0 1 2 3 4 5 6 7 8 9 : ; < = > ? @ A B C D E F G H I 
-// J K L M N O P Q R S T U V W X Y Z [ \\ ] ^ _ ` a b c d e f g h i j k 
-// l m n o p q r s t u v w x y z { | } ~ 0x7f 0x80 0x81 0x82 0x83 0x84 
+// 0x15 0x16 0x17 0x18 0x19 0x1a 0x1b 0x1c 0x1d 0x1e 0x1f   ! \" # $ % 
+// & ( ) * + , - . / 0 1 2 3 4 5 6 7 8 9 : ; < = > ? @ A B C D E F G H 
+// I J K L M N O P Q R S T U V W X Y Z [ 0x5c ] ^ _ ` a b c d e f g h i 
+// j k l m n o p q r s t u v w x y z { | } ~ 0x7f 0x80 0x81 0x82 0x83 0x84 
 // 0x85 0x86 0x87 0x88 0x89 0x8a 0x8b 0x8c 0x8d 0x8e 0x8f 0x90 0x91 0x92 
 // 0x93 0x94 0x95 0x96 0x97 0x98 0x99 0x9a 0x9b 0x9c 0x9d 0x9e 0x9f 0xa0 
 // 0xa1 0xa2 0xa3 0xa4 0xa5 0xa6 0xa7 0xa8 0xa9 0xaa 0xab 0xac 0xad 0xae 

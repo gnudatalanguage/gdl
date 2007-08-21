@@ -333,30 +333,72 @@ void DNode::Text2UInt(int base, bool promote)
       cData=new DUIntGDL(val);
     }
 }
+
 void DNode::Text2Long(int base)
 {
-  // cout << "long" << endl;
-  DLong val;
-  Text2Number( val, base);
+  if( base == 16)
+    {
+      if( text.size() > sizeof( DLong)*2) 
+	throw GDLException( "Long hexadecimal constant can only have "+
+			    i2s(sizeof( DLong)*2)+" digits.");
+
+      DLong val;
+      Text2Number( val, base);
+      cData=new DLongGDL(val);
+      return;
+    }
+
+  DLong64 val;
+  bool noOverFlow = Text2Number( val, base);
+
+  if( !noOverFlow || val > std::numeric_limits< DLong>::max())
+    throw GDLException( "Long constant must be smaller than or equal to "+
+			i2s(std::numeric_limits< DLong>::max()));
+
   cData=new DLongGDL(val);
 }
+
 void DNode::Text2ULong(int base) 
 {
-  DULong val;
-  Text2Number( val, base);
+  if( base == 16)
+    {
+      if( text.size() > sizeof(DULong)*2)
+	throw GDLException( "ULong hexadecimal constant can only have "+
+			    i2s(sizeof( DLong)*2)+" digits.");
+
+      DULong val;
+      Text2Number( val, base);
+      cData=new DULongGDL(val);
+      return;
+    }
+
+  DULong64 val;
+  bool noOverFlow = Text2Number( val, base);
+
+  if( !noOverFlow || val > std::numeric_limits< DULong>::max())
+    throw GDLException( "ULong constant must be smaller than or equal to "+
+			i2s(std::numeric_limits< DULong>::max()));
+
   cData=new DULongGDL(val);
 }
+
 void DNode::Text2Long64(int base)
 {
   DLong64 val;
-  Text2Number( val, base);
-  cData=new DLong64GDL(val);
+  bool noOverFlow = Text2Number( val, base);
+  if( noOverFlow)
+    cData=new DLong64GDL(val);
+  else 
+    cData=new DLong64GDL( -1);
 }
 void DNode::Text2ULong64(int base)
 {
   DULong64 val;
-  Text2Number( val, base);
-  cData=new DULong64GDL(val);
+  bool noOverFlow = Text2Number( val, base);
+  if( noOverFlow)
+    cData=new DULong64GDL(val);
+  else
+    cData=new DULong64GDL( std::numeric_limits< DULong64>::max());
 }
 void DNode::Text2Float()
 {

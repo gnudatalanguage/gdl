@@ -191,18 +191,20 @@ public:
     var=v;
   }
 
-  template<typename T> void Text2Number( T& out, int base)
+  template<typename T> bool Text2Number( T& out, int base)
   {
+    bool noOverflow = true;
+
     T number=0;
 
-    for(unsigned i=0; i < text.size(); i++)
+    for(unsigned i=0; i < text.size(); ++i)
       {
 	char c=text[i];
-	if( c >= '0' &&  c <= '9' )
+	if( c >= '0' && c <= '9')
 	  {
 	    c -= '0';
 	  }
-	else if( c >= 'a' &&  c <= 'f' )
+	else if( c >= 'a' &&  c <= 'f')
 	  {
 	    c -= 'a'-10;
 	  }
@@ -214,16 +216,16 @@ public:
 	T newNumber = base * number + c;
 
 	// check for overflow
-// 	if( newNumber < number)
-// 	  {
-// 	    out=number;
-// 	    // put a notification here
-// 	    return;
-// 	  }
+	if( newNumber < number)
+	  {
+	    noOverflow = false;
+	  }
 
 	number=newNumber;
       }
     out=number;
+
+    return noOverflow;
   } 
 
   void Text2Byte(int base);
