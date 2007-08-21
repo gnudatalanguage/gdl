@@ -214,12 +214,12 @@ public:
 	T newNumber = base * number + c;
 
 	// check for overflow
-	if( newNumber < number)
-	  {
-	    out=number;
-	    // put a notification here
-	    return;
-	  }
+// 	if( newNumber < number)
+// 	  {
+// 	    out=number;
+// 	    // put a notification here
+// 	    return;
+// 	  }
 
 	number=newNumber;
       }
