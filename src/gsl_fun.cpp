@@ -1713,6 +1713,278 @@ namespace lib {
     
   }
 
+
+  void la_trired_pro( EnvT* e)
+  {
+    SizeT nParam=e->NParam();
+    float f32;
+    double f64;
+
+    if( nParam != 3)
+      throw GDLException( e->CallingNode(), 
+			  "LA_TRIRED: Incorrect number of arguments.");
+
+    BaseGDL* p0 = e->GetParDefined( 0);
+
+    SizeT nEl = p0->N_Elements();
+    if( nEl == 0)
+      throw GDLException( e->CallingNode(), 
+			  "LA_TRIRED: Variable is undefined: "+ 
+			  e->GetParString(0));
+    
+    if (p0->Dim(0) != p0->Dim(1))
+      throw GDLException( e->CallingNode(), 
+			  "LA_TRIRED: Input must be a square matrix: "+ 
+			  e->GetParString(0));
+
+    if( p0->Type() == COMPLEX)
+      {
+	DComplexGDL* p0C = static_cast<DComplexGDL*>( p0);
+
+	float f32_2[2];
+	double f64_2[2];
+
+	gsl_matrix_complex *mat = 
+	  gsl_matrix_complex_alloc(p0->Dim(0), p0->Dim(0));
+	gsl_matrix_complex *Q = 
+	  gsl_matrix_complex_alloc(p0->Dim(0), p0->Dim(0));
+	gsl_vector_complex *tau = gsl_vector_complex_alloc(p0->Dim(0)-1);
+	gsl_vector *diag = gsl_vector_alloc(p0->Dim(0));
+	gsl_vector *subdiag = gsl_vector_alloc(p0->Dim(0)-1);
+
+	for( SizeT i=0; i<nEl; ++i) {
+	  memcpy(f32_2, &(*p0C)[i], szdbl);
+	  f64 = (double) f32_2[0];
+	  memcpy(&mat->data[2*i], &f64, szdbl);
+
+	  f64 = (double) f32_2[1];
+	  memcpy(&mat->data[2*i+1], &f64, szdbl);
+	}
+
+	gsl_linalg_hermtd_decomp (mat, tau);
+	gsl_linalg_hermtd_unpack (mat, tau, Q, diag, subdiag);
+
+	DLong dims[2] = {p0->Dim(0), p0->Dim(0)};
+	dimension dim0(dims, (SizeT) 2);
+	BaseGDL** p0Co = &e->GetPar( 0);
+	delete (*p0Co);
+	*p0Co = new DComplexGDL(dim0, BaseGDL::NOZERO);
+
+	DLong n = p0->Dim(0);
+	dimension dim1(&n, (SizeT) 1);
+	BaseGDL** p1F = &e->GetPar( 1);
+	delete (*p1F);
+	*p1F = new DFloatGDL(dim1, BaseGDL::NOZERO);
+
+	n--;
+	dimension dim2(&n, (SizeT) 1);
+	BaseGDL** p2F = &e->GetPar( 2);
+ 	delete (*p2F);
+ 	*p2F = new DFloatGDL(dim2, BaseGDL::NOZERO);
+
+ 	for( SizeT i=0; i<p0->Dim(0)*p0->Dim(0); i++) {
+ 	  memcpy(&f64_2[0], &Q->data[2*i], 2*szdbl);
+ 	  f32_2[0] = (float) f64_2[0];
+ 	  f32_2[1] = (float) f64_2[1];
+ 	  memcpy(&(*(DComplexGDL*) *p0Co)[i], &f32_2, 2*szflt);
+ 	}
+
+ 	for( SizeT i=0; i<p0->Dim(0); i++) {
+ 	  memcpy(&f64, &diag->data[i], szdbl);
+ 	  f32 = (float) f64;
+ 	  memcpy(&(*(DFloatGDL*) *p1F)[i], &f32, szflt);
+ 	}
+
+	for( SizeT i=0; i<p0->Dim(0)-1; i++) {
+	  memcpy(&f64, &subdiag->data[i], szdbl);
+	  f32 = (float) f64;
+ 	  memcpy(&(*(DFloatGDL*) *p2F)[i], &f32, szflt);
+	}
+
+	gsl_matrix_complex_free(mat);
+	gsl_matrix_complex_free(Q);
+	gsl_vector_complex_free(tau);
+	gsl_vector_free(diag);
+	gsl_vector_free(subdiag);
+      }
+    else if( p0->Type() == COMPLEXDBL)
+      {
+	DComplexDblGDL* p0C = static_cast<DComplexDblGDL*>( p0);
+
+	gsl_matrix_complex *mat = 
+	  gsl_matrix_complex_alloc(p0->Dim(0), p0->Dim(0));
+	gsl_matrix_complex *Q = 
+	  gsl_matrix_complex_alloc(p0->Dim(0), p0->Dim(0));
+	gsl_vector_complex *tau = gsl_vector_complex_alloc(p0->Dim(0)-1);
+	gsl_vector *diag = gsl_vector_alloc(p0->Dim(0));
+	gsl_vector *subdiag = gsl_vector_alloc(p0->Dim(0)-1);
+
+	memcpy(mat->data, &(*p0C)[0], nEl*szdbl*2);
+
+	gsl_linalg_hermtd_decomp (mat, tau);
+	gsl_linalg_hermtd_unpack (mat, tau, Q, diag, subdiag);
+
+	DLong dims[2] = {p0->Dim(0), p0->Dim(0)};
+	dimension dim0(dims, (SizeT) 2);
+	BaseGDL** p0Co = &e->GetPar( 0);
+	delete (*p0Co);
+	*p0Co = new DComplexDblGDL(dim0, BaseGDL::NOZERO);
+
+	DLong n = p0->Dim(0);
+	dimension dim1(&n, (SizeT) 1);
+	BaseGDL** p1D = &e->GetPar( 1);
+	delete (*p1D);
+	*p1D = new DDoubleGDL(dim1, BaseGDL::NOZERO);
+
+	n--;
+	dimension dim2(&n, (SizeT) 1);
+	BaseGDL** p2D = &e->GetPar( 2);
+ 	delete (*p2D);
+ 	*p2D = new DDoubleGDL(dim2, BaseGDL::NOZERO);
+
+	memcpy(&(*(DComplexDblGDL*) *p0Co)[0], Q->data, 
+	       p0->Dim(0)*p0->Dim(0)*szdbl*2);
+
+	memcpy(&(*(DDoubleGDL*) *p1D)[0], diag->data, p0->Dim(0)*szdbl);
+	memcpy(&(*(DDoubleGDL*) *p2D)[0], subdiag->data, 
+	       (p0->Dim(0)-1)*szdbl);
+
+	gsl_matrix_complex_free(mat);
+	gsl_matrix_complex_free(Q);
+	gsl_vector_complex_free(tau);
+	gsl_vector_free(diag);
+	gsl_vector_free(subdiag);
+      }
+    else if( p0->Type() == DOUBLE)
+      {
+	DDoubleGDL* p0D = static_cast<DDoubleGDL*>( p0);
+
+	gsl_matrix *mat = gsl_matrix_alloc(p0->Dim(0), p0->Dim(0));
+	gsl_matrix *Q = gsl_matrix_alloc(p0->Dim(0), p0->Dim(0));
+	gsl_vector *tau = gsl_vector_alloc(p0->Dim(0)-1);
+	gsl_vector *diag = gsl_vector_alloc(p0->Dim(0));
+	gsl_vector *subdiag = gsl_vector_alloc(p0->Dim(0)-1);
+
+	memcpy(mat->data, &(*p0D)[0], nEl*szdbl);
+
+	gsl_linalg_symmtd_decomp (mat, tau);
+	gsl_linalg_symmtd_unpack (mat, tau, Q, diag, subdiag);
+
+	DLong dims[2] = {p0->Dim(0), p0->Dim(0)};
+	dimension dim0(dims, (SizeT) 2);
+	BaseGDL** p0Do = &e->GetPar( 0);
+	delete (*p0Do);
+	*p0Do = new DDoubleGDL(dim0, BaseGDL::NOZERO);
+
+	DLong n = p0->Dim(0);
+	dimension dim1(&n, (SizeT) 1);
+	BaseGDL** p1D = &e->GetPar( 1);
+	delete (*p1D);
+	*p1D = new DDoubleGDL(dim1, BaseGDL::NOZERO);
+
+	n--;
+	dimension dim2(&n, (SizeT) 1);
+	BaseGDL** p2D = &e->GetPar( 2);
+ 	delete (*p2D);
+ 	*p2D = new DDoubleGDL(dim2, BaseGDL::NOZERO);
+
+	memcpy(&(*(DDoubleGDL*) *p0Do)[0], Q->data, 
+	       p0->Dim(0)*p0->Dim(0)*szdbl);
+
+	memcpy(&(*(DDoubleGDL*) *p1D)[0], diag->data, p0->Dim(0)*szdbl);
+	memcpy(&(*(DDoubleGDL*) *p2D)[0], subdiag->data, 
+	       (p0->Dim(0)-1)*szdbl);
+
+	gsl_matrix_free(mat);
+	gsl_matrix_free(Q);
+	gsl_vector_free(tau);
+	gsl_vector_free(diag);
+	gsl_vector_free(subdiag);
+      }
+    else if( p0->Type() == FLOAT ||
+	     p0->Type() == LONG ||
+	     p0->Type() == ULONG ||
+	     p0->Type() == INT ||
+	     p0->Type() == UINT ||
+	     p0->Type() == BYTE)
+      {
+	DFloatGDL* p0F = static_cast<DFloatGDL*>( p0);
+	DLongGDL* p0L = static_cast<DLongGDL*>( p0);
+	DULongGDL* p0UL = static_cast<DULongGDL*>( p0);
+	DIntGDL* p0I = static_cast<DIntGDL*>( p0);
+	DUIntGDL* p0UI = static_cast<DUIntGDL*>( p0);
+	DByteGDL* p0B = static_cast<DByteGDL*>( p0);
+
+	gsl_matrix *mat = gsl_matrix_alloc(p0->Dim(0), p0->Dim(0));
+	gsl_matrix *Q = gsl_matrix_alloc(p0->Dim(0), p0->Dim(0));
+	gsl_vector *tau = gsl_vector_alloc(p0->Dim(0)-1);
+	gsl_vector *diag = gsl_vector_alloc(p0->Dim(0));
+	gsl_vector *subdiag = gsl_vector_alloc(p0->Dim(0)-1);
+
+	for( SizeT i=0; i<nEl; ++i) {
+	  switch ( p0->Type()) {
+	  case FLOAT: f64 = (double) (*p0F)[i]; break;
+	  case LONG:  f64 = (double) (*p0L)[i]; break;
+	  case ULONG: f64 = (double) (*p0UL)[i]; break;
+	  case INT:   f64 = (double) (*p0I)[i]; break;
+	  case UINT:  f64 = (double) (*p0UI)[i]; break;
+	  case BYTE:  f64 = (double) (*p0B)[i]; break;
+	  }
+	  memcpy(&mat->data[i], &f64, szdbl);
+	}
+
+	gsl_linalg_symmtd_decomp (mat, tau);
+	gsl_linalg_symmtd_unpack (mat, tau, Q, diag, subdiag);
+
+	DLong dims[2] = {p0->Dim(0), p0->Dim(0)};
+	dimension dim0(dims, (SizeT) 2);
+	BaseGDL** p0Fo = &e->GetPar( 0);
+	delete (*p0Fo);
+	*p0Fo = new DFloatGDL(dim0, BaseGDL::NOZERO);
+
+	DLong n = p0->Dim(0);
+	dimension dim1(&n, (SizeT) 1);
+	BaseGDL** p1F = &e->GetPar( 1);
+	delete (*p1F);
+	*p1F = new DFloatGDL(dim1, BaseGDL::NOZERO);
+
+	n--;
+	dimension dim2(&n, (SizeT) 1);
+	BaseGDL** p2F = &e->GetPar( 2);
+ 	delete (*p2F);
+ 	*p2F = new DFloatGDL(dim2, BaseGDL::NOZERO);
+
+ 	for( SizeT i=0; i<p0->Dim(0)*p0->Dim(0); i++) {
+ 	  memcpy(&f64, &Q->data[i], szdbl);
+ 	  f32 = (float) f64;
+ 	  memcpy(&(*(DFloatGDL*) *p0Fo)[i], &f32, szflt);
+ 	}
+
+ 	for( SizeT i=0; i<p0->Dim(0); i++) {
+ 	  memcpy(&f64, &diag->data[i], szdbl);
+ 	  f32 = (float) f64;
+ 	  memcpy(&(*(DFloatGDL*) *p1F)[i], &f32, szflt);
+ 	}
+
+	for( SizeT i=0; i<p0->Dim(0)-1; i++) {
+	  memcpy(&f64, &subdiag->data[i], szdbl);
+	  f32 = (float) f64;
+ 	  memcpy(&(*(DFloatGDL*) *p2F)[i], &f32, szflt);
+	}
+
+	gsl_matrix_free(mat);
+	gsl_matrix_free(Q);
+	gsl_vector_free(tau);
+	gsl_vector_free(diag);
+	gsl_vector_free(subdiag);
+      }
+    else 
+      {
+	DFloatGDL* res = static_cast<DFloatGDL*>
+	  (p0->Convert2( FLOAT, BaseGDL::COPY));
+      }
+  }
+
 } // namespace
 
 

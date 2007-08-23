@@ -35,6 +35,8 @@ namespace lib {
   BaseGDL* histogram_fun( EnvT* e);
   BaseGDL* interpolate_fun( EnvT* e);
 
+  void la_trired_pro( EnvT* e);
+
 //  int fft_1d( BaseGDL*, void*, SizeT, SizeT, //SizeT, 
 //	      double, SizeT);
   int fft_1d( BaseGDL* p0, void* data, SizeT nEl, SizeT offset, SizeT stride, 

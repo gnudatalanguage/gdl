@@ -89,6 +89,9 @@ void LibInit_jmg()
 
   const string interpolateKey[]={"CUBIC","GRID","MISSING",KLISTEND};
   new DLibFun(lib::interpolate_fun,string("INTERPOLATE"),4,interpolateKey);
+
+  const string la_triredKey[]={"DOUBLE","UPPER",KLISTEND};
+  new DLibPro(lib::la_trired_pro,string("LA_TRIRED"),3,la_triredKey);
 #endif
 
   const string macharKey[]={"DOUBLE",KLISTEND};
