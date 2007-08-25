@@ -2821,44 +2821,93 @@ namespace lib {
     SizeT nEl = p0->N_Elements();
 
     static int evenIx = e->KeywordIx( "EVEN");
-    
-    // helper arrays
-    DLong *hh = new DLong[ nEl];
-    for( DLong i=0; i<nEl; ++i) hh[i] = i;
-    //    ArrayGuard< DLong> hhGuard( hh);
+    static int doubleIx = e->KeywordIx( "DOUBLE");
 
+    // DIM keyword
+    DLong dim = 0;
+    DLong nmed = 1;
+    DDoubleGDL *res;
+    e->AssureLongScalarKWIfPresent( "DIM", dim);
+
+    if (dim > p0->Rank())
+      e->Throw( "Illegal keyword value for DIMENSION.");
+
+    if (dim > 0) {
+      DLong dims[8];
+      DLong k = 0;
+      for (SizeT i=0; i<p0->Rank(); ++i)
+	if (i != (dim-1)) {
+	  nmed *= p0->Dim(i);
+	  dims[k++] = p0->Dim(i);
+	}
+      dimension dimRes((DLong *) dims, p0->Rank()-1);
+      res = new DDoubleGDL( dimRes, BaseGDL::NOZERO);
+    } else {
+      res = new DDoubleGDL( 1);
+    }
+
+    // helper arrays
+    if (nmed > 1) nEl = p0->N_Elements() / nmed;
+
+    DLong *hh = new DLong[ nEl];
     DLong* h1 = new DLong[ nEl/2];
     DLong* h2 = new DLong[ (nEl+1)/2];
-    // call the sort routine
-    MergeSortOpt<DLong>( p0, hh, h1, h2, nEl);
+
+    DLong accumStride = 1;
+    if (nmed > 1)
+      for( DLong i=0; i<dim-1; ++i) accumStride *= p0->Dim(i);
+
+    // Loop over all subarray medians
+    for (SizeT k=0; k<nmed; ++k) {
+
+      if (nmed == 1) { 
+	for( DLong i=0; i<nEl; ++i) hh[i] = i;
+      } else {
+	// Starting Element
+	DLong start = accumStride * p0->Dim(dim-1) * (k / accumStride) + 
+	  (k % accumStride);
+	for( DLong i=0; i<nEl; ++i) hh[i] = start + i * accumStride;
+      }
+      //    ArrayGuard< DLong> hhGuard( hh);
+
+      // call the sort routine
+      MergeSortOpt<DLong>( p0, hh, h1, h2, nEl);
+      DLong medEl = hh[ nEl/2];
+      DLong medEl_1 = hh[ nEl/2 - 1];
+
+      if( (nEl % 2) == 1 || !e->KeywordSet( evenIx)) {
+	if (nmed == 1)
+	  res = (DDoubleGDL *) (p0->NewIx( medEl))->Convert2( DOUBLE);
+	else {
+	  DDoubleGDL* op1 = 
+	    static_cast<DDoubleGDL*>((p0->NewIx( medEl))->Convert2( DOUBLE));
+	  (*res)[k] = (*op1)[0];
+	}
+      } else {
+	DDoubleGDL* op1 = 
+	  static_cast<DDoubleGDL*>((p0->NewIx( medEl))->Convert2( DOUBLE)); 
+	e->Guard( op1);
+	DDoubleGDL* op2 = 
+	  static_cast<DDoubleGDL*>((p0->NewIx( medEl_1))->Convert2( DOUBLE));
+	static DDoubleGDL* op3 = new DDoubleGDL( 2.0);
+	if (nmed == 1)
+	  res = op2->Add( op1)->Div( op3);
+	else {
+	  op1 = op2->Add( op1)->Div( op3);
+	  (*res)[k] = (*op1)[0];
+	}
+      }
+    }
     delete[] h1;
     delete[] h2;
-    DLong medEl = hh[ nEl/2];
-    DLong medEl_1 = hh[ nEl/2 - 1];
     delete[] hh;
 
-    if( (nEl % 2) == 1 ||  !e->KeywordSet( evenIx))
-      if( p0->Type() == DOUBLE || p0->Type() == COMPLEXDBL)
-	return (p0->NewIx( medEl))->Convert2( DOUBLE);
-      else
-	return (p0->NewIx( medEl))->Convert2( FLOAT);
-    
-    if( p0->Type() == DOUBLE || p0->Type() == COMPLEXDBL)
-      {
-	DDoubleGDL* op1 = static_cast<DDoubleGDL*>((p0->NewIx( medEl))->Convert2( DOUBLE)); 
-	e->Guard( op1);
-	DDoubleGDL* op2 = static_cast<DDoubleGDL*>((p0->NewIx( medEl_1))->Convert2( DOUBLE)); 
-	static DDoubleGDL* op3 = new DDoubleGDL( 2.0);
-	return op2->Add( op1)->Div( op3);
-      }
-    else 
-      {
-	DFloatGDL* op1 = static_cast<DFloatGDL*>((p0->NewIx( medEl))->Convert2( FLOAT)); 
-	e->Guard( op1);
-	DFloatGDL* op2 = static_cast<DFloatGDL*>((p0->NewIx( medEl_1))->Convert2( FLOAT)); 
-	static DFloatGDL* op3 = new DFloatGDL( 2.0);
-	return op2->Add( op1)->Div( op3);
-      }
+    if( p0->Type() == DOUBLE || 
+	p0->Type() == COMPLEXDBL || 
+	e->KeywordSet( doubleIx))
+      return res;
+    else
+      return res->Convert2( FLOAT);
   }
 
 

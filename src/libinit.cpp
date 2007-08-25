@@ -155,7 +155,7 @@ void LibInit()
   const string sortKey[]={"L64",KLISTEND};
   new DLibFunRetNew(lib::sort_fun,string("SORT"),1,sortKey);
 
-  const string medianKey[]={"EVEN",KLISTEND};
+  const string medianKey[]={"EVEN","DOUBLE","DIM",KLISTEND};
   new DLibFunRetNew(lib::median,string("MEDIAN"),2,medianKey);
   
   new DLibFunRetNew(lib::transpose,string("TRANSPOSE"),2);
