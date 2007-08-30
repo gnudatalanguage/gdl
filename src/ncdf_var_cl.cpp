@@ -133,9 +133,9 @@ namespace lib {
 
     BaseGDL* n;
 
-    DInt cdfid, varid;
-    e->AssureScalarPar<DIntGDL>(0, cdfid);
-    e->AssureScalarPar<DIntGDL>(1, varid);
+    DLong cdfid, varid;
+    e->AssureLongScalarPar(0, cdfid);
+    e->AssureLongScalarPar(1, varid);
 
     //call the ncdf library
     status=nc_inq_var(cdfid,varid,var_name,&var_type,&var_ndims,
@@ -210,14 +210,10 @@ namespace lib {
     char var_name[NC_MAX_NAME], *n;
     size_t i,mema;
 
+    DLong cdfid, varid;
+    e->AssureLongScalarPar(0, cdfid);
+    e->AssureLongScalarPar(1, varid);
 
-    DInt cdfid, varid;
-    e->AssureScalarPar<DIntGDL>(0, cdfid);
-    e->AssureScalarPar<DIntGDL>(1, varid);
-
-
-
-    
     //inquire
     status=nc_inq_var(cdfid,varid,var_name,
 		      &var_type,&var_ndims,
@@ -370,10 +366,14 @@ else if(var_type == NC_LONG)
     char var_name[NC_MAX_NAME];
     size_t i;
 
-    DInt cdfid, varid;
+    DLong cdfid, varid;
+    e->AssureLongScalarPar(0, cdfid);
+    e->AssureLongScalarPar(1, varid);
+
+    /*
     e->AssureScalarPar<DIntGDL>(0, cdfid);
     e->AssureScalarPar<DIntGDL>(1, varid);
-
+    */
 
     //inquire
     status=nc_inq_var(cdfid,varid,var_name,&var_type,&var_ndims,
@@ -1024,9 +1024,11 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 
     //get the cdfid, which must be given.
     BaseGDL* n;
-    DInt cdfid, varid;
-    e->AssureScalarPar<DIntGDL>(0, cdfid);
-    e->AssureScalarPar<DIntGDL>(1, varid);
+
+    DLong cdfid, varid;
+    e->AssureLongScalarPar(0, cdfid);
+    e->AssureLongScalarPar(1, varid);
+
     DString newname;
     e->AssureStringScalarPar(2, newname);
     
@@ -1055,9 +1057,9 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 
     //get the cdfid
     BaseGDL* v;
-    DInt cdfid, varid;
-    e->AssureScalarPar<DIntGDL>(0, cdfid);
-    e->AssureScalarPar<DIntGDL>(1, varid);
+    DLong cdfid, varid;
+    e->AssureLongScalarPar(0, cdfid);
+    e->AssureLongScalarPar(1, varid);
 
     //get the value
     v=e->GetParDefined(2);
