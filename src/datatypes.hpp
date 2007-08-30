@@ -26,7 +26,7 @@
 #include <string>
 
 //#include <complex>
-//#include <deque>
+#include <deque>
 
 #include "typedefs.hpp"
 #include "basegdl.hpp"
@@ -37,6 +37,7 @@
 #pragma interface
 #endif
 
+const size_t multiAlloc = 100;
 
 template<class Sp>
 class Data_: public Sp
@@ -55,6 +56,13 @@ private:
   DataT                      dd; // the data
 
 public:
+	// memory management optimization
+	static std::deque< void*> freeList;
+
+	// operator new and delete
+ 	void* operator new( size_t bytes);
+	void operator delete( void *ptr);
+
   //structors
   ~Data_();
 

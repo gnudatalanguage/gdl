@@ -24,6 +24,38 @@
 
 using namespace std;
 
+deque< void*> DStructGDL::freeList;
+
+void* DStructGDL::operator new( size_t bytes)
+{
+	assert( bytes == sizeof( DStructGDL));
+	
+	if( freeList.size() > 0)
+	{
+		void* res = freeList.back();
+		freeList.pop_back();
+		return res;	
+	}
+
+	//cout << "Alloc: " << bytes << "  " << "STRUCT" << endl;
+
+	const size_t newSize = multiAlloc - 1;
+	freeList.resize( newSize);
+	char* res = static_cast< char*>( malloc( sizeof( DStructGDL) * multiAlloc)); // one more than newSize
+	for( size_t i=0; i<newSize; ++i)
+	{
+		freeList[ i] = res;
+		res += sizeof( DStructGDL);
+	} 
+	
+	return res;
+}
+
+void DStructGDL::operator delete( void *ptr)
+{
+	freeList.push_back( ptr);
+}
+
 DStructGDL::~DStructGDL() 
 {  
   SizeT nD=dd.size();

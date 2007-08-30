@@ -19,7 +19,7 @@
 #define dstructgdl_hpp_
 
 #include <string>
-//#include <valarray>
+#include <deque>
 
 #include "typedefs.hpp"
 #include "datatypes.hpp" // for friend declaration
@@ -46,13 +46,20 @@ private:
   // new array, don't init fields (only for New())
   DStructGDL( DStructDesc* desc_, const dimension& dim_, BaseGDL::InitType iT): 
     SpDStruct( desc_, dim_), 
-    dd(dim.N_Elements()*desc_->NTags(),SpDStruct::zero)
+    dd(dim.N_Elements()*desc_->NTags())
   {
     assert( iT == BaseGDL::NOZERO);
     dim.Purge();
   }
 
 public:
+
+	static std::deque< void*> freeList;
+
+	// operator new and delete
+ 	void* operator new( size_t bytes);
+	void operator delete( void *ptr);
+
   //structors
   ~DStructGDL(); 
 
@@ -217,12 +224,12 @@ public:
 		   BaseGDL::InitType noZero=BaseGDL::ZERO)
   {
 // No NOZERO for structs  
-//     if( noZero == BaseGDL::NOZERO)
-//       {
-// 	DStructGDL* res = new DStructGDL( Desc(), dim_, noZero);
-// 	res->MakeOwnDesc();
-// 	return res;
-//       }
+    if( noZero == BaseGDL::NOZERO)
+      {
+	DStructGDL* res = new DStructGDL( Desc(), dim_, noZero);
+	res->MakeOwnDesc();
+	return res;
+      }
     if( noZero == BaseGDL::INIT)
       {
 	DStructGDL* res =  new DStructGDL( Desc(), dim_, BaseGDL::NOZERO);

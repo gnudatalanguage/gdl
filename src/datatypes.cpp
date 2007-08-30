@@ -82,6 +82,40 @@ using namespace std;
 #endif
 #endif
 
+template<class Sp> 
+deque< void*> Data_<Sp>::freeList;
+
+template<class Sp> void* Data_<Sp>::operator new( size_t bytes)
+{
+	assert( bytes == sizeof( Data_));
+	
+	if( freeList.size() > 0)
+	{
+		void* res = freeList.back();
+		freeList.pop_back();
+		return res;	
+	}
+
+//	cout << "Alloc: " << bytes << "  " << Sp::str << endl;
+
+	const size_t newSize = multiAlloc - 1;
+	freeList.resize( newSize);
+	char* res = static_cast< char*>( malloc( sizeof( Data_) * multiAlloc)); // one more than newSize
+	for( size_t i=0; i<newSize; ++i)
+	{
+		freeList[ i] = res;
+		res += sizeof( Data_);
+	} 
+	
+	return res;
+}
+
+template<class Sp> void Data_<Sp>::operator delete( void *ptr)
+{
+	freeList.push_back( ptr);
+}
+
+
 
 // destructor
 template<class Sp> Data_<Sp>::~Data_() {};
