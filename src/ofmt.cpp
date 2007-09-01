@@ -107,7 +107,7 @@ void DStructGDL::OFmtAll( SizeT offs, SizeT r,
   SizeT firstTag = 0;
   for( firstTag=0; firstTag < nTags; firstTag++)
       {
-	SizeT tt=dd[firstTag]->ToTransfer();
+	SizeT tt=(*this)[firstTag]->ToTransfer();
 	nB += tt;
 	if( nB > firstOffs)
 	  {
@@ -147,10 +147,10 @@ OFmtA( ostream* os, SizeT offs, SizeT r, int w)
 
   if( w <= 0)
     for( SizeT i=offs; i<endEl; ++i)
-      (*os) << dd[ i];
+      (*os) << (*this)[ i];
   else
     for( SizeT i=offs; i<endEl; ++i)
-      (*os) << setw(w) << dd[ i].substr(0,w);
+      (*os) << setw(w) << (*this)[ i].substr(0,w);
 
   return tCount;
 }
@@ -176,9 +176,9 @@ OFmtA( ostream* os, SizeT offs, SizeT r, int w)
   if( offs & 0x01)
     {
       if( w <= 0)
-	(*os) << i2s( dd[ firstEl++].imag(), len);
+	(*os) << i2s( (*this)[ firstEl++].imag(), len);
       else
-	(*os) << setw(w) << i2s( dd[ firstEl++].imag(), len);
+	(*os) << setw(w) << i2s( (*this)[ firstEl++].imag(), len);
       tCount--;
     }
 
@@ -187,22 +187,22 @@ OFmtA( ostream* os, SizeT offs, SizeT r, int w)
   if( w <= 0)
     for( SizeT i= firstEl; i<endEl; ++i)
       {
-	(*os) << i2s( dd[ i].real(), len);
-	(*os) << i2s( dd[ i].imag(), len);
+	(*os) << i2s( (*this)[ i].real(), len);
+	(*os) << i2s( (*this)[ i].imag(), len);
       }
   else
     for( SizeT i= firstEl; i<endEl; ++i)
       {
-	(*os) << setw(w) << i2s( dd[ i].real(), len);
-	(*os) << setw(w) << i2s( dd[ i].imag(), len);
+	(*os) << setw(w) << i2s( (*this)[ i].real(), len);
+	(*os) << setw(w) << i2s( (*this)[ i].imag(), len);
       }
   
   if( tCount & 0x01)
     {
       if( w <= 0)
-	(*os) << i2s( dd[ endEl++].real(), len);
+	(*os) << i2s( (*this)[ endEl++].real(), len);
       else
-	(*os) << setw(w) << i2s( dd[ endEl++].real(), len);
+	(*os) << setw(w) << i2s( (*this)[ endEl++].real(), len);
     }
 
   return tCountOut;
@@ -228,9 +228,9 @@ OFmtA( ostream* os, SizeT offs, SizeT r, int w)
   if( offs & 0x01)
     {
       if( w <= 0)
-	(*os) << i2s( dd[ firstEl++].imag(), len);
+	(*os) << i2s( (*this)[ firstEl++].imag(), len);
       else
-	(*os) << setw(w) << i2s( dd[ firstEl++].imag(), len);
+	(*os) << setw(w) << i2s( (*this)[ firstEl++].imag(), len);
       tCount--;
     }
 
@@ -239,22 +239,22 @@ OFmtA( ostream* os, SizeT offs, SizeT r, int w)
   if( w <= 0)
     for( SizeT i= firstEl; i<endEl; ++i)
       {
-	(*os) << i2s( dd[ i].real(), len);
-	(*os) << i2s( dd[ i].imag(), len);
+	(*os) << i2s( (*this)[ i].real(), len);
+	(*os) << i2s( (*this)[ i].imag(), len);
       }
   else
     for( SizeT i= firstEl; i<endEl; ++i)
       {
-	(*os) << setw(w) << i2s( dd[ i].real(), len);
-	(*os) << setw(w) << i2s( dd[ i].imag(), len);
+	(*os) << setw(w) << i2s( (*this)[ i].real(), len);
+	(*os) << setw(w) << i2s( (*this)[ i].imag(), len);
       }
   
   if( tCount & 0x01)
     {
       if( w <= 0)
-	(*os) << i2s( dd[ endEl++].real(), len);
+	(*os) << i2s( (*this)[ endEl++].real(), len);
       else
-	(*os) << setw(w) << i2s( dd[ endEl++].real(), len);
+	(*os) << setw(w) << i2s( (*this)[ endEl++].real(), len);
     }
 
   return tCountOut;
@@ -266,14 +266,14 @@ OFmtA( ostream* os, SizeT offs, SizeT r, int w)
   SizeT firstOut, firstOffs, tCount, tCountOut;
   OFmtAll( offs, r, firstOut, firstOffs, tCount, tCountOut);
 
-  SizeT trans = dd[ firstOut]->OFmtA( os, firstOffs, tCount, w);
+  SizeT trans = (*this)[ firstOut]->OFmtA( os, firstOffs, tCount, w);
   if( trans >= tCount) return tCountOut;
   tCount -= trans;
 
   SizeT ddSize = dd.size();
   for( SizeT i = (firstOut+1); i < ddSize; ++i)
     {
-      trans = dd[ i]->OFmtA( os, 0, tCount, w);
+      trans = (*this)[ i]->OFmtA( os, 0, tCount, w);
       if( trans >= tCount) return tCountOut;
       tCount -= trans;
     }
@@ -311,17 +311,17 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d,
   if( oMode == AUTO) // G
     {
       for( SizeT i=offs; i<endEl; ++i)
-	OutAuto( *os, dd[ i], w, d);
+	OutAuto( *os, (*this)[ i], w, d);
     }
   else if( oMode == FIXED) // F, D
     {
       for( SizeT i=offs; i<endEl; ++i)
-	OutFixed( *os, dd[ i], w, d);
+	OutFixed( *os, (*this)[ i], w, d);
     }
   else if ( oMode == SCIENTIFIC) // E 
     {
       for( SizeT i=offs; i<endEl; ++i)
-	OutScientific( *os, dd[ i], w, d);
+	OutScientific( *os, (*this)[ i], w, d);
     }
   
   return tCount;
@@ -344,17 +344,17 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d,
   if( oMode == AUTO) // G
     {
       for( SizeT i=offs; i<endEl; ++i)
-	OutAuto( *os, dd[ i], w, d);
+	OutAuto( *os, (*this)[ i], w, d);
     }
   else if( oMode == FIXED) // F, D
     {
       for( SizeT i=offs; i<endEl; ++i)
-	OutFixed( *os, dd[ i], w, d);
+	OutFixed( *os, (*this)[ i], w, d);
     }
   else if ( oMode == SCIENTIFIC) // E 
     {
       for( SizeT i=offs; i<endEl; ++i)
-	OutScientific( *os, dd[ i], w, d);
+	OutScientific( *os, (*this)[ i], w, d);
     }
 
   return tCount;
@@ -379,7 +379,7 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d,
     {
       if( offs & 0x01)
 	{
-	  OutAuto( *os, dd[ firstEl++].imag(), w, d);
+	  OutAuto( *os, (*this)[ firstEl++].imag(), w, d);
 	  tCount--;
 	}
 
@@ -387,19 +387,19 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d,
       
       for( SizeT i= firstEl; i<endEl; ++i)
 	{
-	  OutAuto( *os, dd[ i], w, d);
+	  OutAuto( *os, (*this)[ i], w, d);
 	}
   
       if( tCount & 0x01)
 	{
-	  OutAuto( *os, dd[ endEl].real(), w, d);
+	  OutAuto( *os, (*this)[ endEl].real(), w, d);
 	}
     }
   else if( oMode == FIXED)
     {
       if( offs & 0x01)
 	{
-	  OutFixed( *os, dd[ firstEl++].imag(), w, d);
+	  OutFixed( *os, (*this)[ firstEl++].imag(), w, d);
 	  tCount--;
 	}
 
@@ -407,19 +407,19 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d,
 
       for( SizeT i= firstEl; i<endEl; ++i)
 	{
-	  OutFixed( *os, dd[ i], w, d);
+	  OutFixed( *os, (*this)[ i], w, d);
 	}
   
       if( tCount & 0x01)
 	{
-	  OutFixed( *os, dd[ endEl].real(), w, d);
+	  OutFixed( *os, (*this)[ endEl].real(), w, d);
 	}
     }
   else if ( oMode == SCIENTIFIC)
     {
       if( offs & 0x01)
 	{
-	  OutScientific( *os, dd[ firstEl++].imag(), w, d);
+	  OutScientific( *os, (*this)[ firstEl++].imag(), w, d);
 	  tCount--;
 	}
 
@@ -427,12 +427,12 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d,
 
       for( SizeT i= firstEl; i<endEl; ++i)
 	{
-	  OutScientific( *os, dd[ i], w, d);
+	  OutScientific( *os, (*this)[ i], w, d);
 	}
   
       if( tCount & 0x01)
 	{
-	  OutScientific( *os, dd[ endEl].real(), w, d);
+	  OutScientific( *os, (*this)[ endEl].real(), w, d);
 	}
     }
   
@@ -458,7 +458,7 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d,
     {
       if( offs & 0x01)
 	{
-	  OutAuto( *os, dd[ firstEl++].imag(), w, d);
+	  OutAuto( *os, (*this)[ firstEl++].imag(), w, d);
 	  tCount--;
 	}
 
@@ -466,19 +466,19 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d,
       
       for( SizeT i= firstEl; i<endEl; ++i)
 	{
-	  OutAuto( *os, dd[ i], w, d);
+	  OutAuto( *os, (*this)[ i], w, d);
 	}
   
       if( tCount & 0x01)
 	{
-	  OutAuto( *os, dd[ endEl].real(), w, d);
+	  OutAuto( *os, (*this)[ endEl].real(), w, d);
 	}
     }
   else if( oMode == FIXED)
     {
       if( offs & 0x01)
 	{
-	  OutFixed( *os, dd[ firstEl++].imag(), w, d);
+	  OutFixed( *os, (*this)[ firstEl++].imag(), w, d);
 	  tCount--;
 	}
 
@@ -486,19 +486,19 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d,
 
       for( SizeT i= firstEl; i<endEl; ++i)
 	{
-	  OutFixed( *os, dd[ i], w, d);
+	  OutFixed( *os, (*this)[ i], w, d);
 	}
   
       if( tCount & 0x01)
 	{
-	  OutFixed( *os, dd[ endEl].real(), w, d);
+	  OutFixed( *os, (*this)[ endEl].real(), w, d);
 	}
     }
   else if ( oMode == SCIENTIFIC)
     {
       if( offs & 0x01)
 	{
-	  OutScientific( *os, dd[ firstEl++].imag(), w, d);
+	  OutScientific( *os, (*this)[ firstEl++].imag(), w, d);
 	  tCount--;
 	}
 
@@ -506,12 +506,12 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d,
 
       for( SizeT i= firstEl; i<endEl; ++i)
 	{
-	  OutScientific( *os, dd[ i], w, d);
+	  OutScientific( *os, (*this)[ i], w, d);
 	}
   
       if( tCount & 0x01)
 	{
-	  OutScientific( *os, dd[ endEl].real(), w, d);
+	  OutScientific( *os, (*this)[ endEl].real(), w, d);
 	}
     }
   
@@ -525,14 +525,14 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d,
   SizeT firstOut, firstOffs, tCount, tCountOut;
   OFmtAll( offs, r, firstOut, firstOffs, tCount, tCountOut);
 
-  SizeT trans = dd[ firstOut]->OFmtF( os, firstOffs, tCount, w, d, oMode);
+  SizeT trans = (*this)[ firstOut]->OFmtF( os, firstOffs, tCount, w, d, oMode);
   if( trans >= tCount) return tCountOut;
   tCount -= trans;
 
   SizeT ddSize = dd.size();
   for( SizeT i = (firstOut+1); i < ddSize; ++i)
     {
-      trans = dd[ i]->OFmtF( os, 0, tCount, w, d, oMode);
+      trans = (*this)[ i]->OFmtF( os, 0, tCount, w, d, oMode);
       if( trans >= tCount) return tCountOut;
       tCount -= trans;
     }
@@ -603,17 +603,17 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d,
 
   if( oMode == DEC)
     for( SizeT i=offs; i<endEl; ++i)
-      ZeroPad( os, w, d, dd[ i]);
-  //      (*os) << dec << setw(w) << dd[ i];
+      ZeroPad( os, w, d, (*this)[ i]);
+  //      (*os) << dec << setw(w) << (*this)[ i];
   else if ( oMode == OCT)
     for( SizeT i=offs; i<endEl; ++i)
-      (*os) << oct << setw(w) << dd[ i];
+      (*os) << oct << setw(w) << (*this)[ i];
   else if ( oMode == HEX)
     for( SizeT i=offs; i<endEl; ++i)
-      (*os) << uppercase << hex << setw(w) << dd[ i];
+      (*os) << uppercase << hex << setw(w) << (*this)[ i];
   else // HEXL
     for( SizeT i=offs; i<endEl; ++i)
-      (*os) << nouppercase << hex << setw(w) << dd[ i];
+      (*os) << nouppercase << hex << setw(w) << (*this)[ i];
 
   return tCount;
 }
@@ -634,17 +634,17 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d,
   
   if( oMode == DEC)
     for( SizeT i=offs; i<endEl; ++i)
-      ZeroPad( os, w, d, dd[ i]);
-  //      (*os) << dec << setw(w) << dd[ i];
+      ZeroPad( os, w, d, (*this)[ i]);
+  //      (*os) << dec << setw(w) << (*this)[ i];
   else if ( oMode == OCT)
     for( SizeT i=offs; i<endEl; ++i)
-      (*os) << oct << setw(w) << dd[ i];
+      (*os) << oct << setw(w) << (*this)[ i];
   else if ( oMode == HEX)
     for( SizeT i=offs; i<endEl; ++i)
-      (*os) << uppercase << hex << setw(w) << dd[ i];
+      (*os) << uppercase << hex << setw(w) << (*this)[ i];
   else // HEXL
     for( SizeT i=offs; i<endEl; ++i)
-      (*os) << nouppercase << hex << setw(w) << dd[ i];
+      (*os) << nouppercase << hex << setw(w) << (*this)[ i];
 
   return tCount;
 }
@@ -665,17 +665,17 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d,
 
   if( oMode == DEC)
     for( SizeT i=offs; i<endEl; ++i)
-      ZeroPad( os, w, d, dd[ i]);
-  //      (*os) << dec << setw(w) << dd[ i];
+      ZeroPad( os, w, d, (*this)[ i]);
+  //      (*os) << dec << setw(w) << (*this)[ i];
   else if ( oMode == OCT)
     for( SizeT i=offs; i<endEl; ++i)
-      (*os) << oct << setw(w) << dd[ i];
+      (*os) << oct << setw(w) << (*this)[ i];
   else if ( oMode == HEX)
     for( SizeT i=offs; i<endEl; ++i)
-      (*os) << uppercase << hex << setw(w) << dd[ i];
+      (*os) << uppercase << hex << setw(w) << (*this)[ i];
   else // HEXL
     for( SizeT i=offs; i<endEl; ++i)
-      (*os) << nouppercase << hex << setw(w) << dd[ i];
+      (*os) << nouppercase << hex << setw(w) << (*this)[ i];
 
   return tCount;
 }
@@ -696,17 +696,17 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d,
 
   if( oMode == DEC)
     for( SizeT i=offs; i<endEl; ++i)
-      ZeroPad( os, w, d, dd[ i]);
-  //      (*os) << dec << setw(w) << dd[ i];
+      ZeroPad( os, w, d, (*this)[ i]);
+  //      (*os) << dec << setw(w) << (*this)[ i];
   else if ( oMode == OCT)
     for( SizeT i=offs; i<endEl; ++i)
-      (*os) << oct << setw(w) << dd[ i];
+      (*os) << oct << setw(w) << (*this)[ i];
   else if ( oMode == HEX)
     for( SizeT i=offs; i<endEl; ++i)
-      (*os) << uppercase << hex << setw(w) << dd[ i];
+      (*os) << uppercase << hex << setw(w) << (*this)[ i];
   else // HEXL
     for( SizeT i=offs; i<endEl; ++i)
-      (*os) << nouppercase << hex << setw(w) << dd[ i];
+      (*os) << nouppercase << hex << setw(w) << (*this)[ i];
 
   return tCount;
 }
@@ -729,14 +729,14 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d,
   if( offs & 0x01)
     {
       if( oMode == DEC)
-	(*os) << noshowpoint << setprecision(0) << setw(w) << dd[ firstEl++].imag();
+	(*os) << noshowpoint << setprecision(0) << setw(w) << (*this)[ firstEl++].imag();
       else if ( oMode == OCT)
-	(*os) << oct << setw(w) << static_cast<long int>(dd[ firstEl++].imag());
+	(*os) << oct << setw(w) << static_cast<long int>((*this)[ firstEl++].imag());
       else if ( oMode == HEX)
 	(*os) << uppercase << hex << setw(w) 
-	      << static_cast<long int>(dd[ firstEl++].imag());
+	      << static_cast<long int>((*this)[ firstEl++].imag());
       else
-	(*os) << hex << setw(w) << static_cast<long int>(dd[ firstEl++].imag());
+	(*os) << hex << setw(w) << static_cast<long int>((*this)[ firstEl++].imag());
       tCount--;
     }
 
@@ -745,42 +745,42 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d,
   if( oMode == DEC)
     for( SizeT i= firstEl; i<endEl; ++i)
       {
-	(*os) << noshowpoint << setprecision(0) << setw(w) << dd[ i].real();
-	(*os) << noshowpoint << setprecision(0) << setw(w) << dd[ i].imag();
+	(*os) << noshowpoint << setprecision(0) << setw(w) << (*this)[ i].real();
+	(*os) << noshowpoint << setprecision(0) << setw(w) << (*this)[ i].imag();
       }
   else if ( oMode == OCT)
     for( SizeT i= firstEl; i<endEl; ++i)
       {
-	(*os) << oct << setw(w) << static_cast<long int>(dd[ i].real());
-	(*os) << oct << setw(w) << static_cast<long int>(dd[ i].imag());
+	(*os) << oct << setw(w) << static_cast<long int>((*this)[ i].real());
+	(*os) << oct << setw(w) << static_cast<long int>((*this)[ i].imag());
       }
   else if ( oMode == HEX)
     for( SizeT i= firstEl; i<endEl; ++i)
       {
-	(*os) << uppercase << hex << setw(w) << static_cast<long int>(dd[ i].real());
-	(*os) << uppercase << hex << setw(w) << static_cast<long int>(dd[ i].imag());
+	(*os) << uppercase << hex << setw(w) << static_cast<long int>((*this)[ i].real());
+	(*os) << uppercase << hex << setw(w) << static_cast<long int>((*this)[ i].imag());
       }
   else
     for( SizeT i= firstEl; i<endEl; ++i)
       {
 	(*os) << nouppercase << hex << setw(w) 
-	      << static_cast<long int>(dd[ i].real());
+	      << static_cast<long int>((*this)[ i].real());
 	(*os) << nouppercase << hex << setw(w) 
-	      << static_cast<long int>(dd[ i].imag());
+	      << static_cast<long int>((*this)[ i].imag());
       }
   
   if( tCount & 0x01)
     {
       if( oMode == DEC)
-	(*os) << noshowpoint << setprecision(0) << setw(w) << dd[ endEl].real();
+	(*os) << noshowpoint << setprecision(0) << setw(w) << (*this)[ endEl].real();
       else if ( oMode == OCT)
-	(*os) << oct << setw(w) << static_cast<long int>(dd[ endEl].real());
+	(*os) << oct << setw(w) << static_cast<long int>((*this)[ endEl].real());
       else if ( oMode == HEX)
 	(*os) << uppercase << hex << setw(w) 
-	      << static_cast<long int>(dd[ endEl].real());
+	      << static_cast<long int>((*this)[ endEl].real());
       else
 	(*os) << nouppercase << hex << setw(w) 
-	      << static_cast<long int>(dd[ endEl].real());
+	      << static_cast<long int>((*this)[ endEl].real());
     }
   
   return tCountOut;
@@ -803,14 +803,14 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d,
   if( offs & 0x01)
     {
       if( oMode == DEC)
-	(*os) << noshowpoint << setprecision(0) << setw(w) << dd[ firstEl++].imag();
+	(*os) << noshowpoint << setprecision(0) << setw(w) << (*this)[ firstEl++].imag();
       else if ( oMode == OCT)
-	(*os) << oct << setw(w) << static_cast<long int>(dd[ firstEl++].imag());
+	(*os) << oct << setw(w) << static_cast<long int>((*this)[ firstEl++].imag());
       else if ( oMode == HEX)
 	(*os) << uppercase << hex << setw(w) 
-	      << static_cast<long int>(dd[ firstEl++].imag());
+	      << static_cast<long int>((*this)[ firstEl++].imag());
       else
-	(*os) << hex << setw(w) << static_cast<long int>(dd[ firstEl++].imag());
+	(*os) << hex << setw(w) << static_cast<long int>((*this)[ firstEl++].imag());
       tCount--;
     }
 
@@ -819,42 +819,42 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d,
   if( oMode == DEC)
     for( SizeT i= firstEl; i<endEl; ++i)
       {
-	(*os) << noshowpoint << setprecision(0) << setw(w) << dd[ i].real();
-	(*os) << noshowpoint << setprecision(0) << setw(w) << dd[ i].imag();
+	(*os) << noshowpoint << setprecision(0) << setw(w) << (*this)[ i].real();
+	(*os) << noshowpoint << setprecision(0) << setw(w) << (*this)[ i].imag();
       }
   else if ( oMode == OCT)
     for( SizeT i= firstEl; i<endEl; ++i)
       {
-	(*os) << oct << setw(w) << static_cast<long int>(dd[ i].real());
-	(*os) << oct << setw(w) << static_cast<long int>(dd[ i].imag());
+	(*os) << oct << setw(w) << static_cast<long int>((*this)[ i].real());
+	(*os) << oct << setw(w) << static_cast<long int>((*this)[ i].imag());
       }
   else if ( oMode == HEX)
     for( SizeT i= firstEl; i<endEl; ++i)
       {
-	(*os) << uppercase << hex << setw(w) << static_cast<long int>(dd[ i].real());
-	(*os) << uppercase << hex << setw(w) << static_cast<long int>(dd[ i].imag());
+	(*os) << uppercase << hex << setw(w) << static_cast<long int>((*this)[ i].real());
+	(*os) << uppercase << hex << setw(w) << static_cast<long int>((*this)[ i].imag());
       }
   else
     for( SizeT i= firstEl; i<endEl; ++i)
       {
 	(*os) << nouppercase << hex << setw(w) 
-	      << static_cast<long int>(dd[ i].real());
+	      << static_cast<long int>((*this)[ i].real());
 	(*os) << nouppercase << hex << setw(w) 
-	      << static_cast<long int>(dd[ i].imag());
+	      << static_cast<long int>((*this)[ i].imag());
       }
   
   if( tCount & 0x01)
     {
       if( oMode == DEC)
-	(*os) << noshowpoint << setprecision(0) << setw(w) << dd[ endEl].real();
+	(*os) << noshowpoint << setprecision(0) << setw(w) << (*this)[ endEl].real();
       else if ( oMode == OCT)
-	(*os) << oct << setw(w) << static_cast<long int>(dd[ endEl].real());
+	(*os) << oct << setw(w) << static_cast<long int>((*this)[ endEl].real());
       else if ( oMode == HEX)
 	(*os) << uppercase << hex << setw(w) 
-	      << static_cast<long int>(dd[ endEl].real());
+	      << static_cast<long int>((*this)[ endEl].real());
       else
 	(*os) << nouppercase << hex << setw(w) 
-	      << static_cast<long int>(dd[ endEl].real());
+	      << static_cast<long int>((*this)[ endEl].real());
     }
   
   return tCountOut;
@@ -867,14 +867,14 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d,
   SizeT firstOut, firstOffs, tCount, tCountOut;
   OFmtAll( offs, r, firstOut, firstOffs, tCount, tCountOut);
 
-  SizeT trans = dd[ firstOut]->OFmtI( os, firstOffs, tCount, w, d, oMode);
+  SizeT trans = (*this)[ firstOut]->OFmtI( os, firstOffs, tCount, w, d, oMode);
   if( trans >= tCount) return tCountOut;
   tCount -= trans;
 
   SizeT ddSize = dd.size();
   for( SizeT i = (firstOut+1); i < ddSize; ++i)
     {
-      trans = dd[ i]->OFmtI( os, 0, tCount, w, d, oMode);
+      trans = (*this)[ i]->OFmtI( os, 0, tCount, w, d, oMode);
       if( trans >= tCount) return tCountOut;
       tCount -= trans;
     }

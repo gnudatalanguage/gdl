@@ -155,7 +155,7 @@ template<class Sp> Data_<Sp>::Data_(const dimension& dim_,
       Ty val=Sp::zero;
       for( SizeT i=0; i<sz; i++)
 	{
-	  dd[i]=val;
+	  (*this)[i]=val;
 	  val += 1; // no increment operator for floats
 	}
     }
@@ -207,7 +207,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::Log()
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
   for( SizeT i=0; i<nEl; ++i)
-    n->dd[ i] = log( dd[ i]);
+    (*n)[ i] = log( (*this)[ i]);
   return n;
 #else
   return new Data_(this->dim, log(dd));
@@ -221,7 +221,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::Log()
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
   for( SizeT i=0; i<nEl; ++i)
-    n->dd[ i] = log( dd[ i]);
+    (*n)[ i] = log( (*this)[ i]);
   return n;
 #else
   return new Data_(this->dim, log(dd));
@@ -235,7 +235,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Log()
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
   for( SizeT i=0; i<nEl; ++i)
-    n->dd[ i] = log( dd[ i]);
+    (*n)[ i] = log( (*this)[ i]);
   return n;
 #else
   return new Data_(this->dim, log(dd));
@@ -249,7 +249,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Log()
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
   for( SizeT i=0; i<nEl; ++i)
-    n->dd[ i] = log( dd[ i]);
+    (*n)[ i] = log( (*this)[ i]);
   return n;
 #else
   return new Data_(this->dim, log(dd));
@@ -268,7 +268,7 @@ void Data_<SpDFloat>::LogThis()
 
   SizeT nEl = N_Elements();
   for( SizeT i=0; i<nEl; ++i)
-    dd[ i] = log( dd[ i]);
+    (*this)[ i] = log( (*this)[ i]);
 #else
   dd = log(dd);
 #endif
@@ -280,7 +280,7 @@ void Data_<SpDDouble>::LogThis()
 
   SizeT nEl = N_Elements();
   for( SizeT i=0; i<nEl; ++i)
-    dd[ i] = log( dd[ i]);
+    (*this)[ i] = log( (*this)[ i]);
 #else
   dd = log(dd);
 #endif
@@ -292,7 +292,7 @@ void Data_<SpDComplex>::LogThis()
 
   SizeT nEl = N_Elements();
   for( SizeT i=0; i<nEl; ++i)
-    dd[ i] = log( dd[ i]);
+    (*this)[ i] = log( (*this)[ i]);
 #else
   dd = log(dd);
 #endif
@@ -304,7 +304,7 @@ void Data_<SpDComplexDbl>::LogThis()
 
   SizeT nEl = N_Elements();
   for( SizeT i=0; i<nEl; ++i)
-    dd[ i] = log( dd[ i]);
+    (*this)[ i] = log( (*this)[ i]);
 #else
   dd = log(dd);
 #endif
@@ -324,7 +324,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::Log10()
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
   for( SizeT i=0; i<nEl; ++i)
-    n->dd[ i] = log10( dd[ i]);
+    (*n)[ i] = log10( (*this)[ i]);
   return n;
 #else
   return new Data_(this->dim, log10(dd));
@@ -338,7 +338,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::Log10()
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
   for( SizeT i=0; i<nEl; ++i)
-    n->dd[ i] = log10( dd[ i]);
+    (*n)[ i] = log10( (*this)[ i]);
   return n;
 #else
   return new Data_(this->dim, log10(dd));
@@ -352,7 +352,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Log10()
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
   for( SizeT i=0; i<nEl; ++i)
-    n->dd[ i] = log10( dd[ i]);
+    (*n)[ i] = log10( (*this)[ i]);
   return n;
 #else
   return new Data_(this->dim, log10(dd));
@@ -366,7 +366,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Log10()
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
   for( SizeT i=0; i<nEl; ++i)
-    n->dd[ i] = log10( dd[ i]);
+    (*n)[ i] = log10( (*this)[ i]);
   return n;
 #else
   return new Data_(this->dim, log10(dd));
@@ -385,7 +385,7 @@ void Data_<SpDFloat>::Log10This()
 
   SizeT nEl = N_Elements();
   for( SizeT i=0; i<nEl; ++i)
-    dd[ i] = log10( dd[ i]);
+    (*this)[ i] = log10( (*this)[ i]);
 #else
   dd = log10(dd);
 #endif
@@ -397,7 +397,7 @@ void Data_<SpDDouble>::Log10This()
 
   SizeT nEl = N_Elements();
   for( SizeT i=0; i<nEl; ++i)
-    dd[ i] = log10( dd[ i]);
+    (*this)[ i] = log10( (*this)[ i]);
 #else
   dd = log10(dd);
 #endif
@@ -409,7 +409,7 @@ void Data_<SpDComplex>::Log10This()
 
   SizeT nEl = N_Elements();
   for( SizeT i=0; i<nEl; ++i)
-    dd[ i] = log10( dd[ i]);
+    (*this)[ i] = log10( (*this)[ i]);
 #else
   dd = log10(dd);
 #endif
@@ -421,7 +421,7 @@ void Data_<SpDComplexDbl>::Log10This()
 
   SizeT nEl = N_Elements();
   for( SizeT i=0; i<nEl; ++i)
-    dd[ i] = log10( dd[ i]);
+    (*this)[ i] = log10( (*this)[ i]);
 #else
   dd = log10(dd);
 #endif
@@ -437,19 +437,19 @@ void Data_<SpDComplexDbl>::Log10This()
 
 template<class Sp>
 bool Data_<Sp>::Greater(SizeT i1, SizeT i2) const
-{ return (dd[i1] > dd[i2]);}
+{ return ((*this)[i1] > (*this)[i2]);}
 
 template<>
 bool Data_<SpDComplex>::Greater(SizeT i1, SizeT i2) const
-{ return (abs(dd[i1]) > abs(dd[i2]));}
+{ return (abs((*this)[i1]) > abs((*this)[i2]));}
 template<>
 bool Data_<SpDComplexDbl>::Greater(SizeT i1, SizeT i2) const
-{ return (abs(dd[i1]) > abs(dd[i2]));}
+{ return (abs((*this)[i1]) > abs((*this)[i2]));}
 
 
 template<class Sp>
 bool Data_<Sp>::Equal(SizeT i1, SizeT i2) const
-{ return (dd[i1] == dd[i2]);}
+{ return ((*this)[i1] == (*this)[i2]);}
 
 
 template<class Sp>
@@ -500,8 +500,8 @@ BaseGDL* Data_<Sp>::CShift( DLong s[ MAXRANK])
   for( SizeT rSp=1; rSp<nDim; ++rSp)
     dstLonIx += dstIx[ rSp] * stride[ rSp];
 
-  Ty* ddP = &dd[0];
-  Ty* shP = &sh->dd[0];
+  Ty* ddP = &(*this)[0];
+  Ty* shP = &(*sh)[0];
   
   for( SizeT a=0; a<nEl; ++srcIx[0],++dstIx[0])
     {
@@ -572,7 +572,7 @@ BaseGDL* Data_<Sp>::Transpose( DUInt* perm)
 	  SizeT nElem = dd.size();
 	  for( SizeT e = 0, ix = 0, srcDim0 = 0; e<nElem; ++e)
 	    {
-	      res->dd[ e] = dd[ ix];
+	      (*res)[ e] = (*this)[ ix];
 	      ix += srcStride1;
 	      if( ix >= nElem) 
 		ix = ++srcDim0;
@@ -587,7 +587,7 @@ BaseGDL* Data_<Sp>::Transpose( DUInt* perm)
 	  // 	      // multi src dim to one dim index
 	  // 	      SizeT ix = srcDim0 + srcDim1 * srcStride1;
       
-	  // 	      res->dd[ e] = dd[ ix];
+	  // 	      (*res)[ e] = (*this)[ ix];
 	      
 	  // 	      // update dest multi dim
 	  // 	      if( ++srcDim1 >= this->dim[ 1]) 
@@ -629,7 +629,7 @@ BaseGDL* Data_<Sp>::Transpose( DUInt* perm)
       for( SizeT i=0; i < rank; ++i)
 	ix += srcDim[i] * srcStride[i];
       
-      res->dd[ e] = dd[ ix];
+      (*res)[ e] = (*this)[ ix];
 
       // update dest multi dim
       for( SizeT i=0; i < rank; ++i)
@@ -657,7 +657,7 @@ BaseGDL* Data_<Sp>::Rotate( DLong dir)
       SizeT nEl = N_Elements();
       
       for( SizeT i=0; i<nEl; ++i)
-	res->dd[i] = dd[ nEl-1-i];
+	(*res)[i] = (*this)[ nEl-1-i];
       return res;
     }
 
@@ -674,14 +674,14 @@ BaseGDL* Data_<Sp>::Rotate( DLong dir)
 	  Data_* res = new Data_( this->dim, BaseGDL::NOZERO);
 	  SizeT nEl = N_Elements();
 	  for( SizeT i=0; i<nEl; ++i)
-	    res->dd[ i] = dd[ nEl-1-i];
+	    (*res)[ i] = (*this)[ nEl-1-i];
 	  return res;
 	}
       // 3 || 6
       Data_* res = new Data_( dimension( 1, N_Elements()), BaseGDL::NOZERO);
       SizeT nEl = N_Elements();
       for( SizeT i=0; i<nEl; ++i)
-	res->dd[ i] = dd[ nEl-1-i];
+	(*res)[ i] = (*this)[ nEl-1-i];
       return res;
     }
 
@@ -713,7 +713,7 @@ BaseGDL* Data_<Sp>::Rotate( DLong dir)
 	  
 	  SizeT ix = keepDim? yR * xEl + xR: xR * yEl + yR;
 	  
-	  res->dd[ix] = dd[ i++];
+	  (*res)[ix] = (*this)[ i++];
 	}
     }
   return res;
@@ -731,16 +731,16 @@ typename Data_<Sp>::Ty Data_<Sp>::Sum() const
 //   if( dd.size() != n) 
 //     {
 //       DataT rsArr( n);
-//       std::copy( &dd[0], &dd[n], &rsArr[0]);
+//       std::copy( &(*this)[0], &(*this)[n], &rsArr[0]);
 //       dd.resize( n); // discards data
-//       std::copy( &rsArr[0], &rsArr[n], &dd[0]);
+//       std::copy( &rsArr[0], &rsArr[n], &(*this)[0]);
 //     }
 //   return dd;
 // }
 
 // template<class Sp> 
 // typename Data_<Sp>::Ty& Data_<Sp>::operator[] (const SizeT d1) 
-// { return dd[d1];}
+// { return (*this)[d1];}
 
 template<class Sp> 
 //typename Data_<Sp>::Data_& Data_<Sp>::operator=(const Data_& right)
@@ -758,7 +758,7 @@ bool Data_<Sp>::EqType( const BaseGDL* r) const
 
 template< class Sp>
 void* Data_<Sp>::DataAddr( SizeT elem)
-{ return &dd[elem];}
+{ return &(*this)[elem];}
 
 template< class Sp>
 SizeT Data_<Sp>::N_Elements() const 
@@ -773,7 +773,7 @@ SizeT Data_<Sp>::Sizeof() const
 template< class Sp>
 void Data_<Sp>::Clear() 
 { dd = Sp::zero;
-//SizeT nEl = dd.size(); for( SizeT i = 0; i<nEl; ++i) dd[ i] = Sp::zero;
+//SizeT nEl = dd.size(); for( SizeT i = 0; i<nEl; ++i) (*this)[ i] = Sp::zero;
 }
 
 // template< class Sp>
@@ -788,7 +788,7 @@ Data_<Sp>* Data_<Sp>::New( const dimension& dim_, BaseGDL::InitType noZero)
     {
       Data_* res =  new Data_(dim_, BaseGDL::NOZERO);
       SizeT nEl = res->dd.size();
-      for( SizeT i=0; i<nEl; ++i) (*res)[ i] = dd[ 0]; // set all to scalar
+      for( SizeT i=0; i<nEl; ++i) (*res)[ i] = (*this)[ 0]; // set all to scalar
       return res;
     }
   return new Data_(dim_);
@@ -804,7 +804,7 @@ Data_<Sp>* Data_<Sp>::New( const dimension& dim_, BaseGDL::InitType noZero)
 // bool Data_<Sp>::Scalar(Ty& s) const
 // {
 //   if( dd.size() != 1) return false;
-//   s=dd[0];
+//   s=(*this)[0];
 //   return true;
 // }
 
@@ -820,7 +820,7 @@ template<> SizeT Data_<SpDString>::NBytes() const
   SizeT nEl = dd.size();
   SizeT nB = 0;
   for( SizeT i=0; i<nEl; ++i)
-    nB += dd[i].size();
+    nB += (*this)[i].size();
   return nB;
 }
 // template<> SizeT Data_<SpDObj>::NBytes() const
@@ -896,13 +896,13 @@ int Data_<Sp>::Scalar2index( SizeT& st) const
   // for maintainability. And as any modern C++ compiler will optimize
   // away the superflous (for unsigned data) statement anyway, it is 
   // better to keep the code this way here.
-  if( dd[0] < 0)
+  if( (*this)[0] < 0)
     if( this->dim.Rank() != 0) 
       return -2;
     else
       return -1;
 
-  st= static_cast<SizeT>(dd[0]);
+  st= static_cast<SizeT>((*this)[0]);
   if( this->dim.Rank() != 0) return 2;
   return 1;
 }
@@ -911,7 +911,7 @@ template<>
 int Data_<SpDComplex>::Scalar2index( SizeT& st) const
 {
   if( dd.size() != 1) return 0;
-  float r=real(dd[0]);
+  float r=real((*this)[0]);
   if( r < 0.0) return -1;
   st= static_cast<SizeT>(r);
   if( this->dim.Rank() != 0) return 2;
@@ -921,7 +921,7 @@ template<>
 int Data_<SpDComplexDbl>::Scalar2index( SizeT& st) const
 {
   if( dd.size() != 1) return 0;
-  double r=real(dd[0]);
+  double r=real((*this)[0]);
   if( r < 0.0) return -1;
   st= static_cast<SizeT>(r);
   if( this->dim.Rank() != 0) return 2;
@@ -932,7 +932,7 @@ int Data_<SpDString>::Scalar2index( SizeT& st) const
 {
   if( dd.size() != 1) return 0;
 
-  SizeT tSize=dd[0].size();
+  SizeT tSize=(*this)[0].size();
 
   if( tSize == 0) 
     {
@@ -940,7 +940,7 @@ int Data_<SpDString>::Scalar2index( SizeT& st) const
     }
   else 
     {
-      long int number = Str2L( dd[0].c_str());
+      long int number = Str2L( (*this)[0].c_str());
       if( number < 0) return -1; 
       st=number;
     }
@@ -982,32 +982,32 @@ SizeT Data_<Sp>::LoopIndex() const
   // for maintainability. And as any modern C++ compiler will optimize
   // away the superflous (for unsigned data) statement anyway, it is 
   // better to keep the code this way here.
-  if( dd[0] < 0)
+  if( (*this)[0] < 0)
     throw GDLException( "Loop index variable <0.");
 
-  return static_cast<SizeT>(dd[0]);
+  return static_cast<SizeT>((*this)[0]);
 }
 template<> 
 SizeT Data_<SpDFloat>::LoopIndex() const
 {
-  if( dd[0] < 0.0f)
-    if( dd[0] <= 1.0f)
+  if( (*this)[0] < 0.0f)
+    if( (*this)[0] <= 1.0f)
       throw GDLException( "Loop index variable <0.");
     else
       return 0;
 
-  return static_cast<SizeT>(dd[0]);
+  return static_cast<SizeT>((*this)[0]);
 }
 template<> 
 SizeT Data_<SpDDouble>::LoopIndex() const
 {
-  if( dd[0] < 0.0)
-    if( dd[0] <= 1.0)
+  if( (*this)[0] < 0.0)
+    if( (*this)[0] <= 1.0)
       throw GDLException( "Loop index variable <0.");
     else
       return 0;
 
-  return static_cast<SizeT>(dd[0]);
+  return static_cast<SizeT>((*this)[0]);
 }
 template<> 
 SizeT Data_<SpDComplex>::LoopIndex() const
@@ -1182,7 +1182,7 @@ bool Data_<Sp>::Equal( BaseGDL* r)
       throw GDLException("Expression must be a scalar in this context.");
     }
   Data_* rr=static_cast<Data_*>(r->Convert2( this->t));
-  bool ret= (dd[0] == rr->dd[0]);
+  bool ret= ((*this)[0] == (*rr)[0]);
   delete rr;
   return ret;
 }
@@ -1204,18 +1204,18 @@ bool Data_<Sp>::ArrayEqual( BaseGDL* rIn)
   if( rEl == 1)
     {
       for( SizeT i=0; i<nEl; ++i)
-	if( dd[i] != (*r)[0]) return false;
+	if( (*this)[i] != (*r)[0]) return false;
       return true;
     }
   if( nEl == 1)
     {
       for( SizeT i=0; i<rEl; ++i)
-	if( dd[0] != (*r)[i]) return false;
+	if( (*this)[0] != (*r)[i]) return false;
       return true;
     }
   if( nEl != rEl) return false;
   for( SizeT i=0; i<nEl; ++i)
-    if( dd[i] != (*r)[i]) return false;
+    if( (*this)[i] != (*r)[i]) return false;
   return true;
 }
 
@@ -1268,13 +1268,13 @@ template<class Sp>
 bool Data_<Sp>::ForCondUp( BaseGDL* lEndIn)
 {
   Data_* lEnd=static_cast<Data_*>(lEndIn);
-  return dd[0] <= lEnd->dd[0]; 
+  return (*this)[0] <= (*lEnd)[0]; 
 }
 template<class Sp>
 bool Data_<Sp>::ForCondDown( BaseGDL* lEndIn)
 {
   Data_* lEnd=static_cast<Data_*>(lEndIn);
-  return dd[0] >= lEnd->dd[0]; 
+  return (*this)[0] >= (*lEnd)[0]; 
 }
 
 // cannnot be called, just to make the compiler shut-up
@@ -1302,11 +1302,11 @@ void Data_<Sp>::ForAdd( BaseGDL* addIn)
 {
   if( addIn == NULL)
     {
-      dd[0] += 1;
+      (*this)[0] += 1;
       return;
     }
   Data_* add=static_cast<Data_*>(addIn);
-  dd[0] += add->dd[0];
+  (*this)[0] += (*add)[0];
 }
 // cannnot be called, just to make the compiler shut-up
 void DStructGDL::ForAdd( BaseGDL* addIn) {}
@@ -1314,7 +1314,7 @@ void DStructGDL::ForAdd( BaseGDL* addIn) {}
 template<class Sp>
 void Data_<Sp>::ForAdd()
 {
-  dd[0] += 1;
+  (*this)[0] += 1;
 }
 // cannnot be called, just to make the compiler shut-up
 void DStructGDL::ForAdd() {}
@@ -1326,10 +1326,10 @@ void Data_<Sp>::AssignAtIx( SizeT ix, BaseGDL* srcIn)
     {
       Data_* rConv = static_cast<Data_*>(srcIn->Convert2( this->Type(), BaseGDL::COPY));
       auto_ptr<Data_> conv_guard( rConv);
-      dd[ix] = rConv->dd[0];
+      (*this)[ix] = (*rConv)[0];
     }
   else
-    dd[ix] = static_cast<Data_*>(srcIn)->dd[0];
+    (*this)[ix] = (*static_cast<Data_*>(srcIn))[0];
 }
 
 // assigns srcIn to this at ixList, if ixList is NULL does linear copy
@@ -1355,7 +1355,7 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
 	  SizeT nCp=Data_::N_Elements();
 
 	  for( SizeT c=0; c<nCp; ++c)
-	    dd[ c]=scalar;
+	    (*this)[ c]=scalar;
 	}
       else
 	{
@@ -1363,8 +1363,8 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
 	  
 	  AllIxT* allIx = ixList->BuildIx();
 	  for( SizeT c=0; c<nCp; ++c)
-	    dd[ (*allIx)[ c]]=scalar;
-	  //	    dd[ ixList->GetIx( c)]=scalar;
+	    (*this)[ (*allIx)[ c]]=scalar;
+	  //	    (*this)[ ixList->GetIx( c)]=scalar;
 	}
     }
   else
@@ -1381,7 +1381,7 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
 	      throw GDLException("Source expression contains not enough elements.");
 
 	  for( SizeT c=0; c<nCp; ++c)
-	    dd[ c]=(*src)[c+offset];
+	    (*this)[ c]=(*src)[c+offset];
 	}
       else
 	{
@@ -1402,8 +1402,8 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
 		  
 		  AllIxT* allIx = ixList->BuildIx();
 		  for( SizeT c=0; c<nCp; ++c)
-		    dd[ (*allIx)[ c]]=(*src)[c];
-		  //		dd[ ixList->GetIx( c)]=(*src)[c+offset];
+		    (*this)[ (*allIx)[ c]]=(*src)[c];
+		  //		(*this)[ ixList->GetIx( c)]=(*src)[c+offset];
 		}
 	      else
 		{
@@ -1413,8 +1413,8 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
 		  
 		  AllIxT* allIx = ixList->BuildIx();
 		  for( SizeT c=0; c<nCp; ++c)
-		    dd[ (*allIx)[ c]]=(*src)[c+offset];
-		  //		dd[ ixList->GetIx( c)]=(*src)[c+offset];
+		    (*this)[ (*allIx)[ c]]=(*src)[c+offset];
+		  //		(*this)[ ixList->GetIx( c)]=(*src)[c+offset];
 		}
 	    }
 	}
@@ -1436,15 +1436,15 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList)
 
       if( nCp == 1)
 	{
-	  dd[ ixList->LongIx()] = (*src)[0];
+	  (*this)[ ixList->LongIx()] = (*src)[0];
 	}
       else
 	{
 	  Ty scalar=(*src)[0];
 	  AllIxT* allIx = ixList->BuildIx();
 	  for( SizeT c=0; c<nCp; ++c)
-	    dd[ (*allIx)[ c]]=scalar;
-	  //	    dd[ ixList->GetIx( c)]=scalar;
+	    (*this)[ (*allIx)[ c]]=scalar;
+	  //	    (*this)[ ixList->GetIx( c)]=scalar;
 	}
     }
   else
@@ -1464,8 +1464,8 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList)
 	  
 	  AllIxT* allIx = ixList->BuildIx();
 	  for( SizeT c=0; c<nCp; ++c)
-	    dd[ (*allIx)[ c]]=(*src)[c];
-	  //		dd[ ixList->GetIx( c)]=(*src)[c+offset];
+	    (*this)[ (*allIx)[ c]]=(*src)[c];
+	  //		(*this)[ ixList->GetIx( c)]=(*src)[c+offset];
 	}
     }
 }
@@ -1486,7 +1486,7 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn)
       //       SizeT nCp=Data_::N_Elements();
 
       //       for( SizeT c=0; c<nCp; ++c)
-      // 	dd[ c]=scalar;
+      // 	(*this)[ c]=scalar;
     }
   else
     {
@@ -1496,7 +1496,7 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn)
       if( nCp > srcElem) nCp=srcElem;
       
       for( SizeT c=0; c<nCp; ++c)
-	dd[ c]=(*src)[c];
+	(*this)[ c]=(*src)[c];
     }
 }
 
@@ -1511,7 +1511,7 @@ void Data_<Sp>::DecAt( ArrayIndexListT* ixList)
       //       SizeT nCp=Data_::N_Elements();
       
       //       for( SizeT c=0; c<nCp; ++c)
-      // 	dd[ c]--;
+      // 	(*this)[ c]--;
     }
   else
     {
@@ -1519,7 +1519,7 @@ void Data_<Sp>::DecAt( ArrayIndexListT* ixList)
 
       AllIxT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; ++c)
-	dd[ (*allIx)[ c]]--;
+	(*this)[ (*allIx)[ c]]--;
     }
 }
 template<class Sp>
@@ -1531,7 +1531,7 @@ void Data_<Sp>::IncAt( ArrayIndexListT* ixList)
       //       SizeT nCp=Data_::N_Elements();
       
       //       for( SizeT c=0; c<nCp; ++c)
-      // 	dd[ c]++;
+      // 	(*this)[ c]++;
     }
   else
     {
@@ -1539,7 +1539,7 @@ void Data_<Sp>::IncAt( ArrayIndexListT* ixList)
       
       AllIxT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; ++c)
-	dd[ (*allIx)[ c]]++;
+	(*this)[ (*allIx)[ c]]++;
     }
 }
 // float, double
@@ -1553,7 +1553,7 @@ void Data_<SpDFloat>::DecAt( ArrayIndexListT* ixList)
       //       SizeT nCp=Data_::N_Elements();
       
       //       for( SizeT c=0; c<nCp; ++c)
-      // 	dd[ c] -= 1.0;
+      // 	(*this)[ c] -= 1.0;
     }
   else
     {
@@ -1561,7 +1561,7 @@ void Data_<SpDFloat>::DecAt( ArrayIndexListT* ixList)
 
       AllIxT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; ++c)
-	dd[ (*allIx)[ c]] -= 1.0;
+	(*this)[ (*allIx)[ c]] -= 1.0;
     }
 }
 template<>
@@ -1574,7 +1574,7 @@ void Data_<SpDFloat>::IncAt( ArrayIndexListT* ixList)
       //       SizeT nCp=Data_::N_Elements();
       
       //       for( SizeT c=0; c<nCp; ++c)
-      // 	dd[ c] += 1.0;
+      // 	(*this)[ c] += 1.0;
     }
   else
     {
@@ -1582,7 +1582,7 @@ void Data_<SpDFloat>::IncAt( ArrayIndexListT* ixList)
       
       AllIxT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; ++c)
-	dd[ (*allIx)[ c]] += 1.0;
+	(*this)[ (*allIx)[ c]] += 1.0;
     }
 }
 template<>
@@ -1595,7 +1595,7 @@ void Data_<SpDDouble>::DecAt( ArrayIndexListT* ixList)
       //       SizeT nCp=Data_::N_Elements();
       
       //       for( SizeT c=0; c<nCp; ++c)
-      // 	dd[ c] -= 1.0;
+      // 	(*this)[ c] -= 1.0;
     }
   else
     {
@@ -1603,7 +1603,7 @@ void Data_<SpDDouble>::DecAt( ArrayIndexListT* ixList)
       
       AllIxT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; ++c)
-	dd[ (*allIx)[ c]] -= 1.0;
+	(*this)[ (*allIx)[ c]] -= 1.0;
     }
 }
 template<>
@@ -1616,7 +1616,7 @@ void Data_<SpDDouble>::IncAt( ArrayIndexListT* ixList)
       //       SizeT nCp=Data_::N_Elements();
       
       //       for( SizeT c=0; c<nCp; ++c)
-      // 	dd[ c] += 1.0;
+      // 	(*this)[ c] += 1.0;
     }
   else
     {
@@ -1624,7 +1624,7 @@ void Data_<SpDDouble>::IncAt( ArrayIndexListT* ixList)
       
       AllIxT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; ++c)
-	dd[ (*allIx)[ c]] += 1.0;
+	(*this)[ (*allIx)[ c]] += 1.0;
     }
 }
 // complex
@@ -1638,7 +1638,7 @@ void Data_<SpDComplex>::DecAt( ArrayIndexListT* ixList)
       //       SizeT nCp=Data_::N_Elements();
       
       //       for( SizeT c=0; c<nCp; ++c)
-      // 	dd[ c] -= 1.0;
+      // 	(*this)[ c] -= 1.0;
     }
   else
     {
@@ -1646,7 +1646,7 @@ void Data_<SpDComplex>::DecAt( ArrayIndexListT* ixList)
       
       AllIxT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; ++c)
-	dd[ (*allIx)[ c]] -= 1.0;
+	(*this)[ (*allIx)[ c]] -= 1.0;
     }
 }
 template<>
@@ -1659,7 +1659,7 @@ void Data_<SpDComplex>::IncAt( ArrayIndexListT* ixList)
       //       SizeT nCp=Data_::N_Elements();
       
       //       for( SizeT c=0; c<nCp; ++c)
-      // 	dd[ c] += 1.0;
+      // 	(*this)[ c] += 1.0;
     }
   else
     {
@@ -1667,7 +1667,7 @@ void Data_<SpDComplex>::IncAt( ArrayIndexListT* ixList)
       
       AllIxT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; ++c)
-	dd[ (*allIx)[ c]] += 1.0;
+	(*this)[ (*allIx)[ c]] += 1.0;
     }
 }
 template<>
@@ -1680,7 +1680,7 @@ void Data_<SpDComplexDbl>::DecAt( ArrayIndexListT* ixList)
       //       SizeT nCp=Data_::N_Elements();
       
       //       for( SizeT c=0; c<nCp; ++c)
-      // 	dd[ c] -= 1.0;
+      // 	(*this)[ c] -= 1.0;
     }
   else
     {
@@ -1688,7 +1688,7 @@ void Data_<SpDComplexDbl>::DecAt( ArrayIndexListT* ixList)
       
       AllIxT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; ++c)
-	dd[ (*allIx)[ c]] -= 1.0;
+	(*this)[ (*allIx)[ c]] -= 1.0;
     }
 }
 template<>
@@ -1701,7 +1701,7 @@ void Data_<SpDComplexDbl>::IncAt( ArrayIndexListT* ixList)
       //       SizeT nCp=Data_::N_Elements();
       
       //       for( SizeT c=0; c<nCp; ++c)
-      // 	dd[ c] += 1.0;
+      // 	(*this)[ c] += 1.0;
     }
   else
     {
@@ -1709,7 +1709,7 @@ void Data_<SpDComplexDbl>::IncAt( ArrayIndexListT* ixList)
       
       AllIxT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; ++c)
-	dd[ (*allIx)[ c]] += 1.0;
+	(*this)[ (*allIx)[ c]] += 1.0;
     }
 }
 // forbidden types
@@ -1758,7 +1758,7 @@ void Data_<Sp>::InsertAt( SizeT offset, BaseGDL* srcIn,
       SizeT nCp=src->N_Elements();
 
       for( SizeT c=0; c<nCp; ++c)
-	dd[ c+offset]=(*src)[c];
+	(*this)[ c+offset]=(*src)[c];
     }
   else
     {
@@ -1766,8 +1766,8 @@ void Data_<Sp>::InsertAt( SizeT offset, BaseGDL* srcIn,
 
       AllIxT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; ++c)
-	dd[ c+offset]=(*src)[ (*allIx)[ c]];
-      //	dd[ c+offset]=(*src)[ ixList->GetIx( c)];
+	(*this)[ c+offset]=(*src)[ (*allIx)[ c]];
+      //	(*this)[ c+offset]=(*src)[ ixList->GetIx( c)];
     }
 }
 
@@ -1842,9 +1842,9 @@ Data_<Sp>* Data_<Sp>::Index( ArrayIndexListT* ixList)
   //  DataT& res_dd = res->dd; 
   AllIxT* allIx = ixList->BuildIx();
   for( SizeT c=0; c<nCp; ++c)
-    (*res)[c]=dd[ (*allIx)[ c]];
-  //    res_dd[c]=dd[ (*allIx)[ c]];
-  //    (*res)[c]=dd[ ixList->GetIx(c)];
+    (*res)[c]=(*this)[ (*allIx)[ c]];
+  //    res_(*this)[c]=(*this)[ (*allIx)[ c]];
+  //    (*res)[c]=(*this)[ ixList->GetIx(c)];
   
   return res;
 }
@@ -1871,7 +1871,7 @@ void Data_<Sp>::InsAt( Data_* srcIn, ArrayIndexListT* ixList, SizeT offset)
 
     //       SizeT destEnd = destStart + len;
     //       for( SizeT destIx = destStart; destIx < destEnd; ++destIx)
-    // 	dd[ destIx] = srcIn_dd[ srcIx++];
+    // 	(*this)[ destIx] = (*srcIn)[ srcIx++];
 
     //       return;
     //     }
@@ -1883,7 +1883,7 @@ void Data_<Sp>::InsAt( Data_* srcIn, ArrayIndexListT* ixList, SizeT offset)
 	{
 	  //	  len = 1;
 	  SizeT rStride = srcIn->Stride(this->Rank());
-	  dd[ destStart] = srcIn->dd[ offset/rStride];
+	  (*this)[ destStart] = (*srcIn)[ offset/rStride];
 	}
       else 
 	{
@@ -1891,12 +1891,12 @@ void Data_<Sp>::InsAt( Data_* srcIn, ArrayIndexListT* ixList, SizeT offset)
 	  if( (destStart+len) > this->N_Elements()) //dim[0])
 	    throw GDLException("Out of range subscript encountered (1).");
 
-	  DataT& srcIn_dd = srcIn->dd; 
+	  // DataT& srcIn_dd = srcIn->dd; 
 	  SizeT srcIx = 0; // this one simply runs from 0 to N_Elements(srcIn)
 
 	  SizeT destEnd = destStart + len;
 	  for( SizeT destIx = destStart; destIx < destEnd; ++destIx)
-	    dd[ destIx] = srcIn_dd[ srcIx++];
+	    (*this)[ destIx] = (*srcIn)[ srcIx++];
 	}
 
       return;
@@ -1933,7 +1933,7 @@ void Data_<Sp>::InsAt( Data_* srcIn, ArrayIndexListT* ixList, SizeT offset)
 	
   //  SizeT destStart=this->dim.LongIndex(ixDim); // starting pos
 
-  DataT& srcIn_dd = srcIn->dd; 
+  // DataT& srcIn_dd = srcIn->dd; 
 
   SizeT srcIx=0; // this one simply runs from 0 to N_Elements(srcIn)
   for( SizeT c=1; c<=nCp; ++c) // linearized verison of nested loops
@@ -1941,7 +1941,7 @@ void Data_<Sp>::InsAt( Data_* srcIn, ArrayIndexListT* ixList, SizeT offset)
       // copy one segment
       SizeT destEnd=destStart+len;
       for( SizeT destIx=destStart; destIx<destEnd; ++destIx)
-	dd[destIx] = srcIn_dd[ srcIx++];
+	(*this)[destIx] = (*srcIn)[ srcIx++];
 
       // update destStart for all dimensions
       if( c < nCp)
@@ -1985,7 +1985,7 @@ void Data_<Sp>::CatInsert( const Data_* srcArr, const SizeT atDim, SizeT& at)
     {
       // copy one segment
       for( SizeT destIx=destStart; destIx< destEnd; destIx++)
-	dd[destIx] = srcArr->dd[ srcIx++];
+	(*this)[destIx] = (*srcArr)[ srcIx++];
 
       // set new destination pointer
       destStart += gap;
@@ -2053,32 +2053,32 @@ bool Data_<SpDComplexDbl>::LogTrue()
 template<class Sp>
 bool Data_<Sp>::LogTrue(SizeT i)
 {
-  return (dd[i] != 0);
+  return ((*this)[i] != 0);
 }
 template<>
 bool Data_<SpDFloat>::LogTrue(SizeT i)
 {
-  return (dd[i] != 0.0f);
+  return ((*this)[i] != 0.0f);
 }
 template<>
 bool Data_<SpDDouble>::LogTrue(SizeT i)
 {
-  return (dd[i] != 0.0);
+  return ((*this)[i] != 0.0);
 }
 template<>
 bool Data_<SpDString>::LogTrue(SizeT i)
 {
-  return (dd[i] != "");
+  return ((*this)[i] != "");
 }
 template<>
 bool Data_<SpDComplex>::LogTrue(SizeT i)
 {
-  return (dd[i].real() != 0.0 || dd[i].imag() != 0.0);
+  return ((*this)[i].real() != 0.0 || (*this)[i].imag() != 0.0);
 }
 template<>
 bool Data_<SpDComplexDbl>::LogTrue(SizeT i)
 {
-  return (dd[i].real() != 0.0 || dd[i].imag() != 0.0);
+  return ((*this)[i].real() != 0.0 || (*this)[i].imag() != 0.0);
 }
 // structs are not allowed
 
@@ -2095,7 +2095,7 @@ DLong* Data_<Sp>::Where( bool comp, SizeT& n)
       SizeT nIx = nEl;
       for( SizeT i=0; i<nEl; ++i)
 	{
-	  if( dd[i] != 0)
+	  if( (*this)[i] != 0)
 	    {
 	      ixList[ count++] = i;
 	    }
@@ -2107,7 +2107,7 @@ DLong* Data_<Sp>::Where( bool comp, SizeT& n)
     }
   else
     for( SizeT i=0; i<nEl; ++i)
-      if( dd[i] != 0)
+      if( (*this)[i] != 0)
 	{
 	  ixList[ count++] = i;
 	}
@@ -2125,7 +2125,7 @@ DLong* Data_<SpDFloat>::Where( bool comp, SizeT& n)
       SizeT nIx = nEl;
       for( SizeT i=0; i<nEl; ++i)
 	{
-	  if( dd[i] != 0.0f)
+	  if( (*this)[i] != 0.0f)
 	    {
 	      ixList[ count++] = i;
 	    }
@@ -2137,7 +2137,7 @@ DLong* Data_<SpDFloat>::Where( bool comp, SizeT& n)
     }
   else
     for( SizeT i=0; i<nEl; ++i)
-      if( dd[i] != 0.0f)
+      if( (*this)[i] != 0.0f)
 	{
 	  ixList[ count++] = i;
 	}
@@ -2155,7 +2155,7 @@ DLong* Data_<SpDDouble>::Where( bool comp, SizeT& n)
       SizeT nIx = nEl;
       for( SizeT i=0; i<nEl; ++i)
 	{
-	  if( dd[i] != 0.0)
+	  if( (*this)[i] != 0.0)
 	    {
 	      ixList[ count++] = i;
 	    }
@@ -2167,7 +2167,7 @@ DLong* Data_<SpDDouble>::Where( bool comp, SizeT& n)
     }
   else
     for( SizeT i=0; i<nEl; ++i)
-      if( dd[i] != 0.0)
+      if( (*this)[i] != 0.0)
 	{
 	  ixList[ count++] = i;
 	}
@@ -2185,7 +2185,7 @@ DLong* Data_<SpDString>::Where( bool comp, SizeT& n)
       SizeT nIx = nEl;
       for( SizeT i=0; i<nEl; ++i)
 	{
-	  if( dd[i] != "")
+	  if( (*this)[i] != "")
 	    {
 	      ixList[ count++] = i;
 	    }
@@ -2197,7 +2197,7 @@ DLong* Data_<SpDString>::Where( bool comp, SizeT& n)
     }
   else
     for( SizeT i=0; i<nEl; ++i)
-      if( dd[i] != "")
+      if( (*this)[i] != "")
 	{
 	  ixList[ count++] = i;
 	}
@@ -2215,7 +2215,7 @@ DLong* Data_<SpDComplex>::Where( bool comp, SizeT& n)
       SizeT nIx = nEl;
       for( SizeT i=0; i<nEl; ++i)
 	{
-	  if( dd[i].real() != 0.0 || dd[i].imag() != 0.0)
+	  if( (*this)[i].real() != 0.0 || (*this)[i].imag() != 0.0)
 	    {
 	      ixList[ count++] = i;
 	    }
@@ -2227,7 +2227,7 @@ DLong* Data_<SpDComplex>::Where( bool comp, SizeT& n)
     }
   else
     for( SizeT i=0; i<nEl; ++i)
-      if( dd[i].real() != 0.0 || dd[i].imag() != 0.0)
+      if( (*this)[i].real() != 0.0 || (*this)[i].imag() != 0.0)
 	{
 	  ixList[ count++] = i;
 	}
@@ -2245,7 +2245,7 @@ DLong* Data_<SpDComplexDbl>::Where( bool comp, SizeT& n)
       SizeT nIx = nEl;
       for( SizeT i=0; i<nEl; ++i)
 	{
-	  if( dd[i].real() != 0.0 || dd[i].imag() != 0.0)
+	  if( (*this)[i].real() != 0.0 || (*this)[i].imag() != 0.0)
 	    {
 	      ixList[ count++] = i;
 	    }
@@ -2257,7 +2257,7 @@ DLong* Data_<SpDComplexDbl>::Where( bool comp, SizeT& n)
     }
   else
     for( SizeT i=0; i<nEl; ++i)
-      if( dd[i].real() != 0.0 || dd[i].imag() != 0.0)
+      if( (*this)[i].real() != 0.0 || (*this)[i].imag() != 0.0)
 	{
 	  ixList[ count++] = i;
 	}
@@ -2275,13 +2275,13 @@ void Data_<Sp>::MinMax( DLong* minE, DLong* maxE,
   if( minE == NULL)
     {
       DLong maxEl  = 0;
-      Ty    maxV = dd[0];
+      Ty    maxV = (*this)[0];
       DLong nEl = dd.size();
       for( DLong i=1; i<nEl; ++i)
 	{
-	  if( dd[i] > maxV)
+	  if( (*this)[i] > maxV)
 	    {
-	      maxV = dd[i];
+	      maxV = (*this)[i];
 	      maxEl  = i;
 	    }
 	}
@@ -2292,13 +2292,13 @@ void Data_<Sp>::MinMax( DLong* minE, DLong* maxE,
   if( maxE == NULL)
     {
       DLong minEl  = 0;
-      Ty    minV = dd[0];
+      Ty    minV = (*this)[0];
       DLong nEl = dd.size();
       for( DLong i=1; i<nEl; ++i)
 	{
-	  if( dd[i] < minV)
+	  if( (*this)[i] < minV)
 	    {
-	      minV = dd[i];
+	      minV = (*this)[i];
 	      minEl  = i;
 	    }
 	}
@@ -2308,22 +2308,22 @@ void Data_<Sp>::MinMax( DLong* minE, DLong* maxE,
     }
 
   DLong maxEl  = 0;
-  Ty    maxV = dd[0];
+  Ty    maxV = (*this)[0];
 
   DLong minEl  = 0;
-  Ty    minV = dd[0];
+  Ty    minV = (*this)[0];
 
   DLong nEl = dd.size();
   for( DLong i=1; i<nEl; ++i)
     {
-      if( dd[i] > maxV)
+      if( (*this)[i] > maxV)
 	{
-	  maxV = dd[i];
+	  maxV = (*this)[i];
 	  maxEl  = i;
 	}
-      else if( dd[i] < minV)
+      else if( (*this)[i] < minV)
 	{
-	  minV = dd[i];
+	  minV = (*this)[i];
 	  minEl  = i;
 	}
     }
@@ -2346,7 +2346,7 @@ void Data_<SpDFloat>::MinMax( DLong* minE, DLong* maxE,
   if( minE == NULL)
     {
       DLong maxEl  = 0;
-      Ty    maxV = dd[0];
+      Ty    maxV = (*this)[0];
       DLong nEl = dd.size();
       DLong i, i_min=1;
 
@@ -2354,21 +2354,21 @@ void Data_<SpDFloat>::MinMax( DLong* minE, DLong* maxE,
 	i=0;
 	int flag=1;
 	while (flag == 1) {
-	  if (!isnan(dd[i]) && isfinite(dd[i])) { flag =0;}
+	  if (!isnan((*this)[i]) && isfinite((*this)[i])) { flag =0;}
 	  if (i == nEl-1) { flag =0;}
 	  i=i+1;
 	}
-	maxV = dd[i-1];
+	maxV = (*this)[i-1];
 	maxEl  = i-1;
 	i_min=i;
       }
         
       for( i=i_min; i<nEl; ++i) {
 	if (omitNaN) {
-	  if (isnan(dd[i]) || !isfinite(dd[i])) continue;
+	  if (isnan((*this)[i]) || !isfinite((*this)[i])) continue;
 	}
-	if (dd[i] > maxV) {
-	  maxV = dd[i];
+	if ((*this)[i] > maxV) {
+	  maxV = (*this)[i];
 	  maxEl  = i;
 	}
       }
@@ -2379,7 +2379,7 @@ void Data_<SpDFloat>::MinMax( DLong* minE, DLong* maxE,
   if( maxE == NULL)
     {
       DLong minEl  = 0;
-      Ty    minV = dd[0];
+      Ty    minV = (*this)[0];
       DLong nEl = dd.size();
       DLong i, i_min=1;
 
@@ -2387,21 +2387,21 @@ void Data_<SpDFloat>::MinMax( DLong* minE, DLong* maxE,
 	i=0;
 	int flag=1;
 	while (flag == 1) {
-	  if (!isnan(dd[i]) && isfinite(dd[i])) { flag =0;}
+	  if (!isnan((*this)[i]) && isfinite((*this)[i])) { flag =0;}
 	  if (i == nEl-1) { flag =0;}
 	  i=i+1;
 	}
-	minV = dd[i-1];
+	minV = (*this)[i-1];
 	minEl  = i-1;
 	i_min=i;
       }
    
       for (i=i_min; i<nEl; ++i) {
 	if (omitNaN) {
-	  if (isnan(dd[i]) || !isfinite(dd[i])) continue;
+	  if (isnan((*this)[i]) || !isfinite((*this)[i])) continue;
 	} 
-	if (dd[i] < minV) {
-	  minV = dd[i];
+	if ((*this)[i] < minV) {
+	  minV = (*this)[i];
 	  minEl  = i;
 	}
       }
@@ -2411,10 +2411,10 @@ void Data_<SpDFloat>::MinMax( DLong* minE, DLong* maxE,
     }
   
   DLong maxEl  = 0;
-  Ty    maxV = dd[0];
+  Ty    maxV = (*this)[0];
 
   DLong minEl  = 0;
-  Ty    minV = dd[0];
+  Ty    minV = (*this)[0];
   DLong i, i_min=1;
   DLong nEl = dd.size();
   
@@ -2422,29 +2422,29 @@ void Data_<SpDFloat>::MinMax( DLong* minE, DLong* maxE,
     i=0;
     int flag=1;
     while (flag == 1) {
-      if (!isnan(dd[i]) && isfinite(dd[i])) { flag =0;}
+      if (!isnan((*this)[i]) && isfinite((*this)[i])) { flag =0;}
       if (i == nEl-1) { flag =0;}
       i=i+1;
     }
-    minV = dd[i-1];
+    minV = (*this)[i-1];
     minEl  = i-1;
-    maxV = dd[i-1];
+    maxV = (*this)[i-1];
     maxEl  = i-1;
     i_min=i;
   }
 
   for( i=i_min; i<nEl; ++i) {
     if (omitNaN){
-      if (isnan(dd[i]) || !isfinite(dd[i])) continue;
+      if (isnan((*this)[i]) || !isfinite((*this)[i])) continue;
     }
-    if (dd[i] > maxV)
+    if ((*this)[i] > maxV)
       {
-	maxV = dd[i];
+	maxV = (*this)[i];
 	maxEl  = i;
       }
-    else if( dd[i] < minV)
+    else if( (*this)[i] < minV)
       {
-	minV = dd[i];
+	minV = (*this)[i];
 	minEl  = i;
       }
   }
@@ -2464,7 +2464,7 @@ void Data_<SpDDouble>::MinMax( DLong* minE, DLong* maxE,
   if( minE == NULL)
     {
       DLong maxEl  = 0;
-      Ty    maxV = dd[0];
+      Ty    maxV = (*this)[0];
       DLong nEl = dd.size();
       DLong i, i_min=1;
 
@@ -2472,21 +2472,21 @@ void Data_<SpDDouble>::MinMax( DLong* minE, DLong* maxE,
 	i=0;
 	int flag=1;
 	while (flag == 1) {
-	  if (!isnan(dd[i]) && isfinite(dd[i])) { flag =0;}
+	  if (!isnan((*this)[i]) && isfinite((*this)[i])) { flag =0;}
 	  if (i == nEl-1) { flag =0;}
 	  i=i+1;
 	}
-	maxV = dd[i-1];
+	maxV = (*this)[i-1];
 	maxEl  = i-1;
 	i_min=i;
       }
         
       for( i=i_min; i<nEl; ++i) {
 	if (omitNaN) {
-	  if (isnan(dd[i]) || !isfinite(dd[i])) continue;
+	  if (isnan((*this)[i]) || !isfinite((*this)[i])) continue;
 	}
-	if (dd[i] > maxV) {
-	  maxV = dd[i];
+	if ((*this)[i] > maxV) {
+	  maxV = (*this)[i];
 	  maxEl  = i;
 	}
       }
@@ -2497,7 +2497,7 @@ void Data_<SpDDouble>::MinMax( DLong* minE, DLong* maxE,
   if( maxE == NULL)
     {
       DLong minEl  = 0;
-      Ty    minV = dd[0];
+      Ty    minV = (*this)[0];
       DLong nEl = dd.size();
       DLong i, i_min=1;
 
@@ -2505,21 +2505,21 @@ void Data_<SpDDouble>::MinMax( DLong* minE, DLong* maxE,
 	i=0;
 	int flag=1;
 	while (flag == 1) {
-	  if (!isnan(dd[i]) && isfinite(dd[i])) { flag =0;}
+	  if (!isnan((*this)[i]) && isfinite((*this)[i])) { flag =0;}
 	  if (i == nEl-1) { flag =0;}
 	  i=i+1;
 	}
-	minV = dd[i-1];
+	minV = (*this)[i-1];
 	minEl  = i-1;
 	i_min=i;
       }
    
       for (i=i_min; i<nEl; ++i) {
 	if (omitNaN) {
-	  if (isnan(dd[i]) || !isfinite(dd[i])) continue;
+	  if (isnan((*this)[i]) || !isfinite((*this)[i])) continue;
 	} 
-	if (dd[i] < minV) {
-	  minV = dd[i];
+	if ((*this)[i] < minV) {
+	  minV = (*this)[i];
 	  minEl  = i;
 	}
       }
@@ -2529,10 +2529,10 @@ void Data_<SpDDouble>::MinMax( DLong* minE, DLong* maxE,
     }
   
   DLong maxEl  = 0;
-  Ty    maxV = dd[0];
+  Ty    maxV = (*this)[0];
 
   DLong minEl  = 0;
-  Ty    minV = dd[0];
+  Ty    minV = (*this)[0];
   DLong i, i_min=1;
   DLong nEl = dd.size();
   
@@ -2540,29 +2540,29 @@ void Data_<SpDDouble>::MinMax( DLong* minE, DLong* maxE,
     i=0;
     int flag=1;
     while (flag == 1) {
-      if (!isnan(dd[i]) && isfinite(dd[i])) { flag =0;}
+      if (!isnan((*this)[i]) && isfinite((*this)[i])) { flag =0;}
       if (i == nEl-1) { flag =0;}
       i=i+1;
     }
-    minV = dd[i-1];
+    minV = (*this)[i-1];
     minEl  = i-1;
-    maxV = dd[i-1];
+    maxV = (*this)[i-1];
     maxEl  = i-1;
     i_min=i;
   }
 
   for( i=i_min; i<nEl; ++i) {
     if (omitNaN){
-      if (isnan(dd[i]) || !isfinite(dd[i])) continue;
+      if (isnan((*this)[i]) || !isfinite((*this)[i])) continue;
     }
-    if (dd[i] > maxV)
+    if ((*this)[i] > maxV)
       {
-	maxV = dd[i];
+	maxV = (*this)[i];
 	maxEl  = i;
       }
-    else if( dd[i] < minV)
+    else if( (*this)[i] < minV)
       {
-	minV = dd[i];
+	minV = (*this)[i];
 	minEl  = i;
       }
   }
@@ -2580,13 +2580,13 @@ void Data_<SpDString>::MinMax( DLong* minE, DLong* maxE,
   if( minE == NULL)
     {
       DLong maxEl  = 0;
-      Ty    maxV = dd[0];
+      Ty    maxV = (*this)[0];
       DLong nEl = dd.size();
       for( DLong i=1; i<nEl; ++i)
 	{
-	  if( dd[i] > maxV)
+	  if( (*this)[i] > maxV)
 	    {
-	      maxV = dd[i];
+	      maxV = (*this)[i];
 	      maxEl  = i;
 	    }
 	}
@@ -2597,13 +2597,13 @@ void Data_<SpDString>::MinMax( DLong* minE, DLong* maxE,
   if( maxE == NULL)
     {
       DLong minEl  = 0;
-      Ty    minV = dd[0];
+      Ty    minV = (*this)[0];
       DLong nEl = dd.size();
       for( DLong i=1; i<nEl; ++i)
 	{
-	  if( dd[i] < minV)
+	  if( (*this)[i] < minV)
 	    {
-	      minV = dd[i];
+	      minV = (*this)[i];
 	      minEl  = i;
 	    }
 	}
@@ -2613,22 +2613,22 @@ void Data_<SpDString>::MinMax( DLong* minE, DLong* maxE,
     }
 
   DLong maxEl  = 0;
-  Ty    maxV = dd[0];
+  Ty    maxV = (*this)[0];
 
   DLong minEl  = 0;
-  Ty    minV = dd[0];
+  Ty    minV = (*this)[0];
 
   DLong nEl = dd.size();
   for( DLong i=1; i<nEl; ++i)
     {
-      if( dd[i] > maxV)
+      if( (*this)[i] > maxV)
 	{
-	  maxV = dd[i];
+	  maxV = (*this)[i];
 	  maxEl  = i;
 	}
-      else if( dd[i] < minV)
+      else if( (*this)[i] < minV)
 	{
-	  minV = dd[i];
+	  minV = (*this)[i];
 	  minEl  = i;
 	}
     }
@@ -2646,7 +2646,7 @@ void Data_<SpDComplex>::MinMax( DLong* minE, DLong* maxE,
   if( minE == NULL)
     {
       DLong maxEl  = 0;
-      float maxV = dd[0].real();
+      float maxV = (*this)[0].real();
       DLong nEl = dd.size();
       DLong i, i_min=1;
 
@@ -2654,32 +2654,32 @@ void Data_<SpDComplex>::MinMax( DLong* minE, DLong* maxE,
 	i=0;
 	int flag=1;
 	while (flag == 1) {
-	  if (!isnan(dd[i].real()) && isfinite(dd[i].real())) { flag =0;}
+	  if (!isnan((*this)[i].real()) && isfinite((*this)[i].real())) { flag =0;}
 	  if (i == nEl-1) { flag =0;}
 	  i=i+1;
 	}
-	maxV = dd[i-1].real();
+	maxV = (*this)[i-1].real();
 	maxEl  = i-1;
 	i_min=i;
       }
         
       for( i=i_min; i<nEl; ++i) {
 	if (omitNaN) {
-	  if (isnan(dd[i].real()) || !isfinite(dd[i].real())) continue;
+	  if (isnan((*this)[i].real()) || !isfinite((*this)[i].real())) continue;
 	}
-	if (dd[i].real() > maxV) {
-	  maxV = dd[i].real();
+	if ((*this)[i].real() > maxV) {
+	  maxV = (*this)[i].real();
 	  maxEl  = i;
 	}
       }
       *maxE = maxEl;
-      if( maxVal != NULL) *maxVal = new Data_( dd[ maxEl]);
+      if( maxVal != NULL) *maxVal = new Data_( (*this)[ maxEl]);
       return;
     }
   if( maxE == NULL)
     {
       DLong minEl  = 0;
-      float minV = dd[0].real();
+      float minV = (*this)[0].real();
       DLong nEl = dd.size();
       DLong i, i_min=1;
 
@@ -2687,34 +2687,34 @@ void Data_<SpDComplex>::MinMax( DLong* minE, DLong* maxE,
 	i=0;
 	int flag=1;
 	while (flag == 1) {
-	  if (!isnan(dd[i].real()) && isfinite(dd[i].real())) { flag =0;}
+	  if (!isnan((*this)[i].real()) && isfinite((*this)[i].real())) { flag =0;}
 	  if (i == nEl-1) { flag =0;}
 	  i=i+1;
 	}
-	minV = dd[i-1].real();
+	minV = (*this)[i-1].real();
 	minEl  = i-1;
 	i_min=i;
       }
    
       for (i=i_min; i<nEl; ++i) {
 	if (omitNaN) {
-	  if (isnan(dd[i].real()) || !isfinite(dd[i].real())) continue;
+	  if (isnan((*this)[i].real()) || !isfinite((*this)[i].real())) continue;
 	} 
-	if (dd[i].real() < minV) {
-	  minV = dd[i].real();
+	if ((*this)[i].real() < minV) {
+	  minV = (*this)[i].real();
 	  minEl  = i;
 	}
       }
       *minE = minEl;
-      if( minVal != NULL) *minVal = new Data_( dd[ minEl]);
+      if( minVal != NULL) *minVal = new Data_( (*this)[ minEl]);
       return;
     }
   
   DLong maxEl  = 0;
-  float maxV = dd[0].real();
+  float maxV = (*this)[0].real();
 
   DLong minEl  = 0;
-  float minV = dd[0].real();
+  float minV = (*this)[0].real();
   DLong i, i_min=1;
   DLong nEl = dd.size();
   
@@ -2722,37 +2722,37 @@ void Data_<SpDComplex>::MinMax( DLong* minE, DLong* maxE,
     i=0;
     int flag=1;
     while (flag == 1) {
-      if (!isnan(dd[i].real()) && isfinite(dd[i].real())) { flag =0;}
+      if (!isnan((*this)[i].real()) && isfinite((*this)[i].real())) { flag =0;}
       if (i == nEl-1) { flag =0;}
       i=i+1;
     }
-    minV = dd[i-1].real();
+    minV = (*this)[i-1].real();
     minEl  = i-1;
-    maxV = dd[i-1].real();
+    maxV = (*this)[i-1].real();
     maxEl  = i-1;
     i_min=i;
   }
 
   for( i=i_min; i<nEl; ++i) {
     if (omitNaN){
-      if (isnan(dd[i].real()) || !isfinite(dd[i].real())) continue;
+      if (isnan((*this)[i].real()) || !isfinite((*this)[i].real())) continue;
     }
-    if (dd[i].real() > maxV)
+    if ((*this)[i].real() > maxV)
       {
-	maxV = dd[i].real();
+	maxV = (*this)[i].real();
 	maxEl  = i;
       }
-    else if( dd[i].real() < minV)
+    else if( (*this)[i].real() < minV)
       {
-	minV = dd[i].real();
+	minV = (*this)[i].real();
 	minEl  = i;
       }
   }
   *maxE = maxEl;
-  if( maxVal != NULL) *maxVal = new Data_( dd[ maxEl]);
+  if( maxVal != NULL) *maxVal = new Data_( (*this)[ maxEl]);
   
   *minE = minEl;
-  if( minVal != NULL) *minVal = new Data_( dd[ minEl]);
+  if( minVal != NULL) *minVal = new Data_( (*this)[ minEl]);
 
 }
 
@@ -2764,7 +2764,7 @@ void Data_<SpDComplexDbl>::MinMax( DLong* minE, DLong* maxE,
   if( minE == NULL)
     {
       DLong maxEl  = 0;
-      double maxV = dd[0].real();
+      double maxV = (*this)[0].real();
       DLong nEl = dd.size();
       DLong i, i_min=1;
 
@@ -2772,32 +2772,32 @@ void Data_<SpDComplexDbl>::MinMax( DLong* minE, DLong* maxE,
 	i=0;
 	int flag=1;
 	while (flag == 1) {
-	  if (!isnan(dd[i].real()) && isfinite(dd[i].real())) { flag =0;}
+	  if (!isnan((*this)[i].real()) && isfinite((*this)[i].real())) { flag =0;}
 	  if (i == nEl-1) { flag =0;}
 	  i=i+1;
 	}
-	maxV = dd[i-1].real();
+	maxV = (*this)[i-1].real();
 	maxEl  = i-1;
 	i_min=i;
       }
         
       for( i=i_min; i<nEl; ++i) {
 	if (omitNaN) {
-	  if (isnan(dd[i].real()) || !isfinite(dd[i].real())) continue;
+	  if (isnan((*this)[i].real()) || !isfinite((*this)[i].real())) continue;
 	}
-	if (dd[i].real() > maxV) {
-	  maxV = dd[i].real();
+	if ((*this)[i].real() > maxV) {
+	  maxV = (*this)[i].real();
 	  maxEl  = i;
 	}
       }
       *maxE = maxEl;
-      if( maxVal != NULL) *maxVal = new Data_( dd[ maxEl]);
+      if( maxVal != NULL) *maxVal = new Data_( (*this)[ maxEl]);
       return;
     }
   if( maxE == NULL)
     {
       DLong minEl  = 0;
-      double minV = dd[0].real();
+      double minV = (*this)[0].real();
       DLong nEl = dd.size();
       DLong i, i_min=1;
 
@@ -2805,34 +2805,34 @@ void Data_<SpDComplexDbl>::MinMax( DLong* minE, DLong* maxE,
 	i=0;
 	int flag=1;
 	while (flag == 1) {
-	  if (!isnan(dd[i].real()) && isfinite(dd[i].real())) { flag =0;}
+	  if (!isnan((*this)[i].real()) && isfinite((*this)[i].real())) { flag =0;}
 	  if (i == nEl-1) { flag =0;}
 	  i=i+1;
 	}
-	minV = dd[i-1].real();
+	minV = (*this)[i-1].real();
 	minEl  = i-1;
 	i_min=i;
       }
    
       for (i=i_min; i<nEl; ++i) {
 	if (omitNaN) {
-	  if (isnan(dd[i].real()) || !isfinite(dd[i].real())) continue;
+	  if (isnan((*this)[i].real()) || !isfinite((*this)[i].real())) continue;
 	} 
-	if (dd[i].real() < minV) {
-	  minV = dd[i].real();
+	if ((*this)[i].real() < minV) {
+	  minV = (*this)[i].real();
 	  minEl  = i;
 	}
       }
       *minE = minEl;
-      if( minVal != NULL) *minVal = new Data_( dd[ minEl]);
+      if( minVal != NULL) *minVal = new Data_( (*this)[ minEl]);
       return;
     }
   
   DLong maxEl  = 0;
-  double maxV = dd[0].real();
+  double maxV = (*this)[0].real();
 
   DLong minEl  = 0;
-  double minV = dd[0].real();
+  double minV = (*this)[0].real();
   DLong i, i_min=1;
   DLong nEl = dd.size();
   
@@ -2840,37 +2840,37 @@ void Data_<SpDComplexDbl>::MinMax( DLong* minE, DLong* maxE,
     i=0;
     int flag=1;
     while (flag == 1) {
-      if (!isnan(dd[i].real()) && isfinite(dd[i].real())) { flag =0;}
+      if (!isnan((*this)[i].real()) && isfinite((*this)[i].real())) { flag =0;}
       if (i == nEl-1) { flag =0;}
       i=i+1;
     }
-    minV = dd[i-1].real();
+    minV = (*this)[i-1].real();
     minEl  = i-1;
-    maxV = dd[i-1].real();
+    maxV = (*this)[i-1].real();
     maxEl  = i-1;
     i_min=i;
   }
 
   for( i=i_min; i<nEl; ++i) {
     if (omitNaN){
-      if (isnan(dd[i].real()) || !isfinite(dd[i].real())) continue;
+      if (isnan((*this)[i].real()) || !isfinite((*this)[i].real())) continue;
     }
-    if (dd[i].real() > maxV)
+    if ((*this)[i].real() > maxV)
       {
-	maxV = dd[i].real();
+	maxV = (*this)[i].real();
 	maxEl  = i;
       }
-    else if( dd[i].real() < minV)
+    else if( (*this)[i].real() < minV)
       {
-	minV = dd[i].real();
+	minV = (*this)[i].real();
 	minEl  = i;
       }
   }
   *maxE = maxEl;
-  if( maxVal != NULL) *maxVal = new Data_( dd[ maxEl]);
+  if( maxVal != NULL) *maxVal = new Data_( (*this)[ maxEl]);
   
   *minE = minEl;
-  if( minVal != NULL) *minVal = new Data_( dd[ minEl]);
+  if( minVal != NULL) *minVal = new Data_( (*this)[ minEl]);
 
 }
 
@@ -3464,7 +3464,7 @@ void Data_<Sp>::Assign( BaseGDL* src, SizeT nEl)
 
   for(long k=0; k < nEl; ++k)
     {
-      dd[ k] = srcT->dd[ k];
+      (*this)[ k] = (*srcT)[ k];
     }
 }
 
@@ -3472,7 +3472,7 @@ void Data_<Sp>::Assign( BaseGDL* src, SizeT nEl)
 template<class Sp>
 Data_<Sp>* Data_<Sp>::NewIx( SizeT ix)
 {
-  return new Data_( dd[ ix]);
+  return new Data_( (*this)[ ix]);
 }
 template<class Sp>
 Data_<Sp>* Data_<Sp>::NewIx( AllIxT* ix, dimension* dIn)
@@ -3480,7 +3480,7 @@ Data_<Sp>* Data_<Sp>::NewIx( AllIxT* ix, dimension* dIn)
   SizeT nCp = ix->size();
   Data_* res=Data_::New( *dIn, BaseGDL::NOZERO);
   for( SizeT c=0; c<nCp; ++c)
-    (*res)[c]=dd[ (*ix)[ c]];
+    (*res)[c]=(*this)[ (*ix)[ c]];
   return res;
 }
 template<class Sp>
@@ -3489,7 +3489,7 @@ Data_<Sp>* Data_<Sp>::NewIxFrom( SizeT s)
   SizeT nCp = dd.size() - s;
   Data_* res=Data_::New( dimension( nCp), BaseGDL::NOZERO);
   for( SizeT c=0; c<nCp; ++c)
-    (*res)[c]=dd[ s++];
+    (*res)[c]=(*this)[ s++];
   return res;
 }
 template<class Sp>
@@ -3498,7 +3498,7 @@ Data_<Sp>* Data_<Sp>::NewIxFrom( SizeT s, SizeT e)
   SizeT nCp = e - s + 1;
   Data_* res=Data_::New( dimension( nCp), BaseGDL::NOZERO);
   for( SizeT c=0; c<nCp; ++c)
-    (*res)[c]=dd[ s++];
+    (*res)[c]=(*this)[ s++];
   return res;
 }
 template<class Sp>
@@ -3507,7 +3507,7 @@ Data_<Sp>* Data_<Sp>::NewIxFromStride( SizeT s, SizeT stride)
   SizeT nCp = (dd.size() - s + stride - 1)/stride;
   Data_* res=Data_::New( dimension( nCp), BaseGDL::NOZERO);
   for( SizeT c=0; c<nCp; ++c, s += stride)
-    (*res)[c]=dd[ s];
+    (*res)[c]=(*this)[ s];
   return res;
 }
 template<class Sp>
@@ -3516,7 +3516,7 @@ Data_<Sp>* Data_<Sp>::NewIxFromStride( SizeT s, SizeT e, SizeT stride)
   SizeT nCp = (e - s + stride)/stride;
   Data_* res=Data_::New( dimension( nCp), BaseGDL::NOZERO);
   for( SizeT c=0; c<nCp; ++c, s += stride)
-    (*res)[c]=dd[ s];
+    (*res)[c]=(*this)[ s];
   return res;
 }
 
@@ -3532,12 +3532,12 @@ for( ; i < nElem; ++i)\
       break;\
     }\
   else\
-    (*res)[i]= dd[ (*src)[i]];\
+    (*res)[i]= (*this)[ (*src)[i]];\
 for(; i < nElem; ++i)\
   if( (*src)[i] > upper)\
     (*res)[i] = upperVal;\
   else\
-    (*res)[i]= dd[ (*src)[i]];\
+    (*res)[i]= (*this)[ (*src)[i]];\
 return guard.release();
 
 #define NEWIX_SIGNEDINT \
@@ -3560,14 +3560,14 @@ for(; i < nElem; ++i)\
 	      break;\
 	    }\
 	  else\
-	    (*res)[ i] = dd[ (*src)[ i]];\
+	    (*res)[ i] = (*this)[ (*src)[ i]];\
 	for(; i < nElem; ++i)\
 	  if( (*src)[i] < 0)\
 	    (*res)[i]= zeroVal;\
 	  else if( (*src)[i] > upper)\
 	    (*res)[i]= upperVal;\
 	  else\
-	    (*res)[ i] = dd[ (*src)[ i]];\
+	    (*res)[ i] = (*this)[ (*src)[ i]];\
 	return guard.release();
 
 template<class Sp>
@@ -3579,8 +3579,8 @@ Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
   auto_ptr<Data_> guard( res);
 
   SizeT upper = dd.size() - 1;
-  Ty    upperVal = dd[ upper];
-  Ty    zeroVal  = dd[ 0];
+  Ty    upperVal = (*this)[ upper];
+  Ty    zeroVal  = (*this)[ 0];
   switch( ix->Type())
     {
     case BYTE:
@@ -3600,13 +3600,13 @@ Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
 	  // 	      break;
 	  // 	    }
 	  // 	  else
-	  // 	    (*res)[i]= dd[ (*src)[i]];
+	  // 	    (*res)[i]= (*this)[ (*src)[i]];
 
 	  // 	for(; i < nElem; ++i)
 	  // 	  if( (*src)[i] > upper)
 	  // 	    (*res)[i] = upperVal;
 	  // 	  else
-	  // 	    (*res)[i]= dd[ (*src)[i]]; 
+	  // 	    (*res)[i]= (*this)[ (*src)[i]]; 
 	
 	  // 	return guard.release();
 	  }
@@ -3635,7 +3635,7 @@ Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
 	  // 	      break;
 	  // 	    }
 	  // 	  else
-	  // 	    (*res)[ i] = dd[ (*src)[ i]];
+	  // 	    (*res)[ i] = (*this)[ (*src)[ i]];
 	
 	  // 	for(; i < nElem; ++i)
 	  // 	  if( (*src)[i] < 0)
@@ -3643,7 +3643,7 @@ Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
 	  // 	  else if( (*src)[i] > upper)
 	  // 	    (*res)[i]= upperVal;
 	  // 	  else
-	  // 	    (*res)[ i] = dd[ (*src)[ i]];
+	  // 	    (*res)[ i] = (*this)[ (*src)[ i]];
 	
 	  // 	return guard.release();
 	  }
@@ -3664,13 +3664,13 @@ Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
 	  // 	      break;
 	  // 	    }
 	  // 	  else
-	  // 	    (*res)[i]= dd[ (*src)[i]];
+	  // 	    (*res)[i]= (*this)[ (*src)[i]];
 
 	  // 	for(; i < nElem; ++i)
 	  // 	  if( (*src)[i] >= upper)
 	  // 	    (*res)[i] = upperVal;
 	  // 	  else
-	  // 	    (*res)[i]= dd[ (*src)[i]]; 
+	  // 	    (*res)[i]= (*this)[ (*src)[i]]; 
 	
 	  // 	return guard.release();
 	  }
@@ -3699,7 +3699,7 @@ Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
 	  // 	      break;
 	  // 	    }
 	  // 	  else
-	  // 	    (*res)[ i] = dd[ (*src)[ i]];
+	  // 	    (*res)[ i] = (*this)[ (*src)[ i]];
 	
 	  // 	for(; i < nElem; ++i)
 	  // 	  if( (*src)[i] <= 0)
@@ -3707,7 +3707,7 @@ Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
 	  // 	  else if( (*src)[i] >= upper)
 	  // 	    (*res)[i]= upperVal;
 	  // 	  else
-	  // 	    (*res)[ i] = dd[ (*src)[ i]];
+	  // 	    (*res)[ i] = (*this)[ (*src)[ i]];
 	
 	  // 	return guard.release();
 	  }
@@ -3728,13 +3728,13 @@ Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
 	  // 	      break;
 	  // 	    }
 	  // 	  else
-	  // 	    (*res)[i]= dd[ (*src)[i]];
+	  // 	    (*res)[i]= (*this)[ (*src)[i]];
 
 	  // 	for(; i < nElem; ++i)
 	  // 	  if( (*src)[i] > upper)
 	  // 	    (*res)[i] = upperVal;
 	  // 	  else
-	  // 	    (*res)[i]= dd[ (*src)[i]]; 
+	  // 	    (*res)[i]= (*this)[ (*src)[i]]; 
 	
 	  // 	return guard.release();
 	  }
@@ -3763,7 +3763,7 @@ Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
 	  // 	      break;
 	  // 	    }
 	  // 	  else
-	  // 	    (*res)[ i] = dd[ (*src)[ i]];
+	  // 	    (*res)[ i] = (*this)[ (*src)[ i]];
 	
 	  // 	for(; i < nElem; ++i)
 	  // 	  if( (*src)[i] <= 0)
@@ -3771,7 +3771,7 @@ Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
 	  // 	  else if( (*src)[i] >= upper)
 	  // 	    (*res)[i]= upperVal;
 	  // 	  else
-	  // 	    (*res)[i] = dd[ (*src)[i]];
+	  // 	    (*res)[i] = (*this)[ (*src)[i]];
 	
 	  // 	return guard.release();
 	  }
@@ -3792,13 +3792,13 @@ Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
 	  // 	      break;
 	  // 	    }
 	  // 	  else
-	  // 	    (*res)[i]= dd[ (*src)[i]];
+	  // 	    (*res)[i]= (*this)[ (*src)[i]];
 
 	  // 	for(; i < nElem; ++i)
 	  // 	  if( (*src)[i] > upper)
 	  // 	    (*res)[i] = upperVal;
 	  // 	  else
-	  // 	    (*res)[i]= dd[ (*src)[i]]; 
+	  // 	    (*res)[i]= (*this)[ (*src)[i]]; 
 	
 	  // 	return guard.release();
 	  }
@@ -3823,7 +3823,7 @@ Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
 	    }
 	  else
 	    {
-	      (*res)[i]= dd[ Real2Int<SizeT,float>((*src)[i])]; 
+	      (*res)[i]= (*this)[ Real2Int<SizeT,float>((*src)[i])]; 
 	    }
 	return guard.release();
       }
@@ -3848,7 +3848,7 @@ Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
 	    }
 	  else
 	    {
-	      (*res)[i]= dd[ Real2Int<SizeT,double>((*src)[i])]; 
+	      (*res)[i]= (*this)[ Real2Int<SizeT,double>((*src)[i])]; 
 	    }
 	return guard.release();
       }
@@ -3882,7 +3882,7 @@ Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
 	      }
 	    else
 	      {
-		(*res)[i] = dd[ l];
+		(*res)[i] = (*this)[ l];
 	      }
 	  }
 	return guard.release();
@@ -3908,7 +3908,7 @@ Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
 	    }
 	  else
 	    {
-	      (*res)[i]= dd[ Real2Int<DLong,float>(real((*src)[i]))]; 
+	      (*res)[i]= (*this)[ Real2Int<DLong,float>(real((*src)[i]))]; 
 	    }
 	return guard.release();
       }
@@ -3933,7 +3933,7 @@ Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
 	    }
 	  else
 	    {
-	      (*res)[i]= dd[ Real2Int<DLong,float>(real((*src)[i]))]; 
+	      (*res)[i]= (*this)[ Real2Int<DLong,float>(real((*src)[i]))]; 
 	    }
 	return guard.release();
       }

@@ -224,10 +224,10 @@ istream& operator>>(istream& i, Data_<Sp>& data_)
 
       const char* cStart=segment.c_str();
       char* cEnd;
-      data_.dd[ assignIx] = strtol( cStart, &cEnd, 10);
+      data_[ assignIx] = strtol( cStart, &cEnd, 10);
       if( cEnd == cStart)
 	{
-	  data_.dd[ assignIx]= -1;
+	  data_[ assignIx]= -1;
 	  Warning("Input conversion error.");
 	}
 	  
@@ -250,10 +250,10 @@ istream& operator>>(istream& i, Data_<SpDFloat>& data_)
       const string segment = ReadElement( i);
       const char* cStart=segment.c_str();
       char* cEnd;
-      data_.dd[ assignIx] = strtod( cStart, &cEnd);
+      data_[ assignIx] = strtod( cStart, &cEnd);
       if( cEnd == cStart)
 	{
-	  data_.dd[ assignIx]= -1;
+	  data_[ assignIx]= -1;
 	  Warning("Input conversion error.");
 	}
 	  
@@ -275,10 +275,10 @@ istream& operator>>(istream& i, Data_<SpDDouble>& data_)
       const string segment = ReadElement( i);
       const char* cStart=segment.c_str();
       char* cEnd;
-      data_.dd[ assignIx] = strtod( cStart, &cEnd);
+      data_[ assignIx] = strtod( cStart, &cEnd);
       if( cEnd == cStart)
 	{
-	  data_.dd[ assignIx]= -1;
+	  data_[ assignIx]= -1;
 	  Warning("Input conversion error.");
 	}
       
@@ -316,7 +316,7 @@ istream& operator>>(istream& i, Data_<SpDComplex>& data_)
 
 	  if( last <= next)
 	    {
-	      data_.dd[ assignIx]= DComplex(0.0,0.0);
+	      data_[ assignIx]= DComplex(0.0,0.0);
 	      Warning("Imaginary part of complex missing.");
 	    } 
 	  else
@@ -331,12 +331,12 @@ istream& operator>>(istream& i, Data_<SpDComplex>& data_)
 	      double im = strtod( c2, &cEnd2);
 	      if( cEnd1 == c1 || cEnd2 == c2)
 		{
-		  data_.dd[ assignIx]= DComplex(0.0,0.0);
+		  data_[ assignIx]= DComplex(0.0,0.0);
 		  Warning("Input conversion error.");
 		}
 	      else
 		{
-		  data_.dd[ assignIx] = DComplex( re, im);
+		  data_[ assignIx] = DComplex( re, im);
 		}
 	    }
 	}
@@ -351,12 +351,12 @@ istream& operator>>(istream& i, Data_<SpDComplex>& data_)
 	  double val = strtod( cStart, &cEnd);
 	  if( cEnd == cStart)
 	    {
-	      data_.dd[ assignIx]= DComplex(0.0,0.0);
+	      data_[ assignIx]= DComplex(0.0,0.0);
 	      Warning("Input conversion error.");
 	    }
 	  
 	  for( long int c=assignIx; c<nTrans; c++)
-	    data_.dd[ c] = DComplex(val,0.0);
+	    data_[ c] = DComplex(val,0.0);
 	  
 	  // i.seekg( pos); // rewind stream
 	  
@@ -398,7 +398,7 @@ istream& operator>>(istream& i, Data_<SpDComplexDbl>& data_)
 
 	  if( last <= next)
 	    {
-	      data_.dd[ assignIx]= DComplexDbl(0.0,0.0);
+	      data_[ assignIx]= DComplexDbl(0.0,0.0);
 	      Warning("Imaginary part of complex missing.");
 	    } 
 	  else
@@ -413,12 +413,12 @@ istream& operator>>(istream& i, Data_<SpDComplexDbl>& data_)
 	      double im = strtod( c2, &cEnd2);
 	      if( cEnd1 == c1 || cEnd2 == c2)
 		{
-		  data_.dd[ assignIx]= DComplexDbl(0.0,0.0);
+		  data_[ assignIx]= DComplexDbl(0.0,0.0);
 		  Warning("Input conversion error.");
 		}
 	      else
 		{
-		  data_.dd[ assignIx] = DComplexDbl( re, im);
+		  data_[ assignIx] = DComplexDbl( re, im);
 		}
 	    }
 	}
@@ -433,12 +433,12 @@ istream& operator>>(istream& i, Data_<SpDComplexDbl>& data_)
 	  double val = strtod( cStart, &cEnd);
 	  if( cEnd == cStart)
 	    {
-	      data_.dd[ assignIx]= DComplexDbl(0.0,0.0);
+	      data_[ assignIx]= DComplexDbl(0.0,0.0);
 	      Warning("Input conversion error.");
 	    }
 	  
 	  for( long int c=assignIx; c<nTrans; c++)
-	    data_.dd[ c] = DComplexDbl(val,0.0);
+	    data_[ c] = DComplexDbl(val,0.0);
 	  
 	  // i.seekg( pos); // rewind stream
 	  
@@ -475,7 +475,7 @@ istream& operator>>(istream& is, Data_<SpDString>& data_)
       
 	  is.clear();
 	  is.get();   // remove delimiter
-	  data_.dd[ c] = "";
+	  data_[ c] = "";
 
 	  continue;
 	}
@@ -487,9 +487,9 @@ istream& operator>>(istream& is, Data_<SpDString>& data_)
 
       const string& str = ioss.str();
       if( str.length() > 0 && str[ str.length()-1] == '\r')
-	data_.dd[ c] = str.substr(0,str.length()-1);
+	data_[ c] = str.substr(0,str.length()-1);
       else
-	data_.dd[ c] = str;
+	data_[ c] = str;
       ioss.str("");
     }
   return is;
@@ -526,7 +526,7 @@ ostream& Data_<Sp>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 
   if( this->dim.Rank() == 0)
     {
-      o << CheckNL( w, actPosPtr, 8) << setw(8) << dd[0];
+      o << CheckNL( w, actPosPtr, 8) << setw(8) << (*this)[0];
       return o;
     }
 
@@ -543,7 +543,7 @@ ostream& Data_<Sp>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
       for( SizeT i1=0; i1<d1; i1++)
 	{
 	  for( SizeT i0=0; i0<d0; i0++)
-	    o << CheckNL( w, actPosPtr, 8) << setw(8) << dd[eIx++];
+	    o << CheckNL( w, actPosPtr, 8) << setw(8) << (*this)[eIx++];
 	  InsNL( o, actPosPtr);
 	}
       InsNL( o, actPosPtr);
@@ -553,7 +553,7 @@ ostream& Data_<Sp>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   for( SizeT i1=0; i1<d1; i1++)
     {
       for( SizeT i0=0; i0<d0; i0++)
-	o << CheckNL( w, actPosPtr, 8) << setw(8) << dd[eIx++];
+	o << CheckNL( w, actPosPtr, 8) << setw(8) << (*this)[eIx++];
       //      if( (i1+1) < d1) InsNL( o, actPosPtr);
       InsNL( o, actPosPtr);
     }
@@ -570,7 +570,7 @@ ostream& Data_<SpDLong>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 
   if( this->dim.Rank() == 0)
     {
-      o << CheckNL( w, actPosPtr, 12) << setw(12) << dd[0];
+      o << CheckNL( w, actPosPtr, 12) << setw(12) << (*this)[0];
       return o;
     }
 
@@ -587,7 +587,7 @@ ostream& Data_<SpDLong>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
       for( SizeT i1=0; i1<d1; i1++)
 	{
 	  for( SizeT i0=0; i0<d0; i0++)
-	    o << CheckNL( w, actPosPtr, 12) << setw(12) << dd[eIx++];
+	    o << CheckNL( w, actPosPtr, 12) << setw(12) << (*this)[eIx++];
 	  InsNL( o, actPosPtr);
 	}
       InsNL( o, actPosPtr);
@@ -597,7 +597,7 @@ ostream& Data_<SpDLong>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   for( SizeT i1=0; i1<d1; i1++)
     {
       for( SizeT i0=0; i0<d0; i0++)
-	o << CheckNL( w, actPosPtr, 12) << setw(12) << dd[eIx++];
+	o << CheckNL( w, actPosPtr, 12) << setw(12) << (*this)[eIx++];
       //      if( (i1+1) < d1) InsNL( o, actPosPtr);
       InsNL( o, actPosPtr);
     }
@@ -614,7 +614,7 @@ ostream& Data_<SpDULong>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 
   if( this->dim.Rank() == 0)
     {
-      o << CheckNL( w, actPosPtr, 12) << setw(12) << dd[0];
+      o << CheckNL( w, actPosPtr, 12) << setw(12) << (*this)[0];
       return o;
     }
 
@@ -631,7 +631,7 @@ ostream& Data_<SpDULong>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
       for( SizeT i1=0; i1<d1; i1++)
 	{
 	  for( SizeT i0=0; i0<d0; i0++)
-	    o << CheckNL( w, actPosPtr, 12) << setw(12) << dd[eIx++];
+	    o << CheckNL( w, actPosPtr, 12) << setw(12) << (*this)[eIx++];
 	  InsNL( o, actPosPtr);
 	}
       InsNL( o, actPosPtr);
@@ -641,7 +641,7 @@ ostream& Data_<SpDULong>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   for( SizeT i1=0; i1<d1; i1++)
     {
       for( SizeT i0=0; i0<d0; i0++)
-	o << CheckNL( w, actPosPtr, 12) << setw(12) << dd[eIx++];
+	o << CheckNL( w, actPosPtr, 12) << setw(12) << (*this)[eIx++];
       //      if( (i1+1) < d1) InsNL( o, actPosPtr);
       InsNL( o, actPosPtr);
     }
@@ -658,7 +658,7 @@ ostream& Data_<SpDLong64>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 
   if( this->dim.Rank() == 0)
     {
-      o << CheckNL( w, actPosPtr, 22) << setw(22) << dd[0];
+      o << CheckNL( w, actPosPtr, 22) << setw(22) << (*this)[0];
       return o;
     }
 
@@ -675,7 +675,7 @@ ostream& Data_<SpDLong64>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
       for( SizeT i1=0; i1<d1; i1++)
 	{
 	  for( SizeT i0=0; i0<d0; i0++)
-	    o << CheckNL( w, actPosPtr, 22) << setw(22) << dd[eIx++];
+	    o << CheckNL( w, actPosPtr, 22) << setw(22) << (*this)[eIx++];
 	  InsNL( o, actPosPtr);
 	}
       InsNL( o, actPosPtr);
@@ -685,7 +685,7 @@ ostream& Data_<SpDLong64>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   for( SizeT i1=0; i1<d1; i1++)
     {
       for( SizeT i0=0; i0<d0; i0++)
-	o << CheckNL( w, actPosPtr, 22) << setw(22) << dd[eIx++];
+	o << CheckNL( w, actPosPtr, 22) << setw(22) << (*this)[eIx++];
       //      if( (i1+1) < d1) InsNL( o, actPosPtr);
       InsNL( o, actPosPtr);
     }
@@ -702,7 +702,7 @@ ostream& Data_<SpDULong64>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 
   if( this->dim.Rank() == 0)
     {
-      o << CheckNL( w, actPosPtr, 22) << setw(22) << dd[0];
+      o << CheckNL( w, actPosPtr, 22) << setw(22) << (*this)[0];
       return o;
     }
 
@@ -719,7 +719,7 @@ ostream& Data_<SpDULong64>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
       for( SizeT i1=0; i1<d1; i1++)
 	{
 	  for( SizeT i0=0; i0<d0; i0++)
-	    o << CheckNL( w, actPosPtr, 22) << setw(22) << dd[eIx++];
+	    o << CheckNL( w, actPosPtr, 22) << setw(22) << (*this)[eIx++];
 	  InsNL( o, actPosPtr);
 	}
       InsNL( o, actPosPtr);
@@ -729,7 +729,7 @@ ostream& Data_<SpDULong64>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   for( SizeT i1=0; i1<d1; i1++)
     {
       for( SizeT i0=0; i0<d0; i0++)
-	o << CheckNL( w, actPosPtr, 22) << setw(22) << dd[eIx++];
+	o << CheckNL( w, actPosPtr, 22) << setw(22) << (*this)[eIx++];
       //      if( (i1+1) < d1) InsNL( o, actPosPtr);
       InsNL( o, actPosPtr);
     }
@@ -746,7 +746,7 @@ ostream& Data_<SpDPtr>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 
   if( this->dim.Rank() == 0)
     {
-      o << CheckNL( w, actPosPtr, 15) << "<PtrHeapVar" << dd[0] << ">";
+      o << CheckNL( w, actPosPtr, 15) << "<PtrHeapVar" << (*this)[0] << ">";
       return o;
     }
 
@@ -763,7 +763,7 @@ ostream& Data_<SpDPtr>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
       for( SizeT i1=0; i1<d1; i1++)
 	{
 	  for( SizeT i0=0; i0<d0; i0++)
-	    o << CheckNL( w, actPosPtr, 15) << "<PtrHeapVar" << dd[eIx++] << ">";
+	    o << CheckNL( w, actPosPtr, 15) << "<PtrHeapVar" << (*this)[eIx++] << ">";
 	  InsNL( o, actPosPtr);
 	}
       InsNL( o, actPosPtr);
@@ -773,7 +773,7 @@ ostream& Data_<SpDPtr>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   for( SizeT i1=0; i1<d1; i1++)
     {
       for( SizeT i0=0; i0<d0; i0++)
-	o << CheckNL( w, actPosPtr, 15) << "<PtrHeapVar" << dd[eIx++] << ">";
+	o << CheckNL( w, actPosPtr, 15) << "<PtrHeapVar" << (*this)[eIx++] << ">";
       //      if( (i1+1) < d1) InsNL( o, actPosPtr);
       InsNL( o, actPosPtr);
     }
@@ -789,7 +789,7 @@ ostream& Data_<SpDObj>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 
   if( this->dim.Rank() == 0)
     {
-      o << CheckNL( w, actPosPtr, 15) << "<ObjHeapVar" << dd[0] << ">";
+      o << CheckNL( w, actPosPtr, 15) << "<ObjHeapVar" << (*this)[0] << ">";
       return o;
     }
 
@@ -806,7 +806,7 @@ ostream& Data_<SpDObj>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
       for( SizeT i1=0; i1<d1; i1++)
 	{
 	  for( SizeT i0=0; i0<d0; i0++)
-	    o << CheckNL( w, actPosPtr, 15) << "<ObjHeapVar" << dd[eIx++] << ">";
+	    o << CheckNL( w, actPosPtr, 15) << "<ObjHeapVar" << (*this)[eIx++] << ">";
 	  InsNL( o, actPosPtr);
 	}
       InsNL( o, actPosPtr);
@@ -816,7 +816,7 @@ ostream& Data_<SpDObj>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   for( SizeT i1=0; i1<d1; i1++)
     {
       for( SizeT i0=0; i0<d0; i0++)
-	o << CheckNL( w, actPosPtr, 15) << "<ObjHeapVar" << dd[eIx++] << ">";
+	o << CheckNL( w, actPosPtr, 15) << "<ObjHeapVar" << (*this)[eIx++] << ">";
       //      if( (i1+1) < d1) InsNL( o, actPosPtr);
       InsNL( o, actPosPtr);
     }
@@ -836,7 +836,7 @@ ostream& Data_<SpDFloat>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   if( this->dim.Rank() == 0)
     {
       o << CheckNL( w, actPosPtr, width); 
-      OutAuto( o, dd[0], width, prec);
+      OutAuto( o, (*this)[0], width, prec);
       return o;
     }
 
@@ -855,7 +855,7 @@ ostream& Data_<SpDFloat>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 	  for( SizeT i0=0; i0<d0; i0++)
 	    {
 	      o << CheckNL( w, actPosPtr, width);
-	      OutAuto( o, dd[eIx++], width, prec);
+	      OutAuto( o, (*this)[eIx++], width, prec);
 	    }
 	  InsNL( o, actPosPtr);
 	}
@@ -868,7 +868,7 @@ ostream& Data_<SpDFloat>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
       for( SizeT i0=0; i0<d0; i0++)
 	{
 	  o << CheckNL( w, actPosPtr, width); 
-	  OutAuto( o, dd[eIx++], width, prec);
+	  OutAuto( o, (*this)[eIx++], width, prec);
 	}
       //      if( (i1+1) < d1) InsNL( o, actPosPtr);
       InsNL( o, actPosPtr);
@@ -889,7 +889,7 @@ ostream& Data_<SpDDouble>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   if( this->dim.Rank() == 0)
     {
       o << CheckNL( w, actPosPtr, width); 
-      OutAuto( o, dd[0], width, prec);
+      OutAuto( o, (*this)[0], width, prec);
       return o;
     }
 
@@ -908,7 +908,7 @@ ostream& Data_<SpDDouble>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 	  for( SizeT i0=0; i0<d0; i0++)
 	    {
 	      o << CheckNL( w, actPosPtr, width); 
-	      OutAuto( o, dd[eIx++], width, prec);
+	      OutAuto( o, (*this)[eIx++], width, prec);
 	    }
 	  InsNL( o, actPosPtr);
 	}
@@ -921,7 +921,7 @@ ostream& Data_<SpDDouble>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
       for( SizeT i0=0; i0<d0; i0++)
 	{
 	  o << CheckNL( w, actPosPtr, width); 
-	  OutAuto( o, dd[eIx++], width, prec);
+	  OutAuto( o, (*this)[eIx++], width, prec);
 	}
       //      if( (i1+1) < d1) InsNL( o, actPosPtr);
       InsNL( o, actPosPtr);
@@ -941,7 +941,7 @@ ostream& Data_<SpDComplex>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 
   if( this->dim.Rank() == 0)
     {
-      o << CheckNL( w, actPosPtr, 2*width+3) << AsComplex< DComplex>( dd[0], width, prec);
+      o << CheckNL( w, actPosPtr, 2*width+3) << AsComplex< DComplex>( (*this)[0], width, prec);
       return o;
     }
 
@@ -958,7 +958,7 @@ ostream& Data_<SpDComplex>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
       for( SizeT i1=0; i1<d1; i1++)
 	{
 	  for( SizeT i0=0; i0<d0; i0++)
-	    o << CheckNL( w, actPosPtr, 2*width+3) << AsComplex< DComplex>( dd[eIx++], width, prec);
+	    o << CheckNL( w, actPosPtr, 2*width+3) << AsComplex< DComplex>( (*this)[eIx++], width, prec);
 	  InsNL( o, actPosPtr);
 	}
       InsNL( o, actPosPtr);
@@ -968,7 +968,7 @@ ostream& Data_<SpDComplex>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   for( SizeT i1=0; i1<d1; i1++)
     {
       for( SizeT i0=0; i0<d0; i0++)
-	o << CheckNL( w, actPosPtr, 2*width+3) << AsComplex< DComplex>( dd[eIx++], width, prec);
+	o << CheckNL( w, actPosPtr, 2*width+3) << AsComplex< DComplex>( (*this)[eIx++], width, prec);
       //      if( (i1+1) < d1) InsNL( o, actPosPtr);
       InsNL( o, actPosPtr);
     }
@@ -986,7 +986,7 @@ ostream& Data_<SpDComplexDbl>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 
   if( this->dim.Rank() == 0)
     {
-      o << CheckNL( w, actPosPtr, 2*width+3) << AsComplex< DComplexDbl>( dd[0], width, prec);
+      o << CheckNL( w, actPosPtr, 2*width+3) << AsComplex< DComplexDbl>( (*this)[0], width, prec);
       return o;
     }
 
@@ -1003,7 +1003,7 @@ ostream& Data_<SpDComplexDbl>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
       for( SizeT i1=0; i1<d1; i1++)
 	{
 	  for( SizeT i0=0; i0<d0; i0++)
-	    o << CheckNL( w, actPosPtr, 2*width+3) << AsComplex< DComplexDbl>( dd[eIx++], width, prec);
+	    o << CheckNL( w, actPosPtr, 2*width+3) << AsComplex< DComplexDbl>( (*this)[eIx++], width, prec);
 	  InsNL( o, actPosPtr);
 	}
       InsNL( o, actPosPtr);
@@ -1013,7 +1013,7 @@ ostream& Data_<SpDComplexDbl>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   for( SizeT i1=0; i1<d1; i1++)
     {
       for( SizeT i0=0; i0<d0; i0++)
-	o << CheckNL( w, actPosPtr, 2*width+3) << AsComplex< DComplexDbl>( dd[eIx++], width, prec);
+	o << CheckNL( w, actPosPtr, 2*width+3) << AsComplex< DComplexDbl>( (*this)[eIx++], width, prec);
       //      if( (i1+1) < d1) InsNL( o, actPosPtr);
       InsNL( o, actPosPtr);
     }
@@ -1032,7 +1032,7 @@ ostream& Data_<SpDByte>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 
   if( this->dim.Rank() == 0)
     {
-      o << CheckNL( w, actPosPtr, width) << setw(width) << static_cast<int>(dd[0]);
+      o << CheckNL( w, actPosPtr, width) << setw(width) << static_cast<int>((*this)[0]);
       return o;
     }
 
@@ -1049,7 +1049,7 @@ ostream& Data_<SpDByte>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
       for( SizeT i1=0; i1<d1; i1++)
 	{
 	  for( SizeT i0=0; i0<d0; i0++)
-	    o << CheckNL( w, actPosPtr, width) << setw(width) << static_cast<int>(dd[eIx++]);
+	    o << CheckNL( w, actPosPtr, width) << setw(width) << static_cast<int>((*this)[eIx++]);
 	  InsNL( o, actPosPtr);
 	}
       InsNL( o, actPosPtr);
@@ -1059,7 +1059,7 @@ ostream& Data_<SpDByte>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   for( SizeT i1=0; i1<d1; i1++)
     {
       for( SizeT i0=0; i0<d0; i0++)
-	o << CheckNL( w, actPosPtr, width) << setw(width) << static_cast<int>(dd[eIx++]);
+	o << CheckNL( w, actPosPtr, width) << setw(width) << static_cast<int>((*this)[eIx++]);
       //      if( (i1+1) < d1) InsNL( o, actPosPtr);
       InsNL( o, actPosPtr);
     }
@@ -1077,8 +1077,8 @@ ostream& Data_<SpDString>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   SizeT length;
   if( this->dim.Rank() == 0)
     {
-      length = dd[0].length();
-      o << CheckNL( w, actPosPtr, length) << dd[0];
+      length = (*this)[0].length();
+      o << CheckNL( w, actPosPtr, length) << (*this)[0];
       return o;
     }
 
@@ -1096,28 +1096,28 @@ ostream& Data_<SpDString>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 	{
 	  for( SizeT i0=1; i0<d0; i0++)
 	    {
-	      length = dd[eIx].length() + 1;
+	      length = (*this)[eIx].length() + 1;
 	      if( length > 1)
-		o << CheckNL( w, actPosPtr, length) << dd[eIx++] << " ";
+		o << CheckNL( w, actPosPtr, length) << (*this)[eIx++] << " ";
 	      else eIx++;
 	    }
-	  length = dd[eIx].length();
+	  length = (*this)[eIx].length();
 	  if( length > 0)
-	    o << CheckNL( w, actPosPtr, length) << dd[eIx++]; 
+	    o << CheckNL( w, actPosPtr, length) << (*this)[eIx++]; 
 	  else eIx++;
 	  InsNL( o, actPosPtr);
 	}
 
       for( SizeT i0=1; i0<d0; i0++)
 	{
-	  length = dd[eIx].length() + 1;
+	  length = (*this)[eIx].length() + 1;
 	  if( length > 1)
-	    o << CheckNL( w, actPosPtr, length) << dd[eIx++] << " ";
+	    o << CheckNL( w, actPosPtr, length) << (*this)[eIx++] << " ";
 	  else eIx++;
 	}
-      length = dd[eIx].length();
+      length = (*this)[eIx].length();
       if( length > 0)
-	o << CheckNL( w, actPosPtr, length) << dd[eIx++]; 
+	o << CheckNL( w, actPosPtr, length) << (*this)[eIx++]; 
       else eIx++;
       InsNL( o, actPosPtr);
       
@@ -1128,28 +1128,28 @@ ostream& Data_<SpDString>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
     {
       for( SizeT i0=1; i0<d0; i0++)
 	{
-	  length = dd[eIx].length() + 1;
+	  length = (*this)[eIx].length() + 1;
 	  if( length > 1)
-	    o << CheckNL( w, actPosPtr, length) << dd[eIx++] << " ";
+	    o << CheckNL( w, actPosPtr, length) << (*this)[eIx++] << " ";
 	  else eIx++;
 	}
-      length = dd[eIx].length();
+      length = (*this)[eIx].length();
       if( length > 0)
-	o << CheckNL( w, actPosPtr, length) << dd[eIx++]; 
+	o << CheckNL( w, actPosPtr, length) << (*this)[eIx++]; 
       else eIx++;
       InsNL( o, actPosPtr);
     }
   
   for( SizeT i0=1; i0<d0; i0++)
     {
-      length = dd[eIx].length() + 1;
+      length = (*this)[eIx].length() + 1;
       if( length > 1)
-	o << CheckNL( w, actPosPtr, length) << dd[eIx++] << " ";
+	o << CheckNL( w, actPosPtr, length) << (*this)[eIx++] << " ";
       else eIx++;
     }
-  length = dd[eIx].length();
+  length = (*this)[eIx].length();
   if( length > 0)
-    o << CheckNL( w, actPosPtr, length) << dd[eIx++];
+    o << CheckNL( w, actPosPtr, length) << (*this)[eIx++];
   else eIx++;
   InsNL( o, actPosPtr);
   
@@ -1282,7 +1282,7 @@ ostream& Data_<Sp>::Write( ostream& os, bool swapEndian,
 
   if( swapEndian && (sizeof(Ty) != 1))
     {
-      char* cData = reinterpret_cast<char*>(&dd[0]);
+      char* cData = reinterpret_cast<char*>(&(*this)[0]);
       SizeT cCount = count * sizeof(Ty);
 
       char swap[ sizeof(Ty)];
@@ -1298,7 +1298,7 @@ ostream& Data_<Sp>::Write( ostream& os, bool swapEndian,
     }
   else if (xdrs != NULL)
     {
-      char* cData = reinterpret_cast<char*>(&dd[0]);
+      char* cData = reinterpret_cast<char*>(&(*this)[0]);
       SizeT cCount = count * sizeof(Ty);
       long fac = 1;
       if (sizeof(Ty) == 2) fac = 2;
@@ -1321,7 +1321,7 @@ ostream& Data_<Sp>::Write( ostream& os, bool swapEndian,
     }
   else
     {
-      os.write( reinterpret_cast<char*>(&dd[0]),
+      os.write( reinterpret_cast<char*>(&(*this)[0]),
 		count * sizeof(Ty));
     }
   
@@ -1351,7 +1351,7 @@ istream& Data_<Sp>::Read( istream& os, bool swapEndian,
   
   if( swapEndian && (sizeof(Ty) != 1))
     {
-      char* cData = reinterpret_cast<char*>(&dd[0]);
+      char* cData = reinterpret_cast<char*>(&(*this)[0]);
       SizeT cCount = count * sizeof(Ty);
 
       char swap[ sizeof(Ty)];
@@ -1367,7 +1367,7 @@ istream& Data_<Sp>::Read( istream& os, bool swapEndian,
     }
   else if (xdrs != NULL)
     {
-      char* cData = reinterpret_cast<char*>(&dd[0]);
+      char* cData = reinterpret_cast<char*>(&(*this)[0]);
       SizeT cCount = count * sizeof(Ty);
       long fac = 1;
       if (sizeof(Ty) == 2) fac = 2;
@@ -1389,7 +1389,7 @@ istream& Data_<Sp>::Read( istream& os, bool swapEndian,
     }
   else if (compress)
     {
-      char* cData = reinterpret_cast<char*>(&dd[0]);
+      char* cData = reinterpret_cast<char*>(&(*this)[0]);
       SizeT cCount = count * sizeof(Ty);
       char c;
       for( SizeT i=0; i<cCount; i += sizeof(Ty))
@@ -1397,7 +1397,7 @@ istream& Data_<Sp>::Read( istream& os, bool swapEndian,
     }    
   else
     {
-      os.read( reinterpret_cast<char*>(&dd[0]),
+      os.read( reinterpret_cast<char*>(&(*this)[0]),
 		count * sizeof(Ty));
     }
   
@@ -1429,24 +1429,24 @@ ostream& Data_<SpDString>::Write( ostream& os, bool swapEndian,
     {
       if (xdrs != NULL)
 	{
-	  int bufsize = 8 + 4 * ((dd[i].size() - 1) / 4 + 1);
+	  int bufsize = 8 + 4 * (((*this)[i].size() - 1) / 4 + 1);
 	  char buf[ bufsize];
 
 	  // IDL adds an addition string length
 	  xdrmem_create(xdrs, &buf[0], 4, XDR_ENCODE);
-	  short int length = dd[i].size();
+	  short int length = (*this)[i].size();
 	  xdr_short(xdrs, (short int *) &length);
 	  xdr_destroy(xdrs);
 
 	  xdrmem_create(xdrs, &buf[4], bufsize-4, XDR_ENCODE);
-	  char* bufptr = (char *) dd[i].c_str();
-	  xdr_string(xdrs, &bufptr, dd[i].size());
+	  char* bufptr = (char *) (*this)[i].c_str();
+	  xdr_string(xdrs, &bufptr, (*this)[i].size());
 	  xdr_destroy(xdrs);
 	  os.write( buf, bufsize);
 	}
       else
 	{
-	  os.write( dd[i].c_str(), dd[i].size());
+	  os.write( (*this)[i].c_str(), (*this)[i].size());
 	}
     }
   
@@ -1478,7 +1478,7 @@ istream& Data_<SpDString>::Read( istream& os, bool swapEndian,
   int jump = 0;
   for( SizeT i=0; i<count; i++)
     {
-      SizeT nChar = dd[i].size();
+      SizeT nChar = (*this)[i].size();
 
       if (xdrs != NULL)
 	{
@@ -1511,7 +1511,7 @@ istream& Data_<SpDString>::Read( istream& os, bool swapEndian,
 	  } else {
 	    os.read(&buf[0],nChar);
 	  }
-	  dd[i].assign(&buf[0],nChar);
+	  (*this)[i].assign(&buf[0],nChar);
 	}
     }
 
@@ -1535,7 +1535,7 @@ ostream& DStructGDL::Write( ostream& os, bool swapEndian,
 {
   SizeT count = dd.size();
   for( SizeT i=0; i<count; i++)
-    dd[i]->Write( os, swapEndian, compress, xdrs);
+    (*this)[i]->Write( os, swapEndian, compress, xdrs);
   return os;
 }
 
@@ -1544,7 +1544,7 @@ istream& DStructGDL::Read( istream& os, bool swapEndian,
 {
   SizeT count = dd.size();
   for( SizeT i=0; i<count; i++)
-    dd[i]->Read( os, swapEndian, compress, xdrs);
+    (*this)[i]->Read( os, swapEndian, compress, xdrs);
   return os;
 }
 

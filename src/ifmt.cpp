@@ -142,7 +142,7 @@ IFmtA( istream* is, SizeT offs, SizeT r, int w)
 
    if( w <= 0)
     for( SizeT i=offs; i<endEl; i++)
-      getline( *is, dd[ i]);
+      getline( *is, (*this)[ i]);
   else
     {
       char *buf = new char[ ++w];
@@ -150,7 +150,7 @@ IFmtA( istream* is, SizeT offs, SizeT r, int w)
       for( SizeT i=offs; i<endEl; i++)
 	{
 	  is->get( buf, w);
-	  dd[ i] = buf; //string( buf);
+	  (*this)[ i] = buf; //string( buf);
 	  if( is->eof()) // ignore if length is too short
 	    {
 	      if( i == (endEl-1))
@@ -178,7 +178,7 @@ IFmtA( istream* is, SizeT offs, SizeT r, int w)
   SizeT endEl = offs + tCount;
   
   for( SizeT i=offs; i<endEl; i++)
-    dd[ i] = ReadL( is, w);
+    (*this)[ i] = ReadL( is, w);
   
   return tCount;
 }
@@ -196,7 +196,7 @@ IFmtA( istream* is, SizeT offs, SizeT r, int w)
   SizeT endEl = offs + tCount;
   
   for( SizeT i=offs; i<endEl; i++)
-    dd[ i] = ReadL( is, w);
+    (*this)[ i] = ReadL( is, w);
   
   return tCount;
 }
@@ -214,7 +214,7 @@ IFmtA( istream* is, SizeT offs, SizeT r, int w)
   SizeT endEl = offs + tCount;
   
   for( SizeT i=offs; i<endEl; i++)
-    dd[ i] = ReadL( is, w);
+    (*this)[ i] = ReadL( is, w);
   
   return tCount;
 }
@@ -233,7 +233,7 @@ IFmtA( istream* is, SizeT offs, SizeT r, int w)
   SizeT endEl = offs + tCount;
   
   for( SizeT i=offs; i<endEl; i++)
-    dd[ i] = ReadUL( is, w);
+    (*this)[ i] = ReadUL( is, w);
   
   return tCount;
 }
@@ -253,7 +253,7 @@ IFmtA( istream* is, SizeT offs, SizeT r, int w)
   SizeT endEl = offs + tCount;
   
   for( SizeT i=offs; i<endEl; i++)
-    dd[ i] = ReadD( is, w);
+    (*this)[ i] = ReadD( is, w);
   
   return tCount;
 }
@@ -271,7 +271,7 @@ IFmtA( istream* is, SizeT offs, SizeT r, int w)
   SizeT endEl = offs + tCount;
   
   for( SizeT i=offs; i<endEl; i++)
-    dd[ i] = ReadD( is, w);
+    (*this)[ i] = ReadD( is, w);
   
   return tCount;
 }
@@ -297,7 +297,7 @@ IFmtA( istream* is, SizeT offs, SizeT r, int w)
   if( offs & 0x01)
     {
     im = ReadD( is, w);
-    dd[ firstEl] = Ty( dd[ firstEl].real(), im);
+    (*this)[ firstEl] = Ty( (*this)[ firstEl].real(), im);
     firstEl++;
     tCount--;
     }
@@ -308,13 +308,13 @@ IFmtA( istream* is, SizeT offs, SizeT r, int w)
     {
     re = ReadD( is, w);
     im = ReadD( is, w);
-    dd[ i] = Ty( re, im);
+    (*this)[ i] = Ty( re, im);
     }
 
   if( tCount & 0x01)
     {
     re = ReadD( is, w);
-    dd[ endEl] = Ty( re, dd[ endEl].imag());
+    (*this)[ endEl] = Ty( re, (*this)[ endEl].imag());
     }
 
   return tCountIn;
@@ -339,7 +339,7 @@ IFmtA( istream* is, SizeT offs, SizeT r, int w)
   if( offs & 0x01)
     {
     im = ReadD( is, w);
-    dd[ firstEl] = Ty( dd[ firstEl].real(), im);
+    (*this)[ firstEl] = Ty( (*this)[ firstEl].real(), im);
     firstEl++;
     tCount--;
     }
@@ -350,13 +350,13 @@ IFmtA( istream* is, SizeT offs, SizeT r, int w)
     {
     re = ReadD( is, w);
     im = ReadD( is, w);
-    dd[ i] = Ty( re, im);
+    (*this)[ i] = Ty( re, im);
     }
 
   if( tCount & 0x01)
     {
     re = ReadD( is, w);
-    dd[ endEl] = Ty( re, dd[ endEl].imag());
+    (*this)[ endEl] = Ty( re, (*this)[ endEl].imag());
     }
 
   return tCountIn;
@@ -378,7 +378,7 @@ IFmtI( istream* is, SizeT offs, SizeT r, int w,
   
   for( SizeT i=offs; i<endEl; i++)
     {
-      dd[ i] = i2s(ReadL( is, w, oMode),8);
+      (*this)[ i] = i2s(ReadL( is, w, oMode),8);
     }
   
   return tCount;
@@ -398,7 +398,7 @@ IFmtI( istream* is, SizeT offs, SizeT r, int w,
   
   for( SizeT i=offs; i<endEl; i++)
     {
-      dd[ i] = ReadL( is, w, oMode);
+      (*this)[ i] = ReadL( is, w, oMode);
     }
   
   return tCount;
@@ -418,7 +418,7 @@ IFmtI( istream* is, SizeT offs, SizeT r, int w,
   
   for( SizeT i=offs; i<endEl; i++)
     {
-      dd[ i] = ReadUL( is, w, oMode);
+      (*this)[ i] = ReadUL( is, w, oMode);
     }
   
   return tCount;
@@ -443,7 +443,7 @@ IFmtI( istream* is, SizeT offs, SizeT r, int w,
   if( offs & 0x01)
     {
       im = ReadL( is, w, oMode);
-      dd[ firstEl] = Ty( dd[ firstEl].real(), im);
+      (*this)[ firstEl] = Ty( (*this)[ firstEl].real(), im);
       firstEl++;
       tCount--;
     }
@@ -454,13 +454,13 @@ IFmtI( istream* is, SizeT offs, SizeT r, int w,
     {
       re = ReadL( is, w, oMode);
       im = ReadL( is, w, oMode);
-      dd[ i] = Ty( re, im);
+      (*this)[ i] = Ty( re, im);
     }
 
   if( tCount & 0x01)
     {
       re = ReadL( is, w, oMode);
-      dd[ endEl] = Ty( re, dd[ endEl].imag());
+      (*this)[ endEl] = Ty( re, (*this)[ endEl].imag());
     }
   
   return tCountIn;
@@ -483,7 +483,7 @@ IFmtI( istream* is, SizeT offs, SizeT r, int w,
   if( offs & 0x01)
     {
       im = ReadL( is, w, oMode);
-      dd[ firstEl] = Ty( dd[ firstEl].real(), im);
+      (*this)[ firstEl] = Ty( (*this)[ firstEl].real(), im);
       firstEl++;
       tCount--;
     }
@@ -494,13 +494,13 @@ IFmtI( istream* is, SizeT offs, SizeT r, int w,
     {
       re = ReadL( is, w, oMode);
       im = ReadL( is, w, oMode);
-      dd[ i] = Ty( re, im);
+      (*this)[ i] = Ty( re, im);
     }
 
   if( tCount & 0x01)
     {
       re = ReadL( is, w, oMode);
-      dd[ endEl] = Ty( re, dd[ endEl].imag());
+      (*this)[ endEl] = Ty( re, (*this)[ endEl].imag());
     }
   
   return tCountIn;
@@ -521,7 +521,7 @@ IFmtF( istream* is, SizeT offs, SizeT r, int w)
   
   for( SizeT i=offs; i<endEl; i++)
     {
-      dd[ i] = i2s(ReadD( is, w),8);
+      (*this)[ i] = i2s(ReadD( is, w),8);
     }
   
   return tCount;
@@ -540,7 +540,7 @@ IFmtF( istream* is, SizeT offs, SizeT r, int w)
   
   for( SizeT i=offs; i<endEl; i++)
     {
-      dd[ i] = Real2Int<Ty,double>(ReadD( is, w));
+      (*this)[ i] = Real2Int<Ty,double>(ReadD( is, w));
     }
   
   return tCount;
@@ -559,7 +559,7 @@ IFmtF( istream* is, SizeT offs, SizeT r, int w)
   
   for( SizeT i=offs; i<endEl; i++)
     {
-      dd[ i] = ReadD( is, w);
+      (*this)[ i] = ReadD( is, w);
     }
   
   return tCount;
@@ -578,7 +578,7 @@ IFmtF( istream* is, SizeT offs, SizeT r, int w)
   
   for( SizeT i=offs; i<endEl; i++)
     {
-      dd[ i] = ReadD( is, w);
+      (*this)[ i] = ReadD( is, w);
     }
   
   return tCount;
@@ -601,7 +601,7 @@ IFmtF( istream* is, SizeT offs, SizeT r, int w)
   if( offs & 0x01)
     {
       im = ReadD( is, w);
-      dd[ firstEl] = Ty( dd[ firstEl].real(), im);
+      (*this)[ firstEl] = Ty( (*this)[ firstEl].real(), im);
       firstEl++;
       tCount--;
     }
@@ -612,13 +612,13 @@ IFmtF( istream* is, SizeT offs, SizeT r, int w)
     {
       re = ReadD( is, w);
       im = ReadD( is, w);
-      dd[ i] = Ty( re, im);
+      (*this)[ i] = Ty( re, im);
     }
 
   if( tCount & 0x01)
     {
       re = ReadD( is, w);
-      dd[ endEl] = Ty( re, dd[ endEl].imag());
+      (*this)[ endEl] = Ty( re, (*this)[ endEl].imag());
     }
   
   return tCountIn;
@@ -640,7 +640,7 @@ IFmtF( istream* is, SizeT offs, SizeT r, int w)
   if( offs & 0x01)
     {
       im = ReadD( is, w);
-      dd[ firstEl] = Ty( dd[ firstEl].real(), im);
+      (*this)[ firstEl] = Ty( (*this)[ firstEl].real(), im);
       firstEl++;
       tCount--;
     }
@@ -651,13 +651,13 @@ IFmtF( istream* is, SizeT offs, SizeT r, int w)
     {
       re = ReadD( is, w);
       im = ReadD( is, w);
-      dd[ i] = Ty( re, im);
+      (*this)[ i] = Ty( re, im);
     }
 
   if( tCount & 0x01)
     {
       re = ReadD( is, w);
-      dd[ endEl] = Ty( re, dd[ endEl].imag());
+      (*this)[ endEl] = Ty( re, (*this)[ endEl].imag());
     }
   
   return tCountIn;
@@ -689,7 +689,7 @@ void DStructGDL::IFmtAll( SizeT offs, SizeT r,
   SizeT firstTag = 0;
   for( firstTag=0; firstTag < nTags; firstTag++)
       {
-	SizeT tt=dd[firstTag]->ToTransfer();
+	SizeT tt=(*this)[firstTag]->ToTransfer();
 	nB += tt;
 	if( nB > firstOffs)
 	  {
@@ -707,14 +707,14 @@ IFmtA( istream* is, SizeT offs, SizeT r, int w)
   SizeT firstIn, firstOffs, tCount, tCountIn;
   IFmtAll( offs, r, firstIn, firstOffs, tCount, tCountIn);
 
-  SizeT trans = dd[ firstIn]->IFmtA( is, firstOffs, tCount, w);
+  SizeT trans = (*this)[ firstIn]->IFmtA( is, firstOffs, tCount, w);
   if( trans >= tCount) return tCountIn;
   tCount -= trans;
 
   SizeT ddSize = dd.size();
   for( SizeT i = (firstIn+1); i < ddSize; i++)
     {
-      trans = dd[ i]->IFmtA( is, 0, tCount, w);
+      trans = (*this)[ i]->IFmtA( is, 0, tCount, w);
       if( trans >= tCount) return tCountIn;
       tCount -= trans;
     }
@@ -728,14 +728,14 @@ IFmtI( istream* is, SizeT offs, SizeT r, int w,
   SizeT firstIn, firstOffs, tCount, tCountIn;
   IFmtAll( offs, r, firstIn, firstOffs, tCount, tCountIn);
 
-  SizeT trans = dd[ firstIn]->IFmtI( is, firstOffs, tCount, w, oMode);
+  SizeT trans = (*this)[ firstIn]->IFmtI( is, firstOffs, tCount, w, oMode);
   if( trans >= tCount) return tCountIn;
   tCount -= trans;
 
   SizeT ddSize = dd.size();
   for( SizeT i = (firstIn+1); i < ddSize; i++)
     {
-      trans = dd[ i]->IFmtI( is, 0, tCount, w, oMode);
+      trans = (*this)[ i]->IFmtI( is, 0, tCount, w, oMode);
       if( trans >= tCount) return tCountIn;
       tCount -= trans;
     }
@@ -748,14 +748,14 @@ IFmtF( istream* is, SizeT offs, SizeT r, int w)
   SizeT firstIn, firstOffs, tCount, tCountIn;
   IFmtAll( offs, r, firstIn, firstOffs, tCount, tCountIn);
 
-  SizeT trans = dd[ firstIn]->IFmtF( is, firstOffs, tCount, w);
+  SizeT trans = (*this)[ firstIn]->IFmtF( is, firstOffs, tCount, w);
   if( trans >= tCount) return tCountIn;
   tCount -= trans;
 
   SizeT ddSize = dd.size();
   for( SizeT i = (firstIn+1); i < ddSize; i++)
     {
-      trans = dd[ i]->IFmtF( is, 0, tCount, w);
+      trans = (*this)[ i]->IFmtF( is, 0, tCount, w);
       if( trans >= tCount) return tCountIn;
       tCount -= trans;
     }

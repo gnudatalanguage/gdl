@@ -43,10 +43,10 @@ BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn,
 			    bool center, int edgeMode)
 {
   Data_* kernel = static_cast<Data_*>( kIn);
-  Ty scale = static_cast<Data_*>( scaleIn)->dd[0];
+  Ty scale = (*static_cast<Data_*>( scaleIn))[0];
   // the result to be returned
   Data_* res = New( this->dim, BaseGDL::ZERO);
-  Ty* ker = &kernel->dd[0];
+  Ty* ker = &(*kernel)[0];
 #endif
   if( scale == this->zero) scale = 1;
 
@@ -97,7 +97,7 @@ BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn,
       aEnd[ aSp] = (center) ? this->dim[aSp]-(kDim-1)/2 : this->dim[aSp]; // <
     }
 
-  Ty* ddP = &dd[0];
+  Ty* ddP = &(*this)[0];
 
   // some loop constants
   SizeT dim0  = this->dim[0];

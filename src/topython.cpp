@@ -108,68 +108,68 @@ PyObject* Data_<Sp>::ToPythonScalar()
 template<>
 PyObject* Data_<SpDByte>::ToPythonScalar()
 {
-  return Py_BuildValue("B", dd[0]);
+  return Py_BuildValue("B", (*this)[0]);
 }
 template<>
 PyObject* Data_<SpDInt>::ToPythonScalar()
 {
-  return Py_BuildValue("h", dd[0]);
+  return Py_BuildValue("h", (*this)[0]);
 }
 template<>
 PyObject* Data_<SpDUInt>::ToPythonScalar()
 {
-  return Py_BuildValue("H", dd[0]);
+  return Py_BuildValue("H", (*this)[0]);
 }
 template<>
 PyObject* Data_<SpDLong>::ToPythonScalar()
 {
-  return Py_BuildValue("i", dd[0]);
+  return Py_BuildValue("i", (*this)[0]);
 }
 template<>
 PyObject* Data_<SpDULong>::ToPythonScalar()
 {
-  return Py_BuildValue("I", dd[0]);
+  return Py_BuildValue("I", (*this)[0]);
 }
 // template<>
 // PyObject* Data_<SpDLong64>::ToPythonScalar()
 // {
-//   return Py_BuildValue("L", dd[0]);
+//   return Py_BuildValue("L", (*this)[0]);
 // }
 // template<>
 // PyObject* Data_<SpDULong64>::ToPythonScalar()
 // {
-//   return Py_BuildValue("K", dd[0]);
+//   return Py_BuildValue("K", (*this)[0]);
 // }
 template<>
 PyObject* Data_<SpDFloat>::ToPythonScalar()
 {
-  return Py_BuildValue("f", dd[0]);
+  return Py_BuildValue("f", (*this)[0]);
 }
 template<>
 PyObject* Data_<SpDDouble>::ToPythonScalar()
 {
-  return Py_BuildValue("d", dd[0]);
+  return Py_BuildValue("d", (*this)[0]);
 }
 template<>
 PyObject* Data_<SpDComplex>::ToPythonScalar()
 {
   Py_complex c;
-  c.real = dd[0].real();
-  c.imag = dd[0].imag();
+  c.real = (*this)[0].real();
+  c.imag = (*this)[0].imag();
   return Py_BuildValue("D", c);
 }
 template<>
 PyObject* Data_<SpDComplexDbl>::ToPythonScalar()
 {
   Py_complex c;
-  c.real = dd[0].real();
-  c.imag = dd[0].imag();
+  c.real = (*this)[0].real();
+  c.imag = (*this)[0].imag();
   return Py_BuildValue("D", c);
 }
 template<>
 PyObject* Data_<SpDString>::ToPythonScalar()
 {
-  return Py_BuildValue("s", dd[0].c_str());
+  return Py_BuildValue("s", (*this)[0].c_str());
 }
 
 //#include "instantiate_templates.hpp"

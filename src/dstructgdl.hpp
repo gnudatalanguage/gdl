@@ -113,6 +113,10 @@ public:
   // assignment. 
   //  DStructGDL& operator=(const DStructGDL& right);
   
+  inline Ty& operator[] (const SizeT d1) { return dd[d1];}
+  inline const Ty& operator[] (const SizeT d1) const { return dd[d1];}
+
+
   // used for named struct definition 
   // (GDLInterpreter, basic_fun (create_struct))
   void SetDesc( DStructDesc* newDesc); 
