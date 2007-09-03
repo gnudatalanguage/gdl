@@ -1,13 +1,10 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
- <DocsAndViews NumberOfDocuments="2" >
-  <Doc0 NumberOfViews="1" URL="file:///home/marc/gdl/src/datatypes.cpp" >
-   <View0 Encoding="UTF-8" Type="Source" />
+ <DocsAndViews NumberOfDocuments="1" >
+  <Doc0 NumberOfViews="1" URL="file:///home/marc/gdl/src/basegdl.hpp" >
+   <View0 Encoding="" line="150" Type="Source" />
   </Doc0>
-  <Doc1 NumberOfViews="1" URL="file:///home/marc/gdl/src/dstructgdl.cpp" >
-   <View0 Encoding="UTF-8" line="22" Type="Source" />
-  </Doc1>
  </DocsAndViews>
  <pluginList>
   <kdevdebugger>

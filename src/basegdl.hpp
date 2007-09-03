@@ -148,6 +148,7 @@ public:
   // provide access to dim member
   inline const dimension& Dim()   const      { return dim;}
   inline SizeT    Dim(SizeT d)    const      { return dim[d];}
+//   inline SizeT*   Dim0Address()              { return dim.Dim0Address();}
   inline SizeT    Stride(SizeT d) const      { return dim.Stride(d);}
   inline void     Purge()                    { dim.Purge();}
   inline SizeT    Rank()          const      { return dim.Rank();}

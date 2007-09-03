@@ -79,7 +79,7 @@ public:
   Data_(const dimension& dim_);
 
   // new array from Ty[], one dimensional
-  Data_(const Ty* p, SizeT nEl);
+  Data_( const Ty* p, SizeT nEl);
 
   // new array from DataT
   Data_(const dimension& dim_, const DataT& dd_):

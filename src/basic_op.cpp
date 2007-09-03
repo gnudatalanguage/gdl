@@ -103,12 +103,12 @@ Data_<SpDObj>* Data_<SpDObj>::NotOp()
 template<class Sp>
 BaseGDL* Data_<Sp>::UMinus()
 {
-  dd = -dd;
-//   ULong sEl=N_Elements();
-//   assert( sEl != 0);
-//   //  if( !sEl) throw GDLException("Variable is undefined.");  
-//   for( SizeT i=0; i < sEl; ++i)
-//     (*this)[i] = -(*this)[i];
+//  dd = -dd;
+  ULong sEl=N_Elements();
+  assert( sEl != 0);
+  //  if( !sEl) throw GDLException("Variable is undefined.");  
+  for( SizeT i=0; i < sEl; ++i)
+    (*this)[i] = -(*this)[i];
   return this;
 }
 template<>
@@ -238,84 +238,84 @@ void Data_<Sp>::Inc()
 template<>
 void Data_<SpDFloat>::Dec()
 {
-  dd -= 1.0f;
-//   ULong sEl=N_Elements();
-//   assert( sEl != 0);
-//   // if( !sEl) throw GDLException("Variable is undefined.");  
-//   for( SizeT i=0; i < sEl; ++i)
-//     (*this)[i] -= 1.0;
+//   dd -= 1.0f;
+  ULong sEl=N_Elements();
+  assert( sEl != 0);
+  // if( !sEl) throw GDLException("Variable is undefined.");  
+  for( SizeT i=0; i < sEl; ++i)
+    (*this)[i] -= 1.0;
 }
 template<>
 void Data_<SpDFloat>::Inc()
 {
-  dd += 1.0f;
-//   ULong sEl=N_Elements();
-//   assert( sEl != 0);
-//   // if( !sEl) throw GDLException("Variable is undefined.");  
-//   for( SizeT i=0; i < sEl; ++i)
-//     (*this)[i] += 1.0;
+//   dd += 1.0f;
+  ULong sEl=N_Elements();
+  assert( sEl != 0);
+  // if( !sEl) throw GDLException("Variable is undefined.");  
+  for( SizeT i=0; i < sEl; ++i)
+    (*this)[i] += 1.0;
 }
 // double
 template<>
 void Data_<SpDDouble>::Dec()
 {
-  dd -= 1.0;
-//   ULong sEl=N_Elements();
-//   assert( sEl != 0);
-//   // if( !sEl) throw GDLException("Variable is undefined.");  
-//   for( SizeT i=0; i < sEl; ++i)
-//     (*this)[i] -= 1.0;
+//   dd -= 1.0;
+  ULong sEl=N_Elements();
+  assert( sEl != 0);
+  // if( !sEl) throw GDLException("Variable is undefined.");  
+  for( SizeT i=0; i < sEl; ++i)
+    (*this)[i] -= 1.0;
 }
 template<>
 void Data_<SpDDouble>::Inc()
 {
-  dd += 1.0;
-//   ULong sEl=N_Elements();
-//   assert( sEl != 0);
-//   // if( !sEl) throw GDLException("Variable is undefined.");  
-//   for( SizeT i=0; i < sEl; ++i)
-//     (*this)[i] += 1.0;
+//   dd += 1.0;
+  ULong sEl=N_Elements();
+  assert( sEl != 0);
+  // if( !sEl) throw GDLException("Variable is undefined.");  
+  for( SizeT i=0; i < sEl; ++i)
+    (*this)[i] += 1.0;
 }
 // complex
 template<>
 void Data_<SpDComplex>::Dec()
 {
-  dd -= 1.0f;
-//   ULong sEl=N_Elements();
-//   assert( sEl != 0);
-//   // if( !sEl) throw GDLException("Variable is undefined.");  
-//   for( SizeT i=0; i < sEl; ++i)
-//     (*this)[i] -= 1.0;
+//   dd -= 1.0f;
+  ULong sEl=N_Elements();
+  assert( sEl != 0);
+  // if( !sEl) throw GDLException("Variable is undefined.");  
+  for( SizeT i=0; i < sEl; ++i)
+    (*this)[i] -= 1.0;
 }
 template<>
 void Data_<SpDComplex>::Inc()
 {
-  dd += 1.0f;
-//   ULong sEl=N_Elements();
-//   assert( sEl != 0);
-//   // if( !sEl) throw GDLException("Variable is undefined.");  
-//   for( SizeT i=0; i < sEl; ++i)
-//     (*this)[i] += 1.0;
+//   dd += 1.0f;
+  ULong sEl=N_Elements();
+  assert( sEl != 0);
+  // if( !sEl) throw GDLException("Variable is undefined.");  
+  for( SizeT i=0; i < sEl; ++i)
+    (*this)[i] += 1.0;
 }
 template<>
 void Data_<SpDComplexDbl>::Dec()
 {
-  dd -= 1.0;
-//   ULong sEl=N_Elements();
-//   assert( sEl != 0);
-//   // if( !sEl) throw GDLException("Variable is undefined.");  
-//   for( SizeT i=0; i < sEl; ++i)
-//     (*this)[i] -= 1.0;
+//   dd -= 1.0;
+  ULong sEl=N_Elements();
+  assert( sEl != 0);
+  // if( !sEl) throw GDLException("Variable is undefined.");  
+  for( SizeT i=0; i < sEl; ++i)
+    (*this)[i] -= 1.0;
 }
 template<>
 void Data_<SpDComplexDbl>::Inc()
 {
-  dd += 1.0;
-//   ULong sEl=N_Elements();
-//   assert( sEl != 0);
-//   // if( !sEl) throw GDLException("Variable is undefined.");  
-//   for( SizeT i=0; i < sEl; ++i)
-//     (*this)[i] += 1.0;
+//   dd += 1.0;
+  ULong sEl=N_Elements();
+  assert( sEl != 0);
+  // if( !sEl) throw GDLException("Variable is undefined.");  
+  for( SizeT i=0; i < sEl; ++i)
+    (*this)[i] += 1.0;
 }
 // forbidden types
 template<>
@@ -1073,9 +1073,7 @@ Data_<Sp>* Data_<Sp>::AndOpS( BaseGDL* r)
   // right->Scalar(s);
 
   // s &= Ty(1);
-  dd &= s;
-//   for( SizeT i=0; i < sEl; ++i)
-//     (*this)[i] = (*this)[i] & s;
+//  dd &= s;
 
   return this;
 }
@@ -1355,9 +1353,9 @@ Data_<Sp>* Data_<Sp>::OrOpS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s); 
   //s &= Ty(1);
-  dd |= s;
-//   for( SizeT i=0; i < sEl; ++i)
-//     (*this)[i] = (*this)[i] | s;
+//  dd |= s;
+  for( SizeT i=0; i < sEl; ++i)
+    (*this)[i] = (*this)[i] | s;
   //C delete right;
   return this;
 }
@@ -1495,9 +1493,9 @@ Data_<Sp>* Data_<Sp>::XorOp( BaseGDL* r)
   if( right->StrictScalar(s))
     {
       if( s != Sp::zero)
-	dd ^= s;
-// 	for( SizeT i=0; i < sEl; ++i)
-// 	  (*this)[i] ^= s;
+//	dd ^= s;
+	for( SizeT i=0; i < sEl; ++i)
+	  (*this)[i] ^= s;
     }
   else
     {
@@ -1563,9 +1561,9 @@ Data_<Sp>* Data_<Sp>::XorOpS( BaseGDL* r)
   ULong sEl=N_Elements();
   assert( sEl);
   Ty s = (*right)[0];
-  dd ^= s;
-//   for( SizeT i=0; i < sEl; ++i)
-//     (*this)[i] = (*this)[i] ^ s;
+//  dd ^= s;
+  for( SizeT i=0; i < sEl; ++i)
+    (*this)[i] = (*this)[i] ^ s;
   //C delete right;
   return this;
 }
@@ -1691,9 +1689,9 @@ Data_<Sp>* Data_<Sp>::AddS( BaseGDL* r)
   //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s = (*right)[0];
   // right->Scalar(s);
-  dd += s;
-//   for( SizeT i=0; i < sEl; ++i)
-//     (*this)[i] += s;
+//  dd += s;
+  for( SizeT i=0; i < sEl; ++i)
+    (*this)[i] += s;
   //C delete right;
   return this;
 }
@@ -1773,9 +1771,9 @@ Data_<Sp>* Data_<Sp>::SubInv( BaseGDL* r)
   assert( rEl);
   assert( sEl);
   //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
-  if( sEl == rEl)
+/*  if( sEl == rEl)
     dd = right->dd - dd;
-  else
+  else*/
     for( SizeT i=0; i < sEl; ++i)
       (*this)[i] = (*right)[i] - (*this)[i];
   //C delete right;
@@ -1837,9 +1835,9 @@ Data_<Sp>* Data_<Sp>::SubS( BaseGDL* r)
   assert( sEl);
   Ty s = (*right)[0];
   // right->Scalar(s); 
-  dd -= s;
-//   for( SizeT i=0; i < sEl; ++i)
-//     (*this)[i] -= s;
+//  dd -= s;
+  for( SizeT i=0; i < sEl; ++i)
+    (*this)[i] -= s;
   //C delete right;
   return this;
 }
@@ -1853,9 +1851,9 @@ Data_<Sp>* Data_<Sp>::SubInvS( BaseGDL* r)
   assert( sEl);
   Ty s = (*right)[0];
   // right->Scalar(s); 
-  dd = s - dd;
-//   for( SizeT i=0; i < sEl; ++i)
-//     (*this)[i] = s - (*this)[i];
+//  dd = s - dd;
+  for( SizeT i=0; i < sEl; ++i)
+    (*this)[i] = s - (*this)[i];
   //C delete right;
   return this;
 }
@@ -2167,9 +2165,9 @@ Data_<Sp>* Data_<Sp>::MultS( BaseGDL* r)
   assert( sEl);
   Ty s = (*right)[0];
   // right->Scalar(s);
-  dd *= s;
-//   for( SizeT i=0; i < sEl; ++i)
-//     (*this)[i] *= s;
+//  dd *= s;
+  for( SizeT i=0; i < sEl; ++i)
+    (*this)[i] *= s;
   //C delete right;
   return this;
 }
@@ -2330,9 +2328,9 @@ Data_<Sp>* Data_<Sp>::DivS( BaseGDL* r)
   if( sigsetjmp( sigFPEJmpBuf, 1) == 0)
     {
       // right->Scalar(s); 
-      dd /= s;
-//       for( SizeT i=0; i < sEl; ++i)
-// 	(*this)[i] /= s;
+//      dd /= s;
+       for( SizeT i=0; i < sEl; ++i)
+ 	(*this)[i] /= s;
       //C delete right;
       return this;
     }
@@ -2666,9 +2664,9 @@ Data_<Sp>* Data_<Sp>::ModS( BaseGDL* r)
   if( sigsetjmp( sigFPEJmpBuf, 1) == 0)
     {
       // right->Scalar(s); 
-      dd %= s;
-//       for( SizeT i=0; i < sEl; ++i)
-// 	(*this)[i] %= s;
+//     dd %= s;
+      for( SizeT i=0; i < sEl; ++i)
+	(*this)[i] %= s;
       //C delete right;
       return this;
     }
@@ -2932,11 +2930,12 @@ Data_<SpDFloat>* Data_<SpDFloat>::Pow( BaseGDL* r)
   ULong sEl=N_Elements();
   assert( rEl);
   assert( sEl);
-  if( rEl == sEl)
+/*  if( rEl == sEl)
     {
-      dd = pow( dd, right->dd); // valarray
+    for( SizeT i=0; i < sEl; ++i)
+      dd[ i] = pow( dd[ i], right->dd[ i]); // valarray
     }
-  else
+  else*/
     {
     for( SizeT i=0; i < sEl; ++i)
       (*this)[i] = pow( (*this)[i], (*right)[i]);
@@ -3137,9 +3136,9 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowInv( BaseGDL* r)
   assert( sEl);
   //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   //      right->dd.resize(sEl);
-  if( rEl == sEl)
+/*  if( rEl == sEl)
     dd = pow( right->dd, dd); // valarray
-  else
+  else*/
     for( SizeT i=0; i < sEl; ++i)
       (*this)[i] = pow( (*right)[i], (*this)[i]);
   //C delete right;
@@ -3158,9 +3157,9 @@ Data_<SpDDouble>* Data_<SpDDouble>::Pow( BaseGDL* r)
   //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   //      right->dd.resize(sEl);
   //      dd = pow( dd, right->Resize(sEl)); // valarray
-  if( rEl == sEl)
+/*  if( rEl == sEl)
     dd = pow( dd, right->dd); // valarray
-  else
+  else*/
     for( SizeT i=0; i < sEl; ++i)
       (*this)[i] = pow( (*this)[i], (*right)[i]);
   //C delete right;
@@ -3179,9 +3178,9 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowInv( BaseGDL* r)
   //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   //      right->dd.resize(sEl);
   // dd = pow( right->Resize(sEl), dd); // valarray
-  if( rEl == sEl)
+/*  if( rEl == sEl)
     dd = pow( right->dd, dd); // valarray
-  else
+  else*/
     for( SizeT i=0; i < sEl; ++i)
       (*this)[i] = pow( (*right)[i], (*this)[i]);
   //C delete right;
@@ -3306,9 +3305,9 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
     (*this)[ i] = pow( (*this)[ i], (*right)[ i]);
 #else
   //      dd = pow( dd, right->Resize(sEl)); // valarray
-  if( r->N_Elements() == sEl)
+/*  if( r->N_Elements() == sEl)
     dd = pow( dd, right->dd); // valarray
-  else
+  else*/
     for( SizeT i=0; i < sEl; ++i)
       (*this)[i] = pow( (*this)[i], (*right)[i]);
 #endif
@@ -3332,9 +3331,9 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowInv( BaseGDL* r)
 #else
   //      right->dd.resize(sEl);
   //      dd = pow( right->Resize(sEl), dd); // valarray
-  if( rEl == sEl)
+/*  if( rEl == sEl)
     dd = pow( right->dd, dd); // valarray
-  else
+  else*/
     for( SizeT i=0; i < sEl; ++i)
       (*this)[i] = pow( (*right)[i], (*this)[i]);
 #endif
@@ -3462,9 +3461,9 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
     (*this)[ i] = pow( (*this)[ i], (*right)[ i]);
 #else
   //      dd = pow( dd, right->Resize(sEl)); // valarray
-  if( r->N_Elements() == sEl)
+/*  if( r->N_Elements() == sEl)
     dd = pow( dd, right->dd); // valarray
-  else
+  else*/
     for( SizeT i=0; i < sEl; ++i)
       (*this)[i] = pow( (*this)[i], (*right)[i]);
 #endif
@@ -3488,9 +3487,9 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowInv( BaseGDL* r)
 #else
   //      right->dd.resize(sEl);
   //      dd = pow( right->Resize(sEl), dd); // valarray
-  if( rEl == sEl)
+/*  if( rEl == sEl)
     dd = pow( right->dd, dd); // valarray
-  else
+  else*/
     for( SizeT i=0; i < sEl; ++i)
       (*this)[i] = pow( (*right)[i], (*this)[i]);
 #endif
@@ -3588,7 +3587,8 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowS( BaseGDL* r)
   assert( sEl);
   Ty s = (*right)[0];
   // right->Scalar(s); 
-  dd = pow( dd, s); // valarray
+  for( SizeT i=0; i<sEl; ++i)	
+  dd[ i] = pow( dd[ i], s); // valarray
   //C delete right;
   return this;
 }
@@ -3602,7 +3602,8 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowInvS( BaseGDL* r)
   assert( sEl);
   Ty s = (*right)[0];
   // right->Scalar(s); 
-  dd = pow( s, dd); // valarray
+  for( SizeT i=0; i<sEl; ++i)	
+  dd[ i] = pow( s, dd[ i]); // valarray
   //C delete right;
   return this;
 }
@@ -3616,7 +3617,8 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowS( BaseGDL* r)
   assert( sEl);
   Ty s = (*right)[0];
   // right->Scalar(s); 
-  dd = pow( dd, s); // valarray
+  for( SizeT i=0; i<sEl; ++i)	
+  dd[ i] = pow( dd[ i], s); // valarray
   //C delete right;
   return this;
 }
@@ -3630,7 +3632,8 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowInvS( BaseGDL* r)
   assert( sEl);
   Ty s = (*right)[0];
   // right->Scalar(s); 
-  dd = pow( s, dd); // valarray
+  for( SizeT i=0; i<sEl; ++i)	
+  dd[ i] = pow( s, dd[ i]); // valarray
   //C delete right;
   return this;
 }
@@ -3748,12 +3751,12 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowS( BaseGDL* r)
   //   if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s = (*right)[0];
   // right->Scalar(s); 
-#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
+//#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
   for( SizeT i=0; i<sEl; ++i)
     (*this)[ i] = pow( (*this)[ i], s);
-#else
-  dd = pow( dd, s); // valarray
-#endif
+//#else
+//  dd = pow( dd, s); // valarray
+//#endif
   //C delete right;
 
   return this;
@@ -3771,12 +3774,12 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowInvS( BaseGDL* r)
   //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s = (*right)[0];
   // right->Scalar(s); 
-#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
+//#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
   for( SizeT i=0; i<sEl; ++i)
     (*this)[ i] = pow( s, (*this)[ i]);
-#else
-  dd = pow( s, dd); // valarray
-#endif
+//#else
+//  dd = pow( s, dd); // valarray
+//#endif
   //C delete right;
   return this;
 }
@@ -3896,12 +3899,12 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowS( BaseGDL* r)
   //   if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s = (*right)[0];
   // right->Scalar(s); 
-#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
+//#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
   for( SizeT i=0; i<sEl; ++i)
     (*this)[ i] = pow( (*this)[ i], s);
-#else
-  dd = pow( dd, s); // valarray
-#endif
+//#else
+//  dd = pow( dd, s); // valarray
+//#endif
   //C delete right;
   return this;
 }
@@ -3916,12 +3919,12 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowInvS( BaseGDL* r)
   //  if( !rEl || !sEl) throw GDLException("Variable is undefined.");  
   Ty s = (*right)[0];
   // right->Scalar(s); 
-#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
+//#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
   for( SizeT i=0; i<sEl; ++i)
     (*this)[ i] = pow( s, (*this)[ i]);
-#else
-  dd = pow( s, dd); // valarray
-#endif
+//#else
+//  dd = pow( s, dd); // valarray
+//#endif
   //C delete right;
   return this;
 }
@@ -4151,12 +4154,12 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew( BaseGDL* r)
     {
       DComplexGDL* res = new DComplexGDL( this->Dim(), 
 					  BaseGDL::NOZERO);
-#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
+//#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
       for( SizeT i=0; i<sEl; ++i)
 	(*res)[ i] = pow( (*this)[ i], s);
-#else
-      res->dd = pow( dd, s); // valarray
-#endif
+//#else
+//      res->dd = pow( dd, s); // valarray
+//#endif
     }
   else 
     {
@@ -4169,9 +4172,9 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew( BaseGDL* r)
 	(*res)[ i] = pow( (*this)[ i], (*right)[ i]);
 #else
       //      dd = pow( dd, right->Resize(sEl)); // valarray
-      if( r->N_Elements() == sEl)
+/*      if( r->N_Elements() == sEl)
 	res->dd = pow( dd, right->dd); // valarray
-      else
+      else*/
 	for( SizeT i=0; i < sEl; ++i)
 	  (*res)[i] = pow( (*this)[i], (*right)[i]);
 #endif
@@ -4303,12 +4306,12 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew( BaseGDL* r)
     {
       DComplexDblGDL* res = new DComplexDblGDL( this->Dim(), 
 						BaseGDL::NOZERO);
-#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
+//#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
       for( SizeT i=0; i<sEl; ++i)
 	(*res)[ i] = pow( (*this)[ i], s);
-#else
-      res->dd = pow( dd, s); // valarray
-#endif
+//#else
+//      res->dd = pow( dd, s); // valarray
+//#endif
     }
   else 
     {
@@ -4321,9 +4324,9 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew( BaseGDL* r)
 	(*res)[ i] = pow( (*this)[ i], (*right)[ i]);
 #else
       //      dd = pow( dd, right->Resize(sEl)); // valarray
-      if( r->N_Elements() == sEl)
+/*      if( r->N_Elements() == sEl)
 	res->dd = pow( dd, right->dd); // valarray
-      else
+      else*/
 	for( SizeT i=0; i < sEl; ++i)
 	  (*res)[i] = pow( (*this)[i], (*right)[i]);
 #endif

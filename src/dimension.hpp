@@ -34,7 +34,8 @@ inline SizeT RankIx( const SizeT rank)
 class dimension
 {
   SizeT dim[MAXRANK];         // dimension
-  SizeT rank;                 // how many dim are valid  
+
+  char rank;                 // how many dim are valid  
 
 public:
   // structors
@@ -156,6 +157,10 @@ public:
       dim[i]=add.dim[i];
   }
 
+//   SizeT* Dim0Address()
+// {
+// return &dim[ 0];
+// }
 //   SizeT RemoveFirst()
 //   {
 //     SizeT res = dim[0];

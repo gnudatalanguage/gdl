@@ -238,4 +238,163 @@ public:
   T* Release() { T* r=container; container=NULL; return r;}
 };
 
+template <class T>
+class GDLArray
+{
+private:
+  T scalar;
+  T*    buf;
+  SizeT sz;
+
+public:
+  GDLArray(): buf( NULL), sz( 0) {}
+  GDLArray( const GDLArray& cp)
+    : buf( (cp.size() > 1)?new T[ cp.size()] : &scalar)
+    , sz( cp.size())
+  {
+    for( SizeT i=0; i<sz; ++i)
+      buf[ i] = cp.buf[ i];
+  }
+
+  GDLArray( SizeT s, bool b): buf( (s>1)?new T[ s] : &scalar), sz( s)
+  {}
+  GDLArray( T val, SizeT s): buf((s>1)?new T[ s]: &scalar), sz( s)
+  {
+    for( SizeT i=0; i<sz; ++i)
+      buf[ i] = val;
+  }
+  GDLArray( const T* arr, SizeT s): buf( (s>1)?new T[ s]: &scalar), sz( s)
+  {
+    for( SizeT i=0; i<sz; ++i)
+      buf[ i] = arr[ i];
+  }
+
+  GDLArray( const T& s): scalar( s), buf( &scalar), sz( 1)
+  {}
+
+  ~GDLArray()
+  {
+    if( sz > 1)
+      delete[] buf;
+  }
+
+  T& operator[]( SizeT ix)
+  {
+    return buf[ ix];
+  }
+  const T& operator[]( SizeT ix) const
+  {
+    return buf[ ix];
+  }
+
+  GDLArray& operator=( const GDLArray& right)
+  {
+    if( &right != this)
+      {
+	if( sz > 1) 
+	  delete[] buf;
+	sz = right.size();
+	buf = (sz>1) ? new T[ sz] : &scalar;
+	for( SizeT i=0; i<sz; ++i)
+	  buf[ i] = right.buf[ i];
+      }
+    return *this;
+  }
+  GDLArray&operator+=( const GDLArray& right)
+  {
+    for( SizeT i=0; i<sz; ++i)
+      buf[ i] += right.buf[ i];
+    return *this;
+  }
+  GDLArray&operator-=( const GDLArray& right)
+  {
+    for( SizeT i=0; i<sz; ++i)
+      buf[ i] -= right.buf[ i];
+    return *this;
+  }
+  GDLArray&operator*=( const GDLArray& right)
+  {
+    for( SizeT i=0; i<sz; ++i)
+      buf[ i] *= right.buf[ i];
+    return *this;
+  }
+  GDLArray&operator/=( const GDLArray& right)
+  {
+    for( SizeT i=0; i<sz; ++i)
+      buf[ i] /= right.buf[ i];
+    return *this;
+  }
+  GDLArray&operator+=( const T& right)
+  {
+    for( SizeT i=0; i<sz; ++i)
+      buf[ i] += right;
+    return *this;
+  }
+  GDLArray&operator-=( const T& right)
+  {
+    for( SizeT i=0; i<sz; ++i)
+      buf[ i] -= right;
+    return *this;
+  }
+  GDLArray&operator*=( const T& right)
+  {
+    for( SizeT i=0; i<sz; ++i)
+      buf[ i] *= right;
+    return *this;
+  }
+  GDLArray&operator/=( const T& right)
+  {
+    for( SizeT i=0; i<sz; ++i)
+      buf[ i] /= right;
+    return *this;
+  }
+
+  void NullBuf()
+  {
+    buf = NULL;
+  }
+
+  SizeT size() const
+  {
+    return sz;
+  }
+
+  T min() const
+  {
+    T res = buf[ 0];
+    for( SizeT i=1; i<sz; ++i)
+      if( res < buf[ i]) res = buf[ i];
+    return res;
+  }
+  T max() const
+  {
+    T res = buf[ 0];
+    for( SizeT i=1; i<sz; ++i)
+      if( res > buf[ i]) res = buf[ i];
+    return res;
+  }
+};
+
+// friend  GDLArray pow(const GDLArray& left, const GDLArray& right);
+
+// friend  GDLArray pow(const GDLArray& left, const T& right);
+
+// friend  GDLArray pow(const T& left, const GDLArray& right);
+
+// };
+
+// template<class Ty>
+//     GDLArray<Ty> pow(const GDLArray<Ty>& left,
+//         const GDLArray<Ty>& right)
+// {
+//   GDLArray<Ty> res( left.size);
+  
+//   for( SizeT i=0; i<left.size(); ++i)
+//     res[ i] = pow(left[i],right[i]);
+// }
+// template<class Ty>
+//     GDLArray<Ty> pow(const GDLArray<Ty> left, const Ty& right);
+// template<class Ty>
+//     GDLArray<Ty> pow(const Ty& left, const GDLArray<Ty>& right);
+
 #endif

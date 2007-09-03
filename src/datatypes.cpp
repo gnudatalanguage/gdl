@@ -124,7 +124,7 @@ template<class Sp> Data_<Sp>::~Data_() {};
 template<class Sp> Data_<Sp>::Data_(): Sp(), dd() {}
 
 // scalar
-template<class Sp> Data_<Sp>::Data_(const Ty& d_): Sp(), dd(d_,1)
+template<class Sp> Data_<Sp>::Data_(const Ty& d_): Sp(), dd(d_)
 {}
 
 // new array, zero fields
@@ -134,8 +134,8 @@ template<class Sp> Data_<Sp>::Data_(const dimension& dim_):
   this->dim.Purge();
 }
 
-// new one-dim array fromTy*
-template<class Sp> Data_<Sp>::Data_(const Ty* p, const SizeT nEl): 
+// new one-dim array from Ty*
+template<class Sp> Data_<Sp>::Data_( const Ty* p, const SizeT nEl): 
   Sp( dimension( nEl)), dd( p, nEl)
 {}
 
@@ -145,7 +145,7 @@ template<class Sp> Data_<Sp>::Data_(const Ty* p, const SizeT nEl):
 
 template<class Sp> Data_<Sp>::Data_(const dimension& dim_,
 				    BaseGDL::InitType iT): 
-  Sp( dim_), dd( this->dim.N_Elements())
+  Sp( dim_), dd( this->dim.N_Elements(), false)
 {
   this->dim.Purge();
 
@@ -166,7 +166,7 @@ template<class Sp> Data_<Sp>::Data_(const dimension& dim_,
 // struct (as a separate class) as well
 template<> Data_<SpDString>::Data_(const dimension& dim_,  
 				   BaseGDL::InitType iT): 
-  SpDString(dim_), dd(dim.N_Elements())
+  SpDString(dim_), dd(dim.N_Elements(), false)
 {
   dim.Purge();
   
@@ -175,7 +175,7 @@ template<> Data_<SpDString>::Data_(const dimension& dim_,
 }
 template<> Data_<SpDPtr>::Data_(const dimension& dim_,  
 				BaseGDL::InitType iT): 
-  SpDPtr(dim_), dd(dim.N_Elements())
+  SpDPtr(dim_), dd(dim.N_Elements(), false)
 {
   dim.Purge();
   
@@ -184,7 +184,7 @@ template<> Data_<SpDPtr>::Data_(const dimension& dim_,
 }
 template<> Data_<SpDObj>::Data_(const dimension& dim_,  
 				BaseGDL::InitType iT): 
-  SpDObj(dim_), dd(dim.N_Elements())
+  SpDObj(dim_), dd(dim.N_Elements(), false)
 {
   dim.Purge();
 
@@ -202,7 +202,7 @@ Data_<Sp>* Data_<Sp>::Log()
 template<>
 Data_<SpDFloat>* Data_<SpDFloat>::Log()              
 { 
-#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+#if 1 || (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
@@ -216,7 +216,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::Log()
 template<>
 Data_<SpDDouble>* Data_<SpDDouble>::Log()              
 { 
-#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+#if 1 || (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
@@ -230,7 +230,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::Log()
 template<>
 Data_<SpDComplex>* Data_<SpDComplex>::Log()              
 { 
-#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+#if 1 || (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
@@ -244,7 +244,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Log()
 template<>
 Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Log()              
 { 
-#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+#if 1 || (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
@@ -264,50 +264,50 @@ void Data_<Sp>::LogThis()
 template<>
 void Data_<SpDFloat>::LogThis()              
 { 
-#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+//#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   SizeT nEl = N_Elements();
   for( SizeT i=0; i<nEl; ++i)
     (*this)[ i] = log( (*this)[ i]);
-#else
+/*#else
   dd = log(dd);
-#endif
+#endif*/
 }
 template<>
 void Data_<SpDDouble>::LogThis()              
 { 
-#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+//#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   SizeT nEl = N_Elements();
   for( SizeT i=0; i<nEl; ++i)
     (*this)[ i] = log( (*this)[ i]);
-#else
+/*#else
   dd = log(dd);
-#endif
+#endif*/
 }
 template<>
 void Data_<SpDComplex>::LogThis()              
 { 
-#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+//#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   SizeT nEl = N_Elements();
   for( SizeT i=0; i<nEl; ++i)
     (*this)[ i] = log( (*this)[ i]);
-#else
+/*#else
   dd = log(dd);
-#endif
+#endif*/
 }
 template<>
 void Data_<SpDComplexDbl>::LogThis()              
 { 
-#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+//#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   SizeT nEl = N_Elements();
   for( SizeT i=0; i<nEl; ++i)
     (*this)[ i] = log( (*this)[ i]);
-#else
+/*#else
   dd = log(dd);
-#endif
+#endif*/
 }
 
 template<class Sp>
@@ -319,58 +319,58 @@ Data_<Sp>* Data_<Sp>::Log10()
 template<>
 Data_<SpDFloat>* Data_<SpDFloat>::Log10()              
 { 
-#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+//#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
   for( SizeT i=0; i<nEl; ++i)
     (*n)[ i] = log10( (*this)[ i]);
   return n;
-#else
+/*#else
   return new Data_(this->dim, log10(dd));
-#endif
+#endif*/
 }
 template<>
 Data_<SpDDouble>* Data_<SpDDouble>::Log10()              
 { 
-#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+//#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
   for( SizeT i=0; i<nEl; ++i)
     (*n)[ i] = log10( (*this)[ i]);
   return n;
-#else
+/*#else
   return new Data_(this->dim, log10(dd));
-#endif
+#endif*/
 }
 template<>
 Data_<SpDComplex>* Data_<SpDComplex>::Log10()              
 { 
-#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+//#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
   for( SizeT i=0; i<nEl; ++i)
     (*n)[ i] = log10( (*this)[ i]);
   return n;
-#else
+/*#else
   return new Data_(this->dim, log10(dd));
-#endif
+#endif*/
 }
 template<>
 Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Log10()              
 { 
-#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+//#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
   for( SizeT i=0; i<nEl; ++i)
     (*n)[ i] = log10( (*this)[ i]);
   return n;
-#else
+/*#else
   return new Data_(this->dim, log10(dd));
-#endif
+#endif*/
 }
 
 template<class Sp>
@@ -381,7 +381,7 @@ void Data_<Sp>::Log10This()
 template<>
 void Data_<SpDFloat>::Log10This()              
 { 
-#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+#if 1 || (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   SizeT nEl = N_Elements();
   for( SizeT i=0; i<nEl; ++i)
@@ -393,7 +393,7 @@ void Data_<SpDFloat>::Log10This()
 template<>
 void Data_<SpDDouble>::Log10This()              
 { 
-#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+#if 1 || (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   SizeT nEl = N_Elements();
   for( SizeT i=0; i<nEl; ++i)
@@ -405,7 +405,7 @@ void Data_<SpDDouble>::Log10This()
 template<>
 void Data_<SpDComplex>::Log10This()              
 { 
-#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+#if 1 || (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   SizeT nEl = N_Elements();
   for( SizeT i=0; i<nEl; ++i)
@@ -417,7 +417,7 @@ void Data_<SpDComplex>::Log10This()
 template<>
 void Data_<SpDComplexDbl>::Log10This()              
 { 
-#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+#if 1 || (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   SizeT nEl = N_Elements();
   for( SizeT i=0; i<nEl; ++i)
@@ -462,7 +462,8 @@ BaseGDL* Data_<Sp>::CShift( DLong d)
   else
     d = -(-d % dd.size());
 
-  sh->dd = dd.cshift( -d);
+for( SizeT i=0; i<dd.size(); ++i)
+  sh->dd[i] = dd[ (i+d)%dd.size()];//.cshift( -d);
   return sh;
 }
 
@@ -721,7 +722,12 @@ BaseGDL* Data_<Sp>::Rotate( DLong dir)
 
 template<class Sp> 
 typename Data_<Sp>::Ty Data_<Sp>::Sum() const 
-{ return dd.sum();}
+{
+Ty s= dd[ 0];
+for( SizeT i=1; i<dd.size(); ++i)
+	s += dd[ i];
+ return s;
+}
 
 // template<class Sp> 
 // typename Data_<Sp>::DataT& Data_<Sp>:: Resize( SizeT n)
@@ -772,8 +778,9 @@ SizeT Data_<Sp>::Sizeof() const
 
 template< class Sp>
 void Data_<Sp>::Clear() 
-{ dd = Sp::zero;
-//SizeT nEl = dd.size(); for( SizeT i = 0; i<nEl; ++i) (*this)[ i] = Sp::zero;
+{ 
+//dd = Sp::zero;
+SizeT nEl = dd.size(); for( SizeT i = 0; i<nEl; ++i) (*this)[ i] = Sp::zero;
 }
 
 // template< class Sp>
@@ -1481,7 +1488,12 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn)
     { // src is scalar
       Ty scalar=(*src)[0];
 
-      dd = scalar;
+/*      dd = scalar;*/
+      SizeT nCp=Data_::N_Elements();
+      
+      
+      for( SizeT c=0; c<nCp; ++c)
+	(*this)[ c]=scalar;
       
       //       SizeT nCp=Data_::N_Elements();
 
@@ -1633,12 +1645,12 @@ void Data_<SpDComplex>::DecAt( ArrayIndexListT* ixList)
 {
   if( ixList == NULL)
     {
-      dd -= 1.0f;
+//       dd -= 1.0f;
 
-      //       SizeT nCp=Data_::N_Elements();
+            SizeT nCp=Data_::N_Elements();
       
-      //       for( SizeT c=0; c<nCp; ++c)
-      // 	(*this)[ c] -= 1.0;
+            for( SizeT c=0; c<nCp; ++c)
+      	(*this)[ c] -= 1.0;
     }
   else
     {
@@ -1654,12 +1666,12 @@ void Data_<SpDComplex>::IncAt( ArrayIndexListT* ixList)
 {
   if( ixList == NULL)
     {
-      dd += 1.0f;
+//       dd += 1.0f;
 
-      //       SizeT nCp=Data_::N_Elements();
+            SizeT nCp=Data_::N_Elements();
       
-      //       for( SizeT c=0; c<nCp; ++c)
-      // 	(*this)[ c] += 1.0;
+            for( SizeT c=0; c<nCp; ++c)
+      	(*this)[ c] += 1.0;
     }
   else
     {
@@ -1675,12 +1687,12 @@ void Data_<SpDComplexDbl>::DecAt( ArrayIndexListT* ixList)
 {
   if( ixList == NULL)
     {
-      dd -= 1.0;
+//       dd -= 1.0;
 
-      //       SizeT nCp=Data_::N_Elements();
+            SizeT nCp=Data_::N_Elements();
       
-      //       for( SizeT c=0; c<nCp; ++c)
-      // 	(*this)[ c] -= 1.0;
+            for( SizeT c=0; c<nCp; ++c)
+      	(*this)[ c] -= 1.0;
     }
   else
     {
@@ -1696,12 +1708,12 @@ void Data_<SpDComplexDbl>::IncAt( ArrayIndexListT* ixList)
 {
   if( ixList == NULL)
     {
-      dd += 1.0;
+//       dd += 1.0;
 
-      //       SizeT nCp=Data_::N_Elements();
+            SizeT nCp=Data_::N_Elements();
       
-      //       for( SizeT c=0; c<nCp; ++c)
-      // 	(*this)[ c] += 1.0;
+            for( SizeT c=0; c<nCp; ++c)
+      	(*this)[ c] += 1.0;
     }
   else
     {

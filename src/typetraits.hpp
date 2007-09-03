@@ -36,7 +36,7 @@ struct SpDByte: public BaseGDL
   BaseGDL* GetInstance() const;
 
   typedef DByte Ty;
-  typedef std::valarray<Ty>    DataT;
+  typedef GDLArray<Ty>    DataT;
 
   static const DType  t;
   static const std::string str; 
@@ -62,7 +62,7 @@ struct SpDInt: public BaseGDL
   BaseGDL* GetInstance() const;
 
   typedef DInt Ty;
-  typedef std::valarray<Ty>    DataT;
+  typedef GDLArray<Ty>    DataT;
 
   static const DType t;
   static const std::string str; 
@@ -88,7 +88,7 @@ struct SpDUInt: public BaseGDL
   BaseGDL* GetInstance() const;
 
   typedef DUInt Ty;
-  typedef std::valarray<Ty>    DataT;
+  typedef GDLArray<Ty>    DataT;
 
   static const DType t;
   static const std::string str; 
@@ -114,7 +114,7 @@ struct SpDLong: public BaseGDL
   BaseGDL* GetInstance() const;
 
   typedef DLong Ty;
-  typedef std::valarray<Ty>    DataT;
+  typedef GDLArray<Ty>    DataT;
 
   static const DType  t;
   static const std::string str; 
@@ -140,7 +140,7 @@ struct SpDULong: public BaseGDL
   BaseGDL* GetInstance() const;
 
   typedef DULong Ty;
-  typedef std::valarray<Ty>    DataT;
+  typedef GDLArray<Ty>    DataT;
 
   static const DType  t;
   static const std::string str; 
@@ -166,7 +166,7 @@ struct SpDLong64: public BaseGDL
   BaseGDL* GetInstance() const;
 
   typedef DLong64 Ty;
-  typedef std::valarray<Ty>    DataT;
+  typedef GDLArray<Ty>    DataT;
 
   static const DType  t;
   static const std::string str; 
@@ -192,7 +192,7 @@ struct SpDULong64: public BaseGDL
   BaseGDL* GetInstance() const;
 
   typedef DULong64 Ty;
-  typedef std::valarray<Ty>    DataT;
+  typedef GDLArray<Ty>    DataT;
 
   static const DType  t;
   static const std::string str; 
@@ -218,7 +218,7 @@ struct SpDFloat: public BaseGDL
   BaseGDL* GetInstance() const;
 
   typedef DFloat Ty;
-  typedef std::valarray<Ty>    DataT;
+  typedef GDLArray<Ty>    DataT;
 
   static const DType  t;
   static const std::string str; 
@@ -244,7 +244,7 @@ struct SpDDouble: public BaseGDL
   BaseGDL* GetInstance() const;
 
   typedef DDouble Ty;
-  typedef std::valarray<Ty>    DataT;
+  typedef GDLArray<Ty>    DataT;
 
   static const DType  t;
   static const std::string str; 
@@ -270,7 +270,7 @@ struct SpDString: public BaseGDL
   BaseGDL* GetInstance() const;
 
   typedef DString Ty;
-  typedef std::valarray<Ty>    DataT;
+  typedef GDLArray<Ty>    DataT;
 
   static const DType    t;
   static const std::string str; 
@@ -343,7 +343,7 @@ struct SpDPtr: public BaseGDL
   BaseGDL* GetInstance() const;
 
   typedef DPtr Ty;
-  typedef std::valarray<Ty>    DataT;
+  typedef GDLArray<Ty>    DataT;
 
   static const DType    t;
   static const std::string str; 
@@ -370,7 +370,7 @@ struct SpDObj: public BaseGDL
   BaseGDL* GetInstance() const;
 
   typedef DObj Ty;
-  typedef std::valarray<Ty>    DataT;
+  typedef GDLArray<Ty>    DataT;
 
   static const DType    t;
   static const std::string str; 
@@ -396,7 +396,7 @@ struct SpDComplex: public BaseGDL
   BaseGDL* GetInstance() const;
 
   typedef DComplex Ty;
-  typedef std::valarray<Ty>    DataT;
+  typedef GDLArray<Ty>    DataT;
 
   static const DType  t;
   static const std::string str; 
@@ -422,7 +422,7 @@ struct SpDComplexDbl: public BaseGDL
   BaseGDL* GetInstance() const;
 
   typedef DComplexDbl Ty;
-  typedef std::valarray<Ty>    DataT;
+  typedef GDLArray<Ty>    DataT;
 
   static const DType  t;
   static const std::string str; 
