@@ -212,7 +212,19 @@ namespace lib {
 
     DLong cdfid, varid;
     e->AssureLongScalarPar(0, cdfid);
-    e->AssureLongScalarPar(1, varid);
+
+    // Check type of varid
+    BaseGDL* p1 = e->GetParDefined( 1);
+    if (p1->Type() != STRING) {
+      // Numeric
+      e->AssureLongScalarPar(1, varid);
+    } else {
+      // String
+      DString var_name;
+      e->AssureScalarPar<DStringGDL>(1, var_name);
+      status=nc_inq_varid(cdfid, var_name.c_str(), &var_id);
+      ncdf_handle_error(e,status,"NCDF_VARGET1");
+    }
 
     //inquire
     status=nc_inq_var(cdfid,varid,var_name,
@@ -368,7 +380,19 @@ else if(var_type == NC_LONG)
 
     DLong cdfid, varid;
     e->AssureLongScalarPar(0, cdfid);
-    e->AssureLongScalarPar(1, varid);
+
+    // Check type of varid
+    BaseGDL* p1 = e->GetParDefined( 1);
+    if (p1->Type() != STRING) {
+      // Numeric
+      e->AssureLongScalarPar(1, varid);
+    } else {
+      // String
+      DString var_name;
+      e->AssureScalarPar<DStringGDL>(1, var_name);
+      status=nc_inq_varid(cdfid, var_name.c_str(), &var_id);
+      ncdf_handle_error(e,status,"NCDF_VARGET");
+    }
 
     /*
     e->AssureScalarPar<DIntGDL>(0, cdfid);
@@ -1057,9 +1081,22 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 
     //get the cdfid
     BaseGDL* v;
+
     DLong cdfid, varid;
     e->AssureLongScalarPar(0, cdfid);
-    e->AssureLongScalarPar(1, varid);
+
+    // Check type of varid
+    BaseGDL* p1 = e->GetParDefined( 1);
+    if (p1->Type() != STRING) {
+      // Numeric
+      e->AssureLongScalarPar(1, varid);
+    } else {
+      // String
+      DString var_name;
+      e->AssureScalarPar<DStringGDL>(1, var_name);
+      status=nc_inq_varid(cdfid, var_name.c_str(), &var_id);
+      ncdf_handle_error(e,status,"NCDF_VARGET");
+    }
 
     //get the value
     v=e->GetParDefined(2);
