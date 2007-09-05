@@ -1,7 +1,8 @@
 ;
 ; AC, June 2007
+; a bug for subselection was corrected on 05 Sept 07
 ;
-; please run the last procedure "TEST_PLOT_INFO" to have informations ...
+; please run the other procedure "TEST_PLOT_INFO" to have informations ...
 ;
 ; benchmark of plot, with and without NaN and Inf
 ;
@@ -33,11 +34,13 @@ end
 pro TEST_PLOT_BENCHMARK, test=test, all=all, power=power, help=help
 ;
 if (N_ELEMENTS(test) EQ 0) then test=0
+test=ROUND(test)
+if (test GT 4) OR (test LT 0) then test=0
 if (N_ELEMENTS(power) EQ 0) then power=6
 if KEYWORD_SET(all) then test=-1
 ;
-if (test EQ 0) OR NOT(KEYWORD_SET(all)) OR KEYWORD_SET(help) then begin
-    print, 'TEST_PLOT_BENCHMARK, test=test, all=all, power=power'
+if (test EQ 0) OR KEYWORD_SET(help) then begin
+    print, 'TEST_PLOT_BENCHMARK, test=test, all=all, power=power, help=help'
     print, '   if keyword test=1, then findgen only'
     print, '   if keyword test=2, then RandomU only'
     print, '   if keyword test=3, then RandomN only'
