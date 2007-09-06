@@ -222,7 +222,7 @@ namespace lib {
       // String
       DString var_name;
       e->AssureScalarPar<DStringGDL>(1, var_name);
-      status=nc_inq_varid(cdfid, var_name.c_str(), &var_id);
+      status=nc_inq_varid(cdfid, var_name.c_str(), &varid);
       ncdf_handle_error(e,status,"NCDF_VARGET1");
     }
 
@@ -390,7 +390,7 @@ else if(var_type == NC_LONG)
       // String
       DString var_name;
       e->AssureScalarPar<DStringGDL>(1, var_name);
-      status=nc_inq_varid(cdfid, var_name.c_str(), &var_id);
+      status=nc_inq_varid(cdfid, var_name.c_str(), &varid);
       ncdf_handle_error(e,status,"NCDF_VARGET");
     }
 
@@ -1094,7 +1094,7 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
       // String
       DString var_name;
       e->AssureScalarPar<DStringGDL>(1, var_name);
-      status=nc_inq_varid(cdfid, var_name.c_str(), &var_id);
+      status=nc_inq_varid(cdfid, var_name.c_str(), &varid);
       ncdf_handle_error(e,status,"NCDF_VARGET");
     }
 
