@@ -1074,6 +1074,8 @@ Data_<Sp>* Data_<Sp>::AndOpS( BaseGDL* r)
 
   // s &= Ty(1);
 //  dd &= s;
+  for( SizeT i=0; i < sEl; ++i)
+    (*this)[i] &= s;
 
   return this;
 }
