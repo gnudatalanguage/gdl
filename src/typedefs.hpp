@@ -269,7 +269,7 @@ public:
       buf[ i] = arr[ i];
   }
 
-  GDLArray( const T& s): scalar( s), buf( &scalar), sz( 1)
+  explicit GDLArray( const T& s): scalar( s), buf( &scalar), sz( 1)
   {}
 
   ~GDLArray()

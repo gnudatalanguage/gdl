@@ -1096,9 +1096,9 @@ Data_<SpDFloat>* Data_<SpDFloat>::AndOpS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s);
   if( s == zero)
-    dd = zero;
-//     for( SizeT i=0; i < sEl; ++i)
-//       (*this)[i] = zero;
+ //   dd = zero;
+     for( SizeT i=0; i < sEl; ++i)
+       (*this)[i] = zero;
   return this;
 }
 template<>
@@ -1113,9 +1113,9 @@ Data_<SpDFloat>* Data_<SpDFloat>::AndOpInvS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s);
   if( s == zero)
-    dd = zero;
-//     for( SizeT i=0; i < sEl; ++i)
-//       (*this)[i] = zero;
+//    dd = zero;
+     for( SizeT i=0; i < sEl; ++i)
+       (*this)[i] = zero;
   else
     for( SizeT i=0; i < sEl; ++i)
       if( (*this)[i] != zero) (*this)[i] = s;
@@ -1134,9 +1134,9 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOpS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s); 
   if( s == zero)
-    dd = zero;
-//     for( SizeT i=0; i < sEl; ++i)
-//       (*this)[i] = zero;
+//    dd = zero;
+    for( SizeT i=0; i < sEl; ++i)
+      (*this)[i] = zero;
   return this;
 }
 template<>
@@ -1149,9 +1149,9 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOpInvS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s);
   if( s == zero)
-    dd = zero;
-//     for( SizeT i=0; i < sEl; ++i)
-//       (*this)[i] = zero;
+//    dd = zero;
+    for( SizeT i=0; i < sEl; ++i)
+      (*this)[i] = zero;
   else
     for( SizeT i=0; i < sEl; ++i)
       if( (*this)[i] != zero) (*this)[i] = s;
@@ -1394,9 +1394,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::OrOpInvS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s);
   if( s != zero)
-    dd = s;
-//     for( SizeT i=0; i < sEl; ++i)
-//       (*this)[i] = s;
+//    dd = s;
   //C delete right;
   return this;
 }
@@ -1426,9 +1424,9 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOpInvS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s);
   if( s != zero)
-    dd = s;
-//     for( SizeT i=0; i < sEl; ++i)
-//       (*this)[i] = s;
+//    dd = s;
+    for( SizeT i=0; i < sEl; ++i)
+      (*this)[i] = s;
   else
     for( SizeT i=0; i < sEl; ++i)
       if( (*this)[i] != zero) (*this)[i] = s;
