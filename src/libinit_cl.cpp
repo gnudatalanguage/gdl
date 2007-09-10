@@ -106,11 +106,13 @@ void LibInit_cl()
 
   //Inquire attribute (datatype, size?)
   const string ncdf_attinqKey[]={"GLOBAL",KLISTEND};
-  new DLibFun(lib::ncdf_attinq,string("NCDF_ATTINQ"),2,ncdf_attinqKey);
+  new DLibFun(lib::ncdf_attinq,string("NCDF_ATTINQ"),3,ncdf_attinqKey);
 
 
   //Control functions, define mode etc.
-  const string ncdf_controlKey[]={"ABORT","ENDEF","FILL","NOFILL", "VERBOSE","NOVERBOSE","OLDFILL","REDEF","SYNC",KLISTEND};
+  const string ncdf_controlKey[]={"ABORT","ENDEF","FILL","NOFILL", "VERBOSE",
+				  "NOVERBOSE","OLDFILL","REDEF","SYNC",
+				  KLISTEND};
   new DLibPro(lib::ncdf_control,string("NCDF_CONTROL"),1,ncdf_controlKey);
 
 
@@ -121,15 +123,16 @@ void LibInit_cl()
 
   //copy attribute between files
   const string ncdf_attcopyKey[]={"IN_GLOBAL","OUT_GLOBAL",KLISTEND};
-  new DLibFun(lib::ncdf_attcopy, string("NCDF_ATTCOPY"), 3,ncdf_attcopyKey);
+  new DLibFun(lib::ncdf_attcopy, string("NCDF_ATTCOPY"), 5,ncdf_attcopyKey);
 
   //delete attribute
   const string ncdf_attdelKey[]={"GLOBAL",KLISTEND};
-  new DLibPro(lib::ncdf_attdel, string("NCDF_ATTDEL"), 2,ncdf_attdelKey);
+  new DLibPro(lib::ncdf_attdel, string("NCDF_ATTDEL"), 3,ncdf_attdelKey);
 
   //rename attribute
   const string ncdf_attrenameKey[]={"GLOBAL",KLISTEND};
-  new DLibPro(lib::ncdf_attrename, string("NCDF_ATTRENAME"), 3,ncdf_attrenameKey);
+  new DLibPro(lib::ncdf_attrename, string("NCDF_ATTRENAME"), 4,
+	      ncdf_attrenameKey);
 
   //define dimension
   const string ncdf_dimdefKey[]={"UNLIMITED",KLISTEND};
@@ -139,7 +142,8 @@ void LibInit_cl()
   new DLibPro(lib::ncdf_dimrename, string("NCDF_DIMRENAME"), 3);
 
   //define variable
-  const string ncdf_vardefKey[]={"BYTE","CHAR","DOUBLE","FLOAT","LONG","SHORT",KLISTEND};
+  const string ncdf_vardefKey[]={"BYTE","CHAR","DOUBLE","FLOAT","LONG","SHORT",
+				 KLISTEND};
   new DLibFun(lib::ncdf_vardef, string("NCDF_VARDEF"), 3,ncdf_vardefKey);
 
   //rename variable

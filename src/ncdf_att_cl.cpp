@@ -72,20 +72,17 @@ namespace lib {
 	throw GDLException(e->CallingNode(),
 			   "NCDF_ATTNAME: The error is Global + varid, not allowed, proper text to come.");
  
-      }   else{
+      }   else {
 
 	int status;
 
-
 	char att_name[NC_MAX_NAME];
-	DInt cdfid, varid,attnum;
+	DLong cdfid, varid,attnum;
 	varid=0;
 	attnum=0;
-	
-	e->AssureScalarPar<DIntGDL>(0,  cdfid);
-	e->AssureScalarPar<DIntGDL>(1, varid);
 
-
+	DString attname;
+        e->AssureLongScalarPar(0, cdfid);
 
 	if(e->KeywordSet(0)) 
 	  {
@@ -93,7 +90,19 @@ namespace lib {
 	    varid=NC_GLOBAL;
 
 	  } else {
-	    e->AssureScalarPar<DIntGDL>(2, attnum);
+	    // Check type of varid
+	    BaseGDL* p1 = e->GetParDefined( 1);
+            if (p1->Type() != STRING) {
+              // Numeric
+	      e->AssureLongScalarPar(1, varid);
+            } else {
+              // String
+	      DString var_name;
+              e->AssureScalarPar<DStringGDL>(1, var_name);
+              status=nc_inq_varid(cdfid, var_name.c_str(), &varid);
+              ncdf_handle_error(e,status,"NCDF_ATTNAME");
+            }
+            e->AssureStringScalarPar(2, attname);
 	  }
 
 
@@ -130,10 +139,10 @@ namespace lib {
 	nc_type att_type;
 	size_t length;
 	DString attname;
-	DInt cdfid, varid;
+	DLong cdfid, varid;
 
 	varid=0;
-	e->AssureScalarPar<DIntGDL>(0, cdfid);
+	e->AssureLongScalarPar(0, cdfid);
 
 	if(e->KeywordSet(0)) 
 	  {
@@ -141,7 +150,19 @@ namespace lib {
 	    varid=NC_GLOBAL;
 
 	  } else {
-	    e->AssureScalarPar<DIntGDL>(1, varid);
+	    // Check type of varid
+	    BaseGDL* p1 = e->GetParDefined( 1);
+            if (p1->Type() != STRING) {
+              // Numeric
+	      e->AssureLongScalarPar(1, varid);
+            } else {
+              // String
+	      DString var_name;
+              e->AssureScalarPar<DStringGDL>(1, var_name);
+              status=nc_inq_varid(cdfid, var_name.c_str(), &varid);
+              ncdf_handle_error(e,status,"NCDF_ATTNAME");
+            }
+
 	    e->AssureStringScalarPar(2, attname);
 	  }
 
@@ -173,10 +194,7 @@ namespace lib {
 	inq->InitTag("LENGTH", DLongGDL(length));
 
 	return inq;
-	
-
       }
-
   }
 
   void ncdf_attget(EnvT* e)
@@ -197,20 +215,28 @@ namespace lib {
 	size_t length;
 
 	DString attname;
-	DInt integer,cdfid,varid;
-	varid=0;
-	e->AssureScalarPar<DIntGDL>(0, cdfid);
+	DLong cdfid, varid;
+	e->AssureLongScalarPar(0, cdfid);
 
 	if(e->KeywordSet(0)) 
 	  {
 	    e->AssureStringScalarPar(1, attname);
 	    varid=NC_GLOBAL;
-
 	  } else {
-	    e->AssureScalarPar<DIntGDL>(1, varid);
+	    // Check type of varid
+	    BaseGDL* p1 = e->GetParDefined( 1);
+	    if (p1->Type() != STRING) {
+	      // Numeric
+	      e->AssureLongScalarPar(1, varid);
+	    } else {
+	      // String
+	      DString var_name;
+	      e->AssureScalarPar<DStringGDL>(1, var_name);
+	      status=nc_inq_varid(cdfid, var_name.c_str(), &varid);
+	      ncdf_handle_error(e,status,"NCDF_ATTGET");
+	    }
 	    e->AssureStringScalarPar(2, attname);
 	  }
-
 
 	//attname, varid, cdfid are set up
 
@@ -368,10 +394,9 @@ namespace lib {
 
     //get the cdfid, which must be given.
 
-    DInt integer,cdfid,varid;
-    e->AssureScalarPar<DIntGDL>(0, cdfid);
+    DLong cdfid, varid;
+    e->AssureLongScalarPar(0, cdfid);
     varid=0;
-
 
     if(e->KeywordSet(0)) 
       {
@@ -379,14 +404,25 @@ namespace lib {
 	val=e->GetParDefined(2);
 	val_num=2;
 	varid=NC_GLOBAL;
-	
       } else {
-	e->AssureScalarPar<DIntGDL>(1, varid);
+	// Check type of varid
+	BaseGDL* p1 = e->GetParDefined( 1);
+	if (p1->Type() != STRING) {
+	  // Numeric
+	  e->AssureLongScalarPar(1, varid);
+	} else {
+	  // String
+	  DString var_name;
+	  e->AssureScalarPar<DStringGDL>(1, var_name);
+	  status=nc_inq_varid(cdfid, var_name.c_str(), &varid);
+	  ncdf_handle_error(e,status,"NCDF_ATTPUT");
+	}
 	e->AssureStringScalarPar(2, attname);
+	
 	val=e->GetParDefined(3);
 	val_num=3;
-
       }
+
     //we have the cdfid, varid, attname, attval here
 
     //determine default data type
@@ -473,8 +509,8 @@ return;
 
     int status,add;
     //incdf
-    DInt integer,incdf,outcdf,invar, outvar;
-    e->AssureScalarPar<DIntGDL>(0, incdf);
+    DLong integer,incdf,outcdf,invar,outvar;
+    e->AssureLongScalarPar(0, incdf);
 
     add=0;
 
@@ -497,17 +533,65 @@ return;
       }
     else if(e->KeywordSet(0) && !e->KeywordSet(1) && nParam == 4)
       {
-	e->AssureScalarPar<DIntGDL>(1, invar);
+	e->AssureLongScalarPar(2, outcdf);
+
+	// Check type of varid
+	BaseGDL* p3 = e->GetParDefined( 3);
+	if (p3->Type() != STRING) {
+	  // Numeric
+	  e->AssureLongScalarPar(3, outvar);
+	} else {
+	  // String
+	  DString var_name;
+	  e->AssureScalarPar<DStringGDL>(3, var_name);
+	  status=nc_inq_varid(outcdf, var_name.c_str(), &outvar);
+	  ncdf_handle_error(e,status,"NCDF_ATTCOPY");
+	}
       }
     else if(!e->KeywordSet(0) && e->KeywordSet(1) && nParam == 4)
       {
-	e->AssureScalarPar<DIntGDL>(3, outvar);
-	
+	// Check type of varid
+	BaseGDL* p1 = e->GetParDefined( 1);
+	if (p1->Type() != STRING) {
+	  // Numeric
+	  e->AssureLongScalarPar(1, invar);
+	} else {
+	  // String
+	  DString var_name;
+	  e->AssureScalarPar<DStringGDL>(1, var_name);
+	  status=nc_inq_varid(incdf, var_name.c_str(), &invar);
+	  ncdf_handle_error(e,status,"NCDF_ATTCOPY");
+	}
       }
     else if(!e->KeywordSet(0) && !e->KeywordSet(1) && nParam == 5)
       {
-	e->AssureScalarPar<DIntGDL>(1, invar);
-	e->AssureScalarPar<DIntGDL>(4, outvar);
+	e->AssureLongScalarPar(3, outcdf);
+
+	// Check type of varid
+	BaseGDL* p1 = e->GetParDefined( 1);
+	if (p1->Type() != STRING) {
+	  // Numeric
+	  e->AssureLongScalarPar(1, invar);
+	} else {
+	  // String
+	  DString var_name;
+	  e->AssureScalarPar<DStringGDL>(1, var_name);
+	  status=nc_inq_varid(incdf, var_name.c_str(), &invar);
+	  ncdf_handle_error(e,status,"NCDF_ATTCOPY");
+	}
+
+	// Check type of varid
+	BaseGDL* p4 = e->GetParDefined( 4);
+	if (p4->Type() != STRING) {
+	  // Numeric
+	  e->AssureLongScalarPar(4, outvar);
+	} else {
+	  // String
+	  DString var_name;
+	  e->AssureScalarPar<DStringGDL>(4, var_name);
+	  status=nc_inq_varid(outcdf, var_name.c_str(), &outvar);
+	  ncdf_handle_error(e,status,"NCDF_ATTCOPY");
+	}
       }
 
 
@@ -519,11 +603,10 @@ return;
     if(!e->KeywordSet(0)) add=1;
     e->AssureStringScalarPar(1+add, name);
 
-    //name^^
+    //name
 
-    
     //outcdf
-    e->AssureScalarPar<DIntGDL>(2+add, outcdf);
+    e->AssureLongScalarPar(2+add, outcdf);
 
     //All variables are done.
 
@@ -535,7 +618,6 @@ return;
 
     if(status == NC_NOERR) return new DIntGDL(outvar);
     return new DIntGDL(-1);
-
   }
 
 
@@ -550,8 +632,8 @@ return;
 
 
     //get the cdfid, which must be given.
-    DInt cdfid, varid;
-    e->AssureScalarPar<DIntGDL>(0, cdfid);
+    DLong cdfid, varid;
+    e->AssureLongScalarPar(0, cdfid);
     varid=0;
 
     if(e->KeywordSet(0) && nParam == 3)
@@ -570,7 +652,17 @@ return;
 	varid=NC_GLOBAL;
 	
       } else {
-	e->AssureScalarPar<DIntGDL>(1, varid);
+	BaseGDL* p1 = e->GetParDefined( 1);
+	if (p1->Type() != STRING) {
+	  // Numeric
+	  e->AssureLongScalarPar(1, varid);
+	} else {
+	  // String
+	  DString var_name;
+	  e->AssureScalarPar<DStringGDL>(1, var_name);
+	  status=nc_inq_varid(cdfid, var_name.c_str(), &varid);
+	  ncdf_handle_error(e,status,"NCDF_ATTNAME");
+	}
 	e->AssureStringScalarPar(2, attname);
       }
     //we have the cdfid, varid, attname
@@ -595,8 +687,8 @@ return;
 
 
     //get the cdfid, which must be given.
-    DInt cdfid, varid;
-    e->AssureScalarPar<DIntGDL>(0, cdfid);
+    DLong cdfid, varid;
+    e->AssureLongScalarPar(0, cdfid);
 
     varid=0;
 
@@ -617,7 +709,18 @@ return;
 	varid=NC_GLOBAL;
 	
       } else {
-	e->AssureScalarPar<DIntGDL>(1, varid);
+	// Check type of varid
+	BaseGDL* p1 = e->GetParDefined( 1);
+	if (p1->Type() != STRING) {
+	  // Numeric
+	  e->AssureLongScalarPar(1, varid);
+	} else {
+	  // String
+	  DString var_name;
+	  e->AssureScalarPar<DStringGDL>(1, var_name);
+	  status=nc_inq_varid(cdfid, var_name.c_str(), &varid);
+	  ncdf_handle_error(e,status,"NCDF_ATTNAME");
+	}
 	e->AssureStringScalarPar(2, attname);
 	e->AssureStringScalarPar(3, newname);
       }

@@ -106,10 +106,8 @@ namespace lib {
 
     int status, dim_id;
 
-
-
     DString in_string;
-    DInt cdfid, dimid;
+    DInt cdfid;
     e->AssureScalarPar<DIntGDL>(0, cdfid);
 
     DString dim_name;
@@ -195,10 +193,21 @@ namespace lib {
     
     //get the cdfid, which must be given.
     DString newname;
-    DInt cdfid, dimid;
-    e->AssureScalarPar<DIntGDL>(0, cdfid);
-    e->AssureScalarPar<DIntGDL>(1, dimid);
-	
+    DLong cdfid, dimid;
+    e->AssureLongScalarPar(0, cdfid);
+
+    BaseGDL* p1 = e->GetParDefined( 1);
+    if (p1->Type() != STRING) {
+      // Numeric
+      e->AssureLongScalarPar(1, dimid);
+    } else {
+      // String
+      DString dim_name;
+      e->AssureScalarPar<DStringGDL>(1, dim_name);
+      status=nc_inq_dimid(cdfid, dim_name.c_str(),&dimid);
+      ncdf_handle_error(e,status,"NCDF_DIMRENAME");
+    }
+
     e->AssureStringScalarPar(2, newname);
     
     //we have the cdfid, dimid, newname
