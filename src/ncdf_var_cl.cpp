@@ -114,7 +114,9 @@ namespace lib {
   }
 
 
-  template <typename T> void ncdf_var_handle_error(EnvT *e, int status, const char *function,T* data)
+  template <typename T> void ncdf_var_handle_error(EnvT *e, int status, 
+						   const char *function,
+						   T* data)
   {
 
     if(data != NULL and status!=NC_NOERR) delete data;
@@ -471,7 +473,8 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 
 
 
-	dimension dim((const DLong *) transposed_dim_length, (SizeT) var_ndims);
+	dimension dim((const DLong *) transposed_dim_length, 
+		      (SizeT) var_ndims);
 	if(var_type == NC_DOUBLE){
 	  double* dvar=new double[array_size];
 	  
@@ -483,7 +486,7 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 
 	  memcpy(&(*temp)[0],&(*dvar),array_size*sizeof(double));	      
 	
-	  delete dvar;
+	  delete [] dvar;
 	  /*	  status=transpose_perm((char *)&(*temp)[0], 
 		  var_ndims,dim_length,sizeof(double),temp->Type(),trans);*/
 	  delete e->GetParGlobal(2);
@@ -500,7 +503,7 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 
 	  memcpy(&(*temp)[0],&(*fvar),array_size*sizeof(float));	      
 	
-	  delete fvar;
+	  delete [] fvar;
 	  /*	  status=transpose_perm((char *)&(*temp)[0], 
 		  var_ndims,dim_length,sizeof(float),temp->Type(),trans);
 	  */
@@ -549,7 +552,8 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 	  ncdf_var_handle_error(e,status,"NCDF_VARGET",bvar);
 
 
-	  memcpy(&(*temp)[0],&(*bvar),array_size*sizeof(unsigned char));	      
+	  memcpy(&(*temp)[0],&(*bvar),array_size*sizeof(unsigned char));
+
 	  delete bvar;
 	  /*	  status=transpose_perm((char *)&(*temp)[0], 
 		  var_ndims,dim_length,sizeof(unsigned char),temp->Type(),trans);*/
@@ -565,8 +569,9 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 	  ncdf_var_handle_error(e,status,"NCDF_VARGET",cvar);
 	  
 
-	  memcpy(&(*temp)[0],&(*cvar),array_size*sizeof(unsigned char));	      
-	  delete cvar;
+	  memcpy(&(*temp)[0],&(*cvar),array_size*sizeof(unsigned char));
+
+	  delete [] cvar;
 	  /*	  status=transpose_perm((char *)&(*temp)[0], 
 		  var_ndims,dim_length,sizeof(unsigned char),temp->Type(),trans);*/
 	  delete e->GetParGlobal(2);
@@ -679,7 +684,7 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 
 		memcpy(&(*temp)[0],&(*dvar),array_size*sizeof(double));	      
 		
-		delete dvar;
+		delete [] dvar;
 		/*		status=transpose_perm((char *)&(*temp)[0], 
 				var_ndims,cou,sizeof(double),temp->Type(),trans);*/
 		delete e->GetParGlobal(2);
@@ -698,7 +703,7 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 
 		memcpy(&(*temp)[0],&(*fvar),array_size*sizeof(float));	      
 		
-		delete fvar;
+		delete [] fvar;
 		/*		status=transpose_perm((char *)&(*temp)[0], 
 				var_ndims,cou,sizeof(float),temp->Type(),trans);*/
 		delete e->GetParGlobal(2);
@@ -717,7 +722,7 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 
 		memcpy(&(*temp)[0],&(*svar),array_size*sizeof(short));	      
 		
-		delete svar;
+		delete [] svar;
 		/*		status=transpose_perm((char *)&(*temp)[0], 
 				var_ndims,cou,sizeof(short),temp->Type(),trans);*/
 		delete e->GetParGlobal(2);
@@ -736,7 +741,7 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 
 		memcpy(&(*temp)[0],&(*ivar),array_size*sizeof(int));	      
 
-		delete ivar;
+		delete [] ivar;
 		/*		status=transpose_perm((char *)&(*temp)[0], 
 				var_ndims,cou,sizeof(int),temp->Type(),trans);*/
 		delete e->GetParGlobal(2);
@@ -755,7 +760,7 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 
 		memcpy(&(*temp)[0],&(*bvar),array_size*sizeof(unsigned char));	      
 
-		delete bvar;
+		delete [] bvar;
 		/*		status=transpose_perm((char *)&(*temp)[0], 
 				var_ndims,cou,sizeof(unsigned char),temp->Type(),trans);*/
 		delete e->GetParGlobal(2);
@@ -774,7 +779,7 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 
 		memcpy(&(*temp)[0],&(*cvar),array_size*sizeof(unsigned char));	      
 		
-		delete cvar;
+		delete [] cvar;
 		/*		status=transpose_perm((char *)&(*temp)[0], 
 				      var_ndims,cou,sizeof(unsigned char),
 				      temp->Type(),trans);*/
@@ -867,7 +872,7 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 
 		memcpy(&(*temp)[0],&(*dvar),array_size*sizeof(double));	      
 		
-		delete dvar;
+		delete [] dvar;
 		/*		status=transpose_perm((char *)&(*temp)[0], 
 				var_ndims,cou,sizeof(double),temp->Type(),trans);*/
 		e->GetParGlobal(2)=temp;      	
@@ -889,7 +894,7 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 
 		memcpy(&(*temp)[0],&(*fvar),array_size*sizeof(float));	      
 		
-		delete fvar;
+		delete [] fvar;
 		/*		status=transpose_perm((char *)&(*temp)[0], 
 				var_ndims,cou,sizeof(float),temp->Type(),trans);*/
 		delete e->GetParGlobal(2);
@@ -908,7 +913,7 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 
 		memcpy(&(*temp)[0],&(*svar),array_size*sizeof(short));	      
 		
-		delete svar;
+		delete [] svar;
 		/*		status=transpose_perm((char *)&(*temp)[0], 
 				var_ndims,cou,sizeof(short),temp->Type(),trans);*/
 		delete e->GetParGlobal(2);
@@ -927,7 +932,7 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 
 		memcpy(&(*temp)[0],&(*ivar),array_size*sizeof(int));	      
 		
-		delete ivar;
+		delete [] ivar;
 		/*		status=transpose_perm((char *)&(*temp)[0], 
 				var_ndims,cou,sizeof(int),temp->Type(),trans);*/
 		delete e->GetParGlobal(2);
@@ -944,9 +949,9 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 
 		ncdf_var_handle_error(e,status,"NCDF_VARGET",bvar);
 
-		memcpy(&(*temp)[0],&(*bvar),array_size*sizeof(unsigned char));	      
+		memcpy(&(*temp)[0],&(*bvar),array_size*sizeof(unsigned char));
 		
-		delete bvar;
+		delete [] bvar;
 		/*		status=transpose_perm((char *)&(*temp)[0], 
 				var_ndims,cou,sizeof(unsigned char),temp->Type(),trans);*/
 		delete e->GetParGlobal(2);
@@ -963,9 +968,9 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 
 		ncdf_var_handle_error(e,status,"NCDF_VARGET",cvar);
 
-		memcpy(&(*temp)[0],&(*cvar),array_size*sizeof(unsigned char));	      
+		memcpy(&(*temp)[0],&(*cvar),array_size*sizeof(unsigned char));
 		
-		delete cvar;
+		delete [] cvar;
 		/*		status=transpose_perm((char *)&(*temp)[0], 
 				      var_ndims,cou,sizeof(unsigned char),
 				      temp->Type(),trans);*/
@@ -1101,7 +1106,10 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
     SizeT transposed_dim_length[NC_MAX_VAR_DIMS];
     long trans[NC_MAX_VAR_DIMS], retrans[NC_MAX_VAR_DIMS];
 
-    nc_type type;
+    int var_dims[NC_MAX_VAR_DIMS],var_natts;
+    char var_name[NC_MAX_NAME];
+
+    nc_type var_type;
 
     //get the cdfid
     BaseGDL* v;
@@ -1119,12 +1127,15 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
       DString var_name;
       e->AssureScalarPar<DStringGDL>(1, var_name);
       status=nc_inq_varid(cdfid, var_name.c_str(), &varid);
-      ncdf_handle_error(e,status,"NCDF_VARGET");
+      ncdf_handle_error(e,status,"NCDF_VARPUT");
     }
+
+    status=nc_inq_var(cdfid,varid,var_name,&var_type,(int *) &var_ndims,
+		      var_dims,&var_natts);
 
     //get the value
     v=e->GetParDefined(2);
-    var_ndims=v->Rank();
+    // var_ndims=v->Rank();
     value_nelem=v->N_Elements();
     for (i=0;i<var_ndims;++i)
       {
@@ -1243,7 +1254,8 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 	  }
 	else
 	  {
-	  for (i=0;i<NC_MAX_VAR_DIMS;++i)
+	    //	  for (i=0;i<NC_MAX_VAR_DIMS;++i)
+	  for (i=0;i<var_ndims;++i)
 	    {
 	      offset[i]=0;
 	      count[trans[i]]=dim_length[i];
@@ -1285,14 +1297,14 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 	    for (i=0;i<var_ndims;++i) 
 	      {
 		count[i]=dim_length[i];
-		total=total+count[i];
+		total=total*count[i];
 	      }
 	  }
 	  
 	
 	if(e->GetKW(0) != NULL)
 	{
-	  total=0;
+	  total=1;
 	  DIntGDL *c=e->GetKWAs<DIntGDL>(0);
 
 	  ncou=c->N_Elements();
@@ -1306,9 +1318,9 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 		else if((*c)[i] <= 0)
 		  {
 		    count[trans[i]]=1;
-		    negzero_message("NCDF_VARGET: Count ",i,1);
+		    negzero_message("NCDF_VARPUT: Count ",i,1);
 		  }
-		total=total+count[trans[i]];
+		total=total*count[trans[i]];
 	      }
 
 	}
