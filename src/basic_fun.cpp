@@ -1560,7 +1560,11 @@ namespace lib {
     DStringGDL* p0S = e->GetParAs<DStringGDL>( 0);
 
     DString searchString;
-    e->AssureScalarPar<DStringGDL>( 1, searchString);
+//     e->AssureScalarPar<DStringGDL>( 1, searchString);
+    DStringGDL* sStr = e->GetParAs<DStringGDL>( 1);
+    if( !sStr->Scalar( searchString))
+      e->Throw( "Search string must be a scalar or one element array: "+
+		e->GetParString( 1));
 
     DLong pos = string::npos;
     BaseGDL* p2 = e->GetPar( 2);
