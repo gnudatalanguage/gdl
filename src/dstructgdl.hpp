@@ -57,8 +57,8 @@ public:
 	static std::deque< void*> freeList;
 
 	// operator new and delete
- 	void* operator new( size_t bytes);
-	void operator delete( void *ptr);
+ 	static void* operator new( size_t bytes);
+	static void operator delete( void *ptr);
 
   //structors
   ~DStructGDL(); 

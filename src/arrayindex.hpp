@@ -319,6 +319,7 @@ public:
 
   BaseGDL* Index( BaseGDL* var, IxExprListT& ixL)
   {
+
     int ret = ixL[0]->Scalar2index(s);
 
     if( ret == 0) // more than one element
@@ -334,7 +335,14 @@ public:
 	    return var->NewIx( var->Size()-1);
 	  }
 
-	return var->NewIx( s);
+	if( ret == 2)
+	  {
+	    BaseGDL* res = var->NewIx( s);
+	    res->SetDim( dimension( 1));
+	    return res;
+	  }	
+	else
+	  return var->NewIx( s);
       }
     if( strictArrSubs || ret == -1) // scalar index < 0
       {
@@ -344,7 +352,14 @@ public:
 			" with low <= high.");
       }
     // one element array index < 0
-    return var->NewIx( 0);
+    if( ret == -2)
+      {
+	BaseGDL* res = var->NewIx( 0);
+	res->SetDim( dimension( 1));
+	return res;
+      }	
+    else
+      return var->NewIx( 0);
   }
 
   void Init( BaseGDL* ix_) 
