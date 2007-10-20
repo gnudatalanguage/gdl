@@ -90,13 +90,13 @@ namespace lib
     static unsigned archTag = version->Desc()->TagIndex( "ARCH");
     static unsigned mTag = version->Desc()->TagIndex( "MEMORY_BITS");
     DString release = 
-      (*static_cast<DStringGDL*>( version->Get( releaseTag, 0)))[0];
+      (*static_cast<DStringGDL*>( version->GetTag( releaseTag, 0)))[0];
     DString os = 
-      (*static_cast<DStringGDL*>( version->Get( osTag, 0)))[0];
+      (*static_cast<DStringGDL*>( version->GetTag( osTag, 0)))[0];
     DString arch = 
-      (*static_cast<DStringGDL*>( version->Get( archTag, 0)))[0];
+      (*static_cast<DStringGDL*>( version->GetTag( archTag, 0)))[0];
     DInt m = 
-      (*static_cast<DIntGDL*>( version->Get( mTag, 0)))[0];
+      (*static_cast<DIntGDL*>( version->GetTag( mTag, 0)))[0];
 
       write_journal_comment( "GDL Version "+release+" ("+os+" "+arch+" m"+
 			     i2s(m)+")");

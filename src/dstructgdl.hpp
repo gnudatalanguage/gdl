@@ -38,27 +38,30 @@ public:
   typedef SpDStruct        Traits;
 
 private:
+
   typedef SpDStruct::DataT DataT;
   
   //public:
-  DataT dd;           // the data
+  std::deque<BaseGDL*> typeVar;   // for accessing data
+  DataT                dd;        // the data
     
-  // new array, don't init fields (only for New())
-  DStructGDL( DStructDesc* desc_, const dimension& dim_, BaseGDL::InitType iT): 
-    SpDStruct( desc_, dim_), 
-    dd(dim.N_Elements()*desc_->NTags())
+  void InitTypeVar( SizeT t)
   {
-    assert( iT == BaseGDL::NOZERO);
-    dim.Purge();
+    typeVar[ t] = (*Desc())[ t]->GetEmptyInstance();
+    typeVar[ t]->SetBufferSize( (*Desc())[ t]->N_Elements());
+    // no initial SetBuffer here, done anyway in ConstructTag()
   }
+
+  const char* Buf() const { return &dd[0];}
+  char*       Buf()       { return &dd[0];}
 
 public:
 
-	static std::deque< void*> freeList;
+  static std::deque< void*> freeList;
 
-	// operator new and delete
- 	static void* operator new( size_t bytes);
-	static void operator delete( void *ptr);
+  // operator new and delete
+  static void* operator new( size_t bytes);
+  static void operator delete( void *ptr);
 
   //structors
   ~DStructGDL(); 
@@ -66,60 +69,118 @@ public:
   // default (needed for test instantiation)
   //  DStructGDL(): SpDStruct(), d() {}
   
-  // new array
-  DStructGDL( DStructDesc* desc_, const dimension& dim_): 
-    SpDStruct( desc_, dim_), 
-    dd(dim.N_Elements()*desc_->NTags()) //,SpDStruct::zero)
+  // new array (desc defined)
+  DStructGDL( DStructDesc* desc_, const dimension& dim_)
+    : SpDStruct( desc_, dim_)
+    , typeVar( desc_->NTags())
+    , dd( dim.N_Elements() * desc_->NBytes(), false) //,SpDStruct::zero)
   {
     dim.Purge();
     
-    SizeT nEl=dim.N_Elements();
-
-    SizeT nTags=NTags();
-    
-    for( SizeT ii=0; ii < nEl; ii++)
+    SizeT nTags = NTags();
+    for( SizeT t=0; t < nTags; ++t)
       {
-	SizeT iiTag=ii*nTags;
-	for( SizeT i=0; i < nTags; i++)
+	InitTypeVar( t);
+	ConstructTagTo0( t); 
+      }
+  }
+  // new array (desc defined), don't init fields (only for New()) 
+  // (non POD must be initialized (constructed) nevertheless)
+  // or no memeory allocation
+  DStructGDL( DStructDesc* desc_, const dimension& dim_, BaseGDL::InitType iT)
+    : SpDStruct( desc_, dim_) 
+    , typeVar( desc_->NTags())
+    , dd( (iT == BaseGDL::NOALLOC) ? 0 : dim.N_Elements() * desc_->NBytes(), 
+	  false)
+  {
+    assert( iT == BaseGDL::NOZERO || iT == BaseGDL::NOALLOC);
+    dim.Purge();
+
+    if( iT != BaseGDL::NOALLOC)
+      {
+	SizeT nTags = NTags();
+// 	SizeT nEl   = dim.N_Elements();
+	for( SizeT t=0; t < nTags; ++t)
 	  {
-	    dd[iiTag+i]=(*Desc())[i]->GetInstance();
+	    InitTypeVar( t);
+	    ConstructTag( t);
+	  }
+      }
+    else // iT == BaseGDL::NOALLOC
+      {
+	SizeT nTags = NTags();
+	for( SizeT t=0; t < nTags; ++t)
+	  {
+	    InitTypeVar( t);
 	  }
       }
   }
-  
-  // new scalar
-  DStructGDL( DStructDesc* desc_): SpDStruct(desc_), dd(desc_->NTags())
-  { 
-    SizeT nTags=NTags();
 
-    for( SizeT i=0; i < nTags; i++)
-      {
-	dd[i]=(*Desc())[i]->GetInstance();
-      }
+  // c-i (desc defined)
+  DStructGDL(const DStructGDL& d_);
+
+  // For creating new structs (always scalar)
+  DStructGDL( DStructDesc* desc_)
+    : SpDStruct(desc_, dimension(1))
+    , typeVar()
+    , dd()
+  {
+    assert( desc_->NTags() == 0);
+//     SizeT nTags = NTags();
+//     for( SizeT t=0; t < nTags; ++t)
+//       {
+// 	InitTypeVar( t);
+//       }
   }
-
-  // new scalar, creating new descriptor
+  // new struct (always scalar), creating new descriptor
   // intended for internal (C++) use to ease struct definition
   // ATTENTION: This can only be used for NAMED STRUCTS!
   // please use the normal constructor (above) for unnamed structs 
   DStructGDL( const std::string& name_);
   
-  // c-i 
-  DStructGDL(const DStructGDL& d_);
-
 
   // operators
 
   // assignment. 
-  //  DStructGDL& operator=(const DStructGDL& right);
-  
-  inline Ty& operator[] (const SizeT d1) { return dd[d1];}
-  inline const Ty& operator[] (const SizeT d1) const { return dd[d1];}
+  DStructGDL& operator=(const BaseGDL& r)
+  {
+    assert( r.Type() == STRUCT);
+    const DStructGDL& right = static_cast<const DStructGDL&>( r);
 
+    assert( *Desc() == *right.Desc());
+
+    assert( &right != this);
+    if( &right == this) return *this; // self assignment
+
+    this->dim = right.dim;
+
+    SizeT nTags = NTags();
+    SizeT nEl   = N_Elements();
+    for( SizeT e=0; e < nEl; ++e)
+    for( SizeT t=0; t < nTags; ++t)
+      {
+	*GetTag( t, e) = *right.GetTag( t, e);
+      }
+
+    //    dd = right.dd;
+    return *this;
+  }
+ 
+  inline BaseGDL* operator[] (const SizeT d1) 
+  { 
+    return GetTag( d1 % NTags(), d1 / NTags());
+  }
+  inline const BaseGDL* operator[] (const SizeT d1) const
+  { 
+    return GetTag( d1 % NTags(), d1 / NTags());
+  }
 
   // used for named struct definition 
   // (GDLInterpreter, basic_fun (create_struct))
   void SetDesc( DStructDesc* newDesc); 
+
+  DStructGDL* SetBuffer( const void* b);
+  void SetBufferSize( SizeT s);
 
   DStructGDL* CShift( DLong d);
   DStructGDL* CShift( DLong d[MAXRANK]);
@@ -133,8 +194,12 @@ public:
   bool          EqType( const BaseGDL* r) const 
   { return (SpDStruct::t == r->Type());} 
 
-  SizeT N_Elements() const { return dd.size()/NTags();}
-  SizeT Size() const { return dd.size()/NTags();}
+  SizeT N_Elements() const 
+  { 
+    if( dd.size() == 0) return 1;
+    return dd.size()/Sizeof();
+  }
+  SizeT Size() const { return N_Elements();}
   SizeT NBytes() const // for assoc function
   { 
     return (Sizeof() * N_Elements());
@@ -145,35 +210,135 @@ public:
     SizeT nTags=NTags();
     for( SizeT i=0; i < nTags; i++)
       {
-	nB += dd[i]->ToTransfer();
+	nB += GetTag( i)->ToTransfer();
       }
-    return ( nB * N_Elements());
+    return ( nB * N_Elements()); // *** error for string?
   }
   SizeT Sizeof() const
   {
-    SizeT nB = 0;
-    SizeT nTags=NTags();
-    for( SizeT i=0; i < nTags; i++)
-      {
-	nB += dd[i]->NBytes();
-      }
-    return nB;
+    return Desc()->NBytes();
+//     SizeT nB = 0;
+//     SizeT nTags=NTags();
+//     for( SizeT i=0; i < nTags; i++)
+//       {
+// 	nB += desc->GetTag( &dd[0], i)->NBytes();
+//       }
+//     return nB;
   }
 
+private:
+  void ClearTag( SizeT t)
+  {
+    char*    offs = Buf() + Desc()->Offset( t);
+    BaseGDL* tVar  = typeVar[ t];
+    SizeT step    = Desc()->NBytes();
+    SizeT endIx = step * N_Elements();
+    for( SizeT ix=0; ix<endIx; ix+=step)
+      {
+	tVar->SetBuffer( offs + ix)->Clear();
+      }
+  }
+  void ConstructTagTo0( SizeT t)
+  {
+    char*    offs = Buf() + Desc()->Offset( t);
+    BaseGDL* tVar  = typeVar[ t];
+    SizeT step = Desc()->NBytes();
+    SizeT endIx = step * N_Elements();
+    for( SizeT ix=0; ix<endIx; ix+=step)
+      {
+	tVar->SetBuffer( offs + ix)->ConstructTo0();
+      }
+  }
+  void ConstructTag( SizeT t)
+  {
+    BaseGDL* tVar  = typeVar[ t];
+    if( NonPODType( tVar->Type()))
+      {
+	char* offs = Buf() + Desc()->Offset( t);
+	SizeT step = Desc()->NBytes();
+	SizeT endIx = step * N_Elements();
+	for( SizeT ix=0; ix<endIx; ix+=step)
+	  {
+	    tVar->SetBuffer( offs + ix)->Construct();
+	  }
+      }
+    else
+      tVar->SetBuffer( Buf() + Desc()->Offset( t));
+      
+  }
+  void DestructTag( SizeT t)
+  {
+    BaseGDL* tVar  = typeVar[ t];
+    if( NonPODType( tVar->Type()))
+      {
+	char* offs = Buf() + Desc()->Offset( t);
+	SizeT step = Desc()->NBytes();
+	SizeT endIx = step * N_Elements();
+	for( SizeT ix=0; ix<endIx; ix+=step)
+	  {
+	    tVar->SetBuffer( offs + ix)->Destruct();
+	  }
+      }
+  }
+
+public:
   void Clear() 
   {
-    SizeT nEl = dd.size();
-    for( SizeT i = 0; i<nEl; ++i)
-      dd[ i]->Clear();
+    SizeT nTags = NTags();
+    for( SizeT t=0; t < nTags; t++)
+      {
+	ClearTag( t);
+      }
   }
-  
+  void ConstructTo0() 
+  {
+    SizeT nTags = NTags();
+    for( SizeT t=0; t < nTags; t++)
+      {
+	ConstructTagTo0( t);
+      }
+  }
+  void Construct() 
+  {
+    SizeT nTags = NTags();
+    for( SizeT t=0; t < nTags; t++)
+      {
+	ConstructTag( t);
+      }
+  }
+  void Destruct()
+  {
+    SizeT nTags = NTags();
+    for( SizeT t=0; t < nTags; t++)
+      {
+	DestructTag( t);
+      }
+  }
+
   // code in default_io.cpp
   BaseGDL* AssocVar( int, SizeT);
 
   // single element access. 
-  BaseGDL*& Get( SizeT tag, SizeT ix)
+//   BaseGDL*& Get( SizeT tag, SizeT ix)
+  BaseGDL* GetTag( SizeT t, SizeT ix)
   {
-    return dd[ NTags()*ix + tag];
+    if( dd.size() == 0) return typeVar[ t];
+    return typeVar[ t]->SetBuffer( Buf() + Desc()->Offset( t, ix));
+  }
+  BaseGDL* GetTag( SizeT t)
+  {
+    if( dd.size() == 0) return typeVar[ t];
+    return typeVar[ t]->SetBuffer( Buf() + Desc()->Offset( t));
+  }
+  const BaseGDL* GetTag( SizeT t, SizeT ix) const
+  {
+    if( dd.size() == 0) return typeVar[ t];
+    return typeVar[ t]->SetBuffer( Buf() + Desc()->Offset( t, ix));
+  }
+  const BaseGDL* GetTag( SizeT t) const
+  {
+    if( dd.size() == 0) return typeVar[ t];
+    return typeVar[ t]->SetBuffer( Buf() + Desc()->Offset( t));
   }
 
   // single tag access. 
@@ -193,13 +358,14 @@ public:
 
   void AddParent( DStructDesc* p);
 
-private:
-  void AddTag(BaseGDL* data);     // adds copy of data
-  void AddTagGrab(BaseGDL* data); // adds data (only used by ExtraT) 
-  friend class ExtraT;
+// private:
+//   void AddTag( const BaseGDL* data);     // adds copy of data
+//   void AddTagGrab(BaseGDL* data); // adds data (only used by ExtraT) 
+//  friend class ExtraT;
 
 public:
-  // adds data (grabing) also to descriptor (for initialization only)
+  // adds data, grabs, adds also to descriptor (for initialization only)
+  // note that initialization is only for scalars
   void NewTag( const std::string& tName, BaseGDL* data); 
 
   // for easier internal (c++) usage
@@ -210,19 +376,22 @@ public:
     if( tIx == -1)
       throw GDLException("Struct "+Desc()->Name()+
 			 " does not contain tag "+tName+".");
-    static_cast<DataGDL&>(*dd[ tIx]) = data; // copy data
+
+    assert( GetTag( tIx)->N_Elements() == data.N_Elements());
+
+    static_cast<DataGDL&>( *GetTag( tIx)) = data; // copy data
   }
   
   // members
   // used by the interpreter
-  // checks also if scalar is >=0
+  // throws (datatypes.cpp)
   int Scalar2index( SizeT& st) const;
   
   bool Scalar() const 
-  { return (dd.size() == NTags());}
+  { return (N_Elements() == 1);}
   
   // make a duplicate on the heap
-  DStructGDL* Dup() { return new DStructGDL(*this);}
+  DStructGDL* Dup() const { return new DStructGDL(*this);}
   
   DStructGDL* New( const dimension& dim_,
 		   BaseGDL::InitType noZero=BaseGDL::ZERO)
@@ -238,9 +407,15 @@ public:
       {
 	DStructGDL* res =  new DStructGDL( Desc(), dim_, BaseGDL::NOZERO);
 	res->MakeOwnDesc();
-	SizeT nEl = res->dd.size();
+	SizeT nEl = res->N_Elements();
 	SizeT nTags = NTags();
-	for( SizeT i=0; i<nEl; ++i) res->dd[ i] = dd[ i % nTags]->Dup();
+	for( SizeT t=0; t<nTags; ++t)
+	  {
+	    BaseGDL& cpTag = *GetTag( t);
+	    for( SizeT i=0; i<nEl; ++i) 
+	      *res->GetTag( t, i) = cpTag;
+	    // 	      res->dd[ i] = dd[ i % nTags]->Dup();
+	  }
 	return res;
       }
     DStructGDL* res = new DStructGDL( Desc(), dim_);

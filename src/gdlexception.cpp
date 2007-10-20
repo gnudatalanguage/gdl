@@ -22,6 +22,9 @@
 #include "initsysvar.hpp"
 #include "gdljournal.hpp"
 
+#define GDLDEBUG
+//#undef GDLDEBUG
+
 using namespace std;
 
 GDLException::GDLException(const string& s, bool pre): 
@@ -30,7 +33,13 @@ GDLException::GDLException(const string& s, bool pre):
   errorNodeP( NULL),
   line( 0), col( 0), prefix( pre),
 		  targetEnv( NULL)
-{}
+{
+  // note: This is for cases, when form a destructor is thrown
+  // in these cases, program aborts
+#ifdef GDLDEBUG
+   cerr << s << endl;
+#endif
+}
 
 GDLException::GDLException(const RefDNode eN, const string& s): 
   ANTLRException(s), 
@@ -38,7 +47,11 @@ GDLException::GDLException(const RefDNode eN, const string& s):
   errorNodeP( NULL),
   line( 0), col( 0), prefix( true),
 		  targetEnv( NULL)
-{}
+{
+#ifdef GDLDEBUG
+   cerr << s << endl;
+#endif
+}
 
 GDLException::GDLException(const ProgNodeP eN, const string& s): 
   ANTLRException(s), 
@@ -46,7 +59,11 @@ GDLException::GDLException(const ProgNodeP eN, const string& s):
   errorNodeP( eN),
   line( 0), col( 0), prefix( true),
 		  targetEnv( NULL)
-{}
+{
+#ifdef GDLDEBUG
+   cerr << s << endl;
+#endif
+}
 
 GDLException::GDLException(SizeT l, SizeT c, const string& s): 
   ANTLRException(s),
@@ -54,7 +71,11 @@ GDLException::GDLException(SizeT l, SizeT c, const string& s):
   errorNodeP( NULL),
   line( l), col( c), prefix( true),
 		  targetEnv( NULL)
-{}
+{
+#ifdef GDLDEBUG
+   cerr << s << endl;
+#endif
+}
 
 void Message(const string& s) 
 {

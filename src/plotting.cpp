@@ -138,7 +138,7 @@ namespace lib {
     if (device == "PS") {
       static DStructGDL* pStruct = SysVar::P();
       static unsigned noEraseTag = pStruct->Desc()->TagIndex( "NOERASE");
-      (*static_cast<DLongGDL*>( pStruct->Get( noEraseTag, 0)))[0] = 1;
+      (*static_cast<DLongGDL*>( pStruct->GetTag( noEraseTag, 0)))[0] = 1;
     }
   }
 
@@ -553,27 +553,27 @@ namespace lib {
     static unsigned titleTag = pStruct->Desc()->TagIndex( "TITLE");
     static unsigned subTitleTag = pStruct->Desc()->TagIndex( "SUBTITLE");
     p_background = 
-      (*static_cast<DLongGDL*>( pStruct->Get( backgroundTag, 0)))[0];
+      (*static_cast<DLongGDL*>( pStruct->GetTag( backgroundTag, 0)))[0];
     p_noErase = 
-      (*static_cast<DLongGDL*>( pStruct->Get( noEraseTag, 0)))[0];
+      (*static_cast<DLongGDL*>( pStruct->GetTag( noEraseTag, 0)))[0];
     p_color = 
-      (*static_cast<DLongGDL*>( pStruct->Get( colorTag, 0)))[0];
+      (*static_cast<DLongGDL*>( pStruct->GetTag( colorTag, 0)))[0];
     p_psym = 
-      (*static_cast<DLongGDL*>( pStruct->Get( psymTag, 0)))[0];
+      (*static_cast<DLongGDL*>( pStruct->GetTag( psymTag, 0)))[0];
     p_linestyle = 
-      (*static_cast<DLongGDL*>( pStruct->Get( linestyleTag, 0)))[0];
+      (*static_cast<DLongGDL*>( pStruct->GetTag( linestyleTag, 0)))[0];
     p_symsize = 
-      (*static_cast<DFloatGDL*>( pStruct->Get( symsizeTag, 0)))[0];
+      (*static_cast<DFloatGDL*>( pStruct->GetTag( symsizeTag, 0)))[0];
     p_charsize = 
-      (*static_cast<DFloatGDL*>( pStruct->Get( charsizeTag, 0)))[0];
+      (*static_cast<DFloatGDL*>( pStruct->GetTag( charsizeTag, 0)))[0];
     p_thick = 
-      (*static_cast<DFloatGDL*>( pStruct->Get( thickTag, 0)))[0];
+      (*static_cast<DFloatGDL*>( pStruct->GetTag( thickTag, 0)))[0];
     p_title = 
-      (*static_cast<DStringGDL*>( pStruct->Get( titleTag, 0)))[0];
+      (*static_cast<DStringGDL*>( pStruct->GetTag( titleTag, 0)))[0];
     p_subTitle = 
-      (*static_cast<DStringGDL*>( pStruct->Get( subTitleTag, 0)))[0];
+      (*static_cast<DStringGDL*>( pStruct->GetTag( subTitleTag, 0)))[0];
     p_ticklen = 
-      (*static_cast<DFloatGDL*>( pStruct->Get( ticklenTag, 0)))[0];
+      (*static_cast<DFloatGDL*>( pStruct->GetTag( ticklenTag, 0)))[0];
   }
 
   // !X, !Y, !Z
@@ -587,17 +587,17 @@ namespace lib {
     static unsigned axischarsizeTag = xStruct->Desc()->TagIndex( "CHARSIZE");
     static unsigned ticklenTag = xStruct->Desc()->TagIndex( "TICKLEN");
     style = 
-      (*static_cast<DLongGDL*>( xStruct->Get( styleTag, 0)))[0];
+      (*static_cast<DLongGDL*>( xStruct->GetTag( styleTag, 0)))[0];
     title = 
-      (*static_cast<DStringGDL*>( xStruct->Get( axisTitleTag, 0)))[0];
+      (*static_cast<DStringGDL*>( xStruct->GetTag( axisTitleTag, 0)))[0];
     charSize = 
-      (*static_cast<DFloatGDL*>( xStruct->Get( axischarsizeTag, 0)))[0];
+      (*static_cast<DFloatGDL*>( xStruct->GetTag( axischarsizeTag, 0)))[0];
     margin0 = 
-      (*static_cast<DFloatGDL*>( xStruct->Get( marginTag, 0)))[0];
+      (*static_cast<DFloatGDL*>( xStruct->GetTag( marginTag, 0)))[0];
     margin1 = 
-      (*static_cast<DFloatGDL*>( xStruct->Get( marginTag, 0)))[1];
+      (*static_cast<DFloatGDL*>( xStruct->GetTag( marginTag, 0)))[1];
     ticklen = 
-      (*static_cast<DFloatGDL*>( xStruct->Get( ticklenTag, 0)))[0];
+      (*static_cast<DFloatGDL*>( xStruct->GetTag( ticklenTag, 0)))[0];
   }
 
   GDLGStream* GetPlotStream( EnvT* e)
@@ -725,7 +725,7 @@ namespace lib {
       static unsigned positionTag = pStruct->Desc()->TagIndex( "POSITION");
       for( SizeT i=0; i<4; ++i)
 	positionP[i] = (PLFLT)
-	  (*static_cast<DFloatGDL*>(pStruct->Get( positionTag, 0)))[i];
+	  (*static_cast<DFloatGDL*>(pStruct->GetTag( positionTag, 0)))[i];
     }
 
     // If pos == NULL (oplot)
@@ -1034,12 +1034,12 @@ namespace lib {
     static DStructGDL* dStruct = SysVar::D();
     static unsigned nameTag = dStruct->Desc()->TagIndex( "NAME");
     DString d_name = 
-      (*static_cast<DStringGDL*>( dStruct->Get( nameTag, 0)))[0];
+      (*static_cast<DStringGDL*>( dStruct->GetTag( nameTag, 0)))[0];
     // if PS and not noErase (ie, erase) then set !p.noerase=0    
     if (d_name == "PS" && !noErase) {
       static DStructGDL* pStruct = SysVar::P();
       static unsigned noEraseTag = pStruct->Desc()->TagIndex( "NOERASE");
-      (*static_cast<DLongGDL*>( pStruct->Get( noEraseTag, 0)))[0] = 0;
+      (*static_cast<DLongGDL*>( pStruct->GetTag( noEraseTag, 0)))[0] = 0;
     }
 
     // viewport and world coordinates
@@ -1110,24 +1110,24 @@ namespace lib {
     static unsigned windowTag = Struct->Desc()->TagIndex( "WINDOW");
     static unsigned sTag = Struct->Desc()->TagIndex( "S");
     if(Struct != NULL) {
-      (*static_cast<DFloatGDL*>( Struct->Get( windowTag, 0)))[0] = p_xmin;
-      (*static_cast<DFloatGDL*>( Struct->Get( windowTag, 0)))[1] = p_xmax;
+      (*static_cast<DFloatGDL*>( Struct->GetTag( windowTag, 0)))[0] = p_xmin;
+      (*static_cast<DFloatGDL*>( Struct->GetTag( windowTag, 0)))[1] = p_xmax;
 
-      (*static_cast<DDoubleGDL*>( Struct->Get( sTag, 0)))[0] = 
+      (*static_cast<DDoubleGDL*>( Struct->GetTag( sTag, 0)))[0] = 
 	(p_xmin*xEnd - p_xmax*xStart) / (xEnd - xStart);
-      (*static_cast<DDoubleGDL*>( Struct->Get( sTag, 0)))[1] = 
+      (*static_cast<DDoubleGDL*>( Struct->GetTag( sTag, 0)))[1] = 
 	(p_xmax - p_xmin) / (xEnd - xStart);
       
     }
 
     Struct = SysVar::Y();
     if(Struct != NULL) {
-      (*static_cast<DFloatGDL*>( Struct->Get( windowTag, 0)))[0] = p_ymin;
-      (*static_cast<DFloatGDL*>( Struct->Get( windowTag, 0)))[1] = p_ymax;
+      (*static_cast<DFloatGDL*>( Struct->GetTag( windowTag, 0)))[0] = p_ymin;
+      (*static_cast<DFloatGDL*>( Struct->GetTag( windowTag, 0)))[1] = p_ymax;
 
-      (*static_cast<DDoubleGDL*>( Struct->Get( sTag, 0)))[0] = 
+      (*static_cast<DDoubleGDL*>( Struct->GetTag( sTag, 0)))[0] = 
 	(p_ymin*yEnd - p_ymax*yStart) / (yEnd - yStart);
-      (*static_cast<DDoubleGDL*>( Struct->Get( sTag, 0)))[1] = 
+      (*static_cast<DDoubleGDL*>( Struct->GetTag( sTag, 0)))[1] = 
 	(p_ymax - p_ymin) / (yEnd - yStart);
     }
 
@@ -1439,15 +1439,15 @@ namespace lib {
     DStructGDL* yStruct = SysVar::Y();
     unsigned sxTag = xStruct->Desc()->TagIndex( "S");
     unsigned syTag = yStruct->Desc()->TagIndex( "S");
-    sx = &(*static_cast<DDoubleGDL*>( xStruct->Get( sxTag, 0)))[0];
-    sy = &(*static_cast<DDoubleGDL*>( yStruct->Get( syTag, 0)))[0];
+    sx = &(*static_cast<DDoubleGDL*>( xStruct->GetTag( sxTag, 0)))[0];
+    sy = &(*static_cast<DDoubleGDL*>( yStruct->GetTag( syTag, 0)))[0];
     
     DFloat *wx;
     DFloat *wy;
     unsigned xwindowTag = xStruct->Desc()->TagIndex( "WINDOW");
     unsigned ywindowTag = yStruct->Desc()->TagIndex( "WINDOW");
-    wx = &(*static_cast<DFloatGDL*>( xStruct->Get( xwindowTag, 0)))[0];
-    wy = &(*static_cast<DFloatGDL*>( yStruct->Get( ywindowTag, 0)))[0];
+    wx = &(*static_cast<DFloatGDL*>( xStruct->GetTag( xwindowTag, 0)))[0];
+    wy = &(*static_cast<DFloatGDL*>( yStruct->GetTag( ywindowTag, 0)))[0];
     
     xStart = (wx[0] - sx[0]) / sx[1];
     xEnd   = (wx[1] - sx[0]) / sx[1];
@@ -1623,15 +1623,15 @@ namespace lib {
     DStructGDL* yStruct = SysVar::Y();
     unsigned sxTag = xStruct->Desc()->TagIndex( "S");
     unsigned syTag = yStruct->Desc()->TagIndex( "S");
-    sx = &(*static_cast<DDoubleGDL*>( xStruct->Get( sxTag, 0)))[0];
-    sy = &(*static_cast<DDoubleGDL*>( yStruct->Get( syTag, 0)))[0];
+    sx = &(*static_cast<DDoubleGDL*>( xStruct->GetTag( sxTag, 0)))[0];
+    sy = &(*static_cast<DDoubleGDL*>( yStruct->GetTag( syTag, 0)))[0];
     
     DFloat *wx;
     DFloat *wy;
     unsigned xwindowTag = xStruct->Desc()->TagIndex( "WINDOW");
     unsigned ywindowTag = yStruct->Desc()->TagIndex( "WINDOW");
-    wx = &(*static_cast<DFloatGDL*>( xStruct->Get( xwindowTag, 0)))[0];
-    wy = &(*static_cast<DFloatGDL*>( yStruct->Get( ywindowTag, 0)))[0];
+    wx = &(*static_cast<DFloatGDL*>( xStruct->GetTag( xwindowTag, 0)))[0];
+    wy = &(*static_cast<DFloatGDL*>( yStruct->GetTag( ywindowTag, 0)))[0];
     
     xStart = (wx[0] - sx[0]) / sx[1];
     xEnd   = (wx[1] - sx[0]) / sx[1];
@@ -3083,8 +3083,8 @@ namespace lib {
     static DStructGDL* yStruct = SysVar::Y();
     static unsigned sxTag = xStruct->Desc()->TagIndex( "S");
     static unsigned syTag = yStruct->Desc()->TagIndex( "S");
-    sx = &(*static_cast<DDoubleGDL*>( xStruct->Get( sxTag, 0)))[0];
-    sy = &(*static_cast<DDoubleGDL*>( yStruct->Get( syTag, 0)))[0];
+    sx = &(*static_cast<DDoubleGDL*>( xStruct->GetTag( sxTag, 0)))[0];
+    sy = &(*static_cast<DDoubleGDL*>( yStruct->GetTag( syTag, 0)))[0];
 
     bool mapSet=false;
 #ifdef USE_LIBPROJ4
@@ -3242,8 +3242,8 @@ namespace lib {
     static DStructGDL* yStruct = SysVar::Y();
     static unsigned sxTag = xStruct->Desc()->TagIndex( "S");
     static unsigned syTag = yStruct->Desc()->TagIndex( "S");
-    sx = &(*static_cast<DDoubleGDL*>( xStruct->Get( sxTag, 0)))[0];
-    sy = &(*static_cast<DDoubleGDL*>( yStruct->Get( syTag, 0)))[0];
+    sx = &(*static_cast<DDoubleGDL*>( xStruct->GetTag( sxTag, 0)))[0];
+    sy = &(*static_cast<DDoubleGDL*>( yStruct->GetTag( syTag, 0)))[0];
 
     bool mapSet=false;
 #ifdef USE_LIBPROJ4
@@ -3400,9 +3400,9 @@ namespace lib {
       {
 	static unsigned marginTag = Struct->Desc()->TagIndex( "MARGIN");
 	start = 
-	  (*static_cast<DFloatGDL*>( Struct->Get( marginTag, 0)))[0];
+	  (*static_cast<DFloatGDL*>( Struct->GetTag( marginTag, 0)))[0];
 	end = 
-	  (*static_cast<DFloatGDL*>( Struct->Get( marginTag, 0)))[1];
+	  (*static_cast<DFloatGDL*>( Struct->GetTag( marginTag, 0)))[1];
       }
 
     string MarginName=axis+"MARGIN";
@@ -3428,8 +3428,7 @@ namespace lib {
     static DStructGDL* pStruct = SysVar::P();
     DLong background = 
       (*static_cast<DLongGDL*>
-       (pStruct->Get
-	(pStruct->Desc()->TagIndex("BACKGROUND"), 0)))[0];
+       (pStruct->GetTag( pStruct->Desc()->TagIndex("BACKGROUND"), 0)))[0];
     if(kw)
       e->AssureLongScalarKWIfPresent( "BACKGROUND", background);
 
@@ -3447,14 +3446,13 @@ namespace lib {
     static DStructGDL* pStruct = SysVar::P();
     DLong color = 
       (*static_cast<DLongGDL*>
-       (pStruct->Get
-	(pStruct->Desc()->TagIndex("COLOR"), 0)))[0];
+       (pStruct->GetTag( pStruct->Desc()->TagIndex("COLOR"), 0)))[0];
 
     // Get # of colors from DEVICE system variable
     DVar *var=FindInVarList(sysVarList,"D");
     DStructGDL* s = static_cast<DStructGDL*>( var->Data());
     DLong ncolor = (*static_cast<DLongGDL*>
-                    (s->Get(s->Desc()->TagIndex("N_COLORS"), 0)))[0];
+                    (s->GetTag(s->Desc()->TagIndex("N_COLORS"), 0)))[0];
 
     if (ncolor > 256 && color == 255) color = ncolor - 1;
 
@@ -3478,7 +3476,7 @@ namespace lib {
 	static DStructGDL* pStruct = SysVar::P();
 	noErase = (*static_cast<DLongGDL*>
 		   ( pStruct->
-		     Get( pStruct->Desc()->TagIndex("NOERASE"), 0)))[0];
+		     GetTag( pStruct->Desc()->TagIndex("NOERASE"), 0)))[0];
 	if(e->KeywordSet("NOERASE")) {
 	  noErase=1;
 	}
@@ -3505,8 +3503,7 @@ namespace lib {
   {
     static DStructGDL* pStruct = SysVar::P();
     psym= (*static_cast<DLongGDL*>
-	   (pStruct->Get
-	    (pStruct->Desc()->TagIndex("PSYM"), 0)))[0];
+	   (pStruct->GetTag(pStruct->Desc()->TagIndex("PSYM"), 0)))[0];
 
     line = false;
     e->AssureLongScalarKWIfPresent( "PSYM", psym);
@@ -3520,8 +3517,7 @@ namespace lib {
   {
     static DStructGDL* pStruct = SysVar::P();
     DFloat symsize = (*static_cast<DFloatGDL*>
-		      (pStruct->Get
-		       (pStruct->Desc()->TagIndex("SYMSIZE"), 0)))[0];
+		      (pStruct->GetTag( pStruct->Desc()->TagIndex("SYMSIZE"), 0)))[0];
     e->AssureFloatScalarKWIfPresent( "SYMSIZE", symsize);
     if( symsize <= 0.0) symsize = 1.0;
     a->ssym(0.0, symsize);  
@@ -3532,7 +3528,7 @@ namespace lib {
   {
     static DStructGDL* pStruct = SysVar::P();
     charsize = (*static_cast<DFloatGDL*>
-			(pStruct->Get
+			(pStruct->GetTag
 			 ( pStruct->Desc()->TagIndex("CHARSIZE"), 0)))[0];
     if(kw)
       e->AssureFloatScalarKWIfPresent( "CHARSIZE", charsize);
@@ -3545,8 +3541,7 @@ namespace lib {
   {
     static DStructGDL* pStruct = SysVar::P();
     DFloat thick = (*static_cast<DFloatGDL*>
-		    (pStruct->Get
-		     (pStruct->Desc()->TagIndex("THICK"), 0)))[0];
+		    (pStruct->GetTag( pStruct->Desc()->TagIndex("THICK"), 0)))[0];
 
     e->AssureFloatScalarKWIfPresent( "THICK", thick);
     if( thick <= 0.0) thick = 1.0;
@@ -3566,8 +3561,7 @@ namespace lib {
     static DStructGDL* pStruct = SysVar::P();
     DLong linestyle= 
       (*static_cast<DLongGDL*>
-       (pStruct->Get
-	(pStruct->Desc()->TagIndex("LINESTYLE"), 0)))[0];
+       (pStruct->GetTag( pStruct->Desc()->TagIndex("LINESTYLE"), 0)))[0];
 
     if (linestyle < 0 ) {linestyle=0;}
     if (linestyle > 5 ) {linestyle=5;}
@@ -3586,8 +3580,7 @@ namespace lib {
     static DStructGDL* pStruct = SysVar::P();
     DLong linestyle= 
       (*static_cast<DLongGDL*>
-       (pStruct->Get
-	(pStruct->Desc()->TagIndex("LINESTYLE"), 0)))[0];
+       (pStruct->GetTag( pStruct->Desc()->TagIndex("LINESTYLE"), 0)))[0];
 
     // if the LINESTYLE keyword is present, the value will be change
     DLong temp_linestyle=-1111;
@@ -3653,9 +3646,9 @@ namespace lib {
     static unsigned titleTag = pStruct->Desc()->TagIndex( "TITLE");
     static unsigned subTitleTag = pStruct->Desc()->TagIndex( "SUBTITLE");
     DString title =   
-      (*static_cast<DStringGDL*>( pStruct->Get( titleTag, 0)))[0];
+      (*static_cast<DStringGDL*>( pStruct->GetTag( titleTag, 0)))[0];
     DString subTitle =  
-      (*static_cast<DStringGDL*>( pStruct->Get( subTitleTag, 0)))[0];
+      (*static_cast<DStringGDL*>( pStruct->GetTag( subTitleTag, 0)))[0];
     e->AssureStringScalarKWIfPresent( "TITLE", title);
     e->AssureStringScalarKWIfPresent( "SUBTITLE", subTitle);
 
@@ -3675,8 +3668,8 @@ namespace lib {
     if(Struct!=NULL)
       {
 	static unsigned crangeTag = Struct->Desc()->TagIndex( "CRANGE");
-	(*static_cast<DDoubleGDL*>( Struct->Get( crangeTag, 0)))[0] = Start;
-	(*static_cast<DDoubleGDL*>( Struct->Get( crangeTag, 0)))[1] = End;
+	(*static_cast<DDoubleGDL*>( Struct->GetTag( crangeTag, 0)))[0] = Start;
+	(*static_cast<DDoubleGDL*>( Struct->GetTag( crangeTag, 0)))[1] = End;
       }
   }
 
@@ -3689,8 +3682,8 @@ namespace lib {
     if(Struct!=NULL)
       {
 	static unsigned crangeTag = Struct->Desc()->TagIndex( "CRANGE");
-	Start = (*static_cast<DDoubleGDL*>( Struct->Get( crangeTag, 0)))[0]; 
-	End = (*static_cast<DDoubleGDL*>( Struct->Get( crangeTag, 0)))[1];
+	Start = (*static_cast<DDoubleGDL*>( Struct->GetTag( crangeTag, 0)))[0]; 
+	End = (*static_cast<DDoubleGDL*>( Struct->GetTag( crangeTag, 0)))[1];
       }
   }
 
@@ -3702,7 +3695,7 @@ namespace lib {
     if(axis=="Z") Struct = SysVar::Z();
     if(Struct != NULL) {
       static unsigned typeTag = Struct->Desc()->TagIndex( "TYPE");
-      if ((*static_cast<DLongGDL*>(Struct->Get( typeTag, 0)))[0] == 1)
+      if ((*static_cast<DLongGDL*>(Struct->GetTag( typeTag, 0)))[0] == 1)
 	log = 1;
       else
 	log=0;
@@ -3715,7 +3708,7 @@ namespace lib {
     if(Struct != NULL) {
       static unsigned typeTag = Struct->Desc()->TagIndex( "TYPE");
 
-      if ((*static_cast<DLongGDL*>(Struct->Get( typeTag, 0)))[0] == 3)
+      if ((*static_cast<DLongGDL*>(Struct->GetTag( typeTag, 0)))[0] == 3)
 	mapset = 1;
       else
 	mapset = 0;
@@ -3728,7 +3721,7 @@ namespace lib {
     if(Struct!=NULL)
       {
 	static unsigned typeTag = Struct->Desc()->TagIndex( "TYPE");
-	(*static_cast<DLongGDL*>( Struct->Get( typeTag, 0)))[0] = mapset;
+	(*static_cast<DLongGDL*>( Struct->GetTag( typeTag, 0)))[0] = mapset;
       }
   }
   
@@ -3743,7 +3736,7 @@ namespace lib {
     if(Struct!=NULL)
       {
 	static unsigned typeTag = Struct->Desc()->TagIndex("TYPE");   
-	(*static_cast<DLongGDL*>(Struct->Get(typeTag, 0)))[0] = Type; 
+	(*static_cast<DLongGDL*>(Struct->GetTag(typeTag, 0)))[0] = Type; 
       }
   }
 
@@ -3757,7 +3750,7 @@ namespace lib {
       {
 	static unsigned charsizeTag = Struct->Desc()->TagIndex("CHARSIZE");
 	charsize = 
-	  (*static_cast<DFloatGDL*>( Struct->Get( charsizeTag, 0)))[0];
+	  (*static_cast<DFloatGDL*>( Struct->GetTag( charsizeTag, 0)))[0];
       }
 
     string Charsize_s=axis+"CHARSIZE";
@@ -3776,7 +3769,7 @@ namespace lib {
       {
 	static unsigned styleTag = Struct->Desc()->TagIndex( "STYLE");
 	style = 
-	  (*static_cast<DLongGDL*>( Struct->Get( styleTag, 0)))[0];
+	  (*static_cast<DLongGDL*>( Struct->GetTag( styleTag, 0)))[0];
       }
 
     string StyleName=axis+"STYLE";
@@ -3793,7 +3786,7 @@ namespace lib {
       {
 	static unsigned titleTag = Struct->Desc()->TagIndex("TITLE");
 	title = 
-	  (*static_cast<DStringGDL*>( Struct->Get( titleTag, 0)))[0];
+	  (*static_cast<DStringGDL*>( Struct->GetTag( titleTag, 0)))[0];
       }
 
     string TitleName=axis+"TITLE";
@@ -3832,8 +3825,8 @@ namespace lib {
     if(Struct!=NULL)
       {
 	static unsigned marginTag = Struct->Desc()->TagIndex( "MARGIN");
-	low = (*static_cast<DFloatGDL*>( Struct->Get( marginTag, 0)))[0]; 
-	high = (*static_cast<DFloatGDL*>( Struct->Get( marginTag, 0)))[1];
+	low = (*static_cast<DFloatGDL*>( Struct->GetTag( marginTag, 0)))[0]; 
+	high = (*static_cast<DFloatGDL*>( Struct->GetTag( marginTag, 0)))[1];
       }
   }
 
@@ -4281,14 +4274,14 @@ namespace lib {
     static unsigned sxTag = xStruct->Desc()->TagIndex( "S");
     static unsigned syTag = yStruct->Desc()->TagIndex( "S");
     static unsigned szTag = zStruct->Desc()->TagIndex( "S");
-    DDouble *sx = &(*static_cast<DDoubleGDL*>( xStruct->Get( sxTag, 0)))[0];
-    DDouble *sy = &(*static_cast<DDoubleGDL*>( yStruct->Get( syTag, 0)))[0];
-    DDouble *sz = &(*static_cast<DDoubleGDL*>( zStruct->Get( szTag, 0)))[0];
+    DDouble *sx = &(*static_cast<DDoubleGDL*>( xStruct->GetTag( sxTag, 0)))[0];
+    DDouble *sy = &(*static_cast<DDoubleGDL*>( yStruct->GetTag( syTag, 0)))[0];
+    DDouble *sz = &(*static_cast<DDoubleGDL*>( zStruct->GetTag( szTag, 0)))[0];
     static unsigned xtTag = xStruct->Desc()->TagIndex( "TYPE");
     static unsigned ytTag = yStruct->Desc()->TagIndex( "TYPE");
     static unsigned ztTag = zStruct->Desc()->TagIndex( "TYPE");
-    DLong xt = (*static_cast<DLongGDL*>( xStruct->Get( xtTag, 0)))[0];
-    DLong yt = (*static_cast<DLongGDL*>( xStruct->Get( ytTag, 0)))[0];
+    DLong xt = (*static_cast<DLongGDL*>( xStruct->GetTag( xtTag, 0)))[0];
+    DLong yt = (*static_cast<DLongGDL*>( xStruct->GetTag( ytTag, 0)))[0];
 
     DLong xv=1, yv=1;
     int xSize, ySize, xPos, yPos;
@@ -4299,8 +4292,8 @@ namespace lib {
       static DStructGDL* dStruct = SysVar::D();
       static unsigned xsizeTag = dStruct->Desc()->TagIndex( "X_SIZE");
       static unsigned ysizeTag = dStruct->Desc()->TagIndex( "Y_SIZE");
-      xSize = (*static_cast<DLongGDL*>( dStruct->Get( xsizeTag, 0)))[0];
-      ySize = (*static_cast<DLongGDL*>( dStruct->Get( ysizeTag, 0)))[0];
+      xSize = (*static_cast<DLongGDL*>( dStruct->GetTag( xsizeTag, 0)))[0];
+      ySize = (*static_cast<DLongGDL*>( dStruct->GetTag( ysizeTag, 0)))[0];
     } else {
       bool success = actDevice->WSize(wIx, &xSize, &ySize, &xPos, &yPos);
     }
@@ -4313,8 +4306,8 @@ namespace lib {
     static xVSTag = dSysVarDesc->TagIndex( "X_VSIZE");
     static yVSTag = dSysVarDesc->TagIndex( "Y_VSIZE");
 
-    DLong xv = (*static_cast<DLongGDL*>( dStruct->Get( xvTag, 0)))[0];
-    DLong yv = (*static_cast<DLongGDL*>( dStruct->Get( yvTag, 0)))[0];
+    DLong xv = (*static_cast<DLongGDL*>( dStruct->GetTag( xvTag, 0)))[0];
+    DLong yv = (*static_cast<DLongGDL*>( dStruct->GetTag( yvTag, 0)))[0];
     */
 
     if (p0->Type() == DOUBLE || e->KeywordSet("DOUBLE")) {

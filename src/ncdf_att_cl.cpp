@@ -187,8 +187,8 @@ namespace lib {
 	ncdf_attinq->AddTag("DATATYPE", &aString);
 	ncdf_attinq->AddTag("LENGTH",  &aLong);
 
-	structList.push_back(ncdf_attinq);
-	DStructGDL* inq=new DStructGDL(ncdf_attinq);
+	// never for unnamed structs: //structList.push_back(ncdf_attinq);
+	DStructGDL* inq=new DStructGDL(ncdf_attinq,dimension());
 	
 	inq->InitTag("DATATYPE",ncdf_gdl_typename(att_type));
 	inq->InitTag("LENGTH", DLongGDL(length));

@@ -31,8 +31,8 @@ class DeviceZ: public Graphics
   void plimage_gdl(unsigned char *idata, PLINT nx, PLINT ny, 
 		   PLINT xLL, PLINT yLL, DLong tru, DLong chan)
   {
-    DLong xsize = (*static_cast<DLongGDL*>( dStruct->Get( xSTag, 0)))[0];
-    DLong ysize = (*static_cast<DLongGDL*>( dStruct->Get( ySTag, 0)))[0];
+    DLong xsize = (*static_cast<DLongGDL*>( dStruct->GetTag( xSTag)))[0];
+    DLong ysize = (*static_cast<DLongGDL*>( dStruct->GetTag( ySTag)))[0];
 
     PLINT ix, iy; //, xm, ym;
 
@@ -97,8 +97,8 @@ class DeviceZ: public Graphics
     if( nx <= 0) nx = 1;
     if( ny <= 0) ny = 1;
 
-    DLong& actX = (*static_cast<DLongGDL*>( dStruct->Get( xSTag, 0)))[0];
-    DLong& actY = (*static_cast<DLongGDL*>( dStruct->Get( ySTag, 0)))[0];
+    DLong& actX = (*static_cast<DLongGDL*>( dStruct->GetTag( xSTag, 0)))[0];
+    DLong& actY = (*static_cast<DLongGDL*>( dStruct->GetTag( ySTag, 0)))[0];
 
     // always allocate the buffer with creating a new stream
     actStream = new GDLZStream( nx, ny);
@@ -205,8 +205,8 @@ public:
       }
     else if( zBuffer == NULL)
       {
-	DLong& actX = (*static_cast<DLongGDL*>( dStruct->Get( xSTag, 0)))[0];
-	DLong& actY = (*static_cast<DLongGDL*>( dStruct->Get( ySTag, 0)))[0];
+	DLong& actX = (*static_cast<DLongGDL*>( dStruct->GetTag( xSTag, 0)))[0];
+	DLong& actY = (*static_cast<DLongGDL*>( dStruct->GetTag( ySTag, 0)))[0];
 	
 	SetZBuffer( actX, actY);
       }
@@ -215,8 +215,8 @@ public:
   
   bool SetResolution( DLong nx, DLong ny)
   {
-    DLong& actX = (*static_cast<DLongGDL*>( dStruct->Get( xSTag, 0)))[0];
-    DLong& actY = (*static_cast<DLongGDL*>( dStruct->Get( ySTag, 0)))[0];
+    DLong& actX = (*static_cast<DLongGDL*>( dStruct->GetTag( xSTag, 0)))[0];
+    DLong& actY = (*static_cast<DLongGDL*>( dStruct->GetTag( ySTag, 0)))[0];
 
     if( nx == actX && ny == actY) return true;
 
@@ -230,8 +230,8 @@ public:
     actX = nx;
     actY = ny;
 
-    DLong& actXV = (*static_cast<DLongGDL*>( dStruct->Get( xVSTag, 0)))[0];
-    DLong& actYV = (*static_cast<DLongGDL*>( dStruct->Get( yVSTag, 0)))[0];
+    DLong& actXV = (*static_cast<DLongGDL*>( dStruct->GetTag( xVSTag, 0)))[0];
+    DLong& actYV = (*static_cast<DLongGDL*>( dStruct->GetTag( yVSTag, 0)))[0];
 
     actXV = nx;
     actYV = ny;
@@ -241,8 +241,8 @@ public:
 
   void ClearStream( DLong bColor)
   {
-    DLong& actX = (*static_cast<DLongGDL*>( dStruct->Get( xSTag, 0)))[0];
-    DLong& actY = (*static_cast<DLongGDL*>( dStruct->Get( ySTag, 0)))[0];
+    DLong& actX = (*static_cast<DLongGDL*>( dStruct->GetTag( xSTag, 0)))[0];
+    DLong& actY = (*static_cast<DLongGDL*>( dStruct->GetTag( ySTag, 0)))[0];
 
     for( SizeT i=0; i<actX * (actY+1) * 3; ++i)
       memBuffer[i] = bColor;
@@ -251,8 +251,8 @@ public:
 
   BaseGDL* TVRD( EnvT* e)
   {
-    DLong xsize = (*static_cast<DLongGDL*>( dStruct->Get( xSTag, 0)))[0];
-    DLong ysize = (*static_cast<DLongGDL*>( dStruct->Get( ySTag, 0)))[0];
+    DLong xsize = (*static_cast<DLongGDL*>( dStruct->GetTag( xSTag, 0)))[0];
+    DLong ysize = (*static_cast<DLongGDL*>( dStruct->GetTag( ySTag, 0)))[0];
 
     if( memBuffer == NULL)
       {
@@ -278,8 +278,8 @@ public:
 
     //    actStream->NextPlot( false); // JMG
 
-    DLong xsize = (*static_cast<DLongGDL*>( dStruct->Get( xSTag, 0)))[0];
-    DLong ysize = (*static_cast<DLongGDL*>( dStruct->Get( ySTag, 0)))[0];
+    DLong xsize = (*static_cast<DLongGDL*>( dStruct->GetTag( xSTag, 0)))[0];
+    DLong ysize = (*static_cast<DLongGDL*>( dStruct->GetTag( ySTag, 0)))[0];
 
     DLong xLL=0, yLL=0, pos=0;
     if (nParam == 2) {

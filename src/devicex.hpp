@@ -221,14 +221,14 @@ class DeviceX: public Graphics
 // 	PLINT xleng; PLINT yleng;
 // 	PLINT xoff; PLINT yoff;
 // 	winList[ wIx]->gpage( xp, yp, xleng, yleng, xoff, yoff);
-	(*static_cast<DLongGDL*>( dStruct->Get( xSTag, 0)))[0] = xsize;
-	(*static_cast<DLongGDL*>( dStruct->Get( ySTag, 0)))[0] = ysize;
-	(*static_cast<DLongGDL*>( dStruct->Get( xVSTag, 0)))[0] = xsize;
-	(*static_cast<DLongGDL*>( dStruct->Get( yVSTag, 0)))[0] = ysize;
+	(*static_cast<DLongGDL*>( dStruct->GetTag( xSTag)))[0] = xsize;
+	(*static_cast<DLongGDL*>( dStruct->GetTag( ySTag)))[0] = ysize;
+	(*static_cast<DLongGDL*>( dStruct->GetTag( xVSTag)))[0] = xsize;
+	(*static_cast<DLongGDL*>( dStruct->GetTag( yVSTag)))[0] = ysize;
       }	
 
     // window number
-    (*static_cast<DLongGDL*>( dStruct->Get( wTag, 0)))[0] = wIx;
+    (*static_cast<DLongGDL*>( dStruct->GetTag( wTag)))[0] = wIx;
 
     actWin = wIx;
   }

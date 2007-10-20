@@ -58,23 +58,42 @@ void DStructGDL::operator delete( void *ptr)
 
 DStructGDL::~DStructGDL() 
 {  
-  SizeT nD=dd.size();
-  for( SizeT i=0; i < nD; ++i) delete dd[i];
+  if( dd.size() == 0)
+    {
+      SizeT nTags = NTags();
+      for( SizeT t=0; t < nTags; ++t)
+	{
+	  delete typeVar[ t];
+	}
+    }
+  else
+    {
+      SizeT nTags = NTags();
+      if( dd.GetBuffer() != NULL)
+	for( SizeT t=0; t < nTags; ++t)
+	  {
+	    DestructTag( t);
+	    typeVar[ t]->SetBuffer( NULL);
+	    delete typeVar[ t];
+	  }
+      else
+	for( SizeT t=0; t < nTags; ++t)
+	  {
+	    typeVar[ t]->SetBuffer( NULL);
+	    delete typeVar[ t];
+	  }
+    }
 }
 
 // new scalar, creating new descriptor
 // intended for internal (C++) use to ease struct definition
-DStructGDL::DStructGDL( const string& name_): SpDStruct( NULL), dd()
+DStructGDL::DStructGDL( const string& name_)
+  : SpDStruct( NULL, dimension(1))
+  , typeVar()
+  , dd()
 { 
-  if( name_[0] == '$') // unnamed struct 
-    {
-      cerr << "DStructGDL::DStructGDL( const string&) used"
-	" for unnamed struct" << endl;
-      throw exception(); 
-      //      desc = new DStructDesc( name_);
-      //      return;
-    }
-  
+  assert( name_[0] != '$'); // check for unnamed struct 
+ 
   desc = FindInStructList( structList, name_);
                 
   if( desc == NULL)
@@ -86,26 +105,41 @@ DStructGDL::DStructGDL( const string& name_): SpDStruct( NULL), dd()
     { 
       SizeT nTags=NTags();
 
-      dd.resize( nTags);
-      
-      for( SizeT i=0; i < nTags; i++)
+      dd.resize( Desc()->NBytes());
+
+      typeVar.resize( nTags);
+
+      for( SizeT t=0; t < nTags; ++t)
 	{
-	  dd[i]=(*desc)[i]->GetInstance();
+	  InitTypeVar( t);
+	  ConstructTagTo0( t);
 	}
     }
 }
  
   // c-i 
-DStructGDL::DStructGDL(const DStructGDL& d_): 
-  SpDStruct(d_.desc, d_.dim), 
-  dd(d_.dd.size()) 
+DStructGDL::DStructGDL(const DStructGDL& d_)
+  : SpDStruct(d_.desc, d_.dim) 
+  , typeVar( d_.NTags())
+  , dd(d_.NBytes(), false) 
 {
   MakeOwnDesc();
 
-  SizeT nEl=dd.size();
-  for( SizeT i=0; i<nEl; i++)
+  SizeT nTags = NTags();
+  SizeT nEl   = N_Elements();
+  for( SizeT t=0; t < nTags; ++t)
     {
-      dd[i]=d_.dd[i]->Dup();
+      typeVar[ t] = d_.typeVar[ t]->GetEmptyInstance();
+      typeVar[ t]->SetBufferSize( d_.typeVar[ t]->N_Elements());
+
+      // problem:
+      // for struct typeVar
+      // typeVar[ t].typeVar[] has their buffers not set yet
+
+      ConstructTag( t);
+
+      for( SizeT i=0; i < nEl; ++i)
+	*GetTag( t, i) = *d_.GetTag( t, i);
     }
 }
 
@@ -148,12 +182,22 @@ void DStructGDL::SetDesc( DStructDesc* nDesc)
 
       if( ConvertableType( actTType))     // not for struct, obj, ptr
 	{
-	  if( dd[ t]->Type() != actTType)
-	    dd[ t] = dd[ t]->Convert2( actTType);
+	  if( typeVar[ t]->Type() != actTType)
+	    typeVar[ t] = typeVar[ t]->Convert2( actTType);
 	}
     }
   // finally replace the descriptor
   this->SpDStruct::SetDesc( nDesc);
+}
+
+DStructGDL* DStructGDL::SetBuffer( const void* b)
+{
+  dd.SetBuffer( static_cast< Ty*>(const_cast<void*>( b)));
+  return this;
+}
+void DStructGDL::SetBufferSize( SizeT s)
+{
+  dd.SetBufferSize( s * Desc()->NBytes());
 }
 
 
@@ -161,12 +205,16 @@ DStructGDL* DStructGDL::CShift( DLong d)
 {
   DStructGDL* sh = new DStructGDL( Desc(), dim, BaseGDL::NOZERO);
 
-  SizeT sz = dd.size();
-  d *= NTags();
+  SizeT nEl = N_Elements();
+  SizeT nTag = NTags();
   if( d >= 0)
-    for( SizeT i=0; i<sz; ++i) sh->dd[(i + d) % sz] = dd[i]->Dup();
+    for( SizeT i=0; i<nEl; ++i) 
+    for( SizeT t=0; t<nTag; ++t) 
+      *sh->GetTag( t, (i + d) % nEl) = *GetTag( t, i);
   else
-    for( SizeT i=0; i<sz; ++i) sh->dd[i] = dd[(i - d) % sz]->Dup();
+    for( SizeT i=0; i<nEl; ++i) 
+    for( SizeT t=0; t<nTag; ++t) 
+      *sh->GetTag( t, i) = *GetTag( t, (i - d) % nEl);
 
   return sh;
 }
@@ -203,8 +251,8 @@ DStructGDL* DStructGDL::CShift( DLong s[MAXRANK])
   for( SizeT rSp=1; rSp<nDim; ++rSp)
     dstLonIx += dstIx[ rSp] * stride[ rSp];
 
-  BaseGDL** ddP = &dd[0];
-  BaseGDL** shP = &sh->dd[0];
+/*  BaseGDL** ddP = &dd[0];
+  BaseGDL** shP = &sh->dd[0];*/
   
   for( SizeT a=0; a<nEl; ++srcIx[0],++dstIx[0], ++dstLonIx, ++a)
     {
@@ -225,7 +273,8 @@ DStructGDL* DStructGDL::CShift( DLong s[MAXRANK])
 	}
 
       for( SizeT t=0; t<nTags; ++t)
-	shP[ dstLonIx * nTags + t] = ddP[ a * nTags + t]->Dup();
+	*sh->GetTag( t, dstLonIx) = *GetTag( t, a); 
+// 	shP[ dstLonIx * nTags + t] = ddP[ a * nTags + t]->Dup();
     }
   
   return sh;
@@ -256,11 +305,12 @@ void DStructGDL::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
 	  
 	  for( SizeT c=0; c<nCp; c++)
 	    {
-	      SizeT cTag=c*nTags;
+// 	      SizeT cTag=c*nTags;
 	      for( SizeT tagIx=0; tagIx<nTags; tagIx++)
 		{
-		  delete dd[cTag+tagIx];
-		  dd[ cTag+tagIx]=src->dd[tagIx]->Dup();
+// 		  delete dd[cTag+tagIx];
+// 		  dd[ cTag+tagIx]=src->dd[tagIx]->Dup();
+		  *GetTag( tagIx, c) = *src->GetTag( tagIx);
 		}
 	    }
 	}
@@ -271,11 +321,13 @@ void DStructGDL::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
 	  AllIxT* allIx = ixList->BuildIx();
 	  for( SizeT c=0; c<nCp; c++)
 	    {
-	      SizeT cTag=(*allIx)[ c]*nTags;
+// 	      SizeT cTag=(*allIx)[ c]*nTags;
+	      SizeT cTag=(*allIx)[ c];
 	      for( SizeT tagIx=0; tagIx<nTags; tagIx++)
 		{
-		  delete dd[cTag+tagIx];
-		  dd[ cTag+tagIx]=src->dd[tagIx]->Dup();
+// 		  delete dd[cTag+tagIx];
+// 		  dd[ cTag+tagIx]=src->dd[tagIx]->Dup();
+		  *GetTag( tagIx, cTag) = *src->GetTag( tagIx);
 		}
 	    }
 	}
@@ -297,12 +349,15 @@ void DStructGDL::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
 
 	  for( SizeT c=0; c<nCp; c++)
 	    {
-	      SizeT cTag= c*nTags;
-	      SizeT srcTag= (c+offset)*nTags;
+// 	      SizeT cTag= c*nTags;
+// 	      SizeT srcTag= (c+offset)*nTags;
+	      SizeT cTag= c;
+	      SizeT srcTag= (c+offset);
 	      for( SizeT tagIx=0; tagIx<nTags; tagIx++)
 		{
-		  delete dd[cTag+tagIx];
-		  dd[ cTag+tagIx]=src->dd[srcTag+tagIx]->Dup();
+// 		  delete dd[cTag+tagIx];
+// 		  dd[ cTag+tagIx]=src->dd[srcTag+tagIx]->Dup();
+		  *GetTag( tagIx, cTag) = *src->GetTag( tagIx, srcTag);
 		}
 	    }
  	}
@@ -324,12 +379,15 @@ void DStructGDL::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
 	      AllIxT* allIx = ixList->BuildIx();
 	      for( SizeT c=0; c<nCp; c++)
 		{
-		  SizeT cTag= (*allIx)[ c]*nTags;
-		  SizeT srcTag= (c+offset)*nTags;
+// 		  SizeT cTag= (*allIx)[ c]*nTags;
+// 		  SizeT srcTag= (c+offset)*nTags;
+		  SizeT cTag= (*allIx)[ c];
+		  SizeT srcTag= (c+offset);
 		  for( SizeT tagIx=0; tagIx<nTags; tagIx++)
 		    {
-		      delete dd[cTag+tagIx];
-		      dd[ cTag+tagIx]=src->dd[srcTag+tagIx]->Dup();
+//  		      delete dd[cTag+tagIx];
+// 		      dd[ cTag+tagIx]=src->dd[srcTag+tagIx]->Dup();
+		      *GetTag( tagIx, cTag) = *src->GetTag( tagIx, srcTag);
 		    }
 		}
 	    }
@@ -356,11 +414,12 @@ void DStructGDL::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList)
 	  
 	  for( SizeT c=0; c<nCp; c++)
 	    {
-	      SizeT cTag=c*nTags;
+// 	      SizeT cTag=c*nTags;
 	      for( SizeT tagIx=0; tagIx<nTags; tagIx++)
 		{
-		  delete dd[cTag+tagIx];
-		  dd[ cTag+tagIx]=src->dd[tagIx]->Dup();
+// 		  delete dd[cTag+tagIx];
+// 		  dd[ cTag+tagIx]=src->dd[tagIx]->Dup();
+		  *GetTag( tagIx, c) = *src->GetTag( tagIx);
 		}
 	    }
 	}
@@ -371,11 +430,13 @@ void DStructGDL::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList)
 	  AllIxT* allIx = ixList->BuildIx();
 	  for( SizeT c=0; c<nCp; c++)
 	    {
-	      SizeT cTag=(*allIx)[ c]*nTags;
+// 	      SizeT cTag=(*allIx)[ c]*nTags;
+	      SizeT cTag=(*allIx)[ c];
 	      for( SizeT tagIx=0; tagIx<nTags; tagIx++)
 		{
-		  delete dd[cTag+tagIx];
-		  dd[ cTag+tagIx]=src->dd[tagIx]->Dup();
+// 		  delete dd[cTag+tagIx];
+// 		  dd[ cTag+tagIx]=src->dd[tagIx]->Dup();
+		  *GetTag( tagIx, cTag) = *src->GetTag( tagIx);
 		}
 	    }
 	}
@@ -394,12 +455,11 @@ void DStructGDL::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList)
 
 	  for( SizeT c=0; c<nCp; c++)
 	    {
-	      SizeT cTag= c*nTags;
-	      SizeT srcTag= c*nTags;
 	      for( SizeT tagIx=0; tagIx<nTags; tagIx++)
 		{
-		  delete dd[cTag+tagIx];
-		  dd[ cTag+tagIx]=src->dd[srcTag+tagIx]->Dup();
+// 		  delete dd[cTag+tagIx];
+// 		  dd[ cTag+tagIx]=src->dd[srcTag+tagIx]->Dup();
+		  *GetTag( tagIx, c) = *src->GetTag( tagIx, c);
 		}
 	    }
  	}
@@ -421,12 +481,14 @@ void DStructGDL::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList)
 	      AllIxT* allIx = ixList->BuildIx();
 	      for( SizeT c=0; c<nCp; c++)
 		{
-		  SizeT cTag= (*allIx)[ c]*nTags;
-		  SizeT srcTag= c*nTags;
+// 		  SizeT cTag= (*allIx)[ c]*nTags;
+// 		  SizeT srcTag= c*nTags;
+		  SizeT cTag= (*allIx)[ c];
 		  for( SizeT tagIx=0; tagIx<nTags; tagIx++)
 		    {
-		      delete dd[cTag+tagIx];
-		      dd[ cTag+tagIx]=src->dd[srcTag+tagIx]->Dup();
+// 		      delete dd[cTag+tagIx];
+// 		      dd[ cTag+tagIx]=src->dd[srcTag+tagIx]->Dup();
+		      *GetTag( tagIx, cTag) = *src->GetTag( tagIx, c);
 		    }
 		}
 	    }
@@ -443,42 +505,45 @@ void DStructGDL::AssignAt( BaseGDL* srcIn)
       GDLException( "Conflicting data structures.");
 
   SizeT nTags=NTags();
-  
+
   bool isScalar= src->N_Elements() == 1;
+
   if( isScalar) 
     { // src is scalar
-	  SizeT nCp=N_Elements();
+      SizeT nCp=N_Elements();
 	  
-	  for( SizeT c=0; c<nCp; c++)
+      for( SizeT c=0; c<nCp; c++)
+	{
+	  // 	      SizeT cTag=c*nTags;
+	  for( SizeT tagIx=0; tagIx<nTags; tagIx++)
 	    {
-	      SizeT cTag=c*nTags;
-	      for( SizeT tagIx=0; tagIx<nTags; tagIx++)
-		{
-		  delete dd[cTag+tagIx];
-		  dd[ cTag+tagIx]=src->dd[tagIx]->Dup();
-		}
+	      // 		  delete dd[cTag+tagIx];
+	      // 		  dd[ cTag+tagIx]=src->dd[tagIx]->Dup();
+	      *GetTag( tagIx, c) = *src->GetTag( tagIx);
 	    }
+	}
     }
   else
     {
       SizeT srcElem=src->N_Elements();
 
-	  SizeT nCp=N_Elements();
+      SizeT nCp=N_Elements();
 	
-	  // if (non-indexed) src is smaller -> just copy its number of elements
-	  if( nCp > srcElem)
-	      nCp=srcElem;
+      // if (non-indexed) src is smaller -> just copy its number of elements
+      if( nCp > srcElem)
+	nCp = srcElem;
 
-	  for( SizeT c=0; c<nCp; c++)
+      for( SizeT c=0; c<nCp; c++)
+	{
+	  // 	      SizeT cTag= c*nTags;
+	  // 	      SizeT srcTag= c*nTags;
+	  for( SizeT tagIx=0; tagIx<nTags; tagIx++)
 	    {
-	      SizeT cTag= c*nTags;
-	      SizeT srcTag= c*nTags;
-	      for( SizeT tagIx=0; tagIx<nTags; tagIx++)
-		{
-		  delete dd[cTag+tagIx];
-		  dd[ cTag+tagIx]=src->dd[srcTag+tagIx]->Dup();
-		}
+	      // 		  delete dd[cTag+tagIx];
+	      // 		  dd[ cTag+tagIx]=src->dd[srcTag+tagIx]->Dup();
+	      *GetTag( tagIx, c) = *src->GetTag( tagIx, c);
 	    }
+	}
     }
 }
 
@@ -499,10 +564,12 @@ void DStructGDL::InsertAt( SizeT offset, BaseGDL* srcIn,
       
       for( SizeT c=0; c<nCp; c++)
 	{
-	  SizeT cTag=(c+offset)*nTags;
-	  SizeT srcTag=c*nTags;
+// 	  SizeT cTag=(c+offset)*nTags;
+// 	  SizeT srcTag=c*nTags;
+	  SizeT cTag=(c+offset);
 	  for( SizeT tagIx=0; tagIx<nTags; tagIx++)
-	    dd[ cTag+tagIx]=src->dd[srcTag+tagIx]->Dup();
+// 	    dd[ cTag+tagIx]=src->dd[srcTag+tagIx]->Dup();
+	      *GetTag( tagIx, cTag) = *src->GetTag( tagIx, c);
 	}
     }
   else
@@ -512,10 +579,13 @@ void DStructGDL::InsertAt( SizeT offset, BaseGDL* srcIn,
       AllIxT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; c++)
 	{
-	  SizeT cTag=(c+offset)*nTags;
-	  SizeT srcTag=(*allIx)[ c]*nTags;
+// 	  SizeT cTag=(c+offset)*nTags;
+// 	  SizeT srcTag=(*allIx)[ c]*nTags;
+ 	  SizeT cTag=(c+offset);
+ 	  SizeT srcTag=(*allIx)[ c];
 	  for( SizeT tagIx=0; tagIx<nTags; tagIx++)
-	    dd[ cTag+tagIx]=src->dd[srcTag+tagIx]->Dup();
+// 	    dd[ cTag+tagIx]=src->dd[srcTag+tagIx]->Dup();
+	      *GetTag( tagIx, cTag) = *src->GetTag( tagIx, srcTag);
 	}
     }
 }
@@ -586,37 +656,55 @@ DStructGDL* DStructGDL::Index( ArrayIndexListT* ixList)
   AllIxT* allIx = ixList->BuildIx();
   for( SizeT c=0; c<nCp; c++)
     {
-      SizeT cTag=c*nTags;
-      SizeT srcTag=(*allIx)[ c]*nTags;
+//       SizeT cTag=c*nTags;
+//       SizeT srcTag=(*allIx)[ c]*nTags;
+      SizeT srcTag=(*allIx)[ c];
       for( SizeT tagIx=0; tagIx<nTags; tagIx++)
-	res->dd[cTag+tagIx] = dd[ srcTag+tagIx]->Dup();
+	*res->GetTag( tagIx, c) = *GetTag( tagIx, srcTag);
     }
   
   return res;
 }
 
-void DStructGDL::AddTag(BaseGDL* data)
-{
-  dd.resize(dd.size()+1, data->Dup());
-}
-void DStructGDL::AddTagGrab(BaseGDL* data)
-{
-  dd.resize(dd.size()+1, data);
-}
+// void DStructGDL::AddTag(const BaseGDL* data)
+// {
+// //   SizeT oldSize = dd.size();
+//   dd.resize( Desc()->NBytes());
+ 
+//   typeVar.push_back( data->GetEmptyInstance());
+//   typeVar.back()->SetBufferSize( data->N_Elements());
+
+//   GetTag( NTags()-1)->Construct();  // construct
+//   *GetTag( NTags()-1) = *data;      // copy
+// }
+// void DStructGDL::NewTag(const string& tName, const BaseGDL& data)
+// {
+//   Desc()->AddTag( tName, &data); // makes a copy of data
+//   AddTag( &data);
+// }
 void DStructGDL::NewTag(const string& tName, BaseGDL* data)
 {
+  assert( dd.size() == 0);
   Desc()->AddTag( tName, data); // makes a copy of data
-  AddTagGrab( data);
+//   AddTag( data);
+  typeVar.push_back( data);
 }
 
 void DStructGDL::AddParent( DStructDesc* p)
 {
-  SizeT oldSize=dd.size();
-  SizeT nTags=p->NTags();
-  dd.resize( oldSize+nTags);
-  for( SizeT t=0; t < nTags; t++)
+  SizeT oldTags = NTags();
+
+  Desc()->AddParent( p);
+
+//   dd.resize( Desc()->NBytes());
+
+  SizeT newTags = NTags();
+  for( SizeT t=oldTags; t < newTags; ++t)
     {
-    dd[oldSize+t]= (*p)[t]->GetInstance();
+      typeVar.push_back( (*Desc())[ t]->GetInstance());
+//       typeVar.back()->SetBufferSize( (*Desc())[ t]->N_Elements());
+
+//       GetTag( t)->ConstructTo0();  // construct
     }
 }
 
@@ -635,19 +723,20 @@ void DStructGDL::InsAt( DStructGDL* srcIn, ArrayIndexListT* ixList)
       SizeT len = srcIn->Dim( 0); // length of segment to copy
       // check if in bounds of a
       if( (destStart+len) > this->N_Elements()) //dim[0])
-	throw GDLException("Out of range subscript encountered.");
+		throw GDLException("Out of range subscript encountered.");
   
       SizeT srcIx = 0; // this one simply runs from 0 to N_Elements(srcIn)
 
       SizeT destEnd = destStart + len;
       for( SizeT destIx = destStart; destIx < destEnd; ++destIx)
 	{
-	  SizeT destIxTag = destIx*nTags;
-	  SizeT srcIxTag  = srcIx*nTags;
+// 	  SizeT destIxTag = destIx*nTags;
+// 	  SizeT srcIxTag  = srcIx*nTags;
 	  for( SizeT tagIx=0; tagIx<nTags; ++tagIx)
 	    {
-	      delete dd[destIxTag+tagIx];
-	      dd[destIxTag+tagIx] = srcIn->dd[ srcIxTag+tagIx]->Dup();
+// 	      delete dd[destIxTag+tagIx];
+// 	      dd[destIxTag+tagIx] = srcIn->dd[ srcIxTag+tagIx]->Dup();
+	      *GetTag( tagIx, destIx) = *srcIn->GetTag( tagIx, srcIx);
 	    }
 	  srcIx++;
 	}
@@ -694,14 +783,15 @@ void DStructGDL::InsAt( DStructGDL* srcIn, ArrayIndexListT* ixList)
     {
       // copy one segment
       SizeT destEnd=destStart+len;
-      for( SizeT destIx=destStart; destIx< destEnd; destIx++)
+      for( SizeT destIx = destStart; destIx < destEnd; ++destIx)
 	{
-	  SizeT destIxTag = destIx*nTags;
-	  SizeT srcIxTag  = srcIx*nTags;
-	  for( SizeT tagIx=0; tagIx<nTags; tagIx++)
+// 	  SizeT destIxTag = destIx*nTags;
+// 	  SizeT srcIxTag  = srcIx*nTags;
+	  for( SizeT tagIx=0; tagIx<nTags; ++tagIx)
 	    {
-	      delete dd[destIxTag+tagIx];
-	      dd[destIxTag+tagIx] = srcIn->dd[ srcIxTag+tagIx]->Dup();
+// 	      delete dd[destIxTag+tagIx];
+// 	      dd[destIxTag+tagIx] = srcIn->dd[ srcIxTag+tagIx]->Dup();
+	      *GetTag( tagIx, destIx) = *srcIn->GetTag( tagIx, srcIx);
 	    }
 	  srcIx++;
 	}
@@ -749,11 +839,12 @@ void DStructGDL::CatInsert( const DStructGDL* srcArr, const SizeT atDim, SizeT& 
       // copy one segment
       for( SizeT destIx=destStart; destIx< destEnd; destIx++)
 	{
-	  SizeT destIxTag = destIx*nTags;
-	  SizeT srcIxTag  = srcIx*nTags;
+// 	  SizeT destIxTag = destIx*nTags;
+// 	  SizeT srcIxTag  = srcIx*nTags;
 	  for( SizeT tagIx=0; tagIx<nTags; tagIx++)
 	    {
-	      dd[destIxTag+tagIx] = srcArr->dd[ srcIxTag+tagIx]->Dup();
+// 	      dd[destIxTag+tagIx] = srcArr->dd[ srcIxTag+tagIx]->Dup();
+	      *GetTag( tagIx, destIx) = *srcArr->GetTag( tagIx, srcIx);
 	    }
 	  srcIx++;
 	}	  

@@ -504,7 +504,7 @@ istream& operator>>(istream& i, DStructGDL& data_)
     {
       for( SizeT tIx=0; tIx<nTags; ++tIx)
 	{
-	  BaseGDL* actEl = data_.Get( tIx, e);
+	  BaseGDL* actEl = data_.GetTag( tIx, e);
 	  if( actEl == NULL)
 	    throw 
 	      GDLException("Internal error: Input of UNDEF struct element.");
@@ -1172,7 +1172,7 @@ ostream& DStructGDL::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
       o << CheckNL( w, actPosPtr, 2) << "{";
       for( SizeT tIx=0; tIx<nTags-1; ++tIx)
 	{
-	  BaseGDL* actEl = Get( tIx, e);
+	  BaseGDL* actEl = GetTag( tIx, e);
 
 	  assert( actEl != NULL);
 // 	  if( actEl == NULL)
@@ -1196,7 +1196,7 @@ ostream& DStructGDL::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 	    }
 	}
 
-      BaseGDL* actEl = Get( nTags-1, e);
+      BaseGDL* actEl = GetTag( nTags-1, e);
       assert( actEl != NULL);
 //    if( actEl == NULL)
 //      throw 
@@ -1533,18 +1533,22 @@ istream& Data_<SpDString>::Read( istream& os, bool swapEndian,
 ostream& DStructGDL::Write( ostream& os, bool swapEndian, 
 			    bool compress, XDR *xdrs)
 {
-  SizeT count = dd.size();
-  for( SizeT i=0; i<count; i++)
-    (*this)[i]->Write( os, swapEndian, compress, xdrs);
+  SizeT nEl = N_Elements();
+  SizeT nTags = NTags();
+  for( SizeT i=0; i<nEl; ++i)
+  for( SizeT t=0; i<nTags; ++t)
+    GetTag( t, i)->Write( os, swapEndian, compress, xdrs);
   return os;
 }
 
 istream& DStructGDL::Read( istream& os, bool swapEndian, 
 			   bool compress, XDR *xdrs)
 {
-  SizeT count = dd.size();
-  for( SizeT i=0; i<count; i++)
-    (*this)[i]->Read( os, swapEndian, compress, xdrs);
+  SizeT nEl = N_Elements();
+  SizeT nTags = NTags();
+  for( SizeT i=0; i<nEl; ++i)
+  for( SizeT t=0; i<nTags; ++t)
+    GetTag( t, i)->Read( os, swapEndian, compress, xdrs);
   return os;
 }
 

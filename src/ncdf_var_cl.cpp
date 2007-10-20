@@ -168,11 +168,11 @@ namespace lib {
     ncdf_varinq->AddTag("NATTS",  &aLong);
     ncdf_varinq->AddTag("DIM",  &aLong);
 
-    structList.push_back(ncdf_varinq);
+//never for unnamed structs    structList.push_back(ncdf_varinq);
     
 
     //fill the structure
-    DStructGDL* inq=new DStructGDL(ncdf_varinq);
+    DStructGDL* inq=new DStructGDL(ncdf_varinq, dimension());
     inq->InitTag("NAME",DStringGDL(var_name));
 
     dimension dim( var_ndims);

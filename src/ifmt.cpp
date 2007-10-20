@@ -689,7 +689,7 @@ void DStructGDL::IFmtAll( SizeT offs, SizeT r,
   SizeT firstTag = 0;
   for( firstTag=0; firstTag < nTags; firstTag++)
       {
-	SizeT tt=(*this)[firstTag]->ToTransfer();
+	SizeT tt=GetTag( firstTag)->ToTransfer();
 	nB += tt;
 	if( nB > firstOffs)
 	  {

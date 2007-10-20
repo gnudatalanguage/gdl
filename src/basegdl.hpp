@@ -67,6 +67,10 @@ const int DTypeOrder[]={
   5 	//ULONG64
 };	
 
+inline bool NonPODType( DType t)
+{
+  return (t == COMPLEX) || (t == COMPLEXDBL) || (t == STRING) || (t == STRUCT);
+}
 inline bool IntType( DType t)
 {
   int o = DTypeOrder[ t];
@@ -116,7 +120,8 @@ public:
     ZERO=0,
     NOZERO,
     INDGEN,
-    INIT
+    INIT,
+    NOALLOC
   };
 
   enum Convert2Mode {
@@ -161,16 +166,17 @@ public:
     return i;
   }
 
+  virtual BaseGDL& operator=(const BaseGDL& right);
 
   // virtual functions
   virtual bool IsAssoc() const;
   virtual BaseGDL* AssocVar( int, SizeT);
 
-  virtual SizeT N_Elements() const;
-  virtual SizeT Size() const;
-  virtual SizeT NBytes() const;
-  virtual SizeT ToTransfer() const;
-  virtual SizeT Sizeof() const;
+  virtual SizeT N_Elements() const; // number of elements
+  virtual SizeT Size() const;       // size (= N_Elements, but 0 for BaseGDL)
+  virtual SizeT NBytes() const;     // total bytes of data
+  virtual SizeT ToTransfer() const; // elements to transfer
+  virtual SizeT Sizeof() const;     // size of scalar data
   
   virtual BaseGDL* Transpose( DUInt* perm);
   virtual BaseGDL* Rotate( DLong dir);
@@ -179,6 +185,9 @@ public:
 		       BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN);
 
   virtual void Clear();
+  virtual void Construct();
+  virtual void ConstructTo0();
+  virtual void Destruct();
   virtual std::ostream& Write( std::ostream& os, bool swapEndian, 
 			       bool compress, XDR *xdrs);
   virtual std::istream& Read( std::istream& os, bool swapEndian, 
@@ -201,11 +210,15 @@ public:
   virtual bool          EqType( const BaseGDL*) const;
   virtual void* DataAddr( SizeT elem=0);
   virtual BaseGDL* New( const dimension& dim_, InitType noZero=ZERO);
-  virtual BaseGDL* Dup(); 
+  virtual BaseGDL* Dup() const; 
+//   virtual BaseGDL* Dup( char*) const; 
   virtual BaseGDL* Convert2( DType destTy, Convert2Mode mode=CONVERT);
   virtual BaseGDL* GetTag() const; 
   virtual BaseGDL* GetInstance() const;
-  virtual int Scalar2index(SizeT& ret) const; 
+  virtual BaseGDL* GetEmptyInstance() const;
+  virtual BaseGDL* SetBuffer( const void* b);
+  virtual void     SetBufferSize( SizeT s);
+  virtual int Scalar2index(SizeT& ret) const;
   virtual SizeT LoopIndex() const; 
   virtual bool True();
   virtual bool False();

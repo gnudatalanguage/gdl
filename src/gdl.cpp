@@ -52,6 +52,7 @@ void LibInit(); // defined in libinit.cpp
 
 void AtExit()
 {
+//   cout << "AtExit()" << endl;
   cerr << flush; cout << flush; clog << flush;
   // clean up everything
   // (for debugging memory leaks)

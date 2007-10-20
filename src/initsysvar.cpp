@@ -178,7 +178,7 @@ namespace SysVar
   {
     static DStructGDL* pStruct = SysVar::P();
     static int tag = pStruct->Desc()->TagIndex( "MULTI");
-    return static_cast<DLongGDL*>( pStruct->Get( tag, 0));
+    return static_cast<DLongGDL*>( pStruct->GetTag( tag, 0));
   }
 
   DStructGDL* X()
@@ -235,7 +235,7 @@ namespace SysVar
   {
     DStructGDL* errorState = Error_State();
     static unsigned msgTag = errorState->Desc()->TagIndex( "MSG_PREFIX");
-    return (*static_cast<DStringGDL*>( errorState->Get( msgTag, 0)))[0];
+    return (*static_cast<DStringGDL*>( errorState->GetTag( msgTag, 0)))[0];
   }
 
   DLong JournalLUN()
@@ -388,21 +388,21 @@ namespace SysVar
     xAxis->NewTag("TICKINTERVAL", new DDoubleGDL( 0)); 
     xAxis->NewTag("TICKLAYOUT", new DLongGDL( 0)); 
     xAxis->NewTag("TICKUNITS", new DStringGDL( dimension( &dim10,one))); 
-    (*static_cast<DDoubleGDL*>( xAxis->Get( 8, 0)))[1] = 1.0;
-    (*static_cast<DFloatGDL*>(  xAxis->Get( 9, 0)))[0] = 10.0;
-    (*static_cast<DFloatGDL*>(  xAxis->Get( 9, 0)))[1] = 3.0;
+    (*static_cast<DDoubleGDL*>( xAxis->GetTag( 8, 0)))[1] = 1.0;
+    (*static_cast<DFloatGDL*>(  xAxis->GetTag( 9, 0)))[0] = 10.0;
+    (*static_cast<DFloatGDL*>(  xAxis->GetTag( 9, 0)))[1] = 3.0;
     DVar *x            = new DVar( "X", xAxis);
     xIx                = sysVarList.size();
     sysVarList.push_back(x);
     DStructGDL*  yAxis = new DStructGDL( "!AXIS");
-    (*static_cast<DDoubleGDL*>( yAxis->Get( 8, 0)))[1] = 1.0;
-    (*static_cast<DFloatGDL*>(  yAxis->Get( 9, 0)))[0] = 4.0;
-    (*static_cast<DFloatGDL*>(  yAxis->Get( 9, 0)))[1] = 2.0;
+    (*static_cast<DDoubleGDL*>( yAxis->GetTag( 8, 0)))[1] = 1.0;
+    (*static_cast<DFloatGDL*>(  yAxis->GetTag( 9, 0)))[0] = 4.0;
+    (*static_cast<DFloatGDL*>(  yAxis->GetTag( 9, 0)))[1] = 2.0;
     DVar*        y     = new DVar( "Y", yAxis);
     yIx                = sysVarList.size();
     sysVarList.push_back(y);
     DStructGDL*  zAxis = new DStructGDL( "!AXIS");
-    (*static_cast<DDoubleGDL*>( zAxis->Get( 8, 0)))[1] = 1.0;
+    (*static_cast<DDoubleGDL*>( zAxis->GetTag( 8, 0)))[1] = 1.0;
     DVar*        z     = new DVar( "Z", zAxis);
     zIx                = sysVarList.size();
     sysVarList.push_back(z);

@@ -53,11 +53,12 @@
 #include <complex>
 #include <vector>
 #include <valarray>
+#include <cassert>
 
 #if defined(HAVE_64BIT_OS)
 typedef unsigned long long int      SizeT;
 #else
-typedef unsigned int        SizeT;
+typedef unsigned int        	    SizeT;
 #endif
 //typedef size_t              SizeT;
 typedef unsigned int        UInt;
@@ -289,7 +290,15 @@ public:
 
   GDLArray& operator=( const GDLArray& right)
   {
-    if( &right != this)
+    assert( sz == right.size());
+    //     if( &right != this)
+    //       {
+    if( sz == right.size())
+      {
+	for( SizeT i=0; i<sz; ++i)
+	  buf[ i] = right.buf[ i];
+      }
+    else
       {
 	if( sz > 1) 
 	  delete[] buf;
@@ -298,6 +307,7 @@ public:
 	for( SizeT i=0; i<sz; ++i)
 	  buf[ i] = right.buf[ i];
       }
+    //       }
     return *this;
   }
   GDLArray&operator+=( const GDLArray& right)
@@ -349,14 +359,34 @@ public:
     return *this;
   }
 
-  void NullBuf()
+  void SetBuffer( T* b)
   {
-    buf = NULL;
+    buf = b;
+  }
+  T* GetBuffer()
+  {
+    return buf;
+  }
+  void SetBufferSize( SizeT s)
+  {
+    sz = s;
   }
 
   SizeT size() const
   {
     return sz;
+  }
+
+  void resize( SizeT newSz)
+  {
+    assert( newSz > sz);
+    T* newBuf = new T[ newSz];
+    for( SizeT i=0; i<sz; ++i)
+      newBuf[ i] = buf[ i];
+    if( sz > 1)
+      delete[] buf;
+    buf = newBuf;
+    sz = newSz;
   }
 
   T min() const

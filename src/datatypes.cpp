@@ -145,7 +145,7 @@ template<class Sp> Data_<Sp>::Data_( const Ty* p, const SizeT nEl):
 
 template<class Sp> Data_<Sp>::Data_(const dimension& dim_,
 				    BaseGDL::InitType iT): 
-  Sp( dim_), dd( this->dim.N_Elements(), false)
+  Sp( dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.N_Elements(), false)
 {
   this->dim.Purge();
 
@@ -160,13 +160,12 @@ template<class Sp> Data_<Sp>::Data_(const dimension& dim_,
 	}
     }
 }
-
 // string, ptr, obj (cannot be INDGEN, 
 // need not to be zeroed if all intialized later)
 // struct (as a separate class) as well
 template<> Data_<SpDString>::Data_(const dimension& dim_,  
 				   BaseGDL::InitType iT): 
-  SpDString(dim_), dd(dim.N_Elements(), false)
+  SpDString(dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.N_Elements(), false)
 {
   dim.Purge();
   
@@ -175,7 +174,7 @@ template<> Data_<SpDString>::Data_(const dimension& dim_,
 }
 template<> Data_<SpDPtr>::Data_(const dimension& dim_,  
 				BaseGDL::InitType iT): 
-  SpDPtr(dim_), dd(dim.N_Elements(), false)
+  SpDPtr(dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.N_Elements(), false)
 {
   dim.Purge();
   
@@ -184,7 +183,7 @@ template<> Data_<SpDPtr>::Data_(const dimension& dim_,
 }
 template<> Data_<SpDObj>::Data_(const dimension& dim_,  
 				BaseGDL::InitType iT): 
-  SpDObj(dim_), dd(dim.N_Elements(), false)
+  SpDObj(dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.N_Elements(), false)
 {
   dim.Purge();
 
@@ -750,8 +749,12 @@ for( SizeT i=1; i<dd.size(); ++i)
 
 template<class Sp> 
 //typename Data_<Sp>::Data_& Data_<Sp>::operator=(const Data_& right)
-Data_<Sp>& Data_<Sp>::operator=(const Data_& right)
+// Data_<Sp>& Data_<Sp>::operator=(const Data_& right)
+Data_<Sp>& Data_<Sp>::operator=(const BaseGDL& r)
 {
+  assert( r.Type() == this->Type());
+  const Data_<Sp>& right = static_cast<const Data_<Sp>&>( r);
+  assert( &right != this);
   if( &right == this) return *this; // self assignment
   this->dim = right.dim;
   dd = right.dd;
@@ -779,8 +782,98 @@ SizeT Data_<Sp>::Sizeof() const
 template< class Sp>
 void Data_<Sp>::Clear() 
 { 
-//dd = Sp::zero;
 SizeT nEl = dd.size(); for( SizeT i = 0; i<nEl; ++i) (*this)[ i] = Sp::zero;
+}
+
+// first time initialization (construction)
+template< class Sp>
+void Data_<Sp>::Construct() 
+{}
+// non POD - use placement new
+template<>
+void Data_< SpDString>::Construct() 
+{ 
+  SizeT nEl = dd.size(); 
+//  for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty;
+  for( SizeT i = 0; i<nEl; ++i) new (&(dd[ i])) Ty;
+}
+template<>
+void Data_< SpDComplex>::Construct() 
+{ 
+  SizeT nEl = dd.size(); 
+  for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty;
+}
+template<>
+void Data_< SpDComplexDbl>::Construct() 
+{ 
+  SizeT nEl = dd.size(); 
+  for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty;
+}
+
+// construction and initalization to zero
+template< class Sp>
+void Data_<Sp>::ConstructTo0() 
+{ 
+SizeT nEl = dd.size(); 
+for( SizeT i = 0; i<nEl; ++i) (*this)[ i] = Sp::zero;
+}
+// non POD - use placement new
+template<>
+void Data_< SpDString>::ConstructTo0() 
+{ 
+  SizeT nEl = dd.size(); 
+  for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty( zero);
+}
+template<>
+void Data_< SpDComplex>::ConstructTo0() 
+{ 
+  SizeT nEl = dd.size(); 
+  for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty( zero);
+}
+template<>
+void Data_< SpDComplexDbl>::ConstructTo0() 
+{ 
+  SizeT nEl = dd.size(); 
+  for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty( zero);
+}
+
+template< class Sp>
+void Data_<Sp>::Destruct() 
+{ 
+  // no destruction for POD
+}
+template<>
+void Data_< SpDString>::Destruct() 
+{
+  SizeT nEl = dd.size(); 
+  for( SizeT i = 0; i<nEl; ++i) 
+    (*this)[ i].~DString();
+}
+template<>
+void Data_< SpDComplex>::Destruct() 
+{
+  SizeT nEl = dd.size(); 
+  for( SizeT i = 0; i<nEl; ++i) 
+    (*this)[ i].~DComplex();
+}
+template<>
+void Data_< SpDComplexDbl>::Destruct() 
+{
+  SizeT nEl = dd.size(); 
+  for( SizeT i = 0; i<nEl; ++i) 
+    (*this)[ i].~DComplexDbl();
+}
+
+template< class Sp>
+BaseGDL* Data_<Sp>::SetBuffer( const void* b)
+{
+  dd.SetBuffer( static_cast< Ty*>(const_cast<void*>( b)));
+  return this;
+}
+template< class Sp>
+void Data_<Sp>::SetBufferSize( SizeT s)
+{
+  dd.SetBufferSize( s);
 }
 
 // template< class Sp>

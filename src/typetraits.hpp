@@ -34,9 +34,15 @@ struct SpDByte: public BaseGDL
 
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
+  BaseGDL* GetEmptyInstance() const;
 
   typedef DByte Ty;
   typedef GDLArray<Ty>    DataT;
+
+  SizeT NBytes() const
+  {
+	return (this->N_Elements() * sizeof( Ty));
+  }
 
   static const DType  t;
   static const std::string str; 
@@ -60,9 +66,15 @@ struct SpDInt: public BaseGDL
 
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
+  BaseGDL* GetEmptyInstance() const;
 
   typedef DInt Ty;
   typedef GDLArray<Ty>    DataT;
+
+  SizeT NBytes() const
+  {
+	return (this->N_Elements() * sizeof( Ty));
+  }
 
   static const DType t;
   static const std::string str; 
@@ -86,9 +98,15 @@ struct SpDUInt: public BaseGDL
 
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
+  BaseGDL* GetEmptyInstance() const;
 
   typedef DUInt Ty;
   typedef GDLArray<Ty>    DataT;
+
+  SizeT NBytes() const
+  {
+	return (this->N_Elements() * sizeof( Ty));
+  }
 
   static const DType t;
   static const std::string str; 
@@ -112,9 +130,15 @@ struct SpDLong: public BaseGDL
 
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
+  BaseGDL* GetEmptyInstance() const;
 
   typedef DLong Ty;
   typedef GDLArray<Ty>    DataT;
+
+  SizeT NBytes() const
+  {
+	return (this->N_Elements() * sizeof( Ty));
+  }
 
   static const DType  t;
   static const std::string str; 
@@ -138,9 +162,15 @@ struct SpDULong: public BaseGDL
 
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
+  BaseGDL* GetEmptyInstance() const;
 
   typedef DULong Ty;
   typedef GDLArray<Ty>    DataT;
+
+  SizeT NBytes() const
+  {
+	return (this->N_Elements() * sizeof( Ty));
+  }
 
   static const DType  t;
   static const std::string str; 
@@ -164,9 +194,15 @@ struct SpDLong64: public BaseGDL
 
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
+  BaseGDL* GetEmptyInstance() const;
 
   typedef DLong64 Ty;
   typedef GDLArray<Ty>    DataT;
+
+  SizeT NBytes() const
+  {
+	return (this->N_Elements() * sizeof( Ty));
+  }
 
   static const DType  t;
   static const std::string str; 
@@ -190,9 +226,15 @@ struct SpDULong64: public BaseGDL
 
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
+  BaseGDL* GetEmptyInstance() const;
 
   typedef DULong64 Ty;
   typedef GDLArray<Ty>    DataT;
+
+  SizeT NBytes() const
+  {
+	return (this->N_Elements() * sizeof( Ty));
+  }
 
   static const DType  t;
   static const std::string str; 
@@ -216,9 +258,15 @@ struct SpDFloat: public BaseGDL
 
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
+  BaseGDL* GetEmptyInstance() const;
 
   typedef DFloat Ty;
   typedef GDLArray<Ty>    DataT;
+
+  SizeT NBytes() const
+  {
+	return (this->N_Elements() * sizeof( Ty));
+  }
 
   static const DType  t;
   static const std::string str; 
@@ -242,9 +290,15 @@ struct SpDDouble: public BaseGDL
 
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
+  BaseGDL* GetEmptyInstance() const;
 
   typedef DDouble Ty;
   typedef GDLArray<Ty>    DataT;
+
+  SizeT NBytes() const
+  {
+	return (this->N_Elements() * sizeof( Ty));
+  }
 
   static const DType  t;
   static const std::string str; 
@@ -268,9 +322,15 @@ struct SpDString: public BaseGDL
 
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
+  BaseGDL* GetEmptyInstance() const;
 
   typedef DString Ty;
   typedef GDLArray<Ty>    DataT;
+
+  SizeT NBytes() const
+  {
+	return (this->N_Elements() * sizeof( Ty));
+  }
 
   static const DType    t;
   static const std::string str; 
@@ -314,9 +374,15 @@ public:
   // GetTag returns a tag descriptor (SpType)
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
+  BaseGDL* GetEmptyInstance() const;
 
-  typedef BaseGDL* Ty;
-  typedef std::vector<Ty>    DataT;
+  typedef char Ty;
+  typedef GDLArray<Ty> DataT;
+
+  SizeT NBytes() const
+  {
+    return ( this->N_Elements() * desc->NBytes());
+  }
 
   static const DType  t;
   static const std::string str; 
@@ -341,9 +407,15 @@ struct SpDPtr: public BaseGDL
 
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
+  BaseGDL* GetEmptyInstance() const;
 
   typedef DPtr Ty;
   typedef GDLArray<Ty>    DataT;
+
+  SizeT NBytes() const
+  {
+	return (this->N_Elements() * sizeof( Ty));
+  }
 
   static const DType    t;
   static const std::string str; 
@@ -368,9 +440,15 @@ struct SpDObj: public BaseGDL
 
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
+  BaseGDL* GetEmptyInstance() const;
 
   typedef DObj Ty;
   typedef GDLArray<Ty>    DataT;
+
+  SizeT NBytes() const
+  {
+	return (this->N_Elements() * sizeof( Ty));
+  }
 
   static const DType    t;
   static const std::string str; 
@@ -394,9 +472,15 @@ struct SpDComplex: public BaseGDL
 
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
+  BaseGDL* GetEmptyInstance() const;
 
   typedef DComplex Ty;
   typedef GDLArray<Ty>    DataT;
+
+  SizeT NBytes() const
+  {
+	return (this->N_Elements() * sizeof( Ty));
+  }
 
   static const DType  t;
   static const std::string str; 
@@ -420,9 +504,15 @@ struct SpDComplexDbl: public BaseGDL
 
   BaseGDL* GetTag() const;
   BaseGDL* GetInstance() const;
+  BaseGDL* GetEmptyInstance() const;
 
   typedef DComplexDbl Ty;
   typedef GDLArray<Ty>    DataT;
+
+  SizeT NBytes() const
+  {
+	return (this->N_Elements() * sizeof( Ty));
+  }
 
   static const DType  t;
   static const std::string str; 

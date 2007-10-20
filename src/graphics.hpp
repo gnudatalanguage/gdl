@@ -126,9 +126,9 @@ protected:
   void GetWinSize( DLong& x, DLong& y)
   {
     int tag = dStruct->Desc()->TagIndex( "X_SIZE");
-    DLongGDL* xSize = static_cast<DLongGDL*>( dStruct->Get( tag, 0));
+    DLongGDL* xSize = static_cast<DLongGDL*>( dStruct->GetTag( tag));
     tag = dStruct->Desc()->TagIndex( "Y_SIZE");
-    DLongGDL* ySize = static_cast<DLongGDL*>( dStruct->Get( tag, 0));
+    DLongGDL* ySize = static_cast<DLongGDL*>( dStruct->GetTag( tag));
     x = (*xSize)[0];
     y = (*ySize)[0];
   }

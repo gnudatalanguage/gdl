@@ -18,6 +18,7 @@
 #ifndef DSTRUCTDESC_HPP_
 #define DSTRUCTDESC_HPP_
 
+#include <vector>
 #include <deque>
 #include <string>
 #include <functional>
@@ -28,18 +29,35 @@
 
 class DStructBase
 {
+private:
+  std::deque<SizeT>    tagOffset; // data offset of tags
+
 protected:
   std::deque<BaseGDL*> tags; // Data_<Sp> for data, 'Sp' for structList elements
+  void Add( BaseGDL* t)
+  {
+  tags.push_back(t); // grabs
+  // attention: there is a subtle difference for NBytes()
+  // for SpDString (considers sizeof( DString)), used here 
+  // and DStringGDL (considers actual string sizes)
+  SizeT nBytes = tags.back()->NBytes();
+
+  // valid tagOffset (used by NBytes())
+  tagOffset.push_back( tagOffset.back() + nBytes);
+  }
 
 public:
-  DStructBase()
+  DStructBase(): tagOffset( 1, 0)
   {}
   
   DStructBase( const DStructBase* d_): tags( d_->NTags())
   {
     SizeT nTags = d_->NTags();
     for( SizeT t=0; t<nTags; ++t)
-      tags[t] = d_->tags[t]->GetTag();
+	{
+	  tags[ t]    = d_->tags[ t]->GetTag();
+	}
+    tagOffset = d_->tagOffset;
   }
   
   virtual ~DStructBase();
@@ -49,9 +67,17 @@ public:
   const BaseGDL* operator[] (const SizeT d1) const
   { return tags[d1];}
 
-  void Add( BaseGDL* t)   { tags.push_back(t);} // grabs
-  void Remove( SizeT ix)  { tags.erase( tags.begin() + ix);}
-  SizeT NTags() const     { return tags.size();}
+  SizeT Offset( SizeT t, SizeT ix) const
+  {
+    return (tagOffset[ t] + ix * NBytes());
+  }
+  SizeT Offset( SizeT t) const
+  {
+    return tagOffset[ t];
+  }
+
+  SizeT NTags() const  { return tags.size();}
+  SizeT NBytes() const { return tagOffset.back();}
 };
 
 

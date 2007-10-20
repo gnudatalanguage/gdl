@@ -176,16 +176,20 @@ void ExtraT::Resolve()
 		  if( extraStruct == NULL)
 		    {
 		      extraStructDesc = new DStructDesc( "$truct");
+// 		      extraStruct = new DStructGDL( extraStructDesc, dimension(1));
 		      extraStruct = new DStructGDL( extraStructDesc);
 
-		      extraStructDesc->AddTag( listName[i], listEnv[i]); 
-		      extraStruct->AddTagGrab( listEnv.Grab(i));
+//		      extraStructDesc->AddTag( listName[i], listEnv[i]); 
+// 		      extraStruct->AddTagGrab( listEnv.Grab(i));
+		      extraStruct->NewTag( listName[i], listEnv.Grab(i));
 		    }
 		  else
 		    if( extraStructDesc->TagIndex( listName[i]) == -1)
 		      {
-			extraStructDesc->AddTag( listName[i], listEnv[i]); 
-			extraStruct->AddTagGrab( listEnv.Grab(i));
+			extraStruct->NewTag( listName[i], listEnv.Grab(i)); 
+//			extraStructDesc->AddTag( listName[i], listEnv[i]); 
+// 			extraStruct->AddTagGrab( listEnv.Grab(i));
+//			extraStruct->AddTag( listEnv[i]);
 		      }
 		}
 	    }

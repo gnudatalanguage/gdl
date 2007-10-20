@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.7 (2006-11-01): "gdlc.i.g" -> "GDLInterpreter.cpp"$ */
+/* $ANTLR 2.7.6 (2005-12-22): "gdlc.i.g" -> "GDLInterpreter.cpp"$ */
 
     // gets inserted before the antlr generated includes in the cpp file
 #include "includefirst.hpp"
@@ -5268,8 +5268,10 @@ BaseGDL*  GDLInterpreter::sys_var(ProgNodeP _t) {
 	}
 	
 	// the instance variable
-	DStructGDL* instance= new DStructGDL( nStructDesc,
-	dimension(1)); 
+	//                 DStructGDL* instance= new DStructGDL( nStructDesc,
+	//                                                       dimension(1)); 
+	DStructGDL* instance= new DStructGDL( nStructDesc);
+	
 	auto_ptr<DStructGDL> instance_guard(instance);
 	
 	{ // ( ... )+
@@ -5337,7 +5339,7 @@ BaseGDL*  GDLInterpreter::sys_var(ProgNodeP _t) {
 			
 			DStructDesc* inherit=GetStruct( ii->getText(), _t);
 			
-			nStructDesc->AddParent( inherit);
+			//   nStructDesc->AddParent( inherit);
 			instance->AddParent( inherit);
 			
 			break;
@@ -5392,7 +5394,8 @@ BaseGDL*  GDLInterpreter::sys_var(ProgNodeP _t) {
 	DStructDesc*   nStructDesc = new DStructDesc( "$truct");
 	
 	// instance takes care of nStructDesc since it is unnamed
-	DStructGDL* instance = new DStructGDL( nStructDesc, dimension(1));
+	//     DStructGDL* instance = new DStructGDL( nStructDesc, dimension(1));
+	DStructGDL* instance = new DStructGDL( nStructDesc);
 	auto_ptr<DStructGDL> instance_guard(instance);
 	
 	BaseGDL* e;

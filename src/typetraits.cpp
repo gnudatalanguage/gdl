@@ -136,7 +136,7 @@ const std::string& SpDString::TypeStr() const { return str;}
 
 const DType    SpDStruct::t=STRUCT;      // type ID
 const string   SpDStruct::str("STRUCT"); // type string
-const SpDStruct::Ty  SpDStruct::zero=NULL; // zero struct, special meaning
+const SpDStruct::Ty  SpDStruct::zero=0; // zero struct, special meaning
 const bool SpDStruct::IS_INTEGER=false;
 const bool SpDStruct::IS_SIGNED=false;
 const bool SpDStruct::IS_NUMERIC=false;
@@ -210,12 +210,34 @@ BaseGDL* SpDPtr::GetInstance() const    { return new Data_<SpDPtr>(dim);}
 BaseGDL* SpDObj::GetInstance() const    { return new Data_<SpDObj>(dim);}
 BaseGDL* SpDStruct::GetInstance() const 
 { 
-  SpDStruct* newInstance = new DStructGDL(desc,dim);
+  DStructGDL* newInstance = new DStructGDL(desc,dim);
   newInstance->MakeOwnDesc();
   return newInstance;
 }
 BaseGDL* SpDComplex::GetInstance() const    { return new Data_<SpDComplex>(dim);}
 BaseGDL* SpDComplexDbl::GetInstance() const { return new Data_<SpDComplexDbl>(dim);}
+
+// returns an instance without allocating memory
+BaseGDL* SpDByte::GetEmptyInstance() const   { return new Data_<SpDByte>( dim, BaseGDL::NOALLOC);}
+BaseGDL* SpDInt::GetEmptyInstance() const    { return new Data_<SpDInt>( dim, BaseGDL::NOALLOC);}
+BaseGDL* SpDUInt::GetEmptyInstance() const   { return new Data_<SpDUInt>( dim, BaseGDL::NOALLOC);}
+BaseGDL* SpDLong::GetEmptyInstance() const   { return new Data_<SpDLong>( dim, BaseGDL::NOALLOC);}
+BaseGDL* SpDULong::GetEmptyInstance() const  { return new Data_<SpDULong>( dim, BaseGDL::NOALLOC);}
+BaseGDL* SpDLong64::GetEmptyInstance() const   { return new Data_<SpDLong64>( dim, BaseGDL::NOALLOC);}
+BaseGDL* SpDULong64::GetEmptyInstance() const  { return new Data_<SpDULong64>( dim, BaseGDL::NOALLOC);}
+BaseGDL* SpDFloat::GetEmptyInstance() const  { return new Data_<SpDFloat>( dim, BaseGDL::NOALLOC);}
+BaseGDL* SpDDouble::GetEmptyInstance() const { return new Data_<SpDDouble>( dim, BaseGDL::NOALLOC);}
+BaseGDL* SpDString::GetEmptyInstance() const { return new Data_<SpDString>( dim, BaseGDL::NOALLOC);}
+BaseGDL* SpDPtr::GetEmptyInstance() const    { return new Data_<SpDPtr>( dim, BaseGDL::NOALLOC);}
+BaseGDL* SpDObj::GetEmptyInstance() const    { return new Data_<SpDObj>( dim, BaseGDL::NOALLOC);}
+BaseGDL* SpDStruct::GetEmptyInstance() const 
+{ 
+  DStructGDL* newInstance = new DStructGDL( desc, dim, BaseGDL::NOALLOC);
+  newInstance->MakeOwnDesc();
+  return newInstance;
+}
+BaseGDL* SpDComplex::GetEmptyInstance() const    { return new Data_<SpDComplex>( dim, BaseGDL::NOALLOC);}
+BaseGDL* SpDComplexDbl::GetEmptyInstance() const { return new Data_<SpDComplexDbl>( dim, BaseGDL::NOALLOC);}
 
 SpDByte::SpDByte(): BaseGDL() {}
 SpDByte::SpDByte( const dimension& dim_): BaseGDL(dim_) {}

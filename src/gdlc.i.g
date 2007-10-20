@@ -3272,8 +3272,10 @@ named_struct_def returns[ BaseGDL* res]
                 }
                 
                 // the instance variable
-                DStructGDL* instance= new DStructGDL( nStructDesc,
-                                                      dimension(1)); 
+//                 DStructGDL* instance= new DStructGDL( nStructDesc,
+//                                                       dimension(1)); 
+                DStructGDL* instance= new DStructGDL( nStructDesc);
+
                 auto_ptr<DStructGDL> instance_guard(instance);
             }
 
@@ -3297,7 +3299,7 @@ named_struct_def returns[ BaseGDL* res]
                 {
                     DStructDesc* inherit=GetStruct( ii->getText(), _t);
 
-                    nStructDesc->AddParent( inherit);
+                    //   nStructDesc->AddParent( inherit);
                     instance->AddParent( inherit);
                 }
                 
@@ -3338,7 +3340,8 @@ unnamed_struct_def returns[ BaseGDL* res]
     DStructDesc*   nStructDesc = new DStructDesc( "$truct");
 
     // instance takes care of nStructDesc since it is unnamed
-    DStructGDL* instance = new DStructGDL( nStructDesc, dimension(1));
+//     DStructGDL* instance = new DStructGDL( nStructDesc, dimension(1));
+    DStructGDL* instance = new DStructGDL( nStructDesc);
     auto_ptr<DStructGDL> instance_guard(instance);
 
     BaseGDL* e;

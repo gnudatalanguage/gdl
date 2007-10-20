@@ -53,7 +53,7 @@ private:
 	  { // the actual assignment
 	    for( SizeT c=0; c<nCp; c++)
 	      {
-		BaseGDL* actTop=l->Get( actTag, c);
+		BaseGDL* actTop=l->GetTag( actTag, c);
 
 		actTop->AssignAt( r, ix[depth+1], rOffset);
 		rOffset += rStride;
@@ -64,7 +64,7 @@ private:
 	    for( SizeT c=0; c<nCp; c++)
 	      {
 		DStructGDL* nextL = static_cast
-		  <DStructGDL*>( l->Get( actTag, c));
+		  <DStructGDL*>( l->GetTag( actTag, c));
 
 		DoAssign( nextL, r, depth+1);
 	      }
@@ -81,7 +81,7 @@ private:
 	  {
 	    for( SizeT c=0; c<nCp; c++)
 	      { // the actual assignment
-		BaseGDL* actTop = l->Get( actTag,  (*allIx)[ c]);
+		BaseGDL* actTop = l->GetTag( actTag,  (*allIx)[ c]);
 		//BaseGDL* actTop = l->Get( actTag,  actIx.GetIx( c));
 		actTop->AssignAt( r, ix[depth+1], rOffset);	
 		rOffset += rStride;
@@ -92,7 +92,7 @@ private:
 	    for( SizeT c=0; c<nCp; c++)
 	      {
 		DStructGDL* nextL = static_cast
-		  <DStructGDL*>( l->Get( actTag, (*allIx)[ c]));
+		  <DStructGDL*>( l->GetTag( actTag, (*allIx)[ c]));
 		//<DStructGDL*>( l->Get( actTag, actIx.GetIx( c)));
 		DoAssign( nextL, r, depth+1);
 	      }
@@ -113,7 +113,7 @@ private:
 	  { // the actual decrement
 	    for( SizeT c=0; c<nCp; c++)
 	      {
-		BaseGDL* actTop=l->Get( actTag, c);
+		BaseGDL* actTop=l->GetTag( actTag, c);
 		actTop->DecAt( ix[depth+1]);
 	      }
 	  }
@@ -122,7 +122,7 @@ private:
 	    for( SizeT c=0; c<nCp; c++)
 	      {
 		DStructGDL* nextL = static_cast
-		  <DStructGDL*>( l->Get( actTag, c));
+		  <DStructGDL*>( l->GetTag( actTag, c));
 		DoDec( nextL, depth+1);
 	      }
 	  }
@@ -138,7 +138,7 @@ private:
 	  {
 	    for( SizeT c=0; c<nCp; c++)
 	      { // the actual decrement
-		BaseGDL* actTop = l->Get( actTag,  (*allIx)[c]);
+		BaseGDL* actTop = l->GetTag( actTag,  (*allIx)[c]);
 		//BaseGDL* actTop = l->Get( actTag,  actIx.GetIx( c));
 		actTop->DecAt( ix[depth+1]);	
 	      }
@@ -148,7 +148,7 @@ private:
 	    for( SizeT c=0; c<nCp; c++)
 	      {
 		DStructGDL* nextL = static_cast
-		  <DStructGDL*>( l->Get( actTag, (*allIx)[c]));
+		  <DStructGDL*>( l->GetTag( actTag, (*allIx)[c]));
 		DoDec( nextL, depth+1);
 	      }
 	  }
@@ -167,7 +167,7 @@ private:
 	  { // the actual increment
 	    for( SizeT c=0; c<nCp; c++)
 	      {
-		BaseGDL* actTop=l->Get( actTag, c);
+		BaseGDL* actTop=l->GetTag( actTag, c);
 		actTop->IncAt( ix[depth+1]);
 	      }
 	  }
@@ -176,7 +176,7 @@ private:
 	    for( SizeT c=0; c<nCp; c++)
 	      {
 		DStructGDL* nextL = static_cast
-		  <DStructGDL*>( l->Get( actTag, c));
+		  <DStructGDL*>( l->GetTag( actTag, c));
 		DoInc( nextL, depth+1);
 	      }
 	  }
@@ -192,7 +192,7 @@ private:
 	  {
 	    for( SizeT c=0; c<nCp; c++)
 	      { // the actual increment
-		BaseGDL* actTop = l->Get( actTag,  (*allIx)[c]);
+		BaseGDL* actTop = l->GetTag( actTag,  (*allIx)[c]);
 		//BaseGDL* actTop = l->Get( actTag,  actIx.GetIx( c));
 		actTop->IncAt( ix[depth+1]);	
 	      }
@@ -202,7 +202,7 @@ private:
 	    for( SizeT c=0; c<nCp; c++)
 	      {
 		DStructGDL* nextL = static_cast
-		  <DStructGDL*>( l->Get( actTag, (*allIx)[c]));
+		  <DStructGDL*>( l->GetTag( actTag, (*allIx)[c]));
 		//<DStructGDL*>( l->Get( actTag, actIx.GetIx( c)));
 		DoInc( nextL, depth+1);
 	      }
@@ -223,7 +223,7 @@ private:
 	  { // the actual resolving
 	    for( SizeT c=0; c<nCp; c++)
 	      {
-		BaseGDL* actTop=l->Get( actTag, c);
+		BaseGDL* actTop=l->GetTag( actTag, c);
 
 		// newVar is empty -> no deleting of old data in InsertAt
 		newVar->InsertAt( rOffset, actTop, ix[depth+1]);
@@ -235,7 +235,7 @@ private:
 	    for( SizeT c=0; c<nCp; c++)
 	      {
 		DStructGDL* nextL = static_cast
-		  <DStructGDL*>( l->Get( actTag, c));
+		  <DStructGDL*>( l->GetTag( actTag, c));
 		DoResolve( newVar, nextL, depth+1);
 	      }
 	  }
@@ -251,7 +251,7 @@ private:
 	  {
 	    for( SizeT c=0; c<nCp; c++)
 	      { // the actual resolving
-		BaseGDL* actTop = l->Get( actTag,  (*allIx)[ c]);
+		BaseGDL* actTop = l->GetTag( actTag,  (*allIx)[ c]);
 		//BaseGDL* actTop = l->Get( actTag,  actIx.GetIx( c));
 		newVar->InsertAt( rOffset, actTop, ix[depth+1]);	
 		rOffset += rStride;
@@ -262,7 +262,7 @@ private:
 	    for( SizeT c=0; c<nCp; c++)
 	      {
 		DStructGDL* nextL = static_cast
-		  <DStructGDL*>( l->Get( actTag, (*allIx)[ c]));
+		  <DStructGDL*>( l->GetTag( actTag, (*allIx)[ c]));
 		//<DStructGDL*>( l->Get( actTag, actIx.GetIx( c)));
 		DoResolve( newVar, nextL, depth+1);
 	      }
@@ -472,7 +472,7 @@ public:
     if( tagN >= nTags)
       throw GDLException("Invalid tag number.");
 
-    top=actTop->Get( tagN, 0);
+    top=actTop->GetTag( tagN, 0);
 
     // push struct onto struct stack
     DStructGDL* newTop=dynamic_cast<DStructGDL*>(top);

@@ -30,7 +30,10 @@ using namespace std;
 DStructBase::~DStructBase()
 {
   SizeT nTags = NTags();
-  for( SizeT i=0; i < nTags; ++i) delete tags[i];
+  for( SizeT i=0; i < nTags; ++i) 
+    {
+      delete tags[ i];
+    }
 }
 
 // DUStructDesc::~DUStructDesc()

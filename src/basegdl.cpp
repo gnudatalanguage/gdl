@@ -36,9 +36,17 @@ BaseGDL* BaseGDL::AssocVar( int, SizeT)
 
 SizeT BaseGDL::N_Elements() const { return dim.N_Elements();}
 SizeT BaseGDL::Size() const { return 0;}
-SizeT BaseGDL::NBytes() const { return 0;} // for assoc function
 SizeT BaseGDL::ToTransfer() const { return 0;}
 SizeT BaseGDL::Sizeof() const { return 0;}
+SizeT BaseGDL::NBytes() const { return 0;} // for assoc function
+
+BaseGDL& BaseGDL::operator=(const BaseGDL& right)
+{
+  if( &right == this) return *this;
+  this->dim = right.dim;
+  return *this;
+}
+
 
 // BaseGDL* BaseGDL::Abs() const
 // {
@@ -78,6 +86,18 @@ void BaseGDL::MinMax( DLong* minE, DLong* maxE,
 void BaseGDL::Clear() 
 {
   throw GDLException("BaseGDL::Clear() called.");
+}
+void BaseGDL::Construct() 
+{
+  throw GDLException("BaseGDL::Construct() called.");
+}
+void BaseGDL::ConstructTo0() 
+{
+  throw GDLException("BaseGDL::ConstructTo0() called.");
+}
+void BaseGDL::Destruct() 
+{
+  throw GDLException("BaseGDL::Destruct() called.");
 }
 
 void BaseGDL::Assign( BaseGDL* src, SizeT nEl)
@@ -128,10 +148,14 @@ BaseGDL* BaseGDL::New( const dimension& dim_, InitType noZero)
   throw GDLException("BaseGDL::New(...) called.");
 }
 
-BaseGDL* BaseGDL::Dup() 
+BaseGDL* BaseGDL::Dup() const
 { 
-  throw GDLException("BaseGDL::Dup(...) called.");
+  throw GDLException("BaseGDL::Dup() called.");
 }
+// BaseGDL* BaseGDL::Dup( void*) const 
+// { 
+//   throw GDLException("BaseGDL::Dup(...) called.");
+// }
 
 BaseGDL* BaseGDL::Convert2( DType destTy, Convert2Mode mode)
 {
@@ -146,6 +170,18 @@ BaseGDL* BaseGDL::GetTag() const
 BaseGDL* BaseGDL::GetInstance() const
 {
   throw GDLException("BaseGDL::GetInstance(...) called.");
+}
+BaseGDL* BaseGDL::GetEmptyInstance() const
+{
+  throw GDLException("BaseGDL::GetEmptyInstance(...) called.");
+}
+BaseGDL* BaseGDL::SetBuffer( const void* b)
+{
+  throw GDLException("BaseGDL::SetBuffer called.");
+}
+void BaseGDL::SetBufferSize( SizeT s)
+{
+  throw GDLException("BaseGDL::SetBufferSize called.");
 }
 
 int BaseGDL::Scalar2index(SizeT& ret) const 

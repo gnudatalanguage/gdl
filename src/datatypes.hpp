@@ -90,7 +90,7 @@ static	void operator delete( void *ptr);
 
   // operators
   // assignment. 
-  Data_& operator=(const Data_& right);
+  Data_& operator=(const BaseGDL& right);
 
   // one dim array access (unchecked)
   inline Ty& operator[] (const SizeT d1) { return dd[d1];}
@@ -133,6 +133,12 @@ static	void operator delete( void *ptr);
   SizeT Sizeof() const;
 
   void Clear();
+  void Construct();     // construction (for DStructGDL)
+  void ConstructTo0();  // construction (for DStructGDL)
+  void Destruct(); // destruction (for DStructGDL)
+
+  BaseGDL* SetBuffer( const void* b);
+  void SetBufferSize( SizeT s);
 
   BaseGDL* AssocVar( int, SizeT);
 
@@ -145,7 +151,9 @@ static	void operator delete( void *ptr);
   SizeT LoopIndex() const; 
   
   // make a duplicate on the heap
-  Data_* Dup() { return new Data_(*this);}
+  Data_* Dup() const { return new Data_(*this);}
+//   // make a duplicate at loc
+//   Data_* Dup( void* loc) const { return ::new ( loc) Data_(*this);}
 
   bool Scalar() const { return (dd.size() == 1);}
   bool StrictScalar() const { return (this->Rank() == 0);}

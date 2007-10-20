@@ -393,7 +393,7 @@ namespace lib {
 	      for (SizeT t=0; t < nTags; ++t)
 		{    
 		  DString tagString = s->Desc()->TagName(t);
-		  help_item( cout, s->Get(t,0), tagString, true);
+		  help_item( cout, s->GetTag(t), tagString, true);
 		}
 	    } else {
 	      // OUTPUT KEYWORD SET
@@ -407,7 +407,7 @@ namespace lib {
 	      for (SizeT t=0; t < nTags; ++t)
 		{    
 		  DString tagString = s->Desc()->TagName(t);
-		  help_item( ostr, s->Get(t,0), tagString, true);
+		  help_item( ostr, s->GetTag(t), tagString, true);
 		  (*(DStringGDL *) *outputKW)[nOut++] = 
 		    ostr.rdbuf()->str().erase(ostr.rdbuf()->str().
 					      length()-1,1);
@@ -1352,7 +1352,7 @@ namespace lib {
       {
 	DStructGDL* errorState = SysVar::Error_State();
 	static unsigned msgTag = errorState->Desc()->TagIndex( "MSG");
-	(*static_cast<DStringGDL*>( errorState->Get( msgTag, 0)))[0] = msg;
+	(*static_cast<DStringGDL*>( errorState->GetTag( msgTag)))[0] = msg;
 	
 	SysVar::SetErr_String( msg);
       }
@@ -1503,8 +1503,8 @@ namespace lib {
 	int ix = (*dest).Desc()->TagIndex( sourceTagName );
 	if( ix >= 0)
 	  {
-	    SizeT nTagElements = source->Get( t, 0)->N_Elements();
-	    SizeT nTagDestElements = dest->Get( ix, 0)->N_Elements();
+	    SizeT nTagElements = source->GetTag( t)->N_Elements();
+	    SizeT nTagDestElements = dest->GetTag( ix)->N_Elements();
 
 	    if( verbose) 
 	      {
@@ -1524,7 +1524,7 @@ namespace lib {
 		nTagElements = nTagDestElements;
 
 	    for( SizeT a=0; a< nElements; ++a)
-	      dest->Get( ix, a)->Assign( source->Get( t, a), nTagElements);
+	      dest->GetTag( ix, a)->Assign( source->GetTag( t, a), nTagElements);
 	  }
 	else 
 	  if(verbose)

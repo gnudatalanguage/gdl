@@ -239,7 +239,7 @@ void EnvBaseT::AddStruct( DPtrListT& ptrAccessible,
 	{
 	  for( SizeT e = 0; e<nEl; ++e)
 	    {
-	      DPtrGDL* ptr = static_cast< DPtrGDL*>( stru->Get( t, e));
+	      DPtrGDL* ptr = static_cast< DPtrGDL*>( stru->GetTag( t, e));
 	      AddPtr( ptrAccessible, objAccessible, ptr);
 	    }
 	}
@@ -247,7 +247,7 @@ void EnvBaseT::AddStruct( DPtrListT& ptrAccessible,
 	{
 	  for( SizeT e = 0; e<nEl; ++e)
 	    {
-	      DStructGDL* ptr = static_cast< DStructGDL*>( stru->Get( t, e));
+	      DStructGDL* ptr = static_cast< DStructGDL*>( stru->GetTag( t, e));
 	      AddStruct( ptrAccessible, objAccessible, ptr);
 	    }
 	}
@@ -255,7 +255,7 @@ void EnvBaseT::AddStruct( DPtrListT& ptrAccessible,
 	{
 	  for( SizeT e = 0; e<nEl; ++e)
 	    {
-	      DObjGDL* obj = static_cast< DObjGDL*>( stru->Get( t, e));
+	      DObjGDL* obj = static_cast< DObjGDL*>( stru->GetTag( t, e));
 	      AddObj( ptrAccessible, objAccessible, obj);
 	    }
 	}

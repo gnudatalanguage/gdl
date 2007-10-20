@@ -117,8 +117,8 @@ Type Code | Type Name | Data Type
 
   // Use this macro to define Inf and NaN, number of elements and result in a function with one parameter.
 #define GM_DF1()     static DStructGDL *Values =  SysVar::Values();                                                             \
-                     DDouble d_infinity=(*static_cast<DDoubleGDL*>(Values->Get(Values->Desc()->TagIndex("D_INFINITY"), 0)))[0]; \
-                     DDouble d_nan=(*static_cast<DDoubleGDL*>(Values->Get(Values->Desc()->TagIndex("D_NAN"), 0)))[0];           \
+                     DDouble d_infinity=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_INFINITY"), 0)))[0]; \
+                     DDouble d_nan=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_NAN"), 0)))[0];           \
                                                                                                                                 \
                      DDoubleGDL* res = new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);
 
@@ -132,8 +132,8 @@ Type Code | Type Name | Data Type
                          nElp = GM_MIN(nElp0, nElp1);                                                                           \
                                                                                                                                 \
                      static DStructGDL *Values =  SysVar::Values();                                                             \
-                     DDouble d_infinity=(*static_cast<DDoubleGDL*>(Values->Get(Values->Desc()->TagIndex("D_INFINITY"), 0)))[0]; \
-                     DDouble d_nan=(*static_cast<DDoubleGDL*>(Values->Get(Values->Desc()->TagIndex("D_NAN"), 0)))[0];           \
+                     DDouble d_infinity=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_INFINITY"), 0)))[0]; \
+                     DDouble d_nan=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_NAN"), 0)))[0];           \
                                                                                                                                 \
                      DDoubleGDL* res;                                                                                           \
                      if (nElp0 == 1 && nElp1 == 1)                                                                              \

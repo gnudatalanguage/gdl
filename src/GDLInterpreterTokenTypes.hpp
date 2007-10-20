@@ -1,7 +1,7 @@
 #ifndef INC_GDLInterpreterTokenTypes_hpp_
 #define INC_GDLInterpreterTokenTypes_hpp_
 
-/* $ANTLR 2.7.7 (2006-11-01): "gdlc.i.g" -> "GDLInterpreterTokenTypes.hpp"$ */
+/* $ANTLR 2.7.6 (2005-12-22): "gdlc.i.g" -> "GDLInterpreterTokenTypes.hpp"$ */
 
 #ifndef CUSTOM_API
 # define CUSTOM_API

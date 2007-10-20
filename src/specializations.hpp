@@ -519,6 +519,27 @@ template<>  SizeT Data_<SpDComplexDbl>::
 OFmtI( std::ostream* os, SizeT offs, SizeT r, int w, int d, 
        BaseGDL::IOMode oMode); 
 
+
+template<>
+void Data_< SpDString>::Construct(); 
+template<>
+void Data_< SpDComplex>::Construct(); 
+template<>
+void Data_< SpDComplexDbl>::Construct(); 
+template<>
+void Data_< SpDString>::ConstructTo0(); 
+template<>
+void Data_< SpDComplex>::ConstructTo0(); 
+template<>
+void Data_< SpDComplexDbl>::ConstructTo0(); 
+template<>
+void Data_< SpDString>::Destruct(); 
+template<>
+void Data_< SpDComplex>::Destruct(); 
+template<>
+void Data_< SpDComplexDbl>::Destruct(); 
+
+
 // topython.cpp
 #ifdef USE_PYTHON
 template<> 

@@ -274,9 +274,13 @@ end
 
 pro struct_test
 
-s={tag: indgen(5)}
+s={s:"a string",tag: indgen(5),c:complex(1,2)}
 
 if s.tag[ 3] ne 3 then print,'***STRUCT: ERROR1'
+
+s={s1,tag: indgen(5),s:s}
+
+if s.tag[ 3] ne 3 then print,'***STRUCT: ERROR1b'
 
 s.tag++
 
@@ -296,9 +300,24 @@ ss[*].tag=indgen(5,2)
 
 if ss[1].tag[2] ne 7 then print,'***STRUCT: ERROR5'
 
-s={s:indgen(5)}
-ss={ss:s}
-sss={sss:ss}
+s={s:indgen(5),$
+t:"string",$
+u:complexarr(3,5),$
+v:dcomplexarr(99,2),$
+x:sindgen(100)$
+}
+ss={ss:s,s2:s}
+sss={sss:ss,ss:[s,s]}
+
+sa = s
+for i=0,2 do begin
+sa={s1:sa,s2:[sa,sa]}
+endfor
+sa = {named,t:s}
+for i=0,3 do begin
+sa={s1:sa,s2:[sa,sa]}
+endfor
+sa=0
 
 ;p=ptr_new( sss)
 ;((*p).sss.ss)[2] = 5

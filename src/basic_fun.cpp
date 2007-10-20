@@ -507,7 +507,7 @@ namespace lib {
 
     DStructDesc* objDesc=e->Interpreter()->GetStruct( objName, e->CallingNode());
 
-    DStructGDL* objStruct= new DStructGDL( objDesc);
+    DStructGDL* objStruct= new DStructGDL( objDesc, dimension());
 
     DObj objID= e->NewObjHeap( 1, objStruct); // owns objStruct
 
@@ -4060,8 +4060,9 @@ namespace lib {
 	  }
                 
 	// the instance variable
-	dimension dim( 1);
-	DStructGDL* instance = new DStructGDL( nStructDesc, dim);
+// 	dimension dim( 1);
+// 	DStructGDL* instance = new DStructGDL( nStructDesc, dim);
+	DStructGDL* instance = new DStructGDL( nStructDesc);
 	auto_ptr<DStructGDL> instance_guard(instance);
 
 	for( SizeT p=0; p<nParam; ++p)
@@ -4079,7 +4080,7 @@ namespace lib {
 		for( SizeT t=0; t< desc->NTags(); ++t)
 		  {
 		    instance->NewTag( desc->TagName( t), 
-				      parStruct->Get( t, 0)->Dup());
+				      parStruct->GetTag( t)->Dup());
 		  }
 	      }
 	    else
@@ -4138,8 +4139,9 @@ namespace lib {
 
 	DStructDesc*          nStructDesc = new DStructDesc( "$truct");
 	// instance takes care of nStructDesc since it is unnamed
-	dimension dim( 1);
-	DStructGDL* instance = new DStructGDL( nStructDesc, dim);
+// 	dimension dim( 1);
+// 	DStructGDL* instance = new DStructGDL( nStructDesc, dim);
+	DStructGDL* instance = new DStructGDL( nStructDesc);
 	auto_ptr<DStructGDL> instance_guard(instance);
 
 	for( SizeT p=0; p<nParam;)
@@ -4157,7 +4159,7 @@ namespace lib {
 		for( SizeT t=0; t< desc->NTags(); ++t)
 		  {
 		    instance->NewTag( desc->TagName( t), 
-				      parStruct->Get( t, 0)->Dup());
+				      parStruct->GetTag( t)->Dup());
 		  }
 		++p;
 	      }

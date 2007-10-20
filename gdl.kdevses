@@ -2,8 +2,8 @@
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
  <DocsAndViews NumberOfDocuments="1" >
-  <Doc0 NumberOfViews="1" URL="file:///home/marc/gdl/src/basegdl.hpp" >
-   <View0 Encoding="" line="150" Type="Source" />
+  <Doc0 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/basegdl.hpp" >
+   <View0 Encoding="" line="163" Type="Source" />
   </Doc0>
  </DocsAndViews>
  <pluginList>
