@@ -359,7 +359,9 @@ protected:
 
   void MakeOwnDesc()
   {
-    if( /* desc != NULL && */ desc->IsUnnamed()) desc = new DStructDesc( desc);
+//     if( /* desc != NULL && */ desc->IsUnnamed()) desc = new DStructDesc( desc);
+    assert( desc != NULL);
+    if( desc->IsUnnamed()) desc->AddRef();
   }
 
 public:

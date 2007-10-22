@@ -120,6 +120,12 @@ public:
 class DStructDesc: public DUStructDesc
 {
 private:
+
+  SizeT refCount;
+
+
+private:
+
   std::string              name;
   StructListT              parent;  // parent classes 
   IDList                   noDirectMembers;
@@ -129,18 +135,21 @@ private:
 
   DStructDesc( const DStructDesc&) {} // disabeld
  
+
 public:
-  DStructDesc( const std::string n): DUStructDesc()
+  DStructDesc( const std::string n): DUStructDesc(), refCount( 1)
   {
     name=n;
   }
 
+private:
   // this is only used for unnamed structs -> only copy name from 'this'
   DStructDesc( const DStructDesc* d_): 
     DUStructDesc( d_), 
     name( d_->name) // must be "$..."
   {}
 
+public:
   ~DStructDesc();
 
   friend bool operator==(const DStructDesc& left, const DStructDesc& right);
@@ -206,6 +215,16 @@ public:
 
   void AssureIdentical( DStructDesc* d);
   //  DStructDesc* FindEqual( const StructListT& sL);
+
+  void AddRef()
+  {
+    ++refCount;
+  }
+  void Delete()
+  {
+    if( --refCount) return;
+    delete this;
+  }
 };
 
 

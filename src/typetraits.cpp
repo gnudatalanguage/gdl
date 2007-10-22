@@ -298,7 +298,7 @@ SpDStruct::SpDStruct( DStructDesc* desc_, const dimension& dim_):
 
 SpDStruct::~SpDStruct() 
 {
-  if( desc != NULL && desc->IsUnnamed()) delete desc;
+  if( desc != NULL && desc->IsUnnamed()) desc->Delete();
 }
 
 SpDPtr::SpDPtr(): BaseGDL() {}
