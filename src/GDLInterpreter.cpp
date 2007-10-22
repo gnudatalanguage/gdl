@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.6 (2005-12-22): "gdlc.i.g" -> "GDLInterpreter.cpp"$ */
+/* $ANTLR 2.7.6 (20070220): "gdlc.i.g" -> "GDLInterpreter.cpp"$ */
 
     // gets inserted before the antlr generated includes in the cpp file
 #include "includefirst.hpp"
@@ -4144,7 +4144,7 @@ BaseGDL*  GDLInterpreter::array_def(ProgNodeP _t) {
 			{ 
 			if( cType != ty) 
 			{
-			if( DTypeOrder[ty] > 100) // struct, ptr, object
+			if( DTypeOrder[ty] > 100 || DTypeOrder[cType] > 100) // struct, ptr, object
 			{
 			throw 
 			GDLException( _t, e->TypeStr()+

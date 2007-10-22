@@ -3179,7 +3179,7 @@ array_def returns [BaseGDL* res]
                     { 
                         if( cType != ty) 
                         {
-                            if( DTypeOrder[ty] > 100) // struct, ptr, object
+                            if( DTypeOrder[ty] > 100 || DTypeOrder[cType] > 100) // struct, ptr, object
                             {
                                 throw 
                                 GDLException( _t, e->TypeStr()+
