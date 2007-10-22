@@ -1,10 +1,19 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
- <DocsAndViews NumberOfDocuments="1" >
-  <Doc0 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/basegdl.hpp" >
-   <View0 Encoding="" line="163" Type="Source" />
+ <DocsAndViews NumberOfDocuments="4" >
+  <Doc0 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/dstructgdl.cpp" >
+   <View0 Encoding="" line="96" Type="Source" />
   </Doc0>
+  <Doc1 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/dstructgdl.hpp" >
+   <View0 Encoding="" line="325" Type="Source" />
+  </Doc1>
+  <Doc2 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/default_io.cpp" >
+   <View0 Encoding="" line="1550" Type="Source" />
+  </Doc2>
+  <Doc3 NumberOfViews="1" URL="file:///usr/local/home/marc/gdl/src/basic_pro.cpp" >
+   <View0 Encoding="" line="1167" Type="Source" />
+  </Doc3>
  </DocsAndViews>
  <pluginList>
   <kdevdebugger>
@@ -25,11 +34,11 @@
      <mark line="889" />
      <mark line="574" />
     </bookmark>
-    <bookmark url="/usr/local/home/marc/gdl/src/dcompiler.cpp" >
-     <mark line="459" />
-    </bookmark>
     <bookmark url="/usr/local/home/marc/gdl/src/basic_fun.cpp" >
      <mark line="1142" />
+    </bookmark>
+    <bookmark url="/usr/local/home/marc/gdl/src/dcompiler.cpp" >
+     <mark line="459" />
     </bookmark>
     <bookmark url="/usr/local/home/marc/gdl/src/datalistt.hpp" >
      <mark line="79" />

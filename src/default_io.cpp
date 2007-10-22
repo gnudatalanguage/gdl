@@ -1536,7 +1536,7 @@ ostream& DStructGDL::Write( ostream& os, bool swapEndian,
   SizeT nEl = N_Elements();
   SizeT nTags = NTags();
   for( SizeT i=0; i<nEl; ++i)
-  for( SizeT t=0; i<nTags; ++t)
+  for( SizeT t=0; t<nTags; ++t)
     GetTag( t, i)->Write( os, swapEndian, compress, xdrs);
   return os;
 }
@@ -1547,7 +1547,7 @@ istream& DStructGDL::Read( istream& os, bool swapEndian,
   SizeT nEl = N_Elements();
   SizeT nTags = NTags();
   for( SizeT i=0; i<nEl; ++i)
-  for( SizeT t=0; i<nTags; ++t)
+  for( SizeT t=0; t<nTags; ++t)
     GetTag( t, i)->Read( os, swapEndian, compress, xdrs);
   return os;
 }
