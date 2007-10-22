@@ -1192,19 +1192,19 @@ Esko G. Cate & David W. Twigg
     static unsigned pTag = mapStruct->Desc()->TagIndex( "P");
 
     DLong map_projection = 
-      (*static_cast<DLongGDL*>( mapStruct->Get( projectionTag, 0)))[0];
+      (*static_cast<DLongGDL*>( mapStruct->GetTag( projectionTag, 0)))[0];
     DDouble map_p0lon = 
-      (*static_cast<DDoubleGDL*>( mapStruct->Get( p0lonTag, 0)))[0];
+      (*static_cast<DDoubleGDL*>( mapStruct->GetTag( p0lonTag, 0)))[0];
     DDouble map_p0lat = 
-      (*static_cast<DDoubleGDL*>( mapStruct->Get( p0latTag, 0)))[0];
+      (*static_cast<DDoubleGDL*>( mapStruct->GetTag( p0latTag, 0)))[0];
     DDouble map_a = 
-      (*static_cast<DDoubleGDL*>( mapStruct->Get( aTag, 0)))[0];
+      (*static_cast<DDoubleGDL*>( mapStruct->GetTag( aTag, 0)))[0];
     DDouble map_e2 = 
-      (*static_cast<DDoubleGDL*>( mapStruct->Get( e2Tag, 0)))[0];
+      (*static_cast<DDoubleGDL*>( mapStruct->GetTag( e2Tag, 0)))[0];
     DDouble map_lat1 = 
-      (*static_cast<DDoubleGDL*>( mapStruct->Get( pTag, 0)))[3];
+      (*static_cast<DDoubleGDL*>( mapStruct->GetTag( pTag, 0)))[3];
     DDouble map_lat2 = 
-      (*static_cast<DDoubleGDL*>( mapStruct->Get( pTag, 0)))[4];
+      (*static_cast<DDoubleGDL*>( mapStruct->GetTag( pTag, 0)))[4];
 
     char proj[64];
     char p0lon[64];
