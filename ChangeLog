@@ -1,4 +1,1143 @@
 GDL 0.9:
+2007-10-22  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/GDLInterpreterTokenTypes.hpp, src/GDLInterpreterTokenTypes.txt, src/gdlc.i.g:
+	fixed append int to struct array bug
+
+	* gdl.kdevelop, gdl.kdevses, src/dstructdesc.hpp, src/typetraits.cpp, src/typetraits.hpp:
+	ref count for DStructDesc
+
+2007-10-22  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/math_utl.cpp: Change Get to GetTag (structure method)
+
+2007-10-22  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/default_io.cpp, gdl.kdevelop, gdl.kdevses:
+	Fixed reading/writing for struct arrays
+
+2007-10-20  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/typetraits.cpp, src/typetraits.hpp, testsuite/test_suite.pro, src/devicez.hpp, src/dstructdesc.cpp, src/dstructdesc.hpp, src/dstructgdl.cpp, src/dstructgdl.hpp, src/envt.cpp, src/extrat.cpp, src/gdl.cpp, src/gdlc.i.g, src/gdlexception.cpp, src/gdljournal.cpp, src/graphics.hpp, src/ifmt.cpp, src/initsysvar.cpp, src/math_fun_gm.cpp, src/ncdf_att_cl.cpp, src/ncdf_var_cl.cpp, src/plotting.cpp, src/specializations.hpp, src/typedefs.hpp, src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/GDLInterpreterTokenTypes.hpp, src/accessdesc.hpp, src/basegdl.cpp, src/basegdl.hpp, src/basic_fun.cpp, src/basic_pro.cpp, src/datatypes.cpp, src/datatypes.hpp, src/default_io.cpp, src/devicex.hpp, gdl.kdevses:
+	more effective internal memory handling for structs
+
+2007-09-17  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basic_fun.cpp:
+	fixed: strpos takes any to string convertible type as 2nd parameter
+
+	* src/datatypes.hpp, src/dstructgdl.hpp, src/arrayindex.hpp:
+	fixed: a[[scalar]] returns one element array
+
+2007-09-12  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/ncdf_var_cl.cpp: Fix VARPUT bugs
+
+2007-09-11  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/ncdf_var_cl.cpp: Fix input parameter bugs
+
+2007-09-10  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/libinit_cl.cpp, src/ncdf_att_cl.cpp, src/ncdf_dim_cl.cpp:
+	Fix various input parameter bugs
+
+2007-09-08  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basic_op.cpp, src/typedefs.hpp: Fixed AND for FLOAT
+
+2007-09-07  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basic_op.cpp: Fixed AND bug
+
+2007-09-06  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/ncdf_var_cl.cpp: Change var_id to varid
+
+2007-09-05  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/ncdf_var_cl.cpp:
+	Allow varid to be variable name in VARGET, VARGET1, VARPUT
+
+2007-09-05  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* testsuite/test_plot_benchmark.pro:
+	correcting bug when selecting only one test
+
+	* src/pro/file_basename.pro, src/pro/file_dirname.pro:
+	initial import of File_Basename and File_Dirname, thanks to S. Masson
+
+2007-09-03  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basegdl.hpp, src/basic_op.cpp, src/datatypes.cpp, src/datatypes.hpp, src/dimension.hpp, src/typedefs.hpp, src/typetraits.hpp, gdl.kdevelop, gdl.kdevses:
+	Introduced GDLArray
+
+2007-09-01  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/ofmt.cpp, src/topython.cpp, gdl.kdevses, src/basic_op.cpp, src/convert2.cpp, src/convol.cpp, src/datatypes.cpp, src/default_io.cpp, src/dstructgdl.hpp, src/ifmt.cpp:
+	channel all data (dd member) access through [] operator
+
+2007-08-30  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* aclocal.m4, configure, gdl.kdevelop, gdl.kdevses, src/Makefile.in, src/antlr/Makefile.in, src/datatypes.cpp, src/datatypes.hpp, src/dstructgdl.cpp, src/dstructgdl.hpp, Makefile.in:
+	custom operator new/delete
+
+2007-08-30  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/ncdf_var_cl.cpp: Preliminary fix for INT bug in NCDF_VARGET
+
+2007-08-25  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/basic_fun.cpp, src/libinit.cpp:
+	Add support for DIM & DOUBLE keywords in MEDIAN
+
+2007-08-23  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/libinit_jmg.cpp, src/gsl_fun.cpp, src/gsl_fun.hpp:
+	Add LA_TRIRED routine
+
+2007-08-21  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/dnode.hpp, src/GDLLexer.hpp, src/GDLParser.cpp, src/GDLParser.hpp, src/GDLTokenTypes.hpp, src/GDLTokenTypes.txt, src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/GDLTreeParserTokenTypes.hpp, src/GDLTreeParserTokenTypes.txt, src/dnode.cpp, src/GDLLexer.cpp, gdl.kdevses:
+	Fixed discrepency in conversion of constant numbers
+
+2007-08-13  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/basic_fun.cpp: Fix indexing bug in MEDIAN with EVEN keyword
+
+2007-08-08  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* NEWS, gdl.kdevses, src/libinit_cl.cpp, src/ncdf_att_cl.cpp, src/ncdf_var_cl.cpp:
+	Applied two patches from Sylwester Arabas
+
+2007-07-09  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* NEWS, testsuite/test_plot_benchmark.pro:
+	remove 3 duplicated lines in NEWS; bug in "test_plot_benchmark.pro"
+
+2007-07-05  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basic_pro.cpp, configure.in, configure: sync 0.9pre5
+
+	* gdl.kdevses, NEWS, README, configure: edit
+
+2007-06-28  jbronn  <jbronn@DaMachineInDaMachine>
+
+	* configure.in:
+	fixed python configure bug (no sub version numbers, e.g., 2.5 not 2.5.1)
+
+2007-06-25  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* testsuite/test_plot_benchmark.pro, testsuite/test_plot_linestyle.pro, NEWS:
+	info in NEWS; correction of details in "test_plot_benchmark.pro" and "test_plot_linestyle.pro"
+
+2007-06-23  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basic_fun.cpp, src/basic_pro.cpp, src/convert2.cpp, src/envt.cpp, src/envt.hpp, src/basegdl.hpp, gdl.kdevses, gdl.kdevelop:
+	Full ON_IOERROR support
+
+2007-06-19  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/io.cpp, src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/GDLInterpreterTokenTypes.hpp, src/GDLInterpreterTokenTypes.txt, src/basic_fun.cpp, src/basic_pro.cpp, src/gdlc.i.g, gdl.kdevses:
+	ON_IOERROR support
+
+2007-06-19  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/export.hpp: Change to GDL_VarCopy()
+
+	* src/basic_pro_jmg.cpp: Small changes to LINKIMAGE
+
+	* src/export.hpp: Initial import.
+
+2007-06-18  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* gdl.kdevelop, src/dinterpreter.cpp, src/gdl.cpp:
+	init readline already before interpreter is instantiated
+
+2007-06-18  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/plotting.cpp: several important changes in "plotting.cpp"
+	-- autoscaling providing better mimic of IDL except when all data are equal
+	-- providing 6 linestyle, managing keyword versus !p.linestyle
+	-- rewriting of "draw_polyline" using <<buffers>> to improve speed for large datasets
+
+	* testsuite/test_histo.pro:
+	initial import of a test program for histogram with 2 procedures
+
+	* testsuite/test_plot_inf_nan.pro, testsuite/test_plot_info.pro, testsuite/test_plot_linestyle.pro, testsuite/test_map.pro, testsuite/test_minmax.pro, testsuite/test_plot_basic.pro, testsuite/test_plot_benchmark.pro:
+	initial import of 5 programs for checking plotting options
+	(/nan now works on Nan and +-Inf; linestyle, "fast" plot)
+
+2007-06-11  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* gdl.kdevelop, configure, configure.in, README: sync
+
+2007-06-10  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/math_fun_ac.cpp: small corrections
+
+2007-06-07  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/basic_fun.cpp, src/datatypes.cpp:
+	In "basic_fun.cpp", correcting /Nan keyword for Min() and Max()
+	In "datatypes.cpp", managing -/+ Inf and also solve case when NaN is first element.
+
+	* testsuite/test_minmax.pro:
+	Add testsuite/test_minmax.pro, a serie of tests for Min() and Max()
+
+2007-06-03  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/antlr/Makefile.in, src/terminfo.cpp, src/Makefile.in, configure.in, gdl.kdevses, aclocal.m4, config.h.in, configure, Makefile.in:
+	Some small changes for OS X
+
+2007-06-02  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basic_fun_jmg.cpp, src/dstructgdl.hpp:
+	use of New( dim, BaseGDL::INIT
+
+	* src/assocdata.cpp, src/dstructgdl.hpp: Fixed ASSOC for STRUCTS
+
+	* src/assocdata.cpp, src/basic_fun.cpp:
+	Fixed ASSOC for structs and 1 element arrays
+
+	* gdl.kdevelop, gdl.kdevses, src/Makefile.in, src/basic_pro.cpp, src/terminfo.cpp:
+	Fixed APPEND keyword for OPENW
+
+2007-05-29  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/libinit_gm.cpp, src/math_fun_gm.cpp, src/math_fun_gm.hpp:
+	Initial import of GAUSSINT() using gsl_sf_erf()
+
+	* testsuite/test_gammas.pro: removing +-Inf for plotting in test_gammas
+
+	* NEWS: the new functions (erf, erfc, ...) are added in NEWS
+
+2007-05-25  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/Makefile.am, src/Makefile.in:
+	Makefile should now link to Gregory's files ... (libinit_gm.cpp, math_fun_gm.*)
+
+	* src/basic_fun_cl.cpp, src/basic_fun_cl.hpp, src/libinit_cl.cpp:
+	Since reworked of Gregory, GAMMA(), LnGAMMA(), IGamma() and BETA() are removed from C. Lee codes.
+
+	* src/math_fun_gm.cpp, src/math_fun_gm.hpp:
+	Initial import of Gregory's work in C++: ERF(), ERFC(), EXPINT() and ERRORF() (clone of ERF() for old IDL codes)
+	Rework of functions with weakness in many cases: GAMMA(), LnGAMMA(), IGamma() and BETA().
+	These functions were previously in "basic_fun_cl.*" where they have been removed.
+	(please see related test functions in testsuite/) [tested on x86, x86_64 and MacOS]
+
+	* src/libinit.cpp, src/libinit_gm.cpp:
+	Initial import of libinit_gm.cpp (Gregory's functions to come)
+	Modification of libinit.cpp to take into account libinit_gm.cpp
+
+	* testsuite/test_erfs.pro, testsuite/test_expint.pro, testsuite/test_gammas.pro:
+	adding 3 files in testsuite/ for testing:
+	  ERF(), ERFC(), GAMMA(), LnGAMMA(), IGamma(), BETA() and EXPINT()
+	Files are : test_erfs.pro  test_expint.pro  test_gammas.pro
+
+	* testsuite/test_map.pro:
+	removing useless warning of x86_64 bugs in test_map
+
+2007-05-23  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/gsl_fun.cpp: Fix random Poisson for large mu
+
+2007-05-10  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/terminfo.cpp: Fix bug with initscr() for batch or ssh mode
+
+2007-05-08  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/plotting.cpp: Fix DEVICE & NORMAL bug in xyouts,plots
+
+	* src/basic_fun_jmg.cpp, src/hdf_fun.cpp, src/hdf_pro.cpp, src/gsl_fun.cpp, src/math_fun_jmg.cpp, src/ncdf_var_cl.cpp, src/plotting.cpp:
+	Change cast in 1st arg to dim() from SizeT to DLong to fix alloc buf on x86_64
+
+2007-05-07  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/gsl_fun.cpp: Add 3D support for INTERPOLATE
+
+2007-05-01  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/basic_pro.cpp: Allow leading '~/' in OPEN filenames
+
+2007-04-25  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/initsysvar.cpp: Apply patch for environment variable GDL_DIR
+
+2007-04-22  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/file.cpp, src/Makefile.in:
+	Fixed FILE_SEARCH multiple repetition of dir in result strings
+
+2007-04-21  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/libinit_ac.cpp: forgotten file for BESELx functions (sorry)
+
+2007-04-20  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* NEWS: updated "NEWS" for Bessel Functions initial import
+
+	* src/Makefile.am, src/libinit.cpp, src/math_fun_ac.cpp, src/math_fun_ac.hpp:
+	initial import for BESEL {I,J,K,Y} functions
+
+	* testsuite/test_besel.pro:
+	initial import for test BESEL {I,J,K,Y} functions
+
+2007-04-18  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/math_utl.cpp: Fix CONIC p0lon/lat bug
+
+	* src/plotting.cpp: Fix !p.multi bugs introduced by map support
+
+2007-04-17  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* testsuite/test_map.pro:
+	TEST_MAP: checking if data are in !dir; more explicite messages
+
+2007-04-16  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/plotting.cpp: Fix PS newpage plotting bug
+
+	* src/gdlgstream.cpp, src/gdlpsstream.hpp: Remove PS eop() function
+
+2007-04-11  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/math_fun.cpp: All types for SVDC
+
+	* src/libinit.cpp, src/math_fun.cpp, src/math_fun.hpp, configure, configure.in, gdl.kdevses:
+	SVDC
+
+2007-04-07  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/dnode.cpp: short circuit for logical 'or' and 'and'
+
+	* src/basegdl.cpp, src/basegdl.hpp, src/basic_op.cpp, src/datatypes.hpp, src/dnode.cpp, src/dstructgdl.hpp, src/specializations.hpp:
+	Changed scalar op one_element_array result to array
+
+2007-04-06  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/dcompiler.cpp, gdl.kdevses:
+	Changed order of function/variable lookup
+
+2007-04-02  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/basic_fun.cpp:
+	Trap 0 values in dimensions for array generator functions.
+
+2007-03-31  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/dcompiler.cpp:
+	Changed: variable and function ambiguity: variables precede now
+
+	* src/convert2.cpp, gdl.kdevses:
+	Fixed conversion of empty string to byte
+
+2007-03-29  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/envt.cpp: Fix for HEAP_GC
+
+2007-03-28  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/print.cpp: Fix MSG_NOSIGNAL compile problem on OS X
+
+2007-03-28  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* gdl.kdevses, src/envt.cpp: Handle nested HEAP_GC calls from CLEANUP
+
+2007-03-27  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* NEWS, src/devicex.hpp:
+	Add support for TRUE/CHANNEL keywords in TVRD for X
+
+2007-03-25  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/assocdata.hpp, src/basegdl.cpp, src/basegdl.hpp, src/basic_op.cpp, src/datatypes.hpp, src/dnode.cpp, src/dstructgdl.hpp, src/specializations.hpp:
+	Speedup for POW
+
+2007-03-24  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* gdl.kdevses, src/basic_op.cpp, configure, configure.in:
+	added -ltermcap to LDFLAGS in
+
+2007-03-24  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/devicez.hpp, src/gdlgstream.cpp, src/gdlgstream.hpp, src/gdlxstream.cpp, src/gdlxstream.hpp, src/gdlzstream.cpp, src/gdlzstream.hpp, src/graphics.hpp, src/plotting.cpp:
+	Add support for bkgr color in ERASE/Fix zbuf fill problem
+
+2007-03-23  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/math_utl.cpp: Add support for Oblique Cylindrical projection
+
+2007-03-22  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/envt.cpp, src/print.cpp: fixed printf,-1,var
+
+2007-03-21  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLTreeParser.cpp, src/basic_pro.cpp, src/dnode.cpp, src/gdlc.tree.g:
+	Fixed problem (segfault) compiling subroutines containing only common blocks
+
+2007-03-20  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* gdl.kdevses, src/devicex.hpp:
+	Fixed: segfault closing X graphic window
+
+2007-03-19  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basic_pro.hpp, src/envt.cpp: Proper message for HEAP_GC,/VERBOSE
+
+	* gdl.kdevses, src/envt.cpp:
+	Fixed HEAP_GC (freeing of objects without CLEANUP method)
+
+	* gdl.kdevses, src/datatypes.cpp:
+	Fixed assignment bug: struct.tag=[one_element_array]
+
+2007-03-19  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/pro/value_locate.pro:
+	Remove 'default', Add 'is_defined' and 'is_scalar'
+
+	* src/math_fun_jmg.cpp:
+	Fix memory overwrite in  poly_2d_fun for BYTE arrays
+
+2007-03-19  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/basic_pro.cpp:
+	Try to correct a bug in DEFSYSV when the Variable is not defined
+	(previously, if x is undefined, this will crash : DEFSYSV, '!x', x).
+
+2007-03-19  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/libinit.cpp:
+	Change max # params in ERASE to 1 for background color
+
+	* src/plotting.cpp: Add support for non-X devices in CONVERT_COORD
+
+	* src/libinit_jmg.cpp: Add TYPE keyword to hdf_sd_attrinfo
+
+	* src/initsysvar.cpp, src/initsysvar.hpp:
+	Add support for Device system variable access
+
+	* src/hdf_pro.cpp: Add support for string attributes
+
+	* src/hdf_fun.cpp: Remove cout statement
+
+2007-03-18  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/envt.cpp, NEWS, src/GDLInterpreter.hpp, src/basic_pro.cpp, src/basic_pro.hpp, src/dstructdesc.hpp, src/envt.hpp, src/gdlc.i.g, src/libinit.cpp, src/math_fun.cpp, src/typedefs.hpp:
+	Added HEAP_GC
+
+	* configure.in, configure:
+	changed configure.in for checking gsl version 1.4 or higher
+
+2007-03-17  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* Makefile.in, gdl.kdevses, src/Makefile.in, src/antlr/Makefile.in, src/datatypes.cpp, src/devicex.hpp:
+	Fixed WSET (ProcessDeleted did set actWin) bug
+
+2007-03-15  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* gsl.m4: initial import for "gsl.m4" which is used by "configure.in"
+	to check the GSL version
+
+	* configure.in, INSTALL, README, config.h.in, configure:
+	changes in configure.in : checking GSL version (>= 1.4), Zlib presence
+	details in README and INSTALL
+
+2007-03-14  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/plotting.cpp: Fix cast in TYPE write in set_mapset
+
+2007-03-09  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/gdlpsstream.hpp, src/gdlgstream.cpp:
+	Fix initial blank page for PS output
+
+2007-03-09  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/pro/findfile.pro: bug Keyword --> keyword_set ;-)
+
+2007-03-08  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/pro/findfile.pro:
+	add very basic FINDFILE (as a .pro) since oftenly used in old codes.
+	please consider FILE_SEARCH --provided by GDL-- instead.
+
+2007-03-04  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/gzstream.hpp: Initial import.
+
+	* src/assocdata.cpp, src/basegdl.cpp, src/basegdl.hpp, src/basic_pro.cpp, src/datatypes.hpp, src/default_io.cpp, src/dstructgdl.hpp, src/gdljournal.cpp, src/io.cpp, src/io.hpp, src/specializations.hpp:
+	Add partial support for COMPRESS keyword in OPEN (read only)
+
+2007-03-02  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* configure, configure.in: Check for libfftw3f library
+
+2007-03-02  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* README: how to really have FFTw in GDL !
+
+2007-02-28  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/pro/save.pro, testsuite/test_map.pro, testsuite/test_restore.pro, testsuite/test_save.pro, MAP_INSTALL, src/pro/restore.pro:
+	add options and several checks when using SAVE and RESTORE,
+	especially the verbose keyword in RESTORE
+	and the check of unamed variables in SAVE
+	in testsuite/, add TEST_SAVE and TEST_RESTORE for fast basic tests
+	in testsuite/, add TEST_MAP for quicky run a demo for MAP_SET,/continent !
+
+2007-02-28  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/basic_fun_jmg.hpp: Fix title statement
+
+	* src/hdf_fun.cpp, src/hdf_fun.hpp, src/hdf_pro.cpp, src/hdf_pro.hpp:
+	Transfer include mfhdf.h statement from include to source files
+
+	* src/libinit_jmg.cpp: Remove dpro.hpp statement
+
+2007-02-27  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* INSTALL, MAP_INSTALL, NEWS: Update libproj4 info
+
+2007-02-25  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/libinit.cpp, src/math_fun.cpp: ADD L64 keyword to ROUND
+
+2007-02-21  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/libinit_jmg.cpp, src/math_fun_jmg.cpp, src/math_fun_jmg.hpp:
+	Add TRIGRID function
+
+	* MAP_INSTALL: Initial import.
+
+2007-02-17  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/accessdesc.hpp, src/datatypes.cpp, src/datatypes.hpp:
+	fixed assignment of arrays to struct expressions
+
+	* gdl.kdevses, src/basic_pro.cpp: allow all types for REPLICATE_INPLACE
+
+2007-02-13  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/math_utl.cpp, src/math_utl.hpp, src/plotting.cpp, src/plotting.hpp:
+	Transfer map_init() from plotting.cpp to math_utl.cpp
+
+2007-02-09  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/read.cpp: Replace 'push_back' loop with 'append' method in READF
+
+2007-02-08  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/basic_fun.cpp: Set default pattern to ' ' in STRTOK for /REGEX
+
+2007-02-06  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/gsl_fun.cpp: Speed up INTERPOLATE
+
+2007-02-06  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* configure.in, gdl.kdevelop, gdl.kdevses, src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/GDLTreeParserTokenTypes.hpp, src/GDLTreeParserTokenTypes.txt, src/arrayindex.cpp, src/arrayindexlistt.hpp, src/basic_pro.cpp, src/basic_pro.hpp, src/dstructgdl.hpp, src/gdlc.tree.g, src/libinit.cpp, configure:
+	REPLICATE_INPLACE from Sergio Gelato
+
+2007-02-06  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/pro/read_jpeg.pro: 16-bit image redux
+
+2007-02-05  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/pro/read_jpeg.pro: Convert 16-bit image to byte
+
+2007-02-04  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/plotting.cpp:
+	Add TO_DEVICE keyword support for ll->xy map conversions
+
+	* src/libinit_jmg.cpp: Add XSIZE/YSIZE keywords to tvKey
+
+2007-02-02  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/plotting.cpp, src/plotting.hpp: Add map support to XYOUTS
+
+2007-02-01  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/libinit.cpp: Add 'Z' to xyoutsKey
+
+2007-01-30  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* Makefile.in, aclocal.m4, config.h.in, configure, gdl.kdevelop, gdl.kdevses, src/FMTIn.cpp, src/FMTIn.hpp, src/FMTInTokenTypes.hpp, src/FMTInTokenTypes.txt, src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/GDLInterpreterTokenTypes.hpp, src/GDLInterpreterTokenTypes.txt, src/Makefile.in, src/antlr/Makefile.in, src/assocdata.cpp, src/basic_fun.cpp, src/datatypes.cpp, src/gsl_fun.hpp, src/ifmt.cpp, src/io.cpp, src/io.hpp:
+	Fixed ASSOC bug (bug tracker ID 1631690)
+
+2007-01-29  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/plotting.cpp: Add MERCATOR projection. Fix grid/cont line jumps
+
+2007-01-25  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* NEWS: SOCKET & FFT/DIMENSION keyword support
+
+	* src/fftw.cpp, src/gsl_fun.cpp:
+	Add support for DIMENSION keyword in FFT
+
+2007-01-19  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/basic_fun.cpp, src/basic_pro.hpp, src/io.cpp, src/io.hpp, src/libinit.cpp, src/print.cpp, src/read.cpp, src/basic_pro.cpp:
+	Add SOCKET support
+
+2007-01-07  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/basic_fun_jmg.cpp: Rewrite ROUTINE_NAMES without pop_back
+
+2006-12-30  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basic_pro.cpp, src/libinit.cpp, src/ncdf_att_cl.cpp, src/ncdf_var_cl.cpp:
+	Added the unofficial CALLS keyword to HELP
+
+2006-12-29  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* gdl.kdevses, src/dcompiler.cpp, src/dcompiler.hpp:
+	purge common blocks before recursive compilation
+
+2006-12-21  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/gsl_fun.cpp: Fix 'ny' for vector output
+
+2006-12-19  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/pro/ishft.pro: Fix for column vectors
+
+2006-12-19  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/pro/restore.pro, src/pro/save.pro:
+	since EXECUTE is now working in GDL, finalization of CMSVlib checks
+	and users informations in SAVE/RESTORE
+
+2006-12-19  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* gdl.kdevses, src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/basic_fun.cpp, src/gdlc.i.g:
+	Corrected return value of EXECUTE
+
+	* AUTHORS, src/arrayindex.hpp, src/arrayindexlistt.hpp:
+	made something like a[3,i] scalar
+
+2006-12-18  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/pro/README.txt, src/pro/UrgentNeed.txt:
+	dd direct link to http://idlastro.gsfc.nasa.gov/idllibsrch.html
+	which provides some files from the IDL lib.
+
+2006-12-15  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/pro/restore.pro, src/pro/save.pro:
+	add in headers of these 2 files link to the external CMSV lib.
+	add a test to check wether the CMSV lib. is available or not
+
+	* src/pro/README.txt, src/pro/UrgentNeed.txt: typo corrected
+
+2006-12-15  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* gdl.kdevses, src/extrat.cpp:
+	Fixed problem with _EXTRA=undefined keywords
+
+2006-12-14  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/pro/README.txt, src/pro/STATUS, src/pro/UrgentNeed.txt:
+	add README.txt in order to give explainations about the
+	content of this directory.
+	add UrgentNeed.txt in order to indicate clearly the most urgent
+	procedures and is someone has started to work on.
+	update STATUS since I have added few files
+
+	* src/pro/file_lines.pro:
+	add FILE_LINES, pro file of a function appering in IDL 5.5
+
+2006-12-11  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* AUTHORS, NEWS:
+	add Alain as tester in AUTHORS' list; typo for integer in NEWS
+
+	* testsuite/test_colors.pro, testsuite/test_op_elem.pro, testsuite/test_op_power.pro:
+	add 3 test files : one for checking colors, 2 for time test.
+
+2006-12-02  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/ncdf_att_cl.cpp, src/ncdf_var_cl.cpp:
+	Included patch from opoplawski
+
+2006-11-27  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* NEWS: Update NEWS
+
+	* src/basic_pro.cpp, src/io.cpp, src/io.hpp:
+	Remove streamVMS support; Add variable-length file support
+
+	* src/gdljournal.cpp: Conform to new Open method
+
+	* src/default_io.cpp: Remove XDR conversion for BYTE (Not in IDL)
+
+	* src/basic_pro_jmg.cpp: Remove streamVMS adjustment from POINT_LUN
+
+2006-11-22  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/basic_pro.cpp: STREAM keyword only supported in VMS
+
+	* src/basic_pro_jmg.cpp: Add STREAM file fix to POINT_LUN
+
+2006-11-22  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/gdljournal.cpp, src/initsysvar.cpp, src/initsysvar.hpp, src/libinit.cpp, configure.in, src/GDLInterpreter.cpp, src/basic_pro.cpp, src/gdl.cpp, src/gdlc.i.g:
+	0.9pre3
+
+2006-11-21  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/gdl.cpp: Remove HELP,/INFO message
+
+2006-11-20  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* NEWS: Update NEWS
+
+	* src/basic_pro.cpp, src/gdljournal.cpp, src/io.cpp, src/io.hpp:
+	Add support for STREAM keyword in OPEN
+
+2006-11-17  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/initsysvar.cpp: Change MAP structure tag to UP_NAME
+
+	* NEWS: Update NEWS
+
+	* src/basic_pro.cpp, src/libinit.cpp:
+	Add support for PROCEDURES, FUNCTIONS keywords in HELP
+
+2006-11-16  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/datatypes.cpp, src/io.cpp: Fixed XDR bug
+
+2006-11-15  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basic_fun_jmg.cpp, configure, configure.in:
+	Made REFORM conforming (no folding of all dimensions anymore)
+
+2006-11-13  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basegdl.cpp, src/typetraits.cpp: proper type names
+
+2006-11-11  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* configure, configure.in, src/basic_pro.cpp, src/datatypes.cpp, src/datatypes.hpp, src/default_io.cpp, src/io.cpp, src/io.hpp, config.h.in:
+	Proper handling of XDR structure, OS X 10.5 compliance
+
+2006-11-10  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/datatypes.cpp:
+	Fixed problem with gcc 4.1.1 error: specialization after instantiation
+
+2006-11-04  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/pro/value_locate.pro: Fix concatenation problems
+
+2006-11-04  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLInterpreter.cpp, src/gdlc.i.g, src/gdlc.tree.g, testsuite/test_suite.pro:
+	fixed left assignment (soemthing like: ((a=2))=3)
+
+2006-11-01  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/dnode.cpp, src/dnode.hpp, src/gdlc.g, src/gdlc.i.g, src/gdlc.tree.g, testsuite/test_suite.pro, src/GDLParser.cpp, src/GDLParser.hpp, src/GDLTokenTypes.hpp, src/GDLTokenTypes.txt, src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/GDLTreeParserTokenTypes.hpp, src/GDLTreeParserTokenTypes.txt, src/arrayindexlistt.hpp, src/GDLLexer.cpp, configure.in, gdl.kdevelop, gdl.kdevses, src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/GDLInterpreterTokenTypes.hpp, src/GDLInterpreterTokenTypes.txt, README:
+	fixed op= (+=, *= ...) for indexed expressions on the left side
+
+2006-10-30  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* NEWS: update NEWS
+
+2006-10-25  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/basic_pro.cpp: HELP displays compiled pro/fun
+
+	* src/basic_fun_jmg.cpp:
+	ROUTINE_NAMES returns compiled pro/fun if no keywords specified
+
+2006-10-23  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* testsuite/test_suite.pro, src/dstructgdl.hpp, src/gdlc.i.g, src/dstructgdl.cpp, src/GDLInterpreter.cpp, src/basegdl.hpp, src/basic_fun.cpp, src/dstructdesc.cpp, Doxyfile, gdl.kdevelop, gdl.kdevses:
+	Allow named struct tags to be converted to first definition in redefiniton (raised an error before)
+
+2006-10-23  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/basic_fun_jmg.cpp:
+	Fix seg fault with ROUTINE_NAMES if no keywords
+
+2006-10-20  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/gsl_fun.cpp: Implement INPUT keyword in HISTOGRAM
+
+2006-10-19  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/pro/value_locate.pro:
+	Modified to return array with same dimensions as second argument
+
+2006-10-18  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/gdlgstream.cpp, src/gdlgstream.hpp:
+	Use decomposed value in Background() method
+
+2006-10-17  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/libinit.cpp, src/math_fun.cpp:
+	Support for L64 keyword in CEIL/FLOOR
+
+	* src/plotting.cpp: Fix various COLOR/BACKGROUND bugs
+
+2006-10-16  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/initsysvar.cpp:
+	add a "!GDL" constant system variable in order to easily distinguish IDL and GDL
+	(sometimes we know some tricky differences between both)
+
+2006-10-12  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/gdlgstream.cpp, src/gdlgstream.hpp:
+	Use decomposed value in Color method
+
+	* src/plotting.cpp: Get # of colors from DEVICE system variable
+
+	* src/devicex.hpp: Change default N_COLORS to 16777216
+
+2006-10-11  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/dnode.cpp: Fix AdjustType bug (1st operand determines type)
+
+2006-10-11  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* testsuite/test_uf77.pro:
+	add a demo file in order to test /f77unformatted writeu/readu
+
+2006-10-08  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLInterpreter.cpp, src/gdlc.i.g, gdl.kdevses:
+	Changed structs to be arrays
+
+2006-10-05  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* NEWS: update NEWS
+
+	* src/gdlc.i.g, src/pro/deriv.pro, src/pro/smooth.pro, testsuite/test_deriv.pro, testsuite/test_smooth.pro:
+	Added SMOOTH and DERIV from Alain Coulais
+
+	* src/gdlc.i.g, src/GDLInterpreter.cpp, src/dcompiler.cpp, gdl.kdevses:
+	Fixed bug with FOR statement when the loop contains EXECUTE and within this a new variable is created
+
+2006-09-28  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/pro/ishft.pro: Get name right in header
+
+	* src/pro/ishft.pro: Initial import
+
+2006-09-27  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/ofmt.cpp:
+	Fixed I format code zero padding (I0x formats are not supported)
+
+	* src/basegdl.cpp, src/basegdl.hpp, src/datatypes.cpp, src/datatypes.hpp, src/math_fun.cpp:
+	log10( valarray<...>) for ALOG10, gcc 3.2.x compliance for ALOG and ALOG10
+
+2006-09-27  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/Makefile.in: Recommit V 1.47
+
+	* src/antlr/Makefile.in: Recommit V 1.32
+
+	* src/Makefile.in, src/antlr/Makefile.in, src/plotting.cpp:
+	Fix bug [1560714] (PLOTS log scaling)plotting.cpp
+
+2006-09-26  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/FMTOut.cpp, src/basic_pro.cpp, src/format.out.g:
+	Fixed 'z' format code
+
+	* src/Makefile.in, src/antlr/Makefile.in, src/basic_fun.cpp, src/plotting.cpp, Makefile.in, configure, configure.in:
+	Fixed offset without dim1,... for type conversion functions (BYTE, FIX, LONG, ...)
+
+2006-09-26  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/GDLInterpreter.cpp: Add support for ON_IOERROR
+
+2006-09-25  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* config.h.in, configure, configure.in: Fix 64-bit OS check
+
+2006-09-24  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/basic_fun_jmg.cpp: Fix st_atim bug [1563930]
+
+2006-09-22  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* configure.in, config.h.in, configure, gdl.kdevses, src/plotting.cpp:
+	Handle something like PLOT,/XLOG,/YLOG,[x,x],[y,y]
+
+2006-09-21  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/specializations.hpp: Install Patch [ 1561592 ]
+
+	* src/basic_fun_jmg.cpp: Add ATIME, CTIME, MTIME to FSTAT
+
+2006-09-20  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/typedefs.hpp: Make SizeT typedef 32/64 OS-dependent
+
+	* configure.in, config.h.in, configure: Check for 64-bit OS
+
+2006-09-19  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/plotting.cpp: Change wIx from int to DLong in wdelete
+
+2006-09-18  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/arrayindex.hpp, src/arrayindexlistt.hpp, src/default_io.cpp, src/dstructgdl.hpp, gdl.kdevelop:
+	Fixed boundary check for ArrayIndexListMultiT ALLONE
+
+2006-09-17  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/FMTIn.cpp, src/FMTOut.cpp, src/format.in.g, src/format.out.g, gdl.kdevelop, gdl.kdevses:
+	fixed T format code (starts from 1)
+
+2006-09-16  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/FMTOut.cpp, src/FMTOut.hpp, src/convert2.cpp, src/format.g, src/format.out.g, src/ofmt.cpp, src/str.cpp:
+	Fixed T format code (now count from 1, before fomr 0)
+
+2006-09-15  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/plotting.cpp:
+	Add support for ORTHOGRAPHIC,STEREO,AZIMUTHAL,GNOMIC,CONIC,LAMBERT,AITOFF projections
+
+	* src/devicex.hpp, src/devicez.hpp, src/image.hpp, src/libinit_jmg.cpp:
+	Add support for CHANNEL keyword in TV/TVSCL
+
+2006-09-14  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/ofmt.cpp: Fixed I format code (removed zero padding)
+
+	* src/datatypes.cpp, src/dstructgdl.cpp, gdl.kdevses, src/FMTIn.hpp, src/default_io.cpp, src/format.in.g, src/gdlc.i.g, src/gdlexception.hpp, src/io.cpp, testsuite/test_suite.pro:
+	Fixed assignment 'at' (one dim index: var[0]=...) for multi dim var
+
+2006-09-13  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/plotting.cpp: Change INF to NAN in CONVERT_COORD
+
+	* src/basic_fun_jmg.cpp: Fix REFORM with 1 parameter
+
+2006-09-12  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/convert2.cpp:
+	Removed warning message for converting empty string to DOUBLE
+
+	* src/default_io.cpp:
+	Made read strings without FORMAT handle DOS mode files
+
+2006-09-08  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/basic_fun_jmg.cpp: Fix ROUTINE_NAMES GetPar (STORE) bug
+
+2006-09-07  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/accessdesc.hpp, src/basic_fun.cpp:
+	tags containing one element are skiped from dimension
+
+2006-09-06  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basic_fun.cpp: Minor chnages to CREATE_STRUCT
+
+	* src/basic_pro.cpp: Output of HELP,/STRUCT for struct arrays
+
+2006-09-04  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLInterpreter.cpp, src/gdlc.i.g, testsuite/test_suite.pro, gdl.kdevses:
+	Fixed: CASE with empty statement list
+
+2006-09-03  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/basic_fun_jmg.cpp: Fix structure store bug in ROUTINE_NAMES
+
+	* src/basic_fun.cpp: Structure variable bug fixes
+
+	* src/GDLInterpreter.cpp:
+	Make new structure single-element array rather than scalar
+
+	* src/libinit.cpp, src/basic_pro.cpp: Add support for OUTPUT in HELP
+
+2006-09-02  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/pro/str_sep.pro: Initial import
+
+2006-09-01  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/pro/restore.pro, src/pro/save.pro: Add GPL license
+
+2006-08-31  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/basic_fun.cpp: Fix CREATE_STRUCTURE for undefined name
+
+2006-08-30  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/basic_fun_jmg.cpp: Add /STRUCTURE to SIZE
+
+	* src/initsysvar.cpp, src/initsysvar.hpp: Add !CPU system variable
+
+	* src/pro/write_png.pro: Fix /ORDER bug
+
+	* src/pro/map_clip_set.pro: Initial import
+
+2006-08-25  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* gdl.kdevses, src/basic_pro.cpp: CLOSE,/ALL now also frees LUNs
+
+2006-08-25  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* config.h.in: Preliminary support for map projections
+
+2006-08-24  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* INSTALL, NEWS, src/libinit_jmg.cpp, src/plotting.cpp, src/plotting.hpp, configure, configure.in:
+	Preliminary support for map projections
+
+2006-08-23  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/pro/last_item.pro, src/pro/value_locate.pro: Inital import
+
+	* NEWS: Support for XDR I/O & POLY_2D
+
+	* src/basegdl.cpp, src/basegdl.hpp, src/basic_pro.cpp, src/datatypes.hpp, src/default_io.cpp, src/dstructgdl.hpp, src/gdljournal.cpp, src/io.cpp, src/io.hpp, src/print.cpp, src/specializations.hpp, src/assocdata.cpp:
+	Support for XDR I/O
+
+2006-08-06  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/extrat.cpp: Made empty _EXTRA values undefined
+
+	* src/arrayindex.hpp, gdl.kdevses:
+	made [*] to return one-dim index (not preserve indices)
+
+2006-08-03  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/math_fun_jmg.cpp: Fix perfect square test for coeff array
+
+2006-08-02  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/initsysvar.cpp, src/initsysvar.hpp: Add !MAP system variable
+
+2006-07-30  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* gdl.kdevses, src/extrat.cpp, testsuite/test_suite.pro:
+	Fixed _EXTRA with undefined variable bug
+
+2006-07-29  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/arrayindex.cpp, src/gdlc.tree.g:
+	Fixed indexing with loop variable bug
+
+2006-07-27  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/math_fun_jmg.cpp: Fix SQRT cast bug
+
+2006-07-18  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/libinit_jmg.cpp, src/math_fun_jmg.cpp, src/math_fun_jmg.hpp:
+	Add POLY_2D function
+
+2006-07-08  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basic_fun.cpp: Fixed N_PARAMS for member subroutines
+
+	* src/basic_fun.cpp: Allow structs for KEYWORD_SET (always 1)
+
+2006-06-24  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* gdl.kdevses, src/GDLTreeParser.hpp, src/arrayindex.cpp, src/arrayindex.hpp, src/arrayindexlistt.hpp, src/basic_pro.cpp, src/datatypes.cpp, src/file.cpp, src/gdlc.tree.g:
+	Indexing bug (arg[0,0]) and STRUCT_ASSIGN bug
+
+2006-06-20  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/basic_fun.cpp, src/libinit_mes.cpp, src/pro/strsplit.pro:
+	Add REGEX keyword support to strtok
+
+	* src/basic_fun_cl.cpp: Fix gsl_exp bug (1509339)
+
+2006-06-16  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* gdl.kdevses, src/GDLParser.cpp, src/gdlc.g:
+	Fixed named struct syntax bug
+
+2006-06-14  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/datatypes.hpp, src/dnode.cpp, src/basegdl.cpp, src/basegdl.hpp, src/basic_op.cpp:
+	fixed binary operator results if one operand is an one element array
+
+2006-06-13  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basic_op.cpp, src/specializations.hpp:
+	Allow EQ and NE for ptr and objects
+
+	* INSTALL, PYTHON.txt, README: Corrected spelling (pyhton -> python)
+
+	* src/basic_fun.cpp, src/libinit.cpp, NEWS, gdl.kdevelop, gdl.kdevses:
+	INTEGER Keyword for TOTAL (by Erin Sheldon)
+
+2006-06-06  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/gdlc.g, src/GDLLexer.cpp: Fixed U suffix for decimal constants
+
+2006-06-04  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* gdl.kdevses, src/convert2.cpp:
+	Suppress warning for conversion of null string
+
+2006-05-31  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* README, gdl.kdevses:
+	Notification for the need of development packages
+
+	* src/ofmt.cpp: Correct zero padding for I format
+
+2006-05-22  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* configure, configure.in, gdl.kdevses:
+	Make configure look in additional direcotries fro HDF(4/5) includes and libs
+
+2006-05-19  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basic_pro.cpp: Raise error for XDR keyword for OPEN procedures
+
+	* src/plotting.cpp: Fixed XYOUTS [XY]LOG keyword
+
+	* NEWS, gdl.kdevelop, gdl.kdevses, src/plotting.cpp: sync
+
+2006-05-17  retsil  <retsil@DaMachineInDaMachine>
+
+	* src/pro/dicom/gdlffdicom__assoc__define.pro, src/pro/dicom/gdlffdicom__define.pro, src/pro/dicom/gdlffdicom__dictionary.pro, src/pro/dicom/gdlffdicom_copy_lun.pro, src/pro/dicom/gdlffdicom_date.pro, src/pro/dicom/gdlffdicom_time.pro, src/pro/dicom/gdlffdicom_trim.pro:
+	Adding code for the GDLffDICOM class. This class reads and writes to DICOM files.
+
+2006-05-16  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* README, src/initsysvar.cpp: Added GDLffDICOM object
+
+	* gdl.kdevses, src/gdlgstream.cpp, src/gdlgstream.hpp, src/plotting.cpp, gdl.kdevelop:
+	Joel: fixed \!P.MULTI bug
+
+2006-05-10  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/accessdesc.hpp, configure, Makefile.in, aclocal.m4:
+	removed rank restrictions for struct assignment
+
+	* src/Makefile.in, src/antlr/Makefile.in, src/gdl.cpp, src/gdlgstream.cpp, src/gdlgstream.hpp, src/plotting.cpp, testsuite/test_suite.pro, configure.in, gdl.kdevelop, ChangeLog, HACKING, INSTALL, NEWS, README, configure:
+	syncing CVS with release
+
+2006-04-05  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/gdlgstream.cpp, src/gdlgstream.hpp: Fix color='ff'x bug
+
+	* src/plotting.cpp: Fix oplot P.MULTI bug/Fix color='ff'x bug
+
+	
 2006-03-31  m_schellens  <m_schellens@rock>
 
 	* many changes (ChangeLog incomplete due to CVS server problems)

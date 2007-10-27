@@ -186,3 +186,5 @@
 	  NaN and +-Inf now properly managed in PLOT, OPLOT, PLOTS
 	  Speedup in PLOT, OPLOT, PLOTS for large data sets (see test_plot_benchmark.pro)
 	  Add 6 linestyles (via !p.linestyle or keyword) for PLOT, OPLOT, PLOTS
+	  Improved memory management.
+	  Improved new implementation of struct arrays.
