@@ -92,7 +92,7 @@
         <cxxcompilerbinary/>
         <f77compilerbinary/>
         <cflags/>
-        <cxxflags>-O3 -g3</cxxflags>
+        <cxxflags>-O3 -g3 -DNDEBUG</cxxflags>
         <f77flags/>
         <envvars/>
       </default>
@@ -216,6 +216,8 @@
       <usePermanentCaching>true</usePermanentCaching>
       <alwaysIncludeNamespaces>false</alwaysIncludeNamespaces>
       <includePaths>.;</includePaths>
+      <parseMissingHeadersExperimental>false</parseMissingHeadersExperimental>
+      <resolveIncludePathsUsingMakeExperimental>false</resolveIncludePathsUsingMakeExperimental>
     </codecompletion>
     <references/>
     <creategettersetter>

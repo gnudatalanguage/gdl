@@ -24,6 +24,43 @@
 
 using namespace std;
 
+
+template< class Parent_>
+deque< void*> Assoc_< Parent_>::freeList;
+
+template< class Parent_>
+void* Assoc_< Parent_>::operator new( size_t bytes)
+{
+	assert( bytes == sizeof( Assoc_< Parent_> ));
+	
+	if( freeList.size() > 0)
+	{
+		void* res = freeList.back();
+		freeList.pop_back();
+		return res;	
+	}
+
+//	cout << "Alloc: " << bytes << "  " << Sp::str << endl;
+
+	const size_t newSize = multiAlloc - 1;
+	freeList.resize( newSize);
+	char* res = static_cast< char*>( malloc( sizeof( Assoc_< Parent_>) * multiAlloc)); // one more than newSize
+	for( size_t i=0; i<newSize; ++i)
+	{
+		freeList[ i] = res;
+		res += sizeof( Assoc_< Parent_>);
+	} 
+	
+	return res;
+}
+
+template< class Parent_>
+void Assoc_< Parent_>::operator delete( void *ptr)
+{
+	freeList.push_back( ptr);
+}
+
+
 template< class Parent_>
 Assoc_< Parent_>::Assoc_( int lun_, Parent_* assoc_, SizeT fileOffset_): 
     Parent_( assoc_->Dim(), BaseGDL::NOZERO),

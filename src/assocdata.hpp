@@ -30,6 +30,14 @@ class Assoc_: public Parent_
   SizeT sliceSize; // size of one slice
 
 public:
+	// memory management optimization
+static std::deque< void*> freeList;
+
+	// operator new and delete
+static 	void* operator new( size_t bytes);
+static	void operator delete( void *ptr);
+
+
   // external lun (1..128)
   Assoc_( int lun_, Parent_* assoc_, SizeT fileOffset_);
   
