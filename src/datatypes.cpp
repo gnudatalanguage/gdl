@@ -456,13 +456,15 @@ BaseGDL* Data_<Sp>::CShift( DLong d)
 {
   Data_* sh = new Data_( this->dim, BaseGDL::NOZERO); 
 
-  if( d >= 0)
-    d %= dd.size();
-  else
-    d = -(-d % dd.size());
+  if (d > 0) d = d % dd.size();
 
-for( SizeT i=0; i<dd.size(); ++i)
-  sh->dd[i] = dd[ (i+d)%dd.size()];//.cshift( -d);
+  if( d > 0)
+    d = dd.size() - d;
+  else
+    d = (-d % dd.size());
+
+  for( SizeT i=0; i<dd.size(); ++i)
+    sh->dd[i] = dd[ (i+d)%dd.size()];//.cshift( -d);
   return sh;
 }
 
