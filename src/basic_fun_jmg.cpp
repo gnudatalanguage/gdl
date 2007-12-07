@@ -134,7 +134,11 @@ namespace lib {
 	sname = "";
       }
 
-      DULongGDL *dims_res = new DULongGDL(dimension(8), BaseGDL::ZERO);
+
+      DULongGDL *dims_res = new DULongGDL(dimension(8), BaseGDL::ZERO);      
+
+      // Initialize dimension values to 0
+      for( SizeT i=0; i<8; ++i) (*dims_res)[ i] = 0;
       for( SizeT i=0; i<Rank; ++i) {
 	(*dims_res)[ i] = p0->Dim(i);
       }
