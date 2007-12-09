@@ -101,22 +101,6 @@ namespace lib {
     // STRUCTURE
     } else if( e->KeywordSet(5)) { 
 
-      SpDString aString;
-      SpDLong   aLong;
-      SpDLong   aLongArr8( dimension(8));
-      SpDInt    aInt;
-
-      DStructDesc* size_struct = new DStructDesc( "IDL_SIZE");
-      size_struct->AddTag("TYPE_NAME", &aString);
-      size_struct->AddTag("STRUCTURE_NAME", &aString);
-      size_struct->AddTag("TYPE", &aInt);
-      size_struct->AddTag("FILE_LUN", &aInt);
-      size_struct->AddTag("FILE_OFFSET",  &aLong);
-      size_struct->AddTag("N_ELEMENTS",  &aLong);
-      size_struct->AddTag("N_DIMENSIONS",  &aLong);
-      size_struct->AddTag("DIMENSIONS",  &aLongArr8);
-
-      structList.push_back(size_struct);
 
       DStructGDL* res = new DStructGDL( "IDL_SIZE");
 
@@ -138,7 +122,7 @@ namespace lib {
       DULongGDL *dims_res = new DULongGDL(dimension(8), BaseGDL::ZERO);      
 
       // Initialize dimension values to 0
-      for( SizeT i=0; i<8; ++i) (*dims_res)[ i] = 0;
+      for( SizeT i=Rank; i<8; ++i) (*dims_res)[ i] = 0;
       for( SizeT i=0; i<Rank; ++i) {
 	(*dims_res)[ i] = p0->Dim(i);
       }

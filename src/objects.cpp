@@ -81,12 +81,26 @@ void ResetObjects()
 // initialize struct descriptors which are not system variables
 void InitStructs()
 {
+  SpDInt    aInt;
   SpDLong   aLong;
   SpDString aString;
   SpDByte   aByte;
   SpDLong64 aLong64;
   SpDFloat  aFloat;
   SpDDouble aDouble;
+  SpDLong   aLongArr8( dimension(8));
+
+  DStructDesc* gdl_size = new DStructDesc( "IDL_SIZE");
+  gdl_size->AddTag("TYPE_NAME", &aString);
+  gdl_size->AddTag("STRUCTURE_NAME", &aString);
+  gdl_size->AddTag("TYPE", &aInt);
+  gdl_size->AddTag("FILE_LUN", &aInt);
+  gdl_size->AddTag("FILE_OFFSET",  &aLong);
+  gdl_size->AddTag("N_ELEMENTS",  &aLong);
+  gdl_size->AddTag("N_DIMENSIONS",  &aLong);
+  gdl_size->AddTag("DIMENSIONS",  &aLongArr8);
+  // insert into structList
+  structList.push_back(gdl_size);
 
   DStructDesc* fstat = new DStructDesc( "FSTAT");
   fstat->AddTag("UNIT", &aLong);
