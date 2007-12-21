@@ -20,6 +20,11 @@ When compiling you might get some warnings:
 That's OK. Please see the comment in datatypes.cpp near the warning
 for an explanation.
 
+If Plplot is not in standard place, when you launch "gdl", if you receive: 
+./src/gdl: error while loading shared libraries: libplplotcxxd.so.9: cannot open shared object file: No such file or directory
+you may try:
+ export LD_LIBRARY_PATH='Path_to_Plplot_lib' (eg plplot-5.5.3/Compilation/lib/')
+
 
 BUILDING GDL AS A PYTHON MODULE:
 ================================

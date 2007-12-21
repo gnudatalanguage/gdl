@@ -102,7 +102,29 @@ namespace lib
 			     i2s(m)+")");
 
       string user = GetEnvString( "USER");
+
+      // depending the system, HOST variable is not always set up.
+      int debug=0;
       string host = GetEnvString( "HOST");
+      if (debug) cout << "HOST: " << host << ".."  << endl;
+      
+      if (host == "") {
+	host = GetEnvString( "HOSTNAME");
+	if (debug) cout << "HOSTNAME: " << host << endl;
+      }
+      if (host == "") {
+	char *gethost;
+	size_t lgethost;
+	// don't know if this primitive is available on Mac OS X
+	int success = gethostname(gethost, lgethost);	
+	if( success != 0)
+	  // we are here only if all 3 methods failed
+	  {e->Throw( "Unknow hostname !");}
+	else {
+	  host=string(gethost);
+	  if (debug) cout << "GETHOSTNAME: " << host << endl;
+	}
+      }
 
       write_journal_comment("Journal File for "+user+"@"+host);
 

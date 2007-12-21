@@ -57,7 +57,37 @@ ProgNodeP GDLInterpreter::NULLProgNodeP = &GDLInterpreter::NULLProgNode;
 
 DInterpreter::DInterpreter(): GDLInterpreter()
 {
-  
+
+#ifdef HAVE_LIBREADLINE
+  // initialize readline (own version - not pythons one)
+  // in includefirst.hpp readline is disabled for python_module
+  // http://www.delorie.com/gnu/docs/readline/rlman.html
+  char rlName[] = "GDL";
+  rl_readline_name = rlName;
+  rl_event_hook = GDLEventHandler;
+  stifle_history( 20);
+    
+  // Eventually read back the ".gdl" path in user $HOME
+  // we do not make one commun function with the save side
+  // because on the save side we may need to create the .gdl/ PATH ...
+  int result, debug=0;
+  char *homeDir = getenv( "HOME");
+  string pathToGDL_history;
+  pathToGDL_history=homeDir;
+  AppendIfNeeded(pathToGDL_history, "/");
+  pathToGDL_history=pathToGDL_history+".gdl";
+  string history_filename;
+  AppendIfNeeded(pathToGDL_history, "/");
+  history_filename=pathToGDL_history+"history";
+  if (debug) cout << "History file name: " <<history_filename << endl;
+
+  result=read_history(history_filename.c_str());
+  if (debug) 
+    { if (result == 0) {cout<<"Successfull reading of ~/.gdl/history"<<endl;}
+    else {cout<<"Fail to read back ~/.gdl/history"<<endl;}
+    }
+#endif
+
   //    heap.push_back(NULL); // init heap index 0 (used as NULL ptr)
   //    objHeap.push_back(NULL); // init heap index 0 (used as NULL ptr)
   interruptEnable = true;
@@ -861,7 +891,12 @@ string DInterpreter::GetLine()
     if( !cline) 
       {
 	if (isatty(0)) cout << endl;
-	exit( EXIT_SUCCESS); //break; // readline encountered eof
+	// instead or going out (EXITing) immediately, we go to
+	// the "exitgdl" in order to save the history
+	// exit( EXIT_SUCCESS); //break; // readline encountered eof
+	line="EXIT";
+	StrTrim(line);
+	break;
       }
     
     // make a string
@@ -876,8 +911,11 @@ string DInterpreter::GetLine()
     {
       stifle_history( edit_input);
     }
-  // const_cast to make it work with older readline versions
-  add_history(const_cast<char*>(line.c_str())); 
+  // we would not like to add the current command if is "EXIT" !!
+  if ( StrUpCase(line) != "EXIT") {
+    // const_cast to make it work with older readline versions
+    add_history(const_cast<char*>(line.c_str())); 
+  }
 #endif
   
   return line;
