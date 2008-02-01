@@ -33,6 +33,10 @@
 #include <unistd.h>
 #endif
 
+#ifdef HAVE_LIBWXWIDGETS
+#include <wx/wx.h>
+#endif
+
 #include "dinterpreter.hpp"
 #include "datatypes.hpp"
 #include "envt.hpp"
@@ -525,6 +529,10 @@ namespace lib {
   
   void exitgdl( EnvT* e)
   {
+
+#ifdef HAVE_LIBWXWIDGETS
+    wxUninitialize();
+#endif
 
 #ifdef HAVE_LIBREADLINE
 

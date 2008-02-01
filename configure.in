@@ -128,7 +128,7 @@ AC_CHECK_LIB(z, gzopen, [AC_DEFINE([HAVE_LIBZ], [1], [Zlib library])],
 
 dnl End of Zlib
 
-dnl wxWindows
+dnl wxWidgets
 dnl default no (for now)
 if test "x$with_wxWidgets" = "x"; then
    with_wxWidgets=no
@@ -139,11 +139,11 @@ if test "x$with_wxWidgets" != "xno"; then
 	INCLUDES="$INCLUDES `wx-config --cxxflags`"
 	LIBS="$LIBS `wx-config --libs` `wx-config --cxxflags`"
 dnl autoconf cannot handle demangled names
-	AC_CHECK_LIB(wx_base-2.6, _Z12wxInitializeiPPc, [
+	AC_CHECK_LIB(wx_base-2.8, _Z12wxInitializeiPPc, [
 	AC_DEFINE([HAVE_LIBWXWIDGETS], [1], [wxWidgets library])
 	], [
 	echo ""
-	echo "Error! You must have wxWidgets library 2.6 installed"
+	echo "Error! You must have wxWidgets library 2.8 installed"
 	echo "       Use --with-wxWidgets=no to expicitely disable it"
 	echo "       Check the README or use configure --help for other libraries needed"
      echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"

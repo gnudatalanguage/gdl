@@ -24,15 +24,30 @@
 #include "gdlwidget.hpp"
 
 // instantiation
-WidgetIDT                       GDLWidget::widgetIx;
+WidgetIDT                   GDLWidget::widgetIx;
 WidgetListT                 GDLWidget::widgetList;
 
+
+BEGIN_EVENT_TABLE(GDLFrame, wxFrame)
+  EVT_BUTTON( wxID_ANY, GDLFrame::OnExit)
+END_EVENT_TABLE()
+
+
 IMPLEMENT_APP_NO_MAIN( GDLApp)
+
 
 bool GDLApp::OnInit()
 {
   SetExitOnFrameDelete( FALSE);
   return TRUE;
+}
+
+
+int GDLApp::OnRun()
+{
+  int exitcode = wxApp::OnRun();
+  if (exitcode!=0)
+    return exitcode;
 }
 
 // next are the abstraction to access all widgets only by their
@@ -60,7 +75,7 @@ GDLWidget* GDLWidget::GetWidget( WidgetIDT widID)
 void GDLWidget::Init()
 {
   widgetIx = wxID_HIGHEST; // use same wx ID and GDL ID 
-  //  wxApp::SetExitOnFrameDelete( FALSE);
+  //wxApp::SetExitOnFrameDelete( FALSE);
 }
 
 
@@ -93,7 +108,6 @@ GDLWidget::~GDLWidget()
   delete uValue;
   WidgetRemove( widgetID);
 }
-
 
 GDLWidgetBase::GDLWidgetBase( WidgetIDT p, BaseGDL* uV, bool s,
 			      DLong xO, DLong yO, DLong xS, DLong yS): 
@@ -133,9 +147,15 @@ GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID,
 
   if( modal)
     wxWidget = new wxDialog( wxParent, widgetID, title_);
-  else
-    wxWidget = new wxFrame( wxParent, widgetID, title_);
+  else {
 
+    GDLFrame *frame = new GDLFrame( wxParent, widgetID, title_);
+    ((wxFrame *) frame)->SetSize( xsize, ysize);
+    wxWidget = frame;
+
+    //    wxWidget = new wxFrame( wxParent, widgetID, title_);
+    //((wxFrame *) wxWidget)->SetSize( xsize, ysize);
+  }
 }
 
 GDLWidgetBase::~GDLWidgetBase()
@@ -153,7 +173,25 @@ GDLWidgetBase::~GDLWidgetBase()
 
 void GDLWidgetBase::Realize()
 {
-  
+  //  std::cout << this->wxWidget << std::endl;
+  wxFrame *frame = (wxFrame *) this->wxWidget;
+  bool stat = frame->Show(true);
+  //  wxString nme = frame->GetName();
+  std::cout << "stat: " << stat << std::endl;
+  std::cout << frame->IsShown() << std::endl;
+
+  wxTheApp->OnRun();
 }
 
+GDLWidgetButton::GDLWidgetButton( WidgetIDT p, DString value)
+{
+  std::cout << "In Here" << widgetID << std::endl;
+
+  GDLWidget* gdlParent = GetWidget( p);
+  wxWindow *wxParent = static_cast< wxWindow*>( gdlParent->WxWidget());
+
+  wxFrame *frame = (wxFrame *) wxParent;
+  wxButton *buttonID = new wxButton( frame, widgetID, _T( value.c_str()));
+}
+    
 #endif

@@ -35,6 +35,7 @@ typedef std::map<WidgetIDT, GDLWidget*> WidgetListT;
 class GDLApp: public wxApp
 {
   virtual bool OnInit();
+  virtual int OnRun();
 };
 
 // GUI base class **********************************
@@ -47,6 +48,7 @@ private:
   // shared among all widgets
   static WidgetIDT                   widgetIx;
   static WidgetListT                 widgetList;
+
 protected:
   // removes a widget, (called from widgets destructor -> don't delete)
   static void WidgetRemove( WidgetIDT widID);
@@ -58,7 +60,6 @@ public:
   static GDLWidget* GetWidget( WidgetIDT widID);
 
   static void Init(); // GUI intialization upon GDL startup
-
   
 protected:
   wxObject* wxWidget; // deleted only from TLB as the rest is deleted 
@@ -72,7 +73,7 @@ protected:
 
 public:
   GDLWidget( WidgetIDT p=0, BaseGDL* uV=NULL, bool s=true,
-	     DLong xO=0, DLong yO=0, DLong xS=0, DLong yS=0);
+	     DLong xO=-1, DLong yO=-1, DLong xS=-1, DLong yS=-1);
   virtual ~GDLWidget();
 
   wxObject* WxWidget() { return wxWidget;}
@@ -85,7 +86,12 @@ public:
 
 // base widget **************************************************
 class GDLWidgetMbar;
-class GDLWidgetButton;
+//class GDLWidgetButton;
+class GDLWidgetButton: public GDLWidget
+{
+public:
+  GDLWidgetButton( WidgetIDT parentID, DString value); 
+};
 
 class GDLWidgetBase: public GDLWidget
 {
@@ -122,8 +128,8 @@ public:
   GDLWidgetBase( WidgetIDT p=0,           // parent
 		 BaseGDL* uV=NULL,        // UVALUE
 		 bool s=true,             // SENSITIVE
-		 DLong xO=0, DLong yO=0,  // offset 
-		 DLong xS=0, DLong yS=0); // size
+		 DLong xO=-1, DLong yO=-1,  // offset 
+		 DLong xS=-1, DLong yS=-1); // size
   virtual ~GDLWidgetBase();
 
   void AddChild( WidgetIDT c) 
@@ -138,5 +144,34 @@ class GDLWidgetMBar: public GDLWidgetBase
 {
 };
 
+
+
+// Define a new frame type: this is going to be our main frame
+class GDLFrame : public wxFrame
+{
+public:
+  // ctor(s)
+  GDLFrame(wxWindow* parent, wxWindowID id, const wxString& title);
+
+  // event handlers (these functions should _not_ be virtual)
+  void OnExit( wxCommandEvent& event);
+
+
+private:
+    // any class wishing to process wxWidgets events must use this macro
+  DECLARE_EVENT_TABLE()
+};
+
+
+GDLFrame::GDLFrame(wxWindow* parent, wxWindowID id, const wxString& title)
+       : wxFrame(parent, id, title)
+{
+}
+
+void GDLFrame::OnExit(wxCommandEvent& event)
+{
+    // true is to force the frame to close
+    Close(true);
+}
 
 #endif

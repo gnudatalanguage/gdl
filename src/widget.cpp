@@ -31,10 +31,6 @@
 namespace lib {
   using namespace std;
 
-  const char KLISTEND[] = "";
-
-  const string widget_baseKey[] = {"ALIGN_BOTTOM","ALIGN_CENTER","ALIGN_LEFT","ALIGN_RIGHT","ALIGN_TOP","MBAR","MODAL","BASE_ALIGN_BOTTOM","BASE_ALIGN_CENTER","BASE_ALIGN_LEFT","BASE_ALIGN_RIGHT","BASE_ALIGN_TOP","COLUMN","ROW","CONTEXT_EVENTS","CONTEXT_MENU","EVENT_FUNC","EVENT_PRO","EXCLUSIVE","NONEXCLUSIVE","FLOATING","FRAME","FUNC_GET_VALUE","GRID_LAYOUT","GROUP_LEADER","KBRD_FOCUS_EVENTS","KILL_NOTIFY","MAP","NO_COPY","NOTIFY_REALIZE","PRO_SET_VALUE","SCR_XSIZE","SCR_YSIZE","SCROLL","SENSITIVE","SPACE","TITLE","TLB_FRAME_ATTR","TLB_ICONIFY_EVENTS","TLB_KILL_REQUEST_EVENTS","TLB_MOVE_EVENTS","TLB_SIZE_EVENTS","TOOLBAR","TRACKING_EVENTS","UNITS","UNAME","UVALUE","XOFFSET","XPAD","XSIZE","X_SCROLL_SIZE","YOFFSET","YPAD","YSIZE","Y_SCROLL_SIZE","DISPLAY_NAME","RESOURCE_NAME","RNAME_MBAR",KLISTEND};
-
   BaseGDL* widget_base( EnvT* e)
   {
     SizeT nParam = e->NParam();
@@ -167,9 +163,9 @@ namespace lib {
     DLong units = 0;
     e->AssureLongScalarKWIfPresent( unitsIx, units);
 
-    DLong xsize = 0;
+    DLong xsize = -1;
     e->AssureLongScalarKWIfPresent( xsizeIx, xsize);
-    DLong ysize = 0;
+    DLong ysize = -1;
     e->AssureLongScalarKWIfPresent( ysizeIx, ysize);
 
     DLong scr_xsize = 0;
@@ -214,7 +210,7 @@ namespace lib {
     DString rname_mbar = "";
     e->AssureStringScalarKWIfPresent( rname_mbarIx, rname_mbar);
 
-    DString title = "";
+    DString title = "GDL";
     e->AssureStringScalarKWIfPresent( titleIx, title);
 
     DString uname = "";
@@ -289,6 +285,38 @@ namespace lib {
 
     // return widget ID
     return new DLongGDL( base->WidgetID());
+  }
+
+
+
+  BaseGDL* widget_button( EnvT* e)
+  {
+    DLongGDL* p0L = e->GetParAs<DLongGDL>( 0);
+    WidgetIDT parentID = (*p0L)[0];
+    GDLWidget *widget = GDLWidget::GetWidget( parentID);
+
+    static int valueIx     = e->KeywordIx( "VALUE");
+    DString value = "";
+    e->AssureStringScalarKWIfPresent( valueIx, value);
+
+    GDLWidgetButton* button = new GDLWidgetButton( parentID, value);
+ 
+    return new DLongGDL( button->WidgetID());
+  }
+
+
+  void widget_control( EnvT* e)
+  {
+    DLongGDL* p0L = e->GetParAs<DLongGDL>( 0);
+    WidgetIDT widgetID = (*p0L)[0];
+    GDLWidget *widget = GDLWidget::GetWidget( widgetID);
+
+    static int realizeIx = e->KeywordIx( "REALIZE");
+    bool realize = e->KeywordSet( realizeIx);
+
+    if (realize) {
+      widget->Realize();
+    }
   }
 
 } // namespace
