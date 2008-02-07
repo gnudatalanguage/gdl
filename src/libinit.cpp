@@ -471,7 +471,7 @@ void LibInit()
      // 73
      "ISOTROPIC",
      "MAX_VALUE", "MIN_VALUE","NSUM",     "POLAR",
-     "XLOG",     "YLOG",     "YNOZERO", 
+     "XLOG",     "YLOG",     "YNOZERO", "XTYPE", "YTYPE", 
      KLISTEND
     };
   new DLibPro(lib::plot,string("PLOT"),2,plotKey);
@@ -524,7 +524,7 @@ void LibInit()
 
      // AXIS keywords
      // 47
-     "SAVE", "XAXIS", "YAXIS", "ZXIS", "XLOG", "YNOZERO", "YLOG",
+     "SAVE", "XAXIS", "YAXIS", "XLOG", "YLOG", "XTYPE", "YTYPE", "YNOZERO", "THICK",
      KLISTEND
     };
   new DLibPro(lib::axis,string("AXIS"),3,axisKey);
@@ -605,8 +605,8 @@ void LibInit()
 
      // SURFACE keywords
      // 73
-     "MAX_VALUE", "MIN_VALUE","AX", "AZ"
-     "XLOG",     "YLOG",     "ZLOG", 
+     "MAX_VALUE", "MIN_VALUE","AX", "AZ",
+     "XLOG", "XTYPE", "YLOG", "YTYPE", "ZLOG", "ZTYPE",
      KLISTEND
     };
   new DLibPro(lib::surface,string("SURFACE"),3,surfaceKey);
@@ -658,11 +658,11 @@ void LibInit()
      "ZTITLE",
      // 60
      "ZVALUE", 
-
      // CONTOUR keywords
      // 73
-     "LEVELS", "MAX_VALUE", "MIN_VALUE","AX", "AZ"
-     "XLOG",     "YLOG",     "ZLOG", 
+     "LEVELS", "NLEVELS",
+     "MAX_VALUE", "MIN_VALUE","AX", "AZ",
+     "XLOG", "XTYPE", "YLOG", "YTYPE", "ZLOG", "ZTYPE", "FILL",  "ISOTROPIC",
      KLISTEND
     };
   new DLibPro(lib::contour,string("CONTOUR"),3,contourKey);
