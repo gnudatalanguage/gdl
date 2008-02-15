@@ -156,6 +156,14 @@ void InitStructs()
   dmachar->AddTag("XMAX", &aDouble);
   // insert into structList
   structList.push_back( dmachar);
+
+  DStructDesc* widgbut = new DStructDesc( "WIDGET_BUTTON");
+  widgbut->AddTag("ID", &aLong);
+  widgbut->AddTag("TOP", &aLong);
+  widgbut->AddTag("HANDLER", &aLong);
+  widgbut->AddTag("SELECT", &aLong);
+  // insert into structList
+  structList.push_back( widgbut);
 }
 
 void InitObjects()
