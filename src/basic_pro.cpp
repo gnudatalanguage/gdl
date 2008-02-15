@@ -105,6 +105,42 @@ namespace lib {
     os << endl;
   }
 
+
+  DStringGDL* recall_commands_internal()//EnvT* e)
+  {
+    int status=0;
+
+#ifdef HAVE_LIBREADLINE
+    status=1;
+    // http://cnswww.cns.cwru.edu/php/chet/readline/history.html#IDX14
+    HIST_ENTRY **the_list;
+    //    cout << "history_length" << history_length << endl;
+    the_list = history_list ();
+    DStringGDL* retVal;
+    if (the_list) {
+      retVal = new DStringGDL( history_length-1, BaseGDL::NOZERO);
+      for (SizeT i = 0; i<history_length-1 ; i++)
+	(*retVal)[ i] = the_list[i]->line;
+    } else {
+      retVal = new DStringGDL(1, BaseGDL::NOZERO);
+      (*retVal)[ 0] ="";
+    }
+#endif
+    if (status == 0) {
+      Message("RECALL_COMMANDS: nothing done, because compiled without READLINE");
+      DStringGDL* no_readline;
+      (*no_readline)[ 0] ="";
+      return no_readline;
+    } else {
+      return retVal;
+    }
+  }
+ 
+  BaseGDL* recall_commands( EnvT* e)
+  {
+    return recall_commands_internal();
+  }
+
   void help( EnvT* e)
   {
     bool kw = false;
@@ -190,9 +226,24 @@ namespace lib {
 
     bool isKWSetProcedures = e->KeywordSet( "PROCEDURES");
     bool isKWSetFunctions  = e->KeywordSet( "FUNCTIONS");
-
+   
     if (isKWSetStructures && (isKWSetProcedures || isKWSetFunctions))
-	e->Throw( "Conflicting keywords.");	
+      e->Throw( "Conflicting keywords.");	
+    
+    bool isKWSetRecall  = e->KeywordSet( "RECALL_COMMANDS");
+    if (isKWSetRecall && (isKWSetProcedures || isKWSetFunctions))
+      e->Throw( "Conflicting keywords.");
+    
+    // using this way, we don't need to manage HAVE_READLINE at this level ...
+    if (isKWSetRecall) {
+      DStringGDL *previous_commands;
+      previous_commands=recall_commands_internal();
+      SizeT nEl2 = previous_commands->N_Elements();
+      cout << "Recall buffer length: " << nEl2 << endl;
+	for( SizeT i=0; i<nEl2; ++i)
+	  cout << i+1 << "  " <<(*previous_commands)[i] << endl;
+      return;
+    }
 
     SizeT nParam=e->NParam();
     std::ostringstream ostr;
@@ -526,7 +577,7 @@ namespace lib {
 // 	    cout << toSort[ i] << endl;
 // 	  }
   }
-  
+
   void exitgdl( EnvT* e)
   {
 

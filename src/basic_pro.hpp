@@ -83,6 +83,13 @@ namespace lib {
   // (Sergio.Gelato@astro.su.se)
   void replicate_inplace_pro( EnvT* e);
   
+  // the following by Alain Coulais
+  // (alaingdl @@ users.sourceforge.net)
+
+  // Sorry to put a Function with Procedure but I need it for HELP proc.
+  BaseGDL* recall_commands(EnvT* e);
+
+
 } // namespace
 
 #endif
