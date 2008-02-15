@@ -168,14 +168,12 @@ void LibInit()
   new DLibPro(lib::catch_pro,string("CATCH"),1,catchKey);
   new DLibPro(lib::on_error,string("ON_ERROR"),1);
 
-  new DLibFunRetNew(lib::recall_commands,string("RECALL_COMMANDS"),0);
-
   const string exitKey[]={"NO_CONFIRM","STATUS",KLISTEND};
   new DLibPro(lib::exitgdl,string("EXIT"),0,exitKey);
   
   const string helpKey[]={"STRUCTURES","ROUTINES","BRIEF",
 			  "OUTPUT","PROCEDURES","FUNCTIONS",
-			  "INFO","LIB","CALLS","RECALL_COMMANDS", KLISTEND};
+			  "INFO","LIB","CALLS","RECALL_COMMANDS",KLISTEND};
   new DLibPro(lib::help,string("HELP"),-1,helpKey);
 
   // printKey, readKey and stringKey are closely associated
@@ -660,6 +658,7 @@ void LibInit()
      "ZTITLE",
      // 60
      "ZVALUE", 
+
      // CONTOUR keywords
      // 73
      "LEVELS", "NLEVELS",
@@ -689,12 +688,22 @@ void LibInit()
 
 #ifdef HAVE_LIBWXWIDGETS
   const string widget_baseKey[] = {"ALIGN_BOTTOM","ALIGN_CENTER","ALIGN_LEFT","ALIGN_RIGHT","ALIGN_TOP","MBAR","MODAL","BASE_ALIGN_BOTTOM","BASE_ALIGN_CENTER","BASE_ALIGN_LEFT","BASE_ALIGN_RIGHT","BASE_ALIGN_TOP","COLUMN","ROW","CONTEXT_EVENTS","CONTEXT_MENU","EVENT_FUNC","EVENT_PRO","EXCLUSIVE","NONEXCLUSIVE","FLOATING","FRAME","FUNC_GET_VALUE","GRID_LAYOUT","GROUP_LEADER","KBRD_FOCUS_EVENTS","KILL_NOTIFY","MAP","NO_COPY","NOTIFY_REALIZE","PRO_SET_VALUE","SCR_XSIZE","SCR_YSIZE","SCROLL","SENSITIVE","SPACE","TITLE","TLB_FRAME_ATTR","TLB_ICONIFY_EVENTS","TLB_KILL_REQUEST_EVENTS","TLB_MOVE_EVENTS","TLB_SIZE_EVENTS","TOOLBAR","TRACKING_EVENTS","UNITS","UNAME","UVALUE","XOFFSET","XPAD","XSIZE","X_SCROLL_SIZE","YOFFSET","YPAD","YSIZE","Y_SCROLL_SIZE","DISPLAY_NAME","RESOURCE_NAME","RNAME_MBAR",KLISTEND};
-  new DLibFun(lib::widget_base,string("WIDGET_BASE"),0, widget_baseKey);
+  new DLibFun(lib::widget_base,string("WIDGET_BASE"),0,widget_baseKey);
 
   const string widget_buttonKey[] = {"ACCELERATOR","ALIGN_CENTER","ALIGN_LEFT","ALIGN_RIGHT","BITMAP","CHECKED_MENU","DYNAMIC_RESIZE","EVENT_FUNC","EVENT_PRO","FONT","FRAME","FUNC_GET_VALUE","GROUP_LEADER","HELP","KILL_NOTIFY","MENU","NO_COPY","NO_RELEASE","NOTIFY_REALIZE","PRO_SET_VALUE","PUSHBUTTON_EVENTS","SCR_XSIZE","SCR_YSIZE","SENSITIVE","SEPARATOR","TAB_MODE","TOOLTIP","TRACKING_EVENTS","UNAME","UNITS","UVALUE","VALUE","X_BITMAP_EXTRA","XOFFSET","XSIZE","YOFFSET","YSIZE",KLISTEND};
-  new DLibFun(lib::widget_button,string("WIDGET_BUTTON"),1, widget_buttonKey);
+  new DLibFun(lib::widget_button,string("WIDGET_BUTTON"),1,widget_buttonKey);
 
-  const string widget_controlKey[] = {"REALIZE",KLISTEND};
+  const string widget_infoKey[] = {"VALID","MODAL","MANAGED","XMANAGER_BLOCK",
+				   KLISTEND};
+  new DLibFun(lib::widget_info,string("WIDGET_INFO"),1,widget_infoKey);
+
+  const string widget_eventKey[] = {"XMANAGER_BLOCK","DESTROY",
+				    KLISTEND};
+  new DLibFun(lib::widget_event,string("WIDGET_EVENT"),1,widget_eventKey);
+
+  const string widget_controlKey[] = {"REALIZE","MANAGED","EVENT_PRO",
+				      "XMANAGER_ACTIVE_COMMAND","DESTROY",
+				      KLISTEND};
   new DLibPro(lib::widget_control,string("WIDGET_CONTROL"),1, 
 	      widget_controlKey);
 #endif
