@@ -168,12 +168,14 @@ void LibInit()
   new DLibPro(lib::catch_pro,string("CATCH"),1,catchKey);
   new DLibPro(lib::on_error,string("ON_ERROR"),1);
 
+  new DLibFunRetNew(lib::recall_commands,string("RECALL_COMMANDS"),0);
+
   const string exitKey[]={"NO_CONFIRM","STATUS",KLISTEND};
   new DLibPro(lib::exitgdl,string("EXIT"),0,exitKey);
   
   const string helpKey[]={"STRUCTURES","ROUTINES","BRIEF",
 			  "OUTPUT","PROCEDURES","FUNCTIONS",
-			  "INFO","LIB","CALLS",KLISTEND};
+			  "INFO","LIB","CALLS","RECALL_COMMANDS", KLISTEND};
   new DLibPro(lib::help,string("HELP"),-1,helpKey);
 
   // printKey, readKey and stringKey are closely associated
