@@ -582,6 +582,7 @@ namespace lib {
   {
 
 #ifdef HAVE_LIBWXWIDGETS
+    wxTheApp->OnExit(); // Defined in GDLApp::OnExit() in gdlwidget.cpp
     wxUninitialize();
 #endif
 
