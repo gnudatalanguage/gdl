@@ -25,6 +25,20 @@
 
 #include "typedefs.hpp"
 
+class guiThread : public wxThread
+{
+public:
+  guiThread() : wxThread(wxTHREAD_JOINABLE) {};
+
+  // thread execution starts here
+  virtual void *Entry();
+
+  // called when the thread exits - whether it terminates normally or is
+  // stopped with Delete() (but not when it is Kill()ed!)
+  virtual void OnExit( guiThread *thread);
+};
+static guiThread *thread;
+
 class GDLWidget;
 
 // global widget list type
@@ -34,8 +48,8 @@ typedef std::map<WidgetIDT, GDLWidget*> WidgetListT;
 // main App class
 class GDLApp: public wxApp
 {
-  virtual bool OnInit();
-  virtual int OnRun();
+  virtual int OnRun();  // Defined in GDLApp::OnRun()
+  virtual int OnExit(); // Defined in GDLApp::OnExit()
 };
 
 // GUI base class **********************************
@@ -58,9 +72,10 @@ public:
   static WidgetIDT NewWidget( GDLWidget* w);
   // get widget from ID
   static GDLWidget* GetWidget( WidgetIDT widID);
+  static GDLWidget* GetParent( WidgetIDT widID);
 
   static void Init(); // GUI intialization upon GDL startup
-  
+
 protected:
   wxObject* wxWidget; // deleted only from TLB as the rest is deleted 
                       // automatic
@@ -68,7 +83,8 @@ protected:
   WidgetIDT    widgetID;  // own index to widgetList
   WidgetIDT    parent;    // parent ID (0 for TLBs)
   BaseGDL*     uValue;    // the UVALUE
-  bool         sensitive; 
+  bool         sensitive;
+  bool         managed;
   DLong        xOffset, yOffset, xSize, ySize;
 
 public:
@@ -79,26 +95,38 @@ public:
   wxObject* WxWidget() { return wxWidget;}
   
   virtual void Realize() {} 
+  virtual DLong GetChild( DLong) {};
+  virtual void SetXmanagerActiveCommand() {};
+  virtual bool GetXmanagerActiveCommand() {};
+
+  static bool GetXmanagerBlock();
+  static bool PollEvents( DLong *, DLong *, DLong *, DLong *);
 
   WidgetIDT WidgetID() { return widgetID;}
+
+  bool GetManaged() { return managed;}
+  void SetManaged();
 };
 
 
-// base widget **************************************************
+
 class GDLWidgetMbar;
-//class GDLWidgetButton;
+
+// button widget **************************************************
 class GDLWidgetButton: public GDLWidget
 {
 public:
   GDLWidgetButton( WidgetIDT parentID, DString value); 
 };
 
+// base widget **************************************************
 class GDLWidgetBase: public GDLWidget
 {
 protected:
   typedef std::deque<WidgetIDT>::iterator cIter;
   std::deque<WidgetIDT>                   children;
   
+  bool                                    xmanActCom;
   bool                                    modal;
   WidgetIDT                               mbarID;
 
@@ -138,6 +166,11 @@ public:
   { children.erase( find( children.begin(), children.end(), c));}
 
   void Realize();
+  void SetXmanagerActiveCommand();
+  bool GetXmanagerActiveCommand() { return xmanActCom;}
+
+  DLong GetChild( DLong);
+
 };
 
 class GDLWidgetMBar: public GDLWidgetBase
@@ -145,8 +178,6 @@ class GDLWidgetMBar: public GDLWidgetBase
 };
 
 
-
-// Define a new frame type: this is going to be our main frame
 class GDLFrame : public wxFrame
 {
 public:
@@ -154,24 +185,12 @@ public:
   GDLFrame(wxWindow* parent, wxWindowID id, const wxString& title);
 
   // event handlers (these functions should _not_ be virtual)
-  void OnExit( wxCommandEvent& event);
-
+  void OnButton( wxCommandEvent& event);
 
 private:
     // any class wishing to process wxWidgets events must use this macro
   DECLARE_EVENT_TABLE()
 };
 
-
-GDLFrame::GDLFrame(wxWindow* parent, wxWindowID id, const wxString& title)
-       : wxFrame(parent, id, title)
-{
-}
-
-void GDLFrame::OnExit(wxCommandEvent& event)
-{
-    // true is to force the frame to close
-    Close(true);
-}
-
 #endif
+

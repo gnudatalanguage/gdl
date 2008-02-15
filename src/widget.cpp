@@ -23,6 +23,8 @@
 
 #include "datatypes.hpp"
 #include "envt.hpp"
+#include "dinterpreter.hpp"
+
 
 #ifdef HAVE_LIBWXWIDGETS
 
@@ -288,7 +290,7 @@ namespace lib {
   }
 
 
-
+  // WIDGET_BUTTON
   BaseGDL* widget_button( EnvT* e)
   {
     DLongGDL* p0L = e->GetParAs<DLongGDL>( 0);
@@ -305,20 +307,218 @@ namespace lib {
   }
 
 
+  // WIDGET_INFO
+  BaseGDL* widget_info( EnvT* e)
+  {
+    SizeT nParam=e->NParam();
+
+    DLongGDL* p0L;
+    SizeT nEl;
+    SizeT rank;
+
+    if ( nParam > 0) {
+      p0L = e->GetParAs<DLongGDL>( 0);
+      nEl = p0L->N_Elements();
+      rank = p0L->Rank();
+    }
+
+    static int validIx = e->KeywordIx( "VALID");
+    bool valid = e->KeywordSet( validIx);
+
+    static int modalIx = e->KeywordIx( "MODAL");
+    bool modal = e->KeywordSet( modalIx);
+
+    static int managedIx = e->KeywordIx( "MANAGED");
+    bool managed = e->KeywordSet( managedIx);
+
+    static int xmanagerBlockIx = e->KeywordIx( "XMANAGER_BLOCK");
+    bool xmanagerBlock = e->KeywordSet( xmanagerBlockIx);
+
+    // VALID keyword
+    if ( valid) {
+      if ( rank == 0) {
+	// Scalar Input
+	WidgetIDT widgetID = (*p0L)[0];
+	GDLWidget *widget = GDLWidget::GetWidget( widgetID);
+	if ( widget == NULL)
+	  return new DLongGDL( 0);
+	else
+	  return new DLongGDL( 1);
+      } else {
+	// Array Input
+	DLongGDL* res = new DLongGDL(p0L->Dim(), BaseGDL::NOZERO);
+	for( SizeT i=1; i<nEl; i++) {
+	  WidgetIDT widgetID = (*p0L)[i];
+	  GDLWidget *widget = GDLWidget::GetWidget( widgetID);
+	  if ( widget == NULL)
+	    (*res)[ i] = (DLong) 0;
+	  else
+	    (*res)[ i] = (DLong) 1;
+	}
+	return res;
+      }
+    }
+    // End /VALID
+
+    // MODAL keyword (stub)
+    if ( modal) {
+      return new DLongGDL( 0);
+    }
+    // End /MODAL
+
+    // MANAGED keyword
+    if ( managed) {
+      if ( rank == 0) {
+	// Scalar Input
+	WidgetIDT widgetID = (*p0L)[0];
+	GDLWidget *widget = GDLWidget::GetWidget( widgetID);
+
+	// Check if valid widgetID else exit with 0
+	if ( widget == NULL) return new DLongGDL( 0);
+
+	if ( widget->GetManaged() == true)
+	  return new DLongGDL( 1);
+	else
+	  return new DLongGDL( 0);
+      } else {
+	// Array Input
+	DLongGDL* res = new DLongGDL(p0L->Dim(), BaseGDL::NOZERO);
+	for( SizeT i=0; i<nEl; i++) {
+	  WidgetIDT widgetID = (*p0L)[i];
+	  GDLWidget *widget = GDLWidget::GetWidget( widgetID);
+
+	  if ( widget == NULL)
+	    (*res)[ i] = (DLong) 0;
+	  else {
+	    if ( widget->GetManaged() == true)
+	      (*res)[ i] = (DLong) 1;
+	    else
+	      (*res)[ i] = (DLong) 0;
+	  }
+	}
+	return res;
+      }
+    }
+    // End /MANAGED
+
+
+    // XMANAGER_BLOCK keyword
+    if ( xmanagerBlock) {
+      return new DLongGDL( GDLWidget::GetXmanagerBlock());
+    }
+    // End /XMANAGER_BLOCK
+  }
+
+
+  // WIDGET_EVENT
+  BaseGDL* widget_event( EnvT* e)
+  {
+    SizeT nParam=e->NParam();
+
+    DLongGDL* p0L;
+
+    if ( nParam > 0) {
+      p0L = e->GetParAs<DLongGDL>( 0);
+    }
+
+    static int xmanagerBlockIx = e->KeywordIx( "XMANAGER_BLOCK");
+    bool xmanagerBlock = e->KeywordSet( xmanagerBlockIx);
+
+    DLong id;
+    DLong top;
+    DLong handler;
+    DLong select;
+    while (1) {
+      if ( GDLWidget::PollEvents( &id, &top, &handler, &select)) {
+	//	int i; std::cout << "here: "; std::cin >> i;
+	break;
+      }
+    }
+
+    // Call widget event handler routine
+    EnvBaseT* caller = e->Caller();
+    e->Interpreter()->CallStack().pop_back();
+    delete e;
+
+    ostringstream ostr;
+    ostr << "EV={WIDGET_BUTTON, ";
+    ostr << "ID: " << id << "L, TOP: " << top << "L, ";
+    ostr << "HANDLER: " << handler << "L, SELECT: " << select << "L } ";
+    ostr << "& widget1_event, EV";
+    //    std::cout << ostr.rdbuf()->str().c_str() << std::endl;
+    DString line = ostr.rdbuf()->str();
+
+    istringstream istr(line+"\n");
+    RefDNode theAST;
+
+    GDLLexer lexer(istr, "");
+    GDLParser& parser = lexer.Parser();
+    parser.interactive();
+    
+    theAST = parser.getAST();
+    RefDNode trAST;
+    GDLTreeParser treeParser( caller);
+    treeParser.interactive(theAST);
+    trAST = treeParser.getAST();
+
+    ProgNodeP progAST = ProgNode::NewProgNode( trAST);
+    auto_ptr< ProgNode> progAST_guard( progAST);
+
+    GDLInterpreter::RetCode retCode =
+      caller->Interpreter()->execute( progAST);
+
+    return new DLongGDL( 0);
+  }
+
+
   void widget_control( EnvT* e)
   {
     DLongGDL* p0L = e->GetParAs<DLongGDL>( 0);
+
     WidgetIDT widgetID = (*p0L)[0];
     GDLWidget *widget = GDLWidget::GetWidget( widgetID);
 
     static int realizeIx = e->KeywordIx( "REALIZE");
     bool realize = e->KeywordSet( realizeIx);
 
-    if (realize) {
+    static int managedIx = e->KeywordIx( "MANAGED");
+    bool managed = e->KeywordSet( managedIx);
+
+    static int xmanActComIx = e->KeywordIx( "XMANAGER_ACTIVE_COMMAND");
+    bool xmanActCom = e->KeywordSet( xmanActComIx);
+
+    static int destroyIx = e->KeywordIx( "DESTROY");
+    bool destroy = e->KeywordSet( destroyIx);
+
+    if ( realize) {
       widget->Realize();
     }
+
+    if ( managed) {
+      widget->SetManaged();
+    }
+
+    if ( xmanActCom) {
+      widget->SetXmanagerActiveCommand();
+    }
+
+    if ( destroy) {
+      delete widget;
+    }
+
   }
+
 
 } // namespace
 
 #endif
+
+
+/*
+	// Get Parent Widget
+	GDLWidget *parent = GDLWidget::GetParent( widgetID);
+	DLong nChildren = parent->GetChild( -1);
+	if ( nChildren != 0) {
+	for( SizeT j=0; j<nChildren; j++) {
+	  if (widget->GetChild( j) == widgetID) return new DLongGDL( 1);
+*/
