@@ -40,11 +40,6 @@
 #include "mpi.h"
 #endif
 
-#ifdef HAVE_LIBWXWIDGETS
-#include <wx/wx.h>
-#endif
-
-
 using namespace std;
 
 static void StartupMessage()
@@ -167,10 +162,6 @@ int main(int argc, char *argv[])
       MPI_Send(mpi_procedure, strlen(mpi_procedure)+1, MPI_CHAR, i, 
 	       tag, MPI_COMM_WORLD);
   }
-#endif
-
-#ifdef HAVE_LIBWXWIDGETS
-  wxInitialize();
 #endif
 
   interpreter.InterpreterLoop( startup);
