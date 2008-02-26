@@ -36,7 +36,7 @@ namespace SysVar
 
   // the index of some system variables
   UInt pathIx, promptIx, edit_inputIx, quietIx, 
-    dIx, pIx, xIx, yIx, zIx, vIx, cIx, 
+    dIx, pIx, xIx, yIx, zIx, vIx, cIx, MouseIx,
     errorStateIx, errorIx, errIx, err_stringIx, valuesIx,
     journalIx, exceptIx, mapIx, cpuIx, dirIx, stimeIx, warnIx;
 
@@ -216,6 +216,12 @@ namespace SysVar
   DStructGDL* Map()
   {
     DVar& var = *sysVarList[ mapIx];
+    return static_cast<DStructGDL*>(var.Data());
+  }
+  
+  DStructGDL* Mouse()
+  {
+    DVar& var = *sysVarList[ MouseIx];
     return static_cast<DStructGDL*>(var.Data());
   }
 
@@ -423,6 +429,16 @@ namespace SysVar
     vIx                = sysVarList.size();
     sysVarList.push_back(v);
     sysVarRdOnlyList.push_back(v);
+
+    // !Mouse
+    DStructGDL*  MouseData = new DStructGDL( "!MOUSE");
+    MouseData->NewTag("X", new DLongGDL( 0));
+    MouseData->NewTag("Y", new DLongGDL( 0));
+    MouseData->NewTag("BUTTON", new DLongGDL( 0));
+    MouseData->NewTag("TIME", new DLongGDL( 0));
+    DVar *Mouse      = new DVar( "MOUSE", MouseData);
+    MouseIx          = sysVarList.size();
+    sysVarList.push_back(Mouse);
 
 
     // !ERROR_STATE

@@ -47,6 +47,9 @@ namespace SysVar
 
   DStructGDL* Values();
 
+  // return !Mouse
+  DStructGDL* Mouse();
+
   DStructGDL* Error_State();
   DString MsgPrefix();
 
