@@ -40,7 +40,7 @@ namespace lib {
   void tvlct( EnvT* e);
   void axis( EnvT* e);
   void erase( EnvT* e);
-
+  void cursor( EnvT* e);
 
 
   //helper functions

@@ -30,6 +30,8 @@
 #include "plotting.hpp"
 #include "math_utl.hpp"
 
+#define PLK_Escape            0x1B
+
 namespace lib {
 
   using namespace std;
@@ -802,6 +804,128 @@ namespace lib {
   }
 
 
+// get cursor from plPlot
+// AC February 2008
+// known limitations : WAIT parameter and similar keywords not managed (wait, nowait ...)
+
+  void cursor( EnvT* e)
+  { 
+    int debug=0;
+    SizeT nParam=e->NParam( 1); 
+
+    if ( nParam < 2 || nParam > 3) 
+      {
+	e->Throw( "%CURSOR: Incorrect number of arguments.");
+      }
+
+    e->AssureGlobalPar( 0);
+    e->AssureGlobalPar( 1);
+ 
+    GDLGStream *plg  = GetPlotStream( e);
+
+    static PLGraphicsIn gin;
+    // content of : plGetCursor();
+    // [retval, state, keysym, button, string, pX, pY, dX, dY, wX, wY, subwin]
+
+    if (debug) cout << "init mouse button : " << gin.button << endl;
+    
+    PLINT plplot_level;
+    plg->glevel (plplot_level);   
+    if (debug)  cout << "Plplot_level : " << plplot_level<< endl;
+    // when level < 2, we have to read if ![x|y].crange exist
+    // if not, we have to build a [0,1]/[0,1] window
+    if (plplot_level < 2) {
+      plg->NextPlot();
+
+      plg->vpor(0,1,0,1);
+      plg->wind(0,1,0,1);
+
+      /* we are not ready for the correct way (rebuilding a window following
+	 stored info)
+
+      // we have to read them back from !x.crange and !y.crange
+      PLFLT xStart, xEnd, yStart, yEnd;
+      get_axis_crange("X", xStart, xEnd);
+      get_axis_crange("Y", yStart, yEnd);
+      if ((xStart == xEnd ) || ( xEnd ==0.0)) {
+	xStart=0.0;
+	xEnd=1.0;
+      }
+      if ((yStart == yEnd ) || ( yEnd ==0.0)) {
+	yStart=0.0;
+	yEnd=1.0;
+      }
+      AC_debug("crange", xStart, xEnd, yStart, yEnd);
+
+      bool okVPWC = SetVP_WC( e, plg, NULL, NULL, 0, 0,
+			      xStart, xEnd, yStart, yEnd, false, false);
+      if( !okVPWC) return;
+      */
+    }
+
+    while (1) {
+      plg->GetCursor(&gin);
+      if (debug) cout << "cur mouse button : " << gin.button << endl;
+
+      // TODO should be extended later to any key of the keyboard ...
+      if (gin.keysym == PLK_Escape) break;
+      if (gin.button > 0) break;
+    }
+    
+    debug=0;
+    if (debug) {
+      // plg->text();
+      cout << "mouse button : " << gin.button << endl;
+      cout << "keysym : " << gin.keysym << endl;
+      //plg->gra();
+      /* if (gin.keysym < 0xFF && isprint(gin.keysym))
+	 cout << "wx = " << gin.wX << ", wy = " << gin.wY <<
+	 ", dx = " << gin.dX << ",  dy = " << gin.dY <<
+	 ",  c = '" << gin.keysym << "'" << endl;
+	 plg->gra(); */      
+    }
+    
+    if (e->KeywordSet("DEVICE")) {
+      PLFLT xp, yp;
+      PLINT xleng, yleng, xoff, yoff;
+      plg->gpage (xp, yp, xleng, yleng, xoff, yoff);
+
+      DLongGDL* xLong;
+      DLongGDL* yLong;
+      xLong=new DLongGDL(gin.pX);
+      yLong=new DLongGDL(yleng-gin.pY);
+      
+      e->SetPar(0, xLong);
+      e->SetPar(1, yLong);
+    } else {
+      DDoubleGDL* x;
+      DDoubleGDL* y;
+      if (e->KeywordSet("NORMAL")) {
+	x=new DDoubleGDL(gin.dX );
+	y=new DDoubleGDL(gin.dY );
+      } else { // default (/data)
+	// bad info outside the window (following PLPlot meaning)
+	// TODO : we can compute that using !x.s and !y.s
+ 	x=new DDoubleGDL(gin.wX );
+	y=new DDoubleGDL(gin.wY );
+     }
+      e->SetPar(0, x);
+      e->SetPar(1, y);
+    }
+    
+    // we update the !Mouse structure (4 fields, only 3 managed up to now)
+    DStructGDL* Struct= SysVar::Mouse();
+    if (Struct!=NULL) {
+      static unsigned xMouseTag = Struct->Desc()->TagIndex("X");
+      (*static_cast<DLongGDL*>(Struct->GetTag(xMouseTag)))[0] = gin.pX;
+      static unsigned yMouseTag = Struct->Desc()->TagIndex("Y");
+      (*static_cast<DLongGDL*>(Struct->GetTag(yMouseTag)))[0] = gin.pY;
+      static unsigned ButtonMouseTag = Struct->Desc()->TagIndex("BUTTON");
+      if (gin.button == 3) gin.button=4; // 4 values only (0,1,2,4)
+      (*static_cast<DLongGDL*>(Struct->GetTag(ButtonMouseTag)))[0]=gin.button;
+    }
+  }
+  
   void plot( EnvT* e)
   {
     SizeT nParam=e->NParam( 1); 
