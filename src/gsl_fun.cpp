@@ -70,7 +70,90 @@ namespace lib {
       throw GDLException( e->CallingNode(), 
 			  "INVERT: Variable is undefined: "+
 			  e->GetParString(0));
+  
+    if (p0->Rank() > 2)
+      throw GDLException( e->CallingNode(), 
+			  "INVERT: Input must be a square matrix:"+
+			  e->GetParString(0));
     
+    if (p0->Rank() > 1) {
+      if (p0->Dim(0) != p0->Dim(1))
+	throw GDLException( e->CallingNode(), 
+			    "INVERT: Input must be a square matrix:"+
+			    e->GetParString(0));
+    }
+    
+    // status 
+    BaseGDL** p1L;
+    if (nParam == 2) {
+      p1L = &e->GetPar( 1);
+      delete (*p1L); 
+      //*p1L = new DLongGDL( singular); 
+    }
+    
+    // only one element matrix
+    
+    if( nEl == 1) {
+      if( p0->Type() == COMPLEXDBL) {
+	DComplexDblGDL* res = static_cast<DComplexDblGDL*>
+	  (p0->Convert2(COMPLEXDBL, BaseGDL::COPY));
+	double a, b, deno;
+	a=real((*res)[0]);
+	b=imag((*res)[0]);
+	deno=a*a+b*b;
+	if (deno == 0.0) {
+	  singular=1;
+	  (*res)[0]= DComplexDbl(0., 0.);
+	} else {
+	(*res)[0]= DComplexDbl(a/deno, -b/deno);
+	}
+	if (nParam == 2) *p1L = new DLongGDL( singular); 
+	return res;
+      }
+      if( p0->Type() == COMPLEX) {
+	DComplexGDL* res = static_cast<DComplexGDL*>
+	  (p0->Convert2(COMPLEX, BaseGDL::COPY));
+	float a, b, deno;
+	a=real((*res)[0]);
+	b=imag((*res)[0]);
+	deno=a*a+b*b;
+	if (deno == 0.0) {
+	  singular=1;
+	  (*res)[0]= DComplex(0., 0.);
+	} else {
+	  (*res)[0]= DComplex(a/deno, -b/deno);
+	}
+	 if (nParam == 2) *p1L = new DLongGDL( singular); 
+	return res;
+      }
+      if( p0->Type() == DOUBLE) {
+	DDoubleGDL* res = static_cast<DDoubleGDL*>
+	  (p0->Convert2(DOUBLE, BaseGDL::COPY));
+	if ((*res)[0] == 0.0) {
+	  singular=1;
+	} else {
+	  double unity=1.0 ;
+	  (*res)[0]= unity / ((*res)[0]);
+	}
+	 if (nParam == 2) *p1L = new DLongGDL( singular); 
+	return res;
+      }
+
+      // all other cases (including STRING, Float, Int, ... )
+      //      if( p0->Type() == STRING) {
+      DFloatGDL* res = static_cast<DFloatGDL*>
+	(p0->Convert2( FLOAT, BaseGDL::COPY));
+      if ((*res)[0] == 0.0) {
+	singular=1;
+      } else {
+	(*res)[0]= 1.0 / ((*res)[0]);
+      }
+       if (nParam == 2) *p1L = new DLongGDL( singular);
+      return res;
+    }
+    
+    // more than one element matrix
+
     if( p0->Type() == COMPLEX)
       {
 	DComplexGDL* p0C = static_cast<DComplexGDL*>( p0);
@@ -114,6 +197,7 @@ namespace lib {
 	gsl_matrix_complex_free(mat);
 	gsl_matrix_complex_free(inverse);
 
+	 if (nParam == 2) *p1L = new DLongGDL( singular);
 	return res;
       }
     else if( p0->Type() == COMPLEXDBL)
@@ -142,6 +226,8 @@ namespace lib {
 	gsl_permutation_free(perm);
 	gsl_matrix_complex_free(mat);
 	gsl_matrix_complex_free(inverse);
+
+	 if (nParam == 2) *p1L = new DLongGDL( singular);
 	return res;
       }
     else if( p0->Type() == DOUBLE)
@@ -163,24 +249,20 @@ namespace lib {
 	}
 	else singular = 1;
 
-	if (nParam == 2) {
-	    BaseGDL** p1L = &e->GetPar( 1);
-            delete (*p1L); 
-	    *p1L = new DLongGDL( singular);
-	}
-
 	memcpy(&(*res)[0], inverse->data, nEl*szdbl);
 
 	gsl_permutation_free(perm);
 	gsl_matrix_free(mat);
 	gsl_matrix_free(inverse);
 
+	 if (nParam == 2) *p1L = new DLongGDL( singular);
 	return res;
       }
     else if( p0->Type() == FLOAT ||
 	     p0->Type() == LONG ||
 	     p0->Type() == ULONG ||
 	     p0->Type() == INT ||
+	     p0->Type() == STRING ||
 	     p0->Type() == UINT ||
 	     p0->Type() == BYTE)
       {
@@ -188,8 +270,14 @@ namespace lib {
 	DLongGDL* p0L = static_cast<DLongGDL*>( p0);
 	DULongGDL* p0UL = static_cast<DULongGDL*>( p0);
 	DIntGDL* p0I = static_cast<DIntGDL*>( p0);
+	//	DStringGDL* p0S = static_cast<DStringGDL*>( p0);
 	DUIntGDL* p0UI = static_cast<DUIntGDL*>( p0);
 	DByteGDL* p0B = static_cast<DByteGDL*>( p0);
+
+	//	if (p0->Type() == STRING) {
+	  DFloatGDL* p0SS = static_cast<DFloatGDL*>
+	    (p0->Convert2( FLOAT, BaseGDL::COPY));
+	  //}
 
 	DFloatGDL* res = new DFloatGDL( p0->Dim(), BaseGDL::NOZERO);
 
@@ -203,6 +291,7 @@ namespace lib {
 	  case LONG:  f64 = (double) (*p0L)[i]; break;
 	  case ULONG: f64 = (double) (*p0UL)[i]; break;
 	  case INT:   f64 = (double) (*p0I)[i]; break;
+	  case STRING:f64 = (double) (*p0SS)[i]; break;
 	  case UINT:  f64 = (double) (*p0UI)[i]; break;
 	  case BYTE:  f64 = (double) (*p0B)[i]; break;
 	  }
@@ -217,12 +306,6 @@ namespace lib {
 	}
 	else singular = 1;
 
-	if (nParam == 2) {
-	    BaseGDL** p1L = &e->GetPar( 1);
-            delete (*p1L); 
-	    *p1L = new DLongGDL( singular);
-	}
-
 	for( SizeT i=0; i<nEl; ++i) {
 	  f32 = (float) inverse->data[i];
 	  memcpy(&(*res)[i], &f32, 4);
@@ -232,13 +315,16 @@ namespace lib {
 	gsl_matrix_free(mat);
 	gsl_matrix_free(inverse);
 
+	 if (nParam == 2) *p1L = new DLongGDL( singular);
 	return res;
       }
     else 
       {
+	cout << "Should never reach this point ! Please report it !" << endl; 
 	DFloatGDL* res = static_cast<DFloatGDL*>
 	  (p0->Convert2( FLOAT, BaseGDL::COPY));
 
+	if (nParam == 2) *p1L = new DLongGDL( singular);
 	return res;
       }
   }
