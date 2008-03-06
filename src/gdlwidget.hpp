@@ -79,6 +79,7 @@ public:
 protected:
   wxObject* wxWidget; // deleted only from TLB as the rest is deleted 
                       // automatic
+                      // Note: wxWidget is GDL name not wxWidgets (JMG)
 
   WidgetIDT    widgetID;  // own index to widgetList
   WidgetIDT    parent;    // parent ID (0 for TLBs)
@@ -86,6 +87,9 @@ protected:
   bool         sensitive;
   bool         managed;
   DLong        xOffset, yOffset, xSize, ySize;
+  wxSizer*     widgetSizer;
+  wxPanel*     widgetPanel;
+  DString      widgetType;
 
 public:
   GDLWidget( WidgetIDT p=0, BaseGDL* uV=NULL, bool s=true,
@@ -93,19 +97,33 @@ public:
   virtual ~GDLWidget();
 
   wxObject* WxWidget() { return wxWidget;}
-  
+
+  BaseGDL* GetUvalue() { return uValue;}
+
   virtual void Realize() {} 
   virtual DLong GetChild( DLong) {};
   virtual void SetXmanagerActiveCommand() {};
   virtual bool GetXmanagerActiveCommand() {};
+
+  virtual void SetEventPro( DString) {};
+  virtual DString GetEventPro() {};
 
   static bool GetXmanagerBlock();
   static bool PollEvents( DLong *, DLong *, DLong *, DLong *);
 
   WidgetIDT WidgetID() { return widgetID;}
 
+  wxSizer* GetSizer() { return widgetSizer;}
+  wxPanel* GetPanel() { return widgetPanel;}
+  //  void SetSizer( wxSizer*);
+
   bool GetManaged() { return managed;}
-  void SetManaged();
+  void SetManaged( bool);
+
+  void SetUvalue( BaseGDL *);
+
+  void SetWidgetType( DString);
+  DString GetWidgetType() { return widgetType;}
 };
 
 
@@ -116,8 +134,25 @@ class GDLWidgetMbar;
 class GDLWidgetButton: public GDLWidget
 {
 public:
-  GDLWidgetButton( WidgetIDT parentID, DString value); 
+  GDLWidgetButton( WidgetIDT parentID, BaseGDL *uvalue, DString value);
+
+  void SetSelectOff();
 };
+
+
+// text widget **************************************************
+class GDLWidgetText: public GDLWidget
+{
+private:
+  wxTextCtrl *text;
+
+public:
+  GDLWidgetText( WidgetIDT parentID, BaseGDL *uvalue, DString value,
+		 DLong xSize);
+ 
+  void SetTextValue( DString);
+};
+
 
 // base widget **************************************************
 class GDLWidgetBase: public GDLWidget
@@ -129,6 +164,7 @@ protected:
   bool                                    xmanActCom;
   bool                                    modal;
   WidgetIDT                               mbarID;
+  DString                                 eventHandler;
 
 public:
   GDLWidgetBase( WidgetIDT parentID, 
@@ -169,6 +205,9 @@ public:
   void SetXmanagerActiveCommand();
   bool GetXmanagerActiveCommand() { return xmanActCom;}
 
+  void SetEventPro( DString);
+  DString GetEventPro() { return eventHandler;}
+
   DLong GetChild( DLong);
 
 };
@@ -186,6 +225,7 @@ public:
 
   // event handlers (these functions should _not_ be virtual)
   void OnButton( wxCommandEvent& event);
+  void OnIdle( wxIdleEvent& event);
 
 private:
     // any class wishing to process wxWidgets events must use this macro

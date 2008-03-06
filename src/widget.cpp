@@ -297,13 +297,48 @@ namespace lib {
     WidgetIDT parentID = (*p0L)[0];
     GDLWidget *widget = GDLWidget::GetWidget( parentID);
 
-    static int valueIx     = e->KeywordIx( "VALUE");
+    static int valueIx = e->KeywordIx( "VALUE");
     DString value = "";
     e->AssureStringScalarKWIfPresent( valueIx, value);
 
-    GDLWidgetButton* button = new GDLWidgetButton( parentID, value);
- 
+    static int uvalueIx = e->KeywordIx( "UVALUE");
+    BaseGDL* uvalue = e->GetKW( uvalueIx);
+    if( uvalue != NULL)
+      uvalue = uvalue->Dup();
+
+    GDLWidgetButton* button = new GDLWidgetButton( parentID, uvalue, value);
+
+    button->SetWidgetType( "BUTTON");
+
     return new DLongGDL( button->WidgetID());
+  }
+
+
+  // WIDGET_TEXT
+  BaseGDL* widget_text( EnvT* e)
+  {
+    DLongGDL* p0L = e->GetParAs<DLongGDL>( 0);
+    WidgetIDT parentID = (*p0L)[0];
+    GDLWidget *widget = GDLWidget::GetWidget( parentID);
+
+    DLong xsize = -1;
+    static int xsizeIx = e->KeywordIx( "XSIZE");
+    e->AssureLongScalarKWIfPresent( xsizeIx, xsize);
+
+    static int valueIx = e->KeywordIx( "VALUE");
+    DString value = "";
+    e->AssureStringScalarKWIfPresent( valueIx, value);
+
+    static int uvalueIx = e->KeywordIx( "UVALUE");
+    BaseGDL* uvalue = e->GetKW( uvalueIx);
+    if( uvalue != NULL)
+      uvalue = uvalue->Dup();
+
+    GDLWidgetText* text = new GDLWidgetText( parentID, uvalue, value, xsize);
+ 
+    text->SetWidgetType( "TEXT");
+
+    return new DLongGDL( text->WidgetID());
   }
 
 
@@ -424,53 +459,90 @@ namespace lib {
     static int xmanagerBlockIx = e->KeywordIx( "XMANAGER_BLOCK");
     bool xmanagerBlock = e->KeywordSet( xmanagerBlockIx);
 
+    EnvBaseT* caller;
+
+    static DLong lasttop = -1;
+
     DLong id;
     DLong top;
     DLong handler;
     DLong select;
-    while (1) {
-      if ( GDLWidget::PollEvents( &id, &top, &handler, &select)) {
-	//	int i; std::cout << "here: "; std::cin >> i;
+    //    int i; cin >> i;
+
+    while ( 1) {
+      std::cout << "In PollEvents loop" << std::endl;
+      while ( 1) {
+	// Sleep a bit to prevent CPU overuse
+	wxMilliSleep( 50);
+	if ( GDLWidget::PollEvents( &id, &top, &handler, &select))
+	  break;
+      }
+
+      std::cout << "break from PollEvents" << std::endl;
+      std::cout << "top: " << top << std::endl;
+      std::cout << "id:  " << id << std::endl;
+
+      // Get Event Pro
+      GDLWidget *widget = GDLWidget::GetWidget( top);
+      DString eventHandler = widget->GetEventPro();
+
+      // Build event handler command
+      ostringstream ostr;
+      ostr << "EV={WIDGET_BUTTON, ";
+      ostr << "ID: " << id << "L, TOP: " << top << "L, ";
+      ostr << "HANDLER: " << handler << "L, SELECT: " << select << "L } ";
+      ostr << "& " << eventHandler.c_str() << ", EV";
+
+      DString line = ostr.rdbuf()->str();
+      istringstream istr(line+"\n");
+
+
+      // Call widget event handler routine
+      if ( lasttop != top) {
+	caller = e->Caller();
+	e->Interpreter()->CallStack().pop_back();
+	//	std::cout << "before delete e" << std::endl;
+	delete e;
+      }
+
+      RefDNode theAST;
+
+      GDLLexer lexer(istr, "");
+      GDLParser& parser = lexer.Parser();
+      parser.interactive();
+
+      theAST = parser.getAST();
+      RefDNode trAST;
+      GDLTreeParser treeParser( caller);
+      treeParser.interactive(theAST);
+      trAST = treeParser.getAST();
+
+      ProgNodeP progAST = ProgNode::NewProgNode( trAST);
+      auto_ptr< ProgNode> progAST_guard( progAST);
+
+      GDLInterpreter::RetCode retCode = 
+	caller->Interpreter()->execute( progAST);
+
+      // Return from GDL/IDL event handler procedure
+      std::cout << "return from event handler" << std::endl << std::endl;
+
+      if ( GDLWidget::GetWidget( top) == NULL) {
+	std::cout << "widget NULLed" << std::endl;
 	break;
       }
+
+      GDLWidgetButton *buttonWidget = 
+	( GDLWidgetButton *) GDLWidget::GetWidget( id);
+      buttonWidget->SetSelectOff();
+      buttonWidget->SetManaged( false);
+
+      lasttop = top;
     }
-
-    // Call widget event handler routine
-    EnvBaseT* caller = e->Caller();
-    e->Interpreter()->CallStack().pop_back();
-    delete e;
-
-    ostringstream ostr;
-    ostr << "EV={WIDGET_BUTTON, ";
-    ostr << "ID: " << id << "L, TOP: " << top << "L, ";
-    ostr << "HANDLER: " << handler << "L, SELECT: " << select << "L } ";
-    ostr << "& widget1_event, EV";
-    //    std::cout << ostr.rdbuf()->str().c_str() << std::endl;
-    DString line = ostr.rdbuf()->str();
-
-    istringstream istr(line+"\n");
-    RefDNode theAST;
-
-    GDLLexer lexer(istr, "");
-    GDLParser& parser = lexer.Parser();
-    parser.interactive();
-    
-    theAST = parser.getAST();
-    RefDNode trAST;
-    GDLTreeParser treeParser( caller);
-    treeParser.interactive(theAST);
-    trAST = treeParser.getAST();
-
-    ProgNodeP progAST = ProgNode::NewProgNode( trAST);
-    auto_ptr< ProgNode> progAST_guard( progAST);
-
-    GDLInterpreter::RetCode retCode =
-      caller->Interpreter()->execute( progAST);
-
     return new DLongGDL( 0);
   }
 
 
+  // WIDGET_CONTROL
   void widget_control( EnvT* e)
   {
     DLongGDL* p0L = e->GetParAs<DLongGDL>( 0);
@@ -490,12 +562,25 @@ namespace lib {
     static int destroyIx = e->KeywordIx( "DESTROY");
     bool destroy = e->KeywordSet( destroyIx);
 
+    DString eventPro = "";
+    static int eventproIx = e->KeywordIx( "EVENT_PRO");
+    bool eventpro = e->KeywordSet( eventproIx);
+
+    static int getuvalueIx = e->KeywordIx( "GET_UVALUE");
+    bool getuvalue = e->KeywordPresent( getuvalueIx);
+
+    static int setuvalueIx = e->KeywordIx( "SET_UVALUE");
+    bool setuvalue = e->KeywordPresent( setuvalueIx);
+
+    static int setvalueIx = e->KeywordIx( "SET_VALUE");
+    bool setvalue = e->KeywordPresent( setvalueIx);
+
     if ( realize) {
       widget->Realize();
     }
 
     if ( managed) {
-      widget->SetManaged();
+      widget->SetManaged( true);
     }
 
     if ( xmanActCom) {
@@ -503,9 +588,46 @@ namespace lib {
     }
 
     if ( destroy) {
+      std::cout << "Destroy widget" << std::endl;
       delete widget;
     }
 
+    if ( eventpro) {
+      e->AssureStringScalarKWIfPresent( eventproIx, eventPro);
+      widget->SetEventPro( eventPro);
+    }
+
+    if ( getuvalue) {
+      BaseGDL** uvalueKW = &e->GetKW( getuvalueIx);
+      delete (*uvalueKW);
+
+      *uvalueKW = widget->GetUvalue();
+      if ( *uvalueKW != NULL) {
+	if( (*uvalueKW)->Type() == STRING)
+	  *uvalueKW = new DStringGDL( (*( DStringGDL*) (*uvalueKW))[0]);
+	if( (*uvalueKW)->Type() == LONG)
+	  *uvalueKW = new DLongGDL( (*( DLongGDL*) (*uvalueKW))[0]);
+      }
+    }
+
+    if ( setuvalue) {
+      BaseGDL* uvalue = e->GetKW( setuvalueIx);
+      if( uvalue != NULL) uvalue = uvalue->Dup();
+      widget->SetUvalue( uvalue);
+    }
+
+
+    if ( setvalue) {
+      DString value = "";
+      e->AssureStringScalarKWIfPresent( setvalueIx, value);
+
+      DString wType = widget->GetWidgetType();
+      if ( wType == "TEXT") {
+	std::cout << "settextvalue: " << value.c_str() << std::endl;
+	GDLWidgetText *textWidget = ( GDLWidgetText *) widget;
+	textWidget->SetTextValue( value);
+      }
+    }
   }
 
 

@@ -28,6 +28,7 @@ namespace lib {
 
   BaseGDL* widget_base( EnvT* e);
   BaseGDL* widget_button( EnvT* e);
+  BaseGDL* widget_text( EnvT* e);
   BaseGDL* widget_info( EnvT* e);
   BaseGDL* widget_event( EnvT* e);
 

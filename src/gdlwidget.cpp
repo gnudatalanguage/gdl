@@ -32,6 +32,7 @@ VarListT                    eventVarList;
 
 BEGIN_EVENT_TABLE(GDLFrame, wxFrame)
   EVT_BUTTON( wxID_ANY, GDLFrame::OnButton)
+  EVT_IDLE( GDLFrame::OnIdle)
 END_EVENT_TABLE()
 
 
@@ -74,10 +75,25 @@ GDLWidget* GDLWidget::GetParent( WidgetIDT widID)
   return widget;
 }
 
-void GDLWidget::SetManaged()
+void GDLWidget::SetManaged( bool manval)
 {
-  managed = true;
+  managed = manval;
 }
+
+void GDLWidget::SetUvalue( BaseGDL *uV)
+{
+  uValue = uV;
+}
+
+void GDLWidget::SetWidgetType( DString wType)
+{
+  widgetType = wType;
+}
+
+//void GDLWidget::SetSizer( wxSizer *sizer)
+//{
+//  widgetSizer = sizer;
+//}
 
 bool GDLWidget::GetXmanagerBlock() {
   bool xmanBlock = false;
@@ -110,30 +126,30 @@ bool GDLWidget::PollEvents( DLong *id, DLong *top,
   // (*it).first is widgetID
   // (*it).second is pointer to widget
 
-  bool managed;
-
   for( it = widgetList.begin(); it != widgetList.end(); ++it) {
     // Only consider base widgets
     if ( (*it).second->parent == 0) {
-      managed = (*it).second->GetManaged();
-      if ( managed) {
+      if ( (*it).second->GetManaged()) {
 	// Get Parent Widget
 	GDLWidget *parent = GDLWidget::GetParent( (*it).first);
 	DLong nChildren = parent->GetChild( -1);
-	if ( nChildren != 0) {
-	  for( SizeT j=0; j<nChildren; j++) {
-	    WidgetIDT childID = parent->GetChild( j);
-	    // Check for button push
+	for( SizeT j=0; j<nChildren; j++) {
+	  WidgetIDT childID = parent->GetChild( j);
 
-	    // Form button event variable name
-	    std::ostringstream varname;
-	    varname << "WBUT" << childID ;
-	    //	    DString vnamestring = varname.rdbuf()->str();
-	    //*vname = vnamestring;
+	  // Check for BUTTON events
 
-	    // Find name and get SELECT
-	    DVar *var =
-	      FindInVarList( eventVarList, varname.rdbuf()->str().c_str());
+	  // Form button event variable name
+	  std::ostringstream varname;
+	  varname << "WBUT" << childID ;
+	  //	    DString vnamestring = varname.rdbuf()->str();
+	  //*vname = vnamestring;
+
+	  // Find name and get SELECT
+	  DVar *var =
+	    FindInVarList( eventVarList, varname.rdbuf()->str().c_str());
+	  //  std::cout << "var: " << var << std::endl;
+
+	  if ( var != NULL) {
 	    DStructGDL* s = static_cast<DStructGDL*>( var->Data());
 	    *select = (*static_cast<DLongGDL*>
 		       (s->GetTag(s->Desc()->TagIndex("SELECT"), 0)))[0];
@@ -147,11 +163,37 @@ bool GDLWidget::PollEvents( DLong *id, DLong *top,
 			  (s->GetTag(s->Desc()->TagIndex("HANDLER"), 0)))[0];
 	      break;
 	    }
-	  }
-	}
-      }
-    }
-  }
+	  } // var != NULL
+
+	  // Check for text events
+
+	  // Form text event variable name
+	  varname << "WTXT" << childID ;
+
+	  // Find name and get SELECT
+	  var = FindInVarList( eventVarList, varname.rdbuf()->str().c_str());
+	  //std::cout << "var: " << var << std::endl;
+
+	  if ( var != NULL) {
+	    DStructGDL* s = static_cast<DStructGDL*>( var->Data());
+	    *select = (*static_cast<DLongGDL*>
+		       (s->GetTag(s->Desc()->TagIndex("SELECT"), 0)))[0];
+	    if ( *select) {
+	      eventFound = true;
+	      *id = (*static_cast<DLongGDL*>
+		     (s->GetTag(s->Desc()->TagIndex("ID"), 0)))[0];
+	      *top = (*static_cast<DLongGDL*>
+		      (s->GetTag(s->Desc()->TagIndex("TOP"), 0)))[0];
+	      *handler = (*static_cast<DLongGDL*>
+			  (s->GetTag(s->Desc()->TagIndex("HANDLER"), 0)))[0];
+	      break;
+	    }
+	  } // var != NULL
+
+	} // child loop
+      } // if mananged
+    } // if base widget
+  } // widget loop
   return eventFound;
 }
 
@@ -184,7 +226,7 @@ GDLWidget::GDLWidget( WidgetIDT p, BaseGDL* uV, bool s,
 
 GDLWidget::~GDLWidget()
 {
-  // std::cout << "in ~GDLWidget(): " << std::endl;
+  //  std::cout << "in ~GDLWidget(): " << std::endl;
   managed = false;
 
   if( parent != 0) 
@@ -228,17 +270,15 @@ GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID,
 {
   //  std::cout << "In GDLWidgetBase::GDLWidgetBase" << std::endl;
 
-  static bool first=true;
-  if (first) {
-    thread = new guiThread();
+  if (thread != NULL)
+    thread->OnExit( thread);
 
-    // Defined in threadpsx.cpp (wxWidgets)
-    thread->Create();
-    thread->Run();
+  thread = new guiThread();
 
-    //  wxMutexGuiEnter();
-    first = false;
-  }
+  // Defined in threadpsx.cpp (wxWidgets)
+  std::cout << "Creating thread: " << thread << std::endl;
+  thread->Create();
+  thread->Run();
 
   xmanActCom = false;
 
@@ -255,20 +295,33 @@ GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID,
 
   if( modal)
     wxWidget = new wxDialog( wxParent, widgetID, title_);
-  else {
 
+  if ( row == 0) {
     GDLFrame *frame = new GDLFrame( wxParent, widgetID, title_);
     ((wxFrame *) frame)->SetSize( xsize, ysize);
     wxWidget = frame;
-    //    wxWidget = new wxFrame( wxParent, widgetID, title_);
+
+    wxBoxSizer *sizer = new wxBoxSizer( wxVERTICAL);
+    widgetSizer = sizer;
+
+    wxPanel *panel = new wxPanel( frame, wxID_ANY);
+    widgetPanel = panel;
+    //    std::cout << "sizer: " << sizer << std::endl;
+  } else if ( row != 0 && col == 0) {
+
+  } else {
+
   }
 }
 
 GDLWidgetBase::~GDLWidgetBase()
 {
   // Close widget frame
-  //  std::cout << "In ~GDLWidgetBase(): " << this->wxWidget << std::endl;
+  //  std::cout << "In ~GDLWidgetBase() widget: " << this->wxWidget << std::endl;
   ((wxFrame *) this->wxWidget)->Close( true);
+
+  //  bool running = thread->IsRunning();
+  //std::cout << "running (in ~GDLWidgetBase): " << running << std::endl;
 
   // Note: iterator for loop doesn't work when deleting widget
   cIter cI = children.begin();
@@ -308,17 +361,32 @@ void GDLWidgetBase::SetXmanagerActiveCommand()
   xmanActCom = true;
 }
 
-
-GDLWidgetButton::GDLWidgetButton( WidgetIDT p, DString value):
-  GDLWidget( p, NULL, 0, 0, 0, 0, 0)
+void  GDLWidgetBase::SetEventPro( DString eventPro)
 {
-  //  std::cout << "In Button: " << widgetID << " " << p << std::endl;
+  eventHandler = eventPro;
+}
+
+
+
+GDLWidgetButton::GDLWidgetButton( WidgetIDT p, BaseGDL *uV, DString value):
+  GDLWidget( p, uV, 0, 0, 0, 0, 0)
+{
+  std::cout << "In Button: " << widgetID << " " << p << std::endl;
 
   GDLWidget* gdlParent = GetWidget( p);
   wxWindow *wxParent = static_cast< wxWindow*>( gdlParent->WxWidget());
-
   wxFrame *frame = (wxFrame *) wxParent;
-  wxButton *button = new wxButton( frame, widgetID, _T( value.c_str()));
+
+  wxBoxSizer *boxSizer = (wxBoxSizer *) gdlParent->GetSizer();
+  //  std::cout << "sizer: " << boxSizer << std::endl;
+
+  wxPanel *panel = gdlParent->GetPanel();
+  wxButton *button = new wxButton( panel, widgetID, _T( value.c_str()));
+
+  panel->SetSizer( boxSizer);
+
+  boxSizer->Add( button, 0, wxEXPAND | wxALL, 5);
+  boxSizer->SetSizeHints( wxParent);
 
   // Generate event structure
   DStructGDL*  widgbut = new DStructGDL( "WIDGET_BUTTON");
@@ -334,6 +402,65 @@ GDLWidgetButton::GDLWidgetButton( WidgetIDT p, DString value):
   eventVarList.push_back(v);
 }
 
+void GDLWidgetButton::SetSelectOff()
+{
+  // Form button event variable name
+  std::ostringstream varname;
+  varname << "WBUT" << this->WidgetID();
+
+  // Find name and set SELECT tag to 0
+  DVar *var=FindInVarList( eventVarList, varname.rdbuf()->str().c_str());
+  DStructGDL* s = static_cast<DStructGDL*>( var->Data());
+  (*static_cast<DLongGDL*>
+   (s->GetTag(s->Desc()->TagIndex("SELECT"), 0)))[0] = 0;
+}
+
+GDLWidgetText::GDLWidgetText( WidgetIDT p, BaseGDL *uV, DString value,
+			      DLong xSize):
+  GDLWidget( p, uV, 0, 0, 0, 0, 0)
+{
+  std::cout << "In Text: " << widgetID << " " << p << std::endl;
+
+  GDLWidget* gdlParent = GetWidget( p);
+  wxWindow *wxParent = static_cast< wxWindow*>( gdlParent->WxWidget());
+  wxFrame *frame = (wxFrame *) wxParent;
+
+  wxBoxSizer *boxSizer = (wxBoxSizer *) gdlParent->GetSizer();
+  //  std::cout << "sizer: " << boxSizer << std::endl;
+
+  wxPanel *panel = gdlParent->GetPanel();
+
+  //  wxTextCtrl *text = new wxTextCtrl( panel, widgetID, _T( value.c_str()));
+  text = new wxTextCtrl( panel, widgetID, _T( value.c_str()),
+			 wxDefaultPosition, wxSize( xSize*5, wxDefaultCoord) );
+
+  panel->SetSizer( boxSizer);
+
+  boxSizer->Add( text, 0, wxEXPAND | wxALL, 5);
+  boxSizer->SetSizeHints( wxParent);
+
+  // Generate event structure
+  DStructGDL*  widgtxt = new DStructGDL( "WIDGET_TEXT");
+  widgtxt->InitTag("ID", DLongGDL( widgetID));
+  widgtxt->InitTag("TOP", DLongGDL( p));
+  widgtxt->InitTag("HANDLER", DLongGDL( 0));
+  widgtxt->InitTag("SELECT", DLongGDL( 0));
+
+  // Push event structure into event variable list
+  std::ostringstream varname;
+  varname << "WTXT" << this->WidgetID();
+  DVar *v = new DVar( varname.rdbuf()->str().c_str(), widgtxt);
+  eventVarList.push_back(v);
+}
+
+
+void GDLWidgetText::SetTextValue( DString value)
+{
+  text->SetValue( _T( value));
+  //  text->Refresh(); 
+  //wxMilliSleep(700); 
+ }
+
 
 // *** GDLFrame ***
 GDLFrame::GDLFrame(wxWindow* parent, wxWindowID id, const wxString& title)
@@ -342,11 +469,11 @@ GDLFrame::GDLFrame(wxWindow* parent, wxWindowID id, const wxString& title)
   //  std::cout << "in GDLFrame Constructor" << std::endl;
 }
 
-void GDLFrame::OnButton(wxCommandEvent& event)
+void GDLFrame::OnButton( wxCommandEvent& event)
 {
   // Called by EVT_BUTTON in EVENT_TABLE in gdlwidget.cpp
 
-  //  std::cout << "in OnButton: " << event.GetId() << std::endl;
+  std::cout << "in OnButton: " << event.GetId() << std::endl;
 
   // Form button event variable name
   std::ostringstream varname;
@@ -357,6 +484,16 @@ void GDLFrame::OnButton(wxCommandEvent& event)
   DStructGDL* s = static_cast<DStructGDL*>( var->Data());
   (*static_cast<DLongGDL*>
    (s->GetTag(s->Desc()->TagIndex("SELECT"), 0)))[0] = 1;
+
+  // Pause 50 millisecs then refresh widget
+  wxMilliSleep( 50);
+  Refresh();
+}
+
+void GDLFrame::OnIdle( wxIdleEvent&)
+{
+  //  std::cout << "In OnIdle" << std::endl;
+  // Refresh();
 }
 
 
@@ -398,11 +535,10 @@ int GDLApp::OnExit()
   //bool running = thread->IsRunning();
   //std::cout << "running: " << running << std::endl;
 
-  //  wxMutexGuiLeave();
-
   // Defined in guiThread::OnExit() in gdlwidget.cpp
+  //  std::cout << "Exiting thread (GDLApp::OnExit): " << thread << std::endl;
   if (thread != NULL)
-      thread->OnExit( thread);
+    thread->OnExit( thread);
 
   return 0;
 }
@@ -412,7 +548,7 @@ void guiThread::OnExit( guiThread *thread)
 {
   // Called by GDLApp::OnExit() in gdlwidget.cpp
 
-  //  std::cout << "In guiThread::OnExit()" << std::endl;
+  std::cout << "In guiThread::OnExit(): " << thread << std::endl;
 
   delete thread;
 }
