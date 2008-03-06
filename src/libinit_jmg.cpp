@@ -39,6 +39,8 @@
 #include "image.hpp"
 #include "plotting.hpp"
 
+#include "widget.hpp"
+
 #if defined(USE_HDF)
 #include "hdf_fun.hpp"
 #include "hdf_pro.hpp"
@@ -227,6 +229,34 @@ void LibInit_jmg()
 
   const string loadctKey[]={"GET_NAMES",KLISTEND};
   new DLibPro(lib::loadct,string("LOADCT_INTERNALGDL"),1,loadctKey);
+
+
+#ifdef HAVE_LIBWXWIDGETS
+  const string widget_baseKey[] = {"ALIGN_BOTTOM","ALIGN_CENTER","ALIGN_LEFT","ALIGN_RIGHT","ALIGN_TOP","MBAR","MODAL","BASE_ALIGN_BOTTOM","BASE_ALIGN_CENTER","BASE_ALIGN_LEFT","BASE_ALIGN_RIGHT","BASE_ALIGN_TOP","COLUMN","ROW","CONTEXT_EVENTS","CONTEXT_MENU","EVENT_FUNC","EVENT_PRO","EXCLUSIVE","NONEXCLUSIVE","FLOATING","FRAME","FUNC_GET_VALUE","GRID_LAYOUT","GROUP_LEADER","KBRD_FOCUS_EVENTS","KILL_NOTIFY","MAP","NO_COPY","NOTIFY_REALIZE","PRO_SET_VALUE","SCR_XSIZE","SCR_YSIZE","SCROLL","SENSITIVE","SPACE","TITLE","TLB_FRAME_ATTR","TLB_ICONIFY_EVENTS","TLB_KILL_REQUEST_EVENTS","TLB_MOVE_EVENTS","TLB_SIZE_EVENTS","TOOLBAR","TRACKING_EVENTS","UNITS","UNAME","UVALUE","XOFFSET","XPAD","XSIZE","X_SCROLL_SIZE","YOFFSET","YPAD","YSIZE","Y_SCROLL_SIZE","DISPLAY_NAME","RESOURCE_NAME","RNAME_MBAR",KLISTEND};
+  new DLibFun(lib::widget_base,string("WIDGET_BASE"),0,widget_baseKey);
+
+  const string widget_buttonKey[] = {"ACCELERATOR","ALIGN_CENTER","ALIGN_LEFT","ALIGN_RIGHT","BITMAP","CHECKED_MENU","DYNAMIC_RESIZE","EVENT_FUNC","EVENT_PRO","FONT","FRAME","FUNC_GET_VALUE","GROUP_LEADER","HELP","KILL_NOTIFY","MENU","NO_COPY","NO_RELEASE","NOTIFY_REALIZE","PRO_SET_VALUE","PUSHBUTTON_EVENTS","SCR_XSIZE","SCR_YSIZE","SENSITIVE","SEPARATOR","TAB_MODE","TOOLTIP","TRACKING_EVENTS","UNAME","UNITS","UVALUE","VALUE","X_BITMAP_EXTRA","XOFFSET","XSIZE","YOFFSET","YSIZE",KLISTEND};
+  new DLibFun(lib::widget_button,string("WIDGET_BUTTON"),1,widget_buttonKey);
+
+  const string widget_textKey[] = {"ALL_EVENTS","CONTEXT_EVENTS","EDITABLE","EVENT_FUNC","EVENT_PRO","FONT","FRAME","FUNC_GET_VALUE","GROUP_LEADER","IGNORE_ACCELERATORS","KBRD_FOCUS_EVENTS","KILL_NOTIFY","NO_COPY","NO_NEWLINE","NOTIFY_REALIZE","PRO_SET_VALUE","RESOURCE_NAME","SCR_XSIZE","SCR_YSIZE","SCROLL","SENSITIVE","TAB_MODE","TRACKING_EVENTS","UNAME","UNITS","UVALUE","VALUE","WRAP","XOFFSET","XSIZE","YOFFSET","YSIZE",KLISTEND};
+  new DLibFun(lib::widget_text,string("WIDGET_TEXT"),1,widget_textKey);
+
+
+  const string widget_infoKey[] = {"VALID","MODAL","MANAGED","XMANAGER_BLOCK",
+				   KLISTEND};
+  new DLibFun(lib::widget_info,string("WIDGET_INFO"),1,widget_infoKey);
+
+  const string widget_eventKey[] = {"XMANAGER_BLOCK","DESTROY",
+				    KLISTEND};
+  new DLibFun(lib::widget_event,string("WIDGET_EVENT"),1,widget_eventKey);
+
+  const string widget_controlKey[] = {"REALIZE","MANAGED","EVENT_PRO",
+				      "XMANAGER_ACTIVE_COMMAND","DESTROY",
+				      "GET_UVALUE","SET_UVALUE","SET_VALUE",
+				      KLISTEND};
+  new DLibPro(lib::widget_control,string("WIDGET_CONTROL"),1, 
+	      widget_controlKey);
+#endif
 
 }
 
