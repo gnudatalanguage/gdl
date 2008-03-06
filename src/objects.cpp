@@ -164,6 +164,14 @@ void InitStructs()
   widgbut->AddTag("SELECT", &aLong);
   // insert into structList
   structList.push_back( widgbut);
+
+  DStructDesc* widgtxt = new DStructDesc( "WIDGET_TEXT");
+  widgtxt->AddTag("ID", &aLong);
+  widgtxt->AddTag("TOP", &aLong);
+  widgtxt->AddTag("HANDLER", &aLong);
+  widgtxt->AddTag("SELECT", &aLong);
+  // insert into structList
+  structList.push_back( widgtxt);
 }
 
 void InitObjects()
