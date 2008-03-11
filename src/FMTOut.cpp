@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.4: "format.out.g" -> "FMTOut.cpp"$ */
+/* $ANTLR 2.7.6 (20070910): "format.out.g" -> "FMTOut.cpp"$ */
 
 #include "includefirst.hpp"
 
@@ -17,11 +17,11 @@ FMTOut::FMTOut()
 }
 
 void FMTOut::format(RefFMTNode _t) {
-	RefFMTNode format_AST_in = (_t == ASTNULL) ? RefFMTNode(antlr::nullAST) : _t;
+	RefFMTNode format_AST_in = (_t == RefFMTNode(ASTNULL)) ? RefFMTNode(antlr::nullAST) : _t;
 	RefFMTNode fmt = RefFMTNode(antlr::nullAST);
 	
 	RefFMTNode __t2 = _t;
-	fmt = (_t == ASTNULL) ? RefFMTNode(antlr::nullAST) : _t;
+	fmt = (_t == RefFMTNode(ASTNULL)) ? RefFMTNode(antlr::nullAST) : _t;
 	match(antlr::RefAST(_t),FORMAT);
 	_t = _t->getFirstChild();
 	goto realCode;
@@ -97,7 +97,7 @@ void FMTOut::format(RefFMTNode _t) {
 }
 
 void FMTOut::q(RefFMTNode _t) {
-	RefFMTNode q_AST_in = (_t == ASTNULL) ? RefFMTNode(antlr::nullAST) : _t;
+	RefFMTNode q_AST_in = (_t == RefFMTNode(ASTNULL)) ? RefFMTNode(antlr::nullAST) : _t;
 	RefFMTNode s = RefFMTNode(antlr::nullAST);
 	
 	{
@@ -151,7 +151,7 @@ void FMTOut::q(RefFMTNode _t) {
 }
 
 void FMTOut::f(RefFMTNode _t) {
-	RefFMTNode f_AST_in = (_t == ASTNULL) ? RefFMTNode(antlr::nullAST) : _t;
+	RefFMTNode f_AST_in = (_t == RefFMTNode(ASTNULL)) ? RefFMTNode(antlr::nullAST) : _t;
 	RefFMTNode t = RefFMTNode(antlr::nullAST);
 	RefFMTNode a = RefFMTNode(antlr::nullAST);
 	RefFMTNode ff = RefFMTNode(antlr::nullAST);
@@ -389,7 +389,7 @@ void FMTOut::f(RefFMTNode _t) {
 	case C:
 	{
 		RefFMTNode __t12 = _t;
-		c = (_t == ASTNULL) ? RefFMTNode(antlr::nullAST) : _t;
+		c = (_t == RefFMTNode(ASTNULL)) ? RefFMTNode(antlr::nullAST) : _t;
 		match(antlr::RefAST(_t),C);
 		_t = _t->getFirstChild();
 		{ // ( ... )+
@@ -422,7 +422,7 @@ void FMTOut::f(RefFMTNode _t) {
 }
 
 void FMTOut::format_reversion(RefFMTNode _t) {
-	RefFMTNode format_reversion_AST_in = (_t == ASTNULL) ? RefFMTNode(antlr::nullAST) : _t;
+	RefFMTNode format_reversion_AST_in = (_t == RefFMTNode(ASTNULL)) ? RefFMTNode(antlr::nullAST) : _t;
 	
 	format(_t);
 	_t = _retTree;
@@ -486,7 +486,7 @@ void FMTOut::format_reversion(RefFMTNode _t) {
 }
 
 void FMTOut::f_csubcode(RefFMTNode _t) {
-	RefFMTNode f_csubcode_AST_in = (_t == ASTNULL) ? RefFMTNode(antlr::nullAST) : _t;
+	RefFMTNode f_csubcode_AST_in = (_t == RefFMTNode(ASTNULL)) ? RefFMTNode(antlr::nullAST) : _t;
 	RefFMTNode s = RefFMTNode(antlr::nullAST);
 	RefFMTNode tl = RefFMTNode(antlr::nullAST);
 	RefFMTNode tr = RefFMTNode(antlr::nullAST);
@@ -539,7 +539,7 @@ void FMTOut::f_csubcode(RefFMTNode _t) {
 }
 
 void FMTOut::x(RefFMTNode _t) {
-	RefFMTNode x_AST_in = (_t == ASTNULL) ? RefFMTNode(antlr::nullAST) : _t;
+	RefFMTNode x_AST_in = (_t == RefFMTNode(ASTNULL)) ? RefFMTNode(antlr::nullAST) : _t;
 	RefFMTNode tl = RefFMTNode(antlr::nullAST);
 	
 	tl = _t;
@@ -559,7 +559,7 @@ void FMTOut::x(RefFMTNode _t) {
 }
 
 void FMTOut::csubcode(RefFMTNode _t) {
-	RefFMTNode csubcode_AST_in = (_t == ASTNULL) ? RefFMTNode(antlr::nullAST) : _t;
+	RefFMTNode csubcode_AST_in = (_t == RefFMTNode(ASTNULL)) ? RefFMTNode(antlr::nullAST) : _t;
 	RefFMTNode c1 = RefFMTNode(antlr::nullAST);
 	RefFMTNode c2 = RefFMTNode(antlr::nullAST);
 	RefFMTNode c3 = RefFMTNode(antlr::nullAST);

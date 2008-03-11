@@ -83,16 +83,16 @@ public:
         // format reversion
         while( actPar != NULL)
         {
-            (*os) << '\n';
+           (*os) << '\n';
             
             if( j != NULL && j->OStream() == (*os)) 
                 (*os) << lib::JOURNALCOMMENT;
 
-            format_reversion( reversionAnker);
-            
-            if( (nextParIx == nextParIxComp) && (valIx == valIxComp))   
+            format_reversion( reversionAnker);            
+ 
+           if( (nextParIx == nextParIxComp) && (valIx == valIxComp))   
                 throw GDLException("Infinite format loop detected.");
-        }
+         }
         
         if( !nonlFlag) (*os) << '\n';
 

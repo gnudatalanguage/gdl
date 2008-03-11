@@ -306,7 +306,7 @@ public:
     oList.resize( maxWin);
     for( int i=0; i < maxWin; i++) oList[ i] = 0;
 
-    GDLGStream::SetErrorHandlers();
+//     GDLGStream::SetErrorHandlers();
   }
   
   ~DeviceX()

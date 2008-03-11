@@ -2359,7 +2359,7 @@ namespace lib {
 	for( SizeT i=0; i<xVal->Dim(0); i++) 
 	  z1[i] = &(*zVal)[j*(xVal->Dim(0))+i];
 
-	mesh_nr(static_cast<PLFLT*> (&(*xVal)[j*(xVal->Dim(0))]), 
+	lib::mesh_nr(static_cast<PLFLT*> (&(*xVal)[j*(xVal->Dim(0))]), 
 		static_cast<PLFLT*> (&(*yVal)[j*(xVal->Dim(0))]), 
 		z1, (long int) xVal->Dim(0), 1, 1);
       }
@@ -2380,7 +2380,7 @@ namespace lib {
 	  yVec[i] = (*yVal)[i*(yVal->Dim(0))+j];
 	}
 
-	mesh_nr(xVec, yVec,
+	lib::mesh_nr(xVec, yVec,
 		z2, 1, (long int) yVal->Dim(1), 2);
       }
       delete[] z2;

@@ -1,4 +1,4 @@
-// $ANTLR 2.7.4: format.g -> FMTTokenTypes.txt$
+// $ANTLR 2.7.6 (20070910): format.g -> FMTTokenTypes.txt$
 FMT    // output token vocab name
 ALL=4
 CSTR=5

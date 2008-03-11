@@ -3,7 +3,7 @@
 
 #include <antlr/config.hpp>
 #include "FMTOutTokenTypes.hpp"
-/* $ANTLR 2.7.4: "format.out.g" -> "FMTOut.hpp"$ */
+/* $ANTLR 2.7.6 (20070910): "format.out.g" -> "FMTOut.hpp"$ */
 #include <antlr/TreeParser.hpp>
 
 
@@ -46,16 +46,16 @@ public:
         // format reversion
         while( actPar != NULL)
         {
-            (*os) << '\n';
+           (*os) << '\n';
             
             if( j != NULL && j->OStream() == (*os)) 
                 (*os) << lib::JOURNALCOMMENT;
 
-            format_reversion( reversionAnker);
-            
-            if( (nextParIx == nextParIxComp) && (valIx == valIxComp))   
+            format_reversion( reversionAnker);            
+ 
+           if( (nextParIx == nextParIxComp) && (valIx == valIxComp))   
                 throw GDLException("Infinite format loop detected.");
-        }
+         }
         
         if( !nonlFlag) (*os) << '\n';
 

@@ -70,7 +70,7 @@ format [ int repeat] // mark last format for format reversion
     ;
 
 qfq
-    : q f q
+    : q (f q)?
     ;
 
 q!

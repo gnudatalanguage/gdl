@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.4: "format.g" -> "FMTParser.cpp"$ */
+/* $ANTLR 2.7.6 (20070910): "format.g" -> "FMTParser.cpp"$ */
 
 #include "includefirst.hpp"
 
@@ -79,10 +79,57 @@ void FMTParser::qfq() {
 	
 	q();
 	astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-	f();
-	astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-	q();
-	astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+	{
+	switch ( LA(1)) {
+	case CSTR:
+	case CD:
+	case CE:
+	case CI:
+	case CF:
+	case CG:
+	case CO:
+	case CS:
+	case CX:
+	case CZ:
+	case CNUMBER:
+	case LBRACE:
+	case STRING:
+	case TL:
+	case TR:
+	case TERM:
+	case NONL:
+	case Q:
+	case T:
+	case X:
+	case A:
+	case F:
+	case D:
+	case E:
+	case G:
+	case I:
+	case O:
+	case Z:
+	case ZZ:
+	case C:
+	case NUMBER:
+	{
+		f();
+		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+		q();
+		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+		break;
+	}
+	case COMMA:
+	case RBRACE:
+	{
+		break;
+	}
+	default:
+	{
+		throw antlr::NoViableAltException(LT(1), getFilename());
+	}
+	}
+	}
 	qfq_AST = RefFMTNode(currentAST.root);
 	returnAST = qfq_AST;
 }
@@ -104,11 +151,11 @@ void FMTParser::q() {
 			n1++;
 		}
 		else {
-			goto _loop7;
+			goto _loop8;
 		}
 		
 	}
-	_loop7:;
+	_loop8:;
 	} // ( ... )*
 	q_AST = RefFMTNode(currentAST.root);
 	
@@ -356,7 +403,7 @@ void FMTParser::cstring() {
 	RefFMTNode s_AST = RefFMTNode(antlr::nullAST);
 	
 	{ // ( ... )+
-	int _cnt11=0;
+	int _cnt12=0;
 	for (;;) {
 		switch ( LA(1)) {
 		case CSTR:
@@ -385,12 +432,12 @@ void FMTParser::cstring() {
 		}
 		default:
 		{
-			if ( _cnt11>=1 ) { goto _loop11; } else {throw antlr::NoViableAltException(LT(1), getFilename());}
+			if ( _cnt12>=1 ) { goto _loop12; } else {throw antlr::NoViableAltException(LT(1), getFilename());}
 		}
 		}
-		_cnt11++;
+		_cnt12++;
 	}
-	_loop11:;
+	_loop12:;
 	}  // ( ... )+
 	cstring_AST = RefFMTNode(currentAST.root);
 	returnAST = cstring_AST;
@@ -916,11 +963,11 @@ void FMTParser::csub() {
 			astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 		}
 		else {
-			goto _loop23;
+			goto _loop24;
 		}
 		
 	}
-	_loop23:;
+	_loop24:;
 	} // ( ... )*
 	csub_AST = RefFMTNode(currentAST.root);
 	returnAST = csub_AST;

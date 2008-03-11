@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.6 (2005-12-22): "format.in.g" -> "FMTIn.cpp"$ */
+/* $ANTLR 2.7.6 (20070910): "format.in.g" -> "FMTIn.cpp"$ */
 
 #include "includefirst.hpp"
 

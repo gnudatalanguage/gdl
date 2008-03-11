@@ -25,22 +25,22 @@
 
 using namespace std;
 
-void PLPlotAbortHandler(char *c)
-{
-  cout << "PLPlot abort handler: " << c << endl;
-}
-
-int PLPlotExitHandler(char *c)
-{
-  cout << "PLPlot exit handler: " << c << endl;
-  return 0;
-}
-
-void GDLGStream::SetErrorHandlers()
-{
-  plsexit( PLPlotExitHandler);
-  plsabort( PLPlotAbortHandler);
-}
+// void PLPlotAbortHandler(const char *c)
+// {
+//   cout << "PLPlot abort handler: " << c << endl;
+// }
+// 
+// int PLPlotExitHandler(const char *c)
+// {
+//   cout << "PLPlot exit handler: " << c << endl;
+//   return 0;
+// }
+// 
+// void GDLGStream::SetErrorHandlers()
+// {
+//   plsexit( PLPlotExitHandler);
+//   plsabort( PLPlotAbortHandler);
+// }
 
 void GDLGStream::Color( ULong c, DLong decomposed, UInt ix)
 {

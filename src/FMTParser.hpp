@@ -2,7 +2,7 @@
 #define INC_FMTParser_hpp_
 
 #include <antlr/config.hpp>
-/* $ANTLR 2.7.4: "format.g" -> "FMTParser.hpp"$ */
+/* $ANTLR 2.7.6 (20070910): "format.g" -> "FMTParser.hpp"$ */
 #include <antlr/TokenStream.hpp>
 #include <antlr/TokenBuffer.hpp>
 #include "FMTTokenTypes.hpp"
