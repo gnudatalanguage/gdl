@@ -146,9 +146,6 @@ namespace lib {
 
   void wait( EnvT* e) 
   { 
-    time_t now;
-    time_t later;
-
     e->NParam( 1);//, "WAIT");
 
     DDouble waittime;
@@ -158,12 +155,20 @@ namespace lib {
       throw GDLException( e->CallingNode(), 
   			  "WAIT:  Argument must be non-negative"
 			  +e->GetParString( 0));
+    struct timeval tval;
+    struct timezone tzone;
+    
+    // derivated from the current version of SYSTIME()
 
-    now = time((time_t *)NULL);
-    later = time((time_t *)NULL);
+    gettimeofday(&tval,&tzone);
+    double t_start = tval.tv_sec+tval.tv_usec/1e+6; // time in UTC seconds
+    double t_current=0.0;
 
-    while ( difftime(later, now) < waittime ) {
-      later = time((time_t *)NULL);
+    double diff=0.0;
+    while (diff < waittime ) {      
+      gettimeofday(&tval,&tzone);
+      t_current= tval.tv_sec+tval.tv_usec/1e+6;
+      diff=t_current - t_start;
     }
   }
 
