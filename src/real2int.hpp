@@ -24,10 +24,22 @@ template< typename IntT, typename RealT>
 IntT Real2Int( RealT r)
 {
   if( std::numeric_limits< IntT>::max() < r)
-    return std::numeric_limits< IntT>::max();
+    {
+      Warning( "conversion overflow (+)");
+      return std::numeric_limits< IntT>::min();
+    }
   if( std::numeric_limits< IntT>::min() > r)
-    return std::numeric_limits< IntT>::min();
+    {
+      Warning( "conversion overflow (-)");
+      return std::numeric_limits< IntT>::min();
+    }
   return static_cast< IntT>( r);
+}
+
+template< typename RealT>
+DByte Real2DByte( RealT r)
+{
+ return static_cast< DByte>( Real2Int<DInt, RealT>( r));
 }
 
 #endif

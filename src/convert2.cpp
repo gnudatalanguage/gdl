@@ -663,7 +663,7 @@ template<> BaseGDL* Data_<SpDFloat>::Convert2( DType destTy, BaseGDL::Convert2Mo
       {
       	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
       	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=Real2Int<DByte,float>((*this)[i]); 
+      	  (*dest)[i]=Real2DByte<float>((*this)[i]); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
@@ -771,7 +771,7 @@ template<> BaseGDL* Data_<SpDDouble>::Convert2( DType destTy, BaseGDL::Convert2M
       {
       	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
       	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=Real2Int<DByte,double>((*this)[i]); 
+      	  (*dest)[i]=Real2DByte<double>((*this)[i]); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
@@ -1107,7 +1107,7 @@ template<> BaseGDL* Data_<SpDComplex>::Convert2( DType destTy, BaseGDL::Convert2
       {
       	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
       	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=Real2Int<DByte,float>(real((*this)[i])); 
+      	  (*dest)[i]=Real2DByte<float>(real((*this)[i])); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
@@ -1214,7 +1214,7 @@ template<> BaseGDL* Data_<SpDComplexDbl>::Convert2( DType destTy, BaseGDL::Conve
       {
       	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
       	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=Real2Int<DByte,double>(real((*this)[i])); 
+      	  (*dest)[i]=Real2DByte<double>(real((*this)[i])); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
