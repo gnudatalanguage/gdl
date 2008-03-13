@@ -2355,7 +2355,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
     if (xVal->Rank() == 1 && yVal->Rank() == 1) {
       PLFLT** z = new PLFLT*[xEl];
 
-      for( SizeT i=0; i<xEl; i++) z[i] = &(*zVal)[i*yEl];
+      for( SizeT i=0; i<xEl; i++) z[i] = &(*zValT)[i*yEl];
 
       actStream->mesh(static_cast<PLFLT*> (&(*xVal)[0]), 
 		      static_cast<PLFLT*> (&(*yVal)[0]), 
@@ -2450,7 +2450,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
     DDoubleGDL* zVal;
     DDoubleGDL* yVal;
     DDoubleGDL* xVal;
-    DDoubleGDL* zValT;
+    //    DDoubleGDL* zValT;
 
     SizeT xEl;
     SizeT yEl;
@@ -2489,8 +2489,6 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
 
 	xVal = e->GetParAs< DDoubleGDL>( 1);
 	yVal = e->GetParAs< DDoubleGDL>( 2);
-
-	zValT = static_cast<DDoubleGDL*> (zVal->Transpose( NULL));
 
 	if (xVal->Rank() > 2)
 	  e->Throw( "CONTOUR: X, Y, or Z array dimensions are incompatible.");
