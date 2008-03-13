@@ -36,6 +36,17 @@ namespace lib {
 
   using namespace std;
 
+// local helper function
+void GetMinMaxVal( DDoubleGDL* val, double* minVal, double* maxVal)
+{
+DLong minE, maxE;
+const bool omitNaN = true;
+val->MinMax( &minE, &maxE, NULL, NULL, omitNaN);
+if( minVal != NULL) *minVal = (*val)[ minE];
+if( maxVal != NULL) *maxVal = (*val)[ maxE];
+}
+
+
   void device( EnvT* e)
   {
     // CLOSE for z-buffer device
@@ -803,9 +814,10 @@ namespace lib {
     return true;
   }
 
+
 // get cursor from plPlot
 // AC February 2008
-// known limitations : WAIT parameter and similar keywords not fully managed (wait, nowait ...)
+// known limitations : WAIT parameter and similar keywords not managed (wait, nowait ...)
 
   void cursor( EnvT* e)
   { 
@@ -830,7 +842,7 @@ namespace lib {
     
     PLINT plplot_level;
     plg->glevel (plplot_level);   
-    if (debug) cout << "Plplot_level : " << plplot_level<< endl;
+    if (debug)  cout << "Plplot_level : " << plplot_level<< endl;
     // when level < 2, we have to read if ![x|y].crange exist
     // if not, we have to build a [0,1]/[0,1] window
     if (plplot_level < 2) {
@@ -862,48 +874,16 @@ namespace lib {
       */
     }
 
-    DLong wait=1;
-    e->AssureLongScalarPar( 2, wait);
-
-    if ((wait == 1) || (wait == 3) || (wait == 4) ||
-	e->KeywordSet("WAIT") ||
-	e->KeywordSet("DOWN") ||
-	e->KeywordSet("UP") ) {
-      cout << "Sorry, this option is currently not *really* managed. Help welcome" << endl;
-    }
-
-    if (debug) cout << "Wait :" << wait << endl;
-
-    int mode=0;
-
-    if ((wait == 0) || e->KeywordSet("NOWAIT")) {
+    while (1) {
       plg->GetCursor(&gin);
-      gin.button=0;
-      mode=1;
-    }
-    if ((wait == 2) || e->KeywordSet("CHANGE")) {
-      plg->GetCursor(&gin);
-      long RefX, RefY;
-      RefX=gin.pX;
-      RefY=gin.pY;
-      if (gin.button == 0) {
-	while (1) {
-	  plg->GetCursor(&gin);
-	  if (abs(RefX-gin.dX) >0 || abs(RefY-gin.dY) >0) break;
-	  if (gin.button > 0) break;	
-	}
-      }
-      mode=1;
-    } 
-    if (mode == 0) {
-      while (1) {
-	plg->GetCursor(&gin);
-	// TODO should be extended later to any key of the keyboard ...
-	if (gin.keysym == PLK_Escape) break;
-	if (gin.button > 0) break;
-      }
+      if (debug) cout << "cur mouse button : " << gin.button << endl;
+
+      // TODO should be extended later to any key of the keyboard ...
+      if (gin.keysym == PLK_Escape) break;
+      if (gin.button > 0) break;
     }
     
+    debug=0;
     if (debug) {
       // plg->text();
       cout << "mouse button : " << gin.button << endl;
@@ -2136,13 +2116,15 @@ namespace lib {
       }
 
     // x and y and z range
-    DDouble xStart = xVal->min(); 
-    DDouble xEnd   = xVal->max(); 
-    DDouble yStart = yVal->min(); 
-    DDouble yEnd   = yVal->max(); 
-    DDouble zStart = zVal->min(); 
-    DDouble zEnd   = zVal->max(); 
-
+     DDouble xStart;// = xVal->min(); 
+     DDouble xEnd;//   = xVal->max(); 
+GetMinMaxVal( xVal, &xStart, &xEnd);
+     DDouble yStart;// = yVal->min(); 
+     DDouble yEnd;//   = yVal->max(); 
+GetMinMaxVal( yVal, &yStart, &yEnd);
+     DDouble zStart;// = zVal->min(); 
+     DDouble zEnd;//   = zVal->max(); 
+GetMinMaxVal( zVal, &zStart, &zEnd);
 
     //[x|y|z]range keyword
     static int zRangeEnvIx = e->KeywordIx("ZRANGE");
@@ -2652,12 +2634,15 @@ namespace lib {
       }
 
     // x and y and z range
-    DDouble xStart = xVal->min(); 
-    DDouble xEnd   = xVal->max(); 
-    DDouble yStart = yVal->min(); 
-    DDouble yEnd   = yVal->max(); 
-    DDouble zStart = zVal->min(); 
-    DDouble zEnd   = zVal->max(); 
+     DDouble xStart;// = xVal->min(); 
+     DDouble xEnd;//   = xVal->max(); 
+GetMinMaxVal( xVal, &xStart, &xEnd);
+     DDouble yStart;// = yVal->min(); 
+     DDouble yEnd;//   = yVal->max(); 
+GetMinMaxVal( yVal, &yStart, &yEnd);
+     DDouble zStart;// = zVal->min(); 
+     DDouble zEnd;//   = zVal->max(); 
+GetMinMaxVal( zVal, &zStart, &zEnd);
 
     if ((xStyle & 1) != 1) {
       PLFLT intv;
@@ -2901,8 +2886,13 @@ namespace lib {
       clevel = (PLFLT *) &(*d_levels)[0];
     } else {
       PLFLT zintv;
-      zintv = AutoTick(zVal->max() - zVal->min());
-      nlevel = (PLINT) floor((zVal->max() - zVal->min()) / zintv);
+
+     DDouble zMin;// = zVal->min(); 
+     DDouble zMax;//   = zVal->max(); 
+GetMinMaxVal( zVal, &zMin, &zMax);
+
+      zintv = AutoTick(zMax - zMin);
+      nlevel = (PLINT) floor((zMax - zMin) / zintv);
       clevel = new PLFLT[nlevel];
       clevel_guard.Reset( clevel);
       for( SizeT i=1; i<=nlevel; i++) clevel[i-1] = zintv * i;
@@ -2912,10 +2902,18 @@ namespace lib {
     // 1 DIM X & Y
     if (xVal->Rank() == 1 && yVal->Rank() == 1) {
       PLFLT spa[4];
-      spa[0] = (xVal->max() - xVal->min()) / (xEl - 1);
-      spa[1] = (yVal->max() - yVal->min()) / (yEl - 1);
-      spa[2] = xVal->min(); 
-      spa[3] = yVal->min(); 
+
+     DDouble xMin;// = zVal->min(); 
+     DDouble xMax;//   = zVal->max(); 
+GetMinMaxVal( xVal, &xMin, &xMax);
+     DDouble yMin;// = zVal->min(); 
+     DDouble yMax;//   = zVal->max(); 
+GetMinMaxVal( yVal, &yMin, &yMax);
+
+      spa[0] = (xMax - xMin) / (xEl - 1);
+      spa[1] = (yMax - yMin) / (yEl - 1);
+      spa[2] = xMin; 
+      spa[3] = yMin; 
 
       PLFLT** z = new PLFLT*[xEl];
       for( SizeT i=0; i<xEl; i++) z[i] = &(*zVal)[i*yEl];

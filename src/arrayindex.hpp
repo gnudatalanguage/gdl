@@ -438,7 +438,7 @@ public:
 	  break;
 
 	  // older version
-	  DInt minVal = src->min();
+/*	  DInt minVal = src->min();
 	  if( minVal < 0)
 	    {
 	      //	      negative = true;
@@ -451,7 +451,7 @@ public:
 	  else
 	    for( SizeT i=0; i < nElem; ++i)
 	      (*ix)[i]= (*src)[i]; 
-	  break;
+	  break;*/
 	}
       case UINT:
 	{
@@ -522,7 +522,7 @@ public:
 	      }
 	  break;
 
-	  // older version
+/*	  // older version
 	  DLong minVal = src->min();
 	  if( minVal < 0)
 	    {
@@ -535,7 +535,7 @@ public:
 	  else
 	    for( SizeT i=0; i < nElem; ++i)
 	      (*ix)[i]= (*src)[i]; 
-	  break;
+	  break;*/
 	}
       case ULONG:
 	{
@@ -576,7 +576,7 @@ public:
 	      }
 	  break;
 
-	  // older version
+/*	  // older version
 	  DLong64 minVal = src->min();
 	  if( minVal < 0)
 	    {
@@ -590,7 +590,7 @@ public:
 	  else
 	    for( SizeT i=0; i < nElem; ++i)
 	      (*ix)[i]= (*src)[i]; 
-	  break;
+	  break;*/
       }
       case ULONG64:
 	{

@@ -389,20 +389,20 @@ public:
     sz = newSz;
   }
 
-  T min() const
-  {
-    T res = buf[ 0];
-    for( SizeT i=1; i<sz; ++i)
-      if( res > buf[ i]) res = buf[ i];
-    return res;
-  }
-  T max() const
-  {
-    T res = buf[ 0];
-    for( SizeT i=1; i<sz; ++i)
-      if( res < buf[ i]) res = buf[ i];
-    return res;
-  }
+//   T min() const
+//   {
+//     T res = buf[ 0];
+//     for( SizeT i=1; i<sz; ++i)
+//       if( res > buf[ i]) res = buf[ i];
+//     return res;
+//   }
+//   T max() const
+//   {
+//     T res = buf[ 0];
+//     for( SizeT i=1; i<sz; ++i)
+//       if( res < buf[ i]) res = buf[ i];
+//     return res;
+//   }
 };
 
 // friend  GDLArray pow(const GDLArray& left, const GDLArray& right);

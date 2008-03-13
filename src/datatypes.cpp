@@ -949,33 +949,33 @@ template<> SizeT Data_<SpDComplexDbl>::ToTransfer() const
   return N_Elements() * 2;
 }
 
-// note that min and max are not defined in BaseGDL
-template<class Sp> 
-typename Data_<Sp>::Ty Data_<Sp>::min() const
-{ return dd.min();}
-template<class Sp> 
-typename Data_<Sp>::Ty Data_<Sp>::max() const
-{ return dd.max();}
-template<>
-Data_<SpDComplex>::Ty Data_<SpDComplex>::min() const
-{
-  throw GDLException("COMPLEX expression not allowed in this context.");
-}
-template<>
-Data_<SpDComplex>::Ty Data_<SpDComplex>::max() const
-{
-  throw GDLException("COMPLEX expression not allowed in this context.");
-}
-template<>
-Data_<SpDComplexDbl>::Ty Data_<SpDComplexDbl>::min() const
-{
-  throw GDLException("COMPLEXDBL expression not allowed in this context.");
-}
-template<>
-Data_<SpDComplexDbl>::Ty Data_<SpDComplexDbl>::max() const
-{
-  throw GDLException("COMPLEXDBL expression not allowed in this context.");
-}
+// // note that min and max are not defined in BaseGDL
+// template<class Sp> 
+// typename Data_<Sp>::Ty Data_<Sp>::min() const
+// { return dd.min();}
+// template<class Sp> 
+// typename Data_<Sp>::Ty Data_<Sp>::max() const
+// { return dd.max();}
+// template<>
+// Data_<SpDComplex>::Ty Data_<SpDComplex>::min() const
+// {
+//   throw GDLException("COMPLEX expression not allowed in this context.");
+// }
+// template<>
+// Data_<SpDComplex>::Ty Data_<SpDComplex>::max() const
+// {
+//   throw GDLException("COMPLEX expression not allowed in this context.");
+// }
+// template<>
+// Data_<SpDComplexDbl>::Ty Data_<SpDComplexDbl>::min() const
+// {
+//   throw GDLException("COMPLEXDBL expression not allowed in this context.");
+// }
+// template<>
+// Data_<SpDComplexDbl>::Ty Data_<SpDComplexDbl>::max() const
+// {
+//   throw GDLException("COMPLEXDBL expression not allowed in this context.");
+// }
 
 
 // Scalar2index

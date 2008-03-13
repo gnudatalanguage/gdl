@@ -103,9 +103,9 @@ static	void operator delete( void *ptr);
   // valarrays cannot be resized (without loosing data)
   //  inline DataT& Resize( SizeT n);
 
-  // note that min and max these are not defined in BaseGDL
-  Ty min() const;// { return dd.min();}
-  Ty max() const;// { return dd.max();}
+//   // note that min and max these are not defined in BaseGDL
+//   Ty min() const;// { return dd.min();}
+//   Ty max() const;// { return dd.max();}
 
   bool Greater(SizeT i1, SizeT i2) const; // comp 2 elements
   bool Equal(SizeT i1, SizeT i2) const; // comp 2 elements

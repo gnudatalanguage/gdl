@@ -274,14 +274,14 @@ template<>  SizeT Data_<SpDString>::NBytes() const;
 // template<>  SizeT Data_<SpDPtr>::NBytes() const;
 template<>  SizeT Data_<SpDComplex>::ToTransfer() const;
 template<>  SizeT Data_<SpDComplexDbl>::ToTransfer() const;
-template<> 
+/*template<> 
 Data_<SpDComplex>::Ty Data_<SpDComplex>::min() const;
 template<> 
 Data_<SpDComplex>::Ty Data_<SpDComplex>::max() const;
 template<> 
 Data_<SpDComplexDbl>::Ty Data_<SpDComplexDbl>::min() const;
 template<> 
-Data_<SpDComplexDbl>::Ty Data_<SpDComplexDbl>::max() const;
+Data_<SpDComplexDbl>::Ty Data_<SpDComplexDbl>::max() const;*/
 template<> 
 int Data_<SpDComplex>::Scalar2index( SizeT& st) const;
 template<>  

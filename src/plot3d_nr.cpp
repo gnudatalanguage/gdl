@@ -1,4 +1,4 @@
-/* $Id: plot3d_nr.cpp,v 1.3 2008-03-12 19:52:59 jomoga Exp $
+/* $Id: plot3d_nr.cpp,v 1.4 2008-03-13 00:30:36 m_schellens Exp $
 
 	3d plot routines.
 
@@ -217,7 +217,7 @@ plgrid3(PLFLT tick)
     zmin = (zmax_in > zmin_in) ? zmin_in: zmax_in;
     zmax = (zmax_in > zmin_in) ? zmax_in: zmin_in;
 
-    pldtik(zmin, zmax, &tick, &nsub, FALSE);
+    pldtik(zmin, zmax, &tick, &nsub);//, FALSE);
     tp = tick * floor(zmin / tick) + tick;
     pl3upv = 0;
 
