@@ -25,12 +25,12 @@ IntT Real2Int( RealT r)
 {
   if( std::numeric_limits< IntT>::max() < r)
     {
-      Warning( "conversion overflow (+)");
+      //      Warning( "conversion overflow (+)");
       return std::numeric_limits< IntT>::min();
     }
   if( std::numeric_limits< IntT>::min() > r)
     {
-      Warning( "conversion overflow (-)");
+      //Warning( "conversion overflow (-)");
       return std::numeric_limits< IntT>::min();
     }
   return static_cast< IntT>( r);

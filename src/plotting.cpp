@@ -814,13 +814,11 @@ if( maxVal != NULL) *maxVal = (*val)[ maxE];
     return true;
   }
 
-
-// get cursor from plPlot
-// AC February 2008
-// known limitations : WAIT parameter and similar keywords not managed (wait, nowait ...)
+// get cursor from plPlot     AC February 2008
+// known limitations : WAIT parameter and similar keywords not fully managed (wait, nowait ...)
 
   void cursor( EnvT* e)
-  { 
+  {
     int debug=0;
     SizeT nParam=e->NParam( 1); 
 
@@ -842,7 +840,7 @@ if( maxVal != NULL) *maxVal = (*val)[ maxE];
     
     PLINT plplot_level;
     plg->glevel (plplot_level);   
-    if (debug)  cout << "Plplot_level : " << plplot_level<< endl;
+    if (debug) cout << "Plplot_level : " << plplot_level<< endl;
     // when level < 2, we have to read if ![x|y].crange exist
     // if not, we have to build a [0,1]/[0,1] window
     if (plplot_level < 2) {
@@ -874,16 +872,48 @@ if( maxVal != NULL) *maxVal = (*val)[ maxE];
       */
     }
 
-    while (1) {
-      plg->GetCursor(&gin);
-      if (debug) cout << "cur mouse button : " << gin.button << endl;
+    DLong wait=1;
+    e->AssureLongScalarPar( 2, wait);
 
-      // TODO should be extended later to any key of the keyboard ...
-      if (gin.keysym == PLK_Escape) break;
-      if (gin.button > 0) break;
+    if ((wait == 1) || (wait == 3) || (wait == 4) ||
+	e->KeywordSet("WAIT") ||
+	e->KeywordSet("DOWN") ||
+	e->KeywordSet("UP") ) {
+      cout << "Sorry, this option is currently not *really* managed. Help welcome" << endl;
+    }
+
+    if (debug) cout << "Wait :" << wait << endl;
+    
+    int mode=0;
+    
+    if ((wait == 0) || e->KeywordSet("NOWAIT")) {
+      plg->GetCursor(&gin);
+      gin.button=0;
+      mode=1;
+    }
+    if ((wait == 2) || e->KeywordSet("CHANGE")) {
+      plg->GetCursor(&gin);
+      long RefX, RefY;
+      RefX=gin.pX;
+      RefY=gin.pY;
+      if (gin.button == 0) {
+	while (1) {
+	  plg->GetCursor(&gin);
+	  if (abs(RefX-gin.dX) >0 || abs(RefY-gin.dY) >0) break;
+	  if (gin.button > 0) break;
+	}
+      }
+      mode=1;
+    }
+    if (mode == 0) {
+      while (1) {
+	plg->GetCursor(&gin);
+	// TODO should be extended later to any key of the keyboard ...
+	if (gin.keysym == PLK_Escape) break;
+	if (gin.button > 0) break;
+      }
     }
     
-    debug=0;
     if (debug) {
       // plg->text();
       cout << "mouse button : " << gin.button << endl;
@@ -936,7 +966,7 @@ if( maxVal != NULL) *maxVal = (*val)[ maxE];
       (*static_cast<DLongGDL*>(Struct->GetTag(ButtonMouseTag)))[0]=gin.button;
     }
   }
-  
+ 
   void plot( EnvT* e)
   {
     SizeT nParam=e->NParam( 1); 
