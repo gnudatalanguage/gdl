@@ -1,7 +1,7 @@
 ;
 ; AC 29/02/2008
 ;
-pro TEST_CURSOR, option
+pro TEST_CURSOR, option, debug=debug
 ;
 defsysv, '!gdl', exist=exist
 if (exist EQ 1) then begin
@@ -15,6 +15,9 @@ cursor, x, y, option, /normal
 print, 'Normal', x, y
 cursor, x, y, option, /device
 print, 'Device', x, y
+;
+if KEYWORD_SET(debug) then print, 'option :', option
+;
 end
 ;
 ; from the IDL documentation
