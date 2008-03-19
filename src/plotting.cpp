@@ -36,15 +36,15 @@ namespace lib {
 
   using namespace std;
 
-// local helper function
-void GetMinMaxVal( DDoubleGDL* val, double* minVal, double* maxVal)
-{
-DLong minE, maxE;
-const bool omitNaN = true;
-val->MinMax( &minE, &maxE, NULL, NULL, omitNaN);
-if( minVal != NULL) *minVal = (*val)[ minE];
-if( maxVal != NULL) *maxVal = (*val)[ maxE];
-}
+  // local helper function
+  void GetMinMaxVal( DDoubleGDL* val, double* minVal, double* maxVal)
+  {
+    DLong minE, maxE;
+    const bool omitNaN = true;
+    val->MinMax( &minE, &maxE, NULL, NULL, omitNaN);
+    if( minVal != NULL) *minVal = (*val)[ minE];
+    if( maxVal != NULL) *maxVal = (*val)[ maxE];
+  }
 
 
   void device( EnvT* e)
@@ -829,14 +829,13 @@ if( maxVal != NULL) *maxVal = (*val)[ maxE];
 
     e->AssureGlobalPar( 0);
     e->AssureGlobalPar( 1);
- 
+    
     GDLGStream *plg  = GetPlotStream( e);
 
     static PLGraphicsIn gin;
+
     // content of : plGetCursor();
     // [retval, state, keysym, button, string, pX, pY, dX, dY, wX, wY, subwin]
-
-    if (debug) cout << "init mouse button : " << gin.button << endl;
     
     PLINT plplot_level;
     plg->glevel (plplot_level);   
@@ -873,24 +872,36 @@ if( maxVal != NULL) *maxVal = (*val)[ maxE];
     }
 
     DLong wait=1;
-    e->AssureLongScalarPar( 2, wait);
+
+    if (nParam == 3) {
+      e->AssureLongScalarPar( 2, wait);
+    }
 
     if ((wait == 1) || (wait == 3) || (wait == 4) ||
 	e->KeywordSet("WAIT") ||
 	e->KeywordSet("DOWN") ||
 	e->KeywordSet("UP") ) {
-      cout << "Sorry, this option is currently not *really* managed. Help welcome" << endl;
+      //cout << "Sorry, this option is currently not *really* managed. Help welcome" << endl;
+      // we toggle to "wait == 1" (the mouse can move but we return if mouse is pressed)
+      wait=1;
     }
 
-    if (debug) cout << "Wait :" << wait << endl;
-    
-    int mode=0;
+    int mode=0; // just a flag to manage the general case (cursor,x,y)
     
     if ((wait == 0) || e->KeywordSet("NOWAIT")) {
+      gin.button=1;
       plg->GetCursor(&gin);
       gin.button=0;
       mode=1;
+      wait=0;
     }
+    if (wait == 1) {
+      while (1) {
+	plg->GetCursor(&gin);
+	if (gin.button > 0) break;
+      }
+      mode=1;
+    }    
     if ((wait == 2) || e->KeywordSet("CHANGE")) {
       plg->GetCursor(&gin);
       long RefX, RefY;
@@ -905,10 +916,11 @@ if( maxVal != NULL) *maxVal = (*val)[ maxE];
       }
       mode=1;
     }
+
     if (mode == 0) {
       while (1) {
 	plg->GetCursor(&gin);
-	// TODO should be extended later to any key of the keyboard ...
+	// TODO: When no Mouse, should be extended later to any key of the keyboard 
 	if (gin.keysym == PLK_Escape) break;
 	if (gin.button > 0) break;
       }
@@ -925,7 +937,7 @@ if( maxVal != NULL) *maxVal = (*val)[ maxE];
 	 ",  c = '" << gin.keysym << "'" << endl;
 	 plg->gra(); */      
     }
-    
+
     if (e->KeywordSet("DEVICE")) {
       PLFLT xp, yp;
       PLINT xleng, yleng, xoff, yoff;
@@ -949,7 +961,7 @@ if( maxVal != NULL) *maxVal = (*val)[ maxE];
 	// TODO : we can compute that using !x.s and !y.s
  	x=new DDoubleGDL(gin.wX );
 	y=new DDoubleGDL(gin.wY );
-     }
+      }
       e->SetPar(0, x);
       e->SetPar(1, y);
     }
@@ -1965,7 +1977,7 @@ if( maxVal != NULL) *maxVal = (*val)[ maxE];
     DDoubleGDL* zVal;
     DDoubleGDL* yVal;
     DDoubleGDL* xVal;
-    DDoubleGDL* zValT;
+    //    DDoubleGDL* zValT;
 
     SizeT xEl;
     SizeT yEl;
@@ -2002,7 +2014,7 @@ if( maxVal != NULL) *maxVal = (*val)[ maxE];
 	xVal = e->GetParAs< DDoubleGDL>( 1);
 	yVal = e->GetParAs< DDoubleGDL>( 2);
 
-	zValT = static_cast<DDoubleGDL*> (zVal->Transpose( NULL));
+	//	zValT = static_cast<DDoubleGDL*> (zVal->Transpose( NULL));
 
 	if (xVal->Rank() > 2)
 	  e->Throw( "SURFACE: X, Y, or Z array dimensions are incompatible.");
@@ -2385,7 +2397,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
     if (xVal->Rank() == 1 && yVal->Rank() == 1) {
       PLFLT** z = new PLFLT*[xEl];
 
-      for( SizeT i=0; i<xEl; i++) z[i] = &(*zValT)[i*yEl];
+      for( SizeT i=0; i<xEl; i++) z[i] = &(*zVal)[i*yEl];
 
       actStream->mesh(static_cast<PLFLT*> (&(*xVal)[0]), 
 		      static_cast<PLFLT*> (&(*yVal)[0]), 
@@ -2416,7 +2428,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
 
       for( SizeT j=0; j<xVal->Dim(0); j++) {
 	for( SizeT i=0; i<xVal->Dim(1); i++) 
-	  z2[i] = &(*zValT)[j*(xVal->Dim(1))+i];
+	  z2[i] = &(*zVal)[j*(xVal->Dim(1))+i];
 
 	for( SizeT i=0; i<xVal->Dim(1); i++) {
 	  xVec[i] = (*xVal)[i*(xVal->Dim(0))+j];
