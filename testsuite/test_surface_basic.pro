@@ -1,5 +1,6 @@
 ;
 ; AC, le 19/03/2008 derivated from TEST_CONTOUR_BASIC
+; AC, le 20/03/2008 non square case ! more useful !
 ;
 ; several tests around SURFACE procedure
 ;
@@ -12,25 +13,29 @@
 ;
 ; GDL 0.9 All tests OK
 ;
-pro TEST_SURFACE_BASIC, nbp=nbp, level=level, test=test, help=help
+pro TEST_SURFACE_BASIC, xnbp=xnbp, ynbp=ynbp, $
+                        level=level, test=test, help=help
 ;
 if KEYWORD_SET(help) then begin
-   PRINT, 'pro TEST_SURFACE_BASIC, nbp=nbp, level=level, test=test, help=help'
+   PRINT, 'pro TEST_SURFACE_BASIC, xnbp=xnbp, ynbp=ynbp, $'
+   PRINT, '              level=level, test=test, help=help'
    return
 endif
 ;
 old_version=0
 ;
 mess=''
-if (N_ELEMENTS(nbp) NE 1) then nbp=128
 ;
 if (N_ELEMENTS(level) EQ 0) then level=0
 ;
 ; we generate data, and X, Y
 ;
-data=DIST(nbp)
-x=FINDGEN(nbp)
-y=FINDGEN(nbp)
+if (N_ELEMENTS(xnbp) NE 1) then xnbp=128
+if (N_ELEMENTS(ynbp) NE 1) then ynbp=2*xnbp
+;
+data=DIST(xnbp, ynbp)
+x=FINDGEN(xnbp)
+y=FINDGEN(ynbp)
 ;
 pos_info=[0.2,0.2,0.8,0.8]
 ;
@@ -80,29 +85,29 @@ READ, 'press enter to continue: ', mess
 SURFACE, data, x*2, y,  title='X range expanded (*2)'
 READ, 'press enter to continue: ', mess
 ;
-SURFACE, data, x-nbp, y,  title='X range shifted (shifted to neg.)'
+SURFACE, data, x-xnbp, y,  title='X range shifted (shifted to neg.)'
 READ, 'press enter to continue: ', mess
 ;
-SURFACE, data, x-nbp/2, y,  title='X range shifted (center on 0.)'
+SURFACE, data, x-xnbp/2, y,  title='X range shifted (center on 0.)'
 READ, 'press enter to continue: ', mess
 ;
 SURFACE, data, x, y*2,  title='Y range expanded (*2)'
 READ, 'press enter to continue: ', mess
 ;
 if (old_version EQ 1) then PRINT, 'Warning: this should be wrong'
-SURFACE, data, x, y-nbp,  title='Y range shifted (shifted to neg.)'
+SURFACE, data, x, y-ynbp,  title='Y range shifted (shifted to neg.)'
 READ, 'press enter to continue: ', mess
 ;
 if (old_version EQ 1) then PRINT, 'Warning: this should be wrong'
-SURFACE, data, x, y-nbp/2,  title='Y range shifted (center on 0.)'
+SURFACE, data, x, y-ynbp/2,  title='Y range shifted (center on 0.)'
 READ, 'press enter to continue: ', mess
 ;
 if (old_version EQ 1) then PRINT, 'Warning: this should be wrong'
-SURFACE, data, x, y-nbp/2, pos=pos_info, title='Y range shifted (center on 0.) with pos='
+SURFACE, data, x, y-ynbp/2, pos=pos_info, title='Y range shifted (center on 0.) with pos='
 READ, 'press enter to continue: ', mess
 ;
 if (old_version EQ 1) then PRINT, 'Warning: this should be wrong'
-SURFACE, data, x, y-nbp/2, yrange=[-nbp, nbp], title='Y range shifted (center on 0.) with yrange'
+SURFACE, data, x, y-ynbp/2, yrange=[-ynbp, ynbp], title='Y range shifted (center on 0.) with yrange'
 READ, 'press enter to continue: ', mess
 ;
 if KEYWORD_SET(test) then STOP
@@ -113,8 +118,8 @@ PRINT, 'Start of tests with high difficulties (working since GDL 0.9)'
 PRINT, 'X, Y and Z and all 2D arrays with same size'
 ;
 ; we compute the locations on the grid (i.e. one (x,y) for each z)
-x=x#REPLICATE(1.,nbp)
-y=TRANSPOSE(x)
+x=x#REPLICATE(1.,ynbp)
+y=REPLICATE(1.,xnbp)#y
 ;
 if (old_version EQ 1) then PRINT, 'Warning: this should be not working ...'
 SURFACE, data, x, y
@@ -123,7 +128,13 @@ READ, 'press enter to continue: ', mess
 ; the same but we add a noise on X positions
 ;
 if (old_version EQ 1) then PRINT, 'Warning: this should be not working ...'
-SURFACE, data, x+randomn(seed,nbp,nbp), y, /xstyle, /ystyle
+SURFACE, data, x+RANDOMN(seed, xnbp, ynbp), y, /xstyle, /ystyle
+READ, 'press enter to continue: ', mess
+;
+; the same but we add a noise on Y positions
+;
+if (old_version EQ 1) then PRINT, 'Warning: this should be not working ...'
+SURFACE, data, x, y+RANDOMN(seed, xnbp, ynbp), /xstyle, /ystyle
 READ, 'press enter to continue: ', mess
 ;
 PRINT, 'test suite for CONTOUR is now finished'
