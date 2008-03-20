@@ -1982,70 +1982,61 @@ namespace lib {
     SizeT xEl;
     SizeT yEl;
     SizeT zEl;
-    if( nParam == 1)
-      {
-	BaseGDL* p0 = e->GetParDefined( 0)->Transpose( NULL);
-	zVal = static_cast<DDoubleGDL*>
-	  (p0->Convert2( DOUBLE, BaseGDL::COPY));
-	e->Guard( p0); // delete upon exit
 
-	xEl = zVal->Dim(1);
-	yEl = zVal->Dim(0);
+    if (nParam == 2 || nParam > 3) {
+      e->Throw( "SURFACE: Incorrect number of arguments.");
+    }
+    
+    BaseGDL* p0 = e->GetParDefined( 0)->Transpose( NULL);
+    zVal = static_cast<DDoubleGDL*>
+      (p0->Convert2( DOUBLE, BaseGDL::COPY));
+    e->Guard( p0); // delete upon exit
 
-	if(zVal->Dim(0) == 1)
-	  throw GDLException( e->CallingNode(),
-			      "SURFACE: Array must have 2 dimensions:"
-			      +e->GetParString(0));
+    if(zVal->Dim(0) == 1)
+      throw GDLException( e->CallingNode(),
+			  "SURFACE: Array must have 2 dimensions:"
+			  +e->GetParString(0));    
+    xEl = zVal->Dim(1);
+    yEl = zVal->Dim(0);
 
-	xVal = new DDoubleGDL( dimension( xEl), BaseGDL::INDGEN);
-	e->Guard( xVal); // delete upon exit
-	yVal = new DDoubleGDL( dimension( yEl), BaseGDL::INDGEN);
-	e->Guard( yVal); // delete upon exit
-      } else if ( nParam == 2 || nParam > 3) {
-	e->Throw( "SURFACE: Incorrect number of arguments.");
-      } else {
-	zVal = e->GetParAs< DDoubleGDL>( 0);
+    if (nParam == 1) {
+      xVal = new DDoubleGDL( dimension( xEl), BaseGDL::INDGEN);
+      e->Guard( xVal); // delete upon exit
+      yVal = new DDoubleGDL( dimension( yEl), BaseGDL::INDGEN);
+      e->Guard( yVal); // delete upon exit
+    }
 
-	if(zVal->Dim(0) == 1)
-	  throw GDLException( e->CallingNode(),
-			      "SURFACE: Array must have 2 dimensions:"
-			      +e->GetParString(0));
+    if (nParam == 3) {
+      
+      xVal = e->GetParAs< DDoubleGDL>( 1);
+      yVal = e->GetParAs< DDoubleGDL>( 2);
 
-	xVal = e->GetParAs< DDoubleGDL>( 1);
-	yVal = e->GetParAs< DDoubleGDL>( 2);
-
-	//	zValT = static_cast<DDoubleGDL*> (zVal->Transpose( NULL));
-
-	if (xVal->Rank() > 2)
+      if (xVal->Rank() > 2)
+	e->Throw( "SURFACE: X, Y, or Z array dimensions are incompatible.");
+      
+      if (yVal->Rank() > 2)
+	e->Throw( "SURFACE: X, Y, or Z array dimensions are incompatible.");
+      
+      if (xVal->Rank() == 1) {
+	if (xEl != xVal->Dim(0))
 	  e->Throw( "SURFACE: X, Y, or Z array dimensions are incompatible.");
-
-	if (yVal->Rank() > 2)
+	}
+      
+      if (yVal->Rank() == 1) {
+	if (yEl != yVal->Dim(0))
 	  e->Throw( "SURFACE: X, Y, or Z array dimensions are incompatible.");
-
-	if (xVal->Rank() == 1) {
-	  xEl = xVal->Dim(0);
-
-	  if(xEl != zVal->Dim(0))
-	    e->Throw( "SURFACE: X, Y, or Z array dimensions are incompatible.");
-	}
-
-	if (yVal->Rank() == 1) {
-	  yEl = yVal->Dim(0);
-
-	  if(yEl != zVal->Dim(1))
-	    e->Throw( "SURFACE: X, Y, or Z array dimensions are incompatible.");
-	}
-
-	if (xVal->Rank() == 2) {
-	  if((xVal->Dim(0) != zVal->Dim(0)) && (xVal->Dim(1) != zVal->Dim(1)))
-	    e->Throw( "SURFACE: X, Y, or Z array dimensions are incompatible.");
-	}
-
-	if (yVal->Rank() == 2) {
-	  if((yVal->Dim(0) != zVal->Dim(0)) && (yVal->Dim(1) != zVal->Dim(1)))
-	    e->Throw( "SURFACE: X, Y, or Z array dimensions are incompatible.");
-	}
       }
+
+      if (xVal->Rank() == 2) {
+	if((xVal->Dim(0) != xEl) && (xVal->Dim(1) != yEl))
+	  e->Throw( "SURFACE: X, Y, or Z array dimensions are incompatible.");
+      }
+      
+      if (yVal->Rank() == 2) {
+	if((yVal->Dim(0) != xEl) && (yVal->Dim(1) != yEl))
+	  e->Throw( "SURFACE: X, Y, or Z array dimensions are incompatible.");
+      }
+    }
 
     // !P 
     DLong p_background; 
@@ -2395,10 +2386,14 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
 
     // 1 DIM X & Y
     if (xVal->Rank() == 1 && yVal->Rank() == 1) {
-      PLFLT** z = new PLFLT*[xEl];
-
-      for( SizeT i=0; i<xEl; i++) z[i] = &(*zVal)[i*yEl];
-
+      
+      PLFLT** z;
+      actStream->Alloc2dGrid(&z,xEl,yEl);
+      for( SizeT ii=0; ii<xEl ; ii++) {
+	for( SizeT jj=0; jj<yEl ; jj++) {
+	  z[ii][jj] = (*zVal)[ii*yEl+jj];
+	}
+      }
       actStream->mesh(static_cast<PLFLT*> (&(*xVal)[0]), 
 		      static_cast<PLFLT*> (&(*yVal)[0]), 
 		      z, (long int) xEl, (long int) yEl, 3);
@@ -2408,39 +2403,39 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
 
     // 2 DIM X & Y
     if (xVal->Rank() == 2 && yVal->Rank() == 2) {
-      PLFLT** z1 = new PLFLT*[xVal->Dim(0)];
 
-      for( SizeT j=0; j<xVal->Dim(1); j++) {
-	for( SizeT i=0; i<xVal->Dim(0); i++) 
-	  z1[i] = &(*zVal)[j*(xVal->Dim(0))+i];
+      PLFLT** z1 = new PLFLT*[xEl];
+      PLFLT* xVec1 = new PLFLT[xEl];
+      PLFLT* yVec1 = new PLFLT[xEl];
 
-	lib::mesh_nr(static_cast<PLFLT*> (&(*xVal)[j*(xVal->Dim(0))]), 
-		static_cast<PLFLT*> (&(*yVal)[j*(xVal->Dim(0))]), 
-		z1, (long int) xVal->Dim(0), 1, 1);
+      for( SizeT j=0; j<yEl; j++) {
+	for( SizeT i=0; i<xEl; i++) {
+	  z1[i] = &(*zVal)[i*yEl+j];
+	  xVec1[i] = (*xVal)[j*xEl+i];
+	  yVec1[i] = (*yVal)[j*xEl+i];
+	}
+	lib::mesh_nr(xVec1, yVec1, z1, (long int) xEl, 1,1);
       }
       delete[] z1;
+      delete xVec1;
+      delete yVec1;
 
-
-      PLFLT** z2 = new PLFLT*[xVal->Dim(1)];
-
-      PLFLT* xVec = new PLFLT[xVal->Dim(1)];
-      PLFLT* yVec = new PLFLT[yVal->Dim(1)];
-
-      for( SizeT j=0; j<xVal->Dim(0); j++) {
-	for( SizeT i=0; i<xVal->Dim(1); i++) 
-	  z2[i] = &(*zVal)[j*(xVal->Dim(1))+i];
-
-	for( SizeT i=0; i<xVal->Dim(1); i++) {
-	  xVec[i] = (*xVal)[i*(xVal->Dim(0))+j];
-	  yVec[i] = (*yVal)[i*(yVal->Dim(0))+j];
+      //
+      PLFLT** z2 = new PLFLT*[yEl];
+      PLFLT* xVec2 = new PLFLT[yEl];
+      PLFLT* yVec2 = new PLFLT[yEl];
+      
+      for( SizeT j=0; j<xEl; j++) {
+	for( SizeT i=0; i< yEl; i++) {
+	  z2[i] = &(*zVal)[j*yEl+i];       
+	  xVec2[i] = (*xVal)[i*xEl+j];
+	  yVec2[i] = (*yVal)[i*xEl+j];
 	}
-
-	lib::mesh_nr(xVec, yVec,
-		z2, 1, (long int) yVal->Dim(1), 2);
+	lib::mesh_nr(xVec2, yVec2, z2, 1, (long int) yEl, 2);
       }
       delete[] z2;
-      delete xVec;
-      delete yVec;
+      delete xVec2;
+      delete yVec2;
     }
 
     // title and sub title
