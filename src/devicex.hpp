@@ -658,7 +658,17 @@ public:
     int actWin = ActWin();
     bool success = WSize( actWin, &xSize, &ySize, &xPos, &yPos);
 
-    DByteGDL* p0B = e->GetParAs<DByteGDL>( 0);
+    BaseGDL* p0=e->GetParDefined( 0);
+    //DByteGDL* p0B = e->GetParAs<DByteGDL>( 0);
+    DByteGDL* p0B;
+
+    DLong orderVal=0;
+    e->AssureLongScalarKWIfPresent( "ORDER", orderVal);
+    //std::cout << "OrderVal "<< orderVal << std::endl;      
+    if (orderVal != 0) p0=p0->Rotate(7);
+
+    p0B =static_cast<DByteGDL*>(p0->Convert2(BYTE,BaseGDL::COPY));
+
     SizeT rank = p0B->Rank();
     int width, height;
     DLong tru=0;
