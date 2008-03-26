@@ -109,6 +109,9 @@ namespace lib {
   DStringGDL* recall_commands_internal()//EnvT* e)
   {
     int status=0;
+    DStringGDL* retVal;
+    retVal = new DStringGDL(1, BaseGDL::NOZERO);
+    (*retVal)[ 0] ="";
 
 #ifdef HAVE_LIBREADLINE
     status=1;
@@ -116,24 +119,17 @@ namespace lib {
     HIST_ENTRY **the_list;
     //    cout << "history_length" << history_length << endl;
     the_list = history_list ();
-    DStringGDL* retVal;
+
     if (the_list) {
       retVal = new DStringGDL( history_length-1, BaseGDL::NOZERO);
       for (SizeT i = 0; i<history_length-1 ; i++)
 	(*retVal)[ i] = the_list[i]->line;
-    } else {
-      retVal = new DStringGDL(1, BaseGDL::NOZERO);
-      (*retVal)[ 0] ="";
     }
 #endif
     if (status == 0) {
       Message("RECALL_COMMANDS: nothing done, because compiled without READLINE");
-      DStringGDL* no_readline;
-      (*no_readline)[ 0] ="";
-      return no_readline;
-    } else {
-      return retVal;
     }
+    return retVal;
   }
  
   BaseGDL* recall_commands( EnvT* e)
