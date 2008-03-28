@@ -13,8 +13,9 @@
 ; CATEGORY: Numerical analysis.
 ;
 ; CALLING SEQUENCE:
-;                      Result = SMOOTH( Array, Width [, /EDGE_TRUNCATE] [, /NAN],
-;                                       [/TEST, /HELP]);
+;
+;
+; Result = SMOOTH( Array, Width [, /EDGE_TRUNCATE] [, /NAN], [/TEST, /HELP]);
 ;
 ;
 ; INPUTS:
@@ -66,6 +67,7 @@
 ;
 ; MODIFICATION HISTORY:
 ;   - 26/07/2006: created by Alain Coulais (ARSC) during CalTech visit
+;   - 28/03/2008: managing missing array input (0-element and 1-element)
 ;
 ;-
 ; LICENCE:
@@ -79,6 +81,8 @@
 function SMOOTH, input_array, width, $
                  EDGE_TRUNCATE=EDGE_TRUNCATE, NAN=NAN, $
                  test=test, help=help, verbose=verbose
+;
+ON_ERROR, 2
 ;
 ; We must have exactly an "input_array and a "width" !
 ;
@@ -94,6 +98,19 @@ if KEYWORD_SET(NaN) then begin
     print, '-- /NaN  not fully ready now ------------'
     print, '------------------------ warning --------'
 endif
+;
+if (SIZE(input_array,/type) EQ 7) then begin
+   MESSAGE, 'STRING expression not allowed in this context:'
+endif
+;
+if (SIZE(input_array,/type) EQ 8) then begin
+   MESSAGE, 'STRUCT expression not allowed in this context:'
+endif
+;
+if (N_ELEMENTS(input_array) LE 1) then begin
+   MESSAGE, 'Expression must be an array in this context:'
+endif
+
 ;
 n_dimensions=SIZE(input_array,/n_dimensions)
 dimensions=SIZE(input_array,/dimensions)
