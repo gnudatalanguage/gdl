@@ -190,5 +190,5 @@
 	  Improved new implementation of struct arrays.
 	  Managment of an history (ASCII) file save in ~/.gdl/history (with memory of previous sessions)
 	  Add initial CURSOR, limited but functionnal (know
-	  limitations documented in program)
+	  limitations documented in program) and !mouse
  

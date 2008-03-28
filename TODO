@@ -1,14 +1,154 @@
-Known issues to be handled:
 
-Version 0.8:
+Updated by Alain on 28 March 2008
 
-- HELP procedure does not handle all keywords.
+This file contains:
 
-- PLOT procedure does not handle all keywords.
+-- a ToDo list of missing commands
+-- a ToDo list related to system variables
+-- a ToDo list of missing Functions and Procedures
+-- a ToDo list of incomplete Functions and Procedures, missing keywords and
+    limited/buggy functionnalities in existing func/pro
 
-- !ERROR, !ERR and !ERROR_STATE are not properly set by all library
+
+ToDo list of missing commands (not exhaustive, most requested)
+
+
+.rnew
+.skip
+.reset_session
+
+
+ToDo list related to system variables
+
+
+!ERROR, !ERR and !ERROR_STATE are not properly set by all library
   functions
 
-- ON_ERROR and CATCH are not fully implemented (GDL recognizes them,
-  but does not perform any action, ie. in case of error, the data is
-  not used).
+
+ToDo list of Functions and Procedures
+
+
+* RK4 function
+Category: numeric
+Langage: C++
+Difficulty: easy
+Contact: Alain
+Comments: well known algo
+It is better to implement it in C/C++ because it is computer intensif
+
+* VOIGT function
+Category: numeric
+Langage: C++
+Difficulty: medium
+Contact: Alain
+Comments: codes in IDL/C/C++ under GPL available, "interfaces" missing
+It is better to implement it in C/C++ because it is computer intensif.
+It is mandatory to select the good codes, because to receive accurate
+computations in the whole range is not obvious.
+
+* SKIP_LUN procedure
+Category: system, file I/O
+Langage: GDL
+Difficulty: easy
+Contact: Alain
+Comments: a working draft exists in GDL. Needed by ASTRON.
+A scan of other needed func/pro by ASTRON is needed (easy).
+(For the Keywords, it is more difficult !)
+
+* WMENU function
+Category: user interface
+Langage: GDL, later may be in C++ with widgets !
+Difficulty: easy
+Contact: Alain
+Comments: undocumented feature coming from the old IDL versions
+(before 4.0). A draft exists, substiting the X11 interface by
+a console one.
+
+
+ToDo list of incomplete Function/Procedure, missing keywords ...
+
+
+* ON_ERROR and CATCH procedures
+Category: system
+Langage: C++
+Difficulty: unknow
+Contact: Marc
+Comments: ON_ERROR and CATCH are not fully implemented (GDL recognizes them,
+but does not perform any action, ie. in case of error, the data is not used).
+
+* HELP
+Category: system
+Langage: C++
+Difficulty: unknow
+Contact:
+Comments: some useful keywords are not handle
+
+* PLOT, OPLOT, PLOTS, CONTOUR, SURFACE, AXIS, XYOUTS
+Category: display
+Langage: C++
+Difficulty: parts are obvious, other may be impossible with plplot lib!
+Contact: Alain
+Comments: some useful keywords are not handle
+
+* USERSYM
+Category: display
+Langage: C++ (linked to plplot library
+Difficulty: may be impossible with plplot lib!
+Contact: Joel or Alain
+Comments: 
+
+* BESELI/BESELJ/BESELK
+Category: numeric
+Langage: C++ (in math_fun_ac.cpp)
+Difficulty: unknow.
+Contact: Alain
+Comments: some details need to be fix when the arrays
+are not commensurable. It is highly probable that other
+functions do suffer from the same problems. Some have been
+corrected (the GAMMA/BETA family)
+
+* TVRD : keyword !order
+Category: display
+Langage: C++ (in devicex.hpp)
+Difficulty: unknow.
+Contact: Alain
+Comments: to be complete for !order keyword (managed in TV).
+A priori, the method p->Rotate(7) cannot be used on Byte arrays.
+
+* INVERT function : some exceptions
+Category: numeric
+Langage: C++ (in gsl_fun.cpp)
+Difficulty: easy.
+Contact: Alain
+Comments: managning the last exceptions (input size,
+no-square matrix, string conversion should work).
+Very easy but could be time consuming if extensive tests.
+See currents tests in testsuite/test_invert_matrix.pro
+
+* MEDIAN, parameter "width"
+Category: numeric
+Langage: C++
+Difficulty: very difficult
+Contact: Alain
+Comments: codes in C/C++ in public domain or under GPL available,
+"interfaces" missing. Please make biblio before writing it, it
+is not obvious. Availability/efficienty of algo depend on data type !!
+It is better to implement it in C/C++ because it is computer intensif.
+
+* SPLINE serie (SPL_INIT, SPL_INTERP)
+Category: numeric
+Langage: C++ 
+Difficulty: existing algo in NR, not under GPL.
+Contact: Alain
+Comments: different personns have asked for that.
+A working version --but slow-- in GDL syntax does exists, contact me
+for the real person who code that.
+It is better to implement it in C/C++ because it is computer intensif
+
+* LA_ serie (based on the LAPACK routines)
+Category: numeric
+Langage: a priori C++
+Difficulty: some existing algo, not under GPL ??
+Contact: 
+Comments: different personns have asked ...
+It is better to implement it in C/C++ because it is computer intensif
