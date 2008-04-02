@@ -634,7 +634,6 @@ public:
     }
   }
 
-
   void TV( EnvT* e)
   {
     //    Graphics* actDevice = Graphics::GetDevice();
@@ -659,20 +658,27 @@ public:
     bool success = WSize( actWin, &xSize, &ySize, &xPos, &yPos);
 
     BaseGDL* p0=e->GetParDefined( 0);
-    //DByteGDL* p0B = e->GetParAs<DByteGDL>( 0);
-    DByteGDL* p0B;
+    SizeT rank = p0->Rank();
+
+    if (rank < 2 || rank > 3) {
+      throw GDLException( e->CallingNode(), 
+			  "Image array must have rank 2 or 3");
+    }
 
     DLong orderVal=0;
     e->AssureLongScalarKWIfPresent( "ORDER", orderVal);
     //std::cout << "OrderVal "<< orderVal << std::endl;      
     if (orderVal != 0) p0=p0->Rotate(7);
 
+    //DByteGDL* p0B = e->GetParAs<DByteGDL>( 0);
+    DByteGDL* p0B;
     p0B =static_cast<DByteGDL*>(p0->Convert2(BYTE,BaseGDL::COPY));
+    //e->Guard( p0B);
 
-    SizeT rank = p0B->Rank();
     int width, height;
     DLong tru=0;
     e->AssureLongScalarKWIfPresent( "TRUE", tru);
+
     if (rank == 2) {
       if (tru != 0)
 	throw GDLException( e->CallingNode(),
@@ -682,29 +688,49 @@ public:
       width = p0B->Dim(0);
       height = p0B->Dim(1);
 
-    } else if (rank == 3) {
+    } 
+    if (rank == 3) {
+      if (tru < 0 || tru > 3) {
+	throw GDLException( e->CallingNode(), 
+			    "TV: Value of TRUE keyword is out of allowed range.");
+      }
       if (tru == 1 && xwd->depth < 24) {
 	throw GDLException( e->CallingNode(), 
 			    "TV: Device depth must be 24 or greater "
 			    "for true color display");
-      return;
-    }
+      }
+      int DimProblem=0;
       if (tru == 1) {
+	if (p0B->Dim(1) < 3) DimProblem=1;
 	width = p0B->Dim(1);
 	height = p0B->Dim(2);
-      } else if (tru == 2) {
+      }
+      if (tru == 2) {
+	if (p0B->Dim(1) < 3) DimProblem=1;
 	width = p0B->Dim(0);
 	height = p0B->Dim(2);
-      } else if (tru == 3) {
+      } 
+      if (tru == 3) {
+	if (p0B->Dim(2) < 3) DimProblem=1;
 	width = p0B->Dim(0);
 	height = p0B->Dim(1);
-      } else if (tru > 3) {
-	throw GDLException( e->CallingNode(), 
-			    "TV: Value of TRUE keyword is out of allowed range.");
       }
-    } else {
-      throw GDLException( e->CallingNode(), 
-			  "Image array must have rank 2 or 3");
+      if (tru == 0) {
+	width = p0B->Dim(0);
+	height = p0B->Dim(1);
+      }
+      if (DimProblem == 1) {
+	throw GDLException( e->CallingNode(),
+			    "TV: Array " +e->GetParString(0)
+			    +" does not have enough elements.");
+      }
+    }
+    int debug=0;
+    if (debug == 1) {
+      std::cout << "true " << tru <<std::endl;
+      std::cout << "Rank " << rank <<std::endl;
+      std::cout << "width " << width <<std::endl;
+      std::cout << "height " << height <<std::endl;
     }
 
     DLong xLL=0, yLL=0, pos=0;
@@ -733,7 +759,13 @@ public:
 
     actStream->vpor( 0, 1.0, 0, 1.0);
     actStream->wind( 1-xLL, xSize-xLL, 1-yLL, ySize-yLL);
-
+    
+    if (debug == 1) {
+      std::cout << "xLL :" << xLL << std::endl;
+      std::cout << "yLL :" << yLL << std::endl;
+      std::cout << "xSize :" << xSize << std::endl;
+      std::cout << "ySize :" << ySize << std::endl;
+    }
     DLong channel=0;
     e->AssureLongScalarKWIfPresent( "CHANNEL", channel);
     if (channel < 0 || channel > 3)
@@ -759,7 +791,6 @@ public:
       // Rank = 2 w/channel
       plimage_gdl(&(*p0B)[0], width, height, tru, channel);
     }
-
   }
 
   /*------------------------------------------------------------------------*\
