@@ -233,8 +233,14 @@ fi
 
 if test "x$with_plplot" = "xno"; then	
 	echo ""	
-	echo "Error! PLPLOT library is obligatory."
+	echo "Error! PLPLOT library is mandatory."
         exit -1
+fi
+
+if test "x$with_oldplplot" != "xno"; then
+  if test "x$with_oldplplot" == "xyes"; then
+    AC_DEFINE([HAVE_OLDPLPLOT], [1], [old plplot library pre 5.8])
+  fi
 fi
 
 if test "x$with_plplot" != "xyes"; then

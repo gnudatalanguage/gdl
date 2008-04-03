@@ -20151,8 +20151,18 @@ fi
 
 if test "x$with_plplot" = "xno"; then
 	echo ""
-	echo "Error! PLPLOT library is obligatory."
+	echo "Error! PLPLOT library is mandatory."
         exit -1
+fi
+
+if test "x$with_oldplplot" != "xno"; then
+  if test "x$with_oldplplot" == "xyes"; then
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_OLDPLPLOT 1
+_ACEOF
+
+  fi
 fi
 
 if test "x$with_plplot" != "xyes"; then
