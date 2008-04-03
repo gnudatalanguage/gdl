@@ -721,8 +721,9 @@ public:
       }
       if (DimProblem == 1) {
 	throw GDLException( e->CallingNode(),
-			    "TV: Array " +e->GetParString(0)
-			    +" does not have enough elements.");
+			    "TV: Array <BYTE     Array[" +i2s(p0B->Dim(0))+","+
+			    i2s(p0B->Dim(1))+","+i2s(p0B->Dim(2))
+			    +"]> does not have enough elements.");
       }
     }
     int debug=0;
