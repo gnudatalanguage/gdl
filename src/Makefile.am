@@ -41,12 +41,10 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 		gdlzstream.cpp gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp arrayindex.cpp \
 		fftw.cpp fftw.hpp mpi.cpp mpi.hpp plot3d_nr.cpp
 
-
-
 # standalone program
 if !BUILDASLIBRARY
 bin_PROGRAMS = gdl
-gdl_SOURCES = $(cpp_hpp_files) gdl.cpp plot3d_nr.cpp
+gdl_SOURCES = $(cpp_hpp_files) gdl.cpp
 # trigger basename generation
 gdl_CXXFLAGS = $(AM_CXXFLAGS)
 # the library search path.
