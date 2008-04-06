@@ -105,9 +105,13 @@ proper event handling for graphic windows requires readline).
 You can get it at:
 http://ftp.gnu.org/pub/gnu/readline/readline-4.3.tar.gz
 
-As GDL includes graphics support, the plplot library version 5.3
-is necessary. To download plplot please look at:
+For the graphics support of GDL, the plplot library version 5.9
+is necessary. See below if you have an older version of plplot.
+To download plplot please look here:
 http://plplot.sourceforge.net/source/index.html
+If you have plplot older than 5.9.0 use the configure
+option --enable-oldplplot 
+With this option, plplot down to 5.3 should work.
 
 Furthermore you need the GNU Scientific Library.
 (Minimal version is 1.4, which is now checked via "gsl.m4".

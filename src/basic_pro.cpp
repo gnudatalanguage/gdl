@@ -108,13 +108,13 @@ namespace lib {
 
   DStringGDL* recall_commands_internal()//EnvT* e)
   {
-    int status=0;
+    //int status=0;
     DStringGDL* retVal;
     retVal = new DStringGDL(1, BaseGDL::NOZERO);
     (*retVal)[ 0] ="";
 
-#ifdef HAVE_LIBREADLINE
-    status=1;
+#if defined(HAVE_LIBREADLINE) && !defined(__APPLE__)
+    //status=1;
     // http://cnswww.cns.cwru.edu/php/chet/readline/history.html#IDX14
     HIST_ENTRY **the_list;
     //    cout << "history_length" << history_length << endl;
@@ -125,10 +125,11 @@ namespace lib {
       for (SizeT i = 0; i<history_length-1 ; i++)
 	(*retVal)[ i] = the_list[i]->line;
     }
-#endif
-    if (status == 0) {
+#else
+//     if (status == 0) {
       Message("RECALL_COMMANDS: nothing done, because compiled without READLINE");
-    }
+//     }
+#endif
     return retVal;
   }
  

@@ -237,11 +237,18 @@ if test "x$with_plplot" = "xno"; then
         exit -1
 fi
 
-if test "x$with_oldplplot" != "xno"; then
-  if test "x$with_oldplplot" == "xyes"; then
-    AC_DEFINE([HAVE_OLDPLPLOT], [1], [old plplot library pre 5.8])
-  fi
+
+OLDPLPLOT="no"
+AC_ARG_ENABLE(oldplplot,	
+ 	[  --enable-oldplplot      use plplot version prior to 5.9.0],
+	[ OLDPLPLOT="$enableval"
+	])
+
+if test "x$OLDPLPLOT" = "xyes"; then
+	AC_DEFINE([HAVE_OLDPLPLOT], [1], 
+	[Define if you have a plplot version prior to 5.9.0])
 fi
+
 
 if test "x$with_plplot" != "xyes"; then
     LIBS="$LIBS -L$with_plplot/lib -lplplotd -lplplotcxxd"
@@ -540,7 +547,7 @@ if test "x$with_python" != "xno"; then
 
 dnl  PYTHON_VERSION="2.3"
 AC_ARG_ENABLE(python_version,	
- 	[  --enable-python_version  set explicit python version to use (eg. 2.4)],
+ 	[  --enable-python_version set explicit python version to use (eg. 2.4)],
 	[ PYTHON_VERSION="$enableval"
 	])
 
@@ -673,8 +680,11 @@ case "${host}" in
   *darwin8.14*)
     dnl newer Tiger
     ;;
+  *darwin8.15*)
+    dnl newer Tiger
+    ;;
   *darwin9*)
-    dnl post Tiger
+    dnl Leopard
     ;;
   *darwin8*)
     dnl Tiger

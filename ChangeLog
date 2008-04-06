@@ -1,4 +1,195 @@
-GDL 0.9:
+GDL 0.9rc1:
+2008-04-03  m_schellens  <m_schellens at users.sourceforge.net>
+
+	* src/plot3d_nr.cpp, gdl.kdevelop, configure.in, configure, config.h.in:
+	sync
+
+2008-04-03  alaingdl  <alaingdl at users.sourceforge.net>
+
+	* src/pro/skip_lun.pro, testsuite/test_skip_lun.pro:
+	SKIP_LUN: initial import; should work for /lines, don't know if other cases (byte) OK
+
+	* src/devicex.hpp: TV: improved message when 3D array have wrong size
+
+2008-04-02  alaingdl  <alaingdl at users.sourceforge.net>
+
+	* src/devicex.hpp:
+	in TV, better handling of input arrays with bad dimensions
+
+2008-03-28  alaingdl  <alaingdl at users.sourceforge.net>
+
+	* NEWS, TODO: revisiting the TODO list
+
+	* testsuite/test_widgets.pro:
+	basic tests for Widgets. GDL must have been compiled with lib WXWIDGETS
+
+	* src/pro/smooth.pro:
+	in SMOOTH(), mananing 0- and 1-elem input and bad type (Struc and String)
+
+	* testsuite/test_cursor.pro: a small change in TEST_CURSOR
+
+	* testsuite/test_invert_matrix.pro:
+	improved INVERT() testsuite (and benchmark frame included)
+
+2008-03-27  jomoga  <jomoga at users.sourceforge.net>
+
+	* src/math_fun_jmg.cpp:
+	Allow sub-pixel interpolation for translations in POLY_2D
+
+2008-03-26  alaingdl  <alaingdl at users.sourceforge.net>
+
+	* src/devicex.hpp: managing in TV the ORDER keyword (see also !order)
+
+	* src/basic_pro.cpp:
+	now compiled and work with and without libREADLINE !
+
+2008-03-20  alaingdl  <alaingdl at users.sourceforge.net>
+
+	* testsuite/test_surface_basic.pro, testsuite/test_contour_basic.pro:
+	managing non square cases too !
+
+	* src/plotting.cpp:
+	correcting SURFACE (when not square, or x,y provided)
+
+2008-03-19  alaingdl  <alaingdl at users.sourceforge.net>
+
+	* src/plotting.cpp: details in CURSOR; bugs due to zValT in SURFACE
+
+	* testsuite/test_surface_basic.pro, testsuite/test_contour_basic.pro:
+	test suite for CONTOUR and SURFACE
+
+	* testsuite/test_cursor.pro, testsuite/test_get_lun.pro:
+	Testing GET_LUN
+
+2008-03-14  alaingdl  <alaingdl at users.sourceforge.net>
+
+	* src/plotting.cpp, src/real2int.hpp:
+	Recovering the working CURSOR version !
+
+2008-03-13  jomoga  <jomoga at users.sourceforge.net>
+
+	* src/plotting.cpp: Use transpose in SURFACE for rect case
+
+2008-03-13  m_schellens  <m_schellens at users.sourceforge.net>
+
+	* src/plot3d_nr.cpp: undo last (accidental) commit for plplot3d_nr.cpp
+
+	* src/typedefs.hpp, src/plotting.cpp, src/real2int.hpp, src/specializations.hpp, src/datatypes.hpp, src/plot3d_nr.cpp, src/convert2.cpp, src/datatypes.cpp, src/arrayindex.hpp:
+	remove (comment out) GDLarray min() max()
+
+2008-03-12  alaingdl  <alaingdl at users.sourceforge.net>
+
+	* testsuite/test_byte_conversion.pro:
+	Testing conversion to Byte for large Float and Double ...
+
+	* src/real2int.hpp, src/convert2.cpp:
+	Float2Byte and Double2Byte need a modulus to work fine
+
+2008-03-12  jomoga  <jomoga at users.sourceforge.net>
+
+	* src/plot3d_nr.cpp: Port to plplot-5.9
+
+	* src/typedefs.hpp: Fix min()/max() functions
+
+2008-03-12  alaingdl  <alaingdl at users.sourceforge.net>
+
+	* src/plotting.cpp: Updating CURSOR for RDPIX full compatibility
+
+	* src/basic_pro_jmg.cpp: Working version of WAIT (see test_wait.pro)
+
+	* testsuite/test_wait.pro: Testing (new version of) WAIT
+
+2008-03-12  m_schellens  <m_schellens at users.sourceforge.net>
+
+	* src/real2int.hpp, src/convert2.cpp:
+	fix BYTE function overflow behaviour for real values
+
+2008-03-11  m_schellens  <m_schellens at users.sourceforge.net>
+
+	* src/plotting.cpp, src/format.out.g, src/gdlgstream.cpp, src/plot3d_nr.cpp, src/Makefile.am, src/Makefile.in, src/devicex.hpp, src/format.g, src/FMTParser.hpp, src/FMTTokenTypes.hpp, src/FMTTokenTypes.txt, src/FMTLexer.cpp, src/FMTLexer.hpp, src/FMTOut.cpp, src/FMTOut.hpp, src/FMTOutTokenTypes.hpp, src/FMTOutTokenTypes.txt, src/FMTParser.cpp, src/FMTIn.cpp, src/FMTIn.hpp, src/FMTInTokenTypes.hpp, src/FMTInTokenTypes.txt, ChangeLog, configure:
+	fix FORMAT="(/)" bug
+
+2008-03-11  alaingdl  <alaingdl at users.sourceforge.net>
+
+	* src/initsysvar.cpp, src/libinit_jmg.cpp:
+	addinf !ORDER system variable (used in TV, TVSCL and TVRD, needed by RDPIX ...)
+
+2008-03-06  jomoga  <jomoga at users.sourceforge.net>
+
+	* src/gdlwidget.cpp, src/gdlwidget.hpp, src/widget.cpp, src/widget.hpp:
+	Add WIDGET_TEXT
+
+	* src/objects.cpp: Add WIDGET_TEXT structure
+
+	* src/libinit_jmg.cpp: Add widget routines
+
+	* src/libinit.cpp: Remove widget routines
+
+2008-03-03  alaingdl  <alaingdl at users.sourceforge.net>
+
+	* src/gsl_fun.cpp:
+	improvment of INVERT : one element array, checking if square matrix, String ...
+
+	* src/pro/matrix_multiply.pro: Initial import of MATRIX_MULTIPLY
+
+	* testsuite/test_invert_matrix.pro:
+	Extensive tests of INVERT() (matrix inversion)
+
+2008-03-01  alaingdl  <alaingdl at users.sourceforge.net>
+
+	* NEWS, src/plotting.cpp, src/plotting.hpp:
+	Initial import of CURSOR. Some limitations, help welcome !
+
+	* testsuite/test_cursor.pro: two basics tests for CURSOR procedure
+
+2008-02-26  alaingdl  <alaingdl at users.sourceforge.net>
+
+	* src/libinit.cpp:
+	initial import of interface for CURSOR procedure, re-import of RECALL_COMMANDS()
+
+	* src/initsysvar.cpp, src/initsysvar.hpp:
+	initial import for !mouse (to be used by CURSOR ...)
+
+2008-02-15  jomoga  <jomoga at users.sourceforge.net>
+
+	* src/libinit.cpp: Add additional widget keywords
+
+	* src/gdlwidget.cpp, src/gdlwidget.hpp, src/widget.cpp, src/widget.hpp:
+	Add WIDGET_INFO & WIDGET_EVENT
+
+	* src/objects.cpp: Add WIDGET_BUTTON structure
+
+	* src/gdl.cpp: Remove widget initialization
+
+	* src/basic_pro.cpp: Add widget initialization
+
+2008-02-15  alaingdl  <alaingdl at users.sourceforge.net>
+
+	* src/basic_pro.cpp, src/basic_pro.hpp:
+	initial input of code for function RECALL_COMMANDS() and
+	equivalent keyword in HELP proc.
+
+	* src/libinit.cpp:
+	add function RECALL_COMMANDS() and keyword /RECALL in HELP procedure
+
+2008-02-07  alaingdl  <alaingdl at users.sourceforge.net>
+
+	* src/libinit.cpp: new keywords for PLOT, CONTOUR, ...
+
+	* testsuite/test_titles.pro:
+	demo suite for title, subtitle, ... and title formatting capabilities (initial import)
+
+	* testsuite/test_axis.pro: demo of AXIS capabilities (initial import)
+
+	* testsuite/test_greek_letters.pro: Greek Letters demo (initial import)
+
+2008-02-01  jomoga  <jomoga at users.sourceforge.net>
+
+	* configure, configure.in, src/basic_pro.cpp, src/gdl.cpp, src/gdlwidget.cpp, src/gdlwidget.hpp, src/libinit.cpp, src/widget.cpp, src/widget.hpp:
+	(Very) Preliminary implementation of widgets
+
+
+GDL 0.9pre6:
 2007-12-21  alaingdl  <alaingdl at users.sourceforge.net>
 
 	* INSTALL, NEWS, src/basic_pro.cpp, src/dinterpreter.cpp, src/gdljournal.cpp:
@@ -1166,7 +1357,7 @@ GDL 0.9:
 	* src/plotting.cpp: Fix oplot P.MULTI bug/Fix color='ff'x bug
 
 	
-2006-03-31  m_schellens  <m_schellens@rock>
+2006-03-31  m_schellens  <m_schellens at rock>
 
 	* many changes (ChangeLog incomplete due to CVS server problems)
 	* please see NEWS for an overview
@@ -1690,17 +1881,17 @@ GDL 0.8.10:
 
 	
 GDL 0.8.9:
-2005-04-21  m_schellens  <m_schellens@host>
+2005-04-21  m_schellens  <m_schellens at host>
 
 	* src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/dcompiler.cpp, src/dinterpreter.cpp, src/dinterpreter.hpp, src/dpro.cpp, src/dpro.hpp, src/gdlc.i.g, src/gdleventhandler.cpp, src/pro/test_suite.pro, ChangeLog:
 	Added .RUN command.
 
-2005-04-20  jomoga  <jomoga@host>
+2005-04-20  jomoga  <jomoga at host>
 
 	* src/libinit_jmg.cpp, src/basic_pro_jmg.hpp, src/basic_pro_jmg.cpp:
 	Added WAIT procedure
 
-2005-04-20  m_schellens  <m_schellens@host>
+2005-04-20  m_schellens  <m_schellens at host>
 
 	* src/dcompiler.cpp, src/dcompiler.hpp, src/dpro.hpp, src/gdlc.tree.g, src/GDLTreeParser.cpp:
 	correct common blocks and gotos for command line.
