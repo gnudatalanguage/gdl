@@ -97,6 +97,7 @@
 ;
 ; MODIFICATION HISTORY:
 ;   13-Jan-2006 : written by Pierre Chanial
+;   06-APr-2008 : m_schellens: made data_start independent of header
 ;
 ;-
 ; LICENCE:
@@ -206,9 +207,13 @@ function read_ascii, filename, count=linecount, $
        if n_elements(header) ne 0 then junk = temporary(header)
     endif else begin
        header = text[0:data_start-1]
-       text = text[data_start:*]
+       ;; text = text[data_start:*]
     endelse
- endif
+endif
+
+if data_start ne 0 then begin
+    text = text[data_start:*]
+endif
 
  
  ;-----------------
