@@ -19,6 +19,8 @@
 
 #include "includefirst.hpp"
 
+#include <unistd.h>
+
 #include <fstream>
 #include <sys/stat.h>
 
@@ -71,7 +73,7 @@ namespace lib
 	//case 1b: open with filename
 	e->AssureStringScalarPar(0,gdljournal_filename);
       }
-		
+      
       DLong jLUN = GetLUN();
       if( jLUN == 0)
 	e->Throw( "All available logical units are currently in use.");
@@ -84,25 +86,25 @@ namespace lib
 		
       //message  
       DStructGDL* version = SysVar::Version();
-
-    static unsigned releaseTag = version->Desc()->TagIndex( "RELEASE");
-    static unsigned osTag = version->Desc()->TagIndex( "OS");
-    static unsigned archTag = version->Desc()->TagIndex( "ARCH");
-    static unsigned mTag = version->Desc()->TagIndex( "MEMORY_BITS");
-    DString release = 
-      (*static_cast<DStringGDL*>( version->GetTag( releaseTag, 0)))[0];
-    DString os = 
-      (*static_cast<DStringGDL*>( version->GetTag( osTag, 0)))[0];
-    DString arch = 
-      (*static_cast<DStringGDL*>( version->GetTag( archTag, 0)))[0];
-    DInt m = 
-      (*static_cast<DIntGDL*>( version->GetTag( mTag, 0)))[0];
-
+      
+      static unsigned releaseTag = version->Desc()->TagIndex( "RELEASE");
+      static unsigned osTag = version->Desc()->TagIndex( "OS");
+      static unsigned archTag = version->Desc()->TagIndex( "ARCH");
+      static unsigned mTag = version->Desc()->TagIndex( "MEMORY_BITS");
+      DString release = 
+	(*static_cast<DStringGDL*>( version->GetTag( releaseTag, 0)))[0];
+      DString os = 
+	(*static_cast<DStringGDL*>( version->GetTag( osTag, 0)))[0];
+      DString arch = 
+	(*static_cast<DStringGDL*>( version->GetTag( archTag, 0)))[0];
+      DInt m = 
+	(*static_cast<DIntGDL*>( version->GetTag( mTag, 0)))[0];
+      
       write_journal_comment( "GDL Version "+release+" ("+os+" "+arch+" m"+
 			     i2s(m)+")");
-
+      
       string user = GetEnvString( "USER");
-
+      
       // depending the system, HOST variable is not always set up.
       int debug=0;
       string host = GetEnvString( "HOST");
@@ -113,16 +115,20 @@ namespace lib
 	if (debug) cout << "HOSTNAME: " << host << endl;
       }
       if (host == "") {
-	char *gethost;
-	size_t lgethost;
+	//char *gethost;
+	int GDL_HOST_NAME_MAX=255;
+	char gethost[GDL_HOST_NAME_MAX];
+	size_t lgethost=GDL_HOST_NAME_MAX;
 	// don't know if this primitive is available on Mac OS X
-	int success = gethostname(gethost, lgethost);	
+	int success = gethostname(gethost, lgethost);
 	if( success != 0)
 	  // we are here only if all 3 methods failed
 	  {e->Throw( "Unknow hostname !");}
 	else {
 	  host=string(gethost);
-	  if (debug) cout << "GETHOSTNAME: " << host << endl;
+	  //if (debug) cout << "lgethost: [" << lgethost << "]"<< endl;
+	  //if (debug) cout << "1GETHOSTNAME: [" << gethost << "]"<< endl;
+	  if (debug) cout << "GETHOSTNAME: [" << host.c_str() << "]"<< endl;
 	}
       }
 
