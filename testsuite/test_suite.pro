@@ -6,9 +6,9 @@ if 1 then $
   if 0 then begin & end $
 else if 1 then $ 
   if 0 then begin & end $
-else a=1
+else a=1e
 
-if a ne 1 then print,'***IF: ERROR'
+if a ne 1e then print,'***IF: ERROR'
 
 print,'IF: OK'
 end
@@ -80,7 +80,7 @@ case a of
     'a': begin
         print,'***CASE: ERROR'
     end
-    1.0: print,'***CASE: ERROR'
+    1.0d: print,'***CASE: ERROR'
     else: e=1
 end
 

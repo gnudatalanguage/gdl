@@ -1575,7 +1575,7 @@ O
 
 protected
 EXP
-	: ('e' ('+'|'-')? (D)+)
+	: ('e' (('+'|'-')? (D)+)? )
 	;
 
 protected 
@@ -1585,7 +1585,7 @@ DBL_E
 
 protected
 DBL
-	: (DBL_E (('+'|'-')? (D)+)?)
+	: (DBL_E (('+'|'-')? (D)+)? )
 	;
 
 protected

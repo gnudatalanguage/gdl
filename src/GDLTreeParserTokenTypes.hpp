@@ -1,7 +1,7 @@
 #ifndef INC_GDLTreeParserTokenTypes_hpp_
 #define INC_GDLTreeParserTokenTypes_hpp_
 
-/* $ANTLR 2.7.7 (2006-11-01): "gdlc.tree.g" -> "GDLTreeParserTokenTypes.hpp"$ */
+/* $ANTLR 2.7.6 (20071205): "gdlc.tree.g" -> "GDLTreeParserTokenTypes.hpp"$ */
 
 #ifndef CUSTOM_API
 # define CUSTOM_API
