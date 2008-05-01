@@ -5,10 +5,14 @@
  * Project led by Terence Parr at http://www.jGuru.com
  * Software rights: http://www.antlr.org/license.html
  *
- * $Id: CharScanner.hpp,v 1.1.1.1 2004-12-09 15:10:20 m_schellens Exp $
+ * $Id: CharScanner.hpp,v 1.2 2008-05-01 23:07:52 m_schellens Exp $
  */
 
 #include <antlr/config.hpp>
+
+// g++-4.3 needs this
+#include <cstring>
+#include <cstdlib>
 
 #include <map>
 
