@@ -9,6 +9,8 @@
 
 #include <errno.h>
 
+#include <cstdlib>
+
 GDLParser::GDLParser(antlr::TokenBuffer& tokenBuf, int k)
 : antlr::LLkParser(tokenBuf,k)
 {

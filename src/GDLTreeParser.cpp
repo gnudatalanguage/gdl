@@ -12,6 +12,8 @@
 
 #include <memory>
 
+#include <cstdlib>
+
 // ****
 #include "print_tree.hpp"
 

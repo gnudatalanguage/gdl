@@ -14,6 +14,8 @@
 
 #include <errno.h>
 
+#include <cstdlib>
+
 GDLLexer::GDLLexer(std::istream& in)
 	: antlr::CharScanner(new antlr::CharBuffer(in),false)
 {

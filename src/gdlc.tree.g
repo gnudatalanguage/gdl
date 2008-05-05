@@ -30,6 +30,8 @@ header "pre_include_cpp" {
 header "post_include_cpp" {
 #include <memory>
 
+#include <cstdlib>
+
 // ****
 #include "print_tree.hpp"
 

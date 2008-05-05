@@ -21,6 +21,7 @@
 #include <fstream>
 #include <memory>
 #include <set>
+#include <iterator>
 
 #include <sys/stat.h>
 #include <sys/types.h>

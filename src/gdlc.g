@@ -20,6 +20,8 @@ header "pre_include_cpp" {
 }
 header "post_include_cpp" {
 #include <errno.h>
+
+#include <cstdlib>
 }
 
 header {
