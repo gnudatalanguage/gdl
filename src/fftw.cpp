@@ -154,6 +154,7 @@ namespace lib {
       if( p0->Type() != COMPLEXDBL) {
 	p0C = static_cast<DComplexDblGDL*>
 	  (p0->Convert2( COMPLEXDBL, BaseGDL::COPY));
+	auto_ptr<BaseGDL> guard_p0C( p0C); 
       } else p0C = (DComplexDblGDL *) p0;
 
       return fftw_template< DComplexDblGDL> (p0C, nEl, dbl, overwrite, direct);
@@ -177,7 +178,7 @@ namespace lib {
 
       DComplexGDL* p0C = static_cast<DComplexGDL*>
 	(p0->Convert2( COMPLEX, BaseGDL::COPY));
-
+      auto_ptr<BaseGDL> guard_p0C( p0C); 
       return fftw_template< DComplexGDL> (p0C, nEl, dbl, overwrite, direct);
 
     } else {
