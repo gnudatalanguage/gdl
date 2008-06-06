@@ -31,6 +31,7 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 		ncdf_dim_cl.cpp ncdf_var_cl.cpp new.cpp new.hpp objects.cpp objects.hpp ofmt.cpp \
 		math_fun_ac.hpp math_fun_ac.cpp libinit_ac.cpp \
                 math_fun_gm.hpp math_fun_gm.cpp libinit_gm.cpp \
+		math_fun_ng.hpp math_fun_ng.cpp libinit_ng.cpp \
 		ofmt.hpp plotting.cpp plotting.hpp print.cpp print_tree.cpp print_tree.hpp \
 		read.cpp real2int.hpp str.cpp str.hpp terminfo.cpp terminfo.hpp topython.cpp \
 		typedefs.hpp typetraits.cpp typetraits.hpp hdf_fun.cpp hdf_fun.hpp hdf_pro.cpp \
@@ -40,6 +41,8 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 		convol_inc1.cpp convol_inc2.cpp sigfpehandler.cpp sigfpehandler.hpp devicez.hpp \
 		gdlzstream.cpp gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp arrayindex.cpp \
 		fftw.cpp fftw.hpp mpi.cpp mpi.hpp plot3d_nr.cpp
+
+
 
 # standalone program
 if !BUILDASLIBRARY
