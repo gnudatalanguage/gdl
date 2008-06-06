@@ -192,3 +192,6 @@
 	  Add initial CURSOR, limited but functionnal (know
 	  limitations documented in program) and !mouse
  
+0.9rc1    fixing memory leak in FFT when using FFTw lib.
+	  including VOIGT() function (in C++) based on Wells' paper.
+	  including REAL_PART() function (GDL syntax)
