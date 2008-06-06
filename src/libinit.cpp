@@ -30,7 +30,7 @@
 #include "math_fun.hpp"
 #include "math_fun_ac.hpp"
 #include "math_fun_gm.hpp"
-
+#include "math_fun_ng.hpp"
 #include "plotting.hpp"
 
 #include "file.hpp"
@@ -65,6 +65,7 @@ void LibInit_cl(); // libinit_cl.cpp
 void LibInit_mes(); // libinit_mes.cpp
 void LibInit_ac(); // libinit_ac.cpp
 void LibInit_gm(); // libinit_gm.cpp
+void LibInit_ng(); // libinit_ng.cpp
 
 void LibInit()
 {
@@ -74,7 +75,7 @@ void LibInit()
   LibInit_mes();
   LibInit_ac();
   LibInit_gm();
-
+  LibInit_ng(); 
   const char KLISTEND[] = "";
 
   const string svdcKey[]={"COLUMN","ITMAX","DOUBLE",KLISTEND};
@@ -347,7 +348,7 @@ void LibInit()
 
   new DLibFunRetNew(lib::conj_fun,string("CONJ"),1);
   new DLibFunRetNew(lib::imaginary_fun,string("IMAGINARY"),1);
-  
+
   const string strcompressKey[]={"REMOVE_ALL",KLISTEND};
   new DLibFunRetNew(lib::strcompress,string("STRCOMPRESS"),1,strcompressKey);
   new DLibFunRetNew(lib::strlowcase,string("STRLOWCASE"),1);
