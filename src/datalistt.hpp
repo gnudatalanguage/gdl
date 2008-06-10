@@ -68,6 +68,13 @@ public:
     loc.push_back(NULL);
     env.push_back(pp);
   }
+
+  void pop_back()
+  {
+    loc.pop_back();
+    env.pop_back();
+  }
+
   SizeT size() { return loc.size();}
   void reserve( SizeT s)
   {
