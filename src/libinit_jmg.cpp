@@ -55,7 +55,6 @@ using namespace std;
 void LibInit_jmg()
 {
   const char KLISTEND[] = "";
-  
   // the following by Joel Gales <jomoga@users.sourceforge.net>
   const string sizeKey[]={"L64","DIMENSIONS","FILE_LUN","N_DIMENSIONS",
 			  "N_ELEMENTS","STRUCTURE","TNAME","TYPE",KLISTEND};
@@ -98,6 +97,9 @@ void LibInit_jmg()
 
   const string macharKey[]={"DOUBLE",KLISTEND};
   new DLibFun(lib::machar_fun,string("MACHAR"),0,macharKey);
+
+  const string rk4Key[]={"DOUBLE",KLISTEND};
+  new DLibFun(lib::rk4_fun,string("RK4"),5,rk4Key);
 
 #if defined(USE_LIBPROJ4)
   const string map_proj_forwardKey[]={"CONNECTIVITY","FILL",
@@ -259,4 +261,5 @@ void LibInit_jmg()
 #endif
 
 }
+
 

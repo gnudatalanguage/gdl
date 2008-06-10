@@ -67,6 +67,7 @@ namespace lib {
   BaseGDL* radon_fun( EnvT* e);
   BaseGDL* trigrid_fun( EnvT* e);
   BaseGDL* poly_2d_fun( EnvT* e);
+  BaseGDL* rk4_fun( EnvT* e);
 
   double ipow(double x, int p);
   double sinc(double x);
@@ -84,3 +85,5 @@ namespace lib {
 } // namespace
 
 #endif
+
+
