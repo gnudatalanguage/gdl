@@ -303,6 +303,7 @@ public:
   unsigned AddVar(const std::string&); // add local variable
   void     AddKey(const std::string&, const std::string&); // add keyword=value
 
+  void     DelVar(const int ix) {var.erase(var.begin() + ix);}
 
   SizeT Size() { return var.size();}
   
