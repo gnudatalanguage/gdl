@@ -92,6 +92,11 @@ public:
     return s;
   }
 
+  void DelEnv()
+  {
+    env.pop_back();
+  }
+
   // the upper (calling) environment
   // a EnvT must have always a EnvUDT caller
   // i.e. library functions never call each other
