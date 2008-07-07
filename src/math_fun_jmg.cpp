@@ -1706,7 +1706,7 @@ void image_del(image_t * d)
   }
 
 
-  BaseGDL* rk4_fun(EnvT* e)
+  BaseGDL* rk4jmg_fun(EnvT* e)
   {  
     // Get current DOY HR MN SEC and form unique tag
     struct tm *curtime;

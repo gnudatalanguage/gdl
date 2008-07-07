@@ -99,7 +99,7 @@ void LibInit_jmg()
   new DLibFun(lib::machar_fun,string("MACHAR"),0,macharKey);
 
   const string rk4Key[]={"DOUBLE",KLISTEND};
-  new DLibFun(lib::rk4_fun,string("RK4"),5,rk4Key);
+  new DLibFun(lib::rk4jmg_fun,string("RK4JMG"),5,rk4Key);
 
 #if defined(USE_LIBPROJ4)
   const string map_proj_forwardKey[]={"CONNECTIVITY","FILL",
