@@ -25,6 +25,7 @@
 #include "initsysvar.hpp"
 #include "gdljournal.hpp"
 
+
 // tweaking ANTLR
 #define RefAST( xxx)     ConvertAST( xxx) /* antlr::RefAST( Ref type)  */
 
@@ -35,6 +36,8 @@ private:
     // ASTNULL replacement
     static ProgNode  NULLProgNode;
     static ProgNodeP NULLProgNodeP;
+
+    friend class ProgNode;
 
 public: 
     enum RetCode {
@@ -110,6 +113,11 @@ protected:
     static SizeT heapIx;
 
     static EnvStackT  callStack; 
+
+
+// smuggle optimizations in
+#include "GDLInterpreterOptimized.inc"
+
 
 public:
     // triggers read/compile/interpret

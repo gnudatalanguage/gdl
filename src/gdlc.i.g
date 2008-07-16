@@ -34,6 +34,29 @@ header "post_include_cpp" {
 #define RefAST( xxx)     ConvertAST( xxx) /* antlr::RefAST( Ref type)  */
 #define match( a, b)     /* remove from source */
 
+// optimizations
+// #define  constant constantNotOptimized
+// #define  interactive interactiveNotOptimized
+// #define  statement_list statement_listNotOptimized
+// #define  execute executeNotOptimized
+// #define  call_fun call_funNotOptimized
+// #define  call_lfun call_lfunNotOptimized
+// #define  call_pro call_proNotOptimized 
+// #define  block blockNotOptimized
+// #define  expr exprNotOptimized
+// #define  l_simple_var l_simple_varNotOptimized
+// #define  sys_var sys_varNotOptimized
+// #define  sys_var_nocopy sys_var_nocopyNotOptimized
+// #define  dot_expr dot_exprNotOptimized
+// #define  simple_var simple_varNotOptimized
+// #define  ref_parameter ref_parameterNotOptimized
+// #define  unnamed_struct_def unnamed_struct_defNotOptimized
+// #define  lib_function_call_retnew lib_function_call_retnewNotOptimized
+// #define  lib_function_call lib_function_callNotOptimized
+// #define  constant_nocopy constant_nocopyNotOptimized
+// #define  struct_def struct_defNotOptimized
+
+
 using namespace std;
 }
 
@@ -55,6 +78,7 @@ header {
 #include "accessdesc.hpp"
 #include "initsysvar.hpp"
 #include "gdljournal.hpp"
+
 
 // tweaking ANTLR
 #define RefAST( xxx)     ConvertAST( xxx) /* antlr::RefAST( Ref type)  */
@@ -87,6 +111,8 @@ private:
     // ASTNULL replacement
     static ProgNode  NULLProgNode;
     static ProgNodeP NULLProgNodeP;
+
+    friend class ProgNode;
 
 public: 
     enum RetCode {
@@ -162,6 +188,11 @@ protected:
     static SizeT heapIx;
 
     static EnvStackT  callStack; 
+
+
+// smuggle optimizations in
+#include "GDLInterpreterOptimized.inc"
+
 
 public:
     // triggers read/compile/interpret

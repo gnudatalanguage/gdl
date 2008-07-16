@@ -131,8 +131,8 @@ int main(int argc, char *argv[])
   if( startup == "")
     {
       if (isatty(0)) cout << "'GDL_STARTUP'/'IDL_STARTUP' environment "
-	"variables both not set.\n"
-	"No startup file read." << endl;
+	"variables (denoting startup file)\nboth not set. "
+	"No startup file read. Default settings kept. OK." << endl;
     }
 //   else
 //     {
