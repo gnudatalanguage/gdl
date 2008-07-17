@@ -179,8 +179,6 @@
           Add initial support for BESELI, BESELJ, BESELK and BESELY but only for
 	  integer order due to limitations of GSL Bessel functions
 	  Added Erf() [and Errorf() for compatibility], Erfc(), Expint(), Gaussint().
-	  Fixed I/O of Gamma(), Igamma(), LnGamma() and Beta().
-	  Added Erf() [and Errorf() for compatibility], Erfc(), Expint(), Gaussint()
 	  Fixed I/O of Gamma(), Igamma(), LnGamma() and Beta()
 	  +-Inf now managed in MIN and MAX (if called with /Nan)
 	  NaN and +-Inf now properly managed in PLOT, OPLOT, PLOTS
@@ -193,5 +191,7 @@
 	  limitations documented in program) and !mouse
  
 0.9rc1    fixing memory leak in FFT when using FFTw lib.
-	  including VOIGT() function (in C++) based on Wells' paper.
-	  including REAL_PART() function (GDL syntax)
+	  add VOIGT() function (in C++) based on Wells' paper.
+	  add REAL_PART() function (GDL syntax)
+	  add RK4() function (in C++)
+

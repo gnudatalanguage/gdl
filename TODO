@@ -12,7 +12,6 @@ This file contains:
 
 ToDo list of missing commands (not exhaustive, most requested)
 
-
 .rnew
 .skip
 .reset_session
@@ -24,36 +23,11 @@ ToDo list related to system variables
 !ERROR, !ERR and !ERROR_STATE are not properly set by all library
   functions
 
+!EDIT_INPUT, preferences IDL_EDIT_INPUT, IDL_RBUF_PERSIST and IDL_RBUF_SIZE.
+
 
 ToDo list of Functions and Procedures
 
-
-* RK4 function
-Category: numeric
-Langage: C++
-Difficulty: easy
-Contact: Alain
-Comments: well known algo
-It is better to implement it in C/C++ because it is computer intensif
-
-* VOIGT function
-Category: numeric
-Langage: C++
-Difficulty: medium
-Contact: Alain
-Comments: codes in IDL/C/C++ under GPL available, "interfaces" missing
-It is better to implement it in C/C++ because it is computer intensif.
-It is mandatory to select the good codes, because to receive accurate
-computations in the whole range is not obvious.
-
-* SKIP_LUN procedure
-Category: system, file I/O
-Langage: GDL
-Difficulty: easy
-Contact: Alain
-Comments: a working draft exists in GDL. Needed by ASTRON.
-A scan of other needed func/pro by ASTRON is needed (easy).
-(For the Keywords, it is more difficult !)
 
 * WMENU function
 Category: user interface
