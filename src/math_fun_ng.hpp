@@ -1,9 +1,10 @@
 /***************************************************************************
-                          math_fun_ng.hpp  -  mathematical GDL library function
+             math_fun_ng.hpp  -  mathematical GDL library function
                              -------------------
     begin                : 26 May 2008
     copyright            : (C) 2007 by Nicolas Galmiche
-    email                : n.galmiche@gmail.com
+    email                : n.galmiche AT gmail.com
+
  ***************************************************************************/
 
 /***************************************************************************
@@ -16,7 +17,7 @@
  ***************************************************************************/
 
 #include "datatypes.hpp"
-#include "envt.hpp"
+#include "dinterpreter.hpp"
 
 namespace lib {
 
