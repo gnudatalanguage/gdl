@@ -243,7 +243,7 @@ BaseGDL* GDLInterpreter::sys_var_nocopy(ProgNodeP _t) {
 BaseGDL* GDLInterpreter::dot_expr(ProgNodeP _t) {
 
 	ProgNodeP rTree = _t->getNextSibling();
-	ProgNodeP& dot = _t;
+	ProgNodeP dot = _t;
 	match(antlr::RefAST(_t),DOT);
 	_t = _t->getFirstChild();
 	
