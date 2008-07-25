@@ -1201,6 +1201,8 @@ Esko G. Cate & David W. Twigg
       (*static_cast<DDoubleGDL*>( mapStruct->GetTag( aTag, 0)))[0];
     DDouble map_e2 = 
       (*static_cast<DDoubleGDL*>( mapStruct->GetTag( e2Tag, 0)))[0];
+    DDouble map_p0 = 
+      (*static_cast<DDoubleGDL*>( mapStruct->GetTag( pTag, 0)))[0];
     DDouble map_lat1 = 
       (*static_cast<DDoubleGDL*>( mapStruct->GetTag( pTag, 0)))[3];
     DDouble map_lat2 = 
@@ -1214,6 +1216,7 @@ Esko G. Cate & David W. Twigg
     char lat_1[64];
     char lat_2[64];
     char lat_ts[64];
+    char h[64];
 
     // Oblique projection parameters
     char ob_proj[64];
@@ -1226,6 +1229,7 @@ Esko G. Cate & David W. Twigg
     static DDouble last_p0lat = -9999;
     static DDouble last_a = -9999;
     static DDouble last_e2 = -9999;
+    static DDouble last_p0 = -9999;
     static DDouble last_lat1 = -9999;
     static DDouble last_lat2 = -9999;
 
@@ -1234,6 +1238,7 @@ Esko G. Cate & David W. Twigg
 	map_p0lat != last_p0lat ||
 	map_a != last_a ||
 	map_e2 != last_e2 || 
+	map_p0 != last_p0 ||
 	map_lat1 != last_lat1 ||
 	map_lat2 != last_lat2) {
 
@@ -1337,6 +1342,19 @@ Esko G. Cate & David W. Twigg
 	parms[nparms++] = &p0lat[0];
       }
 
+      // Satellite (Tilted Perspective)
+      if (map_projection == 7) {
+	strcpy(proj, "proj=tpers");
+	parms[nparms++] = &proj[0];
+	parms[nparms++] = &p0lon[0];
+	parms[nparms++] = &p0lat[0];
+	sprintf(h, "h=%lf", map_p0);
+	parms[nparms++] = &h[0];
+	//	omega = pj_param(P->params, "dtilt").f * DEG_TO_RAD;
+	//gamma = pj_param(P->params, "dazi").f * DEG_TO_RAD;
+	//P->height = pj_param(P->params, "dh")
+      }
+
       // Cylindrical Equidistant
       if (map_projection == 8) {
 	if (map_p0lat == 0) {
@@ -1382,11 +1400,20 @@ Esko G. Cate & David W. Twigg
 	parms[nparms++] = &p0lat[0];
       }
 
+      // Robinson
+      if (map_projection == 17) {
+	strcpy(proj, "proj=robin");
+	parms[nparms++] = &proj[0];
+	parms[nparms++] = &p0lon[0];
+	parms[nparms++] = &p0lat[0];
+      }
+
       last_proj = map_projection;
       last_p0lon = map_p0lon;
       last_p0lat = map_p0lat;
       last_a = map_a;
       last_e2 = map_e2;
+      last_p0 = map_p0;
       last_lat1 = map_lat1;
       last_lat2 = map_lat2;
 
