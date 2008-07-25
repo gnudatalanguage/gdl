@@ -20,9 +20,9 @@
 // should (Makefile.am) not be used anyway for the python module
 #ifndef PYTHON_MODULE
 
-#ifndef VERSION
-#define VERSION "0.9"
-#endif
+// #ifndef VERSION
+// #define VERSION "0.9"
+// #endif
 
 #include <string>
 #include <csignal>
