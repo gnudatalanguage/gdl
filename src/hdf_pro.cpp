@@ -81,6 +81,13 @@ namespace lib {
 			    "HDF_SD_GETDATA: Incorrect number of START dimensions:"
 			    +i2s(startKW->N_Elements()));
       memcpy(start, &(*startKW)[0], rank*sizeof(int32));
+
+      // Switch to C-ordering
+      for( SizeT i = 0; i < rank/2; i++) {
+	int32 temp = start[i];
+	start[i] = start[rank-1];
+	start[rank-1] = temp;
+      }
     }
 
     if (countKW != NULL) {
@@ -89,6 +96,13 @@ namespace lib {
 			    "HDF_SD_GETDATA: Incorrect number of COUNT dimensions:"
 			    +i2s(countKW->N_Elements()));
       memcpy(edges, &(*countKW)[0], rank*sizeof(int32));
+
+      // Switch to C-ordering
+      for( SizeT i = 0; i < rank/2; i++) {
+	int32 temp = edges[i];
+	edges[i] = edges[rank-1];
+	edges[rank-1] = temp;
+      }
     }
 
     if (strideKW != NULL) {
@@ -97,6 +111,13 @@ namespace lib {
 			    "HDF_SD_GETDATA: Incorrect number of STRIDE dimensions:"
 			    +i2s(strideKW->N_Elements()));
       memcpy(stride, &(*strideKW)[0], rank*sizeof(int32));
+
+      // Switch to C-ordering
+      for( SizeT i = 0; i < rank/2; i++) {
+	int32 temp = stride[i];
+	stride[i] = stride[rank-1];
+	stride[rank-1] = temp;
+      }
     }
 
 
