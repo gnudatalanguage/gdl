@@ -4308,17 +4308,31 @@ GetMinMaxVal( yVal, &yMin, &yMax);
 	}
 	// xy -> ll
       } else if (e->KeywordSet("NORMAL")) {
-	XY idata;
-	LP odata;
-	for( SizeT i = 0; i<nrows; ++i) {	
-	  idata.x = ((*ptr1) - sx[0]) / sx[1];
-	  idata.y = ((*ptr2) - sy[0]) / sy[1];
-	  odata = pj_inv(idata, ref);
-	  (*res)[ires++] = odata.lam * RAD_TO_DEG;
-	  (*res)[ires++] = odata.phi * RAD_TO_DEG;
-	  ptr1++;
-	  ptr2++;
-	  ires++;
+	if (e->KeywordSet("TO_DEVICE")) {
+	    for( SizeT i = 0; i<nrows; ++i) {
+	      (*res)[ires++] = xv * (*ptr1);
+	      (*res)[ires++] = yv * (*ptr2);
+	      if (third)
+		(*res)[ires++] = (*ptr3);
+	      else
+		ires++;
+	      ptr1 += deln;
+	      ptr2 += deln;
+	      ptr3 += deln;
+	    }
+	} else {
+	  XY idata;
+	  LP odata;
+	  for( SizeT i = 0; i<nrows; ++i) {	
+	    idata.x = ((*ptr1) - sx[0]) / sx[1];
+	    idata.y = ((*ptr2) - sy[0]) / sy[1];
+	    odata = pj_inv(idata, ref);
+	    (*res)[ires++] = odata.lam * RAD_TO_DEG;
+	    (*res)[ires++] = odata.phi * RAD_TO_DEG;
+	    ptr1++;
+	    ptr2++;
+	    ires++;
+	  }
 	}
       } else if (e->KeywordSet("DEVICE")) {
 	XY idata;
