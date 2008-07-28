@@ -3,6 +3,9 @@
 ; 25-May2007 : 2 messages were removed since all the cases are now
 ; working for x86 and x86_64
 ;
+; History
+; AC 28-Jul-2008: 2 new projections provided by Joel.
+;
 ; Purpose: A very simple test for MAP library
 ; (a way not to forgot how to call the mapping procedures !!)
 ;
@@ -32,8 +35,7 @@ new_dir=''
 read, 'New !dir ? [ret if no change]', new_dir
 if (STRLEN(new_dir) GT 0) then DEFSYSV, '!dir', new_dir
 ;
-;
-times=FINDGEN(5)
+times=FINDGEN(7)
 ;
 ;AC 25/05/2007 no more useful, bug corrected in CVS by Joel
 ;; need for future warning messages
@@ -42,40 +44,53 @@ times=FINDGEN(5)
 ;  35,68° N, 139,76° O (cf TEN/SIXTY in AstronLib)
 ;
 t0=SYSTIME(1)
-print, 'Exemple1: Should plot the whole world centered on the Japan time line'
-map_set, 0, 139, /continent, title='continent'
+print, 'Exemple 1: Should plot the whole world centered on the Japan time line'
+MAP_SET, 0, 139, /continent, title='Continents'
 times[0]=SYSTIME(1)-t0
 suite='' & read, 'Press Enter', suite
 ;
 t0=SYSTIME(1)
-print, 'Exemple2: Should plot the whole world centered on the North America'
-;AC 25/05/2007 no more useful, bug corrected in CVS by Joel
-;if (is_it_gdl EQ 1) then print, 'WARNING AC 17/04/2007: not working in GDL on x86_64'
-map_set, 40,-105, /continent, title='continent (rotated)'
+print, 'Exemple 2: Should plot the whole world centered on the North America (with rotation)'
+MAP_SET, 40,-105, /continent, title='Continents (rotated)'
 times[1]=SYSTIME(1)-t0
 suite='' & read, 'Press Enter', suite
 ;
 t0=SYSTIME(1)
-print, 'Exemple3: Should plot the whole "classical view" of the world with a grid'
-map_set, 0, 0, /continent, /grid
+print, 'Exemple 3: Should plot the whole "classical view" of the world with a grid'
+MAP_SET, 0, 0, /continent, /grid, title='Continents, centered on Greenwitch Meridian'
 times[2]=SYSTIME(1)-t0
 suite='' & read, 'Press Enter', suite
 ;
 t0=SYSTIME(1)
-print, 'Exemple4: Should plot Europa centered on Paris Observatory'
-map_set,/cont, 48.83,2.33,/grid,/gno,/iso, scale=3.e7, title='Europa'
+print, 'Exemple 4: Should plot Europa centered on Paris Observatory using Gnomic Projection'
+MAP_SET,/cont, 48.83,2.33,/grid,/gnomic,/iso, scale=3.e7, title='Zoom on Europa, Gnomic Projection'
 times[3]=SYSTIME(1)-t0
 suite='' & read, 'Press Enter', suite
 ;
 t0=SYSTIME(1)
-print, 'Exemple5: Should plot North America'
-;AC 25/05/2007 no more useful, bug corrected in CVS by Joel
-;if (is_it_gdl EQ 1) then print, 'WARNING AC 17/04/2007: not working in GDL on x86_64'
+print, 'Exemple 5: Should plot North America using Gnomic Projection'
+MAP_SET,/gnomic,/iso,40,-105,/cont, limit=[20,-130,70,-70], title='Gnomic, North America'
 times[4]=SYSTIME(1)-t0
-map_set,/gnomic,/iso,40,-105,/cont, limit=[20,-130,70,-70]
+suite='' & read, 'Press Enter', suite
+;
+t0=SYSTIME(1)
+print, 'Exemple 6: Should plot North America using Satellite Projection'
+MAP_SET, 40,-105,/satellite,/grid,/cont,limit=[20,-130,70,-70], sat_p=[2.22, 0, 0], title='Satellite Projection, North America'
+times[5]=SYSTIME(1)-t0
+suite='' & read, 'Press Enter', suite
+;
+t0=SYSTIME(1)
+print, 'Exemple 7: Should plot World using Robinson projection'
+MAP_SET,0,180,/robinson,/grid,/cont,/iso,titl='Robinson Projection, Centered on Greenwich Meridian'
+times[6]=SYSTIME(1)-t0
 ;
 print, 'last demo done'
 ;
 print, 'times:', times
 ;
+if KEYWORD_SET(test) then STOP
+;
 end
+
+;AC 25/05/2007 no more useful, bug corrected in CVS by Joel
+;if (is_it_gdl EQ 1) then print, 'WARNING AC 17/04/2007: not working in GDL on x86_64'
