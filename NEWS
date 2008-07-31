@@ -191,7 +191,12 @@
 	  limitations documented in program) and !mouse
  
 0.9rc1    fixing memory leak in FFT when using FFTw lib.
+	  fixing FACTORIAL (GDL syntax)
+	  add SKIP_LUN (used by Astron Lib.; GDL syntax)
 	  add VOIGT() function (in C++) based on Wells' paper.
 	  add REAL_PART() function (GDL syntax)
 	  add RK4() function (in C++)
+	  in CONTOUR: throw when levels= are not ordered, manage NaN
+	  and Inf values, add Nlevels= and /Fill
+	  Two new projections in MAP_SET: Satellite and Robinson
 
