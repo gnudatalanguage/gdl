@@ -28,22 +28,22 @@
 
 // GDL typecodes
 enum DType {  // Object types (IDL type numbers)
-  UNDEF=0,    // Undefined value, the default for new symbols
-  BYTE=1,     // byte
-  INT,	      // Integer scalar
-  LONG,	      // long Integer scalar
-  FLOAT,      // Real scalar
-  DOUBLE,     // Integer scalar
-  COMPLEX,    // Complex scalar
-  STRING,     // String
-  STRUCT,     // Struct
-  COMPLEXDBL, // Complex double
-  PTR,	      // Pointer
-  OBJECT,     // Object reference
-  UINT,       // unsigned int
-  ULONG,      // unsigned long int
-  LONG64,      // 64 bit integer
-  ULONG64      // unsigned 64 bit integer
+  UNDEF=0,    // 0 Undefined value, the default for new symbols
+  BYTE=1,     // 1 byte
+  INT,	      // 2 Integer scalar 
+  LONG,	      // 3 long Integer scalar
+  FLOAT,      // 4 Real scalar
+  DOUBLE,     // 5 Double scalar
+  COMPLEX,    // 6 Complex scalar
+  STRING,     // 7 String
+  STRUCT,     // 8 Struct
+  COMPLEXDBL, // 9 Complex double
+  PTR,	      // 10 Pointer
+  OBJECT,     // 11 Object reference
+  UINT,       // 12 unsigned int
+  ULONG,      // 13 unsigned long int
+  LONG64,     // 14 64 bit integer
+  ULONG64     // 15 unsigned 64 bit integer
 };
 
 // order of conversion precedence if two types are the same,
