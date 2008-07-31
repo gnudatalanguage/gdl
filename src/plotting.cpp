@@ -46,7 +46,6 @@ namespace lib {
     if( maxVal != NULL) *maxVal = (*val)[ maxE];
   }
 
-
   void device( EnvT* e)
   {
     // CLOSE for z-buffer device
@@ -2149,15 +2148,17 @@ namespace lib {
       }
 
     // x and y and z range
-     DDouble xStart;// = xVal->min(); 
-     DDouble xEnd;//   = xVal->max(); 
-GetMinMaxVal( xVal, &xStart, &xEnd);
-     DDouble yStart;// = yVal->min(); 
-     DDouble yEnd;//   = yVal->max(); 
-GetMinMaxVal( yVal, &yStart, &yEnd);
-     DDouble zStart;// = zVal->min(); 
-     DDouble zEnd;//   = zVal->max(); 
-GetMinMaxVal( zVal, &zStart, &zEnd);
+    DDouble xStart;// = xVal->min(); 
+    DDouble xEnd;//   = xVal->max(); 
+    GetMinMaxVal( xVal, &xStart, &xEnd);
+    
+    DDouble yStart;// = yVal->min(); 
+    DDouble yEnd;//   = yVal->max(); 
+    GetMinMaxVal( yVal, &yStart, &yEnd);
+    
+    DDouble zStart;// = zVal->min(); 
+    DDouble zEnd;//   = zVal->max(); 
+    GetMinMaxVal( zVal, &zStart, &zEnd);
 
     //[x|y|z]range keyword
     static int zRangeEnvIx = e->KeywordIx("ZRANGE");
@@ -2212,7 +2213,6 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
     DDouble maxVal = zEnd;
     e->AssureDoubleScalarKWIfPresent( "MIN_VALUE", minVal);
     e->AssureDoubleScalarKWIfPresent( "MAX_VALUE", maxVal);
-
 
     bool xLog = e->KeywordSet( "XLOG");
     bool yLog = e->KeywordSet( "YLOG");
@@ -2482,6 +2482,8 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
 
   void contour( EnvT* e)
   {
+    int debug=0;
+
     SizeT nParam=e->NParam( 1); 
 
     DDoubleGDL* zVal;
@@ -2669,16 +2671,18 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
       }
 
     // x and y and z range
-     DDouble xStart;// = xVal->min(); 
-     DDouble xEnd;//   = xVal->max(); 
-GetMinMaxVal( xVal, &xStart, &xEnd);
-     DDouble yStart;// = yVal->min(); 
-     DDouble yEnd;//   = yVal->max(); 
-GetMinMaxVal( yVal, &yStart, &yEnd);
-     DDouble zStart;// = zVal->min(); 
-     DDouble zEnd;//   = zVal->max(); 
-GetMinMaxVal( zVal, &zStart, &zEnd);
+    DDouble xStart;// = xVal->min(); 
+    DDouble xEnd;//   = xVal->max(); 
+    GetMinMaxVal( xVal, &xStart, &xEnd);
+    
+    DDouble yStart;// = yVal->min(); 
+    DDouble yEnd;//   = yVal->max(); 
+    GetMinMaxVal( yVal, &yStart, &yEnd);
 
+    DDouble zStart;// = zVal->min(); 
+    DDouble zEnd;//   = zVal->max(); 
+    GetMinMaxVal( zVal, &zStart, &zEnd);
+    
     if ((xStyle & 1) != 1) {
       PLFLT intv;
       intv = AutoIntvAC(xStart, xEnd, false );
@@ -2687,6 +2691,11 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
     if ((yStyle & 1) != 1) {
       PLFLT intv;
       intv = AutoIntvAC(yStart, yEnd, false );
+    }
+    
+    if ((zStyle & 1) != 1) {
+      PLFLT zintv;
+      zintv = AutoIntvAC(zStart, zEnd, false );
     }
 
     //[x|y|z]range keyword
@@ -2735,12 +2744,17 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
 	zEnd = (*zRangeF)[1];
       }
 
-    //no more usefull    if(xEnd == xStart) xEnd=xStart+1;
-
     DDouble minVal = zStart;
     DDouble maxVal = zEnd;
     e->AssureDoubleScalarKWIfPresent( "MIN_VALUE", minVal);
     e->AssureDoubleScalarKWIfPresent( "MAX_VALUE", maxVal);
+
+    // AC july 2008 please remember that data sweep out by that
+    // are really processed like MISSING data (NaN ...)
+    if (minVal > zStart) cout << "This MIN_VALUE is not ready, sorry. Help welcome." <<endl;
+    if (maxVal < zEnd) cout << "This MAX_VALUE is not ready, sorry. Help welcome." <<endl;
+    //cout << "MIN_VALUE" << minVal << endl;
+    //cout << "MAX_VALUE" << maxVal << endl;
 
     DLong xTicks=0, yTicks=0, zTicks=0;
     e->AssureLongScalarKWIfPresent( "XTICKS", xTicks);
@@ -2756,7 +2770,6 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
     e->AssureStringScalarKWIfPresent( "XTICKFORMAT", xTickformat);
     e->AssureStringScalarKWIfPresent( "YTICKFORMAT", yTickformat);
     e->AssureStringScalarKWIfPresent( "ZTICKFORMAT", zTickformat);
-
 
     bool xLog = e->KeywordSet( "XLOG");
     bool yLog = e->KeywordSet( "YLOG");
@@ -2819,6 +2832,8 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
     DFloat thick = p_thick;
     e->AssureFloatScalarKWIfPresent( "THICK", thick);
 
+   // CHARTHICK (thickness of "char")
+    PLINT charthick=1;
 
     GDLGStream* actStream = GetPlotStream( e); 
     
@@ -2866,6 +2881,90 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
 			    xStart, xEnd, yStart, yEnd);
     if( !okVPWC) return;
     
+    // managing the levels list OR the nlevels value
+
+    PLINT nlevel;
+    PLFLT *clevel;
+    ArrayGuard<PLFLT> clevel_guard;
+
+    if (debug == 1) {
+      cout << "zStart :" << zStart <<", zEnd :" << zEnd << endl;
+    }
+
+    // we need to define the NaN value
+    static DStructGDL *Values =  SysVar::Values();       
+    DDouble d_nan=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_NAN"), 0)))[0]; 
+    
+    static int levelsix = e->KeywordIx( "LEVELS"); 
+
+    BaseGDL* b_levels=e->GetKW(levelsix);
+    if(b_levels != NULL) {
+      DDoubleGDL* d_levels = e->GetKWAs<DDoubleGDL>( levelsix);
+      nlevel = d_levels->N_Elements();
+      clevel = (PLFLT *) &(*d_levels)[0];
+      // are the levels ordered ?
+      for ( SizeT i=1; i<nlevel; i++) {
+	if (clevel[i] <= clevel[i-1]) 
+	  throw GDLException( e->CallingNode(), "Contour levels must be in increasing order.");
+      }      
+    } else {
+      PLFLT zintv;
+      // Jo: added keyword NLEVELS
+      if (e->KeywordSet( "NLEVELS")) {
+      	e->AssureLongScalarKWIfPresent( "NLEVELS", nlevel);
+	if (nlevel <= 0) nlevel= 2;  // AC: mimication of IDL
+      	zintv = (PLFLT) ((zEnd - zStart) / (nlevel+1));
+      } else {
+	zintv = AutoTick(zEnd - zStart);
+	nlevel = (PLINT) floor((zEnd - zStart) / zintv);
+      }
+      cout << "internal Nlevels == " << nlevel << endl;
+
+      clevel = new PLFLT[nlevel];
+      clevel_guard.Reset( clevel);
+      // Jo: fixed clevel to account for non-zero zMin
+      for( SizeT i=1; i<=nlevel; i++) clevel[i-1] = zintv * i + zStart;
+    }
+    // levels outside limits are changed ...
+    for (SizeT i=0; i<nlevel; i++) {
+      if (clevel[i] < zStart) clevel[i]=zStart;
+      if (clevel[i] > zEnd) clevel[i]=zEnd;
+    }
+
+    // AC would like to check the values (nlevel and values) ...
+    if (debug == 1) {
+      cout << "Nlevels == " << nlevel << endl;
+      for (SizeT i=0; i<nlevel; i++) cout << i << " " << clevel[i] << endl;
+    }
+    
+    // Jo: added keyword FILL
+    PLFLT *clevel_fill;
+    ArrayGuard<PLFLT> clevel_fill_guard;
+    PLINT nlevel_fill;
+    if (e->KeywordSet( "FILL")) {
+      // To ensure that the highest level is filled, define a new
+      // clevel to include highest value of z:   
+      // modif by AC to manage the exception (nlevel=1)
+      if (nlevel > 1) {
+	nlevel_fill=nlevel+1;
+	clevel_fill = new PLFLT[nlevel_fill];
+	clevel_fill_guard.Reset( clevel_fill);
+	clevel_fill[nlevel_fill-1]=zEnd;
+	for( SizeT i=0; i<nlevel; i++) clevel_fill[i] = clevel[i];
+      } else {
+	nlevel_fill=3;
+	clevel_fill = new PLFLT[nlevel_fill];
+	clevel_fill_guard.Reset( clevel_fill);
+	clevel_fill[0]=zStart;
+	clevel_fill[1]=clevel[0];
+	clevel_fill[2]=zEnd;
+      }
+      
+      if (debug ==1 ) {
+	cout << "zStart "<< zStart << " zEnd "<< zEnd <<endl ;
+	for( SizeT i=0; i<nlevel_fill; i++) cout << i << " " << clevel_fill[i] << endl;
+      }
+    }
 
     // pen thickness for axis
     actStream->wid( 0);
@@ -2905,46 +3004,25 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
     // pen thickness for plot
     actStream->wid( static_cast<PLINT>(floor( thick-0.5)));
 
-
-    // plot the data
-
-    PLINT nlevel;
-    PLFLT *clevel;
-    ArrayGuard<PLFLT> clevel_guard;
-
-    static int levelsix = e->KeywordIx( "LEVELS"); 
-
-    BaseGDL* b_levels=e->GetKW(levelsix);
-    if(b_levels != NULL) {
-      DDoubleGDL* d_levels = e->GetKWAs<DDoubleGDL>( levelsix);
-      nlevel = d_levels->N_Elements();
-      clevel = (PLFLT *) &(*d_levels)[0];
-    } else {
-      PLFLT zintv;
-
-     DDouble zMin;// = zVal->min(); 
-     DDouble zMax;//   = zVal->max(); 
-GetMinMaxVal( zVal, &zMin, &zMax);
-
-      zintv = AutoTick(zMax - zMin);
-      nlevel = (PLINT) floor((zMax - zMin) / zintv);
-      clevel = new PLFLT[nlevel];
-      clevel_guard.Reset( clevel);
-      for( SizeT i=1; i<=nlevel; i++) clevel[i-1] = zintv * i;
-    }
+    // labeling
+    //setcontlabelparam(PLFLT offset, PLFLT size, PLFLT spacing, PLINT active)
+    // actStream->setcontlabelparam(0.0, 1, .3, 1);
 
 
+    // starting plotting the data
+    
     // 1 DIM X & Y
     if (xVal->Rank() == 1 && yVal->Rank() == 1) {
       PLFLT spa[4];
-
-     DDouble xMin;// = zVal->min(); 
-     DDouble xMax;//   = zVal->max(); 
-GetMinMaxVal( xVal, &xMin, &xMax);
-     DDouble yMin;// = zVal->min(); 
-     DDouble yMax;//   = zVal->max(); 
-GetMinMaxVal( yVal, &yMin, &yMax);
-
+      
+      // don't forgot we have to use the real limits, not the adjusted ones
+      DDouble xMin;// = zVal->min(); 
+      DDouble xMax;//   = zVal->max(); 
+      GetMinMaxVal( xVal, &xMin, &xMax);
+      DDouble yMin;// = zVal->min(); 
+      DDouble yMax;//   = zVal->max(); 
+      GetMinMaxVal( yVal, &yMin, &yMax);
+ 
       spa[0] = (xMax - xMin) / (xEl - 1);
       spa[1] = (yMax - yMin) / (yEl - 1);
       spa[2] = xMin; 
@@ -2952,7 +3030,19 @@ GetMinMaxVal( yVal, &yMin, &yMax);
 
       PLFLT** z = new PLFLT*[xEl];
       for( SizeT i=0; i<xEl; i++) z[i] = &(*zVal)[i*yEl];
-
+      
+      // plplot knows how to manage NaN but not Infinity ...
+      // we remplace Infinity by Nan
+      for( SizeT i=0; i<xEl*yEl; i++) {
+	if (isinf((*zVal)[i])) (*z)[i]= d_nan;
+      }
+      // a draft for MaxVal ...
+      //      if (maxVal < zEnd) {
+      //;	for( SizeT i=0; i<xEl*yEl; i++) {
+      //if ((*zVal)[i] > maxVal) (*z)[i]= d_nan;
+      //	}
+      //}
+      
       //      gkw_linestyle(e, actStream);
       //actStream->lsty(2);
       //
@@ -2964,14 +3054,28 @@ GetMinMaxVal( yVal, &yMin, &yMax);
       // we recover the linestyle if a !p.linestyle does exist
       //gkw_linestyle_c(e, actStream, TRUE);
 
-      actStream->cont(z, xEl, yEl, 1, xEl, 1, yEl, 
-		      clevel, nlevel, mypltr, static_cast<void*>( spa));
 
+      if (e->KeywordSet( "FILL")) {
+	// the "clevel_fill, nlevel_fill" have been computed before
+        actStream->shades(z, xEl, yEl, NULL, xStart, xEnd, yStart, yEnd,
+			  clevel_fill, nlevel_fill, 2, 0, 0, plstream::fill,
+			  false, mypltr, static_cast<void*>( spa));
+	
+	// Redraw the axes just in case the filling overlaps them
+	actStream->box( xOpt.c_str(), xintv, xMinor, "", 0.0, 0);
+	actStream->box( "", 0.0, 0, yOpt.c_str(), yintv, yMinor);
+	// pen thickness for axis
+	actStream->wid(charthick);
+      } else {
+        actStream->cont(z, xEl, yEl, 1, xEl, 1, yEl, 
+                        clevel, nlevel, mypltr, static_cast<void*>( spa)) ;
+
+      }
       delete[] z;
     }
-
+    
     if (xVal->Rank() == 2 && yVal->Rank() == 2) {
-
+      
       PLcGrid2 cgrid2;
       actStream->Alloc2dGrid(&cgrid2.xg,xVal->Dim(0),xVal->Dim(1));
       actStream->Alloc2dGrid(&cgrid2.yg,xVal->Dim(0),xVal->Dim(1));
@@ -2988,17 +3092,32 @@ GetMinMaxVal( yVal, &yMin, &yMax);
       PLFLT** z = new PLFLT*[xVal->Dim(0)];
       for( SizeT i=0; i<xVal->Dim(0); i++) z[i] = &(*zVal)[i*xVal->Dim(1)];
 
-      actStream->cont(z, xVal->Dim(0), xVal->Dim(1), 
-		      1, xVal->Dim(0), 1, xVal->Dim(1), clevel, nlevel,
-		      plstream::tr2, (void *) &cgrid2 );
+      for( SizeT i=0; i<xVal->Dim(0)*xVal->Dim(1); i++) {
+	if (isinf((*zVal)[i])) (*z)[i]= d_nan;
+      }
 
+      if (e->KeywordSet( "FILL")) {
+	// the "clevel_fill, nlevel_fill" have been computed before
+        actStream->shades(z, xVal->Dim(0), xVal->Dim(1), 
+			  NULL, xStart, xEnd, yStart, yEnd,
+			  clevel_fill, nlevel_fill, 2, 0, 0, plstream::fill,
+			  false, plstream::tr2, (void *) &cgrid2 );
+	// Redraw the axes just in case the filling overlaps them       
+	actStream->box( xOpt.c_str(), xintv, xMinor, "", 0.0, 0);
+	actStream->box( "", 0.0, 0, yOpt.c_str(), yintv, yMinor);
+	// pen thickness for axis
+	actStream->wid(charthick);
+      } else {	      
+	actStream->cont(z, xVal->Dim(0), xVal->Dim(1), 
+			1, xVal->Dim(0), 1, xVal->Dim(1), clevel, nlevel,
+			plstream::tr2, (void *) &cgrid2 );
+      }
       actStream->Free2dGrid(cgrid2.xg,xVal->Dim(0),xVal->Dim(1));
       actStream->Free2dGrid(cgrid2.yg,xVal->Dim(0),xVal->Dim(1));
 
       // AC june 07 : symetry for the previous case
       delete[] z;
     }
-
 
     // title and sub title
     actStream->schr( 0.0, 1.25*actH/defH);
@@ -4309,17 +4428,17 @@ GetMinMaxVal( yVal, &yMin, &yMax);
 	// xy -> ll
       } else if (e->KeywordSet("NORMAL")) {
 	if (e->KeywordSet("TO_DEVICE")) {
-	    for( SizeT i = 0; i<nrows; ++i) {
-	      (*res)[ires++] = xv * (*ptr1);
-	      (*res)[ires++] = yv * (*ptr2);
-	      if (third)
-		(*res)[ires++] = (*ptr3);
-	      else
-		ires++;
-	      ptr1 += deln;
-	      ptr2 += deln;
-	      ptr3 += deln;
-	    }
+	  for( SizeT i = 0; i<nrows; ++i) {
+	    (*res)[ires++] = xv * (*ptr1);
+	    (*res)[ires++] = yv * (*ptr2);
+	    if (third)
+	      (*res)[ires++] = (*ptr3);
+	    else
+	      ires++;
+	    ptr1 += deln;
+	    ptr2 += deln;
+	    ptr3 += deln;
+	  }
 	} else {
 	  XY idata;
 	  LP odata;
