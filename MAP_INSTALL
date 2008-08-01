@@ -58,7 +58,8 @@ the !DIR system variable.
 Note: Only low-resolution boundaries are currently supported.
 
 
-The following projections are at least partially supported:
+The following projections are at least partially supported
+(numbers defined in the map_sep.pro file itself):
 
 Stereographic Projection:  (1)
 Orthographic Projection:   (2)
@@ -66,10 +67,11 @@ Lambert Conformal Conic:   (3)
 Lambert Equal Area Conic:  (4)
 Gnomonic:                  (5)
 Azimuthal Equidistant:     (6)
+Satellite:                 (7) (add 28/07/2008)
 Cylindrical Equidistant:   (8)
 Mercator:                  (9)
 Aitoff:                   (12)
-
+Robinson:                 (17) (add 28/07/2008)
 
 NOTE: Map projection support in GDL is a work in progress.  There are
 BUGS!!  These will be fixed as time permits.  Additional projections
@@ -80,5 +82,10 @@ Joel Gales
 
 
 PS (by AC): a demo ("test_map.pro") is now available in the testsuite/.
-This demo is fully working on x86_32. Last example does not
-work now on x86_64 due to limit= keyword
+If not in the PATH, you must provide the root of the path to the database files
+(if file "plow.dat" is here /opt/GDL/lib_GDL_0.9/resource/maps/low/plow.dat
+--> you must provide /opt/GDL/lib_GDL_0.9/ to "test_map"
+or you can call it via "test_map, dir='/opt/GDL/lib_GDL_0.9/')
+This demo has been succesfully tested on Linux x86_32 and x86_64. 
+Please reports BUG with as simple as possible code giving it !
+
