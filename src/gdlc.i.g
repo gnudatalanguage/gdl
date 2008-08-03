@@ -25,6 +25,7 @@ header "pre_include_cpp" {
 header "post_include_cpp" {
     // gets inserted after the antlr generated includes in the cpp file
 #include "dinterpreter.hpp"
+#include "prognodeexpr.hpp"
 
 #include <cassert>
 
@@ -74,11 +75,12 @@ header {
 #include "datatypes.hpp"
 #include "objects.hpp"
 #include "dpro.hpp"
-#include "dnode.hpp"
 #include "accessdesc.hpp"
 #include "initsysvar.hpp"
 #include "gdljournal.hpp"
 
+//class ProgNode;
+//typedef ProgNode* ProgNodeP;
 
 // tweaking ANTLR
 #define RefAST( xxx)     ConvertAST( xxx) /* antlr::RefAST( Ref type)  */
@@ -113,7 +115,10 @@ private:
     static ProgNodeP NULLProgNodeP;
 
     friend class ProgNode;
-
+    friend class ARRAYDEFNode;
+    friend class STRUCNode;
+    friend class NSTRUCNode;
+    friend class NSTRUC_REFNode;
 public: 
     enum RetCode {
         RC_OK=0,
@@ -1015,7 +1020,7 @@ for_statement returns[ GDLInterpreter::RetCode retCode]
 // EXECUTE may call DataListT.loc.resize(), as v points to the
 // old sequence v might be invalidated -> segfault
 // note that the value (*v) is preserved by resize()
-                s_guard.release(); // s hold in *v after this
+                s_guard.release(); // s held in *v after this
                 for((*v)=s; (*v)->ForCondUp( e); 
                     v=l_simple_var( sv), (*v)->ForAdd()) 
                 {
@@ -2135,6 +2140,17 @@ l_sys_var returns [BaseGDL** res]
 r_expr returns [BaseGDL* res]
     : e:EXPR
         { res = e->Eval();}
+    | a:ARRAYDEF
+        { res = a->Eval(); _t=_retTree;}
+    | s:STRUC
+        { res = s->Eval(); _t=_retTree;}
+    | n:NSTRUC
+        { res = n->Eval(); _t=_retTree;}
+    | r:NSTRUC_REF
+        { res = r->Eval(); _t=_retTree;}
+//     | res=array_def
+//     | res=struct_def
+
 // {
 //     BaseGDL* e1;
 //     BaseGDL* e2;
@@ -2422,9 +2438,7 @@ r_expr returns [BaseGDL* res]
 //         {
 //             res = e1->LogNeg();
 //         }
-//    | res=constant                  
-    | res=array_def
-    | res=struct_def
+//    | res=constant
     ;
 
 array_expr returns [BaseGDL* res]
@@ -3180,241 +3194,241 @@ arrayindex_list returns [ArrayIndexListT* aL]
         }
     ;
 
-// and array_def is a primary expression
-array_def returns [BaseGDL* res]
-{
-    DType  cType=UNDEF; // conversion type
-    SizeT maxRank=0;
-    BaseGDL* e;
-    ExprListT          exprList;
-    BaseGDL*           cTypeData;
-}
-    : #(a:ARRAYDEF 
-            (e=expr
-                {
-                    // add first (this way it will get cleaned up anyway)
-                    exprList.push_back(e);
+// // and array_def is a primary expression
+// array_def returns [BaseGDL* res]
+// {
+//     DType  cType=UNDEF; // conversion type
+//     SizeT maxRank=0;
+//     BaseGDL* e;
+//     ExprListT          exprList;
+//     BaseGDL*           cTypeData;
+// }
+//     : #(a:ARRAYDEF 
+//             (e=expr
+//                 {
+//                     // add first (this way it will get cleaned up anyway)
+//                     exprList.push_back(e);
                     
-                    DType ty=e->Type();
-                    if( ty == UNDEF)
-                    {
-                        throw GDLException( _t, "Variable is undefined: "+
-                            Name(e));
-                    }
-                    if( cType == UNDEF) 
-                    {
-                        cType=ty;
-                        cTypeData=e;
-                    }
-                    else 
-                    { 
-                        if( cType != ty) 
-                        {
-                            if( DTypeOrder[ty] > 100 || DTypeOrder[cType] > 100) // struct, ptr, object
-                            {
-                                throw 
-                                GDLException( _t, e->TypeStr()+
-                                    " is not allowed in this context.");
-                            }
+//                     DType ty=e->Type();
+//                     if( ty == UNDEF)
+//                     {
+//                         throw GDLException( _t, "Variable is undefined: "+
+//                             Name(e));
+//                     }
+//                     if( cType == UNDEF) 
+//                     {
+//                         cType=ty;
+//                         cTypeData=e;
+//                     }
+//                     else 
+//                     { 
+//                         if( cType != ty) 
+//                         {
+//                             if( DTypeOrder[ty] > 100 || DTypeOrder[cType] > 100) // struct, ptr, object
+//                             {
+//                                 throw 
+//                                 GDLException( _t, e->TypeStr()+
+//                                     " is not allowed in this context.");
+//                             }
                             
-                            // update order if larger type (or types are equal)
-                            if( DTypeOrder[ty] >= DTypeOrder[cType]) 
-                            {
-                                cType=ty;
-                                cTypeData=e;
-                            }
-                        }
-                        if( ty == STRUCT)
-                        {
-                            // check for struct compatibility
-                            DStructDesc* newS=
-                            static_cast<DStructGDL*>(e)->Desc();
-                            DStructDesc* oldS=
-                            static_cast<DStructGDL*>(cTypeData)->Desc();
+//                             // update order if larger type (or types are equal)
+//                             if( DTypeOrder[ty] >= DTypeOrder[cType]) 
+//                             {
+//                                 cType=ty;
+//                                 cTypeData=e;
+//                             }
+//                         }
+//                         if( ty == STRUCT)
+//                         {
+//                             // check for struct compatibility
+//                             DStructDesc* newS=
+//                             static_cast<DStructGDL*>(e)->Desc();
+//                             DStructDesc* oldS=
+//                             static_cast<DStructGDL*>(cTypeData)->Desc();
 
-                            // *** here (*newS) != (*oldS) must be set when
-                            // unnamed structs not in struct list anymore
-                            // WRONG! This speeds up things for named structs
-                            // unnamed structs all have their own desc
-                            // and thus the next is always true for them
-                            if( newS != oldS)
-                            {
-//                                 if( (*newS) == (*oldS))
-//                                 {
-// Not needed, CatArray puts the right descriptor
-//                                     // different structs with same layout
-//                                     // replace desc with first one
-//                                     if( oldS->IsUnnamed())
-//                                         oldS = new DStructDesc( oldS);
+//                             // *** here (*newS) != (*oldS) must be set when
+//                             // unnamed structs not in struct list anymore
+//                             // WRONG! This speeds up things for named structs
+//                             // unnamed structs all have their own desc
+//                             // and thus the next is always true for them
+//                             if( newS != oldS)
+//                             {
+// //                                 if( (*newS) == (*oldS))
+// //                                 {
+// // Not needed, CatArray puts the right descriptor
+// //                                     // different structs with same layout
+// //                                     // replace desc with first one
+// //                                     if( oldS->IsUnnamed())
+// //                                         oldS = new DStructDesc( oldS);
 
-//                                     static_cast<DStructGDL*>(e)->SetDesc( oldS);
-//                                 }
-//                                 else
+// //                                     static_cast<DStructGDL*>(e)->SetDesc( oldS);
+// //                                 }
+// //                                 else
 
-                                if( (*newS) != (*oldS))
-                                    throw GDLException( _t, 
-                                        "Conflicting data structures: "+
-                                        Name(cTypeData)+", "+Name(e));
-                            }
-                        }
-                    }
+//                                 if( (*newS) != (*oldS))
+//                                     throw GDLException( _t, 
+//                                         "Conflicting data structures: "+
+//                                         Name(cTypeData)+", "+Name(e));
+//                             }
+//                         }
+//                     }
 
-                    // memorize maximum Rank
-                    SizeT rank=e->Rank();
-                    if( rank > maxRank) maxRank=rank;
-                }
-            )+
-        )
-        {  
-            res=cTypeData->CatArray(exprList,a->arrayDepth,maxRank);
-        }
-  ;
+//                     // memorize maximum Rank
+//                     SizeT rank=e->Rank();
+//                     if( rank > maxRank) maxRank=rank;
+//                 }
+//             )+
+//         )
+//         {  
+//             res=cTypeData->CatArray(exprList,a->arrayDepth,maxRank);
+//         }
+//   ;
 
 
-named_struct_def returns[ BaseGDL* res]
-{
-    DStructDesc*          nStructDesc;
-    auto_ptr<DStructDesc> nStructDescGuard;
-    BaseGDL* e;
-    BaseGDL* ee;
-}
-	: #(n:NSTRUC id:IDENTIFIER 
-            {
-                // definedStruct: no tags present
-                if( n->definedStruct == 1) GetStruct( id->getText(), _t);
+// named_struct_def returns[ BaseGDL* res]
+// {
+//     DStructDesc*          nStructDesc;
+//     auto_ptr<DStructDesc> nStructDescGuard;
+//     BaseGDL* e;
+//     BaseGDL* ee;
+// }
+// 	: #(n:NSTRUC id:IDENTIFIER 
+//             {
+//                 // definedStruct: no tags present
+//                 if( n->definedStruct == 1) GetStruct( id->getText(), _t);
 
-                // find struct 'id' (for compatibility check)
-                DStructDesc* oStructDesc=
-                FindInStructList( structList, id->getText());
+//                 // find struct 'id' (for compatibility check)
+//                 DStructDesc* oStructDesc=
+//                 FindInStructList( structList, id->getText());
                 
-                if( oStructDesc == NULL || oStructDesc->NTags() > 0)
-                {
-                    // not defined at all yet (-> define now)
-                    // or completely defined  (-> define now and check equality)
-                    nStructDesc= new DStructDesc( id->getText());
+//                 if( oStructDesc == NULL || oStructDesc->NTags() > 0)
+//                 {
+//                     // not defined at all yet (-> define now)
+//                     // or completely defined  (-> define now and check equality)
+//                     nStructDesc= new DStructDesc( id->getText());
                     
-                    // guard it
-                    nStructDescGuard.reset( nStructDesc); 
-                } 
-                else
-                {   // NTags() == 0
-                    // not completely defined (only name in list)
-                    nStructDesc= oStructDesc;
-                }
+//                     // guard it
+//                     nStructDescGuard.reset( nStructDesc); 
+//                 } 
+//                 else
+//                 {   // NTags() == 0
+//                     // not completely defined (only name in list)
+//                     nStructDesc= oStructDesc;
+//                 }
                 
-                // the instance variable
-//                 DStructGDL* instance= new DStructGDL( nStructDesc,
-//                                                       dimension(1)); 
-                DStructGDL* instance= new DStructGDL( nStructDesc);
+//                 // the instance variable
+// //                 DStructGDL* instance= new DStructGDL( nStructDesc,
+// //                                                       dimension(1)); 
+//                 DStructGDL* instance= new DStructGDL( nStructDesc);
 
-                auto_ptr<DStructGDL> instance_guard(instance);
-            }
+//                 auto_ptr<DStructGDL> instance_guard(instance);
+//             }
 
-            // PROBLEM: both the descriptor AND the instance must be defined
-            ( ee=expr
-                {
-                    // also adds to descriptor, grabs
-                    instance->NewTag( 
-                        oStructDesc->TagName( nStructDesc->NTags()),
-                        ee);
-                }
-            | i:IDENTIFIER e=expr // e is a new BaseGDL*
-                {
-                    // also adds to descriptor, grabs
-                    instance->NewTag( i->getText(), e); 
-                }
-            | INHERITS ii:IDENTIFIER
-            // INHERITS triggers read/compile/interpret of 
-            // IDENTIFIER__define.pro
-            // if the struct named IDENTIFIER is not already known
-                {
-                    DStructDesc* inherit=GetStruct( ii->getText(), _t);
+//             // PROBLEM: both the descriptor AND the instance must be defined
+//             ( ee=expr
+//                 {
+//                     // also adds to descriptor, grabs
+//                     instance->NewTag( 
+//                         oStructDesc->TagName( nStructDesc->NTags()),
+//                         ee);
+//                 }
+//             | i:IDENTIFIER e=expr // e is a new BaseGDL*
+//                 {
+//                     // also adds to descriptor, grabs
+//                     instance->NewTag( i->getText(), e); 
+//                 }
+//             | INHERITS ii:IDENTIFIER
+//             // INHERITS triggers read/compile/interpret of 
+//             // IDENTIFIER__define.pro
+//             // if the struct named IDENTIFIER is not already known
+//                 {
+//                     DStructDesc* inherit=GetStruct( ii->getText(), _t);
 
-                    //   nStructDesc->AddParent( inherit);
-                    instance->AddParent( inherit);
-                }
+//                     //   nStructDesc->AddParent( inherit);
+//                     instance->AddParent( inherit);
+//                 }
                 
-            )+
+//             )+
        
-            {
-                // inherit refers to nStructDesc, in case of error both have to
-                // be freed here
-                if( oStructDesc != NULL)
-                {
-                    if( oStructDesc != nStructDesc)
-                    {
-                        oStructDesc->AssureIdentical(nStructDesc);
-                        instance->DStructGDL::SetDesc(oStructDesc);
-                        //delete nStructDesc; // auto_ptr
-                    }
-                }
-                else
-                {
-                    // release from guard (if not NULL)
-                    nStructDescGuard.release();
-
-                    // insert into struct list 
-                    structList.push_back(nStructDesc);
-                }
-                
-                instance_guard.release();
-                res=instance;
-            }
-        )
-    ;
-
-unnamed_struct_def returns[ BaseGDL* res]
-{
-    // don't forget the struct in extrat.cpp if you change something here
-    // "$" as first char in the name is necessary 
-    // as it defines unnnamed structs (see dstructdesc.hpp)
-    DStructDesc*   nStructDesc = new DStructDesc( "$truct");
-
-    // instance takes care of nStructDesc since it is unnamed
-//     DStructGDL* instance = new DStructGDL( nStructDesc, dimension(1));
-    DStructGDL* instance = new DStructGDL( nStructDesc);
-    auto_ptr<DStructGDL> instance_guard(instance);
-
-    BaseGDL* e;
-}
-	: #(STRUC 
-            ( si:IDENTIFIER e=expr
-                {
-                    // also adds to descriptor, grabs
-                    instance->NewTag( si->getText(), e); 
-                }
-            )+
-            
-            {
-//                 DStructDesc* oStructDesc=nStructDesc->FindEqual( structList);
+//             {
+//                 // inherit refers to nStructDesc, in case of error both have to
+//                 // be freed here
 //                 if( oStructDesc != NULL)
 //                 {
-//                     instance->SetDesc(oStructDesc);
-//                     //delete nStructDesc; // auto_ptr
+//                     if( oStructDesc != nStructDesc)
+//                     {
+//                         oStructDesc->AssureIdentical(nStructDesc);
+//                         instance->DStructGDL::SetDesc(oStructDesc);
+//                         //delete nStructDesc; // auto_ptr
+//                     }
 //                 }
 //                 else
 //                 {
-//                     // insert into struct list
-//                     structList.push_back( nStructDesc.release());
+//                     // release from guard (if not NULL)
+//                     nStructDescGuard.release();
+
+//                     // insert into struct list 
+//                     structList.push_back(nStructDesc);
 //                 }
                 
-                instance_guard.release();
-                res=instance;
-            }
-        )
-    ;
+//                 instance_guard.release();
+//                 res=instance;
+//             }
+//         )
+//     ;
 
-// only from named structs
-struct_def returns[ BaseGDL* res]
-    : res=named_struct_def
-    | res=unnamed_struct_def
-	| #(NSTRUC_REF idRef:IDENTIFIER 
-            {
-                // find struct 'id'
-                // returns it or throws an exception
-                DStructDesc* dStruct=GetStruct( idRef->getText(), _t);
+// unnamed_struct_def returns[ BaseGDL* res]
+// {
+//     // don't forget the struct in extrat.cpp if you change something here
+//     // "$" as first char in the name is necessary 
+//     // as it defines unnnamed structs (see dstructdesc.hpp)
+//     DStructDesc*   nStructDesc = new DStructDesc( "$truct");
+
+//     // instance takes care of nStructDesc since it is unnamed
+// //     DStructGDL* instance = new DStructGDL( nStructDesc, dimension(1));
+//     DStructGDL* instance = new DStructGDL( nStructDesc);
+//     auto_ptr<DStructGDL> instance_guard(instance);
+
+//     BaseGDL* e;
+// }
+// 	: #(STRUC 
+//             ( si:IDENTIFIER e=expr
+//                 {
+//                     // also adds to descriptor, grabs
+//                     instance->NewTag( si->getText(), e); 
+//                 }
+//             )+
+            
+//             {
+// //                 DStructDesc* oStructDesc=nStructDesc->FindEqual( structList);
+// //                 if( oStructDesc != NULL)
+// //                 {
+// //                     instance->SetDesc(oStructDesc);
+// //                     //delete nStructDesc; // auto_ptr
+// //                 }
+// //                 else
+// //                 {
+// //                     // insert into struct list
+// //                     structList.push_back( nStructDesc.release());
+// //                 }
                 
-                res=new DStructGDL( dStruct, dimension(1));
-            }
-        )
-	;
+//                 instance_guard.release();
+//                 res=instance;
+//             }
+//         )
+//     ;
+
+// // only from named structs
+// struct_def returns[ BaseGDL* res]
+//     : res=named_struct_def
+//     | res=unnamed_struct_def
+// 	| #(NSTRUC_REF idRef:IDENTIFIER 
+//             {
+//                 // find struct 'id'
+//                 // returns it or throws an exception
+//                 DStructDesc* dStruct=GetStruct( idRef->getText(), _t);
+                
+//                 res=new DStructGDL( dStruct, dimension(1));
+//             }
+//         )
+// 	;

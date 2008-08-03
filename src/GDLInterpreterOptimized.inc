@@ -1,5 +1,5 @@
 // to be included from GDLInterpreter.hpp 
-
+/*
 BaseGDL*  constantNotOptimized(ProgNodeP _t);
 RetCode  interactiveNotOptimized(ProgNodeP _t);
 RetCode  statement_listNotOptimized(ProgNodeP _t);
@@ -20,6 +20,6 @@ BaseGDL* lib_function_call_retnewNotOptimized(ProgNodeP _t); // *
 BaseGDL*  lib_function_callNotOptimized(ProgNodeP _t);
 BaseGDL* constant_nocopyNotOptimized(ProgNodeP _t); // *
 BaseGDL* struct_defNotOptimized(ProgNodeP _t);
-
+*/
 
 

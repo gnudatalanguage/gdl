@@ -21,7 +21,7 @@
 #include <string>
 #include <iostream>
 
-#include "dnode.hpp"
+#include "prognode.hpp"
 
 #include "antlr/ANTLRException.hpp"
 

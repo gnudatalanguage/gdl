@@ -1,7 +1,7 @@
 # set the include path found by configure
 INCLUDES = $(EXT_INCLUDES) $(all_includes)
 SUBDIRS = antlr
-noinst_HEADERS =  gdlwidget.hpp
+noinst_HEADERS = gdlwidget.hpp prognode.hpp prognodeexpr.hpp
 
 cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 		basegdl.hpp basic_fun_cl.cpp basic_fun_cl.hpp basic_fun.cpp basic_fun.hpp \
@@ -48,7 +48,7 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 # standalone program
 if !BUILDASLIBRARY
 bin_PROGRAMS = gdl
-gdl_SOURCES = $(cpp_hpp_files) gdl.cpp
+gdl_SOURCES = $(cpp_hpp_files) gdl.cpp prognode.cpp prognodeexpr.cpp
 # trigger basename generation
 gdl_CXXFLAGS = $(AM_CXXFLAGS)
 # the library search path.

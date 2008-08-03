@@ -18,6 +18,9 @@
  *                                                                         *
  ***************************************************************************/
 
+#undef UNDEF
+#ifdef UNDEF
+
 #include "includefirst.hpp"
 
 #include "GDLInterpreter.hpp"
@@ -453,4 +456,5 @@ BaseGDL* GDLInterpreter::struct_def(ProgNodeP _t) {
 	_retTree = _t;
 	return res;
 }
+#endif
 #endif

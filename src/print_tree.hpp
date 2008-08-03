@@ -13,7 +13,7 @@
 #define _PRINT_TREE_HPP_
 
 #include "typedefs.hpp"
-#include "dnode.hpp"
+#include "prognode.hpp"
 
 #include "antlr/ASTRefCount.hpp"
 #include "antlr/AST.hpp"

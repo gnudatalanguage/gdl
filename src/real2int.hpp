@@ -36,6 +36,7 @@ IntT Real2Int( RealT r)
   return static_cast< IntT>( r);
 }
 
+
 template< typename RealT>
 DByte Real2DByte( RealT r)
 {

@@ -13,6 +13,7 @@
 
     // gets inserted after the antlr generated includes in the cpp file
 #include "dinterpreter.hpp"
+#include "prognodeexpr.hpp"
 
 #include <cassert>
 
@@ -51,7 +52,7 @@ GDLInterpreter::GDLInterpreter()
 	: antlr::TreeParser() {
 }
 
- GDLInterpreter::RetCode  GDLInterpreter::interactiveNotOptimized(ProgNodeP _t) {
+ GDLInterpreter::RetCode  GDLInterpreter::interactive(ProgNodeP _t) {
 	 GDLInterpreter::RetCode retCode;
 	ProgNodeP interactive_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
@@ -61,7 +62,7 @@ GDLInterpreter::GDLInterpreter()
 	return retCode;
 }
 
- GDLInterpreter::RetCode  GDLInterpreter::statement_listNotOptimized(ProgNodeP _t) {
+ GDLInterpreter::RetCode  GDLInterpreter::statement_list(ProgNodeP _t) {
 	 GDLInterpreter::RetCode retCode;
 	ProgNodeP statement_list_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
@@ -89,7 +90,7 @@ GDLInterpreter::GDLInterpreter()
 	return retCode;
 }
 
- GDLInterpreter::RetCode  GDLInterpreter::executeNotOptimized(ProgNodeP _t) {
+ GDLInterpreter::RetCode  GDLInterpreter::execute(ProgNodeP _t) {
 	 GDLInterpreter::RetCode retCode;
 	ProgNodeP execute_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
@@ -104,7 +105,7 @@ GDLInterpreter::GDLInterpreter()
 	return retCode;
 }
 
- BaseGDL*  GDLInterpreter::call_funNotOptimized(ProgNodeP _t) {
+ BaseGDL*  GDLInterpreter::call_fun(ProgNodeP _t) {
 	 BaseGDL* res;
 	ProgNodeP call_fun_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
@@ -433,7 +434,7 @@ GDLInterpreter::GDLInterpreter()
 	return retCode;
 }
 
- BaseGDL**  GDLInterpreter::call_lfunNotOptimized(ProgNodeP _t) {
+ BaseGDL**  GDLInterpreter::call_lfun(ProgNodeP _t) {
 	 BaseGDL** res;
 	ProgNodeP call_lfun_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
@@ -476,7 +477,7 @@ GDLInterpreter::GDLInterpreter()
 	return res;
 }
 
-void GDLInterpreter::call_proNotOptimized(ProgNodeP _t) {
+void GDLInterpreter::call_pro(ProgNodeP _t) {
 	ProgNodeP call_pro_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	GDLInterpreter::RetCode retCode;
@@ -933,7 +934,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 		// EXECUTE may call DataListT.loc.resize(), as v points to the
 		// old sequence v might be invalidated -> segfault
 		// note that the value (*v) is preserved by resize()
-		s_guard.release(); // s hold in *v after this
+		s_guard.release(); // s held in *v after this
 		for((*v)=s; (*v)->ForCondUp( e); 
 		v=l_simple_var( sv), (*v)->ForAdd()) 
 		{
@@ -1454,7 +1455,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 	return retCode;
 }
 
- GDLInterpreter::RetCode  GDLInterpreter::blockNotOptimized(ProgNodeP _t) {
+ GDLInterpreter::RetCode  GDLInterpreter::block(ProgNodeP _t) {
 	 GDLInterpreter::RetCode retCode;
 	ProgNodeP block_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
@@ -1619,7 +1620,7 @@ void GDLInterpreter::decinc_statement(ProgNodeP _t) {
 	return retCode;
 }
 
-BaseGDL*  GDLInterpreter::exprNotOptimized(ProgNodeP _t) {
+BaseGDL*  GDLInterpreter::expr(ProgNodeP _t) {
 	BaseGDL* res;
 	ProgNodeP expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
@@ -1673,7 +1674,7 @@ BaseGDL*  GDLInterpreter::exprNotOptimized(ProgNodeP _t) {
 	return res;
 }
 
-BaseGDL**  GDLInterpreter::l_simple_varNotOptimized(ProgNodeP _t) {
+BaseGDL**  GDLInterpreter::l_simple_var(ProgNodeP _t) {
 	BaseGDL** res;
 	ProgNodeP l_simple_var_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP var = ProgNodeP(antlr::nullAST);
@@ -3350,6 +3351,10 @@ BaseGDL*  GDLInterpreter::r_expr(ProgNodeP _t) {
 	BaseGDL* res;
 	ProgNodeP r_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP e = ProgNodeP(antlr::nullAST);
+	ProgNodeP a = ProgNodeP(antlr::nullAST);
+	ProgNodeP s = ProgNodeP(antlr::nullAST);
+	ProgNodeP n = ProgNodeP(antlr::nullAST);
+	ProgNodeP r = ProgNodeP(antlr::nullAST);
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
 		_t = ASTNULL;
@@ -3360,6 +3365,38 @@ BaseGDL*  GDLInterpreter::r_expr(ProgNodeP _t) {
 		match(antlr::RefAST(_t),EXPR);
 		_t = _t->getNextSibling();
 		res = e->Eval();
+		break;
+	}
+	case ARRAYDEF:
+	{
+		a = _t;
+		match(antlr::RefAST(_t),ARRAYDEF);
+		_t = _t->getNextSibling();
+		res = a->Eval(); _t=_retTree;
+		break;
+	}
+	case STRUC:
+	{
+		s = _t;
+		match(antlr::RefAST(_t),STRUC);
+		_t = _t->getNextSibling();
+		res = s->Eval(); _t=_retTree;
+		break;
+	}
+	case NSTRUC:
+	{
+		n = _t;
+		match(antlr::RefAST(_t),NSTRUC);
+		_t = _t->getNextSibling();
+		res = n->Eval(); _t=_retTree;
+		break;
+	}
+	case NSTRUC_REF:
+	{
+		r = _t;
+		match(antlr::RefAST(_t),NSTRUC_REF);
+		_t = _t->getNextSibling();
+		res = r->Eval(); _t=_retTree;
 		break;
 	}
 	case DEC:
@@ -3410,20 +3447,6 @@ BaseGDL*  GDLInterpreter::r_expr(ProgNodeP _t) {
 		_t = _t->getNextSibling();
 		break;
 	}
-	case ARRAYDEF:
-	{
-		res=array_def(_t);
-		_t = _retTree;
-		break;
-	}
-	case NSTRUC:
-	case NSTRUC_REF:
-	case STRUC:
-	{
-		res=struct_def(_t);
-		_t = _retTree;
-		break;
-	}
 	default:
 	{
 		throw antlr::NoViableAltException(antlr::RefAST(_t));
@@ -3433,7 +3456,7 @@ BaseGDL*  GDLInterpreter::r_expr(ProgNodeP _t) {
 	return res;
 }
 
-BaseGDL*  GDLInterpreter::constant_nocopyNotOptimized(ProgNodeP _t) {
+BaseGDL*  GDLInterpreter::constant_nocopy(ProgNodeP _t) {
 	BaseGDL* res;
 	ProgNodeP constant_nocopy_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP c = ProgNodeP(antlr::nullAST);
@@ -4124,169 +4147,6 @@ BaseGDL**  GDLInterpreter::l_array_expr(ProgNodeP _t,
 	return res;
 }
 
-BaseGDL*  GDLInterpreter::array_def(ProgNodeP _t) {
-	BaseGDL* res;
-	ProgNodeP array_def_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
-	ProgNodeP a = ProgNodeP(antlr::nullAST);
-	
-	DType  cType=UNDEF; // conversion type
-	SizeT maxRank=0;
-	BaseGDL* e;
-	ExprListT          exprList;
-	BaseGDL*           cTypeData;
-	
-	
-	ProgNodeP __t174 = _t;
-	a = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
-	match(antlr::RefAST(_t),ARRAYDEF);
-	_t = _t->getFirstChild();
-	{ // ( ... )+
-	int _cnt176=0;
-	for (;;) {
-		if (_t == ProgNodeP(antlr::nullAST) )
-			_t = ASTNULL;
-		if ((_tokenSet_1.member(_t->getType()))) {
-			e=expr(_t);
-			_t = _retTree;
-			
-			// add first (this way it will get cleaned up anyway)
-			exprList.push_back(e);
-			
-			DType ty=e->Type();
-			if( ty == UNDEF)
-			{
-			throw GDLException( _t, "Variable is undefined: "+
-			Name(e));
-			}
-			if( cType == UNDEF) 
-			{
-			cType=ty;
-			cTypeData=e;
-			}
-			else 
-			{ 
-			if( cType != ty) 
-			{
-			if( DTypeOrder[ty] > 100 || DTypeOrder[cType] > 100) // struct, ptr, object
-			{
-			throw 
-			GDLException( _t, e->TypeStr()+
-			" is not allowed in this context.");
-			}
-			
-			// update order if larger type (or types are equal)
-			if( DTypeOrder[ty] >= DTypeOrder[cType]) 
-			{
-			cType=ty;
-			cTypeData=e;
-			}
-			}
-			if( ty == STRUCT)
-			{
-			// check for struct compatibility
-			DStructDesc* newS=
-			static_cast<DStructGDL*>(e)->Desc();
-			DStructDesc* oldS=
-			static_cast<DStructGDL*>(cTypeData)->Desc();
-			
-			// *** here (*newS) != (*oldS) must be set when
-			// unnamed structs not in struct list anymore
-			// WRONG! This speeds up things for named structs
-			// unnamed structs all have their own desc
-			// and thus the next is always true for them
-			if( newS != oldS)
-			{
-			//                                 if( (*newS) == (*oldS))
-			//                                 {
-			// Not needed, CatArray puts the right descriptor
-			//                                     // different structs with same layout
-			//                                     // replace desc with first one
-			//                                     if( oldS->IsUnnamed())
-			//                                         oldS = new DStructDesc( oldS);
-			
-			//                                     static_cast<DStructGDL*>(e)->SetDesc( oldS);
-			//                                 }
-			//                                 else
-			
-			if( (*newS) != (*oldS))
-			throw GDLException( _t, 
-			"Conflicting data structures: "+
-			Name(cTypeData)+", "+Name(e));
-			}
-			}
-			}
-			
-			// memorize maximum Rank
-			SizeT rank=e->Rank();
-			if( rank > maxRank) maxRank=rank;
-			
-		}
-		else {
-			if ( _cnt176>=1 ) { goto _loop176; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
-		}
-		
-		_cnt176++;
-	}
-	_loop176:;
-	}  // ( ... )+
-	_t = __t174;
-	_t = _t->getNextSibling();
-	
-	res=cTypeData->CatArray(exprList,a->arrayDepth,maxRank);
-	
-	_retTree = _t;
-	return res;
-}
-
- BaseGDL*  GDLInterpreter::struct_defNotOptimized(ProgNodeP _t) {
-	 BaseGDL* res;
-	ProgNodeP struct_def_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
-	ProgNodeP idRef = ProgNodeP(antlr::nullAST);
-	
-	if (_t == ProgNodeP(antlr::nullAST) )
-		_t = ASTNULL;
-	switch ( _t->getType()) {
-	case NSTRUC:
-	{
-		res=named_struct_def(_t);
-		_t = _retTree;
-		break;
-	}
-	case STRUC:
-	{
-		res=unnamed_struct_def(_t);
-		_t = _retTree;
-		break;
-	}
-	case NSTRUC_REF:
-	{
-		ProgNodeP __t186 = _t;
-		ProgNodeP tmp49_AST_in = _t;
-		match(antlr::RefAST(_t),NSTRUC_REF);
-		_t = _t->getFirstChild();
-		idRef = _t;
-		match(antlr::RefAST(_t),IDENTIFIER);
-		_t = _t->getNextSibling();
-		
-		// find struct 'id'
-		// returns it or throws an exception
-		DStructDesc* dStruct=GetStruct( idRef->getText(), _t);
-		
-		res=new DStructGDL( dStruct, dimension(1));
-		
-		_t = __t186;
-		_t = _t->getNextSibling();
-		break;
-	}
-	default:
-	{
-		throw antlr::NoViableAltException(antlr::RefAST(_t));
-	}
-	}
-	_retTree = _t;
-	return res;
-}
-
 BaseGDL*  GDLInterpreter::array_expr(ProgNodeP _t) {
 	BaseGDL* res;
 	ProgNodeP array_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
@@ -4304,7 +4164,7 @@ BaseGDL*  GDLInterpreter::array_expr(ProgNodeP _t) {
 	
 	
 	ProgNodeP __t104 = _t;
-	ProgNodeP tmp50_AST_in = _t;
+	ProgNodeP tmp49_AST_in = _t;
 	match(antlr::RefAST(_t),ARRAYEXPR);
 	_t = _t->getFirstChild();
 	{
@@ -4487,7 +4347,7 @@ void GDLInterpreter::tag_expr(ProgNodeP _t,
 	case EXPR:
 	{
 		ProgNodeP __t111 = _t;
-		ProgNodeP tmp51_AST_in = _t;
+		ProgNodeP tmp50_AST_in = _t;
 		match(antlr::RefAST(_t),EXPR);
 		_t = _t->getFirstChild();
 		e=expr(_t);
@@ -4541,7 +4401,7 @@ BaseGDL*  GDLInterpreter::r_dot_indexable_expr(ProgNodeP _t,
 	case EXPR:
 	{
 		ProgNodeP __t115 = _t;
-		ProgNodeP tmp52_AST_in = _t;
+		ProgNodeP tmp51_AST_in = _t;
 		match(antlr::RefAST(_t),EXPR);
 		_t = _t->getFirstChild();
 		res=expr(_t);
@@ -4574,7 +4434,7 @@ BaseGDL*  GDLInterpreter::r_dot_indexable_expr(ProgNodeP _t,
 	return res;
 }
 
-BaseGDL*  GDLInterpreter::sys_var_nocopyNotOptimized(ProgNodeP _t) {
+BaseGDL*  GDLInterpreter::sys_var_nocopy(ProgNodeP _t) {
 	BaseGDL* res;
 	ProgNodeP sys_var_nocopy_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP sysVar = ProgNodeP(antlr::nullAST);
@@ -4618,7 +4478,7 @@ void GDLInterpreter::r_dot_array_expr(ProgNodeP _t,
 	case ARRAYEXPR:
 	{
 		ProgNodeP __t117 = _t;
-		ProgNodeP tmp53_AST_in = _t;
+		ProgNodeP tmp52_AST_in = _t;
 		match(antlr::RefAST(_t),ARRAYEXPR);
 		_t = _t->getFirstChild();
 		r=r_dot_indexable_expr(_t, aD);
@@ -4720,7 +4580,7 @@ void GDLInterpreter::r_dot_array_expr(ProgNodeP _t,
 	_retTree = _t;
 }
 
-BaseGDL*  GDLInterpreter::dot_exprNotOptimized(ProgNodeP _t) {
+BaseGDL*  GDLInterpreter::dot_expr(ProgNodeP _t) {
 	BaseGDL* res;
 	ProgNodeP dot_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP dot = ProgNodeP(antlr::nullAST);
@@ -4773,7 +4633,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	case ASSIGN:
 	{
 		ProgNodeP __t130 = _t;
-		ProgNodeP tmp54_AST_in = _t;
+		ProgNodeP tmp53_AST_in = _t;
 		match(antlr::RefAST(_t),ASSIGN);
 		_t = _t->getFirstChild();
 		
@@ -4845,7 +4705,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	case ASSIGN_REPLACE:
 	{
 		ProgNodeP __t132 = _t;
-		ProgNodeP tmp55_AST_in = _t;
+		ProgNodeP tmp54_AST_in = _t;
 		match(antlr::RefAST(_t),ASSIGN_REPLACE);
 		_t = _t->getFirstChild();
 		
@@ -4983,7 +4843,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	case MFCALL:
 	{
 		ProgNodeP __t147 = _t;
-		ProgNodeP tmp56_AST_in = _t;
+		ProgNodeP tmp55_AST_in = _t;
 		match(antlr::RefAST(_t),MFCALL);
 		_t = _t->getFirstChild();
 		self=expr(_t);
@@ -5007,7 +4867,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	case MFCALL_PARENT:
 	{
 		ProgNodeP __t148 = _t;
-		ProgNodeP tmp57_AST_in = _t;
+		ProgNodeP tmp56_AST_in = _t;
 		match(antlr::RefAST(_t),MFCALL_PARENT);
 		_t = _t->getFirstChild();
 		self=expr(_t);
@@ -5035,7 +4895,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	case FCALL:
 	{
 		ProgNodeP __t149 = _t;
-		ProgNodeP tmp58_AST_in = _t;
+		ProgNodeP tmp57_AST_in = _t;
 		match(antlr::RefAST(_t),FCALL);
 		_t = _t->getFirstChild();
 		f = _t;
@@ -5070,7 +4930,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	return res;
 }
 
- BaseGDL*  GDLInterpreter::lib_function_call_retnewNotOptimized(ProgNodeP _t) {
+ BaseGDL*  GDLInterpreter::lib_function_call_retnew(ProgNodeP _t) {
 	 BaseGDL* res;
 	ProgNodeP lib_function_call_retnew_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP fl = ProgNodeP(antlr::nullAST);
@@ -5080,7 +4940,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	
 	
 	ProgNodeP __t143 = _t;
-	ProgNodeP tmp59_AST_in = _t;
+	ProgNodeP tmp58_AST_in = _t;
 	match(antlr::RefAST(_t),FCALL_LIB_RETNEW);
 	_t = _t->getFirstChild();
 	fl = _t;
@@ -5104,7 +4964,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	return res;
 }
 
- BaseGDL*  GDLInterpreter::lib_function_callNotOptimized(ProgNodeP _t) {
+ BaseGDL*  GDLInterpreter::lib_function_call(ProgNodeP _t) {
 	 BaseGDL* res;
 	ProgNodeP lib_function_call_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP fl = ProgNodeP(antlr::nullAST);
@@ -5114,7 +4974,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	
 	
 	ProgNodeP __t141 = _t;
-	ProgNodeP tmp60_AST_in = _t;
+	ProgNodeP tmp59_AST_in = _t;
 	match(antlr::RefAST(_t),FCALL_LIB);
 	_t = _t->getFirstChild();
 	fl = _t;
@@ -5138,7 +4998,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	return res;
 }
 
-BaseGDL*  GDLInterpreter::constantNotOptimized(ProgNodeP _t) {
+BaseGDL*  GDLInterpreter::constant(ProgNodeP _t) {
 	BaseGDL* res;
 	ProgNodeP constant_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP c = ProgNodeP(antlr::nullAST);
@@ -5153,7 +5013,7 @@ BaseGDL*  GDLInterpreter::constantNotOptimized(ProgNodeP _t) {
 	return res;
 }
 
-BaseGDL*  GDLInterpreter::simple_varNotOptimized(ProgNodeP _t) {
+BaseGDL*  GDLInterpreter::simple_var(ProgNodeP _t) {
 	BaseGDL* res;
 	ProgNodeP simple_var_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP var = ProgNodeP(antlr::nullAST);
@@ -5201,7 +5061,7 @@ BaseGDL*  GDLInterpreter::simple_varNotOptimized(ProgNodeP _t) {
 	return res;
 }
 
-BaseGDL*  GDLInterpreter::sys_varNotOptimized(ProgNodeP _t) {
+BaseGDL*  GDLInterpreter::sys_var(ProgNodeP _t) {
 	BaseGDL* res;
 	ProgNodeP sys_var_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
@@ -5217,7 +5077,7 @@ BaseGDL*  GDLInterpreter::sys_varNotOptimized(ProgNodeP _t) {
 	return res;
 }
 
- BaseGDL**  GDLInterpreter::ref_parameterNotOptimized(ProgNodeP _t) {
+ BaseGDL**  GDLInterpreter::ref_parameter(ProgNodeP _t) {
 	 BaseGDL** ret;
 	ProgNodeP ref_parameter_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
@@ -5244,234 +5104,6 @@ BaseGDL*  GDLInterpreter::sys_varNotOptimized(ProgNodeP _t) {
 	}
 	_retTree = _t;
 	return ret;
-}
-
- BaseGDL*  GDLInterpreter::named_struct_def(ProgNodeP _t) {
-	 BaseGDL* res;
-	ProgNodeP named_struct_def_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
-	ProgNodeP n = ProgNodeP(antlr::nullAST);
-	ProgNodeP id = ProgNodeP(antlr::nullAST);
-	ProgNodeP i = ProgNodeP(antlr::nullAST);
-	ProgNodeP ii = ProgNodeP(antlr::nullAST);
-	
-	DStructDesc*          nStructDesc;
-	auto_ptr<DStructDesc> nStructDescGuard;
-	BaseGDL* e;
-	BaseGDL* ee;
-	
-	
-	ProgNodeP __t178 = _t;
-	n = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
-	match(antlr::RefAST(_t),NSTRUC);
-	_t = _t->getFirstChild();
-	id = _t;
-	match(antlr::RefAST(_t),IDENTIFIER);
-	_t = _t->getNextSibling();
-	
-	// definedStruct: no tags present
-	if( n->definedStruct == 1) GetStruct( id->getText(), _t);
-	
-	// find struct 'id' (for compatibility check)
-	DStructDesc* oStructDesc=
-	FindInStructList( structList, id->getText());
-	
-	if( oStructDesc == NULL || oStructDesc->NTags() > 0)
-	{
-	// not defined at all yet (-> define now)
-	// or completely defined  (-> define now and check equality)
-	nStructDesc= new DStructDesc( id->getText());
-	
-	// guard it
-	nStructDescGuard.reset( nStructDesc); 
-	} 
-	else
-	{   // NTags() == 0
-	// not completely defined (only name in list)
-	nStructDesc= oStructDesc;
-	}
-	
-	// the instance variable
-	//                 DStructGDL* instance= new DStructGDL( nStructDesc,
-	//                                                       dimension(1)); 
-	DStructGDL* instance= new DStructGDL( nStructDesc);
-	
-	auto_ptr<DStructGDL> instance_guard(instance);
-	
-	{ // ( ... )+
-	int _cnt180=0;
-	for (;;) {
-		if (_t == ProgNodeP(antlr::nullAST) )
-			_t = ASTNULL;
-		switch ( _t->getType()) {
-		case ASSIGN:
-		case ASSIGN_REPLACE:
-		case ARRAYDEF:
-		case ARRAYEXPR:
-		case CONSTANT:
-		case DEREF:
-		case EXPR:
-		case FCALL:
-		case FCALL_LIB:
-		case FCALL_LIB_RETNEW:
-		case MFCALL:
-		case MFCALL_PARENT:
-		case NSTRUC:
-		case NSTRUC_REF:
-		case POSTDEC:
-		case POSTINC:
-		case STRUC:
-		case SYSVAR:
-		case VAR:
-		case VARPTR:
-		case DEC:
-		case INC:
-		case DOT:
-		case QUESTION:
-		{
-			ee=expr(_t);
-			_t = _retTree;
-			
-			// also adds to descriptor, grabs
-			instance->NewTag( 
-			oStructDesc->TagName( nStructDesc->NTags()),
-			ee);
-			
-			break;
-		}
-		case IDENTIFIER:
-		{
-			i = _t;
-			match(antlr::RefAST(_t),IDENTIFIER);
-			_t = _t->getNextSibling();
-			e=expr(_t);
-			_t = _retTree;
-			
-			// also adds to descriptor, grabs
-			instance->NewTag( i->getText(), e); 
-			
-			break;
-		}
-		case INHERITS:
-		{
-			ProgNodeP tmp61_AST_in = _t;
-			match(antlr::RefAST(_t),INHERITS);
-			_t = _t->getNextSibling();
-			ii = _t;
-			match(antlr::RefAST(_t),IDENTIFIER);
-			_t = _t->getNextSibling();
-			
-			DStructDesc* inherit=GetStruct( ii->getText(), _t);
-			
-			//   nStructDesc->AddParent( inherit);
-			instance->AddParent( inherit);
-			
-			break;
-		}
-		default:
-		{
-			if ( _cnt180>=1 ) { goto _loop180; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
-		}
-		}
-		_cnt180++;
-	}
-	_loop180:;
-	}  // ( ... )+
-	
-	// inherit refers to nStructDesc, in case of error both have to
-	// be freed here
-	if( oStructDesc != NULL)
-	{
-	if( oStructDesc != nStructDesc)
-	{
-	oStructDesc->AssureIdentical(nStructDesc);
-	instance->DStructGDL::SetDesc(oStructDesc);
-	//delete nStructDesc; // auto_ptr
-	}
-	}
-	else
-	{
-	// release from guard (if not NULL)
-	nStructDescGuard.release();
-	
-	// insert into struct list 
-	structList.push_back(nStructDesc);
-	}
-	
-	instance_guard.release();
-	res=instance;
-	
-	_t = __t178;
-	_t = _t->getNextSibling();
-	_retTree = _t;
-	return res;
-}
-
- BaseGDL*  GDLInterpreter::unnamed_struct_defNotOptimized(ProgNodeP _t) {
-	 BaseGDL* res;
-	ProgNodeP unnamed_struct_def_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
-	ProgNodeP si = ProgNodeP(antlr::nullAST);
-	
-	// don't forget the struct in extrat.cpp if you change something here
-	// "$" as first char in the name is necessary 
-	// as it defines unnnamed structs (see dstructdesc.hpp)
-	DStructDesc*   nStructDesc = new DStructDesc( "$truct");
-	
-	// instance takes care of nStructDesc since it is unnamed
-	//     DStructGDL* instance = new DStructGDL( nStructDesc, dimension(1));
-	DStructGDL* instance = new DStructGDL( nStructDesc);
-	auto_ptr<DStructGDL> instance_guard(instance);
-	
-	BaseGDL* e;
-	
-	
-	ProgNodeP __t182 = _t;
-	ProgNodeP tmp62_AST_in = _t;
-	match(antlr::RefAST(_t),STRUC);
-	_t = _t->getFirstChild();
-	{ // ( ... )+
-	int _cnt184=0;
-	for (;;) {
-		if (_t == ProgNodeP(antlr::nullAST) )
-			_t = ASTNULL;
-		if ((_t->getType() == IDENTIFIER)) {
-			si = _t;
-			match(antlr::RefAST(_t),IDENTIFIER);
-			_t = _t->getNextSibling();
-			e=expr(_t);
-			_t = _retTree;
-			
-			// also adds to descriptor, grabs
-			instance->NewTag( si->getText(), e); 
-			
-		}
-		else {
-			if ( _cnt184>=1 ) { goto _loop184; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
-		}
-		
-		_cnt184++;
-	}
-	_loop184:;
-	}  // ( ... )+
-	
-	//                 DStructDesc* oStructDesc=nStructDesc->FindEqual( structList);
-	//                 if( oStructDesc != NULL)
-	//                 {
-	//                     instance->SetDesc(oStructDesc);
-	//                     //delete nStructDesc; // auto_ptr
-	//                 }
-	//                 else
-	//                 {
-	//                     // insert into struct list
-	//                     structList.push_back( nStructDesc.release());
-	//                 }
-	
-	instance_guard.release();
-	res=instance;
-	
-	_t = __t182;
-	_t = _t->getNextSibling();
-	_retTree = _t;
-	return res;
 }
 
 void GDLInterpreter::initializeASTFactory( antlr::ASTFactory& )

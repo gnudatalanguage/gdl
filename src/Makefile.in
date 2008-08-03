@@ -182,7 +182,7 @@ am__gdl_SOURCES_DIST = accessdesc.hpp arrayindex.hpp assocdata.cpp \
 	sigfpehandler.cpp sigfpehandler.hpp devicez.hpp gdlzstream.cpp \
 	gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp \
 	arrayindex.cpp fftw.cpp fftw.hpp mpi.cpp mpi.hpp plot3d_nr.cpp \
-	gdl.cpp
+	gdl.cpp prognode.cpp prognodeexpr.cpp
 am__objects_2 = gdl-assocdata.$(OBJEXT) gdl-basic_fun_cl.$(OBJEXT) \
 	gdl-basic_fun.$(OBJEXT) gdl-basic_fun_jmg.$(OBJEXT) \
 	gdl-basic_op.$(OBJEXT) gdl-basic_pro.$(OBJEXT) \
@@ -229,7 +229,8 @@ am__objects_2 = gdl-assocdata.$(OBJEXT) gdl-basic_fun_cl.$(OBJEXT) \
 	gdl-arrayindex.$(OBJEXT) gdl-fftw.$(OBJEXT) gdl-mpi.$(OBJEXT) \
 	gdl-plot3d_nr.$(OBJEXT)
 @BUILDASLIBRARY_FALSE@am_gdl_OBJECTS = $(am__objects_2) \
-@BUILDASLIBRARY_FALSE@	gdl-gdl.$(OBJEXT)
+@BUILDASLIBRARY_FALSE@	gdl-gdl.$(OBJEXT) gdl-prognode.$(OBJEXT) \
+@BUILDASLIBRARY_FALSE@	gdl-prognodeexpr.$(OBJEXT)
 gdl_OBJECTS = $(am_gdl_OBJECTS)
 @BUILDASLIBRARY_FALSE@gdl_DEPENDENCIES =  \
 @BUILDASLIBRARY_FALSE@	$(top_builddir)/src/antlr/libantlr.a
@@ -389,7 +390,7 @@ top_srcdir = @top_srcdir@
 # set the include path found by configure
 INCLUDES = $(EXT_INCLUDES) $(all_includes)
 SUBDIRS = antlr
-noinst_HEADERS = gdlwidget.hpp
+noinst_HEADERS = gdlwidget.hpp prognode.hpp prognodeexpr.hpp
 cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 		basegdl.hpp basic_fun_cl.cpp basic_fun_cl.hpp basic_fun.cpp basic_fun.hpp \
 		basic_fun_jmg.cpp basic_fun_jmg.hpp basic_op.cpp basic_pro.cpp basic_pro.hpp \
@@ -430,7 +431,7 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 		gdlzstream.cpp gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp arrayindex.cpp \
 		fftw.cpp fftw.hpp mpi.cpp mpi.hpp plot3d_nr.cpp
 
-@BUILDASLIBRARY_FALSE@gdl_SOURCES = $(cpp_hpp_files) gdl.cpp
+@BUILDASLIBRARY_FALSE@gdl_SOURCES = $(cpp_hpp_files) gdl.cpp prognode.cpp prognodeexpr.cpp
 # trigger basename generation
 @BUILDASLIBRARY_FALSE@gdl_CXXFLAGS = $(AM_CXXFLAGS)
 # the library search path.
@@ -674,6 +675,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-plotting.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-print.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-print_tree.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-prognode.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-prognodeexpr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-read.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-sigfpehandler.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-str.Po@am__quote@
@@ -2087,6 +2090,34 @@ gdl-gdl.obj: gdl.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='gdl.cpp' object='gdl-gdl.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-gdl.obj `if test -f 'gdl.cpp'; then $(CYGPATH_W) 'gdl.cpp'; else $(CYGPATH_W) '$(srcdir)/gdl.cpp'; fi`
+
+gdl-prognode.o: prognode.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-prognode.o -MD -MP -MF $(DEPDIR)/gdl-prognode.Tpo -c -o gdl-prognode.o `test -f 'prognode.cpp' || echo '$(srcdir)/'`prognode.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/gdl-prognode.Tpo $(DEPDIR)/gdl-prognode.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='prognode.cpp' object='gdl-prognode.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-prognode.o `test -f 'prognode.cpp' || echo '$(srcdir)/'`prognode.cpp
+
+gdl-prognode.obj: prognode.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-prognode.obj -MD -MP -MF $(DEPDIR)/gdl-prognode.Tpo -c -o gdl-prognode.obj `if test -f 'prognode.cpp'; then $(CYGPATH_W) 'prognode.cpp'; else $(CYGPATH_W) '$(srcdir)/prognode.cpp'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/gdl-prognode.Tpo $(DEPDIR)/gdl-prognode.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='prognode.cpp' object='gdl-prognode.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-prognode.obj `if test -f 'prognode.cpp'; then $(CYGPATH_W) 'prognode.cpp'; else $(CYGPATH_W) '$(srcdir)/prognode.cpp'; fi`
+
+gdl-prognodeexpr.o: prognodeexpr.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-prognodeexpr.o -MD -MP -MF $(DEPDIR)/gdl-prognodeexpr.Tpo -c -o gdl-prognodeexpr.o `test -f 'prognodeexpr.cpp' || echo '$(srcdir)/'`prognodeexpr.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/gdl-prognodeexpr.Tpo $(DEPDIR)/gdl-prognodeexpr.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='prognodeexpr.cpp' object='gdl-prognodeexpr.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-prognodeexpr.o `test -f 'prognodeexpr.cpp' || echo '$(srcdir)/'`prognodeexpr.cpp
+
+gdl-prognodeexpr.obj: prognodeexpr.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-prognodeexpr.obj -MD -MP -MF $(DEPDIR)/gdl-prognodeexpr.Tpo -c -o gdl-prognodeexpr.obj `if test -f 'prognodeexpr.cpp'; then $(CYGPATH_W) 'prognodeexpr.cpp'; else $(CYGPATH_W) '$(srcdir)/prognodeexpr.cpp'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/gdl-prognodeexpr.Tpo $(DEPDIR)/gdl-prognodeexpr.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='prognodeexpr.cpp' object='gdl-prognodeexpr.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-prognodeexpr.obj `if test -f 'prognodeexpr.cpp'; then $(CYGPATH_W) 'prognodeexpr.cpp'; else $(CYGPATH_W) '$(srcdir)/prognodeexpr.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo

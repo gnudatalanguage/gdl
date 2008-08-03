@@ -1,56 +1,150 @@
-#ifndef INC_GDLInterpreter_hpp_
-#define INC_GDLInterpreter_hpp_
+/***************************************************************************
+                          prognode.hpp  -  the node used for the running program
+                             -------------------
+    begin                : July 22 2002
+    copyright            : (C) 2002 by Marc Schellens
+    email                : m_schellens@users.sf.net
+ ***************************************************************************/
 
-#include <antlr/config.hpp>
-#include "GDLInterpreterTokenTypes.hpp"
-/* $ANTLR 2.7.6 (20071205): "gdlc.i.g" -> "GDLInterpreter.hpp"$ */
-#include <antlr/TreeParser.hpp>
+/***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
 
+#ifndef prognode_hpp__
+#define prognode_hpp__
 
-    // antlr header
+#include "dnode.hpp"
 
-    // make sure it gets included before the 'tweak'
-#include "GDLParser.hpp" 
-#include "GDLTreeParser.hpp" 
+//#include "GDLInterpreter.hpp"
 
-#include <map>
-#include <iomanip>
-//#include <exception>
-
-#include "datatypes.hpp"
-#include "objects.hpp"
-#include "dpro.hpp"
-#include "accessdesc.hpp"
-#include "initsysvar.hpp"
-#include "gdljournal.hpp"
-
-//class ProgNode;
-//typedef ProgNode* ProgNodeP;
-
-// tweaking ANTLR
-#define RefAST( xxx)     ConvertAST( xxx) /* antlr::RefAST( Ref type)  */
-
-class CUSTOM_API GDLInterpreter : public antlr::TreeParser, public GDLInterpreterTokenTypes
-{
-
-private:
-    // ASTNULL replacement
-    static ProgNode  NULLProgNode;
-    static ProgNodeP NULLProgNodeP;
-
-    friend class ProgNode;
-    friend class ARRAYDEFNode;
-    friend class STRUCNode;
-    friend class NSTRUCNode;
-    friend class NSTRUC_REFNode;
-public: 
     enum RetCode {
         RC_OK=0,
         RC_BREAK,
         RC_CONTINUE,
         RC_RETURN, 
         RC_ABORT, // checked as retCode >= RC_RETURN
-    };  
+    };
+
+class ProgNode;
+typedef ProgNode* ProgNodeP;
+
+// the nodes the programs are made of
+class ProgNode
+{
+protected:
+  static DInterpreter* interpreter;
+
+private:
+  int ttype;
+  std::string text;
+
+protected:
+  ProgNodeP down;
+  ProgNodeP right;
+
+  static void AdjustTypes(std::auto_ptr<BaseGDL>& a, 
+			  std::auto_ptr<BaseGDL>& b);
+
+  BaseGDL*   cData;           // constant data
+  DVar*      var;             // ptr to variable 
+
+  DLibFun*   libFun;
+  DLibPro*   libPro;
+
+  union {
+    int        initInt;    // for c-i not actually used
+    int        numBranch;  // number of branches in switch/case statements
+    int        nDot;       // nesting level for tag access
+    int        arrayDepth; // dimension to cat
+    int        proIx;      // Index into proList
+    int        funIx;      // Index into funList
+    int        varIx;      // Index into variable list
+    int        targetIx;   // Index into label list
+    int        structDefined; // struct contains entry with no tag name
+    int        compileOpt; // for PRO and FUNCTION nodes
+  };
+
+private:
+  // from DNode (see there)
+  int lineNumber;
+  ArrayIndexListT* arrIxList; // ptr to array index list
+  int labelStart; // for loops to determine if to bail out
+  int labelEnd; // for loops to determine if to bail out
+
+public:
+  ProgNode();
+
+  ProgNode( const RefDNode& refNode);
+
+  static ProgNodeP NewProgNode( const RefDNode& refNode);
+
+  virtual ~ProgNode();
+  
+  void SetNodes( const ProgNodeP right, const ProgNodeP down);
+
+  virtual BaseGDL* Eval();
+  virtual BaseGDL* EvalNC(); // non-copy
+//   virtual RetCode   Run(); // program nodes 
+
+  ProgNodeP getFirstChild() const
+  {
+    return down;
+  }
+  ProgNodeP GetFirstChild() const
+  {
+    return getFirstChild();
+  }
+  ProgNodeP getNextSibling() const
+  {
+    return right;
+  }
+  ProgNodeP GetNextSibling() const
+  {
+    return getNextSibling();
+  }
+  
+  int getType() { return ttype;}
+  void setType( int t) { ttype=t;}
+  std::string getText() { return text;}
+  int getLine() const { return lineNumber;}
+  void SetGotoIx( int ix) { targetIx=ix;}
+  
+  bool LabelInRange( const int lIx)
+  { return (lIx >= labelStart) && (lIx < labelEnd);}
+  
+  friend class GDLInterpreter;
+  friend class DInterpreter;
+
+  friend class NSTRUCNode;
+
+};
+
+class DefaultNode: public ProgNode
+{
+public:
+  DefaultNode( const RefDNode& refNode): ProgNode( refNode) 
+  {
+    if( refNode->GetFirstChild() != RefDNode(antlr::nullAST))
+      {
+	down = NewProgNode( refNode->GetFirstChild());
+      }
+    if( refNode->GetNextSibling() != RefDNode(antlr::nullAST))
+      {
+	right = NewProgNode( refNode->GetNextSibling());
+      }
+  }
+};
+
+#undef UNDEF
+#ifdef UNDEF
+
+class CommandNode: public ProgNode
+{
 
     // code in: dinterpreter.cpp
     static bool SearchCompilePro(const std::string& pro);
@@ -116,12 +210,7 @@ protected:
     static SizeT objHeapIx;
     static SizeT heapIx;
 
-    static EnvStackT  callStack; 
-
-
-// smuggle optimizations in
-#include "GDLInterpreterOptimized.inc"
-
+    static EnvStackT  callStack;
 
 public:
     // triggers read/compile/interpret
@@ -358,141 +447,14 @@ public:
 
     static EnvStackT& CallStack() { return callStack;} // the callstack
     static EnvBaseT*  CallStackBack() { return callStack.back();} 
-    
-    std::string GetClearActualLine()
-    {
-        std::string ret = executeLine.str();
-        executeLine.str("");
-        return ret;
-    }
-
-    RetCode NewInterpreterInstance(); // code in dinterpreter.cpp
-
-    ~GDLInterpreter()
-    {
-    }
-public:
-	GDLInterpreter();
-	static void initializeASTFactory( antlr::ASTFactory& factory );
-	int getNumTokens() const
-	{
-		return GDLInterpreter::NUM_TOKENS;
-	}
-	const char* getTokenName( int type ) const
-	{
-		if( type > getNumTokens() ) return 0;
-		return GDLInterpreter::tokenNames[type];
-	}
-	const char* const* getTokenNames() const
-	{
-		return GDLInterpreter::tokenNames;
-	}
-	public:  GDLInterpreter::RetCode  interactive(ProgNodeP _t);
-	public:  GDLInterpreter::RetCode  statement_list(ProgNodeP _t);
-	public:  GDLInterpreter::RetCode  execute(ProgNodeP _t);
-	public:  BaseGDL*  call_fun(ProgNodeP _t);
-	public:  GDLInterpreter::RetCode  statement(ProgNodeP _t);
-	public:  BaseGDL**  call_lfun(ProgNodeP _t);
-	public: void call_pro(ProgNodeP _t);
-	public: void assignment(ProgNodeP _t);
-	public: void procedure_call(ProgNodeP _t);
-	public: void decinc_statement(ProgNodeP _t);
-	public:  GDLInterpreter::RetCode  for_statement(ProgNodeP _t);
-	public:  GDLInterpreter::RetCode  repeat_statement(ProgNodeP _t);
-	public:  GDLInterpreter::RetCode  while_statement(ProgNodeP _t);
-	public:  GDLInterpreter::RetCode  if_statement(ProgNodeP _t);
-	public:  GDLInterpreter::RetCode  if_else_statement(ProgNodeP _t);
-	public:  GDLInterpreter::RetCode  case_statement(ProgNodeP _t);
-	public:  GDLInterpreter::RetCode  switch_statement(ProgNodeP _t);
-	public:  GDLInterpreter::RetCode  block(ProgNodeP _t);
-	public:  GDLInterpreter::RetCode  jump_statement(ProgNodeP _t);
-	public: BaseGDL*  expr(ProgNodeP _t);
-	public: BaseGDL**  l_simple_var(ProgNodeP _t);
-	public: BaseGDL**  l_ret_expr(ProgNodeP _t);
-	public: void parameter_def(ProgNodeP _t,
-		EnvBaseT* actEnv
-	);
-	public: BaseGDL*  indexable_expr(ProgNodeP _t);
-	public: BaseGDL*  indexable_tmp_expr(ProgNodeP _t);
-	public: BaseGDL*  check_expr(ProgNodeP _t);
-	public: BaseGDL**  l_expr(ProgNodeP _t,
-		BaseGDL* right
-	);
-	public: BaseGDL*  tmp_expr(ProgNodeP _t);
-	public:  BaseGDL**  l_function_call(ProgNodeP _t);
-	public: BaseGDL**  l_deref(ProgNodeP _t);
-	public: BaseGDL*  l_decinc_expr(ProgNodeP _t,
-		int dec_inc
-	);
-	public: BaseGDL*  r_expr(ProgNodeP _t);
-	public: BaseGDL*  constant_nocopy(ProgNodeP _t);
-	public: BaseGDL*  l_decinc_indexable_expr(ProgNodeP _t,
-		int dec_inc
-	);
-	public: BaseGDL**  l_defined_simple_var(ProgNodeP _t);
-	public: BaseGDL**  l_sys_var(ProgNodeP _t);
-	public: BaseGDL*  l_decinc_array_expr(ProgNodeP _t,
-		int dec_inc
-	);
-	public: ArrayIndexListT*  arrayindex_list(ProgNodeP _t);
-	public: BaseGDL*  l_decinc_dot_expr(ProgNodeP _t,
-		int dec_inc
-	);
-	public: void l_dot_array_expr(ProgNodeP _t,
-		DotAccessDescT* aD
-	);
-	public: void tag_array_expr(ProgNodeP _t,
-		DotAccessDescT* aD
-	);
-	public: BaseGDL**  l_indexable_expr(ProgNodeP _t);
-	public: BaseGDL**  l_array_expr(ProgNodeP _t,
-		BaseGDL* right
-	);
-	public: BaseGDL*  array_expr(ProgNodeP _t);
-	public: void tag_expr(ProgNodeP _t,
-		DotAccessDescT* aD
-	);
-	public: BaseGDL*  r_dot_indexable_expr(ProgNodeP _t,
-		DotAccessDescT* aD
-	);
-	public: BaseGDL*  sys_var_nocopy(ProgNodeP _t);
-	public: void r_dot_array_expr(ProgNodeP _t,
-		DotAccessDescT* aD
-	);
-	public: BaseGDL*  dot_expr(ProgNodeP _t);
-	public: BaseGDL*  assign_expr(ProgNodeP _t);
-	public:  BaseGDL*  function_call(ProgNodeP _t);
-	public:  BaseGDL*  lib_function_call_retnew(ProgNodeP _t);
-	public:  BaseGDL*  lib_function_call(ProgNodeP _t);
-	public: BaseGDL*  constant(ProgNodeP _t);
-	public: BaseGDL*  simple_var(ProgNodeP _t);
-	public: BaseGDL*  sys_var(ProgNodeP _t);
-	public:  BaseGDL**  ref_parameter(ProgNodeP _t);
-public:
-	antlr::RefAST getAST()
-	{
-		return antlr::RefAST(returnAST);
-	}
-	
-protected:
-	ProgNodeP returnAST;
-	ProgNodeP _retTree;
-private:
-	static const char* tokenNames[];
-#ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 204;
-#else
-	enum {
-		NUM_TOKENS = 204
-	};
-#endif
-	
-	static const unsigned long _tokenSet_0_data_[];
-	static const antlr::BitSet _tokenSet_0;
-	static const unsigned long _tokenSet_1_data_[];
-	static const antlr::BitSet _tokenSet_1;
-	static const unsigned long _tokenSet_2_data_[];
-	static const antlr::BitSet _tokenSet_2;
 };
 
-#endif /*INC_GDLInterpreter_hpp_*/
+// class ARRAYDEFNode: public CommandNode
+// {
+// public:
+//   /*virtual*/ RetCode   Run();
+// 
+// };
+#endif
+
+#endif
