@@ -179,7 +179,7 @@ public:
   // (GDLInterpreter, basic_fun (create_struct))
   void SetDesc( DStructDesc* newDesc); 
 
-  DStructGDL* SetBuffer( const void* b);
+   DStructGDL* SetBuffer( const void* b);
   void SetBufferSize( SizeT s);
 
   DStructGDL* CShift( DLong d);

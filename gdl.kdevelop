@@ -12,19 +12,19 @@
     </keywords>
     <projectdirectory>.</projectdirectory>
     <absoluteprojectpath>false</absoluteprojectpath>
-    <description/>
+    <description></description>
     <ignoreparts/>
     <secondaryLanguages>
       <language>Python</language>
     </secondaryLanguages>
     <versioncontrol/>
     <projectname>gdl</projectname>
-    <defaultencoding/>
+    <defaultencoding></defaultencoding>
   </general>
   <kdevautoproject>
     <general>
       <activetarget>src/gdl</activetarget>
-      <useconfiguration>debug</useconfiguration>
+      <useconfiguration>optimized</useconfiguration>
       <useactivetarget>true</useactivetarget>
     </general>
     <run>
@@ -50,17 +50,17 @@
         <ccompiler>kdevgccoptions</ccompiler>
         <cxxcompiler>kdevgppoptions</cxxcompiler>
         <f77compiler>kdevg77options</f77compiler>
-        <cxxflags>-O2 -g0 -DNDEBUG</cxxflags>
+        <cxxflags>-O2 -pg -g3 -DNDEBUG</cxxflags>
         <envvars/>
         <configargs>--enable-debug=full --with-netcdf=no --with-python=no --with-hdf=no --with-hdf5=no --with-plplot=/usr --with-python=no --disable-python_module --with-wxWidgets=no --with-Magick=yes --enable-oldplplot</configargs>
-        <topsourcedir/>
-        <cppflags/>
-        <ldflags/>
-        <ccompilerbinary/>
-        <cxxcompilerbinary/>
-        <f77compilerbinary/>
-        <cflags/>
-        <f77flags/>
+        <topsourcedir></topsourcedir>
+        <cppflags></cppflags>
+        <ldflags></ldflags>
+        <ccompilerbinary></ccompilerbinary>
+        <cxxcompilerbinary></cxxcompilerbinary>
+        <f77compilerbinary></f77compilerbinary>
+        <cflags></cflags>
+        <f77flags></f77flags>
       </optimized>
       <debug>
         <configargs>--enable-debug=full --with-readlinedir=yes --with-netcdf=/home/marc/netcdf-3.6.1 --with-python=yes --with-hdf=yes --with-hdf5=no --with-plplot=/usr --with-python=yes --disable-python_module --enable-oldplplot --with-libproj4=no --with-wxWidgets=no --with-Magick=yes</configargs>
@@ -105,7 +105,7 @@
       <abortonerror>true</abortonerror>
       <numberofjobs>1</numberofjobs>
       <dontact>false</dontact>
-      <makebin/>
+      <makebin></makebin>
       <prio>0</prio>
       <runmultiplejobs>false</runmultiplejobs>
     </make>
@@ -221,7 +221,7 @@
     </codecompletion>
     <references/>
     <creategettersetter>
-      <prefixGet/>
+      <prefixGet></prefixGet>
       <prefixSet>set</prefixSet>
       <prefixVariable>m_,_</prefixVariable>
       <parameterName>theValue</parameterName>
@@ -231,10 +231,10 @@
     <qt>
       <used>false</used>
       <version>3</version>
-      <root>/usr/lib/qt-3.3</root>
+      <root>/usr/share/qt3</root>
       <includestyle>3</includestyle>
       <designerintegration>EmbeddedKDevDesigner</designerintegration>
-      <qmake></qmake>
+      <qmake>/usr/bin/qmake-qt3</qmake>
       <designer></designer>
       <designerpluginpaths/>
     </qt>
@@ -247,11 +247,11 @@
   <kdevdebugger>
     <general>
       <programargs/>
-      <gdbpath/>
-      <dbgshell/>
-      <configGdbScript/>
-      <runShellScript/>
-      <runGdbScript/>
+      <gdbpath></gdbpath>
+      <dbgshell></dbgshell>
+      <configGdbScript></configGdbScript>
+      <runShellScript></runShellScript>
+      <runGdbScript></runGdbScript>
       <breakonloadinglibs>true</breakonloadinglibs>
       <separatetty>true</separatetty>
       <floatingtoolbar>true</floatingtoolbar>

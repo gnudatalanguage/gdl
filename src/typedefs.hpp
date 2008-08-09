@@ -239,43 +239,45 @@ public:
   T* Release() { T* r=container; container=NULL; return r;}
 };
 
+const SizeT smallArraySize = 10;
+
 template <class T>
 class GDLArray
 {
 private:
-  T scalar;
+  T scalar[ smallArraySize];
   T*    buf;
   SizeT sz;
 
 public:
   GDLArray() throw() : buf( NULL), sz( 0) {}
   GDLArray( const GDLArray& cp) throw()
-    : buf( (cp.size() > 1)?new T[ cp.size()] : &scalar)
+    : buf( (cp.size() > smallArraySize)?new T[ cp.size()] : scalar)
     , sz( cp.size())
   {
     for( SizeT i=0; i<sz; ++i)
       buf[ i] = cp.buf[ i];
   }
 
-  GDLArray( SizeT s, bool b) throw() : buf( (s>1)?new T[ s] : &scalar), sz( s)
+  GDLArray( SizeT s, bool b) throw() : buf( (s>smallArraySize)?new T[ s] : scalar), sz( s)
   {}
-  GDLArray( T val, SizeT s) throw() : buf((s>1)?new T[ s]: &scalar), sz( s)
+  GDLArray( T val, SizeT s) throw() : buf((s>smallArraySize)?new T[ s]: scalar), sz( s)
   {
     for( SizeT i=0; i<sz; ++i)
       buf[ i] = val;
   }
-  GDLArray( const T* arr, SizeT s) throw() : buf( (s>1)?new T[ s]: &scalar), sz( s)
+  GDLArray( const T* arr, SizeT s) throw() : buf( (s>smallArraySize)?new T[ s]: scalar), sz( s)
   {
     for( SizeT i=0; i<sz; ++i)
       buf[ i] = arr[ i];
   }
 
-  explicit GDLArray( const T& s) throw() : scalar( s), buf( &scalar), sz( 1)
-  {}
+  explicit GDLArray( const T& s) throw() : /*scalar( s),*/ buf( scalar), sz( 1)
+  { scalar[0] = s;}
 
   ~GDLArray() throw()
   {
-    if( sz > 1)
+    if( sz > smallArraySize)
       delete[] buf;
   }
 
@@ -300,10 +302,10 @@ public:
       }
     else
       {
-	if( sz > 1) 
+	if( sz > smallArraySize) 
 	  delete[] buf;
 	sz = right.size();
-	buf = (sz>1) ? new T[ sz] : &scalar;
+	buf = (sz>smallArraySize) ? new T[ sz] : scalar;
 	for( SizeT i=0; i<sz; ++i)
 	  buf[ i] = right.buf[ i];
       }
@@ -380,13 +382,16 @@ public:
   void resize( SizeT newSz) throw()
   {
     assert( newSz > sz);
-    T* newBuf = new T[ newSz];
-    for( SizeT i=0; i<sz; ++i)
-      newBuf[ i] = buf[ i];
-    if( sz > 1)
-      delete[] buf;
-    buf = newBuf;
-    sz = newSz;
+    if( newSz > smallArraySize)
+      {
+	T* newBuf = new T[ newSz];
+	for( SizeT i=0; i<sz; ++i)
+	  newBuf[ i] = buf[ i];
+	if( sz > smallArraySize)
+	  delete[] buf;
+	buf = newBuf;
+      }
+      sz = newSz;
   }
 
 //   T min() const

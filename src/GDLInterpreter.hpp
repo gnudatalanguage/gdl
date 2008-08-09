@@ -43,7 +43,19 @@ private:
     friend class STRUCNode;
     friend class NSTRUCNode;
     friend class NSTRUC_REFNode;
+    friend class ASSIGNNode;
+    friend class ASSIGN_REPLACENode;
+friend class PCALL_LIBNode;//: public CommandNode
+friend class MPCALLNode;//: public CommandNode
+friend class MPCALL_PARENTNode;//: public CommandNode
+friend class PCALLNode;//: public CommandNode
+
 public: 
+    void SetRetTree( ProgNodeP rT)
+    {
+        this->_retTree = rT;
+    }
+    
     enum RetCode {
         RC_OK=0,
         RC_BREAK,
@@ -394,8 +406,6 @@ public:
 	public:  GDLInterpreter::RetCode  statement(ProgNodeP _t);
 	public:  BaseGDL**  call_lfun(ProgNodeP _t);
 	public: void call_pro(ProgNodeP _t);
-	public: void assignment(ProgNodeP _t);
-	public: void procedure_call(ProgNodeP _t);
 	public: void decinc_statement(ProgNodeP _t);
 	public:  GDLInterpreter::RetCode  for_statement(ProgNodeP _t);
 	public:  GDLInterpreter::RetCode  repeat_statement(ProgNodeP _t);
@@ -409,21 +419,13 @@ public:
 	public: BaseGDL*  expr(ProgNodeP _t);
 	public: BaseGDL**  l_simple_var(ProgNodeP _t);
 	public: BaseGDL**  l_ret_expr(ProgNodeP _t);
-	public: void parameter_def(ProgNodeP _t,
-		EnvBaseT* actEnv
-	);
-	public: BaseGDL*  indexable_expr(ProgNodeP _t);
-	public: BaseGDL*  indexable_tmp_expr(ProgNodeP _t);
-	public: BaseGDL*  check_expr(ProgNodeP _t);
-	public: BaseGDL**  l_expr(ProgNodeP _t,
-		BaseGDL* right
-	);
-	public: BaseGDL*  tmp_expr(ProgNodeP _t);
-	public:  BaseGDL**  l_function_call(ProgNodeP _t);
-	public: BaseGDL**  l_deref(ProgNodeP _t);
 	public: BaseGDL*  l_decinc_expr(ProgNodeP _t,
 		int dec_inc
 	);
+	public: BaseGDL**  l_deref(ProgNodeP _t);
+	public:  BaseGDL**  l_function_call(ProgNodeP _t);
+	public: BaseGDL*  tmp_expr(ProgNodeP _t);
+	public: BaseGDL*  check_expr(ProgNodeP _t);
 	public: BaseGDL*  r_expr(ProgNodeP _t);
 	public: BaseGDL*  constant_nocopy(ProgNodeP _t);
 	public: BaseGDL*  l_decinc_indexable_expr(ProgNodeP _t,
@@ -443,6 +445,11 @@ public:
 	);
 	public: void tag_array_expr(ProgNodeP _t,
 		DotAccessDescT* aD
+	);
+	public: BaseGDL*  indexable_expr(ProgNodeP _t);
+	public: BaseGDL*  indexable_tmp_expr(ProgNodeP _t);
+	public: BaseGDL**  l_expr(ProgNodeP _t,
+		BaseGDL* right
 	);
 	public: BaseGDL**  l_indexable_expr(ProgNodeP _t);
 	public: BaseGDL**  l_array_expr(ProgNodeP _t,
@@ -467,6 +474,9 @@ public:
 	public: BaseGDL*  constant(ProgNodeP _t);
 	public: BaseGDL*  simple_var(ProgNodeP _t);
 	public: BaseGDL*  sys_var(ProgNodeP _t);
+	public: void parameter_def(ProgNodeP _t,
+		EnvBaseT* actEnv
+	);
 	public:  BaseGDL**  ref_parameter(ProgNodeP _t);
 public:
 	antlr::RefAST getAST()

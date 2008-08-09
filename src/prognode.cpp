@@ -309,3 +309,242 @@ BaseGDL* NSTRUC_REFNode::Eval()
   return res;
 }
 
+void ASSIGNNode::Run()
+{
+  BaseGDL*  r;
+  BaseGDL** l;
+  auto_ptr<BaseGDL> r_guard;
+	
+  //     match(antlr::RefAST(_t),ASSIGN);
+  ProgNodeP _t = this->getFirstChild();
+  {
+    switch ( _t->getType()) {
+    case GDLTokenTypes::CONSTANT:
+    case GDLTokenTypes::DEREF:
+    case GDLTokenTypes::SYSVAR:
+    case GDLTokenTypes:: VAR:
+    case GDLTokenTypes::VARPTR:
+      {
+	r= ProgNode::interpreter->indexable_expr(_t);
+	_t = ProgNode::interpreter->_retTree;
+	break;
+      }
+    case GDLTokenTypes::FCALL_LIB:
+      {
+	r=ProgNode::interpreter->check_expr(_t);
+	_t = ProgNode::interpreter->_retTree;
+			
+	if( !ProgNode::interpreter->callStack.back()->Contains( r)) 
+	  r_guard.reset( r); // guard if no global data
+			
+	break;
+      }
+    default:
+      {
+	r=ProgNode::interpreter->indexable_tmp_expr(_t);
+	_t = ProgNode::interpreter->_retTree;
+	r_guard.reset( r);
+	break;
+      }
+    }//switch
+  }
+  l=ProgNode::interpreter->l_expr(_t, r);
+
+  ProgNode::interpreter->_retTree = this->getNextSibling();
+}
+
+void ASSIGN_REPLACENode::Run()
+{
+  BaseGDL*  r;
+  BaseGDL** l;
+  auto_ptr<BaseGDL> r_guard;
+
+  //match(antlr::RefAST(_t),ASSIGN_REPLACE);
+  ProgNodeP _t = this->getFirstChild();
+  {
+    if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
+      {
+	r=ProgNode::interpreter->check_expr(_t);
+	_t = ProgNode::interpreter->_retTree;
+			
+			
+	if( !ProgNode::interpreter->callStack.back()->Contains( r)) 
+	  r_guard.reset( r);
+			
+      }
+    else
+      {
+	r=ProgNode::interpreter->tmp_expr(_t);
+	_t = ProgNode::interpreter->_retTree;
+			
+	r_guard.reset( r);
+			
+      }
+  }
+
+  switch ( _t->getType()) {
+  case GDLTokenTypes::FCALL:
+  case GDLTokenTypes::FCALL_LIB:
+  case GDLTokenTypes::MFCALL:
+  case GDLTokenTypes::MFCALL_PARENT:
+    {
+      l=ProgNode::interpreter->l_function_call(_t);
+      _t = ProgNode::interpreter->_retTree;
+      break;
+    }
+  case GDLTokenTypes::DEREF:
+    {
+      l=ProgNode::interpreter->l_deref(_t);
+      _t = ProgNode::interpreter->_retTree;
+      break;
+    }
+  case GDLTokenTypes::VAR:
+  case GDLTokenTypes::VARPTR:
+    {
+      l=ProgNode::interpreter->l_simple_var(_t);
+      _t = ProgNode::interpreter->_retTree;
+      break;
+    }
+  default:
+    {
+      throw GDLException(_t, "Internal error during ASSIGN_REPLACE");
+    }
+  }
+		
+  if( r != (*l))
+    {
+      delete *l;
+		
+      if( r_guard.get() == r)
+	*l = r_guard.release();
+      else  
+	*l = r->Dup();
+    }
+
+  ProgNode::interpreter->_retTree = this->getNextSibling();
+}
+
+void PCALL_LIBNode::Run()
+{
+  // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+  StackGuard<EnvStackT> guard( ProgNode::interpreter->CallStack());
+  BaseGDL *self;
+	
+  // 		match(antlr::RefAST(_t),PCALL_LIB);
+  ProgNodeP _t = this->getFirstChild();
+  ProgNodeP pl = _t;
+  // 		match(antlr::RefAST(_t),IDENTIFIER);
+  _t = _t->getNextSibling();
+		
+  EnvT* newEnv=new EnvT( pl, pl->libPro);//libProList[pl->proIx]);
+		
+  ProgNode::interpreter->parameter_def(_t, newEnv);
+  //   _t = _retTree;
+		
+  // push environment onto call stack
+  ProgNode::interpreter->callStack.push_back(newEnv);
+		
+  // make the call
+  static_cast<DLibPro*>(newEnv->GetPro())->Pro()(newEnv);
+
+  ProgNode::interpreter->SetRetTree( this->getNextSibling());
+  //  ProgNode::interpreter->_retTree = this->getNextSibling();
+}
+void MPCALLNode::Run()
+{
+  // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+  StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
+  BaseGDL *self;
+  EnvUDT*   newEnv;
+	
+  // 			match(antlr::RefAST(_t),MPCALL);
+  ProgNodeP _t = this->getFirstChild();
+  self=ProgNode::interpreter->expr(_t);
+  _t = ProgNode::interpreter->_retTree;
+  ProgNodeP mp = _t;
+  // 			match(antlr::RefAST(_t),IDENTIFIER);
+  _t = _t->getNextSibling();
+			
+  auto_ptr<BaseGDL> self_guard(self);
+			
+  newEnv=new EnvUDT( mp, self);
+			
+  self_guard.release();
+			
+  ProgNode::interpreter->parameter_def(_t, newEnv);
+
+  // push environment onto call stack
+  ProgNode::interpreter->callStack.push_back(newEnv);
+		
+  // make the call
+  ProgNode::interpreter->call_pro(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+
+  ProgNode::interpreter->SetRetTree( this->getNextSibling());
+}
+
+void MPCALL_PARENTNode::Run()
+{
+  // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+  StackGuard<EnvStackT> guard(ProgNode::interpreter->callStack);
+  BaseGDL *self;
+  EnvUDT*   newEnv;
+	
+
+  // 			match(antlr::RefAST(_t),MPCALL_PARENT);
+  ProgNodeP _t = this->getFirstChild();
+  self=ProgNode::interpreter->expr(_t);
+  _t = ProgNode::interpreter->_retTree;
+  ProgNodeP parent = _t;
+  // 			match(antlr::RefAST(_t),IDENTIFIER);
+  _t = _t->getNextSibling();
+  ProgNodeP pp = _t;
+  // 			match(antlr::RefAST(_t),IDENTIFIER);
+  _t = _t->getNextSibling();
+			
+  auto_ptr<BaseGDL> self_guard(self);
+			
+  newEnv = new EnvUDT( pp, self, parent->getText());
+			
+  self_guard.release();
+			
+  ProgNode::interpreter->parameter_def(_t, newEnv);
+
+
+  // push environment onto call stack
+  ProgNode::interpreter->callStack.push_back(newEnv);
+		
+  // make the call
+ ProgNode::interpreter->call_pro(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+
+  ProgNode::interpreter->SetRetTree( this->getNextSibling());
+  //  ProgNode::interpreter->_retTree = this->getNextSibling();
+}
+void PCALLNode::Run()
+{
+  // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+  StackGuard<EnvStackT> guard(ProgNode::interpreter->callStack);
+  EnvUDT*   newEnv;
+	
+
+  // 			match(antlr::RefAST(_t),PCALL);
+  ProgNodeP _t = this->getFirstChild();
+  ProgNodeP p = _t;
+  // 			match(antlr::RefAST(_t),IDENTIFIER);
+  _t = _t->getNextSibling();
+			
+  ProgNode::interpreter->SetProIx( p);
+			
+  newEnv = new EnvUDT( p, proList[p->proIx]);
+			
+  ProgNode::interpreter->parameter_def(_t, newEnv);
+
+
+  // push environment onto call stack
+  ProgNode::interpreter->callStack.push_back(newEnv);
+		
+  // make the call
+  ProgNode::interpreter->call_pro(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+
+  ProgNode::interpreter->SetRetTree( this->getNextSibling());
+  //  ProgNode::interpreter->_retTree = this->getNextSibling();
+}

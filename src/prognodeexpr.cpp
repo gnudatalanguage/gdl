@@ -24,6 +24,7 @@
 #include "basegdl.hpp"
 #include "arrayindexlistt.hpp"
 #include "envt.hpp"
+#include "gdlexception.hpp"
 
 using namespace std;
 
@@ -112,10 +113,17 @@ ProgNode::~ProgNode()
 
 BaseGDL* ProgNode::EvalNC()
 {
-  assert( 0); // internal error
+throw GDLException( this,
+					       "Internal error. "
+					       "ProgNode::EvalNC() called.");
 }
 
-
+void  ProgNode::Run()
+{ 
+throw GDLException( this,
+				       "Internal error. "
+				       "ProgNode::Run() called.");
+}
 
 void ProgNode::SetNodes( const ProgNodeP r, const ProgNodeP d)
 {
@@ -443,6 +451,30 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
     case GDLTokenTypes::NSTRUC_REF:
       {
 	return new NSTRUC_REFNode( refNode);
+      }
+    case GDLTokenTypes::ASSIGN:         
+      {
+	return new ASSIGNNode( refNode);
+      }
+    case GDLTokenTypes::ASSIGN_REPLACE:
+      {
+	return new ASSIGN_REPLACENode( refNode);
+      }
+    case GDLTokenTypes::PCALL_LIB:
+      {
+	return new  PCALL_LIBNode( refNode);
+      }
+    case GDLTokenTypes::MPCALL:
+      {
+	return new  MPCALLNode( refNode);
+      }
+    case GDLTokenTypes::MPCALL_PARENT:
+      {
+	return new  MPCALL_PARENTNode( refNode);
+      }
+    case GDLTokenTypes::PCALL:
+      {
+	return new  PCALLNode( refNode);
       }
     }
 
