@@ -383,31 +383,28 @@ void ASSIGN_REPLACENode::Run()
   }
 
   switch ( _t->getType()) {
-  case GDLTokenTypes::FCALL:
-  case GDLTokenTypes::FCALL_LIB:
-  case GDLTokenTypes::MFCALL:
-  case GDLTokenTypes::MFCALL_PARENT:
+  case GDLTokenTypes::VAR:
+  case GDLTokenTypes::VARPTR:
     {
-      l=ProgNode::interpreter->l_function_call(_t);
-      _t = ProgNode::interpreter->_retTree;
+      l=ProgNode::interpreter->l_simple_var(_t);
+//       _t = ProgNode::interpreter->_retTree;
       break;
     }
   case GDLTokenTypes::DEREF:
     {
       l=ProgNode::interpreter->l_deref(_t);
-      _t = ProgNode::interpreter->_retTree;
-      break;
-    }
-  case GDLTokenTypes::VAR:
-  case GDLTokenTypes::VARPTR:
-    {
-      l=ProgNode::interpreter->l_simple_var(_t);
-      _t = ProgNode::interpreter->_retTree;
+//       _t = ProgNode::interpreter->_retTree;
       break;
     }
   default:
+//   case GDLTokenTypes::FCALL:
+//   case GDLTokenTypes::FCALL_LIB:
+//   case GDLTokenTypes::MFCALL:
+//   case GDLTokenTypes::MFCALL_PARENT:
     {
-      throw GDLException(_t, "Internal error during ASSIGN_REPLACE");
+      l=ProgNode::interpreter->l_function_call(_t);
+//       _t = ProgNode::interpreter->_retTree;
+      break;
     }
   }
 		
@@ -514,7 +511,7 @@ void MPCALL_PARENTNode::Run()
   ProgNode::interpreter->callStack.push_back(newEnv);
 		
   // make the call
- ProgNode::interpreter->call_pro(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+  ProgNode::interpreter->call_pro(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 
   ProgNode::interpreter->SetRetTree( this->getNextSibling());
   //  ProgNode::interpreter->_retTree = this->getNextSibling();
@@ -548,3 +545,171 @@ void PCALLNode::Run()
   ProgNode::interpreter->SetRetTree( this->getNextSibling());
   //  ProgNode::interpreter->_retTree = this->getNextSibling();
 }
+void DECNode::Run()
+{
+  //		match(antlr::RefAST(_t),DEC);
+  ProgNodeP _t = this->getFirstChild();
+  ProgNode::interpreter->l_decinc_expr(_t, GDLTokenTypes::DECSTATEMENT);
+
+  ProgNode::interpreter->SetRetTree( this->getNextSibling());
+}
+void INCNode::Run()
+{
+  //		match(antlr::RefAST(_t),INC);
+  ProgNodeP _t = this->getFirstChild();
+  ProgNode::interpreter->l_decinc_expr(_t, GDLTokenTypes::INCSTATEMENT);
+
+  ProgNode::interpreter->SetRetTree( this->getNextSibling());
+}
+
+
+// void FOR_INIT_Node::Run()
+// {
+//   BaseGDL* s;
+//   BaseGDL* e;
+//   BaseGDL* st;
+//   GDLInterpreter::RetCode retCode = RC_OK;
+	
+//   //match(antlr::RefAST(_t),FOR);
+//   ProgNodeP _t = this->getFirstChild();
+		
+//   ProgNodeP sv = _t;
+		
+//   BaseGDL** v=l_simple_var(_t);
+//   _t = _retTree;
+//   s=expr(_t);
+//   _t = _retTree;
+//   e=expr(_t);
+//   _t = _retTree;
+		
+//   auto_ptr<BaseGDL> s_guard(s);
+//   auto_ptr<BaseGDL> e_guard(e);
+		
+//   s->ForCheck( &e);
+//   e_guard.release();
+//   e_guard.reset(e);
+		
+//   ProgNodeP b= _t;
+		
+//   // ASSIGNMENT used here also
+//   delete (*v);
+		
+//   // problem:
+//   // EXECUTE may call DataListT.loc.resize(), as v points to the
+//   // old sequence v might be invalidated -> segfault
+//   // note that the value (*v) is preserved by resize()
+//   s_guard.release(); // s held in *v after this
+
+
+//   (*v)=s;  
+//   SetReturnCode( RC_OK);
+// }
+
+// void ENDFORNode::Run()
+// {
+//   v=l_simple_var( sv);
+//   (*v)->ForAdd();
+//   ProgNode::interpreter->SetRetTree( target);
+// }
+// void ENDFOR_STEPNode::Run()
+// {
+//   v=l_simple_var( sv); 
+//   (*v)->ForAdd(st))
+//   ProgNode::interpreter->SetRetTree( target);
+// }
+
+// void FORNode::Run()
+// {
+//   if( ProgNode::interpreter->returnCode != RC_OK)
+//     {
+//     if( retCode == RC_CONTINUE) continue;  
+//     if( retCode == RC_BREAK) 
+//       {
+// 	retCode = RC_OK;
+// 	break;        
+//       }
+//     if( retCode >= RC_RETURN) break;
+//     }
+
+//  if( (*v)->ForCondUp( e))
+//     {
+//       ProgNode::interpreter->SetRetTree( b);
+//     }
+//  else
+//     {
+//       ProgNode::interpreter->SetRetTree( this->getNextSibling());
+//     }
+// }
+
+// void FOR_STEP_INITNode::Run()
+// {
+//   BaseGDL* s;
+//   BaseGDL* e;
+//   BaseGDL* st;
+// //   match(antlr::RefAST(_t),FOR_STEP);
+//   ProgNodeP _t = this->getFirstChild();
+		
+//   ProgNodeP sv = _t;
+		
+//   v=l_simple_var(_t);
+//   _t = _retTree;
+//   s=expr(_t);
+//   _t = _retTree;
+//   e=expr(_t);
+//   _t = _retTree;
+//   st=expr(_t);
+//   _t = _retTree;
+		
+//   auto_ptr<BaseGDL> s_guard(s);
+//   auto_ptr<BaseGDL> e_guard(e);
+//   auto_ptr<BaseGDL> st_guard(st);
+		
+//   SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
+		
+//   s->ForCheck( &e, &st);
+//   e_guard.release();
+//   e_guard.reset(e);
+//   st_guard.release();
+//   st_guard.reset(st);
+		
+//   ProgNodeP bs=_t;
+		
+//   // ASSIGNMENT used here also
+//   delete (*v);
+// }
+// void FOR_STEPNode::Run()
+// {
+//   if( ProgNode::interpreter->returnCode != RC_OK)
+//     {
+//     if( retCode == RC_CONTINUE) continue;  
+//     if( retCode == RC_BREAK) 
+//       {
+// 	retCode = RC_OK;
+// 	break;        
+//       }
+//     if( retCode >= RC_RETURN) break;
+//     }
+
+//  if( st->Sgn() == -1) 
+//    {
+//  if( (*v)->ForCondDown( e))
+//     {
+//       ProgNode::interpreter->SetRetTree( bs);
+//     }
+//  else
+//     {
+//       ProgNode::interpreter->SetRetTree( this->getNextSibling());
+//     }
+//    }
+//  else
+//    {
+//  if( (*v)->ForCondUp( e))
+//     {
+//       ProgNode::interpreter->SetRetTree( bs);
+//     }
+//  else
+//     {
+//       ProgNode::interpreter->SetRetTree( this->getNextSibling());
+//     }
+//    }
+// }

@@ -250,6 +250,11 @@ bool BaseGDL::ForCondDown( BaseGDL*)
   throw GDLException("Operation not defined for UNDEF 9.");
 }
 
+// bool BaseGDL::ForCondUpDown( BaseGDL*)
+// {
+//   throw GDLException("Operation not defined for UNDEF 9a.");
+// }
+
 void BaseGDL::ForAdd( BaseGDL* add)
 {
   throw GDLException("Operation not defined for UNDEF 10.");

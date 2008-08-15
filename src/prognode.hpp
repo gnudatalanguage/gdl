@@ -191,6 +191,31 @@ public:
   PCALLNode( const RefDNode& refNode): CommandNode( refNode) {}
   void Run();
 };
+class DECNode: public CommandNode
+{ public:
+  DECNode( const RefDNode& refNode): CommandNode( refNode){}
+  void Run();
+};
+class INCNode: public CommandNode
+{ public:
+  INCNode( const RefDNode& refNode): CommandNode( refNode){}
+  void Run();
+};
+// class FOR_INITNode: public CommandNode
+// { public:
+//   FOR_INITNode( const RefDNode& refNode): CommandNode( refNode){}
+//   void Run();
+// };
+// class FORNode: public CommandNode
+// { public:
+//   FORNode( const RefDNode& refNode): CommandNode( refNode){}
+//   void Run();
+// };
+// class FOR_STEPNode: public CommandNode
+// { public:
+//   FOR_STEPNode( const RefDNode& refNode): CommandNode( refNode){}
+//   void Run();
+// };
 
 
 // class ARRAYDEFNode: public CommandNode

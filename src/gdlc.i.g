@@ -127,10 +127,16 @@ friend class MPCALL_PARENTNode;//: public CommandNode
 friend class PCALLNode;//: public CommandNode
 
 public: 
+//     RetCode returnCode;    
+
     void SetRetTree( ProgNodeP rT)
     {
         this->_retTree = rT;
     }
+//     void SetReturnCode( RetCode rC)
+//     {
+//         this->returnCode = rC;
+//     }
     
     enum RetCode {
         RC_OK=0,
@@ -647,7 +653,11 @@ statement returns[ GDLInterpreter::RetCode retCode]
             {p->Run();}
             // procedure_call
             //        |   lib_procedure_call
-        |   decinc_statement
+        |   d:DEC
+            {d->Run();}
+        |   i:INC
+            {i->Run();}
+            // decinc_statement
         |   retCode=for_statement 
         |   retCode=repeat_statement
         |   retCode=while_statement
@@ -1493,13 +1503,13 @@ BaseGDL** eL;
 //         )
 //     ;
 
-decinc_statement
-{
-    BaseGDL* l;
-}
-    : #(DEC l=l_decinc_expr[ DECSTATEMENT])
-    | #(INC l=l_decinc_expr[ INCSTATEMENT])
-    ;
+// decinc_statement
+// {
+//     BaseGDL* l;
+// }
+//     : #(DEC l=l_decinc_expr[ DECSTATEMENT])
+//     | #(INC l=l_decinc_expr[ INCSTATEMENT])
+//     ;
 
 // ***************************************************************************
 // the expressions ***********************************************************

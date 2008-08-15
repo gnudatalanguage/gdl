@@ -239,7 +239,7 @@ public:
   T* Release() { T* r=container; container=NULL; return r;}
 };
 
-const SizeT smallArraySize = 10;
+const SizeT smallArraySize = 27;
 
 template <class T>
 class GDLArray
@@ -277,7 +277,7 @@ public:
 
   ~GDLArray() throw()
   {
-    if( sz > smallArraySize)
+    if( buf != scalar)
       delete[] buf;
   }
 
@@ -302,7 +302,7 @@ public:
       }
     else
       {
-	if( sz > smallArraySize) 
+	if( buf != scalar) 
 	  delete[] buf;
 	sz = right.size();
 	buf = (sz>smallArraySize) ? new T[ sz] : scalar;
@@ -387,7 +387,7 @@ public:
 	T* newBuf = new T[ newSz];
 	for( SizeT i=0; i<sz; ++i)
 	  newBuf[ i] = buf[ i];
-	if( sz > smallArraySize)
+ 	if( buf != scalar)
 	  delete[] buf;
 	buf = newBuf;
       }

@@ -51,10 +51,16 @@ friend class MPCALL_PARENTNode;//: public CommandNode
 friend class PCALLNode;//: public CommandNode
 
 public: 
+//     RetCode returnCode;    
+
     void SetRetTree( ProgNodeP rT)
     {
         this->_retTree = rT;
     }
+//     void SetReturnCode( RetCode rC)
+//     {
+//         this->returnCode = rC;
+//     }
     
     enum RetCode {
         RC_OK=0,
@@ -406,7 +412,6 @@ public:
 	public:  GDLInterpreter::RetCode  statement(ProgNodeP _t);
 	public:  BaseGDL**  call_lfun(ProgNodeP _t);
 	public: void call_pro(ProgNodeP _t);
-	public: void decinc_statement(ProgNodeP _t);
 	public:  GDLInterpreter::RetCode  for_statement(ProgNodeP _t);
 	public:  GDLInterpreter::RetCode  repeat_statement(ProgNodeP _t);
 	public:  GDLInterpreter::RetCode  while_statement(ProgNodeP _t);
@@ -419,9 +424,6 @@ public:
 	public: BaseGDL*  expr(ProgNodeP _t);
 	public: BaseGDL**  l_simple_var(ProgNodeP _t);
 	public: BaseGDL**  l_ret_expr(ProgNodeP _t);
-	public: BaseGDL*  l_decinc_expr(ProgNodeP _t,
-		int dec_inc
-	);
 	public: BaseGDL**  l_deref(ProgNodeP _t);
 	public:  BaseGDL**  l_function_call(ProgNodeP _t);
 	public: BaseGDL*  tmp_expr(ProgNodeP _t);
@@ -445,6 +447,9 @@ public:
 	);
 	public: void tag_array_expr(ProgNodeP _t,
 		DotAccessDescT* aD
+	);
+	public: BaseGDL*  l_decinc_expr(ProgNodeP _t,
+		int dec_inc
 	);
 	public: BaseGDL*  indexable_expr(ProgNodeP _t);
 	public: BaseGDL*  indexable_tmp_expr(ProgNodeP _t);

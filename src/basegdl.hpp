@@ -233,6 +233,7 @@ public:
   virtual void ForCheck( BaseGDL**, BaseGDL** = NULL);
   virtual bool ForCondUp( BaseGDL*);
   virtual bool ForCondDown( BaseGDL*);
+//   virtual bool ForCondUpDown( BaseGDL*);
   virtual void ForAdd( BaseGDL* add=NULL);
   virtual BaseGDL* CatArray( ExprListT& exprList,
 			     const SizeT catRank, 

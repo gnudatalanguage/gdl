@@ -410,6 +410,14 @@ while_statement!
         }
 	;
 
+// for_block!
+// : u:unblock
+// {
+//     #for_block=#( u, [ENDFOR,"endfor"]);
+// }
+// ;
+
+
 for_statement //!
 {
     StackSizeGuard<IDList> guard( loopVarStack);
@@ -429,7 +437,9 @@ for_statement //!
                 #f->setText("for_step");
                 }
             )? 
-            unblock)
+//           for_block
+           unblock
+        )
         {
         #f->SetLabelRange( labelStart, comp.NDefLabel());
         }

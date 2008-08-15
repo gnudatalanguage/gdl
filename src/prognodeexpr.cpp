@@ -476,6 +476,14 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
       {
 	return new  PCALLNode( refNode);
       }
+    case GDLTokenTypes::DEC:
+      {
+	return new  DECNode( refNode);
+      }
+    case GDLTokenTypes::INC:
+      {
+	return new  INCNode( refNode);
+      }
     }
 
   // default
