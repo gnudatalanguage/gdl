@@ -677,11 +677,6 @@ BaseGDL* LOG_NEGNode::Eval()
   auto_ptr<BaseGDL> e1( down->Eval());
   return e1->LogNeg();
 }
-BaseGDL* ARRAYDEFNode::Eval()
-{
-  BaseGDL* e1 = down->Eval();
-  return e1->UMinus(); // might delete e1 (STRING)
-}
 
 // binary operators
 BaseGDL* AND_OPNode::Eval()
