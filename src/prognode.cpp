@@ -292,20 +292,23 @@ BaseGDL* NSTRUCNode::Eval()
 }
 BaseGDL* NSTRUC_REFNode::Eval()
 {
-  ProgNodeP rTree = this->getNextSibling();
-  // 	match(antlr::RefAST(_t),NSTRUC_REF);
-  ProgNodeP _t = this->getFirstChild();
-  ProgNodeP idRef = _t;
-  // 	match(antlr::RefAST(_t),IDENTIFIER);
-  _t = _t->getNextSibling();
-		
-  // find struct 'id'
-  // returns it or throws an exception
-  DStructDesc* dStruct=ProgNode::interpreter->GetStruct( idRef->getText(), _t);
-		
-  BaseGDL* res=new DStructGDL( dStruct, dimension(1));
-		
-  ProgNode::interpreter->_retTree = rTree;
+   if( this->dStruct == NULL)
+     {
+      //   ProgNodeP rTree = this->getNextSibling();
+      // 	match(antlr::RefAST(_t),NSTRUC_REF);
+      ProgNodeP _t = this->getFirstChild();
+      ProgNodeP idRef = _t;
+      // 	match(antlr::RefAST(_t),IDENTIFIER);
+      _t = _t->getNextSibling();
+      
+      // find struct 'id'
+      // returns it or throws an exception
+      /* DStructDesc* */ dStruct=ProgNode::interpreter->GetStruct( idRef->getText(), _t);
+     }		
+
+  BaseGDL* res = new DStructGDL( dStruct, dimension(1));
+	
+  ProgNode::interpreter->_retTree = this->getNextSibling();
   return res;
 }
 

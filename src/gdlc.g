@@ -66,6 +66,7 @@ tokens {
 	ASSIGN_INPLACE;
 	ASSIGN_REPLACE;
 	ARRAYDEF;
+	ARRAYDEF_CONST;
 	ARRAYIX;
 	ARRAYIX_ALL;
 	ARRAYIX_ORANGE;
@@ -155,6 +156,12 @@ tokens {
     std::string subName; // name of procedure function to be compiled ("" -> all file)
     bool   subReached;
     unsigned int compileOpt;
+
+    bool ConstantExprNode( int t)
+    {
+        return (t == CONSTANT) || 
+               (t == ARRAYDEF_CONST);
+    }
 
     public:
     GDLParser(antlr::TokenStream& selector, const std::string& sName):
@@ -696,8 +703,21 @@ parameter_def_list
 
 // [expr,...]
 array_def
-	: LSQUARE! expr (COMMA! expr)* RSQUARE!
-		{ #array_def = #([ARRAYDEF, "array_def"], #array_def);
+{
+bool constant = true;
+}
+	: LSQUARE! e:expr 
+        {if( !ConstantExprNode( #e->getType())) 
+            constant = false;}
+        (COMMA! ee:expr
+        {if( !ConstantExprNode( #ee->getType())) 
+            constant = false;}
+        )* RSQUARE!
+		{ 
+            if( constant)
+            #array_def = #([ARRAYDEF_CONST, "array_def_const"], #array_def);
+            else
+            #array_def = #([ARRAYDEF, "array_def"], #array_def);
         }
 	;
 

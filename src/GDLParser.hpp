@@ -55,6 +55,12 @@ class CUSTOM_API GDLParser : public antlr::LLkParser, public GDLTokenTypes
     bool   subReached;
     unsigned int compileOpt;
 
+    bool ConstantExprNode( int t)
+    {
+        return (t == CONSTANT) || 
+               (t == ARRAYDEF_CONST);
+    }
+
     public:
     GDLParser(antlr::TokenStream& selector, const std::string& sName):
     antlr::LLkParser(selector,2), subName(sName), 
@@ -182,10 +188,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 204;
+	static const int NUM_TOKENS = 205;
 #else
 	enum {
-		NUM_TOKENS = 204
+		NUM_TOKENS = 205
 	};
 #endif
 	

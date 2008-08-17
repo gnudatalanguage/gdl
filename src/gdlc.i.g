@@ -2311,6 +2311,8 @@ r_expr returns [BaseGDL* res]
         { res = e->Eval();}
     | a:ARRAYDEF
         { res = a->Eval(); _t=_retTree;}
+//     | c:ARRAYDEF_CONST
+//         { res = c->Eval(); _t=_retTree;}
     | s:STRUC
         { res = s->Eval(); _t=_retTree;}
     | n:NSTRUC

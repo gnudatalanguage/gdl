@@ -74,7 +74,7 @@ ArrayIndexListT* DNode::CloneArrIxList()
 
 void DNode::ResetCData( BaseGDL* newCData)
 { 
-  //  delete cData; // as used (UMinus) deletion is done automatically 
+  //  delete cData; // as used (UMinus, ARRARYDEF_CONST) deletion is done automatically 
   cData = newCData;
 }
 

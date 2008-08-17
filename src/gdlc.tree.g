@@ -630,14 +630,49 @@ array_def returns [int depth]
 {
     RefDNode sPos;
 }
-	: #(a:ARRAYDEF {sPos=_t;} (expr)*)
+	: #(a:ARRAYDEF {sPos=_t;} (/*e:*/expr {/*check for constant expression*/})*)
+        {
+            // better check here as then CONSTANT is propagated
+            depth=0;
+//             bool constant = true;
+//             bool depth0 = false;
+            for( RefDNode e=sPos; 
+                e != static_cast<RefDNode>(antlr::nullAST);
+                e=e->getNextSibling())
+            {
+//                 if( e->getType() != CONSTANT)
+//                     constant = false;
+//                 if( !depth0)
+                if( (e->getType() != ARRAYDEF) && (e->getType() != ARRAYDEF_CONST))
+                {
+                    depth=0;
+                    break;
+//                     depth0 = true;
+                }
+                else
+                {
+                    int act=array_def(e); // recursive call
+                    act=act+1;
+                    if( depth == 0)
+                    {
+                        depth=act;
+                    }
+                    else
+                    {
+                        if( depth > act) depth=act;
+                    }
+                }   
+            }
+            #a->SetArrayDepth(depth);
+        }
+	| #(aa:ARRAYDEF_CONST {sPos=_t;} (expr)*)
         {
             depth=0;
             for( RefDNode e=sPos; 
                 e != static_cast<RefDNode>(antlr::nullAST);
                 e=e->getNextSibling())
             {
-                if( e->getType() != ARRAYDEF)
+                if( (e->getType() != ARRAYDEF) && (e->getType() != ARRAYDEF_CONST))
                 {
                     depth=0;
                     break;
@@ -656,7 +691,7 @@ array_def returns [int depth]
                     }
                 }   
             }
-            #a->SetArrayDepth(depth);
+            #aa->SetArrayDepth(depth);
         }
 	;
 

@@ -19,6 +19,8 @@
 
 #include <memory>
 
+#include <antlr/ASTFactory.hpp>
+
 #include "dinterpreter.hpp"
 #include "prognodeexpr.hpp"
 #include "basegdl.hpp"
@@ -100,9 +102,9 @@ ProgNode::~ProgNode()
 {
   // delete cData in case this node is a constant
   if( (getType() == GDLTokenTypes::CONSTANT))
-    {
+     {
       delete cData;
-    }
+     }
   if( (getType() == GDLTokenTypes::ARRAYIX))
     {
       delete arrIxList;
@@ -440,6 +442,26 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
       {
 	return new ARRAYDEFNode( refNode);
       }
+    case GDLTokenTypes::ARRAYDEF_CONST:
+      {
+	DNode* cN = new DNode();
+        cN->setType(GDLTokenTypes::CONSTANT);
+	cN->setText("[CONSTANT]");
+	cN->setNextSibling( refNode->getNextSibling());
+
+	refNode->setNextSibling(antlr::nullAST);
+
+	ProgNodeP c = new ARRAYDEFNode( refNode);
+	auto_ptr< ProgNode> guard( c);
+	//c->setType(  GDLTokenTypes::ARRAYDEF);
+
+	// evaluate constant
+	BaseGDL* res = c->Eval();
+
+	cN->ResetCData( res);
+
+	return new CONSTANTNode( RefDNode( cN));
+      }
     case GDLTokenTypes::STRUC:
       {
 	return new STRUCNode( refNode);
@@ -450,7 +472,7 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
       }
     case GDLTokenTypes::NSTRUC_REF:
       {
-	return new NSTRUC_REFNode( refNode);
+ 	return new NSTRUC_REFNode( refNode);
       }
     case GDLTokenTypes::ASSIGN:         
       {

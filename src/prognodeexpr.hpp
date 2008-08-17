@@ -130,10 +130,13 @@ class NSTRUCNode: public DefaultNode
   NSTRUCNode( const RefDNode& refNode): DefaultNode( refNode){}
   BaseGDL* Eval();
 };
+class DStructDesc;
 class NSTRUC_REFNode: public DefaultNode
 { public:
-  NSTRUC_REFNode( const RefDNode& refNode): DefaultNode( refNode){}
+  NSTRUC_REFNode( const RefDNode& refNode): DefaultNode( refNode), dStruct(NULL) {}
   BaseGDL* Eval();
+  private:
+    DStructDesc* dStruct;
 };
 
 // expression nodes
