@@ -136,6 +136,19 @@ class ARRAYDEFNode: public DefaultNode
 { public:
   ARRAYDEFNode( const RefDNode& refNode): DefaultNode( refNode){}
   BaseGDL* Eval();
+  bool ConstantArray()
+  {
+    ProgNodeP _t =  this->getFirstChild();
+    while(  _t != NULL) {
+
+      if( _t->getType() != GDLTokenTypes::CONSTANT)
+	return false;
+
+      _t = _t->getNextSibling();
+    }
+    return true;
+  }
+
 };
 class STRUCNode: public DefaultNode
 { public:

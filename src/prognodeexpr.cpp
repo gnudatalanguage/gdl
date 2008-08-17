@@ -555,7 +555,19 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
       }
     case GDLTokenTypes::ARRAYDEF:
       {
-	return new ARRAYDEFNode( refNode);
+	ARRAYDEFNode* c = new ARRAYDEFNode( refNode);
+	if( !c->ConstantArray()) return c;
+
+	auto_ptr< ARRAYDEFNode> guard( c);
+
+	BaseGDL* cData = c->Eval();
+
+	ProgNodeP cN = new CONSTANTNode( c->StealNextSibling(), cData);
+	cN->lineNumber = refNode->getLine();
+        cN->setText( "[c]");
+
+	return cN;
+
       }
     case GDLTokenTypes::ARRAYDEF_CONST:
       {
