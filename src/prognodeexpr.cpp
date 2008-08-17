@@ -115,16 +115,16 @@ ProgNode::~ProgNode()
 
 BaseGDL* ProgNode::EvalNC()
 {
-throw GDLException( this,
-					       "Internal error. "
-					       "ProgNode::EvalNC() called.");
+  throw GDLException( this,
+		      "Internal error. "
+		      "ProgNode::EvalNC() called.");
 }
 
 void  ProgNode::Run()
 { 
-throw GDLException( this,
-				       "Internal error. "
-				       "ProgNode::Run() called.");
+  throw GDLException( this,
+		      "Internal error. "
+		      "ProgNode::Run() called.");
 }
 
 void ProgNode::SetNodes( const ProgNodeP r, const ProgNodeP d)
@@ -154,266 +154,381 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
 	  nonCopy = true;
     }
   
+  // note: constant expressions are always nonCopy
+  // but expressions of constant expressions are not
   if( nonCopy) // VAR, VARPTR,...
-    switch( refNode->getType())
-      {
-      case GDLTokenTypes::QUESTION:
+    {
+      UnaryExpr* newUnary = NULL;
+      BinaryExpr* newNode = NULL;
+      switch( refNode->getType())
 	{
-	  return new QUESTIONNode( refNode);
+	case GDLTokenTypes::QUESTION:
+	  {
+	    return new QUESTIONNode( refNode);
+	  }
+
+	  // unary
+	case GDLTokenTypes::UMINUS:
+	  {
+	    // 	// optimize constant unary minus away
+	    // 	// CONSTANT is a non-copy node
+	    // 	if( refNode->GetFirstChild()->getType() == GDLTokenTypes::CONSTANT)
+	    // 	  {
+	    // 	    const RefDNode& child = refNode->GetFirstChild();
+	    // 	    child->ResetCData( child->CData()->UMinus());
+	    // 	    return NewProgNode( child);
+	    // 	  }
+	    // 	else
+	    newUnary = new UMINUSNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::LOG_NEG:
+	  {
+	    newUnary = new LOG_NEGNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::NOT_OP:
+	  {
+	    newUnary = new NOT_OPNode( refNode);
+	    break;
+	  }
+
+	  // binary
+	case GDLTokenTypes::AND_OP:
+	  {
+	    newNode = new AND_OPNCNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::OR_OP:
+	  {
+	    newNode = new OR_OPNCNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::XOR_OP:
+	  {
+	    newNode = new XOR_OPNCNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::LOG_AND:
+	  {
+	    newNode = new LOG_ANDNCNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::LOG_OR:
+	  {
+	    newNode = new LOG_ORNCNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::EQ_OP:
+	  {
+	    newNode = new EQ_OPNCNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::NE_OP:
+	  {
+	    newNode = new NE_OPNCNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::LE_OP:
+	  {
+	    newNode = new LE_OPNCNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::LT_OP:
+	  {
+	    newNode = new LT_OPNCNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::GE_OP:
+	  {
+	    newNode = new GE_OPNCNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::GT_OP:
+	  {
+	    newNode = new GT_OPNCNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::PLUS:
+	  {
+	    newNode = new PLUSNCNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::MINUS:
+	  {
+	    newNode = new MINUSNCNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::LTMARK:
+	  {
+	    newNode = new LTMARKNCNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::GTMARK:
+	  {
+	    newNode = new GTMARKNCNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::ASTERIX:
+	  {
+	    newNode = new ASTERIXNCNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::MATRIX_OP1:
+	  {
+	    newNode = new MATRIX_OP1NCNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::MATRIX_OP2:
+	  {
+	    newNode = new MATRIX_OP2NCNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::SLASH:
+	  {
+	    newNode = new SLASHNCNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::MOD_OP:
+	  {
+	    newNode = new MOD_OPNCNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::POW:
+	  {
+	    newNode = new POWNCNode( refNode);
+	    break;
+	  }
+	  //     case GDLTokenTypes::DEC:
+	  //       {
+	  // 	return new DECNCNode( refNode);
+	  //       }
+	  //     case GDLTokenTypes::INC:
+	  //       {
+	  // 	return new INCNCNode( refNode);
+	  //       }
+	  //     case GDLTokenTypes::POSTDEC:
+	  //       {
+	  // 	return new POSTDECNCNode( refNode);
+	  //       }
+	  //     case GDLTokenTypes::POSTINC:
+	  //       {
+	  // 	return new POSTINCNCNode( refNode);
+	  //       }
+	  //    default:
+	  //      return new DefaultNode( refNode);
 	}
 
-	// unary
-      case GDLTokenTypes::UMINUS:
+      if( newNode != NULL)
 	{
-	  // 	// optimize constant unary minus away
-	  // 	// CONSTANT is a non-copy node
-	  // 	if( refNode->GetFirstChild()->getType() == GDLTokenTypes::CONSTANT)
-	  // 	  {
-	  // 	    const RefDNode& child = refNode->GetFirstChild();
-	  // 	    child->ResetCData( child->CData()->UMinus());
-	  // 	    return NewProgNode( child);
-	  // 	  }
-	  // 	else
-	  return new UMINUSNode( refNode);
-	}
-      case GDLTokenTypes::LOG_NEG:
-	{
-	  return new LOG_NEGNode( refNode);
-	}
-      case GDLTokenTypes::NOT_OP:
-	{
-	  return new NOT_OPNode( refNode);
-	}
+	  if( !newNode->ConstantExpr()) return newNode;
 
-	// binary
-      case GDLTokenTypes::AND_OP:
-	{
-	  return new AND_OPNCNode( refNode);
+	  auto_ptr<ProgNode> guard( newNode);
+
+	  BaseGDL* cData = newNode->Eval();
+
+	  ProgNodeP cN = new CONSTANTNode( newNode->StealNextSibling(), cData);
+	  cN->lineNumber = refNode->getLine();
+	  cN->setText( "C" + refNode->getText());
+
+	  return cN;
 	}
-      case GDLTokenTypes::OR_OP:
+      else if( newUnary != NULL)
 	{
-	  return new OR_OPNCNode( refNode);
+	  if( !newUnary->ConstantExpr()) return newUnary;
+
+	  auto_ptr<ProgNode> guard( newUnary);
+
+	  BaseGDL* cData = newUnary->Eval();
+
+	  ProgNodeP cN = new CONSTANTNode( newUnary->StealNextSibling(), cData);
+	  cN->lineNumber = refNode->getLine();
+	  cN->setText( "C" + refNode->getText());
+
+	  return cN;
 	}
-      case GDLTokenTypes::XOR_OP:
-	{
-	  return new XOR_OPNCNode( refNode);
-	}
-      case GDLTokenTypes::LOG_AND:
-	{
-	  return new LOG_ANDNCNode( refNode);
-	}
-      case GDLTokenTypes::LOG_OR:
-	{
-	  return new LOG_ORNCNode( refNode);
-	}
-      case GDLTokenTypes::EQ_OP:
-	{
-	  return new EQ_OPNCNode( refNode);
-	}
-      case GDLTokenTypes::NE_OP:
-	{
-	  return new NE_OPNCNode( refNode);
-	}
-      case GDLTokenTypes::LE_OP:
-	{
-	  return new LE_OPNCNode( refNode);
-	}
-      case GDLTokenTypes::LT_OP:
-	{
-	  return new LT_OPNCNode( refNode);
-	}
-      case GDLTokenTypes::GE_OP:
-	{
-	  return new GE_OPNCNode( refNode);
-	}
-      case GDLTokenTypes::GT_OP:
-	{
-	  return new GT_OPNCNode( refNode);
-	}
-      case GDLTokenTypes::PLUS:
-	{
-	  return new PLUSNCNode( refNode);
-	}
-      case GDLTokenTypes::MINUS:
-	{
-	  return new MINUSNCNode( refNode);
-	}
-      case GDLTokenTypes::LTMARK:
-	{
-	  return new LTMARKNCNode( refNode);
-	}
-      case GDLTokenTypes::GTMARK:
-	{
-	  return new GTMARKNCNode( refNode);
-	}
-      case GDLTokenTypes::ASTERIX:
-	{
-	  return new ASTERIXNCNode( refNode);
-	}
-      case GDLTokenTypes::MATRIX_OP1:
-	{
-	  return new MATRIX_OP1NCNode( refNode);
-	}
-      case GDLTokenTypes::MATRIX_OP2:
-	{
-	  return new MATRIX_OP2NCNode( refNode);
-	}
-      case GDLTokenTypes::SLASH:
-	{
-	  return new SLASHNCNode( refNode);
-	}
-      case GDLTokenTypes::MOD_OP:
-	{
-	  return new MOD_OPNCNode( refNode);
-	}
-      case GDLTokenTypes::POW:
-	{
-	  return new POWNCNode( refNode);
-	}
-	//     case GDLTokenTypes::DEC:
-	//       {
-	// 	return new DECNCNode( refNode);
-	//       }
-	//     case GDLTokenTypes::INC:
-	//       {
-	// 	return new INCNCNode( refNode);
-	//       }
-	//     case GDLTokenTypes::POSTDEC:
-	//       {
-	// 	return new POSTDECNCNode( refNode);
-	//       }
-	//     case GDLTokenTypes::POSTINC:
-	//       {
-	// 	return new POSTINCNCNode( refNode);
-	//       }
-	//    default:
-	//      return new DefaultNode( refNode);
-      }
+    }
   else // !nonCopy
-    switch( refNode->getType())
-      {
-      case GDLTokenTypes::QUESTION:
+    {
+      UnaryExpr* newUnary = NULL;
+      BinaryExpr* newNode = NULL;
+      switch( refNode->getType())
 	{
-	  return new QUESTIONNode( refNode);
-	}
+	case GDLTokenTypes::QUESTION:
+	  {
+	    return new QUESTIONNode( refNode);
+	  }
 
-	// unary
-      case GDLTokenTypes::UMINUS:
-	{
-	  return new UMINUSNode( refNode);
-	}
-      case GDLTokenTypes::LOG_NEG:
-	{
-	  return new LOG_NEGNode( refNode);
-	}
-      case GDLTokenTypes::NOT_OP:
-	{
-	  return new NOT_OPNode( refNode);
-	}
+	  // unary
+	case GDLTokenTypes::UMINUS:
+	  {
+	    newUnary = new UMINUSNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::LOG_NEG:
+	  {
+	    newUnary = new LOG_NEGNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::NOT_OP:
+	  {
+	    newUnary = new NOT_OPNode( refNode);
+	    break;
+	  }
 
-	// binary
-      case GDLTokenTypes::AND_OP:
-	{
-	  return new AND_OPNode( refNode);
+	  // binary
+	case GDLTokenTypes::AND_OP:
+	  {
+	    newNode = new AND_OPNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::OR_OP:
+	  {
+	    newNode = new OR_OPNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::XOR_OP:
+	  {
+	    newNode = new XOR_OPNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::LOG_AND:
+	  {
+	    newNode = new LOG_ANDNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::LOG_OR:
+	  {
+	    newNode = new LOG_ORNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::EQ_OP:
+	  {
+	    newNode = new EQ_OPNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::NE_OP:
+	  {
+	    newNode = new NE_OPNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::LE_OP:
+	  {
+	    newNode = new LE_OPNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::LT_OP:
+	  {
+	    newNode = new LT_OPNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::GE_OP:
+	  {
+	    newNode = new GE_OPNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::GT_OP:
+	  {
+	    newNode = new GT_OPNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::PLUS:
+	  {
+	    newNode = new PLUSNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::MINUS:
+	  {
+	    newNode = new MINUSNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::LTMARK:
+	  {
+	    newNode = new LTMARKNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::GTMARK:
+	  {
+	    newNode = new GTMARKNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::ASTERIX:
+	  {
+	    newNode = new ASTERIXNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::MATRIX_OP1:
+	  {
+	    newNode = new MATRIX_OP1Node( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::MATRIX_OP2:
+	  {
+	    newNode = new MATRIX_OP2Node( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::SLASH:
+	  {
+	    newNode = new SLASHNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::MOD_OP:
+	  {
+	    newNode = new MOD_OPNode( refNode);
+	    break;
+	  }
+	case GDLTokenTypes::POW:
+	  {
+	    newNode = new POWNode( refNode);
+	    break;
+	  }
+	  //     case GDLTokenTypes::DEC:
+	  //       {
+	  // 	return new DECNode( refNode);
+	  //       }
+	  //     case GDLTokenTypes::INC:
+	  //       {
+	  // 	return new INCNode( refNode);
+	  //       }
+	  //     case GDLTokenTypes::POSTDEC:
+	  //       {
+	  // 	return new POSTDECNode( refNode);
+	  //       }
+	  //     case GDLTokenTypes::POSTINC:
+	  //       {
+	  // 	return new POSTINCNode( refNode);
+	  //       }
+	  //      default:
 	}
-      case GDLTokenTypes::OR_OP:
+      if( newNode != NULL)
 	{
-	  return new OR_OPNode( refNode);
+	  if( !newNode->ConstantExpr()) return newNode;
+
+	  auto_ptr<ProgNode> guard( newNode);
+
+	  BaseGDL* cData = newNode->Eval();
+
+	  ProgNodeP cN = new CONSTANTNode( newNode->StealNextSibling(), cData);
+	  cN->lineNumber = refNode->getLine();
+	  cN->setText( "C" + refNode->getText());
+
+	  return cN;
 	}
-      case GDLTokenTypes::XOR_OP:
+      else if( newUnary != NULL)
 	{
-	  return new XOR_OPNode( refNode);
+	  if( !newUnary->ConstantExpr()) return newUnary;
+
+	  auto_ptr<ProgNode> guard( newUnary);
+
+	  BaseGDL* cData = newUnary->Eval();
+
+	  ProgNodeP cN = new CONSTANTNode( newUnary->StealNextSibling(), cData);
+	  cN->lineNumber = refNode->getLine();
+	  cN->setText( "C" + refNode->getText());
+
+	  return cN;
 	}
-      case GDLTokenTypes::LOG_AND:
-	{
-	  return new LOG_ANDNode( refNode);
-	}
-      case GDLTokenTypes::LOG_OR:
-	{
-	  return new LOG_ORNode( refNode);
-	}
-      case GDLTokenTypes::EQ_OP:
-	{
-	  return new EQ_OPNode( refNode);
-	}
-      case GDLTokenTypes::NE_OP:
-	{
-	  return new NE_OPNode( refNode);
-	}
-      case GDLTokenTypes::LE_OP:
-	{
-	  return new LE_OPNode( refNode);
-	}
-      case GDLTokenTypes::LT_OP:
-	{
-	  return new LT_OPNode( refNode);
-	}
-      case GDLTokenTypes::GE_OP:
-	{
-	  return new GE_OPNode( refNode);
-	}
-      case GDLTokenTypes::GT_OP:
-	{
-	  return new GT_OPNode( refNode);
-	}
-      case GDLTokenTypes::PLUS:
-	{
-	  return new PLUSNode( refNode);
-	}
-      case GDLTokenTypes::MINUS:
-	{
-	  return new MINUSNode( refNode);
-	}
-      case GDLTokenTypes::LTMARK:
-	{
-	  return new LTMARKNode( refNode);
-	}
-      case GDLTokenTypes::GTMARK:
-	{
-	  return new GTMARKNode( refNode);
-	}
-      case GDLTokenTypes::ASTERIX:
-	{
-	  return new ASTERIXNode( refNode);
-	}
-      case GDLTokenTypes::MATRIX_OP1:
-	{
-	  return new MATRIX_OP1Node( refNode);
-	}
-      case GDLTokenTypes::MATRIX_OP2:
-	{
-	  return new MATRIX_OP2Node( refNode);
-	}
-      case GDLTokenTypes::SLASH:
-	{
-	  return new SLASHNode( refNode);
-	}
-      case GDLTokenTypes::MOD_OP:
-	{
-	  return new MOD_OPNode( refNode);
-	}
-      case GDLTokenTypes::POW:
-	{
-	  return new POWNode( refNode);
-	}
-	//     case GDLTokenTypes::DEC:
-	//       {
-	// 	return new DECNode( refNode);
-	//       }
-	//     case GDLTokenTypes::INC:
-	//       {
-	// 	return new INCNode( refNode);
-	//       }
-	//     case GDLTokenTypes::POSTDEC:
-	//       {
-	// 	return new POSTDECNode( refNode);
-	//       }
-	//     case GDLTokenTypes::POSTINC:
-	//       {
-	// 	return new POSTINCNode( refNode);
-	//       }
-	//      default:
-      }
+    }
 
   // independed of nonCopy:
   switch( refNode->getType())
@@ -444,23 +559,35 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
       }
     case GDLTokenTypes::ARRAYDEF_CONST:
       {
-	DNode* cN = new DNode();
-        cN->setType(GDLTokenTypes::CONSTANT);
-	cN->setText("[CONSTANT]");
-	cN->setNextSibling( refNode->getNextSibling());
-
-	refNode->setNextSibling(antlr::nullAST);
 
 	ProgNodeP c = new ARRAYDEFNode( refNode);
 	auto_ptr< ProgNode> guard( c);
-	//c->setType(  GDLTokenTypes::ARRAYDEF);
 
-	// evaluate constant
-	BaseGDL* res = c->Eval();
+	BaseGDL* cData = c->Eval();
 
-	cN->ResetCData( res);
+	ProgNodeP cN = new CONSTANTNode( c->StealNextSibling(), cData);
+	cN->lineNumber = refNode->getLine();
+        cN->setText( "[C]");
 
-	return new CONSTANTNode( RefDNode( cN));
+	return cN;
+
+// 	DNode* cN = new DNode();
+//         cN->setType(GDLTokenTypes::CONSTANT);
+// 	cN->setText("[CONSTANT]");
+// 	cN->setNextSibling( refNode->getNextSibling());
+
+// 	refNode->setNextSibling(antlr::nullAST);
+
+// 	ProgNodeP c = new ARRAYDEFNode( refNode);
+// 	auto_ptr< ProgNode> guard( c);
+// 	//c->setType(  GDLTokenTypes::ARRAYDEF);
+
+// 	// evaluate constant
+// 	BaseGDL* res = c->Eval();
+
+// 	cN->ResetCData( res);
+
+// 	return new CONSTANTNode( RefDNode( cN));
       }
     case GDLTokenTypes::STRUC:
       {

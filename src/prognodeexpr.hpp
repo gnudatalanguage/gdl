@@ -26,6 +26,10 @@ public:
   UnaryExpr( const RefDNode& refNode): DefaultNode( refNode) 
   { setType( GDLTokenTypes::EXPR);}
 
+  bool ConstantExpr()
+  {
+    return down->getType() == GDLTokenTypes::CONSTANT;
+  }
   //  int getType() { return GDLTokenTypes::EXPR;}
 };
 
@@ -37,6 +41,11 @@ protected:
 public:
   BinaryExpr( const RefDNode& refNode);
 
+  bool ConstantExpr()
+  {
+    return op1->getType() == GDLTokenTypes::CONSTANT &&
+      op2->getType() == GDLTokenTypes::CONSTANT;
+  }
   //  int getType() { return GDLTokenTypes::EXPR;}
 };
 // binary expression with at least one operand non-copy
@@ -74,6 +83,8 @@ public:
 class LeafNode: public DefaultNode
 {
 public:
+  LeafNode(): DefaultNode() 
+  {}
   LeafNode( const RefDNode& refNode): DefaultNode( refNode)
   {}
 };
@@ -111,6 +122,12 @@ public:
 class CONSTANTNode: public LeafNode
 {
 public:
+  CONSTANTNode( ProgNodeP r, BaseGDL* c): LeafNode()
+  { 
+    setType( GDLTokenTypes::CONSTANT);
+    cData = c;
+    right = r;
+  }
   CONSTANTNode( const RefDNode& refNode): LeafNode( refNode)
   {}
   BaseGDL* EvalNC();

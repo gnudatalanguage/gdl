@@ -107,10 +107,18 @@ public:
   {
     return getNextSibling();
   }
+
+  ProgNodeP StealNextSibling()
+  {
+    ProgNodeP n = right;
+    right = NULL;
+    return n;
+  }
   
   int getType() { return ttype;}
   void setType( int t) { ttype=t;}
   std::string getText() { return text;}
+  void setText(const std::string t) { text = t;}
   int getLine() const { return lineNumber;}
   void SetGotoIx( int ix) { targetIx=ix;}
   
@@ -132,6 +140,8 @@ friend class PCALLNode;//: public CommandNode
 class DefaultNode: public ProgNode
 {
 public:
+  DefaultNode(): ProgNode()  {}  
+
   DefaultNode( const RefDNode& refNode): ProgNode( refNode) 
   {
     if( refNode->GetFirstChild() != RefDNode(antlr::nullAST))
