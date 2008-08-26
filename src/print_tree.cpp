@@ -54,7 +54,7 @@ void print_tree::pr_name( ProgNodeP node )
  */
 void print_tree::pr_indent()
 {
-  const SizeT BUFSIZE = 127;
+  const SizeT BUFSIZE = 80;
   char buf[ BUFSIZE+1 ];
   unsigned i;
 

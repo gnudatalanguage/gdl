@@ -20,6 +20,7 @@
 
 #include "prognode.hpp"
 
+
 class UnaryExpr: public DefaultNode
 {
 public:
@@ -28,7 +29,7 @@ public:
 
   bool ConstantExpr()
   {
-    return down->getType() == GDLTokenTypes::CONSTANT;
+    return down->ConstantNode();
   }
   //  int getType() { return GDLTokenTypes::EXPR;}
 };
@@ -43,8 +44,8 @@ public:
 
   bool ConstantExpr()
   {
-    return op1->getType() == GDLTokenTypes::CONSTANT &&
-      op2->getType() == GDLTokenTypes::CONSTANT;
+    return op1->ConstantNode() &&
+      op2->ConstantNode();
   }
   //  int getType() { return GDLTokenTypes::EXPR;}
 };

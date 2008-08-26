@@ -1,75 +1,44 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
- <DocsAndViews NumberOfDocuments="20" >
-  <Doc0 NumberOfViews="1" URL="file:///home/marc/gdl/src/dstructgdl.cpp" >
+ <DocsAndViews NumberOfDocuments="11" >
+  <Doc0 NumberOfViews="1" URL="file:///home/marc/gdl/src/typedefs.hpp" >
    <View0 Encoding="" Type="Source" />
   </Doc0>
-  <Doc1 NumberOfViews="1" URL="file:///home/marc/gdl/src/GDLInterpreterTokenTypes.hpp" >
+  <Doc1 NumberOfViews="1" URL="file:///home/marc/gdl/src/envt.hpp" >
    <View0 Encoding="" Type="Source" />
   </Doc1>
-  <Doc2 NumberOfViews="1" URL="file:///home/marc/gdl/src/GDLInterpreterTokenTypes.txt" >
+  <Doc2 NumberOfViews="1" URL="file:///home/marc/gdl/src/envt.cpp" >
    <View0 Encoding="" Type="Source" />
   </Doc2>
-  <Doc3 NumberOfViews="1" URL="file:///home/marc/gdl/src/GDLInterpreter.cpp" >
-   <View0 Encoding="" line="0" Type="Source" />
+  <Doc3 NumberOfViews="1" URL="file:///home/marc/gdl/src/prognode.cpp" >
+   <View0 Encoding="" Type="Source" />
   </Doc3>
-  <Doc4 NumberOfViews="1" URL="file:///home/marc/gdl/src/basic_pro.cpp" >
+  <Doc4 NumberOfViews="1" URL="file:///home/marc/gdl/src/prognodeexpr.cpp" >
    <View0 Encoding="" Type="Source" />
   </Doc4>
-  <Doc5 NumberOfViews="1" URL="file:///home/marc/gdl/src/envt.hpp" >
-   <View0 Encoding="" line="28" Type="Source" />
+  <Doc5 NumberOfViews="1" URL="file:///home/marc/gdl/src/prognodeexpr.hpp" >
+   <View0 Encoding="" Type="Source" />
   </Doc5>
-  <Doc6 NumberOfViews="1" URL="file:///home/marc/gdl/src/datalistt.hpp" >
-   <View0 Encoding="" line="0" Type="Source" />
+  <Doc6 NumberOfViews="1" URL="file:///home/marc/gdl/src/dstructdesc.hpp" >
+   <View0 Encoding="" Type="Source" />
   </Doc6>
-  <Doc7 NumberOfViews="1" URL="file:///home/marc/gdl/src/dpro.hpp" >
-   <View0 Encoding="" line="29" Type="Source" />
+  <Doc7 NumberOfViews="1" URL="file:///home/marc/gdl/src/dstructgdl.cpp" >
+   <View0 Encoding="" Type="Source" />
   </Doc7>
-  <Doc8 NumberOfViews="1" URL="file:///home/marc/gdl/configure.in" >
-   <View0 Encoding="" line="0" Type="Source" />
+  <Doc8 NumberOfViews="1" URL="file:///home/marc/gdl/src/prognode.hpp" >
+   <View0 Encoding="" Type="Source" />
   </Doc8>
-  <Doc9 NumberOfViews="1" URL="file:///home/marc/gdl/src/prognode.hpp" >
-   <View0 Encoding="" line="140" Type="Source" />
+  <Doc9 NumberOfViews="1" URL="file:///home/marc/gdl/src/GDLInterpreter.cpp" >
+   <View0 Encoding="" Type="Source" />
   </Doc9>
-  <Doc10 NumberOfViews="1" URL="file:///home/marc/gdl/src/prognodeexpr.hpp" >
-   <View0 Encoding="" line="20" Type="Source" />
+  <Doc10 NumberOfViews="1" URL="file:///home/marc/gdl/src/antlr/BaseAST.hpp" >
+   <View0 Encoding="" line="109" Type="Source" />
   </Doc10>
-  <Doc11 NumberOfViews="1" URL="file:///home/marc/gdl/src/gdlexception.hpp" >
-   <View0 Encoding="" line="26" Type="Source" />
-  </Doc11>
-  <Doc12 NumberOfViews="1" URL="file:///home/marc/gdl/src/GDLInterpreter.hpp" >
-   <View0 Encoding="" line="358" Type="Source" />
-  </Doc12>
-  <Doc13 NumberOfViews="1" URL="file:///home/marc/gdl/src/dnode.hpp" >
-   <View0 Encoding="" line="66" Type="Source" />
-  </Doc13>
-  <Doc14 NumberOfViews="1" URL="file:///home/marc/gdl/src/assocdata.cpp" >
-   <View0 Encoding="" line="282" Type="Source" />
-  </Doc14>
-  <Doc15 NumberOfViews="1" URL="file:///home/marc/gdl/src/assocdata.hpp" >
-   <View0 Encoding="" line="19" Type="Source" />
-  </Doc15>
-  <Doc16 NumberOfViews="1" URL="file:///home/marc/gdl/src/specializations.hpp" >
-   <View0 Encoding="" line="464" Type="Source" />
-  </Doc16>
-  <Doc17 NumberOfViews="1" URL="file:///home/marc/gdl/src/datatypes.hpp" >
-   <View0 Encoding="" line="75" Type="Source" />
-  </Doc17>
-  <Doc18 NumberOfViews="1" URL="file:///home/marc/gdl/src/basic_fun.cpp" >
-   <View0 Encoding="" line="1248" Type="Source" />
-  </Doc18>
-  <Doc19 NumberOfViews="1" URL="file:///home/marc/gdl/src/print_tree.hpp" >
-   <View0 Encoding="" line="15" Type="Source" />
-  </Doc19>
  </DocsAndViews>
  <pluginList>
   <kdevdebugger>
-   <breakpointList>
-    <breakpoint0 location="/home/marc/gdl/src/dstructgdl.cpp:33" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
-     <tracedExpressions/>
-    </breakpoint0>
-   </breakpointList>
+   <breakpointList/>
    <showInternalCommands value="0" />
   </kdevdebugger>
   <kdevastyle>
@@ -82,8 +51,8 @@
   <kdevvalgrind>
    <executable path="" params="" />
    <valgrind path="" params="" />
-   <calltree path="" params="" />
-   <kcachegrind path="" />
+   <calltree path="/usr/bin/valgrind" params="--tool=callgrind" />
+   <kcachegrind path="/usr/bin/kcachegrind" />
   </kdevvalgrind>
  </pluginList>
 </KDevPrjSession>

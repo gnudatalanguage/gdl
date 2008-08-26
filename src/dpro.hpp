@@ -244,10 +244,12 @@ public:
 // (as opposite to returning an input value)
 class DLibFunRetNew: public DLibFun
 {
+  bool   retConstant;
 public:
   DLibFunRetNew( LibFun f, const std::string& n, const int nPar_=0, 
 		 const std::string keyNames[]=NULL,
-		 const std::string warnKeyNames[]=NULL);
+		 const std::string warnKeyNames[]=NULL, bool rConstant=false);
+
 
   DLibFunRetNew( LibFun f, const std::string& n, const std::string& o, 
 		 const int nPar_=0, 
@@ -255,6 +257,7 @@ public:
 		 const std::string warnKeyNames[]=NULL);
 
   bool RetNew() { return true;}
+  bool RetConstant() { return this->retConstant;}
 };
 
 // UD pro/fun ********************************************************

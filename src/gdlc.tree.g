@@ -1105,20 +1105,30 @@ arrayexpr_fn!//
                     {
                         #id->SetLibFun( libFunList[i]);
                         if( libFunList[ i]->RetNew())
+                            {
+                        #id->setType( FCALL_LIB_RETNEW);
                         #arrayexpr_fn=
-                        #([FCALL_LIB_RETNEW,"fcall_lib_retnew"], id, el);
+                        #( id, el);
+//                        #([/*FCALL_LIB_RETNEW,"fcall_lib_retnew"],*/ id, el);
+                            }
                         else
+                            {
+                        #id->setType( FCALL_LIB);
                         #arrayexpr_fn=
-                        #([FCALL_LIB,"fcall_lib"], id, el);
+                        #( id, el);
+//                        #(/*[FCALL_LIB,"fcall_lib"],*/ id, el);
+                            }
                     }
                     else
                     {
                         // then search user defined functions
+                        #id->setType( FCALL);
                         i=FunIx(id_text);
                         #id->SetFunIx(i);
 
                         #arrayexpr_fn=
-                        #([FCALL,"fcall"], id, el);
+                        #( id, el);
+//                        #(/*[FCALL,"fcall"],*/ id, el);
                     }
                 }
                 else
@@ -1148,7 +1158,7 @@ int dummy;
 	| #(MFCALL_PARENT expr IDENTIFIER
             IDENTIFIER (parameter_def)*
         )
-	| #(f:FCALL id:IDENTIFIER (parameter_def)*
+	| #(f:FCALL id:IDENTIFIER! (parameter_def)*
             {
                 // first search library functions
                 int i=LibFunIx(id->getText());
@@ -1157,23 +1167,25 @@ int dummy;
                     if( libFunList[ i]->RetNew())
                     {
                     #f->setType(FCALL_LIB_RETNEW);
-                    #f->setText("fcall_lib_retnew");
-                    #id->SetLibFun( libFunList[i]);
+                    #f->setText(#id->getText());
+                    #f->SetLibFun( libFunList[i]);
                         //                    #id->SetFunIx(i);
                     }
                     else
                     {
                     #f->setType(FCALL_LIB);
-                    #f->setText("fcall_lib");
-                    #id->SetLibFun( libFunList[i]);
+                    #f->setText(#id->getText());
+                    #f->SetLibFun( libFunList[i]);
                         //                    #id->SetFunIx(i);
                     }
                 }
                 else
                 {
                     // then search user defined functions
+                    #f->setType(FCALL);
+                    #f->setText(#id->getText());
                     i=FunIx(#id->getText());
-                    #id->SetFunIx(i);
+                    #f->SetFunIx(i);
                 }
             }
         ) 	

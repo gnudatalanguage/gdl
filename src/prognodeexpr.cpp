@@ -138,6 +138,71 @@ BaseGDL* ProgNode::Eval()
   return ProgNode::interpreter->expr( this);
 }
 
+// checks if parameterlist is constant
+bool ConstantPar( ProgNodeP _t)
+{
+
+  while(_t != NULL) {
+    switch ( _t->getType()) {
+    case GDLTokenTypes::KEYDEF_REF:
+      {
+	return false;
+      }
+    case GDLTokenTypes::KEYDEF_REF_EXPR:
+      {
+	return false;
+      }
+    case GDLTokenTypes::KEYDEF:
+      {
+// 	ProgNodeP __t162 = _t;
+
+	// 			match(antlr::RefAST(_t),KEYDEF);
+// 	_t = _t->getFirstChild();
+	// 			match(antlr::RefAST(_t),IDENTIFIER);
+// 	_t = _t->getNextSibling();
+
+	if( !_t->getFirstChild()->getNextSibling()->ConstantNode())
+	  return false;
+			
+// 	_t = __t162;
+	_t = _t->getNextSibling();
+	break;
+      }
+    case GDLTokenTypes::REF:
+      {
+	return false;
+      }
+    case GDLTokenTypes::REF_EXPR:
+      {
+	return false;
+      }
+    case GDLTokenTypes::KEYDEF_REF_CHECK:
+      {
+	return false;
+      }
+    case GDLTokenTypes::REF_CHECK:
+      {
+	return false;
+      }
+    default:
+      {
+	// expr
+	if( !_t->ConstantNode())
+	  return false;
+
+	_t = _t->getNextSibling();
+	break;
+      }
+    } // switch
+  } // while
+
+  return true;
+}
+
+
+
+
+
 ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
 {
   // this can happen in case of a subroutine with only common blocks
@@ -533,6 +598,23 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
   // independed of nonCopy:
   switch( refNode->getType())
     {
+    case GDLTokenTypes::FCALL_LIB_RETNEW:
+      {
+	ProgNodeP c = new DefaultNode( refNode);
+
+	if( !static_cast<DLibFunRetNew*>(c->libFun)->RetConstant()
+	    || !ConstantPar( c->getFirstChild())) return c;
+	
+	auto_ptr< ProgNode> guard( c);
+	
+	BaseGDL* cData = c->Eval();
+	
+	ProgNodeP cN = new CONSTANTNode( c->StealNextSibling(), cData);
+	cN->lineNumber = refNode->getLine();
+	cN->setText( "C()");
+	
+	return cN;
+      }
     case GDLTokenTypes::VAR:
       {
 	return new VARNode( refNode);

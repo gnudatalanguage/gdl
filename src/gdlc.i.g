@@ -3288,13 +3288,12 @@ lib_function_call returns[ BaseGDL* res]
 	ProgNodeP rTree = _t->getNextSibling();
 // 	match(antlr::RefAST(_t),FCALL_LIB);
 
-	_t = _t->getFirstChild();
 // 	match(antlr::RefAST(_t),IDENTIFIER);
 
 	ProgNodeP& fl = _t;
 	EnvT* newEnv=new EnvT( fl, fl->libFun);//libFunList[fl->funIx]);
 	
-	parameter_def(_t->getNextSibling(), newEnv);
+	parameter_def(_t->getFirstChild(), newEnv);
 	
 	// push id.pro onto call stack
 	callStack.push_back(newEnv);
@@ -3306,7 +3305,7 @@ lib_function_call returns[ BaseGDL* res]
 	_retTree = rTree;
 	return res;
 }
-	: #(FCALL_LIB fll:IDENTIFIER
+	: #(fll:FCALL_LIB //fll:IDENTIFIER
             {
                 //EnvT* 
                 newEnv=new EnvT( fll, fll->libFun);//libFunList[fl->funIx]);
@@ -3330,14 +3329,15 @@ lib_function_call_retnew returns[ BaseGDL* res]
 	ProgNodeP rTree = _t->getNextSibling();
 
 // 	match(antlr::RefAST(_t),FCALL_LIB_RETNEW);
-	_t = _t->getFirstChild();
-	ProgNodeP fl = _t;
+//	_t = _t->getFirstChild();
 // 	match(antlr::RefAST(_t),IDENTIFIER);
-	_t = _t->getNextSibling();
+	EnvT* newEnv=new EnvT( _t, _t->libFun);//libFunList[fl->funIx]);
+
+// 	_t =_t->getFirstChild();
 	
-	EnvT* newEnv=new EnvT( fl, fl->libFun);//libFunList[fl->funIx]);
+// 	EnvT* newEnv=new EnvT( fl, fl->libFun);//libFunList[fl->funIx]);
 	
-	parameter_def(_t, newEnv);
+	parameter_def(_t->getFirstChild(), newEnv);
 	
 	// push id.pro onto call stack
 	callStack.push_back(newEnv);
@@ -3349,7 +3349,7 @@ lib_function_call_retnew returns[ BaseGDL* res]
 	_retTree = rTree;
 	return res;
 }
-	: #(FCALL_LIB_RETNEW fll:IDENTIFIER
+	: #(fll:FCALL_LIB_RETNEW //fll:IDENTIFIER
             {
                 //EnvT* 
                 newEnv=new EnvT( fll, fll->libFun);//libFunList[fl->funIx]);
@@ -3397,7 +3397,7 @@ function_call returns[ BaseGDL* res]
                 }
                 parameter_def[ newEnv]
             )
-        | #(FCALL f:IDENTIFIER
+        | #(f:FCALL //f:IDENTIFIER
                 {
                     SetFunIx( f);
                     
@@ -3426,7 +3426,7 @@ l_function_call returns[ BaseGDL** res]
     EnvUDT*   newEnv;
 }
 
-	: #(FCALL_LIB fl:IDENTIFIER
+	: #(fl:FCALL_LIB //fl:IDENTIFIER
             {
                 EnvT* newEnv=new EnvT( fl, fl->libFun);//libFunList[fl->funIx]);
             }
@@ -3471,7 +3471,7 @@ l_function_call returns[ BaseGDL** res]
                 parameter_def[ newEnv]
             )
 
-        | #(FCALL f:IDENTIFIER
+        | #(f:FCALL //f:IDENTIFIER
                 {
                     SetFunIx( f);
                     

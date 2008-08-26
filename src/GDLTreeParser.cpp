@@ -5056,20 +5056,30 @@ void GDLTreeParser::arrayexpr_fn(RefDNode _t) {
 	{
 	id_AST->SetLibFun( libFunList[i]);
 	if( libFunList[ i]->RetNew())
+	{
+	id_AST->setType( FCALL_LIB_RETNEW);
 	arrayexpr_fn_AST=
-	RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(FCALL_LIB_RETNEW,"fcall_lib_retnew")))->add(antlr::RefAST(id_AST))->add(antlr::RefAST(el_AST))));
+	RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(id_AST))->add(antlr::RefAST(el_AST))));
+	//                        #([/*FCALL_LIB_RETNEW,"fcall_lib_retnew"],*/ id, el);
+	}
 	else
+	{
+	id_AST->setType( FCALL_LIB);
 	arrayexpr_fn_AST=
-	RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(FCALL_LIB,"fcall_lib")))->add(antlr::RefAST(id_AST))->add(antlr::RefAST(el_AST))));
+	RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(id_AST))->add(antlr::RefAST(el_AST))));
+	//                        #(/*[FCALL_LIB,"fcall_lib"],*/ id, el);
+	}
 	}
 	else
 	{
 	// then search user defined functions
+	id_AST->setType( FCALL);
 	i=FunIx(id_text);
 	id_AST->SetFunIx(i);
 	
 	arrayexpr_fn_AST=
-	RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(FCALL,"fcall")))->add(antlr::RefAST(id_AST))->add(antlr::RefAST(el_AST))));
+	RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(id_AST))->add(antlr::RefAST(el_AST))));
+	//                        #(/*[FCALL,"fcall"],*/ id, el);
 	}
 	}
 	else
@@ -5260,7 +5270,6 @@ void GDLTreeParser::primary_expr(RefDNode _t) {
 		id = _t;
 		RefDNode id_AST_in = RefDNode(antlr::nullAST);
 		id_AST = astFactory->create(antlr::RefAST(id));
-		astFactory->addASTChild(currentAST, antlr::RefAST(id_AST));
 		match(antlr::RefAST(_t),IDENTIFIER);
 		_t = _t->getNextSibling();
 		{ // ( ... )*
@@ -5287,23 +5296,25 @@ void GDLTreeParser::primary_expr(RefDNode _t) {
 		if( libFunList[ i]->RetNew())
 		{
 		f_AST->setType(FCALL_LIB_RETNEW);
-		f_AST->setText("fcall_lib_retnew");
-		id_AST->SetLibFun( libFunList[i]);
+		f_AST->setText(id_AST->getText());
+		f_AST->SetLibFun( libFunList[i]);
 		//                    #id->SetFunIx(i);
 		}
 		else
 		{
 		f_AST->setType(FCALL_LIB);
-		f_AST->setText("fcall_lib");
-		id_AST->SetLibFun( libFunList[i]);
+		f_AST->setText(id_AST->getText());
+		f_AST->SetLibFun( libFunList[i]);
 		//                    #id->SetFunIx(i);
 		}
 		}
 		else
 		{
 		// then search user defined functions
+		f_AST->setType(FCALL);
+		f_AST->setText(id_AST->getText());
 		i=FunIx(id_AST->getText());
-		id_AST->SetFunIx(i);
+		f_AST->SetFunIx(i);
 		}
 		
 		currentAST = __currentAST160;
