@@ -40,8 +40,8 @@ BaseGDL* ARRAYDEFNode::Eval()
   while(  _t != NULL) {
 
     BaseGDL* e=_t->Eval();//expr(_t);
-
-    _t = ProgNode::interpreter->_retTree;
+    _t = _t->getNextSibling();
+    //WRONG    _t = ProgNode::interpreter->_retTree;
 			
     // add first (this way it will get cleaned up anyway)
     exprList.push_back(e);
@@ -131,7 +131,8 @@ BaseGDL* STRUCNode::Eval()
     // 			match(antlr::RefAST(_t),IDENTIFIER);
     _t = _t->getNextSibling();
     BaseGDL* e=_t->Eval();//expr(_t);
-    _t = ProgNode::interpreter->_retTree;
+    _t = _t->getNextSibling();
+    //WRONG    _t = ProgNode::interpreter->_retTree;
 			
     // also adds to descriptor, grabs
     instance->NewTag( si->getText(), e); 
@@ -202,7 +203,8 @@ BaseGDL* NSTRUCNode::Eval()
 	    // 			match(antlr::RefAST(_t),IDENTIFIER);
 	    _t = _t->getNextSibling();
 	    e=_t->Eval();//expr(_t);
-	    _t = ProgNode::interpreter->_retTree;
+	    _t = _t->getNextSibling();
+	    //WRONG  _t = ProgNode::interpreter->_retTree;
 			
 	    // also adds to descriptor, grabs
 	    instance->NewTag( i->getText(), e); 
@@ -252,7 +254,8 @@ BaseGDL* NSTRUCNode::Eval()
 			case QUESTION:*/
 	  {
 	    ee=_t->Eval();//expr(_t);
-	    _t = ProgNode::interpreter->_retTree;
+	    _t = _t->getNextSibling();
+	    //WRONG _t = ProgNode::interpreter->_retTree;
 			
 	    // also adds to descriptor, grabs
 	    instance->NewTag( 

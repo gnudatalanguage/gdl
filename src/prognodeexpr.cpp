@@ -1118,6 +1118,7 @@ BaseGDL* MINUSNode::Eval()
 	 res= e2->SubInv(e1.get()); // smaller + larger
 	 e2.release();
        }
+
  return res;
 }
 BaseGDL* LTMARKNode::Eval()
