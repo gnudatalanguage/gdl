@@ -299,8 +299,8 @@ void LibInit()
   
   const string stringKey[]={"FORMAT","AM_PM","DAYS_OF_WEEK","MONTH",
 			    "PRINT",KLISTEND};
-  new DLibFunRetNew(lib::string_fun,string("STRING"),-1,stringKey);
-  new DLibFunRetNew(lib::byte_fun,string("BYTE"),10);
+  new DLibFunRetNew(lib::string_fun,string("STRING"),-1,stringKey,NULL,true);
+  new DLibFunRetNew(lib::byte_fun,string("BYTE"),10,NULL,NULL,true);
   const string fixKey[]={"TYPE",KLISTEND};
   new DLibFunRetNew(lib::fix_fun,string("FIX"),10,fixKey,NULL,true);
   new DLibFunRetNew(lib::uint_fun,string("UINT"),10,NULL,NULL,true);

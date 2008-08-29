@@ -22,8 +22,8 @@
 #include "initsysvar.hpp"
 #include "gdljournal.hpp"
 
-#define GDLDEBUG
-//#undef GDLDEBUG
+//#define GDLDEBUG
+#undef GDLDEBUG
 
 using namespace std;
 

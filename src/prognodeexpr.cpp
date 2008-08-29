@@ -727,6 +727,71 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
       {
 	return new  INCNode( refNode);
       }
+      // the following must change their type if precalculation strikes
+		case GDLTokenTypes::KEYDEF_REF:
+		{
+		  ProgNodeP nn = new DefaultNode( refNode);
+
+		  if( !nn->getFirstChild()->getNextSibling()->ConstantNode())
+		    return nn;
+
+		  nn->setType( GDLTokenTypes::KEYDEF);
+		  return nn;
+		}
+		case GDLTokenTypes::KEYDEF_REF_EXPR:
+		{
+		  ProgNodeP nn = new DefaultNode( refNode);
+
+		  if( !nn->getFirstChild()->getNextSibling()->ConstantNode())
+		    return nn;
+
+		  nn->setType( GDLTokenTypes::KEYDEF);
+		  return nn;
+		}
+		//OK		case KEYDEF:
+		case GDLTokenTypes::REF:
+		{
+		  ProgNodeP nn = new DefaultNode( refNode);
+
+		  if( !nn->getFirstChild()->ConstantNode())
+		    return nn;
+		  
+		  auto_ptr<ProgNode> guard(nn);
+ 
+		  return nn->StealFirstChild();
+		}
+		case GDLTokenTypes::REF_EXPR:
+		{
+		  ProgNodeP nn = new DefaultNode( refNode);
+
+		  if( !nn->getFirstChild()->ConstantNode())
+		    return nn;
+		  
+		  auto_ptr<ProgNode> guard(nn);
+ 
+		  return nn->StealFirstChild();
+		}
+ 		case GDLTokenTypes::KEYDEF_REF_CHECK:
+		{
+		  ProgNodeP nn = new DefaultNode( refNode);
+
+		  if( nn->getFirstChild()->getNextSibling()->getType() != 
+		      GDLTokenTypes::CONSTANT) return nn;
+
+		  nn->setType( GDLTokenTypes::KEYDEF);
+		  return nn;
+		}
+		case GDLTokenTypes::REF_CHECK:
+		{
+		  ProgNodeP nn = new DefaultNode( refNode);
+
+		  if( !nn->getFirstChild()->ConstantNode())
+		    return nn;
+		  
+		  auto_ptr<ProgNode> guard(nn);
+ 
+		  return nn->StealFirstChild();
+		}
     }
 
   // default

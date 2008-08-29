@@ -119,6 +119,12 @@ public:
     right = NULL;
     return n;
   }
+  ProgNodeP StealFirstChild()
+  {
+    ProgNodeP n = down;
+    down = NULL;
+    return n;
+  }
   
   int getType() { return ttype;}
   void setType( int t) { ttype=t;}
