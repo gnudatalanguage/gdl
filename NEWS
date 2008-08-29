@@ -199,4 +199,6 @@
 	  in CONTOUR: throw when levels= are not ordered, manage NaN
 	  and Inf values, add Nlevels= and /Fill
 	  Two new projections in MAP_SET: Satellite and Robinson
+	  Preliminary version for Width parameter in MEDIAN()
+
 

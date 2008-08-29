@@ -8,7 +8,7 @@
  strtok_fun, getenv_fun, tag_names_fun, stregex_fun:
  (C) 2004 by Peter Messmer    
  
- ***************************************************************************/
+***************************************************************************/
 
 /***************************************************************************
  *                                                                         *
@@ -34,7 +34,7 @@
 #endif
 
 #if defined(__FreeBSD__)
-    extern "C" char **environ;
+extern "C" char **environ;
 #endif
 
 #include "datatypes.hpp"
@@ -45,7 +45,7 @@
 #include "terminfo.hpp"
 #include "typedefs.hpp"
 
- /* max regexp error message length */
+/* max regexp error message length */
 #define MAX_REGEXPERR_LENGTH 80
 
 namespace lib {
@@ -62,26 +62,26 @@ namespace lib {
       e->Throw( "Incorrect number of arguments.");
 
     if( nParam == 1 ) {
-        BaseGDL* par = e->GetParDefined( pOffs); 
+      BaseGDL* par = e->GetParDefined( pOffs); 
  	
-        SizeT newDim;
-	int ret = par->Scalar2index( newDim);
-	if( ret > 0) {  // single argument
-           dim << newDim;
-	   return;
-	} 
-	if( ret == 0) { //  array argument
-         DLongGDL* ind = 
-		 static_cast<DLongGDL*>(par->Convert2(LONG, BaseGDL::COPY)); 	 
-	 e->Guard( ind);
-
-	 for(SizeT i =0; i < par->N_Elements(); ++i)
-	   dim << (*ind)[i];	  
-
-	 return;
-	}
-        e->Throw( "arr: should never arrive here.");	
+      SizeT newDim;
+      int ret = par->Scalar2index( newDim);
+      if( ret > 0) {  // single argument
+	dim << newDim;
 	return;
+      } 
+      if( ret == 0) { //  array argument
+	DLongGDL* ind = 
+	  static_cast<DLongGDL*>(par->Convert2(LONG, BaseGDL::COPY)); 	 
+	e->Guard( ind);
+
+	for(SizeT i =0; i < par->N_Elements(); ++i)
+	  dim << (*ind)[i];	  
+
+	return;
+      }
+      e->Throw( "arr: should never arrive here.");	
+      return;
     }
 
     // max number checked in interpreter
@@ -283,7 +283,7 @@ namespace lib {
       arr( e, dim); 
       if (dim[0] == 0)
 
-      if( e->KeywordSet(0)) return new DComplexDblGDL(dim, BaseGDL::NOZERO);
+	if( e->KeywordSet(0)) return new DComplexDblGDL(dim, BaseGDL::NOZERO);
       return new DComplexDblGDL(dim);
     }
     catch( GDLException ex)
@@ -962,9 +962,9 @@ namespace lib {
     void* dstAddr = static_cast<void*>(&(*res)[0]);
     memcpy( dstAddr, srcAddr, nByteCreate);
 
-//     char* srcAddr = reinterpret_cast<char*>(p0->DataAddr());
-//     char* dstAddr = reinterpret_cast<char*>(&(*res)[0]);
-//     copy( srcAddr, srcAddr+nByteCreate, dstAddr);
+    //     char* srcAddr = reinterpret_cast<char*>(p0->DataAddr());
+    //     char* dstAddr = reinterpret_cast<char*>(&(*res)[0]);
+    //     copy( srcAddr, srcAddr+nByteCreate, dstAddr);
 
     return res;
   }
@@ -1088,7 +1088,7 @@ namespace lib {
 
 		SizeT nEl = sP->N_Elements();
 		for( SizeT e=0; e<nEl; ++e)
-		    s += (*sP)[ e];
+		  s += (*sP)[ e];
 		delete sP;
 	      }
 	    // IDL here breaks the string into tty-width substrings
@@ -1345,7 +1345,7 @@ namespace lib {
 	for( SizeT i=0; i < nEl1; i++)
 	  (*res)[i] = (e1->LogTrue( i) && e2->LogTrue( i)) ? 1 : 0;
       }
-  return res;
+    return res;
   }
 
   // gdl_ naming because of weired namespace problem in MSVC
@@ -1560,7 +1560,7 @@ namespace lib {
     DStringGDL* p0S = e->GetParAs<DStringGDL>( 0);
 
     DString searchString;
-//     e->AssureScalarPar<DStringGDL>( 1, searchString);
+    //     e->AssureScalarPar<DStringGDL>( 1, searchString);
     DStringGDL* sStr = e->GetParAs<DStringGDL>( 1);
     if( !sStr->Scalar( searchString))
       e->Throw( "Search string must be a scalar or one element array: "+
@@ -1786,12 +1786,12 @@ namespace lib {
 
     return new DLongGDL( ixList, count);
 
-//     DLongGDL* res = new DLongGDL( dimension( &count, 1), 
-// 				  BaseGDL::NOZERO);
-//     for( SizeT i=0; i<count; ++i)
-//       (*res)[ i] = ixList[ i];
+    //     DLongGDL* res = new DLongGDL( dimension( &count, 1), 
+    // 				  BaseGDL::NOZERO);
+    //     for( SizeT i=0; i<count; ++i)
+    //       (*res)[ i] = ixList[ i];
 
-//     return res;
+    //     return res;
   }
 
   BaseGDL* n_params( EnvT* e) 
@@ -1948,7 +1948,7 @@ namespace lib {
 
     if( p0->Type() == STRING)
       e->Throw( "String expression not allowed "
-			  "in this context: "+e->GetParString(0));
+		"in this context: "+e->GetParString(0));
     
     static int cumIx = e->KeywordIx( "CUMULATIVE");
     static int intIx = e->KeywordIx("INTEGER");
@@ -2085,17 +2085,17 @@ namespace lib {
 		  }
     	        return total_cu_template< DFloatGDL>
 		  ( static_cast<DFloatGDL*>( p0->Convert2(FLOAT, 
-                    BaseGDL::COPY)), nan);
+							  BaseGDL::COPY)), nan);
 	      }
 	    if( p0->Type() == COMPLEX)
 	      {
 		return total_cu_template< DComplexDblGDL>
 		  ( static_cast<DComplexDblGDL*>(p0->Convert2( COMPLEXDBL, 
-		    BaseGDL::COPY)), nan);
+							       BaseGDL::COPY)), nan);
 	      }
     	    return total_cu_template< DDoubleGDL>
 	      ( static_cast<DDoubleGDL*>(p0->Convert2( DOUBLE, 
-		BaseGDL::COPY)), nan);
+						       BaseGDL::COPY)), nan);
 	  }
       }
 
@@ -2226,18 +2226,18 @@ namespace lib {
 	    // default for NOT /DOUBLE
 	    return total_over_dim_cu_template< DFloatGDL>
 	      ( static_cast<DFloatGDL*>( p0->Convert2( FLOAT, 
-                BaseGDL::COPY)), sumDim-1, nan);
+						       BaseGDL::COPY)), sumDim-1, nan);
 	  }
 	if( p0->Type() == COMPLEX)
 	  {
 	    return total_over_dim_cu_template< DComplexDblGDL>
 	      ( static_cast<DComplexDblGDL*>(p0->Convert2( COMPLEXDBL,
-	        BaseGDL::COPY)), sumDim-1, nan);
+							   BaseGDL::COPY)), sumDim-1, nan);
 	  }
 	// default for /DOUBLE
 	return total_over_dim_cu_template< DDoubleGDL>
 	  ( static_cast<DDoubleGDL*>(p0->Convert2( DOUBLE,
-	    BaseGDL::COPY)), sumDim-1, nan);
+						   BaseGDL::COPY)), sumDim-1, nan);
       }
   }
 
@@ -2305,9 +2305,9 @@ namespace lib {
   // product over one dim
   template< typename T>
   BaseGDL* product_over_dim_template( T* src, 
-				    const dimension& srcDim, 
-				    SizeT sumDimIx,
-                                    bool omitNaN)
+				      const dimension& srcDim, 
+				      SizeT sumDimIx,
+				      bool omitNaN)
   {
     SizeT nEl = src->N_Elements();
     
@@ -2346,8 +2346,8 @@ namespace lib {
   // cumulative over one dim
   template< typename T>
   BaseGDL* product_over_dim_cu_template( T* res, 
-				       SizeT sumDimIx,
-                                       bool omitNaN)
+					 SizeT sumDimIx,
+					 bool omitNaN)
   {
     SizeT nEl = res->N_Elements();
     const dimension& resDim = res->Dim();
@@ -2434,11 +2434,11 @@ namespace lib {
 	      {
 		return product_cu_template< DComplexDblGDL>
 		  ( static_cast<DComplexDblGDL*>(p0->Convert2( COMPLEXDBL, 
-		    BaseGDL::COPY)), nan);
+							       BaseGDL::COPY)), nan);
 	      }
     	    return product_cu_template< DDoubleGDL>
 	      ( static_cast<DDoubleGDL*>(p0->Convert2( DOUBLE, 
-		BaseGDL::COPY)), nan);
+						       BaseGDL::COPY)), nan);
 	  }
       }
 
@@ -2492,12 +2492,12 @@ namespace lib {
 	  {
 	    return product_over_dim_cu_template< DComplexDblGDL>
 	      ( static_cast<DComplexDblGDL*>(p0->Convert2( COMPLEXDBL,
-	        BaseGDL::COPY)), sumDim-1, nan);
+							   BaseGDL::COPY)), sumDim-1, nan);
 	  }
 
 	return product_over_dim_cu_template< DDoubleGDL>
 	  ( static_cast<DDoubleGDL*>(p0->Convert2( DOUBLE,
-	    BaseGDL::COPY)), sumDim-1, nan);
+						   BaseGDL::COPY)), sumDim-1, nan);
       }
   }
 
@@ -2555,7 +2555,7 @@ namespace lib {
     bool subMax = e->KeywordPresent( 2);   // SUBSCRIPT_MAX present
 
     if( nParam == 2)
-	e->AssureGlobalPar( 1);
+      e->AssureGlobalPar( 1);
 
     if( e->KeywordPresent( 0)) // MAX keyword given
       {
@@ -2609,7 +2609,7 @@ namespace lib {
     bool subMin = e->KeywordPresent( 2);  // SUBSCRIPT_MIN present
 
     if( nParam == 2)
-	e->AssureGlobalPar( 1);
+      e->AssureGlobalPar( 1);
 
     if( e->KeywordPresent( 0)) // MIN keyword given
       {
@@ -2688,10 +2688,10 @@ namespace lib {
 	      e->Throw( "Incorrect permutation vector.");
 	  }
 	return p0->Transpose( perm);
-     }
+      }
 
-   return p0->Transpose( NULL);
-   }
+    return p0->Transpose( NULL);
+  }
 
  
 
@@ -2809,111 +2809,633 @@ namespace lib {
   {
     SizeT nParam = e->NParam( 1);
     
-    if( nParam > 1)
-      e->Throw( "Median filtering not implemented yet.");
+    if( !(nParam > 1))
+      {
+	BaseGDL* p0 = e->GetParDefined( 0);
 
-    BaseGDL* p0 = e->GetParDefined( 0);
+	if( p0->Type() == STRUCT)
+	  e->Throw( "Struct expression not allowed in this context: "+
+		    e->GetParString(0));
 
-    if( p0->Type() == STRUCT)
-      e->Throw( "Struct expression not allowed in this context: "+
-		e->GetParString(0));
-
-    if( p0->Rank() == 0)
-      e->Throw( "Expression must be an array in this context: "+
-		e->GetParString(0));
+	if( p0->Rank() == 0)
+	  e->Throw( "Expression must be an array in this context: "+
+		    e->GetParString(0));
     
-    SizeT nEl = p0->N_Elements();
+	SizeT nEl = p0->N_Elements();
+	
+	static int evenIx = e->KeywordIx( "EVEN");
+	static int doubleIx = e->KeywordIx( "DOUBLE");
 
-    static int evenIx = e->KeywordIx( "EVEN");
-    static int doubleIx = e->KeywordIx( "DOUBLE");
-
-    // DIM keyword
-    DLong dim = 0;
-    DLong nmed = 1;
-    DDoubleGDL *res;
-    e->AssureLongScalarKWIfPresent( "DIM", dim);
-
-    if (dim > p0->Rank())
-      e->Throw( "Illegal keyword value for DIMENSION.");
-
-    if (dim > 0) {
-      DLong dims[8];
-      DLong k = 0;
-      for (SizeT i=0; i<p0->Rank(); ++i)
-	if (i != (dim-1)) {
-	  nmed *= p0->Dim(i);
-	  dims[k++] = p0->Dim(i);
+	// DIM keyword
+	DLong dim = 0;
+	DLong nmed = 1;
+	DDoubleGDL *res;
+	e->AssureLongScalarKWIfPresent( "DIM", dim);
+	
+	if (dim > p0->Rank())
+	  e->Throw( "Illegal keyword value for DIMENSION.");
+	
+	if (dim > 0) {
+	  DLong dims[8];
+	  DLong k = 0;
+	  for (SizeT i=0; i<p0->Rank(); ++i)
+	    if (i != (dim-1)) {
+	      nmed *= p0->Dim(i);
+	      dims[k++] = p0->Dim(i);
+	    }
+	  dimension dimRes((DLong *) dims, p0->Rank()-1);
+	  res = new DDoubleGDL( dimRes, BaseGDL::NOZERO);
+	} else {
+	  res = new DDoubleGDL( 1);
 	}
-      dimension dimRes((DLong *) dims, p0->Rank()-1);
-      res = new DDoubleGDL( dimRes, BaseGDL::NOZERO);
-    } else {
-      res = new DDoubleGDL( 1);
-    }
-
-    // helper arrays
-    if (nmed > 1) nEl = p0->N_Elements() / nmed;
-
-    DLong *hh = new DLong[ nEl];
-    DLong* h1 = new DLong[ nEl/2];
-    DLong* h2 = new DLong[ (nEl+1)/2];
-
-    DLong accumStride = 1;
-    if (nmed > 1)
-      for( DLong i=0; i<dim-1; ++i) accumStride *= p0->Dim(i);
-
-    // Loop over all subarray medians
-    for (SizeT k=0; k<nmed; ++k) {
-
-      if (nmed == 1) { 
-	for( DLong i=0; i<nEl; ++i) hh[i] = i;
-      } else {
-	// Starting Element
-	DLong start = accumStride * p0->Dim(dim-1) * (k / accumStride) + 
-	  (k % accumStride);
-	for( DLong i=0; i<nEl; ++i) hh[i] = start + i * accumStride;
+	
+	// helper arrays
+	if (nmed > 1) nEl = p0->N_Elements() / nmed;
+	
+	DLong *hh = new DLong[ nEl];
+	DLong* h1 = new DLong[ nEl/2];
+	DLong* h2 = new DLong[ (nEl+1)/2];
+	
+	DLong accumStride = 1;
+	if (nmed > 1)
+	  for( DLong i=0; i<dim-1; ++i) accumStride *= p0->Dim(i);
+	
+	// Loop over all subarray medians
+	for (SizeT k=0; k<nmed; ++k) {
+	  
+	  if (nmed == 1) { 
+	    for( DLong i=0; i<nEl; ++i) hh[i] = i;
+	  } else {
+	    // Starting Element
+	    DLong start = accumStride * p0->Dim(dim-1) * (k / accumStride) + 
+	      (k % accumStride);
+	    for( DLong i=0; i<nEl; ++i) hh[i] = start + i * accumStride;
+	  }
+	  //    ArrayGuard< DLong> hhGuard( hh);
+	  
+	  // call the sort routine
+	  MergeSortOpt<DLong>( p0, hh, h1, h2, nEl);
+	  DLong medEl = hh[ nEl/2];
+	  DLong medEl_1 = hh[ nEl/2 - 1];
+	  
+	  if( (nEl % 2) == 1 || !e->KeywordSet( evenIx)) {
+	    if (nmed == 1)
+	      res = (DDoubleGDL *) (p0->NewIx( medEl))->Convert2( DOUBLE);
+	    else {
+	      DDoubleGDL* op1 = 
+		static_cast<DDoubleGDL*>((p0->NewIx( medEl))->Convert2( DOUBLE));
+	      (*res)[k] = (*op1)[0];
+	    }
+	  } else {
+	    DDoubleGDL* op1 = 
+	      static_cast<DDoubleGDL*>((p0->NewIx( medEl))->Convert2( DOUBLE)); 
+	    e->Guard( op1);
+	    DDoubleGDL* op2 = 
+	      static_cast<DDoubleGDL*>((p0->NewIx( medEl_1))->Convert2( DOUBLE));
+	    static DDoubleGDL* op3 = new DDoubleGDL( 2.0);
+	    if (nmed == 1)
+	      res = op2->Add( op1)->Div( op3);
+	    else {
+	      op1 = op2->Add( op1)->Div( op3);
+	      (*res)[k] = (*op1)[0];
+	    }
+	  }
+	}
+	delete[] h1;
+	delete[] h2;
+	delete[] hh;
+	
+	if( p0->Type() == DOUBLE || 
+	    p0->Type() == COMPLEXDBL || 
+	    e->KeywordSet( doubleIx))
+	  return res;
+	else
+	  return res->Convert2( FLOAT);
       }
-      //    ArrayGuard< DLong> hhGuard( hh);
+    else 
+      // with parameter Width : median filtering with no optmisation,
+      //  such as histogram algorithms.
+      // Copyright: (C) 2008 by Nicolas Galmiche
+      {
+	cout << "c0 " << endl;	  
 
-      // call the sort routine
-      MergeSortOpt<DLong>( p0, hh, h1, h2, nEl);
-      DLong medEl = hh[ nEl/2];
-      DLong medEl_1 = hh[ nEl/2 - 1];
+	// basic checks on "vector/array" input	
+	DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>( 0);	
 
-      if( (nEl % 2) == 1 || !e->KeywordSet( evenIx)) {
-	if (nmed == 1)
-	  res = (DDoubleGDL *) (p0->NewIx( medEl))->Convert2( DOUBLE);
-	else {
-	  DDoubleGDL* op1 = 
-	    static_cast<DDoubleGDL*>((p0->NewIx( medEl))->Convert2( DOUBLE));
-	  (*res)[k] = (*op1)[0];
+	cout << "c1 " << endl;	  
+
+
+    	if( p0->Type() == STRUCT)
+	  e->Throw( "Struct expression not allowed in this context: "+ e->GetParString(0));	
+   	if( p0->Rank() == 0)
+	  e->Throw( "Expression must be an array in this context: "+ e->GetParString(0));
+   	
+	if( p0->Rank() > 2)
+	  e->Throw( "Only 1 or 2 dimensions allowed: "+ e->GetParString(0));
+
+ 	cout << "c2 " << endl;	  
+   	
+	// basic checks on "width" input		
+ 	DDoubleGDL* p1d = e->GetParAs<DDoubleGDL>(1);
+ 	
+	if (p1d->N_Elements() > 1 || (*p1d)[0] <=0 ) 
+	  e->Throw( "Width must be a positive scalar or 1 (positive) element array in this context: "+ e->GetParString(0));
+	DLong MaxAllowedWidth=0;
+	if (p0->Rank() == 1) MaxAllowedWidth=p0->N_Elements();
+	if (p0->Rank() == 2) {
+	  MaxAllowedWidth=p0->Dim(0);
+	  if (p0->Dim(1) < MaxAllowedWidth) MaxAllowedWidth=p0->Dim(1);	   
 	}
-      } else {
-	DDoubleGDL* op1 = 
-	  static_cast<DDoubleGDL*>((p0->NewIx( medEl))->Convert2( DOUBLE)); 
-	e->Guard( op1);
-	DDoubleGDL* op2 = 
-	  static_cast<DDoubleGDL*>((p0->NewIx( medEl_1))->Convert2( DOUBLE));
-	static DDoubleGDL* op3 = new DDoubleGDL( 2.0);
-	if (nmed == 1)
-	  res = op2->Add( op1)->Div( op3);
-	else {
-	  op1 = op2->Add( op1)->Div( op3);
-	  (*res)[k] = (*op1)[0];
+	int debug =1;
+	if (debug == 1) {
+	  cout << "X dim " << p0->Dim(0) <<endl;
+	  cout << "y dim " << p0->Dim(1) <<endl;	  
+	  cout << "MaxAllowedWidth " << MaxAllowedWidth <<endl;
 	}
-      }
-    }
-    delete[] h1;
-    delete[] h2;
-    delete[] hh;
+	if (!isfinite( (*p1d)[0]))
+	  e->Throw("% MEDIAN: Width must be > 1, and < dimension of array (NaN or Inf)");
+	
+ 	DLongGDL* p1 = e->GetParAs<DLongGDL>(1);	
 
-    if( p0->Type() == DOUBLE || 
-	p0->Type() == COMPLEXDBL || 
-	e->KeywordSet( doubleIx))
-      return res;
-    else
-      return res->Convert2( FLOAT);
-  }
+	DDoubleGDL *tamp = new DDoubleGDL(p0->Dim(),BaseGDL::NOZERO);
+	DDouble min=((*p0)[0]);
+     	DDouble max=min;
+    	 
+     	for (SizeT ii=0 ; ii<p0->N_Elements() ; ++ii)
+	  {(*tamp)[ii]=(*p0)[ii];
+	  if ( (*p0)[ii] < min ) min = ((*p0)[ii]);
+	  if ( (*p0)[ii] > max ) max = ((*p0)[ii]);
+	  }	
+		
+   	//---------------------------- END d'acquisistion des paramètres -------------------------------------	
 
+	
+	static int evenIx = e->KeywordIx( "EVEN");
+    	static int doubleIx = e->KeywordIx( "DOUBLE");
+	static DStructGDL *Values =  SysVar::Values();                                                
+    	DDouble d_nan=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_NAN"), 0)))[0]; 
+	DDouble d_infinity= (*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_INFINITY"), 0)))[0]; 
+ 
+	//------------------------------ Init variables and allocation ---------------------------------------
+	SizeT width=(*p1)[0];
+	SizeT N_MaskElem= width*width;
+	SizeT larg = p0->Stride(1);
+	SizeT haut = p0->Stride(2)/larg;
+	SizeT lim= static_cast<SizeT>(round(width/2));
+	SizeT init=(lim*larg+lim);
+	
+	// we don't go further if dimension(s) versus not width OK
+
+	if (debug == 1) {cout << "ici" <<endl;}
+	
+	if ( p0->Rank() == 1) {
+	  if (larg < width || width==1 ) e->Throw( "% MEDIAN: Width must be > 1, and < width of vector");
+	} 
+	if ( p0->Rank() == 2) {	
+	  if (larg < width || haut < width || width==1) e->Throw("% MEDIAN: Width must be > 1, and < dimension of array");
+	}
+
+	// for 2D arrays, we use the algorithm described in paper
+	// from T. Huang, G. Yang, and G. Tang, “A Fast Two-Dimensional Median
+	// Filtering Algorithm,” IEEE Trans. Acoust., Speech, Signal Processing,
+	// vol. 27, no. 1, pp. 13–18, 1979.
+
+	if ( (e->GetParDefined( 0)->Type() == BYTE ||
+	      e->GetParDefined( 0)->Type() == INT  || 
+	      e->GetParDefined( 0)->Type() == UINT ||
+	      e->GetParDefined( 0)->Type() == LONG ||
+	      e->GetParDefined( 0)->Type() == ULONG ||
+	      e->GetParDefined( 0)->Type() == LONG64 ||
+	      e->GetParDefined( 0)->Type() == ULONG64) &&
+	     (haut>1))
+	  {
+	    SizeT taille=static_cast<SizeT>(abs(max)-min+1);		
+	    DDoubleGDL* Histo = new DDoubleGDL(taille,BaseGDL::NOZERO);
+	    if (width % 2 ==0)
+	      {
+		for(SizeT i=0 ; i<haut-2*lim ; ++i)				
+		  {
+		    SizeT ltmed=0;
+		    SizeT med=0;
+		    SizeT initial=init+i*larg-lim*larg-lim;
+		    for(SizeT pp=0 ; pp<taille;++pp)(*Histo)[pp]=0;	
+		    for (SizeT ii=initial ; ii <initial+ width ; ++ii)
+		      {	
+			for(SizeT yy=0;yy<width;yy++)
+			  (*Histo)[static_cast<SizeT>((*p0)[ii+yy*larg]-min)]++;
+		      }
+		    
+		    while (ltmed+(*Histo)[med]<=(N_MaskElem /2))
+		      {
+			ltmed+= static_cast<SizeT>((*Histo)[med]);
+			++med;
+		      }
+		    if (e->KeywordSet( evenIx))
+		      {
+			
+			SizeT EvenMed=med;
+			//if ((*Histo)[EvenMed]==1 || (ltmed!=0 && ltmed !=(N_MaskElem /2) -1))
+			if ((*Histo)[EvenMed]==1 || (ltmed!=0 && N_MaskElem /2- ltmed!=1) )
+			  {
+			    while ((*Histo)[EvenMed-1]==0)
+			      {  EvenMed--;}
+			    (*tamp)[init+i*larg]=((med+min)+(EvenMed-1+min))/2;
+			  }
+			else
+			  (*tamp)[init+i*larg]=med+min;
+		      }
+		    else
+		      {(*tamp)[init+i*larg]=med+min; }
+		    
+		    for(SizeT j=init+i*larg +1; j<init+(i+1)*larg-2*lim ;++ j)	
+		      {				
+			SizeT initMask=j-lim*larg-lim;			
+			for(SizeT k=0;k<2*lim;++k)			
+			  {	
+			    (*Histo)[static_cast<SizeT>((*p0)[initMask-1+k*larg]-min)]--;
+			    if ((*p0)[initMask-1+k*larg]-min<med)ltmed--;
+				 						
+			    (*Histo)[static_cast<SizeT>((*p0)[initMask+k*larg+2*lim-1]-min)]++;
+			    if ((*p0)[initMask+k*larg+2*lim-1]-min<med)ltmed++;
+			  }
+			if (ltmed>N_MaskElem /2)
+			  {
+			    while(ltmed>N_MaskElem /2)
+			      {
+				--med;
+				ltmed-=static_cast<SizeT>((*Histo)[med]);
+			      }
+			  }
+			else
+			  {
+			    while (ltmed+(*Histo)[med]<=(N_MaskElem /2))
+			      {
+				ltmed+= static_cast<SizeT>((*Histo)[med]);
+				++med;
+			      }	
+			  }
+			
+			if (e->KeywordSet( evenIx))
+			  {
+			    SizeT EvenMed=med;
+			    if ((*Histo)[EvenMed]==1 || (ltmed!=0 &&N_MaskElem /2- ltmed!=1 ))
+			      {
+				while ((*Histo)[EvenMed-1]==0)
+				  {  EvenMed--;}
+				(*tamp)[j]=((med+min)+(EvenMed-1+min))/2;
+			      }
+			    else
+			      {(*tamp)[j]=med+min; }
+			  }
+			else
+			  {(*tamp)[j]=med+min; }
+		      }
+		  } 
+	      }
+	    else
+	      {
+		for(SizeT i=0 ; i<haut-2*lim ; ++i)				
+		  {
+		    SizeT ltmed=0;
+		    SizeT med=0;
+		    SizeT initial=init+i*larg-lim*larg-lim;
+		    for(SizeT pp=0 ; pp<taille;++pp)(*Histo)[pp]=0;	
+		    for (SizeT ii=initial ; ii <initial+ width ; ++ii)
+		      {	
+			for(SizeT yy=0;yy<width;yy++)
+			  (*Histo)[static_cast<SizeT>((*p0)[ii+yy*larg]-min)]++;
+		      }
+
+		    while (ltmed+(*Histo)[med]<=(N_MaskElem /2))
+		      {
+			ltmed+= static_cast<SizeT>((*Histo)[med]);
+			++med;
+		      }
+		    (*tamp)[init+i*larg]=med+min;
+	
+		    for(SizeT j=init+i*larg +1; j<init+(i+1)*larg-2*lim ;++ j)	
+		      {	
+			
+			SizeT initMask=j-lim*larg-lim;			
+			for(SizeT k=0;k<=2*lim;++k)			
+			  {	
+			    (*Histo)[static_cast<SizeT>((*p0)[initMask-1+k*larg]-min)]--;
+			    if ((*p0)[initMask-1+k*larg]-min<med)ltmed--;
+				 						 						 		
+			    (*Histo)[static_cast<SizeT>((*p0)[initMask+k*larg+2*lim]-min)]++;
+			    if ((*p0)[initMask+k*larg+2*lim]-min<med)ltmed++;
+			  }
+			if (ltmed>N_MaskElem /2)
+			  {
+			    while(ltmed>N_MaskElem /2)
+			      {
+				--med;
+				ltmed-=static_cast<SizeT>((*Histo)[med]);
+			      }
+			  }
+			else
+			  {
+			    while (ltmed+(*Histo)[med]<=(N_MaskElem /2))
+			      {
+				ltmed+= static_cast<SizeT>((*Histo)[med]);
+				++med;
+			      }	
+			  }
+			
+			(*tamp)[j]=med+min;
+			
+		      }
+		  } 
+	      }
+	
+	  }
+	else
+	  {	
+	    DLong* hh; 
+	    DLong* h1;
+	    DLong* h2;
+	    DDoubleGDL* Mask,*Mask1D;
+	    if ( p0->Rank() != 1 )
+	      {
+		hh = new DLong[ N_MaskElem];
+    		h1 = new DLong[ N_MaskElem/2];
+		h2= new DLong[ (N_MaskElem+1)/2];
+		Mask = new DDoubleGDL(N_MaskElem,BaseGDL::NOZERO);
+		
+		for( DLong i=0; i<N_MaskElem; ++i) hh[i] = i;
+	      }
+	    else
+	      {
+		hh = new DLong[ width];
+		h1 = new DLong[ width/2];
+		h2= new DLong[(width+1)/2];
+		Mask1D = new DDoubleGDL(width,BaseGDL::NOZERO);
+		
+		for( DLong i=0; i<width; ++i) hh[i] = i;
+	      }
+	
+	    //-------------------------------- END OF VARIABLES INIT ---------------------------------------------
+
+	    //------------------------------ Median Filter Algorithms ---------------------------------------
+	
+	    if ( width % 2 ==0)
+	      {
+		if ( p0->Rank() == 1 )//------------------------  For a vector with even width -------------------
+		  {	
+		    for (SizeT col= lim ; col<larg-lim ; ++col)
+		      {	
+			SizeT ctl_NaN=0;
+			SizeT kk=0;
+			for (SizeT ind=col-lim ; ind<col+lim ; ++ind)
+			  {
+			    if( (*p0)[ind]!=d_infinity && (*p0)[ind]!=-d_infinity && isfinite((*p0)[ind])==0)
+			      ctl_NaN++;
+			    else
+			      {	
+				(*Mask1D)[kk]=(*p0)[ind];
+				kk++;
+			      }
+			  }
+			if (ctl_NaN!=0)
+			  {
+			    if(ctl_NaN==width)(*tamp)[col]= d_nan;
+			    else 
+			      {
+				DLong*	hhbis = new DLong[ width-ctl_NaN];
+				DLong*	h1bis = new DLong[ width-ctl_NaN/2];
+				DLong*	h2bis= new DLong[(width-ctl_NaN+1)/2];
+				DDoubleGDL *Mask1Dbis = new DDoubleGDL(width-ctl_NaN,BaseGDL::NOZERO);
+				for( DLong t=0; t<width-ctl_NaN; ++t) hhbis[t] = t;
+				for( DLong ii=0; ii<width-ctl_NaN; ++ii)(*Mask1Dbis)[ii]=(*Mask1D)[ii];
+				BaseGDL* besort=static_cast<BaseGDL*>(Mask1Dbis);	
+				MergeSortOpt<DLong>( besort, hhbis, h1bis, h2bis,(width - ctl_NaN));
+				if (e->KeywordSet( evenIx)&& (width - ctl_NaN) % 2 == 0)
+				  (*tamp)[col]=((*Mask1Dbis)[hhbis[ (width-ctl_NaN)/2]]+(*Mask1Dbis
+											 )[hhbis	[ (width - ctl_NaN-1)/2]])/2;	
+				else
+				  (*tamp)[col]=(*Mask1Dbis)[hhbis[ (width- ctl_NaN)/2]];
+				delete[]hhbis;
+				delete[]h2bis;
+				delete[]h1bis;
+			      }
+			  }	
+			else
+			  {
+			    BaseGDL* besort=static_cast<BaseGDL*>(Mask1D);	
+			    MergeSortOpt<DLong>( besort, hh, h1, h2,width ); // call the sort routine
+
+			    if (e->KeywordSet( evenIx))
+
+			      (*tamp)[col]=((*Mask1D)[hh[ width/2]]+(*Mask1D)[hh[ (width-1)/2]])/2;
+			    else
+			      (*tamp)[col]=(*Mask1D)[hh[ width/2]];// replace value by Mask median 
+			  }
+		      }
+			
+		  }
+		else//------------------------  For an array with even width -------------------
+		  {
+		    SizeT jj;
+		    for(SizeT i=0 ; i<haut-2*lim ; ++i)		// lines to replace
+		      {
+		 	for(SizeT j=init+i*larg ; j<init+(i+1)*larg-2*lim ; ++j)// elements to replace
+			  {
+			    SizeT initMask=j-lim*larg-lim;	// left corner of mask
+			    SizeT kk=0;
+			    SizeT ctl_NaN=0;
+			    for(SizeT k=0;k<2*lim;++k)		// lines of mask
+			      {	
+								
+				for(jj=initMask+k*larg ; jj<(initMask+k*larg)+2*lim ; ++jj) // elements of mask
+				  {
+				    if( (*p0)[jj]!=d_infinity && (*p0)[jj]!=-d_infinity && isfinite((*p0)[jj])==0)
+				      ctl_NaN++;
+				    else
+				      {
+					(*Mask)[kk]=(*p0)[jj];
+					kk++;
+				      }
+				  }
+			      }
+			    if (ctl_NaN!=0)
+			      {
+				if(ctl_NaN==N_MaskElem)(*tamp)[j]= d_nan;
+				else {
+				  DLong*	hhb = new DLong[ N_MaskElem-ctl_NaN];
+				  DLong*	h1b = new DLong[ (N_MaskElem-ctl_NaN)/2];
+				  DLong*	h2b = new DLong[(N_MaskElem-ctl_NaN+1)/2];
+				  DDoubleGDL *Maskb = new DDoubleGDL(N_MaskElem-ctl_NaN,BaseGDL::NOZERO);
+				  for( DLong t=0; t<N_MaskElem-ctl_NaN; ++t) hhb[t] = t;
+				  for( DLong ii=0; ii<N_MaskElem-ctl_NaN; ++ii)(*Maskb)[ii]=(*Mask)[ii];
+				  BaseGDL* besort=static_cast<BaseGDL*>(Maskb);	
+				  MergeSortOpt<DLong>( besort, hhb, h1b, h2b,(N_MaskElem - ctl_NaN)); 
+				  if ((N_MaskElem - ctl_NaN) % 2 == 0 && e->KeywordSet( evenIx))
+				    (*tamp)[j]=((*Maskb)[hhb[ (N_MaskElem-ctl_NaN)/2]]+(*Maskb)[hhb 
+												[ (N_MaskElem - 
+												   ctl_NaN-1)/2]])/2;
+				  else
+				    (*tamp)[j]=(*Maskb)[hhb[ (N_MaskElem- ctl_NaN)/2]];
+				  delete[]hhb;
+				  delete[]h2b;
+				  delete[]h1b;
+				}
+			      }	
+			    else
+			      {
+			 	BaseGDL* besort=static_cast<BaseGDL*>(Mask);	
+			 	MergeSortOpt<DLong>( besort, hh, h1, h2, N_MaskElem); // call the sort routine
+				if (e->KeywordSet( evenIx))
+				  (*tamp)[j]=((*Mask)[hh[ N_MaskElem/2]]+(*Mask)[hh[ (N_MaskElem-1)/2]])/2;
+				else
+				  (*tamp)[j]=(*Mask)[hh[ N_MaskElem/2]];// replace value by median Mask one
+			      }
+			  }
+		      }
+		  }
+	      }
+
+	    else
+	      {
+		if ( p0->Rank() == 1 )//------------------------  For a vector with odd width -------------------
+	
+		  {	
+		    for (SizeT col= lim ; col<larg-lim ; ++col)
+		      {	
+			SizeT kk=0;
+			SizeT ctl_NaN=0;
+			for (SizeT ind=col-lim ; ind<=col+lim ; ++ind)
+			  {if( (*p0)[ind]!=d_infinity && (*p0)[ind]!=-d_infinity && isfinite((*p0)[ind])==0)
+			    ctl_NaN++;
+			  else{
+			    (*Mask1D)[kk]=(*p0)[ind];				
+			    kk++;
+			  }
+			  }
+			if (ctl_NaN!=0)
+			  {
+			    if(ctl_NaN==width)(*tamp)[col]= d_nan;
+			    else {
+			      DLong*	hhbis = new DLong[ width-ctl_NaN];
+			      DLong*	h1bis = new DLong[ width-ctl_NaN/2];
+			      DLong*	h2bis= new DLong[(width-ctl_NaN+1)/2];
+			      DDoubleGDL *Mask1Dbis = new DDoubleGDL(width-ctl_NaN,BaseGDL::NOZERO);
+			      for( DLong t=0; t<width-ctl_NaN; ++t) hhbis[t] = t;
+			      for( DLong ii=0; ii<width-ctl_NaN; ++ii)(*Mask1Dbis)[ii]=(*Mask1D)[ii];
+			      BaseGDL* besort=static_cast<BaseGDL*>(Mask1Dbis);	
+			      MergeSortOpt<DLong>( besort, hhbis, h1bis, h2bis,(width - ctl_NaN)); 
+			      if (e->KeywordSet( evenIx)&& (width - ctl_NaN) % 2 == 0)
+				(*tamp)[col]=((*Mask1Dbis)[hhbis[ (width-ctl_NaN)/2]]+(*Mask1Dbis
+										       )[hhbis	[ (width - ctl_NaN-1)/2]])/2;	
+			      else(*tamp)[col]=(*Mask1Dbis)[hhbis[ (width- ctl_NaN)/2]];
+			      delete[]hhbis;
+			      delete[]h2bis;
+			      delete[]h1bis;
+			    }
+			  }	
+			else
+			  {
+			    BaseGDL* besort=static_cast<BaseGDL*>(Mask1D);	
+			    MergeSortOpt<DLong>( besort, hh, h1, h2,width ); // call the sort routine
+			    (*tamp)[col]=(*Mask1D)[hh[ (width)/2]];	// replace value by Mask median 
+			  }
+		      }
+		
+		  }
+	
+		else //-----------------------------  For an array with odd width ---------------------------------
+		  {
+		    SizeT jj;
+		    for(SizeT i=0 ; i<haut-2*lim ; ++i)				// lines to replace
+		      {
+		
+		 	SizeT initial=init+i*larg-lim*larg-lim;
+			SizeT dd=0;SizeT ctl_NaN_init=0;
+			for(SizeT yy=0;yy<width;yy++)
+			  {	
+			    for (SizeT ii=initial+yy*larg ; ii <initial+ yy*larg+ width; ++ii)
+			      {
+					
+				if( (*p0)[ii]!=d_infinity && (*p0)[ii]!=-d_infinity && isfinite((*p0)[ii])==0)
+				  ctl_NaN_init++;
+				else
+				  (*Mask)[dd]=(*p0)[ii];
+				dd++;
+			      }
+			  }
+			SizeT kk=0;
+
+		 	for(SizeT j=init+i*larg ; j<init+(i+1)*larg-2*lim ; ++j)// elements to replace
+			  {
+			    SizeT initMask=j-lim*larg-lim;			// left corner of mask
+			    SizeT kk=0;
+			    SizeT ctl_NaN=0;
+			    for(SizeT k=0;k<=2*lim;++k)			// lines of mask
+			      {	
+								
+				for(jj=initMask+k*larg ; jj<=(initMask+k*larg)+2*lim ; ++jj) // elements of mask
+				  {
+				    if( (*p0)[jj]!=d_infinity && (*p0)[jj]!=-d_infinity && isfinite((*p0)[jj])==0)
+				      ctl_NaN++;
+						
+				    else
+				      {
+					(*Mask)[kk]=(*p0)[jj];
+					kk++;
+				      }
+				  }
+				
+			      }
+			 
+			    if (ctl_NaN!=0)
+			      {	
+				if(ctl_NaN==N_MaskElem)(*tamp)[j]= d_nan;
+				else {
+						
+				  DLong*	hhb = new DLong[ N_MaskElem-ctl_NaN];
+				  DLong*	h1b = new DLong[ (N_MaskElem-ctl_NaN)/2];
+				  DLong*	h2b= new DLong[(N_MaskElem-ctl_NaN+1)/2];
+				  DDoubleGDL*Maskb = new DDoubleGDL(N_MaskElem-ctl_NaN,BaseGDL::NOZERO);
+				  for( DLong t=0; t<N_MaskElem-ctl_NaN; ++t) hhb[t] = t;
+				  for( DLong ii=0; ii<N_MaskElem-ctl_NaN; ++ii)(*Maskb)[ii]=(*Mask)[ii];
+				  BaseGDL* besort=static_cast<BaseGDL*>(Maskb);	
+				  MergeSortOpt<DLong>( besort, hhb, h1b, h2b,(N_MaskElem - ctl_NaN)); 
+				  if ((N_MaskElem - ctl_NaN) % 2 == 0 && e->KeywordSet( evenIx))
+				    (*tamp)[j]=((*Maskb)[hhb[ (N_MaskElem-ctl_NaN)/2]]+(*Maskb)[hhb 
+												[ (N_MaskElem - 
+												   ctl_NaN-1)/2]])/2;
+				  else(*tamp)[j]=(*Maskb)[hhb[(N_MaskElem- ctl_NaN)/2]];
+				  delete[]hhb;
+				  delete[]h2b;
+				  delete[]h1b;
+				}
+			      }	
+			    else
+			      {
+				BaseGDL* besort=static_cast<BaseGDL*>(Mask);	
+			 	MergeSortOpt<DLong>( besort, hh, h1, h2, N_MaskElem); // call the sort routine
+				(*tamp)[j]=(*Mask)[hh[ (N_MaskElem)/2]];	// replace value by Mask median 
+			      }
+			  }
+		      }
+		  }
+	      }
+	    
+	    //--------------------------- END OF MEDIAN FILTER ALOGORITHMS -----------------------------------
+
+	    delete[] h1;
+	    delete[] h2;
+	    delete[] hh;   	
+	  }
+       	if ( e->GetParDefined( 0)->Type() == DOUBLE || p0->Type() == COMPLEXDBL ||e->KeywordSet( doubleIx) )
+	  return tamp;
+	else if (e->GetParDefined( 0)->Type() == BYTE) 
+	  return tamp->Convert2(BYTE,BaseGDL::CONVERT);
+	
+	return tamp->Convert2(FLOAT,BaseGDL::CONVERT);
+	
+      }// end if
+
+  }// end of median
 
   BaseGDL* shift_fun( EnvT* e)
   {
@@ -2935,7 +3457,7 @@ namespace lib {
 
     DLong sIx[ MAXRANK];
     for( SizeT i=0; i< nShift; i++)
-	e->AssureLongScalarPar( i+1, sIx[ i]);
+      e->AssureLongScalarPar( i+1, sIx[ i]);
 
     return p0->CShift( sIx);
   }
@@ -2975,7 +3497,7 @@ namespace lib {
     if ( fileUnits[ lun-1].SockNum() == -1) {
       if( !fileUnits[ lun-1].IsOpen())
 	throw GDLIOException( e->CallingNode(), e->GetPro()->ObjectName()+
-			  ": File unit is not open: "+i2s( lun)+".");
+			      ": File unit is not open: "+i2s( lun)+".");
 
       if( fileUnits[ lun-1].Eof())
 	return new DIntGDL( 1);
@@ -3321,16 +3843,16 @@ namespace lib {
     bool minSet = false;
     if( e->GetKW( minIx) != NULL)
       {
-      e->AssureDoubleScalarKW( minIx, min);
-      minSet = true;
+	e->AssureDoubleScalarKW( minIx, min);
+	minSet = true;
       }
 
     DDouble max;
     bool maxSet = false;
     if( e->GetKW( maxIx) != NULL)
       {
-      e->AssureDoubleScalarKW( maxIx, max);
-      maxSet = true;
+	e->AssureDoubleScalarKW( maxIx, max);
+	maxSet = true;
       }
 
     DDoubleGDL* dRes = 
@@ -3493,19 +4015,19 @@ namespace lib {
 	return d; 
       } 
 
-  // EXTRACT
-  if( nTok == 0) return new DStringGDL( "");
+    // EXTRACT
+    if( nTok == 0) return new DStringGDL( "");
 
-  dimension dim(nTok);
-  DStringGDL *d = new DStringGDL(dim);
-  for(int i=0; i < nTok; i++) 
-  {
-    (*d)[i] = stringIn.substr(tokenStart[i], tokenLen[i]);	
+    dimension dim(nTok);
+    DStringGDL *d = new DStringGDL(dim);
+    for(int i=0; i < nTok; i++) 
+      {
+	(*d)[i] = stringIn.substr(tokenStart[i], tokenLen[i]);	
 
-    // remove escape
-    DString& act = (*d)[i];
-    long escPos = act.find_first_of( escape, 0);
-    while( escPos != string::npos)
+	// remove escape
+	DString& act = (*d)[i];
+	long escPos = act.find_first_of( escape, 0);
+	while( escPos != string::npos)
 	  {
 	    act = act.substr( 0, escPos)+act.substr( escPos+1);
 	    escPos = act.find_first_of( escape, escPos+1);
@@ -3556,7 +4078,7 @@ namespace lib {
 	      resPtr = getenv((*name)[i].c_str());
 
 	      if( resPtr != NULL)
-		  (*env)[i] = resPtr;
+		(*env)[i] = resPtr;
 	      else
 		(*env)[i] = SysVar::Dir();
 
@@ -3624,9 +4146,9 @@ namespace lib {
     bool subexprKW = e->KeywordSet( subexprIx );
  
     if( booleanKW && (subexprKW || extractKW || lengthKW))
-        e->Throw( "Conflicting keywords.");
+      e->Throw( "Conflicting keywords.");
     if( subexprKW) 
-        e->Throw( "Subexpression not yet implemented.");
+      e->Throw( "Subexpression not yet implemented.");
 
   
     int nStr = stringExpr->N_Elements();
@@ -3674,27 +4196,27 @@ namespace lib {
     // now match towards the string
     for(SizeT i=0; i<nStr; ++i){ 
 
-       int matchres = regexec( &regexp, (*stringExpr)[i].c_str(), 
-         nmatch, pmatch, eflags);
+      int matchres = regexec( &regexp, (*stringExpr)[i].c_str(), 
+			      nmatch, pmatch, eflags);
 
-       if( booleanKW) 
-	   (* static_cast<DByteGDL*>(result))[i] = (matchres == 0);
-       else if ( extractKW)
-           (* static_cast<DStringGDL*>(result))[i] = (*stringExpr)[i].substr(
-               pmatch[0].rm_so, pmatch[0].rm_eo - pmatch[0].rm_so);
-       else
-           (* static_cast<DLongGDL*>(result))[i] = matchres? -1:pmatch[0].rm_so;
+      if( booleanKW) 
+	(* static_cast<DByteGDL*>(result))[i] = (matchres == 0);
+      else if ( extractKW)
+	(* static_cast<DStringGDL*>(result))[i] = (*stringExpr)[i].substr(
+									  pmatch[0].rm_so, pmatch[0].rm_eo - pmatch[0].rm_so);
+      else
+	(* static_cast<DLongGDL*>(result))[i] = matchres? -1:pmatch[0].rm_so;
        
-       if( lengthKW)
-           (*len)[i] = pmatch[0].rm_eo - pmatch[0].rm_so;
+      if( lengthKW)
+	(*len)[i] = pmatch[0].rm_eo - pmatch[0].rm_so;
     }
 
-   regfree( &regexp);
+    regfree( &regexp);
 
-   if( lengthKW)
-     e->SetKW( lengthIx, len);    
+    if( lengthKW)
+      e->SetKW( lengthIx, len);    
 
-   return result;
+    return result;
   }
 
   BaseGDL* routine_info( EnvT* e)
@@ -4060,8 +4582,8 @@ namespace lib {
 	  }
                 
 	// the instance variable
-// 	dimension dim( 1);
-// 	DStructGDL* instance = new DStructGDL( nStructDesc, dim);
+	// 	dimension dim( 1);
+	// 	DStructGDL* instance = new DStructGDL( nStructDesc, dim);
 	DStructGDL* instance = new DStructGDL( nStructDesc);
 	auto_ptr<DStructGDL> instance_guard(instance);
 
@@ -4095,13 +4617,13 @@ namespace lib {
 		  e->Throw( "Incorrect number of arguments.");
 
 		do{
-		    ++p;
-		    BaseGDL* value = e->GetParDefined( p);
+		  ++p;
+		  BaseGDL* value = e->GetParDefined( p);
 		    
-		    // add 
-		    instance->NewTag( TagName( e, (*tagNames)[ p-tagStart]),
-				      value->Dup());
-		  } 
+		  // add 
+		  instance->NewTag( TagName( e, (*tagNames)[ p-tagStart]),
+				    value->Dup());
+		} 
 		while( p<tagEnd);
 	      }
 	  }
@@ -4139,8 +4661,8 @@ namespace lib {
 
 	DStructDesc*          nStructDesc = new DStructDesc( "$truct");
 	// instance takes care of nStructDesc since it is unnamed
-// 	dimension dim( 1);
-// 	DStructGDL* instance = new DStructGDL( nStructDesc, dim);
+	// 	dimension dim( 1);
+	// 	DStructGDL* instance = new DStructGDL( nStructDesc, dim);
 	DStructGDL* instance = new DStructGDL( nStructDesc);
 	auto_ptr<DStructGDL> instance_guard(instance);
 
