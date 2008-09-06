@@ -391,6 +391,12 @@ public:
 	  delete[] buf;
 	buf = newBuf;
       }
+else
+{
+// default constructed instances have buf == NULL and size == 0
+// make sure buf is set corectly if such instances are resized 
+buf = scalar;
+}
       sz = newSz;
   }
 
