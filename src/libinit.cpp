@@ -294,6 +294,10 @@ void LibInit()
   new DLibPro(lib::writeu,string("WRITEU"),-1,writeuKey);
   new DLibPro(lib::readu,string("READU"),-1,writeuKey);
 
+  const string resolve_routineKey[]={"EITHER","IS_FUNCTION",KLISTEND};
+  new DLibPro(lib::resolve_routine,string("RESOLVE_ROUTINE"),1,
+	      resolve_routineKey);
+
   const string assocKey[]={"PACKED",KLISTEND};
   new DLibFunRetNew(lib::assoc,string("ASSOC"),3,assocKey);
   

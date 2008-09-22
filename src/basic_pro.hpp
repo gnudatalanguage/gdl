@@ -89,7 +89,7 @@ namespace lib {
   // Sorry to put a Function with Procedure but I need it for HELP proc.
   BaseGDL* recall_commands(EnvT* e);
 
-
+  void resolve_routine( EnvT* e);
 } // namespace
 
 #endif

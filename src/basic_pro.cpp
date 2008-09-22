@@ -1892,5 +1892,10 @@ namespace lib {
 	return;
       }
   }
+
+  void resolve_routine( EnvT* e) {
+
+
+  }
   
 } // namespace
