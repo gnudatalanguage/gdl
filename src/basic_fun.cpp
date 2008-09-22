@@ -4147,8 +4147,8 @@ namespace lib {
  
     if( booleanKW && (subexprKW || extractKW || lengthKW))
       e->Throw( "Conflicting keywords.");
-    if( subexprKW) 
-      e->Throw( "Subexpression not yet implemented.");
+    //    if( subexprKW) 
+    // e->Throw( "Subexpression not yet implemented.");
 
   
     int nStr = stringExpr->N_Elements();
@@ -4164,7 +4164,7 @@ namespace lib {
 
     if( booleanKW) 
       result = new DByteGDL(dim);
-    else if( extractKW)
+    else if( extractKW && !subexprKW)
       result = new DStringGDL(dim); 
     else 
       result = new DLongGDL(dim); 
@@ -4178,6 +4178,8 @@ namespace lib {
     if (booleanKW)
       cflags |= REG_NOSUB;
 
+    //    cout << pattern.c_str() << endl;
+
     // compile the regular expression
     regex_t regexp;
     int compRes = regcomp( &regexp, pattern.c_str(), cflags);
@@ -4189,27 +4191,48 @@ namespace lib {
                          pattern+"\n           "+string(err_msg)+".");
     }
 
-    regmatch_t pmatch[1];
     int nmatch = 1;
+    if( subexprKW) nmatch = 16;
+
+    regmatch_t pmatch[16];
     int eflags = 0; 
  
     // now match towards the string
-    for(SizeT i=0; i<nStr; ++i){ 
-
-      int matchres = regexec( &regexp, (*stringExpr)[i].c_str(), 
+    int matchres = regexec( &regexp, (*stringExpr)[0].c_str(), 
 			      nmatch, pmatch, eflags);
 
-      if( booleanKW) 
-	(* static_cast<DByteGDL*>(result))[i] = (matchres == 0);
+    // subexpressions
+    if ( extractKW && subexprKW) {
+
+      // Find number of subexpressions
+      SizeT nOut = 0;
+      for( SizeT i = 0; i<nmatch; ++i) {
+	if ( pmatch[i].rm_so == -1) break;
+	nOut++;
+      }
+
+      // Loop through subexpressions & fill output array
+      dim << nOut;
+      result = new DStringGDL(dim); 
+      for( SizeT i = 0; i<nOut; ++i) {
+	(* static_cast<DStringGDL*>(result))[i] = 
+	  (*stringExpr)[0].substr( pmatch[i].rm_so, 
+				   pmatch[i].rm_eo - pmatch[i].rm_so);
+      }
+    } else {
+      if( booleanKW)
+	(* static_cast<DByteGDL*>(result)) = (matchres == 0);
       else if ( extractKW)
-	(* static_cast<DStringGDL*>(result))[i] = (*stringExpr)[i].substr(
-									  pmatch[0].rm_so, pmatch[0].rm_eo - pmatch[0].rm_so);
+	(* static_cast<DStringGDL*>(result))[0] = 
+	  (*stringExpr)[0].substr( pmatch[0].rm_so, 
+				   pmatch[0].rm_eo - pmatch[0].rm_so);
       else
-	(* static_cast<DLongGDL*>(result))[i] = matchres? -1:pmatch[0].rm_so;
-       
-      if( lengthKW)
-	(*len)[i] = pmatch[0].rm_eo - pmatch[0].rm_so;
+	(* static_cast<DLongGDL*>(result))[0] = matchres? -1:pmatch[0].rm_so;
     }
+
+    if( lengthKW)
+      (*len)[0] = pmatch[0].rm_eo - pmatch[0].rm_so;
+
 
     regfree( &regexp);
 
