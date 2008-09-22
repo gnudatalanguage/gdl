@@ -61,7 +61,8 @@ void LibInit_jmg()
   new DLibFun(lib::size,string("SIZE"),1,sizeKey);
   new DLibFun(lib::fstat,string("FSTAT"),1);
   const string routine_namesKey[]={"LEVEL","VARIABLES","FETCH","ARG_NAME",
-				   "STORE",KLISTEND};
+				   "STORE","S_FUNCTIONS","S_PROCEDURES",
+				   KLISTEND};
   new DLibFun(lib::routine_names,string("ROUTINE_NAMES"),-1,routine_namesKey);
 
 #if defined(HAVE_LIBGSL) && defined(HAVE_LIBGSLCBLAS)

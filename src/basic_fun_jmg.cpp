@@ -572,6 +572,48 @@ namespace lib {
     EnvStackT& callStack = e->Interpreter()->CallStack();
     DLong curlevnum = callStack.size()-1;
 
+    if (e->KeywordSet( "S_FUNCTIONS")) {
+      deque<DString> subList;
+
+      SizeT nFun = libFunList.size();
+      for( SizeT i = 0; i<nFun; ++i) {
+	DString s = libFunList[ i]->ToString();
+	s = s.substr(4);  // Remove "res="
+
+	size_t left_paren = s.find_first_of("(");
+	subList.push_back( s.substr( 0, left_paren-1));
+      }
+
+      sort( subList.begin(), subList.end());
+
+      DStringGDL* res = new DStringGDL( dimension( nFun), BaseGDL::NOZERO);
+      for( SizeT i = 0; i<nFun; ++i) {
+	(*res)[i] = subList[ i];
+      }
+      return res;
+    }
+
+
+    if (e->KeywordSet( "S_PROCEDURES")) {
+      deque<DString> subList;
+
+      SizeT nPro = libProList.size();
+      for( SizeT i = 0; i<nPro; ++i) {
+	DString s = libProList[ i]->ToString();
+
+	size_t comma_brac = s.find_first_of(",[");
+	subList.push_back( s.substr( 0, comma_brac-1));
+      }
+
+      sort( subList.begin(), subList.end());
+
+      DStringGDL* res = new DStringGDL( dimension( nPro), BaseGDL::NOZERO);
+      for( SizeT i = 0; i<nPro; ++i) {
+	(*res)[i] = subList[ i];
+      }
+      return res;
+    }
+
     if (e->KeywordSet( "LEVEL")) {
       return new DLongGDL( curlevnum );
     }
