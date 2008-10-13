@@ -1238,16 +1238,16 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 	case PCALL_LIB:
 	case RETF:
 	case RETP:
-	case SWITCH:
 	case CASE:
-	case DEC:
-	case INC:
-	case REPEAT:
-	case WHILE:
 	case FOR:
 	case GOTO:
-	case ON_IOERROR:
 	case IF:
+	case ON_IOERROR:
+	case REPEAT:
+	case SWITCH:
+	case WHILE:
+	case DEC:
+	case INC:
 	{
 		retCode=statement_list(_t);
 		_t = _retTree;
@@ -5443,30 +5443,51 @@ const char* GDLInterpreter::tokenNames[] = {
 	"UMINUS",
 	"VAR",
 	"VARPTR",
-	"\"end\"",
-	"\"function\"",
-	"\"pro\"",
 	"IDENTIFIER",
+	"\"and\"",
+	"\"begin\"",
+	"\"case\"",
+	"\"common\"",
+	"\"compile_opt\"",
+	"\"do\"",
+	"\"else\"",
+	"\"end\"",
+	"\"endcase\"",
+	"\"endelse\"",
+	"\"endfor\"",
+	"\"endif\"",
+	"\"endrep\"",
+	"\"endswitch\"",
+	"\"endwhile\"",
+	"\"eq\"",
+	"\"for\"",
+	"\"forward_function\"",
+	"\"function\"",
+	"\"ge\"",
+	"\"goto\"",
+	"\"gt\"",
+	"\"if\"",
+	"\"inherits\"",
+	"\"le\"",
+	"\"lt\"",
+	"\"mod\"",
+	"\"ne\"",
+	"\"not\"",
+	"\"of\"",
+	"\"on_ioerror\"",
+	"\"or\"",
+	"\"pro\"",
+	"\"repeat\"",
+	"\"switch\"",
+	"\"then\"",
+	"\"until\"",
+	"\"while\"",
+	"\"xor\"",
 	"METHOD",
 	"COMMA",
-	"\"begin\"",
 	"COLON",
-	"\"switch\"",
-	"\"of\"",
-	"\"else\"",
-	"\"case\"",
 	"END_U",
-	"\"forward_function\"",
 	"EQUAL",
-	"\"compile_opt\"",
-	"\"common\"",
-	"\"endif\"",
-	"\"endelse\"",
-	"\"endcase\"",
-	"\"endswitch\"",
-	"\"endfor\"",
-	"\"endwhile\"",
-	"\"endrep\"",
 	"DEC",
 	"INC",
 	"AND_OP_EQ",
@@ -5489,15 +5510,6 @@ const char* GDLInterpreter::tokenNames[] = {
 	"SLASH_EQ",
 	"XOR_OP_EQ",
 	"MEMBER",
-	"\"repeat\"",
-	"\"until\"",
-	"\"while\"",
-	"\"do\"",
-	"\"for\"",
-	"\"goto\"",
-	"\"on_ioerror\"",
-	"\"if\"",
-	"\"then\"",
 	"LBRACE",
 	"RBRACE",
 	"SLASH",
@@ -5505,7 +5517,6 @@ const char* GDLInterpreter::tokenNames[] = {
 	"RSQUARE",
 	"SYSVARNAME",
 	"EXCLAMATION",
-	"\"inherits\"",
 	"LCURLY",
 	"RCURLY",
 	"CONSTANT_HEX_BYTE",
@@ -5543,22 +5554,11 @@ const char* GDLInterpreter::tokenNames[] = {
 	"POW",
 	"MATRIX_OP1",
 	"MATRIX_OP2",
-	"\"mod\"",
 	"PLUS",
 	"MINUS",
 	"LTMARK",
 	"GTMARK",
-	"\"not\"",
 	"LOG_NEG",
-	"\"eq\"",
-	"\"ne\"",
-	"\"le\"",
-	"\"lt\"",
-	"\"ge\"",
-	"\"gt\"",
-	"\"and\"",
-	"\"or\"",
-	"\"xor\"",
 	"LOG_AND",
 	"LOG_OR",
 	"QUESTION",
@@ -5583,17 +5583,17 @@ const char* GDLInterpreter::tokenNames[] = {
 	0
 };
 
-const unsigned long GDLInterpreter::_tokenSet_0_data_[] = { 2283536544UL, 1611530464UL, 805343232UL, 64225280UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLInterpreter::_tokenSet_0_data_[] = { 2283536544UL, 1611530464UL, 169869440UL, 394440UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN ASSIGN_REPLACE BLOCK BREAK CONTINUE FOR_STEP IF_ELSE LABEL MPCALL 
-// MPCALL_PARENT ON_IOERROR_NULL PCALL PCALL_LIB RETF RETP "switch" "case" 
-// DEC INC "repeat" "while" "for" "goto" "on_ioerror" "if" 
+// MPCALL_PARENT ON_IOERROR_NULL PCALL PCALL_LIB RETF RETP "case" "for" 
+// "goto" "if" "on_ioerror" "repeat" "switch" "while" DEC INC 
 const antlr::BitSet GDLInterpreter::_tokenSet_0(_tokenSet_0_data_,8);
-const unsigned long GDLInterpreter::_tokenSet_1_data_[] = { 1971388832UL, 2153875712UL, 805306381UL, 0UL, 0UL, 67108872UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLInterpreter::_tokenSet_1_data_[] = { 1971388832UL, 2153875712UL, 13UL, 393216UL, 0UL, 67125248UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN ASSIGN_REPLACE ARRAYDEF ARRAYEXPR CONSTANT DEREF EXPR FCALL FCALL_LIB 
 // FCALL_LIB_RETNEW MFCALL MFCALL_PARENT NSTRUC NSTRUC_REF POSTDEC POSTINC 
 // STRUC SYSVAR VAR VARPTR DEC INC DOT QUESTION 
 const antlr::BitSet GDLInterpreter::_tokenSet_1(_tokenSet_1_data_,12);
-const unsigned long GDLInterpreter::_tokenSet_2_data_[] = { 897647008UL, 2153875712UL, 805306381UL, 0UL, 0UL, 67108872UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLInterpreter::_tokenSet_2_data_[] = { 897647008UL, 2153875712UL, 13UL, 393216UL, 0UL, 67125248UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN ASSIGN_REPLACE ARRAYDEF ARRAYEXPR CONSTANT DEREF EXPR FCALL FCALL_LIB 
 // MFCALL MFCALL_PARENT NSTRUC NSTRUC_REF POSTDEC POSTINC STRUC SYSVAR 
 // VAR VARPTR DEC INC DOT QUESTION 

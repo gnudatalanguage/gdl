@@ -79,9 +79,15 @@ void GDLTreeParser::translation_unit(RefDNode _t) {
 		case PCALL:
 		case RETURN:
 		case IDENTIFIER:
-		case SWITCH:
 		case CASE:
+		case FOR:
 		case FORWARD:
+		case GOTO:
+		case IF:
+		case ON_IOERROR:
+		case REPEAT:
+		case SWITCH:
+		case WHILE:
 		case DEC:
 		case INC:
 		case AND_OP_EQ:
@@ -103,12 +109,6 @@ void GDLTreeParser::translation_unit(RefDNode _t) {
 		case POW_EQ:
 		case SLASH_EQ:
 		case XOR_OP_EQ:
-		case REPEAT:
-		case WHILE:
-		case FOR:
-		case GOTO:
-		case ON_IOERROR:
-		case IF:
 		{
 			main_program(_t);
 			_t = _retTree;
@@ -208,9 +208,15 @@ void GDLTreeParser::procedure_def(RefDNode _t) {
 	case PARADECL:
 	case RETURN:
 	case IDENTIFIER:
-	case SWITCH:
 	case CASE:
+	case FOR:
 	case FORWARD:
+	case GOTO:
+	case IF:
+	case ON_IOERROR:
+	case REPEAT:
+	case SWITCH:
+	case WHILE:
 	case DEC:
 	case INC:
 	case AND_OP_EQ:
@@ -232,12 +238,6 @@ void GDLTreeParser::procedure_def(RefDNode _t) {
 	case POW_EQ:
 	case SLASH_EQ:
 	case XOR_OP_EQ:
-	case REPEAT:
-	case WHILE:
-	case FOR:
-	case GOTO:
-	case ON_IOERROR:
-	case IF:
 	{
 		
 		comp.StartPro(name->getText());
@@ -272,9 +272,15 @@ void GDLTreeParser::procedure_def(RefDNode _t) {
 	case PCALL:
 	case RETURN:
 	case IDENTIFIER:
-	case SWITCH:
 	case CASE:
+	case FOR:
 	case FORWARD:
+	case GOTO:
+	case IF:
+	case ON_IOERROR:
+	case REPEAT:
+	case SWITCH:
+	case WHILE:
 	case DEC:
 	case INC:
 	case AND_OP_EQ:
@@ -296,12 +302,6 @@ void GDLTreeParser::procedure_def(RefDNode _t) {
 	case POW_EQ:
 	case SLASH_EQ:
 	case XOR_OP_EQ:
-	case REPEAT:
-	case WHILE:
-	case FOR:
-	case GOTO:
-	case ON_IOERROR:
-	case IF:
 	{
 		break;
 	}
@@ -326,9 +326,15 @@ void GDLTreeParser::procedure_def(RefDNode _t) {
 	case PCALL:
 	case RETURN:
 	case IDENTIFIER:
-	case SWITCH:
 	case CASE:
+	case FOR:
 	case FORWARD:
+	case GOTO:
+	case IF:
+	case ON_IOERROR:
+	case REPEAT:
+	case SWITCH:
+	case WHILE:
 	case DEC:
 	case INC:
 	case AND_OP_EQ:
@@ -350,12 +356,6 @@ void GDLTreeParser::procedure_def(RefDNode _t) {
 	case POW_EQ:
 	case SLASH_EQ:
 	case XOR_OP_EQ:
-	case REPEAT:
-	case WHILE:
-	case FOR:
-	case GOTO:
-	case ON_IOERROR:
-	case IF:
 	{
 		statement_list(_t);
 		_t = _retTree;
@@ -444,9 +444,15 @@ void GDLTreeParser::function_def(RefDNode _t) {
 	case PARADECL:
 	case RETURN:
 	case IDENTIFIER:
-	case SWITCH:
 	case CASE:
+	case FOR:
 	case FORWARD:
+	case GOTO:
+	case IF:
+	case ON_IOERROR:
+	case REPEAT:
+	case SWITCH:
+	case WHILE:
 	case DEC:
 	case INC:
 	case AND_OP_EQ:
@@ -468,12 +474,6 @@ void GDLTreeParser::function_def(RefDNode _t) {
 	case POW_EQ:
 	case SLASH_EQ:
 	case XOR_OP_EQ:
-	case REPEAT:
-	case WHILE:
-	case FOR:
-	case GOTO:
-	case ON_IOERROR:
-	case IF:
 	{
 		
 		comp.StartFun(name->getText());
@@ -508,9 +508,15 @@ void GDLTreeParser::function_def(RefDNode _t) {
 	case PCALL:
 	case RETURN:
 	case IDENTIFIER:
-	case SWITCH:
 	case CASE:
+	case FOR:
 	case FORWARD:
+	case GOTO:
+	case IF:
+	case ON_IOERROR:
+	case REPEAT:
+	case SWITCH:
+	case WHILE:
 	case DEC:
 	case INC:
 	case AND_OP_EQ:
@@ -532,12 +538,6 @@ void GDLTreeParser::function_def(RefDNode _t) {
 	case POW_EQ:
 	case SLASH_EQ:
 	case XOR_OP_EQ:
-	case REPEAT:
-	case WHILE:
-	case FOR:
-	case GOTO:
-	case ON_IOERROR:
-	case IF:
 	{
 		break;
 	}
@@ -562,9 +562,15 @@ void GDLTreeParser::function_def(RefDNode _t) {
 	case PCALL:
 	case RETURN:
 	case IDENTIFIER:
-	case SWITCH:
 	case CASE:
+	case FOR:
 	case FORWARD:
+	case GOTO:
+	case IF:
+	case ON_IOERROR:
+	case REPEAT:
+	case SWITCH:
+	case WHILE:
 	case DEC:
 	case INC:
 	case AND_OP_EQ:
@@ -586,12 +592,6 @@ void GDLTreeParser::function_def(RefDNode _t) {
 	case POW_EQ:
 	case SLASH_EQ:
 	case XOR_OP_EQ:
-	case REPEAT:
-	case WHILE:
-	case FOR:
-	case GOTO:
-	case ON_IOERROR:
-	case IF:
 	{
 		statement_list(_t);
 		_t = _retTree;
@@ -975,9 +975,15 @@ void GDLTreeParser::statement_list(RefDNode _t) {
 		case MPCALL_PARENT:
 		case PCALL:
 		case RETURN:
-		case SWITCH:
 		case CASE:
+		case FOR:
 		case FORWARD:
+		case GOTO:
+		case IF:
+		case ON_IOERROR:
+		case REPEAT:
+		case SWITCH:
+		case WHILE:
 		case DEC:
 		case INC:
 		case AND_OP_EQ:
@@ -999,12 +1005,6 @@ void GDLTreeParser::statement_list(RefDNode _t) {
 		case POW_EQ:
 		case SLASH_EQ:
 		case XOR_OP_EQ:
-		case REPEAT:
-		case WHILE:
-		case FOR:
-		case GOTO:
-		case ON_IOERROR:
-		case IF:
 		{
 			statement(_t);
 			_t = _retTree;
@@ -1267,9 +1267,15 @@ void GDLTreeParser::caseswitch_body(RefDNode _t) {
 		case PCALL:
 		case RETURN:
 		case IDENTIFIER:
-		case SWITCH:
 		case CASE:
+		case FOR:
 		case FORWARD:
+		case GOTO:
+		case IF:
+		case ON_IOERROR:
+		case REPEAT:
+		case SWITCH:
+		case WHILE:
 		case DEC:
 		case INC:
 		case AND_OP_EQ:
@@ -1291,12 +1297,6 @@ void GDLTreeParser::caseswitch_body(RefDNode _t) {
 		case POW_EQ:
 		case SLASH_EQ:
 		case XOR_OP_EQ:
-		case REPEAT:
-		case WHILE:
-		case FOR:
-		case GOTO:
-		case ON_IOERROR:
-		case IF:
 		{
 			statement_list(_t);
 			_t = _retTree;
@@ -1347,9 +1347,15 @@ void GDLTreeParser::caseswitch_body(RefDNode _t) {
 		case PCALL:
 		case RETURN:
 		case IDENTIFIER:
-		case SWITCH:
 		case CASE:
+		case FOR:
 		case FORWARD:
+		case GOTO:
+		case IF:
+		case ON_IOERROR:
+		case REPEAT:
+		case SWITCH:
+		case WHILE:
 		case DEC:
 		case INC:
 		case AND_OP_EQ:
@@ -1371,12 +1377,6 @@ void GDLTreeParser::caseswitch_body(RefDNode _t) {
 		case POW_EQ:
 		case SLASH_EQ:
 		case XOR_OP_EQ:
-		case REPEAT:
-		case WHILE:
-		case FOR:
-		case GOTO:
-		case ON_IOERROR:
-		case IF:
 		{
 			statement_list(_t);
 			_t = _retTree;
@@ -1503,6 +1503,17 @@ void GDLTreeParser::expr(RefDNode _t) {
 	case POSTINC:
 	case STRUC:
 	case UMINUS:
+	case AND_OP:
+	case EQ_OP:
+	case GE_OP:
+	case GT_OP:
+	case LE_OP:
+	case LT_OP:
+	case MOD_OP:
+	case NE_OP:
+	case NOT_OP:
+	case OR_OP:
+	case XOR_OP:
 	case DEC:
 	case INC:
 	case AND_OP_EQ:
@@ -1529,22 +1540,11 @@ void GDLTreeParser::expr(RefDNode _t) {
 	case POW:
 	case MATRIX_OP1:
 	case MATRIX_OP2:
-	case MOD_OP:
 	case PLUS:
 	case MINUS:
 	case LTMARK:
 	case GTMARK:
-	case NOT_OP:
 	case LOG_NEG:
-	case EQ_OP:
-	case NE_OP:
-	case LE_OP:
-	case LT_OP:
-	case GE_OP:
-	case GT_OP:
-	case AND_OP:
-	case OR_OP:
-	case XOR_OP:
 	case LOG_AND:
 	case LOG_OR:
 	case QUESTION:
@@ -1698,9 +1698,15 @@ void GDLTreeParser::block(RefDNode _t) {
 	case PCALL:
 	case RETURN:
 	case IDENTIFIER:
-	case SWITCH:
 	case CASE:
+	case FOR:
 	case FORWARD:
+	case GOTO:
+	case IF:
+	case ON_IOERROR:
+	case REPEAT:
+	case SWITCH:
+	case WHILE:
 	case DEC:
 	case INC:
 	case AND_OP_EQ:
@@ -1722,12 +1728,6 @@ void GDLTreeParser::block(RefDNode _t) {
 	case POW_EQ:
 	case SLASH_EQ:
 	case XOR_OP_EQ:
-	case REPEAT:
-	case WHILE:
-	case FOR:
-	case GOTO:
-	case ON_IOERROR:
-	case IF:
 	{
 		statement_list(_t);
 		_t = _retTree;
@@ -1785,9 +1785,15 @@ void GDLTreeParser::unblock(RefDNode _t) {
 	case PCALL:
 	case RETURN:
 	case IDENTIFIER:
-	case SWITCH:
 	case CASE:
+	case FOR:
 	case FORWARD:
+	case GOTO:
+	case IF:
+	case ON_IOERROR:
+	case REPEAT:
+	case SWITCH:
+	case WHILE:
 	case DEC:
 	case INC:
 	case AND_OP_EQ:
@@ -1809,12 +1815,6 @@ void GDLTreeParser::unblock(RefDNode _t) {
 	case POW_EQ:
 	case SLASH_EQ:
 	case XOR_OP_EQ:
-	case REPEAT:
-	case WHILE:
-	case FOR:
-	case GOTO:
-	case ON_IOERROR:
-	case IF:
 	{
 		s = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		statement_list(_t);
@@ -2951,6 +2951,17 @@ void GDLTreeParser::for_statement(RefDNode _t) {
 	case SYSVAR:
 	case UMINUS:
 	case VAR:
+	case AND_OP:
+	case EQ_OP:
+	case GE_OP:
+	case GT_OP:
+	case LE_OP:
+	case LT_OP:
+	case MOD_OP:
+	case NE_OP:
+	case NOT_OP:
+	case OR_OP:
+	case XOR_OP:
 	case DEC:
 	case INC:
 	case AND_OP_EQ:
@@ -2978,22 +2989,11 @@ void GDLTreeParser::for_statement(RefDNode _t) {
 	case POW:
 	case MATRIX_OP1:
 	case MATRIX_OP2:
-	case MOD_OP:
 	case PLUS:
 	case MINUS:
 	case LTMARK:
 	case GTMARK:
-	case NOT_OP:
 	case LOG_NEG:
-	case EQ_OP:
-	case NE_OP:
-	case LE_OP:
-	case LT_OP:
-	case GE_OP:
-	case GT_OP:
-	case AND_OP:
-	case OR_OP:
-	case XOR_OP:
 	case LOG_AND:
 	case LOG_OR:
 	case QUESTION:
@@ -3222,6 +3222,17 @@ void GDLTreeParser::jump_statement(RefDNode _t) {
 		case SYSVAR:
 		case UMINUS:
 		case VAR:
+		case AND_OP:
+		case EQ_OP:
+		case GE_OP:
+		case GT_OP:
+		case LE_OP:
+		case LT_OP:
+		case MOD_OP:
+		case NE_OP:
+		case NOT_OP:
+		case OR_OP:
+		case XOR_OP:
 		case DEC:
 		case INC:
 		case AND_OP_EQ:
@@ -3249,22 +3260,11 @@ void GDLTreeParser::jump_statement(RefDNode _t) {
 		case POW:
 		case MATRIX_OP1:
 		case MATRIX_OP2:
-		case MOD_OP:
 		case PLUS:
 		case MINUS:
 		case LTMARK:
 		case GTMARK:
-		case NOT_OP:
 		case LOG_NEG:
-		case EQ_OP:
-		case NE_OP:
-		case LE_OP:
-		case LT_OP:
-		case GE_OP:
-		case GT_OP:
-		case AND_OP:
-		case OR_OP:
-		case XOR_OP:
 		case LOG_AND:
 		case LOG_OR:
 		case QUESTION:
@@ -3430,9 +3430,15 @@ void GDLTreeParser::if_statement(RefDNode _t) {
 	case MPCALL_PARENT:
 	case PCALL:
 	case RETURN:
-	case SWITCH:
 	case CASE:
+	case FOR:
 	case FORWARD:
+	case GOTO:
+	case IF:
+	case ON_IOERROR:
+	case REPEAT:
+	case SWITCH:
+	case WHILE:
 	case DEC:
 	case INC:
 	case AND_OP_EQ:
@@ -3454,12 +3460,6 @@ void GDLTreeParser::if_statement(RefDNode _t) {
 	case POW_EQ:
 	case SLASH_EQ:
 	case XOR_OP_EQ:
-	case REPEAT:
-	case WHILE:
-	case FOR:
-	case GOTO:
-	case ON_IOERROR:
-	case IF:
 	{
 		s2 = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
 		statement(_t);
@@ -3531,6 +3531,17 @@ void GDLTreeParser::parameter_def(RefDNode _t) {
 	case SYSVAR:
 	case UMINUS:
 	case VAR:
+	case AND_OP:
+	case EQ_OP:
+	case GE_OP:
+	case GT_OP:
+	case LE_OP:
+	case LT_OP:
+	case MOD_OP:
+	case NE_OP:
+	case NOT_OP:
+	case OR_OP:
+	case XOR_OP:
 	case DEC:
 	case INC:
 	case AND_OP_EQ:
@@ -3558,22 +3569,11 @@ void GDLTreeParser::parameter_def(RefDNode _t) {
 	case POW:
 	case MATRIX_OP1:
 	case MATRIX_OP2:
-	case MOD_OP:
 	case PLUS:
 	case MINUS:
 	case LTMARK:
 	case GTMARK:
-	case NOT_OP:
 	case LOG_NEG:
-	case EQ_OP:
-	case NE_OP:
-	case LE_OP:
-	case LT_OP:
-	case GE_OP:
-	case GT_OP:
-	case AND_OP:
-	case OR_OP:
-	case XOR_OP:
 	case LOG_AND:
 	case LOG_OR:
 	case QUESTION:
@@ -3945,6 +3945,18 @@ void GDLTreeParser::struct_def(RefDNode _t) {
 		case UMINUS:
 		case VAR:
 		case IDENTIFIER:
+		case AND_OP:
+		case EQ_OP:
+		case GE_OP:
+		case GT_OP:
+		case INHERITS:
+		case LE_OP:
+		case LT_OP:
+		case MOD_OP:
+		case NE_OP:
+		case NOT_OP:
+		case OR_OP:
+		case XOR_OP:
 		case DEC:
 		case INC:
 		case AND_OP_EQ:
@@ -3967,28 +3979,16 @@ void GDLTreeParser::struct_def(RefDNode _t) {
 		case SLASH_EQ:
 		case XOR_OP_EQ:
 		case SLASH:
-		case INHERITS:
 		case ASTERIX:
 		case DOT:
 		case POW:
 		case MATRIX_OP1:
 		case MATRIX_OP2:
-		case MOD_OP:
 		case PLUS:
 		case MINUS:
 		case LTMARK:
 		case GTMARK:
-		case NOT_OP:
 		case LOG_NEG:
-		case EQ_OP:
-		case NE_OP:
-		case LE_OP:
-		case LT_OP:
-		case GE_OP:
-		case GT_OP:
-		case AND_OP:
-		case OR_OP:
-		case XOR_OP:
 		case LOG_AND:
 		case LOG_OR:
 		case QUESTION:
@@ -4017,6 +4017,17 @@ void GDLTreeParser::struct_def(RefDNode _t) {
 				case SYSVAR:
 				case UMINUS:
 				case VAR:
+				case AND_OP:
+				case EQ_OP:
+				case GE_OP:
+				case GT_OP:
+				case LE_OP:
+				case LT_OP:
+				case MOD_OP:
+				case NE_OP:
+				case NOT_OP:
+				case OR_OP:
+				case XOR_OP:
 				case DEC:
 				case INC:
 				case AND_OP_EQ:
@@ -4044,22 +4055,11 @@ void GDLTreeParser::struct_def(RefDNode _t) {
 				case POW:
 				case MATRIX_OP1:
 				case MATRIX_OP2:
-				case MOD_OP:
 				case PLUS:
 				case MINUS:
 				case LTMARK:
 				case GTMARK:
-				case NOT_OP:
 				case LOG_NEG:
-				case EQ_OP:
-				case NE_OP:
-				case LE_OP:
-				case LT_OP:
-				case GE_OP:
-				case GT_OP:
-				case AND_OP:
-				case OR_OP:
-				case XOR_OP:
 				case LOG_AND:
 				case LOG_OR:
 				case QUESTION:
@@ -4267,6 +4267,17 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 	case SYSVAR:
 	case UMINUS:
 	case VAR:
+	case AND_OP:
+	case EQ_OP:
+	case GE_OP:
+	case GT_OP:
+	case LE_OP:
+	case LT_OP:
+	case MOD_OP:
+	case NE_OP:
+	case NOT_OP:
+	case OR_OP:
+	case XOR_OP:
 	case DEC:
 	case INC:
 	case AND_OP_EQ:
@@ -4294,22 +4305,11 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 	case POW:
 	case MATRIX_OP1:
 	case MATRIX_OP2:
-	case MOD_OP:
 	case PLUS:
 	case MINUS:
 	case LTMARK:
 	case GTMARK:
-	case NOT_OP:
 	case LOG_NEG:
-	case EQ_OP:
-	case NE_OP:
-	case LE_OP:
-	case LT_OP:
-	case GE_OP:
-	case GT_OP:
-	case AND_OP:
-	case OR_OP:
-	case XOR_OP:
 	case LOG_AND:
 	case LOG_OR:
 	case QUESTION:
@@ -4420,6 +4420,17 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 			case SYSVAR:
 			case UMINUS:
 			case VAR:
+			case AND_OP:
+			case EQ_OP:
+			case GE_OP:
+			case GT_OP:
+			case LE_OP:
+			case LT_OP:
+			case MOD_OP:
+			case NE_OP:
+			case NOT_OP:
+			case OR_OP:
+			case XOR_OP:
 			case DEC:
 			case INC:
 			case AND_OP_EQ:
@@ -4447,22 +4458,11 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 			case POW:
 			case MATRIX_OP1:
 			case MATRIX_OP2:
-			case MOD_OP:
 			case PLUS:
 			case MINUS:
 			case LTMARK:
 			case GTMARK:
-			case NOT_OP:
 			case LOG_NEG:
-			case EQ_OP:
-			case NE_OP:
-			case LE_OP:
-			case LT_OP:
-			case GE_OP:
-			case GT_OP:
-			case AND_OP:
-			case OR_OP:
-			case XOR_OP:
 			case LOG_AND:
 			case LOG_OR:
 			case QUESTION:
@@ -4522,6 +4522,17 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 		case SYSVAR:
 		case UMINUS:
 		case VAR:
+		case AND_OP:
+		case EQ_OP:
+		case GE_OP:
+		case GT_OP:
+		case LE_OP:
+		case LT_OP:
+		case MOD_OP:
+		case NE_OP:
+		case NOT_OP:
+		case OR_OP:
+		case XOR_OP:
 		case DEC:
 		case INC:
 		case AND_OP_EQ:
@@ -4549,22 +4560,11 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 		case POW:
 		case MATRIX_OP1:
 		case MATRIX_OP2:
-		case MOD_OP:
 		case PLUS:
 		case MINUS:
 		case LTMARK:
 		case GTMARK:
-		case NOT_OP:
 		case LOG_NEG:
-		case EQ_OP:
-		case NE_OP:
-		case LE_OP:
-		case LT_OP:
-		case GE_OP:
-		case GT_OP:
-		case AND_OP:
-		case OR_OP:
-		case XOR_OP:
 		case LOG_AND:
 		case LOG_OR:
 		case QUESTION:
@@ -4621,6 +4621,17 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 			case SYSVAR:
 			case UMINUS:
 			case VAR:
+			case AND_OP:
+			case EQ_OP:
+			case GE_OP:
+			case GT_OP:
+			case LE_OP:
+			case LT_OP:
+			case MOD_OP:
+			case NE_OP:
+			case NOT_OP:
+			case OR_OP:
+			case XOR_OP:
 			case DEC:
 			case INC:
 			case AND_OP_EQ:
@@ -4648,22 +4659,11 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 			case POW:
 			case MATRIX_OP1:
 			case MATRIX_OP2:
-			case MOD_OP:
 			case PLUS:
 			case MINUS:
 			case LTMARK:
 			case GTMARK:
-			case NOT_OP:
 			case LOG_NEG:
-			case EQ_OP:
-			case NE_OP:
-			case LE_OP:
-			case LT_OP:
-			case GE_OP:
-			case GT_OP:
-			case AND_OP:
-			case OR_OP:
-			case XOR_OP:
 			case LOG_AND:
 			case LOG_OR:
 			case QUESTION:
@@ -6609,30 +6609,51 @@ const char* GDLTreeParser::tokenNames[] = {
 	"UMINUS",
 	"VAR",
 	"VARPTR",
-	"\"end\"",
-	"\"function\"",
-	"\"pro\"",
 	"IDENTIFIER",
+	"\"and\"",
+	"\"begin\"",
+	"\"case\"",
+	"\"common\"",
+	"\"compile_opt\"",
+	"\"do\"",
+	"\"else\"",
+	"\"end\"",
+	"\"endcase\"",
+	"\"endelse\"",
+	"\"endfor\"",
+	"\"endif\"",
+	"\"endrep\"",
+	"\"endswitch\"",
+	"\"endwhile\"",
+	"\"eq\"",
+	"\"for\"",
+	"\"forward_function\"",
+	"\"function\"",
+	"\"ge\"",
+	"\"goto\"",
+	"\"gt\"",
+	"\"if\"",
+	"\"inherits\"",
+	"\"le\"",
+	"\"lt\"",
+	"\"mod\"",
+	"\"ne\"",
+	"\"not\"",
+	"\"of\"",
+	"\"on_ioerror\"",
+	"\"or\"",
+	"\"pro\"",
+	"\"repeat\"",
+	"\"switch\"",
+	"\"then\"",
+	"\"until\"",
+	"\"while\"",
+	"\"xor\"",
 	"METHOD",
 	"COMMA",
-	"\"begin\"",
 	"COLON",
-	"\"switch\"",
-	"\"of\"",
-	"\"else\"",
-	"\"case\"",
 	"END_U",
-	"\"forward_function\"",
 	"EQUAL",
-	"\"compile_opt\"",
-	"\"common\"",
-	"\"endif\"",
-	"\"endelse\"",
-	"\"endcase\"",
-	"\"endswitch\"",
-	"\"endfor\"",
-	"\"endwhile\"",
-	"\"endrep\"",
 	"DEC",
 	"INC",
 	"AND_OP_EQ",
@@ -6655,15 +6676,6 @@ const char* GDLTreeParser::tokenNames[] = {
 	"SLASH_EQ",
 	"XOR_OP_EQ",
 	"MEMBER",
-	"\"repeat\"",
-	"\"until\"",
-	"\"while\"",
-	"\"do\"",
-	"\"for\"",
-	"\"goto\"",
-	"\"on_ioerror\"",
-	"\"if\"",
-	"\"then\"",
 	"LBRACE",
 	"RBRACE",
 	"SLASH",
@@ -6671,7 +6683,6 @@ const char* GDLTreeParser::tokenNames[] = {
 	"RSQUARE",
 	"SYSVARNAME",
 	"EXCLAMATION",
-	"\"inherits\"",
 	"LCURLY",
 	"RCURLY",
 	"CONSTANT_HEX_BYTE",
@@ -6709,22 +6720,11 @@ const char* GDLTreeParser::tokenNames[] = {
 	"POW",
 	"MATRIX_OP1",
 	"MATRIX_OP2",
-	"\"mod\"",
 	"PLUS",
 	"MINUS",
 	"LTMARK",
 	"GTMARK",
-	"\"not\"",
 	"LOG_NEG",
-	"\"eq\"",
-	"\"ne\"",
-	"\"le\"",
-	"\"lt\"",
-	"\"ge\"",
-	"\"gt\"",
-	"\"and\"",
-	"\"or\"",
-	"\"xor\"",
 	"LOG_AND",
 	"LOG_OR",
 	"QUESTION",
@@ -6749,32 +6749,31 @@ const char* GDLTreeParser::tokenNames[] = {
 	0
 };
 
-const unsigned long GDLTreeParser::_tokenSet_0_data_[] = { 8126496UL, 268697792UL, 4026699776UL, 64356351UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLTreeParser::_tokenSet_0_data_[] = { 8126496UL, 268697792UL, 174063744UL, 4294837448UL, 63UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN BLOCK BREAK CONTINUE COMMONDECL COMMONDEF MPCALL MPCALL_PARENT 
-// PCALL RETURN "switch" "case" "forward_function" DEC INC AND_OP_EQ ASTERIX_EQ 
-// EQ_OP_EQ GE_OP_EQ GTMARK_EQ GT_OP_EQ LE_OP_EQ LTMARK_EQ LT_OP_EQ MATRIX_OP1_EQ 
-// MATRIX_OP2_EQ MINUS_EQ MOD_OP_EQ NE_OP_EQ OR_OP_EQ PLUS_EQ POW_EQ SLASH_EQ 
-// XOR_OP_EQ "repeat" "while" "for" "goto" "on_ioerror" "if" 
-const antlr::BitSet GDLTreeParser::_tokenSet_0(_tokenSet_0_data_,8);
-const unsigned long GDLTreeParser::_tokenSet_1_data_[] = { 360907552UL, 2153842946UL, 4026531847UL, 537001983UL, 0UL, 134217708UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+// PCALL RETURN "case" "for" "forward_function" "goto" "if" "on_ioerror" 
+// "repeat" "switch" "while" DEC INC AND_OP_EQ ASTERIX_EQ EQ_OP_EQ GE_OP_EQ 
+// GTMARK_EQ GT_OP_EQ LE_OP_EQ LTMARK_EQ LT_OP_EQ MATRIX_OP1_EQ MATRIX_OP2_EQ 
+// MINUS_EQ MOD_OP_EQ NE_OP_EQ OR_OP_EQ PLUS_EQ POW_EQ SLASH_EQ XOR_OP_EQ 
+const antlr::BitSet GDLTreeParser::_tokenSet_0(_tokenSet_0_data_,12);
+const unsigned long GDLTreeParser::_tokenSet_1_data_[] = { 360907552UL, 2153842946UL, 3843031079UL, 4294838291UL, 575UL, 134176768UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN ARRAYDEF ARRAYDEF_CONST ARRAYEXPR ARRAYEXPR_FN CONSTANT DEREF 
 // EXPR FCALL KEYDEF MFCALL MFCALL_PARENT NSTRUC_REF POSTDEC POSTINC STRUC 
-// SYSVAR UMINUS VAR DEC INC AND_OP_EQ ASTERIX_EQ EQ_OP_EQ GE_OP_EQ GTMARK_EQ 
-// GT_OP_EQ LE_OP_EQ LTMARK_EQ LT_OP_EQ MATRIX_OP1_EQ MATRIX_OP2_EQ MINUS_EQ 
-// MOD_OP_EQ NE_OP_EQ OR_OP_EQ PLUS_EQ POW_EQ SLASH_EQ XOR_OP_EQ SLASH 
-// ASTERIX DOT POW MATRIX_OP1 MATRIX_OP2 "mod" PLUS MINUS LTMARK GTMARK 
-// "not" LOG_NEG "eq" "ne" "le" "lt" "ge" "gt" "and" "or" "xor" LOG_AND 
-// LOG_OR QUESTION 
+// SYSVAR UMINUS VAR "and" "eq" "ge" "gt" "le" "lt" "mod" "ne" "not" "or" 
+// "xor" DEC INC AND_OP_EQ ASTERIX_EQ EQ_OP_EQ GE_OP_EQ GTMARK_EQ GT_OP_EQ 
+// LE_OP_EQ LTMARK_EQ LT_OP_EQ MATRIX_OP1_EQ MATRIX_OP2_EQ MINUS_EQ MOD_OP_EQ 
+// NE_OP_EQ OR_OP_EQ PLUS_EQ POW_EQ SLASH_EQ XOR_OP_EQ SLASH ASTERIX DOT 
+// POW MATRIX_OP1 MATRIX_OP2 PLUS MINUS LTMARK GTMARK LOG_NEG LOG_AND LOG_OR 
+// QUESTION 
 const antlr::BitSet GDLTreeParser::_tokenSet_1(_tokenSet_1_data_,12);
-const unsigned long GDLTreeParser::_tokenSet_2_data_[] = { 360907552UL, 2153842944UL, 4026531847UL, 537001983UL, 0UL, 134217708UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLTreeParser::_tokenSet_2_data_[] = { 360907552UL, 2153842944UL, 3843031079UL, 4294838291UL, 575UL, 134176768UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN ARRAYDEF ARRAYDEF_CONST ARRAYEXPR ARRAYEXPR_FN CONSTANT DEREF 
 // EXPR FCALL MFCALL MFCALL_PARENT NSTRUC_REF POSTDEC POSTINC STRUC SYSVAR 
-// UMINUS VAR DEC INC AND_OP_EQ ASTERIX_EQ EQ_OP_EQ GE_OP_EQ GTMARK_EQ 
-// GT_OP_EQ LE_OP_EQ LTMARK_EQ LT_OP_EQ MATRIX_OP1_EQ MATRIX_OP2_EQ MINUS_EQ 
-// MOD_OP_EQ NE_OP_EQ OR_OP_EQ PLUS_EQ POW_EQ SLASH_EQ XOR_OP_EQ SLASH 
-// ASTERIX DOT POW MATRIX_OP1 MATRIX_OP2 "mod" PLUS MINUS LTMARK GTMARK 
-// "not" LOG_NEG "eq" "ne" "le" "lt" "ge" "gt" "and" "or" "xor" LOG_AND 
-// LOG_OR QUESTION 
+// UMINUS VAR "and" "eq" "ge" "gt" "le" "lt" "mod" "ne" "not" "or" "xor" 
+// DEC INC AND_OP_EQ ASTERIX_EQ EQ_OP_EQ GE_OP_EQ GTMARK_EQ GT_OP_EQ LE_OP_EQ 
+// LTMARK_EQ LT_OP_EQ MATRIX_OP1_EQ MATRIX_OP2_EQ MINUS_EQ MOD_OP_EQ NE_OP_EQ 
+// OR_OP_EQ PLUS_EQ POW_EQ SLASH_EQ XOR_OP_EQ SLASH ASTERIX DOT POW MATRIX_OP1 
+// MATRIX_OP2 PLUS MINUS LTMARK GTMARK LOG_NEG LOG_AND LOG_OR QUESTION 
 const antlr::BitSet GDLTreeParser::_tokenSet_2(_tokenSet_2_data_,12);
 
 

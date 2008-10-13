@@ -60,6 +60,8 @@ options {
 //    defaultErrorHandler = true;
 }
 
+// if something is changed here
+// identifier below needs to change as well
 tokens {
 	ALL;		// arrayindex (*, e.g. [1:*])
 	ASSIGN;
@@ -171,6 +173,56 @@ tokens {
         //        setTokenNames(_tokenNames);
     }
 }
+
+
+// 'reverse' identifier
+// allows reserved words as identifiers
+// needed for keyword abbreviations
+// if you change some keywords here you probably need to change
+// the reserved word list above
+identifier
+    : IDENTIFIER
+    | a:AND_OP { #a->setType( IDENTIFIER);}
+	| b:BEGIN  { #b->setType( IDENTIFIER);}
+	| c:CASE { #c->setType( IDENTIFIER);}
+    | co:COMMON { #co->setType( IDENTIFIER);}
+    | com:COMPILE_OPT { #com->setType( IDENTIFIER);}
+    | d:DO { #d->setType( IDENTIFIER);}
+    | e:ELSE { #e->setType( IDENTIFIER);}
+    | en:END { #en->setType( IDENTIFIER);}
+    | end:ENDCASE { #end->setType( IDENTIFIER);}
+    | ende:ENDELSE { #ende->setType( IDENTIFIER);}
+    | endf:ENDFOR { #endf->setType( IDENTIFIER);}
+    | endi:ENDIF { #endi->setType( IDENTIFIER);}
+    | endr:ENDREP { #endr->setType( IDENTIFIER);}
+    | ends:ENDSWITCH { #ends->setType( IDENTIFIER);}
+    | endw:ENDWHILE { #endw->setType( IDENTIFIER);}
+    | eq:EQ_OP { #eq->setType( IDENTIFIER);}
+    | f:FOR { #f->setType( IDENTIFIER);}
+    | fo:FORWARD { #fo->setType( IDENTIFIER);}
+    | fu:FUNCTION { #fu->setType( IDENTIFIER);}
+    | g:GE_OP { #g->setType( IDENTIFIER);}
+    | go:GOTO { #go->setType( IDENTIFIER);}
+    | gt:GT_OP { #gt->setType( IDENTIFIER);}
+    | i:IF { #i->setType( IDENTIFIER);}
+    | in:INHERITS { #in->setType( IDENTIFIER);}
+    | l:LE_OP { #l->setType( IDENTIFIER);}
+    | lt:LT_OP { #lt->setType( IDENTIFIER);}
+    | m:MOD_OP { #m->setType( IDENTIFIER);}
+    | n:NE_OP { #n->setType( IDENTIFIER);}
+    | no:NOT_OP { #no->setType( IDENTIFIER);}
+    | o:OF { #o->setType( IDENTIFIER);}
+    | on:ON_IOERROR { #on->setType( IDENTIFIER);}
+    | o_:OR_OP { #o_->setType( IDENTIFIER);}
+    | p:PRO { #p->setType( IDENTIFIER);}
+    | r:REPEAT { #r->setType( IDENTIFIER);}
+    | s:SWITCH { #s->setType( IDENTIFIER);}
+    | t:THEN { #t->setType( IDENTIFIER);}
+    | u:UNTIL { #u->setType( IDENTIFIER);}
+    | w:WHILE { #w->setType( IDENTIFIER);}
+    | x:XOR_OP { #x->setType( IDENTIFIER);}
+    ;
+
 
 // file parsing
 translation_unit
@@ -684,11 +736,13 @@ formal_function_call
 	;
 
 parameter_def
-	: IDENTIFIER EQUAL! expr
+//	: IDENTIFIER EQUAL! expr
+	: identifier EQUAL! expr
 		{ #parameter_def =
 			#([KEYDEF,"!=!"], #parameter_def);}
 	| expr
-	| SLASH! id:IDENTIFIER
+//	| SLASH! id:IDENTIFIER
+	| SLASH! id:identifier
 		{
             RefDNode c=static_cast<RefDNode>( #[CONSTANT,"1"]);
             c->Text2Int(10);
@@ -1253,6 +1307,7 @@ logical_expr
 			) boolean_expr
 		)*
 	;
+
 
 // boolean_expr
 // 	: relational_expr

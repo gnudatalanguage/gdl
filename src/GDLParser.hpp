@@ -92,6 +92,7 @@ public:
 	{
 		return GDLParser::tokenNames;
 	}
+	public: void identifier();
 	public: void translation_unit();
 	public: void end_unit();
 	public: void forward_function();
@@ -235,6 +236,8 @@ private:
 	static const antlr::BitSet _tokenSet_18;
 	static const unsigned long _tokenSet_19_data_[];
 	static const antlr::BitSet _tokenSet_19;
+	static const unsigned long _tokenSet_20_data_[];
+	static const antlr::BitSet _tokenSet_20;
 };
 
 #endif /*INC_GDLParser_hpp_*/
