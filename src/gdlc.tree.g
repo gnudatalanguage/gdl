@@ -383,7 +383,8 @@ statement_list // note: proper syntax is provided already by the parser
     ;
 
 statement
-    : assign_expr
+    : assign_expr_statement
+//    | assign_expr
     | comp_assign_expr   
 	| procedure_call
 	| for_statement 
@@ -949,7 +950,30 @@ assign_expr!
                 // lT == FCALL_LIB || lT == MFCALL_LIB || lT == MFCALL_PARENT_LIB ||
                 // lT == DEREF || lT == VAR || lT == VARPTR)
                 // #a->setType( ASSIGN_REPLACE);
-#assign_expr=#(a,r,l);  
+                #assign_expr=#(a,r,l);  
+            }
+            else
+            {
+                #assign_expr=#(l);
+            }
+        }
+    ;
+
+// different return tree with self assignment
+assign_expr_statement!
+	: #(a:ASSIGN l:lassign_expr r:expr)
+        {
+            if( !SelfAssignment( #l, #r))
+            {
+                
+                AssignReplace( #l, #a);
+                
+                // int lT = #l->getType();
+                // if( lT == FCALL || lT == MFCALL || lT == MFCALL_PARENT ||
+                // lT == FCALL_LIB || lT == MFCALL_LIB || lT == MFCALL_PARENT_LIB ||
+                // lT == DEREF || lT == VAR || lT == VARPTR)
+                // #a->setType( ASSIGN_REPLACE);
+                #assign_expr_statement=#(a,r,l);  
             }
         }
     ;

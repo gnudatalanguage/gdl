@@ -159,7 +159,7 @@ public:
 	public: void block(RefDNode _t);
 	public: void unblock(RefDNode _t);
 	public: void label(RefDNode _t);
-	public: void assign_expr(RefDNode _t);
+	public: void assign_expr_statement(RefDNode _t);
 	public: void comp_assign_expr(RefDNode _t);
 	public: void procedure_call(RefDNode _t);
 	public: void for_statement(RefDNode _t);
@@ -178,6 +178,7 @@ public:
 	);
 	public: void arrayindex_list(RefDNode _t);
 	public: void lassign_expr(RefDNode _t);
+	public: void assign_expr(RefDNode _t);
 	public: void sysvar(RefDNode _t);
 	public: void var(RefDNode _t);
 	public: void arrayindex_list_to_expression_list(RefDNode _t);
