@@ -129,6 +129,24 @@ options {
         }
     }
     
+    bool SelfAssignment( RefDNode& lN, RefDNode& rN)
+    {
+        int lT = lN->getType();
+        int rT = rN->getType();
+        if( 
+            rT == VARPTR && lT == VARPTR)
+        {
+            return  (lN->GetVar() == rN->GetVar());
+        }
+        if( 
+            rT == VAR && lT == VAR)
+        {
+            return  (lN->GetVarIx() == rN->GetVarIx());
+        }
+        return false;
+        
+    }
+
   RefDNode RemoveNextSibling( RefDNode l)
   {
     RefDNode newNode = RefDNode(astFactory->dupTree( antlr::RefAST(l)));
@@ -921,14 +939,18 @@ lassign_expr!//
 assign_expr!
 	: #(a:ASSIGN l:lassign_expr r:expr)
         {
-        AssignReplace( #l, #a);
-
-//         int lT = #l->getType();
-//         if( lT == FCALL || lT == MFCALL || lT == MFCALL_PARENT ||
-//             lT == FCALL_LIB || lT == MFCALL_LIB || lT == MFCALL_PARENT_LIB ||
-//             lT == DEREF || lT == VAR || lT == VARPTR)
-//             #a->setType( ASSIGN_REPLACE);
-        #assign_expr=#(a,r,l);  
+            if( !SelfAssignment( #l, #r))
+            {
+                
+                AssignReplace( #l, #a);
+                
+                // int lT = #l->getType();
+                // if( lT == FCALL || lT == MFCALL || lT == MFCALL_PARENT ||
+                // lT == FCALL_LIB || lT == MFCALL_LIB || lT == MFCALL_PARENT_LIB ||
+                // lT == DEREF || lT == VAR || lT == VARPTR)
+                // #a->setType( ASSIGN_REPLACE);
+#assign_expr=#(a,r,l);  
+            }
         }
     ;
 

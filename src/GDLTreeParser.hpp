@@ -81,6 +81,24 @@ class CUSTOM_API GDLTreeParser : public antlr::TreeParser, public GDLTreeParserT
         }
     }
     
+    bool SelfAssignment( RefDNode& lN, RefDNode& rN)
+    {
+        int lT = lN->getType();
+        int rT = rN->getType();
+        if( 
+            rT == VARPTR && lT == VARPTR)
+        {
+            return  (lN->GetVar() == rN->GetVar());
+        }
+        if( 
+            rT == VAR && lT == VAR)
+        {
+            return  (lN->GetVarIx() == rN->GetVarIx());
+        }
+        return false;
+        
+    }
+
   RefDNode RemoveNextSibling( RefDNode l)
   {
     RefDNode newNode = RefDNode(astFactory->dupTree( antlr::RefAST(l)));

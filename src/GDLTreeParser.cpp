@@ -1924,14 +1924,18 @@ void GDLTreeParser::assign_expr(RefDNode _t) {
 	_t = _t->getNextSibling();
 	assign_expr_AST = RefDNode(currentAST.root);
 	
+	if( !SelfAssignment( l_AST, r_AST))
+	{
+	
 	AssignReplace( l_AST, a_AST);
 	
-	//         int lT = #l->getType();
-	//         if( lT == FCALL || lT == MFCALL || lT == MFCALL_PARENT ||
-	//             lT == FCALL_LIB || lT == MFCALL_LIB || lT == MFCALL_PARENT_LIB ||
-	//             lT == DEREF || lT == VAR || lT == VARPTR)
-	//             #a->setType( ASSIGN_REPLACE);
+	// int lT = #l->getType();
+	// if( lT == FCALL || lT == MFCALL || lT == MFCALL_PARENT ||
+	// lT == FCALL_LIB || lT == MFCALL_LIB || lT == MFCALL_PARENT_LIB ||
+	// lT == DEREF || lT == VAR || lT == VARPTR)
+	// #a->setType( ASSIGN_REPLACE);
 	assign_expr_AST=RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(a_AST))->add(antlr::RefAST(r_AST))->add(antlr::RefAST(l_AST))));  
+	}
 	
 	currentAST.root = assign_expr_AST;
 	if ( assign_expr_AST!=RefDNode(antlr::nullAST) &&
