@@ -162,11 +162,13 @@ namespace lib {
     DStructDesc* ncdf_varinq=new DStructDesc("$truct");
     SpDLong aLong;
     SpDString aString;
+    SpDLong aLongArr(dimension(var_ndims == 0 ? 1 : var_ndims));
+
     ncdf_varinq->AddTag("NAME", &aString);
     ncdf_varinq->AddTag("DATATYPE", &aString);
     ncdf_varinq->AddTag("NDIMS",  &aLong);
     ncdf_varinq->AddTag("NATTS",  &aLong);
-    ncdf_varinq->AddTag("DIM",  &aLong);
+    ncdf_varinq->AddTag("DIM",  &aLongArr);
 
 //never for unnamed structs    structList.push_back(ncdf_varinq);
     
@@ -264,7 +266,7 @@ namespace lib {
       
     if(e->GetKW(0)!=NULL)//OFFSET
       {
-	DIntGDL *o=e->GetKWAs<DIntGDL>(0);
+	DLongGDL *o=e->GetKWAs<DLongGDL>(0);
         int nEl=o->N_Elements();
 	for (i=0;i<nEl;++i) 
 	  {
@@ -601,7 +603,7 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 
 	if(e->GetKW(1) !=NULL)
 	  {
-	    DIntGDL *o=e->GetKWAs<DIntGDL>(1);
+	    DLongGDL *o=e->GetKWAs<DLongGDL>(1);
 	    int noff=o->N_Elements();
 	    for (i=0;i<noff;++i) 
 	      {
@@ -634,7 +636,7 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 	if(e->GetKW(0) !=NULL)
 	{
 
-	  DIntGDL *c=e->GetKWAs<DIntGDL>(0);
+	  DLongGDL *c=e->GetKWAs<DLongGDL>(0);
 	  int ncou=c->N_Elements();
 
 	  for (i=0;i<ncou;++i) 
@@ -1267,7 +1269,7 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 	if(e->GetKW(1) != NULL)
 	  {
 	    //offset
-	    DIntGDL *o=e->GetKWAs<DIntGDL>(1);
+	    DLongGDL *o=e->GetKWAs<DLongGDL>(1);
 	    noff=o->N_Elements();
 
 	    //	    offset[0]=0;
@@ -1305,7 +1307,7 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 	if(e->GetKW(0) != NULL)
 	{
 	  total=1;
-	  DIntGDL *c=e->GetKWAs<DIntGDL>(0);
+	  DLongGDL *c=e->GetKWAs<DLongGDL>(0);
 
 	  ncou=c->N_Elements();
 
