@@ -342,11 +342,20 @@ namespace lib {
     
     if( nParam > 0)
       {
+	// new ptr from undefined variable is allowed as well
+	BaseGDL* p= e->GetPar( 0);
+        if( p == NULL)
+	  {
+	    DPtr heapID= e->NewHeap();
+	    return new DPtrGDL( heapID);
+	  }
+
 	if( e->KeywordSet(0)) // NO_COPY
 	  {
 	    BaseGDL** p= &e->GetPar( 0);
-	    if( *p == NULL)
-	      throw GDLException( e->CallingNode(), "Parameter undefined: "+e->GetParString(0));
+// 	    if( *p == NULL)
+// 	      throw GDLException( e->CallingNode(), "Parameter undefined: "+
+// 				  e->GetParString(0));
 
 	    DPtr heapID= e->NewHeap( 1, *p);
 	    *p=NULL;

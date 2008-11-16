@@ -1,7 +1,14 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
- <DocsAndViews NumberOfDocuments="0" />
+ <DocsAndViews NumberOfDocuments="2" >
+  <Doc0 NumberOfViews="1" URL="file:///home/marc/gdl/src/GDLTreeParser.hpp" >
+   <View0 Encoding="" line="83" Type="Source" />
+  </Doc0>
+  <Doc1 NumberOfViews="1" URL="file:///home/marc/gdl/src/GDLTreeParser.cpp" >
+   <View0 Encoding="" line="1961" Type="Source" />
+  </Doc1>
+ </DocsAndViews>
  <pluginList>
   <kdevdebugger>
    <breakpointList>

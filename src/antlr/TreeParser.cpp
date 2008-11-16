@@ -2,8 +2,11 @@
  * Project led by Terence Parr at http://www.jGuru.com
  * Software rights: http://www.antlr.org/license.html
  *
- * $Id: TreeParser.cpp,v 1.1.1.1 2004-12-09 15:10:20 m_schellens Exp $
+ * $Id: TreeParser.cpp,v 1.2 2008-11-16 13:51:49 m_schellens Exp $
  */
+
+// g++-4.3 needs this
+#include <cstdlib>
 
 #include "antlr/TreeParser.hpp"
 #include "antlr/ASTNULLType.hpp"
