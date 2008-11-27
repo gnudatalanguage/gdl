@@ -1575,9 +1575,20 @@ namespace lib {
       e->Throw( "Search string must be a scalar or one element array: "+
 		e->GetParString( 1));
 
-    DLong pos = string::npos;
+    unsigned long pos = string::npos;
     BaseGDL* p2 = e->GetPar( 2);
-    if( p2 != NULL) e->AssureLongScalarPar( 2, pos);
+    if( p2 != NULL) //e->AssureLongScalarPar( 2,posDLong);
+    {
+      const SizeT pIx = 2;
+      BaseGDL* p = e->GetParDefined( pIx);
+      DLongGDL* lp = static_cast<DLongGDL*>(p->Convert2( LONG, BaseGDL::COPY));
+      auto_ptr<DLongGDL> guard_lp( lp);
+      DLong scalar;
+      if( !lp->Scalar( scalar))
+	throw GDLException("Parameter must be a scalar in this context: "+
+			   e->GetParString(pIx));
+      pos = scalar;
+    }
 
     DLongGDL* res = new DLongGDL( p0S->Dim(), BaseGDL::NOZERO);
 
@@ -1607,9 +1618,14 @@ namespace lib {
     DLong scVal1;
     bool sc1 = p1L->Scalar( scVal1);
 
-    DLong scVal2 = string::npos;
+    unsigned long scVal2 = string::npos;
     bool sc2 = true;
-    if( p2L != NULL) sc2 = p2L->Scalar( scVal2);
+    if( p2L != NULL) 
+      {
+	DLong scalar;
+	sc2 = p2L->Scalar( scalar);
+	scVal2 = scalar;
+      }
 
     DLong stride;
     if( !sc1 && !sc2)
