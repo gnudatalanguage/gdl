@@ -353,9 +353,9 @@ namespace lib {
 	if( e->KeywordSet(0)) // NO_COPY
 	  {
 	    BaseGDL** p= &e->GetPar( 0);
-// 	    if( *p == NULL)
-// 	      throw GDLException( e->CallingNode(), "Parameter undefined: "+
-// 				  e->GetParString(0));
+	    // 	    if( *p == NULL)
+	    // 	      throw GDLException( e->CallingNode(), "Parameter undefined: "+
+	    // 				  e->GetParString(0));
 
 	    DPtr heapID= e->NewHeap( 1, *p);
 	    *p=NULL;
@@ -1578,17 +1578,17 @@ namespace lib {
     unsigned long pos = string::npos;
     BaseGDL* p2 = e->GetPar( 2);
     if( p2 != NULL) //e->AssureLongScalarPar( 2,posDLong);
-    {
-      const SizeT pIx = 2;
-      BaseGDL* p = e->GetParDefined( pIx);
-      DLongGDL* lp = static_cast<DLongGDL*>(p->Convert2( LONG, BaseGDL::COPY));
-      auto_ptr<DLongGDL> guard_lp( lp);
-      DLong scalar;
-      if( !lp->Scalar( scalar))
-	throw GDLException("Parameter must be a scalar in this context: "+
-			   e->GetParString(pIx));
-      pos = scalar;
-    }
+      {
+	const SizeT pIx = 2;
+	BaseGDL* p = e->GetParDefined( pIx);
+	DLongGDL* lp = static_cast<DLongGDL*>(p->Convert2( LONG, BaseGDL::COPY));
+	auto_ptr<DLongGDL> guard_lp( lp);
+	DLong scalar;
+	if( !lp->Scalar( scalar))
+	  throw GDLException("Parameter must be a scalar in this context: "+
+			     e->GetParString(pIx));
+	pos = scalar;
+      }
 
     DLongGDL* res = new DLongGDL( p0S->Dim(), BaseGDL::NOZERO);
 
@@ -2988,8 +2988,8 @@ namespace lib {
     	 
      	for (SizeT ii=0 ; ii<p0->N_Elements() ; ++ii)
 	  {(*tamp)[ii]=(*p0)[ii];
-	  if ( (*p0)[ii] < min ) min = ((*p0)[ii]);
-	  if ( (*p0)[ii] > max ) max = ((*p0)[ii]);
+	    if ( (*p0)[ii] < min ) min = ((*p0)[ii]);
+	    if ( (*p0)[ii] > max ) max = ((*p0)[ii]);
 	  }	
 		
    	//---------------------------- END d'acquisistion des paramètres -------------------------------------	
@@ -3330,11 +3330,11 @@ namespace lib {
 			SizeT ctl_NaN=0;
 			for (SizeT ind=col-lim ; ind<=col+lim ; ++ind)
 			  {if( (*p0)[ind]!=d_infinity && (*p0)[ind]!=-d_infinity && isfinite((*p0)[ind])==0)
-			    ctl_NaN++;
-			  else{
-			    (*Mask1D)[kk]=(*p0)[ind];				
-			    kk++;
-			  }
+			      ctl_NaN++;
+			    else{
+			      (*Mask1D)[kk]=(*p0)[ind];				
+			      kk++;
+			    }
 			  }
 			if (ctl_NaN!=0)
 			  {
@@ -4165,7 +4165,8 @@ namespace lib {
 
     //XXXpch: this is wrong, should check arg_present
     static int lengthIx = e->KeywordIx( "LENGTH" );
-    bool lengthKW = e->KeywordSet( lengthIx );
+    bool lengthKW = e->KeywordPresent( lengthIx );
+//     bool lengthKW = e->KeywordSet( lengthIx );
    
     static int subexprIx = e->KeywordIx( "SUBEXPR" );
     bool subexprKW = e->KeywordSet( subexprIx );
@@ -4174,25 +4175,11 @@ namespace lib {
       e->Throw( "Conflicting keywords.");
     //    if( subexprKW) 
     // e->Throw( "Subexpression not yet implemented.");
-
   
     int nStr = stringExpr->N_Elements();
     dimension dim = stringExpr->Dim();
 
-    DLongGDL* len;
-    if( lengthKW) {
-      e->AssureGlobalKW( lengthIx);
-      len = new DLongGDL(dim);
-    } 
-    
     BaseGDL* result;
-
-    if( booleanKW) 
-      result = new DByteGDL(dim);
-    else if( extractKW && !subexprKW)
-      result = new DStringGDL(dim); 
-    else 
-      result = new DLongGDL(dim); 
 
     char err_msg[MAX_REGEXPERR_LENGTH];
 
@@ -4208,6 +4195,7 @@ namespace lib {
     // compile the regular expression
     regex_t regexp;
     int compRes = regcomp( &regexp, pattern.c_str(), cflags);
+    SizeT nSubExpr = regexp.re_nsub + 1;
     
     if (compRes) {
       regerror(compRes, &regexp, err_msg, MAX_REGEXPERR_LENGTH);
@@ -4216,48 +4204,105 @@ namespace lib {
                          pattern+"\n           "+string(err_msg)+".");
     }
 
-    int nmatch = 1;
-    if( subexprKW) nmatch = 16;
-
-    regmatch_t pmatch[16];
-    int eflags = 0; 
- 
-    // now match towards the string
-    int matchres = regexec( &regexp, (*stringExpr)[0].c_str(), 
-			      nmatch, pmatch, eflags);
-
-    // subexpressions
-    if ( extractKW && subexprKW) {
-
-      // Find number of subexpressions
-      SizeT nOut = 0;
-      for( SizeT i = 0; i<nmatch; ++i) {
-	if ( pmatch[i].rm_so == -1) break;
-	nOut++;
+    if( booleanKW) 
+      result = new DByteGDL(dim);
+    else if( extractKW && !subexprKW)
+      result = new DStringGDL(dim);
+    else if( subexprKW)
+      {
+	dimension subExprDim = dim;
+	subExprDim >> nSubExpr;
+	if( extractKW)
+	  result = new DStringGDL(subExprDim);
+	else
+	  result = new DLongGDL(subExprDim);
       }
+    else 
+      result = new DLongGDL(dim); 
 
-      // Loop through subexpressions & fill output array
-      dim << nOut;
-      result = new DStringGDL(dim); 
-      for( SizeT i = 0; i<nOut; ++i) {
-	(* static_cast<DStringGDL*>(result))[i] = 
-	  (*stringExpr)[0].substr( pmatch[i].rm_so, 
-				   pmatch[i].rm_eo - pmatch[i].rm_so);
-      }
-    } else {
-      if( booleanKW)
-	(* static_cast<DByteGDL*>(result)) = (matchres == 0);
-      else if ( extractKW)
-	(* static_cast<DStringGDL*>(result))[0] = 
-	  (*stringExpr)[0].substr( pmatch[0].rm_so, 
-				   pmatch[0].rm_eo - pmatch[0].rm_so);
+    DLongGDL* len = NULL;
+    if( lengthKW) {
+      e->AssureGlobalKW( lengthIx);
+      if( subexprKW)
+	{
+	  dimension subExprDim = dim;
+	  subExprDim >> nSubExpr;
+	  len = new DLongGDL(subExprDim);
+	}
       else
-	(* static_cast<DLongGDL*>(result))[0] = matchres? -1:pmatch[0].rm_so;
-    }
+	{
+	  len = new DLongGDL(dim);
+	}
+    } 
+    
+    int nmatch = 1;
+    if( subexprKW) nmatch = nSubExpr;
 
-    if( lengthKW)
-      (*len)[0] = pmatch[0].rm_eo - pmatch[0].rm_so;
+    regmatch_t* pmatch = new regmatch_t[nSubExpr];
+    ArrayGuard<regmatch_t> pmatchGuard( pmatch);
+ 
+    for( SizeT s=0; s<dim.N_Elements(); ++s)
+      {
+	int eflags = 0; 
 
+	for( SizeT sE=0; sE<nSubExpr; ++sE)
+	  pmatch[sE].rm_so = -1;
+
+	// now match towards the string
+	int matchres = regexec( &regexp, (*stringExpr)[s].c_str(),  nmatch, pmatch, eflags);
+
+	// subexpressions
+	if ( extractKW && subexprKW) {
+
+	  // Find number of subexpressions
+// 	  SizeT nOut = 0;
+// 	  for( SizeT i = 0; i<nmatch; ++i) {
+// 	    if ( pmatch[i].rm_so == -1) break;
+// 	    nOut++;
+// 	  }
+
+	  // Loop through subexpressions & fill output array
+	  for( SizeT i = 0; i<nSubExpr; ++i) {
+// 	  for( SizeT i = 0; i<=nOut; ++i) {
+	    (* static_cast<DStringGDL*>(result))[i+s*nSubExpr] = 
+	      (*stringExpr)[s].substr( pmatch[i].rm_so, 
+				       pmatch[i].rm_eo - pmatch[i].rm_so);
+	    if( lengthKW)
+	      (*len)[i+s*nSubExpr] = pmatch[i].rm_so != -1 ? pmatch[i].rm_eo - pmatch[i].rm_so : -1;
+//  	      (*len)[i+s*nSubExpr] = pmatch[i].rm_eo - pmatch[i].rm_so;
+	  }
+	}
+	else  if ( subexprKW) 
+	  {
+	    // Find number of subexpressions
+//  	    SizeT nOut = 0;
+// 	    for( SizeT i = 0; i<nmatch; ++i) {
+// 	      if ( pmatch[i].rm_so == -1) break;
+// 	      nOut++;
+// 	    }
+
+	    // Loop through subexpressions & fill output array
+	    for( SizeT i = 0; i<nSubExpr; ++i) {
+	      (* static_cast<DLongGDL*>(result))[i+s*nSubExpr] =  pmatch[i].rm_so;
+	      if( lengthKW)
+		(*len)[i+s*nSubExpr] = pmatch[i].rm_so != -1 ? pmatch[i].rm_eo - pmatch[i].rm_so : -1;
+	    }
+	  }
+	else
+	  {
+	    if( booleanKW)
+	      (* static_cast<DByteGDL*>(result))[s] = (matchres == 0);
+	    else if ( extractKW) // !subExprKW
+	      (* static_cast<DStringGDL*>(result))[s] = 
+		(*stringExpr)[0].substr( pmatch[0].rm_so, 
+					 pmatch[0].rm_eo - pmatch[0].rm_so);
+	    else
+	      (* static_cast<DLongGDL*>(result))[s] = matchres? -1:pmatch[0].rm_so;
+	  }
+
+	if( lengthKW && !subexprKW)
+	  (*len)[s] = pmatch[0].rm_eo - pmatch[0].rm_so;
+      }
 
     regfree( &regexp);
 
@@ -4341,6 +4386,37 @@ namespace lib {
 
     return res;
     //      }
+  }
+
+  BaseGDL* get_kbrd( EnvT* e)
+  {
+    SizeT nParam=e->NParam();
+
+    bool doWait = true;
+    if( nParam > 0)
+      {
+	doWait = false;
+	DLong waitArg = 0;
+	e->AssureLongScalarPar( 0, waitArg);
+	if( waitArg != 0)
+	  {
+	    doWait = true;
+	  }
+      }
+
+    if( doWait)
+      {
+ 
+	char c = cin.get();
+	DStringGDL* res = new DStringGDL( DString( i2s( c)));
+	return res;
+      }
+    else
+      {
+	char c = cin.get();
+	DStringGDL* res = new DStringGDL( DString( i2s( c)));
+	return res;
+      }
   }
 
   BaseGDL* temporary( EnvT* e)

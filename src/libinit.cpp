@@ -78,6 +78,9 @@ void LibInit()
   LibInit_ng(); 
   const char KLISTEND[] = "";
 
+  const string get_kbrdKey[]={"ESCAPE","KEY_NAME",KLISTEND};
+  new DLibFunRetNew(lib::get_kbrd,string("GET_KBRD"),1,NULL,get_kbrdKey);
+
   const string svdcKey[]={"COLUMN","ITMAX","DOUBLE",KLISTEND};
   new DLibPro(lib::svdc,string("SVDC"),4,svdcKey);
 

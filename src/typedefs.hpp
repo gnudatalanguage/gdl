@@ -259,14 +259,14 @@ public:
       buf[ i] = cp.buf[ i];
   }
 
-  GDLArray( SizeT s, bool b) throw() : buf( (s>smallArraySize)?new T[ s] : scalar), sz( s)
+  GDLArray( SizeT s, bool b) : buf( (s>smallArraySize)?new T[ s] : scalar), sz( s)
   {}
-  GDLArray( T val, SizeT s) throw() : buf((s>smallArraySize)?new T[ s]: scalar), sz( s)
+  GDLArray( T val, SizeT s) : buf((s>smallArraySize)?new T[ s]: scalar), sz( s)
   {
     for( SizeT i=0; i<sz; ++i)
       buf[ i] = val;
   }
-  GDLArray( const T* arr, SizeT s) throw() : buf( (s>smallArraySize)?new T[ s]: scalar), sz( s)
+  GDLArray( const T* arr, SizeT s) : buf( (s>smallArraySize)?new T[ s]: scalar), sz( s)
   {
     for( SizeT i=0; i<sz; ++i)
       buf[ i] = arr[ i];
@@ -290,10 +290,19 @@ public:
     return buf[ ix];
   }
 
-  GDLArray& operator=( const GDLArray& right) throw()
+  GDLArray& operator=( const GDLArray& right)
   {
-    assert( sz == right.size());
-    //     if( &right != this)
+	int sss=0;
+double s=sz;
+    if( sz != right.size())
+	{
+	sz = 1;
+sss=2;
+   assert( sz == right.size());
+    }
+sz = sss;
+sz = s;
+//     if( &right != this)
     //       {
     if( sz == right.size())
       {
@@ -312,6 +321,7 @@ public:
     //       }
     return *this;
   }
+
   GDLArray&operator+=( const GDLArray& right) throw()
   {
     for( SizeT i=0; i<sz; ++i)

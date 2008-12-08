@@ -23,6 +23,8 @@ namespace lib {
   // also used from basic_fun_jmg.cpp
   void arr( EnvT* e, dimension& dim, SizeT pOffs=0);
 
+  BaseGDL* get_kbrd( EnvT* e);
+
   BaseGDL* bytarr( EnvT* e);
   BaseGDL* intarr( EnvT* e);
   BaseGDL* uintarr( EnvT* e);
