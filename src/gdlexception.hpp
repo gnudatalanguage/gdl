@@ -113,5 +113,7 @@ void Warning(const std::string& s);
 // messages honor !QUIET
 void Message(const std::string& s);
 
+void ThrowGDLException( const std::string& str);
+
 #endif
 

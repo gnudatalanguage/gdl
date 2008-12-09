@@ -92,4 +92,8 @@ void Warning(const std::string& s)
   lib::write_journal_comment( SysVar::MsgPrefix() + s);
 } 
 
+void ThrowGDLException( const std::string& str)
+{
+throw GDLException( str);
+}
 

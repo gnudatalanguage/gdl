@@ -109,6 +109,19 @@ typedef std::set< DPtr>               DPtrListT;
 class ArrayIndexT;
 typedef std::vector<ArrayIndexT*> ArrayIndexVectorT;
 
+// to resolve include conflict (declared in gdlexception.hpp)
+void ThrowGDLException( const std::string& str);
+
+// convert something to string
+template <typename T>
+inline std::string i2s( T i, SizeT w = 0)      
+{
+  std::ostringstream os;
+  os.width(w);
+  os << i;
+  return os.str();
+}
+
 // searches IDList idL for std::string s, returns its position, -1 if not found
 inline int FindInIDList(IDList& idL,const std::string& s)
 {
@@ -292,17 +305,11 @@ public:
 
   GDLArray& operator=( const GDLArray& right)
   {
-	int sss=0;
-double s=sz;
-    if( sz != right.size())
-	{
-	sz = 1;
-sss=2;
-   assert( sz == right.size());
-    }
-sz = sss;
-sz = s;
-//     if( &right != this)
+    //    assert( sz == right.size());
+	if( sz != right.size()) 
+		ThrowGDLException("GDLArray::operator= operands have not same size (this: " + i2s(sz)+"  right: " + i2s(right.size()));;
+
+       if( &right != this)
     //       {
     if( sz == right.size())
       {

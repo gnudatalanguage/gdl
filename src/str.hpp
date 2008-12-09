@@ -33,16 +33,6 @@
 
 std::string GetEnvString(const char* env);
 
-// convert something to string
-template <typename T>
-inline std::string i2s( T i, SizeT w = 0)      
-{
-  std::ostringstream os;
-  os.width(w);
-  os << i;
-  return os.str();
-}
-
 // check if path is given in filename f
 inline bool PathGiven(const std::string& f)
 {
