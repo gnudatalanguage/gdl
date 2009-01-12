@@ -103,6 +103,7 @@ namespace lib {
 
 
       DStructGDL* res = new DStructGDL( "IDL_SIZE");
+      if ( p0 == NULL) return res;
 
       DString tname;
       DString sname;
