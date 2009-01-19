@@ -3849,7 +3849,7 @@ namespace lib {
 
   BaseGDL* bytscl( EnvT* e)
   {
-    e->NParam( 1);
+    SizeT nParam = e->NParam( 1);
 
     BaseGDL* p0=e->GetNumericParDefined( 0);
 
@@ -3866,19 +3866,32 @@ namespace lib {
 
     DDouble min;
     bool minSet = false;
-    if( e->GetKW( minIx) != NULL)
-      {
-	e->AssureDoubleScalarKW( minIx, min);
-	minSet = true;
-      }
+    // SA: handling 3 parameters to emulate undocumented IDL behaviour 
+    //     of translating second and third arguments to MIN and MAX, respectively
+    //     (parameters have precedence over keywords)
+    if (nParam >= 2)
+    {
+      e->AssureDoubleScalarPar(1, min);
+      minSet = true;
+    } 
+    else if (e->GetKW(minIx) != NULL)
+    {
+      e->AssureDoubleScalarKW(minIx, min);
+      minSet = true;
+    }
 
     DDouble max;
     bool maxSet = false;
-    if( e->GetKW( maxIx) != NULL)
-      {
-	e->AssureDoubleScalarKW( maxIx, max);
-	maxSet = true;
-      }
+    if (nParam == 3)
+    {
+      e->AssureDoubleScalarPar(2, max);
+      maxSet = true;
+    }
+    else if (e->GetKW(maxIx) != NULL)
+    {
+      e->AssureDoubleScalarKW(maxIx, max);
+      maxSet = true;
+    }
 
     DDoubleGDL* dRes = 
       static_cast<DDoubleGDL*>(p0->Convert2( DOUBLE, BaseGDL::COPY));
@@ -3895,12 +3908,15 @@ namespace lib {
     for( SizeT i=0; i<nEl; ++i)
       {
 	DDouble& d = (*dRes)[ i];
-	if( d <= min)
-	  (*dRes)[ i] = 0;
-	else if( d >= max)
-	  (*dRes)[ i] = dTop;
+	if( d <= min) (*dRes)[ i] = 0;
+	else if( d >= max) (*dRes)[ i] = dTop;
 	else
-	  (*dRes)[ i] =  round((d - min) / (max-min) * dTop);
+        {
+          // SA: floor is used for integer types to simulate manipulation on input data types
+          if (IntType(p0->Type())) (*dRes)[ i] = floor(((dTop + 1.)*(d - min) - 1.) / (max-min));
+          // SA (?): here floor is used (instead of round) to simulate IDL behaviour
+          else (*dRes)[ i] = floor((d - min) / (max-min) * (dTop + .9999));
+        }
       }
 
     return dRes->Convert2( BYTE);

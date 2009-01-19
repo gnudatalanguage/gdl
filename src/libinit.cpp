@@ -95,7 +95,7 @@ void LibInit()
   new DLibPro(lib::spawn_pro,string("SPAWN"),3,spawnKey);
 
   const string bytsclKey[]={"MIN","MAX","TOP","NAN",KLISTEND};
-  new DLibFun(lib::bytscl,string("BYTSCL"),1,bytsclKey);
+  new DLibFun(lib::bytscl,string("BYTSCL"),3,bytsclKey);
 
   const string n_tagsKey[]={"LENGTH",KLISTEND};
   new DLibFunRetNew(lib::n_tags,string("N_TAGS"),1,n_tagsKey);
