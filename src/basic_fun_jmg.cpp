@@ -497,7 +497,11 @@ namespace lib {
       //	p0 = p0->Dup();
       // better: steal p0
       if( !e->GlobalPar( 0))
-	*p0P = NULL; // prevent local parameter form deletion
+	{
+	  bool success = e->StealLocalPar( 0); 
+	  //*p0P = NULL; // prevent local parameter form deletion
+	  assert( success);
+	}
 
       p0->SetDim(dim);
       return p0;
@@ -506,7 +510,8 @@ namespace lib {
     // steal local parmeter
     if( !e->GlobalPar( 0))
       {
-	*p0P = NULL;
+	bool success = e->StealLocalPar( 0); //*p0P = NULL;
+	assert( success);
 	p0->SetDim( dim);
 	return p0;
       }

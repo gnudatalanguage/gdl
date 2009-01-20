@@ -104,6 +104,10 @@ public:
   {
     return getFirstChild();
   }
+  void SetFirstChild( ProgNodeP d)
+  {
+    down = d;
+  }
   ProgNodeP getNextSibling() const
   {
     return right;
@@ -111,6 +115,10 @@ public:
   ProgNodeP GetNextSibling() const
   {
     return getNextSibling();
+  }
+  void SetNextSibling( ProgNodeP r)
+  {
+    right = r;
   }
 
   ProgNodeP StealNextSibling()

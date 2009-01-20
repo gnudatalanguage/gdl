@@ -1,5 +1,5 @@
 /***************************************************************************
-                          hdf_fun.cpp  -  GSL GDL library function
+                          hdf_fun.cpp  -  HDF4 GDL library function
                              -------------------
     begin                : Jan 20 2004
     copyright            : (C) 2004 by Joel Gales
@@ -379,11 +379,36 @@ namespace lib {
     DLong sd_id;
     e->AssureScalarPar<DLongGDL>( 0, sd_id);
     DLong index;
-    e->AssureScalarPar<DLongGDL>( 1, index);
+    // SA: this makes it accept the argument both as a short and as a long integer (as IDL does)
+    //e->AssureScalarPar<DLongGDL>( 1, index);
+    e->AssureLongScalarPar(1, index);
 
     return new DLongGDL( SDselect(sd_id, index) );
   }
 
+  BaseGDL* hdf_sd_dimgetid_fun( EnvT* e)
+  {
+    DLong sds_id, dim_index, dim_id, rank, status;
+    e->AssureScalarPar<DLongGDL>( 0, sds_id);
+    e->AssureLongScalarPar(1, dim_index);
+
+    {
+      char fieldname[256];
+      int32 null[MAXRANK];
+      status = SDgetinfo(sds_id, fieldname, &rank, null, null, null);
+    }
+
+    if (status != 0) throw GDLException( e->CallingNode(), 
+      "HDF_SD_DIMGETID: Invalid SD dataset ID: " + i2s(sds_id));
+
+    // using reverse indices to reflect IDL behaviour
+    dim_id = SDgetdimid(sds_id, rank - 1 - dim_index);
+    if (dim_id == -1) throw GDLException( e->CallingNode(), 
+      "HDF_SD_DIMGETID: Invalid dimension index: " + i2s(dim_index) + 
+      " (valid indices range from 0 to " + i2s(rank) + ")");
+
+    return new DLongGDL(dim_id);
+  }
 
   BaseGDL* hdf_sd_attrfind_fun( EnvT* e)
   {

@@ -1,5 +1,5 @@
 /***************************************************************************
-                          hdf_pro.cpp  -  GSL GDL library function
+                          hdf_pro.cpp  -  HDF4 GDL library function
                              -------------------
     begin                : Jan 20 2004
     copyright            : (C) 2004 by Joel Gales
@@ -68,6 +68,10 @@ namespace lib {
     DLongGDL* countKW = e->IfDefGetKWAs<DLongGDL>( 2);
 
     status = SDgetinfo(sds_id, fieldname, &rank, dims, &dtype, &nattrs);
+
+    if (status == FAIL)
+	throw GDLException( e->CallingNode(), 
+			    "HDF_SD_GETDATA: Invalid SD dataset ID: " + i2s(sds_id));
 
     for( SizeT i = 0; i < rank; i++) {
       start[i] = 0;
@@ -202,6 +206,10 @@ namespace lib {
 
     status = SDgetinfo(sds_id, fieldname, &rank, dims, &dtype, &nattrs);
 
+    if (status == FAIL)
+	throw GDLException( e->CallingNode(), 
+			    "HDF_SD_ADDDATA: Invalid SD dataset ID: " + i2s(sds_id));
+
     for( SizeT i = 0; i < rank; i++) {
       start[i] = 0;
       stride[i] = 1;
@@ -282,6 +290,10 @@ namespace lib {
     e->AssureScalarPar<DLongGDL>( 0, sds_id);
 
     status = SDgetinfo(sds_id, fieldname, &rank, dims, &dtype, &nattrs);
+
+    if (status == FAIL)
+	throw GDLException( e->CallingNode(), 
+			    "HDF_SD_GETINFO: Invalid SD dataset ID: " + i2s(sds_id));
 
     // Write SDS dimensions array to KW
 
@@ -379,7 +391,9 @@ namespace lib {
     e->AssureScalarPar<DLongGDL>( 0, s_id);
 
     DLong attrindex;
-    e->AssureScalarPar<DLongGDL>( 1, attrindex);
+    // SA: this makes it accept both short and long integers as IDL does
+    // e->AssureScalarPar<DLongGDL>( 1, attrindex);
+    e->AssureLongScalarPar( 1, attrindex);
 
     status = SDattrinfo(s_id, attrindex, attrname, &num_type, &count);
 
@@ -606,6 +620,79 @@ namespace lib {
     Vend(hdf_id);
 
     Hclose(hdf_id);
+  }
+
+  template< typename T>
+  BaseGDL* hdf_sd_getdscl_template(EnvT* e, DLong dim_size, int32 dim_id)
+  {
+    T* data = new T(dimension(dim_size), BaseGDL::NOZERO);
+    SDgetdimscale(dim_id, (VOIDP) &(*data)[0]);
+    BaseGDL** scaleKW = &e->GetKW(2);
+    *scaleKW = data;
+  }
+
+  void hdf_sd_dimget_pro( EnvT* e)
+  {
+
+    DLong dim_id, status, n_attrs, data_type, dim_size;
+    e->AssureScalarPar<DLongGDL>( 0, dim_id);
+
+    // NAME keyword
+    if (e->KeywordPresent(0)) 
+    {
+      char dim_name[64];
+      status = SDdiminfo(dim_id, dim_name, &dim_size, &data_type, &n_attrs);
+      if (status != FAIL)
+      {
+        BaseGDL** nameKW = &e->GetKW(0);
+        delete(*nameKW);
+        *nameKW = new DStringGDL(dim_name);
+      }
+    }
+    else 
+    {
+      status = SDdiminfo(dim_id, NULL, &dim_size, &data_type, &n_attrs);
+    }
+
+    if (status == FAIL) throw GDLException(e->CallingNode(),
+      "HDF_SD_DIMGET: Invalid dimension ID: " + i2s(dim_id));
+    // ... or unselected SDS?
+
+    // NATTR keyword
+    if (e->KeywordPresent(1))
+    {
+      BaseGDL** nattrKW = &e->GetKW(1);
+      delete(*nattrKW);
+      *nattrKW = new DLongGDL(n_attrs);
+    }
+
+    // SCALE keyword
+    if (e->KeywordPresent(2))
+    { 
+      BaseGDL** scaleKW = &e->GetKW(2);      
+      delete(*scaleKW);
+      // TODO: ? if dim_type == 0 scale not set
+      switch (data_type) 
+      {
+        case DFNT_FLOAT64: hdf_sd_getdscl_template< DDoubleGDL>( e, dim_size, dim_id); break;
+        case DFNT_FLOAT32: hdf_sd_getdscl_template< DFloatGDL>( e, dim_size, dim_id); break;
+        case DFNT_UINT32:  hdf_sd_getdscl_template< DULongGDL>( e, dim_size, dim_id); break;
+        case DFNT_INT32:   hdf_sd_getdscl_template< DLongGDL>( e, dim_size, dim_id); break;
+        case DFNT_UINT16:  hdf_sd_getdscl_template< DUIntGDL>( e, dim_size, dim_id); break;
+        case DFNT_INT16:   hdf_sd_getdscl_template< DIntGDL>( e, dim_size, dim_id); break;
+        case DFNT_UINT8:
+        case DFNT_INT8:    hdf_sd_getdscl_template< DByteGDL>( e, dim_size, dim_id); break;
+      } 
+    } // SCALE keyword
+ 
+    // COUNT keyword
+    if (e->KeywordPresent(3))
+    {
+      BaseGDL** countKW = &e->GetKW(3);
+      delete(*countKW);
+      *countKW = new DLongGDL(dim_size);
+    }
+
   }
 
 } // namespace

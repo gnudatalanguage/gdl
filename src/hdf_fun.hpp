@@ -1,5 +1,5 @@
 /***************************************************************************
-                          hdf_fun.hpp  -  GSL GDL library function
+                          hdf_fun.hpp  -  HDF4 GDL library function
                              -------------------
     begin                : Jan 20 2004
     copyright            : (C) 2004 by Joel Gales
@@ -28,6 +28,7 @@ namespace lib {
   BaseGDL* hdf_sd_nametoindex_fun( EnvT* e);
   BaseGDL* hdf_sd_attrfind_fun( EnvT* e);
   BaseGDL* hdf_sd_select_fun( EnvT* e);
+  BaseGDL* hdf_sd_dimgetid_fun( EnvT* e);
   BaseGDL* hdf_open_fun( EnvT* e);
   BaseGDL* hdf_vg_getid_fun( EnvT* e);
   BaseGDL* hdf_vg_attach_fun( EnvT* e);

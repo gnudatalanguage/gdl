@@ -1,5 +1,5 @@
 /***************************************************************************
-                          hdf_pro.hpp  -  GSL GDL library function
+                          hdf_pro.hpp  -  HDF4 GDL library function
                              -------------------
     begin                : Jan 20 2004
     copyright            : (C) 2004 by Joel Gales
@@ -28,6 +28,7 @@ namespace lib {
   void hdf_sd_fileinfo_pro( EnvT* e);
   void hdf_sd_getinfo_pro( EnvT* e);
   void hdf_sd_attrinfo_pro( EnvT* e);
+  void hdf_sd_dimget_pro( EnvT* e);
   void hdf_sd_endaccess_pro( EnvT* e);
   void hdf_sd_end_pro( EnvT* e);
   void hdf_close_pro( EnvT* e);

@@ -222,6 +222,17 @@ void LibInit_jmg()
   new DLibPro(lib::hdf_sd_endaccess_pro,string("HDF_SD_ENDACCESS"),1);
   new DLibPro(lib::hdf_sd_end_pro,string("HDF_SD_END"),1);
   new DLibPro(lib::hdf_close_pro,string("HDF_CLOSE"),1);
+  
+  new DLibFun(lib::hdf_sd_dimgetid_fun, string("HDF_SD_DIMGETID"), 2);
+  const string hdf_sd_dimgetKey[] = {
+    "NAME", "NATTR", "SCALE", "COUNT", KLISTEND
+  };
+  const string hdf_sd_dimgetWarnKey[] = {
+    "COMPATIBILITY", "FORMAT", "LABEL", "TYPE", "UNIT", KLISTEND
+  };
+  new DLibPro(lib::hdf_sd_dimget_pro, string("HDF_SD_DIMGET"), 1, 
+    hdf_sd_dimgetKey, hdf_sd_dimgetWarnKey);
+ 
 #endif
 
   const string tvKey[]={"TRUE","NORMAL","CHANNEL","XSIZE","YSIZE","ORDER",KLISTEND};
