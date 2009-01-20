@@ -758,7 +758,9 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
 		  
 		  auto_ptr<ProgNode> guard(nn);
  
-		  return nn->StealFirstChild();
+		  ProgNodeP firstChild = nn->StealFirstChild();
+		  firstChild->SetNextSibling( nn->StealNextSibling());
+		  return firstChild;
 		}
 		case GDLTokenTypes::REF_EXPR:
 		{
