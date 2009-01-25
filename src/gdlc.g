@@ -242,6 +242,7 @@ translation_unit
                 compileOpt=NONE; // reset compileOpt    
                 if( subReached) goto bailOut;
             }
+        | common_block
         )* // optional - only main program is also ok
 
         ( statement_list END! (end_unit)? )? // $MAIN$ program

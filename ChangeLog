@@ -1,3 +1,271 @@
+GDL 0.9rc2:
+2009-01-20  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/prognodeexpr.cpp: Copy sibling nodes for constant REF expressions
+
+	* src/basic_fun_jmg.cpp, src/hdf_fun.cpp, src/hdf_fun.hpp, src/hdf_pro.cpp, src/hdf_pro.hpp, src/libinit_jmg.cpp, src/prognode.hpp, src/prognodeexpr.cpp:
+	Copy sibling nodes for constant REF_CHECK expressions (e. g. REFORM(INDGEN(100),10,10)
+
+2009-01-19  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* gdl.kdevses, src/basic_fun.cpp, src/libinit.cpp:
+	undocumented BYTSCL accepting three parameters (value,min,max) from Sylvester Arabas
+
+2009-01-12  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/basic_fun_jmg.cpp: Fix seg fault in SIZE when structure undefined
+
+2008-12-09  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/gdlexception.hpp, src/str.hpp, src/typedefs.hpp, src/gdlexception.cpp:
+	changed assert to exception for error diagnostics
+
+2008-12-08  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* gdl.kdevses, src/basic_fun.cpp, src/basic_fun.hpp, src/libinit.cpp, src/typedefs.hpp:
+	fixed REGEXP with /SUBEXPR
+
+2008-12-01  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* NEWS, src/pro/spl_init.pro, src/pro/spl_interp.pro:
+	initial import for SPL_INIT() and SPL_INTERP(), GDL syntax; thanks to
+	Ph. Prugniel, Lyon's Obs.
+
+2008-11-27  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basic_fun.cpp: fixed 64bit incompatibility
+
+2008-11-18  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/plotting.cpp: recovering /fill and details in CONTOUR
+
+2008-11-16  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* gdl.kdevelop, gdl.kdevses, src/antlr/Parser.cpp, src/antlr/TreeParser.cpp, src/basic_fun.cpp:
+	g++ 4.3 compatibility
+
+2008-11-15  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/ncdf_var_cl.cpp, src/plotting.cpp: from Sylwester Arabas
+
+2008-10-19  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/gdlc.tree.g:
+	ignore something like a=(a=a) (so it is allowed even if a is undefined)
+
+	* src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/gdlc.tree.g:
+	accept self assignment of undefined variables
+
+2008-10-13  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* gdl.kdevelop, gdl.kdevses, src/GDLInterpreter.cpp, src/GDLInterpreterTokenTypes.hpp, src/GDLInterpreterTokenTypes.txt, src/GDLLexer.cpp, src/GDLParser.cpp, src/GDLParser.hpp, src/GDLTokenTypes.hpp, src/GDLTokenTypes.txt, src/GDLTreeParser.cpp, src/GDLTreeParserTokenTypes.hpp, src/GDLTreeParserTokenTypes.txt, src/gdlc.g:
+	fixed print, ', ', FORMAT='(A)'
+
+2008-09-25  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/pro/matrix_multiply.pro: missing ";"
+
+2008-09-22  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/basic_fun.cpp: Add SUBEXPR keyword support for STREGEX
+
+	* src/basic_fun_jmg.cpp, src/libinit_jmg.cpp:
+	Add S_FUNCTIONS/S_PROCEDURES keywords for ROUTINE_NAMES
+
+	* src/basic_pro.cpp, src/basic_pro.hpp, src/libinit.cpp:
+	Add stub for RESOLVE_ROUTINE
+
+2008-09-06  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/typedefs.hpp:
+	GDLArray buffer default set to scalar size rather than to NULL
+
+2008-08-29  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/gdlexception.cpp, src/libinit.cpp, src/prognode.hpp, src/prognodeexpr.cpp:
+	correct transforming of parameter_def siblings wich are constant expressions
+
+2008-08-29  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* NEWS, src/basic_fun.cpp:
+	in MEDIAN(), managing "width" parameter (by Nicolas Galmiche) [please report bugs to Alain C.]
+
+2008-08-28  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/prognode.cpp, src/prognodeexpr.cpp:
+	corrected the advancing of the actual node pointer (_t) in struct Eval() functions
+
+2008-08-26  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLTreeParser.cpp, src/dpro.cpp, src/dpro.hpp, src/gdlc.i.g, src/gdlc.tree.g, src/libinit.cpp, src/print_tree.cpp, src/prognode.hpp, src/prognodeexpr.cpp, src/prognodeexpr.hpp, src/GDLInterpreter.cpp, gdl.kdevelop, gdl.kdevses:
+	precalculation for (selected) constant parmeter functions. Optimization of lib function calls
+
+2008-08-17  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/prognodeexpr.cpp, src/prognodeexpr.hpp:
+	precalculation for constant arrays composed of constant expressions
+
+	* src/prognode.hpp, src/prognodeexpr.cpp, src/prognodeexpr.hpp:
+	precalculation for constant expressions and constant arrays, a major improvement
+
+	* src/prognodeexpr.cpp, src/prognodeexpr.hpp, src/GDLTreeParserTokenTypes.hpp, src/GDLTreeParserTokenTypes.txt, src/dnode.cpp, src/gdlc.g, src/gdlc.i.g, src/gdlc.tree.g, src/prognode.cpp, src/GDLTreeParser.hpp, src/GDLParser.hpp, src/GDLTokenTypes.hpp, src/GDLTokenTypes.txt, src/GDLTreeParser.cpp, src/GDLInterpreterTokenTypes.txt, src/GDLLexer.cpp, src/GDLParser.cpp, src/GDLInterpreter.hpp, src/GDLInterpreterTokenTypes.hpp, src/GDLInterpreter.cpp:
+	speedup for constant arrays
+
+2008-08-16  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/prognodeexpr.cpp: removed duplicate ARRAYDEFNode::Eval()
+
+2008-08-15  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/prognode.cpp, src/prognode.hpp, src/prognodeexpr.cpp, src/typedefs.hpp, src/gdlc.tree.g, src/datatypes.hpp, src/gdlc.i.g, src/GDLInterpreter.hpp, src/basegdl.cpp, src/basegdl.hpp, src/GDLInterpreter.cpp, gdl.kdevelop:
+	made memory deallocation more solid
+
+2008-08-09  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* gdl.kdevelop, src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/dstructgdl.hpp, src/gdlc.i.g, src/prognode.cpp, src/prognode.hpp, src/prognodeexpr.cpp, src/typedefs.hpp:
+	interpreter optimization
+
+2008-08-03  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/prognodeexpr.cpp, src/prognodeexpr.hpp, src/real2int.hpp, src/dpro.hpp, src/gdlc.i.g, src/gdlexception.hpp, src/print_tree.hpp, src/prognode.cpp, src/prognode.hpp, src/Makefile.am, src/Makefile.in, src/convert2.cpp, src/dnode.cpp, src/dnode.hpp, src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/GDLInterpreterOptimized.cpp, src/GDLInterpreterOptimized.inc, gdl.kdevses:
+	fixed conversion of real to unsigned interger types
+
+2008-08-01  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* MAP_INSTALL:
+	info about 2 news projections (7, 17); mapping is working for x86_64
+
+2008-07-31  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* NEWS: what's new ?!
+
+	* testsuite/test_contour_extra.pro:
+	Testing new capabilities in CONTOUR (Levels=, Nlevels= and /FILL)
+
+	* src/plotting.cpp: add /FILL and Nlevels= to CONTOUR
+
+	* src/basegdl.hpp: numbering the TYPE value in comments (no effect)
+
+	* testsuite/test_fix.pro:
+	test for FIX since type 12, 13 and 15 where found broken by Nicolas for negatives values
+
+2008-07-28  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* testsuite/test_map.pro: 2 new Projections in examples (TEST_MAP)
+
+2008-07-25  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/gdl.cpp, configure.in, configure:
+	more precise version info on startup
+
+2008-07-25  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/hdf_pro.cpp:
+	Fix start/count keyword ordering bug in HDF_SD_ADDDATA
+
+	* src/plotting.cpp:
+	Add support for NORMAL/TO_DEVICE (xy->ll) in CONVERT_COORD
+
+	* src/math_utl.cpp: Add support for ROBINSON & SATELLITE projections
+
+2008-07-25  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/GDLInterpreterOptimized.cpp: bug correction
+
+2008-07-23  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLInterpreterOptimized.cpp, src/GDLInterpreterOptimized.inc:
+	adding file
+
+2008-07-17  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* testsuite/test_rk4.pro, NEWS, TODO:
+	Updated NEWS, TODO list, and testsuite/test_rk4.pro
+
+	* src/math_fun_ng.cpp, src/math_fun_ng.hpp:
+	Initial import of RK4() version by Nicolas Galmiche
+
+	* testsuite/test_rk4.pro:
+	Testsuite for RK4 based on Nose-Hoover equation (Thanks to S. Arabas)
+
+2008-07-16  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLInterpreter.hpp, src/Makefile.am, src/Makefile.in, src/antlr/Makefile.in, src/gdl.cpp, src/gdlc.i.g, src/GDLInterpreter.cpp, gdl.kdevses, configure, Makefile.in, aclocal.m4:
+	startup message slightly changed
+
+2008-07-07  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/libinit_jmg.cpp, src/math_fun_jmg.cpp, src/math_fun_jmg.hpp:
+	Rename RK4 to RK4JMG
+
+2008-06-10  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/datalistt.hpp: Add pop_back() to DataListT class
+
+	* src/libinit_jmg.cpp, src/math_fun_jmg.hpp, src/math_fun_jmg.cpp:
+	Add rk4_fun
+
+	* src/envt.hpp: add DelEnv()
+
+	* src/dpro.hpp: Add DelVar()
+
+2008-06-06  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/math_fun_ng.cpp, src/libinit_ng.cpp:
+	for VOIGT(): add forgotten file "src/libinit_ng.cpp"; correction in "src/math_fun_ng.cpp"
+
+	* src/antlr/Makefile.in, src/Makefile.in, src/Makefile.am, configure, aclocal.m4, Makefile.in:
+	since 3 new files in src/, need to change src/Makefile.am and propagate changes via (aclocal, autoconf & automake)
+
+	* NEWS: what's new in 0.9rc1 ?!
+
+	* src/voigt.cpp, src/math_fun_ng.hpp, src/math_fun_ng.cpp, src/libinit.cpp:
+	initial import of codes for function VOIGT()
+
+	* src/pro/real_part.pro:
+	initial import of function REAL_PART() in GDL syntax
+
+	* testsuite/test_voigt.pro: initial import of test suite for VOIGT()
+
+2008-05-28  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/fftw.cpp: Fix memory leak
+
+2008-05-05  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basic_pro.cpp, src/gdlc.g, src/gdlc.tree.g, src/GDLTreeParser.cpp, src/GDLLexer.cpp, src/GDLParser.cpp:
+	changes reported to be necessary for g++ 4.3
+
+2008-05-01  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/antlr/CharScanner.hpp, gdl.kdevelop: g++ 4.3 compatibility
+
+	* testsuite/test_suite.pro, src/GDLTreeParserTokenTypes.hpp, src/GDLTreeParserTokenTypes.txt, src/Makefile.in, src/antlr/Makefile.in, src/gdlc.g, src/typedefs.hpp, src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/GDLParser.hpp, src/GDLTokenTypes.hpp, src/GDLTokenTypes.txt, src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/GDLInterpreterTokenTypes.hpp, src/GDLInterpreterTokenTypes.txt, src/GDLLexer.cpp, src/GDLLexer.hpp, src/GDLParser.cpp, gdl.kdevelop, gdl.kdevses, configure, Makefile.in, aclocal.m4:
+	allow floats without exponent number like 1e
+
+2008-04-30  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/gdljournal.cpp:
+	for JOURNAL: working gethostname() on Mac OS X and Debian ...
+
+2008-04-17  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/pro/factorial.pro:
+	FACTORIAL(): correcting bug when inputs are Integers; managing arrays
+
+	* testsuite/test_factorial.pro: Testing the FACTORIAL() function
+
+2008-04-06  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/pro/read_ascii.pro:
+	Made for READ_ASCII DATA_START independent of HEADER
+
+	* src/Makefile.in, src/Makefile.am:
+	removed double linking of plot3d_nr.cpp
+
+	* src/basic_pro.cpp, gdl.kdevelop, configure.in, ChangeLog, README, config.h.in, configure:
+	0.9rc1
+
 GDL 0.9rc1:
 2008-04-03  m_schellens  <m_schellens at users.sourceforge.net>
 

@@ -177,12 +177,39 @@ options {
 
 // file parsing
 translation_unit
+{
+    bool mainStarted = false;
+}
 	: (   options {greedy=true;}: procedure_def
-		| function_def
-		| forward_function)*
-        
+    | function_def
+    | forward_function
+    |   {
+            if( !mainStarted)
+                {
+                    comp.StartPro( "$MAIN$");                        
+                    mainStarted = true;
+                }
+            comp.ContinueMainPro();
+        }
+        common_block
+        {
+            comp.EndInteractiveStatement();
+        }
+    )*
+    
+    (
+        {
+            comp.ContinueMainPro();
+        }
+        retAST:statement_list
+        {
+            comp.SetTree( #retAST);
+            comp.EndPro();
+        }
+    )?
+
         // optional main program
-        ( main_program)?
+//         ( main_program)?
         
         exception 
         catch [ GDLException& e] 
@@ -221,16 +248,6 @@ interactive
         }
   ;
 
-main_program!
-    :   {
-            comp.StartPro( "$MAIN$");
-        }
-           retAST:statement_list
-        {
-            comp.SetTree( #retAST);
-            comp.EndPro();
-        }
-    ;
 
 forward_function!
 	: #(FORWARD 

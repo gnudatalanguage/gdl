@@ -23,7 +23,24 @@ email                : m_schellens@users.sf.net
 
 #include "dinterpreter.hpp"
 
+#include "objects.hpp"
+
 using namespace std;
+
+bool ProgNode::ConstantNode()
+  {
+    if( this->getType() == GDLTokenTypes::SYSVAR)
+      {
+	// note: this works, because system variables are never 
+	//       passed by reference
+       SizeT rdOnlySize = sysVarRdOnlyList.size();
+         for( SizeT i=0; i<rdOnlySize; ++i)
+                  if( sysVarRdOnlyList[ i] == this->var)
+		    return true;
+      }
+
+    return this->getType() == GDLTokenTypes::CONSTANT;
+  }
 
 BaseGDL* ARRAYDEFNode::Eval()
 {

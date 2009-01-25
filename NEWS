@@ -202,4 +202,23 @@
 	  Preliminary version for Width parameter in MEDIAN()
 	  add SPL_INIT() and SPL_INTERP() (GDL syntax)
 
-
+0.9rc2	  undocumented BYTSCL accepting three parameters (value,min,max)
+	  initial import for SPL_INIT() and SPL_INTERP()
+	  g++ 4.3 compatibility
+	  ignore something like a=(a=a) (so it is allowed even if a is undefined)
+	  accept self assignment of undefined variables
+	  fixed print, ', ', FORMAT='(A)'
+	  Add SUBEXPR keyword support for STREGEX
+	  Add S_FUNCTIONS/S_PROCEDURES keywords for ROUTINE_NAMES
+	  in MEDIAN(), managing "width" parameter
+	  precalculation for (selected) constant parmeter functions. 
+	  precalculation for constant arrays composed of constant expressions
+	  precalculation for constant expressions and constant arrays, a major improvement
+	  speedup for constant arrays
+	  add FILL and NLEVELS for CONTOUR
+	  Initial import of RK4
+	  initial import of codes for function VOIGT
+	  initial import of function REAL_PART in GDL syntax
+	  allow floats without exponent number like 1e
+	  FACTORIAL correcting bug when inputs are Integers; managing arrays
+	  Made for READ_ASCII DATA_START independent of HEADER

@@ -91,10 +91,7 @@ public:
   virtual BaseGDL* EvalNC(); // non-copy
   virtual void     Run();
 
-  bool ConstantNode()
-  {
-    return this->getType() == GDLTokenTypes::CONSTANT;
-  }
+  bool ConstantNode();
 
   ProgNodeP getFirstChild() const
   {

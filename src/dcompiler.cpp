@@ -158,6 +158,12 @@ void DCompiler::StartPro(const string& n,const string& o)
     }
 }
 
+void DCompiler::ContinueMainPro()
+{
+  env = GDLInterpreter::CallStack()[0];
+  pro = static_cast<DSubUD*>( env->GetPro());
+}
+
 void DCompiler::StartFun(const string& n,const string& o)
 {
   ClearOwnCommon();

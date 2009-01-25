@@ -98,6 +98,7 @@ public:
 	public: void forward_function();
 	public: void procedure_def();
 	public: void function_def();
+	public: void common_block();
 	public: void statement_list();
 	public: void interactive_compile();
 	public: void parameter_declaration();
@@ -118,7 +119,6 @@ public:
 	public: void keyword_declaration();
 	public: std::string  object_name();
 	public: void compile_opt();
-	public: void common_block();
 	public: void endfor_mark();
 	public: void endrep_mark();
 	public: void endwhile_mark();
