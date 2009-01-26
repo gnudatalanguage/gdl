@@ -64,6 +64,7 @@ void GDLTreeParser::translation_unit(RefDNode _t) {
 				}
 				else if ((_t->getType() == COMMONDECL || _t->getType() == COMMONDEF)) {
 					
+					EnvBaseT* envBefore = comp.GetEnv();
 					if( !mainStarted)
 					{
 					comp.StartPro( "$MAIN$");                        
@@ -76,6 +77,7 @@ void GDLTreeParser::translation_unit(RefDNode _t) {
 					astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 					
 					comp.EndInteractiveStatement();
+					comp.SetEnv( envBefore);
 					
 				}
 			else {
@@ -132,6 +134,11 @@ void GDLTreeParser::translation_unit(RefDNode _t) {
 		case XOR_OP_EQ:
 		{
 			
+			if( !mainStarted)
+			{
+			comp.StartPro( "$MAIN$");                        
+			mainStarted = true;
+			}
 			comp.ContinueMainPro();
 			
 			retAST = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;

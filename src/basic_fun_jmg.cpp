@@ -462,9 +462,9 @@ namespace lib {
 
     SizeT nEl = p0->N_Elements();
     SizeT Rank = p0->Rank();
-    if( Rank == 0)
-      e->Throw( "Parameter must be an array in this context: " 
-		+ e->GetParString( 0));
+//     if( Rank == 0)
+//       e->Throw( "Parameter must be an array in this context: " 
+// 		+ e->GetParString( 0));
 
 
     SizeT Type = p0->Type();

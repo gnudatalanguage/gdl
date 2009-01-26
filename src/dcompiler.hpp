@@ -89,6 +89,8 @@ public:
   int  NDefLabel();
   bool IsActivePro( DSub* p);
   bool ActiveProCompiled() const { return activeProCompiled;}
+  EnvBaseT* GetEnv() const { return env;}
+  void SetEnv( EnvBaseT* e) { env = e;}
 };
 
 #endif

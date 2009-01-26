@@ -184,6 +184,7 @@ translation_unit
     | function_def
     | forward_function
     |   {
+            EnvBaseT* envBefore = comp.GetEnv();
             if( !mainStarted)
                 {
                     comp.StartPro( "$MAIN$");                        
@@ -194,11 +195,17 @@ translation_unit
         common_block
         {
             comp.EndInteractiveStatement();
+            comp.SetEnv( envBefore);
         }
     )*
     
     (
         {
+            if( !mainStarted)
+                {
+                    comp.StartPro( "$MAIN$");                        
+                    mainStarted = true;
+                }
             comp.ContinueMainPro();
         }
         retAST:statement_list
