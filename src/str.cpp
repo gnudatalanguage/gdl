@@ -223,6 +223,9 @@ void WordExp( string& s)
     {
       if( p.we_wordc > 0)
 	s = p.we_wordv[0];
+#if defined(__APPLE__)
+      p.we_offs = 0;
+#endif
       wordfree( &p);
     }
 }
