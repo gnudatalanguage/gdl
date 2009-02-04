@@ -634,7 +634,8 @@ namespace lib {
   void hdf_sd_dimget_pro( EnvT* e)
   {
 
-    DLong dim_id, status, n_attrs, data_type, dim_size;
+    DLong dim_id, status;
+    int32 n_attrs, data_type, dim_size;
     e->AssureScalarPar<DLongGDL>( 0, dim_id);
 
     // NAME keyword
@@ -697,3 +698,4 @@ namespace lib {
 
 } // namespace
 #endif
+

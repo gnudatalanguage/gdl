@@ -388,7 +388,8 @@ namespace lib {
 
   BaseGDL* hdf_sd_dimgetid_fun( EnvT* e)
   {
-    DLong sds_id, dim_index, dim_id, rank, status;
+    DLong sds_id, dim_index, dim_id;
+    int32 rank, status;
     e->AssureScalarPar<DLongGDL>( 0, sds_id);
     e->AssureLongScalarPar(1, dim_index);
 
@@ -425,5 +426,6 @@ namespace lib {
 
 } // namespace
 #endif
+
 
 
