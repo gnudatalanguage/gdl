@@ -354,14 +354,12 @@ else if(var_type == NC_LONG)
 	  delete e->GetParGlobal(2);
 	e->GetParGlobal(2) = new DIntGDL((svar));
       }
-    else if(var_type == NC_CHAR){
-      unsigned char cvar;
-      status=nc_get_var1_uchar(cdfid,
-				varid,
-			      index,
-				&cvar);
-	  delete e->GetParGlobal(2);
-      e->GetParGlobal(2) = new DStringGDL(cvar);
+    else if(var_type == NC_CHAR)
+    {
+      char cvar;
+      status=nc_get_var1_text(cdfid, varid, index, &cvar);
+      delete e->GetParGlobal(2);
+      e->GetParGlobal(2) = new DByteGDL(cvar);
     }
     else if(var_type == NC_BYTE){
       unsigned char  bvar;
@@ -562,22 +560,22 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 	
 	  delete e->GetParGlobal(2);  
 	e->GetParGlobal(2)=temp;      	
-	} else	if(var_type == NC_CHAR){
-	  unsigned char* cvar=new unsigned char[array_size];
+	} 
+        else if (var_type == NC_CHAR)
+        {
+	  char* cvar = new char[array_size];
 	  
-	  DStringGDL* temp=new DStringGDL(dim,BaseGDL::NOZERO);
-	  status=nc_get_var_uchar(cdfid, varid,cvar);
-	  
-	  ncdf_var_handle_error(e,status,"NCDF_VARGET",cvar);
-	  
+	  status = nc_get_var_text(cdfid, varid, cvar);
+	  ncdf_var_handle_error(e, status, "NCDF_VARGET", cvar);
 
-	  memcpy(&(*temp)[0],&(*cvar),array_size*sizeof(unsigned char));
-
+	  DByteGDL* temp = new DByteGDL(dim, BaseGDL::NOZERO);
+	  memcpy(&(*temp)[0], &(*cvar), array_size*sizeof(char));
 	  delete [] cvar;
+
 	  /*	  status=transpose_perm((char *)&(*temp)[0], 
 		  var_ndims,dim_length,sizeof(unsigned char),temp->Type(),trans);*/
 	  delete e->GetParGlobal(2);
-	e->GetParGlobal(2)=temp;      	
+          e->GetParGlobal(2) = temp;
 	}
       
 
@@ -771,23 +769,21 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 	  	      }
 	    else if(var_type == NC_CHAR)
 	      {
-		unsigned char* cvar=new unsigned char[array_size];
+		char* cvar = new char[array_size];
 		
-		DStringGDL *temp=new DStringGDL(dim,BaseGDL::NOZERO);
-		status=nc_get_vara_uchar(cdfid, varid,
-					  off,cou,cvar);
+		status = nc_get_vara_text(cdfid, varid, off, cou, cvar);
+		ncdf_var_handle_error(e, status, "NCDF_VARGET", cvar);
 
-		ncdf_var_handle_error(e,status,"NCDF_VARGET",cvar);
-
-		memcpy(&(*temp)[0],&(*cvar),array_size*sizeof(unsigned char));	      
-		
+		DByteGDL *temp = new DByteGDL(dim, BaseGDL::NOZERO);
+		memcpy(&(*temp)[0], &(*cvar), array_size*sizeof(char));	      
 		delete [] cvar;
+
 		/*		status=transpose_perm((char *)&(*temp)[0], 
 				      var_ndims,cou,sizeof(unsigned char),
 				      temp->Type(),trans);*/
 	      
 		delete e->GetParGlobal(2);
-		e->GetParGlobal(2)=temp;      	
+		e->GetParGlobal(2) = temp;
 	      }
 	  
 	  
@@ -962,23 +958,21 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 		}
 		else if(var_type == NC_CHAR)
 		{
-		unsigned char* cvar=new unsigned char[array_size];
+		  char* cvar = new char[array_size];
 		
-		DStringGDL *temp=new DStringGDL(dim,BaseGDL::NOZERO);
-		status=nc_get_vars_uchar(cdfid, varid,
-					  off,cou,stri,cvar);
+		  status = nc_get_vars_text(cdfid, varid, off, cou, stri, cvar);
+		  ncdf_var_handle_error(e, status, "NCDF_VARGET", cvar);
 
-		ncdf_var_handle_error(e,status,"NCDF_VARGET",cvar);
+		  DByteGDL *temp = new DByteGDL(dim, BaseGDL::NOZERO);
+		  memcpy(&(*temp)[0], &(*cvar), array_size*sizeof(char));
+		  delete [] cvar;
 
-		memcpy(&(*temp)[0],&(*cvar),array_size*sizeof(unsigned char));
-		
-		delete [] cvar;
 		/*		status=transpose_perm((char *)&(*temp)[0], 
 				      var_ndims,cou,sizeof(unsigned char),
 				      temp->Type(),trans);*/
 
-		delete e->GetParGlobal(2);
-		e->GetParGlobal(2)=temp;      	
+		  delete e->GetParGlobal(2);
+		  e->GetParGlobal(2) = temp;      	
 		}
 	  }
       }
