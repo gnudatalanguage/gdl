@@ -63,7 +63,7 @@
         <f77flags/>
       </optimized>
       <debug>
-        <configargs>--enable-debug=full --with-readlinedir=yes --with-netcdf=/home/marc/netcdf-3.6.1 --with-python=yes --with-hdf=yes --with-hdf5=no --with-plplot=/usr --with-python=yes --enable-python_module --enable-oldplplot --with-libproj4=no --with-wxWidgets=no --with-Magick=no</configargs>
+        <configargs>--enable-debug=full --with-readlinedir=yes --with-netcdf=/home/marc/netcdf-3.6.1 --with-python=yes --with-hdf=yes --with-hdf5=no --with-plplot=/usr --with-python=yes --disable-python_module --enable-oldplplot --with-libproj4=no --with-wxWidgets=no --with-Magick=no</configargs>
         <builddir>debug</builddir>
         <ccompiler>kdevgccoptions</ccompiler>
         <cxxcompiler>kdevgppoptions</cxxcompiler>
@@ -105,7 +105,7 @@
       <abortonerror>true</abortonerror>
       <numberofjobs>1</numberofjobs>
       <dontact>false</dontact>
-      <makebin/>
+      <makebin></makebin>
       <prio>0</prio>
       <runmultiplejobs>false</runmultiplejobs>
     </make>
