@@ -54,7 +54,7 @@ if KEYWORD_SET(noexpand_path) then begin
     return, -1
 endif
 ;
-commande="paste "+filename+" | wc -l | awk '{print $1}'"
+commande="paste "+filename+" | wc -l"
 SPAWN, commande, resultat
 nbp=(LONG(STRCOMPRESS(resultat,/remove_all)))(0)
 ;
