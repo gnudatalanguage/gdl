@@ -30,6 +30,8 @@
 ;
 ; MODIFICATION HISTORY:
 ;   - 26/07/2006: created by Alain Coulais (ARSC)
+;   - 30/05/2008: Michael Mueller (U of Arizona) fixed inconsistent
+;     handling of files that don't end in newline
 ;
 ;-
 ; LICENCE:
@@ -52,7 +54,7 @@ if KEYWORD_SET(noexpand_path) then begin
     return, -1
 endif
 ;
-commande="wc -l "+filename+" | awk '{print $1}'"
+commande="paste "+filename+" | wc -l | awk '{print $1}'"
 SPAWN, commande, resultat
 nbp=(LONG(STRCOMPRESS(resultat,/remove_all)))(0)
 ;

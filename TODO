@@ -1,4 +1,5 @@
 
+Last update by Alain on 10 February 2009
 Updated by Alain on 28 March 2008
 
 This file contains:
@@ -8,6 +9,7 @@ This file contains:
 -- a ToDo list of missing Functions and Procedures
 -- a ToDo list of incomplete Functions and Procedures, missing keywords and
     limited/buggy functionnalities in existing func/pro
+-- some comments
 
 
 ToDo list of missing commands (not exhaustive, most requested)
@@ -76,10 +78,11 @@ Category: numeric
 Langage: C++ (in math_fun_ac.cpp)
 Difficulty: unknow.
 Contact: Alain
-Comments: some details need to be fix when the arrays
+Comments: 1/ some details need to be fix when the arrays
 are not commensurable. It is highly probable that other
 functions do suffer from the same problems. Some have been
-corrected (the GAMMA/BETA family)
+corrected (the GAMMA/BETA family) and can be used as template.
+2/ since mid-2008 (?) GSL does include non integer Besel functions ...
 
 * TVRD : keyword !order
 Category: display
@@ -89,17 +92,21 @@ Contact: Alain
 Comments: to be complete for !order keyword (managed in TV).
 A priori, the method p->Rotate(7) cannot be used on Byte arrays.
 
-* INVERT function : some exceptions
+* LA_ serie (based on the LAPACK routines)
 Category: numeric
-Langage: C++ (in gsl_fun.cpp)
-Difficulty: easy.
-Contact: Alain
-Comments: managning the last exceptions (input size,
-no-square matrix, string conversion should work).
-Very easy but could be time consuming if extensive tests.
-See currents tests in testsuite/test_invert_matrix.pro
+Langage: a priori C++
+Difficulty: some existing algo, not under GPL ??
+Contact: 
+Comments: different personns have asked ...
+It is better to implement it in C/C++ because it is computer intensif
 
-* MEDIAN, parameter "width"
+
+Comments; About recently added Pro/Functions
+
+I move here some important procedures and functions which have been
+recently added; because they are important, they need to extensively tested.
+
+* MEDIAN: implementation of parameter "width" was done in summer 2008
 Category: numeric
 Langage: C++
 Difficulty: very difficult
@@ -108,21 +115,22 @@ Comments: codes in C/C++ in public domain or under GPL available,
 "interfaces" missing. Please make biblio before writing it, it
 is not obvious. Availability/efficienty of algo depend on data type !!
 It is better to implement it in C/C++ because it is computer intensif.
+--> Not sure all the cases have been tested. Please report tests and problems.
 
 * SPLINE serie (SPL_INIT, SPL_INTERP)
 Category: numeric
 Langage: C++ 
 Difficulty: existing algo in NR, not under GPL.
 Contact: Alain
-Comments: different personns have asked for that.
-A working version --but slow-- in GDL syntax does exists, contact me
-for the real person who code that.
-It is better to implement it in C/C++ because it is computer intensif
+Comments: A working version in GDL syntax has been put in CVS under src/pro
+It is better to implement it in C/C++ because it is computer intensif.
 
-* LA_ serie (based on the LAPACK routines)
+* INVERT function : some exceptions
 Category: numeric
-Langage: a priori C++
-Difficulty: some existing algo, not under GPL ??
-Contact: 
-Comments: different personns have asked ...
-It is better to implement it in C/C++ because it is computer intensif
+Langage: C++ (in gsl_fun.cpp)
+Difficulty: easy.
+Contact: Alain
+Comments: the last exceptions shjould have been cleaned (input size,
+no-square matrix, string conversion should work).
+Very easy but could be time consuming if extensive tests.
+See currents tests in testsuite/test_invert_matrix.pro
