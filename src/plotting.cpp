@@ -2917,6 +2917,8 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
       } else {
 	zintv = AutoTick(zEnd - zStart);
 	nlevel = (PLINT) floor((zEnd - zStart) / zintv);
+        // SA: sanity check to prevent segfaults, e.g. with solely non-finite values 
+        if (zintv == 0 || nlevel < 0) nlevel = 0; 
       }
       cout << "internal Nlevels == " << nlevel << endl;
 
