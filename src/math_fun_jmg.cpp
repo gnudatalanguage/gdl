@@ -708,8 +708,8 @@ namespace lib {
       }
     }
 
-    LP idata;
-    XY odata;
+    LPTYPE idata;
+    XYTYPE odata;
 
     if ( map) {
       ref = map_init();
@@ -721,7 +721,7 @@ namespace lib {
       for( SizeT i=0; i<x_tri->N_Elements(); ++i) {
 	idata.lam = (*x_tri)[i] * DEG_TO_RAD;
 	idata.phi = (*y_tri)[i] * DEG_TO_RAD;
-	odata = pj_fwd(idata, ref);
+	odata = PJ_FWD(idata, ref);
 	(*x_tri)[i] = odata.x *  xvsx[1] + xvsx[0];
 	(*y_tri)[i] = odata.y *  yvsy[1] + yvsy[0];
       }

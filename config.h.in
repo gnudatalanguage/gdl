@@ -102,6 +102,9 @@
 /* Define if you want to use LIBPROJ4 */
 #undef USE_LIBPROJ4
 
+/* Define if you want to use new LIBPROJ4 */
+#undef USE_LIBPROJ4_NEW
+
 /* Define if you want to use ImageMagick */
 #undef USE_MAGICK
 

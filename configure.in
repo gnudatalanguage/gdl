@@ -489,15 +489,23 @@ if test "x$with_libproj4" != "xno"; then
     LIBS="$LIBS -lproj4"
   fi
 
-  AC_CHECK_LIB(proj4, pj_init, [AC_DEFINE([USE_LIBPROJ4], [1], [Define if you want to use LIBPROJ4])], [
-    echo ""
-    echo "Error! LIBPROJ4 is required but was not found"
-    echo "       Use --with-libproj4=DIR to specify the LIBPROJ4 directory tree"
-    echo "       Use --with-libproj4=no  to not use it"
-    echo "       Check the README or use configure --help for other libraries needed"
-    echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
-    exit -1
-    ])
+  AC_CHECK_LIB(proj4, proj_init, [AC_DEFINE([USE_LIBPROJ4], [1], 
+  [Define if you want to use LIBPROJ4])], [])
+
+  AC_CHECK_LIB(proj4, proj_init, [AC_DEFINE([USE_LIBPROJ4_NEW], [1], 
+  [Define if you want to use new LIBPROJ4])], [
+
+     AC_CHECK_LIB(proj4, pj_init, [AC_DEFINE([USE_LIBPROJ4], [1], 
+     [Define if you want to use LIBPROJ4])], [
+       echo ""
+       echo "Error! LIBPROJ4 is required but was not found"
+       echo "       Use --with-libproj4=DIR to specify the LIBPROJ4 directory tree"
+       echo "       Use --with-libproj4=no  to not use it"
+       echo "       Check the README or use configure --help for other libraries needed"
+       echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
+       exit -1
+       ])
+  ])
 fi
 
 

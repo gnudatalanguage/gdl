@@ -2,7 +2,11 @@
 To provide map projections support your first need to make sure the libproj4
 library is installed.  The source code for this can be found at:
 
-http://members.verizon.net/~vze2hc4d/proj4/lbp4_050319S.tar.gz
+http://members.verizon.net/~vze2hc4d/proj4/libproj4.3_20081120.tar.bz2
+
+
+(Older version: http://members.verizon.net/~vze2hc4d/proj4/lbp4_050319S.tar.gz)
+
 
 The "--with-libproj4=DIR" switch in configure can be used give the location
 of this library.

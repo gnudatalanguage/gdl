@@ -1594,8 +1594,8 @@ namespace lib {
     bool mapSet=false;
 #ifdef USE_LIBPROJ4
     // Map Stuff (xtype = 3)
-    LP idata;
-    XY odata;
+    LPTYPE idata;
+    XYTYPE odata;
 
     get_mapset(mapSet);
 
@@ -1777,8 +1777,8 @@ namespace lib {
     bool mapSet=false;
 #ifdef USE_LIBPROJ4
     // Map Stuff (xtype = 3)
-    LP idata;
-    XY odata;
+    LPTYPE idata;
+    XYTYPE odata;
 
     get_mapset(mapSet);
 
@@ -1917,7 +1917,7 @@ namespace lib {
 	if (mapSet && !e->KeywordSet("NORMAL")) {
 	  idata.lam = x * DEG_TO_RAD;
 	  idata.phi = y * DEG_TO_RAD;
-	  odata = pj_fwd(idata, ref);
+	  odata = PJ_FWD(idata, ref);
 	  x = odata.x;
 	  y = odata.y;
 	}
@@ -1940,7 +1940,7 @@ namespace lib {
 	    if (mapSet && !e->KeywordSet("NORMAL")) {
 	      idata.lam = x * DEG_TO_RAD;
 	      idata.phi = y * DEG_TO_RAD;
-	      odata = pj_fwd(idata, ref);
+	      odata = PJ_FWD(idata, ref);
 	      x = odata.x;
 	      y = odata.y;
 	      if (!isfinite(x) || !isfinite(y)) continue;
@@ -3398,8 +3398,8 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
     bool mapSet=false;
 #ifdef USE_LIBPROJ4
     // Map Stuff (xtype = 3)
-    LP idata;
-    XY odata;
+    LPTYPE idata;
+    XYTYPE odata;
 
     get_mapset(mapSet);
 
@@ -3459,7 +3459,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
 	    xMapBefore=odata.x;
 	    yMapBefore=odata.y;
 	  }
-	  odata = pj_fwd(idata, ref);
+	  odata = PJ_FWD(idata, ref);
 	  x = odata.x;
 	  y = odata.y;	  
 	}
@@ -3557,8 +3557,8 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
     bool mapSet=false;
 #ifdef USE_LIBPROJ4
     // Map Stuff (xtype = 3)
-    LP idata;
-    XY odata;
+    LPTYPE idata;
+    XYTYPE odata;
 
     get_mapset(mapSet);
 
@@ -3599,7 +3599,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
 	if (mapSet && !e->KeywordSet("NORMAL")) {
 	  idata.lam = x * DEG_TO_RAD;
 	  idata.phi = y * DEG_TO_RAD;
-	  odata = pj_fwd(idata, ref);
+	  odata = PJ_FWD(idata, ref);
 	  x = odata.x;
 	  y = odata.y;
 	  if (!isfinite(x) || !isfinite(y)) continue;
@@ -3636,7 +3636,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
 			if (mapSet && !e->KeywordSet("NORMAL")) {
 			  idata.lam = x1 * DEG_TO_RAD;
 			  idata.phi = y1 * DEG_TO_RAD;
-			  odata = pj_fwd(idata, ref);
+			  odata = PJ_FWD(idata, ref);
 			  x1 = odata.x;
 			  y1 = odata.y;
 			  if (!isfinite(x1) || !isfinite(y1)) continue;
@@ -3672,7 +3672,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
 			    if (mapSet && !e->KeywordSet("NORMAL")) {
 			      idata.lam = x1 * DEG_TO_RAD;
 			      idata.phi = y1 * DEG_TO_RAD;
-			      odata = pj_fwd(idata, ref);
+			      odata = PJ_FWD(idata, ref);
 			      x1 = odata.x;
 			      y1 = odata.y;
 			    }
@@ -4150,8 +4150,8 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
     if( nParam < 1)
       e->Throw( "MAP_PROJ_FORWARD: Incorrect number of arguments.");
 
-    LP idata;
-    XY odata;
+    LPTYPE idata;
+    XYTYPE odata;
 
     ref = map_init();
     if ( ref == NULL) {
@@ -4186,7 +4186,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
       for( SizeT i=0; i<nEl/2; ++i) {
 	idata.lam = (*ll)[2*i]   * DEG_TO_RAD;
 	idata.phi = (*ll)[2*i+1] * DEG_TO_RAD;
-	odata = pj_fwd(idata, ref);
+	odata = PJ_FWD(idata, ref);
 	(*res)[2*i]   = odata.x;
 	(*res)[2*i+1] = odata.y;
       }
@@ -4214,7 +4214,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
       for( SizeT i=0; i<nEl; ++i) {
 	idata.lam = (*lon)[i] * DEG_TO_RAD;
 	idata.phi = (*lat)[i] * DEG_TO_RAD;
-	odata = pj_fwd(idata, ref);
+	odata = PJ_FWD(idata, ref);
 	(*res)[2*i]   = odata.x;
 	(*res)[2*i+1] = odata.y;
       }
@@ -4230,8 +4230,8 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
     if( nParam < 1)
       e->Throw( "MAP_PROJ_INVERSE: Incorrect number of arguments.");
 
-    XY idata;
-    LP odata;
+    XYTYPE idata;
+    LPTYPE odata;
 
     ref = map_init();
     if ( ref == NULL) {
@@ -4266,7 +4266,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
       for( SizeT i=0; i<nEl/2; ++i) {
 	idata.x = (*xy)[2*i];
 	idata.y = (*xy)[2*i+1];
-	odata = pj_inv(idata, ref);
+	odata = PJ_INV(idata, ref);
 	(*res)[2*i]   = odata.lam * RAD_TO_DEG;
 	(*res)[2*i+1] = odata.phi * RAD_TO_DEG;
       }
@@ -4294,7 +4294,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
       for( SizeT i=0; i<nEl; ++i) {
 	idata.x = (*x)[i];
 	idata.y = (*y)[i];
-	odata = pj_inv(idata, ref);
+	odata = PJ_INV(idata, ref);
 	(*res)[2*i]   = odata.lam * RAD_TO_DEG;
 	(*res)[2*i+1] = odata.phi * RAD_TO_DEG;
       }
@@ -4401,12 +4401,12 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
 	    ires++;
 	  }
 	} else if (e->KeywordSet("TO_NORMAL")) {
-	  LP idata;
-	  XY odata;
+	  LPTYPE idata;
+	  XYTYPE odata;
 	  for( SizeT i = 0; i<nrows; ++i) {	
 	    idata.lam = (*ptr1) * DEG_TO_RAD;
 	    idata.phi = (*ptr2) * DEG_TO_RAD;
-	    odata = pj_fwd(idata, ref);
+	    odata = PJ_FWD(idata, ref);
 	    (*res)[ires++] = odata.x * sx[1] + sx[0];
 	    (*res)[ires++] = odata.y * sy[1] + sy[0];
 	    ptr1++;
@@ -4414,12 +4414,12 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
 	    ires++;
 	  }
 	} else if (e->KeywordSet("TO_DEVICE")) {
-	  LP idata;
-	  XY odata;
+	  LPTYPE idata;
+	  XYTYPE odata;
 	  for( SizeT i = 0; i<nrows; ++i) {	
 	    idata.lam = (*ptr1) * DEG_TO_RAD;
 	    idata.phi = (*ptr2) * DEG_TO_RAD;
-	    odata = pj_fwd(idata, ref);
+	    odata = PJ_FWD(idata, ref);
 	    (*res)[ires++] = xv * (odata.x * sx[1] + sx[0]);
 	    (*res)[ires++] = yv * (odata.y * sy[1] + sy[0]);
 	    ptr1++;
@@ -4429,12 +4429,12 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
 	}
 	// xy -> ll
       } else if (e->KeywordSet("NORMAL")) {
-	XY idata;
-	LP odata;
+	XYTYPE idata;
+	LPTYPE odata;
 	for( SizeT i = 0; i<nrows; ++i) {	
 	  idata.x = ((*ptr1) - sx[0]) / sx[1];
 	  idata.y = ((*ptr2) - sy[0]) / sy[1];
-	  odata = pj_inv(idata, ref);
+	  odata = PJ_INV(idata, ref);
 	  (*res)[ires++] = odata.lam * RAD_TO_DEG;
 	  (*res)[ires++] = odata.phi * RAD_TO_DEG;
 	  ptr1++;
@@ -4442,12 +4442,12 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
 	  ires++;
 	}
       } else if (e->KeywordSet("DEVICE")) {
-	XY idata;
-	LP odata;
+	XYTYPE idata;
+	LPTYPE odata;
 	for( SizeT i = 0; i<nrows; ++i) {	
 	  idata.x = ((*ptr1) / xv - sx[0]) / sx[1];
 	  idata.y = ((*ptr2) / yv - sy[0]) / sy[1];
-	  odata = pj_inv(idata, ref);
+	  odata = PJ_INV(idata, ref);
 	  (*res)[ires++] = odata.lam * RAD_TO_DEG;
 	  (*res)[ires++] = odata.phi * RAD_TO_DEG;
 	  ptr1++;

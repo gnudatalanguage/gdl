@@ -1178,7 +1178,7 @@ Esko G. Cate & David W. Twigg
   }
 
 #ifdef USE_LIBPROJ4
-  PJ *map_init()
+  PROJTYPE *map_init()
   {
     // Checks for changes to projection parameters and calls
     // pj_init if they have changed or if first time.
@@ -1417,7 +1417,8 @@ Esko G. Cate & David W. Twigg
       last_lat1 = map_lat1;
       last_lat2 = map_lat2;
 
-      prev_ref = pj_init(nparms, parms);
+      //      prev_ref = pj_init(nparms, parms);
+      prev_ref = PJ_INIT(nparms, parms);
     }
     return prev_ref;
   }
