@@ -277,15 +277,23 @@ if test "x$with_Magick" = "x"; then
 fi
 
 if test "x$with_Magick" != "xno"; then
-  if test "x$with_Magick" != "xyes"; then
-    LIBS="$LIBS -L$with_Magick/lib -lMagick++"
-    INCLUDES="$INCLUDES -I$with_Magick/include"
+  if test "x$with_Magick" = "xyes"; then
+    AC_PATH_PROG(MagickConfig, Magick++-config, no)
   else
-    LIBS="$LIBS -lMagick++"
-    INCLUDES="$INCLUDES -I/usr/include/magick"
+    AC_PATH_PROG(MagickConfig, Magick++-config, no, "$with_Magick/bin")
   fi
 
-  AC_CHECK_LIB(Magick, GetMagickVersion, [AC_DEFINE([USE_MAGICK], [1], [Define if you want to use ImageMagick])], [
+  if test "x$MagickConfig" = "xno"; then
+    AC_MSG_ERROR(ImageMagick is required but was not found (Magick++-config program not found)
+      Use --with-Magick=DIR to specify the ImageMagick directory tree
+      Use --with-Magick=no  to not use it
+    )
+  else
+    LIBS="$LIBS `$MagickConfig --libs`"
+    INCLUDES="$INCLUDES `$MagickConfig --cppflags`"
+  fi
+
+  AC_CHECK_LIB(Magick++, GetMagickVersion, [AC_DEFINE([USE_MAGICK], [1], [Define if you want to use ImageMagick])], [
     echo ""
     echo "Error! ImageMagick version 5.5.7 or later is required but was not found"
     echo "       Use --with-Magick=DIR to specify the ImageMagick directory tree"
@@ -607,6 +615,72 @@ dnl    ])
     exit -1
     ])
 fi
+
+dnl SA: comming soon...
+dnl 
+dnl dnl QHULL
+dnl AC_ARG_WITH(qhull,
+dnl          [  --with-qhull[=DIR]     use QHULL package (with optional path DIR) ],
+dnl          [with_qhull="$withval" ])
+dnl  
+dnl dnl QHULL: default is no
+dnl if test "x$with_qhull" = "x"; then
+dnl   with_qhull=no
+dnl   echo "QHULL lib not explicitely enabled. Quick hull algorithms for triangulation etc not supported."
+dnl fi
+dnl 
+dnl if test "x$with_qhull" != "xno"; then
+dnl   if test "x$with_qhull" != "xyes"; then
+dnl     LIBS="$LIBS -L$with_qhull/lib -lqhull"
+dnl     INCLUDES="$INCLUDES -I$with_qhull/include"
+dnl   else
+dnl     INCLUDES="$INCLUDES -I/usr/include"
+dnl     LIBS="$LIBS -lqhull"
+dnl   fi
+dnl 
+dnl   AC_CHECK_LIB(qhull, qh_qhull, [AC_DEFINE([USE_QHULL], [1], [Define if you want to use QHULL])], [
+dnl     echo ""
+dnl     echo "Error! QHULL is required but was not found"
+dnl     echo "       Use --with-qhull=DIR to specify the QHULL directory tree"
+dnl     echo "       Use --with-qhull=no  to not use it"
+dnl     echo "       Check the README or use configure --help for other libraries needed"
+dnl     echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
+dnl     exit -1
+dnl     ])
+dnl fi
+dnl 
+dnl dnl GRIB
+dnl AC_ARG_WITH(grib,
+dnl          [  --with-grib[=DIR]     use GRIB package (with optional path DIR) ],
+dnl          [with_grib="$withval" ])
+dnl  
+dnl dnl GRIB: default is no
+dnl if test "x$with_grib" = "x"; then
+dnl   with_grib=no
+dnl   echo "GRIB not explicitely enabled. No support for the GRIB 1/2 file formats."
+dnl fi
+dnl 
+dnl if test "x$with_grib" != "xno"; then
+dnl   if test "x$with_grib" != "xyes"; then
+dnl     LIBS="$LIBS -L$with_grib/lib -lgrib_api"
+dnl     INCLUDES="$INCLUDES -I$with_grib/include"
+dnl   else
+dnl     INCLUDES="$INCLUDES -I/usr/include"
+dnl     LIBS="$LIBS -lgrib_api"
+dnl   fi
+dnl 
+dnl   AC_CHECK_LIB(grib_api, grib_handle_new_from_file, [AC_DEFINE([USE_GRIB], [1], [Define if you want to use GRIB])], [
+dnl     echo ""
+dnl     echo "Error! GRIB is required but was not found"
+dnl     echo "       Use --with-grib=DIR to specify the GRIB directory tree"
+dnl     echo "       Use --with-grib=no  to not use it"
+dnl     echo "       Check the README or use configure --help for other libraries needed"
+dnl     echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
+dnl     exit -1
+dnl     ], [-ljasper])
+dnl fi
+dnl 
+dnl SA: end of comming soon
 
 AC_DEFUN([AC_DEFINE_DIR], [
   prefix_NONE=
