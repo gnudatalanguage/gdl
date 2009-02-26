@@ -1369,33 +1369,57 @@ void DStructGDL::ForCheck( BaseGDL** lEnd, BaseGDL** lStep)
 template<class Sp>
 bool Data_<Sp>::ForCondUp( BaseGDL* lEndIn)
 {
-  Data_* lEnd=static_cast<Data_*>(lEndIn);
+//   Data_* lEnd=static_cast<Data_*>(lEndIn);
+  Data_* lEnd=dynamic_cast<Data_*>(lEndIn);
+  if( lEnd == NULL)
+    throw GDLException("Type of FOR index variable changed.");
   return (*this)[0] <= (*lEnd)[0]; 
 }
 template<class Sp>
 bool Data_<Sp>::ForCondDown( BaseGDL* lEndIn)
 {
-  Data_* lEnd=static_cast<Data_*>(lEndIn);
+//   Data_* lEnd=static_cast<Data_*>(lEndIn);
+  Data_* lEnd=dynamic_cast<Data_*>(lEndIn);
+  if( lEnd == NULL)
+    throw GDLException("Type of FOR index variable changed.");
   return (*this)[0] >= (*lEnd)[0]; 
 }
 
-// cannnot be called, just to make the compiler shut-up
+// error if the type of the loop variable changed
 bool DStructGDL::ForCondUp( BaseGDL*)
-{ return false; }
+{ 
+    throw GDLException("Type of FOR index variable changed to STRUCT.");
+    return false; 
+}
 bool DStructGDL::ForCondDown( BaseGDL*)
-{ return false; }
+{ 
+    throw GDLException("Type of FOR index variable changed to STRUCT.");
+    return false; 
+}
 template<>
 bool Data_<SpDComplex>::ForCondUp( BaseGDL*)
-{ return false; }
+{ 
+    throw GDLException("Type of FOR index variable changed to COMPLEX.");
+    return false; 
+}
 template<>
 bool Data_<SpDComplex>::ForCondDown( BaseGDL*)
-{ return false; }
+{ 
+    throw GDLException("Type of FOR index variable changed to COMPLEX.");
+    return false; 
+}
 template<>
 bool Data_<SpDComplexDbl>::ForCondUp( BaseGDL*)
-{ return false; }
+{ 
+    throw GDLException("Type of FOR index variable changed to DCOMPLEX.");
+    return false; 
+}
 template<>
 bool Data_<SpDComplexDbl>::ForCondDown( BaseGDL*)
-{ return false; }
+{ 
+    throw GDLException("Type of FOR index variable changed to DCOMPLEX.");
+    return false; 
+}
 
 // ForCheck must have been called before
 // general version

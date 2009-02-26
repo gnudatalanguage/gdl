@@ -64,8 +64,10 @@ class CUSTOM_API GDLTreeParser : public antlr::TreeParser, public GDLTreeParserT
     void AssignReplace( RefDNode& lN, RefDNode& aN)
     {
         if( LoopVar( lN))
-        Warning( "Warning: Assignment to FOR loop variable detected.");
-        
+            {
+                Warning( "Warning: Assignment to FOR loop variable detected.");
+                return; // never assign_replace a loop variable
+            }
         int lT = lN->getType();
         if( lT == FCALL || lT == MFCALL || lT == MFCALL_PARENT ||
             lT == FCALL_LIB || 
