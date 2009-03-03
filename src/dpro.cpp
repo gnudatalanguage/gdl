@@ -26,6 +26,14 @@
 
 #include "GDLTreeParser.hpp"
 
+// print out AST tree
+//#define GDL_DEBUG
+//#undef GDL_DEBUG
+
+#ifdef GDL_DEBUG
+#include "print_tree.hpp"
+#endif
+
 using namespace std;
 
 // vtable
@@ -273,3 +281,23 @@ void DSubUD::ResolveLabel( ProgNodeP p)
   ResolveLabel( p->getFirstChild());
   ResolveLabel( p->getNextSibling());
 }
+
+  // the final "compilation" takes part here 
+void DSubUD::SetTree( RefDNode n)
+{
+  //
+  // Converter Translation Transcription Rewrite RefDNode ProgNode ProgNodeP
+  //
+  // here the conversion RefDNode -> ProgNode is done
+  //
+  tree = ProgNode::NewProgNode( n);
+
+#ifdef GDL_DEBUG
+      cout << "DSubUD::SetTree:" << endl;
+      antlr::print_tree pt;
+      pt.pr_tree(tree);
+      cout << "DSubUD::SetTree end." << endl;
+#endif
+
+}
+

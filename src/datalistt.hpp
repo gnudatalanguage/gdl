@@ -20,127 +20,129 @@
 
 #include "basegdl.hpp"
 
+struct EnvType
+{
+  EnvType( BaseGDL* pIn, BaseGDL** ppIn): p(pIn), pp(ppIn) {}
+  bool IsSet() { return (p != NULL || pp != NULL);}
+  BaseGDL* p;
+  BaseGDL** pp;
+};
+
 class DataListT
 {
-  std::vector<BaseGDL**> env; // holds the variables
-  std::vector<BaseGDL*>  loc; // for local data
+  std::vector<EnvType> env; // holds the variables
 
 public:
-  DataListT(): env(), loc() {}
+  DataListT(): env() {}
   ~DataListT()
   {
-    for( SizeT i=0; i<loc.size(); i++)
-      delete loc[i];
+    for( SizeT i=0; i<env.size(); i++)
+      delete env[i].p;
   }
 
   bool InLoc( BaseGDL** p) const
   {
-    return ( !loc.empty() && p >= &loc.front() && p <= &loc.back());
+    return ( !env.empty() && p >= &env.front().p && p <= &env.back().p);
   }
 
   bool Contains( BaseGDL* p) const
   {
-    for( SizeT i=0; i<loc.size(); i++)
+    for( SizeT i=0; i<env.size(); i++)
       {
-	if( loc[i] == p) return true;
-	if( env[i] != NULL && *env[i] == p) return true;
+	if( env[i].p == p) return true;
+	if( env[i].pp != NULL && *(env[i].pp) == p) return true;
       }
     return false;
   }
 
   void RemoveLoc( BaseGDL* p) 
   {
-    for( SizeT i=0; i<loc.size(); i++)
-      if( loc[i] == p)
+    for( SizeT i=0; i<env.size(); i++)
+      if( env[i].p == p)
 	{
-	  loc[i] = NULL;
+	  env[i].p = NULL;
 	  return;
 	}
   }
 
   void push_back( BaseGDL* p)
   {
-    loc.push_back(p);
-    env.push_back(NULL);
+    env.push_back(EnvType(p,NULL));
   }
   void push_back( BaseGDL** pp)
   {
-    loc.push_back(NULL);
-    env.push_back(pp);
+    env.push_back(EnvType(NULL,pp));
+  }
+
+  void AddOne()
+  {
+    env.push_back(EnvType(NULL,NULL));
   }
 
   void pop_back()
   {
-    loc.pop_back();
     env.pop_back();
   }
 
-  SizeT size() { return loc.size();}
+  SizeT size() { return env.size();}
   void reserve( SizeT s)
   {
     env.reserve( s);
-    loc.reserve( s);
   }
   void resize( SizeT s)
   {
-    env.resize( s, NULL);
-    loc.resize( s, NULL);
+    env.resize( s, EnvType(NULL,NULL));
   }
 
   BaseGDL*& operator[]( const SizeT ix)
   {
-    if( env[ ix] != NULL) return *env[ ix];
-    return loc[ ix];
+    if( env[ ix].pp != NULL) return *env[ ix].pp;
+    return env[ ix].p;
   }
   void Clear( SizeT ix)
   {
-    loc[ ix]=NULL;
-    env[ ix]=NULL;
+    env[ ix]=EnvType(NULL,NULL);
   }
   void Reset( SizeT ix, BaseGDL* p)
   {
-    if( loc[ ix] != NULL) delete loc[ ix];
-    loc[ ix]=p;
-    env[ ix]=NULL;
+    if( env[ ix].p != NULL) delete env[ ix].p;
+    env[ ix]=EnvType(p,NULL);
   }
   void Reset( SizeT ix, BaseGDL** pp)
   {
-    if( loc[ ix] != NULL) delete loc[ ix];
-    loc[ ix]=NULL;
-    env[ ix]=pp;
+    if( env[ ix].p != NULL) delete env[ ix].p;
+    env[ ix]=EnvType(NULL,pp);
   }
   void Set( SizeT ix, BaseGDL* p)
   {
-    loc[ ix]=p;
-    env[ ix]=NULL;
+    env[ ix]=EnvType(p,NULL);
   }
   void Set( SizeT ix, BaseGDL** pp)
   {
-    loc[ ix]=NULL;
-    env[ ix]=pp;
+    env[ ix]=EnvType(NULL,pp);
   }
   bool IsSet( SizeT ix)
   {
-    return (loc[ ix] != NULL || env[ ix] != NULL);
+    return env[ix].IsSet(); //(env[ ix].p != NULL || env[ ix].pp != NULL);
   }
   BaseGDL* Grab( SizeT ix)
   {
     BaseGDL* ret;
-    if( loc[ ix] != NULL) 
+    if( env[ ix].p != NULL) 
       {
-	ret=loc[ ix];
-	loc[ ix]=NULL;
+	ret=env[ ix].p;
+	env[ ix].p=NULL;
 	return ret;
       }
-    if( env[ ix] != NULL) return (*env[ ix])->Dup();
+    if( env[ ix].pp != NULL) return (*env[ ix].pp)->Dup();
     return NULL;
  }
 
   // finds the local variable pp points to
   int FindLocal( BaseGDL** pp)
   {
-    for( SizeT i=0; i<loc.size(); i++)
-      if( &loc[i] == pp) return static_cast<int>(i);
+    for( SizeT i=0; i<env.size(); i++)
+      if( &env[i].p == pp) return static_cast<int>(i);
     return -1;
   }
 
@@ -148,7 +150,7 @@ public:
   int FindGlobal( BaseGDL** pp)
   {
     for( SizeT i=0; i<env.size(); i++)
-      if( env[i] == pp) return static_cast<int>(i);
+      if( env[i].pp == pp) return static_cast<int>(i);
     return -1;
   }
 
@@ -156,19 +158,19 @@ public:
   {
     for( SizeT i=0; i<env.size(); i++)
       {
-	if( loc[i] == p) return &loc[i];
-	if( env[i] != NULL && *env[i] == p) return env[i];
+	if( env[i].p == p) return &env[i].p;
+	if( env[i].pp != NULL && *env[i].pp == p) return env[i].pp;
       }
     return NULL;
   }
 
   BaseGDL* Loc( SizeT ix)
   {
-    return loc[ ix];
+    return env[ ix].p;
   }
   BaseGDL** Env( SizeT ix)
   {
-    return env[ ix];
+    return env[ ix].pp;
   }
 };
 

@@ -393,11 +393,16 @@ public:
     return NULL;
   }
 
-  void SetTree( RefDNode n)
-  {
-    // here the conversion RefDNode -> ProgNode is done
-    tree = ProgNode::NewProgNode( n);
-  }
+  // the final "compilation" takes part here 
+  void SetTree( RefDNode n);
+//   {
+//     //
+//     // Converter Translation Transcription Rewrite RefDNode ProgNode ProgNodeP
+//     //
+//     // here the conversion RefDNode -> ProgNode is done
+//     //
+//     tree = ProgNode::NewProgNode( n);
+//   }
   
   ProgNodeP GetTree()
   {

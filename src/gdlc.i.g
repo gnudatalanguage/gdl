@@ -126,6 +126,15 @@ friend class MPCALLNode;//: public CommandNode
 friend class MPCALL_PARENTNode;//: public CommandNode
 friend class PCALLNode;//: public CommandNode
 
+  friend class KEYDEFNode;
+  friend class KEYDEF_REFNode;
+  friend class KEYDEF_REF_CHECKNode;
+  friend class KEYDEF_REF_EXPRNode;
+  friend class REFNode;
+  friend class REF_CHECKNode;
+  friend class REF_EXPRNode;
+  friend class ParameterNode;
+
 public: 
 //     RetCode returnCode;    
 
@@ -2928,6 +2937,7 @@ expr returns [BaseGDL* res]
         }
     ;
 
+
 check_expr returns [BaseGDL* res]
     : res=lib_function_call 
     ;
@@ -3520,245 +3530,256 @@ ref_parameter returns[ BaseGDL** ret]
 parameter_def [EnvBaseT* actEnv] 
 {
     auto_ptr<EnvBaseT> guard(actEnv); 
-    BaseGDL*  kval;
-    BaseGDL*  pval;
-    BaseGDL** kvalRef;
-    BaseGDL** pvalRef;
 
-	while(_t != NULL) {
-		switch ( _t->getType()) {
-		case KEYDEF_REF:
-		{
-			ProgNodeP __t160 = _t;
+    _retTree = _t;
+	while(_retTree != NULL) {
+            static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
+    }    
 
-// 			match(antlr::RefAST(_t),KEYDEF_REF);
-			_t = _t->getFirstChild();
-			knameR = _t;
-// 			match(antlr::RefAST(_t),IDENTIFIER);
-			_t = _t->getNextSibling();
-			kvalRef=ref_parameter(_t);
-			_t = _retTree;
-			// pass reference
-			actEnv->SetKeyword( knameR->getText(), kvalRef); 
-			
-			_t = __t160;
-			_t = _t->getNextSibling();
-			break;
-		}
-		case KEYDEF_REF_EXPR:
-		{
-			ProgNodeP __t161 = _t;
-
-// 			match(antlr::RefAST(_t),KEYDEF_REF_EXPR);
-			_t = _t->getFirstChild();
-			knameE = _t;
-// 			match(antlr::RefAST(_t),IDENTIFIER);
-			_t = _t->getNextSibling();
-			kval=expr(_t);
-			_t = _retTree;
-			kvalRef=ref_parameter(_t);
-			_t = _retTree;
-			// pass reference
-			delete kval;
-			actEnv->SetKeyword( knameE->getText(), kvalRef); 
-			
-			_t = __t161;
-			_t = _t->getNextSibling();
-			break;
-		}
-		case KEYDEF:
-		{
-			ProgNodeP __t162 = _t;
-
-// 			match(antlr::RefAST(_t),KEYDEF);
-			_t = _t->getFirstChild();
-			kname = _t;
-// 			match(antlr::RefAST(_t),IDENTIFIER);
-			_t = _t->getNextSibling();
-			kval=expr(_t);
-			_t = _retTree;
-			// pass value
-			actEnv->SetKeyword( kname->getText(), kval);
-			
-			_t = __t162;
-			_t = _t->getNextSibling();
-			break;
-		}
-		case REF:
-		{
-			ProgNodeP __t163 = _t;
-
-// 			match(antlr::RefAST(_t),REF);
-			_t = _t->getFirstChild();
-			pvalRef=ref_parameter(_t);
-			_t = _retTree;
-			// pass reference
-			actEnv->SetNextPar(pvalRef); 
-			
-			_t = __t163;
-			_t = _t->getNextSibling();
-			break;
-		}
-		case REF_EXPR:
-		{
-			ProgNodeP __t164 = _t;
-
-// 			match(antlr::RefAST(_t),REF_EXPR);
-			_t = _t->getFirstChild();
-			pval=expr(_t);
-			_t = _retTree;
-			pvalRef=ref_parameter(_t);
-			_t = _retTree;
-			// pass reference
-			delete pval;
-			actEnv->SetNextPar(pvalRef); 
-			
-			_t = __t164;
-			_t = _t->getNextSibling();
-			break;
-		}
- 		case KEYDEF_REF_CHECK:
-		{
-			ProgNodeP __t165 = _t;
-
-// 			match(antlr::RefAST(_t),KEYDEF_REF_CHECK);
-			_t = _t->getFirstChild();
-			knameCk = _t;
-// 			match(antlr::RefAST(_t),IDENTIFIER);
-			_t = _t->getNextSibling();
-			kval=check_expr(_t);
-			_t = _retTree;
-			
-			kvalRef = callStack.back()->GetPtrTo( kval);
-			if( kvalRef != NULL)
-			{   // pass reference
-			actEnv->SetKeyword(knameCk->getText(), kvalRef); 
-			}
-			else 
-			{   // pass value
-			actEnv->SetKeyword(knameCk->getText(), kval); 
-			}
-			
-			_t = __t165;
-			_t = _t->getNextSibling();
-			break;
-		}
-		case REF_CHECK:
-		{
-			ProgNodeP __t166 = _t;
-
-// 			match(antlr::RefAST(_t),REF_CHECK);
-			_t = _t->getFirstChild();
-			pval=check_expr(_t);
-			_t = _retTree;
-			
-			pvalRef = callStack.back()->GetPtrTo( pval);
-			if( pvalRef != NULL)
-			{   // pass reference
-			actEnv->SetNextPar( pvalRef); 
-			}
-			else 
-			{   // pass value
-			actEnv->SetNextPar( pval); 
-			}
-			
-			_t = __t166;
-			_t = _t->getNextSibling();
-			break;
-		}
-		default:
-		{
-			pval=expr(_t);
- 			_t = _retTree;
-			
-			// pass value
-			actEnv->SetNextPar(pval); 
-			
-			break;
-		}
-
-		} // switch
-    } // while
-
-	
 	actEnv->Extra(); // expand _EXTRA
 	guard.release();
 	
-	_retTree = _t;
-
     return;
+
+//     BaseGDL*  kval = NULL;
+//     BaseGDL*  pval;
+//     BaseGDL** kvalRef;
+//     BaseGDL** pvalRef;
+
+// // 	while(_t != NULL) {
+// // 		switch ( _t->getType()) {
+// // 		case KEYDEF_REF:
+// // 		{
+// // 			ProgNodeP __t160 = _t;
+
+// // // 			match(antlr::RefAST(_t),KEYDEF_REF);
+// // 			_t = _t->getFirstChild();
+// // 			knameR = _t;
+// // // 			match(antlr::RefAST(_t),IDENTIFIER);
+// // 			_t = _t->getNextSibling();
+// // 			kvalRef=ref_parameter(_t);
+// // 			_t = _retTree;
+// // 			// pass reference
+// // 			actEnv->SetKeyword( knameR->getText(), kvalRef); 
+			
+// // 			_t = __t160;
+// // 			_t = _t->getNextSibling();
+// // 			break;
+// // 		}
+// // 		case KEYDEF_REF_EXPR:
+// // 		{
+// // 			ProgNodeP __t161 = _t;
+
+// // // 			match(antlr::RefAST(_t),KEYDEF_REF_EXPR);
+// // 			_t = _t->getFirstChild();
+// // 			knameE = _t;
+// // // 			match(antlr::RefAST(_t),IDENTIFIER);
+// // 			_t = _t->getNextSibling();
+// // 			kval=expr(_t);
+// // 			_t = _retTree;
+// // 			kvalRef=ref_parameter(_t);
+// // 			_t = _retTree;
+// // 			// pass reference
+// // 			delete kval;
+// // 			actEnv->SetKeyword( knameE->getText(), kvalRef); 
+			
+// // 			_t = __t161;
+// // 			_t = _t->getNextSibling();
+// // 			break;
+// // 		}
+// // 		case KEYDEF:
+// // 		{
+// // 			ProgNodeP __t162 = _t;
+
+// // // 			match(antlr::RefAST(_t),KEYDEF);
+// // 			_t = _t->getFirstChild();
+// // 			kname = _t;
+// // // 			match(antlr::RefAST(_t),IDENTIFIER);
+// // 			_t = _t->getNextSibling();
+// // 			kval=expr(_t);
+// // 			_t = _retTree;
+// // 			// pass value
+// // 			actEnv->SetKeyword( kname->getText(), kval);
+			
+// // 			_t = __t162;
+// // 			_t = _t->getNextSibling();
+// // 			break;
+// // 		}
+// // 		case REF:
+// // 		{
+// // 			ProgNodeP __t163 = _t;
+
+// // // 			match(antlr::RefAST(_t),REF);
+// // 			_t = _t->getFirstChild();
+// // 			pvalRef=ref_parameter(_t);
+// // 			_t = _retTree;
+// // 			// pass reference
+// // 			actEnv->SetNextPar(pvalRef); 
+			
+// // 			_t = __t163;
+// // 			_t = _t->getNextSibling();
+// // 			break;
+// // 		}
+// // 		case REF_EXPR:
+// // 		{
+// // 			ProgNodeP __t164 = _t;
+
+// // // 			match(antlr::RefAST(_t),REF_EXPR);
+// // 			_t = _t->getFirstChild();
+// // 			pval=expr(_t);
+// // 			_t = _retTree;
+// // 			pvalRef=ref_parameter(_t);
+// // 			_t = _retTree;
+// // 			// pass reference
+// // 			delete pval;
+// // 			actEnv->SetNextPar(pvalRef); 
+			
+// // 			_t = __t164;
+// // 			_t = _t->getNextSibling();
+// // 			break;
+// // 		}
+// //  		case KEYDEF_REF_CHECK:
+// // 		{
+// // 			ProgNodeP __t165 = _t;
+
+// // // 			match(antlr::RefAST(_t),KEYDEF_REF_CHECK);
+// // 			_t = _t->getFirstChild();
+// // 			knameCk = _t;
+// // // 			match(antlr::RefAST(_t),IDENTIFIER);
+// // 			_t = _t->getNextSibling();
+// // 			kval=check_expr(_t);
+// // 			_t = _retTree;
+			
+// // 			kvalRef = callStack.back()->GetPtrTo( kval);
+// // 			if( kvalRef != NULL)
+// // 			{   // pass reference
+// // 			actEnv->SetKeyword(knameCk->getText(), kvalRef); 
+// // 			}
+// // 			else 
+// // 			{   // pass value
+// // 			actEnv->SetKeyword(knameCk->getText(), kval); 
+// // 			}
+			
+// // 			_t = __t165;
+// // 			_t = _t->getNextSibling();
+// // 			break;
+// // 		}
+// // 		case REF_CHECK:
+// // 		{
+// // 			ProgNodeP __t166 = _t;
+
+// // // 			match(antlr::RefAST(_t),REF_CHECK);
+// // 			_t = _t->getFirstChild();
+// // 			pval=check_expr(_t);
+// // 			_t = _retTree;
+			
+// // 			pvalRef = callStack.back()->GetPtrTo( pval);
+// // 			if( pvalRef != NULL)
+// // 			{   // pass reference
+// // 			actEnv->SetNextPar( pvalRef); 
+// // 			}
+// // 			else 
+// // 			{   // pass value
+// // 			actEnv->SetNextPar( pval); 
+// // 			}
+			
+// // 			_t = __t166;
+// // 			_t = _t->getNextSibling();
+// // 			break;
+// // 		}
+// // 		default:
+// // 		{
+// // 			pval=expr(_t);
+// //  			_t = _retTree;
+			
+// // 			// pass value
+// // 			actEnv->SetNextPar(pval); 
+			
+// // 			break;
+// // 		}
+
+// // 		} // switch
+// //     } // while
+
+	
+// // 	actEnv->Extra(); // expand _EXTRA
+// // 	guard.release();
+	
+// // 	_retTree = _t;
+
+// //     return;
 }
-    : (  #(KEYDEF_REF knameR:IDENTIFIER kvalRef=ref_parameter
-                {   // pass reference
-                    actEnv->SetKeyword( knameR->getText(), kvalRef); 
-                }
+    : (  #(KEYDEF_REF IDENTIFIER //ref_parameter
+//                 {   // pass reference
+//                     actEnv->SetKeyword( knameR->getText(), kvalRef); 
+//                 }
             )
-        | #(KEYDEF_REF_EXPR knameE:IDENTIFIER 
-                // execute ++ and assignment
-                kval=expr 
-                kvalRef=ref_parameter
-                {   // pass reference
-                    delete kval;
-                    actEnv->SetKeyword( knameE->getText(), kvalRef); 
-                }
-            )
-        | #(KEYDEF kname:IDENTIFIER kval=expr
-                {   // pass value
-                    actEnv->SetKeyword( kname->getText(), kval);
-                }
-            )
-        | #(REF pvalRef=ref_parameter
-                {   // pass reference
-                    actEnv->SetNextPar(pvalRef); 
-                }   
-            )
-        | #(REF_EXPR 
-                // execute ++ and assignment
-                pval=expr 
-                pvalRef=ref_parameter
-                {   // pass reference
-                    delete pval;
-                    actEnv->SetNextPar(pvalRef); 
-                }   
-            )
-        | pval=expr
-            {  
-                // pass value
-                actEnv->SetNextPar(pval); 
-            }
-        | #(KEYDEF_REF_CHECK knameCk:IDENTIFIER 
-                kval=check_expr
-                {
-                    kvalRef = callStack.back()->GetPtrTo( kval);
-                    if( kvalRef != NULL)
-                    {   // pass reference
-                        actEnv->SetKeyword(knameCk->getText(), kvalRef); 
-                    }
-                    else 
-                    {   // pass value
-                        actEnv->SetKeyword(knameCk->getText(), kval); 
-                    }
-                }
-            )   
-        | #(REF_CHECK
-                pval=check_expr
-                {
-                    pvalRef = callStack.back()->GetPtrTo( pval);
-                    if( pvalRef != NULL)
-                    {   // pass reference
-                        actEnv->SetNextPar( pvalRef); 
-                    }
-                    else 
-                    {   // pass value
-                        actEnv->SetNextPar( pval); 
-                    }
-                }       
-            )
+//         | #(KEYDEF_REF_EXPR IDENTIFIER 
+//                 // execute ++ and assignment
+//                 //expr 
+//                 //ref_parameter
+// //                 {   // pass reference
+// //                     delete kval;
+// //                     actEnv->SetKeyword( knameE->getText(), kvalRef); 
+// //                 }
+//             )
+//         | #(KEYDEF IDENTIFIER //expr
+// //                 {   // pass value
+// //                     actEnv->SetKeyword( kname->getText(), kval);
+// //                 }
+//             )
+//         | #(REF ref_parameter
+// //                 {   // pass reference
+// //                     actEnv->SetNextPar(pvalRef); 
+// //                 }   
+//             )
+//         | #(REF_EXPR 
+//                 // execute ++ and assignment
+//                 //expr 
+//                 //ref_parameter
+// //                 {   // pass reference
+// //                     delete pval;
+// //                     actEnv->SetNextPar(pvalRef); 
+// //                 }   
+//             )
+//         | //expr
+// //             {  
+// //                 // pass value
+// //                 actEnv->SetNextPar(pval); 
+// //             }
+//         | #(KEYDEF_REF_CHECK IDENTIFIER 
+//                 //check_expr
+// //                 {
+// //                     kvalRef = callStack.back()->GetPtrTo( kval);
+// //                     if( kvalRef != NULL)
+// //                     {   // pass reference
+// //                         actEnv->SetKeyword(knameCk->getText(), kvalRef); 
+// //                     }
+// //                     else 
+// //                     {   // pass value
+// //                         actEnv->SetKeyword(knameCk->getText(), kval); 
+// //                     }
+// //                 }
+//             )   
+//         | #(REF_CHECK
+//                 //check_expr
+// //                 {
+// //                     pvalRef = callStack.back()->GetPtrTo( pval);
+// //                     if( pvalRef != NULL)
+// //                     {   // pass reference
+// //                         actEnv->SetNextPar( pvalRef); 
+// //                     }
+// //                     else 
+// //                     {   // pass value
+// //                         actEnv->SetNextPar( pval); 
+// //                     }
+// //                 }       
+//             )
         )*             
-        {
-            actEnv->Extra(); // expand _EXTRA
-            guard.release();
-        }
+//         {
+//             actEnv->Extra(); // expand _EXTRA
+//             guard.release();
+//         }
 	;
 
 arrayindex_list returns [ArrayIndexListT* aL]

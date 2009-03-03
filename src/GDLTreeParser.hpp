@@ -66,7 +66,6 @@ class CUSTOM_API GDLTreeParser : public antlr::TreeParser, public GDLTreeParserT
         if( LoopVar( lN))
             {
                 Warning( "Warning: Assignment to FOR loop variable detected.");
-                return; // never assign_replace a loop variable
             }
         int lT = lN->getType();
         if( lT == FCALL || lT == MFCALL || lT == MFCALL_PARENT ||
@@ -207,10 +206,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 205;
+	static const int NUM_TOKENS = 206;
 #else
 	enum {
-		NUM_TOKENS = 205
+		NUM_TOKENS = 206
 	};
 #endif
 	
@@ -218,8 +217,6 @@ private:
 	static const antlr::BitSet _tokenSet_0;
 	static const unsigned long _tokenSet_1_data_[];
 	static const antlr::BitSet _tokenSet_1;
-	static const unsigned long _tokenSet_2_data_[];
-	static const antlr::BitSet _tokenSet_2;
 };
 
 #endif /*INC_GDLTreeParser_hpp_*/

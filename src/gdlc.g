@@ -112,6 +112,7 @@ tokens {
 	PCALL;
 	PCALL_LIB; // libraray procedure call
 	PARADECL;
+	PARAEXPR;
     POSTDEC;
     POSTINC; 
     DECSTATEMENT; // as a statement

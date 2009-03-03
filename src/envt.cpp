@@ -65,13 +65,13 @@ EnvT::EnvT( ProgNodeP cN, DSub* pro_):
   SizeT envSize;
   SizeT keySize;
   keySize=pro->key.size();
-  if( pro->nPar >= 0)
+  if( pro->nPar > 0)
     envSize=pro->nPar+keySize;
   else
     {
       envSize=keySize;
       // performance optimization
-      env.reserve(envSize+5);
+      //env.reserve(envSize+5);
     }
   env.resize(envSize);
   parIx=keySize; // set to first parameter
@@ -369,7 +369,7 @@ void EnvT::HeapGC( bool doPtr, bool doObj, bool verbose)
 	(*r)->AddEnv( ptrAccessible, objAccessible);
       }
 
-    // do OBJ first as the cleanup might need the PTR
+    // do OBJ first as the cleanup might need the PTR be valid
     if( doObj)
       {
 	DObjGDL* heap = interpreter->GetAllObjHeap();

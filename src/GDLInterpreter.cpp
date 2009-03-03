@@ -2598,7 +2598,7 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t) {
 		return aL;
 	
 	
-	ProgNodeP __t153 = _t;
+	ProgNodeP __t147 = _t;
 	ax = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	match(antlr::RefAST(_t),ARRAYIX);
 	_t = _t->getFirstChild();
@@ -2663,13 +2663,13 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t) {
 			}
 		}
 		else {
-			goto _loop156;
+			goto _loop150;
 		}
 		
 	}
-	_loop156:;
+	_loop150:;
 	} // ( ... )*
-	_t = __t153;
+	_t = __t147;
 	_t = _t->getNextSibling();
 	_retTree = _t;
 	return aL;
@@ -4955,370 +4955,210 @@ void GDLInterpreter::parameter_def(ProgNodeP _t,
 	EnvBaseT* actEnv
 ) {
 	ProgNodeP parameter_def_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
-	ProgNodeP knameR = ProgNodeP(antlr::nullAST);
-	ProgNodeP knameE = ProgNodeP(antlr::nullAST);
-	ProgNodeP kname = ProgNodeP(antlr::nullAST);
-	ProgNodeP knameCk = ProgNodeP(antlr::nullAST);
 	
 	auto_ptr<EnvBaseT> guard(actEnv); 
-	BaseGDL*  kval;
-	BaseGDL*  pval;
-	BaseGDL** kvalRef;
-	BaseGDL** pvalRef;
 	
-		while(_t != NULL) {
-			switch ( _t->getType()) {
-			case KEYDEF_REF:
-			{
-				ProgNodeP __t160 = _t;
+	_retTree = _t;
+		while(_retTree != NULL) {
+	static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
+	}    
 	
-	// 			match(antlr::RefAST(_t),KEYDEF_REF);
-				_t = _t->getFirstChild();
-				knameR = _t;
-	// 			match(antlr::RefAST(_t),IDENTIFIER);
-				_t = _t->getNextSibling();
-				kvalRef=ref_parameter(_t);
-				_t = _retTree;
-				// pass reference
-				actEnv->SetKeyword( knameR->getText(), kvalRef); 
-				
-				_t = __t160;
-				_t = _t->getNextSibling();
-				break;
-			}
-			case KEYDEF_REF_EXPR:
-			{
-				ProgNodeP __t161 = _t;
-	
-	// 			match(antlr::RefAST(_t),KEYDEF_REF_EXPR);
-				_t = _t->getFirstChild();
-				knameE = _t;
-	// 			match(antlr::RefAST(_t),IDENTIFIER);
-				_t = _t->getNextSibling();
-				kval=expr(_t);
-				_t = _retTree;
-				kvalRef=ref_parameter(_t);
-				_t = _retTree;
-				// pass reference
-				delete kval;
-				actEnv->SetKeyword( knameE->getText(), kvalRef); 
-				
-				_t = __t161;
-				_t = _t->getNextSibling();
-				break;
-			}
-			case KEYDEF:
-			{
-				ProgNodeP __t162 = _t;
-	
-	// 			match(antlr::RefAST(_t),KEYDEF);
-				_t = _t->getFirstChild();
-				kname = _t;
-	// 			match(antlr::RefAST(_t),IDENTIFIER);
-				_t = _t->getNextSibling();
-				kval=expr(_t);
-				_t = _retTree;
-				// pass value
-				actEnv->SetKeyword( kname->getText(), kval);
-				
-				_t = __t162;
-				_t = _t->getNextSibling();
-				break;
-			}
-			case REF:
-			{
-				ProgNodeP __t163 = _t;
-	
-	// 			match(antlr::RefAST(_t),REF);
-				_t = _t->getFirstChild();
-				pvalRef=ref_parameter(_t);
-				_t = _retTree;
-				// pass reference
-				actEnv->SetNextPar(pvalRef); 
-				
-				_t = __t163;
-				_t = _t->getNextSibling();
-				break;
-			}
-			case REF_EXPR:
-			{
-				ProgNodeP __t164 = _t;
-	
-	// 			match(antlr::RefAST(_t),REF_EXPR);
-				_t = _t->getFirstChild();
-				pval=expr(_t);
-				_t = _retTree;
-				pvalRef=ref_parameter(_t);
-				_t = _retTree;
-				// pass reference
-				delete pval;
-				actEnv->SetNextPar(pvalRef); 
-				
-				_t = __t164;
-				_t = _t->getNextSibling();
-				break;
-			}
-			case KEYDEF_REF_CHECK:
-			{
-				ProgNodeP __t165 = _t;
-	
-	// 			match(antlr::RefAST(_t),KEYDEF_REF_CHECK);
-				_t = _t->getFirstChild();
-				knameCk = _t;
-	// 			match(antlr::RefAST(_t),IDENTIFIER);
-				_t = _t->getNextSibling();
-				kval=check_expr(_t);
-				_t = _retTree;
-				
-				kvalRef = callStack.back()->GetPtrTo( kval);
-				if( kvalRef != NULL)
-				{   // pass reference
-				actEnv->SetKeyword(knameCk->getText(), kvalRef); 
-				}
-				else 
-				{   // pass value
-				actEnv->SetKeyword(knameCk->getText(), kval); 
-				}
-				
-				_t = __t165;
-				_t = _t->getNextSibling();
-				break;
-			}
-			case REF_CHECK:
-			{
-				ProgNodeP __t166 = _t;
-	
-	// 			match(antlr::RefAST(_t),REF_CHECK);
-				_t = _t->getFirstChild();
-				pval=check_expr(_t);
-				_t = _retTree;
-				
-				pvalRef = callStack.back()->GetPtrTo( pval);
-				if( pvalRef != NULL)
-				{   // pass reference
-				actEnv->SetNextPar( pvalRef); 
-				}
-				else 
-				{   // pass value
-				actEnv->SetNextPar( pval); 
-				}
-				
-				_t = __t166;
-				_t = _t->getNextSibling();
-				break;
-			}
-			default:
-			{
-				pval=expr(_t);
-				_t = _retTree;
-				
-				// pass value
-				actEnv->SetNextPar(pval); 
-				
-				break;
-			}
-	
-			} // switch
-	} // while
-	
-		
 		actEnv->Extra(); // expand _EXTRA
 		guard.release();
 		
-		_retTree = _t;
-	
 	return;
+	
+	//     BaseGDL*  kval = NULL;
+	//     BaseGDL*  pval;
+	//     BaseGDL** kvalRef;
+	//     BaseGDL** pvalRef;
+	
+	// // 	while(_t != NULL) {
+	// // 		switch ( _t->getType()) {
+	// // 		case KEYDEF_REF:
+	// // 		{
+	// // 			ProgNodeP __t160 = _t;
+	
+	// // // 			match(antlr::RefAST(_t),KEYDEF_REF);
+	// // 			_t = _t->getFirstChild();
+	// // 			knameR = _t;
+	// // // 			match(antlr::RefAST(_t),IDENTIFIER);
+	// // 			_t = _t->getNextSibling();
+	// // 			kvalRef=ref_parameter(_t);
+	// // 			_t = _retTree;
+	// // 			// pass reference
+	// // 			actEnv->SetKeyword( knameR->getText(), kvalRef); 
+				
+	// // 			_t = __t160;
+	// // 			_t = _t->getNextSibling();
+	// // 			break;
+	// // 		}
+	// // 		case KEYDEF_REF_EXPR:
+	// // 		{
+	// // 			ProgNodeP __t161 = _t;
+	
+	// // // 			match(antlr::RefAST(_t),KEYDEF_REF_EXPR);
+	// // 			_t = _t->getFirstChild();
+	// // 			knameE = _t;
+	// // // 			match(antlr::RefAST(_t),IDENTIFIER);
+	// // 			_t = _t->getNextSibling();
+	// // 			kval=expr(_t);
+	// // 			_t = _retTree;
+	// // 			kvalRef=ref_parameter(_t);
+	// // 			_t = _retTree;
+	// // 			// pass reference
+	// // 			delete kval;
+	// // 			actEnv->SetKeyword( knameE->getText(), kvalRef); 
+				
+	// // 			_t = __t161;
+	// // 			_t = _t->getNextSibling();
+	// // 			break;
+	// // 		}
+	// // 		case KEYDEF:
+	// // 		{
+	// // 			ProgNodeP __t162 = _t;
+	
+	// // // 			match(antlr::RefAST(_t),KEYDEF);
+	// // 			_t = _t->getFirstChild();
+	// // 			kname = _t;
+	// // // 			match(antlr::RefAST(_t),IDENTIFIER);
+	// // 			_t = _t->getNextSibling();
+	// // 			kval=expr(_t);
+	// // 			_t = _retTree;
+	// // 			// pass value
+	// // 			actEnv->SetKeyword( kname->getText(), kval);
+				
+	// // 			_t = __t162;
+	// // 			_t = _t->getNextSibling();
+	// // 			break;
+	// // 		}
+	// // 		case REF:
+	// // 		{
+	// // 			ProgNodeP __t163 = _t;
+	
+	// // // 			match(antlr::RefAST(_t),REF);
+	// // 			_t = _t->getFirstChild();
+	// // 			pvalRef=ref_parameter(_t);
+	// // 			_t = _retTree;
+	// // 			// pass reference
+	// // 			actEnv->SetNextPar(pvalRef); 
+				
+	// // 			_t = __t163;
+	// // 			_t = _t->getNextSibling();
+	// // 			break;
+	// // 		}
+	// // 		case REF_EXPR:
+	// // 		{
+	// // 			ProgNodeP __t164 = _t;
+	
+	// // // 			match(antlr::RefAST(_t),REF_EXPR);
+	// // 			_t = _t->getFirstChild();
+	// // 			pval=expr(_t);
+	// // 			_t = _retTree;
+	// // 			pvalRef=ref_parameter(_t);
+	// // 			_t = _retTree;
+	// // 			// pass reference
+	// // 			delete pval;
+	// // 			actEnv->SetNextPar(pvalRef); 
+				
+	// // 			_t = __t164;
+	// // 			_t = _t->getNextSibling();
+	// // 			break;
+	// // 		}
+	// //  		case KEYDEF_REF_CHECK:
+	// // 		{
+	// // 			ProgNodeP __t165 = _t;
+	
+	// // // 			match(antlr::RefAST(_t),KEYDEF_REF_CHECK);
+	// // 			_t = _t->getFirstChild();
+	// // 			knameCk = _t;
+	// // // 			match(antlr::RefAST(_t),IDENTIFIER);
+	// // 			_t = _t->getNextSibling();
+	// // 			kval=check_expr(_t);
+	// // 			_t = _retTree;
+				
+	// // 			kvalRef = callStack.back()->GetPtrTo( kval);
+	// // 			if( kvalRef != NULL)
+	// // 			{   // pass reference
+	// // 			actEnv->SetKeyword(knameCk->getText(), kvalRef); 
+	// // 			}
+	// // 			else 
+	// // 			{   // pass value
+	// // 			actEnv->SetKeyword(knameCk->getText(), kval); 
+	// // 			}
+				
+	// // 			_t = __t165;
+	// // 			_t = _t->getNextSibling();
+	// // 			break;
+	// // 		}
+	// // 		case REF_CHECK:
+	// // 		{
+	// // 			ProgNodeP __t166 = _t;
+	
+	// // // 			match(antlr::RefAST(_t),REF_CHECK);
+	// // 			_t = _t->getFirstChild();
+	// // 			pval=check_expr(_t);
+	// // 			_t = _retTree;
+				
+	// // 			pvalRef = callStack.back()->GetPtrTo( pval);
+	// // 			if( pvalRef != NULL)
+	// // 			{   // pass reference
+	// // 			actEnv->SetNextPar( pvalRef); 
+	// // 			}
+	// // 			else 
+	// // 			{   // pass value
+	// // 			actEnv->SetNextPar( pval); 
+	// // 			}
+				
+	// // 			_t = __t166;
+	// // 			_t = _t->getNextSibling();
+	// // 			break;
+	// // 		}
+	// // 		default:
+	// // 		{
+	// // 			pval=expr(_t);
+	// //  			_t = _retTree;
+				
+	// // 			// pass value
+	// // 			actEnv->SetNextPar(pval); 
+				
+	// // 			break;
+	// // 		}
+	
+	// // 		} // switch
+	// //     } // while
+	
+		
+	// // 	actEnv->Extra(); // expand _EXTRA
+	// // 	guard.release();
+		
+	// // 	_retTree = _t;
+	
+	// //     return;
 	
 	
 	{ // ( ... )*
 	for (;;) {
 		if (_t == ProgNodeP(antlr::nullAST) )
 			_t = ASTNULL;
-		switch ( _t->getType()) {
-		case KEYDEF_REF:
-		{
+		if ((_t->getType() == KEYDEF_REF)) {
 			ProgNodeP __t144 = _t;
 			ProgNodeP tmp40_AST_in = _t;
 			match(antlr::RefAST(_t),KEYDEF_REF);
 			_t = _t->getFirstChild();
-			knameR = _t;
+			ProgNodeP tmp41_AST_in = _t;
 			match(antlr::RefAST(_t),IDENTIFIER);
 			_t = _t->getNextSibling();
-			kvalRef=ref_parameter(_t);
-			_t = _retTree;
-			// pass reference
-			actEnv->SetKeyword( knameR->getText(), kvalRef); 
-			
 			_t = __t144;
 			_t = _t->getNextSibling();
-			break;
 		}
-		case KEYDEF_REF_EXPR:
-		{
-			ProgNodeP __t145 = _t;
-			ProgNodeP tmp41_AST_in = _t;
-			match(antlr::RefAST(_t),KEYDEF_REF_EXPR);
-			_t = _t->getFirstChild();
-			knameE = _t;
-			match(antlr::RefAST(_t),IDENTIFIER);
-			_t = _t->getNextSibling();
-			kval=expr(_t);
-			_t = _retTree;
-			kvalRef=ref_parameter(_t);
-			_t = _retTree;
-			// pass reference
-			delete kval;
-			actEnv->SetKeyword( knameE->getText(), kvalRef); 
-			
-			_t = __t145;
-			_t = _t->getNextSibling();
-			break;
+		else {
+			goto _loop145;
 		}
-		case KEYDEF:
-		{
-			ProgNodeP __t146 = _t;
-			ProgNodeP tmp42_AST_in = _t;
-			match(antlr::RefAST(_t),KEYDEF);
-			_t = _t->getFirstChild();
-			kname = _t;
-			match(antlr::RefAST(_t),IDENTIFIER);
-			_t = _t->getNextSibling();
-			kval=expr(_t);
-			_t = _retTree;
-			// pass value
-			actEnv->SetKeyword( kname->getText(), kval);
-			
-			_t = __t146;
-			_t = _t->getNextSibling();
-			break;
-		}
-		case REF:
-		{
-			ProgNodeP __t147 = _t;
-			ProgNodeP tmp43_AST_in = _t;
-			match(antlr::RefAST(_t),REF);
-			_t = _t->getFirstChild();
-			pvalRef=ref_parameter(_t);
-			_t = _retTree;
-			// pass reference
-			actEnv->SetNextPar(pvalRef); 
-			
-			_t = __t147;
-			_t = _t->getNextSibling();
-			break;
-		}
-		case REF_EXPR:
-		{
-			ProgNodeP __t148 = _t;
-			ProgNodeP tmp44_AST_in = _t;
-			match(antlr::RefAST(_t),REF_EXPR);
-			_t = _t->getFirstChild();
-			pval=expr(_t);
-			_t = _retTree;
-			pvalRef=ref_parameter(_t);
-			_t = _retTree;
-			// pass reference
-			delete pval;
-			actEnv->SetNextPar(pvalRef); 
-			
-			_t = __t148;
-			_t = _t->getNextSibling();
-			break;
-		}
-		case ASSIGN:
-		case ASSIGN_REPLACE:
-		case ARRAYDEF:
-		case ARRAYEXPR:
-		case CONSTANT:
-		case DEREF:
-		case EXPR:
-		case FCALL:
-		case FCALL_LIB:
-		case FCALL_LIB_RETNEW:
-		case MFCALL:
-		case MFCALL_PARENT:
-		case NSTRUC:
-		case NSTRUC_REF:
-		case POSTDEC:
-		case POSTINC:
-		case STRUC:
-		case SYSVAR:
-		case VAR:
-		case VARPTR:
-		case DEC:
-		case INC:
-		case DOT:
-		case QUESTION:
-		{
-			pval=expr(_t);
-			_t = _retTree;
-			
-			// pass value
-			actEnv->SetNextPar(pval); 
-			
-			break;
-		}
-		case KEYDEF_REF_CHECK:
-		{
-			ProgNodeP __t149 = _t;
-			ProgNodeP tmp45_AST_in = _t;
-			match(antlr::RefAST(_t),KEYDEF_REF_CHECK);
-			_t = _t->getFirstChild();
-			knameCk = _t;
-			match(antlr::RefAST(_t),IDENTIFIER);
-			_t = _t->getNextSibling();
-			kval=check_expr(_t);
-			_t = _retTree;
-			
-			kvalRef = callStack.back()->GetPtrTo( kval);
-			if( kvalRef != NULL)
-			{   // pass reference
-			actEnv->SetKeyword(knameCk->getText(), kvalRef); 
-			}
-			else 
-			{   // pass value
-			actEnv->SetKeyword(knameCk->getText(), kval); 
-			}
-			
-			_t = __t149;
-			_t = _t->getNextSibling();
-			break;
-		}
-		case REF_CHECK:
-		{
-			ProgNodeP __t150 = _t;
-			ProgNodeP tmp46_AST_in = _t;
-			match(antlr::RefAST(_t),REF_CHECK);
-			_t = _t->getFirstChild();
-			pval=check_expr(_t);
-			_t = _retTree;
-			
-			pvalRef = callStack.back()->GetPtrTo( pval);
-			if( pvalRef != NULL)
-			{   // pass reference
-			actEnv->SetNextPar( pvalRef); 
-			}
-			else 
-			{   // pass value
-			actEnv->SetNextPar( pval); 
-			}
-			
-			_t = __t150;
-			_t = _t->getNextSibling();
-			break;
-		}
-		default:
-		{
-			goto _loop151;
-		}
-		}
+		
 	}
-	_loop151:;
+	_loop145:;
 	} // ( ... )*
-	
-	actEnv->Extra(); // expand _EXTRA
-	guard.release();
-	
 	_retTree = _t;
 }
 
@@ -5428,6 +5268,7 @@ const char* GDLInterpreter::tokenNames[] = {
 	"PCALL",
 	"PCALL_LIB",
 	"PARADECL",
+	"PARAEXPR",
 	"POSTDEC",
 	"POSTINC",
 	"DECSTATEMENT",
@@ -5583,17 +5424,17 @@ const char* GDLInterpreter::tokenNames[] = {
 	0
 };
 
-const unsigned long GDLInterpreter::_tokenSet_0_data_[] = { 2283536544UL, 1611530464UL, 169869440UL, 394440UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLInterpreter::_tokenSet_0_data_[] = { 2283536544UL, 3222143200UL, 339738880UL, 788880UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN ASSIGN_REPLACE BLOCK BREAK CONTINUE FOR_STEP IF_ELSE LABEL MPCALL 
 // MPCALL_PARENT ON_IOERROR_NULL PCALL PCALL_LIB RETF RETP "case" "for" 
 // "goto" "if" "on_ioerror" "repeat" "switch" "while" DEC INC 
 const antlr::BitSet GDLInterpreter::_tokenSet_0(_tokenSet_0_data_,8);
-const unsigned long GDLInterpreter::_tokenSet_1_data_[] = { 1971388832UL, 2153875712UL, 13UL, 393216UL, 0UL, 67125248UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLInterpreter::_tokenSet_1_data_[] = { 1971388832UL, 12683520UL, 27UL, 786432UL, 0UL, 134250496UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN ASSIGN_REPLACE ARRAYDEF ARRAYEXPR CONSTANT DEREF EXPR FCALL FCALL_LIB 
 // FCALL_LIB_RETNEW MFCALL MFCALL_PARENT NSTRUC NSTRUC_REF POSTDEC POSTINC 
 // STRUC SYSVAR VAR VARPTR DEC INC DOT QUESTION 
 const antlr::BitSet GDLInterpreter::_tokenSet_1(_tokenSet_1_data_,12);
-const unsigned long GDLInterpreter::_tokenSet_2_data_[] = { 897647008UL, 2153875712UL, 13UL, 393216UL, 0UL, 67125248UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLInterpreter::_tokenSet_2_data_[] = { 897647008UL, 12683520UL, 27UL, 786432UL, 0UL, 134250496UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN ASSIGN_REPLACE ARRAYDEF ARRAYEXPR CONSTANT DEREF EXPR FCALL FCALL_LIB 
 // MFCALL MFCALL_PARENT NSTRUC NSTRUC_REF POSTDEC POSTINC STRUC SYSVAR 
 // VAR VARPTR DEC INC DOT QUESTION 

@@ -50,6 +50,15 @@ friend class MPCALLNode;//: public CommandNode
 friend class MPCALL_PARENTNode;//: public CommandNode
 friend class PCALLNode;//: public CommandNode
 
+  friend class KEYDEFNode;
+  friend class KEYDEF_REFNode;
+  friend class KEYDEF_REF_CHECKNode;
+  friend class KEYDEF_REF_EXPRNode;
+  friend class REFNode;
+  friend class REF_CHECKNode;
+  friend class REF_EXPRNode;
+  friend class ParameterNode;
+
 public: 
 //     RetCode returnCode;    
 
@@ -495,10 +504,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 205;
+	static const int NUM_TOKENS = 206;
 #else
 	enum {
-		NUM_TOKENS = 205
+		NUM_TOKENS = 206
 	};
 #endif
 	

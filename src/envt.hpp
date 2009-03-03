@@ -88,7 +88,7 @@ public:
   SizeT AddEnv()
   {
     SizeT s = env.size();
-    env.resize(s+1);
+    env.AddOne();
     return s;
   }
 

@@ -64,6 +64,8 @@ options {
 }
 {
     private:
+//    ProgNodeP       returnProgNodeP;
+    
     DCompiler       comp; // each tree parser has its own compiler
     
     IDList          loopVarStack;
@@ -179,6 +181,7 @@ options {
 // file parsing
 translation_unit
 {
+//    returnProgNodeP = _t;
     bool mainStarted = false;
 }
 	: (   options {greedy=true;}: procedure_def
@@ -560,12 +563,12 @@ if_statement!//
 	;
 
 procedure_call
-	: #(MPCALL expr IDENTIFIER (parameter_def)*
+	: #(MPCALL expr IDENTIFIER parameter_def
         )
 	| #(MPCALL_PARENT expr IDENTIFIER
-            IDENTIFIER (parameter_def)*
+            IDENTIFIER parameter_def
         )
-	| #(p:PCALL id:IDENTIFIER (parameter_def)*
+	| #(p:PCALL id:IDENTIFIER parameter_def
             {
                 // first search library procedures
                 int i=LibProIx(#id->getText());
@@ -586,8 +589,8 @@ procedure_call
 	;	    
 
 parameter_def
-    : key_parameter
-    | pos_parameter
+    : (key_parameter
+    | pos_parameter)*
     ;
 
 key_parameter!//
@@ -615,12 +618,17 @@ key_parameter!//
                     int t = #k->getType();
                     if( t == FCALL_LIB || t == MFCALL_LIB || 
                         t == MFCALL_PARENT_LIB ||
-                        t == FCALL_LIB_RETNEW || t == MFCALL_LIB_RETNEW || 
-                        t == MFCALL_PARENT_LIB_RETNEW) 
+                         t == FCALL_LIB_RETNEW || t == MFCALL_LIB_RETNEW || 
+                         t == MFCALL_PARENT_LIB_RETNEW) 
                     {
                         #d=#[KEYDEF_REF_CHECK,"keydef_ref_check"];
                         #key_parameter=#(d,i,k);
                     }
+//                     else if( t == FCALL_LIB_RETNEW || t == MFCALL_LIB_RETNEW) 
+//                     {
+// //                         #d=#[KEYDEF_REF,"keydef_ref"];
+//                         #key_parameter=#(d,i,k);
+//                     }
                     else
                     {
                         #key_parameter=#(d,i,k);
@@ -653,15 +661,15 @@ pos_parameter!//
                 int t = #e->getType();
                 if( t == FCALL_LIB || t == MFCALL_LIB || 
                     t == MFCALL_PARENT_LIB ||
-                    t == FCALL_LIB_RETNEW || t == MFCALL_LIB_RETNEW || 
-                    t == MFCALL_PARENT_LIB_RETNEW) 
+                     t == FCALL_LIB_RETNEW || t == MFCALL_LIB_RETNEW || 
+                     t == MFCALL_PARENT_LIB_RETNEW) 
                 {
                     // something like: CALLAPRO,reform(a,/OVERWRITE)
                     #pos_parameter=#([REF_CHECK,"ref_check"],e);
                 }
                 else
                 {
-                    #pos_parameter= #( NULL, e);
+                    #pos_parameter= #([PARAEXPR,"paraexpr"], e);
                 }
             }
         }
@@ -1224,12 +1232,12 @@ int dummy;
 }
     : assign_expr
     | comp_assign_expr   
-	| #(MFCALL expr IDENTIFIER (parameter_def)*
+	| #(MFCALL expr IDENTIFIER parameter_def
         )
 	| #(MFCALL_PARENT expr IDENTIFIER
-            IDENTIFIER (parameter_def)*
+            IDENTIFIER parameter_def
         )
-	| #(f:FCALL id:IDENTIFIER! (parameter_def)*
+	| #(f:FCALL id:IDENTIFIER! parameter_def
             {
                 // first search library functions
                 int i=LibFunIx(id->getText());

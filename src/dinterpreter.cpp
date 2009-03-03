@@ -57,6 +57,7 @@ ProgNodeP GDLInterpreter::NULLProgNodeP = &GDLInterpreter::NULLProgNode;
 
 DInterpreter::DInterpreter(): GDLInterpreter()
 {
+//  DataStackT::Init();
 
 #ifdef HAVE_LIBREADLINE
   // initialize readline (own version - not pythons one)
@@ -388,10 +389,15 @@ bool GDLInterpreter::CompileFile(const string& f, const string& untilPro)
       if( treeParser.ActiveProCompiled()) RetAll();
       return false;
     }
-
+// #ifdef GDL_DEBUG
+//   cout << "Tree parser output:" << endl;
+//   pt.pr_tree(static_cast<antlr::RefAST>(trAST));
+//   cout << "ExecuteLine: Tree parser end." << endl;
+// #endif
 #ifdef GDL_DEBUG
       cout << "Tree parser output:" << endl;
-      pt.pr_tree(static_cast<antlr::RefAST>(trAST));
+      antlr::print_tree ptTP;
+      ptTP.pr_tree(static_cast<antlr::RefAST>(trAST));
       cout << "CompileFile: Tree parser end." << endl;
 #endif
   

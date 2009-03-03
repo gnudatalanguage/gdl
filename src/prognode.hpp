@@ -151,6 +151,16 @@ friend class PCALL_LIBNode;//: public CommandNode
 friend class MPCALLNode;//: public CommandNode
 friend class MPCALL_PARENTNode;//: public CommandNode
 friend class PCALLNode;//: public CommandNode
+
+  friend class KEYDEF_Node;
+  friend class KEYDEF_REFNode;
+  friend class KEYDEF_REF_CHECKNode;
+  friend class KEYDEF_REF_EXPRNode;
+  friend class REFNode;
+  friend class REF_CHECKNode;
+  friend class REF_EXPRNode;
+  friend class ParameterNode;
+
 };
 
 class DefaultNode: public ProgNode
@@ -173,14 +183,71 @@ public:
 
 //#undef UNDEF
 //#ifdef UNDEF
+class EnvBaseT;
+
+class ParameterNode: public DefaultNode
+{
+public:
+  ParameterNode( const RefDNode& refNode): DefaultNode( refNode) {}
+  virtual void Parameter( EnvBaseT* actEnv);
+};
+
+class KEYDEF_REFNode: public ParameterNode
+{
+public:
+  KEYDEF_REFNode( const RefDNode& refNode): ParameterNode( refNode) {}
+  void Parameter( EnvBaseT* actEnv);
+};
+
+class KEYDEF_REF_EXPRNode: public ParameterNode
+{
+public:
+  KEYDEF_REF_EXPRNode( const RefDNode& refNode): ParameterNode( refNode) {}
+  void Parameter( EnvBaseT* actEnv);
+};
+
+class KEYDEF_REF_CHECKNode: public ParameterNode
+{
+public:
+  KEYDEF_REF_CHECKNode( const RefDNode& refNode): ParameterNode( refNode) {}
+  void Parameter( EnvBaseT* actEnv);
+};
+
+class KEYDEFNode: public ParameterNode
+{
+public:
+  KEYDEFNode( const RefDNode& refNode): ParameterNode( refNode) {}
+  void Parameter( EnvBaseT* actEnv);
+};
+
+class REF_EXPRNode: public ParameterNode
+{
+public:
+  REF_EXPRNode( const RefDNode& refNode): ParameterNode( refNode) {}
+  void Parameter( EnvBaseT* actEnv);
+};
+
+class REF_CHECKNode: public ParameterNode
+{
+public:
+  REF_CHECKNode( const RefDNode& refNode): ParameterNode( refNode) {}
+  void Parameter( EnvBaseT* actEnv);
+};
+
+class REFNode: public ParameterNode
+{
+public:
+  REFNode( const RefDNode& refNode): ParameterNode( refNode) {}
+  void Parameter( EnvBaseT* actEnv);
+};
+
+
 
 class CommandNode: public DefaultNode
 {
 public:
   CommandNode( const RefDNode& refNode): DefaultNode( refNode) {}
- 
 };
-
 class ASSIGNNode: public CommandNode
 {
 public:

@@ -332,6 +332,127 @@ BaseGDL* NSTRUC_REFNode::Eval()
   return res;
 }
 
+
+
+void KEYDEF_REFNode::Parameter( EnvBaseT* actEnv)
+{
+  ProgNodeP _t = this->getFirstChild();
+//   ProgNodeP knameR = _t;
+  // 			match(antlr::RefAST(_t),IDENTIFIER);
+//   _t = _t->getNextSibling();
+  BaseGDL** kvalRef=ProgNode::interpreter->ref_parameter(_t->getNextSibling());
+
+  // pass reference
+  actEnv->SetKeyword( _t->getText(), kvalRef); 
+			
+  ProgNode::interpreter->_retTree = this->getNextSibling();
+}
+
+void KEYDEF_REF_EXPRNode::Parameter( EnvBaseT* actEnv)
+{
+  ProgNodeP _t = this->getFirstChild();
+//   ProgNodeP knameE = _t;
+  // 			match(antlr::RefAST(_t),IDENTIFIER);
+//   _t = _t->getNextSibling();
+  BaseGDL* kval= _t->getNextSibling()->Eval();//expr(_t);
+  delete kval;
+
+//   _t = ProgNode::interpreter->_retTree;
+  BaseGDL** kvalRef=ProgNode::interpreter->
+    ref_parameter(ProgNode::interpreter->_retTree);
+
+  // pass reference
+  actEnv->SetKeyword( _t->getText(), kvalRef); 
+			
+  ProgNode::interpreter->_retTree = this->getNextSibling();
+}
+void KEYDEFNode::Parameter( EnvBaseT* actEnv)
+{
+   ProgNodeP _t = this->getFirstChild();
+  // 			match(antlr::RefAST(_t),IDENTIFIER);
+//   _t = _t->getNextSibling();
+  BaseGDL* kval= _t->getNextSibling()->Eval();//expr(_t);
+//   _t = ProgNode::interpreter->_retTree;
+  // pass value
+  actEnv->SetKeyword( _t->getText(), kval);
+			
+  ProgNode::interpreter->_retTree = this->getNextSibling();
+}
+void REFNode::Parameter( EnvBaseT* actEnv)
+{
+//   ProgNodeP _t = this->getFirstChild();
+  BaseGDL** pvalRef=ProgNode::interpreter->ref_parameter(this->getFirstChild());
+//   _t = ProgNode::interpreter->_retTree;
+  // pass reference
+  actEnv->SetNextPar(pvalRef); 
+			
+  ProgNode::interpreter->_retTree = this->getNextSibling();
+}
+void REF_EXPRNode::Parameter( EnvBaseT* actEnv)
+{
+  // 			match(antlr::RefAST(_t),REF_EXPR);
+//   ProgNodeP _t = this->getFirstChild();
+  BaseGDL* pval= this->getFirstChild()->Eval();//expr(_t);
+  delete pval;
+//   _t = ProgNode::interpreter->_retTree;
+  BaseGDL** pvalRef=ProgNode::interpreter->
+    ref_parameter( ProgNode::interpreter->_retTree);
+
+  // pass reference
+  actEnv->SetNextPar(pvalRef); 
+			
+  ProgNode::interpreter->_retTree = this->getNextSibling();
+}
+void KEYDEF_REF_CHECKNode::Parameter( EnvBaseT* actEnv)
+{
+//   ProgNodeP _t = this->getFirstChild();
+//   ProgNodeP knameCk = _t;
+  // 			match(antlr::RefAST(_t),IDENTIFIER);
+//   _t = _t->getNextSibling();
+  BaseGDL* kval=ProgNode::interpreter->
+    check_expr(this->getFirstChild()->getNextSibling());
+			
+  BaseGDL** kvalRef = ProgNode::interpreter->callStack.back()->GetPtrTo( kval);
+  if( kvalRef != NULL)
+    {   // pass reference
+      actEnv->SetKeyword(this->getFirstChild()->getText(), kvalRef); 
+    }
+  else 
+    {   // pass value
+      actEnv->SetKeyword(this->getFirstChild()->getText(), kval); 
+    }
+			
+  ProgNode::interpreter->_retTree = this->getNextSibling();
+}
+void REF_CHECKNode::Parameter( EnvBaseT* actEnv)
+{
+  BaseGDL* pval=ProgNode::interpreter->check_expr(this->getFirstChild());
+			
+  BaseGDL** pvalRef = ProgNode::interpreter->callStack.back()->GetPtrTo( pval);
+  if( pvalRef != NULL)
+    {   // pass reference
+      actEnv->SetNextPar( pvalRef); 
+    }
+  else 
+    {   // pass value
+      actEnv->SetNextPar( pval); 
+    }
+			
+  ProgNode::interpreter->_retTree = this->getNextSibling();
+}
+
+void ParameterNode::Parameter( EnvBaseT* actEnv)
+{
+//   BaseGDL* pval=this->Eval();//expr(this);
+			
+  // pass value
+  actEnv->SetNextPar(this->getFirstChild()->Eval()); 
+			
+  ProgNode::interpreter->_retTree = this->getNextSibling();
+}
+
+
+
 void ASSIGNNode::Run()
 {
   BaseGDL*  r;
@@ -545,7 +666,6 @@ void PCALLNode::Run()
   StackGuard<EnvStackT> guard(ProgNode::interpreter->callStack);
   EnvUDT*   newEnv;
 	
-
   // 			match(antlr::RefAST(_t),PCALL);
   ProgNodeP _t = this->getFirstChild();
   ProgNodeP p = _t;
@@ -557,7 +677,6 @@ void PCALLNode::Run()
   newEnv = new EnvUDT( p, proList[p->proIx]);
 			
   ProgNode::interpreter->parameter_def(_t, newEnv);
-
 
   // push environment onto call stack
   ProgNode::interpreter->callStack.push_back(newEnv);
