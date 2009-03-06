@@ -1069,6 +1069,9 @@ namespace lib {
 	  bsize = (b - a) / nbins;
       }
 
+    // in this case bsize was not calculated before (nor assumed 1.0 by default):
+    if (binsizeKW == NULL && maxKW == NULL && nbinsKW != NULL) bsize = (b - a) / nbins;
+
     if( bsize < 0 || a > b)
       e->Throw( "Illegal binsize or max/min.");
 
@@ -1114,7 +1117,6 @@ namespace lib {
  
     gsl_histogram* hh = gsl_histogram_alloc( nbins);
     gsl_histogram_set_ranges_uniform( hh, a, b);
-
 
     // Set maxVal from keyword if present
     if (maxKW != NULL) e->AssureDoubleScalarKW( 2, maxVal);
