@@ -674,7 +674,7 @@ public:
     DByteGDL* p0B;
     p0B =static_cast<DByteGDL*>(p0->Convert2(BYTE,BaseGDL::COPY));
     //e->Guard( p0B);
-
+    
     int width, height;
     DLong tru=0;
     e->AssureLongScalarKWIfPresent( "TRUE", tru);
@@ -715,9 +715,17 @@ public:
 	width = p0B->Dim(0);
 	height = p0B->Dim(1);
       }
-      if (tru == 0) {
+      if (tru == 0) {  // here we have a rank =3
 	width = p0B->Dim(0);
 	height = p0B->Dim(1);
+	if (p0B->Dim(0) == 1) {
+	  width = p0B->Dim(1);
+	  height = p0B->Dim(2);
+	} 
+	if (p0B->Dim(1) == 1) {
+	  width = p0B->Dim(0);
+	  height = p0B->Dim(2);
+	}
       }
       if (DimProblem == 1) {
 	throw GDLException( e->CallingNode(),
@@ -728,10 +736,12 @@ public:
     }
     int debug=0;
     if (debug == 1) {
+      std::cout << "==================== " << std::endl;
       std::cout << "true " << tru <<std::endl;
       std::cout << "Rank " << rank <<std::endl;
       std::cout << "width " << width <<std::endl;
       std::cout << "height " << height <<std::endl;
+      std::cout << "nParam " << nParam <<std::endl;
     }
 
     DLong xLL=0, yLL=0, pos=0;
