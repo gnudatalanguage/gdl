@@ -1055,6 +1055,12 @@ namespace lib {
 	// !MAX && BINSIZE && NBINS -> determine MAX
 	if (binsizeKW != NULL && nbinsKW != NULL) 
 	  b = a + bsize * nbins;
+        // SA: !MAX && !BINSIZE && NBINS -> binsize = (max - min) / (nbins - 1)
+        else if (binsizeKW == NULL && nbinsKW != NULL) 
+        {
+          bsize = (maxVal - minVal) / (nbins - 1);
+          b = a + nbins * bsize;
+        }
 	else if( p0->Type() == BYTE)
 	  b = 255.0;
 	else 
@@ -1068,9 +1074,6 @@ namespace lib {
 	if( binsizeKW == NULL && nbinsKW != NULL)
 	  bsize = (b - a) / nbins;
       }
-
-    // in this case bsize was not calculated before (nor assumed 1.0 by default):
-    if (binsizeKW == NULL && maxKW == NULL && nbinsKW != NULL) bsize = (b - a) / nbins;
 
     if( bsize < 0 || a > b)
       e->Throw( "Illegal binsize or max/min.");
@@ -1113,7 +1116,11 @@ namespace lib {
  
     // Adjust "b" if binsize specified otherwise gsl_histogram_set_ranges_uniform
     // will change bsize to (b-a)/nbins
-    if( binsizeKW != NULL) b = a+nbins*bsize;
+    // SA: another case when it's needed: !MAX && !BINSIZE && NBINS
+    if ( 
+      binsizeKW != NULL 
+      || (binsizeKW == NULL && maxKW == NULL && nbinsKW != NULL)
+    ) b = a + nbins * bsize;
  
     gsl_histogram* hh = gsl_histogram_alloc( nbins);
     gsl_histogram_set_ranges_uniform( hh, a, b);
