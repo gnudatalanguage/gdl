@@ -172,6 +172,13 @@ void InitStructs()
   widgtxt->AddTag("SELECT", &aLong);
   // insert into structList
   structList.push_back( widgtxt);
+
+  DStructDesc* widgver = new DStructDesc( "WIDGET_VERSION");
+  widgver->AddTag("STYLE", &aString);
+  widgver->AddTag("TOOLKIT", &aString);
+  widgver->AddTag("RELEASE", &aString);
+  // insert into structList
+  structList.push_back( widgver);
 }
 
 void InitObjects()

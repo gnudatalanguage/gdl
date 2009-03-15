@@ -126,7 +126,13 @@ namespace lib {
     bool floating = e->KeywordSet( floatingIx);
     bool grid_layout = e->KeywordSet( grid_layoutIx);
     bool kbrd_focus_events = e->KeywordSet( kbrd_focus_eventsIx);
-    bool mapWid = e->KeywordSet( mapIx);
+
+    bool mapWid = true;
+    if ( e->KeywordPresent( mapIx))
+      if ( !e->KeywordSet( mapIx))
+	mapWid = false;
+    std::cout << "Map in widget_base: " << mapWid << std::endl;
+
     bool no_copy = e->KeywordSet( no_copyIx);
     bool scroll = e->KeywordSet( scrollIx);
     bool sensitive = e->KeywordSet( sensitiveIx);
@@ -261,7 +267,7 @@ namespace lib {
     if( nonexclusive) exclusiveMode = 2;
 
     DLong events;
-    
+
     GDLWidgetBase* base = new GDLWidgetBase( parentID, 
 					     uvalue, uname,
 					     sensitive, mapWid,
@@ -342,6 +348,35 @@ namespace lib {
   }
 
 
+  // WIDGET_LABEL
+  BaseGDL* widget_label( EnvT* e)
+  {
+    DLongGDL* p0L = e->GetParAs<DLongGDL>( 0);
+    WidgetIDT parentID = (*p0L)[0];
+    GDLWidget *widget = GDLWidget::GetWidget( parentID);
+
+    DLong xsize = -1;
+    static int xsizeIx = e->KeywordIx( "XSIZE");
+    e->AssureLongScalarKWIfPresent( xsizeIx, xsize);
+
+    static int valueIx = e->KeywordIx( "VALUE");
+    DString value = "";
+    e->AssureStringScalarKWIfPresent( valueIx, value);
+
+    static int uvalueIx = e->KeywordIx( "UVALUE");
+    BaseGDL* uvalue = e->GetKW( uvalueIx);
+    if( uvalue != NULL)
+      uvalue = uvalue->Dup();
+
+    GDLWidgetLabel* label = 
+      new GDLWidgetLabel( parentID, uvalue, value, xsize);
+
+    label->SetWidgetType( "LABEL");
+
+    return new DLongGDL( label->WidgetID());
+  }
+
+
   // WIDGET_INFO
   BaseGDL* widget_info( EnvT* e)
   {
@@ -368,6 +403,53 @@ namespace lib {
 
     static int xmanagerBlockIx = e->KeywordIx( "XMANAGER_BLOCK");
     bool xmanagerBlock = e->KeywordSet( xmanagerBlockIx);
+
+    static int childIx = e->KeywordIx( "CHILD");
+    bool child = e->KeywordSet( childIx);
+
+    static int versionIx = e->KeywordIx( "VERSION");
+    bool version = e->KeywordSet( versionIx);
+
+    // VERSION keyword
+    if ( version) {
+      DStructGDL* res = new DStructGDL( "WIDGET_VERSION");
+      return res;
+    }
+
+    // CHILD keyword
+    if ( child) {
+      if ( rank == 0) {
+	// Scalar Input
+	WidgetIDT widgetID = (*p0L)[0];
+	GDLWidget *widget = GDLWidget::GetWidget( widgetID);
+	if ( widget == NULL) {
+	  return new DLongGDL( 0);
+	} else {
+	  DLong nChildren = widget->GetChild( -1);
+	  if ( nChildren != 0)
+	    return new DLongGDL( widget->GetChild( 0));
+	  else
+	    return new DLongGDL( 0);
+	}
+      } else {
+	// Array Input
+	DLongGDL* res = new DLongGDL(p0L->Dim(), BaseGDL::NOZERO);
+	for( SizeT i=1; i<nEl; i++) {
+	  WidgetIDT widgetID = (*p0L)[i];
+	  GDLWidget *widget = GDLWidget::GetWidget( widgetID);
+	  if ( widget == NULL) {
+	    (*res)[ i] = (DLong) 0;
+	  } else {
+	    DLong nChildren = widget->GetChild( -1);
+	    if ( nChildren != 0)
+	      (*res)[ i] = (DLong) widget->GetChild( 0);
+	    else
+	      (*res)[ i] = (DLong) 0;
+	  }
+	}
+	return res;
+      }
+    }
 
     // VALID keyword
     if ( valid) {
@@ -556,6 +638,12 @@ namespace lib {
     static int managedIx = e->KeywordIx( "MANAGED");
     bool managed = e->KeywordSet( managedIx);
 
+    bool map = true;
+    static int mapIx = e->KeywordIx( "MAP");
+    if ( e->KeywordPresent( mapIx))
+      if ( !e->KeywordSet( mapIx))
+	map = false;
+
     static int xmanActComIx = e->KeywordIx( "XMANAGER_ACTIVE_COMMAND");
     bool xmanActCom = e->KeywordSet( xmanActComIx);
 
@@ -576,7 +664,7 @@ namespace lib {
     bool setvalue = e->KeywordPresent( setvalueIx);
 
     if ( realize) {
-      widget->Realize();
+      widget->Realize( map);
     }
 
     if ( managed) {
@@ -626,6 +714,12 @@ namespace lib {
 	std::cout << "settextvalue: " << value.c_str() << std::endl;
 	GDLWidgetText *textWidget = ( GDLWidgetText *) widget;
 	textWidget->SetTextValue( value);
+      }
+
+      if ( wType == "LABEL") {
+	std::cout << "setlabelvalue: " << value.c_str() << std::endl;
+	GDLWidgetLabel *labelWidget = ( GDLWidgetLabel *) widget;
+	labelWidget->SetLabelValue( value);
       }
     }
   }

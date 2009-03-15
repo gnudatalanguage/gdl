@@ -86,13 +86,15 @@ protected:
   BaseGDL*     uValue;    // the UVALUE
   bool         sensitive;
   bool         managed;
+  bool         map;
   DLong        xOffset, yOffset, xSize, ySize;
+  wxSizer*     topWidgetSizer;
   wxSizer*     widgetSizer;
   wxPanel*     widgetPanel;
   DString      widgetType;
 
 public:
-  GDLWidget( WidgetIDT p=0, BaseGDL* uV=NULL, bool s=true,
+  GDLWidget( WidgetIDT p=0, BaseGDL* uV=NULL, bool s=true, bool mp=true,
 	     DLong xO=-1, DLong yO=-1, DLong xS=-1, DLong yS=-1);
   virtual ~GDLWidget();
 
@@ -100,7 +102,7 @@ public:
 
   BaseGDL* GetUvalue() { return uValue;}
 
-  virtual void Realize() {} 
+  virtual void Realize( bool) {} 
   virtual DLong GetChild( DLong) {};
   virtual void SetXmanagerActiveCommand() {};
   virtual bool GetXmanagerActiveCommand() {};
@@ -119,6 +121,9 @@ public:
 
   bool GetManaged() { return managed;}
   void SetManaged( bool);
+
+  bool GetMap() { return map;}
+  void SetMap( bool);
 
   void SetUvalue( BaseGDL *);
 
@@ -151,6 +156,20 @@ public:
 		 DLong xSize);
  
   void SetTextValue( DString);
+};
+
+
+// label widget **************************************************
+class GDLWidgetLabel: public GDLWidget
+{
+private:
+  wxStaticText *label;
+
+public:
+  GDLWidgetLabel( WidgetIDT parentID, BaseGDL *uvalue, DString value,
+		  DLong xSize);
+ 
+  void SetLabelValue( DString);
 };
 
 
@@ -192,6 +211,7 @@ public:
   GDLWidgetBase( WidgetIDT p=0,           // parent
 		 BaseGDL* uV=NULL,        // UVALUE
 		 bool s=true,             // SENSITIVE
+		 bool mp=true,             // MAP
 		 DLong xO=-1, DLong yO=-1,  // offset 
 		 DLong xS=-1, DLong yS=-1); // size
   virtual ~GDLWidgetBase();
@@ -201,7 +221,7 @@ public:
   void RemoveChild( WidgetIDT  c)
   { children.erase( find( children.begin(), children.end(), c));}
 
-  void Realize();
+  void Realize( bool);
   void SetXmanagerActiveCommand();
   bool GetXmanagerActiveCommand() { return xmanActCom;}
 

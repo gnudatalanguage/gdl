@@ -38,6 +38,33 @@ END_EVENT_TABLE()
 
 IMPLEMENT_APP_NO_MAIN( GDLApp)
 
+void getSizer( DLong col, DLong row, DLong frameBox, 
+	       wxPanel *panel, wxSizer **sizer) {
+  if ( frameBox == 0) {
+    if ( row == 0) {
+      *sizer = new wxBoxSizer( wxVERTICAL);
+    } else if ( row != 0 && col == 0) {
+      *sizer = new wxBoxSizer( wxHORIZONTAL);
+    } else {
+      std::cout << "Shouldn't be here" << std::endl;
+      exit(2);
+    }
+  } else {
+
+    wxStaticBox *box = 
+      new wxStaticBox( panel, wxID_ANY, _T(""));
+    if ( row == 0) {
+      *sizer = new wxStaticBoxSizer( box, wxVERTICAL);
+    } else if ( row != 0 && col == 0) {
+      *sizer = new wxStaticBoxSizer( box, wxHORIZONTAL);
+    } else {
+      std::cout << "Shouldn't be here" << std::endl;
+      exit(2);
+    }
+  }
+  std::cout << "Creating Sizer in getSizer: " << *sizer << std::endl;
+}
+
 // next are the abstraction to access all widgets only by their
 // handle ID
 // ID for widget (called from widgets constructor)
@@ -78,6 +105,12 @@ GDLWidget* GDLWidget::GetParent( WidgetIDT widID)
 void GDLWidget::SetManaged( bool manval)
 {
   managed = manval;
+}
+
+void GDLWidget::SetMap( bool mapval)
+{
+  std::cout << "set map: " << mapval << std::endl;
+  map = mapval;
 }
 
 void GDLWidget::SetUvalue( BaseGDL *uV)
@@ -208,10 +241,10 @@ void GDLWidget::Init()
 }
 
 
-GDLWidget::GDLWidget( WidgetIDT p, BaseGDL* uV, bool s,
+GDLWidget::GDLWidget( WidgetIDT p, BaseGDL* uV, bool s, bool mp,
 		      DLong xO, DLong yO, DLong xS, DLong yS): 
   wxWidget( NULL),
-  parent( p), uValue( uV), sensitive( s),
+  parent( p), uValue( uV), sensitive( s), map( mp),
   xOffset( xO), yOffset( yO), xSize( xS), ySize( yS)
 {
   managed = false;
@@ -239,9 +272,9 @@ GDLWidget::~GDLWidget()
   WidgetRemove( widgetID);
 }
 
-GDLWidgetBase::GDLWidgetBase( WidgetIDT p, BaseGDL* uV, bool s,
+GDLWidgetBase::GDLWidgetBase( WidgetIDT p, BaseGDL* uV, bool s, bool mp,
 			      DLong xO, DLong yO, DLong xS, DLong yS): 
-  GDLWidget( p, uV, s, xO, yO, xS, yS)
+  GDLWidget( p, uV, s, mp, xO, yO, xS, yS)
 {}
 
 GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID, 
@@ -258,59 +291,115 @@ GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID,
 			      DString notify_realize, DString kill_notify,
 			      DString resource_name, DString rname_mbar,
 			      DString title_,
-			      DLong frame, DLong units,
+			      DLong frameBox, DLong units,
 			      DString display_name,
 			      DLong xpad, DLong ypad,
 			      DLong xoffset, DLong yoffset,
 			      DLong xsize, DLong ysize,
 			      DLong scr_xsize, DLong scr_ysize,
 			      DLong x_scroll_size, DLong y_scroll_size):
-  GDLWidget( parentID, uvalue, sensitive, xoffset, yoffset, 0, 0),
+  GDLWidget( parentID, uvalue, sensitive, map, xoffset, yoffset, 0, 0),
   modal( modal_), mbarID( mBarID)
 {
-  //  std::cout << "In GDLWidgetBase::GDLWidgetBase" << std::endl;
-
-  if (thread != NULL)
-    thread->OnExit( thread);
-
-  thread = new guiThread();
-
-  // Defined in threadpsx.cpp (wxWidgets)
-  std::cout << "Creating thread: " << thread << std::endl;
-  thread->Create();
-  thread->Run();
+  std::cout << "In GDLWidgetBase::GDLWidgetBase: " << widgetID << std::endl;
 
   xmanActCom = false;
-
-  // GUI lock defined in threadpsx.cpp
-  //  std::cout << "wxMutexGuiEnter()" << std::endl;
-  wxMutexGuiEnter();
-
   wxWindow *wxParent = NULL;
-  if( parent != 0)
-    {
-      GDLWidget* gdlParent = GetWidget( parent);
-      wxParent = static_cast< wxWindow*>( gdlParent->WxWidget());
-    }
 
-  if( modal)
-    wxWidget = new wxDialog( wxParent, widgetID, title_);
+  wxSizer *sizer;
+  wxSizer **sizerPtr;
+  sizerPtr = &sizer;
 
-  if ( row == 0) {
+  // If first base widget ...
+  if ( parentID == 0) {
+    if (thread != NULL)
+      thread->OnExit( thread);
+
+    thread = new guiThread();
+
+    // Defined in threadpsx.cpp (wxWidgets)
+    std::cout << "Creating thread: " << thread << std::endl;
+    thread->Create();
+    thread->Run();
+
+    // GUI lock defined in threadpsx.cpp
+    std::cout << "before wxMutexGuiEnter()" << std::endl;
+    wxMutexGuiEnter();
+    std::cout << "after wxMutexGuiEnter()" << std::endl;
+
+    // GDLFrame is derived from wxFrame
     GDLFrame *frame = new GDLFrame( wxParent, widgetID, title_);
     ((wxFrame *) frame)->SetSize( xsize, ysize);
     wxWidget = frame;
 
-    wxBoxSizer *sizer = new wxBoxSizer( wxVERTICAL);
-    widgetSizer = sizer;
-
     wxPanel *panel = new wxPanel( frame, wxID_ANY);
     widgetPanel = panel;
-    //    std::cout << "sizer: " << sizer << std::endl;
-  } else if ( row != 0 && col == 0) {
+    std::cout << "Creating Panel: " << panel << std::endl;
 
+    getSizer( col, row, frameBox, panel, sizerPtr);
+    widgetSizer = *sizerPtr;
+
+    topWidgetSizer = *sizerPtr;
+    //std::cout << "SetSizer: " << *sizerPtr << std::endl;
+    panel->SetSizer( *sizerPtr);
+
+    this->SetMap( mapWid);
   } else {
+    // If parent base widget exists ....
+    GDLWidget* gdlParent = GetWidget( parent);
+    wxParent = static_cast< wxWindow*>( gdlParent->WxWidget());
+    std::cout << "Getting Parent: " << parent << " " << gdlParent << " " 
+	      << wxParent << std::endl;
 
+    wxPanel *panel = gdlParent->GetPanel();
+    widgetPanel = panel;
+    //    std::cout << "Getting Panel: " << panel << std::endl;
+
+    // If map is true check for parent map value
+    if ( mapWid) mapWid = gdlParent->GetMap();
+    this->SetMap( mapWid);
+
+    if ( mapWid) {
+      if ( frameBox == 0) {
+	if ( row == 0) {
+	  sizer = new wxBoxSizer( wxVERTICAL);
+	} else if ( row != 0 && col == 0) {
+	  sizer = new wxBoxSizer( wxHORIZONTAL);
+	} else {
+	  std::cout << "Shouldn't be here" << std::endl;
+	  exit(2);
+	}
+      } else {
+	wxStaticBox *box = 
+	  new wxStaticBox( panel, wxID_ANY, _T(""));
+	if ( row == 0) {
+	  sizer = new wxStaticBoxSizer( box, wxVERTICAL);
+	} else if ( row != 0 && col == 0) {
+	  sizer = new wxStaticBoxSizer( box, wxHORIZONTAL);
+	} else {
+	  std::cout << "Shouldn't be here" << std::endl;
+	  exit(2);
+	}
+      }
+
+      widgetSizer = sizer;
+      std::cout << "Creating Sizer2: " << sizer << std::endl;
+    
+      if ( frameBox == 0) {
+	wxBoxSizer *parentSizer = (wxBoxSizer *) gdlParent->GetSizer();
+	std::cout << "Getting Parent Sizer:" << parentSizer << std::endl;
+	parentSizer->Add( sizer, 0, wxEXPAND|wxALL, 5);
+      } else {
+	wxStaticBoxSizer *parentSizer = 
+	  (wxStaticBoxSizer *) gdlParent->GetSizer();
+	std::cout << "Getting Parent Sizer:" << parentSizer << std::endl;
+	parentSizer->Add( sizer, 0, wxEXPAND|wxALL, 5);
+      }
+
+      if( modal)
+	wxWidget = new wxDialog( wxParent, widgetID, title_);
+
+    } // if (mapWid == true)
   }
 }
 
@@ -334,10 +423,10 @@ GDLWidgetBase::~GDLWidgetBase()
   //delete wxWidget;
 }
 
-void GDLWidgetBase::Realize()
+void GDLWidgetBase::Realize( bool map)
 {
   wxFrame *frame = (wxFrame *) this->wxWidget;
-  bool stat = frame->Show(true);
+  bool stat = frame->Show( map);
   //  wxString nme = frame->GetName();
   //std::cout << frame->IsShown() << std::endl;
 
@@ -375,18 +464,22 @@ GDLWidgetButton::GDLWidgetButton( WidgetIDT p, BaseGDL *uV, DString value):
 
   GDLWidget* gdlParent = GetWidget( p);
   wxWindow *wxParent = static_cast< wxWindow*>( gdlParent->WxWidget());
-  wxFrame *frame = (wxFrame *) wxParent;
+  //  std::cout << "Getting Parent: " << p << " " << gdlParent << " " << wxParent << std::endl;
 
-  wxBoxSizer *boxSizer = (wxBoxSizer *) gdlParent->GetSizer();
-  //  std::cout << "sizer: " << boxSizer << std::endl;
 
-  wxPanel *panel = gdlParent->GetPanel();
-  wxButton *button = new wxButton( panel, widgetID, _T( value.c_str()));
+  if (gdlParent->GetMap()) {
+    wxPanel *panel = gdlParent->GetPanel();
+    wxButton *button = new wxButton( panel, widgetID, _T( value.c_str()));
 
-  panel->SetSizer( boxSizer);
+    wxBoxSizer *boxSizer = (wxBoxSizer *) gdlParent->GetSizer();
+    std::cout << "Getting Sizer: " << boxSizer << std::endl;
+    boxSizer->Add( button, 0, wxEXPAND | wxALL, 5);
 
-  boxSizer->Add( button, 0, wxEXPAND | wxALL, 5);
-  boxSizer->SetSizeHints( wxParent);
+    if ( wxParent != NULL) {
+      std::cout << "SetSizeHints: " << wxParent << std::endl;
+      boxSizer->SetSizeHints( wxParent);
+    }
+  } // GetMap()
 
   // Generate event structure
   DStructGDL*  widgbut = new DStructGDL( "WIDGET_BUTTON");
@@ -423,21 +516,21 @@ GDLWidgetText::GDLWidgetText( WidgetIDT p, BaseGDL *uV, DString value,
 
   GDLWidget* gdlParent = GetWidget( p);
   wxWindow *wxParent = static_cast< wxWindow*>( gdlParent->WxWidget());
-  wxFrame *frame = (wxFrame *) wxParent;
 
-  wxBoxSizer *boxSizer = (wxBoxSizer *) gdlParent->GetSizer();
-  //  std::cout << "sizer: " << boxSizer << std::endl;
 
-  wxPanel *panel = gdlParent->GetPanel();
+  if (gdlParent->GetMap()) {
+    wxPanel *panel = gdlParent->GetPanel();
+    text = new wxTextCtrl( panel, widgetID, _T( value.c_str()),
+			   wxDefaultPosition, wxSize( xSize*5, wxDefaultCoord) );
 
-  //  wxTextCtrl *text = new wxTextCtrl( panel, widgetID, _T( value.c_str()));
-  text = new wxTextCtrl( panel, widgetID, _T( value.c_str()),
-			 wxDefaultPosition, wxSize( xSize*5, wxDefaultCoord) );
+    wxBoxSizer *boxSizer = (wxBoxSizer *) gdlParent->GetSizer();
+    boxSizer->Add( text, 0, wxEXPAND | wxALL, 5);
 
-  panel->SetSizer( boxSizer);
-
-  boxSizer->Add( text, 0, wxEXPAND | wxALL, 5);
-  boxSizer->SetSizeHints( wxParent);
+    if ( wxParent != NULL) {
+      std::cout << "SetSizeHints: " << wxParent << std::endl;
+      boxSizer->SetSizeHints( wxParent);
+    }
+  } // GetMap()
 
   // Generate event structure
   DStructGDL*  widgtxt = new DStructGDL( "WIDGET_TEXT");
@@ -461,6 +554,50 @@ void GDLWidgetText::SetTextValue( DString value)
   //wxMilliSleep(700); 
  }
 
+
+GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, BaseGDL *uV, DString value,
+				DLong xSize):
+  GDLWidget( p, uV, 0, 0, 0, 0, 0)
+{
+  std::cout << "In Label: " << widgetID << " " << p << std::endl;
+
+  GDLWidget* gdlParent = GetWidget( p);
+  wxWindow *wxParent = static_cast< wxWindow*>( gdlParent->WxWidget());
+  
+  if ( gdlParent->GetMap()) {
+    wxPanel *panel = gdlParent->GetPanel();
+    label = new wxStaticText( panel, wxID_ANY, _T( value.c_str()),
+			      wxPoint(10, 10), wxDefaultSize, wxALIGN_CENTRE);
+
+    wxBoxSizer *boxSizer = (wxBoxSizer *) gdlParent->GetSizer();
+    boxSizer->Add( label, 0, wxEXPAND | wxALL, 5);
+
+    if ( wxParent != NULL) {
+      std::cout << "SetSizeHints: " << wxParent << std::endl;
+      boxSizer->SetSizeHints( wxParent);
+    }
+  } // GetMap()
+
+  /*
+  // Generate event structure
+  DStructGDL*  widgtxt = new DStructGDL( "WIDGET_TEXT");
+  widgtxt->InitTag("ID", DLongGDL( widgetID));
+  widgtxt->InitTag("TOP", DLongGDL( p));
+  widgtxt->InitTag("HANDLER", DLongGDL( 0));
+  widgtxt->InitTag("SELECT", DLongGDL( 0));
+
+  // Push event structure into event variable list
+  std::ostringstream varname;
+  varname << "WTXT" << this->WidgetID();
+  DVar *v = new DVar( varname.rdbuf()->str().c_str(), widgtxt);
+  eventVarList.push_back(v);
+  */
+}
+
+void GDLWidgetLabel::SetLabelValue( DString value)
+{
+  label->SetLabel( _T( value));
+ }
 
 // *** GDLFrame ***
 GDLFrame::GDLFrame(wxWindow* parent, wxWindowID id, const wxString& title)
