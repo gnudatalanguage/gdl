@@ -131,10 +131,8 @@ function read_ascii_read, filename
  compile_opt hidden
  on_error, 2
  
- ;XXX should use nline=file_lines(filename) when implemented
- spawn, ['wc', '-l', filename], output, exit_status=status, /noshell
- if status ne 0 then message, 'Invalid filename'
- nline = long(output[0])
+ if not file_test(filename) then message, 'Invalid filename'
+ nline = file_lines(filename) 
  text = strarr(nline)
  openr, unit, filename, /get_lun
  readf, unit, text
@@ -188,7 +186,7 @@ function read_ascii, filename, count=linecount, $
     tags = tag_names(template)
     deldefault = ''
  endif else begin
-    deldefault = ' '
+    deldefault = ' 	'
  endelse
  read_ascii_helper, tags, 'DATASTART',     template, data_start,     0
  read_ascii_helper, tags, 'DELIMITER',     template, delimiter,      deldefault
