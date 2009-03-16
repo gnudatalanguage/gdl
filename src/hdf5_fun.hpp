@@ -24,6 +24,7 @@
 /** 
  * needs the hdf5 library, obtainable from http://hdf.ncsa.uiuc.edu/HDF5/
  */
+#define H5_USE_16_API 1
 #include "hdf5.h"
 
 namespace lib {
