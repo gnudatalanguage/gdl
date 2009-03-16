@@ -4659,7 +4659,7 @@ namespace lib {
   {
     string n = StrUpCase( name);
     SizeT len = n.size();
-    if( n[0] != '_' && (n[0] < 'A' || n[0] > 'Z'))
+    if( n[0] != '_' && n[0] != '!' && (n[0] < 'A' || n[0] > 'Z'))
       e->Throw( "Illegal tag name: "+name+".");
     for( SizeT i=1; i<len; ++i)
       {
