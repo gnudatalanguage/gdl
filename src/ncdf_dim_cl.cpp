@@ -59,9 +59,9 @@ namespace lib {
     size_t dim_size;
     char dim_name[NC_MAX_NAME];
 
-    DInt cdfid, dimid;
-    e->AssureScalarPar<DIntGDL>(0, cdfid);
-    e->AssureScalarPar<DIntGDL>(1, dimid);
+    DLong cdfid, dimid;
+    e->AssureLongScalarPar(0, cdfid);
+    e->AssureLongScalarPar(1, dimid);
 
     //call the ncdf library
     status=nc_inq_dim(cdfid, dimid,dim_name,&dim_size);
