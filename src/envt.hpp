@@ -162,6 +162,8 @@ public:
     if( ix >= env.size()) return false;
     return ( env.Env( ix) != NULL);
   }
+
+  friend class DInterpreter; // gcc 4.4 compatibility
 };
 
 // for UD subroutines (written in GDL) ********************************
