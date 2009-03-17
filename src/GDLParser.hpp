@@ -165,6 +165,8 @@ public:
 	public: void array_expr_1st();
 	public: void array_expr_nth_sub();
 	public: void array_expr_nth();
+	public: void tag_array_expr_nth_sub();
+	public: void tag_array_expr_nth();
 	public: SizeT  tag_access();
 	public: void array_expr_fn();
 	public: bool  member_function_call();

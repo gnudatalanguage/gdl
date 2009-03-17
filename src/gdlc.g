@@ -1070,7 +1070,7 @@ array_expr_nth_sub
     | brace_expr
     ;
 
-// tag or expr
+// expr
 array_expr_nth!
 	: e:array_expr_nth_sub
 		( al:arrayindex_list
@@ -1081,11 +1081,29 @@ array_expr_nth!
 		)
 	;	
 
+tag_array_expr_nth_sub
+	: IDENTIFIER
+    | s:SYSVARNAME  
+        { #s->setType( IDENTIFIER); /* #s->setText( "!" + #s->getText()); */}  
+    | e:EXCLAMATION { #e->setType( IDENTIFIER);}  
+    | brace_expr
+    ;
+
+tag_array_expr_nth!
+	: e:tag_array_expr_nth_sub
+		( al:arrayindex_list
+			{ #tag_array_expr_nth = 
+                #([ARRAYEXPR,"arrayexpr"], #e, #al);}
+        | // empty
+			{ #tag_array_expr_nth = #e;}
+		)
+	;	
+
 tag_access returns [SizeT nDot]
 {
     nDot=0;
 }
-	: (DOT! { nDot++;} array_expr_nth)+
+	: (DOT! { nDot++;} tag_array_expr_nth)+
     ;
 
 // can be an array expr

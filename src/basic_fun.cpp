@@ -4666,7 +4666,7 @@ namespace lib {
 	if( n[i] == ' ')
 	  n[i] = '_';
 	else 
-	  if( n[i] != '_' && n[i] != '$' && 
+	  if( n[i] != '_' && n[i] != '$' && //n[0] != '!' &&
 	      (n[i] < 'A' || n[i] > 'Z') &&
 	      (n[i] < '0' || n[i] > '9'))
 	    e->Throw( "Illegal tag name: "+name+".");

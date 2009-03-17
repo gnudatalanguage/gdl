@@ -16,6 +16,8 @@ class CUSTOM_API GDLTreeParser : public antlr::TreeParser, public GDLTreeParserT
 {
 
     private:
+//    ProgNodeP       returnProgNodeP;
+    
     DCompiler       comp; // each tree parser has its own compiler
     
     IDList          loopVarStack;
