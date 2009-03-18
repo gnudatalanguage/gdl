@@ -94,7 +94,13 @@ void GDLGStream::Background( ULong c, DLong decomposed)
 
 void GDLGStream::DefaultCharSize()
 {
-  plstream::schr( 1.5, 1.0);
+  DString name = (*static_cast<DStringGDL*>(
+    SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("NAME"), 0)
+  ))[0];
+
+  if (name == "X") plstream::schr( 1.5, 1.0);
+  else if (name == "PS") plstream::schr( 3.5, 1.0);
+  else plstream::schr( 0, 1.0);
 }
 
 void GDLGStream::NextPlot( bool erase)
