@@ -1649,6 +1649,7 @@ namespace lib {
       actStream->vpor(0, 1, 0, 1);
       xLog = false; yLog = false;
     } else {
+      actStream->NoSub();
       actStream->vpor(wx[0], wx[1], wy[0], wy[1]);
     }
 
