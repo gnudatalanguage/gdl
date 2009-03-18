@@ -2928,12 +2928,6 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
       for( SizeT i=1; i<=nlevel; i++) clevel[i-1] = zintv * (i-1) + zStart;
       //for( SizeT i=0; i<=nlevel; i++) clevel[i] = zintv * i + zStart;
     }
-    // levels outside limits are changed ...
-    for (SizeT i=0; i<=nlevel; i++) {
-      if (clevel[i] < zStart) clevel[i]=zStart;
-      if (clevel[i] > zEnd) clevel[i]=zEnd;
-    }
-
     // AC would like to check the values (nlevel and values) ...
     if (debug == 1) {
       cout << "Nlevels == " << nlevel << endl;
@@ -2952,21 +2946,27 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
 	nlevel_fill=nlevel+1;
 	clevel_fill = new PLFLT[nlevel_fill];
 	clevel_fill_guard.Reset( clevel_fill);
-	clevel_fill[nlevel_fill-1]=zEnd;
+	clevel_fill[nlevel_fill-1] = clevel[nlevel - 1] < zEnd ? zEnd : clevel[nlevel - 1] + 1.;
 	for( SizeT i=0; i<nlevel; i++) clevel_fill[i] = clevel[i];
       } else {
 	nlevel_fill=3;
 	clevel_fill = new PLFLT[nlevel_fill];
 	clevel_fill_guard.Reset( clevel_fill);
-	clevel_fill[0]=zStart;
-	clevel_fill[1]=clevel[0];
-	clevel_fill[2]=zEnd;
+        clevel_fill[0] = clevel[0] > zStart ? zStart : clevel[0] - 1.;
+        clevel_fill[1] = clevel[0];
+        clevel_fill[2] = clevel[0] < zEnd ? zEnd : clevel[0] + 1.;
       }
       
       if (debug ==1 ) {
 	cout << "zStart "<< zStart << " zEnd "<< zEnd <<endl ;
 	for( SizeT i=0; i<nlevel_fill; i++) cout << i << " " << clevel_fill[i] << endl;
       }
+    }
+
+    // levels outside limits are changed ...
+    for (SizeT i=0; i<=nlevel; i++) {
+      if (clevel[i] < zStart) clevel[i]=zStart;
+      if (clevel[i] > zEnd) clevel[i]=zEnd;
     }
 
     // pen thickness for axis
