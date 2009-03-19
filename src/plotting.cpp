@@ -2173,7 +2173,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
       {
 	if(xRange->N_Elements() != 2)
 	  e->Throw("Keyword array parameter XRANGE"
-		   "must have 2 elements.");
+		   " must have 2 elements.");
 	auto_ptr<DFloatGDL> guard;
 	DFloatGDL* xRangeF = static_cast<DFloatGDL*>
 	  ( xRange->Convert2( FLOAT, BaseGDL::COPY));
@@ -2186,7 +2186,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
       {
 	if(yRange->N_Elements() != 2)
 	  e->Throw("Keyword array parameter YRANGE"
-		   "must have 2 elements.");
+		   " must have 2 elements.");
 	auto_ptr<DFloatGDL> guard;
 	DFloatGDL* yRangeF = static_cast<DFloatGDL*>
 	  ( yRange->Convert2( FLOAT, BaseGDL::COPY));
@@ -2198,7 +2198,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
       {
 	if(zRange->N_Elements() != 2)
 	  e->Throw("Keyword array parameter ZRANGE"
-		   "must have 2 elements.");
+		   " must have 2 elements.");
 	auto_ptr<DFloatGDL> guard;
 	DFloatGDL* zRangeF = static_cast<DFloatGDL*>
 	  ( zRange->Convert2( FLOAT, BaseGDL::COPY));
@@ -2712,7 +2712,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
       {
 	if(xRange->N_Elements() != 2)
 	  e->Throw("Keyword array parameter XRANGE"
-		   "must have 2 elements.");
+		   " must have 2 elements.");
 	auto_ptr<DFloatGDL> guard;
 	DFloatGDL* xRangeF = static_cast<DFloatGDL*>
 	  ( xRange->Convert2( FLOAT, BaseGDL::COPY));
@@ -2725,7 +2725,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
       {
 	if(yRange->N_Elements() != 2)
 	  e->Throw("Keyword array parameter YRANGE"
-		   "must have 2 elements.");
+		   " must have 2 elements.");
 	auto_ptr<DFloatGDL> guard;
 	DFloatGDL* yRangeF = static_cast<DFloatGDL*>
 	  ( yRange->Convert2( FLOAT, BaseGDL::COPY));
@@ -2737,7 +2737,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
       {
 	if(zRange->N_Elements() != 2)
 	  e->Throw("Keyword array parameter ZRANGE"
-		   "must have 2 elements.");
+		   " must have 2 elements.");
 	auto_ptr<DFloatGDL> guard;
 	DFloatGDL* zRangeF = static_cast<DFloatGDL*>
 	  ( zRange->Convert2( FLOAT, BaseGDL::COPY));
@@ -2922,7 +2922,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
         // SA: sanity check to prevent segfaults, e.g. with solely non-finite values 
         if (zintv == 0 || nlevel < 0) nlevel = 0; 
       }
-      cout << "internal Nlevels == " << nlevel << endl;
+      if (debug) cout << "internal Nlevels == " << nlevel << endl;
 
       clevel = new PLFLT[nlevel+1];
       clevel_guard.Reset( clevel);
@@ -3722,7 +3722,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
       {
 	if(Margin->N_Elements() > 2)
 	  e->Throw("Keyword array parameter "+MarginName+
-		   "must have from 1 to 2 elements.");
+		   " must have from 1 to 2 elements.");
 	auto_ptr<DFloatGDL> guard;
 	DFloatGDL* MarginF = static_cast<DFloatGDL*>
 	  ( Margin->Convert2( FLOAT, BaseGDL::COPY));
@@ -4117,7 +4117,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
       {
 	if(Range->N_Elements() != 2)
 	  e->Throw("Keyword array parameter "+RangeName+
-		   "must have 2 elements.");
+		   " must have 2 elements.");
 	auto_ptr<DFloatGDL> guard;
 	DFloatGDL* RangeF = static_cast<DFloatGDL*>
 	  ( Range->Convert2( FLOAT, BaseGDL::COPY));
