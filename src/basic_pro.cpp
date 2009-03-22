@@ -828,7 +828,31 @@ namespace lib {
     bool xdr = e->KeywordSet( xdrIx);
 
     static int appendIx = e->KeywordIx( "APPEND");
-    if( e->KeywordSet( appendIx)) mode |= fstream::ate;// fstream::app;
+    // if( e->KeywordSet( appendIx)) mode |= fstream::ate;// fstream::app;
+    // SA: trunc flag for non-existent file is needed in order to comply with
+    // IDL behaviour (creating a file even if /APPEND flag is set) (tracker bug 2103871)
+    if (e->KeywordSet(appendIx))
+    { 
+      // 
+      // SA: The manual says that access() "is a potential security hole and should never be used"
+      // but I didn't find any better way to do it. A problem might happen when the following sequence occurs:
+      // * openu/openw is called with the /append flag and the target file does not exist
+      // * access() informs about non-existence -> "trunc" flag is set to be used instead of "ate"
+      // * in the meantime the file is created by some other process
+      // * opening the file truncates it but it shouldn't as the /append flag was used
+      // However, apparently only when "trunc" is set, a previously-non-existent file gets created.
+      // Therefore it seems necessary to check for file existence before, in order to choose
+      // between "ate" and "trunc" flags.
+      //
+      // ensuring trunc when a non-existent file requested (the OPENU,/APPEND case)
+      if (-1 == access(name.c_str(), F_OK)) mode |= fstream::trunc;
+      else {
+        // ensuring no trunc when an existent file requested (the OPENW,/APPEND case)
+        mode &= ~fstream::trunc;
+        // handling /APPEND (both for OPENW,/APPEND and OPENU,/APPEND)
+        mode |= fstream::ate;
+      }
+    }
 
     static int f77Ix = e->KeywordIx( "F77_UNFORMATTED");
     bool f77 = e->KeywordSet( f77Ix);
@@ -881,6 +905,7 @@ namespace lib {
       
 	*err = new DLongGDL( 0);
       }
+
   }
   
   void openr( EnvT* e)
@@ -890,15 +915,7 @@ namespace lib {
 
   void openw( EnvT* e)
   {
-    static int appendKWIx = e->KeywordIx( "APPEND");
-    if( e->KeywordSet( appendKWIx)) 
-      {
-	open_lun( e, fstream::in | fstream::out);
-      } 
-    else 
-      {
-	open_lun( e, fstream::in | fstream::out | fstream::trunc);
-      }
+    open_lun( e, fstream::in | fstream::out | fstream::trunc);
   }
 
   void openu( EnvT* e)
