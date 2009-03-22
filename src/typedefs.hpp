@@ -264,23 +264,30 @@ private:
 
 public:
   GDLArray() throw() : buf( NULL), sz( 0) {}
-  GDLArray( const GDLArray& cp) throw()
-    : buf( (cp.size() > smallArraySize)?new T[ cp.size()] : scalar)
-    , sz( cp.size())
+  GDLArray( const GDLArray& cp) : sz( cp.size())
   {
+    try { buf = (cp.size() > smallArraySize) ? new T[ cp.size()] : scalar; }
+    catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than GDL can address"); }
     for( SizeT i=0; i<sz; ++i)
       buf[ i] = cp.buf[ i];
   }
 
-  GDLArray( SizeT s, bool b) : buf( (s>smallArraySize)?new T[ s] : scalar), sz( s)
-  {}
-  GDLArray( T val, SizeT s) : buf((s>smallArraySize)?new T[ s]: scalar), sz( s)
+  GDLArray( SizeT s, bool b) : sz( s)
   {
+    try { buf = (s > smallArraySize) ? new T[ s] : scalar; }
+    catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than GDL can address"); }
+  }
+  GDLArray( T val, SizeT s) : sz( s)
+  {
+    try { buf = (s > smallArraySize) ? new T[ s] : scalar; }
+    catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than GDL can address"); }
     for( SizeT i=0; i<sz; ++i)
       buf[ i] = val;
   }
-  GDLArray( const T* arr, SizeT s) : buf( (s>smallArraySize)?new T[ s]: scalar), sz( s)
+  GDLArray( const T* arr, SizeT s) : sz( s)
   {
+    try { buf = (s > smallArraySize) ? new T[ s]: scalar; }
+    catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than GDL can address"); }
     for( SizeT i=0; i<sz; ++i)
       buf[ i] = arr[ i];
   }
@@ -321,7 +328,7 @@ public:
 	if( buf != scalar) 
 	  delete[] buf;
 	sz = right.size();
-	buf = (sz>smallArraySize) ? new T[ sz] : scalar;
+	buf = (sz>smallArraySize) ? new T[ sz] : scalar; 
 	for( SizeT i=0; i<sz; ++i)
 	  buf[ i] = right.buf[ i];
       }
@@ -396,17 +403,24 @@ public:
     return sz;
   }
 
-  void resize( SizeT newSz) throw()
+  void resize( SizeT newSz) 
   {
     assert( newSz > sz);
     if( newSz > smallArraySize)
       {
-	T* newBuf = new T[ newSz];
-	for( SizeT i=0; i<sz; ++i)
-	  newBuf[ i] = buf[ i];
- 	if( buf != scalar)
-	  delete[] buf;
-	buf = newBuf;
+	try 
+        { 
+          T* newBuf = new T[ newSz]; 
+	  for( SizeT i=0; i<sz; ++i)
+	    newBuf[ i] = buf[ i];
+ 	  if( buf != scalar)
+	    delete[] buf;
+	  buf = newBuf;
+        }
+        catch (std::bad_alloc&) 
+        { 
+          ThrowGDLException("Array requires more memory than GDL can address"); 
+        }
       }
 else
 {
