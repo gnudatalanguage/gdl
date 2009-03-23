@@ -1048,7 +1048,6 @@ namespace lib {
       } 
     else 
       e->AssureDoubleScalarKW( 3, a);
-    
     // max
     if (maxKW == NULL) 
       {
@@ -1079,7 +1078,7 @@ namespace lib {
       e->Throw( "Illegal binsize or max/min.");
 
     // gsl histogram needs this adjustment
-    double aOri = a;
+    double aOri = a, bOri = b;
     if( b != a)
       {
 	a -= (b-a) * smallVal;
@@ -1145,17 +1144,18 @@ namespace lib {
     if (input != NULL)
       for( SizeT i=0; i<nbins; ++i) (*res)[i] += (*input)[i];
 
+    // SA: using aOri/bOri instead of gsl_histogram_min(hh) (as in calculation of LOCATIONS) 
+    //     otherwise, when converting e.g. to INT the conversion might give bad results
     // OMAX
     if( e->KeywordPresent( 5)) {
-      e->SetKW( 5, new DDoubleGDL( gsl_histogram_max(hh)));
+      // e->SetKW( 5, (new DDoubleGDL( gsl_histogram_max(hh)))->Convert2(p0->Type(), BaseGDL::CONVERT));
+      e->SetKW( 5, (new DDoubleGDL( bOri))->Convert2(p0->Type(), BaseGDL::CONVERT));
     }
-
-
     // OMIN
     if( e->KeywordPresent( 6)) {
-      e->SetKW( 6, new DDoubleGDL( gsl_histogram_min(hh)));
+      // e->SetKW( 6, (new DDoubleGDL( gsl_histogram_min(hh)))->Convert2(p0->Type(), BaseGDL::CONVERT));
+      e->SetKW( 6, (new DDoubleGDL( aOri))->Convert2(p0->Type(), BaseGDL::CONVERT));
     }
-
 
     // REVERSE_INDICES
     if( e->KeywordPresent( 7)) {
