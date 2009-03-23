@@ -224,23 +224,33 @@ public:
   friend class EnvT;
 };
 
+
 // for library subroutines **************************************
 // this contains the library function API ***********************
 class EnvT: public EnvBaseT
 {
   // Please use non library API (see below) function with caution
   // (most of them can be ignored by library function authors)
+private:
+  typedef std::deque<BaseGDL*> ContainerT;
 
-protected:
+  //protected:
   // stores all data which has to deleted upon destruction
-  std::vector<BaseGDL*>  toDestroy;
+  static ContainerT toDestroy;
+
+  SizeT toDestroyInitialIndex;
 
 public:
   ~EnvT()
   {
-    for( std::vector<BaseGDL*>::iterator i=toDestroy.begin();
-	 i != toDestroy.end(); ++i) 
-      delete *i;
+    for( SizeT i=toDestroyInitialIndex; i<toDestroy.size(); ++i)
+      {
+	delete toDestroy[i];
+      }
+    toDestroy.resize( toDestroyInitialIndex);
+//      for( ContainerT::iterator i=toDestroy.begin();
+//  	 i != toDestroy.end(); ++i) 
+//        delete *i;
   }
 
   EnvT( ProgNodeP cN, DSub* pro_);
@@ -285,11 +295,12 @@ public:
   void Throw( const std::string& s)
   { throw GDLException( CallingNode(), pro->ObjectName()+": "+s);}
 
+  // DEPRECATED due to poor perfomance, this does not belong into an environment
   // 'guards' a newly created variable which should be deleted
   // upon library routines exit (normal or on error)
   // elimates the need of auto_ptr
-  void Guard( BaseGDL* toGuard)
-  { toDestroy.push_back( toGuard);}
+  //  void Guard( BaseGDL* toGuard)
+  //  { toDestroy.push_back( toGuard);}
 
   // returns environment data, by value (but that by C++ reference)
   BaseGDL*& GetKW(SizeT ix) { return env[ix];}
@@ -305,14 +316,19 @@ public:
   BaseGDL*& GetNumericParDefined( SizeT ix)
   {
     BaseGDL*& p0 = GetParDefined( ix);
+    if( NumericType( p0->Type()))
+	return p0;
+
     if( p0->Type() == STRING)
-      Throw( "String expression not allowed in this context: "+GetParString(0));
+      Throw( "String expression not allowed in this context: "+GetParString(ix));
     if( p0->Type() == STRUCT)
-      Throw( "Struct expression not allowed in this context: "+GetParString(0));
+      Throw( "Struct expression not allowed in this context: "+GetParString(ix));
     if( p0->Type() == PTR)
-      Throw( "Pointer expression not allowed in this context: "+GetParString(0));
+      Throw( "Pointer expression not allowed in this context: "+GetParString(ix));
     if( p0->Type() == OBJECT)
-      Throw( "Object reference not allowed in this context: "+GetParString(0));
+      Throw( "Object reference not allowed in this context: "+GetParString(ix));
+
+    assert( false);
     return p0;
   }
 

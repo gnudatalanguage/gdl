@@ -1022,10 +1022,11 @@ namespace lib {
       e->Throw( "Conflicting keywords.");
 
     DDoubleGDL *p0D = dynamic_cast<DDoubleGDL*>(p0);
+    auto_ptr<BaseGDL> guard;
     if( p0D == NULL)
       {
 	p0D = static_cast<DDoubleGDL*>(p0->Convert2( DOUBLE, BaseGDL::COPY));
-	e->Guard( p0D);
+	guard.reset( p0D);
       }
 
     // get min max
@@ -1432,6 +1433,10 @@ namespace lib {
     DDoubleGDL* p1D;
     DDoubleGDL* p2D;
     DDoubleGDL* p3D;
+    auto_ptr<BaseGDL> guard0;
+    auto_ptr<BaseGDL> guard1;
+    auto_ptr<BaseGDL> guard2;
+    auto_ptr<BaseGDL> guard3;
 
     if( p0->Rank() < nParam-1)
       throw GDLException( e->CallingNode(), 
@@ -1467,7 +1472,7 @@ namespace lib {
 	{
 	p0D = static_cast<DDoubleGDL*>
 	  (p0->Convert2( DOUBLE, BaseGDL::COPY));
-	e->Guard( p0D);
+	guard0.reset( p0D);
 	}
 
     // Determine dimensions of output
@@ -1547,7 +1552,7 @@ namespace lib {
 	{
 	p1D = static_cast<DDoubleGDL*>
 	  (p1->Convert2( DOUBLE, BaseGDL::COPY));
-	e->Guard( p1D);
+	guard1.reset( p1D);
 	}	
 
       // Single Interpolation
@@ -1608,7 +1613,7 @@ namespace lib {
 	{
 	p1D = static_cast<DDoubleGDL*>
 	  (p1->Convert2( DOUBLE, BaseGDL::COPY));
-	e->Guard( p1D);
+	guard1.reset( p1D);
 	}	
       if ( p2->Type() == DOUBLE) 
 	p2D = static_cast<DDoubleGDL*> ( p2);
@@ -1616,7 +1621,7 @@ namespace lib {
 	{
 	p2D = static_cast<DDoubleGDL*>
 	  (p2->Convert2( DOUBLE, BaseGDL::COPY));
-	e->Guard( p2D);
+	guard2.reset( p2D);
 	}	
 
       // Compute nx,ny (number of interpolated points along each dimension
@@ -1659,7 +1664,7 @@ namespace lib {
 	{
 	p1D = static_cast<DDoubleGDL*>
 	  (p1->Convert2( DOUBLE, BaseGDL::COPY));
-	e->Guard( p1D);
+	guard1.reset( p1D);
 	}	
 
       if ( p2->Type() == DOUBLE) 
@@ -1668,7 +1673,7 @@ namespace lib {
 	{
 	p2D = static_cast<DDoubleGDL*>
 	  (p2->Convert2( DOUBLE, BaseGDL::COPY));
-	e->Guard( p2D);
+	guard2.reset( p2D);
 	}	
 
       if ( p3->Type() == DOUBLE) 
@@ -1677,7 +1682,7 @@ namespace lib {
 	{
 	p3D = static_cast<DDoubleGDL*>
 	  (p3->Convert2( DOUBLE, BaseGDL::COPY));
-	e->Guard( p3D);
+	guard3.reset( p3D);
 	}	
 
 

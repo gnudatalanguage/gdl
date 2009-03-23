@@ -66,22 +66,31 @@ public:
   }
 
   // simplified constructor for one to three dimensions
-  dimension(const SizeT d0, const SizeT d1=0, const SizeT d2=0)
+  dimension(const SizeT d0)
   {
-    if( d0 == 0) 
-      {
-	rank = 0; return;
-      }
+    assert( d0 != 0);
+//     if( d0 == 0) 
+//       {
+// 	rank = 0; return;
+//       }
     dim[0] = d0;
-    if( d1 == 0) 
-      {
-	rank = 1; return;
-      }
+    rank = 1;
+  }
+  dimension(const SizeT d0, const SizeT d1)
+  {
+    assert( d0 != 0);
+    dim[0] = d0;
+    assert( d1 != 0);
     dim[1] = d1;
-    if( d2 == 0) 
-      {
-	rank = 2; return;
-      }
+    rank = 2;
+  }
+  dimension(const SizeT d0, const SizeT d1, const SizeT d2)
+  {
+    assert( d0 != 0);
+    dim[0] = d0;
+    assert( d1 != 0);
+    dim[1] = d1;
+    assert( d2 != 0);
     dim[2] = d2;
     rank = 3;
   }

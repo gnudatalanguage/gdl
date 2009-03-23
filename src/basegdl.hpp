@@ -66,15 +66,107 @@ const int DTypeOrder[]={
   5, 	//LONG64,
   5 	//ULONG64
 };	
+const bool IsConvertableType[]={
+  false, 	//UNDEF
+  true, 	//BYTE
+  true, 	//INT
+  true, 	//LONG,	
+  true, 	//FLOAT,	
+  true, 	//DOUBLE,	
+  true, 	//COMPLEX,	
+  true, 	//STRING,	
+  false, 	//STRUCT,	
+  true, 	//COMPLEXDBL,	
+  false, 	//PTR,		
+  false, 	//OBJECT,
+  true, 	//UINT,	
+  true, 	//ULONG,
+  true, 	//LONG64,
+  true  	//ULONG64
+};	
+const bool IsNumericType[]={
+  false, 	//UNDEF
+  true, 	//BYTE
+  true, 	//INT
+  true, 	//LONG,	
+  true, 	//FLOAT,	
+  true, 	//DOUBLE,	
+  true, 	//COMPLEX,	
+  false, 	//STRING,	
+  false, 	//STRUCT,	
+  true, 	//COMPLEXDBL,	
+  false, 	//PTR,		
+  false, 	//OBJECT,
+  true, 	//UINT,	
+  true, 	//ULONG,
+  true, 	//LONG64,
+  true  	//ULONG64
+};	
+const bool IsIntType[]={
+  false, 	//UNDEF
+  true, 	//BYTE
+  true, 	//INT
+  true, 	//LONG,	
+  false, 	//FLOAT,	
+  false, 	//DOUBLE,	
+  false, 	//COMPLEX,	
+  false, 	//STRING,	
+  false, 	//STRUCT,	
+  false, 	//COMPLEXDBL,	
+  false, 	//PTR,		
+  false, 	//OBJECT,
+  true, 	//UINT,	
+  true, 	//ULONG,
+  true, 	//LONG64,
+  true  	//ULONG64
+};	
+const bool IsRealType[]={
+  false, 	//UNDEF
+  true, 	//BYTE
+  true, 	//INT
+  true, 	//LONG,	
+  true, 	//FLOAT,	
+  true, 	//DOUBLE,	
+  false, 	//COMPLEX,	
+  false, 	//STRING,	
+  false, 	//STRUCT,	
+  false, 	//COMPLEXDBL,	
+  false, 	//PTR,		
+  false, 	//OBJECT,
+  true, 	//UINT,	
+  true, 	//ULONG,
+  true, 	//LONG64,
+  true  	//ULONG64
+};	
+const bool IsNonPODType[]={
+  false, 	//UNDEF
+  false, 	//BYTE
+  false, 	//INT
+  false, 	//LONG,	
+  false, 	//FLOAT,	
+  false, 	//DOUBLE,	
+  true, 	//COMPLEX,	
+  true, 	//STRING,	
+  true, 	//STRUCT,	
+  true, 	//COMPLEXDBL,	
+  false, 	//PTR,		
+  false, 	//OBJECT,
+  false, 	//UINT,	
+  false, 	//ULONG,
+  false, 	//LONG64,
+  false 	//ULONG64
+};	
 
 inline bool NonPODType( DType t)
 {
-  return (t == COMPLEX) || (t == COMPLEXDBL) || (t == STRING) || (t == STRUCT);
+  return IsNonPODType[ t];
+//   return (t == COMPLEX) || (t == COMPLEXDBL) || (t == STRING) || (t == STRUCT);
 }
 inline bool IntType( DType t)
 {
-  int o = DTypeOrder[ t];
-  return (o >= 2 && o <= 5);
+  return IsIntType[ t];
+//   int o = DTypeOrder[ t];
+//   return (o >= 2 && o <= 5);
 }
 inline bool FloatType( DType t)
 {
@@ -82,8 +174,9 @@ inline bool FloatType( DType t)
 }
 inline bool RealType( DType t) // Float or Int
 {
-  int o = DTypeOrder[ t];
-  return (o >= 2 && o <= 9);
+  return IsRealType[ t];
+//   int o = DTypeOrder[ t];
+//   return (o >= 2 && o <= 9);
 }
 inline bool ComplexType( DType t)
 {
@@ -91,13 +184,15 @@ inline bool ComplexType( DType t)
 }
 inline bool NumericType( DType t) // Float or Int or Complex
 {
-  int o = DTypeOrder[ t];
-  return (o >= 2 && o <= 11);
+  return IsNumericType[ t];
+//   int o = DTypeOrder[ t];
+//   return (o >= 2 && o <= 11);
 }
 inline bool ConvertableType( DType t) // everything except Struct, Ptr, Obj
 {
-  int o = DTypeOrder[ t];
-  return (o >= 1 && o <= 11);
+  return IsConvertableType[ t];
+//   int o = DTypeOrder[ t];
+//   return (o >= 1 && o <= 11);
 }
 
 class   BaseGDL;

@@ -73,7 +73,8 @@ namespace lib {
       if( ret == 0) { //  array argument
 	DLongGDL* ind = 
 	  static_cast<DLongGDL*>(par->Convert2(LONG, BaseGDL::COPY)); 	 
-	e->Guard( ind);
+	auto_ptr<DLongGDL> ind_guard( ind);
+		    //e->Guard( ind);
 
 	for(SizeT i =0; i < par->N_Elements(); ++i)
 	  dim << (*ind)[i];	  
@@ -406,10 +407,11 @@ namespace lib {
     if( e->KeywordSet( 0)) // CAST
       {
 	DLongGDL* pL = dynamic_cast<DLongGDL*>( p);
+	auto_ptr<DLongGDL> pL_guard;
 	if( pL == NULL)
 	  {
 	    pL = static_cast<DLongGDL*>(p->Convert2(LONG,BaseGDL::COPY)); 
-	    e->Guard( pL);
+	    pL_guard.reset( pL);
 	  }
 	
 	SizeT nEl = pL->N_Elements();
@@ -463,10 +465,12 @@ namespace lib {
     if( e->KeywordSet( 0)) // CAST
       {
 	DLongGDL* pL = dynamic_cast<DLongGDL*>( p);
+	auto_ptr<DLongGDL> pL_guard;
 	if( pL == NULL)
 	  {
 	    pL = static_cast<DLongGDL*>(p->Convert2(LONG,BaseGDL::COPY)); 
-	    e->Guard( pL);
+	    pL_guard.reset( pL);
+	    //	    e->Guard( pL);
 	  }
 	
 	SizeT nEl = pL->N_Elements();
@@ -2013,7 +2017,7 @@ namespace lib {
 		// Conver to Long64
 		DLong64GDL* p0L64 = static_cast<DLong64GDL*>
 		  (p0->Convert2( LONG64, BaseGDL::COPY));
-		e->Guard( p0L64);
+		auto_ptr<DLong64GDL> guard( p0L64);
 		return total_template<DLong64GDL>( p0L64, nan);
 
 	      } // integer results
@@ -2044,20 +2048,20 @@ namespace lib {
 		  }
  		DFloatGDL* p0F = static_cast<DFloatGDL*>
  		  (p0->Convert2( FLOAT,BaseGDL::COPY));
- 		e->Guard( p0F);
+ 		auto_ptr<DFloatGDL> guard( p0F);
 		return total_template<DFloatGDL>( p0F, false);
 	      }
 	    if( p0->Type() == COMPLEX)
 	      {
 		DComplexDblGDL* p0D = static_cast<DComplexDblGDL*>
 		  (p0->Convert2( COMPLEXDBL,BaseGDL::COPY));
-		e->Guard( p0D);
+		auto_ptr<DComplexDblGDL> p0D_guard( p0D);
 		return total_template<DComplexDblGDL>( p0D, nan); 
 	      }
 	    
 	    DDoubleGDL* p0D = static_cast<DDoubleGDL*>
 	      (p0->Convert2( DOUBLE, BaseGDL::COPY));
-	    e->Guard( p0D);
+	    auto_ptr<DDoubleGDL> p0D_guard( p0D);
 	    return total_template<DDoubleGDL>( p0D, nan);
 	  }
 	else // cumulative
@@ -2154,7 +2158,8 @@ namespace lib {
 	    // Conver to Long64
 	    DLong64GDL* p0L64 = static_cast<DLong64GDL*>
 	      (p0->Convert2( LONG64, BaseGDL::COPY));
-	    e->Guard( p0L64);
+
+	    auto_ptr<DLong64GDL> p0L64_guard( p0L64);
 	    return total_over_dim_template<DLong64GDL>
 	      ( p0L64, srcDim, sumDim-1, nan);
 	    
@@ -2186,7 +2191,8 @@ namespace lib {
 	    // default for NOT /DOUBLE
 	    DFloatGDL* p0F = static_cast<DFloatGDL*>
 	      (p0->Convert2( FLOAT,BaseGDL::COPY));
-	    e->Guard( p0F);
+	    auto_ptr<DFloatGDL> p0F_guard( p0F);
+	    //	    p0F_guard.reset( p0F);
 	    return total_over_dim_template< DFloatGDL>
 	      ( p0F, srcDim, sumDim-1, false);
 	  }
@@ -2194,14 +2200,16 @@ namespace lib {
 	  {
 	    DComplexDblGDL* p0D = static_cast<DComplexDblGDL*>
 	      (p0->Convert2( COMPLEXDBL,BaseGDL::COPY));
-	    e->Guard( p0D);
+	    auto_ptr<DComplexDblGDL> p0D_guard( p0D);
+	    // 	    p0D_guard.reset( p0D);
 	    return total_over_dim_template< DComplexDblGDL>
 	      ( p0D, srcDim, sumDim-1, nan);
 	  }
 	// default for /DOUBLE
 	DDoubleGDL* p0D = static_cast<DDoubleGDL*>
 	  (p0->Convert2( DOUBLE,BaseGDL::COPY));
-	e->Guard( p0D);
+	auto_ptr<DDoubleGDL> p0D_guard( p0D);
+	//p0D_guard.reset( p0D);
 	return total_over_dim_template< DDoubleGDL>( p0D, srcDim, sumDim-1,nan);
       }
     else // cumulative
@@ -2433,13 +2441,15 @@ namespace lib {
 	      {
 		DComplexDblGDL* p0D = static_cast<DComplexDblGDL*>
 		  (p0->Convert2( COMPLEXDBL,BaseGDL::COPY));
-		e->Guard( p0D);
+		auto_ptr<DComplexDblGDL> p0D_guard( p0D);
+		//p0D_guard.reset( p0D);
 		return product_template<DComplexDblGDL>( p0D, nan); 
 	      }
 	    
 	    DDoubleGDL* p0D = static_cast<DDoubleGDL*>
 	      (p0->Convert2( DOUBLE, BaseGDL::COPY));
-	    e->Guard( p0D);
+	    auto_ptr<DDoubleGDL> p0D_guard( p0D);
+	    //	    p0D_guard.reset( p0D);
 	    return product_template<DDoubleGDL>( p0D, nan);
 	  }
 	else // cumulative
@@ -2491,14 +2501,16 @@ namespace lib {
 	  {
 	    DComplexDblGDL* p0D = static_cast<DComplexDblGDL*>
 	      (p0->Convert2( COMPLEXDBL,BaseGDL::COPY));
-	    e->Guard( p0D);
+	    auto_ptr<DComplexDblGDL> p0D_guard( p0D);
+	    //	    p0D_guard.reset( p0D);
 	    return product_over_dim_template< DComplexDblGDL>
 	      ( p0D, srcDim, sumDim-1, nan);
 	  }
 
 	DDoubleGDL* p0D = static_cast<DDoubleGDL*>
 	  (p0->Convert2( DOUBLE,BaseGDL::COPY));
-	e->Guard( p0D);
+	auto_ptr<DDoubleGDL> p0D_guard( p0D);
+	//p0D_guard.reset( p0D);
 	return product_over_dim_template< DDoubleGDL>( p0D, srcDim, sumDim-1,nan);
       }
     else // cumulative
@@ -2540,6 +2552,8 @@ namespace lib {
     if( nEl0 != nEl1 && nEl0 != 1 && nEl1 != 1)
       return new DByteGDL( 0);
     
+    auto_ptr<BaseGDL> p0_guard;
+    auto_ptr<BaseGDL> p1_guard;
     if( p0->Type() != p1->Type())
       {
 	if( e->KeywordSet( 0)) // NO_TYPECONV
@@ -2551,12 +2565,12 @@ namespace lib {
 	    if( DTypeOrder[aTy] >= DTypeOrder[bTy])
 	      {
 		p1 = p1->Convert2( aTy, BaseGDL::COPY);
-		e->Guard( p1);
+		p1_guard.reset( p1);
 	      }
 	    else
 	      {
 		p0 = p0->Convert2( bTy, BaseGDL::COPY);
-		e->Guard( p0);
+		p0_guard.reset( p0);
 	      }
 	  }
       }
@@ -2914,7 +2928,7 @@ namespace lib {
 	  } else {
 	    DDoubleGDL* op1 = 
 	      static_cast<DDoubleGDL*>((p0->NewIx( medEl))->Convert2( DOUBLE)); 
-	    e->Guard( op1);
+	    auto_ptr<DDoubleGDL> op1_guard( op1);
 	    DDoubleGDL* op2 = 
 	      static_cast<DDoubleGDL*>((p0->NewIx( medEl_1))->Convert2( DOUBLE));
 	    static DDoubleGDL* op3 = new DDoubleGDL( 2.0);

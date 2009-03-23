@@ -985,13 +985,14 @@ namespace lib {
     bool valid=true;
     DDoubleGDL *yVal, *xVal;
     SizeT xEl, yEl;
+    auto_ptr<BaseGDL> xval_guard;
 
     if( nParam == 1)
       {
 	yVal = e->GetParAs< DDoubleGDL>( 0);
 	yEl = yVal->N_Elements();
 	xVal = new DDoubleGDL( dimension( yEl), BaseGDL::INDGEN);
-	e->Guard( xVal); // delete upon exit
+	xval_guard.reset( xVal); // delete upon exit
 	xEl = yEl;
       }
     else
@@ -1337,6 +1338,7 @@ namespace lib {
     DLong psym;
     DDoubleGDL* yVal;
     DDoubleGDL* xVal;
+    auto_ptr<BaseGDL> xval_guard;
 
     if ( e->KeywordSet( "POLAR")) {
        e->Throw( "Soory, POLAR keyword not ready");
@@ -1350,7 +1352,7 @@ namespace lib {
 	yEl = yVal->N_Elements();
 	
 	xVal = new DDoubleGDL( dimension( yEl), BaseGDL::INDGEN);
-	e->Guard( xVal); // delete upon exit
+	xval_guard.reset( xVal); // delete upon exit
 	xEl = yEl;
       }
     else
@@ -1468,7 +1470,9 @@ namespace lib {
     DDoubleGDL* yVal;
     DDoubleGDL* zVal;
     SizeT xEl, yEl, zEl;
-  
+    auto_ptr<BaseGDL> xval_guard;
+    auto_ptr<BaseGDL> yval_guard;
+
     if( nParam == 1)
       {
 	BaseGDL* p0;
@@ -1480,11 +1484,11 @@ namespace lib {
 
 	xEl = p0->N_Elements() / p0->Dim(0);
 	xVal = new DDoubleGDL( dimension( xEl), BaseGDL::NOZERO);
-	e->Guard( xVal); // delete upon exit
+	xval_guard.reset( xVal); // delete upon exit
 
 	yEl = p0->N_Elements() / p0->Dim(0);
 	yVal = new DDoubleGDL( dimension( yEl), BaseGDL::NOZERO);
-	e->Guard( yVal); // delete upon exit
+	yval_guard.reset( yVal); // delete upon exit
 
 	for( SizeT i = 0; i < xEl; i++) {
 	  (*xVal)[i] = (*val)[2*i];
@@ -1980,6 +1984,8 @@ namespace lib {
     DDoubleGDL* yVal;
     DDoubleGDL* xVal;
     //    DDoubleGDL* zValT;
+    auto_ptr<BaseGDL> xval_guard;
+    auto_ptr<BaseGDL> yval_guard;
 
     SizeT xEl;
     SizeT yEl;
@@ -1990,9 +1996,10 @@ namespace lib {
     }
     
     BaseGDL* p0 = e->GetParDefined( 0)->Transpose( NULL);
+    auto_ptr<BaseGDL> p0_guard;
     zVal = static_cast<DDoubleGDL*>
       (p0->Convert2( DOUBLE, BaseGDL::COPY));
-    e->Guard( p0); // delete upon exit
+    p0_guard.reset( p0); // delete upon exit
 
     if(zVal->Dim(0) == 1)
       throw GDLException( e->CallingNode(),
@@ -2003,9 +2010,9 @@ namespace lib {
 
     if (nParam == 1) {
       xVal = new DDoubleGDL( dimension( xEl), BaseGDL::INDGEN);
-      e->Guard( xVal); // delete upon exit
+      xval_guard.reset( xVal); // delete upon exit
       yVal = new DDoubleGDL( dimension( yEl), BaseGDL::INDGEN);
-      e->Guard( yVal); // delete upon exit
+      yval_guard.reset( yVal); // delete upon exit
     }
 
     if (nParam == 3) {
@@ -2492,6 +2499,9 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
     DDoubleGDL* yVal;
     DDoubleGDL* xVal;
     //    DDoubleGDL* zValT;
+    auto_ptr<BaseGDL> xval_guard;
+    auto_ptr<BaseGDL> yval_guard;
+    auto_ptr<BaseGDL> p0_guard;
 
     SizeT xEl;
     SizeT yEl;
@@ -2501,7 +2511,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
 	BaseGDL* p0 = e->GetParDefined( 0)->Transpose( NULL);
 	zVal = static_cast<DDoubleGDL*>
 	  (p0->Convert2( DOUBLE, BaseGDL::COPY));
-	e->Guard( p0); // delete upon exit
+	p0_guard.reset( p0); // delete upon exit
 
 	xEl = zVal->Dim(1);
 	yEl = zVal->Dim(0);
@@ -2512,16 +2522,16 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
 			      +e->GetParString(0));
 
 	xVal = new DDoubleGDL( dimension( xEl), BaseGDL::INDGEN);
-	e->Guard( xVal); // delete upon exit
+	xval_guard.reset( xVal); // delete upon exit
 	yVal = new DDoubleGDL( dimension( yEl), BaseGDL::INDGEN);
-	e->Guard( yVal); // delete upon exit
+	yval_guard.reset( yVal); // delete upon exit
       } else if ( nParam == 2 || nParam > 3) {
 	e->Throw( "CONTOUR: Incorrect number of arguments.");
       } else {
 	BaseGDL* p0 = e->GetParDefined( 0)->Transpose( NULL);
 	zVal = static_cast<DDoubleGDL*>
 	  (p0->Convert2( DOUBLE, BaseGDL::COPY));
-	e->Guard( p0); // delete upon exit
+	p0_guard.reset( p0); // delete upon exit
 
 	if(zVal->Dim(0) == 1)
 	  throw GDLException( e->CallingNode(),

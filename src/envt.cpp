@@ -28,7 +28,10 @@
 
 using namespace std;
 
+// instance of static data
 DInterpreter* EnvBaseT::interpreter;
+
+EnvT::ContainerT EnvT::toDestroy;
 
 EnvBaseT::EnvBaseT( ProgNodeP cN, DSub* pro_): 
   env(), 
@@ -61,6 +64,7 @@ EnvUDT::EnvUDT( ProgNodeP cN, DSub* pro_, bool lF):
 
 EnvT::EnvT( ProgNodeP cN, DSub* pro_):
   EnvBaseT( cN, pro_)
+, toDestroyInitialIndex( toDestroy.size())
 {
   SizeT envSize;
   SizeT keySize;
@@ -178,6 +182,7 @@ EnvUDT::EnvUDT( BaseGDL* self, //DStructGDL* oStructGDL,
 // for obj_new, obj_destroy, call_procedure and call_function
 EnvT::EnvT( EnvT* pEnv, DSub* newPro, BaseGDL** self):
   EnvBaseT( pEnv->callingNode, newPro)
+, toDestroyInitialIndex( toDestroy.size())
 {
   obj = (self != NULL);
 
@@ -973,7 +978,11 @@ BaseGDL*& EnvT::GetPar(SizeT i)
 {
   static BaseGDL* null=NULL;
   SizeT ix= i + pro->key.size();
-  if( ix >= env.size()) return null;
+  if( ix >= env.size()) 
+    {
+      Warning( "EnvT::GetPar(): Index out of env: " + GetParString(ix));
+      return null;
+    }
   return env[ ix];
 }
 

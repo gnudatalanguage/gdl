@@ -783,6 +783,7 @@ public:
 	throw GDLException( e->CallingNode(),
 			    "TV: Value of Channel is out of allowed range.");
 
+    std::auto_ptr<BaseGDL> chan_guard;
     if (channel == 0) {
       plimage_gdl(&(*p0B)[0], width, height, tru, channel);
     } else if (rank == 3) {
@@ -797,7 +798,7 @@ public:
       }
       // Send just single channel
       plimage_gdl(&(*p0B_chan)[0], width, height, tru, channel);
-      e->Guard( p0B_chan); // delete upon exit
+      chan_guard.reset( p0B_chan); // delete upon exit
     } else if (rank == 2) {
       // Rank = 2 w/channel
       plimage_gdl(&(*p0B)[0], width, height, tru, channel);

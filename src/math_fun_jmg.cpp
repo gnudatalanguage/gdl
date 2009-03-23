@@ -225,7 +225,8 @@ namespace lib {
      e->NParam( 1);
 
      BaseGDL* p0     = e->GetParDefined( 0);
-     
+     auto_ptr<BaseGDL> guard;
+
      static int nanIx = e->KeywordIx( "NAN");
      bool kwNaN      = e->KeywordSet( nanIx);
 
@@ -257,7 +258,7 @@ namespace lib {
 	 {
 	   DFloatGDL* p0F = 
 	     static_cast<DFloatGDL*>(p0->Convert2(FLOAT,BaseGDL::COPY));
-	   e->Guard( p0F);
+	   guard.reset( p0F);
 	   return finite_template<DFloatGDL, false>(p0F, kwNaN, kwInfinity);
 	 }
        case STRUCT:

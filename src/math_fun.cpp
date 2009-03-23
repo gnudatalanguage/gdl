@@ -18,6 +18,7 @@
 
 #include "includefirst.hpp"
 
+#include <memory>
 #include <complex>
 #include <cmath>
 
@@ -1641,6 +1642,7 @@ namespace lib {
       e->Throw("Argument N must be greater than or equal to zero.");
     
     DDoubleGDL* kval;
+    auto_ptr<DDoubleGDL> kval_guard;
     if (nParam>2) {
       kval = e->GetParAs<DDoubleGDL>(2);
       if(kval->N_Elements() != 1)
@@ -1649,7 +1651,7 @@ namespace lib {
         e->Throw("Argument K must be greater than or equal to zero.");
     } else {
       kval = new DDoubleGDL(0);
-      e->Guard(kval);
+      kval_guard.reset(kval);
     }
 
     DDoubleGDL* res = new DDoubleGDL(xvals->Dim(),BaseGDL::NOZERO);
