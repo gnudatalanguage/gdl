@@ -645,7 +645,7 @@ void DInterpreter::ExecuteShellCommand(const string& command)
    throw GDLException( "Error managing child process. Environment variable "
 		       "SHELL not set.");
 
- system( commandLine.c_str());
+ int ignored = system( commandLine.c_str());
 }
 
 
