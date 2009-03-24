@@ -1792,7 +1792,7 @@ namespace lib {
 	pid_t wpid  = wait( &status);
 	
 	if( exit_statusKeyword)
-	  e->SetKW( exit_statusIx, new DLongGDL( status));
+	  e->SetKW( exit_statusIx, new DLongGDL( status >> 8));
 	    
 	SizeT nLines = 0;
 	if( nParam > 1)
