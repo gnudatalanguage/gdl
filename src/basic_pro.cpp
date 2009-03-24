@@ -1679,9 +1679,12 @@ namespace lib {
 
     if( nParam == 0)
       { 
-	system( shellCmd.c_str());
+        int status = system( shellCmd.c_str());
+        status >>= 8; 
 	if( countKeyword)
 	  e->SetKW( countIx, new DLongGDL( 0));
+        if( exit_statusKeyword)
+          e->SetKW( exit_statusIx, new DLongGDL( status));
 	return;
       }
 
