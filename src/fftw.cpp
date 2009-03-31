@@ -147,6 +147,12 @@ namespace lib {
     if( e->KeywordSet(1)) direct = +1.0;
     if( e->KeywordSet(2)) overwrite = 1;
 
+    // If not global parameter no overwrite
+    if( !e->GlobalPar( 0)) overwrite = 0;
+
+    // If double keyword no overwrite
+    if( dbl) overwrite = 0;
+
     if( p0->Type() == COMPLEXDBL || p0->Type() == DOUBLE || dbl) { 
 
       DComplexDblGDL *p0C;
