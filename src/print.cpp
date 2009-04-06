@@ -37,6 +37,24 @@ namespace lib {
 
   using namespace std;
 
+  void print_vmsCompat( EnvT* e, int* parOffset)
+  {
+    // SA: handling special VMS-compatibility syntax, e.g.: print, '$(F)', 100
+    //     (if FORMAT not defined, more than 2 params, first param is scalar string
+    //     and begins with "$(" then first param minus "$" is treated as FORMAT)
+    if (e->GetKW(0) == NULL && e->NParam() > 1 + *parOffset)
+    { 
+      BaseGDL* par = e->GetParDefined(*parOffset);
+      if (par->Type() == STRING && par->Scalar() && 
+        (*static_cast<DStringGDL*>(par))[0].compare(0,2,"$(") == 0) 
+      {
+        e->SetKeyword("FORMAT", 
+          new DStringGDL((*static_cast<DStringGDL*>(par))[0].c_str()+1));
+        (*parOffset)++;
+      }
+    }
+  }
+
   void printf( EnvT* e)
   {
     SizeT nParam=e->NParam();
@@ -83,7 +101,9 @@ namespace lib {
 	width = fileUnits[ lun-1].Width();
       }
     
-    print_os( os, e, 1, width);
+    int parOffset = 1;
+    print_vmsCompat(e, &parOffset);
+    print_os( os, e, parOffset, width);
 
     // Socket send
     if (sockNum != -1) {
@@ -98,18 +118,20 @@ namespace lib {
       {
 	GDLInterpreter* ip = e->Interpreter();
 	write_journal( ip->GetClearActualLine());
-	write_journal_comment( e, 1, width);
+	write_journal_comment( e, parOffset, width);
       }
   }
   
   void print( EnvT* e)
   {
     SizeT width = TermWidth();
-    print_os( &cout, e, 0, width);
 
+    int parOffset = 0;
+    print_vmsCompat(e, &parOffset);
+    print_os( &cout, e, parOffset, width);
     GDLInterpreter* ip = e->Interpreter();
     write_journal( ip->GetClearActualLine());
-    write_journal_comment( e, 0, width);
+    write_journal_comment( e, parOffset, width);
   }
   
   void print_os( ostream* os, EnvT* e, int parOffset, SizeT width)
