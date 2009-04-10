@@ -73,8 +73,8 @@ if (N_ELEMENTS(filename0) GT 0) then begin
       return
    endif
 endif
-if (N_ELEMENTS(filename) GT 0) then begin
-   if (FILE_TEST(filename) NE 1) then begin
+if (N_ELEMENTS(filename1) GT 0) then begin
+   if (FILE_TEST(filename1) NE 1) then begin
       print, "% RESTORE: FILE not found."
       return
    endif
