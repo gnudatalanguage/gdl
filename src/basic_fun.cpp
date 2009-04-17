@@ -1053,17 +1053,18 @@ namespace lib {
     if (!printKey && (e->GetKW(0) == NULL) && nParam > 1) 
     {    
       BaseGDL* par = e->GetParDefined(nParam - 1);
-      int dollar = (*static_cast<DStringGDL*>(par))[0].compare(0,2,"$(");
-      if (par->Type() == STRING && par->Scalar() && ( 
-        dollar == 0 || (*static_cast<DStringGDL*>(par))[0].compare(0,1,"(") == 0 
-      ))   
-      {    
-        e->SetKeyword("FORMAT", new DStringGDL(
-          (*static_cast<DStringGDL*>(par))[0].c_str() + (dollar == 0 ? 1 : 0) 
-        ));
-        parOffset = 1; 
-        for (SizeT i = nParam - 1; i > 0; i--) e->GetParDefined(i) = e->GetParDefined(i-1);
-        e->GetParDefined(0) = par; 
+      if (par->Type() == STRING && par->Scalar())
+      {
+        int dollar = (*static_cast<DStringGDL*>(par))[0].compare(0,2,"$(");
+        if (dollar == 0 || (*static_cast<DStringGDL*>(par))[0].compare(0,1,"(") == 0)   
+        {    
+          e->SetKeyword("FORMAT", new DStringGDL(
+            (*static_cast<DStringGDL*>(par))[0].c_str() + (dollar == 0 ? 1 : 0) 
+          ));
+          parOffset = 1; 
+          for (SizeT i = nParam - 1; i > 0; i--) e->GetParDefined(i) = e->GetParDefined(i-1);
+          e->GetParDefined(0) = par; 
+        }
       }    
     }    
 
