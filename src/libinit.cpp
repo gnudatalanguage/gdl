@@ -154,6 +154,9 @@ void LibInit()
 			       "NAMED_PIPE","SOCKET","SYMLINK","NOEXPAND_PATH",KLISTEND};
   new DLibFunRetNew(lib::file_test,string("FILE_TEST"),1,file_testKey);
 
+  const string file_sameKey[]={"NOEXPAND_PATH",KLISTEND};
+  new DLibFunRetNew(lib::file_same,string("FILE_SAME"),2,file_sameKey);
+
   new DLibFunRetNew(lib::shift_fun,string("SHIFT"),9,NULL,NULL,true);
 
   const string sortKey[]={"L64",KLISTEND};

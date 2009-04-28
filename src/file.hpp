@@ -29,6 +29,7 @@ namespace lib {
 
   BaseGDL* file_search( EnvT* e);
 
+  BaseGDL* file_same( EnvT* e);
 
   // helper functions
   void ExpandPath( FileListT& result,

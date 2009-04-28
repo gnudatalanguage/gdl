@@ -118,10 +118,11 @@ namespace lib {
     for( SizeT f=0; f<nEl; ++f)
       {
 	const char* actFile;
+        string tmp;
 
         if (!noexpand_path) 
         {
-          string tmp = (*p0S)[f];
+          tmp = (*p0S)[f];
           WordExp(tmp);
           actFile = tmp.c_str();
         } 
@@ -766,6 +767,96 @@ namespace lib {
       (*res)[r] = fileList[ r];
 
     return res;
+  }
+
+  BaseGDL* file_same( EnvT* e)
+  {
+    // assuring right number of parameters
+    SizeT nParam=e->NParam(2); 
+
+    // accepting only strings as parameters
+    BaseGDL* p0 = e->GetParDefined(0);
+    DStringGDL* p0S = dynamic_cast<DStringGDL*>(p0);
+    if (p0S == NULL) e->Throw("String expression required in this context: " + e->GetParString(0));
+
+    BaseGDL* p1 = e->GetParDefined(1);
+    DStringGDL* p1S = dynamic_cast<DStringGDL*>(p1);
+    if (p1S == NULL) e->Throw("String expression required in this context: " + e->GetParString(1));
+
+    // no empty strings accepted
+    {
+      int empty = 0;
+      for (SizeT i = 0; i < p0S->N_Elements(); i++) empty += (*p0S)[i].empty();
+      for (SizeT i = 0; i < p1S->N_Elements(); i++) empty += (*p1S)[i].empty();
+      if (empty != 0) e->Throw("Null filename not allowed.");
+    }
+
+    // allocating memory for the comparison result
+    DByteGDL* res;
+    {
+      dimension resDim;
+      if (p0S->Rank() == 0 || p1S->Rank() == 0) {
+        resDim = (p0S->N_Elements() > p1S->N_Elements() ? p0S : p1S)->Dim(); 
+      } else {
+        resDim = (p0S->N_Elements() < p1S->N_Elements() ? p0S : p1S)->Dim(); 
+      }
+      res = new DByteGDL(resDim); // zero
+    }
+
+    // comparison loop
+    for (SizeT i = 0; i < res->N_Elements(); i++)
+    {
+      // deciding which filename to compare
+      SizeT p0idx = p0S->Rank() == 0 ? 0 : i;
+      SizeT p1idx = p1S->Rank() == 0 ? 0 : i;
+
+      // checking for lexically identical paths
+      if ((*p0S)[p0idx].compare((*p1S)[p1idx]) == 0)
+      {
+        (*res)[i] = 1;
+        continue;
+      }
+
+      // expanding if needed (tilde, shell variables, etc)
+      const char *file0, *file1;
+      string tmp0, tmp1;
+      if (!e->KeywordSet(e->KeywordIx("NOEXPAND_PATH"))) 
+      {
+        tmp0 = (*p0S)[p0idx];
+        WordExp(tmp0);
+        tmp1 = (*p1S)[p1idx];
+        WordExp(tmp1);
+        // checking again for lexically identical paths (e.g. ~/ and $HOME)
+        if (tmp0.compare(tmp1) == 0)
+        {
+          (*res)[i] = 1;
+          continue;
+        }
+        file0 = tmp0.c_str();
+        file1 = tmp1.c_str();
+      }
+      else
+      {
+        file0 = (*p0S)[p0idx].c_str();
+        file1 = (*p1S)[p1idx].c_str();
+      }
+
+      // checking for the same inode/device numbers
+      struct stat statStruct;
+      dev_t file0dev;
+      ino_t file0ino;    
+      int ret = stat(file0, &statStruct);
+      if (ret != 0) continue;
+      file0dev = statStruct.st_dev;
+      file0ino = statStruct.st_ino;
+      ret = stat(file1, &statStruct);
+      if (ret != 0) continue;
+      (*res)[i] = (file0dev == statStruct.st_dev && file0ino == statStruct.st_ino);
+
+    }
+
+    return res;
+
   }
 
 }
