@@ -151,7 +151,7 @@ void LibInit()
 			       "REGULAR","WRITE","ZERO_LENGTH",
 			       "GET_MODE",
 			       "BLOCK_SPECIAL","CHARACTER_SPECIAL",
-			       "NAMED_PIPE","SOCKET","SYMLINK",KLISTEND};
+			       "NAMED_PIPE","SOCKET","SYMLINK","NOEXPAND_PATH",KLISTEND};
   new DLibFunRetNew(lib::file_test,string("FILE_TEST"),1,file_testKey);
 
   new DLibFunRetNew(lib::shift_fun,string("SHIFT"),9,NULL,NULL,true);

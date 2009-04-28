@@ -96,6 +96,9 @@ namespace lib {
     static int symlinkIx = e->KeywordIx( "SYMLINK");
     bool symlink = e->KeywordSet( symlinkIx);
 
+    static int noexpand_pathIx = e->KeywordIx( "NOEXPAND_PATH");
+    bool noexpand_path = e->KeywordSet( noexpand_pathIx);
+
     DLongGDL* getMode = NULL; 
     if( get_mode)
       {
@@ -111,9 +114,21 @@ namespace lib {
 //       named_pipe || socket || symlink;
 
     SizeT nEl = p0S->N_Elements();
+
     for( SizeT f=0; f<nEl; ++f)
       {
-	const char* actFile = (*p0S)[ f].c_str();
+	const char* actFile;
+
+        if (!noexpand_path) 
+        {
+          string tmp = (*p0S)[f];
+          WordExp(tmp);
+          actFile = tmp.c_str();
+        } 
+        else 
+        {
+          actFile = (*p0S)[f].c_str();
+        }
 
 	struct stat statStruct;
 	int actStat = lstat( actFile, &statStruct);
@@ -752,7 +767,6 @@ namespace lib {
 
     return res;
   }
-
 
 }
 
