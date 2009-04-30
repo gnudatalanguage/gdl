@@ -20002,7 +20002,6 @@ if test "${with_ncursesdir+set}" = set; then
 fi
 
 
-
 { $as_echo "$as_me:$LINENO: checking for initscr in -lncurses" >&5
 $as_echo_n "checking for initscr in -lncurses... " >&6; }
 if test "${ac_cv_lib_ncurses_initscr+set}" = set; then
@@ -20069,14 +20068,13 @@ fi
 { $as_echo "$as_me:$LINENO: result: $ac_cv_lib_ncurses_initscr" >&5
 $as_echo "$ac_cv_lib_ncurses_initscr" >&6; }
 if test $ac_cv_lib_ncurses_initscr = yes; then
-  cat >>confdefs.h <<_ACEOF
+
+cat >>confdefs.h <<\_ACEOF
 #define HAVE_LIBNCURSES 1
 _ACEOF
 
   LIBS="-lncurses $LIBS"
-
-fi
-
+else
 
 { $as_echo "$as_me:$LINENO: checking for initscr in -lcurses" >&5
 $as_echo_n "checking for initscr in -lcurses... " >&6; }
@@ -20149,6 +20147,8 @@ if test $ac_cv_lib_curses_initscr = yes; then
 _ACEOF
 
   LIBS="-lcurses $LIBS"
+
+fi
 
 fi
 

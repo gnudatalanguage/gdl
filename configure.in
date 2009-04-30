@@ -47,8 +47,9 @@ AC_ARG_WITH(ncursesdir,
          INCLUDES="$INCLUDES -I$withval/include"
        ])
 
-AC_CHECK_LIB(ncurses, initscr)
-AC_CHECK_LIB(curses, initscr)
+AC_CHECK_LIB(ncurses, initscr, [AC_DEFINE([HAVE_LIBNCURSES],[1],
+  [Define to 1 if you have the `ncurses' library (-lncurses).])
+  LIBS="-lncurses $LIBS"],AC_CHECK_LIB(curses, initscr))
 
 
 dnl readline (we need *GNU* readline)
