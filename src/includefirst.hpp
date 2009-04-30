@@ -41,4 +41,11 @@
 
 #endif
 
+#if defined(__sun__)
+// SA: CS is defined in /usr/include/sys/regset.h and used in an enum statement by ANTLR
+#  include <sys/regset.h>
+#  undef CS
+#  undef GS
+#endif
+
 #endif

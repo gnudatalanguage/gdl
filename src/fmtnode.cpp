@@ -15,6 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "includefirst.hpp"
 #include "fmtnode.hpp"
 
 FMTNode::~FMTNode() {}

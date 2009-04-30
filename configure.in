@@ -42,13 +42,13 @@ AM_CONDITIONAL(BUILDASLIBRARY, test "x$PYTHON_MODULE" = "xyes")
 
 
 AC_ARG_WITH(ncursesdir,
- 	[  --with-ncursesdir=DIR   specify the ncurses directory tree ],
+ 	[  --with-ncursesdir=DIR   specify the ncurses (or curses) directory tree ],
 	[ LIBS="$LIBS -L$withval/lib"
          INCLUDES="$INCLUDES -I$withval/include"
        ])
 
 AC_CHECK_LIB(ncurses, initscr)
-
+AC_CHECK_LIB(curses, initscr)
 
 
 dnl readline (we need *GNU* readline)
@@ -700,7 +700,7 @@ dnl refers to ${prefix}.  Thus we have to use `eval' twice.
 AC_DEFINE_DIR([EXEC_PREFIX], [exec_prefix], [--exec-prefix or default])
 #AC_DEFINE([EXEC_PREFIX],[\"`echo ${exec_prefix}`\"],[GDL installation directory])
 
-echo System is:  ${host}
+echo System is:  ${host} 
 
 DARWIN="no"
 
@@ -723,6 +723,10 @@ case "${host}" in
     dnl (-ltermcap was reported to solve problems with readline)
     dnl LDFLAGS="$LDFLAGS -ltermcap -rdynamic -z muldefs"
     LDFLAGS="$LDFLAGS -rdynamic -z muldefs"
+    ;;
+
+  *solaris* )
+    LIBS="$LIBS -lsocket -lnsl"
     ;;
 
 dnl  *)

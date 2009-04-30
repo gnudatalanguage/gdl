@@ -399,5 +399,13 @@ extern "C" {
 #endif
 #endif
 
+// isfinite & isinf for Solaris
+#if defined(__sun__)
+#  include <ieeefp.h>
+#  define isfinite finite
+#  ifndef isinf
+#    define isinf(x) (!finite(x) && x==x)
+#  endif
+#endif
 
 #endif
