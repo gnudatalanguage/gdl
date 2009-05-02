@@ -123,6 +123,31 @@ void InitStructs()
   // insert into structList
   structList.push_back( fstat);
 
+  DStructDesc* finfo = new DStructDesc("FILE_INFO");
+  finfo->AddTag("NAME", &aString);
+  finfo->AddTag("EXISTS", &aByte);
+  finfo->AddTag("READ", &aByte);
+  finfo->AddTag("WRITE", &aByte);
+  finfo->AddTag("EXECUTE", &aByte);
+  finfo->AddTag("REGULAR", &aByte);
+  finfo->AddTag("DIRECTORY", &aByte);
+  finfo->AddTag("BLOCK_SPECIAL", &aByte);
+  finfo->AddTag("CHARACTER_SPECIAL", &aByte);
+  finfo->AddTag("NAMED_PIPE", &aByte);
+  finfo->AddTag("SETUID", &aByte);
+  finfo->AddTag("SETGID", &aByte);
+  finfo->AddTag("SOCKET", &aByte);
+  finfo->AddTag("STICKY_BIT", &aByte);
+  finfo->AddTag("SYMLINK", &aByte);
+  finfo->AddTag("DANGLING_SYMLINK", &aByte);
+  finfo->AddTag("MODE", &aLong);
+  finfo->AddTag("ATIME", &aLong64);
+  finfo->AddTag("CTIME", &aLong64);
+  finfo->AddTag("MTIME", &aLong64);
+  finfo->AddTag("SIZE", &aLong64);
+  // insert into structList
+  structList.push_back( finfo);
+
   DStructDesc* machar = new DStructDesc( "MACHAR");
   machar->AddTag("IBETA", &aLong);
   machar->AddTag("IT", &aLong);

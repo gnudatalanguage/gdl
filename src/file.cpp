@@ -24,6 +24,7 @@
 
 #include "envt.hpp"
 #include "file.hpp"
+#include "objects.hpp"
 
 #include <unistd.h>
 #include <sys/stat.h>
@@ -854,6 +855,121 @@ namespace lib {
       (*res)[i] = (file0dev == statStruct.st_dev && file0ino == statStruct.st_ino);
 
     }
+
+    return res;
+
+  }
+
+  BaseGDL* file_info( EnvT* e)
+  {
+    SizeT nParam=e->NParam( 1); 
+    DStringGDL* p0S = dynamic_cast<DStringGDL*>(e->GetParDefined(0));
+    if( p0S == NULL)
+      e->Throw( "String expression required in this context: "+
+		e->GetParString(0));
+
+    bool noexpand_path = e->KeywordSet(e->KeywordIx( "NOEXPAND_PATH"));
+
+    DStructGDL* res = new DStructGDL(
+      FindInStructList(structList, "FILE_INFO"), 
+      p0S->Rank() == 0 ? dimension(1) : p0S->Dim()
+    ); 
+
+    int tName = tName = res->Desc()->TagIndex("NAME");
+    int tExists, tRead, tWrite, tExecute, tRegular, tDirectory, tBlockSpecial, 
+      tCharacterSpecial, tNamedPipe, tSetuid, tSetgid, tSocket, tStickyBit, 
+      tSymlink, tDanglingSymlink, tMode, tAtime, tCtime, tMtime, tSize;
+    int indices_known = false;
+
+    SizeT nEl = p0S->N_Elements();
+
+    for (SizeT f = 0; f < nEl; f++)
+    {
+        // NAME
+	const char* actFile;
+        string tmp;
+        if (!noexpand_path) 
+        {
+          tmp = (*p0S)[f];
+          WordExp(tmp);
+          actFile = tmp.c_str();
+        } 
+        else actFile = (*p0S)[f].c_str();
+	*(res->GetTag(tName, f)) = DStringGDL(actFile);
+
+        // stating the file (and moving on to the next file if failed)
+	struct stat statStruct;
+	if (lstat(actFile, &statStruct) != 0) continue;
+
+        // checking struct tag indices (once)
+        if (!indices_known) 
+        {
+          tExists =           res->Desc()->TagIndex("EXISTS"); 
+          tRead =             res->Desc()->TagIndex("READ"); 
+          tWrite =            res->Desc()->TagIndex("WRITE"); 
+          tExecute =          res->Desc()->TagIndex("EXECUTE"); 
+          tRegular =          res->Desc()->TagIndex("REGULAR"); 
+          tDirectory =        res->Desc()->TagIndex("DIRECTORY");
+          tBlockSpecial =     res->Desc()->TagIndex("BLOCK_SPECIAL");
+          tCharacterSpecial = res->Desc()->TagIndex("CHARACTER_SPECIAL");
+          tNamedPipe =        res->Desc()->TagIndex("NAMED_PIPE");
+          tSetuid =           res->Desc()->TagIndex("SETUID");
+          tSetgid =           res->Desc()->TagIndex("SETGID");
+          tSocket =           res->Desc()->TagIndex("SOCKET");
+          tStickyBit =        res->Desc()->TagIndex("STICKY_BIT");
+          tSymlink =          res->Desc()->TagIndex("SYMLINK");
+          tDanglingSymlink =  res->Desc()->TagIndex("DANGLING_SYMLINK");
+          tMode =             res->Desc()->TagIndex("MODE");
+          tAtime =            res->Desc()->TagIndex("ATIME");
+          tCtime =            res->Desc()->TagIndex("CTIME");
+          tMtime =            res->Desc()->TagIndex("MTIME");
+          tSize =             res->Desc()->TagIndex("SIZE");
+          indices_known = true;
+        }
+
+        // EXISTS (would not reach here if stat failed)
+        *(res->GetTag(tExists, f)) = DByteGDL(1);
+        
+        // READ, WRITE, EXECUTE
+        *(res->GetTag(tRead, f)) =    DByteGDL(access(actFile, R_OK) == 0);
+        *(res->GetTag(tWrite, f)) =   DByteGDL(access(actFile, W_OK) == 0);
+        *(res->GetTag(tExecute, f)) = DByteGDL(access(actFile, X_OK) == 0);
+
+        // REGULAR, DIRECTORY, BLOCK_SPECIAL, CHARACTER_SPECIAL, NAMED_PIPE, SOCKET
+        *(res->GetTag(tRegular, f)) =          DByteGDL(S_ISREG( statStruct.st_mode) != 0);
+        *(res->GetTag(tDirectory, f)) =        DByteGDL(S_ISDIR( statStruct.st_mode) != 0);
+        *(res->GetTag(tBlockSpecial, f)) =     DByteGDL(S_ISBLK( statStruct.st_mode) != 0);
+        *(res->GetTag(tCharacterSpecial, f)) = DByteGDL(S_ISCHR( statStruct.st_mode) != 0);
+        *(res->GetTag(tNamedPipe, f)) =        DByteGDL(S_ISFIFO(statStruct.st_mode) != 0);
+        *(res->GetTag(tSocket, f)) =           DByteGDL(S_ISSOCK(statStruct.st_mode) != 0);
+  
+        // SETUID, SETGID, STICKY_BIT
+        *(res->GetTag(tSetuid, f)) =           DByteGDL((S_ISUID & statStruct.st_mode) != 0);
+        *(res->GetTag(tSetgid, f)) =           DByteGDL((S_ISGID & statStruct.st_mode) != 0);
+        *(res->GetTag(tStickyBit, f)) =        DByteGDL((S_ISVTX & statStruct.st_mode) != 0);
+
+        // MODE
+        *(res->GetTag(tMode, f)) = DLongGDL(
+          statStruct.st_mode & (S_IRWXU | S_IRWXG | S_IRWXO | S_ISUID | S_ISGID | S_ISVTX)
+        );
+
+        // ATIME, CTIME, MTIME
+        *(res->GetTag(tAtime, f)) = DLong64GDL(statStruct.st_atime);
+        *(res->GetTag(tCtime, f)) = DLong64GDL(statStruct.st_ctime);
+        *(res->GetTag(tMtime, f)) = DLong64GDL(statStruct.st_mtime);
+
+        // SIZE
+	*(res->GetTag(tSize, f)) = DLong64GDL(statStruct.st_size);
+
+        // SYMLINK, DANLING_SYMLINK 
+        if (S_ISLNK(statStruct.st_mode) != 0)
+        {
+          *(res->GetTag(tSymlink, f)) = DByteGDL(1);
+          // warning: statStruct now describes the linked file
+          *(res->GetTag(tDanglingSymlink, f)) = DByteGDL(stat(actFile, &statStruct) != 0);
+        }
+	
+      }
 
     return res;
 
