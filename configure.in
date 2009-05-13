@@ -39,7 +39,9 @@ if test "x$PYTHON_MODULE" = "xyes"; then
 fi
 AM_CONDITIONAL(BUILDASLIBRARY, test "x$PYTHON_MODULE" = "xyes")
 
-
+dnl related to portability of MEMORY() 
+AC_CHECK_FUNCS([malloc_zone_statistics sbrk mallinfo])
+AC_CHECK_HEADERS([malloc.h malloc/malloc.h])
 
 AC_ARG_WITH(ncursesdir,
  	[  --with-ncursesdir=DIR   specify the ncurses (or curses) directory tree ],

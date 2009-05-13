@@ -232,6 +232,10 @@ namespace lib {
     if (isKWSetRecall && (isKWSetProcedures || isKWSetFunctions))
       e->Throw( "Conflicting keywords.");
     
+    bool isKWSetMemory  = e->KeywordSet( "MEMORY");
+    if (isKWSetMemory && (isKWSetProcedures || isKWSetFunctions))
+      e->Throw( "Conflicting keywords.");
+
     // using this way, we don't need to manage HAVE_READLINE at this level ...
     if (isKWSetRecall) {
       DStringGDL *previous_commands;
@@ -303,7 +307,7 @@ namespace lib {
     bool briefKW = e->KeywordSet( briefKWIx);
     SizeT nOut = 0;
     
-    if (nParam == 0 || isKWSetFunctions || isKWSetProcedures) {
+    if ((nParam == 0 && !isKWSetMemory) || isKWSetFunctions || isKWSetProcedures) {
 
       if (nParam == 0 && !isKWSetFunctions && !isKWSetProcedures) {
 	// Tell where we are
@@ -414,6 +418,25 @@ namespace lib {
       }
       if( isKWSetProcedures) return;
       if( isKWSetFunctions)  return;
+    } 
+    else if (isKWSetMemory)
+    {
+      std::ostream* ostrp = outputKW == NULL ? &cout : &ostr;
+      *ostrp << "heap memory used: ";
+      *ostrp << MemStats::GetCurrent();
+      *ostrp << ", max: ";
+      *ostrp << MemStats::GetHighWater();
+      *ostrp << ", gets: ";
+      *ostrp << MemStats::GetNumAlloc();
+      *ostrp << ", frees: ";
+      *ostrp << MemStats::GetNumFree();
+      if (outputKW == NULL) cout << endl;
+      else
+      {
+        (*(DStringGDL *) *outputKW)[nOut++] = ostr.rdbuf()->str();
+        ostr.str("");
+      }
+      return;
     }
 
     for( SizeT i=0; i<nParam; i++)

@@ -148,6 +148,22 @@ void InitStructs()
   // insert into structList
   structList.push_back( finfo);
 
+  DStructDesc* memory = new DStructDesc("IDL_MEMORY");
+  memory->AddTag("CURRENT", &aLong);
+  memory->AddTag("NUM_ALLOC", &aLong);
+  memory->AddTag("NUM_FREE", &aLong);
+  memory->AddTag("HIGHWATER", &aLong);
+  // insert into structList
+  structList.push_back(memory);
+
+  DStructDesc* memory64 = new DStructDesc("IDL_MEMORY64");
+  memory64->AddTag("CURRENT", &aLong64);
+  memory64->AddTag("NUM_ALLOC", &aLong64);
+  memory64->AddTag("NUM_FREE", &aLong64);
+  memory64->AddTag("HIGHWATER", &aLong64);
+  // insert into structList
+  structList.push_back(memory64);
+
   DStructDesc* machar = new DStructDesc( "MACHAR");
   machar->AddTag("IBETA", &aLong);
   machar->AddTag("IT", &aLong);

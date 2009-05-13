@@ -36,11 +36,26 @@
 /* Zlib library */
 #undef HAVE_LIBZ
 
+/* Define to 1 if you have the `mallinfo' function. */
+#undef HAVE_MALLINFO
+
+/* Define to 1 if you have the <malloc.h> header file. */
+#undef HAVE_MALLOC_H
+
+/* Define to 1 if you have the <malloc/malloc.h> header file. */
+#undef HAVE_MALLOC_MALLOC_H
+
+/* Define to 1 if you have the `malloc_zone_statistics' function. */
+#undef HAVE_MALLOC_ZONE_STATISTICS
+
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 
 /* Define if you have a plplot version prior to 5.9.0 */
 #undef HAVE_OLDPLPLOT
+
+/* Define to 1 if you have the `sbrk' function. */
+#undef HAVE_SBRK
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H

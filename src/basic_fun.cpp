@@ -4484,6 +4484,93 @@ namespace lib {
     return ret;
   }
 
+  BaseGDL* memory( EnvT* e)
+  {
+    SizeT nParam=e->NParam( 0); 
+
+    BaseGDL* ret;
+    bool kw_l64 = e->KeywordSet(e->KeywordIx("L64"));
+    // TODO: IDL-doc mentions about automatically switching to L64 if needed
+
+    if (e->KeywordSet(e->KeywordIx("STRUCTURE")))
+    {
+      // returning structure
+      if (kw_l64) 
+      {
+        ret = new DStructGDL("IDL_MEMORY64");
+        DStructGDL* retStru = static_cast<DStructGDL*>(ret);
+        *(retStru->GetTag(retStru->Desc()->TagIndex("CURRENT"))) = DLong64GDL(MemStats::GetCurrent());
+        *(retStru->GetTag(retStru->Desc()->TagIndex("NUM_ALLOC"))) = DLong64GDL(MemStats::GetNumAlloc());
+        *(retStru->GetTag(retStru->Desc()->TagIndex("NUM_FREE"))) = DLong64GDL(MemStats::GetNumFree());
+        *(retStru->GetTag(retStru->Desc()->TagIndex("HIGHWATER"))) = DLong64GDL(MemStats::GetHighWater());
+      }
+      else 
+      {
+        ret = new DStructGDL("IDL_MEMORY");
+        DStructGDL* retStru = static_cast<DStructGDL*>(ret);
+        *(retStru->GetTag(retStru->Desc()->TagIndex("CURRENT"))) = DLongGDL(MemStats::GetCurrent());
+        *(retStru->GetTag(retStru->Desc()->TagIndex("NUM_ALLOC"))) = DLongGDL(MemStats::GetNumAlloc());
+        *(retStru->GetTag(retStru->Desc()->TagIndex("NUM_FREE"))) = DLongGDL(MemStats::GetNumFree());
+        *(retStru->GetTag(retStru->Desc()->TagIndex("HIGHWATER"))) = DLongGDL(MemStats::GetHighWater());
+      }
+    }
+    else 
+    {
+      bool kw_current = e->KeywordSet(e->KeywordIx("CURRENT"));
+      bool kw_num_alloc = e->KeywordSet(e->KeywordIx("NUM_ALLOC"));
+      bool kw_num_free = e->KeywordSet(e->KeywordIx("NUM_FREE"));
+      bool kw_highwater = e->KeywordSet(e->KeywordIx("HIGHWATER"));
+
+      // Following the IDL documentation: mutually exclusive keywords
+      // IDL behaves different, incl. segfaults with selected kw combinations
+      if (kw_current + kw_num_alloc + kw_num_free + kw_highwater > 1) 
+        e->Throw("CURRENT, NUM_ALLOC, NUM_FREE & HIGHWATER keywords"
+          " are mutually exclusive");
+
+      if (kw_current)
+      {
+        if (kw_l64) ret = new DLong64GDL(MemStats::GetCurrent());
+        else ret = new DLongGDL(MemStats::GetCurrent());
+      } 
+      else if (kw_num_alloc)
+      {
+        if (kw_l64) ret = new DLong64GDL(MemStats::GetNumAlloc());
+        else ret = new DLongGDL(MemStats::GetNumAlloc());
+      }
+      else if (kw_num_free)
+      {
+        if (kw_l64) ret = new DLong64GDL(MemStats::GetNumFree());
+        else ret = new DLongGDL(MemStats::GetNumFree());
+      }
+      else if (kw_highwater)
+      {
+        if (kw_l64) ret = new DLong64GDL(MemStats::GetHighWater());
+        else ret = new DLongGDL(MemStats::GetHighWater());
+      }
+      else 
+      {
+        // returning 4-element array 
+        if (kw_l64) 
+        {
+          ret = new DLong64GDL(dimension(4));
+          (*dynamic_cast<DLong64GDL*>(ret))[0] = MemStats::GetCurrent();
+          (*dynamic_cast<DLong64GDL*>(ret))[1] = MemStats::GetNumAlloc();
+          (*dynamic_cast<DLong64GDL*>(ret))[2] = MemStats::GetNumFree();
+          (*dynamic_cast<DLong64GDL*>(ret))[3] = MemStats::GetHighWater();
+        }
+        else 
+        {
+          ret = new DLongGDL(dimension(4));
+          (*dynamic_cast<DLongGDL*>(ret))[0] = MemStats::GetCurrent();
+          (*dynamic_cast<DLongGDL*>(ret))[1] = MemStats::GetNumAlloc();
+          (*dynamic_cast<DLongGDL*>(ret))[2] = MemStats::GetNumFree();
+          (*dynamic_cast<DLongGDL*>(ret))[3] = MemStats::GetHighWater();
+        }
+      }
+    }
+
+    return ret;
+  }
 
   inline DByte StrCmp( const string& s1, const string& s2, DLong n)
   {

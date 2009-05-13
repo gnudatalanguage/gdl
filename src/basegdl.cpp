@@ -706,3 +706,19 @@ BaseGDL* BaseGDL::Rotate( DLong dir)
   throw GDLException("Operation not defined for UNDEF 30.");
 }
 
+// --- SA: MemStats stuff
+
+SizeT MemStats::NumAlloc = 0;
+SizeT MemStats::NumFree = 0;
+SizeT MemStats::HighWater = 0;
+SizeT MemStats::Current = 0;
+
+#if !defined(HAVE_MALLINFO) 
+#  if (!defined(HAVE_MALLOC_ZONE_STATISTICS) || !defined(HAVE_MALLOC_MALLOC_H))
+#    if defined(HAVE_SBRK)
+char* MemStats::StartOfMemory = reinterpret_cast<char*>(::sbrk(0));
+#    endif
+#  endif
+#endif
+
+// ---

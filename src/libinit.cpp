@@ -183,8 +183,13 @@ void LibInit()
   
   const string helpKey[]={"STRUCTURES","ROUTINES","BRIEF",
 			  "OUTPUT","PROCEDURES","FUNCTIONS",
-			  "INFO","LIB","CALLS","RECALL_COMMANDS", KLISTEND};
+			  "INFO","LIB","CALLS","RECALL_COMMANDS",
+                          "MEMORY", KLISTEND};
   new DLibPro(lib::help,string("HELP"),-1,helpKey);
+
+  const string memoryKey[]={"CURRENT","HIGHWATER","NUM_ALLOC",
+    "NUM_FREE","STRUCTURE","L64",KLISTEND};
+  new DLibFunRetNew(lib::memory, string("MEMORY"), 1, memoryKey, NULL);
 
   // printKey, readKey and stringKey are closely associated
   // as the same functions are called "FORMAT" till "MONTH"

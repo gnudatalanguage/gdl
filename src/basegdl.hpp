@@ -22,9 +22,17 @@
 
 #include <list>
 #include <rpc/rpc.h>
+#include <algorithm>
 
 #include "dimension.hpp"
+#include "gdlexception.hpp"
 
+#ifdef HAVE_MALLOC_H
+#  include <malloc.h>
+#endif
+#ifdef HAVE_MALLOC_MALLOC_H
+#  include <malloc/malloc.h>
+#endif
 
 // GDL typecodes
 enum DType {  // Object types (IDL type numbers)
@@ -204,7 +212,94 @@ template<class> class Data_;
 
 void breakpoint();
 
-class BaseGDL
+// --- SA: MemStats stuff
+
+class MemStats
+{
+
+private:
+
+  // SizeT has architecture-dependant size (32/64 bit)
+  static SizeT NumAlloc, NumFree, HighWater, Current;
+
+#if !defined(HAVE_MALLINFO) 
+#  if (!defined(HAVE_MALLOC_ZONE_STATISTICS) || !defined(HAVE_MALLOC_MALLOC_H))
+#    if defined(HAVE_SBRK)
+  static char* StartOfMemory;
+#    endif
+#  endif
+#endif
+
+public:
+
+  ~MemStats() 
+  { 
+    NumFree++; 
+    UpdateCurrent(); // updates the highwater mark 
+  }
+
+  MemStats() { NumAlloc++; }
+
+  static SizeT GetNumAlloc() { return NumAlloc; }
+  static SizeT GetNumFree() { return NumFree; }
+
+  static SizeT GetCurrent() 
+  { 
+    UpdateCurrent(); // updates the highwater mark
+    return Current; 
+  }
+
+  // returns and resets the highwater mark (called from HELP and MEMORY())
+  static SizeT GetHighWater() 
+  { 
+    // Current can be safely used as a temporary variable here
+    Current = HighWater;
+    HighWater = 0;
+    return Current;
+  }
+
+  // returns current memory usage and updates the highwater mark
+  static void UpdateCurrent() 
+  { 
+    // ---------------------------------------------------------------------
+    // based on the codes from:
+    // - the LLVM project (lib/System/Unix/Process.inc) see http://llvm.org/
+    // - the Squid cache project (src/tolls.cc) see http://squid-cache.org/
+    // TODO (TOCHECK): Squid considers also gnumalloc.h - ?
+#if defined(HAVE_MALLINFO)
+    // Linux case for example
+    static struct mallinfo mi;
+    mi = mallinfo();
+    Current = mi.uordblks;
+#elif defined(HAVE_MALLOC_ZONE_STATISTICS) && defined(HAVE_MALLOC_MALLOC_H)
+    // Mac OS X case for example
+    static malloc_statistics_t stats;
+    malloc_zone_statistics(malloc_default_zone(), &stats);
+    Current = stats.size_in_use;
+#elif defined(HAVE_SBRK)
+    // Open Solaris case for example
+    static char* EndOfMemory;
+    EndOfMemory = (char*)sbrk(0);
+    Current = EndOfMemory - StartOfMemory;
+#else
+  /*
+   * // a draft of Windows version (for neccesarry includes consult the LLVM source): 
+   *  _HEAPINFO hinfo;
+   *  hinfo._pentry = NULL;
+   *  Current = 0;
+   *  while (_heapwalk(&hinfo) == _HEAPOK) Current += hinfo._size;
+   */ 
+    Warning("Cannot get dynamic memory information on this platform (FIXME)");
+#endif
+
+    HighWater = std::max(HighWater, Current);
+  }
+
+};
+
+// ---
+
+class BaseGDL: private MemStats
 {
 protected:
   dimension dim;
