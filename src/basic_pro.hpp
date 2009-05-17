@@ -90,6 +90,11 @@ namespace lib {
   BaseGDL* recall_commands(EnvT* e);
 
   void resolve_routine( EnvT* e);
+
+  // the following by Sylwester Arabas
+  // (slayoo@igf.fuw.edu.pl)
+  void caldat(EnvT* e);
+
 } // namespace
 
 #endif

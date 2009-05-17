@@ -715,6 +715,8 @@ void LibInit()
 
   new DLibFun(lib::t_pdf,string("T_PDF"),2);
 
+  new DLibPro(lib::caldat, string("CALDAT"),7);
+
   // sort lists
   sort( libFunList.begin(), libFunList.end(), CompLibFunName());
   sort( libProList.begin(), libProList.end(), CompLibProName());

@@ -1940,5 +1940,117 @@ namespace lib {
 
 
   }
+
+  void caldat(EnvT* e) {
+    /* 
+     * SA: based on the following codes:
+     * - cal_date() function from the NOVAS-C library (novas.c)
+     *   (U.S. Naval Observatory Vector Astrometry Subroutines)
+     *   http://aa.usno.navy.mil/software/novas/novas_c/novasc_info.php
+     * - ln_get_date() function from the libnova library (src/julian_day.c)
+     *   (by Liam Girdwood and Petr Kubanek) http://libnova.sourceforge.net/
+     */
+
+    // checking input; exiting if nothing to do
+    SizeT nParam=e->NParam(1); 
+    if (nParam == 1) return;
+    DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>(0); 
+
+    // checking output (if present and global); exiting if nothing to do
+    bool global[6]; 
+    {
+      short int sum = 0;
+      for (SizeT i = 0; i < 6; i++) sum += global[i] = e->GlobalPar(i + 1);
+      if (sum == 0) return;
+    }
+
+    // checking if all Julian values fall within the accepted range
+    SizeT nEl = p0->N_Elements();
+    for (SizeT i = 0; i < nEl; i++) if ((*p0)[i] < -1095 || (*p0)[i] > 1827933925)
+      e->Throw("Value of Julian date (" + i2s((*p0)[i]) + ") is out of allowed range.");
+
+    // preparing output (loop order important when all parameters point the same variable)
+    BaseGDL** ret[nParam - 1];
+    for (int i = nParam - 2; i >= 0; i--) if (global[i]) 
+    {
+      ret[i] = &e->GetPar(i + 1);
+      // global parameter: undefined or different type/size -> creating
+      if 
+      (
+        *ret[i] == NULL || 
+        (*ret[i])->Type() != (i < 5 ? LONG : DOUBLE) || 
+        (*ret[i])->N_Elements() != nEl 
+      )
+      {
+        // not catching exceptions from SetPar as globality was ensured before
+        if (i < 5) 
+        {
+          // handling repeated parameters case
+          if (nParam == 7 && *ret[i] == *ret[5]) global[i] = false;
+          else e->SetPar(i + 1, new DLongGDL(p0->Dim()));
+        }
+        else e->SetPar(i + 1, new DDoubleGDL(p0->Dim()));
+      } 
+      // global parameter that has correct size but different shape -> reforming
+      else if ((*ret[i])->Rank() != p0->Rank()) (*ret[i])->SetDim(p0->Dim());
+    }
+
+    int A, a, B, C, D, E, hours, minutes, months;
+    double JD, F, Z;
+    // loop over input elements
+    for (SizeT i = 0; i < nEl; i++)
+    {
+      JD = (*p0)[i] + 0.5;
+      Z = floor(JD);
+      F = JD - Z;
+
+      if (Z < 2299161) A = (int) Z;
+      else {
+        a = (int) ((Z - 1867216.25) / 36524.25);
+        A = (int) (Z + 1 + a - (int)(a / 4));
+      }
+
+      B = A + 1524;
+      C = (int) ((B - 122.1) / 365.25);
+      D = (int) (365.25 * C);
+      E = (int) ((B - D) / 30.6001);
+
+      // months
+      months = E < 14 ? E - 1 : E - 13;
+      if (global[1 - 1]) 
+        (*static_cast<DLongGDL*>(*ret[1 - 1]))[i] = months;
+
+      // days
+      if (global[2 - 1]) 
+        (*static_cast<DLongGDL*>(*ret[2 - 1]))[i] = B - D - (int)(30.6001 * E);
+
+      // years
+      if (global[3 - 1])
+      {
+        (*static_cast<DLongGDL*>(*ret[3 - 1]))[i] = months > 2 ? C - 4716 : C - 4715;
+        if ((*static_cast<DLongGDL*>(*ret[3 - 1]))[i] < 0) 
+          (*static_cast<DLongGDL*>(*ret[3 - 1]))[i] -= 1;
+      }
+
+      if (!(global[4 - 1] || global[5 - 1] || global[6 - 1])) continue;
+
+      // hours
+      hours = (int) (F * 24);
+      F -= (double)hours / 24;
+      if (global[4 - 1]) 
+        (*static_cast<DLongGDL*>(*ret[4 - 1]))[i] = hours;
+
+      // minutes
+      minutes = (int) (F * 1440);
+      F -= (double)minutes / 1440;
+      if (global[5 - 1]) 
+        (*static_cast<DLongGDL*>(*ret[5 - 1]))[i] = minutes;
+
+      // seconds
+      if (global[6 - 1]) 
+        (*static_cast<DDoubleGDL*>(*ret[6 - 1]))[i] = F * 86400;
+    }
+    
+  }
   
 } // namespace
