@@ -379,7 +379,15 @@ public:
 
     assert( GetTag( tIx)->N_Elements() == data.N_Elements());
 
-    static_cast<DataGDL&>( *GetTag( tIx)) = data; // copy data
+    // SA: removed, apparently unnecessary, static_cast() which was causing 
+    //     numerous compiler (e.g., i686-apple-darwin9-g++-4.0.1) warnings, e.g.:
+    //
+    //     warning: inline function 
+    //       'Data_<SpDULong>& Data_<SpDULong>::operator=(const Data_<SpDULong>&)' 
+    //       used but never defined  
+    //
+    //static_cast<DataGDL&>( *GetTag( tIx)) = data; // copy data
+    *GetTag( tIx) = data; // copy data
   }
   
   // members
