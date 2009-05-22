@@ -64,6 +64,15 @@ public:
   void NextPlot( bool erase=true); // handles multi plots
 
   void NoSub(); // no subwindows (/NORM, /DEVICE)
+
+  // SA: overloading plplot methods in order to handle IDL-plplot extended
+  // text formating syntax conversion
+  const char * TranslateFormatCodes(const char *text);
+  void mtex( const char *side, PLFLT disp, PLFLT pos, PLFLT just,
+                         const char *text);
+  void ptex( PLFLT x, PLFLT y, PLFLT dx, PLFLT dy, PLFLT just,
+                         const char *text);
+
 };
 
 #endif
