@@ -319,16 +319,28 @@ if test "x$with_netcdf" = "x"; then
 fi
 
 if test "x$with_netcdf" != "xno"; then
-  if test "x$with_netcdf" != "xyes"; then
+
+  if test "x$with_netcdf" = "xyes"; then
+    AC_PATH_PROG(nc_config, nc-config, no) 
+  else
+    AC_PATH_PROG(nc_config, nc-config, no, "$with_netcdf/bin")
+  fi  
+
+  if test "x$nc_config" != "xno"; then
+    LIBS="$LIBS `$nc_config --libs`"
+    INCLUDES="$INCLUDES `$nc_config --cflags`"
+  else
+    if test "x$with_netcdf" != "xyes"; then
 dnl	if test "x$with_hdf" = "xno"; then
 	LIBS="$LIBS -L$with_netcdf/lib -lnetcdf"
 	INCLUDES="$INCLUDES -I$with_netcdf/include"
 dnl	fi
-  else
+    else
 dnl	if test "x$with_hdf" = "xno"; then
 	LIBS="$LIBS -L/usr/lib/netcdf-3 -lnetcdf"
 	INCLUDES="$INCLUDES -I/usr/include/netcdf-3"
 dnl	fi
+    fi
   fi
 
 dnl  if test "x$with_hdf" = "xno"; then
