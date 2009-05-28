@@ -68,7 +68,9 @@ void InitGDL()
   char rlName[] = "GDL";
   rl_readline_name = rlName;
   rl_event_hook = GDLEventHandler;
-  stifle_history( 20);
+  // SA: history is now stifled in the interpreter.InterpreterLoop( startup),
+  //     enabling one to set the history-file length via the !EDIT_INPUT sysvar
+  // stifle_history( 20);
 #endif
   
   // ncurses blurs the output, initialize TermWidth here

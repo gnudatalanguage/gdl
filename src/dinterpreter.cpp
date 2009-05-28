@@ -59,36 +59,6 @@ DInterpreter::DInterpreter(): GDLInterpreter()
 {
 //  DataStackT::Init();
 
-#ifdef HAVE_LIBREADLINE
-  // initialize readline (own version - not pythons one)
-  // in includefirst.hpp readline is disabled for python_module
-  // http://www.delorie.com/gnu/docs/readline/rlman.html
-  char rlName[] = "GDL";
-  rl_readline_name = rlName;
-  rl_event_hook = GDLEventHandler;
-  stifle_history( 20);
-    
-  // Eventually read back the ".gdl" path in user $HOME
-  // we do not make one commun function with the save side
-  // because on the save side we may need to create the .gdl/ PATH ...
-  int result, debug=0;
-  char *homeDir = getenv( "HOME");
-  string pathToGDL_history;
-  pathToGDL_history=homeDir;
-  AppendIfNeeded(pathToGDL_history, "/");
-  pathToGDL_history=pathToGDL_history+".gdl";
-  string history_filename;
-  AppendIfNeeded(pathToGDL_history, "/");
-  history_filename=pathToGDL_history+"history";
-  if (debug) cout << "History file name: " <<history_filename << endl;
-
-  result=read_history(history_filename.c_str());
-  if (debug) 
-    { if (result == 0) {cout<<"Successfull reading of ~/.gdl/history"<<endl;}
-    else {cout<<"Fail to read back ~/.gdl/history"<<endl;}
-    }
-#endif
-
   //    heap.push_back(NULL); // init heap index 0 (used as NULL ptr)
   //    objHeap.push_back(NULL); // init heap index 0 (used as NULL ptr)
   interruptEnable = true;
@@ -913,10 +883,13 @@ string DInterpreter::GetLine()
   } while( line == "");
   
 #ifdef HAVE_LIBREADLINE
-  if( edit_input > 20)
-    {
-      stifle_history( edit_input);
-    }
+  // SA: commented out to comply with IDL behaviour- allowing to 
+  //     set the history-file length only in the startup file
+  //if( edit_input > 20)
+  //  {
+  //    stifle_history( edit_input);
+  //  }
+
   // we would not like to add the current command if is "EXIT" !!
   if ( StrUpCase(line) != "EXIT") {
     // const_cast to make it work with older readline versions
@@ -1129,6 +1102,39 @@ GDLInterpreter::RetCode DInterpreter::InterpreterLoop( const string& startup)
 	{
 	}
     } // if( startup...
+
+#ifdef HAVE_LIBREADLINE
+  // initialize readline (own version - not pythons one)
+  // in includefirst.hpp readline is disabled for python_module
+  // http://www.delorie.com/gnu/docs/readline/rlman.html
+  char rlName[] = "GDL";
+  rl_readline_name = rlName;
+  rl_event_hook = GDLEventHandler;
+  {
+    int edit_input = SysVar::Edit_Input();
+    stifle_history(edit_input == 1 || edit_input < 0 ? 20 : edit_input);
+  }
+  
+  // Eventually read back the ".gdl" path in user $HOME
+  // we do not make one commun function with the save side
+  // because on the save side we may need to create the .gdl/ PATH ...
+  int result, debug=0;
+  char *homeDir = getenv( "HOME");
+  string pathToGDL_history;
+  pathToGDL_history=homeDir;
+  AppendIfNeeded(pathToGDL_history, "/");
+  pathToGDL_history=pathToGDL_history+".gdl";
+  string history_filename;
+  AppendIfNeeded(pathToGDL_history, "/");
+  history_filename=pathToGDL_history+"history";
+  if (debug) cout << "History file name: " <<history_filename << endl;
+
+  result=read_history(history_filename.c_str());
+  if (debug) 
+    { if (result == 0) {cout<<"Successfull reading of ~/.gdl/history"<<endl;}
+    else {cout<<"Fail to read back ~/.gdl/history"<<endl;}
+    }
+#endif
 
 
 #ifdef USE_MPI
