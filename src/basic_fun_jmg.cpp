@@ -120,7 +120,7 @@ namespace lib {
       }
 
 
-      DULongGDL *dims_res = new DULongGDL(dimension(8), BaseGDL::ZERO);      
+      DLongGDL *dims_res = new DLongGDL(dimension(8), BaseGDL::ZERO);      
 
       // Initialize dimension values to 0
       for( SizeT i=Rank; i<8; ++i) (*dims_res)[ i] = 0;
