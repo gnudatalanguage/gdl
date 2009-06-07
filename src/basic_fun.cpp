@@ -2886,13 +2886,18 @@ namespace lib {
 	SizeT nEl = p0->N_Elements();
 	
 	static int evenIx = e->KeywordIx( "EVEN");
-	static int doubleIx = e->KeywordIx( "DOUBLE");
+	bool dbl = 
+          p0->Type() == DOUBLE || 
+          p0->Type() == COMPLEXDBL || 
+          e->KeywordSet(e->KeywordIx("DOUBLE"));
+        DType type = dbl ? DOUBLE : FLOAT;
+        bool noconv = (dbl && p0->Type() == DOUBLE) || (!dbl && p0->Type() == FLOAT); 
 
-	// DIM keyword
+	// DIMENSION keyword
 	DLong dim = 0;
 	DLong nmed = 1;
-	DDoubleGDL *res;
-	e->AssureLongScalarKWIfPresent( "DIM", dim);
+	BaseGDL *res;
+	e->AssureLongScalarKWIfPresent( "DIMENSION", dim);
 	
 	if (dim > p0->Rank())
 	  e->Throw( "Illegal keyword value for DIMENSION.");
@@ -2906,9 +2911,13 @@ namespace lib {
 	      dims[k++] = p0->Dim(i);
 	    }
 	  dimension dimRes((DLong *) dims, p0->Rank()-1);
-	  res = new DDoubleGDL( dimRes, BaseGDL::NOZERO);
+	  res = dbl 
+            ? static_cast<BaseGDL*>(new DDoubleGDL(dimRes, BaseGDL::NOZERO)) 
+            : static_cast<BaseGDL*>(new DFloatGDL(dimRes, BaseGDL::NOZERO));
 	} else {
-	  res = new DDoubleGDL( 1);
+	  res = dbl 
+            ? static_cast<BaseGDL*>(new DDoubleGDL(1)) 
+            : static_cast<BaseGDL*>(new DFloatGDL(1));
 	}
 	
 	// helper arrays
@@ -2922,6 +2931,7 @@ namespace lib {
 	if (nmed > 1)
 	  for( DLong i=0; i<dim-1; ++i) accumStride *= p0->Dim(i);
 	
+	BaseGDL *op1, *op2, *op3 = new DDoubleGDL( 2.0);
 	// Loop over all subarray medians
 	for (SizeT k=0; k<nmed; ++k) {
 	  
@@ -2933,7 +2943,6 @@ namespace lib {
 	      (k % accumStride);
 	    for( DLong i=0; i<nEl; ++i) hh[i] = start + i * accumStride;
 	  }
-	  //    ArrayGuard< DLong> hhGuard( hh);
 	  
 	  // call the sort routine
 	  MergeSortOpt<DLong>( p0, hh, h1, h2, nEl);
@@ -2942,37 +2951,56 @@ namespace lib {
 	  
 	  if( (nEl % 2) == 1 || !e->KeywordSet( evenIx)) {
 	    if (nmed == 1)
-	      res = (DDoubleGDL *) (p0->NewIx( medEl))->Convert2( DOUBLE);
+	      res = p0->NewIx(medEl)->Convert2(type, BaseGDL::CONVERT);
 	    else {
-	      DDoubleGDL* op1 = 
-		static_cast<DDoubleGDL*>((p0->NewIx( medEl))->Convert2( DOUBLE));
-	      (*res)[k] = (*op1)[0];
+              if (noconv) 
+              {
+                if (dbl) (*static_cast<DDoubleGDL*>(res))[k] = (*static_cast<DDoubleGDL*>(p0))[medEl];
+                else (*static_cast<DFloatGDL*>(res))[k] = (*static_cast<DFloatGDL*>(p0))[medEl];
+              }
+              else 
+              {
+	        op1 = p0->NewIx(medEl)->Convert2(type, BaseGDL::CONVERT);
+	        if (dbl) (*static_cast<DDoubleGDL*>(res))[k] = (*static_cast<DDoubleGDL*>(op1))[0];
+                else (*static_cast<DFloatGDL*>(res))[k] = (*static_cast<DFloatGDL*>(op1))[0];
+                delete(op1);
+              }
 	    }
 	  } else {
-	    DDoubleGDL* op1 = 
-	      static_cast<DDoubleGDL*>((p0->NewIx( medEl))->Convert2( DOUBLE)); 
-	    auto_ptr<DDoubleGDL> op1_guard( op1);
-	    DDoubleGDL* op2 = 
-	      static_cast<DDoubleGDL*>((p0->NewIx( medEl_1))->Convert2( DOUBLE));
-	    static DDoubleGDL* op3 = new DDoubleGDL( 2.0);
-	    if (nmed == 1)
-	      res = op2->Add( op1)->Div( op3);
-	    else {
-	      op1 = op2->Add( op1)->Div( op3);
-	      (*res)[k] = (*op1)[0];
-	    }
+            if (noconv) 
+            {
+              if (dbl) (*static_cast<DDoubleGDL*>(res))[k] = .2 * (
+                (*static_cast<DDoubleGDL*>(p0))[medEl] + 
+                (*static_cast<DDoubleGDL*>(p0))[medEl_1]
+              );
+              else (*static_cast<DFloatGDL*>(res))[k] = .2 * (
+                (*static_cast<DFloatGDL*>(p0))[medEl] +
+                (*static_cast<DFloatGDL*>(p0))[medEl_1]
+              );
+            }
+            else 
+            {
+	      op1 = p0->NewIx(medEl)->Convert2(type, BaseGDL::CONVERT); 
+	      op2 = p0->NewIx(medEl_1)->Convert2(type, BaseGDL::CONVERT);
+	      if (nmed == 1) res = op2->Add(op1)->Div(op3);
+	      else 
+              {
+                if (dbl) (*static_cast<DDoubleGDL*>(res))[k] = 
+                  (*static_cast<DDoubleGDL*>((op2->Add(op1)->Div(op3))))[0];
+                else (*static_cast<DFloatGDL*>(res))[k] =
+                  (*static_cast<DFloatGDL*>((op2->Add(op1)->Div(op3))))[0];
+              }
+	      delete(op1);
+	      delete(op2);
+            }
 	  }
 	}
+        delete(op3);
 	delete[] h1;
 	delete[] h2;
 	delete[] hh;
 	
-	if( p0->Type() == DOUBLE || 
-	    p0->Type() == COMPLEXDBL || 
-	    e->KeywordSet( doubleIx))
-	  return res;
-	else
-	  return res->Convert2( FLOAT);
+	return res;
       }
     else 
       // with parameter Width : median filtering with no optmisation,
