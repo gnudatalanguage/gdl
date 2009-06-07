@@ -1229,12 +1229,22 @@ int xdr_convert(XDR *xdrs, DUInt *buf)
 
 int xdr_convert(XDR *xdrs, DLong *buf)
 {
+#if defined(__APPLE__) && defined(__LP64__)
+  /* xdr_long actually takes an int on 64bit darwin */
+  return (xdr_long(xdrs, buf));
+#else
   return (xdr_long(xdrs, reinterpret_cast<long int*>(buf)));
+#endif
 }
 
 int xdr_convert(XDR *xdrs, DULong *buf)
 {
+#if defined(__APPLE__) && defined(__LP64__)
+  /* xdr_u_long actually takes an unsigned int on 64bit darwin */
+  return (xdr_u_long(xdrs, buf));
+#else
   return (xdr_u_long(xdrs, reinterpret_cast<u_long*>(buf)));
+#endif
 }
 
 int xdr_convert(XDR *xdrs, DLong64 *buf)
@@ -1486,7 +1496,12 @@ istream& Data_<SpDString>::Read( istream& os, bool swapEndian,
 
 	  os.read( (char *) &nChar, 4);
 	  xdrmem_create(xdrs, (char *) &nChar, 4, XDR_DECODE);
+#if defined(__APPLE__) && defined(__LP64__)
+          /* xdr_long actually takes an int on 64bit darwin */
+          xdr_long(xdrs, (int *) &nChar);
+#else
 	  xdr_long(xdrs, (long *) &nChar);
+#endif
 	  xdr_destroy(xdrs);
 
 	  os.seekg (4, ios::cur);
