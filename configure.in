@@ -728,7 +728,7 @@ case "${host}" in
     dnl   LDFLAGS="$LDFLAGS"
     ;;
 
-  powerpc-*-linux* )
+  powerpc*-*-linux* )
     LDFLAGS="$LDFLAGS -rdynamic"
     ;;
 

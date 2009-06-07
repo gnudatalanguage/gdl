@@ -22532,7 +22532,7 @@ case "${host}" in
     DARWIN="yes"
         ;;
 
-  powerpc-*-linux* )
+  powerpc*-*-linux* )
     LDFLAGS="$LDFLAGS -rdynamic"
     ;;
 
