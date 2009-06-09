@@ -24421,7 +24421,7 @@ echo "
   MPICH:               `if test no = $with_mpich;
     then echo 'no  (needs explicit enabling)'; else echo yes; fi`
   Python:              `if test no = $with_python;
-    then echo 'no  (see also PYTHON.txt)'; else echo yes; fi`
+    then echo 'no  (see also PYTHON.txt)'; else echo \"yes ($PYTHON_VERSION)\"; fi`
   ----- notes on auxiliary files: ----------------------
   - routines implemented in GDL are located in src/pro/,
     use GDL_PATH env. variable to inform GDL about their
