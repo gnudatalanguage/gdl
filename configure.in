@@ -634,12 +634,16 @@ dnl    ])
     exit -1
   ])
 
-  AC_CHECK_HEADER($PYTHON_INCLUDES/numarray/libnumarray.h, [], [
+  AC_MSG_CHECKING(for $PYTHON_INCLUDES/numarray/libnumarray.h)
+  AC_PREPROC_IFELSE(
+    AC_LANG_PROGRAM([#include "$PYTHON_INCLUDES/numarray/libnumarray.h"]), 
+    AC_MSG_RESULT(yes), [
+    AC_MSG_RESULT(no)
     echo ""
     echo "Error! Python numarray package was not found"
     echo "  Use --with-python=no to disable Python support"
     exit -1
-  ], [#include <$PYTHON_INCLUDES/Python.h>])
+  ])
 
 fi
 
