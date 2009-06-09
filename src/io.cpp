@@ -143,6 +143,14 @@ void GDLStream::Socket( const string& host,
   width = 32768;
 }
 
+void GDLStream::Flush() 
+{ 
+  if( fStream != NULL)
+    {
+      fStream->flush();
+    }
+}
+
 void GDLStream::Close() 
 { 
   if( fStream != NULL)
@@ -340,8 +348,8 @@ void GDLStream::F77ReadEnd()
 // ============================================================================
 //
 // File          : gzstream.C
-// Revision      : $Revision: 1.17 $
-// Revision_date : $Date: 2007-06-19 23:37:02 $
+// Revision      : $Revision: 1.18 $
+// Revision_date : $Date: 2009-06-09 13:11:38 $
 // Author(s)     : Deepak Bandyopadhyay, Lutz Kettner
 // 
 // Standard streambuf implementation following Nicolai Josuttis, "The 

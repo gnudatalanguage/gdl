@@ -120,6 +120,8 @@ public:
 	       DUInt port, bool swapEndian_,
 	       DDouble c_timeout, DDouble r_timeout, DDouble w_timeout);
 
+  void Flush(); 
+
   void Close(); 
   
   bool Eof()

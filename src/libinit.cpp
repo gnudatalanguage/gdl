@@ -298,6 +298,8 @@ void LibInit()
 			    KLISTEND};
   new DLibPro(lib::socket,string("SOCKET"),3,socketKey);
 
+  new DLibPro(lib::flush_lun,string("FLUSH"),-1);
+
   const string closeKey[]={"EXIT_STATUS","FORCE","FILE","ALL",KLISTEND};
   new DLibPro(lib::close_lun,string("CLOSE"),-1,closeKey);
   

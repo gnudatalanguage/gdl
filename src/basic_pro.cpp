@@ -1043,6 +1043,28 @@ namespace lib {
       }
   }
 
+  // FLUSH based on a patch from Orion Poplawski
+  void flush_lun( EnvT* e)
+  {
+    // within GDL, always lun+1 is used
+    int nParam = e->NParam();
+    for (int p = 0; p < nParam; p++)
+    {
+      DLong lun;
+      e->AssureLongScalarPar(p, lun);
+      if (lun > maxLun) 
+        e->Throw("File unit is not within allowed range: " + i2s(lun) + ".");
+      else if (lun == -2) 
+        cerr << flush;
+      else if (lun == -1)
+        cout << flush; 
+      else if (lun == 0)
+        ;// do nothing?
+      else 
+        fileUnits[lun - 1].Flush();
+    }
+  }
+
   void close_free_lun( EnvT* e, bool freeLun)
   {
     DLong journalLUN = SysVar::JournalLUN();
