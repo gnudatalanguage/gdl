@@ -646,6 +646,35 @@ BaseGDL* Data_<Sp>::Transpose( DUInt* perm)
   return res;
 }
 
+// used by reverse
+template<class Sp> 
+BaseGDL* Data_<Sp>::Reverse( DLong dim)
+{
+  // SA: based on total_over_dim_template()
+  Data_* tmp = new Data_(dimension(1), BaseGDL::NOZERO);
+  auto_ptr<Data_> tmp_guard(tmp);
+  SizeT nEl = N_Elements();
+  SizeT revStride = this->dim.Stride(dim); 
+  SizeT outerStride = this->dim.Stride(dim + 1);
+  SizeT revLimit = this->dim[dim] * revStride;
+  for (SizeT o = 0; o < nEl; o += outerStride)
+  {
+    for (SizeT i = 0; i < revStride; ++i) 
+    {
+      SizeT oi = o + i; 
+      SizeT last_plus_oi = revLimit + oi - revStride + oi;
+      SizeT half = ((revLimit / revStride) / 2) * revStride + oi;
+      for (SizeT s = oi; s < half; s += revStride) 
+      {
+        SizeT opp = last_plus_oi - s;
+        (*tmp)[0] = (*this)[s];
+        (*this)[s] = (*this)[opp];
+        (*this)[opp] = (*tmp)[0];
+      }
+    }
+  } 
+}
+
 // rank must be 1 or 2 (already checked)
 template<class Sp> 
 BaseGDL* Data_<Sp>::Rotate( DLong dir)

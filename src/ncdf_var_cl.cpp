@@ -1290,6 +1290,7 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
 	  }
 	else 
 	  {
+            total = 1;
 	    for (i=0;i<var_ndims;++i) 
 	      {
 		count[i]=dim_length[i];

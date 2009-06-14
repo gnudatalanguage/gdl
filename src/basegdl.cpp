@@ -706,6 +706,11 @@ BaseGDL* BaseGDL::Rotate( DLong dir)
   throw GDLException("Operation not defined for UNDEF 30.");
 }
 
+BaseGDL* BaseGDL::Reverse( DLong dim)
+{ 
+  throw GDLException("Operation not defined for UNDEF 31.");
+}
+
 // --- SA: MemStats stuff
 
 SizeT MemStats::NumAlloc = 0;

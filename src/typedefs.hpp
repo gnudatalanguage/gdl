@@ -312,9 +312,9 @@ public:
 
   GDLArray& operator=( const GDLArray& right)
   {
-    //    assert( sz == right.size());
+        // assert( sz == right.size());
 	if( sz != right.size()) 
-		ThrowGDLException("GDLArray::operator= operands have not same size (this: " + i2s(sz)+"  right: " + i2s(right.size()));;
+		ThrowGDLException("GDLArray::operator= operands have not same size (this: " + i2s(sz)+", right: " + i2s(right.size()) + ")");;
 
        if( &right != this)
     //       {

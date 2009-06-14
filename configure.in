@@ -294,17 +294,28 @@ if test "x$with_Magick" != "xno"; then
   else
     LIBS="$LIBS `$MagickConfig --libs`"
     INCLUDES="$INCLUDES `$MagickConfig --cppflags`"
+    LDFLAGS="$LDFLAGS `$MagickConfig --ldflags`"
   fi
 
-  AC_CHECK_LIB(Magick++, GetMagickVersion, [AC_DEFINE([USE_MAGICK], [1], [Define if you want to use ImageMagick])], [
-    echo ""
-    echo "Error! ImageMagick version 5.5.7 or later is required but was not found"
-    echo "       Use --with-Magick=DIR to specify the ImageMagick directory tree"
-    echo "       Use --with-Magick=no  to not use it"
-    echo "       Check the README or use configure --help for other libraries needed"
-    echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
-    exit -1
-    ])
+  AC_CHECK_LIB(
+    Magick++, 
+    GetMagickVersion, 
+    [AC_DEFINE([USE_MAGICK], [1], [Define if you want to use ImageMagick])], [
+      AC_MSG_CHECKING(if adding X library path helps)
+      AC_MSG_RESULT(?)
+      AC_PATH_X
+      LDFLAGS="$LDFLAGS -L$x_libraries"
+      AC_CHECK_LIB(Magick++, GetMagickReleaseDate, AC_DEFINE([USE_MAGICK], [1]), [
+        echo ""
+        echo "Error! ImageMagick version 5.5.7 or later is required but was not found"
+        echo "       Use --with-Magick=DIR to specify the ImageMagick directory tree"
+        echo "       Use --with-Magick=no  to not use it"
+        echo "       Check the README or use configure --help for other libraries needed"
+        echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
+        exit -1
+      ])
+    ]
+  )
 fi
 
 

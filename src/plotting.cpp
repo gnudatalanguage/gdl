@@ -148,7 +148,7 @@ namespace lib {
     if( !success)
       e->Throw( "Device not supported/unknown: "+device);
 
-    if (device == "PS") {
+    if (device == "PS" || device == "SVG") {
       static DStructGDL* pStruct = SysVar::P();
       static unsigned noEraseTag = pStruct->Desc()->TagIndex( "NOERASE");
       (*static_cast<DLongGDL*>( pStruct->GetTag( noEraseTag, 0)))[0] = 1;
@@ -1214,7 +1214,7 @@ namespace lib {
     DString d_name = 
       (*static_cast<DStringGDL*>( dStruct->GetTag( nameTag, 0)))[0];
     // if PS and not noErase (ie, erase) then set !p.noerase=0    
-    if (d_name == "PS" && !noErase) {
+    if ((d_name == "PS" || d_name == "SVG") && !noErase) {
       static DStructGDL* pStruct = SysVar::P();
       static unsigned noEraseTag = pStruct->Desc()->TagIndex( "NOERASE");
       (*static_cast<DLongGDL*>( pStruct->GetTag( noEraseTag, 0)))[0] = 0;

@@ -348,8 +348,6 @@ void GDLStream::F77ReadEnd()
 // ============================================================================
 //
 // File          : gzstream.C
-// Revision      : $Revision: 1.18 $
-// Revision_date : $Date: 2009-06-09 13:11:38 $
 // Author(s)     : Deepak Bandyopadhyay, Lutz Kettner
 // 
 // Standard streambuf implementation following Nicolai Josuttis, "The 

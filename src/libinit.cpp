@@ -412,6 +412,9 @@ void LibInit()
 
   new DLibFunRetNew(lib::rotate,string("ROTATE"),2,NULL,NULL,true);
 
+  const string reverseKey[] = {"OVERWRITE", KLISTEND};
+  new DLibFunRetNew(lib::reverse, string("REVERSE"), 2, reverseKey, NULL, true);
+
 //   const string minKey[]={"MAX",KLISTEND};
 //   new DLibFun(lib::min_fun,string("MIN"),2,minKey);
 //   const string maxKey[]={"MIN",KLISTEND};

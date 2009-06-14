@@ -151,6 +151,10 @@ namespace lib {
 
   BaseGDL* rotate( EnvT* e);
 
+  // the following by Sylwester Arabas 
+  // (slayoo@users.sourceforge.net)
+  BaseGDL* reverse( EnvT* e);
+
 } // namespace
 
 #endif

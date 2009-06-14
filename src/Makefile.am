@@ -9,7 +9,7 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 		basic_pro_jmg.cpp basic_pro_jmg.hpp CFMTLexer.cpp CFMTLexer.hpp CFMTTokenTypes.hpp \
 		cformat.g color.cpp color.hpp convert2.cpp datalistt.hpp datatypes.cpp \
 		datatypes.hpp dcommon.cpp dcommon.hpp dcompiler.cpp dcompiler.hpp default_io.cpp \
-		deviceps.hpp devicewin.hpp devicex.hpp dimension.hpp dinterpreter.cpp \
+		deviceps.hpp devicesvg.hpp devicewin.hpp devicex.hpp dimension.hpp dinterpreter.cpp \
 		dinterpreter.hpp dnode.cpp dnodefactory.hpp dnode.hpp dpro.cpp dpro.hpp \
 		dstructdesc.cpp \
 		dstructdesc.hpp dstructgdl.cpp dstructgdl.hpp dvar.cpp dvar.hpp envt.cpp envt.hpp \
@@ -20,8 +20,8 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 		gdlexception.cpp gdlexception.hpp gdlgstream.cpp gdlgstream.hpp \
 		GDLInterpreter.cpp GDLInterpreterOptimized.cpp \
 		GDLInterpreter.hpp GDLInterpreterTokenTypes.hpp GDLLexer.cpp \
-		GDLLexer.hpp GDLParser.cpp \
-		GDLParser.hpp gdlpsstream.cpp gdlpsstream.hpp gdlpython.cpp gdlpython.hpp \
+		GDLLexer.hpp GDLParser.cpp GDLParser.hpp gdlpsstream.cpp gdlpsstream.hpp \
+		gdlsvgstream.cpp gdlsvgstream.hpp gdlpython.cpp gdlpython.hpp \
 		GDLTokenTypes.hpp GDLTreeParser.cpp GDLTreeParser.hpp GDLTreeParserTokenTypes.hpp \
 		gdlwinstream.cpp gdlwinstream.hpp gdlxstream.cpp gdlxstream.hpp getfmtast.cpp \
 		getfmtast.hpp graphics.cpp graphics.hpp gsl_fun.cpp gsl_fun.hpp \

@@ -28,6 +28,7 @@
 #include "devicex.hpp"
 #endif
 #include "deviceps.hpp"
+#include "devicesvg.hpp"
 #include "devicez.hpp"
 #include "initsysvar.hpp"
 #include "color.hpp"
@@ -148,6 +149,7 @@ void Graphics::Init()
   deviceList.push_back( new DeviceX());
 #endif
   deviceList.push_back( new DevicePS());
+  deviceList.push_back( new DeviceSVG());
   deviceList.push_back( new DeviceZ());
 
 #ifdef _MSC_VER

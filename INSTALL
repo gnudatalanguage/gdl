@@ -6,8 +6,8 @@ look at the REQUIREMENTS section in the README file.)
 
 Unpack the tarball under any directory (tar xfvz gdl-0.9.tar.gz)
 change to the new subdirectory gdl-0.9
-type ./configure
-type make
+type ./configure  (use './configure --help' for a list of options)
+type make         (use 'make -j N' to run N parallel processes)
 The executable (named 'gdl') should then be in the src subdirectory
 (gdl-0.9/src/gdl).
 

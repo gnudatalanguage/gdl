@@ -235,7 +235,11 @@ public:
   ~MemStats() 
   { 
     NumFree++; 
+#if defined(HAVE_MALLOC_ZONE_STATISTICS) && defined(HAVE_MALLOC_MALLOC_H)
+// - the sbrk(0) does not give any meaningfull info for HIGHWATER
+// - using mallinfo() frequently gives a large performace loss
     UpdateCurrent(); // updates the highwater mark 
+#endif
   }
 
   MemStats() { NumAlloc++; }
@@ -264,7 +268,7 @@ public:
     // ---------------------------------------------------------------------
     // based on the codes from:
     // - the LLVM project (lib/System/Unix/Process.inc) see http://llvm.org/
-    // - the Squid cache project (src/tolls.cc) see http://squid-cache.org/
+    // - the Squid cache project (src/tools.cc) see http://squid-cache.org/
     // TODO (TOCHECK): Squid considers also gnumalloc.h - ?
 #if defined(HAVE_MALLINFO)
     // Linux case for example
@@ -289,7 +293,7 @@ public:
    *  Current = 0;
    *  while (_heapwalk(&hinfo) == _HEAPOK) Current += hinfo._size;
    */ 
-    Warning("Cannot get dynamic memory information on this platform (FIXME)");
+   // Warning("Cannot get dynamic memory information on this platform (FIXME)");
 #endif
 
     HighWater = std::max(HighWater, Current);
@@ -370,6 +374,7 @@ public:
   
   virtual BaseGDL* Transpose( DUInt* perm);
   virtual BaseGDL* Rotate( DLong dir);
+  virtual BaseGDL* Reverse( DLong dim);
 
   virtual void MinMax( DLong* minE, DLong* maxE, 
 		       BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN);

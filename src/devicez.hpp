@@ -1,5 +1,5 @@
 /* *************************************************************************
-                          devicez.hpp  -  postscript device
+                          devicez.hpp  -  Z-buffer device
                              -------------------
     begin                : July 22 2002
     copyright            : (C) 2002 by Marc Schellens

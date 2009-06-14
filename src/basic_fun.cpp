@@ -5007,11 +5007,13 @@ namespace lib {
   BaseGDL* rotate( EnvT* e)
   {
     e->NParam(2);
-
     BaseGDL* p0 = e->GetParDefined( 0);
+
+    if( p0->Rank() == 0)
+      e->Throw( "Expression must be an array in this context: " + e->GetParString( 0));
+
     if( p0->Rank() != 1 && p0->Rank() != 2)
-      e->Throw( "Expression must be a scalar or 1 element array in this context: "+
-		e->GetParString( 0));
+      e->Throw( "Only 1 or 2 dimensions allowed: " + e->GetParString( 0));
 
     if( p0->Type() == STRUCT)
       e->Throw( "STRUCT expression not allowed in this context: "+
@@ -5021,6 +5023,25 @@ namespace lib {
     e->AssureLongScalarPar( 1, dir);
 
     return p0->Rotate( dir);
+  }
+
+  BaseGDL* reverse( EnvT* e)
+  {
+    e->NParam(1);
+    BaseGDL* p0 = e->GetParDefined(0);
+    if (p0->Rank() == 0) return p0->Dup();
+
+    DLong dim = 1;
+    if (e->GetPar(1) != NULL) 
+      e->AssureLongScalarPar(1, dim);
+    if (dim > p0->Rank())
+      e->Throw("Subscript_index must be less than or equal to number of dimensions.");
+
+    BaseGDL* ret = p0->Rank() > 2 && e->KeywordSet("OVERWRITE") && e->GlobalPar(0)
+      ? p0 
+      : p0->Dup();
+    ret->Reverse(dim - 1);
+    return ret;
   }
 
 } // namespace

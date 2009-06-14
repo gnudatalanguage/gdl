@@ -41,8 +41,8 @@ namespace SysVar
     journalIx, exceptIx, mapIx, cpuIx, dirIx, stimeIx, warnIx;
 
   // !D structs
-  const int nDevices = 2;
-  DStructGDL* devices[ 2]; // X, PS
+  const int nDevices = 4;
+  DStructGDL* devices[ 4]; // X, PS, Z, SVG
 
   // !STIME
   const SizeT MAX_STIME_STRING_LENGTH=80;
