@@ -16,55 +16,48 @@
  *                                                                         *
  ***************************************************************************/
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#  include <config.h>
 #else
 // default: assume we have netCDF
-#define USE_NETCDF 1
+#  define USE_NETCDF 1
 #endif
 
 #ifdef USE_NETCDF
+#  include "includefirst.hpp"
+#  define HDF 1
 
-#include "includefirst.hpp"
+#  include <string>
+#  include <fstream>
+#  include <memory>
+#  include <gsl/gsl_sys.h>
+#  include <gsl/gsl_linalg.h>
+#  include <gsl/gsl_sf.h>
+#  include <netcdfcpp.h>
 
-#define HDF 1
+#  include "datatypes.hpp"
+#  include "math_utl.hpp"
+#  include "envt.hpp"
+#  include "dpro.hpp"
+#  include "dinterpreter.hpp"
+#  include "ncdf_cl.hpp"
+#  include "terminfo.hpp"
+#  include "typedefs.hpp"
 
-#include <string>
-#include <fstream>
-#include <memory>
-#include <gsl/gsl_sys.h>
-#include <gsl/gsl_linalg.h>
-#include <gsl/gsl_sf.h>
-#include <netcdfcpp.h>
-
-#include "datatypes.hpp"
-#include "math_utl.hpp"
-#include "envt.hpp"
-#include "dpro.hpp"
-#include "dinterpreter.hpp"
-#include "ncdf_cl.hpp"
-#include "terminfo.hpp"
-#include "typedefs.hpp"
-
-
-
-//#define GDL_DEBUG
-#undef GDL_DEBUG
+//#  define GDL_DEBUG
+#  undef GDL_DEBUG
 
 namespace lib {
 
   using namespace std;
   using namespace antlr;
 
-  template <typename T> void ncdf_att_handle_error(EnvT *e, int status, const char *function,T* data)
+  template <typename T> void ncdf_att_handle_error(EnvT *e, int status, const char *function,T* data) // {{{
   {
-
-    if(data != NULL and status!=NC_NOERR) delete data;
+    if (data != NULL and status != NC_NOERR) delete data;
     ncdf_handle_error(e, status, function);
-  }
+  } // }}}
 
-
-
-  BaseGDL* ncdf_attname(EnvT* e)
+  BaseGDL* ncdf_attname(EnvT* e) // {{{
   {
     size_t nParam=e->NParam(2);
     if(nParam ==3 && e->KeywordSet(0))
@@ -118,13 +111,10 @@ namespace lib {
 	
 	return new DStringGDL(att_name);
 
-
       }
+  } // }}}
 
-  }
-
-
-  BaseGDL* ncdf_attinq(EnvT* e)
+  BaseGDL* ncdf_attinq(EnvT* e) // {{{
   {
     size_t nParam=e->NParam(2);
     if(nParam ==3 && e->KeywordSet(0))
@@ -195,193 +185,123 @@ namespace lib {
 
 	return inq;
       }
-  }
+  } // }}}
 
-  void ncdf_attget(EnvT* e)
-  {
+  void ncdf_attget(EnvT* e) // {{{
+  { 
     size_t nParam=e->NParam(2);
-// m_schellens: check fro max parameters not necessary, done automatically with
-// data provided to DLibPro constructor (in libinit_cl.cpp) 
-//     if(nParam > 4) throw GDLException(e->CallingNode(),
-// 				      "NCDF_ATTGET: Incorrect number of arguments.");
-    if(nParam >3 && e->KeywordSet(0))
-      {
-	throw GDLException(e->CallingNode(),
-			   "NCDF_ATTGET: The error is Global + varid, not allowed, proper text to come.");
+    if (nParam >3 && e->KeywordSet(0))
+      e->Throw("NCDF_ATTGET: The error is Global + varid, not allowed, proper text to come.");
+
+    int status;
+    nc_type att_type;
+    size_t length;
+    DString attname;
+    DLong cdfid, varid;
+    e->AssureLongScalarPar(0, cdfid);
+
+    if (e->KeywordSet(0)) 
+    {
+      e->AssureStringScalarPar(1, attname);
+      varid = NC_GLOBAL;
+    } else {
+      // Check type of varid
+      BaseGDL* p1 = e->GetParDefined( 1);
+      if (p1->Type() != STRING) {
+        // Numeric
+        e->AssureLongScalarPar(1, varid);
       } else {
-
-	int status;
-	nc_type att_type;
-	size_t length;
-
-	DString attname;
-	DLong cdfid, varid;
-	e->AssureLongScalarPar(0, cdfid);
-
-	if(e->KeywordSet(0)) 
-	  {
-	    e->AssureStringScalarPar(1, attname);
-	    varid=NC_GLOBAL;
-	  } else {
-	    // Check type of varid
-	    BaseGDL* p1 = e->GetParDefined( 1);
-	    if (p1->Type() != STRING) {
-	      // Numeric
-	      e->AssureLongScalarPar(1, varid);
-	    } else {
-	      // String
-	      DString var_name;
-	      e->AssureScalarPar<DStringGDL>(1, var_name);
-	      status=nc_inq_varid(cdfid, var_name.c_str(), &varid);
-	      ncdf_handle_error(e,status,"NCDF_ATTGET");
-	    }
-	    e->AssureStringScalarPar(2, attname);
-	  }
-
-	//attname, varid, cdfid are set up
-
-	//get the attinq data
-
-	status=nc_inq_att(cdfid,
-			  varid,
-			  attname.c_str(),
-			  &att_type,
-			  &length);
-			  
-			  
-
-	//handle the error
-	ncdf_handle_error(e,status,"NCDF_ATTGET");
-
-	if(att_type == NC_INT)
-	  {
-	    int *ip;
-	    ip=new int[length];
-	    status=nc_get_att_int(cdfid,
-				  varid,
-				  attname.c_str(),
-				  ip
-				  );
-	    ncdf_att_handle_error(e,status,"NCDF_ATTGET",ip);
-
-
-	    dimension dim( length);
-	    DLongGDL* temp=new DLongGDL(dim, BaseGDL::NOZERO);
-	    memcpy(&(*temp)[0],&(*ip),length*sizeof(int));	      
-	    delete ip;
-	    delete e->GetParGlobal(nParam-1);
-	    e->GetParGlobal(nParam-1)=temp;
-	  }
-	else if (att_type == NC_SHORT) {
-	  short *sp;
-	  sp=new short[length];
-	  status=nc_get_att_short(cdfid,
-				  varid,
-				  attname.c_str(),
-				  sp
-				);
-	  ncdf_att_handle_error(e,status,"NCDF_ATTGET",sp);
-	  
-
-	  dimension dim( length);
-	  DIntGDL* temp=new DIntGDL(dim, BaseGDL::NOZERO);
-	  
-	  memcpy(&(*temp)[0],&(*sp),length*sizeof(short));	      
-	  
-	  delete sp;
-	  delete e->GetParGlobal(nParam-1);
-	  e->GetParGlobal(nParam-1)=temp;
-	  
-	}
-	
-	else if (att_type == NC_FLOAT) {
-	    float *fp;
-	    fp=new float[length];
-	    status=nc_get_att_float(cdfid,
-				  varid,
-				  attname.c_str(),
-				  fp
-				  );
-	    ncdf_att_handle_error(e,status,"NCDF_ATTGET",fp);
-
-	    dimension dim( length);
-	    DFloatGDL* temp=new DFloatGDL(dim, BaseGDL::NOZERO);
-
-	    memcpy(&(*temp)[0],&(*fp),length*sizeof(float));	      
-	    
-	    delete fp;
-	  delete e->GetParGlobal(nParam-1);
-	    e->GetParGlobal(nParam-1)=temp;
-	    return ;
-
-	}
-	else if (att_type == NC_DOUBLE) {
-	  double *dp;
-	  dp=new double[length];
-	  status=nc_get_att_double(cdfid,
-				   varid,
-				   attname.c_str(),
-				   dp
-				   );
-	  
-	  ncdf_att_handle_error(e,status,"NCDF_ATTGET",dp);
-	  
-	  dimension dim( length);
-	  DDoubleGDL* temp=new DDoubleGDL(dim, BaseGDL::NOZERO);
-	  
-	  memcpy(&(*temp)[0],&(*dp),length*sizeof(double));	      	 
-	  
-	  delete dp;
-	  delete e->GetParGlobal(nParam-1);
-	  e->GetParGlobal(nParam-1)=temp;
-	  return ;
-	} else if(att_type==NC_CHAR) {
-	  char *cp;
-	  cp=new char[length];
-	  status=nc_get_att_text(cdfid,
-				   varid,
-				   attname.c_str(),
-				   cp
-				   );
-	  
-	  ncdf_att_handle_error(e,status,"NCDF_ATTGET",cp);
-
-	  //dimension dim(1);
-	  DStringGDL* temp=new DStringGDL(cp);
-	  //dim, BaseGDL::NOZERO);
-	  //memcpy(&(*temp)[0],&(*cp),length*sizeof(char));      
-	  delete cp;
-	  delete e->GetParGlobal(nParam-1);
-	  e->GetParGlobal(nParam-1)=temp;
-
-	  return ;
-	} else if(att_type==NC_BYTE) {
-	  unsigned char *bp;
-	  bp=new unsigned char[length];
-	  status=nc_get_att_uchar(cdfid,
-				   varid,
-				   attname.c_str(),
-				   bp
-				   );
-	  
-	  ncdf_att_handle_error(e,status,"NCDF_ATTGET",bp);
-	  
-	  dimension dim( length);
-	  DByteGDL* temp=new DByteGDL(dim, BaseGDL::NOZERO);
-	  
-	  memcpy(&(*temp)[0],&(*bp),length*sizeof(unsigned char));	      	 
-	  delete bp;
-	  delete e->GetParGlobal(nParam-1);
-	  e->GetParGlobal(nParam-1)=temp;
-	  return ;
-	}
-
-	  
+        // String
+        DString var_name;
+        e->AssureScalarPar<DStringGDL>(1, var_name);
+        status=nc_inq_varid(cdfid, var_name.c_str(), &varid);
+        ncdf_handle_error(e,status,"NCDF_ATTGET");
       }
-  }
+      e->AssureStringScalarPar(2, attname);
+    }
+    //attname, varid, cdfid are set up
 
-  void ncdf_attput(EnvT* e)
-  {
+    //get the attinq data
+    status=nc_inq_att(cdfid, varid, attname.c_str(), &att_type, &length);
+
+    //handle the error
+    ncdf_handle_error(e,status,"NCDF_ATTGET");
+
+    if (att_type == NC_CHAR) {
+      char *cp;
+      cp = new char[length];
+      status=nc_get_att_text(cdfid, varid, attname.c_str(), cp);
+      ncdf_att_handle_error(e, status, "NCDF_ATTGET", cp);
+      DStringGDL* temp = new DStringGDL(cp);
+      delete cp;
+      delete e->GetParGlobal(nParam-1);
+      e->GetParGlobal(nParam-1)=temp;
+    }
+    else 
+    {
+      dimension dim(length);
+      BaseGDL* temp;
+      switch (att_type)
+      {
+        case NC_INT :
+        {
+          int *ip = new int[length];
+          status=nc_get_att_int(cdfid, varid, attname.c_str(), ip);
+          ncdf_att_handle_error(e, status, "NCDF_ATTGET", ip);
+          temp = length == 1 ? new DLongGDL(BaseGDL::NOZERO) : new DLongGDL(dim, BaseGDL::NOZERO);
+          memcpy(&(*static_cast<DLongGDL*>(temp))[0], &(*ip), length * sizeof(int));	      
+          delete ip;
+          break;
+        }
+        case NC_SHORT : 
+        {
+          short *sp = new short[length];
+          status = nc_get_att_short(cdfid, varid, attname.c_str(), sp);
+          ncdf_att_handle_error(e, status, "NCDF_ATTGET", sp);
+          temp = length == 1 ? new DIntGDL(BaseGDL::NOZERO) : new DIntGDL(dim, BaseGDL::NOZERO);
+          memcpy(&(*static_cast<DIntGDL*>(temp))[0], &(*sp), length * sizeof(short));	      
+          delete sp;
+          break;
+        }
+        case NC_FLOAT :
+        {
+          float *fp = new float[length];
+          status=nc_get_att_float(cdfid, varid, attname.c_str(), fp);
+          ncdf_att_handle_error(e,status,"NCDF_ATTGET",fp);
+          temp = length == 1 ? new DFloatGDL(BaseGDL::NOZERO) : new DFloatGDL(dim, BaseGDL::NOZERO);
+          memcpy(&(*static_cast<DFloatGDL*>(temp))[0], &(*fp), length * sizeof(float));	      
+          delete fp;
+          break;
+        }
+        case NC_DOUBLE :
+        {
+          double *dp = new double[length];
+          status = nc_get_att_double(cdfid, varid, attname.c_str(), dp);
+          ncdf_att_handle_error(e, status, "NCDF_ATTGET", dp);
+          temp = length == 1 ? new DDoubleGDL(BaseGDL::NOZERO) : new DDoubleGDL(dim, BaseGDL::NOZERO);
+          memcpy(&(*static_cast<DDoubleGDL*>(temp))[0], &(*dp), length * sizeof(double));	      	 
+          delete dp;
+          break;
+        }
+        case NC_BYTE :
+        {
+          unsigned char *bp = new unsigned char[length];
+          status = nc_get_att_uchar(cdfid, varid, attname.c_str(), bp);
+          ncdf_att_handle_error(e, status, "NCDF_ATTGET", bp);
+          temp = length == 1 ? new DByteGDL(BaseGDL::NOZERO) : new DByteGDL(dim, BaseGDL::NOZERO);
+          memcpy(&(*static_cast<DByteGDL*>(temp))[0], &(*bp), length * sizeof(unsigned char));	      	 
+          delete bp;
+          break;
+        }
+      }
+      delete e->GetParGlobal(nParam - 1);
+      e->GetParGlobal(nParam - 1) = temp;
+    }
+
+  } // }}}
+
+  void ncdf_attput(EnvT* e) // {{{
+  { 
     size_t N_Params=e->NParam(3);
     int status, val_num;
     nc_type xtype;
@@ -500,9 +420,9 @@ namespace lib {
 return;
 
 
-  }
+  } // }}}
 
-  BaseGDL* ncdf_attcopy(EnvT* e)
+  BaseGDL* ncdf_attcopy(EnvT* e) // {{{
   {
 
     size_t nParam=e->NParam(3);
@@ -618,10 +538,9 @@ return;
 
     if(status == NC_NOERR) return new DIntGDL(outvar);
     return new DIntGDL(-1);
-  }
+  } // }}}
 
-
-  void ncdf_attdel(EnvT* e)
+  void ncdf_attdel(EnvT* e) // {{{
   {
     size_t nParam=e->NParam(2);
     int status;
@@ -672,10 +591,9 @@ return;
     ncdf_handle_error(e, status,"NCDF_ATTDEL");
 
     return;
-  }
+  } // }}}
 
-
-  void ncdf_attrename(EnvT* e)
+  void ncdf_attrename(EnvT* e) // {{{
   {
     size_t nParam=e->NParam(3);
     int status;
@@ -733,8 +651,7 @@ return;
     ncdf_handle_error(e, status,"NCDF_ATTRENAME");
 
     return;
-  }
-
+  } // }}}
 
 }
 #endif

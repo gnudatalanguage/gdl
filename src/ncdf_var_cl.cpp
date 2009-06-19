@@ -27,6 +27,7 @@
 #include <string>
 #include <fstream>
 #include <memory>
+#include <algorithm>
 #include <gsl/gsl_sys.h>
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_sf.h>
@@ -178,7 +179,7 @@ namespace lib {
     inq->InitTag("NAME",DStringGDL(var_name));
 
     dimension dim( var_ndims);
-    DULongGDL* dims_res = new DULongGDL(dim, BaseGDL::NOZERO);
+    DLongGDL* dims_res = new DLongGDL(dim, BaseGDL::NOZERO);
     for( size_t i=0; i<var_ndims; ++i) {
       // reverse index order (fix from Sylwester Arabas)
       (*dims_res)[ i] = var_dims[var_ndims-(i+1)];
@@ -1096,13 +1097,12 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
   {
 
     //definitions
-    int status, i, status_tr,total;
+    int status, i, status_tr;
 
-    size_t var_ndims, value_nelem,dim_length[MAXRANK];
-    SizeT transposed_dim_length[NC_MAX_VAR_DIMS];
+    size_t var_ndims, value_nelem, dim_length[MAXRANK];
     long trans[NC_MAX_VAR_DIMS], retrans[NC_MAX_VAR_DIMS];
 
-    int var_dims[NC_MAX_VAR_DIMS],var_natts;
+    int var_dims[NC_MAX_VAR_DIMS], var_natts;
     char var_name[NC_MAX_NAME];
 
     nc_type var_type;
@@ -1122,308 +1122,211 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
       // String
       DString var_name;
       e->AssureScalarPar<DStringGDL>(1, var_name);
-      status=nc_inq_varid(cdfid, var_name.c_str(), &varid);
-      ncdf_handle_error(e,status,"NCDF_VARPUT");
+      status = nc_inq_varid(cdfid, var_name.c_str(), &varid);
+      ncdf_handle_error(e, status, "NCDF_VARPUT");
     }
 
-    status=nc_inq_var(cdfid,varid,var_name,&var_type,(int *) &var_ndims,
-		      var_dims,&var_natts);
+    status = nc_inq_var(cdfid, varid, var_name, &var_type, 
+      (int *) &var_ndims, var_dims, &var_natts);
 
     //get the value
-    v=e->GetParDefined(2);
-    // var_ndims=v->Rank();
-    value_nelem=v->N_Elements();
-    for (i=0;i<var_ndims;++i)
-      {
-	dim_length[i]=v->Dim(i);
-      }
+    v = e->GetParDefined(2);
+    value_nelem = v->N_Elements();
+    for (i = 0; i < var_ndims; ++i) 
+    {
+      if (v->Type() != STRING) dim_length[i] = max(int(v->Dim(i)), 1);
+      else dim_length[i] = (*static_cast<DStringGDL*>(v))[0].length();
+    }
 
-    
     //do offset first
-    if(var_ndims==0)//scalar
-      {
-	trans[0]=0;
-	retrans[0]=0;
-	transposed_dim_length[trans[0]]=dim_length[0];
-      }
+    if (var_ndims == 0)//scalar
+    {
+      trans[0] = 0;
+      retrans[0] = 0;
+    }
     else
+    {
+      for (i=0;i<var_ndims;++i)
       {
-	for (i=0;i<var_ndims;++i)
-	  {
-	    trans[i]=var_ndims-i-1;
-	    retrans[i]=i;
-	    transposed_dim_length[trans[i]]=dim_length[i];
-	  }
+        trans[i] = var_ndims - i - 1;
+        retrans[i] = i;
       }
+    }
 
+    // SA: no-keyword-arguments case handled by nc_put_var_* removed as
+    //     * it relied on correctness of input data shape/length (segfaults),
+    //     * it did not allow to insert a new record (in an unlimited dimension),
+    //     * it is handled by the code below anyhow.
 
-    //no keywords
-    if(e->GetKW(0) == NULL && 
-       e->GetKW(1) == NULL &&
-       e->GetKW(2) == NULL)
+    //count, offset or stride
+    size_t count[NC_MAX_VAR_DIMS], offset[NC_MAX_VAR_DIMS];
+    int noff, ncou, nstri;
+    ptrdiff_t stride[NC_MAX_VAR_DIMS];
+	
+    //setup
+    if (var_ndims <= 1)
+    {
+      offset[0] = 0;
+      count[0] = value_nelem;
+      stride[0] = 1;
+    }
+    else
+    {
+      for (i=0; i < var_ndims; ++i)
       {
-	//put all of the data
-
-	if(v->Type() == DOUBLE)
-	  {
-
-	    DDoubleGDL* dvar=static_cast<DDoubleGDL*>(v);
-
-	    /*if(var_ndims > 0) status_tr=transpose_perm((char *)&(*dvar)[0], 
-	      var_ndims,dim_length,sizeof(double),dvar->Type(),trans);*/
-
-	    status=nc_put_var_double(cdfid,varid,&((*dvar)[0]));
-
-	    /* if(var_ndims > 0) status_tr=transpose_perm((char *)&(*dvar)[0], 
-	       var_ndims,dim_length,sizeof(double),dvar->Type(),retrans);*/
-	  }
-	else if(v->Type() == FLOAT) 
-	  {
-
-	    DFloatGDL* fvar=static_cast<DFloatGDL*>(v);
-
-	    /*if(var_ndims > 0) status_tr=transpose_perm((char *)&(*fvar)[0], 
-	      var_ndims,dim_length,sizeof(float),fvar->Type(),trans);*/
-
-	    status=nc_put_var_float(cdfid,varid,&((*fvar)[0]));
-
-	    /*if(var_ndims > 0) status_tr=transpose_perm((char *)&(*fvar)[0], 
-	      var_ndims,dim_length,sizeof(float),fvar->Type(),retrans);*/
-
-	  }
-	else if(v->Type() == INT) 
-	  {
-
-	    DIntGDL* ivar=static_cast<DIntGDL*>(v);
-
-	    /* if(var_ndims > 0) status_tr=transpose_perm((char *)&(*ivar)[0], 
-	       var_ndims,dim_length,sizeof(short),ivar->Type(),trans);*/
-
-	    status=nc_put_var_short(cdfid,varid,&((*ivar)[0]));
-
-	    /*if(var_ndims > 0) status_tr=transpose_perm((char *)&(*ivar)[0], 
-	      var_ndims,dim_length,sizeof(short),ivar->Type(),retrans);*/
-
-	  }
-	else if(v->Type() == LONG) 
-	  {
-	    DLongGDL* lvar=static_cast<DLongGDL*>(v);
-
-	    /* if(var_ndims > 0) status_tr=transpose_perm((char *)&(*lvar)[0], 
-	       var_ndims,dim_length,sizeof(int),lvar->Type(),trans);*/
-
-	    status=nc_put_var_int(cdfid,varid,&((*lvar)[0]));
-
-	    /*if(var_ndims > 0) status_tr=transpose_perm((char *)&(*lvar)[0], 
-	      var_ndims,dim_length,sizeof(int),lvar->Type(),retrans);*/
-
-	  }
-	else if(v->Type() == BYTE) 
-	  {
-	    DByteGDL* bvar=static_cast<DByteGDL*>(v);
-	    /*if(var_ndims > 0) status_tr=transpose_perm((char *)&(*bvar)[0], 
-	      var_ndims,dim_length,sizeof(unsigned char),bvar->Type(),trans);*/
-
-	    status=nc_put_var_uchar(cdfid,varid,&((*bvar)[0]));
-
-	    /*if(var_ndims > 0) status_tr=transpose_perm((char *)&(*bvar)[0], 
-	      var_ndims,dim_length,sizeof(unsigned char),bvar->Type(),retrans);*/
-	  }
-
-	ncdf_handle_error(e,status, "NCDF_VARPUT");
-    //handle the error
-
-	//	return;
-      } else {
-	//count, offset or stride
-	size_t count[NC_MAX_VAR_DIMS];
-	size_t  offset[NC_MAX_VAR_DIMS];
-	  int noff,ncou,nstri;
-	ptrdiff_t stride[NC_MAX_VAR_DIMS];
-	
-	//setup
-	if(var_ndims <= 1)
-	  {
-	  offset[0]=0;
-	  count[0]=0;
-	  stride[0]=1;
-	  }
-	else
-	  {
-	    //	  for (i=0;i<NC_MAX_VAR_DIMS;++i)
-	  for (i=0;i<var_ndims;++i)
-	    {
-	      offset[i]=0;
-	      count[trans[i]]=dim_length[i];
-	      stride[i]=1;
-	    }
-	  }
-
-
-	if(e->GetKW(1) != NULL)
-	  {
-	    //offset
-	    DLongGDL *o=e->GetKWAs<DLongGDL>(1);
-	    noff=o->N_Elements();
-
-	    //	    offset[0]=0;
-	    for(i=0;i<noff;++i)
-	      {
-
-		if((*o)[i] > 0)
-		  {
-		    offset[trans[i]]=(*o)[i];
-		  }
-		else if((*o)[i] < 0)
-		  {
-		    offset[trans[i]]=0;
-		    negzero_message("NCDF_VARPUT: Offset",i,0);
-
-		  }
-	      }
-	  }
-
-	if(var_ndims <= 1)
-	  {
-	    total=value_nelem;
-	    count[0]=value_nelem;
-	  }
-	else 
-	  {
-            total = 1;
-	    for (i=0;i<var_ndims;++i) 
-	      {
-		count[i]=dim_length[i];
-		total=total*count[i];
-	      }
-	  }
-	  
-	
-	if(e->GetKW(0) != NULL)
-	{
-	  total=1;
-	  DLongGDL *c=e->GetKWAs<DLongGDL>(0);
-
-	  ncou=c->N_Elements();
-
-	  for (i=0;i<ncou;++i) 
-	      {
-		if((*c)[i] > 0)
-		  {
-		    count[trans[i]]=(*c)[i];
-		  }
-		else if((*c)[i] <= 0)
-		  {
-		    count[trans[i]]=1;
-		    negzero_message("NCDF_VARPUT: Count ",i,1);
-		  }
-		total=total*count[trans[i]];
-	      }
-
-	}
-
-	if(total > value_nelem)
-	  {
-	    throw GDLException(e->CallingNode(),
-			       "NCDF_VARPUT: Not enough elements in write error 1");
-	  }
-	  
-
-	if(e->GetKW(2) != NULL)
-	  {
-	    //stride
-
-	    ptrdiff_t stri[NC_MAX_VAR_DIMS];
-	    DIntGDL *s=e->GetKWAs<DIntGDL>(2);
-	    nstri=s->N_Elements();
-
-	    for (i=0;i<nstri;++i) 
-	      {
-		if((*s)[i]>0)
-		  {
-		    //stride * count < length-offset
-		    stride[trans[i]]=(*s)[i];
-		    
-		  }
-		else if((*s)[i] <= 0)
-		  {
-		    //		    stride<0, stop it now.
-		    stride[trans[i]]=1;
-		    
-		    throw GDLException(e->CallingNode(),
-				       "NCDF_VARPUT: STRIDE array cannot have negative elements"
-				       +e->GetParString(0));
-		    
-		  }
-
-		
-	      }
-
-	  }
-	if(v->Type() == DOUBLE)
-	  {
-	    DDoubleGDL* dvar=static_cast<DDoubleGDL*>(v);
-	    
-	    /*  if(var_ndims > 0) status_tr=transpose_perm((char *)&(*dvar)[0], var_ndims, dim_length,sizeof(double),  dvar->Type(),trans);*/
-
-	    status=nc_put_vars_double(cdfid,
-				      varid,
-				      offset,count,stride,
-				      &((*dvar)[0]));
-
-	    /*	    if(var_ndims > 0) status_tr=transpose_perm((char *)&(*dvar)[0], var_ndims,  dim_length,sizeof(double),  dvar->Type(), retrans);*/
-	  } else  if(v->Type() == FLOAT)  {
-	    DFloatGDL* fvar=static_cast<DFloatGDL*>(v);
-
-	    /*	    if(var_ndims > 0) status_tr=transpose_perm((char *)&(*fvar)[0], var_ndims,  dim_length,sizeof(float),  fvar->Type(),trans);*/
-
-	    status=nc_put_vars_float(cdfid,
-				      varid,
-				      offset,count,stride,
-				      &((*fvar)[0]));
-
-	    /*	    if(var_ndims > 0) status_tr=transpose_perm((char *)&(*fvar)[0], var_ndims,    dim_length,sizeof(float),    fvar->Type(), retrans);*/
-
-	  } else  if(v->Type() == INT)  {
-	    DIntGDL* ivar=static_cast<DIntGDL*>(v);
-	    
-	    /*	    if(var_ndims > 0) status_tr=transpose_perm((char *)&(*ivar)[0], var_ndims,    dim_length,sizeof(int),     ivar->Type(),trans);*/
-
-	    status=nc_put_vars_short(cdfid,
-				      varid,
-				      offset,count,stride,
-				      &((*ivar)[0]));
-
-	    /*	    if(var_ndims > 0) status_tr=transpose_perm((char *)&(*ivar)[0], var_ndims,     dim_length,sizeof(int),    ivar->Type(), retrans);*/
-
-	  } else  if(v->Type() == LONG)  {
-	    DLongGDL* lvar=static_cast<DLongGDL*>(v);
-	    
-	    /*	    if(var_ndims > 0) status_tr=transpose_perm((char *)&(*lvar)[0], var_ndims,    dim_length,sizeof(long),    lvar->Type(),trans);*/
-
-	    status=nc_put_vars_int(cdfid,
-				      varid,
-				      offset,count,stride,
-				      &((*lvar)[0]));
-
-	    /*	    if(var_ndims > 0) status_tr=transpose_perm((char *)&(*lvar)[0], var_ndims,     dim_length,sizeof(long),    lvar->Type(), retrans);*/
-	  } else  if(v->Type() == BYTE)  {
-	    DByteGDL* bvar=static_cast<DByteGDL*>(v);
-	    
-	    /*	    if(var_ndims > 0) status_tr=transpose_perm((char *)&(*bvar)[0], var_ndims,    dim_length,sizeof(unsigned char),    bvar->Type(),trans);*/
-
-	    status=nc_put_vars_uchar(cdfid,
-				      varid,
-				      offset,count,stride,
-				      &((*bvar)[0]));
-
-	    /*	    if(var_ndims > 0) status_tr=transpose_perm((char *)&(*bvar)[0], var_ndims,    dim_length,sizeof(unsigned char),    bvar->Type(), retrans);*/
-	  }
-	ncdf_handle_error(e,status,"NCDF_VARPUT");
-	return;
+        offset[i] = 0;
+        count[trans[i]] = dim_length[i];
+        stride[i] = 1;
       }
+    }
 
- }
+    if (e->GetKW(1) != NULL)
+    {
+      //offset
+      DLongGDL *o = e->GetKWAs<DLongGDL>(1);
+      noff = o->N_Elements();
+
+      //  offset[0]=0;
+      for (i = 0; i < noff; ++i)
+      {
+        if ((*o)[i] > 0) offset[trans[i]] = (*o)[i];
+        else if ((*o)[i] < 0)
+        {
+          offset[trans[i]] = 0;
+          negzero_message("NCDF_VARPUT: Offset", i, 0);
+        }
+      }
+    }
+
+    int total = 1;
+	  
+    if (e->GetKW(0) != NULL)
+    {
+      DLongGDL *c = e->GetKWAs<DLongGDL>(0);
+      ncou = c->N_Elements();
+      for (i = 0; i < ncou; ++i) 
+      {
+        if ((*c)[i] > 0) count[trans[i]] = (*c)[i];
+        else if ((*c)[i] <= 0)
+        {
+          count[trans[i]] = 1;
+          negzero_message("NCDF_VARPUT: Count ", i, 1);
+        }
+        total = total * count[trans[i]];
+      }
+    }
+    else 
+    {
+      if (var_ndims == 0) total = value_nelem;
+      else for (i = 0; i < var_ndims; ++i) total = total * count[i];
+    }
+
+    if (total > value_nelem) e->Throw("NCDF_VARPUT: Not enough elements (" 
+      + i2s(total) + ">" + i2s(value_nelem) + ")");
+
+    if (e->GetKW(2) != NULL)
+    {
+      //stride
+      DIntGDL *s = e->GetKWAs<DIntGDL>(2);
+      nstri=s->N_Elements();
+
+      for (i = 0; i < nstri; ++i) 
+      {
+        // stride * count < length-offset
+        if ((*s)[i] > 0) stride[trans[i]] = (*s)[i];
+        // stride < 0, stop it now.
+        else if ((*s)[i] <= 0)
+        {
+          // stride[trans[i]] = 1;
+          throw GDLException(e->CallingNode(),
+            "NCDF_VARPUT: STRIDE array cannot have negative elements"
+            +e->GetParString(0));
+        }
+      }
+    }
+
+    // TODO netCDF-4 has new data types
+    switch (v->Type()) 
+    { 
+      // using netCDF API functions data type convertion
+      case DOUBLE : 
+        status = nc_put_vars_double(cdfid, varid, offset, count, stride, 
+          &((*static_cast<DDoubleGDL*>(v))[0]));
+        break;
+      case FLOAT :
+        status = nc_put_vars_float(cdfid, varid, offset, count, stride, 
+          &((*static_cast<DFloatGDL*>(v))[0]));
+        break;
+      case INT : 
+        status = nc_put_vars_short(cdfid, varid, offset, count, stride, 
+          &((*static_cast<DIntGDL*>(v))[0]));
+        break;
+      case LONG :
+        status = nc_put_vars_int(cdfid, varid, offset, count, stride, 
+          &((*static_cast<DLongGDL*>(v))[0]));
+        break;
+      case BYTE :
+        status = nc_put_vars_uchar(cdfid, varid, offset, count, stride,
+          &((*static_cast<DByteGDL*>(v))[0]));
+        break;
+      // initially using GDL methods for data type convertion
+      case COMPLEXDBL : 
+      case COMPLEX :
+      case UINT :
+      case ULONG :
+      case LONG64:
+      case ULONG64 :
+      {
+        BaseGDL* val;
+        auto_ptr<BaseGDL> val_guard(val);
+        switch (var_type) 
+        {
+          case NC_BYTE :   // 8-bit signed integer
+          case NC_SHORT :  // 16-bit signed integer
+            val = v->Convert2(INT, BaseGDL::COPY);
+            status = nc_put_vars_short(cdfid, varid, offset, count, stride,
+              &((*static_cast<DIntGDL*>(val))[0])); 
+            break;
+          case NC_CHAR :   // 8-bit unsigned integer
+            val = v->Convert2(BYTE, BaseGDL::COPY);
+            status = nc_put_vars_uchar(cdfid, varid, offset, count, stride,
+              &((*static_cast<DByteGDL*>(val))[0])); 
+            break;
+          case NC_INT :    // 32-bit signed integer
+            val = v->Convert2(LONG, BaseGDL::COPY);
+            status = nc_put_vars_int(cdfid, varid, offset, count, stride,
+              &((*static_cast<DLongGDL*>(val))[0]));
+            break;
+          case NC_FLOAT :  // 32-bit floating point
+            val = v->Convert2(FLOAT, BaseGDL::COPY);
+            status = nc_put_vars_float(cdfid, varid, offset, count, stride, 
+              &((*static_cast<DFloatGDL*>(val))[0]));
+            break;
+          case NC_DOUBLE : // 64-bit floating point
+            val = v->Convert2(DOUBLE, BaseGDL::COPY);
+            status = nc_put_vars_double(cdfid, varid, offset, count, stride,
+              &((*static_cast<DDoubleGDL*>(val))[0]));
+            break;
+        }
+        break;
+      }
+      case STRING :
+        status = nc_put_vars_text(cdfid, varid, offset, count, stride, 
+          (*static_cast<DStringGDL*>(v))[0].c_str());
+        break;
+      // reporting illegal types (could be done before...)
+      case STRUCT :  
+        e->Throw("Struct expression not allowed in this context: " 
+          + e->GetParString(2));
+      case PTR :
+        e->Throw("Pointer expression not allowed in this context: " 
+          + e->GetParString(2));
+      case OBJECT : 
+        e->Throw("Object reference expression not allowed in this context: " 
+          + e->GetParString(2));
+    }
+    ncdf_handle_error(e, status, "NCDF_VARPUT");
+  }
 
 }
 

@@ -61,7 +61,18 @@ namespace lib {
 
     DLong cdfid, dimid;
     e->AssureLongScalarPar(0, cdfid);
-    e->AssureLongScalarPar(1, dimid);
+
+    BaseGDL* p1 = e->GetParDefined( 1); 
+    if (p1->Type() != STRING) {
+      // Numeric
+      e->AssureLongScalarPar(1, dimid);
+    } else {
+      // String
+      DString dim_name;
+      e->AssureScalarPar<DStringGDL>(1, dim_name);
+      status=nc_inq_dimid(cdfid, dim_name.c_str(), &dimid);
+      ncdf_handle_error(e, status, "NCDF_DIMRENAME");
+    }   
 
     //call the ncdf library
     status=nc_inq_dim(cdfid, dimid,dim_name,&dim_size);
