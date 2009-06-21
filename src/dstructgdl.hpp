@@ -187,7 +187,8 @@ public:
 
   // for use by MIN and MAX functions
   void MinMax( DLong* minE, DLong* maxE, 
-	       BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN);
+	       BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN,
+	       SizeT start, SizeT stop, SizeT step, DLong valIx);
 
   //  const DType   Type()    const { return SpDStruct::t;}
   //  const std::string& TypeStr() const { return SpDStruct::str;}

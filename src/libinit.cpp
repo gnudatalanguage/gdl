@@ -165,7 +165,7 @@ void LibInit()
   const string sortKey[]={"L64",KLISTEND};
   new DLibFunRetNew(lib::sort_fun,string("SORT"),1,sortKey,NULL,true);
 
-  const string medianKey[]={"EVEN","DOUBLE","DIM",KLISTEND};
+  const string medianKey[]={"EVEN","DOUBLE","DIMENSION",KLISTEND};
   new DLibFunRetNew(lib::median,string("MEDIAN"),2,medianKey);
   
   new DLibFunRetNew(lib::transpose,string("TRANSPOSE"),2,NULL,NULL,true);
@@ -399,9 +399,9 @@ void LibInit()
   const string array_equalKey[]={"NO_TYPECONV",KLISTEND};
   new DLibFunRetNew(lib::array_equal,string("ARRAY_EQUAL"),2,array_equalKey,NULL,true);
   
-  const string minKey[]={"MAX","NAN","SUBSCRIPT_MAX",KLISTEND};
+  const string minKey[]={"MAX","NAN","SUBSCRIPT_MAX","DIMENSION",KLISTEND};
   new DLibFunRetNew(lib::min_fun,string("MIN"),2,minKey,NULL,true);
-  const string maxKey[]={"MIN","NAN","SUBSCRIPT_MIN",KLISTEND};
+  const string maxKey[]={"MIN","NAN","SUBSCRIPT_MIN","DIMENSION",KLISTEND};
   new DLibFunRetNew(lib::max_fun,string("MAX"),2,maxKey,NULL,true);
 
   // retConstant: structs are tricky: struct resolution depends from !PATH

@@ -377,7 +377,8 @@ public:
   virtual BaseGDL* Reverse( DLong dim);
 
   virtual void MinMax( DLong* minE, DLong* maxE, 
-		       BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN);
+		       BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN,
+		       SizeT start = 0, SizeT stop = 0, SizeT step = 1, DLong valIx = -1);
 
   virtual void Clear();
   virtual void Construct();

@@ -2426,72 +2426,74 @@ DLong* Data_<SpDComplexDbl>::Where( bool comp, SizeT& n)
 }
 // structs are not allowed
 
+// SA: the start, stop, step & valIx arguments to MinMax are used when
+//     user specifies the DIMENSION keyword to MIN/MAX; they all have
+//     default values (defined in basegdl.hpp & datatypes.hpp) thus
+//     their introduction should not affect previous calls to MinMax
+
 // for use by MIN and MAX functions
 // integer (NaN not an issue)
 template<class Sp>
 void Data_<Sp>::MinMax( DLong* minE, DLong* maxE, 
-			BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN)
+			BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN,
+			SizeT start, SizeT stop, SizeT step, DLong valIx)
 {
-  if( minE == NULL)
+  // default: start = 0, stop = 0, step = 1, valIx = -1
+  if (stop == 0) stop = dd.size();
+
+  if (minE == NULL && minVal == NULL)
     {
-      DLong maxEl  = 0;
-      Ty    maxV = (*this)[0];
-      DLong nEl = dd.size();
-      for( DLong i=1; i<nEl; ++i)
-	{
-	  if( (*this)[i] > maxV)
-	    {
-	      maxV = (*this)[i];
-	      maxEl  = i;
-	    }
-	}
-      *maxE = maxEl;
-      if( maxVal != NULL) *maxVal = new Data_( maxV);
+      DLong maxEl  = start;
+      Ty    maxV = (*this)[maxEl];
+      for( DLong i = start + step; i < stop; i += step)
+        if ((*this)[i] > maxV) maxV = (*this)[maxEl = i];
+      if (maxE != NULL) *maxE = maxEl;
+      if (maxVal != NULL) 
+      { 
+        if (valIx == -1) *maxVal = new Data_( maxV);
+        else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
+      }
       return;
     }
-  if( maxE == NULL)
+  if (maxE == NULL && maxVal == NULL)
     {
-      DLong minEl  = 0;
-      Ty    minV = (*this)[0];
-      DLong nEl = dd.size();
-      for( DLong i=1; i<nEl; ++i)
-	{
-	  if( (*this)[i] < minV)
-	    {
-	      minV = (*this)[i];
-	      minEl  = i;
-	    }
-	}
-      *minE = minEl;
-      if( minVal != NULL) *minVal = new Data_( minV);
+      DLong minEl  = start;
+      Ty    minV = (*this)[minEl];
+      for( DLong i = start + step; i < stop; i += step)
+        if ((*this)[i] < minV) minV = (*this)[minEl = i];
+      if (minE != NULL) *minE = minEl;
+      if (minVal != NULL) 
+      {
+        if (valIx == -1) *minVal = new Data_( minV);
+        else (*static_cast<Data_*>(*minVal))[valIx] = minV;
+      }
       return;
     }
 
-  DLong maxEl  = 0;
-  Ty    maxV = (*this)[0];
+  DLong maxEl, minEl;
+  Ty maxV, minV;
+  maxV = minV = (*this)[maxEl = minEl = start];
 
-  DLong minEl  = 0;
-  Ty    minV = (*this)[0];
-
-  DLong nEl = dd.size();
-  for( DLong i=1; i<nEl; ++i)
+  for( DLong i = start + step; i < stop; i += step)
     {
-      if( (*this)[i] > maxV)
-	{
-	  maxV = (*this)[i];
-	  maxEl  = i;
-	}
+      if ((*this)[i] > maxV) 
+        maxV = (*this)[maxEl = i];
       else if( (*this)[i] < minV)
-	{
-	  minV = (*this)[i];
-	  minEl  = i;
-	}
+        minV = (*this)[minEl = i];
     }
-  *maxE = maxEl;
-  if( maxVal != NULL) *maxVal = new Data_( maxV);
+  if (maxE != NULL) *maxE = maxEl;
+  if (maxVal != NULL) 
+  {
+    if (valIx == -1) *maxVal = new Data_( maxV);
+    else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
+  }
 
-  *minE = minEl;
-  if( minVal != NULL) *minVal = new Data_( minV);
+  if (minE != NULL) *minE = minEl;
+  if (minVal != NULL) 
+  {
+    if (valIx == -1) *minVal = new Data_( minV);
+    else (*static_cast<Data_*>(*minVal))[valIx] = minV;
+  }
 }
 
 // the code for <SpDFloat>::MinMax is a "template" for Double, Complex and DoubleComplex ...
@@ -2501,541 +2503,519 @@ void Data_<Sp>::MinMax( DLong* minE, DLong* maxE,
 
 template<>
 void Data_<SpDFloat>::MinMax( DLong* minE, DLong* maxE, 
-			      BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN)
+			      BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN,
+			      SizeT start, SizeT stop, SizeT step, DLong valIx)
 {
-  if( minE == NULL)
+  // default: start = 0, stop = 0, step = 1, valIx = -1
+  if (stop == 0) stop = dd.size();
+
+  if (minE == NULL && minVal == NULL)
     {
-      DLong maxEl  = 0;
-      Ty    maxV = (*this)[0];
-      DLong nEl = dd.size();
-      DLong i, i_min=1;
+      DLong maxEl = start;
+      Ty    maxV = (*this)[maxEl];
+      DLong i, i_min = start + step;
 
       if (omitNaN) {
-	i=0;
-	int flag=1;
+	i = start;
+	int flag = 1;
 	while (flag == 1) {
-	  if (!isnan((*this)[i]) && isfinite((*this)[i])) { flag =0;}
-	  if (i == nEl-1) { flag =0;}
-	  i=i+1;
+	  if (!isnan((*this)[i]) && isfinite((*this)[i])) flag = 0;
+	  if (i + step >= stop) flag = 0;
+	  i += step;
 	}
-	maxV = (*this)[i-1];
-	maxEl  = i-1;
-	i_min=i;
+	maxV = (*this)[maxEl = i - step];
+	i_min = i;
       }
         
-      for( i=i_min; i<nEl; ++i) {
+      for (i = i_min; i < stop; i += step) {
 	if (omitNaN) {
 	  if (isnan((*this)[i]) || !isfinite((*this)[i])) continue;
 	}
-	if ((*this)[i] > maxV) {
-	  maxV = (*this)[i];
-	  maxEl  = i;
-	}
+        if ((*this)[i] > maxV) maxV = (*this)[maxEl = i];
       }
-      *maxE = maxEl;
-      if( maxVal != NULL) *maxVal = new Data_( maxV);
+      if (maxE != NULL) *maxE = maxEl;
+      if (maxVal != NULL) 
+      {
+        if (valIx == -1) *maxVal = new Data_( maxV);
+        else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
+      }
       return;
     }
-  if( maxE == NULL)
+  if (maxE == NULL && maxVal == NULL)
     {
-      DLong minEl  = 0;
-      Ty    minV = (*this)[0];
-      DLong nEl = dd.size();
-      DLong i, i_min=1;
+      DLong minEl  = start;
+      Ty    minV = (*this)[minEl];
+      DLong i, i_min = start + step;
 
       if (omitNaN) {
-	i=0;
-	int flag=1;
+	i = start;
+	int flag = 1;
 	while (flag == 1) {
-	  if (!isnan((*this)[i]) && isfinite((*this)[i])) { flag =0;}
-	  if (i == nEl-1) { flag =0;}
-	  i=i+1;
+	  if (!isnan((*this)[i]) && isfinite((*this)[i])) flag = 0;
+	  if (i + step >= stop) flag = 0;
+	  i += step;
 	}
-	minV = (*this)[i-1];
-	minEl  = i-1;
-	i_min=i;
+	minV = (*this)[minEl = i - step];
+	i_min = i;
       }
    
-      for (i=i_min; i<nEl; ++i) {
+      for (i = i_min; i < stop; i+= step) {
 	if (omitNaN) {
 	  if (isnan((*this)[i]) || !isfinite((*this)[i])) continue;
 	} 
-	if ((*this)[i] < minV) {
-	  minV = (*this)[i];
-	  minEl  = i;
-	}
+	if ((*this)[i] < minV) minV = (*this)[minEl = i];
       }
-      *minE = minEl;
-      if( minVal != NULL) *minVal = new Data_( minV);
+      if (minE != NULL) *minE = minEl;
+      if (minVal != NULL) 
+      {
+        if (valIx == -1) *minVal = new Data_( minV);
+        else (*static_cast<Data_*>(*minVal))[valIx] = minV;
+      }
       return;
     }
   
-  DLong maxEl  = 0;
-  Ty    maxV = (*this)[0];
-
-  DLong minEl  = 0;
-  Ty    minV = (*this)[0];
-  DLong i, i_min=1;
-  DLong nEl = dd.size();
+    DLong maxEl, minEl;
+    Ty maxV, minV;
+    maxV = minV = (*this)[maxEl = minEl = start];
+    DLong i, i_min = start + step;
   
   if (omitNaN) {
-    i=0;
-    int flag=1;
+    i = start;
+    int flag = 1;
     while (flag == 1) {
-      if (!isnan((*this)[i]) && isfinite((*this)[i])) { flag =0;}
-      if (i == nEl-1) { flag =0;}
-      i=i+1;
+      if (!isnan((*this)[i]) && isfinite((*this)[i])) flag = 0;
+      if (i + step >= stop) flag = 0;
+      i += step;
     }
-    minV = (*this)[i-1];
-    minEl  = i-1;
-    maxV = (*this)[i-1];
-    maxEl  = i-1;
-    i_min=i;
+    maxV = minV = (*this)[maxEl = minEl = i - step];
+    i_min = i;
   }
 
-  for( i=i_min; i<nEl; ++i) {
+  for (i = i_min; i < stop; i+= step) {
     if (omitNaN){
       if (isnan((*this)[i]) || !isfinite((*this)[i])) continue;
     }
-    if ((*this)[i] > maxV)
-      {
-	maxV = (*this)[i];
-	maxEl  = i;
-      }
-    else if( (*this)[i] < minV)
-      {
-	minV = (*this)[i];
-	minEl  = i;
-      }
+    if ((*this)[i] > maxV) maxV = (*this)[maxEl = i];
+    else if( (*this)[i] < minV) minV = (*this)[minEl = i];
   }
-  *maxE = maxEl;
-  if( maxVal != NULL) *maxVal = new Data_( maxV);
+  if (maxE != NULL) *maxE = maxEl;
+  if (maxVal != NULL) 
+  {
+    if (valIx == -1) *maxVal = new Data_( maxV);
+    else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
+  }
   
-  *minE = minEl;
-  if( minVal != NULL) *minVal = new Data_( minV);
+  if (minE != NULL) *minE = minEl;
+  if (minVal != NULL) 
+  {
+    if (valIx == -1) *minVal = new Data_( minV);
+    else (*static_cast<Data_*>(*minVal))[valIx] = minV;
+  }
 }
 
 
 template<>
 void Data_<SpDDouble>::MinMax( DLong* minE, DLong* maxE, 
-			       BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN)
-
+			       BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN,
+			       SizeT start, SizeT stop, SizeT step, DLong valIx)
 {
-  if( minE == NULL)
+  // default: start = 0, stop = 0, step = 1, valIx = -1
+  if (stop == 0) stop = dd.size();
+
+  if (minE == NULL && minVal == NULL)
     {
-      DLong maxEl  = 0;
-      Ty    maxV = (*this)[0];
-      DLong nEl = dd.size();
-      DLong i, i_min=1;
+      DLong maxEl  = start;
+      Ty    maxV = (*this)[maxEl];
+      DLong i, i_min = start + step;
 
       if (omitNaN) {
-	i=0;
-	int flag=1;
+	i = start;
+	int flag = 1;
 	while (flag == 1) {
-	  if (!isnan((*this)[i]) && isfinite((*this)[i])) { flag =0;}
-	  if (i == nEl-1) { flag =0;}
-	  i=i+1;
+	  if (!isnan((*this)[i]) && isfinite((*this)[i])) flag = 0;
+	  if (i + step >= stop) flag = 0;
+	  i += step;
 	}
-	maxV = (*this)[i-1];
-	maxEl  = i-1;
-	i_min=i;
+	maxV = (*this)[maxEl = i - step];
+	i_min = i;
       }
         
-      for( i=i_min; i<nEl; ++i) {
+      for (i = i_min; i < stop; i += step) {
 	if (omitNaN) {
 	  if (isnan((*this)[i]) || !isfinite((*this)[i])) continue;
 	}
-	if ((*this)[i] > maxV) {
-	  maxV = (*this)[i];
-	  maxEl  = i;
-	}
+	if ((*this)[i] > maxV) maxV = (*this)[maxEl = i];
       }
-      *maxE = maxEl;
-      if( maxVal != NULL) *maxVal = new Data_( maxV);
+      if (maxE != NULL) *maxE = maxEl;
+      if (maxVal != NULL) 
+      {
+        if (valIx == -1) *maxVal = new Data_( maxV);
+        else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
+      }
       return;
     }
-  if( maxE == NULL)
+  if (maxE == NULL && maxVal == NULL)
     {
-      DLong minEl  = 0;
-      Ty    minV = (*this)[0];
-      DLong nEl = dd.size();
-      DLong i, i_min=1;
+      DLong minEl = start;
+      Ty    minV = (*this)[minEl];
+      DLong i, i_min = start + step;
 
       if (omitNaN) {
-	i=0;
-	int flag=1;
+	i = start;
+	int flag = 1;
 	while (flag == 1) {
-	  if (!isnan((*this)[i]) && isfinite((*this)[i])) { flag =0;}
-	  if (i == nEl-1) { flag =0;}
-	  i=i+1;
+	  if (!isnan((*this)[i]) && isfinite((*this)[i])) flag = 0;
+	  if (i + step >= stop) flag = 0;
+	  i += step;
 	}
-	minV = (*this)[i-1];
-	minEl  = i-1;
-	i_min=i;
+	minV = (*this)[minEl = i - step];
+	i_min = i;
       }
    
-      for (i=i_min; i<nEl; ++i) {
+      for (i = i_min; i < stop; i += step) {
 	if (omitNaN) {
 	  if (isnan((*this)[i]) || !isfinite((*this)[i])) continue;
 	} 
-	if ((*this)[i] < minV) {
-	  minV = (*this)[i];
-	  minEl  = i;
-	}
+	if ((*this)[i] < minV) minV = (*this)[minEl = i];
       }
-      *minE = minEl;
-      if( minVal != NULL) *minVal = new Data_( minV);
+      if (minE != NULL) *minE = minEl;
+      if (minVal != NULL) 
+      {
+        if (valIx == -1) *minVal = new Data_( minV);
+        else (*static_cast<Data_*>(*minVal))[valIx] = minV;
+      }
       return;
     }
   
-  DLong maxEl  = 0;
-  Ty    maxV = (*this)[0];
-
-  DLong minEl  = 0;
-  Ty    minV = (*this)[0];
-  DLong i, i_min=1;
-  DLong nEl = dd.size();
+    DLong maxEl, minEl;
+    Ty maxV, minV;
+    maxV = minV = (*this)[maxEl = minEl = start];
+    DLong i, i_min = start + step;
   
   if (omitNaN) {
-    i=0;
-    int flag=1;
+    i = start;
+    int flag = 1;
     while (flag == 1) {
-      if (!isnan((*this)[i]) && isfinite((*this)[i])) { flag =0;}
-      if (i == nEl-1) { flag =0;}
-      i=i+1;
+      if (!isnan((*this)[i]) && isfinite((*this)[i])) flag = 0;
+      if (i + step >= stop) flag = 0;
+      i += step;
     }
-    minV = (*this)[i-1];
-    minEl  = i-1;
-    maxV = (*this)[i-1];
-    maxEl  = i-1;
-    i_min=i;
+    minV = maxV = (*this)[minEl = maxEl = i - step];
+    i_min = i;
   }
 
-  for( i=i_min; i<nEl; ++i) {
+  for (i = i_min; i < stop; i+= step) {
     if (omitNaN){
       if (isnan((*this)[i]) || !isfinite((*this)[i])) continue;
     }
-    if ((*this)[i] > maxV)
-      {
-	maxV = (*this)[i];
-	maxEl  = i;
-      }
-    else if( (*this)[i] < minV)
-      {
-	minV = (*this)[i];
-	minEl  = i;
-      }
+    if ((*this)[i] > maxV) maxV = (*this)[maxEl = i];
+    else if( (*this)[i] < minV) minV = (*this)[minEl = i];
   }
-  *maxE = maxEl;
-  if( maxVal != NULL) *maxVal = new Data_( maxV);
+  if (maxE != NULL) *maxE = maxEl;
+  if( maxVal != NULL) 
+  {
+    if (valIx == -1) *maxVal = new Data_( maxV);
+    else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
+  }
   
-  *minE = minEl;
-  if( minVal != NULL) *minVal = new Data_( minV);
+  if (minE != NULL) *minE = minEl;
+  if (minVal != NULL) 
+  {
+    if (valIx == -1) *minVal = new Data_( minV);
+    else (*static_cast<Data_*>(*minVal))[valIx] = minV;
+  }
 }
 
 template<>
 void Data_<SpDString>::MinMax( DLong* minE, DLong* maxE, 
-			       BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN)
+			       BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN,
+			       SizeT start, SizeT stop, SizeT step, DLong valIx)
 {
-  if( minE == NULL)
+  // default: start = 0, stop = 0, step = 1, valIx = -1
+  if (stop == 0) stop = dd.size();
+
+  if (minE == NULL && minVal == NULL)
     {
-      DLong maxEl  = 0;
-      Ty    maxV = (*this)[0];
-      DLong nEl = dd.size();
-      for( DLong i=1; i<nEl; ++i)
-	{
-	  if( (*this)[i] > maxV)
-	    {
-	      maxV = (*this)[i];
-	      maxEl  = i;
-	    }
-	}
-      *maxE = maxEl;
-      if( maxVal != NULL) *maxVal = new Data_( maxV);
+      DLong maxEl = start;
+      Ty    maxV = (*this)[maxEl];
+      for (DLong i = start + step; i < stop; i += step)
+        if ((*this)[i] > maxV) maxV = (*this)[maxEl = i];
+      if (maxE != NULL) *maxE = maxEl;
+      if (maxVal != NULL) 
+      {
+        if (valIx == -1) *maxVal = new Data_( maxV);
+        else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
+      }
       return;
     }
-  if( maxE == NULL)
+  if( maxE == NULL && maxVal == NULL)
     {
-      DLong minEl  = 0;
-      Ty    minV = (*this)[0];
-      DLong nEl = dd.size();
-      for( DLong i=1; i<nEl; ++i)
-	{
-	  if( (*this)[i] < minV)
-	    {
-	      minV = (*this)[i];
-	      minEl  = i;
-	    }
-	}
-      *minE = minEl;
-      if( minVal != NULL) *minVal = new Data_( minV);
+      DLong minEl = start;
+      Ty    minV = (*this)[minEl];
+      for (DLong i = start + step; i < stop; i += step)
+        if ((*this)[i] < minV) minV = (*this)[minEl = i];
+      if (minE != NULL) *minE = minEl;
+      if (minVal != NULL) 
+      {
+        if (valIx == -1) *minVal = new Data_( minV);
+        else (*static_cast<Data_*>(*minVal))[valIx] = minV;
+      }
       return;
     }
 
-  DLong maxEl  = 0;
-  Ty    maxV = (*this)[0];
+  DLong maxEl, minEl;
+  Ty maxV, minV;
+  maxV = minV = (*this)[maxEl = minEl = start];
 
-  DLong minEl  = 0;
-  Ty    minV = (*this)[0];
-
-  DLong nEl = dd.size();
-  for( DLong i=1; i<nEl; ++i)
+  for (DLong i = start + step; i < stop; i += step)
     {
-      if( (*this)[i] > maxV)
-	{
-	  maxV = (*this)[i];
-	  maxEl  = i;
-	}
-      else if( (*this)[i] < minV)
-	{
-	  minV = (*this)[i];
-	  minEl  = i;
-	}
+      if ((*this)[i] > maxV) maxV = (*this)[maxEl = i];
+      else if((*this)[i] < minV) minV = (*this)[minEl = i];
     }
-  *maxE = maxEl;
-  if( maxVal != NULL) *maxVal = new Data_( maxV);
+  if (maxE != NULL) *maxE = maxEl;
+  if (maxVal != NULL) 
+  {
+    if (valIx == -1) *maxVal = new Data_( maxV);
+    else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
+  }
 
-  *minE = minEl;
-  if( minVal != NULL) *minVal = new Data_( minV);
+  if (minE != NULL) *minE = minEl;
+  if (minVal != NULL) 
+  {
+    if (valIx == -1) *minVal = new Data_( minV);
+    else (*static_cast<Data_*>(*minVal))[valIx] = minV;
+  }
 }
+
 template<>
 void Data_<SpDComplex>::MinMax( DLong* minE, DLong* maxE, 
-				BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN)
-
+				BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN, 
+				SizeT start, SizeT stop, SizeT step, DLong valIx)
 {
-  if( minE == NULL)
+  // default: start = 0, stop = 0, step = 1, valIx = -1
+  if (stop == 0) stop = dd.size();
+
+  if (minE == NULL && minVal == NULL)
     {
-      DLong maxEl  = 0;
-      float maxV = (*this)[0].real();
-      DLong nEl = dd.size();
-      DLong i, i_min=1;
+      DLong maxEl = start;
+      float maxV = (*this)[maxEl].real();
+      DLong i, i_min = start + step;
 
       if (omitNaN) {
-	i=0;
-	int flag=1;
+	i = start;
+	int flag = 1;
 	while (flag == 1) {
-	  if (!isnan((*this)[i].real()) && isfinite((*this)[i].real())) { flag =0;}
-	  if (i == nEl-1) { flag =0;}
-	  i=i+1;
+	  if (!isnan((*this)[i].real()) && isfinite((*this)[i].real())) flag = 0;
+	  if (i + step >= stop) flag = 0;
+	  i += step;
 	}
-	maxV = (*this)[i-1].real();
-	maxEl  = i-1;
-	i_min=i;
+	maxV = (*this)[maxEl = i - step].real();
+	i_min = i;
       }
         
-      for( i=i_min; i<nEl; ++i) {
+      for (i = i_min; i < stop; i += step) {
 	if (omitNaN) {
 	  if (isnan((*this)[i].real()) || !isfinite((*this)[i].real())) continue;
 	}
-	if ((*this)[i].real() > maxV) {
-	  maxV = (*this)[i].real();
-	  maxEl  = i;
-	}
+	if ((*this)[i].real() > maxV) maxV = (*this)[maxEl = i].real();
       }
-      *maxE = maxEl;
-      if( maxVal != NULL) *maxVal = new Data_( (*this)[ maxEl]);
+      if (maxE != NULL) *maxE = maxEl;
+      if (maxVal != NULL) 
+      {
+        if (valIx == -1) *maxVal = new Data_( (*this)[ maxEl]);
+        else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
+      }
       return;
     }
-  if( maxE == NULL)
+  if (maxE == NULL && maxVal == NULL)
     {
-      DLong minEl  = 0;
-      float minV = (*this)[0].real();
-      DLong nEl = dd.size();
-      DLong i, i_min=1;
+      DLong minEl  = start;
+      float minV = (*this)[minEl].real();
+      DLong i, i_min = start + step;
 
       if (omitNaN) {
-	i=0;
-	int flag=1;
+	i = start;
+	int flag = 1;
 	while (flag == 1) {
-	  if (!isnan((*this)[i].real()) && isfinite((*this)[i].real())) { flag =0;}
-	  if (i == nEl-1) { flag =0;}
-	  i=i+1;
+	  if (!isnan((*this)[i].real()) && isfinite((*this)[i].real())) flag = 0;
+	  if (i + step >= stop) flag = 0;
+	  i += step;
 	}
-	minV = (*this)[i-1].real();
-	minEl  = i-1;
-	i_min=i;
+	minV = (*this)[minEl = i - step].real();
+	i_min = i;
       }
    
-      for (i=i_min; i<nEl; ++i) {
+      for (i = i_min; i < stop; i += step) {
 	if (omitNaN) {
 	  if (isnan((*this)[i].real()) || !isfinite((*this)[i].real())) continue;
 	} 
-	if ((*this)[i].real() < minV) {
-	  minV = (*this)[i].real();
-	  minEl  = i;
-	}
+	if ((*this)[i].real() < minV) minV = (*this)[minEl = i].real();
       }
-      *minE = minEl;
-      if( minVal != NULL) *minVal = new Data_( (*this)[ minEl]);
+      if (minE != NULL) *minE = minEl;
+      if (minVal != NULL) 
+      {
+        if (valIx == -1) *minVal = new Data_( (*this)[ minEl]);
+        else (*static_cast<Data_*>(*minVal))[valIx] = minV;
+      }
       return;
     }
   
-  DLong maxEl  = 0;
-  float maxV = (*this)[0].real();
-
-  DLong minEl  = 0;
-  float minV = (*this)[0].real();
-  DLong i, i_min=1;
-  DLong nEl = dd.size();
+  DLong maxEl, minEl;
+  float maxV, minV;
+  maxV = minV = (*this)[maxEl = minEl = start].real();
+  DLong i, i_min = start + step;
   
   if (omitNaN) {
-    i=0;
-    int flag=1;
+    i = start;
+    int flag = 1;
     while (flag == 1) {
-      if (!isnan((*this)[i].real()) && isfinite((*this)[i].real())) { flag =0;}
-      if (i == nEl-1) { flag =0;}
-      i=i+1;
+      if (!isnan((*this)[i].real()) && isfinite((*this)[i].real())) flag = 0;
+      if (i + step >= stop) flag = 0;
+      i += step;
     }
-    minV = (*this)[i-1].real();
-    minEl  = i-1;
-    maxV = (*this)[i-1].real();
-    maxEl  = i-1;
-    i_min=i;
+    minV = maxV = (*this)[minEl = maxEl = i - step].real();
+    i_min = i;
   }
 
-  for( i=i_min; i<nEl; ++i) {
+  for (i = i_min; i < stop; i += step) {
     if (omitNaN){
       if (isnan((*this)[i].real()) || !isfinite((*this)[i].real())) continue;
     }
-    if ((*this)[i].real() > maxV)
-      {
-	maxV = (*this)[i].real();
-	maxEl  = i;
-      }
-    else if( (*this)[i].real() < minV)
-      {
-	minV = (*this)[i].real();
-	minEl  = i;
-      }
+    if ((*this)[i].real() > maxV) maxV = (*this)[maxEl = i].real();
+    else if( (*this)[i].real() < minV) minV = (*this)[minEl = i].real();
   }
-  *maxE = maxEl;
-  if( maxVal != NULL) *maxVal = new Data_( (*this)[ maxEl]);
+  if (maxE != NULL) *maxE = maxEl;
+  if (maxVal != NULL) 
+  {
+    if (valIx == -1) *maxVal = new Data_( (*this)[ maxEl]);
+    else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
+  }
   
-  *minE = minEl;
-  if( minVal != NULL) *minVal = new Data_( (*this)[ minEl]);
+  if (minE != NULL) *minE = minEl;
+  if (minVal != NULL)
+  {
+    if (valIx == -1) *minVal = new Data_( (*this)[ minEl]);
+    else (*static_cast<Data_*>(*minVal))[valIx] = minV;
+  }
 
 }
 
 template<>
 void Data_<SpDComplexDbl>::MinMax( DLong* minE, DLong* maxE, 
-				   BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN)
-
+				   BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN,
+				   SizeT start, SizeT stop, SizeT step, DLong valIx)
 {
-  if( minE == NULL)
+  // default: start = 0, stop = 0, step = 1, valIx = -1
+  if (stop == 0) stop = dd.size();
+
+  if (minE == NULL && minVal == NULL)
     {
-      DLong maxEl  = 0;
-      double maxV = (*this)[0].real();
-      DLong nEl = dd.size();
-      DLong i, i_min=1;
+      DLong maxEl = start;
+      double maxV = (*this)[maxEl].real();
+      DLong i, i_min = start + step;
 
       if (omitNaN) {
-	i=0;
-	int flag=1;
+	i = start;
+	int flag = 1;
 	while (flag == 1) {
-	  if (!isnan((*this)[i].real()) && isfinite((*this)[i].real())) { flag =0;}
-	  if (i == nEl-1) { flag =0;}
-	  i=i+1;
+	  if (!isnan((*this)[i].real()) && isfinite((*this)[i].real())) flag = 0;
+	  if (i + step >= stop) flag = 0;
+	  i += step;
 	}
-	maxV = (*this)[i-1].real();
-	maxEl  = i-1;
-	i_min=i;
+	maxV = (*this)[maxEl = i - step].real();
+	i_min = i;
       }
         
-      for( i=i_min; i<nEl; ++i) {
+      for (i = i_min; i < stop; i += step) {
 	if (omitNaN) {
 	  if (isnan((*this)[i].real()) || !isfinite((*this)[i].real())) continue;
 	}
-	if ((*this)[i].real() > maxV) {
-	  maxV = (*this)[i].real();
-	  maxEl  = i;
-	}
+	if ((*this)[i].real() > maxV) maxV = (*this)[maxEl = i].real();
       }
-      *maxE = maxEl;
-      if( maxVal != NULL) *maxVal = new Data_( (*this)[ maxEl]);
+      if (maxE != NULL) *maxE = maxEl;
+      if (maxVal != NULL) 
+      {
+        if (valIx == -1) *maxVal = new Data_( (*this)[ maxEl]);
+        else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
+      }
       return;
     }
-  if( maxE == NULL)
+  if( maxE == NULL && maxVal == NULL)
     {
-      DLong minEl  = 0;
-      double minV = (*this)[0].real();
-      DLong nEl = dd.size();
-      DLong i, i_min=1;
+      DLong minEl = start;
+      double minV = (*this)[minEl].real();
+      DLong i, i_min = start + step;
 
       if (omitNaN) {
-	i=0;
-	int flag=1;
+	i = start;
+	int flag = 1;
 	while (flag == 1) {
-	  if (!isnan((*this)[i].real()) && isfinite((*this)[i].real())) { flag =0;}
-	  if (i == nEl-1) { flag =0;}
-	  i=i+1;
+	  if (!isnan((*this)[i].real()) && isfinite((*this)[i].real())) flag = 0;
+	  if (i + step >= stop) flag = 0;
+	  i += step;
 	}
-	minV = (*this)[i-1].real();
-	minEl  = i-1;
-	i_min=i;
+	minV = (*this)[minEl = i - step].real();
+	i_min = i;
       }
    
-      for (i=i_min; i<nEl; ++i) {
+      for (i = i_min; i < stop; i += step) {
 	if (omitNaN) {
 	  if (isnan((*this)[i].real()) || !isfinite((*this)[i].real())) continue;
 	} 
-	if ((*this)[i].real() < minV) {
-	  minV = (*this)[i].real();
-	  minEl  = i;
-	}
+	if ((*this)[i].real() < minV) minV = (*this)[minEl = i].real();
       }
-      *minE = minEl;
-      if( minVal != NULL) *minVal = new Data_( (*this)[ minEl]);
+      if (minE != NULL) *minE = minEl;
+      if (minVal != NULL) 
+      {
+        if (valIx == -1) *minVal = new Data_( (*this)[ minEl]);
+        else (*static_cast<Data_*>(*minVal))[valIx] = minV;
+      }
       return;
     }
   
-  DLong maxEl  = 0;
-  double maxV = (*this)[0].real();
-
-  DLong minEl  = 0;
-  double minV = (*this)[0].real();
-  DLong i, i_min=1;
-  DLong nEl = dd.size();
+  DLong maxEl, minEl;
+  double maxV, minV;
+  minV = maxV = (*this)[minEl = maxEl = start].real();
+  DLong i, i_min = start + step;
   
   if (omitNaN) {
-    i=0;
-    int flag=1;
+    i = start;
+    int flag = 1;
     while (flag == 1) {
-      if (!isnan((*this)[i].real()) && isfinite((*this)[i].real())) { flag =0;}
-      if (i == nEl-1) { flag =0;}
-      i=i+1;
+      if (!isnan((*this)[i].real()) && isfinite((*this)[i].real())) flag = 0;
+      if (i + step >= stop) flag = 0;
+      i += step;
     }
-    minV = (*this)[i-1].real();
-    minEl  = i-1;
-    maxV = (*this)[i-1].real();
-    maxEl  = i-1;
-    i_min=i;
+    minV = maxV = (*this)[minEl = maxEl = i - step].real();
+    i_min = i;
   }
 
-  for( i=i_min; i<nEl; ++i) {
+  for (i = i_min; i < stop; i += step) {
     if (omitNaN){
       if (isnan((*this)[i].real()) || !isfinite((*this)[i].real())) continue;
     }
-    if ((*this)[i].real() > maxV)
-      {
-	maxV = (*this)[i].real();
-	maxEl  = i;
-      }
-    else if( (*this)[i].real() < minV)
-      {
-	minV = (*this)[i].real();
-	minEl  = i;
-      }
+    if ((*this)[i].real() > maxV) maxV = (*this)[maxEl = i].real();
+    else if( (*this)[i].real() < minV) minV = (*this)[minEl = i].real();
   }
-  *maxE = maxEl;
-  if( maxVal != NULL) *maxVal = new Data_( (*this)[ maxEl]);
+  if (maxE != NULL) *maxE = maxEl;
+  if (maxVal != NULL) 
+  {
+    if (valIx == -1) *maxVal = new Data_( (*this)[ maxEl]);
+    else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
+  }
   
-  *minE = minEl;
-  if( minVal != NULL) *minVal = new Data_( (*this)[ minEl]);
+  if (minE != NULL) *minE = minEl;
+  if (minVal != NULL) 
+  {
+    if (valIx == -1) *minVal = new Data_( (*this)[ minEl]);
+    else (*static_cast<Data_*>(*minVal))[valIx] = minV;
+  }
 
 }
 
 void DStructGDL::MinMax( DLong* minE, DLong* maxE, 
-			 BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN)
+			 BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN,
+			 SizeT start, SizeT stop, SizeT step, DLong valIx)
 {
   throw GDLException("Struct expression not allowed in this context.");
 }

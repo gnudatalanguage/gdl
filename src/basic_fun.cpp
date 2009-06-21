@@ -2606,110 +2606,218 @@ namespace lib {
   BaseGDL* min_fun( EnvT* e)
   {
     SizeT nParam = e->NParam( 1);
-    
     BaseGDL* searchArr = e->GetParDefined( 0);
 
-    DLong    minEl;
-    BaseGDL* res;
-    // bool omitNaN = e->KeywordPresent( 1); // NAN keyword 
     bool omitNaN = e->KeywordSet( "NAN");
 
-    bool subMax = e->KeywordPresent( 2);   // SUBSCRIPT_MAX present
+    static int subIx = e->KeywordIx("SUBSCRIPT_MAX");
+    bool subMax = e->KeywordPresent(subIx);  
+    
+    static int dimIx = e->KeywordIx("DIMENSION");
+    bool dimSet = e->KeywordSet(dimIx);
 
-    if( nParam == 2)
-      e->AssureGlobalPar( 1);
+    static int maxIx = e->KeywordIx("MAX");
+    bool maxSet = e->KeywordPresent(maxIx);
 
-    if( e->KeywordPresent( 0)) // MAX keyword given
+    DLong searchDim; 
+    if (dimSet) {
+      e->AssureLongScalarKW(dimIx, searchDim);
+      if (searchDim < 0 || searchDim > searchArr->Rank())
+        e->Throw("Illegal keyword value for DIMENSION");
+    }
+
+    if (dimSet && searchArr->Rank() > 1) 
+    {
+      searchDim -= 1; // user-supplied dimensions start with 1!
+
+      // here destDim is in fact the srcDim...
+      dimension destDim = searchArr->Dim();
+      SizeT searchStride = destDim.Stride(searchDim);
+      SizeT outerStride = destDim.Stride(searchDim + 1);
+      // ... and now becomes the destDim
+      SizeT nSearch = destDim.Remove(searchDim);
+      SizeT searchLimit = nSearch * searchStride;
+      SizeT nEl = searchArr->N_Elements();
+
+      // memory allocation
+      BaseGDL *maxVal, *resArr = searchArr->New(destDim, BaseGDL::NOZERO);
+      DLongGDL *minElArr, *maxElArr;
+
+      if (maxSet) 
       {
-	e->AssureGlobalKW( 0);
-	delete e->GetKW( 0);
- 
-	DLong maxEl;
-
-	searchArr->MinMax( &minEl, &maxEl, &res, &e->GetKW( 0), omitNaN);
-	if ( subMax)
-	  {
-	    e->SetKW( 2, new DLongGDL(maxEl));
-	  }
+        e->AssureGlobalKW(maxIx); // instead of using a guard pointer
+        maxVal = searchArr->New(destDim, BaseGDL::NOZERO);
       }
-    else // no MAX keyword
+
+      if (subMax) 
+      { 
+        e->AssureGlobalKW(subIx); // instead of using a guard pointer
+        maxElArr = new DLongGDL(destDim);
+      }
+
+      if (nParam == 2) 
       {
-	if( subMax)
-	  {
-	    DLong maxEl;
-	    searchArr->MinMax( &minEl, &maxEl, &res, NULL, omitNaN);
-	    e->SetKW( 2, new DLongGDL(maxEl));
-	  }
-	else
-	  searchArr->MinMax( &minEl, NULL, &res, NULL, omitNaN);
+        e->AssureGlobalPar(1);    // instead of using a guard pointer
+        minElArr = new DLongGDL(destDim);
+      }
+
+      SizeT rIx = 0;
+      for (SizeT o = 0; o < nEl; o += outerStride) for (SizeT i = 0; i < searchStride; ++i)
+      {
+        searchArr->MinMax(
+          (nParam == 2 ? &((*minElArr)[rIx]) : NULL), 
+          (subMax      ? &((*maxElArr)[rIx]) : NULL), 
+          &resArr, 
+          (maxSet      ? &maxVal             : NULL), 
+          omitNaN, o + i, searchLimit + o + i, searchStride, rIx
+        );
+        rIx++;
+      }
+
+      if (nParam == 2) e->SetPar(1, minElArr);
+      if (subMax) e->SetKW(subIx, maxElArr);
+      if (maxSet) e->SetKW(maxIx, maxVal);
+
+      return resArr;
+    } 
+    else 
+    {
+      DLong minEl;
+      BaseGDL* res;
+
+      if (maxSet) // MAX keyword given
+      {
+        e->AssureGlobalKW( 0);
+        delete e->GetKW( 0);
+        DLong maxEl;
+        searchArr->MinMax( &minEl, &maxEl, &res, &e->GetKW( 0), omitNaN);
+        if (subMax) e->SetKW(subIx, new DLongGDL(maxEl));
+      }
+      else // no MAX keyword
+      {
+        if (subMax)
+        {
+          DLong maxEl;
+          searchArr->MinMax( &minEl, &maxEl, &res, NULL, omitNaN);
+          e->SetKW(subIx, new DLongGDL(maxEl));
+        }
+        else searchArr->MinMax(&minEl, NULL, &res, NULL, omitNaN);
       }
     
-    // handle index
-    if( nParam == 2)
-      {
-	delete e->GetPar( 1);
-	e->GetPar( 1) = new DLongGDL( minEl);
-      }
-    else
-      {
-	SysVar::SetC( minEl);
-      }
-    return res;
+      // handle index
+      if (nParam == 2) e->SetPar(1, new DLongGDL( minEl));
+      else SysVar::SetC( minEl);
+      return res;
+    }
   }
 
   BaseGDL* max_fun( EnvT* e)
   {
     SizeT nParam = e->NParam( 1);
-    
     BaseGDL* searchArr = e->GetParDefined( 0);
 
-    DLong    maxEl;
-    BaseGDL* res;
-    //bool omitNaN = e->KeywordPresent( 1); // NAN keyword 
     bool omitNaN = e->KeywordSet( "NAN");
 
-    bool subMin = e->KeywordPresent( 2);  // SUBSCRIPT_MIN present
+    static int subIx = e->KeywordIx("SUBSCRIPT_MIN");
+    bool subMin = e->KeywordPresent(subIx);  
 
-    if( nParam == 2)
-      e->AssureGlobalPar( 1);
+    static int dimIx = e->KeywordIx("DIMENSION");
+    bool dimSet = e->KeywordSet(dimIx);
 
-    if( e->KeywordPresent( 0)) // MIN keyword given
-      {
-	e->AssureGlobalKW( 0);
-	delete e->GetKW( 0);
- 
-	DLong minEl;
+    static int minIx = e->KeywordIx("MIN");
+    bool minSet = e->KeywordPresent(minIx);
 
-	searchArr->MinMax( &minEl, &maxEl, &e->GetKW( 0), &res, omitNaN);
-	if( subMin)
-	  {
-	    e->SetKW( 2, new DLongGDL(minEl));
-	  }
+    DLong searchDim; 
+    if (dimSet) 
+    {
+      e->AssureLongScalarKW(dimIx, searchDim);
+      if (searchDim < 0 || searchDim > searchArr->Rank())
+        e->Throw("Illegal keyword value for DIMENSION");
+    }
+
+    if (dimSet && searchArr->Rank() > 1) 
+    {
+      searchDim -= 1; // user-supplied dimensions start with 1!
+
+      // here destDim is in fact the srcDim...
+      dimension destDim = searchArr->Dim();
+      SizeT searchStride = destDim.Stride(searchDim);
+      SizeT outerStride = destDim.Stride(searchDim + 1);
+      // ... and now becomes the destDim
+      SizeT nSearch = destDim.Remove(searchDim);
+      SizeT searchLimit = nSearch * searchStride;
+      SizeT nEl = searchArr->N_Elements();
+
+      // memory allocation
+      BaseGDL *minVal, *resArr = searchArr->New(destDim, BaseGDL::NOZERO);
+      DLongGDL *minElArr, *maxElArr;
+
+      if (minSet) 
+      {    
+        e->AssureGlobalKW(minIx); // instead of using a guard pointer
+        minVal = searchArr->New(destDim, BaseGDL::NOZERO);
+      }    
+
+      if (subMin) 
+      {    
+        e->AssureGlobalKW(subIx); // instead of using a guard pointer
+        minElArr = new DLongGDL(destDim);
+      }    
+
+      if (nParam == 2) 
+      {    
+        e->AssureGlobalPar(1);    // instead of using a guard pointer
+        maxElArr = new DLongGDL(destDim);
       }
-    else // no MIN keyword
+
+      SizeT rIx = 0;
+      for (SizeT o = 0; o < nEl; o += outerStride) for (SizeT i = 0; i < searchStride; ++i)
       {
-	if( subMin)
-	  {
-	    DLong minEl;
-	    searchArr->MinMax( &minEl, &maxEl, NULL, &res, omitNaN);
-	    e->SetKW( 2, new DLongGDL(minEl));
-	  }
-	else
-	  searchArr->MinMax( NULL, &maxEl, NULL, &res, omitNaN);
+        searchArr->MinMax(
+          (subMin      ? &((*minElArr)[rIx]) : NULL),
+          (nParam == 2 ? &((*maxElArr)[rIx]) : NULL),
+          (minSet      ? &minVal             : NULL),
+          &resArr,
+          omitNaN, o + i, searchLimit + o + i, searchStride, rIx
+        );
+        rIx++;
       }
 
-    // handle index
-    if( nParam == 2)
+      if (nParam == 2) e->SetPar(1, maxElArr);
+      if (subMin) e->SetKW(subIx, minElArr);
+      if (minSet) e->SetKW(minIx, minVal);
+
+      return resArr;
+    }
+    else 
+    {
+      DLong maxEl;
+      BaseGDL* res;
+
+      if (minSet) // MIN keyword given
       {
-	delete e->GetPar( 1);
-	e->GetPar( 1) = new DLongGDL( maxEl);
+        e->AssureGlobalKW( 0);
+        delete e->GetKW( 0);
+        DLong minEl;
+        searchArr->MinMax( &minEl, &maxEl, &e->GetKW( 0), &res, omitNaN);
+	if (subMin) e->SetKW(subIx, new DLongGDL(minEl));
       }
-    else
+      else // no MIN keyword
       {
-	SysVar::SetC( maxEl);
+	if (subMin)
+        {
+          DLong minEl;
+          searchArr->MinMax( &minEl, &maxEl, NULL, &res, omitNaN);
+          e->SetKW(subIx, new DLongGDL(minEl));
+        }
+	else searchArr->MinMax(NULL, &maxEl, NULL, &res, omitNaN);
       }
 
-    return res;
+      // handle index
+      if (nParam == 2) e->SetPar(1, new DLongGDL( maxEl));
+      else SysVar::SetC(maxEl);
+      return res;
+    }
   }
  
   BaseGDL* transpose( EnvT* e)
@@ -2931,7 +3039,10 @@ namespace lib {
 	if (nmed > 1)
 	  for( DLong i=0; i<dim-1; ++i) accumStride *= p0->Dim(i);
 	
-	BaseGDL *op1, *op2, *op3 = new DDoubleGDL( 2.0);
+	BaseGDL *op1, *op2, *op3;
+        if (dbl) op3 = new DDoubleGDL(2);
+        else op3 = new DFloatGDL(2);
+
 	// Loop over all subarray medians
 	for (SizeT k=0; k<nmed; ++k) {
 	  
@@ -2951,7 +3062,7 @@ namespace lib {
 	  
 	  if( (nEl % 2) == 1 || !e->KeywordSet( evenIx)) {
 	    if (nmed == 1)
-	      res = p0->NewIx(medEl)->Convert2(type, BaseGDL::CONVERT);
+	      res = p0->NewIx(medEl)->Convert2(type, BaseGDL::CONVERT); // TODO: leak with res?
 	    else {
               if (noconv) 
               {
@@ -2969,11 +3080,11 @@ namespace lib {
 	  } else {
             if (noconv) 
             {
-              if (dbl) (*static_cast<DDoubleGDL*>(res))[k] = .2 * (
+              if (dbl) (*static_cast<DDoubleGDL*>(res))[k] = .5 * (
                 (*static_cast<DDoubleGDL*>(p0))[medEl] + 
                 (*static_cast<DDoubleGDL*>(p0))[medEl_1]
               );
-              else (*static_cast<DFloatGDL*>(res))[k] = .2 * (
+              else (*static_cast<DFloatGDL*>(res))[k] = .5 * (
                 (*static_cast<DFloatGDL*>(p0))[medEl] +
                 (*static_cast<DFloatGDL*>(p0))[medEl_1]
               );
@@ -2982,16 +3093,16 @@ namespace lib {
             {
 	      op1 = p0->NewIx(medEl)->Convert2(type, BaseGDL::CONVERT); 
 	      op2 = p0->NewIx(medEl_1)->Convert2(type, BaseGDL::CONVERT);
-	      if (nmed == 1) res = op2->Add(op1)->Div(op3);
+	      if (nmed == 1) res = op2->Add(op1)->Div(op3); // TODO: leak with res?
 	      else 
               {
                 if (dbl) (*static_cast<DDoubleGDL*>(res))[k] = 
                   (*static_cast<DDoubleGDL*>((op2->Add(op1)->Div(op3))))[0];
                 else (*static_cast<DFloatGDL*>(res))[k] =
                   (*static_cast<DFloatGDL*>((op2->Add(op1)->Div(op3))))[0];
+	        delete(op2);
               }
 	      delete(op1);
-	      delete(op2);
             }
 	  }
 	}
@@ -5034,12 +5145,19 @@ namespace lib {
     DLong dim = 1;
     if (e->GetPar(1) != NULL) 
       e->AssureLongScalarPar(1, dim);
-    if (dim > p0->Rank())
-      e->Throw("Subscript_index must be less than or equal to number of dimensions.");
+    if (p0->Rank() != 0 && (dim > p0->Rank() || dim < 1))
+      e->Throw("Subscript_index must be positive and less than or equal to number of dimensions.");
 
-    BaseGDL* ret = p0->Rank() > 2 && e->KeywordSet("OVERWRITE") && e->GlobalPar(0)
-      ? p0 
-      : p0->Dup();
+    BaseGDL* ret;
+    // IDL doc states that OVERWRITE is ignored for one- or two-dim. arrays 
+    // but it seems to behave differently
+    // if (p0->Rank() > 2 && e->KeywordSet("OVERWRITE") && e->GlobalPar(0))
+    if (e->KeywordSet("OVERWRITE"))
+    {
+      e->Throw("OVERWRITE keyword not supported yet (FIXME)");
+      ret = p0;
+    }
+    else ret = p0->Dup();
     ret->Reverse(dim - 1);
     return ret;
   }

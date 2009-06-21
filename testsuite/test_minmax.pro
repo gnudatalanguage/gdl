@@ -156,6 +156,55 @@ print, 'result: ', MIN(b,/nan), ' CASE: Inf included, flag', SYSTIME(1)-t0
 if KEYWORD_SET(test) then STOP
 ;
 end
+
+; SA: test of the DIMENSION keyword for MIN, MAX and other routines
+;     this code is written just to make a test of all conditional 
+;     branches in the code- it does not test the resutls yet (TODO)
+pro DIMENSION_TEST_MINMAX 
+  ; the limits on dimension sizes:
+  l1=5 & l2=3 & l3=2 & l4=2 & l5=1 & l6=1 & l7=1 & l8=1
+  for type = 1, 15 do if type ne 8 and type ne 10 and type ne 11 then begin ; data-type loop 
+    for d1=1,l1 do for d2=1,l2 do for d3=1,l3 do for d4=1,l4 do $
+    for d5=1,l5 do for d6=1,l6 do for d7=1,l7 do for d8=1,l8 do begin ; dimesion loop
+      data = make_array(d1, d2, d3, d4, d5, d6, d7, d8, type=type, index = type ne 7)
+      for dim = 0, d8 gt 1 ? 8 : d7 gt 1 ? 7 : d6 gt 1 ? 6 : d5 gt 1 ? 5 :$
+      d4 gt 1 ? 4 : d3 gt 1 ? 3 : d2 gt 1 ? 2 : d1 gt 1 ? 1 : 0 do begin
+        for nan = 0, 1 do begin
+          minval = min(data,                                 dim=dim, nan=nan)
+          minval = min(data, minsub,                         dim=dim, nan=nan)
+          minval = min(data, minsub, max=maxval,             dim=dim, nan=nan)
+          minval = min(data, minsub, max=maxval, sub=maxsub, dim=dim, nan=nan)
+
+          maxval = max(data,                                 dim=dim, nan=nan)
+          maxval = max(data, maxsub,                         dim=dim, nan=nan)
+          maxval = max(data, maxsub, min=minval,             dim=dim, nan=nan)
+          maxval = max(data, maxsub, min=minval, sub=minsub, dim=dim, nan=nan)
+
+          if type ne 7 then begin
+            totl = total(data, dim)
+            totl = total(data, dim, /cumul,                             nan=nan)
+            totl = total(data, dim, /double,                            nan=nan)
+            totl = total(data, dim, /double, /cumul,                    nan=nan)
+  
+            prod = product(data, dim,                                   nan=nan)
+            prod = product(data, dim, /cumul,                           nan=nan)
+          endif
+        endfor
+
+        medn = median(data, dim=dim)
+        medn = median(data, dim=dim, /double)
+        medn = median(data, dim=dim, /even)
+
+        if dim gt 0 then begin
+          revs = reverse(data, dim)
+          ;data = reverse(data, dim, /over)
+        endif
+
+      endfor
+    endfor
+  endif
+end
+
 ;
 ; calling all tests
 ;
@@ -170,5 +219,8 @@ MULTI_CROSS_MINMAX
 ;
 print, '' & print, 'Benchmarking for 1e6 points'
 BENCH_TEST_MINMAX, nbp=1e6
+;
+print, '' & print, 'Testing the DIMENSION keyword'
+DIMENSION_TEST_MINMAX
 ;
 end
