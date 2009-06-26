@@ -10,18 +10,13 @@
 ;	IV-Test with negative numbers 
 ;	V-Test with not a number and infinite values
 ;
-;
-;
-;
-;
 ;-----------------------------------------------------------------------
 ; 		I-Compatibility with IDL syntax
 ;-----------------------------------------------------------------------
 pro test_voigt_behaviour
-
-
+;
 ;1. "arguments are both scalars" (take a look at III-Comparison with Armstrong)
-
+;
 print,'------------------------------------------------------------'				     
 print,'If both arguments are scalars, the function returns a scalar'
 print,'------------------------------------------------------------'
@@ -158,23 +153,26 @@ end
 ;  		III-Comparison with Armstrong et al. VOIGT values
 ;-----------------------------------------------------------------------
 pro test_voigt_ArmstrongValues
-
+;
+DEFSYSV, '!gdl', exists=is_it_gdl
+if (is_it_gdl EQ 1) then soft='GDL' else soft='IDL'
+;
 print,'-------------------------------------------------'  ;use for better display
-print,'Comparison between Armstrong and GDL VOIGT values'
+print,'Comparison between Armstrong and '+soft+' VOIGT values'
 print,'-------------------------------------------------'
-print,'. For x=5.4 et y=e-10  Armstrong=> voigt = 2.260842e-12'
-print,'. For x=5.4 et y=e-10  Humlicek CPF12 1979=> voigt = 2.260845e-12'
-print,'. For x=5.4 et y=e-10  Humlicek W4 1982=> voigt = 2.260842e-12'
-print,'. For x=5.4 et y=e-10  Hui=> voigt = 2.667847e-8'
-print,'. For x=5.4 et y=e-10  Lether and Wenston=> voigt = 2.260845e-12'
-print,' Intrinsic GDL value of voigt : ',voigt(1e-10,5.4)
+print,'. For x=5.4 et y=e-10  Armstrong           => voigt = 2.260842e-12'
+print,'. For x=5.4 et y=e-10  Humlicek CPF12 1979 => voigt = 2.260845e-12'
+print,'. For x=5.4 et y=e-10  Humlicek W4 1982    => voigt = 2.260842e-12'
+print,'. For x=5.4 et y=e-10  Hui                 => voigt = 2.667847e-8'
+print,'. For x=5.4 et y=e-10  Lether and Wenston  => voigt = 2.260845e-12'
+print,'                Computed by '+soft+' value of voigt = ',voigt(1e-10,5.4)
 print,''
-print,'. For x=5.5 et y=e-14  Armstrong=> voigt = 7.307387e-14'
-print,'. For x=5.5 et y=e-14  Humlicek CPF12 1979=> voigt = 7.307387e-14'
-print,'. For x=5.5 et y=e-14  W4 1982=> voigt = 1.966215e-16'
-print,'. For x=5.5 et y=e-14  Hui=> voigt = 9.238980e-9'
-print,'. For x=5.5 et y=e-14  Lether and Wenston=> voigt = 7.307386e-14'
-print,' Intrinsic GDL value of voigt : ',voigt(1e-14,5.5)
+print,'. For x=5.5 et y=e-14  Armstrong           => voigt = 7.307387e-14'
+print,'. For x=5.5 et y=e-14  Humlicek CPF12 1979 => voigt = 7.307387e-14'
+print,'. For x=5.5 et y=e-14  W4 1982             => voigt = 1.966215e-16'
+print,'. For x=5.5 et y=e-14  Hui                 => voigt = 9.238980e-9'
+print,'. For x=5.5 et y=e-14  Lether and Wenston  => voigt = 7.307386e-14'
+print,'                Computed by '+soft+' value of voigt = ',voigt(1e-14,5.5)
 print,''
 
 end
