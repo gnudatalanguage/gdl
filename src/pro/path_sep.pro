@@ -24,6 +24,10 @@
 ;
 ; MODIFICATION HISTORY:
 ;   19-Jan-2006 : written by Pierre Chanial
+;   26-Jun-2009 : Alain Coulais: 
+;     *      better hierarchy in cascading if/then/else  
+;     *      correction of bug : returning pure String, not array
+;     (before: STRING    = Array[1]; now  STRING    = '/')
 ;
 ; LICENCE:
 ; Copyright (C) 2006, P. Chanial
@@ -34,22 +38,27 @@
 ;
 ;-
 
-function path_sep, parent_directory=parent_directory, search_path=search_path
- 
- if keyword_set(search_path) then begin
-    if keyword_set(parent_directory) then begin
-       message, /info, 'Conflicting keywords specified. Returning SEARCH_PATH.'
-    endif
-    array = [':', ';']
- endif else if keyword_set(parent_directory) then begin
-    return, '..'
- endif else begin
-    array = ['/', '\']
- endelse
- 
- OS = ['unix', 'Windows']
- iOS = where(OS eq !version.os_family)
- 
- return, array[iOS]
+function PATH_SEP, parent_directory=parent_directory, $
+                   search_path=search_path, test=test
+
+if KEYWORD_SET(search_path) then begin
+   if KEYWORD_SET(parent_directory) then begin
+      MESSAGE, /info, 'Conflicting keywords specified. Returning SEARCH_PATH.'
+   endif
+   array = [':', ';']
+endif else begin
+   if KEYWORD_SET(parent_directory) then begin
+      return, '..'
+   endif else begin
+      array = ['/', '\']
+   endelse
+endelse
+
+OS = ['unix', 'Windows']
+iOS = WHERE(OS eq !version.os_family)
+
+if KEYWORD_SET(test) then STOP
+
+return, (array[iOS])[0]  ; force conversion
 
 end
