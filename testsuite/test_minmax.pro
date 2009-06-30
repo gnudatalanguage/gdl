@@ -191,12 +191,12 @@ pro DIMENSION_TEST_MINMAX
           endif
         endfor
 
-        medn = median(data, dim=dim)
-        medn = median(data, dim=dim, /double)
-        medn = median(data, dim=dim, /even)
+        medn = MEDIAN(data, dim=dim)
+        medn = MEDIAN(data, dim=dim, /double)
+        medn = MEDIAN(data, dim=dim, /even)
 
         if dim gt 0 then begin
-          revs = reverse(data, dim)
+          revs = REVERSE(data, dim)
           ;data = reverse(data, dim, /over)
         endif
 
