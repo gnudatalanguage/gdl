@@ -59,7 +59,6 @@ Please indicate what you are doing and starting time
 !r_correlate.pro
 !r_test.pro
 !regress.pro
-!reverse.pro
 !rot.pro
 !s_test.pro
 !sfit.pro

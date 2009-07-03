@@ -10,7 +10,7 @@ Codes:
 ! : non-implemented routines having priority
     Most important are:
       congrid, crossp, crvlength, curvefit, determ, hist_equal, interpol, 
-      int_tabulated, lin_fit, poly_fit, reverse, rot, spline, svdfit
+      int_tabulated, lin_fit, poly_fit, rot, spline, svdfit
     See the file UrgentNeed.txt for atributed tasks
 ===============================================================================
 
@@ -242,7 +242,7 @@ Codes:
  reduce_colors.pro
 !regress.pro
  resolve_all.pro
-!reverse.pro
+~reverse.pro                  ; OVERWRITE keyword missing (implemented in C++)
 !rot.pro
  rs_test.pro
 !s_test.pro

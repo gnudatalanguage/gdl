@@ -22,7 +22,7 @@
 #include <iomanip>
 #include <sstream>
 //#include <vector>
-#include <valarray>
+//#include <valarray>
 #include <string>
 
 //#include <complex>

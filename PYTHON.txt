@@ -76,7 +76,7 @@ interface please see "CONTACT" in the README file.
 
 NOTE: Due to the neglectible feedback, the python module
 development is currently on hold.
-If you use it it, you are urged to let us know.
+If you use it, you are urged to let us know.
 
 
 Since version 0.8.9 GDL can be embedded into python.

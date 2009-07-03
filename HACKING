@@ -14,7 +14,7 @@ And if you implement a non IDL routine, bear in mind that some
 documentation is needed in order to be able to use it.
 Furthermore please keep in mind that GDL should be able to compile at
 least under GNU/Linux (GCC), OS X and (soon) windows (MSVC). Therefore the
-code shouldbe as portable as possible (note that it is not mandatory
+code should be as portable as possible (note that it is not mandatory
 to make it run on all platforms, just portability should be kept in
 mind avoiding any obvious obstacles like compiler specific extensions).
 
