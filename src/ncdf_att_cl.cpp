@@ -346,26 +346,26 @@ namespace lib {
     //we have the cdfid, varid, attname, attval here
 
     //determine default data type
-    xtype=NC_FLOAT;
-    if(val->Type() == BYTE) xtype=NC_BYTE;
-    if(val->Type() == STRING) xtype=NC_CHAR;
-    if(val->Type() == INT) xtype=NC_SHORT;
-    if(val->Type() == LONG) xtype=NC_INT;
-    if(val->Type() == FLOAT) xtype=NC_FLOAT;
-    if(val->Type() == DOUBLE) xtype=NC_DOUBLE;
+    xtype = NC_FLOAT;
+    if (val->Type() == BYTE) xtype=NC_BYTE;
+    if (val->Type() == STRING) xtype=NC_CHAR;
+    if (val->Type() == INT) xtype=NC_SHORT;
+    if (val->Type() == LONG) xtype=NC_INT;
+    if (val->Type() == FLOAT) xtype=NC_FLOAT;
+    if (val->Type() == DOUBLE) xtype=NC_DOUBLE;
+    // SA: TODO: UINT, ULONG, COMPLEX, PTR... 
 
-
-    if(e->KeywordSet(0))//BYTE
+    if(e->KeywordSet(2)) //BYTE
       xtype=NC_BYTE;
-    else if(e->KeywordSet(1))//CHAR
+    else if(e->KeywordSet(3)) //CHAR
       xtype=NC_CHAR;
-    else if(e->KeywordSet(2))//DOUBLE
+    else if(e->KeywordSet(4)) //DOUBLE
       xtype=NC_DOUBLE;
-    else if(e->KeywordSet(3))//FLOAT
+    else if(e->KeywordSet(5)) //FLOAT
       xtype=NC_FLOAT;
-    else if(e->KeywordSet(4))//LONG
+    else if(e->KeywordSet(6)) //LONG
       xtype=NC_INT;
-    else if(e->KeywordSet(4))//SHORT
+    else if(e->KeywordSet(7)) //SHORT
       xtype=NC_SHORT;
 
     if(val->Type() == BYTE)
