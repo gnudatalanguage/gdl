@@ -1097,9 +1097,9 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
   {
 
     //definitions
-    int status, i, status_tr;
+    int status, status_tr;
 
-    size_t var_ndims, value_nelem, dim_length[MAXRANK];
+    size_t value_nelem, dim_length[MAXRANK];
     long trans[NC_MAX_VAR_DIMS], retrans[NC_MAX_VAR_DIMS];
 
     int var_dims[NC_MAX_VAR_DIMS], var_natts;
@@ -1126,13 +1126,14 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
       ncdf_handle_error(e, status, "NCDF_VARPUT");
     }
 
+    int var_ndims;
     status = nc_inq_var(cdfid, varid, var_name, &var_type, 
       (int *) &var_ndims, var_dims, &var_natts);
 
     //get the value
     v = e->GetParDefined(2);
     value_nelem = v->N_Elements();
-    for (i = 0; i < var_ndims; ++i) 
+    for (int i = 0; i < var_ndims; ++i) 
     {
       if (v->Type() != STRING) dim_length[i] = max(int(v->Dim(i)), 1);
       else dim_length[i] = (*static_cast<DStringGDL*>(v))[0].length();
@@ -1146,7 +1147,7 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
     }
     else
     {
-      for (i=0;i<var_ndims;++i)
+      for (int i=0; i < var_ndims; ++i)
       {
         trans[i] = var_ndims - i - 1;
         retrans[i] = i;
@@ -1162,8 +1163,9 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
     size_t count[NC_MAX_VAR_DIMS], offset[NC_MAX_VAR_DIMS];
     int noff, ncou, nstri;
     ptrdiff_t stride[NC_MAX_VAR_DIMS];
-	
+
     //setup
+    for (int i = NC_MAX_VAR_DIMS; i--;) stride[i] = count[i] = offset[i] = 0; // not needed?
     if (var_ndims <= 1)
     {
       offset[0] = 0;
@@ -1172,7 +1174,7 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
     }
     else
     {
-      for (i=0; i < var_ndims; ++i)
+      for (int i = 0; i < var_ndims; ++i)
       {
         offset[i] = 0;
         count[trans[i]] = dim_length[i];
@@ -1187,7 +1189,7 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
       noff = o->N_Elements();
 
       //  offset[0]=0;
-      for (i = 0; i < noff; ++i)
+      for (int i = 0; i < noff; ++i)
       {
         if ((*o)[i] > 0) offset[trans[i]] = (*o)[i];
         else if ((*o)[i] < 0)
@@ -1204,7 +1206,7 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
     {
       DLongGDL *c = e->GetKWAs<DLongGDL>(0);
       ncou = c->N_Elements();
-      for (i = 0; i < ncou; ++i) 
+      for (int i = 0; i < ncou; ++i) 
       {
         if ((*c)[i] > 0) count[trans[i]] = (*c)[i];
         else if ((*c)[i] <= 0)
@@ -1218,7 +1220,7 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
     else 
     {
       if (var_ndims == 0) total = value_nelem;
-      else for (i = 0; i < var_ndims; ++i) total = total * count[i];
+      else for (int i = 0; i < var_ndims; ++i) total = total * count[i];
     }
 
     if (total > value_nelem) e->Throw("NCDF_VARPUT: Not enough elements (" 
@@ -1230,7 +1232,7 @@ case 1 we can do seperately, the rest can be handled generically, filling in COU
       DIntGDL *s = e->GetKWAs<DIntGDL>(2);
       nstri=s->N_Elements();
 
-      for (i = 0; i < nstri; ++i) 
+      for (int i = 0; i < nstri; ++i) 
       {
         // stride * count < length-offset
         if ((*s)[i] > 0) stride[trans[i]] = (*s)[i];
