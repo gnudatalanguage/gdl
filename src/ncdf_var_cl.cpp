@@ -115,12 +115,10 @@ namespace lib {
   }
 
 
-  template <typename T> void ncdf_var_handle_error(EnvT *e, int status, 
-						   const char *function,
-						   T* data)
+  template <typename T> 
+  void ncdf_var_handle_error(EnvT *e, int status, const char *function, T *data)
   {
-
-    if(data != NULL and status!=NC_NOERR) delete data;
+    if (data != NULL and status != NC_NOERR) delete data;
     ncdf_handle_error(e, status, function);
   }
   
@@ -244,9 +242,7 @@ namespace lib {
     }
 
     //inquire
-    status=nc_inq_var(cdfid,varid,var_name,
-		      &var_type,&var_ndims,
-		      var_dims,&var_natts);
+    status=nc_inq_var(cdfid,varid,var_name, &var_type,&var_ndims, var_dims,&var_natts);
 
     //handle the error
     ncdf_handle_error(e,status,"NCDF_VARGET1");
@@ -381,17 +377,15 @@ else if(var_type == NC_LONG)
   void ncdf_varget(EnvT* e)
   {
 
-   size_t nParam=e->NParam(3);
+    size_t nParam=e->NParam(3);
    
     int status,var_ndims,var_dims[NC_MAX_VAR_DIMS],var_natts;
-    size_t index[NC_MAX_VAR_DIMS],
-      dim_length[NC_MAX_VAR_DIMS];
-    SizeT transposed_dim_length[NC_MAX_VAR_DIMS];
+    size_t index[NC_MAX_VAR_DIMS], dim_length[NC_MAX_VAR_DIMS];
+    DLong transposed_dim_length[NC_MAX_VAR_DIMS];
     long trans[NC_MAX_VAR_DIMS];
 
     nc_type var_type;
     char var_name[NC_MAX_NAME];
-    size_t i;
 
     DLong cdfid, varid;
     e->AssureLongScalarPar(0, cdfid);
@@ -409,574 +403,340 @@ else if(var_type == NC_LONG)
       ncdf_handle_error(e,status,"NCDF_VARGET");
     }
 
-    /*
-    e->AssureScalarPar<DIntGDL>(0, cdfid);
-    e->AssureScalarPar<DIntGDL>(1, varid);
-    */
-
     //inquire
-    status=nc_inq_var(cdfid,varid,var_name,&var_type,&var_ndims,
-		      var_dims,&var_natts);
-
-    //handle the error
-    ncdf_handle_error(e,status,"NCDF_VARGET");
+    status = nc_inq_var(cdfid, varid, var_name, &var_type, &var_ndims, var_dims, &var_natts);
+    ncdf_handle_error(e, status, "NCDF_VARGET");
 
     //get the dimension lengths
-    for (i=0;i<var_ndims;++i)
-      {
-	status=nc_inq_dimlen(cdfid,var_dims[i],&dim_length[i]);
-	trans[i]=var_ndims-i-1;
-	transposed_dim_length[trans[i]]=dim_length[i];
-	ncdf_handle_error(e,status,"NCDF_VARGET1");
-
-      }
+    for (int i=0; i < var_ndims; ++i)
+    {
+      status = nc_inq_dimlen(cdfid,var_dims[i],&dim_length[i]);
+      trans[i] = var_ndims - i - 1;
+      transposed_dim_length[trans[i]] = dim_length[i];
+      ncdf_handle_error(e, status, "NCDF_VARGET");
+    }
     
-    for (i=0;i<var_ndims;++i)index[i]=0;//defaults
-  
-  
+    for (int i = 0; i < var_ndims; ++i) index[i]=0;//defaults
 
     /*Here we have the minimum required details for getting any kind of data
 
     We now have 4 cases to handle
-case 1: Get all the data (no keywords)
-case 2: Get all the data from the OFFSET
-case 3: get COUNT data from the OFFSET
-case 4: get COUNT DATA from OFFSET with STRIDE
+      case 1: Get all the data (no keywords)
+      case 2: Get all the data from the OFFSET
+      case 3: get COUNT data from the OFFSET
+      case 4: get COUNT DATA from OFFSET with STRIDE
 
-for case 4, we really have 3 subcases
-subcase 1: OFFSET is undefined (0,0,0,0..)
-subcase 2: COUNT is undefined (all,all,all...)
-subcase 3: All keywords are DEFINED
-subcase 4(==case 3): STRIDE is undefined (1,1,1,1)...
+    for case 4, we really have 3 subcases
+      subcase 1: OFFSET is undefined (0,0,0,0..)
+      subcase 2: COUNT is undefined (all,all,all...)
+      subcase 3: All keywords are DEFINED
+      subcase 4(==case 3): STRIDE is undefined (1,1,1,1)...
 
-case 1 we can do seperately, the rest can be handled generically, filling in COUNT, OFFSET and STRIDE as needed.
+    case 1 we can do seperately, the rest can be handled generically, 
+      filling in COUNT, OFFSET and STRIDE as needed.
 
     */
-
-
-    //alldata
 
     //OFFSET = 0
     //COUNT  = 1
     //STRIDE = 2
 
-    if(e->GetKW(0) == NULL && 
-       e->GetKW(1) == NULL &&
-       e->GetKW(2) == NULL)
-      {  
-	//get all the data
+    if (e->GetKW(0) == NULL && e->GetKW(1) == NULL && e->GetKW(2) == NULL)
+    {  
+      //get all the data
 
+      size_t array_size = 1;
+      for (int i = 0; i < var_ndims; ++i) array_size = array_size * dim_length[i];
 
-	size_t array_size;	
-	array_size=1;
-	
-	for(i=0;i<var_ndims;++i) array_size=array_size*dim_length[i];
+      dimension dim(transposed_dim_length, (SizeT) var_ndims);
+      if (var_type == NC_DOUBLE)
+      {
+        DDoubleGDL *temp = new DDoubleGDL(dim,BaseGDL::NOZERO);
+        status=nc_get_var_double(cdfid, varid, &(*temp)[0]);
+        ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
+        delete e->GetParGlobal(2);
+        e->GetParGlobal(2)=temp;      	
+      } 
+      else if (var_type == NC_FLOAT)
+      {
+        DFloatGDL *temp = new DFloatGDL(dim, BaseGDL::NOZERO);
+        status = nc_get_var_float(cdfid, varid, &(*temp)[0]);
+        ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
+        delete e->GetParGlobal(2);
+        e->GetParGlobal(2)=temp;
+      } 
+      else if (var_type == NC_SHORT)
+      {
+        DIntGDL * temp=new DIntGDL(dim,BaseGDL::NOZERO);
+        status=nc_get_var_short(cdfid, varid,&(*temp)[0]);
+        ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
+        delete e->GetParGlobal(2);
+        e->GetParGlobal(2)=temp;      	
+      } 
+      else if (var_type == NC_INT)
+      {
+        DLongGDL* temp=new DLongGDL(dim,BaseGDL::NOZERO);
+        status=nc_get_var_int(cdfid, varid,&(*temp)[0]);
+        ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
+        delete e->GetParGlobal(2);
+        e->GetParGlobal(2)=temp;      	
+      } 
+      else if (var_type == NC_BYTE)
+      {
+        DByteGDL* temp=new DByteGDL(dim,BaseGDL::NOZERO);
+        status=nc_get_var_uchar(cdfid, varid, &(*temp)[0]);
+        ncdf_var_handle_error(e,status,"NCDF_VARGET", temp);
+        delete e->GetParGlobal(2);  
+        e->GetParGlobal(2)=temp;      	
+      } 
+      else if (var_type == NC_CHAR)
+      {
+        DByteGDL* temp = new DByteGDL(dim, BaseGDL::NOZERO);
+        status = nc_get_var_uchar(cdfid, varid, &(*temp)[0]);
+        ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
+        delete e->GetParGlobal(2);
+        e->GetParGlobal(2) = temp;
+      }
+      //done read all.
+    } 
+    else  
+    {
+      //OFFSET AND/OR COUNT and NOT/ STRIDE
+      BaseGDL *offset,*count;
+      size_t off[NC_MAX_VAR_DIMS], cou[NC_MAX_VAR_DIMS];
+      for (int i = 0; i < NC_MAX_VAR_DIMS; ++i)
+      {
+        off[i]=0;
+        cou[i]=1;
+      }
+      size_t array_size = 1;
+      for (int i = 0; i < var_ndims; ++i) off[i] = 0;
 
-
-
-	dimension dim((const DLong *) transposed_dim_length, 
-		      (SizeT) var_ndims);
-	if(var_type == NC_DOUBLE){
-	  double* dvar=new double[array_size];
+      if (e->GetKW(1) !=NULL)
+      {
+        DLongGDL *o=e->GetKWAs<DLongGDL>(1);
+        int noff=o->N_Elements();
+        for (int i = 0; i < noff; ++i) 
+        {
+          if ((*o)[i] < dim_length[var_ndims-(i+1)])
+          {
+            off[var_ndims-(i+1)]=(*o)[i];
+          }
+          else if ((*o)[i] <= 0)
+          {
+            off[trans[i]]=0;
+            negzero_message("NCDF_VARGET: Offset on",i,0);
+          }
+          else
+          {
+            off[trans[i]]=dim_length[trans[i]]-1;
+            exceed_message("NCDF_VARGET",i,dim_length[trans[i]]-1);
+          }
+        }
+      } 
+      
+      for (int i = 0; i < var_ndims; ++i) cou[i]=dim_length[i]-off[i];
 	  
-	  DDoubleGDL *temp=new DDoubleGDL(dim,BaseGDL::NOZERO);
-	  status=nc_get_var_double(cdfid, varid,dvar);
-	  
-	  ncdf_var_handle_error(e,status,"NCDF_VARGET",dvar);
+      if (e->GetKW(0) !=NULL)
+      {
+        DLongGDL *c=e->GetKWAs<DLongGDL>(0);
+        int ncou=c->N_Elements();
 
-
-	  memcpy(&(*temp)[0],&(*dvar),array_size*sizeof(double));	      
-	
-	  delete [] dvar;
-	  /*	  status=transpose_perm((char *)&(*temp)[0], 
-		  var_ndims,dim_length,sizeof(double),temp->Type(),trans);*/
-	  delete e->GetParGlobal(2);
-	  e->GetParGlobal(2)=temp;      	
-	  
-	} else	if(var_type == NC_FLOAT){
-	  float* fvar=new float[array_size];
-	  
-	  DFloatGDL *temp=new DFloatGDL(dim,BaseGDL::NOZERO);
-	  status=nc_get_var_float(cdfid, varid,fvar);
-	  
-	  ncdf_var_handle_error(e,status,"NCDF_VARGET",fvar);
-
-
-	  memcpy(&(*temp)[0],&(*fvar),array_size*sizeof(float));	      
-	
-	  delete [] fvar;
-	  /*	  status=transpose_perm((char *)&(*temp)[0], 
-		  var_ndims,dim_length,sizeof(float),temp->Type(),trans);
-	  */
-
-	  delete e->GetParGlobal(2);
-	  e->GetParGlobal(2)=temp;
-
-	} else	if(var_type == NC_SHORT){
-	  short* svar=new short[array_size];
-	  
-	  DIntGDL * temp=new DIntGDL(dim,BaseGDL::NOZERO);
-	  status=nc_get_var_short(cdfid, varid,svar);
-	  
-	  ncdf_var_handle_error(e,status,"NCDF_VARGET",svar);
-
-
-	  memcpy(&(*temp)[0],&(*svar),array_size*sizeof(short));	      
-	
-	  delete svar;
-	  /*	  status=transpose_perm((char *)&(*temp)[0], 
-		  var_ndims,dim_length,sizeof(short),temp->Type(),trans);*/
-	  delete e->GetParGlobal(2);
-	e->GetParGlobal(2)=temp;      	
-	} else	if(var_type == NC_INT){
-	  int* ivar=new int[array_size];
-	  
-	  DLongGDL* temp=new DLongGDL(dim,BaseGDL::NOZERO);
-	  status=nc_get_var_int(cdfid, varid,ivar);
-	  
-	  ncdf_var_handle_error(e,status,"NCDF_VARGET",ivar);
-
-
-	  memcpy(&(*temp)[0],&(*ivar),array_size*sizeof(int));	      
-	
-	  delete ivar;
-	  /*	  status=transpose_perm((char *)&(*temp)[0], 
-		  var_ndims,dim_length,sizeof(int),temp->Type(),trans);*/
-	  delete e->GetParGlobal(2);
-	e->GetParGlobal(2)=temp;      	
-	} else	if(var_type == NC_BYTE){
-	  unsigned char* bvar=new unsigned char[array_size];
-	  
-	  DByteGDL* temp=new DByteGDL(dim,BaseGDL::NOZERO);
-	  status=nc_get_var_uchar(cdfid, varid,bvar);
-	  
-	  ncdf_var_handle_error(e,status,"NCDF_VARGET",bvar);
-
-
-	  memcpy(&(*temp)[0],&(*bvar),array_size*sizeof(unsigned char));
-
-	  delete bvar;
-	  /*	  status=transpose_perm((char *)&(*temp)[0], 
-		  var_ndims,dim_length,sizeof(unsigned char),temp->Type(),trans);*/
-	
-	  delete e->GetParGlobal(2);  
-	e->GetParGlobal(2)=temp;      	
-	} 
+        for (int i = 0; i < ncou; ++i) 
+        {
+          if ((*c)[i] < dim_length[trans[i]]-off[trans[i]]+1)
+          {
+            cou[trans[i]]=(*c)[i];
+          }
+          else if ((*c)[i] <= 0)
+          {
+            cou[trans[i]]=1;
+            negzero_message("NCDF_VARGET: Count on",i,1);
+          }
+          else
+          {
+            cou[trans[i]]=dim_length[trans[i]]-off[trans[i]]+1;
+            exceed_message("NCDF_VARGET", i, dim_length[trans[i]]-off[trans[i]]+1);
+          }
+        }
+      }
+	    
+      if (e->GetKW(2) == NULL)
+      {
+        //NO STRIDE
+        array_size = 1;
+        for (int i = 0; i < var_ndims; ++i) 
+        {
+          transposed_dim_length[trans[i]] = cou[i];
+          array_size = array_size * cou[i];
+        }
+        dimension dim(transposed_dim_length, (SizeT) var_ndims);
+        if (var_type == NC_DOUBLE)
+        {
+          DDoubleGDL *temp = new DDoubleGDL(dim, BaseGDL::NOZERO);
+          status=nc_get_vara_double(cdfid, varid, off, cou, &(*temp)[0]);
+          ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
+          delete e->GetParGlobal(2);
+          e->GetParGlobal(2) = temp;      	
+        }
+        else if (var_type == NC_FLOAT)
+        {
+          DFloatGDL *temp = new DFloatGDL(dim, BaseGDL::NOZERO);
+          status = nc_get_vara_float(cdfid, varid, off,cou,&(*temp)[0]);
+          ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
+          delete e->GetParGlobal(2);
+          e->GetParGlobal(2) = temp;
+        }
+        else if (var_type == NC_SHORT)
+        {
+          DIntGDL *temp = new DIntGDL(dim, BaseGDL::NOZERO);
+          status = nc_get_vara_short(cdfid, varid, off, cou, &(*temp)[0]);
+          ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
+          delete e->GetParGlobal(2);
+          e->GetParGlobal(2) = temp;      	
+        }
+        else if(var_type == NC_INT)
+        {
+          DLongGDL *temp = new DLongGDL(dim,BaseGDL::NOZERO);
+          status = nc_get_vara_int(cdfid, varid, off, cou, &(*temp)[0]);
+          ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
+          delete e->GetParGlobal(2);
+          e->GetParGlobal(2) = temp;    
+        }
+        else if (var_type == NC_BYTE)
+        {
+          DByteGDL *temp=new DByteGDL(dim,BaseGDL::NOZERO);
+          status = nc_get_vara_uchar(cdfid, varid, off, cou, &(*temp)[0]);
+          ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
+          delete e->GetParGlobal(2);
+          e->GetParGlobal(2) = temp;      	
+        }
         else if (var_type == NC_CHAR)
         {
-	  char* cvar = new char[array_size];
-	  
-	  status = nc_get_var_text(cdfid, varid, cvar);
-	  ncdf_var_handle_error(e, status, "NCDF_VARGET", cvar);
-
-	  DByteGDL* temp = new DByteGDL(dim, BaseGDL::NOZERO);
-	  memcpy(&(*temp)[0], &(*cvar), array_size*sizeof(char));
-	  delete [] cvar;
-
-	  /*	  status=transpose_perm((char *)&(*temp)[0], 
-		  var_ndims,dim_length,sizeof(unsigned char),temp->Type(),trans);*/
-	  delete e->GetParGlobal(2);
+          DByteGDL *temp = new DByteGDL(dim, BaseGDL::NOZERO);
+          status = nc_get_vara_uchar(cdfid, varid, off, cou, &(*temp)[0]);
+          ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
+          delete e->GetParGlobal(2);
           e->GetParGlobal(2) = temp;
-	}
-      
+        }
+      } 
+      else 
+      {
+        //STRIDE
+        ptrdiff_t stri[NC_MAX_VAR_DIMS];
+        BaseGDL * stride;
+        DIntGDL *s=e->GetKWAs<DIntGDL>(2);
+        for (int i = 0; i < var_ndims; ++i) stri[i]=1;
+        int nstri=s->N_Elements();
+        for (int i = 0; i < nstri; ++i) 
+        {
+          if ((*s)[i]*cou[trans[i]] < dim_length[trans[i]]-off[trans[i]]+1)
+          {
+            //stride * count < length-offset
+            stri[trans[i]]=(*s)[i];
+          }
+          else if ((*s)[i] <= 0)
+          {
+            //	stride<0, stop it now.
+            stri[trans[i]]=1;
+            e->Throw("NCDF_VARGET: STRIDE array cannot have negative elements"
+              +e->GetParString(0));
+          }
+          else
+          {
+            //cou*stride> length-offset
+            //reduce count
+            stri[trans[i]]=(*s)[i];
+            cou[trans[i]]=(dim_length[trans[i]]-off[trans[i]])/
+            stri[trans[i]];
 
-	//done read all.
+            //silent if there is no COUNT keyword
+            if(e->GetKW(0) !=NULL)
+            {
+              int mema=3;
+              string mess;
+              mess = "NCDF_VARGET: Requested read is larget than data in dimension ";
+              char * n=new char(mema);
+              while (snprintf(n, sizeof n, "%d", i) >= sizeof n)
+              {
+                delete n; mema++; n=new char(mema);
+              }
+              mess+=n;
+              delete n;
+              mess+=". Reducing COUNT to ";
+              mema=3;
+              n=new char[3];
+              while (snprintf(n, sizeof n, "%d",  cou[trans[i]]) >= sizeof n)
+              { 
+                delete n; mema++; n=new char(mema);
+              }
+              mess+=n;
+              delete n;
+              mess+=".";
+              Message(mess);
+            }	
+          }
+        }
 
-    
-      } else  {
-	//OFFSET AND/OR COUNT and NOT/ STRIDE
-	BaseGDL *offset,*count;
-	size_t off[NC_MAX_VAR_DIMS], cou[NC_MAX_VAR_DIMS];
-	for (i=0;i<NC_MAX_VAR_DIMS;++i)
-	  {
-	    off[i]=0;
-	    cou[i]=1;
-	  }
-	size_t array_size;
-      
-	array_size=1;
-	
-
-	for (i=0;i<var_ndims;++i) off[i]=0;
-
-
-	if(e->GetKW(1) !=NULL)
-	  {
-	    DLongGDL *o=e->GetKWAs<DLongGDL>(1);
-	    int noff=o->N_Elements();
-	    for (i=0;i<noff;++i) 
-	      {
-		if((*o)[i] < dim_length[var_ndims-(i+1)])
-		  {
-		    off[var_ndims-(i+1)]=(*o)[i];
-		  }
-		else if((*o)[i] <= 0)
-		  {
-		    off[trans[i]]=0;
-		    negzero_message("NCDF_VARGET: Offset on",i,0);
-
-		  }
-		else
-		  {
-		    off[trans[i]]=dim_length[trans[i]]-1;
-		    exceed_message("NCDF_VARGET",i,dim_length[trans[i]]-1);
-
-		  }
-		
-	      }
-	  } 
-
-
-      
-	for (i=0;i<var_ndims;++i) 
-  	    cou[i]=dim_length[i]-off[i];
-
-	  
-	if(e->GetKW(0) !=NULL)
-	{
-
-	  DLongGDL *c=e->GetKWAs<DLongGDL>(0);
-	  int ncou=c->N_Elements();
-
-	  for (i=0;i<ncou;++i) 
-	      {
-
-		if((*c)[i] < dim_length[trans[i]]-off[trans[i]]+1)
-		  {
-		    cou[trans[i]]=(*c)[i];
-		  }
-		else if((*c)[i] <= 0)
-		  {
-		    cou[trans[i]]=1;
-		    negzero_message("NCDF_VARGET: Count on",i,1);
-
-		  }
-		else
-		  {
-		    cou[trans[i]]=dim_length[trans[i]]-off[trans[i]]+1;
-		    exceed_message("NCDF_VARGET",i,
-				   dim_length[trans[i]]-off[trans[i]]+1);
-		  }
-		
-	      }
-
-	}
-
-	    
-	if(e->GetKW(2) == NULL)
-	  {
-
-	    //NO STRIDE
-	    array_size=1;
-	    for(i=0;i<var_ndims;++i) {
-	      transposed_dim_length[trans[i]]=cou[i];
-	      array_size=array_size*cou[i];
-	    }
-	    dimension dim((const DLong *) transposed_dim_length, (SizeT) var_ndims);
-	    if(var_type == NC_DOUBLE)
-	      {
-		double* dvar=new double[array_size];
-		
-		DDoubleGDL *temp=new DDoubleGDL(dim,BaseGDL::NOZERO);
-		status=nc_get_vara_double(cdfid, varid,
-					  off,cou,dvar);
-
-		ncdf_var_handle_error(e,status,"NCDF_VARGET",dvar);
-
-		memcpy(&(*temp)[0],&(*dvar),array_size*sizeof(double));	      
-		
-		delete [] dvar;
-		/*		status=transpose_perm((char *)&(*temp)[0], 
-				var_ndims,cou,sizeof(double),temp->Type(),trans);*/
-		delete e->GetParGlobal(2);
-		e->GetParGlobal(2)=temp;      	
-	      }
-	    else if(var_type == NC_FLOAT)
-	      {
-		float* fvar=new float[array_size];
-		
-		DFloatGDL *temp=new DFloatGDL(dim,BaseGDL::NOZERO);
-		status=nc_get_vara_float(cdfid, varid,
-					  off,cou,fvar);
-
-		ncdf_var_handle_error(e,status,"NCDF_VARGET",fvar);
-		
-
-		memcpy(&(*temp)[0],&(*fvar),array_size*sizeof(float));	      
-		
-		delete [] fvar;
-		/*		status=transpose_perm((char *)&(*temp)[0], 
-				var_ndims,cou,sizeof(float),temp->Type(),trans);*/
-		delete e->GetParGlobal(2);
-		e->GetParGlobal(2)=temp;      	
-		
-	      }
-	    else if(var_type == NC_SHORT)
-	      {
-		short* svar=new short[array_size];
-		
-		DIntGDL *temp=new DIntGDL(dim,BaseGDL::NOZERO);
-		status=nc_get_vara_short(cdfid, varid,
-					  off,cou,svar);
-
-		ncdf_var_handle_error(e,status,"NCDF_VARGET",svar);
-
-		memcpy(&(*temp)[0],&(*svar),array_size*sizeof(short));	      
-		
-		delete [] svar;
-		/*		status=transpose_perm((char *)&(*temp)[0], 
-				var_ndims,cou,sizeof(short),temp->Type(),trans);*/
-		delete e->GetParGlobal(2);
-		e->GetParGlobal(2)=temp;      	
-
-	      }
-	    else if(var_type == NC_INT)
-	      {
-		int* ivar=new int[array_size];
-		
-		DLongGDL *temp=new DLongGDL(dim,BaseGDL::NOZERO);
-		status=nc_get_vara_int(cdfid, varid,
-					  off,cou,ivar);
-
-		ncdf_var_handle_error(e,status,"NCDF_VARGET",ivar);
-
-		memcpy(&(*temp)[0],&(*ivar),array_size*sizeof(int));	      
-
-		delete [] ivar;
-		/*		status=transpose_perm((char *)&(*temp)[0], 
-				var_ndims,cou,sizeof(int),temp->Type(),trans);*/
-		delete e->GetParGlobal(2);
-		e->GetParGlobal(2)=temp;      	
-
-	      }
-	    else if(var_type == NC_BYTE)
-	      {
-		unsigned char* bvar=new unsigned char[array_size];
-		
-		DByteGDL *temp=new DByteGDL(dim,BaseGDL::NOZERO);
-		status=nc_get_vara_uchar(cdfid, varid,
-					  off,cou,bvar);
-
-		ncdf_var_handle_error(e,status,"NCDF_VARGET",bvar);
-
-		memcpy(&(*temp)[0],&(*bvar),array_size*sizeof(unsigned char));	      
-
-		delete [] bvar;
-		/*		status=transpose_perm((char *)&(*temp)[0], 
-				var_ndims,cou,sizeof(unsigned char),temp->Type(),trans);*/
-		delete e->GetParGlobal(2);
-		e->GetParGlobal(2)=temp;      	
-
-	  	      }
-	    else if(var_type == NC_CHAR)
-	      {
-		char* cvar = new char[array_size];
-		
-		status = nc_get_vara_text(cdfid, varid, off, cou, cvar);
-		ncdf_var_handle_error(e, status, "NCDF_VARGET", cvar);
-
-		DByteGDL *temp = new DByteGDL(dim, BaseGDL::NOZERO);
-		memcpy(&(*temp)[0], &(*cvar), array_size*sizeof(char));	      
-		delete [] cvar;
-
-		/*		status=transpose_perm((char *)&(*temp)[0], 
-				      var_ndims,cou,sizeof(unsigned char),
-				      temp->Type(),trans);*/
-	      
-		delete e->GetParGlobal(2);
-		e->GetParGlobal(2) = temp;
-	      }
-	  
-	  
-	  } else {
-	    //STRIDE
-	    ptrdiff_t stri[NC_MAX_VAR_DIMS];
-	    BaseGDL * stride;
-	    DIntGDL *s=e->GetKWAs<DIntGDL>(2);
-	    for (i=0;i<var_ndims;++i) 
-	      stri[i]=1;
-	    
-	    int nstri=s->N_Elements();
-	    for (i=0;i<nstri;++i) 
-	      {
-		if((*s)[i]*cou[trans[i]] <
-		   dim_length[trans[i]]-off[trans[i]]+1)
-		  {
-		    //stride * count < length-offset
-		    stri[trans[i]]=(*s)[i];
-
-		  }
-		else if((*s)[i] <= 0)
-		  {
-		    //		    stride<0, stop it now.
-		    stri[trans[i]]=1;
-		    
-		    throw GDLException(e->CallingNode(),
-				       "NCDF_VARGET: STRIDE array cannot have negative elements"
-				       +e->GetParString(0));
-
-		  }
-		else
-		  {
-		  
-		    //cou*stride> length-offset
-		    //reduce count
-		    stri[trans[i]]=(*s)[i];
-		    cou[trans[i]]=(dim_length[trans[i]]-off[trans[i]])/
-		      stri[trans[i]];
-
-		    //silent if there is no COUNT keyword
-		    if(e->GetKW(0) !=NULL)
-		      {
-			int mema=3;
-			string mess;
-			mess="NCDF_VARGET: Requested read is larget than data in dimension ";
-			char * n=new char(mema);
-			while (snprintf(n, sizeof n, "%d", i) >= sizeof n)
-			  {   delete n; mema++; n=new char(mema);	      }
-			mess+=n;
-			delete n;
-			
-			mess+=". Reducing COUNT to ";
-			mema=3;
-			n=new char[3];
-			while (snprintf(n, sizeof n, "%d",  cou[trans[i]]) >= sizeof n)
-			  {   delete n; mema++; n=new char(mema);	      }
-			mess+=n;
-			delete n;
-			mess+=".";
-			Message(mess);
-		      }	
-		  }
-		
-	      }
-		
-	    //now we can get the damn data
-	    	    array_size=1;
-	    for(i=0;i<var_ndims;++i) {
-	      transposed_dim_length[trans[i]]=cou[i];
-	      array_size=array_size*cou[i];
-	    }
-	    dimension dim((const DLong *) transposed_dim_length, (SizeT) var_ndims);
+        //now we can get the damn data
+        array_size=1;
+        for (int i = 0; i < var_ndims; ++i) 
+        {
+          transposed_dim_length[trans[i]]=cou[i];
+          array_size=array_size*cou[i];
+        }
+        dimension dim(transposed_dim_length, (SizeT) var_ndims);
 	    	  
-	    if(var_type == NC_DOUBLE)
-	      {
-		double* dvar=new double[array_size];
-		
-		DDoubleGDL *temp=new DDoubleGDL(dim,BaseGDL::NOZERO);
-		status=nc_get_vars_double(cdfid, varid,
-					  off,cou,stri,dvar);
-
-		ncdf_var_handle_error(e,status,"NCDF_VARGET",dvar);
-
-		memcpy(&(*temp)[0],&(*dvar),array_size*sizeof(double));	      
-		
-		delete [] dvar;
-		/*		status=transpose_perm((char *)&(*temp)[0], 
-				var_ndims,cou,sizeof(double),temp->Type(),trans);*/
-		e->GetParGlobal(2)=temp;      	
-	      }
-	    else if(var_type == NC_FLOAT)
-	      {
-		float* fvar=new float[array_size];
-		/*		for (i=0;i<var_ndims;++i)
-		  {
-		    cout<<off[i]<<","<<cou[i]<<","<<stri[i]<<endl;
-		  }
-		*/
-		DFloatGDL *temp=new DFloatGDL(dim,BaseGDL::NOZERO);
-		status=nc_get_vars_float(cdfid, varid,
-					  off,cou,stri,fvar);
-		
-		ncdf_var_handle_error(e,status,"NCDF_VARGET",fvar);
-		
-
-		memcpy(&(*temp)[0],&(*fvar),array_size*sizeof(float));	      
-		
-		delete [] fvar;
-		/*		status=transpose_perm((char *)&(*temp)[0], 
-				var_ndims,cou,sizeof(float),temp->Type(),trans);*/
-		delete e->GetParGlobal(2);
-		e->GetParGlobal(2)=temp;      	
-		
-	      }
-	    else if(var_type == NC_SHORT)
-	      {
-		short* svar=new short[array_size];
-		
-		DIntGDL *temp=new DIntGDL(dim,BaseGDL::NOZERO);
-		status=nc_get_vars_short(cdfid, varid,
-					  off,cou,stri,svar);
-
-		ncdf_var_handle_error(e,status,"NCDF_VARGET",svar);
-
-		memcpy(&(*temp)[0],&(*svar),array_size*sizeof(short));	      
-		
-		delete [] svar;
-		/*		status=transpose_perm((char *)&(*temp)[0], 
-				var_ndims,cou,sizeof(short),temp->Type(),trans);*/
-		delete e->GetParGlobal(2);
-		e->GetParGlobal(2)=temp;      	
-
-	  	      }
-	    else if(var_type == NC_INT)
-	      {
-		int* ivar=new int[array_size];
-		
-		DLongGDL *temp=new DLongGDL(dim,BaseGDL::NOZERO);
-		status=nc_get_vars_int(cdfid, varid,
-					  off,cou,stri,ivar);
-
-		ncdf_var_handle_error(e,status,"NCDF_VARGET",ivar);
-
-		memcpy(&(*temp)[0],&(*ivar),array_size*sizeof(int));	      
-		
-		delete [] ivar;
-		/*		status=transpose_perm((char *)&(*temp)[0], 
-				var_ndims,cou,sizeof(int),temp->Type(),trans);*/
-		delete e->GetParGlobal(2);
-		e->GetParGlobal(2)=temp;      	
-		
-	      }
-	    else if(var_type == NC_BYTE)
-	      {
-		unsigned char* bvar=new unsigned char[array_size];
-		
-		DByteGDL *temp=new DByteGDL(dim,BaseGDL::NOZERO);
-		status=nc_get_vars_uchar(cdfid, varid,
-					  off,cou,stri,bvar);
-
-		ncdf_var_handle_error(e,status,"NCDF_VARGET",bvar);
-
-		memcpy(&(*temp)[0],&(*bvar),array_size*sizeof(unsigned char));
-		
-		delete [] bvar;
-		/*		status=transpose_perm((char *)&(*temp)[0], 
-				var_ndims,cou,sizeof(unsigned char),temp->Type(),trans);*/
-		delete e->GetParGlobal(2);
-		e->GetParGlobal(2)=temp;      	
-
-		}
-		else if(var_type == NC_CHAR)
-		{
-		  char* cvar = new char[array_size];
-		
-		  status = nc_get_vars_text(cdfid, varid, off, cou, stri, cvar);
-		  ncdf_var_handle_error(e, status, "NCDF_VARGET", cvar);
-
-		  DByteGDL *temp = new DByteGDL(dim, BaseGDL::NOZERO);
-		  memcpy(&(*temp)[0], &(*cvar), array_size*sizeof(char));
-		  delete [] cvar;
-
-		/*		status=transpose_perm((char *)&(*temp)[0], 
-				      var_ndims,cou,sizeof(unsigned char),
-				      temp->Type(),trans);*/
-
-		  delete e->GetParGlobal(2);
-		  e->GetParGlobal(2) = temp;      	
-		}
-	  }
+        if (var_type == NC_DOUBLE)
+        {
+          DDoubleGDL *temp = new DDoubleGDL(dim, BaseGDL::NOZERO);
+          status=nc_get_vars_double(cdfid, varid, off, cou, stri, &(*temp)[0]);
+          ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
+          delete e->GetParGlobal(2);
+          e->GetParGlobal(2) = temp; 
+        }
+        else if(var_type == NC_FLOAT)
+        {
+          DFloatGDL *temp = new DFloatGDL(dim,BaseGDL::NOZERO);
+          status = nc_get_vars_float(cdfid, varid, off, cou, stri, &(*temp)[0]);
+          ncdf_var_handle_error(e,status,"NCDF_VARGET", temp);
+          delete e->GetParGlobal(2);
+          e->GetParGlobal(2) = temp; 
+        }
+        else if (var_type == NC_SHORT)
+        {
+          DIntGDL *temp = new DIntGDL(dim, BaseGDL::NOZERO);
+          status = nc_get_vars_short(cdfid, varid, off, cou, stri, &(*temp)[0]);
+          ncdf_var_handle_error(e,status,"NCDF_VARGET", temp);
+          delete e->GetParGlobal(2);
+          e->GetParGlobal(2) = temp;      	
+        }
+        else if(var_type == NC_INT)
+        {
+          DLongGDL *temp = new DLongGDL(dim, BaseGDL::NOZERO);
+          status = nc_get_vars_int(cdfid, varid, off,cou, stri, &(*temp)[0]);
+          ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
+          delete e->GetParGlobal(2);
+          e->GetParGlobal(2) = temp;  
+        }
+        else if(var_type == NC_BYTE)
+        {
+          DByteGDL *temp=new DByteGDL(dim, BaseGDL::NOZERO);
+          status = nc_get_vars_uchar(cdfid, varid, off, cou, stri, &(*temp)[0]);
+          ncdf_var_handle_error(e,status,"NCDF_VARGET", temp);
+          delete e->GetParGlobal(2);
+          e->GetParGlobal(2) = temp;      	
+        }
+        else if (var_type == NC_CHAR)
+        {
+          DByteGDL *temp = new DByteGDL(dim, BaseGDL::NOZERO);
+          status = nc_get_vars_uchar(cdfid, varid, off, cou, stri, &(*temp)[0]);
+          ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
+          delete e->GetParGlobal(2);
+          e->GetParGlobal(2) = temp;      	
+        }
       }
+    }
   }
 
 
