@@ -4014,7 +4014,7 @@ namespace lib {
     
     DStructGDL* s = static_cast<DStructGDL*>( p0);
 
-    static int lengthIx = e->KeywordIx( "LENGTH");
+    static int lengthIx = e->KeywordIx( "DATA_LENGTH");
     bool length = e->KeywordSet( lengthIx);
     
     if( length)
