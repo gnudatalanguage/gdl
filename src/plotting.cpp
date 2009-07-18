@@ -824,7 +824,7 @@ namespace lib {
 
     if ( nParam < 2 || nParam > 3) 
       {
-	e->Throw( "%CURSOR: Incorrect number of arguments.");
+	e->Throw( "Incorrect number of arguments.");
       }
 
     e->AssureGlobalPar( 0);
@@ -1992,7 +1992,7 @@ namespace lib {
     SizeT zEl;
 
     if (nParam == 2 || nParam > 3) {
-      e->Throw( "SURFACE: Incorrect number of arguments.");
+      e->Throw( "Incorrect number of arguments.");
     }
     
     BaseGDL* p0 = e->GetParDefined( 0)->Transpose( NULL);
@@ -2021,29 +2021,29 @@ namespace lib {
       yVal = e->GetParAs< DDoubleGDL>( 2);
 
       if (xVal->Rank() > 2)
-	e->Throw( "SURFACE: X, Y, or Z array dimensions are incompatible.");
+	e->Throw( "X, Y, or Z array dimensions are incompatible.");
       
       if (yVal->Rank() > 2)
-	e->Throw( "SURFACE: X, Y, or Z array dimensions are incompatible.");
+	e->Throw( "X, Y, or Z array dimensions are incompatible.");
       
       if (xVal->Rank() == 1) {
 	if (xEl != xVal->Dim(0))
-	  e->Throw( "SURFACE: X, Y, or Z array dimensions are incompatible.");
+	  e->Throw( "X, Y, or Z array dimensions are incompatible.");
 	}
       
       if (yVal->Rank() == 1) {
 	if (yEl != yVal->Dim(0))
-	  e->Throw( "SURFACE: X, Y, or Z array dimensions are incompatible.");
+	  e->Throw( "X, Y, or Z array dimensions are incompatible.");
       }
 
       if (xVal->Rank() == 2) {
 	if((xVal->Dim(0) != xEl) && (xVal->Dim(1) != yEl))
-	  e->Throw( "SURFACE: X, Y, or Z array dimensions are incompatible.");
+	  e->Throw( "X, Y, or Z array dimensions are incompatible.");
       }
       
       if (yVal->Rank() == 2) {
 	if((yVal->Dim(0) != xEl) && (yVal->Dim(1) != yEl))
-	  e->Throw( "SURFACE: X, Y, or Z array dimensions are incompatible.");
+	  e->Throw( "X, Y, or Z array dimensions are incompatible.");
       }
     }
 
@@ -2518,7 +2518,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
 
 	if(zVal->Dim(0) == 1)
 	  throw GDLException( e->CallingNode(),
-			      "CONTOUR: Array must have 2 dimensions:"
+			      "CONTOUR: Array must have 2 dimensions: "
 			      +e->GetParString(0));
 
 	xVal = new DDoubleGDL( dimension( xEl), BaseGDL::INDGEN);
@@ -2526,7 +2526,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
 	yVal = new DDoubleGDL( dimension( yEl), BaseGDL::INDGEN);
 	yval_guard.reset( yVal); // delete upon exit
       } else if ( nParam == 2 || nParam > 3) {
-	e->Throw( "CONTOUR: Incorrect number of arguments.");
+	e->Throw( "Incorrect number of arguments.");
       } else {
 	BaseGDL* p0 = e->GetParDefined( 0)->Transpose( NULL);
 	zVal = static_cast<DDoubleGDL*>
@@ -2535,40 +2535,40 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
 
 	if(zVal->Dim(0) == 1)
 	  throw GDLException( e->CallingNode(),
-			      "CONTOUR: Array must have 2 dimensions:"
+			      "CONTOUR: Array must have 2 dimensions: "
 			      +e->GetParString(0));
 
 	xVal = e->GetParAs< DDoubleGDL>( 1);
 	yVal = e->GetParAs< DDoubleGDL>( 2);
 
 	if (xVal->Rank() > 2)
-	  e->Throw( "CONTOUR: X, Y, or Z array dimensions are incompatible.");
+	  e->Throw( "X, Y, or Z array dimensions are incompatible.");
 
 	if (yVal->Rank() > 2)
-	  e->Throw( "CONTOUR: X, Y, or Z array dimensions are incompatible.");
+	  e->Throw( "X, Y, or Z array dimensions are incompatible.");
 
 	if (xVal->Rank() == 1) {
 	  xEl = xVal->Dim(0);
 
 	  if(xEl != zVal->Dim(1))
-	    e->Throw( "CONTOUR: X, Y, or Z array dimensions are incompatible.");
+	    e->Throw( "X, Y, or Z array dimensions are incompatible.");
 	}
 
 	if (yVal->Rank() == 1) {
 	  yEl = yVal->Dim(0);
 
 	  if(yEl != zVal->Dim(0))
-	    e->Throw( "CONTOUR: X, Y, or Z array dimensions are incompatible.");
+	    e->Throw( "X, Y, or Z array dimensions are incompatible.");
 	}
 
 	if (xVal->Rank() == 2) {
 	  if((xVal->Dim(0) != zVal->Dim(1)) && (xVal->Dim(1) != zVal->Dim(0)))
-	    e->Throw( "CONTOUR: X, Y, or Z array dimensions are incompatible.");
+	    e->Throw( "X, Y, or Z array dimensions are incompatible.");
 	}
 
 	if (yVal->Rank() == 2) {
 	  if((yVal->Dim(0) != zVal->Dim(1)) && (yVal->Dim(1) != zVal->Dim(0)))
-	    e->Throw( "CONTOUR: X, Y, or Z array dimensions are incompatible.");
+	    e->Throw( "X, Y, or Z array dimensions are incompatible.");
 	}
       }
 
@@ -3020,9 +3020,19 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
     actStream->wid( static_cast<PLINT>(floor( thick-0.5)));
 
     // labeling
-    //setcontlabelparam(PLFLT offset, PLFLT size, PLFLT spacing, PLINT active)
-    // actStream->setcontlabelparam(0.0, 1, .3, 1);
-
+    bool label = false;
+    if (e->KeywordSet("FOLLOW") || e->KeywordSet("C_CHARSIZE")) label = true;
+    // TODO: if (e->KeywordSet("C_ANNOTATION") || e->KeywordSet("C_CHARTHICK") || e->KeywordSet("C_LABELS")) label = true;  
+    if (e->KeywordSet("FILL")) label = false;
+    if (label)
+    { 
+      // IDL default: 3/4 of the axis charsize (CHARSIZE keyword or !P.CHARSIZE)
+      // PlPlot default: .3
+      DFloat label_size = .75 * charsize;
+      if (e->KeywordSet("C_CHARSIZE")) e->AssureFloatScalarKWIfPresent("C_CHARSIZE", label_size);
+      //usage: setcontlabelparam(PLFLT offset, PLFLT size, PLFLT spacing, PLINT active);
+      actStream->setcontlabelparam(0.0, (PLFLT)label_size, .3, true);
+    }
 
     // starting plotting the data
     
@@ -4160,14 +4170,14 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
 
     SizeT nParam=e->NParam();
     if( nParam < 1)
-      e->Throw( "MAP_PROJ_FORWARD: Incorrect number of arguments.");
+      e->Throw( "Incorrect number of arguments.");
 
     LPTYPE idata;
     XYTYPE odata;
 
     ref = map_init();
     if ( ref == NULL) {
-      e->Throw( "MAP_PROJ_FORWARD: Projection initialization failed.");
+      e->Throw( "Projection initialization failed.");
     }
 
     BaseGDL* p0;
@@ -4240,14 +4250,14 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
     // xy -> lonlat
     SizeT nParam=e->NParam();
     if( nParam < 1)
-      e->Throw( "MAP_PROJ_INVERSE: Incorrect number of arguments.");
+      e->Throw( "Incorrect number of arguments.");
 
     XYTYPE idata;
     LPTYPE odata;
 
     ref = map_init();
     if ( ref == NULL) {
-      e->Throw( "MAP_PROJ_INVERSE: Projection initialization failed.");
+      e->Throw( "Projection initialization failed.");
     }
 
     BaseGDL* p0;
@@ -4324,7 +4334,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
     DLong dims[2]={3,0};
     if( e->NParam() == 1) {
       if (p0->Dim(0) != 2 && p0->Dim(0) != 3)
-	e->Throw( "CONVERT_COORD: When only 1 param, dims must be (2,n) or (3,n)");
+	e->Throw( "When only 1 param, dims must be (2,n) or (3,n)");
     }
 
     DType aTy;
@@ -4396,7 +4406,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
     if (xt == 3) {
       ref = map_init();
       if ( ref == NULL) {
-	e->Throw( "CONVERT_COORD: Projection initialization failed.");
+	e->Throw( "Projection initialization failed.");
       }
 
       // ll -> xy
@@ -4591,7 +4601,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
   {
     SizeT nParam=e->NParam();
     if( nParam < 1)
-      e->Throw( "CONVERT_COORD: Incorrect number of arguments.");
+      e->Throw( "Incorrect number of arguments.");
 
     BaseGDL* p0;
     BaseGDL* p1;

@@ -698,9 +698,15 @@ void LibInit()
      "LEVELS", "NLEVELS",
      "MAX_VALUE", "MIN_VALUE","AX", "AZ",
      "XLOG", "XTYPE", "YLOG", "YTYPE", "ZLOG", "ZTYPE", "FILL",  "ISOTROPIC",
+     "FOLLOW", "C_CHARSIZE",
      KLISTEND
     };
-  new DLibPro(lib::contour,string("CONTOUR"),3,contourKey);
+  const string contourWarnKey[] = 
+    {   
+      "OVERPLOT", 
+      KLISTEND 
+    }; 
+  new DLibPro(lib::contour,string("CONTOUR"),3,contourKey,contourWarnKey);
 
   const string xyoutsKey[]=
     {
