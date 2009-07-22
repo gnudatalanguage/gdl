@@ -31,8 +31,10 @@ public:
   ~GDLSVGStream()
   {
   }
- 
-  //  void eop() {};
+
+  void eop()
+  {
+  }
 
   void Init();
 };

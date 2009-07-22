@@ -123,9 +123,6 @@ class DeviceZ: public Graphics
     // we want color
     actStream->scolor( 1);
 
-    // *** esc char
-    // actStream->sesc( '!');
-
     // set color map (always grey ramp)
     PLINT r[ctSize], g[ctSize], b[ctSize];
     for( PLINT i = 0; i<ctSize; ++i)

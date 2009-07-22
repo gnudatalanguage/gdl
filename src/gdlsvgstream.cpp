@@ -16,9 +16,6 @@
  ***************************************************************************/
 
 #include "includefirst.hpp"
-
-//#include <iostream>
-
 #include "gdlsvgstream.hpp"
 
 using namespace std;
@@ -27,4 +24,3 @@ void GDLSVGStream::Init()
 {
   plstream::init();
 }
-

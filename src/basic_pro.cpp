@@ -616,29 +616,31 @@ namespace lib {
     // Create eventually the ".gdl" path in user $HOME
     int result, debug=0;
     char *homeDir = getenv( "HOME");
-    string pathToGDL_history;
-    pathToGDL_history=homeDir;
-    AppendIfNeeded(pathToGDL_history, "/");
-    pathToGDL_history=pathToGDL_history+".gdl";
-    // Create eventially the ".gdl" path in Home
-    result=mkdir(pathToGDL_history.c_str(), 0700);
-    if (debug)
-      { if (result == 0) { cout << "Creation of ~/.gdl PATH "<< endl;}
-      else {cout << "~/.gdl PATH was still here "<< endl;}
+    if (homeDir != NULL)
+    {
+      string pathToGDL_history = homeDir;
+      AppendIfNeeded(pathToGDL_history, "/");
+      pathToGDL_history += ".gdl";
+      // Create eventially the ".gdl" path in Home
+      result = mkdir(pathToGDL_history.c_str(), 0700);
+      if (debug)
+      { 
+        if (result == 0) cout << "Creation of ~/.gdl PATH "<< endl;
+        else cout << "~/.gdl PATH was still here "<< endl;
       }
     
-    // (over)write the history file in ~/.gdl PATH
+      // (over)write the history file in ~/.gdl PATH
   
-    string history_filename;
-    AppendIfNeeded(pathToGDL_history, "/");
-    history_filename=pathToGDL_history+"history";
-    if (debug) cout << "History file name: " <<history_filename << endl;
-    result=write_history(history_filename.c_str());
-    if (debug) 
-      { if (result == 0) {cout<<"Successfull writing of ~/.gdl/history"<<endl;}
-      else {cout <<"Fail to write ~/.gdl/history"<<endl;}
+      AppendIfNeeded(pathToGDL_history, "/");
+      string history_filename = pathToGDL_history + "history";
+      if (debug) cout << "History file name: " << history_filename << endl;
+      result = write_history(history_filename.c_str());
+      if (debug) 
+      { 
+        if (result == 0) cout<<"Successfull writing of ~/.gdl/history"<<endl;
+        else cout <<"Fail to write ~/.gdl/history"<<endl;
       }
-
+    }
 #endif
 
     BaseGDL* status=e->GetKW( 1);

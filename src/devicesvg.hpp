@@ -18,7 +18,6 @@
 #ifndef DEVICESVG_HPP_
 #define DEVICESVG_HPP_
 
-//#include "dstructgdl.hpp"
 #include "gdlsvgstream.hpp"
 
 class DeviceSVG : public Graphics
@@ -41,19 +40,6 @@ class DeviceSVG : public Graphics
 
     actStream->sfnam( fileName.c_str());
 
-//     // set initial window size
-//     PLFLT xp; PLFLT yp; 
-//     PLINT xleng; PLINT yleng;
-//     PLINT xoff; PLINT yoff;
-//     actStream->gpage( xp, yp, xleng, yleng, xoff, yoff);
-
-//     xleng = xSize;
-//     yleng = ySize;
-//     xoff  = xPos;
-//     yoff  = yPos;
-
-//     actStream->spage( xp, yp, xleng, yleng, xoff, yoff);
-
     // no pause on destruction
     actStream->spause( 0);
 
@@ -63,21 +49,11 @@ class DeviceSVG : public Graphics
     // we want color
     actStream->scolor( 1);
 
-    // *** esc char
-    // actStream->sesc( '!');
-
     // set color map
     PLINT r[ctSize], g[ctSize], b[ctSize];
     actCT.Get( r, g, b);
     //    actStream->scmap0( r, g, b, ctSize); 
     actStream->scmap1( r, g, b, ctSize); 
-
-//    actStream->SetOpt( "drvopt","text=0"); // clear drvopt
-
-// SA: plplot claims that the following options are supported for SVG:
-//- text_anti_aliasing
-//- graphics_anti_aliasing
-// ... but what they mean for an SVG driver?
 
     actStream->Init();
     

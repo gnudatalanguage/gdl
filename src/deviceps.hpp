@@ -63,9 +63,6 @@ class DevicePS: public Graphics
     // we want color
     actStream->scolor( 1);
 
-    // *** esc char
-    // actStream->sesc( '!');
-
     // set color map
     PLINT r[ctSize], g[ctSize], b[ctSize];
     actCT.Get( r, g, b);

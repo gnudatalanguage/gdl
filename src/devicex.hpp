@@ -398,9 +398,6 @@ public:
     // we want color
     winList[ wIx]->scolor( 1);
 
-    // *** esc char
-    // winList[ wIx]->sesc( '!');
-
     // window title
     static char buf[ 256];
     strncpy( buf, title.c_str(), 255);
