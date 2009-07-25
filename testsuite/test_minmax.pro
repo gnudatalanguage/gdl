@@ -1,5 +1,5 @@
 ;
-; AC June 2007
+; AC June 2007 
 ; 
 ; Purpose: a collection for testing Inf and Nan managing 
 ; in Min/Max procedures (up to now, Inf was not managed,
