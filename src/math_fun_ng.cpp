@@ -28,9 +28,6 @@ namespace lib {
   BaseGDL* voigt_fun(EnvT* e)
   { 
     SizeT nParam = e->NParam();
-    SizeT nMax, nMin, i;
-    DFloatGDL* res ;
-    dimension DimMin, DimMax;
 
     if (nParam !=2)
       e->Throw(" function VOIGT takes 2 params: 'Result = VOIGT(A,U)'  ");
@@ -43,36 +40,39 @@ namespace lib {
     if(e->GetParDefined(1)->Type() == COMPLEX || e->GetParDefined(1)->Type() == COMPLEXDBL)
       e->Throw(" no complex : ");
 
-    if (A->N_Elements()> U->N_Elements()) {nMax=A->N_Elements(); nMin=U->N_Elements();}
-    else {nMax=U->N_Elements();nMin=A->N_Elements();}
- 
     // Use to define NaN which is returned if one parameter of humlik function is Not A Number 
     static DStructGDL *Values =  SysVar::Values();                                                
     DDouble d_nan=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_NAN"), 0)))[0];           
     DDouble d_infinity= (*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_INFINITY"), 0)))[0];  
+    // we don't use Gregory formalism (see macros in "math_fun_gm.cpp")
+    // but we follow him notations ... just in case ...
+    // Assign dimension(s) to "res"
+    SizeT nElp0 = A->N_Elements();
+    SizeT nElp1 = U->N_Elements();
 
+    DFloatGDL* res ;
 
-    // Assign matching dimension to res
-    if (A->N_Elements()> U->N_Elements()) 
-      {DimMax=A->Dim(); DimMin=U->Dim();}
-    else {DimMax=U->Dim();DimMin=A->Dim();}
-
-    // Different Memory Allocations 
-    if (U->Rank()==0 && A->Rank()==0)
-      res = new DFloatGDL(DimMin,BaseGDL::NOZERO); // res = Scalar
-    else if(U->Rank()==0|| A->Rank()==0)
-
-      res = new DFloatGDL(DimMax,BaseGDL::NOZERO); // res Dimensions = Array  Dimensions 
-	
-    else	
-      res = new DFloatGDL(DimMin,BaseGDL::NOZERO); // res Dimensions = smallest Array Dimensions
-
+    if (nElp0 == 1 && nElp1 == 1)
+      res = new DFloatGDL(1, BaseGDL::NOZERO);
+    else if (nElp0 > 1 && nElp1 == 1)
+      res = new DFloatGDL(A->Dim(), BaseGDL::NOZERO);
+    else if (nElp0 == 1 && nElp1 > 1)
+      res = new DFloatGDL(U->Dim(), BaseGDL::NOZERO);
+    else if (nElp0 <= nElp1)
+      res = new DFloatGDL(A->Dim(), BaseGDL::NOZERO);
+    else
+      res = new DFloatGDL(U->Dim(), BaseGDL::NOZERO);
+    
+    SizeT nElp = res->N_Elements();
 
     float InitA = (*A)[0];
     float InitU = (*U)[0];
+    SizeT i;
+
+    // Here also, we follow Nicolas choices, but can be simplified ...
 
     // Voigt ( scalar , scalar )   
-    if ( A->Rank()==0 && U->Rank()==0 ) 
+    if (nElp0 == 1 && nElp1 == 1)
       {
 	if (isfinite(InitA)==0 || isfinite(InitU)==0)
 	  {
@@ -90,9 +90,9 @@ namespace lib {
       }
 				   
     // Voigt ( array , array )
-    if ( A->Rank()!= 0 && U->Rank()!= 0)
+    if (nElp0 > 1 && nElp1 > 1)
       {  
-	for (i=0;i<nMin;++i)
+	for (i=0;i<nElp;++i)
 	  { 
 	    if (isfinite((*A)[i])==0||isfinite((*U)[i])==0)
 	      {
@@ -111,9 +111,9 @@ namespace lib {
       }
 
     //Voigt ( scalar , array )
-    if (A->Rank()==0 && U->Rank()!= 0) 
+    if (nElp0 == 1 && nElp1 > 1)
       {
-	for (i=0;i<nMax;++i)
+	for (i=0;i<nElp;++i)
 	  {
 	    if (isfinite(InitA)==0 || isfinite((*U)[i])==0)
 	      {
@@ -133,9 +133,9 @@ namespace lib {
 
 
     // Voigt ( array , scalar)   
-    if (A->Rank()!=0 && U->Rank() == 0)
+    if (nElp0 > 1 && nElp1 == 1)
       {
-	for (i=0;i<nMax;++i)
+	for (i=0;i<nElp;++i)
 	  { 
 	    if (isfinite((*A)[i])==0 || isfinite(InitU)==0)
 	      {

@@ -19,26 +19,26 @@
 
 /*
 
-Using the Erfs functions and Gammas function provides by GSL
+  Using the Erfs functions and Gammas function provides by GSL
 
------------------------ Warning -------------
+  ----------------------- Warning -------------
 
-Since Erfs and Gammas functions are clones derivated from the first one,
-please propagates bugs' correction and improvements.
-Do not know how to simplified :-(
+  Since Erfs and Gammas functions are clones derivated from the first one,
+  please propagates bugs' correction and improvements.
+  Do not know how to simplified :-(
 
------------------------ Note -------------
+  ----------------------- Note -------------
 
-See http://www.netlib.org/specfun/erf for further details on how processing Erfcx.
+  See http://www.netlib.org/specfun/erf for further details on how processing Erfcx.
 
------------------------ Note ----------------
+  ----------------------- Note ----------------
 
-Variables are double because of the GSL.
+  Variables are double because of the GSL.
 
------------------------ Note ----------------
+  ----------------------- Note ----------------
 
-ExpInt code is partially adapted from Numerical Recipes in C, section 6.3.
-See http://www.nrbook.com/b/bookcpdf/c6-3.pdf
+  ExpInt code is partially adapted from Numerical Recipes in C, section 6.3.
+  See http://www.nrbook.com/b/bookcpdf/c6-3.pdf
 
 */
 
@@ -51,119 +51,127 @@ See http://www.nrbook.com/b/bookcpdf/c6-3.pdf
 #define GM_MIN(a, b) ((a) < (b) ? (a) : (b))
 
 /*
-Table 3-115: IDL Type Codes and Names (IDL Help)
-================================================
+  Table 3-115: IDL Type Codes and Names (IDL Help)
+  ================================================
 
-Type Code | Type Name | Data Type
--------------------------------------------------
-    0     | UNDEFINED | Undefined
-    1     | BYTE      | Byte
-    2     | INT       | Integer
-    3     | LONG      | Longword integer
-    4     | FLOAT     | Floating point
-    5     | DOUBLE    | Double-precision floating
-    6     | COMPLEX   | Complex floating
-    7     | STRING    | String
-    8     | STRUCT    | Structure
-    9     | DCOMPLEX  | Double-precision complex
-   10     | POINTER   | Pointer
-   11     | OBJREF    | Object reference
-   12     | UINT      | Unsigned Integer
-   13     | ULONG     | Unsigned Longword Integer
-   14     | LONG64    | 64-bit Integer
-   15     | ULONG64   | Unsigned 64-bit Integer
+  Type Code | Type Name | Data Type
+  -------------------------------------------------
+  0     | UNDEFINED | Undefined
+  1     | BYTE      | Byte
+  2     | INT       | Integer
+  3     | LONG      | Longword integer
+  4     | FLOAT     | Floating point
+  5     | DOUBLE    | Double-precision floating
+  6     | COMPLEX   | Complex floating
+  7     | STRING    | String
+  8     | STRUCT    | Structure
+  9     | DCOMPLEX  | Double-precision complex
+  10     | POINTER   | Pointer
+  11     | OBJREF    | Object reference
+  12     | UINT      | Unsigned Integer
+  13     | ULONG     | Unsigned Longword Integer
+  14     | LONG64    | 64-bit Integer
+  15     | ULONG64   | Unsigned 64-bit Integer
 */
 
-  // Macros GM_xPy(a): - x must be replaced by the desired type code in the table above (set it to 2 if you want to get an int, etc.);
-  //                   - P means parameter, don't replace it;
-  //                   - y must be replaced by the number of the parameter you want to get (it starts at 0);
-  //                   - a, when you define the 0th parameter, must be replaced by the total number of parameters.
-  //
-  //                   Note that macros suite is incomplete.
-  //                   See below for examples.
-#define GM_2P0(a)    e->NParam(a);                                                                                              \
-                                                                                                                                \
-                     DIntGDL* p0 = e->GetParAs<DIntGDL>(0);                                                                     \
-                     SizeT nElp0 = p0->N_Elements();                                                                            \
-                                                                                                                                \
-                     if (nElp0 == 0)                                                                                            \
-                         throw GDLException(e->CallingNode(), "Variable is undefined: "+e->GetParString(0));                    \
-                                                                                                                                \
-                     DType t0 = e->GetParDefined(0)->Type();                                                                    \
-                     if (t0 == COMPLEX || t0 == COMPLEXDBL)                                                                     \
-                         e->Throw("Complex not implemented (GSL limitation). ");
+// Macros GM_xPy(a): - x must be replaced by the desired type code in the table above (set it to 2 if you want to get an int, etc.);
+//                   - P means parameter, don't replace it;
+//                   - y must be replaced by the number of the parameter you want to get (it starts at 0);
+//                   - a, when you define the 0th parameter, must be replaced by the total number of parameters.
+//
+//                   Note that macros suite is incomplete.
+//                   See below for examples.
+#define GM_2P0(a)							\
+  e->NParam(a);								\
+									\
+  DIntGDL* p0 = e->GetParAs<DIntGDL>(0);				\
+  SizeT nElp0 = p0->N_Elements();					\
+									\
+  if (nElp0 == 0)							\
+    throw GDLException(e->CallingNode(), "Variable is undefined: "+e->GetParString(0));	\
+									\
+  DType t0 = e->GetParDefined(0)->Type();				\
+                     if (t0 == COMPLEX || t0 == COMPLEXDBL)		\
+		       e->Throw("Complex not implemented (GSL limitation). ");
 
-#define GM_5P0(a)    e->NParam(a);                                                                                              \
-                                                                                                                                \
-                     DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>(0);                                                               \
-                     SizeT nElp0 = p0->N_Elements();                                                                            \
-                                                                                                                                \
-                     if (nElp0 == 0)                                                                                            \
-                         throw GDLException(e->CallingNode(), "Variable is undefined: "+e->GetParString(0));                    \
-                                                                                                                                \
-                     DType t0 = e->GetParDefined(0)->Type();                                                                    \
-                     if (t0 == COMPLEX || t0 == COMPLEXDBL)                                                                     \
-                         e->Throw("Complex not implemented (GSL limitation). ");
+#define GM_5P0(a)							\
+  e->NParam(a);								\
+									\
+  DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>(0);				\
+  SizeT nElp0 = p0->N_Elements();					\
+									\
+  if (nElp0 == 0)							\
+    throw GDLException(e->CallingNode(), "Variable is undefined: "+e->GetParString(0));	\
+									\
+  DType t0 = e->GetParDefined(0)->Type();				\
+  if (t0 == COMPLEX || t0 == COMPLEXDBL)				\
+    e->Throw("Complex not implemented (GSL limitation). ");
 
-#define GM_5P1()     DDoubleGDL* p1 = e->GetParAs<DDoubleGDL>(1);                                                               \
-                     SizeT nElp1 = p1->N_Elements();                                                                            \
-                                                                                                                                \
-                     if (nElp1 == 0)                                                                                            \
-                         throw GDLException(e->CallingNode(), "Variable is undefined: "+e->GetParString(1));                    \
-                                                                                                                                \
-                     DType t1 = e->GetParDefined(1)->Type();                                                                    \
-                     if (t1 == COMPLEX || t1 == COMPLEXDBL)                                                                     \
-                         e->Throw("Complex not implemented (GSL limitation). ");
+#define GM_5P1()							\
+  DDoubleGDL* p1 = e->GetParAs<DDoubleGDL>(1);				\
+  SizeT nElp1 = p1->N_Elements();					\
+  									\
+  if (nElp1 == 0)							\
+    throw GDLException(e->CallingNode(), "Variable is undefined: "+e->GetParString(1));	\
+  									\
+  DType t1 = e->GetParDefined(1)->Type();				\
+  if (t1 == COMPLEX || t1 == COMPLEXDBL)				\
+    e->Throw("Complex not implemented (GSL limitation). ");
 
-  // Use this macro to define Inf and NaN, number of elements and result in a function with one parameter.
-#define GM_DF1()     static DStructGDL *Values =  SysVar::Values();                                                             \
-                     DDouble d_infinity=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_INFINITY"), 0)))[0]; \
-                     DDouble d_nan=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_NAN"), 0)))[0];           \
-                                                                                                                                \
-                     DDoubleGDL* res = new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);
 
-  // Use this macro to define Inf and NaN, number of elements and result in a function with two parameters.
-#define GM_DF2()     SizeT nElp;                                                                                                \
-                     if (nElp0 == 1)                                                                                            \
-                         nElp = nElp1;                                                                                          \
-                     else if (nElp1 == 1)                                                                                       \
-                         nElp = nElp0;                                                                                          \
-                     else                                                                                                       \
-                         nElp = GM_MIN(nElp0, nElp1);                                                                           \
-                                                                                                                                \
-                     static DStructGDL *Values =  SysVar::Values();                                                             \
-                     DDouble d_infinity=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_INFINITY"), 0)))[0]; \
-                     DDouble d_nan=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_NAN"), 0)))[0];           \
-                                                                                                                                \
-                     DDoubleGDL* res;                                                                                           \
-                     if (nElp0 == 1 && nElp1 == 1)                                                                              \
-                         res = new DDoubleGDL(1, BaseGDL::NOZERO);                                                              \
-                     else if (nElp0 > 1 && nElp1 == 1)                                                                          \
-                         res = new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);                                                      \
-                     else if (nElp0 == 1 && nElp1 > 1)                                                                          \
-                         res = new DDoubleGDL(p1->Dim(), BaseGDL::NOZERO);                                                      \
-                     else if (nElp0 <= nElp1)                                                                                   \
-                         res = new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);
+// Use this macro to define Inf and NaN, number of elements and result in a function with one parameter.
+#define GM_DF1()							\
+  static DStructGDL *Values =  SysVar::Values();			\
+  DDouble d_infinity=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_INFINITY"), 0)))[0]; \
+  DDouble d_nan=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_NAN"), 0)))[0]; \
+  									\
+  DDoubleGDL* res = new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);
+
+// Use this macro to define Inf and NaN, number of elements and result in a function with two parameters.
+#define GM_DF2()							\
+  static DStructGDL *Values =  SysVar::Values();			\
+  DDouble d_infinity=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_INFINITY"), 0)))[0]; \
+  DDouble d_nan=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_NAN"), 0)))[0]; \
+  									\
+  DDoubleGDL* res;							\
+  if (nElp0 == 1 && nElp1 == 1)						\
+    res = new DDoubleGDL(1, BaseGDL::NOZERO);				\
+  else if (nElp0 > 1 && nElp1 == 1)					\
+    res = new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);			\
+  else if (nElp0 == 1 && nElp1 > 1)					\
+    res = new DDoubleGDL(p1->Dim(), BaseGDL::NOZERO);			\
+  else if (nElp0 <= nElp1)						\
+    res = new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);			\
+  else									\
+    res = new DDoubleGDL(p1->Dim(), BaseGDL::NOZERO);			\
+  									\
+  SizeT nElp = res->N_Elements();					\
+  //cout << "nElp0 : " << nElp0 << std::endl;				\
+  //cout << "nElp1 : " << nElp1 << std::endl;				\
+  //cout << "nElp  : " << nElp  << std::endl;
+
 
   // Use this macro to convert result in a function with one parameter.
-#define GM_CV1()     static DInt doubleKWIx = e->KeywordIx("DOUBLE");   \
-                                                                        \
-                     if (t0 != DOUBLE && !e->KeywordSet(doubleKWIx))    \
-                         return res->Convert2(FLOAT, BaseGDL::CONVERT); \
-                     else                                               \
-                         return res;                                    \
-                                                                        \
-                     return new DByteGDL(0);
+#define GM_CV1() \
+  static DInt doubleKWIx = e->KeywordIx("DOUBLE");			\
+  									\
+  if (t0 != DOUBLE && !e->KeywordSet(doubleKWIx))			\
+    return res->Convert2(FLOAT, BaseGDL::CONVERT);			\
+  else									\
+    return res;								\
+  									\
+  return new DByteGDL(0);
 
-  // Use this macro to convert result in a function with two parameters.
-#define GM_CV2()     static DInt doubleKWIx = e->KeywordIx("DOUBLE");                \
-                                                                                     \
-                     if (t0 != DOUBLE && t1 != DOUBLE && !e->KeywordSet(doubleKWIx)) \
-                         return res->Convert2(FLOAT, BaseGDL::CONVERT);              \
-                     else                                                            \
-                         return res;                                                 \
-                                                                                     \
-                     return new DByteGDL(0);
+// Use this macro to convert result in a function with two parameters.
+#define GM_CV2() \
+  static DInt doubleKWIx = e->KeywordIx("DOUBLE");			\
+  									\
+  if (t0 != DOUBLE && t1 != DOUBLE && !e->KeywordSet(doubleKWIx))	\
+    return res->Convert2(FLOAT, BaseGDL::CONVERT);			\
+  else									\
+    return res;								\
+  									\
+  return new DByteGDL(0);
 
 #include "includefirst.hpp"
 #include "initsysvar.hpp"  // Used to define Double Infinity and Double NaN
