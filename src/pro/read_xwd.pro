@@ -1,4 +1,4 @@
-;$Id: read_xwd.pro,v 1.1.1.1 2004-12-09 15:10:19 m_schellens Exp $
+;$Id: read_xwd.pro,v 1.2 2009-07-28 14:25:50 slayoo Exp $
 
 function read_xwd, filename, red, green, blue
 ;+
@@ -62,7 +62,7 @@ function read_xwd, filename, red, green, blue
 mid=magick_open(filename)
 
 print, magick_IndexedColor(mid)
-if(magick_IndexedColor(mid)) thaen begin
+if(magick_IndexedColor(mid)) then begin
     image=magick_readIndexes(mid)
     magick_readcolormapRGB,mid,red,green,blue
 endif else begin
