@@ -73,11 +73,11 @@ nan=!VALUES.F_NAN
 for ii=0,2 do begin
     order=ii
     print, 'Order =', order
-    print, format="(a10, 10(' ',g8.3))", 'x value:', x2
-    print, format="(a10,10(' ',g8.3))", 'BeselI:', BESELI(x2,order)
-    print, format="(a10,10(' ',g8.3))", 'BeselJ:', BESELJ(x2,order)
-    print, format="(a10,10(' ',g8.3))", 'BeselI:', [nan, nan, BESELK(x1,order)]
-    print, format="(a10,10(' ',g8.3))", 'BeselY:', [nan, nan, BESELK(x1,order)]
+    print, format="(a10, 10(' ',g9.3))", 'x value:', x2
+    print, format="(a10,10(' ',g9.3))", 'BeselI:', BESELI(x2,order)
+    print, format="(a10,10(' ',g9.3))", 'BeselJ:', BESELJ(x2,order)
+    print, format="(a10,10(' ',g9.3))", 'BeselK:', [nan, nan, BESELK(x1,order)]
+    print, format="(a10,10(' ',g9.3))", 'BeselY:', [nan, nan, BESELY(x1,order)]
 endfor
 end
 ;
