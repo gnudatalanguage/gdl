@@ -7,6 +7,9 @@
 ; Numerical tests in "extreme" cases
 ; (see improvement between IDL 5.4 and 6.0)
 ;
+; Improved version on 28 July 2009
+; (more cases, non integer numerical cases, managing IDL old version limitations)
+;
 pro TEST_BESEL_J_Y
 
 X = FINDGEN(100)/10
@@ -62,23 +65,71 @@ endelse
 XYOUTS, xcoords, ycoords, labels, /DATA 
 end
 ;
-pro TEST_BESEL_NUMERIC
-print, 'some numerical tests'
+pro TEST_BESEL_NUMERIC, orders=orders, x=x, $
+                        allow_negative=allow_negative, force_positive=force_positive, $
+                        test=test, help=help
 ;
-x1=[1e-39,1e-34,1e-20,1e-14, 0.1, 2., 5.]
-x2=[-1., 0., x1]
-
-nan=!VALUES.F_NAN
-
-for ii=0,2 do begin
-    order=ii
-    print, 'Order =', order
-    print, format="(a10, 10(' ',g9.3))", 'x value:', x2
-    print, format="(a10,10(' ',g9.3))", 'BeselI:', BESELI(x2,order)
-    print, format="(a10,10(' ',g9.3))", 'BeselJ:', BESELJ(x2,order)
-    print, format="(a10,10(' ',g9.3))", 'BeselK:', [nan, nan, BESELK(x1,order)]
-    print, format="(a10,10(' ',g9.3))", 'BeselY:', [nan, nan, BESELY(x1,order)]
+if KEYWORD_SET(help) then begin
+   print, 'pro TEST_BESEL_NUMERIC, orders=orders, x=x, $'
+   print, '                        allow_negative=allow_negative, force_positive=force_positive, $'
+   print, '                        test=test, help=help'
+   return
+endif
+;
+print, 'some numerical tests on Besel Family, used: TEST_BESEL_NUMERIC, /Help for info'
+;
+if (N_ELEMENTS(orders) EQ 0) then begin
+   orders=[0,1,2]
+   print, 'default ORDERS used ... can be changed with Orders='
+endif
+;
+if (N_ELEMENTS(x) EQ 0) then begin
+   print, 'default X values used ... can be changed with X='
+   x1=[1e-39,1e-34,1e-20,1e-14, 0.1, 2., 5.]
+   x2=[-1., 0., x1]
+endif else begin
+   x2=x
+endelse
+;
+DEFSYSV, '!gdl', exists=is_it_gdl
+if (is_it_gdl EQ 0) then begin
+   ;; no IDL 6.1 here to check if the change occurs in 6.1
+   ;; for 6.2 and later, negative values are OK ...
+   ;; Tested on 5.5, 6.0, 6.1, 6.2 and 7.1 : only 6.0 affected
+   if (!version.release EQ '6.0') then begin
+      print, 'Warning: some IDL old versions don''t use negatives values in X'
+      print, 'This option can be desactivated using /Force_Negative'
+      if NOT(KEYWORD_SET(allow_negative)) then begin
+          ok=WHERE(x2 GT 0, nbpOK)
+          if (nbpOK GT 0) then x2=x2[ok] else return
+      endif
+   endif
+endif
+;
+; we need to prepare "xpos" array without Neg values for BeselK and BeselY
+xpos=x2
+pb=WHERE(x2 LT 0, nbpPB)
+if (nbpPB GT 0) then xpos[pb]=0.0
+;
+; for BeselI and other, if N not integer, X must be positive ...
+if KEYWORD_SET(force_positive) then begin
+    x2=xpos
+endif
+;
+for ii=0, N_ELEMENTS(orders)-1 do begin
+   order=orders[ii]
+   print, 'Order =', order
+   print, format="(a10, 10(' ',g9.3))", 'x value:', x2
+   print, format="(a10,10(' ',g9.3))", 'BeselI:', BESELI(x2,order)
+   print, format="(a10,10(' ',g9.3))", 'BeselJ:', BESELJ(x2,order)
+   print, format="(a10,10(' ',g9.3))", 'BeselK:', BESELK(xpos,order)
+   print, format="(a10,10(' ',g9.3))", 'BeselY:', BESELY(xpos,order)
 endfor
+;
+print, 'Please remember that BESELK and BESELY can not be called with Neg. Values --> 0., NaN or Inf'
+;
+if KEYWORD_SET(test) then STOP
+;
 end
 ;
 pro TEST_BESEL
@@ -89,9 +140,5 @@ TEST_BESEL_I_K
 TEST_BESEL_J_Y
 !p.multi=0
 TEST_BESEL_NUMERIC
-;
-print, ''
-print, 'Please remember that GDL does not support now non integer order'
-print, 'If you have suggestion, please contact us'
 ;
 end

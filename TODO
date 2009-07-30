@@ -1,5 +1,5 @@
 
-Last update by Alain on 10 February 2009
+Last update by Alain on 30 July 2009
 Updated by Alain on 28 March 2008
 
 This file contains:
@@ -10,7 +10,7 @@ This file contains:
 -- a ToDo list of incomplete Functions and Procedures, missing keywords and
     limited/buggy functionnalities in existing func/pro
 -- some comments
-
+-- a DONE list containing info for future troubles/needs
 
 ToDo list of missing commands (not exhaustive, most requested)
 
@@ -73,17 +73,6 @@ Difficulty: may be impossible with plplot lib!
 Contact: Joel or Alain
 Comments: 
 
-* BESELI/BESELJ/BESELK
-Category: numeric
-Langage: C++ (in math_fun_ac.cpp)
-Difficulty: unknow.
-Contact: Alain
-Comments: 1/ some details need to be fix when the arrays
-are not commensurable. It is highly probable that other
-functions do suffer from the same problems. Some have been
-corrected (the GAMMA/BETA family) and can be used as template.
-2/ since mid-2008 (?) GSL does include non integer Besel functions ...
-
 * TVRD : keyword !order
 Category: display
 Langage: C++ (in devicex.hpp)
@@ -134,3 +123,22 @@ Comments: the last exceptions shjould have been cleaned (input size,
 no-square matrix, string conversion should work).
 Very easy but could be time consuming if extensive tests.
 See currents tests in testsuite/test_invert_matrix.pro
+
+DONE and revisited
+
+* BESELI/BESELJ/BESELK
+Category: numeric
+Langage: C++ (in math_fun_ac.cpp)
+Difficulty: unknow.
+Contact: Alain
+Comments: 1/ some details need to be fix when the arrays
+are not commensurable. It is highly probable that other
+functions do suffer from the same problems. Some have been
+corrected (the GAMMA/BETA family) and can be used as template.
+2/ since mid-2008 (?) GSL does include non integer Besel functions ...
+
+The Besel family has been revisted during summer 2009.
+Non integer orders have been added. Boundaries tests should be OK.
+Clean processing of input arrays dimensionning was take into account,
+with consequence on other functions like VOIGT, BETA ...
+(see examples in testsuite/test_MathFunctionsDim.pro and also bugs in IDL)

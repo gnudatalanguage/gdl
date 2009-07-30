@@ -18,24 +18,119 @@
 
 /*
 
-using the Besel functions provided by GSL
+  using the Besel functions provided by GSL
  
-http://www.physics.ohio-state.edu/~ntg/780/gsl_examples/J0_test.cpp
-http://www.gnu.org/software/gsl/manual/html_node/Bessel-Functions.html
+  http://www.physics.ohio-state.edu/~ntg/780/gsl_examples/J0_test.cpp
+  http://www.gnu.org/software/gsl/manual/html_node/Bessel-Functions.html
 
------------------------ Warning -------------
+  ----------------------- Warning -------------
 
-As is on 20/April/2007: Warning : GSL allows only INTEGER type for order 
+  (obsolete) As is on 20/April/2007: Warning : GSL allows only INTEGER type for order 
+  Thibaut contributes to extend to REAL in July 2009
 
------------------------ Warning -------------
+  Important information: since bad formating issue in IDL
+  (only first field in BESEL*([1], [1,2,3.]) is OK, doc said IDL must return a [1elem] array
+  but return a [3elem] (see converse case BESELI( [1,2,3.], [1])))
+  WE decided to follow IDL but to compute all the cases ...
 
-Since functions are clones derivated from the first one,
-please propagates bugs' correction and improvments.
-Don't know how to symplified :-(
+  Note on 28/July/2009: when called with only X elements in IDL, Besel*
+  functions are computed with implicit N==0, we don't follow this undocumented feature ...
 
------------------------ Warning -------------
+  ----------------------- Warning -------------
+
+  Since functions are clones derivated from the first one,
+  please propagates bugs' correction and improvments.
+  Don't know how to symplified :-(
+
+  ----------------------- Warning -------------
+
+  some codes here (macro) are common with "math_fun_gm.cpp" and "math_fun_ng.cpp"
 
 */
+
+#define GM_EPS   1.0e-6
+#define GM_ITER  50
+#define GM_TINY  1.0e-18
+
+#define GM_MIN(a, b) ((a) < (b) ? (a) : (b))
+
+#define GM_5P0(a)							\
+  e->NParam(a);								\
+  									\
+  DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>(0);				\
+  SizeT nElp0 = p0->N_Elements();					\
+  if (nElp0 == 0)							\
+    throw GDLException(e->CallingNode(), "Variable is undefined: "+e->GetParString(0));	\
+  									\
+  DType t0 = e->GetParDefined(0)->Type();				\
+  //if (t0 == COMPLEX || t0 == COMPLEXDBL)				\
+  //  e->Throw("Complex not implemented (GSL limitation). ");
+
+#define AC_2P1()							\
+  SizeT nElp1;								\
+  DIntGDL* p1;								\
+  DFloatGDL* p1_float;							\
+  DType t1;								\
+									\
+  if  (e->NParam() == 1)						\
+    {									\
+      p1 = new DIntGDL(1, BaseGDL::NOZERO);				\
+      (*p1)[0]=0;							\
+      nElp1=1;								\
+      t1 = INT;								\
+      p1_float = new DFloatGDL(1, BaseGDL::NOZERO);			\
+      (*p1_float)[0]=0.000;						\
+    }									\
+  else									\
+    {									\
+      p1 = e->GetParAs<DIntGDL>(1);					\
+      nElp1 = p1->N_Elements();						\
+      t1 = e->GetParDefined(1)->Type();					\
+      p1_float = e->GetParAs<DFloatGDL>(1);				\
+    }									\
+									\
+  const double dzero = 0.0000000000000000000 ;				\
+									\
+  //    throw GDLException(e->CallingNode(), "Variable is undefined: "+e->GetParString(1)); \
+  									\
+//  DType t1 = e->GetParDefined(1)->Type();				\
+  //  if (t1 == COMPLEX || t1 == COMPLEXDBL)				\
+  // e->Throw("Complex not implemented (GSL limitation). ");
+
+#define GM_DF2()							\
+  									\
+  DDoubleGDL* res;							\
+  if (nElp0 == 1 && nElp1 == 1)						\
+    res = new DDoubleGDL(1, BaseGDL::NOZERO);				\
+  else if (nElp0 > 1 && nElp1 == 1)					\
+    res = new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);			\
+  else if (nElp0 == 1 && nElp1 > 1)					\
+    res = new DDoubleGDL(p1->Dim(), BaseGDL::NOZERO);			\
+  else if (nElp0 <= nElp1)						\
+    res = new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);			\
+  else									\
+    res = new DDoubleGDL(p1->Dim(), BaseGDL::NOZERO);			\
+  									\
+  SizeT nElp = res->N_Elements();					\
+
+#define GM_CV1()					\
+  static DInt doubleKWIx = e->KeywordIx("DOUBLE");	\
+							\
+  if (t0 != DOUBLE && !e->KeywordSet(doubleKWIx))	\
+    return res->Convert2(FLOAT, BaseGDL::CONVERT);	\
+  else							\
+    return res;						\
+							\
+  return new DByteGDL(0);
+
+#define GM_CC1()						\
+  static DInt coefKWIx = e->KeywordIx("ITER");			\
+  if(e->KeywordPresent(coefKWIx))				\
+    {								\
+      cout << "ITER keyword not used, always return -1)" << endl;	\
+      e->SetKW( coefKWIx, new DLongGDL( -1));			\
+    }
+
 
 #include "includefirst.hpp"
 
@@ -48,131 +143,140 @@ namespace lib {
 
   BaseGDL* beseli_fun(EnvT* e)
   {
+    GM_5P0(1);
+    AC_2P1();
+    GM_DF2();
 
-    // Status 20/04/2007 : X array, N array. Type of N can be only Integer (GSL limit)
-
-    // It is the "matrix"  of following clone below:  beselj_fun, beselk_fun and besely_fun
-    // if a bug founded, please propage corrections
-
-    SizeT nParam = e->NParam(2);
-  
-    // "X" input value or array 
-    DDoubleGDL* xvals = e->GetParAs<DDoubleGDL>(0);
-    if(e->GetParDefined(0)->Type() == COMPLEX || e->GetParDefined(0)->Type() == COMPLEXDBL)
-      e->Throw("Complex BeselI not implemented: ");
-    SizeT nEx = xvals->N_Elements();
-  
-    // "N order" array this field can be an array ...
-    // only integer available in GSL for N ...
-    //DDoubleGDL* nvals = e->GetParAs<DDoubleGDL>(1);
-    DIntGDL* nvals = e->GetParAs<DIntGDL>(1);
-    SizeT nEn = nvals->N_Elements();
-    
     SizeT count;
 
+    // GSL Limitation for X : must be lower than ~708
+    for (count = 0;count<nElp0;++count)
+	  if ((*p0)[count] > 708.)
+	    e->Throw("Value of X is out of allowed range.");
+
     // we need to check if N values (array) are Integer or not
-    DFloatGDL* nvals_float = e->GetParAs<DFloatGDL>(1);
-    for (count = 0;count<nEn;++count) {
-      if (abs((*nvals_float)[count]-(float)(*nvals)[count]) > 0.000001) // don't know if a "machar" value exists
-	e->Throw("Only Integer value of N allowed (GSL limitation).");
-    }
-   
-    // what is the maximal size of the output ?
-    // when N is an array, we have to return shortest of (x,N)
-    SizeT nEmax;
-    nEmax = (nEx < nEn)? nEx: nEn ;
-    // when N is a single number, we have to return array of length (x)
-    if (nEn ==1 ) nEmax=nEx;
-    DDoubleGDL* res = new DDoubleGDL(nEmax,BaseGDL::NOZERO);
-
-    if (nEn > 1) {
-      for (count = 0;count<nEmax;++count)
-	(*res)[count] = gsl_sf_bessel_In((*nvals)[count],(*xvals)[count]);
-    } else {
-      for (count = 0;count<nEx;++count)
-	(*res)[count] = gsl_sf_bessel_In((*nvals)[0],(*xvals)[count]);
-    }
+    int test=0;
     
-    static DInt coefKWIx = e->KeywordIx("ITER");
-    //if ITER present, not used (return -1)
-    if(e->KeywordPresent(coefKWIx)) {
-      cout << "ITER keyword not used, always return -1)";
-      e->SetKW( coefKWIx, new DLongGDL( -1));
-//       coefKWIx = -1 ;
-    }
-
-    static DInt doubleKWIx = e->KeywordIx("DOUBLE");
-    //if need, convert things back
-    if(e->GetParDefined(0)->Type() != DOUBLE && !e->KeywordSet(doubleKWIx))
-      return res->Convert2(FLOAT,BaseGDL::CONVERT);
+    for (count = 0;count<nElp1;++count)
+      if (abs((*p1_float)[count]-(float)(*p1)[count]) > 0.000001) // don't know if a "machar" value exists
+	test=1;
+	
+    if (test==0)
+      {
+	if(nElp0==1)
+	  {
+	    for (count = 0;count<nElp;++count)
+	      (*res)[count] = gsl_sf_bessel_In((*p1)[count],(*p0)[0]);
+	  }
+	else if(nElp1==1)
+	  {
+	    for (count = 0;count<nElp;++count)
+	      (*res)[count] = gsl_sf_bessel_In((*p1)[0],(*p0)[count]);
+	  }
+	else
+	  {
+	    for (count = 0;count<nElp;++count)
+	      (*res)[count] = gsl_sf_bessel_In((*p1)[count],(*p0)[count]);
+	  }
+      }
     else
-      return res;
-  
-    return new DByteGDL(0);
+      {
+	// we need to check if X values (array) are positives
+	for (count = 0;count<nElp0;++count)
+	  if ((*p0)[count] < dzero) // don't know if a "machar" value exists
+	    e->Throw("Value of X is out of allowed range (Only positive values when N is non integer).");
+
+	// we need to check if N values (array) are positives
+	for (count = 0;count<nElp1;++count)
+	  if ((*p1)[count] < dzero) // don't know if a "machar" value exists
+	    e->Throw("Value of N is out of allowed range (Only positive values when N is non integer).");
+
+	if(nElp0==1)
+	  {
+	    for (count = 0;count<nElp;++count)
+	      (*res)[count] = gsl_sf_bessel_Inu((*p1_float)[count],(*p0)[0]);
+	  }
+	else if(nElp1==1)
+	  {
+	    for (count = 0;count<nElp;++count)
+	      (*res)[count] = gsl_sf_bessel_Inu((*p1_float)[0],(*p0)[count]);
+	  }
+	else
+	  {
+	    for (count = 0;count<nElp;++count)
+	      (*res)[count] = gsl_sf_bessel_Inu((*p1_float)[count],(*p0)[count]);
+	  }
+      }
+    GM_CC1();
+    GM_CV1();
   }
+
 
   BaseGDL* beselj_fun(EnvT* e)
   {
+    GM_5P0(1);
+    AC_2P1();
+    GM_DF2();
 
-    // Status 20/04/2007 : X array, N array. Type of N can be only Integer (GSL limit)
-
-    // It is a clone of  beseli_fun, if a bug founded, please propage corrections
-
-    SizeT nParam = e->NParam(2);
-    
-    // "X" input value or array 
-    DDoubleGDL* xvals = e->GetParAs<DDoubleGDL>(0);
-    if(e->GetParDefined(0)->Type() == COMPLEX || e->GetParDefined(0)->Type() == COMPLEXDBL)
-      e->Throw("Complex BeselJ not implemented: ");
-    SizeT nEx = xvals->N_Elements();
-  
-    // "N order" array this field can be an array ...
-    // only integer available in GSL for N ...
-    //DDoubleGDL* nvals = e->GetParAs<DDoubleGDL>(1);
-    DIntGDL* nvals = e->GetParAs<DIntGDL>(1);
-    SizeT nEn = nvals->N_Elements();
-    
     SizeT count;
 
     // we need to check if N values (array) are Integer or not
-    DFloatGDL* nvals_float = e->GetParAs<DFloatGDL>(1);
-    for (count = 0;count<nEn;++count) {
-      if (abs((*nvals_float)[count]-(float)(*nvals)[count]) > 0.000001) // don't know if a "machar" value exists
-	e->Throw("Only Integer value of N allowed (GSL limitation).");
-    }
-   
-    // what is the maximal size of the output ?
-    // when N is an array, we have to return shortest of (x,N)
-    SizeT nEmax;
-    nEmax = (nEx < nEn)? nEx: nEn ;
-    // when N is a single number, we have to return array of length (x)
-    if (nEn ==1 ) nEmax=nEx;
-    DDoubleGDL* res = new DDoubleGDL(nEmax,BaseGDL::NOZERO);
-
-    if (nEn > 1) {
-      for (count = 0;count<nEmax;++count)
-	(*res)[count] = gsl_sf_bessel_Jn((*nvals)[count],(*xvals)[count]);
-    } else {
-      for (count = 0;count<nEx;++count)
-	(*res)[count] = gsl_sf_bessel_Jn((*nvals)[0],(*xvals)[count]);
-    }
+    int test=0;
     
-    static DInt coefKWIx = e->KeywordIx("ITER");
-    //if ITER present, not used (return -1)
-    if(e->KeywordPresent(coefKWIx)) {
-      cout << "ITER keyword not used, always return -1)";
-      e->SetKW( coefKWIx, new DLongGDL( -1));
-//       coefKWIx = -1 ;
-    }
+    for (count = 0;count<nElp1;++count)
+      if (abs((*p1_float)[count]-(float)(*p1)[count]) > 0.000001) // don't know if a "machar" value exists
+	test=1;
 
-    static DInt doubleKWIx = e->KeywordIx("DOUBLE");
-    //if need, convert things back
-    if(e->GetParDefined(0)->Type() != DOUBLE && !e->KeywordSet(doubleKWIx))
-      return res->Convert2(FLOAT,BaseGDL::CONVERT);
+    if (test==0)
+      {
+	if(nElp0==1)
+	  {
+	    for (count = 0;count<nElp;++count)
+	      (*res)[count] = gsl_sf_bessel_Jn((*p1)[count],(*p0)[0]);
+	  }
+	else if(nElp1==1)
+	  {
+	    for (count = 0;count<nElp;++count)
+	      (*res)[count] = gsl_sf_bessel_Jn((*p1)[0],(*p0)[count]);
+	  }
+	else
+	  {
+	    for (count = 0;count<nElp;++count)
+	      (*res)[count] = gsl_sf_bessel_Jn((*p1)[count],(*p0)[count]);
+	  }
+      }
     else
-      return res;
-  
-    return new DByteGDL(0);
+      {
+	// we need to check if X values (array) are positives
+	for (count = 0;count<nElp0;++count)
+	  if ((*p0)[count] < dzero) // don't know if a "machar" value exists
+	    e->Throw("Value of X is out of allowed range (Only positive values when N is non integer).");
+
+	// we need to check if N values (array) are positives
+	for (count = 0;count<nElp1;++count)
+	  if ((*p1)[count] < dzero) // don't know if a "machar" value exists
+	    e->Throw("Value of N is out of allowed range (Only positive values when N is non integer).");
+
+	if(nElp0==1)
+	  {
+	    for (count = 0;count<nElp;++count)
+	      (*res)[count] = gsl_sf_bessel_Jnu((*p1_float)[count],(*p0)[0]);
+	  }
+
+	else if(nElp1==1)
+	  {
+	    for (count = 0;count<nElp;++count)
+	      (*res)[count] = gsl_sf_bessel_Jnu((*p1_float)[0],(*p0)[count]);
+	  }
+
+	else
+	  {
+	    for (count = 0;count<nElp;++count)
+	      (*res)[count] = gsl_sf_bessel_Jnu((*p1_float)[count],(*p0)[count]);
+	  }
+      }
+    GM_CC1();
+    GM_CV1();
   }
 
   // very preliminary version:
@@ -182,162 +286,186 @@ namespace lib {
 
   BaseGDL* beselk_fun(EnvT* e)
   {
-    SizeT nParam = e->NParam(2);
-    SizeT count;
-    const double dzero = 0.0000000000000000000 ;
-  
-    // "X" input value or array 
-    DDoubleGDL* xvals = e->GetParAs<DDoubleGDL>(0);
-    if(e->GetParDefined(0)->Type() == COMPLEX || e->GetParDefined(0)->Type() == COMPLEXDBL)
-      e->Throw("Complex BeselK not implemented: ");
-    SizeT nEx = xvals->N_Elements();
+    GM_5P0(1);
+    AC_2P1();
+    GM_DF2();
 
-    // we need to check if X values (array) are positives
-    for (count = 0;count<nEx;++count) {
-      if ((*xvals)[count] < dzero) // don't know if a "machar" value exists
-	e->Throw("Value of X is out of allowed range (Only positive values).");
-    }
-  
-    // "N order" array this field can be an array ...
-    // only integer available in GSL for N ...
-    //DDoubleGDL* nvals = e->GetParAs<DDoubleGDL>(1);
-    DIntGDL* nvals = e->GetParAs<DIntGDL>(1);
-    SizeT nEn = nvals->N_Elements();
-    
     // we need to check if N values (array) are Integer or not
-    DFloatGDL* nvals_float = e->GetParAs<DFloatGDL>(1);
-    for (count = 0;count<nEn;++count) {
-      if (abs((*nvals_float)[count]-(float)(*nvals)[count]) > 0.000001) // don't know if a "machar" value exists
-	e->Throw("Only Integer value of N allowed (GSL limitation).");
-    }
-   
-    // what is the maximal size of the output ?
-    // when N is an array, we have to return shortest of (x,N)
-    SizeT nEmax;
-    nEmax = (nEx < nEn)? nEx: nEn ;
-    // when N is a single number, we have to return array of length (x)
-    if (nEn ==1 ) nEmax=nEx;
-    DDoubleGDL* res = new DDoubleGDL(nEmax,BaseGDL::NOZERO);
+    SizeT count;
 
-    // when X value is below ~1e-20 --> return -Inf (we use log(0.) which gives -Inf)
-    const double smallVal = 1e-38 ;
-
-    if (nEn > 1) {
-      for (count = 0;count<nEmax;++count)
-	if (abs((*xvals)[count]) < smallVal) {
-	  (*res)[count] =log(dzero) ;
-	} else {
-	  (*res)[count] = gsl_sf_bessel_Kn((*nvals)[count],(*xvals)[count]);
-	}
-    } else {
-      for (count = 0; count<nEmax;++count)
-      	if (abs((*xvals)[count]) < smallVal) {
-	  (*res)[count] =log(dzero) ;
-	} else {
-	  (*res)[count] = gsl_sf_bessel_Kn((*nvals)[0],(*xvals)[count]);
-	}
-    }
+    // do we have negative numbers ?
+    for (count = 0;count<nElp0;++count)
+      if ((*p0)[count] < dzero) // don't know if a "machar" value exists
+        e->Throw("Value of X is out of allowed range (Only positive values).");
     
-    static DInt coefKWIx = e->KeywordIx("ITER");
-    //if ITER present, not used (return -1)
-    if(e->KeywordPresent(coefKWIx)) {
-      cout << "ITER keyword not used, always return -1)";
-      e->SetKW( coefKWIx, new DLongGDL( -1));
-//       coefKWIx = -1 ;
-    }
+    int test=0;
+    
+    for (count = 0;count<nElp1;++count)
+      if (abs((*p1_float)[count]-(float)(*p1)[count]) > 0.000001) // don't know if a "machar" value exists
+	test=1;
 
-    static DInt doubleKWIx = e->KeywordIx("DOUBLE");
-    //if need, convert things back
-    if(e->GetParDefined(0)->Type() != DOUBLE && !e->KeywordSet(doubleKWIx))
-      return res->Convert2(FLOAT,BaseGDL::CONVERT);
+    if (test==0)
+      {
+	// when X value is below ~1e-20 --> return -Inf (we use log(0.) which gives -Inf)
+	const double smallVal = 1e-38 ;
+
+	if(nElp0==1)
+	  {
+	    for (count = 0;count<nElp;++count)
+	      if (abs((*p0)[0]) < smallVal)
+		(*res)[count] =log(dzero) ;
+	      else
+		(*res)[count] = gsl_sf_bessel_Kn((*p1)[count],(*p0)[0]);
+	  }
+	else if(nElp1==1)
+	  {
+	    for (count = 0;count<nElp;++count)
+	      if (abs((*p0)[count]) < smallVal)
+		(*res)[count] =log(dzero) ;
+	      else
+		(*res)[count] = gsl_sf_bessel_Kn((*p1)[0],(*p0)[count]);
+	  }
+	else
+	  {
+	    for (count = 0;count<nElp;++count)
+	      if (abs((*p0)[count]) < smallVal)
+		(*res)[count] =log(dzero) ;
+	      else
+		(*res)[count] = gsl_sf_bessel_Kn((*p1)[count],(*p0)[count]);
+	  }
+      }
     else
-      return res;
-  
-    return new DByteGDL(0);
+      {
+	// we need to check if N values (array) are positives
+	for (count = 0;count<nElp1;++count)
+	  if ((*p1)[count] < dzero) // don't know if a "machar" value exists
+	    e->Throw("Value of N is out of allowed range (Only positive values when N is non integer).");
+
+	// when X value is below ~1e-20 --> return -Inf (we use log(0.) which gives -Inf)
+	const double smallVal = 1e-38 ;
+
+	if(nElp0==1)
+	  {
+	    for (count = 0;count<nElp;++count)
+	      if (abs((*p0)[0]) < smallVal)
+		(*res)[count] =log(dzero) ;
+	      else
+		(*res)[count] = gsl_sf_bessel_Knu((*p1_float)[count],(*p0)[0]);
+	  }
+	else if(nElp1==1)
+	  {
+	    for (count = 0;count<nElp;++count)
+	      if (abs((*p0)[count]) < smallVal)
+		(*res)[count] =log(dzero) ;
+	      else
+		(*res)[count] = gsl_sf_bessel_Knu((*p1_float)[0],(*p0)[count]);
+	  }
+	else
+	  {
+	    for (count = 0;count<nElp;++count)
+	      if (abs((*p0)[count]) < smallVal)
+		(*res)[count] =log(dzero) ;
+	      else
+		(*res)[count] = gsl_sf_bessel_Knu((*p1_float)[count],(*p0)[count]);
+	  }
+      }
+    GM_CC1();
+    GM_CV1();
   }
-
-
+  
+  
   // very preliminary version:
   // should not work when N LT 0
   // should return Inf at x==0
   // should not work for x LT 0
     
   BaseGDL* besely_fun(EnvT* e)
-  {  
-    SizeT nParam = e->NParam(2);
-    SizeT count;
-    const double dzero = 0.0000000000000000000 ;
-  
-    // "X" input value or array 
-    DDoubleGDL* xvals = e->GetParAs<DDoubleGDL>(0);
-    if(e->GetParDefined(0)->Type() == COMPLEX || e->GetParDefined(0)->Type() == COMPLEXDBL)
-      e->Throw("Complex BeselY not implemented: ");
-    SizeT nEx = xvals->N_Elements();
+  { 
+    GM_5P0(1);
+    AC_2P1();
+    GM_DF2();
 
-    // we need to check if X values (array) are positives
-    for (count = 0;count<nEx;++count) {
-      if ((*xvals)[count] < dzero) // don't know if a "machar" value exists
-	e->Throw("Value of X is out of allowed range (Only positive values).");
-    }
-  
-    // "N order" array this field can be an array ...
-    // only integer available in GSL for N ...
-    //DDoubleGDL* nvals = e->GetParAs<DDoubleGDL>(1);
-    DIntGDL* nvals = e->GetParAs<DIntGDL>(1);
-    SizeT nEn = nvals->N_Elements();
-    
     // we need to check if N values (array) are Integer or not
-    DFloatGDL* nvals_float = e->GetParAs<DFloatGDL>(1);
-    for (count = 0;count<nEn;++count) {
-      if (abs((*nvals_float)[count]-(float)(*nvals)[count]) > 0.000001) // don't know if a "machar" value exists
-	e->Throw("Only Integer value of N allowed (GSL limitation).");
-    }
-   
-    // what is the maximal size of the output ?
-    // when N is an array, we have to return shortest of (x,N)
-    SizeT nEmax;
-    nEmax = (nEx < nEn)? nEx: nEn ;
-    // when N is a single number, we have to return array of length (x)
-    if (nEn ==1 ) nEmax=nEx;
-    DDoubleGDL* res = new DDoubleGDL(nEmax,BaseGDL::NOZERO);
+    SizeT count;
+    // do we have negative numbers ?
+    for (count = 0;count<nElp0;++count)
+      if ((*p0)[count] < dzero) // don't know if a "machar" value exists
+        e->Throw("Value of X is out of allowed range (Only positive values).");
 
-    // when X value is below ~1e-20 --> return -Inf (we use log(0.) which gives -Inf)
-    const double smallVal = 1e-38 ;
-
-    if (nEn > 1) {
-      for (count = 0;count<nEmax;++count)
-	if (abs((*xvals)[count]) < smallVal) {
-	  (*res)[count] =log(dzero) ;
-	} else {
-	  (*res)[count] = gsl_sf_bessel_Yn((*nvals)[count],(*xvals)[count]);
-	}
-    } else {
-      for (count = 0; count<nEmax;++count)
-      	if (abs((*xvals)[count]) < smallVal) {
-	  (*res)[count] =log(dzero) ;
-	} else {
-	  (*res)[count] = gsl_sf_bessel_Yn((*nvals)[0],(*xvals)[count]);
-	}
-    }
+    int test=0;
     
-    static DInt coefKWIx = e->KeywordIx("ITER");
-    //if ITER present, not used (return -1)
-    if(e->KeywordPresent(coefKWIx)) {
-      cout << "ITER keyword not used, always return -1)";
-      e->SetKW( coefKWIx, new DLongGDL( -1));
-//       coefKWIx = -1 ;
-    }
+    for (count = 0;count<nElp1;++count)
+      if (abs((*p1_float)[count]-(float)(*p1)[count]) > 0.000001) // don't know if a "machar" value exists
+	test=1;
 
-    static DInt doubleKWIx = e->KeywordIx("DOUBLE");
-    //if need, convert things back
-    if(e->GetParDefined(0)->Type() != DOUBLE && !e->KeywordSet(doubleKWIx))
-      return res->Convert2(FLOAT,BaseGDL::CONVERT);
+    if (test==0)
+      {
+	// when X value is below ~1e-20 --> return -Inf (we use log(0.) which gives -Inf)
+	const double smallVal = 1e-38 ;
+
+	if(nElp0==1)
+	  {
+	    for (count = 0;count<nElp;++count)
+	      if (abs((*p0)[0]) < smallVal)
+		(*res)[count] =log(dzero) ;
+	      else
+		(*res)[count] = gsl_sf_bessel_Yn((*p1)[count],(*p0)[0]);
+	  }
+	else if(nElp1==1)
+	  {
+	    for (count = 0;count<nElp;++count)
+	      if (abs((*p0)[count]) < smallVal)
+		(*res)[count] =log(dzero) ;
+	      else
+		(*res)[count] = gsl_sf_bessel_Yn((*p1)[0],(*p0)[count]);
+	  }
+	else
+	  {
+	    for (count = 0;count<nElp;++count)
+	      if (abs((*p0)[count]) < smallVal)
+		(*res)[count] =log(dzero) ;
+	      else
+		(*res)[count] = gsl_sf_bessel_Yn((*p1)[count],(*p0)[count]);
+	  }
+      }
     else
-      return res;
-  
-    return new DByteGDL(0);
-}
+      {
+	// we need to check if N values (array) are positives
+	for (count = 0;count<nElp1;++count)
+	  if ((*p1)[count] < dzero) // don't know if a "machar" value exists
+	    e->Throw("Value of N is out of allowed range (Only positive values when N is non integer).");
 
+	// when X value is below ~1e-20 --> return -Inf (we use log(0.) which gives -Inf)
+	const double smallVal = 1e-38 ;
+
+	if(nElp0==1)
+	  {
+	    for (count = 0;count<nElp;++count)
+	      if (abs((*p0)[0]) < smallVal)
+		(*res)[count] =log(dzero) ;
+	      else
+		(*res)[count] = gsl_sf_bessel_Ynu((*p1_float)[count],(*p0)[0]);
+	  }
+	else if(nElp1==1)
+	  {
+	    for (count = 0;count<nElp;++count)
+	      if (abs((*p0)[count]) < smallVal)
+		(*res)[count] =log(dzero) ;
+	      else
+		(*res)[count] = gsl_sf_bessel_Ynu((*p1_float)[0],(*p0)[count]);
+	  }
+	else
+	  {
+	    for (count = 0;count<nElp;++count)
+	      if (abs((*p0)[count]) < smallVal)
+		(*res)[count] =log(dzero) ;
+	      else
+		(*res)[count] = gsl_sf_bessel_Ynu((*p1_float)[count],(*p0)[count]);
+	  }
+      }
+    GM_CC1();
+    GM_CV1();
+  }
 
 } // namespace
 

@@ -40,7 +40,7 @@ TVSCL, data
 end
 ; -------------------------------------
 ;
-pro TEST_TV
+pro TEST_TV, noclose=noclose, test=test
 ;
 xdim=350
 ydim=100
@@ -61,10 +61,12 @@ MY_WINDOW, 4, REFORM(b2)
 MY_WINDOW, 5, b3
 MY_WINDOW, 6, REFORM(b3)
 ;
-rep=''
-read, 'press any key to finish (and closing all windows)', rep
-;
-wdelete, 0, 1, 2, 3, 4, 5, 6
+if NOT(KEYWORD_SET(noclose)) then begin
+   rep=''
+   READ, 'press any key to finish (and closing all windows)', rep
+   ;;
+   WDELETE, 0, 1, 2, 3, 4, 5, 6
+endif
 ;
 if KEYWORD_SET(test) then STOP
 ;
