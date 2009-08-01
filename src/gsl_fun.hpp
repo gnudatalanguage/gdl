@@ -49,6 +49,8 @@ namespace lib {
   void inplacemxradixfft(double a[], double b[], 
 			 int ntot, int n, int nspan, int isn);
 
+  BaseGDL* newton_broyden(EnvT* e);
+
 } // namespace
 
 #endif

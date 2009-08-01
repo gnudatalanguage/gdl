@@ -726,7 +726,15 @@ void LibInit()
 
   new DLibFun(lib::t_pdf,string("T_PDF"),2);
 
-  new DLibPro(lib::caldat, string("CALDAT"),7);
+  new DLibPro(lib::caldat, string("CALDAT"), 7);
+
+  const string newtonKey[] = {"DOUBLE", "ITMAX", "TOLF", "TOLX", KLISTEND };
+  const string newtonWarnKey[] = {"CHECK", "STEPMAX", "TOLMIN", KLISTEND};
+  new DLibFun(lib::newton_broyden, string("NEWTON"), 2, newtonKey, newtonWarnKey);
+
+  const string broydenKey[] = {"DOUBLE", "ITMAX", "TOLF", "TOLX", KLISTEND };
+  const string broydenWarnKey[] = {"CHECK", "EPS", "STEPMAX", "TOLMIN", KLISTEND};
+  new DLibFun(lib::newton_broyden, string("BROYDEN"), 2, broydenKey, broydenWarnKey);
 
   // sort lists
   sort( libFunList.begin(), libFunList.end(), CompLibFunName());

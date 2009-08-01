@@ -24,6 +24,7 @@
 #include "envt.hpp"
 #include "basic_fun.hpp"
 #include "gsl_fun.hpp"
+#include "dinterpreter.hpp"
 
 #include <gsl/gsl_sys.h>
 #include <gsl/gsl_linalg.h>
@@ -38,10 +39,10 @@
 #include <gsl/gsl_histogram.h>
 #include <gsl/gsl_interp.h>
 #include <gsl/gsl_spline.h>
-
+#include <gsl/gsl_multiroots.h>
+#include <gsl/gsl_vector.h>
 
 #define LOG10E 0.434294
-
 
 namespace lib {
 
@@ -2083,6 +2084,191 @@ namespace lib {
 	DFloatGDL* res = static_cast<DFloatGDL*>
 	  (p0->Convert2( FLOAT, BaseGDL::COPY));
       }
+  }
+
+  // gsl_multiroot_function-compatible function serving as a wrapper to the 
+  // user-defined function passed (by name) as the second arg. to NEWTON or BROYDEN
+  class n_b_param 
+  { 
+    public: 
+    EnvT* envt; 
+    EnvUDT* nenvt; 
+    DDoubleGDL* arg; 
+    string errmsg; 
+  };
+  int n_b_function(const gsl_vector* x, void* params, gsl_vector* f)
+  {
+    n_b_param *p = static_cast<n_b_param*>(params);
+    // copying from GSL to GDL
+    for (size_t i = 0; i < x->size; i++) (*(p->arg))[i] = gsl_vector_get(x, i);
+    // executing GDL code
+    BaseGDL* res;
+    res = p->envt->Interpreter()->call_fun(
+      static_cast<DSubUD*>(p->nenvt->GetPro())->GetTree()
+    );
+    // TODO: no guarding if res is an optimized constant
+    auto_ptr<BaseGDL> res_guard(res);
+    // sanity checks
+    if (res->Rank() != 1 || res->N_Elements() != x->size) 
+    {
+      p->errmsg = "user-defined function must evaluate to a vector of the size of its argument";
+      return GSL_EBADFUNC;
+    }
+    DDoubleGDL* dres;
+    try
+    {
+      dres = static_cast<DDoubleGDL*>(
+        res->Convert2(DOUBLE, BaseGDL::CONVERT_THROWIOERROR)
+      );
+    }
+    catch (GDLIOException& ex) 
+    {
+      p->errmsg = "failed to convert the result of the user-defined function to double";
+      return GSL_EBADFUNC;
+    }
+    if (res != dres) auto_ptr<DDoubleGDL> dres_guard(dres);
+    // copying from GDL to GSL
+    for (size_t i = 0; i < x->size; i++) gsl_vector_set(f, i, (*dres)[i]);
+    return GSL_SUCCESS;
+  }
+
+  // a simple error handler for GSL issuing GDL warning messages
+  // an initial call (with file=NULL, line=-1 and gsl_errno=-1) sets a prefix to "reason: "
+  void n_b_gslerrhandler(const char* reason, const char* file, int line, int gsl_errno)
+  {
+    static string prefix;
+    if (line == -1 && gsl_errno == -1 && file == NULL) prefix = string(reason) + ": ";
+    else Warning(prefix + "GSL: " + reason);
+  }
+
+  // a guard object ensuring freeing of GSL-allocated memory
+  class n_b_gslguard {
+    private:
+    gsl_vector* x;
+    gsl_multiroot_fsolver* solver;
+    gsl_error_handler_t* old_handler;
+    public:
+    n_b_gslguard(gsl_vector* x_, gsl_multiroot_fsolver* solver_, gsl_error_handler_t* old_handler_)
+    {
+      x = x_;
+      solver = solver_;
+      old_handler = old_handler_;
+    }
+    ~n_b_gslguard() 
+    {
+      gsl_multiroot_fsolver_free(solver);
+      gsl_vector_free(x);
+      gsl_set_error_handler(old_handler);
+    }
+  };
+
+  // the library routine registered in libinit.cpp both for newton() and broyden()
+  BaseGDL* newton_broyden(EnvT* e)
+  {
+    // sanity check (for number of parameters)
+    SizeT nParam = e->NParam();
+
+    // 1-st argument : initial guess vector
+    BaseGDL* p0 = e->GetParDefined(0);   
+    if (p0->Rank() != 1) e->Throw("the first argument is expected to be a vector");
+    BaseGDL* par = p0->Convert2(DOUBLE, BaseGDL::COPY);
+    auto_ptr<BaseGDL> par_guard(par);
+
+    // 2-nd argument : name of user function defining the system
+    DString fun;
+    e->AssureScalarPar<DStringGDL>(1, fun);    
+    fun = StrUpCase(fun);
+    if (LibFunIx(fun) != -1) 
+      e->Throw("only user-defined functions allowed (library-routine name given)");
+
+    // GDL magick
+    StackGuard<EnvStackT> guard(e->Interpreter()->CallStack());
+    EnvUDT* newEnv = new EnvUDT(e, funList[GDLInterpreter::GetFunIx(fun)], NULL);
+    newEnv->SetNextPar(&par);
+    e->Interpreter()->CallStack().push_back(newEnv);
+
+    // GSL function parameter initialization
+    n_b_param param;
+    param.envt = e;
+    param.nenvt = newEnv;
+    param.arg = static_cast<DDoubleGDL*>(par); 
+
+    // GSL function initialization
+    gsl_multiroot_function F; 
+    F.f = &n_b_function;
+    F.n = p0->N_Elements();
+    F.params = &param;
+
+    // GSL error handling
+    gsl_error_handler_t* old_handler = gsl_set_error_handler(&n_b_gslerrhandler);
+    n_b_gslerrhandler(e->GetProName().c_str(), NULL, -1, -1);
+
+    // GSL vector initialization
+    gsl_vector *x = gsl_vector_alloc(F.n);
+    for (size_t i = 0; i < F.n; i++) gsl_vector_set(x, i, (*(DDoubleGDL*) par)[i]);
+
+    // GSL solver initialization
+    gsl_multiroot_fsolver* solver;
+    {
+      const gsl_multiroot_fsolver_type* T; 
+      if (e->GetProName() == "NEWTON")       T = gsl_multiroot_fsolver_dnewton;
+      else if (e->GetProName() == "BROYDEN") T = gsl_multiroot_fsolver_broyden;
+      else assert(false);
+      solver = gsl_multiroot_fsolver_alloc(T, F.n);
+    }
+    gsl_multiroot_fsolver_set(solver, &F, x);
+
+    // GSL ensuring memory de-allocation
+    n_b_gslguard gslguard = n_b_gslguard(x, solver, old_handler);
+
+    // GDL handling fine-tuning keywords
+    // (intentionally not making keyword indices static here (NEWTON vs. BROYDEN))
+    DLong iter_max = 200;
+    e->AssureLongScalarKWIfPresent(e->KeywordIx("ITMAX"), iter_max);
+    DDouble tolx = 1e-7, tolf = 1e-4;
+    e->AssureDoubleScalarKWIfPresent(e->KeywordIx("TOLX"), tolx);
+    e->AssureDoubleScalarKWIfPresent(e->KeywordIx("TOLF"), tolf);
+
+    // GSL root-finding loop
+    size_t iter = 0;
+    int status;
+    do
+    {
+      iter++;
+      status = gsl_multiroot_fsolver_iterate(solver);
+      if (status) break;
+      { // TOLF check
+        double test_tolf = 0;
+        for (size_t i = 0; i < F.n; i++) test_tolf = max(test_tolf, abs(gsl_vector_get(solver->f, i)));
+          if (test_tolf < tolf) break;
+      }
+      { // TOLX check
+        double test_tolx = 0;
+        for (size_t i = 0; i < F.n; i++) test_tolx = max(test_tolx, 
+          abs(gsl_vector_get(solver->dx, i))/max(abs(gsl_vector_get(solver->x, i)), 1.)
+        );
+        if (test_tolx < tolx) break; 
+      }
+      // a check from GSL doc
+      // if (gsl_multiroot_test_residual(solver->f, 1e-7) != GSL_CONTINUE) break;
+    }
+    while (iter <= iter_max);
+
+    // remembering the result
+    for (size_t i = 0; i < F.n; i++) (*(DDoubleGDL*) par)[i] = gsl_vector_get(solver->x, i);
+
+    // handling errors from GDL via GSL
+    if (status == GSL_EBADFUNC) e->Throw(static_cast<n_b_param*>(F.params)->errmsg);
+
+    // showing an error message if ITMAX reached
+    if (iter > iter_max) e->Throw("maximum number of iterations reached");
+
+    // returning the result 
+    par_guard.release();    // reusing par for the return value
+    return par->Convert2(   // converting to float if neccesarry
+      e->KeywordSet("DOUBLE") || p0->Type() == DOUBLE ? DOUBLE : FLOAT, 
+      BaseGDL::CONVERT
+    );
   }
 
 } // namespace

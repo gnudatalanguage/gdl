@@ -24,11 +24,8 @@
 
 #include "initsysvar.hpp"
 #include "envt.hpp"
-//#include "dstructgdl.hpp"
-
 #include "graphics.hpp"
 #include "plotting.hpp"
-#include "math_utl.hpp"
 
 #define PLK_Escape            0x1B
 
