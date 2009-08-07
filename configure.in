@@ -43,6 +43,9 @@ dnl related to portability of MEMORY()
 AC_CHECK_FUNCS([malloc_zone_statistics sbrk mallinfo])
 AC_CHECK_HEADERS([malloc.h malloc/malloc.h])
 
+dnl related to portability of LOCALE_GET()
+AC_CHECK_HEADERS([locale.h])
+
 AC_ARG_WITH(ncursesdir,
  	[  --with-ncursesdir=DIR   specify the ncurses (or curses) directory tree ],
 	[ LIBS="$LIBS -L$withval/lib"

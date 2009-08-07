@@ -36,6 +36,9 @@
 /* Zlib library */
 #undef HAVE_LIBZ
 
+/* Define to 1 if you have the <locale.h> header file. */
+#undef HAVE_LOCALE_H
+
 /* Define to 1 if you have the `mallinfo' function. */
 #undef HAVE_MALLINFO
 

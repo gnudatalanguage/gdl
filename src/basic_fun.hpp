@@ -154,6 +154,8 @@ namespace lib {
   // the following by Sylwester Arabas 
   // (slayoo@users.sourceforge.net)
   BaseGDL* reverse( EnvT* e);
+  BaseGDL* parse_url( EnvT* e);
+  BaseGDL* locale_get( EnvT* e);
 
 } // namespace
 

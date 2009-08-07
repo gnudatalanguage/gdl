@@ -736,6 +736,9 @@ void LibInit()
   const string broydenWarnKey[] = {"CHECK", "EPS", "STEPMAX", "TOLMIN", KLISTEND};
   new DLibFun(lib::newton_broyden, string("BROYDEN"), 2, broydenKey, broydenWarnKey);
 
+  new DLibFun(lib::parse_url, string("PARSE_URL"), 1);
+  new DLibFun(lib::locale_get, string("LOCALE_GET"), 0);
+
   // sort lists
   sort( libFunList.begin(), libFunList.end(), CompLibFunName());
   sort( libProList.begin(), libProList.end(), CompLibProName());
