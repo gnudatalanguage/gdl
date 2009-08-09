@@ -350,7 +350,8 @@ void LibInit()
 
   new DLibFunRetNew(lib::asin_fun,string("ASIN"),1,NULL,NULL,true);
   new DLibFunRetNew(lib::acos_fun,string("ACOS"),1,NULL,NULL,true);
-  new DLibFunRetNew(lib::atan_fun,string("ATAN"),2,NULL,NULL,true);
+  const string atanKey[] = {"PHASE", KLISTEND};
+  new DLibFunRetNew(lib::atan_fun,string("ATAN"),2,atanKey,NULL,true);
 
   new DLibFunRetNew(lib::alog_fun,string("ALOG"),1,NULL,NULL,true);
   new DLibFunRetNew(lib::alog10_fun,string("ALOG10"),1,NULL,NULL,true);
@@ -738,6 +739,9 @@ void LibInit()
 
   new DLibFun(lib::parse_url, string("PARSE_URL"), 1);
   new DLibFun(lib::locale_get, string("LOCALE_GET"), 0);
+
+  const string ll_arc_distanceKey[] = {"DEGREES", KLISTEND };
+  new DLibFun(lib::ll_arc_distance, string("LL_ARC_DISTANCE"), 3, ll_arc_distanceKey);
 
   // sort lists
   sort( libFunList.begin(), libFunList.end(), CompLibFunName());

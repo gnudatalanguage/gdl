@@ -58,6 +58,9 @@ namespace lib {
   BaseGDL* t_pdf(EnvT* e);
   BaseGDL* laguerre(EnvT* e);
 
+  // by Sylwester Arabas
+  BaseGDL* ll_arc_distance(EnvT* e);
+
 } // namespace
 
 #endif

@@ -361,13 +361,13 @@ namespace SysVar
     sysVarRdOnlyList.push_back( pi); // make it read only
 
     // !DTOR
-    DFloatGDL *dtorData = new DFloatGDL( 0.0174533);
+    DFloatGDL *dtorData = new DFloatGDL((*piData)[0] / 180.);// 0.0174533);
     DVar *dtor = new DVar( "DTOR", dtorData);
     sysVarList.push_back( dtor);
     sysVarRdOnlyList.push_back( dtor); // make it read only
 
     // !RADEG
-    DFloatGDL *radegData = new DFloatGDL( 57.2957764);
+    DFloatGDL *radegData = new DFloatGDL(180. / (*piData)[0]);// 57.2957764);
     DVar *radeg = new DVar( "RADEG", radegData);
     sysVarList.push_back( radeg);
     sysVarRdOnlyList.push_back( radeg); // make it read only

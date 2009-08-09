@@ -588,6 +588,13 @@ namespace lib {
     const C one(1.0,0.0);
     return log( (one + i * c) / (one - i * c)) / (C(2.0,0.0)*i);
   } 
+  template< typename C>
+  inline C atanC(const C& c1, const C& c2)
+  {
+    const C i(0.0,1.0);
+    const C one(1.0,0.0);
+    return -i * log((c2 + i * c1) / sqrt(pow(c2, 2) + pow(c1, 2)));
+  }
 
   BaseGDL* atan_fun( EnvT* e)
   {
@@ -613,44 +620,45 @@ namespace lib {
 	
 	DType t = (DTypeOrder[ p0->Type()] > DTypeOrder[ p1->Type()])? p0->Type() : p1->Type();
  
-	const dimension& dim = (nEl < nEl1)? p0->Dim() : p1->Dim(); 
-	
-	SizeT nElMin = (nEl < nEl1)? nEl : nEl1;
-	
+        bool p0dim;
+        if      (p0->Rank() == 0 && p1->Rank() != 0)  p0dim = false;
+        else if (p0->Rank() != 0 && p1->Rank() == 0)  p0dim = true;
+        else if (nEl <= nEl1)                         p0dim = true;
+        else                                          p0dim = false;
+ 
+	const dimension& dim = p0dim ? p0->Dim() : p1->Dim(); 
+
+	SizeT nElMin = p0dim ? nEl : nEl1;
+        SizeT i, zero = 0, *i0, *i1;
+        i0 = p0->Rank() == 0 ? &zero : &i, 
+        i1 = p1->Rank() == 0 ? &zero : &i;
+
 	if( t == COMPLEX)
 	  {
-	    auto_ptr< DFloatGDL> guard0;
-	    auto_ptr< DFloatGDL> guard1;
+	    auto_ptr< DComplexGDL> guard0;
+	    auto_ptr< DComplexGDL> guard1;
 
-	    DFloatGDL* p0F = static_cast<DFloatGDL*>(p0->Convert2( FLOAT, BaseGDL::COPY));
+	    DComplexGDL* p0F = static_cast<DComplexGDL*>(p0->Convert2( COMPLEX, BaseGDL::COPY));
 	    guard0.reset( p0F);
-	    DFloatGDL* p1F = static_cast<DFloatGDL*>(p1->Convert2( FLOAT, BaseGDL::COPY));
+	    DComplexGDL* p1F = static_cast<DComplexGDL*>(p1->Convert2( COMPLEX, BaseGDL::COPY));
 	    guard1.reset( p1F);
 	      
-	    DFloatGDL* res = new DFloatGDL( dim, BaseGDL::NOZERO);
-	    for( SizeT i=0; i<nElMin; ++i)
-	      {
-		(*res)[ i] = atan2((*p0F)[ i], (*p1F)[ i]); 
-	      }
+	    DComplexGDL* res = new DComplexGDL( dim, BaseGDL::NOZERO);
+	    for (i = 0; i < nElMin; ++i) (*res)[i] = atanC((*p0F)[*i0], (*p1F)[*i1]); 
 	    return res;
 	  }
 	else if( t == COMPLEXDBL)
 	  {
-	    auto_ptr< DDoubleGDL> guard0;
-	    auto_ptr< DDoubleGDL> guard1;
+	    auto_ptr< DComplexDblGDL> guard0;
+	    auto_ptr< DComplexDblGDL> guard1;
 
-	    DDoubleGDL* p0F = static_cast<DDoubleGDL*>
-	      (p0->Convert2( DOUBLE, BaseGDL::COPY));
+	    DComplexDblGDL* p0F = static_cast<DComplexDblGDL*>(p0->Convert2( COMPLEXDBL, BaseGDL::COPY));
 	    guard0.reset( p0F);
-	    DDoubleGDL* p1F = static_cast<DDoubleGDL*>
-	      (p1->Convert2( DOUBLE, BaseGDL::COPY));
+	    DComplexDblGDL* p1F = static_cast<DComplexDblGDL*>(p1->Convert2( COMPLEXDBL, BaseGDL::COPY));
 	    guard1.reset( p1F);
 	      
-	    DDoubleGDL* res = new DDoubleGDL( dim, BaseGDL::NOZERO);
-	    for( SizeT i=0; i<nElMin; ++i)
-	      {
-		(*res)[ i] = atan2((*p0F)[ i], (*p1F)[ i]); 
-	      }
+	    DComplexDblGDL* res = new DComplexDblGDL( dim, BaseGDL::NOZERO);
+	    for (i = 0; i < nElMin; ++i) (*res)[i] = atanC((*p0F)[*i0], (*p1F)[*i1]); 
 	    return res;
 	  }
 	else if( t == DOUBLE)
@@ -680,10 +688,7 @@ namespace lib {
 	      }
 
 	    DDoubleGDL* res = new DDoubleGDL( dim, BaseGDL::NOZERO);
-	    for( SizeT i=0; i<nElMin; ++i)
-	      {
-		(*res)[ i] = atan2((*p0D)[ i],(*p1D)[ i]); 
-	      }
+	    for (i = 0; i < nElMin; ++i) (*res)[i] = atan2((*p0D)[*i0], (*p1D)[*i1]); 
 	    return res;
 	  }
 	else if( t == FLOAT)
@@ -713,10 +718,8 @@ namespace lib {
 	      }
 
 	    DFloatGDL* res = new DFloatGDL( dim, BaseGDL::NOZERO);
-	    for( SizeT i=0; i<nElMin; ++i)
-	      {
-		(*res)[ i] = atan2((*p0F)[ i], (*p1F)[ i]); 
-	      }
+	    for (i = 0; i < nElMin; ++i) (*res)[i] = 
+              (float)atan2((double)(*p0F)[*i0], (double)(*p1F)[*i1]); 
 	    return res;
 	  }
 	else 
@@ -730,41 +733,53 @@ namespace lib {
 	    guard1.reset( p1F);
 	      
 	    DFloatGDL* res = new DFloatGDL( dim, BaseGDL::NOZERO);
-	    for( SizeT i=0; i<nElMin; ++i)
-	      {
-		(*res)[ i] = atan2((*p0F)[ i], (*p1F)[ i]); 
-	      }
+	    for (i = 0; i < nElMin; ++i) 
+              (*res)[i] = (float)atan2((double)(*p0F)[*i0], (double)(*p1F)[*i1]); 
 	    return res;
 	  }
       }
     else
       {
-	if( p0->Type() == COMPLEX)
+        static int phaseIx = e->KeywordIx("PHASE");
+        static float half_pi_f = .5 * atan((float(1))); 
+        static double half_pi_d = .5 * atan(double(1));
+
+	if( p0->Type() == COMPLEX && e->KeywordSet(phaseIx))
 	  {
 	    DComplexGDL* p0C = static_cast<DComplexGDL*>( p0);
 	    DFloatGDL* res = new DFloatGDL( p0C->Dim(), BaseGDL::NOZERO);
 	    for( SizeT i=0; i<nEl; ++i)
 	      {
 		DComplex& C = (*p0C)[ i];
-		(*res)[ i] = (C.real() == 0.0)? 
-		  ((C.imag() == 0.0)? 0.0 : 1.5707963267948966) : 
-		  atan( C.imag()/C.real()); 
+		(*res)[ i] = (float)atan2((double)C.imag(), (double)C.real());
 	      }
 	    return res;
 	  }
-	else if( p0->Type() == COMPLEXDBL)
+	else if( p0->Type() == COMPLEX)
+        {
+	  DComplexGDL* p0C = static_cast<DComplexGDL*>( p0);
+	  DComplexGDL* res = new DComplexGDL( p0->Dim(), BaseGDL::NOZERO);
+	  for( SizeT i=0; i<nEl; ++i) (*res)[ i] = atanC((*p0C)[ i]); 
+          return res;
+        }  
+	else if( p0->Type() == COMPLEXDBL && e->KeywordSet(phaseIx))
 	  {
 	    DComplexDblGDL* p0C = static_cast<DComplexDblGDL*>( p0);
 	    DDoubleGDL* res = new DDoubleGDL( p0C->Dim(), BaseGDL::NOZERO);
 	    for( SizeT i=0; i<nEl; ++i)
 	      {
 		DComplexDbl& C = (*p0C)[ i];
-		(*res)[ i] = (C.real() == 0.0)? 
-		  ((C.imag() == 0.0)? 0.0 : 1.5707963267948966) : 
-		  atan( C.imag()/C.real()); 
+		(*res)[ i] = atan2( C.imag(), C.real());
 	      }
 	    return res;
 	  }
+	else if( p0->Type() == COMPLEXDBL)
+        {
+	  DComplexDblGDL* p0C = static_cast<DComplexDblGDL*>( p0);
+	  DComplexDblGDL* res = new DComplexDblGDL( p0->Dim(), BaseGDL::NOZERO);
+	  for( SizeT i=0; i<nEl; ++i) (*res)[ i] = atanC((*p0C)[ i]); 
+          return res;
+        }  
 	else if( p0->Type() == DOUBLE)
 	  {
 	    DDoubleGDL* p0D = static_cast<DDoubleGDL*>( p0);
@@ -1690,8 +1705,96 @@ namespace lib {
     else
       return res;
 
-  return new DByteGDL(0);
   }
 
+  // SA: based on equations 5-5 & 5-6 from Snyder (1987) USGS report no 1395 (page 31)
+  //     available for download at: http://pubs.er.usgs.gov/djvu/PP/pp_1395.djvu
+  template <typename T> inline void ll_arc_distance_helper(
+    T c, T Az, T phi1, T l0, T& phi, T& l, bool degrees) 
+  {
+    // temporary variables
+    T pi = 4 * atan((T)1.), 
+      dtor = degrees ? pi / 180. : 1,
+      sin_c = sin(c), 
+      cos_c = cos(c), 
+      cos_Az = cos(Az * dtor), 
+      sin_phi1 = sin(phi1 * dtor),
+      cos_phi1 = cos(phi1 * dtor);
+    // computing the results
+    phi = asin(sin_phi1 * cos_c + cos_phi1 * sin_c * cos_Az) / dtor;
+    l = l0 * dtor + atan2(
+      sin_c * sin(Az * dtor), (cos_phi1 * cos_c - sin_phi1 * sin_c * cos_Az)
+    ); 
+    // placing the result in (-pi, pi)
+    while (l < -pi) l += 2 * pi;
+    while (l > pi) l -= 2 * pi;
+    // converting to degrees if needed
+    l /= dtor;                                      
+  }
+  BaseGDL* ll_arc_distance(EnvT* e)
+  {
+    // sanity check (for number of parameters)
+    SizeT nParam = e->NParam();
+
+    // 1-st argument : longitude/latitude values pair (in radians unless DEGREE kw. present)
+    BaseGDL* p0 = e->GetNumericParDefined(0);
+
+    // 2-nd argument : arc distance (in radians regardless of DEGREE kw. presence)
+    BaseGDL* p1 = e->GetNumericParDefined(1);
+    if (p1->N_Elements() != 1) 
+      e->Throw("second argument is expected to be a scalar or 1-element array");
+
+    // 3-rd argument : azimuth (in radians unless DEGREE kw. present)
+    BaseGDL* p2 = e->GetNumericParDefined(2);
+    if (p2->N_Elements() != 1) 
+      e->Throw("third argument is expected to be a scalar or 1-element array");
+
+    // chosing a type for the return value 
+    bool args_complexdbl = 
+      (p0->Type() == COMPLEXDBL || p1->Type() == COMPLEXDBL || p2->Type() == COMPLEXDBL);
+    bool args_complex = args_complexdbl ? false : 
+      (p0->Type() == COMPLEX || p1->Type() == COMPLEX || p2->Type() == COMPLEX);
+    DType type = (
+      p0->Type() == DOUBLE || p1->Type() == DOUBLE || p2->Type() == DOUBLE || args_complexdbl
+    ) ? DOUBLE : FLOAT;
+
+    // converting datatypes if neccesarry
+    if (p0->Type() != type) p0 = p0->Convert2(type, BaseGDL::COPY);
+    if (p1->Type() != type) p1 = p1->Convert2(type, BaseGDL::COPY);
+    if (p2->Type() != type) p2 = p2->Convert2(type, BaseGDL::COPY); 
+    
+    // calculating (by calling a helper template function for float/double versions)
+    BaseGDL* rt = p0->New(dimension(2, BaseGDL::NOZERO));
+    if (type == FLOAT) 
+    {
+      ll_arc_distance_helper(
+        (*static_cast<DFloatGDL*>(p1))[0], 
+        (*static_cast<DFloatGDL*>(p2))[0], 
+        (*static_cast<DFloatGDL*>(p0))[1], 
+        (*static_cast<DFloatGDL*>(p0))[0], 
+        (*static_cast<DFloatGDL*>(rt))[1], 
+        (*static_cast<DFloatGDL*>(rt))[0],
+        e->KeywordSet("DEGREES")
+      );
+    }
+    else
+    {
+      ll_arc_distance_helper(
+        (*static_cast<DDoubleGDL*>(p1))[0], 
+        (*static_cast<DDoubleGDL*>(p2))[0], 
+        (*static_cast<DDoubleGDL*>(p0))[1], 
+        (*static_cast<DDoubleGDL*>(p0))[0], 
+        (*static_cast<DDoubleGDL*>(rt))[1], 
+        (*static_cast<DDoubleGDL*>(rt))[0],
+        e->KeywordSet("DEGREES")
+      );
+    }
+
+    // handling complex/dcomplex conversion
+    return rt->Convert2(
+      args_complexdbl ? COMPLEXDBL : args_complex ? COMPLEX : type,
+      BaseGDL::CONVERT
+    );
+  }
 
 } // namespace
