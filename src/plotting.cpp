@@ -26,6 +26,7 @@
 #include "envt.hpp"
 #include "graphics.hpp"
 #include "plotting.hpp"
+#include "math_utl.hpp"
 
 #define PLK_Escape            0x1B
 
