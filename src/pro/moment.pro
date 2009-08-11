@@ -1,5 +1,6 @@
-;$Id: moment.pro,v 1.2 2005-07-25 07:33:25 m_schellens Exp $
-function moment, x, mdev=mdev, sdev=sdev, double=double, NaN=NaN
+;$Id: moment.pro,v 1.3 2009-08-11 08:53:05 slayoo Exp $
+function moment, x, mdev=mdev, sdev=sdev, double=double, NaN=NaN, $
+  maxmoment=maxmoment
 
 ;+
 ;
@@ -22,8 +23,13 @@ function moment, x, mdev=mdev, sdev=sdev, double=double, NaN=NaN
 ;
 ;
 ; KEYWORD PARAMETERS: 
-;     DOUBLE : Keyword for double precision calculation
-;     NAN    : Flag to treat IEEE Special Floating-Point values as missing data
+;     DOUBLE    : Keyword for double precision calculation
+;     NAN       : Flag to treat IEEE Special Floating-Point values as missing data
+;     MAXMOMENT : Keyword for precising which moments are to be calculated
+;                 1 - calculate mean 
+;                 2 - calculate mean, variance, mean absolute deviation and standard dev.
+;                 3 - calculate all but kurtosis
+;                 4 or 0 (keyword not present) - calculate all moments
 ;
 ; OUTPUTS:
 ;    Result is a 4 element array, with
@@ -49,12 +55,13 @@ function moment, x, mdev=mdev, sdev=sdev, double=double, NaN=NaN
 ; EXAMPLE:
 ;     a=findgen(100)
 ;     result=moment(a)
-;     print, a
-;     49.5000    841.667     0.0000   -1.23606
+;     print, result
+;     49.5000    841.667     0.0000   1.73395
 ;
 ; MODIFICATION HISTORY:
 ;   20-Mar-2004 : Written by Christopher Lee
 ;   18-Jul-2005 : Rewritten by Pierre Chanial
+;   10-Aug-2009 : MAXMOMENT keyword added by Sylwester Arabas
 ;
 ;
 ; LICENCE:
@@ -70,8 +77,9 @@ function moment, x, mdev=mdev, sdev=sdev, double=double, NaN=NaN
 
  on_error, 2
  
- if n_elements(x) le 2 then begin
-    message, 'Input Array must contain 2 OR more elements.'
+ if n_elements(x) le 1 then begin
+    ;message, 'Input Array must contain 2 OR more elements.'
+    return, [x[0], !VALUES.F_NAN, !VALUES.F_NAN, !VALUES.F_NAN]
  endif
  
  ; we don't reuse code in mean.pro, because we need variable n.
@@ -86,12 +94,16 @@ function moment, x, mdev=mdev, sdev=sdev, double=double, NaN=NaN
  mean = total(x, double=double, NaN=NaN)/n
  x0   = x-mean
  
- variance = total(x0^2, NaN=NaN)/(n-1)
- sdev     = sqrt(variance)
- skewness = total(x0^3, NaN=NaN)/sdev^3/n
- kurtosis = (total(x0^4, NaN=NaN)/sdev^4-3)/n
+ if ~keyword_set(maxmoment) then maxmoment = 4
+ variance = maxmoment ge 2 ? total(x0^2, NaN=NaN)/(n-1)        : !VALUES.F_NAN
+ sdev     = maxmoment ge 2 ? sqrt(variance)                    : !VALUES.F_NAN 
+ skewness = maxmoment ge 3 ? total(x0^3, NaN=NaN)/sdev^3/n     : !VALUES.F_NAN
+ kurtosis = maxmoment ge 4 ? (total(x0^4, NaN=NaN)/sdev^4-3)/n : !VALUES.F_NAN
 
- if arg_present(mdev) then mdev = total(abs(x0), NaN=NaN)/n
+ if arg_present(mdev) then begin
+   mdev = maxmoment ge 2 ? total(abs(x0), NaN=NaN)/n           : !VALUES.F_NAN         
+ endif
+  
 
  return, [mean, variance, skewness, kurtosis]
 
