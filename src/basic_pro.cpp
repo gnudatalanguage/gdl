@@ -1718,10 +1718,11 @@ namespace lib {
       shellCmd = "/bin/sh"; // must be there if POSIX
     else
       {
-	shellCmd= getenv("SHELL");
-	if(shellCmd == "")
+	char* shellEnv = getenv("SHELL");
+	if (shellEnv == NULL)
 	  e->Throw( "Error managing child process. "
 		    "Environment variable SHELL not set.");
+        shellCmd = shellEnv;
       }
 
     if( nParam == 0)
