@@ -743,6 +743,9 @@ void LibInit()
   const string ll_arc_distanceKey[] = {"DEGREES", KLISTEND };
   new DLibFun(lib::ll_arc_distance, string("LL_ARC_DISTANCE"), 3, ll_arc_distanceKey);
 
+  const string command_line_argsKey[] = {"COUNT", KLISTEND };
+  new DLibFun(lib::command_line_args_fun, string("COMMAND_LINE_ARGS"), 0, command_line_argsKey);
+
   // sort lists
   sort( libFunList.begin(), libFunList.end(), CompLibFunName());
   sort( libProList.begin(), libProList.end(), CompLibProName());

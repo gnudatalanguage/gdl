@@ -89,6 +89,11 @@ void InitGDL()
   signal(SIGFPE,SigFPEHandler);
 }
 
+// SA: for use in COMMAND_LINE_ARGS()
+namespace lib {
+  std::vector<char*> command_line_args;
+}
+
 int main(int argc, char *argv[])
 {
   if( atexit( AtExit) != 0) cerr << "atexit registration failed." << endl;
@@ -103,15 +108,33 @@ int main(int argc, char *argv[])
 	  cout << "Options:" << endl;
 	  cout << "  --help     display this message" << endl;
 	  cout << "  --version  show version information" << endl;
+	  cout << "  -arg value tells COMMAND_LINE_ARGS() to report" << endl;
+          cout << "             the following argument (may be specified more than once)" << endl;
+	  cout << "  -args ...  tells COMMAND_LINE_ARGS() to report " << endl;
+          cout << "             all following arguments" << endl;
 	  cout << endl;
 	  cout << "Homepage: http://gnudatalanguage.sf.net" << endl;
 	  return 0;
 	}
-      if( string( argv[a]) == "--version")
+      else if( string( argv[a]) == "--version")
 	{
 	  cout << "GDL - GNU Data Language, Version " << VERSION << endl;
 	  return 0;
 	}
+      else if( string( argv[a]) == "-arg")
+      {
+        if (a == argc - 1)
+        {
+          cout << "gdl: -arg must be followed by a user argument." << endl;
+          return 0;
+        } 
+        else lib::command_line_args.push_back(argv[++a]);
+      }
+      else if( string( argv[a]) == "-args")
+      {
+        for (int i = a + 1; i < argc; i++) lib::command_line_args.push_back(argv[i]);
+        break;
+      }
     }
 
   InitGDL();

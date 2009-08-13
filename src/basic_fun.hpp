@@ -156,6 +156,7 @@ namespace lib {
   BaseGDL* reverse( EnvT* e);
   BaseGDL* parse_url( EnvT* e);
   BaseGDL* locale_get( EnvT* e);
+  BaseGDL* command_line_args_fun(EnvT* e);
 
 } // namespace
 

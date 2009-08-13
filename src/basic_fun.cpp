@@ -5411,5 +5411,30 @@ namespace lib {
 #endif
   }
 
+  // SA: relies on the contents of the lib::command_line_args vector
+  //     defined and filled with data (pointers) in gdl.cpp
+  BaseGDL* command_line_args_fun(EnvT* e)
+  {
+    static int countIx = e->KeywordIx("COUNT");
+    extern std::vector<char*> command_line_args; 
+
+    // setting the COUNT keyword value
+    if (e->KeywordPresent(countIx))
+    {
+      e->AssureGlobalKW(countIx);
+      e->SetKW(countIx, new DLongGDL(command_line_args.size()));
+    }
+
+    // returning empty string or an array of arguments
+    if (command_line_args.empty()) return new DStringGDL("");
+    else
+    {
+      BaseGDL* ret = new DStringGDL(dimension(command_line_args.size()));   
+      for (size_t i = 0; i < command_line_args.size(); i++)
+        (*static_cast<DStringGDL*>(ret))[i] = command_line_args[i];
+      return ret;
+    }
+  }
+
 } // namespace
 
