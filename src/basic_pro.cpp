@@ -464,9 +464,11 @@ namespace lib {
 	    SizeT nTags = s->Desc()->NTags();
 	    if (outputKW == NULL) {
 	      cout << "** Structure ";
-	      cout << (s->Desc()->IsUnnamed() ? "<Anonymous> " : 
+	      cout << (s->Desc()->IsUnnamed() ? "<Anonymous>" : 
 		       s->Desc()->Name());
-	      cout << ", " << nTags << " tags:" << endl;
+	      cout << ", " << nTags << " tags";
+	      cout << ", data length=" << s->Sizeof();
+              cout << ":" << endl;
 	      for (SizeT t=0; t < nTags; ++t)
 		{    
 		  DString tagString = s->Desc()->TagName(t);
@@ -475,9 +477,11 @@ namespace lib {
 	    } else {
 	      // OUTPUT KEYWORD SET
 	      ostr << "** Structure ";
-	      ostr << (s->Desc()->IsUnnamed() ? "<Anonymous> " : 
+	      ostr << (s->Desc()->IsUnnamed() ? "<Anonymous>" : 
 		       s->Desc()->Name());
-	      ostr << ", " << nTags << " tags:";
+	      ostr << ", " << nTags << " tags";
+	      ostr << ", data length=" << s->Sizeof();
+              ostr << ":";
 	      (*(DStringGDL *) *outputKW)[nOut++] = ostr.rdbuf()->str();
 	      ostr.str("");
 

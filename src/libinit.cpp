@@ -739,6 +739,7 @@ void LibInit()
 
   new DLibFun(lib::parse_url, string("PARSE_URL"), 1);
   new DLibFun(lib::locale_get, string("LOCALE_GET"), 0);
+  new DLibFun(lib::get_login_info, string("GET_LOGIN_INFO"), 0);
 
   const string ll_arc_distanceKey[] = {"DEGREES", KLISTEND };
   new DLibFun(lib::ll_arc_distance, string("LL_ARC_DISTANCE"), 3, ll_arc_distanceKey);

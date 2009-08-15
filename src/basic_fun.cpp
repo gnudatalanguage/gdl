@@ -48,6 +48,7 @@ extern "C" char **environ;
 #ifdef HAVE_LOCALE_H
 # include <locale.h>
 #endif
+#include <sys/utsname.h>
 
 /* max regexp error message length */
 #define MAX_REGEXPERR_LENGTH 80
@@ -5434,6 +5435,28 @@ namespace lib {
         (*static_cast<DStringGDL*>(ret))[i] = command_line_args[i];
       return ret;
     }
+  }
+
+  // SA: relies in the uname() from libc (must be there if POSIX)
+  BaseGDL* get_login_info( EnvT* e)
+  {
+    // getting the info 
+    char* login = getlogin();
+    if (login == NULL) e->Throw("Failed to get user name from the OS"); 
+    utsname info;
+    if (0 != uname(&info)) e->Throw("Failed to get machine name from the OS");
+
+    // creating the output anonymous structure
+    DStructDesc* stru_desc = new DStructDesc("$truct");
+    SpDString aString;
+    stru_desc->AddTag("MACHINE_NAME", &aString);
+    stru_desc->AddTag("USER_NAME", &aString);
+    DStructGDL* stru = new DStructGDL(stru_desc, dimension());
+
+    // returning the info 
+    stru->InitTag("USER_NAME", DStringGDL(login));
+    stru->InitTag("MACHINE_NAME", DStringGDL(info.nodename));
+    return stru;
   }
 
 } // namespace

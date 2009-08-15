@@ -261,7 +261,7 @@ namespace lib {
   }
   
   template< typename T>
-  BaseGDL* make_array_template( EnvT* e, DLongGDL* dimKey, BaseGDL* value)
+  BaseGDL* make_array_template( EnvT* e, DLongGDL* dimKey, BaseGDL* value, bool ignore_indgen = false)
   {
     try{
       if (dimKey != NULL) {
@@ -278,7 +278,7 @@ namespace lib {
 	    return res;
 	  }
 	if( e->KeywordSet(0)) return new T(dim, BaseGDL::NOZERO);
-	if( e->KeywordSet(2)) return new T(dim, BaseGDL::INDGEN);
+	if( e->KeywordSet(2) && !ignore_indgen) return new T(dim, BaseGDL::INDGEN);
 	return new T(dim);
       } else {
 	dimension dim;
@@ -294,7 +294,7 @@ namespace lib {
 	    return res;
 	  }
 	if( e->KeywordSet(0)) return new T(dim, BaseGDL::NOZERO);
-	if( e->KeywordSet(2)) return new T(dim, BaseGDL::INDGEN);
+	if( e->KeywordSet(2) && !ignore_indgen) return new T(dim, BaseGDL::INDGEN);
 	return new T(dim);
       } 
     }
@@ -315,6 +315,7 @@ namespace lib {
 
     static int sizeix = e->KeywordIx( "SIZE"); 
     static int dimensionix = e->KeywordIx( "DIMENSION"); 
+    static int indexix = e->KeywordIx( "INDEX"); 
 
     BaseGDL* size = e->GetKW(sizeix);
     BaseGDL* b_dimension = e->GetKW(dimensionix);
@@ -354,6 +355,17 @@ namespace lib {
       {
 	e->Throw("Invalid type specified for result.");
       }
+ 
+// TODO: sanity check on dimKey & arguments - if all are > 0, otherwise:
+//       e->Throw("Array dimensions must be greater than 0.");
+
+    if (e->KeywordSet(indexix))
+    {
+      if (type == PTR || e->KeywordSet(18)) 
+        e->Throw("Index initialization of pointer array is invalid.");
+      if (type == OBJECT || e->KeywordSet(19)) 
+        e->Throw("Index initialization of object reference array is invalid..");
+    }
 
     static int valueix = e->KeywordIx( "VALUE"); 
     BaseGDL* value = e->GetKW( valueix);
@@ -425,7 +437,28 @@ namespace lib {
       // STRING (added by MS 29.10.2005)
     } else if (e->KeywordSet(17) || type == STRING) {
 
-      return make_array_template< DStringGDL>( e, dimKey, value);
+      // 'true' for ignoring /INDEX keyword 
+      BaseGDL* ret = make_array_template< DStringGDL>( e, dimKey, value, true);
+      if (e->KeywordSet(indexix))
+      {
+        for (DLong i = 0; i < ret->N_Elements(); ++i) 
+        {
+          char tmp[13];
+          assert(sprintf(tmp, "%12d", i) == 12);
+          (*static_cast<DStringGDL*>(ret))[i] = tmp;
+        }
+      }
+      return ret;
+
+      // PTR (added by SA 15.08.2009)
+    } else if (e->KeywordSet(18) || type == PTR) {
+
+      return make_array_template< DPtrGDL>( e, dimKey, value);
+
+      // OBJ (added by SA 15.08.2009)
+    } else if (e->KeywordSet(19) || type == OBJECT) {
+
+      return make_array_template< DObjGDL>( e, dimKey, value);
 
       // STRUCT
     } else if ( type == STRUCT) {
