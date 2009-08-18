@@ -608,14 +608,18 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command)
 // by Peter Messmer
 void DInterpreter::ExecuteShellCommand(const string& command)
 {
- string commandLine = command;
- if(commandLine == "")
-   commandLine = getenv("SHELL");
- if(commandLine == "")
-   throw GDLException( "Error managing child process. Environment variable "
-		       "SHELL not set.");
+  string commandLine = command;
+  if(commandLine == "") 
+  { 
+    commandLine = GetEnvString("SHELL");
+    if (commandLine == "")
+    {
+      cout << "Error managing child process. Environment variable SHELL not set." << endl;
+      return;
+    }
+  }
 
- int ignored = system( commandLine.c_str());
+  int ignored = system( commandLine.c_str());
 }
 
 
@@ -1120,20 +1124,24 @@ GDLInterpreter::RetCode DInterpreter::InterpreterLoop( const string& startup)
   // because on the save side we may need to create the .gdl/ PATH ...
   int result, debug=0;
   char *homeDir = getenv( "HOME");
-  string pathToGDL_history;
-  pathToGDL_history=homeDir;
-  AppendIfNeeded(pathToGDL_history, "/");
-  pathToGDL_history=pathToGDL_history+".gdl";
-  string history_filename;
-  AppendIfNeeded(pathToGDL_history, "/");
-  history_filename=pathToGDL_history+"history";
-  if (debug) cout << "History file name: " <<history_filename << endl;
+  if (homeDir != NULL)
+  {
+    string pathToGDL_history;
+    pathToGDL_history=homeDir;
+    AppendIfNeeded(pathToGDL_history, "/");
+    pathToGDL_history=pathToGDL_history+".gdl";
+    string history_filename;
+    AppendIfNeeded(pathToGDL_history, "/");
+    history_filename=pathToGDL_history+"history";
+    if (debug) cout << "History file name: " <<history_filename << endl;
 
-  result=read_history(history_filename.c_str());
-  if (debug) 
-    { if (result == 0) {cout<<"Successfull reading of ~/.gdl/history"<<endl;}
-    else {cout<<"Fail to read back ~/.gdl/history"<<endl;}
+    result=read_history(history_filename.c_str());
+    if (debug) 
+    { 
+      if (result == 0) cout<<"Successfull reading of ~/.gdl/history"<<endl;
+      else cout<<"Fail to read back ~/.gdl/history"<<endl;
     }
+  }
 #endif
 
 
