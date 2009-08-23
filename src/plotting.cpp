@@ -1762,6 +1762,10 @@ namespace lib {
     */
     GDLGStream* actStream = GetPlotStream( e); 
     
+// pen thickness for axis
+actStream->wid( 0);
+
+
     //start drawing
     //    actStream->Background( background);
     //    actStream->Color( color);
@@ -1775,7 +1779,6 @@ namespace lib {
 		 yMarginB, 
 		 yMarginT,
 		 xMR, xML, yMB, yMT);
-
 
     bool mapSet=false;
 #ifdef USE_LIBPROJ4
@@ -2923,7 +2926,16 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
       if (e->KeywordSet( "NLEVELS")) {
       	e->AssureLongScalarKWIfPresent( "NLEVELS", nlevel);
 	if (nlevel <= 0) nlevel= 2;  // AC: mimication of IDL
-      	zintv = (PLFLT) ((zEnd - zStart) / (nlevel+1));
+//       	zintv = (PLFLT) ((zEnd - zStart) / (nlevel+1));
+// //IDL does this:
+// zintv = (PLFLT) ((zEnd - zStart) / (nlevel+1));
+//but I think this is better:
+if (e->KeywordSet( "FILL")) 
+{zintv = (PLFLT) ((zEnd - zStart) / (nlevel));} 
+else 
+{zintv = (PLFLT) ((zEnd - zStart) / (nlevel+1));}
+
+
       } else {
 	zintv = AutoTick(zEnd - zStart);
 	nlevel = (PLINT) floor((zEnd - zStart) / zintv);
@@ -2932,11 +2944,24 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
       }
       if (debug) cout << "internal Nlevels == " << nlevel << endl;
 
-      clevel = new PLFLT[nlevel+1];
-      clevel_guard.Reset( clevel);
-      // Jo: fixed clevel to account for non-zero zMin
-      for( SizeT i=1; i<=nlevel; i++) clevel[i-1] = zintv * (i-1) + zStart;
-      //for( SizeT i=0; i<=nlevel; i++) clevel[i] = zintv * i + zStart;
+
+
+
+//       clevel = new PLFLT[nlevel+1];
+//       clevel_guard.Reset( clevel);
+//       // Jo: fixed clevel to account for non-zero zMin
+//       for( SizeT i=1; i<=nlevel; i++) clevel[i-1] = zintv * (i-1) + zStart;
+//       //for( SizeT i=0; i<=nlevel; i++) clevel[i] = zintv * i + zStart;
+DDouble offset=0.;
+if (e->KeywordSet( "FILL")) { nlevel = nlevel + 1; offset=zintv;}
+clevel = new PLFLT[nlevel];
+clevel_guard.Reset( clevel);
+//IDL does this:
+// for( SizeT i=1; i<=nlevel; i++) clevel[i-1] = zintv * i + zStart;
+//but I think this is better:
+for( SizeT i=1; i<=nlevel; i++) clevel[i-1] = zintv * i + zStart - offset;
+
+
     }
     // AC would like to check the values (nlevel and values) ...
     if (debug == 1) {
@@ -2944,40 +2969,44 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
       for (SizeT i=0; i<=nlevel; i++) cout << i << " " << clevel[i] << endl;
     }
     
-    // Jo: added keyword FILL
-    PLFLT *clevel_fill;
-    ArrayGuard<PLFLT> clevel_fill_guard;
-    PLINT nlevel_fill;
-    if (e->KeywordSet( "FILL")) {
-      // To ensure that the highest level is filled, define a new
-      // clevel to include highest value of z:   
-      // modif by AC to manage the exception (nlevel=1)
-      if (nlevel > 1) {
-	nlevel_fill=nlevel+1;
-	clevel_fill = new PLFLT[nlevel_fill];
-	clevel_fill_guard.Reset( clevel_fill);
-	clevel_fill[nlevel_fill-1] = clevel[nlevel - 1] < zEnd ? zEnd : clevel[nlevel - 1] + 1.;
-	for( SizeT i=0; i<nlevel; i++) clevel_fill[i] = clevel[i];
-      } else {
-	nlevel_fill=3;
-	clevel_fill = new PLFLT[nlevel_fill];
-	clevel_fill_guard.Reset( clevel_fill);
-        clevel_fill[0] = clevel[0] > zStart ? zStart : clevel[0] - 1.;
-        clevel_fill[1] = clevel[0];
-        clevel_fill[2] = clevel[0] < zEnd ? zEnd : clevel[0] + 1.;
-      }
-      
-      if (debug ==1 ) {
-	cout << "zStart "<< zStart << " zEnd "<< zEnd <<endl ;
-	for( SizeT i=0; i<nlevel_fill; i++) cout << i << " " << clevel_fill[i] << endl;
-      }
-    }
+//     // Jo: added keyword FILL
 
-    // levels outside limits are changed ...
-    for (SizeT i=0; i<=nlevel; i++) {
-      if (clevel[i] < zStart) clevel[i]=zStart;
-      if (clevel[i] > zEnd) clevel[i]=zEnd;
-    }
+    PLINT  &nlevel_fill = nlevel;
+    PLFLT* &clevel_fill = clevel;
+
+//     PLFLT *clevel_fill;
+//     ArrayGuard<PLFLT> clevel_fill_guard;
+//     PLINT nlevel_fill;
+//     if (e->KeywordSet( "FILL")) {
+//       // To ensure that the highest level is filled, define a new
+//       // clevel to include highest value of z:   
+//       // modif by AC to manage the exception (nlevel=1)
+//       if (nlevel > 1) {
+// 	nlevel_fill=nlevel+1;
+// 	clevel_fill = new PLFLT[nlevel_fill];
+// 	clevel_fill_guard.Reset( clevel_fill);
+// 	clevel_fill[nlevel_fill-1] = clevel[nlevel - 1] < zEnd ? zEnd : clevel[nlevel - 1] + 1.;
+// 	for( SizeT i=0; i<nlevel; i++) clevel_fill[i] = clevel[i];
+//       } else {
+// 	nlevel_fill=3;
+// 	clevel_fill = new PLFLT[nlevel_fill];
+// 	clevel_fill_guard.Reset( clevel_fill);
+//         clevel_fill[0] = clevel[0] > zStart ? zStart : clevel[0] - 1.;
+//         clevel_fill[1] = clevel[0];
+//         clevel_fill[2] = clevel[0] < zEnd ? zEnd : clevel[0] + 1.;
+//       }
+      
+//       if (debug ==1 ) {
+// 	cout << "zStart "<< zStart << " zEnd "<< zEnd <<endl ;
+// 	for( SizeT i=0; i<nlevel_fill; i++) cout << i << " " << clevel_fill[i] << endl;
+//       }
+//     }
+
+//     // levels outside limits are changed ...
+//     for (SizeT i=0; i<=nlevel; i++) {
+//       if (clevel[i] < zStart) clevel[i]=zStart;
+//       if (clevel[i] > zEnd) clevel[i]=zEnd;
+//     }
 
     // pen thickness for axis
     actStream->wid( 0);
@@ -3081,7 +3110,8 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
       if (e->KeywordSet( "FILL")) {
 	// the "clevel_fill, nlevel_fill" have been computed before
         actStream->shades(z, xEl, yEl, NULL, xStart, xEnd, yStart, yEnd,
-			  clevel_fill, nlevel_fill, 2, 0, 0, plstream::fill,
+ 			  clevel_fill, nlevel_fill, 2, 0, 0, plstream::fill,
+// 			  clevel, nlevel, 2, 0, 0, plstream::fill,
 			  false, mypltr, static_cast<void*>( spa));
 	
 	// Redraw the axes just in case the filling overlaps them
@@ -3123,7 +3153,8 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
 	// the "clevel_fill, nlevel_fill" have been computed before
         actStream->shades(z, xVal->Dim(0), xVal->Dim(1), 
 			  NULL, xStart, xEnd, yStart, yEnd,
-			  clevel_fill, nlevel_fill, 2, 0, 0, plstream::fill,
+ 			  clevel_fill, nlevel_fill, 2, 0, 0, plstream::fill,
+// 			  clevel, nlevel, 2, 0, 0, plstream::fill,
 			  false, plstream::tr2, (void *) &cgrid2 );
 	// Redraw the axes just in case the filling overlaps them       
 	actStream->box( xOpt.c_str(), xintv, xMinor, "", 0.0, 0);
@@ -3141,6 +3172,43 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
       // AC june 07 : symetry for the previous case
       delete[] z;
     }
+
+
+
+// Get viewpoint parameters and store in WINDOW & S
+PLFLT p_xmin, p_xmax, p_ymin, p_ymax;
+actStream->gvpd (p_xmin, p_xmax, p_ymin, p_ymax);
+
+DStructGDL* Struct=NULL;
+Struct = SysVar::X();
+static unsigned windowTag = Struct->Desc()->TagIndex( "WINDOW");
+static unsigned sTag = Struct->Desc()->TagIndex( "S");
+if(Struct != NULL) {
+(*static_cast<DFloatGDL*>( Struct->GetTag( windowTag, 0)))[0] =
+p_xmin;
+(*static_cast<DFloatGDL*>( Struct->GetTag( windowTag, 0)))[1] =
+p_xmax;
+
+(*static_cast<DDoubleGDL*>( Struct->GetTag( sTag, 0)))[0] =
+(p_xmin*xEnd - p_xmax*xStart) / (xEnd - xStart);
+(*static_cast<DDoubleGDL*>( Struct->GetTag( sTag, 0)))[1] =
+(p_xmax - p_xmin) / (xEnd - xStart);
+
+}
+
+Struct = SysVar::Y();
+if(Struct != NULL) {
+(*static_cast<DFloatGDL*>( Struct->GetTag( windowTag, 0)))[0] =
+p_ymin;
+(*static_cast<DFloatGDL*>( Struct->GetTag( windowTag, 0)))[1] =
+p_ymax;
+
+(*static_cast<DDoubleGDL*>( Struct->GetTag( sTag, 0)))[0] =
+(p_ymin*yEnd - p_ymax*yStart) / (yEnd - yStart);
+(*static_cast<DDoubleGDL*>( Struct->GetTag( sTag, 0)))[1] =
+(p_ymax - p_ymin) / (yEnd - yStart);
+}
+
 
     // title and sub title
     actStream->schr( 0.0, 1.25*actH/defH);
