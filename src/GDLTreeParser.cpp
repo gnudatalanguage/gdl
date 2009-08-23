@@ -3104,7 +3104,7 @@ void GDLTreeParser::while_statement(RefDNode _t) {
 	w_AST->SetLabelRange( labelStart, comp.NDefLabel());
 	
 	// swap e <-> s for easier access in interpreter
-	while_statement_AST=RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(w_AST))->add(antlr::RefAST(s_AST))->add(antlr::RefAST(e_AST))));
+	while_statement_AST=RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(w_AST))->add(antlr::RefAST(e_AST))->add(antlr::RefAST(s_AST))));
 	
 	currentAST.root = while_statement_AST;
 	if ( while_statement_AST!=RefDNode(antlr::nullAST) &&

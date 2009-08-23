@@ -21,6 +21,11 @@
 
 #include "includefirst.hpp"
 
+// get_kbrd patch
+// http://sourceforge.net/forum/forum.php?thread_id=3292183&forum_id=338691
+#include <termios.h> 
+#include <unistd.h> 
+
 #include <string>
 #include <fstream>
 //#include <memory>
@@ -4601,20 +4606,41 @@ namespace lib {
 	  }
       }
 
-    if( doWait)
-      {
+//     if( doWait)
+//       {
  
-	char c = cin.get();
-	DStringGDL* res = new DStringGDL( DString( i2s( c)));
-	return res;
-      }
-    else
-      {
-	char c = cin.get();
-	DStringGDL* res = new DStringGDL( DString( i2s( c)));
-	return res;
-      }
+// 	char c = cin.get();
+// 	DStringGDL* res = new DStringGDL( DString( i2s( c)));
+// 	return res;
+//       }
+//     else
+//       {
+// 	char c = cin.get();
+// 	DStringGDL* res = new DStringGDL( DString( i2s( c)));
+// 	return res;
+//       }
+
+    // https://sourceforge.net/forum/forum.php?thread_id=3292183&forum_id=338691
+    // TODO Implement proper SCALAR parameter handling (doWait variable?). 
+ 
+    struct termios orig, get; 
+    (void)tcgetattr(fileno(stdin), &orig); 
+    get = orig; 
+ 
+    // Disable terminal echoing and set it to non-canonical mode. 
+    get.c_lflag &= ~(ECHO|ICANON); 
+ 
+    (void)tcsetattr(fileno(stdin), TCSANOW, &get); 
+ 
+    char c = cin.get(); 
+ 
+    // Restore original terminal settings. 
+    (void)tcsetattr(fileno(stdin), TCSANOW, &orig); 
+ 
+    DStringGDL* res = new DStringGDL( DString( i2s( c))); 
+    return res; 
   }
+
 
   BaseGDL* temporary( EnvT* e)
   {

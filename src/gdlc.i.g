@@ -1079,8 +1079,8 @@ while_statement returns[ GDLInterpreter::RetCode retCode]
             {
                 SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
 
-                ProgNodeP s = _t; //->GetFirstChild();  // statement
-                ProgNodeP e =  s->GetNextSibling(); // expr
+                ProgNodeP e = _t; //->GetFirstChild();  // expr
+                ProgNodeP s = _t->GetNextSibling();     // statement
 
                 auto_ptr< BaseGDL> eVal( expr( e));
                 while( eVal.get()->True()) {

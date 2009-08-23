@@ -453,7 +453,7 @@ while_statement!
             #w->SetLabelRange( labelStart, comp.NDefLabel());
 
             // swap e <-> s for easier access in interpreter
-            #while_statement=#( w, s, e);
+            #while_statement=#( w, e, s);
         }
 	;
 
