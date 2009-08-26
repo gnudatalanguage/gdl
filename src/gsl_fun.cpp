@@ -2162,7 +2162,8 @@ namespace lib {
     }
   };
 
-  // the library routine registered in libinit.cpp both for newton() and broyden()
+  // SA: the library routine registered in libinit.cpp both for newton(),
+  //     broyden() and used in imsl_zerosys.pro (/HYBRID keyword)
   BaseGDL* newton_broyden(EnvT* e)
   {
     // sanity check (for number of parameters)
@@ -2211,7 +2212,8 @@ namespace lib {
     gsl_multiroot_fsolver* solver;
     {
       const gsl_multiroot_fsolver_type* T; 
-      if (e->GetProName() == "NEWTON")       T = gsl_multiroot_fsolver_dnewton;
+      if (e->KeywordSet("HYBRID"))           T = gsl_multiroot_fsolver_hybrid;     
+      else if (e->GetProName() == "NEWTON")  T = gsl_multiroot_fsolver_dnewton;
       else if (e->GetProName() == "BROYDEN") T = gsl_multiroot_fsolver_broyden;
       else assert(false);
       solver = gsl_multiroot_fsolver_alloc(T, F.n);

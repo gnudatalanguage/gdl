@@ -158,6 +158,7 @@ namespace lib {
   BaseGDL* locale_get( EnvT* e);
   BaseGDL* get_login_info( EnvT* e);
   BaseGDL* command_line_args_fun(EnvT* e);
+  BaseGDL* idl_base64(EnvT* e);
 
 } // namespace
 

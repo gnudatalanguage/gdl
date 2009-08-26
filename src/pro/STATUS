@@ -31,7 +31,7 @@ Codes:
  box_cursor.pro
 !c_correlate.pro
 #caldat.pro
- calendar.pro
+=calendar.pro
  cdf_exists.pro
 !chebyshev.pro
 !chisqr_cvf.pro
@@ -154,7 +154,7 @@ Codes:
  leefilt.pro
 !linfit.pro
  ljlct.pro
- ll_arc_distance.pro
+#ll_arc_distance.pro
 !lmfit.pro
 !lmfunct.pro
 =loadct.pro
@@ -255,7 +255,7 @@ Codes:
 !sfit.pro
  shade_surf_irr.pro
  show3.pro
- showfont.pro
+=showfont.pro
  showinfo.pro
 =skewness.pro
  skey_dec.pro

@@ -729,7 +729,8 @@ void LibInit()
 
   new DLibPro(lib::caldat, string("CALDAT"), 7);
 
-  const string newtonKey[] = {"DOUBLE", "ITMAX", "TOLF", "TOLX", KLISTEND };
+  // SA: the HYBRID key is used in imsl_zerosys.pro to switch to the modif. Powell algo. 
+  const string newtonKey[] = {"DOUBLE", "ITMAX", "TOLF", "TOLX", "HYBRID", KLISTEND };
   const string newtonWarnKey[] = {"CHECK", "STEPMAX", "TOLMIN", KLISTEND};
   new DLibFun(lib::newton_broyden, string("NEWTON"), 2, newtonKey, newtonWarnKey);
 
@@ -740,6 +741,7 @@ void LibInit()
   new DLibFun(lib::parse_url, string("PARSE_URL"), 1);
   new DLibFun(lib::locale_get, string("LOCALE_GET"), 0);
   new DLibFun(lib::get_login_info, string("GET_LOGIN_INFO"), 0);
+  new DLibFun(lib::idl_base64, string("IDL_BASE64"), 1);
 
   const string ll_arc_distanceKey[] = {"DEGREES", KLISTEND };
   new DLibFun(lib::ll_arc_distance, string("LL_ARC_DISTANCE"), 3, ll_arc_distanceKey);

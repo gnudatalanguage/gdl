@@ -49,6 +49,7 @@ extern "C" char **environ;
 #include "basic_pro.hpp"
 #include "terminfo.hpp"
 #include "typedefs.hpp"
+#include "base64.hpp"
 
 #ifdef HAVE_LOCALE_H
 # include <locale.h>
@@ -5483,6 +5484,37 @@ namespace lib {
     stru->InitTag("USER_NAME", DStringGDL(login));
     stru->InitTag("MACHINE_NAME", DStringGDL(info.nodename));
     return stru;
+  }
+
+  // SA: base64 logic in base64.hpp, based on code by Bob Withers (consult base64.hpp)
+  BaseGDL* idl_base64(EnvT* e)
+  {
+    BaseGDL* p0 = e->GetPar(0);    
+    if (p0 != NULL)
+    { 
+      if (p0->Rank() == 0 && p0->Type() == STRING)
+      {
+        // decoding
+        string* str = &((*static_cast<DStringGDL*>(p0))[0]);
+        if (str->length() == 0) return new DByteGDL(0);
+        if (str->length() % 4 != 0) 
+          e->Throw("Input string length must be a multiple of 4");
+        unsigned int retlen = base64::decodeSize(*str);
+        if (retlen == 0 || retlen > str->length()) e->Throw("No data in the input string");
+        DByteGDL* ret = new DByteGDL(dimension(retlen));
+        if (!base64::decode(*str, (char*)&((*ret)[0]), ret->N_Elements()))
+          e->Throw("Base64 decoder failed"); 
+        return ret;
+      }
+      if (p0->Rank() >= 1 && p0->Type() == BYTE)
+      {
+        // encoding
+        return new DStringGDL(
+          base64::encode((char*)&(*static_cast<DByteGDL*>(p0))[0], p0->N_Elements())
+        );
+      } 
+    }
+    e->Throw("Expecting string or byte array as a first parameter");
   }
 
 } // namespace
