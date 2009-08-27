@@ -749,6 +749,9 @@ void LibInit()
   const string command_line_argsKey[] = {"COUNT", KLISTEND };
   new DLibFun(lib::command_line_args_fun, string("COMMAND_LINE_ARGS"), 0, command_line_argsKey);
 
+  const string pmKey[] = {"FORMAT", "TITLE", KLISTEND };
+  new DLibPro(lib::pm, string("PM"), -1, pmKey);
+
   // sort lists
   sort( libFunList.begin(), libFunList.end(), CompLibFunName());
   sort( libProList.begin(), libProList.end(), CompLibProName());

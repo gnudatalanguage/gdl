@@ -171,6 +171,59 @@ namespace lib {
       }
   }
 
+  // SA: we're better than IDL! - we accept more than 20 parameters ;)
+  void pm(EnvT* e)
+  {
+    int nParam = e->NParam();
+    if (nParam == 0) return;
+
+    // GDL magick (based on the Python interface code)
+    static int printIx = LibProIx("PRINT");
+    EnvBaseT* env = new EnvT(NULL, libProList[printIx]);
+    auto_ptr<EnvBaseT> env_guard(env);
+    BaseGDL* par;
+    env->SetNextPar(&par);
+
+    // passing on the FORMAT keyword
+    static int formatIx = e->KeywordIx("FORMAT");
+    if (e->GetKW(formatIx) != NULL) 
+    {
+      if (e->GetKW(formatIx)->Rank() != 0)
+        e->Throw("FORMAT keyword must be a scalar");
+      env->SetKeyword("FORMAT", &e->GetKW(formatIx));
+    }
+
+    // is it needed here?
+    StackSizeGuard<EnvStackT> guard( GDLInterpreter::CallStack());
+    GDLInterpreter::CallStack().push_back(env);
+
+    // printing the title if TITLE keyword present
+    static int titleIx = e->KeywordIx("TITLE");
+    if (e->GetKW(titleIx) != NULL)
+    {
+      par = e->GetKW(titleIx);
+      static_cast<DLibPro*>(env->GetPro())->Pro()(static_cast<EnvT*>(env));
+    }
+    
+    // looping over the parameters
+    for (SizeT i = 0; i < nParam; ++i)
+    {
+      if (e->GetParDefined(i)->N_Elements() <= 1)
+      {
+        par = e->GetParDefined(i);
+        static_cast<DLibPro*>(env->GetPro())->Pro()(static_cast<EnvT*>(env));
+      } 
+      else 
+      {
+        if (e->GetParDefined(i)->Type() == STRUCT)
+          e->Throw("Transposing arrays of structures is undefined");
+        par = e->GetParDefined(i)->Transpose(NULL);
+        static_cast<DLibPro*>(env->GetPro())->Pro()(static_cast<EnvT*>(env));
+        delete par;
+      }
+    }
+  }
+
 } // namespace
 
 
