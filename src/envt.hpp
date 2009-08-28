@@ -295,6 +295,21 @@ public:
   void Throw( const std::string& s)
   { throw GDLException( CallingNode(), pro->ObjectName()+": "+s);}
 
+  // will print the message (can be multiline) and exit
+  // first usage in "math_fun_ac.cpp"
+  void Help(const std::string s_help[], int size_of_s)
+  { 
+    if (size_of_s == 0) 
+      throw GDLException( CallingNode(), pro->ObjectName()+	\
+			  ": no inline doc ready");
+    else {
+      int i;
+      for (i = 0; i < size_of_s-1; i++)
+	Message(pro->ObjectName()+": "+s_help[i]);
+      throw GDLException( CallingNode(), pro->ObjectName()+": "+s_help[i]);
+    }
+  }
+
   // DEPRECATED due to poor perfomance, this does not belong into an environment
   // 'guards' a newly created variable which should be deleted
   // upon library routines exit (normal or on error)

@@ -31,15 +31,20 @@ void LibInit_ac()
   const char KLISTEND[] = "";
 
 #if defined(HAVE_LIBGSL)
-  const string beseliKey[]={"DOUBLE","ITER",KLISTEND};
+  const string beseliKey[]={"DOUBLE","ITER","HELP",KLISTEND};
   new DLibFun(lib::beseli_fun,string("BESELI"),2,beseliKey);
-  const string beseljKey[]={"DOUBLE","ITER",KLISTEND};
-  new DLibFun(lib::beselj_fun,string("BESELJ"),2,beseliKey);
-  const string beselkKey[]={"DOUBLE","ITER",KLISTEND};
-  new DLibFun(lib::beselk_fun,string("BESELK"),2,beseliKey);
-  const string beselyey[]={"DOUBLE","ITER",KLISTEND};
-  new DLibFun(lib::besely_fun,string("BESELY"),2,beseliKey);
+  const string beseljKey[]={"DOUBLE","ITER","HELP",KLISTEND};
+  new DLibFun(lib::beselj_fun,string("BESELJ"),2,beseljKey);
+  const string beselkKey[]={"DOUBLE","ITER","HELP",KLISTEND};
+  new DLibFun(lib::beselk_fun,string("BESELK"),2,beselkKey);
+  const string beselyKey[]={"DOUBLE","ITER","HELP",KLISTEND};
+  new DLibFun(lib::besely_fun,string("BESELY"),2,beselyKey);
 #endif
- 
+  
+  const string spl1Key[]={"YP0","YPN_1","DOUBLE","HELP",KLISTEND};
+  new DLibFun(lib::spl_init_fun,string("SPL_INIT"),2,spl1Key);
+  const string spl2Key[]={"DOUBLE","HELP",KLISTEND};
+  new DLibFun(lib::spl_interp_fun,string("SPL_INTERP"),4,spl2Key);
+
 }
 
