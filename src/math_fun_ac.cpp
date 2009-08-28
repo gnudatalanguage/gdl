@@ -113,15 +113,21 @@
   									\
   SizeT nElp = res->N_Elements();					\
 
+#define GM_CV0()					\
+  static DInt doubleKWIx = e->KeywordIx("DOUBLE");	\
+							\
+  if (e->KeywordSet(doubleKWIx))			\
+    return res;						\
+  else							\
+    return res->Convert2(FLOAT, BaseGDL::CONVERT);
+
 #define GM_CV1()					\
   static DInt doubleKWIx = e->KeywordIx("DOUBLE");	\
 							\
   if (t0 != DOUBLE && !e->KeywordSet(doubleKWIx))	\
     return res->Convert2(FLOAT, BaseGDL::CONVERT);	\
   else							\
-    return res;						\
-							\
-  return new DByteGDL(0);
+    return res;
 
 #define GM_CC1()						\
   static DInt coefKWIx = e->KeywordIx("ITER");			\
@@ -131,9 +137,19 @@
       e->SetKW( coefKWIx, new DLongGDL( -1));			\
     }
 
+#define AC_HELP()				\
+  if (e->KeywordSet("HELP")) {			\
+    string inline_help[]={						\
+      "Usage: res="+e->GetProName()+"(x, [n,] double=double)",		\
+      " -- x is a number or an array",					\
+      " -- n is a number or an array (if missing, set to 0)",					\
+      " If x and n dimensions differ, reasonnable rules applied"};	\
+    int size_of_s = sizeof(inline_help) / sizeof(inline_help[0]);	\
+    e->Help(inline_help, size_of_s);					\
+  }
 
 #include "includefirst.hpp"
-
+#include "initsysvar.hpp"  // Used to define Double Infinity and Double NaN
 #include "math_fun_ac.hpp"
 #include <gsl/gsl_sf_bessel.h>
 
@@ -143,6 +159,7 @@ namespace lib {
 
   BaseGDL* beseli_fun(EnvT* e)
   {
+    AC_HELP();
     GM_5P0(1);
     AC_2P1();
     GM_DF2();
@@ -214,6 +231,7 @@ namespace lib {
 
   BaseGDL* beselj_fun(EnvT* e)
   {
+    AC_HELP();
     GM_5P0(1);
     AC_2P1();
     GM_DF2();
@@ -286,6 +304,7 @@ namespace lib {
 
   BaseGDL* beselk_fun(EnvT* e)
   {
+    AC_HELP();
     GM_5P0(1);
     AC_2P1();
     GM_DF2();
@@ -372,8 +391,7 @@ namespace lib {
     GM_CC1();
     GM_CV1();
   }
-  
-  
+    
   // very preliminary version:
   // should not work when N LT 0
   // should return Inf at x==0
@@ -381,6 +399,7 @@ namespace lib {
     
   BaseGDL* besely_fun(EnvT* e)
   { 
+    AC_HELP();
     GM_5P0(1);
     AC_2P1();
     GM_DF2();
@@ -465,6 +484,179 @@ namespace lib {
       }
     GM_CC1();
     GM_CV1();
+  }
+
+  // SPLINE
+  // what does not work like IDL : warning messages when Inf/Nan or Zero/Negative X steps, X and Y not same size
+
+  BaseGDL* spl_init_fun( EnvT* e)
+  {
+    if (e->KeywordSet("HELP")) {
+      string inline_help[]={
+	"Usage: y2a=SPL_INIT(xa, ya, yp0=yp0, ypn_1= ypn_1, double=double)",
+	" -- xa is a N elements *ordered* array",
+	" -- ya is a N elements array containing values of the function",
+	" -- yp0 is the value of derivate of YA function at first point",
+	" -- ypN_1 is the value of derivate of YA function at last point",
+	"If X or Y contain NaN or Inf, output is NaN"};
+      int size_of_s = sizeof(inline_help) / sizeof(inline_help[0]);
+      e->Help(inline_help, size_of_s);
+    }
+
+    DDoubleGDL* Xpos = e->GetParAs<DDoubleGDL>(0);
+    SizeT nElpXpos = Xpos->N_Elements();
+ 
+    DDoubleGDL* Ypos = e->GetParAs<DDoubleGDL>(1);
+    SizeT nElpYpos = Ypos->N_Elements();
+
+    // we only issu a message
+    if (nElpXpos != nElpYpos)
+	cout << "SPL_INIT (fatal): X and Y arrays do not have same lengths !" << endl;
+
+    // new arrays
+    DDoubleGDL* res;  // the "res" array;
+    res = new DDoubleGDL(nElpXpos, BaseGDL::NOZERO);
+    DDoubleGDL* U;
+    U = new DDoubleGDL(nElpXpos, BaseGDL::NOZERO);
+
+    SizeT count, count1;
+
+    // before all, we check wether inputs arrays does contains NaN or Inf
+    static DStructGDL *Values =  SysVar::Values();
+    DDouble d_nan=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_NAN"), 0)))[0];
+
+    for (count = 0; count < nElpXpos; ++count) {
+      if (!isfinite((*Xpos)[count])) {
+	cout << "SPL_INIT (fatal): at least one value in X input array is NaN or Inf ..." << endl;
+	for (count1 = 0; count1 < nElpXpos; ++count1) (*res)[count1] =d_nan;
+	return res;
+      }
+    }
+    for (count = 0; count < nElpYpos; ++count) {
+      if (!isfinite((*Ypos)[count])) {
+	cout << "SPL_INIT (fatal): at least one value in Y input array is NaN or Inf ..." << endl;
+	for (count1 = 0; count1 < nElpXpos; ++count1) (*res)[count1] =d_nan;
+	return res;
+      }
+    }
+    // we also check wether X input array is well ordered ...
+    double step;
+    int flag_skip=0;
+    for (count = 1; count < nElpYpos; ++count) {
+      step=(*Xpos)[count]-(*Xpos)[count-1];
+      if (step < 0.0) {
+	if (flag_skip == 0) {
+	  cout << "SPL_INIT (warning): at least one x[n+1]-x[n] step is negative: X is assumed to be ordered" << endl;
+	  flag_skip == 1;
+	}
+      }
+      if (abs(step) == 0.0) {
+	cout << "SPL_INIT (fatal): at least two consecutive X values are identical" << endl;
+ 	for (count1 = 0; count1 < nElpXpos; ++count1) (*res)[count1] =d_nan;
+	return res;
+      }
+    }
+
+    // may be we will have to check the size of these arrays ?
+    
+    BaseGDL* Yderiv0=e->GetKW(e->KeywordIx("YP0"));
+    if(Yderiv0 !=NULL) cout << "SPL_INIT: sorry Keyword YP0 not ready now"<< endl;
+    BaseGDL* YderivN=e->GetKW(e->KeywordIx("YPN_1"));
+    if(Yderiv0 !=NULL) cout << "SPL_INIT: sorry Keyword YPN_1 not ready now"<< endl;
+
+    (*res)[0] =0.;	
+    (*res)[nElpXpos-1] =0.;	
+    (*U)[0] =0.;	
+    
+    double psig, pu, x, xm, xp, y, ym, yp, p;
+
+    for (count = 1; count < nElpXpos-1; ++count) {
+      x=(*Xpos)[count];
+      xm=(*Xpos)[count-1];
+      xp=(*Xpos)[count+1];
+      psig=(x-xm)/(xp-xm);
+      
+      y=(*Ypos)[count];
+      ym=(*Ypos)[count-1];
+      yp=(*Ypos)[count+1];
+      pu=((ym-y)/(xm-x)-(y-yp)/(x-xp))/(xm-xp);
+      
+      p=psig*(*res)[count-1]+2.;
+      (*res)[count]=(psig-1.)/p;
+      (*U)[count]=(6.00*pu-psig*(*U)[count-1])/p;
+    }
+
+    //    for (SizeT count = 0; count < nElpXpos; ++count) {
+    //  cout<< " : " << count << " " << (*res)[count]  << " " << (*U)[count] << endl;
+    //}
+
+    for (count = nElpXpos-2; count > 0; count--)
+      (*res)[count] =(*res)[count]*(*res)[count+1]+(*U)[count];
+
+    GM_CV0();
+  }
+  
+  BaseGDL* spl_interp_fun( EnvT* e)
+  {
+    if (e->KeywordSet("HELP")) {
+      //  string inline_help[]={};
+      // e->Help(inline_help, 0);
+      string inline_help[]={
+	"Usage: res=SPL_INTERP(xa, ya, y2a, new_x, double=double)",
+	" -- xa is a N elements *ordered* array",
+	" -- ya is a N elements array containing values of the function",
+	" -- y2a is the value of derivate of YA function at first point",
+	" -- new_x is an array for new X positions where we want to compute SPLINE",
+	"This function should be called only after use of SPL_INIT() !"};
+      int size_of_s = sizeof(inline_help) / sizeof(inline_help[0]);
+      e->Help(inline_help, size_of_s);
+    }   
+
+    DDoubleGDL* Xpos = e->GetParAs<DDoubleGDL>(0);
+    SizeT nElpXpos = Xpos->N_Elements();
+    DType t0 = e->GetParDefined(0)->Type(); 
+
+    DDoubleGDL* Ypos = e->GetParAs<DDoubleGDL>(1);
+    SizeT nElpYpos = Ypos->N_Elements();
+
+    DDoubleGDL* Yderiv2 = e->GetParAs<DDoubleGDL>(2);
+    SizeT nElpYderiv2 = Yderiv2->N_Elements();
+
+    // Do the 3 arrays have same lengths ?
+    if ((nElpXpos != nElpYpos) || (nElpXpos != nElpYderiv2))
+      e->Throw("Arguments XA, YA, and Y2A must have the same number of elements.");
+    
+    DDoubleGDL* Xnew = e->GetParAs<DDoubleGDL>(3);
+    SizeT nElpXnew = Xnew->N_Elements();
+    
+    DDoubleGDL* res;
+    res = new DDoubleGDL(nElpXnew, BaseGDL::NOZERO);
+
+    int debug =0;
+    SizeT ilo, ihi, imiddle;
+    double xcur, xposcur, h, aa, bb;
+
+    for (SizeT count = 0; count < nElpXnew; ++count) {
+      xcur=(*Xnew)[count];
+      ilo=0;
+      ihi=nElpXpos-1;
+      while ((ihi-ilo) > 1){
+	imiddle=(ilo+ihi)/2;
+	xposcur=(*Xpos)[imiddle];
+	if (xposcur > xcur) ihi=imiddle;
+	else ilo=imiddle;
+      }
+      h=(*Xpos)[ihi]-(*Xpos)[ilo];
+      if (abs(h) == 0.0)  e->Throw("SPL_INTERP: Bad XA input (XA not ordered or zero step in XA).");
+      
+      if (debug == 1) cout << "h " << h << " lo/hi" << ilo << " " <<ihi<< endl;
+      aa=((*Xpos)[ihi]-xcur)/h;
+      bb=(xcur-(*Xpos)[ilo])/h;
+      (*res)[count]=aa*(*Ypos)[ilo]+bb*(*Ypos)[ihi];
+      (*res)[count]=(*res)[count]+((aa*aa*aa-aa)*(*Yderiv2)[ilo]+(bb*bb*bb-bb)*(*Yderiv2)[ihi])*(h*h)/6.;
+    }
+
+    GM_CV0();
   }
 
 } // namespace

@@ -24,6 +24,8 @@ namespace lib {
   BaseGDL* beselj_fun( EnvT* e);
   BaseGDL* beselk_fun( EnvT* e);
   BaseGDL* besely_fun( EnvT* e);
+  BaseGDL* spl_init_fun( EnvT* e);
+  BaseGDL* spl_interp_fun( EnvT* e);
 
 } // namespace
 
