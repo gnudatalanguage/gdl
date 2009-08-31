@@ -1,5 +1,6 @@
 ;
 ; AC 01-jun-2007
+; SA 30-aug-2009 (test_histo_basic)
 ;
 ;
 pro test_histo_randomu, nbp=nbp, nan=nan
@@ -36,4 +37,26 @@ OPLOT, X, Y * 8.
 ;
 if KEYWORD_SET(test) then stop
 ;
+end
+
+; SA: intended for checking basic histogram functionality
+pro test_histo_basic
+
+  ; for any input if MAX/MIN kw. value is the max/min element of input
+  ; it shoud be counted in the last/first bins
+  message, 'TEST 01', /continue
+  for e = -1023, 1023 do begin
+    input = [-2d^e, 2d^e]
+    if ( $
+      ~array_equal(histogram(input, max=input[1], min=input[0], nbins=2, $
+        reverse=ri), [1,1]) $
+    ) then begin
+      print, histogram(input, max=input[1], min=input[0], nbins=2)
+      message, 'FAILED: ' + string(e)
+    endif
+  endfor
+  ignored = histogram([0.], min=0, max=0, reverse=ri) 
+
+  ; TODO: test various possible keyword/input combinations...
+
 end

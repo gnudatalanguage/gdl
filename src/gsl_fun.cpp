@@ -978,11 +978,48 @@ namespace lib {
     }
   }
 
+  // SA: in C99 / C++TR1 / Boost there is the nextafter() function
+  //     but the code below avoids yet another dependency...
+  //     based on the nexttoward.c from mingw (mingw-runtime-3.8/mingwex/math) 
+  //     by Danny Smith <dannysmith@users.sourceforge.net> 
+  /*
+     nexttoward.c
+     Contributed by Danny Smith <dannysmith@users.sourceforge.net>
+     No copyright claimed, absolutely no warranties.
+
+     2005-05-10
+  */
+  double gdl_nexttoward (double x, long double y)
+  {
+    union
+    {
+      double d;
+      unsigned long long ll;
+    } u;
+
+    long double xx = x;
+
+    if (isnan (y) || isnan (x)) return x + y;
+
+     /* nextafter (0.0, -O.0) should return -0.0.  */
+    if (xx == y) return y;
+
+    u.d = x;
+    if (x == 0.0)
+    {
+      u.ll = 1;
+      return y > 0.0L ? u.d : -u.d;
+    }
+
+    /* Non-extended encodings are lexicographically ordered,
+       with implicit "normal" bit.  */
+    if (((x > 0.0) ^ (y > xx)) == 0) u.ll++;
+    else u.ll--;
+    return u.d;
+  }
 
   BaseGDL* histogram_fun( EnvT* e)
   {
-    const double smallVal = 1e-15;
-
     double a;
     double b;
     DULong nri;
@@ -1076,29 +1113,14 @@ namespace lib {
 	  bsize = (b - a) / nbins;
       }
 
-    if( bsize < 0 || a > b)
+    if( bsize < 0 || a > b || !isfinite(a) || !isfinite(b))
       e->Throw( "Illegal binsize or max/min.");
 
     // gsl histogram needs this adjustment
     double aOri = a, bOri = b;
-    if( b != a)
-      {
-	a -= (b-a) * smallVal;
-	b += (b-a) * smallVal;
-      }
-    else
-      {
-	if( a != 0.0)
-	  {
-	    a -=  a * smallVal;
-	    b +=  b * smallVal;
-	  }
-	else
-	  {
-	    a = -smallVal;
-	    b =  smallVal;
-	  }
-      }
+    // SA: gdl_nexttoward defined just above (see comment there)
+    a = gdl_nexttoward(a, -DBL_MAX);
+    b = gdl_nexttoward(b, DBL_MAX);
 
     // -> NBINS
     if( nbinsKW == NULL)

@@ -22,7 +22,7 @@ pro calendar, p1, p2
   endif
 
   ; acquireing the calendar from cal
-  cmd = 'cal'
+  cmd = 'LC_ALL=C cal'
   chrsz = 3
   if n_params() eq 1 then begin
     cmd += ' ' + string(p1) 
