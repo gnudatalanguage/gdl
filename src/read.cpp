@@ -100,7 +100,7 @@ namespace lib {
     read_is( is, e, 1);
 
     // If socket strip off leading line
-    if (fileUnits[ lun-1].SockNum() != -1) {
+    if (lun > 0 && fileUnits[ lun-1].SockNum() != -1) {
       string *recvBuf = &fileUnits[ lun-1].RecvBuf();
       int pos = is->tellg();
       recvBuf->erase(0, pos);
