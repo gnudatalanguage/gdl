@@ -39,8 +39,18 @@
 #include <gsl/gsl_histogram.h>
 #include <gsl/gsl_interp.h>
 #include <gsl/gsl_spline.h>
+
+// newton/broyden
 #include <gsl/gsl_multiroots.h>
 #include <gsl/gsl_vector.h>
+
+// constant
+#include <gsl/gsl_const_mksa.h>
+#include <gsl/gsl_const_num.h>
+#include <gsl/gsl_math.h>
+#ifdef USE_UDUNITS
+#  include <udunits2.h>
+#endif
 
 #define LOG10E 0.434294
 
@@ -978,8 +988,9 @@ namespace lib {
     }
   }
 
+#ifdef HAVE_NEXTTOWARD
   // SA: in C99 / C++TR1 / Boost there is the nextafter() function
-  //     but the code below avoids yet another dependency...
+  //     the code below provides an alternative if needed
   //     based on the nexttoward.c from mingw (mingw-runtime-3.8/mingwex/math) 
   //     by Danny Smith <dannysmith@users.sourceforge.net> 
   /*
@@ -989,7 +1000,7 @@ namespace lib {
 
      2005-05-10
   */
-  double gdl_nexttoward (double x, long double y)
+  double nexttoward(double x, long double y)
   {
     union
     {
@@ -1017,6 +1028,7 @@ namespace lib {
     else u.ll--;
     return u.d;
   }
+#endif
 
   BaseGDL* histogram_fun( EnvT* e)
   {
@@ -1118,9 +1130,8 @@ namespace lib {
 
     // gsl histogram needs this adjustment
     double aOri = a, bOri = b;
-    // SA: gdl_nexttoward defined just above (see comment there)
-    a = gdl_nexttoward(a, -DBL_MAX);
-    b = gdl_nexttoward(b, DBL_MAX);
+    a = nexttoward(a, -DBL_MAX);
+    b = nexttoward(b, DBL_MAX);
 
     // -> NBINS
     if( nbinsKW == NULL)
@@ -2293,6 +2304,273 @@ namespace lib {
       e->KeywordSet("DOUBLE") || p0->Type() == DOUBLE ? DOUBLE : FLOAT, 
       BaseGDL::CONVERT
     );
+  }
+
+  /*
+   * SA: TODO:
+   * constants: Catalan
+   * units: ounce, oz, AU, mill, Fahrenheit, stoke, Abcoulomb, ATM (atm works!)
+   * prefixes: u (micro)
+   */
+  BaseGDL* constant(EnvT* e)
+  {
+    string name;
+    bool twoparams;
+    static DStructGDL *Values = SysVar::Values();
+    static double nan = (*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_NAN"), 0)))[0];
+#ifdef USE_UDUNITS
+    string unit;
+#endif
+    {
+#ifdef USE_UDUNITS
+      DString tmpunit;
+#endif
+      if (twoparams = (e->NParam(1) == 2)) 
+      {
+#ifdef USE_UDUNITS
+        e->AssureScalarPar<DStringGDL>(1, tmpunit);    
+        unit.reserve(tmpunit.length());
+        for (string::iterator it = tmpunit.begin(); it < tmpunit.end(); it++) 
+          if (*it != ' ') unit.append(1, *it);
+#else
+        e->Throw("GDL was compiled without support for UDUNITS");
+#endif
+      } 
+      DString tmpname;
+      e->AssureScalarPar<DStringGDL>(0, tmpname);    
+      name.reserve(tmpname.length());
+      for (string::iterator it = tmpname.begin(); it < tmpname.end(); it++) 
+        if (*it != ' ' && *it != '_') name.append(1, tolower(*it));
+    }
+
+#ifdef USE_UDUNITS
+    ut_set_error_message_handler(ut_ignore); 
+    // making the unit catalogue static to gain performace in the next call
+    static ut_system* unitsys = ut_read_xml(NULL);
+    if (unitsys == NULL) e->Throw("UDUNITS: failed to load the default unit database");
+    ut_unit* unit_from;
+#endif
+    DDoubleGDL *res;
+
+    if (name.compare("amu") == 0) 
+    {
+      res = new DDoubleGDL(GSL_CONST_MKSA_UNIFIED_ATOMIC_MASS);
+#ifdef USE_UDUNITS
+      if (twoparams) unit_from = ut_parse(unitsys, "kg", UT_ASCII);
+#endif
+    }
+    else if (name.compare("atm") == 0 || name.compare("standardpressure") == 0) 
+    {
+      res = new DDoubleGDL(GSL_CONST_MKSA_STD_ATMOSPHERE);
+#ifdef USE_UDUNITS
+      if (twoparams) unit_from = ut_parse(unitsys, "N/m2", UT_ASCII);
+#endif
+    }
+    else if (name.compare("au") == 0) 
+    {
+      res = new DDoubleGDL(GSL_CONST_MKSA_ASTRONOMICAL_UNIT);
+#ifdef USE_UDUNITS
+      if (twoparams) unit_from = ut_parse(unitsys, "m", UT_ASCII);
+#endif
+    }
+    else if (name.compare("avogadro") == 0) 
+    {
+      res = new DDoubleGDL(GSL_CONST_NUM_AVOGADRO);
+#ifdef USE_UDUNITS
+      if (twoparams) unit_from = ut_parse(unitsys, "1/mole", UT_ASCII);
+#endif
+    }
+    else if (name.compare("boltzman") == 0) 
+    {
+      res = new DDoubleGDL(GSL_CONST_MKSA_BOLTZMANN);
+#ifdef USE_UDUNITS
+      if (twoparams) unit_from = ut_parse(unitsys, "J/K", UT_ASCII);
+#endif
+    }
+    else if (name.compare("c") == 0 || name.compare("speedlight") == 0) 
+    {
+      res = new DDoubleGDL(GSL_CONST_MKSA_SPEED_OF_LIGHT);
+#ifdef USE_UDUNITS
+      if (twoparams) unit_from = ut_parse(unitsys, "m/s", UT_ASCII);
+#endif
+    }
+//    else if (name.compare("catalan") == 0) 
+//    {
+//      res = new DDoubleGDL(); // TODO: Dirichlet Beta function! 
+//#ifdef USE_UDUNITS
+//      if (twoparams) unit_from = ut_parse(unitsys, "", UT_ASCII);
+//#endif
+//    }
+    else if (name.compare("e") == 0) 
+    {
+      res = new DDoubleGDL(M_E);
+#ifdef USE_UDUNITS
+      if (twoparams) unit_from = ut_get_dimensionless_unit_one(unitsys); 
+#endif
+    }
+    else if (name.compare("electroncharge") == 0) 
+    {
+      res = new DDoubleGDL(GSL_CONST_MKSA_ELECTRON_CHARGE);
+#ifdef USE_UDUNITS
+      if (twoparams) unit_from = ut_parse(unitsys, "C", UT_ASCII);
+#endif
+    }
+    else if (name.compare("electronmass") == 0) 
+    {
+      res = new DDoubleGDL(GSL_CONST_MKSA_MASS_ELECTRON);
+#ifdef USE_UDUNITS
+      if (twoparams) unit_from = ut_parse(unitsys, "kg", UT_ASCII);
+#endif
+    }
+    else if (name.compare("electronvolt") == 0) 
+    {
+      res = new DDoubleGDL(GSL_CONST_MKSA_ELECTRON_VOLT);
+#ifdef USE_UDUNITS
+      if (twoparams) unit_from = ut_parse(unitsys, "J", UT_ASCII);
+#endif
+    }
+    else if (name.compare("euler") == 0 || name.compare("gamma") == 0) 
+    {
+      res = new DDoubleGDL(M_EULER);
+#ifdef USE_UDUNITS
+      if (twoparams) unit_from = ut_get_dimensionless_unit_one(unitsys);
+#endif
+    }
+    else if (name.compare("faraday") == 0) 
+    {
+      res = new DDoubleGDL(GSL_CONST_MKSA_FARADAY);
+#ifdef USE_UDUNITS
+      if (twoparams) unit_from = ut_parse(unitsys, "C/mole", UT_ASCII);
+#endif
+    }
+    else if (name.compare("finestructure") == 0) 
+    {
+      res = new DDoubleGDL(GSL_CONST_NUM_FINE_STRUCTURE);
+#ifdef USE_UDUNITS
+      if (twoparams) unit_from = ut_get_dimensionless_unit_one(unitsys);
+#endif
+    }
+    else if (name.compare("gas") == 0) 
+    {
+      res = new DDoubleGDL(GSL_CONST_MKSA_MOLAR_GAS);
+#ifdef USE_UDUNITS
+      if (twoparams) unit_from = ut_parse(unitsys, "J/mole/K", UT_ASCII);
+#endif
+    }
+    else if (name.compare("gravity") == 0) 
+    {
+      res = new DDoubleGDL(GSL_CONST_MKSA_GRAVITATIONAL_CONSTANT);
+#ifdef USE_UDUNITS
+      if (twoparams) unit_from = ut_parse(unitsys, "N m2 kg2", UT_ASCII);
+#endif
+    }
+    else if (name.compare("hbar") == 0) 
+    {
+      res = new DDoubleGDL(GSL_CONST_MKSA_PLANCKS_CONSTANT_HBAR);
+#ifdef USE_UDUNITS
+      if (twoparams) unit_from = ut_parse(unitsys, "J s", UT_ASCII);
+#endif
+    }
+    else if (name.compare("perfectgasvolume") == 0) 
+    {
+      res = new DDoubleGDL(GSL_CONST_MKSA_STANDARD_GAS_VOLUME);
+#ifdef USE_UDUNITS
+      if (twoparams) unit_from = ut_parse(unitsys, "m3/mole", UT_ASCII);
+#endif
+    }
+    else if (name.compare("pi") == 0) 
+    {
+      res = new DDoubleGDL(M_PI);
+#ifdef USE_UDUNITS
+      if (twoparams) unit_from = ut_get_dimensionless_unit_one(unitsys);
+#endif
+    }
+    else if (name.compare("planck") == 0) 
+    {
+      res = new DDoubleGDL(GSL_CONST_MKSA_PLANCKS_CONSTANT_H);
+#ifdef USE_UDUNITS
+      if (twoparams) unit_from = ut_parse(unitsys, "J s", UT_ASCII);
+#endif
+    }
+    else if (name.compare("protonmass") == 0) 
+    {
+      res = new DDoubleGDL(GSL_CONST_MKSA_MASS_PROTON);
+#ifdef USE_UDUNITS
+      if (twoparams) unit_from = ut_parse(unitsys, "kg", UT_ASCII);
+#endif
+    }
+    else if (name.compare("rydberg") == 0) 
+    {
+      res = new DDoubleGDL(
+        GSL_CONST_MKSA_MASS_ELECTRON * pow(GSL_CONST_MKSA_ELECTRON_CHARGE, 4) / (
+          8. * pow(GSL_CONST_MKSA_VACUUM_PERMITTIVITY, 2) * 
+          pow(GSL_CONST_MKSA_PLANCKS_CONSTANT_H, 3) * GSL_CONST_MKSA_SPEED_OF_LIGHT
+        )
+      );
+#ifdef USE_UDUNITS
+      if (twoparams) unit_from = ut_parse(unitsys, "m-1", UT_ASCII);
+#endif
+    }
+    else if (name.compare("standardgravity") == 0) 
+    {
+      res = new DDoubleGDL(GSL_CONST_MKSA_GRAV_ACCEL);
+#ifdef USE_UDUNITS
+      if (twoparams) unit_from = ut_parse(unitsys, "m/s2", UT_ASCII);
+#endif
+    }
+    else if (name.compare("stefanboltzman") == 0) 
+    {
+      res = new DDoubleGDL(GSL_CONST_MKSA_STEFAN_BOLTZMANN_CONSTANT);
+#ifdef USE_UDUNITS
+      if (twoparams) unit_from = ut_parse(unitsys, "W/K4/m2", UT_ASCII);
+#endif
+    }
+    else if (name.compare("watertriple") == 0) 
+    {
+      res = new DDoubleGDL(273.16); // e.g. http://wtt-lite.nist.gov/cgi-bin/openindex.cgi?cid=7732185
+#ifdef USE_UDUNITS
+      if (twoparams) unit_from = ut_parse(unitsys, "K", UT_ASCII);
+#endif
+    }
+    else 
+    { 
+      Warning("IMSL_CONSTANT: unknown constant");
+      res = new DDoubleGDL(nan);
+    }
+
+    // units
+#ifdef USE_UDUNITS
+    if (twoparams)
+    {
+      assert(unit_from != NULL);
+      ut_unit* unit_to = ut_parse(unitsys, unit.c_str(), UT_ASCII);
+      if (unit_to == NULL) 
+      {
+        Warning("IMSL_CONSTANT: UDUNITS: failed to parse unit");
+        (*res)[0] = nan;
+      }
+      else
+      {
+        cv_converter* converter = ut_get_converter(unit_from, unit_to);
+        if (converter == NULL) 
+        {
+          Warning("IMSL_CONSTANT: UDUNITS: units not convertible");
+          (*res)[0] = nan;
+        }
+        else
+        {
+          (*res)[0] = cv_convert_double(converter, (*res)[0]);
+          cv_free(converter);
+        }
+      }
+      ut_free(unit_from); // leaks?
+      ut_free(unit_to);   // leaks?
+      //ut_free_system(unitsys); // (made static above)
+    }
+#endif    
+
+    static int doubleIx = e->KeywordIx("DOUBLE");
+    return res->Convert2(e->KeywordSet(doubleIx) ? DOUBLE : FLOAT, BaseGDL::CONVERT);
   }
 
 } // namespace

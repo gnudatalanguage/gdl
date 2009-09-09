@@ -54,6 +54,9 @@
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 
+/* Define to 1 if you have the `nexttoward' function. */
+#undef HAVE_NEXTTOWARD
+
 /* Define if you have a plplot version prior to 5.9.0 */
 #undef HAVE_OLDPLPLOT
 
@@ -137,6 +140,9 @@
 
 /* Define if you want to use python */
 #undef USE_PYTHON
+
+/* Define if you want to use UDUNITS-2 */
+#undef USE_UDUNITS
 
 /* Version number of package */
 #undef VERSION

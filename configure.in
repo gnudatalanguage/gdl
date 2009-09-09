@@ -46,6 +46,9 @@ AC_CHECK_HEADERS([malloc.h malloc/malloc.h])
 dnl related to portability of LOCALE_GET()
 AC_CHECK_HEADERS([locale.h])
 
+dnl used in histogram
+AC_CHECK_FUNCS([nexttoward])
+
 AC_ARG_WITH(ncursesdir,
  	[  --with-ncursesdir=DIR   specify the ncurses (or curses) directory tree ],
 	[ LIBS="$LIBS -L$withval/lib"
@@ -393,7 +396,13 @@ if test "x$with_hdf" != "xno"; then
     INCLUDES="$INCLUDES -I/usr/include/hdf"
   fi
 
-  AC_CHECK_LIB(df, Hopen, [AC_DEFINE([USE_HDF], [1], [Define if you want to use HDF])], [
+  AC_CHECK_LIB(df, Hopen, [AC_DEFINE([USE_HDF], [1], [Define if you want to use HDF])], 
+    AC_MSG_CHECKING([if linking with SZIP helps])
+    echo ""
+    AC_CHECK_LIB(df, Hclose, [
+      LIBS="$LIBS -lsz"
+      AC_DEFINE([USE_HDF], [1], [Define if you want to use HDF])
+    ], [
     echo ""
     echo "Error! HDF version 4 is required but was not found"
     echo "       Use --with-hdf=DIR to specify the HDF directory tree"
@@ -401,7 +410,7 @@ if test "x$with_hdf" != "xno"; then
     echo "       Check the README or use configure --help for other libraries needed"
     echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
     exit -1
-    ])
+    ], [-lsz]))
 
   AC_CHECK_LIB(mfhdf, SDstart, [AC_DEFINE([USE_HDF], [1], [Define if you want to use HDF])], [
     echo ""
@@ -442,7 +451,13 @@ if test "x$with_hdf5" != "xno"; then
     LIBS="$LIBS -L/usr/lib/hdf -L/usr/lib/hdf5 -lhdf5"
   fi
 
-  AC_CHECK_LIB(hdf5, H5Fopen, [AC_DEFINE([USE_HDF5], [1], [Define if you want to use HDF5])], [
+  AC_CHECK_LIB(hdf5, H5Fopen, [AC_DEFINE([USE_HDF5], [1], [Define if you want to use HDF5])], 
+    AC_MSG_CHECKING([if linking with SZIP helps])
+    echo ""
+    AC_CHECK_LIB(hdf5, H5Fclose, [
+      LIBS="$LIBS -lsz"
+      AC_DEFINE([USE_HDF5], [1], [Define if you want to use HDF5])
+    ], [
     echo ""
     echo "Error! HDF version 5 is required but was not found"
     echo "       Use --with-hdf5=DIR to specify the HDF5 directory tree"
@@ -450,7 +465,7 @@ if test "x$with_hdf5" != "xno"; then
     echo "       Check the README or use configure --help for other libraries needed"
     echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
     exit -1
-    ])
+    ], [-lsz]))
 fi
 
 
@@ -659,6 +674,36 @@ dnl    ])
   CXXFLAGS=$OLDCXXFLAGS
   unset OLDCXXFLAGS
 
+fi
+
+dnl UDunits
+AC_ARG_WITH(udunits,
+         [  --with-udunits[=DIR]      use UDUNITS-2 package (with optional path DIR) ],
+         [with_udunits="$withval" ])
+ 
+dnl default is no
+if test "x$with_udunits" = "x"; then
+  with_udunits=no
+fi
+
+if test "x$with_udunits" != "xno"; then
+  if test "x$with_udunits" != "xyes"; then
+    LIBS="$LIBS -L$with_udunits/lib -ludunits2"
+    INCLUDES="$INCLUDES -I$with_udunits/include"
+  else
+    INCLUDES="$INCLUDES -I/usr/include"
+    LIBS="$LIBS -ludunits2"
+  fi
+
+  AC_CHECK_LIB(udunits2, ut_get_unit_by_name, [AC_DEFINE([USE_UDUNITS], [1], [Define if you want to use UDUNITS-2])], [
+    echo ""
+    echo "Error! UDUNITS-2 is required but was not found"
+    echo "       Use --with-udunits=DIR to specify the UDUNITS-2 directory tree"
+    echo "       Use --with-udunits=no  to not use it"
+    echo "       Check the README or use configure --help for other libraries needed"
+    echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
+    exit -1
+    ])
 fi
 
 dnl SA: comming soon...
@@ -913,6 +958,8 @@ echo "
     then echo 'no  (needs explicit enabling)'; else echo yes; fi`
   Python:              `if test no = $with_python;
     then echo 'no  (see also PYTHON.txt)'; else echo \"yes ($PYTHON_VERSION)\"; fi`
+  UDUNITS-2:           `if test no = $with_udunits;
+    then echo 'no  (needs explicit enabling)'; else echo yes; fi`
   ----- notes on auxiliary files: ----------------------
   - routines implemented in GDL are located in src/pro/,
     use GDL_PATH env. variable to inform GDL about their

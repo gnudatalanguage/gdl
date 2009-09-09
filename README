@@ -72,6 +72,7 @@ HDF5        ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/current
 FFTW        http://www.fftw.org/download.html
 python      http://www.python.org
 libproj4    http://members.verizon.net/~vze2hc4d/proj4/
+UDUNITS-2   http://www.unidata.ucar.edu/software/udunits/
 
 Only with python:
 numarray    http://www.stsci.edu/resources/software_hardware/numarray
@@ -223,6 +224,10 @@ the python README file for details.
 For nice graphical output the python package matplotlib
 (http://matplotlib.sourceforge.net) is used in one of the examples.
 See the file PYTHON.txt for more details.
+
+GDL supports unit converion in IMSL_CONSTANT using the UDUNITS-2
+library (http://www.unidata.ucar.edu/software/udunits/)
+If you want to use it, use --with-udunits=DIR
 
 GDL 0.9 was developed using ANTLR 2.7.6,   
 but unless you want to change the grammar (*.g files) you don't need

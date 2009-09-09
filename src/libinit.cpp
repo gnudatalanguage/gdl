@@ -752,6 +752,9 @@ void LibInit()
   const string pmKey[] = {"FORMAT", "TITLE", KLISTEND };
   new DLibPro(lib::pm, string("PM"), -1, pmKey);
 
+  const string constantKey[] = {"DOUBLE", KLISTEND };
+  new DLibFun(lib::constant, string("IMSL_CONSTANT"), 2, constantKey);
+
   // sort lists
   sort( libFunList.begin(), libFunList.end(), CompLibFunName());
   sort( libProList.begin(), libProList.end(), CompLibProName());
