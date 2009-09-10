@@ -5517,5 +5517,11 @@ namespace lib {
     e->Throw("Expecting string or byte array as a first parameter");
   }
 
+  BaseGDL* get_drive_list(EnvT* e)
+  {
+    if (e->KeywordPresent(0)) e->SetKW(0, new DLongGDL(0));
+    return new DStringGDL("");
+  }
+
 } // namespace
 

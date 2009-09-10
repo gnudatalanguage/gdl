@@ -558,7 +558,8 @@ namespace lib {
 		   bool noSort,
 		   bool quote,
 		   bool dir,
-		   bool period)
+		   bool period,
+                   bool forceAbsPath)
   {
     int flags = 0;
 
@@ -592,10 +593,31 @@ namespace lib {
 
     glob_t p;
     int gRes;
-    if( s == "")
-      gRes = glob( "*", flags, NULL, &p);
-    else
-      gRes = glob( s.c_str(), flags, NULL, &p);
+    if (!forceAbsPath)
+    {
+      if (s != "") gRes = glob(s.c_str(), flags, NULL, &p);
+      else gRes = glob("*", flags, NULL, &p);
+    }
+    else 
+    {
+      string pattern;
+      if 
+      (
+        s.at(0) != '/' && 
+        !(tilde && s.at(0) == '~') && 
+        !(environment && s.at(0) == '$')
+      ) 
+      { 
+        pattern = GetCWD();
+        pattern.append("/");
+        pattern.append(s);
+        gRes = glob(pattern.c_str(), flags, NULL, &p);
+      }
+      else 
+      {
+        gRes = glob(s.c_str(), flags, NULL, &p);
+      }
+    }
 
 #ifndef __APPLE__
     if( accErr && (gRes == GLOB_ABORTED || gRes == GLOB_NOSPACE))
@@ -696,6 +718,9 @@ namespace lib {
     static int match_all_dotIx = e->KeywordIx( "MATCH_ALL_INITIAL_DOT");
     bool match_all_dot = e->KeywordSet( match_all_dotIx);
 
+    static int fully_qualified_pathIx = e->KeywordIx( "FULLY_QUALIFY_PATH");
+    bool forceAbsPath = e->KeywordSet( fully_qualified_pathIx);
+
     // ...
     if( fold_case)
       Warning( "FILE_SEARCH: FOLD_CASE keyword ignored (not supported).");
@@ -709,16 +734,16 @@ namespace lib {
     if( nPath == 0)
       FileSearch( fileList, "", 
 		  environment, tilde, 
-		  accErr, mark, noSort, quote, onlyDir, match_dot);
+		  accErr, mark, noSort, quote, onlyDir, match_dot, forceAbsPath);
     else
       FileSearch( fileList, (*pathSpec)[0],
 		  environment, tilde, 
-		  accErr, mark, noSort, quote, onlyDir, match_dot);
+		  accErr, mark, noSort, quote, onlyDir, match_dot, forceAbsPath);
     
     for( SizeT f=1; f < nPath; ++f) 
       FileSearch( fileList, (*pathSpec)[f],
 		  environment, tilde, 
-		  accErr, mark, noSort, quote, onlyDir, match_dot);
+		  accErr, mark, noSort, quote, onlyDir, match_dot, forceAbsPath);
 
     DLong count = fileList.size();
 

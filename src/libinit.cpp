@@ -123,7 +123,7 @@ void LibInit()
 				 "FOLD_CASE","ISSUE_ACCESS_ERROR",
 				 "MARK_DIRECTORY","NOSORT","QUOTE",
 				 "MATCH_INITIAL_DOT",
-				 "MATCH_ALL_INITIAL_DOT",KLISTEND};
+				 "MATCH_ALL_INITIAL_DOT","FULLY_QUALIFY_PATH",KLISTEND};
   new DLibFunRetNew(lib::file_search,string("FILE_SEARCH"),2,file_searchKey);
 
   const string expand_pathKey[]={"ARRAY","ALL_DIRS","COUNT",KLISTEND};
@@ -453,7 +453,8 @@ void LibInit()
       "DECOMPOSED","GET_DECOMPOSED","Z_BUFFERING","SET_RESOLUTION",
       "SET_CHARACTER_SIZE",KLISTEND
     };
-  new DLibPro(lib::device,string("DEVICE"),0,deviceKey);
+  const string deviceWarnKey[] = {"RETAIN", KLISTEND};
+  new DLibPro(lib::device,string("DEVICE"),0, deviceKey, deviceWarnKey);
 
   const string plotKey[]=
     {
@@ -754,6 +755,9 @@ void LibInit()
 
   const string constantKey[] = {"DOUBLE", KLISTEND };
   new DLibFun(lib::constant, string("IMSL_CONSTANT"), 2, constantKey);
+
+  const string get_drive_listKey[] = {"COUNT", KLISTEND };
+  new DLibFun(lib::get_drive_list, string("GET_DRIVE_LIST"), 0, get_drive_listKey);
 
   // sort lists
   sort( libFunList.begin(), libFunList.end(), CompLibFunName());
