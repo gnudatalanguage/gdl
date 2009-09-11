@@ -2039,7 +2039,7 @@ void Data_<Sp>::InsAt( Data_* srcIn, ArrayIndexListT* ixList, SizeT offset)
       SizeT destStart = ixList->LongIx();
 
       //SizeT len;
-      if( this->N_Elements() == 1)
+      if( ixList->N_Elements() ==1 || this->N_Elements() == 1)
 	{
 	  //	  len = 1;
 	  SizeT rStride = srcIn->Stride(this->Rank());
