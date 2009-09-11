@@ -846,14 +846,24 @@ block returns[ GDLInterpreter::RetCode retCode]
 {
     retCode = RC_OK;
 
-	ProgNodeP rTree = _t->getNextSibling();
+	ProgNodeP block = _t;
 	match(antlr::RefAST(_t),BLOCK);
 	_t = _t->getFirstChild();
 	if (_t != NULL)
 		{
-		retCode=statement_list(_t);
+
+            SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
+
+            retCode=statement_list(_t);
+
+            if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+                !block->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
+                {
+                    // a jump (goto) occured out of this block
+                    return retCode;
+                }
 		}
-	_retTree = rTree;
+	_retTree = block->getNextSibling();
 	return retCode;
 }
 	: #(BLOCK (retCode=statement_list)?)

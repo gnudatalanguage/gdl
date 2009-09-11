@@ -191,6 +191,19 @@ jump6:
 
 if count ne 11 then print,'***GOTO: ERROR7'
 
+IF (1)then begin
+   
+   IF (1)then begin
+      ;print,"Going to Label1"
+      goto, Label1
+   end else begin
+      print,'***GOTO: ERROR8'
+   end
+      
+   Label1:
+end
+
+
 print,'GOTO: OK'
 
 end
@@ -853,6 +866,12 @@ if a ne 2 then print,"***ASSIGNMENT: ERROR7"
 
 ((a=3))=2
 if a ne 2 then print,"***ASSIGNMENT: ERROR8"
+
+A=create_struct("boo",dblarr(10),"foo",dblarr(10))
+B=replicate(A,30)
+data=findgen(30)
+B[0:29].boo[3] = data[0:29]
+if B[29].boo[3] ne 29.0 then print,"***ASSIGNMENT: ERROR9"
 
 print,"ASSIGNMENT: OK"
 end

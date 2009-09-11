@@ -192,10 +192,10 @@ public:
   // for obj_new and obj_destroy
   EnvUDT( EnvT* pEnv, DSub* newPro, BaseGDL** self); 
 
-  DLong GetOnError() { return onError;}
+  DLong GetOnError() const { return onError;}
 
-  SizeT NJump() { return nJump;}
-  int    LastJump() { return lastJump;}
+  SizeT NJump() const { return nJump;}
+  int   LastJump() const { return lastJump;}
   ProgNodeP GotoTarget( int ix)
   { 
     lastJump = ix; //static_cast<DSubUD*>( pro)->LabelOrd( ix);
