@@ -1545,7 +1545,12 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
 
 	  if( nCp == 1)
 	    {
-	      InsAt( src, ixList, offset);
+		SizeT destStart = ixList->LongIx();
+		//  len = 1;
+		SizeT rStride = srcIn->Stride(this->Rank());
+		(*this)[ destStart] = (*src)[ offset/rStride];
+
+//	      InsAt( src, ixList, offset);
 	    }
 	  else
 	    {
@@ -2039,7 +2044,7 @@ void Data_<Sp>::InsAt( Data_* srcIn, ArrayIndexListT* ixList, SizeT offset)
       SizeT destStart = ixList->LongIx();
 
       //SizeT len;
-      if( ixList->N_Elements() ==1 || this->N_Elements() == 1)
+      if( this->N_Elements() == 1)
 	{
 	  //	  len = 1;
 	  SizeT rStride = srcIn->Stride(this->Rank());
