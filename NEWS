@@ -190,7 +190,7 @@
 	  Add initial CURSOR, limited but functionnal (know
 	  limitations documented in program) and !mouse
  
-0.9rc1    fixing memory leak in FFT when using FFTw lib.
+0.9rc1:   fixing memory leak in FFT when using FFTw lib.
 	  fixing FACTORIAL (GDL syntax)
 	  add SKIP_LUN (used by Astron Lib.; GDL syntax)
 	  add VOIGT() function (in C++) based on Wells' paper.
@@ -202,7 +202,7 @@
 	  Preliminary version for Width parameter in MEDIAN()
 	  add SPL_INIT() and SPL_INTERP() (GDL syntax)
 
-0.9rc2	  undocumented BYTSCL accepting three parameters (value,min,max)
+0.9rc2:   undocumented BYTSCL accepting three parameters (value,min,max)
 	  initial import for SPL_INIT() and SPL_INTERP()
 	  g++ 4.3 compatibility
 	  ignore something like a=(a=a) (so it is allowed even if a is undefined)
@@ -222,3 +222,116 @@
 	  allow floats without exponent number like 1e
 	  FACTORIAL correcting bug when inputs are Integers; managing arrays
 	  Made for READ_ASCII DATA_START independent of HEADER
+
+0.9rc3:  interpreter:
+           - corrected GOTO out of loops within outer blocks
+           - corrected array to tag of struct array assignment
+           - $: fixing two segfault conditions when SHELL or HOME env. variables not set
+           - allowing tag names with leading '!'
+           - imroved DataListT an empty procedure call by extimated 40%
+           - detecting change of type of FOR index variable
+           - allowing common blocks outside subroutines
+         library routines:
+           - ATAN: precision fixes (atan(float, float) -> float(atan(double, double))),
+             /PHASE keyword support, array-scalar argument combination support, 
+             two-complex-arguments case support
+           - BESEL*: non integer order, X neg, Complex, and better managment of arrays dimensions
+           - BETA: better management of the dimensions of output arrays
+           - BROYDEN: initial import
+           - CALENDAR: initial import
+           - CALDAT: initial import
+           - CD: avoiding segfault on OSX (wordexp() bug)
+           - COMMAND_LINE_ARGS: initial import
+           - CONTOUR: avoiding plplot error messages when filling, 
+             fixing segfault when contouring NaNs,
+             smarter contour-level choice,
+             partial labelling support
+           - CREATE_STRUCT: accepting excl. mark as a first char of a tag name
+           - EXIT: fixing segfault if HOME env. var undefined
+           - EXPINT: better management of the dimensions of output arrays
+           - IDL_BASE64: initial import
+           - IGAMMA: better management of the dimensions of output arrays
+           - IMSL_CONSTANT: initial import (using UDUNITS-2)
+           - IMSL_ZEROSYS: initial import
+           - FILE_INFO: initial import
+           - FILE_LINES: no longer calling awk to parse wc output
+           - FILE_SAME: initial import
+           - FILE_SEARCH: support for FULLY_QUALIFY_PATH kw.
+           - FILE_TEST: handling /NOEXPAND_PATH keyword
+           - FFT: Fix /OVERWRITE with non-global parm bug (FFTW), fix auto_ptr bug with DOUBLE
+           - FLUSH: initial import
+           - GET_DRIVE_LIST: initial import
+           - GET_KBRD: reading only one character (setting stdin to non-echo and non-canonical mode)
+           - GET_LOGIN_INFO: initial import
+           - HISTOGRAM: fixing inclusive ranges definition
+             setting OMIN/OMAX type according to the type of input data
+             binsize = (max - min) / (nbins - 1) when NBINS specified with neither MAX nor BINSIZE
+             LOCATION keyword set correctly when HISTOGRAM called with NBINS and without BINSIZE or MAX
+           - HELP: reporting structure data lengths, /MEMORY keyword support
+           - LL_ARC_DISTANCE: initial import
+           - LOCALE_GET: initial import
+           - MAKE_ARRAY: /PTR & /OBJ keywords, /INDEX keyword support for strings
+           - MAKE_ARRAY: keyword name changed from INT to INTEGER
+           - MAX: DIMENSION keyword support
+           - MIN: ditto
+           - MEDIAN: memory leak fix + change DIM into DIMENSION
+           - MEMORY: initial import
+           - MOMENT: MAXMOMENT kw support + update of the documentation header
+           - N_TAGS: rename keyword /LENGTH to /DATA_LENGTH
+           - NCDF_ATTGET: code cleanup + fixes
+           - NCDF_ATTPUT: fixing invalid keyword numbering
+           - NCDF_DIMINQ: accepting long integers as file and dimension ids
+           - NCDF_VARGET: 64-bit fix (SizeT->Dlong for transposed_dim_length[])
+             reading text data
+           - NCDF_VARGET1: reading text data
+           - NCDF_VARPUT: fixing random behaviour due to type mismatch (size_t -> int), 
+             fixing uninitialized variable bug
+           - NEWTON: initial import
+           - OPENW: allowing /APPEND flag for non-existant files
+           - PARSE_URL: initial import
+           - PATH_SEP: now return good type STRING = '/', before STRING = Array[1]
+           - PLOTS: correction for DATA coordinates
+           - PM: initial import
+           - PRINT: handling VMS compatibility syntax; demo: print, "$(F)", 1
+           - PRINTF: ditto
+           - READ_ASCII: handling both whitespace and tab as delimiter by default; 
+             using FILE_LINES instead of spawning wc
+           - READ_XWD: fixing a conditional statement typo
+           - READF: bugfix - allowing reads from standard input (lun 0)
+           - REVERSE: initial import
+           - ROTATE: better error message
+           - SIZE: fixing datatype (sign) conflict in IDL_SIZE structure assignment
+           - SHOWFONT: initial import
+           - SPAWN: fixed segfault when SHELL env. variable not set, 
+             undoing bitwise shift in EXIT_STATUS value; demo: spawn, "exit -1", e=i & help, i
+             setting EXIT_STATUS parameter when nParam==0; demo: spawn, exit=i & help, i
+           - SPL_INIT: initial import of C++ version (y0= and yn_1= not ready)
+           - SPL_INTERP: ditto
+           - STRING: handling VMS compatibility syntax; demo: help,string(1,"(G)")
+           - STRSPLIT: will allow 'str' and ['str'] 1D strings
+           - SYSTIME: correction for /JULIAN flag; conflicting keywords message
+           - TV: managing [1,n,m], [n,1,m] and [n,m,1] cases when TRUE=0
+           - VOIGT: better management of the dimensions of output arrays
+           - XYOUTS: axis thickness fix, DATA coordinates fix
+         configure script:
+           - HDF4/HDF5: linking with SZIP if needed
+           - detecting presence of Python numarray package
+           - printing summary information
+           - support for linux ppc64
+           - using nc-config (if present) to determine netcdf LIBS/INCLUDES
+           - using Magick++Config (if present) to determine Magick LIBS/INCLUDES
+           - better ncurses/curses check, preventing linking both libraries
+         other:
+           - embedded formatting commands for plotting routines (TEXTOIDL works)
+           - !DTOR & !RADEG values more precise
+           - SVG terminal available via set_plot, 'svg'
+           - misc. minor updates in readme/doc files
+           - several new test routines
+           - input/output: 64-bit OSX fix (xdr_long()/xdr_u_long() argument types)
+           - allowing setting history-file lenght in startup file using !EDIT_INPUT
+           - OpenSolaris compatibility fixes
+           - handling some out-of-memory exceptions
+           - gcc 4.4 compatibility fix
+           - HDF5: v1.8 compatibility fix
+           - widgets: some new functionality
+           - mapping: support for new LIBPROJ4

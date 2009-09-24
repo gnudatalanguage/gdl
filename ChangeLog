@@ -1,3 +1,518 @@
+GDL 0.9rc3:
+2009-09-11  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* testsuite/test_suite.pro, src/GDLInterpreter.cpp, src/envt.hpp, src/gdlc.i.g:
+	Corrected GOTO out of loops within outer blocks
+
+	* src/datatypes.cpp: corrected array to tag of struct array assignment
+
+2009-09-10  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/gsl_fun.cpp: IMSL_CONSTANT: gcc 3.3 compatibility fix
+
+	* src/basic_fun.cpp, src/basic_fun.hpp, src/file.cpp, src/libinit.cpp:
+	FILE_SEARCH: support for FULLY_QUALIFY_PATH kw.; GET_DRIVE_LIST: initial import; DEVICE: ignoring RETAIN kw.
+
+2009-09-09  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* testsuite/test_constants.pro:
+	IMSL_CONSTANT: new test routine (test_constants.pro)
+
+	* src/Makefile.in, src/antlr/Makefile.in, src/gsl_fun.cpp, src/gsl_fun.hpp, src/libinit.cpp, config.h.in, configure, configure.in, Makefile.in, README, aclocal.m4:
+	- configure/HDF4/HDF5: linking with SZIP if needed (thanks to David Nicholls;
+	  previously pointed out in the HDF Group report -
+	  http://www.hdfgroup.org/pubs/papers/2009-06_oss_eval.pdf)
+	- HISTOGRAM: using system nexttoward() if available
+	- IMSL_CONSTANT: initial import
+
+2009-09-01  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/read.cpp:
+	READF: bugfix - allowing reads from standard input (lun 0)
+
+2009-08-31  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/pro/calendar.pro, testsuite/test_histo.pro, src/gsl_fun.cpp:
+	HISTOGRAM: fixing inclusive ranges definition (tracker item no 2846561) + test_histo_basic in test_histo.pro; CALENDAR: always using the C locale (mimicking IDL and avoidin non-printable characters)
+
+2009-08-28  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/pro/spl_init.pro, src/pro/spl_interp.pro:
+	Removing files which have been in fact duplicated then renamed ...
+
+	* src/pro/spl_init_old.pro, src/pro/spl_interp_old.pro:
+	Renaming the version of SPL_* in GDL syntax to avoid conflits
+
+	* src/math_fun_ac.cpp, src/math_fun_ac.hpp:
+	Initial import of C++ version of SPL_INIT and SPL_INTERP (y0= and yn_1= not ready)
+	Experimental /help mechanism for Bessel family and SPL_*
+
+	* src/envt.hpp, src/libinit_ac.cpp:
+	adding e->HELP(*mess, nb_mines) for easy help
+
+2009-08-27  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/basic_pro.hpp, src/libinit.cpp, src/print.cpp: PM: initial import
+
+2009-08-26  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/base64.hpp, src/basic_fun.cpp, src/basic_fun.hpp, src/gsl_fun.cpp, src/libinit.cpp, src/pro/STATUS, src/pro/imsl_zerosys.pro, testsuite/test_base64.pro:
+	initial import of IDL_BASE64 (+ test routine) and IMSL_ZEROSYS (via NEWTON(..., /HYBRID))
+
+	* src/pro/calendar.pro: CALENDAR: initial import
+
+2009-08-23  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/plotting.cpp:
+	applied patches for CONTOUR and XYOUTS from Joanna (cokhavim)
+
+	* src/antlr/Makefile.in, src/basic_fun.cpp, src/gdlc.i.g, src/gdlc.tree.g, src/GDLInterpreter.cpp, src/GDLTreeParser.cpp, src/Makefile.in, configure, gdl.kdevelop, Makefile.in, README, aclocal.m4:
+	GET_KBRD patch from Fernando Silveira
+
+2009-08-18  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/dinterpreter.cpp:
+	fixing two segfault conditions caused by getenv() returning NULL (SHELL and HOME env. variables)
+
+2009-08-15  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/basic_fun.cpp, src/basic_fun.hpp, src/basic_fun_jmg.cpp, src/basic_pro.cpp, src/libinit.cpp, src/libinit_jmg.cpp:
+	GET_LOGIN_INFO(): initial import
+	MAKE_ARRAY(): /PTR & /OBJ keywords, /INDEX keyword support for strings
+	HELP: reporting structure data lengths
+
+2009-08-13  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/basic_fun.cpp, src/basic_fun.hpp, src/gdl.cpp, src/libinit.cpp:
+	COMMAND_LINE_ARGS(): initial import
+
+2009-08-12  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/basic_pro.cpp:
+	SPAWN: fixing segfault when SHELL env. variable not set
+
+2009-08-11  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/pro/moment.pro:
+	MOMENT: MAXMOMENT kw support + update of the documentation header
+
+2009-08-09  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/plotting.cpp:
+	header-file fix in plotting.cpp (bug introduced in rev. 1.86)
+
+	* src/initsysvar.cpp, src/libinit.cpp, src/math_fun.cpp, src/math_fun.hpp, testsuite/test_angles.pro:
+	- making !DTOR & !RADEG values more precise
+	- ATAN():
+	  - /PHASE keyword support
+	  - array-scalar argument combination support
+	  - two-complex-arguments case support
+	  - precision fixes (atan(float, float) -> float(atan(double, double)))
+	- LL_ARC_DISTANCE(): initial import
+	- new test-routine for angle-related stuff: ATAN(),
+	  LL_ARC_DISTANCE(), !PI, !DPI, !DTOR, !RADEG
+
+2009-08-07  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* config.h.in, configure, configure.in, src/basic_fun.cpp, src/basic_fun.hpp, src/libinit.cpp, testsuite/test_url.pro:
+	PARSE_URL() and LOCALE_GET(): initial import + test routine (test_url.pro)
+
+2009-08-01  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/basegdl.hpp, src/gsl_fun.cpp, src/gsl_fun.hpp, src/libinit.cpp, src/plotting.cpp, testsuite/test_multiroots.pro:
+	NEWTON()/BROYDEN() using GSL multiroots: initial import + test routine
+
+2009-07-30  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* TODO, src/math_fun_ac.cpp, testsuite/test_besel.pro, testsuite/test_tv.pro:
+	BESEL family functions: non integer order, X neg, Complex, and better managment of arrays dimensions
+
+2009-07-29  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* testsuite/test_besel.pro: do right calls to Bessel K and Y !
+
+2009-07-28  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/pro/read_xwd.pro:
+	READ_XWD: fixing a conditional statement typo (thaen -> then)
+
+2009-07-25  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/math_fun_gm.cpp, src/math_fun_ng.cpp:
+	Better management of the dimensions of output arrays for several mathematical functions, including BETA and VOIGT. Besel family should be corrected too very soon. Please try that with "test_MathFunctionsDim.pro". Behavior is not exactly the same than IDL (here we do the calculus when [1][n])
+
+	* testsuite/test_MathFunctionsDim.pro, testsuite/test_minmax.pro:
+	new test for testing Math Functions Dimensions ...
+
+2009-07-23  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* AUTHORS: adding myself to the AUTHORS file
+
+2009-07-22  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/deviceps.hpp, src/devicesvg.hpp, src/devicewin.hpp, src/devicex.hpp, src/devicez.hpp, src/gdlsvgstream.cpp, src/gdlsvgstream.hpp, src/basic_pro.cpp:
+	EXIT: fixing segfault if HOME env. var undefined; SVG: fixing end-of-page bahaviour
+
+2009-07-18  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/libinit.cpp, src/plotting.cpp, src/gdlsvgstream.hpp:
+	plotting: partial labelling support, treating OVERPLOT as a warnKeyword, error-message cosmetics; SVG: using svg terminal instead of svgcairo
+
+2009-07-17  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/basic_fun.cpp, src/libinit.cpp:
+	bug in N_TAGS(): rename keyword /LENGTH to /DATA_LENGTH
+
+	* testsuite/test_ntags.pro:
+	adding a new file (test_ntags.pro) in testsuite/ for testing N_TAGS() (written by T. Mermet)
+
+2009-07-16  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/ncdf_var_cl.cpp:
+	NCDF_VARGET: 64-bit fix (SizeT->Dlong for transposed_dim_length[]) + some code cleanup
+
+2009-07-15  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/ncdf_var_cl.cpp:
+	NCDF_VARPUT: fixing random behaviour due to type mismatch (size_t -> int) of the 5th argument to nc_inq_var()
+
+	* src/ncdf_att_cl.cpp: NCDF_ATTPUT: fixing invalid keyword numbering
+
+2009-07-03  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* PYTHON.txt, src/datatypes.hpp, src/pro/STATUS, src/pro/UrgentNeed.txt, HACKING:
+	misc. minor updates in readme/doc files, etc
+
+2009-06-30  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* testsuite/test_minmax.pro:
+	just changing 755 to 644 atributes for this file
+
+	* src/pro/strsplit.pro:
+	STRSPLIT: will allow 'str' and ['str'] 1D strings
+
+2009-06-26  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* testsuite/test_voigt.pro: TEST_VOIGT: better messages
+
+	* src/pro/path_sep.pro:
+	PATH_SEP: now return good type STRING = '/', before STRING = Array[1]
+
+2009-06-21  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/basegdl.cpp, src/basegdl.hpp, src/basic_fun.cpp, src/datatypes.cpp, src/datatypes.hpp, src/dstructgdl.hpp, src/libinit.cpp, src/specializations.hpp, testsuite/test_minmax.pro:
+	MIN/MAX: DIMENSION keyword support; bugfixes in REVERSE and MEDIAN; dimension-slicing test routine (in test_minmax)
+
+2009-06-19  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/ncdf_att_cl.cpp, src/ncdf_dim_cl.cpp, src/ncdf_var_cl.cpp:
+	fixes/code-cleanup in NCDF routines (VARPUT, DIMINQ, ATTGET)
+
+2009-06-14  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/devicesvg.hpp, src/gdlsvgstream.cpp, src/gdlsvgstream.hpp:
+	adding SVG-terminal files (missing in previous commit)
+
+	* src/antlr/Makefile.in, src/libinit.cpp, src/ncdf_var_cl.cpp, src/plotting.cpp, src/typedefs.hpp, INSTALL, Makefile.in, configure, configure.in, src/Makefile.am, src/Makefile.in, src/basegdl.cpp, src/basegdl.hpp, src/basic_fun.cpp, src/basic_fun.hpp, src/basic_fun_cl.cpp, src/datatypes.cpp, src/datatypes.hpp, src/devicez.hpp, src/graphics.cpp, src/initsysvar.cpp, src/io.cpp:
+	- REVERSE: initial import
+	- SYSTIME: correction for /JULIAN flag; conflicting keywords message
+	- SVG terminal (via set_plot, 'svg')
+	- switching off HIGHWATER memory accounting using mallinfo() (too slow)
+	- configure: LDFLAGS from Magick++Config; test if adding X library path helps
+	- ROTATE: better error message
+	- NCDF_VARPUT: fixing uninitialized variable bug
+
+2009-06-09  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* configure, configure.in:
+	configure: correcting (again) the check for presence of numarray
+
+	* configure, configure.in:
+	configure: correcting the check for presence of numarray
+
+	* src/basic_pro.hpp, src/io.cpp, src/io.hpp, src/libinit.cpp, src/basic_pro.cpp:
+	FLUSH: initial import (patch from Orion Poplawski)
+
+	* config.guess, config.sub, configure, configure.in, ltmain.sh:
+	after running libtoolize (tracker item no 2770126)
+
+2009-06-07  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* configure, configure.in:
+	configure: detecting numarray, printing summary information
+
+	* src/default_io.cpp:
+	64-bit OSX fix (xdr_long()/xdr_u_long() argument types) - patch from Martin Otte
+
+	* configure.in, configure:
+	support for linux ppc64 (patch from Orion Poplawski)
+
+	* src/basic_fun.cpp:
+	MEDIAN: memory leak fix + change DIM into DIMENSION (tracker bug id 1805751)
+
+2009-06-06  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/basic_fun_jmg.cpp:
+	fixing datatype (sign) conflict in IDL_SIZE structure assignment (SF tracker bug id 2801342)
+
+2009-05-28  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/dinterpreter.cpp, src/gdl.cpp, src/pro/STATUS, MAP_INSTALL:
+	setting history-file lenght in startup file using !EDIT_INPUT + updates in MAP_INSTALL and pro/STATUS
+
+2009-05-26  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/antlr/Makefile.in, Makefile.in, configure, configure.in, src/Makefile.in:
+	using nc-config (if present) to determine netcdf LIBS/INCLUDES
+
+2009-05-22  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/gdlgstream.cpp, src/gdlgstream.hpp, src/pro/showfont.pro:
+	embedded formatting commands + initial import of SHOWFONT
+
+2009-05-20  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/dstructgdl.hpp:
+	removal of one static_cast() which was causing gcc warnings
+
+2009-05-17  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/basic_pro.cpp, src/basic_pro.hpp, src/libinit.cpp:
+	CALDAT: initial import
+
+2009-05-13  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/basegdl.cpp, src/basegdl.hpp, src/basic_fun.cpp, src/basic_fun.hpp, src/basic_pro.cpp, src/libinit.cpp, src/objects.cpp, config.h.in, configure, configure.in:
+	MEMORY(): initial import + HELP,/MEMORY
+
+2009-05-09  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/export.hpp: Zero out arrays of necessary
+
+2009-05-02  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/file.cpp, src/file.hpp, src/libinit.cpp, src/objects.cpp:
+	FILE_INFO: initial import
+
+2009-04-30  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* configure, configure.in:
+	better ncurses/curses check, preventing linking both libraries
+
+	* Makefile.in, aclocal.m4, config.h.in, configure, configure.in, src/Makefile.in, src/antlr/Makefile.in, src/basic_fun.cpp, src/datatypes.hpp, src/file.cpp, src/fmtnode.cpp, src/includefirst.hpp:
+	OpenSolaris compatibility fixes
+
+2009-04-28  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/file.cpp, src/file.hpp, src/libinit.cpp:
+	FILE_SAME: initial import
+
+	* src/file.cpp, src/libinit.cpp:
+	FILE_TEST: handling /NOEXPAND_PATH keyword
+
+2009-04-17  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/basic_fun.cpp: STRING: segfault fix for the previous revision
+
+	* src/basic_fun.cpp:
+	STRING: handling VMS compatibility syntax; demo: help,string(1,"(G)")
+
+2009-04-10  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/pro/restore.pro:
+	RESTORE: fixing a typo in variable (filename) name
+
+2009-04-06  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/print.cpp:
+	PRINT/PRINTF: handling VMS compatibility syntax; demo: print, "$(F)", 1
+
+2009-03-31  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/fftw.cpp: Fix /OVERWRITE with non-global parm bug in FFT
+
+2009-03-24  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/basic_pro.cpp:
+	SPAWN: undoing bitwise shit in EXIT_STATUS value; demo: spawn, "exit -1", e=i & help, i
+
+	* src/dinterpreter.cpp:
+	preventing compiler warning due to ignored return value of a call to system()
+
+	* src/basic_pro.cpp:
+	SPAWN: setting EXIT_STATUS parameter when nParam==0; demo: spawn, exit=i & help, i
+
+2009-03-23  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* gdl.kdevelop, src/basegdl.hpp, src/basic_fun.cpp, src/basic_fun_cl.cpp, src/basic_fun_jmg.cpp, src/devicex.hpp, src/dimension.hpp, src/envt.cpp, src/envt.hpp, src/gsl_fun.cpp, src/magick_cl.cpp, src/math_fun.cpp, src/math_fun_jmg.cpp, src/plotting.cpp:
+	*** empty log message ***
+
+2009-03-23  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/gsl_fun.cpp:
+	HISTOGRAM: setting OMIN/OMAX type according to the type of input data (tracker item no. 2699831)
+
+2009-03-22  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/typedefs.hpp, testsuite/test_outofmem.pro:
+	converting bad_alloc exceptions when allocation arrays into GDLExceptions + test_outofmem.pro
+
+	* src/basic_pro.cpp:
+	OPENW: allowing /APPEND flag for non-existant files (tracker item no 2103871)
+
+2009-03-20  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* testsuite/test_plotting_misc.pro:
+	test routine for various plotting issues
+
+2009-03-19  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/plotting.cpp: cosmetic changes to error messages
+
+2009-03-18  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/plotting.cpp:
+	recovering changes from rev 1.73 lost in rev 1.76 (Joel: Add support for NORMAL/TO_DEVICE (xy->ll) in CONVERT_COORD)
+
+	* src/plotting.cpp:
+	XYOUTS: correction for DATA coordinates, demo: !P.MULTI=[0,2,1]&plot,findgen(10)&xyouts,.5,.5,a
+
+	* src/plotting.cpp:
+	PLOTS: correction for DATA coordinates, demo: !P.MULTI=[0,2,1]&plot,findgen(10)&plots,[0,1],[0,2]
+
+	* src/gdlgstream.cpp:
+	better default font size for terminals other than X (notably PS)
+
+	* src/plotting.cpp:
+	CONTOUR: avoiding plplot error messages when filling (shade_max must exceed shade_min)
+
+2009-03-17  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/envt.hpp: gcc 4.4 compatibility (patch from opoplawski)
+
+	* src/GDLLexer.cpp, src/GDLParser.cpp, src/GDLParser.hpp, src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/basic_fun.cpp, src/gdlc.g:
+	allow tag names with leading '\!'
+
+2009-03-17  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/ncdf_dim_cl.cpp:
+	NCDF_DIMINQ: accepting long integers as file and dimension ids
+
+2009-03-16  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/pro/read_ascii.pro:
+	handling both whitespace and tab as delimiter by default; using FILE_LINES instead of spawning wc
+
+	* src/basic_fun.cpp:
+	CREATE_STRUCT: accepting excl. mark as a first char of a tag name (tracker item no. 2688389)
+
+	* src/hdf5_fun.hpp:
+	HDF5 v1.8 compatibility fix (tracker item no. 2680132, help forum thread no. 2988711)
+
+2009-03-15  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/objects.cpp, src/gdlwidget.cpp, src/gdlwidget.hpp, src/widget.cpp, src/widget.hpp:
+	Added widget functionality
+
+2009-03-12  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/fftw.cpp: Fix auto_ptr bug wite DOUBLE
+
+2009-03-11  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/libinit_jmg.cpp:
+	MAKE_ARRAY: keyword name changed from INT to INTEGER
+
+	* src/gsl_fun.cpp:
+	binsize = (max - min) / (nbins - 1) when NBINS specified with neither MAX nor BINSIZE
+
+2009-03-06  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/gsl_fun.cpp:
+	LOCATION keyword set correctly when HISTOGRAM called with NBINS and without BINSIZE or MAX, demo: print, histogram([1.,2.], n=3, l=l) & print, l
+
+2009-03-06  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/devicex.hpp:
+	in TV, managing [1,n,m], [n,1,m] and [n,m,1] cases when TRUE=0
+
+2009-03-05  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* testsuite/test_tv.pro, INSTALL: testing all permutations for TV
+
+2009-03-03  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* Makefile.in, aclocal.m4, configure, src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/GDLInterpreterTokenTypes.hpp, src/GDLInterpreterTokenTypes.txt, src/GDLLexer.cpp, src/GDLParser.cpp, src/GDLParser.hpp, src/GDLTokenTypes.hpp, src/GDLTokenTypes.txt, src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/GDLTreeParserTokenTypes.hpp, src/GDLTreeParserTokenTypes.txt, src/Makefile.am, src/Makefile.in, src/antlr/Makefile.in, src/datalistt.hpp, src/dinterpreter.cpp, src/dpro.cpp, src/dpro.hpp, src/envt.cpp, src/envt.hpp, src/gdlc.g, src/gdlc.i.g, src/gdlc.tree.g, src/prognode.cpp, src/prognode.hpp, src/prognodeexpr.cpp:
+	imroved DataListT an empty procedure call by extimated 40%
+
+2009-02-26  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* gdl.kdevses:
+	removed gdl.kdevses (storing actual kdevelop session details) from repository
+
+	* src/GDLTreeParser.hpp, src/datatypes.cpp, src/gdlc.tree.g:
+	detect change of type of FOR index variable
+
+2009-02-23  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/Makefile.in, src/antlr/Makefile.in, Makefile.in, aclocal.m4, configure:
+	after running aclocal, automake, autoconf
+
+	* configure, configure.in:
+	determining ImageMagick flags using Magick++-config (tracker entry no 1963366)
+
+2009-02-21  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/math_fun_jmg.cpp, src/math_utl.cpp, src/math_utl.hpp, src/plotting.cpp, MAP_INSTALL, config.h.in, configure, configure.in:
+	Add support for new LIBPROJ4
+
+2009-02-18  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/plotting.cpp:
+	fixing segfault when contouring NaNs, e.g.: contour, replicate(!VALUES.F_NAN,3,3)
+
+2009-02-10  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/pro/file_lines.pro:
+	no longer calling awk to parse wc output (tracker entry no 1980041)
+
+2009-02-10  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* TODO, src/pro/file_lines.pro:
+	upgrade of ToDo list; bug in FILE_LINES when last line does not have a LF
+
+2009-02-08  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* gdl.kdevelop, PYTHON.txt: GDL as a python module tested
+
+	* gdl.kdevses, src/Makefile.am, src/Makefile.in:
+	made python modulw work (not tested)
+
+2009-02-07  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/ncdf_var_cl.cpp:
+	reading text data in NCDF_VARGET/NCDF_VARGET1 (tracker bug no 2109502)
+
+2009-02-04  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/hdf_fun.cpp, src/hdf_pro.cpp:
+	data type change (DLong -> int32) in hdf_* (thanks to Sylvester A.)
+
+2009-01-27  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/str.cpp: bug correction in CD for OSX, thanks to Sylvester A.
+
+2009-01-26  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLTreeParser.cpp, src/basic_fun_jmg.cpp, src/dcompiler.hpp, src/gdlc.tree.g:
+	allow common blocks outside subroutines
+
+2009-01-25  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* ChangeLog, NEWS, configure, configure.in, src/GDLParser.cpp, src/GDLParser.hpp, src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/basic_fun_jmg.cpp, src/dcompiler.cpp, src/dcompiler.hpp, src/gdlc.g, src/gdlc.tree.g, src/prognode.cpp, src/prognode.hpp:
+	allow common blocks outside subroutines
+
+
 GDL 0.9rc2:
 2009-01-20  m_schellens  <m_schellens@DaMachineInDaMachine>
 
