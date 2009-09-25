@@ -64,20 +64,29 @@ namespace lib {
   using namespace std;
   using namespace antlr;
 
-  // assumes all paramters from pOffs till end are dim
+  // assumes all parameters from pOffs till end are dim
   void arr( EnvT* e, dimension& dim, SizeT pOffs=0)
   {
+
     int nParam=e->NParam()-pOffs;
 
     if( nParam <= 0)
       e->Throw( "Incorrect number of arguments.");
 
+    string BadDims="Array dimensions must be greater than 0.";
+
+
     if( nParam == 1 ) {
+
       BaseGDL* par = e->GetParDefined( pOffs); 
  	
       SizeT newDim;
       int ret = par->Scalar2index( newDim);
+
+      if (ret < 0) throw GDLException(BadDims);
+
       if( ret > 0) {  // single argument
+	if (newDim < 1) throw GDLException(BadDims);
 	dim << newDim;
 	return;
       } 
@@ -87,9 +96,10 @@ namespace lib {
 	auto_ptr<DLongGDL> ind_guard( ind);
 		    //e->Guard( ind);
 
-	for(SizeT i =0; i < par->N_Elements(); ++i)
-	  dim << (*ind)[i];	  
-
+	for(SizeT i =0; i < par->N_Elements(); ++i){
+	  if  ((*ind)[i] < 1) throw GDLException(BadDims);
+	  dim << (*ind)[i];
+	}
 	return;
       }
       e->Throw( "arr: should never arrive here.");	
@@ -104,9 +114,7 @@ namespace lib {
 
 	SizeT newDim;
 	int ret=par->Scalar2index( newDim);
-	if( ret < 1 || newDim == 0)
-	  e->Throw( "Arguments must be all scalar > 0.");
-	
+	if( ret < 1 || newDim == 0) throw GDLException(BadDims);
 	dim << newDim;
       }
   }
