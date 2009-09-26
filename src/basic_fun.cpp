@@ -3137,13 +3137,8 @@ namespace lib {
       //  such as histogram algorithms.
       // Copyright: (C) 2008 by Nicolas Galmiche
       {
-	cout << "c0 " << endl;	  
-
 	// basic checks on "vector/array" input	
 	DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>( 0);	
-
-	cout << "c1 " << endl;	  
-
 
     	if( p0->Type() == STRUCT)
 	  e->Throw( "Struct expression not allowed in this context: "+ e->GetParString(0));	
@@ -3152,8 +3147,6 @@ namespace lib {
    	
 	if( p0->Rank() > 2)
 	  e->Throw( "Only 1 or 2 dimensions allowed: "+ e->GetParString(0));
-
- 	cout << "c2 " << endl;	  
    	
 	// basic checks on "width" input		
  	DDoubleGDL* p1d = e->GetParAs<DDoubleGDL>(1);
@@ -3166,7 +3159,7 @@ namespace lib {
 	  MaxAllowedWidth=p0->Dim(0);
 	  if (p0->Dim(1) < MaxAllowedWidth) MaxAllowedWidth=p0->Dim(1);	   
 	}
-	int debug =1;
+	int debug =0;
 	if (debug == 1) {
 	  cout << "X dim " << p0->Dim(0) <<endl;
 	  cout << "y dim " << p0->Dim(1) <<endl;	  
