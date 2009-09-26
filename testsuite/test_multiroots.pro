@@ -78,10 +78,12 @@ function buggy, x
 end
 
 ; highly-obfuscated moist isentrope equation set below
+; based on a file from the Univ. of Wyoming Cloud Parcel Model:
+; http://www-das.uwyo.edu/~jsnider/parcel/parcel_model_2006_1/
 
 function moist_isentrope_init
   ;common, indices, 
-  common constants, sratio_start, R, mw_h2o, mw_air, Ra, $
+  common multiroots_constants, sratio_start, R, mw_h2o, mw_air, Ra, $
     Rv, tk_o, cp_air_o, ew_o, p_base, tk_base, epsilon, lv_o, $
     cw_h2o_o, cp_h2o_o
 
@@ -121,25 +123,25 @@ function moist_isentrope_init
 end
 
 function m_i_cp, T, p1, p2, x
-  common constants
+  common multiroots_constants
   return, cp_air_o * alog(T/tk_o) - Ra * alog(p1) + x * (cp_h2o_o * alog(T/tk_o) - Rv * alog(p2)) 
 end
 
 function m_i_es, T
-  common constants
+  common multiroots_constants
   return, ew_o * exp( $
     ((lv_o + (cw_h2o_o - cp_h2o_o) * tk_o) * (1.d / tk_o - 1.d / T) - (cw_h2o_o - cp_h2o_o) * alog(T / tk_o)) / Rv $
   )
 end
 
 function m_i_lm, licz, mian1, mian2
-  common constants
+  common multiroots_constants
   return, epsilon * licz / (mian1 - mian2)
 end
 
 function moist_isentrope, x
   ;common indices
-  common constants
+  common multiroots_constants
   cwmcp = cw_h2o_o - cp_h2o_o
   f = dblarr(10)
   f[0] = x[0] - m_i_lm(x[1], p_base, x[1])
