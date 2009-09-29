@@ -29,6 +29,8 @@
 #include "math_utl.hpp"
 
 #define PLK_Escape            0x1B
+#define free_mem(a) \
+    if (a != NULL) { free((void *) a); a = NULL; }
 
 namespace lib {
 
@@ -2008,7 +2010,6 @@ actStream->wid( 0);
 			  +e->GetParString(0));    
     xEl = zVal->Dim(1);
     yEl = zVal->Dim(0);
-
     if (nParam == 1) {
       xVal = new DDoubleGDL( dimension( xEl), BaseGDL::INDGEN);
       xval_guard.reset( xVal); // delete upon exit
@@ -2407,9 +2408,9 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
       actStream->mesh(static_cast<PLFLT*> (&(*xVal)[0]), 
 		      static_cast<PLFLT*> (&(*yVal)[0]), 
 		      z, (long int) xEl, (long int) yEl, 3);
-      delete[] z;
+      //delete[] z;
+      free_mem(z);
     }
-
 
     // 2 DIM X & Y
     if (xVal->Rank() == 2 && yVal->Rank() == 2) {
@@ -2427,8 +2428,8 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
 	lib::mesh_nr(xVec1, yVec1, z1, (long int) xEl, 1,1);
       }
       delete[] z1;
-      delete xVec1;
-      delete yVec1;
+      delete[] xVec1;
+      delete[] yVec1;
 
       //
       PLFLT** z2 = new PLFLT*[yEl];
@@ -2444,8 +2445,8 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
 	lib::mesh_nr(xVec2, yVec2, z2, 1, (long int) yEl, 2);
       }
       delete[] z2;
-      delete xVec2;
-      delete yVec2;
+      delete[] xVec2;
+      delete[] yVec2;
     }
 
     // title and sub title
