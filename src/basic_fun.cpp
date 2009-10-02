@@ -4526,6 +4526,63 @@ namespace lib {
     bool systemKW = e->KeywordSet( systemIx );
     static int disabledIx = e->KeywordIx( "DISABLED" );
     bool disabledKW = e->KeywordSet( disabledIx );
+    static int parametersIx = e->KeywordIx( "PARAMETERS" );
+    bool parametersKW = e->KeywordSet( parametersIx );
+
+    if (parametersKW)
+    {
+      // sanity checks
+      if (systemKW || disabledKW) e->Throw("Conflicting keywords.");
+      if (nParam != 1) e->Throw("Incorrect number of arguments.");
+
+      // getting the routine name from the first parameter
+      DString name;
+      e->AssureScalarPar<DStringGDL>(0, name);
+      name = StrUpCase(name);
+        
+      DSubUD* routine = functionsKW 
+        ? static_cast<DSubUD*>(funList[GDLInterpreter::GetFunIx(name)])
+        : static_cast<DSubUD*>(proList[GDLInterpreter::GetProIx(name)]);
+      SizeT np = routine->NPar(), nk = routine->NKey();
+
+      // creating the output anonymous structure
+      DStructDesc* stru_desc = new DStructDesc("$truct");
+      SpDLong aLong;
+      stru_desc->AddTag("NUM_ARGS", &aLong);
+      stru_desc->AddTag("NUM_KW_ARGS", &aLong);
+      if (np > 0) 
+      {
+        SpDString aStringArr(dimension((int)np));
+        stru_desc->AddTag("ARGS", &aStringArr);
+      }
+      if (nk > 0) 
+      {
+        SpDString aStringArr(dimension((int)nk));
+        stru_desc->AddTag("KW_ARGS", &aStringArr);
+      }
+      DStructGDL* stru = new DStructGDL(stru_desc, dimension());
+
+      // filling the structure with information about the routine 
+      stru->InitTag("NUM_ARGS", DLongGDL(np));
+      stru->InitTag("NUM_KW_ARGS", DLongGDL(nk));
+      if (np > 0)
+      {
+        DStringGDL *pnames = new DStringGDL(dimension(np));
+        for (SizeT p = 0; p < np; ++p) (*pnames)[p] = routine->GetVarName(nk + p); 
+        stru->InitTag("ARGS", *pnames);
+        delete pnames;
+      }
+      if (nk > 0)
+      {
+        DStringGDL *knames = new DStringGDL(dimension(nk));
+        for (SizeT k = 0; k < nk; ++k) (*knames)[k] = routine->GetKWName(k); 
+        stru->InitTag("KW_ARGS", *knames);
+        delete knames;
+      }
+
+      // returning
+      return stru;
+    }
 
     // GDL does not have disabled routines
     if( disabledKW) return new DStringGDL("");

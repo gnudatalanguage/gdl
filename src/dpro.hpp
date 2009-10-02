@@ -345,6 +345,11 @@ public:
   {
     return var[ix];
   }
+
+  const std::string& GetKWName( SizeT ix)
+  {
+    return key[ix];
+  }
   
   bool GetCommonVarName(const BaseGDL* p, std::string& varName)
   {

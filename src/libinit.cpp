@@ -87,7 +87,7 @@ void LibInit()
   new DLibFun(lib::temporary,string("TEMPORARY"),1);
 
   const string routine_infoKey[]={"FUNCTIONS","SYSTEM","DISABLED","ENABLED",
-				  KLISTEND};
+				  "PARAMETERS", KLISTEND};
   new DLibFun(lib::routine_info,string("ROUTINE_INFO"),1,routine_infoKey);
 
   const string spawnKey[]={ "COUNT","EXIT_STATUS","PID",

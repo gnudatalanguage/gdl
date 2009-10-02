@@ -88,11 +88,13 @@ IF KEYWORD_SET(fold_case) THEN BEGIN
     print, 'Sorry, Keyword fold_case is not available now.'
     return, -1
 ENDIF
-;
-command = '\basename ' + Path
-IF (N_ELEMENTS(RemoveSuffix) NE 0) THEN command = command + ' ' + RemoveSuffix
-spawn, command, result
-;
-return, result
-;
+
+SFX = N_ELEMENTS(RemoveSuffix) NE 0 ? RemoveSuffix : ''
+RESULT = STRARR(N_ELEMENTS(Path))
+FOR I = 0, N_ELEMENTS(Path) - 1 DO BEGIN
+  SPAWN, '\basename ' + PATH[I] + ' ' + SFX, RES
+  RESULT[I] = TEMPORARY(RES)
+ENDFOR
+
+return, size(path, /N_DIM) eq 0 ? result[0] : result
 END
