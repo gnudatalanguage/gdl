@@ -368,9 +368,19 @@ CHAR: ('\003'..'\377');
 NUMBER // handles hollerith strings also
 { 
     SizeT n;
-    SizeT i = 0; 
+    SizeT i = 0;
+    bool uMinus = false;
 } 
-    : num:DIGITS
+    : 
+      ('-' 
+       {
+       uMinus = true;
+       }
+      )? 
+      num:DIGITS
+      {
+      if( uMinus) num->setText( "-" + num->getText());
+      }
         (   
             { 
                 $setType(STRING); 

@@ -143,14 +143,27 @@ OFmtA( ostream* os, SizeT offs, SizeT r, int w)
 
   SizeT endEl = offs + tCount;
 
-  (*os) << right;
 
-  if( w <= 0)
-    for( SizeT i=offs; i<endEl; ++i)
-      (*os) << (*this)[ i];
+  if( w < 0)
+    {
+      (*os) << left;
+      for( SizeT i=offs; i<endEl; ++i)
+	{
+	  (*os) << setw(-w) << (*this)[ i];
+	}
+    }
+  else if( w == 0)
+    {
+      (*os) << right;
+      for( SizeT i=offs; i<endEl; ++i)
+	(*os) << (*this)[ i];
+    }
   else
-    for( SizeT i=offs; i<endEl; ++i)
-      (*os) << setw(w) << (*this)[ i].substr(0,w);
+    {
+      (*os) << right;
+      for( SizeT i=offs; i<endEl; ++i)
+	(*os) << setw(w) << (*this)[ i].substr(0,w);
+    }
 
   return tCount;
 }

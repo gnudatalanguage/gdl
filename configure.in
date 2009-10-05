@@ -148,7 +148,7 @@ if test "x$with_wxWidgets" != "xno"; then
 	INCLUDES="$INCLUDES `wx-config --cxxflags`"
 	LIBS="$LIBS `wx-config --libs` `wx-config --cxxflags`"
 dnl autoconf cannot handle demangled names
-	AC_CHECK_LIB(wx_base-2.8, _Z12wxInitializeiPPc, [
+	AC_CHECK_LIB(wx_baseu-2.8, _Z12wxInitializeiPPw, [
 	AC_DEFINE([HAVE_LIBWXWIDGETS], [1], [wxWidgets library])
 	], [
 	echo ""

@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.6 (20070910): "format.g" -> "FMTLexer.cpp"$ */
+/* $ANTLR 2.7.6 (20071205): "format.g" -> "FMTLexer.cpp"$ */
 
 #include "includefirst.hpp"
 
@@ -209,6 +209,7 @@ antlr::RefToken FMTLexer::nextToken()
 				theRetToken=_returnToken;
 				break;
 			}
+			case 0x2d /* '-' */ :
 			case 0x30 /* '0' */ :
 			case 0x31 /* '1' */ :
 			case 0x32 /* '2' */ :
@@ -1319,11 +1320,44 @@ void FMTLexer::mNUMBER(bool _createToken) {
 	antlr::RefToken num;
 	
 	SizeT n;
-	SizeT i = 0; 
+	SizeT i = 0;
+	bool uMinus = false;
 	
 	
+	{
+	switch ( LA(1)) {
+	case 0x2d /* '-' */ :
+	{
+		match('-' /* charlit */ );
+		
+		uMinus = true;
+		
+		break;
+	}
+	case 0x30 /* '0' */ :
+	case 0x31 /* '1' */ :
+	case 0x32 /* '2' */ :
+	case 0x33 /* '3' */ :
+	case 0x34 /* '4' */ :
+	case 0x35 /* '5' */ :
+	case 0x36 /* '6' */ :
+	case 0x37 /* '7' */ :
+	case 0x38 /* '8' */ :
+	case 0x39 /* '9' */ :
+	{
+		break;
+	}
+	default:
+	{
+		throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());
+	}
+	}
+	}
 	mDIGITS(true);
 	num=_returnToken;
+	
+	if( uMinus) num->setText( "-" + num->getText());
+	
 	{
 	if ((LA(1) == 0x48 /* 'H' */ )) {
 		
@@ -1336,7 +1370,7 @@ void FMTLexer::mNUMBER(bool _createToken) {
 		match('H' /* charlit */ );
 		text.erase(_saveIndex);
 		{ // ( ... )+
-		int _cnt125=0;
+		int _cnt126=0;
 		for (;;) {
 			// init action gets executed even in guessing mode
 			if( i == n )
@@ -1347,12 +1381,12 @@ void FMTLexer::mNUMBER(bool _createToken) {
 				mCHAR(false);
 			}
 			else {
-				if ( _cnt125>=1 ) { goto _loop125; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+				if ( _cnt126>=1 ) { goto _loop126; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 			}
 			
-			_cnt125++;
+			_cnt126++;
 		}
-		_loop125:;
+		_loop126:;
 		}  // ( ... )+
 	}
 	else {

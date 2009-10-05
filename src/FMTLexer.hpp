@@ -2,7 +2,7 @@
 #define INC_FMTLexer_hpp_
 
 #include <antlr/config.hpp>
-/* $ANTLR 2.7.6 (20070910): "format.g" -> "FMTLexer.hpp"$ */
+/* $ANTLR 2.7.6 (20071205): "format.g" -> "FMTLexer.hpp"$ */
 #include <antlr/CommonToken.hpp>
 #include <antlr/InputBuffer.hpp>
 #include <antlr/BitSet.hpp>
