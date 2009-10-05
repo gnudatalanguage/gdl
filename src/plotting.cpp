@@ -1172,6 +1172,27 @@ namespace lib {
     gkw_axis_charsize(e, "Y",yCharSize);//YCHARSIZE
 
 
+    // Turn off map projection processing
+    set_mapset(0);
+
+    gkw_noerase(e, actStream);     //NOERASE
+
+    DLong noErase = 0;
+    if( e->KeywordSet( "NOERASE")) noErase = 1;
+    if( !noErase) actStream->Clear();
+
+    // Get device name
+    static DStructGDL* dStruct = SysVar::D();
+    static unsigned nameTag = dStruct->Desc()->TagIndex( "NAME");
+    DString d_name = 
+      (*static_cast<DStringGDL*>( dStruct->GetTag( nameTag, 0)))[0];
+    // if PS and not noErase (ie, erase) then set !p.noerase=0    
+    if ((d_name == "PS" || d_name == "SVG") && !noErase) {
+      static DStructGDL* pStruct = SysVar::P();
+      static unsigned noEraseTag = pStruct->Desc()->TagIndex( "NOERASE");
+      (*static_cast<DLongGDL*>( pStruct->GetTag( noEraseTag, 0)))[0] = 0;
+    }
+
     // plplot stuff
     // set the charsize (scale factor)
     DDouble charScale = 1.0;
@@ -1199,27 +1220,6 @@ namespace lib {
 	clippingD = e->IfDefGetKWAs<DDoubleGDL>( clippingix);
       }
     
-    // Turn off map projection processing
-    set_mapset(0);
-
-    gkw_noerase(e, actStream);     //NOERASE
-
-    DLong noErase = 0;
-    if( e->KeywordSet( "NOERASE")) noErase = 1;
-    if( !noErase) actStream->Clear();
-
-    // Get device name
-    static DStructGDL* dStruct = SysVar::D();
-    static unsigned nameTag = dStruct->Desc()->TagIndex( "NAME");
-    DString d_name = 
-      (*static_cast<DStringGDL*>( dStruct->GetTag( nameTag, 0)))[0];
-    // if PS and not noErase (ie, erase) then set !p.noerase=0    
-    if ((d_name == "PS" || d_name == "SVG") && !noErase) {
-      static DStructGDL* pStruct = SysVar::P();
-      static unsigned noEraseTag = pStruct->Desc()->TagIndex( "NOERASE");
-      (*static_cast<DLongGDL*>( pStruct->GetTag( noEraseTag, 0)))[0] = 0;
-    }
-
     // viewport and world coordinates
     bool okVPWC = SetVP_WC( e, actStream, pos, clippingD, 
 			    xLog, yLog,
