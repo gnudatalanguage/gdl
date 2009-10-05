@@ -2851,12 +2851,27 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
 
     GDLGStream* actStream = GetPlotStream( e); 
     
-    // *** start drawing
+     if (e->KeywordSet("OVERPLOT")) { //rewrite these quantities
+      get_axis_crange("X", xStart, xEnd);
+      get_axis_crange("Y", yStart, yEnd);
+      get_axis_margin("X",xMarginL, xMarginR);
+      get_axis_margin("Y",yMarginB, yMarginF);
+      get_axis_type("X", xLog);
+      get_axis_type("Y", yLog);
+      DFloat charsizeF;
+      gkw_charsize(e,actStream, charsizeF, false);
+      charsize=charsizeF;
+      pos = NULL;
+    }
+
+   // *** start drawing
     gkw_background(e, actStream);  //BACKGROUND
     gkw_color(e, actStream);       //COLOR
 
-    actStream->NextPlot( !noErase);
-    if( !noErase) actStream->Clear();
+    if (!e->KeywordSet("OVERPLOT") ) {
+      actStream->NextPlot( !noErase);
+      if( !noErase) actStream->Clear();
+    }
 
     // plplot stuff
     // set the charsize (scale factor)
@@ -2961,7 +2976,7 @@ clevel_guard.Reset( clevel);
 // for( SizeT i=1; i<=nlevel; i++) clevel[i-1] = zintv * i + zStart;
 //but I think this is better:
 for( SizeT i=1; i<=nlevel; i++) clevel[i-1] = zintv * i + zStart - offset;
-
+clevel[nlevel-1]=zEnd; //make this explicit
 
     }
     // AC would like to check the values (nlevel and values) ...
@@ -3009,40 +3024,7 @@ for( SizeT i=1; i<=nlevel; i++) clevel[i-1] = zintv * i + zStart - offset;
 //       if (clevel[i] > zEnd) clevel[i]=zEnd;
 //     }
 
-    // pen thickness for axis
-    actStream->wid( 0);
 
-    // axis
-    string xOpt = "bcnst";
-    string yOpt = "bcnstv";
-
-    if( xLog) xOpt += "l";
-    if( yLog) yOpt += "l";
-
-    // axis titles
-    actStream->schr( 0.0, actH/defH * xCharSize);
-    actStream->mtex("b",3.5,0.5,0.5,xTitle.c_str());
-
-    // the axis (separate for x and y axis because of charsize)
-    PLFLT xintv;
-    if (xTicks == 0) {
-      xintv = AutoTick(xEnd-xStart);
-    } else {
-      xintv = (xEnd - xStart) / xTicks;
-    }
-    actStream->box( xOpt.c_str(), xintv, xMinor, "", 0.0, 0);
-
-    actStream->schr( 0.0, actH/defH * yCharSize);
-    actStream->mtex("l",5.0,0.5,0.5,yTitle.c_str());
-
-    // the axis (separate for x and y axis because of charsize)
-    PLFLT yintv;
-    if (yTicks == 0) {
-      yintv = AutoTick(yEnd-yStart);
-    } else {
-      yintv = (yEnd - yStart) / yTicks;
-    }
-    actStream->box( "", 0.0, 0, yOpt.c_str(), yintv, yMinor);
 
     // pen thickness for plot
     actStream->wid( static_cast<PLINT>(floor( thick-0.5)));
@@ -3116,8 +3098,8 @@ for( SizeT i=1; i<=nlevel; i++) clevel[i-1] = zintv * i + zStart - offset;
 			  false, mypltr, static_cast<void*>( spa));
 	
 	// Redraw the axes just in case the filling overlaps them
-	actStream->box( xOpt.c_str(), xintv, xMinor, "", 0.0, 0);
-	actStream->box( "", 0.0, 0, yOpt.c_str(), yintv, yMinor);
+	//actStream->box( xOpt.c_str(), xintv, xMinor, "", 0.0, 0);
+	//actStream->box( "", 0.0, 0, yOpt.c_str(), yintv, yMinor);
 	// pen thickness for axis
 	actStream->wid(charthick);
       } else {
@@ -3157,9 +3139,10 @@ for( SizeT i=1; i<=nlevel; i++) clevel[i-1] = zintv * i + zStart - offset;
  			  clevel_fill, nlevel_fill, 2, 0, 0, plstream::fill,
 // 			  clevel, nlevel, 2, 0, 0, plstream::fill,
 			  false, plstream::tr2, (void *) &cgrid2 );
+
 	// Redraw the axes just in case the filling overlaps them       
-	actStream->box( xOpt.c_str(), xintv, xMinor, "", 0.0, 0);
-	actStream->box( "", 0.0, 0, yOpt.c_str(), yintv, yMinor);
+	//actStream->box( xOpt.c_str(), xintv, xMinor, "", 0.0, 0);
+	//actStream->box( "", 0.0, 0, yOpt.c_str(), yintv, yMinor);
 	// pen thickness for axis
 	actStream->wid(charthick);
       } else {	      
@@ -3174,6 +3157,49 @@ for( SizeT i=1; i<=nlevel; i++) clevel[i-1] = zintv * i + zStart - offset;
       delete[] z;
     }
 
+//Draw axes after the data because /fill could potentially overlap the axes.
+
+    // pen thickness for axis
+    actStream->wid( 0);
+
+    // axis
+    string xOpt = "bcnst";
+    string yOpt = "bcnstv";
+
+    if( xLog) xOpt += "l";
+    if( yLog) yOpt += "l";
+
+    //Draw axis if keyword "OVERPLOT" is not set
+    if (!e->KeywordSet( "OVERPLOT")) {
+    // axis titles
+    actStream->schr( 0.0, actH/defH * xCharSize);
+    actStream->mtex("b",3.5,0.5,0.5,xTitle.c_str());
+    }
+    // the axis (separate for x and y axis because of charsize)
+    PLFLT xintv;
+    if (xTicks == 0) {
+      xintv = AutoTick(xEnd-xStart);
+    } else {
+      xintv = (xEnd - xStart) / xTicks;
+    }
+    //Draw axis if keyword "OVERPLOT" is not set
+    if (!e->KeywordSet( "OVERPLOT")) {
+    actStream->box( xOpt.c_str(), xintv, xMinor, "", 0.0, 0);
+
+    actStream->schr( 0.0, actH/defH * yCharSize);
+    actStream->mtex("l",5.0,0.5,0.5,yTitle.c_str());
+    }
+    // the axis (separate for x and y axis because of charsize)
+    PLFLT yintv;
+    if (yTicks == 0) {
+      yintv = AutoTick(yEnd-yStart);
+    } else {
+      yintv = (yEnd - yStart) / yTicks;
+    }
+    //Draw axis if keyword "OVERPLOT" is not set
+    if (!e->KeywordSet( "OVERPLOT")) {
+    actStream->box( "", 0.0, 0, yOpt.c_str(), yintv, yMinor);
+    }
 
 
 // Get viewpoint parameters and store in WINDOW & S
