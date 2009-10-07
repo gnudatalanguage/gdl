@@ -1096,8 +1096,8 @@ namespace lib {
     if ( e->KeywordSet( "YNOZERO")) ynozero = 1;
 
     // AC: should be now useless (done in AutoInvAC)
-    if( xStart > 0 && xnozero == 0 && xLog == false) xStart = 0; 
-    if( yStart > 0 && ynozero == 0 && yLog == false) yStart = 0; 
+    //if( xStart > 0 && xnozero == 0 && xLog == false) xStart = 0; 
+    //if( yStart > 0 && ynozero == 0 && yLog == false) yStart = 0; 
 
     // no more useful
     //    if(xEnd == xStart) xEnd=xStart+1;
@@ -4224,6 +4224,18 @@ p_ymax;
     DStructGDL* Struct;
     if(axis=="X") Struct = SysVar::X();
     if(axis=="Y") Struct = SysVar::Y();
+    if (Struct != NULL) 
+      {
+	DDouble test1, test2;
+	static unsigned rangeTag = Struct->Desc()->TagIndex( "RANGE");
+	test1 = (*static_cast<DDoubleGDL*>( Struct->GetTag( rangeTag, 0)))[0]; 
+	test2 = (*static_cast<DDoubleGDL*>( Struct->GetTag( rangeTag, 0)))[1];
+	if (!(test1 == 0.0 && test2 == 0.0)) 
+	{ 
+		start = test1; 
+		end = test2; 
+	}
+      }
     string RangeName=axis+"RANGE";
     BaseGDL* Range=e->GetKW(e->KeywordIx(RangeName));
     if(Range !=NULL)
