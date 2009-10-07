@@ -282,11 +282,44 @@ namespace lib {
        }
    }
 
+  // AC 06/10/2009 in Sapporo
+  // I found, using POIDEV(), that CHECK_MATH() does accept 2 parameters
+  // for compatibilities reasons with OLD IDL and PV-Waves
+  // e.g. http://vis.lbl.gov/NERSC/Software/pvwave/docs/pvwavehtmlhelp/waveref/files/chb6.htm
+  // 
 
   BaseGDL* check_math_fun( EnvT* e)
   {
+
+    SizeT nParam=e->NParam();
+    DLong flag_print=0, flag_noclear=0, flag_clear=1;
+
     DLong value=0;
+    static DLong cumul_value;
     DLong mask=255;
+
+    //
+    flag_print=e->KeywordSet( "PRINT");
+    flag_noclear=e->KeywordSet( "NOCLEAR");
+    //
+    // if Params are provides (first: print, second: noclear)
+    // they do overwrite the same provided by Keyword
+    //
+    if (nParam >= 1) {
+      e->AssureLongScalarPar( 0, flag_print);
+    }    
+    if (nParam == 2) {
+      e->AssureLongScalarPar( 1, flag_noclear);
+    }
+    
+    if (flag_noclear > 0) flag_clear=0;
+    
+    int debug=0;
+    if (debug) {
+      cout << "Flag Print  : " << flag_print << endl;
+      cout << "Flag NoClear: " << flag_noclear << endl;
+      cout << "Flag Clear: " << flag_clear << endl;
+    }
 
     if( e->KeywordSet( "MASK"))
       e->AssureLongScalarKWIfPresent( "MASK", mask);	
@@ -294,41 +327,59 @@ namespace lib {
     if (mask & 16) {
       if (fetestexcept(FE_DIVBYZERO)) {
 	value = value | 16;
-	if ( e->KeywordSet( "PRINT"))
+	if ( flag_print)
 	  cout << 
 	    "% Program caused arithmetic error: Floating divide by 0" << endl;
-	if ( !e->KeywordSet( "NOCLEAR")) feclearexcept(FE_DIVBYZERO); 
+	if ( flag_clear) feclearexcept(FE_DIVBYZERO); 
       }
     }
 
     if (mask & 32) {
       if (fetestexcept(FE_UNDERFLOW)) {
 	value = value | 32;
-	if ( e->KeywordSet( "PRINT"))
+	if ( flag_print)
 	  cout << 
 	    "% Program caused arithmetic error: Floating underflow" << endl;
-	if ( !e->KeywordSet( "NOCLEAR")) feclearexcept(FE_UNDERFLOW); 
+	if ( flag_clear) feclearexcept(FE_UNDERFLOW); 
       }
     }
 
     if (mask & 64) {
       if (fetestexcept(FE_OVERFLOW)) {
 	value = value | 64;
-	if ( e->KeywordSet( "PRINT"))
+	if ( flag_print)
 	  cout << 
 	    "% Program caused arithmetic error: Floating overflow" << endl;
-	if ( !e->KeywordSet( "NOCLEAR")) feclearexcept(FE_OVERFLOW); 
+	if ( flag_clear) feclearexcept(FE_OVERFLOW); 
       }
     }
 
     if (mask & 128 && value == 0) {
       if (fetestexcept(FE_INVALID)) {
 	value = value | 128;
-	if ( e->KeywordSet( "PRINT"))
+	if ( flag_print)
 	  cout << 
 	    "% Program caused arithmetic error: Floating illegal operand" << endl;
-	if ( !e->KeywordSet( "NOCLEAR")) feclearexcept(FE_INVALID); 
+	if ( flag_clear) feclearexcept(FE_INVALID); 
       }
+    }
+    
+    if (debug) {
+      cout << "      value " <<value<< endl;
+      cout << "cumul_value " <<cumul_value<< endl;
+    }
+    
+    if (flag_noclear) {
+       if (debug) cout << "noclear == 1" << endl;
+      cumul_value=cumul_value+value;
+      value=cumul_value;
+    } else {
+       if (debug) cout << "noclear == 0" << endl;
+      cumul_value=0;
+    }
+    if (debug) {
+      cout << "      value " <<value<< endl;
+      cout << "cumul_value " <<cumul_value<< endl;
     }
 
     return new DLongGDL( value );
