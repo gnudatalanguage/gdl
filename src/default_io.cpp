@@ -480,7 +480,7 @@ istream& operator>>(istream& is, Data_<SpDString>& data_)
 	  continue;
 	}
 
-      if( !is.good())
+      if( !is.good() && !is.eof())
 	throw GDLIOException( "Error reading STRING. "+StreamInfo( &is));
   
       if( !is.eof()) is.get(); // remove delimiter
