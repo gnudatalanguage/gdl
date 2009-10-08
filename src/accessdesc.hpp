@@ -447,9 +447,12 @@ public:
 
   void Add( const std::string& tagName) // tags
   {
+   if( dStruct.back() == NULL)
+       throw GDLException("Left side of a tag must be a STRUCT: "+tagName);
+
     int t=dStruct.back()->Desc()->TagIndex( tagName);
     if( t == -1) 
-      throw GDLException("Tag name: "+tagName+" is undefined for structure.");
+      throw GDLException("Tag name: "+tagName+" is undefined for STRUCT.");
     
     // call SizeT version
     SizeT tagIx=static_cast<SizeT>(t);
