@@ -4026,10 +4026,14 @@ namespace lib {
     
     DStructGDL* s = static_cast<DStructGDL*>( p0);
 
-    static int lengthIx = e->KeywordIx( "DATA_LENGTH");
-    bool length = e->KeywordSet( lengthIx);
+    //static int lengthIx = e->KeywordIx( "DATA_LENGTH");
+    //bool length = e->KeywordSet( lengthIx);
     
-    if( length)
+    // we don't know now how to distinghuis the 2 following cases
+    if(e->KeywordSet("DATA_LENGTH"))
+      return new DLongGDL( s->Sizeof());
+    
+    if(e->KeywordSet("LENGTH"))
       return new DLongGDL( s->Sizeof());
 
     return new DLongGDL( s->Desc()->NTags());

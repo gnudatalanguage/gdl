@@ -97,7 +97,7 @@ void LibInit()
   const string bytsclKey[]={"MIN","MAX","TOP","NAN",KLISTEND};
   new DLibFun(lib::bytscl,string("BYTSCL"),3,bytsclKey);
 
-  const string n_tagsKey[]={"DATA_LENGTH",KLISTEND};
+  const string n_tagsKey[]={"DATA_LENGTH","LENGTH",KLISTEND};
   new DLibFunRetNew(lib::n_tags,string("N_TAGS"),1,n_tagsKey);
   
   const string byteorderKey[]={"SSWAP","LSWAP","L64SWAP",
