@@ -698,6 +698,7 @@ namespace lib {
       DLong desiredlevnum = (*level)[0];
       if (desiredlevnum <= 0) desiredlevnum += curlevnum;
       if (desiredlevnum < 1) return new DStringGDL("");
+      if (desiredlevnum > curlevnum) desiredlevnum = curlevnum;
 
       DSubUD* pro = static_cast<DSubUD*>(callStack[desiredlevnum-1]->GetPro());
 
