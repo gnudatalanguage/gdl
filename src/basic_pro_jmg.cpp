@@ -165,10 +165,26 @@ namespace lib {
     double t_current=0.0;
 
     double diff=0.0;
-    while (diff < waittime ) {      
+    while (diff < waittime ) {
+
+      if( sigControlC) return;
+
+      struct timespec delay;
+      delay.tv_sec=0;
+      if( (waittime - diff) > 0.01)
+	{
+	  delay.tv_nsec = 10000000; // 10ms
+	  nanosleep(&delay,NULL);
+	}
+      else
+	{
+	  delay.tv_nsec = (waittime - diff) * 1000000000; // 1s
+	  nanosleep(&delay,NULL);
+	}
+
       gettimeofday(&tval,&tzone);
       t_current= tval.tv_sec+tval.tv_usec/1e+6;
-      diff=t_current - t_start;
+      diff=t_current - t_start;      
     }
   }
 
