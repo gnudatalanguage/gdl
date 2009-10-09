@@ -92,8 +92,10 @@ ENDIF
 SFX = N_ELEMENTS(RemoveSuffix) NE 0 ? RemoveSuffix : ''
 RESULT = STRARR(N_ELEMENTS(Path))
 FOR I = 0, N_ELEMENTS(Path) - 1 DO BEGIN
-  SPAWN, '\basename ' + PATH[I] + ' ' + SFX, RES
-  RESULT[I] = TEMPORARY(RES)
+  IF STRTRIM(PATH[I], 2) NE '' THEN BEGIN
+    SPAWN, '\basename ' + PATH[I] + ' ' + SFX, RES
+    RESULT[I] = TEMPORARY(RES)
+  ENDIF ELSE RESULT[I] = PATH[I]
 ENDFOR
 
 return, size(path, /N_DIM) eq 0 ? result[0] : result
