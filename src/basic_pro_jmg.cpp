@@ -171,9 +171,9 @@ namespace lib {
 
       struct timespec delay;
       delay.tv_sec=0;
-      if( (waittime - diff) > 0.01)
+      if( (waittime - diff) > 0.1)
 	{
-	  delay.tv_nsec = 10000000; // 10ms
+	  delay.tv_nsec = 100000000; // 100ms
 	  nanosleep(&delay,NULL);
 	}
       else

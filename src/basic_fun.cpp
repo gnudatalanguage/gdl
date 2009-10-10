@@ -122,151 +122,152 @@ namespace lib {
   BaseGDL* bytarr( EnvT* e)
   {
     dimension dim;
-    try{
+//    try{
       arr( e, dim);
       if (dim[0] == 0)
 	throw GDLException( "Array dimensions must be greater than 0");
 
       if( e->KeywordSet(0)) return new DByteGDL(dim, BaseGDL::NOZERO);
       return new DByteGDL(dim);
-    }
-    catch( GDLException ex)
-      {
-	e->Throw( ex.getMessage());
-      }
+ //   }
+ //   catch( GDLException& ex)
+ //     {
+//	e->Throw( ex.getMessage());
+//      }
   }
   BaseGDL* intarr( EnvT* e)
   {
     dimension dim;
-    try{
+//     try{
       arr( e, dim); 
       if (dim[0] == 0)
 	throw GDLException( "Array dimensions must be greater than 0");
 
       if( e->KeywordSet(0)) return new DIntGDL(dim, BaseGDL::NOZERO);
       return new DIntGDL(dim);
-    }
-    catch( GDLException ex)
-      {
-	throw GDLException( e->CallingNode(), "INTARR: "+ex.getMessage());
-      }
+//     }
+//     catch( GDLException& ex)
+//       {
+// 	throw GDLException( e->CallingNode(), "INTARR: "+ex.getMessage());
+//       }
   }
   BaseGDL* uintarr( EnvT* e)
   {
     dimension dim;
-    try{
+//     try{
       arr( e, dim); 
       if (dim[0] == 0)
 	throw GDLException( "Array dimensions must be greater than 0");
 
       if( e->KeywordSet(0)) return new DUIntGDL(dim, BaseGDL::NOZERO);
       return new DUIntGDL(dim);
-    }
-    catch( GDLException ex)
-      {
-	throw GDLException( e->CallingNode(), "UINTARR: "+ex.getMessage());
-      }
+//     }
+//     catch( GDLException& ex)
+//       {
+// 	throw GDLException( e->CallingNode(), "UINTARR: "+ex.getMessage());
+//       }
   }
   BaseGDL* lonarr( EnvT* e)
   {
     dimension dim;
-    try{
+//     try{
       arr( e, dim); 
       if (dim[0] == 0)
 	throw GDLException( "Array dimensions must be greater than 0");
 
       if( e->KeywordSet(0)) return new DLongGDL(dim, BaseGDL::NOZERO);
       return new DLongGDL(dim);
-    }
-    catch( GDLException ex)
+/*    }
+    catch( GDLException& ex)
       {
 	throw GDLException( e->CallingNode(), "LONARR: "+ex.getMessage());
-      }
+      }*/
   }
   BaseGDL* ulonarr( EnvT* e)
   {
     dimension dim;
-    try{
+//     try{
       arr( e, dim); 
       if (dim[0] == 0)
 	throw GDLException( "Array dimensions must be greater than 0");
 
       if( e->KeywordSet(0)) return new DULongGDL(dim, BaseGDL::NOZERO);
       return new DULongGDL(dim);
-    }
-    catch( GDLException ex)
+ /*   }
+    catch( GDLException& ex)
       {
 	throw GDLException( e->CallingNode(), "ULONARR: "+ex.getMessage());
       }
-  }
+ */ 
+}
   BaseGDL* lon64arr( EnvT* e)
   {
     dimension dim;
-    try{
+//     try{
       arr( e, dim); 
       if (dim[0] == 0)
 	throw GDLException( "Array dimensions must be greater than 0");
 
       if( e->KeywordSet(0)) return new DLong64GDL(dim, BaseGDL::NOZERO);
       return new DLong64GDL(dim);
-    }
-    catch( GDLException ex)
+/*    }
+    catch( GDLException& ex)
       {
 	throw GDLException( e->CallingNode(), "LON64ARR: "+ex.getMessage());
-      }
+      }*/
   }
   BaseGDL* ulon64arr( EnvT* e)
   {
     dimension dim;
-    try{
+//     try{
       arr( e, dim); 
       if (dim[0] == 0)
 	throw GDLException( "Array dimensions must be greater than 0");
 
       if( e->KeywordSet(0)) return new DULong64GDL(dim, BaseGDL::NOZERO);
       return new DULong64GDL(dim);
-    }
-    catch( GDLException ex)
+/*  }
+    catch( GDLException& ex)
       {
 	throw GDLException( e->CallingNode(), "ULON64ARR: "+ex.getMessage());
-      }
+      }*/
   }
   BaseGDL* fltarr( EnvT* e)
   {
     dimension dim;
-    try{
+//     try{
       arr( e, dim); 
       if (dim[0] == 0)
 	throw GDLException( "Array dimensions must be greater than 0");
 
       if( e->KeywordSet(0)) return new DFloatGDL(dim, BaseGDL::NOZERO);
       return new DFloatGDL(dim);
-    }
-    catch( GDLException ex)
+   /* }
+    catch( GDLException& ex)
       {
 	throw GDLException( e->CallingNode(), "FLTARR: "+ex.getMessage());
       }
-  }
+  */}
   BaseGDL* dblarr( EnvT* e)
   {
     dimension dim;
-    try{
+//     try{
       arr( e, dim); 
       if (dim[0] == 0)
 	throw GDLException( "Array dimensions must be greater than 0");
 
       if( e->KeywordSet(0)) return new DDoubleGDL(dim, BaseGDL::NOZERO);
       return new DDoubleGDL(dim);
-    }
-    catch( GDLException ex)
+   /* }
+    catch( GDLException& ex)
       {
 	throw GDLException( e->CallingNode(), "DBLARR: "+ex.getMessage());
-      }
+      }*/
   }
   BaseGDL* strarr( EnvT* e)
   {
     dimension dim;
-    try{
+//     try{
       arr( e, dim); 
       if (dim[0] == 0)
 	throw GDLException( "Array dimensions must be greater than 0");
@@ -274,47 +275,47 @@ namespace lib {
       if( e->KeywordSet(0)) 
 	throw GDLException( e->CallingNode(), "Keyword parameters not allowed in call.");
       return new DStringGDL(dim);
-    }
-    catch( GDLException ex)
+ /*   }
+    catch( GDLException& ex)
       {
 	throw GDLException( e->CallingNode(), "STRARR: "+ex.getMessage());
       }
-  }
+ */ }
   BaseGDL* complexarr( EnvT* e)
   {
     dimension dim;
-    try{
+//     try{
       arr( e, dim); 
       if (dim[0] == 0)
 	throw GDLException( "Array dimensions must be greater than 0");
 
       if( e->KeywordSet(0)) return new DComplexGDL(dim, BaseGDL::NOZERO);
       return new DComplexGDL(dim);
-    }
-    catch( GDLException ex)
+    /*}
+    catch( GDLException& ex)
       {
 	throw GDLException( e->CallingNode(), "COMPLEXARR: "+ex.getMessage());
       }
-  }
+ */ }
   BaseGDL* dcomplexarr( EnvT* e)
   {
     dimension dim;
-    try{
+//     try{
       arr( e, dim); 
       if (dim[0] == 0)
 
 	if( e->KeywordSet(0)) return new DComplexDblGDL(dim, BaseGDL::NOZERO);
       return new DComplexDblGDL(dim);
-    }
-    catch( GDLException ex)
+ /*   }
+    catch( GDLException& ex)
       {
 	throw GDLException( e->CallingNode(), "DCOMPLEXARR: "+ex.getMessage());
       }
-  }
+ */ }
   BaseGDL* ptrarr( EnvT* e)
   {
     dimension dim;
-    try{
+//     try{
       arr( e, dim); 
       if (dim[0] == 0)
 	throw GDLException( "Array dimensions must be greater than 0");
@@ -333,28 +334,28 @@ namespace lib {
 	  for( SizeT i=0; i<nEl; i++) (*ret)[i]=sIx++;
 	}
       return ret;
-    }
-    catch( GDLException ex)
+/*    }
+    catch( GDLException& ex)
       {
 	throw GDLException( e->CallingNode(), "PTRARR: "+ex.getMessage());
-      }
+      }*/
   }
   BaseGDL* objarr( EnvT* e)
   {
     dimension dim;
-    try{
+//     try{
       arr( e, dim); 
       if (dim[0] == 0)
 	throw GDLException( "Array dimensions must be greater than 0");
 
       if( e->KeywordSet(0)) return new DObjGDL(dim, BaseGDL::NOZERO);
       return new DObjGDL(dim);
-    }
-    catch( GDLException ex)
+  /*  }
+    catch( GDLException& ex)
       {
 	throw GDLException( e->CallingNode(), "OBJARR: "+ex.getMessage());
       }
-  }
+ */ }
 
   BaseGDL* ptr_new( EnvT* e)
   {
@@ -574,18 +575,18 @@ namespace lib {
   BaseGDL* bindgen( EnvT* e)
   {
     dimension dim;
-    try{
+//     try{
       arr( e, dim); 
       if (dim[0] == 0)
 	throw GDLException( "Array dimensions must be greater than 0");
 
       return new DByteGDL(dim, BaseGDL::INDGEN);
-    }
-    catch( GDLException ex)
+   /* }
+    catch( GDLException& ex)
       {
 	throw GDLException( e->CallingNode(), "BINDGEN: "+ex.getMessage());
       }
-  }
+ */ }
   // keywords not supported yet
   BaseGDL* indgen( EnvT* e)
   {
@@ -627,8 +628,8 @@ namespace lib {
     static int kwIx11 = e->KeywordIx("ULONG");
     if (e->KeywordSet(kwIx11)){ type = ULONG; }
     
-    try
-      {
+    /*try
+      {*/
 	// Seeing if the user passed in a TYPE code
 	static int kwIx12 = e->KeywordIx("TYPE");
 	if ( e->KeywordPresent(kwIx12)){
@@ -662,161 +663,161 @@ namespace lib {
 	    e->Throw( "Invalid type code specified.");
 	    break;
 	  }
-      }
-    catch( GDLException ex)
+/*      }
+    catch( GDLException& ex)
       {
 	e->Throw( ex.getMessage());
-      }
+      }*/
   }
 
   BaseGDL* uindgen( EnvT* e)
   {
     dimension dim;
-    try{
+//     try{
       arr( e, dim); 
       if (dim[0] == 0)
 	throw GDLException( "Array dimensions must be greater than 0");
 
       return new DUIntGDL(dim, BaseGDL::INDGEN);
-    }
-    catch( GDLException ex)
+   /* }
+    catch( GDLException& ex)
       {
 	throw GDLException( e->CallingNode(), "UINDGEN: "+ex.getMessage());
       }
-  }
+ */ }
   BaseGDL* sindgen( EnvT* e)
   {
     dimension dim;
-    try{
+//     try{
       arr( e, dim); 
       if (dim[0] == 0)
 	throw GDLException( "Array dimensions must be greater than 0");
 
       DULongGDL* iGen = new DULongGDL(dim, BaseGDL::INDGEN);
       return iGen->Convert2( STRING);
-    }
-    catch( GDLException ex)
+/*    }
+    catch( GDLException& ex)
       {
 	throw GDLException( e->CallingNode(), "SINDGEN: "+ex.getMessage());
-      }
+      }*/
   }
   BaseGDL* lindgen( EnvT* e)
   {
     dimension dim;
-    try{
+//     try{
       arr( e, dim); 
       return new DLongGDL(dim, BaseGDL::INDGEN);
-    }
-    catch( GDLException ex)
+/*    }
+    catch( GDLException& ex)
       {
 	throw GDLException( e->CallingNode(), "LINDGEN: "+ex.getMessage());
-      }
+      }*/
   }
   BaseGDL* ulindgen( EnvT* e)
   {
     dimension dim;
-    try{
+//     try{
       arr( e, dim); 
       if (dim[0] == 0)
 	throw GDLException( "Array dimensions must be greater than 0");
 
       return new DULongGDL(dim, BaseGDL::INDGEN);
-    }
-    catch( GDLException ex)
+/*    }
+    catch( GDLException& ex)
       {
 	throw GDLException( e->CallingNode(), "ULINDGEN: "+ex.getMessage());
-      }
+      }*/
   }
   BaseGDL* l64indgen( EnvT* e)
   {
     dimension dim;
-    try{
+//     try{
       arr( e, dim); 
       if (dim[0] == 0)
 	throw GDLException( "Array dimensions must be greater than 0");
 
       return new DLong64GDL(dim, BaseGDL::INDGEN);
-    }
-    catch( GDLException ex)
+  /*  }
+    catch( GDLException& ex)
       {
 	throw GDLException( e->CallingNode(), "L64INDGEN: "+ex.getMessage());
-      }
+      }*/
   }
   BaseGDL* ul64indgen( EnvT* e)
   {
     dimension dim;
-    try{
+//     try{
       arr( e, dim); 
       if (dim[0] == 0)
 	throw GDLException( "Array dimensions must be greater than 0");
 
       return new DULong64GDL(dim, BaseGDL::INDGEN);
-    }
-    catch( GDLException ex)
+ /*   }
+    catch( GDLException& ex)
       {
 	throw GDLException( e->CallingNode(), "UL64INDGEN: "+ex.getMessage());
       }
-  }
+ */ }
   BaseGDL* findgen( EnvT* e)
   {
     dimension dim;
-    try{
+//     try{
       arr( e, dim); 
       if (dim[0] == 0)
 	throw GDLException( "Array dimensions must be greater than 0");
 
       return new DFloatGDL(dim, BaseGDL::INDGEN);
-    }
-    catch( GDLException ex)
+  /*  }
+    catch( GDLException& ex)
       {
 	throw GDLException( e->CallingNode(), "FINDGEN: "+ex.getMessage());
-      }
+      }*/
   }
   BaseGDL* dindgen( EnvT* e)
   {
     dimension dim;
-    try{
+//     try{
       arr( e, dim); 
       if (dim[0] == 0)
 	throw GDLException( "Array dimensions must be greater than 0");
 
       return new DDoubleGDL(dim, BaseGDL::INDGEN);
-    }
-    catch( GDLException ex)
+  /*  }
+    catch( GDLException& ex)
       {
 	throw GDLException( e->CallingNode(), "DINDGEN: "+ex.getMessage());
-      }
+      }*/
   }
   BaseGDL* cindgen( EnvT* e)
   {
     dimension dim;
-    try{
+//     try{
       arr( e, dim); 
       if (dim[0] == 0)
 	throw GDLException( "Array dimensions must be greater than 0");
 
       return new DComplexGDL(dim, BaseGDL::INDGEN);
-    }
-    catch( GDLException ex)
+  /*  }
+    catch( GDLException& ex)
       {
 	throw GDLException( e->CallingNode(), "CINDGEN: "+ex.getMessage());
-      }
+      }*/
   }
   BaseGDL* dcindgen( EnvT* e)
   {
     dimension dim;
-    try{
+//     try{
       arr( e, dim); 
       if (dim[0] == 0)
 	throw GDLException( "Array dimensions must be greater than 0");
 
       return new DComplexDblGDL(dim, BaseGDL::INDGEN);
-    }
-    catch( GDLException ex)
+  /*  }
+    catch( GDLException& ex)
       {
 	throw GDLException( e->CallingNode(), "DCINDGEN: "+ex.getMessage());
       }
-  }
+ */ }
 
   BaseGDL* n_elements( EnvT* e)
   {
@@ -1255,7 +1256,7 @@ namespace lib {
     
       theAST=parser.getAST();
     }
-    catch( GDLException ex)
+    catch( GDLException& ex)
       {
 	if( !quietCompile) GDLInterpreter::ReportCompileError( ex);
 	return new DIntGDL( 0);
@@ -1278,7 +1279,7 @@ namespace lib {
 
 	trAST=treeParser.getAST();
       }
-    catch( GDLException ex)
+    catch( GDLException& ex)
       {
 	if( !quietCompile) GDLInterpreter::ReportCompileError( ex);
 	return new DIntGDL( 0);
@@ -1306,7 +1307,7 @@ namespace lib {
 	else
 	  return new DIntGDL( 0);
       }
-    catch( GDLException ex)
+    catch( GDLException& ex)
       {
 	if( !quietCompile) cerr << "EXECUTE: Unhandled GDL exception: " <<  
 			     ex.getMessage() << endl;

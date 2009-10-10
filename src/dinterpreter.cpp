@@ -737,6 +737,8 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in)
   cout << "ExecuteLine: Parser end." << endl;
 #endif
 
+  ProgNodeP progAST = NULL;;
+
   RefDNode trAST;
   try
     {
@@ -745,6 +747,20 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in)
       treeParser.interactive(theAST);
 
       trAST=treeParser.getAST();
+
+  if( trAST == NULL)
+    {
+      // normal condition for cmd line procedure calls
+      return CC_OK;
+    }	
+
+#ifdef GDL_DEBUG
+  cout << "Tree parser output (RefDNode):" << endl;
+  pt.pr_tree(static_cast<antlr::RefAST>(trAST));
+  cout << "ExecuteLine: Tree parser end." << endl;
+#endif
+
+      progAST = ProgNode::NewProgNode( trAST);
     }
   catch( GDLException e)
     {
@@ -756,26 +772,13 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in)
       cerr << "Compiler exception: " <<  e.getMessage() << endl;
       return CC_OK;
     }
-      
-  if( trAST == NULL)
-    {
-      // normal condition for cmd line procedure calls
-      return CC_OK;
-    }	
-
-#ifdef GDL_DEBUG
-  cout << "Tree parser output:" << endl;
-  pt.pr_tree(static_cast<antlr::RefAST>(trAST));
-  cout << "ExecuteLine: Tree parser end." << endl;
-#endif
+  auto_ptr< ProgNode> progAST_guard( progAST);
 
   try
     {
-      ProgNodeP progAST = ProgNode::NewProgNode( trAST);
-      auto_ptr< ProgNode> progAST_guard( progAST);
       
 #ifdef GDL_DEBUG
-  cout << "Converted tree:" << endl;
+  cout << "Converted tree (ProgNode):" << endl;
   pt.pr_tree( progAST);
   cout << "end." << endl;
 #endif
@@ -789,12 +792,12 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in)
       if( retCode == RC_RETURN) return CC_RETURN;
       return CC_OK;
     }
-  catch( GDLException e)
+  catch( GDLException& e)
     {
       cerr << "Unhandled GDL exception: " <<  e.toString() << endl;;
       return CC_OK;
     }
-  catch( ANTLRException e)
+  catch( ANTLRException& e)
     {
       cerr << "Interpreter exception: " <<  e.getMessage() << endl;
       return CC_OK;
