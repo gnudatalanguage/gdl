@@ -125,12 +125,21 @@ namespace lib {
         {
           tmp = (*p0S)[f];
           WordExp(tmp);
+	  if( tmp.length() > 1 && tmp[ tmp.length()-1] == '/')
+          actFile = tmp.substr(0,tmp.length()-1).c_str();
+	else
           actFile = tmp.c_str();
         } 
         else 
         {
-          actFile = (*p0S)[f].c_str();
+          tmp = (*p0S)[f];
+	  if( tmp.length() > 1 && tmp[ tmp.length()-1] == '/')
+          actFile = tmp.substr(0,tmp.length()-1).c_str();
+	else
+          actFile = tmp.c_str();
         }
+
+	
 
 	struct stat statStruct;
 	int actStat = lstat( actFile, &statStruct);
