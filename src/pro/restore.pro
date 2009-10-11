@@ -18,9 +18,6 @@
 ;      1b/ default filename if no filename provided (see CMSAVE) 
 ;      2/ add keyword /verbose ... (but bug in CMRESTORE (2 time print !))
 ;      3/ warning for 3 keywords not managed yet
-;   08-Oct-2009: modification by AC:
-;      1/ to be compliant with the last version of CMSV lib (delivered
-;      on 2009-05-05)
 ;
 ; LICENCE:
 ; Copyright (C) 2006, J. Gales
@@ -87,12 +84,11 @@ if (N_ELEMENTS(filename0) EQ 0) AND (N_ELEMENTS(filename1) EQ 0) then begin
    print, "% RESTORE: default FILENAME is used : ", filename0
 endif
 ;
-CMRESTORE, filename0, filename=filename1, verbose=verbose, names=_nme_
-;
-;           p0,  p1,  p2,  p3,  p4,  p5,  p6,  p7,  p8,  p9, $
-;           p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, $
-;           p20, p21, p22, p23, p24, p25, p26, p27, p28, p29, $
-;           names=_nme_
+CMRESTORE, filename0, filename=filename1, verbose=verbose, $
+           p0,  p1,  p2,  p3,  p4,  p5,  p6,  p7,  p8,  p9, $
+           p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, $
+           p20, p21, p22, p23, p24, p25, p26, p27, p28, p29, $
+           names=_nme_
 
 for i=0,n_elements(_nme_)-1 do begin
    p = strcompress('p' + string(i), /remove_all)
