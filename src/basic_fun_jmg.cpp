@@ -745,10 +745,10 @@ namespace lib {
 	    if (e->GetParString(i) == 
 		callStack[desiredlevnum]->GetParString(j)) {
 	      //	      cout << "Calling param: " << j+1 << endl;
-	      BaseGDL* p = e->GetPar( i);
+	      BaseGDL*& p = e->GetPar( i);
 	      if (p == NULL) {
 		(*res)[i]="UNDEFINED";
-		break;
+// 		break;
 	      }
 	      //	      cout << "p:" << p << endl;
 
@@ -759,7 +759,7 @@ namespace lib {
 
 		//    cout << "xI:" << xI << " " << vname.c_str() << endl;
 		//    cout << "par:" << par << endl;
-		if (par == p) {
+		if (&par == &p) {
 		  (*res)[i] = vname;
 		  break;
 		}
