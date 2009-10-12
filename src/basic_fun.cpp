@@ -1713,7 +1713,10 @@ namespace lib {
 	    SizeT destIx = i * stride + ii;
 	    DLong actFirst = (sc1)? scVal1 : (*p1L)[ destIx % nEl1];
 	    DLong actLen   = (sc2)? scVal2 : (*p2L)[ destIx % nEl2];
-	    (*res)[ destIx] = StrMid((*p0S)[ i], actFirst, actLen, reverse);
+	if( actLen <= 0)
+		(*res)[ destIx] = "";//StrMid((*p0S)[ i], actFirst, actLen, reverse);
+	else	
+		(*res)[ destIx] = StrMid((*p0S)[ i], actFirst, actLen, reverse);
 	  }
       }
     

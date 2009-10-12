@@ -82,6 +82,7 @@ DLong StrPos(const string& s, const string& searchStr, long pos,
 
 string StrMid(const string& s, long first, long len, bool reverse)
 {
+  // (long)string::npos == -1
   if( len != string::npos && len <= 0) return string("");
 
   long strLen = s.length();
