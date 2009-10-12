@@ -2140,7 +2140,8 @@ namespace lib {
       static_cast<DSubUD*>(p->nenvt->GetPro())->GetTree()
     );
     // TODO: no guarding if res is an optimized constant
-    auto_ptr<BaseGDL> res_guard(res);
+    // NO!!! the return value of call_fun() is always owned by the caller (constants are Dup()ed)
+   auto_ptr<BaseGDL> res_guard(res);
     // sanity checks
     if (res->Rank() != 1 || res->N_Elements() != x->size) 
     {
@@ -2150,6 +2151,7 @@ namespace lib {
     DDoubleGDL* dres;
     try
     {
+      // BUT: Convert2(...) with CONVERT already deletes 'res' here if the type is changed
       dres = static_cast<DDoubleGDL*>(
         res->Convert2(DOUBLE, BaseGDL::CONVERT_THROWIOERROR)
       );
@@ -2159,7 +2161,12 @@ namespace lib {
       p->errmsg = "failed to convert the result of the user-defined function to double";
       return GSL_EBADFUNC;
     }
-    if (res != dres) auto_ptr<DDoubleGDL> dres_guard(dres);
+    if (res != dres)
+{
+// prevent 'res' from being deleted again
+res_guard.release();
+res_guard.reset (dres);
+}
     // copying from GDL to GSL
     for (size_t i = 0; i < x->size; i++) gsl_vector_set(f, i, (*dres)[i]);
     return GSL_SUCCESS;
