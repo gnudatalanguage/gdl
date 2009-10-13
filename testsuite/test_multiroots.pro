@@ -1,65 +1,8 @@
 ; by Sylwester Arabas <slayoo (at) igf.fuw.edu.pl>
 ; testing newton() and broyden() by solving a moist isentrope eq. set
 
-pro test_multiroots
-  print, 'usage:'
-  print, '  GDL> .compile test_multiroots.pro'
-  print, '  GDL> test_multiroots_run'
-  print, '  GDL> test_multiroots_run, /known_bugs'
-end
-
-pro test_multiroots_run, known_bugs=known_bugs
-
-  x0 = moist_isentrope_init()
-
-  ; testing newton & broyden parameters (defaults are: tolf=1d-4 & tolx=1d-7)
-  ; (note: not all IDL stopping constraints are implemented in GDL)
-  out = newton(x0, 'moist_isentrope', it=3)                        ; it=2 breaks in IDL & GDL 
-  out = newton(x0, 'moist_isentrope', it=4, tolf=1d-9)             ; it=3 breaks in IDL & GDL
-  out = newton(x0, 'moist_isentrope', it=2, tolf=1d-1)             ; it=1 breaks in IDL & GDL
-  out = newton(x0, 'moist_isentrope', it=5, tolx=1d-9, tolf=1d-10) ; it=4 breaks in IDL
-  out = newton(x0, 'moist_isentrope', it=2, tolx=1d-1)             ; it=1 breaks in IDL & GDL
-
-  out = broyden(x0, 'moist_isentrope', it=5)                       ; it=4 breaks in IDL & GDL
-  out = broyden(x0, 'moist_isentrope', it=6, tolf=1d-5)            ; it=5 breaks in IDL & GDL
-  out = broyden(x0, 'moist_isentrope', it=4, tolf=1d-3)            ; it=3 breaks in IDL & GDL
-  out = broyden(x0, 'moist_isentrope', it=6, tolx=1d-8, tolf=1d-99); it=5 breaks in IDL & GDL 
-  out = broyden(x0, 'moist_isentrope', it=4, tolx=1d-5)            ; it=3 breaks in IDL & GDL
-
-  ; testing the /DOUBLE keyword
-  if 5 ne size(newton(x0,        'moist_isentrope'         ), /type) then message, "failed"
-  if 4 ne size(newton(float(x0), 'moist_isentrope'         ), /type) then message, "failed"
-  if 5 ne size(newton(float(x0), 'moist_isentrope', /double), /type) then message, "failed"
-  if 4 ne size(newton(long(x0),  'moist_isentrope'         ), /type) then message, "failed"
-
-  message, "tests of newton() and broyden() passed", /continue
-
-  ; testing GSL error handler
-  message, "testing the GSL error handler, a GSL warning message should appear below...", /continue
-  out = broyden([3., 0.], 'foo')
-
-  if keyword_set(known_bugs) then begin
-
-    ; testing behaviour with costant-returning user func
-    out = newton([1., 2.], 'pseudo_constant')
-    message, "known bug 1:", /continue
-    ; this is numerically the same as above but causes invalid free() calls
-    ; Marc, how to check if a return value of envt->Interpreter()->call_fun()
-    ;       is an optimized constant value? 
-    out = newton([3., 0.], 'constant')
-
-    message, "known bug 2:", /continue
-    ; what I get here is:
-    ; terminate called after throwing an instance of 'GDLInterpreter::RetAllException'
-    ; Abort trap 
-    message, "                                    ****************************", /continue
-    message, "after the error message below, run: .compile test_multiroots.pro", /continue
-    message, "                                    ****************************", /continue
-    out = newton([3., 0.], 'buggy')
-
-  endif
-
-end
+; usage:
+; GDL> test_multiroots
 
 function foo, x  
   return, [x[0]^2 + x[1]^3 - 9, x[0] + x[1] - 3]
@@ -82,7 +25,6 @@ end
 ; http://www-das.uwyo.edu/~jsnider/parcel/parcel_model_2006_1/
 
 function moist_isentrope_init
-  ;common, indices, 
   common multiroots_constants, sratio_start, R, mw_h2o, mw_air, Ra, $
     Rv, tk_o, cp_air_o, ew_o, p_base, tk_base, epsilon, lv_o, $
     cw_h2o_o, cp_h2o_o
@@ -140,7 +82,6 @@ function m_i_lm, licz, mian1, mian2
 end
 
 function moist_isentrope, x
-  ;common indices
   common multiroots_constants
   cwmcp = cw_h2o_o - cp_h2o_o
   f = dblarr(10)
@@ -156,3 +97,40 @@ function moist_isentrope, x
   f[9] = x[4] - x[9] - x[3]
   return, f
 end
+
+pro test_multiroots
+
+  x0 = moist_isentrope_init()
+
+  ; testing newton & broyden parameters (defaults are: tolf=1d-4 & tolx=1d-7)
+  ; (note: not all IDL stopping constraints are implemented in GDL)
+  out = newton(x0, 'moist_isentrope', it=3)                        ; it=2 breaks in IDL & GDL 
+  out = newton(x0, 'moist_isentrope', it=4, tolf=1d-9)             ; it=3 breaks in IDL & GDL
+  out = newton(x0, 'moist_isentrope', it=2, tolf=1d-1)             ; it=1 breaks in IDL & GDL
+  out = newton(x0, 'moist_isentrope', it=5, tolx=1d-9, tolf=1d-10) ; it=4 breaks in IDL
+  out = newton(x0, 'moist_isentrope', it=2, tolx=1d-1)             ; it=1 breaks in IDL & GDL
+
+  out = broyden(x0, 'moist_isentrope', it=5)                       ; it=4 breaks in IDL & GDL
+  out = broyden(x0, 'moist_isentrope', it=6, tolf=1d-5)            ; it=5 breaks in IDL & GDL
+  out = broyden(x0, 'moist_isentrope', it=4, tolf=1d-3)            ; it=3 breaks in IDL & GDL
+  out = broyden(x0, 'moist_isentrope', it=6, tolx=1d-8, tolf=1d-99); it=5 breaks in IDL & GDL 
+  out = broyden(x0, 'moist_isentrope', it=4, tolx=1d-5)            ; it=3 breaks in IDL & GDL
+
+  ; testing the /DOUBLE keyword
+  if 5 ne size(newton(x0,        'moist_isentrope'         ), /type) then message, "failed"
+  if 4 ne size(newton(float(x0), 'moist_isentrope'         ), /type) then message, "failed"
+  if 5 ne size(newton(float(x0), 'moist_isentrope', /double), /type) then message, "failed"
+  if 4 ne size(newton(long(x0),  'moist_isentrope'         ), /type) then message, "failed"
+
+  message, "tests of newton() and broyden() passed", /continue
+
+  ; testing GSL error handler
+  message, "testing the GSL error handler, a GSL warning message should appear below...", /continue
+  out = broyden([3., 0.], 'foo')
+
+  ; testing behaviour with costant-returning user func
+  out = newton([1., 2.], 'pseudo_constant')
+  out = newton([3., 0.], 'constant')
+
+end
+
