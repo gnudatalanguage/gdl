@@ -178,7 +178,7 @@ namespace lib {
 	}
       else
 	{
-	  delay.tv_nsec = (waittime - diff) * 1000000000; // 1s
+	  delay.tv_nsec = (long int)(waittime - diff) * 1000000000; // 1s
 	  nanosleep(&delay,NULL);
 	}
 

@@ -5538,7 +5538,7 @@ namespace lib {
     // getting the info 
     char* login = getlogin();
     if (login == NULL) e->Throw("Failed to get user name from the OS"); 
-    utsname info;
+    struct utsname info;
     if (0 != uname(&info)) e->Throw("Failed to get machine name from the OS");
 
     // creating the output anonymous structure
