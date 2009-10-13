@@ -82,7 +82,7 @@ endif
 LOADCT_INTERNALGDL,table
 
 if not KEYWORD_SET( silent) then begin
-    MESSAGE,'Loading table ' + names[table],/INFO
+   MESSAGE,'Loading table ' + names[table],/INFO
 endif
 
 if N_ELEMENTS(bottom) eq 0 then bottom=0

@@ -102,7 +102,7 @@ public:
     dStruct->InitTag("X_PX_CM",    DFloatGDL( 1000.0)); 
     dStruct->InitTag("Y_PX_CM",    DFloatGDL( 1000.0)); 
     dStruct->InitTag("N_COLORS",   DLongGDL( 256)); 
-    dStruct->InitTag("TABLE_SIZE", DLongGDL( 0)); 
+    dStruct->InitTag("TABLE_SIZE", DLongGDL( 256)); 
     dStruct->InitTag("FILL_DIST",  DLongGDL( 0)); 
     dStruct->InitTag("WINDOW",     DLongGDL( -1)); 
     dStruct->InitTag("UNIT",       DLongGDL( 0)); 
