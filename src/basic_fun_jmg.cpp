@@ -776,14 +776,17 @@ namespace lib {
 	  throw GDLException( e->CallingNode(),
 			      "ROUTINE_NAMES: Incorrect number of arguments.");
 
+	// "res" points to variables to be restored
+	BaseGDL* res = e->GetParDefined( 1);
+
 	SizeT s;
 	e->AssureScalarPar<DStringGDL>( 0, varName); 
 	int xI = pro->FindVar(StrUpCase( varName));
 	// cout << "varName: " << StrUpCase( varName) << " xI: " << xI << endl;
 	if (xI == -1) {
-	  SizeT u = pro->AddVar(StrUpCase(varName));
-	  s = callStack[desiredlevnum-1]->AddEnv();
 
+	  SizeT u = pro->AddVar(StrUpCase(varName));
+ 	  s = callStack[desiredlevnum-1]->AddEnv();
 	  //cout << "AddVar u: " << u << endl;
 	  //cout << "AddEnv s: " << s << endl;
 
@@ -792,13 +795,12 @@ namespace lib {
 	  //cout << "FindVar s: " << s << endl;
 	}
 
-	BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( s-nKey);
+// 	BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( s-nKey);
 
-	// "res" points to variables to be restored
-	BaseGDL* res = e->GetPar( 1)->Dup();
+ 	((EnvT*)(callStack[desiredlevnum-1]))->GetPar( s-nKey) = res->Dup();
 
 	//	cout << "par: " << &par << endl << endl;
-	memcpy(&par, &res, 4); 
+// 	memcpy(&par, &res, sizeof(par)); 
 
 	return new DIntGDL( 1);
       }

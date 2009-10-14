@@ -785,7 +785,6 @@ BaseGDL*& EnvBaseT::GetParDefined(SizeT i)
   SizeT ix = i + pro->key.size();
 
   //  cout << i << " -> " << ix << "  " << env.size() << "  env[ix] " << env[ix] << endl;
-
   if( ix >= env.size() || env[ ix] == NULL) 
     throw GDLException( callingNode, pro->ObjectName()+
 			": Variable is undefined: "+
