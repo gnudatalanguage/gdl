@@ -152,12 +152,7 @@ template<class Sp> Data_<Sp>::Data_(const dimension& dim_,
   if( iT == BaseGDL::INDGEN)
     {
       SizeT sz=dd.size();
-      Ty val=Sp::zero;
-      for( SizeT i=0; i<sz; i++)
-	{
-	  (*this)[i]=val;
-	  val += 1; // no increment operator for floats
-	}
+      for( SizeT i=0; i<sz; i++) (*this)[i] = i;
     }
 }
 // string, ptr, obj (cannot be INDGEN, 
