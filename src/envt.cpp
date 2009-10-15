@@ -38,6 +38,7 @@ EnvBaseT::EnvBaseT( ProgNodeP cN, DSub* pro_):
   pro(pro_),
   extra(NULL), 
   callingNode( cN),
+  lineNumber( 0),
   obj(false) 
 {}
 

@@ -199,6 +199,9 @@ GDLInterpreter::GDLInterpreter()
 	
 	retCode = RC_OK;
 	ProgNodeP actPos = _t;
+	assert( _t != NULL);
+	if( callStack.back()->GetLineNumber() == 0) 
+	callStack.back()->SetLineNumber( actPos->getLine());
 	
 	
 	try {      // for error handling
@@ -466,8 +469,12 @@ GDLInterpreter::GDLInterpreter()
 		e.SetTargetEnv( targetEnv);
 		
 		// State where error occured
-		if( e.getLine() == 0 && _t != NULL)
-		e.SetLine( _t->getLine());
+		//                     if( e.getLine() == 0 && _t != NULL)
+		//                         e.SetLine( _t->getLine());
+		//                     if( e.getLine() == 0 && _retTree != NULL)
+		//                         e.SetLine( _retTree->getLine());
+		if( e.getLine() == 0 && actPos != NULL)
+		e.SetLine( actPos->getLine());
 		
 		ReportError(e, "Error occurred at:");
 		
@@ -485,10 +492,12 @@ GDLInterpreter::GDLInterpreter()
 		
 		// many low level routines don't have errorNode info
 		// set line number here in this case
-		if( e.getLine() == 0 && _t != NULL)
-		{
-		e.SetLine( _t->getLine());
-		}
+		//         if( e.getLine() == 0 && _t != NULL)
+		//             e.SetLine( _t->getLine());
+		//         if( e.getLine() == 0 && _retTree != NULL)
+		//             e.SetLine( _retTree->getLine());
+		if( e.getLine() == 0 && actPos != NULL)
+		e.SetLine( actPos->getLine());
 		
 		if( interruptEnable)
 		{
@@ -3982,6 +3991,7 @@ BaseGDL*  GDLInterpreter::array_expr(ProgNodeP _t) {
 	_t = _t->getNextSibling();
 	
 	empty:
+	//_retTree = ax;
 	res = aL->Index( r, ixExprList);
 	//                 aL->Init( ixExprList);
 	//                 aL->SetVariable( r);

@@ -341,9 +341,10 @@ bool GDLInterpreter::CompileFile(const string& f, const string& untilPro)
     {
       treeParser.translation_unit(theAST);
 
-#ifdef GDL_DEBUG
-      trAST=treeParser.getAST();
-#endif
+// #ifdef GDL_DEBUG
+// nothing is returned (prl/funList are changed)
+//       trAST=treeParser.getAST();
+// #endif
 
       if( treeParser.ActiveProCompiled()) RetAll();
     }
@@ -364,12 +365,12 @@ bool GDLInterpreter::CompileFile(const string& f, const string& untilPro)
 //   pt.pr_tree(static_cast<antlr::RefAST>(trAST));
 //   cout << "ExecuteLine: Tree parser end." << endl;
 // #endif
-#ifdef GDL_DEBUG
+/*#ifdef GDL_DEBUG
       cout << "Tree parser output:" << endl;
       antlr::print_tree ptTP;
       ptTP.pr_tree(static_cast<antlr::RefAST>(trAST));
       cout << "CompileFile: Tree parser end." << endl;
-#endif
+#endif*/
   
   return true;
 }      

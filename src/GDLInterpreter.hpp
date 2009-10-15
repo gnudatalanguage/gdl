@@ -30,6 +30,11 @@
 // tweaking ANTLR
 #define RefAST( xxx)     ConvertAST( xxx) /* antlr::RefAST( Ref type)  */
 
+// print out AST tree
+//#define GDL_DEBUG
+//#undef GDL_DEBUG
+
+
 class CUSTOM_API GDLInterpreter : public antlr::TreeParser, public GDLInterpreterTokenTypes
 {
 
@@ -338,11 +343,27 @@ public:
 
             std::string file = (*upEnv)->GetFilename();
             if( file != "")
-            {
-                ProgNodeP cNode= (*env)->CallingNode();
-                if( cNode != NULL)
+            {              
+//                 ProgNodeP cNode= (*env)->CallingNode();
+//                 if( cNode != NULL)
+//                 {       
+//                     std::cerr << std::right << std::setw(6) << cNode->getLine();
+//                 }
+//                 else
+//                 {
+//                     std::cerr << std::right << std::setw(6) << "";
+//                 }                
+
+//                 ProgNodeP cNode= (*env)->CallingNode();
+//                 if( cNode != NULL && cNode->getLine() != 0)
+//                 {       
+//                     (*upEnv)->SetLineNumber( cNode->getLine());
+//                 }
+
+                int lineNumber = (*env)->GetLineNumber();
+                if( lineNumber != 0)
                 {       
-                    std::cerr << std::right << std::setw(6) << cNode->getLine();
+                    std::cerr << std::right << std::setw(6) << lineNumber;
                 }
                 else
                 {

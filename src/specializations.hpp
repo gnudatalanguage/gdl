@@ -262,6 +262,8 @@ Data_<SpDByte>* Data_<SpDComplexDbl>::LogNeg();
 
 // datatypes.cpp
 // patch [1561592]
+/*template<>
+Data_<SpDFloat>::Data_(const dimension& dim_, BaseGDL::InitType iT);*/
 template<>
 Data_<SpDString>::Data_(const dimension& dim_, BaseGDL::InitType iT);
 template<>

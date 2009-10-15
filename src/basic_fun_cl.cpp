@@ -47,8 +47,6 @@
 
 #define MAX_DATE_STRING_LENGTH 80
 
-#define GDL_DEBUG
-//#undef GDL_DEBUG
 
 namespace lib {
 

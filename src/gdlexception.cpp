@@ -22,8 +22,8 @@
 #include "initsysvar.hpp"
 #include "gdljournal.hpp"
 
-//#define GDLDEBUG
-#undef GDLDEBUG
+//#define GDL_DEBUG
+//#undef GDL_DEBUG
 
 using namespace std;
 
@@ -36,7 +36,7 @@ GDLException::GDLException(const string& s, bool pre):
 {
   // note: This is for cases, when form a destructor is thrown
   // in these cases, program aborts
-#ifdef GDLDEBUG
+#ifdef GDL_DEBUG
    cerr << s << endl;
 #endif
 }
@@ -48,7 +48,7 @@ GDLException::GDLException(const RefDNode eN, const string& s):
   line( 0), col( 0), prefix( true),
 		  targetEnv( NULL)
 {
-#ifdef GDLDEBUG
+#ifdef GDL_DEBUG
    cerr << s << endl;
 #endif
 }
@@ -60,7 +60,7 @@ GDLException::GDLException(const ProgNodeP eN, const string& s):
   line( 0), col( 0), prefix( true),
 		  targetEnv( NULL)
 {
-#ifdef GDLDEBUG
+#ifdef GDL_DEBUG
    cerr << s << endl;
 #endif
 }
@@ -72,7 +72,7 @@ GDLException::GDLException(SizeT l, SizeT c, const string& s):
   line( l), col( c), prefix( true),
 		  targetEnv( NULL)
 {
-#ifdef GDLDEBUG
+#ifdef GDL_DEBUG
    cerr << s << endl;
 #endif
 }

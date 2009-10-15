@@ -84,6 +84,11 @@ header {
 
 // tweaking ANTLR
 #define RefAST( xxx)     ConvertAST( xxx) /* antlr::RefAST( Ref type)  */
+
+// print out AST tree
+//#define GDL_DEBUG
+//#undef GDL_DEBUG
+
 }
 
 options {
@@ -414,11 +419,27 @@ public:
 
             std::string file = (*upEnv)->GetFilename();
             if( file != "")
-            {
-                ProgNodeP cNode= (*env)->CallingNode();
-                if( cNode != NULL)
+            {              
+//                 ProgNodeP cNode= (*env)->CallingNode();
+//                 if( cNode != NULL)
+//                 {       
+//                     std::cerr << std::right << std::setw(6) << cNode->getLine();
+//                 }
+//                 else
+//                 {
+//                     std::cerr << std::right << std::setw(6) << "";
+//                 }                
+
+//                 ProgNodeP cNode= (*env)->CallingNode();
+//                 if( cNode != NULL && cNode->getLine() != 0)
+//                 {       
+//                     (*upEnv)->SetLineNumber( cNode->getLine());
+//                 }
+
+                int lineNumber = (*env)->GetLineNumber();
+                if( lineNumber != 0)
                 {       
-                    std::cerr << std::right << std::setw(6) << cNode->getLine();
+                    std::cerr << std::right << std::setw(6) << lineNumber;
                 }
                 else
                 {
@@ -643,6 +664,9 @@ statement returns[ GDLInterpreter::RetCode retCode]
 {
     retCode = RC_OK;
     ProgNodeP actPos = _t;
+    assert( _t != NULL);
+    if( callStack.back()->GetLineNumber() == 0) 
+        callStack.back()->SetLineNumber( actPos->getLine());
 }
 	: (
             // note: assignment must take care to update the owner of lvalue
@@ -792,8 +816,12 @@ statement returns[ GDLInterpreter::RetCode retCode]
                     e.SetTargetEnv( targetEnv);
                     
                     // State where error occured
-                    if( e.getLine() == 0 && _t != NULL)
-                        e.SetLine( _t->getLine());
+//                     if( e.getLine() == 0 && _t != NULL)
+//                         e.SetLine( _t->getLine());
+//                     if( e.getLine() == 0 && _retTree != NULL)
+//                         e.SetLine( _retTree->getLine());
+                    if( e.getLine() == 0 && actPos != NULL)
+                        e.SetLine( actPos->getLine());
                     
                     ReportError(e, "Error occurred at:");
                     
@@ -811,10 +839,12 @@ statement returns[ GDLInterpreter::RetCode retCode]
 
         // many low level routines don't have errorNode info
         // set line number here in this case
-        if( e.getLine() == 0 && _t != NULL)
-        {
-            e.SetLine( _t->getLine());
-        }
+//         if( e.getLine() == 0 && _t != NULL)
+//             e.SetLine( _t->getLine());
+//         if( e.getLine() == 0 && _retTree != NULL)
+//             e.SetLine( _retTree->getLine());
+        if( e.getLine() == 0 && actPos != NULL)
+            e.SetLine( actPos->getLine());
 
         if( interruptEnable)
             {
@@ -2692,6 +2722,7 @@ array_expr returns [BaseGDL* res]
             )
             {
 empty:
+                //_retTree = ax;
                 res = aL->Index( r, ixExprList);
 //                 aL->Init( ixExprList);
 //                 aL->SetVariable( r);

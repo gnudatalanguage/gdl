@@ -152,9 +152,79 @@ template<class Sp> Data_<Sp>::Data_(const dimension& dim_,
   if( iT == BaseGDL::INDGEN)
     {
       SizeT sz=dd.size();
-      for( SizeT i=0; i<sz; i++) (*this)[i] = i;
+//       Ty val=Sp::zero;
+      for( SizeT i=0; i<sz; i++)
+	{
+	  (*this)[i]=i;//val;
+// 	  val += 1; // no increment operator for floats
+	}
     }
 }
+/*// INDGEN seems to be more precise for large arrays
+template<> Data_<SpDFloat>::Data_(const dimension& dim_,
+				    BaseGDL::InitType iT): 
+  SpDFloat( dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.N_Elements(), false)
+{
+  this->dim.Purge();
+
+  if( iT == BaseGDL::INDGEN)
+    {
+      SizeT sz=dd.size();
+
+      for( SizeT i=0; i<sz; ++i)
+	{
+	  (*this)[i] = i;
+	}
+    }
+}
+template<> Data_<SpDComplex>::Data_(const dimension& dim_,
+				    BaseGDL::InitType iT): 
+  SpDComplex( dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.N_Elements(), false)
+{
+  this->dim.Purge();
+
+  if( iT == BaseGDL::INDGEN)
+    {
+      SizeT sz=dd.size();
+
+      for( SizeT i=0; i<sz; ++i)
+	{
+	  (*this)[i] = i;
+	}
+    }
+}
+template<> Data_<SpDDouble>::Data_(const dimension& dim_,
+				    BaseGDL::InitType iT): 
+  SpDDouble( dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.N_Elements(), false)
+{
+  this->dim.Purge();
+
+  if( iT == BaseGDL::INDGEN)
+    {
+      SizeT sz=dd.size();
+
+      for( SizeT i=0; i<sz; ++i)
+	{
+	  (*this)[i] = i;
+	}
+    }
+}
+template<> Data_<SpDComplexDbl>::Data_(const dimension& dim_,
+				    BaseGDL::InitType iT): 
+  SpDComplexDbl( dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.N_Elements(), false)
+{
+  this->dim.Purge();
+
+  if( iT == BaseGDL::INDGEN)
+    {
+      SizeT sz=dd.size();
+
+      for( SizeT i=0; i<sz; ++i)
+	{
+	  (*this)[i] = i;
+	}
+    }
+}*/
 // string, ptr, obj (cannot be INDGEN, 
 // need not to be zeroed if all intialized later)
 // struct (as a separate class) as well

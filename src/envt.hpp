@@ -47,6 +47,7 @@ protected:
   SizeT                parIx;     // ix of next parameter to put
   DSub*                pro;
   ProgNodeP            callingNode;
+  int			  lineNumber;
   bool                 obj;       // member subroutine?
   ExtraT*              extra;
 
@@ -71,6 +72,16 @@ public:
   virtual ~EnvBaseT() { delete extra;}
 
   EnvBaseT( ProgNodeP cN, DSub* pro_);
+
+int GetLineNumber()
+{
+return lineNumber;
+}
+void SetLineNumber(int l)
+{
+lineNumber = l;
+}
+
 
   // finds the global variable pp (used by arg_present function)
   int FindGlobalKW( BaseGDL** pp) { return env.FindGlobal( pp);}

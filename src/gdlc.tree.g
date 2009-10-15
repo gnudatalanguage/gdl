@@ -36,6 +36,11 @@ header "post_include_cpp" {
 #include "print_tree.hpp"
 
 using namespace std;
+
+// print out AST tree
+//#define GDL_DEBUG
+//#undef GDL_DEBUG
+
 }
 
 header {
@@ -216,6 +221,14 @@ translation_unit
         {
             comp.SetTree( #retAST);
             comp.EndPro();
+
+#ifdef GDL_DEBUG
+  cout << "TreeParser output:" << endl;
+  antlr::print_tree pt;
+  pt.pr_tree(static_cast<antlr::RefAST>(retAST));
+  cout << "CompileFile: TreeParser end." << endl;
+#endif
+           
         }
     )?
 

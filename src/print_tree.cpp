@@ -33,8 +33,8 @@ void print_tree::pr_name( RefAST node )
     RefDNode dNode = static_cast<RefDNode>( node);
 
     str = node->getText();
-    printf("%s ", str.c_str());
-    //    printf("%s(%d) ", str.c_str(), dNode->getLine());
+//     printf("%s ", str.c_str());
+    printf("%s(%d) ", str.c_str(), dNode->getLine());
 } // pr_name
 void print_tree::pr_name( ProgNodeP node )
 {
