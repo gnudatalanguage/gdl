@@ -436,10 +436,10 @@ public:
 		return GDLInterpreter::tokenNames;
 	}
 	public:  GDLInterpreter::RetCode  interactive(ProgNodeP _t);
-	public:  GDLInterpreter::RetCode  statement_list(ProgNodeP _t);
-	public:  GDLInterpreter::RetCode  execute(ProgNodeP _t);
-	public:  BaseGDL*  call_fun(ProgNodeP _t);
 	public:  GDLInterpreter::RetCode  statement(ProgNodeP _t);
+	public:  GDLInterpreter::RetCode  execute(ProgNodeP _t);
+	public:  GDLInterpreter::RetCode  statement_list(ProgNodeP _t);
+	public:  BaseGDL*  call_fun(ProgNodeP _t);
 	public:  BaseGDL**  call_lfun(ProgNodeP _t);
 	public: void call_pro(ProgNodeP _t);
 	public:  GDLInterpreter::RetCode  for_statement(ProgNodeP _t);

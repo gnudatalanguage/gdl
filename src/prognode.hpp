@@ -136,6 +136,7 @@ public:
   std::string getText() { return text;}
   void setText(const std::string t) { text = t;}
   int getLine() const { return lineNumber;}
+  void setLine( int l) { lineNumber = l;}
   void SetGotoIx( int ix) { targetIx=ix;}
   
   bool LabelInRange( const int lIx)

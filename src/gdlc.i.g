@@ -503,10 +503,30 @@ public:
 
 // intercative usage
 interactive returns[ GDLInterpreter::RetCode retCode]
+// {
+// 	return interactive_statement_list(_t);
+// }    
+//     : retCode=statement_list
+//     ;
+// // used from interactive nulls line number
+// interactive_statement_list returns[ GDLInterpreter::RetCode retCode]
 {
-	return statement_list(_t);
-}    
-    : retCode=statement_list
+	for (; _t != NULL;) {
+
+        _t->setLine(0);
+		retCode=statement(_t);
+		_t = _retTree;
+			
+		if( retCode != RC_OK) break; // break out if non-regular
+	}
+	_retTree = _t;
+	return retCode;
+}
+    : (retCode=statement
+            {
+                if( retCode != RC_OK) break; // break out if non-regular
+            }
+        )+
     ;
 
 // execute statement
@@ -640,6 +660,7 @@ call_pro
         )*
     ;
 
+
 // used on many occasions
 statement_list returns[ GDLInterpreter::RetCode retCode]
 {
@@ -665,8 +686,9 @@ statement returns[ GDLInterpreter::RetCode retCode]
     retCode = RC_OK;
     ProgNodeP actPos = _t;
     assert( _t != NULL);
-    if( callStack.back()->GetLineNumber() == 0) 
-        callStack.back()->SetLineNumber( actPos->getLine());
+//     if( callStack.back()->GetLineNumber() == 0) 
+    if( _t->getLine() != 0) 
+        callStack.back()->SetLineNumber( _t->getLine());
 }
 	: (
             // note: assignment must take care to update the owner of lvalue
