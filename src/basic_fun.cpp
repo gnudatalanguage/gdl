@@ -25,7 +25,7 @@
 // http://sourceforge.net/forum/forum.php?thread_id=3292183&forum_id=338691
 #include <termios.h> 
 #include <unistd.h> 
-
+#include <limits>
 #include <string>
 #include <fstream>
 //#include <memory>
@@ -1667,7 +1667,7 @@ namespace lib {
     DLong scVal1;
     bool sc1 = p1L->Scalar( scVal1);
 
-    unsigned long scVal2 = string::npos;
+    long scVal2 = numeric_limits<long>::max();
     bool sc2 = true;
     if( p2L != NULL) 
       {
