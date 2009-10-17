@@ -249,10 +249,6 @@
            - CREATE_STRUCT: accepting excl. mark as a first char of a tag name
            - EXIT: fixing segfault if HOME env. var undefined
            - EXPINT: better management of the dimensions of output arrays
-           - IDL_BASE64: initial import
-           - IGAMMA: better management of the dimensions of output arrays
-           - IMSL_CONSTANT: initial import (using UDUNITS-2)
-           - IMSL_ZEROSYS: initial import
            - FILE_INFO: initial import
            - FILE_LINES: no longer calling awk to parse wc output
            - FILE_SAME: initial import
@@ -268,6 +264,10 @@
              binsize = (max - min) / (nbins - 1) when NBINS specified with neither MAX nor BINSIZE
              LOCATION keyword set correctly when HISTOGRAM called with NBINS and without BINSIZE or MAX
            - HELP: reporting structure data lengths, /MEMORY keyword support
+           - IDL_BASE64: initial import
+           - IGAMMA: better management of the dimensions of output arrays
+           - IMSL_CONSTANT: initial import (using UDUNITS-2)
+           - IMSL_ZEROSYS: initial import
            - LL_ARC_DISTANCE: initial import
            - LOCALE_GET: initial import
            - MAKE_ARRAY: /PTR & /OBJ keywords, /INDEX keyword support for strings

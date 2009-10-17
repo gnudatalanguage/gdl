@@ -52,6 +52,9 @@
 #  include <udunits2.h>
 #endif
 
+// binomialcoef
+#include <gsl/gsl_sf_gamma.h>
+
 #define LOG10E 0.434294
 
 namespace lib {
@@ -2576,6 +2579,19 @@ res_guard.reset (dres);
     }
 #endif    
 
+    static int doubleIx = e->KeywordIx("DOUBLE");
+    return res->Convert2(e->KeywordSet(doubleIx) ? DOUBLE : FLOAT, BaseGDL::CONVERT);
+  }
+
+  BaseGDL* binomialcoef(EnvT* e)
+  {
+    if (!IntType(e->GetParDefined(0)->Type()) || !IntType(e->GetParDefined(1)->Type()))
+      e->Throw("Arguments must not be floating point numbers");
+    DLong n, m;
+    e->AssureLongScalarPar(0, n);
+    e->AssureLongScalarPar(1, m);
+    if (n < 0 || m < 0 || n < m) e->Throw("Arguments must fulfil n >= m >= 0");
+    BaseGDL* res = new DDoubleGDL(gsl_sf_choose(n, m));
     static int doubleIx = e->KeywordIx("DOUBLE");
     return res->Convert2(e->KeywordSet(doubleIx) ? DOUBLE : FLOAT, BaseGDL::CONVERT);
   }

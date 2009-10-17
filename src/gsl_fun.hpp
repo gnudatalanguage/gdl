@@ -52,6 +52,7 @@ namespace lib {
   // the following by SA
   BaseGDL* newton_broyden(EnvT* e);
   BaseGDL* constant(EnvT* e);
+  BaseGDL* binomialcoef(EnvT* e);
 
 } // namespace
 

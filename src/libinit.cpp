@@ -754,6 +754,9 @@ void LibInit()
   const string get_drive_listKey[] = {"COUNT", KLISTEND };
   new DLibFun(lib::get_drive_list, string("GET_DRIVE_LIST"), 0, get_drive_listKey);
 
+  const string binomialcoefKey[] = {"DOUBLE", KLISTEND };
+  new DLibFun(lib::binomialcoef, string("IMSL_BINOMIALCOEF"), 2, binomialcoefKey);
+
   // sort lists
   sort( libFunList.begin(), libFunList.end(), CompLibFunName());
   sort( libProList.begin(), libProList.end(), CompLibProName());
