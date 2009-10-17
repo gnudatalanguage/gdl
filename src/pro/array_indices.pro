@@ -1,4 +1,4 @@
-;$Id: array_indices.pro,v 1.1.1.1 2004-12-09 15:10:20 m_schellens Exp $
+;$Id: array_indices.pro,v 1.2 2009-10-17 14:37:36 m_schellens Exp $
 
 function Array_Indices,a,ix
 
@@ -77,19 +77,19 @@ function Array_Indices,a,ix
 
 ;; check number of parameters
 if n_params() ne 2 then begin
-    message,'ARRAY_INDICES: Wrong number of parameters.'
+    message,'Wrong number of parameters.'
 endif
 
 ;; check index type
 ty = size( ix, /TYPE)
 if ty ge 6 and ty le 11 then begin
-    message,'ARRAY_INDICES: Index must be of integer type.'
+    message,'Index must be of integer type.'
 endif
 
 ;; check index range
 maxIx = max( ix, MIN=minIx)
 if minIx lt 0 or maxIx ge n_elements(a) then begin
-    message,'ARRAY_INDICES: Index out of range.'
+    message,'Index out of range.'
 endif
 
 sz=size(a)

@@ -360,7 +360,7 @@ public:
 //                     (*upEnv)->SetLineNumber( cNode->getLine());
 //                 }
 
-                int lineNumber = (*env)->GetLineNumber();
+                int lineNumber = (*upEnv)->GetLineNumber();
                 if( lineNumber != 0)
                 {       
                     std::cerr << std::right << std::setw(6) << lineNumber;

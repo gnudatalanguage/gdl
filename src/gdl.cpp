@@ -159,6 +159,7 @@ int main(int argc, char *argv[])
 	"variables (denoting startup file)\nboth not set. "
 	"No startup file read. Default settings kept. OK." << endl;
     }
+
 //   else
 //     {
 //       // if path not given, add users home

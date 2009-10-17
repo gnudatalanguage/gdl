@@ -436,7 +436,7 @@ public:
 //                     (*upEnv)->SetLineNumber( cNode->getLine());
 //                 }
 
-                int lineNumber = (*env)->GetLineNumber();
+                int lineNumber = (*upEnv)->GetLineNumber();
                 if( lineNumber != 0)
                 {       
                     std::cerr << std::right << std::setw(6) << lineNumber;
@@ -555,7 +555,8 @@ call_fun returns[ BaseGDL* res]
 			retCode=statement(_t);
 			_t = _retTree;
 			
-			if( retCode == RC_RETURN) 
+// 			if( retCode == RC_RETURN) 
+			if( retCode >= RC_RETURN) 
 			{
 			res=returnValue;
 			returnValue=NULL;
@@ -573,7 +574,8 @@ call_fun returns[ BaseGDL* res]
 }
     : (retCode=statement
             {
-                if( retCode == RC_RETURN) 
+//                if( retCode == RC_RETURN) 
+                if( retCode >= RC_RETURN) 
                 {
                     res=returnValue;
                     returnValue=NULL;
@@ -600,7 +602,8 @@ call_lfun returns[ BaseGDL** res]
 			retCode=statement(_t);
 			_t = _retTree;
 			
-			if( retCode == RC_RETURN) 
+//			if( retCode == RC_RETURN) 
+			if( retCode >= RC_RETURN) 
 			{
 			res=returnValueL;
 			returnValueL=NULL;
@@ -620,7 +623,8 @@ call_lfun returns[ BaseGDL** res]
 }
     : (retCode=statement
             {
-                if( retCode == RC_RETURN) 
+//                if( retCode == RC_RETURN) 
+                if( retCode >= RC_RETURN) 
                 {
                     res=returnValueL;
                     returnValueL=NULL;

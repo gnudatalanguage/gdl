@@ -508,7 +508,8 @@ GDLInterpreter::GDLInterpreter()
 				retCode=statement(_t);
 				_t = _retTree;
 				
-				if( retCode == RC_RETURN) 
+	// 			if( retCode == RC_RETURN) 
+				if( retCode >= RC_RETURN) 
 				{
 				res=returnValue;
 				returnValue=NULL;
@@ -533,7 +534,8 @@ GDLInterpreter::GDLInterpreter()
 			retCode=statement(_t);
 			_t = _retTree;
 			
-			if( retCode == RC_RETURN) 
+			//                if( retCode == RC_RETURN) 
+			if( retCode >= RC_RETURN) 
 			{
 			res=returnValue;
 			returnValue=NULL;
@@ -571,7 +573,8 @@ GDLInterpreter::GDLInterpreter()
 				retCode=statement(_t);
 				_t = _retTree;
 				
-				if( retCode == RC_RETURN) 
+	//			if( retCode == RC_RETURN) 
+				if( retCode >= RC_RETURN) 
 				{
 				res=returnValueL;
 				returnValueL=NULL;
@@ -598,7 +601,8 @@ GDLInterpreter::GDLInterpreter()
 			retCode=statement(_t);
 			_t = _retTree;
 			
-			if( retCode == RC_RETURN) 
+			//                if( retCode == RC_RETURN) 
+			if( retCode >= RC_RETURN) 
 			{
 			res=returnValueL;
 			returnValueL=NULL;
