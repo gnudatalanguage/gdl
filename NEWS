@@ -335,3 +335,6 @@
            - HDF5: v1.8 compatibility fix
            - widgets: some new functionality
            - mapping: support for new LIBPROJ4
+
+0.9rc3:   library routines:
+	   - initial import of GET_SCREEN_SIZE
