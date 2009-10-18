@@ -405,7 +405,7 @@ public:
   virtual DType   Type() const;
   virtual const std::string& TypeStr() const;
   virtual bool          EqType( const BaseGDL*) const;
-  virtual void* DataAddr( SizeT elem=0);
+  virtual void* DataAddr();// SizeT elem=0);
   virtual BaseGDL* New( const dimension& dim_, InitType noZero=ZERO);
   virtual BaseGDL* Dup() const; 
 //   virtual BaseGDL* Dup( char*) const; 

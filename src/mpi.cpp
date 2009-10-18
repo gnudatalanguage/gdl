@@ -90,7 +90,7 @@ namespace lib {
     MPI_Datatype mpi_type = MPI_DOUBLE;
     
     //cout << "Before gdl send" << (*p0)[0] << "  nelem="<< nElem << endl;
-    MPI_Send( (*p0).DataAddr(0), nElem, mpi_type, dest, tag, MPI_COMM_WORLD);
+    MPI_Send( (*p0).DataAddr(), nElem, mpi_type, dest, tag, MPI_COMM_WORLD);
     //cout << "after gdl send" << endl;
         
   }
@@ -144,7 +144,7 @@ namespace lib {
     MPI_Status status;
 
     //    MPI_Recv( &((*result)[0]), count, mpi_type, source, tag, MPI_COMM_WORLD, &status);
-    MPI_Recv( (*result).DataAddr(0), count, mpi_type, source, tag, MPI_COMM_WORLD, &status);
+    MPI_Recv( (*result).DataAddr(), count, mpi_type, source, tag, MPI_COMM_WORLD, &status);
     
     return result;
   }
@@ -197,7 +197,7 @@ namespace lib {
     MPI_Status status;
 
     //    MPI_Recv( &((*result)[0]), count, mpi_type, source, tag, MPI_COMM_WORLD, &status);
-    MPI_Allreduce( (*p0).DataAddr(0), (*result).DataAddr(0), count, 
+    MPI_Allreduce( (*p0).DataAddr(), (*result).DataAddr(), count, 
                   mpi_type, mpi_op, MPI_COMM_WORLD);
     
     return result;

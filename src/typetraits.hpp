@@ -352,7 +352,6 @@ struct SpDStruct: public BaseGDL
 {
 protected:
   DStructDesc* desc;
-  inline SizeT NTags() const { return desc->NTags();}
 
   SpDStruct( DStructDesc* desc_=NULL);
   SpDStruct( DStructDesc* desc_, const dimension& dim_);
@@ -365,6 +364,7 @@ protected:
   }
 
 public:
+  inline SizeT NTags() const { return desc->NTags();}
 
   inline DStructDesc* Desc() const { return desc;}
   inline void SetDesc( DStructDesc* newDesc) 

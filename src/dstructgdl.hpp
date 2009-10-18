@@ -175,6 +175,22 @@ public:
     return GetTag( d1 % NTags(), d1 / NTags());
   }
 
+// void* DataAddr( SizeT elem) 
+// { 
+// return &(*this)[elem];
+// }
+void* DataAddr()// SizeT elem)
+{ 
+if( Buf() == NULL)
+  throw GDLException("DStructGDL: Data not set.");
+return Buf();
+}//elem];}
+void* DataAddr(SizeT tag)// SizeT elem)
+{ 
+if( dd.size() == 0) return typeVar[ t];
+return Buf();
+}//elem];}
+
   // used for named struct definition 
   // (GDLInterpreter, basic_fun (create_struct))
   void SetDesc( DStructDesc* newDesc); 

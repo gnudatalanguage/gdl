@@ -862,8 +862,27 @@ bool Data_<Sp>::EqType( const BaseGDL* r) const
 { return (Sp::t == r->Type());}
 
 template< class Sp>
-void* Data_<Sp>::DataAddr( SizeT elem)
-{ return &(*this)[elem];}
+void* Data_<Sp>::DataAddr()// SizeT elem)
+{ return &(*this)[0];}//elem];}
+
+// template<>
+// void* Data_<SpDString>::DataAddr()// SizeT elem)
+// { 
+//  throw GDLException("STRING not allowed in this context.");
+// return NULL;
+// }
+// template<>
+// void* Data_<SpDPtr>::DataAddr()// SizeT elem)
+// { 
+//  throw GDLException("PTR not allowed in this context.");
+// return NULL;
+// }
+// template<>
+// void* Data_<SpDObj>::DataAddr()// SizeT elem)
+// { 
+//  throw GDLException("Object expression not allowed in this context.");
+// return NULL;
+// }
 
 template< class Sp>
 SizeT Data_<Sp>::N_Elements() const 

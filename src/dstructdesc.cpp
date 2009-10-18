@@ -49,6 +49,21 @@ DStructDesc* FindInStructList(StructListT v, const string& s)
   return *f;
 }
 
+  bool DStructBase::ContainsStringPtrObject()
+  {
+   for( SizeT t=0; t<tags.size(); ++t)
+	{
+		if( tags[t]->Type() == STRING) return true;
+		if( tags[t]->Type() == PTR) return true;
+		if( tags[t]->Type() == OBJECT) return true;
+		if( tags[t]->Type() == STRUCT)
+		{
+			if( static_cast<DStructGDL*>( tags[t])->Desc()->ContainsStringPtrObject()) return true;
+		} 
+        }
+   return false;
+  }
+
 void DUStructDesc::AddTag( const string& tagName, const BaseGDL* data)
 {
   for( SizeT i=0; i < tNames.size(); i++)

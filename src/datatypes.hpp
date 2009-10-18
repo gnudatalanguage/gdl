@@ -124,7 +124,7 @@ static	void operator delete( void *ptr);
   
   bool EqType( const BaseGDL* r) const;
 
-  void* DataAddr( SizeT elem=0);
+  void* DataAddr();// SizeT elem=0);
 
   Ty Sum() const;
 

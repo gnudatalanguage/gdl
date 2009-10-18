@@ -138,7 +138,7 @@ bool BaseGDL::EqType( const BaseGDL*) const
   throw GDLException("BaseGDL::EqType(...) called.");
 }
 
-void* BaseGDL::DataAddr( SizeT elem)
+void* BaseGDL::DataAddr()// SizeT elem)
 {
   throw GDLException("BaseGDL::DataAddr(...) called.");
 }

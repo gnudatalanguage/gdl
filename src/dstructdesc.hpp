@@ -78,6 +78,8 @@ public:
 
   SizeT NTags() const  { return tags.size();}
   SizeT NBytes() const { return tagOffset.back();}
+
+  bool ContainsStringPtrObject();
 };
 
 
