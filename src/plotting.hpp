@@ -26,6 +26,7 @@ namespace lib {
 
   using namespace std;
   void set_plot( EnvT* e);
+  BaseGDL* get_screen_size( EnvT* e);
   void device( EnvT* e);
   void plot( EnvT* e);
   void oplot( EnvT* e);

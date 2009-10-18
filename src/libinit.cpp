@@ -443,6 +443,9 @@ void LibInit()
 
   const string set_plotKey[]={"COPY","INTERPOLATE",KLISTEND};
   new DLibPro(lib::set_plot,string("SET_PLOT"),1,set_plotKey);
+  
+  const string get_screen_sizeKey[]={"RESOLUTION",KLISTEND};
+  new DLibFun(lib::get_screen_size,string("GET_SCREEN_SIZE"),1,get_screen_sizeKey);
 
   const string tvlctKey[]={"GET","HLS","HSV",KLISTEND};
   new DLibPro(lib::tvlct,string("TVLCT"),4,tvlctKey);
