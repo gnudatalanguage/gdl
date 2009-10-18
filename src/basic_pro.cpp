@@ -1544,18 +1544,18 @@ namespace lib {
 	if( pIn->Type() == STRUCT)
 	{
 		DStructGDL* dS=static_cast<DStructGDL*>( pIn);
+		if( dS->Desc()->ContainsStringPtrObject())
+			e->Throw( "Structs must not contain PTR, OBJECT or STRING tags: "+e->GetParString(p));
 		for( SizeT t=0; t<dS->NTags(); ++t)
 		{
 			BaseGDL* par = dS->GetTag( t);
 			
 			if( par->Type() == STRUCT)
 			{
-				if( static_cast<DStructGDL*>( par)->Desc()->ContainsStringPtrObject())
-				e->Throw( "Structs must not contain PTR, OBJECT or STRING tags: "+e->GetParString(p));		    
-		
 				if( par->N_Elements() == 1)
 					{
 						byteorderDo( e, par, swapSz, p);
+						continue;
 					}
 			}
 			
