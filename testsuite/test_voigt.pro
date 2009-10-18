@@ -145,6 +145,7 @@ window, 0, xsize=800, ysize=600
 for ii=0, nb_a-1 do begin  
     plot, x, VOIGT(a[ii],x), title = 'VOIGT function with damper = '+ STRING( a[ii])
 end 
+!p.multi=0
 
 end
 ;-----------------------------------------------------------------------
