@@ -2585,6 +2585,7 @@ res_guard.reset (dres);
 
   BaseGDL* binomialcoef(EnvT* e)
   {
+    SizeT nParam=e->NParam(2);
     if (!IntType(e->GetParDefined(0)->Type()) || !IntType(e->GetParDefined(1)->Type()))
       e->Throw("Arguments must not be floating point numbers");
     DLong n, m;

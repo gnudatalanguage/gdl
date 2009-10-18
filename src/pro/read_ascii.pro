@@ -210,6 +210,8 @@ function read_ascii, filename, count=linecount, $
 endif
 
 if data_start ne 0 then begin
+    if data_start gt n_elements(text) - 1 then message, 'DATA_START value >= data length (' $
+      + strtrim(string(data_start), 2) + ' >= ' + strtrim(string(n_elements(text)),2) + ')' 
     text = text[data_start:*]
 endif
 
