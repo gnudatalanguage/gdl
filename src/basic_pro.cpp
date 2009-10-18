@@ -1534,13 +1534,6 @@ namespace lib {
 
   void byteorderDo( EnvT* e, BaseGDL* pIn, SizeT swapSz, DLong p)
 {
-	if( pIn->Type() == STRING)
-	e->Throw( "STRING type not allowed in this context: "+e->GetParString(p));		    
-	if( pIn->Type() == OBJECT)
-	e->Throw( "Object type not allowed in this context: "+e->GetParString(p));		    
-	if( pIn->Type() == PTR)
-	e->Throw( "PTR type not allowed in this context: "+e->GetParString(p));		    
-	
 	if( pIn->Type() == STRUCT)
 	{
 		DStructGDL* dS=static_cast<DStructGDL*>( pIn);
@@ -1550,25 +1543,24 @@ namespace lib {
 		{
 			BaseGDL* par = dS->GetTag( t);
 			
-			if( par->Type() == STRUCT)
+			if( par->Type() == STRUCT && par->N_Elements() == 1)
 			{
-				if( par->N_Elements() == 1)
-					{
-						byteorderDo( e, par, swapSz, p);
-						continue;
-					}
+				// do tag by tag for scalar struct as memory might not be contigous (
+				byteorderDo( e, par, swapSz, p);
 			}
+			else
+			{
+				
+				SizeT nBytes = par->NBytes();
+				if( nBytes % swapSz != 0)
+				e->Throw( "Operand's size must be a multiple of swap "
+					"datum size: " + e->GetParString(p));		    
+				
+				SizeT nSwap = nBytes / swapSz;
 			
-			SizeT nBytes = par->NBytes();
-			if( nBytes % swapSz != 0)
-			e->Throw( "Operand's size must be a multiple of swap "
-				"datum size: " + e->GetParString(p));		    
+				char* addr = static_cast<char*>(par->DataAddr());
 			
-			SizeT nSwap = nBytes / swapSz;
-		
-			char* addr = static_cast<char*>(par->DataAddr());
-		
-			for( SizeT i=0; i<nSwap; ++i)
+				for( SizeT i=0; i<nSwap; ++i)
 				{
 					for( SizeT s=0; s < (swapSz/2); ++s)
 					{
@@ -1577,10 +1569,18 @@ namespace lib {
 						*(addr+i*swapSz+swapSz-1-s) = tmp;
 					}
 				}
+			}
 		}
 	}
 	else
 	{
+		if( pIn->Type() == STRING)
+		e->Throw( "STRING type not allowed in this context: "+e->GetParString(p));		    
+		if( pIn->Type() == OBJECT)
+		e->Throw( "Object type not allowed in this context: "+e->GetParString(p));		    
+		if( pIn->Type() == PTR)
+		e->Throw( "PTR type not allowed in this context: "+e->GetParString(p));		    
+	
 		BaseGDL*& par = pIn;
 		SizeT nBytes = par->NBytes();
 		if( nBytes % swapSz != 0)
@@ -1592,14 +1592,14 @@ namespace lib {
 		char* addr = static_cast<char*>(par->DataAddr());
 	
 		for( SizeT i=0; i<nSwap; ++i)
+		{
+			for( SizeT s=0; s < (swapSz/2); ++s)
 			{
-				for( SizeT s=0; s < (swapSz/2); ++s)
-				{
-					char tmp = *(addr+i*swapSz+s);
-					*(addr+i*swapSz+s) = *(addr+i*swapSz+swapSz-1-s);
-					*(addr+i*swapSz+swapSz-1-s) = tmp;
-				}
+				char tmp = *(addr+i*swapSz+s);
+				*(addr+i*swapSz+s) = *(addr+i*swapSz+swapSz-1-s);
+				*(addr+i*swapSz+swapSz-1-s) = tmp;
 			}
+		}
 	}
 }
 
