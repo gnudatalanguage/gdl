@@ -158,17 +158,17 @@ namespace lib {
 	  }
       
 	BaseGDL* par;
-	bool lastParScalarString = false;
+	bool lastParScalar = false;
 	SizeT actPos = 0;
 	for( SizeT i=parOffset; i<nParam; i++)
 	  {
 	    if( i > parOffset)
-		lastParScalarString = par->Type() == STRING && par->Scalar();
+		lastParScalar = /*par->Type() == STRING &&*/ par->Scalar();
 	    par=e->GetParDefined( i);
 	    par->ToStream( *os, width, &actPos);
 	  }
         bool singleNullChar = (par->Type() == STRING &&
-				!lastParScalarString &&
+				!lastParScalar &&
 				(nParam-parOffset)>1 &&
 			       (*static_cast<DStringGDL*>(par))[0] == "");
 // 	}

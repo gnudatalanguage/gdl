@@ -409,10 +409,11 @@ public:
         DString msgPrefix = SysVar::MsgPrefix();
 
         EnvStackT::reverse_iterator upEnv = callStack.rbegin();
-        EnvStackT::reverse_iterator env = upEnv++;
+        //EnvStackT::reverse_iterator env = upEnv++;
+        upEnv++;
         for(; 
             upEnv != callStack.rend();
-            ++upEnv, ++env)
+            ++upEnv /*,++env*/)
         {
             std::cerr << msgPrefix << std::right << std::setw( w) << "";
             std::cerr << std::left << std::setw(16) << (*upEnv)->GetProName();

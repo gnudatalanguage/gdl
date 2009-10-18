@@ -581,6 +581,7 @@ void PCALL_LIBNode::Run()
 		
   ProgNode::interpreter->parameter_def(_t, newEnv);
   //   _t = _retTree;
+  //if( this->getLine() != 0) ProgNode::interpreter->callStack.back()->SetLineNumber( this->getLine());
 		
   // push environment onto call stack
   ProgNode::interpreter->callStack.push_back(newEnv);
@@ -613,6 +614,8 @@ void MPCALLNode::Run()
   self_guard.release();
 			
   ProgNode::interpreter->parameter_def(_t, newEnv);
+
+  //if( this->getLine() != 0) ProgNode::interpreter->callStack.back()->SetLineNumber( this->getLine());
 
   // push environment onto call stack
   ProgNode::interpreter->callStack.push_back(newEnv);
@@ -650,6 +653,7 @@ void MPCALL_PARENTNode::Run()
 			
   ProgNode::interpreter->parameter_def(_t, newEnv);
 
+  //if( this->getLine() != 0) ProgNode::interpreter->callStack.back()->SetLineNumber( this->getLine());
 
   // push environment onto call stack
   ProgNode::interpreter->callStack.push_back(newEnv);
@@ -678,7 +682,9 @@ void PCALLNode::Run()
 			
   ProgNode::interpreter->parameter_def(_t, newEnv);
 
-  // push environment onto call stack
+//     if( _t->getLine() != 0) 
+  //if( this->getLine() != 0) ProgNode::interpreter->callStack.back()->SetLineNumber( this->getLine());
+// push environment onto call stack
   ProgNode::interpreter->callStack.push_back(newEnv);
 		
   // make the call
