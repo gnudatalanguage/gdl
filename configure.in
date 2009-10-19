@@ -790,6 +790,9 @@ dnl refers to ${prefix}.  Thus we have to use `eval' twice.
 AC_DEFINE_DIR([EXEC_PREFIX], [exec_prefix], [--exec-prefix or default])
 #AC_DEFINE([EXEC_PREFIX],[\"`echo ${exec_prefix}`\"],[GDL installation directory])
 
+datasubdir="gnudatalanguage"
+AC_DEFINE_DIR([GDLDATADIR], [datadir/$datasubdir], [$datadir/gnudatalanguage])
+
 DARWIN="no"
 
 dnl check for specific architecture
@@ -929,7 +932,7 @@ dnl AC_CHECK_FUNCS(strdup strtod strtol abs)
 dnl perform program name transformation
 dnl AC_ARG_PROGRAM
 
-AC_CONFIG_FILES(Makefile src/Makefile src/antlr/Makefile)
+AC_CONFIG_FILES(Makefile src/Makefile src/antlr/Makefile src/pro/Makefile src/pro/dicom/Makefile)
 
 AC_OUTPUT
 
@@ -961,9 +964,6 @@ echo "
   UDUNITS-2:           `if test no = $with_udunits;
     then echo 'no  (needs explicit enabling)'; else echo yes; fi`
   ----- notes on auxiliary files: ----------------------
-  - routines implemented in GDL are located in src/pro/,
-    use GDL_PATH env. variable to inform GDL about their
-    location (files not installed by 'make install') 
   - consult MAP_INSTALL for details concerning auxiliary
     files needed for mapping support
   - SAVE and RESTORE procedures require *.pro files from 

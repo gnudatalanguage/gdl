@@ -1,6 +1,6 @@
 # set the include path found by configure
 INCLUDES = $(EXT_INCLUDES) $(all_includes)
-SUBDIRS = antlr
+SUBDIRS = antlr pro
 noinst_HEADERS = gdlwidget.hpp prognode.hpp prognodeexpr.hpp
 
 cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \

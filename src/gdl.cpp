@@ -40,12 +40,17 @@
 #include "mpi.h"
 #endif
 
+// GDLDATADIR
+#include "config.h"
+
 using namespace std;
 
 static void StartupMessage()
 {
-  cout << "GDL - GNU Data Language, Version " << VERSION << endl;
-  cout << "For basic information type HELP,/INFO" << endl;
+  cout << endl;
+  cout << "  GDL - GNU Data Language, Version " << VERSION << endl;
+  cout << endl;
+  cout << "- For basic information type HELP,/INFO" << endl;
 }
 
 void LibInit(); // defined in libinit.cpp
@@ -146,20 +151,28 @@ int main(int argc, char *argv[])
 
   string gdlPath=GetEnvString("GDL_PATH");
   if( gdlPath == "") gdlPath=GetEnvString("IDL_PATH");
-  if( gdlPath != "")
+  if( gdlPath == "")
     {
-      SysVar::SetGDLPath( gdlPath);
+      gdlPath = GDLDATADIR "/lib:" GDLDATADIR "/lib/dicom";
+      if (isatty(0)) cout <<
+        "- Default library routine search path used (GDL_PATH/IDL_PATH env. var. not set): " << endl << 
+        "  " << gdlPath << endl;
     }
+  SysVar::SetGDLPath( gdlPath);
 
   string startup=GetEnvString("GDL_STARTUP");
   if( startup == "") startup=GetEnvString("IDL_STARTUP");
   if( startup == "")
     {
-      if (isatty(0)) cout << "'GDL_STARTUP'/'IDL_STARTUP' environment "
-	"variables (denoting startup file)\nboth not set. "
-	"No startup file read. Default settings kept. OK." << endl;
+      if (isatty(0)) cout << 
+        "- No startup file read (GDL_STARTUP/IDL_STARTUP env. var. not set). " << endl;
     }
 
+  if (isatty(0)) 
+  {
+    cout << "- Please report bugs, feature or help requests and patches at:" << endl <<
+      "  http://sourceforge.net/projects/gnudatalanguage/" << endl << endl;
+  }
 //   else
 //     {
 //       // if path not given, add users home

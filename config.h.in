@@ -3,6 +3,9 @@
 /* --exec-prefix or default */
 #undef EXEC_PREFIX
 
+/* $datadir/gnudatalanguage */
+#undef GDLDATADIR
+
 /* Define if 64-bit OS */
 #undef HAVE_64BIT_OS
 

@@ -3,3 +3,7 @@
 # AUTOMAKE_OPTIONS = foreign 1.4
 
 SUBDIRS = src
+
+basicdocdir = $(GDLDATADIR)
+basicdoc_DATA = AUTHORS README
+EXTRA_DIST = prolib_DATA

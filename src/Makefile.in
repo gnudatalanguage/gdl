@@ -308,6 +308,7 @@ EXT_INCLUDES = @EXT_INCLUDES@
 EXT_LIBS = @EXT_LIBS@
 F77 = @F77@
 FFLAGS = @FFLAGS@
+GDLDATADIR = @GDLDATADIR@
 GREP = @GREP@
 HAVE_64BIT_OS = @HAVE_64BIT_OS@
 INSTALL = @INSTALL@
@@ -390,12 +391,13 @@ sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
+top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 
 # set the include path found by configure
 INCLUDES = $(EXT_INCLUDES) $(all_includes)
-SUBDIRS = antlr
+SUBDIRS = antlr pro
 noinst_HEADERS = gdlwidget.hpp prognode.hpp prognodeexpr.hpp
 cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 		basegdl.hpp basic_fun_cl.cpp basic_fun_cl.hpp basic_fun.cpp basic_fun.hpp \
