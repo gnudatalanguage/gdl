@@ -4286,6 +4286,10 @@ namespace lib {
     DStringGDL* env;
 
     if( environment) {
+
+      if(nParam != 0) 
+        e->Throw( "Incorrect number of arguments.");
+
       // determine number of environment entries
       for(nEnv = 0; environ[nEnv] != NULL  ; ++nEnv);
 
