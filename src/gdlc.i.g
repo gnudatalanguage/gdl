@@ -1113,7 +1113,11 @@ repeat_statement returns[ GDLInterpreter::RetCode retCode]
                     {
                     retCode=statement_list(bb);
 
-                    if( retCode == RC_CONTINUE) continue;  
+                    if( retCode == RC_CONTINUE)
+                                {
+                                retCode = RC_OK;
+                                continue;  
+                                }
                     if( retCode == RC_BREAK) 
                     {
                         retCode = RC_OK;
@@ -1153,7 +1157,11 @@ while_statement returns[ GDLInterpreter::RetCode retCode]
                 while( eVal.get()->True()) {
                     retCode=statement(s);
 
-                    if( retCode == RC_CONTINUE) continue;  
+                    if( retCode == RC_CONTINUE) 
+                                {
+                                retCode = RC_OK;
+                                continue;  
+                                }
                     if( retCode == RC_BREAK) 
                     {
                         retCode = RC_OK;
@@ -1222,7 +1230,11 @@ for_statement returns[ GDLInterpreter::RetCode retCode]
                     
                         if( retCode != RC_OK) // optimization
                         {
-                            if( retCode == RC_CONTINUE) continue;  
+                            if( retCode == RC_CONTINUE) 
+                                {
+                                retCode = RC_OK;
+                                continue;  
+                                }
                             if( retCode == RC_BREAK) 
                             {
                                 retCode = RC_OK;
@@ -1276,7 +1288,11 @@ for_statement returns[ GDLInterpreter::RetCode retCode]
                         {
                             retCode=statement_list(bs);
                             
-                            if( retCode == RC_CONTINUE) continue;  
+                            if( retCode == RC_CONTINUE)
+                                {
+                                retCode = RC_OK;
+                                continue;  
+                                }
                             if( retCode == RC_BREAK) 
                             {
                                 retCode = RC_OK;
@@ -1303,7 +1319,12 @@ for_statement returns[ GDLInterpreter::RetCode retCode]
                         {
                             retCode=statement_list(bs);
                         
-                            if( retCode == RC_CONTINUE) continue;  
+                            if( retCode == RC_CONTINUE)
+                                {
+                                retCode = RC_OK;
+                                continue;  
+                                }
+
                             if( retCode == RC_BREAK) 
                             {
                                 retCode = RC_OK;

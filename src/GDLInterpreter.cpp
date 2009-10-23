@@ -729,7 +729,11 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 		
 		if( retCode != RC_OK) // optimization
 		{
-		if( retCode == RC_CONTINUE) continue;  
+		if( retCode == RC_CONTINUE) 
+		{
+		retCode = RC_OK;
+		continue;  
+		}
 		if( retCode == RC_BREAK) 
 		{
 		retCode = RC_OK;
@@ -797,7 +801,11 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 		{
 		retCode=statement_list(bs);
 		
-		if( retCode == RC_CONTINUE) continue;  
+		if( retCode == RC_CONTINUE)
+		{
+		retCode = RC_OK;
+		continue;  
+		}
 		if( retCode == RC_BREAK) 
 		{
 		retCode = RC_OK;
@@ -824,7 +832,12 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 		{
 		retCode=statement_list(bs);
 		
-		if( retCode == RC_CONTINUE) continue;  
+		if( retCode == RC_CONTINUE)
+		{
+		retCode = RC_OK;
+		continue;  
+		}
+		
 		if( retCode == RC_BREAK) 
 		{
 		retCode = RC_OK;
@@ -881,7 +894,11 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 	{
 	retCode=statement_list(bb);
 	
-	if( retCode == RC_CONTINUE) continue;  
+	if( retCode == RC_CONTINUE)
+	{
+	retCode = RC_OK;
+	continue;  
+	}
 	if( retCode == RC_BREAK) 
 	{
 	retCode = RC_OK;
@@ -931,7 +948,11 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 	while( eVal.get()->True()) {
 	retCode=statement(s);
 	
-	if( retCode == RC_CONTINUE) continue;  
+	if( retCode == RC_CONTINUE) 
+	{
+	retCode = RC_OK;
+	continue;  
+	}
 	if( retCode == RC_BREAK) 
 	{
 	retCode = RC_OK;
