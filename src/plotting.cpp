@@ -2546,28 +2546,56 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
     set_axis_type("Y",yLog);
   } // surface
 
+  struct mypltr_passinfo // {{{
+  {
+    PLFLT spa[4];
+#ifdef USE_LIBPROJ4
+    PLFLT sx[2], sy[2];
+    LPTYPE* idata;
+    XYTYPE* odata; 
+    PROJTYPE* ref; 
+    DDouble d_nan;
+    bool mapSet;
+#endif
+  }; // }}}
 
-  void mypltr(PLFLT x, PLFLT y, PLFLT *tx, PLFLT *ty, void *pltr_data)
+  void mypltr(PLFLT x, PLFLT y, PLFLT *tx, PLFLT *ty, void *pltr_data) // {{{
   {
     PLFLT tr[6]={0.0,0.0,0.0,0.0,0.0,0.0};
-    PLFLT *ptr = static_cast<PLFLT*>( pltr_data);
+    struct mypltr_passinfo *ptr = (mypltr_passinfo* )pltr_data;
 
-    tr[0] = ptr[0];
-    tr[4] = ptr[1];
-    tr[2] = ptr[2];
-    //    tr[5] = ptr[4];
-    tr[5] = ptr[3];
+    tr[0] = ptr->spa[0];
+    tr[4] = ptr->spa[1];
+    tr[2] = ptr->spa[2];
+    //    tr[5] = ptr->spa[4];
+    tr[5] = ptr->spa[3];
 
-//     memcpy(&tr[0], &ptr[0], sizeof(PLFLT)); 
-//     memcpy(&tr[4], &ptr[1], sizeof(PLFLT)); 
-//     memcpy(&tr[2], &ptr[2], sizeof(PLFLT)); 
-//     memcpy(&tr[5], &ptr[3], sizeof(PLFLT)); 
-//     *tx = tr[0] * x + tr[1] * y + tr[2];
-//     *ty = tr[3] * x + tr[4] * y + tr[5];
+    // conversion from array indices to data coord
+    x = tr[0] * x + tr[2];
+    y = tr[4] * y + tr[5];
+    
+    // conversion from lon / lat to projected values (in normal coordinates)
+#ifdef USE_LIBPROJ4
+    if (ptr->mapSet)
+    {
+      // Convert from lon/lat in degrees to radians
+      ptr->idata->lam = x * DEG_TO_RAD;
+      ptr->idata->phi = y * DEG_TO_RAD;
+      
+      // Convert from lon/lat in radians to data coord
+      *ptr->odata = PJ_FWD(*ptr->idata, ptr->ref);
+      x = ptr->odata->x;
+      y = ptr->odata->y;
 
-    *tx = tr[0] * x + tr[2];
-    *ty = tr[4] * y + tr[5];
-  }
+      // handling inf points (not sure if this is needed?)
+      if (!isfinite(x) || !isfinite(y)) x = y = ptr->d_nan;
+    }
+#endif
+
+    // assignment to pointers passed in arguments
+    *tx = x;
+    *ty = y;
+  } // }}}
 
   void contour( EnvT* e)
   {
@@ -2836,6 +2864,11 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
 	zEnd = (*zRangeF)[1];
       }
 
+    bool mapSet = false;
+#ifdef USE_LIBPROJ4
+    get_mapset(mapSet);
+#endif
+
     DDouble minVal = zStart;
     DDouble maxVal = zEnd;
     e->AssureDoubleScalarKWIfPresent( "MIN_VALUE", minVal);
@@ -2928,10 +2961,39 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
     PLINT charthick=1;
 
     GDLGStream* actStream = GetPlotStream( e); 
+
+    static int overplotKW = e->KeywordIx("OVERPLOT");
+    bool overplot = e->KeywordSet( overplotKW);
     
-     if (e->KeywordSet("OVERPLOT")) { //rewrite these quantities
-      get_axis_crange("X", xStart, xEnd);
-      get_axis_crange("Y", yStart, yEnd);
+    DDouble *sx, *sy;
+    DFloat *wx, *wy;
+    unsigned sxTag = xStruct->Desc()->TagIndex( "S");
+    unsigned syTag = yStruct->Desc()->TagIndex( "S");
+    unsigned xwindowTag = xStruct->Desc()->TagIndex( "WINDOW");
+    unsigned ywindowTag = yStruct->Desc()->TagIndex( "WINDOW");
+    sx = &(*static_cast<DDoubleGDL*>( xStruct->GetTag( sxTag, 0)))[0];
+    sy = &(*static_cast<DDoubleGDL*>( yStruct->GetTag( syTag, 0)))[0];
+    wx = &(*static_cast<DFloatGDL*>( xStruct->GetTag( xwindowTag, 0)))[0];
+    wy = &(*static_cast<DFloatGDL*>( yStruct->GetTag( ywindowTag, 0)))[0];
+
+    // mapping only in OVERPLOT mode
+    if (!overplot) set_mapset(0);
+
+    if (overplot) 
+    {
+      //rewrite these quantities
+      if (!mapSet) 
+      {
+        get_axis_crange("X", xStart, xEnd);
+        get_axis_crange("Y", yStart, yEnd);
+      } 
+      else 
+      {
+        xStart = (wx[0] - sx[0]) / sx[1];
+        xEnd   = (wx[1] - sx[0]) / sx[1];
+        yStart = (wy[0] - sy[0]) / sy[1];
+        yEnd   = (wy[1] - sy[0]) / sy[1];
+      }
       get_axis_margin("X",xMarginL, xMarginR);
       get_axis_margin("Y",yMarginB, yMarginF);
       get_axis_type("X", xLog);
@@ -2946,7 +3008,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
     gkw_background(e, actStream);  //BACKGROUND
     gkw_color(e, actStream);       //COLOR
 
-    if (!e->KeywordSet("OVERPLOT") ) {
+    if (!overplot) {
       actStream->NextPlot( !noErase);
       if( !noErase) actStream->Clear();
     }
@@ -2980,14 +3042,21 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
 	clippingD = e->IfDefGetKWAs<DDoubleGDL>( clippingix);
       }
     
+    if (!overplot || !mapSet)
+    {
+      // viewport and world coordinates
+      bool okVPWC = SetVP_WC( e, actStream, overplot?NULL:pos, clippingD,
+                            xLog, yLog,
+                            xMarginL, xMarginR, yMarginB, yMarginF,
+                            xStart, xEnd, yStart, yEnd);
+      if( !okVPWC) return;
+    } else {
+      // not using SetVP_WC as it seem to always select full window for plotting (FIXME)
+      actStream->NoSub();
+      actStream->vpor(wx[0], wx[1], wy[0], wy[1]);
+      actStream->wind( xStart, xEnd, yStart, yEnd);
+    }
 
-    // viewport and world coordinates
-    bool okVPWC = SetVP_WC( e, actStream, pos, clippingD, 
-			    xLog, yLog,
-			    xMarginL, xMarginR, yMarginB, yMarginF,
-			    xStart, xEnd, yStart, yEnd);
-    if( !okVPWC) return;
-    
     // managing the levels list OR the nlevels value
 
     PLINT nlevel;
@@ -3122,8 +3191,20 @@ clevel[nlevel-1]=zEnd; //make this explicit
       actStream->setcontlabelparam(0.0, (PLFLT)label_size, .3, true);
     }
 
+#ifdef USE_LIBPROJ4
+    static LPTYPE idata;
+    static XYTYPE odata;
+    static PROJTYPE* ref;
+    if (mapSet)
+    {
+      ref = map_init();
+      if ( ref == NULL) e->Throw( "Projection initialization failed.");
+    }
+#endif
+
     // starting plotting the data
-    
+    struct mypltr_passinfo passinfo;
+
     // 1 DIM X & Y
     if (xVal->Rank() == 1 && yVal->Rank() == 1) {
       PLFLT spa[4];
@@ -3136,10 +3217,26 @@ clevel[nlevel-1]=zEnd; //make this explicit
       DDouble yMax;//   = zVal->max(); 
       GetMinMaxVal( yVal, &yMin, &yMax);
  
-      spa[0] = (xMax - xMin) / (xEl - 1);
-      spa[1] = (yMax - yMin) / (yEl - 1);
-      spa[2] = xMin; 
-      spa[3] = yMin; 
+      passinfo.spa[0] = (xMax - xMin) / (xEl - 1);
+      passinfo.spa[1] = (yMax - yMin) / (yEl - 1);
+      passinfo.spa[2] = xMin;
+      passinfo.spa[3] = yMin;
+
+#ifdef USE_LIBPROJ4
+      passinfo.mapSet = mapSet;
+      if (mapSet) // which imposes overplotting
+      {
+        passinfo.idata = &idata;
+        passinfo.odata = &odata;
+        passinfo.ref = ref;
+        passinfo.d_nan = d_nan;
+
+        passinfo.sx[0] = sx[0];
+        passinfo.sx[1] = sx[1];
+        passinfo.sy[0] = sy[0];
+        passinfo.sy[1] = sy[1];
+      }
+#endif
 
       PLFLT** z = new PLFLT*[xEl];
       for( SizeT i=0; i<xEl; i++) z[i] = &(*zVal)[i*yEl];
@@ -3173,7 +3270,8 @@ clevel[nlevel-1]=zEnd; //make this explicit
         actStream->shades(z, xEl, yEl, NULL, xStart, xEnd, yStart, yEnd,
  			  clevel_fill, nlevel_fill, 2, 0, 0, plstream::fill,
 // 			  clevel, nlevel, 2, 0, 0, plstream::fill,
-			  false, mypltr, static_cast<void*>( spa));
+//			  false, mypltr, static_cast<void*>( spa));
+                          false, mypltr, static_cast<void*>(&passinfo));
 	
 	// Redraw the axes just in case the filling overlaps them
 	//actStream->box( xOpt.c_str(), xintv, xMinor, "", 0.0, 0);
@@ -3182,13 +3280,14 @@ clevel[nlevel-1]=zEnd; //make this explicit
 	actStream->wid(charthick);
       } else {
         actStream->cont(z, xEl, yEl, 1, xEl, 1, yEl, 
-                        clevel, nlevel, mypltr, static_cast<void*>( spa)) ;
+                        clevel, nlevel, mypltr, static_cast<void*>(&passinfo)) ;
 
       }
       delete[] z;
     }
     
     if (xVal->Rank() == 2 && yVal->Rank() == 2) {
+      // FIXME: mapping not supported here yet
       
       PLcGrid2 cgrid2;
       actStream->Alloc2dGrid(&cgrid2.xg,xVal->Dim(0),xVal->Dim(1));
@@ -3235,103 +3334,97 @@ clevel[nlevel-1]=zEnd; //make this explicit
       delete[] z;
     }
 
-//Draw axes after the data because /fill could potentially overlap the axes.
+    //Draw axes after the data because /fill could potentially overlap the axes.
+    //... if keyword "OVERPLOT" is not set
+    if (!overplot) 
+    {
 
-    // pen thickness for axis
-    actStream->wid( 0);
+      // pen thickness for axis
+      actStream->wid( 0);
 
-    // axis
-    string xOpt = "bcnst";
-    string yOpt = "bcnstv";
+      // axis
+      string xOpt = "bcnst";
+      string yOpt = "bcnstv";
 
-    if( xLog) xOpt += "l";
-    if( yLog) yOpt += "l";
+      if( xLog) xOpt += "l";
+      if( yLog) yOpt += "l";
 
-    //Draw axis if keyword "OVERPLOT" is not set
-    if (!e->KeywordSet( "OVERPLOT")) {
-    // axis titles
-    actStream->schr( 0.0, actH/defH * xCharSize);
-    actStream->mtex("b",3.5,0.5,0.5,xTitle.c_str());
-    }
-    // the axis (separate for x and y axis because of charsize)
-    PLFLT xintv;
-    if (xTicks == 0) {
-      xintv = AutoTick(xEnd-xStart);
-    } else {
-      xintv = (xEnd - xStart) / xTicks;
-    }
-    //Draw axis if keyword "OVERPLOT" is not set
-    if (!e->KeywordSet( "OVERPLOT")) {
-    actStream->box( xOpt.c_str(), xintv, xMinor, "", 0.0, 0);
+      // axis titles
+      actStream->schr( 0.0, actH/defH * xCharSize);
+      actStream->mtex("b",3.5,0.5,0.5,xTitle.c_str());
 
-    actStream->schr( 0.0, actH/defH * yCharSize);
-    actStream->mtex("l",5.0,0.5,0.5,yTitle.c_str());
-    }
-    // the axis (separate for x and y axis because of charsize)
-    PLFLT yintv;
-    if (yTicks == 0) {
-      yintv = AutoTick(yEnd-yStart);
-    } else {
-      yintv = (yEnd - yStart) / yTicks;
-    }
-    //Draw axis if keyword "OVERPLOT" is not set
-    if (!e->KeywordSet( "OVERPLOT")) {
-    actStream->box( "", 0.0, 0, yOpt.c_str(), yintv, yMinor);
-    }
+      // the axis (separate for x and y axis because of charsize)
+      PLFLT xintv;
+      if (xTicks == 0) {
+        xintv = AutoTick(xEnd-xStart);
+      } else {
+        xintv = (xEnd - xStart) / xTicks;
+      }
+      //Draw axis if keyword "OVERPLOT" is not set
+      actStream->box( xOpt.c_str(), xintv, xMinor, "", 0.0, 0);
+      actStream->schr( 0.0, actH/defH * yCharSize);
+      actStream->mtex("l",5.0,0.5,0.5,yTitle.c_str());
 
+      // the axis (separate for x and y axis because of charsize)
+      PLFLT yintv;
+      if (yTicks == 0) {
+        yintv = AutoTick(yEnd-yStart);
+      } else {
+        yintv = (yEnd - yStart) / yTicks;
+      }
+      actStream->box( "", 0.0, 0, yOpt.c_str(), yintv, yMinor);
 
-// Get viewpoint parameters and store in WINDOW & S
-PLFLT p_xmin, p_xmax, p_ymin, p_ymax;
-actStream->gvpd (p_xmin, p_xmax, p_ymin, p_ymax);
+      // Get viewpoint parameters and store in WINDOW & S
+      PLFLT p_xmin, p_xmax, p_ymin, p_ymax;
+      actStream->gvpd (p_xmin, p_xmax, p_ymin, p_ymax);
 
-DStructGDL* Struct=NULL;
-Struct = SysVar::X();
-static unsigned windowTag = Struct->Desc()->TagIndex( "WINDOW");
-static unsigned sTag = Struct->Desc()->TagIndex( "S");
-if(Struct != NULL) {
-(*static_cast<DFloatGDL*>( Struct->GetTag( windowTag, 0)))[0] =
-p_xmin;
-(*static_cast<DFloatGDL*>( Struct->GetTag( windowTag, 0)))[1] =
-p_xmax;
+      DStructGDL* Struct=NULL;
+      Struct = SysVar::X();
+      static unsigned windowTag = Struct->Desc()->TagIndex( "WINDOW");
+      static unsigned sTag = Struct->Desc()->TagIndex( "S");
+      if(Struct != NULL) 
+      {
+        (*static_cast<DFloatGDL*>( Struct->GetTag( windowTag, 0)))[0] = p_xmin;
+        (*static_cast<DFloatGDL*>( Struct->GetTag( windowTag, 0)))[1] = p_xmax;
+        (*static_cast<DDoubleGDL*>( Struct->GetTag( sTag, 0)))[0] =
+          (p_xmin*xEnd - p_xmax*xStart) / (xEnd - xStart);
+        (*static_cast<DDoubleGDL*>( Struct->GetTag( sTag, 0)))[1] =
+          (p_xmax - p_xmin) / (xEnd - xStart);
+      }
 
-(*static_cast<DDoubleGDL*>( Struct->GetTag( sTag, 0)))[0] =
-(p_xmin*xEnd - p_xmax*xStart) / (xEnd - xStart);
-(*static_cast<DDoubleGDL*>( Struct->GetTag( sTag, 0)))[1] =
-(p_xmax - p_xmin) / (xEnd - xStart);
+      Struct = SysVar::Y();
+      if(Struct != NULL) 
+      {
+        (*static_cast<DFloatGDL*>( Struct->GetTag( windowTag, 0)))[0] = p_ymin;
+        (*static_cast<DFloatGDL*>( Struct->GetTag( windowTag, 0)))[1] = p_ymax;
 
-}
+        (*static_cast<DDoubleGDL*>( Struct->GetTag( sTag, 0)))[0] =
+          (p_ymin*yEnd - p_ymax*yStart) / (yEnd - yStart);
+        (*static_cast<DDoubleGDL*>( Struct->GetTag( sTag, 0)))[1] =
+          (p_ymax - p_ymin) / (yEnd - yStart);
+      }
 
-Struct = SysVar::Y();
-if(Struct != NULL) {
-(*static_cast<DFloatGDL*>( Struct->GetTag( windowTag, 0)))[0] =
-p_ymin;
-(*static_cast<DFloatGDL*>( Struct->GetTag( windowTag, 0)))[1] =
-p_ymax;
-
-(*static_cast<DDoubleGDL*>( Struct->GetTag( sTag, 0)))[0] =
-(p_ymin*yEnd - p_ymax*yStart) / (yEnd - yStart);
-(*static_cast<DDoubleGDL*>( Struct->GetTag( sTag, 0)))[1] =
-(p_ymax - p_ymin) / (yEnd - yStart);
-}
-
-
-    // title and sub title
-    actStream->schr( 0.0, 1.25*actH/defH);
-    actStream->mtex("t",1.25,0.5,0.5,title.c_str());
-    actStream->schr( 0.0, actH/defH); // charsize is reset here
-    actStream->mtex("b",5.4,0.5,0.5,subTitle.c_str());
+      // title and sub title
+      actStream->schr( 0.0, 1.25*actH/defH);
+      actStream->mtex("t",1.25,0.5,0.5,title.c_str());
+      actStream->schr( 0.0, actH/defH); // charsize is reset here
+      actStream->mtex("b",5.4,0.5,0.5,subTitle.c_str());
     
+    }
 
     actStream->flush();
     actStream->lsty(1);//reset linestyle
 
-    // set ![XY].CRANGE
-    set_axis_crange("X", xStart, xEnd);
-    set_axis_crange("Y", yStart, yEnd);
+    if (!overplot)
+    {
+      // set ![XY].CRANGE
+      set_axis_crange("X", xStart, xEnd);
+      set_axis_crange("Y", yStart, yEnd);
 
-    //set ![x|y].type
-    set_axis_type("X",xLog);
-    set_axis_type("Y",yLog);
+      //set ![x|y].type
+      set_axis_type("X",xLog);
+      set_axis_type("Y",yLog);
+    }
   } // contour		 
   
   void axis( EnvT* e)
