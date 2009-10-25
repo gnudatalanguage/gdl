@@ -823,16 +823,23 @@ namespace lib {
     SizeT nParam=e->NParam(); 
     
     if ( nParam > 1) e->Throw( "Incorrect number of arguments.");
-    if ( nParam == 1) Message( "We don't know how to manage DISPLAY now.");
+    char *TheDisplay=NULL;
 
-    Display* display;
-    
-    /* open the connection to the display "simey:0". */
-    display = XOpenDisplay(":0");
-    if (display == NULL) {
-      fprintf(stderr, "Cannot connect to X server %s\n", "simey:0");
-      exit (-1);
+    if ( nParam == 1) {
+      DString GivenDisplay;
+      //Message( "Warning, we don't know exactly how to manage DISPLAY now.");
+      // this code was tested successfully on Ubuntu and OSX, through network
+      // and also with "strange" like 'localhost:0.0', '0:0' and "/tmp/launch-OfEkVY/:0" (OSX)
+      e->AssureStringScalarPar(0, GivenDisplay);
+      TheDisplay = new char [GivenDisplay.size()+1];
+      strcpy (TheDisplay, GivenDisplay.c_str());
     }
+
+    /* open the connection to the display */
+    Display* display;
+    display = XOpenDisplay(TheDisplay);
+    if (display == NULL)
+      e->Throw("Cannot connect to X server");//, TheDisplay.c_str());
     
     int screen_num;
     
