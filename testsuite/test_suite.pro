@@ -110,12 +110,22 @@ pro for_test
 c=0
 for i=0,99 do c=c+1 
 
-if c eq 100 then print,'FOR: OK' else print,'***FOR: ERROR'
+if c ne 100 then print,'***FOR: ERROR'
 
 c=0
 for i=0,990,10 do c=c+1 
 
-if c eq 100 then print,'FOR: Step: OK' else print,'***FOR: Step: ERROR'
+if c ne 100 then print,'***FOR: Step: ERROR'
+
+a=0
+for i=0, 0 do begin
+   for j=0, 1 do begin
+      if i eq 0 then continue
+   endfor
+   a = 1
+endfor
+if a eq 0 then print,'***FOR: CONTINUE: ERROR'
+print,'FOR: OK'
 end
 
 pro repeat_test
