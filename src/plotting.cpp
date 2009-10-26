@@ -472,14 +472,14 @@ namespace lib {
   // 2/ mimic IDL behavior when data are all posivite
   // please notice that (val_min, val_max) will be changed
   // and "epsilon" is a coefficient if "extended range" is expected
-  PLFLT AutoIntvAC(DDouble & val_min, DDouble & val_max, bool StartAtZero)
+  PLFLT AutoIntvAC(DDouble &val_min, DDouble &val_max, DLong NoZero)
   {
     PLFLT intv = 1.;
     int cas = 0 ;
     DDouble x; 
     bool debug = false ;
     if (debug) {cout << "init: " <<  val_min << " " << val_max << endl;}
-
+    
     // case "all below ABS((MACHAR()).xmin)
     if ((abs(val_min) < 1e-38) && (abs(val_max) < 1e-38)) 
       {
@@ -488,7 +488,7 @@ namespace lib {
 	intv = (PLFLT) (2.);
 	cas = 1 ;
       }
-
+    
     // case "all values are equal"
     if (cas == 0)
       {
@@ -506,31 +506,30 @@ namespace lib {
           if (debug) {cout << "Rescale : " << val_min << " " << val_max << endl;}
 	}
       }
- 
-    // case "all data positive, must start at Zero" (mimic IDL behavior)
-    if ((cas == 0) && (val_min >= 0.0)) // && (StartAtZero))
-      {
-      cas = 2 ;
-      DDouble resu, val_norm ;
-      // we used redudant scale (1.,1.2 and 10., 12. to avoid roundoff problem in log10)
-      DDouble levels[12]={1.,1.2,1.5,2.,2.5,3.,4.,5.,6.,8.,10.,12.};
-      int nb_levels= 12;
-      
-      DLong n = static_cast<DLong>( floor(log10(val_max)));
-      DDouble scale= pow(10.,static_cast<double>(n));
- 
-      val_norm=val_max/scale;
-     
-      resu=levels[0];
-      for (int c = 0; c < nb_levels; c++) {
-	if ((val_norm > levels[c]) && (val_norm <= levels[c+1])) resu=levels[c+1] ;
-      }
-      //cout << scale << " "<< val_norm << "" << val_max << " "<< resu << endl;
-      if (StartAtZero) {val_min=0.0;}
-      val_max=resu*scale;
-      intv = (PLFLT)(val_max);
-    }
     
+    // case "all data positive, must start at Zero" (mimic IDL behavior)
+    if ((cas == 0) && (val_min >= 0.0) && (NoZero == 0))
+      {
+	cas = 2 ;
+	DDouble resu, val_norm ;
+	// we used redundant scale (1.,1.2 and 10., 12. to avoid roundoff problem in log10)
+	DDouble levels[12]={1.,1.2,1.5,2.,2.5,3.,4.,5.,6.,8.,10.,12.};
+	int nb_levels= 12;
+	
+	DLong n = static_cast<DLong>( floor(log10(val_max)));
+	DDouble scale= pow(10.,static_cast<double>(n));
+	
+	val_norm=val_max/scale;
+     
+	resu=levels[0];
+	for (int c = 0; c < nb_levels; c++) {
+	  if ((val_norm > levels[c]) && (val_norm <= levels[c+1])) resu=levels[c+1] ;
+	}
+	val_min=0.0;
+	val_max=resu*scale;
+	intv = (PLFLT)(val_max);
+      }
+  
     // general case (only negative OR negative and positive)
     if (cas == 0)
       {  
@@ -539,13 +538,12 @@ namespace lib {
 	val_max = ceil(val_max/intv) * intv;
 	val_min = floor(val_min/intv) * intv;
       }
+  
+    if (debug) {cout << "cas: "<< cas << " new range: "<<  val_min << " " << val_max << endl;}
     
-    if (debug) {cout << "new range: "<<  val_min << " " << val_max << endl;}
-
     return intv;
   }
-
-
+  
   // !P
   void GetPData( DLong& p_background,
 		 DLong& p_noErase, DLong& p_color, DLong& p_psym,
@@ -897,7 +895,6 @@ namespace lib {
 
   void cursor( EnvT* e)
   {
-
     Graphics* actDevice = Graphics::GetDevice();
     //cout << actDevice->Name() << endl;
     if (actDevice->Name() != "X") {
@@ -1087,7 +1084,8 @@ namespace lib {
 	yVal = e->GetParAs< DDoubleGDL>( 1);
 	yEl = yVal->N_Elements();
       }
-    
+    DLong minEl = (xEl < yEl)? xEl : yEl;
+
     if ( e->KeywordSet( "POLAR")) {
        e->Throw( "Sorry, POLAR keyword not ready");
       }
@@ -1113,8 +1111,8 @@ namespace lib {
     gkw_axis_title(e, "X", xTitle);
     gkw_axis_title(e, "Y", yTitle);
     // MARGIN
-    gkw_axis_margin(e, "X",xMarginL, xMarginR);
-    gkw_axis_margin(e, "Y",yMarginB, yMarginT);
+    gkw_axis_margin(e, "X", xMarginL, xMarginR);
+    gkw_axis_margin(e, "Y", yMarginB, yMarginT);
 
     // x and y range
     //    DDouble xStart = xVal->min(); 
@@ -1161,26 +1159,26 @@ namespace lib {
     xLog = e->KeywordSet( xLogIx);
     yLog = e->KeywordSet( yLogIx);
 
+    DLong xnozero=1, ynozero=0;
+    if ( e->KeywordSet( "YNOZERO")) ynozero = 1;
+
     if ((xStyle & 1) != 1 && xLog == false) {
       PLFLT intv;
-      intv = AutoIntvAC(xStart, xEnd, false);
-      //      cout << " X range" << xStart << " e "<< xEnd << endl;
+      intv = AutoIntvAC(xStart, xEnd, xnozero);
     }
-
     if ((yStyle & 1) != 1 && yLog == false) {
       PLFLT intv;
-      intv = AutoIntvAC(yStart, yEnd, false);
-      //      cout << " Y range" << yStart << " e "<< yEnd << endl;
+      intv = AutoIntvAC(yStart, yEnd, ynozero);
     }
 
-    DLong ynozero=0, xnozero=1;
+    // Please remember the {X|Y}range overwrite the data range
     //[x|y]range keyword
     gkw_axis_range(e, "X", xStart, xEnd, xnozero);
     gkw_axis_range(e, "Y", yStart, yEnd, ynozero);
 
     if ( e->KeywordSet( "YNOZERO")) ynozero = 1;
 
-    // AC: should be now useless (done in AutoInvAC)
+    // AC: should be now useless (done in AutoIntvAC)
     //if( xStart > 0 && xnozero == 0 && xLog == false) xStart = 0; 
     //if( yStart > 0 && ynozero == 0 && yLog == false) yStart = 0; 
 
@@ -3817,7 +3815,7 @@ clevel[nlevel-1]=zEnd; //make this explicit
   
   //CORE PLOT FUNCTION -> Draws a line along xVal, yVal
   template <typename T> bool draw_polyline_ref(EnvT *e,  GDLGStream *a,
-					   T * xVal, T* yVal, 
+					   T *xVal, T *yVal, 
 					   bool xLog, bool yLog, 
 					   DDouble yStart, DDouble yEnd, 
 					   DLong psym)
@@ -4025,7 +4023,7 @@ clevel[nlevel-1]=zEnd; //make this explicit
   }
 
   //BACKGROUND COLOR
-  void gkw_background(EnvT * e, GDLGStream* a, bool kw)
+  void gkw_background(EnvT *e, GDLGStream *a, bool kw)
   {
     static DStructGDL* pStruct = SysVar::P();
     DLong background = 
@@ -4042,7 +4040,7 @@ clevel[nlevel-1]=zEnd; //make this explicit
   }
 
   //COLOR
-  void gkw_color(EnvT * e, GDLGStream* a)
+  void gkw_color(EnvT *e, GDLGStream *a)
   {
     // Get COLOR from PLOT system variable
     static DStructGDL* pStruct = SysVar::P();
@@ -4068,7 +4066,7 @@ clevel[nlevel-1]=zEnd; //make this explicit
   }
 
   //NOERASE
-  void gkw_noerase(EnvT* e,GDLGStream * a, bool noe)
+  void gkw_noerase(EnvT *e,GDLGStream *a, bool noe)
   {
     DLong noErase=0;
     DLongGDL* pMulti = SysVar::GetPMulti();
@@ -4115,7 +4113,7 @@ clevel[nlevel-1]=zEnd; //make this explicit
   }
 
     //SYMSIZE
-  void gkw_symsize(EnvT * e, GDLGStream* a)
+  void gkw_symsize(EnvT *e, GDLGStream *a)
   {
     static DStructGDL* pStruct = SysVar::P();
     DFloat symsize = (*static_cast<DFloatGDL*>
@@ -4126,7 +4124,7 @@ clevel[nlevel-1]=zEnd; //make this explicit
   }
 
   //CHARSIZE
-  void gkw_charsize(EnvT * e, GDLGStream* a, DFloat& charsize, bool kw)
+  void gkw_charsize(EnvT *e, GDLGStream *a, DFloat &charsize, bool kw)
   {
     static DStructGDL* pStruct = SysVar::P();
     charsize = (*static_cast<DFloatGDL*>
@@ -4139,7 +4137,7 @@ clevel[nlevel-1]=zEnd; //make this explicit
     a->schr(0.0, charsize);  
   }
   //THICK
-  void gkw_thick(EnvT * e, GDLGStream* a)
+  void gkw_thick(EnvT *e, GDLGStream *a)
   {
     static DStructGDL* pStruct = SysVar::P();
     DFloat thick = (*static_cast<DFloatGDL*>
@@ -4153,7 +4151,7 @@ clevel[nlevel-1]=zEnd; //make this explicit
   // AC 18 juin 2007 
   // NOT READY NOW
   //LINESTYLE for contour
-  void gkw_linestyle_c(EnvT *e, GDLGStream * a, bool OnlyPline)
+  void gkw_linestyle_c(EnvT *e, GDLGStream *a, bool OnlyPline)
   {
     if (OnlyPline == false) {
       // if the LINESTYLE keyword is present, the value will be change
@@ -4177,7 +4175,7 @@ clevel[nlevel-1]=zEnd; //make this explicit
     
   }
   //LINESTYLE
-  void gkw_linestyle(EnvT *e, GDLGStream * a)
+  void gkw_linestyle(EnvT *e, GDLGStream *a)
   {
     static DStructGDL* pStruct = SysVar::P();
     DLong linestyle= 
@@ -4362,7 +4360,7 @@ clevel[nlevel-1]=zEnd; //make this explicit
 
 
   //STYLE
-  void gkw_axis_style(EnvT *e, string axis,DLong &style)
+  void gkw_axis_style(EnvT *e, string axis, DLong &style)
   {
     DStructGDL* Struct;
     if(axis=="X") Struct = SysVar::X();
@@ -4378,7 +4376,7 @@ clevel[nlevel-1]=zEnd; //make this explicit
 
   }
 
-  void gkw_axis_title(EnvT *e, string axis,DString &title)
+  void gkw_axis_title(EnvT *e, string axis, DString &title)
   {
     DStructGDL* Struct;
     if(axis=="X") Struct = SysVar::X();
@@ -4397,7 +4395,8 @@ clevel[nlevel-1]=zEnd; //make this explicit
   }
 
   //GET RANGE
-  void gkw_axis_range(EnvT *e, string axis,DDouble &start, DDouble &end, DLong & ynozero)
+  void gkw_axis_range(EnvT *e, string axis, DDouble &start, DDouble &end, 
+		      DLong &ynozero)
   {
     DStructGDL* Struct;
     if(axis=="X") Struct = SysVar::X();
