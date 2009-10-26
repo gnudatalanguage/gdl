@@ -20,7 +20,7 @@
 using namespace std;
 
 // print out AST tree
-#define GDL_DEBUG
+//#define GDL_DEBUG
 //#undef GDL_DEBUG
 
 
