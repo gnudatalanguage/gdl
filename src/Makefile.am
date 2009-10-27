@@ -18,7 +18,7 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 		FMTParser.cpp FMTParser.hpp FMTTokenTypes.hpp format.g format.in.g format.out.g \
 		gdlc.g gdlc.i.g gdlc.tree.g gdleventhandler.cpp gdleventhandler.hpp \
 		gdlexception.cpp gdlexception.hpp gdlgstream.cpp gdlgstream.hpp \
-		GDLInterpreter.cpp GDLInterpreterOptimized.cpp \
+		GDLInterpreter.cpp  \
 		GDLInterpreter.hpp GDLInterpreterTokenTypes.hpp GDLLexer.cpp \
 		GDLLexer.hpp GDLParser.cpp GDLParser.hpp gdlpsstream.cpp gdlpsstream.hpp \
 		gdlsvgstream.cpp gdlsvgstream.hpp gdlpython.cpp gdlpython.hpp \

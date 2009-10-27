@@ -152,7 +152,7 @@ protected:
 
 
 // smuggle optimizations in
-#include "GDLInterpreterOptimized.inc"
+//#include "GDLInterpreterOptimized.inc"
 
 
 public:

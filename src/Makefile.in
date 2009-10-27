@@ -75,12 +75,11 @@ am__libgdl_la_SOURCES_DIST = accessdesc.hpp arrayindex.hpp \
 	FMTTokenTypes.hpp format.g format.in.g format.out.g gdlc.g \
 	gdlc.i.g gdlc.tree.g gdleventhandler.cpp gdleventhandler.hpp \
 	gdlexception.cpp gdlexception.hpp gdlgstream.cpp \
-	gdlgstream.hpp GDLInterpreter.cpp GDLInterpreterOptimized.cpp \
-	GDLInterpreter.hpp GDLInterpreterTokenTypes.hpp GDLLexer.cpp \
-	GDLLexer.hpp GDLParser.cpp GDLParser.hpp gdlpsstream.cpp \
-	gdlpsstream.hpp gdlsvgstream.cpp gdlsvgstream.hpp \
-	gdlpython.cpp gdlpython.hpp GDLTokenTypes.hpp \
-	GDLTreeParser.cpp GDLTreeParser.hpp \
+	gdlgstream.hpp GDLInterpreter.cpp GDLInterpreter.hpp \
+	GDLInterpreterTokenTypes.hpp GDLLexer.cpp GDLLexer.hpp \
+	GDLParser.cpp GDLParser.hpp gdlpsstream.cpp gdlpsstream.hpp \
+	gdlsvgstream.cpp gdlsvgstream.hpp gdlpython.cpp gdlpython.hpp \
+	GDLTokenTypes.hpp GDLTreeParser.cpp GDLTreeParser.hpp \
 	GDLTreeParserTokenTypes.hpp gdlwinstream.cpp gdlwinstream.hpp \
 	gdlxstream.cpp gdlxstream.hpp getfmtast.cpp getfmtast.hpp \
 	graphics.cpp graphics.hpp gsl_fun.cpp gsl_fun.hpp gstream.hpp \
@@ -112,16 +111,15 @@ am__objects_1 = assocdata.lo basic_fun_cl.lo basic_fun.lo \
 	dstructdesc.lo dstructgdl.lo dvar.lo envt.lo extrat.lo \
 	FMTIn.lo FMTLexer.lo fmtnode.lo FMTOut.lo FMTParser.lo \
 	gdleventhandler.lo gdlexception.lo gdlgstream.lo \
-	GDLInterpreter.lo GDLInterpreterOptimized.lo GDLLexer.lo \
-	GDLParser.lo gdlpsstream.lo gdlsvgstream.lo gdlpython.lo \
-	GDLTreeParser.lo gdlwinstream.lo gdlxstream.lo getfmtast.lo \
-	graphics.lo gsl_fun.lo ifmt.lo initct.lo initsysvar.lo io.lo \
-	libinit_cl.lo libinit.lo libinit_jmg.lo math_fun.lo \
-	math_fun_jmg.lo math_utl.lo ncdf_att_cl.lo ncdf_cl.lo \
-	ncdf_dim_cl.lo ncdf_var_cl.lo new.lo objects.lo ofmt.lo \
-	math_fun_ac.lo libinit_ac.lo math_fun_gm.lo libinit_gm.lo \
-	math_fun_ng.lo libinit_ng.lo plotting.lo print.lo \
-	print_tree.lo read.lo str.lo terminfo.lo topython.lo \
+	GDLInterpreter.lo GDLLexer.lo GDLParser.lo gdlpsstream.lo \
+	gdlsvgstream.lo gdlpython.lo GDLTreeParser.lo gdlwinstream.lo \
+	gdlxstream.lo getfmtast.lo graphics.lo gsl_fun.lo ifmt.lo \
+	initct.lo initsysvar.lo io.lo libinit_cl.lo libinit.lo \
+	libinit_jmg.lo math_fun.lo math_fun_jmg.lo math_utl.lo \
+	ncdf_att_cl.lo ncdf_cl.lo ncdf_dim_cl.lo ncdf_var_cl.lo new.lo \
+	objects.lo ofmt.lo math_fun_ac.lo libinit_ac.lo math_fun_gm.lo \
+	libinit_gm.lo math_fun_ng.lo libinit_ng.lo plotting.lo \
+	print.lo print_tree.lo read.lo str.lo terminfo.lo topython.lo \
 	typetraits.lo hdf_fun.lo hdf_pro.lo magick_cl.lo gdlwidget.lo \
 	widget.lo basegdl.lo hdf5_fun.lo libinit_mes.lo file.lo \
 	image.lo gdljournal.lo convol.lo convol_inc0.lo convol_inc1.lo \
@@ -155,12 +153,11 @@ am__gdl_SOURCES_DIST = accessdesc.hpp arrayindex.hpp assocdata.cpp \
 	FMTTokenTypes.hpp format.g format.in.g format.out.g gdlc.g \
 	gdlc.i.g gdlc.tree.g gdleventhandler.cpp gdleventhandler.hpp \
 	gdlexception.cpp gdlexception.hpp gdlgstream.cpp \
-	gdlgstream.hpp GDLInterpreter.cpp GDLInterpreterOptimized.cpp \
-	GDLInterpreter.hpp GDLInterpreterTokenTypes.hpp GDLLexer.cpp \
-	GDLLexer.hpp GDLParser.cpp GDLParser.hpp gdlpsstream.cpp \
-	gdlpsstream.hpp gdlsvgstream.cpp gdlsvgstream.hpp \
-	gdlpython.cpp gdlpython.hpp GDLTokenTypes.hpp \
-	GDLTreeParser.cpp GDLTreeParser.hpp \
+	gdlgstream.hpp GDLInterpreter.cpp GDLInterpreter.hpp \
+	GDLInterpreterTokenTypes.hpp GDLLexer.cpp GDLLexer.hpp \
+	GDLParser.cpp GDLParser.hpp gdlpsstream.cpp gdlpsstream.hpp \
+	gdlsvgstream.cpp gdlsvgstream.hpp gdlpython.cpp gdlpython.hpp \
+	GDLTokenTypes.hpp GDLTreeParser.cpp GDLTreeParser.hpp \
 	GDLTreeParserTokenTypes.hpp gdlwinstream.cpp gdlwinstream.hpp \
 	gdlxstream.cpp gdlxstream.hpp getfmtast.cpp getfmtast.hpp \
 	graphics.cpp graphics.hpp gsl_fun.cpp gsl_fun.hpp gstream.hpp \
@@ -200,13 +197,12 @@ am__objects_2 = gdl-assocdata.$(OBJEXT) gdl-basic_fun_cl.$(OBJEXT) \
 	gdl-FMTOut.$(OBJEXT) gdl-FMTParser.$(OBJEXT) \
 	gdl-gdleventhandler.$(OBJEXT) gdl-gdlexception.$(OBJEXT) \
 	gdl-gdlgstream.$(OBJEXT) gdl-GDLInterpreter.$(OBJEXT) \
-	gdl-GDLInterpreterOptimized.$(OBJEXT) gdl-GDLLexer.$(OBJEXT) \
-	gdl-GDLParser.$(OBJEXT) gdl-gdlpsstream.$(OBJEXT) \
-	gdl-gdlsvgstream.$(OBJEXT) gdl-gdlpython.$(OBJEXT) \
-	gdl-GDLTreeParser.$(OBJEXT) gdl-gdlwinstream.$(OBJEXT) \
-	gdl-gdlxstream.$(OBJEXT) gdl-getfmtast.$(OBJEXT) \
-	gdl-graphics.$(OBJEXT) gdl-gsl_fun.$(OBJEXT) \
-	gdl-ifmt.$(OBJEXT) gdl-initct.$(OBJEXT) \
+	gdl-GDLLexer.$(OBJEXT) gdl-GDLParser.$(OBJEXT) \
+	gdl-gdlpsstream.$(OBJEXT) gdl-gdlsvgstream.$(OBJEXT) \
+	gdl-gdlpython.$(OBJEXT) gdl-GDLTreeParser.$(OBJEXT) \
+	gdl-gdlwinstream.$(OBJEXT) gdl-gdlxstream.$(OBJEXT) \
+	gdl-getfmtast.$(OBJEXT) gdl-graphics.$(OBJEXT) \
+	gdl-gsl_fun.$(OBJEXT) gdl-ifmt.$(OBJEXT) gdl-initct.$(OBJEXT) \
 	gdl-initsysvar.$(OBJEXT) gdl-io.$(OBJEXT) \
 	gdl-libinit_cl.$(OBJEXT) gdl-libinit.$(OBJEXT) \
 	gdl-libinit_jmg.$(OBJEXT) gdl-math_fun.$(OBJEXT) \
@@ -413,7 +409,7 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 		FMTParser.cpp FMTParser.hpp FMTTokenTypes.hpp format.g format.in.g format.out.g \
 		gdlc.g gdlc.i.g gdlc.tree.g gdleventhandler.cpp gdleventhandler.hpp \
 		gdlexception.cpp gdlexception.hpp gdlgstream.cpp gdlgstream.hpp \
-		GDLInterpreter.cpp GDLInterpreterOptimized.cpp \
+		GDLInterpreter.cpp  \
 		GDLInterpreter.hpp GDLInterpreterTokenTypes.hpp GDLLexer.cpp \
 		GDLLexer.hpp GDLParser.cpp GDLParser.hpp gdlpsstream.cpp gdlpsstream.hpp \
 		gdlsvgstream.cpp gdlsvgstream.hpp gdlpython.cpp gdlpython.hpp \
@@ -560,7 +556,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FMTOut.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FMTParser.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GDLInterpreter.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GDLInterpreterOptimized.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GDLLexer.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GDLParser.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GDLTreeParser.Plo@am__quote@
@@ -600,7 +595,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-FMTOut.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-FMTParser.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-GDLInterpreter.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-GDLInterpreterOptimized.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-GDLLexer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-GDLParser.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-GDLTreeParser.Po@am__quote@
@@ -1205,20 +1199,6 @@ gdl-GDLInterpreter.obj: GDLInterpreter.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='GDLInterpreter.cpp' object='gdl-GDLInterpreter.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-GDLInterpreter.obj `if test -f 'GDLInterpreter.cpp'; then $(CYGPATH_W) 'GDLInterpreter.cpp'; else $(CYGPATH_W) '$(srcdir)/GDLInterpreter.cpp'; fi`
-
-gdl-GDLInterpreterOptimized.o: GDLInterpreterOptimized.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-GDLInterpreterOptimized.o -MD -MP -MF $(DEPDIR)/gdl-GDLInterpreterOptimized.Tpo -c -o gdl-GDLInterpreterOptimized.o `test -f 'GDLInterpreterOptimized.cpp' || echo '$(srcdir)/'`GDLInterpreterOptimized.cpp
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/gdl-GDLInterpreterOptimized.Tpo $(DEPDIR)/gdl-GDLInterpreterOptimized.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='GDLInterpreterOptimized.cpp' object='gdl-GDLInterpreterOptimized.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-GDLInterpreterOptimized.o `test -f 'GDLInterpreterOptimized.cpp' || echo '$(srcdir)/'`GDLInterpreterOptimized.cpp
-
-gdl-GDLInterpreterOptimized.obj: GDLInterpreterOptimized.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-GDLInterpreterOptimized.obj -MD -MP -MF $(DEPDIR)/gdl-GDLInterpreterOptimized.Tpo -c -o gdl-GDLInterpreterOptimized.obj `if test -f 'GDLInterpreterOptimized.cpp'; then $(CYGPATH_W) 'GDLInterpreterOptimized.cpp'; else $(CYGPATH_W) '$(srcdir)/GDLInterpreterOptimized.cpp'; fi`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/gdl-GDLInterpreterOptimized.Tpo $(DEPDIR)/gdl-GDLInterpreterOptimized.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='GDLInterpreterOptimized.cpp' object='gdl-GDLInterpreterOptimized.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-GDLInterpreterOptimized.obj `if test -f 'GDLInterpreterOptimized.cpp'; then $(CYGPATH_W) 'GDLInterpreterOptimized.cpp'; else $(CYGPATH_W) '$(srcdir)/GDLInterpreterOptimized.cpp'; fi`
 
 gdl-GDLLexer.o: GDLLexer.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-GDLLexer.o -MD -MP -MF $(DEPDIR)/gdl-GDLLexer.Tpo -c -o gdl-GDLLexer.o `test -f 'GDLLexer.cpp' || echo '$(srcdir)/'`GDLLexer.cpp
