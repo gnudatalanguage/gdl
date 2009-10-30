@@ -1072,6 +1072,8 @@ namespace lib {
     if( nParam == 1)
       {
 	yVal = e->GetParAs< DDoubleGDL>( 0);
+        if (yVal->Rank() == 0) 
+          e->Throw("Expression must be an array in this context: "+e->GetParString(0));
 	yEl = yVal->N_Elements();
 	xVal = new DDoubleGDL( dimension( yEl), BaseGDL::INDGEN);
 	xval_guard.reset( xVal); // delete upon exit
@@ -1080,8 +1082,12 @@ namespace lib {
     else
       {
 	xVal = e->GetParAs< DDoubleGDL>( 0);
+        if (xVal->Rank() == 0) 
+          e->Throw("Expression must be an array in this context: "+e->GetParString(0));
 	xEl = xVal->N_Elements();
 	yVal = e->GetParAs< DDoubleGDL>( 1);
+        if (yVal->Rank() == 0) 
+          e->Throw("Expression must be an array in this context: "+e->GetParString(1));
 	yEl = yVal->N_Elements();
       }
     DLong minEl = (xEl < yEl)? xEl : yEl;
@@ -1432,6 +1438,8 @@ namespace lib {
     if( nParam == 1)
       {
 	yVal = e->GetParAs< DDoubleGDL>( 0);
+        if (yVal->Rank() == 0) 
+          e->Throw("Expression must be an array in this context: "+e->GetParString(0));
 	yEl = yVal->N_Elements();
 	
 	xVal = new DDoubleGDL( dimension( yEl), BaseGDL::INDGEN);
@@ -1441,9 +1449,13 @@ namespace lib {
     else
       {
 	xVal = e->GetParAs< DDoubleGDL>( 0);
+        if (xVal->Rank() == 0) 
+          e->Throw("Expression must be an array in this context: "+e->GetParString(0));
 	xEl = xVal->N_Elements();
 
 	yVal = e->GetParAs< DDoubleGDL>( 1);
+        if (yVal->Rank() == 0) 
+          e->Throw("Expression must be an array in this context: "+e->GetParString(1));
 	yEl = yVal->N_Elements();
       }
     DLong minEl = (xEl < yEl)? xEl : yEl;
@@ -2081,7 +2093,7 @@ actStream->wid( 0);
       e->Throw( "Incorrect number of arguments.");
     }
     
-    BaseGDL* p0 = e->GetParDefined( 0)->Transpose( NULL);
+    BaseGDL* p0 = e->GetNumericArrayParDefined( 0)->Transpose( NULL);
     auto_ptr<BaseGDL> p0_guard;
     zVal = static_cast<DDoubleGDL*>
       (p0->Convert2( DOUBLE, BaseGDL::COPY));
@@ -2621,7 +2633,8 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
     SizeT zEl;
     if( nParam == 1)
       {
-	BaseGDL* p0 = e->GetParDefined( 0)->Transpose( NULL);
+	BaseGDL* p0 = e->GetNumericArrayParDefined( 0)->Transpose( NULL);
+
 	zVal = static_cast<DDoubleGDL*>
 	  (p0->Convert2( DOUBLE, BaseGDL::COPY));
 	p0_guard.reset( p0); // delete upon exit
@@ -2641,7 +2654,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
       } else if ( nParam == 2 || nParam > 3) {
 	e->Throw( "Incorrect number of arguments.");
       } else {
-	BaseGDL* p0 = e->GetParDefined( 0)->Transpose( NULL);
+	BaseGDL* p0 = e->GetNumericArrayParDefined( 0)->Transpose( NULL);
 	zVal = static_cast<DDoubleGDL*>
 	  (p0->Convert2( DOUBLE, BaseGDL::COPY));
 	p0_guard.reset( p0); // delete upon exit

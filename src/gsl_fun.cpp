@@ -622,13 +622,13 @@ namespace lib {
       throw GDLException( e->CallingNode(), 
 			  "FFT: Incorrect number of arguments.");
 
-    BaseGDL* p0 = e->GetParDefined( 0);
+    BaseGDL* p0 = e->GetNumericArrayParDefined( 0);
 
     SizeT nEl = p0->N_Elements();
     if( nEl == 0)
       throw GDLException( e->CallingNode(), 
 			  "FFT: Variable is undefined: "+e->GetParString(0));
-
+  
     if( nParam == 2) {
       BaseGDL* p1 = e->GetPar( 1);
       if (p1->N_Elements() > 1)
@@ -1125,7 +1125,7 @@ namespace lib {
 
 	// MAX && !BINSIZE && NBINS -> determine BINSIZE
 	if( binsizeKW == NULL && nbinsKW != NULL)
-	  bsize = (b - a) / nbins;
+	  bsize = (b - a) / (nbins - 1);
       }
 
     if( bsize < 0 || a > b || !isfinite(a) || !isfinite(b))
@@ -1146,7 +1146,7 @@ namespace lib {
     if (input != NULL)
       if (input->N_Elements() < nbins)
 	throw GDLException( e->CallingNode(), 
-			    "HISTOGRAM: Array " +e->GetString(inputIx) + 
+			    "HISTOGRAM: Expression " +e->GetString(inputIx) + 
 			    " does not have enough elements.");
       else if (input->N_Elements() > nbins)
 	nbins = input->N_Elements();

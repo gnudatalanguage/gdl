@@ -358,6 +358,14 @@ public:
     return p0;
   }
 
+  // throw for non-Arrays
+  BaseGDL*& GetNumericArrayParDefined( SizeT ix)
+  {
+    BaseGDL*& p0 = GetNumericParDefined( ix);
+    if (p0->Rank() != 0) return p0;
+    Throw("Expression must be an array in this context: "+GetParString(ix));
+  }
+
   // get i'th parameter
   // throws if not global (might be NULL), for assigning a new variable to
   // (write only)

@@ -57,6 +57,22 @@ pro test_histo_basic
   endfor
   ignored = histogram([0.], min=0, max=0, reverse=ri) 
 
-  ; TODO: test various possible keyword/input combinations...
+  ; test if binsize=(max-min)/(nbins-1) when nbins is set and binsize is not set
+  message, 'TEST 02', /continue
+  for type = 1, 15 do if type lt 6 or type gt 11 then begin ; data-type loop 
+    data = make_array(100, type=type, index = type ne 7)
+    for nbins = 2, 1000 do begin
+      a = histogram(data, nbins=nbins, loc=l)
+      if total(l[0:1] * [-1, 1]) ne (max(data)-min(data))/(nbins-1) then message, 'FAILED'
+      a = histogram(data, nbins=nbins, max=max(data), loc=l)
+      if total(l[0:1] * [-1, 1]) ne (max(data)-min(data))/(nbins-1) then message, 'FAILED'
+      a = histogram(data, nbins=nbins, min=min(data), loc=l)
+      if total(l[0:1] * [-1, 1]) ne (max(data)-min(data))/(nbins-1) then message, 'FAILED'
+      a = histogram(data, nbins=nbins, min=min(data), max=max(data), loc=l)
+      if total(l[0:1] * [-1, 1]) ne (max(data)-min(data))/(nbins-1) then message, 'FAILED'
+    endfor
+  endif
+
+  ; TODO: test other possible keyword/input combinations...
 
 end
