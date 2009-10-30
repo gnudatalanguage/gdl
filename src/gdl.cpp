@@ -188,7 +188,16 @@ int main(int argc, char *argv[])
 //     }
 
 #ifdef USE_MPI
-  MPI_Init(&argc, &argv);
+  {
+    // warning the user if MPI changes the working directory of GDL
+    char wd1[PATH_MAX], wd2[PATH_MAX];
+    char *wd1p, *wd2p;
+    wd1p = getcwd(wd1, PATH_MAX);
+    MPI_Init(&argc, &argv);
+    wd2p = getcwd(wd2, PATH_MAX);
+    if (strcmp(wd1, wd2) != 0)
+      cout << "Warning: MPI has changed the working directory of GDL!" << endl;
+  }
   int myrank = 0;
   MPI_Comm_rank( MPI_COMM_WORLD, &myrank);
   int size; 

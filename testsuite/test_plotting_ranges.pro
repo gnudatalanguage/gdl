@@ -1,5 +1,8 @@
 ; testing axis range-selection in various plotting routines
-
+; TODO:
+; - repeat the tests for SURFACE, CONTOUR, etc, and for X/Y axes
+; - repeat the tests for autoscaling, different !*.STYLEs, and *RANGE keywords
+; - test /[XY]LOG cases
 pro test_plotting_ranges
 
   oldname = !D.NAME
