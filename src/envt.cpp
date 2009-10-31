@@ -517,7 +517,7 @@ BaseGDL* EnvT::GetHeap( DPtr ID)
 }
 
 // returns name of BaseGDL*
-const string EnvBaseT::GetString( BaseGDL*& p)
+const string EnvBaseT::GetString( BaseGDL*& p, bool calledFromHELP)
 {
   DSubUD* subUD=dynamic_cast<DSubUD*>(pro);
   
@@ -554,42 +554,45 @@ const string EnvBaseT::GetString( BaseGDL*& p)
         return  "<Undefined>";
       }
 
-    ostringstream os;
-    os << '<' << left;
-    os.width(10);
-    os << p->TypeStr() << right;
-
-    // Data display
-    if( p->Type() == STRUCT)
-      {
-        DStructGDL* s = static_cast<DStructGDL*>( p);
-        os << "-> ";
-        os << (s->Desc()->IsUnnamed()? "<Anonymous>" : s->Desc()->Name());
-	os << " ";
-      }
-    else if( p->Dim( 0) == 0)
-      {
-	os << "(";
-        if (p->Type() == STRING)
-	  {
-            // trim string larger than 45 characters
-            DString dataString = (*static_cast<DStringGDL*>(p))[0];
-            os << "'" << StrMid( dataString,0,45,0) << "'";
-	    if( dataString.length() > 45) os << "...";
-	  }
-	else
-	  {
-            p->ToStream( os);
-	  }
-	os << ")";
-      }
-
-    // Dimension display
-    if( p->Dim( 0) != 0) os << "Array[" << p->Dim() << "]";
-
-    os << ">";
-
-    return os.str();
+    if( !calledFromHELP)
+	{
+	ostringstream os;
+	os << '<' << left;
+	os.width(10);
+	os << p->TypeStr() << right;
+	
+	// Data display
+	if( p->Type() == STRUCT)
+	{
+		DStructGDL* s = static_cast<DStructGDL*>( p);
+		os << "-> ";
+		os << (s->Desc()->IsUnnamed()? "<Anonymous>" : s->Desc()->Name());
+		os << " ";
+	}
+	else if( p->Dim( 0) == 0)
+	{
+		os << "(";
+		if (p->Type() == STRING)
+		{
+		// trim string larger than 45 characters
+		DString dataString = (*static_cast<DStringGDL*>(p))[0];
+		os << "'" << StrMid( dataString,0,45,0) << "'";
+		if( dataString.length() > 45) os << "...";
+		}
+		else
+		{
+		p->ToStream( os);
+		}
+		os << ")";
+	}
+	
+	// Dimension display
+	if( p->Dim( 0) != 0) os << p->Dim();
+	
+	os << ">";
+	
+	return os.str();
+	}
 
   return string("<Expression>");
 }

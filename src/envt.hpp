@@ -157,7 +157,7 @@ lineNumber = l;
   const std::string GetString( SizeT ix);
   
   // get name of 'p'
-  const std::string GetString( BaseGDL*& p);
+  const std::string GetString( BaseGDL*& p, bool calledFromHELP=false);
 
   virtual const std::string GetFilename() const=0;
 

@@ -270,7 +270,7 @@ namespace lib {
 	for( SizeT i=0; i<nParam; i++)
 	  {
 	    BaseGDL*& par=e->GetPar( i);
-	    DString parString = e->Caller()->GetString( par);
+	    DString parString = e->Caller()->GetString( par, true);
 	    if( !par || !isKWSetStructures || par->Type() != STRUCT) {
 	      nlines++;
 	    } else {
@@ -442,7 +442,7 @@ namespace lib {
     for( SizeT i=0; i<nParam; i++)
       {
 	BaseGDL*& par=e->GetPar( i);
-	DString parString = e->Caller()->GetString( par);
+	DString parString = e->Caller()->GetString( par, true);
 	// NON-STRUCTURES
 	if( !par || !isKWSetStructures || par->Type() != STRUCT)
           {
@@ -516,7 +516,7 @@ namespace lib {
 	    if( par == NULL) 
 	      continue;
 
-	    DString parString = caller->GetString( par);
+	    DString parString = caller->GetString( par,true);
 	    
 	    stringstream ss;
 	    help_item( ss, par, parString, false);
