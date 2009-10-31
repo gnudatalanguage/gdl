@@ -1861,7 +1861,7 @@ namespace lib {
       throw GDLException( e->CallingNode(), 
 			  "LA_TRIRED: Incorrect number of arguments.");
 
-    BaseGDL* p0 = e->GetParDefined( 0);
+    BaseGDL* p0 = e->GetNumericArrayParDefined( 0);
 
     SizeT nEl = p0->N_Elements();
     if( nEl == 0)

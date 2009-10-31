@@ -408,7 +408,8 @@ else if(var_type == NC_LONG)
     ncdf_handle_error(e, status, "NCDF_VARGET");
 
     //get the dimension lengths
-    for (int i=0; i < var_ndims; ++i)
+    if (var_ndims == 0) trans[0] = 0;
+    else for (int i=0; i < var_ndims; ++i)
     {
       status = nc_inq_dimlen(cdfid,var_dims[i],&dim_length[i]);
       trans[i] = var_ndims - i - 1;

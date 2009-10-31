@@ -402,15 +402,16 @@ end
 
 pro nct_create_noclobber, f
 
-catch, error
-if(error eq 0) then begin
-    id=ncdf_create( f, /noclobber)
-    ncdf_close, id
-endif else begin
-    print, "ERROR: ", error
-    print, "Message: ", !ERROR_STATE.MSG
-    error=0
-endelse
+; TODO catch does not work yet
+;catch, error
+;if(error eq 0) then begin
+;    id=ncdf_create( f, /noclobber)
+;    ncdf_close, id
+;endif else begin
+;    print, "ERROR: ", error
+;    print, "Message: ", !ERROR_STATE.MSG
+;    error=0
+;endelse
 
 end
 
