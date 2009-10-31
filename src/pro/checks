@@ -4,10 +4,10 @@
 test \
   "`fgrep '.pro' Makefile.am | tr '\\' ' ' | tr "\n" ' ' | tr -s ' '`" \
   = \
-  " `ls *.pro | tr "\n" ' ' | tr -s ' '`" && exit
+  " `LC_COLLATE=C ls *.pro | tr "\n" ' ' | tr -s ' '`" && exit
 echo "-----------------------------------------------------------"
 echo "REASON: list of .pro files in Makefile.am does not include:" 
-ls -1 *.pro \
+LC_COLLATE=C ls -1 *.pro \
   | awk '{ print "  " $0 " \\" }' \
   | diff /dev/stdin Makefile.am \
   | fgrep .pro | tr '<' '-' | tr '\\' ' ' | tr -s ' ' 
