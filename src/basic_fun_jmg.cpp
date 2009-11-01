@@ -724,10 +724,14 @@ namespace lib {
 	//	cout << xI << endl;
 	if (xI != -1) {
 	  BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI);
+
+	  if( par == NULL)
+		return NULL;
 	  //	  char* addr = static_cast<char*>(par->DataAddr());
 	  return par->Dup();
 	}
 	
+	return NULL;
       } else if (arg) { // ARG_NAME
 
 	if( nParam == 0) return new DStringGDL("");
