@@ -103,6 +103,17 @@ int main(int argc, char *argv[])
 {
   if( atexit( AtExit) != 0) cerr << "atexit registration failed." << endl;
 
+  // checking if the user wants to see the welcome message
+  bool quiet = false;
+  for (SizeT a = 1; a < argc; ++a)
+  {
+    if (string(argv[a]) == "-quiet") 
+    {
+      quiet = true;
+      break;
+    }
+  }
+
   for( SizeT a=1; a< argc; ++a)
     {
       if( string( argv[a]) == "--help")
@@ -110,13 +121,15 @@ int main(int argc, char *argv[])
 	  cout << "Usage: gdl [OPTION]" << endl;
 	  cout << "Start the GDL interpreter (incremental compiler)" << endl;
 	  cout << endl;
-	  cout << "Options:" << endl;
+	  cout << "GDL options:" << endl;
 	  cout << "  --help     display this message" << endl;
 	  cout << "  --version  show version information" << endl;
+	  cout << "IDL-compatible options:" << endl;
 	  cout << "  -arg value tells COMMAND_LINE_ARGS() to report" << endl;
           cout << "             the following argument (may be specified more than once)" << endl;
 	  cout << "  -args ...  tells COMMAND_LINE_ARGS() to report " << endl;
           cout << "             all following arguments" << endl;
+	  cout << "  -quiet     suppress welcome messages" << endl;
 	  cout << endl;
 	  cout << "Homepage: http://gnudatalanguage.sf.net" << endl;
 	  return 0;
@@ -144,7 +157,7 @@ int main(int argc, char *argv[])
 
   InitGDL();
 
-  if( isatty(0)) StartupMessage();
+  if( isatty(0) && !quiet) StartupMessage();
 
   // instantiate the interpreter
   DInterpreter interpreter;
@@ -154,7 +167,7 @@ int main(int argc, char *argv[])
   if( gdlPath == "")
     {
       gdlPath = GDLDATADIR "/lib:" GDLDATADIR "/lib/dicom";
-      if (isatty(0)) cout <<
+      if (isatty(0) && !quiet) cout <<
         "- Default library routine search path used (GDL_PATH/IDL_PATH env. var. not set): " << endl << 
         "  " << gdlPath << endl;
     }
@@ -164,11 +177,11 @@ int main(int argc, char *argv[])
   if( startup == "") startup=GetEnvString("IDL_STARTUP");
   if( startup == "")
     {
-      if (isatty(0)) cout << 
+      if (isatty(0) && !quiet) cout << 
         "- No startup file read (GDL_STARTUP/IDL_STARTUP env. var. not set). " << endl;
     }
 
-  if (isatty(0)) 
+  if (isatty(0) && !quiet) 
   {
     cout << "- Please report bugs, feature or help requests and patches at:" << endl <<
       "  http://sourceforge.net/projects/gnudatalanguage/" << endl << endl;
