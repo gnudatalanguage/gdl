@@ -2142,7 +2142,7 @@ void Data_<Sp>::InsAt( Data_* srcIn, ArrayIndexListT* ixList, SizeT offset)
 	{
 	  SizeT len = srcIn->Dim( 0); // length of segment to copy
 	  if( (destStart+len) > this->N_Elements()) //dim[0])
-	    throw GDLException("Out of range subscript encountered (1).");
+	    throw GDLException("Out of range subscript encountered (lenght of insert exceeds array boundaries).");
 
 	  // DataT& srcIn_dd = srcIn->dd; 
 	  SizeT srcIx = 0; // this one simply runs from 0 to N_Elements(srcIn)
@@ -2171,7 +2171,7 @@ void Data_<Sp>::InsAt( Data_* srcIn, ArrayIndexListT* ixList, SizeT offset)
   for( SizeT dIx=0; dIx <= nDim; ++dIx)
     // check if in bounds of a
     if( (ixDim[dIx]+srcDim[dIx]) > this->dim[dIx])
-      throw GDLException("Out of range subscript encountered (2).");
+      throw GDLException("Out of range subscript encountered (dimension of insert exceeds array boundaries for dimension " + i2s(dIx +1) + ").");
 
   SizeT nCp=srcIn->Stride(nDim+1)/len; // number of OVERALL copy actions
 
