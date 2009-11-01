@@ -1041,8 +1041,28 @@ namespace lib {
       } else { // default (/data)
 	// bad info outside the window (following PLPlot meaning)
 	// TODO : we can compute that using !x.s and !y.s
- 	x=new DDoubleGDL(gin.wX );
-	y=new DDoubleGDL(gin.wY );
+#ifdef USE_LIBPROJ4
+        bool mapSet = false;
+        get_mapset(mapSet);
+        if (!mapSet) 
+        {
+#endif
+ 	  x = new DDoubleGDL(gin.wX );
+	  y = new DDoubleGDL(gin.wY );
+#ifdef USE_LIBPROJ4
+        } 
+        else 
+        {
+          PROJTYPE* ref = map_init();
+          if (ref == NULL) e->Throw("Projection initialization failed.");
+          XYTYPE idata;
+          idata.x = gin.wX;
+          idata.y = gin.wY;
+          LPTYPE odata = PJ_INV(idata, ref);
+          x = new DDoubleGDL(odata.lam * RAD_TO_DEG);
+          y = new DDoubleGDL(odata.phi * RAD_TO_DEG);
+        }
+#endif
       }
       e->SetPar(0, x);
       e->SetPar(1, y);
