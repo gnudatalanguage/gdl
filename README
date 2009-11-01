@@ -20,10 +20,10 @@ Full syntax compatibility with IDL version 6.0 and later.
 
 All IDL language elements are supported, including:
 
-Pointer, Objects, Structs,
-Arrays, System variables,
-Common blocks, Assoc variables,
-All operators, All datatypes,
+Pointer, objects, structs,
+arrays, system variables,
+common blocks, assoc variables,
+all operators, all datatypes,
 _EXTRA, _STRICT_EXTRA and _REF_EXTRA keywords...
 
 The file input output system is fully implemented including full support of 
@@ -256,7 +256,7 @@ CONTRIBUTIONS:
 ==============
 
 GDL 0.9 is actively developed, but due to the vast amount of subroutines
-to implement still in beta state as of August 2009.
+to implement still in beta state as of November 2009.
 Even though it can already be used for several tasks, there are many
 things to be done.
 Bug reports, feedback in general and interested people who would

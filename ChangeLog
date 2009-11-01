@@ -1,3 +1,318 @@
+GDL 0.9rc4:
+2009-11-01  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/datatypes.cpp: More verbose error messages
+
+	* src/basic_fun_jmg.cpp, src/gdlc.i.g, src/prognode.cpp:
+	Fixed ROUTINE_NAMES(/FETCH)
+
+2009-11-01  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/plotting.cpp: CURSOR: support for lat/lon query on maps
+
+2009-11-01  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basic_fun_jmg.cpp: Fixed ROUTINE_NAMES(/FETCH)
+
+	* src/Makefile.in, src/antlr/Makefile.in, src/basic_fun.cpp, src/datatypes.cpp, src/pro/Makefile.in, src/pro/dicom/Makefile.in, Makefile.in, aclocal.m4, configure, gdl.kdevelop:
+	Fixed STRSPLIT()
+
+2009-11-01  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/gdl.cpp: -quiet command line option
+
+2009-10-31  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/pro/checks: src/pro/checks: making it work under all locales
+
+	* src/Makefile.in, src/antlr/Makefile.in, src/pro/Makefile.am, src/pro/Makefile.in, src/pro/checks, src/pro/dicom/Makefile.am, src/pro/dicom/Makefile.in, Makefile.in, aclocal.m4, configure, configure.in:
+	fixing and re-enabling make-install rules for .pro files (+ one make-check rule for checking if all .pro files from src/pro will be installed)
+
+2009-10-31  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/envt.hpp, src/basic_pro.cpp, src/envt.cpp:
+	corrected HELP output for expressions
+
+2009-10-31  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/gsl_fun.cpp, src/ncdf_var_cl.cpp, testsuite/nc_test.pro:
+	LA_TRIRED: checking if the first argument is an array (tracker item no: 2889764)
+	NCDF_VARGET: fixing a segfault condition (tracker item no: 2878720)
+	nc_test.pro: commenting out catch-dependant checks
+
+2009-10-30  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/gdl.cpp, testsuite/test_plotting_ranges.pro:
+	MPI: warning the user if MPI changes the working directory of GDL
+
+	* src/gsl_fun.cpp, src/plotting.cpp, testsuite/test_histo.pro, testsuite/test_plotting_ranges.pro, src/envt.hpp:
+	PLOT/OPLOT: not accepting scalar arguments
+	FFT: sanity check for the rank of argument
+	CONTOUR/SURFACE: sanity checks for the rank and type of arguments
+	HISTOGRAM: correcting binsize definition when max and nbins set, better INPUT-kw-related error message
+	test_histo.pro: testing binsize selection
+	test_plotting_ranges: initial import (testing axis range selection)
+	envt.hpp: adding GetParNumericArrayDefined()
+
+2009-10-27  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLInterpreter.hpp, src/GDLInterpreterOptimized.cpp, src/GDLInterpreterOptimized.inc, src/Makefile.am, src/Makefile.in, src/gdlc.i.g:
+	removed obsolete files
+
+2009-10-26  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLTreeParser.cpp, src/pro/Makefile.in:
+	deactivate GDL_DEBUG define setting (gdlc.tree.g)
+
+2009-10-26  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/plotting.cpp:
+	Better automatic range in PLOT. NOT propagated in CONTOUR and SURFACE (sorry). LOG case still to do.
+
+2009-10-25  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/envt.cpp, src/pro/Makefile.in, testsuite/test_suite.pro:
+	more verbose info on expression parameters
+
+2009-10-25  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* testsuite/test_get_screen_size.pro, src/plotting.cpp:
+	in GET_SCREEN_SIZE, param DISPLAY now working
+
+2009-10-25  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/plotting.cpp, testsuite/test_plotting_misc.pro:
+	CONTOUR: partial support for contouring on maps (+ some tests in test_plotting_misc.pro)
+
+2009-10-24  medericboquien  <medericboquien@DaMachineInDaMachine>
+
+	* src/antlr/CharScanner.hpp: Make GDL compile with gcc 4.4.
+
+2009-10-23  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* Makefile.in, aclocal.m4, configure, gdl.kdevelop, src/GDLInterpreter.cpp, src/Makefile.in, src/antlr/Makefile.in, src/dinterpreter.cpp, src/gdlc.i.g, src/pro/Makefile.am, src/pro/Makefile.in, src/pro/dicom/Makefile.in:
+	Fixed wrong handling of CONTINUE under certain conditions in nested loops
+
+2009-10-23  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* testsuite/test_nestedloop.pro:
+	adding test_nestedloop.pro to the testsuite
+
+2009-10-21  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/pro/dicom/Makefile.am, src/pro/dicom/Makefile.in, src/basic_fun.cpp, src/pro/Makefile.am, src/pro/Makefile.in:
+	fixing EXTRA_DIST value in src/pro/Makefile.am; GETENV: error message when called with /ENV and a positional parameter
+
+2009-10-19  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* Makefile.am, Makefile.in, aclocal.m4, config.h.in, configure, configure.in, src/Makefile.am, src/Makefile.in, src/antlr/Makefile.in, src/gdl.cpp, src/pro/Makefile.am, src/pro/Makefile.in, src/pro/dicom/Makefile.am, src/pro/dicom/Makefile.in:
+	installing library .pro files and basic docs during make install; setting default library-routine search path if GDL_PATH/IDL_PATH not defined; welcome message changes
+
+2009-10-18  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* NEWS: upgrading NEWS file (creating 0.9rc4 entry)
+
+	* src/libinit.cpp, src/plotting.cpp, src/plotting.hpp:
+	initial import of GET_SCREEN_SIZE(); in CURSOR, verification if we are in X mode
+
+	* testsuite/test_get_screen_size.pro:
+	initial import of TEST_GET_SCREEN_SIZE, function to be imported in CVS
+
+	* testsuite/test_voigt.pro:
+	detail in TEST_VOIGT, restoring !p.multi ...
+
+2009-10-18  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/gsl_fun.cpp, src/pro/read_ascii.pro:
+	READ_ASCII: printing error message when DATA_START exceeds file length; IMSL_BINOMIALCOEF: sanity check for number of arguments added
+
+2009-10-18  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basic_pro.cpp, src/basegdl.cpp, src/basegdl.hpp, src/datatypes.cpp, src/datatypes.hpp, src/dstructdesc.cpp, src/dstructdesc.hpp, src/dstructgdl.hpp, src/mpi.cpp, src/specializations.hpp, src/typetraits.hpp:
+	Fixed BYTEORDER for STRUCT
+
+	* src/GDLInterpreter.hpp, src/gdlc.i.g, src/print.cpp, src/prognode.cpp:
+	sync
+
+2009-10-17  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/gsl_fun.cpp, src/gsl_fun.hpp, src/libinit.cpp, NEWS:
+	IMSL_BINOMIALCOEF: initial import
+
+2009-10-17  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/gdl.cpp, src/gdlc.i.g, src/pro/array_indices.pro:
+	Corrected beahvior of call_fun and call_lfun for RC_ABORT return code. Old behavior lead to endless loop at startup in some conditions.
+
+2009-10-16  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basic_fun.cpp: Fixed STRMID for missing 3rd parameter
+
+	* src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/gdlc.i.g, src/prognode.hpp:
+	Fixed line tracking for error reporting
+
+2009-10-15  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/initsysvar.cpp: imporved \!VERSION
+
+	* src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/GDLTreeParser.cpp, src/basic_fun_cl.cpp, src/datatypes.cpp, src/dinterpreter.cpp, src/dpro.cpp, src/envt.cpp, src/envt.hpp, src/gdlc.i.g, src/gdlc.tree.g, src/gdlexception.cpp, src/print_tree.cpp, src/specializations.hpp:
+	improved line number tracking for error reporting
+
+2009-10-14  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/datatypes.cpp:
+	[F,D,L,...]INDGEN: making the values of the resulting array more precise for large arrays (demo: print, (findgen(40000000))[40000000-1])
+
+2009-10-14  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basic_fun_jmg.cpp, src/dinterpreter.cpp, src/envt.cpp:
+	Proper ROUTINE_NAMES(/STORE)
+
+2009-10-13  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/deviceps.hpp, src/pro/loadct.pro:
+	Set \!D.TABLE_SIZE from 0 to 256
+
+2009-10-13  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* testsuite/test_multiroots.pro:
+	update of test_multiroots.pro after the two known bugs were fixed
+
+	* src/basic_fun.cpp, src/basic_pro_jmg.cpp:
+	GCC 3.4.3 compatibility fixes (WAIT, GET_LOGIN_INFO)
+
+2009-10-12  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basic_fun.cpp, src/str.cpp:
+	Fixed STRMID for negative values of 3rd parameter
+
+	* src/print.cpp:
+	Corrected output of trailing newline after empty string output for PRINT (and PRINTF)
+
+	* src/basic_fun_jmg.cpp: Corrected name lookup in ROUTINE_NAMES
+
+	* src/FMTIn.cpp, src/FMTIn.hpp, src/FMTInTokenTypes.hpp, src/FMTInTokenTypes.txt, src/FMTOut.cpp, src/FMTOut.hpp, src/FMTOutTokenTypes.hpp, src/FMTOutTokenTypes.txt, src/FMTParser.cpp, src/gsl_fun.cpp:
+	fixed guarding bug within newton_broyden function set
+
+2009-10-11  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/pro/restore.pro: Revert my change in RESTORE
+
+2009-10-10  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/print.cpp:
+	changed output of trailing newline after empty string output for PRINT (and PRINTF)
+
+	* src/file.cpp: strip of trailing '/' in FILE_TEST
+
+	* src/basic_fun.cpp:
+	STRPOS does no longer ignore undefined 3rd parameter
+
+	* src/basic_fun.cpp, src/basic_pro_jmg.cpp, src/dinterpreter.cpp:
+	Corrected wrong error message due to pre-evaluation of constant functions
+
+2009-10-09  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basic_pro_jmg.cpp: made WAIT control-c interuptible
+
+2009-10-09  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/pro/file_basename.pro:
+	FILE_BASENAME: better handling of empty and space-only strings
+
+2009-10-08  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basic_fun_jmg.cpp:
+	fixed ARG_NAME keyword in ROUTINE_NAMES for values larger than current level
+
+	* src/accessdesc.hpp:
+	fixed STRUCT access of non struct struct member (e. g. a={b:0}&print,a.b.c )
+
+	* src/default_io.cpp: read ASCII file not ending with newline character
+
+2009-10-08  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/pro/restore.pro:
+	correction RESTORE to be OK with last CMSV lib, delivered 09/05/05
+
+	* src/basic_fun.cpp, src/libinit.cpp:
+	re-enter the Length Keyword in N_TAGS; we don't know how to distinguish with /data_length
+
+2009-10-07  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/plotting.cpp:
+	![X,Y].RANGE support in plotting routines (patch from Joanna/cokhavim)
+
+2009-10-07  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/pro/dist.pro:
+	DIST, like many others, should run when call like dist([2,2])
+
+	* src/libinit_jmg.cpp:
+	add 2 undocument params in CHECK_MATH() and also keep memory of value, but INT error still not managed
+
+	* testsuite/test_check_math.pro: test suite for CHECK_MATH()
+
+	* quick_start_GDL.sh:
+	re-import this script to help beginners to quickly starts GDL with paths (now this script complains if not run properly)
+
+	* quick_start_GDL.sh:
+	temporary removing of this file to change it into 755 mode
+
+	* src/math_fun_jmg.cpp:
+	add 2 undocument params in CHECK_MATH() and also keep memory of value, but INT error still not managed
+
+2009-10-05  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* Makefile.in, aclocal.m4, configure, configure.in, gdl.kdevelop, src/FMTLexer.cpp, src/FMTLexer.hpp, src/FMTParser.cpp, src/FMTParser.hpp, src/FMTTokenTypes.hpp, src/FMTTokenTypes.txt, src/Makefile.in, src/antlr/Makefile.in, src/format.g, src/gdlwidget.hpp, src/ofmt.cpp:
+	Allow neg. width for A format code
+
+2009-10-05  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/plotting.cpp:
+	PLOT: adjusting axes when charsize changed (patch from Joanna/cokhavim, tracker item no 2859179)
+
+	* src/libinit.cpp, src/plotting.cpp:
+	CONTOUR: support for the /OVERPLOT keyword (patch from Joanna/cokhavim)
+
+2009-10-02  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/basic_fun.cpp, src/dpro.hpp, src/libinit.cpp, src/pro/file_basename.pro:
+	FILE_BASENAME: support for array argument; ROUTINE_INFO: support for PARAMETERS keyword
+
+2009-10-01  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* quick_start_GDL.sh:
+	A quick start script for beginners, with easy switch for Valgrind ...
+
+	* testsuite/test_valgrind.pro:
+	quick check of problems in Contour/Surface with Valgrind: to be extended
+
+2009-09-29  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/plotting.cpp:
+	better freeing/delete in Contour/Surface, thanks to Valgrind
+
+2009-09-26  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* configure, testsuite/test_multiroots.pro:
+	fixing common block name conflict (with RK4) in test_mutiroots.pro; running aclocal/autoconf/automake after version number change
+
+2009-09-26  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/basic_fun.cpp: removing comments/debug info in MEDIAN()
+
+	* testsuite/test_dims_of_arrays.pro, testsuite/test_outofmem.pro:
+	Exemples of bad inputs when creating arrays ...
+
+2009-09-25  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* configure.in, src/basic_fun.cpp: Better check of Array dims
+
+2009-09-24  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* ChangeLog, NEWS: updating NEWS and Changelog
+
 GDL 0.9rc3:
 2009-09-11  m_schellens  <m_schellens@DaMachineInDaMachine>
 

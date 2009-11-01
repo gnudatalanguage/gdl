@@ -726,14 +726,14 @@ namespace lib {
 	  BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI);
 
 	  if( par == NULL)
-		e->Throw( "Variable is undefined: " + varName);
-// 		return NULL;
+// 		e->Throw( "Variable is undefined: " + varName);
+ 		return NULL;
 	  //	  char* addr = static_cast<char*>(par->DataAddr());
 	  return par->Dup();
 	}
 	
-	e->Throw( "Variable not found: " + varName);
-// 	return NULL;
+// 	e->Throw( "Variable not found: " + varName);
+ 	return NULL;
       } else if (arg) { // ARG_NAME
 
 	if( nParam == 0) return new DStringGDL("");
