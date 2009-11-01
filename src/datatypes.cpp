@@ -18,7 +18,11 @@
 #include "includefirst.hpp"
 
 #if defined(USE_PYTHON) || defined(PYTHON_MODULE)
+#if defined(USE_NUMPY)
+#include <numpy/libnumarray.h>
+#else
 #include <numarray/libnumarray.h>
+#endif
 #endif
 
 #include <iomanip>

@@ -4227,13 +4227,13 @@ namespace lib {
 
     if( !extract)
       {    
-	dimension dim(nTok);
 	if( lengthPresent) 
 	  {
 	    e->AssureGlobalKW( lengthIx);
 	    
 	    if( nTok > 0)
 	      {
+		dimension dim(nTok);
 		DLongGDL* len = new DLongGDL(dim);
 		for(int i=0; i < nTok; i++)
 		  (*len)[i] = tokenLen[i];
@@ -4248,6 +4248,7 @@ namespace lib {
 	
 	if( nTok == 0) return new DLongGDL( 0);
     
+	dimension dim(nTok);
 	DLongGDL* d = new DLongGDL(dim);
 	for(int i=0; i < nTok; i++)
 	  (*d)[i] = tokenStart[i];
