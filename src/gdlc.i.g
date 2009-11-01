@@ -3399,8 +3399,11 @@ lib_function_call returns[ BaseGDL* res]
 	// make the call
 	//BaseGDL* 
     res=static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
-	//*** MUST always return a defined expression
-	
+	// *** MUST always return a defined expression
+//    if( res == NULL)
+//       throw GDLException( _t, "");
+
+
 	_retTree = rTree;
 	return res;
 }

@@ -509,6 +509,10 @@ void ASSIGN_REPLACENode::Run()
     if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
       {
 	r=ProgNode::interpreter->check_expr(_t);
+
+/*	if( r == NULL) // ROUTINE_NAMES
+		throw GDLException( _t, "Undefined return value");*/
+	
 	_t = ProgNode::interpreter->_retTree;
 			
 			

@@ -727,12 +727,13 @@ namespace lib {
 
 	  if( par == NULL)
 		e->Throw( "Variable is undefined: " + varName);
+// 		return NULL;
 	  //	  char* addr = static_cast<char*>(par->DataAddr());
 	  return par->Dup();
 	}
 	
 	e->Throw( "Variable not found: " + varName);
-	//return NULL;
+// 	return NULL;
       } else if (arg) { // ARG_NAME
 
 	if( nParam == 0) return new DStringGDL("");
