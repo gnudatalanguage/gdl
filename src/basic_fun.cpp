@@ -5161,7 +5161,7 @@ namespace lib {
 
 	// Handle case of single structure parameter
 	SizeT nParam;
-	nParam = e->NParam();
+	nParam = e->NParam(1);
 	BaseGDL* par = e->GetParDefined( 0);
 	DStructGDL* parStruct = dynamic_cast<DStructGDL*>( par);
 	if (nParam != 1 || parStruct == NULL)
