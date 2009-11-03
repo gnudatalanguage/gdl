@@ -305,6 +305,9 @@ public:
 
 class BaseGDL: private MemStats
 {
+public:
+  static DInterpreter* interpreter;
+
 protected:
   dimension dim;
   

@@ -26,6 +26,8 @@
 #include "real2int.hpp"
 #include "ofmt.hpp" // OutAuto
 
+#include "dinterpreter.hpp"
+
 using namespace std;
 
 // for double -> string
@@ -46,18 +48,21 @@ inline string double2string( DDouble d)
 BaseGDL* DStructGDL::Convert2( DType destTy, BaseGDL::Convert2Mode mode)
 {
   if( destTy == t) return (((mode & BaseGDL::COPY) != 0)?Dup():this);
+if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Struct expression not allowed in this context: "+BaseGDL::interpreter->Name(this));
   throw GDLException("Struct expression not allowed in this context.");
   return NULL; // get rid of warning 
 }  
 template<> BaseGDL* Data_<SpDPtr>::Convert2( DType destTy, BaseGDL::Convert2Mode mode)
 {
   if( destTy == t) return (((mode & BaseGDL::COPY) != 0)?Dup():this);
+if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Ptr expression not allowed in this context: "+BaseGDL::interpreter->Name(this));
   throw GDLException("Ptr expression not allowed in this context.");
   return NULL; // get rid of warning 
 }  
 template<> BaseGDL* Data_<SpDObj>::Convert2( DType destTy, BaseGDL::Convert2Mode mode)
 {
   if( destTy == t) return (((mode & BaseGDL::COPY) != 0)?Dup():this);
+if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Object expression not allowed in this context: "+BaseGDL::interpreter->Name(this));
   throw GDLException("Object expression not allowed in this context.");
   return NULL; // get rid of warning 
 }  
@@ -195,7 +200,9 @@ template<> BaseGDL* Data_<SpDByte>::Convert2( DType destTy, BaseGDL::Convert2Mod
     case PTR:
     case OBJECT:
     case STRUCT:
-    case UNDEF: throw GDLException("Cannot convert to this type.");
+    case UNDEF: 
+if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
+throw GDLException("Cannot convert to this type.");
     }
 
    return NULL; // get rid of warning
@@ -307,7 +314,9 @@ template<> BaseGDL* Data_<SpDInt>::Convert2( DType destTy, BaseGDL::Convert2Mode
     case PTR:
     case OBJECT:
     case STRUCT:
-    case UNDEF: throw GDLException("Cannot convert to this type.");
+    case UNDEF: 
+if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
+throw GDLException("Cannot convert to this type.");
     }
 
    // get rid of warning
@@ -419,7 +428,9 @@ template<> BaseGDL* Data_<SpDUInt>::Convert2( DType destTy, BaseGDL::Convert2Mod
     case PTR:
     case OBJECT:
     case STRUCT:
-    case UNDEF: throw GDLException("Cannot convert to this type.");
+    case UNDEF: 
+if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
+throw GDLException("Cannot convert to this type.");
     }
 
    // get rid of warning
@@ -532,7 +543,9 @@ template<> BaseGDL* Data_<SpDLong>::Convert2( DType destTy, BaseGDL::Convert2Mod
     case PTR:
     case OBJECT:
     case STRUCT:
-    case UNDEF: throw GDLException("Cannot convert to this type.");
+    case UNDEF: 
+if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
+throw GDLException("Cannot convert to this type.");
     }
 
    // get rid of warning
@@ -644,7 +657,9 @@ template<> BaseGDL* Data_<SpDULong>::Convert2( DType destTy, BaseGDL::Convert2Mo
     case PTR:
     case OBJECT:
     case STRUCT:
-    case UNDEF: throw GDLException("Cannot convert to this type.");
+    case UNDEF: 
+if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
+throw GDLException("Cannot convert to this type.");
     }
 
    // get rid of warning
@@ -753,7 +768,9 @@ template<> BaseGDL* Data_<SpDFloat>::Convert2( DType destTy, BaseGDL::Convert2Mo
     case PTR:
     case OBJECT:
     case STRUCT:
-    case UNDEF: throw GDLException("Cannot convert to this type.");
+    case UNDEF: 
+if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
+throw GDLException("Cannot convert to this type.");
     }
 
    // get rid of warning
@@ -862,7 +879,9 @@ template<> BaseGDL* Data_<SpDDouble>::Convert2( DType destTy, BaseGDL::Convert2M
     case PTR:
     case OBJECT:
     case STRUCT:
-    case UNDEF: throw GDLException("Cannot convert to this type.");
+    case UNDEF: 
+if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
+throw GDLException("Cannot convert to this type.");
     }
 
    // get rid of warning
@@ -1090,7 +1109,9 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
     case PTR:
     case OBJECT:
     case STRUCT:
-    case UNDEF: throw GDLException("Cannot convert to this type.");
+    case UNDEF: 
+if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
+throw GDLException("Cannot convert to this type.");
     }
 
   // get rid of warning
@@ -1199,7 +1220,9 @@ template<> BaseGDL* Data_<SpDComplex>::Convert2( DType destTy, BaseGDL::Convert2
     case PTR:
     case OBJECT:
     case STRUCT:
-    case UNDEF: throw GDLException("Cannot convert to this type.");
+    case UNDEF: 
+if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
+throw GDLException("Cannot convert to this type.");
     }
 
   return NULL; // get rid of warning
@@ -1308,7 +1331,9 @@ template<> BaseGDL* Data_<SpDComplexDbl>::Convert2( DType destTy, BaseGDL::Conve
     case PTR:
     case OBJECT:
     case STRUCT:
-    case UNDEF: throw GDLException("Cannot convert to this type.");
+    case UNDEF: 
+if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
+throw GDLException("Cannot convert to this type.");
     }
 
   return NULL; // get rid of warning
@@ -1420,7 +1445,9 @@ template<> BaseGDL* Data_<SpDLong64>::Convert2( DType destTy, BaseGDL::Convert2M
     case PTR:
     case OBJECT:
     case STRUCT:
-    case UNDEF: throw GDLException("Cannot convert to this type.");
+    case UNDEF: 
+if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
+throw GDLException("Cannot convert to this type.");
     }
 
    // get rid of warning
@@ -1532,7 +1559,9 @@ template<> BaseGDL* Data_<SpDULong64>::Convert2( DType destTy, BaseGDL::Convert2
     case PTR:
     case OBJECT:
     case STRUCT:
-    case UNDEF: throw GDLException("Cannot convert to this type.");
+    case UNDEF: 
+if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
+throw GDLException("Cannot convert to this type.");
     }
 
    // get rid of warning

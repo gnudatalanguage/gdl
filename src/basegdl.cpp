@@ -21,6 +21,8 @@
 
 using namespace std;
 
+DInterpreter* BaseGDL::interpreter = NULL;
+
 // get the vtable for BaseGDL
 BaseGDL::~BaseGDL() {}
 

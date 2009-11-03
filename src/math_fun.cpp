@@ -221,8 +221,8 @@ namespace lib {
 
     SizeT nEl = p0->N_Elements();
     if( nEl == 0)
-      throw GDLException( e->CallingNode(), 
-			  "SIN: Variable is undefined: "+e->GetParString(0));
+      e->Throw( 
+			  "Variable is undefined: "+e->GetParString(0));
     
     if( p0->Type() == COMPLEX)
 	return sin_fun_template< DComplexGDL>( p0);
@@ -262,15 +262,15 @@ namespace lib {
     SizeT nParam=e->NParam();
 
     if( nParam == 0)
-      throw GDLException( e->CallingNode(), 
-			  "COS: Incorrect number of arguments.");
+      e->Throw( 
+			  "Incorrect number of arguments.");
 
     BaseGDL* p0 = e->GetParDefined( 0);//, "COS");
 
     SizeT nEl = p0->N_Elements();
     if( nEl == 0)
-      throw GDLException( e->CallingNode(), 
-			  "COS: Variable is undefined: "+e->GetParString(0));
+      e->Throw( 
+			  "Variable is undefined: "+e->GetParString(0));
     
     if( p0->Type() == COMPLEX)
 	return cos_fun_template< DComplexGDL>( p0);
@@ -310,15 +310,15 @@ namespace lib {
     SizeT nParam=e->NParam();
 
     if( nParam == 0)
-      throw GDLException( e->CallingNode(), 
-			  "TAN: Incorrect number of arguments.");
+      e->Throw( 
+			  "Incorrect number of arguments.");
 
     BaseGDL* p0 = e->GetParDefined( 0);//, "TAN");
 
     SizeT nEl = p0->N_Elements();
     if( nEl == 0)
-      throw GDLException( e->CallingNode(), 
-			  "TAN: Variable is undefined: "+e->GetParString(0));
+      e->Throw( 
+			  "Variable is undefined: "+e->GetParString(0));
     
     if( p0->Type() == COMPLEX)
 	return tan_fun_template< DComplexGDL>( p0);
@@ -358,15 +358,15 @@ namespace lib {
     SizeT nParam=e->NParam();
 
     if( nParam == 0)
-      throw GDLException( e->CallingNode(), 
-			  "SINH: Incorrect number of arguments.");
+      e->Throw( 
+			  "Incorrect number of arguments.");
 
     BaseGDL* p0 = e->GetParDefined( 0);//, "SINH");
 
     SizeT nEl = p0->N_Elements();
     if( nEl == 0)
-      throw GDLException( e->CallingNode(), 
-			  "SINH: Variable is undefined: "+e->GetParString(0));
+      e->Throw( 
+			  "Variable is undefined: "+e->GetParString(0));
     
     if( p0->Type() == COMPLEX)
 	return sinh_fun_template< DComplexGDL>( p0);
@@ -406,15 +406,15 @@ namespace lib {
     SizeT nParam=e->NParam();
 
     if( nParam == 0)
-      throw GDLException( e->CallingNode(), 
-			  "COSH: Incorrect number of arguments.");
+      e->Throw( 
+			  "Incorrect number of arguments.");
 
     BaseGDL* p0 = e->GetParDefined( 0);//, "COSH");
 
     SizeT nEl = p0->N_Elements();
     if( nEl == 0)
-      throw GDLException( e->CallingNode(), 
-			  "COSH: Variable is undefined: "+e->GetParString(0));
+      e->Throw( 
+			  "Variable is undefined: "+e->GetParString(0));
     
     if( p0->Type() == COMPLEX)
 	return cosh_fun_template< DComplexGDL>( p0);
@@ -454,15 +454,15 @@ namespace lib {
     SizeT nParam=e->NParam();
 
     if( nParam == 0)
-      throw GDLException( e->CallingNode(), 
-			  "TANH: Incorrect number of arguments.");
+      e->Throw( 
+			  "Incorrect number of arguments.");
 
     BaseGDL* p0 = e->GetParDefined( 0);//, "TANH");
 
     SizeT nEl = p0->N_Elements();
     if( nEl == 0)
-      throw GDLException( e->CallingNode(), 
-			  "TANH: Variable is undefined: "+e->GetParString(0));
+      e->Throw( 
+			  "Variable is undefined: "+e->GetParString(0));
     
     if( p0->Type() == COMPLEX)
 	return tanh_fun_template< DComplexGDL>( p0);
@@ -492,12 +492,12 @@ namespace lib {
 
     SizeT nEl = p0->N_Elements();
     if( nEl == 0)
-      throw GDLException( e->CallingNode(), 
-			  "ASIN: Variable is undefined: "+e->GetParString(0));
+      e->Throw( 
+			  "Variable is undefined: "+e->GetParString(0));
     
     if( p0->Type() == COMPLEX || p0->Type() == COMPLEXDBL)
       {
-	throw GDLException( e->CallingNode(), 
+	e->Throw( 
 			    "Operation illegal with complex type.");
       }
     else if( p0->Type() == DOUBLE)
@@ -540,12 +540,12 @@ namespace lib {
 
     SizeT nEl = p0->N_Elements();
     if( nEl == 0)
-      throw GDLException( e->CallingNode(), 
-			  "ACOS: Variable is undefined: "+e->GetParString(0));
+      e->Throw( 
+			  "Variable is undefined: "+e->GetParString(0));
     
     if( p0->Type() == COMPLEX || p0->Type() == COMPLEXDBL)
       {
-	throw GDLException( e->CallingNode(), 
+	e->Throw( 
 			    "Operation illegal with complex type.");
       }
     else if( p0->Type() == DOUBLE)
@@ -604,19 +604,19 @@ namespace lib {
 
     SizeT nEl = p0->N_Elements();
     if( nEl == 0)
-      throw GDLException( e->CallingNode(), 
-			  "ATAN: Variable is undefined: "+e->GetParString(0));
+      e->Throw( 
+			  "Variable is undefined: "+e->GetParString(0));
     
     if( nParam == 2)
       {
 	BaseGDL* p1 = e->GetPar( 1);
 	if( p1 == NULL)
-	  throw GDLException( e->CallingNode(), 
-			      "ATAN: Variable is undefined: "+e->GetParString(1));
+	  e->Throw( 
+			      "Variable is undefined: "+e->GetParString(1));
 	SizeT nEl1 = p1->N_Elements();
 	if( nEl1 == 0)
-	  throw GDLException( e->CallingNode(), 
-			      "ATAN: Variable is undefined: "+e->GetParString(1));
+	  e->Throw( 
+			      "Variable is undefined: "+e->GetParString(1));
 	
 	DType t = (DTypeOrder[ p0->Type()] > DTypeOrder[ p1->Type()])? p0->Type() : p1->Type();
  
@@ -884,7 +884,7 @@ namespace lib {
 
 //     SizeT nEl = p0->N_Elements();
 //     if( nEl == 0)
-//       throw GDLException( e->CallingNode(), 
+//       e->Throw( 
 // 			  "ALOG10: Variable is undefined: "+e->GetParString(0));
     
 //     if( p0->Type() == COMPLEX)
@@ -956,7 +956,7 @@ namespace lib {
 
     SizeT nEl = p0->N_Elements();
     if( nEl == 0)
-      throw GDLException( e->CallingNode(), 
+      e->Throw( 
 			  "SQRT: Variable is undefined: "+e->GetParString(0));
     
     if( p0->Type() == COMPLEX)
@@ -1094,7 +1094,7 @@ namespace lib {
 
     SizeT nEl = p0->N_Elements();
     if( nEl == 0)
-      throw GDLException( e->CallingNode(), 
+      e->Throw( 
 			  "ROUND: Variable is undefined: "+e->GetParString(0));
 
     static SizeT l64Ix = e->KeywordIx( "L64");
@@ -1211,8 +1211,8 @@ namespace lib {
 
     SizeT nEl = p0->N_Elements();
     if( nEl == 0)
-      throw GDLException( e->CallingNode(), 
-			  "CEIL: Variable is undefined: "+e->GetParString(0));
+      e->Throw( 
+			  "Variable is undefined: "+e->GetParString(0));
 
     bool isKWSetL64 = e->KeywordSet( "L64");
 
@@ -1327,8 +1327,8 @@ namespace lib {
 
     SizeT nEl = p0->N_Elements();
     if( nEl == 0)
-      throw GDLException( e->CallingNode(), 
-			  "FLOOR: Variable is undefined: "+e->GetParString(0));
+      e->Throw( 
+			  "Variable is undefined: "+e->GetParString(0));
 
     bool isKWSetL64 = e->KeywordSet( "L64");
 

@@ -516,12 +516,14 @@ BaseGDL* EnvT::GetHeap( DPtr ID)
   return interpreter->GetHeap( ID);
 }
 
-// returns name of BaseGDL*
-const string EnvBaseT::GetString( BaseGDL*& p, bool calledFromHELP)
+// returns name of BaseGDL*&
+/*const*/ string EnvBaseT::GetString( BaseGDL*& p, bool calledFromHELP)
 {
   DSubUD* subUD=dynamic_cast<DSubUD*>(pro);
   
   SizeT nVar=env.size();
+  const string Default = "<Expression>";
+  string name = Default;
   for( SizeT ix=0; ix<nVar; ix++)
     {
       if( (env.Env(ix) != NULL && p != NULL && *env.Env(ix) == p) ||
@@ -529,9 +531,18 @@ const string EnvBaseT::GetString( BaseGDL*& p, bool calledFromHELP)
 	  (p != NULL && env.Loc( ix) == p) 
 	  )
 	{
-	  if( subUD != NULL) return subUD->GetVarName(ix);
-	  if( ix < pro->key.size()) return "KEYWORD_"+i2s(ix);
-	  return "PAR_VAR_"+i2s(ix - pro->key.size());
+	  if( subUD != NULL) {return subUD->GetVarName(ix);break;}
+
+	string callerName = Default;
+ 	if( this->Caller() != NULL)
+ 		callerName = this->Caller()->GetString( p, calledFromHELP);
+ 
+	if( callerName.length() < Default.length() || callerName.substr(0,Default.length()) != Default)
+		return callerName;
+
+	  if( ix < pro->key.size()) {name="<KEY_"+i2s(ix)+">";break;}
+	  name="<PAR_"+i2s(ix - pro->key.size())+">";
+	  break;
 	}
     }
   
@@ -543,10 +554,11 @@ const string EnvBaseT::GetString( BaseGDL*& p, bool calledFromHELP)
 //   if( sysVar != NULL) return sysVar->Name();
 
   // search common blocks
-  if( subUD != NULL)
+  if( name == Default && subUD != NULL)
     {
       string varName;
-      if( subUD->GetCommonVarName( p, varName)) return varName;
+      if( subUD->GetCommonVarName( p, varName)) 
+	return varName;
     }
 
     if( !p)
@@ -564,10 +576,10 @@ const string EnvBaseT::GetString( BaseGDL*& p, bool calledFromHELP)
 	// Data display
 	if( p->Type() == STRUCT)
 	{
-		DStructGDL* s = static_cast<DStructGDL*>( p);
+/*		DStructGDL* s = static_cast<DStructGDL*>( p);
 		os << "-> ";
 		os << (s->Desc()->IsUnnamed()? "<Anonymous>" : s->Desc()->Name());
-		os << " ";
+		os << " ";*/
 	}
 	else if( p->Dim( 0) == 0)
 	{
@@ -591,11 +603,93 @@ const string EnvBaseT::GetString( BaseGDL*& p, bool calledFromHELP)
 	
 	os << ">";
 	
-	return os.str();
+	name += " " + os.str();
+// 	return os.str();
 	}
 
-  return string("<Expression>");
+  return name; //string("<Expression>");
 }
+
+// // returns name of BaseGDL*
+// const string EnvBaseT::GetString( BaseGDL* p)
+// {
+//   DSubUD* subUD=dynamic_cast<DSubUD*>(pro);
+//   
+//   SizeT nVar=env.size();
+//   for( SizeT ix=0; ix<nVar; ix++)
+//     {
+//       if( (env.Env(ix) != NULL && p != NULL && *env.Env(ix) == p) ||
+// // 	  (&env[ ix] == &p) || 
+// 	  (p != NULL && env.Loc( ix) == p) 
+// 	  )
+// 	{
+// 	  if( subUD != NULL) return subUD->GetVarName(ix);
+// 	  if( ix < pro->key.size()) return "KEYWORD_"+i2s(ix);
+// 	  return "PAR_VAR_"+i2s(ix - pro->key.size());
+// 	}
+//     }
+//   
+//   // search system variables
+//   // note: system variables are never passed by reference
+//   // ie. always a copy is passed.
+//   // therefore the help function never returns the sys var's name here
+// //   DVar* sysVar=FindInVarList( sysVarList, p);
+// //   if( sysVar != NULL) return sysVar->Name();
+// 
+//   // search common blocks
+//   if( subUD != NULL)
+//     {
+//       string varName;
+//       if( subUD->GetCommonVarName( p, varName)) return varName;
+//     }
+// 
+//     if( !p)
+//       {
+//         return  "<Undefined>";
+//       }
+// 
+// //     if( !calledFromHELP)
+// 	{
+// 	ostringstream os;
+// 	os << '<' << left;
+// 	os.width(10);
+// 	os << p->TypeStr() << right;
+// 	
+// 	// Data display
+// 	if( p->Type() == STRUCT)
+// 	{
+// 		DStructGDL* s = static_cast<DStructGDL*>( p);
+// 		os << "-> ";
+// 		os << (s->Desc()->IsUnnamed()? "<Anonymous>" : s->Desc()->Name());
+// 		os << " ";
+// 	}
+// 	else if( p->Dim( 0) == 0)
+// 	{
+// 		os << "(";
+// 		if (p->Type() == STRING)
+// 		{
+// 		// trim string larger than 45 characters
+// 		DString dataString = (*static_cast<DStringGDL*>(p))[0];
+// 		os << "'" << StrMid( dataString,0,45,0) << "'";
+// 		if( dataString.length() > 45) os << "...";
+// 		}
+// 		else
+// 		{
+// 		p->ToStream( os);
+// 		}
+// 		os << ")";
+// 	}
+// 	
+// 	// Dimension display
+// 	if( p->Dim( 0) != 0) os << p->Dim();
+// 	
+// 	os << ">";
+// 	
+// 	return os.str();
+// 	}
+// 
+//   return string("<Expression>");
+// }
 
 void EnvBaseT::SetKeyword( const string& k, BaseGDL* const val) // value
 {

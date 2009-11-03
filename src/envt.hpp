@@ -82,6 +82,12 @@ void SetLineNumber(int l)
 lineNumber = l;
 }
 
+  // raise an exception from within a library function
+  // automatically cares for adding line/column info and the
+  // function name. 's' should be set to the 'raw' error message
+  // saves some typing :-)
+  void Throw( const std::string& s)
+  { throw GDLException( CallingNode(), pro->ObjectName()+": "+s);}
 
   // finds the global variable pp (used by arg_present function)
   int FindGlobalKW( BaseGDL** pp) { return env.FindGlobal( pp);}
@@ -157,7 +163,10 @@ lineNumber = l;
   const std::string GetString( SizeT ix);
   
   // get name of 'p'
-  const std::string GetString( BaseGDL*& p, bool calledFromHELP=false);
+  /*const*/ std::string GetString( BaseGDL*& p, bool calledFromHELP=false);
+
+//   // get name of 'p'
+//   const std::string GetString( BaseGDL* p);
 
   virtual const std::string GetFilename() const=0;
 
@@ -299,12 +308,12 @@ public:
   // API for library functions
   // *************************
 
-  // raise an exception from within a library function
-  // automatically cares for adding line/column info and the
-  // function name. 's' should be set to the 'raw' error message
-  // saves some typing :-)
-  void Throw( const std::string& s)
-  { throw GDLException( CallingNode(), pro->ObjectName()+": "+s);}
+//   // raise an exception from within a library function
+//   // automatically cares for adding line/column info and the
+//   // function name. 's' should be set to the 'raw' error message
+//   // saves some typing :-)
+//   void Throw( const std::string& s)
+//   { throw GDLException( CallingNode(), pro->ObjectName()+": "+s);}
 
   // will print the message (can be multiline) and exit
   // first usage in "math_fun_ac.cpp"

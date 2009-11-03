@@ -43,6 +43,7 @@ private:
     static ProgNode  NULLProgNode;
     static ProgNodeP NULLProgNodeP;
 
+    friend class BaseGDL;
     friend class ProgNode;
     friend class ARRAYDEFNode;
     friend class STRUCNode;

@@ -75,6 +75,7 @@ DInterpreter::DInterpreter(): GDLInterpreter()
   assert( ProgNode::interpreter == NULL);
   ProgNode::interpreter = this; // interface to expr( ProgNodeP)
   EnvT::interpreter = this; 
+  BaseGDL::interpreter = this;
 
   //  tmpList.reserve(100);
 }
