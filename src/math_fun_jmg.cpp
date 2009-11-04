@@ -395,7 +395,7 @@ namespace lib {
       e->Throw( "Variable is undefined: "+e->GetParString(0));
 
     if (p0->Rank() != 2)
-      e->Throw( "RADON: Array must have 2 dimensions: "+e->GetParString(0));
+      e->Throw( "Array must have 2 dimensions: "+e->GetParString(0));
 
     DFloatGDL* p0F = static_cast<DFloatGDL*>
       (p0->Convert2( FLOAT, BaseGDL::COPY));
@@ -610,7 +610,7 @@ namespace lib {
 
     SizeT nParam=e->NParam();
     if( nParam < 4)
-      e->Throw( "TRIGRID: Incorrect number of arguments.");
+      e->Throw( "Incorrect number of arguments.");
 
     BaseGDL* p0 = e->GetParDefined( 0);
     BaseGDL* p1 = e->GetParDefined( 1);
@@ -620,31 +620,31 @@ namespace lib {
     if (p0->N_Elements() != p1->N_Elements() ||
 	p0->N_Elements() != p2->N_Elements() ||
 	p1->N_Elements() != p2->N_Elements())
-      e->Throw( "TRIGRID:  X, Y, or Z array dimensions are incompatible.");
+      e->Throw( "X, Y, or Z array dimensions are incompatible.");
 
     if( p3->Rank() == 0)
-      e->Throw( "TRIGRID: Expression must be an array "
+      e->Throw( "Expression must be an array "
 		"in this context: "+ e->GetParString(0));
     if (p3->N_Elements() % 3 != 0)
-      e->Throw( "TRIGRID: Array of triangles incorrectly dimensioned.");
+      e->Throw( "Array of triangles incorrectly dimensioned.");
     DLong n_tri = p3->N_Elements() / 3;
 
     if( p0->Rank() == 0)
-      e->Throw( "TRIGRID: Expression must be an array "
+      e->Throw( "Expression must be an array "
 		"in this context: "+ e->GetParString(0));
     if( p0->N_Elements() < 3)
-      e->Throw( "TRIGRID: Value of Bounds is out of allowed range.");
+      e->Throw( "Value of Bounds is out of allowed range.");
 
     if( p1->Rank() == 0)
-      e->Throw( "TRIGRID: Expression must be an array "
+      e->Throw( "Expression must be an array "
 		"in this context: "+ e->GetParString(1));
 
     if( p2->Rank() == 0)
-      e->Throw( "TRIGRID: Expression must be an array "
+      e->Throw( "Expression must be an array "
 		"in this context: "+ e->GetParString(2));
 
     if (p2->Rank() < 1 || p2->Rank() > 2)
-      e->Throw( "TRIGRID: Array must have 1 or 2 dimensions: "
+      e->Throw( "Array must have 1 or 2 dimensions: "
 		+e->GetParString(0));
 
     DDoubleGDL* GS=NULL;
@@ -652,10 +652,10 @@ namespace lib {
     if( nParam > 4) {
       BaseGDL* p4 = e->GetParDefined( 4);
       if( p4->Rank() == 0)
-	e->Throw( "TRIGRID: Expression must be an array "
+	e->Throw( "Expression must be an array "
 		  "in this context: "+ e->GetParString(4));
       if (p4->N_Elements() != 2)
-	e->Throw( "TRIGRID: Array must have 2 elements: "
+	e->Throw( "Array must have 2 elements: "
 		  +e->GetParString(4));
       GS = static_cast<DDoubleGDL*>
 	(p4->Convert2( DOUBLE, BaseGDL::COPY));
@@ -663,10 +663,10 @@ namespace lib {
       if( nParam == 6) {
 	BaseGDL* p5 = e->GetParDefined( 5);
 	if( p5->Rank() == 0)
-	  e->Throw( "TRIGRID: Expression must be an array "
+	  e->Throw( "Expression must be an array "
 		    "in this context: "+ e->GetParString(4));
 	if (p5->N_Elements() != 4)
-	  e->Throw( "TRIGRID: Array must have 4 elements: "
+	  e->Throw( "Array must have 4 elements: "
 		    +e->GetParString(5));
 	limits = static_cast<DDoubleGDL*>
 	  (p5->Convert2( DOUBLE, BaseGDL::COPY));
@@ -1011,11 +1011,11 @@ namespace lib {
 
     SizeT nParam=e->NParam();
     if( nParam < 3)
-      e->Throw( "POLY_2D: Incorrect number of arguments.");
+      e->Throw( "Incorrect number of arguments.");
 
     BaseGDL* p0 = e->GetParDefined( 0);
     if (p0->Rank() != 2)
-      e->Throw( "POLY_2D: Array must have 2 dimensions: "+e->GetParString(0));
+      e->Throw( "Array must have 2 dimensions: "+e->GetParString(0));
 
     BaseGDL* p1 = e->GetParDefined( 1);
     BaseGDL* p2 = e->GetParDefined( 2);
@@ -1023,10 +1023,10 @@ namespace lib {
     DLong interp=0;
     if (nParam >= 4) e->AssureLongScalarPar( 3, interp);
     if (interp < 0 || interp > 2)
-      e->Throw( "POLY_2D: Value of Interpolation type is out of allowed range.: "+e->GetParString(0));
+      e->Throw( "Value of Interpolation type is out of allowed range.: "+e->GetParString(0));
 
     if( nParam == 5)
-      e->Throw( "POLY_2d: Incorrect number of arguments.");
+      e->Throw( "Incorrect number of arguments.");
 
     DLong nCol = p0->Dim(0);
     DLong nRow = p0->Dim(1);
@@ -1054,14 +1054,14 @@ namespace lib {
     DLong lsqp2 = (DLong) sqp2;
 
     if (p1->N_Elements() == 1)
-      e->Throw( "POLY_2D: Value of Polynomial degree is out of allowed range.");
+      e->Throw( "Value of Polynomial degree is out of allowed range.");
     if (sqp1 != lsqp1)
-      e->Throw( "POLY_2D: Value of Polynomial degree is out of allowed range.");
+      e->Throw( "Value of Polynomial degree is out of allowed range.");
 
     if (p2->N_Elements() == 1)
-      e->Throw( "POLY_2D: Coefficient arrays must have (degree+1)^2 elements");
+      e->Throw( "Coefficient arrays must have (degree+1)^2 elements");
     if (sqp2 != lsqp2)
-      e->Throw( "POLY_2D: Coefficient arrays must have (degree+1)^2 elements");
+      e->Throw( "Coefficient arrays must have (degree+1)^2 elements");
 
     DLong nDegree = lsqp1 - 1;
     DLong nc = (nDegree + 1) * (nDegree + 1);

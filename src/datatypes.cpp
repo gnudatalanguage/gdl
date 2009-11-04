@@ -2141,6 +2141,10 @@ void Data_<Sp>::InsAt( Data_* srcIn, ArrayIndexListT* ixList, SizeT offset)
       else 
 	{
 	  SizeT len = srcIn->Dim( 0); // length of segment to copy
+          // TODO: IDL reports here (and probably in the insert-dimension case below as well) 
+          //       the name of a variable, e.g.:
+          //       IDL> a=[0,0,0] & a[2]=[2,2,2]
+          //       % Out of range subscript encountered: A.
 	  if( (destStart+len) > this->N_Elements()) //dim[0])
 	    throw GDLException("Out of range subscript encountered (lenght of insert exceeds array boundaries).");
 

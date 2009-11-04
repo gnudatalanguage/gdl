@@ -191,7 +191,7 @@ namespace lib {
   { 
     size_t nParam=e->NParam(2);
     if (nParam >3 && e->KeywordSet(0))
-      e->Throw("NCDF_ATTGET: The error is Global + varid, not allowed, proper text to come.");
+      e->Throw("The error is Global + varid, not allowed, proper text to come.");
 
     int status;
     nc_type att_type;

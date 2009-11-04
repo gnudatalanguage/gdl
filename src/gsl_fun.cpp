@@ -74,32 +74,26 @@ namespace lib {
     long singular=0;
 
     if( nParam == 0)
-      throw GDLException( e->CallingNode(), 
-			  "INVERT: Incorrect number of arguments.");
+      e->Throw( "Incorrect number of arguments.");
 
     BaseGDL* p0 = e->GetParDefined( 0);
 
     SizeT nEl = p0->N_Elements();
     if( nEl == 0)
-      throw GDLException( e->CallingNode(), 
-			  "INVERT: Variable is undefined: "+
-			  e->GetParString(0));
+      e->Throw( "Variable is undefined: " + e->GetParString(0));
   
     if (p0->Rank() > 2)
-      throw GDLException( e->CallingNode(), 
-			  "INVERT: Input must be a square matrix:"+
-			  e->GetParString(0));
+      e->Throw( "Input must be a square matrix:" + e->GetParString(0));
     
     if (p0->Rank() > 1) {
       if (p0->Dim(0) != p0->Dim(1))
-	throw GDLException( e->CallingNode(), 
-			    "INVERT: Input must be a square matrix:"+
-			    e->GetParString(0));
+        e->Throw( "Input must be a square matrix:" + e->GetParString(0));
     }
     
     // status 
     BaseGDL** p1L;
     if (nParam == 2) {
+      e->AssureGlobalPar( 1);
       p1L = &e->GetPar( 1);
       delete (*p1L); 
       //*p1L = new DLongGDL( singular); 
@@ -2546,6 +2540,7 @@ res_guard.reset (dres);
     { 
       Warning("IMSL_CONSTANT: unknown constant");
       res = new DDoubleGDL(nan);
+      twoparams = false;
     }
 
     // units

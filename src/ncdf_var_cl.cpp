@@ -640,7 +640,7 @@ else if(var_type == NC_LONG)
           {
             //	stride<0, stop it now.
             stri[trans[i]]=1;
-            e->Throw("NCDF_VARGET: STRIDE array cannot have negative elements"
+            e->Throw("STRIDE array cannot have negative elements"
               +e->GetParString(0));
           }
           else
@@ -984,7 +984,7 @@ else if(var_type == NC_LONG)
       else for (int i = 0; i < var_ndims; ++i) total = total * count[i];
     }
 
-    if (total > value_nelem) e->Throw("NCDF_VARPUT: Not enough elements (" 
+    if (total > value_nelem) e->Throw("Not enough elements (" 
       + i2s(total) + ">" + i2s(value_nelem) + ")");
 
     if (e->GetKW(2) != NULL)
