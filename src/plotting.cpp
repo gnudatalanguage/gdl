@@ -246,7 +246,22 @@ namespace lib {
   }
 
   void wshow( EnvT* e)
-  {}
+  {
+    Graphics* actDevice = Graphics::GetDevice();
+
+    SizeT nParam=e->NParam();
+    DLong wIx = 0;
+    if (nParam != 0) e->AssureLongScalarPar( 0, wIx);
+    else wIx = actDevice->ActWin();
+    bool show = true;
+    if (nParam == 2) { 
+      DIntGDL *showval = e->GetParAs<DIntGDL>(1);
+      show = (*showval)[0] != 0;
+    }
+    // TODO: iconify
+    if (!actDevice->WShow( wIx, show, false)) 
+      e->Throw( "Window is closed and unavailable.");
+  }
 
   void wdelete( EnvT* e)
   {

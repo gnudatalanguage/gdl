@@ -131,3 +131,17 @@ void GDLXStream::Clear( DLong bColor)
 
   plscolbg (r0, g0, b0);
 }
+
+void GDLXStream::Raise()
+{
+  XwDev *dev = (XwDev *) pls->dev;
+  XwDisplay *xwd = (XwDisplay *) dev->xwd;
+  XRaiseWindow(dev->xwd->display, dev->window);
+}
+
+void GDLXStream::Lower()
+{
+  XwDev *dev = (XwDev *) pls->dev;
+  XwDisplay *xwd = (XwDisplay *) dev->xwd;
+  XLowerWindow(dev->xwd->display, dev->window);
+}

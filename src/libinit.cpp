@@ -436,6 +436,7 @@ void LibInit()
   new DLibPro(lib::window,string("WINDOW"),1,windowKey);
   new DLibPro(lib::wdelete,string("WDELETE"),-1);
   new DLibPro(lib::wset,string("WSET"),1);
+  new DLibPro(lib::wshow,string("WSHOW"),2);
 
   const string cursorKey[]={"CHANGE","DOWN","NOWAIT","UP","WAIT",
 				"DATA","DEVICE","NORMAL",KLISTEND};

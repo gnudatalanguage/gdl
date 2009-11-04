@@ -46,6 +46,8 @@ public:
 
   void Clear();
   void Clear( DLong bColor);
+  void Raise();
+  void Lower();
 };
 
 #endif

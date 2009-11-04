@@ -233,6 +233,16 @@ class DeviceX: public Graphics
     actWin = wIx;
   }
 
+  void RaiseWin( int wIx)
+  {
+    if (wIx >= 0 && wIx < winList.size()) winList[ wIx]->Raise();
+  }
+
+  void LowerWin( int wIx)
+  {
+    if (wIx >= 0 && wIx < winList.size()) winList[ wIx]->Lower();
+  }
+
   // process user deleted windows
   // should be done in a thread
   void ProcessDeleted()
@@ -459,6 +469,19 @@ public:
       return false;
 
     SetActWin( wIx);
+    return true;
+  }
+
+  bool WShow( int ix, bool show, bool iconic)
+  {
+    ProcessDeleted();
+
+    int wLSize = winList.size();
+    if (ix >= wLSize || ix < 0 || winList[ ix] == NULL) return false;
+ 
+    if (show) RaiseWin(ix);
+    else LowerWin(ix);
+
     return true;
   }
 

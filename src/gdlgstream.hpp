@@ -51,6 +51,8 @@ public:
 
   virtual void eop()          { plstream::eop();}
 
+  virtual void Raise()          {}
+  virtual void Lower()          {}
   virtual void Clear()          {}
   virtual void Clear( DLong bColor)          {}
 
