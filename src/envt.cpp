@@ -517,7 +517,7 @@ BaseGDL* EnvT::GetHeap( DPtr ID)
 }
 
 // returns name of BaseGDL*&
-/*const*/ string EnvBaseT::GetString( BaseGDL*& p, bool calledFromHELP)
+const string EnvBaseT::GetString( BaseGDL*& p, bool calledFromHELP)
 {
   DSubUD* subUD=dynamic_cast<DSubUD*>(pro);
   

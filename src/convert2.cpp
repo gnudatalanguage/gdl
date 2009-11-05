@@ -48,6 +48,8 @@ inline string double2string( DDouble d)
 BaseGDL* DStructGDL::Convert2( DType destTy, BaseGDL::Convert2Mode mode)
 {
   if( destTy == t) return (((mode & BaseGDL::COPY) != 0)?Dup():this);
+//DInterpreter* testDbg = BaseGDL::interpreter;
+//int szDbg = BaseGDL::interpreter->CallStack().size();
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Struct expression not allowed in this context: "+BaseGDL::interpreter->Name(this));
   throw GDLException("Struct expression not allowed in this context.");
   return NULL; // get rid of warning 

@@ -66,15 +66,15 @@ namespace lib {
 
   BaseGDL* invert_fun( EnvT* e)
   {
-    SizeT nParam=e->NParam();
+    SizeT nParam=e->NParam(1);
     int s;
     float f32;
     double f64;
     double det;
     long singular=0;
 
-    if( nParam == 0)
-      e->Throw( "Incorrect number of arguments.");
+//     if( nParam == 0)
+//       e->Throw( "Incorrect number of arguments.");
 
     BaseGDL* p0 = e->GetParDefined( 0);
 
@@ -89,18 +89,14 @@ namespace lib {
       if (p0->Dim(0) != p0->Dim(1))
         e->Throw( "Input must be a square matrix:" + e->GetParString(0));
     }
-    
+
     // status 
-    BaseGDL** p1L;
-    if (nParam == 2) {
-      e->AssureGlobalPar( 1);
-      p1L = &e->GetPar( 1);
-      delete (*p1L); 
-      //*p1L = new DLongGDL( singular); 
-    }
-    
+	// check here, if not done, res would be pending in case of SetPar() throws
+	// SetPar() only throws in AssureGlobalPar()
+    if (nParam == 2) e->AssureGlobalPar( 1);
+
     // only one element matrix
-    
+
     if( nEl == 1) {
       if( p0->Type() == COMPLEXDBL) {
 	DComplexDblGDL* res = static_cast<DComplexDblGDL*>
@@ -115,7 +111,7 @@ namespace lib {
 	} else {
 	(*res)[0]= DComplexDbl(a/deno, -b/deno);
 	}
-	if (nParam == 2) *p1L = new DLongGDL( singular); 
+	if (nParam == 2) e->SetPar(1,new DLongGDL( singular)); 
 	return res;
       }
       if( p0->Type() == COMPLEX) {
@@ -131,7 +127,7 @@ namespace lib {
 	} else {
 	  (*res)[0]= DComplex(a/deno, -b/deno);
 	}
-	 if (nParam == 2) *p1L = new DLongGDL( singular); 
+	if (nParam == 2) e->SetPar(1,new DLongGDL( singular)); 
 	return res;
       }
       if( p0->Type() == DOUBLE) {
@@ -143,7 +139,7 @@ namespace lib {
 	  double unity=1.0 ;
 	  (*res)[0]= unity / ((*res)[0]);
 	}
-	 if (nParam == 2) *p1L = new DLongGDL( singular); 
+	if (nParam == 2) e->SetPar(1,new DLongGDL( singular)); 
 	return res;
       }
 
@@ -156,7 +152,7 @@ namespace lib {
       } else {
 	(*res)[0]= 1.0 / ((*res)[0]);
       }
-       if (nParam == 2) *p1L = new DLongGDL( singular);
+	if (nParam == 2) e->SetPar(1,new DLongGDL( singular)); 
       return res;
     }
     
@@ -205,7 +201,7 @@ namespace lib {
 	gsl_matrix_complex_free(mat);
 	gsl_matrix_complex_free(inverse);
 
-	 if (nParam == 2) *p1L = new DLongGDL( singular);
+	if (nParam == 2) e->SetPar(1,new DLongGDL( singular)); 
 	return res;
       }
     else if( p0->Type() == COMPLEXDBL)
@@ -235,7 +231,7 @@ namespace lib {
 	gsl_matrix_complex_free(mat);
 	gsl_matrix_complex_free(inverse);
 
-	 if (nParam == 2) *p1L = new DLongGDL( singular);
+	if (nParam == 2) e->SetPar(1,new DLongGDL( singular)); 
 	return res;
       }
     else if( p0->Type() == DOUBLE)
@@ -263,7 +259,7 @@ namespace lib {
 	gsl_matrix_free(mat);
 	gsl_matrix_free(inverse);
 
-	 if (nParam == 2) *p1L = new DLongGDL( singular);
+	if (nParam == 2) e->SetPar(1,new DLongGDL( singular)); 
 	return res;
       }
     else if( p0->Type() == FLOAT ||
@@ -323,7 +319,7 @@ namespace lib {
 	gsl_matrix_free(mat);
 	gsl_matrix_free(inverse);
 
-	 if (nParam == 2) *p1L = new DLongGDL( singular);
+	if (nParam == 2) e->SetPar(1,new DLongGDL( singular)); 
 	return res;
       }
     else 
@@ -332,7 +328,7 @@ namespace lib {
 	DFloatGDL* res = static_cast<DFloatGDL*>
 	  (p0->Convert2( FLOAT, BaseGDL::COPY));
 
-	if (nParam == 2) *p1L = new DLongGDL( singular);
+	if (nParam == 2) e->SetPar(1,new DLongGDL( singular)); 
 	return res;
       }
   }
