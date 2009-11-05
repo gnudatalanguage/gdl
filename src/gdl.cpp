@@ -103,16 +103,8 @@ int main(int argc, char *argv[])
 {
   if( atexit( AtExit) != 0) cerr << "atexit registration failed." << endl;
 
-  // checking if the user wants to see the welcome message
+  // indicates if the user wants to see the welcome message
   bool quiet = false;
-  for (SizeT a = 1; a < argc; ++a)
-  {
-    if (string(argv[a]) == "-quiet") 
-    {
-      quiet = true;
-      break;
-    }
-  }
 
   for( SizeT a=1; a< argc; ++a)
     {
@@ -151,6 +143,11 @@ int main(int argc, char *argv[])
       else if( string( argv[a]) == "-args")
       {
         for (int i = a + 1; i < argc; i++) lib::command_line_args.push_back(argv[i]);
+        break;
+      }
+      else if (string(argv[a]) == "-quiet") 
+      {
+        quiet = true;
         break;
       }
     }
