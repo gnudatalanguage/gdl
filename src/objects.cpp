@@ -27,6 +27,8 @@
 #include "objects.hpp"
 #include "graphics.hpp"
 
+//#include "dinterpreter.hpp"
+
 #ifdef HAVE_LIBWXWIDGETS
 #include "gdlwidget.hpp"
 #endif
@@ -36,6 +38,8 @@
 #endif
 
 using namespace std;
+
+// DInterpreter* interpreter = NULL;
 
 // instantiate the global lists
 VarListT      sysVarList;

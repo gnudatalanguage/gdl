@@ -34,13 +34,13 @@
 }
 #endif
 
-#include "initsysvar.hpp"
-#include "objects.hpp"
+//#include "initsysvar.hpp"
+//#include "objects.hpp"
 #include "GDLLexer.hpp"
 #include "GDLParser.hpp"
 #include "GDLTreeParser.hpp"
 #include "GDLInterpreter.hpp"
-#include "gdleventhandler.hpp"
+//#include "gdleventhandler.hpp"
 
 #ifdef HAVE_LIBREADLINE
 #include <readline/readline.h>

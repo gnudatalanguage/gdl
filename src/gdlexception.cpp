@@ -21,11 +21,21 @@
 #include "dnode.hpp"
 #include "initsysvar.hpp"
 #include "gdljournal.hpp"
+#include "dinterpreter.hpp"
 
 //#define GDL_DEBUG
 //#undef GDL_DEBUG
 
 using namespace std;
+
+DInterpreter* GDLException::interpreter = NULL;
+
+string GDLException::Name( BaseGDL* b)
+{
+if(interpreter!=NULL && interpreter->CallStack().size()>0) 
+	return interpreter->Name(b);
+return "";
+}
 
 GDLException::GDLException(const string& s, bool pre): 
   ANTLRException(s),
@@ -34,6 +44,16 @@ GDLException::GDLException(const string& s, bool pre):
   line( 0), col( 0), prefix( pre),
 		  targetEnv( NULL)
 {
+if(interpreter!=NULL && interpreter->CallStack().size()>0) 
+{
+  EnvBaseT* e = interpreter->CallStack().back();
+  errorNodeP = e->CallingNode();
+  msg = e->GetProName() + ": "+ s;
+}
+else
+{
+  msg = s;
+}
   // note: This is for cases, when form a destructor is thrown
   // in these cases, program aborts
 #ifdef GDL_DEBUG
@@ -48,18 +68,38 @@ GDLException::GDLException(const RefDNode eN, const string& s):
   line( 0), col( 0), prefix( true),
 		  targetEnv( NULL)
 {
+if(interpreter!=NULL && interpreter->CallStack().size()>0) 
+{
+  EnvBaseT* e = interpreter->CallStack().back();
+  errorNodeP = e->CallingNode();
+  msg = e->GetProName() + ": "+ s;
+}
+else
+{
+  msg = s;
+}
 #ifdef GDL_DEBUG
    cerr << s << endl;
 #endif
 }
 
-GDLException::GDLException(const ProgNodeP eN, const string& s): 
+GDLException::GDLException(const ProgNodeP eN, const string& s, bool calledFromEnvT__Throw): 
   ANTLRException(s), 
   errorNode(static_cast<RefDNode>(antlr::nullAST)),
   errorNodeP( eN),
   line( 0), col( 0), prefix( true),
 		  targetEnv( NULL)
 {
+if(!calledFromEnvT__Throw && interpreter!=NULL && interpreter->CallStack().size()>0)
+{
+  EnvBaseT* e = interpreter->CallStack().back();
+  if( errorNodeP == NULL) errorNodeP = e->CallingNode();
+  msg = e->GetProName() + ": "+ s;
+}
+else
+{
+  msg = s;
+}
 #ifdef GDL_DEBUG
    cerr << s << endl;
 #endif
@@ -72,6 +112,16 @@ GDLException::GDLException(SizeT l, SizeT c, const string& s):
   line( l), col( c), prefix( true),
 		  targetEnv( NULL)
 {
+if(interpreter!=NULL && interpreter->CallStack().size()>0) 
+{
+  EnvBaseT* e = interpreter->CallStack().back();
+  errorNodeP = e->CallingNode();
+  msg = e->GetProName() + ": "+ s;
+}
+else
+{
+  msg = s;
+}
 #ifdef GDL_DEBUG
    cerr << s << endl;
 #endif

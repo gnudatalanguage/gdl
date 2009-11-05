@@ -27,6 +27,7 @@
 #include "envt.hpp"
 #include "dinterpreter.hpp"
 #include "gdljournal.hpp"
+#include "gdleventhandler.hpp"
 
 #ifdef USE_MPI
 #include "mpi.h"
@@ -73,6 +74,7 @@ DInterpreter::DInterpreter(): GDLInterpreter()
   callStack.push_back(mainEnv);   // push main environment (necessary)
     
   assert( ProgNode::interpreter == NULL);
+  GDLException::SetInterpreter( this);
   ProgNode::interpreter = this; // interface to expr( ProgNodeP)
   EnvT::interpreter = this; 
   BaseGDL::interpreter = this;

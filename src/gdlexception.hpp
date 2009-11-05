@@ -31,6 +31,10 @@ class EnvUDT;
 
 class GDLException: public antlr::ANTLRException
 {
+  static DInterpreter* interpreter;
+
+std::string msg;
+
   RefDNode  errorNode;
   ProgNodeP errorNodeP;
   SizeT line;
@@ -40,6 +44,11 @@ class GDLException: public antlr::ANTLRException
   EnvUDT* targetEnv; // where to stop (depending on ON_ERROR)
 
 public:
+  static DInterpreter* Interpreter() { return interpreter;}
+  static void SetInterpreter( DInterpreter* i) { interpreter = i;}
+
+  static std::string Name( BaseGDL* b);
+
   GDLException(): ANTLRException(), 
     errorNode(static_cast<RefDNode>(antlr::nullAST)),
 		  errorNodeP( NULL),
@@ -48,10 +57,16 @@ public:
   {}
   GDLException(const std::string& s, bool pre = true);
   GDLException(const RefDNode eN, const std::string& s);
-  GDLException(const ProgNodeP eN, const std::string& s);
+  GDLException(const ProgNodeP eN, const std::string& s, bool calledFromEnvT__Throw=false);
   GDLException(SizeT l, SizeT c, const std::string& s);
 
   ~GDLException() throw() {}
+
+std::string toString() const
+	{
+		return msg;
+	}
+
 
   SizeT getLine() const 
   { 

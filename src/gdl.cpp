@@ -35,6 +35,7 @@
 #include "dinterpreter.hpp"
 #include "terminfo.hpp"
 #include "sigfpehandler.hpp"
+#include "gdleventhandler.hpp"
 
 #ifdef USE_MPI
 #include "mpi.h"

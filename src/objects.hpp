@@ -33,6 +33,9 @@
 #include "gdlpython.hpp"
 #endif
 
+// class DInterpreter;
+// extern DInterpreter* interpreter;
+
 extern VarListT      sysVarList;
 extern VarListT      sysVarRdOnlyList;
 
