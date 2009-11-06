@@ -87,7 +87,7 @@ lineNumber = l;
   // function name. 's' should be set to the 'raw' error message
   // saves some typing :-)
   void Throw( const std::string& s)
-  { throw GDLException( CallingNode(), pro->ObjectName()+": "+s, true);}
+  { throw GDLException( CallingNode(), pro->ObjectName()+": "+s, false, false);}
 
   // finds the global variable pp (used by arg_present function)
   int FindGlobalKW( BaseGDL** pp) { return env.FindGlobal( pp);}

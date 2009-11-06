@@ -3715,8 +3715,7 @@ namespace lib {
     // nicer error message (Disregard if socket)
     if ( fileUnits[ lun-1].SockNum() == -1) {
       if( !fileUnits[ lun-1].IsOpen())
-	throw GDLIOException( e->CallingNode(), e->GetPro()->ObjectName()+
-			      ": File unit is not open: "+i2s( lun)+".");
+	throw GDLIOException( e->CallingNode(), "File unit is not open: "+i2s( lun)+".");
 
       if( fileUnits[ lun-1].Eof())
 	return new DIntGDL( 1);

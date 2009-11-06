@@ -57,7 +57,7 @@ public:
   {}
   GDLException(const std::string& s, bool pre = true);
   GDLException(const RefDNode eN, const std::string& s);
-  GDLException(const ProgNodeP eN, const std::string& s, bool calledFromEnvT__Throw=false);
+  GDLException(const ProgNodeP eN, const std::string& s, bool decorate=true, bool overWriteNode=true);
   GDLException(SizeT l, SizeT c, const std::string& s);
 
   ~GDLException() throw() {}

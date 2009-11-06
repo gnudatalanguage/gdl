@@ -48,7 +48,8 @@ if(interpreter!=NULL && interpreter->CallStack().size()>0)
 {
   EnvBaseT* e = interpreter->CallStack().back();
   errorNodeP = e->CallingNode();
-  msg = e->GetProName() + ": "+ s;
+  msg = e->GetProName();
+  if( msg != "$MAIN$") msg +=  ": "+ s; else msg = s;
 }
 else
 {
@@ -72,7 +73,8 @@ if(interpreter!=NULL && interpreter->CallStack().size()>0)
 {
   EnvBaseT* e = interpreter->CallStack().back();
   errorNodeP = e->CallingNode();
-  msg = e->GetProName() + ": "+ s;
+  msg = e->GetProName();
+  if( msg != "$MAIN$") msg +=  ": "+ s; else msg = s;
 }
 else
 {
@@ -83,18 +85,23 @@ else
 #endif
 }
 
-GDLException::GDLException(const ProgNodeP eN, const string& s, bool calledFromEnvT__Throw): 
+GDLException::GDLException(const ProgNodeP eN, const string& s, bool decorate, bool overWriteNode): 
   ANTLRException(s), 
   errorNode(static_cast<RefDNode>(antlr::nullAST)),
   errorNodeP( eN),
   line( 0), col( 0), prefix( true),
 		  targetEnv( NULL)
 {
-if(!calledFromEnvT__Throw && interpreter!=NULL && interpreter->CallStack().size()>0)
+if( overWriteNode && interpreter!=NULL && interpreter->CallStack().size()>0) 
 {
   EnvBaseT* e = interpreter->CallStack().back();
-  if( errorNodeP == NULL) errorNodeP = e->CallingNode();
-  msg = e->GetProName() + ": "+ s;
+  errorNodeP = e->CallingNode();
+}
+if( decorate && interpreter!=NULL && interpreter->CallStack().size()>0)
+{
+  EnvBaseT* e = interpreter->CallStack().back();
+  msg = e->GetProName();
+  if( msg != "$MAIN$") msg +=  ": "+ s; else msg = s;
 }
 else
 {
@@ -116,7 +123,8 @@ if(interpreter!=NULL && interpreter->CallStack().size()>0)
 {
   EnvBaseT* e = interpreter->CallStack().back();
   errorNodeP = e->CallingNode();
-  msg = e->GetProName() + ": "+ s;
+  msg = e->GetProName();
+  if( msg != "$MAIN$") msg +=  ": "+ s; else msg = s;
 }
 else
 {
