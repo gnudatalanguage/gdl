@@ -909,12 +909,11 @@ namespace lib {
 			      xdr, width, f77, compress);
     } 
     catch( GDLException& ex) {
-      DString errorMsg = ex.toString()+" Unit: "+i2s( lun)+
-	", File: "+fileUnits[ lun-1].Name();
+      DString errorMsg = ex.getMessage()+ // getMessage gets the non-decorated error message
+	" Unit: "+i2s( lun)+", File: "+fileUnits[ lun-1].Name();
       
       if( !errorKeyword)
-	throw GDLIOException( e->CallingNode(), e->GetPro()->ObjectName()+
-			  ": "+errorMsg);
+	throw GDLIOException( e->CallingNode(), errorMsg);
       
       BaseGDL** err = &e->GetKW( errorIx);
       

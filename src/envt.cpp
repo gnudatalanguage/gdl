@@ -968,7 +968,7 @@ SizeT EnvBaseT::NParam( SizeT minPar)
   
   if( nPar < minPar)
     throw GDLException( callingNode, pro->ObjectName()+
-			": Incorrect number of arguments.");
+			": Incorrect number of arguments.",true);
   return nPar;
 }
 SizeT EnvT::NParam( SizeT minPar)
@@ -983,7 +983,7 @@ void EnvBaseT::SetNextPar( BaseGDL* const nextP) // by value (reset loc)
       if( static_cast<int>(parIx - pro->key.size()) >= pro->nPar)
 	{
 	  throw GDLException(callingNode,
-			     pro->Name()+": Incorrect number of arguments.");
+			     pro->Name()+": Incorrect number of arguments.",true);
 	}
     }
   else
@@ -1000,7 +1000,7 @@ void EnvBaseT::SetNextPar( BaseGDL** const nextP) // by reference (reset env)
       if( static_cast<int>(parIx - pro->key.size()) >= pro->nPar)
 	{
 	  throw GDLException(callingNode,
-			     pro->Name()+": Incorrect number of arguments.");
+			     pro->Name()+": Incorrect number of arguments.",true);
 	}
     }
   else

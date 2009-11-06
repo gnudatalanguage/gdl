@@ -2135,8 +2135,7 @@ actStream->wid( 0);
     p0_guard.reset( p0); // delete upon exit
 
     if(zVal->Dim(0) == 1)
-      throw GDLException( e->CallingNode(),
-			  "SURFACE: Array must have 2 dimensions:"
+      e->Throw( "Array must have 2 dimensions:"
 			  +e->GetParString(0));    
     xEl = zVal->Dim(1);
     yEl = zVal->Dim(0);
@@ -2678,8 +2677,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
 	yEl = zVal->Dim(0);
 
 	if(zVal->Dim(0) == 1)
-	  throw GDLException( e->CallingNode(),
-			      "CONTOUR: Array must have 2 dimensions: "
+	  e->Throw(  "Array must have 2 dimensions: "
 			      +e->GetParString(0));
 
 	xVal = new DDoubleGDL( dimension( xEl), BaseGDL::INDGEN);
@@ -2695,8 +2693,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
 	p0_guard.reset( p0); // delete upon exit
 
 	if(zVal->Dim(0) == 1)
-	  throw GDLException( e->CallingNode(),
-			      "CONTOUR: Array must have 2 dimensions: "
+	  e->Throw( "Array must have 2 dimensions: "
 			      +e->GetParString(0));
 
 	xVal = e->GetParAs< DDoubleGDL>( 1);
@@ -3134,7 +3131,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
       // are the levels ordered ?
       for ( SizeT i=1; i<nlevel; i++) {
 	if (clevel[i] <= clevel[i-1]) 
-	  throw GDLException( e->CallingNode(), "Contour levels must be in increasing order.");
+	  e->Throw( "Contour levels must be in increasing order.");
       }      
     } else {
       PLFLT zintv;
@@ -4156,7 +4153,7 @@ clevel[nlevel-1]=zEnd; //make this explicit
     line = false;
     e->AssureLongScalarKWIfPresent( "PSYM", psym);
     if( psym > 10 || psym < -8 || psym == 9)
-      throw GDLException( e->CallingNode(), 
+      e->Throw( 
 			  "PSYM (plotting symbol) out of range.");
   }
 
