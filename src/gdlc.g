@@ -726,7 +726,10 @@ procedure_call!//
                 #procedure_call = #id;
             }
         | (COMMA! pa:parameter_def_list)? 
-            { #procedure_call = #([PCALL, "pcall"], #id, #pa);}
+        { 
+            #procedure_call = #([PCALL, "pcall"], #id, #pa);
+            #procedure_call->SetLine(id->getLine());
+        }
         )
 	;	
 

@@ -3949,7 +3949,10 @@ void GDLParser::procedure_call() {
 		}
 		if ( inputState->guessing==0 ) {
 			procedure_call_AST = RefDNode(currentAST.root);
+			
 			procedure_call_AST = RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(PCALL,"pcall")))->add(antlr::RefAST(id_AST))->add(antlr::RefAST(pa_AST))));
+			procedure_call_AST->SetLine(id->getLine());
+			
 			currentAST.root = procedure_call_AST;
 			if ( procedure_call_AST!=RefDNode(antlr::nullAST) &&
 				procedure_call_AST->getFirstChild() != RefDNode(antlr::nullAST) )

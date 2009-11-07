@@ -85,12 +85,12 @@ DInterpreter::DInterpreter(): GDLInterpreter()
 // used in the statement function.
 // runs a new instance of the interpreter if not
 // at main level
-GDLInterpreter::RetCode GDLInterpreter::NewInterpreterInstance()
+GDLInterpreter::RetCode GDLInterpreter::NewInterpreterInstance( SizeT lineOffset)
 {
   if( callStack.size() <= 1) return RC_ABORT; // stay in main loop 
   
   assert( dynamic_cast<DInterpreter*>( this) != NULL);
-  return static_cast<DInterpreter*>( this)->InnerInterpreterLoop();
+  return static_cast<DInterpreter*>( this)->InnerInterpreterLoop(lineOffset);
 }
 
 DStructGDL* GDLInterpreter::ObjectStruct( BaseGDL* self, ProgNodeP mp)
@@ -182,7 +182,7 @@ DStructDesc* GDLInterpreter::GetStruct(const string& name, ProgNodeP cN)
   int proIx=ProIx(proName);
   if( proIx == -1)
     {
-      throw GDLException(cN, "Procedure not found: "+proName, true, false);
+					throw GDLException(cN, "Procedure not found: "+proName, true, false);
     }
   
   // 'guard' call stack
@@ -209,9 +209,26 @@ DStructDesc* GDLInterpreter::GetStruct(const string& name, ProgNodeP cN)
 void GDLInterpreter::SetFunIx( ProgNodeP f)
 {
   if( f->funIx == -1)
-    f->funIx=GetFunIx(f->getText());
+    f->funIx=GetFunIx(f);
 }
 
+int GDLInterpreter::GetFunIx( ProgNodeP f)
+{
+  string subName = f->getText();
+  int funIx=FunIx(subName);
+  if( funIx == -1)
+    {
+      // trigger reading/compiling of source file
+      /*bool found=*/ SearchCompilePro(subName);
+            
+      funIx=FunIx(subName);
+      if( funIx == -1)
+	{
+	  throw GDLException(f, "Function not found: "+subName, true, false);
+	}
+    }
+  return funIx;
+}
 int GDLInterpreter::GetFunIx( const string& subName)
 {
   int funIx=FunIx(subName);
@@ -656,8 +673,15 @@ string GetLine( istream* in)
   return line;
 }
 
+void AddLineOffset( SizeT lineOffset, RefDNode astR)
+{
+astR->SetLine( astR->getLine() + lineOffset);
+if( astR->getFirstChild() != NULL) AddLineOffset( lineOffset, (RefDNode)astR->getFirstChild() );
+if( astR->getNextSibling() != NULL) AddLineOffset( lineOffset, (RefDNode)astR->getNextSibling() );
+}
+
 // execute one line of code (commands and statements)
-DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in)
+DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffset)
 {
   string line = (in != NULL) ? ::GetLine(in) : GetLine();
 
@@ -737,6 +761,10 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in)
     
     //    lexer->Parser().interactive();
     theAST = lexer->Parser().getAST();
+
+    // consider line offset
+AddLineOffset( lineOffset, theAST);
+
   }
   catch( GDLException e)
     {
@@ -930,7 +958,7 @@ string DInterpreter::GetLine()
 
 // reads user input and executes it
 // inner loop (called via Control-C, STOP, error)
-GDLInterpreter::RetCode DInterpreter::InnerInterpreterLoop()
+GDLInterpreter::RetCode DInterpreter::InnerInterpreterLoop(SizeT lineOffset)
 {
 
   bool runCmd = false;
@@ -939,7 +967,7 @@ GDLInterpreter::RetCode DInterpreter::InnerInterpreterLoop()
 
 //     try
 //       {
-	DInterpreter::CommandCode ret=ExecuteLine();
+	DInterpreter::CommandCode ret=ExecuteLine(NULL, lineOffset);
 	if( ret == CC_RETURN) return RC_RETURN;
 	if( ret == CC_CONTINUE) return RC_OK; 
 //       }

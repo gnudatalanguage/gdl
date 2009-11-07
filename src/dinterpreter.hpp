@@ -89,7 +89,7 @@ public:
   DInterpreter();
   
   // execute one line of code
-  CommandCode ExecuteLine( std::istream* in = NULL);
+  CommandCode ExecuteLine( std::istream* in = NULL, SizeT lineOffset = 0);
   void        ExecuteFile( const std::string& file);  
 
   // run a list of commands from 'in'. Used by python module. Returns success
@@ -97,7 +97,7 @@ public:
   // the main program for interactive mode
   GDLInterpreter::RetCode InterpreterLoop( const std::string& startup);  
   // called within InterpreterLoop()
-  GDLInterpreter::RetCode InnerInterpreterLoop();  
+  GDLInterpreter::RetCode InnerInterpreterLoop(SizeT lineOffset);  
 };
 
 #endif

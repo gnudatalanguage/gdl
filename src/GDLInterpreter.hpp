@@ -87,6 +87,7 @@ public:
 
     // code in: dinterpreter.cpp
     static bool SearchCompilePro(const std::string& pro);
+    static int GetFunIx( ProgNodeP);
     static int GetFunIx( const std::string& subName);
     static int GetProIx( ProgNodeP);//const std::string& subName);
     static int GetProIx( const std::string& subName);
@@ -417,7 +418,7 @@ public:
         return ret;
     }
 
-    RetCode NewInterpreterInstance(); // code in dinterpreter.cpp
+    RetCode NewInterpreterInstance(SizeT lineOffset); // code in dinterpreter.cpp
 
     ~GDLInterpreter()
     {

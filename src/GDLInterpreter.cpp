@@ -283,7 +283,7 @@ GDLInterpreter::GDLInterpreter()
 		
 		sigControlC = false;
 		
-		retCode = NewInterpreterInstance();
+		retCode = NewInterpreterInstance(actPos->getLine()-1);
 		}
 		else if( debugMode != DEBUG_CLEAR)
 		{
@@ -303,7 +303,7 @@ GDLInterpreter::GDLInterpreter()
 		
 		debugMode = DEBUG_CLEAR;
 		
-		retCode = NewInterpreterInstance();
+		retCode = NewInterpreterInstance(actPos->getLine()-1);
 		}   
 		else
 		{
@@ -413,7 +413,7 @@ GDLInterpreter::GDLInterpreter()
 		// tell where we are
 		ReportError(e, "Execution halted at:", targetEnv == NULL); 
 		
-		retCode = NewInterpreterInstance();
+		retCode = NewInterpreterInstance(e.getLine()-1);
 		}    
 		else
 		{

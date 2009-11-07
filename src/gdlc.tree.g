@@ -509,6 +509,7 @@ label!
   : #(i:IDENTIFIER COLON)
 	{ 
 	  #label=#[LABEL,i->getText()];
+      #label->SetLine( i->getLine());
 	  comp.Label(#label); 
 	}	
   ;
@@ -521,7 +522,7 @@ jump_statement!//
 //	  #jump_statement=#[GOTO,i1->getText()]; // doesn't work
 //	  comp.Goto(#jump_statement); 
 	}	
-  | #(RETURN {bool exprThere=false;} (e:expr {exprThere=true;})?)
+  | #(r:RETURN {bool exprThere=false;} (e:expr {exprThere=true;})?)
 	{
 	  if( comp.IsFun())
 	  	{
@@ -529,6 +530,7 @@ jump_statement!//
                     "Return statement in functions "
                     "must have 1 value.");
 		#jump_statement=#([RETF,"retf"],e);
+      #jump_statement->SetLine(r->getLine()); 
 		}
 	  else
 	  	{
@@ -536,18 +538,21 @@ jump_statement!//
                     "Return statement in "
                     "procedures cannot have values.");
 		#jump_statement=#[RETP,"retp"]; // astFactory.create(RETP,"retp");
+      #jump_statement->SetLine(r->getLine()); 
 	  	}
 	}
-  | #(ON_IOERROR i2:IDENTIFIER)
+  | #(o:ON_IOERROR i2:IDENTIFIER)
 	{
       if( i2->getText() == "NULL")
             {
                 #jump_statement=astFactory->create(ON_IOERROR_NULL,
                                                    "on_ioerror_null");
+      #jump_statement->SetLine(o->getLine()); 
             }
       else
             {
                 #jump_statement=astFactory->create(ON_IOERROR,i2->getText());
+      #jump_statement->SetLine(o->getLine()); 
 //	            #jump_statement=#[ON_IOERROR,i2->getText()];
 //              comp.Goto(#jump_statement); // same handling		 
             }
@@ -561,19 +566,21 @@ if_statement!//
 	: #(i:IF e:expr s1:statement 
             (
                 {
+        #i->SetLabelRange( labelStart, comp.NDefLabel());
                 #if_statement=#(i,e,s1);
                 }
             | s2:statement
                 {
                 #i->setText( "if_else");
                 #i->setType( IF_ELSE);
+        #i->SetLabelRange( labelStart, comp.NDefLabel());
                 #if_statement=#(i,e,s1,s2);
                 }
             )
         )
-        {
-        #i->SetLabelRange( labelStart, comp.NDefLabel());
-        }
+//        {
+//        #i->SetLabelRange( labelStart, comp.NDefLabel());
+//        }
 	;
 
 procedure_call
