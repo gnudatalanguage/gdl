@@ -164,6 +164,7 @@ public:
     // code in: dinterpreter.cpp
     static bool SearchCompilePro(const std::string& pro);
     static int GetFunIx( const std::string& subName);
+    static int GetProIx( ProgNodeP);//const std::string& subName);
     static int GetProIx( const std::string& subName);
     DStructGDL* ObjectStruct( BaseGDL* self, ProgNodeP mp);
     DStructGDL* ObjectStructCheckAccess( BaseGDL* self, ProgNodeP mp);

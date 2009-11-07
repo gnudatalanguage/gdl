@@ -514,9 +514,10 @@ label!
   ;
 
 jump_statement!//
-  : #(GOTO i1:IDENTIFIER)
+  : #(g:GOTO i1:IDENTIFIER)
 	{ 
 	  #jump_statement=astFactory->create(GOTO,i1->getText());
+      #jump_statement->SetLine(g->getLine()); 
 //	  #jump_statement=#[GOTO,i1->getText()]; // doesn't work
 //	  comp.Goto(#jump_statement); 
 	}	

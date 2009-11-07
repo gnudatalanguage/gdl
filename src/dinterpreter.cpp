@@ -182,7 +182,7 @@ DStructDesc* GDLInterpreter::GetStruct(const string& name, ProgNodeP cN)
   int proIx=ProIx(proName);
   if( proIx == -1)
     {
-      throw GDLException(cN, "Procedure not found: "+proName);
+      throw GDLException(cN, "Procedure not found: "+proName, true, false);
     }
   
   // 'guard' call stack
@@ -232,9 +232,26 @@ int GDLInterpreter::GetFunIx( const string& subName)
 void GDLInterpreter::SetProIx( ProgNodeP f)
 {
   if( f->proIx == -1)
-    f->proIx=GetProIx(f->getText());
+    f->proIx=GetProIx(f);//->getText());
 }
 
+int GDLInterpreter::GetProIx( ProgNodeP f)
+{
+  string subName = f->getText();
+  int proIx=ProIx(subName);
+  if( proIx == -1)
+    {
+      // trigger reading/compiling of source file
+      /*bool found=*/ SearchCompilePro(subName);
+	  
+      proIx=ProIx(subName);
+      if( proIx == -1)
+	{
+	  throw GDLException(f,"Procedure not found: "+subName,true,false);
+	}
+    }
+  return proIx;
+}
 int GDLInterpreter::GetProIx( const string& subName)
 {
   int proIx=ProIx(subName);

@@ -1000,7 +1000,7 @@ void EnvBaseT::SetNextPar( BaseGDL** const nextP) // by reference (reset env)
       if( static_cast<int>(parIx - pro->key.size()) >= pro->nPar)
 	{
 	  throw GDLException(callingNode,
-			     pro->Name()+": Incorrect number of arguments.",true);
+			     pro->Name()+": Incorrect number of arguments.",false,false);
 	}
     }
   else

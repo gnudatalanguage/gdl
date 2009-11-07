@@ -269,7 +269,7 @@ void DSubUD::ResolveLabel( ProgNodeP p)
       int ix = labelList.Find( p->getText());
       if( ix == -1)
 	throw GDLException( p, ObjectName()+": Undefined label "+p->getText()+
-			    " referenced in GOTO statement.");
+			    " referenced in GOTO statement.",false,false);
       
       p->SetGotoIx( ix);
     }
