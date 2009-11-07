@@ -871,8 +871,8 @@ void EnvT::Catch()
       }
     if( !GlobalPar( 0))
       throw GDLException( callingNode,
-			  "CATCH: Expression must be named variable "
-			  "in this context.");
+			  "Expression must be named variable "
+			  "in this context: " + GetParString(0));
     caller->catchNode = callingNode->getNextSibling();
     caller->catchVar = &GetPar( 0);
     delete *caller->catchVar;
@@ -888,7 +888,7 @@ void EnvT::OnError()
     AssureLongScalarPar( 0, onE);
   if( onE < 0 || onE > 3)
     throw GDLException( callingNode,
-			"ON_ERROR: Value out of allowed range.");
+			"Value out of allowed range: " + GetParString(0));
   EnvUDT* caller = static_cast<EnvUDT*>(Caller());
   if( caller == NULL) return;
   caller->onError = onE;
@@ -928,7 +928,7 @@ BaseGDL*& EnvBaseT::GetParDefined(SizeT i)
   if( ix >= env.size() || env[ ix] == NULL) 
     throw GDLException( callingNode, pro->ObjectName()+
 			": Variable is undefined: "+
-			GetString( ix));
+			GetString( ix), false);
   return env[ ix];
 }
 BaseGDL*& EnvT::GetParDefined(SizeT i)
@@ -968,7 +968,7 @@ SizeT EnvBaseT::NParam( SizeT minPar)
   
   if( nPar < minPar)
     throw GDLException( callingNode, pro->ObjectName()+
-			": Incorrect number of arguments.",true);
+			": Incorrect number of arguments.", false);
   return nPar;
 }
 SizeT EnvT::NParam( SizeT minPar)

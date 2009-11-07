@@ -37,14 +37,14 @@ if(interpreter!=NULL && interpreter->CallStack().size()>0)
 return "";
 }
 
-GDLException::GDLException(const string& s, bool pre): 
+GDLException::GDLException(const string& s, bool pre, bool decorate): 
   ANTLRException(s),
   errorNode(static_cast<RefDNode>(antlr::nullAST)),
   errorNodeP( NULL),
   line( 0), col( 0), prefix( pre),
 		  targetEnv( NULL)
 {
-if(interpreter!=NULL && interpreter->CallStack().size()>0) 
+if(decorate && interpreter!=NULL && interpreter->CallStack().size()>0) 
 {
   EnvBaseT* e = interpreter->CallStack().back();
   errorNodeP = e->CallingNode();

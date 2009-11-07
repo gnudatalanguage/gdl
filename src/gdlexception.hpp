@@ -55,7 +55,7 @@ public:
 		  line( 0), col( 0), prefix( true),
 		  targetEnv( NULL)
   {}
-  GDLException(const std::string& s, bool pre = true);
+  GDLException(const std::string& s, bool pre = true, bool decorate=true);
   GDLException(const RefDNode eN, const std::string& s);
   GDLException(const ProgNodeP eN, const std::string& s, bool decorate=true, bool overWriteNode=true);
   GDLException(SizeT l, SizeT c, const std::string& s);

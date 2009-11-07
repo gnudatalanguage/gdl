@@ -1522,7 +1522,7 @@ namespace lib {
       msg = "";
     
     if( !continueKW && !info)
-      throw GDLException( msg, !noprefix);
+      throw GDLException( msg, !noprefix, false);
     
     if( !noprint && !noprefix)
       msg = SysVar::MsgPrefix() + msg;
