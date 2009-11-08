@@ -709,9 +709,14 @@ BaseGDL* BaseGDL::Rotate( DLong dir)
   throw GDLException("Operation not defined for UNDEF 30.");
 }
 
-BaseGDL* BaseGDL::Reverse( DLong dim)
+void BaseGDL::Reverse( DLong dim)
 { 
   throw GDLException("Operation not defined for UNDEF 31.");
+}
+
+BaseGDL* BaseGDL::DupReverse( DLong dim)
+{ 
+  throw GDLException("Operation not defined for UNDEF 32.");
 }
 
 // --- SA: MemStats stuff

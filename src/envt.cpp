@@ -108,7 +108,7 @@ EnvUDT::EnvUDT( ProgNodeP cN, BaseGDL* self,
       
       if( pro == NULL)
 	throw GDLException(cN,"Attempt to call undefined method: "+
-			   parent+"::"+mp);
+			   parent+"::"+mp,true,false);
     }
   else
     {
@@ -116,7 +116,7 @@ EnvUDT::EnvUDT( ProgNodeP cN, BaseGDL* self,
       
       if( pro == NULL)
 	throw GDLException(cN,"Attempt to call undefined method: "+
-			   desc->Name()+"::"+mp);
+			   desc->Name()+"::"+mp,true,false);
     }
 
   DSubUD* proUD=static_cast<DSubUD*>(pro);
@@ -157,7 +157,7 @@ EnvUDT::EnvUDT( BaseGDL* self, //DStructGDL* oStructGDL,
       
       if( pro == NULL)
 	throw GDLException(cN,"Attempt to call undefined method: "+
-			   parent+"::"+mp);
+			   parent+"::"+mp,true,false);
     }
   else
     {
@@ -165,7 +165,7 @@ EnvUDT::EnvUDT( BaseGDL* self, //DStructGDL* oStructGDL,
       
       if( pro == NULL)
 	throw GDLException(cN,"Attempt to call undefined method: "+
-			   desc->Name()+"::"+mp);
+			   desc->Name()+"::"+mp,true,false);
     }
 
   DSubUD* proUD=static_cast<DSubUD*>(pro);
@@ -870,8 +870,7 @@ void EnvT::Catch()
 	return;
       }
     if( !GlobalPar( 0))
-      throw GDLException( callingNode,
-			  "Expression must be named variable "
+      Throw( "Expression must be named variable "
 			  "in this context: " + GetParString(0));
     caller->catchNode = callingNode->getNextSibling();
     caller->catchVar = &GetPar( 0);
@@ -887,8 +886,7 @@ void EnvT::OnError()
   if( nParam > 0)
     AssureLongScalarPar( 0, onE);
   if( onE < 0 || onE > 3)
-    throw GDLException( callingNode,
-			"Value out of allowed range: " + GetParString(0));
+    Throw(	"Value out of allowed range: " + GetParString(0));
   EnvUDT* caller = static_cast<EnvUDT*>(Caller());
   if( caller == NULL) return;
   caller->onError = onE;
@@ -926,9 +924,7 @@ BaseGDL*& EnvBaseT::GetParDefined(SizeT i)
 
   //  cout << i << " -> " << ix << "  " << env.size() << "  env[ix] " << env[ix] << endl;
   if( ix >= env.size() || env[ ix] == NULL) 
-    throw GDLException( callingNode, pro->ObjectName()+
-			": Variable is undefined: "+
-			GetString( ix), false);
+    Throw("Variable is undefined: "+GetString( ix));
   return env[ ix];
 }
 BaseGDL*& EnvT::GetParDefined(SizeT i)
@@ -967,8 +963,7 @@ SizeT EnvBaseT::NParam( SizeT minPar)
   SizeT nPar = parIx - pro->key.size();
   
   if( nPar < minPar)
-    throw GDLException( callingNode, pro->ObjectName()+
-			": Incorrect number of arguments.", false);
+    Throw(	"Incorrect number of arguments.");
   return nPar;
 }
 SizeT EnvT::NParam( SizeT minPar)
@@ -983,7 +978,7 @@ void EnvBaseT::SetNextPar( BaseGDL* const nextP) // by value (reset loc)
       if( static_cast<int>(parIx - pro->key.size()) >= pro->nPar)
 	{
 	  throw GDLException(callingNode,
-			     pro->Name()+": Incorrect number of arguments.",true);
+			     pro->Name()+": Incorrect number of arguments.",false,false);
 	}
     }
   else
@@ -1022,17 +1017,18 @@ int EnvBaseT::GetKeywordIx( const std::string& k)
   if( pro->key.size() == 0)
     {
       if( pro->warnKey.size() == 0)
-	throw GDLException( callingNode,
-			    "Keyword parameters not allowed in call.");
+	Throw( "Keyword parameters not allowed in call.");
 
       // look if warnKeyword
       IDList::iterator wf=std::find_if(pro->warnKey.begin(),
 				       pro->warnKey.end(),
 				       strAbbrefEq_k);
       if( wf == pro->warnKey.end()) 
-	throw GDLException(callingNode,
-			   "Keyword parameter "+k+" not allowed in call "
+	Throw(  "Keyword parameter "+k+" not allowed in call "
 			   "to: "+pro->Name());
+// 	throw GDLException(callingNode,
+// 			   "Keyword parameter "+k+" not allowed in call "
+// 			   "to: "+pro->Name());
 
       Warning("Warning: Keyword parameter "+k+" not supported in call "
 	      "to: "+pro->Name() + ". Ignored.");
@@ -1057,9 +1053,11 @@ int EnvBaseT::GetKeywordIx( const std::string& k)
 					   pro->warnKey.end(),
 					   strAbbrefEq_k);
 	  if( wf == pro->warnKey.end()) 
-	    throw GDLException(callingNode,
-			       "Keyword parameter "+k+" not allowed in call "
+	    Throw( "Keyword parameter "+k+" not allowed in call "
 			       "to: "+pro->Name());
+/*	    throw GDLException(callingNode,
+			       "Keyword parameter "+k+" not allowed in call "
+			       "to: "+pro->Name());*/
 	  
 	  Warning("Warning: Keyword parameter "+k+" not supported in call "
 		  "to: "+pro->Name() + ". Ignored.");
@@ -1076,7 +1074,7 @@ int EnvBaseT::GetKeywordIx( const std::string& k)
 				   strAbbrefEq_k);
   if( ff != pro->key.end())
     {
-      throw GDLException(callingNode,"Ambiguous keyword abbreviation: "+k);
+      Throw("Ambiguous keyword abbreviation: "+k);
     }
     
   // every routine (which accepts keywords), also accepts (_STRICT)_EXTRA
@@ -1131,7 +1129,7 @@ void EnvBaseT::AssureLongScalarPar( SizeT pIx, DLong& scalar)
   DLongGDL* lp = static_cast<DLongGDL*>(p->Convert2( LONG, BaseGDL::COPY));
   auto_ptr<DLongGDL> guard_lp( lp);
   if( !lp->Scalar( scalar))
-    throw GDLException("Parameter must be a scalar in this context: "+
+    Throw("Parameter must be a scalar in this context: "+
 		       GetParString(pIx));
 }
 void EnvT::AssureLongScalarPar( SizeT pIx, DLong& scalar)
@@ -1162,14 +1160,14 @@ void EnvT::AssureLongScalarKW( SizeT eIx, DLong& scalar)
   BaseGDL* p = GetKW( eIx);
   
   if( p == NULL)
-    throw GDLException("Expression undefined: "+GetString(eIx));
+    Throw("Expression undefined: "+GetString(eIx));
   
   DLongGDL* lp= static_cast<DLongGDL*>(p->Convert2( LONG, BaseGDL::COPY));
   
   auto_ptr<DLongGDL> guard_lp( lp);
 
   if( !lp->Scalar( scalar))
-    throw GDLException("Expression must be a scalar in this context: "+
+    Throw("Expression must be a scalar in this context: "+
 		       GetString(eIx));
 }
 
@@ -1179,7 +1177,7 @@ void EnvT::AssureDoubleScalarPar( SizeT pIx, DDouble& scalar)
   DDoubleGDL* lp = static_cast<DDoubleGDL*>(p->Convert2( DOUBLE, BaseGDL::COPY));
   auto_ptr<DDoubleGDL> guard_lp( lp);
   if( !lp->Scalar( scalar))
-    throw GDLException("Parameter must be a scalar in this context: "+
+    Throw("Parameter must be a scalar in this context: "+
 		       GetParString(pIx));
 }
 void EnvT::AssureDoubleScalarKWIfPresent( const std::string& kw, DDouble& scalar)
@@ -1204,14 +1202,14 @@ void EnvT::AssureDoubleScalarKW( SizeT eIx, DDouble& scalar)
   BaseGDL* p = GetKW( eIx);
   
   if( p == NULL)
-    throw GDLException("Expression undefined: "+GetString(eIx));
+    Throw("Expression undefined: "+GetString(eIx));
   
   DDoubleGDL* lp= static_cast<DDoubleGDL*>(p->Convert2( DOUBLE, BaseGDL::COPY));
   
   auto_ptr<DDoubleGDL> guard_lp( lp);
 
   if( !lp->Scalar( scalar))
-    throw GDLException("Expression must be a scalar in this context: "+
+    Throw("Expression must be a scalar in this context: "+
 		       GetString(eIx));
 }
 
@@ -1222,7 +1220,7 @@ void EnvT::AssureFloatScalarPar( SizeT pIx, DFloat& scalar)
   DFloatGDL* lp = static_cast<DFloatGDL*>(p->Convert2( FLOAT, BaseGDL::COPY));
   auto_ptr<DFloatGDL> guard_lp( lp);
   if( !lp->Scalar( scalar))
-    throw GDLException("Parameter must be a scalar in this context: "+
+    Throw("Parameter must be a scalar in this context: "+
 		       GetParString(pIx));
 }
 void EnvT::AssureFloatScalarKWIfPresent( const std::string& kw, DFloat& scalar)
@@ -1247,14 +1245,14 @@ void EnvT::AssureFloatScalarKW( SizeT eIx, DFloat& scalar)
   BaseGDL* p = GetKW( eIx);
   
   if( p == NULL)
-    throw GDLException("Expression undefined: "+GetString(eIx));
+    Throw("Expression undefined: "+GetString(eIx));
   
   DFloatGDL* lp= static_cast<DFloatGDL*>(p->Convert2( FLOAT, BaseGDL::COPY));
   
   auto_ptr<DFloatGDL> guard_lp( lp);
 
   if( !lp->Scalar( scalar))
-    throw GDLException("Expression must be a scalar in this context: "+
+    Throw("Expression must be a scalar in this context: "+
 		       GetString(eIx));
 }
 
@@ -1265,7 +1263,7 @@ void EnvT::AssureStringScalarPar( SizeT pIx, DString& scalar)
   DStringGDL* lp = static_cast<DStringGDL*>(p->Convert2( STRING, BaseGDL::COPY));
   auto_ptr<DStringGDL> guard_lp( lp);
   if( !lp->Scalar( scalar))
-    throw GDLException("Parameter must be a scalar in this context: "+
+    Throw("Parameter must be a scalar in this context: "+
 		       GetParString(pIx));
 }
 void EnvT::AssureStringScalarKWIfPresent( const std::string& kw, DString& scalar)
@@ -1289,13 +1287,13 @@ void EnvT::AssureStringScalarKW( SizeT eIx, DString& scalar)
 {
   BaseGDL* p = GetKW( eIx);
   if( p == NULL)
-    throw GDLException("Expression undefined: "+GetString(eIx));
+    Throw("Expression undefined: "+GetString(eIx));
   
   DStringGDL* lp= static_cast<DStringGDL*>(p->Convert2( STRING, BaseGDL::COPY));
   auto_ptr<DStringGDL> guard_lp( lp);
 
   if( !lp->Scalar( scalar))
-    throw GDLException("Expression must be a scalar in this context: "+
+    Throw("Expression must be a scalar in this context: "+
 		       GetString(eIx));
 }
 

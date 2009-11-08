@@ -73,7 +73,7 @@ namespace lib {
     if( nParam <= 0)
       e->Throw( "Incorrect number of arguments.");
 
-    string BadDims="Array dimensions must be greater than 0.";
+    const string BadDims="Array dimensions must be greater than 0.";
 
 
     if( nParam == 1 ) {
@@ -148,7 +148,7 @@ namespace lib {
 //     }
 //     catch( GDLException& ex)
 //       {
-// 	throw GDLException( e->CallingNode(), "INTARR: "+ex.getMessage());
+// 	e->Throw( "INTARR: "+ex.getMessage());
 //       }
   }
   BaseGDL* uintarr( EnvT* e)
@@ -164,7 +164,7 @@ namespace lib {
 //     }
 //     catch( GDLException& ex)
 //       {
-// 	throw GDLException( e->CallingNode(), "UINTARR: "+ex.getMessage());
+// 	e->Throw( "UINTARR: "+ex.getMessage());
 //       }
   }
   BaseGDL* lonarr( EnvT* e)
@@ -180,7 +180,7 @@ namespace lib {
 /*    }
     catch( GDLException& ex)
       {
-	throw GDLException( e->CallingNode(), "LONARR: "+ex.getMessage());
+	e->Throw( "LONARR: "+ex.getMessage());
       }*/
   }
   BaseGDL* ulonarr( EnvT* e)
@@ -196,7 +196,7 @@ namespace lib {
  /*   }
     catch( GDLException& ex)
       {
-	throw GDLException( e->CallingNode(), "ULONARR: "+ex.getMessage());
+	e->Throw( "ULONARR: "+ex.getMessage());
       }
  */ 
 }
@@ -213,7 +213,7 @@ namespace lib {
 /*    }
     catch( GDLException& ex)
       {
-	throw GDLException( e->CallingNode(), "LON64ARR: "+ex.getMessage());
+	e->Throw( "LON64ARR: "+ex.getMessage());
       }*/
   }
   BaseGDL* ulon64arr( EnvT* e)
@@ -229,7 +229,7 @@ namespace lib {
 /*  }
     catch( GDLException& ex)
       {
-	throw GDLException( e->CallingNode(), "ULON64ARR: "+ex.getMessage());
+	e->Throw( "ULON64ARR: "+ex.getMessage());
       }*/
   }
   BaseGDL* fltarr( EnvT* e)
@@ -245,7 +245,7 @@ namespace lib {
    /* }
     catch( GDLException& ex)
       {
-	throw GDLException( e->CallingNode(), "FLTARR: "+ex.getMessage());
+	e->Throw( "FLTARR: "+ex.getMessage());
       }
   */}
   BaseGDL* dblarr( EnvT* e)
@@ -261,7 +261,7 @@ namespace lib {
    /* }
     catch( GDLException& ex)
       {
-	throw GDLException( e->CallingNode(), "DBLARR: "+ex.getMessage());
+	e->Throw( "DBLARR: "+ex.getMessage());
       }*/
   }
   BaseGDL* strarr( EnvT* e)
@@ -273,12 +273,12 @@ namespace lib {
 	throw GDLException( "Array dimensions must be greater than 0");
 
       if( e->KeywordSet(0)) 
-	throw GDLException( e->CallingNode(), "Keyword parameters not allowed in call.");
+	e->Throw( "Keyword parameters not allowed in call.");
       return new DStringGDL(dim);
  /*   }
     catch( GDLException& ex)
       {
-	throw GDLException( e->CallingNode(), "STRARR: "+ex.getMessage());
+	e->Throw( "STRARR: "+ex.getMessage());
       }
  */ }
   BaseGDL* complexarr( EnvT* e)
@@ -294,7 +294,7 @@ namespace lib {
     /*}
     catch( GDLException& ex)
       {
-	throw GDLException( e->CallingNode(), "COMPLEXARR: "+ex.getMessage());
+	e->Throw( "COMPLEXARR: "+ex.getMessage());
       }
  */ }
   BaseGDL* dcomplexarr( EnvT* e)
@@ -309,7 +309,7 @@ namespace lib {
  /*   }
     catch( GDLException& ex)
       {
-	throw GDLException( e->CallingNode(), "DCOMPLEXARR: "+ex.getMessage());
+	e->Throw( "DCOMPLEXARR: "+ex.getMessage());
       }
  */ }
   BaseGDL* ptrarr( EnvT* e)
@@ -337,7 +337,7 @@ namespace lib {
 /*    }
     catch( GDLException& ex)
       {
-	throw GDLException( e->CallingNode(), "PTRARR: "+ex.getMessage());
+	e->Throw( "PTRARR: "+ex.getMessage());
       }*/
   }
   BaseGDL* objarr( EnvT* e)
@@ -353,7 +353,7 @@ namespace lib {
   /*  }
     catch( GDLException& ex)
       {
-	throw GDLException( e->CallingNode(), "OBJARR: "+ex.getMessage());
+	e->Throw( "OBJARR: "+ex.getMessage());
       }
  */ }
 
@@ -375,7 +375,7 @@ namespace lib {
 	  {
 	    BaseGDL** p= &e->GetPar( 0);
 	    // 	    if( *p == NULL)
-	    // 	      throw GDLException( e->CallingNode(), "Parameter undefined: "+
+	    // 	      e->Throw( "Parameter undefined: "+
 	    // 				  e->GetParString(0));
 
 	    DPtr heapID= e->NewHeap( 1, *p);
@@ -584,7 +584,7 @@ namespace lib {
    /* }
     catch( GDLException& ex)
       {
-	throw GDLException( e->CallingNode(), "BINDGEN: "+ex.getMessage());
+	e->Throw( "BINDGEN: "+ex.getMessage());
       }
  */ }
   // keywords not supported yet
@@ -682,7 +682,7 @@ namespace lib {
    /* }
     catch( GDLException& ex)
       {
-	throw GDLException( e->CallingNode(), "UINDGEN: "+ex.getMessage());
+	e->Throw( "UINDGEN: "+ex.getMessage());
       }
  */ }
   BaseGDL* sindgen( EnvT* e)
@@ -698,7 +698,7 @@ namespace lib {
 /*    }
     catch( GDLException& ex)
       {
-	throw GDLException( e->CallingNode(), "SINDGEN: "+ex.getMessage());
+	e->Throw( "SINDGEN: "+ex.getMessage());
       }*/
   }
   BaseGDL* lindgen( EnvT* e)
@@ -710,7 +710,7 @@ namespace lib {
 /*    }
     catch( GDLException& ex)
       {
-	throw GDLException( e->CallingNode(), "LINDGEN: "+ex.getMessage());
+	e->Throw( "LINDGEN: "+ex.getMessage());
       }*/
   }
   BaseGDL* ulindgen( EnvT* e)
@@ -725,7 +725,7 @@ namespace lib {
 /*    }
     catch( GDLException& ex)
       {
-	throw GDLException( e->CallingNode(), "ULINDGEN: "+ex.getMessage());
+	e->Throw( "ULINDGEN: "+ex.getMessage());
       }*/
   }
   BaseGDL* l64indgen( EnvT* e)
@@ -740,7 +740,7 @@ namespace lib {
   /*  }
     catch( GDLException& ex)
       {
-	throw GDLException( e->CallingNode(), "L64INDGEN: "+ex.getMessage());
+	e->Throw( "L64INDGEN: "+ex.getMessage());
       }*/
   }
   BaseGDL* ul64indgen( EnvT* e)
@@ -755,7 +755,7 @@ namespace lib {
  /*   }
     catch( GDLException& ex)
       {
-	throw GDLException( e->CallingNode(), "UL64INDGEN: "+ex.getMessage());
+	e->Throw( "UL64INDGEN: "+ex.getMessage());
       }
  */ }
   BaseGDL* findgen( EnvT* e)
@@ -770,7 +770,7 @@ namespace lib {
   /*  }
     catch( GDLException& ex)
       {
-	throw GDLException( e->CallingNode(), "FINDGEN: "+ex.getMessage());
+	e->Throw( "FINDGEN: "+ex.getMessage());
       }*/
   }
   BaseGDL* dindgen( EnvT* e)
@@ -785,7 +785,7 @@ namespace lib {
   /*  }
     catch( GDLException& ex)
       {
-	throw GDLException( e->CallingNode(), "DINDGEN: "+ex.getMessage());
+	e->Throw( "DINDGEN: "+ex.getMessage());
       }*/
   }
   BaseGDL* cindgen( EnvT* e)
@@ -800,7 +800,7 @@ namespace lib {
   /*  }
     catch( GDLException& ex)
       {
-	throw GDLException( e->CallingNode(), "CINDGEN: "+ex.getMessage());
+	e->Throw( "CINDGEN: "+ex.getMessage());
       }*/
   }
   BaseGDL* dcindgen( EnvT* e)
@@ -815,7 +815,7 @@ namespace lib {
   /*  }
     catch( GDLException& ex)
       {
-	throw GDLException( e->CallingNode(), "DCINDGEN: "+ex.getMessage());
+	e->Throw( "DCINDGEN: "+ex.getMessage());
       }
  */ }
 
@@ -824,7 +824,7 @@ namespace lib {
     SizeT nParam=e->NParam();
 
     if( nParam != 1)
-      throw GDLException( e->CallingNode(), 
+      e->Throw( 
 			  "N_ELEMENTS: Incorrect number of arguments.");
 
     BaseGDL* p0=e->GetPar( 0);
@@ -1022,8 +1022,7 @@ namespace lib {
       if (typ == DOUBLE) return type_fun<DDoubleGDL>( e);
       if (typ == COMPLEX) return type_fun<DComplexGDL>( e);
       if (typ == COMPLEXDBL) return type_fun<DComplexDblGDL>( e);
-      throw GDLException( e->CallingNode(), 
-			  "FIX: Improper TYPE value.");
+      e->Throw( "Improper TYPE value.");
     }
     return type_fun<DIntGDL>( e);
   }
@@ -1061,8 +1060,7 @@ namespace lib {
     SizeT nParam=e->NParam();
 
     if( nParam == 0)
-      throw GDLException( e->CallingNode(), 
-			  "STRING: Incorrect number of arguments.");
+      e->Throw( "Incorrect number of arguments.");
 
     bool printKey =  e->KeywordSet( 4);
     int parOffset = 0; 
@@ -1110,7 +1108,7 @@ namespace lib {
 
 	SizeT bufSize = buf.size();
 	if( bufSize == 0)
-	  throw GDLException( "Internal error: STRING: print buffer empty.");
+	  e->Throw( "Internal error: print buffer empty.");
 
 	if( bufSize > 1) 
 	  {
@@ -1159,8 +1157,7 @@ namespace lib {
 
     int nParam=e->NParam();
     if( nParam == 0)
-      throw GDLException( e->CallingNode(),
-			  "CALL_FUNCTION: No function specified.");
+     e->Throw( "No function specified.");
     
     DString callF;
     e->AssureScalarPar<DStringGDL>( 0, callF);
@@ -1197,8 +1194,7 @@ namespace lib {
 
     int nParam=e->NParam();
     if( nParam < 2)
-      throw GDLException( e->CallingNode(),
-			  "CALL_METHOD: Name and object reference"
+      e->Throw(  "Name and object reference"
 			  " must be specified.");
     
     DString callP;
@@ -1212,7 +1208,7 @@ namespace lib {
     DFun* method= oStruct->Desc()->GetFun( callP);
 
     if( method == NULL)
-      throw GDLException( e->CallingNode(), "Method not found: "+callP);
+      e->Throw( "Method not found: "+callP);
 
     e->PushNewEnv( method, 2, &e->GetPar( 1));
     
@@ -1230,8 +1226,7 @@ namespace lib {
 	BaseGDL* p1 = e->GetParDefined( 1);
 	
 	if( !p1->Scalar())
-	  throw GDLException( e->CallingNode(), "Expression"
-			      " must be scalar in this context: "+
+	  e->Throw( "Expression must be scalar in this context: "+
 			      e->GetParString(1));
 	
 	quietCompile = p1->True();
@@ -1352,8 +1347,8 @@ namespace lib {
   {
     SizeT nParam=e->NParam();
     if( nParam != 2)
-      throw GDLException( e->CallingNode(),
-			  "LOGICAL_AND: Incorrect number of arguments.");
+      e->Throw(
+			  "Incorrect number of arguments.");
 
     BaseGDL* e1=e->GetParDefined( 0);//, "LOGICAL_AND");
     BaseGDL* e2=e->GetParDefined( 1);//, "LOGICAL_AND");
@@ -1409,8 +1404,8 @@ namespace lib {
   {
     SizeT nParam=e->NParam();
     if( nParam != 2)
-      throw GDLException( e->CallingNode(),
-			  "LOGICAL_OR: Incorrect number of arguments.");
+      e->Throw(
+			  "Incorrect number of arguments.");
 
     BaseGDL* e1=e->GetParDefined( 0);//, "LOGICAL_OR");
     BaseGDL* e2=e->GetParDefined( 1);//, "LOGICAL_OR");
@@ -1469,8 +1464,8 @@ namespace lib {
   {
     SizeT nParam=e->NParam();
     if( nParam != 1)
-      throw GDLException( e->CallingNode(),
-			  "LOGICAL_TRUE: Incorrect number of arguments.");
+      e->Throw(
+			  "Incorrect number of arguments.");
 
     BaseGDL* e1=e->GetParDefined( 0);//, "LOGICAL_TRUE");
     
@@ -1505,8 +1500,8 @@ namespace lib {
 
     BaseGDL* p0 = e->GetPar( 0);
     if( p0 == NULL)
-      throw GDLException( e->CallingNode(),
-			  "STRTRIM: Variable is undefined: "+
+      e->Throw(
+			  "Variable is undefined: "+
 			  e->GetParString(0));
     DStringGDL* p0S = static_cast<DStringGDL*>
       (p0->Convert2(STRING,BaseGDL::COPY));
@@ -1516,11 +1511,11 @@ namespace lib {
       {
 	BaseGDL* p1 = e->GetPar( 1);
 	if( p1 == NULL)
-	  throw GDLException( e->CallingNode(),
+	  e->Throw(
 			      "Variable is undefined: "+e->GetParString(1));
 	if( !p1->Scalar())
-	  throw GDLException( e->CallingNode(),
-			      "STRTRIM: Expression must be a "
+	  e->Throw(
+			      "Expression must be a "
 			      "scalar in this context: "+
 			      e->GetParString(1));
 	DLongGDL* p1L = static_cast<DLongGDL*>
@@ -1534,8 +1529,8 @@ namespace lib {
 	  {
 	    ostringstream os;
 	    p1->ToStream( os);
-	    throw GDLException( e->CallingNode(),
-				"STRTRIM: Value of <"+ p1->TypeStr() +
+	    e->Throw(
+				"Value of <"+ p1->TypeStr() +
 				"  ("+os.str()+
 				")> is out of allowed range.");
 	  }
@@ -1681,8 +1676,8 @@ namespace lib {
       {
 	stride = p1L->Dim( 0);
 	if( stride != p2L->Dim( 0))
-	  throw GDLException( e->CallingNode(),
-			      "STRMID: Starting offset and Length arguments "
+	  e->Throw(
+			      "Starting offset and Length arguments "
 			      "have incompatible first dimension.");	  
       }
     else
@@ -2181,8 +2176,8 @@ namespace lib {
     SizeT srcRank = srcDim.Rank();
 
     if( sumDim < 1 || sumDim > srcRank)
-      throw GDLException( e->CallingNode(), 
-			  "TOTAL: Array must have "+i2s(sumDim)+
+      e->Throw( 
+			  "Array must have "+i2s(sumDim)+
 			  " dimensions: "+e->GetParString(0));
 
     if( !cumulative)
@@ -3172,7 +3167,7 @@ namespace lib {
 	  cout << "MaxAllowedWidth " << MaxAllowedWidth <<endl;
 	}
 	if (!isfinite( (*p1d)[0]))
-	  e->Throw("% MEDIAN: Width must be > 1, and < dimension of array (NaN or Inf)");
+	  e->Throw("Width must be > 1, and < dimension of array (NaN or Inf)");
 	
  	DLongGDL* p1 = e->GetParAs<DLongGDL>(1);	
 
@@ -3208,10 +3203,10 @@ namespace lib {
 	if (debug == 1) {cout << "ici" <<endl;}
 	
 	if ( p0->Rank() == 1) {
-	  if (larg < width || width==1 ) e->Throw( "% MEDIAN: Width must be > 1, and < width of vector");
+	  if (larg < width || width==1 ) e->Throw( "Width must be > 1, and < width of vector");
 	} 
 	if ( p0->Rank() == 2) {	
-	  if (larg < width || haut < width || width==1) e->Throw("% MEDIAN: Width must be > 1, and < dimension of array");
+	  if (larg < width || haut < width || width==1) e->Throw("Width must be > 1, and < dimension of array");
 	}
 
 	// for 2D arrays, we use the algorithm described in paper
@@ -4180,8 +4175,7 @@ namespace lib {
       int compRes = regcomp( &regexp, pattern.c_str(), REG_EXTENDED);
       if (compRes) {
 	regerror(compRes, &regexp, err_msg, MAX_REGEXPERR_LENGTH);
-	throw GDLException(e->CallingNode(), 
-			   "STREGEX: Error processing regular expression: "+
+	e->Throw(  "Error processing regular expression: "+
 			   pattern+"\n           "+string(err_msg)+".");
       }
     }
@@ -4417,8 +4411,7 @@ namespace lib {
     
     if (compRes) {
       regerror(compRes, &regexp, err_msg, MAX_REGEXPERR_LENGTH);
-      throw GDLException(e->CallingNode(), 
-                         "STREGEX: Error processing regular expression: "+
+      e->Throw( "Error processing regular expression: "+
                          pattern+"\n           "+string(err_msg)+".");
     }
 
@@ -5259,11 +5252,13 @@ namespace lib {
     // if (p0->Rank() > 2 && e->KeywordSet("OVERWRITE") && e->GlobalPar(0))
     if (e->KeywordSet("OVERWRITE"))
     {
-      e->Throw("OVERWRITE keyword not supported yet (FIXME)");
-      ret = p0;
+      p0->Reverse(dim-1);
+//       e->Throw("OVERWRITE keyword not supported yet (FIXME)");
+      bool stolen = e->StealLocalPar( 0);
+      if( !stolen) e->GetPar(0) = NULL;
+      return p0;
     }
-    else ret = p0->Dup();
-    ret->Reverse(dim - 1);
+    else ret = p0->DupReverse(dim - 1);
     return ret;
   }
 

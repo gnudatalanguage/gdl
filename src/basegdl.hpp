@@ -378,7 +378,8 @@ public:
   
   virtual BaseGDL* Transpose( DUInt* perm);
   virtual BaseGDL* Rotate( DLong dir);
-  virtual BaseGDL* Reverse( DLong dim);
+  virtual void Reverse( DLong dim);
+  virtual BaseGDL* DupReverse( DLong dim);
 
   virtual void MinMax( DLong* minE, DLong* maxE, 
 		       BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN,

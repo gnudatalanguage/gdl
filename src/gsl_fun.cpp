@@ -609,21 +609,21 @@ namespace lib {
     double direct=-1.0;
 
     if( nParam == 0)
-      throw GDLException( e->CallingNode(), 
-			  "FFT: Incorrect number of arguments.");
+      e->Throw( 
+			  "Incorrect number of arguments.");
 
     BaseGDL* p0 = e->GetNumericArrayParDefined( 0);
 
     SizeT nEl = p0->N_Elements();
     if( nEl == 0)
-      throw GDLException( e->CallingNode(), 
-			  "FFT: Variable is undefined: "+e->GetParString(0));
+      e->Throw( 
+			  "Variable is undefined: "+e->GetParString(0));
   
     if( nParam == 2) {
       BaseGDL* p1 = e->GetPar( 1);
       if (p1->N_Elements() > 1)
-	throw GDLException( e->CallingNode(), 
-			    "FFT: Expression must be a scalar or 1 element array: "
+	e->Throw( 
+			    "Expression must be a scalar or 1 element array: "
 			    +e->GetParString(1));
 
       DDoubleGDL* direction = 
@@ -1135,7 +1135,7 @@ namespace lib {
     DLongGDL* input = e->IfDefGetKWAs<DLongGDL>( inputIx);
     if (input != NULL)
       if (input->N_Elements() < nbins)
-	throw GDLException( e->CallingNode(), 
+	e->Throw( 
 			    "HISTOGRAM: Expression " +e->GetString(inputIx) + 
 			    " does not have enough elements.");
       else if (input->N_Elements() > nbins)
@@ -1189,7 +1189,7 @@ namespace lib {
     if( e->KeywordPresent( 7)) {
 
       if (input != NULL)
-	throw GDLException( e->CallingNode(), 
+	e->Throw( 
 			    "HISTOGRAM: Conflicting keywords.");
 
       DULong k = 0;
@@ -1446,7 +1446,7 @@ namespace lib {
     SizeT nParam=e->NParam();
 
     if( nParam < 2)
-      throw GDLException( e->CallingNode(), 
+      e->Throw( 
 			  "INTERPOLATE: Incorrect number of arguments.");
 
     BaseGDL* p0 = e->GetParDefined( 0);
@@ -1466,7 +1466,7 @@ namespace lib {
     auto_ptr<BaseGDL> guard3;
 
     if( p0->Rank() < nParam-1)
-      throw GDLException( e->CallingNode(), 
+      e->Throw( 
 	    "INTERPOLATE: Number of parameters must agree with dimensions of argument.");
 
     bool cubic = false;
@@ -1482,12 +1482,12 @@ namespace lib {
     // If not GRID then check that rank and dims match
     if ( nParam == 3 && !grid) {
       if (p1->Rank() != p2->Rank())
-	throw GDLException( e->CallingNode(), 
+	e->Throw( 
 	      "INTERPOLATE: Coordinate arrays must have same length if Grid not set.");
       else {
 	for( SizeT i=0; i<p1->Rank(); ++i) {
 	  if (p1->Dim(i) != p2->Dim(i))
-	    throw GDLException( e->CallingNode(), 
+	    e->Throw( 
 		  "INTERPOLATE: Coordinate arrays must have same length if Grid not set.");
 	}
       }
@@ -1631,7 +1631,7 @@ namespace lib {
     if( nParam == 3) {
 
       if( cubic)
-	throw GDLException( e->CallingNode(), 
+	e->Throw( 
 	      "INTERPOLATE: Bicubic interpolation not yet supported.");
 
       if ( p1->Type() == DOUBLE) 
@@ -1682,7 +1682,7 @@ namespace lib {
     if( nParam == 4) {
 
       if( cubic)
-	throw GDLException( e->CallingNode(), 
+	e->Throw( 
 	      "INTERPOLATE: Bicubic interpolation not supported.");
 
       if ( p1->Type() == DOUBLE) 
@@ -1848,19 +1848,19 @@ namespace lib {
     double f64;
 
     if( nParam != 3)
-      throw GDLException( e->CallingNode(), 
+      e->Throw( 
 			  "LA_TRIRED: Incorrect number of arguments.");
 
     BaseGDL* p0 = e->GetNumericArrayParDefined( 0);
 
     SizeT nEl = p0->N_Elements();
     if( nEl == 0)
-      throw GDLException( e->CallingNode(), 
+      e->Throw( 
 			  "LA_TRIRED: Variable is undefined: "+ 
 			  e->GetParString(0));
     
     if (p0->Dim(0) != p0->Dim(1))
-      throw GDLException( e->CallingNode(), 
+      e->Throw( 
 			  "LA_TRIRED: Input must be a square matrix: "+ 
 			  e->GetParString(0));
 

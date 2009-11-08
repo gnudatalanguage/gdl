@@ -717,11 +717,11 @@ BaseGDL* Data_<Sp>::Transpose( DUInt* perm)
 
 // used by reverse
 template<class Sp> 
-BaseGDL* Data_<Sp>::Reverse( DLong dim)
+void Data_<Sp>::Reverse( DLong dim)
 {
   // SA: based on total_over_dim_template()
-  Data_* tmp = new Data_(dimension(1), BaseGDL::NOZERO);
-  auto_ptr<Data_> tmp_guard(tmp);
+  //   static Data_* tmp = new Data_(dimension(1), BaseGDL::NOZERO);
+  //auto_ptr<Data_> tmp_guard(tmp);
   SizeT nEl = N_Elements();
   SizeT revStride = this->dim.Stride(dim); 
   SizeT outerStride = this->dim.Stride(dim + 1);
@@ -736,12 +736,39 @@ BaseGDL* Data_<Sp>::Reverse( DLong dim)
       for (SizeT s = oi; s < half; s += revStride) 
       {
         SizeT opp = last_plus_oi - s;
-        (*tmp)[0] = (*this)[s];
+        Ty tmp = (*this)[s];
         (*this)[s] = (*this)[opp];
-        (*this)[opp] = (*tmp)[0];
+        (*this)[opp] = tmp;
       }
     }
   } 
+}
+template<class Sp> 
+BaseGDL* Data_<Sp>::DupReverse( DLong dim)
+{
+  // SA: based on total_over_dim_template()
+  Data_* res = new Data_(this->dim, BaseGDL::NOZERO);
+  auto_ptr<Data_> res_guard(res);
+  SizeT nEl = N_Elements();
+  SizeT revStride = this->dim.Stride(dim); 
+  SizeT outerStride = this->dim.Stride(dim + 1);
+  SizeT revLimit = this->dim[dim] * revStride;
+  for (SizeT o = 0; o < nEl; o += outerStride)
+  {
+    for (SizeT i = 0; i < revStride; ++i) 
+    {
+      SizeT oi = o + i; 
+      SizeT last_plus_oi = revLimit + oi - revStride + oi;
+      SizeT half = ((revLimit / revStride) / 2) * revStride + oi;
+      for (SizeT s = oi; s < half; s += revStride) 
+      {
+        SizeT opp = last_plus_oi - s;
+        (*res)[s] = (*this)[opp];
+        (*res)[opp] = (*this)[s];
+      }
+    }
+  }
+  return res_guard.release();
 }
 
 // rank must be 1 or 2 (already checked)

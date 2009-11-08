@@ -115,7 +115,8 @@ static	void operator delete( void *ptr);
 
   BaseGDL* Transpose( DUInt* perm);
   BaseGDL* Rotate( DLong dir);
-  BaseGDL* Reverse( DLong dim);
+  void Reverse( DLong dim);
+  BaseGDL* DupReverse( DLong dim);
 
   // for use by MIN and MAX functions
   void MinMax( DLong* minE, DLong* maxE, BaseGDL** minVal, BaseGDL** maxVal,

@@ -65,7 +65,7 @@ void ExtraT::Resolve()
 		}
 	      else if( strict)
 		{ // pro has no (_REF)_EXTRA) and _STRICT_EXTRA -> error
-		  throw GDLException( "Keyword "+tName+
+		  thisEnv->Throw( "Keyword "+tName+
 				      " not allowed in call to: "+
 				      pro->ObjectName());
 		}
@@ -118,7 +118,7 @@ void ExtraT::Resolve()
 			  else if( strict)
 			    { // pro has no (_REF)_EXTRA) and _STRICT_EXTRA -> 
 			      // error
-			      throw GDLException( "Keyword "+kName+
+			      thisEnv->Throw( "Keyword "+kName+
 						  " not allowed in call to: "+
 						  pro->ObjectName());
 			    }
