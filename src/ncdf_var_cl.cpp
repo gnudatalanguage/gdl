@@ -167,20 +167,20 @@ namespace lib {
     ncdf_varinq->AddTag("DATATYPE", &aString);
     ncdf_varinq->AddTag("NDIMS",  &aLong);
     ncdf_varinq->AddTag("NATTS",  &aLong);
-    ncdf_varinq->AddTag("DIM",  &aLongArr);
-
-//never for unnamed structs    structList.push_back(ncdf_varinq);
-    
+    if (var_ndims == 0) ncdf_varinq->AddTag("DIM", &aLong);
+    else ncdf_varinq->AddTag("DIM", &aLongArr);
 
     //fill the structure
     DStructGDL* inq=new DStructGDL(ncdf_varinq, dimension());
     inq->InitTag("NAME",DStringGDL(var_name));
 
-    dimension dim( var_ndims);
-    DLongGDL* dims_res = new DLongGDL(dim, BaseGDL::NOZERO);
-    for( size_t i=0; i<var_ndims; ++i) {
-      // reverse index order (fix from Sylwester Arabas)
-      (*dims_res)[ i] = var_dims[var_ndims-(i+1)];
+    DLongGDL* dims_res;
+    if (var_ndims == 0) dims_res = new DLongGDL(0);
+    else 
+    {
+      dims_res = new DLongGDL(dimension(var_ndims));
+      for( size_t i=0; i<var_ndims; ++i) 
+        (*dims_res)[ i] = var_dims[var_ndims-(i+1)];
     }
 
     inq->InitTag("DATATYPE",ncdf_gdl_typename(var_type));
@@ -189,8 +189,6 @@ namespace lib {
     inq->InitTag("DIM",*dims_res);
    
     return inq;
-
-
   }
 
   BaseGDL* ncdf_varid(EnvT* e)
