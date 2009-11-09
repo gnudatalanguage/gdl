@@ -587,7 +587,7 @@ GDLInterpreter::GDLInterpreter()
 		if( res == NULL)
 		throw GDLException( in, "Function "+
 		callStack.back()->GetProName()+
-		" must return a left-value in this context.");
+		" must return a left-value in this context.",false,false);
 		
 		_retTree = _t;
 		return res;
@@ -622,7 +622,7 @@ GDLInterpreter::GDLInterpreter()
 	if( res == NULL)
 	throw GDLException( call_lfun_AST_in, "Function "+
 	callStack.back()->GetProName()+
-	" must return a left-value in this context.");
+	" must return a left-value in this context.",false,false);
 	
 	_retTree = _t;
 	return res;
@@ -1090,7 +1090,7 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 	
 	if( !e->Scalar())
 	throw GDLException( _t, "Expression must be a"
-	" scalar in this context: "+Name(e));
+	" scalar in this context: "+Name(e),true,false);
 	
 	ProgNodeP b=_t; // remeber block begin
 	
@@ -1634,7 +1634,7 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 		if( callStack.back()->IsLocalKW( res))
 		throw GDLException( _t, 
 		"Attempt to return indirectly a local variable "
-		"from left-function.");
+		"from left-function.",true,false);
 		
 		break;
 	}
@@ -1657,7 +1657,7 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 		// (because it will be invalid after return otherwise)
 		if( !callStack.back()->GlobalKW(var->varIx))
 		throw GDLException( _t, 
-		"Attempt to return a non-global variable from left-function.");
+		"Attempt to return a non-global variable from left-function.",true,false);
 		
 		res=&callStack.back()->GetKW(var->varIx); 
 		
@@ -1820,7 +1820,7 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 		
 		throw GDLException( _t, 
 		"Indexed expression not allowed as left-function"
-		" return value.");
+		" return value.",true,false);
 		
 		_t = __t48;
 		_t = _t->getNextSibling();
@@ -1835,7 +1835,7 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 		
 		throw GDLException( _t, 
 		"Struct expression not allowed as left-function"
-		" return value.");
+		" return value.",true,false);
 		
 		_t = __t49;
 		_t = _t->getNextSibling();
@@ -1849,7 +1849,7 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 		
 		throw GDLException( _t, 
 		"System variable not allowed as left-function"
-		" return value.");
+		" return value.",true,false);
 		
 		break;
 	}
@@ -1868,7 +1868,7 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 		
 		delete e1;
 		throw GDLException( _t, 
-		"Expression not allowed as left-function return value.");
+		"Expression not allowed as left-function return value.",true,false);
 		
 		break;
 	}
@@ -1878,7 +1878,7 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 		_t = _retTree;
 		
 		throw GDLException( _t, 
-		"Constant not allowed as left-function return value.");
+		"Constant not allowed as left-function return value.",true,false);
 		
 		break;
 	}
@@ -1910,21 +1910,21 @@ BaseGDL**  GDLInterpreter::l_deref(ProgNodeP _t) {
 	DPtrGDL* ptr=dynamic_cast<DPtrGDL*>(e1);
 	if( ptr == NULL)
 	throw GDLException( _t, "Pointer type required"
-	" in this context: "+Name(e1));
+	" in this context: "+Name(e1),true,false);
 	DPtr sc; 
 	if( !ptr->Scalar(sc))
 	throw GDLException( _t, "Expression must be a "
-	"scalar in this context: "+Name(e1));
+	"scalar in this context: "+Name(e1),true,false);
 	if( sc == 0)
 	throw GDLException( _t, "Unable to dereference"
-	" NULL pointer: "+Name(e1));
+	" NULL pointer: "+Name(e1),true,false);
 	
 	try{
 	res = &GetHeap(sc);
 	}
 	catch( HeapException)
 	{
-	throw GDLException( _t, "Invalid pointer: "+Name(e1));
+	throw GDLException( _t, "Invalid pointer: "+Name(e1),true,false);
 	}
 	
 	_t = __t41;
@@ -2102,7 +2102,7 @@ BaseGDL*  GDLInterpreter::tmp_expr(ProgNodeP _t) {
 		_t = _retTree;
 		
 		if( *e2 == NULL)
-		throw GDLException( _t, "Variable is undefined: "+Name(e2));
+		throw GDLException( _t, "Variable is undefined: "+Name(e2),true,false);
 		
 		res = (*e2)->Dup();
 		
@@ -2358,7 +2358,7 @@ BaseGDL*  GDLInterpreter::l_decinc_indexable_expr(ProgNodeP _t,
 		
 		res = *e;
 		if( res == NULL)
-		throw GDLException( _t, "Variable is undefined: "+Name(e));
+		throw GDLException( _t, "Variable is undefined: "+Name(e),true,false);
 		
 		break;
 	}
@@ -2369,7 +2369,7 @@ BaseGDL*  GDLInterpreter::l_decinc_indexable_expr(ProgNodeP _t,
 		
 		res = *e;
 		if( res == NULL)
-		throw GDLException( _t, "Variable is undefined: "+Name(e));
+		throw GDLException( _t, "Variable is undefined: "+Name(e),true,false);
 		
 		break;
 	}
@@ -2411,8 +2411,8 @@ BaseGDL**  GDLInterpreter::l_defined_simple_var(ProgNodeP _t) {
 			
 			res=&callStack.back()->GetKW(var->varIx); 
 			if( *res == NULL)
-			throw GDLException( _t, "Variable is undefined: "+
-			callStack.back()->GetString(var->varIx));
+			throw GDLException( var, "Variable is undefined: "+
+			callStack.back()->GetString(var->varIx),true,false);
 			
 		}
 		else
@@ -2424,7 +2424,7 @@ BaseGDL**  GDLInterpreter::l_defined_simple_var(ProgNodeP _t) {
 			res=&varPtr->var->Data(); // returns BaseGDL* of var (DVar*) 
 			if( *res == NULL)
 			throw GDLException( _t, "Variable is undefined: "+
-			callStack.back()->GetString( *res));
+			callStack.back()->GetString( *res),true,false);
 			
 		}
 		_retTree = _t;
@@ -2443,7 +2443,7 @@ BaseGDL**  GDLInterpreter::l_defined_simple_var(ProgNodeP _t) {
 		res=&callStack.back()->GetKW(var->varIx); 
 		if( *res == NULL)
 		throw GDLException( _t, "Variable is undefined: "+
-		callStack.back()->GetString(var->varIx));
+		callStack.back()->GetString(var->varIx),true,false);
 		
 		break;
 	}
@@ -2456,7 +2456,7 @@ BaseGDL**  GDLInterpreter::l_defined_simple_var(ProgNodeP _t) {
 		res=&varPtr->var->Data(); // returns BaseGDL* of var (DVar*) 
 		if( *res == NULL)
 		throw GDLException( _t, "Variable is undefined: "+
-		callStack.back()->GetString( *res));
+		callStack.back()->GetString( *res),true,false);
 		
 		break;
 	}
@@ -2483,7 +2483,7 @@ BaseGDL**  GDLInterpreter::l_sys_var(ProgNodeP _t) {
 	sysVar->var=FindInVarList(sysVarList,sysVar->getText());
 	if( sysVar->var == NULL)		    
 	throw GDLException( _t, "Not a legal system variable: !"+
-	sysVar->getText());
+	sysVar->getText(),true,false);
 	
 	// note: this works, because system variables are never 
 	//       passed by reference
@@ -2492,7 +2492,7 @@ BaseGDL**  GDLInterpreter::l_sys_var(ProgNodeP _t) {
 	if( sysVarRdOnlyList[ i] == sysVar->var)
 	throw GDLException( _t, 
 	"Attempt to write to a readonly variable: !"+
-	sysVar->getText());
+	sysVar->getText(),true,false);
 	}
 	// system variables are always defined
 	res=&sysVar->var->Data();
@@ -2852,14 +2852,14 @@ void GDLInterpreter::l_dot_array_expr(ProgNodeP _t,
 		else
 		{
 		throw GDLException( _t, "Expression must be a"
-		" STRUCT in this context: "+Name(*rP));
+		" STRUCT in this context: "+Name(*rP),true,false);
 		}
 		}
 		else 
 		{
 		if( (*rP)->IsAssoc())
 		throw GDLException( _t, "File expression not allowed "
-		"in this context: "+Name(*rP));
+		"in this context: "+Name(*rP),true,false);
 		
 		aD->Root( structR, guard.release() /* aL */); 
 		}
@@ -2893,7 +2893,7 @@ void GDLInterpreter::l_dot_array_expr(ProgNodeP _t,
 		else
 		{
 		throw GDLException( _t, "Expression must be a"
-		" STRUCT in this context: "+Name(*rP));
+		" STRUCT in this context: "+Name(*rP),true,false);
 		}
 		}
 		else
@@ -2901,7 +2901,7 @@ void GDLInterpreter::l_dot_array_expr(ProgNodeP _t,
 		if( (*rP)->IsAssoc())
 		{
 		throw GDLException( _t, "File expression not allowed "
-		"in this context: "+Name(*rP));
+		"in this context: "+Name(*rP),true,false);
 		}
 		
 		aD->Root(structR); 
@@ -3227,7 +3227,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		
 		delete e1;
 		throw GDLException( _t, 
-		"Expression not allowed with decrement/increment operator.");
+		"Expression not allowed with decrement/increment operator.",true,false);
 		
 		break;
 	}
@@ -3237,7 +3237,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		_t = _retTree;
 		
 		throw GDLException( _t, 
-		"Constant not allowed with decrement/increment operator.");
+		"Constant not allowed with decrement/increment operator.",true,false);
 		
 		break;
 	}
@@ -3288,7 +3288,7 @@ BaseGDL*  GDLInterpreter::indexable_expr(ProgNodeP _t) {
 		_t = _retTree;
 		
 		if( *e2 == NULL)
-		throw GDLException( _t, "Variable is undefined: "+Name(e2));
+		throw GDLException( _t, "Variable is undefined: "+Name(e2),true,false);
 		res = *e2;
 		
 		break;
@@ -3606,7 +3606,7 @@ BaseGDL**  GDLInterpreter::l_expr(ProgNodeP _t,
 		
 		if( right == NULL)
 		throw GDLException( _t, 
-		"System variable not allowed in this context.");
+		"System variable not allowed in this context.",true,false);
 		
 		auto_ptr<BaseGDL> conv_guard; //( rConv);
 		BaseGDL* rConv = right;
@@ -3622,7 +3622,7 @@ BaseGDL**  GDLInterpreter::l_expr(ProgNodeP _t,
 		{
 		throw GDLException( _t, "Conflicting data structures: <"+
 		right->TypeStr()+" "+right->Dim().ToString()+">,!"+ 
-		sysVar->getText());
+		sysVar->getText(),true,false);
 		}
 		
 		(*res)->AssignAt( rConv); // linear copy
@@ -3711,7 +3711,7 @@ BaseGDL**  GDLInterpreter::l_expr(ProgNodeP _t,
 		_t = _t->getNextSibling();
 		
 		if( right == NULL)
-		throw GDLException( _t, "Struct expression not allowed in this context.");
+		throw GDLException( _t, "Struct expression not allowed in this context.",true,false);
 		
 		aD->Assign( right);
 		
@@ -3734,7 +3734,7 @@ BaseGDL**  GDLInterpreter::l_expr(ProgNodeP _t,
 		
 		delete e1;
 		throw GDLException( _t, 
-		"Expression not allowed as l-value.");
+		"Expression not allowed as l-value.",true,false);
 		
 		break;
 	}
@@ -3744,7 +3744,7 @@ BaseGDL**  GDLInterpreter::l_expr(ProgNodeP _t,
 		_t = _retTree;
 		
 		throw GDLException( _t, 
-		"Constant not allowed as l-value.");
+		"Constant not allowed as l-value.",true,false);
 		
 		break;
 	}
@@ -3776,7 +3776,7 @@ BaseGDL**  GDLInterpreter::l_indexable_expr(ProgNodeP _t) {
 		_t = _t->getNextSibling();
 		
 		if( *res == NULL)
-		throw GDLException( _t, "Variable is undefined: "+Name(res));
+		throw GDLException( _t, "Variable is undefined: "+Name(res),true,false);
 		
 		break;
 	}
@@ -3789,7 +3789,7 @@ BaseGDL**  GDLInterpreter::l_indexable_expr(ProgNodeP _t) {
 		_t = _retTree;
 		
 		if( *res == NULL)
-		throw GDLException( _t, "Variable is undefined: "+Name(res));
+		throw GDLException( _t, "Variable is undefined: "+Name(res),true,false);
 		
 		break;
 	}
@@ -3799,7 +3799,7 @@ BaseGDL**  GDLInterpreter::l_indexable_expr(ProgNodeP _t) {
 		_t = _retTree;
 		
 		if( *res == NULL)
-		throw GDLException( _t, "Variable is undefined: "+Name(res));
+		throw GDLException( _t, "Variable is undefined: "+Name(res),true,false);
 		
 		break;
 	}
@@ -3849,7 +3849,7 @@ BaseGDL**  GDLInterpreter::l_array_expr(ProgNodeP _t,
 	
 	if( right == NULL)
 	throw GDLException( _t, 
-	"Indexed expression not allowed in this context.");
+	"Indexed expression not allowed in this context.",true,false);
 	
 	aL->AssignAt( *res, right);
 	
@@ -4084,7 +4084,7 @@ void GDLInterpreter::tag_expr(ProgNodeP _t,
 		int ret=e->Scalar2index(tagIx);
 		if( ret < 1)
 		throw GDLException( _t, "Expression must be a scalar"
-		" >= 0 in this context: "+Name(e));
+		" >= 0 in this context: "+Name(e),true,false);
 		
 		aD->Add( tagIx);
 		
@@ -4173,7 +4173,7 @@ BaseGDL*  GDLInterpreter::sys_var_nocopy(ProgNodeP _t) {
 		sysVarRef->var=FindInVarList(sysVarList,sysVarRef->getText());
 		if( sysVarRef->var == NULL)		    
 		throw GDLException( _t, "Not a legal system variable: !"+
-		sysVarRef->getText());
+		sysVarRef->getText(),true,false);
 		}
 		
 		if( sysVarRef->getText() == "STIME") SysVar::UpdateSTime();
@@ -4193,7 +4193,7 @@ BaseGDL*  GDLInterpreter::sys_var_nocopy(ProgNodeP _t) {
 	sysVar->var=FindInVarList(sysVarList,sysVar->getText());
 	if( sysVar->var == NULL)		    
 	throw GDLException( _t, "Not a legal system variable: !"+
-	sysVar->getText());
+	sysVar->getText(),true,false);
 	}
 	
 	if( sysVar->getText() == "STIME") SysVar::UpdateSTime();
@@ -4263,14 +4263,14 @@ void GDLInterpreter::r_dot_array_expr(ProgNodeP _t,
 		else
 		{
 		throw GDLException( _t, "Expression must be a"
-		" STRUCT in this context: "+Name(r));
+		" STRUCT in this context: "+Name(r),true,false);
 		}
 		}
 		else
 		{
 		if( r->IsAssoc())
 		throw GDLException( _t, "File expression not allowed "
-		"in this context: "+Name(r));
+		"in this context: "+Name(r),true,false);
 		
 		aD->Root( structR, guard.release()); 
 		}
@@ -4301,7 +4301,7 @@ void GDLInterpreter::r_dot_array_expr(ProgNodeP _t,
 		else
 		{
 		throw GDLException( _t, "Expression must be a"
-		" STRUCT in this context: "+Name(r));
+		" STRUCT in this context: "+Name(r),true,false);
 		}
 		}
 		else
@@ -4309,7 +4309,7 @@ void GDLInterpreter::r_dot_array_expr(ProgNodeP _t,
 		if( r->IsAssoc())
 		{
 		throw GDLException( _t, "File expression not allowed "
-		"in this context: "+Name(r));
+		"in this context: "+Name(r),true,false);
 		}
 		
 		aD->Root(structR); 
@@ -4938,7 +4938,7 @@ BaseGDL*  GDLInterpreter::simple_var(ProgNodeP _t) {
 			BaseGDL* vData=callStack.back()->GetKW( var->varIx);
 			
 			if( vData == NULL)
-			throw GDLException( _t, "Variable is undefined: "+var->getText());
+			throw GDLException( _t, "Variable is undefined: "+var->getText(),true,false);
 			
 			res=vData->Dup();
 			
@@ -4952,7 +4952,7 @@ BaseGDL*  GDLInterpreter::simple_var(ProgNodeP _t) {
 			BaseGDL* vData=varPtr->var->Data();
 			
 			if( vData == NULL)
-			throw GDLException( _t, "Common block variable is undefined.");
+			throw GDLException( _t, "Common block variable is undefined.",true,false);
 			
 			res=vData->Dup();
 			
@@ -4974,7 +4974,7 @@ BaseGDL*  GDLInterpreter::simple_var(ProgNodeP _t) {
 		BaseGDL* vData=callStack.back()->GetKW( var->varIx);
 		
 		if( vData == NULL)
-		throw GDLException( _t, "Variable is undefined: "+var->getText());
+		throw GDLException( _t, "Variable is undefined: "+var->getText(),true,false);
 		
 		res=vData->Dup();
 		
@@ -4989,7 +4989,7 @@ BaseGDL*  GDLInterpreter::simple_var(ProgNodeP _t) {
 		BaseGDL* vData=varPtr->var->Data();
 		
 		if( vData == NULL)
-		throw GDLException( _t, "Common block variable is undefined.");
+		throw GDLException( _t, "Common block variable is undefined.",true,false);
 		
 		res=vData->Dup();
 		
@@ -5033,13 +5033,26 @@ void GDLInterpreter::parameter_def(ProgNodeP _t,
 	ProgNodeP parameter_def_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	auto_ptr<EnvBaseT> guard(actEnv); 
+	try{
 	
 	_retTree = _t;
-		while(_retTree != NULL) {
+	while(_retTree != NULL) {
 	static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
 	}    
 	
-		actEnv->Extra(); // expand _EXTRA
+	actEnv->Extra(); // expand _EXTRA
+	
+	} 
+	catch( GDLException& e)
+	{
+	// update line number, currently set to caller->CallingNode()
+	// because actEnv is not on the stack yet, 
+	// report caller->Pro()'s name is ok, because we are not inside
+	// the call yet
+	e.SetErrorNodeP( actEnv->CallingNode());
+	throw e;
+	}
+	
 		guard.release();
 		
 	return;

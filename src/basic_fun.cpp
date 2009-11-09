@@ -825,7 +825,7 @@ namespace lib {
 
     if( nParam != 1)
       e->Throw( 
-			  "N_ELEMENTS: Incorrect number of arguments.");
+			  "Incorrect number of arguments.");
 
     BaseGDL* p0=e->GetPar( 0);
 

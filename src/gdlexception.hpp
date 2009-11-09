@@ -49,6 +49,8 @@ public:
 
   static std::string Name( BaseGDL* b);
 
+  void SetErrorNodeP( ProgNodeP p) { errorNodeP = p;}
+
   GDLException(): ANTLRException(), 
     errorNode(static_cast<RefDNode>(antlr::nullAST)),
 		  errorNodeP( NULL),
