@@ -4475,7 +4475,7 @@ namespace lib {
 	  // Loop through subexpressions & fill output array
 	  for( SizeT i = 0; i<nSubExpr; ++i) {
 // 	  for( SizeT i = 0; i<=nOut; ++i) {
-	    (* static_cast<DStringGDL*>(result))[i+s*nSubExpr] = 
+	    if (pmatch[i].rm_so != -1) (* static_cast<DStringGDL*>(result))[i+s*nSubExpr] = 
 	      (*stringExpr)[s].substr( pmatch[i].rm_so, 
 				       pmatch[i].rm_eo - pmatch[i].rm_so);
 	    if( lengthKW)
