@@ -45,22 +45,17 @@ namespace lib {
     e->AssureLongScalarPar( 0, lun);
 
     if( lun == 0 || abs(lun) > maxLun)
-      throw GDLException( e->CallingNode(), 
-  			  "POINT_LUN:  File unit is not within allowed range.");
+      e->Throw("File unit is not within allowed range.");
 
     GDLStream& actUnit = fileUnits[ abs(lun)-1];
 
     if( !actUnit.IsOpen()) 
-      throw GDLException( e->CallingNode(), 
-  			  "POINT_LUN:  File unit is not open: " +i2s(abs(lun)));
+      e->Throw("File unit is not open: " + i2s(abs(lun)));
 
     if (lun < 0) {
-      BaseGDL** retPos = &e->GetPar( 1);
-
-      delete *retPos;
-      *retPos = new DLongGDL( actUnit.Tell());
-      return;
-
+      e->AssureGlobalPar(1);
+      // TODO: 64-bit long if needed 
+      e->SetPar(1, new DLongGDL( actUnit.Tell()));
     } else {
       DLong pos;
       e->AssureLongScalarPar( 1, pos);
