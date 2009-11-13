@@ -1,10 +1,10 @@
 /* *************************************************************************
-                          io.hpp  -  GDL classes for file io
-                             -------------------
-    begin                : July 22 2002
-    copyright            : (C) 2002 by Marc Schellens
-    email                : m_schellens@users.sf.net
- ***************************************************************************/
+   io.hpp  -  GDL classes for file io
+   -------------------
+   begin                : July 22 2002
+   copyright            : (C) 2002 by Marc Schellens
+   email                : m_schellens@users.sf.net
+***************************************************************************/
 
 /* *************************************************************************
  *                                                                         *
@@ -47,13 +47,228 @@ const std::string StreamInfo( std::ios* searchStream);
  
 const SizeT defaultStreamWidth = 80; // used by open_lun
 
+class AnyStream
+{
+  std::fstream* fStream;
+  igzstream* igzStream; // for gzip compressed input
+  ogzstream* ogzStream; // for gzip compressed output
+public:
+  AnyStream()
+    : fStream(NULL) 
+    , igzStream(NULL) 
+    , ogzStream(NULL) {}
+
+  void Flush() ;
+  void Close();
+
+  void Open(const std::string& name_,
+	    std::ios_base::openmode mode_ , bool compress_);
+  
+  std::fstream* FStream(){return fStream;}
+  igzstream* IgzStream(){return igzStream;} // for gzip compressed input
+  ogzstream* OgzStream(){return ogzStream;} // for gzip compressed output
+
+  void ClearEof()
+  {
+    if( fStream&&fStream->eof()) fStream->clear();
+    if( igzStream&&igzStream->eof()) igzStream->clear();
+    if( ogzStream&&ogzStream->eof()) ogzStream->clear();
+  }
+
+  void Write( char* buf, SizeT nBytes)
+  {
+    if( fStream != NULL)
+      {
+	fStream->write(buf,nBytes);
+      }
+    else if( ogzStream != NULL)
+      {
+	ogzStream->write(buf,nBytes);
+      }
+    else assert( 0);
+  }
+
+  void Read( char* buf, SizeT nBytes)
+  {
+    if( fStream != NULL)
+      {
+	fStream->read(buf,nBytes);
+      }
+    else if( igzStream != NULL)
+      {
+	igzStream->read(buf,nBytes);
+      }
+    else assert( 0);
+  }
+
+  bool Good()
+  {
+    if( fStream != NULL) 
+      return fStream->good();
+    if( igzStream != NULL && ogzStream != NULL) 
+      return igzStream->good() && ogzStream->good();
+    if( igzStream != NULL) 
+      return igzStream->good();
+    if( ogzStream != NULL) 
+      return ogzStream->good();
+  }
+
+  bool EofRaw()
+  {
+    if( fStream != NULL)
+      {
+	return fStream->eof();
+      }
+    if( igzStream != NULL)
+      {
+	return igzStream->eof();
+      }
+    return true;
+  }
+
+  bool Eof()
+  {
+    if( fStream == NULL && igzStream == NULL && ogzStream == NULL)
+      throw GDLException("Inner file unit is not open.");
+
+    if( fStream != NULL)
+      {
+	fStream->clear(); // clear old EOF	
+
+	fStream->peek(); // trigger EOF if at EOF
+
+	return fStream->eof();
+      }
+    if( igzStream != NULL)
+      {
+	igzStream->clear(); // clear old EOF	
+
+	igzStream->peek(); // trigger EOF if at EOF
+
+	return igzStream->eof();
+      }
+    return true;
+  }
+  void Seek( SizeT pos)
+  {
+    if( fStream == NULL && igzStream == NULL && ogzStream == NULL)
+      throw GDLException("inner file unit is not open.");
+
+    if( fStream != NULL)
+      {
+	if( fStream->eof())
+	  fStream->clear();
+
+	fStream->rdbuf()->pubseekpos( pos, std::ios_base::in | std::ios_base::out);
+      }
+    if( igzStream != NULL)
+      {
+	if( igzStream->eof())
+	  igzStream->clear();
+
+	igzStream->rdbuf()->pubseekpos( pos, std::ios_base::in | std::ios_base::out);
+      }
+    if( ogzStream != NULL)
+      {
+	if( ogzStream->eof())
+	  ogzStream->clear();
+
+	ogzStream->rdbuf()->pubseekpos( pos, std::ios_base::in | std::ios_base::out);
+      }
+  }
+  SizeT Size()
+  {  
+    if( fStream != NULL)
+      {
+	SizeT cur = Tell();
+	SizeT end = fStream->rdbuf()->pubseekoff( 0, std::ios_base::end);
+	fStream->rdbuf()->pubseekpos( cur, std::ios_base::in | std::ios_base::out);
+	return end;
+      }
+    else
+      {
+	if( igzStream != NULL)
+	  {
+	    SizeT cur = igzStream->rdbuf()->pubseekoff( 0, std::ios_base::cur);
+	    SizeT end = igzStream->rdbuf()->pubseekoff( 0, std::ios_base::end);
+	    igzStream->rdbuf()->pubseekpos( cur, std::ios_base::in);
+	    return end;
+	  }
+	if( ogzStream != NULL)
+	  {
+	    SizeT cur = ogzStream->rdbuf()->pubseekoff( 0, std::ios_base::cur);
+	    SizeT end = ogzStream->rdbuf()->pubseekoff( 0, std::ios_base::end);
+	    ogzStream->rdbuf()->pubseekpos( cur, std::ios_base::out);
+	    return end;
+	  }
+      }
+  }
+
+  SizeT Tell()
+  {
+    if( fStream != NULL)
+      return( fStream->tellg());
+    if( igzStream != NULL)
+      {
+	return igzStream->rdbuf()->pubseekoff( 0, std::ios_base::cur);
+      }
+    if( ogzStream != NULL)
+      {
+	return ogzStream->rdbuf()->pubseekoff( 0, std::ios_base::cur);
+      }
+  }
+
+  void SeekPad( SizeT pos)
+  {
+    if( fStream == NULL && ogzStream == NULL)
+      throw GDLException("File unit is not open.");
+    if( fStream != NULL)
+      {
+	if( fStream->eof())
+	  fStream->clear();
+
+	SizeT fSize = Size();
+	if( pos > fSize) Pad( pos - fSize);
+
+	fStream->rdbuf()->pubseekpos( pos, std::ios_base::in | std::ios_base::out);
+      }
+    else
+      {
+	if( ogzStream->eof())
+	  ogzStream->clear();
+
+	SizeT fSize = Size();
+	if( pos > fSize) Pad( pos - fSize);
+
+	ogzStream->rdbuf()->pubseekpos( pos, std::ios_base::in | std::ios_base::out);
+      }
+  }
+
+  bool InUse() { return (fStream != NULL || igzStream != NULL || ogzStream != NULL);}
+  bool IsOpen()
+  { return (fStream != NULL && fStream->is_open()) || (igzStream != NULL && igzStream->rdbuf()->is_open()) || (ogzStream != NULL && ogzStream->rdbuf()->is_open());} 
+
+  void Pad( SizeT nBytes);
+
+  void Clear()
+  {
+  }
+
+};
+
+
+
 class GDLStream
 {
   std::string name;
   std::ios_base::openmode mode;
 
-  std::fstream* fStream;
-  igzstream* igzStream; // for gzip compressed input
+  AnyStream* anyStream;
+
+  //    std::fstream* fStream;
+  //    igzstream* igzStream; // for gzip compressed input
+  //    ogzstream* ogzStream; // for gzip compressed output
+
 
   bool f77; // FORTRAN unformatted
   bool swapEndian;
@@ -83,8 +298,10 @@ public:
   GDLStream(): 
     name(), 
     mode(), 
-    fStream(NULL), 
-    igzStream(NULL), 
+    anyStream(NULL), 
+    /*    fStream(NULL), 
+	  igzStream(NULL), 
+	  ogzStream(NULL), */
     f77(false),
     swapEndian(false),
     deleteOnClose(false),
@@ -106,8 +323,11 @@ public:
   ~GDLStream() 
   {
     delete xdrs;
-    delete fStream;
-    delete igzStream;
+
+    delete anyStream;
+    /*    delete fStream;
+	  delete igzStream;
+	  delete ogzStream;*/
     delete iSocketStream;
   }  
 
@@ -126,40 +346,28 @@ public:
   
   bool Eof()
   {
-    if( fStream == NULL)
+    if( anyStream == NULL)
       throw GDLException("File unit is not open.");
-    
-    fStream->clear(); // clear old EOF	
 
-    fStream->peek(); // trigger EOF if at EOF
-
-    return fStream->eof();
+    return anyStream->Eof();
   }
 
   void Seek( SizeT pos)
   {
-    if( fStream == NULL)
+    if( anyStream == NULL)
       throw GDLException("File unit is not open.");
-
-    if( fStream->eof())
-      fStream->clear();
-
-    fStream->rdbuf()->pubseekpos( pos, std::ios_base::in | std::ios_base::out);
-  
+    anyStream->Seek(pos);
     lastSeekPos = pos;
   }
 
   SizeT Size()
   {
-    SizeT cur = Tell();
-    SizeT end = fStream->rdbuf()->pubseekoff( 0, std::ios_base::end);
-    fStream->rdbuf()->pubseekpos( cur, std::ios_base::in | std::ios_base::out);
-    return end;
+    return anyStream->Size();
   }
 
   SizeT Tell()
   {
-    return( fStream->tellg());
+    return anyStream->Tell();
   }
 
   SizeT Width()
@@ -169,24 +377,16 @@ public:
 
   void SeekPad( SizeT pos)
   {
-    if( fStream == NULL)
+    if( anyStream == NULL)
       throw GDLException("File unit is not open.");
-
-    if( fStream->eof())
-      fStream->clear();
-
-    SizeT fSize = Size();
-    if( pos > fSize) Pad( pos - fSize);
-
-    fStream->rdbuf()->pubseekpos( pos, std::ios_base::in | std::ios_base::out);
-  
+    anyStream->SeekPad( pos);
     lastSeekPos = pos;
   }
 
-  bool InUse() { return (fStream != NULL);}
+  bool InUse() { return (anyStream != NULL && anyStream->InUse());}
 
   bool IsOpen()
-  { return (fStream != NULL && fStream->is_open());} 
+  { return (anyStream != NULL && anyStream->IsOpen());} 
   bool IsReadable()
   { return (IsOpen() && (mode & std::ios::in));} 
   bool IsWriteable()
@@ -202,8 +402,9 @@ public:
   void PutVarLenVMS( bool varlenVMS_) { varlenVMS = varlenVMS_;}
 
   bool Compress() { return compress;}
-  void PutCompress( bool compress_) { compress = compress_;}
+  /*  void PutCompress( bool compress_) { compress = compress_;}*/
   igzstream& IgzStream(); 
+  ogzstream& OgzStream(); 
 
   XDR *Xdr() { return xdrs;}
 
@@ -217,6 +418,7 @@ public:
   DDouble rTimeout() { return r_timeout;}
   DDouble wTimeout() { return w_timeout;}
 
+//   friend const std::string StreamInfo( AnyStream* searchStream);
   friend const std::string StreamInfo( std::ios* searchStream);
 
   // F77_UNFORMATTED stuff

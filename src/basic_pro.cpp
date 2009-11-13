@@ -862,6 +862,8 @@ namespace lib {
     // IDL behaviour (creating a file even if /APPEND flag is set) (tracker bug 2103871)
     if (e->KeywordSet(appendIx))
     { 
+	if( compress)
+		e->Throw("Keywords APPEND and COMPRESS exclude each other.");
       // 
       // SA: The manual says that access() "is a potential security hole and should never be used"
       // but I didn't find any better way to do it. A problem might happen when the following sequence occurs:
@@ -1132,7 +1134,8 @@ namespace lib {
     DLong lun;
     e->AssureLongScalarPar( 0, lun);
 
-    ostream* os;
+    ostream* os=NULL;
+    ogzstream* ogzs=NULL;
     bool f77 = false;
     bool swapEndian = false;
     bool compress = false;
@@ -1148,15 +1151,21 @@ namespace lib {
       }
     else
       {
-	os = &fileUnits[ lun-1].OStream();
+	compress = fileUnits[ lun-1].Compress();
+	if( !compress)
+		os = &fileUnits[ lun-1].OStream();
+	else
+		ogzs = &fileUnits[ lun-1].OgzStream();
 	f77 = fileUnits[ lun-1].F77();
 	swapEndian = fileUnits[ lun-1].SwapEndian();
-	compress = fileUnits[ lun-1].Compress();
 	xdrs = fileUnits[ lun-1].Xdr();
       }
 
     if( f77)
       {
+	if(compress)
+		e->Throw("COMPRESS not supported for F77.");
+
 	// count record length
 	SizeT nBytesAll = 0;
 	for( SizeT i=1; i<nParam; i++)
@@ -1171,20 +1180,31 @@ namespace lib {
 	// write data
 	for( SizeT i=1; i<nParam; i++)
 	  {
-	    BaseGDL* p = e->GetPar( i); // defined already checked
+	    BaseGDL* p = e->GetPar( i); // defined already checkede
 	    p->Write( *os, swapEndian, compress, xdrs);
 	  }
 
 	// write record length
-	fileUnits[ lun-1].F77Write( nBytesAll);
-      }
-    else
-      for( SizeT i=1; i<nParam; i++)
-	{
-	  BaseGDL* p = e->GetParDefined( i);
-	  p->Write( *os, swapEndian, compress, xdrs);
+		fileUnits[ lun-1].F77Write( nBytesAll);
 	}
-  }
+  else
+	if( compress)
+	{
+		for( SizeT i=1; i<nParam; i++)
+			{
+			BaseGDL* p = e->GetParDefined( i);
+			p->Write( *ogzs, swapEndian, compress, xdrs);
+			}
+	}
+	else
+	{
+		for( SizeT i=1; i<nParam; i++)
+			{
+			BaseGDL* p = e->GetParDefined( i);
+			p->Write( *os, swapEndian, compress, xdrs);
+			}
+	}
+}
 
   void readu( EnvT* e)
   {
@@ -1193,8 +1213,8 @@ namespace lib {
     DLong lun;
     e->AssureLongScalarPar( 0, lun);
 
-    istream* is;
-    igzstream* igzs;
+    istream* is = NULL;
+    igzstream* igzs = NULL;
     bool f77 = false;
     bool varlenVMS = false;
     bool swapEndian = false;
@@ -1240,12 +1260,14 @@ namespace lib {
       }
     else
       {
-	is = &fileUnits[ lun-1].IStream();
-	igzs = &fileUnits[ lun-1].IgzStream();
+	compress = fileUnits[ lun-1].Compress();
+	if( !compress)
+		is = &fileUnits[ lun-1].IStream();
+	else
+		igzs = &fileUnits[ lun-1].IgzStream();
 	f77 = fileUnits[ lun-1].F77();
 	varlenVMS = fileUnits[ lun-1].VarLenVMS();
 	swapEndian = fileUnits[ lun-1].SwapEndian();
-	compress = fileUnits[ lun-1].Compress();
 	xdrs = fileUnits[ lun-1].Xdr();
       }
 
@@ -1291,9 +1313,12 @@ namespace lib {
 	      e->SetPar( i, p);
 	    }
 
-	  if (compress) {
+	  if (compress) 
+	  {
 	    p->Read( *igzs, swapEndian, compress, xdrs);
-	  } else if (varlenVMS && i == 1) {
+	  } 
+	  else if (varlenVMS && i == 1) 
+	  {
 	    // Check if VMS variable-length file
 	    char hdr[4], tmp;
 
@@ -1326,7 +1351,8 @@ namespace lib {
 	    }
 	    p->Read( *is, swapEndian, compress, xdrs);
 	  }
-	  else p->Read( *is, swapEndian, compress, xdrs);
+	  else 
+		p->Read( *is, swapEndian, compress, xdrs);
 
 	  // Socket Read
 	  if (sockNum != -1) {

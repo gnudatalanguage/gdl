@@ -45,12 +45,12 @@ namespace lib {
     e->AssureLongScalarPar( 0, lun);
 
     if( lun == 0 || abs(lun) > maxLun)
-      e->Throw("File unit is not within allowed range.");
+      e->Throw(  "File unit is not within allowed range.");
 
     GDLStream& actUnit = fileUnits[ abs(lun)-1];
 
     if( !actUnit.IsOpen()) 
-      e->Throw("File unit is not open: " + i2s(abs(lun)));
+      e->Throw(  "File unit is not open: " +i2s(abs(lun)));
 
     if (lun < 0) {
       e->AssureGlobalPar(1);

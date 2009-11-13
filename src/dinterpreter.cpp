@@ -762,9 +762,6 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
     //    lexer->Parser().interactive();
     theAST = lexer->Parser().getAST();
 
-    // consider line offset
-AddLineOffset( lineOffset, theAST);
-
   }
   catch( GDLException e)
     {
@@ -778,6 +775,9 @@ AddLineOffset( lineOffset, theAST);
     }
 
   if( theAST == NULL) return CC_OK;
+
+    // consider line offset
+    AddLineOffset( lineOffset, theAST);
 
 #ifdef GDL_DEBUG
   antlr::print_tree pt;

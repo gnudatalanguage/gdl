@@ -31,13 +31,101 @@ const string StreamInfo( ios* searchStream)
   if( searchStream == &cerr) return "Unit: -2, <stderr>";
   for( SizeT i=0; i<fileUnits.size(); i++)
     {
-      if( fileUnits[ i].fStream == searchStream)
+      if( fileUnits[ i].anyStream != NULL &&  fileUnits[ i].anyStream->FStream() == searchStream)
 	{
 	  return "Unit: "+i2s(i+1)+", File: "+fileUnits[ i].Name();
 	}
     }
   return "Internal error: Stream not found.";
 }
+
+
+void AnyStream::Close() 
+{ 
+  if( fStream != NULL && fStream->is_open())
+    {
+      fStream->close();
+      fStream->clear();
+    }
+  if( igzStream != NULL && igzStream->rdbuf()->is_open())
+    {
+      igzStream->close();
+      igzStream->clear();
+    }
+  if( ogzStream != NULL && ogzStream->rdbuf()->is_open())
+    {
+      ogzStream->close();
+      ogzStream->clear();
+    }
+}
+void AnyStream::Open(const std::string& name_,
+	    ios_base::openmode mode_ , bool compress_)
+  {
+    if (compress_) {
+
+      delete fStream;
+      fStream = NULL;
+
+      if( (mode_ & std::ios::out))
+	{
+	  if( ogzStream == NULL)
+	    ogzStream = new ogzstream();
+
+	  ogzStream->open( name_.c_str(), mode_ & ~std::ios::in);
+
+	  if( ogzStream->fail())
+	    {
+	      delete ogzStream;
+	      ogzStream = NULL;
+	      throw GDLIOException("Error opening compressed file for output.");
+	    }
+	}
+      else
+	{
+	  delete ogzStream;
+	  ogzStream = NULL;
+	}
+      if( (mode_ & std::ios::in))
+	{
+	  if( igzStream == NULL)
+	    igzStream = new igzstream();
+
+	  igzStream->open( name_.c_str(), mode_ & ~std::ios::out);
+
+	  if( igzStream->fail())
+	    {
+	      delete igzStream;
+	      igzStream = NULL;
+	      throw GDLIOException("Error opening compressed file for input.");
+	    }
+	}
+      else
+	{
+	  delete igzStream;
+	  igzStream = NULL;
+	}
+    }
+    else
+      {
+	delete igzStream;
+	igzStream = NULL;
+	delete ogzStream;
+	ogzStream = NULL;
+
+	if( fStream == NULL)
+	  fStream = new fstream();
+
+	fStream->open( name_.c_str(), mode_);
+
+	if( fStream->fail())
+	  {
+	    delete fStream;
+	    fStream = NULL;
+	    throw GDLIOException("Error opening file.");
+	  }
+      }
+  }
+
 
 void GDLStream::Open( const string& name_,
 		      ios_base::openmode mode_,
@@ -51,37 +139,19 @@ void GDLStream::Open( const string& name_,
 //   if( f77_)
 //     throw GDLException("F77_UNFORMATTED format not supported.");
     
-  name=name_;
-
-  compress = compress_;
-
-  if( fStream == NULL)
-    fStream = new fstream();
-  else if( fStream->is_open())
+//  if( (fStream != NULL && fStream->is_open()) || (igzStream != NULL && igzStream->rdbuf()->is_open()) || (ogzStream != NULL && ogzStream->rdbuf()->is_open()))
+  if( anyStream != NULL && anyStream->IsOpen())
     throw GDLIOException("File unit is already open.");
 
-  fStream->open( name_.c_str(), mode_);
+  if( anyStream == NULL)
+	anyStream = new AnyStream();
 
-  if( fStream->fail())
-    {
-      delete fStream;
-      fStream = NULL;
-      throw GDLIOException("Error opening file.");
-    }
-
-  if (compress) {
-    igzStream = new igzstream;
-    igzStream->open( name_.c_str(), mode_);
-
-    if( igzStream->fail())
-      {
-	delete igzStream;
-	igzStream = NULL;
-	throw GDLIOException("Error opening file.");
-      }
-  }
-
+  name=name_;
   mode=mode_;
+  compress = compress_;
+
+  anyStream->Open(name_,mode_,compress_);
+  
   swapEndian = swapEndian_;
   deleteOnClose = dOC;
 
@@ -143,20 +213,30 @@ void GDLStream::Socket( const string& host,
   width = 32768;
 }
 
-void GDLStream::Flush() 
+void AnyStream::Flush() 
 { 
   if( fStream != NULL)
     {
       fStream->flush();
     }
+  if( ogzStream != NULL)
+    {
+      ogzStream->flush();
+    }
+}
+void GDLStream::Flush() 
+{ 
+  if( anyStream != NULL)
+    {
+      anyStream->Flush();
+    }
 }
 
 void GDLStream::Close() 
 { 
-  if( fStream != NULL)
+  if( anyStream != NULL)
     {
-      fStream->close();
-      fStream->clear();
+      anyStream->Close();
       if( deleteOnClose) 
 	std::remove(name.c_str());
     }
@@ -181,8 +261,8 @@ void GDLStream::Free()
 { 
   Close();
 
-  delete fStream;
-  fStream = NULL;
+  delete anyStream;
+  anyStream = NULL;
 
   delete iSocketStream;
   iSocketStream = NULL;
@@ -193,25 +273,38 @@ void GDLStream::Free()
  
 igzstream& GDLStream::IgzStream()
 {
-  return *igzStream;
+  if( anyStream->IgzStream() == NULL || !anyStream->IsOpen()) 
+    throw GDLIOException("File unit is not open for compressed reading or writing.");
+  if( !(mode & ios::in))
+    throw GDLIOException("File unit is not open for reading.");
+  return *anyStream->IgzStream();
+}
+
+ogzstream& GDLStream::OgzStream()
+{
+  if( anyStream->OgzStream() == NULL || !anyStream->IsOpen()) 
+    throw GDLIOException("File unit is not open for compressed reading or writing.");
+  if( !(mode & ios::out))
+    throw GDLIOException("File unit is not open for compressed writing.");
+  return *anyStream->OgzStream();
 }
 
 fstream& GDLStream::IStream()
 {
-  if( fStream == NULL || !fStream->is_open()) 
+  if( anyStream->FStream() == NULL || !anyStream->IsOpen()) 
     throw GDLIOException("File unit is not open.");
   if( !(mode & ios::in))
     throw GDLIOException("File unit is not open for reading.");
-  return *fStream;
+  return *anyStream->FStream();
 }
 
 fstream& GDLStream::OStream()
 {
-  if( fStream == NULL || !fStream->is_open()) 
+  if( anyStream->FStream() == NULL || !anyStream->IsOpen()) 
     throw GDLIOException("File unit is not open.");
   if( !(mode & ios::out))
     throw GDLIOException("File unit is not open for writing.");
-  return *fStream;
+  return *anyStream->FStream();
 }
 
 istringstream& GDLStream::ISocketStream()
@@ -223,17 +316,31 @@ istringstream& GDLStream::ISocketStream()
 
 void GDLStream::Pad( SizeT nBytes)
 {
+	if( anyStream != NULL)
+		anyStream->Pad( nBytes);
+}
+
+void AnyStream::Pad( SizeT nBytes)
+{
   const SizeT bufSize = 1024;
   static char buf[ bufSize];
   SizeT nBuf = nBytes / bufSize;
   SizeT lastBytes = nBytes % bufSize;
+  if( fStream != NULL)
+{
   for( SizeT i=0; i<nBuf; i++) fStream->write( buf, bufSize);
   if( lastBytes > 0) fStream->write( buf, lastBytes);
+}
+ else if( ogzStream != NULL)
+{
+  for( SizeT i=0; i<nBuf; i++) ogzStream->write( buf, bufSize);
+  if( lastBytes > 0) ogzStream->write( buf, lastBytes);
+}
 }
 
 void GDLStream::F77Write( DULong tCount)
 {
-  if( fStream->eof()) fStream->clear();
+  anyStream->ClearEof();
 
   assert( sizeof( DULong) == 4);
   if( swapEndian)
@@ -242,14 +349,14 @@ void GDLStream::F77Write( DULong tCount)
       for( SizeT i=0; i<sizeof( DULong); ++i)
 	swapTCount[i] = 
 	  reinterpret_cast<char*>(&tCount)[ sizeof( DULong)-1-i];
-      fStream->write(swapTCount,sizeof( DULong));
+      anyStream->Write(swapTCount,sizeof( DULong));
     }
   else
     {
-      fStream->write(reinterpret_cast<char*>(&tCount),sizeof( DULong));
+      anyStream->Write(reinterpret_cast<char*>(&tCount),sizeof( DULong));
     }
 
-  if( !fStream->good())
+  if( !anyStream->Good())
     {
       throw GDLIOException("Error writing F77_UNFORMATTED record data.");
     }  
@@ -257,7 +364,7 @@ void GDLStream::F77Write( DULong tCount)
 
 DULong GDLStream::F77ReadStart()
 {
-  if( fStream->eof())
+  if( anyStream->EofRaw())
     throw GDLIOException("End of file encountered.");
 
   assert( sizeof( DULong) == 4);
@@ -265,20 +372,20 @@ DULong GDLStream::F77ReadStart()
   if( swapEndian)
     {
       char swapTCount[ sizeof( DULong)];
-      fStream->read( swapTCount, sizeof( DULong));
+      anyStream->Read( swapTCount, sizeof( DULong));
       for( SizeT i=0; i<sizeof( DULong); ++i)
 	reinterpret_cast<char*>(&tCountRd)[ sizeof( DULong)-1-i] = 
 	  swapTCount[i];
     }
   else
     {
-      fStream->read(reinterpret_cast<char*>(&tCountRd),sizeof( DULong));
+      anyStream->Read(reinterpret_cast<char*>(&tCountRd),sizeof( DULong));
     }
 
-  if( fStream->eof())
+  if( anyStream->EofRaw())
     throw GDLIOException("End of file encountered.");
 
-  if( !fStream->good())
+  if( !anyStream->Good())
     {
       throw GDLIOException("Error reading F77_UNFORMATTED record data.");
     }  
@@ -290,7 +397,7 @@ DULong GDLStream::F77ReadStart()
 
 void GDLStream::F77ReadEnd()
 {
-  if( fStream->eof())
+  if( anyStream->EofRaw())
     throw GDLIOException("End of file encountered.");
 
   SizeT actPos = Tell();
@@ -304,20 +411,20 @@ void GDLStream::F77ReadEnd()
   if( swapEndian)
     {
       char swapTCount[ sizeof( DULong)];
-      fStream->read( swapTCount, sizeof( DULong));
+      anyStream->Read( swapTCount, sizeof( DULong));
       for( SizeT i=0; i<sizeof( DULong); ++i)
 	reinterpret_cast<char*>(&tCountRd)[ sizeof( DULong)-1-i] = 
 	  swapTCount[i];
     }
   else
     {
-      fStream->read(reinterpret_cast<char*>(&tCountRd),sizeof( DULong));
+      anyStream->Read(reinterpret_cast<char*>(&tCountRd),sizeof( DULong));
     }
 
-  if( fStream->eof())
+  if( anyStream->EofRaw())
     throw GDLIOException("End of file encountered.");
 
-  if( !fStream->good())
+  if( !anyStream->Good())
     {
       throw GDLIOException("Error reading F77_UNFORMATTED record data.");
     }  
