@@ -24,7 +24,7 @@ class GDLSVGStream: public GDLGStream
 {
 public:
   GDLSVGStream( int nx, int ny):
-    GDLGStream( nx, ny, "svg")
+    GDLGStream( nx, ny, checkPlplotDriver("svgcairo") ? "svgcairo" : "svg")
   {
   }
 

@@ -24,6 +24,9 @@
 /* Define to 1 if you have the `gslcblas' library (-lgslcblas). */
 #undef HAVE_LIBGSLCBLAS
 
+/* Define to 1 if you have the `mfhdf' library (-lmfhdf). */
+#undef HAVE_LIBMFHDF
+
 /* Define to 1 if you have the `ncurses' library (-lncurses). */
 #undef HAVE_LIBNCURSES
 
@@ -56,6 +59,9 @@
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the <netcdfcpp.h> header file. */
+#undef HAVE_NETCDFCPP_H
 
 /* Define to 1 if you have the `nexttoward' function. */
 #undef HAVE_NEXTTOWARD

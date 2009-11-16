@@ -374,6 +374,16 @@ dnl else
 dnl	AC_DEFINE([USE_NETCDF], [1], [Define if you want to use netCDF])
 dnl	echo "Using HDF library also for netCDF"
 dnl  fi
+
+  AC_CHECK_HEADERS(netcdfcpp.h, [], [
+    echo ""
+    echo "Error! netCDF installation seems not to be usable"
+    echo "       This suggests a conflicting netCDF-HDF4 installation, e.g."
+    echo "       - uninstalling HDF4 after installation of netCDF"
+    echo "       - installing netCDF before HDF4" 
+    exit -1
+  ])
+
 fi
 
 
@@ -429,6 +439,18 @@ dnl    echo "       Use --with-hdf=DIR to specify the HDF directory tree"
 dnl    echo "       Use --with-hdf=no  to not use it"
 dnl    exit -1
 dnl    ])
+
+  # checking if HDF4 was compiled with the '--disable-netcdf' option
+  if test "x$with_netcdf" != "xno"; then
+dnl    AC_CHECK_HEADERS(hdf4_netcdf.h, [], [
+    AC_CHECK_LIB(mfhdf, sd_nccreate, [], [
+    echo ""
+    echo "Error! HDF4 needs to be configured with the --disable-netcdf option"
+    echo "       in order to be used with the original netCDF library"
+    echo "       Check the INSTALL file of the HDF4 package for details"
+    exit -1
+    ])
+  fi
 fi
 
 

@@ -21,8 +21,10 @@
 #include <plplot/plstream.h>
 #include <plplot/plxwd.h>
 #include <plplot/plplot.h>
-
+#include <string>
 #include "typedefs.hpp"
+
+using namespace std;
 
 class GDLGStream: public plstream
 {
@@ -37,12 +39,38 @@ public:
 		const char *file=NULL):
       plstream( nx, ny, driver, file), valid( true)
   {
+    if (!checkPlplotDriver(driver))
+      ThrowGDLException(string("plPlot installation lacks the requested driver: ") + driver);
   }
 
   virtual ~GDLGStream()
   {
   }
-  
+
+  static bool checkPlplotDriver(const char *driver)
+  {
+    static int numdevs_plus_one = 30;
+    static const char **devlongnames = NULL, **devnames = NULL;
+
+    // acquireing a list of drivers from plPlot (once)
+    if (devnames == NULL) 
+    {
+      for (int maxnumdevs = numdevs_plus_one;; numdevs_plus_one = maxnumdevs += 5)
+      {
+        devlongnames = static_cast<const char**>(realloc(devlongnames, maxnumdevs * sizeof(char*)));
+        devnames = static_cast<const char**>(realloc(devlongnames, maxnumdevs * sizeof(char*)));
+        plgDevs(&devlongnames, &devnames, &numdevs_plus_one);
+        numdevs_plus_one++;
+        if (numdevs_plus_one < maxnumdevs) break;
+      }
+    } 
+
+    // checking if a given driver is in the list
+    for (int i = numdevs_plus_one - 1; i--;) 
+      if (strcmp(driver, devnames[i]) == 0) return true;
+    return false;
+  }
+
   static void SetErrorHandlers();
 
   virtual void Init()=0;
