@@ -60,9 +60,6 @@
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 
-/* Define to 1 if you have the <netcdfcpp.h> header file. */
-#undef HAVE_NETCDFCPP_H
-
 /* Define to 1 if you have the `nexttoward' function. */
 #undef HAVE_NEXTTOWARD
 

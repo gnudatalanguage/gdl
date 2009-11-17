@@ -375,14 +375,15 @@ dnl	AC_DEFINE([USE_NETCDF], [1], [Define if you want to use netCDF])
 dnl	echo "Using HDF library also for netCDF"
 dnl  fi
 
-  AC_CHECK_HEADERS(netcdfcpp.h, [], [
-    echo ""
-    echo "Error! netCDF installation seems not to be usable"
-    echo "       This suggests a conflicting netCDF-HDF4 installation, e.g."
-    echo "       - uninstalling HDF4 after installation of netCDF"
-    echo "       - installing netCDF before HDF4" 
-    exit -1
-  ])
+dnl  SA: the check below does not take into account the $INCLUDES path :(
+dnl  AC_CHECK_HEADERS(netcdfcpp.h, [], [
+dnl    echo ""
+dnl    echo "Error! netCDF installation seems not to be usable"
+dnl    echo "       This suggests a conflicting netCDF-HDF4 installation, e.g."
+dnl    echo "       - uninstalling HDF4 after installation of netCDF"
+dnl    echo "       - installing netCDF before HDF4" 
+dnl    exit -1
+dnl  ])
 
 fi
 
