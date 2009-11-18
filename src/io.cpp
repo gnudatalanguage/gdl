@@ -514,18 +514,18 @@ int gzstreambuf::underflow() { // used for input buffer only
         return EOF;
     // Josuttis' implementation of inbuf
     int n_putback = gptr() - eback();
-    if ( n_putback > 4)
-        n_putback = 4;
-    memcpy( buffer + (4 - n_putback), gptr() - n_putback, n_putback);
+    if ( n_putback > buf4)
+        n_putback = buf4;
+    memcpy( buffer + (buf4 - n_putback), gptr() - n_putback, n_putback);
 
-    int num = gzread( file, buffer+4, bufferSize-4);
+    int num = gzread( file, buffer+buf4, bufferSize-buf4);
     if (num <= 0) // ERROR or EOF
         return EOF;
 
     // reset buffer pointers
-    setg( buffer + (4 - n_putback),   // beginning of putback area
-          buffer + 4,                 // read position
-          buffer + 4 + num);          // end of buffer
+    setg( buffer + (buf4 - n_putback),   // beginning of putback area
+          buffer + buf4,                 // read position
+          buffer + buf4 + num);          // end of buffer
 
     // return next character
     return * reinterpret_cast<unsigned char *>( gptr());    

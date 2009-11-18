@@ -157,9 +157,13 @@ template<class Sp> Data_<Sp>::Data_(const dimension& dim_,
     {
       SizeT sz=dd.size();
 //       Ty val=Sp::zero;
+#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+{
+#pragma omp for
       for( SizeT i=0; i<sz; i++)
 	{
 	  (*this)[i]=i;//val;
+}
 // 	  val += 1; // no increment operator for floats
 	}
     }
@@ -641,6 +645,7 @@ BaseGDL* Data_<Sp>::Transpose( DUInt* perm)
 	  SizeT srcStride1 = this->dim.Stride( 1);
 
 	  SizeT nElem = dd.size();
+
 	  for( SizeT e = 0, ix = 0, srcDim0 = 0; e<nElem; ++e)
 	    {
 	      (*res)[ e] = (*this)[ ix];
@@ -648,6 +653,7 @@ BaseGDL* Data_<Sp>::Transpose( DUInt* perm)
 	      if( ix >= nElem) 
 		ix = ++srcDim0;
 	    }
+
 	  return res;
 
 	  // 	  SizeT srcDim1 = 0;
@@ -783,8 +789,12 @@ BaseGDL* Data_<Sp>::Rotate( DLong dir)
       Data_* res = new Data_( this->dim, BaseGDL::NOZERO);
       SizeT nEl = N_Elements();
       
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
       for( SizeT i=0; i<nEl; ++i)
 	(*res)[i] = (*this)[ nEl-1-i];
+}
       return res;
     }
 
@@ -800,8 +810,12 @@ BaseGDL* Data_<Sp>::Rotate( DLong dir)
 	{
 	  Data_* res = new Data_( this->dim, BaseGDL::NOZERO);
 	  SizeT nEl = N_Elements();
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	  for( SizeT i=0; i<nEl; ++i)
 	    (*res)[ i] = (*this)[ nEl-1-i];
+}
 	  return res;
 	}
       // 3 || 6

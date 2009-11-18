@@ -61,6 +61,12 @@ GDLFileListT  fileUnits;
 volatile bool sigControlC;
 int           debugMode;
 
+// for OpenMP
+DLong CpuHW_NCPU;
+DLong CpuTPOOL_NTHREADS;
+DLong CpuTPOOL_MIN_ELTS;
+DLong CpuTPOOL_MAX_ELTS;
+
 // instantiate own AST factory
 //_DNodeFactory DNodeFactory;
 antlr::ASTFactory DNodeFactory("DNode",DNode::factory);

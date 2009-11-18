@@ -19,7 +19,6 @@
 #define INITSYSVAR_HPP_
 
 #include "objects.hpp"
-
 namespace SysVar
 {
   //  extern unsigned int pathIx, dIx;
@@ -66,6 +65,7 @@ namespace SysVar
 
   // returns !CPU
   DStructGDL* Cpu();
+ void CPUChanged();
 
   // returns !D
   DStructGDL* D();

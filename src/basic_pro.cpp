@@ -60,7 +60,7 @@ namespace lib {
     os << left << parString;
     if( parString.length() >= 16)
       {
-        os << endl;
+        os << " " << endl; // for cmsv compatible output (uses help,OUTPUT)
         os.width(doIndentation? 19:16);
         os << "";
       }

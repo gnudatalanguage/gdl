@@ -49,6 +49,12 @@ extern StructListT   structList;
 
 extern GDLFileListT  fileUnits;
 
+// for OpenMP
+extern DLong CpuHW_NCPU;
+extern DLong CpuTPOOL_NTHREADS;
+extern DLong CpuTPOOL_MIN_ELTS;
+extern DLong CpuTPOOL_MAX_ELTS;
+
 //extern DeviceListT   deviceList;
 //extern Graphics*     actDevice;
 

@@ -18,8 +18,8 @@
 // ============================================================================
 //
 // File          : gzstream.h
-// Revision      : $Revision: 1.1 $
-// Revision_date : $Date: 2007-03-04 19:19:26 $
+// Revision      : $Revision: 1.2 $
+// Revision_date : $Date: 2009-11-18 23:22:49 $
 // Author(s)     : Deepak Bandyopadhyay, Lutz Kettner
 // 
 // Standard streambuf implementation following Nicolai Josuttis, "The 
@@ -42,6 +42,8 @@ namespace GZSTREAM_NAMESPACE {
 // Internal classes to implement gzstream. See below for user classes.
 // ----------------------------------------------------------------------------
 
+const int buf4 = 2;
+
 class gzstreambuf : public std::streambuf {
 private:
     static const int bufferSize = 47+256;    // size of data buff
@@ -56,9 +58,10 @@ private:
 public:
     gzstreambuf() : opened(0) {
         setp( buffer, buffer + (bufferSize-1));
-        setg( buffer + 4,     // beginning of putback area
-              buffer + 4,     // read position
-              buffer + 4);    // end position      
+        setg( buffer + buf4,     // beginning of putback area
+              buffer + buf4,     // read position
+              buffer + buf4);    // end position      
+//               buffer + buf4);    // end position      
         // ASSERT: both input & output capabilities will not be used together
     }
     int is_open() { return opened; }

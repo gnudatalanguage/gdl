@@ -3605,7 +3605,7 @@ BaseGDL**  GDLInterpreter::l_expr(ProgNodeP _t,
 		_t = _retTree;
 		
 		if( right == NULL)
-		throw GDLException( _t, 
+		throw GDLException( sysVar, 
 		"System variable not allowed in this context.",true,false);
 		
 		auto_ptr<BaseGDL> conv_guard; //( rConv);
@@ -3621,7 +3621,7 @@ BaseGDL**  GDLInterpreter::l_expr(ProgNodeP _t,
 		((*res)->N_Elements() != right->N_Elements()))
 		{
 		throw GDLException( _t, "Conflicting data structures: <"+
-		right->TypeStr()+" "+right->Dim().ToString()+">,!"+ 
+		right->TypeStr()+" "+right->Dim().ToString()+">, !"+ 
 		sysVar->getText(),true,false);
 		}
 		

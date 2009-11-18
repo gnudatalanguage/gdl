@@ -2218,7 +2218,7 @@ l_expr [BaseGDL* right] returns [BaseGDL** res]
         res=l_sys_var // sysvars cannot change their type
         {
             if( right == NULL)
-            throw GDLException( _t, 
+            throw GDLException( sysVar, 
                 "System variable not allowed in this context.",true,false);
             
            auto_ptr<BaseGDL> conv_guard; //( rConv);
@@ -2234,7 +2234,7 @@ l_expr [BaseGDL* right] returns [BaseGDL** res]
                 ((*res)->N_Elements() != right->N_Elements()))
             {
                 throw GDLException( _t, "Conflicting data structures: <"+
-                    right->TypeStr()+" "+right->Dim().ToString()+">,!"+ 
+                    right->TypeStr()+" "+right->Dim().ToString()+">, !"+ 
                     sysVar->getText(),true,false);
             }
             
