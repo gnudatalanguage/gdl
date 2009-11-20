@@ -560,10 +560,17 @@ public:
 #endif
 };
 
+const int ExprListDefaultLength = 128;
+
 // ExprListT deletes all members upon own destruction
-class ExprListT: public std::list<BaseGDL*> 
+// class ExprListT: public std::list<BaseGDL*> 
+class ExprListT: public std::vector<BaseGDL*> 
 {
 public:
+ExprListT()
+{
+this->reserve(ExprListDefaultLength);
+}
   ~ExprListT()
   {
     for( ExprListT::iterator i=this->begin(); i!=this->end(); ++i)

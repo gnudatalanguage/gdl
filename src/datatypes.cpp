@@ -942,8 +942,12 @@ SizeT Data_<Sp>::Sizeof() const
 template< class Sp>
 void Data_<Sp>::Clear() 
 { 
-SizeT nEl = dd.size(); for( SizeT i = 0; i<nEl; ++i) (*this)[ i] = Sp::zero;
-}
+SizeT nEl = dd.size(); 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
+for( SizeT i = 0; i<nEl; ++i) (*this)[ i] = Sp::zero;
+}}
 
 // first time initialization (construction)
 template< class Sp>
@@ -955,47 +959,68 @@ void Data_< SpDString>::Construct()
 { 
   SizeT nEl = dd.size(); 
 //  for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty;
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
   for( SizeT i = 0; i<nEl; ++i) new (&(dd[ i])) Ty;
-}
+}}
 template<>
 void Data_< SpDComplex>::Construct() 
 { 
   SizeT nEl = dd.size(); 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
   for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty;
-}
+}}
 template<>
 void Data_< SpDComplexDbl>::Construct() 
 { 
   SizeT nEl = dd.size(); 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
   for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty;
-}
+}}
 
 // construction and initalization to zero
 template< class Sp>
 void Data_<Sp>::ConstructTo0() 
 { 
 SizeT nEl = dd.size(); 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 for( SizeT i = 0; i<nEl; ++i) (*this)[ i] = Sp::zero;
-}
+}}
 // non POD - use placement new
 template<>
 void Data_< SpDString>::ConstructTo0() 
 { 
   SizeT nEl = dd.size(); 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
   for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty( zero);
-}
+}}
 template<>
 void Data_< SpDComplex>::ConstructTo0() 
 { 
   SizeT nEl = dd.size(); 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
   for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty( zero);
-}
+}}
 template<>
 void Data_< SpDComplexDbl>::ConstructTo0() 
 { 
   SizeT nEl = dd.size(); 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
   for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty( zero);
-}
+}}
 
 template< class Sp>
 void Data_<Sp>::Destruct() 
@@ -1006,23 +1031,32 @@ template<>
 void Data_< SpDString>::Destruct() 
 {
   SizeT nEl = dd.size(); 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
   for( SizeT i = 0; i<nEl; ++i) 
     (*this)[ i].~DString();
-}
+}}
 template<>
 void Data_< SpDComplex>::Destruct() 
 {
   SizeT nEl = dd.size(); 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
   for( SizeT i = 0; i<nEl; ++i) 
     (*this)[ i].~DComplex();
-}
+}}
 template<>
 void Data_< SpDComplexDbl>::Destruct() 
 {
   SizeT nEl = dd.size(); 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
   for( SizeT i = 0; i<nEl; ++i) 
     (*this)[ i].~DComplexDbl();
-}
+}}
 
 template< class Sp>
 BaseGDL* Data_<Sp>::SetBuffer( const void* b)
@@ -1048,8 +1082,11 @@ Data_<Sp>* Data_<Sp>::New( const dimension& dim_, BaseGDL::InitType noZero)
     {
       Data_* res =  new Data_(dim_, BaseGDL::NOZERO);
       SizeT nEl = res->dd.size();
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
       for( SizeT i=0; i<nEl; ++i) (*res)[ i] = (*this)[ 0]; // set all to scalar
-      return res;
+}      return res;
     }
   return new Data_(dim_);
 }
@@ -1079,8 +1116,12 @@ template<> SizeT Data_<SpDString>::NBytes() const
 {
   SizeT nEl = dd.size();
   SizeT nB = 0;
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
   for( SizeT i=0; i<nEl; ++i)
     nB += (*this)[i].size();
+}
   return nB;
 }
 // template<> SizeT Data_<SpDObj>::NBytes() const
@@ -1638,17 +1679,24 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
 	{
 	  SizeT nCp=Data_::N_Elements();
 
+#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+#pragma omp for
 	  for( SizeT c=0; c<nCp; ++c)
 	    (*this)[ c]=scalar;
+}
 	}
       else
 	{
 	  SizeT nCp=ixList->N_Elements();
 	  
 	  AllIxT* allIx = ixList->BuildIx();
+#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+#pragma omp for
 	  for( SizeT c=0; c<nCp; ++c)
 	    (*this)[ (*allIx)[ c]]=scalar;
-	  //	    (*this)[ ixList->GetIx( c)]=scalar;
+}	  //	    (*this)[ ixList->GetIx( c)]=scalar;
 	}
     }
   else
@@ -1664,9 +1712,12 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
 	    else
 	      throw GDLException("Source expression contains not enough elements.");
 
+#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+#pragma omp for
 	  for( SizeT c=0; c<nCp; ++c)
 	    (*this)[ c]=(*src)[c+offset];
-	}
+}	}
       else
 	{
  	  // crucial part
@@ -1690,9 +1741,12 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
 				       " source expression.");
 		  
 		  AllIxT* allIx = ixList->BuildIx();
+#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+#pragma omp for
 		  for( SizeT c=0; c<nCp; ++c)
 		    (*this)[ (*allIx)[ c]]=(*src)[c];
-		  //		(*this)[ ixList->GetIx( c)]=(*src)[c+offset];
+}		  //		(*this)[ ixList->GetIx( c)]=(*src)[c+offset];
 		}
 	      else
 		{
@@ -1701,9 +1755,12 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
 				       " source expression.");
 		  
 		  AllIxT* allIx = ixList->BuildIx();
+#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+#pragma omp for
 		  for( SizeT c=0; c<nCp; ++c)
 		    (*this)[ (*allIx)[ c]]=(*src)[c+offset];
-		  //		(*this)[ ixList->GetIx( c)]=(*src)[c+offset];
+}		  //		(*this)[ ixList->GetIx( c)]=(*src)[c+offset];
 		}
 	    }
 	}
@@ -1731,9 +1788,12 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList)
 	{
 	  Ty scalar=(*src)[0];
 	  AllIxT* allIx = ixList->BuildIx();
+#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+#pragma omp for
 	  for( SizeT c=0; c<nCp; ++c)
 	    (*this)[ (*allIx)[ c]]=scalar;
-	  //	    (*this)[ ixList->GetIx( c)]=scalar;
+}	  //	    (*this)[ ixList->GetIx( c)]=scalar;
 	}
     }
   else
@@ -1752,9 +1812,12 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList)
 			       " source expression.");
 	  
 	  AllIxT* allIx = ixList->BuildIx();
+#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+#pragma omp for
 	  for( SizeT c=0; c<nCp; ++c)
 	    (*this)[ (*allIx)[ c]]=(*src)[c];
-	  //		(*this)[ ixList->GetIx( c)]=(*src)[c+offset];
+}	  //		(*this)[ ixList->GetIx( c)]=(*src)[c+offset];
 	}
     }
 }
@@ -1774,9 +1837,12 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn)
       SizeT nCp=Data_::N_Elements();
       
       
+#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+#pragma omp for
       for( SizeT c=0; c<nCp; ++c)
 	(*this)[ c]=scalar;
-      
+}      
       //       SizeT nCp=Data_::N_Elements();
 
       //       for( SizeT c=0; c<nCp; ++c)
@@ -1789,8 +1855,12 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn)
       // if (non-indexed) src is smaller -> just copy its number of elements
       if( nCp > srcElem) nCp=srcElem;
       
+#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+#pragma omp for
       for( SizeT c=0; c<nCp; ++c)
 	(*this)[ c]=(*src)[c];
+}
     }
 }
 
@@ -1812,9 +1882,12 @@ void Data_<Sp>::DecAt( ArrayIndexListT* ixList)
       SizeT nCp=ixList->N_Elements();
 
       AllIxT* allIx = ixList->BuildIx();
+#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+#pragma omp for
       for( SizeT c=0; c<nCp; ++c)
 	(*this)[ (*allIx)[ c]]--;
-    }
+}    }
 }
 template<class Sp>
 void Data_<Sp>::IncAt( ArrayIndexListT* ixList) 
@@ -1832,9 +1905,12 @@ void Data_<Sp>::IncAt( ArrayIndexListT* ixList)
       SizeT nCp=ixList->N_Elements();
       
       AllIxT* allIx = ixList->BuildIx();
+#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+#pragma omp for
       for( SizeT c=0; c<nCp; ++c)
 	(*this)[ (*allIx)[ c]]++;
-    }
+}    }
 }
 // float, double
 template<>
@@ -1854,9 +1930,12 @@ void Data_<SpDFloat>::DecAt( ArrayIndexListT* ixList)
       SizeT nCp=ixList->N_Elements();
 
       AllIxT* allIx = ixList->BuildIx();
+#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+#pragma omp for
       for( SizeT c=0; c<nCp; ++c)
 	(*this)[ (*allIx)[ c]] -= 1.0;
-    }
+}    }
 }
 template<>
 void Data_<SpDFloat>::IncAt( ArrayIndexListT* ixList) 
@@ -1875,9 +1954,12 @@ void Data_<SpDFloat>::IncAt( ArrayIndexListT* ixList)
       SizeT nCp=ixList->N_Elements();
       
       AllIxT* allIx = ixList->BuildIx();
+#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+#pragma omp for
       for( SizeT c=0; c<nCp; ++c)
 	(*this)[ (*allIx)[ c]] += 1.0;
-    }
+}    }
 }
 template<>
 void Data_<SpDDouble>::DecAt( ArrayIndexListT* ixList) 
@@ -1896,9 +1978,12 @@ void Data_<SpDDouble>::DecAt( ArrayIndexListT* ixList)
       SizeT nCp=ixList->N_Elements();
       
       AllIxT* allIx = ixList->BuildIx();
+#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+#pragma omp for
       for( SizeT c=0; c<nCp; ++c)
 	(*this)[ (*allIx)[ c]] -= 1.0;
-    }
+}    }
 }
 template<>
 void Data_<SpDDouble>::IncAt( ArrayIndexListT* ixList) 
@@ -1917,9 +2002,12 @@ void Data_<SpDDouble>::IncAt( ArrayIndexListT* ixList)
       SizeT nCp=ixList->N_Elements();
       
       AllIxT* allIx = ixList->BuildIx();
+#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+#pragma omp for
       for( SizeT c=0; c<nCp; ++c)
 	(*this)[ (*allIx)[ c]] += 1.0;
-    }
+}    }
 }
 // complex
 template<>
@@ -1931,17 +2019,23 @@ void Data_<SpDComplex>::DecAt( ArrayIndexListT* ixList)
 
             SizeT nCp=Data_::N_Elements();
       
+#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+#pragma omp for
             for( SizeT c=0; c<nCp; ++c)
       	(*this)[ c] -= 1.0;
-    }
+}    }
   else
     {
       SizeT nCp=ixList->N_Elements();
       
       AllIxT* allIx = ixList->BuildIx();
+#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+#pragma omp for
       for( SizeT c=0; c<nCp; ++c)
 	(*this)[ (*allIx)[ c]] -= 1.0;
-    }
+}    }
 }
 template<>
 void Data_<SpDComplex>::IncAt( ArrayIndexListT* ixList) 
@@ -1952,17 +2046,23 @@ void Data_<SpDComplex>::IncAt( ArrayIndexListT* ixList)
 
             SizeT nCp=Data_::N_Elements();
       
+#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+#pragma omp for
             for( SizeT c=0; c<nCp; ++c)
       	(*this)[ c] += 1.0;
-    }
+}    }
   else
     {
       SizeT nCp=ixList->N_Elements();
       
       AllIxT* allIx = ixList->BuildIx();
+#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+#pragma omp for
       for( SizeT c=0; c<nCp; ++c)
 	(*this)[ (*allIx)[ c]] += 1.0;
-    }
+}    }
 }
 template<>
 void Data_<SpDComplexDbl>::DecAt( ArrayIndexListT* ixList) 
@@ -1973,17 +2073,23 @@ void Data_<SpDComplexDbl>::DecAt( ArrayIndexListT* ixList)
 
             SizeT nCp=Data_::N_Elements();
       
+#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+#pragma omp for
             for( SizeT c=0; c<nCp; ++c)
       	(*this)[ c] -= 1.0;
-    }
+}    }
   else
     {
       SizeT nCp=ixList->N_Elements();
       
       AllIxT* allIx = ixList->BuildIx();
+#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+#pragma omp for
       for( SizeT c=0; c<nCp; ++c)
 	(*this)[ (*allIx)[ c]] -= 1.0;
-    }
+}    }
 }
 template<>
 void Data_<SpDComplexDbl>::IncAt( ArrayIndexListT* ixList) 
@@ -1994,17 +2100,23 @@ void Data_<SpDComplexDbl>::IncAt( ArrayIndexListT* ixList)
 
             SizeT nCp=Data_::N_Elements();
       
+#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+#pragma omp for
             for( SizeT c=0; c<nCp; ++c)
       	(*this)[ c] += 1.0;
-    }
+}    }
   else
     {
       SizeT nCp=ixList->N_Elements();
       
       AllIxT* allIx = ixList->BuildIx();
+#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+#pragma omp for
       for( SizeT c=0; c<nCp; ++c)
 	(*this)[ (*allIx)[ c]] += 1.0;
-    }
+}    }
 }
 // forbidden types
 template<>
@@ -2051,17 +2163,23 @@ void Data_<Sp>::InsertAt( SizeT offset, BaseGDL* srcIn,
     {
       SizeT nCp=src->N_Elements();
 
+#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+#pragma omp for
       for( SizeT c=0; c<nCp; ++c)
 	(*this)[ c+offset]=(*src)[c];
-    }
+}    }
   else
     {
       SizeT nCp=ixList->N_Elements();
 
       AllIxT* allIx = ixList->BuildIx();
+#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+#pragma omp for
       for( SizeT c=0; c<nCp; ++c)
 	(*this)[ c+offset]=(*src)[ (*allIx)[ c]];
-      //	(*this)[ c+offset]=(*src)[ ixList->GetIx( c)];
+}      //	(*this)[ c+offset]=(*src)[ ixList->GetIx( c)];
     }
 }
 
@@ -2135,9 +2253,12 @@ Data_<Sp>* Data_<Sp>::Index( ArrayIndexListT* ixList)
   
   //  DataT& res_dd = res->dd; 
   AllIxT* allIx = ixList->BuildIx();
+#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+#pragma omp for
   for( SizeT c=0; c<nCp; ++c)
     (*res)[c]=(*this)[ (*allIx)[ c]];
-  //    res_(*this)[c]=(*this)[ (*allIx)[ c]];
+}  //    res_(*this)[c]=(*this)[ (*allIx)[ c]];
   //    (*res)[c]=(*this)[ ixList->GetIx(c)];
   
   return res;
@@ -3266,9 +3387,12 @@ T* Rebin1( T* src,
 	      }
       
 	  SizeT resEl = res->N_Elements();
+#pragma omp parallel if (resEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= resEl))
+{
+#pragma omp for
 	  for( SizeT r=0; r < resEl; ++r)
 	    (*res)[ r] /= ratio;
-
+}
 	  return res;
 	}
     }
@@ -3740,10 +3864,13 @@ void Data_<Sp>::Assign( BaseGDL* src, SizeT nEl)
       srcTGuard.reset( srcT);
     }
 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
   for(long k=0; k < nEl; ++k)
     {
       (*this)[ k] = (*srcT)[ k];
-    }
+}    }
 }
 
 // return a new type of itself (only for one dimensional case)
@@ -3757,8 +3884,12 @@ Data_<Sp>* Data_<Sp>::NewIx( AllIxT* ix, dimension* dIn)
 {
   SizeT nCp = ix->size();
   Data_* res=Data_::New( *dIn, BaseGDL::NOZERO);
+#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+#pragma omp for
   for( SizeT c=0; c<nCp; ++c)
     (*res)[c]=(*this)[ (*ix)[ c]];
+}
   return res;
 }
 template<class Sp>
@@ -3766,8 +3897,12 @@ Data_<Sp>* Data_<Sp>::NewIxFrom( SizeT s)
 {
   SizeT nCp = dd.size() - s;
   Data_* res=Data_::New( dimension( nCp), BaseGDL::NOZERO);
+#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+#pragma omp for
   for( SizeT c=0; c<nCp; ++c)
-    (*res)[c]=(*this)[ s++];
+    (*res)[c]=(*this)[ s+c];
+}
   return res;
 }
 template<class Sp>
@@ -3775,8 +3910,12 @@ Data_<Sp>* Data_<Sp>::NewIxFrom( SizeT s, SizeT e)
 {
   SizeT nCp = e - s + 1;
   Data_* res=Data_::New( dimension( nCp), BaseGDL::NOZERO);
+#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+#pragma omp for
   for( SizeT c=0; c<nCp; ++c)
-    (*res)[c]=(*this)[ s++];
+    (*res)[c]=(*this)[ s+c];
+}
   return res;
 }
 template<class Sp>

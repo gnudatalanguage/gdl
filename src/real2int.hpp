@@ -26,7 +26,7 @@ IntT Real2Int( RealT r)
   if( std::numeric_limits< IntT>::max() < r)
     {
       //      Warning( "conversion overflow (+)");
-      return std::numeric_limits< IntT>::min();
+      return std::numeric_limits< IntT>::max();
     }
   if( std::numeric_limits< IntT>::min() > r)
     {

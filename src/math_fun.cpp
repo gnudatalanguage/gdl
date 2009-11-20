@@ -28,6 +28,7 @@
 #include <gsl/gsl_cdf.h>
 #include <gsl/gsl_linalg.h>
 
+#include "objects.hpp"
 #include "datatypes.hpp"
 #include "envt.hpp"
 #include "math_utl.hpp"
@@ -55,10 +56,14 @@ namespace lib {
   template< typename srcT, typename destT>
   void FromToGSL(  srcT* src, destT* dest, SizeT nEl)
   {
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
     for( SizeT d = 0; d<nEl; ++d)
       {
 	dest[ d] = src[ d];
       }
+}
   }
 
   void svdc( EnvT* e)
@@ -206,10 +211,14 @@ namespace lib {
     T* p0C = static_cast<T*>( p0);
     T* res = new T( p0C->Dim(), BaseGDL::NOZERO);
     SizeT nEl = p0->N_Elements();
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
     for( SizeT i=0; i<nEl; ++i)
       {
 	(*res)[ i] = sin((*p0C)[ i]); 
       }
+}
     return res;
   }
 
@@ -236,10 +245,14 @@ namespace lib {
       {
 	DFloatGDL* res = static_cast<DFloatGDL*>
 	  (p0->Convert2( FLOAT, BaseGDL::COPY));
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	for( SizeT i=0; i<nEl; ++i)
 	  {
 	    (*res)[ i] = sin((*res)[ i]); 
 	  }
+}
 	return res;
       }
   }
@@ -250,10 +263,14 @@ namespace lib {
     T* p0C = static_cast<T*>( p0);
     T* res = new T( p0C->Dim(), BaseGDL::NOZERO);
     SizeT nEl = p0->N_Elements();
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
     for( SizeT i=0; i<nEl; ++i)
       {
 	(*res)[ i] = cos((*p0C)[ i]); 
       }
+}
     return res;
   }
 
@@ -284,10 +301,14 @@ namespace lib {
       {
 	DFloatGDL* res = static_cast<DFloatGDL*>
 	  (p0->Convert2( FLOAT, BaseGDL::COPY));
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	for( SizeT i=0; i<nEl; ++i)
 	  {
 	    (*res)[ i] = cos((*res)[ i]); 
 	  }
+}
 	return res;
       }
   }
@@ -298,10 +319,14 @@ namespace lib {
     T* p0C = static_cast<T*>( p0);
     T* res = new T( p0C->Dim(), BaseGDL::NOZERO);
     SizeT nEl = p0->N_Elements();
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
     for( SizeT i=0; i<nEl; ++i)
       {
 	(*res)[ i] = tan((*p0C)[ i]); 
       }
+}
     return res;
   }
 
@@ -332,10 +357,14 @@ namespace lib {
       {
 	DFloatGDL* res = static_cast<DFloatGDL*>
 	  (p0->Convert2( FLOAT, BaseGDL::COPY));
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	for( SizeT i=0; i<nEl; ++i)
 	  {
 	    (*res)[ i] = tan((*res)[ i]); 
 	  }
+}
 	return res;
       }
   }
@@ -346,10 +375,14 @@ namespace lib {
     T* p0C = static_cast<T*>( p0);
     T* res = new T( p0C->Dim(), BaseGDL::NOZERO);
     SizeT nEl = p0->N_Elements();
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
     for( SizeT i=0; i<nEl; ++i)
       {
 	(*res)[ i] = sinh((*p0C)[ i]); 
       }
+}
     return res;
   }
 
@@ -380,10 +413,14 @@ namespace lib {
       {
 	DFloatGDL* res = static_cast<DFloatGDL*>
 	  (p0->Convert2( FLOAT, BaseGDL::COPY));
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	for( SizeT i=0; i<nEl; ++i)
 	  {
 	    (*res)[ i] = sinh((*res)[ i]); 
 	  }
+}
 	return res;
       }
   }
@@ -394,10 +431,14 @@ namespace lib {
     T* p0C = static_cast<T*>( p0);
     T* res = new T( p0C->Dim(), BaseGDL::NOZERO);
     SizeT nEl = p0->N_Elements();
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
     for( SizeT i=0; i<nEl; ++i)
       {
 	(*res)[ i] = cosh((*p0C)[ i]); 
       }
+}
     return res;
   }
 
@@ -428,10 +469,14 @@ namespace lib {
       {
 	DFloatGDL* res = static_cast<DFloatGDL*>
 	  (p0->Convert2( FLOAT, BaseGDL::COPY));
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	for( SizeT i=0; i<nEl; ++i)
 	  {
 	    (*res)[ i] = cosh((*res)[ i]); 
 	  }
+}
 	return res;
       }
   }
@@ -442,10 +487,14 @@ namespace lib {
     T* p0C = static_cast<T*>( p0);
     T* res = new T( p0C->Dim(), BaseGDL::NOZERO);
     SizeT nEl = p0->N_Elements();
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
     for( SizeT i=0; i<nEl; ++i)
       {
 	(*res)[ i] = tanh((*p0C)[ i]); 
       }
+}
     return res;
   }
 
@@ -476,10 +525,14 @@ namespace lib {
       {
 	DFloatGDL* res = static_cast<DFloatGDL*>
 	  (p0->Convert2( FLOAT, BaseGDL::COPY));
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	for( SizeT i=0; i<nEl; ++i)
 	  {
 	    (*res)[ i] = tanh((*res)[ i]); 
 	  }
+}
 	return res;
       }
   }
@@ -504,30 +557,42 @@ namespace lib {
       {
 	DDoubleGDL* p0D = static_cast<DDoubleGDL*>( p0);
 	DDoubleGDL* res = new DDoubleGDL( p0->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	for( SizeT i=0; i<nEl; ++i)
 	  {
 	    (*res)[ i] = asin((*p0D)[ i]); 
 	  }
+}
 	return res;
       }
     else if( p0->Type() == FLOAT)
       {
 	DFloatGDL* p0F = static_cast<DFloatGDL*>( p0);
 	DFloatGDL* res = new DFloatGDL( p0->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	for( SizeT i=0; i<nEl; ++i)
 	  {
 	    (*res)[ i] = asin((*p0F)[ i]); 
 	  }
+}
 	return res;
       }
     else 
       {
 	DFloatGDL* res = static_cast<DFloatGDL*>
 	  (p0->Convert2( FLOAT, BaseGDL::COPY));
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	for( SizeT i=0; i<nEl; ++i)
 	  {
 	    (*res)[ i] = asin((*res)[ i]); 
 	  }
+}
 	return res;
       }
   }
@@ -552,30 +617,41 @@ namespace lib {
       {
 	DDoubleGDL* p0D = static_cast<DDoubleGDL*>( p0);
 	DDoubleGDL* res = new DDoubleGDL( p0->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	for( SizeT i=0; i<nEl; ++i)
 	  {
 	    (*res)[ i] = acos((*p0D)[ i]); 
 	  }
+}
 	return res;
       }
     else if( p0->Type() == FLOAT)
       {
 	DFloatGDL* p0F = static_cast<DFloatGDL*>( p0);
 	DFloatGDL* res = new DFloatGDL( p0->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	for( SizeT i=0; i<nEl; ++i)
 	  {
 	    (*res)[ i] = acos((*p0F)[ i]); 
 	  }
-	return res;
+}	return res;
       }
     else 
       {
 	DFloatGDL* res = static_cast<DFloatGDL*>
 	  (p0->Convert2( FLOAT, BaseGDL::COPY));
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	for( SizeT i=0; i<nEl; ++i)
 	  {
 	    (*res)[ i] = acos((*res)[ i]); 
 	  }
+}
 	return res;
       }
   }
@@ -748,66 +824,94 @@ namespace lib {
 	  {
 	    DComplexGDL* p0C = static_cast<DComplexGDL*>( p0);
 	    DFloatGDL* res = new DFloatGDL( p0C->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	    for( SizeT i=0; i<nEl; ++i)
 	      {
 		DComplex& C = (*p0C)[ i];
 		(*res)[ i] = (float)atan2((double)C.imag(), (double)C.real());
 	      }
+}
 	    return res;
 	  }
 	else if( p0->Type() == COMPLEX)
         {
 	  DComplexGDL* p0C = static_cast<DComplexGDL*>( p0);
 	  DComplexGDL* res = new DComplexGDL( p0->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	  for( SizeT i=0; i<nEl; ++i) (*res)[ i] = atanC((*p0C)[ i]); 
+}
           return res;
         }  
 	else if( p0->Type() == COMPLEXDBL && e->KeywordSet(phaseIx))
 	  {
 	    DComplexDblGDL* p0C = static_cast<DComplexDblGDL*>( p0);
 	    DDoubleGDL* res = new DDoubleGDL( p0C->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	    for( SizeT i=0; i<nEl; ++i)
 	      {
 		DComplexDbl& C = (*p0C)[ i];
 		(*res)[ i] = atan2( C.imag(), C.real());
 	      }
+}
 	    return res;
 	  }
 	else if( p0->Type() == COMPLEXDBL)
         {
 	  DComplexDblGDL* p0C = static_cast<DComplexDblGDL*>( p0);
 	  DComplexDblGDL* res = new DComplexDblGDL( p0->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	  for( SizeT i=0; i<nEl; ++i) (*res)[ i] = atanC((*p0C)[ i]); 
+}
           return res;
         }  
 	else if( p0->Type() == DOUBLE)
 	  {
 	    DDoubleGDL* p0D = static_cast<DDoubleGDL*>( p0);
 	    DDoubleGDL* res = new DDoubleGDL( p0->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	    for( SizeT i=0; i<nEl; ++i)
 	      {
 		(*res)[ i] = atan((*p0D)[ i]); 
 	      }
+}
 	    return res;
 	  }
 	else if( p0->Type() == FLOAT)
 	  {
 	    DFloatGDL* p0F = static_cast<DFloatGDL*>( p0);
 	    DFloatGDL* res = new DFloatGDL( p0->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	    for( SizeT i=0; i<nEl; ++i)
 	      {
 		(*res)[ i] = atan((*p0F)[ i]); 
 	      }
+}
 	    return res;
 	  }
 	else 
 	  {
 	    DFloatGDL* res = static_cast<DFloatGDL*>
 	      (p0->Convert2( FLOAT, BaseGDL::COPY));
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	    for( SizeT i=0; i<nEl; ++i)
 	      {
 		(*res)[ i] = atan((*res)[ i]); 
 	      }
+}
 	    return res;
 	  }
       }
@@ -941,10 +1045,14 @@ namespace lib {
     T* p0C = static_cast<T*>( p0);
     T* res = new T( p0C->Dim(), BaseGDL::NOZERO);
     SizeT nEl = p0->N_Elements();
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
     for( SizeT i=0; i<nEl; ++i)
       {
 	(*res)[ i] = sqrt((*p0C)[ i]); 
       }
+}
     return res;
   }
 
@@ -971,10 +1079,14 @@ namespace lib {
       {
 	DFloatGDL* res = static_cast<DFloatGDL*>
 	  (p0->Convert2( FLOAT, BaseGDL::COPY));
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	for( SizeT i=0; i<nEl; ++i)
 	  {
 	    (*res)[ i] = sqrt( (*res)[ i]); 
 	  }
+}
 	return res;
       }
   }
@@ -986,10 +1098,14 @@ namespace lib {
     T* p0C = static_cast<T*>( p0);
     T* res = new T( p0C->Dim(), BaseGDL::NOZERO);
     SizeT nEl = p0->N_Elements();
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
     for( SizeT i=0; i<nEl; ++i)
       {
 	(*res)[ i] = abs((*p0C)[ i]); 
       }
+}
     return res;
   }
 
@@ -1008,6 +1124,9 @@ namespace lib {
 	DComplexGDL* p0C = static_cast<DComplexGDL*>( p0);
 	DFloatGDL* res = new DFloatGDL(p0C->Dim(), BaseGDL::NOZERO);
 	SizeT nEl = p0->N_Elements();
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	for( SizeT i=0; i<nEl; ++i)
 	  {
 // 	    DComplex& C = (*p0C)[ i];
@@ -1015,6 +1134,7 @@ namespace lib {
 // 	    (*res)[ i] = sqrt(Creal*Creal + Cimag*Cimag);
  	    (*res)[ i] = abs( (*p0C)[ i]); //sqrt(Creal*Creal + Cimag*Cimag);
 	  }
+}
 	return res;
       }
     else if( p0->Type() == COMPLEXDBL)
@@ -1022,6 +1142,9 @@ namespace lib {
 	DComplexDblGDL* p0C = static_cast<DComplexDblGDL*>( p0);
 	DDoubleGDL* res = new DDoubleGDL(p0C->Dim(), BaseGDL::NOZERO);
 	SizeT nEl = p0->N_Elements();
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	for( SizeT i=0; i<nEl; ++i)
 	  {
 // 	    DComplexDbl& C = (*p0C)[ i];
@@ -1029,6 +1152,7 @@ namespace lib {
 // 	    (*res)[ i] = sqrt(Creal*Creal + Cimag*Cimag);
  	    (*res)[ i] = abs( (*p0C)[ i]); //sqrt(Creal*Creal + Cimag*Cimag);
 	  }
+}
 	return res;
       }
     else if( p0->Type() == DOUBLE)
@@ -1053,10 +1177,14 @@ namespace lib {
       {
 	DFloatGDL* res = static_cast<DFloatGDL*>
 	  (p0->Convert2( FLOAT, BaseGDL::COPY));
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	for( SizeT i=0; i<nEl; ++i)
 	  {
 	    (*res)[ i] = abs( (*res)[ i]); 
 	  }
+}
 	return res;
       }
   }
@@ -1071,17 +1199,25 @@ namespace lib {
     // L64 keyword support
     if (isKWSetL64) {
       DLong64GDL* res = new DLong64GDL(p0C->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
       for( SizeT i=0; i<nEl; ++i)
 	{
 	  (*res)[ i] = static_cast<DLong64>( round((*p0C)[ i])); 
 	}
+}
       return res;
     } else {
       DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
       for( SizeT i=0; i<nEl; ++i)
 	{
 	  (*res)[ i] = static_cast<DLong>( round((*p0C)[ i])); 
 	}
+}
       return res;
     }
   }
@@ -1108,19 +1244,27 @@ namespace lib {
 	// L64 keyword support
 	if (isKWSetL64) {
 	  DLong64GDL* res = new DLong64GDL(p0C->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	  for( SizeT i=0; i<nEl; ++i)
 	    {
 	      DComplex& C = (*p0C)[ i];
 	      (*res)[ i] = (DLong64) round(C.real());
 	    }
+}
 	  return res;
 	} else {
 	  DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	  for( SizeT i=0; i<nEl; ++i)
 	    {
 	      DComplex& C = (*p0C)[ i];
 	      (*res)[ i] = (int) round(C.real());
 	    }
+}
 	  return res;
 	}
       }
@@ -1132,19 +1276,27 @@ namespace lib {
 	// L64 keyword support
 	if (isKWSetL64) {
 	  DLong64GDL* res = new DLong64GDL(p0C->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	  for( SizeT i=0; i<nEl; ++i)
 	    {
 	      DComplexDbl& C = (*p0C)[ i];
 	      (*res)[ i] = (DLong64) round(C.real());
 	    }
+}
 	  return res;
 	} else {
 	  DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	  for( SizeT i=0; i<nEl; ++i)
 	    {
 	      DComplexDbl& C = (*p0C)[ i];
 	      (*res)[ i] = (int) round(C.real());
 	    }
+}
 	  return res;
 	}
       }
@@ -1171,10 +1323,14 @@ namespace lib {
 	DFloatGDL* p0F = e->GetParAs<DFloatGDL>( 0);
 	DLongGDL* res = new DLongGDL(p0->Dim(), BaseGDL::NOZERO);
 	SizeT nEl = p0->N_Elements();
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	for( SizeT i=0; i<nEl; ++i)
 	  {
 	    (*res)[ i] = (int) round((double) (*p0F)[ i]); 
 	  }
+}
 	return res;
       }
   }
@@ -1188,17 +1344,25 @@ namespace lib {
     // L64 keyword support
     if (isKWSetL64) {
       DLong64GDL* res = new DLong64GDL(p0C->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
       for( SizeT i=0; i<nEl; ++i)
 	{
 	  (*res)[ i] = (DLong64) ceil((*p0C)[ i]); 
 	}
+}
       return res;
     } else {
       DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
       for( SizeT i=0; i<nEl; ++i)
 	{
 	  (*res)[ i] = (int) ceil((*p0C)[ i]); 
 	}
+}
       return res;
     }
   }
@@ -1224,19 +1388,27 @@ namespace lib {
 	// L64 keyword support
 	if (isKWSetL64) {
 	  DLong64GDL* res = new DLong64GDL(p0C->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	  for( SizeT i=0; i<nEl; ++i)
 	    {
 	      DComplex& C = (*p0C)[ i];
 	      (*res)[ i] = (DLong64) ceil(C.real());
 	    }
+}
 	  return res;
 	} else {
 	  DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	  for( SizeT i=0; i<nEl; ++i)
 	    {
 	      DComplex& C = (*p0C)[ i];
 	      (*res)[ i] = (int) ceil(C.real());
 	    }
+}
 	  return res;
 	}
       }
@@ -1248,19 +1420,27 @@ namespace lib {
 	// L64 keyword support
 	if (isKWSetL64) {
 	  DLong64GDL* res = new DLong64GDL(p0C->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	  for( SizeT i=0; i<nEl; ++i)
 	    {
 	      DComplexDbl& C = (*p0C)[ i];
 	      (*res)[ i] = (DLong64) ceil(C.real());
 	    }
+}
 	  return res;
 	} else {
 	  DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	  for( SizeT i=0; i<nEl; ++i)
 	    {
 	      DComplexDbl& C = (*p0C)[ i];
 	      (*res)[ i] = (int) ceil(C.real());
 	    }
+}
 	  return res;
 	}
       }
@@ -1287,10 +1467,14 @@ namespace lib {
 	DFloatGDL* p0F = e->GetParAs<DFloatGDL>( 0);
 	DLongGDL* res = new DLongGDL(p0->Dim(), BaseGDL::NOZERO);
 	SizeT nEl = p0->N_Elements();
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	for( SizeT i=0; i<nEl; ++i)
 	  {
 	    (*res)[ i] = (int) ceil((double) (*p0F)[ i]); 
 	  }
+}
 	return res;
       }
   }
@@ -1304,17 +1488,25 @@ namespace lib {
     // L64 keyword support
     if (isKWSetL64) {
       DLong64GDL* res = new DLong64GDL(p0C->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
       for( SizeT i=0; i<nEl; ++i)
 	{
 	  (*res)[ i] = (DLong64) floor((*p0C)[ i]); 
 	}
+}
       return res;
     } else {
       DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
       for( SizeT i=0; i<nEl; ++i)
 	{
 	  (*res)[ i] = (int) floor((*p0C)[ i]); 
 	}
+}
       return res;
     }
   }
@@ -1340,19 +1532,27 @@ namespace lib {
 	// L64 keyword support
 	if (isKWSetL64) {
 	  DLong64GDL* res = new DLong64GDL(p0C->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	  for( SizeT i=0; i<nEl; ++i)
 	    {
 	      DComplex& C = (*p0C)[ i];
 	      (*res)[ i] = (DLong64) floor(C.real());
 	    }
+}
 	  return res;
 	} else {
 	  DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	  for( SizeT i=0; i<nEl; ++i)
 	    {
 	      DComplex& C = (*p0C)[ i];
 	      (*res)[ i] = (int) floor(C.real());
 	    }
+}
 	  return res;
 	}
       }
@@ -1364,19 +1564,27 @@ namespace lib {
 	// L64 keyword support
 	if (isKWSetL64) {
 	  DLong64GDL* res = new DLong64GDL(p0C->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	  for( SizeT i=0; i<nEl; ++i)
 	    {
 	      DComplexDbl& C = (*p0C)[ i];
 	      (*res)[ i] = (DLong64) floor(C.real());
 	    }
+}
 	  return res;
 	} else {
 	  DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	  for( SizeT i=0; i<nEl; ++i)
 	    {
 	      DComplexDbl& C = (*p0C)[ i];
 	      (*res)[ i] = (int) floor(C.real());
 	    }
+}
 	  return res;
 	}
       }
@@ -1403,10 +1611,14 @@ namespace lib {
 	DFloatGDL* p0F = e->GetParAs<DFloatGDL>( 0);
 	DLongGDL* res = new DLongGDL(p0->Dim(), BaseGDL::NOZERO);
 	SizeT nEl = p0->N_Elements();
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	for( SizeT i=0; i<nEl; ++i)
 	  {
 	    (*res)[ i] = (int) floor((double) (*p0F)[ i]); 
 	  }
+}
 	return res;
       }
   }
@@ -1422,19 +1634,27 @@ namespace lib {
     if( p0->Type() == COMPLEX)
       {
 	DComplexGDL* res = static_cast<DComplexGDL*>(p0->Dup());
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	for( SizeT i=0; i<nEl; ++i)
 	  {
 	    (*res)[i] = DComplex( (*res)[i].real(), -(*res)[i].imag());
 	  }
+}
 	return res;
       }
     if( p0->Type() == COMPLEXDBL)
       {
 	DComplexDblGDL* res = static_cast<DComplexDblGDL*>(p0->Dup());
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	for( SizeT i=0; i<nEl; ++i)
 	  {
 	    (*res)[i] = DComplexDbl( (*res)[i].real(), -(*res)[i].imag());
 	  }
+}
 	return res;
       }
     if( p0->Type() == DOUBLE || 
@@ -1466,20 +1686,28 @@ namespace lib {
       {
 	DComplexGDL* c0 = static_cast<DComplexGDL*>(p0);
 	DFloatGDL* res = new DFloatGDL( c0->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	for( SizeT i=0; i<nEl; ++i)
 	  {
 	    (*res)[i] = (*c0)[i].imag();
 	  }
+}
 	return res;
       }
     if( p0->Type() == COMPLEXDBL)
       {
 	DComplexDblGDL* c0 = static_cast<DComplexDblGDL*>(p0);
 	DDoubleGDL* res = new DDoubleGDL( c0->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	for( SizeT i=0; i<nEl; ++i)
 	  {
 	    (*res)[i] = (*c0)[i].imag();
 	  }
+}
 	return res;
       }
 
@@ -1521,32 +1749,48 @@ namespace lib {
       {
 	DComplexDblGDL *c0 = static_cast< DComplexDblGDL*>( p0);
 	DComplexDblGDL *res = c0->New( c0->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	for( SizeT i=0; i<nEl; ++i)
 	  (*res)[ i] = exp( (*c0)[ i]);
+}
 	return res;
       }
     else if( t == COMPLEX)
       {
 	DComplexGDL *c0 = static_cast< DComplexGDL*>( p0);
 	DComplexGDL *res = c0->New( c0->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	for( SizeT i=0; i<nEl; ++i)
 	  (*res)[ i] = exp( (*c0)[ i]);
+}
 	return res;
       }
     else if( t == DOUBLE)
       {
 	DDoubleGDL *c0 = static_cast< DDoubleGDL*>( p0);
 	DDoubleGDL *res = c0->New( c0->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	for( SizeT i=0; i<nEl; ++i)
 	  (*res)[ i] = exp( (*c0)[ i]);
+}
 	return res;
       }
     else if( t == FLOAT)
       {
 	DFloatGDL *c0 = static_cast< DFloatGDL*>( p0);
 	DFloatGDL *res = c0->New( c0->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	for( SizeT i=0; i<nEl; ++i)
 	  (*res)[ i] = exp( (*c0)[ i]);
+}
 	return res;
       }
     else
@@ -1554,9 +1798,12 @@ namespace lib {
 	DFloatGDL *res = 
 	  static_cast< DFloatGDL*>( p0->Convert2( FLOAT, BaseGDL::COPY));
 	
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	for( SizeT i=0; i<nEl; ++i)
 	  (*res)[ i] = exp( (*res)[ i]);
-	
+}	
 	return res;
       }
   }
@@ -1686,13 +1933,16 @@ namespace lib {
       double gamma_kn1 = gsl_sf_gamma(k+n+1.);
       DDoubleGDL* coefKW = new DDoubleGDL(dimension(n+1) , BaseGDL::NOZERO);
 
+/*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for*/
       for(count = 0;count<=n;++count) {
         dcount = static_cast<double>(count);
         (*coefKW)[count] = ((count & 0x0001)?-1.0:1.0)*gamma_kn1/
           (gsl_sf_gamma(n-dcount+1.)*gsl_sf_gamma(k+dcount+1.)*
            gsl_sf_gamma(dcount+1.));
         }
-        
+// }        
       if(e->GetParDefined(0)->Type() != DOUBLE && !e->KeywordSet(doubleKWIx))
         coefKW = static_cast<DDoubleGDL*>(coefKW->
                         Convert2(FLOAT,BaseGDL::CONVERT));

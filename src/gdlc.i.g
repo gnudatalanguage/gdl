@@ -788,6 +788,7 @@ statement returns[ GDLInterpreter::RetCode retCode]
                 ProgNodeP onIOErr = static_cast<EnvUDT*>(callStack.back())->GetIOError();
                 if( onIOErr != NULL)
                     {
+                        SysVar::SetErr_String( e.getMessage());
                         _t = onIOErr;
                         retCode=RC_OK;		
 
