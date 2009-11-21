@@ -897,11 +897,16 @@ namespace lib {
     pixels=image.setPixels(0,0,columns,rows);
     index=image.getIndexes();
 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
     for(cx=0;cx<columns*rows;++cx)
       {
-	    *index=(unsigned int)(*bImage)[cx];
-	    index++;
+	    index[cx]=(unsigned int)(*bImage)[cx];
+/*	    *index=(unsigned int)(*bImage)[cx];
+	    index++;*/
       }
+}
     image.syncPixels();
 
     magick_replace(e,mid,image);      

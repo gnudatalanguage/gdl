@@ -55,6 +55,7 @@
 #include <valarray>
 #include <cassert>
 
+
 #if defined(HAVE_64BIT_OS)
 typedef unsigned long long int      SizeT;
 #else
@@ -111,6 +112,12 @@ typedef std::vector<ArrayIndexT*> ArrayIndexVectorT;
 
 // to resolve include conflict (declared in gdlexception.hpp)
 void ThrowGDLException( const std::string& str);
+
+// for OpenMP (defined in objects.cpp - must be declared here)
+extern DLong CpuHW_NCPU;
+extern DLong CpuTPOOL_NTHREADS;
+extern DLong CpuTPOOL_MIN_ELTS;
+extern DLong CpuTPOOL_MAX_ELTS;
 
 // convert something to string
 template <typename T>
@@ -268,8 +275,12 @@ public:
   {
     try { buf = (cp.size() > smallArraySize) ? new T[ cp.size()] : scalar; }
     catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than GDL can address"); }
+#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+{
+#pragma omp for
     for( SizeT i=0; i<sz; ++i)
       buf[ i] = cp.buf[ i];
+}
   }
 
   GDLArray( SizeT s, bool b) : sz( s)
@@ -281,15 +292,23 @@ public:
   {
     try { buf = (s > smallArraySize) ? new T[ s] : scalar; }
     catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than GDL can address"); }
+#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+{
+#pragma omp for
     for( SizeT i=0; i<sz; ++i)
       buf[ i] = val;
+}
   }
   GDLArray( const T* arr, SizeT s) : sz( s)
   {
     try { buf = (s > smallArraySize) ? new T[ s]: scalar; }
     catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than GDL can address"); }
+#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+{
+#pragma omp for
     for( SizeT i=0; i<sz; ++i)
       buf[ i] = arr[ i];
+}
   }
 
   explicit GDLArray( const T& s) throw() : /*scalar( s),*/ buf( scalar), sz( 1)
@@ -320,8 +339,12 @@ public:
     //       {
     if( sz == right.size())
       {
+#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+{
+#pragma omp for
 	for( SizeT i=0; i<sz; ++i)
 	  buf[ i] = right.buf[ i];
+}
       }
     else
       {
@@ -329,23 +352,35 @@ public:
 	  delete[] buf;
 	sz = right.size();
 	buf = (sz>smallArraySize) ? new T[ sz] : scalar; 
+#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+{
+#pragma omp for
 	for( SizeT i=0; i<sz; ++i)
 	  buf[ i] = right.buf[ i];
-      }
+}
+     }
     //       }
     return *this;
   }
 
   GDLArray&operator+=( const GDLArray& right) throw()
   {
+#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+{
+#pragma omp for
     for( SizeT i=0; i<sz; ++i)
       buf[ i] += right.buf[ i];
+}
     return *this;
   }
   GDLArray&operator-=( const GDLArray& right) throw()
   {
+#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+{
+#pragma omp for
     for( SizeT i=0; i<sz; ++i)
       buf[ i] -= right.buf[ i];
+}
     return *this;
   }
 //   GDLArray&operator*=( const GDLArray& right) throw()
@@ -362,14 +397,22 @@ public:
 //   }
   GDLArray&operator+=( const T& right) throw()
   {
+#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+{
+#pragma omp for
     for( SizeT i=0; i<sz; ++i)
       buf[ i] += right;
+}
     return *this;
   }
   GDLArray&operator-=( const T& right) throw()
   {
+#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+{
+#pragma omp for
     for( SizeT i=0; i<sz; ++i)
       buf[ i] -= right;
+}
     return *this;
   }
 //   GDLArray&operator*=( const T& right) throw()
@@ -411,8 +454,12 @@ public:
 	try 
         { 
           T* newBuf = new T[ newSz]; 
+#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+{
+#pragma omp for
 	  for( SizeT i=0; i<sz; ++i)
 	    newBuf[ i] = buf[ i];
+}
  	  if( buf != scalar)
 	    delete[] buf;
 	  buf = newBuf;

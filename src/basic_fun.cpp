@@ -331,7 +331,11 @@ namespace lib {
 	{
 	  SizeT nEl=ret->N_Elements();
 	  SizeT sIx=e->NewHeap(nEl);
-	  for( SizeT i=0; i<nEl; i++) (*ret)[i]=sIx++;
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
+	  for( SizeT i=0; i<nEl; i++) (*ret)[i]=sIx+i;
+}
 	}
       return ret;
 /*    }
@@ -855,10 +859,14 @@ namespace lib {
 						  BaseGDL::NOZERO);
 		
 		SizeT nE=p1Float->N_Elements();
+#pragma omp parallel if (nE >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nE))
+{
+#pragma omp for
 		for( SizeT i=0; i<nE; i++)
 		  {
 		    (*res)[i]=Complex( (*p0Float)[0], (*p1Float)[i]);
 		  }
+}
 		return res;
 	      }
 	    else if( p1Float->Rank() == 0)
@@ -867,10 +875,14 @@ namespace lib {
 						  BaseGDL::NOZERO);
 		
 		SizeT nE=p0Float->N_Elements();
+#pragma omp parallel if (nE >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nE))
+{
+#pragma omp for
 		for( SizeT i=0; i<nE; i++)
 		  {
 		    (*res)[i]=Complex( (*p0Float)[i], (*p1Float)[0]);
 		  }
+}
 		return res;
 	      }
 	    else if( p0Float->N_Elements() >= p1Float->N_Elements())
@@ -879,10 +891,14 @@ namespace lib {
 						  BaseGDL::NOZERO);
 
 		SizeT nE=p1Float->N_Elements();
+#pragma omp parallel if (nE >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nE))
+{
+#pragma omp for
 		for( SizeT i=0; i<nE; i++)
 		  {
 		    (*res)[i]=Complex( (*p0Float)[i], (*p1Float)[i]);
 		  }
+}
 		return res;
 	      }
 	    else
@@ -891,10 +907,14 @@ namespace lib {
 						  BaseGDL::NOZERO);
 		
 		SizeT nE=p0Float->N_Elements();
+#pragma omp parallel if (nE >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nE))
+{
+#pragma omp for
 		for( SizeT i=0; i<nE; i++)
 		  {
 		    (*res)[i]=Complex( (*p0Float)[i], (*p1Float)[i]);
 		  }
+}
 		return res;
 	      }
 	  }
@@ -926,13 +946,16 @@ namespace lib {
 		    " array is out of range: "+e->GetParString(0));
 	
 	ComplexGDL* res=new ComplexGDL( dim, BaseGDL::NOZERO);
-	
+
+#pragma omp parallel if (nElCreate >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nElCreate))
+{
+#pragma omp for
 	for( SizeT i=0; i<nElCreate; i++)
 	  {
 	    SizeT srcIx=2*i+offs;
 	    (*res)[i]=Complex( (*p0Float)[srcIx], (*p0Float)[srcIx+1]);
 	  }
-	
+}	
 	return res;
       }
   }
@@ -1363,8 +1386,12 @@ namespace lib {
 	if( e1->LogTrue(0)) 
 	  {
 	    res= new Data_<SpDByte>( e2->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl2 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl2))
+{
+#pragma omp for
 	    for( SizeT i=0; i < nEl2; i++)
 	      (*res)[i] = e2->LogTrue( i) ? 1 : 0;
+}
 	  }
 	else
 	  {
@@ -1376,8 +1403,12 @@ namespace lib {
 	if( e2->LogTrue(0)) 
 	  {
 	    res= new Data_<SpDByte>( e1->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl1 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl1))
+{
+#pragma omp for
 	    for( SizeT i=0; i < nEl1; i++)
 	      (*res)[i] = e1->LogTrue( i) ? 1 : 0;
+}
 	  }
 	else
 	  {
@@ -1387,14 +1418,22 @@ namespace lib {
     else if( nEl2 < nEl1) 
       {
 	res= new Data_<SpDByte>( e2->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl2 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl2))
+{
+#pragma omp for
 	for( SizeT i=0; i < nEl2; i++)
 	  (*res)[i] = (e1->LogTrue( i) && e2->LogTrue( i)) ? 1 : 0;
+}
       }
     else // ( nEl2 >= nEl1)
       {
 	res= new Data_<SpDByte>( e1->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl1 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl1))
+{
+#pragma omp for
 	for( SizeT i=0; i < nEl1; i++)
 	  (*res)[i] = (e1->LogTrue( i) && e2->LogTrue( i)) ? 1 : 0;
+}
       }
     return res;
   }
@@ -1420,14 +1459,22 @@ namespace lib {
 	if( e1->LogTrue(0)) 
 	  {
 	    res= new Data_<SpDByte>( e2->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl2 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl2))
+{
+#pragma omp for
 	    for( SizeT i=0; i < nEl2; i++)
 	      (*res)[i] = 1;
+}
 	  }
 	else
 	  {
 	    res= new Data_<SpDByte>( e2->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl2 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl2))
+{
+#pragma omp for
 	    for( SizeT i=0; i < nEl2; i++)
 	      (*res)[i] = e2->LogTrue( i) ? 1 : 0;
+}
 	  }
       }
     else if( e2->Scalar()) 
@@ -1435,27 +1482,43 @@ namespace lib {
 	if( e2->LogTrue(0)) 
 	  {
 	    res= new Data_<SpDByte>( e1->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl1 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl1))
+{
+#pragma omp for
 	    for( SizeT i=0; i < nEl1; i++)
 	      (*res)[i] = 1;
+}
 	  }
 	else
 	  {
 	    res= new Data_<SpDByte>( e1->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl1 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl1))
+{
+#pragma omp for
 	    for( SizeT i=0; i < nEl1; i++)
 	      (*res)[i] = e1->LogTrue( i) ? 1 : 0;
+}
 	  }
       }
     else if( nEl2 < nEl1) 
       {
 	res= new Data_<SpDByte>( e2->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl2 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl2))
+{
+#pragma omp for
 	for( SizeT i=0; i < nEl2; i++)
 	  (*res)[i] = (e1->LogTrue( i) || e2->LogTrue( i)) ? 1 : 0;
+}
       }
     else // ( nEl2 >= nEl1)
       {
 	res= new Data_<SpDByte>( e1->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl1 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl1))
+{
+#pragma omp for
 	for( SizeT i=0; i < nEl1; i++)
 	  (*res)[i] = (e1->LogTrue( i) || e2->LogTrue( i)) ? 1 : 0;
+}
       }
     return res;
   }
@@ -1472,9 +1535,12 @@ namespace lib {
     ULong nEl1 = e1->N_Elements();
 
     Data_<SpDByte>* res = new Data_<SpDByte>( e1->Dim(), BaseGDL::NOZERO);
+#pragma omp parallel if (nEl1 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl1))
+{
+#pragma omp for
     for( SizeT i=0; i < nEl1; i++)
       (*res)[i] = e1->LogTrue( i) ? 1 : 0;
-    
+}    
     return res;
   }
 
@@ -1539,6 +1605,10 @@ namespace lib {
     SizeT nEl = p0S->N_Elements();
 
     if( mode == 2) // both
+   {
+#pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
+{
+#pragma omp for
       for( SizeT i=0; i<nEl; ++i)
 	{
 	  unsigned long first= (*p0S)[ i].find_first_not_of(" \t");
@@ -1552,8 +1622,14 @@ namespace lib {
 	      (*p0S)[ i] = (*p0S)[ i].substr(first,last-first+1);
 	    }
 	}
-    else if( mode == 1) // leading
-      for( SizeT i=0; i<nEl; ++i)
+}
+  }
+  else if( mode == 1) // leading
+     {
+#pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
+{
+#pragma omp for
+	for( SizeT i=0; i<nEl; ++i)
 	{
 	  unsigned long first= (*p0S)[ i].find_first_not_of(" \t");
 	  if( first == (*p0S)[ i].npos)
@@ -1565,8 +1641,14 @@ namespace lib {
 	      (*p0S)[ i] = (*p0S)[ i].substr(first);
 	    }
 	}
+}
+    }
     else // trailing
-      for( SizeT i=0; i<nEl; ++i)
+      {
+#pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
+{
+#pragma omp for
+	for( SizeT i=0; i<nEl; ++i)
 	{
 	  unsigned long last = (*p0S)[ i].find_last_not_of(" \t");
 	  if( last == (*p0S)[ i].npos)
@@ -1578,7 +1660,8 @@ namespace lib {
 	      (*p0S)[ i] = (*p0S)[ i].substr(0,last+1);
 	    }
 	}
-
+}
+      }
     return p0S;
   }
 
@@ -1593,11 +1676,14 @@ namespace lib {
     DStringGDL* res = new DStringGDL( p0S->Dim(), BaseGDL::NOZERO);
 
     SizeT nEl = p0S->N_Elements();
+#pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
+{
+#pragma omp for
     for( SizeT i=0; i<nEl; ++i)
       {
 	(*res)[ i] = StrCompress((*p0S)[ i], removeAll);
       }
-    
+}
     return res;
   }
 
@@ -1637,12 +1723,15 @@ namespace lib {
     DLongGDL* res = new DLongGDL( p0S->Dim(), BaseGDL::NOZERO);
 
     SizeT nSrcStr = p0S->N_Elements();
+#pragma omp parallel if ((nSrcStr*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nSrcStr*10)))
+{
+#pragma omp for
     for( long i=0; i<nSrcStr; ++i)
       {
 	(*res)[ i] = StrPos((*p0S)[ i], searchString, pos, 
 			    reverseOffset, reverseSearch);
       }
-    
+}    
     return res;
   }
 
@@ -1701,6 +1790,9 @@ namespace lib {
     SizeT nEl2 = (sc2)? 1 : p2L->N_Elements();
 
     SizeT nSrcStr = p0S->N_Elements();
+#pragma omp parallel if ((nSrcStr*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nSrcStr*10)))
+{
+#pragma omp for
     for( long i=0; i<nSrcStr; ++i)
       {
 	for( long ii=0; ii<stride; ++ii)
@@ -1714,7 +1806,7 @@ namespace lib {
 		(*res)[ destIx] = StrMid((*p0S)[ i], actFirst, actLen, reverse);
 	  }
       }
-    
+}    
     return res;
   }
 
@@ -1727,11 +1819,14 @@ namespace lib {
     DStringGDL* res = new DStringGDL( p0S->Dim(), BaseGDL::NOZERO);
     
     SizeT nEl = p0S->N_Elements();
+#pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
+{
+#pragma omp for
     for( SizeT i=0; i<nEl; ++i)
       {
 	(*res)[ i] = StrLowCase((*p0S)[ i]);
       }
-    
+}
     return res;
   }
 
@@ -1744,11 +1839,14 @@ namespace lib {
     DStringGDL* res = new DStringGDL( p0S->Dim(), BaseGDL::NOZERO);
     
     SizeT nEl = p0S->N_Elements();
+#pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
+{
+#pragma omp for
     for( SizeT i=0; i<nEl; ++i)
       {
 	(*res)[ i] = StrUpCase((*p0S)[ i]);
       }
-    
+}
     return res;
   }
 
@@ -1761,11 +1859,14 @@ namespace lib {
     DLongGDL* res = new DLongGDL( p0S->Dim(), BaseGDL::NOZERO);
 
     SizeT nEl = p0S->N_Elements();
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
     for( SizeT i=0; i<nEl; ++i)
       {
 	(*res)[ i] = (*p0S)[ i].length();
       }
-    
+}
     return res;
   }
 
@@ -1836,10 +1937,14 @@ namespace lib {
 	    DLongGDL* cIxList = new DLongGDL( dimension( &nCount, 1), 
 					      BaseGDL::NOZERO);
 	    
-	    SizeT cIx = nEl;
+	    SizeT cIx = nEl - 1;
+#pragma omp parallel if (nCount >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCount))
+{
+#pragma omp for
 	    for( SizeT i=0; i<nCount; ++i)
-	      (*cIxList)[ i] = ixList[ --cIx];
-	    
+	      (*cIxList)[ i] = ixList[ cIx - i];
+// 	      (*cIxList)[ i] = ixList[ --cIx];
+}
 	    e->SetKW( 0, cIxList);
 	  }
       }
@@ -1891,9 +1996,16 @@ namespace lib {
   // passing 2nd argument by value is slightly better for float and double, 
   // but incur some overhead for the complex class.
   template<class T> inline void AddOmitNaN(T& dest, T value)
-  { if (isfinite(value)) dest += value; }
+{
+ if (isfinite(value)) 
+{
+// #pragma omp atomic
+	dest += value; 
+}
+}
   template<class T> inline void AddOmitNaNCpx(T& dest, T value)
   {
+// #pragma omp atomic
     dest += T(isfinite(value.real())? value.real() : 0,
 	      isfinite(value.imag())? value.imag() : 0);
   }
@@ -1921,10 +2033,14 @@ namespace lib {
     if (!omitNaN) return new T(src->Sum());
     typename T::Ty sum = 0;
     SizeT nEl = src->N_Elements();
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared(sum)
+{
+#pragma omp for
     for ( SizeT i=0; i<nEl; ++i)
       {
 	AddOmitNaN(sum, (*src)[ i]);
       }
+}
     return new T(sum);
   }
   
@@ -1935,8 +2051,12 @@ namespace lib {
     SizeT nEl = res->N_Elements();
     if (omitNaN)
       {
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
         for( SizeT i=0; i<nEl; ++i)
           NaN2Zero((*res)[i]);
+}
       }
     for( SizeT i=1,ii=0; i<nEl; ++i,++ii)
       (*res)[i] += (*res)[ii];
@@ -2321,7 +2441,13 @@ namespace lib {
   // passing 2nd argument by value is slightly better for float and double, 
   // but incur some overhead for the complex class.
   template<class T> inline void MultOmitNaN(T& dest, T value)
-  { if (isfinite(value)) dest *= value; }
+  { 
+	if (isfinite(value)) 
+	{
+// #pragma omp atomic
+		dest *= value; 
+	}
+  }
   template<class T> inline void MultOmitNaNCpx(T& dest, T value)
   {
     dest *= T(isfinite(value.real())? value.real() : 1,
@@ -2351,16 +2477,50 @@ namespace lib {
     typename T::Ty sum = 1;
     SizeT nEl = src->N_Elements();
     if( !omitNaN) 
-      for ( SizeT i=0; i<nEl; ++i)
 	{
-	  sum *= (*src)[ i];
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared(sum)
+{
+#pragma omp for reduction(*:sum)
+	for ( SizeT i=0; i<nEl; ++i)
+		{
+		sum *= (*src)[ i];
+		}
+}
 	}
     else
-      for ( SizeT i=0; i<nEl; ++i)
 	{
-	  MultOmitNaN( sum, (*src)[ i]);
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared(sum)
+{
+#pragma omp for reduction(*:sum)
+	for ( SizeT i=0; i<nEl; ++i)
+		{
+		MultOmitNaN( sum, (*src)[ i]);
+		}
+}
 	}
     return new T( sum);
+  }
+
+  template<>
+  BaseGDL* product_template( DComplexDblGDL* src, bool omitNaN)
+  {
+    DComplexDblGDL::Ty sum = 1;
+    SizeT nEl = src->N_Elements();
+    if( !omitNaN) 
+	{
+	for ( SizeT i=0; i<nEl; ++i)
+		{
+		sum *= (*src)[ i];
+		}
+	}
+    else
+	{
+	for ( SizeT i=0; i<nEl; ++i)
+		{
+		MultOmitNaN( sum, (*src)[ i]);
+		}
+	}
+    return new DComplexDblGDL( sum);
   }
   
   // cumulative over all dims

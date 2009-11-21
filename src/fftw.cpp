@@ -51,7 +51,6 @@ namespace lib {
     else
       res = (T*) p0;
 
-
     for( SizeT i=0; i<p0->Rank(); ++i) {
       dim[i] = (int) p0->Dim(p0->Rank()-i-1);
     }
@@ -74,10 +73,14 @@ namespace lib {
       fftw_execute(p);
 
       if (direct == -1) {
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	for( SizeT i=0; i<nEl; ++i) {
 	  out[i][0] /= nEl;
 	  out[i][1] /= nEl;
 	}
+}
       }
     }
     else if( p0->Type() == COMPLEX) {
@@ -95,10 +98,14 @@ namespace lib {
       fftwf_execute(p_f);
 
       if (direct == -1) {
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
 	for( SizeT i=0; i<nEl; ++i) {
 	  out_f[i][0] /= nEl;
 	  out_f[i][1] /= nEl;
 	}
+}
       }
     }
     

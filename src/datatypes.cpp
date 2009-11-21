@@ -821,8 +821,12 @@ BaseGDL* Data_<Sp>::Rotate( DLong dir)
       // 3 || 6
       Data_* res = new Data_( dimension( 1, N_Elements()), BaseGDL::NOZERO);
       SizeT nEl = N_Elements();
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
       for( SizeT i=0; i<nEl; ++i)
 	(*res)[ i] = (*this)[ nEl-1-i];
+}
       return res;
     }
 
@@ -864,8 +868,49 @@ template<class Sp>
 typename Data_<Sp>::Ty Data_<Sp>::Sum() const 
 {
 Ty s= dd[ 0];
-for( SizeT i=1; i<dd.size(); ++i)
+SizeT nEl = dd.size();
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( s)
+{
+#pragma omp for reduction(+:s)
+for( SizeT i=1; i<nEl; ++i)
+{
 	s += dd[ i];
+}
+}
+ return s;
+}
+
+template<> 
+Data_<SpDString>::Ty Data_<SpDString>::Sum() const 
+{
+Ty s= dd[ 0];
+SizeT nEl = dd.size();
+for( SizeT i=1; i<nEl; ++i)
+{
+	s += dd[ i];
+}
+ return s;
+}
+template<> 
+Data_<SpDComplexDbl>::Ty Data_<SpDComplexDbl>::Sum() const 
+{
+Ty s= dd[ 0];
+SizeT nEl = dd.size();
+for( SizeT i=1; i<nEl; ++i)
+{
+	s += dd[ i];
+}
+ return s;
+}
+template<> 
+Data_<SpDComplex>::Ty Data_<SpDComplex>::Sum() const 
+{
+Ty s= dd[ 0];
+SizeT nEl = dd.size();
+for( SizeT i=1; i<nEl; ++i)
+{
+	s += dd[ i];
+}
  return s;
 }
 

@@ -133,7 +133,13 @@ class DeviceX: public Graphics
 
     if( nx < kxLimit) kxLimit = nx;
     if( ny < kyLimit) kyLimit = ny;
-    
+
+/*#ifdef _OPENMP
+SizeT nOp = kxLimit * kyLimit;
+#endif
+#pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) private(ired,igrn,iblu,kx,ky,iclr1,curcolor)
+{
+#pragma omp for*/
     for(ix = 0; ix < kxLimit; ++ix) {
       for(iy = 0; iy < kyLimit; ++iy) {
 
@@ -186,9 +192,11 @@ class DeviceX: public Graphics
 
 	//std::cout << "XPutPixel: "<<kx<<"  "<< dev->height-ky-1 << std::endl;
 	//	if( ky < dev->height && kx < dev->width)
+	// TODO check if XPutPixel() and XGetPixel() are thread save
 	XPutPixel(ximg, kx, dev->height-1-ky, curcolor.pixel);
       }
     }
+//}
 
     if (dev->write_to_pixmap)
 	XPutImage( xwd->display, dev->pixmap, dev->gc, ximg, 0, 0, 
