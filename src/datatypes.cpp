@@ -274,12 +274,17 @@ Data_<Sp>* Data_<Sp>::Log()
 template<>
 Data_<SpDFloat>* Data_<SpDFloat>::Log()              
 { 
+// #if 1 || (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 #if 1 || (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
   for( SizeT i=0; i<nEl; ++i)
     (*n)[ i] = log( (*this)[ i]);
+}
   return n;
 #else
   return new Data_(this->dim, log(dd));
@@ -292,6 +297,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::Log()
 
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
   for( SizeT i=0; i<nEl; ++i)
     (*n)[ i] = log( (*this)[ i]);
   return n;
@@ -306,6 +312,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Log()
 
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
   for( SizeT i=0; i<nEl; ++i)
     (*n)[ i] = log( (*this)[ i]);
   return n;
@@ -320,7 +327,8 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Log()
 
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
-  for( SizeT i=0; i<nEl; ++i)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+for( SizeT i=0; i<nEl; ++i)
     (*n)[ i] = log( (*this)[ i]);
   return n;
 #else
@@ -339,6 +347,7 @@ void Data_<SpDFloat>::LogThis()
 //#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   SizeT nEl = N_Elements();
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
   for( SizeT i=0; i<nEl; ++i)
     (*this)[ i] = log( (*this)[ i]);
 /*#else
@@ -351,6 +360,7 @@ void Data_<SpDDouble>::LogThis()
 //#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   SizeT nEl = N_Elements();
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
   for( SizeT i=0; i<nEl; ++i)
     (*this)[ i] = log( (*this)[ i]);
 /*#else
@@ -363,7 +373,8 @@ void Data_<SpDComplex>::LogThis()
 //#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   SizeT nEl = N_Elements();
-  for( SizeT i=0; i<nEl; ++i)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+for( SizeT i=0; i<nEl; ++i)
     (*this)[ i] = log( (*this)[ i]);
 /*#else
   dd = log(dd);
@@ -375,6 +386,7 @@ void Data_<SpDComplexDbl>::LogThis()
 //#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   SizeT nEl = N_Elements();
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
   for( SizeT i=0; i<nEl; ++i)
     (*this)[ i] = log( (*this)[ i]);
 /*#else
@@ -395,6 +407,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::Log10()
 
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
   for( SizeT i=0; i<nEl; ++i)
     (*n)[ i] = log10( (*this)[ i]);
   return n;
@@ -409,6 +422,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::Log10()
 
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
   for( SizeT i=0; i<nEl; ++i)
     (*n)[ i] = log10( (*this)[ i]);
   return n;
@@ -423,6 +437,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Log10()
 
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
   for( SizeT i=0; i<nEl; ++i)
     (*n)[ i] = log10( (*this)[ i]);
   return n;
@@ -437,6 +452,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Log10()
 
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
   for( SizeT i=0; i<nEl; ++i)
     (*n)[ i] = log10( (*this)[ i]);
   return n;
@@ -456,6 +472,7 @@ void Data_<SpDFloat>::Log10This()
 #if 1 || (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   SizeT nEl = N_Elements();
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
   for( SizeT i=0; i<nEl; ++i)
     (*this)[ i] = log10( (*this)[ i]);
 #else
@@ -468,6 +485,7 @@ void Data_<SpDDouble>::Log10This()
 #if 1 || (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   SizeT nEl = N_Elements();
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
   for( SizeT i=0; i<nEl; ++i)
     (*this)[ i] = log10( (*this)[ i]);
 #else
@@ -480,6 +498,7 @@ void Data_<SpDComplex>::Log10This()
 #if 1 || (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   SizeT nEl = N_Elements();
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
   for( SizeT i=0; i<nEl; ++i)
     (*this)[ i] = log10( (*this)[ i]);
 #else
@@ -492,6 +511,7 @@ void Data_<SpDComplexDbl>::Log10This()
 #if 1 || (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   SizeT nEl = N_Elements();
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
   for( SizeT i=0; i<nEl; ++i)
     (*this)[ i] = log10( (*this)[ i]);
 #else
@@ -536,8 +556,10 @@ BaseGDL* Data_<Sp>::CShift( DLong d)
   else
     d = (-d % dd.size());
 
-  for( SizeT i=0; i<dd.size(); ++i)
-    sh->dd[i] = dd[ (i+d)%dd.size()];//.cshift( -d);
+SizeT nEl = dd.size();
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+  for( SizeT i=0; i<nEl; ++i)
+    sh->dd[i] = dd[ (i+d)%nEl];//.cshift( -d);
   return sh;
 }
 
@@ -2444,6 +2466,22 @@ void Data_<Sp>::CatInsert( const Data_* srcArr, const SizeT atDim, SizeT& at)
   // number of elements to skip
   SizeT gap=this->dim.Stride(atDim+1);    // dest array
 
+#ifdef _OPENMP
+SizeT nEl = srcArr->N_Elements();
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+  for( SizeT c=0; c<nCp; ++c)
+    {
+      // set new destination pointer
+      SizeT eIx = c*gap;
+      SizeT sIx = eIx  + destStart;
+      eIx += destEnd;
+
+      // copy one segment
+      SizeT srcIx = c*len;
+      for( SizeT destIx=sIx; destIx< eIx; ++destIx)
+	(*this)[destIx] = (*srcArr)[ srcIx+destIx-sIx];
+    }
+#else
   SizeT srcIx=0;
   for( SizeT c=0; c<nCp; ++c)
     {
@@ -2455,7 +2493,8 @@ void Data_<Sp>::CatInsert( const Data_* srcArr, const SizeT atDim, SizeT& at)
       destStart += gap;
       destEnd   += gap;
     }
-      
+#endif
+
   SizeT add=srcArr->dim[atDim]; // update 'at'
   at += (add > 1)? add : 1;
 }
