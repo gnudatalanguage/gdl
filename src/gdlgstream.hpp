@@ -50,15 +50,17 @@ public:
   static bool checkPlplotDriver(const char *driver)
   {
     static int numdevs_plus_one = 30;
-    static const char **devlongnames = NULL, **devnames = NULL;
+    static /*const*/ char **devlongnames = NULL, **devnames = NULL;
 
     // acquireing a list of drivers from plPlot (once)
     if (devnames == NULL) 
     {
       for (int maxnumdevs = numdevs_plus_one;; numdevs_plus_one = maxnumdevs += 5)
       {
-        devlongnames = static_cast<const char**>(realloc(devlongnames, maxnumdevs * sizeof(char*)));
-        devnames = static_cast<const char**>(realloc(devlongnames, maxnumdevs * sizeof(char*)));
+        devlongnames = new char*[ maxnumdevs];
+        devnames = new char*[ maxnumdevs];
+//        devlongnames = static_cast</*const*/ char**>(realloc(devlongnames, maxnumdevs * sizeof(char*)));
+//        devnames = static_cast</*const*/ char**>(realloc(devlongnames, maxnumdevs * sizeof(char*)));*/
         plgDevs(&devlongnames, &devnames, &numdevs_plus_one);
         numdevs_plus_one++;
         if (numdevs_plus_one < maxnumdevs) break;
