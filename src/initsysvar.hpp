@@ -65,7 +65,7 @@ namespace SysVar
 
   // returns !CPU
   DStructGDL* Cpu();
- void CPUChanged();
+//  void CPUChanged();
 
   // returns !D
   DStructGDL* D();

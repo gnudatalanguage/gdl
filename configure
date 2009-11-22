@@ -21050,6 +21050,15 @@ fi
 
 fi
 
+if test "x$with-openmp" = "x"; then
+   with-openmp=yes
+fi
+
+if test "x$with-openmp" != "xno"; then
+	CPPFLAGS="$CPPFLAGS -fopenmp"
+	LDFLAGS="$LDFLAGS -fopenmp"
+fi
+
 
 
 
@@ -25370,6 +25379,8 @@ echo "
   ----- optional libraries (consult README/INSTALL): ---
   wxWidgets:           `if test no = $with_wxWidgets;
     then echo 'no  (needs explicit enabling)'; else echo yes; fi`
+  openmp:           `if test yes = $with-openmp;
+    then echo 'yes'; else echo no; fi`
   Magick:              `if test no = $with_Magick;
     then echo 'no'; else echo yes; fi`
   NetCDF:              `if test no = $with_netcdf;

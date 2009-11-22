@@ -26,9 +26,9 @@
 #include "assocdata.hpp"
 #include "initsysvar.hpp"
 
-#ifdef _OPENMP
-#include "objects.hpp"
-#endif
+// #ifdef _OPENMP
+// #include "objects.hpp"
+// #endif
 
 class DotAccessDescT
 {
@@ -423,35 +423,35 @@ public:
 	else
 	  DoAssign( dStruct[0], r);
       }
-#ifdef _OPENMP
+/*#ifdef _OPENMP
     if( dStruct[0] == SysVar::Cpu())
 	{
 		SysVar::CPUChanged();
 	}
-#endif
+#endif*/
   }
 
   void Dec()
   {
     SetupDim();
     DoDec( dStruct[0]);
-#ifdef _OPENMP
+/*#ifdef _OPENMP
     if( dStruct[0] == SysVar::Cpu())
 		{
 		SysVar::CPUChanged();
 		}
-#endif
+#endif*/
   }
   void Inc()
   {
     SetupDim();
     DoInc( dStruct[0]);
-#ifdef _OPENMP
+/*#ifdef _OPENMP
     if( dStruct[0] == SysVar::Cpu())
 		{
 		SysVar::CPUChanged();
 		}
-#endif
+#endif*/
   }
 
   DStructGDL* TopStruct()

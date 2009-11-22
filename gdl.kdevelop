@@ -24,7 +24,7 @@
   <kdevautoproject>
     <general>
       <activetarget>src/gdl</activetarget>
-      <useconfiguration>debug</useconfiguration>
+      <useconfiguration>optimized</useconfiguration>
       <useactivetarget>true</useactivetarget>
     </general>
     <run>
@@ -70,8 +70,8 @@
         <f77compiler>kdevg77options</f77compiler>
         <cxxflags>-O0 -g3</cxxflags>
         <topsourcedir></topsourcedir>
-        <cppflags>-fopenmp</cppflags>
-        <ldflags>-fopenmp</ldflags>
+        <cppflags></cppflags>
+        <ldflags></ldflags>
         <ccompilerbinary></ccompilerbinary>
         <cxxcompilerbinary></cxxcompilerbinary>
         <f77compilerbinary></f77compilerbinary>

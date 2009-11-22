@@ -50,7 +50,8 @@ extern StructListT   structList;
 extern GDLFileListT  fileUnits;
 
 // for OpenMP
-extern DLong CpuHW_NCPU;
+const SizeT DefaultTPOOL_MIN_ELTS = 100000;
+const SizeT DefaultTPOOL_MAX_ELTS = 0;
 extern DLong CpuTPOOL_NTHREADS;
 extern DLong CpuTPOOL_MIN_ELTS;
 extern DLong CpuTPOOL_MAX_ELTS;

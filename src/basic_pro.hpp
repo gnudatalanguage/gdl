@@ -20,6 +20,9 @@
 
 namespace lib {
 
+  // control !CPU settings
+  void cpu( EnvT* e);
+
   // helper function
   bool check_lun( EnvT* e, DLong lun);
 

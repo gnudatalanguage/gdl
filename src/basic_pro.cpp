@@ -38,6 +38,10 @@
 #include <wx/wx.h>
 #endif
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #include "dinterpreter.hpp"
 #include "datatypes.hpp"
 #include "envt.hpp"
@@ -48,6 +52,84 @@
 namespace lib {
  
   using namespace std;
+
+  // control !CPU settings
+  void cpu( EnvT* e)
+  {
+    static int resetIx = e->KeywordIx( "RESET");
+    static int restoreIx = e->KeywordIx( "RESTORE");
+    static int max_eltsIx = e->KeywordIx( "TPOOL_MAX_ELTS");
+    static int min_eltsIx = e->KeywordIx( "TPOOL_MIN_ELTS");
+    static int nThreadsIx = e->KeywordIx( "TPOOL_NTHREADS");
+    static int vectorEableIx = e->KeywordIx( "VECTOR_ENABLE");
+
+    bool reset = e->KeywordSet( resetIx);
+    bool vectorEnable = e->KeywordSet( vectorEableIx);
+
+    DLong locCpuTPOOL_NTHREADS=CpuTPOOL_NTHREADS;
+    DLong locCpuTPOOL_MIN_ELTS=CpuTPOOL_MIN_ELTS;
+    DLong locCpuTPOOL_MAX_ELTS=CpuTPOOL_MAX_ELTS;
+
+    DStructGDL* cpu = SysVar::Cpu();
+
+    static unsigned NTHREADSTag = cpu->Desc()->TagIndex( "TPOOL_NTHREADS");
+    static unsigned TPOOL_MIN_ELTSTag = cpu->Desc()->TagIndex( "TPOOL_MIN_ELTS");
+    static unsigned TPOOL_MAX_ELTSTag = cpu->Desc()->TagIndex( "TPOOL_MAX_ELTS");
+
+    if( reset)
+	{
+#ifdef _OPENMP
+        locCpuTPOOL_NTHREADS = omp_get_num_procs();
+#endif
+        locCpuTPOOL_MIN_ELTS = DefaultTPOOL_MIN_ELTS;
+        locCpuTPOOL_MAX_ELTS = DefaultTPOOL_MAX_ELTS;
+	}
+    else if( e->KeywordPresent( restoreIx))
+	{
+	DStructGDL* restoreCpu = e->GetKWAs<DStructGDL>( restoreIx);
+
+	if( restoreCpu->Desc() != cpu->Desc())
+		e->Throw("RESTORE must be set to an instance with the same struct layout as {!CPU}");
+
+        locCpuTPOOL_NTHREADS = (*(static_cast<DLongGDL*>( restoreCpu->GetTag( NTHREADSTag, 0))))[0];
+        locCpuTPOOL_MIN_ELTS = (*(static_cast<DLongGDL*>( restoreCpu->GetTag( TPOOL_MIN_ELTSTag, 0))))[0];
+        locCpuTPOOL_MAX_ELTS= (*(static_cast<DLongGDL*>( restoreCpu->GetTag( TPOOL_MAX_ELTSTag, 0))))[0];
+	}
+    else
+	{
+		if( e->KeywordPresent(nThreadsIx))
+		{
+		e->AssureLongScalarKW(nThreadsIx, locCpuTPOOL_NTHREADS);
+		}
+		if( e->KeywordPresent(min_eltsIx))
+		{
+		e->AssureLongScalarKW(min_eltsIx, locCpuTPOOL_MIN_ELTS);
+		}
+		if( e->KeywordPresent(max_eltsIx))
+		{
+		e->AssureLongScalarKW(max_eltsIx, locCpuTPOOL_MAX_ELTS);
+		}
+	}
+
+	// update here all together in case of error
+
+#ifdef _OPENMP
+    CpuTPOOL_NTHREADS=locCpuTPOOL_NTHREADS;
+#else
+    CpuTPOOL_NTHREADS=1;
+#endif
+    CpuTPOOL_MIN_ELTS=locCpuTPOOL_MIN_ELTS;
+    CpuTPOOL_MAX_ELTS=locCpuTPOOL_MAX_ELTS;
+
+    // update !CPU system variable
+    (static_cast<DLongGDL*>( cpu->GetTag( NTHREADSTag, 0)))[0] = CpuTPOOL_NTHREADS;
+    (static_cast<DLongGDL*>( cpu->GetTag( TPOOL_MIN_ELTSTag, 0)))[0] = CpuTPOOL_MIN_ELTS;
+    (static_cast<DLongGDL*>( cpu->GetTag( TPOOL_MAX_ELTSTag, 0)))[0] = CpuTPOOL_MAX_ELTS;
+
+#ifdef _OPENMP
+    omp_set_num_threads(CpuTPOOL_NTHREADS);
+#endif
+  }
 
   // display help for one variable or one structure tag
   void help_item( ostream& os,

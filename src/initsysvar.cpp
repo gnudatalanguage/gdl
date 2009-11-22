@@ -231,28 +231,9 @@ namespace SysVar
 
   DStructGDL* Cpu()
   {
-    static DVar* sysVarList_cpuIx = sysVarList[ cpuIx];
+    DVar* sysVarList_cpuIx = sysVarList[ cpuIx];
     return static_cast<DStructGDL*>(sysVarList_cpuIx->Data());
   }
-
-// this is called (in accessdesc.hpp) every time !CPU is changed
-  void CPUChanged()
-{
-    DVar& var = *sysVarList[ cpuIx];
-    DStructGDL* cpu = static_cast<DStructGDL*>(var.Data());
-    static unsigned NCPUTag = cpu->Desc()->TagIndex( "HW_NCPU");
-    static unsigned NTHREADSTag = cpu->Desc()->TagIndex( "TPOOL_NTHREADS");
-    static unsigned TPOOL_MIN_ELTSTag = cpu->Desc()->TagIndex( "TPOOL_MIN_ELTS");
-    static unsigned TPOOL_MAX_ELTSTag = cpu->Desc()->TagIndex( "TPOOL_MAX_ELTS");
-    //CpuXXX is declared in objects.hpp
-    CpuHW_NCPU = (*static_cast<DLongGDL*>( cpu->GetTag( NCPUTag, 0)))[0];
-    CpuTPOOL_NTHREADS = (*static_cast<DLongGDL*>( cpu->GetTag( NTHREADSTag, 0)))[0];
-    CpuTPOOL_MIN_ELTS = (*static_cast<DLongGDL*>( cpu->GetTag( TPOOL_MIN_ELTSTag, 0)))[0];
-    CpuTPOOL_MAX_ELTS = (*static_cast<DLongGDL*>( cpu->GetTag( TPOOL_MAX_ELTSTag, 0)))[0];
-#ifdef _OPENMP
-    omp_set_num_threads(CpuTPOOL_NTHREADS);
-#endif
-}
 
   DStructGDL* D()
   {
@@ -579,27 +560,32 @@ namespace SysVar
     sysVarList.push_back( map);
 
     // !CPU
+    // init independent of OpenMP usage
+#ifdef _OPENMP
+    CpuTPOOL_NTHREADS = omp_get_num_procs();
+    omp_set_num_threads(CpuTPOOL_NTHREADS);
+#else
+    CpuTPOOL_NTHREADS = 1;
+#endif
+    CpuTPOOL_MIN_ELTS = DefaultTPOOL_MIN_ELTS;
+    CpuTPOOL_MAX_ELTS = DefaultTPOOL_MAX_ELTS;
+
     DStructGDL* cpuData = new DStructGDL( "!CPU");
     cpuData->NewTag("HW_VECTOR", new DLongGDL( 0)); 
     cpuData->NewTag("VECTOR_ENABLE", new DLongGDL( 0)); 
 #ifdef _OPENMP
     cpuData->NewTag("HW_NCPU", new DLongGDL( omp_get_num_procs())); 
-    cpuData->NewTag("TPOOL_NTHREADS", new DLongGDL( omp_get_num_procs())); 
-    cpuData->NewTag("TPOOL_MIN_ELTS", new DLongGDL( 100000)); 
-    cpuData->NewTag("TPOOL_MAX_ELTS", new DLongGDL( 0)); 
 #else
     cpuData->NewTag("HW_NCPU", new DLongGDL( 1)); 
-    cpuData->NewTag("TPOOL_NTHREADS", new DLongGDL( 1)); 
-    cpuData->NewTag("TPOOL_MIN_ELTS", new DLongGDL( 100000)); 
-    cpuData->NewTag("TPOOL_MAX_ELTS", new DLongGDL( 0)); 
 #endif
+    cpuData->NewTag("TPOOL_NTHREADS", new DLongGDL( CpuTPOOL_NTHREADS)); 
+    cpuData->NewTag("TPOOL_MIN_ELTS", new DLongGDL( CpuTPOOL_MIN_ELTS)); 
+    cpuData->NewTag("TPOOL_MAX_ELTS", new DLongGDL( CpuTPOOL_MAX_ELTS)); 
 
     DVar *cpu=new DVar( "CPU", cpuData);
     cpuIx=sysVarList.size();
     sysVarList.push_back( cpu);
-
-    // init independent of OpenMP usage
-    CPUChanged();
+    sysVarRdOnlyList.push_back( cpu);
 
 #ifdef _OPENMP
     if( omp_get_dynamic())

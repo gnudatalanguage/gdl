@@ -166,14 +166,16 @@ public:
 	if( igzStream->eof())
 	  igzStream->clear();
 
-	igzStream->rdbuf()->pubseekpos( pos, std::ios_base::in | std::ios_base::out);
+	igzStream->seekg( pos);
+// 	igzStream->rdbuf()->pubseekpos( pos, std::ios_base::in);
       }
     if( ogzStream != NULL)
       {
 	if( ogzStream->eof())
 	  ogzStream->clear();
 
-	ogzStream->rdbuf()->pubseekpos( pos, std::ios_base::in | std::ios_base::out);
+	ogzStream->seekp( pos);
+// 	ogzStream->rdbuf()->pubseekpos( pos, std::ios_base::out);
       }
   }
   SizeT Size()

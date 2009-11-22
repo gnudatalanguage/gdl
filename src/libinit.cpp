@@ -78,6 +78,10 @@ void LibInit()
   LibInit_ng(); 
   const char KLISTEND[] = "";
 
+  const string cpuKey[]={ "RESET","RESTORE","TPOOL_MAX_ELTS", "TPOOL_MIN_ELTS",
+					"TPOOL_NTHREADS","VECTOR_ENABLE",KLISTEND};
+  new DLibPro(lib::cpu,string("CPU"),0,cpuKey);
+
   const string get_kbrdKey[]={"ESCAPE","KEY_NAME",KLISTEND};
   new DLibFunRetNew(lib::get_kbrd,string("GET_KBRD"),1,NULL,get_kbrdKey);
 

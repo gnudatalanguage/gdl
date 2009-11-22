@@ -62,7 +62,6 @@ volatile bool sigControlC;
 int           debugMode;
 
 // for OpenMP
-DLong CpuHW_NCPU;
 DLong CpuTPOOL_NTHREADS;
 DLong CpuTPOOL_MIN_ELTS;
 DLong CpuTPOOL_MAX_ELTS;
