@@ -5652,15 +5652,18 @@ namespace lib {
     return urlstru;
   }
 
-  // SA: IDL documentation does not state which category is queried... 
-  //     inquireing about LC_ALL results in a slash-separated list of 
-  //     LC_COLLATE, LC_CTYPE, etc
-  //     ... so a good choice for the category seem to be LC_NUMERIC
-  //         as changing decimal separator e.g. might matter ...
   BaseGDL* locale_get(EnvT* e)
   {
 #ifdef HAVE_LOCALE_H
-    return new DStringGDL(setlocale(LC_NUMERIC, NULL));
+
+    // make GDL inherit the calling process locale
+    setlocale(LC_ALL, "");
+    // note doen the inherited locale
+    DStringGDL *locale = new DStringGDL(setlocale(LC_CTYPE, NULL));
+    // return to the C locale
+    setlocale(LC_ALL, "C");
+
+    return locale;
 #else
     e->Throw("OS does not provide locale information");
 #endif

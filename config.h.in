@@ -27,7 +27,7 @@
 /* Define to 1 if you have the `mfhdf' library (-lmfhdf). */
 #undef HAVE_LIBMFHDF
 
-/* Define to 1 if you have the `ncurses' library (-lncurses). */
+/* Define to 1 if you have the ncurses library (-lncurses). */
 #undef HAVE_LIBNCURSES
 
 /* plplot library */
@@ -90,6 +90,9 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
+/* Define to 1 if you have the <"netcdfcpp.h"> header file. */
+#undef HAVE__NETCDFCPP_H_
+
 /* Pre-10.4.8 version of OS X */
 #undef OLD_DARWIN
 
@@ -122,6 +125,9 @@
 
 /* Define if you want to use FFTW */
 #undef USE_FFTW
+
+/* Define if you want to use GRIB */
+#undef USE_GRIB
 
 /* Define if you want to use HDF */
 #undef USE_HDF

@@ -41,6 +41,8 @@
 #include "gdlpython.hpp"
 #endif
 
+#include "grib.hpp"
+
 // for extensions
 #include "new.hpp"
 
@@ -764,6 +766,25 @@ void LibInit()
 
   const string binomialcoefKey[] = {"DOUBLE", KLISTEND };
   new DLibFun(lib::binomialcoef, string("IMSL_BINOMIALCOEF"), 2, binomialcoefKey);
+
+  // SA: GRIB format support based on the ECMWF GRIB_API package (IDL does not support it yet)
+  // GRIBAPI_ prefix is used in order to (hopefully) prevent future incompatibilities with IDL
+  // -----------------------------------------------------------------------------------------
+  // GRIB: file related
+  new DLibFun(lib::grib_open_file_fun, string("GRIBAPI_OPEN_FILE"), 1); 
+  new DLibFun(lib::grib_count_in_file_fun, string("GRIBAPI_COUNT_IN_FILE"), 1); 
+  new DLibPro(lib::grib_close_file_pro, string("GRIBAPI_CLOSE_FILE"), 1); 
+  // GRIB: message related
+  new DLibFun(lib::grib_new_from_file_fun, string("GRIBAPI_NEW_FROM_FILE"), 1); 
+  new DLibPro(lib::grib_release_pro, string("GRIBAPI_RELEASE"), 1); 
+  // see comment in grib.cpp
+  //new DLibFun(lib::grib_get_message_size_fun, string("GRIBAPI_GET_MESSAGE_SIZE"), 1);
+  new DLibFun(lib::grib_clone_fun, string("GRIBAPI_CLONE"), 1); 
+  // GRIB: data related
+  new DLibFun(lib::grib_get_size_fun, string("GRIBAPI_GET_SIZE"), 2); 
+  new DLibPro(lib::grib_get_pro, string("GRIBAPI_GET"), 3); 
+  new DLibPro(lib::grib_get_data_pro, string("GRIBAPI_GET_DATA"), 4); 
+  // -----------------------------------------------------------------------------------------
 
   // sort lists
   sort( libFunList.begin(), libFunList.end(), CompLibFunName());

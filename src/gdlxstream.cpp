@@ -26,6 +26,17 @@ using namespace std;
 
 void GDLXStream::Init()
 {
+  // plstream::init() calls exit() if it cannot establish a connection with X-server
+  {
+    Display* display = XOpenDisplay(NULL);
+    if (display == NULL) 
+    {
+      valid = false;
+      ThrowGDLException("Cannot connect to X server");
+    }
+    XCloseDisplay(display);
+  }
+ 
   plstream::init();
 
   //  set_stream(); // private

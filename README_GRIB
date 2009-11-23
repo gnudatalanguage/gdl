@@ -1,0 +1,101 @@
+GRIB file format support in GDL is implemented using the ECMWF GRIB_API library. 
+
+In order to use it please
+- obtain and install GRIB API:
+  - website: http://www.ecmwf.int/products/data/software/grib_api.html
+  - compiling grib_api with ,,--disable-fortran'' and ,,--disable-jpeg'' is ok for GDL
+- configure GDL enabling the --with-grib option
+
+Naming of GDL routines resembles the one from F90 GRIB API interface
+(Fortran logic, as opposed to the one from C interface, seemed more compliant with IDL).
+
+The routines are not documented for the moment so please:
+- refer to GRIB API manual for explanation,
+- look in the testsuite/test_grib.pro file for an example of usage,
+- read the following few lines.
+
+Currently the followng routines are implemented:
+
+* GRIB files related:
+    file_id = grib_open_file(filename)               | opens a file and returns an id that is used to refer to it
+    grib_count_in_file(file_id)                      | returns the number of messages in file
+    grib_close_file, file_id                         | closes a file 
+* GRIB messages related:                             |
+    mesg_id = grib_new_from_file(file_id)            | decodes a message into memory (multiple calls yield subsequent messages)
+    grib_release, mesg_id                            | frees the decoded message from memory
+    mesg_id = grib_clone(another_mesg_id)            | clones a message
+* routines for extracting data from GRIB messages:   |
+    grib_get, mesg_id, keyname, values               | extracts data associated with "keyname" into variable _values_
+    grib_get_data, mesg_id, lats, lons, data         | extracts the "values" key into variable _data_ placing the latitude, 
+                                                     | longitude values in variables _lats_ and _lons_
+    grib_get_size, mesg_id, keyname                  | returns number of elements in the "keyname"
+
+In the above list:
+- mesg_id, file_id are id numbers similiar to these returned by ncdf_open or hdf_sd_start
+- keyname is a string, for example "values" or "numberOfPointsAlongAParallel"
+- lats, lons, values are ment to be identifiers of variables that will be fed with data
+
+The table below tries to summarize how the GDL interface relates to Fortran and C interfaces.
+(the table is still not complete)
+
+      ._ this column shows if the routine is implemented in GDL 
+     /    (,,!'' indicates known problems with implementation)
+    |
+--- | ---------------------------------------------------------------------- 
+  | V   GDL fun/pro          |   F90 counterpart       |  C routines called
+----------------------------------------------------------------------------
+F | + grib_open_file()       | grib_open_file          | fopen
+I | -   /ro, /rw             |   mode                  |
+L | + grib_close_file()      | grib_close_file         | fclose
+E | + grib_count_in_file()   | grib_count_in_file      | grib_count_in_file
+----------------------------------------------------------------------------
+M | + grib_new_from_file     | grib_new_from_file      | grib_handle_new_from_file
+E | - grib_new_from_message  | grib_new_from_message   | grib_handle_new_from_message (...multi_message?, ..._message_copy)
+S | - grib_new_from_template | grib_new_from_template  | grib_handle_new_from_template 
+S | + grib_release           | grib_release            | grib_handle_delete
+A | + grib_clone             | grib_clone              | grib_handle_clone
+G | ! grib_get_message_size  |
+E | - grib_copy_message      |
+  | - grib_write             |
+----------------------------------------------------------------------------
+D | + grib_get_data          | grib_get_data           | grib_iterator_new
+A | +                        |                         | grib_iterator_next
+T | +                        |                         | grib_iterator_delete
+A | +                        |                         | ... GDL::grib_get_data
+  | -   /float               | grib_get_data_real4     |
+  | -   /double              | grib_get_data_real8     |
+  | + grib_get_size          | 
+  | - grib_get_offset
+  | - grib_get_element
+  | + grib_get               | grib_get                | grib_get_long
+  | +                        |                         | grib_get_long_array
+  | +                        |                         | grib_get_double
+  | +                        |                         | grib_get_double_array
+  | -   missing=             | grib_set_missing        |
+  | -   offset=, count=      | grib_get_element        |
+  | - grib_set               | grib_set                |
+------------------------------------------------------------------------
+N |                          | grib_find_nearest
+E |
+A |
+R |
+E |
+S |
+T |
+------------------------------------------------------------------------
+K | - grib_keys              | grib_keys_iterator_new
+E | -                        | grib_keys_iterator_next
+Y | -                        | grib_keys_iterator_delete
+S | -                        | grib_keys_iterator_get_name
+  | -                        | grib_keys_iterator_rewind
+  | -   /skip_readonly       | grib_skip_readonly  
+  | -   /skip_duplicates     | grib_skip_duplicates
+  | -   /skip_coded          | grib_skip_coded
+  | -   /skip_computed       | grib_skip_computed
+------------------------------------------------------------------------
+N |                          | grib_check             | 
+/ |                          | grib_dump              |
+A |                          | 
+
+Sylwester Arabas <slayoo@igf.fuw.edu.pl>
+January 2009

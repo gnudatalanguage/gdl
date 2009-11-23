@@ -103,7 +103,7 @@ am__libgdl_la_SOURCES_DIST = accessdesc.hpp arrayindex.hpp \
 	sigfpehandler.cpp sigfpehandler.hpp devicez.hpp gdlzstream.cpp \
 	gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp \
 	arrayindex.cpp fftw.cpp fftw.hpp mpi.cpp mpi.hpp plot3d_nr.cpp \
-	prognode.cpp prognodeexpr.cpp pythongdl.cpp
+	grib.cpp grib.hpp prognode.cpp prognodeexpr.cpp pythongdl.cpp
 am__objects_1 = assocdata.lo basic_fun_cl.lo basic_fun.lo \
 	basic_fun_jmg.lo basic_op.lo basic_pro.lo basic_pro_jmg.lo \
 	CFMTLexer.lo color.lo convert2.lo datatypes.lo dcommon.lo \
@@ -124,7 +124,8 @@ am__objects_1 = assocdata.lo basic_fun_cl.lo basic_fun.lo \
 	widget.lo basegdl.lo hdf5_fun.lo libinit_mes.lo file.lo \
 	image.lo gdljournal.lo convol.lo convol_inc0.lo convol_inc1.lo \
 	convol_inc2.lo sigfpehandler.lo gdlzstream.lo arrayindex.lo \
-	fftw.lo mpi.lo plot3d_nr.lo prognode.lo prognodeexpr.lo
+	fftw.lo mpi.lo plot3d_nr.lo grib.lo prognode.lo \
+	prognodeexpr.lo
 @BUILDASLIBRARY_TRUE@am_libgdl_la_OBJECTS = $(am__objects_1) \
 @BUILDASLIBRARY_TRUE@	pythongdl.lo
 libgdl_la_OBJECTS = $(am_libgdl_la_OBJECTS)
@@ -181,7 +182,7 @@ am__gdl_SOURCES_DIST = accessdesc.hpp arrayindex.hpp assocdata.cpp \
 	sigfpehandler.cpp sigfpehandler.hpp devicez.hpp gdlzstream.cpp \
 	gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp \
 	arrayindex.cpp fftw.cpp fftw.hpp mpi.cpp mpi.hpp plot3d_nr.cpp \
-	prognode.cpp prognodeexpr.cpp gdl.cpp
+	grib.cpp grib.hpp prognode.cpp prognodeexpr.cpp gdl.cpp
 am__objects_2 = gdl-assocdata.$(OBJEXT) gdl-basic_fun_cl.$(OBJEXT) \
 	gdl-basic_fun.$(OBJEXT) gdl-basic_fun_jmg.$(OBJEXT) \
 	gdl-basic_op.$(OBJEXT) gdl-basic_pro.$(OBJEXT) \
@@ -226,8 +227,8 @@ am__objects_2 = gdl-assocdata.$(OBJEXT) gdl-basic_fun_cl.$(OBJEXT) \
 	gdl-convol_inc1.$(OBJEXT) gdl-convol_inc2.$(OBJEXT) \
 	gdl-sigfpehandler.$(OBJEXT) gdl-gdlzstream.$(OBJEXT) \
 	gdl-arrayindex.$(OBJEXT) gdl-fftw.$(OBJEXT) gdl-mpi.$(OBJEXT) \
-	gdl-plot3d_nr.$(OBJEXT) gdl-prognode.$(OBJEXT) \
-	gdl-prognodeexpr.$(OBJEXT)
+	gdl-plot3d_nr.$(OBJEXT) gdl-grib.$(OBJEXT) \
+	gdl-prognode.$(OBJEXT) gdl-prognodeexpr.$(OBJEXT)
 @BUILDASLIBRARY_FALSE@am_gdl_OBJECTS = $(am__objects_2) \
 @BUILDASLIBRARY_FALSE@	gdl-gdl.$(OBJEXT)
 gdl_OBJECTS = $(am_gdl_OBJECTS)
@@ -387,6 +388,7 @@ sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
+top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 
@@ -432,7 +434,8 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 		image.cpp image.hpp gdljournal.cpp gdljournal.hpp convol.cpp convol_inc0.cpp \
 		convol_inc1.cpp convol_inc2.cpp sigfpehandler.cpp sigfpehandler.hpp devicez.hpp \
 		gdlzstream.cpp gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp arrayindex.cpp \
-		fftw.cpp fftw.hpp mpi.cpp mpi.hpp plot3d_nr.cpp prognode.cpp prognodeexpr.cpp
+		fftw.cpp fftw.hpp mpi.cpp mpi.hpp plot3d_nr.cpp grib.cpp grib.hpp \
+                prognode.cpp prognodeexpr.cpp
 
 @BUILDASLIBRARY_FALSE@gdl_SOURCES = $(cpp_hpp_files) gdl.cpp
 # trigger basename generation
@@ -642,6 +645,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-gdlzstream.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-getfmtast.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-graphics.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-grib.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-gsl_fun.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-hdf5_fun.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-hdf_fun.Po@am__quote@
@@ -699,6 +703,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdlzstream.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/getfmtast.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/graphics.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/grib.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gsl_fun.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hdf5_fun.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hdf_fun.Plo@am__quote@
@@ -2081,6 +2086,20 @@ gdl-plot3d_nr.obj: plot3d_nr.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='plot3d_nr.cpp' object='gdl-plot3d_nr.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-plot3d_nr.obj `if test -f 'plot3d_nr.cpp'; then $(CYGPATH_W) 'plot3d_nr.cpp'; else $(CYGPATH_W) '$(srcdir)/plot3d_nr.cpp'; fi`
+
+gdl-grib.o: grib.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-grib.o -MD -MP -MF $(DEPDIR)/gdl-grib.Tpo -c -o gdl-grib.o `test -f 'grib.cpp' || echo '$(srcdir)/'`grib.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/gdl-grib.Tpo $(DEPDIR)/gdl-grib.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='grib.cpp' object='gdl-grib.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-grib.o `test -f 'grib.cpp' || echo '$(srcdir)/'`grib.cpp
+
+gdl-grib.obj: grib.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-grib.obj -MD -MP -MF $(DEPDIR)/gdl-grib.Tpo -c -o gdl-grib.obj `if test -f 'grib.cpp'; then $(CYGPATH_W) 'grib.cpp'; else $(CYGPATH_W) '$(srcdir)/grib.cpp'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/gdl-grib.Tpo $(DEPDIR)/gdl-grib.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='grib.cpp' object='gdl-grib.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-grib.obj `if test -f 'grib.cpp'; then $(CYGPATH_W) 'grib.cpp'; else $(CYGPATH_W) '$(srcdir)/grib.cpp'; fi`
 
 gdl-prognode.o: prognode.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-prognode.o -MD -MP -MF $(DEPDIR)/gdl-prognode.Tpo -c -o gdl-prognode.o `test -f 'prognode.cpp' || echo '$(srcdir)/'`prognode.cpp
