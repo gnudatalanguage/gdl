@@ -4665,7 +4665,7 @@ namespace lib {
 	      (* static_cast<DByteGDL*>(result))[s] = (matchres == 0);
 	    else if ( extractKW) // !subExprKW
 	      (* static_cast<DStringGDL*>(result))[s] = 
-		(*stringExpr)[0].substr( pmatch[0].rm_so, 
+		(*stringExpr)[s].substr( pmatch[0].rm_so, 
 					 pmatch[0].rm_eo - pmatch[0].rm_so);
 	    else
 	      (* static_cast<DLongGDL*>(result))[s] = matchres? -1:pmatch[0].rm_so;
