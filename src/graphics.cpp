@@ -108,6 +108,7 @@ int Graphics::xSTag;
 int Graphics::ySTag;
 int Graphics::xVSTag;
 int Graphics::yVSTag;
+int Graphics::n_colorsTag;
 
 Graphics::~Graphics() 
 {
@@ -207,6 +208,7 @@ void Graphics::DefineDStructDesc()
   ySTag  = dSysVarDesc->TagIndex( "Y_SIZE");
   xVSTag = dSysVarDesc->TagIndex( "X_VSIZE");
   yVSTag = dSysVarDesc->TagIndex( "Y_VSIZE");
+  n_colorsTag = dSysVarDesc->TagIndex( "N_COLORS");
 }
 
 void Graphics::HandleEvents()

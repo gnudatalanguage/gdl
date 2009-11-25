@@ -56,6 +56,7 @@ namespace lib {
     static int get_decomposedIx = e->KeywordIx( "GET_DECOMPOSED"); 
     static int z_bufferingIx = e->KeywordIx( "Z_BUFFERING"); 
     static int set_resolutionIx = e->KeywordIx( "SET_RESOLUTION"); 
+    static int get_visual_depthIx = e->KeywordIx( "GET_VISUAL_DEPTH");
     //    static int landscapeIx = e->KeywordIx( "LANDSCAPE"); 
     //    static int portraitIx = e->KeywordIx( "PORTRAIT");
  
@@ -118,6 +119,21 @@ namespace lib {
       }
     }
 
+    if (e->KeywordPresent( get_visual_depthIx))
+    {
+      {
+        DStructGDL* dStruct = SysVar::D(); 
+        static unsigned nameTag = dStruct->Desc()->TagIndex( "NAME");
+        if ((*static_cast<DStringGDL*>( dStruct->GetTag( nameTag, 0)))[0] != "X")
+          e->Throw("GET_VISUAL_DEPTH is not supported by current device");
+      }
+      Display* display = XOpenDisplay(NULL);
+      if (display == NULL) 
+        e->Throw("Cannot connect to X server");
+      int depth = DefaultDepth(display, DefaultScreen(display));
+      XCloseDisplay(display);
+      e->SetKW( get_visual_depthIx, new DLongGDL( depth));
+    }
 
     BaseGDL* fileName = e->GetKW( fileNameIx);
     if( fileName != NULL)
@@ -1306,7 +1322,7 @@ namespace lib {
     if( !noErase) actStream->Clear();
 
     // Get device name
-    static DStructGDL* dStruct = SysVar::D();
+    DStructGDL* dStruct = SysVar::D();
     static unsigned nameTag = dStruct->Desc()->TagIndex( "NAME");
     DString d_name = 
       (*static_cast<DStringGDL*>( dStruct->GetTag( nameTag, 0)))[0];
@@ -4961,7 +4977,7 @@ clevel[nlevel-1]=zEnd; //make this explicit
     Graphics* actDevice = Graphics::GetDevice();
     DLong wIx = actDevice->ActWin();
     if( wIx == -1) {
-      static DStructGDL* dStruct = SysVar::D();
+      DStructGDL* dStruct = SysVar::D();
       static unsigned xsizeTag = dStruct->Desc()->TagIndex( "X_SIZE");
       static unsigned ysizeTag = dStruct->Desc()->TagIndex( "Y_SIZE");
       xSize = (*static_cast<DLongGDL*>( dStruct->GetTag( xsizeTag, 0)))[0];

@@ -233,6 +233,10 @@ SizeT nOp = kxLimit * kyLimit;
 	(*static_cast<DLongGDL*>( dStruct->GetTag( ySTag)))[0] = ysize;
 	(*static_cast<DLongGDL*>( dStruct->GetTag( xVSTag)))[0] = xsize;
 	(*static_cast<DLongGDL*>( dStruct->GetTag( yVSTag)))[0] = ysize;
+
+        // number of colors (based on the color depth from PLPlot)
+        (*static_cast<DLongGDL*>( dStruct->GetTag( n_colorsTag)))[0] = 
+          1 << (((static_cast<XwDisplay*>((static_cast<XwDev*>(plsc->dev))->xwd))->depth));
       }	
 
     // window number
@@ -310,7 +314,7 @@ public:
     dStruct->InitTag("Y_CH_SIZE",  DLongGDL( 9)); 
     dStruct->InitTag("X_PX_CM",    DFloatGDL( 40.0)); 
     dStruct->InitTag("Y_PX_CM",    DFloatGDL( 40.0)); 
-    dStruct->InitTag("N_COLORS",   DLongGDL( 16777216)); 
+    dStruct->InitTag("N_COLORS",   DLongGDL( 256)); 
     dStruct->InitTag("TABLE_SIZE", DLongGDL( ctSize)); 
     dStruct->InitTag("FILL_DIST",  DLongGDL( 0)); 
     dStruct->InitTag("WINDOW",     DLongGDL( -1)); 
