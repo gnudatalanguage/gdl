@@ -156,7 +156,7 @@ public:
   {
     // cannot be ArrayIndexScalar[VP] ix->Init();
     if( !ix->Scalar( lastIx))
-      throw GDLException( "Record number must be a scalar in this context.");
+      throw GDLException( NULL,"Record number must be a scalar in this context.",true,false);
     return true;
   }
 
@@ -470,7 +470,7 @@ public:
     // for assoc variables last index is the record
     if( var->IsAssoc()) return;
     if( s >= var->Size())
-      throw GDLException("Scalar subscript out of range [>].1");
+      throw GDLException(NULL,"Scalar subscript out of range [>].1",true,false);
   }
   
   // structure of indexed expression
@@ -512,7 +512,7 @@ public:
       {
 	s = varPtr->Data()->LoopIndex();
 	if( s >= var->Size())
-	  throw GDLException("Scalar subscript out of range [>].2");
+	  throw GDLException(NULL,"Scalar subscript out of range [>].2",true,false);
 	var->AssignAtIx( s, right);
 	return;
       }
@@ -622,7 +622,7 @@ public:
     // for assoc variables last index is the record
     if( var->IsAssoc()) return;
     if( s >= var->Size())
-      throw GDLException("Scalar subscript out of range [>].1");
+      throw GDLException(NULL,"Scalar subscript out of range [>].1",true,false);
   }
 
   // returns one dim long ix in case of one element array index
@@ -639,7 +639,7 @@ public:
     if( right->N_Elements() == 1 && !var->IsAssoc() && var->Type() != STRUCT) 
       {
 	if( s >= var->Size())
-	  throw GDLException("Scalar subscript out of range [>].2");
+	  throw GDLException(NULL,"Scalar subscript out of range [>].2",true,false);
 	var->AssignAtIx( s, right);
 	return;
       }
@@ -667,7 +667,7 @@ public:
 	if( s >= var->Size())
 	  {
 // 	    std::cout << s << " var->Size():" << var->Size() << std::endl;
-	    throw GDLException("Scalar subscript out of range [>].3");
+	    throw GDLException(NULL,"Scalar subscript out of range [>].3",true,false);
 	  }
 	    
 	return var->NewIx( s);
@@ -753,7 +753,7 @@ public:
     assert( ixList.size() > 1); // must be, from compiler
     
     if( ix->size() > MAXRANK)
-      throw GDLException("Maximum of "+MAXRANK_STR+" dimensions allowed.");
+      throw GDLException(NULL,"Maximum of "+MAXRANK_STR+" dimensions allowed.",true,false);
 
     nParam = 0;
     for( SizeT i=0; i<ixList.size(); ++i)
@@ -1003,7 +1003,7 @@ public:
     assert( ix->size() != 0); // must be, from compiler
 
     if( ixList.size() > MAXRANK)
-      throw GDLException("Maximum of "+MAXRANK_STR+" dimensions allowed.");
+      throw GDLException(NULL,"Maximum of "+MAXRANK_STR+" dimensions allowed.",true,false);
 
     nParam = 0;
     for( SizeT i=0; i<ix->size(); ++i)
@@ -1110,7 +1110,7 @@ public:
     ArrayIndexT* ixListEndTmp = ixList.back();
     ixListEndTmp->Init();
     if( !ixListEndTmp->Scalar( lastIx))
-      throw GDLException( "Record number must be a scalar in this context.");
+      throw GDLException(NULL ,"Record number must be a scalar in this context.",true,false);
 
     ixListEnd = ixListEndTmp;
     ixList.pop_back();
@@ -1202,7 +1202,7 @@ public:
 	  {
 	    SizeT nIter = ixList[i]->NIter( (i<varRank)?varDim[i]:1);
 	    if( nIter != nIx)
-	      throw GDLException( "All array subscripts must be of same size.");
+	      throw GDLException(NULL, "All array subscripts must be of same size.", true, false);
 	  }
 	
 	// in this case, having more index dimensions does not matter

@@ -362,7 +362,7 @@ public:
     SizeT rRank=r->Rank();
 
 //     if( rRank > lRank)
-//       throw GDLException("Conflicting data structures (rank).");
+//       throw GDLException(NULL,"Conflicting data structures (rank).",true,false);
 
     SizeT topRank=top->Rank();
 
@@ -379,7 +379,7 @@ public:
       {
 	 // IDL seems to allow a maximum of one rank more for the r-value
 // 	if( rRank > (topRank+1))
-// 	  throw GDLException("Conflicting data structures (top-rank).");
+// 	  throw GDLException(NULL,"Conflicting data structures (top-rank).",true,false);
 
 	// inplace copy to every instance of top
 	// just loop over all top elements and insert (at appropriate indices)
@@ -402,7 +402,7 @@ public:
 	// all dimensions must match here
 	for( SizeT i=0; i<rRank; i++)
 	  if( dim[i] != r->Dim(i))
-	    throw GDLException("Conflicting data structures (dim).");
+	    throw GDLException(NULL,"Conflicting data structures (dim).",true,false);
 
 	// copy only topRank dimensions each time (topElem elements)
 	// topRank is the dim to start the outer loop with
@@ -462,7 +462,7 @@ public:
   void Root( DStructGDL* s, ArrayIndexListT* ix_=NULL) // root
   {
 //     if( s->IsAssoc())
-//       throw GDLException("File expression not allowed in this context.");
+//       throw GDLException(NULL,"File expression not allowed in this context.",true,false);
     dStruct.push_back(s);
     ix.push_back(ix_); 
   }
@@ -470,11 +470,11 @@ public:
   void Add( const std::string& tagName) // tags
   {
    if( dStruct.back() == NULL)
-       throw GDLException("Left side of a tag must be a STRUCT: "+tagName);
+       throw GDLException(NULL,"Left side of a tag must be a STRUCT: "+tagName);
 
     int t=dStruct.back()->Desc()->TagIndex( tagName);
     if( t == -1) 
-      throw GDLException("Tag name: "+tagName+" is undefined for STRUCT.");
+      throw GDLException(NULL,"Tag name: "+tagName+" is undefined for STRUCT.",true,false);
     
     // call SizeT version
     SizeT tagIx=static_cast<SizeT>(t);
@@ -487,15 +487,15 @@ public:
     DStructGDL* actTop=dStruct.back();
 
     if( actTop == NULL)
-      throw GDLException("Expression must be a STRUCT in this context.");
+      throw GDLException(NULL,"Expression must be a STRUCT in this context.",true,false);
     
     if( actTop->N_Elements() == 0) // maybe not needed
-      throw GDLException("Error struct data empty.");
+      throw GDLException(NULL,"Error struct data empty.",true,false);
     
     SizeT nTags=actTop->Desc()->NTags();
     
     if( tagN >= nTags)
-      throw GDLException("Invalid tag number.");
+      throw GDLException(NULL,"Invalid tag number.",true,false);
 
     top=actTop->GetTag( tagN, 0);
 

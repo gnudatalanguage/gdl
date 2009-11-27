@@ -1029,6 +1029,11 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r)
   //C delete this;
   return res;
 }
+
+
+
+
+
 // invalid types
 DStructGDL* DStructGDL::MatrixOp( BaseGDL* r)
 {
