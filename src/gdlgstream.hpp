@@ -22,6 +22,7 @@
 #include <plplot/plxwd.h>
 #include <plplot/plplot.h>
 #include <string>
+#include <iostream>
 #include "typedefs.hpp"
 
 using namespace std;
@@ -49,29 +50,17 @@ public:
 
   static bool checkPlplotDriver(const char *driver)
   {
-    static int numdevs_plus_one = 30;
-    static const char **devlongnames = NULL, **devnames = NULL;
+    int numdevs_plus_one = 30;
+    const char **devlongnames = NULL, **devnames = NULL;
 
-    // acquireing a list of drivers from plPlot (once)
-    if (devnames == NULL) 
+    // acquireing a list of drivers from plPlot
+    for (int maxnumdevs = numdevs_plus_one;; numdevs_plus_one = maxnumdevs += 5)
     {
-      for (int maxnumdevs = numdevs_plus_one;; numdevs_plus_one = maxnumdevs += 5)
-      {
-// SA: Marc, with this version I get the following errors (GCC 4.0.1), I'll look into it more anyhow.
-/* 
-  gdlgstream.hpp:64: error: invalid conversion from 'char***' to 'const char***'
-  gdlgstream.hpp:64: error:   initializing argument 1 of 'void plgDevs(const char***, const char***, int*)'
-  gdlgstream.hpp:64: error: invalid conversion from 'char***' to 'const char***'
-  gdlgstream.hpp:64: error:   initializing argument 2 of 'void plgDevs(const char***, const char***, int*)'
-*/
-//        devlongnames = new char*[ maxnumdevs];
-//        devnames = new char*[ maxnumdevs];
-        devlongnames = static_cast<const char**>(realloc(devlongnames, maxnumdevs * sizeof(char*)));
-        devnames = static_cast<const char**>(realloc(devlongnames, maxnumdevs * sizeof(char*)));
-        plgDevs(&devlongnames, &devnames, &numdevs_plus_one);
-        numdevs_plus_one++;
-        if (numdevs_plus_one < maxnumdevs) break;
-      }
+      devlongnames = static_cast<const char**>(realloc(devlongnames, maxnumdevs * sizeof(char*)));
+      devnames = static_cast<const char**>(realloc(devlongnames, maxnumdevs * sizeof(char*)));
+      plgDevs(&devlongnames, &devnames, &numdevs_plus_one);
+      numdevs_plus_one++;
+      if (numdevs_plus_one < maxnumdevs) break;
     } 
 
     // checking if a given driver is in the list

@@ -87,8 +87,7 @@ namespace lib {
 
   Image& magick_image(EnvT *e,unsigned int mid)
   {
-    if(gValid[mid]==0) 
-      throw GDLException(e->CallingNode(),"magick_image: invalid ID.");
+    if(gValid[mid]==0) e->Throw("invalid ID.");
     
     return gImage[mid];
   }
@@ -135,10 +134,7 @@ namespace lib {
     }
     catch (Exception &error_ )
       {
-	string s;
-	s="MAGICK_OPEN: ";
-	s+=error_.what();
-	throw GDLException(e->CallingNode(),s);
+        e->Throw(error_.what());
       }
   }
 
@@ -175,10 +171,7 @@ namespace lib {
     }
     catch (Exception &error_ )
       {
-	string s;
-	s="MAGICK_CREATE: ";
-	s+=error_.what();
-	throw GDLException(e->CallingNode(),s);
+        e->Throw(error_.what());
       }
   }
 
@@ -190,10 +183,8 @@ namespace lib {
 	e->AssureScalarPar<DUIntGDL>(0,mid);
 	
 	
-	if(mid > gCount-1)
-	  throw GDLException(e->CallingNode(), "Invalid ID");
-	else if(gValid[mid] == 0)
-          throw GDLException(e->CallingNode(), "ID not used");
+	if(mid > gCount-1) e->Throw("Invalid ID");
+	else if(gValid[mid] == 0) e->Throw("ID not used");
 	
 	gValid[mid]=0;
 	gImage[mid]=NULL;
@@ -201,10 +192,7 @@ namespace lib {
       }
     catch (Exception &error_ )
       {
-	string s;
-	s="MAGICK_CLOSE: ";
-	s+=error_.what();
-	throw GDLException(e->CallingNode(),s);
+        e->Throw(error_.what());
       }
   }
 
@@ -218,8 +206,7 @@ namespace lib {
 	unsigned int columns,rows;
 	Image image=magick_image(e,mid);
 	if(image.classType()==DirectClass)
-	  throw GDLException(e->CallingNode(),"Not an indexed image: "
-			     +e->GetParString(0));
+	  e->Throw("Not an indexed image: " +e->GetParString(0));
 
 	columns=image.columns();
 	rows=image.rows();
@@ -242,10 +229,7 @@ namespace lib {
       }
     catch (Exception &error_ )
       {
-	string s;
-	s="MAGICK_READINDEXES: ";
-	s+=error_.what();
-	throw GDLException(e->CallingNode(),s);
+        e->Throw(error_.what());
       }
   }
 
@@ -258,8 +242,7 @@ namespace lib {
       e->AssureScalarPar<DUIntGDL>(0,mid);    
       Image image=magick_image(e,mid);
       if(image.classType()==DirectClass)
-	throw GDLException(e->CallingNode(),"Not an indexed image: "
-			   +e->GetParString(0));
+	e->Throw("Not an indexed image: " +e->GetParString(0));
       
 
       if(image.classType()==PseudoClass)
@@ -322,23 +305,19 @@ namespace lib {
 	    }
 	    else
 	      {
-		throw GDLException(e->CallingNode(), "Uknown Image type, too many colors");
+		e->Throw("Uknown Image type, too many colors");
 	      }
 	  
 	}
       else
 	{
-	  throw GDLException(e->CallingNode(),"Not an indexed image: "
-			     +e->GetParString(0));
+	  e->Throw("Not an indexed image: " +e->GetParString(0));
 	}
   
     }
     catch (Exception &error_ )
       {
-	string s;
-	s="MAGICK_READCOLORMAPRGB: ";
-	s+=error_.what();
-	throw GDLException(e->CallingNode(),s);
+        e->Throw(error_.what());
       }
   }
 
@@ -389,17 +368,17 @@ namespace lib {
 	    BaseGDL* sr=e->GetKW(1);
 	    DULongGDL * subrect=static_cast<DULongGDL*>(sr->Convert2(ULONG,BaseGDL::COPY));
 	    if(subrect->N_Elements() != 4)
-	      throw GDLException(e->CallingNode(),"Not enough elements in SUB_RECT, expected 4.");
+	      e->Throw("Not enough elements in SUB_RECT, expected 4.");
 	    lx=(*subrect)[0];//guaranteed to be >0
 	    ly=(*subrect)[1];
 	    wx=(*subrect)[2];
 	    wy=(*subrect)[3];
 
 	    if(wx > columns) 
-	      throw GDLException(e->CallingNode(),"Requested width exceeds number of columns, Either reduce the width or the X origin.");
+	      e->Throw("Requested width exceeds number of columns, Either reduce the width or the X origin.");
 
 	    if(ly+wy > rows) 
-	      throw GDLException(e->CallingNode(),"Requested height exceeds number of rows. Either reduce the height or the Y origin.");
+	      e->Throw("Requested height exceeds number of rows. Either reduce the height or the Y origin.");
 
 
 	    
@@ -424,17 +403,14 @@ namespace lib {
 	  }
 	else
 	  {
-	    throw GDLException(e->CallingNode(), "MAGICK_READ: Unsupported bit depth");
+	    e->Throw("Unsupported bit depth");
 	  }
 	
 
       }
     catch (Exception &error_ )
       {
-	string s;
-	s="MAGICK_READ: ";
-	s+=error_.what();
-	throw GDLException(e->CallingNode(),s);
+        e->Throw(error_.what());
       }
   }
 
@@ -494,23 +470,20 @@ namespace lib {
 	      }
 	    else
 	      {
-		throw GDLException(e->CallingNode(), "MAGICK_WRITE: Unsupported bit depth");
+		e->Throw("Unsupported bit depth");
 		}*/
 	    
 	  }
 	else 
 	  {
-	    throw GDLException(e->CallingNode(), "2D Not yet supported");
+	    e->Throw("2D Not yet supported");
 	  }
 	image.flip();
 	magick_replace(e,mid,image);
       }
     catch (Exception &error_ )
       {
-	string s;
-	s="MAGICK_WRITE: ";
-	s+=error_.what();
-	throw GDLException(e->CallingNode(),s);
+        e->Throw(error_.what());
       }
 
   }
@@ -537,10 +510,7 @@ namespace lib {
       }
     catch (Exception &error_ )
       {
-	string s;
-	s="MAGICK_WRITEFILE: ";
-	s+=error_.what();
-	throw GDLException(e->CallingNode(),s);
+        e->Throw(error_.what());
       }
   }
     
@@ -564,10 +534,7 @@ namespace lib {
     }
     catch (Exception &error_ )
       {
-	string s;
-	s="MAGICK_COLORMAPSIZE: ";
-	s+=error_.what();
-	throw GDLException(e->CallingNode(),s);
+        e->Throw(error_.what());
       }
     }
 
@@ -590,10 +557,7 @@ namespace lib {
     }
     catch (Exception &error_ )
       {
-	string s;
-	s="MAGICK_COLORMAPSIZE: ";
-	s+=error_.what();
-	throw GDLException(e->CallingNode(),s);
+        e->Throw(error_.what());
       }
     }
 
@@ -608,10 +572,7 @@ namespace lib {
     }
     catch (Exception &error_ )
       {
-	string s;
-	s="MAGICK_ROWS: ";
-	s+=error_.what();
-	throw GDLException(e->CallingNode(),s);
+        e->Throw(error_.what());
       }
     }
 
@@ -626,10 +587,7 @@ namespace lib {
       }
     catch (Exception &error_ )
       {
-	string s;
-	s="MAGICK_COLUMNS: ";
-	s+=error_.what();
-	throw GDLException(e->CallingNode(),s);
+        e->Throw(error_.what());
       }
     }
 
@@ -648,10 +606,7 @@ namespace lib {
     }
     catch (Exception &error_ )
       {
-	string s;
-	s="MAGICK_INDEXEDCOLOR: ";
-	s+=error_.what();
-	throw GDLException(e->CallingNode(),s);
+        e->Throw(error_.what());
       }
 
   }
@@ -674,10 +629,7 @@ namespace lib {
       }
     catch (Exception &error_ )
       {
-	string s;
-	s="MAGICK_QUALITY: ";
-	s+=error_.what();
-	throw GDLException(e->CallingNode(),s);
+        e->Throw(error_.what());
       }
   }
 
@@ -695,10 +647,7 @@ namespace lib {
       }
     catch (Exception &error_ )
       {
-	string s;
-	s="MAGICK_FLIP: ";
-	s+=error_.what();
-	throw GDLException(e->CallingNode(),s);
+        e->Throw(error_.what());
       }
   }
 
@@ -716,10 +665,7 @@ namespace lib {
       }
     catch (Exception &error_ )
       {
-	string s;
-	s="MAGICK_MATTE: ";
-	s+=error_.what();
-	throw GDLException(e->CallingNode(),s);
+        e->Throw(error_.what());
       }
   }
 
@@ -747,10 +693,7 @@ namespace lib {
       }
     catch (Exception &error_ )
       {
-	string s;
-	s="MAGICK_INTERLACE: ";
-	s+=error_.what();
-	throw GDLException(e->CallingNode(),s);
+        e->Throw(error_.what());
       }
   }
 
@@ -792,7 +735,7 @@ namespace lib {
 	    else if(noise==5)//Poisson noise
 	      image.addNoise(PoissonNoise);
 	    else 
-	      throw GDLException(e->CallingNode(),"Unknown noise type requested.");
+	      e->Throw("Unknown noise type requested.");
 	  }
 	else//no keyword
 	  image.addNoise(UniformNoise);
@@ -801,10 +744,7 @@ namespace lib {
       }
     catch (Exception &error_ )
       {
-	string s;
-	s="MAGICK_ADDNOISE: ";
-	s+=error_.what();
-	throw GDLException(e->CallingNode(),s);
+        e->Throw(error_.what());
       }
       }	
     
@@ -859,10 +799,7 @@ namespace lib {
     }
     catch (Exception &error_ )
       {
-	string s;
-	s="MAGICK_TEMPLATE: ";
-	s+=error_.what();
-	throw GDLException(e->CallingNode(),s);
+        e->Throw(error_.what());
       }
   }
 
@@ -914,10 +851,7 @@ SizeT nEl = columns*rows;
     }
     catch (Exception &error_ )
       {
-	string s;
-	s="MAGICK_TEMPLATE: ";
-	s+=error_.what();
-	throw GDLException(e->CallingNode(),s);
+        e->Throw(error_.what());
       }
   }
 
@@ -963,10 +897,7 @@ SizeT nEl = columns*rows;
     }
     catch (Exception &error_ )
       {
-	string s;
-	s="MAGICK_TEMPLATE: ";
-	s+=error_.what();
-	throw GDLException(e->CallingNode(),s);
+        e->Throw(error_.what());
       }
   }
 
@@ -983,10 +914,7 @@ SizeT nEl = columns*rows;
     }
     catch (Exception &error_ )
       {
-	string s;
-	s="MAGICK_TEMPLATE: ";
-	s+=error_.what();
-	throw GDLException(e->CallingNode(),s);
+        e->Throw(error_.what());
       }
   }
   */
