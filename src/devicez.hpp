@@ -37,12 +37,6 @@ class DeviceZ: public Graphics
     PLINT ix, iy; //, xm, ym;
 
     PLINT ired; //, igrn, iblu;
-#ifdef _OPENMP
-SizeT nOp = nx * ny * 3;
-#endif
-#pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp))
-{
-#pragma omp for
     for(ix = 0; ix < nx; ++ix) {
       for(iy = 0; iy < ny; ++iy) {
 
@@ -71,20 +65,15 @@ SizeT nOp = nx * ny * 3;
 	  memBuffer[ baseIx+2] = ired;
       }
     }
-}
   }
 
   void SetZBuffer( DLong x, DLong y)
   {
     delete[] zBuffer;
     zBuffer = new DInt[ x*y];
-    SizeT nOp = x*y;
-#pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp))
-{
-#pragma omp for
-    for( SizeT i=0; i<nOp; ++i)
+    SizeT n = x*y;
+    for( SizeT i=0; i<n; ++i)
       zBuffer[ i] = -32765;
-}
   }
 
   void DeleteStream()
@@ -252,13 +241,8 @@ public:
     DLong& actX = (*static_cast<DLongGDL*>( dStruct->GetTag( xSTag, 0)))[0];
     DLong& actY = (*static_cast<DLongGDL*>( dStruct->GetTag( ySTag, 0)))[0];
 
-SizeT nOp = actX * (actY+1) * 3;
-#pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp))
-{
-#pragma omp for
-    for( SizeT i=0; i<nOp * 3; ++i)
+    for( SizeT i=0; i<actX * (actY+1) * 3; ++i)
       memBuffer[i] = bColor;
-}
   }
 
 
@@ -274,16 +258,11 @@ SizeT nOp = actX * (actY+1) * 3;
       
     DByteGDL* res = new DByteGDL( dimension( xsize, ysize), 
 				  BaseGDL::NOZERO);
-#ifdef _OPENMP
-SizeT nOp = xsize * ysize;
-#endif 
-#pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp))
-{
-#pragma omp for
+    
     for( SizeT x=0; x<xsize; ++x)
       for( SizeT y=0; y<ysize; ++y)
 	(*res)[ y*xsize+x] = memBuffer[ ((ysize-y-1)*xsize+x) * 3];
-}    
+    
     return res;
   }
 

@@ -51,13 +51,13 @@ public:
   static bool checkPlplotDriver(const char *driver)
   {
     int numdevs_plus_one = 30;
-    const char **devlongnames = NULL, **devnames = NULL;
+    char **devlongnames = NULL, **devnames = NULL;
 
     // acquireing a list of drivers from plPlot
     for (int maxnumdevs = numdevs_plus_one;; numdevs_plus_one = maxnumdevs += 5)
     {
-      devlongnames = static_cast<const char**>(realloc(devlongnames, maxnumdevs * sizeof(char*)));
-      devnames = static_cast<const char**>(realloc(devlongnames, maxnumdevs * sizeof(char*)));
+      devlongnames = static_cast<char**>(realloc(devlongnames, maxnumdevs * sizeof(char*)));
+      devnames = static_cast<char**>(realloc(devlongnames, maxnumdevs * sizeof(char*)));
       plgDevs(&devlongnames, &devnames, &numdevs_plus_one);
       numdevs_plus_one++;
       if (numdevs_plus_one < maxnumdevs) break;
