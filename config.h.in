@@ -66,6 +66,9 @@
 /* Define if you have a plplot version prior to 5.9.0 */
 #undef HAVE_OLDPLPLOT
 
+/* Use OpenMP */
+#undef HAVE_OPENMP
+
 /* Define to 1 if you have the `sbrk' function. */
 #undef HAVE_SBRK
 
@@ -92,6 +95,10 @@
 
 /* Define to 1 if you have the <"netcdfcpp.h"> header file. */
 #undef HAVE__NETCDFCPP_H_
+
+/* Define to the sub-directory in which libtool stores uninstalled libraries.
+   */
+#undef LT_OBJDIR
 
 /* Pre-10.4.8 version of OS X */
 #undef OLD_DARWIN
