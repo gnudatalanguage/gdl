@@ -399,13 +399,11 @@ namespace lib {
       status = SDgetinfo(sds_id, fieldname, &rank, null, null, null);
     }
 
-    if (status != 0) throw GDLException( e->CallingNode(), 
-      "HDF_SD_DIMGETID: Invalid SD dataset ID: " + i2s(sds_id));
+    if (status != 0) e->Throw("Invalid SD dataset ID: " + i2s(sds_id));
 
     // using reverse indices to reflect IDL behaviour
     dim_id = SDgetdimid(sds_id, rank - 1 - dim_index);
-    if (dim_id == -1) throw GDLException( e->CallingNode(), 
-      "HDF_SD_DIMGETID: Invalid dimension index: " + i2s(dim_index) + 
+    if (dim_id == -1) e->Throw("Invalid dimension index: " + i2s(dim_index) + 
       " (valid indices range from 0 to " + i2s(rank) + ")");
 
     return new DLongGDL(dim_id);
