@@ -3155,15 +3155,17 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
       if (e->KeywordSet( "NLEVELS")) {
       	e->AssureLongScalarKWIfPresent( "NLEVELS", nlevel);
 	if (nlevel <= 0) nlevel= 2;  // AC: mimication of IDL
-//       	zintv = (PLFLT) ((zEnd - zStart) / (nlevel+1));
-// //IDL does this:
-// zintv = (PLFLT) ((zEnd - zStart) / (nlevel+1));
-//but I think this is better:
-if (e->KeywordSet( "FILL")) 
-{zintv = (PLFLT) ((zEnd - zStart) / (nlevel));} 
-else 
-{zintv = (PLFLT) ((zEnd - zStart) / (nlevel+1));}
 
+        // cokhavim: IDL does this...
+        zintv = (PLFLT) ((zEnd - zStart) / (nlevel+1));
+        // ... but I think this is better:
+        // if (e->KeywordSet( "FILL")) zintv = (PLFLT) ((zEnd - zStart) / (nlevel));
+        // else zintv = (PLFLT) ((zEnd - zStart) / (nlevel+1));
+
+        // SA: this indeed seems better in some cases; however, it makes calls
+        //     with and without the /FILL keyword behave differently. As a result,
+        //     when overlaing contours over a filled contour, the contours do not match, e.g.:
+        //     a=dist(7) & contour,a,/fill,nl=5 & contour,a,/over,/foll,nl=5
 
       } else {
 	zintv = AutoTick(zEnd - zStart);
