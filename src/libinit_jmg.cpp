@@ -256,7 +256,7 @@ void LibInit_jmg()
   new DLibFun(lib::widget_text,string("WIDGET_TEXT"),1,widget_textKey);
 
 
-  const string widget_infoKey[] = {"VALID","MODAL","MANAGED","XMANAGER_BLOCK",
+  const string widget_infoKey[] = {"VALID","MODAL","MANAGED","XMANAGER_BLOCK","CHILD","VERSION",
 				   KLISTEND};
   new DLibFun(lib::widget_info,string("WIDGET_INFO"),1,widget_infoKey);
 
@@ -266,7 +266,7 @@ void LibInit_jmg()
 
   const string widget_controlKey[] = {"REALIZE","MANAGED","EVENT_PRO",
 				      "XMANAGER_ACTIVE_COMMAND","DESTROY",
-				      "GET_UVALUE","SET_UVALUE","SET_VALUE",
+				      "GET_UVALUE","SET_UVALUE","SET_VALUE","MAP",
 				      KLISTEND};
   new DLibPro(lib::widget_control,string("WIDGET_CONTROL"),1, 
 	      widget_controlKey);

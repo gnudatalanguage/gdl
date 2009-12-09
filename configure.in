@@ -268,24 +268,41 @@ dnl == wxWidgets ===========================================
 dnl ========================================================
 
 AC_ARG_WITH(wxWidgets,	
-	[  --with-wxWidgets=DIR    use wxWidgets (with optional path DIR) ],
-	[with_wxWidgets="$withval" ])
+  [  --with-wxWidgets=DIR    use wxWidgets (with optional path DIR) ],
+  [with_wxWidgets="$withval" ])
 
 if test "x$with_wxWidgets" != "xno"; then
-	LIBS="$LIBS `wx-config --libs`"
-	INCLUDES="$INCLUDES `wx-config --cxxflags`"
-	LIBS="$LIBS `wx-config --libs` `wx-config --cxxflags`"
-dnl autoconf cannot handle demangled names
-	AC_CHECK_LIB(wx_baseu-2.8, _Z12wxInitializeiPPw, [
-	AC_DEFINE([HAVE_LIBWXWIDGETS], [1], [wxWidgets library])
-	], [
-	echo ""
-	echo "Error! You must have wxWidgets library 2.8 installed"
-	echo "       Use --with-wxWidgets=no to expicitely disable it"
-	echo "       Check the README or use configure --help for other libraries needed"
-	echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
-	exit -1
-	])
+
+  if test "x$with_wxWidgets" = "xyes"; then
+    AC_PATH_PROG(wxConfig, wx-config, no) 
+  else
+    AC_PATH_PROG(wxConfig, wx-config, no, "$with_wxWidgets/bin")
+  fi
+
+  if test "x$wxConfig" = "xno"; then
+    AC_MSG_ERROR(wxWidgets are required but were not found (wx-config program not found)
+      Use --with-wxWidgets=DIR to specify the wxWidgets directory tree
+      Use --with-wxWidgets=no  to not use it
+    )
+  else
+    LIBS="$LIBS `wx-config --libs`"
+    INCLUDES="$INCLUDES `wx-config --cxxflags`"
+    dnl SA: this is needed to compile on Leopard
+    dnl (see e.g. the "OpenGL bug section" in http://wiki.finkproject.org/index.php/Fink:Packaging:Preparing_for_10.5#OpenGL_Bug)
+    dnl LDFLAGS="$LDFLAGS -Wl,-dylib_file,/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGL.dylib:/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGL.dylib"
+  fi
+
+  tmp="`wx-config --basename`-`wx-config --release`"
+  AC_CHECK_LIB($tmp, wxFatalSignalHandler, 
+    [AC_DEFINE([HAVE_LIBWXWIDGETS], [1], [wxWidgets library])], [
+    echo ""
+    echo "Error! wxWidgets version 2.8 or later is required but was not found"
+    echo "       Use --with-wxWidgets=DIR to specify the wxWidgets directory tree"
+    echo "       Use --with-wxWidgets=no  to not use it"
+    echo "       Check the README or use configure --help for other libraries needed"
+    echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
+    exit -1
+  ])
 fi
 
 dnl == ImageMagick =========================================

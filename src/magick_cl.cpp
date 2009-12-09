@@ -139,6 +139,161 @@ namespace lib {
   }
 
 
+  BaseGDL * magick_ping(EnvT* e)
+  {
+    // TODO!
+    //if (e->KeywordPresent("SUPPORTED_READ") || e->KeywordPresent("SUPPORTED_WRITE"))
+    //  e->Warning("SUPPORTED_READ and SUPPORTED_WRITE keywords not supported yet");
+
+    // TODO: JPEG2000- and TIFF-related additional fields in the INFO structure
+
+    SizeT nParam=e->NParam(1);
+ 
+    try 
+    {
+      DString filename;
+      e->AssureScalarPar<DStringGDL>(0, filename);
+      Image a;
+      try 
+      {
+        a.ping(filename);
+      }
+      catch (WarningCoder &warning_ )
+      {
+        cerr << warning_.what() << endl;
+      }
+
+      if (nParam == 2)
+      {
+        DString magick;
+        e->AssureScalarPar<DStringGDL>(1, magick);
+        if (a.magick() != magick) return new DLongGDL(0); 
+      }
+  
+      DInt has_palette, pixel_type;
+      DLong channels, num_images, image_index;
+      DString type;
+     
+      // relevant information that, in some cases, is provided after pinging:
+      // a.type(), a.matte(), a.classType(), a.colorSpace()
+      channels = a.classType() == PseudoClass 
+        ? 1      // color palette
+        : a.type() == GrayscaleType 
+          ? 1    // greyscale
+          : a.type() == ColorSeparationType 
+            ? 4  // CMYK
+            : 3; // RGB
+      if (a.matte()) channels += 1;
+
+      // TODO! multiple images (using the Magick++ STL interface)
+      image_index = 0; 
+      num_images = 1;
+
+      pixel_type = a.depth() == 16 ? 2 : 1;
+
+      has_palette = a.classType() == PseudoClass ? 1 : 0;
+
+      // TODO: 
+      // - DCM->DICOM... ?
+      // - JP2->JPEG2000 ?
+      type = a.magick() == "PNM" ? "PPM" : a.magick();
+
+      static int infoIx = e->KeywordIx("INFO");
+      if (e->KeywordPresent(infoIx))
+      {
+        e->AssureGlobalKW(infoIx);
+
+        // creating the output anonymous structure
+        DStructDesc* info_desc = new DStructDesc("$truct");
+        SpDString aString;
+        SpDLong aLong;
+        SpDInt aInt;
+        SpDLong aLongArr2(dimension(2));
+        info_desc->AddTag("CHANNELS", &aLong);
+        info_desc->AddTag("DIMENSIONS", &aLongArr2);
+        info_desc->AddTag("HAS_PALETTE", &aInt);
+        info_desc->AddTag("IMAGE_INDEX", &aLong);
+        info_desc->AddTag("NUM_IMAGES", &aLong);
+        info_desc->AddTag("PIXEL_TYPE", &aInt);
+        info_desc->AddTag("TYPE", &aString);
+        DStructGDL* info = new DStructGDL(info_desc, dimension());
+
+        // filling the info struct with data
+        info->InitTag("CHANNELS", DLongGDL(channels));
+        {
+          DLongGDL dims(dimension( 2));
+          dims[0] = a.columns();
+          dims[1] = a.rows();
+          info->InitTag("DIMENSIONS", dims);
+        }
+        info->InitTag("HAS_PALETTE", DIntGDL(has_palette));
+        info->InitTag("IMAGE_INDEX", DLongGDL(image_index)); 
+        info->InitTag("NUM_IMAGES", DLongGDL(num_images)); 
+        info->InitTag("PIXEL_TYPE", DIntGDL(pixel_type));
+        info->InitTag("TYPE", DStringGDL(type));
+        e->SetKW(infoIx, info);
+      }
+
+      static int channelsIx = e->KeywordIx("CHANNELS");
+      if (e->KeywordPresent(channelsIx))
+      {
+        e->AssureGlobalKW(channelsIx);
+        e->SetKW(channelsIx, new DLongGDL(channels));
+      }
+
+      static int dimensionsIx = e->KeywordIx("DIMENSIONS");
+      if (e->KeywordPresent(dimensionsIx))
+      {
+        e->AssureGlobalKW(dimensionsIx);
+        DLongGDL *dims = new DLongGDL(dimension(2)); 
+        (*dims)[0] = a.columns();
+        (*dims)[1] = a.rows();
+        e->SetKW(dimensionsIx, dims);
+      }
+
+      static int has_paletteIx = e->KeywordIx("HAS_PALETTE");
+      if (e->KeywordPresent(has_paletteIx))
+      {
+        e->AssureGlobalKW(has_paletteIx);
+        e->SetKW(has_paletteIx, new DIntGDL(has_palette));
+      }
+
+      static int image_indexIx = e->KeywordIx("IMAGE_INDEX");
+      if (e->KeywordPresent(image_indexIx))
+      {
+        e->AssureGlobalKW(image_indexIx);
+        e->SetKW(image_indexIx, new DLongGDL(image_index));
+      }
+
+      static int num_imagesIx = e->KeywordIx("NUM_IMAGES");
+      if (e->KeywordPresent(num_imagesIx))
+      {
+        e->AssureGlobalKW(num_imagesIx);
+        e->SetKW(num_imagesIx, new DLongGDL(num_images));
+      }
+
+      static int pixel_typeIx = e->KeywordIx("PIXEL_TYPE");
+      if (e->KeywordPresent(pixel_typeIx))
+      {
+        e->AssureGlobalKW(pixel_typeIx);
+        e->SetKW(pixel_typeIx, new DIntGDL(pixel_type));
+      }
+
+      static int typeIx = e->KeywordIx("TYPE");
+      if (e->KeywordPresent(typeIx))
+      {
+        e->AssureGlobalKW(typeIx);
+        e->SetKW(typeIx, new DStringGDL(type));
+      }
+
+      return new DLongGDL(1);
+    }
+    catch (Exception &error_ )
+    {
+      return new DLongGDL(0);
+    }
+  }
+
   BaseGDL* magick_create(EnvT* e)
   {
     try{

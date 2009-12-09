@@ -197,6 +197,11 @@ void LibInit_cl()
 
   //hmm
   new DLibPro(lib::magick_display,string("MAGICK_DISPLAY"),1);
+
+  // SA: support fot query/ping routines
+  const string magick_pingKey[] = {"INFO", "CHANNELS", "DIMENSIONS", "HAS_PALETTE", "IMAGE_INDEX",
+    "NUM_IMAGES", "PIXEL_TYPE",/* "SUPPORTED_READ", "SUPPORTED_WRITE", */"TYPE"};
+  new DLibFun(lib::magick_ping, string("MAGICK_PING"), 2, magick_pingKey);
 #endif
 }
 

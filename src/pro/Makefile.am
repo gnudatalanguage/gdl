@@ -35,6 +35,14 @@ prolib_DATA = \
   pushd.pro \
   py_plot.pro \
   py_print.pro \
+  query_bmp.pro \
+  query_gif.pro \
+  query_image.pro \
+  query_jpeg.pro \
+  query_pict.pro \
+  query_png.pro \
+  query_ppm.pro \
+  query_tiff.pro \
   read_ascii.pro \
   read_binary.pro \
   read_bmp.pro \

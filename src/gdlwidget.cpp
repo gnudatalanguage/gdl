@@ -328,7 +328,7 @@ GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID,
     std::cout << "after wxMutexGuiEnter()" << std::endl;
 
     // GDLFrame is derived from wxFrame
-    GDLFrame *frame = new GDLFrame( wxParent, widgetID, title_);
+    GDLFrame *frame = new GDLFrame( wxParent, widgetID, wxString(title_.c_str(), wxConvUTF8));
     ((wxFrame *) frame)->SetSize( xsize, ysize);
     wxWidget = frame;
 
@@ -397,7 +397,7 @@ GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID,
       }
 
       if( modal)
-	wxWidget = new wxDialog( wxParent, widgetID, title_);
+	wxWidget = new wxDialog( wxParent, widgetID, wxString(title_.c_str(), wxConvUTF8));
 
     } // if (mapWid == true)
   }
@@ -469,7 +469,7 @@ GDLWidgetButton::GDLWidgetButton( WidgetIDT p, BaseGDL *uV, DString value):
 
   if (gdlParent->GetMap()) {
     wxPanel *panel = gdlParent->GetPanel();
-    wxButton *button = new wxButton( panel, widgetID, _T( value.c_str()));
+    wxButton *button = new wxButton( panel, widgetID, wxString(value.c_str(), wxConvUTF8));
 
     wxBoxSizer *boxSizer = (wxBoxSizer *) gdlParent->GetSizer();
     std::cout << "Getting Sizer: " << boxSizer << std::endl;
@@ -520,7 +520,7 @@ GDLWidgetText::GDLWidgetText( WidgetIDT p, BaseGDL *uV, DString value,
 
   if (gdlParent->GetMap()) {
     wxPanel *panel = gdlParent->GetPanel();
-    text = new wxTextCtrl( panel, widgetID, _T( value.c_str()),
+    text = new wxTextCtrl( panel, widgetID, wxString(value.c_str(), wxConvUTF8),
 			   wxDefaultPosition, wxSize( xSize*5, wxDefaultCoord) );
 
     wxBoxSizer *boxSizer = (wxBoxSizer *) gdlParent->GetSizer();
@@ -549,7 +549,7 @@ GDLWidgetText::GDLWidgetText( WidgetIDT p, BaseGDL *uV, DString value,
 
 void GDLWidgetText::SetTextValue( DString value)
 {
-  text->SetValue( _T( value));
+  text->SetValue(wxString(value.c_str(), wxConvUTF8));
   //  text->Refresh(); 
   //wxMilliSleep(700); 
  }
@@ -566,7 +566,7 @@ GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, BaseGDL *uV, DString value,
   
   if ( gdlParent->GetMap()) {
     wxPanel *panel = gdlParent->GetPanel();
-    label = new wxStaticText( panel, wxID_ANY, _T( value.c_str()),
+    label = new wxStaticText( panel, wxID_ANY, wxString(value.c_str(), wxConvUTF8),
 			      wxPoint(10, 10), wxDefaultSize, wxALIGN_CENTRE);
 
     wxBoxSizer *boxSizer = (wxBoxSizer *) gdlParent->GetSizer();
@@ -596,7 +596,7 @@ GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, BaseGDL *uV, DString value,
 
 void GDLWidgetLabel::SetLabelValue( DString value)
 {
-  label->SetLabel( _T( value));
+  label->SetLabel(wxString(value.c_str(), wxConvUTF8));
  }
 
 // *** GDLFrame ***

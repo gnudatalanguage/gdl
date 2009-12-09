@@ -6,7 +6,7 @@ test \
   = \
   " `LC_COLLATE=C ls *.pro | tr "\n" ' ' | tr -s ' '`" && exit
 echo "-----------------------------------------------------------"
-echo "REASON: list of .pro files in Makefile.am does not include:" 
+echo "REASON: list of .pro files vs. entries in Makefile.am:" 
 LC_COLLATE=C ls -1 *.pro \
   | awk '{ print "  " $0 " \\" }' \
   | diff /dev/stdin Makefile.am \
