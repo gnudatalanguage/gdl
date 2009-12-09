@@ -209,12 +209,12 @@ Codes:
  psafm.pro
  pseudo.pro
 =pushd.pro
- query_bmp.pro
+=query_bmp.pro
  query_dicom.pro
- query_gif.pro
- query_image.pro
- query_pict.pro
- query_ppm.pro
+=query_gif.pro
+~query_image.pro
+=query_pict.pro
+~query_ppm.pro
  query_srf.pro
  query_wav.pro
 !r_correlate.pro
