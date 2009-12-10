@@ -194,9 +194,10 @@ namespace lib {
       has_palette = a.classType() == PseudoClass ? 1 : 0;
 
       // TODO: 
-      // - DCM->DICOM... ?
       // - JP2->JPEG2000 ?
-      type = a.magick() == "PNM" ? "PPM" : a.magick();
+      type = a.magick() == "PNM" ? "PPM" : 
+             a.magick() == "DCM" ? "DICOM" :
+             a.magick();
 
       static int infoIx = e->KeywordIx("INFO");
       if (e->KeywordPresent(infoIx))
