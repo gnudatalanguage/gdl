@@ -275,6 +275,7 @@ prolib_DATA = \
   py_plot.pro \
   py_print.pro \
   query_bmp.pro \
+  query_dicom.pro \
   query_gif.pro \
   query_image.pro \
   query_jpeg.pro \
