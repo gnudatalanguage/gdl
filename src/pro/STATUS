@@ -9,7 +9,7 @@ Codes:
 - : implementation not required
 ! : non-implemented routines having priority
     Most important are:
-      congrid, crossp, crvlength, curvefit, determ, hist_equal, interpol, 
+      congrid, crvlength, curvefit, determ, hist_equal, interpol, 
       int_tabulated, lin_fit, poly_fit, rot, spline, svdfit
     See the file UrgentNeed.txt for atributed tasks
 ===============================================================================
@@ -46,7 +46,7 @@ Codes:
 !correlate.pro
 !cramer.pro
  create_view.pro
-!crossp.pro
+#crossp.pro
 !crvlength.pro
  ct_luminance.pro
  cti_test.pro
