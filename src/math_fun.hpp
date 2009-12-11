@@ -60,6 +60,7 @@ namespace lib {
 
   // by Sylwester Arabas
   BaseGDL* ll_arc_distance(EnvT* e);
+  BaseGDL* crossp(EnvT* e);
 
 } // namespace
 

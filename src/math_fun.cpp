@@ -2047,4 +2047,37 @@ namespace lib {
     );
   }
 
+  BaseGDL* crossp(EnvT* e)
+  {
+    BaseGDL* p0 = e->GetNumericParDefined(0);
+    BaseGDL* p1 = e->GetNumericParDefined(1);
+    if (p0->N_Elements() != 3 || p1->N_Elements() != 3)
+      e->Throw("Both arguments must have 3 elements");
+
+    BaseGDL *a, *b, *c;
+
+    a = (DTypeOrder[p0->Type()] >= DTypeOrder[p1->Type()] ? p0 : p1)->New(dimension(3), BaseGDL::ZERO);
+                          // a = 0
+                          // .--mem: new a (with the type and shape of the result)
+    b = p0->CShift(-1)->Convert2(a->Type(), BaseGDL::CONVERT);
+                          // | .--mem: new b
+    a->Add(b);            // | | a = shift(p0, -1)
+    delete b;             // | `--mem: del b
+    b = p1->CShift(-2)->Convert2(a->Type(), BaseGDL::CONVERT);
+                          // | .--mem: new b
+    a->Mult(b);           // | | a = shift(p0, -1) * shift(p1, -2)
+    b->Sub(b);            // | | b = 0
+    c = p0->CShift(1)->Convert2(a->Type(), BaseGDL::CONVERT);
+                          // | | .--mem: new c
+    b->Sub(c);            // | | | b = - shift(p0, 1)
+    delete c;             // | | `--mem: del c
+    c = p1->CShift(2)->Convert2(a->Type(), BaseGDL::CONVERT); 
+                          // | | .--mem: new c
+    b->Mult(c);           // | | | b = - shift(p0, 1) * shift(p1, 2)
+    delete c;             // | | `--mem: del c
+    a->Add(b);            // | | a = shift(p0, -1) * shift(p1, -2) - shift(p0, 1) * shift(p1, 2)
+    delete b;             // | `--mem: del b
+    return a;             // `--->
+  }
+
 } // namespace

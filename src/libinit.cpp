@@ -786,6 +786,8 @@ void LibInit()
   new DLibPro(lib::grib_get_data_pro, string("GRIBAPI_GET_DATA"), 4); 
   // -----------------------------------------------------------------------------------------
 
+  new DLibFun(lib::crossp, string("CROSSP"), 2);
+
   // sort lists
   sort( libFunList.begin(), libFunList.end(), CompLibFunName());
   sort( libProList.begin(), libProList.end(), CompLibProName());
