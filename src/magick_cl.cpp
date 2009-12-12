@@ -153,6 +153,7 @@ namespace lib {
     {
       DString filename;
       e->AssureScalarPar<DStringGDL>(0, filename);
+      if (filename.length() == 0) return new DLongGDL(0);
       Image a;
       try 
       {

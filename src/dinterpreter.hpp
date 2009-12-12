@@ -48,6 +48,7 @@
 #endif
 
 #include <fstream>
+#include <vector>
 
 void ControlCHandler(int);
 
@@ -90,14 +91,20 @@ public:
   
   // execute one line of code
   CommandCode ExecuteLine( std::istream* in = NULL, SizeT lineOffset = 0);
+
+  // execute a whole file (used by @ and for batch files specified as arguments to gdl)
   void        ExecuteFile( const std::string& file);  
 
   // run a list of commands from 'in'. Used by python module. Returns success
   bool RunBatch( std::istream* in);
+
   // the main program for interactive mode
-  GDLInterpreter::RetCode InterpreterLoop( const std::string& startup);  
+  GDLInterpreter::RetCode InterpreterLoop( const std::string& startup, 
+    std::vector<std::string>& batch_files, const std::string& statement);  
+
   // called within InterpreterLoop()
   GDLInterpreter::RetCode InnerInterpreterLoop(SizeT lineOffset);  
+
 };
 
 #endif

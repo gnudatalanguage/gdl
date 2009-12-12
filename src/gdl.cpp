@@ -107,21 +107,29 @@ int main(int argc, char *argv[])
   // indicates if the user wants to see the welcome message
   bool quiet = false;
 
+  // keeps a list of files to be executed after the startup file
+  // and before entering the interactive mode
+  vector<string> batch_files;
+  string statement;
+
   for( SizeT a=1; a< argc; ++a)
     {
       if( string( argv[a]) == "--help")
 	{
-	  cout << "Usage: gdl [OPTION]" << endl;
+	  cout << "Usage: gdl [ OPTIONS ] [ batch_file ... ]" << endl;
 	  cout << "Start the GDL interpreter (incremental compiler)" << endl;
 	  cout << endl;
 	  cout << "GDL options:" << endl;
 	  cout << "  --help     display this message" << endl;
 	  cout << "  --version  show version information" << endl;
+          cout << endl;
 	  cout << "IDL-compatible options:" << endl;
 	  cout << "  -arg value tells COMMAND_LINE_ARGS() to report" << endl;
           cout << "             the following argument (may be specified more than once)" << endl;
 	  cout << "  -args ...  tells COMMAND_LINE_ARGS() to report " << endl;
           cout << "             all following arguments" << endl;
+          cout << "  -e value   execute given statement and exit (last occurance taken into account only," << endl;
+          cout << "             executed after startup file, may not be specified together with batch files)" << endl;
 	  cout << "  -quiet     suppress welcome messages" << endl;
 	  cout << endl;
 	  cout << "Homepage: http://gnudatalanguage.sf.net" << endl;
@@ -136,10 +144,10 @@ int main(int argc, char *argv[])
       {
         if (a == argc - 1)
         {
-          cout << "gdl: -arg must be followed by a user argument." << endl;
+          cerr << "gdl: -arg must be followed by a user argument." << endl;
           return 0;
         } 
-        else lib::command_line_args.push_back(argv[++a]);
+        lib::command_line_args.push_back(argv[++a]);
       }
       else if( string( argv[a]) == "-args")
       {
@@ -149,9 +157,44 @@ int main(int argc, char *argv[])
       else if (string(argv[a]) == "-quiet") 
       {
         quiet = true;
-        break;
+      }
+      else if (string(argv[a]) == "-e")
+      {
+        if (a == argc - 1)
+        {
+          cerr << "gdl: -e must be followed by a user argument." << endl;
+          return 0;
+        }
+        statement = string(argv[++a]);
+        statement.append("\n"); // apparently not needed but this way the empty-string case is covered
+                                // (e.g. $ gdl -e "")
+      }
+      else if (
+        string(argv[a]) == "-demo" || 
+        string(argv[a]) == "-em" || 
+        string(argv[a]) == "-novm" ||
+        string(argv[a]) == "-queue" ||
+        string(argv[a]) == "-rt" ||
+        string(argv[a]) == "-ulicense" ||
+        string(argv[a]) == "-vm" 
+      )
+        cerr << argv[0] << ": " << argv[a] << " option ignored." << endl;
+      else if (*argv[a] == '-')
+      {
+        cerr << argv[0] << ": " << argv[a] << " option not recognized." << endl;
+        return 0;
+      }
+      else
+      {
+        batch_files.push_back(argv[a]);
       }
     }
+
+  if (statement.length() > 0 && batch_files.size() > 0) 
+  {
+    cerr << argv[0] << ": " << "-e option cannot be specified with batch files" << endl;
+    return 0;
+  }
 
   InitGDL();
 
@@ -223,7 +266,7 @@ int main(int argc, char *argv[])
   }
 #endif
 
-  interpreter.InterpreterLoop( startup);
+  interpreter.InterpreterLoop( startup, batch_files, statement);
 
   return 0;
 }

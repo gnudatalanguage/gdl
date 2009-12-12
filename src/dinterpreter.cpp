@@ -1100,7 +1100,8 @@ void DInterpreter::RunDelTree()
 
 // reads user input and executes it
 // the main loop
-GDLInterpreter::RetCode DInterpreter::InterpreterLoop( const string& startup)
+GDLInterpreter::RetCode DInterpreter::InterpreterLoop( const string& startup, 
+  vector<string>& batch_files, const std::string& statement)
 {
   // process startup file
   if( startup != "")
@@ -1159,6 +1160,42 @@ GDLInterpreter::RetCode DInterpreter::InterpreterLoop( const string& startup)
 	}
     } // if( startup...
 
+#ifdef USE_MPI
+  int myrank = 0;
+  int tag = 0;
+  char mpi_procedure[256];
+  MPI_Status status;
+  MPI_Comm_rank( MPI_COMM_WORLD, &myrank);
+  int size; 
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
+  if (size > 1) {
+    MPI_Recv(mpi_procedure, 256, MPI_CHAR, 0, tag, MPI_COMM_WORLD, &status);
+
+    istringstream istr(StrUpCase(mpi_procedure) + "\n");
+    DInterpreter::CommandCode ret=ExecuteLine( &istr);
+
+    MPI_Finalize();
+    exit( EXIT_SUCCESS);
+  }
+#endif
+
+  if (statement.length() > 0) 
+  {
+    // execute single statement and exit (a new-line is added to statement in gdl.cpp)
+    // (e.g. $ gdl -e "print, 'hello world'")
+    istringstream iss(statement, ios_base::out);
+    ExecuteLine(&iss);
+    return RC_OK;
+  }
+  else
+  {
+    // execute batch files (e.g. $ gdl script.pro)
+    // before entering the interactive mode
+    for (vector<string>::iterator it = batch_files.begin(); it < batch_files.end(); it++) 
+      ExecuteFile(*it);
+    batch_files.clear(); // not needed anymore...
+  }
+
 #ifdef HAVE_LIBREADLINE
   // initialize readline (own version - not pythons one)
   // in includefirst.hpp readline is disabled for python_module
@@ -1196,25 +1233,6 @@ GDLInterpreter::RetCode DInterpreter::InterpreterLoop( const string& startup)
   }
 #endif
 
-
-#ifdef USE_MPI
-  int myrank = 0;
-  int tag = 0;
-  char mpi_procedure[256];
-  MPI_Status status;
-  MPI_Comm_rank( MPI_COMM_WORLD, &myrank);
-  int size; 
-  MPI_Comm_size(MPI_COMM_WORLD, &size);
-  if (size > 1) {
-    MPI_Recv(mpi_procedure, 256, MPI_CHAR, 0, tag, MPI_COMM_WORLD, &status);
-
-    istringstream istr(StrUpCase(mpi_procedure) + "\n");
-    DInterpreter::CommandCode ret=ExecuteLine( &istr);
-
-    MPI_Finalize();
-    exit( EXIT_SUCCESS);
-  }
-#endif
 
   bool runCmd = false; // should tree from $MAIN$ be executed?
   bool continueCmd = false; // .CONTINUE command given already?
