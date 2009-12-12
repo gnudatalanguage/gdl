@@ -20,9 +20,9 @@ const SizeT minStrassenMatrixResolveSize3 = minStrassenMatrixResolveSize^3;
 // B has always greater (or equal) indices
 template< typename T>
 void SMAdd( SizeT mSz, SizeT abx, SizeT aby, 
-	    T *A, SizeT ax, SizeT ay, SizeT as,  /* (ax,ay) = origin of A submatrix */
-	    SizeT bx, SizeT by,  /* (bx,by) = origin of B submatrix */
-	    T *C, long cxLim, long cyLim) /* C has always dimensions mSy*mSz */
+	    T *A, SizeT ax, SizeT ay, SizeT as,
+	    SizeT bx, SizeT by, 
+	    T *C, long cxLim, long cyLim)// C has always dimensions mSy*mSz
 {
   if( cxLim <= 0 || cyLim <=0) 
     return;
@@ -171,9 +171,9 @@ void SMAdd( SizeT mSz, SizeT abx, SizeT aby,
 // B has always greater (or equal) indices
 template< typename T>
 void SMSub1( SizeT mSz, SizeT abx, SizeT aby, 
-	     T *A, SizeT ax, SizeT ay, SizeT as,  /* (ax,ay) = origin of 1st A submatrix */
-	     SizeT bx, SizeT by,  /* (bx,by) = origin of 2nd A submatrix */
-	     T *C, long cxLim, long cyLim) /* C has always dimensions mSy*mSz */
+	     T *A, SizeT ax, SizeT ay, SizeT as, 
+	     SizeT bx, SizeT by,
+	     T *C, long cxLim, long cyLim)// C has always dimensions mSy*mSz
 {
   if( cxLim <= 0 || cyLim <=0) return;
 
@@ -301,9 +301,9 @@ void SMSub1( SizeT mSz, SizeT abx, SizeT aby,
 // and thus axyLim is smaller for B compared to A
 template< typename T>
 void SMSub2( SizeT mSz, SizeT abx, SizeT aby, 
-	     T *A, SizeT ax, SizeT ay, SizeT as,  /* (ax,ay) = origin of 1st A submatrix */
-	     SizeT bx, SizeT by, /* (bx,by) = origin of 2nd A submatrix */
-	     T *C, long cxLim, long cyLim) /* C has always dimensions mSy*mSz */
+	     T *A, SizeT ax, SizeT ay, SizeT as,
+	     SizeT bx, SizeT by,
+	     T *C, long cxLim, long cyLim) // C has always dimensions mSy*mSz
 {
   if( cxLim <= 0 || cyLim <=0) return;
 
@@ -430,8 +430,8 @@ void SMSub2( SizeT mSz, SizeT abx, SizeT aby,
 
 template< typename T>
 void SMNegate( SizeT mSz, SizeT abx, SizeT aby, 
-	       T *A, SizeT ax, SizeT ay, SizeT as,  /* (ax,ay) = origin of 1st A submatrix */
-	       T *C, long cxLim, long cyLim) /* C has always dimensions mSy*mSz */
+	       T *A, SizeT ax, SizeT ay, SizeT as,
+	       T *C, long cxLim, long cyLim) // C has always dimensions mSy*mSz
 {
   if( cxLim <= 0 || cyLim <=0) return;
 
@@ -500,9 +500,9 @@ void SMNegate( SizeT mSz, SizeT abx, SizeT aby,
 
 template< typename T>
 void SMM( SizeT mSz, long l, long m, long n, // A[l,m]#B[m,n]=C[l,n]
-	  T *A, SizeT ax, SizeT ay, SizeT as,   /* (ax,ay) = origin of A submatrix */
-	  T *B, SizeT bx, SizeT by, SizeT bs,   /* (bx,by) = origin of B submatrix */
-          T *C, long cxLim, long cyLim) /* C has always dimensions mSy*mSz */
+	  T *A, SizeT ax, SizeT ay, SizeT as,
+	  T *B, SizeT bx, SizeT by, SizeT bs,
+          T *C, long cxLim, long cyLim) // C has always dimensions mSy*mSz
 {
   if( cxLim <= 0 || cyLim <=0) return;
 
@@ -580,9 +580,9 @@ void SMM( SizeT mSz, long l, long m, long n, // A[l,m]#B[m,n]=C[l,n]
 
 template< typename T>
 void SMMNoCheckAB( SizeT mSz, // A[l,m]#B[m,n]=C[l,n]
-		   T *A, SizeT ax, SizeT ay, SizeT as,   /* (ax,ay) = origin of A submatrix */
-		   T *B, SizeT bx, SizeT by, SizeT bs,   /* (bx,by) = origin of B submatrix */
-		   T *C, long cxLim, long cyLim) /* C has always dimensions mSy*mSz */
+		   T *A, SizeT ax, SizeT ay, SizeT as,
+		   T *B, SizeT bx, SizeT by, SizeT bs,
+		   T *C, long cxLim, long cyLim) // C has always dimensions mSy*mSz
 {
   if( cxLim <= 0 || cyLim <=0) return;
 
@@ -619,9 +619,9 @@ void SMMNoCheckAB( SizeT mSz, // A[l,m]#B[m,n]=C[l,n]
 
 template< typename T>
 void SMNoCheckAB( T* buf, SizeT mSz, // A[l,m]#B[m,n]=C[l,n]
-		  T *A, SizeT ax, SizeT ay, SizeT as, /* (ax,ay) = origin of A submatrix */
-		  T *B, SizeT bx, SizeT by, SizeT bs, /* (bx,by) = origin of B submatrix */
-	          T *C, long cxLim, long cyLim) /* C has always dimensions mSy*mSz */
+		  T *A, SizeT ax, SizeT ay, SizeT as,
+		  T *B, SizeT bx, SizeT by, SizeT bs,
+	          T *C, long cxLim, long cyLim) // C has always dimensions mSy*mSz
 {
   if( cxLim <= 0 || cyLim <=0) return;
 
@@ -1023,9 +1023,9 @@ void SMNoCheckAB( T* buf, SizeT mSz, // A[l,m]#B[m,n]=C[l,n]
 
 template< typename T>
 void SMCheckA( T* a_cum, SizeT mSz, SizeT l, SizeT m, SizeT n, // A[l,m]#B[m,n]=C[l,n]
-	       T *A, SizeT ax, SizeT ay, SizeT as, /* (ax,ay) = origin of A submatrix */
-	       T *B, SizeT bx, SizeT by, SizeT bs, /* (bx,by) = origin of B submatrix */
-	       T *C, long cxLim, long cyLim) /* C has always dimensions mSy*mSz */
+	       T *A, SizeT ax, SizeT ay, SizeT as,
+               T *B, SizeT bx, SizeT by, SizeT bs,
+	       T *C, long cxLim, long cyLim) // C has always dimensions mSy*mSz
 {
   if( cxLim <= 0 || cyLim <=0) return;
   if( (ax)>=n || (ay)>=m)
@@ -1496,7 +1496,7 @@ void SMCheckA( T* a_cum, SizeT mSz, SizeT l, SizeT m, SizeT n, // A[l,m]#B[m,n]=
 	  }
       }
 
-  //       delete[] buf;
+  //       delete[] p1;
   return;
 }
 
@@ -1513,9 +1513,9 @@ void SMCheckA( T* a_cum, SizeT mSz, SizeT l, SizeT m, SizeT n, // A[l,m]#B[m,n]=
 
 template< typename T>
 void SMCheckB( T* a_cum, SizeT mSz, SizeT l, SizeT m, SizeT n, // A[l,m]#B[m,n]=C[l,n]
-	       T *A, SizeT ax, SizeT ay, SizeT as, /* (ax,ay) = origin of A submatrix */
-	       T *B, SizeT bx, SizeT by, SizeT bs, /* (bx,by) = origin of B submatrix */
-	       T *C, long cxLim, long cyLim) /* C has always dimensions mSy*mSz */
+	       T *A, SizeT ax, SizeT ay, SizeT as,
+	       T *B, SizeT bx, SizeT by, SizeT bs,
+	       T *C, long cxLim, long cyLim) // C has always dimensions mSy*mSz
 {
   if( cxLim <= 0 || cyLim <=0) return;
   if( (bx)>=m || (by)>=l)
@@ -2011,7 +2011,7 @@ void SMCheckB( T* a_cum, SizeT mSz, SizeT l, SizeT m, SizeT n, // A[l,m]#B[m,n]=
   // 	pIndex++;
   //       }
 
-  //       delete[] buf;
+  //       delete[] p1;
   return;
 }
 
@@ -2042,11 +2042,9 @@ void dumpmatrix( T* A, SizeT mSz)
 // #define SM_DUMP
 // #define SM_DUMP_CUM
 
+// A[l,m]#B[m,n]=C[l,n]
 template< typename T>
-void SM1( SizeT mSz, SizeT l, SizeT m, SizeT n, // A[l,m]#B[m,n]=C[l,n]
-	  T *A, //SizeT as, /* (ax,ay) = origin of A submatrix */
-	  T *B, //SizeT bs, /* (bx,by) = origin of B submatrix */
-	  T *C)//, SizeT cs) /* (cx,cy) = origin of C submatrix */
+void SM1( SizeT mSz, SizeT l, SizeT m, SizeT n, T *A, T *B, T *C)
 {
   const SizeT& as = m;
   const SizeT& bs = l;
@@ -2058,20 +2056,13 @@ void SM1( SizeT mSz, SizeT l, SizeT m, SizeT n, // A[l,m]#B[m,n]=C[l,n]
   long n_2 = mSz >> 1;
   SizeT n_22 = n_2 * n_2;
 
-  T* buf   = new T[n_22 * 7];
-//   T* buf = new T[ 3 * mSz * mSz];
-
-//   T*& a_cum = buf; 
-//   T* b_cum = a_cum + n_22;
-//   T* p1    = b_cum + n_22;
-  T* p1    = buf;
+  T* p1    = new T[n_22 * 7];
   T* p2    = p1 + n_22;
   T* p3    = p2 + n_22;
   T* p4    = p3 + n_22;
   T* p5    = p4 + n_22;
   T* p6    = p5 + n_22;
   T* p7    = p6 + n_22;
-//   T* subBuf = p7 + n_22;
 
   long xLim = (n>n_2)?n_2:n;
   long yLim = (l>n_2)?n_2:l;
@@ -2080,7 +2071,8 @@ void SM1( SizeT mSz, SizeT l, SizeT m, SizeT n, // A[l,m]#B[m,n]=C[l,n]
   assert( xLim2 <= n_2);
   assert( yLim2 <= n_2);
 
-#pragma omp parallel
+// #pragma omp parallel
+#pragma omp taskq
 {
   /* p1 = (a11 + a22) x (b11 + b22) */
 #pragma omp task private( subBuf, a_cum, b_cum) default(shared)
@@ -2256,7 +2248,7 @@ void SM1( SizeT mSz, SizeT l, SizeT m, SizeT n, // A[l,m]#B[m,n]=C[l,n]
 		assert(((ix)*cs + iy)<n*l);
 		C[(ix)*cs + iy] = p1[pIndex]+p4[pIndex]-p5[pIndex]+p7[pIndex];
 	      }
-	  delete[] buf;
+	  delete[] p1;
 	  return;
 	}
       cxLim = n_2;
@@ -2385,7 +2377,7 @@ void SM1( SizeT mSz, SizeT l, SizeT m, SizeT n, // A[l,m]#B[m,n]=C[l,n]
 	  }
     }
 
-  delete[] buf;
+  delete[] p1;
   return;
 }
 #endif

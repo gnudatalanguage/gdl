@@ -96,10 +96,6 @@
 /* Define to 1 if you have the <"netcdfcpp.h"> header file. */
 #undef HAVE__NETCDFCPP_H_
 
-/* Define to the sub-directory in which libtool stores uninstalled libraries.
-   */
-#undef LT_OBJDIR
-
 /* Pre-10.4.8 version of OS X */
 #undef OLD_DARWIN
 
