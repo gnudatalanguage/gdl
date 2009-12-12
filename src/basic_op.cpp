@@ -31,6 +31,8 @@
 #include <omp.h>
 #endif
 
+#include "strassenmatrix.hpp"
+
 using namespace std;
 
 // Not operation
@@ -998,6 +1000,7 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r)
 //       cout << "nColEl, nRowEl: " << nColEl << " " << nRowEl << endl;
 //       cout << "nCol, nRow:     " << nCol << " " << nRow << endl;
 
+//      SizeT nRowEl=right->dim[0];
       if( nColEl != nRowEl)
 	throw GDLException("Operands of matrix multiply have"
 			   " incompatible dimensions.");  
@@ -1008,9 +1011,46 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r)
 	res=New(dimension(nCol),BaseGDL::NOZERO);
      
       SizeT rIxEnd = nRow * nColEl;
-#ifdef _OPENMP 
+      //#ifdef _OPENMP 
       SizeT nOp = rIxEnd * nCol;
+#ifdef USE_STRASSEN_MATRIXMULTIPLICATION
+      //if( nOp > 1000000)
+	{
+	  SizeT maxDim;
+	  if( nCol >= nColEl && nCol >= nRow)
+	    maxDim = nCol;
+	  else if( nColEl >= nRow)
+	    maxDim = nColEl;
+	  else
+	    maxDim = nRow;
+
+	  SizeT sOp = maxDim * maxDim * maxDim;
+	  //if( (sOp / nOp) < 4)
+	    {
+	      SizeT mSz = 2;
+	      while (mSz < maxDim) mSz <<= 1;
+
+// 	      Ty* buf = new Ty[ 3 * mSz * mSz];
+
+	      SM1<Ty>( mSz, nCol, nColEl, nRow,
+		  static_cast<Ty*>(right->DataAddr()),
+		  static_cast<Ty*>(this->DataAddr()),
+		  static_cast<Ty*>(res->DataAddr()));
+
+// 		delete[] buf;
+
+	      return res;
+	    }
+	}
 #endif
+
+//  for( SizeT j=0; j < nCol; ++j) // res dim 0
+// 	for( SizeT i=0; i < rIxEnd; i++) // res dim 1
+// 	    for( SizeT k=0; k < nColEl; ++k)
+// 	       (*res)[ (i * nCol) + j] += (*right)[ (i*nColEl)+k] * (*this)[ k*nCol+j];
+
+
+      //#endif
 #pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) default(shared)
 {
 #pragma omp for 
@@ -1019,8 +1059,8 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r)
 	     rIx += nColEl, rowBnCol += nCol) // res dim 1
 	  {
 	    Ty& resEl = (*res)[ rowBnCol + colA];
-	    resEl = (*this)[ colA] * (*right)[ rIx]; // initialization
-	    for( SizeT i=1; i < nColEl; ++i)
+	    resEl = 0;//(*this)[ colA] * (*right)[ rIx]; // initialization
+	    for( SizeT i=0; i < nColEl; ++i)
 	      resEl += (*this)[ i*nCol+colA] * (*right)[ rIx+i];
 	  }
     }

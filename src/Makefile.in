@@ -101,16 +101,16 @@ am__libgdl_la_SOURCES_DIST = accessdesc.hpp arrayindex.hpp \
 	gdlxstream.cpp gdlxstream.hpp getfmtast.cpp getfmtast.hpp \
 	graphics.cpp graphics.hpp gsl_fun.cpp gsl_fun.hpp gstream.hpp \
 	ifmt.cpp initct.cpp initsysvar.cpp initsysvar.hpp io.cpp \
-	io.hpp libinit_cl.cpp libinit.cpp libinit_jmg.cpp Makefile.am \
-	Makefile.in math_fun.cpp math_fun.hpp math_fun_jmg.cpp \
-	math_fun_jmg.hpp math_utl.cpp math_utl.hpp ncdf_att_cl.cpp \
-	ncdf_cl.cpp ncdf_cl.hpp ncdf_dim_cl.cpp ncdf_var_cl.cpp \
-	new.cpp new.hpp objects.cpp objects.hpp ofmt.cpp \
-	math_fun_ac.hpp math_fun_ac.cpp libinit_ac.cpp math_fun_gm.hpp \
-	math_fun_gm.cpp libinit_gm.cpp math_fun_ng.hpp math_fun_ng.cpp \
-	libinit_ng.cpp ofmt.hpp plotting.cpp plotting.hpp print.cpp \
-	print_tree.cpp print_tree.hpp read.cpp real2int.hpp str.cpp \
-	str.hpp terminfo.cpp terminfo.hpp topython.cpp typedefs.hpp \
+	io.hpp libinit_cl.cpp libinit.cpp libinit_jmg.cpp math_fun.cpp \
+	math_fun.hpp math_fun_jmg.cpp math_fun_jmg.hpp math_utl.cpp \
+	math_utl.hpp ncdf_att_cl.cpp ncdf_cl.cpp ncdf_cl.hpp \
+	ncdf_dim_cl.cpp ncdf_var_cl.cpp new.cpp new.hpp objects.cpp \
+	objects.hpp ofmt.cpp math_fun_ac.hpp math_fun_ac.cpp \
+	libinit_ac.cpp math_fun_gm.hpp math_fun_gm.cpp libinit_gm.cpp \
+	math_fun_ng.hpp math_fun_ng.cpp libinit_ng.cpp ofmt.hpp \
+	plotting.cpp plotting.hpp print.cpp print_tree.cpp \
+	print_tree.hpp read.cpp real2int.hpp str.cpp str.hpp \
+	terminfo.cpp terminfo.hpp topython.cpp typedefs.hpp \
 	typetraits.cpp typetraits.hpp hdf_fun.cpp hdf_fun.hpp \
 	hdf_pro.cpp hdf_pro.hpp magick_cl.cpp magick_cl.hpp \
 	specializations.hpp gdlwidget.cpp widget.cpp basegdl.cpp \
@@ -120,7 +120,8 @@ am__libgdl_la_SOURCES_DIST = accessdesc.hpp arrayindex.hpp \
 	sigfpehandler.cpp sigfpehandler.hpp devicez.hpp gdlzstream.cpp \
 	gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp \
 	arrayindex.cpp fftw.cpp fftw.hpp mpi.cpp mpi.hpp plot3d_nr.cpp \
-	grib.cpp grib.hpp prognode.cpp prognodeexpr.cpp pythongdl.cpp
+	grib.cpp grib.hpp prognode.cpp prognodeexpr.cpp \
+	strassenmatrix.hpp pythongdl.cpp
 am__objects_1 = assocdata.lo basic_fun_cl.lo basic_fun.lo \
 	basic_fun_jmg.lo basic_op.lo basic_pro.lo basic_pro_jmg.lo \
 	CFMTLexer.lo color.lo convert2.lo datatypes.lo dcommon.lo \
@@ -179,16 +180,16 @@ am__gdl_SOURCES_DIST = accessdesc.hpp arrayindex.hpp assocdata.cpp \
 	gdlxstream.cpp gdlxstream.hpp getfmtast.cpp getfmtast.hpp \
 	graphics.cpp graphics.hpp gsl_fun.cpp gsl_fun.hpp gstream.hpp \
 	ifmt.cpp initct.cpp initsysvar.cpp initsysvar.hpp io.cpp \
-	io.hpp libinit_cl.cpp libinit.cpp libinit_jmg.cpp Makefile.am \
-	Makefile.in math_fun.cpp math_fun.hpp math_fun_jmg.cpp \
-	math_fun_jmg.hpp math_utl.cpp math_utl.hpp ncdf_att_cl.cpp \
-	ncdf_cl.cpp ncdf_cl.hpp ncdf_dim_cl.cpp ncdf_var_cl.cpp \
-	new.cpp new.hpp objects.cpp objects.hpp ofmt.cpp \
-	math_fun_ac.hpp math_fun_ac.cpp libinit_ac.cpp math_fun_gm.hpp \
-	math_fun_gm.cpp libinit_gm.cpp math_fun_ng.hpp math_fun_ng.cpp \
-	libinit_ng.cpp ofmt.hpp plotting.cpp plotting.hpp print.cpp \
-	print_tree.cpp print_tree.hpp read.cpp real2int.hpp str.cpp \
-	str.hpp terminfo.cpp terminfo.hpp topython.cpp typedefs.hpp \
+	io.hpp libinit_cl.cpp libinit.cpp libinit_jmg.cpp math_fun.cpp \
+	math_fun.hpp math_fun_jmg.cpp math_fun_jmg.hpp math_utl.cpp \
+	math_utl.hpp ncdf_att_cl.cpp ncdf_cl.cpp ncdf_cl.hpp \
+	ncdf_dim_cl.cpp ncdf_var_cl.cpp new.cpp new.hpp objects.cpp \
+	objects.hpp ofmt.cpp math_fun_ac.hpp math_fun_ac.cpp \
+	libinit_ac.cpp math_fun_gm.hpp math_fun_gm.cpp libinit_gm.cpp \
+	math_fun_ng.hpp math_fun_ng.cpp libinit_ng.cpp ofmt.hpp \
+	plotting.cpp plotting.hpp print.cpp print_tree.cpp \
+	print_tree.hpp read.cpp real2int.hpp str.cpp str.hpp \
+	terminfo.cpp terminfo.hpp topython.cpp typedefs.hpp \
 	typetraits.cpp typetraits.hpp hdf_fun.cpp hdf_fun.hpp \
 	hdf_pro.cpp hdf_pro.hpp magick_cl.cpp magick_cl.hpp \
 	specializations.hpp gdlwidget.cpp widget.cpp basegdl.cpp \
@@ -198,7 +199,8 @@ am__gdl_SOURCES_DIST = accessdesc.hpp arrayindex.hpp assocdata.cpp \
 	sigfpehandler.cpp sigfpehandler.hpp devicez.hpp gdlzstream.cpp \
 	gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp \
 	arrayindex.cpp fftw.cpp fftw.hpp mpi.cpp mpi.hpp plot3d_nr.cpp \
-	grib.cpp grib.hpp prognode.cpp prognodeexpr.cpp gdl.cpp
+	grib.cpp grib.hpp prognode.cpp prognodeexpr.cpp \
+	strassenmatrix.hpp gdl.cpp
 am__objects_2 = gdl-assocdata.$(OBJEXT) gdl-basic_fun_cl.$(OBJEXT) \
 	gdl-basic_fun.$(OBJEXT) gdl-basic_fun_jmg.$(OBJEXT) \
 	gdl-basic_op.$(OBJEXT) gdl-basic_pro.$(OBJEXT) \
@@ -473,7 +475,8 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 		getfmtast.hpp graphics.cpp graphics.hpp gsl_fun.cpp gsl_fun.hpp \
 		gstream.hpp ifmt.cpp \
 		initct.cpp initsysvar.cpp initsysvar.hpp io.cpp io.hpp libinit_cl.cpp libinit.cpp \
-		libinit_jmg.cpp Makefile.am Makefile.in math_fun.cpp math_fun.hpp math_fun_jmg.cpp \
+		libinit_jmg.cpp \
+		math_fun.cpp math_fun.hpp math_fun_jmg.cpp \
 		math_fun_jmg.hpp math_utl.cpp math_utl.hpp ncdf_att_cl.cpp ncdf_cl.cpp ncdf_cl.hpp \
 		ncdf_dim_cl.cpp ncdf_var_cl.cpp new.cpp new.hpp objects.cpp objects.hpp ofmt.cpp \
 		math_fun_ac.hpp math_fun_ac.cpp libinit_ac.cpp \
@@ -488,7 +491,7 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 		convol_inc1.cpp convol_inc2.cpp sigfpehandler.cpp sigfpehandler.hpp devicez.hpp \
 		gdlzstream.cpp gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp arrayindex.cpp \
 		fftw.cpp fftw.hpp mpi.cpp mpi.hpp plot3d_nr.cpp grib.cpp grib.hpp \
-                prognode.cpp prognodeexpr.cpp
+                prognode.cpp prognodeexpr.cpp strassenmatrix.hpp
 
 @BUILDASLIBRARY_FALSE@gdl_SOURCES = $(cpp_hpp_files) gdl.cpp
 # trigger basename generation

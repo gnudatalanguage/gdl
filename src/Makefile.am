@@ -27,7 +27,8 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 		getfmtast.hpp graphics.cpp graphics.hpp gsl_fun.cpp gsl_fun.hpp \
 		gstream.hpp ifmt.cpp \
 		initct.cpp initsysvar.cpp initsysvar.hpp io.cpp io.hpp libinit_cl.cpp libinit.cpp \
-		libinit_jmg.cpp Makefile.am Makefile.in math_fun.cpp math_fun.hpp math_fun_jmg.cpp \
+		libinit_jmg.cpp \
+		math_fun.cpp math_fun.hpp math_fun_jmg.cpp \
 		math_fun_jmg.hpp math_utl.cpp math_utl.hpp ncdf_att_cl.cpp ncdf_cl.cpp ncdf_cl.hpp \
 		ncdf_dim_cl.cpp ncdf_var_cl.cpp new.cpp new.hpp objects.cpp objects.hpp ofmt.cpp \
 		math_fun_ac.hpp math_fun_ac.cpp libinit_ac.cpp \
@@ -42,7 +43,8 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 		convol_inc1.cpp convol_inc2.cpp sigfpehandler.cpp sigfpehandler.hpp devicez.hpp \
 		gdlzstream.cpp gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp arrayindex.cpp \
 		fftw.cpp fftw.hpp mpi.cpp mpi.hpp plot3d_nr.cpp grib.cpp grib.hpp \
-                prognode.cpp prognodeexpr.cpp
+                prognode.cpp prognodeexpr.cpp strassenmatrix.hpp
+# Makefile.am Makefile.in 
 
 
 
