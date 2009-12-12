@@ -171,12 +171,25 @@ dnl ========================================================
 dnl error: possibly undefined macro: AC_OPENMP If this token and others are legitimate, please use m4_pattern_allow. See the Autoconf documentation.
 
 dnl AC_OPENMP
-if test "x$OPENMP_CXXFLAGS" != "x"; then
+dnl if test "x$OPENMP_CXXFLAGS" != "x"; then
   dnl this is just to force recompilation when OpenMP setting is changed
-  AC_DEFINE([HAVE_OPENMP], [1], [Use OpenMP])
-  CPPFLAGS="$CPPFLAGS $OPENMP_CXXFLAGS"
-  LDFLAGS="$LDFLAGS $OPENMP_CXXFLAGS"
+dnl   AC_DEFINE([HAVE_OPENMP], [1], [Use OpenMP])
+dnl   CPPFLAGS="$CPPFLAGS $OPENMP_CXXFLAGS"
+dnl   LDFLAGS="$LDFLAGS $OPENMP_CXXFLAGS"
+dnl fi
+
+
+dnl OpenMP
+dnl default yes 
+if test "x$with-openmp" = "x"; then
+   with-openmp=yes
 fi
+
+if test "x$with-openmp" != "xno"; then
+	CPPFLAGS="$CPPFLAGS -fopenmp"
+	LDFLAGS="$LDFLAGS -fopenmp"
+fi
+
 
 dnl == tdl =================================================
 dnl ========================================================

@@ -6,6 +6,10 @@
 // optimized strassen matrix multiplication
 // to be included by basic_op.cpp
 
+// problem: this implementation only scales to up to 7 processors
+// and the omp task construct seems to be only available from OpenMP 3 on
+// this means it will not use OpenMP at all on non up to date machines
+
 // #include "typedefs.hpp"
 
 // #ifdef _OPENMP
@@ -26,10 +30,6 @@ void SMAdd( SizeT mSz, SizeT abx, SizeT aby,
 {
   if( cxLim <= 0 || cyLim <=0) 
     return;
-
-  const SizeT cx=0;
-  const SizeT& cy=cx;
-  const SizeT& cs=mSz;
 
   T*& B = A;
   SizeT& bs = as;
@@ -61,7 +61,7 @@ void SMAdd( SizeT mSz, SizeT abx, SizeT aby,
 	    {
 	      for (long j=0; j<mSzY; ++j) 
 		{
-		  C[i*mSz + j+cy] = A[(i+ax)*as + j+ay] + B[(i+bx)*bs + j+by];
+		  C[i*mSz + j] = A[(i+ax)*as + j+ay] + B[(i+bx)*bs + j+by];
 		}
 	    }
 	  return;
@@ -91,18 +91,18 @@ void SMAdd( SizeT mSz, SizeT abx, SizeT aby,
 	    {
 	      for (j=0; j<byLim; ++j) 
 		{
-		  C[i*mSz + j+cy] = A[(i+ax)*as + j+ay] + B[(i+bx)*bs + j+by];
+		  C[i*mSz + j] = A[(i+ax)*as + j+ay] + B[(i+bx)*bs + j+by];
 		}
 	      for (; j<mSzY; ++j) 
 		{
-		  C[i*mSz + j+cy] = A[(i+ax)*as + j+ay];
+		  C[i*mSz + j] = A[(i+ax)*as + j+ay];
 		}
 	    }
 	  for (; i<mSzX; ++i) 
 	    {
 	      for (j=0; j<mSzY; ++j) 
 		{
-		  C[i*mSz + j+cy] = A[(i+ax)*as + j+ay];
+		  C[i*mSz + j] = A[(i+ax)*as + j+ay];
 		}
 	    }
 	  return;
@@ -119,33 +119,33 @@ void SMAdd( SizeT mSz, SizeT abx, SizeT aby,
     {
       for (j=0; j<byLim; ++j) 
 	{
-	  C[i*mSz + j+cy] = A[(i+ax)*as + j+ay] + B[(i+bx)*bs + j+by];
+	  C[i*mSz + j] = A[(i+ax)*as + j+ay] + B[(i+bx)*bs + j+by];
 	}
       for (; j<ayLim; ++j) 
 	{
-	  C[i*mSz + j+cy] = A[(i+ax)*as + j+ay];
+	  C[i*mSz + j] = A[(i+ax)*as + j+ay];
 	}
       for (; j<mSzY; ++j) 
 	{
-	  C[i*mSz + j+cy] = 0;
+	  C[i*mSz + j] = 0;
 	}
     }
   for (; i<axLim; ++i) 
     {
       for (j=0; j<ayLim; ++j) 
 	{
-	  C[i*mSz + j+cy] = A[(i+ax)*as + j+ay];
+	  C[i*mSz + j] = A[(i+ax)*as + j+ay];
 	}
       for (; j<mSzY; ++j) 
 	{
-	  C[i*mSz + j+cy] = 0;
+	  C[i*mSz + j] = 0;
 	}
     }
   for (; i<mSzX; ++i) 
     {
       for (j=0; j<mSzY; ++j) 
 	{
-	  C[i*mSz + j+cy] = 0;
+	  C[i*mSz + j] = 0;
 	}
     }
 }
@@ -176,10 +176,6 @@ void SMSub1( SizeT mSz, SizeT abx, SizeT aby,
 	     T *C, long cxLim, long cyLim)// C has always dimensions mSy*mSz
 {
   if( cxLim <= 0 || cyLim <=0) return;
-
-  const SizeT cx=0;
-  const SizeT& cy=cx;
-  const SizeT& cs=mSz;
 
   T*& B = A;
   SizeT& bs = as;
@@ -270,7 +266,7 @@ void SMSub1( SizeT mSz, SizeT abx, SizeT aby,
 	}
       for (; j<ayLim; ++j) 
 	{
-	  C[i*mSz + j+cy] = A[(i+ax)*as + j+ay];
+	  C[i*mSz + j] = A[(i+ax)*as + j+ay];
 	}
       for (; j<mSzY; ++j) 
 	{
@@ -307,10 +303,6 @@ void SMSub2( SizeT mSz, SizeT abx, SizeT aby,
 {
   if( cxLim <= 0 || cyLim <=0) return;
 
-  const SizeT cx=0;
-  const SizeT& cy=cx;
-  const SizeT& cs=mSz;
-
   T*& B = A;
   SizeT& bs = as;
 
@@ -342,7 +334,7 @@ void SMSub2( SizeT mSz, SizeT abx, SizeT aby,
 	    {
 	      for (long j=0; j<mSzY; ++j) 
 		{
-		  C[i*mSz + j+cy] = A[(i+ax)*as + j+ay] - B[(i+bx)*bs + j+by];
+		  C[i*mSz + j] = A[(i+ax)*as + j+ay] - B[(i+bx)*bs + j+by];
 		}
 	    }
 	  return;
@@ -368,18 +360,18 @@ void SMSub2( SizeT mSz, SizeT abx, SizeT aby,
 	    {
 	      for (j=0; j<ayLim; ++j) 
 		{
-		  C[i*mSz + j+cy] = A[(i+ax)*as + j+ay] - B[(i+bx)*bs + j+by];
+		  C[i*mSz + j] = A[(i+ax)*as + j+ay] - B[(i+bx)*bs + j+by];
 		}
 	      for (; j<mSzY; ++j) 
 		{
-		  C[i*mSz + j+cy] = -B[(i+bx)*bs + j+by];
+		  C[i*mSz + j] = -B[(i+bx)*bs + j+by];
 		}
 	    }
 	  for (; i<mSzX; ++i) 
 	    {
 	      for (j=0; j<mSzY; ++j) 
 		{
-		  C[i*mSz + j+cy] = -B[(i+bx)*bs + j+by];
+		  C[i*mSz + j] = -B[(i+bx)*bs + j+by];
 		}
 	    }
 	  return;
@@ -396,33 +388,33 @@ void SMSub2( SizeT mSz, SizeT abx, SizeT aby,
     {
       for (j=0; j<ayLim; ++j) 
 	{
-	  C[i*mSz + j+cy] = A[(i+ax)*as + j+ay] - B[(i+bx)*bs + j+by];
+	  C[i*mSz + j] = A[(i+ax)*as + j+ay] - B[(i+bx)*bs + j+by];
 	}
       for (; j<byLim; ++j) 
 	{
-	  C[i*mSz + j+cy] = -B[(i+bx)*bs + j+by];
+	  C[i*mSz + j] = -B[(i+bx)*bs + j+by];
 	}
       for (; j<mSzY; ++j) 
 	{
-	  C[i*mSz + j+cy] = 0;
+	  C[i*mSz + j] = 0;
 	}
     }
   for (; i<bxLim; ++i) 
     {
       for (j=0; j<byLim; ++j) 
 	{
-	  C[i*mSz + j+cy] = -B[(i+bx)*bs + j+by];
+	  C[i*mSz + j] = -B[(i+bx)*bs + j+by];
 	}
       for (; j<mSzY; ++j) 
 	{
-	  C[i*mSz + j+cy] = 0;
+	  C[i*mSz + j] = 0;
 	}
     }
   for (; i<mSzX; ++i) 
     {
       for (j=0; j<mSzY; ++j) 
 	{
-	  C[i*mSz + j+cy] = 0;
+	  C[i*mSz + j] = 0;
 	}
     }
 }

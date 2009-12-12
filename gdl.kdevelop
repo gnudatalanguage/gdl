@@ -24,7 +24,7 @@
   <kdevautoproject>
     <general>
       <activetarget>src/gdl</activetarget>
-      <useconfiguration>debug</useconfiguration>
+      <useconfiguration>optimized</useconfiguration>
       <useactivetarget>true</useactivetarget>
     </general>
     <run>

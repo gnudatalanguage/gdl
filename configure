@@ -20897,15 +20897,17 @@ fi
 
 
 
-if test "x$OPENMP_CXXFLAGS" != "x"; then
 
-cat >>confdefs.h <<\_ACEOF
-#define HAVE_OPENMP 1
-_ACEOF
 
-  CPPFLAGS="$CPPFLAGS $OPENMP_CXXFLAGS"
-  LDFLAGS="$LDFLAGS $OPENMP_CXXFLAGS"
+if test "x$with-openmp" = "x"; then
+   with-openmp=yes
 fi
+
+if test "x$with-openmp" != "xno"; then
+	CPPFLAGS="$CPPFLAGS -fopenmp"
+	LDFLAGS="$LDFLAGS -fopenmp"
+fi
+
 
 
 
