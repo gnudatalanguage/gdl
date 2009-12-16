@@ -1,3 +1,4 @@
+AC_PREREQ([2.63]) # needed for the AC_OPENMP macro
 AC_INIT(gdl, 0.9rc3 CVS)
 
 dnl == Configuration (of the configure script)  ============
@@ -168,28 +169,25 @@ AC_CHECK_LIB(z, gzopen, [AC_DEFINE([HAVE_LIBZ], [1], [Zlib library])],
 dnl == OpenMP ==============================================
 dnl ========================================================
 
-dnl error: possibly undefined macro: AC_OPENMP If this token and others are legitimate, please use m4_pattern_allow. See the Autoconf documentation.
-
-dnl AC_OPENMP
-dnl if test "x$OPENMP_CXXFLAGS" != "x"; then
+dnl AC_OPENMP macro detects if the compiler supports OpenMP
+AC_OPENMP
+if test "x$OPENMP_CXXFLAGS" != "x"; then
   dnl this is just to force recompilation when OpenMP setting is changed
-dnl   AC_DEFINE([HAVE_OPENMP], [1], [Use OpenMP])
-dnl   CPPFLAGS="$CPPFLAGS $OPENMP_CXXFLAGS"
-dnl   LDFLAGS="$LDFLAGS $OPENMP_CXXFLAGS"
-dnl fi
-
-
-dnl OpenMP
-dnl default yes 
-if test "x$with-openmp" = "x"; then
-   with-openmp=yes
+  AC_DEFINE([HAVE_OPENMP], [1], [Use OpenMP])
+  CPPFLAGS="$CPPFLAGS $OPENMP_CXXFLAGS"
+  LDFLAGS="$LDFLAGS $OPENMP_CXXFLAGS"
 fi
 
-if test "x$with-openmp" != "xno"; then
-	CPPFLAGS="$CPPFLAGS -fopenmp"
-	LDFLAGS="$LDFLAGS -fopenmp"
-fi
-
+#dnl OpenMP
+#dnl default yes 
+#if test "x$with-openmp" = "x"; then
+#   with-openmp=yes
+#fi
+#
+#if test "x$with-openmp" != "xno"; then
+#	CPPFLAGS="$CPPFLAGS -fopenmp"
+#	LDFLAGS="$LDFLAGS -fopenmp"
+#fi
 
 dnl == tdl =================================================
 dnl ========================================================
