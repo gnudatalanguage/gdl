@@ -28,6 +28,7 @@
 #include <csignal>
 #include <cstdlib>
 #include <unistd.h> // isatty
+#include <climits> // PATH_MAX
 
 //#include <fenv.h>
 

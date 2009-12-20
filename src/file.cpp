@@ -28,6 +28,7 @@
 
 #include <unistd.h>
 #include <sys/stat.h>
+#include <climits> // PATH_MAX
 
 // #include <wx/utils.h>
 // #include <wx/file.h>
