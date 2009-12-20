@@ -309,14 +309,19 @@ if test "x$with_wxWidgets" != "xno"; then
   tmp="`wx-config --basename`-`wx-config --release`"
   AC_CHECK_LIB($tmp, wxFatalSignalHandler, 
     [AC_DEFINE([HAVE_LIBWXWIDGETS], [1], [wxWidgets library])], [
-    echo ""
-    echo "Error! wxWidgets version 2.8 or later is required but was not found"
-    echo "       Use --with-wxWidgets=DIR to specify the wxWidgets directory tree"
-    echo "       Use --with-wxWidgets=no  to not use it"
-    echo "       Check the README or use configure --help for other libraries needed"
-    echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
-    exit -1
-  ])
+      dnl SA: handling the multi-port wxWidgets installation case
+      tmp="`wx-config --basename --toolkit=base`-`wx-config --release`"
+      AC_CHECK_LIB($tmp, wxInteger_compare, [AC_DEFINE([HAVE_LIBWXWIDGETS], [1])], [
+        echo ""
+        echo "Error! wxWidgets version 2.8 or later is required but was not found"
+        echo "       Use --with-wxWidgets=DIR to specify the wxWidgets directory tree"
+        echo "       Use --with-wxWidgets=no  to not use it"
+        echo "       Check the README or use configure --help for other libraries needed"
+        echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
+        exit -1
+      ])
+    ]
+  )
 fi
 
 dnl == ImageMagick =========================================
