@@ -3,6 +3,8 @@
 
 //#define USE_STRASSEN_MATRIXMULTIPLICATION
 
+#ifdef USE_STRASSEN_MATRIXMULTIPLICATION
+
 // optimized strassen matrix multiplication
 // to be included by basic_op.cpp
 
@@ -2372,4 +2374,5 @@ void SM1( SizeT mSz, SizeT l, SizeT m, SizeT n, T *A, T *B, T *C)
   delete[] p1;
   return;
 }
+#endif
 #endif
