@@ -1025,7 +1025,7 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r)
 	    maxDim = nRow;
 
 	  SizeT sOp = maxDim * maxDim * maxDim;
-	  //if( (sOp / nOp) < 4)
+	  //if( (sOp / nOp) < 8)
 	    {
 	      SizeT mSz = 2;
 	      while (mSz < maxDim) mSz <<= 1;
