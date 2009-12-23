@@ -29,6 +29,7 @@ prolib_DATA = \
   path_sep.pro \
   ploterr.pro \
   poly.pro \
+  poly_area.pro \
   popd.pro \
   primes.pro \
   printd.pro \
