@@ -1,5 +1,5 @@
-AC_PREREQ([2.63]) # needed for the AC_OPENMP macro
-AC_INIT(gdl, 0.9rc3 CVS)
+AC_PREREQ(2.65) # needed for the AC_OPENMP macro
+AC_INIT([gdl],[0.9rc3 CVS])
 
 dnl == Configuration (of the configure script)  ============
 dnl ========================================================
@@ -29,28 +29,27 @@ datasubdir="gnudatalanguage"
 dnl == some basics =========================================
 dnl ======================================================== 
 
-AM_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE
 AC_LANG(C++)
 AC_PROG_CXX
-AC_PROG_RANLIB
-AC_PROG_LIBTOOL
+dnl SA: libtoolize: `AC_PROG_RANLIB' is rendered obsolete by `LT_INIT'
+dnl AC_PROG_RANLIB
+LT_INIT
 
 dnl == Checking for 64-bit OS ==============================                                 
 dnl ========================================================
 
-AC_LANG_SAVE
-AC_LANG_C
+AC_LANG_PUSH([C])
 AC_MSG_CHECKING(for 64-bit OS)
-AC_TRY_RUN([ int main () {
-    if (sizeof(long) == 8) { return 0; } return 1; } ],
-        result="yes", result="no", result="maybe" )
+AC_RUN_IFELSE([AC_LANG_SOURCE([[ int main () {
+    if (sizeof(long) == 8) { return 0; } return 1; } ]])],[result="yes"],[result="no"],[result="maybe" ])
 AC_MSG_RESULT($result)
 if test "$result" = "yes"; then
     AC_DEFINE([HAVE_64BIT_OS], [1], [Define if 64-bit OS])
 fi
 AC_SUBST(HAVE_64BIT_OS)
-AC_LANG_RESTORE
+AC_LANG_POP([])
 
 dnl == Python module (calling GDL from Python) =============
 dnl ========================================================
