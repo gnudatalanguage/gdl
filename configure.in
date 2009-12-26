@@ -1,4 +1,8 @@
-AC_PREREQ(2.65) # needed for the AC_OPENMP macro
+dnl 2.63 is needed for the AC_OPENMP macro (which enables the
+dnl configure script to detect if the compiler supports OpenMP)
+dnl caution! autoupdate replaces it with the current version number!
+AC_PREREQ(2.63) 
+
 AC_INIT([gdl],[0.9rc3 CVS])
 
 dnl == Configuration (of the configure script)  ============
@@ -36,6 +40,20 @@ AC_PROG_CXX
 dnl SA: libtoolize: `AC_PROG_RANLIB' is rendered obsolete by `LT_INIT'
 dnl AC_PROG_RANLIB
 LT_INIT
+
+dnl CVS timestamping logic conflicts with the autotools logic 
+dnl of checking if auto-generated configuration files are up-to-date:
+dnl   (http://www.gnu.org/software/hello/manual/automake/CVS.html)
+dnl   ,,Because CVS processes files in lexical order, configure.ac 
+dnl   will appear newer than configure after a cvs update that 
+dnl   updates both files, even if configure was newer than configure.ac 
+dnl   when it was checked in. Calling make will then trigger a spurious 
+dnl   rebuild of configure.'' 
+dnl One option (apparently controversial but the most straightforward) 
+dnl is to disable the automake ,,maintainer mode'' by default. As a result,
+dnl configuration files are not regenerated silently while invoking "make", 
+dnl unless the --enable-maintainer-mode option is passed to configure script.
+AM_MAINTAINER_MODE([disable])
 
 dnl == Checking for 64-bit OS ==============================                                 
 dnl ========================================================
