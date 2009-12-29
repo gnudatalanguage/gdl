@@ -297,6 +297,7 @@ prolib_DATA = \
   read_xwd.pro \
   real_part.pro \
   restore.pro \
+  rstrpos.pro \
   save.pro \
   showfont.pro \
   skewness.pro \
