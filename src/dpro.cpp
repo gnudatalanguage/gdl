@@ -25,6 +25,7 @@
 #include "objects.hpp"
 
 #include "GDLTreeParser.hpp"
+#include "GDLParser.hpp" // SA: GDLParser::CompileOpt for isObsolete()/isHidden()
 
 // print out AST tree
 // #define GDL_DEBUG
@@ -299,5 +300,15 @@ void DSubUD::SetTree( RefDNode n)
       cout << "DSubUD::SetTree end." << endl;
 #endif
 
+}
+
+bool DSubUD::isObsolete()
+{
+  return compileOpt & GDLParser::OBSOLETE;
+}
+
+bool DSubUD::isHidden()
+{
+  return compileOpt & GDLParser::HIDDEN;
 }
 

@@ -132,7 +132,7 @@ tokens {
 }
 
 {
-    private:
+    public:
     enum CompileOpt {
         NONE=0,
         DEFINT32=1,
@@ -144,6 +144,7 @@ tokens {
         STRICTARRSUBS=32
     };
     
+    private:
     void AddCompileOpt( const std::string opt)
     {
         if(      opt == "DEFINT32")          compileOpt |= DEFINT32;

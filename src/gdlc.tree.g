@@ -302,15 +302,15 @@ keyword_declaration!
 	;
 
 procedure_def!
-    : #(PRO 
+    : #(p:PRO 
             name:IDENTIFIER
             (METHOD obj:IDENTIFIER
                 {
-                    comp.StartPro(name->getText(),obj->getText());
+                    comp.StartPro(name->getText(),#p->GetCompileOpt(),obj->getText());
                 }
             |
                 {
-                    comp.StartPro(name->getText());
+                    comp.StartPro(name->getText(),#p->GetCompileOpt());
                 }
             ) 
             (parameter_declaration)?
@@ -326,15 +326,15 @@ procedure_def!
     ;
 
 function_def!
-    : #(FUNCTION 
+    : #(f:FUNCTION 
             name:IDENTIFIER
             (METHOD obj:IDENTIFIER
                 {
-                    comp.StartFun(name->getText(),obj->getText());
+                    comp.StartFun(name->getText(),#f->GetCompileOpt(),obj->getText());
                 }
             |
                 {
-                    comp.StartFun(name->getText());
+                    comp.StartFun(name->getText(),#f->GetCompileOpt());
                 }
             ) 
             (parameter_declaration)? 

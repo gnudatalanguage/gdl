@@ -253,13 +253,14 @@ public:
   void SetNumBranch(const int nB) { numBranch=nB;} 
   void SetArrayDepth(const int aD) { arrayDepth=aD;} 
 
-  void SetFunIx(const int ix) { funIx=ix;}
-  void SetProIx(const int ix) { proIx=ix;}
+  void SetFunIx(const int ix);
+  void SetProIx(const int ix);
   void SetLibFun(DLibFun* const l) { libFun=l;}
   void SetLibPro(DLibPro* const l) { libPro=l;}
   void SetNDot(const int n) { nDot=n;}
 
-  void SetCompileOpt(const int n) { compileOpt=n;}
+  void SetCompileOpt(const int n) { compileOpt=n; }
+  int GetCompileOpt() { return compileOpt; }
   
   void SetLabelRange( const int s, const int e)
   { labelStart = s; labelEnd = e;}

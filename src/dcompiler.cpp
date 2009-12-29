@@ -143,12 +143,13 @@ void DCompiler::EndInteractiveStatement() // add common blocks
   ownCommonList.clear(); // not responsible anymore
 }
 
-void DCompiler::StartPro(const string& n,const string& o)
+void DCompiler::StartPro(const string& n, const int compileOpt, const string& o)
 {
   ClearOwnCommon();
   if( n != "$MAIN$" || o != "")
     {
       pro = new DPro(n,o,actualFile);
+      pro->setCompileOpt(compileOpt);
     }
   else
     {
@@ -164,10 +165,11 @@ void DCompiler::ContinueMainPro()
   pro = static_cast<DSubUD*>( env->GetPro());
 }
 
-void DCompiler::StartFun(const string& n,const string& o)
+void DCompiler::StartFun(const string& n, const int compileOpt = 0, const string& o)
 {
   ClearOwnCommon();
   pro = new DFun(n,o,actualFile);
+  pro->setCompileOpt(compileOpt);
 }
 
 bool DCompiler::IsActivePro( DSub* p)
@@ -225,7 +227,7 @@ void DCompiler::EndPro() // inserts in proList
 	(*searchList).push_back(static_cast<DPro*>(pro));
     }
 
-  if( subRoutine == "" || subRoutine == pro->ObjectFileName())
+  if ( subRoutine == "" || subRoutine == pro->ObjectFileName())
     Message( "Compiled module: "+pro->ObjectName()+"."); 
 
   // reset pro // will be deleted otherwise
@@ -277,7 +279,7 @@ void DCompiler::EndFun() // inserts in funList
   else
     (*searchList).push_back(static_cast<DFun*>(pro));
 
-  if( subRoutine == "" || subRoutine == pro->ObjectFileName())
+  if (subRoutine == "" || subRoutine == pro->ObjectFileName())
     Message( "Compiled module: "+pro->ObjectName()+"."); 
 
   // reset pro // will be deleted otherwise

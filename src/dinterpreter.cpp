@@ -379,7 +379,7 @@ bool GDLInterpreter::CompileFile(const string& f, const string& untilPro)
       treeParser.translation_unit(theAST);
 
 // #ifdef GDL_DEBUG
-// nothing is returned (prl/funList are changed)
+// nothing is returned (pro/funList are changed)
 //       trAST=treeParser.getAST();
 // #endif
 

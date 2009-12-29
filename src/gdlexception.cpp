@@ -155,3 +155,18 @@ void ThrowGDLException( const std::string& str)
 throw GDLException( str);
 }
 
+void WarnAboutObsoleteRoutine(const RefDNode eN, const string& name)
+{
+// TODO: journal?
+  static DStructGDL* warnStruct = SysVar::Warn();
+  static unsigned obs_routinesTag = warnStruct->Desc()->TagIndex( "OBS_ROUTINES");
+  if (((static_cast<DByteGDL*>( warnStruct->GetTag(obs_routinesTag, 0)))[0]).LogTrue())
+  {
+    GDLException* e = new GDLException(eN, 
+      "Routine compiled from an obsolete library: " + name
+    );  
+    GDLInterpreter::ReportCompileError(*e, "");
+//                              TODO: file /\
+    delete e;
+  }
+}

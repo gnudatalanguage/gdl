@@ -70,6 +70,9 @@ namespace SysVar
   // returns !D
   DStructGDL* D();
 
+  // returns !WARN
+  DStructGDL* Warn();
+
   const std::string& Prompt();
   int   Edit_Input();
   DLong Quiet();

@@ -267,10 +267,11 @@ class DSubUD: public DSub
 {
   std::string         file;        // filename were procedure is defined in
 
-  IDList              var;    // keyword values, parameters, local variables
+  IDList              var;         // keyword values, parameters, local variables
 
-  CommonBaseListT     common; // common blocks or references 
-  ProgNodeP           tree;   // the 'code'
+  CommonBaseListT     common;      // common blocks or references 
+  ProgNodeP           tree;        // the 'code'
+  int                 compileOpt;  // e.g. hidden or obsolete
 
   LabelListT          labelList;
 
@@ -413,6 +414,10 @@ public:
   {
     return tree;
   }
+
+  void setCompileOpt(const int n) { compileOpt = n; }
+  bool isObsolete();
+  bool isHidden();
 
   friend class EnvUDT;
 };

@@ -65,12 +65,12 @@ public:
   void ForwardFunction(const std::string&);        // add to function list
   void AddPar(const std::string&);                 // add parameter
   void AddKey(const std::string&,const std::string&);   // add keyword,varName
-  void StartPro(const std::string&,const std::string& o = "");     
+  void StartPro(const std::string&, const int compileOpt = 0, const std::string& o = "");     
   void ContinueMainPro();
   void EndFunPro();       
   void EndInteractiveStatement();
   void EndPro();       
-  void StartFun(const std::string&,const std::string& o = "");
+  void StartFun(const std::string&, const int compileOpt, const std::string& o = "");
   void EndFun();  
   void SetClass(const std::string&);      // set procedure to member (also add 'self')
   DCommonBase* CommonDef(const std::string&); // Common block (re)definition

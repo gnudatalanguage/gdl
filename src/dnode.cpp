@@ -28,6 +28,8 @@
 #include "arrayindexlistt.hpp"
 #include "dinterpreter.hpp"
 
+#include "objects.hpp" // SA: fun/proList for warning about obsolete-routine calls
+
 #include <assert.h>
 
 using namespace std;
@@ -262,7 +264,7 @@ void DNode::Text2String()
 void DNode::initialize( RefDNode t )
 {
   CommonAST::setType( t->getType());
-  CommonAST::setText( t->getText());
+  CommonAST::setText( t->getText()); 
 
   DNode::SetLine(t->getLine() );
 
@@ -287,6 +289,18 @@ void DNode::initialize( RefDNode t )
   labelStart = t->labelStart;
   labelEnd   = t->labelEnd;
   // copy union stuff
-  //    initPtr=t->initPtr;
+  //initPtr=t->initPtr;
+}
+
+void DNode::SetFunIx(const int ix) {
+  funIx = ix;
+  if (ix != -1 && funList[ix]->isObsolete()) 
+    WarnAboutObsoleteRoutine(this, funList[ix]->Name());
+}
+
+void DNode::SetProIx(const int ix) {
+  proIx = ix;
+  if (ix != -1 && proList[ix]->isObsolete()) 
+    WarnAboutObsoleteRoutine(this, proList[ix]->Name());
 }
 

@@ -2,7 +2,7 @@
 #define INC_GDLParser_hpp_
 
 #include <antlr/config.hpp>
-/* $ANTLR 2.7.6 (20071205): "gdlc.g" -> "GDLParser.hpp"$ */
+/* $ANTLR 2.7.7 (20091222): "gdlc.g" -> "GDLParser.hpp"$ */
 #include <antlr/TokenStream.hpp>
 #include <antlr/TokenBuffer.hpp>
 #include "GDLTokenTypes.hpp"
@@ -27,7 +27,7 @@
 class CUSTOM_API GDLParser : public antlr::LLkParser, public GDLTokenTypes
 {
 
-    private:
+    public:
     enum CompileOpt {
         NONE=0,
         DEFINT32=1,
@@ -39,6 +39,7 @@ class CUSTOM_API GDLParser : public antlr::LLkParser, public GDLTokenTypes
         STRICTARRSUBS=32
     };
     
+    private:
     void AddCompileOpt( const std::string opt)
     {
         if(      opt == "DEFINT32")          compileOpt |= DEFINT32;

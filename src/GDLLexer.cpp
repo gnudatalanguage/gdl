@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.6 (20071205): "gdlc.g" -> "GDLLexer.cpp"$ */
+/* $ANTLR 2.7.7 (20091222): "gdlc.g" -> "GDLLexer.cpp"$ */
 
 #include "includefirst.hpp"
 
@@ -38,43 +38,43 @@ void GDLLexer::initLiterals()
 {
 	literals["endcase"] = 78;
 	literals["case"] = 72;
+	literals["while"] = 107;
 	literals["repeat"] = 103;
 	literals["ne"] = 97;
+	literals["endif"] = 81;
 	literals["end"] = 77;
 	literals["le"] = 94;
 	literals["then"] = 105;
-	literals["begin"] = 71;
 	literals["endswitch"] = 83;
+	literals["until"] = 106;
 	literals["and"] = 70;
 	literals["endrep"] = 82;
 	literals["not"] = 98;
-	literals["on_ioerror"] = 100;
 	literals["mod"] = 96;
+	literals["forward_function"] = 87;
 	literals["do"] = 75;
 	literals["function"] = 88;
 	literals["endfor"] = 80;
 	literals["gt"] = 91;
+	literals["compile_opt"] = 74;
 	literals["inherits"] = 93;
 	literals["of"] = 99;
 	literals["or"] = 101;
 	literals["if"] = 92;
 	literals["pro"] = 102;
 	literals["xor"] = 108;
-	literals["compile_opt"] = 74;
 	literals["ge"] = 89;
 	literals["goto"] = 90;
 	literals["for"] = 86;
 	literals["eq"] = 85;
-	literals["forward_function"] = 87;
+	literals["on_ioerror"] = 100;
 	literals["endelse"] = 79;
-	literals["until"] = 106;
+	literals["begin"] = 71;
 	literals["else"] = 76;
 	literals["lt"] = 95;
 	literals["endwhile"] = 84;
 	literals["switch"] = 104;
 	literals["common"] = 73;
-	literals["endif"] = 81;
-	literals["while"] = 107;
 }
 
 antlr::RefToken GDLLexer::nextToken()
