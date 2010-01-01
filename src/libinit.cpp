@@ -267,7 +267,7 @@ void LibInit()
 			 "STRING","UINT","UL64","ULONG",KLISTEND};
   new DLibFunRetNew(lib::bindgen,string("BINDGEN"),MAXRANK,NULL,NULL,true);
   new DLibFunRetNew(lib::indgen,string("INDGEN"),MAXRANK,indKey,NULL,true);
-  new DLibFunRetNew(lib::uindgen,string("UINDGEN"),MAXRANK,indKey,NULL,true);
+  new DLibFunRetNew(lib::uindgen,string("UINDGEN"),MAXRANK,NULL,NULL,true);
   new DLibFunRetNew(lib::sindgen,string("SINDGEN"),MAXRANK,NULL,NULL,true);
   new DLibFunRetNew(lib::lindgen,string("LINDGEN"),MAXRANK,NULL,NULL,true);
   new DLibFunRetNew(lib::ulindgen,string("ULINDGEN"),MAXRANK,NULL,NULL,true);

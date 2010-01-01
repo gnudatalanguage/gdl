@@ -24,6 +24,7 @@
 #include <string>
 #include <iostream>
 #include "typedefs.hpp"
+#include "gdlexception.hpp"
 
 using namespace std;
 
@@ -50,7 +51,7 @@ public:
 
   static bool checkPlplotDriver(const char *driver)
   {
-    int numdevs_plus_one = 30;
+    int numdevs_plus_one = 50;
 #ifdef HAVE_OLDPLPLOT
     char **devlongnames = NULL, **devnames = NULL;
 #else
@@ -70,6 +71,7 @@ public:
       plgDevs(&devlongnames, &devnames, &numdevs_plus_one);
       numdevs_plus_one++;
       if (numdevs_plus_one < maxnumdevs) break;
+      else Message("The above PLPlot warning message, if any, can be ignored");
     } 
 
     // checking if a given driver is in the list
