@@ -3406,6 +3406,8 @@ clevel[nlevel-1]=zEnd; //make this explicit
     //... if keyword "OVERPLOT" is not set
     if (!overplot) 
     {
+      gkw_background(e, actStream);  //BACKGROUND
+      gkw_color(e, actStream);       //COLOR
 
       // pen thickness for axis
       actStream->wid( 0);

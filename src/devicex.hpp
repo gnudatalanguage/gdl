@@ -42,7 +42,7 @@ class DeviceX: public Graphics
   std::vector<long>        oList;
   long oIx;
   int  actWin;
-  bool decomposed; // false -> use color table
+  int decomposed; // false -> use color table
 
 
   void plimage_gdl(unsigned char *idata, PLINT nx, PLINT ny, 
@@ -295,7 +295,7 @@ SizeT nOp = kxLimit * kyLimit;
   }
 
 public:
-  DeviceX(): Graphics(), oIx( 1), actWin( -1), decomposed( false)
+  DeviceX(): Graphics(), oIx( 1), actWin( -1), decomposed( -1)
   {
     name = "X";
 
@@ -542,6 +542,14 @@ public:
 
   DLong GetDecomposed()                
   { 
+    // initial setting (information from the X-server needed)
+    if( decomposed == -1)
+    {
+      Display* display = XOpenDisplay(NULL);
+      if (display == NULL) ThrowGDLException("Cannot connect to X server");
+      decomposed = (DefaultDepth(display, DefaultScreen(display)) >= 15 ? true : false);
+      XCloseDisplay(display);
+    }
     if( decomposed) return 1;
     return 0;
   }
