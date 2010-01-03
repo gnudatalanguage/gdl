@@ -94,13 +94,33 @@ void LibInit_mes()
   // hdf5 procedures/functions 
   new DLibFun(lib::h5f_open_fun, string("H5F_OPEN"), 1);
   new DLibFun(lib::h5d_open_fun, string("H5D_OPEN"), 2);
-  new DLibFun(lib::h5d_read_fun, string("H5D_READ"), 1);
+  new DLibFun(lib::h5d_read_fun, string("H5D_READ"), 1); // TODO: 2nd argument & keywords
   new DLibFun(lib::h5d_get_space_fun, string("H5D_GET_SPACE"), 1);
   new DLibFun(lib::h5s_get_simple_extent_dims_fun,
 	       string("H5S_GET_SIMPLE_EXTENT_DIMS"), 1);
   new DLibPro(lib::h5f_close_pro,string("H5F_CLOSE"),1);
   new DLibPro(lib::h5d_close_pro,string("H5D_CLOSE"),1);
   new DLibPro(lib::h5s_close_pro,string("H5S_CLOSE"),1);
+
+  // SA:
+  new DLibFun(lib::h5f_is_hdf5_fun, string("H5F_IS_HDF5"), 1);
+  new DLibFun(lib::h5_get_libversion_fun, string("H5_GET_LIBVERSION"), 0);
+  new DLibFun(lib::h5d_get_type_fun, string("H5D_GET_TYPE"), 1);
+  new DLibFun(lib::h5t_get_size_fun, string("H5T_GET_SIZE"), 1);
+  new DLibFun(lib::h5a_open_name_fun, string("H5A_OPEN_NAME"), 2);
+  new DLibFun(lib::h5a_open_idx_fun, string("H5A_OPEN_IDX"), 2);
+  new DLibFun(lib::h5a_get_name_fun, string("H5A_GET_NAME"), 1);
+  new DLibFun(lib::h5a_get_space_fun, string("H5A_GET_SPACE"), 1);
+  new DLibFun(lib::h5a_get_type_fun, string("H5A_GET_TYPE"), 1);
+  new DLibFun(lib::h5a_get_num_attrs_fun, string("H5A_GET_NUM_ATTRS"), 1);
+  new DLibFun(lib::h5a_read_fun, string("H5A_READ"), 1); // TODO: 2nd argument
+  new DLibPro(lib::h5a_close_pro, string("H5A_CLOSE"), 1);
+  new DLibPro(lib::h5t_close_pro, string("H5T_CLOSE"), 1);
+  new DLibPro(lib::h5g_close_pro, string("H5G_CLOSE"), 1);
+  new DLibFun(lib::h5g_open_fun, string("H5G_OPEN"), 2);
+
+  // SA: disabling the default HDF5 error handler (error handling in hdf5_fun.cpp)
+  H5Eset_auto(NULL, NULL);
 #endif
   
 }
