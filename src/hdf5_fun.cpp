@@ -42,18 +42,27 @@ namespace lib {
   herr_t hdf5_error_message_helper(int n, H5E_error_t *err_desc, void *msg)
   {
     // getting something better than "Inappropriate type" message
+#if (H5_VERS_MAJOR < 1) || ((H5_VERS_MAJOR == 1) && (H5_VERS_MINOR <= 6))
     if (err_desc->min_num == H5E_BADTYPE) 
-      *static_cast<char**>(msg) = H5Eget_major(err_desc->maj_num);
+      *static_cast<string*>(msg) = H5Eget_major(err_desc->maj_num);
     else 
-      *static_cast<char**>(msg) = H5Eget_minor(err_desc->min_num);
+      *static_cast<string*>(msg) = H5Eget_minor(err_desc->min_num);
+#else
+    char* tmp;
+    if (err_desc->min_num == H5E_BADTYPE) 
+      tmp = H5Eget_major(err_desc->maj_num);
+    else 
+      tmp = H5Eget_minor(err_desc->min_num);
+    *static_cast<string*>(msg) = tmp;
+    free(tmp);
+#endif
   }
 
   // returns a meaningful message describing last HDF5 error
   // usual usege: 
-  //   if (H5X_xxx(...) < 0) e->Throw(hdf5_error_message());
-  char* hdf5_error_message()
+  //   if (H5X_xxx(...) < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+  string hdf5_error_message(string &msg)
   {
-    char* msg;
     H5Ewalk(H5E_WALK_UPWARD, hdf5_error_message_helper, &msg); 
     return msg;
   }
@@ -61,7 +70,7 @@ namespace lib {
   // auto_ptr-like class for guarding HDF5 spaces
   // usage: 
   //   hid_t h5s_id = H5Dget_space(h5d_id);
-  //   if (h5s_id < 0) e->Throw(hdf5_error_message());
+  //   if (h5s_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
   //   hdf5_space_guard h5s_id_guard = hdf5_space_guard(h5s_id);
   class hdf5_space_guard 
   {
@@ -74,7 +83,7 @@ namespace lib {
   // auto_ptr-like class for guarding HDF5 types
   // usage: 
   //   hid_t datatype = H5Dget_type(h5d_id);
-  //   if (datatype < 0) e->Throw(hdf5_error_message());
+  //   if (datatype < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
   //   hdf5_type_guard datatype_guard = hdf5_type_guard(datatype);
   class hdf5_type_guard 
   {
@@ -89,7 +98,7 @@ namespace lib {
   {
     unsigned int majnum, minnum, relnum;
     if (H5get_libversion(&majnum, &minnum, &relnum) < 0)
-      e->Throw(hdf5_error_message());
+      { string msg; e->Throw(hdf5_error_message(msg)); }
     return new DStringGDL(i2s(majnum) + "." + i2s(minnum) + "." + i2s(relnum));
   }
 
@@ -106,7 +115,7 @@ namespace lib {
       return new DLongGDL(0);
     }
     if (H5Sclose((*static_cast<DLongGDL*>(id))[0]) < 0)
-      e->Throw(hdf5_error_message());
+      { string msg; e->Throw(hdf5_error_message(msg)); }
     return new DLongGDL(1);
   }
 
@@ -120,7 +129,7 @@ namespace lib {
     e->AssureScalarPar<DStringGDL>( 0, h5fFilename);
     
     h5f_id = H5Fopen(h5fFilename.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
-    if (h5f_id < 0) e->Throw(hdf5_error_message());
+    if (h5f_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
     
     return new DLongGDL( h5f_id );
   }
@@ -138,7 +147,7 @@ namespace lib {
 
     DLong h5g_id;
     h5g_id = H5Gopen(h5f_id, h5gGroupname.c_str());
-    if (h5g_id < 0) e->Throw(hdf5_error_message());
+    if (h5g_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
     
     return new DLongGDL( h5g_id );
   }
@@ -156,7 +165,7 @@ namespace lib {
 
     DLong h5d_id;
     h5d_id = H5Dopen(h5f_id, h5dDatasetname.c_str());
-    if (h5d_id < 0) e->Throw(hdf5_error_message());
+    if (h5d_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
     
     return new DLongGDL( h5d_id );
   }
@@ -172,7 +181,7 @@ namespace lib {
 
     DLong h5a_id;
     h5a_id = H5Aopen_idx(h5f_id, attr_idx);
-    if (h5a_id < 0) e->Throw(hdf5_error_message());
+    if (h5a_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
     
     return new DLongGDL( h5a_id );
   }
@@ -188,7 +197,7 @@ namespace lib {
     // querying for the length of the name
     char tmp;
     size_t len = H5Aget_name(h5a_id, 1, &tmp);
-    if (len < 0) e->Throw(hdf5_error_message());
+    if (len < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
 
     // acquireing the name
     len++;
@@ -197,7 +206,7 @@ namespace lib {
     if (H5Aget_name(h5a_id, len, name) < 0) 
     { 
       free(name);
-      e->Throw(hdf5_error_message());
+      { string msg; e->Throw(hdf5_error_message(msg)); }
     }
     DStringGDL* ret = new DStringGDL(name);
     free(name);
@@ -214,7 +223,7 @@ namespace lib {
 
     DLong h5a_type_id;
     h5a_type_id = H5Aget_type( h5a_id );
-    if (h5a_type_id < 0) e->Throw(hdf5_error_message());
+    if (h5a_type_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
     
     return new DLongGDL( h5a_type_id );
   }
@@ -232,7 +241,7 @@ namespace lib {
 
     DLong h5a_id;
     h5a_id = H5Aopen_name(h5f_id, h5aAttrname.c_str());
-    if (h5a_id < 0) e->Throw(hdf5_error_message());
+    if (h5a_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
     
     return new DLongGDL( h5a_id );
   }
@@ -247,7 +256,7 @@ namespace lib {
     
     DLong h5d_space_id;
     h5d_space_id = H5Dget_space( h5d_id );
-    if (h5d_space_id < 0) e->Throw(hdf5_error_message());
+    if (h5d_space_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
     
     return new DLongGDL( h5d_space_id );
   }
@@ -262,7 +271,7 @@ namespace lib {
     
     DLong h5a_space_id;
     h5a_space_id = H5Aget_space( h5a_id );
-    if (h5a_space_id < 0) e->Throw(hdf5_error_message());
+    if (h5a_space_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
     
     return new DLongGDL( h5a_space_id );
   }
@@ -276,7 +285,7 @@ namespace lib {
     e->AssureLongScalarPar(0, loc_id);
     
     int num = H5Aget_num_attrs( loc_id );
-    if (num < 0) e->Throw(hdf5_error_message());
+    if (num < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
     
     return new DLongGDL( num );
   }
@@ -291,7 +300,7 @@ namespace lib {
     
     DLong h5d_type_id;
     h5d_type_id = H5Dget_type( h5d_id );
-    if (h5d_type_id < 0) e->Throw(hdf5_error_message());
+    if (h5d_type_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
     
     return new DLongGDL( h5d_type_id );
   }
@@ -305,7 +314,7 @@ namespace lib {
     e->AssureLongScalarPar(0, h5t_id);
     
     size_t size = H5Tget_size( h5t_id );
-    if (size == 0) e->Throw(hdf5_error_message());
+    if (size == 0) { string msg; e->Throw(hdf5_error_message(msg)); }
     
     return new DLongGDL( size );
     
@@ -321,10 +330,10 @@ namespace lib {
     e->AssureLongScalarPar(0, h5s_id);
     
     int rank = H5Sget_simple_extent_ndims(h5s_id);
-    if (rank < 0) e->Throw(hdf5_error_message());
+    if (rank < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
     
     if (H5Sget_simple_extent_dims(h5s_id, dims_out, NULL) < 0)
-      e->Throw(hdf5_error_message());
+      { string msg; e->Throw(hdf5_error_message(msg)); }
     
     dimension dim(rank);
     DLongGDL* d = new DLongGDL(dim);
@@ -344,19 +353,19 @@ namespace lib {
     e->AssureLongScalarPar(0, h5a_id);
     
     hid_t h5s_id = H5Aget_space(h5a_id);
-    if (h5s_id < 0) e->Throw(hdf5_error_message());
+    if (h5s_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
     hdf5_space_guard h5s_id_guard = hdf5_space_guard(h5s_id);
 
     hid_t datatype = H5Aget_type(h5a_id);
-    if (datatype < 0) e->Throw(hdf5_error_message());
+    if (datatype < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
     hdf5_type_guard datatype_guard = hdf5_type_guard(datatype);
 
     // determine the rank and dimension of the dataset
     int rank = H5Sget_simple_extent_ndims(h5s_id);
-    if (rank < 0) e->Throw(hdf5_error_message());
+    if (rank < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
 
     if (H5Sget_simple_extent_dims(h5s_id, dims_out, NULL) < 0) 
-      e->Throw(hdf5_error_message());
+      { string msg; e->Throw(hdf5_error_message(msg)); }
 
     // need to reverse indices for column major format
     SizeT count_s[MAXRANK];
@@ -372,7 +381,7 @@ namespace lib {
     //    if(datatype == H5T_IEEE_F64LE){
       DDoubleGDL* data_out = new DDoubleGDL(dim);
       if (H5Aread(h5a_id, H5T_IEEE_F64LE, &(*data_out)[0]) < 0)
-        e->Throw(hdf5_error_message());
+        { string msg; e->Throw(hdf5_error_message(msg)); }
 
       return data_out;
    // } else {
@@ -398,19 +407,19 @@ namespace lib {
     e->AssureLongScalarPar(0, h5d_id);
     
     hid_t h5s_id = H5Dget_space(h5d_id);
-    if (h5s_id < 0) e->Throw(hdf5_error_message());
+    if (h5s_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
     hdf5_space_guard h5s_id_guard = hdf5_space_guard(h5s_id);
 
     hid_t datatype = H5Dget_type(h5d_id);
-    if (datatype < 0) e->Throw(hdf5_error_message());
+    if (datatype < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
     hdf5_type_guard datatype_guard = hdf5_type_guard(datatype);
 
     // determine the rank and dimension of the dataset
     int rank = H5Sget_simple_extent_ndims(h5s_id);
-    if (rank < 0) e->Throw(hdf5_error_message());
+    if (rank < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
 
     if (H5Sget_simple_extent_dims(h5s_id, dims_out, NULL) < 0) 
-      e->Throw(hdf5_error_message());
+      { string msg; e->Throw(hdf5_error_message(msg)); }
 
     // define hyperslab in dataset
 #if (H5_VERS_MAJOR < 1) || ((H5_VERS_MAJOR == 1) && (H5_VERS_MINOR < 6)) ||  ((H5_VERS_MAJOR == 1) && (H5_VERS_MINOR == 6) && (H5_VERS_RELEASE <= 3))
@@ -424,11 +433,11 @@ namespace lib {
     for(int i=0; i<rank;i++) count[i] = dims_out[i];
 
     if (H5Sselect_hyperslab(h5s_id, H5S_SELECT_SET, offset, NULL, count, NULL) < 0)
-      e->Throw(hdf5_error_message());
+      { string msg; e->Throw(hdf5_error_message(msg)); }
 
     // define memory dataspace
     hid_t memspace = H5Screate_simple(rank, count, NULL); 
-    if (memspace < 0) e->Throw(hdf5_error_message());
+    if (memspace < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
     hdf5_space_guard memspace_guard = hdf5_space_guard(memspace);
    
     // define memory hyperslab
@@ -441,7 +450,7 @@ namespace lib {
     for(int i=0; i<rank; i++) offset_out[i] = 0;
     for(int i=0; i<rank; i++) count_out[i] = dims_out[i];
     if (H5Sselect_hyperslab(memspace, H5S_SELECT_SET, offset_out, NULL, count_out, NULL) < 0)
-      e->Throw(hdf5_error_message());
+      { string msg; e->Throw(hdf5_error_message(msg)); }
 
     SizeT count_s[MAXRANK];
     SizeT rank_s;
@@ -461,7 +470,7 @@ namespace lib {
     //    if(datatype == H5T_IEEE_F64LE){
       DDoubleGDL* data_out = new DDoubleGDL(dim);
       if (H5Dread(h5d_id, H5T_IEEE_F64LE, memspace, h5s_id, H5P_DEFAULT, &(*data_out)[0]) < 0)
-        e->Throw(hdf5_error_message());
+        { string msg; e->Throw(hdf5_error_message(msg)); }
 
       return data_out;
    // } else {
@@ -477,7 +486,7 @@ namespace lib {
     SizeT nParam=e->NParam(1);
     DLong h5s_id;
     e->AssureLongScalarPar( 0, h5s_id);
-    if (H5Sclose(h5s_id) < 0) e->Throw(hdf5_error_message());
+    if (H5Sclose(h5s_id) < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
   }
   
 
@@ -486,7 +495,7 @@ namespace lib {
     SizeT nParam=e->NParam(1);
     DLong h5d_id;
     e->AssureLongScalarPar( 0, h5d_id);
-    if (H5Dclose(h5d_id) < 0) e->Throw(hdf5_error_message());
+    if (H5Dclose(h5d_id) < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
   }
   
 
@@ -495,7 +504,7 @@ namespace lib {
     SizeT nParam=e->NParam(1);
     DLong h5f_id;
     e->AssureLongScalarPar( 0, h5f_id);
-    if (H5Fclose(h5f_id) < 0) e->Throw(hdf5_error_message());
+    if (H5Fclose(h5f_id) < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
   }
 
 
@@ -504,7 +513,7 @@ namespace lib {
     SizeT nParam=e->NParam(1);
     DLong h5t_id;
     e->AssureLongScalarPar( 0, h5t_id);
-    if (H5Tclose(h5t_id) < 0) e->Throw(hdf5_error_message());
+    if (H5Tclose(h5t_id) < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
   }
 
   
@@ -513,7 +522,7 @@ namespace lib {
     SizeT nParam=e->NParam(1);
     DLong h5g_id;
     e->AssureLongScalarPar( 0, h5g_id);
-    if (H5Gclose(h5g_id) < 0) e->Throw(hdf5_error_message());
+    if (H5Gclose(h5g_id) < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
   }
 
 
@@ -522,7 +531,7 @@ namespace lib {
     SizeT nParam=e->NParam(1);
     DLong h5a_id;
     e->AssureLongScalarPar( 0, h5a_id);
-    if (H5Aclose(h5a_id) < 0) e->Throw(hdf5_error_message());
+    if (H5Aclose(h5a_id) < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
   }
 
 
