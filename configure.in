@@ -448,51 +448,67 @@ AC_ARG_WITH(hdf,
 	[with_hdf="$withval" ])
 
 if test "x$with_hdf" != "xno"; then
-  if test "x$with_hdf" != "xyes"; then
-    LIBS="$LIBS -L$with_hdf/lib -L$with_hdf/lib/hdf -lmfhdf -ldf -ljpeg -lz"
-    INCLUDES="$INCLUDES -I$with_hdf/include -I$with_hdf/include/hdf"
-  else
-    LIBS="$LIBS -L/usr/lib/hdf -lmfhdf -ldf -ljpeg -lz"
-    INCLUDES="$INCLUDES -I/usr/include/hdf"
-  fi
 
-  AC_CHECK_LIB(df, Hopen, [AC_DEFINE([USE_HDF], [1], [Define if you want to use HDF])], 
-    AC_MSG_CHECKING([if linking with SZIP helps])
-    echo ""
-    AC_CHECK_LIB(df, Hclose, [
-      LIBS="$LIBS -lsz"
-      AC_DEFINE([USE_HDF], [1], [Define if you want to use HDF])
-    ], [
-    echo ""
-    echo "Error! HDF version 4 is required but was not found"
-    echo "       Use --with-hdf=DIR to specify the HDF directory tree"
-    echo "       Use --with-hdf=no  to not use it"
-    echo "       Check the README or use configure --help for other libraries needed"
-    echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
-    exit -1
-    ], [-lsz])
-  )
+  # on Debian the no-netcdf flavour of HDF4 libraries has an alt-suffixed naming
+  _LIBS=$LIBS
+  _INCLUDES=$INCLUDES
+  for sfx in "dfalt" "df"; do
 
-  AC_CHECK_LIB(mfhdf, SDstart, [AC_DEFINE([USE_HDF], [1], [Define if you want to use HDF])], [
-    echo ""
-    echo "Error! HDF version 4 or later is required but was not found"
-    echo "       Use --with-hdf=DIR to specify the HDF directory tree"
-    echo "       Use --with-hdf=no  to not use it"
-    echo "       Check the README or use configure --help for other libraries needed"
-    echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
-    exit -1
-  ])
+    if test "x$with_hdf" != "xyes"; then
+      LIBS="$_LIBS -L$with_hdf/lib -L$with_hdf/lib/hdf -lmfh$sfx -l$sfx -ljpeg -lz"
+      INCLUDES="$_INCLUDES -I$with_hdf/include -I$with_hdf/include/hdf"
+    else
+      LIBS="$_LIBS -L/usr/lib/hdf -lmfh$sfx -l$sfx -ljpeg -lz"
+      INCLUDES="$_INCLUDES -I/usr/include/hdf"
+    fi
 
-  # checking if HDF4 was compiled with the '--disable-netcdf' option
-  if test "x$with_netcdf" != "xno"; then
-    AC_CHECK_LIB(mfhdf, sd_nccreate, [], [
-    echo ""
-    echo "Error! HDF4 needs to be configured with the --disable-netcdf option"
-    echo "       in order to be used with the original netCDF library"
-    echo "       Check the INSTALL file of the HDF4 package for details"
-    exit -1
+    AC_CHECK_LIB($sfx, Hopen, [AC_DEFINE([USE_HDF], [1], [Define if you want to use HDF])], 
+      AC_MSG_CHECKING([if linking with SZIP helps])
+      echo ""
+      AC_CHECK_LIB($sfx, Hclose, [
+        LIBS="$LIBS -lsz"
+        AC_DEFINE([USE_HDF], [1], [Define if you want to use HDF])
+      ], [ 
+        if test $sfx != "dfalt"; then
+          echo ""
+          echo "Error! HDF4 libraries were not found"
+          echo "       Use --with-hdf=DIR to specify the HDF directory tree"
+          echo "       Use --with-hdf=no  to not use it"
+          echo "       Check the README or use configure --help for other libraries needed"
+          echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
+          exit -1
+        else
+          continue # switchng to non-alt-suffixed naming
+        fi
+      ], [-lsz])
+    )
+
+    AC_CHECK_LIB(mfh$sfx, SDstart, [AC_DEFINE([USE_HDF], [1], [Define if you want to use HDF])], [ 
+      echo ""
+      echo "Error! HDF4 libraries were not found"
+      echo "       Use --with-hdf=DIR to specify the HDF directory tree"
+      echo "       Use --with-hdf=no  to not use it"
+      echo "       Check the README or use configure --help for other libraries needed"
+      echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
+      exit -1
     ])
-  fi
+
+    # checking if HDF4 was compiled with the '--disable-netcdf' option
+    if test "x$with_netcdf" != "xno"; then
+      AC_CHECK_LIB(mfh$sfx, sd_nccreate, [], [
+        echo ""
+        echo "Error! HDF4 needs to be configured with the --disable-netcdf option"
+        echo "       in order to be used with the original netCDF library"
+        echo "       (-alt suffixed HDF4 packages in case of Debian)"
+        echo "       Check the INSTALL file of the HDF4 package for details"
+        exit -1
+      ])
+    fi
+
+    # all went OK with the alt-suffixed naming -> skipping tests for the non-alt-suffixed naming
+    if test $sfx == "dfalt"; then break; fi
+
+  done
 fi
 
 dnl == HDF5 ================================================

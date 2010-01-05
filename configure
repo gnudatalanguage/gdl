@@ -16026,21 +16026,28 @@ fi
 
 
 if test "x$with_hdf" != "xno"; then
-  if test "x$with_hdf" != "xyes"; then
-    LIBS="$LIBS -L$with_hdf/lib -L$with_hdf/lib/hdf -lmfhdf -ldf -ljpeg -lz"
-    INCLUDES="$INCLUDES -I$with_hdf/include -I$with_hdf/include/hdf"
-  else
-    LIBS="$LIBS -L/usr/lib/hdf -lmfhdf -ldf -ljpeg -lz"
-    INCLUDES="$INCLUDES -I/usr/include/hdf"
-  fi
 
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for Hopen in -ldf" >&5
-$as_echo_n "checking for Hopen in -ldf... " >&6; }
-if test "${ac_cv_lib_df_Hopen+set}" = set; then :
+  # on Debian the no-netcdf flavour of HDF4 libraries has an alt-suffixed naming
+  _LIBS=$LIBS
+  _INCLUDES=$INCLUDES
+  for sfx in "dfalt" "df"; do
+
+    if test "x$with_hdf" != "xyes"; then
+      LIBS="$_LIBS -L$with_hdf/lib -L$with_hdf/lib/hdf -lmfh$sfx -l$sfx -ljpeg -lz"
+      INCLUDES="$_INCLUDES -I$with_hdf/include -I$with_hdf/include/hdf"
+    else
+      LIBS="$_LIBS -L/usr/lib/hdf -lmfh$sfx -l$sfx -ljpeg -lz"
+      INCLUDES="$_INCLUDES -I/usr/include/hdf"
+    fi
+
+    as_ac_Lib=`$as_echo "ac_cv_lib_$sfx''_Hopen" | $as_tr_sh`
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for Hopen in -l$sfx" >&5
+$as_echo_n "checking for Hopen in -l$sfx... " >&6; }
+if { as_var=$as_ac_Lib; eval "test \"\${$as_var+set}\" = set"; }; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-ldf  $LIBS"
+LIBS="-l$sfx  $LIBS"
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -16060,31 +16067,34 @@ return Hopen ();
 }
 _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_lib_df_Hopen=yes
+  eval "$as_ac_Lib=yes"
 else
-  ac_cv_lib_df_Hopen=no
+  eval "$as_ac_Lib=no"
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_df_Hopen" >&5
-$as_echo "$ac_cv_lib_df_Hopen" >&6; }
-if test "x$ac_cv_lib_df_Hopen" = x""yes; then :
+eval ac_res=\$$as_ac_Lib
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+eval as_val=\$$as_ac_Lib
+   if test "x$as_val" = x""yes; then :
 
 $as_echo "#define USE_HDF 1" >>confdefs.h
 
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if linking with SZIP helps" >&5
 $as_echo_n "checking if linking with SZIP helps... " >&6; }
-    echo ""
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for Hclose in -ldf" >&5
-$as_echo_n "checking for Hclose in -ldf... " >&6; }
-if test "${ac_cv_lib_df_Hclose+set}" = set; then :
+      echo ""
+      as_ac_Lib=`$as_echo "ac_cv_lib_$sfx''_Hclose" | $as_tr_sh`
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for Hclose in -l$sfx" >&5
+$as_echo_n "checking for Hclose in -l$sfx... " >&6; }
+if { as_var=$as_ac_Lib; eval "test \"\${$as_var+set}\" = set"; }; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-ldf -lsz $LIBS"
+LIBS="-l$sfx -lsz $LIBS"
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -16104,32 +16114,38 @@ return Hclose ();
 }
 _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_lib_df_Hclose=yes
+  eval "$as_ac_Lib=yes"
 else
-  ac_cv_lib_df_Hclose=no
+  eval "$as_ac_Lib=no"
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_df_Hclose" >&5
-$as_echo "$ac_cv_lib_df_Hclose" >&6; }
-if test "x$ac_cv_lib_df_Hclose" = x""yes; then :
+eval ac_res=\$$as_ac_Lib
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+eval as_val=\$$as_ac_Lib
+   if test "x$as_val" = x""yes; then :
 
-      LIBS="$LIBS -lsz"
+        LIBS="$LIBS -lsz"
 
 $as_echo "#define USE_HDF 1" >>confdefs.h
 
 
 else
 
-    echo ""
-    echo "Error! HDF version 4 is required but was not found"
-    echo "       Use --with-hdf=DIR to specify the HDF directory tree"
-    echo "       Use --with-hdf=no  to not use it"
-    echo "       Check the README or use configure --help for other libraries needed"
-    echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
-    exit -1
+        if test $sfx != "dfalt"; then
+          echo ""
+          echo "Error! HDF4 libraries were not found"
+          echo "       Use --with-hdf=DIR to specify the HDF directory tree"
+          echo "       Use --with-hdf=no  to not use it"
+          echo "       Check the README or use configure --help for other libraries needed"
+          echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
+          exit -1
+        else
+          continue # switchng to non-alt-suffixed naming
+        fi
 
 fi
 
@@ -16137,13 +16153,14 @@ fi
 fi
 
 
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for SDstart in -lmfhdf" >&5
-$as_echo_n "checking for SDstart in -lmfhdf... " >&6; }
-if test "${ac_cv_lib_mfhdf_SDstart+set}" = set; then :
+    as_ac_Lib=`$as_echo "ac_cv_lib_mfh$sfx''_SDstart" | $as_tr_sh`
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for SDstart in -lmfh$sfx" >&5
+$as_echo_n "checking for SDstart in -lmfh$sfx... " >&6; }
+if { as_var=$as_ac_Lib; eval "test \"\${$as_var+set}\" = set"; }; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-lmfhdf  $LIBS"
+LIBS="-lmfh$sfx  $LIBS"
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -16163,42 +16180,45 @@ return SDstart ();
 }
 _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_lib_mfhdf_SDstart=yes
+  eval "$as_ac_Lib=yes"
 else
-  ac_cv_lib_mfhdf_SDstart=no
+  eval "$as_ac_Lib=no"
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_mfhdf_SDstart" >&5
-$as_echo "$ac_cv_lib_mfhdf_SDstart" >&6; }
-if test "x$ac_cv_lib_mfhdf_SDstart" = x""yes; then :
+eval ac_res=\$$as_ac_Lib
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+eval as_val=\$$as_ac_Lib
+   if test "x$as_val" = x""yes; then :
 
 $as_echo "#define USE_HDF 1" >>confdefs.h
 
 else
 
-    echo ""
-    echo "Error! HDF version 4 or later is required but was not found"
-    echo "       Use --with-hdf=DIR to specify the HDF directory tree"
-    echo "       Use --with-hdf=no  to not use it"
-    echo "       Check the README or use configure --help for other libraries needed"
-    echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
-    exit -1
+      echo ""
+      echo "Error! HDF4 libraries were not found"
+      echo "       Use --with-hdf=DIR to specify the HDF directory tree"
+      echo "       Use --with-hdf=no  to not use it"
+      echo "       Check the README or use configure --help for other libraries needed"
+      echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
+      exit -1
 
 fi
 
 
-  # checking if HDF4 was compiled with the '--disable-netcdf' option
-  if test "x$with_netcdf" != "xno"; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for sd_nccreate in -lmfhdf" >&5
-$as_echo_n "checking for sd_nccreate in -lmfhdf... " >&6; }
-if test "${ac_cv_lib_mfhdf_sd_nccreate+set}" = set; then :
+    # checking if HDF4 was compiled with the '--disable-netcdf' option
+    if test "x$with_netcdf" != "xno"; then
+      as_ac_Lib=`$as_echo "ac_cv_lib_mfh$sfx''_sd_nccreate" | $as_tr_sh`
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for sd_nccreate in -lmfh$sfx" >&5
+$as_echo_n "checking for sd_nccreate in -lmfh$sfx... " >&6; }
+if { as_var=$as_ac_Lib; eval "test \"\${$as_var+set}\" = set"; }; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-lmfhdf  $LIBS"
+LIBS="-lmfh$sfx  $LIBS"
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -16218,34 +16238,42 @@ return sd_nccreate ();
 }
 _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_lib_mfhdf_sd_nccreate=yes
+  eval "$as_ac_Lib=yes"
 else
-  ac_cv_lib_mfhdf_sd_nccreate=no
+  eval "$as_ac_Lib=no"
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_mfhdf_sd_nccreate" >&5
-$as_echo "$ac_cv_lib_mfhdf_sd_nccreate" >&6; }
-if test "x$ac_cv_lib_mfhdf_sd_nccreate" = x""yes; then :
+eval ac_res=\$$as_ac_Lib
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+eval as_val=\$$as_ac_Lib
+   if test "x$as_val" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBMFHDF 1
+#define `$as_echo "HAVE_LIBmfh$sfx" | $as_tr_cpp` 1
 _ACEOF
 
-  LIBS="-lmfhdf $LIBS"
+  LIBS="-lmfh$sfx $LIBS"
 
 else
 
-    echo ""
-    echo "Error! HDF4 needs to be configured with the --disable-netcdf option"
-    echo "       in order to be used with the original netCDF library"
-    echo "       Check the INSTALL file of the HDF4 package for details"
-    exit -1
+        echo ""
+        echo "Error! HDF4 needs to be configured with the --disable-netcdf option"
+        echo "       in order to be used with the original netCDF library"
+        echo "       (-alt suffixed HDF4 packages in case of Debian)"
+        echo "       Check the INSTALL file of the HDF4 package for details"
+        exit -1
 
 fi
 
-  fi
+    fi
+
+    # all went OK with the alt-suffixed naming -> skipping tests for the non-alt-suffixed naming
+    if test $sfx == "dfalt"; then break; fi
+
+  done
 fi
 
 

@@ -24,9 +24,6 @@
 /* Define to 1 if you have the `gslcblas' library (-lgslcblas). */
 #undef HAVE_LIBGSLCBLAS
 
-/* Define to 1 if you have the `mfhdf' library (-lmfhdf). */
-#undef HAVE_LIBMFHDF
-
 /* Define to 1 if you have the ncurses library (-lncurses). */
 #undef HAVE_LIBNCURSES
 
