@@ -1,4 +1,4 @@
-# generated automatically by aclocal 1.11 -*- Autoconf -*-
+# generated automatically by aclocal 1.11.1 -*- Autoconf -*-
 
 # Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 # 2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
@@ -7859,15 +7859,15 @@ m4_define([lt_dict_filter],
 
 # Generated from ltversion.in.
 
-# serial 3012 ltversion.m4
+# serial 3017 ltversion.m4
 # This file is part of GNU Libtool
 
-m4_define([LT_PACKAGE_VERSION], [2.2.6])
-m4_define([LT_PACKAGE_REVISION], [1.3012])
+m4_define([LT_PACKAGE_VERSION], [2.2.6b])
+m4_define([LT_PACKAGE_REVISION], [1.3017])
 
 AC_DEFUN([LTVERSION_VERSION],
-[macro_version='2.2.6'
-macro_revision='1.3012'
+[macro_version='2.2.6b'
+macro_revision='1.3017'
 _LT_DECL(, macro_version, 0, [Which release of libtool.m4 was used?])
 _LT_DECL(, macro_revision, 0)
 ])
@@ -7980,7 +7980,7 @@ AC_DEFUN([AM_AUTOMAKE_VERSION],
 [am__api_version='1.11'
 dnl Some users find AM_AUTOMAKE_VERSION and mistake it for a way to
 dnl require some minimum version.  Point them to the right macro.
-m4_if([$1], [1.11], [],
+m4_if([$1], [1.11.1], [],
       [AC_FATAL([Do not call $0, use AM_INIT_AUTOMAKE([$1]).])])dnl
 ])
 
@@ -7996,7 +7996,7 @@ m4_define([_AM_AUTOCONF_VERSION], [])
 # Call AM_AUTOMAKE_VERSION and AM_AUTOMAKE_VERSION so they can be traced.
 # This function is AC_REQUIREd by AM_INIT_AUTOMAKE.
 AC_DEFUN([AM_SET_CURRENT_AUTOMAKE_VERSION],
-[AM_AUTOMAKE_VERSION([1.11])dnl
+[AM_AUTOMAKE_VERSION([1.11.1])dnl
 m4_ifndef([AC_AUTOCONF_VERSION],
   [m4_copy([m4_PACKAGE_VERSION], [AC_AUTOCONF_VERSION])])dnl
 _AM_AUTOCONF_VERSION(m4_defn([AC_AUTOCONF_VERSION]))])
@@ -8352,6 +8352,18 @@ AC_DEFUN([AM_OUTPUT_DEPENDENCY_COMMANDS],
      [AMDEP_TRUE="$AMDEP_TRUE" ac_aux_dir="$ac_aux_dir"])
 ])
 
+# Copyright (C) 1996, 1997, 2000, 2001, 2003, 2005
+# Free Software Foundation, Inc.
+#
+# This file is free software; the Free Software Foundation
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+
+# serial 8
+
+# AM_CONFIG_HEADER is obsolete.  It has been replaced by AC_CONFIG_HEADERS.
+AU_DEFUN([AM_CONFIG_HEADER], [AC_CONFIG_HEADERS($@)])
+
 # Do all the work for Automake.                             -*- Autoconf -*-
 
 # Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
@@ -8532,46 +8544,6 @@ else
 fi
 rmdir .tst 2>/dev/null
 AC_SUBST([am__leading_dot])])
-
-# Add --enable-maintainer-mode option to configure.         -*- Autoconf -*-
-# From Jim Meyering
-
-# Copyright (C) 1996, 1998, 2000, 2001, 2002, 2003, 2004, 2005, 2008
-# Free Software Foundation, Inc.
-#
-# This file is free software; the Free Software Foundation
-# gives unlimited permission to copy and/or distribute it,
-# with or without modifications, as long as this notice is preserved.
-
-# serial 5
-
-# AM_MAINTAINER_MODE([DEFAULT-MODE])
-# ----------------------------------
-# Control maintainer-specific portions of Makefiles.
-# Default is to disable them, unless `enable' is passed literally.
-# For symmetry, `disable' may be passed as well.  Anyway, the user
-# can override the default with the --enable/--disable switch.
-AC_DEFUN([AM_MAINTAINER_MODE],
-[m4_case(m4_default([$1], [disable]),
-       [enable], [m4_define([am_maintainer_other], [disable])],
-       [disable], [m4_define([am_maintainer_other], [enable])],
-       [m4_define([am_maintainer_other], [enable])
-        m4_warn([syntax], [unexpected argument to AM@&t@_MAINTAINER_MODE: $1])])
-AC_MSG_CHECKING([whether to am_maintainer_other maintainer-specific portions of Makefiles])
-  dnl maintainer-mode's default is 'disable' unless 'enable' is passed
-  AC_ARG_ENABLE([maintainer-mode],
-[  --][am_maintainer_other][-maintainer-mode  am_maintainer_other make rules and dependencies not useful
-			  (and sometimes confusing) to the casual installer],
-      [USE_MAINTAINER_MODE=$enableval],
-      [USE_MAINTAINER_MODE=]m4_if(am_maintainer_other, [enable], [no], [yes]))
-  AC_MSG_RESULT([$USE_MAINTAINER_MODE])
-  AM_CONDITIONAL([MAINTAINER_MODE], [test $USE_MAINTAINER_MODE = yes])
-  MAINT=$MAINTAINER_MODE_TRUE
-  AC_SUBST([MAINT])dnl
-]
-)
-
-AU_DEFUN([jm_MAINTAINER_MODE], [AM_MAINTAINER_MODE])
 
 # Check to see how 'make' treats includes.	            -*- Autoconf -*-
 

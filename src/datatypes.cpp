@@ -1422,7 +1422,7 @@ bool Data_<Sp>::True()
 {
   Ty s;
   if( !Scalar( s))
-    throw GDLException("Expression must be a scalar or 1 element array in this context.");
+    throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
   return (s % 2);
 }
 
@@ -1431,7 +1431,7 @@ bool Data_<SpDFloat>::True()
 {
   Ty s;
   if( !Scalar( s))
-    throw GDLException("Expression must be a scalar or 1 element array in this context.");
+    throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
   return (s != 0.0f);
 }
 
@@ -1440,7 +1440,7 @@ bool Data_<SpDDouble>::True()
 {
   Ty s;
   if( !Scalar( s))
-    throw GDLException("Expression must be a scalar or 1 element array in this context.");
+    throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
   return (s != 0.0);
 }
 
@@ -1449,7 +1449,7 @@ bool Data_<SpDString>::True()
 {
   Ty s;
   if( !Scalar( s))
-    throw GDLException("Expression must be a scalar or 1 element array in this context.");
+    throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
   return (s != "");
 }
 
@@ -1458,7 +1458,7 @@ bool Data_<SpDComplex>::True()
 {
   Ty s;
   if( !Scalar( s))
-    throw GDLException("Expression must be a scalar or 1 element array in this context.");
+    throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
   return (real(s) != 0.0);
 }
 template<>
@@ -1466,7 +1466,7 @@ bool Data_<SpDComplexDbl>::True()
 {
   Ty s;
   if( !Scalar( s))
-    throw GDLException("Expression must be a scalar or 1 element array in this context.");
+    throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
   return (real(s) != 0.0);
 }
 
@@ -1495,7 +1495,7 @@ int Data_<Sp>::Sgn() // -1,0,1
 {
   Ty s;
   if( !Scalar( s))
-    throw GDLException("Expression must be a scalar or 1 element array in this context.");
+    throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
   if( s > 0) return 1;
   if( s == 0) return 0;
   return -1;
@@ -2506,7 +2506,7 @@ bool Data_<Sp>::LogTrue()
 {
   Ty s;
   if( !Scalar( s))
-    throw GDLException("Expression must be a scalar or 1 element array in this context.");
+    throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
   return (s != 0);
 }
 template<>
@@ -2514,7 +2514,7 @@ bool Data_<SpDFloat>::LogTrue()
 {
   Ty s;
   if( !Scalar( s))
-    throw GDLException("Expression must be a scalar or 1 element array in this context.");
+    throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
   return (s != 0.0f);
 }
 template<>
@@ -2522,7 +2522,7 @@ bool Data_<SpDDouble>::LogTrue()
 {
   Ty s;
   if( !Scalar( s))
-    throw GDLException("Expression must be a scalar or 1 element array in this context.");
+    throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
   return (s != 0.0);
 }
 template<>
@@ -2530,7 +2530,7 @@ bool Data_<SpDString>::LogTrue()
 {
   Ty s;
   if( !Scalar( s))
-    throw GDLException("Expression must be a scalar or 1 element array in this context.");
+    throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
   return (s != "");
 }
 template<>
@@ -2538,7 +2538,7 @@ bool Data_<SpDComplex>::LogTrue()
 {
   Ty s;
   if( !Scalar( s))
-    throw GDLException("Expression must be a scalar or 1 element array in this context.");
+    throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
   return (real(s) != 0.0 || imag(s) != 0.0);
 }
 template<>
@@ -2546,7 +2546,7 @@ bool Data_<SpDComplexDbl>::LogTrue()
 {
   Ty s;
   if( !Scalar( s))
-    throw GDLException("Expression must be a scalar or 1 element array in this context.");
+    throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
   return (real(s) != 0.0 || imag(s) != 0.0);
 }
 // structs are not allowed

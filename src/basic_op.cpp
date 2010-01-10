@@ -80,36 +80,36 @@ Data_<SpDDouble>* Data_<SpDDouble>::NotOp()
 template<>
 Data_<SpDString>* Data_<SpDString>::NotOp()
 {
-  throw GDLException("Cannot apply operation to datatype STRING.");  
+  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
   return this;
 }
 template<>
 Data_<SpDComplex>* Data_<SpDComplex>::NotOp()
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
 }
 template<>
 Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::NotOp()
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
 }
 DStructGDL* DStructGDL::NotOp()
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::NotOp()
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::NotOp()
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
 }
 
@@ -141,19 +141,19 @@ BaseGDL* Data_<SpDString>::UMinus()
 }
 BaseGDL* DStructGDL::UMinus()
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 template<>
 BaseGDL* Data_<SpDPtr>::UMinus()
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 BaseGDL* Data_<SpDObj>::UMinus()
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
 }
 
@@ -384,32 +384,32 @@ void Data_<SpDComplexDbl>::Inc()
 template<>
 void Data_<SpDString>::Dec()
 {
-  throw GDLException("String expression not allowed in this context.");
+  throw GDLException("String expression not allowed in this context.",true,false);
 }
 template<>
 void Data_<SpDPtr>::Dec()
 {
-  throw GDLException("Pointer expression not allowed in this context.");
+  throw GDLException("Pointer expression not allowed in this context.",true,false);
 }
 template<>
 void Data_<SpDObj>::Dec()
 {
-  throw GDLException("Object expression not allowed in this context.");
+  throw GDLException("Object expression not allowed in this context.",true,false);
 }
 template<>
 void Data_<SpDString>::Inc()
 {
-  throw GDLException("String expression not allowed in this context.");
+  throw GDLException("String expression not allowed in this context.",true,false);
 }
 template<>
 void Data_<SpDPtr>::Inc()
 {
-  throw GDLException("Pointer expression not allowed in this context.");
+  throw GDLException("Pointer expression not allowed in this context.",true,false);
 }
 template<>
 void Data_<SpDObj>::Inc()
 {
-  throw GDLException("Object expression not allowed in this context.");
+  throw GDLException("Object expression not allowed in this context.",true,false);
 }
 
 
@@ -477,19 +477,19 @@ Data_<SpDByte>* Data_<Sp>::EqOp( BaseGDL* r)
 // invalid types
 Data_<SpDByte>* DStructGDL::EqOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return NULL;
 }
 // template<>
 // Data_<SpDByte>* Data_<SpDPtr>::EqOp( BaseGDL* r)
 // {
-//   throw GDLException("Cannot apply operation to datatype PTR.");  
+//   throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
 //   return NULL;
 // }
 // template<>
 // Data_<SpDByte>* Data_<SpDObj>::EqOp( BaseGDL* r)
 // {
-//   throw GDLException("Cannot apply operation to datatype OBJECT.");  
+//   throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
 //   return NULL;
 // }
 
@@ -552,19 +552,19 @@ Data_<SpDByte>* Data_<Sp>::NeOp( BaseGDL* r)
 // invalid types
 Data_<SpDByte>* DStructGDL::NeOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return NULL;
 }
 // template<>
 // Data_<SpDByte>* Data_<SpDPtr>::NeOp( BaseGDL* r)
 // {
-//   throw GDLException("Cannot apply operation to datatype PTR.");  
+//   throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
 //   return NULL;
 // }
 // template<>
 // Data_<SpDByte>* Data_<SpDObj>::NeOp( BaseGDL* r)
 // {
-//   throw GDLException("Cannot apply operation to datatype OBJECT.");  
+//   throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
 //   return NULL;
 // }
 
@@ -627,31 +627,31 @@ Data_<SpDByte>* Data_<Sp>::LeOp( BaseGDL* r)
 // invalid types
 Data_<SpDByte>* DStructGDL::LeOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return NULL;
 }
 template<>
 Data_<SpDByte>* Data_<SpDPtr>::LeOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return NULL;
 }
 template<>
 Data_<SpDByte>* Data_<SpDObj>::LeOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return NULL;
 }
 template<>
 Data_<SpDByte>* Data_<SpDComplex>::LeOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return NULL;
 }
 template<>
 Data_<SpDByte>* Data_<SpDComplexDbl>::LeOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return NULL;
 }
 
@@ -714,31 +714,31 @@ Data_<SpDByte>* Data_<Sp>::LtOp( BaseGDL* r)
 // invalid types
 Data_<SpDByte>* DStructGDL::LtOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return NULL;
 }
 template<>
 Data_<SpDByte>* Data_<SpDPtr>::LtOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return NULL;
 }
 template<>
 Data_<SpDByte>* Data_<SpDObj>::LtOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return NULL;
 }
 template<>
 Data_<SpDByte>* Data_<SpDComplex>::LtOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return NULL;
 }
 template<>
 Data_<SpDByte>* Data_<SpDComplexDbl>::LtOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return NULL;
 }
 
@@ -801,31 +801,31 @@ Data_<SpDByte>* Data_<Sp>::GeOp( BaseGDL* r)
 // invalid types
 Data_<SpDByte>* DStructGDL::GeOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return NULL;
 }
 template<>
 Data_<SpDByte>* Data_<SpDPtr>::GeOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return NULL;
 }
 template<>
 Data_<SpDByte>* Data_<SpDObj>::GeOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return NULL;
 }
 template<>
 Data_<SpDByte>* Data_<SpDComplex>::GeOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return NULL;
 }
 template<>
 Data_<SpDByte>* Data_<SpDComplexDbl>::GeOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return NULL;
 }
 
@@ -888,31 +888,31 @@ Data_<SpDByte>* Data_<Sp>::GtOp( BaseGDL* r)
 // invalid types
 Data_<SpDByte>* DStructGDL::GtOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return NULL;
 }
 template<>
 Data_<SpDByte>* Data_<SpDPtr>::GtOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return NULL;
 }
 template<>
 Data_<SpDByte>* Data_<SpDObj>::GtOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return NULL;
 }
 template<>
 Data_<SpDByte>* Data_<SpDComplex>::GtOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return NULL;
 }
 template<>
 Data_<SpDByte>* Data_<SpDComplexDbl>::GtOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return NULL;
 }
 // MatrixOp
@@ -1003,7 +1003,7 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r)
 //      SizeT nRowEl=right->dim[0];
       if( nColEl != nRowEl)
 	throw GDLException("Operands of matrix multiply have"
-			   " incompatible dimensions.");  
+			   " incompatible dimensions.",true,false);  
 
       if( nRow > 1)
 	res=New(dimension(nCol,nRow),BaseGDL::NOZERO);
@@ -1077,25 +1077,25 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r)
 // invalid types
 DStructGDL* DStructGDL::MatrixOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return NULL;
 }
 template<>
 Data_<SpDString>* Data_<SpDString>::MatrixOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRING.");  
+  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
   return this;
 }
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::MatrixOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return NULL;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::MatrixOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return NULL;
 }
 
@@ -1203,66 +1203,66 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOpInv( BaseGDL* r)
 // invalid types
 DStructGDL* DStructGDL::AndOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 DStructGDL* DStructGDL::AndOpInv( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 // template<>
 // DStructGDL* DStructGDL::AndOpInv( BaseGDL* r)
 // {
-//  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+//  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
 //  return this;
 // }
 template<>
 Data_<SpDString>* Data_<SpDString>::AndOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRING.");  
+  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
   return this;
 }
 template<>
 Data_<SpDComplex>* Data_<SpDComplex>::AndOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
 }
 template<>
 Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::AndOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
 }
 // template<>
 // Data_<SpDString>* Data_<SpDString>::AndOpInv( BaseGDL* r)
 // {
-//  throw GDLException("Cannot apply operation to datatype STRING.");  
+//  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
 //  return this;
 // }
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::AndOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 // template<>
 // Data_<SpDPtr>* Data_<SpDPtr>::AndOpInv( BaseGDL* r)
 // {
-//  throw GDLException("Cannot apply operation to datatype PTR.");  
+//  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
 //  return this;
 // }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::AndOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
 }
 // template<>
 // Data_<SpDPtr>* Data_<SpDPtr>::AndOpInv( BaseGDL* r)
 // {
-//  throw GDLException("Cannot apply operation to datatype PTR.");  
+//  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
 //  return this;
 // }
 template<class Sp>
@@ -1396,54 +1396,54 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOpInvS( BaseGDL* r)
 // invalid types
 DStructGDL* DStructGDL::AndOpS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 DStructGDL* DStructGDL::AndOpInvS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 // template<>
 // DStructGDL* DStructGDL::AndOpInv( BaseGDL* r)
 // {
-//  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+//  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
 //  return this;
 // }
 template<>
 Data_<SpDString>* Data_<SpDString>::AndOpS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRING.");  
+  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
   return this;
 }
 template<>
 Data_<SpDComplex>* Data_<SpDComplex>::AndOpS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
 }
 template<>
 Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::AndOpS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
 }
 // template<>
 // Data_<SpDString>* Data_<SpDString>::AndOpInvS( BaseGDL* r)
 // {
-//  throw GDLException("Cannot apply operation to datatype STRING.");  
+//  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
 //  return this;
 // }
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::AndOpS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::AndOpS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
 }
 
@@ -1554,42 +1554,42 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOpInv( BaseGDL* r)
 // invalid types
 DStructGDL* DStructGDL::OrOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 DStructGDL* DStructGDL::OrOpInv( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 template<>
 Data_<SpDString>* Data_<SpDString>::OrOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRING.");  
+  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
   return this;
 }
 template<>
 Data_<SpDComplex>* Data_<SpDComplex>::OrOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
 }
 template<>
 Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::OrOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
 }
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::OrOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::OrOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
 }
 // OrOp
@@ -1707,42 +1707,42 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOpInvS( BaseGDL* r)
 // invalid types
 DStructGDL* DStructGDL::OrOpS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 DStructGDL* DStructGDL::OrOpInvS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 template<>
 Data_<SpDString>* Data_<SpDString>::OrOpS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRING.");  
+  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
   return this;
 }
 template<>
 Data_<SpDComplex>* Data_<SpDComplex>::OrOpS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
 }
 template<>
 Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::OrOpS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
 }
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::OrOpS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::OrOpS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
 }
 
@@ -1788,48 +1788,48 @@ Data_<Sp>* Data_<Sp>::XorOp( BaseGDL* r)
 template<>
 Data_<SpDFloat>* Data_<SpDFloat>::XorOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype FLOAT.");  
+  throw GDLException("Cannot apply operation to datatype FLOAT.",true,false);  
   return this;
 }
 template<>
 Data_<SpDDouble>* Data_<SpDDouble>::XorOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype DOUBLE.");  
+  throw GDLException("Cannot apply operation to datatype DOUBLE.",true,false);  
   return this;
 }
 DStructGDL* DStructGDL::XorOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 template<>
 Data_<SpDString>* Data_<SpDString>::XorOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRING.");  
+  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
   return this;
 }
 template<>
 Data_<SpDComplex>* Data_<SpDComplex>::XorOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
 }
 template<>
 Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::XorOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
 }
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::XorOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::XorOp( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
 }
 template<class Sp>
@@ -1854,50 +1854,50 @@ Data_<Sp>* Data_<Sp>::XorOpS( BaseGDL* r)
 template<>
 Data_<SpDFloat>* Data_<SpDFloat>::XorOpS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype FLOAT.");  
+  throw GDLException("Cannot apply operation to datatype FLOAT.",true,false);  
   return this;
 }
 // for doubles
 template<>
 Data_<SpDDouble>* Data_<SpDDouble>::XorOpS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype DOUBLE.");  
+  throw GDLException("Cannot apply operation to datatype DOUBLE.",true,false);  
   return this;
 }
 // invalid types
 DStructGDL* DStructGDL::XorOpS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 template<>
 Data_<SpDString>* Data_<SpDString>::XorOpS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRING.");  
+  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
   return this;
 }
 template<>
 Data_<SpDComplex>* Data_<SpDComplex>::XorOpS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
 }
 template<>
 Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::XorOpS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
 }
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::XorOpS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::XorOpS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
 }
 
@@ -1947,24 +1947,24 @@ Data_<SpDString>* Data_<SpDString>::AddInv( BaseGDL* r)
 // invalid types
 DStructGDL* DStructGDL::Add( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 DStructGDL* DStructGDL::AddInv( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::Add( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::Add( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
 }
 template<class Sp>
@@ -2013,24 +2013,24 @@ Data_<SpDString>* Data_<SpDString>::AddInvS( BaseGDL* r)
 // invalid types
 DStructGDL* DStructGDL::AddS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 DStructGDL* DStructGDL::AddInvS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::AddS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::AddS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
 }
 
@@ -2083,48 +2083,48 @@ Data_<Sp>* Data_<Sp>::SubInv( BaseGDL* r)
 // invalid types
 DStructGDL* DStructGDL::Sub( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 DStructGDL* DStructGDL::SubInv( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 template<>
 Data_<SpDString>* Data_<SpDString>::Sub( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRING.");  
+  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
   return this;
 }
 template<>
 Data_<SpDString>* Data_<SpDString>::SubInv( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRING.");  
+  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
   return this;
 }
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::Sub( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::SubInv( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::Sub( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::SubInv( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
 }
 template<class Sp>
@@ -2167,48 +2167,48 @@ Data_<Sp>* Data_<Sp>::SubInvS( BaseGDL* r)
 // invalid types
 DStructGDL* DStructGDL::SubS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 DStructGDL* DStructGDL::SubInvS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 template<>
 Data_<SpDString>* Data_<SpDString>::SubS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRING.");  
+  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
   return this;
 }
 template<>
 Data_<SpDString>* Data_<SpDString>::SubInvS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRING.");  
+  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
   return this;
 }
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::SubS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::SubInvS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::SubS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::SubInvS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
 }
 
@@ -2236,37 +2236,37 @@ Data_<Sp>* Data_<Sp>::LtMark( BaseGDL* r)
 // invalid types
 DStructGDL* DStructGDL::LtMark( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 template<>
 Data_<SpDString>* Data_<SpDString>::LtMark( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRING.");  
+  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
   return this;
 }
 template<>
 Data_<SpDComplex>* Data_<SpDComplex>::LtMark( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
 }
 template<>
 Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::LtMark( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
 }
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::LtMark( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::LtMark( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
 }
 template<class Sp>
@@ -2289,37 +2289,37 @@ Data_<Sp>* Data_<Sp>::LtMarkS( BaseGDL* r)
 // invalid types
 DStructGDL* DStructGDL::LtMarkS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 template<>
 Data_<SpDString>* Data_<SpDString>::LtMarkS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRING.");  
+  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
   return this;
 }
 template<>
 Data_<SpDComplex>* Data_<SpDComplex>::LtMarkS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
 }
 template<>
 Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::LtMarkS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
 }
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::LtMarkS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::LtMarkS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
 }
 // GtMark
@@ -2346,37 +2346,37 @@ Data_<Sp>* Data_<Sp>::GtMark( BaseGDL* r)
 // invalid types
 DStructGDL* DStructGDL::GtMark( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 template<>
 Data_<SpDString>* Data_<SpDString>::GtMark( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRING.");  
+  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
   return this;
 }
 template<>
 Data_<SpDComplex>* Data_<SpDComplex>::GtMark( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
 }
 template<>
 Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::GtMark( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
 }
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::GtMark( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::GtMark( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
 }
 template<class Sp>
@@ -2399,37 +2399,37 @@ Data_<Sp>* Data_<Sp>::GtMarkS( BaseGDL* r)
 // invalid types
 DStructGDL* DStructGDL::GtMarkS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 template<>
 Data_<SpDString>* Data_<SpDString>::GtMarkS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRING.");  
+  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
   return this;
 }
 template<>
 Data_<SpDComplex>* Data_<SpDComplex>::GtMarkS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
 }
 template<>
 Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::GtMarkS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
 }
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::GtMarkS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::GtMarkS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
 }
 
@@ -2457,25 +2457,25 @@ Data_<Sp>* Data_<Sp>::Mult( BaseGDL* r)
 // invalid types
 DStructGDL* DStructGDL::Mult( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 template<>
 Data_<SpDString>* Data_<SpDString>::Mult( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRING.");  
+  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
   return this;
 }
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::Mult( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::Mult( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
 }
 template<class Sp>
@@ -2499,25 +2499,25 @@ Data_<Sp>* Data_<Sp>::MultS( BaseGDL* r)
 // invalid types
 DStructGDL* DStructGDL::MultS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 template<>
 Data_<SpDString>* Data_<SpDString>::MultS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRING.");  
+  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
   return this;
 }
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::MultS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::MultS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
 }
 
@@ -2611,48 +2611,48 @@ SizeT i = 0;
 // invalid types
 DStructGDL* DStructGDL::Div( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 DStructGDL* DStructGDL::DivInv( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 template<>
 Data_<SpDString>* Data_<SpDString>::Div( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRING.");  
+  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
   return this;
 }
 template<>
 Data_<SpDString>* Data_<SpDString>::DivInv( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRING.");  
+  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
   return this;
 }
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::Div( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::DivInv( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::Div( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::DivInv( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
 }
 template<class Sp>
@@ -2727,48 +2727,48 @@ SizeT i=0;
 // invalid types
 DStructGDL* DStructGDL::DivS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 DStructGDL* DStructGDL::DivInvS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 template<>
 Data_<SpDString>* Data_<SpDString>::DivS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRING.");  
+  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
   return this;
 }
 template<>
 Data_<SpDString>* Data_<SpDString>::DivInvS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRING.");  
+  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
   return this;
 }
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::DivS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::DivInvS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::DivS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::DivInvS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
 }
 
@@ -2952,72 +2952,72 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModInv( BaseGDL* r)
 // invalid types
 DStructGDL* DStructGDL::Mod( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 DStructGDL* DStructGDL::ModInv( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 template<>
 Data_<SpDString>* Data_<SpDString>::Mod( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRING.");  
+  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
   return this;
 }
 template<>
 Data_<SpDString>* Data_<SpDString>::ModInv( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRING.");  
+  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
   return this;
 }
 template<>
 Data_<SpDComplex>* Data_<SpDComplex>::Mod( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
 }
 template<>
 Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Mod( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
 }
 template<>
 Data_<SpDComplex>* Data_<SpDComplex>::ModInv( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
 }
 template<>
 Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::ModInv( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
 }
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::Mod( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::ModInv( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::Mod( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::ModInv( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
 }
 template<class Sp>
@@ -3178,73 +3178,73 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModInvS( BaseGDL* r)
 // invalid types
 DStructGDL* DStructGDL::ModS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 DStructGDL* DStructGDL::ModInvS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 template<>
 Data_<SpDString>* Data_<SpDString>::ModS( BaseGDL* r)
 
 {
-  throw GDLException("Cannot apply operation to datatype STRING.");  
+  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
   return this;
 }
 template<>
 Data_<SpDString>* Data_<SpDString>::ModInvS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRING.");  
+  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
   return this;
 }
 template<>
 Data_<SpDComplex>* Data_<SpDComplex>::ModS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
 }
 template<>
 Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::ModS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
 }
 template<>
 Data_<SpDComplex>* Data_<SpDComplex>::ModInvS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
 }
 template<>
 Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::ModInvS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype "+str+".");  
+  throw GDLException("Cannot apply operation to datatype "+str+".",true,false);  
   return this;
 }
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::ModS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::ModInvS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::ModS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::ModInvS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
 }
 
@@ -4018,48 +4018,48 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowInv( BaseGDL* r)
 // invalid types
 DStructGDL* DStructGDL::Pow( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 DStructGDL* DStructGDL::PowInv( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 template<>
 Data_<SpDString>* Data_<SpDString>::Pow( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRING.");  
+  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
   return this;
 }
 template<>
 Data_<SpDString>* Data_<SpDString>::PowInv( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRING.");  
+  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
   return this;
 }
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::Pow( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::PowInv( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::Pow( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::PowInv( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
 }
 template<class Sp>
@@ -4532,48 +4532,48 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowInvS( BaseGDL* r)
 // invalid types
 DStructGDL* DStructGDL::PowS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 DStructGDL* DStructGDL::PowInvS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRUCT.");  
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
 template<>
 Data_<SpDString>* Data_<SpDString>::PowS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRING.");  
+  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
   return this;
 }
 template<>
 Data_<SpDString>* Data_<SpDString>::PowInvS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRING.");  
+  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
   return this;
 }
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::PowS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::PowInvS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::PowS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::PowInvS( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
 }
 
@@ -4625,19 +4625,19 @@ Data_<Sp>* Data_<Sp>::SubNew( BaseGDL* r)
 template<>
 Data_<SpDString>* Data_<SpDString>::SubNew( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype STRING.");  
+  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
   return this;
 }
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::SubNew( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype PTR.");  
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::SubNew( BaseGDL* r)
 {
-  throw GDLException("Cannot apply operation to datatype OBJECT.");  
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
 }
 template<>

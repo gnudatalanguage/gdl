@@ -1,9 +1,5 @@
-dnl 2.63 is needed for the AC_OPENMP macro (which enables the
-dnl configure script to detect if the compiler supports OpenMP)
-dnl caution! autoupdate replaces it with the current version number!
-AC_PREREQ(2.63) 
-
-AC_INIT([gdl],[0.9rc3 CVS])
+AC_INIT(gdl, 0.9rc3 CVS)
+AC_CONFIG_MACRO_DIR([m4])
 
 dnl == Configuration (of the configure script)  ============
 dnl ========================================================
@@ -33,41 +29,28 @@ datasubdir="gnudatalanguage"
 dnl == some basics =========================================
 dnl ======================================================== 
 
-AC_CONFIG_HEADERS([config.h])
+AM_CONFIG_HEADER(config.h)
 AM_INIT_AUTOMAKE
 AC_LANG(C++)
 AC_PROG_CXX
-dnl SA: libtoolize: `AC_PROG_RANLIB' is rendered obsolete by `LT_INIT'
-dnl AC_PROG_RANLIB
-LT_INIT
-
-dnl CVS timestamping logic conflicts with the autotools logic 
-dnl of checking if auto-generated configuration files are up-to-date:
-dnl   (http://www.gnu.org/software/hello/manual/automake/CVS.html)
-dnl   ,,Because CVS processes files in lexical order, configure.ac 
-dnl   will appear newer than configure after a cvs update that 
-dnl   updates both files, even if configure was newer than configure.ac 
-dnl   when it was checked in. Calling make will then trigger a spurious 
-dnl   rebuild of configure.'' 
-dnl One option (apparently controversial but the most straightforward) 
-dnl is to disable the automake ,,maintainer mode'' by default. As a result,
-dnl configuration files are not regenerated silently while invoking "make", 
-dnl unless the --enable-maintainer-mode option is passed to configure script.
-AM_MAINTAINER_MODE([disable])
+AC_PROG_RANLIB
+AC_PROG_LIBTOOL
 
 dnl == Checking for 64-bit OS ==============================                                 
 dnl ========================================================
 
-AC_LANG_PUSH([C])
+AC_LANG_SAVE
+AC_LANG_C
 AC_MSG_CHECKING(for 64-bit OS)
-AC_RUN_IFELSE([AC_LANG_SOURCE([[ int main () {
-    if (sizeof(long) == 8) { return 0; } return 1; } ]])],[result="yes"],[result="no"],[result="maybe" ])
+AC_TRY_RUN([ int main () {
+    if (sizeof(long) == 8) { return 0; } return 1; } ],
+        result="yes", result="no", result="maybe" )
 AC_MSG_RESULT($result)
 if test "$result" = "yes"; then
     AC_DEFINE([HAVE_64BIT_OS], [1], [Define if 64-bit OS])
 fi
 AC_SUBST(HAVE_64BIT_OS)
-AC_LANG_POP([])
+AC_LANG_RESTORE
 
 dnl == Python module (calling GDL from Python) =============
 dnl ========================================================
@@ -186,25 +169,28 @@ AC_CHECK_LIB(z, gzopen, [AC_DEFINE([HAVE_LIBZ], [1], [Zlib library])],
 dnl == OpenMP ==============================================
 dnl ========================================================
 
-dnl AC_OPENMP macro detects if the compiler supports OpenMP
-AC_OPENMP
-if test "x$OPENMP_CXXFLAGS" != "x"; then
+dnl error: possibly undefined macro: AC_OPENMP If this token and others are legitimate, please use m4_pattern_allow. See the Autoconf documentation.
+
+dnl AC_OPENMP
+dnl if test "x$OPENMP_CXXFLAGS" != "x"; then
   dnl this is just to force recompilation when OpenMP setting is changed
-  AC_DEFINE([HAVE_OPENMP], [1], [Use OpenMP])
-  CPPFLAGS="$CPPFLAGS $OPENMP_CXXFLAGS"
-  LDFLAGS="$LDFLAGS $OPENMP_CXXFLAGS"
+dnl   AC_DEFINE([HAVE_OPENMP], [1], [Use OpenMP])
+dnl   CPPFLAGS="$CPPFLAGS $OPENMP_CXXFLAGS"
+dnl   LDFLAGS="$LDFLAGS $OPENMP_CXXFLAGS"
+dnl fi
+
+
+dnl OpenMP
+dnl default yes 
+if test "x$with-openmp" = "x"; then
+   with-openmp=yes
 fi
 
-#dnl OpenMP
-#dnl default yes 
-#if test "x$with-openmp" = "x"; then
-#   with-openmp=yes
-#fi
-#
-#if test "x$with-openmp" != "xno"; then
-#	CPPFLAGS="$CPPFLAGS -fopenmp"
-#	LDFLAGS="$LDFLAGS -fopenmp"
-#fi
+if test "x$with-openmp" != "xno"; then
+	CPPFLAGS="$CPPFLAGS -fopenmp"
+	LDFLAGS="$LDFLAGS -fopenmp"
+fi
+
 
 dnl == tdl =================================================
 dnl ========================================================
@@ -326,19 +312,14 @@ if test "x$with_wxWidgets" != "xno"; then
   tmp="`wx-config --basename`-`wx-config --release`"
   AC_CHECK_LIB($tmp, wxFatalSignalHandler, 
     [AC_DEFINE([HAVE_LIBWXWIDGETS], [1], [wxWidgets library])], [
-      dnl SA: handling the multi-port wxWidgets installation case
-      tmp="`wx-config --basename --toolkit=base`-`wx-config --release`"
-      AC_CHECK_LIB($tmp, wxInteger_compare, [AC_DEFINE([HAVE_LIBWXWIDGETS], [1])], [
-        echo ""
-        echo "Error! wxWidgets version 2.8 or later is required but was not found"
-        echo "       Use --with-wxWidgets=DIR to specify the wxWidgets directory tree"
-        echo "       Use --with-wxWidgets=no  to not use it"
-        echo "       Check the README or use configure --help for other libraries needed"
-        echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
-        exit -1
-      ])
-    ]
-  )
+    echo ""
+    echo "Error! wxWidgets version 2.8 or later is required but was not found"
+    echo "       Use --with-wxWidgets=DIR to specify the wxWidgets directory tree"
+    echo "       Use --with-wxWidgets=no  to not use it"
+    echo "       Check the README or use configure --help for other libraries needed"
+    echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
+    exit -1
+  ])
 fi
 
 dnl == ImageMagick =========================================

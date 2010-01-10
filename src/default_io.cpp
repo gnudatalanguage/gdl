@@ -20,7 +20,7 @@
 
 //#include "datatypes.hpp"
 //#include "dstructgdl.hpp"
-//#include "arrayindex.hpp"
+//#include "arrayindex.hpp".
 //#include "assocdata.hpp"
 //#include "io.hpp"
 #include "ofmt.hpp"

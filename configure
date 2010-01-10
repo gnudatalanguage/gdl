@@ -753,13 +753,9 @@ nc_config
 XMKMF
 MagickConfig
 wxConfig
-OPENMP_CXXFLAGS
 BUILDASLIBRARY_FALSE
 BUILDASLIBRARY_TRUE
 HAVE_64BIT_OS
-MAINT
-MAINTAINER_MODE_FALSE
-MAINTAINER_MODE_TRUE
 CXXCPP
 CPP
 OTOOL64
@@ -768,7 +764,6 @@ LIPO
 NMEDIT
 DSYMUTIL
 lt_ECHO
-RANLIB
 AR
 OBJDUMP
 LN_S
@@ -795,6 +790,7 @@ build_vendor
 build_cpu
 build
 LIBTOOL
+RANLIB
 am__fastdepCXX_FALSE
 am__fastdepCXX_TRUE
 CXXDEPMODE
@@ -882,12 +878,10 @@ with_pic
 enable_fast_install
 with_gnu_ld
 enable_libtool_lock
-enable_maintainer_mode
 enable_python_module
 with_ncursesdir
 with_readlinedir
 with_zlibdir
-enable_openmp
 with_gsldir
 with_plplotdir
 enable_oldplplot
@@ -1549,10 +1543,7 @@ Optional Features:
   --enable-fast-install[=PKGS]
                           optimize for fast installation [default=yes]
   --disable-libtool-lock  avoid locking (might break parallel builds)
-  --enable-maintainer-mode  enable make rules and dependencies not useful
-			  (and sometimes confusing) to the casual installer
   --enable-python_module  make GDL python module (default: standalone version)
-  --disable-openmp        do not use OpenMP
   --enable-oldplplot      use plplot version prior to 5.9.0
   --enable-python_version set explicit python version to use (eg. 2.4)
 
@@ -2589,6 +2580,7 @@ ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
 
 
 
@@ -3817,6 +3809,98 @@ else
 fi
 
 
+if test -n "$ac_tool_prefix"; then
+  # Extract the first word of "${ac_tool_prefix}ranlib", so it can be a program name with args.
+set dummy ${ac_tool_prefix}ranlib; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_prog_RANLIB+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$RANLIB"; then
+  ac_cv_prog_RANLIB="$RANLIB" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_prog_RANLIB="${ac_tool_prefix}ranlib"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+RANLIB=$ac_cv_prog_RANLIB
+if test -n "$RANLIB"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $RANLIB" >&5
+$as_echo "$RANLIB" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+fi
+if test -z "$ac_cv_prog_RANLIB"; then
+  ac_ct_RANLIB=$RANLIB
+  # Extract the first word of "ranlib", so it can be a program name with args.
+set dummy ranlib; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_prog_ac_ct_RANLIB+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$ac_ct_RANLIB"; then
+  ac_cv_prog_ac_ct_RANLIB="$ac_ct_RANLIB" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_prog_ac_ct_RANLIB="ranlib"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+ac_ct_RANLIB=$ac_cv_prog_ac_ct_RANLIB
+if test -n "$ac_ct_RANLIB"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_ct_RANLIB" >&5
+$as_echo "$ac_ct_RANLIB" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+  if test "x$ac_ct_RANLIB" = x; then
+    RANLIB=":"
+  else
+    case $cross_compiling:$ac_tool_warned in
+yes:)
+{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: using cross tools not prefixed with host triplet" >&5
+$as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
+ac_tool_warned=yes ;;
+esac
+    RANLIB=$ac_ct_RANLIB
+  fi
+else
+  RANLIB="$ac_cv_prog_RANLIB"
+fi
+
 case `pwd` in
   *\ * | *\	*)
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Libtool does not cope well with whitespace in \`pwd\`" >&5
@@ -3825,8 +3909,8 @@ esac
 
 
 
-macro_version='2.2.6'
-macro_revision='1.3012'
+macro_version='2.2.6b'
+macro_revision='1.3017'
 
 
 
@@ -5164,13 +5248,13 @@ if test "${lt_cv_nm_interface+set}" = set; then :
 else
   lt_cv_nm_interface="BSD nm"
   echo "int some_variable = 0;" > conftest.$ac_ext
-  (eval echo "\"\$as_me:5167: $ac_compile\"" >&5)
+  (eval echo "\"\$as_me:5251: $ac_compile\"" >&5)
   (eval "$ac_compile" 2>conftest.err)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:5170: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+  (eval echo "\"\$as_me:5254: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:5173: output\"" >&5)
+  (eval echo "\"\$as_me:5257: output\"" >&5)
   cat conftest.out >&5
   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
     lt_cv_nm_interface="MS dumpbin"
@@ -6376,7 +6460,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 6379 "configure"' > conftest.$ac_ext
+  echo '#line 6463 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -8429,11 +8513,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8432: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8516: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:8436: \$? = $ac_status" >&5
+   echo "$as_me:8520: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -8768,11 +8852,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8771: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8855: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:8775: \$? = $ac_status" >&5
+   echo "$as_me:8859: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -8873,11 +8957,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8876: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8960: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:8880: \$? = $ac_status" >&5
+   echo "$as_me:8964: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -8928,11 +9012,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8931: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9015: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:8935: \$? = $ac_status" >&5
+   echo "$as_me:9019: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -11295,7 +11379,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 11298 "configure"
+#line 11382 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -11391,7 +11475,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 11394 "configure"
+#line 11478 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -13347,11 +13431,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13350: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13434: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:13354: \$? = $ac_status" >&5
+   echo "$as_me:13438: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -13446,11 +13530,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13449: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13533: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13453: \$? = $ac_status" >&5
+   echo "$as_me:13537: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -13498,11 +13582,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13501: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13585: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13505: \$? = $ac_status" >&5
+   echo "$as_me:13589: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -14452,29 +14536,6 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to enable maintainer-specific portions of Makefiles" >&5
-$as_echo_n "checking whether to enable maintainer-specific portions of Makefiles... " >&6; }
-    # Check whether --enable-maintainer-mode was given.
-if test "${enable_maintainer_mode+set}" = set; then :
-  enableval=$enable_maintainer_mode; USE_MAINTAINER_MODE=$enableval
-else
-  USE_MAINTAINER_MODE=no
-fi
-
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $USE_MAINTAINER_MODE" >&5
-$as_echo "$USE_MAINTAINER_MODE" >&6; }
-   if test $USE_MAINTAINER_MODE = yes; then
-  MAINTAINER_MODE_TRUE=
-  MAINTAINER_MODE_FALSE='#'
-else
-  MAINTAINER_MODE_TRUE='#'
-  MAINTAINER_MODE_FALSE=
-fi
-
-  MAINT=$MAINTAINER_MODE_TRUE
-
-
-
 
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
@@ -14892,88 +14953,17 @@ fi
 
 
 
-  OPENMP_CXXFLAGS=
-  # Check whether --enable-openmp was given.
-if test "${enable_openmp+set}" = set; then :
-  enableval=$enable_openmp;
+
+
+if test "x$with-openmp" = "x"; then
+   with-openmp=yes
 fi
 
-  if test "$enable_openmp" != no; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $CXX option to support OpenMP" >&5
-$as_echo_n "checking for $CXX option to support OpenMP... " >&6; }
-if test "${ac_cv_prog_cxx_openmp+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#ifndef _OPENMP
- choke me
-#endif
-#include <omp.h>
-int main () { return omp_get_num_threads (); }
-
-_ACEOF
-if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_prog_cxx_openmp='none needed'
-else
-  ac_cv_prog_cxx_openmp='unsupported'
-	  	  	  	  	  	  	  	  	  	  	  	  	  for ac_option in -fopenmp -xopenmp -openmp -mp -omp -qsmp=omp; do
-	    ac_save_CXXFLAGS=$CXXFLAGS
-	    CXXFLAGS="$CXXFLAGS $ac_option"
-	    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#ifndef _OPENMP
- choke me
-#endif
-#include <omp.h>
-int main () { return omp_get_num_threads (); }
-
-_ACEOF
-if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_prog_cxx_openmp=$ac_option
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-	    CXXFLAGS=$ac_save_CXXFLAGS
-	    if test "$ac_cv_prog_cxx_openmp" != unsupported; then
-	      break
-	    fi
-	  done
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_prog_cxx_openmp" >&5
-$as_echo "$ac_cv_prog_cxx_openmp" >&6; }
-    case $ac_cv_prog_cxx_openmp in #(
-      "none needed" | unsupported)
-	;; #(
-      *)
-	OPENMP_CXXFLAGS=$ac_cv_prog_cxx_openmp ;;
-    esac
-  fi
-
-
-if test "x$OPENMP_CXXFLAGS" != "x"; then
-
-$as_echo "#define HAVE_OPENMP 1" >>confdefs.h
-
-  CPPFLAGS="$CPPFLAGS $OPENMP_CXXFLAGS"
-  LDFLAGS="$LDFLAGS $OPENMP_CXXFLAGS"
+if test "x$with-openmp" != "xno"; then
+	CPPFLAGS="$CPPFLAGS -fopenmp"
+	LDFLAGS="$LDFLAGS -fopenmp"
 fi
 
-#dnl OpenMP
-#dnl default yes
-#if test "x$with-openmp" = "x"; then
-#   with-openmp=yes
-#fi
-#
-#if test "x$with-openmp" != "xno"; then
-#	CPPFLAGS="$CPPFLAGS -fopenmp"
-#	LDFLAGS="$LDFLAGS -fopenmp"
-#fi
 
 
 
@@ -15346,62 +15336,13 @@ $as_echo "#define HAVE_LIBWXWIDGETS 1" >>confdefs.h
 
 else
 
-            tmp="`wx-config --basename --toolkit=base`-`wx-config --release`"
-      as_ac_Lib=`$as_echo "ac_cv_lib_$tmp''_wxInteger_compare" | $as_tr_sh`
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for wxInteger_compare in -l$tmp" >&5
-$as_echo_n "checking for wxInteger_compare in -l$tmp... " >&6; }
-if { as_var=$as_ac_Lib; eval "test \"\${$as_var+set}\" = set"; }; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-l$tmp  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char wxInteger_compare ();
-int
-main ()
-{
-return wxInteger_compare ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_cxx_try_link "$LINENO"; then :
-  eval "$as_ac_Lib=yes"
-else
-  eval "$as_ac_Lib=no"
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-eval ac_res=\$$as_ac_Lib
-	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-$as_echo "$ac_res" >&6; }
-eval as_val=\$$as_ac_Lib
-   if test "x$as_val" = x""yes; then :
-  $as_echo "#define HAVE_LIBWXWIDGETS 1" >>confdefs.h
-
-else
-
-        echo ""
-        echo "Error! wxWidgets version 2.8 or later is required but was not found"
-        echo "       Use --with-wxWidgets=DIR to specify the wxWidgets directory tree"
-        echo "       Use --with-wxWidgets=no  to not use it"
-        echo "       Check the README or use configure --help for other libraries needed"
-        echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
-        exit -1
-
-fi
-
-
+    echo ""
+    echo "Error! wxWidgets version 2.8 or later is required but was not found"
+    echo "       Use --with-wxWidgets=DIR to specify the wxWidgets directory tree"
+    echo "       Use --with-wxWidgets=no  to not use it"
+    echo "       Check the README or use configure --help for other libraries needed"
+    echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
+    exit -1
 
 fi
 
@@ -17351,10 +17292,6 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${am__fastdepCXX_TRUE}" && test -z "${am__fastdepCXX_FALSE}"; then
   as_fn_error "conditional \"am__fastdepCXX\" was never defined.
-Usually this means the macro was only invoked conditionally." "$LINENO" 5
-fi
-if test -z "${MAINTAINER_MODE_TRUE}" && test -z "${MAINTAINER_MODE_FALSE}"; then
-  as_fn_error "conditional \"MAINTAINER_MODE\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${BUILDASLIBRARY_TRUE}" && test -z "${BUILDASLIBRARY_FALSE}"; then
