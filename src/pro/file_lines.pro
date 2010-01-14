@@ -32,6 +32,7 @@
 ;   - 26/07/2006: created by Alain Coulais (ARSC)
 ;   - 30/05/2008: Michael Mueller (U of Arizona) fixed inconsistent
 ;     handling of files that don't end in newline
+;   - 14/01/2010: Lucio Baggio (LATMOS/CNRS) avoided shell interaction
 ;
 ;-
 ; LICENCE:
@@ -44,6 +45,7 @@
 ;
 function FILE_LINES, filename, compress=compress, noexpand_path=noexpand_path
 ;
+ON_ERROR, 2    ;Return to caller
 if KEYWORD_SET(compress) then begin
     print, 'Sorry, Keyword COMPRESS is not available now.'
     return, -1
@@ -54,9 +56,12 @@ if KEYWORD_SET(noexpand_path) then begin
     return, -1
 endif
 ;
-commande="paste "+filename+" | wc -l"
-SPAWN, commande, resultat
+commande=["wc", "-l",filename]
+SPAWN, commande, resultat, /NOSHELL
 nbp=(LONG(STRCOMPRESS(resultat,/remove_all)))(0)
+commande=["tail","-c 1",filename]
+SPAWN, commande, resultat, /NOSHELL
+nbp += resultat NE ''
 ;
 return, nbp
 ;
