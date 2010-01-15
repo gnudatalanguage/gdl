@@ -199,6 +199,7 @@ public:
 	protected: void mL(bool _createToken);
 	protected: void mH(bool _createToken);
 	protected: void mO(bool _createToken);
+	protected: void mB(bool _createToken);
 	protected: void mEXP(bool _createToken);
 	protected: void mDBL_E(bool _createToken);
 	protected: void mDBL(bool _createToken);

@@ -979,8 +979,13 @@ numeric_constant!//
 		}  
 	| c23:CONSTANT_DOUBLE
 		{ #numeric_constant=#[CONSTANT,c23->getText()];
-          #numeric_constant->Text2Double();	
+		  #numeric_constant->Text2Double();	
 		  #numeric_constant->SetLine( c23->getLine());	
+		}  
+	| c24:CONSTANT_BIN_I
+		{ #numeric_constant=#[CONSTANT,c24->getText()];
+		  #numeric_constant->Text2Int(2,true);	// DEFINT32
+		  #numeric_constant->SetLine( c24->getLine());	
 		}  
 	;
 
@@ -1673,6 +1678,10 @@ protected
 O
 	: ('0'..'7')
 	;
+protected
+B
+	: ('0'..'1')
+	;
 
 protected
 EXP
@@ -1792,6 +1801,10 @@ CONSTANT_OR_STRING_LITERAL
 			| "ll"!     { _ttype=CONSTANT_OCT_LONG64; }
 			| "ul"!    	{ _ttype=CONSTANT_OCT_ULONG; }
 			| "ull"!	{ _ttype=CONSTANT_OCT_ULONG64; }
+			))
+	| ('\''(B)+'\''	( 'b' )) =>
+		('\''! (B)+ '\''! 'b'!
+			(       	{ _ttype=CONSTANT_BIN_I; }
 			))
 	// strings in the original do not need trailing " or '	
 	| '\"'! (~('\"'|'\r'|'\n')| '\"' '\"'! )* 
