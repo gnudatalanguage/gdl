@@ -2302,7 +2302,25 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 					}  // ( ... )+
 					match('\'' /* charlit */ );
 					{
-					match('b' /* charlit */ );
+					if ((LA(1) == 0x62 /* 'b' */ ) && (LA(2) == 0x75 /* 'u' */ ) && (LA(3) == 0x6c /* 'l' */ )) {
+						match("bul");
+					}
+					else if ((LA(1) == 0x62 /* 'b' */ ) && (LA(2) == 0x73 /* 's' */ )) {
+						match("bs");
+					}
+					else if ((LA(1) == 0x62 /* 'b' */ ) && (LA(2) == 0x6c /* 'l' */ )) {
+						match("bl");
+					}
+					else if ((LA(1) == 0x62 /* 'b' */ ) && (LA(2) == 0x75 /* 'u' */ ) && (true)) {
+						match("bu");
+					}
+					else if ((LA(1) == 0x62 /* 'b' */ ) && (true)) {
+						match('b' /* charlit */ );
+					}
+					else {
+						throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());
+					}
+					
 					}
 					}
 				}
@@ -2338,8 +2356,89 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 				match('b' /* charlit */ );
 				text.erase(_saveIndex);
 				{
-				if ( inputState->guessing==0 ) {
-					_ttype=CONSTANT_BIN_I;
+				switch ( LA(1)) {
+				case 0x73 /* 's' */ :
+				{
+					_saveIndex = text.length();
+					match('s' /* charlit */ );
+					text.erase(_saveIndex);
+					if ( inputState->guessing==0 ) {
+						_ttype=CONSTANT_BIN_INT;
+					}
+					break;
+				}
+				case 0x62 /* 'b' */ :
+				{
+					_saveIndex = text.length();
+					match('b' /* charlit */ );
+					text.erase(_saveIndex);
+					if ( inputState->guessing==0 ) {
+						_ttype=CONSTANT_BIN_BYTE;
+					}
+					break;
+				}
+				default:
+					if ((LA(1) == 0x75 /* 'u' */ ) && (LA(2) == 0x6c /* 'l' */ ) && (LA(3) == 0x6c /* 'l' */ )) {
+						_saveIndex = text.length();
+						match("ull");
+						text.erase(_saveIndex);
+						if ( inputState->guessing==0 ) {
+							_ttype=CONSTANT_BIN_ULONG64;
+						}
+					}
+					else if ((LA(1) == 0x75 /* 'u' */ ) && (LA(2) == 0x73 /* 's' */ )) {
+						_saveIndex = text.length();
+						match("us");
+						text.erase(_saveIndex);
+						if ( inputState->guessing==0 ) {
+							_ttype=CONSTANT_BIN_UINT;
+						}
+					}
+					else if ((LA(1) == 0x75 /* 'u' */ ) && (LA(2) == 0x62 /* 'b' */ )) {
+						_saveIndex = text.length();
+						match("ub");
+						text.erase(_saveIndex);
+						if ( inputState->guessing==0 ) {
+							_ttype=CONSTANT_BIN_BYTE;
+						}
+					}
+					else if ((LA(1) == 0x6c /* 'l' */ ) && (LA(2) == 0x6c /* 'l' */ )) {
+						_saveIndex = text.length();
+						match("ll");
+						text.erase(_saveIndex);
+						if ( inputState->guessing==0 ) {
+							_ttype=CONSTANT_BIN_LONG64;
+						}
+					}
+					else if ((LA(1) == 0x75 /* 'u' */ ) && (LA(2) == 0x6c /* 'l' */ ) && (true)) {
+						_saveIndex = text.length();
+						match("ul");
+						text.erase(_saveIndex);
+						if ( inputState->guessing==0 ) {
+							_ttype=CONSTANT_BIN_ULONG;
+						}
+					}
+					else if ((LA(1) == 0x75 /* 'u' */ ) && (true)) {
+						_saveIndex = text.length();
+						match('u' /* charlit */ );
+						text.erase(_saveIndex);
+						if ( inputState->guessing==0 ) {
+							_ttype=CONSTANT_BIN_UI;
+						}
+					}
+					else if ((LA(1) == 0x6c /* 'l' */ ) && (true)) {
+						_saveIndex = text.length();
+						match('l' /* charlit */ );
+						text.erase(_saveIndex);
+						if ( inputState->guessing==0 ) {
+							_ttype=CONSTANT_BIN_LONG;
+						}
+					}
+					else {
+						if ( inputState->guessing==0 ) {
+							_ttype=CONSTANT_BIN_I;
+						}
+					}
 				}
 				}
 				}
@@ -3502,7 +3601,7 @@ const unsigned long GDLLexer::_tokenSet_2_data_[] = { 4294958072UL, 4294967295UL
 // 0xa0 0xa1 0xa2 0xa3 0xa4 0xa5 0xa6 0xa7 0xa8 0xa9 0xaa 0xab 0xac 0xad 
 // 0xae 0xaf 0xb0 0xb1 0xb2 0xb3 0xb4 0xb5 0xb6 0xb7 0xb8 0xb9 0xba 0xbb 
 // 0xbc 0xbd 0xbe 0xbf 0xc0 0xc1 0xc2 0xc3 0xc4 0xc5 0xc6 0xc7 0xc8 0xc9 
-// 0xca 0xcb 0xcc 0xcd 0xce 0xcf 
+// 0xca 0xcb 0xcc 0xcd 0xce 0xcf 0xd0 0xd1 0xd2 0xd3 0xd4 0xd5 0xd6 0xd7 
 const antlr::BitSet GDLLexer::_tokenSet_2(_tokenSet_2_data_,16);
 const unsigned long GDLLexer::_tokenSet_3_data_[] = { 0UL, 67053568UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // + - 0 1 2 3 4 5 6 7 8 9 
@@ -3536,7 +3635,7 @@ const unsigned long GDLLexer::_tokenSet_10_data_[] = { 4294958072UL, 4294967291U
 // 0xa1 0xa2 0xa3 0xa4 0xa5 0xa6 0xa7 0xa8 0xa9 0xaa 0xab 0xac 0xad 0xae 
 // 0xaf 0xb0 0xb1 0xb2 0xb3 0xb4 0xb5 0xb6 0xb7 0xb8 0xb9 0xba 0xbb 0xbc 
 // 0xbd 0xbe 0xbf 0xc0 0xc1 0xc2 0xc3 0xc4 0xc5 0xc6 0xc7 0xc8 0xc9 0xca 
-// 0xcb 0xcc 0xcd 0xce 0xcf 
+// 0xcb 0xcc 0xcd 0xce 0xcf 0xd0 0xd1 0xd2 0xd3 0xd4 0xd5 0xd6 0xd7 
 const antlr::BitSet GDLLexer::_tokenSet_10(_tokenSet_10_data_,16);
 const unsigned long GDLLexer::_tokenSet_11_data_[] = { 4294958072UL, 4294967167UL, 4294967295UL, 4294967295UL, 4294967295UL, 4294967295UL, 4294967295UL, 4294967295UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // 0x3 0x4 0x5 0x6 0x7 0x8 0x9 0xb 0xc 0xe 0xf 0x10 0x11 0x12 0x13 0x14 
@@ -3549,6 +3648,6 @@ const unsigned long GDLLexer::_tokenSet_11_data_[] = { 4294958072UL, 4294967167U
 // 0xa1 0xa2 0xa3 0xa4 0xa5 0xa6 0xa7 0xa8 0xa9 0xaa 0xab 0xac 0xad 0xae 
 // 0xaf 0xb0 0xb1 0xb2 0xb3 0xb4 0xb5 0xb6 0xb7 0xb8 0xb9 0xba 0xbb 0xbc 
 // 0xbd 0xbe 0xbf 0xc0 0xc1 0xc2 0xc3 0xc4 0xc5 0xc6 0xc7 0xc8 0xc9 0xca 
-// 0xcb 0xcc 0xcd 0xce 0xcf 
+// 0xcb 0xcc 0xcd 0xce 0xcf 0xd0 0xd1 0xd2 0xd3 0xd4 0xd5 0xd6 0xd7 
 const antlr::BitSet GDLLexer::_tokenSet_11(_tokenSet_11_data_,16);
 

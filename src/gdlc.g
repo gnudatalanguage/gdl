@@ -982,10 +982,52 @@ numeric_constant!//
 		  #numeric_constant->Text2Double();	
 		  #numeric_constant->SetLine( c23->getLine());	
 		}  
-	| c24:CONSTANT_BIN_I
+	| c24:CONSTANT_BIN_BYTE  
 		{ #numeric_constant=#[CONSTANT,c24->getText()];
-		  #numeric_constant->Text2Int(2,true);	// DEFINT32
+		  #numeric_constant->Text2Byte(2);	
 		  #numeric_constant->SetLine( c24->getLine());	
+		}  
+	| c25:CONSTANT_BIN_LONG 
+		{ #numeric_constant=#[CONSTANT,c25->getText()];
+		  #numeric_constant->Text2Long(2);	
+		  #numeric_constant->SetLine( c25->getLine());	
+		}  
+	| c26:CONSTANT_BIN_LONG64 
+		{ #numeric_constant=#[CONSTANT,c26->getText()];
+		  #numeric_constant->Text2Long64(2);	
+		  #numeric_constant->SetLine( c26->getLine());	
+		}  
+	| c27:CONSTANT_BIN_INT
+		{ #numeric_constant=#[CONSTANT,c27->getText()];
+		  #numeric_constant->Text2Int(2);	
+		  #numeric_constant->SetLine( c27->getLine());	
+		}  
+	| c277:CONSTANT_BIN_I
+        // DEFINT32
+		{ #numeric_constant=#[CONSTANT,c277->getText()];
+		  #numeric_constant->Text2Int(2,true);	
+		  #numeric_constant->SetLine( c277->getLine());	
+		}  
+    | c28:CONSTANT_BIN_ULONG 
+		{ #numeric_constant=#[CONSTANT,c28->getText()];
+		  #numeric_constant->Text2ULong(2);	
+		  #numeric_constant->SetLine( c28->getLine());	
+		}  
+    | c29:CONSTANT_BIN_ULONG64 
+		{ #numeric_constant=#[CONSTANT,c29->getText()];
+		  #numeric_constant->Text2ULong64(2);	
+		  #numeric_constant->SetLine( c29->getLine());	
+		}  
+	| c300:CONSTANT_BIN_UI
+        // DEFINT32
+		{ #numeric_constant=#[CONSTANT,c300->getText()];
+		  #numeric_constant->Text2UInt(2,true);	
+		  #numeric_constant->SetLine( c300->getLine());	
+		}  
+	| c30:CONSTANT_BIN_UINT
+		{ #numeric_constant=#[CONSTANT,c30->getText()];
+		  #numeric_constant->Text2UInt(2);	
+		  #numeric_constant->SetLine( c30->getLine());	
 		}  
 	;
 
@@ -1802,9 +1844,18 @@ CONSTANT_OR_STRING_LITERAL
 			| "ul"!    	{ _ttype=CONSTANT_OCT_ULONG; }
 			| "ull"!	{ _ttype=CONSTANT_OCT_ULONG64; }
 			))
-	| ('\''(B)+'\''	( 'b' )) =>
+	| ('\''(B)+'\''	( 'b' | "bs" | "bl" | "bu" | "bul" )) =>
 		('\''! (B)+ '\''! 'b'!
-			(       	{ _ttype=CONSTANT_BIN_I; }
+			(       	{ _ttype=CONSTANT_BIN_I; } // DEFINT32
+			| 's'!     	{ _ttype=CONSTANT_BIN_INT; }
+			| 'b'!     	{ _ttype=CONSTANT_BIN_BYTE; }
+			| 'u'!     	{ _ttype=CONSTANT_BIN_UI; }   // DEFINT32
+			| "us"!    	{ _ttype=CONSTANT_BIN_UINT; } 
+			| "ub"!    	{ _ttype=CONSTANT_BIN_BYTE; }
+			| 'l'!     	{ _ttype=CONSTANT_BIN_LONG; }
+			| "ll"!         { _ttype=CONSTANT_BIN_LONG64; }
+			| "ul"!    	{ _ttype=CONSTANT_BIN_ULONG; }
+			| "ull"!	{ _ttype=CONSTANT_BIN_ULONG64; }
 			))
 	// strings in the original do not need trailing " or '	
 	| '\"'! (~('\"'|'\r'|'\n')| '\"' '\"'! )* 
