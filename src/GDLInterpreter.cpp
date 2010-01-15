@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.6 (20071205): "gdlc.i.g" -> "GDLInterpreter.cpp"$ */
+/* $ANTLR 2.7.7 (20091222): "gdlc.i.g" -> "GDLInterpreter.cpp"$ */
 
     // gets inserted before the antlr generated includes in the cpp file
 #include "includefirst.hpp"
@@ -5479,6 +5479,15 @@ const char* GDLInterpreter::tokenNames[] = {
 	"CONSTANT_OCT_UINT",
 	"CONSTANT_FLOAT",
 	"CONSTANT_DOUBLE",
+	"CONSTANT_BIN_BYTE",
+	"CONSTANT_BIN_LONG",
+	"CONSTANT_BIN_LONG64",
+	"CONSTANT_BIN_INT",
+	"CONSTANT_BIN_I",
+	"CONSTANT_BIN_ULONG",
+	"CONSTANT_BIN_ULONG64",
+	"CONSTANT_BIN_UI",
+	"CONSTANT_BIN_UINT",
 	"ASTERIX",
 	"DOT",
 	"STRING_LITERAL",
@@ -5501,6 +5510,7 @@ const char* GDLInterpreter::tokenNames[] = {
 	"L",
 	"H",
 	"O",
+	"B",
 	"EXP",
 	"DBL_E",
 	"DBL",
@@ -5519,15 +5529,15 @@ const unsigned long GDLInterpreter::_tokenSet_0_data_[] = { 2283536544UL, 322214
 // MPCALL_PARENT ON_IOERROR_NULL PCALL PCALL_LIB RETF RETP "case" "for" 
 // "goto" "if" "on_ioerror" "repeat" "switch" "while" DEC INC 
 const antlr::BitSet GDLInterpreter::_tokenSet_0(_tokenSet_0_data_,8);
-const unsigned long GDLInterpreter::_tokenSet_1_data_[] = { 1971388832UL, 12683520UL, 27UL, 786432UL, 0UL, 134250496UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLInterpreter::_tokenSet_1_data_[] = { 1971388832UL, 12683520UL, 27UL, 786432UL, 0UL, 16777216UL, 16UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN ASSIGN_REPLACE ARRAYDEF ARRAYEXPR CONSTANT DEREF EXPR FCALL FCALL_LIB 
 // FCALL_LIB_RETNEW MFCALL MFCALL_PARENT NSTRUC NSTRUC_REF POSTDEC POSTINC 
 // STRUC SYSVAR VAR VARPTR DEC INC DOT QUESTION 
-const antlr::BitSet GDLInterpreter::_tokenSet_1(_tokenSet_1_data_,12);
-const unsigned long GDLInterpreter::_tokenSet_2_data_[] = { 897647008UL, 12683520UL, 27UL, 786432UL, 0UL, 134250496UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const antlr::BitSet GDLInterpreter::_tokenSet_1(_tokenSet_1_data_,16);
+const unsigned long GDLInterpreter::_tokenSet_2_data_[] = { 897647008UL, 12683520UL, 27UL, 786432UL, 0UL, 16777216UL, 16UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN ASSIGN_REPLACE ARRAYDEF ARRAYEXPR CONSTANT DEREF EXPR FCALL FCALL_LIB 
 // MFCALL MFCALL_PARENT NSTRUC NSTRUC_REF POSTDEC POSTINC STRUC SYSVAR 
 // VAR VARPTR DEC INC DOT QUESTION 
-const antlr::BitSet GDLInterpreter::_tokenSet_2(_tokenSet_2_data_,12);
+const antlr::BitSet GDLInterpreter::_tokenSet_2(_tokenSet_2_data_,16);
 
 

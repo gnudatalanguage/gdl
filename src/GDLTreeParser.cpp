@@ -6573,7 +6573,7 @@ void GDLTreeParser::tag_array_expr(RefDNode _t) {
 
 void GDLTreeParser::initializeASTFactory( antlr::ASTFactory& factory )
 {
-	factory.setMaxNodeType(205);
+	factory.setMaxNodeType(215);
 }
 const char* GDLTreeParser::tokenNames[] = {
 	"<0>",
@@ -6750,6 +6750,15 @@ const char* GDLTreeParser::tokenNames[] = {
 	"CONSTANT_OCT_UINT",
 	"CONSTANT_FLOAT",
 	"CONSTANT_DOUBLE",
+	"CONSTANT_BIN_BYTE",
+	"CONSTANT_BIN_LONG",
+	"CONSTANT_BIN_LONG64",
+	"CONSTANT_BIN_INT",
+	"CONSTANT_BIN_I",
+	"CONSTANT_BIN_ULONG",
+	"CONSTANT_BIN_ULONG64",
+	"CONSTANT_BIN_UI",
+	"CONSTANT_BIN_UINT",
 	"ASTERIX",
 	"DOT",
 	"STRING_LITERAL",
@@ -6772,6 +6781,7 @@ const char* GDLTreeParser::tokenNames[] = {
 	"L",
 	"H",
 	"O",
+	"B",
 	"EXP",
 	"DBL_E",
 	"DBL",
@@ -6792,7 +6802,7 @@ const unsigned long GDLTreeParser::_tokenSet_0_data_[] = { 8126496UL, 537133248U
 // GTMARK_EQ GT_OP_EQ LE_OP_EQ LTMARK_EQ LT_OP_EQ MATRIX_OP1_EQ MATRIX_OP2_EQ 
 // MINUS_EQ MOD_OP_EQ NE_OP_EQ OR_OP_EQ PLUS_EQ POW_EQ SLASH_EQ XOR_OP_EQ 
 const antlr::BitSet GDLTreeParser::_tokenSet_0(_tokenSet_0_data_,12);
-const unsigned long GDLTreeParser::_tokenSet_1_data_[] = { 360907552UL, 12650752UL, 3391094863UL, 4294709287UL, 1151UL, 268353536UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLTreeParser::_tokenSet_1_data_[] = { 360907552UL, 12650752UL, 3391094863UL, 4294709287UL, 1151UL, 4253024256UL, 31UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN ARRAYDEF ARRAYDEF_CONST ARRAYEXPR ARRAYEXPR_FN CONSTANT DEREF 
 // EXPR FCALL MFCALL MFCALL_PARENT NSTRUC_REF POSTDEC POSTINC STRUC SYSVAR 
 // UMINUS VAR "and" "eq" "ge" "gt" "le" "lt" "mod" "ne" "not" "or" "xor" 
@@ -6800,6 +6810,6 @@ const unsigned long GDLTreeParser::_tokenSet_1_data_[] = { 360907552UL, 12650752
 // LTMARK_EQ LT_OP_EQ MATRIX_OP1_EQ MATRIX_OP2_EQ MINUS_EQ MOD_OP_EQ NE_OP_EQ 
 // OR_OP_EQ PLUS_EQ POW_EQ SLASH_EQ XOR_OP_EQ SLASH ASTERIX DOT POW MATRIX_OP1 
 // MATRIX_OP2 PLUS MINUS LTMARK GTMARK LOG_NEG LOG_AND LOG_OR QUESTION 
-const antlr::BitSet GDLTreeParser::_tokenSet_1(_tokenSet_1_data_,12);
+const antlr::BitSet GDLTreeParser::_tokenSet_1(_tokenSet_1_data_,16);
 
 
