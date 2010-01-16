@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.7 (20091222): "gdlc.i.g" -> "GDLInterpreter.cpp"$ */
+/* $ANTLR 2.7.6 (20071205): "gdlc.i.g" -> "GDLInterpreter.cpp"$ */
 
     // gets inserted before the antlr generated includes in the cpp file
 #include "includefirst.hpp"

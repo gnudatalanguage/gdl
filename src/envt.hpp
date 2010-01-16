@@ -81,6 +81,12 @@ void SetLineNumber(int l)
 {
 lineNumber = l;
 }
+unsigned int CompileOpt()
+{
+DSubUD* proUD = dynamic_cast<DSubUD*>(pro);
+if( proUD == NULL) throw GDLException("Intenal error: CompileOpt called non DSub object.");
+return proUD->GetCompileOpt();
+}
 
   // raise an exception from within a library function
   // automatically cares for adding line/column info and the

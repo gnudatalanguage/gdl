@@ -2,7 +2,7 @@
 #define INC_GDLLexer_hpp_
 
 #include <antlr/config.hpp>
-/* $ANTLR 2.7.7 (20091222): "gdlc.g" -> "GDLLexer.hpp"$ */
+/* $ANTLR 2.7.6 (20071205): "gdlc.g" -> "GDLLexer.hpp"$ */
 #include <antlr/CommonToken.hpp>
 #include <antlr/InputBuffer.hpp>
 #include <antlr/BitSet.hpp>
@@ -51,7 +51,7 @@ class CUSTOM_API GDLLexer : public antlr::CharScanner, public GDLTokenTypes
     }
 
     // main lexer constructor
-    GDLLexer( std::istream& in, const std::string f, 
+    GDLLexer( std::istream& in, const std::string f, unsigned int compileOptIn,
         const std::string pro="") 
     : antlr::CharScanner(new antlr::CharBuffer(in),false),
       lineContinuation( 0)
@@ -62,7 +62,7 @@ class CUSTOM_API GDLLexer : public antlr::CharScanner, public GDLTokenTypes
   
         selector=     new antlr::TokenStreamSelector();
         mainLexerPtr= this;
-        parserPtr=    new GDLParser( *selector, pro);
+        parserPtr=    new GDLParser( *selector, pro, compileOptIn);
 
         parserPtr->setFilename(f);
         parserPtr->initializeASTFactory( DNodeFactory);

@@ -1267,7 +1267,7 @@ namespace lib {
 
     RefDNode theAST;
     try {  
-      GDLLexer   lexer(istr, "");
+      GDLLexer   lexer(istr, "", caller->CompileOpt());
       GDLParser& parser=lexer.Parser();
     
       parser.interactive();

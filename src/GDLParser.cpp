@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.7 (20091222): "gdlc.g" -> "GDLParser.cpp"$ */
+/* $ANTLR 2.7.6 (20071205): "gdlc.g" -> "GDLParser.cpp"$ */
 
 #include "includefirst.hpp"
 
@@ -5352,7 +5352,10 @@ void GDLParser::numeric_constant() {
 		if ( inputState->guessing==0 ) {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c44->getText());
-					  numeric_constant_AST->Text2Int(16,true);	
+			if( compileOpt & DEFINT32)
+			numeric_constant_AST->Text2Long(16);	
+			else
+			numeric_constant_AST->Text2Int(16,true);	
 					  numeric_constant_AST->SetLine( c44->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
@@ -5421,7 +5424,10 @@ void GDLParser::numeric_constant() {
 		if ( inputState->guessing==0 ) {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c77->getText());
-					  numeric_constant_AST->Text2UInt(16,true);	
+			if( compileOpt & DEFINT32)
+			numeric_constant_AST->Text2ULong(16);	
+			else
+			numeric_constant_AST->Text2UInt(16,true);	
 					  numeric_constant_AST->SetLine( c77->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
@@ -5559,7 +5565,10 @@ void GDLParser::numeric_constant() {
 		if ( inputState->guessing==0 ) {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c111->getText());
-					  numeric_constant_AST->Text2Int(10,true);	
+			if( compileOpt & DEFINT32)
+			numeric_constant_AST->Text2Long(10);	
+			else
+			numeric_constant_AST->Text2Int(10,true);	
 					  numeric_constant_AST->SetLine( c111->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
@@ -5628,7 +5637,10 @@ void GDLParser::numeric_constant() {
 		if ( inputState->guessing==0 ) {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c144->getText());
-					  numeric_constant_AST->Text2UInt(10,true);	
+			if( compileOpt & DEFINT32)
+			numeric_constant_AST->Text2ULong(10);	
+			else
+			numeric_constant_AST->Text2UInt(10,true);	
 					  numeric_constant_AST->SetLine( c144->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
@@ -5766,7 +5778,10 @@ void GDLParser::numeric_constant() {
 		if ( inputState->guessing==0 ) {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c188->getText());
-					  numeric_constant_AST->Text2Int(8,true);	
+			if( compileOpt & DEFINT32)
+			numeric_constant_AST->Text2Long(8);	
+			else
+			numeric_constant_AST->Text2Int(8,true);	
 					  numeric_constant_AST->SetLine( c188->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
@@ -5835,7 +5850,10 @@ void GDLParser::numeric_constant() {
 		if ( inputState->guessing==0 ) {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c211->getText());
-					  numeric_constant_AST->Text2UInt(8,true);	
+			if( compileOpt & DEFINT32)
+			numeric_constant_AST->Text2ULong(8);	
+			else
+			numeric_constant_AST->Text2UInt(8,true);	
 					  numeric_constant_AST->SetLine( c211->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
@@ -6019,7 +6037,10 @@ void GDLParser::numeric_constant() {
 		if ( inputState->guessing==0 ) {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c277->getText());
-					  numeric_constant_AST->Text2Int(2,true);	
+			if( compileOpt & DEFINT32)
+			numeric_constant_AST->Text2Long(2);	
+			else
+			numeric_constant_AST->Text2Int(2,true);	
 					  numeric_constant_AST->SetLine( c277->getLine());	
 					
 			currentAST.root = numeric_constant_AST;
@@ -6088,7 +6109,10 @@ void GDLParser::numeric_constant() {
 		if ( inputState->guessing==0 ) {
 			numeric_constant_AST = RefDNode(currentAST.root);
 			numeric_constant_AST=astFactory->create(CONSTANT,c300->getText());
-					  numeric_constant_AST->Text2UInt(2,true);	
+			if( compileOpt & DEFINT32)
+			numeric_constant_AST->Text2ULong(2);	
+			else
+			numeric_constant_AST->Text2UInt(2,true);	
 					  numeric_constant_AST->SetLine( c300->getLine());	
 					
 			currentAST.root = numeric_constant_AST;

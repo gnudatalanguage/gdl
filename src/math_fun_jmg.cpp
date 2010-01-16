@@ -1744,7 +1744,7 @@ void image_del(image_t * d)
     // P.S:  I don't know how this works.  Ask Marc.
 
     RefDNode theAST;
-    GDLLexer lexer(*istr, "");
+    GDLLexer lexer(*istr, "",GDLParser::NONE);
     GDLParser& parser = lexer.Parser();
     parser.interactive();
     theAST = parser.getAST();

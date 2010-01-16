@@ -149,7 +149,7 @@ void DCompiler::StartPro(const string& n, const int compileOpt, const string& o)
   if( n != "$MAIN$" || o != "")
     {
       pro = new DPro(n,o,actualFile);
-      pro->setCompileOpt(compileOpt);
+      pro->SetCompileOpt(compileOpt);
     }
   else
     {
@@ -169,7 +169,7 @@ void DCompiler::StartFun(const string& n, const int compileOpt = 0, const string
 {
   ClearOwnCommon();
   pro = new DFun(n,o,actualFile);
-  pro->setCompileOpt(compileOpt);
+  pro->SetCompileOpt(compileOpt);
 }
 
 bool DCompiler::IsActivePro( DSub* p)

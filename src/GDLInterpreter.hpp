@@ -3,7 +3,7 @@
 
 #include <antlr/config.hpp>
 #include "GDLInterpreterTokenTypes.hpp"
-/* $ANTLR 2.7.7 (20091222): "gdlc.i.g" -> "GDLInterpreter.hpp"$ */
+/* $ANTLR 2.7.6 (20071205): "gdlc.i.g" -> "GDLInterpreter.hpp"$ */
 #include <antlr/TreeParser.hpp>
 
 

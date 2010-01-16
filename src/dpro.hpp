@@ -415,7 +415,8 @@ public:
     return tree;
   }
 
-  void setCompileOpt(const int n) { compileOpt = n; }
+  unsigned int GetCompileOpt() { return compileOpt; }
+  void SetCompileOpt(const unsigned int n) { compileOpt = n; }
   bool isObsolete();
   bool isHidden();
 

@@ -168,9 +168,9 @@ tokens {
     }
 
     public:
-    GDLParser(antlr::TokenStream& selector, const std::string& sName):
+    GDLParser(antlr::TokenStream& selector, const std::string& sName, unsigned int compileOptIn):
     antlr::LLkParser(selector,2), subName(sName), 
-    subReached(false), compileOpt(NONE)
+    subReached(false), compileOpt(compileOptIn)
     { 
         //        setTokenNames(_tokenNames);
     }
@@ -854,7 +854,10 @@ numeric_constant!//
 	| c44:CONSTANT_HEX_I 
         // DEFINT32
 		{ #numeric_constant=#[CONSTANT,c44->getText()];
-		  #numeric_constant->Text2Int(16,true);	
+            if( compileOpt & DEFINT32)
+                #numeric_constant->Text2Long(16);	
+            else
+                #numeric_constant->Text2Int(16,true);	
 		  #numeric_constant->SetLine( c44->getLine());	
 		}  
     | c5:CONSTANT_HEX_ULONG 
@@ -870,7 +873,10 @@ numeric_constant!//
 	| c77:CONSTANT_HEX_UI
         // DEFINT32
 		{ #numeric_constant=#[CONSTANT,c77->getText()];
-		  #numeric_constant->Text2UInt(16,true);	
+            if( compileOpt & DEFINT32)
+                #numeric_constant->Text2ULong(16);	
+            else
+                #numeric_constant->Text2UInt(16,true);	
 		  #numeric_constant->SetLine( c77->getLine());	
 		}  
 	| c7:CONSTANT_HEX_UINT
@@ -901,7 +907,10 @@ numeric_constant!//
 	| c111:CONSTANT_I
         // DEFINT32
 		{ #numeric_constant=#[CONSTANT,c111->getText()];
-		  #numeric_constant->Text2Int(10,true);	
+            if( compileOpt & DEFINT32)
+                #numeric_constant->Text2Long(10);	
+            else
+                #numeric_constant->Text2Int(10,true);	
 		  #numeric_constant->SetLine( c111->getLine());	
 		}  
     | c12:CONSTANT_ULONG 
@@ -917,7 +926,10 @@ numeric_constant!//
 	| c144:CONSTANT_UI
         // DEFINT32
 		{ #numeric_constant=#[CONSTANT,c144->getText()];
-		  #numeric_constant->Text2UInt(10,true);	
+            if( compileOpt & DEFINT32)
+                #numeric_constant->Text2ULong(10);	
+            else
+                #numeric_constant->Text2UInt(10,true);	
 		  #numeric_constant->SetLine( c144->getLine());	
 		}  
 	| c14:CONSTANT_UINT
@@ -948,7 +960,10 @@ numeric_constant!//
 	| c188:CONSTANT_OCT_I
         // DEFINT32
 		{ #numeric_constant=#[CONSTANT,c188->getText()];
-		  #numeric_constant->Text2Int(8,true);	
+            if( compileOpt & DEFINT32)
+                #numeric_constant->Text2Long(8);	
+            else
+                #numeric_constant->Text2Int(8,true);	
 		  #numeric_constant->SetLine( c188->getLine());	
 		}  
     | c19:CONSTANT_OCT_ULONG 
@@ -964,7 +979,10 @@ numeric_constant!//
 	| c211:CONSTANT_OCT_UI
         // DEFINT32
 		{ #numeric_constant=#[CONSTANT,c211->getText()];
-		  #numeric_constant->Text2UInt(8,true);	
+            if( compileOpt & DEFINT32)
+                #numeric_constant->Text2ULong(8);	
+            else
+                #numeric_constant->Text2UInt(8,true);	
 		  #numeric_constant->SetLine( c211->getLine());	
 		}  
 	| c21:CONSTANT_OCT_UINT
@@ -1005,7 +1023,10 @@ numeric_constant!//
 	| c277:CONSTANT_BIN_I
         // DEFINT32
 		{ #numeric_constant=#[CONSTANT,c277->getText()];
-		  #numeric_constant->Text2Int(2,true);	
+            if( compileOpt & DEFINT32)
+                #numeric_constant->Text2Long(2);	
+            else
+                #numeric_constant->Text2Int(2,true);	
 		  #numeric_constant->SetLine( c277->getLine());	
 		}  
     | c28:CONSTANT_BIN_ULONG 
@@ -1021,7 +1042,10 @@ numeric_constant!//
 	| c300:CONSTANT_BIN_UI
         // DEFINT32
 		{ #numeric_constant=#[CONSTANT,c300->getText()];
-		  #numeric_constant->Text2UInt(2,true);	
+            if( compileOpt & DEFINT32)
+                #numeric_constant->Text2ULong(2);	
+            else
+                #numeric_constant->Text2UInt(2,true);	
 		  #numeric_constant->SetLine( c300->getLine());	
 		}  
 	| c30:CONSTANT_BIN_UINT
@@ -1497,7 +1521,7 @@ tokens {
     }
 
     // main lexer constructor
-    GDLLexer( std::istream& in, const std::string f, 
+    GDLLexer( std::istream& in, const std::string f, unsigned int compileOptIn,
         const std::string pro="") 
     : antlr::CharScanner(new antlr::CharBuffer(in),false),
       lineContinuation( 0)
@@ -1508,7 +1532,7 @@ tokens {
   
         selector=     new antlr::TokenStreamSelector();
         mainLexerPtr= this;
-        parserPtr=    new GDLParser( *selector, pro);
+        parserPtr=    new GDLParser( *selector, pro, compileOptIn);
 
         parserPtr->setFilename(f);
         parserPtr->initializeASTFactory( DNodeFactory);
