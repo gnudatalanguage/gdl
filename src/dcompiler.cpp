@@ -224,7 +224,10 @@ void DCompiler::EndPro() // inserts in proList
 	  *p=static_cast<DPro*>(pro);
 	}
       else
+      {
 	(*searchList).push_back(static_cast<DPro*>(pro));
+        WarnAboutObsoleteRoutine(pro->ObjectName());
+      }
     }
 
   if ( subRoutine == "" || subRoutine == pro->ObjectFileName())
@@ -277,7 +280,10 @@ void DCompiler::EndFun() // inserts in funList
       *p=static_cast<DFun*>(pro);
     }
   else
+  {
     (*searchList).push_back(static_cast<DFun*>(pro));
+    WarnAboutObsoleteRoutine(pro->ObjectName());
+  }
 
   if (subRoutine == "" || subRoutine == pro->ObjectFileName())
     Message( "Compiled module: "+pro->ObjectName()+"."); 

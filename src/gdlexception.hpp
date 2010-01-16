@@ -132,6 +132,7 @@ void Message(const std::string& s);
 
 void ThrowGDLException( const std::string& str);
 
+void WarnAboutObsoleteRoutine(const std::string& name);
 void WarnAboutObsoleteRoutine(const RefDNode eN, const std::string& name);
 
 #endif
