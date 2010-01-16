@@ -1351,7 +1351,7 @@ SizeT Data_<Sp>::LoopIndex() const
   // away the superflous (for unsigned data) statement anyway, it is 
   // better to keep the code this way here.
   if( (*this)[0] < 0)
-    throw GDLException( "Loop index variable <0.");
+    throw GDLException( "Index variable <0.");
 
   return static_cast<SizeT>((*this)[0]);
 }
@@ -1359,10 +1359,10 @@ template<>
 SizeT Data_<SpDFloat>::LoopIndex() const
 {
   if( (*this)[0] < 0.0f)
-    if( (*this)[0] <= 1.0f)
-      throw GDLException( "Loop index variable <0.");
-    else
-      return 0;
+    //if( (*this)[0] <= 1.0f)
+      throw GDLException( "Index variable <0.");
+    //else
+    //  return 0;
 
   return static_cast<SizeT>((*this)[0]);
 }
@@ -1370,29 +1370,29 @@ template<>
 SizeT Data_<SpDDouble>::LoopIndex() const
 {
   if( (*this)[0] < 0.0)
-    if( (*this)[0] <= 1.0)
-      throw GDLException( "Loop index variable <0.");
-    else
-      return 0;
+    //if( (*this)[0] <= 1.0)
+      throw GDLException( "Index variable <0.");
+    //else
+    //  return 0;
 
   return static_cast<SizeT>((*this)[0]);
 }
 template<> 
 SizeT Data_<SpDComplex>::LoopIndex() const
 {
-  throw GDLException( "Complex expression not allowed as FOR loop index.");
+  throw GDLException( "Complex expression not allowed as index.");
   return 0;
 }
 template<> 
 SizeT Data_<SpDComplexDbl>::LoopIndex() const
 {
-  throw GDLException( "Complex expression not allowed as FOR loop index.");
+  throw GDLException( "Complex expression not allowed as index.");
   return 0;
 }
 template<> 
 SizeT Data_<SpDString>::LoopIndex() const
 {
-  throw GDLException( "String expression not allowed as FOR loop index.");
+  throw GDLException( "String expression not allowed as index.");
   return 0;
 }
 // SizeT DStructGDL::LoopIndex() const
@@ -1404,14 +1404,14 @@ SizeT Data_<SpDString>::LoopIndex() const
 template<> 
 SizeT Data_<SpDPtr>::LoopIndex() const
 {
-  throw GDLException("PTR expression not allowed in this context.");
+  throw GDLException("PTR expression not allowed as index.");
   return 0; // get rid of warning
 }
 
 template<> 
 SizeT Data_<SpDObj>::LoopIndex() const
 {
-  throw GDLException("Object expression not allowed in this context.");
+  throw GDLException("Object expression not allowed as index.");
   return 0; // get rid of warning
 }
 

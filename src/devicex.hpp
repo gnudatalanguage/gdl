@@ -562,6 +562,10 @@ public:
     Graphics* actDevice = Graphics::GetDevice();
 
     XwDev *dev = (XwDev *) plsc->dev;
+    if( dev == NULL)
+{
+   dev = (XwDev *) plsc->dev;
+}
     XwDisplay *xwd = (XwDisplay *) dev->xwd;
     XImage *ximg = NULL;
 
