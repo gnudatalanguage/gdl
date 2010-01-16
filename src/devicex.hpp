@@ -563,9 +563,16 @@ public:
 
     XwDev *dev = (XwDev *) plsc->dev;
     if( dev == NULL)
-{
-   dev = (XwDev *) plsc->dev;
-}
+    {
+      GDLGStream* newStream = actDevice->GetStream();
+      //already done: newStream->Init();
+      dev = (XwDev *) plsc->dev;
+      if( dev == NULL)
+       {
+          throw GDLException( e->CallingNode(), "Device not open.");
+       }
+    }
+
     XwDisplay *xwd = (XwDisplay *) dev->xwd;
     XImage *ximg = NULL;
 
