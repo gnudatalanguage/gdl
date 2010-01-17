@@ -12,6 +12,7 @@
 #include <fstream>
 
 #include "GDLParser.hpp"
+
 #include "str.hpp"
 #include "dnodefactory.hpp"
 #include "objects.hpp"
@@ -23,6 +24,11 @@
 #include "antlr/NoViableAltForCharException.hpp"
 #include "antlr/TokenStreamIOException.hpp"
 #include "antlr/CharInputBuffer.hpp"
+
+//#include "dinterpreter.hpp"
+
+// defintion in dinterpreter.cpp
+void SetActualCompileOpt( unsigned int cOpt);
 
 class CUSTOM_API GDLLexer : public antlr::CharScanner, public GDLTokenTypes
 {

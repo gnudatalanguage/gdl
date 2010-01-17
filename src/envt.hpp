@@ -87,6 +87,12 @@ DSubUD* proUD = dynamic_cast<DSubUD*>(pro);
 if( proUD == NULL) throw GDLException("Intenal error: CompileOpt called non DSub object.");
 return proUD->GetCompileOpt();
 }
+void SetCompileOpt( unsigned int cOpt)
+{
+DSubUD* proUD = dynamic_cast<DSubUD*>(pro);
+if( proUD == NULL) throw GDLException("Intenal error: CompileOpt called non DSub object.");
+proUD->SetCompileOpt( cOpt);
+}
 
   // raise an exception from within a library function
   // automatically cares for adding line/column info and the
