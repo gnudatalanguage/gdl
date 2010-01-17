@@ -3305,7 +3305,7 @@ void GDLParser::compile_opt() {
 			match(IDENTIFIER);
 			if ( inputState->guessing==0 ) {
 				
-				AddCompileOpt( i->getText());
+				AddCompileOpt( ii->getText());
 				
 			}
 		}

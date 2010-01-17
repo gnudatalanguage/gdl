@@ -484,7 +484,7 @@ compile_opt!
         }
         (COMMA ii:IDENTIFIER
             {
-                AddCompileOpt( i->getText());
+                AddCompileOpt( ii->getText());
             }
         )*
 	;
