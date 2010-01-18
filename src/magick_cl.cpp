@@ -126,7 +126,14 @@ namespace lib {
       e->AssureScalarPar<DStringGDL>(0,filename);
       
       Image a;
-      a.read(filename);
+      try 
+      {
+        a.read(filename);
+      }
+      catch (WarningCoder &warning_ )
+      {
+        cerr << warning_.what() << endl;
+      }
       a.flip();
       unsigned int mid;
       mid=magick_image(e, a);
