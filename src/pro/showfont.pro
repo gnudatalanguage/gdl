@@ -51,6 +51,7 @@
 ;-
 
 pro showfont, num, name, encapsulated=eps, tt_font=tt, base=base, beg=beg, fin=fin
+  on_error, 2
   
   ; handling default keyword values
   if not keyword_set(base) then base = 16

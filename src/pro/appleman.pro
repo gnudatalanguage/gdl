@@ -1,6 +1,6 @@
-;$Id: appleman.pro,v 1.2 2005-04-28 10:42:40 m_schellens Exp $
+;$Id: appleman.pro,v 1.3 2010-01-20 11:41:56 slayoo Exp $
 pro AppleMan,xRange,yRange,RESULT=res
-
+  on_error, 2
 ;+
 ;
 ;

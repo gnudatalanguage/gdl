@@ -1,6 +1,7 @@
-;$Id: read_pict.pro,v 1.2 2005-09-14 01:40:07 m_schellens Exp $
+;$Id: read_pict.pro,v 1.3 2010-01-20 11:41:59 slayoo Exp $
 
 pro read_pict, filename, image,red, green, blue
+  on_error, 2
 ;+
 ;
 ;

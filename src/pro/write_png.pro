@@ -1,7 +1,8 @@
-;$Id: write_png.pro,v 1.4 2006-08-30 15:56:10 jomoga Exp $
+;$Id: write_png.pro,v 1.5 2010-01-20 11:41:59 slayoo Exp $
 
 pro write_png, filename, image,red, green, blue, $
                ORDER=ORDER,VERBOSE=VERBOSE,TRANSPARENT=TRANSPARENT
+  on_error, 2
 ;+
 ;
 ;

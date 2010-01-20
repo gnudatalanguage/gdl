@@ -1,7 +1,7 @@
-;$Id: array_indices.pro,v 1.2 2009-10-17 14:37:36 m_schellens Exp $
+;$Id: array_indices.pro,v 1.3 2010-01-20 11:41:59 slayoo Exp $
 
 function Array_Indices,a,ix
-
+  on_error, 2
 ;+
 ;
 ;

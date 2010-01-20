@@ -33,6 +33,11 @@
 ;
 ;
 function poly_area, x, y, double=double, signed=signed
+  on_error, 2
+
+  IF (N_PARAMS() NE 2) THEN BEGIN
+    message, 'Incorrect number of arguments.'
+  ENDIF
 
 if keyword_set(double) then begin
    xs = double(shift(x, -1))

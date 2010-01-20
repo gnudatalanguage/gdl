@@ -1,6 +1,6 @@
 ; by Sylwester Arabas <slayoo (at) igf.fuw.edu.pl>
 function rstrpos, haystack, needle, pos
-  compile_opt obsolete
+  on_error, 2
  
   if ~keyword_set(haystack) || ~keyword_set(needle) then $
     message, 'First and second arguments must not be undefined' 
@@ -11,4 +11,5 @@ function rstrpos, haystack, needle, pos
   endif else begin
     return, strpos(haystack, needle, /reverse_search)
   endelse
+  compile_opt obsolete
 end

@@ -31,11 +31,10 @@
 pro restore, filename0, filename=filename1, verbose=verbose, $
              RELAXED_STRUCTURE_ASSIGNMENT=RELAXED_STRUCTURE_ASSIGNMENT, $
              DESCRIPTION=DESCRIPTION, RESTORED_OBJECTS=RESTORED_OBJECTS
+  on_error, 2
 ;
 if (EXECUTE('res=CMSVLIB(/QUERY)') EQ 0) then begin
-   print, "% RESTORE: Missing CMSVlib in your IDL PATH"
-   print, "% RESTORE: please read RESTORE header for help."
-   return
+   message, 'Missing CMSVlib in your IDL PATH, please read RESTORE header for help.'
 endif
 ;
 ; not available KEYWORDs (compatibility reasons)
@@ -55,28 +54,24 @@ endif
 if (n_elements(filename0) ne 0) then begin
    sz = size(filename0)
    if (sz[sz[0]+1] ne 7) then begin
-      print, "% RESTORE: Expression must be a scalar or 1 element array in this context: " + routine_names(variables=-1)
-      return
+      message, "Expression must be a scalar or 1 element array in this context: " + routine_names(variables=-1)
    endif
 endif
 ;
 ; we check whether the file is here or not ...
 ;
 if (n_elements(filename0) GT 0) AND (n_elements(filename1) GT 0) then begin
-   print, "% RESTORE: please select between the 2 filenames !"
-   return
+   message, "please select between the 2 filenames !"
 endif
 ; we go here only if only one "filename" field is provided !
 if (N_ELEMENTS(filename0) GT 0) then begin
    if (FILE_TEST(filename0) NE 1) then begin
-      print, "% RESTORE: FILE not found."
-      return
+      message, "FILE not found."
    endif
 endif
 if (N_ELEMENTS(filename1) GT 0) then begin
    if (FILE_TEST(filename1) NE 1) then begin
-      print, "% RESTORE: FILE not found."
-      return
+      message, "FILE not found."
    endif
 endif
 if (N_ELEMENTS(filename0) EQ 0) AND (N_ELEMENTS(filename1) EQ 0) then begin

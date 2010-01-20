@@ -1,8 +1,9 @@
-;$Id: write_jpeg.pro,v 1.3 2006-03-29 07:48:21 m_schellens Exp $
+;$Id: write_jpeg.pro,v 1.4 2010-01-20 11:41:59 slayoo Exp $
 
 pro write_jpeg, filename, image,$
                 ORDER=ORDER,QUALITY=QUALITY, TRUE=TRUE,UNIT=UNIT,$
                 PROGRESSIVE=PROGRESSIVE
+  on_error, 2
 ;+
 ;
 ;

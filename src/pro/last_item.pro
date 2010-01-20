@@ -43,15 +43,13 @@
 ;-            
 
 function last_item, item
+  on_error, 2
 
-;
-;  check input
-;
-if n_params() lt 1 then begin
-   print,'Use: xlast = last(x)'
-   return,'Error'
-endif
+  ;  check input
+  if n_params() lt 1 then begin
+    message, 'Use: xlast = last_item(x)'
+  endif
 
-return,item(n_elements(item)-1)
+  return,item(n_elements(item)-1)
 
 end

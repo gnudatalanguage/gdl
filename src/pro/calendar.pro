@@ -2,6 +2,7 @@
 ; depends on the UNIX 'cal' utility 
 
 pro calendar, p1, p2
+  on_error, 2
 
   ; sanity checks
   msg = ' must not be undefined, zero-valued nor multi-element value'

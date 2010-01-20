@@ -1,6 +1,7 @@
-;$Id: write_pict.pro,v 1.2 2006-03-29 07:48:21 m_schellens Exp $
+;$Id: write_pict.pro,v 1.3 2010-01-20 11:41:59 slayoo Exp $
 
 pro write_pict, filename, image,red, green, blue
+  on_error, 2
 ;+
 ;
 ;

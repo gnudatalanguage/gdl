@@ -1,6 +1,7 @@
-;$Id: read_tiff.pro,v 1.1.1.1 2004-12-09 15:10:19 m_schellens Exp $
+;$Id: read_tiff.pro,v 1.2 2010-01-20 11:41:59 slayoo Exp $
 
 function read_tiff, filename, red,green,blue,channels=channels,geotiff=geotiff,image_index=image_index,interleave=interleave,orientation=orientation,planarconfig=planarconfig,sub_rect=sub_rect,verbose=verbose
+  on_error, 2
 ;+
 ;
 ;

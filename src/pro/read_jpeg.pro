@@ -1,8 +1,9 @@
-;$Id: read_jpeg.pro,v 1.3 2007-02-06 00:42:40 jomoga Exp $
+;$Id: read_jpeg.pro,v 1.4 2010-01-20 11:41:59 slayoo Exp $
 
 pro read_jpeg, filename, unit=unit,image, colortable,buffer=buffer,$
               colors=colors,dither=dither,grayscale=grayscale,order=order,$
               true=true,two_pass_quantize=two_pass_quantize
+  on_error, 2
 ;+
 ;
 ;

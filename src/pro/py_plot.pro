@@ -1,7 +1,7 @@
 ;; simple example file for using python's matplotlib package from GDL
-;; the 
 
 pro PY_PLOT,x,y,XLABEL=xlabel,YLABEL=ylabel,TITLE=title,GRID=grid
+  on_error, 2
 
 if N_ELEMENTS( xlabel) eq 1 then begin
     PYTHON,"matplotlib.matlab","xlabel",STRING(xlabel)

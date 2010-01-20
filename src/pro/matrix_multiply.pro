@@ -13,13 +13,18 @@
 ; 
 ;-----------------------------------------------------------------------------
 function matrix_multiply, a, b, ATRANSPOSE=atr, BTRANSPOSE=btr
+  on_error, 2
+
+  IF (N_PARAMS() NE 2) THEN BEGIN
+    message, 'Incorrect number of arguments.'
+  ENDIF
 ;
-case (1) of
+  case (1) of
     keyword_set(atr) and not keyword_set(btr): return, transpose(a) # b
     keyword_set(btr) and not keyword_set(atr): return, a # transpose(b)
     keyword_set(atr) and keyword_set(btr): return, transpose(a) # transpose(b)
     else : return, a # b
-endcase
+  endcase
 ;
 end
 

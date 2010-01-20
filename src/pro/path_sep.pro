@@ -40,6 +40,7 @@
 
 function PATH_SEP, parent_directory=parent_directory, $
                    search_path=search_path, test=test
+on_error, 2
 
 if KEYWORD_SET(search_path) then begin
    if KEYWORD_SET(parent_directory) then begin

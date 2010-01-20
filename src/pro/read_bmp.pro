@@ -1,6 +1,7 @@
-;$Id: read_bmp.pro,v 1.1.1.1 2004-12-09 15:10:19 m_schellens Exp $
+;$Id: read_bmp.pro,v 1.2 2010-01-20 11:41:59 slayoo Exp $
 
 function read_bmp, filename, red, green, blue, rgb=rgb
+  on_error, 2
 ;+
 ;
 ;

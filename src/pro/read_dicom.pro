@@ -1,6 +1,7 @@
-;$Id: read_dicom.pro,v 1.1.1.1 2004-12-09 15:10:19 m_schellens Exp $
+;$Id: read_dicom.pro,v 1.2 2010-01-20 11:41:59 slayoo Exp $
 
 function read_dicom, filename, red, green, blue, image_index=image_index
+  on_error, 2
 ;+
 ;
 ;

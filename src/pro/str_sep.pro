@@ -17,16 +17,19 @@
 ;-
 
 function str_sep, str, sep
+  on_error, 2
 
-d = strsplit(str, sep)
-d = [d, strlen(str)+1]
-n = n_elements(d) - 1
+  if n_params() ne 2 then message, 'Two parameters required.'
 
-res = strarr(n)
+  d = strsplit(str, sep)
+  d = [d, strlen(str)+1]
+  n = n_elements(d) - 1
 
-for i=0,n-1 do begin
+  res = strarr(n)
+
+  for i=0,n-1 do begin
     res[i] = strmid(str, d[i], d[i+1]-d[i]-1)
-endfor
+  endfor
 
-return, res
+  return, res
 end

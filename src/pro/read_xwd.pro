@@ -1,6 +1,7 @@
-;$Id: read_xwd.pro,v 1.2 2009-07-28 14:25:50 slayoo Exp $
+;$Id: read_xwd.pro,v 1.3 2010-01-20 11:41:59 slayoo Exp $
 
 function read_xwd, filename, red, green, blue
+  on_error, 2
 ;+
 ;
 ;

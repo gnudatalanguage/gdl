@@ -60,6 +60,7 @@
 pro LOADCT, table, GET_NAMES=names, FILE=file,$
             NCOLORS=nColors,BOTTOM=bottom,SILENT=silent
 
+on_error, 2
 common colors, r_orig, g_orig, b_orig, r_curr, g_curr, b_curr
 
 if N_ELEMENTS( table) eq 0 or $

@@ -61,7 +61,7 @@
 ;
 ; MODIFICATION HISTORY:
 ;   - Sept 2007: created by Sebastien Masson
-;   - Sept 2007: mananing insufficient numbers of parameters, /help
+;   - Sept 2007: managing insufficient numbers of parameters, /help
 ;
 ;-
 ; LICENCE:
@@ -73,20 +73,19 @@
 ;-
 ;
 FUNCTION FILE_BASENAME, Path, RemoveSuffix, FOLD_CASE = fold_case, help=help
-;
-IF ((N_PARAMS() LT 1) OR (N_PARAMS() GT 2)) THEN BEGIN
-   print, '% FILE_BASENAME: Incorrect number of arguments.'
-   return, -1
-ENDIF
+  on_error, 2
 ;
 if KEYWORD_SET(help) then begin
    print, 'FUNCTION FILE_BASENAME, Path, [RemoveSuffix], [/FOLD_CASE], [/help]'
    return, -1
 endif
 ;
+IF ((N_PARAMS() LT 1) OR (N_PARAMS() GT 2)) THEN BEGIN
+   message, 'Incorrect number of arguments.'
+ENDIF
+;
 IF KEYWORD_SET(fold_case) THEN BEGIN
-    print, 'Sorry, Keyword fold_case is not available now.'
-    return, -1
+    message, 'Sorry, Keyword fold_case is not available now.'
 ENDIF
 
 SFX = N_ELEMENTS(RemoveSuffix) NE 0 ? RemoveSuffix : ''

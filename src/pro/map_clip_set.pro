@@ -33,6 +33,7 @@
 ;-
 pro map_clip_set,reset=reset,split=split,clip_plane=clip_plane, $
                  transform=transform,clip_uv=clip_uv
+on_error, 2
 
 
 if (keyword_set(reset)) then begin
@@ -44,8 +45,7 @@ if (n_elements(clip_plane) ne 0) then begin
     i = 0
     while (!map.pipeline[0,i] ne 0 and !map.pipeline[0,i] ne 3) do i = i + 1
     if (i eq 11) then begin
-        print,'% Internal error: Too many mapping clip stages..'
-        stop
+        message, 'Too many mapping clip stages..'
     endif else begin
         !map.pipeline[0,i+1] = 3
         !map.pipeline[0,i] = 2

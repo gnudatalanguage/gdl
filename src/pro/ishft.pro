@@ -1,4 +1,5 @@
 function ishft, p1, n, _extra=_extra 
+  on_error, 2
 ;+ 
 ; 
 ; 
@@ -74,6 +75,10 @@ function ishft, p1, n, _extra=_extra
 ; 
 ; 
 ;- 
+
+IF (N_PARAMS() NE 2) THEN BEGIN
+   message, 'Incorrect number of arguments.'
+ENDIF
  
 x = p1 
 sizen= size(/struct, n) 

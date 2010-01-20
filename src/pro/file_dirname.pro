@@ -78,16 +78,16 @@
 ;-
 ;
 FUNCTION FILE_DIRNAME, Path, MARK_DIRECTORY = mark_directory, help=help
-;
-IF (N_PARAMS() NE 1) THEN BEGIN
-   print, '% FILE_DIRNAME: Incorrect number of arguments.'
-   return, -1
-ENDIF
+  on_error, 2
 ;
 if KEYWORD_SET(help) then begin
    print, 'FUNCTION FILE_DIRNAME, Path [, /mark_directory] [, /help]'
    return, -1
 endif
+;
+IF (N_PARAMS() NE 1) THEN BEGIN
+   message, 'Incorrect number of arguments.'
+ENDIF
 ;
 command = '\dirname ' + Path
 spawn, command, result

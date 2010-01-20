@@ -1,9 +1,10 @@
-;$Id: write_bmp.pro,v 1.1.1.1 2004-12-09 15:10:19 m_schellens Exp $
+;$Id: write_bmp.pro,v 1.2 2010-01-20 11:41:59 slayoo Exp $
 
 pro write_bmp, filename, image,red, green, blue, $
                     FOUR_BIT=FOUR_BIT,$
                     IHDR=IHDR,HEADER_DEFINE=HEADER_DEFINE,$
                     RGB=RGB
+  on_error, 2
 ;+
 ;
 ;

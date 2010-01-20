@@ -1,4 +1,4 @@
-;$Id: poly.pro,v 1.1 2005-07-12 07:44:30 c_lee Exp $
+;$Id: poly.pro,v 1.2 2010-01-20 11:41:59 slayoo Exp $
 ;+
 ;
 ;
@@ -47,12 +47,17 @@
 ;
 ;-
 function poly, x,c
+  on_error, 2
 
-nc=n_elements(c)
+  IF (N_PARAMS() NE 2) THEN BEGIN
+    message, 'Incorrect number of arguments.'
+  ENDIF
 
-p=x*0.
-for i=nc-1,1L,-1 do p=(p+c[i])*x
-p=p+c[0]
-return, p
+  nc=n_elements(c)
+
+  p=x*0.
+  for i=nc-1,1L,-1 do p=(p+c[i])*x
+  p=p+c[0]
+  return, p
 
 end

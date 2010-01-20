@@ -2,6 +2,7 @@
 
 function imsl_zerosys, f, n, double=double, err_rel=err_rel, $
   fnorm=fnorm, jacobian=jacobian, itmax=itmax, xguess=xguess
+  on_error, 2
 
   ; informing about not supported keywords
   fmt = '(%"Warning: Keyword parameter %s not supported in call to: IMSL_ZEROSYS. Ignored.")'
