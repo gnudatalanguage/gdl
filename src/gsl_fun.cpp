@@ -55,6 +55,16 @@
 // binomialcoef
 #include <gsl/gsl_sf_gamma.h>
 
+// wtn 
+#ifndef GSL_DISABLE_DEPRECATED
+#  define GSL_DISABLE_DEPRECATED
+#  include <gsl/gsl_wavelet.h>
+#  undef GSL_DISABLE_DEPRECATED
+#else
+#  include <gsl/gsl_wavelet.h>
+#endif
+#include <gsl/gsl_wavelet2d.h>
+
 #define LOG10E 0.434294
 
 namespace lib {
@@ -2586,6 +2596,147 @@ res_guard.reset (dres);
     BaseGDL* res = new DDoubleGDL(gsl_sf_choose(n, m));
     static int doubleIx = e->KeywordIx("DOUBLE");
     return res->Convert2(e->KeywordSet(doubleIx) ? DOUBLE : FLOAT, BaseGDL::CONVERT);
+  }
+
+  // SA: helper routines/classes for WTN
+  // an auto_ptr-like class for guarding wavelets
+  class gsl_wavelet_guard
+  {
+    gsl_wavelet* wavelet;
+    public:
+    gsl_wavelet_guard(gsl_wavelet* wavelet_) { wavelet = wavelet_; }
+    ~gsl_wavelet_guard() { gsl_wavelet_free(wavelet); }
+  };
+  // as auto_ptr-like class for guarding wavelet_workspaces
+  class gsl_wavelet_workspace_guard
+  {
+    gsl_wavelet_workspace* workspace;
+    public:
+    gsl_wavelet_workspace_guard(gsl_wavelet_workspace* workspace_) { workspace = workspace_; }
+    ~gsl_wavelet_workspace_guard() { gsl_wavelet_workspace_free(workspace); }
+  };
+  // a simple error handler for GSL issuing GDL warning messages
+  // an initial call (with file=NULL, line=-1 and gsl_errno=-1) sets a prefix to "reason: "
+  // TODO: merge with the code of NEWTON/BROYDEN/IMSL_HYBRID
+  void gsl_err_2_gdl_warn(const char* reason, const char* file, int line, int gsl_errno)
+  {
+    static string prefix;
+    if (line == -1 && gsl_errno == -1 && file == NULL) prefix = string(reason) + ": ";
+    else Warning(prefix + "GSL: " + reason);
+  }
+  class gsl_err_2_gdl_warn_guard
+  {
+    gsl_error_handler_t* old_handler;
+    public:
+    gsl_err_2_gdl_warn_guard(gsl_error_handler_t* old_handler_) { old_handler = old_handler_; }
+    ~gsl_err_2_gdl_warn_guard() { gsl_set_error_handler(old_handler); }
+  };
+
+  // SA: 1. Numerical Recipes, and hence IDL as well, calculate the transform until there are
+  //        two smoothing coefficients left, while GSL leaves out just one, thus:
+  //        - IDL skips computations for four or less elements, while the limit of GSL is 2 
+  //        - plot, wtn([1,0,0,0,0,0,0,0],4,/inv) have different result in GDL and IDL 
+  //     2. As of version 1.13 GSL supports only two dimensions (checked at GDL level), and
+  //        square matrices in 2D case (left for the GSL error handler to report)
+  BaseGDL* wtn(EnvT* e)
+  {
+    SizeT nParam=e->NParam(2);
+    static int doubleIx = e->KeywordIx("DOUBLE");
+    static int overwriteIx = e->KeywordIx("OVERWRITE");
+    static int columnIx = e->KeywordIx("COLUMN");
+    static int inverseIx = e->KeywordIx("INVERSE");
+
+    // sanity checks for the first argument - array, each dimension of length of 2^n
+    BaseGDL* p0 = e->GetNumericArrayParDefined(0);
+    for (SizeT dim = 0; dim < p0->Rank(); dim++)
+      if ((p0->Dim(dim) & (p0->Dim(dim) - 1)) != 0) 
+        e->Throw("Dimensions of array must be powers of 2: " + e->GetParString(0));
+ 
+    // sanity checks for the second argument 
+    // check for value will be done by GSL (supported numbers are 4, 6, 8, 10, 12, 14, 16, 18, 20)
+    // (IDL supports 4, 12 and 20)
+    DLong p1;
+    e->AssureLongScalarPar(1, p1);
+
+    // sanity checkf for GSL constraints
+    if (p0->Rank() > 2) e->Throw("Only one- and two-dimensional transforms supported by GSL");
+
+    // preparing output (GSL always uses double precision and always works in-situ)
+    DType inputType = p0->Type();
+    DDoubleGDL* ret = static_cast<DDoubleGDL*>(p0->Convert2(
+      DOUBLE, 
+      e->KeywordSet(overwriteIx) && e->StealLocalPar(0) 
+        ? BaseGDL::CONVERT
+        : BaseGDL::COPY
+    ));
+    auto_ptr<DDoubleGDL> ret_guard;
+    if (ret != p0) ret_guard.reset(ret);
+
+    // GSL error handling
+    gsl_error_handler_t* old_handler = gsl_set_error_handler(&gsl_err_2_gdl_warn);
+    gsl_err_2_gdl_warn_guard old_handler_guard(old_handler);
+    gsl_err_2_gdl_warn(e->GetProName().c_str(), NULL, -1, -1);
+
+    // initializing wavelet ceofficients
+    gsl_wavelet *wavelet = gsl_wavelet_alloc(gsl_wavelet_daubechies, p1);
+    if (wavelet == NULL) e->Throw("Failed to initialize the wavelet filter coefficients");
+    gsl_wavelet_guard wavelet_guard = gsl_wavelet_guard(wavelet);
+
+    // initializing workspace (N -> N, NxN -> N, 1xN -> N)
+    gsl_wavelet_workspace *workspace = gsl_wavelet_workspace_alloc(max(ret->Dim(0), ret->Dim(1)));
+    if (workspace == NULL) e->Throw("Failed to allocate scratch memory");
+    gsl_wavelet_workspace_guard workspace_guard = gsl_wavelet_workspace_guard(workspace);
+    
+    // 1D (or 1xN) case
+    if (ret->Rank() == 1 || (ret->Rank() == 2 && ret->Dim(0) == 1))
+    {
+      if (GSL_SUCCESS != gsl_wavelet_transform(
+        wavelet, 
+        &(*ret)[0], 
+        1, // stride 
+        ret->N_Elements(), 
+        e->KeywordSet(inverseIx) ? gsl_wavelet_backward : gsl_wavelet_forward, 
+        workspace
+      )) e->Throw("Failed to compute the transform");
+
+      // transposing the result if /COLUMN was set
+      if (e->KeywordSet(columnIx)) 
+        ret->SetDim(ret->Rank() == 1 
+          ? dimension(1, ret->N_Elements())
+          : dimension(ret->N_Elements())
+        );
+    }
+    // 2D case
+    else
+    {
+      if (GSL_SUCCESS != gsl_wavelet2d_transform(
+        wavelet,
+        &((*ret)[0]),
+        ret->Dim(0), // physical row length
+        ret->Dim(0), // number of rows
+        ret->Dim(1), // number of columns
+        e->KeywordSet(inverseIx) ? gsl_wavelet_backward : gsl_wavelet_forward,
+        workspace
+      )) e->Throw("Failed to compute the transform");
+     
+      // TODO: make a proper n-dimensional suuport!
+      if (e->KeywordSet(columnIx)) 
+      {
+        DDoubleGDL* tmp;
+        tmp = ret;
+        ret = static_cast<DDoubleGDL*>(ret->Transpose(NULL));
+        delete tmp;
+      }
+    }
+
+    // returning
+    ret_guard.release();
+    return ret->Convert2(
+      e->KeywordSet(doubleIx) || inputType == DOUBLE
+        ? DOUBLE 
+        : FLOAT, 
+      BaseGDL::CONVERT
+    );
   }
 
 } // namespace
