@@ -1,0 +1,122 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>GDL requirements</title>
+<link href="gdl.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+
+<center><h2><span class="g">G</span><span class="d">D</span><span class="l">L</span>  Requirements</h2></center>
+
+<p>Obligatory libraries:</p>
+<ul>
+    <li><a href="http://plplot.sourceforge.net/source/index.html" target="_self">plplot</a></li>      
+    <li><a href="http://www.gnu.org/software/gsl" target="_self">gsl</a></li>         
+    <li><a href="http://ftp.gnu.org/pub/gnu/readline/readline-4.3.tar.gz" target="_self">readline</a></li>
+</ul>    
+
+<p>Optional libraries:</p>
+<ul>
+<li><a href="http://www.imagemagick.org/www/download.html" target="_self">ImageMagick</a></li>   
+<li><a href="ftp://ftp.unidata.ucar.edu/pub/netcdf" target="_blank">netCDF</a></li>   
+<li><a href="ftp://ftp.ncsa.uiuc.edu/HDF/HDF/HDF_Current"
+target="_self">HDF (version 4)</a></li>
+<li><a href="ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/current" target="_self">HDF5</a>
+</li>
+<li><a href="http://www.python.org" target="_self">python</a></li>   
+<li><a
+href="http://www.stsci.edu/resources/software_hardware/numarray"
+target="_self">numarray</a> (obligatory with python)</li>
+<li><a href="http://matplotlib.sourceforge.net"
+target="_self">matplotlib</a> (optional for python)</li>
+<li><a href="http://cow.physics.wisc.edu/~craigm/idl/down/cmsvlib.tar.gz">CMSVLIB</a> (for SAVE and RESTORE)</li>
+</ul>
+
+<p>At least g++ 3.2 (or a similar C++ standard conforming
+compiler) is needed for compiling GDL. 
+Note that due to problems with static casts <b>g++ 3.3.1
+does not compile GDL</b>, but 3.3.2 works fine again, so does 4.0 .
+GDL compiles under Mac OS X (10.2, 10.3 and 10.4) with g++ 3.3 (build 1671 -
+for build 1666 problems were reported) and with g++ 4.0.
+</p>
+
+<p>The <a href="http://ftp.gnu.org/pub/gnu/readline/readline-5.0.tar.gz"
+target="_self">GNU readline</a>
+library 4.3 or later is needed (GDL should compile
+without it, but it's very inconvenient to use that way, furthermore,
+proper event handling for graphic windows requires readline).<br/>
+OS X 10.4: Note that the the readline library which comes with OS X is <b>
+not</b> GNU readline. You need to install GNU readline and set the --with-readlinedir= DIR option to configure.
+</p>
+
+<p>GDL uses the <a href="http://plplot.sourceforge.net/source/index.html"
+target="_self">plplot</a>
+ library version 5.3 or later for graphics.<br/>
+</p>
+
+<p>Furthermore you need the <a href="http://www.gnu.org/software/gsl" target="_self">GNU Scientific Library</a>.
+</p>
+
+<p>For reading and writing images in several formats, GDL uses
+<a href="http://www.imagemagick.org/www/download.html" target="_self">ImageMagick</a>.
+It is required by default. If you don't want to use it, use 
+'--with-Magick=no' as a command line option to 'configure'.
+</p>
+
+<p>The HDF format is supported (version 4).
+If you want to use it, you need the 
+<a href="ftp://ftp.ncsa.uiuc.edu/HDF/HDF/HDF_Current" target="_self">HDF library</a>.
+It is required by default. If you don't want to use it, use 
+'--with-hdf=no' as a command line option to 'configure'.
+Note that HDF in turn needs other libraries. Check out the
+<a href="http://hdf.ncsa.uiuc.edu" target="_self">HDF homepage</a> for
+more information.
+</p>
+
+<p>Basic support for HDF5 is provided.
+If you want to use it, you need the 
+<a href="ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/current" target="_self">HDF5 library</a>.
+It is required by default. If you don't want to use it, use 
+'--with-hdf5=no'. Note that HDF5 in turn needs other libraries. Check out the
+<a href="http://hdf.ncsa.uiuc.edu" target="_self">HDF homepage</a> 
+for more information.
+</p>
+
+
+<p>The netCDF format is fully supported since version 0.8 . If you
+ want to use it, you need the 
+<a href="ftp://ftp.unidata.ucar.edu/pub/netcdf" target="_blank">netCDF library</a>.
+It is required by default. If you don't want to use it, use 
+'--with-netcdf=no' as a command line option to 'configure'.
+</p>
+
+<p>GDL has an interface to <a href="http://www.python.org" target="_self">python</a> (GDL can be build and used as a python module as well).
+As so far there are only two example GDL extensions written in python its use optional for now but required by default.
+If you don't want to use it, use '--with-python=no'
+as a command line option to 'configure'.
+If you want to use it you need python 2.3 or later and the python package
+<a href="http://www.stsci.edu/resources/software_hardware/numarray" target="_self">numarray</a> 0.9 (or later). 
+For nice graphical output the python package <a href="http://matplotlib.sourceforge.net" target="_self">matplotlib</a> 0.52 (or later)
+is used in one of the examples.
+The GDL configure script will determine the installed python version
+automatically. For this the python executable must be installed.
+The python version can be explictely set with 
+--enable-pyhton_version=VERSION# (eg. --enable-pyhton_version=2.3).
+Note: For embedding python as done by GDL, the python dynamic
+library is needed which is <b>not</b> build by default. You need to run
+'configure' for python with the '--enable-shared' option. Please see
+the python README file for details.
+See the file PYTHON.txt in the GDL home directory for more details.
+
+<p>GDL was developed using <a href="http://www.antlr.org"
+target="_self">ANTLR</a> 
+but unless you want to change the grammar (*.g files) you don't need
+ANTLR. All relevant ANTLR files are included in the package.<br/>
+</p>
+
+<p>GDL is currently developed using <a href="http://www.kdevelop.org" target="_self">KDevelop</a> 3.3.6 under Fedora Core 7 GNU/Linux. The KDevelop project file is included in the tarball, so if you
+have KDevelop you should be able to use it with GDL seamlessly.</p>
+
+
+</body>

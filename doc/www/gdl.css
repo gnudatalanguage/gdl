@@ -1,0 +1,25 @@
+body{
+	background-color: #ffffff;
+	font-family: Verdana, Geneva, Arial, Helvetica, sans-serif;
+	font-size: 18px;
+	line-height: 20px;
+	color: #000000;
+	width: 540px
+}
+
+a{
+	color: #5555aa; 
+	text-decoration:none;
+	cursor: crosshair
+}
+a:hover{ color: #ee3322}		
+a:active{ color: #eecc00}		
+a:visited{ color: #5566ee}		
+
+p{ margin: 12px}
+
+h2{ line-height: 32px}
+
+.g{ color: #ee3322}
+.d{ color: #eecc00}
+.l{ color: #5566ee}
