@@ -197,8 +197,9 @@ namespace lib {
 
 
     int status, var_id;
-    DInt cdfid;
-    e->AssureScalarPar<DIntGDL>(0, cdfid);
+
+    DLong cdfid;
+    e->AssureLongScalarPar(0, cdfid);
     DString dim_name;
     e->AssureScalarPar<DStringGDL>(1, dim_name);
     
@@ -746,9 +747,8 @@ else if(var_type == NC_LONG)
     int dims[NC_MAX_VAR_DIMS], status, var_id,i,var_ndims;
     nc_type type;
 
-    DInt cdfid;
-    e->AssureScalarPar<DIntGDL>(0, cdfid);
- 
+    DLong cdfid;
+    e->AssureLongScalarPar(0, cdfid);
 
     BaseGDL* v=e->GetParDefined(1);
     DString var_name;

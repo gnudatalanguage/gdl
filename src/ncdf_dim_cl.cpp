@@ -98,10 +98,10 @@ namespace lib {
 
     int status, dim_id;
 
-    DInt cdfid;
+    DLong cdfid;
     DString dim_name;
 
-    e->AssureScalarPar<DIntGDL>(0, cdfid);
+    e->AssureLongScalarPar(0, cdfid);
     e->AssureStringScalarPar(1,dim_name);
     
     status=nc_inq_dimid(cdfid, dim_name.c_str(),&dim_id);
@@ -118,8 +118,8 @@ namespace lib {
     int status, dim_id;
 
     DString in_string;
-    DInt cdfid;
-    e->AssureScalarPar<DIntGDL>(0, cdfid);
+    DLong cdfid;
+    e->AssureLongScalarPar(0, cdfid);
 
     DString dim_name;
     e->AssureStringScalarPar(1,dim_name);
@@ -194,7 +194,7 @@ namespace lib {
 
       }
 
-    return new DIntGDL(dim_id);
+    return new DLongGDL(dim_id);
   }
 
   void ncdf_dimrename(EnvT* e)

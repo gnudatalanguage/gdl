@@ -60,58 +60,52 @@ namespace lib {
   BaseGDL* ncdf_attname(EnvT* e) // {{{
   {
     size_t nParam=e->NParam(2);
-    if(nParam ==3 && e->KeywordSet(0))
+    if (nParam ==3 && e->KeywordSet(0))
+      e->Throw("Specifying both GLOBAL keyword an variable id not allowed");
+
+    int status;
+    char att_name[NC_MAX_NAME];
+    DLong cdfid, varid,attnum;
+    varid=0;
+    attnum=0;
+
+    DString attname;
+    e->AssureLongScalarPar(0, cdfid);
+
+    if (e->KeywordSet(0)) 
+    {
+      e->AssureLongScalarPar(1, varid);
+      attnum = varid;
+      varid = NC_GLOBAL;
+    } 
+    else 
+    {
+      // Check type of varid
+      BaseGDL* p1 = e->GetParDefined( 1);
+      if (p1->Type() != STRING) 
       {
-	throw GDLException(e->CallingNode(),
-			   "NCDF_ATTNAME: The error is Global + varid, not allowed, proper text to come.");
- 
-      }   else {
-
-	int status;
-
-	char att_name[NC_MAX_NAME];
-	DLong cdfid, varid,attnum;
-	varid=0;
-	attnum=0;
-
-	DString attname;
-        e->AssureLongScalarPar(0, cdfid);
-
-	if(e->KeywordSet(0)) 
-	  {
-	    attnum=varid;
-	    varid=NC_GLOBAL;
-
-	  } else {
-	    // Check type of varid
-	    BaseGDL* p1 = e->GetParDefined( 1);
-            if (p1->Type() != STRING) {
-              // Numeric
-	      e->AssureLongScalarPar(1, varid);
-            } else {
-              // String
-	      DString var_name;
-              e->AssureScalarPar<DStringGDL>(1, var_name);
-              status=nc_inq_varid(cdfid, var_name.c_str(), &varid);
-              ncdf_handle_error(e,status,"NCDF_ATTNAME");
-            }
-            e->AssureStringScalarPar(2, attname);
-	  }
-
-
-	//get the att_name variable.
-
-	status=nc_inq_attname(cdfid,
-			      varid,
-			      attnum,
-			      att_name);
-
-	//handle the error
-	ncdf_handle_error(e,status,"NCDF_ATTNAME");
-	
-	return new DStringGDL(att_name);
-
+        // Numeric
+        e->AssureLongScalarPar(1, varid);
+      } else {
+        // String
+        DString var_name;
+        e->AssureScalarPar<DStringGDL>(1, var_name);
+        status=nc_inq_varid(cdfid, var_name.c_str(), &varid);
+        ncdf_handle_error(e,status,"NCDF_ATTNAME");
       }
+      e->AssureStringScalarPar(2, attname);
+    }
+
+    //get the att_name variable.
+    status=nc_inq_attname(cdfid, varid, attnum, att_name);
+
+    //handle the error
+    ncdf_handle_error(e,status,"NCDF_ATTNAME");
+
+    // SA: TODO: should return null string if argument not found
+	
+    return new DStringGDL(att_name);
+
   } // }}}
 
   BaseGDL* ncdf_attinq(EnvT* e) // {{{
@@ -228,12 +222,9 @@ namespace lib {
     ncdf_handle_error(e,status,"NCDF_ATTGET");
 
     if (att_type == NC_CHAR) {
-      char *cp;
-      cp = new char[length];
-      status=nc_get_att_text(cdfid, varid, attname.c_str(), cp);
-      ncdf_att_handle_error(e, status, "NCDF_ATTGET", cp);
-      DStringGDL* temp = new DStringGDL(cp);
-      delete cp;
+      DByteGDL* temp = new DByteGDL(dimension(length));
+      status = nc_get_att_text(cdfid, varid, attname.c_str(), (char*)(&((*temp)[0])));
+      ncdf_handle_error(e, status, "NCDF_ATTGET");
       delete e->GetParGlobal(nParam-1);
       e->GetParGlobal(nParam-1)=temp;
     }
@@ -305,7 +296,6 @@ namespace lib {
     size_t N_Params=e->NParam(3);
     int status, val_num;
     nc_type xtype;
-    size_t length;
     
     BaseGDL* at;//name
     DString attname;
@@ -368,51 +358,67 @@ namespace lib {
     else if(e->KeywordSet(7)) //SHORT
       xtype=NC_SHORT;
 
+    // LENGTH keyword support 
+    DLong length;
+    if (val->Type() != STRING)
+    {
+      length = val->N_Elements(); 
+      e->AssureLongScalarKWIfPresent(1, length);
+      if (length > val->N_Elements()) e->Throw("LENGTH keyword value (" + i2s(length) + 
+        ") exceedes the data length (" + i2s(val->N_Elements()) + ")");
+    }
+
+
     if(val->Type() == BYTE)
       {
 
 	DByteGDL * bvar=static_cast<DByteGDL*>(val);
 	status=nc_put_att_uchar(cdfid,varid,
 				attname.c_str(),xtype,
-				val->N_Elements(),
+				(size_t)length,
 				(const unsigned char *)&(*bvar)[0]);
       }
     else if(val->Type() == STRING)
       {
 	DString cvar;
 	e->AssureScalarPar<DStringGDL>(val_num,cvar);
-	status=nc_put_att_text(cdfid,varid,
-			       attname.c_str(),//xtype,
-				cvar.length()+1,
-				(char *)cvar.c_str());
+
+        length = cvar.length();
+        e->AssureLongScalarKWIfPresent(1, length);
+        if (length > cvar.length()) e->Throw("LENGTH keyword value (" + i2s(length) +
+          ") exceedes the data length (" + i2s(cvar.length()) + ")");
+        if (length < cvar.length()) cvar.resize(length);
+
+	status=nc_put_att_text(cdfid,varid, attname.c_str(),
+				cvar.length(), (char *)cvar.c_str());
       }
     else if(val->Type() == INT)
       {
 	DIntGDL * ivar=static_cast<DIntGDL*>(val);
 	status=nc_put_att_short(cdfid,varid,
-				  attname.c_str(),xtype,
-				  val->N_Elements(),&(*ivar)[0]);
+				  attname.c_str(), xtype,
+				  (size_t)length, &(*ivar)[0]);
       }
     else if(val->Type() == LONG)
       {
       DLongGDL * lvar=static_cast<DLongGDL*>(val);
       status=nc_put_att_int(cdfid,varid,
 			      attname.c_str(),xtype,
-				  val->N_Elements(),&(*lvar)[0]);
+				(size_t)length, &(*lvar)[0]);
       }
     else if(val->Type() == FLOAT)
       {
 	DFloatGDL * fvar=static_cast<DFloatGDL*>(val);
 	status=nc_put_att_float(cdfid,varid,
 				  attname.c_str(),xtype,
-				  val->N_Elements(),&(*fvar)[0]);
+				  (size_t)length, &(*fvar)[0]);
       }
     else if(val->Type() == DOUBLE)
       {
 	DDoubleGDL * dvar=static_cast<DDoubleGDL*>(val);
 	status=nc_put_att_double(cdfid,varid,
 				   attname.c_str(),xtype,
-				   val->N_Elements(),&(*dvar)[0]);
+				   (size_t)length, &(*dvar)[0]);
       }
     
     ncdf_handle_error(e, status,"NCDF_ATTPUT");

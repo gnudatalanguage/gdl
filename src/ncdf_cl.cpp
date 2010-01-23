@@ -83,16 +83,15 @@ namespace lib {
     if(status != NC_NOERR)
       {
 	string error;
-	error=function;
-	error+=": ";
+	//error=function;
+	//error+=": ";
 	DString s;
-	DInt i;
-	
 
 	if(status==NC_EBADID)	/* Not a netcdf id */
 	  {
-	    e->AssureScalarPar<DIntGDL>(0,i);
-	    error+=_ncdf_itos(i);
+            DLong id;
+            e->AssureLongScalarPar( 0, id);
+	    error+=_ncdf_itos(id);
 	    error+=" is not a valid cdfid";
 	    
 	    error+="(NC_ERROR=-33)";
@@ -147,7 +146,7 @@ namespace lib {
 	  }
       	else if(status==NC_ENOTATT) /* Attribute not found */
 	  {
-	    error+=" Attribute enquiry failed. ";
+	    error+="Attribute enquiry failed. ";
 	    
 	    error+="(NC_ERROR=-43)";
 	  }
@@ -162,9 +161,10 @@ namespace lib {
 	  }
 	else if(status==NC_EBADDIM)  	/* Invalid dimension id or name */  
 	  {
-	    e->AssureScalarPar<DIntGDL>(0,i);
+            DLong id;
+            e->AssureLongScalarPar( 0, id);
 	    error+="No Dimension with id = ";
-	    error+=_ncdf_itos(i);
+	    error+=_ncdf_itos(id);
 	    error+=" found. ";
 	    
 	    error+="(NC_ERROR=-46)";
@@ -180,9 +180,10 @@ namespace lib {
 	  }
 	else if(status==NC_ENOTVAR) 	/* Variable not found */
 	  {
-	    e->AssureScalarPar<DIntGDL>(0,i);
+            DLong id;
+            e->AssureLongScalarPar( 0, id);
 	    error+="Variable enquiry failed, ";
-	    error+=_ncdf_itos(i);	    
+	    error+=_ncdf_itos(id);	    
 	    error+=" is not a valid variable id.";
 	    error+="(NC_ERROR=-49)";
 	  }
@@ -193,7 +194,7 @@ namespace lib {
 	else if(status==NC_ENOTNC)  	/* Not a netcdf file */
 	  {
 	    e->AssureScalarPar<DStringGDL>(0, s);
-	    error+=" Unable to open the file \""+s+ "\". ";
+	    error+="Unable to open the file \""+s+ "\". ";
 	    error+="(NC_ERROR=-51)";
 	  }
 	else if(status==NC_ESTS)  	/* In Fortran, string too short */
@@ -247,7 +248,7 @@ namespace lib {
 	else if(status==2)
 	  {
 	    e->AssureScalarPar<DStringGDL>(0, s);
-	    error+=" Unable to open the file \""+s+ "\". (NC_ERROR = 2)";    
+	    error+="Unable to open the file \""+s+ "\". (NC_ERROR = 2)";    
 	  }
 	else 
 	  {
@@ -264,10 +265,8 @@ namespace lib {
 	    error+=")";
 	    
 	  }
-	
 
-	throw GDLException(e->CallingNode(),
-			   error);
+	e->Throw(error);
 
       }
 
@@ -298,7 +297,7 @@ namespace lib {
 
 	ncdf_handle_error(e,status,"NCDF_OPEN");
 
-    return new DIntGDL(cdfid);
+    return new DLongGDL(cdfid);
 
 
   }
@@ -308,21 +307,10 @@ namespace lib {
   void ncdf_close(EnvT* e)
   {
     size_t nParam=e->NParam(1);
-    if(nParam != 1) throw GDLException(e->CallingNode(),
-				       "NCDF_CLOSE: Wrong number of arguments.");
-    BaseGDL* n=e->GetParDefined(0);
-
-    DIntGDL* cdfid=static_cast<DIntGDL*>(n);
-    DInt in;
-    e->AssureScalarPar<DIntGDL>(0, in);
-    int status;
-
-    //try closing the number
-    status=nc_close((*cdfid)[0]);
-
-      //handle the error
-    ncdf_handle_error(e,status,"NCDF_CLOSE");
-
+    DLong cdfid;
+    e->AssureLongScalarPar( 0, cdfid);
+    int status = nc_close(cdfid);
+    ncdf_handle_error(e, status, "NCDF_CLOSE");
   }
 
 
@@ -332,14 +320,11 @@ namespace lib {
     size_t nParam=e->NParam(1);
    
     int status, ndims,nvars,ngatts,unlimdimid;
-    BaseGDL* n=e->GetParDefined(0);
 
+    DLong cdfid;
+    e->AssureLongScalarPar( 0, cdfid);
 
-    DIntGDL* cdfid=static_cast<DIntGDL*>(n);
-    DInt in;
-    e->AssureScalarPar<DIntGDL>(0, in);    
-
-    status = nc_inq((*cdfid)[0], &ndims, &nvars, &ngatts, &unlimdimid);
+    status = nc_inq(cdfid, &ndims, &nvars, &ngatts, &unlimdimid);
 
     ncdf_handle_error(e,status,"NCDF_INQUIRE");
 
@@ -389,7 +374,7 @@ namespace lib {
 
       ncdf_handle_error(e,status,"NCDF_CREATE");
 
-    return new DIntGDL(cdfid);
+    return new DLongGDL(cdfid);
 
 
   }
@@ -410,10 +395,8 @@ namespace lib {
     size_t nParam=e->NParam(1);
     int status,omode    ;
 
-    BaseGDL* n=e->GetParDefined(0);
-    DIntGDL* cdfid=static_cast<DIntGDL*>(n);
-    DInt in;
-    e->AssureScalarPar<DIntGDL>(0, in);
+    DLong cdfid;
+    e->AssureLongScalarPar( 0, cdfid);
 
     int total=e->KeywordSet(0)+      e->KeywordSet(1)+
       e->KeywordSet(2)+      e->KeywordSet(3)+
@@ -426,21 +409,21 @@ namespace lib {
 
     status=NC_NOERR;
     if(e->KeywordSet(0))//ABORT
-	status=nc_abort((*cdfid)[0]);
+	status=nc_abort(cdfid);
     else if(e->KeywordSet(1))//ENDEF
-	status=nc_enddef((*cdfid)[0]);
+	status=nc_enddef(cdfid);
     else if(e->KeywordSet(2))//FILL 
-	status=nc_set_fill((*cdfid)[0],NC_FILL,&omode);
+	status=nc_set_fill(cdfid,NC_FILL,&omode);
     else if(e->KeywordSet(3))//NOFILL
-      status=nc_set_fill((*cdfid)[0],NC_NOFILL,&omode);
+      status=nc_set_fill(cdfid,NC_NOFILL,&omode);
     else if(e->KeywordSet(4))//VERBOSE
       ncdf_verbose=true;
     else if(e->KeywordSet(5))//NOVERBOSE
       ncdf_verbose=false;
     else if(e->KeywordSet(7))//REDEF
-	status=nc_redef((*cdfid)[0]);
+	status=nc_redef(cdfid);
     else if(e->KeywordSet(8))//SYNC
-	status=nc_sync((*cdfid)[0]);
+	status=nc_sync(cdfid);
     
     if(e->KeywordSet(7) && status==NC_EPERM)
       throw GDLException(e->CallingNode(),"NCDF_CONTROL: Attempt to reenter define mode (REDEF) failed, no write permission to the file.");
@@ -452,7 +435,7 @@ namespace lib {
       {
 	e->AssureGlobalKW(6);
 	delete e->GetKW(6);
-	e->GetKW(6)=new DIntGDL(omode);
+	e->GetKW(6)=new DLongGDL(omode);
       }
 
   }
