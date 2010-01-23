@@ -69,7 +69,7 @@ void LibInit_jmg()
   const string invertKey[]={"DOUBLE",KLISTEND};
   new DLibFun(lib::invert_fun,string("INVERT"),2,invertKey);
 
-  const string fftKey[]={"DOUBLE","INVERSE","OVERWRITE",KLISTEND};
+  const string fftKey[]={"DOUBLE","INVERSE","OVERWRITE","DIMENSION",KLISTEND};
 #if defined(USE_FFTW)
   new DLibFun(lib::fftw_fun,string("FFT"),2,fftKey);
 #else
