@@ -550,7 +550,7 @@ void FMTParser::cformat() {
 		c_AST = astFactory->create(c);
 		astFactory->addASTChild(currentAST, antlr::RefAST(c_AST));
 		match(CD);
-		if(w==-1) w=1; c_AST->setW( w); c_AST->setD( d); c_AST->setType( I);
+		c_AST->setW( w); c_AST->setD( d); c_AST->setType( I);
 		break;
 	}
 	case CE:

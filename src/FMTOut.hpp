@@ -29,6 +29,18 @@ public:
     : antlr::TreeParser(), os(os_), e( e_), nextParIx( parOffset),
 	valIx(0), termFlag(false), nonlFlag(false), nElements(0)
     {
+        std::ostringstream* osLocal;
+        std::auto_ptr<std::ostream> osLocalGuard;
+        if( *os_ == std::cout)
+            {
+                osLocal = new std::ostringstream();
+                os = osLocal;
+            }
+        else
+            {
+                os = os_;
+            }
+
         nParam = e->NParam();
 
         NextPar();
@@ -57,9 +69,20 @@ public:
                 throw GDLException("Infinite format loop detected.");
          }
         
-        if( !nonlFlag) (*os) << '\n';
+        os->seekp( 0, std::ios_base::end);
 
+        if( !nonlFlag)
+            {
+                (*os) << '\n';
+            }
         (*os) << std::flush;
+
+        if( *os_ == std::cout)
+            {
+                os = os_;
+                (*os) << osLocal->str();
+                (*os) << std::flush;
+            }
     }
     
 private:
