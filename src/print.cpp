@@ -173,7 +173,9 @@ namespace lib {
 			       (*static_cast<DStringGDL*>(par))[0] == "");
 // 	}
 	if( (par->Dim().Rank() == 0  && !singleNullChar) || par->Type() == STRUCT)
+	{
 		(*os) << endl;
+	}
       }
   }
 

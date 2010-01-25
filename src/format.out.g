@@ -71,6 +71,7 @@ public:
         if( *os_ == std::cout)
             {
                 osLocal = new std::ostringstream();
+                osLocalGuard.reset( osLocal);
                 os = osLocal;
             }
         else
