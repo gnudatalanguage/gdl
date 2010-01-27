@@ -791,6 +791,8 @@ void LibInit()
   //new DLibFun(lib::hanning, string("HANNING"), 2, hanningKey);
   const string wtnKey[] = {"COLUMN", "DOUBLE", "INVERSE", "OVERWRITE", KLISTEND };
   new DLibFun(lib::wtn, string("WTN"), 2, wtnKey);
+  const string zeropolyKey[] = {"DOUBLE", "COMPANION", "JENKINS_TRAUB", KLISTEND };
+  new DLibFun(lib::zeropoly, string("IMSL_ZEROPOLY"), 1, zeropolyKey);
 
   // sort lists
   sort( libFunList.begin(), libFunList.end(), CompLibFunName());

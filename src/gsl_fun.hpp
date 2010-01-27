@@ -54,6 +54,7 @@ namespace lib {
   BaseGDL* constant(EnvT* e);
   BaseGDL* binomialcoef(EnvT* e);
   BaseGDL* wtn(EnvT* e);
+  BaseGDL* zeropoly(EnvT* e);
 
 } // namespace
 

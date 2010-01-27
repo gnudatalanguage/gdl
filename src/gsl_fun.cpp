@@ -65,6 +65,9 @@
 #endif
 #include <gsl/gsl_wavelet2d.h>
 
+// zeropoly
+#include <gsl/gsl_poly.h>
+
 #define LOG10E 0.434294
 
 namespace lib {
@@ -2737,6 +2740,60 @@ res_guard.reset (dres);
         : FLOAT, 
       BaseGDL::CONVERT
     );
+  }
+
+
+  // SA: helper class for zeropoly
+  // an auto_ptr-like class for guarding the poly_complex_workspace
+  class gsl_poly_complex_workspace_guard
+  {
+    gsl_poly_complex_workspace* workspace;
+    public:
+    gsl_poly_complex_workspace_guard(gsl_poly_complex_workspace* workspace_) { workspace = workspace_; }
+    ~gsl_poly_complex_workspace_guard() { gsl_poly_complex_workspace_free(workspace); }
+  };
+  BaseGDL* zeropoly(EnvT* e) 
+  {
+    static int doubleIx = e->KeywordIx("DOUBLE");
+    static int jenkisTraubIx = e->KeywordIx("JENKINS_TRAUB");
+    
+    SizeT nParam=e->NParam(1);
+    if (e->KeywordSet(jenkisTraubIx)) 
+      e->Throw("Jenkins-Traub method not supported yet (FIXME!)");
+
+    BaseGDL* p0 = e->GetNumericArrayParDefined(0);
+    if (ComplexType(p0->Type()))
+      e->Throw("Polynomials with complex coefficients not supported yet (FIXME!)");
+    if (p0->Rank() != 1)
+      e->Throw("The first argument must be a column vector: " + e->GetParString(0));
+    DDoubleGDL* coef = e->GetParAs<DDoubleGDL>(0);
+
+    // GSL error handling
+    gsl_error_handler_t* old_handler = gsl_set_error_handler(&gsl_err_2_gdl_warn);
+    gsl_err_2_gdl_warn_guard old_handler_guard(old_handler);
+    gsl_err_2_gdl_warn(e->GetProName().c_str(), NULL, -1, -1);
+
+    // initializing complex polynomial workspace
+    gsl_poly_complex_workspace* w = gsl_poly_complex_workspace_alloc(coef->N_Elements());
+    gsl_poly_complex_workspace_guard w_guard(w);
+
+    vector<double> tmp(2 * (coef->N_Elements() - 1)); 
+    
+    if (GSL_SUCCESS != gsl_poly_complex_solve(
+      &(*coef)[0], coef->N_Elements(), w, &(tmp[0]))
+    )
+      e->Throw("Failed to compute the roots of the polynomial");
+
+    DComplexDblGDL* result = new DComplexDblGDL(dimension(coef->N_Elements() - 1));
+    for (SizeT i = 0; i < coef->N_Elements(); ++i) 
+      (*result)[i] = complex<double>(tmp[2 * i], tmp[2 * i + 1]);
+    
+    return result->Convert2(
+      e->KeywordSet(doubleIx) || p0->Type() == DOUBLE
+        ? COMPLEXDBL 
+        : COMPLEX, 
+      BaseGDL::CONVERT
+    );   
   }
 
 } // namespace
