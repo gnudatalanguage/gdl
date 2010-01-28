@@ -44,6 +44,11 @@ class CUSTOM_API GDLParser : public antlr::LLkParser, public GDLTokenTypes
         IDL2=DEFINT32 | STRICTARR,
         STRICTARRSUBS=32
     };
+
+    void SetCompileOpt( unsigned int cOpt)
+    {
+        this->compileOpt = cOpt;
+    }
     
     private:
     void AddCompileOpt( const std::string opt)

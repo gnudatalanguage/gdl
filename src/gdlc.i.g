@@ -1099,6 +1099,9 @@ case_statement returns[ GDLInterpreter::RetCode retCode]
 	;
 
 repeat_statement returns[ GDLInterpreter::RetCode retCode]
+{
+    retCode = RC_OK; // not set if no branch is executed
+}
 	: #(r:REPEAT // block expr
             {
                 SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
@@ -1379,6 +1382,7 @@ if_statement returns[ GDLInterpreter::RetCode retCode]
 if_else_statement returns[ GDLInterpreter::RetCode retCode]
 {
     BaseGDL* e;
+    retCode = RC_OK; // not set if not executed
 }
 	: #(i:IF_ELSE e=expr
             { 

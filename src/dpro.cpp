@@ -184,7 +184,8 @@ DSubUD::~DSubUD()
 DSubUD::DSubUD(const string& n,const string& o,const string& f) : 
   DSub(n,o), file(f),
   tree( NULL),
-  labelList()
+  labelList(),
+  compileOpt(GDLParser::NONE)
 {
   if( o != "")
     AddPar( "SELF");

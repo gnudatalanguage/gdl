@@ -744,7 +744,8 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
 	try {
 	  // works, but ugly -> depends from parser detecting an error
 	  // (which it always will due to missing END_U token in case of LC)
-	  lexer->Parser().interactive();
+ 	  //lexer->Parser().SetCompileOpt(callStack.back()->CompileOpt());
+ 	  lexer->Parser().interactive();
 	  break; // no error -> everything ok
 	}
 	catch( GDLException e)

@@ -271,7 +271,7 @@ class DSubUD: public DSub
 
   CommonBaseListT     common;      // common blocks or references 
   ProgNodeP           tree;        // the 'code'
-  int                 compileOpt;  // e.g. hidden or obsolete
+  unsigned int                 compileOpt;  // e.g. hidden or obsolete
 
   LabelListT          labelList;
 

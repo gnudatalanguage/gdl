@@ -874,6 +874,9 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 	ProgNodeP repeat_statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP r = ProgNodeP(antlr::nullAST);
 	
+	retCode = RC_OK; // not set if no branch is executed
+	
+	
 	ProgNodeP __t27 = _t;
 	r = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	match(antlr::RefAST(_t),REPEAT);
@@ -1024,6 +1027,7 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 	ProgNodeP i = ProgNodeP(antlr::nullAST);
 	
 	BaseGDL* e;
+	retCode = RC_OK; // not set if not executed
 	
 	
 	ProgNodeP __t36 = _t;
