@@ -3153,7 +3153,9 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
       PLFLT zintv;
       // Jo: added keyword NLEVELS
       if (e->KeywordSet( "NLEVELS")) {
-      	e->AssureLongScalarKWIfPresent( "NLEVELS", nlevel);
+        DLong l_nlevel = nlevel; // GCC 3.4.4 needs that
+      	e->AssureLongScalarKWIfPresent( "NLEVELS", l_nlevel);
+        nlevel = l_nlevel;
 	if (nlevel <= 0) nlevel= 2;  // AC: mimication of IDL
 
         // cokhavim: IDL does this...

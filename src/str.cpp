@@ -19,7 +19,16 @@
 
 #include <cstdlib>
 
+// that's enough with Cygwin >= 1.7.1 
+#ifdef __CYGWIN__
+extern "C" {
+#endif
+
 #include <wordexp.h>
+
+#ifdef __CYGWIN__
+}
+#endif
 
 #include "str.hpp"
 #include "gdlexception.hpp"

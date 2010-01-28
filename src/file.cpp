@@ -40,10 +40,12 @@
 
 // workaround for HP-UX. A better solution is needed i think
 #if defined(__hpux__) || defined(__sun__)
-#define GLOB_TILDE 0
-#define GLOB_BRACE 0
-#define GLOB_ONLYDIR 0
-#define GLOB_PERIOD 0
+#  define GLOB_TILDE 0
+#  define GLOB_BRACE 0
+#endif
+#if defined(__hpux__) || defined(__sun__) || defined(__CYGWIN__)
+#  define GLOB_ONLYDIR 0
+#  define GLOB_PERIOD 0
 #endif
 
 

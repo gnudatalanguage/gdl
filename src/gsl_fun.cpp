@@ -994,7 +994,7 @@ namespace lib {
     }
   }
 
-#ifdef HAVE_NEXTTOWARD
+#ifndef HAVE_NEXTTOWARD
   // SA: in C99 / C++TR1 / Boost there is the nextafter() function
   //     the code below provides an alternative if needed
   //     based on the nexttoward.c from mingw (mingw-runtime-3.8/mingwex/math) 
