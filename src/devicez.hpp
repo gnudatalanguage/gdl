@@ -115,7 +115,7 @@ class DeviceZ: public Graphics
     plsmem( actX, actY, memBuffer);
 
     // no pause on destruction
-    actStream->spause( 0);
+    actStream->spause( false);
 
     // extended fonts
     actStream->fontld( 1);

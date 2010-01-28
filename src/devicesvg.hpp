@@ -41,7 +41,7 @@ class DeviceSVG : public Graphics
     actStream->sfnam( fileName.c_str());
 
     // no pause on destruction
-    actStream->spause( 0);
+    actStream->spause( false);
 
     // extended fonts
     actStream->fontld( 1);

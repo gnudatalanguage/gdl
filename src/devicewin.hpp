@@ -202,7 +202,7 @@ public:
     winList[ wIx]->spage( xp, yp, xleng, yleng, xoff, yoff);
 
     // no pause on win destruction
-    winList[ wIx]->spause( 0);
+    winList[ wIx]->spause( false);
 
     // extended fonts
     winList[ wIx]->fontld( 1);

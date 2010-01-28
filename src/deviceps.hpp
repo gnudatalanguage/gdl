@@ -55,7 +55,7 @@ class DevicePS: public Graphics
 //     actStream->spage( xp, yp, xleng, yleng, xoff, yoff);
 
     // no pause on destruction
-    actStream->spause( 0);
+    actStream->spause( false);
 
     // extended fonts
     actStream->fontld( 1);
