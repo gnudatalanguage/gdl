@@ -216,7 +216,7 @@ fi
 
 if test "x$with_gsl" = "xno"; then	
 	echo ""	
-	echo "Error! Gnu Scientific Library (1.4 or higher) is mandatory"
+	echo "Error! Gnu Scientific Library (1.7 or higher) is mandatory"
         exit -1
 fi
 
@@ -227,9 +227,9 @@ else
     LIBS="$LIBS -lgsl -lgslcblas"
 fi
 
-AC_CHECK_LIB(gsl, gsl_cdf_ugaussian_P, [], [
+AC_CHECK_LIB(gsl, gsl_ran_binomial_knuth, [], [
 	echo ""
-	echo "Error! Gnu Scientific Library (1.4 or higher) is mandatory"
+	echo "Error! Gnu Scientific Library (1.7 or higher) is mandatory"
         exit -1
 	])
 AC_CHECK_LIB(gslcblas, cblas_drot, [], [
