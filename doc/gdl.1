@@ -1,0 +1,137 @@
+.TH GDL 1 "2010-01-14" "The GDL Team"
+.SH NAME
+gdl \- GNU Data Language incremental compiler
+.SH SYNOPSIS
+.B gdl
+.RI [ 
+--help
+]
+.RI [ 
+--version 
+]
+.RI [ 
+-quiet 
+]
+.RI [ 
+-arg 
+value 
+]
+.RI [ 
+-args ... 
+]
+.RI [ 
+-e statement
+]
+.RI [ 
+batch_file ... 
+]
+.SH DESCRIPTION
+.B gdl
+is an incremental compiler for the GNU Data Language (GDL). 
+GDL is being developed with the aim of providing an open-source drop-in 
+replacement for ITTVIS Interactive Data Language (IDL). It is also partially compatible with 
+Visual Numerics (VN) PV-WAVE. IDL and PV-WAVE are registered trademarks of ITTVIS and VN, respectively.
+GDL and its library routines are designed as a tool for numerical 
+data analysis and visualisation. 
+GDL is dynamically typed, vectorized and has object-oriented programming capabilities. 
+The library routines handle numerical calculations, data visualisation, 
+signal/image processing, file input/output (incl. graphical and scientific data 
+formats such as TIFF, PNG, netCDF, HDF etc) and interaction with host OS.
+
+Information on GDL/IDL/PV-WAVE syntax and library routines can be found in e.g.:
+
+- Getting started with GDL by Sven Geier: http://www.sgeier.net/tools/GDL-intro.pdf
+
+- IDL manual on-line @ NASA.gov: http://idlastro.gsfc.nasa.gov/idl_html_help/home.html
+
+- ITTVIS (ittvis.com) and Visual Numerics (vni.com) websites
+
+- comp.lang.idl-pvwave newsgroup
+
+A vast part of GDL library routines is implemented using open-source libraries including
+GSL, plPlot, and optionally: FFTW, ImageMagick, netCDF, HDF4, HDF5, libproj4, UDUNITS-2, and others.
+.SH OPTIONS
+.TP
+.B \-\-help
+Show summary of options
+.TP
+.B \-\-version
+Show version of program
+.TP
+.B \-quiet
+Suppress welcome messages
+.TP
+.B \-arg value
+Tells COMMAND_LINE_ARGS() to report the following argument (may be specified more than once)
+.TP
+.B \-args ...
+Tells COMMAND_LINE_ARGS() to report all following arguments
+.TP
+.B \-e statement
+Execute given statement and exit (last occurance taken into account only, executed after startup file, may not be specified together with batch files)
+.TP
+The -demo, -em, -novm, -queue, -rt, -ulicense and -vm options are ignored for compatibility with IDL.
+.TP
+A list of batch files to be executed before entering the interactive mode (but after executing a startup file, if specified) may be given when not using the -e option.
+.SH FILES
+.TP
+.B $DATADIR/gnudatalanguage/lib/*.pro
+Library routines implemented in GDL. $DATADIR is specified during compilation and usually translates
+to /usr/share, /usr/local/share or alike. GDL includes this directory in its search path unless
+GDL_PATH or IDL_PATH env. variables are set (see below).
+.TP
+.B $HOME/.gdl/history
+A file used for storing the history of commands issued in the interactive mode
+.SH ENVIRONMENT
+The following environment variables have special meaning to
+.BR gdl .
+The
+.B GDL_*
+variant, if defined, takes precedence over any corresponding
+.B IDL_*
+variant.
+.TP
+.B GDL_PATH, IDL_PATH
+The GDL command (script) search path.
+.TP
+.B GDL_STARTUP, IDL_STARTUP
+A file of commands to be executed on startup.
+.TP
+.B GDL_TMPDIR, IDL_TMPDIR
+A directory in which temporary files may be created.
+.TP
+.B HOME, SHELL
+Variables influencing shell invokations from within GDL (SPAWN procedure and the $ interpreter command).
+Value of HOME determines as well the location of the GDL history-file.
+.TP
+.B PATH
+Determines search path when spawning child processes using the SPAWN procedure with the /NOSHELL keyword set.
+.TP
+.B PYTHON_PATH
+Influences behaviour of PYTHON procedure and PYTHON() function (available if GDL is compiled with support 
+for calling Python code)
+.TP
+.B GDL_MPI
+A message to be sent out using MPI_Send before initialization of the interpreter (available if
+GDL is compiled with support for MPI)
+.TP
+.B DISPLAY, XENVIRONMENT
+Tell GDL how to connect to the X server
+.TP
+.B PLPLOT_DRV_DIR
+Override the default location of PLplot dynamic drivers.
+.TP
+.B LC_*
+The locale-related settings accessible via LOCALE_GET() (GDL always uses the C locale internally)
+.SH BUGS
+Please report bugs, comments, patches or feature requests at 
+http://sf.net/projects/gnudatalanguage/
+.SH AUTHOR
+The primary author of GDL is Marc Schellens <m_schellens@users.sourceforge.net>.
+A list of contributors is available in the AUTHORS file shipped with GDL, and on
+the project website (see above).
+.PP
+The original version of this manual page was written by Sergio Gelato <Sergio.Gelato@astro.su.se>.
+It is currently a part of the GDL package, and is maintained by the GDL Team. 
+.SH SEE ALSO
+netcdf(3), hdf(1), gsl(3)

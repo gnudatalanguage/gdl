@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# expected arguments (passed by make to this script):
+# - argument $1 should point to $(top_srcdir) 
+# - argument $2 should be the name of the .pro file to be executed (with leading /)
+# both conditions are ensured in Makefile.am
+
+# expected contents/behaviour of the GDL file:
+# - the script to be tried shoud exit with a non-zero status if failed
+#   (if the scripts exits with status 77, automake will ignore the failure)
+# - the file should containg a procedure with a named in accordance with the
+#   file name, e.g. test_wavelet in test_wavelet.pro
+# - the procedure should not need any arguments/keywords
+
+IDL_PATH="" IDL_STARTUP="" GDL_STARTUP="" GDL_PATH=$1/src/pro:$1/testsuite \
+  $1/src/gdl -quiet -e `echo $2 | cut -d/ -f2 | cut -d. -f1`

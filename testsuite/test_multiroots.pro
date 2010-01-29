@@ -117,10 +117,21 @@ pro test_multiroots
   out = broyden(x0, 'moist_isentrope', it=4, tolx=1d-5)            ; it=3 breaks in IDL & GDL
 
   ; testing the /DOUBLE keyword
-  if 5 ne size(newton(x0,        'moist_isentrope'         ), /type) then message, "failed"
-  if 4 ne size(newton(float(x0), 'moist_isentrope'         ), /type) then message, "failed"
-  if 5 ne size(newton(float(x0), 'moist_isentrope', /double), /type) then message, "failed"
-  if 4 ne size(newton(long(x0),  'moist_isentrope'         ), /type) then message, "failed"
+  if 5 ne size(newton(x0,        'moist_isentrope'         ), /type) then begin
+    message, "failed 1", /conti
+    exit, status=1
+  endif
+  if 4 ne size(newton(float(x0), 'moist_isentrope'         ), /type) then begin
+    message, "failed 2", /conti
+    exit, status=1
+  endif
+  if 5 ne size(newton(float(x0), 'moist_isentrope', /double), /type) then begin
+    message, "failed 3", /conti
+    exit, status=1
+  endif
+  if 4 ne size(newton(long(x0),  'moist_isentrope'         ), /type) then begin
+    message, "failed 4", /conti
+  endif
 
   message, "tests of newton() and broyden() passed", /continue
 

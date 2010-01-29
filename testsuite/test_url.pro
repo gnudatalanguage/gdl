@@ -1,12 +1,6 @@
 ; by Sylwester Arabas <slayoo (at) igf.fuw.edu.pl>
 ; testing PARSE_URL routines (and GDLnetURL objects in future...)
 
-pro test_url
-  message, 'usage:', /continue
-  message, '  GDL> .compile test_url.pro', /continue
-  message, '  GDL> test_parse_url', /continue
-end
-
 ; based on 
 ; - the test script for the PHP parse_url() function
 ;   by The PHP Group (PHP license v. 3.01)
@@ -14,7 +8,7 @@ end
 ;   PHP is free software available at http://www.php.net/software/
 ; - examples of IPv6 addresses from the RFC2732 (Format for Literal IPv6 Addresses in URL's)
 ;   (http://www.faqs.org/rfcs/rfc2732.html)
-pro test_parse_url
+pro test_url
 
   ; TODO: testing of parse-errors:
   ; GDL> print, parse_url('a://:000000')
@@ -191,8 +185,7 @@ pro test_parse_url
       message, '  expected: ' + expected[i], /continue
       message, '       got: ' + s, /continue
       ;help, parse_url(sample_urls[i]), /stru
-      message, 'FAILED!'
+      exit, status=1
     endif
   endfor
-  message, 'PASSED', /continue
 end

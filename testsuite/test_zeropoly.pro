@@ -26,7 +26,10 @@ pro test_zeropoly
     if (t ge 6 && t le 11) || t eq 12 || t eq 13 || t eq 15 then continue
     z = imsl_zeropoly(fix(*c[i], type=t), double=double_kw)
     nz = n_elements(z) 
-    if nz ne n_elements(*r[i]) then message, 'TOTAL FAILURE!'
+    if nz ne n_elements(*r[i]) then begin
+      message, 'TOTAL FAILURE!', /conti
+      exit, status=1
+    endif
     ; checking the results (which might be ordered differently)
     for jz = 0, nz - 1 do for jr = 0, nz - 1 do begin
       if abs(z[jz] - (*r[i])[jr]) lt eps then begin
@@ -35,7 +38,10 @@ pro test_zeropoly
       endif
     endfor
     wh = where(finite(z), cnt)
-    if cnt ne 0 then message, 'FAILED for test ' + string(i)
+    if cnt ne 0 then begin
+      message, 'FAILED for test ' + string(i), /conti
+      exit, status=1
+    endif
   endfor
 
 end

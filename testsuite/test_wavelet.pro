@@ -31,10 +31,16 @@ pro test_wavelet, plot=plot
 
         ; testing if the transform of the inverse transform equals the unit vector
         wh = where(abs(x1 - wtn(v1, c, double=kw_double, column=kw_column)) gt eps, cnt)
-        if cnt gt 0 then message, 'wtn(wtn(a, /inv)) != a'
+        if cnt gt 0 then begin
+          message, 'wtn(wtn(a, /inv)) != a', /conti
+          exit, status=1 
+        endif
 
         ; testing if every wavelet (not the mother) has a zero mean
-        if i gt 0 and abs(mean(v1)) gt eps then message, 'abs(mean(v1)) > eps'
+        if i gt 0 and abs(mean(v1)) gt eps then begin
+          message, 'abs(mean(v1)) > eps', /conti
+          exit, status=1
+        endif
 
         ; testing if every other member of the basis is orthogonal to this one
         for j = 0, (dim eq 1 ? n : nn * nn) - 1 do begin
@@ -42,8 +48,14 @@ pro test_wavelet, plot=plot
           v2 = x2
           v2 = wtn(v2, c, /inverse, double=kw_double, column=kw_column, over=kw_over)
           v1v2 = total(v1 * v2)
-          if i eq j and v1v2 lt 1 - eps then message, 'i eq j and v1v2 < 1 - eps !!!' 
-          if i ne j and v1v2 gt 0 + eps then message, 'i ne j and v1v2 > 0 + eps !!!'
+          if i eq j and v1v2 lt 1 - eps then begin
+            message, 'i eq j and v1v2 < 1 - eps !!!', /conti
+            exit, status=1 
+          endif
+          if i ne j and v1v2 gt 0 + eps then begin
+            message, 'i ne j and v1v2 > 0 + eps !!!', /conti
+            exit, status=1
+          endif
         endfor ; j
 
       endfor ; i 
