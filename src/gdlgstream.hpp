@@ -63,21 +63,29 @@ public:
     {
 #ifdef HAVE_OLDPLPLOT
       devlongnames = static_cast<char**>(realloc(devlongnames, maxnumdevs * sizeof(char*)));
-      devnames = static_cast<char**>(realloc(devlongnames, maxnumdevs * sizeof(char*)));
+      devnames = static_cast<char**>(realloc(devnames, maxnumdevs * sizeof(char*)));
 #else
       devlongnames = static_cast<const char**>(realloc(devlongnames, maxnumdevs * sizeof(char*)));
-      devnames = static_cast<const char**>(realloc(devlongnames, maxnumdevs * sizeof(char*)));
+      devnames = static_cast<const char**>(realloc(devnames, maxnumdevs * sizeof(char*)));
 #endif
       plgDevs(&devlongnames, &devnames, &numdevs_plus_one);
       numdevs_plus_one++;
       if (numdevs_plus_one < maxnumdevs) break;
       else Message("The above PLPlot warning message, if any, can be ignored");
     } 
+    free(devlongnames); // we do not need this information
 
     // checking if a given driver is in the list
+    bool supported = false;
     for (int i = numdevs_plus_one - 1; i--;) 
-      if (strcmp(driver, devnames[i]) == 0) return true;
-    return false;
+    {
+      if (strcmp(driver, devnames[i]) == 0) 
+      {
+        supported = true;
+      }
+    }
+    free(devnames);
+    return supported;
   }
 
   static void SetErrorHandlers();
