@@ -31,141 +31,415 @@ pro test_constants
     b = imsl_constant(cnsts[i], units[i])
     a = imsl_constant(cnsts[i], /double)
     b = imsl_constant(cnsts[i], units[i], /double)
-    if a ne b then message, 'FAILED: ' + cnsts[i] + ' [' + units[i] + ']'
+    if a ne b then begin
+      message, 'FAILED: ' + cnsts[i] + ' [' + units[i] + ']', /conti
+      exit, status=1
+    endif
   endif
 
   ; testing unit conversion
   ; - time
-  u = 'm/day'    & if ~finite(imsl_constant('c', u)) then message, 'FAILED! ' + u
-  u = 'm/hour'   & if ~finite(imsl_constant('c', u)) then message, 'FAILED! ' + u
-  u = 'm/hr'     & if ~finite(imsl_constant('c', u)) then message, 'FAILED! ' + u
-  u = 'm/min'    & if ~finite(imsl_constant('c', u)) then message, 'FAILED! ' + u
-  u = 'm/minute' & if ~finite(imsl_constant('c', u)) then message, 'FAILED! ' + u
-  u = 'm/s'      & if ~finite(imsl_constant('c', u)) then message, 'FAILED! ' + u
-  u = 'm/sec'    & if ~finite(imsl_constant('c', u)) then message, 'FAILED! ' + u
-  u = 'm/second' & if ~finite(imsl_constant('c', u)) then message, 'FAILED! ' + u
-  u = 'm/year'   & if ~finite(imsl_constant('c', u)) then message, 'FAILED! ' + u
+  u = 'm/day'    & if ~finite(imsl_constant('c', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'm/hour'   & if ~finite(imsl_constant('c', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'm/hr'     & if ~finite(imsl_constant('c', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'm/min'    & if ~finite(imsl_constant('c', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'm/minute' & if ~finite(imsl_constant('c', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'm/s'      & if ~finite(imsl_constant('c', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'm/sec'    & if ~finite(imsl_constant('c', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'm/second' & if ~finite(imsl_constant('c', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'm/year'   & if ~finite(imsl_constant('c', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
 
   ; - frequency
-  u = 'm*Hz'     & if ~finite(imsl_constant('c', u)) then message, 'FAILED! ' + u
+  u = 'm*Hz'     & if ~finite(imsl_constant('c', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
 
   ; - mass
-  u = 'AMU'      & if ~finite(imsl_constant('electronmass', u)) then message, 'FAILED! ' + u
-  u = 'g'        & if ~finite(imsl_constant('electronmass', u)) then message, 'FAILED! ' + u
-  u = 'gram'     & if ~finite(imsl_constant('electronmass', u)) then message, 'FAILED! ' + u
-  u = 'lb'       & if ~finite(imsl_constant('electronmass', u)) then message, 'FAILED! ' + u
-  u = 'pound'    & if ~finite(imsl_constant('electronmass', u)) then message, 'FAILED! ' + u
-;  u = 'ounce'    & if ~finite(imsl_constant('electronmass', u)) then message, 'FAILED! ' + u
-;  u = 'oz'       & if ~finite(imsl_constant('electronmass', u)) then message, 'FAILED! ' + u
-  u = 'slug'     & if ~finite(imsl_constant('electronmass', u)) then message, 'FAILED! ' + u
+  u = 'AMU'      & if ~finite(imsl_constant('electronmass', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'g'        & if ~finite(imsl_constant('electronmass', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'gram'     & if ~finite(imsl_constant('electronmass', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'lb'       & if ~finite(imsl_constant('electronmass', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'pound'    & if ~finite(imsl_constant('electronmass', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+;  u = 'ounce'    & if ~finite(imsl_constant('electronmass', u)) then begin
+;    message, 'FAILED! ' + u, /conti
+;    exit, status=1
+;  endif
+;  u = 'oz'       & if ~finite(imsl_constant('electronmass', u)) then begin
+;    message, 'FAILED! ' + u, /conti
+;    exit, status=1
+;  endif
+  u = 'slug'     & if ~finite(imsl_constant('electronmass', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
  
   ; - distance
-  u = 'Angstrom' & if ~finite(imsl_constant('AU', u)) then message, 'FAILED! ' + u
-;  u = 'AU'       & if ~finite(imsl_constant('AU', u)) then message, 'FAILED! ' + u
-  u = 'feet'     & if ~finite(imsl_constant('AU', u)) then message, 'FAILED! ' + u
-  u = 'foot'     & if ~finite(imsl_constant('AU', u)) then message, 'FAILED! ' + u
-  u = 'in'       & if ~finite(imsl_constant('AU', u)) then message, 'FAILED! ' + u
-  u = 'inch'     & if ~finite(imsl_constant('AU', u)) then message, 'FAILED! ' + u
-  u = 'm'        & if ~finite(imsl_constant('AU', u)) then message, 'FAILED! ' + u 
-  u = 'meter'    & if ~finite(imsl_constant('AU', u)) then message, 'FAILED! ' + u 
-  u = 'metre'    & if ~finite(imsl_constant('AU', u)) then message, 'FAILED! ' + u
-  u = 'micron'   & if ~finite(imsl_constant('AU', u)) then message, 'FAILED! ' + u
-  u = 'mile'     & if ~finite(imsl_constant('AU', u)) then message, 'FAILED! ' + u
-;  u = 'mill'     & if ~finite(imsl_constant('AU', u)) then message, 'FAILED! ' + u
-  u = 'parsec'   & if ~finite(imsl_constant('AU', u)) then message, 'FAILED! ' + u
-  u = 'yard'     & if ~finite(imsl_constant('AU', u)) then message, 'FAILED! ' + u
+  u = 'Angstrom' & if ~finite(imsl_constant('AU', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+;  u = 'AU'       & if ~finite(imsl_constant('AU', u)) then begin
+;    message, 'FAILED! ' + u, /conti
+;    exit, status=1
+;  endif
+  u = 'feet'     & if ~finite(imsl_constant('AU', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'foot'     & if ~finite(imsl_constant('AU', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'in'       & if ~finite(imsl_constant('AU', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'inch'     & if ~finite(imsl_constant('AU', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'm'        & if ~finite(imsl_constant('AU', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'meter'    & if ~finite(imsl_constant('AU', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'metre'    & if ~finite(imsl_constant('AU', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'micron'   & if ~finite(imsl_constant('AU', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'mile'     & if ~finite(imsl_constant('AU', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+;  u = 'mill'     & if ~finite(imsl_constant('AU', u)) then begin 
+;    message, 'FAILED! ' + u, /conti
+;    exit, status=1
+;  endif
+  u = 'parsec'   & if ~finite(imsl_constant('AU', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'yard'     & if ~finite(imsl_constant('AU', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
 
   ; - area
-  u = 'N/acre'   & if ~finite(imsl_constant('ATM', u)) then message, 'FAILED! ' + u
+  u = 'N/acre'   & if ~finite(imsl_constant('ATM', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
 
   ; - volume
-  u = 'l/mole'    & if ~finite(imsl_constant('PerfectGasVolume', u)) then message, 'FAILED! ' + u
-  u = 'liter/mole'& if ~finite(imsl_constant('PerfectGasVolume', u)) then message, 'FAILED! ' + u
-  u = 'litre/mole'& if ~finite(imsl_constant('PerfectGasVolume', u)) then message, 'FAILED! ' + u
+  u = 'l/mole'    & if ~finite(imsl_constant('PerfectGasVolume', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'liter/mole'& if ~finite(imsl_constant('PerfectGasVolume', u)) then begin 
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'litre/mole'& if ~finite(imsl_constant('PerfectGasVolume', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
 
   ; - force
-  u = 'dyne/m^2'  & if ~finite(imsl_constant('ATM', u)) then message, 'FAILED! ' + u
-  u = 'N/m^2'     & if ~finite(imsl_constant('ATM', u)) then message, 'FAILED! ' + u
-  u = 'Newton/m^2'& if ~finite(imsl_constant('ATM', u)) then message, 'FAILED! ' + u
+  u = 'dyne/m^2'  & if ~finite(imsl_constant('ATM', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'N/m^2'     & if ~finite(imsl_constant('ATM', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'Newton/m^2'& if ~finite(imsl_constant('ATM', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
 
   ; - energy
-  u = 'BTU'   & if ~finite(imsl_constant('ElectronVolt', u)) then message, 'FAILED! ' + u
-  u = 'Erg'   & if ~finite(imsl_constant('ElectronVolt', u)) then message, 'FAILED! ' + u
-  u = 'J'     & if ~finite(imsl_constant('ElectronVolt', u)) then message, 'FAILED! ' + u
-  u = 'Joule' & if ~finite(imsl_constant('ElectronVolt', u)) then message, 'FAILED! ' + u
+  u = 'BTU'   & if ~finite(imsl_constant('ElectronVolt', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'Erg'   & if ~finite(imsl_constant('ElectronVolt', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'J'     & if ~finite(imsl_constant('ElectronVolt', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'Joule' & if ~finite(imsl_constant('ElectronVolt', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
 
   ; - work
-  u = 'W*s^2'    & if ~finite(imsl_constant('Hbar', u)) then message, 'FAILED! ' + u
-  u = 'watt*s^2' & if ~finite(imsl_constant('Hbar', u)) then message, 'FAILED! ' + u
+  u = 'W*s^2'    & if ~finite(imsl_constant('Hbar', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'watt*s^2' & if ~finite(imsl_constant('Hbar', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
 
   ; - pressure
-;  u = 'ATM'        & if ~finite(imsl_constant('ATM', u)) then message, 'FAILED! ' + u
-  u = 'atmosphere' & if ~finite(imsl_constant('ATM', u)) then message, 'FAILED! ' + u
-  u = 'bar'        & if ~finite(imsl_constant('ATM', u)) then message, 'FAILED! ' + u
+;  u = 'ATM'        & if ~finite(imsl_constant('ATM', u)) then begin
+;    message, 'FAILED! ' + u, /conti
+;    exit, status=1
+;  endif
+  u = 'atmosphere' & if ~finite(imsl_constant('ATM', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'bar'        & if ~finite(imsl_constant('ATM', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
 
   ; - temperature
-  u = 'degC'       & if ~finite(imsl_constant('WaterTriple', u)) then message, 'FAILED! ' + u
-  u = 'Celsius'    & if ~finite(imsl_constant('WaterTriple', u)) then message, 'FAILED! ' + u
-  u = 'degF'       & if ~finite(imsl_constant('WaterTriple', u)) then message, 'FAILED! ' + u 
-;  u = 'Fahrenheit' & if ~finite(imsl_constant('WaterTriple', u)) then message, 'FAILED! ' + u
-  u = 'degK'       & if ~finite(imsl_constant('WaterTriple', u)) then message, 'FAILED! ' + u
-  u = 'Kelvin'     & if ~finite(imsl_constant('WaterTriple', u)) then message, 'FAILED! ' + u
+  u = 'degC'       & if ~finite(imsl_constant('WaterTriple', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'Celsius'    & if ~finite(imsl_constant('WaterTriple', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'degF'       & if ~finite(imsl_constant('WaterTriple', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+;  u = 'Fahrenheit' & if ~finite(imsl_constant('WaterTriple', u)) then begin
+;    message, 'FAILED! ' + u, /conti
+;    exit, status=1
+;  endif
+  u = 'degK'       & if ~finite(imsl_constant('WaterTriple', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'Kelvin'     & if ~finite(imsl_constant('WaterTriple', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
 
   ; - viscosity
-;  u = 'stoke/m'    & if ~finite(imsl_constant('Speedlight', u)) then message, 'FAILED! ' + u
-  u = 'poise/s'    & if ~finite(imsl_constant('ATM', u)) then message, 'FAILED! ' + u
+;  u = 'stoke/m'    & if ~finite(imsl_constant('Speedlight', u)) then begin
+;    message, 'FAILED! ' + u, /conti
+;    exit, status=1
+;  endif
+  u = 'poise/s'    & if ~finite(imsl_constant('ATM', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
 
   ; - charge
-;  u = 'Abcoulomb'   & if ~finite(imsl_constant('electroncharge', u)) then message, 'FAILED! ' + u  
-  u = 'C'           & if ~finite(imsl_constant('electroncharge', u)) then message, 'FAILED! ' + u 
-  u = 'Coulomb'     & if ~finite(imsl_constant('electroncharge', u)) then message, 'FAILED! ' + u
-  u = 'statcoulomb' & if ~finite(imsl_constant('electroncharge', u)) then message, 'FAILED! ' + u
+;  u = 'Abcoulomb'   & if ~finite(imsl_constant('electroncharge', u)) then begin 
+;    message, 'FAILED! ' + u, /conti
+;    exit, status=1
+;  endif
+  u = 'C'           & if ~finite(imsl_constant('electroncharge', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'Coulomb'     & if ~finite(imsl_constant('electroncharge', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'statcoulomb' & if ~finite(imsl_constant('electroncharge', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
 
   ; - current
-  u = 'A*s'          & if ~finite(imsl_constant('electroncharge', u)) then message, 'FAILED! ' + u
-  u = 'ampere*s'     & if ~finite(imsl_constant('electroncharge', u)) then message, 'FAILED! ' + u
-  u = 'abampere*s'   & if ~finite(imsl_constant('electroncharge', u)) then message, 'FAILED! ' + u
-  u = 'statampere*s' & if ~finite(imsl_constant('electroncharge', u)) then message, 'FAILED! ' + u
+  u = 'A*s'          & if ~finite(imsl_constant('electroncharge', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'ampere*s'     & if ~finite(imsl_constant('electroncharge', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'abampere*s'   & if ~finite(imsl_constant('electroncharge', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'statampere*s' & if ~finite(imsl_constant('electroncharge', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
 
   ; - voltage
-  u = 'J/Abvolt' & if ~finite(imsl_constant('electroncharge', u)) then message, 'FAILED! ' + u
-  u = 'J/V'      & if ~finite(imsl_constant('electroncharge', u)) then message, 'FAILED! ' + u
-  u = 'J/volt'   & if ~finite(imsl_constant('electroncharge', u)) then message, 'FAILED! ' + u
+  u = 'J/Abvolt' & if ~finite(imsl_constant('electroncharge', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'J/V'      & if ~finite(imsl_constant('electroncharge', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'J/volt'   & if ~finite(imsl_constant('electroncharge', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
 
   ; - magnetic induction
-  u = 'T*C*s'     & if ~finite(imsl_constant('electronmass', u)) then message, 'FAILED! ' + u
-  u = 'Tesla*C*s' & if ~finite(imsl_constant('electronmass', u)) then message, 'FAILED! ' + u
-  u = 'Weber*A'   & if ~finite(imsl_constant('electronvolt', u)) then message, 'FAILED! ' + u
-  u = 'Wb*A'      & if ~finite(imsl_constant('electronvolt', u)) then message, 'FAILED! ' + u
+  u = 'T*C*s'     & if ~finite(imsl_constant('electronmass', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'Tesla*C*s' & if ~finite(imsl_constant('electronmass', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'Weber*A'   & if ~finite(imsl_constant('electronvolt', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'Wb*A'      & if ~finite(imsl_constant('electronvolt', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
 
   ; - other units
-  u = '1/mole'     & if ~finite(imsl_constant('avogadro', u)) then message, 'FAILED! ' + u  
-  u = 'farad*V'    & if ~finite(imsl_constant('electroncharge', u)) then message, 'FAILED! ' + u
-  u = 'Gauss*C*s'  & if ~finite(imsl_constant('electronmass', u)) then message, 'FAILED! ' + u
-  u = 'Henry*C2/s' & if ~finite(imsl_constant('planck', u)) then message, 'FAILED! ' + u
-  u = 'Maxwell*A'  & if ~finite(imsl_constant('electronvolt', u)) then message, 'FAILED! ' + u 
-  u = 'Ohm*s*A^2'  & if ~finite(imsl_constant('electronvolt', u)) then message, 'FAILED! ' + u
+  u = '1/mole'     & if ~finite(imsl_constant('avogadro', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'farad*V'    & if ~finite(imsl_constant('electroncharge', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'Gauss*C*s'  & if ~finite(imsl_constant('electronmass', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'Henry*C2/s' & if ~finite(imsl_constant('planck', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'Maxwell*A'  & if ~finite(imsl_constant('electronvolt', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
+  u = 'Ohm*s*A^2'  & if ~finite(imsl_constant('electronvolt', u)) then begin
+    message, 'FAILED! ' + u, /conti
+    exit, status=1
+  endif
 
- ; testing prefixes
- eps = 1d-6
- au = imsl_constant('AU', /d)
- if imsl_constant('AU', 'parsec', /d) - au * 1d18 gt eps then message, 'FAILED! a'
- if imsl_constant('AU', 'parsec', /d) - au * 1d15 gt eps then message, 'FAILED! f'
- if imsl_constant('AU', 'pm', /d) ne au * 1d12 then message, 'FAILED! p'
- if imsl_constant('AU', 'nm', /d) ne au * 1d9 then message, 'FAILED! n'
-; if imsl_constant('AU', 'um', /d) ne au * 1d6 then message, 'FAILED! u'
- if imsl_constant('AU', 'mm', /d) ne au * 1d3 then message, 'FAILED! m'
- if imsl_constant('AU', 'cm', /d) ne au * 1d2 then message, 'FAILED! c'
- if imsl_constant('AU', 'dm', /d) ne au * 1d1 then message, 'FAILED! d'
- if imsl_constant('AU', 'dam', /d) ne au * 1d-1 then message, 'FAILED! da'
- if imsl_constant('AU', 'km', /d) ne au * 1d-3 then message, 'FAILED! k'
- if imsl_constant('AU', 'Gm', /d) ne au * 1d-9 then message, 'FAILED! g'
- if imsl_constant('AU', 'Tm', /d) ne au * 1d-12 then message, 'FAILED! t'
-
- ; testing if PI = PI
- if imsl_constant('pi') ne !PI then message, 'FAILED! (PI != PI)'
- if imsl_constant('pi', /double) ne !DPI then message, 'FAILED! (DPI != DPI)'
-
-  message, 'PASSED', /conti
+  ; testing prefixes
+  eps = 1d-6
+  au = imsl_constant('AU', /d)
+  if imsl_constant('AU', 'parsec', /d) - au * 1d18 gt eps then begin
+    message, 'FAILED! a', /conti
+    exit, status=1
+  endif
+  if imsl_constant('AU', 'parsec', /d) - au * 1d15 gt eps then begin
+    message, 'FAILED! f', /conti
+    exit, status=1
+  endif
+  if imsl_constant('AU', 'pm', /d) ne au * 1d12 then begin
+    message, 'FAILED! p', /conti
+    exit, status=1
+  endif
+  if imsl_constant('AU', 'nm', /d) ne au * 1d9 then begin
+    message, 'FAILED! n', /conti
+    exit, status=1
+  endif
+;  if imsl_constant('AU', 'um', /d) ne au * 1d6 then begin
+;    message, 'FAILED! u', /conti
+;    exit, status=1
+;  endif
+  if imsl_constant('AU', 'mm', /d) ne au * 1d3 then begin
+    message, 'FAILED! m', /conti
+    exit, status=1
+  endif
+  if imsl_constant('AU', 'cm', /d) ne au * 1d2 then begin
+    message, 'FAILED! c', /conti
+    exit, status=1
+  endif
+  if imsl_constant('AU', 'dm', /d) ne au * 1d1 then begin
+    message, 'FAILED! d', /conti
+    exit, status=1
+  endif
+  if imsl_constant('AU', 'dam', /d) ne au * 1d-1 then begin
+    message, 'FAILED! da', /conti
+    exit, status=1
+  endif
+  if imsl_constant('AU', 'km', /d) ne au * 1d-3 then begin
+    message, 'FAILED! k', /conti
+    exit, status=1
+  endif
+  if imsl_constant('AU', 'Gm', /d) ne au * 1d-9 then begin
+    message, 'FAILED! g', /conti
+    exit, status=1
+  endif
+  if imsl_constant('AU', 'Tm', /d) ne au * 1d-12 then begin
+    message, 'FAILED! t', /conti
+    exit, status=1
+  endif
+ 
+  ; testing if PI = PI
+  if imsl_constant('pi') ne !PI then begin
+    message, 'FAILED! (PI != PI)', /conti
+    exit, status=1
+  endif
+  if imsl_constant('pi', /double) ne !DPI then begin
+    message, 'FAILED! (DPI != DPI)', /conti
+    exit, status=1
+  endif
 
 end

@@ -5,6 +5,7 @@ pro test_nestedloop
     endfor
     a = 1
   endfor
-  if ~keyword_set(a) then message, 'FAILED'
-  message, 'PASSED', /conti
+  if ~keyword_set(a) then begin
+    exit, status=1
+  endif
 end

@@ -2,7 +2,10 @@
 pro test_base64
 
   ; empty string -> 0b
-  if idl_base64('') ne 0b then  message, 'FAILED 01'
+  if idl_base64('') ne 0b then begin
+    message, 'FAILED 01', /conti
+    exit, status=1
+  endif
 
   ; random byte arrays of length from 1 to 10.000
   for c = 1l, 10000 do begin
@@ -12,7 +15,8 @@ pro test_base64
       print, arr
       print, idl_base64(arr)
       print, idl_base64(idl_base64(arr))
-      message, 'FAILED 02'
+      message, 'FAILED 02', /conti
+      exit, status=1
     endif
   endfor
  
