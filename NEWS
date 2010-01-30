@@ -338,3 +338,11 @@
 
 0.9rc3:   library routines:
 	   - initial import of GET_SCREEN_SIZE
+
+0.9rc4:   library routines:
+	   - support for OpenMP (requires g++ > 4.2)
+	   - Added CPU procedure
+	   - Added IMSL_BINOMIALCOEF, IMSL_CONSTANT, CROSSP, WTN functions
+	   - several new command line options
+	   - support for binary format of numeric constants (e. g. '1010101'b)
+	   - corected line number reporting in several places

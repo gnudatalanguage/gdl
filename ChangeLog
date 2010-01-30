@@ -1,4 +1,9 @@
 GDL 0.9rc4:
+2010-01-30  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+        * ChangeLog, Makefile.in, configure, doc/www/credits.html, gdl.kdevelop, src/deviceps.hpp, src/graphics.hpp, src/libinit.cpp, src/plotting.cpp:
+        Applied patch (tracker item 2860573) adding XSIZE, YSIZE, COLOR for PS output to DEVICE (patch from Joanna/cokhavim)
+
 2010-01-29  slayoo  <slayoo@DaMachineInDaMachine>
 
 	* testsuite/Makefile, testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_base64.pro, testsuite/test_constants.pro, testsuite/test_nestedloop.pro:
@@ -779,6 +784,8 @@ GDL 0.9rc4:
 
 	* ChangeLog, NEWS: updating NEWS and Changelog
 
+
+	
 GDL 0.9rc3:
 2009-09-11  m_schellens  <m_schellens@DaMachineInDaMachine>
 
