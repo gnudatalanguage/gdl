@@ -1,4 +1,470 @@
 GDL 0.9rc4:
+2010-01-29  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* testsuite/Makefile, testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_base64.pro, testsuite/test_constants.pro, testsuite/test_nestedloop.pro:
+	testsuite: including test_base64, test_constants and test_nestedloop in the make-check rule
+
+	* doc/Makefile, doc/Makefile.am, doc/Makefile.in, doc/gdl.1, testsuite/Makefile, testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_angles.pro, testsuite/test_multiroots.pro, testsuite/test_url.pro, testsuite/test_wavelet.pro, testsuite/test_zeropoly.pro, testsuite/try, Makefile.am, configure.in:
+	including some of the tests from the testsuite in a make-check rule, adding a manpage (+including it in the make-install rule)
+
+	* src/gdlgstream.hpp:
+	fixing memory leak in GDLGStream::checkPlplotDriver() (thanks Alain/Valgrind)
+
+2010-01-28  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLInterpreter.cpp, src/GDLParser.hpp, src/dinterpreter.cpp, src/dpro.cpp, src/dpro.hpp, src/gdlc.g, src/gdlc.i.g:
+	Fixed some uninitialized value issues detected with valgrind
+
+2010-01-28  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* doc/www/screenshot.html:
+	doc/www: adding screenshots of GDL running on Windows under Cygwin and coLinux
+
+	* src/file.cpp, src/gsl_fun.cpp, src/plotting.cpp, src/str.cpp:
+	Cygwin and GCC 3.4.4 compatibility fixes (patch by Mateusz Turcza)
+
+	* src/deviceps.hpp, src/devicesvg.hpp, src/devicewin.hpp, src/devicex.hpp, src/devicez.hpp:
+	helping the compiler to disambiguate plstream->spause() calls and thus fixing compatibility with GCC 3.4.4 (patch by Mateusz Turcza)
+
+	* README, configure.in:
+	checking for GSL >=1.7 which is requiered to use both FFT and DWT at the same time
+
+2010-01-27  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* doc/www/menu.html, doc/www/screenshot.html, doc/www/screenshot.png:
+	doc/www: update of the screenshots section
+
+	* src/gsl_fun.cpp, src/gsl_fun.hpp, src/libinit.cpp, testsuite/test_zeropoly.pro:
+	IMSL_ZEROPOLY: initial import (using gsl_poly_complex_solve())
+
+2010-01-25  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/FMTOut.hpp, src/format.out.g, gdl.kdevelop, src/FMTParser.cpp, src/print.cpp:
+	fixed T,TL,TR format codes
+
+2010-01-23  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/ncdf_cl.cpp, src/ncdf_dim_cl.cpp, src/ncdf_var_cl.cpp, src/ncdf_att_cl.cpp:
+	NCDF_*: fixes in error handling, support for LENGTH keyword in NCDF_ATTPUT; allowing to specify the global atribute number in NCDF_ATTNAME; outputing byte arrays instead of strings in NCDF_ATTGET; compatibility with netcd-4 (file handles are now Long instead of Int)
+
+	* src/fftw.cpp, src/libinit_jmg.cpp:
+	FFT: preventing bogus memory freeing with dcomplex input (tracker item no. 2935682)
+
+2010-01-22  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* doc/www/download.html:
+	doc/www: update of the Download section- adding info about CVS access, links to packaged versions, and a note encouraging to use packages based on current release
+
+2010-01-20  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* doc/www/support.html, doc/www/tdl.html, doc/www/contribute.html, doc/www/credits.html, doc/www/download.html, doc/www/feedback.html, doc/www/gdl.css, doc/www/home.html, doc/www/index.html, doc/www/menu.html, doc/www/require.html, doc/www/resources.html, doc/www/screenshot.html, doc/www/screenshot.png:
+	Added source of http://gnudatalanguage.sourceforge.net/ to doc/www
+
+2010-01-20  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* testsuite/test_wavelet.pro, src/gsl_fun.cpp, src/gsl_fun.hpp, src/libinit.cpp:
+	WTN: initial import (using GSL DWT routines) + test-routine (test_wavelet.pro)
+
+	* src/pro/array_indices.pro, src/pro/calendar.pro, src/pro/file_basename.pro, src/pro/file_dirname.pro, src/pro/imsl_zerosys.pro, src/pro/ishft.pro, src/pro/last_item.pro, src/pro/lmgr.pro, src/pro/loadct.pro, src/pro/map_clip_set.pro, src/pro/matrix_multiply.pro, src/pro/path_sep.pro, src/pro/poly.pro, src/pro/poly_area.pro, src/pro/py_plot.pro, src/pro/py_print.pro, src/pro/query_bmp.pro, src/pro/query_dicom.pro, src/pro/query_gif.pro, src/pro/query_image.pro, src/pro/query_jpeg.pro, src/pro/query_pict.pro, src/pro/query_png.pro, src/pro/query_ppm.pro, src/pro/query_tiff.pro, src/pro/read_bmp.pro, src/pro/read_dicom.pro, src/pro/read_jpeg.pro, src/pro/read_pict.pro, src/pro/read_png.pro, src/pro/read_tiff.pro, src/pro/read_xwd.pro, src/pro/restore.pro, src/pro/rstrpos.pro, src/pro/showfont.pro, src/pro/str_sep.pro, src/pro/uniq.pro, src/pro/write_bmp.pro, src/pro/write_jpeg.pro, src/pro/write_pict.pro, src/pro/write_png.pro, src/pro/appleman.pro:
+	adding on_error,2 for routines implemented in GDL
+
+2010-01-18  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/magick_cl.cpp:
+	making ImageMagick format decoder warning non fatal (tracker item no 2934374)
+
+2010-01-17  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLParser.cpp, src/gdlc.g:
+	Honor more than one COMPILE_OPT within $
+
+	* src/GDLLexer.hpp, src/GDLParser.hpp, src/dinterpreter.cpp, src/envt.hpp, src/gdlc.g:
+	Honor COMPILE_OPT within $ and EXECUTE
+
+2010-01-16  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/GDLInterpreterTokenTypes.hpp, src/GDLInterpreterTokenTypes.txt, src/GDLLexer.cpp, src/GDLLexer.hpp, src/GDLParser.cpp, src/GDLParser.hpp, src/GDLTokenTypes.hpp, src/GDLTokenTypes.txt, src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/GDLTreeParserTokenTypes.hpp, src/GDLTreeParserTokenTypes.txt, src/basic_fun.cpp, src/dcompiler.cpp, src/dinterpreter.cpp, src/dpro.hpp, src/envt.hpp, src/gdlc.g, src/math_fun_jmg.cpp:
+	Honor COMPILE_OPT within $ and EXECUTE
+
+	* src/devicex.hpp: Fixed segfault caused by TVRD with no window open
+
+	* gdl.kdevelop, src/datatypes.cpp, src/devicex.hpp:
+	Corrected error message for constant indices
+
+2010-01-16  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/dcompiler.cpp, src/gdlexception.cpp, src/gdlexception.hpp:
+	adding a warning about compiling an obsolete routine when it is compiled
+	for the first time, thus changing the behaviour below:
+
+	  GDL> !WARN.OBS_ROUTINES=1
+	  GDL> for i=0, 2 do a=rstrpos(' ',' ')
+	  % Compiled module: RSTRPOS.
+	  GDL> for i=0, 2 do a=rstrpos(' ',' ')
+	  % Routine compiled from an obsolete library: RSTRPOS
+
+	into:
+
+	  GDL> !WARN.OBS_ROUTINES=1
+	  GDL> for i=0, 2 do a=rstrpos(' ',' ')
+	  % Routine compiled from an obsolete library: RSTRPOS
+	  % Compiled module: RSTRPOS.
+	  GDL> for i=0, 2 do a=rstrpos(' ',' ')
+	  % Routine compiled from an obsolete library: RSTRPOS
+
+2010-01-15  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/GDLInterpreterTokenTypes.hpp, src/GDLInterpreterTokenTypes.txt, src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/GDLTreeParserTokenTypes.hpp, src/GDLTreeParserTokenTypes.txt:
+	progagating changes in gdlc.g (previous commit) to gdlc.i.g- and gdlc.tree.g-related GDL*.pp files
+
+	* src/GDLLexer.cpp, src/GDLParser.cpp, src/GDLParser.hpp, src/GDLTokenTypes.hpp, src/GDLTokenTypes.txt, src/gdlc.g, src/GDLLexer.hpp:
+	support for numeric constants in explicit binary format, e.g. a='1010101'b (tracker item no. 2932619)
+
+2010-01-14  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/pro/file_lines.pro:
+	FILE_LINES: spawning subprocesses with /NOSHELL keyword to prevent execution of shell startup file (patch by Lucio Baggio, patch-tracker item no. 2932168)
+
+2010-01-10  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/antlr/Makefile.in, src/pro/Makefile.in, src/pro/dicom/Makefile.in, Makefile.in, aclocal.m4, config.h.in, configure, configure.in, gdl.kdevelop, ltmain.sh, src/Makefile.in, src/basic_op.cpp, src/datatypes.cpp, src/default_io.cpp:
+	Fixed line number reporting
+
+2010-01-05  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* configure, configure.in, config.h.in:
+	configure script: support for the Debian naming of the HDF4 libraries from the hdf4-alt packages (compiled with --disable-netcdf)
+
+2010-01-04  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/hdf5_fun.cpp: HDF5 1.6 compatibility fix (in error handling)
+
+2010-01-03  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/hdf5_fun.cpp, src/hdf5_fun.hpp, src/libinit_mes.cpp:
+	error-handling in HDF5-related routines;
+	initial import of: h5f_is_hdf5_fun, h5_get_libversion_fun, h5d_get_type_fun
+	  h5t_get_size_fun, h5a_open_name_fun, h5a_open_idx_fun, h5a_get_name_fun,
+	  h5a_get_space_fun, h5a_get_type_fun, h5a_get_num_attrs_fun, h5g_open_fun,
+	  h5a_close_pro, h5t_close_pro, h5g_close_pro, h5a_read
+
+2010-01-02  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/devicex.hpp, src/plotting.cpp:
+	CONTOUR: fixing colours of axes in CONTOUR (.../forum/338692/topic/3306795);
+	making the initial "DECOMPOSED" setting of the X device dependtant on the colour depth reported by the X-server
+
+2010-01-01  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/gdlgstream.hpp, src/libinit.cpp:
+	UINDGEN: correcting the keyword list (indKey -> NULL); gdlgstream.hpp: informing the user that the PLplot warning about too few items on the terminal list can be ignored
+
+2009-12-29  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/pro/Makefile.am, src/pro/Makefile.in:
+	adding rstrpos.pro to the make-install list
+
+	* src/pro/rstrpos.pro, src/GDLParser.hpp, src/GDLTokenTypes.hpp, src/GDLTokenTypes.txt, src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/GDLTreeParserTokenTypes.hpp, src/GDLTreeParserTokenTypes.txt, src/basegdl.hpp, src/dcompiler.cpp, src/dcompiler.hpp, src/dinterpreter.cpp, src/dnode.cpp, src/dnode.hpp, src/dpro.cpp, src/dpro.hpp, src/gdlc.g, src/gdlc.tree.g, src/gdlexception.cpp, src/gdlexception.hpp, src/initsysvar.cpp, src/initsysvar.hpp, src/strassenmatrix.hpp, src/GDLLexer.cpp, src/GDLLexer.hpp, src/GDLParser.cpp:
+	support for COMPILE_OPT OBSOLETE; initial import of RSTRPOS (obsolete)
+
+2009-12-26  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/pro/Makefile.in, src/pro/dicom/Makefile.in, Makefile.in, aclocal.m4, config.guess, config.sub, configure, configure.in, depcomp, install-sh, missing, mkinstalldirs, src/Makefile.in, src/antlr/Makefile.in:
+	configuration files: disabling the automake maintainer mode by default - configuration files are not regenerated by default even if timestamps suggest this should be done (what happens often after a CVS update)
+
+2009-12-23  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/Makefile.in, src/antlr/Makefile.in, src/pro/Makefile.in, src/pro/dicom/Makefile.in, config.h.in, configure, configure.in, aclocal.m4, Makefile.in:
+	after running autoupdate and autoreconf -i
+
+	* ltmain.sh:
+	after running libtoolize (trying to fix the "X--tag=CXX: command not found" problem)
+
+	* src/Makefile.am, src/pro/Makefile.am, src/pro/Makefile.in, src/pro/checks:
+	adding poly_area.pro to the make-install list in the src/pro/Makefile.am
+
+2009-12-22  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/strassenmatrix.hpp: improved tolerance for older OpenMP
+
+	* src/pro/poly_area.pro, src/Makefile.am, src/basic_op.cpp: add file
+
+2009-12-20  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/file.cpp, src/gdl.cpp:
+	GCC 4.3.4 compatibility fix (PATH_MAX undefined)
+
+	* configure, configure.in:
+	configure: handling both single-port (Macports default) and multi-port (Debian default) installations of wxWidgets
+
+2009-12-16  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* Makefile.in, aclocal.m4, config.h.in, configure, configure.in, src/Makefile.in, src/antlr/Makefile.in, src/pro/Makefile.in, src/pro/dicom/Makefile.in:
+	re-enabling autodetection of OpenMP (needs autoconf >=2.63)
+
+2009-12-12  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* config.h.in, configure, configure.in, gdl.kdevelop, src/strassenmatrix.hpp, Makefile.in, aclocal.m4, ltmain.sh, src/Makefile.in, src/antlr/Makefile.in, src/pro/Makefile.in, src/pro/dicom/Makefile.in:
+	working configuration files
+
+2009-12-12  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/dinterpreter.cpp, src/dinterpreter.hpp, src/gdl.cpp, src/magick_cl.cpp:
+	support for specifying batch files at command line, e.g. $gdl script1.pro script2.pro
+	support for the '-e' command-line option - execute a single statement and exit
+	QUERY_*: fix for the empty-argument case
+
+2009-12-12  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basic_op.cpp, src/strassenmatrix.hpp, gdl.kdevelop, src/Makefile.am, src/Makefile.in:
+	strassen algorithm for matrix multiplication (deactivated)
+
+2009-12-11  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/pro/STATUS, src/pro/UrgentNeed.txt:
+	update of src/pro/STATUS and src/pro/UrgentNeed.txt
+
+	* src/libinit.cpp, src/math_fun.cpp, src/math_fun.hpp:
+	CROSSP: initial import
+
+2009-12-10  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/pro/Makefile.in: after running autoreconf
+
+	* src/pro/Makefile.am, src/pro/query_dicom.pro, src/magick_cl.cpp:
+	QUERY_DICOM: initial import
+
+2009-12-09  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* Makefile.in, aclocal.m4, config.h.in, configure, ltmain.sh, src/Makefile.in, src/antlr/Makefile.in, src/pro/Makefile.in, src/pro/dicom/Makefile.in:
+	after running autoreconf and libtoolize
+
+	* src/pro/STATUS:
+	(that's a comment for patchset 1026 commited a few minutes ago):
+
+	- initial import of QUERY_BMP, QUERY_GIF, QUERY_IMAGE, QUERY_JPEG, QUERY_PICT,
+	  QUERY_PNG, QUERY_PPM and QUERY_TIFF (using Magick++'s ping functionality)
+	- wxWidgets:
+	  - compatibility-fixes allowing compilation both with unicode- and non-unicode wxWidgets
+	  - adding some already referenced keywords to the keyword lists in libinit_jmg.cpp
+	  - configure script:
+	    - using a non-mangled function name in AC_CHECK_LIB (cross-compiler compatibility)
+	    - acquireing the wxWidgets library name from wx-config (basename+release, previously hardcoded)
+	    - checking if wx-config is callable before trying to link with wxWidgets
+	    - allowing indication of the wxWidgets installation prefix (--with-wxWidgets=DIR)
+
+	* src/pro/Makefile.am, src/pro/Makefile.in, src/pro/checks, src/pro/dicom/Makefile.in, src/pro/query_bmp.pro, src/pro/query_gif.pro, src/pro/query_image.pro, src/pro/query_jpeg.pro, src/pro/query_pict.pro, src/pro/query_png.pro, src/pro/query_ppm.pro, src/pro/query_tiff.pro, configure.in, ltmain.sh, src/Makefile.in, src/antlr/Makefile.in, src/gdlwidget.cpp, src/libinit_cl.cpp, src/libinit_jmg.cpp, src/magick_cl.cpp, src/magick_cl.hpp, aclocal.m4, config.h.in, configure, Makefile.in:
+	gdl
+
+2009-12-06  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/plotting.cpp:
+	CONTOUR: reverting to previous (IDL-compatible) contour-level-choice mechanism
+
+	* src/hdf_fun.cpp:
+	HDF_SD_DIMGETID: correcting double error-message prefixes
+
+2009-12-05  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/pro/Makefile.am, src/pro/Makefile.in:
+	fix for the last commit (in src/pro/Makefile.in)
+
+	* src/Makefile.in, src/antlr/Makefile.in, src/pro/Makefile.am, src/pro/Makefile.in, src/pro/dicom/Makefile.in, config.h.in, configure, configure.in, ltmain.sh, Makefile.in, aclocal.m4:
+	using OpenMP only if the compiler supports it (by means of the AC_OPENMP macro)
+
+2009-11-28  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/gdlgstream.hpp:
+	resolved const char** to/from char** compile error
+
+	* Makefile.in, aclocal.m4, configure, src/Makefile.in, src/antlr/Makefile.in, src/devicez.hpp, src/gdlgstream.hpp, src/pro/Makefile.in, src/pro/dicom/Makefile.in:
+	fixed z buffer error condition (switched back to previous version, no OpenMP support)
+
+2009-11-27  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/accessdesc.hpp, src/arrayindex.hpp, src/arrayindexlistt.hpp, src/basic_op.cpp, gdl.kdevelop:
+	fixed line number reporting for struct and array expressions
+
+2009-11-27  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/magick_cl.cpp, src/gdlgstream.hpp:
+	- fixing random behaviour of GDLGStream::checkPlplotDriver()
+	- cleanup of error mesaages in Magick-related routines (removing double prefixes)
+
+2009-11-25  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/devicex.hpp, src/graphics.cpp, src/graphics.hpp, src/libinit.cpp, src/plotting.cpp:
+	- !DEVICE.N_COLORS in now dependant on the actual X-window setting
+	- DEVICE: support for the GET_VISUAL_DEPTH keyword
+	- plotting.cpp : making all variables pointing to SysVar::D() non-static
+	  in order to allow the code that uses them to track changes in !D caused
+	  for example by set_plot
+
+2009-11-24  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/basic_fun.cpp:
+	Change [0] to [s] in (*stringExpr)[s].substr in stregex_fun
+
+	* testsuite/test_poly2d.pro: Initial import
+
+2009-11-23  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* testsuite/example.grib, testsuite/test_grib.pro:
+	adding the GRIB test files
+
+	* Makefile.in, README_GRIB, aclocal.m4, config.h.in, configure, configure.in, src/Makefile.am, src/Makefile.in, src/antlr/Makefile.in, src/basic_fun.cpp, src/gdlgstream.hpp, src/gdlxstream.cpp, src/grib.cpp, src/grib.hpp, src/libinit.cpp, src/pro/Makefile.in, src/pro/dicom/Makefile.in:
+	- update in locale_get() reflecting the change in IDL 7.1.1
+	  (now it's returning locale of the parent process, tracker item: 2880186)
+	- initial import of GRIB-1/2 file format support using the ECMWF GRIB API
+	- configure: checking if netcdfcpp.hpp is usable (conflicting hdf4/netcdf installation issue)
+	- configure: moving definition of defaults to the header of configure.in
+	- handling "cannot connect to X-server" (previously plPlot exited GDL, tracker item: 2877007)
+
+2009-11-22  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* Makefile.in, aclocal.m4, configure, src/Makefile.in, src/antlr/Makefile.in, src/gdlgstream.hpp, src/magick_cl.cpp, src/pro/Makefile.in, src/pro/dicom/Makefile.in:
+	corrected memory allocation
+
+	* configure, configure.in, gdl.kdevelop, src/accessdesc.hpp, src/basic_pro.cpp, src/basic_pro.hpp, src/initsysvar.cpp, src/initsysvar.hpp, src/io.hpp, src/libinit.cpp, src/objects.cpp, src/objects.hpp:
+	Add CPU procedure
+
+2009-11-21  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/datatypes.cpp, src/basic_fun.cpp, src/basic_pro.cpp, src/devicex.hpp, src/devicez.hpp, src/fftw.cpp, src/magick_cl.cpp, src/typedefs.hpp:
+	enhanced thread pool support using OpenMP
+
+2009-11-20  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLInterpreter.cpp, src/basegdl.hpp, src/convert2.cpp, src/datatypes.cpp, src/gdlc.i.g, src/math_fun.cpp, src/real2int.hpp:
+	enhanced thread pool support using OpenMP
+
+2009-11-18  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLInterpreter.cpp, src/accessdesc.hpp, src/basic_op.cpp, src/basic_pro.cpp, src/datatypes.cpp, src/gdlc.i.g, src/gzstream.hpp, src/initsysvar.cpp, src/initsysvar.hpp, src/io.cpp, src/objects.cpp, src/objects.hpp, gdl.kdevelop:
+	added initial thread pool support using OpenMP
+
+2009-11-17  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* config.h.in, configure, configure.in:
+	removing a netCDF header check from the last commit (does not work with custom INCLUDES path)
+
+2009-11-16  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/antlr/Makefile.in, src/pro/Makefile.in, src/pro/dicom/Makefile.in, Makefile.in, README, aclocal.m4, config.h.in, configure, configure.in, src/Makefile.in, src/devicesvg.hpp, src/gdlgstream.hpp, src/gdlsvgstream.hpp:
+	configure:
+	  - checking if netCDF installation is usable (HDF4 installation conflict)
+	  - checking if HDF4 was compiled with --disable-netcdf (+ README update)
+	plplot:
+	  - throwing a GDL exception if plplot lacks requested driver
+	  - fixing SVG plotting after previous X-win plots (clearing driver options)
+	  - SVG: using svgcairo instead of svg driver if present
+
+2009-11-13  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basic_pro.cpp, src/basic_pro_jmg.cpp, src/dinterpreter.cpp, src/io.cpp, src/io.hpp:
+	fixed startup file bug
+
+2009-11-11  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/basic_fun.cpp:
+	STREGEX: preventing bogus call to basic_string::substr(-1,...) (tracker item no. 2895655)
+
+	* src/basic_pro_jmg.cpp:
+	POINT_LUN: assuring the 2nd par is a global par
+
+2009-11-09  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLInterpreter.cpp, src/basic_fun.cpp, src/gdlc.i.g, src/gdlexception.hpp:
+	fixed error info for errors during parameter initialization
+
+2009-11-08  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basegdl.cpp, src/basegdl.hpp, src/basic_fun.cpp, src/datatypes.cpp, src/datatypes.hpp, src/default_io.cpp, src/envt.cpp, src/extrat.cpp, src/gsl_fun.cpp:
+	correct alignment for all types in PRINT and REVERSE(/OVERWRITE)
+
+2009-11-08  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/ncdf_var_cl.cpp:
+	NCDF_VARINQ: fixing failed-assertion condition (dimension(0)) with scalar variables
+
+2009-11-07  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/basic_pro.cpp, src/envt.cpp, src/gdlexception.cpp, src/gdlexception.hpp:
+	some more error-message decoration cosmetics
+
+2009-11-07  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLInterpreter.hpp, src/GDLParser.cpp, src/GDLTreeParser.cpp, src/dinterpreter.cpp, src/dinterpreter.hpp, src/gdlc.g, src/gdlc.i.g, src/gdlc.tree.g, src/GDLInterpreter.cpp:
+	correct line numbers of error messages in interupted subroutines
+
+	* src/GDLInterpreter.hpp, src/GDLTreeParser.cpp, src/dinterpreter.cpp, src/dpro.cpp, src/envt.cpp, src/gdlc.i.g, src/gdlc.tree.g:
+	Removed even more inconsistencies in deocration of error messages
+
+2009-11-06  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basic_fun.cpp, src/dpro.cpp, src/envt.hpp, src/gdlexception.cpp, src/gdlexception.hpp:
+	Removed more inconsistencies in deocration of error messages
+
+	* src/assocdata.cpp, src/basic_pro.cpp, src/envt.cpp, src/plotting.cpp:
+	Removed inconsistencies in deocration of error messages
+
+2009-11-05  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/dinterpreter.cpp, src/dinterpreter.hpp, src/envt.hpp, src/gdl.cpp, src/gdlexception.cpp, src/gdlexception.hpp, src/objects.cpp, src/objects.hpp:
+	Add calling function's name to text of GDLException by default
+
+2009-11-05  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/gdl.cpp: making the -quiet option compatible with -arg and -args
+
+2009-11-05  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/convert2.cpp, src/dinterpreter.cpp, src/envt.cpp, src/envt.hpp, src/gsl_fun.cpp:
+	utilized SetPar() in invert_fun
+
+2009-11-04  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/devicex.hpp, src/gdlgstream.hpp, src/gdlxstream.cpp, src/gdlxstream.hpp, src/libinit.cpp, src/plotting.cpp:
+	WSHOW: initial import (ICONIC kwrd not implemented yet)
+
+	* src/datatypes.cpp, src/gsl_fun.cpp, src/math_fun_jmg.cpp, src/ncdf_att_cl.cpp, src/ncdf_var_cl.cpp:
+	INVERT: fixing a segfault condition with non-global parameter; removing some duplicate prefixes in error messages
+
+2009-11-03  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/basegdl.cpp, src/basegdl.hpp, src/convert2.cpp, src/dinterpreter.cpp, src/envt.cpp, src/envt.hpp, src/gdlc.i.g, src/math_fun.cpp, src/prognode.cpp:
+	added identifier info in several error messages
+
+2009-11-02  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basic_fun.cpp: Fixed CREATE_STRUCT() (no parameters)
+
+2009-11-01  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basic_fun_jmg.cpp, src/prognode.cpp, README, ChangeLog:
+	ROUTINE_NAMES
+
+	* src/datatypes.cpp: More verbose error messages
+
+	* src/basic_fun_jmg.cpp, src/gdlc.i.g, src/prognode.cpp:
+	Fixed ROUTINE_NAMES(/FETCH)
+
+2009-11-01  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/plotting.cpp: CURSOR: support for lat/lon query on maps
+
+2009-11-01  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basic_fun_jmg.cpp: Fixed ROUTINE_NAMES(/FETCH)
+
+	* src/Makefile.in, src/antlr/Makefile.in, src/basic_fun.cpp, src/datatypes.cpp, src/pro/Makefile.in, src/pro/dicom/Makefile.in, Makefile.in, aclocal.m4, configure, gdl.kdevelop:
+	Fixed STRSPLIT()
+
+2009-11-01  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/gdl.cpp: -quiet command line option
+
+	
 2009-11-01  m_schellens  <m_schellens@DaMachineInDaMachine>
 
 	* src/datatypes.cpp: More verbose error messages

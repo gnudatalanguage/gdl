@@ -171,6 +171,9 @@ public:
   virtual bool SetFileName( const std::string& f)     { return false;}
   virtual bool  Decomposed( bool value)               { return false;}
   virtual DLong GetDecomposed()                       { return -1;}
+  virtual bool SetXPageSize( const float xs)          { return false;}
+  virtual bool SetYPageSize( const float ys)          { return false;}
+  virtual bool SetColor()                             { return false;}
 
   // Z buffer device
   virtual bool ZBuffering( bool yes)                  { return false;}

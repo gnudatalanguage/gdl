@@ -25,6 +25,9 @@ class DevicePS: public Graphics
 {
   std::string      fileName;
   GDLPSStream*     actStream;
+  float            XPageSize;
+  float            YPageSize;
+  int              color;
 
   void InitStream()
   {
@@ -41,18 +44,28 @@ class DevicePS: public Graphics
 
     actStream->sfnam( fileName.c_str());
 
-//     // set initial window size
-//     PLFLT xp; PLFLT yp; 
-//     PLINT xleng; PLINT yleng;
-//     PLINT xoff; PLINT yoff;
-//     actStream->gpage( xp, yp, xleng, yleng, xoff, yoff);
+    PLFLT xp; PLFLT yp; 
+    PLINT xleng; PLINT yleng;
+    PLINT xoff; PLINT yoff;
+    actStream->gpage( xp, yp, xleng, yleng, xoff, yoff);
+    
+    //default xleng,yleng: 720,540
+    //default in cm: 16.5,12.6
+    float a; float scale;
+    if (XPageSize != 0. && YPageSize != 0.) {a=XPageSize/YPageSize; scale=XPageSize/16.5;} 
+    if (XPageSize == 0. && YPageSize == 0.) {a=540/720; scale=1.;} // default aspect ratio
+    if (XPageSize == 0. && YPageSize != 0.) {a=540/720/(YPageSize/12.6); scale=1.;}
+    if (XPageSize != 0. && YPageSize == 0.) {a=XPageSize/16.5*540/720; scale=1.;}
+    char as[32];
+    sprintf(as, "%f",a);
+    actStream->SetOpt( "a", as); // this necessary to keep labels from looking stretched (plplot bug)
+                                 // but plrender -a is also buggy: aspect ratios are not exactly correct 
+    xleng=floor(scale*540. +0.5);
+    yleng=floor(scale*720. +0.5);
+    // setting this without plrender -a makes the labels stretched (plplot bug)
+    actStream->spage( xp, yp, xleng, yleng, xoff, yoff); 
 
-//     xleng = xSize;
-//     yleng = ySize;
-//     xoff  = xPos;
-//     yoff  = yPos;
-
-//     actStream->spage( xp, yp, xleng, yleng, xoff, yoff);
+    actStream->SetOpt( "ori","1"); // portrait (upright)
 
     // no pause on destruction
     actStream->spause( false);
@@ -60,16 +73,18 @@ class DevicePS: public Graphics
     // extended fonts
     actStream->fontld( 1);
 
-    // we want color
-    actStream->scolor( 1);
-
     // set color map
     PLINT r[ctSize], g[ctSize], b[ctSize];
     actCT.Get( r, g, b);
     //    actStream->scmap0( r, g, b, ctSize); 
     actStream->scmap1( r, g, b, ctSize); 
+    actStream->scolbg(255,255,255); // white background
 
-    actStream->SetOpt( "drvopt","text=0"); // clear drvopt
+    // default: black+white (IDL behaviour)
+    //actStream->scolor( color); // has no effect
+    if (color == 0) { actStream->SetOpt( "drvopt","text=0,color=0"); } 
+    else { actStream->SetOpt( "drvopt","text=0,color=1");}
+    color=0;
 
     actStream->Init();
     
@@ -82,7 +97,7 @@ class DevicePS: public Graphics
   }
 
 public:
-  DevicePS(): Graphics(), fileName( "gdl.ps"), actStream( NULL)
+  DevicePS(): Graphics(), fileName( "gdl.ps"), actStream( NULL), XPageSize(0.), YPageSize(0.), color(0)
   {
     name = "PS";
 
@@ -138,6 +153,23 @@ public:
     actStream = NULL;
     return true;
   }
+
+  bool SetXPageSize( const float xs)
+  {
+    XPageSize=xs;
+    return true;
+  }
+  bool SetYPageSize( const float ys)
+  {
+    YPageSize=ys;
+    return true;
+  }
+  bool SetColor()
+  {
+    color=1;
+    return true;
+  }
+
 };
 
 #endif

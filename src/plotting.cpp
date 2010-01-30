@@ -59,6 +59,9 @@ namespace lib {
     static int get_visual_depthIx = e->KeywordIx( "GET_VISUAL_DEPTH");
     //    static int landscapeIx = e->KeywordIx( "LANDSCAPE"); 
     //    static int portraitIx = e->KeywordIx( "PORTRAIT");
+    static int xSizeIx = e->KeywordIx( "XSIZE");
+    static int ySizeIx = e->KeywordIx( "YSIZE");
+    static int colorIx = e->KeywordIx( "COLOR");
  
     Graphics* actDevice = Graphics::GetDevice();
 
@@ -147,6 +150,40 @@ namespace lib {
 	  e->Throw( "Current device does not support "
 		    "keyword FILENAME.");
       }
+
+
+    BaseGDL* xSizeKW = e->GetKW( xSizeIx);
+    if( xSizeKW != NULL)
+      {
+	DFloat xSizeValue;
+	e->AssureFloatScalarKW( xSizeIx, xSizeValue);
+	bool success = actDevice->SetXPageSize( xSizeValue);
+	if( !success)
+	  e->Throw( "Current device does not support "
+		    "keyword XSIZE.");
+      } 
+
+    BaseGDL* ySizeKW = e->GetKW( ySizeIx);
+    if( ySizeKW != NULL)
+      {
+	DFloat ySizeValue;
+	e->AssureFloatScalarKW( ySizeIx, ySizeValue);
+	bool success = actDevice->SetYPageSize( ySizeValue);
+	if( !success)
+	  e->Throw( "Current device does not support "
+		    "keyword YSIZE.");
+      } 
+
+    BaseGDL* colorKW = e->GetKW( colorIx);
+    if( colorKW != NULL)
+      {
+	bool success = actDevice->SetColor();
+	if( !success)
+	  e->Throw( "Current device does not support "
+		    "keyword COLOR.");
+      } 
+
+
   }
 
   void set_plot( EnvT* e) // modifies !D system variable
@@ -168,6 +205,14 @@ namespace lib {
       static DStructGDL* pStruct = SysVar::P();
       static unsigned noEraseTag = pStruct->Desc()->TagIndex( "NOERASE");
       (*static_cast<DLongGDL*>( pStruct->GetTag( noEraseTag, 0)))[0] = 1;
+      if (device == "PS") {
+	static unsigned colorTag = pStruct->Desc()->TagIndex( "COLOR");
+	(*static_cast<DLongGDL*>( pStruct->GetTag( colorTag, 0)))[0] = 0;
+      }
+    } else {
+      static DStructGDL* pStruct = SysVar::P();
+      static unsigned colorTag = pStruct->Desc()->TagIndex( "COLOR");
+      (*static_cast<DLongGDL*>( pStruct->GetTag( colorTag, 0)))[0] = 255;
     }
   }
 
@@ -3343,6 +3388,7 @@ clevel[nlevel-1]=zEnd; //make this explicit
 //			  false, mypltr, static_cast<void*>( spa));
                           false, mypltr, static_cast<void*>(&passinfo));
 	
+	gkw_color(e, actStream);//needs to be called again or else PS files look wrong
 	// Redraw the axes just in case the filling overlaps them
 	//actStream->box( xOpt.c_str(), xintv, xMinor, "", 0.0, 0);
 	//actStream->box( "", 0.0, 0, yOpt.c_str(), yintv, yMinor);
@@ -3387,7 +3433,8 @@ clevel[nlevel-1]=zEnd; //make this explicit
 // 			  clevel, nlevel, 2, 0, 0, plstream::fill,
 			  false, plstream::tr2, (void *) &cgrid2 );
 
-	// Redraw the axes just in case the filling overlaps them       
+	gkw_color(e, actStream);//needs to be called again or else PS files look wrong
+	// Redraw the axes just in case the filling overlaps them
 	//actStream->box( xOpt.c_str(), xintv, xMinor, "", 0.0, 0);
 	//actStream->box( "", 0.0, 0, yOpt.c_str(), yintv, yMinor);
 	// pen thickness for axis
@@ -4102,6 +4149,7 @@ clevel[nlevel-1]=zEnd; //make this explicit
     // Get decomposed value
     Graphics* actDevice = Graphics::GetDevice();
     DLong decomposed = actDevice->GetDecomposed();
+    if (decomposed != 0 && decomposed != 1) {decomposed=0;}
 
     a->Background( background, decomposed);  
   }
@@ -4128,8 +4176,8 @@ clevel[nlevel-1]=zEnd; //make this explicit
     // Get decomposed value
     Graphics* actDevice = Graphics::GetDevice();
     DLong decomposed = actDevice->GetDecomposed();
-
-    a->Color( color, decomposed);  
+    if (decomposed != 0 && decomposed != 1) {decomposed=0;}
+    a->Color( color, decomposed, 2);  
   }
 
   //NOERASE

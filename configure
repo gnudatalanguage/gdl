@@ -14981,7 +14981,7 @@ fi
 
 if test "x$with_gsl" = "xno"; then
 	echo ""
-	echo "Error! Gnu Scientific Library (1.4 or higher) is mandatory"
+	echo "Error! Gnu Scientific Library (1.7 or higher) is mandatory"
         exit -1
 fi
 
@@ -14992,9 +14992,9 @@ else
     LIBS="$LIBS -lgsl -lgslcblas"
 fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gsl_cdf_ugaussian_P in -lgsl" >&5
-$as_echo_n "checking for gsl_cdf_ugaussian_P in -lgsl... " >&6; }
-if test "${ac_cv_lib_gsl_gsl_cdf_ugaussian_P+set}" = set; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gsl_ran_binomial_knuth in -lgsl" >&5
+$as_echo_n "checking for gsl_ran_binomial_knuth in -lgsl... " >&6; }
+if test "${ac_cv_lib_gsl_gsl_ran_binomial_knuth+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
@@ -15008,27 +15008,27 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 #ifdef __cplusplus
 extern "C"
 #endif
-char gsl_cdf_ugaussian_P ();
+char gsl_ran_binomial_knuth ();
 int
 main ()
 {
-return gsl_cdf_ugaussian_P ();
+return gsl_ran_binomial_knuth ();
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_lib_gsl_gsl_cdf_ugaussian_P=yes
+  ac_cv_lib_gsl_gsl_ran_binomial_knuth=yes
 else
-  ac_cv_lib_gsl_gsl_cdf_ugaussian_P=no
+  ac_cv_lib_gsl_gsl_ran_binomial_knuth=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gsl_gsl_cdf_ugaussian_P" >&5
-$as_echo "$ac_cv_lib_gsl_gsl_cdf_ugaussian_P" >&6; }
-if test "x$ac_cv_lib_gsl_gsl_cdf_ugaussian_P" = x""yes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gsl_gsl_ran_binomial_knuth" >&5
+$as_echo "$ac_cv_lib_gsl_gsl_ran_binomial_knuth" >&6; }
+if test "x$ac_cv_lib_gsl_gsl_ran_binomial_knuth" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
 #define HAVE_LIBGSL 1
 _ACEOF
@@ -15038,7 +15038,7 @@ _ACEOF
 else
 
 	echo ""
-	echo "Error! Gnu Scientific Library (1.4 or higher) is mandatory"
+	echo "Error! Gnu Scientific Library (1.7 or higher) is mandatory"
         exit -1
 
 fi
@@ -17171,7 +17171,7 @@ esac
 
 
 
-ac_config_files="$ac_config_files Makefile src/Makefile src/antlr/Makefile src/pro/Makefile src/pro/dicom/Makefile"
+ac_config_files="$ac_config_files Makefile src/Makefile src/antlr/Makefile src/pro/Makefile src/pro/dicom/Makefile testsuite/Makefile doc/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -18258,6 +18258,8 @@ do
     "src/antlr/Makefile") CONFIG_FILES="$CONFIG_FILES src/antlr/Makefile" ;;
     "src/pro/Makefile") CONFIG_FILES="$CONFIG_FILES src/pro/Makefile" ;;
     "src/pro/dicom/Makefile") CONFIG_FILES="$CONFIG_FILES src/pro/dicom/Makefile" ;;
+    "testsuite/Makefile") CONFIG_FILES="$CONFIG_FILES testsuite/Makefile" ;;
+    "doc/Makefile") CONFIG_FILES="$CONFIG_FILES doc/Makefile" ;;
 
   *) as_fn_error "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
