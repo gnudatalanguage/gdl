@@ -63,20 +63,20 @@
         <f77flags/>
       </optimized>
       <debug>
-        <configargs>--enable-debug=full --with-readlinedir=yes --with-python=yes --with-hdf=yes --with-hdf5=no --with-plplot=/usr --with-python=yes --disable-python_module --with-netcdf=no --enable-oldplplot --with-openmp=no --with-libproj4=no --with-wxWidgets=no --with-Magick=no</configargs>
+        <configargs>--with-readlinedir=yes --with-python=yes --with-hdf=yes --with-hdf5=no --with-plplotdir=/usr --with-python=yes --disable-python_module --with-netcdf=no --enable-oldplplot --with-openmp=yes --with-libproj4=no --with-wxWidgets=no --with-Magick=no</configargs>
         <builddir>debug</builddir>
         <ccompiler>kdevgccoptions</ccompiler>
         <cxxcompiler>kdevgppoptions</cxxcompiler>
         <f77compiler>kdevg77options</f77compiler>
         <cxxflags>-O0 -g3</cxxflags>
-        <topsourcedir/>
-        <cppflags/>
-        <ldflags/>
-        <ccompilerbinary/>
-        <cxxcompilerbinary/>
-        <f77compilerbinary/>
-        <cflags/>
-        <f77flags/>
+        <topsourcedir></topsourcedir>
+        <cppflags></cppflags>
+        <ldflags></ldflags>
+        <ccompilerbinary></ccompilerbinary>
+        <cxxcompilerbinary></cxxcompilerbinary>
+        <f77compilerbinary></f77compilerbinary>
+        <cflags></cflags>
+        <f77flags></f77flags>
         <envvars/>
       </debug>
       <default>

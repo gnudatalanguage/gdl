@@ -182,11 +182,16 @@ dnl fi
 
 dnl OpenMP
 dnl default yes 
-if test "x$with-openmp" = "x"; then
-   with-openmp=yes
+AC_ARG_WITH(openmp,	
+	[  --with-openmp=no      disable OpenMP utilization ],
+	[with_openmp="$withval" ])
+
+if test "x$with_openmp" = "x"; then
+   with_openmp=yes
+   echo "OpenMP enabled. Try --with-openmp=no if your compiler does not support it"
 fi
 
-if test "x$with-openmp" != "xno"; then
+if test "x$with_openmp" != "xno"; then
 	CPPFLAGS="$CPPFLAGS -fopenmp"
 	LDFLAGS="$LDFLAGS -fopenmp"
 fi
@@ -982,8 +987,8 @@ echo "
   System:              $host
   Installation prefix: $prefix
   C++ compiler:        $CXX $CXXFLAGS
-  OpenMP support:      `if test x = x$OPENMP_CXXFLAGS;
-    then echo 'no'; else echo yes; fi`
+  OpenMP support:      `if test "x$with_openmp" = "xno";
+    then echo 'no'; else echo 'yes (use --with-openmp=no if your compiler does not support it)'; fi`
   ----- optional libraries (consult README/INSTALL): ---
   wxWidgets:           `if test no = $with_wxWidgets;
     then echo 'no  (needs explicit enabling)'; else echo yes; fi`
