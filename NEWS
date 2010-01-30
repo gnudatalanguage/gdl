@@ -336,13 +336,145 @@
            - widgets: some new functionality
            - mapping: support for new LIBPROJ4
 
-0.9rc3:   library routines:
-	   - initial import of GET_SCREEN_SIZE
+0.9rc4:  in short: 
+         ---------
+         - thread pool support using OpenMP (G++ >= 4.2),
+         - enhanced error-reporting (line numbering, message decoration, etc.) 
+         - new library routines, including: CPU, CROSSP, GET_SCREEN_SIZE, IMSL_BINOMIALCOEF, 
+           IMSL_CONSTANT, IMSL_ZEROPOLY, QUERY_*, WSHOW, WTN (wavelet transform), ...
+         - enhanced HDF5 (15 new routines) and netCDF support
+         - support for GRIB 1/2 file format (read-only, using ECMW GRIB_API)
+         - several new command-line options, support for specifying batch files at command-line
+         - bug-fixes in library routines and the interpreter
+         - new plotting functionalities (contouring on maps, color PostScript output, ...)
+         - enhanced detection of libraries in the configure script
+         - enhanced "make install" and "make check" rules
+         - compatibility fixes for various GCC versions and UNIX flavours
 
-0.9rc4:   library routines:
-	   - support for OpenMP (requires g++ > 4.2)
-	   - Added CPU procedure
-	   - Added IMSL_BINOMIALCOEF, IMSL_CONSTANT, CROSSP, WTN functions
-	   - several new command line options
-	   - support for binary format of numeric constants (e. g. '1010101'b)
-	   - corected line number reporting in several places
+         in detail:
+         --------------
+         interpreter:
+           - fixed/enhanced numerous error-reporting related features including:
+             line number tracking, error message "decoration" (prefixes etc.),
+             inclusion of string-representation of error-related values in error messages
+           - fixed STRUCT access of non struct struct member (e. g. a={b:0}&print,a.b.c )
+           - corrected beahvior of call_fun and call_lfun for RC_ABORT return code,
+             old behavior lead to endless loop at startup in some conditions
+           - fixed wrong handling of CONTINUE under certain conditions in nested loops
+           - support for COMPILE_OPT OBSOLETE & !WARN.OBS_ROUTINES
+           - support for numeric constants in explicit binary format, e.g. a='1010101'b
+           - honouring COMPILE_OPT within $ and EXECUTE
+         library routines:
+           - BROYDEN: fixed behaviour with constant-returning functions
+           - BYTEORDER: support for structures
+           - CHECK_MATH: 2 undocument params and also keep memory of value
+           - CONTOUR: memory-leak fix (thanks to Valgrind), support for the /OVERPLOT keyword,
+                      partial support for contouring on maps, more sanity checks for argument types,
+                      better filled-contour level-choice mechanism, fixing axis colour
+           - CPU: initial import
+           - CREATE_STRUCT: fixed behaviour with no parameters
+           - CROSSP: initial import
+           - CURSOR: verification if we are in X mode, support for lat/lon query on maps
+           - DEVICE: support for /COLOR, XSIZE and YSIZE for PostScript driver,
+                     support for the GET_VISUAL_DEPTH keyword
+           - DIST: runs correctly when called like dist([2,2])
+           - FFT: sanity check for the rank of argument, preventing bogus memory freeing with dcomplex input
+           - FILE_BASENAME: support for array argument, better handling of empty and space-only strings
+           - FILE_LINES: spawning subprocesses with /NOSHELL keyword to prevent execution of shell startup file 
+           - FILE_TEST: stripping the trailing '/' if present
+           - [F,D,L,...]INDGEN: making the values of the resulting array more precise for large 
+             arrays (demo: print, (findgen(40000000))[40000000-1])
+           - GET_SCREEN_SIZE: initial import
+           - GETENV: error message when called with /ENV and a positional parameter
+           - GRIBAPI_*: initial import of GRIB-1/2 file format support using the ECMWF GRIB API
+           - H5F_IS_HDF5, H5_GET_LIBVERSION, H5D_GET_TYPE, H5T_GET_SIZE, H5A_OPEN_NAME, 
+             H5A_OPEN_IDX, H5A_GET_NAME, H5A_GET_SPACE, H5A_GET_TYPE, H5A_GET_NUM_ATTRS, H5G_OPEN,
+             H5A_CLOSE, H5T_CLOSE, H5G_CLOSE, H5A_READ: initial import
+           - HELP: corrected output for expressions
+           - HISTOGRAM: correcting binsize definition when max and nbins set, 
+                        better INPUT-kw-related error message
+           - IMSL_BINOMIALCOEF: initial import
+           - IMSL_ZEROPOLY: initial import (using gsl_poly_complex_solve())
+           - IMSL_ZEROSYS: fixed behaviour with constant-returning functions
+           - INVERT: fixing a segfault condition with non-global parameter
+           - LA_TRIRED: checking if the first argument is an array
+           - LOADCT: set !D.TABLE_SIZE from 0 to 256
+           - LOCALE_GET: returning locale of the parent process
+           - N_TAGS: support for LENGTH keyword (currently equal to DATA_LENGTH)
+           - NCDF_ATTGET: outputing byte arrays instead of strings
+           - NCDF_ATTNAME: allowing to specify the global atribute number 
+           - NCDF_ATTPUT: support for LENGTH keyword
+           - NCDF_VARGET: fixing a segfault condition
+           - NCDF_VARINQ: fixing failed-assertion condition (dimension(0)) with scalar variables
+           - NCDF_*: fixes in error handling, compatibility with netcd-4 
+             (file handles are now Long instead of Int)
+           - NEWTON: fixed behaviour with constant-returning functions
+           - OPLOT: sanity checks for the rank of arguments
+           - PLOT: adjusting axes when charsize changed, better automatic range selection,
+                   sanity checks for the rank of arguments
+           - POINT_LUN: assuring the 2nd par is a global par
+           - POLY_AREA: initial import
+           - PRINT/PRINTF: changed output of trailing newline after empty string output,
+                           corrected alignment for all types
+           - RSTRPOS: initial import
+           - READ_TIFF: ignoring errors related to GeoTIFF fields in TIFF files
+           - QUERY_BMP, QUERY_DICOM, QUERY_GIF, QUERY_IMAGE, QUERY_JPEG, QUERY_PICT, QUERY_PNG:
+             QUERY_PPM, QUERY_TIFF: initial import (using Magick++'s ping functionality)
+           - READ_ASCII: printing error message when DATA_START exceeds file length
+           - REVERSE: support for /OVERWRITE keyword
+           - ROUTINE_INFO: support for PARAMETERS keyword
+           - ROUTINE_NAMES: fixed ARG_NAME keyword for values larger than current level,
+                            corrected name lookup, proper behaviour with the /STORE kw.,
+                            fixed support for /FETCH kw.
+           - STREGEX: preventing bogus call to basic_string::substr(-1,...)
+           - STRMID: fixed behaviour for negative values of 3rd parameter
+           - STRPOS: does no longer ignore undefined 3rd parameter
+           - STRSPLIT: fixed probem related with STRTOK bug
+           - STRTOK: fixed output dimensions
+           - SURFACE: memory-leak fix (thanks to Valgrind), more sanity checks for argument types
+           - TVRD: fixed segfault with no window open
+           - WAIT: allowing interruption with control-c 
+           - WSHOW: initial import (ICONIC kwrd not implemented yet)
+           - WTN: initial import (using GSL DWT routines)
+         configuration/installation:
+           - installing library .pro files, manpage and basic docs during make install
+           - setting default library-routine search path if GDL_PATH/IDL_PATH not defined
+           - checking if HDF4 was compiled with --disable-netcdf
+           - checking if netCDF installation is usable (HDF4 installation conflict)
+           - configure: checking if netcdfcpp.hpp is usable (conflicting hdf4/netcdf installation issue)
+           - fixes in wxWidgets detection code
+           - support for the Debian naming of the HDF4 libraries from the hdf4-alt packages 
+             (compiled with --disable-netcdf)
+           - checking for GSL >=1.7 which is requiered to use both FFT and DWT at the same time
+         other:
+           - adding a manpage
+           - Cygwin compatibility fixes (as of version 1.7.1, Cygwin still needs a patch for rpc and fenv)
+           - adding on_error,2 for all routines implemented in GDL
+           - error reporting for HDF5 support
+           - Strassen algorithm for matrix multiplication (needs manual enabling)
+           - !DEVICE.N_COLORS in now dependant on the actual X-window setting
+           - handling "cannot connect to X-server" via a GDL error message
+           - initial thread pool support using OpenMP
+           - checking if PLplot supports the requested driver (ps, xwin, mem) 
+             and informing the user via a GDL error message if not 
+           - SVG plots: swithing between svg and svgcairo drivers by checking which 
+             drivers are supported by PLplot
+           - support for -quiet and -e command-line options and for specifying batch files
+             at command-line; ignoring numerous license-related options for compatibility
+           - warning the user if MPI changes the working directory of GDL
+           - welcome message changes (informing about the library-routine search path)
+           - more meaningful contnents of the !VERSION structure
+           - GCC 3.4.3, 3.4.4, 4.3.4, and 4.4 compatibility fixes
+           - support for reading ASCII files not ending with newline character
+           - ![X,Y].RANGE support in plotting routines 
+           - Allow neg. width for A format code, fixed T,TL,TR format codes
+           - sanity checks in array-returning library routines preventing segfaults
+             when called with invalid arguments
+           - new test-routines: test_dims_of_arrays.pro, test_valgrind.pro, test_check_math.pro,
+             test_get_screen_size.pro, test_nestedloop.pro, test_plotting_misc.pro, 
+             test_plotting_ranges.pro, test_grib.pro, test_poly2d.pro, test_wavelet.pro
+           - inclusion of some of the test-routines in the "make check" rule
+           - quick_start_GDL.sh script 
+           - making the initial "DECOMPOSED" setting of the X device dependtant on the colour 
+             depth reported by the X-server
+
