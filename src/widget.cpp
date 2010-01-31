@@ -589,7 +589,7 @@ namespace lib {
 
       RefDNode theAST;
 
-      GDLLexer lexer(istr, "");
+      GDLLexer lexer(istr, "", GDLParser::NONE);
       GDLParser& parser = lexer.Parser();
       parser.interactive();
 
