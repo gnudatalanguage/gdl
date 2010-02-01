@@ -882,6 +882,10 @@ case "${host}" in
     LIBS="$LIBS -lsocket -lnsl"
     ;;
 
+  *cygwin* )
+    LIBS="$LIBS -lrpc"
+    ;;
+
 dnl  *)
 dnl    AC_MSG_ERROR(unknown system type ${host}.)
 dnl    ;;
