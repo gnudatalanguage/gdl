@@ -242,8 +242,8 @@ public:
   // promote: use Long if number to large
   void Text2Int(int base, bool promote=false);
   void Text2UInt(int base, bool promote=false);
-  void Text2Long(int base);
-  void Text2ULong(int base); 
+  void Text2Long(int base, bool promote=false);
+  void Text2ULong(int base, bool promote=false); 
   void Text2Long64(int base);
   void Text2ULong64(int base);
   void Text2Float();

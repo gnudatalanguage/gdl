@@ -51,7 +51,13 @@ GDL has an interface to python.
 Python can be embedded into GDL and GDL can be compiled as a
 python module. See the file PYTHON.txt for details.
 
-No GUI support (widgets) is implemented so far.
+For the thread pool OpenMP is utilized if the compiler supports it.
+Due to a bug in some OpenMP versions you might get lots of warnings:
+iteration variable ‘i’ is unsigned
+They are harmless, see http://gcc.gnu.org/ml/gcc-bugs/2006-05/msg00878.html
+for details.
+
+No GUI support (widgets) is implemented so far (but under development).
 
 
 REQUIREMENTS:

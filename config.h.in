@@ -90,6 +90,9 @@
 /* Define to 1 if you have the <"netcdfcpp.h"> header file. */
 #undef HAVE__NETCDFCPP_H_
 
+/* Define to 1 if you have the <"omp.h"> header file. */
+#undef HAVE__OMP_H_
+
 /* Define to the sub-directory in which libtool stores uninstalled libraries.
    */
 #undef LT_OBJDIR

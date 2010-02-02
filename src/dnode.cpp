@@ -177,8 +177,30 @@ void DNode::Text2UInt(int base, bool promote)
     }
 }
 
-void DNode::Text2Long(int base)
+void DNode::Text2Long(int base, bool promote)
 {
+  static const DLong64 maxDInt=
+    static_cast<DLong64>(numeric_limits<DInt>::max());
+  static const DLong64 maxDLong=
+    static_cast<DLong64>(numeric_limits<DLong>::max());
+  
+  if( promote)
+    {
+      DLong64 ll;
+      Text2Number( ll, base);
+      
+      if( ll <= maxDLong)
+	{
+	  DLong val = static_cast<DLong>(ll);
+	  cData=new DLongGDL( val);
+	}
+      else
+	{
+	  cData=new DLong64GDL( ll);
+	}
+      return;
+    }
+  
   if( base == 16)
     {
       if( text.size() > sizeof( DLong)*2) 
@@ -201,8 +223,30 @@ void DNode::Text2Long(int base)
   cData=new DLongGDL(val);
 }
 
-void DNode::Text2ULong(int base) 
+void DNode::Text2ULong(int base, bool promote) 
 {
+  static const DULong64 maxDUInt=
+    static_cast<DULong64>(numeric_limits<DUInt>::max());
+  static const DULong64 maxDULong=
+    static_cast<DULong64>(numeric_limits<DULong>::max());
+
+  if( promote)
+    {
+      DULong64 ll;
+      Text2Number( ll, base);
+      
+      if( ll <= maxDULong)
+	{
+	  DULong val = static_cast<DULong>(ll);
+	  cData=new DULongGDL( val);
+	}
+      else
+	{
+	  cData=new DULong64GDL( ll);
+	}
+      return;
+    }
+  
   if( base == 16)
     {
       if( text.size() > sizeof(DULong)*2)

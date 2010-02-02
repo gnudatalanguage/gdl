@@ -866,7 +866,7 @@ numeric_constant!//
         // DEFINT32
 		{ #numeric_constant=#[CONSTANT,c44->getText()];
             if( compileOpt & DEFINT32)
-                #numeric_constant->Text2Long(16);	
+                #numeric_constant->Text2Long(16,true);	
             else
                 #numeric_constant->Text2Int(16,true);	
 		  #numeric_constant->SetLine( c44->getLine());	
@@ -885,7 +885,7 @@ numeric_constant!//
         // DEFINT32
 		{ #numeric_constant=#[CONSTANT,c77->getText()];
             if( compileOpt & DEFINT32)
-                #numeric_constant->Text2ULong(16);	
+                #numeric_constant->Text2ULong(16,true);	
             else
                 #numeric_constant->Text2UInt(16,true);	
 		  #numeric_constant->SetLine( c77->getLine());	
@@ -919,7 +919,7 @@ numeric_constant!//
         // DEFINT32
 		{ #numeric_constant=#[CONSTANT,c111->getText()];
             if( compileOpt & DEFINT32)
-                #numeric_constant->Text2Long(10);	
+                #numeric_constant->Text2Long(10,true);	
             else
                 #numeric_constant->Text2Int(10,true);	
 		  #numeric_constant->SetLine( c111->getLine());	
@@ -938,7 +938,7 @@ numeric_constant!//
         // DEFINT32
 		{ #numeric_constant=#[CONSTANT,c144->getText()];
             if( compileOpt & DEFINT32)
-                #numeric_constant->Text2ULong(10);	
+                #numeric_constant->Text2ULong(10,true);	
             else
                 #numeric_constant->Text2UInt(10,true);	
 		  #numeric_constant->SetLine( c144->getLine());	
@@ -972,7 +972,7 @@ numeric_constant!//
         // DEFINT32
 		{ #numeric_constant=#[CONSTANT,c188->getText()];
             if( compileOpt & DEFINT32)
-                #numeric_constant->Text2Long(8);	
+                #numeric_constant->Text2Long(8,true);	
             else
                 #numeric_constant->Text2Int(8,true);	
 		  #numeric_constant->SetLine( c188->getLine());	
@@ -991,7 +991,7 @@ numeric_constant!//
         // DEFINT32
 		{ #numeric_constant=#[CONSTANT,c211->getText()];
             if( compileOpt & DEFINT32)
-                #numeric_constant->Text2ULong(8);	
+                #numeric_constant->Text2ULong(8,true);	
             else
                 #numeric_constant->Text2UInt(8,true);	
 		  #numeric_constant->SetLine( c211->getLine());	
@@ -1035,7 +1035,7 @@ numeric_constant!//
         // DEFINT32
 		{ #numeric_constant=#[CONSTANT,c277->getText()];
             if( compileOpt & DEFINT32)
-                #numeric_constant->Text2Long(2);	
+                #numeric_constant->Text2Long(2,true);	
             else
                 #numeric_constant->Text2Int(2,true);	
 		  #numeric_constant->SetLine( c277->getLine());	
@@ -1054,7 +1054,7 @@ numeric_constant!//
         // DEFINT32
 		{ #numeric_constant=#[CONSTANT,c300->getText()];
             if( compileOpt & DEFINT32)
-                #numeric_constant->Text2ULong(2);	
+                #numeric_constant->Text2ULong(2,true);	
             else
                 #numeric_constant->Text2UInt(2,true);	
 		  #numeric_constant->SetLine( c300->getLine());	
