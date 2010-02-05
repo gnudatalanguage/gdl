@@ -1,5 +1,5 @@
 /***************************************************************************
-                          dnode.cpp  -  GDL's AST is made of DNodes
+                             dnode.cpp  -  GDL's AST is made of DNodes
                              -------------------
     begin                : July 22 2002
     copyright            : (C) 2002 by Marc Schellens
