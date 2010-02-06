@@ -737,6 +737,11 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
   try { 
     auto_ptr<GDLLexer> lexer;
 
+    // LineContinuation LC
+    // conactenate the strings and insert \n
+    // the resulting string can be fed to the lexer
+   
+    // print if expr parse ok 
     int lCNum = 0;
     for(;;) 
       {
@@ -748,13 +753,35 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
  	  lexer->Parser().interactive();
 	  break; // no error -> everything ok
 	}
-	catch( GDLException e)
+	catch( GDLException& e)
 	  {
 	    int lCNew = lexer->LineContinuation();
 	    if( lCNew == lCNum)
-	      throw; // no LC -> real error
+// 	      throw; // no LC -> real error
+	{
+// 		try {
+// 			executeLine.clear(); // clear EOF (for executeLine)
+// 			lexer.reset( new GDLLexer(executeLine, "", callStack.back()->CompileOpt()));
+// 			lexer->Parser().expr();
+	
+			executeLine.clear(); // clear EOF (for executeLine)
+			executeLine.str( "print," + executeLine.str()); // append new line
+			
+			lexer.reset( new GDLLexer(executeLine, "", callStack.back()->CompileOpt()));
+			lexer->Parser().interactive();
+			
+			break; // no error -> everything ok
+// 		}
+// 		catch( GDLException& e2)
+// 		{
+// 			throw;
+// 		}
+	}
+
 	    lCNum = lCNew; // save number to see if next line also has LC
 	  }
+
+
 
 	// line continuation -> get next line
 	if( in != NULL && !in->good())
@@ -770,12 +797,12 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
     theAST = lexer->Parser().getAST();
 
   }
-  catch( GDLException e)
+  catch( GDLException& e)
     {
       ReportCompileError( e);
       return CC_OK;
     }
-  catch( ANTLRException e)
+  catch( ANTLRException& e)
     {
       cerr << "Lexer/Parser exception: " <<  e.getMessage() << endl;
       return CC_OK;
@@ -818,12 +845,12 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
 
       progAST = ProgNode::NewProgNode( trAST);
     }
-  catch( GDLException e)
+  catch( GDLException& e)
     {
       ReportCompileError( e);
       return CC_OK;
     }
-  catch( ANTLRException e)
+  catch( ANTLRException& e)
     {
       cerr << "Compiler exception: " <<  e.getMessage() << endl;
       return CC_OK;
