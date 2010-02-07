@@ -759,7 +759,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
 	    if( lCNew == lCNum)
 // 	      throw; // no LC -> real error
 	{
-// 		try {
+ 		try {
 // 			executeLine.clear(); // clear EOF (for executeLine)
 // 			lexer.reset( new GDLLexer(executeLine, "", callStack.back()->CompileOpt()));
 // 			lexer->Parser().expr();
@@ -771,11 +771,11 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
 			lexer->Parser().interactive();
 			
 			break; // no error -> everything ok
-// 		}
-// 		catch( GDLException& e2)
-// 		{
-// 			throw;
-// 		}
+		}
+		catch( GDLException& e2)
+		{
+			throw e;
+		}
 	}
 
 	    lCNum = lCNew; // save number to see if next line also has LC
