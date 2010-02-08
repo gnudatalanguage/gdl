@@ -7,4 +7,5 @@ TESTS = \
   test_wavelet.pro \
   test_base64.pro \
   test_constants.pro \
-  test_nestedloop.pro 
+  test_nestedloop.pro \
+  test_product.pro

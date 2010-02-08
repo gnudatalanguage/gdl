@@ -28,7 +28,7 @@ end
 ;
 ; ---------------------------
 ;
-pro TEST_PRODUCT_ALL_TYPE, test=test, verbose=verbose, nan=nan
+pro TEST_PRODUCT_ALL_TYPE, test=test, verbose=verbose, nan=nan, exit_on_error=exit_on_error
 ; list of TYPE
 ; http://idlastro.gsfc.nasa.gov/idl_html_help/SIZE.html
 ;
@@ -61,7 +61,11 @@ for ii=1, 15 do begin
     if (ABS(ref2- PRODUCT(a,/int)) GT 1e-6) then err=err+'Erreur 3, '
     if (ABS(tref4-TOTAL(PRODUCT(a,/int, /cumul))) GT 1e-6) then err=err+'Erreur 4, '
     ;;
-    if STRLEN(err) EQ 0 then err='None'
+    if STRLEN(err) EQ 0 then err='None' $
+    else if keyword_set(exit_on_error) then begin
+      message, err + '(type: ' + SIZE(A,/type) + ')', /conti
+      exit, status=1
+    endif
     print, 'current TYPE : ', SIZE(A,/type), ', Type of Errors: ', err
     ;;
     if KEYWORD_SET(verbose) then begin
@@ -74,4 +78,10 @@ endfor
 ;
 if KEYWORD_SET(test) then STOP
 ;
+end
+
+; SA: for inclusion in the "make check" rule
+pro test_product
+  test_product_basic
+  test_product_all_type, /exit_on_error
 end
