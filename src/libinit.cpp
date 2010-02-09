@@ -397,10 +397,10 @@ void LibInit()
   const string totalKey[]={"CUMULATIVE","DOUBLE","NAN","INTEGER",KLISTEND};
   new DLibFunRetNew(lib::total,string("TOTAL"),2,totalKey,NULL,true);
 
-  const string productKey[]={"CUMULATIVE","NAN",KLISTEND};
+  const string productKey[]={"CUMULATIVE","NAN","INTEGER",KLISTEND};
   new DLibFunRetNew(lib::product,string("PRODUCT"),2,productKey,NULL,true);
 
-  new DLibFunRetNew(lib::n_params,string("N_PARAMS"),1); // IDL allows one paramter
+  new DLibFunRetNew(lib::n_params,string("N_PARAMS"),1); // IDL allows one parameter
   new DLibFunRetNew(lib::keyword_set,string("KEYWORD_SET"),1);
 
   const string array_equalKey[]={"NO_TYPECONV",KLISTEND};
