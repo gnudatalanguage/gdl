@@ -22,10 +22,11 @@
 
 //#define ABS(xxx) (( xxx > -xxx)?(xxx):(-xxx))
 
-template< typename T>
-inline T abs( T a) { return (a>=T(0))?a:-a;}
-
 namespace lib {
+
+  // SA: needs to be inside a namespace for GCC 4.5
+  template< typename T>
+  inline T abs( T a) { return (a>=T(0))?a:-a;}
 
 //   int trans513(char *, int, int, int, DType);
 //   int transpose(char *, SizeT, SizeT [], SizeT, DType);

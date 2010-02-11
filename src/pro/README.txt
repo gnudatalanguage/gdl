@@ -4,14 +4,14 @@ some informations about these files and this directory
 1/ procedures from the IDL library
 
 Most of the files here are re-implementation of the
-open source files avaiblable in the IDL lib directory.
-Since the original library is under Copyrigth, we cannot copy it
+open source files available in the IDL lib directory.
+Since the original library is under Copyright, we cannot copy it
 directly in GDL. Then we need to develop a clone for some of the 
 most useful procedures in this library.
 
-Some of these routines can be find and downloaded from
+Some of these routines can be found and downloaded from
 http://idlastro.gsfc.nasa.gov/idllibsrch.html
-but we cannot includ them now in GDL.
+but we cannot include them now in GDL.
 
 Please see STATUS for a list of the files,
 if they are needed, or not, written (in GDL or C++)
