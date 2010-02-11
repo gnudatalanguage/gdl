@@ -175,18 +175,12 @@ namespace lib {
     }
     else if( p0->Type() == COMPLEX) {
 
-      DComplexGDL* res;
+      //      DComplexGDL* res;
 
       return fftw_template< DComplexGDL> (p0, nEl, dbl, overwrite, direct);
 
     }
-    else if (p0->Type() == FLOAT ||
-	     p0->Type() == LONG ||
-	     p0->Type() == ULONG ||
-	     p0->Type() == INT ||
-	     p0->Type() == UINT ||
-	     p0->Type() == BYTE) {
-
+    else {
       overwrite = 0;
 
       DComplexGDL* p0C = static_cast<DComplexGDL*>
@@ -194,15 +188,8 @@ namespace lib {
       auto_ptr<BaseGDL> guard_p0C( p0C); 
       return fftw_template< DComplexGDL> (p0C, nEl, dbl, overwrite, direct);
 
-    } else {
-      DFloatGDL* res = static_cast<DFloatGDL*>
-	(p0->Convert2( FLOAT, BaseGDL::COPY));
-
-      return res;
-
     }
   }
-
 } // namespace
 
 #endif // USE_FFTW
