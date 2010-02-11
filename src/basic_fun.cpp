@@ -492,7 +492,7 @@ namespace lib {
 	auto_ptr<DLongGDL> pL_guard;
 	if( pL == NULL)
 	  {
-	    pL = static_cast<DLongGDL*>(p->Convert2(LONG,BaseGDL::COPY)); 
+	    pL = static_cast<DLongGDL*>(p->Convert2(LONG,BaseGDL::COPY));
 	    pL_guard.reset( pL);
 	    //	    e->Guard( pL);
 	  }
@@ -2606,138 +2606,243 @@ namespace lib {
   BaseGDL* product( EnvT* e)
   {
     SizeT nParam = e->NParam( 1);
-
+    
     BaseGDL* p0 = e->GetParDefined( 0);
-
+    
     SizeT nEl = p0->N_Elements();
     if( nEl == 0)
       e->Throw( "Variable is undefined: "+e->GetParString(0));
-
+    
     if( p0->Type() == STRING)
       e->Throw( "String expression not allowed "
 		"in this context: "+e->GetParString(0));
     
     static int cumIx = e->KeywordIx( "CUMULATIVE");
     static int nanIx = e->KeywordIx( "NAN");
-    bool cumulative = e->KeywordSet( cumIx);
-    bool nan        = e->KeywordSet( nanIx);
-
+    static int intIx = e->KeywordIx("INTEGER");
+    bool KwCumul     = e->KeywordSet( cumIx);
+    bool KwNaN       = e->KeywordSet( nanIx);
+    bool KwInt       = e->KeywordSet( intIx);
+    bool nanInt=false;
+    
     DLong sumDim = 0;
     if( nParam == 2)
       e->AssureLongScalarPar( 1, sumDim);
-
-    if( sumDim == 0)
-      {
-	if( !cumulative)
-	  {
-	    if( p0->Type() == DOUBLE)
-	      {
-		return product_template<DDoubleGDL>
-                  ( static_cast<DDoubleGDL*>(p0), nan); 
-	      }
-	    if( p0->Type() == COMPLEXDBL)
-	      {
-		return product_template<DComplexDblGDL>
-                  ( static_cast<DComplexDblGDL*>(p0), nan); 
-	      }
-	    if( p0->Type() == COMPLEX)
-	      {
-		DComplexDblGDL* p0D = static_cast<DComplexDblGDL*>
-		  (p0->Convert2( COMPLEXDBL,BaseGDL::COPY));
-		auto_ptr<DComplexDblGDL> p0D_guard( p0D);
-		//p0D_guard.reset( p0D);
-		return product_template<DComplexDblGDL>( p0D, nan); 
-	      }
+    
+    if( sumDim == 0) {
+	if( !KwCumul) {
+	  // Integer parts derivated from Total code by Erin Sheldon
+	  // In IDL PRODUCT(), the INTEGER keyword takes precedence 
+	  if (KwInt) {
+	    // We use LONG64 unless the input is ULONG64
+	    if ((p0->Type() == LONG64) && (!KwNaN)) {
+	      return product_template<DLong64GDL>
+		( static_cast<DLong64GDL*>(p0), nanInt );
+	    }
+	    if ((p0->Type() == ULONG64) && (!KwNaN)) {
+	      return product_template<DULong64GDL>
+		(static_cast<DULong64GDL*>(p0), nanInt );
+	    }
 	    
-	    DDoubleGDL* p0D = static_cast<DDoubleGDL*>
-	      (p0->Convert2( DOUBLE, BaseGDL::COPY));
-	    auto_ptr<DDoubleGDL> p0D_guard( p0D);
-	    //	    p0D_guard.reset( p0D);
-	    return product_template<DDoubleGDL>( p0D, nan);
-	  }
-	else // cumulative
-	  {
-	    // special case as DOUBLE type overrides /DOUBLE
-	    if( p0->Type() == DOUBLE)
-	      {
-  	        return product_cu_template< DDoubleGDL>
-		  ( static_cast<DDoubleGDL*>(p0)->Dup(), nan);
+	    // Convert to Long64
+	    DLong64GDL* p0L64 = static_cast<DLong64GDL*>
+	      (p0->Convert2( LONG64, BaseGDL::COPY));
+	    auto_ptr<DLong64GDL> guard( p0L64);
+	    if (KwNaN) {
+	      DFloatGDL* p0f = static_cast<DFloatGDL*>
+		(p0->Convert2( FLOAT, BaseGDL::COPY));
+	      auto_ptr<DFloatGDL> guard( p0f);
+	      for( SizeT i=0; i<nEl; ++i) {
+		if (!isfinite((*p0f)[i])) (*p0L64)[i]=1;
 	      }
-	    if( p0->Type() == COMPLEXDBL)
-	      {
-  	        return product_cu_template< DComplexDblGDL>
-		  ( static_cast<DComplexDblGDL*>(p0)->Dup(), nan);
-	      }
-	    if( p0->Type() == COMPLEX)
-	      {
-		return product_cu_template< DComplexDblGDL>
-		  ( static_cast<DComplexDblGDL*>(p0->Convert2( COMPLEXDBL, 
-							       BaseGDL::COPY)), nan);
-	      }
-    	    return product_cu_template< DDoubleGDL>
-	      ( static_cast<DDoubleGDL*>(p0->Convert2( DOUBLE, 
-						       BaseGDL::COPY)), nan);
+	    }
+	    return product_template<DLong64GDL>( p0L64, nanInt);	      
+	  } // integer results
+	  
+	  if( p0->Type() == DOUBLE) {
+	    return product_template<DDoubleGDL>
+	      ( static_cast<DDoubleGDL*>(p0), KwNaN); 
 	  }
-      }
-
-    // product over sumDim
-    dimension srcDim = p0->Dim();
-    SizeT srcRank = srcDim.Rank();
-
-    if( sumDim < 1 || sumDim > srcRank)
-      e->Throw( "Array must have "+i2s(sumDim)+
-		" dimensions: "+e->GetParString(0));
-
-    if( !cumulative)
-      {
-	if( p0->Type() == DOUBLE)
-	  {
-	    return product_over_dim_template< DDoubleGDL>
-	      ( static_cast<DDoubleGDL*>(p0), srcDim, sumDim-1, nan);
+	  if( p0->Type() == COMPLEXDBL) {
+	    return product_template<DComplexDblGDL>
+	      ( static_cast<DComplexDblGDL*>(p0), KwNaN); 
 	  }
-	if( p0->Type() == COMPLEXDBL)
-	  {
-	    return product_over_dim_template< DComplexDblGDL>
-	      ( static_cast<DComplexDblGDL*>(p0), srcDim, sumDim-1, nan);
-	  }
-	if( p0->Type() == COMPLEX)
-	  {
+	  if( p0->Type() == COMPLEX) {
 	    DComplexDblGDL* p0D = static_cast<DComplexDblGDL*>
 	      (p0->Convert2( COMPLEXDBL,BaseGDL::COPY));
 	    auto_ptr<DComplexDblGDL> p0D_guard( p0D);
-	    //	    p0D_guard.reset( p0D);
-	    return product_over_dim_template< DComplexDblGDL>
-	      ( p0D, srcDim, sumDim-1, nan);
+	    //p0D_guard.reset( p0D);
+	    return product_template<DComplexDblGDL>( p0D, KwNaN); 
 	  }
-
-	DDoubleGDL* p0D = static_cast<DDoubleGDL*>
-	  (p0->Convert2( DOUBLE,BaseGDL::COPY));
-	auto_ptr<DDoubleGDL> p0D_guard( p0D);
-	//p0D_guard.reset( p0D);
-	return product_over_dim_template< DDoubleGDL>( p0D, srcDim, sumDim-1,nan);
+	  
+	  DDoubleGDL* p0D = static_cast<DDoubleGDL*>
+	    (p0->Convert2( DOUBLE, BaseGDL::COPY));
+	  auto_ptr<DDoubleGDL> p0D_guard( p0D);
+	  //	    p0D_guard.reset( p0D);
+	  return product_template<DDoubleGDL>( p0D, KwNaN);
+	} 
+	else
+	  { // KwCumul
+	    // Integer parts derivated from Total code by Erin Sheldon
+	    // In IDL PRODUCT(), the INTEGER keyword takes precedence 
+	    if (KwInt) {
+	      // We use LONG64 unless the input is ULONG64
+	      if ((p0->Type() == LONG64) && (!KwNaN)) {
+		return product_cu_template<DLong64GDL>
+		  ( static_cast<DLong64GDL*>(p0)->Dup(), nanInt);
+	      }
+	      if ((p0->Type() == ULONG64) && (!KwNaN)) {
+		return product_cu_template<DULong64GDL>
+		  ( static_cast<DULong64GDL*>(p0)->Dup(), nanInt);
+	      }
+	      // Convert to Long64
+	      DLong64GDL* p0L64 = static_cast<DLong64GDL*>
+		(p0->Convert2( LONG64, BaseGDL::COPY));
+	      auto_ptr<DLong64GDL> guard( p0L64);
+	      if (KwNaN) {
+		DFloatGDL* p0f = static_cast<DFloatGDL*>
+		  (p0->Convert2( FLOAT, BaseGDL::COPY));
+		auto_ptr<DFloatGDL> guard( p0f);
+		for( SizeT i=0; i<nEl; ++i) {
+		  if (!isfinite((*p0f)[i])) (*p0L64)[i]=1;
+		}
+	      }
+	      return product_cu_template<DLong64GDL>
+		((p0L64)->Dup(), nanInt);	      
+	    } // integer results
+	      
+	      // special case as DOUBLE type overrides /DOUBLE
+	    if (p0->Type() == DOUBLE) {
+	      return product_cu_template< DDoubleGDL>
+		( static_cast<DDoubleGDL*>(p0)->Dup(), KwNaN);
+	    }
+	    if (p0->Type() == COMPLEXDBL) {
+	      return product_cu_template< DComplexDblGDL>
+		( static_cast<DComplexDblGDL*>(p0)->Dup(), KwNaN);
+	    }
+	    if (p0->Type() == COMPLEX) {
+	      return product_cu_template< DComplexDblGDL>
+		( static_cast<DComplexDblGDL*>
+		  (p0->Convert2( COMPLEXDBL, BaseGDL::COPY)), KwNaN);
+	    }
+	    return product_cu_template< DDoubleGDL>
+	      ( static_cast<DDoubleGDL*>
+		(p0->Convert2( DOUBLE, BaseGDL::COPY)), KwNaN);
+	  }
+    }
+    
+    // product over sumDim
+    dimension srcDim = p0->Dim();
+    SizeT srcRank = srcDim.Rank();
+    
+    if( sumDim < 1 || sumDim > srcRank)
+      e->Throw( "Array must have "+i2s(sumDim)+
+		" dimensions: "+e->GetParString(0));
+    
+    if (!KwCumul) {
+      // Integer parts derivated from Total code by Erin Sheldon
+      // In IDL PRODUCT(), the INTEGER keyword takes precedence 
+      if (KwInt) {	  
+	// We use LONG64 unless the input is ULONG64
+	if ((p0->Type() == LONG64 ) && (!KwNaN)) {
+	  return product_over_dim_template<DLong64GDL>
+	    ( static_cast<DLong64GDL*>(p0), srcDim, sumDim-1, nanInt);
+	}
+	if ((p0->Type() == ULONG64) && (!KwNaN)) {
+	  return product_over_dim_template<DULong64GDL>
+	    ( static_cast<DULong64GDL*>(p0), srcDim, sumDim-1, nanInt);
+	}
+	
+	// Conver to Long64
+	DLong64GDL* p0L64 = static_cast<DLong64GDL*>
+	  (p0->Convert2( LONG64, BaseGDL::COPY));
+	auto_ptr<DLong64GDL> guard( p0L64);
+	if (KwNaN) {
+	  DFloatGDL* p0f = static_cast<DFloatGDL*>
+	    (p0->Convert2( FLOAT, BaseGDL::COPY));
+	  auto_ptr<DFloatGDL> guard( p0f);
+	  for( SizeT i=0; i<nEl; ++i) {
+	    if (!isfinite((*p0f)[i])) (*p0L64)[i]=1;
+	  }
+	}
+	return product_over_dim_template<DLong64GDL>
+	  ( p0L64, srcDim, sumDim-1, nanInt);
+      } // integer results
+      
+      if( p0->Type() == DOUBLE) {
+	return product_over_dim_template< DDoubleGDL>
+	  ( static_cast<DDoubleGDL*>(p0), srcDim, sumDim-1, KwNaN);
       }
-    else // cumulative
-      {
-	if( p0->Type() == DOUBLE)
-	  {
-	    return product_over_dim_cu_template< DDoubleGDL>
-	      ( static_cast<DDoubleGDL*>(p0)->Dup(), sumDim-1, nan);
+      if( p0->Type() == COMPLEXDBL) {
+	return product_over_dim_template< DComplexDblGDL>
+	  ( static_cast<DComplexDblGDL*>(p0), srcDim, sumDim-1, KwNaN);
+      }
+      if( p0->Type() == COMPLEX) {
+	DComplexDblGDL* p0D = static_cast<DComplexDblGDL*>
+	  (p0->Convert2( COMPLEXDBL,BaseGDL::COPY));
+	auto_ptr<DComplexDblGDL> p0D_guard( p0D);
+	//	    p0D_guard.reset( p0D);
+	return product_over_dim_template< DComplexDblGDL>
+	  ( p0D, srcDim, sumDim-1, KwNaN);
+      }
+	
+      DDoubleGDL* p0D = static_cast<DDoubleGDL*>
+	(p0->Convert2( DOUBLE,BaseGDL::COPY));
+      auto_ptr<DDoubleGDL> p0D_guard( p0D);
+      //p0D_guard.reset( p0D);
+      return product_over_dim_template< DDoubleGDL>
+	( p0D, srcDim, sumDim-1,KwNaN);
+    } 
+    else
+      { // KwCumul
+	// Integer parts derivated from Total code by Erin Sheldon
+	// In IDL PRODUCT(), the INTEGER keyword takes precedence 
+	if (KwInt) {
+	  // We use LONG64 unless the input is ULONG64
+	  if ((p0->Type() == LONG64) && (!KwNaN)) {
+	  return product_over_dim_cu_template<DLong64GDL>
+	    ( static_cast<DLong64GDL*>(p0)->Dup(), sumDim-1, nanInt);
+	}
+	if ((p0->Type() == ULONG64 ) && (!KwNaN)) {
+	  return product_over_dim_cu_template<DULong64GDL>
+	    ( static_cast<DULong64GDL*>(p0)->Dup(), sumDim-1, nanInt);
+	}
+	  
+	// Convert to Long64
+	if (KwNaN) {
+	  DFloatGDL* p0f = static_cast<DFloatGDL*>
+	    (p0->Convert2( FLOAT, BaseGDL::COPY));
+	  auto_ptr<DFloatGDL> guard( p0f);
+	  for( SizeT i=0; i<nEl; ++i) {
+	    if (!isfinite((*p0f)[i])) (*p0f)[i]=1;
 	  }
-	if( p0->Type() == COMPLEXDBL)
-	  {
-	    return product_over_dim_cu_template< DComplexDblGDL>
-	      ( static_cast<DComplexDblGDL*>(p0)->Dup(), sumDim-1, nan);
-	  }
-	if( p0->Type() == COMPLEX)
-	  {
-	    return product_over_dim_cu_template< DComplexDblGDL>
-	      ( static_cast<DComplexDblGDL*>(p0->Convert2( COMPLEXDBL,
-							   BaseGDL::COPY)), sumDim-1, nan);
-	  }
-
+	  return product_over_dim_cu_template<DLong64GDL>
+	    ( static_cast<DLong64GDL*>
+	      (p0f->Convert2( LONG64, BaseGDL::COPY)), sumDim-1, nanInt);  
+	} else {
+	  return product_over_dim_cu_template<DLong64GDL>
+	    ( static_cast<DLong64GDL*>
+	      (p0->Convert2( LONG64, BaseGDL::COPY)), sumDim-1, nanInt);
+	}
+	} // integer results
+	
+	if( p0->Type() == DOUBLE) {
+	  return product_over_dim_cu_template< DDoubleGDL>
+	    ( static_cast<DDoubleGDL*>(p0)->Dup(), sumDim-1, KwNaN);
+	}
+	if( p0->Type() == COMPLEXDBL) {
+	  return product_over_dim_cu_template< DComplexDblGDL>
+	    ( static_cast<DComplexDblGDL*>(p0)->Dup(), sumDim-1, KwNaN);
+	}
+	if( p0->Type() == COMPLEX) {
+	  return product_over_dim_cu_template< DComplexDblGDL>
+	    ( static_cast<DComplexDblGDL*>
+	      (p0->Convert2( COMPLEXDBL, BaseGDL::COPY)), sumDim-1, KwNaN);
+	}
+      
 	return product_over_dim_cu_template< DDoubleGDL>
-	  ( static_cast<DDoubleGDL*>(p0->Convert2( DOUBLE,
-						   BaseGDL::COPY)), sumDim-1, nan);
+	  ( static_cast<DDoubleGDL*>
+	    (p0->Convert2( DOUBLE, BaseGDL::COPY)), sumDim-1, KwNaN);
       }
   }
 
