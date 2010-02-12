@@ -45,6 +45,12 @@
 
 #include "gdleventhandler.hpp"
 
+// SA fix based on:
+// http://synopsis.fresco.org/viewsvn/Synopsis/branches/Synopsis_0_8/src/Synopsis/Python/Object.hh?r2=1792&rev=1792&r1=1657&sortdir=down
+#if PY_VERSION_HEX < 0x02050000
+  typedef int Py_ssize_t;
+#endif
+
 void LibInit(); // defined in libinit.cpp
 
 using namespace std;
@@ -178,7 +184,7 @@ bool CopyArgFromPython( vector<BaseGDL*>& parRef,
   if( kwDict != NULL)
     {
       PyObject *key, *value;
-      int dictPos = 0;
+      Py_ssize_t dictPos = 0;
       
       int nKW = PyDict_Size( kwDict);
 
@@ -244,7 +250,7 @@ bool CopyArgToPython( vector<BaseGDL*>& parRef,
   if( kwDict != NULL)
     {
       PyObject *key, *value;
-      int dictPos = 0;
+      Py_ssize_t dictPos = 0;
 
       int nKW = PyDict_Size( kwDict);
       for( SizeT k=0; k<nKW; ++k)
