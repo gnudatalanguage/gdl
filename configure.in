@@ -183,9 +183,11 @@ AC_ARG_WITH(openmp,
 	[with_openmp="$withval" ])
 
 dnl default yes if omp.h found
+openmp_autodetected=no
 if test "x$with_openmp" = "x"; then
    AC_CHECK_HEADERS("omp.h", [
      with_openmp=yes
+     openmp_autodetected=yes
      echo ""
      echo "OpenMP enabled (omp.h file was found)."
      echo "Try --with-openmp=no if your compiler does not support it (e.g. GCC < 4.2)"
@@ -1004,7 +1006,9 @@ echo "
   Installation prefix: $prefix
   C++ compiler:        $CXX $CXXFLAGS
   OpenMP support:      `if test "x$with_openmp" = "xno";
-    then echo 'no'; else echo 'yes (use --with-openmp=no if your compiler does not support it)'; fi`
+    then echo 'no'; else echo 'yes'; fi`
+  Build type:          `if test "x$PYTHON_MODULE" = "xyes";
+    then echo 'library (Python module)'; else echo 'standalone (other: Python module)'; fi`
   ----- optional libraries (consult README/INSTALL): ---
   wxWidgets:           `if test no = $with_wxWidgets;
     then echo 'no  (needs explicit enabling)'; else echo yes; fi`
@@ -1033,8 +1037,15 @@ echo "
     files needed for mapping support
   - SAVE and RESTORE procedures require *.pro files from 
     the CMSVLIB package (see README for details)
-  ------------------------------------------------------
+  ------------------------------------------------------`
+if test yes = $openmp_autodetected; then
+  echo '----- note on OpenMP support -------------------------'
+  echo ' OpenMP was autodetected, use --with-openmp=no if your'
+  echo ' compiler does not support it (e.g. GCC < 4.2)'
+  echo '------------------------------------------------------'
+; fi`
   use 'make' to build and 'make install' to install GDL
+  (optional 'make check' tests the build - experimental)
 "
 
 dnl == EOF =================================================

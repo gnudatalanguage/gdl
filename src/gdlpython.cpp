@@ -20,7 +20,7 @@
 //#include "includefirst.hpp"
 
 // this part contains variable conversion stuff
-// used by both GDL embedded in pythjon and python embedded in GDL
+// used by both GDL embedded in python and python embedded in GDL
 //#if defined(USE_PYTHON) || defined(PYTHON_MODULE)
 
 //#include <deque>

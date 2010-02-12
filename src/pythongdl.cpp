@@ -43,6 +43,8 @@
 
 //#include <numarray/numarray.h>
 
+#include "gdleventhandler.hpp"
+
 void LibInit(); // defined in libinit.cpp
 
 using namespace std;
