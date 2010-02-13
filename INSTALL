@@ -4,15 +4,18 @@ QUICK INSTALLATION:
 (If you encounter any problems, please read on further, also have a
 look at the REQUIREMENTS section in the README file.)
 
-Unpack the tarball under any directory (tar xfvz gdl-0.9.tar.gz)
-change to the new subdirectory gdl-0.9
-type ./configure  (use './configure --help' for a list of options)
-type make         (use 'make -j N' to run N parallel processes)
-The executable (named 'gdl') should then be in the src subdirectory
-(gdl-0.9/src/gdl).
+* unpack the tarball under any directory (tar xfvz gdl-0.9.tar.gz)
+* change to the new subdirectory gdl-0.9 
+* type "./configure"  (use './configure --help' for a list of options)
+* type "make"         (use 'make -j N' to run N parallel processes)
+* optionally type "make check" to test the build 
+* type "make install" to deploy GDL binary (gdl), libraries, manpage, etc
 
 If you know IDL, you should feel very familiar with GDL.
-Some GDL test files are in the gdl/pro subdirectory (test_*.pro)
+A list of command-line options is available both in the manpage and
+after typing "gdl --help". 
+
+Some GDL test files are in the gdl/testsuite subdirectory (test_*.pro)
 
 Note:
 When compiling you might get some warnings:
@@ -71,41 +74,30 @@ options can be used:
                                   determine which python version is actually 
                                   used. With this option the version can be
                                   expicitely set 
-                                  (e.g. --enable-python_version=2.3).
+                                  (e.g. --enable-python_version=2.6).
+--with-ncursesdir=DIR  to specify the ncurses (or curses) directory tree
+--with-readlinedir=DIR to specify the GNU readline directory tree
+--with-libzdir=DIR     to specify the Zlib directory tree
+--with-openmp=no       to disable the OpenMP support (e.g. for GCC <4.2)
+--with-gsldir=DIR      to specify the GSL directory tree
 --with-plplotdir=DIR   to specify the plplot directory tree
 --enable-oldplplot     to specify that you have an older than 5.9.0 plplot lib.
-
---with-ncursesdir=DIR  to specify the ncurses directory tree
---with-readlinedir=DIR to specify the readline directory tree
---with-gsldir=DIR      to specify the GSL directory tree
---with-libzdir=DIR     to specify the Zlib directory tree
-
---with-netcdf=DIR      to specify the netcdf directory tree
---with-netcdf=no       to not use netcdf
-
---with-hdf=DIR         to specify the HDF4 directory tree
---with-hdf=no          to not use HDF4
-
---with-hdf5=DIR        to specify the HDF5 directory tree
---with-hdf5=no         to not use HDF5
-
---with-python=DIR      to specify the python directory tree
---with-python=no       to not use python
 
 --with-Magick=DIR      to specify the ImageMagick directory tree
 --with-Magick=no       to not use ImageMagick
 
+--with-netcdf=DIR      to specify the netcdf directory tree
+--with-netcdf=no       to not use netcdf
+
 --with-fftw=DIR        to specify the FFTW directory tree
---with-fftw=no         to not use FFTW (this is the default)
+--with-fftw=no         to not use FFTW
 
---with-libproj4=DIR    to specify the libproj4 directory tree
---with-libproj4=no     to not use libproj4 (this is the default)
-
+... and so on for: wxWidgets, hdf, hdf5, fftw, libproj4, python, udunits, 
+grib, and others - see README file for details (REQUIREMENTS section).
 
 For example, if you have python installed in /usr/local, use
 
 ./configure --with-python=/usr/local
-
 
 Basic Installation Instructions
 ===============================

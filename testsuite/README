@@ -1,0 +1,54 @@
+How to add a new test-routine to the automatic "make check" rule:
+--------------------------------------------------------------------
+
+The list of GDL routines to be executed during the make-check run
+is defined (implicitly, through a list of .pro files) in the 
+Makefile.am file. After adding a new item (filename) to the list,
+please rerun "automake" being in the root folder of the source tree.
+
+Each test routine is invoked using the GDL "-e" command-line option 
+by the "try" shell script in the testsuite directory. "make" decides
+on the status of a test basing on the exit code of this script:
+- "success" for exit code 0 
+- "ignorable failure" for code 77
+- "failure" for any other exit code, e.g. 1
+The "try" script should, in principle, exit with the GDL exit code.
+Therefore, a failure of a GDL test should be indicated by e.g.:
+
+  if ( ...true if test failed... ) begin
+    message, 'reason for the failure', /continue
+    exit, status=1
+  endif
+
+An ignorable failure can be indicated by e.g.:
+
+  if (!XXX_exists()) then begin
+    message, 'GDL was built w/o support for XXX - skipping', /conti
+    exit, status=77
+  endif
+
+Any GDL error (e.g. parser error or library-routine-triggered error)
+causing GDL to return to the $MAIN$ level will cause make to assume 
+_success_! (GDL exits normally in this case). Any GDL error causing
+GDL to stop execution on an other-than-$MAIN$ level will bring the
+GDL interpreter prompt - it's best to use "on_error, 2" in all test 
+routines:
+
+  pro test_dummy
+    on_error, 2
+    ...
+  end
+
+The name of the file must match the name of the test routine, e.g. for
+the example above: testsuite/test_dummy.pro
+
+GDL segfaults, assertion-exits, std::terminate() exits, etc. are handled
+as failures by make.
+
+The "try" script always uses the gdl binary in the build tree - not the
+one installed in the system. The "try" script also sets appropriate env. 
+variables so that the GDL-written library routines are taken from the 
+source tree as well (e.g. src/pro/mean.pro).
+
+Sylwester Arabas
+February 2010
