@@ -31,13 +31,7 @@ Any GDL error (e.g. parser error or library-routine-triggered error)
 causing GDL to return to the $MAIN$ level will cause make to assume 
 _success_! (GDL exits normally in this case). Any GDL error causing
 GDL to stop execution on an other-than-$MAIN$ level will bring the
-GDL interpreter prompt - it's best to use "on_error, 2" in all test 
-routines:
-
-  pro test_dummy
-    on_error, 2
-    ...
-  end
+GDL interpreter prompt.
 
 The name of the file must match the name of the test routine, e.g. for
 the example above: testsuite/test_dummy.pro

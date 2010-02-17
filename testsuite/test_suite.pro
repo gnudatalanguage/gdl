@@ -2,24 +2,27 @@
 
 pro if_test
 
-if 1 then $
-  if 0 then begin & end $
-else if 1 then $ 
-  if 0 then begin & end $
-else a=1e
+  if 1 then $
+    if 0 then begin & end $
+  else if 1 then $ 
+    if 0 then begin & end $
+  else a=1e
 
-if a ne 1e then print,'***IF: ERROR'
+  if a ne 1e then begin
+    message, '***IF: ERROR', /conti
+    exit, status=1
+  endif
 
-print,'IF: OK'
+  print, 'IF: OK'
 end
 
 
 pro switch_test
 
-a='abc'
+  a='abc'
 
-;; empty
-switch a of
+  ;; empty
+  switch a of
 
     1:
     complex(1): begin & end
@@ -27,897 +30,1364 @@ switch a of
     'abc':
     1.0: begin & end
     else:
-endswitch
+  endswitch
 
-switch a of
+  switch a of
 
-    1: print,'***SWITCH: ERROR'
-    complex(1): print,'***SWITCH: ERROR'
-    'def': print,'***SWITCH: ERROR'
+    1: begin
+      message, '***SWITCH: ERROR', /conti
+      exit, status=1
+    end
+    complex(1): begin
+      message, '***SWITCH: ERROR', /conti
+      exit, status=1
+    end
+    'def': begin
+      message, '***SWITCH: ERROR', /conti
+      exit, status=1
+    end
     'abc': begin
         abc = 1
     end
     1.0: fall = abc+1
     else: e=1
-endswitch
+  endswitch
 
-if abc ne 1 then print,'***SWITCH: ERROR'
-if fall ne abc+1 then print,'***SWITCH: ERROR'
-if e ne 1 then print,'***SWITCH: ERROR'
+  if abc ne 1 then begin
+    message, '***SWITCH: ERROR', /conti
+    exit, status=1
+  endif
+  if fall ne abc+1 then begin
+    message, '***SWITCH: ERROR', /conti
+    exit, status=1
+  endif
+  if e ne 1 then begin
+    message, '***SWITCH: ERROR', /conti
+    exit, status=1
+  endif
 
-switch 1 of
-   0: print,"***SWITCH: ERROR"
-   0: print,"***SWITCH: ERROR"
-   1:       
-endswitch
+  switch 1 of
+    0: begin
+      message, "***SWITCH: ERROR", /conti
+      exit, status=1
+    end
+    0: begin
+      message, "***SWITCH: ERROR", /conti
+      exit, status=1
+    end
+    1:       
+  endswitch
 
-print,'SWITCH: OK'
+  print,'SWITCH: OK'
 end
 
 pro case_test
 
-a='abc'
+  a='abc'
 
-case a of
+  case a of
 
-    1: print,'***CASE: ERROR'
-    complex(1): print,'***CASE: ERROR'
-    'def': print,'***CASE: ERROR'
+    1: begin
+      message, '***CASE: ERROR', /conti
+      exit, status=1
+    end
+    complex(1): begin
+      message, '***CASE: ERROR', /conti
+      exit, status=1
+    end
+    'def': begin
+      message, '***CASE: ERROR', /conti
+      exit, status=1
+    end
     'abc': begin
         c=1
     end
-    1.0: print,'***CASE: ERROR'
-    else: print,'***CASE: ERROR'
-endcase
-
-if c ne 1 then print,'***CASE: ERROR'
-
-case a of
-
-    1: print,'***CASE: ERROR'
-    complex(1): print,'***CASE: ERROR'
-    'def': print,'***CASE: ERROR'
-    'a': begin
-        print,'***CASE: ERROR'
+    1.0: begin
+      message, '***CASE: ERROR', /conti
+      exit, status=1
     end
-    1.0d: print,'***CASE: ERROR'
+    else: begin
+      message, '***CASE: ERROR', /conti
+      exit, status=1
+    end
+  endcase
+
+  if c ne 1 then begin
+    message, '***CASE: ERROR', /conti
+    exit, status=1
+  endif
+
+  case a of
+
+    1: begin
+      message, '***CASE: ERROR', /conti
+      exit, status=1
+    end
+    complex(1): begin
+      message, '***CASE: ERROR', /conti
+      exit, status=1
+    end
+    'def': begin
+      message, '***CASE: ERROR', /conti
+      exit, status=1
+    end
+    'a': begin
+      message, '***CASE: ERROR', /conti
+      exit, status=1
+    end
+    1.0d: begin
+      message, '***CASE: ERROR', /conti
+      exit, status=1
+    end
     else: e=1
-end
+  end
 
-if e ne 1 then print,'***CASE: ERROR'
+  if e ne 1 then begin
+    message, '***CASE: ERROR', /conti
+    exit, status=1
+  endif
 
-case 1 of
-   0: print,"***CASE: ERROR"
-   0: print,"***CASE: ERROR"
-   1:       
-endcase
+  case 1 of
+    0: begin
+      message, "***CASE: ERROR", /conti
+      exit, status=1
+    end
+    0: begin
+      message, "***CASE: ERROR", /conti
+      exit, status=1
+    end
+    1:       
+  endcase
 
-print,'CASE: OK'
+  print, 'CASE: OK'
+
 end
 
 pro while_test
 
-i=0
-while i lt 100 do begin
-i=i+1
-endwhile
+  i=0
+  while i lt 100 do begin
+    i=i+1
+  endwhile
 
-if i eq 100 then print,'WHILE: OK' else print,'***WHILE: ERROR'
+  if i eq 100 then print,'WHILE: OK' else begin
+    message, '***WHILE: ERROR', /conti
+    exit, status=1
+  endelse
+
 end
 
 pro for_test
 
-c=0
-for i=0,99 do c=c+1 
+  c=0
+  for i=0,99 do c=c+1 
 
-if c ne 100 then print,'***FOR: ERROR'
+  if c ne 100 then begin
+    message, '***FOR: ERROR', /conti
+    exit, status=1
+  endif
 
-c=0
-for i=0,990,10 do c=c+1 
+  c=0
+  for i=0,990,10 do c=c+1 
 
-if c ne 100 then print,'***FOR: Step: ERROR'
+  if c ne 100 then begin
+    message, '***FOR: Step: ERROR', /conti
+    exit, status=1
+  endif
 
-a=0
-for i=0, 0 do begin
-   for j=0, 1 do begin
+  a=0
+  for i=0, 0 do begin
+    for j=0, 1 do begin
       if i eq 0 then continue
-   endfor
-   a = 1
-endfor
-if a eq 0 then print,'***FOR: CONTINUE: ERROR'
-print,'FOR: OK'
+    endfor
+    a = 1
+  endfor
+  if a eq 0 then begin
+    message, '***FOR: CONTINUE: ERROR', /conti
+    exit, status=1
+  endif
+
+  print, 'FOR: OK'
+
 end
 
 pro repeat_test
 
-i=0
-repeat begin 
-i=i+1
-endrep until (i eq 100)
+  i=0
+  repeat begin 
+    i=i+1
+  endrep until (i eq 100)
 
-repeat begin 
-endrep until (i eq 100)
+  repeat begin 
+  endrep until (i eq 100)
 
-repeat begin 
-endrep until 1
+  repeat begin 
+  endrep until 1
 
-if i eq 100 then print,'REPEAT: OK' else print,'***REPEAT: ERROR'
+  if i eq 100 then print,'REPEAT: OK' else begin
+    message, '***REPEAT: ERROR', /conti
+    exit, status=1
+  endelse
+
 end
 
 pro goto_test
 
-;; simple
-goto,jump11
-print,'***GOTO: Error'
-jump21:
-goto,jump31
-print,'***GOTO: Error'
-jump11:
-goto,jump21
-print,'***GOTO: Error'
-jump31:
+  ;; simple
+  goto,jump11
+  message, '***GOTO: Error', /conti
+  exit, status=1
+  jump21:
+  goto,jump31
+  message, '***GOTO: Error', /conti
+  exit, status=1
+  jump11:
+  goto,jump21
+  message, '***GOTO: Error', /conti
+  exit, status=1
+  jump31:
 
 
-count=0
-;; within loop
-for i=0,10 do begin
+  count=0
+  ;; within loop
+  for i=0,10 do begin
 
-goto,jump1
-print,'***GOTO: Error1'
-jump2:
-goto,jump3
-print,'***GOTO: Error2'
-jump1:
-goto,jump2
-print,'***GOTO: Error3'
-jump3:
-goto,jump4 ; even to jump out of the block and in again is ok
-jump5:
+  goto,jump1
+  message, '***GOTO: Error1', /conti
+  exit, status=1
+  jump2:
+  goto,jump3
+  message, '***GOTO: Error2', /conti
+  exit, status=1
+  jump1:
+  goto,jump2
+  message, '***GOTO: Error3', /conti
+  exit, status=1
+  jump3:
+  goto,jump4 ; even to jump out of the block and in again is ok
+  jump5:
 
-if 0 then goto,jump5 else goto,jump7
-print,'***GOTO: Error4'
+  if 0 then goto,jump5 else goto,jump7
+  message, '***GOTO: Error4', /conti
+  exit, status=1
 
-jump7:
+  jump7:
 
-if 1 then begin
+  if 1 then begin
 
     goto,jump8
-    print,'***GOTO: Error5'
-jump8:
+    message, '***GOTO: Error5', /conti
+    exit, status=1
+    jump8:
 
-endif else begin
+  endif else begin
 
-    print,'***GOTO: Error6'
-endelse
+    message, '***GOTO: Error6', /conti
+    exit, status=1
+  endelse
 
 
-count=count+1
-endfor
+  count=count+1
+  endfor
 
-goto,jump6
-jump4:
-goto,jump5
-jump6:
+  goto,jump6
+  jump4:
+  goto,jump5
+  jump6:
+  
+  if count ne 11 then begin
+    message, '***GOTO: ERROR7', /conti
+    exit, status=1
+  endif
 
-if count ne 11 then print,'***GOTO: ERROR7'
-
-IF (1)then begin
+  IF (1)then begin
    
-   IF (1)then begin
+    IF (1)then begin
       ;print,"Going to Label1"
       goto, Label1
-   end else begin
-      print,'***GOTO: ERROR8'
-   end
+    end else begin
+      message, '***GOTO: ERROR8', /conti
+      exit, status=1
+    end
       
-   Label1:
-end
+    Label1:
+  end
 
-
-print,'GOTO: OK'
+  print,'GOTO: OK'
 
 end
 
 function ret99
-return,99b
+  return,99b
 end
 
 function ret,a
-return,a
+  return,a
 end
 
 function retEq,a
-return,(a=3)
+  return,(a=3)
 end
 
 function retTag,a
-return,(a.t=3)
+  return,(a.t=3)
 end
 
 function ret2,b
-return,ret(b)
+  return,ret(b)
 end
 
 function ret3,b
-return,ret2(b)
+  return,ret2(b)
 end
 
 function retOverwriteLocal
-a=[['m','a'],['r','c']]
-return,reform(a,4,/OVERWRITE)
+  a=[['m','a'],['r','c']]
+  return,reform(a,4,/OVERWRITE)
 end
 function retOverwriteGlobal,a
-return,reform(a,4,/OVERWRITE)
+  return,reform(a,4,/OVERWRITE)
 end
 function retOverwriteExpression
-a=[['m','a'],['r','c']]
-return,reform(a[*],4,/OVERWRITE)
+  a=[['m','a'],['r','c']]
+  return,reform(a[*],4,/OVERWRITE)
 end
 
 pro ret_test
 
-if ret99() ne 99.0 then print,'***RET: ERROR1'
-if retEq(u) ne 3 then print,'***RET: ERROR2'
-(retEq(u2)) = 4
-if u2 ne 4 then print,'***RET: ERROR4'
+  if ret99() ne 99.0 then begin
+    message, '***RET: ERROR1', /conti
+    exit, status=1
+  endif
+  if retEq(u) ne 3 then begin
+    message, '***RET: ERROR2', /conti
+    exit, status=1
+  endif
+  (retEq(u2)) = 4
+  if u2 ne 4 then begin
+    message, '***RET: ERROR4', /conti
+    exit, status=1
+  endif
 
 
-(ret3(u3))=7
-if u3 ne 7 then print,'***RET: ERROR5'
+  (ret3(u3))=7
+  if u3 ne 7 then begin
+    message, '***RET: ERROR5', /conti
+    exit, status=1
+  endif
 
-s={t:0}
-if retTag(s) ne 3 then print,'***RET: ERROR6'
-;(ret(s))=2
+  s={t:0}
+  if retTag(s) ne 3 then begin
+    message, '***RET: ERROR6', /conti
+    exit, status=1
+  endif
+  ;(ret(s))=2
 
-n = retOverwriteLocal()
-if n[2] ne "r" then print,'***RET: ERROR7'
+  n = retOverwriteLocal()
+  if n[2] ne "r" then begin
+    message, '***RET: ERROR7', /conti
+    exit, status=1
+  endif
 
-a=[[1,2],[3,4]]
-(retOverwriteGlobal(a))--
-if a[1] ne 1 then print,'***RET: ERROR8'
+  a=[[1,2],[3,4]]
+  (retOverwriteGlobal(a))--
+  if a[1] ne 1 then begin
+    message, '***RET: ERROR8', /conti
+    exit, status=1
+  endif
 
-n = retOverwriteExpression()
-if n[2] ne "r" then print,'***RET: ERROR9'
+  n = retOverwriteExpression()
+  if n[2] ne "r" then begin
+    message, '***RET: ERROR9', /conti
+    exit, status=1
+  endif
 
-a=1
-c=ret(4*(3+reform(a,1,/OVERWRITE)+1)*2)
-if a ne 1 then print,'***RET: ERROR10'
-if c ne 40 then print,'***RET: ERROR11'
+  a=1
+  c=ret(4*(3+reform(a,1,/OVERWRITE)+1)*2)
+  if a ne 1 then begin
+    message, '***RET: ERROR10', /conti
+    exit, status=1
+  endif
+  if c ne 40 then begin
+    message, '***RET: ERROR11', /conti
+    exit, status=1
+  endif
 
-common ret_common,aa
+  common ret_common,aa
 
-aa=1
-c=ret(4*(3+reform(aa,1,/OVERWRITE)+1)*2)
-if aa ne 1 then print,'***RET: ERROR12'
-if c ne 40 then print,'***RET: ERROR13'
+  aa=1
+  c=ret(4*(3+reform(aa,1,/OVERWRITE)+1)*2)
+  if aa ne 1 then begin
+    message, '***RET: ERROR12', /conti
+    exit, status=1
+  endif
+  if c ne 40 then begin
+    message, '***RET: ERROR13', /conti
+    exit, status=1
+  endif
 
-print,'RET: OK';
+  print,'RET: OK';
+
 end
 
 
 pro struct_test
 
-s={s:"a string",tag: indgen(5),c:complex(1,2)}
+  s={s:"a string",tag: indgen(5),c:complex(1,2)}
 
-if s.tag[ 3] ne 3 then print,'***STRUCT: ERROR1'
+  if s.tag[ 3] ne 3 then begin
+    message, '***STRUCT: ERROR1', /conti
+    exit, status=1
+  endif
 
-s={s1,tag: indgen(5),s:s}
+  s={s1,tag: indgen(5),s:s}
 
-if s.tag[ 3] ne 3 then print,'***STRUCT: ERROR1b'
+  if s.tag[ 3] ne 3 then begin
+    message, '***STRUCT: ERROR1b', /conti
+    exit, status=1
+  endif
 
-s.tag++
+  s.tag++
 
-if s.tag[ 3] ne 4 then print,'***STRUCT: ERROR2'
+  if s.tag[ 3] ne 4 then begin
+    message, '***STRUCT: ERROR2', /conti
+    exit, status=1
+  endif
 
-s.tag = 9
+  s.tag = 9
 
-if s.tag[ 3] ne 9 then print,'***STRUCT: ERROR3'
+  if s.tag[ 3] ne 9 then begin
+    message, '***STRUCT: ERROR3', /conti
+    exit, status=1
+  endif
 
-s.tag = [10,11,12]
+  s.tag = [10,11,12]
 
-if s.tag[ 2] ne 12 then print,'***STRUCT: ERROR4'
+  if s.tag[ 2] ne 12 then begin
+    message, '***STRUCT: ERROR4', /conti
+    exit, status=1
+  endif
 
-ss=[s,s]
+  ss=[s,s]
 
-ss[*].tag=indgen(5,2)
+  ss[*].tag=indgen(5,2)
 
-if ss[1].tag[2] ne 7 then print,'***STRUCT: ERROR5'
+  if ss[1].tag[2] ne 7 then begin
+    message, '***STRUCT: ERROR5', /conti
+    exit, status=1
+  endif
 
-s={s:indgen(5),$
-t:"string",$
-u:complexarr(3,5),$
-v:dcomplexarr(99,2),$
-x:sindgen(100)$
-}
-ss={ss:s,s2:s}
-sss={sss:ss,ss:[s,s]}
+  s={s:indgen(5),$
+    t:"string",$
+    u:complexarr(3,5),$
+    v:dcomplexarr(99,2),$
+    x:sindgen(100)$
+  }
+  ss={ss:s,s2:s}
+  sss={sss:ss,ss:[s,s]}
 
-sa = s
-for i=0,2 do begin
-sa={s1:sa,s2:[sa,sa]}
-endfor
-sa = {named,t:s}
-for i=0,3 do begin
-sa={s1:sa,s2:[sa,sa]}
-endfor
-sa=0
+  sa = s
+  for i=0,2 do begin
+    sa={s1:sa,s2:[sa,sa]}
+  endfor
+  sa = {named,t:s}
+  for i=0,3 do begin
+    sa={s1:sa,s2:[sa,sa]}
+  endfor
+  sa=0
 
-;p=ptr_new( sss)
-;((*p).sss.ss)[2] = 5
-;print,((*p).ss)[2]
+  ;p=ptr_new( sss)
+  ;((*p).sss.ss)[2] = 5
+  ;print,((*p).ss)[2]
 
-sss.sss.ss.s[2] = 10
-if sss.sss.ss.s[2] ne 10 then print,'***STRUCT: ERROR6'
+  sss.sss.ss.s[2] = 10
+  if sss.sss.ss.s[2] ne 10 then begin
+    message, '***STRUCT: ERROR6', /conti
+    exit, status=1
+  endif
 
-(ret(sss)).sss.ss.s[1] = 11
-if sss.sss.ss.s[1] ne 11 then print,'***STRUCT: ERROR7'
-if (ret(sss)).sss.ss.s[3] ne 3 then print,'***STRUCT: ERROR8'
+  (ret(sss)).sss.ss.s[1] = 11
+  if sss.sss.ss.s[1] ne 11 then begin
+    message, '***STRUCT: ERROR7', /conti
+    exit, status=1
+  endif
+  if (ret(sss)).sss.ss.s[3] ne 3 then begin
+    message, '***STRUCT: ERROR8', /conti
+    exit, status=1
+  endif
 
-(ret(sss)).sss.(0).s[1] = 11
-if sss.(0).ss.s[1] ne 11 then print,'***STRUCT: ERROR9'
+  (ret(sss)).sss.(0).s[1] = 11
+  if sss.(0).ss.s[1] ne 11 then begin
+    message, '***STRUCT: ERROR9', /conti
+    exit, status=1
+  endif
 
-if ({a:3}).a ne 3 then  print,'***STRUCT: ERROR10'
+  if ({a:3}).a ne 3 then begin
+    print, '***STRUCT: ERROR10', /conti
+    exit, status=1
+  endif
 
-;; array and struct
-s4=[sss,sss]
-s5=[[s4],[s4]]
-if s5[1,1].sss.ss.s[3] ne 3 then print,'***STRUCT: ERROR11'
+  ;; array and struct
+  s4=[sss,sss]
+  s5=[[s4],[s4]]
+  if s5[1,1].sss.ss.s[3] ne 3 then begin
+    print, '***STRUCT: ERROR11', /conti
+    exit, status=1
+  endif
 
-a = {a0, var1: 0, var2: 0.0d0}
-b = {a0, '0L', ' 1.0'}
+  a = {a0, var1: 0, var2: 0.0d0}
+  b = {a0, '0L', ' 1.0'}
 
-print,'STRUCT: OK'
+  print,'STRUCT: OK'
+
 end
 
 pro multi,a,b,c
-b=9
-if a ne 9 then print,'***MULTI: ERROR1'
-if c ne 9 then print,'***MULTI: ERROR2'
+  b=9
+  if a ne 9 then begin
+    message, '***MULTI: ERROR1', /conti
+    exit, status=1
+  endif
+  if c ne 9 then begin
+    message, '***MULTI: ERROR2', /conti
+    exit, status=1
+  endif
 end
 
 pro multi_test
-multi,a,a,a
-if a ne 9 then print,'***MULTI: ERROR3'
-print,'MULTI: OK'
+  multi,a,a,a
+  if a ne 9 then begin
+    message, '***MULTI: ERROR3', /conti
+    exit, status=1
+  endif
+  print,'MULTI: OK'
 end
 
 function o::init
-self.a=9
-return,1
+  self.a=9
+  return,1
 end
 
 function o::get
-return,self.a
+  return,self.a
 end
 
 pro o::test
-self.a=1
-if self.a ne 1 then print,'***OBJECT: ERROR1'
-self[0].a=2
-if self[0].a ne 2 then print,'***OBJECT: ERROR2'
-(self).a[0]=3
-if (self[0]).a[[-2]] ne 3 then print,'***OBJECT: ERROR3'
-if self[[0]].a ne 3 then print,'***OBJECT: ERROR4'
-;; would be legal in GDL (but IDL complains)
-;if (self[[0]]).a ne 3 then print,'***OBJECT: ERROR5'
+  self.a=1
+  if self.a ne 1 then begin
+    message, '***OBJECT: ERROR1', /conti
+    exit, status=1
+  endif
+  self[0].a=2
+  if self[0].a ne 2 then begin
+    message, '***OBJECT: ERROR2', /conti
+    exit, status=1
+  endif
+  (self).a[0]=3
+  if (self[0]).a[[-2]] ne 3 then begin
+    message, '***OBJECT: ERROR3', /conti
+    exit, status=1
+  endif
+  if self[[0]].a ne 3 then begin
+    message, '***OBJECT: ERROR4', /conti
+    exit, status=1
+  endif
+  ;; would be legal in GDL (but IDL complains)
+  ;if (self[[0]]).a ne 3 then begin
+  ;  message, '***OBJECT: ERROR5', /conti
+  ;  exit, status=1
+  ;endif
 end
 
 pro o::cleanup
-common object_test,o_cleanup
-o_cleanup=-1
+  common object_test,o_cleanup
+  o_cleanup=-1
 end
 
 pro object_test
 
-common object_test
+  common object_test
 
-;; object
-s={o,a:0}
-obj=obj_new('o')
+  ;; object
+  s={o,a:0}
+  obj=obj_new('o')
 
-if obj->get() ne 9 then print,'***OBJECT: ERROR6'
+  if obj->get() ne 9 then begin
+    message, '***OBJECT: ERROR6', /conti
+    exit, status=1
+  endif
 
-obj->test
-(obj)->test
-obj[0]->test
-(obj[0])->test
+  obj->test
+  (obj)->test
+  obj[0]->test
+  (obj[0])->test
 
-if not obj_valid( obj) then print,'***OBJECT: ERROR7'
+  if not obj_valid( obj) then begin
+    message, '***OBJECT: ERROR7', /conti
+    exit, status=1
+  endif
 
-obj_destroy,obj
+  obj_destroy,obj
 
-if obj_valid( obj) then print,'***OBJECT: ERROR8'
-if o_cleanup ne -1 then print,'***OBJECT: ERROR9'
+  if obj_valid( obj) then begin
+    message, '***OBJECT: ERROR8', /conti
+    exit, status=1
+  endif
+  if o_cleanup ne -1 then begin
+    message, '***OBJECT: ERROR9', /conti
+    exit, status=1
+  endif
 
-print,'OBJECT: OK'
+  print,'OBJECT: OK'
 end
 
 pro ct1
-common tc,x,y,z
-if x ne 3 then print,'***COMMON: ERROR1'
-y=7
+  common tc,x,y,z
+  if x ne 3 then begin
+    message, '***COMMON: ERROR1', /conti
+    exit, status=1
+  endif
+  y=7
 end
 
 pro ct2
-common tc
-if x ne 3 then print,'***COMMON: ERROR2'
-if y ne 7 then print,'***COMMON: ERROR3'
-z=9
+  common tc
+  if x ne 3 then begin
+    message, '***COMMON: ERROR2', /conti
+    exit, status=1
+  endif
+  if y ne 7 then begin
+    message, '***COMMON: ERROR3', /conti
+    exit, status=1
+  endif
+  z=9
 end
 
 function ct3
-common tc3,a
-return,a
+  common tc3,a
+  return,a
 end
 
 pro common_test
-common tc,a,b,c
-common tc,d,e,f
-common tc
+  common tc,a,b,c
+  common tc,d,e,f
+  common tc
 
-a=3
-ct1
-ct2
+  a=3
+  ct1
+  ct2
 
-if a ne 3 then print,'***COMMON: ERROR4'
-if b ne 7 then print,'***COMMON: ERROR5'
-if c ne 9 then print,'***COMMON: ERROR6'
-if d ne 3 then print,'***COMMON: ERROR7'
-if e ne 7 then print,'***COMMON: ERROR8'
-if f ne 9 then print,'***COMMON: ERROR9'
-if x ne 3 then print,'***COMMON: ERROR10'
-if y ne 7 then print,'***COMMON: ERROR11'
-if z ne 9 then print,'***COMMON: ERROR12'
+  if a ne 3 then begin
+    message, '***COMMON: ERROR4', /conti
+    exit, status=1
+  endif
+  if b ne 7 then begin
+    message, '***COMMON: ERROR5', /conti
+    exit, status=1
+  endif
+  if c ne 9 then begin
+    message, '***COMMON: ERROR6', /conti
+    exit, status=1
+  endif
+  if d ne 3 then begin
+    message, '***COMMON: ERROR7', /conti
+    exit, status=1
+  endif
+  if e ne 7 then begin
+    message, '***COMMON: ERROR8', /conti
+    exit, status=1
+  endif
+  if f ne 9 then begin
+    message, '***COMMON: ERROR9', /conti
+    exit, status=1
+  endif
+  if x ne 3 then begin
+    message, '***COMMON: ERROR10', /conti
+    exit, status=1
+  endif
+  if y ne 7 then begin
+    message, '***COMMON: ERROR11', /conti
+    exit, status=1
+  endif
+  if z ne 9 then begin
+    message, '***COMMON: ERROR12', /conti
+    exit, status=1
+  endif
 
-(ct3()) = 2
-if ct3() ne 2 then print,'***COMMON: ERROR13'
+  (ct3()) = 2
+  if ct3() ne 2 then begin
+    message, '***COMMON: ERROR13', /conti
+    exit, status=1
+  endif
 
-print,'COMMON: OK'
+  print,'COMMON: OK'
+
 end
 
 pro set22,a,X=x
-a=2
-x=2
+  a=2
+  x=2
 end
 
 pro ref_test,MEMCHECK=mCheck
 
-set22,b
-if b ne 2 then print,"***REF: ERROR1"
+  set22,b
+  if b ne 2 then begin
+    message, "***REF: ERROR1", /conti
+    exit, status=1
+  endif
 
-if not keyword_set( mCheck) then begin
+  if not keyword_set( mCheck) then begin
 
     p=ptr_new(/alloc)
     set22,*p
-    if *p ne 2 then print,"***REF: ERROR2"
+    if *p ne 2 then begin
+      message, "***REF: ERROR2", /conti
+      exit, status=1
+    endif
     ptr_free,p
 
     p=ptr_new(/alloc)
     pp=ptr_new(p)
     set22,**pp
-    if **pp ne 2 then print,"***REF: ERROR3"
+    if **pp ne 2 then begin
+      message, "***REF: ERROR3", /conti
+      exit, status=1
+    endif
     ptr_free,p,pp
 
-endif
+  endif
 
-a=indgen(3)
-set22,reform(a,1,3,/OVERWRITE)
-if a ne 2 then print,"***REF: ERROR4"
+  a=indgen(3)
+  set22,reform(a,1,3,/OVERWRITE)
+  if a ne 2 then begin
+    message, "***REF: ERROR4", /conti
+    exit, statis=1
+  endif
 
-a=4 & x=4
-set22,a++,X=x++
-if a ne 5 or x ne 5 then print,"***REF: ERROR5"
+  a=4 & x=4
+  set22,a++,X=x++
+  if a ne 5 or x ne 5 then begin
+    message, "***REF: ERROR5", /conti
+    exit, status=1
+  endif
 
-a=1 & x=1
-set22,++a,X=++x
-if a ne 2 or x ne 2 then print,"***REF: ERROR6"
+  a=1 & x=1
+  set22,++a,X=++x
+  if a ne 2 or x ne 2 then begin
+    message, "***REF: ERROR6", /conti
+    exit, status=1
+  endif
 
-a=1 & x=1
-set22,(a=4),X=(x=4)
-if a ne 2 or x ne 2 then print,"***REF: ERROR7"
+  a=1 & x=1
+  set22,(a=4),X=(x=4)
+  if a ne 2 or x ne 2 then begin
+    message, "***REF: ERROR7", /conti
+    exit, status=1
+  endif
 
-a=4 & x=4
-set22,++(a=1),X=++(x=1)
-if a ne 2 or x ne 2 then print,"***REF: ERROR8"
+  a=4 & x=4
+  set22,++(a=1),X=++(x=1)
+  if a ne 2 or x ne 2 then begin
+    message, "***REF: ERROR8", /conti
+    exit, status=1
+  endif
 
-set22,++(a[0]=4),X=++(x[0]=4)
-if a ne 5 or x ne 5 then print,"***REF: ERROR9"
+  set22,++(a[0]=4),X=++(x[0]=4)
+  if a ne 5 or x ne 5 then begin
+    message, "***REF: ERROR9", /conti
+    exit, status=1
+  endif
 
-print,'REF: OK'
+  print,'REF: OK'
+
 end
 
 function base::init
-common inheritance,baseInit,baseCleanup,derivInit,derivCleanup
-baseInit=1
-return,1
+  common inheritance,baseInit,baseCleanup,derivInit,derivCleanup
+  baseInit=1
+  return,1
 end
 pro base::cleanup
-common inheritance,baseInit,baseCleanup,derivInit,derivCleanup
-baseCleanup=1
+  common inheritance,baseInit,baseCleanup,derivInit,derivCleanup
+  baseCleanup=1
 end
 pro base::set
-self.b='base'
+  self.b='base'
 end
 pro base::setbase
-self.b='base'
+  self.b='base'
 end
 function base::get
-return,self.b
+  return,self.b
 end
 
 function deriv::init
-common inheritance,baseInit,baseCleanup,derivInit,derivCleanup
-r=self->base::init()
-derivInit=1
-return,1
+  common inheritance,baseInit,baseCleanup,derivInit,derivCleanup
+  r=self->base::init()
+  derivInit=1
+  return,1
 end
 pro deriv::cleanup
-common inheritance,baseInit,baseCleanup,derivInit,derivCleanup
-self->base::cleanup
-derivCleanup=1
+  common inheritance,baseInit,baseCleanup,derivInit,derivCleanup
+  self->base::cleanup
+  derivCleanup=1
 end
 pro deriv::set
-self.b='deriv'
+  self.b='deriv'
 end
 
 pro inheritance_test
 
-base={ base, b: ''}
-deriv={ deriv, INHERITS base, d: ''}
+  base={ base, b: ''}
+  deriv={ deriv, INHERITS base, d: ''}
 
-common inheritance
+  common inheritance
 
-o=obj_new( 'deriv')
-if baseInit ne 1 then print,'***INHERITANCE: ERROR1'
-if derivInit ne 1 then print,'***INHERITANCE: ERROR2'
+  o=obj_new( 'deriv')
+  if baseInit ne 1 then begin
+    message, '***INHERITANCE: ERROR1', /conti
+    exit, status=1
+  endif
+  if derivInit ne 1 then begin
+    message, '***INHERITANCE: ERROR2', /conti
+    exit, status=1
+  endif
 
-o->setbase
-if o->get() ne 'base' then print,'***INHERITANCE: ERROR3'
-o->set
-if o->get() ne 'deriv' then print,'***INHERITANCE: ERROR4'
-o->base::set
-if o->get() ne 'base' then print,'***INHERITANCE: ERROR5'
+  o->setbase
+  if o->get() ne 'base' then begin
+    message, '***INHERITANCE: ERROR3', /conti
+    exit, status=1
+  endif
+  o->set
+  if o->get() ne 'deriv' then begin
+    message, '***INHERITANCE: ERROR4', /conti
+    exit, status=1
+  endif
+  o->base::set
+  if o->get() ne 'base' then begin
+    message, '***INHERITANCE: ERROR5', /conti
+    exit, status=1
+  endif
 
-obj_destroy, o
-if baseInit ne 1 then print,'***INHERITANCE: ERROR6'
-if derivInit ne 1 then print,'***INHERITANCE: ERROR7'
+  obj_destroy, o
+  if baseInit ne 1 then begin
+    message, '***INHERITANCE: ERROR6', /conti
+    exit, status=1
+  endif
+  if derivInit ne 1 then begin
+    message, '***INHERITANCE: ERROR7', /conti
+    exit, status=1
+  endif
 
-print,'INHERITANCE: OK'
+  print,'INHERITANCE: OK'
 end
 
 function syntax_test,a,b,c
-return,byte(a,b,c)
+  return,byte(a,b,c)
 end
 
 pro syntax_test
 
-s={a:0}
+  s={a:0}
 
-t=s[0].a
-t=s[[0]].a
-t=(s[0]).a
-t=(s[[0]]).a
+  t=s[0].a
+  t=s[[0]].a
+  t=(s[0]).a
+  t=(s[[0]]).a
 
-b=(a=2)
-if b ne 2 then print,'***SYNTAX_TEST: ERROR1'
+  b=(a=2)
+  if b ne 2 then begin
+    message, '***SYNTAX_TEST: ERROR1', /conti
+    exit, status=1
+  endif
 
-a=(byte(1,0,1))[0]
-a=(syntax_test(1,0,1))[0]
+  a=(byte(1,0,1))[0]
+  a=(syntax_test(1,0,1))[0]
 
-;((a=4)) syntax error
-;(a=2)=3  forbidden in GDL (as it hardly makes sense)
+  ;((a=4)) syntax error
+  ;(a=2)=3  forbidden in GDL (as it hardly makes sense)
 
 end
 
 pro inc_test
 
-a=1
+  a=1
 
-(ret(a))++
-++(ret(a))
+  (ret(a))++
+  ++(ret(a))
 
-if a ne 3 then print,"***INC: ERROR1"
+  if a ne 3 then begin
+    message, "***INC: ERROR1", /conti
+    exit, status=1
+  endif
 
-b = intarr(3)
+  b = intarr(3)
 
-b[1]++
-++b[1]
-(b[1])++
-++(b[1])
+  b[1]++
+  ++b[1]
+  (b[1])++
+  ++(b[1])
 
-if b[1] ne 4 then print,"***INC: ERROR2"
+  if b[1] ne 4 then begin
+    message, "***INC: ERROR2", /conti
+    exit, status=1
+  endif
 
-b[[1,2]]+=1
-if b[1] ne 5 then print,"***INC: ERROR3"
+  b[[1,2]]+=1
+  if b[1] ne 5 then begin
+    message, "***INC: ERROR3", /conti
+    exit, status=1
+  endif
 
-(a=2)++
-if a ne 3 then print,'***INC_TEST: ERROR4'
+  (a=2)++
+  if a ne 3 then begin
+    message, '***INC_TEST: ERROR4', /conti
+    exit, status=1
+  endif
 
-((a=2))++
-if a ne 3 then print,'***INC_TEST: ERROR5'
+  ((a=2))++
+  if a ne 3 then begin
+    message, '***INC_TEST: ERROR5', /conti
+    exit, status=1
+  endif
 
-++(a=2)
-if a ne 3 then print,'***INC_TEST: ERROR6'
+  ++(a=2)
+  if a ne 3 then begin
+    message, '***INC_TEST: ERROR6', /conti
+    exit, status=1
+  endif
 
-++((a=2))
-if a ne 3 then print,'***INC_TEST: ERROR7'
+  ++((a=2))
+  if a ne 3 then begin
+    message, '***INC_TEST: ERROR7', /conti
+    exit, status=1
+  endif
 
-print,'INC: OK'
+  print,'INC: OK'
+
 end
-
 
 
 pro continuebreak_test
 
-repeat begin
+  repeat begin
 
     goto,start
 
-    print,'***CONTINUE/BREAK: ERROR2'
+    message, '***CONTINUE/BREAK: ERROR2', /conti
+    exit, status=1
 
-start:
+    start:
 
     for i=0,40,2 do begin
 
-        if i lt 6 then continue
+      if i lt 6 then continue
 
-        if i lt 6 then print,'***CONTINUE/BREAK: ERROR1'
+      if i lt 6 then begin
+        message, '***CONTINUE/BREAK: ERROR1', /conti
+        exit, status=1
+      endif
 
-        if i gt 10 then break
+      if i gt 10 then break
 
-        if i gt 10 then print,'***CONTINUE/BREAK: ERROR2'
+      if i gt 10 then begin
+        message, '***CONTINUE/BREAK: ERROR2', /conti
+        exit, status=1
+      endif
 
-        goto,in1
-        print,'***CONTINUE/BREAK: ERROR2'
-        goto,out1
-in1:
+      goto,in1
+      message, '***CONTINUE/BREAK: ERROR2', /conti
+      exit, status=1
+      goto,out1
+      in1:
 
     endfor
 
-goto,out2
-out1:
-out2:
+    goto,out2
+    out1:
+    out2:
 
-endrep until 1
+  endrep until 1
 
-print,'CONTINUE/BREAK: OK'
+  print,'CONTINUE/BREAK: OK'
+
 end
 
 
 pro e2,A=a,B=b
-if a ne 'a' then print,'EXTRA: ERROR1'
-if b ne 'b' then print,'EXTRA: ERROR2'
+  if a ne 'a' then begin
+    message, 'EXTRA: ERROR1', /conti
+    exit, status=1
+  endif
+  if b ne 'b' then begin
+    message, 'EXTRA: ERROR2', /conti
+    exit, status=1
+  endif
 end
 
 pro eref,_REF_EXTRA=ex
-e2,_EXTRA=ex
+  e2,_EXTRA=ex
 end
 
 pro eval,_EXTRA=ex
-e2,_EXTRA=ex
+  e2,_EXTRA=ex
 end
 
 pro e1,R2=a,R1=b
-a=1
-b=2
+  a=1
+  b=2
 end
 
 pro eret,_REF_EXTRA=ex
-e1,_EXTRA=ex
+  e1,_EXTRA=ex
 end
 
 
 pro extra_test,_REF_EXTRA=ex
 
-eval,b='b',a='a',c=u ;;
-eref,b='b',a='a',c=u
+  eval,b='b',a='a',c=u ;;
+  eref,b='b',a='a',c=u
 
-eret,r1=r1,r2=r2
+  eret,r1=r1,r2=r2
 
-if r1 ne 2 then print,'***EXTRA: ERROR3'
-if r2 ne 1 then print,'***EXTRA: ERROR4'
+  if r1 ne 2 then begin
+    message, '***EXTRA: ERROR3', /conti
+    exit, status=1
+  endif
+  if r2 ne 1 then begin
+    message, '***EXTRA: ERROR4', /conti
+    exit, status=1
+  endif
 
-print,'EXTRA: OK'
+  print,'EXTRA: OK'
+
 end
 
 pro expr_test
 
-a=0
-a++
-a *= 2
-a ^= 2
-b = a+2*3-(9*2)+9
-if b ne 1 then print,'***EXPR: ERROR1'
+  a=0
+  a++
+  a *= 2
+  a ^= 2
+  b = a+2*3-(9*2)+9
+  if b ne 1 then begin
+    message, '***EXPR: ERROR1', /conti
+    exit, status=1
+  endif
 
-a=indgen(6,6,6)
-a[3,3,3]=-1
-if a[3,3,3] ne -1 then print,'***EXPR: ERROR2'
+  a=indgen(6,6,6)
+  a[3,3,3]=-1
+  if a[3,3,3] ne -1 then begin
+    message, '***EXPR: ERROR2', /conti
+    exit, status=1
+  endif
 
-a=a+100
-if a[3,3,3] ne 99 then print,'***EXPR: ERROR2a'
+  a=a+100
+  if a[3,3,3] ne 99 then begin
+    message, '***EXPR: ERROR2a', /conti
+    exit, status=1
+  endif
 
-a[*]=a[*]-100
-if a[3,3,3] ne -1 then print,'***EXPR: ERROR2b'
+  a[*]=a[*]-100
+  if a[3,3,3] ne -1 then begin
+    message, '***EXPR: ERROR2b', /conti
+    exit, status=1
+  endif
 
+  sdef={s,a:intarr(3),s:strarr(3)}
+  s1={s,indgen(3),s:sindgen(3)}
+  if s1.a[1] ne 1 then begin
+    message, '***EXPR: ERROR3', /conti
+    exit, status=1
+  endif
+  s2={s}
+  sArr=[s2,s2]
+  sArr[1].s[1]='test'
+  if sArr[1].s[1] ne 'test' then begin
+    message, '***EXPR: ERROR4', /conti
+    exit, status=1
+  endif
 
-sdef={s,a:intarr(3),s:strarr(3)}
-s1={s,indgen(3),s:sindgen(3)}
-if s1.a[1] ne 1 then print,'***EXPR: ERROR3'
-s2={s}
-sArr=[s2,s2]
-sArr[1].s[1]='test'
-if sArr[1].s[1] ne 'test' then print,'***EXPR: ERROR4'
+  a=1
+  c=4*(3+reform(a,1,/OVERWRITE)+1)*2
+  if c ne 40 then begin
+    message, '***EXPR: ERROR5', /conti
+    exit, status=1
+  endif
+  if a ne 1 then begin
+    message, '***EXPR: ERROR6', /conti
+    exit, status=1
+  endif
 
-a=1
-c=4*(3+reform(a,1,/OVERWRITE)+1)*2
-if c ne 40 then print,'***EXPR: ERROR5'
-if a ne 1 then print,'***EXPR: ERROR6'
+  if ~1 and ~2 && ~3 and 4 || ~ 5 ne 0 then begin
+    message, '***EXPR: ERROR7', /conti
+    exit, status=1
+  endif
 
-if ~1 and ~2 && ~3 and 4 || ~ 5 ne 0 then print,'***EXPR: ERROR7'
+  print,'EXPR: OK'
 
-print,'EXPR: OK'
 end
 
 function fac,n
 
-if n le 1 then return,1
+  if n le 1 then return,1
 
-return,fac(n-1)*n
+  return,fac(n-1)*n
 
 end
 
 pro recursion_test
 
-if fac( 5) ne 120 then print,"***RECURSION: ERROR"
+  if fac( 5) ne 120 then begin
+    message, "***RECURSION: ERROR", /conti
+    exit, status=1
+  endif
 
-print,'RECURSION: OK'
+  print,'RECURSION: OK'
 end
 
 pro index_test
 
-b=byte( "abcdefg")
-d=bytarr(20)
-d[10]=b
+  b=byte( "abcdefg")
+  d=bytarr(20)
+  d[10]=b
 
-if string( d[10:16]) ne "abcdefg" then  print,"***INDEX: ERROR1"
+  if string( d[10:16]) ne "abcdefg" then begin
+    message, "***INDEX: ERROR1", /conti
+    exit, status=1
+  endif
 
-i=indgen(3,3)
-s=[[-1],[-2]]
+  i=indgen(3,3)
+  s=[[-1],[-2]]
 
-i[1,1]=s
+  i[1,1]=s
 
-if i[1,2] ne -2 then  print,"***INDEX: ERROR2"
+  if i[1,2] ne -2 then begin
+    message, "***INDEX: ERROR2", /conti
+    exit, status=1
+  endif
 
-c=intarr(3)
-(((c[1])))=1
-if c[1] ne 1 then print,'***INDEX: ERROR3'
+  c=intarr(3)
+  (((c[1])))=1
+  if c[1] ne 1 then begin
+    message, '***INDEX: ERROR3', /conti
+    exit, status=1
+  endif
 
-print,'ARRAY INDEXING: OK'
+  print,'ARRAY INDEXING: OK'
+
 end
 
 pro operator_test
 
-a=indgen(4)
-b=indgen(4)
+  a=indgen(4)
+  b=indgen(4)
 
-c=a#b
+  c=a#b
 
-if c[2,3] ne 6 then print,"***OPERATOR: ERROR1"
+  if c[2,3] ne 6 then begin
+    message, "***OPERATOR: ERROR1", /conti
+    exit, status=1
+  endif
 
-b=indgen(4,2)
+  b=indgen(4,2)
 
-c=a#b
+  c=a#b
 
-if c[0,1] ne 38 then print,"***OPERATOR: ERROR2"
+  if c[0,1] ne 38 then begin
+    message, "***OPERATOR: ERROR2", /conti
+    exit, status=1
+  endif
 
-a=indgen(2,4)
-b=indgen(4)
+  a=indgen(2,4)
+  b=indgen(4)
 
-c=a#b
+  c=a#b
 
-if c[1] ne 34 then print,"***OPERATOR: ERROR3"
+  if c[1] ne 34 then begin
+    message, "***OPERATOR: ERROR3", /conti
+    exit, status=1
+  endif
 
-b=indgen(4,2)
+  b=indgen(4,2)
 
-c=a#b
+  c=a#b
 
-if c[0,1] ne 76 then print,"***OPERATOR: ERROR4"
+  if c[0,1] ne 76 then begin
+    message, "***OPERATOR: ERROR4", /conti
+    exit, status=1
+  endif
 
-x=indgen(10) # transpose(intarr(10)+1)
+  x=indgen(10) # transpose(intarr(10)+1)
 
-if x[9,9] ne 9 then print,"***OPERATOR: ERROR5"
+  if x[9,9] ne 9 then begin
+    message, "***OPERATOR: ERROR5", /conti
+    exit, status=1
+  endif
 
-;; with scalar
-r= 4 # indgen(1,4)
-if r[0,2] ne 8 then print,"***OPERATOR: ERROR6"
+  ;; with scalar
+  r= 4 # indgen(1,4)
+  if r[0,2] ne 8 then begin
+    message, "***OPERATOR: ERROR6", /conti
+    exit, status=1
+  endif
 
-r= indgen(4) # 4
-if r[1] ne 4 then print,"***OPERATOR: ERROR7"
+  r= indgen(4) # 4
+  if r[1] ne 4 then begin
+    message, "***OPERATOR: ERROR7", /conti
+    exit, status=1
+  endif
 
+  print,'OPERATORS: OK'
 
-print,'OPERATORS: OK'
 end
 
 pro assignment_test
 
-c = indgen( 4, 4)
+  c = indgen( 4, 4)
 
-t = intarr( 5, 5)
-t[0,0] = c
-if t[3,3] ne 15 then print,"***ASSIGNMENT: ERROR1"
+  t = intarr( 5, 5)
+  t[0,0] = c
+  if t[3,3] ne 15 then begin
+    message, "***ASSIGNMENT: ERROR1", /conti
+    exit, status=1
+  endif
 
-t = intarr( 5, 5)
-t[0,1] = c
-if t[3,3] ne 11 then print,"***ASSIGNMENT: ERROR2"
+  t = intarr( 5, 5)
+  t[0,1] = c
+  if t[3,3] ne 11 then begin
+    message, "***ASSIGNMENT: ERROR2", /conti
+    exit, status=1
+  endif
 
-t = intarr( 5, 5)
-t[1,0] = c
-if t[3,3] ne 14 then print,"***ASSIGNMENT: ERROR3"
+  t = intarr( 5, 5)
+  t[1,0] = c
+  if t[3,3] ne 14 then begin
+    message, "***ASSIGNMENT: ERROR3", /conti
+    exit, status=1
+  endif
 
-t = intarr( 5, 5)
-t[1,1] = c
-if t[3,3] ne 10 then print,"***ASSIGNMENT: ERROR4"
+  t = intarr( 5, 5)
+  t[1,1] = c
+  if t[3,3] ne 10 then begin
+    message, "***ASSIGNMENT: ERROR4", /conti
+    exit, status=1
+  endif
 
-t = intarr( 5, 5)
-a=indgen(3,3)
-t[1,1]=a
-if t[2,2] ne 4 then print,"***ASSIGNMENT: ERROR5"
+  t = intarr( 5, 5)
+  a=indgen(3,3)
+  t[1,1]=a
+  if t[2,2] ne 4 then begin
+    message, "***ASSIGNMENT: ERROR5", /conti
+    exit, status=1
+  endif
 
-t = intarr( 5, 5)
-a=indgen(3,3)
-t[1]=a
-if t[3,0] ne 2 then print,"***ASSIGNMENT: ERROR6"
+  t = intarr( 5, 5)
+  a=indgen(3,3)
+  t[1]=a
+  if t[3,0] ne 2 then begin
+    message, "***ASSIGNMENT: ERROR6", /conti
+    exit, status=1
+  endif
+ 
+  a=(1?0:9)
+  b=0
+  (1?a:b) = 2
+  if a ne 2 then begin
+    message, "***ASSIGNMENT: ERROR7", /conti
+    exit, status=1
+  endif
 
-a=(1?0:9)
-b=0
-(1?a:b) = 2
-if a ne 2 then print,"***ASSIGNMENT: ERROR7"
 
+  ((a=3))=2
+  if a ne 2 then begin
+    message, "***ASSIGNMENT: ERROR8", /conti
+    exit, status=1
+  endif
 
-((a=3))=2
-if a ne 2 then print,"***ASSIGNMENT: ERROR8"
+  A=create_struct("boo",dblarr(10),"foo",dblarr(10))
+  B=replicate(A,30)
+  data=findgen(30)
+  B[0:29].boo[3] = data[0:29]
+  if B[29].boo[3] ne 29.0 then begin
+    message, "***ASSIGNMENT: ERROR9", /conti
+    exit, status=1
+  endif
 
-A=create_struct("boo",dblarr(10),"foo",dblarr(10))
-B=replicate(A,30)
-data=findgen(30)
-B[0:29].boo[3] = data[0:29]
-if B[29].boo[3] ne 29.0 then print,"***ASSIGNMENT: ERROR9"
+  print,"ASSIGNMENT: OK"
 
-print,"ASSIGNMENT: OK"
 end
 
 pro left_libfunction_test
 
-u=indgen(4)
+  u=indgen(4)
 
-(reform(u,4,/OVERWRITE))++
+  (reform(u,4,/OVERWRITE))++
 
-if u[2] ne 3 then print,"***LEFT_LIBFUNCTION: ERROR1"
+  if u[2] ne 3 then begin
+    message, "***LEFT_LIBFUNCTION: ERROR1", /conti
+    exit, status=1
+  endif
 
-print,"LEFT_LIBFUNCTION: OK"
+  print,"LEFT_LIBFUNCTION: OK"
 end
 
 pro stride_index_test
 
-a=lindgen( 11, 20, 31)
+  a=lindgen( 11, 20, 31)
 
-;print,total( a[1:*:3])
+  ;print,total( a[1:*:3])
 
-if total( a[1:10:4, 2:16:2, 5:29:5]) ne 408480. then print,"***STRIDE_INDEX: ERROR 1"
-if total( a[*, 2:14:2, 20:29:5]) ne 776622. then print,"***STRIDE_INDEX: ERROR 2"
-if total( a[1:6:2, *, 17:29:5]) ne 890550. then print,"***STRIDE_INDEX: ERROR 3"
-if total( a[[7,1], 2:16:2, 5:29:5]) ne 272240. then print,"***STRIDE_INDEX: ERROR 4"
-if total( a[3:9:2, [7,1], 2:*:4]) ne 228480. then print,"***STRIDE_INDEX: ERROR "
-if total( a[*, 5:*:5, [7,1]]) ne 65670. then print,"***STRIDE_INDEX: ERROR 5"
-if total( a[5:7, 2:16:2, 5:29:5]) ne 408600. then print,"***STRIDE_INDEX: ERROR 6"
-if total( a[3:9:2, 5:7, 2:*:4]) ne 344832. then print,"***STRIDE_INDEX: ERROR 7"
-if total( a[*, 5:*:5, 5:7]) ne 142065. then print,"***STRIDE_INDEX: ERROR 8"
+  if total( a[1:10:4, 2:16:2, 5:29:5]) ne 408480. then begin
+    message, "***STRIDE_INDEX: ERROR 1", /conti
+    exit, status=1
+  endif
+  if total( a[*, 2:14:2, 20:29:5]) ne 776622. then begin
+    message, "***STRIDE_INDEX: ERROR 2", /conti
+    exit, status=1
+  endif
+  if total( a[1:6:2, *, 17:29:5]) ne 890550. then begin
+    message, "***STRIDE_INDEX: ERROR 3", /conti
+    exit, status=1
+  endif
+  if total( a[[7,1], 2:16:2, 5:29:5]) ne 272240. then begin
+    message, "***STRIDE_INDEX: ERROR 4", /conti
+    exit, status=1
+  endif
+  if total( a[3:9:2, [7,1], 2:*:4]) ne 228480. then begin
+    message, "***STRIDE_INDEX: ERROR ", /conti
+    exit, status=1
+  endif
+  if total( a[*, 5:*:5, [7,1]]) ne 65670. then begin
+    message, "***STRIDE_INDEX: ERROR 5", /conti
+    exit, status=1
+  endif
+  if total( a[5:7, 2:16:2, 5:29:5]) ne 408600. then begin
+    message, "***STRIDE_INDEX: ERROR 6", /conti
+    exit, status=1
+  endif
+  if total( a[3:9:2, 5:7, 2:*:4]) ne 344832. then begin
+    message, "***STRIDE_INDEX: ERROR 7", /conti
+    exit, status=1
+  endif
+  if total( a[*, 5:*:5, 5:7]) ne 142065. then begin
+    message, "***STRIDE_INDEX: ERROR 8", /conti
+    exit, status=1
+  endif
 
-b=lindgen(50)
-if total( b[1:32:7]) ne 75. then print,"***STRIDE_INDEX: ERROR 9"
-if total( b[1:*:3]) ne 425. then print,"***STRIDE_INDEX: ERROR 10"
+  b=lindgen(50)
+  if total( b[1:32:7]) ne 75. then begin
+    message, "***STRIDE_INDEX: ERROR 9", /conti
+    exit, status=1
+  endif
+  if total( b[1:*:3]) ne 425. then begin
+    message, "***STRIDE_INDEX: ERROR 10", /conti
+    exit, status=1
+  endif
 
-print,"STRIDE_INDEX: OK"
+  print,"STRIDE_INDEX: OK"
+
 end
 
 ;; set MEMCHECK to perform a memory leak check
@@ -926,36 +1396,35 @@ end
 ;; with MEMCHECK set, no ptr and object allocations are made
 pro test_suite,MEMCHECK=mCheck
 
-s=systime(1)
+  s=systime(1)
 
-switch_test
-case_test
-while_test
-for_test
-repeat_test
-goto_test
-ret_test
-struct_test
-multi_test
-if not keyword_set( mCheck) then object_test
-common_test
-ref_test,MEMCHECK=mCheck
-syntax_test
-inc_test
-if not keyword_set( mCheck) then inheritance_test
-continuebreak_test
-extra_test
-expr_test
-recursion_test
-index_test
-operator_test
-assignment_test
-left_libfunction_test
-stride_index_test
+  switch_test
+  case_test
+  while_test
+  for_test
+  repeat_test
+  goto_test
+  ret_test
+  struct_test
+  multi_test
+  if not keyword_set( mCheck) then object_test
+  common_test
+  ref_test,MEMCHECK=mCheck
+  syntax_test
+  inc_test
+  if not keyword_set( mCheck) then inheritance_test
+  continuebreak_test
+  extra_test
+  expr_test
+  recursion_test
+  index_test
+  operator_test
+  assignment_test
+  left_libfunction_test
+  stride_index_test
 
-print,"TEST_SUITE finished. Time: ",systime(1)-s
+  print,"TEST_SUITE finished. Time: ",systime(1)-s
 end
-
 
 ;; main program
 print,'TEST_SUITE main program called.'
