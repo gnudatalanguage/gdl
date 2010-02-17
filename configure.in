@@ -18,7 +18,7 @@ if test "x$with_Magick"      = "x"; then with_Magick=yes;      fi
 if test "x$with_netcdf"      = "x"; then with_netcdf=yes;      fi
 if test "x$with_hdf"         = "x"; then with_hdf=yes;         fi
 if test "x$with_hdf5"        = "x"; then with_hdf5=yes;        fi
-if test "x$with_fftw"        = "x"; then with_fftw=no;         fi
+if test "x$with_fftw"        = "x"; then with_fftw=auto;       fi
 if test "x$with_libproj4"    = "x"; then with_libproj4=no;     fi
 if test "x$with_mpich"       = "x"; then with_mpich=no;        fi
 if test "x$with_python"      = "x"; then with_python=yes;      fi
@@ -546,6 +546,18 @@ fi
 
 dnl == FFTW ================================================
 dnl ========================================================
+
+AC_CHECK_LIB(fftw3, fftw_malloc, [
+dnl  do nothing
+], [
+if test "x$with_fftw" = "xauto"; then with_fftw=no;    fi
+])
+
+AC_CHECK_LIB(fftw3f, fftwf_malloc, [
+if test "x$with_fftw" = "xauto"; then with_fftw=yes;   fi
+], [
+if test "x$with_fftw" = "xauto"; then with_fftw=no;    fi
+])
 
 AC_ARG_WITH(fftw,	
 	[  --with-fftw[=DIR]         use FFTW package (with optional path DIR) ],

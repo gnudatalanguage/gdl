@@ -2597,7 +2597,7 @@ if test "x$with_Magick"      = "x"; then with_Magick=yes;      fi
 if test "x$with_netcdf"      = "x"; then with_netcdf=yes;      fi
 if test "x$with_hdf"         = "x"; then with_hdf=yes;         fi
 if test "x$with_hdf5"        = "x"; then with_hdf5=yes;        fi
-if test "x$with_fftw"        = "x"; then with_fftw=no;         fi
+if test "x$with_fftw"        = "x"; then with_fftw=auto;       fi
 if test "x$with_libproj4"    = "x"; then with_libproj4=no;     fi
 if test "x$with_mpich"       = "x"; then with_mpich=no;        fi
 if test "x$with_python"      = "x"; then with_python=yes;      fi
@@ -16416,6 +16416,99 @@ else
 fi
 
 fi
+
+fi
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for fftw_malloc in -lfftw3" >&5
+$as_echo_n "checking for fftw_malloc in -lfftw3... " >&6; }
+if test "${ac_cv_lib_fftw3_fftw_malloc+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lfftw3  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char fftw_malloc ();
+int
+main ()
+{
+return fftw_malloc ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"; then :
+  ac_cv_lib_fftw3_fftw_malloc=yes
+else
+  ac_cv_lib_fftw3_fftw_malloc=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_fftw3_fftw_malloc" >&5
+$as_echo "$ac_cv_lib_fftw3_fftw_malloc" >&6; }
+if test "x$ac_cv_lib_fftw3_fftw_malloc" = x""yes; then :
+
+
+else
+
+if test "x$with_fftw" = "xauto"; then with_fftw=no;    fi
+
+fi
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for fftwf_malloc in -lfftw3f" >&5
+$as_echo_n "checking for fftwf_malloc in -lfftw3f... " >&6; }
+if test "${ac_cv_lib_fftw3f_fftwf_malloc+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lfftw3f  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char fftwf_malloc ();
+int
+main ()
+{
+return fftwf_malloc ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"; then :
+  ac_cv_lib_fftw3f_fftwf_malloc=yes
+else
+  ac_cv_lib_fftw3f_fftwf_malloc=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_fftw3f_fftwf_malloc" >&5
+$as_echo "$ac_cv_lib_fftw3f_fftwf_malloc" >&6; }
+if test "x$ac_cv_lib_fftw3f_fftwf_malloc" = x""yes; then :
+
+if test "x$with_fftw" = "xauto"; then with_fftw=yes;   fi
+
+else
+
+if test "x$with_fftw" = "xauto"; then with_fftw=no;    fi
 
 fi
 

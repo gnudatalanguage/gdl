@@ -22,6 +22,10 @@
 
 //#define ABS(xxx) (( xxx > -xxx)?(xxx):(-xxx))
 
+// This caused a compiler error on g++ 4.5, see:
+// http://sourceforge.net/tracker/index.php?func=detail&aid=2949808&group_id=97659&atid=618683
+// template< typename T>
+// inline T abs( T a) { return (a>=T(0))?a:-a;}
 namespace lib {
 
   // SA: needs to be inside a namespace for GCC 4.5
