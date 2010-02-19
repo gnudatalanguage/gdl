@@ -71,15 +71,15 @@ end
 ;
 print, '' &
 mess='Running TEST_FFT_GO_AND_BACK'
-if N_ELEMENTS(dimension) GT 3 then begin
-   MESSAGE, 'Sorry, we are not ready for high Dimensions cases'
-   EXIT, 1
-end
+;;if N_ELEMENTS(dimension) GT 3 then begin
+;;   MESSAGE, 'Sorry, we are not ready for high Dimensions cases'
+;;   EXIT, status=1
+;;end
 if N_ELEMENTS(dimension) EQ 0 then begin
    if N_ELEMENTS(nbp) EQ 0 then nbp=1024
    if nbp LE 0 then begin
       MESSAGE, 'Nbp= must be positive (>0)'
-      EXIT, 1
+      EXIT, status=1
    endif
    dimension=[nbp]
 endif
