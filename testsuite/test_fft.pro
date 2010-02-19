@@ -1,7 +1,7 @@
 ;
 ; Under GPL 2 or later
 ; Thibaut Mermet and Alain Coulais
-; June 2009.
+; June 2009 and February 2010.
 ;
 ; Testing the FFT function : 
 ; do the FFT computes :
@@ -18,7 +18,16 @@
 ;
 ; -------------------------------------------
 ;
-pro TEST_FFT_ALL_TYPES
+; expected types for outputs from FFT are "6" (complex) or "9" (Dcomplex)
+pro TEST_FFT_ALL_TYPES, test=test, help=help, quiet=quiet
+;
+if KEYWORD_SET(help) then begin
+   print, 'pro TEST_FFT_ALL_TYPES, test=test, help=help, quiet=quiet'
+endif
+;
+print, 'Running TEST_FFT_ALL_TYPES'
+;
+nb_pb=0
 for ii=0, 15 do begin
    if ii EQ 8 then CONTINUE   ;; Struc
    if ii EQ 10 then CONTINUE  ;; Pointer
@@ -26,46 +35,106 @@ for ii=0, 15 do begin
    ;;
    input=MAKE_ARRAY(1024,type=ii)
    result=FFT(input)
-   print, 'Input type :', ii, ', Output type :', SIZE(result,/type)
+   type=SIZE(result,/type)
+   if ((type EQ 6) or (type EQ 9)) then begin
+      message=', OK'
+   endif else begin
+      message=', Probleme'
+      nb_pb=nb_pb+1
+   endelse
+   if NOT(KEYWORD_SET(quiet)) then begin
+      print, 'Input type :', ii, ', Output type :', type, message
+   endif
 endfor
+;
+if (nb_pb GT 0) then begin
+   MESSAGE, STRING(nb_pb)+' problem found in TEST_FFT_ALL_TYPES',/continue
+   EXIT, status=1
+endif else begin
+   MESSAGE, 'No problem found in TEST_FFT_ALL_TYPES',/continue
+endelse
+;
+if KEYWORD_SET(test) then STOP
+
 end
 ;
 ; -------------------------------------------
 ;
-pro TEST_FFT_GO_AND_BACK, nbp=nbp
+pro TEST_FFT_GO_AND_BACK, dimension=dimension, nbp=nbp, quiet=quiet, $
+                          test=test, help=help, debug=debug
 ;
-if N_ELEMENTS(nbp) EQ 0 then nbp=1024
+if KEYWORD_SET(help) then begin
+   print, 'pro TEST_FFT_GO_AND_BACK, dimension=dimension, nbp=nbp, quiet=quiet, $'
+   print, '                          test=test, help=help, debug=debug'
+   return
+end
+;
+print, '' &
+mess='Running TEST_FFT_GO_AND_BACK'
+if N_ELEMENTS(dimension) GT 3 then begin
+   MESSAGE, 'Sorry, we are not ready for high Dimensions cases'
+   EXIT, 1
+end
+if N_ELEMENTS(dimension) EQ 0 then begin
+   if N_ELEMENTS(nbp) EQ 0 then nbp=1024
+   if nbp LE 0 then begin
+      MESSAGE, 'Nbp= must be positive (>0)'
+      EXIT, 1
+   endif
+   dimension=[nbp]
+endif
+mess=mess+' in '+STRING(N_ELEMENTS(dimension))+'D case, with size:'
+print, STRCOMPRESS(mess), dimension
 ;
 nb_pb=0
+;
+; We will point a Dirac somewhere in the array ...
+glitch=[5,7,12]
+glitch_index=glitch[0]
+for ii=1, N_ELEMENTS(dimension)-1 do begin
+   glitch_index=glitch_index+glitch[ii mod 3]*dimension[ii-1]
+endfor
+if KEYWORD_SET(debug) then print, glitch_index
 ;
 for ii=0, 15 do begin
    if ii EQ 8 then CONTINUE   ;; Struc
    if ii EQ 10 then CONTINUE  ;; Pointer
    if ii EQ 11 then CONTINUE  ;; Objref
    ;;
-   input=MAKE_ARRAY(nbp,type=ii)
-   input[10]=1
+   input=MAKE_ARRAY(dimension,type=ii)
+   input[glitch_index]=1
+   ;;
    result1=FFT(input,1)
    result2=FFT(result1,-1)
    error=TOTAL(ABS(input-result2))
-   message='OK'
+   message=', OK'
    if (error GT 1e-3) then begin
-      message='Probleme'
+      message=', Probleme'
       nb_pb=nb_pb+1
    endif
-   print, format='(A,i4,A,i4,A,G10.4,A)', 'Input type :', ii, ', Output type :', SIZE(result2,/type), ', error: ', error, message
+   if NOT(KEYWORD_SET(quiet)) then begin
+      print, format='(A,i4,A,i4,A,G10.4,A)', 'Input type :', ii, $
+             ', Output type :', SIZE(result2,/type), ', error: ', error, message
+   endif
 endfor
 ;
 if (nb_pb GT 0) then begin
+   MESSAGE, STRING(nb_pb)+' problem found in TEST_FFT_GO_AND_BACK', /continue
    EXIT, status=1
 endif else begin
-   print, '' & print, 'No problem found'
+   MESSAGE, 'No problem found in TEST_FFT_GO_AND_BACK', /continue
 endelse
+;
+if KEYWORD_SET(test) then STOP
 ;
 end
 ;
 ; -------------------------------------------
 ;
 pro TEST_FFT
+TEST_FFT_ALL_TYPES,/quiet
 TEST_FFT_GO_AND_BACK
+TEST_FFT_GO_AND_BACK, dim=[1024,1024], /quiet
+TEST_FFT_GO_AND_BACK, dim=[512,2048], /quiet
+TEST_FFT_GO_AND_BACK, dim=[128,64,128], /quiet
 end
