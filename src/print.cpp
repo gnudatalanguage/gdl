@@ -142,12 +142,16 @@ namespace lib {
 	DString fmtString;
 	e->AssureScalarKW<DStringGDL>( 0, fmtString);
 
+	if( fmtString != "")
+	{
 	RefFMTNode fmtAST = GetFMTAST( fmtString);
 
 	// formatted output ignores WIDTH
 	FMTOut Formatter( fmtAST, os, e, parOffset); 
+	return;
+	}
       }
-    else // default-format output
+    //else // default-format output
       {
 	int nParam = e->NParam();
 

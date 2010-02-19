@@ -380,7 +380,7 @@ if test "x$with_Magick" != "xno"; then
         echo "       Use --with-Magick=DIR to specify the ImageMagick directory tree"
         echo "       Use --with-Magick=no  to not use it"
         echo "       Check the README or use configure --help for other libraries needed"
-        echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
+        echo "       (--with-xxxdir = mandatory, --with-xxx = optional (--with-xxx=no to disable))"
         exit -1
       ])
     ]

@@ -14962,6 +14962,7 @@ if test "${with_openmp+set}" = set; then :
 fi
 
 
+openmp_autodetected=no
 if test "x$with_openmp" = "x"; then
    for ac_header in "omp.h"
 do :
@@ -14974,6 +14975,7 @@ eval as_val=\$$as_ac_Header
 _ACEOF
 
      with_openmp=yes
+     openmp_autodetected=yes
      echo ""
      echo "OpenMP enabled (omp.h file was found)."
      echo "Try --with-openmp=no if your compiler does not support it (e.g. GCC < 4.2)"
@@ -15822,7 +15824,7 @@ else
         echo "       Use --with-Magick=DIR to specify the ImageMagick directory tree"
         echo "       Use --with-Magick=no  to not use it"
         echo "       Check the README or use configure --help for other libraries needed"
-        echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
+        echo "       (--with-xxxdir = mandatory, --with-xxx = optional (--with-xxx=no to disable))"
         exit -1
 
 fi
@@ -17263,6 +17265,10 @@ case "${host}" in
 
   *solaris* )
     LIBS="$LIBS -lsocket -lnsl"
+    ;;
+
+  *cygwin* )
+    LIBS="$LIBS -lrpc"
     ;;
 
 esac
@@ -19963,7 +19969,9 @@ echo "
   Installation prefix: $prefix
   C++ compiler:        $CXX $CXXFLAGS
   OpenMP support:      `if test "x$with_openmp" = "xno";
-    then echo 'no'; else echo 'yes (use --with-openmp=no if your compiler does not support it)'; fi`
+    then echo 'no'; else echo 'yes'; fi`
+  Build type:          `if test "x$PYTHON_MODULE" = "xyes";
+    then echo 'library (Python module)'; else echo 'standalone (other: Python module)'; fi`
   ----- optional libraries (consult README/INSTALL): ---
   wxWidgets:           `if test no = $with_wxWidgets;
     then echo 'no  (needs explicit enabling)'; else echo yes; fi`
@@ -19992,7 +20000,14 @@ echo "
     files needed for mapping support
   - SAVE and RESTORE procedures require *.pro files from
     the CMSVLIB package (see README for details)
-  ------------------------------------------------------
+  ------------------------------------------------------`
+if test yes = $openmp_autodetected; then
+  echo '----- note on OpenMP support -------------------------'
+  echo ' OpenMP was autodetected, use --with-openmp=no if your'
+  echo ' compiler does not support it (e.g. GCC < 4.2)'
+  echo '------------------------------------------------------'
+; fi`
   use 'make' to build and 'make install' to install GDL
+  (optional 'make check' tests the build - experimental)
 "
 

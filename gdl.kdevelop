@@ -63,7 +63,7 @@
         <f77flags/>
       </optimized>
       <debug>
-        <configargs>--with-readlinedir=yes --with-python=yes --with-hdf=yes --with-hdf5=yes --with-plplotdir=/usr --with-python=yes --disable-python_module --with-netcdf=no --enable-oldplplot --with-openmp=yes --with-libproj4=no --with-mpich=/usr/lib/mpich --with-wxWidgets=no --with-Magick=no</configargs>
+        <configargs>--with-readlinedir=yes --with-python=yes --with-hdf=yes --with-hdf5=yes --with-plplotdir=/usr --with-python=yes --disable-python_module --with-netcdf=no --enable-oldplplot --with-openmp=yes --with-libproj4=no --with-mpich=/usr/lib/mpich --with-wxWidgets=no --with-Magick=yes</configargs>
         <builddir>debug</builddir>
         <ccompiler>kdevgccoptions</ccompiler>
         <cxxcompiler>kdevgppoptions</cxxcompiler>
