@@ -240,6 +240,15 @@ public:
         return heap.size();
     }
 
+    static DPtr FindInHeap( BaseGDL** p)
+    {
+        for( HeapT::iterator it=heap.begin(); it != heap.end(); ++it)
+        {
+            if( &it->second == p)
+                return it->first;
+        }
+        return 0;
+    }
     static DPtrGDL* GetAllHeap()
     {
         SizeT nEl = heap.size();
@@ -264,6 +273,15 @@ public:
         return objHeap.size();
     }
 
+//     static DObj FindInObjHeap( BaseGDL** p)
+//     {
+//         for( ObjHeapT::iterator it=objHeap.begin(); it != objHeap.end(); ++it)
+//         {
+//             if( &it->second == reinterpret_cast<DStructGDL**>(p))
+//                 return it->first;
+//         }
+//         return 0;
+//     }
     static DObjGDL* GetAllObjHeap()
     {
         SizeT nEl = objHeap.size();
@@ -285,7 +303,12 @@ public:
 
     static const std::string Name( BaseGDL** p) // const
     {
-        return "<(Find name not implemented yet)>";
+        assert( *p == NULL);
+        DPtr h = FindInHeap( p);
+        if( h != 0) return std::string("<PtrHeapVar")+i2s(h)+">";
+//         DObj o = FindInObjHeap( p);
+//         if( o != 0) return std::string("<ObjHeapVar")+i2s(o)+">";
+        return "<(ptr to undefined expression not found on the heap)>";
     }
 
     // compiler (lexer, parser, treeparser) def in dinterpreter.cpp

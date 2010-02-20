@@ -52,6 +52,11 @@ fi
 AC_SUBST(HAVE_64BIT_OS)
 AC_LANG_RESTORE
 
+AC_SEARCH_LIBS([dlopen], [dl])
+if test x"$ac_cv_search_dlopen" = x-ldl; then
+LIBS="$LIBS -ldl"
+fi
+
 dnl == Python module (calling GDL from Python) =============
 dnl ========================================================
 
