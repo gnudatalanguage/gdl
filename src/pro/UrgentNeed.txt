@@ -37,7 +37,6 @@ Please indicate what you are doing and starting time
 !h_eq_ct.pro
 !h_eq_int.pro
 !hilbert.pro
-!hist_2d.pro
 !hist_equal.pro
 !ibeta.pro
 !int_2d.pro

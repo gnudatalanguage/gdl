@@ -13,6 +13,8 @@ prolib_DATA = \
   filepath.pro \
   findfile.pro \
   helpform.pro \
+  hist_2d.pro \
+  hist_nd.pro \
   identity.pro \
   imsl_zerosys.pro \
   ishft.pro \

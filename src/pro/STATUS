@@ -123,7 +123,7 @@ Codes:
 !h_eq_ct.pro
 !h_eq_int.pro
 !hilbert.pro
-!hist_2d.pro
+=hist_2d.pro
 !hist_equal.pro
  hls.pro
  hsv.pro

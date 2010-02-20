@@ -155,7 +155,7 @@ DLibFunRetNew::DLibFunRetNew( LibFun f, const string& n,
 
 DLibFunRetNew::DLibFunRetNew( LibFun f, const string& n, const int nPar_, 
 			const string keyNames[], const string warnKeyNames[], bool rConstant)
-  : DLibFun(f,n,nPar_,keyNames, NULL), retConstant( rConstant)
+  : DLibFun(f,n,nPar_,keyNames, warnKeyNames), retConstant( rConstant)
 {}
 // DLibFunRetNew::DLibFunRetNew( LibFun f, const string& n, const int nPar_, 
 // 			bool rConstant)

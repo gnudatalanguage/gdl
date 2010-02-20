@@ -4094,10 +4094,17 @@ namespace lib {
 		e->GetParString(0));
     
     SizeT resDimInit[ MAXRANK];
-    for( SizeT p=1; p<nParam; ++p)
+
+    DLongGDL* p1 = e->GetParAs<DLongGDL>(1);
+    if (p1->Rank() > 0 && nParam > 2) 
+      e->Throw("The new dimensions must either be specified as an array or as a set of scalars.");
+    SizeT np = p1->Rank() == 0 ? nParam : p1->N_Elements() + 1;
+
+    for( SizeT p=1; p<np; ++p)
       {
 	DLong newDim;
-	e->AssureLongScalarPar( p, newDim);
+	if (p1->Rank() == 0) e->AssureLongScalarPar( p, newDim);
+        else newDim = (*p1)[p - 1];
 
 	if( newDim <= 0)
 	  e->Throw( "Array dimensions must be greater than 0.");
@@ -4123,7 +4130,7 @@ namespace lib {
 	resDimInit[ p-1] = newDim; 
       }
 
-    dimension resDim( resDimInit, nParam-1);
+    dimension resDim( resDimInit, np-1);
 
     static int sampleIx = e->KeywordIx( "SAMPLE");
     bool sample = e->KeywordSet( sampleIx);

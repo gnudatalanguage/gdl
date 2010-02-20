@@ -38,7 +38,7 @@
 #include "gsl_fun.hpp"
 
 #ifdef USE_PYTHON
-#include "gdlpython.hpp"
+#  include "gdlpython.hpp"
 #endif
 
 #include "grib.hpp"
@@ -395,10 +395,12 @@ void LibInit()
   new DLibFunRetNew(lib::where,string("WHERE"),2,whereKey);
 
   const string totalKey[]={"CUMULATIVE","DOUBLE","NAN","INTEGER",KLISTEND};
-  new DLibFunRetNew(lib::total,string("TOTAL"),2,totalKey,NULL,true);
+  const string totalWarnKey[]={"PRESERVE_TYPE",KLISTEND};
+  new DLibFunRetNew(lib::total,string("TOTAL"),2,totalKey,totalWarnKey,true);
 
   const string productKey[]={"CUMULATIVE","NAN","INTEGER",KLISTEND};
-  new DLibFunRetNew(lib::product,string("PRODUCT"),2,productKey,NULL,true);
+  const string productWarnKey[]={"PRESERVE_TYPE",KLISTEND};
+  new DLibFunRetNew(lib::product,string("PRODUCT"),2,productKey,productWarnKey,true);
 
   new DLibFunRetNew(lib::n_params,string("N_PARAMS"),1); // IDL allows one parameter
   new DLibFunRetNew(lib::keyword_set,string("KEYWORD_SET"),1);
@@ -428,13 +430,12 @@ void LibInit()
 //   new DLibFun(lib::max_fun,string("MAX"),2,maxKey);
 
 #ifdef USE_PYTHON
-
   const string python_funKey[]={"ARGV","DEFAULTRETURNVALUE",KLISTEND};
   new DLibFun(lib::gdlpython_fun,string("PYTHON"),-1,python_funKey);
 
   const string python_proKey[]={"ARGV",KLISTEND};
   new DLibPro(lib::gdlpython_pro,string("PYTHON"),-1,python_proKey);
-#endif  
+#endif
 
   // graphics *******************************************************
   const string windowKey[]={"COLORS","FREE","PIXMAP","RETAIN","TITLE",
