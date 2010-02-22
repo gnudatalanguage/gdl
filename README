@@ -77,7 +77,7 @@ HDF4 *)     ftp://ftp.ncsa.uiuc.edu/HDF/HDF/HDF_Current
 HDF5        ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/current
 FFTW        http://www.fftw.org/download.html
 python      http://www.python.org
-libproj4    http://members.verizon.net/~vze2hc4d/proj4/
+libproj4    (consult the MAP_INSTALL file)
 UDUNITS-2   http://www.unidata.ucar.edu/software/udunits/
 GRIB API    http://www.ecmwf.int/products/data/software/grib_api.html        
 
