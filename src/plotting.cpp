@@ -3550,10 +3550,6 @@ clevel[nlevel-1]=zEnd; //make this explicit
   {
     SizeT nParam=e->NParam( 0); 
     bool valid=true;
-    DDouble zVal, yVal, xVal;
-
-    if (nParam >= 1) e->AssureDoubleScalarPar( 0, xVal);
-
     // !X, !Y (also used below)
 
     DLong xStyle=0, yStyle=0; 
@@ -3566,9 +3562,23 @@ clevel[nlevel-1]=zEnd; //make this explicit
     static int xaxisIx = e->KeywordIx( "XAXIS");
     static int yaxisIx = e->KeywordIx( "YAXIS");
 
-    if( e->GetKW( xaxisIx) != NULL) xAxis = true;
-    if( e->GetKW( yaxisIx) != NULL) yAxis = true;
-
+    PLINT xaxis_value, yaxis_value; 
+    bool standardNumPos;
+    //IDL behaviour for XAXIS and YAXIS options
+    if( (e->GetKW( xaxisIx) != NULL) ) {
+      xAxis = true;
+      e->AssureLongScalarKWIfPresent( "XAXIS", xaxis_value);
+      if (xaxis_value == 0) {standardNumPos = true;} else {standardNumPos = false;}
+    }      
+    if( e->GetKW( yaxisIx) != NULL) {
+      yAxis = true; xAxis = false; // like in IDL, yaxis overrides xaxis
+      e->AssureLongScalarKWIfPresent( "YAXIS", yaxis_value);
+      if (yaxis_value == 0) {standardNumPos = true;} else {standardNumPos = false;}
+    }
+    if( (e->GetKW( xaxisIx) == NULL) & (e->GetKW( yaxisIx) == NULL ) )  {
+      xAxis = true; standardNumPos = true; 
+    }
+    
     // [XY]STYLE
     gkw_axis_style(e, "X", xStyle);
     gkw_axis_style(e, "Y", yStyle);
@@ -3585,11 +3595,16 @@ clevel[nlevel-1]=zEnd; //make this explicit
 
 
     // x and y range
-    DDouble xStart;
-    DDouble xEnd;
-    DDouble yStart;
-    DDouble yEnd;
+    DDouble xStart, xEnd;
+    DDouble yStart, yEnd;
 
+    get_axis_crange("X", xStart, xEnd);
+    get_axis_crange("Y", yStart, yEnd);
+    if (xStart == xEnd && yStart == yEnd) {
+      e->Throw("Invalid plotting ranges.  Set up a plot window first.");
+    }
+
+    /*
     if ((xStyle & 1) != 1 && xAxis) {
       PLFLT intv;
       intv = AutoIntvAC(xStart, xEnd, false );
@@ -3600,17 +3615,35 @@ clevel[nlevel-1]=zEnd; //make this explicit
 
     if ((yStyle & 1) != 1 && yAxis) {
       PLFLT intv;
-      intv = AutoIntvAC(xStart, xEnd, false );
+      intv = AutoIntvAC(yStart, yEnd, false );
       //      intv = AutoIntv(yEnd-yStart);
       //yEnd = ceil(yEnd/intv) * intv;
       //yStart = floor(yStart/intv) * intv;
     }
+    */
 
+    DDouble zVal, yVal, xVal;
+    //read arguments 
+    if (nParam == 1) {
+      e->AssureDoubleScalarPar( 0, xVal);
+      yVal=0.; //IDL behaviour
+    }
+    if (nParam == 2) {
+      e->AssureDoubleScalarPar( 0, xVal);
+      e->AssureDoubleScalarPar( 1, yVal);
+    }
+    if (nParam == 3) {
+      e->Throw( "Sorry, we do not yet support the 3D case");
+    }
+    if (nParam == 0 && standardNumPos) { xVal = xStart; yVal = yStart; }
+    if (nParam == 0 && !standardNumPos) { xVal = xEnd; yVal = yEnd; }
 
+    /*
     DLong ynozero, xnozero;
     //[x|y]range keyword
     gkw_axis_range(e, "X", xStart, xEnd, ynozero);
     gkw_axis_range(e, "Y", yStart, yEnd, xnozero);
+    */
 
     // AC nomore useful
     // if(xEnd == xStart) xEnd=xStart+1;
@@ -3633,11 +3666,16 @@ clevel[nlevel-1]=zEnd; //make this explicit
     bool xLog, yLog;
     get_axis_type("X", xLog);
     get_axis_type("Y", yLog);
+    /*
+    //if log, x/y/Start/End are already logarithmic. 
     if( xLog && xStart <= 0.0)
       Warning( "AXIS: Infinite x plot range.");
     if( yLog && minVal <= 0.0)
       Warning( "AXIS: Infinite y plot range.");
-
+    */
+    // test for x/yVal
+    if (xLog) { if (xVal <= 0.) xVal=xStart; else xVal=log10(xVal);}
+    if (yLog) { if (yVal <= 0.) yVal=yStart; else yVal=log10(yVal);}
 
     DDouble ticklen = 0.02;
     e->AssureDoubleScalarKWIfPresent( "TICKLEN", ticklen);
@@ -3668,9 +3706,48 @@ clevel[nlevel-1]=zEnd; //make this explicit
     PLFLT defH, actH;
     actStream->gchr( defH, actH);
 
+    // get viewport coordinates in normalised units
+    PLFLT vpXL, vpXR, vpYB, vpYT;
+    actStream->gvpd(vpXL, vpXR, vpYB, vpYT);
+    PLFLT vpX = vpXR-vpXL;
+    PLFLT vpY = vpYT-vpYB;
+
+    // create new viewport and draw only the relevant side (viewport
+    // will be reset to its original values later)
+    PLFLT svpXL, svpXR, svpYB, svpYT; //new viewport coordinates
+    if (xAxis) {
+      //keep the X values the same
+      svpXL=vpXL; svpXR=vpXR;
+      if (standardNumPos) { //our axis is the bottom of viewport
+	svpYB=vpY*(yVal-yStart)/(yEnd-yStart)+vpYB;
+	svpYT=svpYB+0.2; //value doesn't matter, as long as svpYT>svpYB
+      } else { //our axis is the top of viewport
+	svpYT=vpYT-vpY*(yEnd-yVal)/(yEnd-yStart);
+	svpYB=svpYT-0.2; //value doesn't matter, as long as svpYT>svpYB
+      }
+    }
+    if (yAxis) {
+      //keep the top and bottom the same
+      svpYT=vpYT; svpYB=vpYB;
+      if (standardNumPos) { //our axis is the left of the viewport
+	svpXL=vpX*(xVal-xStart)/(xEnd-xStart)+vpXL;
+	svpXR=svpXL+0.2; //value doesn't matter, as long as svpXR>svpXL
+      } else { //our axis is the right of the viewport
+	svpXR=vpXR-vpX*(xEnd-xVal)/(xEnd-xStart);
+	svpXL=svpXR-0.2; //value doesn't matter, as long as svpXR>svpXL
+      }
+    }
+    actStream->vpor(svpXL, svpXR, svpYB, svpYT);
+    //The world coordinates for the relevant axis should be same as
+    //the originals, while the other axis doesn't matter.  
+    actStream->wind(xStart, xEnd, yStart,yEnd);
+
+    // POSITION
+    //DFloatGDL* pos = (DFloatGDL*) 0xF;
+
     /*
     // viewport and world coordinates
-    bool okVPWC = SetVP_WC( e, actStream, pos, clippingD, 
+    bool okVPWC = SetVP_WC( e, actStream, pos, NULL,
 			    xLog, yLog,
 			    xMarginL, xMarginR, yMarginB, yMarginT,
 			    xStart, xEnd, minVal, maxVal);
@@ -3681,15 +3758,16 @@ clevel[nlevel-1]=zEnd; //make this explicit
     actStream->wid( 0);
 
     // axis
-    string xOpt="bc", yOpt="bc";
-    if ((xStyle & 8) == 8) xOpt = "b";
-    if ((yStyle & 8) == 8) yOpt = "b";
+    string xOpt, yOpt;
+    if (standardNumPos) { xOpt = "b"; yOpt = "b";} else { xOpt = "c"; yOpt = "c"; }
 
     if (xTicks == 1) xOpt += "t"; else xOpt += "st";
     if (yTicks == 1) yOpt += "tv"; else yOpt += "stv";
 
-    if (xTickformat != "(A1)") xOpt += "n";
-    if (yTickformat != "(A1)") yOpt += "n";
+    if (xTickformat != "(A1)" && standardNumPos) xOpt += "nf";
+    if (xTickformat != "(A1)" && !standardNumPos) xOpt += "mf";
+    if (yTickformat != "(A1)" && standardNumPos) yOpt += "nf";
+    if (yTickformat != "(A1)" && !standardNumPos) yOpt += "mf";
 
     if( xLog) xOpt += "l";
     if( yLog) yOpt += "l";
@@ -3697,11 +3775,13 @@ clevel[nlevel-1]=zEnd; //make this explicit
     if ((xStyle & 4) == 4) xOpt = "";
     if ((yStyle & 4) == 4) yOpt = "";
 
+    string titleOpt;
     if (xAxis) {
 
       // axis titles
       actStream->schr( 0.0, actH/defH * xCharSize);
-      actStream->mtex("b",3.5,0.5,0.5,xTitle.c_str());
+      if (standardNumPos) { titleOpt = "b"; } else { titleOpt = "t"; }
+      actStream->mtex(titleOpt.c_str(),3.5,0.5,0.5,xTitle.c_str());
 
       // the axis (separate for x and y axis because of charsize)
       PLFLT xintv;
@@ -3714,8 +3794,12 @@ clevel[nlevel-1]=zEnd; //make this explicit
     }
 
     if (yAxis) {
+
+      // axis titles
       actStream->schr( 0.0, actH/defH * yCharSize);
-      actStream->mtex("l",5.0,0.5,0.5,yTitle.c_str());
+      if (standardNumPos) { titleOpt = "l"; } else { titleOpt = "r"; }
+      actStream->mtex(titleOpt.c_str(),5.0,0.5,0.5,yTitle.c_str());
+
       // the axis (separate for x and y axis because of charsize)
       PLFLT yintv;
       if (yTicks == 0) {
@@ -3725,6 +3809,10 @@ clevel[nlevel-1]=zEnd; //make this explicit
       }
       actStream->box( "", 0.0, 0, yOpt.c_str(), yintv, yMinor);
     }
+
+    // reset the viewport and world coordinates to the original values
+    actStream->vpor(vpXL, vpXR, vpYB, vpYT);
+    actStream->wind(xStart, xEnd, yStart,yEnd);
 
     // title and sub title
     // axis has subtitle but no title, gkw_title requires both
