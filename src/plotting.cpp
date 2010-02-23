@@ -687,6 +687,27 @@ namespace lib {
       (*static_cast<DFloatGDL*>( xStruct->GetTag( ticklenTag, 0)))[0];
   }
 
+  void AdjustAxisOpts(string& xOpt, string& yOpt,
+    DLong xStyle, DLong yStyle, DLong xTicks, DLong yTicks,
+    string& xTickformat, string& yTickformat, DLong xLog, DLong yLog
+  ) // {{{
+  {
+    if ((xStyle & 8) == 8) xOpt = "b";
+    if ((yStyle & 8) == 8) yOpt = "b";
+
+    if (xTicks == 1) xOpt += "t"; else xOpt += "st";
+    if (yTicks == 1) yOpt += "tv"; else yOpt += "stv";
+
+    if (xTickformat != "(A1)") xOpt += "n";
+    if (yTickformat != "(A1)") yOpt += "n";
+
+    if( xLog) xOpt += "l";
+    if( yLog) yOpt += "l";
+
+    if ((xStyle & 4) == 4) xOpt = "";
+    if ((yStyle & 4) == 4) yOpt = "";
+  } // }}}
+
   GDLGStream* GetPlotStream( EnvT* e)
   {
     Graphics* actDevice=Graphics::GetDevice();
@@ -1417,6 +1438,8 @@ namespace lib {
 
     // axis
     string xOpt="bc", yOpt="bc";
+    AdjustAxisOpts(xOpt, yOpt, xStyle, yStyle, xTicks, yTicks, xTickformat, yTickformat, xLog, yLog);
+    /* SA: moved into a common AdjustAxisOpts() function
     if ((xStyle & 8) == 8) xOpt = "b";
     if ((yStyle & 8) == 8) yOpt = "b";
 
@@ -1431,6 +1454,7 @@ namespace lib {
 
     if ((xStyle & 4) == 4) xOpt = "";
     if ((yStyle & 4) == 4) yOpt = "";
+    */
 
     // axis titles
     actStream->schr( 0.0, actH/defH * xCharSize);
@@ -3465,8 +3489,14 @@ clevel[nlevel-1]=zEnd; //make this explicit
       string xOpt = "bcnst";
       string yOpt = "bcnstv";
 
+      /* SA: moved into a common AdjustAxisOpts()
       if( xLog) xOpt += "l";
       if( yLog) yOpt += "l";
+      */
+      DString xTickformat, yTickformat;
+      e->AssureStringScalarKWIfPresent( "XTICKFORMAT", xTickformat);
+      e->AssureStringScalarKWIfPresent( "YTICKFORMAT", yTickformat);
+      AdjustAxisOpts(xOpt, yOpt, xStyle, yStyle, xTicks, yTicks, xTickformat, yTickformat, xLog, yLog);
 
       // axis titles
       actStream->schr( 0.0, actH/defH * xCharSize);
