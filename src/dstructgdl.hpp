@@ -529,7 +529,7 @@ public:
   DStructGDL*   PowInv( BaseGDL* r);
   DStructGDL*   PowInt( BaseGDL* r);
   DStructGDL*   PowIntNew( BaseGDL* r);
-  DStructGDL*   MatrixOp( BaseGDL* r);
+  DStructGDL*   MatrixOp( BaseGDL* r,bool,bool,bool);
 
 
   DStructGDL*   AndOpS( BaseGDL* r);

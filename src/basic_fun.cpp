@@ -3105,7 +3105,7 @@ namespace lib {
     }
   }
  
-  BaseGDL* transpose( EnvT* e)
+BaseGDL* transpose( EnvT* e)
   {
     SizeT nParam=e->NParam( 1); 
 
@@ -3147,6 +3147,48 @@ namespace lib {
 
     return p0->Transpose( NULL);
   }
+
+
+// BaseGDL* matrix_multiply( EnvT* e)
+//   {
+//     SizeT nParam=e->NParam( 2); 
+// 
+//     BaseGDL* a = e->GetNumericArrayParDefined( 0);
+//     BaseGDL* b = e->GetNumericArrayParDefined( 1);
+//     
+//     static int aTIx = e->KeywordIx("ATRANSPOSE");
+//     bool aT = e->KeywordPresent(aTIx);
+//     static int bTIx = e->KeywordIx("BTRANSPOSE");
+//     bool bT = e->KeywordPresent(bTIx);
+//     
+//     static int strassenIx = e->KeywordIx("STRASSEN_ALGORITHM");
+//     bool strassen = e->KeywordPresent(strassenIx);
+// 
+//     
+//     if( p1->N_Elements() != rank)
+// 	  e->Throw("Incorrect number of elements in permutation.");
+// 
+// 	DUInt* perm = new DUInt[rank];
+// 	auto_ptr<DUInt> perm_guard( perm);
+// 
+// 	DUIntGDL* p1L = static_cast<DUIntGDL*>
+// 	  (p1->Convert2( UINT, BaseGDL::COPY));
+// 	for( SizeT i=0; i<rank; ++i) perm[i] = (*p1L)[ i];
+// 	delete p1L;
+// 
+// 	// check permutaion vector
+// 	for( SizeT i=0; i<rank; ++i) 
+// 	  {
+// 	    DUInt j;
+// 	    for( j=0; j<rank; ++j) if( perm[j] == i) break;
+// 	    if (j == rank)
+// 	      e->Throw( "Incorrect permutation vector.");
+// 	  }
+// 	return p0->Transpose( perm);
+//       }
+// 
+//     return a->Transpose( NULL);
+//   }
 
  
 

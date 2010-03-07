@@ -918,7 +918,7 @@ Data_<SpDByte>* Data_<SpDComplexDbl>::GtOp( BaseGDL* r)
 // MatrixOp
 // returns *this # *r, //C deletes itself and right
 template<class Sp>
-Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r)
+Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool transpose, bool transposeResult, bool strassen)
 {
   Data_* right=static_cast<Data_*>(r);
 
@@ -962,11 +962,11 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r)
       // [n] # [n,m] -> [1,m] ([n] -> [1,n])
 
       // right op 1st
-      SizeT nRow=right->dim[1];
+      SizeT nRow=transpose ? right->dim[0] : right->dim[1];
       if( nRow == 0) nRow=1;
 
       // loop dim
-      SizeT nRowEl=right->dim[0];
+      SizeT nRowEl=transpose ? right->dim[1] : right->dim[0];
       if( nRowEl == 0) nRowEl=1;
 
       // result dim
@@ -1005,15 +1005,27 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r)
 	throw GDLException("Operands of matrix multiply have"
 			   " incompatible dimensions.",true,false);  
 
+      if( transposeResult)
+      {
+      if( nCol > 1)
+	res=New(dimension( nRow, nCol),BaseGDL::NOZERO);
+      else
+	res=New(dimension(nRow),BaseGDL::NOZERO);
+      }
+      else
+      {
       if( nRow > 1)
 	res=New(dimension(nCol,nRow),BaseGDL::NOZERO);
       else
 	res=New(dimension(nCol),BaseGDL::NOZERO);
+     }
      
       SizeT rIxEnd = nRow * nColEl;
       //#ifdef _OPENMP 
       SizeT nOp = rIxEnd * nCol;
+
 #ifdef USE_STRASSEN_MATRIXMULTIPLICATION
+      if( !transpose && !transposeResult && strassen)
       //if( nOp > 1000000)
 	{
 	  SizeT maxDim;
@@ -1051,11 +1063,16 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r)
 
 
       //#endif
+
+if( !transposeResult) // normal
+{
+if( !transpose) // normal
+{
 #pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) default(shared)
 {
-#pragma omp for 
+#pragma omp for
       for( SizeT colA=0; colA < nCol; ++colA) // res dim 0
-	for( SizeT rIx=0, rowBnCol=0; rIx < rIxEnd; 
+	for( SizeT rIx=0, rowBnCol=0; rIx < rIxEnd;
 	     rIx += nColEl, rowBnCol += nCol) // res dim 1
 	  {
 	    Ty& resEl = (*res)[ rowBnCol + colA];
@@ -1064,6 +1081,59 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r)
 	      resEl += (*this)[ i*nCol+colA] * (*right)[ rIx+i];
 	  }
     }
+}
+else // transpose r
+{
+#pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) default(shared)
+{
+#pragma omp for
+      for( SizeT colA=0; colA < nCol; ++colA) // res dim 0
+	for( SizeT rIx=0, rowBnCol=0; rIx < nRow; ++rIx, rowBnCol += nCol) // res dim 1
+	  {
+	    Ty& resEl = (*res)[ rowBnCol + colA];
+	    resEl = 0;//(*this)[ colA] * (*right)[ rIx]; // initialization
+	    for( SizeT i=0; i < nColEl; ++i)
+	      resEl += (*this)[ i*nCol+colA] * (*right)[ rIx + i * nRow];
+	  }
+    }
+}
+}
+else // transposeResult
+{
+if( !transpose) // normal
+{
+#pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) default(shared)
+{
+#pragma omp for
+      for( SizeT colA=0; colA < nCol; ++colA) // res dim 0
+	for( SizeT rIx=0, rowBnCol=0; rIx < rIxEnd;
+	     rIx += nColEl, ++rowBnCol) // res dim 1
+	  {
+	    Ty& resEl = (*res)[ rowBnCol + colA * nRow];
+	    resEl = 0;//(*this)[ colA] * (*right)[ rIx]; // initialization
+	    for( SizeT i=0; i < nColEl; ++i)
+	      resEl += (*this)[ i*nCol+colA] * (*right)[ rIx+i];
+	  }
+    }
+}
+else // transpose r
+{
+#pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) default(shared)
+{
+#pragma omp for
+      for( SizeT colA=0; colA < nCol; ++colA) // res dim 0
+	for( SizeT rIx=0; rIx < nRow; ++rIx) // res dim 1
+	  {
+	    Ty& resEl = (*res)[ rIx + colA * nRow];
+	    resEl = 0;//(*this)[ colA] * (*right)[ rIx]; // initialization
+	    for( SizeT i=0; i < nColEl; ++i)
+	      resEl += (*this)[ i*nCol+colA] * (*right)[ rIx + i * nRow];
+	  }
+    }
+}
+}
+
+
 }
   //C delete right;
   //C delete this;
@@ -1075,25 +1145,25 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r)
 
 
 // invalid types
-DStructGDL* DStructGDL::MatrixOp( BaseGDL* r)
+DStructGDL* DStructGDL::MatrixOp( BaseGDL* r, bool t, bool tr, bool s)
 {
   throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return NULL;
 }
 template<>
-Data_<SpDString>* Data_<SpDString>::MatrixOp( BaseGDL* r)
+Data_<SpDString>* Data_<SpDString>::MatrixOp( BaseGDL* r, bool t, bool tr,  bool s)
 {
   throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
   return this;
 }
 template<>
-Data_<SpDPtr>* Data_<SpDPtr>::MatrixOp( BaseGDL* r)
+Data_<SpDPtr>* Data_<SpDPtr>::MatrixOp( BaseGDL* r, bool t, bool tr,  bool s)
 {
   throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return NULL;
 }
 template<>
-Data_<SpDObj>* Data_<SpDObj>::MatrixOp( BaseGDL* r)
+Data_<SpDObj>* Data_<SpDObj>::MatrixOp( BaseGDL* r, bool t, bool tr,  bool s)
 {
   throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return NULL;

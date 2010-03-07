@@ -530,7 +530,7 @@ public:
   //  virtual BaseGDL* ModInvNew( BaseGDL* r);   
   virtual BaseGDL* PowNew( BaseGDL* r);     
   //  virtual BaseGDL* PowInvNew( BaseGDL* r);  
-  virtual BaseGDL* MatrixOp( BaseGDL* r);   
+  virtual BaseGDL* MatrixOp( BaseGDL* r, bool rtranspose = false, bool transposeResult =false, bool strassen = false);
   virtual void AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT offset);
   virtual void AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList);
   virtual void AssignAt( BaseGDL* srcIn);

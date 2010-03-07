@@ -245,10 +245,10 @@ template<>
 Data_<SpDObj>* Data_<SpDObj>::Pow( BaseGDL* r);
 template<> 
 Data_<SpDObj>* Data_<SpDObj>::PowInv( BaseGDL* r);
-template<> 
-Data_<SpDString>* Data_<SpDString>::MatrixOp( BaseGDL* r);
-template<> 
-Data_<SpDPtr>* Data_<SpDPtr>::MatrixOp( BaseGDL* r);
+template<>
+Data_<SpDString>* Data_<SpDString>::MatrixOp( BaseGDL* r,bool t,bool tr, bool s);
+template<>
+Data_<SpDPtr>* Data_<SpDPtr>::MatrixOp( BaseGDL* ,bool t,bool tr,bool s);
 template<> 
 Data_<SpDByte>* Data_<SpDFloat>::LogNeg();
 template<> 

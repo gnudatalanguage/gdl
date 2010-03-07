@@ -414,7 +414,7 @@ BaseGDL* BaseGDL::PowIntNew( BaseGDL* r)
   throw GDLException("Operation not defined for UNDEF 171.");
 }
 
-BaseGDL* BaseGDL::MatrixOp( BaseGDL* r)   
+BaseGDL* BaseGDL::MatrixOp( BaseGDL* r, bool rtranspose, bool transposeResult, bool strassen)
 {
   throw GDLException("Operation not defined for UNDEF 18.");
 }

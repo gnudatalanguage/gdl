@@ -253,7 +253,7 @@ static	void operator delete( void *ptr);
   Data_*   PowInv( BaseGDL* r);
   Data_*   PowInt( BaseGDL* r);      
   Data_*   PowIntNew( BaseGDL* r);   
-  Data_*   MatrixOp( BaseGDL* r);
+  Data_*   MatrixOp( BaseGDL* r, bool transpose, bool transposeResult, bool strassen);
 
   Data_*   AndOpS( BaseGDL* r);
   Data_*   AndOpInvS( BaseGDL* r);

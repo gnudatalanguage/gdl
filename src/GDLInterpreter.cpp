@@ -355,7 +355,10 @@ GDLInterpreter::GDLInterpreter()
 		// 2 -> caller of routine which called ON_ERROR
 		else if( oE == 2)
 		{
-		++i; // set to caller
+		// set to caller, handle nested
+		while( static_cast<EnvUDT*>(*(++i))->GetOnError() == 2 
+		&& i != callStack.rend());
+		
 		if( i == callStack.rend())
 		{
 		EnvUDT* cS_begin = 
@@ -375,8 +378,6 @@ GDLInterpreter::GDLInterpreter()
 		targetEnv = iUDT;
 		}
 		
-		// remeber where to stop
-		e.SetTargetEnv( targetEnv);
 		
 		// State where error occured
 		//                     if( e.getLine() == 0 && _t != NULL)
@@ -387,6 +388,15 @@ GDLInterpreter::GDLInterpreter()
 		e.SetLine( actPos->getLine());
 		
 		ReportError(e, "Error occurred at:");
+		
+		// remeber where to stop
+		e.SetTargetEnv( targetEnv);
+		
+		if( targetEnv->GetLineNumber() != 0)
+		e.SetLine( targetEnv->GetLineNumber());                    
+		
+		//                     ProgNodeP errorNodeP = targetEnv->CallingNode();
+		//                     e.SetErrorNodeP( errorNodeP);
 		
 		// break on first occurence of set oE
 		break;
@@ -406,8 +416,8 @@ GDLInterpreter::GDLInterpreter()
 		//             e.SetLine( _t->getLine());
 		//         if( e.getLine() == 0 && _retTree != NULL)
 		//             e.SetLine( _retTree->getLine());
-		if( e.getLine() == 0 && actPos != NULL)
-		e.SetLine( actPos->getLine());
+		//        if( e.getLine() == 0 && actPos != NULL)
+		//            e.SetLine( actPos->getLine());
 		
 		if( interruptEnable)
 		{
