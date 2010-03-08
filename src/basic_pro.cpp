@@ -913,8 +913,8 @@ namespace lib {
     e->AssureScalarPar<DStringGDL>( 1, name); 
 
     // Change leading "~" to home directory
-    if (name.substr(0,2) == "~/")
-      name = getenv("HOME") + name.substr(1,name.size()-1);
+//     if (name.substr(0,2) == "~/")
+//       name = getenv("HOME") + name.substr(1,name.size()-1);
 
     // endian
     bool swapEndian=false;

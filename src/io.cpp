@@ -133,6 +133,8 @@ void GDLStream::Open( const string& name_,
 		      SizeT width_,
 		      bool f77_, bool compress_)
 {
+    string expName = name_;
+    WordExp( expName);
  
   f77 = f77_;
 
@@ -146,11 +148,11 @@ void GDLStream::Open( const string& name_,
   if( anyStream == NULL)
 	anyStream = new AnyStream();
 
-  name=name_;
+  name=expName;
   mode=mode_;
   compress = compress_;
 
-  anyStream->Open(name_,mode_,compress_);
+  anyStream->Open(expName,mode_,compress_);
   
   swapEndian = swapEndian_;
   deleteOnClose = dOC;

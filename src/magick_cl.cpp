@@ -124,6 +124,8 @@ namespace lib {
     try{
       DString filename;
       e->AssureScalarPar<DStringGDL>(0,filename);
+
+      WordExp( filename);
       
       Image a;
       try 
