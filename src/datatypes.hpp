@@ -86,7 +86,7 @@ static	void operator delete( void *ptr);
     Sp( dim_), dd( dd_) {}
 
   // c-i 
-  Data_(const Data_& d_): Sp(d_.dim), dd(d_.dd) {}
+  Data_(const Data_& d_);//: Sp(d_.dim), dd(d_.dd) {}
 
   // operators
   // assignment. 
@@ -154,7 +154,7 @@ static	void operator delete( void *ptr);
   SizeT LoopIndex() const; 
   
   // make a duplicate on the heap
-  Data_* Dup() const { return new Data_(*this);}
+  Data_* Dup() const;
 //   // make a duplicate at loc
 //   Data_* Dup( void* loc) const { return ::new ( loc) Data_(*this);}
 

@@ -91,4 +91,47 @@ bool IsFun(antlr::RefToken); // used by Lexer and Parser
 
 bool BigEndian();
 
+template <typename T> class RefHeap {
+private:
+		T* ptr;
+		SizeT count;
+		
+	// prevent usage
+	RefHeap<T>& operator=(const RefHeap<T>& other) {	return *this;}
+	template<class newType> operator RefHeap<newType>() {return RefHeap<newType>(ptr);}
+
+		
+public:
+	
+	void Inc() {++count;}
+	bool Dec() {return (--count==0);}
+
+	RefHeap(T* p = 0)
+	: ptr(p), count(1)
+	{}
+	
+	RefHeap( const RefHeap<T>& other)
+	: ptr( other.ptr), count( other.count) 
+	{}
+	
+	~RefHeap()
+	{}
+	
+	operator T* () const
+	{
+		return ptr;
+	}
+
+	T* operator->() const
+	{
+		return ptr;
+	}
+
+	 T*& get()
+	{
+		return ptr;
+	}
+};
+
+
 #endif

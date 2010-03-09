@@ -3310,6 +3310,12 @@ BaseGDL* transpose( EnvT* e)
       {
 	BaseGDL* p0 = e->GetParDefined( 0);
 
+	if( p0->Type() == PTR)
+	  e->Throw( "Pointer expression not allowed in this context: "+
+		    e->GetParString(0));
+	if( p0->Type() == OBJECT)
+	  e->Throw( "Object expression not allowed in this context: "+
+		    e->GetParString(0));
 	if( p0->Type() == STRUCT)
 	  e->Throw( "Struct expression not allowed in this context: "+
 		    e->GetParString(0));

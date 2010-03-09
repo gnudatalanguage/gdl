@@ -80,6 +80,9 @@ using namespace std;
 #define INCLUDE_GDLPYTHON_CPP 1
 #include "gdlpython.cpp"
 
+#define INCLUDE_DATATYPESREF_CPP 1
+#include "datatypesref.cpp"
+
 #ifdef PYTHON_MODULE
 #define INCLUDE_PYTHONGDL_CPP 1
 #include "pythongdl.cpp"
@@ -122,7 +125,15 @@ template<class Sp> void Data_<Sp>::operator delete( void *ptr)
 
 
 // destructor
-template<class Sp> Data_<Sp>::~Data_() {};
+template<class Sp> Data_<Sp>::~Data_() {}
+template<> Data_<SpDPtr>::~Data_()
+{
+	GDLInterpreter::DecRef( this);
+}
+template<> Data_<SpDObj>::~Data_()
+{
+	GDLInterpreter::DecRefObj( this);
+}
 
 // default
 template<class Sp> Data_<Sp>::Data_(): Sp(), dd() {}
@@ -263,6 +274,38 @@ template<> Data_<SpDObj>::Data_(const dimension& dim_,
   if( iT == BaseGDL::INDGEN)
     throw GDLException("DObjGDL(dim,InitType=INDGEN) called.");
 }
+
+// c-i
+template<class Sp>
+  Data_<Sp>::Data_(const Data_& d_): Sp(d_.dim), dd(d_.dd) {}
+template<>
+  Data_<SpDPtr>::Data_(const Data_& d_): SpDPtr(d_.dim), dd(d_.dd)
+  {
+    GDLInterpreter::IncRef( this);
+  }
+template<>
+  Data_<SpDObj>::Data_(const Data_& d_): SpDObj(d_.dim), dd(d_.dd)
+  {
+    GDLInterpreter::IncRefObj( this);
+  }
+
+template<class Sp>
+Data_<Sp>* Data_<Sp>::Dup() const { return new Data_(*this);}
+
+// template<>
+// Data_<SpDPtr>* Data_<SpDPtr>::Dup() const
+//   {
+//   Data_<SpDPtr>* p =new Data_(*this);
+//   GDLInterpreter::IncRef( p);
+//   return p;
+//   }
+// template<>
+//   Data_<SpDObj>* Data_<SpDObj>::Dup() const
+//   {
+//   Data_<SpDObj>* p =new Data_(*this);
+//   GDLInterpreter::IncRefObj( p);
+//   return p;
+//   }
 
 
 template<class Sp>
@@ -796,6 +839,62 @@ BaseGDL* Data_<Sp>::DupReverse( DLong dim)
       }
     }
   }
+  return res_guard.release();
+}
+template<>
+BaseGDL* Data_<SpDPtr>::DupReverse( DLong dim)
+{
+  // SA: based on total_over_dim_template()
+  Data_* res = new Data_(this->dim, BaseGDL::NOZERO);
+  auto_ptr<Data_> res_guard(res);
+  SizeT nEl = N_Elements();
+  SizeT revStride = this->dim.Stride(dim); 
+  SizeT outerStride = this->dim.Stride(dim + 1);
+  SizeT revLimit = this->dim[dim] * revStride;
+  for (SizeT o = 0; o < nEl; o += outerStride)
+  {
+    for (SizeT i = 0; i < revStride; ++i) 
+    {
+      SizeT oi = o + i; 
+      SizeT last_plus_oi = revLimit + oi - revStride + oi;
+      SizeT half = ((revLimit / revStride) / 2) * revStride + oi;
+      for (SizeT s = oi; s < half; s += revStride) 
+      {
+        SizeT opp = last_plus_oi - s;
+        (*res)[s] = (*this)[opp];
+        (*res)[opp] = (*this)[s];
+      }
+    }
+  }
+  GDLInterpreter::IncRef( res);
+  return res_guard.release();
+}
+template<>
+BaseGDL* Data_<SpDObj>::DupReverse( DLong dim)
+{
+  // SA: based on total_over_dim_template()
+  Data_* res = new Data_(this->dim, BaseGDL::NOZERO);
+  auto_ptr<Data_> res_guard(res);
+  SizeT nEl = N_Elements();
+  SizeT revStride = this->dim.Stride(dim); 
+  SizeT outerStride = this->dim.Stride(dim + 1);
+  SizeT revLimit = this->dim[dim] * revStride;
+  for (SizeT o = 0; o < nEl; o += outerStride)
+  {
+    for (SizeT i = 0; i < revStride; ++i) 
+    {
+      SizeT oi = o + i; 
+      SizeT last_plus_oi = revLimit + oi - revStride + oi;
+      SizeT half = ((revLimit / revStride) / 2) * revStride + oi;
+      for (SizeT s = oi; s < half; s += revStride) 
+      {
+        SizeT opp = last_plus_oi - s;
+        (*res)[s] = (*this)[opp];
+        (*res)[opp] = (*this)[s];
+      }
+    }
+  }
+  GDLInterpreter::IncRefObj( res);
   return res_guard.release();
 }
 
@@ -2447,6 +2546,7 @@ void Data_<Sp>::InsAt( Data_* srcIn, ArrayIndexListT* ixList, SizeT offset)
 	  }
     }
 }
+
   
 // used for concatenation, called from CatArray
 // assumes that everything is checked (see CatInfo)
@@ -3957,6 +4057,10 @@ void Data_<Sp>::Assign( BaseGDL* src, SizeT nEl)
 }    }
 }
 
+
+
+
+
 // return a new type of itself (only for one dimensional case)
 template<class Sp>
 Data_<Sp>* Data_<Sp>::NewIx( SizeT ix)
@@ -4021,6 +4125,8 @@ Data_<Sp>* Data_<Sp>::NewIxFromStride( SizeT s, SizeT e, SizeT stride)
   return res;
 }
 
+#undef NEWIX_SIGNEDINT
+#undef NEWIX_UNSIGNEDINT
 #define NEWIX_UNSIGNEDINT \
 SizeT i = 0;\
 for( ; i < nElem; ++i)\

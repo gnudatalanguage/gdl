@@ -4,7 +4,7 @@
  * Project led by Terence Parr at http://www.jGuru.com
  * Software rights: http://www.antlr.org/license.html
  *
- * $Id: RefCount.hpp,v 1.1.1.1 2004-12-09 15:10:20 m_schellens Exp $
+ * $Id: RefCount.hpp,v 1.2 2010-03-09 23:54:39 m_schellens Exp $
  */
 
 #include <antlr/config.hpp>
@@ -62,7 +62,7 @@ public:
 		return ref ? ref->ptr : 0;
 	}
 
-	T* get() const
+	 T* get() const
 	{
 		return ref ? ref->ptr : 0;
 	}

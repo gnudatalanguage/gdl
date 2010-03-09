@@ -200,7 +200,7 @@ am__gdl_SOURCES_DIST = accessdesc.hpp arrayindex.hpp assocdata.cpp \
 	gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp \
 	arrayindex.cpp fftw.cpp fftw.hpp mpi.cpp mpi.hpp plot3d_nr.cpp \
 	grib.cpp grib.hpp prognode.cpp prognodeexpr.cpp \
-	strassenmatrix.hpp gdl.cpp lapack.cpp
+	strassenmatrix.hpp datatypesref.cpp gdl.cpp lapack.cpp
 am__objects_2 = gdl-assocdata.$(OBJEXT) gdl-basic_fun_cl.$(OBJEXT) \
 	gdl-basic_fun.$(OBJEXT) gdl-basic_fun_jmg.$(OBJEXT) \
 	gdl-basic_op.$(OBJEXT) gdl-basic_pro.$(OBJEXT) \
@@ -248,6 +248,7 @@ am__objects_2 = gdl-assocdata.$(OBJEXT) gdl-basic_fun_cl.$(OBJEXT) \
 	gdl-plot3d_nr.$(OBJEXT) gdl-grib.$(OBJEXT) \
 	gdl-prognode.$(OBJEXT) gdl-prognodeexpr.$(OBJEXT)
 @BUILDASLIBRARY_FALSE@am_gdl_OBJECTS = $(am__objects_2) \
+@BUILDASLIBRARY_FALSE@	gdl-datatypesref.$(OBJEXT) \
 @BUILDASLIBRARY_FALSE@	gdl-gdl.$(OBJEXT) gdl-lapack.$(OBJEXT)
 gdl_OBJECTS = $(am_gdl_OBJECTS)
 @BUILDASLIBRARY_FALSE@gdl_DEPENDENCIES =  \
@@ -493,7 +494,7 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 		fftw.cpp fftw.hpp mpi.cpp mpi.hpp plot3d_nr.cpp grib.cpp grib.hpp \
                 prognode.cpp prognodeexpr.cpp strassenmatrix.hpp
 
-@BUILDASLIBRARY_FALSE@gdl_SOURCES = $(cpp_hpp_files) gdl.cpp lapack.cpp
+@BUILDASLIBRARY_FALSE@gdl_SOURCES = $(cpp_hpp_files) datatypesref.cpp gdl.cpp lapack.cpp
 # trigger basename generation
 @BUILDASLIBRARY_FALSE@gdl_CXXFLAGS = $(AM_CXXFLAGS)
 # the library search path.
@@ -693,6 +694,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-convol_inc1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-convol_inc2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-datatypes.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-datatypesref.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-dcommon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-dcompiler.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-default_io.Po@am__quote@
@@ -2205,6 +2207,20 @@ gdl-prognodeexpr.obj: prognodeexpr.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='prognodeexpr.cpp' object='gdl-prognodeexpr.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-prognodeexpr.obj `if test -f 'prognodeexpr.cpp'; then $(CYGPATH_W) 'prognodeexpr.cpp'; else $(CYGPATH_W) '$(srcdir)/prognodeexpr.cpp'; fi`
+
+gdl-datatypesref.o: datatypesref.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-datatypesref.o -MD -MP -MF $(DEPDIR)/gdl-datatypesref.Tpo -c -o gdl-datatypesref.o `test -f 'datatypesref.cpp' || echo '$(srcdir)/'`datatypesref.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/gdl-datatypesref.Tpo $(DEPDIR)/gdl-datatypesref.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='datatypesref.cpp' object='gdl-datatypesref.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-datatypesref.o `test -f 'datatypesref.cpp' || echo '$(srcdir)/'`datatypesref.cpp
+
+gdl-datatypesref.obj: datatypesref.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-datatypesref.obj -MD -MP -MF $(DEPDIR)/gdl-datatypesref.Tpo -c -o gdl-datatypesref.obj `if test -f 'datatypesref.cpp'; then $(CYGPATH_W) 'datatypesref.cpp'; else $(CYGPATH_W) '$(srcdir)/datatypesref.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/gdl-datatypesref.Tpo $(DEPDIR)/gdl-datatypesref.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='datatypesref.cpp' object='gdl-datatypesref.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-datatypesref.obj `if test -f 'datatypesref.cpp'; then $(CYGPATH_W) 'datatypesref.cpp'; else $(CYGPATH_W) '$(srcdir)/datatypesref.cpp'; fi`
 
 gdl-gdl.o: gdl.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-gdl.o -MD -MP -MF $(DEPDIR)/gdl-gdl.Tpo -c -o gdl-gdl.o `test -f 'gdl.cpp' || echo '$(srcdir)/'`gdl.cpp

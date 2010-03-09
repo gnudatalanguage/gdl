@@ -138,8 +138,13 @@ protected:
 
     bool interruptEnable;
 
-    typedef std::map<SizeT, BaseGDL*> HeapT;
-    typedef std::map<SizeT, DStructGDL*> ObjHeapT;
+    typedef RefHeap<BaseGDL> RefBaseGDL;
+    typedef RefHeap<DStructGDL> RefDStructGDL;
+
+    typedef std::map<SizeT, RefBaseGDL> HeapT;
+    typedef std::map<SizeT, RefDStructGDL> ObjHeapT;
+//     typedef std::map<SizeT, BaseGDL*> HeapT;
+//     typedef std::map<SizeT, DStructGDL*> ObjHeapT;
 
     // the following must be all static because several interpreter might be active
     // the heap for all dynamic variables
@@ -168,7 +173,7 @@ public:
         SizeT tmpIx=objHeapIx;
         for( SizeT i=0; i<n; i++)
         objHeap.insert( objHeap.end(),
-            std::pair<SizeT, DStructGDL*>( objHeapIx++, var));
+            std::pair<SizeT, RefDStructGDL>( objHeapIx++, (DStructGDL*)var));
         return tmpIx;
     }
     SizeT NewHeap( SizeT n=1, BaseGDL* var=NULL)
@@ -176,7 +181,7 @@ public:
         SizeT tmpIx=heapIx;
         for( SizeT i=0; i<n; i++)
         heap.insert( heap.end(),
-            std::pair<SizeT, BaseGDL*>( heapIx++, var));
+            std::pair<SizeT, RefBaseGDL>( heapIx++, var));
         return tmpIx;
     }
     static void FreeObjHeap( DObj id)
@@ -214,19 +219,102 @@ public:
        }
     }
 
+   static void DecRef( DPtr id)
+    {
+        if( id != 0)
+            {
+                HeapT::iterator it=heap.find( id);
+                if( it != heap.end()) 
+                     { 
+                        if( (*it).second.Dec())
+                            std::cout << "Out of scope: <PtrHeapVar" << id << ">" << std::endl; 
+                    }
+            }
+    }
+   static void DecRef( DPtrGDL* p)
+    {
+        SizeT nEl=p->N_Elements();
+        for( SizeT ix=0; ix < nEl; ix++)
+        {
+            DPtr id= (*p)[ix];
+            DecRef( id);
+       }
+    }
+   static void DecRefObj( DObj id)
+    {
+        if( id != 0)
+            {
+                ObjHeapT::iterator it=objHeap.find( id);
+                if( it != objHeap.end()) 
+                    { 
+                       if( (*it).second.Dec())
+                            std::cout << "Out of scope: <ObjHeapVar" << id << ">" << std::endl; 
+                     }
+            }
+    }
+   static void DecRefObj( DObjGDL* p)
+    {
+        SizeT nEl=p->N_Elements();
+        for( SizeT ix=0; ix < nEl; ix++)
+        {
+            DObj id= (*p)[ix];
+            DecRefObj( id);
+       }
+    }
+   static void IncRef( DPtr id)
+    {
+        if( id != 0)
+            {
+                HeapT::iterator it=heap.find( id);
+                if( it != heap.end()) 
+                    { 
+                        (*it).second.Inc(); 
+                    }
+            }
+    }
+   static void IncRef( DPtrGDL* p)
+    {
+        SizeT nEl=p->N_Elements();
+        for( SizeT ix=0; ix < nEl; ix++)
+        {
+            DPtr id= (*p)[ix];
+            IncRef( id);
+       }
+    }
+   static void IncRefObj( DObj id)
+    {
+        if( id != 0)
+            {
+                ObjHeapT::iterator it=objHeap.find( id);
+                if( it != objHeap.end()) 
+                    { 
+                        (*it).second.Inc(); 
+                    }
+            }
+    }
+   static void IncRefObj( DObjGDL* p)
+    {
+        SizeT nEl=p->N_Elements();
+        for( SizeT ix=0; ix < nEl; ix++)
+        {
+            DObj id= (*p)[ix];
+            IncRefObj( id);
+       }
+    }
+
     class HeapException {};
 
     static BaseGDL*& GetHeap( DPtr ID)
     {
         HeapT::iterator it=heap.find( ID);
         if( it == heap.end()) throw HeapException();
-        return it->second;
+        return it->second.get();
     }
     static DStructGDL*& GetObjHeap( DObj ID)
     {
         ObjHeapT::iterator it=objHeap.find( ID);
         if( it == objHeap.end()) throw HeapException();
-        return it->second;
+        return it->second.get();
     }
 
     static bool PtrValid( DPtr ID)
@@ -244,7 +332,7 @@ public:
     {
         for( HeapT::iterator it=heap.begin(); it != heap.end(); ++it)
         {
-            if( &it->second == p)
+            if( &it->second.get() == p)
                 return it->first;
         }
         return 0;
