@@ -1194,6 +1194,16 @@ void Data_<Sp>::Destruct()
   // no destruction for POD
 }
 template<>
+void Data_< SpDPtr>::Destruct()
+{
+this->~Data_();
+}
+template<>
+void Data_< SpDObj>::Destruct()
+{
+this->~Data_();
+}
+template<>
 void Data_< SpDString>::Destruct() 
 {
   SizeT nEl = dd.size(); 
