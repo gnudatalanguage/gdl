@@ -17,6 +17,7 @@
 
 // to be included from datatypes.cpp
 #ifdef INCLUDE_DATATYPESREF_CPP
+#undef INCLUDE_DATATYPESREF_CPP
 
 template<>
 void Data_<SpDPtr>::InsAt( Data_* srcIn, ArrayIndexListT* ixList, SizeT offset)
@@ -33,11 +34,11 @@ if( nDim == 1)
 	{
 	//	  len = 1;
 	SizeT rStride = srcIn->Stride(this->Rank());
-	Ty a = (*this)[ destStart];
+	Ty& a = (*this)[ destStart];
 	Ty b = (*srcIn)[ offset/rStride];
 	GDLInterpreter::DecRef( a);
 	GDLInterpreter::IncRef( b);
-	(*this)[ destStart] = (*srcIn)[ offset/rStride];
+	a = b;//(*this)[ destStart] = (*srcIn)[ offset/rStride];
 	}
 	else
 	{
@@ -55,12 +56,12 @@ if( nDim == 1)
 	SizeT destEnd = destStart + len;
 	for( SizeT destIx = destStart; destIx < destEnd; ++destIx)
 {
-	Ty a = (*this)[ destIx];
-	Ty b = (*srcIn)[ srcIx];
+	Ty& a = (*this)[ destIx];
+	Ty b = (*srcIn)[ srcIx++];
 	GDLInterpreter::DecRef( a);
 	GDLInterpreter::IncRef( b);
 
-		(*this)[ destIx] = (*srcIn)[ srcIx++];
+	a = b;//	(*this)[ destIx] = (*srcIn)[ srcIx++];
 }
 	}
 
@@ -107,11 +108,11 @@ for( SizeT c=1; c<=nCp; ++c) // linearized verison of nested loops
 	SizeT destEnd=destStart+len;
 	for( SizeT destIx=destStart; destIx<destEnd; ++destIx)
 {
-	Ty a = (*this)[ destIx];
-	Ty b = (*srcIn)[ srcIx];
+	Ty& a = (*this)[ destIx];
+	Ty b = (*srcIn)[ srcIx++];
 	GDLInterpreter::DecRef( a);
 	GDLInterpreter::IncRef( b);
-	(*this)[destIx] = (*srcIn)[ srcIx++];
+	a = b;//(*this)[destIx] = (*srcIn)[ srcIx++];
 }
 
 	// update destStart for all dimensions
@@ -148,11 +149,11 @@ if( nDim == 1)
 	{
 	//	  len = 1;
 	SizeT rStride = srcIn->Stride(this->Rank());
-	Ty a = (*this)[ destStart];
+	Ty& a = (*this)[ destStart];
 	Ty b = (*srcIn)[ offset/rStride];
 	GDLInterpreter::DecRefObj( a);
 	GDLInterpreter::IncRefObj( b);
-	(*this)[ destStart] = (*srcIn)[ offset/rStride];
+	a = b;//(*this)[ destStart] = (*srcIn)[ offset/rStride];
 	}
 	else
 	{
@@ -170,12 +171,12 @@ if( nDim == 1)
 	SizeT destEnd = destStart + len;
 	for( SizeT destIx = destStart; destIx < destEnd; ++destIx)
 {
-	Ty a = (*this)[ destIx];
-	Ty b = (*srcIn)[ srcIx];
+	Ty& a = (*this)[ destIx];
+	Ty b = (*srcIn)[ srcIx++];
 	GDLInterpreter::DecRefObj( a);
 	GDLInterpreter::IncRefObj( b);
 
-		(*this)[ destIx] = (*srcIn)[ srcIx++];
+	a = b;//	(*this)[ destIx] = (*srcIn)[ srcIx++];
 }
 	}
 
@@ -222,11 +223,11 @@ for( SizeT c=1; c<=nCp; ++c) // linearized verison of nested loops
 	SizeT destEnd=destStart+len;
 	for( SizeT destIx=destStart; destIx<destEnd; ++destIx)
 {
-	Ty a = (*this)[ destIx];
-	Ty b = (*srcIn)[ srcIx];
+	Ty& a = (*this)[ destIx];
+	Ty b = (*srcIn)[ srcIx++];
 	GDLInterpreter::DecRefObj( a);
 	GDLInterpreter::IncRefObj( b);
-	(*this)[destIx] = (*srcIn)[ srcIx++];
+	a = b;//(*this)[destIx] = (*srcIn)[ srcIx++];
 }
 
 	// update destStart for all dimensions
@@ -265,11 +266,11 @@ if( isScalar)
 
 	if( nCp == 1)
 	{
-	Ty a = (*this)[ ixList->LongIx()] ;
+	Ty& a = (*this)[ ixList->LongIx()] ;
 	Ty b = (*src)[ 0];
 	GDLInterpreter::DecRef( a);
 	GDLInterpreter::IncRef( b);
-	(*this)[ ixList->LongIx()] = (*src)[0];
+	a = b;//(*this)[ ixList->LongIx()] = (*src)[0];
 	}
 	else
 	{
@@ -280,11 +281,11 @@ if( isScalar)
 #pragma omp for
 	for( SizeT c=0; c<nCp; ++c)
 	{
-	Ty a = (*this)[ (*allIx)[ c]];
+	Ty& a = (*this)[ (*allIx)[ c]];
 	Ty b = scalar;
 	GDLInterpreter::DecRef( a);
 	GDLInterpreter::IncRef( b);
-		(*this)[ (*allIx)[ c]]=scalar;
+	a = b;//	(*this)[ (*allIx)[ c]]=scalar;
 	}
 }	  //	    (*this)[ ixList->GetIx( c)]=scalar;
 	}
@@ -310,11 +311,11 @@ else
 #pragma omp for
 	for( SizeT c=0; c<nCp; ++c)
 	{
-	Ty a = (*this)[ (*allIx)[ c]];
+	Ty& a = (*this)[ (*allIx)[ c]];
 	Ty b = (*src)[c];
 	GDLInterpreter::DecRef( a);
 	GDLInterpreter::IncRef( b);
-		(*this)[ (*allIx)[ c]]=(*src)[c];
+	a = b;//	(*this)[ (*allIx)[ c]]=(*src)[c];
 	}
 }	  //		(*this)[ ixList->GetIx( c)]=(*src)[c+offset];
 	}
@@ -340,11 +341,11 @@ if( isScalar)
 #pragma omp for
 	for( SizeT c=0; c<nCp; ++c)
 	{
-	Ty a = (*this)[ c];
+	Ty& a = (*this)[ c];
 	Ty b = scalar;
 	GDLInterpreter::DecRef( a);
 	GDLInterpreter::IncRef( b);
-	(*this)[ c]=scalar;
+	a = b;//(*this)[ c]=scalar;
 }
 }  
 	//       SizeT nCp=Data_::N_Elements();
@@ -364,11 +365,11 @@ else
 #pragma omp for
 	for( SizeT c=0; c<nCp; ++c)
 	{
-	Ty a = (*this)[ c];
+	Ty& a = (*this)[ c];
 	Ty b = (*src)[c];
 	GDLInterpreter::DecRef( a);
 	GDLInterpreter::IncRef( b);
-	(*this)[ c]=(*src)[c];
+	a = b;//(*this)[ c]=(*src)[c];
 	}
 }
 	}
@@ -391,11 +392,11 @@ if( isScalar)
 
 	if( nCp == 1)
 	{
-	Ty a = (*this)[ ixList->LongIx()] ;
+	Ty& a = (*this)[ ixList->LongIx()] ;
 	Ty b = (*src)[ 0];
 	GDLInterpreter::DecRefObj( a);
 	GDLInterpreter::IncRefObj( b);
-	(*this)[ ixList->LongIx()] = (*src)[0];
+	a = b;//(*this)[ ixList->LongIx()] = (*src)[0];
 	}
 	else
 	{
@@ -406,11 +407,11 @@ if( isScalar)
 #pragma omp for
 	for( SizeT c=0; c<nCp; ++c)
 	{
-	Ty a = (*this)[ (*allIx)[ c]];
+	Ty& a = (*this)[ (*allIx)[ c]];
 	Ty b = scalar;
 	GDLInterpreter::DecRefObj( a);
 	GDLInterpreter::IncRefObj( b);
-		(*this)[ (*allIx)[ c]]=scalar;
+	a = b;//	(*this)[ (*allIx)[ c]]=scalar;
 	}
 }	  //	    (*this)[ ixList->GetIx( c)]=scalar;
 	}
@@ -436,11 +437,11 @@ else
 #pragma omp for
 	for( SizeT c=0; c<nCp; ++c)
 	{
-	Ty a = (*this)[ (*allIx)[ c]];
+	Ty& a = (*this)[ (*allIx)[ c]];
 	Ty b = (*src)[c];
 	GDLInterpreter::DecRefObj( a);
 	GDLInterpreter::IncRefObj( b);
-		(*this)[ (*allIx)[ c]]=(*src)[c];
+	a = b;//	(*this)[ (*allIx)[ c]]=(*src)[c];
 	}
 }	  //		(*this)[ ixList->GetIx( c)]=(*src)[c+offset];
 	}
@@ -467,11 +468,11 @@ if( isScalar)
 #pragma omp for
 	for( SizeT c=0; c<nCp; ++c)
 	{
-	Ty a = (*this)[ c];
+	Ty& a = (*this)[ c];
 	Ty b = scalar;
 	GDLInterpreter::DecRefObj( a);
 	GDLInterpreter::IncRefObj( b);
-	(*this)[ c]=scalar;
+	a = b;//(*this)[ c]=scalar;
 }
 }      
 	//       SizeT nCp=Data_::N_Elements();
@@ -491,11 +492,11 @@ else
 #pragma omp for
 	for( SizeT c=0; c<nCp; ++c)
 	{
-	Ty a = (*this)[ c];
+	Ty& a = (*this)[ c];
 	Ty b = (*src)[c];
 	GDLInterpreter::DecRefObj( a);
 	GDLInterpreter::IncRefObj( b);
-	(*this)[ c]=(*src)[c];
+	a = b;//(*this)[ c]=(*src)[c];
 	}
 }
 	}

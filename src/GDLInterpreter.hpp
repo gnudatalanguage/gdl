@@ -191,7 +191,7 @@ public:
             ObjHeapT::iterator it=objHeap.find( id);
             if  ( it != objHeap.end()) 
             { 
-                delete (*it).second;
+                delete (*it).second.get();
                 objHeap.erase( id);
             }
         }
@@ -203,7 +203,7 @@ public:
                 HeapT::iterator it=heap.find( id);
                 if( it != heap.end()) 
                     { 
-                        delete (*it).second;
+                        delete (*it).second.get();
                         heap.erase( id); 
                     }
             }

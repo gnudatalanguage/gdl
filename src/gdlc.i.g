@@ -267,7 +267,7 @@ public:
             ObjHeapT::iterator it=objHeap.find( id);
             if  ( it != objHeap.end()) 
             { 
-                delete (*it).second;
+                delete (*it).second.get();
                 objHeap.erase( id);
             }
         }
@@ -279,7 +279,7 @@ public:
                 HeapT::iterator it=heap.find( id);
                 if( it != heap.end()) 
                     { 
-                        delete (*it).second;
+                        delete (*it).second.get();
                         heap.erase( id); 
                     }
             }
@@ -320,7 +320,7 @@ public:
     {
         if( id != 0)
             {
-                HeapT::iterator it=objHeap.find( id);
+                ObjHeapT::iterator it=objHeap.find( id);
                 if( it != objHeap.end()) 
                     { 
                        if( (*it).second.Dec())
@@ -361,7 +361,7 @@ public:
     {
         if( id != 0)
             {
-                HeapT::iterator it=objHeap.find( id);
+                ObjHeapT::iterator it=objHeap.find( id);
                 if( it != objHeap.end()) 
                     { 
                         (*it).second.Inc(); 
