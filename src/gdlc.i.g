@@ -421,6 +421,21 @@ public:
         SizeT i=0;
         for( HeapT::iterator it=heap.begin(); it != heap.end(); ++it)
         {
+            IncRef( it->first);
+            (*ret)[ i++] = it->first;
+        }
+        return ret;
+    }
+
+    // no ref counting here
+    static std::vector<DPtr>* GetAllHeapSTL()
+    {
+        SizeT nEl = heap.size();
+        if( nEl == 0) return new std::vector<DPtr>();
+        std::vector<DPtr>* ret = new std::vector<DPtr>( nEl);
+        SizeT i=0;
+        for( HeapT::iterator it=heap.begin(); it != heap.end(); ++it)
+        {
             (*ret)[ i++] = it->first;
         }
         return ret;
@@ -451,6 +466,21 @@ public:
         SizeT nEl = objHeap.size();
         if( nEl == 0) return new DObjGDL( 0);
         DObjGDL* ret = new DObjGDL( dimension( &nEl, 1), BaseGDL::NOZERO);
+        SizeT i=0;
+        for( ObjHeapT::iterator it=objHeap.begin(); it != objHeap.end(); ++it)
+        {
+            IncRefObj( it->first);
+            (*ret)[ i++] = it->first;
+        }
+        return ret;
+    }
+
+    // no ref counting here
+    static std::vector<DObj>* GetAllObjHeapSTL()
+    {
+        SizeT nEl = objHeap.size();
+        if( nEl == 0) return new std::vector<DObj>();
+        std::vector<DObj>* ret = new std::vector<DObj>( nEl);
         SizeT i=0;
         for( ObjHeapT::iterator it=objHeap.begin(); it != objHeap.end(); ++it)
         {

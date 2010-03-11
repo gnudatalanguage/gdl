@@ -118,10 +118,11 @@ DStructGDL::DStructGDL( const string& name_)
 }
  
   // c-i 
+// only used from Assoc_
 DStructGDL::DStructGDL(const DStructGDL& d_)
-  : SpDStruct(d_.desc, d_.dim) 
+  : SpDStruct(d_.desc, d_.dim)
   , typeVar( d_.NTags())
-  , dd(d_.NBytes(), false) 
+  , dd(d_.NBytes(), false)
 {
   MakeOwnDesc();
 

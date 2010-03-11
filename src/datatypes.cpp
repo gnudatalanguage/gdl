@@ -1067,6 +1067,32 @@ Data_<Sp>& Data_<Sp>::operator=(const BaseGDL& r)
   dd = right.dd;
   return *this;
 }
+template<>
+Data_<SpDPtr>& Data_<SpDPtr>::operator=(const BaseGDL& r)
+{
+  assert( r.Type() == this->Type());
+  const Data_& right = static_cast<const Data_&>( r);
+  assert( &right != this);
+  if( &right == this) return *this; // self assignment
+  this->dim = right.dim;
+  GDLInterpreter::DecRef( this);
+  dd = right.dd;
+  GDLInterpreter::IncRef( this);
+  return *this;
+}
+template<>
+Data_<SpDObj>& Data_<SpDObj>::operator=(const BaseGDL& r)
+{
+  assert( r.Type() == this->Type());
+  const Data_& right = static_cast<const Data_&>( r);
+  assert( &right != this);
+  if( &right == this) return *this; // self assignment
+  this->dim = right.dim;
+  GDLInterpreter::DecRefObj( this);
+  dd = right.dd;
+  GDLInterpreter::IncRefObj( this);
+  return *this;
+}
 
 template< class Sp>
 bool Data_<Sp>::EqType( const BaseGDL* r) const 
@@ -1119,6 +1145,26 @@ for( SizeT i = 0; i<nEl; ++i) (*this)[ i] = Sp::zero;
 template< class Sp>
 void Data_<Sp>::Construct() 
 {}
+template<>
+void Data_<SpDPtr>::Construct() 
+{
+SizeT nEl = dd.size(); 
+//  for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty;
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
+  for( SizeT i = 0; i<nEl; ++i) dd[ i] = 0;
+}}
+template<>
+void Data_<SpDObj>::Construct()
+{
+SizeT nEl = dd.size(); 
+//  for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty;
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for
+  for( SizeT i = 0; i<nEl; ++i) dd[ i] = 0;
+}}
 // non POD - use placement new
 template<>
 void Data_< SpDString>::Construct() 

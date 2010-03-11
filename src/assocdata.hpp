@@ -44,13 +44,13 @@ static	void operator delete( void *ptr);
   ~Assoc_() {}
   
   // c-i
-  Assoc_( const Assoc_& cp): Parent_( cp),
+  Assoc_( const Assoc_& cp): Parent_(cp),
 			     lun(cp.lun),
 			     fileOffset( cp.fileOffset),
 			     sliceSize( cp.sliceSize)
   {}
 
-  Parent_* Dup() { return new Assoc_(*this);}
+ Parent_* Dup() { return new Assoc_(*this);}
 
   void AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT offset);
   void AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList);

@@ -378,11 +378,11 @@ void EnvT::HeapGC( bool doPtr, bool doObj, bool verbose)
     // do OBJ first as the cleanup might need the PTR be valid
     if( doObj)
       {
-	DObjGDL* heap = interpreter->GetAllObjHeap();
-	auto_ptr< DObjGDL> heap_guard( heap);
+	std::vector<DObj>* heap = interpreter->GetAllObjHeapSTL();
+	auto_ptr< std::vector<DObj> > heap_guard( heap);
 	if( (*heap)[0] != 0)
 	  {
-	    SizeT nH = heap->N_Elements();
+	    SizeT nH = heap->size();//N_Elements();
 	    for( SizeT h=0; h<nH; ++h)
 	      {
 		DObj p = (*heap)[ h];
@@ -406,11 +406,11 @@ void EnvT::HeapGC( bool doPtr, bool doObj, bool verbose)
       }
     if( doPtr)
       {
-	DPtrGDL* heap = interpreter->GetAllHeap();
-	auto_ptr< BaseGDL> heap_guard( heap);
+	std::vector<DPtr>* heap = interpreter->GetAllHeapSTL();
+	auto_ptr< std::vector<DPtr> > heap_guard( heap);
 	if( (*heap)[0] != 0)
 	  {
-	    SizeT nH = heap->N_Elements();
+	    SizeT nH = heap->size();
 	    for( SizeT h=0; h<nH; ++h)
 	      {
 		DPtr p = (*heap)[ h];

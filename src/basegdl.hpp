@@ -364,7 +364,7 @@ public:
     return i;
   }
 
-  virtual BaseGDL& operator=(const BaseGDL& right);
+ virtual BaseGDL& operator=(const BaseGDL& right);
 
   // virtual functions
   virtual bool IsAssoc() const;

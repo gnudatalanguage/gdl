@@ -117,7 +117,8 @@ public:
   }
 
   // c-i (desc defined)
-  DStructGDL(const DStructGDL& d_);
+  // only called from Assoc_'s c-i
+DStructGDL(const DStructGDL& d_);
 
   // For creating new structs (always scalar)
   DStructGDL( DStructDesc* desc_)
