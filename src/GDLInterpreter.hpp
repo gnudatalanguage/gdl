@@ -33,7 +33,7 @@
 // print out AST tree
 //#define GDL_DEBUG
 //#undef GDL_DEBUG
-#define GDL_DEBUG_HEAP
+//#define GDL_DEBUG_HEAP
 
 
 class CUSTOM_API GDLInterpreter : public antlr::TreeParser, public GDLInterpreterTokenTypes
