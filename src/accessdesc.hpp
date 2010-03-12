@@ -337,9 +337,13 @@ public:
   BaseGDL* Resolve()
   {
     SetupDim();
-    
-    // no zeroing, here the new variable is created
-    BaseGDL* newData=top->New( dim, BaseGDL::NOZERO);
+
+    BaseGDL* newData;
+    // no zeroing, here the new variable is created TODO: zero only for PTR and OBJECT
+    if( top->Type() == PTR || top->Type() == OBJECT)
+		newData=top->New( dim);//, BaseGDL::NOZERO);
+    else
+		newData=top->New( dim, BaseGDL::NOZERO);
 
     rOffset=0; // crucial line, only with rOffset == 0 var is set
  

@@ -322,21 +322,26 @@ namespace lib {
 
       DPtrGDL* ret;
 
-      if( e->KeywordSet(0) || e->KeywordSet(1)) 
-	ret= new DPtrGDL(dim, BaseGDL::NOZERO);
-      else
-	return new DPtrGDL(dim);
+//       if( e->KeywordSet(0))
+// 	       ret= new DPtrGDL(dim);//, BaseGDL::NOZERO);
+//       else
+//     if( e->KeywordSet(1))
+// 	ret= new DPtrGDL(dim, BaseGDL::NOZERO);
+//       else
+// 	return new DPtrGDL(dim);
+    if( !e->KeywordSet(1))
+		return new DPtrGDL(dim);
 
-      if( e->KeywordSet(1))
-	{
+	ret= new DPtrGDL(dim, BaseGDL::NOZERO);
+
 	  SizeT nEl=ret->N_Elements();
 	  SizeT sIx=e->NewHeap(nEl);
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-	  for( SizeT i=0; i<nEl; i++) (*ret)[i]=sIx+i;
+	  for( SizeT i=0; i<nEl; i++)
+		(*ret)[i]=sIx+i;
 }
-	}
       return ret;
 /*    }
     catch( GDLException& ex)
@@ -352,7 +357,7 @@ namespace lib {
       if (dim[0] == 0)
 	throw GDLException( "Array dimensions must be greater than 0");
 
-      if( e->KeywordSet(0)) return new DObjGDL(dim, BaseGDL::NOZERO);
+// reference counting      if( e->KeywordSet(0)) return new DObjGDL(dim, BaseGDL::NOZERO);
       return new DObjGDL(dim);
   /*  }
     catch( GDLException& ex)

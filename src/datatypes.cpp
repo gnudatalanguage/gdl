@@ -142,10 +142,10 @@ template<class Sp> Data_<Sp>::Data_(): Sp(), dd() {}
 // scalar
 template<class Sp> Data_<Sp>::Data_(const Ty& d_): Sp(), dd(d_)
 {}
-template<> Data_<SpDPtr>::Data_(const Ty& d_): SpDPtr(), dd(d_)
-{GDLInterpreter::IncRef(d_);}
-template<> Data_<SpDObj>::Data_(const Ty& d_): SpDObj(), dd(d_)
-{GDLInterpreter::IncRefObj(d_);}
+// template<> Data_<SpDPtr>::Data_(const Ty& d_): SpDPtr(), dd(d_)
+// {GDLInterpreter::IncRef(d_);}
+// template<> Data_<SpDObj>::Data_(const Ty& d_): SpDObj(), dd(d_)
+// {GDLInterpreter::IncRefObj(d_);}
 
 // new array, zero fields
 template<class Sp> Data_<Sp>::Data_(const dimension& dim_): 
@@ -273,7 +273,7 @@ template<> Data_<SpDPtr>::Data_(const dimension& dim_,  BaseGDL::InitType iT):
   if( iT == BaseGDL::INDGEN)
     throw GDLException("DPtrGDL(dim,InitType=INDGEN) called.");
 
-  if( iT != BaseGDL::NOALLOC)
+  if( iT != BaseGDL::NOALLOC && iT != BaseGDL::NOZERO)
 	{
 	SizeT sz = dd.size();
 #pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
@@ -295,7 +295,7 @@ template<> Data_<SpDObj>::Data_(const dimension& dim_, BaseGDL::InitType iT):
   if( iT == BaseGDL::INDGEN)
     throw GDLException("DObjGDL(dim,InitType=INDGEN) called.");
 
-  if( iT != BaseGDL::NOALLOC)
+  if( iT != BaseGDL::NOALLOC && iT != BaseGDL::NOZERO)
 	{
 	SizeT sz = dd.size();
 #pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
