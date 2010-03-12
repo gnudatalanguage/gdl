@@ -56,7 +56,6 @@ extern "C" {
 
 using namespace std;
 
-
 // this (ugly) including of other sourcefiles has to be done, because
 // on Mac OS X a template instantiation request (see bottom of file)
 // can only be done once
@@ -89,7 +88,7 @@ using namespace std;
 #endif
 #endif
 
-template<class Sp> 
+template<class Sp>
 deque< void*> Data_<Sp>::freeList;
 
 template<class Sp> void* Data_<Sp>::operator new( size_t bytes)
@@ -128,11 +127,13 @@ template<class Sp> void Data_<Sp>::operator delete( void *ptr)
 template<class Sp> Data_<Sp>::~Data_() {}
 template<> Data_<SpDPtr>::~Data_()
 {
-	GDLInterpreter::DecRef( this);
+	if( this->dd.GetBuffer() != NULL)
+		GDLInterpreter::DecRef( this);
 }
 template<> Data_<SpDObj>::~Data_()
 {
-	GDLInterpreter::DecRefObj( this);
+	if( this->dd.GetBuffer() != NULL)
+		GDLInterpreter::DecRefObj( this);
 }
 
 // default
@@ -141,6 +142,10 @@ template<class Sp> Data_<Sp>::Data_(): Sp(), dd() {}
 // scalar
 template<class Sp> Data_<Sp>::Data_(const Ty& d_): Sp(), dd(d_)
 {}
+template<> Data_<SpDPtr>::Data_(const Ty& d_): SpDPtr(), dd(d_)
+{GDLInterpreter::IncRef(d_);}
+template<> Data_<SpDObj>::Data_(const Ty& d_): SpDObj(), dd(d_)
+{GDLInterpreter::IncRefObj(d_);}
 
 // new array, zero fields
 template<class Sp> Data_<Sp>::Data_(const dimension& dim_): 
@@ -153,13 +158,18 @@ template<class Sp> Data_<Sp>::Data_(const dimension& dim_):
 template<class Sp> Data_<Sp>::Data_( const Ty* p, const SizeT nEl): 
   Sp( dimension( nEl)), dd( p, nEl)
 {}
+template<> Data_<SpDPtr>::Data_( const Ty* p, const SizeT nEl):
+  SpDPtr( dimension( nEl)), dd( p, nEl)
+{GDLInterpreter::IncRef(this);}
+template<> Data_<SpDObj>::Data_( const Ty* p, const SizeT nEl):
+  SpDObj( dimension( nEl)), dd( p, nEl)
+{GDLInterpreter::IncRefObj(this);}
 
 // c-i 
 // template<class Sp> Data_<Sp>::Data_(const Data_& d_): 
 // Sp(d_.dim), dd(d_.dd) {}
 
-template<class Sp> Data_<Sp>::Data_(const dimension& dim_,
-				    BaseGDL::InitType iT): 
+template<class Sp> Data_<Sp>::Data_(const dimension& dim_, BaseGDL::InitType iT):
   Sp( dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.N_Elements(), false)
 {
   this->dim.Purge();
@@ -247,8 +257,7 @@ template<> Data_<SpDComplexDbl>::Data_(const dimension& dim_,
 // string, ptr, obj (cannot be INDGEN, 
 // need not to be zeroed if all intialized later)
 // struct (as a separate class) as well
-template<> Data_<SpDString>::Data_(const dimension& dim_,  
-				   BaseGDL::InitType iT): 
+template<> Data_<SpDString>::Data_(const dimension& dim_, BaseGDL::InitType iT):
   SpDString(dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.N_Elements(), false)
 {
   dim.Purge();
@@ -256,23 +265,49 @@ template<> Data_<SpDString>::Data_(const dimension& dim_,
   if( iT == BaseGDL::INDGEN)
     throw GDLException("DStringGDL(dim,InitType=INDGEN) called.");
 }
-template<> Data_<SpDPtr>::Data_(const dimension& dim_,  
-				BaseGDL::InitType iT): 
+template<> Data_<SpDPtr>::Data_(const dimension& dim_,  BaseGDL::InitType iT):
   SpDPtr(dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.N_Elements(), false)
 {
   dim.Purge();
   
   if( iT == BaseGDL::INDGEN)
     throw GDLException("DPtrGDL(dim,InitType=INDGEN) called.");
+
+  if( iT != BaseGDL::NOALLOC)
+	{
+	SizeT sz = dd.size();
+#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+{
+#pragma omp for
+      for( SizeT i=0; i<sz; i++)
+	{
+	  (*this)[i]=0;
+	}
+// 	  val += 1; // no increment operator for floats
+	}
+	}
 }
-template<> Data_<SpDObj>::Data_(const dimension& dim_,  
-				BaseGDL::InitType iT): 
+template<> Data_<SpDObj>::Data_(const dimension& dim_, BaseGDL::InitType iT):
   SpDObj(dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.N_Elements(), false)
 {
   dim.Purge();
 
   if( iT == BaseGDL::INDGEN)
     throw GDLException("DObjGDL(dim,InitType=INDGEN) called.");
+
+  if( iT != BaseGDL::NOALLOC)
+	{
+	SizeT sz = dd.size();
+#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+{
+#pragma omp for
+      for( SizeT i=0; i<sz; i++)
+	{
+	  (*this)[i]=0;
+	}
+// 	  val += 1; // no increment operator for floats
+	}
+	}
 }
 
 // c-i
@@ -288,6 +323,7 @@ template<>
   {
     GDLInterpreter::IncRefObj( this);
   }
+
 
 template<class Sp>
 Data_<Sp>* Data_<Sp>::Dup() const { return new Data_(*this);}
@@ -1242,12 +1278,12 @@ void Data_<Sp>::Destruct()
 template<>
 void Data_< SpDPtr>::Destruct()
 {
-this->~Data_();
+	GDLInterpreter::DecRef( this);
 }
 template<>
 void Data_< SpDObj>::Destruct()
 {
-this->~Data_();
+	GDLInterpreter::DecRefObj( this);
 }
 template<>
 void Data_< SpDString>::Destruct() 
@@ -1884,8 +1920,7 @@ void Data_<Sp>::AssignAtIx( SizeT ix, BaseGDL* srcIn)
 // used by DotAccessDescT::DoAssign
 //         GDLInterpreter::l_array_expr
 template<class Sp>
-void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, 
-			  SizeT offset)
+void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT offset)
 {
   //  breakpoint(); // gdbg can not handle breakpoints in template functions
   Data_* src = static_cast<Data_*>(srcIn);  

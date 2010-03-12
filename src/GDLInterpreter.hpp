@@ -33,6 +33,7 @@
 // print out AST tree
 //#define GDL_DEBUG
 //#undef GDL_DEBUG
+#define GDL_DEBUG_HEAP
 
 
 class CUSTOM_API GDLInterpreter : public antlr::TreeParser, public GDLInterpreterTokenTypes
@@ -223,11 +224,19 @@ public:
     {
         if( id != 0)
             {
+#ifdef GDL_DEBUG_HEAP
+                std::cout << "-- <PtrHeapVar" << id << ">" << std::endl; 
+#endif
                 HeapT::iterator it=heap.find( id);
                 if( it != heap.end()) 
                      { 
                         if( (*it).second.Dec())
                             std::cout << "Out of scope: <PtrHeapVar" << id << ">" << std::endl; 
+#ifdef GDL_DEBUG_HEAP
+else
+                std::cout << "<PtrHeapVar" << id << "> = " << (*it).second.Count() << std::endl; 
+#endif
+
                     }
             }
     }
@@ -244,6 +253,9 @@ public:
     {
         if( id != 0)
             {
+#ifdef GDL_DEBUG_HEAP
+                std::cout << "-- <ObjHeapVar" << id << ">" << std::endl; 
+#endif
                 ObjHeapT::iterator it=objHeap.find( id);
                 if( it != objHeap.end()) 
                     { 
@@ -265,10 +277,30 @@ public:
     {
         if( id != 0)
             {
+#ifdef GDL_DEBUG_HEAP
+                std::cout << "++ <PtrHeapVar" << id << ">" << std::endl; 
+#endif
                 HeapT::iterator it=heap.find( id);
                 if( it != heap.end()) 
                     { 
                         (*it).second.Inc(); 
+#ifdef GDL_DEBUG_HEAP
+                std::cout << "<PtrHeapVar" << id << "> = " << (*it).second.Count() << std::endl; 
+#endif
+                    }
+            }
+    }
+   static void AddRef( DPtr id, SizeT add)
+    {
+        if( id != 0)
+            {
+#ifdef GDL_DEBUG_HEAP
+                std::cout << add << " + <PtrHeapVar" << id << ">" << std::endl; 
+#endif
+                HeapT::iterator it=heap.find( id);
+                if( it != heap.end()) 
+                    { 
+                        (*it).second.Add(add); 
                     }
             }
     }
@@ -285,10 +317,27 @@ public:
     {
         if( id != 0)
             {
+#ifdef GDL_DEBUG_HEAP
+                std::cout << "++ <ObjHeapVar" << id << ">" << std::endl; 
+#endif
                 ObjHeapT::iterator it=objHeap.find( id);
                 if( it != objHeap.end()) 
                     { 
                         (*it).second.Inc(); 
+                    }
+            }
+    }
+   static void AddRefObj( DObj id, SizeT add)
+    {
+        if( id != 0)
+            {
+#ifdef GDL_DEBUG_HEAP
+                std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl; 
+#endif
+                ObjHeapT::iterator it=objHeap.find( id);
+                if( it != objHeap.end()) 
+                    { 
+                        (*it).second.Add(add); 
                     }
             }
     }

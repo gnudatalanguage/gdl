@@ -36,8 +36,8 @@ if( nDim == 1)
 	SizeT rStride = srcIn->Stride(this->Rank());
 	Ty& a = (*this)[ destStart];
 	Ty b = (*srcIn)[ offset/rStride];
-	GDLInterpreter::DecRef( a);
 	GDLInterpreter::IncRef( b);
+	GDLInterpreter::DecRef( a);
 	a = b;//(*this)[ destStart] = (*srcIn)[ offset/rStride];
 	}
 	else
@@ -58,8 +58,8 @@ if( nDim == 1)
 {
 	Ty& a = (*this)[ destIx];
 	Ty b = (*srcIn)[ srcIx++];
-	GDLInterpreter::DecRef( a);
 	GDLInterpreter::IncRef( b);
+	GDLInterpreter::DecRef( a);
 
 	a = b;//	(*this)[ destIx] = (*srcIn)[ srcIx++];
 }
@@ -110,8 +110,8 @@ for( SizeT c=1; c<=nCp; ++c) // linearized verison of nested loops
 {
 	Ty& a = (*this)[ destIx];
 	Ty b = (*srcIn)[ srcIx++];
-	GDLInterpreter::DecRef( a);
 	GDLInterpreter::IncRef( b);
+	GDLInterpreter::DecRef( a);
 	a = b;//(*this)[destIx] = (*srcIn)[ srcIx++];
 }
 
@@ -151,8 +151,8 @@ if( nDim == 1)
 	SizeT rStride = srcIn->Stride(this->Rank());
 	Ty& a = (*this)[ destStart];
 	Ty b = (*srcIn)[ offset/rStride];
-	GDLInterpreter::DecRefObj( a);
 	GDLInterpreter::IncRefObj( b);
+	GDLInterpreter::DecRefObj( a);
 	a = b;//(*this)[ destStart] = (*srcIn)[ offset/rStride];
 	}
 	else
@@ -173,8 +173,8 @@ if( nDim == 1)
 {
 	Ty& a = (*this)[ destIx];
 	Ty b = (*srcIn)[ srcIx++];
-	GDLInterpreter::DecRefObj( a);
 	GDLInterpreter::IncRefObj( b);
+	GDLInterpreter::DecRefObj( a);
 
 	a = b;//	(*this)[ destIx] = (*srcIn)[ srcIx++];
 }
@@ -225,8 +225,8 @@ for( SizeT c=1; c<=nCp; ++c) // linearized verison of nested loops
 {
 	Ty& a = (*this)[ destIx];
 	Ty b = (*srcIn)[ srcIx++];
-	GDLInterpreter::DecRefObj( a);
 	GDLInterpreter::IncRefObj( b);
+	GDLInterpreter::DecRefObj( a);
 	a = b;//(*this)[destIx] = (*srcIn)[ srcIx++];
 }
 
@@ -250,6 +250,319 @@ for( SizeT c=1; c<=nCp; ++c) // linearized verison of nested loops
 }
 
 
+
+
+
+
+
+
+
+
+
+template<>
+void Data_<SpDPtr>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT offset)
+{
+  //  breakpoint(); // gdbg can not handle breakpoints in template functions
+  Data_* src = static_cast<Data_*>(srcIn);  
+
+  SizeT srcElem= src->N_Elements();
+  //  bool  isScalar= (srcElem == 1);
+  bool  isScalar= (srcElem == 1) && (src->Rank() == 0);
+  if( isScalar) 
+    { // src is scalar
+      Ty scalar=(*src)[0];
+      
+      if( ixList == NULL)
+	{
+	  SizeT nCp=Data_::N_Elements();
+
+	  GDLInterpreter::AddRef( scalar, nCp);
+
+//#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+//#pragma omp for
+	  for( SizeT c=0; c<nCp; ++c)
+	{
+	    GDLInterpreter::DecRef( (*this)[ c]);
+	    (*this)[ c]=scalar;
+	}
+}
+	}
+      else
+	{
+	  SizeT nCp=ixList->N_Elements();
+	  
+	  AllIxT* allIx = ixList->BuildIx();
+	  
+	  GDLInterpreter::AddRef( scalar, nCp);
+
+//#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+//#pragma omp for
+	  for( SizeT c=0; c<nCp; ++c)
+		{
+			SizeT ix = (*allIx)[ c];
+			GDLInterpreter::DecRef( (*this)[ ix]);
+			(*this)[ ix]=scalar;
+		}
+}	  //	    (*this)[ ixList->GetIx( c)]=scalar;
+	}
+    }
+  else
+    {
+      if( ixList == NULL)
+	{
+	  SizeT nCp=Data_::N_Elements();
+	
+	  // if (non-indexed) src is smaller -> just copy its number of elements
+	  if( nCp > (srcElem-offset))
+	    if( offset == 0)
+	      nCp=srcElem;
+	    else
+	      throw GDLException("Source expression contains not enough elements.");
+
+//#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+//#pragma omp for
+	  for( SizeT c=0; c<nCp; ++c)
+		{
+	Ty& a = (*this)[ c];
+	Ty b = (*src)[c+offset];
+			GDLInterpreter::IncRef( b);
+			GDLInterpreter::DecRef( a);
+			a = b;//(*this)[ c]=(*src)[c+offset];
+		}
+}
+	}
+      else
+	{
+ 	  // crucial part
+	  SizeT nCp=ixList->N_Elements();
+
+	  if( nCp == 1)
+	    {
+		SizeT destStart = ixList->LongIx();
+		//  len = 1;
+		SizeT rStride = srcIn->Stride(this->Rank());
+		(*this)[ destStart] = (*src)[ offset/rStride];
+
+//	      InsAt( src, ixList, offset);
+	    }
+	  else
+	    {
+	      if( offset == 0)
+		{
+		  if( srcElem < nCp)
+		    throw GDLException("Array subscript must have same size as"
+				       " source expression.");
+		  
+		  AllIxT* allIx = ixList->BuildIx();
+//#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+//#pragma omp for
+		  for( SizeT c=0; c<nCp; ++c)
+		{
+			Ty& a =  (*this)[ (*allIx)[ c]];
+			Ty b = (*src)[c];
+			GDLInterpreter::IncRef( b);
+			GDLInterpreter::DecRef( a);
+			a = b;//		    (*this)[ (*allIx)[ c]]=(*src)[c];
+		}
+}		  //		(*this)[ ixList->GetIx( c)]=(*src)[c+offset];
+		}
+	      else
+		{
+		  if( (srcElem-offset) < nCp)
+		    throw GDLException("Array subscript must have same size as"
+				       " source expression.");
+		  
+		  AllIxT* allIx = ixList->BuildIx();
+//#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+//#pragma omp for
+		  for( SizeT c=0; c<nCp; ++c)
+		{
+			Ty& a =  (*this)[ (*allIx)[ c]];
+			Ty b = (*src)[c+offset];
+			GDLInterpreter::IncRef( b);
+			GDLInterpreter::DecRef( a);
+			a = b;//		    (*this)[ (*allIx)[ c]]=(*src)[c+offset];
+}
+}		  //		(*this)[ ixList->GetIx( c)]=(*src)[c+offset];
+		}
+	    }
+	}
+    }
+}
+
+template<>
+void Data_<SpDObj>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT offset)
+{
+  //  breakpoint(); // gdbg can not handle breakpoints in template functions
+  Data_* src = static_cast<Data_*>(srcIn);  
+
+  SizeT srcElem= src->N_Elements();
+  //  bool  isScalar= (srcElem == 1);
+  bool  isScalar= (srcElem == 1) && (src->Rank() == 0);
+  if( isScalar) 
+    { // src is scalar
+      Ty scalar=(*src)[0];
+      
+      if( ixList == NULL)
+	{
+	  SizeT nCp=Data_::N_Elements();
+
+	  GDLInterpreter::AddRefObj( scalar, nCp);
+
+//#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+//#pragma omp for
+	  for( SizeT c=0; c<nCp; ++c)
+	{
+	    GDLInterpreter::DecRefObj( (*this)[ c]);
+	    (*this)[ c]=scalar;
+	}
+}
+	}
+      else
+	{
+	  SizeT nCp=ixList->N_Elements();
+	  
+	  AllIxT* allIx = ixList->BuildIx();
+	  
+	  GDLInterpreter::AddRefObj( scalar, nCp);
+
+//#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+//#pragma omp for
+	  for( SizeT c=0; c<nCp; ++c)
+		{
+			SizeT ix = (*allIx)[ c];
+			GDLInterpreter::DecRefObj( (*this)[ ix]);
+			(*this)[ ix]=scalar;
+		}
+}	  //	    (*this)[ ixList->GetIx( c)]=scalar;
+	}
+    }
+  else
+    {
+      if( ixList == NULL)
+	{
+	  SizeT nCp=Data_::N_Elements();
+	
+	  // if (non-indexed) src is smaller -> just copy its number of elements
+	  if( nCp > (srcElem-offset))
+	    if( offset == 0)
+	      nCp=srcElem;
+	    else
+	      throw GDLException("Source expression contains not enough elements.");
+
+//#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+//#pragma omp for
+	  for( SizeT c=0; c<nCp; ++c)
+		{
+	Ty& a = (*this)[ c];
+	Ty b = (*src)[c+offset];
+			GDLInterpreter::IncRefObj( b);
+			GDLInterpreter::DecRefObj( a);
+			a = b;//(*this)[ c]=(*src)[c+offset];
+		}
+}
+	}
+      else
+	{
+ 	  // crucial part
+	  SizeT nCp=ixList->N_Elements();
+
+	  if( nCp == 1)
+	    {
+		SizeT destStart = ixList->LongIx();
+		//  len = 1;
+		SizeT rStride = srcIn->Stride(this->Rank());
+		(*this)[ destStart] = (*src)[ offset/rStride];
+
+//	      InsAt( src, ixList, offset);
+	    }
+	  else
+	    {
+	      if( offset == 0)
+		{
+		  if( srcElem < nCp)
+		    throw GDLException("Array subscript must have same size as"
+				       " source expression.");
+		  
+		  AllIxT* allIx = ixList->BuildIx();
+//#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+//#pragma omp for
+		  for( SizeT c=0; c<nCp; ++c)
+		{
+			Ty& a =  (*this)[ (*allIx)[ c]];
+			Ty b = (*src)[c];
+			GDLInterpreter::IncRefObj( b);
+			GDLInterpreter::DecRefObj( a);
+			a = b;//		    (*this)[ (*allIx)[ c]]=(*src)[c];
+		}
+}		  //		(*this)[ ixList->GetIx( c)]=(*src)[c+offset];
+		}
+	      else
+		{
+		  if( (srcElem-offset) < nCp)
+		    throw GDLException("Array subscript must have same size as"
+				       " source expression.");
+		  
+		  AllIxT* allIx = ixList->BuildIx();
+//#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+{
+//#pragma omp for
+		  for( SizeT c=0; c<nCp; ++c)
+		{
+			Ty& a =  (*this)[ (*allIx)[ c]];
+			Ty b = (*src)[c+offset];
+			GDLInterpreter::IncRefObj( b);
+			GDLInterpreter::DecRefObj( a);
+			a = b;//		    (*this)[ (*allIx)[ c]]=(*src)[c+offset];
+}
+}		  //		(*this)[ ixList->GetIx( c)]=(*src)[c+offset];
+		}
+	    }
+	}
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 template<>
 void Data_<SpDPtr>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList) 
 {
@@ -268,24 +581,26 @@ if( isScalar)
 	{
 	Ty& a = (*this)[ ixList->LongIx()] ;
 	Ty b = (*src)[ 0];
-	GDLInterpreter::DecRef( a);
 	GDLInterpreter::IncRef( b);
+	GDLInterpreter::DecRef( a);
 	a = b;//(*this)[ ixList->LongIx()] = (*src)[0];
 	}
 	else
 	{
 	Ty scalar=(*src)[0];
 	AllIxT* allIx = ixList->BuildIx();
-#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	
+	GDLInterpreter::AddRef( scalar, nCp);
+
+//#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
-#pragma omp for
+//#pragma omp for
 	for( SizeT c=0; c<nCp; ++c)
 	{
 	Ty& a = (*this)[ (*allIx)[ c]];
-	Ty b = scalar;
+// 	Ty b = scalar;
 	GDLInterpreter::DecRef( a);
-	GDLInterpreter::IncRef( b);
-	a = b;//	(*this)[ (*allIx)[ c]]=scalar;
+	a = scalar;//	(*this)[ (*allIx)[ c]]=scalar;
 	}
 }	  //	    (*this)[ ixList->GetIx( c)]=scalar;
 	}
@@ -306,15 +621,15 @@ else
 				" source expression.");
 
 	AllIxT* allIx = ixList->BuildIx();
-#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+//#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
-#pragma omp for
+//#pragma omp for
 	for( SizeT c=0; c<nCp; ++c)
 	{
 	Ty& a = (*this)[ (*allIx)[ c]];
 	Ty b = (*src)[c];
-	GDLInterpreter::DecRef( a);
 	GDLInterpreter::IncRef( b);
+	GDLInterpreter::DecRef( a);
 	a = b;//	(*this)[ (*allIx)[ c]]=(*src)[c];
 	}
 }	  //		(*this)[ ixList->GetIx( c)]=(*src)[c+offset];
@@ -336,16 +651,16 @@ if( isScalar)
 /*      dd = scalar;*/
 	SizeT nCp=Data_::N_Elements();
 	
-#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	GDLInterpreter::AddRef( scalar, nCp);
+//#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
-#pragma omp for
+//#pragma omp for
 	for( SizeT c=0; c<nCp; ++c)
 	{
 	Ty& a = (*this)[ c];
-	Ty b = scalar;
 	GDLInterpreter::DecRef( a);
-	GDLInterpreter::IncRef( b);
-	a = b;//(*this)[ c]=scalar;
+// 	GDLInterpreter::IncRef( b);
+	a = scalar;//(*this)[ c]=scalar;
 }
 }  
 	//       SizeT nCp=Data_::N_Elements();
@@ -360,15 +675,15 @@ else
 	// if (non-indexed) src is smaller -> just copy its number of elements
 	if( nCp > srcElem) nCp=srcElem;
 	
-#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+//#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
-#pragma omp for
+//#pragma omp for
 	for( SizeT c=0; c<nCp; ++c)
 	{
 	Ty& a = (*this)[ c];
 	Ty b = (*src)[c];
-	GDLInterpreter::DecRef( a);
 	GDLInterpreter::IncRef( b);
+	GDLInterpreter::DecRef( a);
 	a = b;//(*this)[ c]=(*src)[c];
 	}
 }
@@ -394,24 +709,25 @@ if( isScalar)
 	{
 	Ty& a = (*this)[ ixList->LongIx()] ;
 	Ty b = (*src)[ 0];
-	GDLInterpreter::DecRefObj( a);
 	GDLInterpreter::IncRefObj( b);
+	GDLInterpreter::DecRefObj( a);
 	a = b;//(*this)[ ixList->LongIx()] = (*src)[0];
 	}
 	else
 	{
 	Ty scalar=(*src)[0];
 	AllIxT* allIx = ixList->BuildIx();
-#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	
+	GDLInterpreter::AddRefObj( scalar, nCp);
+
+//#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
-#pragma omp for
+//#pragma omp for
 	for( SizeT c=0; c<nCp; ++c)
 	{
 	Ty& a = (*this)[ (*allIx)[ c]];
-	Ty b = scalar;
 	GDLInterpreter::DecRefObj( a);
-	GDLInterpreter::IncRefObj( b);
-	a = b;//	(*this)[ (*allIx)[ c]]=scalar;
+	a = scalar;//	(*this)[ (*allIx)[ c]]=scalar;
 	}
 }	  //	    (*this)[ ixList->GetIx( c)]=scalar;
 	}
@@ -432,15 +748,15 @@ else
 				" source expression.");
 
 	AllIxT* allIx = ixList->BuildIx();
-#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+//#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
-#pragma omp for
+//#pragma omp for
 	for( SizeT c=0; c<nCp; ++c)
 	{
 	Ty& a = (*this)[ (*allIx)[ c]];
 	Ty b = (*src)[c];
-	GDLInterpreter::DecRefObj( a);
 	GDLInterpreter::IncRefObj( b);
+	GDLInterpreter::DecRefObj( a);
 	a = b;//	(*this)[ (*allIx)[ c]]=(*src)[c];
 	}
 }	  //		(*this)[ ixList->GetIx( c)]=(*src)[c+offset];
@@ -462,19 +778,19 @@ if( isScalar)
 /*      dd = scalar;*/
 	SizeT nCp=Data_::N_Elements();
 	
+	GDLInterpreter::AddRefObj( scalar, nCp);
 	
-#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+//#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
-#pragma omp for
+//#pragma omp for
 	for( SizeT c=0; c<nCp; ++c)
 	{
 	Ty& a = (*this)[ c];
-	Ty b = scalar;
 	GDLInterpreter::DecRefObj( a);
-	GDLInterpreter::IncRefObj( b);
-	a = b;//(*this)[ c]=scalar;
+	a = scalar;//(*this)[ c]=scalar;
 }
-}      
+}
+
 	//       SizeT nCp=Data_::N_Elements();
 
 	//       for( SizeT c=0; c<nCp; ++c)
@@ -487,15 +803,15 @@ else
 	// if (non-indexed) src is smaller -> just copy its number of elements
 	if( nCp > srcElem) nCp=srcElem;
 	
-#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+//#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
-#pragma omp for
+//#pragma omp for
 	for( SizeT c=0; c<nCp; ++c)
 	{
 	Ty& a = (*this)[ c];
 	Ty b = (*src)[c];
-	GDLInterpreter::DecRefObj( a);
 	GDLInterpreter::IncRefObj( b);
+	GDLInterpreter::DecRefObj( a);
 	a = b;//(*this)[ c]=(*src)[c];
 	}
 }
@@ -519,9 +835,9 @@ SizeT nCp=ixList->N_Elements();
 
 //  DataT& res_dd = res->dd;
 AllIxT* allIx = ixList->BuildIx();
-#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+//#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
-#pragma omp for
+//#pragma omp for
 for( SizeT c=0; c<nCp; ++c)
 	{
 		Ty a = (*this)[ (*allIx)[ c]];
@@ -548,9 +864,9 @@ SizeT nCp=ixList->N_Elements();
 
 //  DataT& res_dd = res->dd;
 AllIxT* allIx = ixList->BuildIx();
-#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+//#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
-#pragma omp for
+//#pragma omp for
 for( SizeT c=0; c<nCp; ++c)
 	{
 		Ty a = (*this)[ (*allIx)[ c]];
@@ -577,15 +893,15 @@ if( ixList == NULL)
 	{
 	SizeT nCp=src->N_Elements();
 
-#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+//#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
-#pragma omp for
+//#pragma omp for
 	for( SizeT c=0; c<nCp; ++c)
 {
 	Ty a = (*this)[ c+offset];
 	Ty b = (*src)[c];
-	GDLInterpreter::DecRef( a);
 	GDLInterpreter::IncRef( b);
+	GDLInterpreter::DecRef( a);
 	(*this)[ c+offset]=(*src)[c];
 }
 }    }
@@ -594,15 +910,15 @@ else
 	SizeT nCp=ixList->N_Elements();
 
 	AllIxT* allIx = ixList->BuildIx();
-#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+//#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
-#pragma omp for
+//#pragma omp for
 	for( SizeT c=0; c<nCp; ++c)
 {
 	Ty a = (*this)[ c+offset];
 	Ty b = (*src)[ (*allIx)[ c]];
-	GDLInterpreter::DecRef( a);
 	GDLInterpreter::IncRef( b);
+	GDLInterpreter::DecRef( a);
 	(*this)[ c+offset]=(*src)[ (*allIx)[ c]];
 }      //	(*this)[ c+offset]=(*src)[ ixList->GetIx( c)];
 	}
@@ -630,7 +946,7 @@ SizeT gap=this->dim.Stride(atDim+1);    // dest array
 
 #ifdef _OPENMP
 SizeT nEl = srcArr->N_Elements();
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+//#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 for( SizeT c=0; c<nCp; ++c)
 	{
 	// set new destination pointer
@@ -683,15 +999,15 @@ if( ixList == NULL)
 	{
 	SizeT nCp=src->N_Elements();
 
-#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+//#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
-#pragma omp for
+//#pragma omp for
 	for( SizeT c=0; c<nCp; ++c)
 {
 	Ty a = (*this)[ c+offset];
 	Ty b = (*src)[c];
-	GDLInterpreter::DecRefObj( a);
 	GDLInterpreter::IncRefObj( b);
+	GDLInterpreter::DecRefObj( a);
 	(*this)[ c+offset]=(*src)[c];
 }
 }    }
@@ -700,15 +1016,15 @@ else
 	SizeT nCp=ixList->N_Elements();
 
 	AllIxT* allIx = ixList->BuildIx();
-#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+//#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
-#pragma omp for
+//#pragma omp for
 	for( SizeT c=0; c<nCp; ++c)
 {
 	Ty a = (*this)[ c+offset];
 	Ty b = (*src)[ (*allIx)[ c]];
-	GDLInterpreter::DecRefObj( a);
 	GDLInterpreter::IncRefObj( b);
+	GDLInterpreter::DecRefObj( a);
 	(*this)[ c+offset]=(*src)[ (*allIx)[ c]];
 }      //	(*this)[ c+offset]=(*src)[ ixList->GetIx( c)];
 	}
@@ -736,7 +1052,7 @@ SizeT gap=this->dim.Stride(atDim+1);    // dest array
 
 #ifdef _OPENMP
 SizeT nEl = srcArr->N_Elements();
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+//#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 for( SizeT c=0; c<nCp; ++c)
 	{
 	// set new destination pointer
@@ -789,15 +1105,15 @@ if( srcT == NULL)
 	srcTGuard.reset( srcT);
 	}
 
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+//#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
-#pragma omp for
+//#pragma omp for
 for(long k=0; k < nEl; ++k)
 	{
 	Ty a = (*this)[ k];
 	Ty b = (*srcT)[k];
-	GDLInterpreter::DecRef( a);
 	GDLInterpreter::IncRef( b);
+	GDLInterpreter::DecRef( a);
 		(*this)[ k] = (*srcT)[ k];
 }    }
 }
@@ -814,15 +1130,15 @@ if( srcT == NULL)
 	srcTGuard.reset( srcT);
 	}
 
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+//#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
-#pragma omp for
+//#pragma omp for
 for(long k=0; k < nEl; ++k)
 	{
 	Ty a = (*this)[ k];
 	Ty b = (*srcT)[k];
-	GDLInterpreter::DecRefObj( a);
 	GDLInterpreter::IncRefObj( b);
+	GDLInterpreter::DecRefObj( a);
 		(*this)[ k] = (*srcT)[ k];
 }    }
 }
@@ -854,9 +1170,9 @@ Data_<SpDPtr>* Data_<SpDPtr>::NewIx( AllIxT* ix, dimension* dIn)
 {
 SizeT nCp = ix->size();
 Data_* res=Data_::New( *dIn, BaseGDL::NOZERO);
-#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+//#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
-#pragma omp for
+//#pragma omp for
 for( SizeT c=0; c<nCp; ++c)
 {
 	Ty b = (*this)[ (*ix)[ c]];
@@ -871,9 +1187,9 @@ Data_<SpDObj>* Data_<SpDObj>::NewIx( AllIxT* ix, dimension* dIn)
 {
 SizeT nCp = ix->size();
 Data_* res=Data_::New( *dIn, BaseGDL::NOZERO);
-#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+//#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
-#pragma omp for
+//#pragma omp for
 for( SizeT c=0; c<nCp; ++c)
 {
 	Ty b = (*this)[ (*ix)[ c]];
@@ -889,9 +1205,9 @@ Data_<SpDPtr>* Data_<SpDPtr>::NewIxFrom( SizeT s)
 {
 SizeT nCp = dd.size() - s;
 Data_* res=Data_::New( dimension( nCp), BaseGDL::NOZERO);
-#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+//#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
-#pragma omp for
+//#pragma omp for
 for( SizeT c=0; c<nCp; ++c)
 {
 	Ty b = (*this)[ s+c];
@@ -906,9 +1222,9 @@ Data_<SpDObj>* Data_<SpDObj>::NewIxFrom( SizeT s)
 {
 SizeT nCp = dd.size() - s;
 Data_* res=Data_::New( dimension( nCp), BaseGDL::NOZERO);
-#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+//#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
-#pragma omp for
+//#pragma omp for
 for( SizeT c=0; c<nCp; ++c)
 {
 	Ty b = (*this)[ s+c];
@@ -924,9 +1240,9 @@ Data_<SpDPtr>* Data_<SpDPtr>::NewIxFrom( SizeT s, SizeT e)
 {
 SizeT nCp = e - s + 1;
 Data_* res=Data_::New( dimension( nCp), BaseGDL::NOZERO);
-#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+//#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
-#pragma omp for
+//#pragma omp for
 for( SizeT c=0; c<nCp; ++c)
 {
 	Ty b = (*this)[ s+c];
@@ -942,9 +1258,9 @@ Data_<SpDObj>* Data_<SpDObj>::NewIxFrom( SizeT s, SizeT e)
 {
 SizeT nCp = e - s + 1;
 Data_* res=Data_::New( dimension( nCp), BaseGDL::NOZERO);
-#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+//#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
-#pragma omp for
+//#pragma omp for
 for( SizeT c=0; c<nCp; ++c)
 {
 	Ty b = (*this)[ s+c];

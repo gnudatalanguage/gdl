@@ -157,8 +157,8 @@ const bool IsNonPODType[]={
   true, 	//STRING,	
   true, 	//STRUCT,	
   true, 	//COMPLEXDBL,	
-  false, 	//PTR,		
-  false, 	//OBJECT,
+  true, 	//PTR, nonPOD due to reference counting
+  true, 	//OBJECT, nonPOD due to reference counting
   false, 	//UINT,	
   false, 	//ULONG,
   false, 	//LONG64,

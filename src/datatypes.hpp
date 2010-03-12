@@ -367,6 +367,9 @@ private:
   void CatInsert( const Data_* srcArr, const SizeT atDim, SizeT& at);
 };
 
+template<> Data_<SpDPtr>::Data_(const Ty& d_);
+template<> Data_<SpDObj>::Data_(const Ty& d_);
+
 #include "specializations.hpp"
 
 typedef Data_<SpDByte>       DByteGDL;

@@ -102,8 +102,11 @@ private:
 
 		
 public:
+
+	SizeT Count() const { return count;}
 	
 	void Inc() {++count;}
+	void Add( SizeT add) {count += add;}
 	bool Dec() {return (--count==0);}
 
 	RefHeap(T* p = 0)
