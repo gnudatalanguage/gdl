@@ -3591,7 +3591,7 @@ clevel[nlevel-1]=zEnd; //make this explicit
     bool xAxis=false, yAxis=false; 
     static int xaxisIx = e->KeywordIx( "XAXIS");
     static int yaxisIx = e->KeywordIx( "YAXIS");
-
+    
     PLINT xaxis_value, yaxis_value; 
     bool standardNumPos;
     //IDL behaviour for XAXIS and YAXIS options
@@ -3623,13 +3623,17 @@ clevel[nlevel-1]=zEnd; //make this explicit
     gkw_axis_margin(e, "X",xMarginL, xMarginR);
     gkw_axis_margin(e, "Y",yMarginB, yMarginT);
 
-
     // x and y range
     DDouble xStart, xEnd;
     DDouble yStart, yEnd;
 
     get_axis_crange("X", xStart, xEnd);
     get_axis_crange("Y", yStart, yEnd);
+    
+    DLong xnozero=1, ynozero=0;
+	gkw_axis_range( e, "X", xStart, xEnd, xnozero);
+	gkw_axis_range( e, "Y", yStart, yEnd, ynozero);
+
     if (xStart == xEnd && yStart == yEnd) {
       e->Throw("Invalid plotting ranges.  Set up a plot window first.");
     }

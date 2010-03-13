@@ -584,7 +584,7 @@ public:
 };
 
 
-typedef std::deque<EnvBaseT*> EnvStackT;
+	typedef std::deque<EnvBaseT*> EnvStackT;
 
 #endif
 
