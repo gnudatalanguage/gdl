@@ -214,12 +214,12 @@ namespace lib {
 		{
 			string line;
 
+			int edit_input = SysVar::Edit_Input();// && isatty(0);
+
 			do {
 				char *cline;
 
 				lineEdit = true;
-
-				int edit_input = SysVar::Edit_Input();// && isatty(0);
 
 				if( edit_input != 0)
 					cline = readline(actualPrompt.c_str());
@@ -232,7 +232,7 @@ namespace lib {
 					{
 // 						if (isatty(0))
 							cout << endl;
-						e->Throw("Error encountered reading from stdin");
+						e->Throw("Error encountered reading from: Unit: 0, <stdin> (redirected).");
 					}
 				else
 					// make a string

@@ -924,6 +924,7 @@ void ControlCHandler(int)
   cout << SysVar::MsgPrefix() << "Interrupt encountered." << endl;
   if( lineEdit) cout << actualPrompt /*SysVar::Prompt()*/ /*.c_str()*/ << flush;
   sigControlC = true;
+  signal(SIGINT,ControlCHandler);
 }
 
 string DInterpreter::GetLine()
