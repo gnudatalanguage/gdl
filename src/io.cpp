@@ -26,15 +26,18 @@ using namespace std;
 
 const string StreamInfo( ios* searchStream)
 {
+  if( dynamic_cast<istringstream*>( searchStream)  != NULL)
+	return "Unit: 0, <stdin> (redirected)";
+	
   if( searchStream == &cin) return "Unit: 0, <stdin>";
   if( searchStream == &cout) return "Unit: -1, <stdout>";
   if( searchStream == &cerr) return "Unit: -2, <stderr>";
   for( SizeT i=0; i<fileUnits.size(); i++)
     {
       if( fileUnits[ i].anyStream != NULL &&  fileUnits[ i].anyStream->FStream() == searchStream)
-	{
-	  return "Unit: "+i2s(i+1)+", File: "+fileUnits[ i].Name();
-	}
+		{
+			return "Unit: "+i2s(i+1)+", File: "+fileUnits[ i].Name();
+		}
     }
   return "Internal error: Stream not found.";
 }

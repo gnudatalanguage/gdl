@@ -917,11 +917,12 @@ char* DInterpreter::NoReadline( const string& prompt)
 }
 
 bool  lineEdit = false;
+string actualPrompt;
 
 void ControlCHandler(int)
 {
   cout << SysVar::MsgPrefix() << "Interrupt encountered." << endl;
-  if( lineEdit) cout << SysVar::Prompt() /*.c_str()*/ << flush;
+  if( lineEdit) cout << actualPrompt /*SysVar::Prompt()*/ /*.c_str()*/ << flush;
   sigControlC = true;
 }
 
@@ -938,17 +939,19 @@ string DInterpreter::GetLine()
 
     char *cline;
 
+	actualPrompt = SysVar::Prompt();
+
     lineEdit = true;
 
 #ifdef HAVE_LIBREADLINE
     
     if( edit_input != 0)
-      cline = readline(const_cast<char*>(SysVar::Prompt().c_str()));
+      cline = readline(const_cast<char*>(actualPrompt.c_str()));
     else
-      cline = NoReadline(SysVar::Prompt().c_str());
+      cline = NoReadline(actualPrompt.c_str());
 #else
     
-    cline = NoReadline(SysVar::Prompt().c_str());
+    cline = NoReadline(actualPrompt.c_str());
 #endif
     
     lineEdit = false;
@@ -964,9 +967,10 @@ string DInterpreter::GetLine()
 	StrTrim(line);
 	break;
       }
-    
+    else
     // make a string
     line = cline;
+    
     free(cline);        // done here for compatibility with readline
   
     StrTrim(line);

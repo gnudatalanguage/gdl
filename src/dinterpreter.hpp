@@ -52,6 +52,9 @@
 
 void ControlCHandler(int);
 
+extern bool  lineEdit; // = false;
+extern std::string actualPrompt;
+
 class DInterpreter: public GDLInterpreter
 {
 public:
@@ -61,9 +64,9 @@ public:
      CC_RETURN
    };
 
-private:
-
   char* NoReadline(const std::string&);
+
+private:
 
   // execute GDL command (.run, .step, ...)
   CommandCode ExecuteCommand(const std::string& command);

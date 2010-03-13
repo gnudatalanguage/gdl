@@ -26,6 +26,7 @@
 #include "basic_pro.hpp"
 #include "objects.hpp"
 #include "FMTIn.hpp"
+#include "dinterpreter.hpp"
 
 namespace lib {
   
@@ -140,6 +141,8 @@ namespace lib {
 	int nParam = e->NParam();
 	if( nParam == parOffset) return; 
       
+	ostringstream oss;
+      
 	BaseGDL* parIn;
 	for( SizeT i=parOffset; i<nParam; i++)
 	  {
@@ -162,8 +165,13 @@ namespace lib {
 		      { // prompt not there -> put out or ignore
                         if( is == &cin) 
 			  {
-			    (*par)->ToStream( cout);
-			    cout << flush;
+			    (*par)->ToStream( oss);
+			    actualPrompt = oss.str();
+#ifdef HAVE_LIBREADLINE
+				cout << flush;
+#else
+ 			    cout << oss.str() << flush;
+#endif
 			    noPrompt = false;
 			  }
 			continue;
@@ -173,7 +181,7 @@ namespace lib {
             else
 	      { // undefined
                 if( e->LocalPar( i))
-		  throw GDLException( e->CallingNode(),
+					throw GDLException( e->CallingNode(),
 				      "Internal error: Input: UNDEF is local.");
 
                 (*par) = new DFloatGDL( 0.0);
@@ -181,16 +189,67 @@ namespace lib {
 	      }
 
 	    if( is == &cin && noPrompt)
-	      if( prompt != NULL) 
+			if( prompt != NULL)
+			{
+				prompt->ToStream( oss);
+			    actualPrompt = oss.str();
+#ifdef HAVE_LIBREADLINE
+				cout << flush;
+#else
+ 				cout << oss.str() << flush;
+#endif
+			}
+			else
+			{
+				actualPrompt = ": ";
+#ifdef HAVE_LIBREADLINE
+				cout << flush;
+#else
+ 				cout << ": " << flush;
+#endif
+			}
+		
+#ifdef HAVE_LIBREADLINE
+		if( is == &cin  && isatty(0))
 		{
-		  prompt->ToStream( cout);
-		  cout << flush;
+			string line;
+
+			do {
+				char *cline;
+
+				lineEdit = true;
+
+				int edit_input = SysVar::Edit_Input();// && isatty(0);
+
+				if( edit_input != 0)
+					cline = readline(actualPrompt.c_str());
+				else
+					cline = e->Interpreter()->NoReadline(actualPrompt.c_str());
+
+				lineEdit = false;
+
+				if( !cline)
+					{
+// 						if (isatty(0))
+							cout << endl;
+						e->Throw("Error encountered reading from stdin");
+					}
+				else
+					// make a string
+					line = cline;
+
+				free(cline);        // done here for compatibility with readline
+			} while( line == "");
+			
+			istringstream iss( line + "\n");
+			parIn->FromStream( iss);
+				
+			if( sigControlC)
+				return;
 		}
-	      else 
-		{
-		  cout << ": " << flush;
-		}
-	    parIn->FromStream( *is);
+		else
+#endif
+			parIn->FromStream( *is);
 	  }
       }
   }
