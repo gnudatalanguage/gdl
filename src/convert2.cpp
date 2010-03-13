@@ -572,6 +572,8 @@ throw GDLException("Cannot convert to this type.");
 } // UINT
 
 
+
+
 template<> BaseGDL* Data_<SpDLong>::Convert2( DType destTy, BaseGDL::Convert2Mode mode)
 {
   if( destTy == t) return (((mode & BaseGDL::COPY) != 0)?Dup():this);
@@ -688,7 +690,7 @@ template<> BaseGDL* Data_<SpDLong>::Convert2( DType destTy, BaseGDL::Convert2Mod
 {
 #pragma omp for
       	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=i2s((*this)[i],8);
+      	  (*dest)[i]=i2s((*this)[i],12);
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -729,6 +731,9 @@ throw GDLException("Cannot convert to this type.");
    // get rid of warning
   return NULL; 
 } // LONG  
+
+
+
 
 template<> BaseGDL* Data_<SpDULong>::Convert2( DType destTy, BaseGDL::Convert2Mode mode)
 {
@@ -846,7 +851,7 @@ template<> BaseGDL* Data_<SpDULong>::Convert2( DType destTy, BaseGDL::Convert2Mo
 {
 #pragma omp for
       	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=i2s((*this)[i],8);
+      	  (*dest)[i]=i2s((*this)[i],12);
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -887,6 +892,9 @@ throw GDLException("Cannot convert to this type.");
    // get rid of warning
   return NULL; 
 } // ULONG   
+
+
+
 
 template<> BaseGDL* Data_<SpDFloat>::Convert2( DType destTy, BaseGDL::Convert2Mode mode)
 {
@@ -1040,6 +1048,9 @@ throw GDLException("Cannot convert to this type.");
    // get rid of warning
   return NULL; 
 }  
+
+
+
 
 template<> BaseGDL* Data_<SpDDouble>::Convert2( DType destTy, BaseGDL::Convert2Mode mode)
 {
@@ -1195,6 +1206,10 @@ throw GDLException("Cannot convert to this type.");
    // get rid of warning
   return NULL; 
 }  
+
+
+
+
 
 inline void StringConversionError( bool& errorFlag, BaseGDL::Convert2Mode mode, const string& msg)
 {
@@ -1537,6 +1552,9 @@ throw GDLException("Cannot convert to this type.");
   return NULL; 
 }  
 
+
+
+
 template<> BaseGDL* Data_<SpDComplex>::Convert2( DType destTy, BaseGDL::Convert2Mode mode)
 {
   if( destTy == t) return (((mode & BaseGDL::COPY) != 0)?Dup():this);
@@ -1690,6 +1708,9 @@ throw GDLException("Cannot convert to this type.");
   return NULL; // get rid of warning
 }  
 
+
+
+
 template<> BaseGDL* Data_<SpDComplexDbl>::Convert2( DType destTy, BaseGDL::Convert2Mode mode)
 {
   if( destTy == t) return (((mode & BaseGDL::COPY) != 0)?Dup():this);
@@ -1842,6 +1863,9 @@ throw GDLException("Cannot convert to this type.");
 
   return NULL; // get rid of warning
 }  
+
+
+
 
 // 64 bit integers
 template<> BaseGDL* Data_<SpDLong64>::Convert2( DType destTy, BaseGDL::Convert2Mode mode)

@@ -197,6 +197,11 @@ public:
             }
         }
     }
+    static void FreeObjHeapDirect( DObj id, ObjHeapT::iterator it)
+    {
+        delete (*it).second.get();
+        objHeap.erase( id);
+    }
     static void FreeHeap( DPtr id)
     {
         if( id != 0)
@@ -208,6 +213,11 @@ public:
                         heap.erase( id); 
                     }
             }
+    }
+    static void FreeHeapDirect( DPtr id, HeapT::iterator it)
+    {
+        delete (*it).second.get();
+        heap.erase( id); 
     }
 
    static void FreeHeap( DPtrGDL* p)
@@ -229,14 +239,16 @@ public:
 #endif
                 HeapT::iterator it=heap.find( id);
                 if( it != heap.end()) 
-                     { 
+                    { 
                         if( (*it).second.Dec())
-                            std::cout << "Out of scope: <PtrHeapVar" << id << ">" << std::endl; 
+                            {
+                                std::cout << "Out of scope (garbage collected): <PtrHeapVar" << id << ">" << std::endl; 
+                                FreeHeapDirect( id, it);
+                            }
 #ifdef GDL_DEBUG_HEAP
-else
-                std::cout << "<PtrHeapVar" << id << "> = " << (*it).second.Count() << std::endl; 
+                        else
+std::cout << "<PtrHeapVar" << id << "> = " << (*it).second.Count() << std::endl; 
 #endif
-
                     }
             }
     }
@@ -254,13 +266,21 @@ else
         if( id != 0)
             {
 #ifdef GDL_DEBUG_HEAP
-                std::cout << "-- <ObjHeapVar" << id << ">" << std::endl; 
+std::cout << "-- <ObjHeapVar" << id << ">" << std::endl; 
 #endif
                 ObjHeapT::iterator it=objHeap.find( id);
                 if( it != objHeap.end()) 
                     { 
                        if( (*it).second.Dec())
-                            std::cout << "Out of scope: <ObjHeapVar" << id << ">" << std::endl; 
+                           {
+                               std::cout << "Out of scope (garbage collected): <ObjHeapVar" << id << ">" << std::endl; 
+                               FreeObjHeapDirect( id, it);
+                           }
+#ifdef GDL_DEBUG_HEAP
+                        else
+std::cout << "<ObjHeapVar" << id << "> = " << (*it).second.Count() << std::endl; 
+#endif
+                        
                      }
             }
     }
@@ -278,14 +298,14 @@ else
         if( id != 0)
             {
 #ifdef GDL_DEBUG_HEAP
-                std::cout << "++ <PtrHeapVar" << id << ">" << std::endl; 
+std::cout << "++ <PtrHeapVar" << id << ">" << std::endl; 
 #endif
                 HeapT::iterator it=heap.find( id);
                 if( it != heap.end()) 
                     { 
                         (*it).second.Inc(); 
 #ifdef GDL_DEBUG_HEAP
-                std::cout << "<PtrHeapVar" << id << "> = " << (*it).second.Count() << std::endl; 
+std::cout << "<PtrHeapVar" << id << "> = " << (*it).second.Count() << std::endl; 
 #endif
                     }
             }
@@ -295,7 +315,7 @@ else
         if( id != 0)
             {
 #ifdef GDL_DEBUG_HEAP
-                std::cout << add << " + <PtrHeapVar" << id << ">" << std::endl; 
+std::cout << add << " + <PtrHeapVar" << id << ">" << std::endl; 
 #endif
                 HeapT::iterator it=heap.find( id);
                 if( it != heap.end()) 
@@ -318,7 +338,7 @@ else
         if( id != 0)
             {
 #ifdef GDL_DEBUG_HEAP
-                std::cout << "++ <ObjHeapVar" << id << ">" << std::endl; 
+std::cout << "++ <ObjHeapVar" << id << ">" << std::endl; 
 #endif
                 ObjHeapT::iterator it=objHeap.find( id);
                 if( it != objHeap.end()) 
@@ -332,7 +352,7 @@ else
         if( id != 0)
             {
 #ifdef GDL_DEBUG_HEAP
-                std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl; 
+std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl; 
 #endif
                 ObjHeapT::iterator it=objHeap.find( id);
                 if( it != objHeap.end()) 
