@@ -52,7 +52,8 @@
 
 void ControlCHandler(int);
 
-extern bool  lineEdit; // = false;
+extern bool lineEdit; // = false;
+extern bool historyIntialized; 
 extern std::string actualPrompt;
 
 class DInterpreter: public GDLInterpreter

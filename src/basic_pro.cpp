@@ -698,34 +698,37 @@ namespace lib {
     // we manage the ASCII "history" file (located in ~/.gdl/)
     // we do not manage NOW the number of lines we save,
     // this should be limited by "history/readline" itself
-    
-    // Create eventually the ".gdl" path in user $HOME
-    int result, debug=0;
-    char *homeDir = getenv( "HOME");
-    if (homeDir != NULL)
+
+    if( historyIntialized)
     {
-      string pathToGDL_history = homeDir;
-      AppendIfNeeded(pathToGDL_history, "/");
-      pathToGDL_history += ".gdl";
-      // Create eventially the ".gdl" path in Home
-      result = mkdir(pathToGDL_history.c_str(), 0700);
-      if (debug)
-      { 
-        if (result == 0) cout << "Creation of ~/.gdl PATH "<< endl;
-        else cout << "~/.gdl PATH was still here "<< endl;
-      }
-    
-      // (over)write the history file in ~/.gdl PATH
-  
-      AppendIfNeeded(pathToGDL_history, "/");
-      string history_filename = pathToGDL_history + "history";
-      if (debug) cout << "History file name: " << history_filename << endl;
-      result = write_history(history_filename.c_str());
-      if (debug) 
-      { 
-        if (result == 0) cout<<"Successfull writing of ~/.gdl/history"<<endl;
-        else cout <<"Fail to write ~/.gdl/history"<<endl;
-      }
+		// Create eventually the ".gdl" path in user $HOME
+		int result, debug=0;
+		char *homeDir = getenv( "HOME");
+		if (homeDir != NULL)
+		{
+			string pathToGDL_history = homeDir;
+			AppendIfNeeded(pathToGDL_history, "/");
+			pathToGDL_history += ".gdl";
+			// Create eventially the ".gdl" path in Home
+			result = mkdir(pathToGDL_history.c_str(), 0700);
+			if (debug)
+			{
+				if (result == 0) cout << "Creation of ~/.gdl PATH "<< endl;
+				else cout << "~/.gdl PATH was still here "<< endl;
+			}
+			
+			// (over)write the history file in ~/.gdl PATH
+		
+			AppendIfNeeded(pathToGDL_history, "/");
+			string history_filename = pathToGDL_history + "history";
+			if (debug) cout << "History file name: " << history_filename << endl;
+			result = write_history(history_filename.c_str());
+			if (debug)
+			{
+				if (result == 0) cout<<"Successfull writing of ~/.gdl/history"<<endl;
+				else cout <<"Fail to write ~/.gdl/history"<<endl;
+			}
+		}
     }
 #endif
 

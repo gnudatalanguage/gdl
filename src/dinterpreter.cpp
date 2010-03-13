@@ -46,6 +46,8 @@
 using namespace std;
 using namespace antlr;
 
+bool historyIntialized = false;
+
 // instantiation of static data
 GDLInterpreter::HeapT     GDLInterpreter::heap; 
 GDLInterpreter::ObjHeapT  GDLInterpreter::objHeap; 
@@ -1236,6 +1238,7 @@ GDLInterpreter::RetCode DInterpreter::InterpreterLoop( const string& startup,
   }
 
 #ifdef HAVE_LIBREADLINE
+
   // initialize readline (own version - not pythons one)
   // in includefirst.hpp readline is disabled for python_module
   // http://www.delorie.com/gnu/docs/readline/rlman.html
@@ -1270,6 +1273,9 @@ GDLInterpreter::RetCode DInterpreter::InterpreterLoop( const string& startup,
       else cout<<"Fail to read back ~/.gdl/history"<<endl;
     }
   }
+
+historyIntialized = true;
+
 #endif
 
 
