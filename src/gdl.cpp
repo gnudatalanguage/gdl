@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
       }
     }
 
-  if (statement.length() > 0 && batch_files.size() > 0) 
+  if (0&&statement.length() > 0 && batch_files.size() > 0) 
   {
     cerr << argv[0] << ": " << "-e option cannot be specified with batch files" << endl;
     return 0;

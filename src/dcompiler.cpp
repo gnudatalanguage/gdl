@@ -177,7 +177,10 @@ bool DCompiler::IsActivePro( DSub* p)
   EnvStackT& cS = GDLInterpreter::CallStack();
   SizeT stSz = cS.size();
   for( SizeT i=1; i<stSz; ++i) // i=1: skip $MAIN$
-    if( cS[ i]->GetPro() == p) return true;
+  {
+    if( cS[ i]->GetPro() == p)
+		return true;
+  }
   return false;
 }
 

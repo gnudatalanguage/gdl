@@ -32,13 +32,13 @@
       <terminal>false</terminal>
       <directoryradio>executable</directoryradio>
       <customdirectory>/</customdirectory>
-      <programargs/>
+      <programargs></programargs>
       <autocompile>true</autocompile>
       <envvars/>
       <runarguments>
         <gdl/>
       </runarguments>
-      <globaldebugarguments/>
+      <globaldebugarguments>gdl -quiet -e bug1</globaldebugarguments>
       <globalcwd>/home/marc/gdl/debug/src</globalcwd>
       <useglobalprogram>true</useglobalprogram>
       <autoinstall>false</autoinstall>
@@ -69,14 +69,14 @@
         <cxxcompiler>kdevgppoptions</cxxcompiler>
         <f77compiler>kdevg77options</f77compiler>
         <cxxflags>-O0 -g3</cxxflags>
-        <topsourcedir></topsourcedir>
-        <cppflags></cppflags>
-        <ldflags></ldflags>
-        <ccompilerbinary></ccompilerbinary>
-        <cxxcompilerbinary></cxxcompilerbinary>
-        <f77compilerbinary></f77compilerbinary>
-        <cflags></cflags>
-        <f77flags></f77flags>
+        <topsourcedir/>
+        <cppflags/>
+        <ldflags/>
+        <ccompilerbinary/>
+        <cxxcompilerbinary/>
+        <f77compilerbinary/>
+        <cflags/>
+        <f77flags/>
         <envvars/>
       </debug>
       <default>
@@ -105,7 +105,7 @@
       <abortonerror>true</abortonerror>
       <numberofjobs>2</numberofjobs>
       <dontact>false</dontact>
-      <makebin></makebin>
+      <makebin/>
       <prio>0</prio>
       <runmultiplejobs>true</runmultiplejobs>
     </make>

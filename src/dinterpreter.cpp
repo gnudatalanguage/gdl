@@ -1225,7 +1225,12 @@ GDLInterpreter::RetCode DInterpreter::InterpreterLoop( const string& startup,
     // execute single statement and exit (a new-line is added to statement in gdl.cpp)
     // (e.g. $ gdl -e "print, 'hello world'")
     istringstream iss(statement, ios_base::out);
-    ExecuteLine(&iss);
+    try {
+		ExecuteLine(&iss);
+    }
+      catch( RetAllException& retAllEx)
+	{
+	}
     return RC_OK;
   }
   else
