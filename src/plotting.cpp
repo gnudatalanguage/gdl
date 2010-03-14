@@ -1078,6 +1078,8 @@ namespace lib {
       while (1) {
 	plg->GetCursor(&gin);
 	if (gin.button > 0) break;
+ 	if( sigControlC)
+ 		return;
       }
       mode=1;
     }    
@@ -1091,6 +1093,8 @@ namespace lib {
 	  plg->GetCursor(&gin);
 	  if (abs(RefX-gin.dX) >0 || abs(RefY-gin.dY) >0) break;
 	  if (gin.button > 0) break;
+ 	if( sigControlC)
+ 		return;
 	}
       }
       mode=1;
@@ -1102,6 +1106,8 @@ namespace lib {
 	// TODO: When no Mouse, should be extended later to any key of the keyboard 
 	if (gin.keysym == PLK_Escape) break;
 	if (gin.button > 0) break;
+ 	if( sigControlC)
+ 		return;
       }
     }
     
