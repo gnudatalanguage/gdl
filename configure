@@ -20061,12 +20061,11 @@ echo "
   - SAVE and RESTORE procedures require *.pro files from
     the CMSVLIB package (see README for details)
   ------------------------------------------------------`
-if test yes = $openmp_autodetected; then
+`if test yes = $openmp_autodetected; then
   echo '----- note on OpenMP support -------------------------'
   echo ' OpenMP was autodetected, use --with-openmp=no if your'
   echo ' compiler does not support it (e.g. GCC < 4.2)'
-  echo '------------------------------------------------------'
-; fi`
+  echo '------------------------------------------------------'; fi`
   use 'make' to build and 'make install' to install GDL
   (optional 'make check' tests the build - experimental)
 "
