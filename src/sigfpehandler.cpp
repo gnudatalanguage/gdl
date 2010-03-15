@@ -18,6 +18,7 @@
 #include "includefirst.hpp"
 
 #include <csetjmp>
+#include <csignal>
 
 #include "gdlexception.hpp"
 
