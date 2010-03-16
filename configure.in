@@ -1054,7 +1054,7 @@ echo "
     files needed for mapping support
   - SAVE and RESTORE procedures require *.pro files from 
     the CMSVLIB package (see README for details)
-  ------------------------------------------------------`
+  ------------------------------------------------------
 `if test yes = $openmp_autodetected; then
   echo '----- note on OpenMP support -------------------------'
   echo ' OpenMP was autodetected, use --with-openmp=no if your'

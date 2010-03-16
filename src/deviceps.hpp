@@ -60,8 +60,8 @@ class DevicePS: public Graphics
     sprintf(as, "%f",a);
     actStream->SetOpt( "a", as); // this necessary to keep labels from looking stretched (plplot bug)
                                  // but plrender -a is also buggy: aspect ratios are not exactly correct 
-    xleng=floor(scale*540. +0.5);
-    yleng=floor(scale*720. +0.5);
+    xleng=static_cast<PLINT>(floor(scale*540. +0.5));
+    yleng=static_cast<PLINT>(floor(scale*720. +0.5));
     // setting this without plrender -a makes the labels stretched (plplot bug)
     actStream->spage( xp, yp, xleng, yleng, xoff, yoff); 
 
