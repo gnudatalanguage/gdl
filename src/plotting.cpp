@@ -63,7 +63,32 @@ namespace lib {
     static int ySizeIx = e->KeywordIx( "YSIZE");
     static int colorIx = e->KeywordIx( "COLOR");
  
+    static int get_screen_sizeIx = e->KeywordIx( "GET_SCREEN_SIZE");
+
     Graphics* actDevice = Graphics::GetDevice();
+    
+    if( e->KeywordPresent( get_screen_sizeIx))
+      {
+	// see below in Function "get_scren_size()" explanations ...
+	Display* display = XOpenDisplay(NULL);
+	if (display == NULL)
+	  e->Throw("Cannot connect to X server");
+	
+	int screen_num;
+	int screen_width;
+	int screen_height;
+	screen_num = DefaultScreen(display);
+	screen_width = DisplayWidth(display, screen_num);
+	screen_height = DisplayHeight(display, screen_num);
+
+	DIntGDL* res;
+	res = new DIntGDL(2, BaseGDL::NOZERO);
+    
+	(*res)[0]= screen_width;
+	(*res)[1]= screen_height;
+	e->SetKW( get_screen_sizeIx, res);
+      }
+
 
     if( e->KeywordSet( closeFileIx))
       {
