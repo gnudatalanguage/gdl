@@ -3856,6 +3856,29 @@ clevel[nlevel-1]=zEnd; //make this explicit
 	xintv = (xEnd - xStart) / xTicks;
       }
       actStream->box( xOpt.c_str(), xintv, xMinor, "", 0.0, 0);
+
+      if (e->KeywordSet("SAVE"))
+      {
+        // X.CRANGE
+        set_axis_crange("X", xStart, xEnd);
+
+        // X.TYPE
+        set_axis_type("X",xLog);
+
+        // X.S ... TODO: set_axis_s()
+        DStructGDL* Struct=NULL;
+        Struct = SysVar::X();
+        static unsigned sTag = Struct->Desc()->TagIndex( "S");
+        PLFLT p_xmin, p_xmax, p_ymin, p_ymax;
+        actStream->gvpd (p_xmin, p_xmax, p_ymin, p_ymax);
+        if(Struct != NULL)
+        {
+          (*static_cast<DDoubleGDL*>( Struct->GetTag( sTag, 0)))[0] =
+            (p_xmin*xEnd - p_xmax*xStart) / (xEnd - xStart);
+          (*static_cast<DDoubleGDL*>( Struct->GetTag( sTag, 0)))[1] =
+            (p_xmax - p_xmin) / (xEnd - xStart);
+        }
+      }
     }
 
     if (yAxis) {
@@ -3873,6 +3896,29 @@ clevel[nlevel-1]=zEnd; //make this explicit
 	yintv = (yEnd - yStart) / yTicks;
       }
       actStream->box( "", 0.0, 0, yOpt.c_str(), yintv, yMinor);
+
+      if (e->KeywordSet("SAVE"))
+      {
+        // Y.CRANGE
+        set_axis_crange("Y", yStart, yEnd);
+
+        // Y.TYPE
+        set_axis_type("Y",yLog);
+
+        // Y.S ... TODO: set_axis_s()
+        DStructGDL* Struct=NULL;
+        Struct = SysVar::Y();
+        static unsigned sTag = Struct->Desc()->TagIndex( "S");
+        PLFLT p_xmin, p_xmax, p_ymin, p_ymax;
+        actStream->gvpd (p_xmin, p_xmax, p_ymin, p_ymax);
+        if(Struct != NULL)
+        {
+          (*static_cast<DDoubleGDL*>( Struct->GetTag( sTag, 0)))[0] =
+            (p_ymin*yEnd - p_ymax*yStart) / (yEnd - yStart);
+          (*static_cast<DDoubleGDL*>( Struct->GetTag( sTag, 0)))[1] =
+            (p_ymax - p_ymin) / (yEnd - yStart);
+        }
+      }
     }
 
     // reset the viewport and world coordinates to the original values
