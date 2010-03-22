@@ -4,6 +4,7 @@ TESTS = \
   test_base64.pro \
   test_constants.pro \
   test_fft.pro \
+  test_gc.pro \
   test_hist_2d.pro \
   test_multiroots.pro \
   test_nestedloop.pro \
