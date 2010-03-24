@@ -15,6 +15,9 @@
  *                                                                         *
  ***************************************************************************/
 
+// try because of segfault in magick
+// #include "gdlgstream.hpp"
+
 #include "includefirst.hpp"
 
 #include <iostream>

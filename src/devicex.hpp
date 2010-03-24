@@ -386,7 +386,10 @@ public:
       return false;
 
     if( winList[ wIx] != NULL)
-      delete winList[ wIx];
+		{
+		delete winList[ wIx];
+		winList[ wIx] = NULL;
+		}
 
     DLongGDL* pMulti = SysVar::GetPMulti();
     DLong nx = (*pMulti)[ 1];

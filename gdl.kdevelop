@@ -12,14 +12,14 @@
     </keywords>
     <projectdirectory>.</projectdirectory>
     <absoluteprojectpath>false</absoluteprojectpath>
-    <description/>
+    <description></description>
     <ignoreparts/>
     <secondaryLanguages>
       <language>Python</language>
     </secondaryLanguages>
     <versioncontrol/>
     <projectname>gdl</projectname>
-    <defaultencoding/>
+    <defaultencoding></defaultencoding>
   </general>
   <kdevautoproject>
     <general>
@@ -32,13 +32,13 @@
       <terminal>false</terminal>
       <directoryradio>executable</directoryradio>
       <customdirectory>/</customdirectory>
-      <programargs></programargs>
+      <programargs/>
       <autocompile>true</autocompile>
       <envvars/>
       <runarguments>
         <gdl/>
       </runarguments>
-      <globaldebugarguments>gdl -quiet -e bug1</globaldebugarguments>
+      <globaldebugarguments/>
       <globalcwd>/home/marc/gdl/debug/src</globalcwd>
       <useglobalprogram>true</useglobalprogram>
       <autoinstall>false</autoinstall>
@@ -63,20 +63,20 @@
         <f77flags/>
       </optimized>
       <debug>
-        <configargs>--with-readlinedir=yes --with-python=yes --with-hdf=yes --with-hdf5=yes --with-plplotdir=/usr --with-python=yes --disable-python_module --with-netcdf=no --enable-oldplplot --with-openmp=yes --with-libproj4=no --with-mpich=/usr/lib/mpich --with-wxWidgets=no --with-Magick=yes</configargs>
+        <configargs>--with-readlinedir=yes --with-python=yes --with-hdf=yes --with-hdf5=yes --with-plplotdir=/usr --with-python=yes --disable-python_module --with-netcdf=no --enable-oldplplot --with-openmp=no --with-libproj4=no --with-mpich=/usr/lib/mpich --with-wxWidgets=no --with-Magick=no</configargs>
         <builddir>debug</builddir>
         <ccompiler>kdevgccoptions</ccompiler>
         <cxxcompiler>kdevgppoptions</cxxcompiler>
         <f77compiler>kdevg77options</f77compiler>
         <cxxflags>-O0 -g3</cxxflags>
-        <topsourcedir/>
-        <cppflags/>
-        <ldflags/>
-        <ccompilerbinary/>
-        <cxxcompilerbinary/>
-        <f77compilerbinary/>
-        <cflags/>
-        <f77flags/>
+        <topsourcedir></topsourcedir>
+        <cppflags></cppflags>
+        <ldflags></ldflags>
+        <ccompilerbinary></ccompilerbinary>
+        <cxxcompilerbinary></cxxcompilerbinary>
+        <f77compilerbinary></f77compilerbinary>
+        <cflags></cflags>
+        <f77flags></f77flags>
         <envvars/>
       </debug>
       <default>
@@ -221,7 +221,7 @@
     </codecompletion>
     <references/>
     <creategettersetter>
-      <prefixGet/>
+      <prefixGet></prefixGet>
       <prefixSet>set</prefixSet>
       <prefixVariable>m_,_</prefixVariable>
       <parameterName>theValue</parameterName>
@@ -247,11 +247,11 @@
   <kdevdebugger>
     <general>
       <programargs/>
-      <gdbpath/>
-      <dbgshell/>
-      <configGdbScript/>
-      <runShellScript/>
-      <runGdbScript/>
+      <gdbpath></gdbpath>
+      <dbgshell></dbgshell>
+      <configGdbScript></configGdbScript>
+      <runShellScript></runShellScript>
+      <runGdbScript></runGdbScript>
       <breakonloadinglibs>true</breakonloadinglibs>
       <separatetty>true</separatetty>
       <floatingtoolbar>true</floatingtoolbar>
@@ -279,6 +279,7 @@
   </kdevcvsservice>
   <ctagspart>
     <customArguments/>
-    <customTagfilePath/>
+    <customTagfilePath>/home/marc/gdl/tags</customTagfilePath>
+    <activeTagsFiles/>
   </ctagspart>
 </kdevelop>

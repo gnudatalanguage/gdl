@@ -27,14 +27,19 @@ class GDLXStream: public GDLGStream
 
   PLStream* pls;
 
+	/*static*/ bool plstreamInitCalled;
+
 public:
-  GDLXStream( int nx, int ny):
-    GDLGStream( nx, ny, "xwin")
+  GDLXStream( int nx, int ny)
+//     : GDLGStream( nx, ny, "xwin")
+    : GDLGStream( nx, ny, "xwin")
+   , plstreamInitCalled( false)
   {
   }
 
   ~GDLXStream()
   {
+// 	c_plend();
   }
   
   void Init();

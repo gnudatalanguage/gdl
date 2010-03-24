@@ -24,6 +24,8 @@
 
 using namespace std;
 
+// bool GDLXStream::plstreamInitCalled = false;
+
 void GDLXStream::Init()
 {
   // plstream::init() calls exit() if it cannot establish a connection with X-server
@@ -36,9 +38,13 @@ void GDLXStream::Init()
     }
     XCloseDisplay(display);
   }
- 
-  plstream::init();
 
+   if( !plstreamInitCalled)
+   {
+		this->plstream::init();
+		plstreamInitCalled = true;
+	}
+		
   //  set_stream(); // private
   plgpls( &pls);
   XwDev *dev = (XwDev *) pls->dev;

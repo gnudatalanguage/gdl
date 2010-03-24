@@ -41,25 +41,35 @@ public:
 		const char *file=NULL):
       plstream( nx, ny, driver, file), valid( true)
   {
+  std::cerr << "GDLGStream()" << std::endl;
     if (!checkPlplotDriver(driver))
       ThrowGDLException(string("PLplot installation lacks the requested driver: ") + driver);
   }
 
   virtual ~GDLGStream()
   {
+  std::cerr << "~GDLGStream()" << std::endl;
+	plend();
   }
 
   static bool checkPlplotDriver(const char *driver)
   {
-    int numdevs_plus_one = 50;
+    int numdevs_plus_one = 64;
 #ifdef HAVE_OLDPLPLOT
-    char **devlongnames = NULL, **devnames = NULL;
+    char **devlongnames = NULL;
+    char **devnames = NULL;
 #else
-    const char **devlongnames = NULL, **devnames = NULL;
+    const char **devlongnames = NULL;
+    const char **devnames = NULL;
 #endif
 
+	static vector<std::string> devNames;// = NULL;
+
+// do only once
+if( devNames.empty())// == NULL)
+{
     // acquireing a list of drivers from plPlot
-    for (int maxnumdevs = numdevs_plus_one;; numdevs_plus_one = maxnumdevs += 5)
+    for (int maxnumdevs = numdevs_plus_one;; numdevs_plus_one = maxnumdevs += 16)
     {
 #ifdef HAVE_OLDPLPLOT
       devlongnames = static_cast<char**>(realloc(devlongnames, maxnumdevs * sizeof(char*)));
@@ -75,17 +85,31 @@ public:
     } 
     free(devlongnames); // we do not need this information
 
-    // checking if a given driver is in the list
-    bool supported = false;
-    for (int i = numdevs_plus_one - 1; i--;) 
-    {
-      if (strcmp(driver, devnames[i]) == 0) 
-      {
-        supported = true;
-      }
-    }
+//     devNames = new std::vector<std::string>( numdevs_plus_one - 1);
+    for( int i = 0; i < numdevs_plus_one - 1; ++i)
+		devNames.push_back(string(devnames[ i]));
+    
     free(devnames);
-    return supported;
+}
+
+// for debug
+std::vector<std::string> devnamesDbg = devNames;
+
+return std::find( devNames.begin(), devNames.end(), string( driver)) != devNames.end();
+
+//     checking if a given driver is in the list
+//     bool supported = false;
+//     for (int i = numdevs_plus_one - 1; i--;) 
+//     {
+// 		
+//       if (strcmp(driver, devnames[i]) == 0) 
+//       {
+//         supported = true;
+//         break;
+//       }
+//     }
+//    free(devnames);
+//     return supported;
   }
 
   static void SetErrorHandlers();
