@@ -63,7 +63,7 @@
         <f77flags/>
       </optimized>
       <debug>
-        <configargs>--with-readlinedir=yes --with-python=yes --with-hdf=yes --with-hdf5=yes --with-plplotdir=/usr --with-python=yes --disable-python_module --with-netcdf=no --enable-oldplplot --with-openmp=no --with-libproj4=no --with-mpich=/usr/lib/mpich --with-wxWidgets=no --with-Magick=no</configargs>
+        <configargs>--with-readlinedir=yes --with-python=yes --with-hdf=yes --with-hdf5=yes --with-plplotdir=/home/marc/plplot-5.9.5/bindings/c++ --with-python=yes --disable-python_module --with-netcdf=no --disable-oldplplot --with-openmp=no --with-libproj4=no --with-mpich=/usr/lib/mpich --with-wxWidgets=no --with-Magick=no</configargs>
         <builddir>debug</builddir>
         <ccompiler>kdevgccoptions</ccompiler>
         <cxxcompiler>kdevgppoptions</cxxcompiler>
@@ -71,7 +71,7 @@
         <cxxflags>-O0 -g3</cxxflags>
         <topsourcedir></topsourcedir>
         <cppflags></cppflags>
-        <ldflags></ldflags>
+        <ldflags>-L/home/marc/plplot-5.9.5/src -L/home/marc/plplot-5.9.5/bindings/c++</ldflags>
         <ccompilerbinary></ccompilerbinary>
         <cxxcompilerbinary></cxxcompilerbinary>
         <f77compilerbinary></f77compilerbinary>
@@ -105,7 +105,7 @@
       <abortonerror>true</abortonerror>
       <numberofjobs>2</numberofjobs>
       <dontact>false</dontact>
-      <makebin/>
+      <makebin></makebin>
       <prio>0</prio>
       <runmultiplejobs>true</runmultiplejobs>
     </make>

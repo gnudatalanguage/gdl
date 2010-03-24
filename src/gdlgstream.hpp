@@ -41,14 +41,14 @@ public:
 		const char *file=NULL):
       plstream( nx, ny, driver, file), valid( true)
   {
-  std::cerr << "GDLGStream()" << std::endl;
+//   std::cerr << "GDLGStream()" << std::endl;
     if (!checkPlplotDriver(driver))
       ThrowGDLException(string("PLplot installation lacks the requested driver: ") + driver);
   }
 
   virtual ~GDLGStream()
   {
-  std::cerr << "~GDLGStream()" << std::endl;
+//   std::cerr << "~GDLGStream()" << std::endl;
 	plend();
   }
 
