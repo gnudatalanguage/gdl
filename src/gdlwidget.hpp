@@ -84,23 +84,29 @@ protected:
   WidgetIDT    widgetID;  // own index to widgetList
   WidgetIDT    parent;    // parent ID (0 for TLBs)
   BaseGDL*     uValue;    // the UVALUE
+  BaseGDL*     vValue;    // the VVALUE
   bool         sensitive;
   bool         managed;
   bool         map;
+  bool         buttonSet;
+  int          exclusiveMode;
   DLong        xOffset, yOffset, xSize, ySize;
   wxSizer*     topWidgetSizer;
   wxSizer*     widgetSizer;
   wxPanel*     widgetPanel;
   DString      widgetType;
+  DString      uName;
 
 public:
-  GDLWidget( WidgetIDT p=0, BaseGDL* uV=NULL, bool s=true, bool mp=true,
+  GDLWidget( WidgetIDT p=0, BaseGDL* uV=NULL, BaseGDL* vV=NULL,
+	     bool s=true, bool mp=true,
 	     DLong xO=-1, DLong yO=-1, DLong xS=-1, DLong yS=-1);
   virtual ~GDLWidget();
 
   wxObject* WxWidget() { return wxWidget;}
 
   BaseGDL* GetUvalue() { return uValue;}
+  BaseGDL* GetVvalue() { return vValue;}
 
   virtual void Realize( bool) {} 
   virtual DLong GetChild( DLong) {};
@@ -125,10 +131,21 @@ public:
   bool GetMap() { return map;}
   void SetMap( bool);
 
+  int  GetExclusiveMode() { return exclusiveMode;}
+  void SetExclusiveMode( int);
+
   void SetUvalue( BaseGDL *);
+  void SetVvalue( BaseGDL *);
 
   void SetWidgetType( DString);
   DString GetWidgetType() { return widgetType;}
+
+  void SetButtonOff();
+  void SetButtonOn();
+  bool GetButtonSet() { return buttonSet;}
+
+  void SetUname( DString);
+  DString GetUname() { return uName;}
 };
 
 
@@ -141,6 +158,18 @@ class GDLWidgetButton: public GDLWidget
 public:
   GDLWidgetButton( WidgetIDT parentID, BaseGDL *uvalue, DString value);
 
+  void SetSelectOff();
+};
+
+
+// droplist widget **************************************************
+class GDLWidgetDropList: public GDLWidget
+{
+public:
+  //  GDLWidgetDropList( WidgetIDT p, BaseGDL *uV, DStringGDL *value,
+  //	     DString title, DLong xSize, DLong style);
+  GDLWidgetDropList( WidgetIDT p, BaseGDL *uV, BaseGDL *value,
+		     DString title, DLong xSize, DLong style);
   void SetSelectOff();
 };
 
@@ -210,6 +239,7 @@ public:
 
   GDLWidgetBase( WidgetIDT p=0,           // parent
 		 BaseGDL* uV=NULL,        // UVALUE
+		 BaseGDL* vV=NULL,        // VVALUE
 		 bool s=true,             // SENSITIVE
 		 bool mp=true,             // MAP
 		 DLong xO=-1, DLong yO=-1,  // offset 
@@ -250,7 +280,6 @@ public:
 private:
     // any class wishing to process wxWidgets events must use this macro
   DECLARE_EVENT_TABLE()
-;
 };
 
 #endif

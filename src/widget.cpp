@@ -131,7 +131,7 @@ namespace lib {
     if ( e->KeywordPresent( mapIx))
       if ( !e->KeywordSet( mapIx))
 	mapWid = false;
-    std::cout << "Map in widget_base: " << mapWid << std::endl;
+    //    std::cout << "Map in widget_base: " << mapWid << std::endl;
 
     bool no_copy = e->KeywordSet( no_copyIx);
     bool scroll = e->KeywordSet( scrollIx);
@@ -316,7 +316,47 @@ namespace lib {
 
     button->SetWidgetType( "BUTTON");
 
+    button->SetButtonOff();
+
     return new DLongGDL( button->WidgetID());
+  }
+
+
+  // WIDGET_DROPLIST
+  BaseGDL* widget_droplist( EnvT* e)
+  {
+    DLongGDL* p0L = e->GetParAs<DLongGDL>( 0);
+    WidgetIDT parentID = (*p0L)[0];
+    GDLWidget *widget = GDLWidget::GetWidget( parentID);
+
+    DLong xsize = -1;
+    static int xsizeIx = e->KeywordIx( "XSIZE");
+    e->AssureLongScalarKWIfPresent( xsizeIx, xsize);
+
+    static int titleIx = e->KeywordIx( "TITLE");
+    DString title = "";
+    e->AssureStringScalarKWIfPresent( titleIx, title);
+
+    static int valueIx = e->KeywordIx( "VALUE");
+    //    DStringGDL* value = e->IfDefGetKWAs<DStringGDL>( valueIx);
+    BaseGDL* value = e->GetKW( valueIx);
+    if( value != NULL)
+      value = value->Dup();
+
+    static int uvalueIx = e->KeywordIx( "UVALUE");
+    BaseGDL* uvalue = e->GetKW( uvalueIx);
+    if( uvalue != NULL)
+      uvalue = uvalue->Dup();
+
+    GDLWidgetLabel* label = 
+      new GDLWidgetLabel( parentID, uvalue, title, xsize);
+
+    DLong style = wxCB_READONLY;
+    GDLWidgetDropList* droplist = new GDLWidgetDropList( parentID, uvalue, value,
+							 title, xsize, style);
+    droplist->SetWidgetType( "DROPLIST");
+
+    return new DLongGDL( droplist->WidgetID());
   }
 
 
@@ -589,7 +629,7 @@ namespace lib {
 
       RefDNode theAST;
 
-      GDLLexer lexer(istr, "", GDLParser::NONE);
+      GDLLexer lexer(istr, "");
       GDLParser& parser = lexer.Parser();
       parser.interactive();
 
@@ -663,6 +703,19 @@ namespace lib {
     static int setvalueIx = e->KeywordIx( "SET_VALUE");
     bool setvalue = e->KeywordPresent( setvalueIx);
 
+    static int getvalueIx = e->KeywordIx( "GET_VALUE");
+    bool getvalue = e->KeywordPresent( getvalueIx);
+
+
+
+    static int setunameIx = e->KeywordIx( "SET_UNAME");
+    bool setuname = e->KeywordPresent( setunameIx);
+    DString uname = "";
+    e->AssureStringScalarKWIfPresent( setunameIx, uname);
+
+    static int setbuttonIx = e->KeywordIx( "SET_BUTTON");
+    bool setbutton = e->KeywordPresent( setbuttonIx);
+
     if ( realize) {
       widget->Realize( map);
     }
@@ -704,37 +757,111 @@ namespace lib {
       widget->SetUvalue( uvalue);
     }
 
+    if ( setuname) {
+      widget->SetUname( uname);
+    }
+
+    if ( setbutton) {
+      DLong buttonVal;
+      e->AssureLongScalarKWIfPresent( setbuttonIx, buttonVal);
+      if ( buttonVal == 0)
+	widget->SetButtonOff();
+      else
+	widget->SetButtonOn();
+    }
 
     if ( setvalue) {
-      DString value = "";
-      e->AssureStringScalarKWIfPresent( setvalueIx, value);
-
       DString wType = widget->GetWidgetType();
+
+      if ( wType == "") {
+	BaseGDL* value = e->GetKW( setvalueIx);
+	if( value != NULL) value = value->Dup();
+	widget->SetVvalue( value);
+      }
+
       if ( wType == "TEXT") {
-	std::cout << "settextvalue: " << value.c_str() << std::endl;
+	DString value = "";
+	e->AssureStringScalarKWIfPresent( setvalueIx, value);
+	//	std::cout << "settextvalue: " << value.c_str() << std::endl;
 	GDLWidgetText *textWidget = ( GDLWidgetText *) widget;
 	textWidget->SetTextValue( value);
       }
 
       if ( wType == "LABEL") {
-	std::cout << "setlabelvalue: " << value.c_str() << std::endl;
+	DString value = "";
+	e->AssureStringScalarKWIfPresent( setvalueIx, value);
+	//	std::cout << "setlabelvalue: " << value.c_str() << std::endl;
 	GDLWidgetLabel *labelWidget = ( GDLWidgetLabel *) widget;
 	labelWidget->SetLabelValue( value);
       }
     }
+
+    if ( getvalue) {
+      BaseGDL** valueKW = &e->GetKW( getvalueIx);
+      delete (*valueKW);
+
+      // CW_BGROUP
+      //      DString uName = widget->GetUname();
+      //if ( uName.compare( "CW_BGROUP_UNAME") ==0) {
+      //	WidgetIDT widgetChildID = widget->GetChild( 0);
+      //GDLWidget *widgetChild = GDLWidget::GetWidget( widgetChildID);
+      //DStructGDL *state;
+      //state = ( DStructGDL *) widgetChild->GetUvalue();
+
+      //DLong typeTag = state->Desc()->TagIndex( "TYPE");
+      //DInt type = (*static_cast<DIntGDL*>( state->GetTag( typeTag, 0)))[0];
+
+      //DLong idsTag = state->Desc()->TagIndex( "IDS");
+      //DLongGDL* ids = static_cast<DLongGDL*>( state->GetTag( idsTag));
+      //bool *buttonSet = new bool[ ids->N_Elements()];
+
+      //for( SizeT i=0; i<ids->N_Elements(); i++) {
+      //  DLong buttonID = (*ids)[i];
+      //  buttonSet[i] = GDLWidget::GetWidget( buttonID)->GetButtonSet();
+      //  if ( type == 1 && buttonSet[i] == true) {
+      //   DLongGDL* res = new DLongGDL( i);
+      //    *valueKW = res;
+      //    return;
+      //  }
+      //	}
+
+      //}
+
+      *valueKW = widget->GetVvalue();
+      if ( *valueKW != NULL) {
+	if( (*valueKW)->Type() == STRING)
+	  *valueKW = new DStringGDL( (*( DStringGDL*) (*valueKW))[0]);
+	if( (*valueKW)->Type() == LONG)
+	  *valueKW = new DLongGDL( (*( DLongGDL*) (*valueKW))[0]);
+      } else {
+	DLongGDL* res = new DLongGDL( 0);
+	*valueKW = res;
+      }
+    }
+
   }
+
+
+  void executeString( EnvBaseT* caller, istringstream *istr)
+  {
+    // P.S:  I don't know how this works.  Ask Marc.
+
+    RefDNode theAST;
+    GDLLexer lexer(*istr, "");
+    GDLParser& parser = lexer.Parser();
+    parser.interactive();
+    theAST = parser.getAST();
+    RefDNode trAST;
+    GDLTreeParser treeParser( caller);
+    treeParser.interactive(theAST);
+    trAST = treeParser.getAST();
+    ProgNodeP progAST = ProgNode::NewProgNode( trAST);
+    auto_ptr< ProgNode> progAST_guard( progAST);
+    GDLInterpreter::RetCode retCode = caller->Interpreter()->execute( progAST);
+  }
+
 
 
 } // namespace
 
 #endif
-
-
-/*
-	// Get Parent Widget
-	GDLWidget *parent = GDLWidget::GetParent( widgetID);
-	DLong nChildren = parent->GetChild( -1);
-	if ( nChildren != 0) {
-	for( SizeT j=0; j<nChildren; j++) {
-	  if (widget->GetChild( j) == widgetID) return new DLongGDL( 1);
-*/
