@@ -15230,6 +15230,7 @@ else
     LIBS="$LIBS -lplplotd -lplplotcxxd"
 fi
 
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for plsexit in -lplplotcxxd" >&5
 $as_echo_n "checking for plsexit in -lplplotcxxd... " >&6; }
 if test "${ac_cv_lib_plplotcxxd_plsexit+set}" = set; then :

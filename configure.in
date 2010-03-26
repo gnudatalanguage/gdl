@@ -293,6 +293,8 @@ else
     LIBS="$LIBS -lplplotd -lplplotcxxd"
 fi
 
+dnl LIBS="$LIBS /usr/local/lib/libplplotd.a /usr/local/lib/libplplotcxxd.a"
+
 AC_CHECK_LIB(plplotcxxd, plsexit, [AC_DEFINE([HAVE_LIBPLPLOTCXXD], [1], [plplot library])], 
 	[
 	echo ""

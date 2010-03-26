@@ -71,6 +71,9 @@ using namespace std;
 #define INCLUDE_OFMT_CPP 1
 #include "ofmt.cpp"
 
+#define INCLUDE_DATATYPESREF_CPP 1
+#include "datatypesref.cpp"
+
 #if defined(USE_PYTHON) || defined(PYTHON_MODULE)
 
 #define INCLUDE_TOPYTHON_CPP 1
@@ -78,9 +81,6 @@ using namespace std;
 
 #define INCLUDE_GDLPYTHON_CPP 1
 #include "gdlpython.cpp"
-
-#define INCLUDE_DATATYPESREF_CPP 1
-#include "datatypesref.cpp"
 
 #ifdef PYTHON_MODULE
 #define INCLUDE_PYTHONGDL_CPP 1

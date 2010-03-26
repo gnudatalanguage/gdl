@@ -14,7 +14,7 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-
+//-l/usr/local/lib/libqsastime.a -l/usr/local/lib/libplplotcxxd.a -l/usr/local/lib/libplplotd.a -l/usr/local/lib/libcsirocsa.a -l/usr/local/lib/libcsironn.a
 #ifndef GDLPSSTREAM_HPP_
 #define GDLPSSTREAM_HPP_
 
