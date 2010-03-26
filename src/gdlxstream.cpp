@@ -62,10 +62,10 @@ void GDLXStream::EventHandler()
   if( !valid) return;
 
   // dummy call to get private function set_stream() called
-  char dummy;
-  gesc( &dummy);
-
-  plgpls( &pls);
+//   char dummy;
+//   gesc( &dummy);
+// 
+//   plgpls( &pls);
 
   XwDev *dev = (XwDev *) pls->dev;
 
