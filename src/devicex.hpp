@@ -30,9 +30,10 @@
 #include "initsysvar.hpp"
 
 #define ToXColor(a) (((0xFF & (a)) << 8) | (a))
+#ifndef free_mem
 #define free_mem(a) \
     if (a != NULL) { free((void *) a); a = NULL; }
-
+#endif
 
 const int maxWin=32;  
 

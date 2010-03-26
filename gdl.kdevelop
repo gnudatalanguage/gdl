@@ -63,7 +63,7 @@
         <f77flags/>
       </optimized>
       <debug>
-        <configargs>--with-readlinedir=yes --with-hdf=no --with-hdf5=no --with-plplotdir=/home/marc/plplot-5.9.5/bindings/c++ --with-python=no --disable-python_module --with-netcdf=no --disable-oldplplot --with-openmp=no --with-libproj4=no --with-mpich=no --with-wxWidgets=no --with-Magick=no</configargs>
+        <configargs>--with-readlinedir=yes --with-hdf=yes --with-hdf5=yes --with-plplotdir=/usr/local --with-python=no --disable-python_module --with-netcdf=no --disable-oldplplot --with-openmp=no --with-libproj4=no --with-mpich=/usr/lib/mpich --with-wxWidgets=yes --with-Magick=yes</configargs>
         <builddir>debug</builddir>
         <ccompiler>kdevgccoptions</ccompiler>
         <cxxcompiler>kdevgppoptions</cxxcompiler>
