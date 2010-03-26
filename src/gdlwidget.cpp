@@ -355,7 +355,7 @@ GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID,
     std::cout << "after wxMutexGuiEnter()" << std::endl;
 
     // GDLFrame is derived from wxFrame
-    GDLFrame *frame = new GDLFrame( wxParent, widgetID, title_);
+    GDLFrame *frame = new GDLFrame( wxParent, widgetID, wxString( title_.c_str(), wxConvUTF8));
     ((wxFrame *) frame)->SetSize( xsize, ysize);
     wxWidget = frame;
 
@@ -432,7 +432,7 @@ GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID,
       }
 
       if( modal)
-	wxWidget = new wxDialog( wxParent, widgetID, title_);
+	wxWidget = new wxDialog( wxParent, widgetID, wxString( title_.c_str(), wxConvUTF8));
 
     } // if (mapWid == true)
   }
@@ -512,19 +512,19 @@ GDLWidgetButton::GDLWidgetButton( WidgetIDT p, BaseGDL *uV, DString value):
     wxBoxSizer *boxSizer = (wxBoxSizer *) gdlParent->GetSizer();
 
     if ( gdlParent->GetExclusiveMode() == 0) {
-      button = new wxButton( panel, widgetID, _T( value.c_str()));
+      button = new wxButton( panel, widgetID, wxString( value.c_str(), wxConvUTF8));
       boxSizer->Add( button, 0, wxEXPAND | wxALL, 5);
     } else if ( gdlParent->GetExclusiveMode() == -1) {
-      radioButton = new wxRadioButton( panel, widgetID, _T( value.c_str()),
+      radioButton = new wxRadioButton( panel, widgetID, wxString( value.c_str(), wxConvUTF8),
 				       wxDefaultPosition, wxDefaultSize,
 				       wxRB_GROUP);
       gdlParent->SetExclusiveMode( 1);
       boxSizer->Add( radioButton, 0, wxEXPAND | wxALL, 5);
     } else if ( gdlParent->GetExclusiveMode() == 1) {
-      radioButton = new wxRadioButton( panel, widgetID, _T( value.c_str()));
+      radioButton = new wxRadioButton( panel, widgetID, wxString( value.c_str(), wxConvUTF8));
       boxSizer->Add( radioButton, 0, wxEXPAND | wxALL, 5);
     } else if ( gdlParent->GetExclusiveMode() == 2) {
-      checkBox = new wxCheckBox( panel, wxID_ANY, _T( value.c_str()));
+      checkBox = new wxCheckBox( panel, wxID_ANY, wxString( value.c_str(), wxConvUTF8));
       boxSizer->Add( checkBox, 0, wxEXPAND | wxALL, 5);
     }
 
@@ -580,9 +580,9 @@ GDLWidgetDropList::GDLWidgetDropList( WidgetIDT p, BaseGDL *uV, BaseGDL *value,
 
     DLong n= val->N_Elements();
     wxString *choices = new wxString[n];
-    for( SizeT i=0; i<n; ++i) choices[i] = (*val)[i];
+    for( SizeT i=0; i<n; ++i) choices[i] = wxString( (*val)[i].c_str(), wxConvUTF8);
 
-    combo = new wxComboBox( panel, widgetID, _T( choices[0].c_str()),
+    combo = new wxComboBox( panel, widgetID, wxString( choices[0].c_str(), wxConvUTF8),
 			    wxDefaultPosition, wxDefaultSize,
 			    n, choices, style);
 
@@ -622,7 +622,7 @@ GDLWidgetText::GDLWidgetText( WidgetIDT p, BaseGDL *uV, DString value,
 
   if (gdlParent->GetMap()) {
     wxPanel *panel = gdlParent->GetPanel();
-    text = new wxTextCtrl( panel, widgetID, _T( value.c_str()),
+    text = new wxTextCtrl( panel, widgetID, wxString( value.c_str(), wxConvUTF8),
 			   wxDefaultPosition, wxSize( xSize*5, wxDefaultCoord) );
 
     wxBoxSizer *boxSizer = (wxBoxSizer *) gdlParent->GetSizer();
@@ -651,7 +651,7 @@ GDLWidgetText::GDLWidgetText( WidgetIDT p, BaseGDL *uV, DString value,
 
 void GDLWidgetText::SetTextValue( DString value)
 {
-  text->SetValue( _T( value));
+  text->SetValue( wxString( value.c_str(), wxConvUTF8));
   //  text->Refresh(); 
   //wxMilliSleep(700); 
  }
@@ -668,7 +668,7 @@ GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, BaseGDL *uV, DString value,
   
   if ( gdlParent->GetMap()) {
     wxPanel *panel = gdlParent->GetPanel();
-    label = new wxStaticText( panel, wxID_ANY, _T( value.c_str()),
+    label = new wxStaticText( panel, wxID_ANY, wxString( value.c_str(), wxConvUTF8),
 			      wxPoint(10, 10), wxDefaultSize, wxALIGN_CENTRE);
 
     wxBoxSizer *boxSizer = (wxBoxSizer *) gdlParent->GetSizer();
@@ -698,7 +698,7 @@ GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, BaseGDL *uV, DString value,
 
 void GDLWidgetLabel::SetLabelValue( DString value)
 {
-  label->SetLabel( _T( value));
+  label->SetLabel( wxString( value.c_str(), wxConvUTF8));
  }
 
 // *** GDLFrame ***

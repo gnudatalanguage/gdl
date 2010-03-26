@@ -28,7 +28,7 @@
       <useactivetarget>true</useactivetarget>
     </general>
     <run>
-      <mainprogram></mainprogram>
+      <mainprogram>/home/marc/gdl/debug/src/gdl</mainprogram>
       <terminal>false</terminal>
       <directoryradio>executable</directoryradio>
       <customdirectory>/</customdirectory>
@@ -63,7 +63,7 @@
         <f77flags/>
       </optimized>
       <debug>
-        <configargs>--with-readlinedir=yes --with-hdf=yes --with-hdf5=yes --with-plplotdir=/usr/local --with-python=no --disable-python_module --with-netcdf=no --disable-oldplplot --with-openmp=no --with-libproj4=no --with-mpich=/usr/lib/mpich --with-wxWidgets=yes --with-Magick=yes</configargs>
+        <configargs>--with-readlinedir=yes --with-hdf=yes --with-hdf5=yes --with-plplotdir=/usr/local --with-python=yes --disable-python_module --with-netcdf=no --disable-oldplplot --with-openmp=no --with-libproj4=no --with-mpich=/usr/lib/mpich --with-wxWidgets=yes --with-Magick=yes</configargs>
         <builddir>debug</builddir>
         <ccompiler>kdevgccoptions</ccompiler>
         <cxxcompiler>kdevgppoptions</cxxcompiler>

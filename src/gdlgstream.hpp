@@ -49,7 +49,7 @@ public:
   virtual ~GDLGStream()
   {
 //   std::cerr << "~GDLGStream()" << std::endl;
-	plend();
+// 	plend();
   }
 
   static bool checkPlplotDriver(const char *driver)

@@ -39,10 +39,10 @@ void GDLXStream::Init()
     XCloseDisplay(display);
   }
 
-   if( !plstreamInitCalled)
+//    if( !plstreamInitCalled)
    {
 		this->plstream::init();
-		plstreamInitCalled = true;
+// 		plstreamInitCalled = true;
 	}
 		
   //  set_stream(); // private
@@ -61,9 +61,37 @@ void GDLXStream::EventHandler()
 {
   if( !valid) return;
 
+  // dummy call to get private function set_stream() called
+  char dummy;
+  gesc( &dummy);
+
+  plgpls( &pls);
+
   XwDev *dev = (XwDev *) pls->dev;
+
+// 	if( dev == NULL)
+// 		this->plstream::init();
+// 
+//   plgpls( &pls);
+//   
+//   dev = (XwDev *) pls->dev;
+
+	if( dev == NULL)
+	{
+		cerr << "X window invalid." << endl;
+		valid = false;
+		return;
+    }
+    
   XwDisplay *xwd = (XwDisplay *) dev->xwd;
   
+	if( xwd == NULL)
+	{
+		cerr << "X window not set." << endl;
+		valid = false;
+		return;
+    }
+    
   XEvent event;
   if( XCheckTypedWindowEvent( xwd->display, dev->window, 
 			      ClientMessage, &event))

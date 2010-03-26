@@ -271,7 +271,7 @@ class GDLFrame : public wxFrame
 {
 public:
   // ctor(s)
-  GDLFrame(wxWindow* parent, wxWindowID id, const wxString& title);
+   GDLFrame(wxWindow* parent, wxWindowID id, const wxString& title);
 
   // event handlers (these functions should _not_ be virtual)
   void OnButton( wxCommandEvent& event);
