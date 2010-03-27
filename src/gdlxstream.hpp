@@ -27,8 +27,6 @@ class GDLXStream: public GDLGStream
 
   PLStream* pls;
 
-// 	/*static*/ bool plstreamInitCalled;
-
 public:
   GDLXStream( int nx, int ny)
     : GDLGStream( nx, ny, "xwin")

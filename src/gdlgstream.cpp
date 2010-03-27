@@ -28,6 +28,8 @@
 
 using namespace std;
 
+// bool GDLGStream::plstreamInitCalled = false;
+
 // void PLPlotAbortHandler(const char *c)
 // {
 //   cout << "PLPlot abort handler: " << c << endl;

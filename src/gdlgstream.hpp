@@ -31,6 +31,8 @@ using namespace std;
 class GDLGStream: public plstream
 {
   void init(); // prevent plstream::init from being called directly
+	
+// 	static bool plstreamInitCalled;
 
 protected:
   bool valid;
@@ -38,8 +40,9 @@ protected:
 public:
     GDLGStream( int nx, int ny, 
 		const char *driver, 
-		const char *file=NULL):
-      plstream( nx, ny, driver, file), valid( true)
+		const char *file=NULL)
+	: plstream( nx, ny, driver, file)
+    , valid( true)
   {
 //   std::cerr << "GDLGStream()" << std::endl;
     if (!checkPlplotDriver(driver))
@@ -51,6 +54,15 @@ public:
 //   std::cerr << "~GDLGStream()" << std::endl;
 // 	plend();
   }
+
+// 	void PlstreamInit()
+// 	{
+// 	    if( !plstreamInitCalled)
+// 		{
+// 			this->plstream::init();
+// 			plstreamInitCalled = true;
+// 		}
+// 	}
 
   static bool checkPlplotDriver(const char *driver)
   {
@@ -120,9 +132,9 @@ return std::find( devNames.begin(), devNames.end(), string( driver)) != devNames
 
   virtual void eop()          { plstream::eop();}
 
-  virtual void Raise()          {}
-  virtual void Lower()          {}
-  virtual void Clear()          {}
+  virtual void Raise()         {}
+  virtual void Lower()        {}
+  virtual void Clear()         {}
   virtual void Clear( DLong bColor)          {}
 
   bool Valid() { return valid;}

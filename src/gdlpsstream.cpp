@@ -25,6 +25,6 @@ using namespace std;
 
 void GDLPSStream::Init()
 {
-  plstream::init();
+   plstream::init();
 }
 

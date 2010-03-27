@@ -39,11 +39,11 @@ void GDLXStream::Init()
     XCloseDisplay(display);
   }
 
-//    if( !plstreamInitCalled)
-   {
+//      if( !plstreamInitCalled)
+//    {
 		this->plstream::init();
-// 		plstreamInitCalled = true;
-	}
+//  		plstreamInitCalled = true;
+// 	}
 		
   //  set_stream(); // private
   plgpls( &pls);

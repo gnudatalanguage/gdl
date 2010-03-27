@@ -43,6 +43,6 @@ void GDLZStream::Clear( DLong bColor)
 
 void GDLZStream::Init()
 {
-  plstream::init();
+   plstream::init();
 }
 

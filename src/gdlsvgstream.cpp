@@ -22,5 +22,5 @@ using namespace std;
 
 void GDLSVGStream::Init()
 {
-  plstream::init();
+   plstream::init();
 }

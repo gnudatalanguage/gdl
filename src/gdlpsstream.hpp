@@ -29,8 +29,7 @@ public:
   }
 
   ~GDLPSStream()
-  {
-  }
+  {}
  
   //  void eop() {};
 
