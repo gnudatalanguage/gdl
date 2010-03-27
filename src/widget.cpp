@@ -706,8 +706,6 @@ namespace lib {
     static int getvalueIx = e->KeywordIx( "GET_VALUE");
     bool getvalue = e->KeywordPresent( getvalueIx);
 
-
-
     static int setunameIx = e->KeywordIx( "SET_UNAME");
     bool setuname = e->KeywordPresent( setunameIx);
     DString uname = "";

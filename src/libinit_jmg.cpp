@@ -266,7 +266,7 @@ void LibInit_jmg()
 
   const string widget_controlKey[] = {"REALIZE","MANAGED","EVENT_PRO",
 				      "XMANAGER_ACTIVE_COMMAND","DESTROY",
-				      "GET_UVALUE","SET_UVALUE","SET_VALUE","MAP",
+				      "GET_UVALUE","SET_UVALUE","SET_UNAME","SET_BUTTON","GET_VALUE","SET_VALUE","MAP",
 				      KLISTEND};
   new DLibPro(lib::widget_control,string("WIDGET_CONTROL"),1, 
 	      widget_controlKey);

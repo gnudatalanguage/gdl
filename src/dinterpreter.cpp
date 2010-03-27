@@ -36,7 +36,7 @@
 #include <cassert>
 
 // print out AST tree
-// #define GDL_DEBUG
+//#define GDL_DEBUG
 //#undef GDL_DEBUG
 
 #ifdef GDL_DEBUG
@@ -761,6 +761,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
 	    if( lCNew == lCNum)
 // 	      throw; // no LC -> real error
 	{
+#ifndef GDL_DEBUG 		
  		try {
 // 			executeLine.clear(); // clear EOF (for executeLine)
 // 			lexer.reset( new GDLLexer(executeLine, "", callStack.back()->CompileOpt()));
@@ -775,6 +776,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
 			break; // no error -> everything ok
 		}
 		catch( GDLException& e2)
+#endif
 		{
 			throw e;
 		}
