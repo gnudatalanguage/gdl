@@ -2224,6 +2224,125 @@ actStream->wid( 0);
     actStream->flush();
   }
 
+  void polyfill( EnvT* e)
+  {
+    SizeT nParam = e->NParam(1);
+    DDoubleGDL* yVal, *xVal;
+    SizeT xEl, yEl;
+    if(nParam == 1 || nParam == 3) 
+    {
+      e->Throw("1- and 3-argument case not implemented yet");
+    }
+    else
+    {
+      xVal = e->GetParAs< DDoubleGDL>(0);
+      xEl = xVal->N_Elements();
+      yVal = e->GetParAs< DDoubleGDL>(1);
+      yEl = yVal->N_Elements();
+    }
+
+    if (xEl != yEl)
+      e->Throw("xEl != yEl"); // TODO
+
+    if (xEl < 3)
+      e->Throw("Input arrays must define at least three points");
+
+    DFloat xMarginL, xMarginR,yMarginB, yMarginT; 
+    get_axis_margin("X", xMarginL, xMarginR);
+    get_axis_margin("Y", yMarginB, yMarginT);
+    
+    DDouble xStart, xEnd, yStart, yEnd;
+    bool xLog, yLog;
+
+    get_axis_crange("X", xStart, xEnd);
+    get_axis_crange("Y", yStart, yEnd);
+    get_axis_type("X", xLog);
+    get_axis_type("Y", yLog);
+
+    GDLGStream* actStream = GetPlotStream( e); 
+    
+    gkw_color(e, actStream);
+
+    PLFLT xMR, xML, yMB, yMT;
+    CheckMargin( e, actStream, xMarginL, xMarginR, yMarginB, yMarginT, xMR, xML, yMB, yMT);
+
+/* TODO
+    bool mapSet=false;
+#ifdef USE_LIBPROJ4
+    // Map Stuff (xtype = 3)
+    LPTYPE idata;
+    XYTYPE odata;
+
+    get_mapset(mapSet);
+
+    if ( mapSet) {
+      ref = map_init();
+      if ( ref == NULL) {
+	e->Throw( "Projection initialization failed.");
+      }
+    }
+#endif
+*/
+
+    // Determine data coordinate limits
+    // These are computed from window and scaling axis system
+    // variables because map routines change these directly.
+    DDouble *sx;
+    DDouble *sy;
+    DStructGDL* xStruct = SysVar::X();
+    DStructGDL* yStruct = SysVar::Y();
+    unsigned sxTag = xStruct->Desc()->TagIndex( "S");
+    unsigned syTag = yStruct->Desc()->TagIndex( "S");
+    sx = &(*static_cast<DDoubleGDL*>( xStruct->GetTag( sxTag, 0)))[0];
+    sy = &(*static_cast<DDoubleGDL*>( yStruct->GetTag( syTag, 0)))[0];
+    
+    DFloat *wx;
+    DFloat *wy;
+    unsigned xwindowTag = xStruct->Desc()->TagIndex( "WINDOW");
+    unsigned ywindowTag = yStruct->Desc()->TagIndex( "WINDOW");
+    wx = &(*static_cast<DFloatGDL*>( xStruct->GetTag( xwindowTag, 0)))[0];
+    wy = &(*static_cast<DFloatGDL*>( yStruct->GetTag( ywindowTag, 0)))[0];
+    
+    xStart = (wx[0] - sx[0]) / sx[1];
+    xEnd   = (wx[1] - sx[0]) / sx[1];
+    yStart = (wy[0] - sy[0]) / sy[1];
+    yEnd   = (wy[1] - sy[0]) / sy[1];
+
+    if(e->KeywordSet("DEVICE")) {
+      PLFLT xpix, ypix;
+      PLINT xleng, yleng, xoff, yoff;
+      actStream->gpage(xpix, ypix,xleng, yleng, xoff, yoff);
+      xStart=0; xEnd=xleng;
+      yStart=0; yEnd=yleng;
+      xLog = false; yLog = false;
+      actStream->NoSub();
+    } else if(e->KeywordSet("NORMAL")) {
+      xStart = 0;
+      xEnd   = 1;
+      yStart = 0;
+      yEnd   = 1;
+      actStream->NoSub();
+      actStream->vpor(0, 1, 0, 1);
+      xLog = false; yLog = false;
+    } else {
+      actStream->NoSub();
+      actStream->vpor(wx[0], wx[1], wy[0], wy[1]);
+    }
+
+    //CLIPPING
+    DLong noclip = 1;
+    e->AssureLongScalarKWIfPresent( "NOCLIP", noclip);
+    if (noclip == 0)
+    {
+      static int clippingix = e->KeywordIx( "CLIP"); 
+      DDoubleGDL* clippingD = e->IfDefGetKWAs<DDoubleGDL>( clippingix);
+      if (clippingD != NULL) Clipping( clippingD, xStart, xEnd, yStart, yEnd);
+    }
+
+    actStream->wind( xStart, xEnd, yStart, yEnd);
+    actStream->fill(xEl, static_cast<PLFLT*>(&(*xVal)[0]), static_cast<PLFLT*>(&(*yVal)[0]));
+    actStream->flush();
+  }
 
   void surface( EnvT* e)
   {

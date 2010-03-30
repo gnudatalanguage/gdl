@@ -42,6 +42,7 @@ namespace lib {
   void axis( EnvT* e);
   void erase( EnvT* e);
   void cursor( EnvT* e);
+  void polyfill( EnvT* e);
 
 
   //helper functions

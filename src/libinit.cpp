@@ -725,6 +725,13 @@ void LibInit()
     };
   new DLibPro(lib::xyouts, string("XYOUTS"), 3, xyoutsKey);
 
+  const string polyfillKey[]=
+    {
+      "COLOR","DATA","NORMAL","DEVICE","CLIP",
+      "NOCLIP",KLISTEND
+    };
+  new DLibPro(lib::polyfill, string("POLYFILL"), 3, polyfillKey);
+
   new DLibPro(lib::erase,string("ERASE"),1);
   
   const string laguerreKey[]={"DOUBLE","COEFFICIENTS",KLISTEND};
