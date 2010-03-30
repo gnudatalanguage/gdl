@@ -19,13 +19,16 @@
 ; -------------------------------------------
 ;
 ; expected types for outputs from FFT are "6" (complex) or "9" (Dcomplex)
-pro TEST_FFT_ALL_TYPES, test=test, help=help, quiet=quiet
+;
+pro TEST_FFT_ALL_TYPES, test=test, help=help, $
+                        verbose=verbose, quiet=quiet
 ;
 if KEYWORD_SET(help) then begin
-   print, 'pro TEST_FFT_ALL_TYPES, test=test, help=help, quiet=quiet'
+   print, 'pro TEST_FFT_ALL_TYPES, test=test, help=help, $'
+   print, '                        verbose=verbose, quiet=quiet'
 endif
 ;
-print, 'Running TEST_FFT_ALL_TYPES'
+print, 'Running TEST_FFT_ALL_TYPES (for 13 input types)'
 ;
 nb_pb=0
 for ii=0, 15 do begin
@@ -39,38 +42,40 @@ for ii=0, 15 do begin
    if ((type EQ 6) or (type EQ 9)) then begin
       message=', OK'
    endif else begin
-      message=', Probleme'
+      message=', Problem'
       nb_pb=nb_pb+1
    endelse
-   if NOT(KEYWORD_SET(quiet)) then begin
+   if NOT(KEYWORD_SET(quiet)) OR KEYWORD_SET(verbose) then begin
       print, 'Input type :', ii, ', Output type :', type, message
    endif
 endfor
 ;
 if (nb_pb GT 0) then begin
-   MESSAGE, STRING(nb_pb)+' problem found in TEST_FFT_ALL_TYPES',/continue
+   MESSAGE, STRING(nb_pb)+' problem(s) found in TEST_FFT_ALL_TYPES',/continue
    EXIT, status=1
 endif else begin
    MESSAGE, 'No problem found in TEST_FFT_ALL_TYPES',/continue
 endelse
 ;
 if KEYWORD_SET(test) then STOP
-
+;
 end
 ;
 ; -------------------------------------------
 ;
-pro TEST_FFT_GO_AND_BACK, dimension=dimension, nbp=nbp, quiet=quiet, $
+pro TEST_FFT_GO_AND_BACK, dimension=dimension, nbp=nbp, $
+                          verbose=verbose, quiet=quiet, $
                           test=test, help=help, debug=debug
 ;
 if KEYWORD_SET(help) then begin
-   print, 'pro TEST_FFT_GO_AND_BACK, dimension=dimension, nbp=nbp, quiet=quiet, $'
+   print, 'pro TEST_FFT_GO_AND_BACK, dimension=dimension, nbp=nbp, $'
+   print, '                          verbose=verbose, quiet=quiet, $'
    print, '                          test=test, help=help, debug=debug'
    return
 end
 ;
 print, '' &
-mess='Running TEST_FFT_GO_AND_BACK'
+mess='Running TEST_FFT_GO_AND_BACK (for 13 input types)'
 ;;if N_ELEMENTS(dimension) GT 3 then begin
 ;;   MESSAGE, 'Sorry, we are not ready for high Dimensions cases'
 ;;   EXIT, status=1
@@ -109,17 +114,17 @@ for ii=0, 15 do begin
    error=TOTAL(ABS(input-result2))
    message=', OK'
    if (error GT 1e-3) then begin
-      message=', Probleme'
+      message=', Problems'
       nb_pb=nb_pb+1
    endif
-   if NOT(KEYWORD_SET(quiet)) then begin
+   if NOT(KEYWORD_SET(quiet)) OR KEYWORD_SET(verbose) then begin
       print, format='(A,i4,A,i4,A,G10.4,A)', 'Input type :', ii, $
              ', Output type :', SIZE(result2,/type), ', error: ', error, message
    endif
 endfor
 ;
 if (nb_pb GT 0) then begin
-   MESSAGE, STRING(nb_pb)+' problem found in TEST_FFT_GO_AND_BACK', /continue
+   MESSAGE, STRING(nb_pb)+' problem(s) found in TEST_FFT_GO_AND_BACK', /continue
    EXIT, status=1
 endif else begin
    MESSAGE, 'No problem found in TEST_FFT_GO_AND_BACK', /continue
@@ -131,10 +136,14 @@ end
 ;
 ; -------------------------------------------
 ;
-pro TEST_FFT
-TEST_FFT_ALL_TYPES,/quiet
-TEST_FFT_GO_AND_BACK
-TEST_FFT_GO_AND_BACK, dim=[1024,1024], /quiet
-TEST_FFT_GO_AND_BACK, dim=[512,2048], /quiet
-TEST_FFT_GO_AND_BACK, dim=[128,64,128], /quiet
+pro TEST_FFT, quiet=quiet, verbose=verbose
+;
+if NOT(KEYWORD_SET(quiet)) AND NOT(KEYWORD_SET(verbose)) then quiet=1
+;
+TEST_FFT_ALL_TYPES, quiet=quiet, verbose=verbose
+TEST_FFT_GO_AND_BACK, quiet=quiet, verbose=verbose
+TEST_FFT_GO_AND_BACK, dim=[1024,1024], quiet=quiet, verbose=verbose
+TEST_FFT_GO_AND_BACK, dim=[512,2048], quiet=quiet, verbose=verbose
+TEST_FFT_GO_AND_BACK, dim=[128,64,128], quiet=quiet, verbose=verbose
+;
 end
