@@ -350,7 +350,7 @@ GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID,
     thread->Run();
 
     // GUI lock defined in threadpsx.cpp
-    std::cout << "before wxMutexGuiEnter()" << std::endl;
+    std::cout << "wxMutexGuiEnter()" << std::endl;
     wxMutexGuiEnter();
     std::cout << "after wxMutexGuiEnter()" << std::endl;
 
@@ -466,7 +466,7 @@ void GDLWidgetBase::Realize( bool map)
   //std::cout << frame->IsShown() << std::endl;
 
   // GUI unlock defined in threadpsx.cpp
-  //  std::cout << "wxMutexGuiLeave()" << std::endl;
+  std::cout << "wxMutexGuiLeave()" << std::endl;
   wxMutexGuiLeave();
 }
 

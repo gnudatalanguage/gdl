@@ -2960,6 +2960,7 @@ void GDLTreeParser::for_statement(RefDNode _t) {
 	case XOR_OP:
 	case DEC:
 	case INC:
+	case DOT:
 	case AND_OP_EQ:
 	case ASTERIX_EQ:
 	case EQ_OP_EQ:
@@ -2981,7 +2982,6 @@ void GDLTreeParser::for_statement(RefDNode _t) {
 	case XOR_OP_EQ:
 	case SLASH:
 	case ASTERIX:
-	case DOT:
 	case POW:
 	case MATRIX_OP1:
 	case MATRIX_OP2:
@@ -3236,6 +3236,7 @@ void GDLTreeParser::jump_statement(RefDNode _t) {
 		case XOR_OP:
 		case DEC:
 		case INC:
+		case DOT:
 		case AND_OP_EQ:
 		case ASTERIX_EQ:
 		case EQ_OP_EQ:
@@ -3257,7 +3258,6 @@ void GDLTreeParser::jump_statement(RefDNode _t) {
 		case XOR_OP_EQ:
 		case SLASH:
 		case ASTERIX:
-		case DOT:
 		case POW:
 		case MATRIX_OP1:
 		case MATRIX_OP2:
@@ -3548,6 +3548,7 @@ void GDLTreeParser::parameter_def(RefDNode _t) {
 		case XOR_OP:
 		case DEC:
 		case INC:
+		case DOT:
 		case AND_OP_EQ:
 		case ASTERIX_EQ:
 		case EQ_OP_EQ:
@@ -3569,7 +3570,6 @@ void GDLTreeParser::parameter_def(RefDNode _t) {
 		case XOR_OP_EQ:
 		case SLASH:
 		case ASTERIX:
-		case DOT:
 		case POW:
 		case MATRIX_OP1:
 		case MATRIX_OP2:
@@ -3971,6 +3971,7 @@ void GDLTreeParser::struct_def(RefDNode _t) {
 		case XOR_OP:
 		case DEC:
 		case INC:
+		case DOT:
 		case AND_OP_EQ:
 		case ASTERIX_EQ:
 		case EQ_OP_EQ:
@@ -3992,7 +3993,6 @@ void GDLTreeParser::struct_def(RefDNode _t) {
 		case XOR_OP_EQ:
 		case SLASH:
 		case ASTERIX:
-		case DOT:
 		case POW:
 		case MATRIX_OP1:
 		case MATRIX_OP2:
@@ -4042,6 +4042,7 @@ void GDLTreeParser::struct_def(RefDNode _t) {
 				case XOR_OP:
 				case DEC:
 				case INC:
+				case DOT:
 				case AND_OP_EQ:
 				case ASTERIX_EQ:
 				case EQ_OP_EQ:
@@ -4063,7 +4064,6 @@ void GDLTreeParser::struct_def(RefDNode _t) {
 				case XOR_OP_EQ:
 				case SLASH:
 				case ASTERIX:
-				case DOT:
 				case POW:
 				case MATRIX_OP1:
 				case MATRIX_OP2:
@@ -4292,6 +4292,7 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 	case XOR_OP:
 	case DEC:
 	case INC:
+	case DOT:
 	case AND_OP_EQ:
 	case ASTERIX_EQ:
 	case EQ_OP_EQ:
@@ -4313,7 +4314,6 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 	case XOR_OP_EQ:
 	case SLASH:
 	case ASTERIX:
-	case DOT:
 	case POW:
 	case MATRIX_OP1:
 	case MATRIX_OP2:
@@ -4445,6 +4445,7 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 			case XOR_OP:
 			case DEC:
 			case INC:
+			case DOT:
 			case AND_OP_EQ:
 			case ASTERIX_EQ:
 			case EQ_OP_EQ:
@@ -4466,7 +4467,6 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 			case XOR_OP_EQ:
 			case SLASH:
 			case ASTERIX:
-			case DOT:
 			case POW:
 			case MATRIX_OP1:
 			case MATRIX_OP2:
@@ -4547,6 +4547,7 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 		case XOR_OP:
 		case DEC:
 		case INC:
+		case DOT:
 		case AND_OP_EQ:
 		case ASTERIX_EQ:
 		case EQ_OP_EQ:
@@ -4568,7 +4569,6 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 		case XOR_OP_EQ:
 		case SLASH:
 		case ASTERIX:
-		case DOT:
 		case POW:
 		case MATRIX_OP1:
 		case MATRIX_OP2:
@@ -4646,6 +4646,7 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 			case XOR_OP:
 			case DEC:
 			case INC:
+			case DOT:
 			case AND_OP_EQ:
 			case ASTERIX_EQ:
 			case EQ_OP_EQ:
@@ -4667,7 +4668,6 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 			case XOR_OP_EQ:
 			case SLASH:
 			case ASTERIX:
-			case DOT:
 			case POW:
 			case MATRIX_OP1:
 			case MATRIX_OP2:
@@ -6692,6 +6692,7 @@ const char* GDLTreeParser::tokenNames[] = {
 	"EQUAL",
 	"DEC",
 	"INC",
+	"DOT",
 	"AND_OP_EQ",
 	"ASTERIX_EQ",
 	"EQ_OP_EQ",
@@ -6760,7 +6761,6 @@ const char* GDLTreeParser::tokenNames[] = {
 	"CONSTANT_BIN_UI",
 	"CONSTANT_BIN_UINT",
 	"ASTERIX",
-	"DOT",
 	"STRING_LITERAL",
 	"POW",
 	"MATRIX_OP1",
@@ -6795,21 +6795,22 @@ const char* GDLTreeParser::tokenNames[] = {
 	0
 };
 
-const unsigned long GDLTreeParser::_tokenSet_0_data_[] = { 8126496UL, 537133248UL, 348127488UL, 4294707600UL, 127UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLTreeParser::_tokenSet_0_data_[] = { 8126496UL, 537133248UL, 348127488UL, 4293659024UL, 255UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN BLOCK BREAK CONTINUE COMMONDECL COMMONDEF MPCALL MPCALL_PARENT 
 // PCALL RETURN "case" "for" "forward_function" "goto" "if" "on_ioerror" 
 // "repeat" "switch" "while" DEC INC AND_OP_EQ ASTERIX_EQ EQ_OP_EQ GE_OP_EQ 
 // GTMARK_EQ GT_OP_EQ LE_OP_EQ LTMARK_EQ LT_OP_EQ MATRIX_OP1_EQ MATRIX_OP2_EQ 
 // MINUS_EQ MOD_OP_EQ NE_OP_EQ OR_OP_EQ PLUS_EQ POW_EQ SLASH_EQ XOR_OP_EQ 
 const antlr::BitSet GDLTreeParser::_tokenSet_0(_tokenSet_0_data_,12);
-const unsigned long GDLTreeParser::_tokenSet_1_data_[] = { 360907552UL, 12650752UL, 3391094863UL, 4294709287UL, 1151UL, 4253024256UL, 31UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLTreeParser::_tokenSet_1_data_[] = { 360907552UL, 12650752UL, 3391094863UL, 4294709287UL, 2303UL, 4244635648UL, 31UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN ARRAYDEF ARRAYDEF_CONST ARRAYEXPR ARRAYEXPR_FN CONSTANT DEREF 
 // EXPR FCALL MFCALL MFCALL_PARENT NSTRUC_REF POSTDEC POSTINC STRUC SYSVAR 
 // UMINUS VAR "and" "eq" "ge" "gt" "le" "lt" "mod" "ne" "not" "or" "xor" 
-// DEC INC AND_OP_EQ ASTERIX_EQ EQ_OP_EQ GE_OP_EQ GTMARK_EQ GT_OP_EQ LE_OP_EQ 
-// LTMARK_EQ LT_OP_EQ MATRIX_OP1_EQ MATRIX_OP2_EQ MINUS_EQ MOD_OP_EQ NE_OP_EQ 
-// OR_OP_EQ PLUS_EQ POW_EQ SLASH_EQ XOR_OP_EQ SLASH ASTERIX DOT POW MATRIX_OP1 
-// MATRIX_OP2 PLUS MINUS LTMARK GTMARK LOG_NEG LOG_AND LOG_OR QUESTION 
+// DEC INC DOT AND_OP_EQ ASTERIX_EQ EQ_OP_EQ GE_OP_EQ GTMARK_EQ GT_OP_EQ 
+// LE_OP_EQ LTMARK_EQ LT_OP_EQ MATRIX_OP1_EQ MATRIX_OP2_EQ MINUS_EQ MOD_OP_EQ 
+// NE_OP_EQ OR_OP_EQ PLUS_EQ POW_EQ SLASH_EQ XOR_OP_EQ SLASH ASTERIX POW 
+// MATRIX_OP1 MATRIX_OP2 PLUS MINUS LTMARK GTMARK LOG_NEG LOG_AND LOG_OR 
+// QUESTION 
 const antlr::BitSet GDLTreeParser::_tokenSet_1(_tokenSet_1_data_,16);
 
 

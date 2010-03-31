@@ -586,8 +586,58 @@ statement
     bool parent=false;
 }
     : (assign_expr)=> assign_expr (DEC^ | INC^)?
-    | (deref_expr 
-			// assignment
+//     | (deref_expr_dot)=>
+//       (deref_expr 
+// 			// assignment
+// 			(EQUAL! expr 			
+//                 { #statement = #([ASSIGN,":="], #statement);}
+//             |   ( AND_OP_EQ^ 
+//                 | ASTERIX_EQ^ 
+//                 | EQ_OP_EQ^ 
+//                 | GE_OP_EQ^
+//                 | GTMARK_EQ^
+//                 | GT_OP_EQ^
+//                 | LE_OP_EQ^
+//                 | LTMARK_EQ^
+//                 | LT_OP_EQ^
+//                 | MATRIX_OP1_EQ^
+//                 | MATRIX_OP2_EQ^
+//                 | MINUS_EQ^
+//                 | MOD_OP_EQ^
+//                 | NE_OP_EQ^
+//                 | OR_OP_EQ^
+//                 | PLUS_EQ^
+//                 | POW_EQ^
+//                 | SLASH_EQ^
+//                 | XOR_OP_EQ^) expr
+// 			| (DEC^ | INC^) // no POSTDEC/POSTINC for statements			
+// 			| MEMBER! // member procedure call 
+//                 (baseclass_method { parent=true; })? 
+//                 formal_procedure_call
+// 				{ 
+//                     if( parent)
+//                         #statement = #([MPCALL_PARENT, "mpcall::"], 
+//                                         #statement);
+//                     else
+//                         #statement = #([MPCALL, "mpcall"], #statement);
+//                 }
+//             | // empty -> member procedure call with DOT parsed by tag_access
+//             )
+//       )
+
+
+    | (deref_expr_keeplast DOT IDENTIFIER COMMA)=>
+        deref_expr_keeplast DOT! formal_procedure_call
+				{ 
+                        #statement = #([MPCALL, "mpcall"], #statement);
+                }
+    | (deref_expr_keeplast DOT IDENTIFIER METHOD)=>
+        deref_expr_keeplast DOT! formal_procedure_call
+				{ 
+                        #statement = #([MPCALL_PARENT, "mpcall::"], 
+                                        #statement);
+                }
+    | deref_expr
 			(EQUAL! expr 			
                 { #statement = #([ASSIGN,":="], #statement);}
             |   ( AND_OP_EQ^ 
@@ -610,7 +660,7 @@ statement
                 | SLASH_EQ^
                 | XOR_OP_EQ^) expr
 			| (DEC^ | INC^) // no POSTDEC/POSTINC for statements			
-			| MEMBER! // member procedure call 
+            | MEMBER! // member procedure call 
                 (baseclass_method { parent=true; })? 
                 formal_procedure_call
 				{ 
@@ -621,7 +671,6 @@ statement
                         #statement = #([MPCALL, "mpcall"], #statement);
                 }
 			)
-		)
     | (DEC^ | INC^) expr
 	| procedure_call // next two handled by procedure_call also
 //	| BREAK     // only valid in loops and switch_statement
@@ -1189,18 +1238,70 @@ tag_access returns [SizeT nDot]
 {
     nDot=0;
 }
-	: (DOT! { nDot++;} tag_array_expr_nth)+
+	: (options {greedy=true;}: DOT! { ++nDot;} tag_array_expr_nth)+
     ;
 
-// can be an array expr
-deref_expr //!
+tag_access_keeplast returns [SizeT nDot]
+{
+    SizeT t;
+    bool parent = false;
+    nDot=1;
+}
+	: DOT!
+        (
+            (tag_array_expr_nth tag_access_keeplast)=>
+                    (tag_array_expr_nth t=tag_access_keeplast { nDot += t;})
+        |   (tag_array_expr_nth DOT tag_array_expr_nth)=> 
+                    (tag_array_expr_nth)
+        )
+    ;
+// // can be an array expr
+// deref_expr_dot // only used in predicate
+// 	: array_expr_1st t=tag_access
+//     | ASTERIX! deref_expr_dot
+//         { #deref_expr = 
+// 			#([DEREF,"deref"], #deref_expr);}
+// 	;
+
+deref_expr_keeplast
+{
+    RefDNode dot;
+    SizeT nDot = 1;
+}
+    : (array_expr_1st tag_access_keeplast)=> 
+      a1:array_expr_1st
+        ( /*(tag_access_keeplast)=>*/ nDot=tag_access_keeplast
+            { 
+                dot=#[DOT,"."];
+                dot->SetNDot( nDot);    
+                dot->SetLine( #a1->getLine());
+
+                #deref_expr_keeplast = #(dot, #deref_expr_keeplast);
+            }
+        )
+    | (array_expr_1st DOT tag_array_expr_nth)=> 
+      array_expr_1st 
+//             {
+//                 dot=#[DOT,"."];
+//                 dot->SetNDot( nDot);    
+//                 dot->SetLine( #a1->getLine());
+
+//                 #deref_expr_keeplast = #(dot, #deref_expr_keeplast);
+//             }
+    | ASTERIX! deref_expr_keeplast
+        { #deref_expr_keeplast = 
+			#([DEREF,"deref"], #deref_expr_keeplast);}
+;
+
+
+deref_expr
 {
     RefDNode dot;
     SizeT nDot;
 }
 //	: array_expr_1st (DOT array_expr_nth)*
 	: a1:array_expr_1st 
-        (nDot=tag_access
+        ((tag_access)=> nDot=tag_access
             { 
 
                 dot=#[DOT,"."];
@@ -1219,13 +1320,13 @@ deref_expr //!
 // array or function (only to be used in primary_expr)
 array_expr_fn!//
 {
-    RefDNode dot, t;
+    RefDNode dot;//, t;
     SizeT nDot;
 }
     : v:var al:arrayindex_list 
-        ( nDot=tag_access // must be a variable with index list
+        ( (tag_access)=> nDot=t:tag_access // must be a variable with index list
             {          // -> do so 
-            t= RefDNode(returnAST);    
+            //t= RefDNode(returnAST);    
 
             dot=#[DOT,"."];
             dot->SetNDot( nDot);    
@@ -1245,6 +1346,9 @@ array_expr_fn!//
 member_function_call returns [bool parent]
 	: { parent = false;} MEMBER! 
         (IDENTIFIER METHOD! { parent = true;} )? formal_function_call
+  	;
+member_function_call_dot
+	:  DOT! (IDENTIFIER METHOD!) formal_function_call
   	;
 
 assign_expr
@@ -1280,7 +1384,17 @@ primary_expr
                         #([MFCALL, "mfcall"], #primary_expr);
                     }
                 }
-	  		)?		
+	  		| (DOT IDENTIFIER METHOD)=> member_function_call_dot
+                    {
+                        #primary_expr = 
+                        #([MFCALL_PARENT, "mfcall::"], #primary_expr);
+                    }
+            | DOT! formal_function_call
+                {
+                    #primary_expr = #([MFCALL, "mfcall"], #primary_expr);
+                }
+            |
+            )		
 // commented out to leave checking to tree parser (if MEMBER and DOT are
 // present it could be decided already here if it can be a FCALL)
 //		|
@@ -1307,7 +1421,17 @@ primary_expr
                     #primary_expr = #([MFCALL, "mfcall"], #primary_expr);
                 }
             }
-        )?
+	  	| (DOT IDENTIFIER METHOD)=> member_function_call_dot
+                    {
+                        #primary_expr = 
+                        #([MFCALL_PARENT, "mfcall::"], #primary_expr);
+                    }
+        | DOT! formal_function_call
+                {
+                    #primary_expr = #([MFCALL, "mfcall"], #primary_expr);
+                }
+        |
+        )
 	|! sl:STRING_LITERAL // also a CONSTANT
 		{ #primary_expr=#[CONSTANT,sl->getText()];
             #primary_expr->Text2String();	

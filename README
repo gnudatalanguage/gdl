@@ -120,6 +120,14 @@ http://plplot.sourceforge.net/source/index.html
 If you have plplot older than 5.9.0 use the configure
 option --enable-oldplplot 
 With this option, plplot down to 5.3 should work.
+A possible problem was reported:
+On opening more than one window, plplot causes a segmentation fault
+if GDL is compiled with ImageMagick. This happens if plplot uses 
+dynamic drivers .
+The current solution is to disable dynamic drivers for plplot
+(-DENABLE_DYNDRIVERS=OFF option for cmake).
+Current ubuntu/debian distributions are using dynamic drivers, so plplot
+needs to be compiled from source there.
 
 Furthermore you need the GNU Scientific Library.
 (Minimal version is 1.7, which is now checked via "gsl.m4".

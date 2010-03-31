@@ -251,6 +251,26 @@ for( SizeT c=1; c<=nCp; ++c) // linearized verison of nested loops
 
 
 
+template<>
+void Data_<SpDPtr>::AssignAtIx( SizeT ix, BaseGDL* srcIn)
+{
+  if( srcIn->Type() != this->Type())
+		throw GDLException("Only expressions of type " + srcIn->TypeStr() + " can be assigned to " + this->TypeStr());
+  GDLInterpreter::IncRef( (*static_cast<Data_*>(srcIn))[0]);
+  GDLInterpreter::DecRef( (*this)[ix]);
+  (*this)[ix] = (*static_cast<Data_*>(srcIn))[0];
+}
+template<>
+void Data_<SpDObj>::AssignAtIx( SizeT ix, BaseGDL* srcIn)
+{
+  if( srcIn->Type() != this->Type())
+		throw GDLException("Only expressions of type " + srcIn->TypeStr() + " can be assigned to " + this->TypeStr());
+  GDLInterpreter::IncRefObj( (*static_cast<Data_*>(srcIn))[0]);
+  GDLInterpreter::DecRefObj( (*this)[ix]);
+  (*this)[ix] = (*static_cast<Data_*>(srcIn))[0];
+}
+
+
 
 
 

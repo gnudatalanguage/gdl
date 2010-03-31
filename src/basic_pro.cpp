@@ -688,11 +688,6 @@ namespace lib {
   void exitgdl( EnvT* e)
   {
 
-#ifdef HAVE_LIBWXWIDGETS
-    wxTheApp->OnExit(); // Defined in GDLApp::OnExit() in gdlwidget.cpp
-    wxUninitialize();
-#endif
-
 #ifdef HAVE_LIBREADLINE
 
     // we manage the ASCII "history" file (located in ~/.gdl/)
@@ -730,6 +725,11 @@ namespace lib {
 			}
 		}
     }
+#endif
+
+#ifdef HAVE_LIBWXWIDGETS
+    wxTheApp->OnExit(); // Defined in GDLApp::OnExit() in gdlwidget.cpp
+//     wxUninitialize();
 #endif
 
     BaseGDL* status=e->GetKW( 1);
