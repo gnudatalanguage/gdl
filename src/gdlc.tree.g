@@ -130,11 +130,18 @@ options {
             lT == MFCALL_LIB_RETNEW || 
             lT == MFCALL_PARENT_LIB ||
             lT == MFCALL_PARENT_LIB_RETNEW ||
-            lT == DEREF || lT == VAR || lT == VARPTR)
+            lT == DEREF || lT == VAR || lT == VARPTR 
+            )
         {
             aN->setType( ASSIGN_REPLACE);
             aN->setText( "r=");
         }
+        if( lT == ARRAYEXPR_MFCALL) // is MFCALL or DOT 
+        {
+            aN->setType( ASSIGN_ARRAYEXPR_MFCALL);
+            aN->setText( "?=");
+        }
+
     }
     
     bool SelfAssignment( RefDNode& lN, RefDNode& rN)
@@ -529,8 +536,21 @@ jump_statement!//
 		if( !exprThere)	throw GDLException(	_t, 
                     "Return statement in functions "
                     "must have 1 value.");
+
+//         // wrong: this is only true for l_function as return value
+//         // a ARRAYEXPR_MFCALL can only be a MFCALL here -> change tree
+//         if( #e->getType() == ARRAYEXPR_MFCALL)
+//             {
+//                 #e->setType( MFCALL);
+//                 #e->setText( "mfcall");
+//                 RefDNode mfc;
+//                 mfc = #e->getFirstChild();
+//                 mfc = mfc->getNextSibling();
+//                 #e->setFirstChild( antlr::RefAST(mfc));             
+//             }
+
 		#jump_statement=#([RETF,"retf"],e);
-      #jump_statement->SetLine(r->getLine()); 
+        #jump_statement->SetLine(r->getLine()); 
 		}
 	  else
 	  	{
@@ -638,9 +658,11 @@ key_parameter!//
                 {
                     int t = #k->getType();
                     if( t == FCALL_LIB || t == MFCALL_LIB || 
-                        t == MFCALL_PARENT_LIB ||
-                         t == FCALL_LIB_RETNEW || t == MFCALL_LIB_RETNEW || 
-                         t == MFCALL_PARENT_LIB_RETNEW) 
+                        t == MFCALL_PARENT_LIB //||
+//                          t == FCALL_LIB_RETNEW || t == MFCALL_LIB_RETNEW || 
+//                          t == MFCALL_PARENT_LIB_RETNEW //||
+//                          t == ARRARYEXPR_MFCALL_LIB // MFCALL_LIB or VAR or DEREF 
+                      )
                     {
                         #d=#[KEYDEF_REF_CHECK,"keydef_ref_check"];
                         #key_parameter=#(d,i,k);
@@ -681,9 +703,11 @@ pos_parameter!//
             {
                 int t = #e->getType();
                 if( t == FCALL_LIB || t == MFCALL_LIB || 
-                    t == MFCALL_PARENT_LIB ||
-                     t == FCALL_LIB_RETNEW || t == MFCALL_LIB_RETNEW || 
-                     t == MFCALL_PARENT_LIB_RETNEW) 
+                    t == MFCALL_PARENT_LIB //||
+//                      t == FCALL_LIB_RETNEW || t == MFCALL_LIB_RETNEW || 
+//                      t == MFCALL_PARENT_LIB_RETNEW
+//                      t == ARRARYEXPR_MFCALL_LIB // MFCALL_LIB or VAR or DEREF 
+                    ) 
                 {
                     // something like: CALLAPRO,reform(a,/OVERWRITE)
                     #pos_parameter=#([REF_CHECK,"ref_check"],e);
@@ -1163,15 +1187,14 @@ var!//
 	}
   ;
 
-// out parameter_def_list is an expression list here
-arrayindex_list_to_expression_list! // ???
+arrayindex_list_to_parameter_list! // ???
 //{
 //    RefDNode variable;
 //}
-    : (#(ARRAYIX e:pos_parameter)
+    : (options {greedy=true;}: #(ARRAYIX e:pos_parameter)
             {
-                #arrayindex_list_to_expression_list=
-                    #(NULL, arrayindex_list_to_expression_list, e);
+                #arrayindex_list_to_parameter_list=
+                    #(NULL, arrayindex_list_to_parameter_list, e);
             }
         )+
   ;
@@ -1193,7 +1216,7 @@ arrayexpr_fn!//
             }
 
             (   { isVar}? al:arrayindex_list
-            |   el:arrayindex_list_to_expression_list
+            |   el:arrayindex_list_to_parameter_list
             )
             { 
                 if( !isVar)
@@ -1206,17 +1229,17 @@ arrayexpr_fn!//
                         #id->SetLibFun( libFunList[i]);
                         if( libFunList[ i]->RetNew())
                             {
-                        #id->setType( FCALL_LIB_RETNEW);
-                        #arrayexpr_fn=
-                        #( id, el);
-//                        #([/*FCALL_LIB_RETNEW,"fcall_lib_retnew"],*/ id, el);
+                                #id->setType( FCALL_LIB_RETNEW);
+                                #arrayexpr_fn =
+                                #( id, el);
+//                              #([/*FCALL_LIB_RETNEW,"fcall_lib_retnew"],*/ id, el);
                             }
                         else
                             {
-                        #id->setType( FCALL_LIB);
-                        #arrayexpr_fn=
-                        #( id, el);
-//                        #(/*[FCALL_LIB,"fcall_lib"],*/ id, el);
+                                #id->setType( FCALL_LIB);
+                                #arrayexpr_fn =
+                                #( id, el);
+//                              #(/*[FCALL_LIB,"fcall_lib"],*/ id, el);
                             }
                     }
                     else
@@ -1246,13 +1269,54 @@ arrayexpr_fn!//
         )  
     ;
 
+
+arrayexpr_mfcall!//
+    : #(a:ARRAYEXPR_MFCALL
+            {
+                RefDNode mark = _t; // mark
+            }
+            e:expr i:IDENTIFIER al:arrayindex_list
+            { 
+                RefDNode #ae = #([ARRAYEXPR,"arrayexpr"], #i, #al);
+
+                RefDNode #first;
+
+                if( e->getType() == DOT)
+                {
+                    int nDot = #e->GetNDot();
+                    #e->SetNDot( ++nDot);
+
+                    #e->addChild( #ae);
+
+                    #first = #e;
+                }
+                else
+                {
+                    RefDNode #dot = #([DOT,"."], e, ae);
+                    #dot->SetNDot( 1);
+
+                    #first = #dot;
+                }
+
+                _t = mark; // rewind to parse again 
+            }
+            e2:expr i2:IDENTIFIER a2:arrayindex_list_to_parameter_list
+            {
+               #arrayexpr_mfcall = #(a, first, e2, i2, a2);
+            }
+            
+        )
+    ;
+
 // only here a function call is ok also
 primary_expr
 {
 int dummy;
+RefDNode mark;
 }
     : assign_expr
-    | comp_assign_expr   
+    | comp_assign_expr
+    | arrayexpr_mfcall 
 	| #(MFCALL expr IDENTIFIER parameter_def
         )
 	| #(MFCALL_PARENT expr IDENTIFIER
@@ -1404,4 +1468,3 @@ expr
 	| #(DEREF expr)    // deref
 	| op_expr
 	;
-

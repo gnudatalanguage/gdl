@@ -142,7 +142,7 @@ public:
 	public: void label();
 	public: void baseclass_method();
 	public: void assign_expr();
-	public: void deref_expr_keeplast();
+	public: void deref_dot_expr_keeplast();
 	public: void formal_procedure_call();
 	public: void deref_expr();
 	public: void procedure_call();
@@ -181,9 +181,8 @@ public:
 	public: void array_expr_nth();
 	public: void tag_array_expr_nth_sub();
 	public: void tag_array_expr_nth();
+	public: int  tag_access_keeplast();
 	public: SizeT  tag_access();
-	public: SizeT  tag_access_keeplast();
-	public: void array_expr_fn();
 	public: bool  member_function_call();
 	public: void member_function_call_dot();
 	public: void primary_expr();
@@ -207,10 +206,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 216;
+	static const int NUM_TOKENS = 218;
 #else
 	enum {
-		NUM_TOKENS = 216
+		NUM_TOKENS = 218
 	};
 #endif
 	
@@ -262,12 +261,6 @@ private:
 	static const antlr::BitSet _tokenSet_22;
 	static const unsigned long _tokenSet_23_data_[];
 	static const antlr::BitSet _tokenSet_23;
-	static const unsigned long _tokenSet_24_data_[];
-	static const antlr::BitSet _tokenSet_24;
-	static const unsigned long _tokenSet_25_data_[];
-	static const antlr::BitSet _tokenSet_25;
-	static const unsigned long _tokenSet_26_data_[];
-	static const antlr::BitSet _tokenSet_26;
 };
 
 #endif /*INC_GDLParser_hpp_*/

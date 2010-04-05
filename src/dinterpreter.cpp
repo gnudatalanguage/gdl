@@ -39,6 +39,9 @@
 //#define GDL_DEBUG
 //#undef GDL_DEBUG
 
+// print out an exspression entered at teh comand line
+//#define 	AUTO_PRINT_EXPR
+
 #ifdef GDL_DEBUG
 #include "print_tree.hpp"
 #endif
@@ -761,6 +764,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
 	    if( lCNew == lCNum)
 // 	      throw; // no LC -> real error
 	{
+#ifdef 	AUTO_PRINT_EXPR
 #ifndef GDL_DEBUG 		
  		try {
 // 			executeLine.clear(); // clear EOF (for executeLine)
@@ -776,6 +780,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
 			break; // no error -> everything ok
 		}
 		catch( GDLException& e2)
+#endif
 #endif
 		{
 			throw e;

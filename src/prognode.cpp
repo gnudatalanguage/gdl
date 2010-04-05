@@ -497,6 +497,91 @@ void ASSIGNNode::Run()
   ProgNode::interpreter->_retTree = this->getNextSibling();
 }
 
+
+
+void ASSIGN_ARRAYEXPR_MFCALLNode::Run()
+{
+  BaseGDL*  r;
+  BaseGDL** l;
+  auto_ptr<BaseGDL> r_guard;
+
+  //match(antlr::RefAST(_t),ASSIGN_REPLACE);
+  ProgNodeP _t = this->getFirstChild();
+  {
+    // BOTH
+    if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
+      {
+		r=ProgNode::interpreter->check_expr(_t);
+
+		if( r == NULL) // ROUTINE_NAMES
+			ProgNode::interpreter->callStack.back()->Throw( "Undefined return value");
+	
+		_t = ProgNode::interpreter->_retTree;
+		
+		if( !ProgNode::interpreter->callStack.back()->Contains( r)) 
+			r_guard.reset( r);
+			
+      }
+    else
+      {
+			// ASSIGN
+			switch ( _t->getType()) {
+				case GDLTokenTypes::CONSTANT:
+				case GDLTokenTypes::DEREF:
+				case GDLTokenTypes::SYSVAR:
+				case GDLTokenTypes:: VAR:
+				case GDLTokenTypes::VARPTR:
+				{
+				r= ProgNode::interpreter->indexable_expr(_t);
+				_t = ProgNode::interpreter->_retTree;
+				break;
+				}
+				default:
+				{
+				r=ProgNode::interpreter->indexable_tmp_expr(_t);
+				_t = ProgNode::interpreter->_retTree;
+				r_guard.reset( r);
+				break;
+			}
+			}//switch
+		}
+  }
+
+	ProgNodeP lExpr = _t;
+    
+	// try MFCALL
+	try
+    {
+    l=ProgNode::interpreter->l_arrayexpr_mfcall_as_mfcall(_t);
+    
+	if( r != (*l))
+		{
+		delete *l;
+
+		if( r_guard.get() == r)
+		*l = r_guard.release();
+		else
+		*l = r->Dup();
+		}
+    }
+    catch( GDLException& e)
+    {
+		// try ARRAYEXPR
+		try
+		{
+			l=ProgNode::interpreter->l_arrayexpr_mfcall_as_arrayexpr(lExpr, r);
+		}
+		catch( GDLException& e2)
+		{
+			throw GDLException(e.toString() + " or "+e2.toString());
+		}
+    }
+
+  ProgNode::interpreter->_retTree = this->getNextSibling();
+}
+
+
+
 void ASSIGN_REPLACENode::Run()
 {
   BaseGDL*  r;

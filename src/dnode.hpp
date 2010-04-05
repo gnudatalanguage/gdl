@@ -258,6 +258,7 @@ public:
   void SetLibFun(DLibFun* const l) { libFun=l;}
   void SetLibPro(DLibPro* const l) { libPro=l;}
   void SetNDot(const int n) { nDot=n;}
+  int GetNDot() const { return nDot;}
 
   void SetCompileOpt(const int n) { compileOpt=n; }
   int GetCompileOpt() { return compileOpt; }

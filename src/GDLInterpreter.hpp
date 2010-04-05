@@ -51,6 +51,7 @@ private:
     friend class NSTRUCNode;
     friend class NSTRUC_REFNode;
     friend class ASSIGNNode;
+    friend class ASSIGN_ARRAYEXPR_MFCALLNode;
     friend class ASSIGN_REPLACENode;
 friend class PCALL_LIBNode;//: public CommandNode
 friend class MPCALLNode;//: public CommandNode
@@ -669,6 +670,7 @@ public:
 	public: BaseGDL**  l_simple_var(ProgNodeP _t);
 	public: BaseGDL**  l_ret_expr(ProgNodeP _t);
 	public: BaseGDL**  l_deref(ProgNodeP _t);
+	public:  BaseGDL**  l_arrayexpr_mfcall_as_mfcall(ProgNodeP _t);
 	public:  BaseGDL**  l_function_call(ProgNodeP _t);
 	public: BaseGDL*  tmp_expr(ProgNodeP _t);
 	public: BaseGDL*  check_expr(ProgNodeP _t);
@@ -700,8 +702,14 @@ public:
 	public: BaseGDL**  l_expr(ProgNodeP _t,
 		BaseGDL* right
 	);
+	public: void parameter_def(ProgNodeP _t,
+		EnvBaseT* actEnv
+	);
 	public: BaseGDL**  l_indexable_expr(ProgNodeP _t);
 	public: BaseGDL**  l_array_expr(ProgNodeP _t,
+		BaseGDL* right
+	);
+	public: BaseGDL**  l_arrayexpr_mfcall(ProgNodeP _t,
 		BaseGDL* right
 	);
 	public: BaseGDL*  array_expr(ProgNodeP _t);
@@ -723,8 +731,8 @@ public:
 	public: BaseGDL*  constant(ProgNodeP _t);
 	public: BaseGDL*  simple_var(ProgNodeP _t);
 	public: BaseGDL*  sys_var(ProgNodeP _t);
-	public: void parameter_def(ProgNodeP _t,
-		EnvBaseT* actEnv
+	public: BaseGDL**  l_arrayexpr_mfcall_as_arrayexpr(ProgNodeP _t,
+		BaseGDL* right
 	);
 	public:  BaseGDL**  ref_parameter(ProgNodeP _t);
 public:
@@ -739,10 +747,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 216;
+	static const int NUM_TOKENS = 218;
 #else
 	enum {
-		NUM_TOKENS = 216
+		NUM_TOKENS = 218
 	};
 #endif
 	

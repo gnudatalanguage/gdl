@@ -77,11 +77,18 @@ class CUSTOM_API GDLTreeParser : public antlr::TreeParser, public GDLTreeParserT
             lT == MFCALL_LIB_RETNEW || 
             lT == MFCALL_PARENT_LIB ||
             lT == MFCALL_PARENT_LIB_RETNEW ||
-            lT == DEREF || lT == VAR || lT == VARPTR)
+            lT == DEREF || lT == VAR || lT == VARPTR 
+            )
         {
             aN->setType( ASSIGN_REPLACE);
             aN->setText( "r=");
         }
+        if( lT == ARRAYEXPR_MFCALL) // is MFCALL or DOT 
+        {
+            aN->setType( ASSIGN_ARRAYEXPR_MFCALL);
+            aN->setText( "?=");
+        }
+
     }
     
     bool SelfAssignment( RefDNode& lN, RefDNode& rN)
@@ -183,8 +190,9 @@ public:
 	public: void assign_expr(RefDNode _t);
 	public: void sysvar(RefDNode _t);
 	public: void var(RefDNode _t);
-	public: void arrayindex_list_to_expression_list(RefDNode _t);
+	public: void arrayindex_list_to_parameter_list(RefDNode _t);
 	public: void arrayexpr_fn(RefDNode _t);
+	public: void arrayexpr_mfcall(RefDNode _t);
 	public: void primary_expr(RefDNode _t);
 	public: void op_expr(RefDNode _t);
 	public: void uminus(RefDNode _t);
@@ -208,10 +216,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 216;
+	static const int NUM_TOKENS = 218;
 #else
 	enum {
-		NUM_TOKENS = 216
+		NUM_TOKENS = 218
 	};
 #endif
 	

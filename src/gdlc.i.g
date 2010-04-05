@@ -127,6 +127,7 @@ private:
     friend class NSTRUCNode;
     friend class NSTRUC_REFNode;
     friend class ASSIGNNode;
+    friend class ASSIGN_ARRAYEXPR_MFCALLNode;
     friend class ASSIGN_REPLACENode;
 friend class PCALL_LIBNode;//: public CommandNode
 friend class MPCALLNode;//: public CommandNode
@@ -913,6 +914,8 @@ statement returns[ GDLInterpreter::RetCode retCode]
             // a real copy must be performed (creating a new BaseGDL)  
             a:ASSIGN            
             {a->Run();}
+        |   ac:ASSIGN_ARRAYEXPR_MFCALL
+            {ac->Run();}
         |   r:ASSIGN_REPLACE            
             {r->Run();}
             //            assignment
@@ -1808,7 +1811,7 @@ BaseGDL** eL;
 //                     if( !callStack.back()->Contains( r)) 
 //                         r_guard.reset( r);
 //                 }
-//             )
+//             )m,
 //             (
 //               l=l_function_call   // FCALL_LIB, MFCALL, MFCALL_PARENT, FCALL
 //             | l=l_deref           // DEREF
@@ -1893,6 +1896,7 @@ l_ret_expr returns [BaseGDL** res]
             }
         ) // trinary operator
 //    | #(EXPR res=l_ret_expr) // does not exist anymore
+    | res=l_arrayexpr_mfcall_as_mfcall
     | res=l_function_call 
         { // here a local to the actual environment could be returned
             if( callStack.back()->IsLocalKW( res))
@@ -1929,6 +1933,30 @@ l_ret_expr returns [BaseGDL** res]
                 }
             )
             res=l_ret_expr
+            {
+                if( e1 != (*res))
+                    {
+                    delete *res;
+                    *res = e1;
+                    }
+                r_guard.release();
+            }
+        )
+    | #(ASSIGN_ARRAYEXPR_MFCALL // here as return value of l_function
+            { 
+                auto_ptr<BaseGDL> r_guard;
+            } 
+            ( e1=tmp_expr
+                {
+                    r_guard.reset( e1);
+                }
+            | e1=check_expr
+                {
+                    if( !callStack.back()->Contains( e1)) 
+                        r_guard.reset( e1);
+                }
+            )
+            res=l_arrayexpr_mfcall_as_mfcall
             {
                 if( e1 != (*res))
                     {
@@ -2126,6 +2154,7 @@ l_decinc_dot_expr [int dec_inc] returns [BaseGDL* res]
 l_decinc_expr [int dec_inc] returns [BaseGDL* res]
 {
     BaseGDL*       e1;
+    ProgNodeP startNode = _t;
 }
     : #(QUESTION e1=expr
             { 
@@ -2175,6 +2204,57 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
             }
             res=l_decinc_expr[ dec_inc]
         )
+    | #(ASSIGN_ARRAYEXPR_MFCALL
+            { 
+                auto_ptr<BaseGDL> r_guard;
+            } 
+            ( e1=indexable_expr
+            | e1=indexable_tmp_expr { r_guard.reset( e1);}
+            | e1=check_expr
+                {
+                    if( !callStack.back()->Contains( e1)) 
+                        r_guard.reset( e1); // guard if no global data
+                }
+            )
+            { 
+                ProgNodeP l = _t;
+
+                BaseGDL** tmp;
+
+                // try MFCALL
+                try
+                {
+    
+                    tmp=l_arrayexpr_mfcall_as_mfcall(l);
+    
+                    if( e1 != (*tmp))
+                    {
+                        delete *tmp;
+
+                        if( r_guard.get() == e1)
+                            *tmp = r_guard.release();
+                        else          
+                            *tmp = e1->Dup();
+                    }
+
+                    res=l_decinc_expr( l, dec_inc);
+                }
+                catch( GDLException& ex)
+                {
+                // try ARRAYEXPR
+                    try
+	                {
+                        tmp=l_arrayexpr_mfcall_as_arrayexpr(l, e1);
+	                }
+                    catch( GDLException& ex2)
+                    {
+                        throw GDLException(ex.toString() + " or "+ex2.toString());
+                    }
+
+                    res=l_decinc_expr( l, dec_inc);
+                }
+            }
+        )
     | #(ASSIGN_REPLACE 
             { 
                 auto_ptr<BaseGDL> r_guard;
@@ -2217,6 +2297,78 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
             res=l_decinc_expr[ dec_inc]
         )
     | res=l_decinc_array_expr[ dec_inc]
+    | #(ARRAYEXPR_MFCALL
+        {
+            ProgNodeP mark = _t;
+            _t = _t->getNextSibling(); // step over DOT
+
+            BaseGDL* self;
+        }
+            
+        //BaseGDL** e = l_arrayexpr_mfcall_as_mfcall( _t);
+        self=expr mp2:IDENTIFIER
+
+        {  
+                auto_ptr<BaseGDL> self_guard(self);
+        
+                EnvUDT* newEnv;
+
+                try {
+                    newEnv=new EnvUDT( self, mp2, "", true);
+                    self_guard.release();
+                }
+                catch( GDLException& ex)
+                {
+                    _t = mark;
+
+                    res=l_decinc_dot_expr(_t, dec_inc);
+
+                    _retTree = startNode->getNextSibling();
+                    return res;
+                }   
+        }    
+
+        parameter_def[ newEnv]
+        
+        {
+            // push environment onto call stack
+            callStack.push_back(newEnv);
+            
+            // make the call
+            BaseGDL** ee=call_lfun(static_cast<DSubUD*>(
+                                  newEnv->GetPro())->GetTree());
+
+            BaseGDL* e = *ee;
+            if( e == NULL)
+                throw GDLException( _t, "Variable is undefined: "+Name(ee),true,false);
+
+            if( dec_inc == DECSTATEMENT) 
+                {
+                    e->Dec(); 
+                    res = NULL;
+                    _retTree = startNode->getNextSibling();
+                    return res;
+                }
+            if( dec_inc == INCSTATEMENT)
+                {
+                    e->Inc();
+                    res = NULL;
+                    _retTree = startNode->getNextSibling();
+                    return res;
+                }
+
+            if( dec_inc == DEC) e->Dec();
+            else if( dec_inc == INC) e->Inc();
+  //          
+            res = e->Dup();
+            
+            if( dec_inc == POSTDEC) e->Dec();
+            else if( dec_inc == POSTINC) e->Inc();
+
+            _retTree = startNode->getNextSibling();
+            return res;
+        }   
+        )
     | res=l_decinc_dot_expr[ dec_inc]
     | e1=r_expr
         {
@@ -2241,6 +2393,11 @@ l_indexable_expr returns [BaseGDL** res]
             throw GDLException( _t, "Variable is undefined: "+Name(res),true,false);
         }
     | res=l_function_call
+        {
+            if( *res == NULL)
+            throw GDLException( _t, "Variable is undefined: "+Name(res),true,false);
+        }
+    | res=l_arrayexpr_mfcall_as_mfcall 
         {
             if( *res == NULL)
             throw GDLException( _t, "Variable is undefined: "+Name(res),true,false);
@@ -2404,6 +2561,44 @@ l_expr [BaseGDL* right] returns [BaseGDL** res]
 //                     r_guard.release();
 //             }
         )
+    | #(ASSIGN_ARRAYEXPR_MFCALL
+            ( e1=indexable_expr
+            | e1=indexable_tmp_expr { delete e1;}
+            | e1=check_expr
+                {
+                    if( !callStack.back()->Contains( e1)) 
+                        delete e1; 
+                }
+            )
+            { 
+                ProgNodeP l = _t;
+
+                // try MFCALL
+                try
+                {
+    
+                    res=l_arrayexpr_mfcall_as_mfcall( l);
+    
+                    if( right != (*res))
+                    {
+                        delete *res;
+                        *res = right->Dup();
+                    }
+                }
+                catch( GDLException& ex)
+                {
+                // try ARRAYEXPR
+                    try
+	                {
+                        res=l_arrayexpr_mfcall_as_arrayexpr(l, right);
+	                }
+                    catch( GDLException& ex2)
+                    {
+                        throw GDLException(ex.toString() + " or "+ex2.toString());
+                    }
+                }
+            }
+        )
     | #(ASSIGN_REPLACE //???e1=expr
 //             { 
 //                 auto_ptr<BaseGDL> r_guard;
@@ -2486,6 +2681,7 @@ l_expr [BaseGDL* right] returns [BaseGDL** res]
 //                 *res = right->Dup();
 //             }
 //         }
+    | res=l_arrayexpr_mfcall[ right]
 //    | res=l_dot_expr[ right]
     | #(dot:DOT  // struct assignment
             { 
@@ -3306,9 +3502,9 @@ assign_expr returns [BaseGDL* res]
     BaseGDL** l;
     BaseGDL*  r;
 
+	ProgNodeP startNode = _t;
 	if( _t->getType() == ASSIGN) 
 	{
-		ProgNodeP __t130 = _t;
 // 		match(antlr::RefAST(_t),ASSIGN);
 		_t = _t->getFirstChild();
 		
@@ -3340,12 +3536,73 @@ assign_expr returns [BaseGDL* res]
 		else
 		res = res->Dup();
 		
-		_t = __t130;
-		_t = _t->getNextSibling();
 	}
+    else if( _t->getType() == ASSIGN_ARRAYEXPR_MFCALL) 
+        {
+
+		_t = _t->getFirstChild();
+		
+		auto_ptr<BaseGDL> r_guard;
+		
+		if( _t->getType() == FCALL_LIB)
+		{
+			res=check_expr(_t);
+			_t = _retTree;
+			
+			if( !callStack.back()->Contains( res)) 
+			r_guard.reset( res);
+			
+		}
+        else
+		{
+			res=tmp_expr(_t);
+			_t = _retTree;
+			
+			r_guard.reset( res);
+			
+		}
+
+        ProgNodeP mark = _t;
+
+        // try MFCALL
+        try
+            {
+                l=l_arrayexpr_mfcall_as_mfcall( mark);
+    
+                if( res != (*l))
+                    {
+                        delete *l;
+                        *l = res->Dup();     
+		
+                        if( r_guard.get() == res) // owner
+                            {
+                                r_guard.release(); 
+                            }
+                        else
+                            res = res->Dup();
+                    }
+            }
+        catch( GDLException& ex)
+            {
+                // try ARRAYEXPR
+                try
+	                {
+                        l=l_arrayexpr_mfcall_as_arrayexpr(mark, res);
+
+                        if( r_guard.get() == res) // owner
+                            r_guard.release();
+                        else
+                            res = res->Dup();
+	                }
+                catch( GDLException& ex2)
+                    {
+                        throw GDLException(ex.toString() + " or "+ex2.toString());
+                    }
+            }
+
+        }
     else
 	{
-		ProgNodeP __t132 = _t;
 // 		match(antlr::RefAST(_t),ASSIGN_REPLACE);
 		_t = _t->getFirstChild();
 		
@@ -3405,16 +3662,35 @@ assign_expr returns [BaseGDL* res]
 		else
 		res = res->Dup();
 		}
-		
-		_t = __t132;
-		_t = _t->getNextSibling();
-	}
+    }
 
-	_retTree = _t;
+	_retTree = startNode->getNextSibling();
 	return res;
-
 }
+
     : #(ASSIGN 
+            { 
+                auto_ptr<BaseGDL> r_guard;
+            } 
+            ( res=tmp_expr
+                {
+                    r_guard.reset( res);
+                }
+            | res=check_expr
+                {
+                    if( !callStack.back()->Contains( res)) 
+                        r_guard.reset( res);
+                }
+            )
+            l=l_expr[ res]
+            { 
+                if( r_guard.get() == res) // owner
+                    r_guard.release();
+                else
+                    res = res->Dup();
+            } // here res is returned!
+        )
+    | #(ASSIGN_ARRAYEXPR_MFCALL
             { 
                 auto_ptr<BaseGDL> r_guard;
             } 
@@ -3471,6 +3747,8 @@ assign_expr returns [BaseGDL* res]
             }
         )
     ;
+
+
 
 simple_var returns [BaseGDL* res]
 {
@@ -3701,10 +3979,12 @@ function_call returns[ BaseGDL* res]
     // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
     StackGuard<EnvStackT> guard(callStack);
     BaseGDL *self;
-    EnvUDT*   newEnv;
+    EnvUDT*  newEnv;
+    ProgNodeP startNode = _t;
+    ProgNodeP mark;
 }
-    :    (
-        ( #(MFCALL 
+    : ( 
+          #(MFCALL 
                 self=expr mp:IDENTIFIER
                 {  
                     auto_ptr<BaseGDL> self_guard(self);
@@ -3735,15 +4015,189 @@ function_call returns[ BaseGDL* res]
                 }
                 parameter_def[ newEnv]
             )
+        | #(ARRAYEXPR_MFCALL
+            {
+                mark = _t;
+                _t = _t->getNextSibling(); // skip DOT
+            }
+
+            self=expr mp2:IDENTIFIER
+
+            {  
+                auto_ptr<BaseGDL> self_guard(self);
+        
+                try {
+                    newEnv=new EnvUDT( self, mp2);
+                    self_guard.release();
+                }
+                catch( GDLException& ex)
+                {
+                    goto tryARRAYEXPR;
+                }
+            } 
+
+            parameter_def[ newEnv]
+            )
+        )        
+            {
+                // push environment onto call stack
+                callStack.push_back(newEnv);
+            
+                // make the call
+                res=call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+
+                _retTree = startNode->getNextSibling();
+                return res;
+
+                tryARRAYEXPR:;
+                //_t = mark;
+
+                ProgNodeP dot = mark;
+                // 	match(antlr::RefAST(_t),DOT);
+                _t = mark->getFirstChild();
+	
+                SizeT nDot=dot->nDot;
+                auto_ptr<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
+	
+                r_dot_array_expr(_t, aD.get());
+                _t = _retTree;
+                for (; _t != NULL;) {
+                    tag_array_expr(_t, aD.get());
+                    _t = _retTree;
+                }
+                res= aD->Resolve();
+
+                _retTree = startNode->getNextSibling();
+                return res;
+            }
+	;	
+
+
+
+l_arrayexpr_mfcall [BaseGDL* right] returns [BaseGDL** res]
+{ 
+    // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+    StackGuard<EnvStackT> guard(callStack);
+    BaseGDL *self;
+    EnvUDT*  newEnv;
+    ProgNodeP startNode = _t;
+}
+    : #(ARRAYEXPR_MFCALL
+        {
+            ProgNodeP mark = _t;
+            _t = _t->getNextSibling(); // skip DOT
+        }
+
+        self=expr mp2:IDENTIFIER
+
+        {  
+            auto_ptr<BaseGDL> self_guard(self);
+        
+            try {
+                newEnv=new EnvUDT( self, mp2, "", true);
+                self_guard.release();
+            }
+            catch( GDLException& ex)
+            {
+                goto tryARRAYEXPR;
+            }
+        }    
+
+            parameter_def[ newEnv]
         )
         {
             // push environment onto call stack
             callStack.push_back(newEnv);
             
             // make the call
-            res=call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
-        } 
+            res=call_lfun(static_cast<DSubUD*>(
+                    newEnv->GetPro())->GetTree());
+
+            _retTree = startNode->getNextSibling();
+            return res;
+
+            tryARRAYEXPR:;
+            _t = mark;
+        }   
+        #(dot:DOT  // struct assignment
+            { 
+                SizeT nDot=dot->nDot;
+                auto_ptr<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
+            } 
+            l_dot_array_expr[ aD.get()] 
+            (tag_array_expr[ aD.get()] /* nDot times*/ )+ 
         )
+        {
+            if( right == NULL)
+            throw GDLException( _t, 
+                                "Struct expression not allowed in this context.",
+                                true,false);
+            
+            aD->Assign( right);
+
+            res=NULL;
+
+            _retTree = startNode->getNextSibling();
+            return res;
+        }
+    ;
+
+
+
+l_arrayexpr_mfcall_as_arrayexpr [BaseGDL* right] returns [BaseGDL** res]
+    : #(ARRAYEXPR_MFCALL
+            #(dot:DOT  // struct assignment
+            { 
+                SizeT nDot=dot->nDot;
+                auto_ptr<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
+            } 
+            l_dot_array_expr[ aD.get()] 
+            (tag_array_expr[ aD.get()] /* nDot times*/ )+ 
+            )         
+        )
+        {
+            if( right == NULL)
+            throw GDLException( _t, 
+                                "Struct expression not allowed in this context.",
+                                true,false);
+            
+            aD->Assign( right);
+
+            res=NULL;
+        }
+    ;
+
+// function call can be l_values (within (#EXPR ...) only)
+l_arrayexpr_mfcall_as_mfcall returns[ BaseGDL** res]
+{ 
+    // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+    StackGuard<EnvStackT> guard(callStack);
+    BaseGDL *self;
+    EnvUDT*   newEnv;
+}
+    : #(ARRAYEXPR_MFCALL
+                {
+                    _t = _t->getNextSibling(); // skip DOT
+                }
+ 
+                self=expr mp2:IDENTIFIER
+                {  
+                    auto_ptr<BaseGDL> self_guard(self);
+                    
+                    newEnv=new EnvUDT( self, mp2, "", true);
+
+                    self_guard.release();
+                }
+                parameter_def[ newEnv]
+        )
+        {
+            // push environment onto call stack
+            callStack.push_back(newEnv);
+            
+            // make the call
+            res=call_lfun(static_cast<DSubUD*>(
+                    newEnv->GetPro())->GetTree());
+        }   
 	;	
 
 // function call can be l_values (within (#EXPR ...) only)

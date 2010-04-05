@@ -2,11 +2,12 @@
  * Project led by Terence Parr at http://www.jGuru.com
  * Software rights: http://www.antlr.org/license.html
  *
- * $Id: TreeParser.cpp,v 1.2 2008-11-16 13:51:49 m_schellens Exp $
+ * $Id: TreeParser.cpp,v 1.3 2010-04-05 01:22:05 m_schellens Exp $
  */
 
 // g++-4.3 needs this
 #include <cstdlib>
+#include <iomanip>
 
 #include "antlr/TreeParser.hpp"
 #include "antlr/ASTNULLType.hpp"
@@ -98,7 +99,8 @@ void TreeParser::reportWarning(const ANTLR_USE_NAMESPACE(std)string& s)
 void TreeParser::traceIndent()
 {
 	for( int i = 0; i < traceDepth; i++ )
-		ANTLR_USE_NAMESPACE(std)cout << " ";
+		ANTLR_USE_NAMESPACE(std)cout << "  ";
+	ANTLR_USE_NAMESPACE(std)cout << ANTLR_USE_NAMESPACE(std)setw(3) << traceDepth << ": ";
 }
 
 void TreeParser::traceIn(const char* rname, RefAST t)

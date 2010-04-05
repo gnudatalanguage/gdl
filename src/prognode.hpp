@@ -255,6 +255,12 @@ public:
   ASSIGNNode( const RefDNode& refNode): CommandNode( refNode) {}
   void Run();
 };
+class ASSIGN_ARRAYEXPR_MFCALLNode: public CommandNode
+{
+public:
+  ASSIGN_ARRAYEXPR_MFCALLNode( const RefDNode& refNode): CommandNode( refNode) {}
+  void Run();
+};
 class ASSIGN_REPLACENode: public CommandNode
 {
 public:
