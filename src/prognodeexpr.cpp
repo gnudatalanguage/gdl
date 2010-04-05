@@ -699,6 +699,10 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
       {
 	return new ASSIGNNode( refNode);
       }
+    case GDLTokenTypes::ASSIGN_ARRAYEXPR_MFCALL:
+      {
+	return new ASSIGN_ARRAYEXPR_MFCALLNode( refNode);
+      }
     case GDLTokenTypes::ASSIGN_REPLACE:
       {
 	return new ASSIGN_REPLACENode( refNode);

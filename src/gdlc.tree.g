@@ -1270,40 +1270,59 @@ arrayexpr_fn!//
     ;
 
 
+
 arrayexpr_mfcall!//
     : #(a:ARRAYEXPR_MFCALL
             {
                 RefDNode mark = _t; // mark
             }
-            e:expr i:IDENTIFIER al:arrayindex_list
+            e:expr i:IDENTIFIER //al:arrayindex_list
             { 
-                RefDNode #ae = #([ARRAYEXPR,"arrayexpr"], #i, #al);
-
+                bool success = true;
                 RefDNode #first;
+	            try {
+                    arrayindex_list(_t);
 
-                if( e->getType() == DOT)
-                {
-                    int nDot = #e->GetNDot();
-                    #e->SetNDot( ++nDot);
+                    RefDNode al = returnAST;
+                    RefDNode #ae = #([ARRAYEXPR,"arrayexpr"], #i, al);
 
-                    #e->addChild( #ae);
+                    if( e->getType() == DOT)
+                    {
+                        int nDot = #e->GetNDot();
+                        #e->SetNDot( ++nDot);
 
-                    #first = #e;
+                        #e->addChild( #ae);
+
+                        #first = #e;
+                    }
+                    else
+                    {
+                        RefDNode #dot = #([DOT,"."], e, ae);
+                        #dot->SetNDot( 1);
+
+                        #first = #dot;
+                    }
                 }
-                else
+                catch( GDLException& ex)
                 {
-                    RefDNode #dot = #([DOT,"."], e, ae);
-                    #dot->SetNDot( 1);
+                    Message( "Ambiguity resolved: member function call "
+                             "due to invalid array index.");
 
-                    #first = #dot;
+                    success = false;
+
+                    #a->setType( MFCALL);
+                    #a->setText( "mfcall");
                 }
 
                 _t = mark; // rewind to parse again 
             }
             e2:expr i2:IDENTIFIER a2:arrayindex_list_to_parameter_list
             {
-               #arrayexpr_mfcall = #(a, first, e2, i2, a2);
-            }
+                if( success)
+                    #arrayexpr_mfcall = #(a, first, e2, i2, a2);
+                else
+                    #arrayexpr_mfcall = #(a, e2, i2, a2);
+            } 
             
         )
     ;

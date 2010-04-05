@@ -1583,8 +1583,20 @@ SizeT Data_<SpDComplexDbl>::LoopIndex() const
 template<> 
 SizeT Data_<SpDString>::LoopIndex() const
 {
-  throw GDLException( "String expression not allowed as index.");
-  return 0;
+	if( (*this)[0] == "")
+		return 0;
+	
+    const char* cStart=(*this)[0].c_str();
+    char* cEnd;
+    SizeT ix=strtol(cStart,&cEnd,10);
+    if( cEnd == cStart)
+		{
+		Warning( "Type conversion error: "
+				       "Unable to convert given STRING: '"+
+				       (*this)[0]+"' to index.");
+      	return 0;
+      	}
+  return ix;
 }
 // SizeT DStructGDL::LoopIndex() const
 // {

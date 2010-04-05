@@ -5220,8 +5220,6 @@ void GDLTreeParser::arrayexpr_mfcall(RefDNode _t) {
 	RefDNode e = RefDNode(antlr::nullAST);
 	RefDNode i = RefDNode(antlr::nullAST);
 	RefDNode i_AST = RefDNode(antlr::nullAST);
-	RefDNode al_AST = RefDNode(antlr::nullAST);
-	RefDNode al = RefDNode(antlr::nullAST);
 	RefDNode e2_AST = RefDNode(antlr::nullAST);
 	RefDNode e2 = RefDNode(antlr::nullAST);
 	RefDNode i2 = RefDNode(antlr::nullAST);
@@ -5250,14 +5248,14 @@ void GDLTreeParser::arrayexpr_mfcall(RefDNode _t) {
 	i_AST = astFactory->create(antlr::RefAST(i));
 	match(antlr::RefAST(_t),IDENTIFIER);
 	_t = _t->getNextSibling();
-	al = (_t == ASTNULL) ? RefDNode(antlr::nullAST) : _t;
-	arrayindex_list(_t);
-	_t = _retTree;
-	al_AST = returnAST;
 	
-	RefDNode ae = RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(ARRAYEXPR,"arrayexpr")))->add(antlr::RefAST(i_AST))->add(antlr::RefAST(al_AST))));
-	
+	bool success = true;
 	RefDNode first;
+		            try {
+	arrayindex_list(_t);
+	
+	RefDNode al = returnAST;
+	RefDNode ae = RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(ARRAYEXPR,"arrayexpr")))->add(antlr::RefAST(i_AST))->add(antlr::RefAST(al))));
 	
 	if( e->getType() == DOT)
 	{
@@ -5274,6 +5272,17 @@ void GDLTreeParser::arrayexpr_mfcall(RefDNode _t) {
 	dot->SetNDot( 1);
 	
 	first = dot;
+	}
+	}
+	catch( GDLException& ex)
+	{
+	Message( "Ambiguity resolved: member function call "
+	"due to invalid array index.");
+	
+	success = false;
+	
+	a_AST->setType( MFCALL);
+	a_AST->setText( "mfcall");
 	}
 	
 	_t = mark; // rewind to parse again 
@@ -5293,7 +5302,10 @@ void GDLTreeParser::arrayexpr_mfcall(RefDNode _t) {
 	a2_AST = returnAST;
 	arrayexpr_mfcall_AST = RefDNode(currentAST.root);
 	
+	if( success)
 	arrayexpr_mfcall_AST = RefDNode(astFactory->make((new antlr::ASTArray(5))->add(antlr::RefAST(a_AST))->add(antlr::RefAST(first))->add(antlr::RefAST(e2_AST))->add(antlr::RefAST(i2_AST))->add(antlr::RefAST(a2_AST))));
+	else
+	arrayexpr_mfcall_AST = RefDNode(astFactory->make((new antlr::ASTArray(4))->add(antlr::RefAST(a_AST))->add(antlr::RefAST(e2_AST))->add(antlr::RefAST(i2_AST))->add(antlr::RefAST(a2_AST))));
 	
 	currentAST.root = arrayexpr_mfcall_AST;
 	if ( arrayexpr_mfcall_AST!=RefDNode(antlr::nullAST) &&
