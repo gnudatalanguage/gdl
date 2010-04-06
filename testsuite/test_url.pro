@@ -8,17 +8,18 @@
 ;   PHP is free software available at http://www.php.net/software/
 ; - examples of IPv6 addresses from the RFC2732 (Format for Literal IPv6 Addresses in URL's)
 ;   (http://www.faqs.org/rfcs/rfc2732.html)
-pro test_url
-
-  ; TODO: testing of parse-errors:
-  ; GDL> print, parse_url('a://:000000')
-  ; % PARSE_URL: port cannot be longer then 5 characters
-  ; GDL> print, parse_url('a://:00000')
-  ; % PARSE_URL: invalid host
-
-  sample_urls = [ $
-    ; examples from PHP test script
-    '', $                                 ; IDL 6.4 fails (syntax error)
+;
+pro TEST_URL, debug=debug
+;
+; TODO: testing of parse-errors:
+; GDL> print, parse_url('a://:000000')
+; % PARSE_URL: port cannot be longer then 5 characters
+; GDL> print, parse_url('a://:00000')
+; % PARSE_URL: invalid host
+;
+sample_urls = [ $
+    ;; examples from PHP test script
+    '', $             ; IDL 6.4 fails (syntax error)
     '64.246.30.37', $
     'http://64.246.30.37', $
     'http://64.246.30.37/', $
@@ -177,15 +178,35 @@ pro test_url
     '{ http   [2010:836B:4179::836B:4179]   }', $
     '{ http   www.google.com  /	 }' $
   ]
-
-  for i = 0, n_elements(sample_urls) - 1 do begin
-    s = string(parse_url(sample_urls[i]), /print) 
-    if s ne expected[i] then begin
-      message, 'test failed for URL: ' + sample_urls[i], /continue
-      message, '  expected: ' + expected[i], /continue
-      message, '       got: ' + s, /continue
-      ;help, parse_url(sample_urls[i]), /stru
-      exit, status=1
-    endif
-  endfor
+;
+if KEYWORD_SET(test) OR KEYWORD_SET(debug) then STOP
+;
+nb_errors=0
+for i = 0, N_ELEMENTS(sample_urls) - 1 do begin
+   s = STRING(PARSE_URL(sample_urls[i]), /print)
+   if N_ELEMENTS(s) NE 1 then begin
+      MESSAGE, 'test failed for URL: ' + sample_urls[i], /continue
+      MESSAGE, '  expected: ' + expected[i], /continue
+      for jj=0, N_ELEMENTS(s)-1 do MESSAGE, '  got (part): '+s[jj], /continue
+      nb_errors=nb_errors+1
+      CONTINUE
+   endif
+   if (s NE expected[i]) then begin
+      MESSAGE, 'test failed for URL: ' + sample_urls[i], /continue
+      MESSAGE, '  expected: ' + expected[i], /continue
+      MESSAGE, '       got: ' + s, /continue
+      ;;help, parse_url(sample_urls[i]), /stru
+      ;;EXIT, status=1
+      nb_errors=nb_errors+1
+      CONTINUE
+   endif
+endfor
+;
+if (nb_errors GT 0) then begin
+   print, 'Number of errors founded :', nb_errors
+   EXIT, status=1
+endif
+;
+if KEYWORD_SET(test) then STOP
+;
 end
