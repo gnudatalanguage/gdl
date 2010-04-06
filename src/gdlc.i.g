@@ -935,6 +935,7 @@ statement returns[ GDLInterpreter::RetCode retCode]
             {i->Run();}
             // decinc_statement
         |   retCode=for_statement 
+        |   retCode=foreach_statement 
         |   retCode=repeat_statement
         |   retCode=while_statement
         |   retCode=if_statement
@@ -1574,6 +1575,77 @@ for_statement returns[ GDLInterpreter::RetCode retCode]
             }
         )
 	;
+
+
+
+foreach_statement returns[ GDLInterpreter::RetCode retCode]
+{
+    BaseGDL** v;
+    BaseGDL* s;
+    retCode = RC_OK;
+}
+    : #(f:FOREACH // (VAR|VARPTR) expr expr 
+            {
+                ProgNodeP sv = _t;
+            }
+            v=l_simple_var
+            s=expr
+            {
+                auto_ptr<BaseGDL> s_guard(s);
+             
+                EnvUDT* callStack_back = 
+                static_cast<EnvUDT*>(callStack.back());
+                SizeT nJump = callStack_back->NJump();
+
+                ProgNodeP b=_t; //->getFirstChild();
+                
+                // ASSIGNMENT used here also
+                delete (*v);
+
+                SizeT nEl = s->N_Elements();
+// problem:
+// EXECUTE may call DataListT.loc.resize(), as v points to the
+// old sequence v might be invalidated -> segfault
+// note that the value (*v) is preserved by resize()
+                for( SizeT i=0; i<nEl; ++i)
+                {
+//                  retCode=block(b);
+                    v=l_simple_var( sv);
+                    (*v) = s->NewIx( i);
+
+                    if( b != NULL)
+                    {
+                        retCode=statement_list(b);
+                    
+                        if( retCode != RC_OK) // optimization
+                        {
+                            if( retCode == RC_CONTINUE) 
+                                {
+                                retCode = RC_OK;
+                                continue;  
+                                }
+                            if( retCode == RC_BREAK) 
+                            {
+                                retCode = RC_OK;
+                                break;        
+                            }
+                            if( retCode >= RC_RETURN) break;
+                        }
+
+                        if( (callStack_back->NJump() != nJump) &&
+                            !f->LabelInRange( callStack_back->LastJump()))
+                        {
+                            // a jump (goto) occured out of this loop
+                            return retCode;
+                        }
+                    }
+                }
+//                retCode=RC_OK; // clear RC_BREAK/RC_CONTINUE retCode
+            }
+        )
+    ;
+
+
 
 if_statement returns[ GDLInterpreter::RetCode retCode]
 {

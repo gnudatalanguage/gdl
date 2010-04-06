@@ -132,6 +132,7 @@ public:
 	public: void keyword_declaration();
 	public: std::string  object_name();
 	public: void compile_opt();
+	public: void endforeach_mark();
 	public: void endfor_mark();
 	public: void endrep_mark();
 	public: void endwhile_mark();
@@ -147,6 +148,7 @@ public:
 	public: void deref_expr();
 	public: void procedure_call();
 	public: void for_statement();
+	public: void foreach_statement();
 	public: void repeat_statement();
 	public: void while_statement();
 	public: void jump_statement();
@@ -154,6 +156,7 @@ public:
 	public: void repeat_block();
 	public: void while_block();
 	public: void for_block();
+	public: void foreach_block();
 	public: void if_block();
 	public: void else_block();
 	public: void parameter_def_list();
@@ -206,10 +209,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 218;
+	static const int NUM_TOKENS = 220;
 #else
 	enum {
-		NUM_TOKENS = 218
+		NUM_TOKENS = 220
 	};
 #endif
 	
@@ -261,6 +264,8 @@ private:
 	static const antlr::BitSet _tokenSet_22;
 	static const unsigned long _tokenSet_23_data_[];
 	static const antlr::BitSet _tokenSet_23;
+	static const unsigned long _tokenSet_24_data_[];
+	static const antlr::BitSet _tokenSet_24;
 };
 
 #endif /*INC_GDLParser_hpp_*/

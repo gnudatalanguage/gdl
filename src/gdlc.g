@@ -94,7 +94,9 @@ tokens {
 	DEREF;
 	ELSEBLK;
 	EXPR;
+    FOR;
     FOR_STEP; // for with step
+    FOREACH;
 	FCALL;
 	FCALL_LIB; // library function call
 	FCALL_LIB_RETNEW; // library function call always return newly allocated data
@@ -208,12 +210,14 @@ identifier
     | end:ENDCASE { #end->setType( IDENTIFIER);}
     | ende:ENDELSE { #ende->setType( IDENTIFIER);}
     | endf:ENDFOR { #endf->setType( IDENTIFIER);}
+    | endfe:ENDFOREACH { #endf->setType( IDENTIFIER);}
     | endi:ENDIF { #endi->setType( IDENTIFIER);}
     | endr:ENDREP { #endr->setType( IDENTIFIER);}
     | ends:ENDSWITCH { #ends->setType( IDENTIFIER);}
     | endw:ENDWHILE { #endw->setType( IDENTIFIER);}
     | eq:EQ_OP { #eq->setType( IDENTIFIER);}
     | f:FOR { #f->setType( IDENTIFIER);}
+    | fe:FOREACH { #f->setType( IDENTIFIER);}
     | fo:FORWARD { #fo->setType( IDENTIFIER);}
     | fu:FUNCTION { #fu->setType( IDENTIFIER);}
     | g:GE_OP { #g->setType( IDENTIFIER);}
@@ -517,8 +521,13 @@ end_mark!
 	| ENDCASE
 	| ENDSWITCH
 	| ENDFOR
+	| ENDFOREACH
 	| ENDWHILE
 	| ENDREP
+	;
+
+endforeach_mark!
+	: ENDFOREACH | ENDFOR | END
 	;
 
 endfor_mark!
@@ -713,6 +722,7 @@ statement
 //	| BREAK     // only valid in loops and switch_statement
 //	| CONTINUE  // only valid in loops
 	| for_statement 
+	| foreach_statement 
 	| repeat_statement
 	| while_statement
 	| jump_statement
@@ -760,12 +770,23 @@ for_statement
 		for_block
 	;
 
-
 for_block
 	: st:statement
 		{ #for_block = #([BLOCK, "block"], #st);}
 	| BEGIN! stl:statement_list endfor_mark
 		{ #for_block = #([BLOCK, "block"], #stl);}
+	;	
+
+foreach_statement
+	: FOREACH^ IDENTIFIER OF! expr DO!
+		foreach_block
+	;
+
+foreach_block
+	: st:statement
+		{ #foreach_block = #([BLOCK, "block"], #st);}
+	| BEGIN! stl:statement_list endforeach_mark
+		{ #foreach_block = #([BLOCK, "block"], #stl);}
 	;	
 
 jump_statement
@@ -1706,6 +1727,7 @@ tokens {
 	ENDWHILE="endwhile";
 	EQ_OP="eq";
 	FOR="for";
+	FOREACH="foreach";
 	FORWARD="forward_function";
 	FUNCTION="function";
 	GE_OP="ge";

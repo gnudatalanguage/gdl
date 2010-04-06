@@ -435,7 +435,8 @@ statement
 //    | assign_expr
     | comp_assign_expr   
 	| procedure_call
-	| for_statement 
+	| for_statement
+	| foreach_statement  
 	| repeat_statement
 	| while_statement
 	| jump_statement
@@ -504,6 +505,27 @@ for_statement //!
                 #f->setText("for_step");
                 }
             )? 
+//           for_block
+           unblock
+        )
+        {
+        #f->SetLabelRange( labelStart, comp.NDefLabel());
+        }
+	;
+
+foreach_statement //!
+{
+    StackSizeGuard<IDList> guard( loopVarStack);
+    int labelStart = comp.NDefLabel();
+}
+	: #(f:FOREACH i:IDENTIFIER 
+        	{ 
+                #i->setType(VAR);
+                comp.Var(#i);	
+
+                loopVarStack.push_back(#i->getText());
+            }
+            expr
 //           for_block
            unblock
         )

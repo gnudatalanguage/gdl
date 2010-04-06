@@ -172,6 +172,7 @@ public:
 	public: void comp_assign_expr(RefDNode _t);
 	public: void procedure_call(RefDNode _t);
 	public: void for_statement(RefDNode _t);
+	public: void foreach_statement(RefDNode _t);
 	public: void repeat_statement(RefDNode _t);
 	public: void while_statement(RefDNode _t);
 	public: void jump_statement(RefDNode _t);
@@ -216,10 +217,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 218;
+	static const int NUM_TOKENS = 220;
 #else
 	enum {
-		NUM_TOKENS = 218
+		NUM_TOKENS = 220
 	};
 #endif
 	

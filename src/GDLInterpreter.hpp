@@ -658,6 +658,7 @@ public:
 	public:  BaseGDL**  call_lfun(ProgNodeP _t);
 	public: void call_pro(ProgNodeP _t);
 	public:  GDLInterpreter::RetCode  for_statement(ProgNodeP _t);
+	public:  GDLInterpreter::RetCode  foreach_statement(ProgNodeP _t);
 	public:  GDLInterpreter::RetCode  repeat_statement(ProgNodeP _t);
 	public:  GDLInterpreter::RetCode  while_statement(ProgNodeP _t);
 	public:  GDLInterpreter::RetCode  if_statement(ProgNodeP _t);
@@ -747,10 +748,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 218;
+	static const int NUM_TOKENS = 220;
 #else
 	enum {
-		NUM_TOKENS = 218
+		NUM_TOKENS = 220
 	};
 #endif
 	
