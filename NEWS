@@ -481,3 +481,5 @@
 0.9rc5:	    
 	   - FOREACH statement, syntax: FOREACH loopVar OF array DO
 	   - member function and procedure calls with '.' e. g.: object.aProcedure
+	   - support of negative index ranges. -1 is the last element, -2 the one before 
+	     the last and so on. E.g.: array[-5:-7]
