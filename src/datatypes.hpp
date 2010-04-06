@@ -151,7 +151,8 @@ static	void operator delete( void *ptr);
  
   // used by the interpreter
   int Scalar2index( SizeT& st) const;
-  SizeT LoopIndex() const; 
+  int Scalar2RangeT( RangeT& st) const;
+  SizeT LoopIndex() const;
   
   // make a duplicate on the heap
   Data_* Dup() const;

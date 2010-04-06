@@ -1466,6 +1466,16 @@ int Data_<Sp>::Scalar2index( SizeT& st) const
   return 1;
 }
 
+template<class Sp> 
+int Data_<Sp>::Scalar2RangeT( RangeT& st) const
+{
+  if( dd.size() != 1) return 0;
+
+  st= static_cast<RangeT>((*this)[0]);
+  if( this->dim.Rank() != 0) return 2;
+  return 1;
+}
+
 template<> 
 int Data_<SpDComplex>::Scalar2index( SizeT& st) const
 {
@@ -1476,7 +1486,18 @@ int Data_<SpDComplex>::Scalar2index( SizeT& st) const
   if( this->dim.Rank() != 0) return 2;
   return 1;
 }
+
 template<> 
+int Data_<SpDComplex>::Scalar2RangeT( RangeT& st) const
+{
+  if( dd.size() != 1) return 0;
+  float r=real((*this)[0]);
+  st= static_cast<RangeT>(r);
+  if( this->dim.Rank() != 0) return 2;
+  return 1;
+}
+
+template<>
 int Data_<SpDComplexDbl>::Scalar2index( SizeT& st) const
 {
   if( dd.size() != 1) return 0;
@@ -1486,6 +1507,18 @@ int Data_<SpDComplexDbl>::Scalar2index( SizeT& st) const
   if( this->dim.Rank() != 0) return 2;
   return 1;
 }
+
+template<> 
+int Data_<SpDComplexDbl>::Scalar2RangeT( RangeT& st) const
+{
+  if( dd.size() != 1) return 0;
+  double r=real((*this)[0]);
+  st= static_cast<RangeT>(r);
+  if( this->dim.Rank() != 0) return 2;
+  return 1;
+}
+
+
 template<> 
 int Data_<SpDString>::Scalar2index( SizeT& st) const
 {
@@ -1507,7 +1540,32 @@ int Data_<SpDString>::Scalar2index( SizeT& st) const
   return 1;
 }
 
+template<> 
+int Data_<SpDString>::Scalar2RangeT( RangeT& st) const
+{
+  if( dd.size() != 1) return 0;
+
+  SizeT tSize=(*this)[0].size();
+
+  if( tSize == 0) 
+    {
+      st=0;
+    }
+  else 
+    {
+      long int number = Str2L( (*this)[0].c_str());
+      st=number;
+    }
+  if( dim.Rank() != 0) return 2;
+  return 1;
+}
+
 int DStructGDL::Scalar2index( SizeT& st) const
+{
+  throw GDLException("STRUCT expression not allowed in this context.");
+  return 0; // get rid of warning
+}
+int DStructGDL::Scalar2RangeT( RangeT& st) const
 {
   throw GDLException("STRUCT expression not allowed in this context.");
   return 0; // get rid of warning
@@ -1519,9 +1577,21 @@ int Data_<SpDPtr>::Scalar2index( SizeT& st) const
   throw GDLException("PTR expression not allowed in this context.");
   return 0; // get rid of warning
 }
+template<> 
+int Data_<SpDPtr>::Scalar2RangeT( RangeT& st) const
+{
+  throw GDLException("PTR expression not allowed in this context.");
+  return 0; // get rid of warning
+}
 
 template<> 
 int Data_<SpDObj>::Scalar2index( SizeT& st) const
+{
+  throw GDLException("Object expression not allowed in this context.");
+  return 0; // get rid of warning
+}
+template<> 
+int Data_<SpDObj>::Scalar2RangeT( RangeT& st) const
 {
   throw GDLException("Object expression not allowed in this context.");
   return 0; // get rid of warning

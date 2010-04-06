@@ -41,8 +41,8 @@ public:
   virtual void Clear() {}
   virtual ~ArrayIndexT() {}
 
-  virtual SizeT GetIx0()=0;
-  virtual SizeT GetS() { return 0;}
+  virtual RangeT GetIx0()=0;
+  virtual RangeT GetS() { return 0;}
   virtual SizeT GetStride() { return 0;}
   
   virtual bool Scalar()           { return false;}
@@ -72,7 +72,7 @@ public:
 
   SizeT NParam() { return 0;} // number of parameter to Init(...)
 
-  SizeT GetS() { return s;}
+  RangeT GetS() { return s;}
 
   bool Scalar() { return true;}
   bool Scalar( SizeT& s_)
@@ -81,7 +81,7 @@ public:
     return true;
   }
 
-  SizeT GetIx0()
+  RangeT GetIx0()
   {
     return s;
   }
@@ -127,7 +127,7 @@ public:
 
   SizeT NParam() { return 0;} // number of parameter to Init(...)
 
-  SizeT GetS() { return s;}
+  RangeT GetS() { return s;}
 
   bool Scalar() { return true;}
   bool Scalar( SizeT& s_)
@@ -144,7 +144,7 @@ public:
   void Clear()
   {}
 
-  SizeT GetIx0()
+  RangeT GetIx0()
   {
     return s;
   }
@@ -189,12 +189,12 @@ public:
     return true;
   }
 
-  SizeT GetIx0()
+  RangeT GetIx0()
   {
     return s;
   }
 
-  SizeT GetS() { return s;}
+  RangeT GetS() { return s;}
 
   ~CArrayIndexScalar() 
   {}
@@ -238,6 +238,8 @@ public:
   }
 };
 
+
+
 // INDEXED or ONE [v] (must handle both)
 class ArrayIndexIndexed: public ArrayIndexT
 {
@@ -256,7 +258,7 @@ protected:
 public:
   SizeT NParam() { return 1;} // number of parameter to Init(...)
 
-  SizeT GetS() { return s;}
+  RangeT GetS() { return s;}
 
   bool Scalar() { return (ix == NULL);}
   bool Scalar( SizeT& s_)
@@ -274,7 +276,7 @@ public:
 
   dimension GetDim() { return *ixDim;}
 
-  SizeT GetIx0()
+  RangeT GetIx0()
   {
     if( ix != NULL) return (*ix)[0]; // from array
     return s;
@@ -744,6 +746,8 @@ public:
 
 };
 
+
+
 // constant version
 class CArrayIndexIndexed: public ArrayIndexIndexed
 {
@@ -874,6 +878,11 @@ public:
   }
 };
 
+
+
+
+
+
 // [*]
 class ArrayIndexAll: public ArrayIndexT
 {
@@ -882,7 +891,7 @@ public:
 
   void Init() {};
 
-  SizeT GetIx0() { return 0;}
+  RangeT GetIx0() { return 0;}
 
   ArrayIndexT* Dup() const
   {
@@ -905,17 +914,19 @@ public:
   }
 };
 
+
+
 // [s:*]
 class ArrayIndexORange: public ArrayIndexT
 {
 protected:
-  SizeT s;
+  RangeT s;
 
 public:
   SizeT NParam() { return 1;} // number of parameter to Init(...)
 
-  SizeT GetS() { return s;}
-  SizeT GetIx0() { return s;}
+  RangeT GetS() { return s;}
+  RangeT GetIx0() { return s;}
 
   ArrayIndexT* Dup() const
   {
@@ -924,34 +935,47 @@ public:
     return d;
   }
 
+   // s is always scalar here
   void Init( BaseGDL* s_)
   {
-    int retMsg=s_->Scalar2index(s);
+    int retMsg=s_->Scalar2RangeT(s);
     if( retMsg == 0) // index empty or array
       {
 	if( s_->N_Elements() == 0)
 	  throw 
-	    GDLException(NULL,"Internal error: Scalar2index:"
+	    GDLException(NULL,"Internal error: Scalar2RangeT:"
 			  " 1st index empty",true,false); 
 	else
 	  throw 
 	    GDLException(NULL,"Expression must be a scalar"
 			  " in this context.",true,false); 
       }
-    if( retMsg == -1) // index < 0
-      {
-	throw 
-	  GDLException(NULL,"Subscript range values of the"
-			" form low:high must be >= 0, < size, "
-			"with low <= high.",true,false);
-      }
+// not with Scalar2RangeT():
+//     if( retMsg == -1) // index < 0
+//       {
+// 	throw 
+// 	  GDLException(NULL,"Subscript range values of the"
+// 			" form low:high must be >= 0, < size, "
+// 			"with low <= high.",true,false);
+//       }
   }
 
   BaseGDL* Index( BaseGDL* var, IxExprListT& ix)
   {
     Init( ix[0]);
+
+	SizeT varSize = var->Size();
     
-    if( s >= var->Size())
+	if( s < 0)
+		{
+			RangeT i = s + varSize;
+			if( i < 0)
+				throw GDLException(NULL,"Subscript out of range [-s:*].",true,false);
+    
+			return var->NewIxFrom( i);
+		}
+	
+    if( s >= varSize)
       throw GDLException(NULL,"Subscript out of range [s:*].",true,false);
 
     return var->NewIxFrom( s);
@@ -961,9 +985,19 @@ public:
   {
     if( s >= varDim)
       throw GDLException(NULL,"Subscript out of range [s:*].",true,false);
+    if( s < 0)
+    {
+		RangeT i = s + varDim;
+		if( i < 0)
+			throw GDLException(NULL,"Subscript out of range [-s:*].",true,false);
+		
+		return (varDim - i);
+    }
     return (varDim - s);
   }
 };
+
+
 
 class CArrayIndexORange: public ArrayIndexORange
 {
@@ -986,35 +1020,71 @@ public:
 
   BaseGDL* Index( BaseGDL* var, IxExprListT& ix)
   {
-    if( s >= var->Size())
+	SizeT varSize = var->Size();
+    
+	if( s < 0)
+		{
+			RangeT i = s + varSize;
+			if( i < 0)
+				throw GDLException(NULL,"Subscript out of range [-s:*].",true,false);
+    
+			return var->NewIxFrom( i);
+		}
+    
+    if( s >= varSize)
       throw GDLException(NULL,"Subscript out of range [s:*].",true,false);
 
     return var->NewIxFrom( s);
   }
 };
 
+
+
 // [s:e]
 class ArrayIndexRange: public ArrayIndexT
 {
 protected:
-  SizeT s,e;
+  RangeT s,e;
 
 public:
   SizeT NParam() { return 2;} // number of parameter to Init(...)
 
-  SizeT GetS() { return s;}
-  SizeT GetIx0() { return s;}
+  RangeT GetS() { return s;}
+  RangeT GetIx0() { return s;}
 
   BaseGDL* Index( BaseGDL* var, IxExprListT& ix)
   {
     Init( ix[0], ix[1]);
     
-    if( e >= var->Size())
+	SizeT varSize = var->Size();
+	
+    RangeT sl,el;
+	if( s < 0)
+		{
+			sl = s + varSize;
+			if( sl < 0)
+				throw GDLException(NULL,"Subscript out of range [-S:e].",true,false);
+		}
+	else
+		sl = s;
+	if( e < 0)
+		{
+			el = e + varSize;
+			if( el < 0)
+				throw GDLException(NULL,"Subscript out of range [s:-E].",true,false);
+		}
+	else
+		el = e;
+    
+    if( sl > el)
+		throw 
+			GDLException(NULL,"Subscript range values of the form low:high "
+				"must be < size, with low <= high",true,false);
+    if( el >= var->Size())
       throw GDLException(NULL,"Subscript out of range [s:e].",true,false);
 
-    return var->NewIxFrom( s, e);
+    return var->NewIxFrom( sl, el);
   }
-
 
   ArrayIndexT* Dup() const
   {
@@ -1024,61 +1094,84 @@ public:
     return d;
   }
 
-
   void Init( BaseGDL* s_, BaseGDL* e_)
   {
-    int retMsg=s_->Scalar2index(s);
+// 	SizeT varSize = var->Size();
+    
+    int retMsg=s_->Scalar2RangeT(s);
     if( retMsg == 0) // index empty or array
       {
 	if( s_->N_Elements() == 0)
 	  throw 
-	    GDLException(NULL,"Internal error: Scalar2index: 1st index empty.",true,false); 
+	    GDLException(NULL,"Internal error: Scalar2RangeT: 1st index empty.",true,false);
 	else
 	  throw 
 	    GDLException(NULL,"Expression must be a scalar in this context.",true,false); 
       }
-    if( retMsg == -1) // index < 0
-      {
-	throw 
-	  GDLException(NULL,"Subscript range values of the form low:high " 
-			"must be >= 0, < size, with low <= high.",true,false);
-      }
-            
-    retMsg=e_->Scalar2index(e);
+//     if( retMsg == -1) // index < 0
+//       {
+// 	throw 
+// 	  GDLException(NULL,"Subscript range values of the form low:high " 
+// 			"must be >= 0, < size, with low <= high.",true,false);
+//       }
+    
+    retMsg=e_->Scalar2RangeT(e);
     if( retMsg == 0) // index empty or array
       {
 	if( e_->N_Elements() == 0)
 	  throw 
-	    GDLException(NULL,"Internal error: Scalar2index: 2nd index empty.",true,false); 
+	    GDLException(NULL,"Internal error: Scalar2RangeT: 2nd index empty.",true,false);
 	else
 	  throw 
 	    GDLException(NULL,"Expression must be a scalar in this context.",true,false); 
       }
-    if( retMsg == -1) // index < 0
-      {
-	throw 
-	  GDLException(NULL,"Subscript range values of the form low:high " 
-			"must be >= 0, < size, with low <= high.",true,false);
-      }
+//     if( retMsg == -1) // index < 0
+//       {
+// 	throw 
+// 	  GDLException(NULL,"Subscript range values of the form low:high " 
+// 			"must be >= 0, < size, with low <= high.",true,false);
+//       }
     
-    if( e < s)
+    if( e>=0 && s>=0 && e < s)
       {
 	throw 
-	  GDLException(NULL," Subscript range values of the form low:high " 
+	  GDLException(NULL,"Subscript range values of the form low:high "
 			"must be >= 0, < size, with low <= high",true,false);
       }
   }
-
 
   // number of iterations
   // also checks/adjusts range 
   SizeT NIter( SizeT varDim)
   {
-    if( e >= varDim)
-      throw GDLException(NULL,"Subscript out of range [s:e].",true,false);
-    return (e - s + 1);
+	RangeT sl,el;
+	if( s < 0)
+	{
+		sl = s + varDim;
+		if( sl < 0)
+			throw GDLException(NULL,"Subscript out of range [S:e].",true,false);
+	}
+	else
+		sl = s;
+	if( e < 0)
+	{
+		el = e + varDim;
+		if( el < 0)
+			throw GDLException(NULL,"Subscript out of range [s:E].",true,false);
+	}
+	else
+		el = e;
+    if( sl > el)
+		throw 
+			GDLException(NULL,"Subscript range values of the form low:high "
+				"must be < size, with low <= high",true,false);
+    if( el >= varDim)
+		throw GDLException(NULL,"Subscript out of range [s:e].",true,false);
+    return (el - sl + 1);
   }
 };
+
+
 
 class CArrayIndexRange: public ArrayIndexRange
 {
@@ -1100,27 +1193,54 @@ public:
     return d;
   }
 
-  BaseGDL* Index( BaseGDL* var, IxExprListT& ix)
-  {
-    if( e >= var->Size())
+   BaseGDL* Index( BaseGDL* var, IxExprListT& ix)
+   {
+	SizeT varSize = var->Size();
+	
+    RangeT sl,el;
+	if( s < 0)
+		{
+			sl = s + varSize;
+			if( sl < 0)
+				throw GDLException(NULL,"Subscript out of range [-S:e].",true,false);
+		}
+	else
+		sl = s;
+	if( e < 0)
+		{
+			el = e + varSize;
+			if( el < 0)
+				throw GDLException(NULL,"Subscript out of range [s:-E].",true,false);
+		}
+	else
+		el = e;
+    
+    if( sl > el)
+		throw 
+			GDLException(NULL,"Subscript range values of the form low:high "
+				"must be < size, with low <= high",true,false);
+    if( el >= var->Size())
       throw GDLException(NULL,"Subscript out of range [s:e].",true,false);
 
-    return var->NewIxFrom( s, e);
-  }
+    return var->NewIxFrom( sl, el);
+   }
 };
+
+
 
 // [s:*:st]
 class ArrayIndexORangeS: public ArrayIndexT
 {
 protected:
-  SizeT s,stride;
+  RangeT s;
+  SizeT stride;
 
 public:
   SizeT NParam() { return 2;} // number of parameter to Init(...)
 
-  SizeT GetS() { return s;}
+  RangeT GetS() { return s;}
   SizeT GetStride() { return stride;}
-  SizeT GetIx0() { return s;}
+  RangeT GetIx0() { return s;}
 
   ArrayIndexT* Dup() const
   {
@@ -1132,47 +1252,58 @@ public:
 
   void Init( BaseGDL* s_, BaseGDL* stride_)
   {
-    int retMsg=s_->Scalar2index( s);
+    int retMsg=s_->Scalar2RangeT( s);
     if( retMsg == 0) // index empty or array
       {
-	if( s_->N_Elements() == 0)
-	  throw 
-	    GDLException(  "Internal error: Scalar2index:"
-			  " 1st index empty",true,false); 
-	else
-	  throw 
-	    GDLException(  "Expression must be a scalar"
-			  " in this context.",true,false); 
+			if( s_->N_Elements() == 0)
+			throw
+				GDLException(  "Internal error: Scalar2RangeT:"
+					" 1st index empty",true,false);
+			else
+			throw
+				GDLException(  "Expression must be a scalar"
+					" in this context.",true,false);
       }
-    if( retMsg == -1) // index < 0
-      {
-	throw 
-	  GDLException(  "Subscript range values of the"
-			" form low:high must be >= 0, < size, with low <= high.",true,false);
-      }
+//     if( retMsg == -1) // index < 0
+//       {
+// 	throw 
+// 	  GDLException(  "Subscript range values of the"
+// 			" form low:high must be >= 0, < size, with low <= high.",true,false);
+//       }
     // stride
     retMsg=stride_->Scalar2index( stride);
     if( retMsg == 0) // index empty or array
       {
-	if( stride_->N_Elements() == 0)
-	  throw 
-	    GDLException(  "Internal error: Scalar2index:"
-			  " stride index empty",true,false); 
-	else
-	  throw 
-	    GDLException(  "Expression must be a scalar"
-			  " in this context.",true,false); 
+			if( stride_->N_Elements() == 0)
+			throw
+				GDLException(  "Internal error: Scalar2index:"
+					" stride index empty",true,false);
+			else
+			throw
+				GDLException(  "Expression must be a scalar"
+					" in this context.",true,false);
       }
     if( retMsg == -1 || stride == 0) // stride <= 0
       {
-	throw 
-	  GDLException(  "Range subscript stride must be >= 1.",true,false);
+			throw 
+			GDLException(  "Range subscript stride must be >= 1.",true,false);
       }
   }
 
   BaseGDL* Index( BaseGDL* var, IxExprListT& ix)
   {
     Init( ix[0], ix[1]);
+	
+	SizeT varSize = var->Size();
+
+	if( s < 0)
+		{
+			RangeT sl = s + varSize;
+			if( sl < 0)
+				throw GDLException(NULL,"Subscript out of range [-S:*:stride].",true,false);
+
+			return var->NewIxFromStride( sl, stride);
+		}
 
     if( s >= var->Size())
       throw GDLException(NULL,"Subscript out of range [s:*:stride].",true,false);
@@ -1184,6 +1315,14 @@ public:
   // also checks/adjusts range 
   SizeT NIter( SizeT varDim)
   {
+	if( s < 0)
+		{
+			RangeT sl = s + varDim;
+			if( sl < 0)
+				throw GDLException(NULL,"Subscript out of range [-S:*:stride].",true,false);
+			return (varDim - sl + stride - 1)/stride;
+		}
+    
     if( s >= varDim)
       throw GDLException(NULL,"Subscript out of range [s:*:stride].",true,false);
     return (varDim - s + stride - 1)/stride;
@@ -1212,6 +1351,17 @@ CArrayIndexORangeS(){}
 
   BaseGDL* Index( BaseGDL* var, IxExprListT& ix)
   {
+	SizeT varSize = var->Size();
+
+	if( s < 0)
+		{
+			RangeT sl = s + varSize;
+			if( sl < 0)
+				throw GDLException(NULL,"Subscript out of range [-S:*:stride].",true,false);
+
+			return var->NewIxFromStride( sl, stride);
+		}
+
     if( s >= var->Size())
       throw GDLException(NULL,"Subscript out of range [s:*:stride].",true,false);
 
@@ -1223,14 +1373,15 @@ CArrayIndexORangeS(){}
 class ArrayIndexRangeS: public ArrayIndexT
 {
 protected:
-  SizeT s,e,stride;
+  RangeT s,e;
+  SizeT stride;
 
 public:
   SizeT NParam() { return 3;} // number of parameter to Init(...)
 
-  SizeT GetS() { return s;}
+  RangeT GetS() { return s;}
   SizeT GetStride() { return stride;}
-  SizeT GetIx0() { return s;}
+  RangeT GetIx0() { return s;}
 
   ArrayIndexT* Dup() const
   {
@@ -1243,45 +1394,45 @@ public:
 
   void Init( BaseGDL* s_, BaseGDL* e_, BaseGDL* stride_)
   {
-    int retMsg=s_->Scalar2index(s);
+    int retMsg=s_->Scalar2RangeT(s);
     if( retMsg == 0) // index empty or array
       {
 	if( s_->N_Elements() == 0)
 	  throw 
-	    GDLException(  "Internal error: Scalar2index: 1st index empty.",true,false); 
+	    GDLException(  "Internal error: Scalar2RangeT: 1st index empty.",true,false);
 	else
 	  throw 
 	    GDLException(  "Expression must be a scalar in this context.",true,false); 
       }
-    if( retMsg == -1) // index < 0
-      {
-	throw 
-	  GDLException(  "Subscript range values of the form low:high " 
-			"must be >= 0, < size, with low <= high.",true,false);
-      }
+//     if( retMsg == -1) // index < 0
+//       {
+// 	throw 
+// 	  GDLException(  "Subscript range values of the form low:high " 
+// 			"must be >= 0, < size, with low <= high.",true,false);
+//       }
             
-    retMsg=e_->Scalar2index(e);
+    retMsg=e_->Scalar2RangeT(e);
     if( retMsg == 0) // index empty or array
       {
 	if( e_->N_Elements() == 0)
 	  throw 
-	    GDLException(  "Internal error: Scalar2index: 2nd index empty.",true,false); 
+	    GDLException(  "Internal error: Scalar2RangeT: 2nd index empty.",true,false);
 	else
 	  throw 
 	    GDLException(  "Expression must be a scalar in this context.",true,false); 
       }
-    if( retMsg == -1) // index < 0
-      {
-	throw 
-	  GDLException(  "Subscript range values of the form low:high " 
-			"must be >= 0, < size, with low <= high.",true,false);
-      }
+//     if( retMsg == -1) // index < 0
+//       {
+// 	throw 
+// 	  GDLException(  "Subscript range values of the form low:high " 
+// 			"must be >= 0, < size, with low <= high.",true,false);
+//       }
             
-    if( e < s)
+    if( e >= 0 && s >= 0 && e < s)
       {
-	throw 
-	  GDLException(  "Subscript range values of the form low:high " 
-			"must be >= 0, < size, with low <= high",true,false);
+		throw 
+		GDLException(  "Subscript range values of the form low:high "
+				"must be < size, with low <= high",true,false);
       }
                             
     // stride
@@ -1308,23 +1459,71 @@ public:
   {
     Init( ix[0], ix[1], ix[2]);
 
-    if( e >= var->Size())
+	SizeT varSize = var->Size();
+	
+    RangeT sl,el;
+	if( s < 0)
+		{
+			sl = s + varSize;
+			if( sl < 0)
+				throw GDLException(NULL,"Subscript out of range [-S:e:stride].",true,false);
+		}
+	else
+		sl = s;
+	if( e < 0)
+		{
+			el = e + varSize;
+			if( el < 0)
+				throw GDLException(NULL,"Subscript out of range [s:-E:stride].",true,false);
+		}
+	else
+		el = e;
+    
+    if( sl > el)
+		throw 
+			GDLException(NULL,"Subscript range values of the form low:high "
+				"must be < size, with low <= high",true,false);
+    
+    if( el >= var->Size())
       {
 	throw GDLException(NULL,"Subscript out of range [s:e:st].",true,false);
       }
 
-    return var->NewIxFromStride( s, e, stride);
+    return var->NewIxFromStride( sl, el, stride);
   }
 
   // number of iterations
   // also checks/adjusts range 
   SizeT NIter( SizeT varDim)
   {
-    if( e >= varDim)
+    RangeT sl,el;
+	if( s < 0)
+		{
+			sl = s + varDim;
+			if( sl < 0)
+				throw GDLException(NULL,"Subscript out of range [-S:e:stride].",true,false);
+		}
+	else
+		sl = s;
+	if( e < 0)
+		{
+			el = e + varDim;
+			if( el < 0)
+				throw GDLException(NULL,"Subscript out of range [s:-E:stride].",true,false);
+		}
+	else
+		el = e;
+    
+    if( sl > el)
+		throw 
+			GDLException(NULL,"Subscript range values of the form low:high "
+				"must be < size, with low <= high",true,false);
+    
+    if( el >= varDim)
       {
-	throw GDLException(NULL,"Subscript out of range [s:e:st].",true,false);
+		throw GDLException(NULL,"Subscript out of range [s:e:st].",true,false);
       }
-    return (e - s + stride)/stride;
+    return (el - sl + stride)/stride;
   }
 };
 
@@ -1352,12 +1551,37 @@ CArrayIndexRangeS(){}
 
   BaseGDL* Index( BaseGDL* var, IxExprListT& ix)
   {
-    if( e >= var->Size())
+	SizeT varSize = var->Size();
+	
+    RangeT sl,el;
+	if( s < 0)
+		{
+			sl = s + varSize;
+			if( sl < 0)
+				throw GDLException(NULL,"Subscript out of range [-S:e:stride].",true,false);
+		}
+	else
+		sl = s;
+	if( e < 0)
+		{
+			el = e + varSize;
+			if( el < 0)
+				throw GDLException(NULL,"Subscript out of range [s:-E:stride].",true,false);
+		}
+	else
+		el = e;
+    
+    if( sl > el)
+		throw 
+			GDLException(NULL,"Subscript range values of the form low:high "
+				"must be < size, with low <= high",true,false);
+    
+    if( el >= var->Size())
       {
-	throw GDLException(NULL,"Subscript out of range [s:e:st].",true,false);
+		throw GDLException(NULL,"Subscript out of range [s:e:st].",true,false);
       }
 
-    return var->NewIxFromStride( s, e, stride);
+    return var->NewIxFromStride( sl, el, stride);
   }
 };
 

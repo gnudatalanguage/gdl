@@ -1587,12 +1587,26 @@ foreach_statement returns[ GDLInterpreter::RetCode retCode]
     : #(f:FOREACH // (VAR|VARPTR) expr expr 
             {
                 ProgNodeP sv = _t;
+
+                // skip l_simple_var
+                _t = _t->getNextSibling();
+
+                auto_ptr<BaseGDL> s_guard;
             }
-            v=l_simple_var
-            s=expr
+//            v=l_simple_var
+
+            // avoid a copy if possible
+            ( s=indexable_expr
+            | s=indexable_tmp_expr { s_guard.reset( s);}
+            | s=check_expr
+                {
+                    if( !callStack.back()->Contains( s)) 
+                        s_guard.reset( s); // guard if no global data
+                }
+            )
+//          always copies (owned by caller)
+//          s=expr
             {
-                auto_ptr<BaseGDL> s_guard(s);
-             
                 EnvUDT* callStack_back = 
                 static_cast<EnvUDT*>(callStack.back());
                 SizeT nJump = callStack_back->NJump();
@@ -1600,7 +1614,7 @@ foreach_statement returns[ GDLInterpreter::RetCode retCode]
                 ProgNodeP b=_t; //->getFirstChild();
                 
                 // ASSIGNMENT used here also
-                delete (*v);
+
 
                 SizeT nEl = s->N_Elements();
 // problem:
@@ -1611,6 +1625,7 @@ foreach_statement returns[ GDLInterpreter::RetCode retCode]
                 {
 //                  retCode=block(b);
                     v=l_simple_var( sv);
+                    delete (*v); 
                     (*v) = s->NewIx( i);
 
                     if( b != NULL)

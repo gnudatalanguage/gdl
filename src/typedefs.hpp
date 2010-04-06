@@ -58,8 +58,11 @@
 
 #if defined(HAVE_64BIT_OS)
 typedef unsigned long long int      SizeT;
+typedef long long int RangeT;
+
 #else
 typedef unsigned int        	    SizeT;
+typedef int                            RangeT;
 #endif
 //typedef size_t              SizeT;
 typedef unsigned int        UInt;

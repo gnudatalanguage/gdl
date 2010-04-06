@@ -412,6 +412,7 @@ public:
   // used by the interpreter
   // throws (datatypes.cpp)
   int Scalar2index( SizeT& st) const;
+  int Scalar2RangeT( RangeT& st) const;
   
   bool Scalar() const 
   { return (N_Elements() == 1);}

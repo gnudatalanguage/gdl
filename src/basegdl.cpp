@@ -191,6 +191,10 @@ int BaseGDL::Scalar2index(SizeT& ret) const
 { 
   throw GDLException("Operation not defined for UNDEF 1.");
 }
+int BaseGDL::Scalar2RangeT(RangeT& ret) const
+{ 
+  throw GDLException("Operation not defined for UNDEF 1a.");
+}
 
 bool BaseGDL::BaseGDL::True()
 {

@@ -420,6 +420,7 @@ public:
   virtual BaseGDL* SetBuffer( const void* b);
   virtual void     SetBufferSize( SizeT s);
   virtual int Scalar2index(SizeT& ret) const;
+  virtual int Scalar2RangeT(RangeT& ret) const;
   virtual SizeT LoopIndex() const; 
   virtual bool True();
   virtual bool False();
