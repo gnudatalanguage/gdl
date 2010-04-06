@@ -478,3 +478,6 @@
            - making the initial "DECOMPOSED" setting of the X device dependtant on the colour 
              depth reported by the X-server
 
+0.9rc5:	    
+	   - FOREACH statement, syntax: FOREACH loopVar OF array DO
+	   - member function and procedure calls with '.' e. g.: object.aProcedure
