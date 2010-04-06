@@ -184,13 +184,14 @@ if KEYWORD_SET(test) OR KEYWORD_SET(debug) then STOP
 nb_errors=0
 for i = 0, N_ELEMENTS(sample_urls) - 1 do begin
    s = STRING(PARSE_URL(sample_urls[i]), /print)
+
+   ; STRING(/PRINT) returns an array if the string length exceedes the number of columns in a terminal 
    if N_ELEMENTS(s) NE 1 then begin
-      MESSAGE, 'test failed for URL: ' + sample_urls[i], /continue
-      MESSAGE, '  expected: ' + expected[i], /continue
-      for jj=0, N_ELEMENTS(s)-1 do MESSAGE, '  got (part): '+s[jj], /continue
-      nb_errors=nb_errors+1
-      CONTINUE
+     ss = ''
+     for ii = 0, n_elements(s) - 1 do ss += s[ii]
+     s = ss
    endif
+
    if (s NE expected[i]) then begin
       MESSAGE, 'test failed for URL: ' + sample_urls[i], /continue
       MESSAGE, '  expected: ' + expected[i], /continue
