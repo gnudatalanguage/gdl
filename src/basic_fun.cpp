@@ -2583,6 +2583,28 @@ namespace lib {
   }
 
   template<>
+  BaseGDL* product_template( DComplexGDL* src, bool omitNaN)
+  {
+    DComplexGDL::Ty sum = 1;
+    SizeT nEl = src->N_Elements();
+    if( !omitNaN) 
+	{
+	for ( SizeT i=0; i<nEl; ++i)
+		{
+		sum *= (*src)[ i];
+		}
+	}
+    else
+	{
+	for ( SizeT i=0; i<nEl; ++i)
+		{
+		MultOmitNaN( sum, (*src)[ i]);
+		}
+	}
+    return new DComplexGDL( sum);
+  }
+  
+  template<>
   BaseGDL* product_template( DComplexDblGDL* src, bool omitNaN)
   {
     DComplexDblGDL::Ty sum = 1;
