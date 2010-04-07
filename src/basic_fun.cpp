@@ -2153,11 +2153,13 @@ namespace lib {
     static int intIx = e->KeywordIx("INTEGER");
     static int doubleIx = e->KeywordIx( "DOUBLE");
     static int nanIx = e->KeywordIx( "NAN");
+    static int preserveIx = e->KeywordIx( "PRESERVE_TYPE");
 
     bool cumulative = e->KeywordSet( cumIx);
     bool intRes  = e->KeywordSet( intIx);
     bool doubleRes  = e->KeywordSet( doubleIx);
     bool nan        = e->KeywordSet( nanIx);
+    bool preserve   = e->KeywordSet( preserveIx);
 
     DLong sumDim = 0;
     if( nParam == 2)
@@ -2167,6 +2169,24 @@ namespace lib {
       {
 	if( !cumulative)
 	  {
+            if (preserve) 
+            {
+              switch (p0->Type())
+              {
+                case BYTE: return total_template<DByteGDL>(static_cast<DByteGDL*>(p0), false);
+                case INT: return total_template<DIntGDL>(static_cast<DIntGDL*>(p0), false);
+                case UINT: return total_template<DUIntGDL>(static_cast<DUIntGDL*>(p0), false);
+                case LONG: return total_template<DLongGDL>(static_cast<DLongGDL*>(p0), false);
+                case ULONG: return total_template<DULongGDL>(static_cast<DULongGDL*>(p0), false);
+                case LONG64: return total_template<DLong64GDL>(static_cast<DLong64GDL*>(p0), false);
+                case ULONG64: return total_template<DULong64GDL>(static_cast<DULong64GDL*>(p0), false);
+                case FLOAT: return total_template<DFloatGDL>(static_cast<DFloatGDL*>(p0), nan);
+                case DOUBLE: return total_template<DDoubleGDL>(static_cast<DDoubleGDL*>(p0), nan);
+                case COMPLEX: return total_template<DComplexGDL>(static_cast<DComplexGDL*>(p0), nan);
+                case COMPLEXDBL: return total_template<DComplexDblGDL>(static_cast<DComplexDblGDL*>(p0), nan);
+                default: assert(false);
+              }
+            }
 
 	    // Integer parts by Erin Sheldon
 	    // In IDL total(), the INTEGER keyword takes precedence 
@@ -2236,6 +2256,24 @@ namespace lib {
 	  }
 	else // cumulative
 	  {
+            if (preserve) 
+            {
+              switch (p0->Type())
+              {
+                case BYTE: return total_cu_template<DByteGDL>(static_cast<DByteGDL*>(p0)->Dup(), false);
+                case INT: return total_cu_template<DIntGDL>(static_cast<DIntGDL*>(p0)->Dup(), false);
+                case UINT: return total_cu_template<DUIntGDL>(static_cast<DUIntGDL*>(p0)->Dup(), false);
+                case LONG: return total_cu_template<DLongGDL>(static_cast<DLongGDL*>(p0)->Dup(), false);
+                case ULONG: return total_cu_template<DULongGDL>(static_cast<DULongGDL*>(p0)->Dup(), false);
+                case LONG64: return total_cu_template<DLong64GDL>(static_cast<DLong64GDL*>(p0)->Dup(), false);
+                case ULONG64: return total_cu_template<DULong64GDL>(static_cast<DULong64GDL*>(p0)->Dup(), false);
+                case FLOAT: return total_cu_template<DFloatGDL>(static_cast<DFloatGDL*>(p0)->Dup(), nan);
+                case DOUBLE: return total_cu_template<DDoubleGDL>(static_cast<DDoubleGDL*>(p0)->Dup(), nan);
+                case COMPLEX: return total_cu_template<DComplexGDL>(static_cast<DComplexGDL*>(p0)->Dup(), nan);
+                case COMPLEXDBL: return total_cu_template<DComplexDblGDL>(static_cast<DComplexDblGDL*>(p0)->Dup(), nan);
+                default: assert(false);
+              }
+            }
 
 	    // INTEGER keyword takes precedence
 	    if( intRes )
@@ -2309,6 +2347,24 @@ namespace lib {
 
     if( !cumulative)
       {
+        if (preserve) 
+        {
+          switch (p0->Type())
+          {
+            case BYTE: return total_over_dim_template<DByteGDL>(static_cast<DByteGDL*>(p0), srcDim, sumDim-1, false);
+            case INT: return total_over_dim_template<DIntGDL>(static_cast<DIntGDL*>(p0), srcDim, sumDim-1, false);
+            case UINT: return total_over_dim_template<DUIntGDL>(static_cast<DUIntGDL*>(p0), srcDim, sumDim-1, false);
+            case LONG: return total_over_dim_template<DLongGDL>(static_cast<DLongGDL*>(p0), srcDim, sumDim-1, false);
+            case ULONG: return total_over_dim_template<DULongGDL>(static_cast<DULongGDL*>(p0), srcDim, sumDim-1, false);
+            case LONG64: return total_over_dim_template<DLong64GDL>(static_cast<DLong64GDL*>(p0), srcDim, sumDim-1, false);
+            case ULONG64: return total_over_dim_template<DULong64GDL>(static_cast<DULong64GDL*>(p0), srcDim, sumDim-1, false);
+            case FLOAT: return total_over_dim_template<DFloatGDL>(static_cast<DFloatGDL*>(p0), srcDim, sumDim-1, nan);
+            case DOUBLE: return total_over_dim_template<DDoubleGDL>(static_cast<DDoubleGDL*>(p0), srcDim, sumDim-1, nan);
+            case COMPLEX: return total_over_dim_template<DComplexGDL>(static_cast<DComplexGDL*>(p0), srcDim, sumDim-1, nan);
+            case COMPLEXDBL: return total_over_dim_template<DComplexDblGDL>(static_cast<DComplexDblGDL*>(p0), srcDim, sumDim-1, nan);
+            default: assert(false);
+          }
+        }
 
 	// INTEGER keyword takes precedence 
 	if( intRes )
@@ -2384,6 +2440,24 @@ namespace lib {
       }
     else // cumulative
       {
+        if (preserve) 
+        {
+          switch (p0->Type())
+          {
+            case BYTE: return total_over_dim_cu_template<DByteGDL>(static_cast<DByteGDL*>(p0)->Dup(), sumDim-1, false);
+            case INT: return total_over_dim_cu_template<DIntGDL>(static_cast<DIntGDL*>(p0)->Dup(), sumDim-1, false);
+            case UINT: return total_over_dim_cu_template<DUIntGDL>(static_cast<DUIntGDL*>(p0)->Dup(), sumDim-1, false);
+            case LONG: return total_over_dim_cu_template<DLongGDL>(static_cast<DLongGDL*>(p0)->Dup(), sumDim-1, false);
+            case ULONG: return total_over_dim_cu_template<DULongGDL>(static_cast<DULongGDL*>(p0)->Dup(), sumDim-1, false);
+            case LONG64: return total_over_dim_cu_template<DLong64GDL>(static_cast<DLong64GDL*>(p0)->Dup(), sumDim-1, false);
+            case ULONG64: return total_over_dim_cu_template<DULong64GDL>(static_cast<DULong64GDL*>(p0)->Dup(), sumDim-1, false);
+            case FLOAT: return total_over_dim_cu_template<DFloatGDL>(static_cast<DFloatGDL*>(p0)->Dup(), sumDim-1, nan);
+            case DOUBLE: return total_over_dim_cu_template<DDoubleGDL>(static_cast<DDoubleGDL*>(p0)->Dup(), sumDim-1, nan);
+            case COMPLEX: return total_over_dim_cu_template<DComplexGDL>(static_cast<DComplexGDL*>(p0)->Dup(), sumDim-1, nan);
+            case COMPLEXDBL: return total_over_dim_cu_template<DComplexDblGDL>(static_cast<DComplexDblGDL*>(p0)->Dup(), sumDim-1, nan);
+            default: assert(false);
+          }
+        }
 
 	// INTEGER keyword takes precedence
 	if( intRes )
@@ -2627,9 +2701,11 @@ namespace lib {
     static int cumIx = e->KeywordIx( "CUMULATIVE");
     static int nanIx = e->KeywordIx( "NAN");
     static int intIx = e->KeywordIx("INTEGER");
+    static int preIx = e->KeywordIx("PRESERVE_TYPE");
     bool KwCumul     = e->KeywordSet( cumIx);
     bool KwNaN       = e->KeywordSet( nanIx);
     bool KwInt       = e->KeywordSet( intIx);
+    bool KwPre       = e->KeywordSet( preIx);
     bool nanInt=false;
     
     DLong sumDim = 0;
@@ -2638,6 +2714,25 @@ namespace lib {
     
     if( sumDim == 0) {
 	if( !KwCumul) {
+          if (KwPre) 
+          {
+            switch (p0->Type())
+            {
+              case BYTE: return product_template<DByteGDL>(static_cast<DByteGDL*>(p0), nanInt);
+              case INT: return product_template<DIntGDL>(static_cast<DIntGDL*>(p0), nanInt);
+              case UINT: return product_template<DUIntGDL>(static_cast<DUIntGDL*>(p0), nanInt);
+              case LONG: return product_template<DLongGDL>(static_cast<DLongGDL*>(p0), nanInt);
+              case ULONG: return product_template<DULongGDL>(static_cast<DULongGDL*>(p0), nanInt);
+              case LONG64: return product_template<DLong64GDL>(static_cast<DLong64GDL*>(p0), nanInt);
+              case ULONG64: return product_template<DULong64GDL>(static_cast<DULong64GDL*>(p0), nanInt);
+              case FLOAT: return product_template<DFloatGDL>(static_cast<DFloatGDL*>(p0), KwNaN);
+              case DOUBLE: return product_template<DDoubleGDL>(static_cast<DDoubleGDL*>(p0), KwNaN);
+              case COMPLEX: return product_template<DComplexGDL>(static_cast<DComplexGDL*>(p0), KwNaN);
+              case COMPLEXDBL: return product_template<DComplexDblGDL>(static_cast<DComplexDblGDL*>(p0), KwNaN);
+              default: assert(false);
+            }
+          }
+
 	  // Integer parts derivated from Total code by Erin Sheldon
 	  // In IDL PRODUCT(), the INTEGER keyword takes precedence 
 	  if (KwInt) {
@@ -2690,6 +2785,26 @@ namespace lib {
 	} 
 	else
 	  { // KwCumul
+
+            if (KwPre) 
+            {
+              switch (p0->Type())
+              {
+                case BYTE: return product_cu_template<DByteGDL>(static_cast<DByteGDL*>(p0)->Dup(), nanInt);
+                case INT: return product_cu_template<DIntGDL>(static_cast<DIntGDL*>(p0)->Dup(), nanInt);
+                case UINT: return product_cu_template<DUIntGDL>(static_cast<DUIntGDL*>(p0)->Dup(), nanInt);
+                case LONG: return product_cu_template<DLongGDL>(static_cast<DLongGDL*>(p0)->Dup(), nanInt);
+                case ULONG: return product_cu_template<DULongGDL>(static_cast<DULongGDL*>(p0)->Dup(), nanInt);
+                case LONG64: return product_cu_template<DLong64GDL>(static_cast<DLong64GDL*>(p0)->Dup(), nanInt);
+                case ULONG64: return product_cu_template<DULong64GDL>(static_cast<DULong64GDL*>(p0)->Dup(), nanInt);
+                case FLOAT: return product_cu_template<DFloatGDL>(static_cast<DFloatGDL*>(p0)->Dup(), KwNaN);
+                case DOUBLE: return product_cu_template<DDoubleGDL>(static_cast<DDoubleGDL*>(p0)->Dup(), KwNaN);
+                case COMPLEX: return product_cu_template<DComplexGDL>(static_cast<DComplexGDL*>(p0)->Dup(), KwNaN);
+                case COMPLEXDBL: return product_cu_template<DComplexDblGDL>(static_cast<DComplexDblGDL*>(p0)->Dup(), KwNaN);
+                default: assert(false);
+              }
+            }
+
 	    // Integer parts derivated from Total code by Erin Sheldon
 	    // In IDL PRODUCT(), the INTEGER keyword takes precedence 
 	    if (KwInt) {
@@ -2747,6 +2862,26 @@ namespace lib {
 		" dimensions: "+e->GetParString(0));
     
     if (!KwCumul) {
+
+      if (KwPre) 
+      {
+        switch (p0->Type())
+        {
+          case BYTE: return product_over_dim_template<DByteGDL>(static_cast<DByteGDL*>(p0), srcDim, sumDim-1, nanInt);
+          case INT: return product_over_dim_template<DIntGDL>(static_cast<DIntGDL*>(p0), srcDim, sumDim-1, nanInt);
+          case UINT: return product_over_dim_template<DUIntGDL>(static_cast<DUIntGDL*>(p0), srcDim, sumDim-1, nanInt);
+          case LONG: return product_over_dim_template<DLongGDL>(static_cast<DLongGDL*>(p0), srcDim, sumDim-1, nanInt);
+          case ULONG: return product_over_dim_template<DULongGDL>(static_cast<DULongGDL*>(p0), srcDim, sumDim-1, nanInt);
+          case LONG64: return product_over_dim_template<DLong64GDL>(static_cast<DLong64GDL*>(p0), srcDim, sumDim-1, nanInt);
+          case ULONG64: return product_over_dim_template<DULong64GDL>(static_cast<DULong64GDL*>(p0), srcDim, sumDim-1, nanInt);
+          case FLOAT: return product_over_dim_template<DFloatGDL>(static_cast<DFloatGDL*>(p0), srcDim, sumDim-1, KwNaN);
+          case DOUBLE: return product_over_dim_template<DDoubleGDL>(static_cast<DDoubleGDL*>(p0), srcDim, sumDim-1, KwNaN);
+          case COMPLEX: return product_over_dim_template<DComplexGDL>(static_cast<DComplexGDL*>(p0), srcDim, sumDim-1, KwNaN);
+          case COMPLEXDBL: return product_over_dim_template<DComplexDblGDL>(static_cast<DComplexDblGDL*>(p0), srcDim, sumDim-1, KwNaN);
+          default: assert(false);
+        }
+      }
+
       // Integer parts derivated from Total code by Erin Sheldon
       // In IDL PRODUCT(), the INTEGER keyword takes precedence 
       if (KwInt) {	  
@@ -2802,6 +2937,26 @@ namespace lib {
     } 
     else
       { // KwCumul
+
+        if (KwPre) 
+        {
+          switch (p0->Type())
+          {
+            case BYTE: return product_over_dim_cu_template<DByteGDL>(static_cast<DByteGDL*>(p0)->Dup(), sumDim-1, nanInt);
+            case INT: return product_over_dim_cu_template<DIntGDL>(static_cast<DIntGDL*>(p0)->Dup(), sumDim-1, nanInt);
+            case UINT: return product_over_dim_cu_template<DUIntGDL>(static_cast<DUIntGDL*>(p0)->Dup(), sumDim-1, nanInt);
+            case LONG: return product_over_dim_cu_template<DLongGDL>(static_cast<DLongGDL*>(p0)->Dup(), sumDim-1, nanInt);
+            case ULONG: return product_over_dim_cu_template<DULongGDL>(static_cast<DULongGDL*>(p0)->Dup(), sumDim-1, nanInt);
+            case LONG64: return product_over_dim_cu_template<DLong64GDL>(static_cast<DLong64GDL*>(p0)->Dup(), sumDim-1, nanInt);
+            case ULONG64: return product_over_dim_cu_template<DULong64GDL>(static_cast<DULong64GDL*>(p0)->Dup(), sumDim-1, nanInt);
+            case FLOAT: return product_over_dim_cu_template<DFloatGDL>(static_cast<DFloatGDL*>(p0)->Dup(), sumDim-1, KwNaN);
+            case DOUBLE: return product_over_dim_cu_template<DDoubleGDL>(static_cast<DDoubleGDL*>(p0)->Dup(), sumDim-1, KwNaN);
+            case COMPLEX: return product_over_dim_cu_template<DComplexGDL>(static_cast<DComplexGDL*>(p0)->Dup(), sumDim-1, KwNaN);
+            case COMPLEXDBL: return product_over_dim_cu_template<DComplexDblGDL>(static_cast<DComplexDblGDL*>(p0)->Dup(), sumDim-1, KwNaN);
+            default: assert(false);
+          }
+        }
+
 	// Integer parts derivated from Total code by Erin Sheldon
 	// In IDL PRODUCT(), the INTEGER keyword takes precedence 
 	if (KwInt) {

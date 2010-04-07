@@ -394,13 +394,11 @@ void LibInit()
   const string whereKey[]={"COMPLEMENT","NCOMPLEMENT",KLISTEND};
   new DLibFunRetNew(lib::where,string("WHERE"),2,whereKey);
 
-  const string totalKey[]={"CUMULATIVE","DOUBLE","NAN","INTEGER",KLISTEND};
-  const string totalWarnKey[]={"PRESERVE_TYPE",KLISTEND};
-  new DLibFunRetNew(lib::total,string("TOTAL"),2,totalKey,totalWarnKey,true);
+  const string totalKey[]={"CUMULATIVE","DOUBLE","NAN","INTEGER","PRESERVE_TYPE",KLISTEND};
+  new DLibFunRetNew(lib::total,string("TOTAL"),2,totalKey,NULL,true);
 
-  const string productKey[]={"CUMULATIVE","NAN","INTEGER",KLISTEND};
-  const string productWarnKey[]={"PRESERVE_TYPE",KLISTEND};
-  new DLibFunRetNew(lib::product,string("PRODUCT"),2,productKey,productWarnKey,true);
+  const string productKey[]={"CUMULATIVE","NAN","INTEGER","PRESERVE_TYPE",KLISTEND};
+  new DLibFunRetNew(lib::product,string("PRODUCT"),2,productKey,NULL,true);
 
   new DLibFunRetNew(lib::n_params,string("N_PARAMS"),1); // IDL allows one parameter
   new DLibFunRetNew(lib::keyword_set,string("KEYWORD_SET"),1);

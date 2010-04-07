@@ -2,9 +2,6 @@
 
 pro ensure_equal, checkno, a, b
   if ~array_equal(size(a), size(b)) || ~array_equal(a, b, /no_typeconv) then begin
-help, a
-help, b
-print, a, b
     message, "check " + checkno + " failed", /conti
     exit, status=1
   endif
@@ -12,6 +9,7 @@ end
 
 pro test_hist_2d
   
+  message, 'basic tests...', /conti
   ensure_equal, '01', hist_2d([1],[1]), [[0,0],[0,1l]]                     ; \
   ensure_equal, '02', hist_2d([0],[1],max1=.1), [[0],[1l]]                 ;  |- dimensions check
   ensure_equal, '03', hist_2d([1],[0],max2=.1), reform([0,1l],2,1)         ; /
@@ -27,10 +25,10 @@ pro test_hist_2d
   data = [ $
     ptr_new(1b), $
     ptr_new([-3,4]), $
-    ptr_new(-100 + dindgen(200)), $
-    ptr_new(findgen(2,3,4,5,6)), $
-    ptr_new(randomn(seed, 10, 10)), $
-    ptr_new(1000*randomu(seed, 2,2,2,3,2)), $
+    ptr_new(-10 + dindgen(20)), $
+    ptr_new(findgen(2,3,1,1,3)), $
+    ptr_new(randomn(seed, 3, 3)), $
+    ptr_new(1000*randomu(seed, 2,1,1,1,2)), $
     ptr_new([1, !VALUES.D_NAN, !VALUES.D_NAN]), $
     ptr_new([-10,-9]) $
   ]
@@ -38,6 +36,7 @@ pro test_hist_2d
   mins = [ptr_new(10b), ptr_new(-.1)]
   maxs = [ptr_new(12b), ptr_new(13.)]
   for i = 0, n_elements(data) - 1 do begin; first data array
+    message, 'case ' + strtrim(string(i + 1), 2) + ' / ' + strtrim(string(n_elements(data)), 2), /conti
     for j = 0, n_elements(data) - 1 do begin; second data array
       for mi1=0,1 do for mi2=0,1 do for ma1=0,1 do for ma2=0,1 do for bi1=0,1 do for bi2=0,1 do begin
         for bare = 0, 1 do begin; with optional arguments or not
@@ -59,5 +58,10 @@ pro test_hist_2d
       endfor
     endfor
   endfor
+
+  for i = 0, n_elements(data) - 1 do ptr_free, data[i]
+  for i = 0, n_elements(mins) - 1 do ptr_free, mins[i]
+  for i = 0, n_elements(maxs) - 1 do ptr_free, maxs[i]
+  for i = 0, n_elements(bins) - 1 do ptr_free, bins[i]
 
 end
