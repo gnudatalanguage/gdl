@@ -13,4 +13,6 @@ TESTS = \
   test_suite.pro \
   test_url.pro \
   test_wavelet.pro \
-  test_zeropoly.pro
+  test_zeropoly.pro \
+  test_zzz.pro \
+  checks

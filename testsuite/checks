@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# SA: checking if every .pro file is listed in the Makefile.am
+test \
+  "`fgrep '.pro' Makefile.am | tr '\\' ' ' | tr "\n" ' ' | tr -s ' '`" \
+  = \
+  " `LC_COLLATE=C ls *.pro | tr "\n" ' ' | tr -s ' '`" && exit
+echo "----------------------------------------------------------------"
+echo "REASON: list of .pro files vs. entries in testsuite/Makefile.am:" 
+LC_COLLATE=C ls -1 *.pro \
+  | awk '{ print "  " $0 " \\" }' \
+  | diff /dev/stdin Makefile.am \
+  | fgrep .pro | tr '<' '-' | tr '\\' ' ' | tr -s ' ' 
+echo "----------------------------------------------------------------"
+exit 1
