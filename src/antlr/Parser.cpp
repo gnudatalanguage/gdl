@@ -2,7 +2,7 @@
  * Project led by Terence Parr at http://www.jGuru.com
  * Software rights: http://www.antlr.org/license.html
  *
- * $Id: Parser.cpp,v 1.3 2010-04-05 01:22:05 m_schellens Exp $
+ * $Id: Parser.cpp,v 1.4 2010-04-07 14:59:09 m_schellens Exp $
  */
 
 // g++-4.3 needs this
@@ -196,6 +196,8 @@ void Parser::traceIn(const char* rname)
 {
 	traceDepth++;
 
+if(inputState->guessing>0) return;
+
 	for( int i = 0; i < traceDepth; i++ )
 		ANTLR_USE_NAMESPACE(std)cout << " ";
 
@@ -207,6 +209,7 @@ void Parser::traceIn(const char* rname)
 
 void Parser::traceOut(const char* rname)
 {
+if(inputState->guessing<=0) {
 	for( int i = 0; i < traceDepth; i++ )
 		ANTLR_USE_NAMESPACE(std)cout << " ";
 
@@ -214,7 +217,7 @@ void Parser::traceOut(const char* rname)
 		<< "; LA(1)==" << LT(1)->getText().c_str()
 		<<	((inputState->guessing>0)?" [guessing]":"")
 		<< ANTLR_USE_NAMESPACE(std)endl;
-
+}
 	traceDepth--;
 }
 

@@ -45,17 +45,22 @@ namespace lib {
     e->AssureLongScalarPar( 0, lun);
 
     if( lun == 0 || abs(lun) > maxLun)
-      e->Throw(  "File unit is not within allowed range.");
+      throw GDLException( e->CallingNode(), 
+  			  "POINT_LUN:  File unit is not within allowed range.");
 
     GDLStream& actUnit = fileUnits[ abs(lun)-1];
 
     if( !actUnit.IsOpen()) 
-      e->Throw(  "File unit is not open: " +i2s(abs(lun)));
+      throw GDLException( e->CallingNode(), 
+  			  "POINT_LUN:  File unit is not open: " +i2s(abs(lun)));
 
     if (lun < 0) {
-      e->AssureGlobalPar(1);
-      // TODO: 64-bit long if needed 
-      e->SetPar(1, new DLongGDL( actUnit.Tell()));
+      BaseGDL** retPos = &e->GetPar( 1);
+
+      delete *retPos;
+      *retPos = new DLongGDL( actUnit.Tell());
+      return;
+
     } else {
       DLong pos;
       e->AssureLongScalarPar( 1, pos);
@@ -160,27 +165,53 @@ namespace lib {
     double t_current=0.0;
 
     double diff=0.0;
-    while (diff < waittime ) {
-
-      if( sigControlC) return;
-
-      struct timespec delay;
-      delay.tv_sec=0;
-      if( (waittime - diff) > 0.1)
-	{
-	  delay.tv_nsec = 100000000; // 100ms
-	  nanosleep(&delay,NULL);
-	}
-      else
-	{
-	  delay.tv_nsec = (long int)(waittime - diff) * 1000000000; // 1s
-	  nanosleep(&delay,NULL);
-	}
-
+    while (diff < waittime ) {      
       gettimeofday(&tval,&tzone);
       t_current= tval.tv_sec+tval.tv_usec/1e+6;
-      diff=t_current - t_start;      
+      diff=t_current - t_start;
     }
+  }
+
+  void kwtest( EnvT* e)
+  {
+    DLong i;
+    e->AssureLongScalarPar( 0, i);
+
+//     bool test = e->KeywordPresent( testIx);
+//     if ( test) {
+//       BaseGDL** testKW = &e->GetKW( testIx);
+//       delete (*testKW);
+//     }
+
+    // Get current level of calling stack
+    EnvStackT& callStack = e->Interpreter()->CallStack();
+    DLong curlevnum = callStack.size()-1;
+	
+/*	e->PushNewEnvUD( funList[ funIx], 1);
+	EnvUDT* newEnv = static_cast<EnvUDT*>(e->Interpreter()->CallStack().back());*/
+    
+    //DSubUD* pro = static_cast<DSubUD*>(callStack[curlevnum-1]->GetPro());
+    istringstream istr("a=3\n");
+
+    EnvBaseT* caller = e->Caller();
+    e->Interpreter()->CallStack().pop_back();
+
+    RefDNode theAST;
+      GDLLexer   lexer(istr, "", caller->CompileOpt());
+//    GDLLexer lexer(istr, "");
+    GDLParser& parser = lexer.Parser();
+    parser.interactive();
+    theAST = parser.getAST();
+    RefDNode trAST;
+    GDLTreeParser treeParser( caller);
+
+    if ( i == 1) treeParser.interactive(theAST);
+
+	e->Interpreter()->CallStack().push_back( e);
+
+    static int testIx = e->KeywordIx( "TEST");
+    e->SetKW( testIx, new DIntGDL( 77));
+
   }
 
 } // namespace

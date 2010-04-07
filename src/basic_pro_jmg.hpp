@@ -27,6 +27,8 @@ namespace lib {
   void linkimage( EnvT* e);
   void wait( EnvT* e);
 
+  void kwtest( EnvT* e);
+
 } // namespace
 
 #endif

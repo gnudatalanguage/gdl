@@ -1385,6 +1385,29 @@ tag_access returns [SizeT nDot]
 	: (options {greedy=true;}: DOT! { ++nDot;} tag_array_expr_nth)+
     ;
 
+deref_dot_expr
+{
+    RefDNode dot;
+    SizeT nDot;
+}
+//	: array_expr_1st (DOT array_expr_nth)*
+	: a1:array_expr_1st 
+        (nDot=tag_access
+            { 
+
+                dot=#[DOT,"."];
+                dot->SetNDot( nDot);    
+                dot->SetLine( #a1->getLine());
+
+                #deref_dot_expr = #(dot, #deref_dot_expr);
+            }		
+//        |   { #deref_expr = #a1;}
+        )
+    | ASTERIX! deref_dot_expr
+        { #deref_dot_expr = 
+			#([DEREF,"deref"], #deref_dot_expr);}
+	;
+
 deref_expr
 {
     RefDNode dot;
@@ -1480,6 +1503,23 @@ primary_expr
             // as we do not know the object type/struct tag
             formal_function_call
 			{ #primary_expr = #([MFCALL, "mfcall"], #primary_expr);}
+	|   // a member function call starts with a deref_expr 
+ 		(deref_dot_expr)=>
+        // same parsing as (deref_expr)=> see below
+		deref_expr 
+        ( parent=member_function_call
+            { 
+                if( parent)
+                {
+                    #primary_expr = #([MFCALL_PARENT, "mfcall::"], #primary_expr);
+                }
+                else
+                {
+                    #primary_expr = #([MFCALL, "mfcall"], #primary_expr);
+                }
+            }
+        | // empty -> array expression
+        )
     |   
         // ambiguity (arrayexpr or fcall)
         (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE)=>
@@ -1490,7 +1530,7 @@ primary_expr
 			{ #primary_expr = #([FCALL, "fcall"], #primary_expr);}
 		| 
             // still ambiguity (arrayexpr or fcall)
-	  		/*array_expr_fn*/ var arrayindex_list 
+            var arrayindex_list     // array_expr_fn
             { #primary_expr = #([ARRAYEXPR_FN,"arrayexpr_fn"], #primary_expr);}
 // 	  		( parent=member_function_call
 // 				{ 
@@ -1528,6 +1568,7 @@ primary_expr
 		(formal_function_call)=> formal_function_call
 		{ #primary_expr = #([FCALL, "fcall"], #primary_expr);}
 	|   // a member function call starts with a deref_expr 
+        // deref_dot_expr already failed
  		(deref_expr)=>
 		deref_expr 
         ( parent=member_function_call

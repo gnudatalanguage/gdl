@@ -55,6 +55,10 @@ using namespace std;
 void LibInit_jmg()
 {
   const char KLISTEND[] = "";
+
+const string kwtestKey[]={"TEST",KLISTEND};
+new DLibPro(lib::kwtest,string("KWTEST"),1,kwtestKey);
+
   // the following by Joel Gales <jomoga@users.sourceforge.net>
   const string sizeKey[]={"L64","DIMENSIONS","FILE_LUN","N_DIMENSIONS",
 			  "N_ELEMENTS","STRUCTURE","TNAME","TYPE",KLISTEND};

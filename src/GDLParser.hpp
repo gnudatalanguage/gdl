@@ -186,6 +186,7 @@ public:
 	public: void tag_array_expr_nth();
 	public: int  tag_access_keeplast();
 	public: SizeT  tag_access();
+	public: void deref_dot_expr();
 	public: bool  member_function_call();
 	public: void member_function_call_dot();
 	public: void primary_expr();

@@ -40,7 +40,7 @@
 //#undef GDL_DEBUG
 
 // print out an exspression entered at teh comand line
-#define 	AUTO_PRINT_EXPR
+//#define 	AUTO_PRINT_EXPR
 
 #ifdef GDL_DEBUG
 #include "print_tree.hpp"

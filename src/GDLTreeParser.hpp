@@ -67,7 +67,7 @@ class CUSTOM_API GDLTreeParser : public antlr::TreeParser, public GDLTreeParserT
     {
         if( LoopVar( lN))
             {
-                Warning( "Warning: Assignment to FOR loop variable detected.");
+                Warning( "Warning: Assignment to loop variable detected.");
             }
         int lT = lN->getType();
         if( lT == FCALL || lT == MFCALL || lT == MFCALL_PARENT ||
