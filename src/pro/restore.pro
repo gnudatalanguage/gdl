@@ -79,22 +79,12 @@ if (N_ELEMENTS(filename0) EQ 0) AND (N_ELEMENTS(filename1) EQ 0) then begin
    print, "% RESTORE: default FILENAME is used : ", filename0
 endif
 ;
-CMRESTORE, filename0, filename=filename1, verbose=verbose, $
-           p0,  p1,  p2,  p3,  p4,  p5,  p6,  p7,  p8,  p9, $
-           p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, $
-           p20, p21, p22, p23, p24, p25, p26, p27, p28, p29, $
-           names=_nme_
+CMRESTORE, filename0, filename=filename1, verbose=verbose, names=_nme_, $
+  data=data, pass_method='struct'
 
-for i=0,n_elements(_nme_)-1 do begin
-   p = strcompress('p' + string(i), /remove_all)
-   parm = 'dummy=routine_names(_nme_[i],' + p + ',store=-1)'
-   stat = execute(parm)
-   ;;
-   ;; at the end, I saw the /Verbose is OK in CMRESTORE (but 2 times !)
-   ;;if KEYWORD_SET(verbose) then begin
-   ;;   print, '% RESTORE: Restored variable: ' , _nme_[i]+'.'
-   ;;endif       
-endfor
+  for i = 0, n_elements(_nme_) - 1 do begin
+    dummy = routine_names(_nme_[i], data.(i), store=-1)
+  endfor
 
-return
+  return
 end
