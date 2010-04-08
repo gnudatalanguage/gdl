@@ -40,6 +40,31 @@ TVSCL, data
 end
 ; -------------------------------------
 ;
+pro TEST_TV_DAMIER, noclose=noclose, test=test, debug=debug
+;
+WINDOW, 0, xsi=512, ysi=512
+;
+offset_line=0
+nb_cells=64
+for ii=0, (nb_cells/2-1)  do begin
+    offset_line=(ii / (ROUND(SQRT(nb_cells))/2)) mod 2
+    ;;offset_line= (ii *8) mod ROUND(SQRT(nb_cells))
+    if KEYWORD_SET(debug) then print, ii, offset_line, 2*ii+offset_line
+    TVSCL, dist(64), 2*ii+offset_line
+endfor
+;
+if NOT(KEYWORD_SET(noclose)) then begin
+   rep=''
+   READ, 'press any key to finish (and closing all windows)', rep
+   ;;
+   WDELETE, 0
+endif
+;
+if KEYWORD_SET(test) then STOP
+;;
+end 
+; -------------------------------------
+;
 pro TEST_TV, noclose=noclose, test=test
 ;
 xdim=350
