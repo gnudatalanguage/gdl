@@ -40,24 +40,70 @@ TVSCL, data
 end
 ; -------------------------------------
 ;
-pro TEST_TV_DAMIER, noclose=noclose, test=test, debug=debug
+pro TEST_TV_DAMIER_COLOR, numwin, noclose=noclose, test=test, debug=debug, help=help
 ;
-WINDOW, 0, xsi=512, ysi=512
+if KEYWORD_SET(help) then begin
+    print, 'pro TEST_TV_DAMIER_COLOR, noclose=noclose, test=test, debug=debug, help=help'
+    return
+end
+;
+if N_PARAMS() EQ 0 then numwin=0
+;
+units=64
+nbx=10
+nby=8
+WINDOW, numwin, xsi=units*nbx, ysi=units*nby
+;
+vignette=DIST(units)
 ;
 offset_line=0
-nb_cells=64
+nb_cells=nbx*nby
 for ii=0, (nb_cells/2-1)  do begin
-    offset_line=(ii / (ROUND(SQRT(nb_cells))/2)) mod 2
-    ;;offset_line= (ii *8) mod ROUND(SQRT(nb_cells))
+    offset_line=(ii / (nbx/2)) mod 2
     if KEYWORD_SET(debug) then print, ii, offset_line, 2*ii+offset_line
-    TVSCL, dist(64), 2*ii+offset_line
+    LOADCT, ii
+    TVSCL, vignette, 2*ii+offset_line
 endfor
 ;
 if NOT(KEYWORD_SET(noclose)) then begin
    rep=''
    READ, 'press any key to finish (and closing all windows)', rep
-   ;;
-   WDELETE, 0
+   WDELETE, numwin
+endif
+;
+if KEYWORD_SET(test) then STOP
+;;
+end 
+; -------------------------------------
+;
+pro TEST_TV_DAMIER, numwin, noclose=noclose, test=test, debug=debug
+;
+if KEYWORD_SET(help) then begin
+    print, 'pro TEST_TV_DAMIER, numwin, noclose=noclose, test=test, debug=debug, help=help'
+    return
+end
+;
+if N_PARAMS() EQ 0 then numwin=0
+;
+units=64
+nbx=8
+nby=8
+WINDOW, numwin, xsi=units*nbx, ysi=units*nby
+;
+vignette=DIST(units)
+;
+offset_line=0
+nb_cells=nbx*nby
+for ii=0, (nb_cells/2-1)  do begin
+    offset_line=(ii / (nbx/2)) mod 2
+    if KEYWORD_SET(debug) then print, ii, offset_line, 2*ii+offset_line
+    TVSCL, vignette, 2*ii+offset_line
+endfor
+;
+if NOT(KEYWORD_SET(noclose)) then begin
+   rep=''
+   READ, 'press any key to finish (and closing all windows)', rep
+   WDELETE, numwin
 endif
 ;
 if KEYWORD_SET(test) then STOP
@@ -86,11 +132,14 @@ MY_WINDOW, 4, REFORM(b2)
 MY_WINDOW, 5, b3
 MY_WINDOW, 6, REFORM(b3)
 ;
+TEST_TV_DAMIER, 8, /noclose
+TEST_TV_DAMIER_COLOR, 9, /noclose
+;
 if NOT(KEYWORD_SET(noclose)) then begin
    rep=''
    READ, 'press any key to finish (and closing all windows)', rep
    ;;
-   WDELETE, 0, 1, 2, 3, 4, 5, 6
+   WDELETE, 0, 1, 2, 3, 4, 5, 6, 8, 9
 endif
 ;
 if KEYWORD_SET(test) then STOP
