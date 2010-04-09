@@ -28,7 +28,7 @@ if resu NE 0 then begin
 endif
 end
 ;
-pro TEST_FIX_ONE_VALUE, value=value, verbose=verbose, all_types=all_types
+function TEST_FIX_ONE_VALUE, value=value, verbose=verbose, all_types=all_types
 ;
 if KEYWORD_SET(verbose) then quiet=0 else quiet=1
 
@@ -48,7 +48,7 @@ if N_ELEMENTS(value) EQ 0 then x=10.1 else x=value
 
 if (x LT 0.) then begin
    print, 'Positive input mandatory !'
-   return
+   return, 0
 endif
 ;
 separateur= '---------------------------'
@@ -95,14 +95,19 @@ if (errors_pos GT 0) OR (errors_neg GT 0) then begin
    print, separateur
    print, 'Bad news ! At least one problem encoutered !'
    print, 'Please rerun this test with keyword /verbose !'
+   return, 0
 endif
+
+return, 1
 
 end
 
 
 pro TEST_FIX, verbose=verbose, all_types=all_types
-TEST_FIX_ONE_VALUE, value=1.001, verbose=verbose, all_types=all_types
-TEST_FIX_ONE_VALUE, value=10.1, verbose=verbose, all_types=all_types
-TEST_FIX_ONE_VALUE, value=1000.1, verbose=verbose, all_types=all_types
-TEST_FIX_ONE_VALUE, value=1000.1e5, verbose=verbose, all_types=all_types
+  ok = 1
+  ok and= TEST_FIX_ONE_VALUE(value=1.001, verbose=verbose, all_types=all_types) 
+  ok and= TEST_FIX_ONE_VALUE(value=10.1, verbose=verbose, all_types=all_types) 
+  ok and= TEST_FIX_ONE_VALUE(value=1000.1, verbose=verbose, all_types=all_types) 
+  ok and= TEST_FIX_ONE_VALUE(value=1000.1e5, verbose=verbose, all_types=all_types)
+  if ~ok then exit, status=1
 end
