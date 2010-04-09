@@ -11,6 +11,7 @@ prolib_DATA = \
   file_dirname.pro \
   file_lines.pro \
   filepath.pro \
+  findex.pro \
   findfile.pro \
   helpform.pro \
   hist_2d.pro \
@@ -18,6 +19,7 @@ prolib_DATA = \
   identity.pro \
   imsl_zerosys.pro \
   ishft.pro \
+  interpol.pro \
   kurtosis.pro \
   last_item.pro \
   lmgr.pro \
