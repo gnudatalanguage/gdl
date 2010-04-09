@@ -257,8 +257,8 @@ prolib_DATA = \
   hist_nd.pro \
   identity.pro \
   imsl_zerosys.pro \
-  ishft.pro \
   interpol.pro \
+  ishft.pro \
   kurtosis.pro \
   last_item.pro \
   lmgr.pro \
