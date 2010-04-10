@@ -213,10 +213,11 @@ namespace lib {
 		if( is == &cin  && isatty(0))
 		{
 			string line;
+			string strTrimLine;
 
 			int edit_input = SysVar::Edit_Input();// && isatty(0);
 
-			do {
+ 			do {
 				char *cline;
 
 				lineEdit = true;
@@ -231,7 +232,7 @@ namespace lib {
 				if( !cline)
 					{
 // 						if (isatty(0))
-							cout << endl;
+						cout << endl;
 						e->Throw("Error encountered reading from: Unit: 0, <stdin> (redirected).");
 					}
 				else
@@ -239,7 +240,10 @@ namespace lib {
 					line = cline;
 
 				free(cline);        // done here for compatibility with readline
-			} while( line == "");
+
+				strTrimLine = line;
+				StrTrim(strTrimLine); 
+ 			} while( strTrimLine == "" && parIn->Type() != STRING);
 			
 			istringstream iss( line + "\n");
 			parIn->FromStream( iss);
