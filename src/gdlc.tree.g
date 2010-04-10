@@ -1192,11 +1192,12 @@ RefDNode l;
 
 // system variables have as variable ptr NULL initially
 sysvar!//
-  : #(SYSVAR i:SYSVARNAME)
+  : #(s:SYSVAR i:SYSVARNAME)
 	{ 
       std::string sysVarName = i->getText();
       // here we create the real sysvar node      
 	  #sysvar=astFactory->create(SYSVAR, sysVarName.substr(1));
+      #sysvar->SetLine(s->getLine());
 //	  #sysvar=#[SYSVAR,i->getText()];
 	  comp.SysVar(#sysvar); // sets var to NULL
 	}	
@@ -1207,9 +1208,10 @@ sysvar!//
 // VARPTR for common block variables with a ptr to the
 //        variable in the common block
 var!//
-  : #(VAR i:IDENTIFIER)
+  : #(v:VAR i:IDENTIFIER)
 	{ 
 	  #var=astFactory->create(VAR,i->getText());
+      #var->SetLine(v->getLine());
 //	  #var=#[VAR,i->getText()];
 	  comp.Var(#var);	
 	}

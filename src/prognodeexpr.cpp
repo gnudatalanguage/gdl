@@ -121,14 +121,14 @@ BaseGDL* ProgNode::EvalNC()
 {
   throw GDLException( this,
 		      "Internal error. "
-		      "ProgNode::EvalNC() called.");
+		      "ProgNode::EvalNC() called.",true,false);
 }
 
 void  ProgNode::Run()
 { 
   throw GDLException( this,
 		      "Internal error. "
-		      "ProgNode::Run() called.");
+		      "ProgNode::Run() called.",true,false);
 }
 
 void ProgNode::SetNodes( const ProgNodeP r, const ProgNodeP d)
@@ -973,7 +973,7 @@ BaseGDL* VARNode::EvalNC()
       BaseGDL* res=static_cast<EnvUDT*>(callStack.back())->GetKW(this->varIx); 
       if( res == NULL)
 	throw GDLException( this, "Variable is undefined: "+
-			    callStack.back()->GetString(this->varIx));
+			    callStack.back()->GetString(this->varIx),true,false);
       return res;
 }
 
@@ -984,7 +984,7 @@ BaseGDL* VARPTRNode::EvalNC()
 	{
 	  EnvStackT& callStack=interpreter->CallStack();
 	  throw GDLException( this, "Variable is undefined: "+
-			      callStack.back()->GetString( res));
+			      callStack.back()->GetString( res),true,false);
 	}
       return res;
 }
@@ -1001,7 +1001,7 @@ BaseGDL* SYSVARNode::EvalNC()
       this->var=FindInVarList(sysVarList,this->getText());
       if( this->var == NULL)		    
 	throw GDLException( this, "Not a legal system variable: !"+
-			    this->getText());
+			    this->getText(),true,false);
     }
   // system variables are always defined
   return this->var->Data(); 
@@ -1015,21 +1015,21 @@ BaseGDL* DEREFNode::EvalNC()
   DPtrGDL* ptr=dynamic_cast<DPtrGDL*>(e1);
   if( ptr == NULL)
     throw GDLException( this, "Pointer type required"
-			" in this context: "+interpreter->Name(e1));
+			" in this context: "+interpreter->Name(e1),true,false);
   DPtr sc; 
   if( !ptr->Scalar(sc))
     throw GDLException( this, "Expression must be a "
-			"scalar in this context: "+interpreter->Name(e1));
+			"scalar in this context: "+interpreter->Name(e1),true,false);
   if( sc == 0)
     throw GDLException( this, "Unable to dereference"
-			" NULL pointer: "+interpreter->Name(e1));
+			" NULL pointer: "+interpreter->Name(e1),true,false);
   
   try{
     return interpreter->GetHeap(sc);
   }
   catch( GDLInterpreter::HeapException)
     {
-      throw GDLException( this, "Invalid pointer: "+interpreter->Name(e1));
+      throw GDLException( this, "Invalid pointer: "+interpreter->Name(e1),true,false);
     }
 }
 

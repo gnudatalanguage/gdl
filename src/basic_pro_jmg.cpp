@@ -174,44 +174,37 @@ namespace lib {
 
   void kwtest( EnvT* e)
   {
-    DLong i;
-    e->AssureLongScalarPar( 0, i);
+    StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
 
-//     bool test = e->KeywordPresent( testIx);
-//     if ( test) {
-//       BaseGDL** testKW = &e->GetKW( testIx);
-//       delete (*testKW);
-//     }
+    // here first parameter is the function name
+    // set callF to the function you want to call
+    int nParam=e->NParam();
+    if( nParam == 0)
+     e->Throw( "No function specified.");
+    DString callF;
+    e->AssureScalarPar<DStringGDL>( 0, callF);
+ 
+    // this is a function name -> convert to UPPERCASE
+    callF = StrUpCase( callF);
 
-    // Get current level of calling stack
-    EnvStackT& callStack = e->Interpreter()->CallStack();
-    DLong curlevnum = callStack.size()-1;
+	SizeT funIx = GDLInterpreter::GetFunIx( callF);
 	
-/*	e->PushNewEnvUD( funList[ funIx], 1);
-	EnvUDT* newEnv = static_cast<EnvUDT*>(e->Interpreter()->CallStack().back());*/
-    
-    //DSubUD* pro = static_cast<DSubUD*>(callStack[curlevnum-1]->GetPro());
-    istringstream istr("a=3\n");
+	EnvUDT* newEnv= new EnvUDT( e, funList[ funIx], NULL);
 
-    EnvBaseT* caller = e->Caller();
-    e->Interpreter()->CallStack().pop_back();
+	// add parameter
+	SizeT widgetID = 999;
+      
+    newEnv->SetNextPar( new DLongGDL(widgetID)); // pass as local
 
-    RefDNode theAST;
-      GDLLexer   lexer(istr, "", caller->CompileOpt());
-//    GDLLexer lexer(istr, "");
-    GDLParser& parser = lexer.Parser();
-    parser.interactive();
-    theAST = parser.getAST();
-    RefDNode trAST;
-    GDLTreeParser treeParser( caller);
+	e->Interpreter()->CallStack().push_back( newEnv);
+	
+	// make the call
+	BaseGDL* res = e->Interpreter()->
+	  call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 
-    if ( i == 1) treeParser.interactive(theAST);
-
-	e->Interpreter()->CallStack().push_back( e);
-
+	// set the keyword to the function's return value
     static int testIx = e->KeywordIx( "TEST");
-    e->SetKW( testIx, new DIntGDL( 77));
-
+    e->SetKW( testIx, res);
   }
 
 } // namespace

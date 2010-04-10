@@ -1117,7 +1117,7 @@ BaseGDL*& EnvT::GetPar(SizeT i)
   SizeT ix= i + pro->key.size();
   if( ix >= env.size()) 
     {
-      Warning( "EnvT::GetPar(): Index out of env size ("+i2s(env.size())+"): " + i2s(i) +" (+ "+i2s(pro->key.size())+")");
+      Warning( "EnvT::GetPar(): Index out of env size ("+i2s(env.size())+"): " + i2s(i) +" (+ "+i2s(pro->key.size())+" KW)");
       return null;
     }
   return env[ ix];
