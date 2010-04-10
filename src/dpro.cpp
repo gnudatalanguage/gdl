@@ -264,13 +264,18 @@ void DSubUD::ResolveAllLabels()
 void DSubUD::ResolveLabel( ProgNodeP p)
 {
   if( p == NULL) return;
+
+// if( p->getNextSibling() != NULL)
+// 	std::cout << "Resolve("<< p->getLine()<<"): " << p << " keepRight: " << p->KeepRight()<< ": "<< p->getText() <<"  r: "<< p->GetNextSibling()->getText() << std::endl;
+// else
+// 	std::cout << "Resolve("<< p->getLine()<<"): " << p << " keepRight: " << p->KeepRight()<< ": "<< p->getText() <<"  r: NULL"<< std::endl;
   
   if( p->getType() == GDLTreeParser::ON_IOERROR || 
       p->getType() == GDLTreeParser::GOTO)
     {
       int ix = labelList.Find( p->getText());
       if( ix == -1)
-	throw GDLException( p, ObjectName()+": Undefined label "+p->getText()+
+		throw GDLException( p, ObjectName()+": Undefined label "+p->getText()+
 			    " referenced in GOTO statement.",false,false);
       
       p->SetGotoIx( ix);
@@ -281,7 +286,10 @@ void DSubUD::ResolveLabel( ProgNodeP p)
     }
   
   ResolveLabel( p->getFirstChild());
-  ResolveLabel( p->getNextSibling());
+  if( !p->KeepRight())
+	ResolveLabel( p->getNextSibling());
+//   else
+// 	ResolveLabel( p->getNextSibling());
 }
 
   // the final "compilation" takes part here 

@@ -386,7 +386,7 @@ common_block!//
 
 
 caseswitch_body 
-	: #(BLOCK expr //labeled_expr 
+	: #(b:BLOCK { #b->setType(CSBLOCK);#b->setText("csblock");} expr //labeled_expr 
             (statement_list)? 
         )
 	| #(ELSEBLK 
@@ -415,7 +415,13 @@ case_statement
 	;
 
 block
-	: #(BLOCK (statement_list)?)
+{
+//    int labelStart = comp.NDefLabel();
+}
+	: #(b:BLOCK (statement_list)?)
+        {
+//            #b->SetLabelRange( labelStart, comp.NDefLabel());
+        }
 	;
 
 unblock!
@@ -448,7 +454,7 @@ statement
 	| block
     | #(DEC expr) //unbrace_expr)
     | #(INC expr) //unbrace_expr)
-	| BREAK    // only in loops or switch_statement
+	| BREAK    // only in loops or case/switch_statement
 	| CONTINUE // only in loops
 	;
 
@@ -555,7 +561,7 @@ jump_statement!//
 	{
 	  if( comp.IsFun())
 	  	{
-		if( !exprThere)	throw GDLException(	_t, 
+		if( !exprThere)	throw GDLException(	r, 
                     "Return statement in functions "
                     "must have 1 value.");
 
@@ -603,19 +609,19 @@ jump_statement!//
 
 if_statement!//
 {
-    int labelStart = comp.NDefLabel();
+//     int labelStart = comp.NDefLabel();
 }
 	: #(i:IF e:expr s1:statement 
             (
                 {
-        #i->SetLabelRange( labelStart, comp.NDefLabel());
+//         #i->SetLabelRange( labelStart, comp.NDefLabel());
                 #if_statement=#(i,e,s1);
                 }
             | s2:statement
                 {
                 #i->setText( "if_else");
                 #i->setType( IF_ELSE);
-        #i->SetLabelRange( labelStart, comp.NDefLabel());
+//         #i->SetLabelRange( labelStart, comp.NDefLabel());
                 #if_statement=#(i,e,s1,s2);
                 }
             )

@@ -57,6 +57,8 @@ BinaryExprNC::BinaryExprNC( const RefDNode& refNode): BinaryExpr( refNode)
 }
 
 ProgNode::ProgNode(): // for NULLProgNode
+	keepRight( false),
+	breakTarget( NULL),
   ttype( antlr::Token::NULL_TREE_LOOKAHEAD),
   text( "NULLProgNode"),
   down( NULL), 
@@ -72,6 +74,8 @@ ProgNode::ProgNode(): // for NULLProgNode
 
 // tanslation RefDNode -> ProgNode
 ProgNode::ProgNode( const RefDNode& refNode):
+	keepRight( false),
+	breakTarget( NULL),
   ttype( refNode->getType()),
   text( refNode->getText()),
   down( NULL), 
@@ -110,7 +114,7 @@ ProgNode::~ProgNode()
       delete arrIxList;
     }
   delete down;
-  delete right;
+  if( !keepRight) delete right;
 }
 
 BaseGDL* ProgNode::EvalNC()
@@ -706,6 +710,46 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
     case GDLTokenTypes::ASSIGN_REPLACE:
       {
 	return new ASSIGN_REPLACENode( refNode);
+      }
+    case GDLTokenTypes::FOR:
+      {
+	return new  FORNode( refNode);
+      }
+    case GDLTokenTypes::FOR_STEP:
+      {
+	return new  FOR_STEPNode( refNode);
+      }
+    case GDLTokenTypes::FOREACH:
+      {
+	return new  FOREACHNode( refNode);
+      }
+    case GDLTokenTypes::WHILE:
+      {
+	return new  WHILENode( refNode);
+      }
+    case GDLTokenTypes::REPEAT:
+      {
+	return new  REPEATNode( refNode);
+      }
+    case GDLTokenTypes::CASE:
+      {
+	return new  CASENode( refNode);
+      }
+    case GDLTokenTypes::SWITCH:
+      {
+	return new  SWITCHNode( refNode);
+      }
+    case GDLTokenTypes::BLOCK:
+      {
+	return new  BLOCKNode( refNode);
+      }
+    case GDLTokenTypes::IF:
+      {
+	return new  IFNode( refNode);
+      }
+    case GDLTokenTypes::IF_ELSE:
+      {
+	return new  IF_ELSENode( refNode);
       }
     case GDLTokenTypes::PCALL_LIB:
       {

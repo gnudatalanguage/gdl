@@ -33,6 +33,8 @@
 class ProgNode;
 typedef ProgNode* ProgNodeP;
 
+class BreakableNode;
+
 // the nodes the programs are made of
 class ProgNode
 {
@@ -44,6 +46,10 @@ private:
   std::string text;
 
 protected:
+  bool keepRight;
+
+  ProgNodeP breakTarget;
+  
   ProgNodeP down;
   ProgNodeP right;
 
@@ -75,6 +81,9 @@ private:
   ArrayIndexListT* arrIxList; // ptr to array index list
   int labelStart; // for loops to determine if to bail out
   int labelEnd; // for loops to determine if to bail out
+
+  // disable usage
+  ProgNode( const ProgNode& p) {}
 
 public:
   ProgNode();
@@ -109,6 +118,12 @@ public:
   {
     return right;
   }
+  ProgNodeP GetLastSibling() const
+  {
+	ProgNodeP act = const_cast<ProgNodeP>(this);
+	while(!act->KeepRight() && act->GetNextSibling() != NULL) act = act->GetNextSibling();
+    return act;
+  }
   ProgNodeP GetNextSibling() const
   {
     return getNextSibling();
@@ -130,7 +145,45 @@ public:
     down = NULL;
     return n;
   }
+
+  bool KeepRight() const { return keepRight;}
   
+  virtual void KeepRight( ProgNodeP r)
+  {
+//   if( right != NULL)
+	//assert( right == NULL);
+	//assert( r != NULL);
+	right = r;
+	keepRight = true;
+// if( r != NULL)
+// std::cout << "KeepRight: " << getText() <<"   r: " << r->getText() <<  std::endl;
+// else
+// std::cout << "KeepRight: " << getText() <<"   r: NULL" <<  std::endl;
+  }
+  void SetRight( ProgNodeP r)
+  {
+	assert( right == NULL);
+	right = r;
+  }
+  
+	void SetAllBreak( ProgNodeP target)
+	{
+		if( this->getType() == GDLTokenTypes::BREAK)
+			breakTarget = target;
+		else
+		{
+			if( down != NULL)
+				{
+					down->SetAllBreak( target);
+				}
+		}
+		
+		if( right != NULL && !keepRight)
+		{
+			right->SetAllBreak( target);
+		}
+	}
+
   int getType() { return ttype;}
   void setType( int t) { ttype=t;}
   std::string getText() { return text;}
@@ -138,9 +191,14 @@ public:
   int getLine() const { return lineNumber;}
   void setLine( int l) { lineNumber = l;}
   void SetGotoIx( int ix) { targetIx=ix;}
+
+  ProgNodeP BreakTarget() const { return breakTarget;}
   
   bool LabelInRange( const int lIx)
-  { return (lIx >= labelStart) && (lIx < labelEnd);}
+  {
+// 	std::cout << "LabelInRange: " << ((lIx >= labelStart) && (lIx < labelEnd)) << "     " << lIx << "   [" << labelStart << "," << labelEnd << ")" << std::endl;
+	return (lIx >= labelStart) && (lIx < labelEnd);
+  }
   
   friend class GDLInterpreter;
   friend class DInterpreter;
@@ -164,6 +222,8 @@ friend class PCALLNode;//: public CommandNode
 
 };
 
+
+
 class DefaultNode: public ProgNode
 {
 public:
@@ -179,6 +239,425 @@ public:
       {
 	right = NewProgNode( refNode->GetNextSibling());
       }
+  }
+};
+
+
+
+class BreakableNode: public ProgNode
+{
+protected:
+	void SetAllBreak( ProgNodeP target)
+	{
+		// down: do NOT descent into own loop tree here
+		
+		if( right != NULL && !keepRight)
+		{
+				right->SetAllBreak( target);
+		}
+	}
+
+public:
+  BreakableNode(): ProgNode()  {}
+
+  BreakableNode( const RefDNode& refNode): ProgNode( refNode)
+  {
+    if( refNode->GetFirstChild() != RefDNode(antlr::nullAST))
+      {
+		down = NewProgNode( refNode->GetFirstChild());
+      }
+    if( refNode->GetNextSibling() != RefDNode(antlr::nullAST))
+      {
+		right = NewProgNode( refNode->GetNextSibling());
+      }
+  }
+};
+
+
+
+class FORNode: public BreakableNode
+{
+  public:
+  FORNode(): BreakableNode()  {}
+
+  FORNode( const RefDNode& refNode): BreakableNode( refNode)
+  {}
+};
+
+
+
+class FOR_STEPNode: public BreakableNode
+{
+  public:
+  FOR_STEPNode(): BreakableNode()  {}
+
+  FOR_STEPNode( const RefDNode& refNode): BreakableNode( refNode)
+  {}
+};
+
+
+
+class FOREACHNode: public BreakableNode
+{
+  public:
+  FOREACHNode(): BreakableNode()  {}
+
+  FOREACHNode( const RefDNode& refNode): BreakableNode( refNode)
+  {}
+};
+
+
+
+class WHILENode: public BreakableNode
+{
+  public:
+  WHILENode(): BreakableNode()  {}
+
+  WHILENode( const RefDNode& refNode): BreakableNode( refNode)
+  {}
+};
+
+
+
+class REPEATNode: public BreakableNode
+{
+  public:
+  REPEATNode(): BreakableNode()  {}
+
+  REPEATNode( const RefDNode& refNode): BreakableNode( refNode)
+  {}
+};
+
+
+
+class CASENode: public BreakableNode
+{
+	ProgNodeP GetStatementList()
+	{
+		return down->GetNextSibling();
+	}
+	
+	void KeepRight( ProgNodeP r)
+	{
+		assert( down != NULL);
+		right = r;
+		keepRight = true;
+		// down is expr
+		ProgNodeP csBlock = GetStatementList();
+		while( csBlock != NULL)
+		{
+			if( csBlock->getType() == GDLTokenTypes::ELSEBLK)
+				{
+					ProgNodeP statementList = csBlock->GetFirstChild();
+					if( statementList != NULL)
+					{
+							statementList->GetLastSibling()->KeepRight( right);
+					}
+				}
+			else
+				{
+					// keep expr in case of empty statement
+					ProgNodeP statementList = csBlock->GetFirstChild()->GetNextSibling();
+					if( statementList != NULL)
+					{
+							statementList->GetLastSibling()->KeepRight( right);
+					}
+				}
+			csBlock = csBlock->GetNextSibling();
+		}
+		GetStatementList()->SetAllBreak( right);
+	}
+
+public:
+  CASENode(): BreakableNode()  {}
+
+  CASENode( const RefDNode& refNode): BreakableNode( refNode)
+  {
+    assert( down != NULL);
+	
+	ProgNodeP statementList = this->GetStatementList();
+	statementList->SetAllBreak( right);
+
+    // down is expr
+    ProgNodeP csBlock = GetStatementList();
+
+	while( csBlock != NULL)
+	{
+		if( csBlock->getType() == GDLTokenTypes::ELSEBLK)
+			{
+				ProgNodeP statementList = csBlock->GetFirstChild();
+				if( statementList != NULL)
+				{
+						statementList->GetLastSibling()->KeepRight( right);
+				}
+			}
+		else
+			{
+				// keep expr in case of empty statement
+				ProgNodeP statementList = csBlock->GetFirstChild()->GetNextSibling();
+				if( statementList != NULL)
+				{
+						statementList->GetLastSibling()->KeepRight( right);
+				}
+			}
+		
+// 		if( csBlock->GetNextSibling() == NULL)
+// 		{
+// 				csBlock->KeepRight( right);
+// 				break;
+// 		}
+		
+		csBlock = csBlock->GetNextSibling();
+	}
+  }
+};
+
+
+
+class SWITCHNode: public BreakableNode
+{
+	ProgNodeP GetStatementList()
+	{
+		return down->GetNextSibling();
+	}
+
+  void KeepRight( ProgNodeP r)
+  {
+	right = r;
+	keepRight = true;
+    ProgNodeP csBlock = GetStatementList();
+	ProgNodeP lastStatementList = NULL;
+	while( csBlock != NULL)
+	{
+		if( csBlock->getType() == GDLTokenTypes::ELSEBLK)
+			{
+				ProgNodeP statementList = csBlock->GetFirstChild();
+				if( statementList != NULL)
+				{
+					lastStatementList = statementList;
+				}
+			}
+		else
+			{
+				// keep expr in case of empty statement
+				ProgNodeP statementList = csBlock->GetFirstChild()->GetNextSibling();
+				if( statementList != NULL)
+				{
+					lastStatementList = statementList;
+				}
+			}
+		csBlock = csBlock->GetNextSibling();
+	}
+	if( lastStatementList != NULL)
+		lastStatementList->GetLastSibling()->KeepRight( right);
+	GetStatementList()->SetAllBreak( right);
+ } 
+	
+public:
+  SWITCHNode(): BreakableNode()  {}
+
+  SWITCHNode( const RefDNode& refNode): BreakableNode( refNode)
+  {
+    assert( down != NULL);
+
+	ProgNodeP statementList = this->GetStatementList();
+	statementList->SetAllBreak( right);
+ 
+    // down is expr
+    ProgNodeP csBlock = GetStatementList();
+
+	ProgNodeP lastStatementList = NULL;
+
+	while( csBlock != NULL)
+	{
+		if( csBlock->getType() == GDLTokenTypes::ELSEBLK)
+			{
+				ProgNodeP statementList = csBlock->GetFirstChild();
+				if( statementList != NULL)
+				{
+					if( lastStatementList != NULL)
+						lastStatementList->GetLastSibling()->KeepRight( statementList);
+						
+					lastStatementList = statementList;
+				}
+			}
+		else
+			{
+				// keep expr in case of empty statement
+				ProgNodeP statementList = csBlock->GetFirstChild()->GetNextSibling();
+				if( statementList != NULL)
+				{
+					if( lastStatementList != NULL)
+						lastStatementList->GetLastSibling()->KeepRight( statementList);
+						
+					lastStatementList = statementList;
+				}
+			}
+		if( csBlock->GetNextSibling() == NULL)
+		{
+				if( lastStatementList != NULL)
+					lastStatementList->GetLastSibling()->KeepRight( right);
+				break;
+		}
+		csBlock = csBlock->GetNextSibling();
+	}
+  }
+
+};
+
+
+
+class BLOCKNode: public ProgNode
+{
+  void KeepRight( ProgNodeP r)
+  {
+//  	if( r == NULL)
+//   	assert( r != NULL);
+
+//  	if( r == NULL)
+// 		return;
+		
+// diconnection of s1 leads to right != NULL		
+// 	if( right != NULL)
+// 		assert( right != NULL);
+	// 	must recursively set dependents here
+     if( down != NULL)
+		down->GetLastSibling()->KeepRight( r);
+
+// if( r != NULL)
+// std::cout << "BLOCK KeepRight("<<getLine()<<"): " << getText() <<"   r: " << r->getText() <<  std::endl;
+// 	else
+// std::cout << "BLOCK KeepRight("<<getLine()<<"): " << getText() <<"   r: NULL" <<  std::endl;
+	
+	right = r;
+	keepRight = true;
+ }
+
+public:
+  BLOCKNode(): ProgNode()  {}
+
+  BLOCKNode( const RefDNode& refNode): ProgNode( refNode)
+  {
+    if( refNode->GetFirstChild() != RefDNode(antlr::nullAST))
+      {
+		down = NewProgNode( refNode->GetFirstChild());
+      }
+    if( refNode->GetNextSibling() != RefDNode(antlr::nullAST))
+      {
+		right = NewProgNode( refNode->GetNextSibling());
+     
+		// first statement
+		if( down != NULL)
+			down->GetLastSibling()->KeepRight( right);
+      }
+  }
+
+};
+
+
+
+class IFNode: public ProgNode
+{
+  void KeepRight( ProgNodeP r)
+  {
+// 	assert( r != NULL);
+// 	assert( right == NULL);
+	
+	// 	must recursively set dependents here
+    if( down != NULL && r != NULL)
+        {
+// 			ProgNodeP s1 = down->GetNextSibling(); // skip expr
+			right = r;
+			down->GetLastSibling()->KeepRight( right);
+			keepRight = true;
+        }
+  }
+public:
+  IFNode(): ProgNode()  {}
+
+  IFNode( const RefDNode& refNode): ProgNode( refNode)
+  {
+		if( refNode->GetFirstChild() != RefDNode(antlr::nullAST))
+		{
+			down = NewProgNode( refNode->GetFirstChild());
+		}
+		if( refNode->GetNextSibling() != RefDNode(antlr::nullAST))
+		{
+			right = NewProgNode( refNode->GetNextSibling());
+		}
+
+        // first alternative
+        if( down != NULL && right != NULL)
+        {
+			ProgNodeP s1 = down->GetNextSibling(); // skip expr
+			s1->GetLastSibling()->KeepRight( right);
+        }
+  }
+};
+
+
+
+class IF_ELSENode: public ProgNode
+{
+  void KeepRight( ProgNodeP r)
+  {
+//   	assert( r != NULL);
+// 	assert( right == NULL);
+
+// if( r != NULL)
+// std::cout << "IF_ELSE KeepRight: " <<right<<"   " << getText() <<"   r: " << r->getText() <<  std::endl;
+// else
+// std::cout << "IF_ELSE KeepRight: " <<right<<"   " << getText() <<"   r: NULL"  <<  std::endl;
+	
+	// 	must recursively set dependents here
+    if( down != NULL && r != NULL)
+        {
+			//IF expr s1 s2
+			// first alternative
+			ProgNodeP s1 = down->GetNextSibling(); // skip expr
+			// 2nd alternative
+			ProgNodeP s2 = s1->GetNextSibling();
+			
+//         s1->ProgNode::KeepRight( right); // disconnect s2
+        s1->KeepRight( r); // disconnect s2
+			
+		s2->GetLastSibling()->SetRight( r);
+	//         s2->KeepRight( right);
+
+		right = s2;
+        }
+  }
+
+public:
+  IF_ELSENode(): ProgNode()  {}
+
+  IF_ELSENode( const RefDNode& refNode): ProgNode( refNode)
+  {
+    if( refNode->GetFirstChild() != RefDNode(antlr::nullAST))
+      {
+	down = NewProgNode( refNode->GetFirstChild());
+      }
+    if( refNode->GetNextSibling() != RefDNode(antlr::nullAST))
+      {
+	right = NewProgNode( refNode->GetNextSibling());
+      }
+
+    assert( down != NULL);
+        
+        {
+			//IF expr s1 s2
+			// first alternative
+			ProgNodeP s1 = down->GetNextSibling(); // skip expr
+			// 2nd alternative
+			ProgNodeP s2 = s1->GetNextSibling();
+			
+         s1->KeepRight( right); // disconnect s2
+			
+    	s2->GetLastSibling()->SetRight( right);
+	//         s2->KeepRight( right);
+
+		right = s2;
+        }
   }
 };
 

@@ -87,6 +87,7 @@ tokens {
 	ARRAYEXPR_MFCALL;
 	BLOCK;
     BREAK;
+	CSBLOCK;
     CONTINUE;
 	COMMONDECL;
 	COMMONDEF;
@@ -1762,6 +1763,7 @@ tokens {
 	ENDCASE="endcase";
 	ENDELSE="endelse";
 	ENDFOR="endfor";
+	ENDFOREACH="endforeach";
 	ENDIF="endif";
 	ENDREP="endrep";
 	ENDSWITCH="endswitch";

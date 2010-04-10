@@ -128,6 +128,8 @@ BaseGDL* ARRAYDEFNode::Eval()
   return res;
 }
 
+
+
 BaseGDL* STRUCNode::Eval()
 {
   // don't forget the struct in extrat.cpp if you change something here
@@ -161,6 +163,8 @@ BaseGDL* STRUCNode::Eval()
   ProgNode::interpreter->_retTree = rTree;
   return res;
 }
+
+
 
 BaseGDL* NSTRUCNode::Eval()
 {
@@ -654,6 +658,8 @@ void ASSIGN_REPLACENode::Run()
   ProgNode::interpreter->_retTree = this->getNextSibling();
 }
 
+
+
 void PCALL_LIBNode::Run()
 {
   // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
@@ -681,6 +687,9 @@ void PCALL_LIBNode::Run()
   ProgNode::interpreter->SetRetTree( this->getNextSibling());
   //  ProgNode::interpreter->_retTree = this->getNextSibling();
 }
+
+
+
 void MPCALLNode::Run()
 {
   // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
@@ -714,6 +723,8 @@ void MPCALLNode::Run()
 
   ProgNode::interpreter->SetRetTree( this->getNextSibling());
 }
+
+
 
 void MPCALL_PARENTNode::Run()
 {
@@ -782,6 +793,9 @@ void PCALLNode::Run()
   ProgNode::interpreter->SetRetTree( this->getNextSibling());
   //  ProgNode::interpreter->_retTree = this->getNextSibling();
 }
+
+
+
 void DECNode::Run()
 {
   //		match(antlr::RefAST(_t),DEC);
@@ -790,6 +804,9 @@ void DECNode::Run()
 
   ProgNode::interpreter->SetRetTree( this->getNextSibling());
 }
+
+
+
 void INCNode::Run()
 {
   //		match(antlr::RefAST(_t),INC);

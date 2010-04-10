@@ -52,6 +52,7 @@ namespace antlr {
 DInterpreter* ProgNode::interpreter;
 
 DNode::DNode( const DNode& cp): 
+//   keepRight( false),
   CommonAST( cp), //down(), right(), 
   lineNumber( cp.getLine()), cData(NULL), 
   var(cp.var), arrIxList(NULL), 

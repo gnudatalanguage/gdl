@@ -1110,7 +1110,7 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 	
 	auto_ptr< BaseGDL> eVal( expr( e));
 	while( eVal.get()->True()) {
-	retCode=statement(s);
+	retCode=statement_list(s);
 	
 	if( retCode == RC_CONTINUE) 
 	{
@@ -1148,7 +1148,7 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 	ProgNodeP i = ProgNodeP(antlr::nullAST);
 	
 	BaseGDL* e;
-	retCode = RC_OK; // not set if not executed
+	//    retCode = RC_OK; // not set if not executed
 	
 	
 	ProgNodeP __t37 = _t;
@@ -1160,20 +1160,26 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 	
 	auto_ptr<BaseGDL> e_guard(e);
 	
-	SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
+	//                SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
 	
 	if( e->True())
 	{
-	retCode=statement(_t);
-	//                    if( retCode != RC_OK) return retCode;
+	_retTree = _t;
+	return RC_OK;
+	}
 	
-	if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
-	!i->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
-	{
-	// a jump (goto) occured out of this loop
-	return retCode;
-	}
-	}
+	_retTree = i->GetNextSibling();
+	return RC_OK;
+	
+	//                     retCode=statement(_t);
+	// //                     if( retCode != RC_OK) return retCode;
+	
+	//                         if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+	//                             !i->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
+	//                         {
+	//                             // a jump (goto) occured out of this loop
+	//                             return retCode;
+	//                         }
 	
 	_t = __t37;
 	_t = _t->getNextSibling();
@@ -1199,33 +1205,46 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 	
 	auto_ptr<BaseGDL> e_guard(e);
 	
-	SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
+	//                SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
 	
 	if( e->True())
 	{
-	retCode=statement(_t);
-	//                    if( retCode != RC_OK) return retCode;
+	_retTree = _t;
+	return RC_OK;
+	}
 	
-	if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
-	!i->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
-	{
-	// a jump (goto) occured out of this loop
-	return retCode;
-	}
-	}
-	else
-	{
-	_t=_t->GetNextSibling(); // jump over 1st statement
-	retCode=statement(_t);
-	//                    if( retCode != RC_OK) return retCode;
+	_retTree = i->GetNextSibling();
+	return RC_OK;
+	//             { 
+	//                 auto_ptr<BaseGDL> e_guard(e);
 	
-	if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
-	!i->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
-	{
-	// a jump (goto) occured out of this loop
-	return retCode;
-	}
-	}
+	//                 SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
+	
+	//                 if( e->True())
+	//                 {
+	//                     retCode=statement(_t);
+	// // //                    if( retCode != RC_OK) return retCode;
+	
+	//                     if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+	//                         !i->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
+	//                     {
+	//                         // a jump (goto) occured out of this loop
+	//                         return retCode;
+	//                     }
+	//                 }
+	//                 else
+	//                 {
+	//                     _t=_t->GetNextSibling(); // jump over 1st statement
+	//                     retCode=statement(_t);
+	// // //                   if( retCode != RC_OK) return retCode;
+	
+	//                     if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+	//                         !i->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
+	//                     {
+	//                         // a jump (goto) occured out of this loop
+	//                         return retCode;
+	//                     }
+	//                 }
 	
 	_t = __t39;
 	_t = _t->getNextSibling();
@@ -1251,7 +1270,7 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 	
 	auto_ptr<BaseGDL> e_guard(e);
 	
-	SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
+	//                SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
 	
 	if( !e->Scalar())
 	throw GDLException( _t, "Expression must be a"
@@ -1259,7 +1278,7 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 	
 	ProgNodeP b=_t; // remeber block begin
 	
-	for( int i=0; i<c->numBranch; i++)
+	for( int i=0; i<c->numBranch; ++i)
 	{
 	if( b->getType() == ELSEBLK)
 	{
@@ -1267,22 +1286,31 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 	
 	if(sL != NULL )
 	{
-	// statement there
-	retCode=statement_list(sL);
-	//if( retCode == RC_BREAK) break; // break anyway
-	//                            if( retCode >= RC_RETURN) return retCode; 
-	if( retCode >= RC_RETURN) break;
-	
-	if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
-	!c->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
+	_retTree = sL;
+	return RC_OK;
+	}
+	else
 	{
-	// a jump (goto) occured out of this loop
-	return retCode;
+	_retTree = c->GetNextSibling();
+	return RC_OK;
 	}
 	
-	}
-	retCode = RC_OK;
-	break;
+	//                             // statement there
+	//                             retCode=statement_list(sL);
+	//                             //if( retCode == RC_BREAK) break; // break anyway
+	// //                            if( retCode >= RC_RETURN) return retCode; 
+	//                             if( retCode >= RC_RETURN) break;
+	
+	//                             if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+	//                                 !c->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
+	//                             {
+	//                                 // a jump (goto) occured out of this loop
+	//                                 return retCode;
+	//                             }
+	
+	//                         }
+	//                         retCode = RC_OK;
+	//                         break;
 	}
 	else
 	{
@@ -1296,31 +1324,42 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 	
 	if( equalexpr)
 	{
-	if(bb != NULL)
+	if(bb != NULL )
 	{
-	// statement there
-	retCode=statement_list(bb);
-	//if( retCode == RC_BREAK) break; // break anyway
-	//                                if( retCode >= RC_RETURN) return retCode;
-	if( retCode >= RC_RETURN) break;
-	
-	if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
-	!c->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
+	_retTree = bb;
+	return RC_OK;
+	}
+	else
 	{
-	// a jump (goto) occured out of this loop
-	return retCode;
+	_retTree = c->GetNextSibling();
+	return RC_OK;
 	}
+	//                             if(bb != NULL)
+	//                             {
+	//                                 // statement there
+	//                                 retCode=statement_list(bb);
+	//                                 //if( retCode == RC_BREAK) break; // break anyway
+	// //                                if( retCode >= RC_RETURN) return retCode;
+	//                                 if( retCode >= RC_RETURN) break;
 	
-	}
-	retCode = RC_OK;
-	break;
+	//                                 if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+	//                                     !c->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
+	//                                 {
+	//                                     // a jump (goto) occured out of this loop
+	//                                     return retCode;
+	//                                 }
+	
+	//                             }
+	//                             retCode = RC_OK;
+	//                             break;
 	}
 	
 	}
 	b=b->GetNextSibling(); // next block
-	}
+	} // for
 	// finish or break
 	//                retCode=RC_OK; // clear RC_BREAK retCode
+	throw GDLException( c, "CASE statement found no match.",true,false);
 	
 	_t = __t25;
 	_t = _t->getNextSibling();
@@ -1346,7 +1385,7 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 	
 	auto_ptr<BaseGDL> e_guard(e);
 	
-	SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
+	//                SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
 	
 	ProgNodeP b=_t; // remeber block begin (block)
 	
@@ -1359,25 +1398,29 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 	
 	ProgNodeP sL = b->GetFirstChild(); // statement_list
 	
-	if( sL != NULL )
+	if(sL != NULL )
 	{
-	// statement there
-	retCode=statement_list( sL);
-	if( retCode == RC_BREAK) 
-	{
-	retCode = RC_OK;    
-	break;          // break
-	}
-	if( retCode >= RC_RETURN) break; // goto
-	
-	if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
-	!s->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
-	{
-	// a jump (goto) occured out of this loop
-	return retCode;
+	_retTree = sL;
+	return RC_OK;
 	}
 	
-	}
+	//                             // statement there
+	//                             retCode=statement_list( sL);
+	//                             if( retCode == RC_BREAK) 
+	//                             {
+	//                                 retCode = RC_OK;    
+	//                                 break;          // break
+	//                             }
+	//                             if( retCode >= RC_RETURN) break; // goto
+	
+	//                             if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+	//                                 !s->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
+	//                             {
+	//                                 // a jump (goto) occured out of this loop
+	//                                 return retCode;
+	//                             }
+	
+	//                         }
 	}
 	else
 	{
@@ -1394,28 +1437,40 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 	hook=e->Equal(ee); // Equal deletes ee
 	}
 	
-	if(bb != NULL && hook)
+	if( hook)
 	{
 	// statement there
-	retCode=statement_list(bb);
-	if( retCode == RC_BREAK) 
+	if(bb != NULL )
 	{
-	retCode = RC_OK;    
-	break;          // break
+	_retTree = bb;
+	return RC_OK;
 	}
-	if( retCode >= RC_RETURN) break; // goto
 	
-	if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
-	!s->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
-	{
-	// a jump (goto) occured out of this loop
-	return retCode;
-	}
+	//                             _retTree = // find first non empty
+	//                             return RC_OK;
+	//                                 }
+	
+	//                             retCode=statement_list(bb);
+	//                             if( retCode == RC_BREAK) 
+	//                             {
+	//                                 retCode = RC_OK;    
+	//                                 break;          // break
+	//                             }
+	//                             if( retCode >= RC_RETURN) break; // goto
+	
+	//                             if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+	//                                 !s->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
+	//                             {
+	//                                 // a jump (goto) occured out of this loop
+	//                                 return retCode;
+	//                             }
 	}
 	
 	}
 	b=b->GetNextSibling(); // next block
 	}
+	_retTree = s->GetNextSibling();
+	return RC_OK;
 	// finish or break
 	//                retCode=RC_OK; // clear RC_BREAK retCode
 	
@@ -1429,27 +1484,30 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 	 GDLInterpreter::RetCode retCode;
 	ProgNodeP block_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
-	retCode = RC_OK;
-	
-		ProgNodeP block = _t;
 		match(antlr::RefAST(_t),BLOCK);
-		_t = _t->getFirstChild();
-		if (_t != NULL)
-			{
+		_retTree = _t->getFirstChild();
+	return RC_OK;
+	//     retCode = RC_OK;
 	
-	SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
+	// 	ProgNodeP block = _t;
+	// 	match(antlr::RefAST(_t),BLOCK);
+	// 	_t = _t->getFirstChild();
+	// 	if (_t != NULL)
+	// 		{
 	
-	retCode=statement_list(_t);
+	//             SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
 	
-	if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
-	!block->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
-	{
-	// a jump (goto) occured out of this block
-	return retCode;
-	}
-			}
-		_retTree = block->getNextSibling();
-		return retCode;
+	//             retCode=statement_list(_t);
+	
+	//             if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+	//                 !block->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
+	//                 {
+	//                     // a jump (goto) occured out of this block
+	//                     return retCode;
+	//                 }
+	// 		}
+	// 	_retTree = block->getNextSibling();
+	// 	return retCode;
 	
 	
 	ProgNodeP __t20 = _t;
@@ -1512,6 +1570,7 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 	 GDLInterpreter::RetCode retCode;
 	ProgNodeP jump_statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP g = ProgNodeP(antlr::nullAST);
+	ProgNodeP b = ProgNodeP(antlr::nullAST);
 	
 	BaseGDL*  e;
 	BaseGDL** eL;
@@ -1585,17 +1644,20 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 	}
 	case BREAK:
 	{
-		ProgNodeP tmp6_AST_in = _t;
+		b = _t;
 		match(antlr::RefAST(_t),BREAK);
 		_t = _t->getNextSibling();
 		
-		retCode=RC_BREAK;
+		if( b->BreakTarget() == NULL)
+		return RC_BREAK;
+		_retTree = b->BreakTarget();
+		return RC_OK;
 		
 		break;
 	}
 	case CONTINUE:
 	{
-		ProgNodeP tmp7_AST_in = _t;
+		ProgNodeP tmp6_AST_in = _t;
 		match(antlr::RefAST(_t),CONTINUE);
 		_t = _t->getNextSibling();
 		
@@ -1913,7 +1975,7 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 	case QUESTION:
 	{
 		ProgNodeP __t46 = _t;
-		ProgNodeP tmp8_AST_in = _t;
+		ProgNodeP tmp7_AST_in = _t;
 		match(antlr::RefAST(_t),QUESTION);
 		_t = _t->getFirstChild();
 		e1=expr(_t);
@@ -1983,7 +2045,7 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 	case ASSIGN:
 	{
 		ProgNodeP __t47 = _t;
-		ProgNodeP tmp9_AST_in = _t;
+		ProgNodeP tmp8_AST_in = _t;
 		match(antlr::RefAST(_t),ASSIGN);
 		_t = _t->getFirstChild();
 		
@@ -2059,7 +2121,7 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 	case ASSIGN_ARRAYEXPR_MFCALL:
 	{
 		ProgNodeP __t49 = _t;
-		ProgNodeP tmp10_AST_in = _t;
+		ProgNodeP tmp9_AST_in = _t;
 		match(antlr::RefAST(_t),ASSIGN_ARRAYEXPR_MFCALL);
 		_t = _t->getFirstChild();
 		
@@ -2135,7 +2197,7 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 	case ASSIGN_REPLACE:
 	{
 		ProgNodeP __t51 = _t;
-		ProgNodeP tmp11_AST_in = _t;
+		ProgNodeP tmp10_AST_in = _t;
 		match(antlr::RefAST(_t),ASSIGN_REPLACE);
 		_t = _t->getFirstChild();
 		
@@ -2211,7 +2273,7 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 	case ARRAYEXPR:
 	{
 		ProgNodeP __t53 = _t;
-		ProgNodeP tmp12_AST_in = _t;
+		ProgNodeP tmp11_AST_in = _t;
 		match(antlr::RefAST(_t),ARRAYEXPR);
 		_t = _t->getFirstChild();
 		
@@ -2226,7 +2288,7 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 	case DOT:
 	{
 		ProgNodeP __t54 = _t;
-		ProgNodeP tmp13_AST_in = _t;
+		ProgNodeP tmp12_AST_in = _t;
 		match(antlr::RefAST(_t),DOT);
 		_t = _t->getFirstChild();
 		
@@ -2240,7 +2302,7 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 	}
 	case SYSVAR:
 	{
-		ProgNodeP tmp14_AST_in = _t;
+		ProgNodeP tmp13_AST_in = _t;
 		match(antlr::RefAST(_t),SYSVAR);
 		_t = _t->getNextSibling();
 		
@@ -2296,7 +2358,7 @@ BaseGDL**  GDLInterpreter::l_deref(ProgNodeP _t) {
 	
 	
 	ProgNodeP __t44 = _t;
-	ProgNodeP tmp15_AST_in = _t;
+	ProgNodeP tmp14_AST_in = _t;
 	match(antlr::RefAST(_t),DEREF);
 	_t = _t->getFirstChild();
 	e1=expr(_t);
@@ -2342,7 +2404,7 @@ BaseGDL**  GDLInterpreter::l_deref(ProgNodeP _t) {
 	
 	
 	ProgNodeP __t159 = _t;
-	ProgNodeP tmp16_AST_in = _t;
+	ProgNodeP tmp15_AST_in = _t;
 	match(antlr::RefAST(_t),ARRAYEXPR_MFCALL);
 	_t = _t->getFirstChild();
 	
@@ -2435,7 +2497,7 @@ BaseGDL**  GDLInterpreter::l_deref(ProgNodeP _t) {
 		case MFCALL:
 		{
 			ProgNodeP __t164 = _t;
-			ProgNodeP tmp17_AST_in = _t;
+			ProgNodeP tmp16_AST_in = _t;
 			match(antlr::RefAST(_t),MFCALL);
 			_t = _t->getFirstChild();
 			self=expr(_t);
@@ -2459,7 +2521,7 @@ BaseGDL**  GDLInterpreter::l_deref(ProgNodeP _t) {
 		case MFCALL_PARENT:
 		{
 			ProgNodeP __t165 = _t;
-			ProgNodeP tmp18_AST_in = _t;
+			ProgNodeP tmp17_AST_in = _t;
 			match(antlr::RefAST(_t),MFCALL_PARENT);
 			_t = _t->getFirstChild();
 			self=expr(_t);
@@ -2694,7 +2756,7 @@ BaseGDL*  GDLInterpreter::r_expr(ProgNodeP _t) {
 	case DEC:
 	{
 		ProgNodeP __t95 = _t;
-		ProgNodeP tmp19_AST_in = _t;
+		ProgNodeP tmp18_AST_in = _t;
 		match(antlr::RefAST(_t),DEC);
 		_t = _t->getFirstChild();
 		res=l_decinc_expr(_t, DEC);
@@ -2706,7 +2768,7 @@ BaseGDL*  GDLInterpreter::r_expr(ProgNodeP _t) {
 	case INC:
 	{
 		ProgNodeP __t96 = _t;
-		ProgNodeP tmp20_AST_in = _t;
+		ProgNodeP tmp19_AST_in = _t;
 		match(antlr::RefAST(_t),INC);
 		_t = _t->getFirstChild();
 		res=l_decinc_expr(_t, INC);
@@ -2718,7 +2780,7 @@ BaseGDL*  GDLInterpreter::r_expr(ProgNodeP _t) {
 	case POSTDEC:
 	{
 		ProgNodeP __t97 = _t;
-		ProgNodeP tmp21_AST_in = _t;
+		ProgNodeP tmp20_AST_in = _t;
 		match(antlr::RefAST(_t),POSTDEC);
 		_t = _t->getFirstChild();
 		res=l_decinc_expr(_t, POSTDEC);
@@ -2730,7 +2792,7 @@ BaseGDL*  GDLInterpreter::r_expr(ProgNodeP _t) {
 	case POSTINC:
 	{
 		ProgNodeP __t98 = _t;
-		ProgNodeP tmp22_AST_in = _t;
+		ProgNodeP tmp21_AST_in = _t;
 		match(antlr::RefAST(_t),POSTINC);
 		_t = _t->getFirstChild();
 		res=l_decinc_expr(_t, POSTINC);
@@ -2954,7 +3016,7 @@ BaseGDL*  GDLInterpreter::l_decinc_array_expr(ProgNodeP _t,
 	case ARRAYEXPR:
 	{
 		ProgNodeP __t57 = _t;
-		ProgNodeP tmp23_AST_in = _t;
+		ProgNodeP tmp22_AST_in = _t;
 		match(antlr::RefAST(_t),ARRAYEXPR);
 		_t = _t->getFirstChild();
 		e=l_decinc_indexable_expr(_t, dec_inc);
@@ -3264,7 +3326,7 @@ void GDLInterpreter::l_dot_array_expr(ProgNodeP _t,
 	case ARRAYEXPR:
 	{
 		ProgNodeP __t77 = _t;
-		ProgNodeP tmp24_AST_in = _t;
+		ProgNodeP tmp23_AST_in = _t;
 		match(antlr::RefAST(_t),ARRAYEXPR);
 		_t = _t->getFirstChild();
 		rP=l_indexable_expr(_t);
@@ -3369,7 +3431,7 @@ void GDLInterpreter::tag_array_expr(ProgNodeP _t,
 	case ARRAYEXPR:
 	{
 		ProgNodeP __t109 = _t;
-		ProgNodeP tmp25_AST_in = _t;
+		ProgNodeP tmp24_AST_in = _t;
 		match(antlr::RefAST(_t),ARRAYEXPR);
 		_t = _t->getFirstChild();
 		tag_expr(_t, aD);
@@ -3414,7 +3476,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 	case QUESTION:
 	{
 		ProgNodeP __t63 = _t;
-		ProgNodeP tmp26_AST_in = _t;
+		ProgNodeP tmp25_AST_in = _t;
 		match(antlr::RefAST(_t),QUESTION);
 		_t = _t->getFirstChild();
 		e1=expr(_t);
@@ -3439,7 +3501,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 	case ASSIGN:
 	{
 		ProgNodeP __t64 = _t;
-		ProgNodeP tmp27_AST_in = _t;
+		ProgNodeP tmp26_AST_in = _t;
 		match(antlr::RefAST(_t),ASSIGN);
 		_t = _t->getFirstChild();
 		
@@ -3520,7 +3582,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 	case ASSIGN_ARRAYEXPR_MFCALL:
 	{
 		ProgNodeP __t66 = _t;
-		ProgNodeP tmp28_AST_in = _t;
+		ProgNodeP tmp27_AST_in = _t;
 		match(antlr::RefAST(_t),ASSIGN_ARRAYEXPR_MFCALL);
 		_t = _t->getFirstChild();
 		
@@ -3627,7 +3689,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 	case ASSIGN_REPLACE:
 	{
 		ProgNodeP __t68 = _t;
-		ProgNodeP tmp29_AST_in = _t;
+		ProgNodeP tmp28_AST_in = _t;
 		match(antlr::RefAST(_t),ASSIGN_REPLACE);
 		_t = _t->getFirstChild();
 		
@@ -3760,7 +3822,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 	case ARRAYEXPR_MFCALL:
 	{
 		ProgNodeP __t71 = _t;
-		ProgNodeP tmp30_AST_in = _t;
+		ProgNodeP tmp29_AST_in = _t;
 		match(antlr::RefAST(_t),ARRAYEXPR_MFCALL);
 		_t = _t->getFirstChild();
 		
@@ -3897,7 +3959,7 @@ BaseGDL**  GDLInterpreter::l_expr(ProgNodeP _t,
 	case QUESTION:
 	{
 		ProgNodeP __t79 = _t;
-		ProgNodeP tmp31_AST_in = _t;
+		ProgNodeP tmp30_AST_in = _t;
 		match(antlr::RefAST(_t),QUESTION);
 		_t = _t->getFirstChild();
 		e1=expr(_t);
@@ -3922,7 +3984,7 @@ BaseGDL**  GDLInterpreter::l_expr(ProgNodeP _t,
 	case ASSIGN:
 	{
 		ProgNodeP __t80 = _t;
-		ProgNodeP tmp32_AST_in = _t;
+		ProgNodeP tmp31_AST_in = _t;
 		match(antlr::RefAST(_t),ASSIGN);
 		_t = _t->getFirstChild();
 		{
@@ -3991,7 +4053,7 @@ BaseGDL**  GDLInterpreter::l_expr(ProgNodeP _t,
 	case ASSIGN_ARRAYEXPR_MFCALL:
 	{
 		ProgNodeP __t82 = _t;
-		ProgNodeP tmp33_AST_in = _t;
+		ProgNodeP tmp32_AST_in = _t;
 		match(antlr::RefAST(_t),ASSIGN_ARRAYEXPR_MFCALL);
 		_t = _t->getFirstChild();
 		{
@@ -4085,7 +4147,7 @@ BaseGDL**  GDLInterpreter::l_expr(ProgNodeP _t,
 	case ASSIGN_REPLACE:
 	{
 		ProgNodeP __t84 = _t;
-		ProgNodeP tmp34_AST_in = _t;
+		ProgNodeP tmp33_AST_in = _t;
 		match(antlr::RefAST(_t),ASSIGN_REPLACE);
 		_t = _t->getFirstChild();
 		{
@@ -4567,10 +4629,10 @@ void GDLInterpreter::parameter_def(ProgNodeP _t,
 			_t = ASTNULL;
 		if ((_t->getType() == KEYDEF_REF)) {
 			ProgNodeP __t170 = _t;
-			ProgNodeP tmp35_AST_in = _t;
+			ProgNodeP tmp34_AST_in = _t;
 			match(antlr::RefAST(_t),KEYDEF_REF);
 			_t = _t->getFirstChild();
-			ProgNodeP tmp36_AST_in = _t;
+			ProgNodeP tmp35_AST_in = _t;
 			match(antlr::RefAST(_t),IDENTIFIER);
 			_t = _t->getNextSibling();
 			_t = __t170;
@@ -4596,7 +4658,7 @@ BaseGDL**  GDLInterpreter::l_indexable_expr(ProgNodeP _t) {
 	case EXPR:
 	{
 		ProgNodeP __t73 = _t;
-		ProgNodeP tmp37_AST_in = _t;
+		ProgNodeP tmp36_AST_in = _t;
 		match(antlr::RefAST(_t),EXPR);
 		_t = _t->getFirstChild();
 		res=l_expr(_t, NULL);
@@ -4675,7 +4737,7 @@ BaseGDL**  GDLInterpreter::l_array_expr(ProgNodeP _t,
 	
 	
 	ProgNodeP __t75 = _t;
-	ProgNodeP tmp38_AST_in = _t;
+	ProgNodeP tmp37_AST_in = _t;
 	match(antlr::RefAST(_t),ARRAYEXPR);
 	_t = _t->getFirstChild();
 	res=l_indexable_expr(_t);
@@ -4726,7 +4788,7 @@ BaseGDL**  GDLInterpreter::l_arrayexpr_mfcall(ProgNodeP _t,
 	
 	
 	ProgNodeP __t149 = _t;
-	ProgNodeP tmp39_AST_in = _t;
+	ProgNodeP tmp38_AST_in = _t;
 	match(antlr::RefAST(_t),ARRAYEXPR_MFCALL);
 	_t = _t->getFirstChild();
 	
@@ -4831,7 +4893,7 @@ BaseGDL*  GDLInterpreter::array_expr(ProgNodeP _t) {
 	
 	
 	ProgNodeP __t100 = _t;
-	ProgNodeP tmp40_AST_in = _t;
+	ProgNodeP tmp39_AST_in = _t;
 	match(antlr::RefAST(_t),ARRAYEXPR);
 	_t = _t->getFirstChild();
 	{
@@ -5019,7 +5081,7 @@ void GDLInterpreter::tag_expr(ProgNodeP _t,
 	case EXPR:
 	{
 		ProgNodeP __t107 = _t;
-		ProgNodeP tmp41_AST_in = _t;
+		ProgNodeP tmp40_AST_in = _t;
 		match(antlr::RefAST(_t),EXPR);
 		_t = _t->getFirstChild();
 		e=expr(_t);
@@ -5073,7 +5135,7 @@ BaseGDL*  GDLInterpreter::r_dot_indexable_expr(ProgNodeP _t,
 	case EXPR:
 	{
 		ProgNodeP __t111 = _t;
-		ProgNodeP tmp42_AST_in = _t;
+		ProgNodeP tmp41_AST_in = _t;
 		match(antlr::RefAST(_t),EXPR);
 		_t = _t->getFirstChild();
 		res=expr(_t);
@@ -5170,7 +5232,7 @@ void GDLInterpreter::r_dot_array_expr(ProgNodeP _t,
 	case ARRAYEXPR:
 	{
 		ProgNodeP __t113 = _t;
-		ProgNodeP tmp43_AST_in = _t;
+		ProgNodeP tmp42_AST_in = _t;
 		match(antlr::RefAST(_t),ARRAYEXPR);
 		_t = _t->getFirstChild();
 		r=r_dot_indexable_expr(_t, aD);
@@ -5506,7 +5568,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	case ASSIGN:
 	{
 		ProgNodeP __t126 = _t;
-		ProgNodeP tmp44_AST_in = _t;
+		ProgNodeP tmp43_AST_in = _t;
 		match(antlr::RefAST(_t),ASSIGN);
 		_t = _t->getFirstChild();
 		
@@ -5580,7 +5642,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	case ASSIGN_ARRAYEXPR_MFCALL:
 	{
 		ProgNodeP __t128 = _t;
-		ProgNodeP tmp45_AST_in = _t;
+		ProgNodeP tmp44_AST_in = _t;
 		match(antlr::RefAST(_t),ASSIGN_ARRAYEXPR_MFCALL);
 		_t = _t->getFirstChild();
 		
@@ -5654,7 +5716,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	case ASSIGN_REPLACE:
 	{
 		ProgNodeP __t130 = _t;
-		ProgNodeP tmp46_AST_in = _t;
+		ProgNodeP tmp45_AST_in = _t;
 		match(antlr::RefAST(_t),ASSIGN_REPLACE);
 		_t = _t->getFirstChild();
 		
@@ -5796,7 +5858,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	case MFCALL:
 	{
 		ProgNodeP __t144 = _t;
-		ProgNodeP tmp47_AST_in = _t;
+		ProgNodeP tmp46_AST_in = _t;
 		match(antlr::RefAST(_t),MFCALL);
 		_t = _t->getFirstChild();
 		self=expr(_t);
@@ -5820,7 +5882,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	case MFCALL_PARENT:
 	{
 		ProgNodeP __t145 = _t;
-		ProgNodeP tmp48_AST_in = _t;
+		ProgNodeP tmp47_AST_in = _t;
 		match(antlr::RefAST(_t),MFCALL_PARENT);
 		_t = _t->getFirstChild();
 		self=expr(_t);
@@ -5865,7 +5927,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	case ARRAYEXPR_MFCALL:
 	{
 		ProgNodeP __t147 = _t;
-		ProgNodeP tmp49_AST_in = _t;
+		ProgNodeP tmp48_AST_in = _t;
 		match(antlr::RefAST(_t),ARRAYEXPR_MFCALL);
 		_t = _t->getFirstChild();
 		
@@ -6175,7 +6237,7 @@ BaseGDL**  GDLInterpreter::l_arrayexpr_mfcall_as_arrayexpr(ProgNodeP _t,
 	ProgNodeP dot = ProgNodeP(antlr::nullAST);
 	
 	ProgNodeP __t154 = _t;
-	ProgNodeP tmp50_AST_in = _t;
+	ProgNodeP tmp49_AST_in = _t;
 	match(antlr::RefAST(_t),ARRAYEXPR_MFCALL);
 	_t = _t->getFirstChild();
 	ProgNodeP __t155 = _t;
@@ -6298,6 +6360,7 @@ const char* GDLInterpreter::tokenNames[] = {
 	"ARRAYEXPR_MFCALL",
 	"BLOCK",
 	"BREAK",
+	"CSBLOCK",
 	"CONTINUE",
 	"COMMONDECL",
 	"COMMONDEF",
@@ -6361,7 +6424,7 @@ const char* GDLInterpreter::tokenNames[] = {
 	"\"endcase\"",
 	"\"endelse\"",
 	"\"endfor\"",
-	"ENDFOREACH",
+	"\"endforeach\"",
 	"\"endif\"",
 	"\"endrep\"",
 	"\"endswitch\"",
@@ -6499,19 +6562,19 @@ const char* GDLInterpreter::tokenNames[] = {
 	0
 };
 
-const unsigned long GDLInterpreter::_tokenSet_0_data_[] = { 3765436832UL, 14683656UL, 1073745932UL, 12622081UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLInterpreter::_tokenSet_0_data_[] = { 3232760224UL, 29367313UL, 2147491864UL, 25244162UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN ASSIGN_REPLACE ASSIGN_ARRAYEXPR_MFCALL BLOCK BREAK CONTINUE "for" 
 // FOR_STEP "foreach" IF_ELSE LABEL MPCALL MPCALL_PARENT ON_IOERROR_NULL 
 // PCALL PCALL_LIB RETF RETP "case" "goto" "if" "on_ioerror" "repeat" "switch" 
 // "while" DEC INC 
 const antlr::BitSet GDLInterpreter::_tokenSet_0(_tokenSet_0_data_,8);
-const unsigned long GDLInterpreter::_tokenSet_1_data_[] = { 369755040UL, 202936327UL, 432UL, 12582912UL, 0UL, 268435456UL, 256UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLInterpreter::_tokenSet_1_data_[] = { 738853792UL, 405872654UL, 864UL, 25165824UL, 0UL, 536870912UL, 512UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN ASSIGN_REPLACE ASSIGN_ARRAYEXPR_MFCALL ARRAYDEF ARRAYEXPR ARRAYEXPR_MFCALL 
 // CONSTANT DEREF EXPR FCALL FCALL_LIB FCALL_LIB_RETNEW MFCALL MFCALL_PARENT 
 // NSTRUC NSTRUC_REF POSTDEC POSTINC STRUC SYSVAR VAR VARPTR DEC INC DOT 
 // QUESTION 
 const antlr::BitSet GDLInterpreter::_tokenSet_1(_tokenSet_1_data_,16);
-const unsigned long GDLInterpreter::_tokenSet_2_data_[] = { 369755040UL, 202936323UL, 432UL, 12582912UL, 0UL, 268435456UL, 256UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLInterpreter::_tokenSet_2_data_[] = { 738853792UL, 405872646UL, 864UL, 25165824UL, 0UL, 536870912UL, 512UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN ASSIGN_REPLACE ASSIGN_ARRAYEXPR_MFCALL ARRAYDEF ARRAYEXPR ARRAYEXPR_MFCALL 
 // CONSTANT DEREF EXPR FCALL FCALL_LIB MFCALL MFCALL_PARENT NSTRUC NSTRUC_REF 
 // POSTDEC POSTINC STRUC SYSVAR VAR VARPTR DEC INC DOT QUESTION 

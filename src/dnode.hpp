@@ -62,7 +62,8 @@ public:
 
   ~DNode();
 
-  DNode(): CommonAST(), //down(), right(), 
+  DNode(): CommonAST(), //down(), right(),
+// 	keepRight( false),
 	   lineNumber(0), cData(NULL), 
 	   var(NULL), 
 	   libFun(NULL),
@@ -74,16 +75,21 @@ public:
   DNode( const DNode& cp);
 
   DNode(antlr::RefToken t) : antlr::CommonAST(t) //, down(), right()
-  {
+//   	, keepRight( false)
+{
     //    antlr::CommonAST::setType(t->getType() );
     //    antlr::CommonAST::setText(t->getText() );
     DNode::SetLine(t->getLine() );
   }
 
+// 	void DoKeepRight() { keepRight = true;}
+
   void initialize(int t, const std::string& txt)
   {
     antlr::CommonAST::setType(t);
     antlr::CommonAST::setText(txt);
+
+// 	keepRight = false;
 
     lineNumber = 0;
     cData=NULL;
@@ -287,6 +293,8 @@ private:
   ArrayIndexListT* StealArrIxList() 
   { ArrayIndexListT* res = arrIxList; arrIxList=NULL; return res;}
   ArrayIndexListT* CloneArrIxList(); 
+
+// 	bool keepRight; // for passing to ProgNode, nodes here are reference counted
 
   //  RefDNode down;
   //  RefDNode right;

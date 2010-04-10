@@ -1129,27 +1129,30 @@ statement returns[ GDLInterpreter::RetCode retCode]
 
 block returns[ GDLInterpreter::RetCode retCode]
 {
-    retCode = RC_OK;
-
-	ProgNodeP block = _t;
 	match(antlr::RefAST(_t),BLOCK);
-	_t = _t->getFirstChild();
-	if (_t != NULL)
-		{
+	_retTree = _t->getFirstChild();
+    return RC_OK;
+//     retCode = RC_OK;
 
-            SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
+// 	ProgNodeP block = _t;
+// 	match(antlr::RefAST(_t),BLOCK);
+// 	_t = _t->getFirstChild();
+// 	if (_t != NULL)
+// 		{
 
-            retCode=statement_list(_t);
+//             SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
 
-            if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
-                !block->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
-                {
-                    // a jump (goto) occured out of this block
-                    return retCode;
-                }
-		}
-	_retTree = block->getNextSibling();
-	return retCode;
+//             retCode=statement_list(_t);
+
+//             if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+//                 !block->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
+//                 {
+//                     // a jump (goto) occured out of this block
+//                     return retCode;
+//                 }
+// 		}
+// 	_retTree = block->getNextSibling();
+// 	return retCode;
 }
 	: #(BLOCK (retCode=statement_list)?)
 	;
@@ -1163,7 +1166,7 @@ switch_statement returns[ GDLInterpreter::RetCode retCode]
             {
                 auto_ptr<BaseGDL> e_guard(e);
                 
-                SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
+//                SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
 
                 ProgNodeP b=_t; // remeber block begin (block)
 
@@ -1176,25 +1179,29 @@ switch_statement returns[ GDLInterpreter::RetCode retCode]
 
                         ProgNodeP sL = b->GetFirstChild(); // statement_list
 
-                        if( sL != NULL )
+                        if(sL != NULL )
                         {
-                            // statement there
-                            retCode=statement_list( sL);
-                            if( retCode == RC_BREAK) 
-                            {
-                                retCode = RC_OK;    
-                                break;          // break
-                            }
-                            if( retCode >= RC_RETURN) break; // goto
-
-                            if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
-                                !s->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
-                            {
-                                // a jump (goto) occured out of this loop
-                                return retCode;
-                            }
-
+                            _retTree = sL;
+                            return RC_OK;
                         }
+
+//                             // statement there
+//                             retCode=statement_list( sL);
+//                             if( retCode == RC_BREAK) 
+//                             {
+//                                 retCode = RC_OK;    
+//                                 break;          // break
+//                             }
+//                             if( retCode >= RC_RETURN) break; // goto
+
+//                             if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+//                                 !s->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
+//                             {
+//                                 // a jump (goto) occured out of this loop
+//                                 return retCode;
+//                             }
+
+//                         }
                     }
                     else
                     {
@@ -1211,28 +1218,40 @@ switch_statement returns[ GDLInterpreter::RetCode retCode]
                             hook=e->Equal(ee); // Equal deletes ee
                         }
                             
-                        if(bb != NULL && hook)
+                        if( hook)
                         {
                             // statement there
-                            retCode=statement_list(bb);
-                            if( retCode == RC_BREAK) 
-                            {
-                                retCode = RC_OK;    
-                                break;          // break
-                            }
-                            if( retCode >= RC_RETURN) break; // goto
+                            if(bb != NULL )
+                                {
+                                    _retTree = bb;
+                                    return RC_OK;
+                                }
+                 
+//                             _retTree = // find first non empty
+//                             return RC_OK;
+//                                 }
 
-                            if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
-                                !s->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
-                            {
-                                // a jump (goto) occured out of this loop
-                                return retCode;
-                            }
+//                             retCode=statement_list(bb);
+//                             if( retCode == RC_BREAK) 
+//                             {
+//                                 retCode = RC_OK;    
+//                                 break;          // break
+//                             }
+//                             if( retCode >= RC_RETURN) break; // goto
+
+//                             if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+//                                 !s->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
+//                             {
+//                                 // a jump (goto) occured out of this loop
+//                                 return retCode;
+//                             }
                         }
                         
                     }
                     b=b->GetNextSibling(); // next block
                 }
+                _retTree = s->GetNextSibling();
+                return RC_OK;
                 // finish or break
 //                retCode=RC_OK; // clear RC_BREAK retCode
             }
@@ -1248,7 +1267,7 @@ case_statement returns[ GDLInterpreter::RetCode retCode]
             {
                 auto_ptr<BaseGDL> e_guard(e);
 
-                SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
+//                SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
 
                 if( !e->Scalar())
                 throw GDLException( _t, "Expression must be a"
@@ -1256,7 +1275,7 @@ case_statement returns[ GDLInterpreter::RetCode retCode]
 
                 ProgNodeP b=_t; // remeber block begin
 
-                for( int i=0; i<c->numBranch; i++)
+                for( int i=0; i<c->numBranch; ++i)
                 {
                     if( b->getType() == ELSEBLK)
                     {
@@ -1264,22 +1283,31 @@ case_statement returns[ GDLInterpreter::RetCode retCode]
 
                         if(sL != NULL )
                         {
-                            // statement there
-                            retCode=statement_list(sL);
-                            //if( retCode == RC_BREAK) break; // break anyway
-//                            if( retCode >= RC_RETURN) return retCode; 
-                            if( retCode >= RC_RETURN) break;
-                            
-                            if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
-                                !c->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
-                            {
-                                // a jump (goto) occured out of this loop
-                                return retCode;
-                            }
-
+                            _retTree = sL;
+                            return RC_OK;
                         }
-                        retCode = RC_OK;
-                        break;
+                        else
+                        {
+                            _retTree = c->GetNextSibling();
+                            return RC_OK;
+                        }
+
+//                             // statement there
+//                             retCode=statement_list(sL);
+//                             //if( retCode == RC_BREAK) break; // break anyway
+// //                            if( retCode >= RC_RETURN) return retCode; 
+//                             if( retCode >= RC_RETURN) break;
+                            
+//                             if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+//                                 !c->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
+//                             {
+//                                 // a jump (goto) occured out of this loop
+//                                 return retCode;
+//                             }
+
+//                         }
+//                         retCode = RC_OK;
+//                         break;
                     }
                     else
                     {
@@ -1293,32 +1321,44 @@ case_statement returns[ GDLInterpreter::RetCode retCode]
 
                         if( equalexpr)
                         {
-                            if(bb != NULL)
-                            {
-                                // statement there
-                                retCode=statement_list(bb);
-                                //if( retCode == RC_BREAK) break; // break anyway
-//                                if( retCode >= RC_RETURN) return retCode;
-                                if( retCode >= RC_RETURN) break;
-
-                                if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
-                                    !c->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
+                            if(bb != NULL )
                                 {
-                                    // a jump (goto) occured out of this loop
-                                    return retCode;
+                                    _retTree = bb;
+                                    return RC_OK;
                                 }
+                            else
+                                {
+                                    _retTree = c->GetNextSibling();
+                                    return RC_OK;
+                                }
+//                             if(bb != NULL)
+//                             {
+//                                 // statement there
+//                                 retCode=statement_list(bb);
+//                                 //if( retCode == RC_BREAK) break; // break anyway
+// //                                if( retCode >= RC_RETURN) return retCode;
+//                                 if( retCode >= RC_RETURN) break;
 
-                            }
-                            retCode = RC_OK;
-                            break;
+//                                 if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+//                                     !c->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
+//                                 {
+//                                     // a jump (goto) occured out of this loop
+//                                     return retCode;
+//                                 }
+
+//                             }
+//                             retCode = RC_OK;
+//                             break;
                         }
                         
                     }
                     b=b->GetNextSibling(); // next block
-                }
+                } // for
                 // finish or break
 //                retCode=RC_OK; // clear RC_BREAK retCode
+                throw GDLException( c, "CASE statement found no match.",true,false);
             }
+
         )
 	;
 
@@ -1386,7 +1426,7 @@ while_statement returns[ GDLInterpreter::RetCode retCode]
 
                 auto_ptr< BaseGDL> eVal( expr( e));
                 while( eVal.get()->True()) {
-                    retCode=statement(s);
+                    retCode=statement_list(s);
 
                     if( retCode == RC_CONTINUE) 
                                 {
@@ -1665,26 +1705,32 @@ foreach_statement returns[ GDLInterpreter::RetCode retCode]
 if_statement returns[ GDLInterpreter::RetCode retCode]
 {
     BaseGDL* e;
-    retCode = RC_OK; // not set if not executed
+//    retCode = RC_OK; // not set if not executed
 }
 	: #(i:IF e=expr
             { 
                 auto_ptr<BaseGDL> e_guard(e);
 
-                SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
+//                SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
 
                 if( e->True())
                 {
-                    retCode=statement(_t);
-//                    if( retCode != RC_OK) return retCode;
-
-                        if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
-                            !i->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
-                        {
-                            // a jump (goto) occured out of this loop
-                            return retCode;
-                        }
+                   _retTree = _t;
+                   return RC_OK;
                 }
+
+                _retTree = i->GetNextSibling();
+                return RC_OK;
+
+//                     retCode=statement(_t);
+// //                     if( retCode != RC_OK) return retCode;
+
+//                         if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+//                             !i->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
+//                         {
+//                             // a jump (goto) occured out of this loop
+//                             return retCode;
+//                         }
             }
         )
 	;   
@@ -1698,34 +1744,47 @@ if_else_statement returns[ GDLInterpreter::RetCode retCode]
             { 
                 auto_ptr<BaseGDL> e_guard(e);
 
-                SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
+//                SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
 
                 if( e->True())
                 {
-                    retCode=statement(_t);
-//                    if( retCode != RC_OK) return retCode;
-
-                    if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
-                        !i->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
-                    {
-                        // a jump (goto) occured out of this loop
-                        return retCode;
-                    }
+                   _retTree = _t;
+                   return RC_OK;
                 }
-                else
-                {
-                    _t=_t->GetNextSibling(); // jump over 1st statement
-                    retCode=statement(_t);
-//                    if( retCode != RC_OK) return retCode;
 
-                    if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
-                        !i->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
-                    {
-                        // a jump (goto) occured out of this loop
-                        return retCode;
-                    }
-                }
-            }
+                _retTree = i->GetNextSibling();
+                return RC_OK;
+//             { 
+//                 auto_ptr<BaseGDL> e_guard(e);
+
+//                 SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
+
+//                 if( e->True())
+//                 {
+//                     retCode=statement(_t);
+// // //                    if( retCode != RC_OK) return retCode;
+
+//                     if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+//                         !i->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
+//                     {
+//                         // a jump (goto) occured out of this loop
+//                         return retCode;
+//                     }
+//                 }
+//                 else
+//                 {
+//                     _t=_t->GetNextSibling(); // jump over 1st statement
+//                     retCode=statement(_t);
+// // //                   if( retCode != RC_OK) return retCode;
+
+//                     if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+//                         !i->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
+//                     {
+//                         // a jump (goto) occured out of this loop
+//                         return retCode;
+//                     }
+//                 }
+             }
         )
 	;   
 
@@ -1764,9 +1823,12 @@ BaseGDL** eL;
         {
             retCode=RC_RETURN;
         }
-	| BREAK    // only in loops or switch_statement and case_statement
+	| b:BREAK    // only in loops or switch_statement and case_statement
         {
-            retCode=RC_BREAK;
+            if( b->BreakTarget() == NULL)
+                return RC_BREAK;
+            _retTree = b->BreakTarget();
+            return RC_OK;
         }
 	| CONTINUE // only in loops
         {
@@ -2916,7 +2978,7 @@ l_sys_var returns [BaseGDL** res]
 // expecting to delete any sub-expressions
 r_expr returns [BaseGDL* res]
     : e:EXPR
-        { res = e->Eval();}
+        { res = e->Eval(); }//_t=_retTree;}
     | a:ARRAYDEF
         { res = a->Eval(); _t=_retTree;}
 //     | c:ARRAYDEF_CONST
