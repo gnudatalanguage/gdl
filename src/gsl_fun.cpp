@@ -1149,7 +1149,7 @@ namespace lib {
     if (input != NULL)
       if (input->N_Elements() < nbins)
 	e->Throw( 
-			    "HISTOGRAM: Expression " +e->GetString(inputIx) + 
+			    "Expression " +e->GetString(inputIx) + 
 			    " does not have enough elements.");
       else if (input->N_Elements() > nbins)
 	nbins = input->N_Elements();
@@ -1202,8 +1202,7 @@ namespace lib {
     if( e->KeywordPresent( 7)) {
 
       if (input != NULL)
-	e->Throw( 
-			    "HISTOGRAM: Conflicting keywords.");
+	e->Throw("Conflicting keywords.");
 
       DULong k = 0;
       multimap< size_t, SizeT> bin_j;
@@ -1459,8 +1458,7 @@ namespace lib {
     SizeT nParam=e->NParam();
 
     if( nParam < 2)
-      e->Throw( 
-			  "INTERPOLATE: Incorrect number of arguments.");
+      e->Throw("Incorrect number of arguments.");
 
     BaseGDL* p0 = e->GetParDefined( 0);
     BaseGDL* p1 = e->GetParDefined( 1);
@@ -1479,8 +1477,7 @@ namespace lib {
     auto_ptr<BaseGDL> guard3;
 
     if( p0->Rank() < nParam-1)
-      e->Throw( 
-	    "INTERPOLATE: Number of parameters must agree with dimensions of argument.");
+      e->Throw("Number of parameters must agree with dimensions of argument.");
 
     bool cubic = false;
     if ( e->KeywordSet(0)) cubic = true;
@@ -1495,13 +1492,11 @@ namespace lib {
     // If not GRID then check that rank and dims match
     if ( nParam == 3 && !grid) {
       if (p1->Rank() != p2->Rank())
-	e->Throw( 
-	      "INTERPOLATE: Coordinate arrays must have same length if Grid not set.");
+	e->Throw("Coordinate arrays must have same length if Grid not set.");
       else {
 	for( SizeT i=0; i<p1->Rank(); ++i) {
 	  if (p1->Dim(i) != p2->Dim(i))
-	    e->Throw( 
-		  "INTERPOLATE: Coordinate arrays must have same length if Grid not set.");
+	    e->Throw("Coordinate arrays must have same length if Grid not set.");
 	}
       }
     }
@@ -1644,8 +1639,7 @@ namespace lib {
     if( nParam == 3) {
 
       if( cubic)
-	e->Throw( 
-	      "INTERPOLATE: Bicubic interpolation not yet supported.");
+	e->Throw("Bicubic interpolation not yet supported.");
 
       if ( p1->Type() == DOUBLE) 
 	p1D = static_cast<DDoubleGDL*> ( p1);
@@ -1695,8 +1689,7 @@ namespace lib {
     if( nParam == 4) {
 
       if( cubic)
-	e->Throw( 
-	      "INTERPOLATE: Bicubic interpolation not supported.");
+	e->Throw("Bicubic interpolation not supported.");
 
       if ( p1->Type() == DOUBLE) 
 	p1D = static_cast<DDoubleGDL*> ( p1);
@@ -1861,21 +1854,16 @@ namespace lib {
     double f64;
 
     if( nParam != 3)
-      e->Throw( 
-			  "LA_TRIRED: Incorrect number of arguments.");
+      e->Throw("Incorrect number of arguments.");
 
     BaseGDL* p0 = e->GetNumericArrayParDefined( 0);
 
     SizeT nEl = p0->N_Elements();
     if( nEl == 0)
-      e->Throw( 
-			  "LA_TRIRED: Variable is undefined: "+ 
-			  e->GetParString(0));
+      e->Throw("Variable is undefined: "+ e->GetParString(0));
     
     if (p0->Dim(0) != p0->Dim(1))
-      e->Throw( 
-			  "LA_TRIRED: Input must be a square matrix: "+ 
-			  e->GetParString(0));
+      e->Throw("Input must be a square matrix: "+ e->GetParString(0));
 
     if( p0->Type() == COMPLEX)
       {
