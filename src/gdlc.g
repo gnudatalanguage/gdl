@@ -100,6 +100,7 @@ tokens {
     FOREACH;
 	FCALL;
 	FCALL_LIB; // library function call
+// 	FCALL_LIB_N_ELEMENTS; // N_ELEMENTS
 	FCALL_LIB_RETNEW; // library function call always return newly allocated data
     IF_ELSE;
 	KEYDECL;
@@ -1528,7 +1529,12 @@ primary_expr
 			// already known function 
 			// (could be reordered, but this is conform to original)
 			{ IsFun(LT(1))}? formal_function_call
-			{ #primary_expr = #([FCALL, "fcall"], #primary_expr);}
+			{ 
+//                 if( StrUpCase(#i->getText) == "N_ELEMENTS")
+//                     #primary_expr = #([FCALL_LIB_N_ELEMENTS, "fcall_n_elements"], #primary_expr);
+//                 else
+                   #primary_expr = #([FCALL, "fcall"], #primary_expr);
+            }
 		| 
             // still ambiguity (arrayexpr or fcall)
             var arrayindex_list     // array_expr_fn

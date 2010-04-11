@@ -71,7 +71,8 @@ class CUSTOM_API GDLTreeParser : public antlr::TreeParser, public GDLTreeParserT
             }
         int lT = lN->getType();
         if( lT == FCALL || lT == MFCALL || lT == MFCALL_PARENT ||
-            lT == FCALL_LIB || 
+            lT == FCALL_LIB ||
+//            lT == FCALL_LIB_N_ELEMENTS ||
             lT == FCALL_LIB_RETNEW || 
             lT == MFCALL_LIB || 
             lT == MFCALL_LIB_RETNEW || 

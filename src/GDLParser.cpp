@@ -8223,7 +8223,12 @@ void GDLParser::primary_expr() {
 								}
 								if ( inputState->guessing==0 ) {
 									primary_expr_AST = RefDNode(currentAST.root);
+									
+									//                 if( StrUpCase(#i->getText) == "N_ELEMENTS")
+									//                     #primary_expr = #([FCALL_LIB_N_ELEMENTS, "fcall_n_elements"], #primary_expr);
+									//                 else
 									primary_expr_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(FCALL,"fcall")))->add(antlr::RefAST(primary_expr_AST))));
+									
 									currentAST.root = primary_expr_AST;
 									if ( primary_expr_AST!=RefDNode(antlr::nullAST) &&
 										primary_expr_AST->getFirstChild() != RefDNode(antlr::nullAST) )

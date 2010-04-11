@@ -124,7 +124,8 @@ options {
             }
         int lT = lN->getType();
         if( lT == FCALL || lT == MFCALL || lT == MFCALL_PARENT ||
-            lT == FCALL_LIB || 
+            lT == FCALL_LIB ||
+//            lT == FCALL_LIB_N_ELEMENTS ||
             lT == FCALL_LIB_RETNEW || 
             lT == MFCALL_LIB || 
             lT == MFCALL_LIB_RETNEW || 
@@ -685,7 +686,8 @@ key_parameter!//
                 else 
                 {
                     int t = #k->getType();
-                    if( t == FCALL_LIB || t == MFCALL_LIB || 
+                    if( t == FCALL_LIB || t == MFCALL_LIB || //t == FCALL_LIB_N_ELEMENTS ||
+
                         t == MFCALL_PARENT_LIB //||
 //                          t == FCALL_LIB_RETNEW || t == MFCALL_LIB_RETNEW || 
 //                          t == MFCALL_PARENT_LIB_RETNEW //||
@@ -730,7 +732,7 @@ pos_parameter!//
             else 
             {
                 int t = #e->getType();
-                if( t == FCALL_LIB || t == MFCALL_LIB || 
+                if( t == FCALL_LIB || t == MFCALL_LIB || //t == FCALL_LIB_N_ELEMENTS ||
                     t == MFCALL_PARENT_LIB //||
 //                      t == FCALL_LIB_RETNEW || t == MFCALL_LIB_RETNEW || 
 //                      t == MFCALL_PARENT_LIB_RETNEW
@@ -1371,25 +1373,38 @@ RefDNode mark;
 	| #(MFCALL_PARENT expr IDENTIFIER
             IDENTIFIER parameter_def
         )
+//     | #(nEl:FCALL_LIB_N_ELEMENTS id2:IDENTIFIER! parameter_def
+//         )
 	| #(f:FCALL id:IDENTIFIER! parameter_def
             {
                 // first search library functions
                 int i=LibFunIx(id->getText());
                 if( i != -1)
                 {
+                    // N_ELEMENTS must handle exceptions during parameter evaluation
+//                     if( StrUpCase( #id->getText()) == "N_ELEMENTS")
+//                     {
+//                     #f->setType(FCALL_LIB_N_ELEMENTS);
+//                     #f->setText(#id->getText());
+//                     #f->SetLibFun( libFunList[i]);
+//                         //                    #id->SetFunIx(i);
+//                     }
+//                     else
+                    {
                     if( libFunList[ i]->RetNew())
                     {
-                    #f->setType(FCALL_LIB_RETNEW);
-                    #f->setText(#id->getText());
-                    #f->SetLibFun( libFunList[i]);
+                        #f->setType(FCALL_LIB_RETNEW);
+                        #f->setText(#id->getText());
+                        #f->SetLibFun( libFunList[i]);
                         //                    #id->SetFunIx(i);
                     }
                     else
                     {
-                    #f->setType(FCALL_LIB);
-                    #f->setText(#id->getText());
-                    #f->SetLibFun( libFunList[i]);
+                        #f->setType(FCALL_LIB);
+                        #f->setText(#id->getText());
+                        #f->SetLibFun( libFunList[i]);
                         //                    #id->SetFunIx(i);
+                    }
                     }
                 }
                 else

@@ -3752,7 +3752,8 @@ void GDLTreeParser::key_parameter(RefDNode _t) {
 	else 
 	{
 	int t = k_AST->getType();
-	if( t == FCALL_LIB || t == MFCALL_LIB || 
+	if( t == FCALL_LIB || t == MFCALL_LIB || //t == FCALL_LIB_N_ELEMENTS ||
+	
 	t == MFCALL_PARENT_LIB //||
 	//                          t == FCALL_LIB_RETNEW || t == MFCALL_LIB_RETNEW || 
 	//                          t == MFCALL_PARENT_LIB_RETNEW //||
@@ -3819,7 +3820,7 @@ void GDLTreeParser::pos_parameter(RefDNode _t) {
 	else 
 	{
 	int t = e_AST->getType();
-	if( t == FCALL_LIB || t == MFCALL_LIB || 
+	if( t == FCALL_LIB || t == MFCALL_LIB || //t == FCALL_LIB_N_ELEMENTS ||
 	t == MFCALL_PARENT_LIB //||
 	//                      t == FCALL_LIB_RETNEW || t == MFCALL_LIB_RETNEW || 
 	//                      t == MFCALL_PARENT_LIB_RETNEW
@@ -5563,6 +5564,16 @@ void GDLTreeParser::primary_expr(RefDNode _t) {
 		int i=LibFunIx(id->getText());
 		if( i != -1)
 		{
+		// N_ELEMENTS must handle exceptions during parameter evaluation
+		//                     if( StrUpCase( #id->getText()) == "N_ELEMENTS")
+		//                     {
+		//                     #f->setType(FCALL_LIB_N_ELEMENTS);
+		//                     #f->setText(#id->getText());
+		//                     #f->SetLibFun( libFunList[i]);
+		//                         //                    #id->SetFunIx(i);
+		//                     }
+		//                     else
+		{
 		if( libFunList[ i]->RetNew())
 		{
 		f_AST->setType(FCALL_LIB_RETNEW);
@@ -5576,6 +5587,7 @@ void GDLTreeParser::primary_expr(RefDNode _t) {
 		f_AST->setText(id_AST->getText());
 		f_AST->SetLibFun( libFunList[i]);
 		//                    #id->SetFunIx(i);
+		}
 		}
 		}
 		else

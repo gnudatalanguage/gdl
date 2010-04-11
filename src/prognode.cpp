@@ -67,7 +67,7 @@ BaseGDL* ARRAYDEFNode::Eval()
     if( ty == UNDEF)
       {
 	throw GDLException( _t, "Variable is undefined: "+
-			    ProgNode::interpreter->Name(e));
+			    ProgNode::interpreter->Name(e),true,false);
       }
     if( cType == UNDEF) 
       {
@@ -82,7 +82,7 @@ BaseGDL* ARRAYDEFNode::Eval()
 	      {
 		throw 
 		  GDLException( _t, e->TypeStr()+
-				" is not allowed in this context.");
+				" is not allowed in this context.",true,false);
 	      }
 			
 	    // update order if larger type (or types are equal)
@@ -111,7 +111,7 @@ BaseGDL* ARRAYDEFNode::Eval()
 		if( (*newS) != (*oldS))
 		  throw GDLException( _t, 
 				      "Conflicting data structures: "+
-				      ProgNode::interpreter->Name(cTypeData)+", "+ProgNode::interpreter->Name(e));
+				      ProgNode::interpreter->Name(cTypeData)+", "+ProgNode::interpreter->Name(e),true,false);
 	      }
 	  }
       }
@@ -600,7 +600,7 @@ void ASSIGN_REPLACENode::Run()
 	r=ProgNode::interpreter->check_expr(_t);
 
 	if( r == NULL) // ROUTINE_NAMES
-		ProgNode::interpreter->callStack.back()->Throw( "Undefined return value");
+		throw GDLException( this, "Undefined return value", true, false);
 	
 	_t = ProgNode::interpreter->_retTree;
 			

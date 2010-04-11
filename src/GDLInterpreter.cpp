@@ -3167,7 +3167,7 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t) {
 		return aL;
 	
 	
-	ProgNodeP __t173 = _t;
+	ProgNodeP __t174 = _t;
 	ax = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	match(antlr::RefAST(_t),ARRAYIX);
 	_t = _t->getFirstChild();
@@ -3234,13 +3234,13 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t) {
 			}
 		}
 		else {
-			goto _loop176;
+			goto _loop177;
 		}
 		
 	}
-	_loop176:;
+	_loop177:;
 	} // ( ... )*
-	_t = __t173;
+	_t = __t174;
 	_t = _t->getNextSibling();
 	_retTree = _t;
 	return aL;
@@ -4623,28 +4623,17 @@ void GDLInterpreter::parameter_def(ProgNodeP _t,
 	// //     return;
 	
 	
-	{ // ( ... )*
-	for (;;) {
-		if (_t == ProgNodeP(antlr::nullAST) )
-			_t = ASTNULL;
-		if ((_t->getType() == KEYDEF_REF)) {
-			ProgNodeP __t170 = _t;
-			ProgNodeP tmp34_AST_in = _t;
-			match(antlr::RefAST(_t),KEYDEF_REF);
-			_t = _t->getFirstChild();
-			ProgNodeP tmp35_AST_in = _t;
-			match(antlr::RefAST(_t),IDENTIFIER);
-			_t = _t->getNextSibling();
-			_t = __t170;
-			_t = _t->getNextSibling();
-		}
-		else {
-			goto _loop171;
-		}
-		
+	{
+	ProgNodeP __t172 = _t;
+	ProgNodeP tmp34_AST_in = _t;
+	match(antlr::RefAST(_t),KEYDEF_REF);
+	_t = _t->getFirstChild();
+	ProgNodeP tmp35_AST_in = _t;
+	match(antlr::RefAST(_t),IDENTIFIER);
+	_t = _t->getNextSibling();
+	_t = __t172;
+	_t = _t->getNextSibling();
 	}
-	_loop171:;
-	} // ( ... )*
 	_retTree = _t;
 }
 
@@ -6016,8 +6005,20 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	// 	_t =_t->getFirstChild();
 		
 	// 	EnvT* newEnv=new EnvT( fl, fl->libFun);//libFunList[fl->funIx]);
-		
-		parameter_def(_t->getFirstChild(), newEnv);
+	static int n_elementsIx = LibFunIx("N_ELEMENTS");
+	static DLibFun* n_elementsFun = libFunList[n_elementsIx];
+	
+	if( _t->libFun == n_elementsFun)
+	{
+	parameter_def_n_elements(_t->getFirstChild(), newEnv);
+	}
+	else
+	{
+	parameter_def(_t->getFirstChild(), newEnv);
+	}
+	
+	
+	//	parameter_def(_t->getFirstChild(), newEnv);
 		
 		// push id.pro onto call stack
 		callStack.push_back(newEnv);
@@ -6069,8 +6070,8 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 		ProgNodeP& fl = _t;
 		EnvT* newEnv=new EnvT( fl, fl->libFun);//libFunList[fl->funIx]);
 		
-		parameter_def(_t->getFirstChild(), newEnv);
-		
+	parameter_def(_t->getFirstChild(), newEnv);
+	
 		// push id.pro onto call stack
 		callStack.push_back(newEnv);
 		// make the call
@@ -6332,6 +6333,71 @@ BaseGDL**  GDLInterpreter::l_arrayexpr_mfcall_as_arrayexpr(ProgNodeP _t,
 	}
 	_retTree = _t;
 	return ret;
+}
+
+void GDLInterpreter::parameter_def_n_elements(ProgNodeP _t,
+	EnvBaseT* actEnv
+) {
+	ProgNodeP parameter_def_n_elements_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
+	
+	auto_ptr<EnvBaseT> guard(actEnv); 
+	_retTree = _t;
+	//     bool interruptEnableIn = interruptEnable;
+	if( _retTree != NULL)
+	{
+	if( _retTree->getType() == REF ||
+	_retTree->getType() == REF_EXPR ||
+	_retTree->getType() == REF_CHECK ||
+	_retTree->getType() == PARAEXPR)
+	{
+	try{
+	//                     interruptEnable = false;
+	static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
+	//                     interruptEnable = interruptEnableIn;
+	} 
+	catch( GDLException& e)
+	{
+	//                         interruptEnable = interruptEnableIn;
+	if( actEnv->NParam() == 0) 
+	{
+	BaseGDL* nP = NULL;
+	actEnv->SetNextPar( nP);
+	}
+	}
+	}
+	}
+	try{
+	while(_retTree != NULL) {
+	static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
+	}    
+	}
+	catch( GDLException& e)
+	{
+	// update line number, currently set to caller->CallingNode()
+	// because actEnv is not on the stack yet, 
+	// report caller->Pro()'s name is ok, because we are not inside
+	// the call yet
+	e.SetErrorNodeP( actEnv->CallingNode());
+	throw e;
+	}
+	
+	actEnv->Extra(); // expand _EXTRA
+	
+		guard.release();
+		
+	return;
+	
+	
+	ProgNodeP __t169 = _t;
+	ProgNodeP tmp50_AST_in = _t;
+	match(antlr::RefAST(_t),KEYDEF_REF_EXPR);
+	_t = _t->getFirstChild();
+	ProgNodeP tmp51_AST_in = _t;
+	match(antlr::RefAST(_t),IDENTIFIER);
+	_t = _t->getNextSibling();
+	_t = __t169;
+	_t = _t->getNextSibling();
+	_retTree = _t;
 }
 
 void GDLInterpreter::initializeASTFactory( antlr::ASTFactory& )

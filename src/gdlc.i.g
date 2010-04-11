@@ -4047,8 +4047,8 @@ lib_function_call returns[ BaseGDL* res]
 	ProgNodeP& fl = _t;
 	EnvT* newEnv=new EnvT( fl, fl->libFun);//libFunList[fl->funIx]);
 	
-	parameter_def(_t->getFirstChild(), newEnv);
-	
+    parameter_def(_t->getFirstChild(), newEnv);
+
 	// push id.pro onto call stack
 	callStack.push_back(newEnv);
 	// make the call
@@ -4093,8 +4093,20 @@ lib_function_call_retnew returns[ BaseGDL* res]
 // 	_t =_t->getFirstChild();
 	
 // 	EnvT* newEnv=new EnvT( fl, fl->libFun);//libFunList[fl->funIx]);
-	
-	parameter_def(_t->getFirstChild(), newEnv);
+    static int n_elementsIx = LibFunIx("N_ELEMENTS");
+    static DLibFun* n_elementsFun = libFunList[n_elementsIx];
+
+    if( _t->libFun == n_elementsFun)
+        {
+            parameter_def_n_elements(_t->getFirstChild(), newEnv);
+        }
+    else
+        {
+            parameter_def(_t->getFirstChild(), newEnv);
+        }
+
+
+//	parameter_def(_t->getFirstChild(), newEnv);
 	
 	// push id.pro onto call stack
 	callStack.push_back(newEnv);
@@ -4450,6 +4462,60 @@ ref_parameter returns[ BaseGDL** ret]
     ;
 
 // the environment must be on the callstack
+parameter_def_n_elements [EnvBaseT* actEnv] 
+{
+    auto_ptr<EnvBaseT> guard(actEnv); 
+    _retTree = _t;
+//     bool interruptEnableIn = interruptEnable;
+    if( _retTree != NULL)
+        {
+        if( _retTree->getType() == REF ||
+            _retTree->getType() == REF_EXPR ||
+            _retTree->getType() == REF_CHECK ||
+            _retTree->getType() == PARAEXPR)
+            {
+                try{
+//                     interruptEnable = false;
+                    static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
+//                     interruptEnable = interruptEnableIn;
+                } 
+                catch( GDLException& e)
+                    {
+//                         interruptEnable = interruptEnableIn;
+                        if( actEnv->NParam() == 0) 
+                            {
+                                BaseGDL* nP = NULL;
+                                actEnv->SetNextPar( nP);
+                            }
+                    }
+            }
+        }
+    try{
+        while(_retTree != NULL) {
+            static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
+        }    
+    }
+    catch( GDLException& e)
+        {
+            // update line number, currently set to caller->CallingNode()
+            // because actEnv is not on the stack yet, 
+            // report caller->Pro()'s name is ok, because we are not inside
+            // the call yet
+            e.SetErrorNodeP( actEnv->CallingNode());
+            throw e;
+        }
+
+    actEnv->Extra(); // expand _EXTRA
+
+	guard.release();
+	
+    return;
+}
+    : #(KEYDEF_REF_EXPR IDENTIFIER //ref_parameter
+        )             
+;
+
+// the environment must be on the callstack
 parameter_def [EnvBaseT* actEnv] 
 {
     auto_ptr<EnvBaseT> guard(actEnv); 
@@ -4711,7 +4777,7 @@ parameter_def [EnvBaseT* actEnv]
 // //                     }
 // //                 }       
 //             )
-        )*             
+        )
 //         {
 //             actEnv->Extra(); // expand _EXTRA
 //             guard.release();

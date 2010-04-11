@@ -640,7 +640,6 @@ namespace lib {
       return res;
     }
 
-
     if (e->KeywordSet( "S_PROCEDURES")) {
       deque<DString> subList;
 
@@ -720,19 +719,20 @@ namespace lib {
       } else if (fetch) { // FETCH
 
 	e->AssureScalarPar<DStringGDL>( 0, varName);
-	int xI = pro->FindVar(StrUpCase( varName));
+	varName = StrUpCase( varName);
+	int xI = pro->FindVar( varName);
 	//	cout << xI << endl;
 	if (xI != -1) {
 	  BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI);
 
 	  if( par == NULL)
-// 		e->Throw( "Variable is undefined: " + varName);
- 		return NULL;
+ 		e->Throw( "Variable is undefined: " + varName);
+// 		return NULL;
 	  //	  char* addr = static_cast<char*>(par->DataAddr());
 	  return par->Dup();
 	}
 	
-// 	e->Throw( "Variable not found: " + varName);
+ 	e->Throw( "Variable not found: " + varName);
  	return NULL;
       } else if (arg) { // ARG_NAME
 

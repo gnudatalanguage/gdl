@@ -736,6 +736,9 @@ public:
 		BaseGDL* right
 	);
 	public:  BaseGDL**  ref_parameter(ProgNodeP _t);
+	public: void parameter_def_n_elements(ProgNodeP _t,
+		EnvBaseT* actEnv
+	);
 public:
 	antlr::RefAST getAST()
 	{
