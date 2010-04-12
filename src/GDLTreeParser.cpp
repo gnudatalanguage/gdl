@@ -108,16 +108,16 @@ void GDLTreeParser::translation_unit(RefDNode _t) {
 		case MPCALL:
 		case MPCALL_PARENT:
 		case PCALL:
+		case REPEAT:
 		case RETURN:
+		case WHILE:
 		case IDENTIFIER:
 		case CASE:
 		case FORWARD:
 		case GOTO:
 		case IF:
 		case ON_IOERROR:
-		case REPEAT:
 		case SWITCH:
-		case WHILE:
 		case DEC:
 		case INC:
 		case AND_OP_EQ:
@@ -261,16 +261,16 @@ void GDLTreeParser::procedure_def(RefDNode _t) {
 	case MPCALL_PARENT:
 	case PCALL:
 	case PARADECL:
+	case REPEAT:
 	case RETURN:
+	case WHILE:
 	case IDENTIFIER:
 	case CASE:
 	case FORWARD:
 	case GOTO:
 	case IF:
 	case ON_IOERROR:
-	case REPEAT:
 	case SWITCH:
-	case WHILE:
 	case DEC:
 	case INC:
 	case AND_OP_EQ:
@@ -326,16 +326,16 @@ void GDLTreeParser::procedure_def(RefDNode _t) {
 	case MPCALL:
 	case MPCALL_PARENT:
 	case PCALL:
+	case REPEAT:
 	case RETURN:
+	case WHILE:
 	case IDENTIFIER:
 	case CASE:
 	case FORWARD:
 	case GOTO:
 	case IF:
 	case ON_IOERROR:
-	case REPEAT:
 	case SWITCH:
-	case WHILE:
 	case DEC:
 	case INC:
 	case AND_OP_EQ:
@@ -381,16 +381,16 @@ void GDLTreeParser::procedure_def(RefDNode _t) {
 	case MPCALL:
 	case MPCALL_PARENT:
 	case PCALL:
+	case REPEAT:
 	case RETURN:
+	case WHILE:
 	case IDENTIFIER:
 	case CASE:
 	case FORWARD:
 	case GOTO:
 	case IF:
 	case ON_IOERROR:
-	case REPEAT:
 	case SWITCH:
-	case WHILE:
 	case DEC:
 	case INC:
 	case AND_OP_EQ:
@@ -501,16 +501,16 @@ void GDLTreeParser::function_def(RefDNode _t) {
 	case MPCALL_PARENT:
 	case PCALL:
 	case PARADECL:
+	case REPEAT:
 	case RETURN:
+	case WHILE:
 	case IDENTIFIER:
 	case CASE:
 	case FORWARD:
 	case GOTO:
 	case IF:
 	case ON_IOERROR:
-	case REPEAT:
 	case SWITCH:
-	case WHILE:
 	case DEC:
 	case INC:
 	case AND_OP_EQ:
@@ -566,16 +566,16 @@ void GDLTreeParser::function_def(RefDNode _t) {
 	case MPCALL:
 	case MPCALL_PARENT:
 	case PCALL:
+	case REPEAT:
 	case RETURN:
+	case WHILE:
 	case IDENTIFIER:
 	case CASE:
 	case FORWARD:
 	case GOTO:
 	case IF:
 	case ON_IOERROR:
-	case REPEAT:
 	case SWITCH:
-	case WHILE:
 	case DEC:
 	case INC:
 	case AND_OP_EQ:
@@ -621,16 +621,16 @@ void GDLTreeParser::function_def(RefDNode _t) {
 	case MPCALL:
 	case MPCALL_PARENT:
 	case PCALL:
+	case REPEAT:
 	case RETURN:
+	case WHILE:
 	case IDENTIFIER:
 	case CASE:
 	case FORWARD:
 	case GOTO:
 	case IF:
 	case ON_IOERROR:
-	case REPEAT:
 	case SWITCH:
-	case WHILE:
 	case DEC:
 	case INC:
 	case AND_OP_EQ:
@@ -848,15 +848,15 @@ void GDLTreeParser::statement_list(RefDNode _t) {
 		case MPCALL:
 		case MPCALL_PARENT:
 		case PCALL:
+		case REPEAT:
 		case RETURN:
+		case WHILE:
 		case CASE:
 		case FORWARD:
 		case GOTO:
 		case IF:
 		case ON_IOERROR:
-		case REPEAT:
 		case SWITCH:
-		case WHILE:
 		case DEC:
 		case INC:
 		case AND_OP_EQ:
@@ -1315,16 +1315,16 @@ void GDLTreeParser::caseswitch_body(RefDNode _t) {
 		case MPCALL:
 		case MPCALL_PARENT:
 		case PCALL:
+		case REPEAT:
 		case RETURN:
+		case WHILE:
 		case IDENTIFIER:
 		case CASE:
 		case FORWARD:
 		case GOTO:
 		case IF:
 		case ON_IOERROR:
-		case REPEAT:
 		case SWITCH:
-		case WHILE:
 		case DEC:
 		case INC:
 		case AND_OP_EQ:
@@ -1396,16 +1396,16 @@ void GDLTreeParser::caseswitch_body(RefDNode _t) {
 		case MPCALL:
 		case MPCALL_PARENT:
 		case PCALL:
+		case REPEAT:
 		case RETURN:
+		case WHILE:
 		case IDENTIFIER:
 		case CASE:
 		case FORWARD:
 		case GOTO:
 		case IF:
 		case ON_IOERROR:
-		case REPEAT:
 		case SWITCH:
-		case WHILE:
 		case DEC:
 		case INC:
 		case AND_OP_EQ:
@@ -1753,16 +1753,16 @@ void GDLTreeParser::block(RefDNode _t) {
 	case MPCALL:
 	case MPCALL_PARENT:
 	case PCALL:
+	case REPEAT:
 	case RETURN:
+	case WHILE:
 	case IDENTIFIER:
 	case CASE:
 	case FORWARD:
 	case GOTO:
 	case IF:
 	case ON_IOERROR:
-	case REPEAT:
 	case SWITCH:
-	case WHILE:
 	case DEC:
 	case INC:
 	case AND_OP_EQ:
@@ -1844,16 +1844,16 @@ void GDLTreeParser::unblock(RefDNode _t) {
 	case MPCALL:
 	case MPCALL_PARENT:
 	case PCALL:
+	case REPEAT:
 	case RETURN:
+	case WHILE:
 	case IDENTIFIER:
 	case CASE:
 	case FORWARD:
 	case GOTO:
 	case IF:
 	case ON_IOERROR:
-	case REPEAT:
 	case SWITCH:
-	case WHILE:
 	case DEC:
 	case INC:
 	case AND_OP_EQ:
@@ -3534,15 +3534,15 @@ void GDLTreeParser::if_statement(RefDNode _t) {
 	case MPCALL:
 	case MPCALL_PARENT:
 	case PCALL:
+	case REPEAT:
 	case RETURN:
+	case WHILE:
 	case CASE:
 	case FORWARD:
 	case GOTO:
 	case IF:
 	case ON_IOERROR:
-	case REPEAT:
 	case SWITCH:
-	case WHILE:
 	case DEC:
 	case INC:
 	case AND_OP_EQ:
@@ -6821,7 +6821,7 @@ void GDLTreeParser::tag_array_expr(RefDNode _t) {
 
 void GDLTreeParser::initializeASTFactory( antlr::ASTFactory& factory )
 {
-	factory.setMaxNodeType(220);
+	factory.setMaxNodeType(221);
 }
 const char* GDLTreeParser::tokenNames[] = {
 	"<0>",
@@ -6890,6 +6890,8 @@ const char* GDLTreeParser::tokenNames[] = {
 	"REF",
 	"REF_CHECK",
 	"REF_EXPR",
+	"\"repeat\"",
+	"REPEAT_LOOP",
 	"RETURN",
 	"RETF",
 	"RETP",
@@ -6898,6 +6900,7 @@ const char* GDLTreeParser::tokenNames[] = {
 	"UMINUS",
 	"VAR",
 	"VARPTR",
+	"\"while\"",
 	"IDENTIFIER",
 	"\"and\"",
 	"\"begin\"",
@@ -6932,11 +6935,9 @@ const char* GDLTreeParser::tokenNames[] = {
 	"\"on_ioerror\"",
 	"\"or\"",
 	"\"pro\"",
-	"\"repeat\"",
 	"\"switch\"",
 	"\"then\"",
 	"\"until\"",
-	"\"while\"",
 	"\"xor\"",
 	"METHOD",
 	"COMMA",
@@ -7048,14 +7049,15 @@ const char* GDLTreeParser::tokenNames[] = {
 	0
 };
 
-const unsigned long GDLTreeParser::_tokenSet_0_data_[] = { 1135607840UL, 8394753UL, 2415927300UL, 4286657026UL, 4095UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLTreeParser::_tokenSet_0_data_[] = { 1135607840UL, 8394753UL, 2147553300UL, 4278226964UL, 8191UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN BLOCK BREAK CONTINUE COMMONDECL COMMONDEF "for" "foreach" MPCALL 
-// MPCALL_PARENT PCALL RETURN "case" "forward_function" "goto" "if" "on_ioerror" 
-// "repeat" "switch" "while" DEC INC AND_OP_EQ ASTERIX_EQ EQ_OP_EQ GE_OP_EQ 
-// GTMARK_EQ GT_OP_EQ LE_OP_EQ LTMARK_EQ LT_OP_EQ MATRIX_OP1_EQ MATRIX_OP2_EQ 
-// MINUS_EQ MOD_OP_EQ NE_OP_EQ OR_OP_EQ PLUS_EQ POW_EQ SLASH_EQ XOR_OP_EQ 
+// MPCALL_PARENT PCALL "repeat" RETURN "while" "case" "forward_function" 
+// "goto" "if" "on_ioerror" "switch" DEC INC AND_OP_EQ ASTERIX_EQ EQ_OP_EQ 
+// GE_OP_EQ GTMARK_EQ GT_OP_EQ LE_OP_EQ LTMARK_EQ LT_OP_EQ MATRIX_OP1_EQ 
+// MATRIX_OP2_EQ MINUS_EQ MOD_OP_EQ NE_OP_EQ OR_OP_EQ PLUS_EQ POW_EQ SLASH_EQ 
+// XOR_OP_EQ 
 const antlr::BitSet GDLTreeParser::_tokenSet_0(_tokenSet_0_data_,12);
-const unsigned long GDLTreeParser::_tokenSet_1_data_[] = { 739116576UL, 404824066UL, 1207962080UL, 4286711033UL, 36863UL, 2952790016UL, 1023UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLTreeParser::_tokenSet_1_data_[] = { 739116576UL, 404824066UL, 1073760128UL, 4278462410UL, 73727UL, 1610612736UL, 2047UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN ARRAYDEF ARRAYDEF_CONST ARRAYEXPR ARRAYEXPR_FN ARRAYEXPR_MFCALL 
 // CONSTANT DEREF EXPR FCALL MFCALL MFCALL_PARENT NSTRUC_REF POSTDEC POSTINC 
 // STRUC SYSVAR UMINUS VAR "and" "eq" "ge" "gt" "le" "lt" "mod" "ne" "not" 

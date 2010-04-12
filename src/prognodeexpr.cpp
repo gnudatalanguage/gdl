@@ -131,7 +131,7 @@ void  ProgNode::Run()
 		      "ProgNode::Run() called.",true,false);
 }
 
-void ProgNode::SetNodes( const ProgNodeP r, const ProgNodeP d)
+void ProgNode::SetRightDown( const ProgNodeP r, const ProgNodeP d)
 {
   right = r;
   down  = d;

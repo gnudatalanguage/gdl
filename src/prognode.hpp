@@ -75,6 +75,8 @@ protected:
     int        compileOpt; // for PRO and FUNCTION nodes
   };
 
+	void SetType( int tt, const std::string& txt) { ttype = tt; text = txt;} 
+
 private:
   // from DNode (see there)
   int lineNumber;
@@ -94,7 +96,7 @@ public:
 
   virtual ~ProgNode();
   
-  void SetNodes( const ProgNodeP right, const ProgNodeP down);
+  void SetRightDown( const ProgNodeP right, const ProgNodeP down);
 
   virtual BaseGDL* Eval();
   virtual BaseGDL* EvalNC(); // non-copy
@@ -166,7 +168,7 @@ public:
 	right = r;
   }
   
-	void SetAllBreak( ProgNodeP target)
+	virtual void SetAllBreak( ProgNodeP target)
 	{
 		if( this->getType() == GDLTokenTypes::BREAK)
 			breakTarget = target;
@@ -181,6 +183,23 @@ public:
 		if( right != NULL && !keepRight)
 		{
 			right->SetAllBreak( target);
+		}
+	}
+	virtual void SetAllContinue( ProgNodeP target)
+	{
+		if( this->getType() == GDLTokenTypes::CONTINUE)
+			breakTarget = target;
+		else
+		{
+			if( down != NULL)
+				{
+					down->SetAllContinue( target);
+				}
+		}
+		
+		if( right != NULL && !keepRight)
+		{
+			right->SetAllContinue( target);
 		}
 	}
 
@@ -246,7 +265,7 @@ public:
 
 class BreakableNode: public ProgNode
 {
-protected:
+public:
 	void SetAllBreak( ProgNodeP target)
 	{
 		// down: do NOT descent into own loop tree here
@@ -254,6 +273,15 @@ protected:
 		if( right != NULL && !keepRight)
 		{
 				right->SetAllBreak( target);
+		}
+	}
+	void SetAllContinue( ProgNodeP target)
+	{
+		// down: do NOT descent into own loop tree here
+		
+		if( right != NULL && !keepRight)
+		{
+				right->SetAllContinue( target);
 		}
 	}
 
@@ -278,10 +306,27 @@ public:
 class FORNode: public BreakableNode
 {
   public:
+	ProgNodeP GetStatementList()
+	{
+		return down->GetNextSibling()->GetNextSibling()->GetNextSibling();
+	}
+	
+	void KeepRight( ProgNodeP r)
+	{
+		right = r;
+		keepRight = true;
+// 		if( this->GetStatementList() != NULL)
+// 			this->GetStatementList()->GetLastSibling()->KeepRight( right);
+	}
+	
+  public:
   FORNode(): BreakableNode()  {}
 
   FORNode( const RefDNode& refNode): BreakableNode( refNode)
-  {}
+	{
+//   		if( this->GetStatementList() != NULL && right != NULL)
+// 			this->GetStatementList()->GetLastSibling()->KeepRight( right);
+	}
 };
 
 
@@ -289,10 +334,27 @@ class FORNode: public BreakableNode
 class FOR_STEPNode: public BreakableNode
 {
   public:
+	ProgNodeP GetStatementList()
+	{
+		return down->GetNextSibling()->GetNextSibling()->GetNextSibling()->GetNextSibling();
+	}
+  
+	void KeepRight( ProgNodeP r)
+	{
+		right = r;
+		keepRight = true;
+// 		if( this->GetStatementList() != NULL)
+// 			this->GetStatementList()->GetLastSibling()->KeepRight( right);
+	}
+	
+  public:
   FOR_STEPNode(): BreakableNode()  {}
 
   FOR_STEPNode( const RefDNode& refNode): BreakableNode( refNode)
-  {}
+	{
+//   		if( this->GetStatementList() != NULL && right != NULL)
+// 			this->GetStatementList()->GetLastSibling()->KeepRight( right);
+	}
 };
 
 
@@ -300,10 +362,27 @@ class FOR_STEPNode: public BreakableNode
 class FOREACHNode: public BreakableNode
 {
   public:
+  	ProgNodeP GetStatementList()
+	{
+		return down->GetNextSibling()->GetNextSibling();
+	}
+
+	void KeepRight( ProgNodeP r)
+	{
+		right = r;
+		keepRight = true;
+// 		if( this->GetStatementList() != NULL)
+// 			this->GetStatementList()->GetLastSibling()->KeepRight( right);
+	}
+	
+public:
   FOREACHNode(): BreakableNode()  {}
 
   FOREACHNode( const RefDNode& refNode): BreakableNode( refNode)
-  {}
+	{
+//   		if( this->GetStatementList() != NULL && right != NULL)
+// 			this->GetStatementList()->GetLastSibling()->KeepRight( right);
+	}
 };
 
 
@@ -311,10 +390,70 @@ class FOREACHNode: public BreakableNode
 class WHILENode: public BreakableNode
 {
   public:
+	ProgNodeP GetStatementList()
+	{
+		return down->GetNextSibling();
+	}
+	
+	void KeepRight( ProgNodeP r)
+	{
+		right = r;
+		keepRight = true;
+		if( this->GetStatementList() != NULL)
+			this->GetStatementList()->SetAllBreak( right);
+	}
+  
+  public:
   WHILENode(): BreakableNode()  {}
 
   WHILENode( const RefDNode& refNode): BreakableNode( refNode)
-  {}
+  {
+	ProgNodeP statementList = this->GetStatementList();
+	if( statementList != NULL)
+		{
+			statementList->SetAllContinue( this);
+			statementList->GetLastSibling()->KeepRight( this);
+			if( right != NULL) statementList->SetAllBreak( right);
+		}
+  }
+};
+
+
+
+class REPEAT_LOOPNode: public BreakableNode
+{
+  public:
+	ProgNodeP GetStatementList()
+	{
+		return down->GetNextSibling();
+	}
+	
+  public:
+	void KeepRight( ProgNodeP r)
+	{
+		right = r;
+		keepRight = true;
+		if( this->GetStatementList() != NULL)
+		{
+			this->GetStatementList()->SetAllBreak( right);
+		}
+	}
+  
+  public:
+  REPEAT_LOOPNode( ProgNodeP r, ProgNodeP d): BreakableNode()
+  {
+    SetType( GDLTokenTypes::REPEAT_LOOP, "repeat_loop");
+	SetRightDown( r, d);
+
+	ProgNodeP statementList = this->GetStatementList();
+	if( statementList != NULL)
+		{
+			statementList->SetAllContinue( this);
+			statementList->GetLastSibling()->KeepRight( this);
+			if( right != NULL) statementList->SetAllBreak( right);
+		}
+  }
+
 };
 
 
@@ -322,16 +461,31 @@ class WHILENode: public BreakableNode
 class REPEATNode: public BreakableNode
 {
   public:
+	void KeepRight( ProgNodeP r)
+	{
+		right = r;
+		keepRight = true;
+		down->KeepRight( right); // REPEAT_LOOP
+	}
+
+public:
   REPEATNode(): BreakableNode()  {}
 
   REPEATNode( const RefDNode& refNode): BreakableNode( refNode)
-  {}
+  {
+    REPEAT_LOOPNode* repeatLoop = new REPEAT_LOOPNode( NULL, down);
+	repeatLoop->KeepRight( right);
+	repeatLoop->setLine( getLine());
+	
+	down = repeatLoop;
+  }
 };
 
 
 
 class CASENode: public BreakableNode
 {
+  public:
 	ProgNodeP GetStatementList()
 	{
 		return down->GetNextSibling();
@@ -416,6 +570,7 @@ public:
 
 class SWITCHNode: public BreakableNode
 {
+  public:
 	ProgNodeP GetStatementList()
 	{
 		return down->GetNextSibling();
@@ -509,6 +664,7 @@ public:
 
 class BLOCKNode: public ProgNode
 {
+  public:
   void KeepRight( ProgNodeP r)
   {
 //  	if( r == NULL)
@@ -558,6 +714,7 @@ public:
 
 class IFNode: public ProgNode
 {
+  public:
   void KeepRight( ProgNodeP r)
   {
 // 	assert( r != NULL);
@@ -599,6 +756,7 @@ public:
 
 class IF_ELSENode: public ProgNode
 {
+  public:
   void KeepRight( ProgNodeP r)
   {
 //   	assert( r != NULL);

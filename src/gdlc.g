@@ -132,6 +132,8 @@ tokens {
     REF;        // expr pass by reference
     REF_CHECK;  // expr maybe be passed by reference
     REF_EXPR;   // assign/dec/inc expr passed by reference
+    REPEAT;
+    REPEAT_LOOP;
     RETURN;  // unspecified return (replaced by tree parser with RETF/RETP)
   	RETF;    // return from function (return argument)
   	RETP;    // return from procedure (no return argument)
@@ -141,6 +143,7 @@ tokens {
 	UMINUS;
 	VAR;     // varaible, referenced through index
 	VARPTR;  // variable, referenced through pointer
+    WHILE;
 }
 
 {
