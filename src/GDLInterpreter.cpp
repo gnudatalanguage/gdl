@@ -408,6 +408,7 @@ GDLInterpreter::GDLInterpreter()
 		if( e.getLine() == 0 && actPos != NULL)
 		e.SetLine( actPos->getLine());
 		
+		if( interruptEnable)
 		ReportError(e, "Error occurred at:");
 		
 		// remeber where to stop

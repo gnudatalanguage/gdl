@@ -1321,28 +1321,32 @@ namespace lib {
 
     try
       {
-	ProgNodeP progAST = ProgNode::NewProgNode( trAST);
-	auto_ptr< ProgNode> progAST_guard( progAST);
+		ProgNodeP progAST = ProgNode::NewProgNode( trAST);
+		auto_ptr< ProgNode> progAST_guard( progAST);
 
-	GDLInterpreter::RetCode retCode =
-	  caller->Interpreter()->execute( progAST);
+		progAST->setLine( e->GetLineNumber());
 
-	if( retCode == GDLInterpreter::RC_OK)
-	  return new DIntGDL( 1);
-	else
-	  return new DIntGDL( 0);
+		GDLInterpreter::RetCode retCode =
+		caller->Interpreter()->execute( progAST);
+
+		if( retCode == GDLInterpreter::RC_OK)
+		return new DIntGDL( 1);
+		else
+		return new DIntGDL( 0);
       }
     catch( GDLException& ex)
       {
-	if( !quietCompile) cerr << "EXECUTE: Unhandled GDL exception: " <<  
-			     ex.getMessage() << endl;
-	return new DIntGDL( 0);
+		// are we throwing to target environment?
+// 		if( ex.GetTargetEnv() == NULL)
+			if( !quietCompile) cerr << "EXECUTE: " <<
+					ex.getMessage() << endl;
+		return new DIntGDL( 0);
       }
     catch( ANTLRException ex)
       {
-	if( !quietCompile) cerr << "EXECUTE: Interpreter exception: " <<  
-			     ex.getMessage() << endl;
-	return new DIntGDL( 0);
+		if( !quietCompile) cerr << "EXECUTE: Interpreter exception: " <<
+					ex.getMessage() << endl;
+		return new DIntGDL( 0);
       }
 
     return new DIntGDL( 0); // control flow cannot reach here - compiler shut up
