@@ -87,12 +87,12 @@ namespace lib
       //message  
       DStructGDL* version = SysVar::Version();
       
-      static unsigned releaseTag = version->Desc()->TagIndex( "RELEASE");
+/*      static unsigned releaseTag = version->Desc()->TagIndex( "RELEASE");*/
       static unsigned osTag = version->Desc()->TagIndex( "OS");
       static unsigned archTag = version->Desc()->TagIndex( "ARCH");
       static unsigned mTag = version->Desc()->TagIndex( "MEMORY_BITS");
-      DString release = 
-	(*static_cast<DStringGDL*>( version->GetTag( releaseTag, 0)))[0];
+/*      DString release = 
+	(*static_cast<DStringGDL*>( version->GetTag( releaseTag, 0)))[0];*/
       DString os = 
 	(*static_cast<DStringGDL*>( version->GetTag( osTag, 0)))[0];
       DString arch = 
@@ -100,7 +100,7 @@ namespace lib
       DInt m = 
 	(*static_cast<DIntGDL*>( version->GetTag( mTag, 0)))[0];
       
-      write_journal_comment( "GDL Version "+release+" ("+os+" "+arch+" m"+
+      write_journal_comment( string("GDL Version ")+VERSION/*release*/+" ("+os+" "+arch+" m"+
 			     i2s(m)+")");
       
       string user = GetEnvString( "USER");

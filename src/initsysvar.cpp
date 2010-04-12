@@ -40,7 +40,7 @@ namespace SysVar
 
   // the index of some system variables
   UInt pathIx, promptIx, edit_inputIx, quietIx, 
-    dIx, pIx, xIx, yIx, zIx, vIx, cIx, MouseIx,
+    dIx, pIx, xIx, yIx, zIx, vIx, gdlIx, cIx, MouseIx,
     errorStateIx, errorIx, errIx, err_stringIx, valuesIx,
     journalIx, exceptIx, mapIx, cpuIx, dirIx, stimeIx, warnIx;
 
@@ -353,9 +353,10 @@ namespace SysVar
     sysVarList.push_back( order);
 
     // !GDL (to allow distinguish IDL/GDL with DEFSYSV, '!gdl', exists=exists )
-    DStringGDL *gdlData = new DStringGDL( "GDL");
-    DVar *gdl = new DVar( "GDL", gdlData);
-    sysVarList.push_back( gdl);
+    DStructGDL*  gdlStruct = new DStructGDL( "!GNUDATALANGUAGE");
+    gdlStruct->NewTag("RELEASE", new DStringGDL( VERSION));
+    DVar *gdl        = new DVar( "GDL", gdlStruct);
+    sysVarList.push_back(gdl);
     sysVarRdOnlyList.push_back( gdl); // make it read only
 
     // !DPI
@@ -444,7 +445,7 @@ namespace SysVar
     vIx                = sysVarList.size();
     sysVarList.push_back(v);
     sysVarRdOnlyList.push_back(v);
-
+    
     // !Mouse
     DStructGDL*  MouseData = new DStructGDL( "!MOUSE");
     MouseData->NewTag("X", new DLongGDL( 0));
