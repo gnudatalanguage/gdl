@@ -1884,6 +1884,8 @@ BaseGDL** eL;
             if( b->BreakTarget() == NULL)
                 return RC_BREAK;
             _retTree = b->BreakTarget();
+            // happens with IF_ELSE as last statement 
+            // (1st alt must be disconnected from 2nd)
             if( _retTree == GetNULLProgNodeP())
                 _retTree = NULL;
             return RC_OK;
