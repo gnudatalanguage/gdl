@@ -58,6 +58,7 @@ BinaryExprNC::BinaryExprNC( const RefDNode& refNode): BinaryExpr( refNode)
 
 ProgNode::ProgNode(): // for NULLProgNode
 	keepRight( false),
+	keepDown( false),
 	breakTarget( NULL),
   ttype( antlr::Token::NULL_TREE_LOOKAHEAD),
   text( "NULLProgNode"),
@@ -75,6 +76,7 @@ ProgNode::ProgNode(): // for NULLProgNode
 // tanslation RefDNode -> ProgNode
 ProgNode::ProgNode( const RefDNode& refNode):
 	keepRight( false),
+	keepDown( false),
 	breakTarget( NULL),
   ttype( refNode->getType()),
   text( refNode->getText()),
@@ -113,7 +115,7 @@ ProgNode::~ProgNode()
     {
       delete arrIxList;
     }
-  delete down;
+  if( !keepDown) delete down;
   if( !keepRight) delete right;
 }
 

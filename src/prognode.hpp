@@ -47,6 +47,7 @@ private:
 
 protected:
   bool keepRight;
+  bool keepDown;
 
   ProgNodeP breakTarget;
   
@@ -149,7 +150,13 @@ public:
   }
 
   bool KeepRight() const { return keepRight;}
+  bool KeepDown() const { return keepDown;}
   
+  void KeepDown( ProgNodeP d)
+  {
+	down = d;
+	keepDown = true;
+  }
   virtual void KeepRight( ProgNodeP r)
   {
 //   if( right != NULL)
@@ -174,7 +181,7 @@ public:
 			breakTarget = target;
 		else
 		{
-			if( down != NULL)
+			if( down != NULL && !keepDown)
 				{
 					down->SetAllBreak( target);
 				}
@@ -191,7 +198,7 @@ public:
 			breakTarget = target;
 		else
 		{
-			if( down != NULL)
+			if( down != NULL && !keepDown)
 				{
 					down->SetAllContinue( target);
 				}
@@ -408,12 +415,16 @@ class WHILENode: public BreakableNode
 
   WHILENode( const RefDNode& refNode): BreakableNode( refNode)
   {
+	assert( down != NULL);
+  
+// 	down->GetLastSibling()->KeepRight( this); // for empty body
+	
 	ProgNodeP statementList = this->GetStatementList();
 	if( statementList != NULL)
 		{
 			statementList->SetAllContinue( this);
-			statementList->GetLastSibling()->KeepRight( this);
 			if( right != NULL) statementList->SetAllBreak( right);
+			statementList->GetLastSibling()->KeepRight( this); // for empty body
 		}
   }
 };
@@ -434,9 +445,7 @@ class REPEAT_LOOPNode: public BreakableNode
 		right = r;
 		keepRight = true;
 		if( this->GetStatementList() != NULL)
-		{
 			this->GetStatementList()->SetAllBreak( right);
-		}
 	}
   
   public:
@@ -445,6 +454,8 @@ class REPEAT_LOOPNode: public BreakableNode
     SetType( GDLTokenTypes::REPEAT_LOOP, "repeat_loop");
 	SetRightDown( r, d);
 
+	assert( down != NULL);
+	
 	ProgNodeP statementList = this->GetStatementList();
 	if( statementList != NULL)
 		{
@@ -669,24 +680,13 @@ class BLOCKNode: public ProgNode
   {
 	right = r;
 	keepRight = true;
-//  	if( r == NULL)
-//   	assert( r != NULL);
-
-//  	if( r == NULL)
-// 		return;
-		
-// diconnection of s1 leads to right != NULL		
-// 	if( right != NULL)
-// 		assert( right != NULL);
 	// 	must recursively set dependents here
-     if( down != NULL)
-		down->GetLastSibling()->KeepRight( r);
-
-// if( r != NULL)
-// std::cout << "BLOCK KeepRight("<<getLine()<<"): " << getText() <<"   r: " << r->getText() <<  std::endl;
-// 	else
-// std::cout << "BLOCK KeepRight("<<getLine()<<"): " << getText() <<"   r: NULL" <<  std::endl;
-	
+     if( down != NULL && !KeepDown())
+		down->GetLastSibling()->KeepRight( right);
+	else
+	{
+		this->KeepDown( right);
+	}
  }
 
 public:
@@ -705,6 +705,10 @@ public:
 		// first statement
 		if( down != NULL)
 			down->GetLastSibling()->KeepRight( right);
+		else
+			{
+			this->KeepDown( right);
+			}
       }
   }
 
@@ -721,13 +725,18 @@ class IFNode: public ProgNode
 // 	assert( right == NULL);
 	
 	// 	must recursively set dependents here
-    if( down != NULL && r != NULL)
+    if( down != NULL)
         {
 // 			ProgNodeP s1 = down->GetNextSibling(); // skip expr
 			right = r;
 			down->GetLastSibling()->KeepRight( right);
 			keepRight = true;
         }
+    else
+		{
+			down = right;
+			keepDown = true;
+		}
   }
 public:
   IFNode(): ProgNode()  {}
@@ -743,8 +752,10 @@ public:
 			right = NewProgNode( refNode->GetNextSibling());
 		}
 
+		assert( down != NULL);
+
         // first alternative
-        if( down != NULL && right != NULL)
+        if( right != NULL)
         {
 			ProgNodeP s1 = down->GetNextSibling(); // skip expr
 			s1->GetLastSibling()->KeepRight( right);
