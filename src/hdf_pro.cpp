@@ -49,7 +49,7 @@ namespace lib {
 
   void hdf_sd_getdata_pro( EnvT* e)
   {
-    SizeT nParam=e->NParam();
+    SizeT nParam=e->NParam(2);
     char fieldname[256];
     int32 rank;
     int32 dims[MAXRANK];
@@ -123,7 +123,6 @@ namespace lib {
 	stride[rank-1] = temp;
       }
     }
-
 
     // Reverse order of edges for setting up GDL array(
     for( SizeT i = 0; i < rank/2; i++) {
@@ -539,7 +538,7 @@ namespace lib {
 
   void hdf_vg_gettrs_pro( EnvT* e)
   {
-    SizeT nParam=e->NParam();
+    SizeT nParam=e->NParam(3);
     char groupname[256];
     int32 nentries;
 

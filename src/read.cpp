@@ -150,33 +150,33 @@ namespace lib {
             if( (*par) != NULL)
 	      {
                 if( e->GlobalPar( i))
-		  { // defined global
+				{ // defined global
                     parIn = *par;
-		  }
+				}
                 else
-		  { // defined local
-                    if( prompt != NULL)
-		      { // prompt keyword there -> error
-                        throw GDLException( e->CallingNode(),
-					    "Expression must be named variable "
-					    "in this context: "+e->GetParString( i));
-		      }
-                    else
-		      { // prompt not there -> put out or ignore
-                        if( is == &cin) 
-			  {
-			    (*par)->ToStream( oss);
-			    actualPrompt = oss.str();
+				{ // defined local
+					if( prompt != NULL)
+					{ // prompt keyword there -> error
+								throw GDLException( e->CallingNode(),
+								"Expression must be named variable "
+								"in this context: "+e->GetParString( i));
+					}
+					else
+					{ // prompt not there -> put out or ignore
+					if( is == &cin)
+						{
+							(*par)->ToStream( oss);
+							actualPrompt = oss.str();
 #ifdef HAVE_LIBREADLINE
-				cout << flush;
+							cout << flush;
 #else
- 			    cout << oss.str() << flush;
+							cout << oss.str() << flush;
 #endif
-			    noPrompt = false;
-			  }
-			continue;
-		      }
-		  }
+							noPrompt = false;
+						}
+					continue;
+					}
+				}
 	      }
             else
 	      { // undefined

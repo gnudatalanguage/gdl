@@ -1849,12 +1849,13 @@ namespace lib {
 
   void la_trired_pro( EnvT* e)
   {
-    SizeT nParam=e->NParam();
+    SizeT nParam=e->NParam(3);
     float f32;
     double f64;
 
-    if( nParam != 3)
-      e->Throw("Incorrect number of arguments.");
+//     if( nParam != 3)
+//       e->Throw( 
+// 			  "LA_TRIRED: Incorrect number of arguments.");
 
     BaseGDL* p0 = e->GetNumericArrayParDefined( 0);
 

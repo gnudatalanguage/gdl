@@ -787,7 +787,7 @@ public:
 
     assert( down != NULL);
 
-		//IF expr s1 s2
+		// IF expr s1 s2
 		// first alternative
 		// s1 is always a BLOCK (gdlc.tree.g, if_statement)
 	// right MUST be set here even if NULL as it IS set to 2nd alternative
