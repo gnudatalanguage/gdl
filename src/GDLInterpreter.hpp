@@ -243,7 +243,11 @@ public:
                     { 
                         if( (*it).second.Dec())
                             {
-                                std::cout << "Out of scope (garbage collected): <PtrHeapVar" << id << ">" << std::endl; 
+                                std::cout << "Out of scope (garbage collected): <PtrHeapVar" << id 
+                                          << ">"
+                                          << " at: " << callStack.back()->GetProName()
+                                          << "  line: " << callStack.back()->GetLineNumber()
+                                          << std::endl; 
                                 FreeHeapDirect( id, it);
                             }
 #ifdef GDL_DEBUG_HEAP
@@ -274,7 +278,11 @@ std::cout << "-- <ObjHeapVar" << id << ">" << std::endl;
                     { 
                        if( (*it).second.Dec())
                            {
-                               std::cout << "Out of scope (garbage collected): <ObjHeapVar" << id << ">" << std::endl; 
+                               std::cout << "Out of scope (garbage collected): <ObjHeapVar" << id 
+                                          << ">"
+                                          << " at: " << callStack.back()->GetProName()
+                                          << "  line: " << callStack.back()->GetLineNumber()
+                                          << std::endl; 
                                FreeObjHeapDirect( id, it);
                            }
 #ifdef GDL_DEBUG_HEAP
