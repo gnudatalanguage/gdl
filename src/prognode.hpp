@@ -78,6 +78,8 @@ protected:
 
 	void SetType( int tt, const std::string& txt) { ttype = tt; text = txt;} 
 
+	static ProgNodeP GetNULLProgNodeP(); 
+
 private:
   // from DNode (see there)
   int lineNumber;
@@ -159,26 +161,24 @@ public:
   }
   virtual void KeepRight( ProgNodeP r)
   {
-//   if( right != NULL)
-	//assert( right == NULL);
-	//assert( r != NULL);
 	right = r;
 	keepRight = true;
-// if( r != NULL)
-// std::cout << "KeepRight: " << getText() <<"   r: " << r->getText() <<  std::endl;
-// else
-// std::cout << "KeepRight: " << getText() <<"   r: NULL" <<  std::endl;
   }
-  void SetRight( ProgNodeP r)
-  {
-	right = r;
-	keepRight = false;
-  }
+//   void SetRight( ProgNodeP r)
+//   {
+// 	right = r;
+// 	keepRight = false;
+//   }
   
 	virtual void SetAllBreak( ProgNodeP target)
 	{
 		if( this->getType() == GDLTokenTypes::BREAK)
-			breakTarget = target;
+			{
+				if( target == NULL)
+					breakTarget = GetNULLProgNodeP();
+				else
+					breakTarget = target;
+			}
 		else
 		{
 			if( down != NULL && !keepDown)
@@ -194,6 +194,7 @@ public:
 	}
 	virtual void SetAllContinue( ProgNodeP target)
 	{
+		assert( target != NULL);
 		if( this->getType() == GDLTokenTypes::CONTINUE)
 			breakTarget = target;
 		else
@@ -259,11 +260,11 @@ public:
   {
     if( refNode->GetFirstChild() != RefDNode(antlr::nullAST))
       {
-	down = NewProgNode( refNode->GetFirstChild());
+		down = NewProgNode( refNode->GetFirstChild());
       }
     if( refNode->GetNextSibling() != RefDNode(antlr::nullAST))
       {
-	right = NewProgNode( refNode->GetNextSibling());
+		right = NewProgNode( refNode->GetNextSibling());
       }
   }
 };
@@ -279,7 +280,7 @@ public:
 		
 		if( right != NULL && !keepRight)
 		{
-				right->SetAllBreak( target);
+			right->SetAllBreak( target);
 		}
 	}
 	void SetAllContinue( ProgNodeP target)
@@ -288,7 +289,7 @@ public:
 		
 		if( right != NULL && !keepRight)
 		{
-				right->SetAllContinue( target);
+			right->SetAllContinue( target);
 		}
 	}
 
@@ -322,8 +323,6 @@ class FORNode: public BreakableNode
 	{
 		right = r;
 		keepRight = true;
-// 		if( this->GetStatementList() != NULL)
-// 			this->GetStatementList()->GetLastSibling()->KeepRight( right);
 	}
 	
   public:
@@ -350,8 +349,6 @@ class FOR_STEPNode: public BreakableNode
 	{
 		right = r;
 		keepRight = true;
-// 		if( this->GetStatementList() != NULL)
-// 			this->GetStatementList()->GetLastSibling()->KeepRight( right);
 	}
 	
   public:
@@ -378,8 +375,6 @@ class FOREACHNode: public BreakableNode
 	{
 		right = r;
 		keepRight = true;
-// 		if( this->GetStatementList() != NULL)
-// 			this->GetStatementList()->GetLastSibling()->KeepRight( right);
 	}
 	
 public:
@@ -684,9 +679,7 @@ class BLOCKNode: public ProgNode
      if( down != NULL && !KeepDown())
 		down->GetLastSibling()->KeepRight( right);
 	else
-	{
 		this->KeepDown( right);
-	}
  }
 
 public:
@@ -706,9 +699,7 @@ public:
 		if( down != NULL)
 			down->GetLastSibling()->KeepRight( right);
 		else
-			{
 			this->KeepDown( right);
-			}
       }
   }
 
@@ -721,22 +712,10 @@ class IFNode: public ProgNode
   public:
   void KeepRight( ProgNodeP r)
   {
-// 	assert( r != NULL);
-// 	assert( right == NULL);
-	
-	// 	must recursively set dependents here
-    if( down != NULL)
-        {
-// 			ProgNodeP s1 = down->GetNextSibling(); // skip expr
-			right = r;
-			down->GetLastSibling()->KeepRight( right);
-			keepRight = true;
-        }
-    else
-		{
-			down = right;
-			keepDown = true;
-		}
+    assert( down != NULL);
+	right = r;
+	keepRight = true;
+	down->GetLastSibling()->KeepRight( right);
   }
 public:
   IFNode(): ProgNode()  {}
@@ -771,15 +750,24 @@ class IF_ELSENode: public ProgNode
   void KeepRight( ProgNodeP r)
   {
     // 	must recursively set dependents here
-    if( down != NULL && r != NULL)
-        {
-		assert( down->GetNextSibling()->GetNextSibling() == NULL);
+    assert( down != NULL);
+     
+	right = r;
+	keepRight = true;
         
-        down->GetNextSibling()->KeepRight( r); // should be already disconnected
-			
-		right->GetLastSibling()->KeepRight( r);
-		right->GetLastSibling()->SetRight( r);
-        }
+	ProgNodeP s1 = down->GetNextSibling(); // skip expr
+	if( s1->GetFirstChild() == NULL || s1->KeepDown())
+			{
+				s1->KeepDown( right);
+			}
+	else
+			{
+				s1->GetFirstChild()->GetLastSibling()->KeepRight( right);
+			}
+		
+	// 2nd alternative
+	ProgNodeP s2 = s1->GetNextSibling();
+	s2->GetLastSibling()->KeepRight( right); 
   }
 
 public:
@@ -790,29 +778,36 @@ public:
 // 	std::cout << "IF_ELSENode" << std::endl;
     if( refNode->GetFirstChild() != RefDNode(antlr::nullAST))
       {
-	down = NewProgNode( refNode->GetFirstChild());
+		down = NewProgNode( refNode->GetFirstChild());
       }
     if( refNode->GetNextSibling() != RefDNode(antlr::nullAST))
       {
-	right = NewProgNode( refNode->GetNextSibling());
+		right = NewProgNode( refNode->GetNextSibling());
       }
 
     assert( down != NULL);
-        
-	//IF expr s1 s2
-	// first alternative
+
+		//IF expr s1 s2
+		// first alternative
+		// s1 is always a BLOCK (gdlc.tree.g, if_statement)
+	// right MUST be set here even if NULL as it IS set to 2nd alternative
 	ProgNodeP s1 = down->GetNextSibling(); // skip expr
-	// 2nd alternative
-	ProgNodeP s2 = s1->GetNextSibling();
-
-	s1->KeepRight( right); // disconnect s2
-
-	if( right != NULL)
+	if( s1->GetFirstChild() == NULL || s1->KeepDown())
 		{
-		s2->GetLastSibling()->KeepRight( right);
-		s2->GetLastSibling()->SetRight( right);
+			s1->KeepDown( right);
+		}
+	else
+		{
+			s1->GetFirstChild()->GetLastSibling()->KeepRight( right);
+		}
+		
+    if( right != NULL)
+    {
+		// 2nd alternative
+		ProgNodeP s2 = s1->GetNextSibling();
+
+		s2->GetLastSibling()->KeepRight( right); // disconnect s2
 	}
-	right = s2;
   }
 };
 

@@ -611,6 +611,7 @@ jump_statement!//
 if_statement!//
 {
 //     int labelStart = comp.NDefLabel();
+    RefDNode block;
 }
 	: #(i:IF e:expr s1:statement 
             (
@@ -623,7 +624,14 @@ if_statement!//
                 #i->setText( "if_else");
                 #i->setType( IF_ELSE);
 //         #i->SetLabelRange( labelStart, comp.NDefLabel());
-                #if_statement=#(i,e,s1,s2);
+                if( #s1->getType() != BLOCK)
+                    {
+                        #block = astFactory->create(BLOCK,"block");
+                        #block->SetLine( #s1->getLine());
+                        #if_statement=#(i,e, #(block, s1), s2);
+                    }
+                else
+                    #if_statement=#(i,e,s1,s2);
                 }
             )
         )

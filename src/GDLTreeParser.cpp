@@ -3484,6 +3484,7 @@ void GDLTreeParser::if_statement(RefDNode _t) {
 	RefDNode s2 = RefDNode(antlr::nullAST);
 	
 	//     int labelStart = comp.NDefLabel();
+	RefDNode block;
 	
 	
 	RefDNode __t75 = _t;
@@ -3574,6 +3575,13 @@ void GDLTreeParser::if_statement(RefDNode _t) {
 		i_AST->setText( "if_else");
 		i_AST->setType( IF_ELSE);
 		//         #i->SetLabelRange( labelStart, comp.NDefLabel());
+		if( s1_AST->getType() != BLOCK)
+		{
+		block = astFactory->create(BLOCK,"block");
+		block->SetLine( s1_AST->getLine());
+		if_statement_AST=RefDNode(astFactory->make((new antlr::ASTArray(4))->add(antlr::RefAST(i_AST))->add(antlr::RefAST(e_AST))->add(antlr::RefAST(RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(block))->add(antlr::RefAST(s1_AST))))))->add(antlr::RefAST(s2_AST))));
+		}
+		else
 		if_statement_AST=RefDNode(astFactory->make((new antlr::ASTArray(4))->add(antlr::RefAST(i_AST))->add(antlr::RefAST(e_AST))->add(antlr::RefAST(s1_AST))->add(antlr::RefAST(s2_AST))));
 		
 		currentAST.root = if_statement_AST;

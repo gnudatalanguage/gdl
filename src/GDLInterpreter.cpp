@@ -1264,11 +1264,11 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 	
 	if( e->True())
 	{
-	_retTree = _t;
+	_retTree = _t->GetFirstChild();
 	return RC_OK;
 	}
 	
-	_retTree = i->GetNextSibling();
+	_retTree = _t->GetNextSibling();
 	return RC_OK;
 	//             { 
 	//                 auto_ptr<BaseGDL> e_guard(e);
@@ -1708,6 +1708,8 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 		if( b->BreakTarget() == NULL)
 		return RC_BREAK;
 		_retTree = b->BreakTarget();
+		if( _retTree == GetNULLProgNodeP())
+		_retTree = NULL;
 		return RC_OK;
 		
 		break;

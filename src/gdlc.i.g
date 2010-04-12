@@ -145,6 +145,8 @@ friend class PCALLNode;//: public CommandNode
 
 public: 
 //     RetCode returnCode;    
+    ProgNodeP GetNULLProgNodeP() const { return NULLProgNodeP;}
+
 
     void SetRetTree( ProgNodeP rT)
     {
@@ -1801,11 +1803,11 @@ if_else_statement returns[ GDLInterpreter::RetCode retCode]
 
                 if( e->True())
                 {
-                   _retTree = _t;
+                   _retTree = _t->GetFirstChild();
                    return RC_OK;
                 }
 
-                _retTree = i->GetNextSibling();
+                _retTree = _t->GetNextSibling();
                 return RC_OK;
 //             { 
 //                 auto_ptr<BaseGDL> e_guard(e);
@@ -1881,6 +1883,8 @@ BaseGDL** eL;
             if( b->BreakTarget() == NULL)
                 return RC_BREAK;
             _retTree = b->BreakTarget();
+            if( _retTree == GetNULLProgNodeP())
+                _retTree = NULL;
             return RC_OK;
         }
 	| c:CONTINUE // only in loops

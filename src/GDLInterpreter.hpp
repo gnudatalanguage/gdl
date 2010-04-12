@@ -69,6 +69,8 @@ friend class PCALLNode;//: public CommandNode
 
 public: 
 //     RetCode returnCode;    
+    ProgNodeP GetNULLProgNodeP() const { return NULLProgNodeP;}
+
 
     void SetRetTree( ProgNodeP rT)
     {

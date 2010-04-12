@@ -27,6 +27,11 @@ email                : m_schellens@users.sf.net
 
 using namespace std;
 
+ProgNodeP ProgNode::GetNULLProgNodeP()
+  {
+	return interpreter->GetNULLProgNodeP();
+  }
+
 bool ProgNode::ConstantNode()
   {
     if( this->getType() == GDLTokenTypes::SYSVAR)
