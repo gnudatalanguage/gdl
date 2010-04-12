@@ -164,8 +164,8 @@ public:
   }
   void SetRight( ProgNodeP r)
   {
-	assert( right == NULL);
 	right = r;
+	keepRight = false;
   }
   
 	virtual void SetAllBreak( ProgNodeP target)
@@ -667,6 +667,8 @@ class BLOCKNode: public ProgNode
   public:
   void KeepRight( ProgNodeP r)
   {
+	right = r;
+	keepRight = true;
 //  	if( r == NULL)
 //   	assert( r != NULL);
 
@@ -685,8 +687,6 @@ class BLOCKNode: public ProgNode
 // 	else
 // std::cout << "BLOCK KeepRight("<<getLine()<<"): " << getText() <<"   r: NULL" <<  std::endl;
 	
-	right = r;
-	keepRight = true;
  }
 
 public:
@@ -759,30 +759,15 @@ class IF_ELSENode: public ProgNode
   public:
   void KeepRight( ProgNodeP r)
   {
-//   	assert( r != NULL);
-// 	assert( right == NULL);
-
-// if( r != NULL)
-// std::cout << "IF_ELSE KeepRight: " <<right<<"   " << getText() <<"   r: " << r->getText() <<  std::endl;
-// else
-// std::cout << "IF_ELSE KeepRight: " <<right<<"   " << getText() <<"   r: NULL"  <<  std::endl;
-	
-	// 	must recursively set dependents here
+    // 	must recursively set dependents here
     if( down != NULL && r != NULL)
         {
-			//IF expr s1 s2
-			// first alternative
-			ProgNodeP s1 = down->GetNextSibling(); // skip expr
-			// 2nd alternative
-			ProgNodeP s2 = s1->GetNextSibling();
+		assert( down->GetNextSibling()->GetNextSibling() == NULL);
+        
+        down->GetNextSibling()->KeepRight( r); // should be already disconnected
 			
-//         s1->ProgNode::KeepRight( right); // disconnect s2
-        s1->KeepRight( r); // disconnect s2
-			
-		s2->GetLastSibling()->SetRight( r);
-	//         s2->KeepRight( right);
-
-		right = s2;
+		right->GetLastSibling()->KeepRight( r);
+		right->GetLastSibling()->SetRight( r);
         }
   }
 
@@ -791,6 +776,7 @@ public:
 
   IF_ELSENode( const RefDNode& refNode): ProgNode( refNode)
   {
+// 	std::cout << "IF_ELSENode" << std::endl;
     if( refNode->GetFirstChild() != RefDNode(antlr::nullAST))
       {
 	down = NewProgNode( refNode->GetFirstChild());
@@ -802,20 +788,20 @@ public:
 
     assert( down != NULL);
         
-        {
-			//IF expr s1 s2
-			// first alternative
-			ProgNodeP s1 = down->GetNextSibling(); // skip expr
-			// 2nd alternative
-			ProgNodeP s2 = s1->GetNextSibling();
-			
-         s1->KeepRight( right); // disconnect s2
-			
-    	s2->GetLastSibling()->SetRight( right);
-	//         s2->KeepRight( right);
+	//IF expr s1 s2
+	// first alternative
+	ProgNodeP s1 = down->GetNextSibling(); // skip expr
+	// 2nd alternative
+	ProgNodeP s2 = s1->GetNextSibling();
 
-		right = s2;
-        }
+	s1->KeepRight( right); // disconnect s2
+
+	if( right != NULL)
+		{
+		s2->GetLastSibling()->KeepRight( right);
+		s2->GetLastSibling()->SetRight( right);
+	}
+	right = s2;
   }
 };
 
