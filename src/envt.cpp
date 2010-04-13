@@ -471,6 +471,8 @@ void EnvT::ObjCleanup( DObj actID)
 	      BaseGDL* actObjGDL = new DObjGDL( actID);
 	      auto_ptr<BaseGDL> actObjGDL_guard( actObjGDL);
 	      
+	      GDLInterpreter::IncRefObj( actID);
+	      
 	      PushNewEnvUD( objCLEANUP, 1, &actObjGDL);
 	      
 	      inProgress.insert( actID);
