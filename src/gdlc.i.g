@@ -218,11 +218,14 @@ protected:
 
     bool interruptEnable;
 
+public:
     typedef RefHeap<BaseGDL> RefBaseGDL;
     typedef RefHeap<DStructGDL> RefDStructGDL;
 
     typedef std::map<SizeT, RefBaseGDL> HeapT;
     typedef std::map<SizeT, RefDStructGDL> ObjHeapT;
+
+protected:
 //     typedef std::map<SizeT, BaseGDL*> HeapT;
 //     typedef std::map<SizeT, DStructGDL*> ObjHeapT;
 
@@ -361,7 +364,8 @@ std::cout << "-- <ObjHeapVar" << id << ">" << std::endl;
                                           << " at: " << callStack.back()->GetProName()
                                           << "  line: " << callStack.back()->GetLineNumber()
                                           << std::endl; 
-                               FreeObjHeapDirect( id, it);
+                               callStack.back()->ObjCleanup( id);
+//                             FreeObjHeapDirect( id, it);
                            }
 #ifdef GDL_DEBUG_HEAP
                         else
@@ -469,6 +473,13 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
     static DStructGDL*& GetObjHeap( DObj ID)
     {
         ObjHeapT::iterator it=objHeap.find( ID);
+        if( it == objHeap.end()) throw HeapException();
+        return it->second.get();
+    }
+    static DStructGDL*& GetObjHeap( DObj ID, ObjHeapT::iterator& it)
+    {
+//         ObjHeapT::iterator it=objHeap.find( ID);
+        it=objHeap.find( ID);
         if( it == objHeap.end()) throw HeapException();
         return it->second.get();
     }

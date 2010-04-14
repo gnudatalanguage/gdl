@@ -42,6 +42,9 @@ namespace lib {
 class EnvBaseT
 {
 protected:
+  // for obj cleanup
+  static std::set< DObj> inProgress;
+  
   static DInterpreter* interpreter;
   DataListT            env;
   SizeT                parIx;     // ix of next parameter to put
@@ -57,21 +60,34 @@ protected:
   int GetKeywordIx( const std::string& k);
 
   // for HEAP_GC
-  void AddStruct( DPtrListT& ptrAccessible,  DPtrListT& objAccessible, 
+  static void AddStruct( DPtrListT& ptrAccessible,  DPtrListT& objAccessible, 
 		  DStructGDL* stru);
-  void AddPtr( DPtrListT& ptrAccessible, DPtrListT& objAccessible, 
+  static void AddPtr( DPtrListT& ptrAccessible, DPtrListT& objAccessible, 
 	       DPtrGDL* ptr);
-  void AddObj( DPtrListT& ptrAccessible, DPtrListT& objAccessible, 
+  static void AddObj( DPtrListT& ptrAccessible, DPtrListT& objAccessible, 
 	       DObjGDL* obj);
-  void Add( DPtrListT& ptrAccessible, DPtrListT& objAccessible, 
+  static void Add( DPtrListT& ptrAccessible, DPtrListT& objAccessible, 
 	    BaseGDL* p);
 
 public:
+  virtual void ObjCleanup( DObj actID);
+
+  // for CLEANUP calls due to reference counting
+  void PushNewEmptyEnvUD(  DSub* newPro, BaseGDL** newObj = NULL);
+  
   void AddEnv( DPtrListT& ptrAccessible, DPtrListT& objAccessible);
 
   virtual ~EnvBaseT() { delete extra;}
 
   EnvBaseT( ProgNodeP cN, DSub* pro_);
+
+  static SizeT NewObjHeap( SizeT n=1, DStructGDL* v=NULL);
+  static SizeT NewHeap( SizeT n=1, BaseGDL* v=NULL);
+  static void FreeObjHeap( DObj id);
+  static void FreeHeap( DPtr id);
+  static void FreeHeap( DPtrGDL* p);
+  static DStructGDL* GetObjHeap( DObj ID);
+  static BaseGDL* GetHeap( DPtr ID);
 
 int GetLineNumber()
 {
@@ -222,7 +238,7 @@ public:
 
 
   // for obj_new and obj_destroy
-  EnvUDT( EnvT* pEnv, DSub* newPro, BaseGDL** self); 
+  EnvUDT( EnvBaseT* pEnv, DSub* newPro, BaseGDL** self); 
 
   DLong GetOnError() const { return onError;}
 
@@ -292,15 +308,6 @@ public:
 
   void HeapGC( bool doPtr, bool doObj, bool verbose);
   void ObjCleanup( DObj actID);
-
-
-  SizeT NewObjHeap( SizeT n=1, DStructGDL* v=NULL);
-  SizeT NewHeap( SizeT n=1, BaseGDL* v=NULL);
-  void FreeObjHeap( DObj id);
-  void FreeHeap( DPtr id);
-  void FreeHeap( DPtrGDL* p);
-  DStructGDL* GetObjHeap( DObj ID);
-  BaseGDL* GetHeap( DPtr ID);
 
   // used by obj_new (basic_fun.cpp)
   void PushNewEnv(  DSub* newPro, SizeT skipP, BaseGDL** newObj=NULL);
