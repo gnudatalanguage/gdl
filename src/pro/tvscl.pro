@@ -38,29 +38,42 @@
 ;	not yet implemented in MIN, MAX and BYTSCL.
 ;
 ; MODIFICATION HISTORY:
-;	Original: 14/3/05; SJT
+;     Original: 14/03/2005; SJT
+;     Modification: 14/04/2010; Alain Coulais: 
+;        -- better managment of inputs
+;        -- no use of "locs" if no /NaN !
+;
 ;-
- 
-pro tvscl, image, x, y, nan = nan, _extra = _extra
-
-on_error, 2                     ; Return to caller on error.
-
-if keyword_set(nan) then begin
-    locs = where(finite(image), nf)
-    if nf eq 0 then message, "No finite values found in image"
-endif else locs = lindgen(n_elements(image))
-
-dmin = min(image[locs], max = dmax)
+pro TVSCL, image, x, y, nan = nan, _extra = _extra
+;
+ON_ERROR, 2                     ; Return to caller on error.
+;
+if N_PARAMS() EQ 0 then begin
+   MESSAGE, 'Incorrect number of arguments.'
+   return
+endif
+if (SIZE(image,/n_elements) EQ 0) then begin
+   MESSAGE, ' Expression must be an array in this context'
+   return
+endif
+;
+if KEYWORD_SET(nan) then begin
+    locs = WHERE(FINITE(image), nf)
+    if (nf EQ 0) then MESSAGE, "No finite values found in image"
+    dmin = MIN(image[locs], max = dmax)
+endif else begin
+   dmin = MIN(image, max = dmax)
+endelse
 
 if !d.table_size eq 0 then imax = !d.n_colors-1 $
 else imax = !d.table_size-1
 
-img = bytscl(image, min = dmin, max = dmax, top = imax)
+img = BYTSCL(image, min = dmin, max = dmax, top = imax)
 
-case n_params() of
-    1: tv, img, _extra = _extra
-    2: tv, img, x, _extra = _extra
-    3: tv, img, x, y, _extra = _extra
+case N_PARAMS() of
+    1: TV, img, _extra = _extra
+    2: TV, img, x, _extra = _extra
+    3: TV, img, x, y, _extra = _extra
 endcase
 
 end
