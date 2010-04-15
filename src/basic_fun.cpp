@@ -3469,6 +3469,79 @@ BaseGDL* transpose( EnvT* e)
     // helper arrays
     DLongGDL* res = new DLongGDL( dimension( nEl), BaseGDL::INDGEN);
 
+	DLong nanIx = nEl;
+    if( p0->Type() == FLOAT)
+    {
+		DFloatGDL* p0F = static_cast<DFloatGDL*>(p0);
+		for( DLong i=nEl-1; i >= 0; --i)
+		{
+			if( isnan((*p0F)[ i]) )//|| !isfinite((*p0F)[ i]))
+				{
+					--nanIx;
+					(*res)[i] = (*res)[nanIx];
+					(*res)[ nanIx] = i;
+
+// cout << "swap " << i << " with " << nanIx << endl;
+// cout << "now:     ";
+// 		for( DLong ii=0; ii < nEl; ++ii)
+// 		{
+// 		cout << (*res)[ii] << " ";		
+// 		}
+// cout  << endl;
+				}
+		}
+    }
+    else if( p0->Type() == DOUBLE)
+    {
+		DDoubleGDL* p0F = static_cast<DDoubleGDL*>(p0);
+		for( DLong i=nEl-1; i >= 0; --i)
+		{
+			if( isnan((*p0F)[ i]))// || !isfinite((*p0F)[ i]))
+				{
+					--nanIx;
+					(*res)[i] = (*res)[nanIx];
+					(*res)[ nanIx] = i;
+				}
+		}
+    }
+    else if( p0->Type() == COMPLEX)
+    {
+		DComplexGDL* p0F = static_cast<DComplexGDL*>(p0);
+		for( DLong i=nEl-1; i >= 0; --i)
+		{
+			if( isnan((*p0F)[ i].real()) || //!isfinite((*p0F)[ i].real()) ||
+			     isnan((*p0F)[ i].imag()))// || !isfinite((*p0F)[ i].imag()) )
+				{
+					--nanIx;
+					(*res)[i] = (*res)[nanIx];
+					(*res)[ nanIx] = i;
+				}
+		}
+    }
+    else if( p0->Type() == COMPLEXDBL)
+    {
+		DComplexDblGDL* p0F = static_cast<DComplexDblGDL*>(p0);
+		for( DLong i=nEl-1; i >= 0; --i)
+		{
+			if( isnan((*p0F)[ i].real()) || //!isfinite((*p0F)[ i].real()) ||
+			     isnan((*p0F)[ i].imag()))// || !isfinite((*p0F)[ i].imag()) )
+				{
+					--nanIx;
+					(*res)[i] = (*res)[nanIx];
+					(*res)[ nanIx] = i;
+				}
+		}
+    }
+
+// cout << "nEl " << nEl << " nanIx " << nanIx << endl;
+	nEl = nanIx;
+// cout << "sorting:  ";
+// 		for( DLong ii=0; ii < nEl; ++ii)
+// 		{
+// 		cout << (*res)[ii] << " ";		
+// 		}
+// cout  << endl;
+
     DLong *hh = static_cast<DLong*>(res->DataAddr());
 
     DLong* h1 = new DLong[ nEl/2];
