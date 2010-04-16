@@ -1801,21 +1801,21 @@ namespace lib {
     SizeT nEl2 = (sc2)? 1 : p2L->N_Elements();
 
     SizeT nSrcStr = p0S->N_Elements();
-#pragma omp parallel if ((nSrcStr*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nSrcStr*10)))
+#pragma omp parallel if ((nSrcStr*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nSrcStr*10))) default( shared)
 {
 #pragma omp for
     for( long i=0; i<nSrcStr; ++i)
       {
-	for( long ii=0; ii<stride; ++ii)
-	  {
-	    SizeT destIx = i * stride + ii;
-	    DLong actFirst = (sc1)? scVal1 : (*p1L)[ destIx % nEl1];
-	    DLong actLen   = (sc2)? scVal2 : (*p2L)[ destIx % nEl2];
-	if( actLen <= 0)
-		(*res)[ destIx] = "";//StrMid((*p0S)[ i], actFirst, actLen, reverse);
-	else	
-		(*res)[ destIx] = StrMid((*p0S)[ i], actFirst, actLen, reverse);
-	  }
+		for( long ii=0; ii<stride; ++ii)
+		{
+			SizeT destIx = i * stride + ii;
+			DLong actFirst = (sc1)? scVal1 : (*p1L)[ destIx % nEl1];
+			DLong actLen   = (sc2)? scVal2 : (*p2L)[ destIx % nEl2];
+			if( actLen <= 0)
+				(*res)[ destIx] = "";//StrMid((*p0S)[ i], actFirst, actLen, reverse);
+			else	
+				(*res)[ destIx] = StrMid((*p0S)[ i], actFirst, actLen, reverse);
+		}
       }
 }    
     return res;
