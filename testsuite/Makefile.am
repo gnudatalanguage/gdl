@@ -13,6 +13,7 @@ TESTS = \
   test_nestedloop.pro \
   test_product.pro \
   test_rebin.pro \
+  test_str_functions.pro \
   test_suite.pro \
   test_url.pro \
   test_wavelet.pro \
