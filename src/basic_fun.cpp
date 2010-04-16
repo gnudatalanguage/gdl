@@ -1801,9 +1801,9 @@ namespace lib {
     SizeT nEl2 = (sc2)? 1 : p2L->N_Elements();
 
     SizeT nSrcStr = p0S->N_Elements();
-#pragma omp parallel if ((nSrcStr*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nSrcStr*10))) default( shared)
+//#pragma omp parallel if ((nSrcStr*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nSrcStr*10))) default( shared)
 {
-#pragma omp for
+//#pragma omp for
     for( long i=0; i<nSrcStr; ++i)
       {
 		for( long ii=0; ii<stride; ++ii)
