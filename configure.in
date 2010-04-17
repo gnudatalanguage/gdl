@@ -307,12 +307,12 @@ if test "x$with_Magick" != "xno"; then
   # https://sourceforge.net/tracker/index.php?func=detail&aid=2974380&group_id=97659&atid=618683
   AC_CHECK_LIB(plplotd, plGetDrvDir, [
     echo ""
-    echo "Error! Dynamic drivers have to be disabled in plplot"
-    echo "       to make plplot work with ImageMagic:"
-    echo "       - use the -DENABLE_DYNDRIVERS=OFF cmake option when" 
-    echo "         compiling plplot to disable dynamic drivers in plplot, or"
-    echo "       - use --with-Magick=no here to not use ImageMagick in GDL."
-    exit -1
+    echo "Warning! Dynamic drivers have to be disabled in plplot"
+    echo "         to make plplot work with ImageMagic:"
+    echo "         - use the -DENABLE_DYNDRIVERS=OFF cmake option when" 
+    echo "           compiling plplot to disable dynamic drivers in plplot, or"
+    echo "         - use --with-Magick=no here to not use ImageMagick in GDL."
+    echo ""
   ])
 fi
 
