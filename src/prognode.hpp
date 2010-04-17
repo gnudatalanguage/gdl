@@ -74,6 +74,7 @@ protected:
     int        targetIx;   // Index into label list
     int        structDefined; // struct contains entry with no tag name
     int        compileOpt; // for PRO and FUNCTION nodes
+	int        forLoopIx; // acessing loop variables
   };
 
 	void SetType( int tt, const std::string& txt) { ttype = tt; text = txt;} 
@@ -96,7 +97,25 @@ public:
   ProgNode( const RefDNode& refNode);
 
   static ProgNodeP NewProgNode( const RefDNode& refNode);
+  static int NumberForLoops( ProgNodeP tree, int offset = 0)
+  {
+	return tree->NumberForLoops( offset);
+  }
 
+  virtual int NumberForLoops( int actNum)
+  {
+	if( down != NULL && !keepDown)
+		{
+			actNum = down->NumberForLoops( actNum);
+		}
+		
+	if( right != NULL && !keepRight)
+		{
+			actNum = right->NumberForLoops( actNum);
+		}
+	return actNum;
+ }
+  
   virtual ~ProgNode();
   
   void SetRightDown( const ProgNodeP right, const ProgNodeP down);
@@ -311,7 +330,8 @@ public:
 
 
 
-class FORNode: public BreakableNode
+
+class FOR_LOOPNode: public BreakableNode
 {
   public:
 	ProgNodeP GetStatementList()
@@ -319,20 +339,137 @@ class FORNode: public BreakableNode
 		return down->GetNextSibling()->GetNextSibling()->GetNextSibling();
 	}
 	
+  public:
 	void KeepRight( ProgNodeP r)
 	{
 		right = r;
 		keepRight = true;
+		if( this->GetStatementList() != NULL)
+			this->GetStatementList()->SetAllBreak( right);
 	}
+  
+  int NumberForLoops( int actNum)
+  {
+	this->forLoopIx = actNum;
+	actNum++;
+	ProgNodeP statementList = this->GetStatementList();
+	if( statementList != NULL)
+		{
+			actNum = statementList->NumberForLoops( actNum);
+		}
+	if( right != NULL && !keepRight)
+		{
+			actNum = right->NumberForLoops( actNum);
+		}
+	return actNum;
+ }
+  
+  public:
+  FOR_LOOPNode( ProgNodeP r, ProgNodeP d): BreakableNode()
+  {
+    SetType( GDLTokenTypes::FOR_LOOP, "for_loop");
+	SetRightDown( r, d);
+
+	assert( down != NULL);
 	
+	ProgNodeP statementList = this->GetStatementList();
+	if( statementList != NULL)
+		{
+			statementList->SetAllContinue( this);
+			statementList->GetLastSibling()->KeepRight( this);
+			if( right != NULL) statementList->SetAllBreak( right);
+		}
+  }
+
+};
+
+
+class FORNode: public BreakableNode
+{
+  public:
+	void KeepRight( ProgNodeP r);
+	
+  int NumberForLoops( int actNum)
+  {
+	this->forLoopIx = actNum;
+	
+	assert( down == NULL);
+		
+	assert( right != NULL && !keepRight);
+			
+	actNum = right->NumberForLoops( actNum);
+	
+	return actNum;
+ }
+  
   public:
   FORNode(): BreakableNode()  {}
 
   FORNode( const RefDNode& refNode): BreakableNode( refNode)
 	{
+    FOR_LOOPNode* forLoop = new FOR_LOOPNode( right, down);
+	forLoop->setLine( getLine());
+
+	down = NULL;
+	
+	right = forLoop;
+
 //   		if( this->GetStatementList() != NULL && right != NULL)
 // 			this->GetStatementList()->GetLastSibling()->KeepRight( right);
 	}
+};
+
+
+class FOR_STEP_LOOPNode: public BreakableNode
+{
+  public:
+	ProgNodeP GetStatementList()
+	{
+		return down->GetNextSibling()->GetNextSibling()->GetNextSibling()->GetNextSibling();
+	}
+	
+  public:
+	void KeepRight( ProgNodeP r)
+	{
+		right = r;
+		keepRight = true;
+		if( this->GetStatementList() != NULL)
+			this->GetStatementList()->SetAllBreak( right);
+	}
+  
+  int NumberForLoops( int actNum)
+  {
+	this->forLoopIx = actNum;
+	actNum++;
+	ProgNodeP statementList = this->GetStatementList();
+	if( statementList != NULL)
+		{
+			actNum = statementList->NumberForLoops( actNum);
+		}
+	if( right != NULL && !keepRight)
+		{
+			actNum = right->NumberForLoops( actNum);
+		}
+	return actNum;
+ }
+  
+  public:
+  FOR_STEP_LOOPNode( ProgNodeP r, ProgNodeP d): BreakableNode()
+  {
+    SetType( GDLTokenTypes::FOR_STEP_LOOP, "for_step_loop");
+	SetRightDown( r, d);
+
+	assert( down != NULL);
+	
+	ProgNodeP statementList = this->GetStatementList();
+	if( statementList != NULL)
+		{
+			statementList->SetAllContinue( this);
+			statementList->GetLastSibling()->KeepRight( this);
+			if( right != NULL) statementList->SetAllBreak( right);
+		}
+  }
+
 };
 
 
@@ -340,25 +477,90 @@ class FORNode: public BreakableNode
 class FOR_STEPNode: public BreakableNode
 {
   public:
-	ProgNodeP GetStatementList()
-	{
-		return down->GetNextSibling()->GetNextSibling()->GetNextSibling()->GetNextSibling();
-	}
-  
-	void KeepRight( ProgNodeP r)
-	{
-		right = r;
-		keepRight = true;
-	}
+	void KeepRight( ProgNodeP r);
 	
+  int NumberForLoops( int actNum)
+  {
+	this->forLoopIx = actNum;
+	
+	assert( down == NULL);
+		
+	assert( right != NULL && !keepRight);
+			
+	actNum = right->NumberForLoops( actNum);
+	
+	return actNum;
+ }
+  
   public:
   FOR_STEPNode(): BreakableNode()  {}
 
   FOR_STEPNode( const RefDNode& refNode): BreakableNode( refNode)
 	{
+    FOR_STEP_LOOPNode* forLoop = new FOR_STEP_LOOPNode( right, down);
+	forLoop->setLine( getLine());
+
+	down = NULL;
+	
+	right = forLoop;
+
 //   		if( this->GetStatementList() != NULL && right != NULL)
 // 			this->GetStatementList()->GetLastSibling()->KeepRight( right);
 	}
+};
+
+
+
+class FOREACH_LOOPNode: public BreakableNode
+{
+  public:
+	ProgNodeP GetStatementList()
+	{
+		return down->GetNextSibling()->GetNextSibling();
+	}
+	
+  public:
+	void KeepRight( ProgNodeP r)
+	{
+		right = r;
+		keepRight = true;
+		if( this->GetStatementList() != NULL)
+			this->GetStatementList()->SetAllBreak( right);
+	}
+  
+  int NumberForLoops( int actNum)
+  {
+	this->forLoopIx = actNum;
+	actNum++;
+	ProgNodeP statementList = this->GetStatementList();
+	if( statementList != NULL)
+		{
+			actNum = statementList->NumberForLoops( actNum);
+		}
+	if( right != NULL && !keepRight)
+		{
+			actNum = right->NumberForLoops( actNum);
+		}
+	return actNum;
+ }
+  
+  public:
+  FOREACH_LOOPNode( ProgNodeP r, ProgNodeP d): BreakableNode()
+  {
+    SetType( GDLTokenTypes::FOREACH_LOOP, "foreach_loop");
+	SetRightDown( r, d);
+
+	assert( down != NULL);
+	
+	ProgNodeP statementList = this->GetStatementList();
+	if( statementList != NULL)
+		{
+			statementList->SetAllContinue( this);
+			statementList->GetLastSibling()->KeepRight( this);
+			if( right != NULL) statementList->SetAllBreak( right);
+		}
+  }
+
 };
 
 
@@ -366,26 +568,40 @@ class FOR_STEPNode: public BreakableNode
 class FOREACHNode: public BreakableNode
 {
   public:
-  	ProgNodeP GetStatementList()
-	{
-		return down->GetNextSibling()->GetNextSibling();
-	}
-
-	void KeepRight( ProgNodeP r)
-	{
-		right = r;
-		keepRight = true;
-	}
+	void KeepRight( ProgNodeP r);
 	
-public:
+  int NumberForLoops( int actNum)
+  {
+	this->forLoopIx = actNum;
+	
+	assert( down == NULL);
+		
+	assert( right != NULL && !keepRight);
+			
+	actNum = right->NumberForLoops( actNum);
+	
+	return actNum;
+ }
+  
+  public:
   FOREACHNode(): BreakableNode()  {}
 
   FOREACHNode( const RefDNode& refNode): BreakableNode( refNode)
 	{
+    FOREACH_LOOPNode* forLoop = new FOREACH_LOOPNode( right, down);
+	forLoop->setLine( getLine());
+
+	down = NULL;
+	
+	right = forLoop;
+
 //   		if( this->GetStatementList() != NULL && right != NULL)
 // 			this->GetStatementList()->GetLastSibling()->KeepRight( right);
 	}
 };
+
+
+
 
 
 

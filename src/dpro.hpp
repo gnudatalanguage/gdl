@@ -275,6 +275,8 @@ class DSubUD: public DSub
 
   LabelListT          labelList;
 
+  int nForLoops;
+
   void ResolveLabel( ProgNodeP);
 
 public:
@@ -310,6 +312,8 @@ public:
   void     DelVar(const int ix) {var.erase(var.begin() + ix);}
 
   SizeT Size() { return var.size();}
+
+  int NForLoops() const { return nForLoops;}
   
   // search for variable returns true if its found in var or common blocks
   bool Find(const std::string& n)
@@ -351,7 +355,7 @@ public:
   {
     return key[ix];
   }
-  
+
   bool GetCommonVarName(const BaseGDL* p, std::string& varName)
   {
     for( CommonBaseListT::iterator c=common.begin();

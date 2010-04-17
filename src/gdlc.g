@@ -98,6 +98,9 @@ tokens {
     FOR;
     FOR_STEP; // for with step
     FOREACH;
+    FOR_LOOP;
+    FOR_STEP_LOOP; // for with step
+    FOREACH_LOOP;
 	FCALL;
 	FCALL_LIB; // library function call
 // 	FCALL_LIB_N_ELEMENTS; // N_ELEMENTS

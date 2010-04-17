@@ -642,9 +642,18 @@ namespace lib {
       ProgNodeP progAST = ProgNode::NewProgNode( trAST);
       auto_ptr< ProgNode> progAST_guard( progAST);
 
+	// necessary for correct FOR loop handling
+	assert( dynamic_cast<EnvUDT*>(caller) != NULL);
+    EnvUDT* env = static_cast<EnvUDT*>(caller);
+	int nForLoopsIn = env->NForLoops();
+    int nForLoops = ProgNode::NumberForLoops( progAST, nForLoopsIn);
+	env->ResizeForLoops( nForLoops);
+
       GDLInterpreter::RetCode retCode = 
 	caller->Interpreter()->execute( progAST);
 
+	env->ResizeForLoops( nForLoopsIn);
+      
       // Return from GDL/IDL event handler procedure
       std::cout << "return from event handler" << std::endl << std::endl;
 
@@ -839,24 +848,24 @@ namespace lib {
 
   }
 
-
-  void executeString( EnvBaseT* caller, istringstream *istr)
-  {
-    // P.S:  I don't know how this works.  Ask Marc.
-
-    RefDNode theAST;
-    GDLLexer lexer(*istr, "", GDLParser::NONE);
-    GDLParser& parser = lexer.Parser();
-    parser.interactive();
-    theAST = parser.getAST();
-    RefDNode trAST;
-    GDLTreeParser treeParser( caller);
-    treeParser.interactive(theAST);
-    trAST = treeParser.getAST();
-    ProgNodeP progAST = ProgNode::NewProgNode( trAST);
-    auto_ptr< ProgNode> progAST_guard( progAST);
-    GDLInterpreter::RetCode retCode = caller->Interpreter()->execute( progAST);
-  }
+//   in math_fun_jmg.cpp
+//   void executeString( EnvBaseT* caller, istringstream *istr)
+//   {
+//     // P.S:  I don't know how this works.  Ask Marc.
+// 
+//     RefDNode theAST;
+//     GDLLexer lexer(*istr, "", GDLParser::NONE);
+//     GDLParser& parser = lexer.Parser();
+//     parser.interactive();
+//     theAST = parser.getAST();
+//     RefDNode trAST;
+//     GDLTreeParser treeParser( caller);
+//     treeParser.interactive(theAST);
+//     trAST = treeParser.getAST();
+//     ProgNodeP progAST = ProgNode::NewProgNode( trAST);
+//     auto_ptr< ProgNode> progAST_guard( progAST);
+//     GDLInterpreter::RetCode retCode = caller->Interpreter()->execute( progAST);
+//   }
 
 
 

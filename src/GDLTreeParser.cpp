@@ -6829,7 +6829,7 @@ void GDLTreeParser::tag_array_expr(RefDNode _t) {
 
 void GDLTreeParser::initializeASTFactory( antlr::ASTFactory& factory )
 {
-	factory.setMaxNodeType(221);
+	factory.setMaxNodeType(224);
 }
 const char* GDLTreeParser::tokenNames[] = {
 	"<0>",
@@ -6865,6 +6865,9 @@ const char* GDLTreeParser::tokenNames[] = {
 	"\"for\"",
 	"FOR_STEP",
 	"\"foreach\"",
+	"FOR_LOOP",
+	"FOR_STEP_LOOP",
+	"FOREACH_LOOP",
 	"FCALL",
 	"FCALL_LIB",
 	"FCALL_LIB_RETNEW",
@@ -7057,7 +7060,7 @@ const char* GDLTreeParser::tokenNames[] = {
 	0
 };
 
-const unsigned long GDLTreeParser::_tokenSet_0_data_[] = { 1135607840UL, 8394753UL, 2147553300UL, 4278226964UL, 8191UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLTreeParser::_tokenSet_0_data_[] = { 1135607840UL, 67158017UL, 557216UL, 4161044644UL, 65535UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN BLOCK BREAK CONTINUE COMMONDECL COMMONDEF "for" "foreach" MPCALL 
 // MPCALL_PARENT PCALL "repeat" RETURN "while" "case" "forward_function" 
 // "goto" "if" "on_ioerror" "switch" DEC INC AND_OP_EQ ASTERIX_EQ EQ_OP_EQ 
@@ -7065,7 +7068,7 @@ const unsigned long GDLTreeParser::_tokenSet_0_data_[] = { 1135607840UL, 8394753
 // MATRIX_OP2_EQ MINUS_EQ MOD_OP_EQ NE_OP_EQ OR_OP_EQ PLUS_EQ POW_EQ SLASH_EQ 
 // XOR_OP_EQ 
 const antlr::BitSet GDLTreeParser::_tokenSet_0(_tokenSet_0_data_,12);
-const unsigned long GDLTreeParser::_tokenSet_1_data_[] = { 739116576UL, 404824066UL, 1073760128UL, 4278462410UL, 73727UL, 1610612736UL, 2047UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLTreeParser::_tokenSet_1_data_[] = { 739116576UL, 3238592528UL, 146432UL, 4162928210UL, 589823UL, 0UL, 16379UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN ARRAYDEF ARRAYDEF_CONST ARRAYEXPR ARRAYEXPR_FN ARRAYEXPR_MFCALL 
 // CONSTANT DEREF EXPR FCALL MFCALL MFCALL_PARENT NSTRUC_REF POSTDEC POSTINC 
 // STRUC SYSVAR UMINUS VAR "and" "eq" "ge" "gt" "le" "lt" "mod" "ne" "not" 

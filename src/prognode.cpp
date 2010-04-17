@@ -32,6 +32,21 @@ ProgNodeP ProgNode::GetNULLProgNodeP()
 	return interpreter->GetNULLProgNodeP();
   }
 
+
+void FORNode::KeepRight( ProgNodeP r)
+{
+	throw GDLException( "Internal error: FORNode::KeepRight() called. Please report.");
+}
+void FOR_STEPNode::KeepRight( ProgNodeP r)
+{
+	throw GDLException( "Internal error: FOR_STEPNode::KeepRight() called. Please report.");
+}
+void FOREACHNode::KeepRight( ProgNodeP r)
+{
+	throw GDLException( "Internal error: FOREACHNode::KeepRight() called. Please report.");
+}
+
+
 bool ProgNode::ConstantNode()
   {
     if( this->getType() == GDLTokenTypes::SYSVAR)

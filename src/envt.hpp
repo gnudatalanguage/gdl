@@ -214,9 +214,33 @@ proUD->SetCompileOpt( cOpt);
   friend class DInterpreter; // gcc 4.4 compatibility
 };
 
+
+
+struct ForLoopInfoT
+{
+	BaseGDL*  endLoopVar; // the source for foreach as well
+	BaseGDL*  loopStepVar;
+	DLong        foreachIx;
+
+	ForLoopInfoT()
+	: endLoopVar(NULL)
+	, loopStepVar(NULL)
+	, foreachIx(-1)
+	{}
+	~ForLoopInfoT()
+	{
+		delete endLoopVar;
+		delete loopStepVar;
+	}
+};
+
+
+
 // for UD subroutines (written in GDL) ********************************
 class EnvUDT: public EnvBaseT
 {
+  std::vector<ForLoopInfoT> forLoopInfo;
+
   ProgNodeP         ioError; 
   DLong             onError; // on_error setting
   BaseGDL**         catchVar;
@@ -226,6 +250,11 @@ class EnvUDT: public EnvBaseT
   int               lastJump; // to which label last jump went
   
 public:
+	ForLoopInfoT& GetForLoopInfo( int forIx) { return forLoopInfo[forIx];}
+    
+    int NForLoops() const { return forLoopInfo.size();}
+    void ResizeForLoops( int newSize) { forLoopInfo.resize(newSize);}
+
   // UD pro/fun
   EnvUDT( ProgNodeP idN, DSub* pro_, bool lF = false);
 

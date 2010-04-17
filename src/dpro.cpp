@@ -185,7 +185,8 @@ DSubUD::DSubUD(const string& n,const string& o,const string& f) :
   DSub(n,o), file(f),
   tree( NULL),
   labelList(),
-  compileOpt(GDLParser::NONE)
+  compileOpt(GDLParser::NONE),
+  nForLoops( 0)
 {
   if( o != "")
     AddPar( "SELF");
@@ -215,6 +216,7 @@ void DSubUD::DelTree()
   labelList.Clear(); // labels are invalid after tree is deleted
   delete tree;
   tree = NULL; //static_cast<RefDNode>(antlr::nullAST);
+  nForLoops = 0;
 }
 
 void DSubUD::AddPar(const string& p)
@@ -301,6 +303,8 @@ void DSubUD::SetTree( RefDNode n)
   // here the conversion RefDNode -> ProgNode is done
   //
   tree = ProgNode::NewProgNode( n);
+
+  nForLoops = ProgNode::NumberForLoops( tree);
 
 #ifdef GDL_DEBUG
       cout << "DSubUD::SetTree:" << endl;

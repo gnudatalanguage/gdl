@@ -53,6 +53,9 @@ EnvUDT::EnvUDT( ProgNodeP cN, DSub* pro_, bool lF):
   lastJump( -1)
 {
   DSubUD* proUD=static_cast<DSubUD*>(pro);
+
+  forLoopInfo.resize( proUD->NForLoops());
+  
   SizeT envSize;
   SizeT keySize;
 
@@ -95,7 +98,7 @@ EnvUDT::EnvUDT( ProgNodeP cN, BaseGDL* self,
   lastJump( -1)
 {
   obj = true;
-
+  
   DStructGDL* oStructGDL = interpreter->ObjectStruct( self, cN);
 
   const string& mp = cN->getText();
@@ -120,6 +123,9 @@ EnvUDT::EnvUDT( ProgNodeP cN, BaseGDL* self,
     }
 
   DSubUD* proUD=static_cast<DSubUD*>(pro);
+
+  forLoopInfo.resize( proUD->NForLoops());
+
   SizeT envSize;
   SizeT keySize;
   envSize=proUD->var.size();
@@ -169,6 +175,9 @@ EnvUDT::EnvUDT( BaseGDL* self, //DStructGDL* oStructGDL,
     }
 
   DSubUD* proUD=static_cast<DSubUD*>(pro);
+
+  forLoopInfo.resize( proUD->NForLoops());
+
   SizeT envSize;
   SizeT keySize;
   envSize=proUD->var.size();
@@ -217,6 +226,9 @@ EnvUDT::EnvUDT( EnvBaseT* pEnv, DSub* newPro, BaseGDL** self):
   obj = (self != NULL);
 
   DSubUD* proUD=static_cast<DSubUD*>(pro);
+  
+  forLoopInfo.resize( proUD->NForLoops());
+
   SizeT envSize;
   SizeT keySize;
   envSize=proUD->var.size();

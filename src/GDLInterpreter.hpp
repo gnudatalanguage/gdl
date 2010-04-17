@@ -690,15 +690,12 @@ public:
 	public:  GDLInterpreter::RetCode  block(ProgNodeP _t);
 	public:  GDLInterpreter::RetCode  jump_statement(ProgNodeP _t);
 	public: BaseGDL*  expr(ProgNodeP _t);
-	public: BaseGDL**  l_simple_var(ProgNodeP _t);
-	public: BaseGDL*  indexable_expr(ProgNodeP _t);
-	public: BaseGDL*  indexable_tmp_expr(ProgNodeP _t);
-	public: BaseGDL*  check_expr(ProgNodeP _t);
 	public: BaseGDL**  l_ret_expr(ProgNodeP _t);
 	public: BaseGDL**  l_deref(ProgNodeP _t);
 	public:  BaseGDL**  l_arrayexpr_mfcall_as_mfcall(ProgNodeP _t);
 	public:  BaseGDL**  l_function_call(ProgNodeP _t);
 	public: BaseGDL*  tmp_expr(ProgNodeP _t);
+	public: BaseGDL*  check_expr(ProgNodeP _t);
 	public: BaseGDL*  r_expr(ProgNodeP _t);
 	public: BaseGDL*  constant_nocopy(ProgNodeP _t);
 	public: BaseGDL*  l_decinc_indexable_expr(ProgNodeP _t,
@@ -722,9 +719,12 @@ public:
 	public: BaseGDL*  l_decinc_expr(ProgNodeP _t,
 		int dec_inc
 	);
+	public: BaseGDL*  indexable_expr(ProgNodeP _t);
+	public: BaseGDL*  indexable_tmp_expr(ProgNodeP _t);
 	public: BaseGDL**  l_expr(ProgNodeP _t,
 		BaseGDL* right
 	);
+	public: BaseGDL**  l_simple_var(ProgNodeP _t);
 	public: void parameter_def(ProgNodeP _t,
 		EnvBaseT* actEnv
 	);
@@ -773,10 +773,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 222;
+	static const int NUM_TOKENS = 225;
 #else
 	enum {
-		NUM_TOKENS = 222
+		NUM_TOKENS = 225
 	};
 #endif
 	

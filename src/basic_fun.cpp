@@ -1266,7 +1266,8 @@ namespace lib {
     e->AssureScalarPar<DStringGDL>( 0, line);
 
     // remove current environment (own one)
-    EnvBaseT* caller = e->Caller();
+    assert( dynamic_cast<EnvUDT*>(e->Caller()) != NULL);
+    EnvUDT* caller = static_cast<EnvUDT*>(e->Caller());
     e->Interpreter()->CallStack().pop_back();
     delete e;
 
@@ -1319,15 +1320,21 @@ namespace lib {
       
     if( trAST == NULL) return new DIntGDL( 1);
 
+	int nForLoopsIn = caller->NForLoops();
     try
       {
 		ProgNodeP progAST = ProgNode::NewProgNode( trAST);
 		auto_ptr< ProgNode> progAST_guard( progAST);
 
+		int nForLoops = ProgNode::NumberForLoops( progAST, nForLoopsIn);
+		caller->ResizeForLoops( nForLoops);
+
 		progAST->setLine( e->GetLineNumber());
 
 		GDLInterpreter::RetCode retCode =
 		caller->Interpreter()->execute( progAST);
+
+		caller->ResizeForLoops( nForLoopsIn);
 
 		if( retCode == GDLInterpreter::RC_OK)
 		return new DIntGDL( 1);
@@ -1336,6 +1343,7 @@ namespace lib {
       }
     catch( GDLException& ex)
       {
+		caller->ResizeForLoops( nForLoopsIn);
 		// are we throwing to target environment?
 // 		if( ex.GetTargetEnv() == NULL)
 			if( !quietCompile) cerr << "EXECUTE: " <<
@@ -1344,6 +1352,8 @@ namespace lib {
       }
     catch( ANTLRException ex)
       {
+		caller->ResizeForLoops( nForLoopsIn);
+		
 		if( !quietCompile) cerr << "EXECUTE: Interpreter exception: " <<
 					ex.getMessage() << endl;
 		return new DIntGDL( 0);

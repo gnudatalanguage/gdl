@@ -1754,8 +1754,18 @@ void image_del(image_t * d)
     trAST = treeParser.getAST();
     ProgNodeP progAST = ProgNode::NewProgNode( trAST);
     auto_ptr< ProgNode> progAST_guard( progAST);
+
+	// Marc: necessary for correct FOR loop handling
+	assert( dynamic_cast<EnvUDT*>(caller) != NULL);
+    EnvUDT* env = static_cast<EnvUDT*>(caller);
+    int nForLoopsIn = env->NForLoops();
+    int nForLoops = ProgNode::NumberForLoops( progAST, nForLoopsIn);
+	env->ResizeForLoops( nForLoops);
+
     GDLInterpreter::RetCode retCode = caller->Interpreter()->execute( progAST);
-  }
+  
+  	env->ResizeForLoops( nForLoopsIn);
+}
 
 
   BaseGDL* rk4jmg_fun(EnvT* e)

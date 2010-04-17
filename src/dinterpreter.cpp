@@ -829,9 +829,13 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
   cout << "ExecuteLine: Parser end." << endl;
 #endif
 
-  ProgNodeP progAST = NULL;;
+  ProgNodeP progAST = NULL;
 
   RefDNode trAST;
+	
+  assert( dynamic_cast<EnvUDT*>(callStack.back()) != NULL);
+  EnvUDT* env = static_cast<EnvUDT*>(callStack.back());
+  int nForLoopsIn = env->NForLoops();
   try
     {
       GDLTreeParser treeParser( callStack.back());
@@ -852,15 +856,24 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
   cout << "ExecuteLine: Tree parser end." << endl;
 #endif
 
-      progAST = ProgNode::NewProgNode( trAST);
+    progAST = ProgNode::NewProgNode( trAST);
+
+	assert( dynamic_cast<EnvUDT*>(callStack.back()) != NULL);
+    EnvUDT* env = static_cast<EnvUDT*>(callStack.back());
+    int nForLoops = ProgNode::NumberForLoops( progAST, nForLoopsIn);
+	env->ResizeForLoops( nForLoops);
     }
   catch( GDLException& e)
     {
+	  env->ResizeForLoops( nForLoopsIn);
+      
       ReportCompileError( e);
       return CC_OK;
     }
   catch( ANTLRException& e)
     {
+	  env->ResizeForLoops( nForLoopsIn);
+      
       cerr << "Compiler exception: " <<  e.getMessage() << endl;
       return CC_OK;
     }
@@ -877,6 +890,8 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
 
       GDLInterpreter::RetCode retCode = interactive( progAST);
       
+	  env->ResizeForLoops( nForLoopsIn);
+      
       // write to journal file
       string actualLine = GetClearActualLine();
       if( actualLine != "") lib::write_journal( actualLine); 
@@ -886,11 +901,15 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
     }
   catch( GDLException& e)
     {
+	  env->ResizeForLoops( nForLoopsIn);
+      
       cerr << "Unhandled GDL exception: " <<  e.toString() << endl;;
       return CC_OK;
     }
   catch( ANTLRException& e)
     {
+	  env->ResizeForLoops( nForLoopsIn);
+      
       cerr << "Interpreter exception: " <<  e.getMessage() << endl;
       return CC_OK;
     }

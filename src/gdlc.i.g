@@ -1530,157 +1530,314 @@ for_statement returns[ GDLInterpreter::RetCode retCode]
     BaseGDL* st;
     retCode = RC_OK;
 }
-    : #(f:FOR // (VAR|VARPTR) expr expr 
+    : #(f:FOR // #(FOR_LOOP (VAR|VARPTR) expr expr ...) 
             {
-                ProgNodeP sv = _t;
-            }
-            v=l_simple_var
-            s=expr e=expr
-            {
-                auto_ptr<BaseGDL> s_guard(s);
-                auto_ptr<BaseGDL> e_guard(e);
+                _t = f->GetNextSibling()->GetFirstChild();
 
                 EnvUDT* callStack_back = 
                 static_cast<EnvUDT*>(callStack.back());
-                SizeT nJump = callStack_back->NJump();
 
-                s->ForCheck( &e);
-                e_guard.release();
-                e_guard.reset(e);
+                ForLoopInfoT& loopInfo = 
+                    callStack_back->GetForLoopInfo( f->forLoopIx);
 
-                ProgNodeP b=_t; //->getFirstChild();
-                
-                // ASSIGNMENT used here also
-                delete (*v);
+                v=l_simple_var(_t);
+                _t = _retTree;
 
-// problem:
-// EXECUTE may call DataListT.loc.resize(), as v points to the
-// old sequence v might be invalidated -> segfault
-// note that the value (*v) is preserved by resize()
-                s_guard.release(); // s held in *v after this
-                for((*v)=s; (*v)->ForCondUp( e); 
-                    v=l_simple_var( sv), (*v)->ForAdd()) 
-                {
-//                    retCode=block(b);
-                    if( b != NULL)
-                    {
-                        retCode=statement_list(b);
-                    
-                        if( retCode != RC_OK) // optimization
-                        {
-                            if( retCode == RC_CONTINUE) 
-                                {
-                                retCode = RC_OK;
-                                continue;  
-                                }
-                            if( retCode == RC_BREAK) 
-                            {
-                                retCode = RC_OK;
-                                break;        
-                            }
-                            if( retCode >= RC_RETURN) break;
-                        }
-
-                        if( (callStack_back->NJump() != nJump) &&
-                            !f->LabelInRange( callStack_back->LastJump()))
-                        {
-                            // a jump (goto) occured out of this loop
-                            return retCode;
-                        }
-                    }
-                }
-//                retCode=RC_OK; // clear RC_BREAK/RC_CONTINUE retCode
-            }
-        )
-    | #(fs:FOR_STEP // (VAR|VARPTR) expr expr expr 
-            {
-                ProgNodeP sv = _t;
-            }
-            v=l_simple_var
-            s=expr e=expr st=expr
-            {
+                s=expr(_t);
                 auto_ptr<BaseGDL> s_guard(s);
-                auto_ptr<BaseGDL> e_guard(e);
-                auto_ptr<BaseGDL> st_guard(st);
+                _t = _retTree;
 
-                SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
+                delete loopInfo.endLoopVar;
+                loopInfo.endLoopVar=expr(_t);
 
-                s->ForCheck( &e, &st);
-                e_guard.release();
-                e_guard.reset(e);
-                st_guard.release();
-                st_guard.reset(st);
-                
-                ProgNodeP bs=_t;
-                
+                ProgNodeP b = _retTree;
+		
+                s->ForCheck( &loopInfo.endLoopVar);
+
                 // ASSIGNMENT used here also
                 delete (*v);
-                
-                if( st->Sgn() == -1) 
+                (*v)= s_guard.release(); // s held in *v after this
+
+                if( (*v)->ForCondUp( loopInfo.endLoopVar))
                 {
-                    s_guard.release();
-                    for((*v)=s; (*v)->ForCondDown( e); 
-                        v=l_simple_var( sv), (*v)->ForAdd(st))
-                    {
-                        if( bs != NULL)
-                        {
-                            retCode=statement_list(bs);
-                            
-                            if( retCode == RC_CONTINUE)
-                                {
-                                retCode = RC_OK;
-                                continue;  
-                                }
-                            if( retCode == RC_BREAK) 
-                            {
-                                retCode = RC_OK;
-                                break;        
-                            }
-                            if( retCode >= RC_RETURN) break;
-                            
-                            if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
-                                !fs->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
-                            {
-                                // a jump (goto) occured out of this loop
-                                return retCode;
-                            }
-                        }
-                    }
-                } 
+                    _retTree = b;
+                    return RC_OK;
+                }
                 else
                 {
-                    s_guard.release();
-                    for((*v)=s; (*v)->ForCondUp( e);
-                        v=l_simple_var( sv), (*v)->ForAdd(st))
-                        {
-                        if( bs != NULL)
-                        {
-                            retCode=statement_list(bs);
-                        
-                            if( retCode == RC_CONTINUE)
-                                {
-                                retCode = RC_OK;
-                                continue;  
-                                }
-
-                            if( retCode == RC_BREAK) 
-                            {
-                                retCode = RC_OK;
-                                break;        
-                            }
-                            if( retCode >= RC_RETURN) break;
-                            
-                            if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
-                                !fs->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
-                            {
-                                // a jump (goto) occured out of this loop
-                                return retCode;
-                            }
-                        }
-                    }
+                    // skip if initial test fails
+                    _retTree = f->GetNextSibling()->GetNextSibling();
+                    return RC_OK;
                 }
             }
+        ) 
+    | #(fl:FOR_LOOP// (VAR|VARPTR) expr expr 
+            {
+                EnvUDT* callStack_back = 
+                static_cast<EnvUDT*>(callStack.back());
+
+                ForLoopInfoT& loopInfo = 
+                    callStack_back->GetForLoopInfo( fl->forLoopIx);
+
+                if( loopInfo.endLoopVar == NULL)
+                    {
+                        // non-initialized loop (GOTO)
+                        _retTree = fl->GetNextSibling();
+                        return RC_OK;
+                    }
+
+// // problem:
+// // EXECUTE may call DataListT.loc.resize(), as v points to the
+// // old sequence v might be invalidated -> segfault
+// // note that the value (*v) is preserved by resize()
+
+                v=l_simple_var(_t);
+                _t = _retTree;
+
+                (*v)->ForAdd();
+                if( (*v)->ForCondUp( loopInfo.endLoopVar))
+                {
+                    _retTree = _t->GetNextSibling()->GetNextSibling();
+                    return RC_OK;
+                }
+                else
+                {
+                    delete loopInfo.endLoopVar;
+                    loopInfo.endLoopVar = NULL;
+                    _retTree = fl->GetNextSibling();
+                    return RC_OK;
+                }
+
+            }
         )
+//                 for((*v)=s; (*v)->ForCondUp( e); 
+//                     v=l_simple_var( sv), (*v)->ForAdd()) 
+//                 {
+// //                    retCode=block(b);
+//                     if( b != NULL)
+//                     {
+//                         retCode=statement_list(b);
+                    
+//                         if( retCode != RC_OK) // optimization
+//                         {
+//                             if( retCode == RC_CONTINUE) 
+//                                 {
+//                                 retCode = RC_OK;
+//                                 continue;  
+//                                 }
+//                             if( retCode == RC_BREAK) 
+//                             {
+//                                 retCode = RC_OK;
+//                                 break;        
+//                             }
+//                             if( retCode >= RC_RETURN) break;
+//                         }
+
+//                         if( (callStack_back->NJump() != nJump) &&
+//                             !f->LabelInRange( callStack_back->LastJump()))
+//                         {
+//                             // a jump (goto) occured out of this loop
+//                             return retCode;
+//                         }
+//                     }
+//                 }
+// //                retCode=RC_OK; // clear RC_BREAK/RC_CONTINUE retCode
+//             }
+//         )
+    | #(fs:FOR_STEP // (VAR|VARPTR) expr expr expr 
+            {
+                _t = fs->GetNextSibling()->GetFirstChild();
+
+                EnvUDT* callStack_back = 
+                static_cast<EnvUDT*>(callStack.back());
+
+                ForLoopInfoT& loopInfo = 
+                    callStack_back->GetForLoopInfo( fs->forLoopIx);
+
+                v=l_simple_var(_t);
+                _t = _retTree;
+
+                s=expr(_t);
+                auto_ptr<BaseGDL> s_guard(s);
+                _t = _retTree;
+
+                delete loopInfo.endLoopVar;
+                loopInfo.endLoopVar=expr(_t);
+                _t = _retTree;
+
+                delete loopInfo.loopStepVar;
+                loopInfo.loopStepVar=expr(_t);
+
+                ProgNodeP b = _retTree;
+		
+                s->ForCheck( &loopInfo.endLoopVar, &loopInfo.loopStepVar);
+
+                // ASSIGNMENT used here also
+                delete (*v);
+                (*v)= s_guard.release(); // s held in *v after this
+
+                if( loopInfo.loopStepVar->Sgn() == -1) 
+                    {
+                    if( (*v)->ForCondDown( loopInfo.endLoopVar))
+                        {
+                            _retTree = b;
+                            return RC_OK;
+                        }
+                    }
+                else
+                    {
+                    if( (*v)->ForCondUp( loopInfo.endLoopVar))
+                        {
+                            _retTree = b;
+                            return RC_OK;
+                        }
+                    }
+
+                // skip if initial test fails
+                _retTree = f->GetNextSibling()->GetNextSibling();
+                return RC_OK;
+            }
+        )
+    | #(fsl:FOR_STEP_LOOP // (VAR|VARPTR) expr expr expr 
+            {
+                EnvUDT* callStack_back = 
+                static_cast<EnvUDT*>(callStack.back());
+
+                ForLoopInfoT& loopInfo = 
+                    callStack_back->GetForLoopInfo( fsl->forLoopIx);
+
+                if( loopInfo.endLoopVar == NULL)
+                    {
+                        // non-initialized loop (GOTO)
+                        _retTree = fsl->GetNextSibling();
+                        return RC_OK;
+                    }
+
+// // problem:
+// // EXECUTE may call DataListT.loc.resize(), as v points to the
+// // old sequence v might be invalidated -> segfault
+// // note that the value (*v) is preserved by resize()
+
+                v=l_simple_var(_t);
+                _t = _retTree;
+
+                ProgNodeP b = _t->GetNextSibling()->GetNextSibling()->GetNextSibling();
+
+                (*v)->ForAdd(loopInfo.loopStepVar);
+                if( loopInfo.loopStepVar->Sgn() == -1) 
+                    {
+                    if( (*v)->ForCondDown( loopInfo.endLoopVar))
+                        {
+                            _retTree = b;
+                            return RC_OK;
+                        }
+                    }
+                else
+                    {
+                    if( (*v)->ForCondUp( loopInfo.endLoopVar))
+                        {
+                            _retTree = b;
+                            return RC_OK;
+                        }
+                    }
+
+               delete loopInfo.endLoopVar;
+               loopInfo.endLoopVar = NULL;
+               delete loopInfo.loopStepVar;
+               loopInfo.loopStepVar = NULL;
+               _retTree = fsl->GetNextSibling();
+               return RC_OK;
+
+            }
+        )
+//             {
+//                 ProgNodeP sv = _t;
+//             }
+//             v=l_simple_var
+//             s=expr e=expr st=expr
+//             {
+//                 auto_ptr<BaseGDL> s_guard(s);
+//                 auto_ptr<BaseGDL> e_guard(e);
+//                 auto_ptr<BaseGDL> st_guard(st);
+
+//                 SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
+
+//                 s->ForCheck( &e, &st);
+//                 e_guard.release();
+//                 e_guard.reset(e);
+//                 st_guard.release();
+//                 st_guard.reset(st);
+                
+//                 ProgNodeP bs=_t;
+                
+//                 // ASSIGNMENT used here also
+//                 delete (*v);
+                
+//                 if( st->Sgn() == -1) 
+//                 {
+//                     s_guard.release();
+//                     for((*v)=s; (*v)->ForCondDown( e); 
+//                         v=l_simple_var( sv), (*v)->ForAdd(st))
+//                     {
+//                         if( bs != NULL)
+//                         {
+//                             retCode=statement_list(bs);
+                            
+//                             if( retCode == RC_CONTINUE)
+//                                 {
+//                                 retCode = RC_OK;
+//                                 continue;  
+//                                 }
+//                             if( retCode == RC_BREAK) 
+//                             {
+//                                 retCode = RC_OK;
+//                                 break;        
+//                             }
+//                             if( retCode >= RC_RETURN) break;
+                            
+//                             if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+//                                 !fs->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
+//                             {
+//                                 // a jump (goto) occured out of this loop
+//                                 return retCode;
+//                             }
+//                         }
+//                     }
+//                 } 
+//                 else
+//                 {
+//                     s_guard.release();
+//                     for((*v)=s; (*v)->ForCondUp( e);
+//                         v=l_simple_var( sv), (*v)->ForAdd(st))
+//                         {
+//                         if( bs != NULL)
+//                         {
+//                             retCode=statement_list(bs);
+                        
+//                             if( retCode == RC_CONTINUE)
+//                                 {
+//                                 retCode = RC_OK;
+//                                 continue;  
+//                                 }
+
+//                             if( retCode == RC_BREAK) 
+//                             {
+//                                 retCode = RC_OK;
+//                                 break;        
+//                             }
+//                             if( retCode >= RC_RETURN) break;
+                            
+//                             if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+//                                 !fs->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
+//                             {
+//                                 // a jump (goto) occured out of this loop
+//                                 return retCode;
+//                             }
+//                         }
+//                     }
+//                 }
+//             }
+//         )
 	;
 
 
@@ -1691,80 +1848,133 @@ foreach_statement returns[ GDLInterpreter::RetCode retCode]
     BaseGDL* s;
     retCode = RC_OK;
 }
-    : #(f:FOREACH // (VAR|VARPTR) expr expr 
+    : #(f:FOREACH // #(FOREACH_LOOP (VAR|VARPTR) expr ...)
             {
-                ProgNodeP sv = _t;
+                _t = f->GetNextSibling()->GetFirstChild();
 
-                // skip l_simple_var
-                _t = _t->getNextSibling();
+                EnvUDT* callStack_back = 
+                static_cast<EnvUDT*>(callStack.back());
 
-                auto_ptr<BaseGDL> s_guard;
+                ForLoopInfoT& loopInfo = 
+                    callStack_back->GetForLoopInfo( f->forLoopIx);
+
+                v=l_simple_var(_t);
+                _t = _retTree;
+
+                delete loopInfo.endLoopVar;
+                loopInfo.endLoopVar=expr(_t);
+
+                ProgNodeP b = _retTree;
+		
+                loopInfo.foreachIx = 0;
+
+                // currently there are no empty arrays
+                //SizeT nEl = loopInfo.endLoopVar->N_Elements();
+
+                // ASSIGNMENT used here also
+                delete (*v);
+                (*v) = loopInfo.endLoopVar->NewIx( 0);
+
+                _retTree = b;
+                return RC_OK;
             }
-//            v=l_simple_var
-
-            // avoid a copy if possible
-            ( s=indexable_expr
-            | s=indexable_tmp_expr { s_guard.reset( s);}
-            | s=check_expr
-                {
-                    if( !callStack.back()->Contains( s)) 
-                        s_guard.reset( s); // guard if no global data
-                }
-            )
-//          always copies (owned by caller)
-//          s=expr
+        )
+    | #(fl:FOREACH_LOOP // (VAR|VARPTR) expr 
             {
                 EnvUDT* callStack_back = 
                 static_cast<EnvUDT*>(callStack.back());
-                SizeT nJump = callStack_back->NJump();
 
-                ProgNodeP b=_t; //->getFirstChild();
-                
-                // ASSIGNMENT used here also
+                ForLoopInfoT& loopInfo = 
+                    callStack_back->GetForLoopInfo( fl->forLoopIx);
 
-
-                SizeT nEl = s->N_Elements();
-// problem:
-// EXECUTE may call DataListT.loc.resize(), as v points to the
-// old sequence v might be invalidated -> segfault
-// note that the value (*v) is preserved by resize()
-                for( SizeT i=0; i<nEl; ++i)
-                {
-//                  retCode=block(b);
-                    v=l_simple_var( sv);
-                    delete (*v); 
-                    (*v) = s->NewIx( i);
-
-                    if( b != NULL)
+                if( loopInfo.endLoopVar == NULL)
                     {
-                        retCode=statement_list(b);
-                    
-                        if( retCode != RC_OK) // optimization
-                        {
-                            if( retCode == RC_CONTINUE) 
-                                {
-                                retCode = RC_OK;
-                                continue;  
-                                }
-                            if( retCode == RC_BREAK) 
-                            {
-                                retCode = RC_OK;
-                                break;        
-                            }
-                            if( retCode >= RC_RETURN) break;
-                        }
-
-                        if( (callStack_back->NJump() != nJump) &&
-                            !f->LabelInRange( callStack_back->LastJump()))
-                        {
-                            // a jump (goto) occured out of this loop
-                            return retCode;
-                        }
+                        // non-initialized loop (GOTO)
+                        _retTree = fl->GetNextSibling();
+                        return RC_OK;
                     }
-                }
-//                retCode=RC_OK; // clear RC_BREAK/RC_CONTINUE retCode
+
+                v=l_simple_var(_t);
+                _t = _retTree;
+
+                // skip expr
+                _t = _t->getNextSibling();
+
+                ++loopInfo.foreachIx;
+
+                SizeT nEl = loopInfo.endLoopVar->N_Elements();
+
+                if( loopInfo.foreachIx < nEl)
+                    {
+                        // ASSIGNMENT used here also
+                        delete (*v);
+                        (*v) = loopInfo.endLoopVar->NewIx( loopInfo.foreachIx);
+
+                        _retTree = _t;
+                        return RC_OK;
+                    }
+
+                delete loopInfo.endLoopVar;
+                loopInfo.endLoopVar = NULL;
+                loopInfo.foreachIx = -1;
+                _retTree = fl->GetNextSibling();
+                return RC_OK;
             }
         )
+// //          always copies (owned by caller)
+//             s=expr
+//             {
+//                 EnvUDT* callStack_back = 
+//                 static_cast<EnvUDT*>(callStack.back());
+//                 SizeT nJump = callStack_back->NJump();
+
+//                 ProgNodeP b=_t; //->getFirstChild();
+                
+//                 // ASSIGNMENT used here also
+
+
+//                 SizeT nEl = s->N_Elements();
+// // problem:
+// // EXECUTE may call DataListT.loc.resize(), as v points to the
+// // old sequence v might be invalidated -> segfault
+// // note that the value (*v) is preserved by resize()
+//                 for( SizeT i=0; i<nEl; ++i)
+//                 {
+// //                  retCode=block(b);
+//                     v=l_simple_var( sv);
+//                     delete (*v); 
+//                     (*v) = s->NewIx( i);
+
+//                     if( b != NULL)
+//                     {
+//                         retCode=statement_list(b);
+                    
+//                         if( retCode != RC_OK) // optimization
+//                         {
+//                             if( retCode == RC_CONTINUE) 
+//                                 {
+//                                 retCode = RC_OK;
+//                                 continue;  
+//                                 }
+//                             if( retCode == RC_BREAK) 
+//                             {
+//                                 retCode = RC_OK;
+//                                 break;        
+//                             }
+//                             if( retCode >= RC_RETURN) break;
+//                         }
+
+//                         if( (callStack_back->NJump() != nJump) &&
+//                             !f->LabelInRange( callStack_back->LastJump()))
+//                         {
+//                             // a jump (goto) occured out of this loop
+//                             return retCode;
+//                         }
+//                     }
+//                 }
+// //                retCode=RC_OK; // clear RC_BREAK/RC_CONTINUE retCode
+//             }
+//         )
     ;
 
 
