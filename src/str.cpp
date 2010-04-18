@@ -88,12 +88,21 @@ DLong StrPos(const string& s, const string& searchStr, long pos,
 
   return res;
 }
-
+#define STRMID_DEBUG 
 string StrMid(const string& s, long first, long len, bool reverse)
 {
-  // (long)string::npos == -1
-  if( len != string::npos && len <= 0) return string("");
+#ifdef STRMID_DEBUG
+cout << "DebugInfo: StrMid(\"" << s << "\"," << first <<","<<len<<","<<reverse<<") = ";//<<endl
+#endif
 
+  // (long)string::npos == -1
+  if( len != string::npos && len <= 0)
+  {
+#ifdef STRMID_DEBUG
+	cout << "." << endl;
+#endif
+	return string("");
+  }
   long strLen = s.length();
   if( reverse)
     {
@@ -104,6 +113,9 @@ string StrMid(const string& s, long first, long len, bool reverse)
   if( first >= strLen) return string("");
   if( first < 0) first = 0; 
 
+#ifdef STRMID_DEBUG
+	cout << s.substr( first, len)<<"." << endl;
+#endif
   return s.substr( first, len);
 }
 
