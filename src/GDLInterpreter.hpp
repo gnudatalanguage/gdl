@@ -57,6 +57,12 @@ friend class PCALL_LIBNode;//: public CommandNode
 friend class MPCALLNode;//: public CommandNode
 friend class MPCALL_PARENTNode;//: public CommandNode
 friend class PCALLNode;//: public CommandNode
+friend class FORNode;
+friend class FOR_LOOPNode;
+friend class FOREACHNode;
+friend class FOREACH_LOOPNode;
+friend class FOR_STEPNode;
+friend class FOR_STEP_LOOPNode;
 
   friend class KEYDEFNode;
   friend class KEYDEF_REFNode;
@@ -68,6 +74,7 @@ friend class PCALLNode;//: public CommandNode
   friend class ParameterNode;
 
 public: 
+
 //     RetCode returnCode;    
     ProgNodeP GetNULLProgNodeP() const { return NULLProgNodeP;}
 
@@ -678,18 +685,18 @@ public:
 	public:  BaseGDL*  call_fun(ProgNodeP _t);
 	public:  BaseGDL**  call_lfun(ProgNodeP _t);
 	public: void call_pro(ProgNodeP _t);
-	public:  GDLInterpreter::RetCode  for_statement(ProgNodeP _t);
-	public:  GDLInterpreter::RetCode  foreach_statement(ProgNodeP _t);
+	public:  GDLInterpreter::RetCode  jump_statement(ProgNodeP _t);
+	public:  GDLInterpreter::RetCode  block(ProgNodeP _t);
+	public:  GDLInterpreter::RetCode  switch_statement(ProgNodeP _t);
+	public: BaseGDL*  expr(ProgNodeP _t);
+	public:  GDLInterpreter::RetCode  case_statement(ProgNodeP _t);
 	public:  GDLInterpreter::RetCode  repeat_statement(ProgNodeP _t);
 	public:  GDLInterpreter::RetCode  repeat_loop_statement(ProgNodeP _t);
 	public:  GDLInterpreter::RetCode  while_statement(ProgNodeP _t);
+	public:  GDLInterpreter::RetCode  for_statement(ProgNodeP _t);
+	public:  GDLInterpreter::RetCode  foreach_statement(ProgNodeP _t);
 	public:  GDLInterpreter::RetCode  if_statement(ProgNodeP _t);
 	public:  GDLInterpreter::RetCode  if_else_statement(ProgNodeP _t);
-	public:  GDLInterpreter::RetCode  case_statement(ProgNodeP _t);
-	public:  GDLInterpreter::RetCode  switch_statement(ProgNodeP _t);
-	public:  GDLInterpreter::RetCode  block(ProgNodeP _t);
-	public:  GDLInterpreter::RetCode  jump_statement(ProgNodeP _t);
-	public: BaseGDL*  expr(ProgNodeP _t);
 	public: BaseGDL**  l_ret_expr(ProgNodeP _t);
 	public: BaseGDL**  l_deref(ProgNodeP _t);
 	public:  BaseGDL**  l_arrayexpr_mfcall_as_mfcall(ProgNodeP _t);

@@ -183,11 +183,12 @@ public:
 	right = r;
 	keepRight = true;
   }
-//   void SetRight( ProgNodeP r)
-//   {
-// 	right = r;
+
+   void SetRight( ProgNodeP r)
+   {
+ 	right = r;
 // 	keepRight = false;
-//   }
+   }
   
 	virtual void SetAllBreak( ProgNodeP target)
 	{
@@ -246,25 +247,25 @@ public:
 	return (lIx >= labelStart) && (lIx < labelEnd);
   }
   
-  friend class GDLInterpreter;
-  friend class DInterpreter;
+	friend class GDLInterpreter;
+	friend class DInterpreter;
 
-friend class NSTRUCNode;
-friend class ASSIGNNode;
-friend class ASSIGN_REPLACENode;
-friend class PCALL_LIBNode;//: public CommandNode
-friend class MPCALLNode;//: public CommandNode
-friend class MPCALL_PARENTNode;//: public CommandNode
-friend class PCALLNode;//: public CommandNode
+	friend class NSTRUCNode;
+	friend class ASSIGNNode;
+	friend class ASSIGN_REPLACENode;
+	friend class PCALL_LIBNode;//: public CommandNode
+	friend class MPCALLNode;//: public CommandNode
+	friend class MPCALL_PARENTNode;//: public CommandNode
+	friend class PCALLNode;//: public CommandNode
 
-  friend class KEYDEF_Node;
-  friend class KEYDEF_REFNode;
-  friend class KEYDEF_REF_CHECKNode;
-  friend class KEYDEF_REF_EXPRNode;
-  friend class REFNode;
-  friend class REF_CHECKNode;
-  friend class REF_EXPRNode;
-  friend class ParameterNode;
+	friend class KEYDEF_Node;
+	friend class KEYDEF_REFNode;
+	friend class KEYDEF_REF_CHECKNode;
+	friend class KEYDEF_REF_EXPRNode;
+	friend class REFNode;
+	friend class REF_CHECKNode;
+	friend class REF_EXPRNode;
+	friend class ParameterNode;
 
 };
 
@@ -334,9 +335,11 @@ public:
 class FOR_LOOPNode: public BreakableNode
 {
   public:
+	void     Run();
+	
 	ProgNodeP GetStatementList()
 	{
-		return down->GetNextSibling()->GetNextSibling()->GetNextSibling();
+		return down->GetNextSibling();//->GetNextSibling()->GetNextSibling();
 	}
 	
   public:
@@ -387,13 +390,15 @@ class FOR_LOOPNode: public BreakableNode
 class FORNode: public BreakableNode
 {
   public:
+	void     Run();
+	
 	void KeepRight( ProgNodeP r);
 	
   int NumberForLoops( int actNum)
   {
 	this->forLoopIx = actNum;
 	
-	assert( down == NULL);
+// 	assert( down == NULL);
 		
 	assert( right != NULL && !keepRight);
 			
@@ -407,25 +412,32 @@ class FORNode: public BreakableNode
 
   FORNode( const RefDNode& refNode): BreakableNode( refNode)
 	{
+	ProgNodeP keep = down->GetNextSibling();
+	down->SetRight( down->GetNextSibling()->GetNextSibling()->GetNextSibling());
+
+	keep->GetNextSibling()->SetRight( NULL);
+	
     FOR_LOOPNode* forLoop = new FOR_LOOPNode( right, down);
 	forLoop->setLine( getLine());
 
-	down = NULL;
+	down = keep;
 	
 	right = forLoop;
-
 //   		if( this->GetStatementList() != NULL && right != NULL)
 // 			this->GetStatementList()->GetLastSibling()->KeepRight( right);
 	}
 };
 
 
+
 class FOR_STEP_LOOPNode: public BreakableNode
 {
   public:
+	void     Run();
+	
 	ProgNodeP GetStatementList()
 	{
-		return down->GetNextSibling()->GetNextSibling()->GetNextSibling()->GetNextSibling();
+		return down->GetNextSibling();//->GetNextSibling()->GetNextSibling()->GetNextSibling();
 	}
 	
   public:
@@ -477,13 +489,15 @@ class FOR_STEP_LOOPNode: public BreakableNode
 class FOR_STEPNode: public BreakableNode
 {
   public:
+	void     Run();
+	
 	void KeepRight( ProgNodeP r);
 	
   int NumberForLoops( int actNum)
   {
 	this->forLoopIx = actNum;
 	
-	assert( down == NULL);
+	//assert( down == NULL);
 		
 	assert( right != NULL && !keepRight);
 			
@@ -497,10 +511,15 @@ class FOR_STEPNode: public BreakableNode
 
   FOR_STEPNode( const RefDNode& refNode): BreakableNode( refNode)
 	{
+	ProgNodeP keep = down->GetNextSibling();
+	down->SetRight( down->GetNextSibling()->GetNextSibling()->GetNextSibling()->GetNextSibling());
+
+	keep->GetNextSibling()->GetNextSibling()->SetRight( NULL);
+	
     FOR_STEP_LOOPNode* forLoop = new FOR_STEP_LOOPNode( right, down);
 	forLoop->setLine( getLine());
 
-	down = NULL;
+	down = keep;
 	
 	right = forLoop;
 
@@ -514,9 +533,11 @@ class FOR_STEPNode: public BreakableNode
 class FOREACH_LOOPNode: public BreakableNode
 {
   public:
+	void     Run();
+	
 	ProgNodeP GetStatementList()
 	{
-		return down->GetNextSibling()->GetNextSibling();
+		return down->GetNextSibling();
 	}
 	
   public:
@@ -568,13 +589,15 @@ class FOREACH_LOOPNode: public BreakableNode
 class FOREACHNode: public BreakableNode
 {
   public:
+	void     Run();
+	
 	void KeepRight( ProgNodeP r);
 	
   int NumberForLoops( int actNum)
   {
 	this->forLoopIx = actNum;
 	
-	assert( down == NULL);
+// 	assert( down == NULL);
 		
 	assert( right != NULL && !keepRight);
 			
@@ -587,27 +610,28 @@ class FOREACHNode: public BreakableNode
   FOREACHNode(): BreakableNode()  {}
 
   FOREACHNode( const RefDNode& refNode): BreakableNode( refNode)
-	{
-    FOREACH_LOOPNode* forLoop = new FOREACH_LOOPNode( right, down);
+  {
+	ProgNodeP keep = down->GetNextSibling();
+	down->SetRight( down->GetNextSibling()->GetNextSibling());
+
+	keep->SetRight( NULL);
+
+	FOREACH_LOOPNode* forLoop = new FOREACH_LOOPNode( right, down);
 	forLoop->setLine( getLine());
 
-	down = NULL;
-	
+	down = keep;
+
 	right = forLoop;
-
-//   		if( this->GetStatementList() != NULL && right != NULL)
-// 			this->GetStatementList()->GetLastSibling()->KeepRight( right);
-	}
+ }
 };
-
-
-
 
 
 
 class WHILENode: public BreakableNode
 {
   public:
+	void     Run();
+	
 	ProgNodeP GetStatementList()
 	{
 		return down->GetNextSibling();
@@ -645,6 +669,8 @@ class WHILENode: public BreakableNode
 class REPEAT_LOOPNode: public BreakableNode
 {
   public:
+	void     Run();
+	
 	ProgNodeP GetStatementList()
 	{
 		return down->GetNextSibling();
@@ -683,6 +709,8 @@ class REPEAT_LOOPNode: public BreakableNode
 class REPEATNode: public BreakableNode
 {
   public:
+	void     Run();
+	
 	void KeepRight( ProgNodeP r)
 	{
 		right = r;
@@ -708,6 +736,8 @@ public:
 class CASENode: public BreakableNode
 {
   public:
+	void     Run();
+  
 	ProgNodeP GetStatementList()
 	{
 		return down->GetNextSibling();
@@ -793,6 +823,8 @@ public:
 class SWITCHNode: public BreakableNode
 {
   public:
+	void     Run();
+  
 	ProgNodeP GetStatementList()
 	{
 		return down->GetNextSibling();
@@ -887,6 +919,8 @@ public:
 class BLOCKNode: public ProgNode
 {
   public:
+	void     Run();
+	
   void KeepRight( ProgNodeP r)
   {
 	right = r;
@@ -926,6 +960,8 @@ public:
 class IFNode: public ProgNode
 {
   public:
+	void     Run();
+  
   void KeepRight( ProgNodeP r)
   {
     assert( down != NULL);
@@ -963,6 +999,8 @@ public:
 class IF_ELSENode: public ProgNode
 {
   public:
+	void     Run();
+  
   void KeepRight( ProgNodeP r)
   {
     // 	must recursively set dependents here

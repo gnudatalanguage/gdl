@@ -836,154 +836,393 @@ void INCNode::Run()
   ProgNode::interpreter->SetRetTree( this->getNextSibling());
 }
 
-
-// void FOR_INIT_Node::Run()
-// {
-//   BaseGDL* s;
-//   BaseGDL* e;
-//   BaseGDL* st;
-//   GDLInterpreter::RetCode retCode = RC_OK;
+void  FORNode::Run()//for_statement(ProgNodeP _t) {
+{
+		EnvUDT* callStack_back = 	static_cast<EnvUDT*>(GDLInterpreter::CallStack().back());
+		
+		ForLoopInfoT& loopInfo = callStack_back->GetForLoopInfo( this->forLoopIx);
 	
-//   //match(antlr::RefAST(_t),FOR);
-//   ProgNodeP _t = this->getFirstChild();
+		ProgNodeP vP = this->GetNextSibling()->GetFirstChild();
 		
-//   ProgNodeP sv = _t;
+		BaseGDL** v=ProgNode::interpreter->l_simple_var(vP);
 		
-//   BaseGDL** v=l_simple_var(_t);
-//   _t = _retTree;
-//   s=expr(_t);
-//   _t = _retTree;
-//   e=expr(_t);
-//   _t = _retTree;
+		BaseGDL* s=ProgNode::interpreter->expr( this->GetFirstChild());
+		auto_ptr<BaseGDL> s_guard(s);
 		
-//   auto_ptr<BaseGDL> s_guard(s);
-//   auto_ptr<BaseGDL> e_guard(e);
+		delete loopInfo.endLoopVar;
+		loopInfo.endLoopVar=ProgNode::interpreter->expr(this->GetFirstChild()->GetNextSibling());
 		
-//   s->ForCheck( &e);
-//   e_guard.release();
-//   e_guard.reset(e);
+		s->ForCheck( &loopInfo.endLoopVar);
 		
-//   ProgNodeP b= _t;
+		// ASSIGNMENT used here also
+		delete (*v);
+		(*v)= s_guard.release(); // s held in *v after this
 		
-//   // ASSIGNMENT used here also
-//   delete (*v);
-		
-//   // problem:
-//   // EXECUTE may call DataListT.loc.resize(), as v points to the
-//   // old sequence v might be invalidated -> segfault
-//   // note that the value (*v) is preserved by resize()
-//   s_guard.release(); // s held in *v after this
+		if( (*v)->ForCondUp( loopInfo.endLoopVar))
+		{
+		  ProgNode::interpreter->_retTree = vP->GetNextSibling();
+		return;
+		}
+		else
+		{
+		// skip if initial test fails
+		ProgNode::interpreter->_retTree = this->GetNextSibling()->GetNextSibling();
+		return;
+		}
+}
 
 
-//   (*v)=s;  
-//   SetReturnCode( RC_OK);
-// }
+	void  FOR_LOOPNode::Run()
+	{
+		EnvUDT* callStack_back = 	static_cast<EnvUDT*>(GDLInterpreter::CallStack().back());
+		ForLoopInfoT& loopInfo = 	callStack_back->GetForLoopInfo( this->forLoopIx);
+		if( loopInfo.endLoopVar == NULL)
+		{
+			// non-initialized loop (GOTO)
+			ProgNode::interpreter->_retTree = this->GetNextSibling();
+			return;
+		}
 
-// void ENDFORNode::Run()
-// {
-//   v=l_simple_var( sv);
-//   (*v)->ForAdd();
-//   ProgNode::interpreter->SetRetTree( target);
-// }
-// void ENDFOR_STEPNode::Run()
-// {
-//   v=l_simple_var( sv); 
-//   (*v)->ForAdd(st))
-//   ProgNode::interpreter->SetRetTree( target);
-// }
+		// // problem:
+		// // EXECUTE may call DataListT.loc.resize(), as v points to the
+		// // old sequence v might be invalidated -> segfault
+		// // note that the value (*v) is preserved by resize()
+		
+		BaseGDL** v=ProgNode::interpreter->l_simple_var(this->getFirstChild());
+		
+		(*v)->ForAdd();
+		if( (*v)->ForCondUp( loopInfo.endLoopVar))
+		{
+			ProgNode::interpreter->_retTree = this->GetFirstChild()->GetNextSibling();
+		}
+		else
+		{
+			delete loopInfo.endLoopVar;
+			loopInfo.endLoopVar = NULL;
+			ProgNode::interpreter->_retTree = this->GetNextSibling();
+		}
+	}
 
-// void FORNode::Run()
-// {
-//   if( ProgNode::interpreter->returnCode != RC_OK)
-//     {
-//     if( retCode == RC_CONTINUE) continue;  
-//     if( retCode == RC_BREAK) 
-//       {
-// 	retCode = RC_OK;
-// 	break;        
-//       }
-//     if( retCode >= RC_RETURN) break;
-//     }
+	
+ void  FOR_STEPNode::Run()//for_statement(ProgNodeP _t) {
+{
+	EnvUDT* callStack_back = 	static_cast<EnvUDT*>(GDLInterpreter::CallStack().back());
 
-//  if( (*v)->ForCondUp( e))
-//     {
-//       ProgNode::interpreter->SetRetTree( b);
-//     }
-//  else
-//     {
-//       ProgNode::interpreter->SetRetTree( this->getNextSibling());
-//     }
-// }
+	ForLoopInfoT& loopInfo = callStack_back->GetForLoopInfo( this->forLoopIx);
 
-// void FOR_STEP_INITNode::Run()
-// {
-//   BaseGDL* s;
-//   BaseGDL* e;
-//   BaseGDL* st;
-// //   match(antlr::RefAST(_t),FOR_STEP);
-//   ProgNodeP _t = this->getFirstChild();
-		
-//   ProgNodeP sv = _t;
-		
-//   v=l_simple_var(_t);
-//   _t = _retTree;
-//   s=expr(_t);
-//   _t = _retTree;
-//   e=expr(_t);
-//   _t = _retTree;
-//   st=expr(_t);
-//   _t = _retTree;
-		
-//   auto_ptr<BaseGDL> s_guard(s);
-//   auto_ptr<BaseGDL> e_guard(e);
-//   auto_ptr<BaseGDL> st_guard(st);
-		
-//   SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
-		
-//   s->ForCheck( &e, &st);
-//   e_guard.release();
-//   e_guard.reset(e);
-//   st_guard.release();
-//   st_guard.reset(st);
-		
-//   ProgNodeP bs=_t;
-		
-//   // ASSIGNMENT used here also
-//   delete (*v);
-// }
-// void FOR_STEPNode::Run()
-// {
-//   if( ProgNode::interpreter->returnCode != RC_OK)
-//     {
-//     if( retCode == RC_CONTINUE) continue;  
-//     if( retCode == RC_BREAK) 
-//       {
-// 	retCode = RC_OK;
-// 	break;        
-//       }
-//     if( retCode >= RC_RETURN) break;
-//     }
+	ProgNodeP vP = this->GetNextSibling()->GetFirstChild();
 
-//  if( st->Sgn() == -1) 
-//    {
-//  if( (*v)->ForCondDown( e))
-//     {
-//       ProgNode::interpreter->SetRetTree( bs);
-//     }
-//  else
-//     {
-//       ProgNode::interpreter->SetRetTree( this->getNextSibling());
-//     }
-//    }
-//  else
-//    {
-//  if( (*v)->ForCondUp( e))
-//     {
-//       ProgNode::interpreter->SetRetTree( bs);
-//     }
-//  else
-//     {
-//       ProgNode::interpreter->SetRetTree( this->getNextSibling());
-//     }
-//    }
-// }
+	BaseGDL** v=ProgNode::interpreter->l_simple_var(vP);
+
+	BaseGDL* s=ProgNode::interpreter->expr( this->GetFirstChild());
+	auto_ptr<BaseGDL> s_guard(s);
+
+	delete loopInfo.endLoopVar;
+	loopInfo.endLoopVar=ProgNode::interpreter->expr(this->GetFirstChild()->GetNextSibling());
+
+	delete loopInfo.loopStepVar;
+	loopInfo.loopStepVar=ProgNode::interpreter->expr(this->GetFirstChild()->GetNextSibling()->GetNextSibling());
+
+	s->ForCheck( &loopInfo.endLoopVar, &loopInfo.loopStepVar);
+
+	// ASSIGNMENT used here also
+	delete (*v);
+	(*v)= s_guard.release(); // s held in *v after this
+
+	if( loopInfo.loopStepVar->Sgn() == -1)
+	{
+		if( (*v)->ForCondDown( loopInfo.endLoopVar))
+		{
+			ProgNode::interpreter->_retTree = vP->GetNextSibling();
+			return;
+		}
+	}
+	else
+	{
+		if( (*v)->ForCondUp( loopInfo.endLoopVar))
+		{
+			ProgNode::interpreter->_retTree = vP->GetNextSibling();
+		return;
+		}
+	}
+	// skip if initial test fails
+	ProgNode::interpreter->_retTree = this->GetNextSibling()->GetNextSibling();
+}
+	
+void  FOR_STEP_LOOPNode::Run()
+{
+	EnvUDT* callStack_back = 	static_cast<EnvUDT*>(GDLInterpreter::CallStack().back());
+	
+	ForLoopInfoT& loopInfo = 	callStack_back->GetForLoopInfo( this->forLoopIx);
+	if( loopInfo.endLoopVar == NULL)
+	{
+		// non-initialized loop (GOTO)
+		ProgNode::interpreter->_retTree = this->GetNextSibling();
+		return;
+	}
+
+	// // problem:
+	// // EXECUTE may call DataListT.loc.resize(), as v points to the
+	// // old sequence v might be invalidated -> segfault
+	// // note that the value (*v) is preserved by resize()
+
+	BaseGDL** v=ProgNode::interpreter->l_simple_var(this->GetFirstChild());
+
+	(*v)->ForAdd(loopInfo.loopStepVar);
+	if( (*v)->ForCondUp( loopInfo.endLoopVar))
+	{
+		ProgNode::interpreter->_retTree = this->GetFirstChild()->GetNextSibling();
+	}
+	else
+	{
+		delete loopInfo.endLoopVar;
+		loopInfo.endLoopVar = NULL;
+		delete loopInfo.loopStepVar;
+		loopInfo.loopStepVar = NULL;
+		ProgNode::interpreter->_retTree = this->GetNextSibling();
+	}
+}
+
+void  FOREACHNode::Run()
+{
+	EnvUDT* callStack_back = 	static_cast<EnvUDT*>(GDLInterpreter::CallStack().back());
+	ForLoopInfoT& loopInfo = callStack_back->GetForLoopInfo( this->forLoopIx);
+
+	ProgNodeP vP = this->GetNextSibling()->GetFirstChild();
+
+	BaseGDL** v=ProgNode::interpreter->l_simple_var(vP);
+
+	delete loopInfo.endLoopVar;
+	loopInfo.endLoopVar=ProgNode::interpreter->expr(this->GetFirstChild());
+
+	loopInfo.foreachIx = 0;
+
+	// currently there are no empty arrays
+	//SizeT nEl = loopInfo.endLoopVar->N_Elements();
+
+	// ASSIGNMENT used here also
+	delete (*v);
+	(*v) = loopInfo.endLoopVar->NewIx( 0);
+
+	ProgNode::interpreter->_retTree = vP->GetNextSibling();
+}
+	
+void  FOREACH_LOOPNode::Run()
+{
+	EnvUDT* callStack_back = 	static_cast<EnvUDT*>(GDLInterpreter::CallStack().back());
+	ForLoopInfoT& loopInfo = callStack_back->GetForLoopInfo( this->forLoopIx);
+
+	if( loopInfo.endLoopVar == NULL)
+	{
+	// non-initialized loop (GOTO)
+	ProgNode::interpreter->_retTree = this->GetNextSibling();
+	return;
+	}
+
+	BaseGDL** v=ProgNode::interpreter->l_simple_var(this->GetFirstChild());
+	
+	++loopInfo.foreachIx;
+
+	SizeT nEl = loopInfo.endLoopVar->N_Elements();
+
+	if( loopInfo.foreachIx < nEl)
+	{
+		// ASSIGNMENT used here also
+		delete (*v);
+		(*v) = loopInfo.endLoopVar->NewIx( loopInfo.foreachIx);
+
+		ProgNode::interpreter->_retTree = this->GetFirstChild()->GetNextSibling();
+		return;
+	}
+
+	delete loopInfo.endLoopVar;
+	loopInfo.endLoopVar = NULL;
+	// 	loopInfo.foreachIx = -1;
+	ProgNode::interpreter->_retTree = this->GetNextSibling();
+}
+
+
+
+void  REPEATNode::Run()
+{
+	// _t is REPEAT_LOOP, GetFirstChild() is expr, GetNextSibling is first loop statement
+	if( this->GetFirstChild()->GetFirstChild()->GetNextSibling() == NULL)
+		ProgNode::interpreter->SetRetTree( this->GetFirstChild());
+	else	
+		ProgNode::interpreter->SetRetTree( this->GetFirstChild()->GetFirstChild()->GetNextSibling());     // statement
+}
+
+
+
+void  REPEAT_LOOPNode::Run()
+{
+	auto_ptr<BaseGDL> eVal( ProgNode::interpreter->expr(this->GetFirstChild()));
+	if( eVal.get()->False())
+	{
+	ProgNode::interpreter->SetRetTree( this->GetFirstChild()->GetNextSibling());     // 1st loop statement
+	if(  this->GetFirstChild()->GetNextSibling() == NULL)
+		throw GDLException(this,	"Empty REPEAT loop entered (infinite loop).",true,false);
+	return;
+	}
+	
+	ProgNode::interpreter->SetRetTree( this->GetNextSibling());     // statement
+}
+
+
+
+void  WHILENode::Run()
+{
+	auto_ptr<BaseGDL> eVal( ProgNode::interpreter->expr( this->GetFirstChild()));
+	if( eVal.get()->True()) 
+	{
+		ProgNode::interpreter->SetRetTree( this->GetFirstChild()->GetNextSibling());
+		if( this->GetFirstChild()->GetNextSibling() == NULL)
+			throw GDLException(this,"Empty WHILE loop entered (infinite loop).",true,false);
+	}
+	else
+	{
+		ProgNode::interpreter->SetRetTree( this->GetNextSibling());
+	}
+}
+
+
+
+void  IFNode::Run()
+ {
+	auto_ptr<BaseGDL> eVal( ProgNode::interpreter->expr( this->GetFirstChild()));
+	if( eVal.get()->True()) 
+	{
+		ProgNode::interpreter->SetRetTree( this->GetFirstChild()->GetNextSibling());
+	}
+	else
+	{
+		ProgNode::interpreter->SetRetTree( this->GetNextSibling());
+	}
+}
+
+void  IF_ELSENode::Run()
+{	
+	auto_ptr<BaseGDL> eVal( ProgNode::interpreter->expr( this->GetFirstChild()));
+	if( eVal.get()->True()) 
+	{
+		ProgNode::interpreter->SetRetTree( this->GetFirstChild()->GetNextSibling()->GetFirstChild());
+	}
+	else
+	{
+		ProgNode::interpreter->SetRetTree( this->GetFirstChild()->GetNextSibling()->GetNextSibling());
+	}
+}
+
+
+
+void  CASENode::Run()
+{
+	auto_ptr<BaseGDL> eVal( ProgNode::interpreter->expr( this->GetFirstChild()));
+ 	if( !eVal.get()->Scalar())
+	throw GDLException( this->GetFirstChild(), "Expression must be a"
+	" scalar in this context: "+ProgNode::interpreter->Name(eVal.get()),true,false);
+
+	ProgNodeP b=this->GetFirstChild()->GetNextSibling(); // remeber block begin
+ 
+	for( int i=0; i<this->numBranch; ++i)
+	{
+		if( b->getType() == GDLTokenTypes::ELSEBLK)
+		{
+			ProgNodeP sL = b->GetFirstChild(); // statement_list
+		
+			if(sL != NULL )
+			{
+				ProgNode::interpreter->SetRetTree( sL);
+			}
+			else
+			{
+				ProgNode::interpreter->SetRetTree( this->GetNextSibling());
+			}
+			return;
+		}
+		else
+		{
+			ProgNodeP ex = b->GetFirstChild();  // EXPR
+			ProgNodeP bb = ex->GetNextSibling(); // statement_list
+		
+			BaseGDL* ee=ProgNode::interpreter->expr(ex);
+			// auto_ptr<BaseGDL> ee_guard(ee);
+			bool equalexpr=eVal.get()->Equal(ee); // Equal deletes ee
+		
+			if( equalexpr)
+			{
+				if(bb != NULL )
+				{
+					ProgNode::interpreter->SetRetTree( bb);
+					return;
+				}
+				else
+				{
+					ProgNode::interpreter->SetRetTree( this->GetNextSibling());
+					return;
+				}
+			}
+		}
+		b=b->GetNextSibling(); // next block
+	} // for
+	
+	throw GDLException( this, "CASE statement found no match.",true,false);
+}
+
+
+
+void  SWITCHNode::Run()
+{
+	auto_ptr<BaseGDL> eVal( ProgNode::interpreter->expr( this->GetFirstChild()));
+ 	if( !eVal.get()->Scalar())
+	throw GDLException( this->GetFirstChild(), "Expression must be a"
+	" scalar in this context: "+ProgNode::interpreter->Name(eVal.get()),true,false);
+
+	ProgNodeP b=this->GetFirstChild()->GetNextSibling(); // remeber block begin
+	
+	bool hook=false; // switch executes everything after 1st match
+	for( int i=0; i<this->numBranch; i++)
+	{
+		if( b->getType() == GDLTokenTypes::ELSEBLK)
+			{
+				hook=true;
+				
+				ProgNodeP sL = b->GetFirstChild(); // statement_list
+				
+				if(sL != NULL )
+				{
+					ProgNode::interpreter->SetRetTree( sL);
+					return;
+				}
+			}
+		else
+			{
+				ProgNodeP ex = b->GetFirstChild();  // EXPR
+				ProgNodeP bb = ex->GetNextSibling(); // statement_list
+				
+				if( !hook)
+				{
+					BaseGDL* ee=ProgNode::interpreter->expr(ex);
+					// auto_ptr<BaseGDL> ee_guard(ee);
+					hook=eVal.get()->Equal(ee); // Equal deletes ee
+				}
+				
+				if( hook)
+				{
+					// statement there
+					if(bb != NULL )
+					{
+						ProgNode::interpreter->SetRetTree( bb);
+						return;
+					}
+				}
+			}
+		b=b->GetNextSibling(); // next block
+	} // for
+	ProgNode::interpreter->SetRetTree( this->GetNextSibling());
+}
+
+void  BLOCKNode::Run()
+{
+	ProgNode::interpreter->SetRetTree( this->getFirstChild());
+}

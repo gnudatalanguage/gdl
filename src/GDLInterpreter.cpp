@@ -97,13 +97,27 @@ GDLInterpreter::GDLInterpreter()
 	ProgNodeP statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP a = ProgNodeP(antlr::nullAST);
 	ProgNodeP ac = ProgNodeP(antlr::nullAST);
-	ProgNodeP r = ProgNodeP(antlr::nullAST);
+	ProgNodeP ar = ProgNodeP(antlr::nullAST);
 	ProgNodeP l = ProgNodeP(antlr::nullAST);
 	ProgNodeP m = ProgNodeP(antlr::nullAST);
 	ProgNodeP mp = ProgNodeP(antlr::nullAST);
 	ProgNodeP p = ProgNodeP(antlr::nullAST);
 	ProgNodeP d = ProgNodeP(antlr::nullAST);
+	ProgNodeP in = ProgNodeP(antlr::nullAST);
+	ProgNodeP f = ProgNodeP(antlr::nullAST);
+	ProgNodeP fl = ProgNodeP(antlr::nullAST);
+	ProgNodeP fe = ProgNodeP(antlr::nullAST);
+	ProgNodeP fel = ProgNodeP(antlr::nullAST);
+	ProgNodeP fs = ProgNodeP(antlr::nullAST);
+	ProgNodeP fsl = ProgNodeP(antlr::nullAST);
+	ProgNodeP r = ProgNodeP(antlr::nullAST);
+	ProgNodeP rl = ProgNodeP(antlr::nullAST);
+	ProgNodeP w = ProgNodeP(antlr::nullAST);
 	ProgNodeP i = ProgNodeP(antlr::nullAST);
+	ProgNodeP ie = ProgNodeP(antlr::nullAST);
+	ProgNodeP c = ProgNodeP(antlr::nullAST);
+	ProgNodeP s = ProgNodeP(antlr::nullAST);
+	ProgNodeP b = ProgNodeP(antlr::nullAST);
 	ProgNodeP o = ProgNodeP(antlr::nullAST);
 	
 	retCode = RC_OK;
@@ -137,10 +151,10 @@ GDLInterpreter::GDLInterpreter()
 		}
 		case ASSIGN_REPLACE:
 		{
-			r = _t;
+			ar = _t;
 			match(antlr::RefAST(_t),ASSIGN_REPLACE);
 			_t = _t->getNextSibling();
-			r->Run();
+			ar->Run();
 			break;
 		}
 		case PCALL_LIB:
@@ -185,74 +199,122 @@ GDLInterpreter::GDLInterpreter()
 		}
 		case INC:
 		{
-			i = _t;
+			in = _t;
 			match(antlr::RefAST(_t),INC);
 			_t = _t->getNextSibling();
-			i->Run();
+			in->Run();
 			break;
 		}
 		case FOR:
-		case FOR_STEP:
-		case FOR_LOOP:
-		case FOR_STEP_LOOP:
 		{
-			retCode=for_statement(_t);
-			_t = _retTree;
+			f = _t;
+			match(antlr::RefAST(_t),FOR);
+			_t = _t->getNextSibling();
+			f->Run(); _t = _retTree;
+			break;
+		}
+		case FOR_LOOP:
+		{
+			fl = _t;
+			match(antlr::RefAST(_t),FOR_LOOP);
+			_t = _t->getNextSibling();
+			fl->Run(); _t = _retTree;
 			break;
 		}
 		case FOREACH:
+		{
+			fe = _t;
+			match(antlr::RefAST(_t),FOREACH);
+			_t = _t->getNextSibling();
+			fe->Run(); _t = _retTree;
+			break;
+		}
 		case FOREACH_LOOP:
 		{
-			retCode=foreach_statement(_t);
-			_t = _retTree;
+			fel = _t;
+			match(antlr::RefAST(_t),FOREACH_LOOP);
+			_t = _t->getNextSibling();
+			fel->Run(); _t = _retTree;
+			break;
+		}
+		case FOR_STEP:
+		{
+			fs = _t;
+			match(antlr::RefAST(_t),FOR_STEP);
+			_t = _t->getNextSibling();
+			fs->Run(); _t = _retTree;
+			break;
+		}
+		case FOR_STEP_LOOP:
+		{
+			fsl = _t;
+			match(antlr::RefAST(_t),FOR_STEP_LOOP);
+			_t = _t->getNextSibling();
+			fsl->Run(); _t = _retTree;
 			break;
 		}
 		case REPEAT:
 		{
-			retCode=repeat_statement(_t);
-			_t = _retTree;
+			r = _t;
+			match(antlr::RefAST(_t),REPEAT);
+			_t = _t->getNextSibling();
+			r->Run(); _t = _retTree;
 			break;
 		}
 		case REPEAT_LOOP:
 		{
-			retCode=repeat_loop_statement(_t);
-			_t = _retTree;
+			rl = _t;
+			match(antlr::RefAST(_t),REPEAT_LOOP);
+			_t = _t->getNextSibling();
+			rl->Run(); _t = _retTree;
 			break;
 		}
 		case WHILE:
 		{
-			retCode=while_statement(_t);
-			_t = _retTree;
+			w = _t;
+			match(antlr::RefAST(_t),WHILE);
+			_t = _t->getNextSibling();
+			w->Run(); _t = _retTree;
 			break;
 		}
 		case IF:
 		{
-			retCode=if_statement(_t);
-			_t = _retTree;
+			i = _t;
+			match(antlr::RefAST(_t),IF);
+			_t = _t->getNextSibling();
+			i->Run(); _t = _retTree;
 			break;
 		}
 		case IF_ELSE:
 		{
-			retCode=if_else_statement(_t);
-			_t = _retTree;
+			ie = _t;
+			match(antlr::RefAST(_t),IF_ELSE);
+			_t = _t->getNextSibling();
+			ie->Run(); _t = _retTree;
 			break;
 		}
 		case CASE:
 		{
-			retCode=case_statement(_t);
-			_t = _retTree;
+			c = _t;
+			match(antlr::RefAST(_t),CASE);
+			_t = _t->getNextSibling();
+			c->Run(); _t = _retTree;
 			break;
 		}
 		case SWITCH:
 		{
-			retCode=switch_statement(_t);
-			_t = _retTree;
+			s = _t;
+			match(antlr::RefAST(_t),SWITCH);
+			_t = _t->getNextSibling();
+			s->Run(); _t = _retTree;
 			break;
 		}
 		case BLOCK:
 		{
-			retCode=block(_t);
-			_t = _retTree;
+			b = _t;
+			match(antlr::RefAST(_t),BLOCK);
+			_t = _t->getNextSibling();
+			b->Run(); _t = _retTree;
 			break;
 		}
 		case BREAK:
@@ -702,6 +764,676 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 	_retTree = _t;
 }
 
+ GDLInterpreter::RetCode  GDLInterpreter::jump_statement(ProgNodeP _t) {
+	 GDLInterpreter::RetCode retCode;
+	ProgNodeP jump_statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP g = ProgNodeP(antlr::nullAST);
+	ProgNodeP b = ProgNodeP(antlr::nullAST);
+	ProgNodeP c = ProgNodeP(antlr::nullAST);
+	
+	BaseGDL*  e;
+	BaseGDL** eL;
+	
+	
+	if (_t == ProgNodeP(antlr::nullAST) )
+		_t = ASTNULL;
+	switch ( _t->getType()) {
+	case GOTO:
+	{
+		g = _t;
+		match(antlr::RefAST(_t),GOTO);
+		_t = _t->getNextSibling();
+		
+		// note that this version jumps 'dumb'
+		// jumping into loops is legal, even then looping is not done
+		
+		// set the jump target - also logs the jump
+		_t = static_cast<EnvUDT*>(callStack.back())->GotoTarget( g->targetIx);
+		_t = _t->GetNextSibling();
+		retCode=RC_OK;
+		
+		break;
+	}
+	case RETF:
+	{
+		ProgNodeP __t45 = _t;
+		ProgNodeP tmp3_AST_in = _t;
+		match(antlr::RefAST(_t),RETF);
+		_t = _t->getFirstChild();
+		{
+		if (_t == ProgNodeP(antlr::nullAST) )
+			_t = ASTNULL;
+		if (((_tokenSet_1.member(_t->getType())))&&( !static_cast<EnvUDT*>(callStack.back())->LFun())) {
+			e=expr(_t);
+			_t = _retTree;
+			
+			delete returnValue;
+			returnValue=e;
+			retCode=RC_RETURN;
+			callStack.back()->RemoveLoc( e); // steal e from local list
+			
+		}
+		else if ((_tokenSet_2.member(_t->getType()))) {
+			eL=l_ret_expr(_t);
+			_t = _retTree;
+			
+			// returnValueL is otherwise owned
+			returnValueL=eL;
+			retCode=RC_RETURN;
+			
+		}
+		else {
+			throw antlr::NoViableAltException(antlr::RefAST(_t));
+		}
+		
+		}
+		_t = __t45;
+		_t = _t->getNextSibling();
+		break;
+	}
+	case RETP:
+	{
+		ProgNodeP tmp4_AST_in = _t;
+		match(antlr::RefAST(_t),RETP);
+		_t = _t->getNextSibling();
+		
+		retCode=RC_RETURN;
+		
+		break;
+	}
+	case BREAK:
+	{
+		b = _t;
+		match(antlr::RefAST(_t),BREAK);
+		_t = _t->getNextSibling();
+		
+		if( b->BreakTarget() == NULL)
+		return RC_BREAK;
+		_retTree = b->BreakTarget();
+		// happens with IF_ELSE as last statement 
+		// (1st alt must be disconnected from 2nd)
+		if( _retTree == GetNULLProgNodeP())
+		_retTree = NULL;
+		return RC_OK;
+		
+		break;
+	}
+	case CONTINUE:
+	{
+		c = _t;
+		match(antlr::RefAST(_t),CONTINUE);
+		_t = _t->getNextSibling();
+		
+		if( c->BreakTarget() == NULL)
+		return RC_CONTINUE;
+		_retTree = c->BreakTarget();
+		return RC_OK;
+		//            retCode=RC_CONTINUE;
+		
+		break;
+	}
+	default:
+	{
+		throw antlr::NoViableAltException(antlr::RefAST(_t));
+	}
+	}
+	_retTree = _t;
+	return retCode;
+}
+
+ GDLInterpreter::RetCode  GDLInterpreter::block(ProgNodeP _t) {
+	 GDLInterpreter::RetCode retCode;
+	ProgNodeP block_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
+	
+		match(antlr::RefAST(_t),BLOCK);
+		_retTree = _t->getFirstChild();
+	return RC_OK;
+	//     retCode = RC_OK;
+	
+	// 	ProgNodeP block = _t;
+	// 	match(antlr::RefAST(_t),BLOCK);
+	// 	_t = _t->getFirstChild();
+	// 	if (_t != NULL)
+	// 		{
+	
+	//             SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
+	
+	//             retCode=statement_list(_t);
+	
+	//             if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+	//                 !block->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
+	//                 {
+	//                     // a jump (goto) occured out of this block
+	//                     return retCode;
+	//                 }
+	// 		}
+	// 	_retTree = block->getNextSibling();
+	// 	return retCode;
+	
+	
+	ProgNodeP __t20 = _t;
+	ProgNodeP tmp5_AST_in = _t;
+	match(antlr::RefAST(_t),BLOCK);
+	_t = _t->getFirstChild();
+	{
+	if (_t == ProgNodeP(antlr::nullAST) )
+		_t = ASTNULL;
+	switch ( _t->getType()) {
+	case ASSIGN:
+	case ASSIGN_REPLACE:
+	case ASSIGN_ARRAYEXPR_MFCALL:
+	case BLOCK:
+	case BREAK:
+	case CONTINUE:
+	case FOR:
+	case FOR_STEP:
+	case FOREACH:
+	case FOR_LOOP:
+	case FOR_STEP_LOOP:
+	case FOREACH_LOOP:
+	case IF_ELSE:
+	case LABEL:
+	case MPCALL:
+	case MPCALL_PARENT:
+	case ON_IOERROR_NULL:
+	case PCALL:
+	case PCALL_LIB:
+	case REPEAT:
+	case REPEAT_LOOP:
+	case RETF:
+	case RETP:
+	case WHILE:
+	case CASE:
+	case GOTO:
+	case IF:
+	case ON_IOERROR:
+	case SWITCH:
+	case DEC:
+	case INC:
+	{
+		retCode=statement_list(_t);
+		_t = _retTree;
+		break;
+	}
+	case 3:
+	{
+		break;
+	}
+	default:
+	{
+		throw antlr::NoViableAltException(antlr::RefAST(_t));
+	}
+	}
+	}
+	_t = __t20;
+	_t = _t->getNextSibling();
+	_retTree = _t;
+	return retCode;
+}
+
+ GDLInterpreter::RetCode  GDLInterpreter::switch_statement(ProgNodeP _t) {
+	 GDLInterpreter::RetCode retCode;
+	ProgNodeP switch_statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP s = ProgNodeP(antlr::nullAST);
+	
+	BaseGDL* e;
+	retCode = RC_OK; // not set if no branch is executed
+	
+	
+	ProgNodeP __t23 = _t;
+	s = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
+	match(antlr::RefAST(_t),SWITCH);
+	_t = _t->getFirstChild();
+	e=expr(_t);
+	_t = _retTree;
+	
+	auto_ptr<BaseGDL> e_guard(e);
+	
+	//                SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
+	
+	ProgNodeP b=_t; // remeber block begin (block)
+	
+	bool hook=false; // switch executes everything after 1st match
+	for( int i=0; i<s->numBranch; i++)
+	{
+	if( b->getType() == ELSEBLK)
+	{
+	hook=true;
+	
+	ProgNodeP sL = b->GetFirstChild(); // statement_list
+	
+	if(sL != NULL )
+	{
+	_retTree = sL;
+	return RC_OK;
+	}
+	
+	//                             // statement there
+	//                             retCode=statement_list( sL);
+	//                             if( retCode == RC_BREAK) 
+	//                             {
+	//                                 retCode = RC_OK;    
+	//                                 break;          // break
+	//                             }
+	//                             if( retCode >= RC_RETURN) break; // goto
+	
+	//                             if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+	//                                 !s->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
+	//                             {
+	//                                 // a jump (goto) occured out of this loop
+	//                                 return retCode;
+	//                             }
+	
+	//                         }
+	}
+	else
+	{
+	ProgNodeP ex = b->GetFirstChild();  // EXPR
+	ProgNodeP bb = ex->GetNextSibling(); // statement_list
+	
+	if( !hook)
+	{
+	//                            RefDNode ee_ = _t->GetFirstChild(); // expr
+	
+	BaseGDL* ee=expr(ex);
+	// auto_ptr<BaseGDL> ee_guard(ee);
+	
+	hook=e->Equal(ee); // Equal deletes ee
+	}
+	
+	if( hook)
+	{
+	// statement there
+	if(bb != NULL )
+	{
+	_retTree = bb;
+	return RC_OK;
+	}
+	
+	//                             _retTree = // find first non empty
+	//                             return RC_OK;
+	//                                 }
+	
+	//                             retCode=statement_list(bb);
+	//                             if( retCode == RC_BREAK) 
+	//                             {
+	//                                 retCode = RC_OK;    
+	//                                 break;          // break
+	//                             }
+	//                             if( retCode >= RC_RETURN) break; // goto
+	
+	//                             if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+	//                                 !s->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
+	//                             {
+	//                                 // a jump (goto) occured out of this loop
+	//                                 return retCode;
+	//                             }
+	}
+	
+	}
+	b=b->GetNextSibling(); // next block
+	}
+	_retTree = s->GetNextSibling();
+	return RC_OK;
+	// finish or break
+	//                retCode=RC_OK; // clear RC_BREAK retCode
+	
+	_t = __t23;
+	_t = _t->getNextSibling();
+	_retTree = _t;
+	return retCode;
+}
+
+BaseGDL*  GDLInterpreter::expr(ProgNodeP _t) {
+	BaseGDL* res;
+	ProgNodeP expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
+	
+		
+		assert( _t != NULL);
+	
+		if ( _t->getType() == FCALL_LIB) {
+	BaseGDL* res=lib_function_call(_t);
+			
+			if( callStack.back()->Contains( res)) 
+			res = res->Dup();
+	
+	return res;    		
+		}
+		else
+		{
+			return tmp_expr(_t);
+		}
+	
+	
+	if (_t == ProgNodeP(antlr::nullAST) )
+		_t = ASTNULL;
+	switch ( _t->getType()) {
+	case ASSIGN:
+	case ASSIGN_REPLACE:
+	case ASSIGN_ARRAYEXPR_MFCALL:
+	case ARRAYDEF:
+	case ARRAYEXPR:
+	case ARRAYEXPR_MFCALL:
+	case CONSTANT:
+	case DEREF:
+	case EXPR:
+	case FCALL:
+	case FCALL_LIB_RETNEW:
+	case MFCALL:
+	case MFCALL_PARENT:
+	case NSTRUC:
+	case NSTRUC_REF:
+	case POSTDEC:
+	case POSTINC:
+	case STRUC:
+	case SYSVAR:
+	case VAR:
+	case VARPTR:
+	case DEC:
+	case INC:
+	case DOT:
+	case QUESTION:
+	{
+		res=tmp_expr(_t);
+		_t = _retTree;
+		break;
+	}
+	case FCALL_LIB:
+	{
+		res=check_expr(_t);
+		_t = _retTree;
+		
+		if( callStack.back()->Contains( res)) 
+		res = res->Dup();
+		
+		break;
+	}
+	default:
+	{
+		throw antlr::NoViableAltException(antlr::RefAST(_t));
+	}
+	}
+	_retTree = _t;
+	return res;
+}
+
+ GDLInterpreter::RetCode  GDLInterpreter::case_statement(ProgNodeP _t) {
+	 GDLInterpreter::RetCode retCode;
+	ProgNodeP case_statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP c = ProgNodeP(antlr::nullAST);
+	
+	BaseGDL* e;
+	retCode = RC_OK; // not set if no branch is executed
+	
+	
+	ProgNodeP __t25 = _t;
+	c = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
+	match(antlr::RefAST(_t),CASE);
+	_t = _t->getFirstChild();
+	e=expr(_t);
+	_t = _retTree;
+	
+	auto_ptr<BaseGDL> e_guard(e);
+	
+	//                SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
+	
+	if( !e->Scalar())
+	throw GDLException( _t, "Expression must be a"
+	" scalar in this context: "+Name(e),true,false);
+	
+	ProgNodeP b=_t; // remeber block begin
+	
+	for( int i=0; i<c->numBranch; ++i)
+	{
+	if( b->getType() == ELSEBLK)
+	{
+	ProgNodeP sL = b->GetFirstChild(); // statement_list
+	
+	if(sL != NULL )
+	{
+	_retTree = sL;
+	return RC_OK;
+	}
+	else
+	{
+	_retTree = c->GetNextSibling();
+	return RC_OK;
+	}
+	
+	//                             // statement there
+	//                             retCode=statement_list(sL);
+	//                             //if( retCode == RC_BREAK) break; // break anyway
+	// //                            if( retCode >= RC_RETURN) return retCode; 
+	//                             if( retCode >= RC_RETURN) break;
+	
+	//                             if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+	//                                 !c->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
+	//                             {
+	//                                 // a jump (goto) occured out of this loop
+	//                                 return retCode;
+	//                             }
+	
+	//                         }
+	//                         retCode = RC_OK;
+	//                         break;
+	}
+	else
+	{
+	ProgNodeP ex = b->GetFirstChild();  // EXPR
+	ProgNodeP bb = ex->GetNextSibling(); // statement_list
+	
+	BaseGDL* ee=expr(ex);
+	// auto_ptr<BaseGDL> ee_guard(ee);
+	
+	bool equalexpr=e->Equal(ee); // Equal deletes ee
+	
+	if( equalexpr)
+	{
+	if(bb != NULL )
+	{
+	_retTree = bb;
+	return RC_OK;
+	}
+	else
+	{
+	_retTree = c->GetNextSibling();
+	return RC_OK;
+	}
+	//                             if(bb != NULL)
+	//                             {
+	//                                 // statement there
+	//                                 retCode=statement_list(bb);
+	//                                 //if( retCode == RC_BREAK) break; // break anyway
+	// //                                if( retCode >= RC_RETURN) return retCode;
+	//                                 if( retCode >= RC_RETURN) break;
+	
+	//                                 if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+	//                                     !c->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
+	//                                 {
+	//                                     // a jump (goto) occured out of this loop
+	//                                     return retCode;
+	//                                 }
+	
+	//                             }
+	//                             retCode = RC_OK;
+	//                             break;
+	}
+	
+	}
+	b=b->GetNextSibling(); // next block
+	} // for
+	// finish or break
+	//                retCode=RC_OK; // clear RC_BREAK retCode
+	throw GDLException( c, "CASE statement found no match.",true,false);
+	
+	_t = __t25;
+	_t = _t->getNextSibling();
+	_retTree = _t;
+	return retCode;
+}
+
+ GDLInterpreter::RetCode  GDLInterpreter::repeat_statement(ProgNodeP _t) {
+	 GDLInterpreter::RetCode retCode;
+	ProgNodeP repeat_statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP r = ProgNodeP(antlr::nullAST);
+	
+	ProgNodeP __t27 = _t;
+	r = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
+	match(antlr::RefAST(_t),REPEAT);
+	_t = _t->getFirstChild();
+	
+	// _t is REPEAT_LOOP, GetFirstChild() is expr, GetNextSibling is first loop statement
+	_retTree = _t->GetFirstChild()->GetNextSibling();     // statement
+	return RC_OK;
+	
+	_t = __t27;
+	_t = _t->getNextSibling();
+	_retTree = _t;
+	return retCode;
+}
+
+ GDLInterpreter::RetCode  GDLInterpreter::repeat_loop_statement(ProgNodeP _t) {
+	 GDLInterpreter::RetCode retCode;
+	ProgNodeP repeat_loop_statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP r = ProgNodeP(antlr::nullAST);
+	
+	ProgNodeP __t29 = _t;
+	r = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
+	match(antlr::RefAST(_t),REPEAT_LOOP);
+	_t = _t->getFirstChild();
+	
+	auto_ptr<BaseGDL> eVal( expr(_t));
+	if( eVal.get()->False())
+	{
+	_retTree = _t->GetNextSibling();     // 1st loop statement
+	if( _retTree == NULL)
+	throw GDLException(r,
+	"Empty REPEAT loop entered (infinite loop).",
+	true,false);
+	return RC_OK;
+	}
+	else
+	{
+	_retTree = r->GetNextSibling();     // statement
+	return RC_OK;
+	}
+	
+	//                 retCode=RC_OK; // clear RC_BREAK/RC_CONTINUE retCode
+	//                 SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
+	
+	//                 // remember block and expr nodes
+	//                 ProgNodeP e =_t;
+	//                 ProgNodeP bb  = e->GetNextSibling();
+	
+	// //                 ProgNodeP bb =_t;
+	// //                 ProgNodeP e  = bb->GetNextSibling();
+	// //                 bb = bb->GetFirstChild();
+	
+	//                 auto_ptr<BaseGDL> eVal;
+	//                 do {
+	//                     if( bb != NULL)
+	//                     {
+	//                     retCode=statement_list(bb);
+	
+	//                     if( retCode == RC_CONTINUE)
+	//                                 {
+	//                                 retCode = RC_OK;
+	//                                 continue;  
+	//                                 }
+	//                     if( retCode == RC_BREAK) 
+	//                     {
+	//                         retCode = RC_OK;
+	//                         break;        
+	//                     }
+	//                     if( retCode >= RC_RETURN) break;
+	//                     // if( retCode == RC_BREAK) break;        
+	//                     // if( retCode >= RC_RETURN) return retCode;
+	
+	//                     if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+	//                         !r->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
+	//                     {
+	//                         // a jump (goto) occured out of this loop
+	//                         return retCode;
+	//                     }
+	//                     }
+	//                     eVal.reset( expr(e));
+	//                 } while( eVal.get()->False());
+	
+	//                 // retCode=RC_OK; // clear RC_BREAK/RC_CONTINUE retCode
+	
+	_t = __t29;
+	_t = _t->getNextSibling();
+	_retTree = _t;
+	return retCode;
+}
+
+ GDLInterpreter::RetCode  GDLInterpreter::while_statement(ProgNodeP _t) {
+	 GDLInterpreter::RetCode retCode;
+	ProgNodeP while_statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP w = ProgNodeP(antlr::nullAST);
+	
+	retCode = RC_OK;
+	
+	
+	ProgNodeP __t31 = _t;
+	w = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
+	match(antlr::RefAST(_t),WHILE);
+	_t = _t->getFirstChild();
+	
+	//                 SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
+	
+	//                 ProgNodeP e = _t; //->GetFirstChild();  // expr
+	
+	auto_ptr<BaseGDL> eVal( expr( _t));
+	if( eVal.get()->True()) 
+	{
+	_retTree = _t->GetNextSibling();     // 1st loop statement
+	if( _retTree == NULL)
+	throw GDLException(w,
+	"Empty WHILE loop entered (infinite loop).",
+	true,false);
+	return RC_OK;
+	}
+	else
+	{
+	_retTree = w->GetNextSibling();     // statement
+	return RC_OK;
+	}
+	
+	//                 auto_ptr< BaseGDL> eVal( expr( e));
+	//                 while( eVal.get()->True()) {
+	//                     retCode=statement_list(s);
+	
+	//                     if( retCode == RC_CONTINUE) 
+	//                                 {
+	//                                 retCode = RC_OK;
+	//                                 continue;  
+	//                                 }
+	//                     if( retCode == RC_BREAK) 
+	//                     {
+	//                         retCode = RC_OK;
+	//                         break;        
+	//                     }
+	//                     if( retCode >= RC_RETURN) break;
+	
+	//                     if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
+	//                         !w->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
+	//                     {
+	//                         // a jump (goto) occured out of this loop
+	//                         return retCode;
+	//                     }
+	
+	//                     eVal.reset( expr( e));
+	//                 } 
+	
+	// retCode=RC_OK; // clear RC_BREAK/RC_CONTINUE retCode
+	
+	_t = __t31;
+	_t = _t->getNextSibling();
+	_retTree = _t;
+	return retCode;
+}
+
  GDLInterpreter::RetCode  GDLInterpreter::for_statement(ProgNodeP _t) {
 	 GDLInterpreter::RetCode retCode;
 	ProgNodeP for_statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
@@ -1059,168 +1791,6 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 	return retCode;
 }
 
- GDLInterpreter::RetCode  GDLInterpreter::repeat_statement(ProgNodeP _t) {
-	 GDLInterpreter::RetCode retCode;
-	ProgNodeP repeat_statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
-	ProgNodeP r = ProgNodeP(antlr::nullAST);
-	
-	ProgNodeP __t27 = _t;
-	r = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
-	match(antlr::RefAST(_t),REPEAT);
-	_t = _t->getFirstChild();
-	
-	// _t is REPEAT_LOOP, GetFirstChild() is expr, GetNextSibling is first loop statement
-	_retTree = _t->GetFirstChild()->GetNextSibling();     // statement
-	return RC_OK;
-	
-	_t = __t27;
-	_t = _t->getNextSibling();
-	_retTree = _t;
-	return retCode;
-}
-
- GDLInterpreter::RetCode  GDLInterpreter::repeat_loop_statement(ProgNodeP _t) {
-	 GDLInterpreter::RetCode retCode;
-	ProgNodeP repeat_loop_statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
-	ProgNodeP r = ProgNodeP(antlr::nullAST);
-	
-	ProgNodeP __t29 = _t;
-	r = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
-	match(antlr::RefAST(_t),REPEAT_LOOP);
-	_t = _t->getFirstChild();
-	
-	auto_ptr<BaseGDL> eVal( expr(_t));
-	if( eVal.get()->False())
-	{
-	_retTree = _t->GetNextSibling();     // 1st loop statement
-	if( _retTree == NULL)
-	throw GDLException(r,
-	"Empty REPEAT loop entered (infinite loop).",
-	true,false);
-	return RC_OK;
-	}
-	else
-	{
-	_retTree = r->GetNextSibling();     // statement
-	return RC_OK;
-	}
-	
-	//                 retCode=RC_OK; // clear RC_BREAK/RC_CONTINUE retCode
-	//                 SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
-	
-	//                 // remember block and expr nodes
-	//                 ProgNodeP e =_t;
-	//                 ProgNodeP bb  = e->GetNextSibling();
-	
-	// //                 ProgNodeP bb =_t;
-	// //                 ProgNodeP e  = bb->GetNextSibling();
-	// //                 bb = bb->GetFirstChild();
-	
-	//                 auto_ptr<BaseGDL> eVal;
-	//                 do {
-	//                     if( bb != NULL)
-	//                     {
-	//                     retCode=statement_list(bb);
-	
-	//                     if( retCode == RC_CONTINUE)
-	//                                 {
-	//                                 retCode = RC_OK;
-	//                                 continue;  
-	//                                 }
-	//                     if( retCode == RC_BREAK) 
-	//                     {
-	//                         retCode = RC_OK;
-	//                         break;        
-	//                     }
-	//                     if( retCode >= RC_RETURN) break;
-	//                     // if( retCode == RC_BREAK) break;        
-	//                     // if( retCode >= RC_RETURN) return retCode;
-	
-	//                     if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
-	//                         !r->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
-	//                     {
-	//                         // a jump (goto) occured out of this loop
-	//                         return retCode;
-	//                     }
-	//                     }
-	//                     eVal.reset( expr(e));
-	//                 } while( eVal.get()->False());
-	
-	//                 // retCode=RC_OK; // clear RC_BREAK/RC_CONTINUE retCode
-	
-	_t = __t29;
-	_t = _t->getNextSibling();
-	_retTree = _t;
-	return retCode;
-}
-
- GDLInterpreter::RetCode  GDLInterpreter::while_statement(ProgNodeP _t) {
-	 GDLInterpreter::RetCode retCode;
-	ProgNodeP while_statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
-	ProgNodeP w = ProgNodeP(antlr::nullAST);
-	
-	retCode = RC_OK;
-	
-	
-	ProgNodeP __t31 = _t;
-	w = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
-	match(antlr::RefAST(_t),WHILE);
-	_t = _t->getFirstChild();
-	
-	//                 SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
-	
-	//                 ProgNodeP e = _t; //->GetFirstChild();  // expr
-	
-	auto_ptr<BaseGDL> eVal( expr( _t));
-	if( eVal.get()->True()) 
-	{
-	_retTree = _t->GetNextSibling();     // 1st loop statement
-	if( _retTree == NULL)
-	throw GDLException(w,
-	"Empty WHILE loop entered (infinite loop).",
-	true,false);
-	return RC_OK;
-	}
-	else
-	{
-	_retTree = w->GetNextSibling();     // statement
-	return RC_OK;
-	}
-	
-	//                 auto_ptr< BaseGDL> eVal( expr( e));
-	//                 while( eVal.get()->True()) {
-	//                     retCode=statement_list(s);
-	
-	//                     if( retCode == RC_CONTINUE) 
-	//                                 {
-	//                                 retCode = RC_OK;
-	//                                 continue;  
-	//                                 }
-	//                     if( retCode == RC_BREAK) 
-	//                     {
-	//                         retCode = RC_OK;
-	//                         break;        
-	//                     }
-	//                     if( retCode >= RC_RETURN) break;
-	
-	//                     if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
-	//                         !w->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
-	//                     {
-	//                         // a jump (goto) occured out of this loop
-	//                         return retCode;
-	//                     }
-	
-	//                     eVal.reset( expr( e));
-	//                 } 
-	
-	// retCode=RC_OK; // clear RC_BREAK/RC_CONTINUE retCode
-	
-	_t = __t31;
-	_t = _t->getNextSibling();
-	_retTree = _t;
-	return retCode;
-}
-
  GDLInterpreter::RetCode  GDLInterpreter::if_statement(ProgNodeP _t) {
 	 GDLInterpreter::RetCode retCode;
 	ProgNodeP if_statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
@@ -1329,514 +1899,6 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 	_t = _t->getNextSibling();
 	_retTree = _t;
 	return retCode;
-}
-
- GDLInterpreter::RetCode  GDLInterpreter::case_statement(ProgNodeP _t) {
-	 GDLInterpreter::RetCode retCode;
-	ProgNodeP case_statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
-	ProgNodeP c = ProgNodeP(antlr::nullAST);
-	
-	BaseGDL* e;
-	retCode = RC_OK; // not set if no branch is executed
-	
-	
-	ProgNodeP __t25 = _t;
-	c = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
-	match(antlr::RefAST(_t),CASE);
-	_t = _t->getFirstChild();
-	e=expr(_t);
-	_t = _retTree;
-	
-	auto_ptr<BaseGDL> e_guard(e);
-	
-	//                SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
-	
-	if( !e->Scalar())
-	throw GDLException( _t, "Expression must be a"
-	" scalar in this context: "+Name(e),true,false);
-	
-	ProgNodeP b=_t; // remeber block begin
-	
-	for( int i=0; i<c->numBranch; ++i)
-	{
-	if( b->getType() == ELSEBLK)
-	{
-	ProgNodeP sL = b->GetFirstChild(); // statement_list
-	
-	if(sL != NULL )
-	{
-	_retTree = sL;
-	return RC_OK;
-	}
-	else
-	{
-	_retTree = c->GetNextSibling();
-	return RC_OK;
-	}
-	
-	//                             // statement there
-	//                             retCode=statement_list(sL);
-	//                             //if( retCode == RC_BREAK) break; // break anyway
-	// //                            if( retCode >= RC_RETURN) return retCode; 
-	//                             if( retCode >= RC_RETURN) break;
-	
-	//                             if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
-	//                                 !c->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
-	//                             {
-	//                                 // a jump (goto) occured out of this loop
-	//                                 return retCode;
-	//                             }
-	
-	//                         }
-	//                         retCode = RC_OK;
-	//                         break;
-	}
-	else
-	{
-	ProgNodeP ex = b->GetFirstChild();  // EXPR
-	ProgNodeP bb = ex->GetNextSibling(); // statement_list
-	
-	BaseGDL* ee=expr(ex);
-	// auto_ptr<BaseGDL> ee_guard(ee);
-	
-	bool equalexpr=e->Equal(ee); // Equal deletes ee
-	
-	if( equalexpr)
-	{
-	if(bb != NULL )
-	{
-	_retTree = bb;
-	return RC_OK;
-	}
-	else
-	{
-	_retTree = c->GetNextSibling();
-	return RC_OK;
-	}
-	//                             if(bb != NULL)
-	//                             {
-	//                                 // statement there
-	//                                 retCode=statement_list(bb);
-	//                                 //if( retCode == RC_BREAK) break; // break anyway
-	// //                                if( retCode >= RC_RETURN) return retCode;
-	//                                 if( retCode >= RC_RETURN) break;
-	
-	//                                 if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
-	//                                     !c->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
-	//                                 {
-	//                                     // a jump (goto) occured out of this loop
-	//                                     return retCode;
-	//                                 }
-	
-	//                             }
-	//                             retCode = RC_OK;
-	//                             break;
-	}
-	
-	}
-	b=b->GetNextSibling(); // next block
-	} // for
-	// finish or break
-	//                retCode=RC_OK; // clear RC_BREAK retCode
-	throw GDLException( c, "CASE statement found no match.",true,false);
-	
-	_t = __t25;
-	_t = _t->getNextSibling();
-	_retTree = _t;
-	return retCode;
-}
-
- GDLInterpreter::RetCode  GDLInterpreter::switch_statement(ProgNodeP _t) {
-	 GDLInterpreter::RetCode retCode;
-	ProgNodeP switch_statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
-	ProgNodeP s = ProgNodeP(antlr::nullAST);
-	
-	BaseGDL* e;
-	retCode = RC_OK; // not set if no branch is executed
-	
-	
-	ProgNodeP __t23 = _t;
-	s = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
-	match(antlr::RefAST(_t),SWITCH);
-	_t = _t->getFirstChild();
-	e=expr(_t);
-	_t = _retTree;
-	
-	auto_ptr<BaseGDL> e_guard(e);
-	
-	//                SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
-	
-	ProgNodeP b=_t; // remeber block begin (block)
-	
-	bool hook=false; // switch executes everything after 1st match
-	for( int i=0; i<s->numBranch; i++)
-	{
-	if( b->getType() == ELSEBLK)
-	{
-	hook=true;
-	
-	ProgNodeP sL = b->GetFirstChild(); // statement_list
-	
-	if(sL != NULL )
-	{
-	_retTree = sL;
-	return RC_OK;
-	}
-	
-	//                             // statement there
-	//                             retCode=statement_list( sL);
-	//                             if( retCode == RC_BREAK) 
-	//                             {
-	//                                 retCode = RC_OK;    
-	//                                 break;          // break
-	//                             }
-	//                             if( retCode >= RC_RETURN) break; // goto
-	
-	//                             if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
-	//                                 !s->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
-	//                             {
-	//                                 // a jump (goto) occured out of this loop
-	//                                 return retCode;
-	//                             }
-	
-	//                         }
-	}
-	else
-	{
-	ProgNodeP ex = b->GetFirstChild();  // EXPR
-	ProgNodeP bb = ex->GetNextSibling(); // statement_list
-	
-	if( !hook)
-	{
-	//                            RefDNode ee_ = _t->GetFirstChild(); // expr
-	
-	BaseGDL* ee=expr(ex);
-	// auto_ptr<BaseGDL> ee_guard(ee);
-	
-	hook=e->Equal(ee); // Equal deletes ee
-	}
-	
-	if( hook)
-	{
-	// statement there
-	if(bb != NULL )
-	{
-	_retTree = bb;
-	return RC_OK;
-	}
-	
-	//                             _retTree = // find first non empty
-	//                             return RC_OK;
-	//                                 }
-	
-	//                             retCode=statement_list(bb);
-	//                             if( retCode == RC_BREAK) 
-	//                             {
-	//                                 retCode = RC_OK;    
-	//                                 break;          // break
-	//                             }
-	//                             if( retCode >= RC_RETURN) break; // goto
-	
-	//                             if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
-	//                                 !s->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
-	//                             {
-	//                                 // a jump (goto) occured out of this loop
-	//                                 return retCode;
-	//                             }
-	}
-	
-	}
-	b=b->GetNextSibling(); // next block
-	}
-	_retTree = s->GetNextSibling();
-	return RC_OK;
-	// finish or break
-	//                retCode=RC_OK; // clear RC_BREAK retCode
-	
-	_t = __t23;
-	_t = _t->getNextSibling();
-	_retTree = _t;
-	return retCode;
-}
-
- GDLInterpreter::RetCode  GDLInterpreter::block(ProgNodeP _t) {
-	 GDLInterpreter::RetCode retCode;
-	ProgNodeP block_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
-	
-		match(antlr::RefAST(_t),BLOCK);
-		_retTree = _t->getFirstChild();
-	return RC_OK;
-	//     retCode = RC_OK;
-	
-	// 	ProgNodeP block = _t;
-	// 	match(antlr::RefAST(_t),BLOCK);
-	// 	_t = _t->getFirstChild();
-	// 	if (_t != NULL)
-	// 		{
-	
-	//             SizeT nJump = static_cast<EnvUDT*>(callStack.back())->NJump();
-	
-	//             retCode=statement_list(_t);
-	
-	//             if( (static_cast<EnvUDT*>(callStack.back())->NJump() != nJump) &&
-	//                 !block->LabelInRange( static_cast<EnvUDT*>(callStack.back())->LastJump()))
-	//                 {
-	//                     // a jump (goto) occured out of this block
-	//                     return retCode;
-	//                 }
-	// 		}
-	// 	_retTree = block->getNextSibling();
-	// 	return retCode;
-	
-	
-	ProgNodeP __t20 = _t;
-	ProgNodeP tmp3_AST_in = _t;
-	match(antlr::RefAST(_t),BLOCK);
-	_t = _t->getFirstChild();
-	{
-	if (_t == ProgNodeP(antlr::nullAST) )
-		_t = ASTNULL;
-	switch ( _t->getType()) {
-	case ASSIGN:
-	case ASSIGN_REPLACE:
-	case ASSIGN_ARRAYEXPR_MFCALL:
-	case BLOCK:
-	case BREAK:
-	case CONTINUE:
-	case FOR:
-	case FOR_STEP:
-	case FOREACH:
-	case FOR_LOOP:
-	case FOR_STEP_LOOP:
-	case FOREACH_LOOP:
-	case IF_ELSE:
-	case LABEL:
-	case MPCALL:
-	case MPCALL_PARENT:
-	case ON_IOERROR_NULL:
-	case PCALL:
-	case PCALL_LIB:
-	case REPEAT:
-	case REPEAT_LOOP:
-	case RETF:
-	case RETP:
-	case WHILE:
-	case CASE:
-	case GOTO:
-	case IF:
-	case ON_IOERROR:
-	case SWITCH:
-	case DEC:
-	case INC:
-	{
-		retCode=statement_list(_t);
-		_t = _retTree;
-		break;
-	}
-	case 3:
-	{
-		break;
-	}
-	default:
-	{
-		throw antlr::NoViableAltException(antlr::RefAST(_t));
-	}
-	}
-	}
-	_t = __t20;
-	_t = _t->getNextSibling();
-	_retTree = _t;
-	return retCode;
-}
-
- GDLInterpreter::RetCode  GDLInterpreter::jump_statement(ProgNodeP _t) {
-	 GDLInterpreter::RetCode retCode;
-	ProgNodeP jump_statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
-	ProgNodeP g = ProgNodeP(antlr::nullAST);
-	ProgNodeP b = ProgNodeP(antlr::nullAST);
-	ProgNodeP c = ProgNodeP(antlr::nullAST);
-	
-	BaseGDL*  e;
-	BaseGDL** eL;
-	
-	
-	if (_t == ProgNodeP(antlr::nullAST) )
-		_t = ASTNULL;
-	switch ( _t->getType()) {
-	case GOTO:
-	{
-		g = _t;
-		match(antlr::RefAST(_t),GOTO);
-		_t = _t->getNextSibling();
-		
-		// note that this version jumps 'dumb'
-		// jumping into loops is legal, even then looping is not done
-		
-		// set the jump target - also logs the jump
-		_t = static_cast<EnvUDT*>(callStack.back())->GotoTarget( g->targetIx);
-		_t = _t->GetNextSibling();
-		retCode=RC_OK;
-		
-		break;
-	}
-	case RETF:
-	{
-		ProgNodeP __t45 = _t;
-		ProgNodeP tmp4_AST_in = _t;
-		match(antlr::RefAST(_t),RETF);
-		_t = _t->getFirstChild();
-		{
-		if (_t == ProgNodeP(antlr::nullAST) )
-			_t = ASTNULL;
-		if (((_tokenSet_1.member(_t->getType())))&&( !static_cast<EnvUDT*>(callStack.back())->LFun())) {
-			e=expr(_t);
-			_t = _retTree;
-			
-			delete returnValue;
-			returnValue=e;
-			retCode=RC_RETURN;
-			callStack.back()->RemoveLoc( e); // steal e from local list
-			
-		}
-		else if ((_tokenSet_2.member(_t->getType()))) {
-			eL=l_ret_expr(_t);
-			_t = _retTree;
-			
-			// returnValueL is otherwise owned
-			returnValueL=eL;
-			retCode=RC_RETURN;
-			
-		}
-		else {
-			throw antlr::NoViableAltException(antlr::RefAST(_t));
-		}
-		
-		}
-		_t = __t45;
-		_t = _t->getNextSibling();
-		break;
-	}
-	case RETP:
-	{
-		ProgNodeP tmp5_AST_in = _t;
-		match(antlr::RefAST(_t),RETP);
-		_t = _t->getNextSibling();
-		
-		retCode=RC_RETURN;
-		
-		break;
-	}
-	case BREAK:
-	{
-		b = _t;
-		match(antlr::RefAST(_t),BREAK);
-		_t = _t->getNextSibling();
-		
-		if( b->BreakTarget() == NULL)
-		return RC_BREAK;
-		_retTree = b->BreakTarget();
-		// happens with IF_ELSE as last statement 
-		// (1st alt must be disconnected from 2nd)
-		if( _retTree == GetNULLProgNodeP())
-		_retTree = NULL;
-		return RC_OK;
-		
-		break;
-	}
-	case CONTINUE:
-	{
-		c = _t;
-		match(antlr::RefAST(_t),CONTINUE);
-		_t = _t->getNextSibling();
-		
-		if( c->BreakTarget() == NULL)
-		return RC_CONTINUE;
-		_retTree = c->BreakTarget();
-		return RC_OK;
-		//            retCode=RC_CONTINUE;
-		
-		break;
-	}
-	default:
-	{
-		throw antlr::NoViableAltException(antlr::RefAST(_t));
-	}
-	}
-	_retTree = _t;
-	return retCode;
-}
-
-BaseGDL*  GDLInterpreter::expr(ProgNodeP _t) {
-	BaseGDL* res;
-	ProgNodeP expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
-	
-		
-		assert( _t != NULL);
-	
-		if ( _t->getType() == FCALL_LIB) {
-	BaseGDL* res=lib_function_call(_t);
-			
-			if( callStack.back()->Contains( res)) 
-			res = res->Dup();
-	
-	return res;    		
-		}
-		else
-		{
-			return tmp_expr(_t);
-		}
-	
-	
-	if (_t == ProgNodeP(antlr::nullAST) )
-		_t = ASTNULL;
-	switch ( _t->getType()) {
-	case ASSIGN:
-	case ASSIGN_REPLACE:
-	case ASSIGN_ARRAYEXPR_MFCALL:
-	case ARRAYDEF:
-	case ARRAYEXPR:
-	case ARRAYEXPR_MFCALL:
-	case CONSTANT:
-	case DEREF:
-	case EXPR:
-	case FCALL:
-	case FCALL_LIB_RETNEW:
-	case MFCALL:
-	case MFCALL_PARENT:
-	case NSTRUC:
-	case NSTRUC_REF:
-	case POSTDEC:
-	case POSTINC:
-	case STRUC:
-	case SYSVAR:
-	case VAR:
-	case VARPTR:
-	case DEC:
-	case INC:
-	case DOT:
-	case QUESTION:
-	{
-		res=tmp_expr(_t);
-		_t = _retTree;
-		break;
-	}
-	case FCALL_LIB:
-	{
-		res=check_expr(_t);
-		_t = _retTree;
-		
-		if( callStack.back()->Contains( res)) 
-		res = res->Dup();
-		
-		break;
-	}
-	default:
-	{
-		throw antlr::NoViableAltException(antlr::RefAST(_t));
-	}
-	}
-	_retTree = _t;
-	return res;
 }
 
 BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {

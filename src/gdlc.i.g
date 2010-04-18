@@ -133,6 +133,12 @@ friend class PCALL_LIBNode;//: public CommandNode
 friend class MPCALLNode;//: public CommandNode
 friend class MPCALL_PARENTNode;//: public CommandNode
 friend class PCALLNode;//: public CommandNode
+friend class FORNode;
+friend class FOR_LOOPNode;
+friend class FOREACHNode;
+friend class FOREACH_LOOPNode;
+friend class FOR_STEPNode;
+friend class FOR_STEP_LOOPNode;
 
   friend class KEYDEFNode;
   friend class KEYDEF_REFNode;
@@ -144,6 +150,7 @@ friend class PCALLNode;//: public CommandNode
   friend class ParameterNode;
 
 public: 
+
 //     RetCode returnCode;    
     ProgNodeP GetNULLProgNodeP() const { return NULLProgNodeP;}
 
@@ -937,8 +944,8 @@ statement returns[ GDLInterpreter::RetCode retCode]
             {a->Run();}
         |   ac:ASSIGN_ARRAYEXPR_MFCALL
             {ac->Run();}
-        |   r:ASSIGN_REPLACE            
-            {r->Run();}
+        |   ar:ASSIGN_REPLACE            
+            {ar->Run();}
             //            assignment
         |   l:PCALL_LIB
             {l->Run();}
@@ -952,19 +959,37 @@ statement returns[ GDLInterpreter::RetCode retCode]
             //        |   lib_procedure_call
         |   d:DEC
             {d->Run();}
-        |   i:INC
-            {i->Run();}
+        |   in:INC
+            {in->Run();}
             // decinc_statement
-        |   retCode=for_statement 
-        |   retCode=foreach_statement 
-        |   retCode=repeat_statement
-        |   retCode=repeat_loop_statement
-        |   retCode=while_statement
-        |   retCode=if_statement
-        |   retCode=if_else_statement
-        |   retCode=case_statement
-        |   retCode=switch_statement
-        |   retCode=block
+        |   f:FOR
+            {f->Run(); _t = _retTree;}
+        |   fl:FOR_LOOP
+            {fl->Run(); _t = _retTree;}
+        |   fe:FOREACH
+            {fe->Run(); _t = _retTree;}
+        |   fel:FOREACH_LOOP
+            {fel->Run(); _t = _retTree;}
+        |   fs:FOR_STEP
+            {fs->Run(); _t = _retTree;}
+        |   fsl:FOR_STEP_LOOP
+            {fsl->Run(); _t = _retTree;}
+        |   r:REPEAT
+            {r->Run(); _t = _retTree;}
+        |   rl:REPEAT_LOOP
+            {rl->Run(); _t = _retTree;}
+        |   w:WHILE
+            {w->Run(); _t = _retTree;}
+        |   i:IF
+            {i->Run(); _t = _retTree;}
+        |   ie:IF_ELSE
+            {ie->Run(); _t = _retTree;}
+        |   c:CASE
+            {c->Run(); _t = _retTree;}
+        |   s:SWITCH
+            {s->Run(); _t = _retTree;}
+        |   b:BLOCK
+            {b->Run(); _t = _retTree;}
         |   retCode=jump_statement
         |   LABEL
         |   ON_IOERROR_NULL
