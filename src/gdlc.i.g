@@ -807,8 +807,7 @@ call_fun returns[ BaseGDL* res]
 			returnValue=NULL;
 			
 			break;
-			}
-					
+			}					
 	}
 	
 	// default return value if none was set
@@ -940,49 +939,51 @@ statement returns[ GDLInterpreter::RetCode retCode]
 }
 	:  
         {
-            if( _t->getType() == RETF)
-                {
-                    _t = _t->getFirstChild();
-                    assert( _t != NULL);
-                    if ( !static_cast<EnvUDT*>(callStack.back())->LFun())
-                        {
-                            BaseGDL* e=expr(_t);
+            do {
+                if( _t->getType() == RETF)
+                    {
+                        _t = _t->getFirstChild();
+                        assert( _t != NULL);
+                        if ( !static_cast<EnvUDT*>(callStack.back())->LFun())
+                            {
+                                BaseGDL* e=expr(_t);
+                                
+                                delete returnValue;
+                                returnValue=e;
                             
-                            delete returnValue;
-                            returnValue=e;
-                            
-                            callStack.back()->RemoveLoc( e); // steal e from local list
-                            
-                        }
-                    else
-                        {
-                            BaseGDL** eL=l_ret_expr(_t);
-                            
-                            // returnValueL is otherwise owned
-                            returnValueL=eL;
-                        }
-                    if( !(interruptEnable && sigControlC) && ( debugMode == DEBUG_CLEAR))
-                        return RC_RETURN;
-
-                    retCode = RC_RETURN;
-                }
-            else if( _t->getType() == RETP)
-                {
-                    if( !(interruptEnable && sigControlC) && ( debugMode == DEBUG_CLEAR))
-                        return RC_RETURN;
-
-                    retCode = RC_RETURN;
-                }
-            else
-                {
-                    _t->Run(); // sets _retTree
-
-                    if( !(interruptEnable && sigControlC) && ( debugMode == DEBUG_CLEAR))
-                        return RC_OK;
-
-                    retCode = RC_OK;
-                }
-
+                                callStack.back()->RemoveLoc( e); // steal e from local list
+                                
+                            }
+                        else
+                            {
+                                BaseGDL** eL=l_ret_expr(_t);
+                                
+                                // returnValueL is otherwise owned
+                                returnValueL=eL;
+                            }
+                        //if( !(interruptEnable && sigControlC) && ( debugMode == DEBUG_CLEAR))
+                        //return RC_RETURN;
+                        retCode = RC_RETURN;
+                    }
+                else if( _t->getType() == RETP)
+                    {
+                        //if( !(interruptEnable && sigControlC) && ( debugMode == DEBUG_CLEAR))
+                        //return RC_RETURN;
+                        retCode = RC_RETURN;
+                    }
+                else
+                    {
+                        _t->Run(); // sets _retTree
+                        
+                        //if( !(interruptEnable && sigControlC) && ( debugMode == DEBUG_CLEAR))
+                        //return RC_OK;
+                        retCode = RC_OK;
+                    }
+                
+                _t = _retTree;
+            }
+            while( _retTree != NULL && retCode == RC_OK && 
+                   !(interruptEnable && sigControlC) && ( debugMode == DEBUG_CLEAR));
             goto afterStatement;
 }
         (

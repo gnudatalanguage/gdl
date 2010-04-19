@@ -105,6 +105,7 @@ GDLInterpreter::GDLInterpreter()
 	
 	try {      // for error handling
 		
+		do {
 		if( _t->getType() == RETF)
 		{
 		_t = _t->getFirstChild();
@@ -126,28 +127,29 @@ GDLInterpreter::GDLInterpreter()
 		// returnValueL is otherwise owned
 		returnValueL=eL;
 		}
-		if( !(interruptEnable && sigControlC) && ( debugMode == DEBUG_CLEAR))
-		return RC_RETURN;
-		
+		//if( !(interruptEnable && sigControlC) && ( debugMode == DEBUG_CLEAR))
+		//return RC_RETURN;
 		retCode = RC_RETURN;
 		}
 		else if( _t->getType() == RETP)
 		{
-		if( !(interruptEnable && sigControlC) && ( debugMode == DEBUG_CLEAR))
-		return RC_RETURN;
-		
+		//if( !(interruptEnable && sigControlC) && ( debugMode == DEBUG_CLEAR))
+		//return RC_RETURN;
 		retCode = RC_RETURN;
 		}
 		else
 		{
 		_t->Run(); // sets _retTree
 		
-		if( !(interruptEnable && sigControlC) && ( debugMode == DEBUG_CLEAR))
-		return RC_OK;
-		
+		//if( !(interruptEnable && sigControlC) && ( debugMode == DEBUG_CLEAR))
+		//return RC_OK;
 		retCode = RC_OK;
 		}
 		
+		_t = _retTree;
+		}
+		while( _retTree != NULL && retCode == RC_OK && 
+		!(interruptEnable && sigControlC) && ( debugMode == DEBUG_CLEAR));
 		goto afterStatement;
 		
 		{
@@ -631,8 +633,7 @@ GDLInterpreter::GDLInterpreter()
 				returnValue=NULL;
 				
 				break;
-				}
-						
+				}					
 		}
 		
 		// default return value if none was set
