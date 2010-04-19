@@ -96,6 +96,8 @@ protected:
   wxPanel*     widgetPanel;
   DString      widgetType;
   DString      uName;
+  DString      proValue;
+  DString      funcValue;
 
 public:
   GDLWidget( WidgetIDT p=0, BaseGDL* uV=NULL, BaseGDL* vV=NULL,
@@ -146,6 +148,12 @@ public:
 
   void SetUname( DString);
   DString GetUname() { return uName;}
+
+  void SetProValue( DString);
+  DString GetProValue() { return proValue;}
+
+  void SetFuncValue( DString);
+  DString GetFuncValue() { return funcValue;}
 };
 
 
@@ -271,10 +279,11 @@ class GDLFrame : public wxFrame
 {
 public:
   // ctor(s)
-   GDLFrame(wxWindow* parent, wxWindowID id, const wxString& title);
+  GDLFrame(wxWindow* parent, wxWindowID id, const wxString& title);
 
   // event handlers (these functions should _not_ be virtual)
   void OnButton( wxCommandEvent& event);
+  void OnRadioButton( wxCommandEvent& event);
   void OnIdle( wxIdleEvent& event);
 
 private:

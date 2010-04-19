@@ -33,6 +33,24 @@
 namespace lib {
   using namespace std;
 
+  void executeString( EnvBaseT* caller, istringstream *istr)
+  {
+    RefDNode theAST;
+
+    GDLLexer lexer(*istr, "", GDLParser::NONE);
+    GDLParser& parser = lexer.Parser();
+    parser.interactive();
+    theAST = parser.getAST();
+    RefDNode trAST;
+    GDLTreeParser treeParser( caller);
+    treeParser.interactive(theAST);
+    trAST = treeParser.getAST();
+    ProgNodeP progAST = ProgNode::NewProgNode( trAST);
+    auto_ptr< ProgNode> progAST_guard( progAST);
+    GDLInterpreter::RetCode retCode = caller->Interpreter()->execute( progAST);
+  }
+
+
   BaseGDL* widget_base( EnvT* e)
   {
     SizeT nParam = e->NParam();
@@ -720,6 +738,16 @@ namespace lib {
     DString uname = "";
     e->AssureStringScalarKWIfPresent( setunameIx, uname);
 
+    static int prosetvalueIx = e->KeywordIx( "PRO_SET_VALUE");
+    bool prosetvalue = e->KeywordPresent( prosetvalueIx);
+    DString setvaluepro = "";
+    e->AssureStringScalarKWIfPresent( prosetvalueIx, setvaluepro);
+
+    static int funcgetvalueIx = e->KeywordIx( "FUNC_GET_VALUE");
+    bool funcgetvalue = e->KeywordPresent( funcgetvalueIx);
+    DString setvaluefunc = "";
+    e->AssureStringScalarKWIfPresent( funcgetvalueIx, setvaluefunc);
+
     static int setbuttonIx = e->KeywordIx( "SET_BUTTON");
     bool setbutton = e->KeywordPresent( setbuttonIx);
 
@@ -768,6 +796,14 @@ namespace lib {
       widget->SetUname( uname);
     }
 
+    if ( prosetvalue) {
+      widget->SetProValue( setvaluepro);
+    }
+
+    if ( funcgetvalue) {
+      widget->SetFuncValue( setvaluefunc);
+    }
+
     if ( setbutton) {
       DLong buttonVal;
       e->AssureLongScalarKWIfPresent( setbuttonIx, buttonVal);
@@ -783,6 +819,32 @@ namespace lib {
       if ( wType == "") {
 	BaseGDL* value = e->GetKW( setvalueIx);
 	if( value != NULL) value = value->Dup();
+
+	DString setProName = widget->GetProValue();
+	if ( setProName != "") {
+
+	  // Build call to SETV procedure
+	  ostringstream ostr;
+	  ostr << setProName.c_str() << ", " << widgetID << ", [";
+
+	  DLongGDL* values = e->IfDefGetKWAs<DLongGDL>( setvalueIx);
+	  DLong nEl = values->N_Elements();
+	  for( SizeT i=0; i<nEl; i++) {
+	    ostr << (*values)[i];
+	    if ( i != (nEl-1)) ostr << ", ";
+	  }
+	  ostr << "]";
+
+	  DString line = ostr.rdbuf()->str();
+	  istringstream istr(line+"\n");
+
+	  // Call SETV procedure
+	  EnvBaseT* caller = e->Caller();
+	  e->Interpreter()->CallStack().pop_back();
+	  executeString( caller, &istr);
+	}
+
+
 	widget->SetVvalue( value);
       }
 
@@ -807,67 +869,46 @@ namespace lib {
       BaseGDL** valueKW = &e->GetKW( getvalueIx);
       delete (*valueKW);
 
-      // CW_BGROUP
-      //      DString uName = widget->GetUname();
-      //if ( uName.compare( "CW_BGROUP_UNAME") ==0) {
-      //	WidgetIDT widgetChildID = widget->GetChild( 0);
-      //GDLWidget *widgetChild = GDLWidget::GetWidget( widgetChildID);
-      //DStructGDL *state;
-      //state = ( DStructGDL *) widgetChild->GetUvalue();
+      DString getFuncName = widget->GetFuncValue();
+      if ( getFuncName != "") {
+	StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
 
-      //DLong typeTag = state->Desc()->TagIndex( "TYPE");
-      //DInt type = (*static_cast<DIntGDL*>( state->GetTag( typeTag, 0)))[0];
+	DString callF;
+	// this is a function name -> convert to UPPERCASE
+	callF = getFuncName.c_str();
+	callF = StrUpCase( callF);
 
-      //DLong idsTag = state->Desc()->TagIndex( "IDS");
-      //DLongGDL* ids = static_cast<DLongGDL*>( state->GetTag( idsTag));
-      //bool *buttonSet = new bool[ ids->N_Elements()];
+	SizeT funIx = GDLInterpreter::GetFunIx( callF);
+	EnvUDT* newEnv= new EnvUDT( e, funList[ funIx], NULL);
 
-      //for( SizeT i=0; i<ids->N_Elements(); i++) {
-      //  DLong buttonID = (*ids)[i];
-      //  buttonSet[i] = GDLWidget::GetWidget( buttonID)->GetButtonSet();
-      //  if ( type == 1 && buttonSet[i] == true) {
-      //   DLongGDL* res = new DLongGDL( i);
-      //    *valueKW = res;
-      //    return;
-      //  }
-      //	}
+	// add parameter
+	newEnv->SetNextPar( new DLongGDL(widgetID)); // pass as local
+	e->Interpreter()->CallStack().push_back( newEnv);
 
-      //}
+	// make the call
+	BaseGDL* res = e->Interpreter()->
+	  call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 
-      *valueKW = widget->GetVvalue();
-      if ( *valueKW != NULL) {
-	if( (*valueKW)->Type() == STRING)
-	  *valueKW = new DStringGDL( (*( DStringGDL*) (*valueKW))[0]);
-	if( (*valueKW)->Type() == LONG)
-	  *valueKW = new DLongGDL( (*( DLongGDL*) (*valueKW))[0]);
+	// set the keyword to the function's return value
+	*valueKW = new DIntGDL( (*( DIntGDL*) (res))[0]);
       } else {
-	DLongGDL* res = new DLongGDL( 0);
-	*valueKW = res;
+	// "Regular" getvalue
+	BaseGDL** valueKW = &e->GetKW( getvalueIx);
+	delete (*valueKW);
+
+	*valueKW = widget->GetVvalue();
+	if ( *valueKW != NULL) {
+	  if( (*valueKW)->Type() == STRING)
+	    *valueKW = new DStringGDL( (*( DStringGDL*) (*valueKW))[0]);
+	  if( (*valueKW)->Type() == LONG)
+	    *valueKW = new DLongGDL( (*( DLongGDL*) (*valueKW))[0]);
+	} else {
+	  DLongGDL* res = new DLongGDL( 0);
+	  *valueKW = res;
+	}
       }
     }
-
   }
-
-//   in math_fun_jmg.cpp
-//   void executeString( EnvBaseT* caller, istringstream *istr)
-//   {
-//     // P.S:  I don't know how this works.  Ask Marc.
-// 
-//     RefDNode theAST;
-//     GDLLexer lexer(*istr, "", GDLParser::NONE);
-//     GDLParser& parser = lexer.Parser();
-//     parser.interactive();
-//     theAST = parser.getAST();
-//     RefDNode trAST;
-//     GDLTreeParser treeParser( caller);
-//     treeParser.interactive(theAST);
-//     trAST = treeParser.getAST();
-//     ProgNodeP progAST = ProgNode::NewProgNode( trAST);
-//     auto_ptr< ProgNode> progAST_guard( progAST);
-//     GDLInterpreter::RetCode retCode = caller->Interpreter()->execute( progAST);
-//   }
-
-
 
 } // namespace
 

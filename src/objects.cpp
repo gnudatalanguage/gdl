@@ -215,6 +215,14 @@ void InitStructs()
   // insert into structList
   structList.push_back( widgbut);
 
+  DStructDesc* widgdlist = new DStructDesc( "WIDGET_DROPLIST");
+  widgdlist->AddTag("ID", &aLong);
+  widgdlist->AddTag("TOP", &aLong);
+  widgdlist->AddTag("HANDLER", &aLong);
+  widgdlist->AddTag("SELECT", &aLong);
+  // insert into structList
+  structList.push_back( widgdlist);
+
   DStructDesc* widgtxt = new DStructDesc( "WIDGET_TEXT");
   widgtxt->AddTag("ID", &aLong);
   widgtxt->AddTag("TOP", &aLong);

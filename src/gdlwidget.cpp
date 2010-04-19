@@ -32,6 +32,7 @@ VarListT                    eventVarList;
 
 BEGIN_EVENT_TABLE(GDLFrame, wxFrame)
   EVT_BUTTON( wxID_ANY, GDLFrame::OnButton)
+  EVT_RADIOBUTTON(wxID_ANY, GDLFrame::OnRadioButton)
   EVT_IDLE( GDLFrame::OnIdle)
 END_EVENT_TABLE()
 
@@ -146,6 +147,16 @@ void GDLWidget::SetButtonOn()
 void GDLWidget::SetUname( DString uname)
 {
   uName = uname;
+}
+
+void GDLWidget::SetProValue( DString provalue)
+{
+  proValue = provalue;
+}
+
+void GDLWidget::SetFuncValue( DString funcvalue)
+{
+  funcValue = funcvalue;
 }
 
 //void GDLWidget::SetSizer( wxSizer *sizer)
@@ -350,12 +361,12 @@ GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID,
     thread->Run();
 
     // GUI lock defined in threadpsx.cpp
-    std::cout << "wxMutexGuiEnter()" << std::endl;
+    std::cout << "before wxMutexGuiEnter()" << std::endl;
     wxMutexGuiEnter();
     std::cout << "after wxMutexGuiEnter()" << std::endl;
 
     // GDLFrame is derived from wxFrame
-    GDLFrame *frame = new GDLFrame( wxParent, widgetID, wxString( title_.c_str(), wxConvUTF8));
+    GDLFrame *frame = new GDLFrame( wxParent, widgetID, title_);
     ((wxFrame *) frame)->SetSize( xsize, ysize);
     wxWidget = frame;
 
@@ -432,7 +443,7 @@ GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID,
       }
 
       if( modal)
-	wxWidget = new wxDialog( wxParent, widgetID, wxString( title_.c_str(), wxConvUTF8));
+	wxWidget = new wxDialog( wxParent, widgetID, title_);
 
     } // if (mapWid == true)
   }
@@ -466,7 +477,7 @@ void GDLWidgetBase::Realize( bool map)
   //std::cout << frame->IsShown() << std::endl;
 
   // GUI unlock defined in threadpsx.cpp
-  std::cout << "wxMutexGuiLeave()" << std::endl;
+  //  std::cout << "wxMutexGuiLeave()" << std::endl;
   wxMutexGuiLeave();
 }
 
@@ -512,19 +523,19 @@ GDLWidgetButton::GDLWidgetButton( WidgetIDT p, BaseGDL *uV, DString value):
     wxBoxSizer *boxSizer = (wxBoxSizer *) gdlParent->GetSizer();
 
     if ( gdlParent->GetExclusiveMode() == 0) {
-      button = new wxButton( panel, widgetID, wxString( value.c_str(), wxConvUTF8));
+      button = new wxButton( panel, widgetID, _T( value.c_str()));
       boxSizer->Add( button, 0, wxEXPAND | wxALL, 5);
     } else if ( gdlParent->GetExclusiveMode() == -1) {
-      radioButton = new wxRadioButton( panel, widgetID, wxString( value.c_str(), wxConvUTF8),
+      radioButton = new wxRadioButton( panel, widgetID, _T( value.c_str()),
 				       wxDefaultPosition, wxDefaultSize,
 				       wxRB_GROUP);
       gdlParent->SetExclusiveMode( 1);
       boxSizer->Add( radioButton, 0, wxEXPAND | wxALL, 5);
     } else if ( gdlParent->GetExclusiveMode() == 1) {
-      radioButton = new wxRadioButton( panel, widgetID, wxString( value.c_str(), wxConvUTF8));
+      radioButton = new wxRadioButton( panel, widgetID, _T( value.c_str()));
       boxSizer->Add( radioButton, 0, wxEXPAND | wxALL, 5);
     } else if ( gdlParent->GetExclusiveMode() == 2) {
-      checkBox = new wxCheckBox( panel, wxID_ANY, wxString( value.c_str(), wxConvUTF8));
+      checkBox = new wxCheckBox( panel, wxID_ANY, _T( value.c_str()));
       boxSizer->Add( checkBox, 0, wxEXPAND | wxALL, 5);
     }
 
@@ -580,9 +591,9 @@ GDLWidgetDropList::GDLWidgetDropList( WidgetIDT p, BaseGDL *uV, BaseGDL *value,
 
     DLong n= val->N_Elements();
     wxString *choices = new wxString[n];
-    for( SizeT i=0; i<n; ++i) choices[i] = wxString( (*val)[i].c_str(), wxConvUTF8);
+    for( SizeT i=0; i<n; ++i) choices[i] = (*val)[i];
 
-    combo = new wxComboBox( panel, widgetID, wxString( choices[0].c_str(), wxConvUTF8),
+    combo = new wxComboBox( panel, widgetID, _T( choices[0].c_str()),
 			    wxDefaultPosition, wxDefaultSize,
 			    n, choices, style);
 
@@ -622,7 +633,7 @@ GDLWidgetText::GDLWidgetText( WidgetIDT p, BaseGDL *uV, DString value,
 
   if (gdlParent->GetMap()) {
     wxPanel *panel = gdlParent->GetPanel();
-    text = new wxTextCtrl( panel, widgetID, wxString( value.c_str(), wxConvUTF8),
+    text = new wxTextCtrl( panel, widgetID, _T( value.c_str()),
 			   wxDefaultPosition, wxSize( xSize*5, wxDefaultCoord) );
 
     wxBoxSizer *boxSizer = (wxBoxSizer *) gdlParent->GetSizer();
@@ -651,7 +662,7 @@ GDLWidgetText::GDLWidgetText( WidgetIDT p, BaseGDL *uV, DString value,
 
 void GDLWidgetText::SetTextValue( DString value)
 {
-  text->SetValue( wxString( value.c_str(), wxConvUTF8));
+  text->SetValue( _T( value));
   //  text->Refresh(); 
   //wxMilliSleep(700); 
  }
@@ -668,7 +679,7 @@ GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, BaseGDL *uV, DString value,
   
   if ( gdlParent->GetMap()) {
     wxPanel *panel = gdlParent->GetPanel();
-    label = new wxStaticText( panel, wxID_ANY, wxString( value.c_str(), wxConvUTF8),
+    label = new wxStaticText( panel, wxID_ANY, _T( value.c_str()),
 			      wxPoint(10, 10), wxDefaultSize, wxALIGN_CENTRE);
 
     wxBoxSizer *boxSizer = (wxBoxSizer *) gdlParent->GetSizer();
@@ -698,7 +709,7 @@ GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, BaseGDL *uV, DString value,
 
 void GDLWidgetLabel::SetLabelValue( DString value)
 {
-  label->SetLabel( wxString( value.c_str(), wxConvUTF8));
+  label->SetLabel( _T( value));
  }
 
 // *** GDLFrame ***
@@ -727,6 +738,13 @@ void GDLFrame::OnButton( wxCommandEvent& event)
   // Pause 50 millisecs then refresh widget
   wxMilliSleep( 50);
   Refresh();
+}
+
+void GDLFrame::OnRadioButton( wxCommandEvent& event)
+{
+  std::cout << "in OnRadioButton: " << event.GetId() << std::endl;
+
+
 }
 
 void GDLFrame::OnIdle( wxIdleEvent&)
