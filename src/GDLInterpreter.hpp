@@ -143,13 +143,15 @@ protected:
     
     // code in: dinterpreter.cpp
 //    static bool CompleteFileName(std::string& fn); -> str.cpp
-    static bool CompileFile(const std::string& f, const std::string& untilPro=""); 
+
     BaseGDL*  returnValue;  // holding the return value for functions
     BaseGDL** returnValueL; // holding the return value for l_functions
 
     bool interruptEnable;
 
 public:
+    static bool CompileFile(const std::string& f, const std::string& untilPro=""); 
+
     typedef RefHeap<BaseGDL> RefBaseGDL;
     typedef RefHeap<DStructGDL> RefDStructGDL;
 
@@ -685,7 +687,6 @@ public:
 	public:  BaseGDL*  call_fun(ProgNodeP _t);
 	public:  BaseGDL**  call_lfun(ProgNodeP _t);
 	public: void call_pro(ProgNodeP _t);
-	public:  GDLInterpreter::RetCode  jump_statement(ProgNodeP _t);
 	public:  GDLInterpreter::RetCode  block(ProgNodeP _t);
 	public:  GDLInterpreter::RetCode  switch_statement(ProgNodeP _t);
 	public: BaseGDL*  expr(ProgNodeP _t);
@@ -697,6 +698,7 @@ public:
 	public:  GDLInterpreter::RetCode  foreach_statement(ProgNodeP _t);
 	public:  GDLInterpreter::RetCode  if_statement(ProgNodeP _t);
 	public:  GDLInterpreter::RetCode  if_else_statement(ProgNodeP _t);
+	public:  GDLInterpreter::RetCode  jump_statement(ProgNodeP _t);
 	public: BaseGDL**  l_ret_expr(ProgNodeP _t);
 	public: BaseGDL**  l_deref(ProgNodeP _t);
 	public:  BaseGDL**  l_arrayexpr_mfcall_as_mfcall(ProgNodeP _t);

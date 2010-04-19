@@ -44,7 +44,7 @@ header {
 //#include "dinterpreter.hpp"
 
 // defintion in dinterpreter.cpp
-void SetActualCompileOpt( unsigned int cOpt);
+//void SetActualCompileOpt( unsigned int cOpt);
 }
 
 options {
@@ -178,7 +178,7 @@ tokens {
         else if( opt == "IDL2")              compileOpt |= IDL2;
         else if( opt == "STRICTARRSUBS")     compileOpt |= STRICTARRSUBS;
         else throw GDLException("Unrecognised COMPILE_OPT option: "+opt);
-        SetActualCompileOpt( compileOpt);
+//        SetActualCompileOpt( compileOpt);
     }
 
     std::string subName; // name of procedure function to be compiled ("" -> all file)

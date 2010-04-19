@@ -100,13 +100,15 @@ lineNumber = l;
 unsigned int CompileOpt()
 {
 DSubUD* proUD = dynamic_cast<DSubUD*>(pro);
-if( proUD == NULL) throw GDLException("Intenal error: CompileOpt called non DSub object.");
+if( proUD == NULL)
+	throw GDLException("Intenal error: CompileOpt called non DSub object.");
 return proUD->GetCompileOpt();
 }
 void SetCompileOpt( unsigned int cOpt)
 {
 DSubUD* proUD = dynamic_cast<DSubUD*>(pro);
-if( proUD == NULL) throw GDLException("Intenal error: CompileOpt called non DSub object.");
+if( proUD == NULL)
+	throw GDLException("Intenal error: CompileOpt called non DSub object.");
 proUD->SetCompileOpt( cOpt);
 }
 

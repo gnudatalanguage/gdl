@@ -88,7 +88,7 @@ DLong StrPos(const string& s, const string& searchStr, long pos,
 
   return res;
 }
-#define STRMID_DEBUG 
+//#define STRMID_DEBUG 
 string StrMid(const string& s, long first, long len, bool reverse)
 {
 #ifdef STRMID_DEBUG

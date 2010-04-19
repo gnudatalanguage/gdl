@@ -1772,7 +1772,7 @@ namespace lib {
     DLong scVal1;
     bool sc1 = p1L->Scalar( scVal1);
 
-    long scVal2 = numeric_limits<long>::max();
+    DLong scVal2 = numeric_limits<DLong>::max();
     bool sc2 = true;
     if( p2L != NULL) 
       {

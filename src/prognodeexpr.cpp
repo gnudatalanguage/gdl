@@ -713,6 +713,32 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
       {
 	return new ASSIGN_REPLACENode( refNode);
       }
+    case GDLTokenTypes::GOTO:
+      {
+	return new  GOTONode( refNode);
+      }
+    case GDLTokenTypes::BREAK:
+      {
+	return new  BREAKNode( refNode);
+      }
+    case GDLTokenTypes::CONTINUE:
+      {
+	return new  CONTINUENode( refNode);
+      }
+        case GDLTokenTypes::LABEL:
+      {
+	return new  LABELNode( refNode);
+      }
+    case GDLTokenTypes::ON_IOERROR:
+      {
+	return new  ON_IOERRORNode( refNode);
+      }
+    case GDLTokenTypes::ON_IOERROR_NULL:
+      {
+	return new  ON_IOERROR_NULLNode( refNode);
+      }
+
+
     case GDLTokenTypes::FOR:
       {
 	return new  FORNode( refNode);

@@ -28,7 +28,7 @@
 //#include "dinterpreter.hpp"
 
 // defintion in dinterpreter.cpp
-void SetActualCompileOpt( unsigned int cOpt);
+//void SetActualCompileOpt( unsigned int cOpt);
 
 class CUSTOM_API GDLLexer : public antlr::CharScanner, public GDLTokenTypes
 {

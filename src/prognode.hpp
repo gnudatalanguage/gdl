@@ -192,20 +192,10 @@ public:
   
 	virtual void SetAllBreak( ProgNodeP target)
 	{
-		if( this->getType() == GDLTokenTypes::BREAK)
-			{
-				if( target == NULL)
-					breakTarget = GetNULLProgNodeP();
-				else
-					breakTarget = target;
-			}
-		else
-		{
-			if( down != NULL && !keepDown)
+		if( down != NULL && !keepDown)
 				{
 					down->SetAllBreak( target);
 				}
-		}
 		
 		if( right != NULL && !keepRight)
 		{
@@ -214,16 +204,10 @@ public:
 	}
 	virtual void SetAllContinue( ProgNodeP target)
 	{
-		assert( target != NULL);
-		if( this->getType() == GDLTokenTypes::CONTINUE)
-			breakTarget = target;
-		else
-		{
-			if( down != NULL && !keepDown)
+		if( down != NULL && !keepDown)
 				{
 					down->SetAllContinue( target);
 				}
-		}
 		
 		if( right != NULL && !keepRight)
 		{
@@ -289,6 +273,105 @@ public:
   }
 };
 
+class GOTONode: public DefaultNode
+{
+public:
+	void     Run();
+	
+	void SetAllBreak( ProgNodeP target)
+	{
+		breakTarget = target;
+		
+		if( right != NULL && !keepRight)
+		{
+			right->SetAllBreak( target);
+		}
+	}
+public:
+    GOTONode(): DefaultNode()  {}
+	
+	GOTONode( const RefDNode& refNode): DefaultNode( refNode)
+	{}
+};
+class CONTINUENode: public DefaultNode
+{
+public:
+	void     Run();
+	
+
+	void SetAllContinue( ProgNodeP target)
+	{
+		assert( target != NULL);
+		breakTarget = target;
+		
+		if( right != NULL && !keepRight)
+		{
+			right->SetAllContinue( target);
+		}
+	}
+public:
+    CONTINUENode(): DefaultNode()  {}
+	
+	CONTINUENode( const RefDNode& refNode): DefaultNode( refNode)
+	{}
+};
+class BREAKNode: public DefaultNode
+{
+public:
+	void     Run();
+	
+
+	void SetAllBreak( ProgNodeP target)
+	{
+		breakTarget = target;
+		
+		if( right != NULL && !keepRight)
+		{
+			right->SetAllBreak( target);
+		}
+	}
+public:
+    BREAKNode(): DefaultNode()  {}
+	
+	BREAKNode( const RefDNode& refNode): DefaultNode( refNode)
+	{}
+};
+class LABELNode: public DefaultNode
+{
+public:
+	void     Run();
+	
+
+public:
+    LABELNode(): DefaultNode()  {}
+	
+	LABELNode( const RefDNode& refNode): DefaultNode( refNode)
+	{}
+};
+class ON_IOERROR_NULLNode: public DefaultNode
+{
+public:
+	void     Run();
+	
+
+public:
+    ON_IOERROR_NULLNode(): DefaultNode()  {}
+	
+	ON_IOERROR_NULLNode( const RefDNode& refNode): DefaultNode( refNode)
+	{}
+};
+class ON_IOERRORNode: public DefaultNode
+{
+public:
+	void     Run();
+	
+
+public:
+    ON_IOERRORNode(): DefaultNode()  {}
+	
+	ON_IOERRORNode( const RefDNode& refNode): DefaultNode( refNode)
+	{}
+};
 
 
 class BreakableNode: public ProgNode

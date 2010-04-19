@@ -2174,11 +2174,61 @@ namespace lib {
       }
   }
 
-  void resolve_routine( EnvT* e) {
+  void resolve_routine( EnvT* e)
+  {
+    SizeT nParam=e->NParam(1); 
+    
+//     static int eitherIx = e->KeywordIx( "EITHER");
+//     static int is_functionIx = e->KeywordIx( "IS_FUNCTION");
+//     static int no_recompileIx = e->KeywordIx( "NO_RECOMPILE");
 
+	BaseGDL* p0 = e->GetParDefined( 0);
+	DStringGDL* p0S = dynamic_cast<DStringGDL*>( p0);
+	if( p0S == NULL)
+	      e->Throw( "Expression must be a string in this context: "+
+		        e->GetParString(0));
 
+	static StrArr openFiles;
+	
+	SizeT nEl = p0S->N_Elements();
+	for( int i=0; i<nEl; ++i)
+	{
+		DString pro = (*p0S)[ i];
+
+		string proFile=StrLowCase(pro);
+		AppendIfNeeded( proFile, ".pro");
+
+		bool found=CompleteFileName(proFile);
+		if( !found)
+			e->Throw("Not found: " + proFile);
+	
+		// file already opened?
+		bool open = false;
+		for( StrArr::iterator i=openFiles.begin(); i != openFiles.end(); i++)
+		{
+			if( proFile == *i)
+			{
+				open = true;
+				break;
+			}
+		}
+		if( open)
+			continue;
+
+		StackSizeGuard<StrArr> guard( openFiles);
+
+	    // append file to list
+		openFiles.push_back(proFile);
+
+		bool success =  GDLInterpreter::CompileFile( proFile, ""); // this might trigger recursion
+			
+		if( success)
+			Message("RESOLVE_ROUTINE: Compiled file: " + proFile);
+		else
+			e->Throw("Failed to compiled file: " + proFile);
+	}
   }
-
+  
   void caldat(EnvT* e) {
     /* 
      * SA: based on the following codes:

@@ -287,7 +287,8 @@ void DSubUD::ResolveLabel( ProgNodeP p)
       labelList.SetLabelNode( p);
     }
   
-  ResolveLabel( p->getFirstChild());
+  if( !p->KeepDown())
+	ResolveLabel( p->getFirstChild());
   if( !p->KeepRight())
 	ResolveLabel( p->getNextSibling());
 //   else

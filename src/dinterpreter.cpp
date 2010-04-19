@@ -87,11 +87,11 @@ DInterpreter::DInterpreter(): GDLInterpreter()
   //  tmpList.reserve(100);
 }
 
-void SetActualCompileOpt( unsigned int cOpt)
-{
-if( BaseGDL::interpreter!=NULL && BaseGDL::interpreter->CallStack().size()>0) 
-	BaseGDL::interpreter->CallStack().back()->SetCompileOpt( cOpt);
-}
+// void SetActualCompileOpt( unsigned int cOpt)
+// {
+// if( BaseGDL::interpreter!=NULL && BaseGDL::interpreter->CallStack().size()>0) 
+// 	BaseGDL::interpreter->CallStack().back()->SetCompileOpt( cOpt);
+// }
 
 // used in the statement function.
 // runs a new instance of the interpreter if not
@@ -154,6 +154,7 @@ bool GDLInterpreter::SearchCompilePro(const string& pro)
   static StrArr openFiles;
 
   string proFile=StrLowCase(pro)+".pro";
+  //AppendIfNeeded( proFile, ".pro");
 
   bool found=CompleteFileName(proFile);
   if( !found) return false;

@@ -1048,7 +1048,7 @@ void  FOREACH_LOOPNode::Run()
 	delete loopInfo.endLoopVar;
 	loopInfo.endLoopVar = NULL;
 	// 	loopInfo.foreachIx = -1;
-	ProgNode::interpreter->_retTree = this->GetNextSibling();
+	ProgNode::interpreter->SetRetTree( this->GetNextSibling());
 }
 
 
@@ -1236,3 +1236,24 @@ void  BLOCKNode::Run()
 {
 	ProgNode::interpreter->SetRetTree( this->getFirstChild());
 }
+
+void     GOTONode::Run()
+	{
+		ProgNode::interpreter->SetRetTree( static_cast<EnvUDT*>(GDLInterpreter::CallStack().back())->
+			GotoTarget( targetIx)->GetNextSibling());
+	}
+void     CONTINUENode::Run() { assert( this->breakTarget != NULL); ProgNode::interpreter->SetRetTree( this->breakTarget);}
+void     BREAKNode::Run() { ProgNode::interpreter->SetRetTree( this->breakTarget);}
+void     LABELNode::Run() { ProgNode::interpreter->SetRetTree( this->GetNextSibling());}
+void     ON_IOERROR_NULLNode::Run()
+{
+	static_cast<EnvUDT*>(GDLInterpreter::CallStack().back())->SetIOError( -1);
+	ProgNode::interpreter->SetRetTree( this->GetNextSibling());
+}
+void     ON_IOERRORNode::Run()
+{
+	static_cast<EnvUDT*>(GDLInterpreter::CallStack().back())->SetIOError( this->targetIx);
+	ProgNode::interpreter->SetRetTree( this->GetNextSibling());
+}
+
+

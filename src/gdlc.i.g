@@ -219,13 +219,15 @@ protected:
     
     // code in: dinterpreter.cpp
 //    static bool CompleteFileName(std::string& fn); -> str.cpp
-    static bool CompileFile(const std::string& f, const std::string& untilPro=""); 
+
     BaseGDL*  returnValue;  // holding the return value for functions
     BaseGDL** returnValueL; // holding the return value for l_functions
 
     bool interruptEnable;
 
 public:
+    static bool CompileFile(const std::string& f, const std::string& untilPro=""); 
+
     typedef RefHeap<BaseGDL> RefBaseGDL;
     typedef RefHeap<DStructGDL> RefDStructGDL;
 
@@ -930,80 +932,151 @@ statement_list returns[ GDLInterpreter::RetCode retCode]
 
 statement returns[ GDLInterpreter::RetCode retCode]
 {
-    retCode = RC_OK;
-    ProgNodeP actPos = _t;
+    ProgNodeP& actPos = statement_AST_in;
     assert( _t != NULL);
-//     if( callStack.back()->GetLineNumber() == 0) 
+//  if( callStack.back()->GetLineNumber() == 0) 
     if( _t->getLine() != 0) 
         callStack.back()->SetLineNumber( _t->getLine());
 }
-	: (
+	:  
+        {
+            if( _t->getType() == RETF)
+                {
+                    _t = _t->getFirstChild();
+                    assert( _t != NULL);
+                    if ( !static_cast<EnvUDT*>(callStack.back())->LFun())
+                        {
+                            BaseGDL* e=expr(_t);
+                            
+                            delete returnValue;
+                            returnValue=e;
+                            
+                            callStack.back()->RemoveLoc( e); // steal e from local list
+                            
+                        }
+                    else
+                        {
+                            BaseGDL** eL=l_ret_expr(_t);
+                            
+                            // returnValueL is otherwise owned
+                            returnValueL=eL;
+                        }
+                    if( !(interruptEnable && sigControlC) && ( debugMode == DEBUG_CLEAR))
+                        return RC_RETURN;
+
+                    retCode = RC_RETURN;
+                }
+            else if( _t->getType() == RETP)
+                {
+                    if( !(interruptEnable && sigControlC) && ( debugMode == DEBUG_CLEAR))
+                        return RC_RETURN;
+
+                    retCode = RC_RETURN;
+                }
+            else
+                {
+                    _t->Run(); // sets _retTree
+
+                    if( !(interruptEnable && sigControlC) && ( debugMode == DEBUG_CLEAR))
+                        return RC_OK;
+
+                    retCode = RC_OK;
+                }
+
+            goto afterStatement;
+}
+        (
             // note: assignment must take care to update the owner of lvalue
             // a real copy must be performed (creating a new BaseGDL)  
-            a:ASSIGN            
-            {a->Run();}
-        |   ac:ASSIGN_ARRAYEXPR_MFCALL
-            {ac->Run();}
-        |   ar:ASSIGN_REPLACE            
-            {ar->Run();}
+            ASSIGN            
+//            {a->Run();}
+        |   ASSIGN_ARRAYEXPR_MFCALL
+//            {ac->Run();}
+        |   ASSIGN_REPLACE            
+//            {ar->Run();}
             //            assignment
-        |   l:PCALL_LIB
-            {l->Run();}
-        |   m:MPCALL
-            {m->Run();}
-        |   mp:MPCALL_PARENT
-            {mp->Run();}
-        |   p:PCALL
-            {p->Run();}
+        |   PCALL_LIB
+//            {pl->Run();}
+        |   MPCALL
+//            {m->Run();}
+        |   MPCALL_PARENT
+//            {mp->Run();}
+        |   PCALL
+//            {p->Run();}
             // procedure_call
             //        |   lib_procedure_call
-        |   d:DEC
-            {d->Run();}
-        |   in:INC
-            {in->Run();}
+        |   DEC
+//            {d->Run();}
+        |   INC
+//            {in->Run();}
             // decinc_statement
-        |   f:FOR
-            {f->Run(); _t = _retTree;}
-        |   fl:FOR_LOOP
-            {fl->Run(); _t = _retTree;}
-        |   fe:FOREACH
-            {fe->Run(); _t = _retTree;}
-        |   fel:FOREACH_LOOP
-            {fel->Run(); _t = _retTree;}
-        |   fs:FOR_STEP
-            {fs->Run(); _t = _retTree;}
-        |   fsl:FOR_STEP_LOOP
-            {fsl->Run(); _t = _retTree;}
-        |   r:REPEAT
-            {r->Run(); _t = _retTree;}
-        |   rl:REPEAT_LOOP
-            {rl->Run(); _t = _retTree;}
-        |   w:WHILE
-            {w->Run(); _t = _retTree;}
-        |   i:IF
-            {i->Run(); _t = _retTree;}
-        |   ie:IF_ELSE
-            {ie->Run(); _t = _retTree;}
-        |   c:CASE
-            {c->Run(); _t = _retTree;}
-        |   s:SWITCH
-            {s->Run(); _t = _retTree;}
-        |   b:BLOCK
-            {b->Run(); _t = _retTree;}
-        |   retCode=jump_statement
+        |   FOR
+//            {f->Run(); _t = _retTree;}
+        |   FOR_LOOP
+//            {fl->Run(); _t = _retTree;}
+        |   FOREACH
+//            {fe->Run(); _t = _retTree;}
+        |   FOREACH_LOOP
+//            {fel->Run(); _t = _retTree;}
+        |   FOR_STEP
+//            {fs->Run(); _t = _retTree;}
+        |   FOR_STEP_LOOP
+//            {fsl->Run(); _t = _retTree;}
+        |   REPEAT
+//            {r->Run(); _t = _retTree;}
+        |   REPEAT_LOOP
+//            {rl->Run(); _t = _retTree;}
+        |   WHILE
+//            {w->Run(); _t = _retTree;}
+        |   IF
+//            {i->Run(); _t = _retTree;}
+        |   IF_ELSE
+//            {ie->Run(); _t = _retTree;}
+        |   CASE
+//            {c->Run(); _t = _retTree;}
+        |   SWITCH
+//            {s->Run(); _t = _retTree;}
+        |   BLOCK
+//            {b->Run(); _t = _retTree;}
+//        |   retCode=jump_statement
         |   LABEL
+//            {l->Run(); _t = _retTree;}
         |   ON_IOERROR_NULL
-            {
-                static_cast<EnvUDT*>(callStack.back())->SetIOError( -1);
-            }
-        |   o:ON_IOERROR
-            {
-                static_cast<EnvUDT*>(callStack.back())->
-                    SetIOError( o->targetIx);
-            }
+//            {on->Run(); _t = _retTree;}
+        |   ON_IOERROR
+//            {o->Run(); _t = _retTree;}
+        |   BREAK
+//            {br->Run(); _t = _retTree;}
+        |   CONTINUE
+//            {co->Run(); _t = _retTree;}
+        |   GOTO
+//            {g->Run(); _t = _retTree;}
+        | RETF 
+//             ( { !static_cast<EnvUDT*>(callStack.back())->LFun()}? e=expr // expr -> r value
+//                 {
+//                     delete returnValue;
+//                     returnValue=e;
+//                     retCode=RC_RETURN;
+//                     callStack.back()->RemoveLoc( e); // steal e from local list
+//                 }
+//             | eL=l_ret_expr
+//                 {
+//                     // returnValueL is otherwise owned
+//                     returnValueL=eL;
+//                     retCode=RC_RETURN;
+//                 }
+//             )
+//             ) 
+        | RETP
+//         {
+//             retCode=RC_RETURN;
+//         }
         )
-        // control c and debugging
+
+        // control-c and debugging
         {
+           afterStatement:;
+
            // possible optimization: make sigControlC a debugMode 
            if( interruptEnable && sigControlC)
             {
@@ -1013,7 +1086,7 @@ statement returns[ GDLInterpreter::RetCode retCode]
 
                 retCode = NewInterpreterInstance(actPos->getLine()-1);
             }
-            else if( debugMode != DEBUG_CLEAR)
+           else if( debugMode != DEBUG_CLEAR)
             {
                 if( debugMode == DEBUG_STOP)
                 {
@@ -2096,17 +2169,18 @@ jump_statement returns[ GDLInterpreter::RetCode retCode]
 BaseGDL*  e;
 BaseGDL** eL;
 }
-    : g:GOTO // target in g->gotoTarget; // pointer to an DNode (NO RefDNode)
-        {
-            // note that this version jumps 'dumb'
-            // jumping into loops is legal, even then looping is not done
+//     : g:GOTO // target in g->gotoTarget; // pointer to an DNode (NO RefDNode)
+//         {
+//             // note that this version jumps 'dumb'
+//             // jumping into loops is legal, even then looping is not done
 
-            // set the jump target - also logs the jump
-            _t = static_cast<EnvUDT*>(callStack.back())->GotoTarget( g->targetIx);
-            _t = _t->GetNextSibling();
-            retCode=RC_OK;
-        }
-    | #(RETF ( { !static_cast<EnvUDT*>(callStack.back())->LFun()}? e=expr // expr -> r value
+//             // set the jump target - also logs the jump
+//             _t = static_cast<EnvUDT*>(callStack.back())->GotoTarget( g->targetIx);
+//             _t = _t->GetNextSibling();
+//             retCode=RC_OK;
+//         }
+//     |
+    : #(RETF ( { !static_cast<EnvUDT*>(callStack.back())->LFun()}? e=expr // expr -> r value
                 {
                     delete returnValue;
                     returnValue=e;
@@ -2125,25 +2199,25 @@ BaseGDL** eL;
         {
             retCode=RC_RETURN;
         }
-	| b:BREAK    // only in loops or switch_statement and case_statement
-        {
-            if( b->BreakTarget() == NULL)
-                return RC_BREAK;
-            _retTree = b->BreakTarget();
-            // happens with IF_ELSE as last statement 
-            // (1st alt must be disconnected from 2nd)
-            if( _retTree == GetNULLProgNodeP())
-                _retTree = NULL;
-            return RC_OK;
-        }
-	| c:CONTINUE // only in loops
-        {
-            if( c->BreakTarget() == NULL)
-                return RC_CONTINUE;
-            _retTree = c->BreakTarget();
-            return RC_OK;
-//            retCode=RC_CONTINUE;
-        }
+// 	| b:BREAK    // only in loops or switch_statement and case_statement
+//         {
+//             if( b->BreakTarget() == NULL)
+//                 return RC_BREAK;
+//             _retTree = b->BreakTarget();
+//             // happens with IF_ELSE as last statement 
+//             // (1st alt must be disconnected from 2nd)
+//             if( _retTree == GetNULLProgNodeP())
+//                 _retTree = NULL;
+//             return RC_OK;
+//         }
+// 	| c:CONTINUE // only in loops
+//         {
+//             if( c->BreakTarget() == NULL)
+//                 return RC_CONTINUE;
+//             _retTree = c->BreakTarget();
+//             return RC_OK;
+// //            retCode=RC_CONTINUE;
+//         }
   ;
 
 // procedure_call

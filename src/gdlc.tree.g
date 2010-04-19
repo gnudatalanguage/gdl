@@ -426,9 +426,17 @@ block
 	;
 
 unblock!
-	: #(BLOCK 
+	: #(b:BLOCK 
             ( s:statement_list { #unblock = #s;}
-            |
+            | { #unblock = #b;}
+            )
+        )
+	;
+
+unblock_empty!
+	: #(b:BLOCK 
+            ( s:statement_list { #unblock_empty = #s;}
+            | 
             )
         )
 	;
@@ -463,7 +471,7 @@ repeat_statement!
 {
     int labelStart = comp.NDefLabel();
 }
-	: #(r:REPEAT b:unblock e:expr)
+	: #(r:REPEAT b:unblock_empty e:expr)
         {
             #r->SetLabelRange( labelStart, comp.NDefLabel());
             #repeat_statement=#( r, e, b);
