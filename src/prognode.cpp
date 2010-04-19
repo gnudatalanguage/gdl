@@ -969,18 +969,28 @@ void  FOR_STEP_LOOPNode::Run()
 	BaseGDL** v=ProgNode::interpreter->l_simple_var(this->GetFirstChild());
 
 	(*v)->ForAdd(loopInfo.loopStepVar);
-	if( (*v)->ForCondUp( loopInfo.endLoopVar))
+	if( loopInfo.loopStepVar->Sgn() == -1)
 	{
-		ProgNode::interpreter->_retTree = this->GetFirstChild()->GetNextSibling();
+		if( (*v)->ForCondDown( loopInfo.endLoopVar))
+		{
+			ProgNode::interpreter->_retTree = this->GetFirstChild()->GetNextSibling();
+			return;
+		}
 	}
 	else
 	{
-		delete loopInfo.endLoopVar;
-		loopInfo.endLoopVar = NULL;
-		delete loopInfo.loopStepVar;
-		loopInfo.loopStepVar = NULL;
-		ProgNode::interpreter->_retTree = this->GetNextSibling();
+		if( (*v)->ForCondUp( loopInfo.endLoopVar))
+		{
+			ProgNode::interpreter->_retTree = this->GetFirstChild()->GetNextSibling();
+			return;
+		}
 	}
+	
+	delete loopInfo.endLoopVar;
+	loopInfo.endLoopVar = NULL;
+	delete loopInfo.loopStepVar;
+	loopInfo.loopStepVar = NULL;
+	ProgNode::interpreter->_retTree = this->GetNextSibling();
 }
 
 void  FOREACHNode::Run()
