@@ -434,7 +434,7 @@ void KEYDEF_REF_CHECKNode::Parameter( EnvBaseT* actEnv)
   // 			match(antlr::RefAST(_t),IDENTIFIER);
 //   _t = _t->getNextSibling();
   BaseGDL* kval=ProgNode::interpreter->
-    check_expr(this->getFirstChild()->getNextSibling());
+    lib_function_call(this->getFirstChild()->getNextSibling());
 			
   BaseGDL** kvalRef = ProgNode::interpreter->callStack.back()->GetPtrTo( kval);
   if( kvalRef != NULL)
@@ -450,7 +450,7 @@ void KEYDEF_REF_CHECKNode::Parameter( EnvBaseT* actEnv)
 }
 void REF_CHECKNode::Parameter( EnvBaseT* actEnv)
 {
-  BaseGDL* pval=ProgNode::interpreter->check_expr(this->getFirstChild());
+  BaseGDL* pval=ProgNode::interpreter->lib_function_call(this->getFirstChild());
 			
   BaseGDL** pvalRef = ProgNode::interpreter->callStack.back()->GetPtrTo( pval);
   if( pvalRef != NULL)
@@ -499,7 +499,7 @@ void ASSIGNNode::Run()
       }
     case GDLTokenTypes::FCALL_LIB:
       {
-	r=ProgNode::interpreter->check_expr(_t);
+	r=ProgNode::interpreter->lib_function_call(_t);
 	_t = ProgNode::interpreter->_retTree;
 			
 	if( !ProgNode::interpreter->callStack.back()->Contains( r)) 
@@ -535,7 +535,7 @@ void ASSIGN_ARRAYEXPR_MFCALLNode::Run()
     // BOTH
     if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
       {
-		r=ProgNode::interpreter->check_expr(_t);
+		r=ProgNode::interpreter->lib_function_call(_t);
 
 		if( r == NULL) // ROUTINE_NAMES
 			ProgNode::interpreter->callStack.back()->Throw( "Undefined return value");
@@ -617,7 +617,7 @@ void ASSIGN_REPLACENode::Run()
   {
     if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
       {
-	r=ProgNode::interpreter->check_expr(_t);
+	r=ProgNode::interpreter->lib_function_call(_t);
 
 	if( r == NULL) // ROUTINE_NAMES
 		throw GDLException( this, "Undefined return value", true, false);
@@ -752,7 +752,6 @@ void MPCALL_PARENTNode::Run()
   StackGuard<EnvStackT> guard(ProgNode::interpreter->callStack);
   BaseGDL *self;
   EnvUDT*   newEnv;
-	
 
   // 			match(antlr::RefAST(_t),MPCALL_PARENT);
   ProgNodeP _t = this->getFirstChild();

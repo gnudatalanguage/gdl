@@ -934,12 +934,15 @@ statement returns[ GDLInterpreter::RetCode retCode]
     ProgNodeP& actPos = statement_AST_in;
     assert( _t != NULL);
 //  if( callStack.back()->GetLineNumber() == 0) 
-    if( _t->getLine() != 0) 
-        callStack.back()->SetLineNumber( _t->getLine());
+//  if( _t->getLine() != 0) 
+//      callStack.back()->SetLineNumber( _t->getLine());
 }
 	:  
         {
             do {
+                if( _t->getLine() != 0) 
+                    callStack.back()->SetLineNumber( _t->getLine());
+
                 if( _t->getType() == RETF)
                     {
                         _t = _t->getFirstChild();
@@ -980,10 +983,15 @@ statement returns[ GDLInterpreter::RetCode retCode]
                         retCode = RC_OK;
                     }
                 
+                // if( _retTree == NULL) // keep _t (but _t needs to be NULL then)
+                //    goto afterStatement;
+                // break;
+
                 _t = _retTree;
             }
             while( _retTree != NULL && retCode == RC_OK && 
                    !(interruptEnable && sigControlC) && ( debugMode == DEBUG_CLEAR));
+
             goto afterStatement;
 }
         (
@@ -2460,7 +2468,7 @@ l_ret_expr returns [BaseGDL** res]
                 {
                     r_guard.reset( e1);
                 }
-            | e1=check_expr
+            | e1=lib_function_call
                 {
                     if( !callStack.back()->Contains( e1)) 
                         r_guard.reset( e1);
@@ -2484,7 +2492,7 @@ l_ret_expr returns [BaseGDL** res]
                 {
                     r_guard.reset( e1);
                 }
-            | e1=check_expr
+            | e1=lib_function_call
                 {
                     if( !callStack.back()->Contains( e1)) 
                         r_guard.reset( e1);
@@ -2508,7 +2516,7 @@ l_ret_expr returns [BaseGDL** res]
                 {
                     r_guard.reset( e1);
                 }
-            | e1=check_expr
+            | e1=lib_function_call
                 {
                     if( !callStack.back()->Contains( e1)) 
                         r_guard.reset( e1);
@@ -2713,7 +2721,7 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
 //                 {
 //                     r_guard.reset( e1);
 //                 }
-//             | e1=check_expr
+//             | e1=lib_function_call
 //                 {
 //                     if( !callStack.back()->Contains( e1)) 
 //                         r_guard.reset( e1);
@@ -2721,7 +2729,7 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
 //             )
             ( e1=indexable_expr
             | e1=indexable_tmp_expr { r_guard.reset( e1);}
-            | e1=check_expr
+            | e1=lib_function_call
                 {
                     if( !callStack.back()->Contains( e1)) 
                         r_guard.reset( e1); // guard if no global data
@@ -2744,7 +2752,7 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
             } 
             ( e1=indexable_expr
             | e1=indexable_tmp_expr { r_guard.reset( e1);}
-            | e1=check_expr
+            | e1=lib_function_call
                 {
                     if( !callStack.back()->Contains( e1)) 
                         r_guard.reset( e1); // guard if no global data
@@ -2797,7 +2805,7 @@ l_decinc_expr [int dec_inc] returns [BaseGDL* res]
                 {
                     r_guard.reset( e1);
                 }
-            | e1=check_expr
+            | e1=lib_function_call
                 {
                     if( !callStack.back()->Contains( e1)) 
                         r_guard.reset( e1);
@@ -3072,7 +3080,7 @@ l_expr [BaseGDL* right] returns [BaseGDL** res]
 //                 {
 //                     r_guard.reset( e1);
 //                 }
-//             | e1=check_expr
+//             | e1=lib_function_call
 //                 {
 //                     if( !callStack.back()->Contains( e1)) 
 //                         r_guard.reset( e1);
@@ -3081,7 +3089,7 @@ l_expr [BaseGDL* right] returns [BaseGDL** res]
             ( e1=indexable_expr
             | e1=indexable_tmp_expr { delete e1;}
 //            | e1=indexable_tmp_expr { r_guard.reset( e1);}
-            | e1=check_expr
+            | e1=lib_function_call
                 {
                     if( !callStack.back()->Contains( e1)) 
                         delete e1; // guard if no global data
@@ -3098,7 +3106,7 @@ l_expr [BaseGDL* right] returns [BaseGDL** res]
     | #(ASSIGN_ARRAYEXPR_MFCALL
             ( e1=indexable_expr
             | e1=indexable_tmp_expr { delete e1;}
-            | e1=check_expr
+            | e1=lib_function_call
                 {
                     if( !callStack.back()->Contains( e1)) 
                         delete e1; 
@@ -3142,7 +3150,7 @@ l_expr [BaseGDL* right] returns [BaseGDL** res]
                     delete e1;
 //                    r_guard.reset( e1);
                 }
-            | e1=check_expr
+            | e1=lib_function_call
                 {
                     if( !callStack.back()->Contains( e1)) 
                         delete e1;
@@ -3682,7 +3690,7 @@ array_expr returns [BaseGDL* res]
     : #(ARRAYEXPR 
             ( r=indexable_expr
             | r=indexable_tmp_expr { r_guard.reset( r);}
-            | r=check_expr
+            | r=lib_function_call
                 {
                     if( !callStack.back()->Contains( r)) 
                         r_guard.reset( r); // guard if no global data
@@ -3711,7 +3719,7 @@ array_expr returns [BaseGDL* res]
                 }
                 (
                     ( s=indexable_expr
-                    | s=check_expr
+                    | s=lib_function_call
                         {
                             if( !callStack.back()->Contains( s)) 
                             exprList.push_back( s);
@@ -3977,7 +3985,7 @@ expr returns [BaseGDL* res]
 	}
 }
     : res=tmp_expr
-    | res=check_expr
+    | res=lib_function_call
         {
             if( callStack.back()->Contains( res)) 
                 res = res->Dup();
@@ -3985,9 +3993,9 @@ expr returns [BaseGDL* res]
     ;
 
 
-check_expr returns [BaseGDL* res]
-    : res=lib_function_call 
-    ;
+// check_expr returns [BaseGDL* res]
+//     : res=lib_function_call 
+//     ;
 
 // l_expr used as r_expr and true r_expr
 tmp_expr returns [BaseGDL* res]
@@ -4046,7 +4054,7 @@ assign_expr returns [BaseGDL* res]
 		
 		if( _t->getType() == FCALL_LIB)
 		{
-			res=check_expr(_t);
+			res=lib_function_call(_t);
 			_t = _retTree;
 			
 			if( !callStack.back()->Contains( res)) 
@@ -4080,7 +4088,7 @@ assign_expr returns [BaseGDL* res]
 		
 		if( _t->getType() == FCALL_LIB)
 		{
-			res=check_expr(_t);
+			res=lib_function_call(_t);
 			_t = _retTree;
 			
 			if( !callStack.back()->Contains( res)) 
@@ -4145,7 +4153,7 @@ assign_expr returns [BaseGDL* res]
 		if( _t->getType() == FCALL_LIB)
 		{
 
-			res=check_expr(_t);
+			res=lib_function_call(_t);
 			_t = _retTree;
 			
 			if( !callStack.back()->Contains( res)) 
@@ -4210,7 +4218,7 @@ assign_expr returns [BaseGDL* res]
                 {
                     r_guard.reset( res);
                 }
-            | res=check_expr
+            | res=lib_function_call
                 {
                     if( !callStack.back()->Contains( res)) 
                         r_guard.reset( res);
@@ -4232,7 +4240,7 @@ assign_expr returns [BaseGDL* res]
                 {
                     r_guard.reset( res);
                 }
-            | res=check_expr
+            | res=lib_function_call
                 {
                     if( !callStack.back()->Contains( res)) 
                         r_guard.reset( res);
@@ -4254,7 +4262,7 @@ assign_expr returns [BaseGDL* res]
                 {
                     r_guard.reset( res);
                 }
-            | res=check_expr
+            | res=lib_function_call
                 {
                     if( !callStack.back()->Contains( res)) 
                         r_guard.reset( res);
@@ -5208,7 +5216,7 @@ arrayindex_list returns [ArrayIndexListT* aL]
 			}
 			case FCALL_LIB:
 			{
-				s=check_expr(_t);
+				s=lib_function_call(_t);
 				_t = _retTree;
 				
 				if( !callStack.back()->Contains( s)) 
@@ -5257,7 +5265,7 @@ arrayindex_list returns [ArrayIndexListT* aL]
 //             }
             (
                 ( s=indexable_expr
-                | s=check_expr
+                | s=lib_function_call
                     {
                         if( !callStack.back()->Contains( s)) 
                         exprList.push_back( s);

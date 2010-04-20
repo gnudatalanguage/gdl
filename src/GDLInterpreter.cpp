@@ -99,13 +99,16 @@ GDLInterpreter::GDLInterpreter()
 	ProgNodeP& actPos = statement_AST_in;
 	assert( _t != NULL);
 	//  if( callStack.back()->GetLineNumber() == 0) 
-	if( _t->getLine() != 0) 
-	callStack.back()->SetLineNumber( _t->getLine());
+	//  if( _t->getLine() != 0) 
+	//      callStack.back()->SetLineNumber( _t->getLine());
 	
 	
 	try {      // for error handling
 		
 		do {
+		if( _t->getLine() != 0) 
+		callStack.back()->SetLineNumber( _t->getLine());
+		
 		if( _t->getType() == RETF)
 		{
 		_t = _t->getFirstChild();
@@ -146,10 +149,15 @@ GDLInterpreter::GDLInterpreter()
 		retCode = RC_OK;
 		}
 		
+		// if( _retTree == NULL) // keep _t (but _t needs to be NULL then)
+		//    goto afterStatement;
+		// break;
+		
 		_t = _retTree;
 		}
 		while( _retTree != NULL && retCode == RC_OK && 
 		!(interruptEnable && sigControlC) && ( debugMode == DEBUG_CLEAR));
+		
 		goto afterStatement;
 		
 		{
@@ -1042,7 +1050,7 @@ BaseGDL*  GDLInterpreter::expr(ProgNodeP _t) {
 	}
 	case FCALL_LIB:
 	{
-		res=check_expr(_t);
+		res=lib_function_call(_t);
 		_t = _retTree;
 		
 		if( callStack.back()->Contains( res)) 
@@ -2006,7 +2014,7 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 		}
 		case FCALL_LIB:
 		{
-			e1=check_expr(_t);
+			e1=lib_function_call(_t);
 			_t = _retTree;
 			
 			if( !callStack.back()->Contains( e1)) 
@@ -2082,7 +2090,7 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 		}
 		case FCALL_LIB:
 		{
-			e1=check_expr(_t);
+			e1=lib_function_call(_t);
 			_t = _retTree;
 			
 			if( !callStack.back()->Contains( e1)) 
@@ -2158,7 +2166,7 @@ BaseGDL**  GDLInterpreter::l_ret_expr(ProgNodeP _t) {
 		}
 		case FCALL_LIB:
 		{
-			e1=check_expr(_t);
+			e1=lib_function_call(_t);
 			_t = _retTree;
 			
 			if( !callStack.back()->Contains( e1)) 
@@ -2319,7 +2327,7 @@ BaseGDL**  GDLInterpreter::l_deref(ProgNodeP _t) {
 	EnvUDT*   newEnv;
 	
 	
-	ProgNodeP __t163 = _t;
+	ProgNodeP __t162 = _t;
 	ProgNodeP tmp43_AST_in = _t;
 	match(antlr::RefAST(_t),ARRAYEXPR_MFCALL);
 	_t = _t->getFirstChild();
@@ -2340,7 +2348,7 @@ BaseGDL**  GDLInterpreter::l_deref(ProgNodeP _t) {
 	
 	parameter_def(_t, newEnv);
 	_t = _retTree;
-	_t = __t163;
+	_t = __t162;
 	_t = _t->getNextSibling();
 	
 	// push environment onto call stack
@@ -2375,7 +2383,7 @@ BaseGDL**  GDLInterpreter::l_deref(ProgNodeP _t) {
 	switch ( _t->getType()) {
 	case FCALL_LIB:
 	{
-		ProgNodeP __t165 = _t;
+		ProgNodeP __t164 = _t;
 		fl = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 		match(antlr::RefAST(_t),FCALL_LIB);
 		_t = _t->getFirstChild();
@@ -2397,7 +2405,7 @@ BaseGDL**  GDLInterpreter::l_deref(ProgNodeP _t) {
 		throw GDLException( _t, "Library function must return a "
 		"l-value in this context: "+fl->getText());
 		
-		_t = __t165;
+		_t = __t164;
 		_t = _t->getNextSibling();
 		break;
 	}
@@ -2412,7 +2420,7 @@ BaseGDL**  GDLInterpreter::l_deref(ProgNodeP _t) {
 		switch ( _t->getType()) {
 		case MFCALL:
 		{
-			ProgNodeP __t168 = _t;
+			ProgNodeP __t167 = _t;
 			ProgNodeP tmp44_AST_in = _t;
 			match(antlr::RefAST(_t),MFCALL);
 			_t = _t->getFirstChild();
@@ -2430,13 +2438,13 @@ BaseGDL**  GDLInterpreter::l_deref(ProgNodeP _t) {
 			
 			parameter_def(_t, newEnv);
 			_t = _retTree;
-			_t = __t168;
+			_t = __t167;
 			_t = _t->getNextSibling();
 			break;
 		}
 		case MFCALL_PARENT:
 		{
-			ProgNodeP __t169 = _t;
+			ProgNodeP __t168 = _t;
 			ProgNodeP tmp45_AST_in = _t;
 			match(antlr::RefAST(_t),MFCALL_PARENT);
 			_t = _t->getFirstChild();
@@ -2458,13 +2466,13 @@ BaseGDL**  GDLInterpreter::l_deref(ProgNodeP _t) {
 			
 			parameter_def(_t, newEnv);
 			_t = _retTree;
-			_t = __t169;
+			_t = __t168;
 			_t = _t->getNextSibling();
 			break;
 		}
 		case FCALL:
 		{
-			ProgNodeP __t170 = _t;
+			ProgNodeP __t169 = _t;
 			f = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 			match(antlr::RefAST(_t),FCALL);
 			_t = _t->getFirstChild();
@@ -2475,7 +2483,7 @@ BaseGDL**  GDLInterpreter::l_deref(ProgNodeP _t) {
 			
 			parameter_def(_t, newEnv);
 			_t = _retTree;
-			_t = __t170;
+			_t = __t169;
 			_t = _t->getNextSibling();
 			break;
 		}
@@ -2531,12 +2539,12 @@ BaseGDL*  GDLInterpreter::tmp_expr(ProgNodeP _t) {
 	}
 	case QUESTION:
 	{
-		ProgNodeP __t128 = _t;
+		ProgNodeP __t127 = _t;
 		q = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 		match(antlr::RefAST(_t),QUESTION);
 		_t = _t->getFirstChild();
 		res = q->Eval();
-		_t = __t128;
+		_t = __t127;
 		_t = _t->getNextSibling();
 		break;
 	}
@@ -2617,12 +2625,57 @@ BaseGDL*  GDLInterpreter::tmp_expr(ProgNodeP _t) {
 	return res;
 }
 
-BaseGDL*  GDLInterpreter::check_expr(ProgNodeP _t) {
-	BaseGDL* res;
-	ProgNodeP check_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
+ BaseGDL*  GDLInterpreter::lib_function_call(ProgNodeP _t) {
+	 BaseGDL* res;
+	ProgNodeP lib_function_call_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP fll = ProgNodeP(antlr::nullAST);
 	
-	res=lib_function_call(_t);
+	// better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+	StackGuard<EnvStackT> guard(callStack);
+		
+		ProgNodeP rTree = _t->getNextSibling();
+	// 	match(antlr::RefAST(_t),FCALL_LIB);
+	
+	// 	match(antlr::RefAST(_t),IDENTIFIER);
+	
+		ProgNodeP& fl = _t;
+		EnvT* newEnv=new EnvT( fl, fl->libFun);//libFunList[fl->funIx]);
+		
+	parameter_def(_t->getFirstChild(), newEnv);
+	
+		// push id.pro onto call stack
+		callStack.push_back(newEnv);
+		// make the call
+		//BaseGDL* 
+	res=static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
+		// *** MUST always return a defined expression
+	//    if( res == NULL)
+	//       throw GDLException( _t, "");
+	
+	
+		_retTree = rTree;
+		return res;
+	
+	
+	ProgNodeP __t142 = _t;
+	fll = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
+	match(antlr::RefAST(_t),FCALL_LIB);
+	_t = _t->getFirstChild();
+	
+	//EnvT* 
+	newEnv=new EnvT( fll, fll->libFun);//libFunList[fl->funIx]);
+	
+	parameter_def(_t, newEnv);
 	_t = _retTree;
+	
+	// push id.pro onto call stack
+	callStack.push_back(newEnv);
+	// make the call
+	res=static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
+	//*** MUST always return a defined expression
+	
+	_t = __t142;
+	_t = _t->getNextSibling();
 	_retTree = _t;
 	return res;
 }
@@ -3064,7 +3117,7 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t) {
 				}
 				case FCALL_LIB:
 				{
-					s=check_expr(_t);
+					s=lib_function_call(_t);
 					_t = _retTree;
 					
 					if( !callStack.back()->Contains( s)) 
@@ -3093,7 +3146,7 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t) {
 		return aL;
 	
 	
-	ProgNodeP __t178 = _t;
+	ProgNodeP __t177 = _t;
 	ax = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	match(antlr::RefAST(_t),ARRAYIX);
 	_t = _t->getFirstChild();
@@ -3118,7 +3171,7 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t) {
 			}
 			case FCALL_LIB:
 			{
-				s=check_expr(_t);
+				s=lib_function_call(_t);
 				_t = _retTree;
 				
 				if( !callStack.back()->Contains( s)) 
@@ -3160,13 +3213,13 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t) {
 			}
 		}
 		else {
-			goto _loop181;
+			goto _loop180;
 		}
 		
 	}
-	_loop181:;
+	_loop180:;
 	} // ( ... )*
-	_t = __t178;
+	_t = __t177;
 	_t = _t->getNextSibling();
 	_retTree = _t;
 	return aL;
@@ -3475,7 +3528,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		}
 		case FCALL_LIB:
 		{
-			e1=check_expr(_t);
+			e1=lib_function_call(_t);
 			_t = _retTree;
 			
 			if( !callStack.back()->Contains( e1)) 
@@ -3556,7 +3609,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		}
 		case FCALL_LIB:
 		{
-			e1=check_expr(_t);
+			e1=lib_function_call(_t);
 			_t = _retTree;
 			
 			if( !callStack.back()->Contains( e1)) 
@@ -3660,7 +3713,7 @@ BaseGDL*  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		}
 		case FCALL_LIB:
 		{
-			e1=check_expr(_t);
+			e1=lib_function_call(_t);
 			_t = _retTree;
 			
 			if( !callStack.back()->Contains( e1)) 
@@ -4087,7 +4140,7 @@ BaseGDL**  GDLInterpreter::l_expr(ProgNodeP _t,
 		}
 		case FCALL_LIB:
 		{
-			e1=check_expr(_t);
+			e1=lib_function_call(_t);
 			_t = _retTree;
 			
 			if( !callStack.back()->Contains( e1)) 
@@ -4156,7 +4209,7 @@ BaseGDL**  GDLInterpreter::l_expr(ProgNodeP _t,
 		}
 		case FCALL_LIB:
 		{
-			e1=check_expr(_t);
+			e1=lib_function_call(_t);
 			_t = _retTree;
 			
 			if( !callStack.back()->Contains( e1)) 
@@ -4248,7 +4301,7 @@ BaseGDL**  GDLInterpreter::l_expr(ProgNodeP _t,
 		}
 		case FCALL_LIB:
 		{
-			e1=check_expr(_t);
+			e1=lib_function_call(_t);
 			_t = _retTree;
 			
 			if( !callStack.back()->Contains( e1)) 
@@ -4747,14 +4800,14 @@ void GDLInterpreter::parameter_def(ProgNodeP _t,
 	
 	
 	{
-	ProgNodeP __t176 = _t;
+	ProgNodeP __t175 = _t;
 	ProgNodeP tmp62_AST_in = _t;
 	match(antlr::RefAST(_t),KEYDEF_REF);
 	_t = _t->getFirstChild();
 	ProgNodeP tmp63_AST_in = _t;
 	match(antlr::RefAST(_t),IDENTIFIER);
 	_t = _t->getNextSibling();
-	_t = __t176;
+	_t = __t175;
 	_t = _t->getNextSibling();
 	}
 	_retTree = _t;
@@ -4899,7 +4952,7 @@ BaseGDL**  GDLInterpreter::l_arrayexpr_mfcall(ProgNodeP _t,
 	ProgNodeP startNode = _t;
 	
 	
-	ProgNodeP __t153 = _t;
+	ProgNodeP __t152 = _t;
 	ProgNodeP tmp66_AST_in = _t;
 	match(antlr::RefAST(_t),ARRAYEXPR_MFCALL);
 	_t = _t->getFirstChild();
@@ -4926,7 +4979,7 @@ BaseGDL**  GDLInterpreter::l_arrayexpr_mfcall(ProgNodeP _t,
 	
 	parameter_def(_t, newEnv);
 	_t = _retTree;
-	_t = __t153;
+	_t = __t152;
 	_t = _t->getNextSibling();
 	
 	// push environment onto call stack
@@ -4942,7 +4995,7 @@ BaseGDL**  GDLInterpreter::l_arrayexpr_mfcall(ProgNodeP _t,
 	tryARRAYEXPR:;
 	_t = mark;
 	
-	ProgNodeP __t154 = _t;
+	ProgNodeP __t153 = _t;
 	dot = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	match(antlr::RefAST(_t),DOT);
 	_t = _t->getFirstChild();
@@ -4953,7 +5006,7 @@ BaseGDL**  GDLInterpreter::l_arrayexpr_mfcall(ProgNodeP _t,
 	l_dot_array_expr(_t, aD.get());
 	_t = _retTree;
 	{ // ( ... )+
-	int _cnt156=0;
+	int _cnt155=0;
 	for (;;) {
 		if (_t == ProgNodeP(antlr::nullAST) )
 			_t = ASTNULL;
@@ -4962,14 +5015,14 @@ BaseGDL**  GDLInterpreter::l_arrayexpr_mfcall(ProgNodeP _t,
 			_t = _retTree;
 		}
 		else {
-			if ( _cnt156>=1 ) { goto _loop156; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
+			if ( _cnt155>=1 ) { goto _loop155; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
 		}
 		
-		_cnt156++;
+		_cnt155++;
 	}
-	_loop156:;
+	_loop155:;
 	}  // ( ... )+
-	_t = __t154;
+	_t = __t153;
 	_t = _t->getNextSibling();
 	
 	if( right == NULL)
@@ -5050,7 +5103,7 @@ BaseGDL*  GDLInterpreter::array_expr(ProgNodeP _t) {
 	}
 	case FCALL_LIB:
 	{
-		r=check_expr(_t);
+		r=lib_function_call(_t);
 		_t = _retTree;
 		
 		if( !callStack.back()->Contains( r)) 
@@ -5108,7 +5161,7 @@ BaseGDL*  GDLInterpreter::array_expr(ProgNodeP _t) {
 			}
 			case FCALL_LIB:
 			{
-				s=check_expr(_t);
+				s=lib_function_call(_t);
 				_t = _retTree;
 				
 				if( !callStack.back()->Contains( s)) 
@@ -5518,7 +5571,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 			
 			if( _t->getType() == FCALL_LIB)
 			{
-				res=check_expr(_t);
+				res=lib_function_call(_t);
 				_t = _retTree;
 				
 				if( !callStack.back()->Contains( res)) 
@@ -5552,7 +5605,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 			
 			if( _t->getType() == FCALL_LIB)
 			{
-				res=check_expr(_t);
+				res=lib_function_call(_t);
 				_t = _retTree;
 				
 				if( !callStack.back()->Contains( res)) 
@@ -5617,7 +5670,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 			if( _t->getType() == FCALL_LIB)
 			{
 	
-				res=check_expr(_t);
+				res=lib_function_call(_t);
 				_t = _retTree;
 				
 				if( !callStack.back()->Contains( res)) 
@@ -5679,7 +5732,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	switch ( _t->getType()) {
 	case ASSIGN:
 	{
-		ProgNodeP __t130 = _t;
+		ProgNodeP __t129 = _t;
 		ProgNodeP tmp71_AST_in = _t;
 		match(antlr::RefAST(_t),ASSIGN);
 		_t = _t->getFirstChild();
@@ -5725,7 +5778,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 		}
 		case FCALL_LIB:
 		{
-			res=check_expr(_t);
+			res=lib_function_call(_t);
 			_t = _retTree;
 			
 			if( !callStack.back()->Contains( res)) 
@@ -5747,13 +5800,13 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 		else
 		res = res->Dup();
 		
-		_t = __t130;
+		_t = __t129;
 		_t = _t->getNextSibling();
 		break;
 	}
 	case ASSIGN_ARRAYEXPR_MFCALL:
 	{
-		ProgNodeP __t132 = _t;
+		ProgNodeP __t131 = _t;
 		ProgNodeP tmp72_AST_in = _t;
 		match(antlr::RefAST(_t),ASSIGN_ARRAYEXPR_MFCALL);
 		_t = _t->getFirstChild();
@@ -5799,7 +5852,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 		}
 		case FCALL_LIB:
 		{
-			res=check_expr(_t);
+			res=lib_function_call(_t);
 			_t = _retTree;
 			
 			if( !callStack.back()->Contains( res)) 
@@ -5821,13 +5874,13 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 		else
 		res = res->Dup();
 		
-		_t = __t132;
+		_t = __t131;
 		_t = _t->getNextSibling();
 		break;
 	}
 	case ASSIGN_REPLACE:
 	{
-		ProgNodeP __t134 = _t;
+		ProgNodeP __t133 = _t;
 		ProgNodeP tmp73_AST_in = _t;
 		match(antlr::RefAST(_t),ASSIGN_REPLACE);
 		_t = _t->getFirstChild();
@@ -5873,7 +5926,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 		}
 		case FCALL_LIB:
 		{
-			res=check_expr(_t);
+			res=lib_function_call(_t);
 			_t = _retTree;
 			
 			if( !callStack.back()->Contains( res)) 
@@ -5933,7 +5986,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 		res = res->Dup();
 		}
 		
-		_t = __t134;
+		_t = __t133;
 		_t = _t->getNextSibling();
 		break;
 	}
@@ -5969,7 +6022,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	switch ( _t->getType()) {
 	case MFCALL:
 	{
-		ProgNodeP __t148 = _t;
+		ProgNodeP __t147 = _t;
 		ProgNodeP tmp74_AST_in = _t;
 		match(antlr::RefAST(_t),MFCALL);
 		_t = _t->getFirstChild();
@@ -5987,13 +6040,13 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 		
 		parameter_def(_t, newEnv);
 		_t = _retTree;
-		_t = __t148;
+		_t = __t147;
 		_t = _t->getNextSibling();
 		break;
 	}
 	case MFCALL_PARENT:
 	{
-		ProgNodeP __t149 = _t;
+		ProgNodeP __t148 = _t;
 		ProgNodeP tmp75_AST_in = _t;
 		match(antlr::RefAST(_t),MFCALL_PARENT);
 		_t = _t->getFirstChild();
@@ -6015,13 +6068,13 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 		
 		parameter_def(_t, newEnv);
 		_t = _retTree;
-		_t = __t149;
+		_t = __t148;
 		_t = _t->getNextSibling();
 		break;
 	}
 	case FCALL:
 	{
-		ProgNodeP __t150 = _t;
+		ProgNodeP __t149 = _t;
 		f = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 		match(antlr::RefAST(_t),FCALL);
 		_t = _t->getFirstChild();
@@ -6032,13 +6085,13 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 		
 		parameter_def(_t, newEnv);
 		_t = _retTree;
-		_t = __t150;
+		_t = __t149;
 		_t = _t->getNextSibling();
 		break;
 	}
 	case ARRAYEXPR_MFCALL:
 	{
-		ProgNodeP __t151 = _t;
+		ProgNodeP __t150 = _t;
 		ProgNodeP tmp76_AST_in = _t;
 		match(antlr::RefAST(_t),ARRAYEXPR_MFCALL);
 		_t = _t->getFirstChild();
@@ -6065,7 +6118,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 		
 		parameter_def(_t, newEnv);
 		_t = _retTree;
-		_t = __t151;
+		_t = __t150;
 		_t = _t->getNextSibling();
 		break;
 	}
@@ -6154,7 +6207,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 		return res;
 	
 	
-	ProgNodeP __t145 = _t;
+	ProgNodeP __t144 = _t;
 	fll = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	match(antlr::RefAST(_t),FCALL_LIB_RETNEW);
 	_t = _t->getFirstChild();
@@ -6171,62 +6224,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	res=static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
 	//*** MUST always return a defined expression
 	
-	_t = __t145;
-	_t = _t->getNextSibling();
-	_retTree = _t;
-	return res;
-}
-
- BaseGDL*  GDLInterpreter::lib_function_call(ProgNodeP _t) {
-	 BaseGDL* res;
-	ProgNodeP lib_function_call_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
-	ProgNodeP fll = ProgNodeP(antlr::nullAST);
-	
-	// better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
-	StackGuard<EnvStackT> guard(callStack);
-		
-		ProgNodeP rTree = _t->getNextSibling();
-	// 	match(antlr::RefAST(_t),FCALL_LIB);
-	
-	// 	match(antlr::RefAST(_t),IDENTIFIER);
-	
-		ProgNodeP& fl = _t;
-		EnvT* newEnv=new EnvT( fl, fl->libFun);//libFunList[fl->funIx]);
-		
-	parameter_def(_t->getFirstChild(), newEnv);
-	
-		// push id.pro onto call stack
-		callStack.push_back(newEnv);
-		// make the call
-		//BaseGDL* 
-	res=static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
-		// *** MUST always return a defined expression
-	//    if( res == NULL)
-	//       throw GDLException( _t, "");
-	
-	
-		_retTree = rTree;
-		return res;
-	
-	
-	ProgNodeP __t143 = _t;
-	fll = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
-	match(antlr::RefAST(_t),FCALL_LIB);
-	_t = _t->getFirstChild();
-	
-	//EnvT* 
-	newEnv=new EnvT( fll, fll->libFun);//libFunList[fl->funIx]);
-	
-	parameter_def(_t, newEnv);
-	_t = _retTree;
-	
-	// push id.pro onto call stack
-	callStack.push_back(newEnv);
-	// make the call
-	res=static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
-	//*** MUST always return a defined expression
-	
-	_t = __t143;
+	_t = __t144;
 	_t = _t->getNextSibling();
 	_retTree = _t;
 	return res;
@@ -6360,11 +6358,11 @@ BaseGDL**  GDLInterpreter::l_arrayexpr_mfcall_as_arrayexpr(ProgNodeP _t,
 	ProgNodeP l_arrayexpr_mfcall_as_arrayexpr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP dot = ProgNodeP(antlr::nullAST);
 	
-	ProgNodeP __t158 = _t;
+	ProgNodeP __t157 = _t;
 	ProgNodeP tmp77_AST_in = _t;
 	match(antlr::RefAST(_t),ARRAYEXPR_MFCALL);
 	_t = _t->getFirstChild();
-	ProgNodeP __t159 = _t;
+	ProgNodeP __t158 = _t;
 	dot = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	match(antlr::RefAST(_t),DOT);
 	_t = _t->getFirstChild();
@@ -6375,7 +6373,7 @@ BaseGDL**  GDLInterpreter::l_arrayexpr_mfcall_as_arrayexpr(ProgNodeP _t,
 	l_dot_array_expr(_t, aD.get());
 	_t = _retTree;
 	{ // ( ... )+
-	int _cnt161=0;
+	int _cnt160=0;
 	for (;;) {
 		if (_t == ProgNodeP(antlr::nullAST) )
 			_t = ASTNULL;
@@ -6384,16 +6382,16 @@ BaseGDL**  GDLInterpreter::l_arrayexpr_mfcall_as_arrayexpr(ProgNodeP _t,
 			_t = _retTree;
 		}
 		else {
-			if ( _cnt161>=1 ) { goto _loop161; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
+			if ( _cnt160>=1 ) { goto _loop160; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
 		}
 		
-		_cnt161++;
+		_cnt160++;
 	}
-	_loop161:;
+	_loop160:;
 	}  // ( ... )+
-	_t = __t159;
-	_t = _t->getNextSibling();
 	_t = __t158;
+	_t = _t->getNextSibling();
+	_t = __t157;
 	_t = _t->getNextSibling();
 	
 	if( right == NULL)
@@ -6511,14 +6509,14 @@ void GDLInterpreter::parameter_def_n_elements(ProgNodeP _t,
 	return;
 	
 	
-	ProgNodeP __t173 = _t;
+	ProgNodeP __t172 = _t;
 	ProgNodeP tmp78_AST_in = _t;
 	match(antlr::RefAST(_t),KEYDEF_REF_EXPR);
 	_t = _t->getFirstChild();
 	ProgNodeP tmp79_AST_in = _t;
 	match(antlr::RefAST(_t),IDENTIFIER);
 	_t = _t->getNextSibling();
-	_t = __t173;
+	_t = __t172;
 	_t = _t->getNextSibling();
 	_retTree = _t;
 }

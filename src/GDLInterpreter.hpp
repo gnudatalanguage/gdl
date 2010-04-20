@@ -704,7 +704,7 @@ public:
 	public:  BaseGDL**  l_arrayexpr_mfcall_as_mfcall(ProgNodeP _t);
 	public:  BaseGDL**  l_function_call(ProgNodeP _t);
 	public: BaseGDL*  tmp_expr(ProgNodeP _t);
-	public: BaseGDL*  check_expr(ProgNodeP _t);
+	public:  BaseGDL*  lib_function_call(ProgNodeP _t);
 	public: BaseGDL*  r_expr(ProgNodeP _t);
 	public: BaseGDL*  constant_nocopy(ProgNodeP _t);
 	public: BaseGDL*  l_decinc_indexable_expr(ProgNodeP _t,
@@ -759,7 +759,6 @@ public:
 	public: BaseGDL*  assign_expr(ProgNodeP _t);
 	public:  BaseGDL*  function_call(ProgNodeP _t);
 	public:  BaseGDL*  lib_function_call_retnew(ProgNodeP _t);
-	public:  BaseGDL*  lib_function_call(ProgNodeP _t);
 	public: BaseGDL*  constant(ProgNodeP _t);
 	public: BaseGDL*  simple_var(ProgNodeP _t);
 	public: BaseGDL*  sys_var(ProgNodeP _t);
