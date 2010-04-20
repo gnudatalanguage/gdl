@@ -4015,7 +4015,6 @@ tmp_expr returns [BaseGDL* res]
 //                 e1=expr
 //             { 
 //                 auto_ptr<BaseGDL> e1_guard(e1);
-
 //                 if( e1->True())
 //                 {
 //                     res=expr(_t);

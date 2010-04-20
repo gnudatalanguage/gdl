@@ -617,25 +617,25 @@ void ASSIGN_REPLACENode::Run()
   {
     if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
       {
-	r=ProgNode::interpreter->lib_function_call(_t);
+		r=ProgNode::interpreter->lib_function_call(_t);
 
-	if( r == NULL) // ROUTINE_NAMES
-		throw GDLException( this, "Undefined return value", true, false);
-	
-	_t = ProgNode::interpreter->_retTree;
-			
-			
-	if( !ProgNode::interpreter->callStack.back()->Contains( r)) 
-	  r_guard.reset( r);
-			
+		if( r == NULL) // ROUTINE_NAMES
+			throw GDLException( this, "Undefined return value", true, false);
+		
+		_t = ProgNode::interpreter->_retTree;
+				
+				
+		if( !ProgNode::interpreter->callStack.back()->Contains( r)) 
+			r_guard.reset( r);
+		else
+			r_guard.reset( r->Dup());
       }
     else
       {
-	r=ProgNode::interpreter->tmp_expr(_t);
-	_t = ProgNode::interpreter->_retTree;
-			
-	r_guard.reset( r);
-			
+			r=ProgNode::interpreter->tmp_expr(_t);
+			_t = ProgNode::interpreter->_retTree;
+					
+			r_guard.reset( r);
       }
   }
 
@@ -664,18 +664,16 @@ void ASSIGN_REPLACENode::Run()
       break;
     }
   }
-		
-  if( r != (*l))
-    {
-      delete *l;
-		
-      if( r_guard.get() == r)
+//  if( r != (*l))
+//     {
+    delete *l;
+//      if( r_guard.get() == r)
 	*l = r_guard.release();
-      else  
-	*l = r->Dup();
-    }
+//       else
+// 	*l = r->Dup();
+//     }
 
-  ProgNode::interpreter->_retTree = this->getNextSibling();
+  ProgNode::interpreter->SetRetTree( this->getNextSibling());
 }
 
 

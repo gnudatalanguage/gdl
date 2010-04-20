@@ -43,7 +43,7 @@ Data_<Sp>* Data_<Sp>::NotOp()
   ULong nEl=N_Elements();
   assert( nEl != 0);
   //  if( !nEl) throw GDLException("Variable is undefined.");  
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -57,7 +57,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::NotOp()
   ULong nEl=N_Elements();
   assert( nEl != 0);
   //  if( !nEl) throw GDLException("Variable is undefined.");  
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -70,7 +70,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::NotOp()
   ULong nEl=N_Elements();
   assert( nEl != 0);
   //  if( !nEl) throw GDLException("Variable is undefined.");  
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -122,7 +122,7 @@ BaseGDL* Data_<Sp>::UMinus()
   ULong nEl=N_Elements();
   assert( nEl != 0);
   //  if( !nEl) throw GDLException("Variable is undefined.");  
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -167,7 +167,7 @@ Data_<SpDByte>* Data_<Sp>::LogNeg()
   //  if( nEl == 0) throw GDLException("Variable is undefined.");  
   
   DByteGDL* res = new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -182,7 +182,7 @@ Data_<SpDByte>* Data_<SpDFloat>::LogNeg()
   //  if( nEl == 0) throw GDLException("Variable is undefined.");  
   
   DByteGDL* res = new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -197,7 +197,7 @@ Data_<SpDByte>* Data_<SpDDouble>::LogNeg()
   //  if( nEl == 0) throw GDLException("Variable is undefined.");  
   
   DByteGDL* res = new Data_<SpDByte>( dim, BaseGDL::NOZERO);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -211,7 +211,7 @@ Data_<SpDByte>* Data_<SpDString>::LogNeg()
   assert( nEl);
   //  if( nEl == 0) throw GDLException("Variable is undefined.");  
   DByteGDL* res = new Data_<SpDByte>( dim, BaseGDL::NOZERO);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -225,7 +225,7 @@ Data_<SpDByte>* Data_<SpDComplex>::LogNeg()
   assert( nEl);
   //  if( nEl == 0) throw GDLException("Variable is undefined.");  
   DByteGDL* res = new Data_<SpDByte>( dim, BaseGDL::NOZERO);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -239,7 +239,7 @@ Data_<SpDByte>* Data_<SpDComplexDbl>::LogNeg()
   assert( nEl);
   //  if( nEl == 0) throw GDLException("Variable is undefined.");  
   DByteGDL* res = new Data_<SpDByte>( dim, BaseGDL::NOZERO);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -255,7 +255,7 @@ void Data_<Sp>::Dec()
   ULong nEl=N_Elements();
   assert( nEl != 0);
   // if( !nEl) throw GDLException("Variable is undefined.");  
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -267,7 +267,7 @@ void Data_<Sp>::Inc()
   ULong nEl=N_Elements();
   assert( nEl != 0);
   // if( !nEl) throw GDLException("Variable is undefined.");  
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -281,7 +281,7 @@ void Data_<SpDFloat>::Dec()
   ULong nEl=N_Elements();
   assert( nEl != 0);
   // if( !nEl) throw GDLException("Variable is undefined.");  
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -294,7 +294,7 @@ void Data_<SpDFloat>::Inc()
   ULong nEl=N_Elements();
   assert( nEl != 0);
   // if( !nEl) throw GDLException("Variable is undefined.");  
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -308,7 +308,7 @@ void Data_<SpDDouble>::Dec()
   ULong nEl=N_Elements();
   assert( nEl != 0);
   // if( !nEl) throw GDLException("Variable is undefined.");  
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -321,7 +321,7 @@ void Data_<SpDDouble>::Inc()
   ULong nEl=N_Elements();
   assert( nEl != 0);
   // if( !nEl) throw GDLException("Variable is undefined.");  
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -335,7 +335,7 @@ void Data_<SpDComplex>::Dec()
   ULong nEl=N_Elements();
   assert( nEl != 0);
   // if( !nEl) throw GDLException("Variable is undefined.");  
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -348,7 +348,7 @@ void Data_<SpDComplex>::Inc()
   ULong nEl=N_Elements();
   assert( nEl != 0);
   // if( !nEl) throw GDLException("Variable is undefined.");  
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -361,7 +361,7 @@ void Data_<SpDComplexDbl>::Dec()
   ULong nEl=N_Elements();
   assert( nEl != 0);
   // if( !nEl) throw GDLException("Variable is undefined.");  
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -374,7 +374,7 @@ void Data_<SpDComplexDbl>::Inc()
   ULong nEl=N_Elements();
   assert( nEl != 0);
   // if( !nEl) throw GDLException("Variable is undefined.");  
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -437,7 +437,7 @@ Data_<SpDByte>* Data_<Sp>::EqOp( BaseGDL* r)
   if( right->StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
       for( SizeT i=0; i < nEl; ++i)
@@ -464,7 +464,7 @@ Data_<SpDByte>* Data_<Sp>::EqOp( BaseGDL* r)
   else // ( rEl >= nEl)
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
       for( SizeT i=0; i < nEl; ++i)
@@ -512,7 +512,7 @@ Data_<SpDByte>* Data_<Sp>::NeOp( BaseGDL* r)
   if( right->StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
       for( SizeT i=0; i < nEl; ++i)
@@ -539,7 +539,7 @@ Data_<SpDByte>* Data_<Sp>::NeOp( BaseGDL* r)
   else // ( rEl >= nEl)
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
       for( SizeT i=0; i < nEl; ++i)
@@ -587,7 +587,7 @@ Data_<SpDByte>* Data_<Sp>::LeOp( BaseGDL* r)
   if( right->StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
     for( SizeT i=0; i < nEl; ++i)
@@ -614,7 +614,7 @@ Data_<SpDByte>* Data_<Sp>::LeOp( BaseGDL* r)
   else // ( rEl >= nEl)
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
       for( SizeT i=0; i < nEl; ++i)
@@ -674,7 +674,7 @@ Data_<SpDByte>* Data_<Sp>::LtOp( BaseGDL* r)
   if( right->StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
       for( SizeT i=0; i < nEl; ++i)
@@ -701,7 +701,7 @@ Data_<SpDByte>* Data_<Sp>::LtOp( BaseGDL* r)
   else // ( rEl >= nEl)
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
       for( SizeT i=0; i < nEl; ++i)
@@ -761,7 +761,7 @@ Data_<SpDByte>* Data_<Sp>::GeOp( BaseGDL* r)
   if( right->StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
       for( SizeT i=0; i < nEl; ++i)
@@ -788,7 +788,7 @@ Data_<SpDByte>* Data_<Sp>::GeOp( BaseGDL* r)
   else // ( rEl >= nEl)
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
       for( SizeT i=0; i < nEl; ++i)
@@ -848,7 +848,7 @@ Data_<SpDByte>* Data_<Sp>::GtOp( BaseGDL* r)
   if( right->StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
       for( SizeT i=0; i < nEl; ++i)
@@ -875,7 +875,7 @@ Data_<SpDByte>* Data_<Sp>::GtOp( BaseGDL* r)
   else // ( rEl >= nEl)
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
       for( SizeT i=0; i < nEl; ++i)
@@ -1186,7 +1186,7 @@ Data_<Sp>* Data_<Sp>::AndOp( BaseGDL* r)
   assert( nEl);
   // note: we can't use valarray operation here as right->dd 
   // might be larger than this->dd
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -1210,7 +1210,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::AndOp( BaseGDL* r)
   ULong nEl=N_Elements();
   // assert( rEl);
   assert( nEl);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -1227,7 +1227,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::AndOpInv( BaseGDL* r)
   ULong nEl=N_Elements();
   // assert( rEl);
   assert( nEl);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -1245,7 +1245,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOp( BaseGDL* r)
   ULong nEl=N_Elements();
   // assert( rEl);
   assert( nEl);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -1262,7 +1262,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOpInv( BaseGDL* r)
   ULong nEl=N_Elements();
   // assert( rEl);
   assert( nEl);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -1348,7 +1348,7 @@ Data_<Sp>* Data_<Sp>::AndOpS( BaseGDL* r)
 
   // s &= Ty(1);
 //  dd &= s;
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared(s)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared(s)
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -1375,7 +1375,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::AndOpS( BaseGDL* r)
   if( s == zero)
  //   dd = zero;
  {
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
     for( SizeT i=0; i < nEl; ++i)
@@ -1397,7 +1397,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::AndOpInvS( BaseGDL* r)
   if( s == zero)
 //    dd = zero;
 {
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
      for( SizeT i=0; i < nEl; ++i)
@@ -1405,7 +1405,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::AndOpInvS( BaseGDL* r)
 }}
   else
 {
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
     for( SizeT i=0; i < nEl; ++i)
@@ -1427,7 +1427,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOpS( BaseGDL* r)
   // right->Scalar(s); 
   if( s == zero)
 //    dd = zero;
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
     for( SizeT i=0; i < nEl; ++i)
@@ -1447,7 +1447,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOpInvS( BaseGDL* r)
   if( s == zero)
 //    dd = zero;
  {
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
    for( SizeT i=0; i < nEl; ++i)
@@ -1455,7 +1455,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOpInvS( BaseGDL* r)
 }}
   else
 {
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
     for( SizeT i=0; i < nEl; ++i)
@@ -1532,7 +1532,7 @@ Data_<Sp>* Data_<Sp>::OrOp( BaseGDL* r)
   // assert( rEl);
   assert( nEl);
   //if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -1558,7 +1558,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::OrOp( BaseGDL* r)
   // assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -1576,7 +1576,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::OrOpInv( BaseGDL* r)
   // assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -1595,7 +1595,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOp( BaseGDL* r)
   // assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -1613,7 +1613,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOpInv( BaseGDL* r)
   // assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -1677,7 +1677,7 @@ Data_<Sp>* Data_<Sp>::OrOpS( BaseGDL* r)
   // right->Scalar(s); 
   //s &= Ty(1);
 //  dd |= s;
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -1704,7 +1704,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::OrOpS( BaseGDL* r)
   // right->Scalar(s); 
   if( s != zero)
 {
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
     for( SizeT i=0; i < nEl; ++i)
@@ -1738,7 +1738,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOpS( BaseGDL* r)
   // right->Scalar(s);
   if( s != zero)
 {
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
     for( SizeT i=0; i < nEl; ++i)
@@ -1758,7 +1758,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOpInvS( BaseGDL* r)
   if( s != zero)
 //    dd = s;
 {
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
     for( SizeT i=0; i < nEl; ++i)
@@ -1766,7 +1766,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOpInvS( BaseGDL* r)
 }}
   else
 {
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
     for( SizeT i=0; i < nEl; ++i)
@@ -1836,7 +1836,7 @@ Data_<Sp>* Data_<Sp>::XorOp( BaseGDL* r)
       if( s != Sp::zero)
 //	dd ^= s;
 {
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
 	for( SizeT i=0; i < nEl; ++i)
@@ -1845,7 +1845,7 @@ Data_<Sp>* Data_<Sp>::XorOp( BaseGDL* r)
     }
   else
     {
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
       for( SizeT i=0; i < nEl; ++i)
@@ -1911,7 +1911,7 @@ Data_<Sp>* Data_<Sp>::XorOpS( BaseGDL* r)
   assert( nEl);
   Ty s = (*right)[0];
 //  dd ^= s;
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -1983,7 +1983,7 @@ Data_<Sp>* Data_<Sp>::Add( BaseGDL* r)
   ULong nEl=N_Elements();
   // assert( rEl);
   assert( nEl);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -2006,7 +2006,7 @@ Data_<SpDString>* Data_<SpDString>::AddInv( BaseGDL* r)
   // assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -2048,7 +2048,7 @@ Data_<Sp>* Data_<Sp>::AddS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s);
 //  dd += s;
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -2071,7 +2071,7 @@ Data_<SpDString>* Data_<SpDString>::AddInvS( BaseGDL* r)
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
   Ty s = (*right)[0];
   // right->Scalar(s);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -2120,7 +2120,7 @@ Data_<Sp>* Data_<Sp>::Sub( BaseGDL* r)
     dd -= right->dd;
   else
 {
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
     for( SizeT i=0; i < nEl; ++i)
@@ -2142,7 +2142,7 @@ Data_<Sp>* Data_<Sp>::SubInv( BaseGDL* r)
 /*  if( nEl == rEl)
     dd = right->dd - dd;
   else*/
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
     for( SizeT i=0; i < nEl; ++i)
@@ -2207,7 +2207,7 @@ Data_<Sp>* Data_<Sp>::SubS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s); 
 //  dd -= s;
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -2226,7 +2226,7 @@ Data_<Sp>* Data_<Sp>::SubInvS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s); 
 //  dd = s - dd;
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -2295,7 +2295,7 @@ Data_<Sp>* Data_<Sp>::LtMark( BaseGDL* r)
   //  assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -2348,7 +2348,7 @@ Data_<Sp>* Data_<Sp>::LtMarkS( BaseGDL* r)
   assert( nEl);
   Ty s = (*right)[0];
   // right->Scalar(s);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -2405,7 +2405,7 @@ Data_<Sp>* Data_<Sp>::GtMark( BaseGDL* r)
   // assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -2458,7 +2458,7 @@ Data_<Sp>* Data_<Sp>::GtMarkS( BaseGDL* r)
   assert( nEl);
   Ty s = (*right)[0];
   // right->Scalar(s);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -2516,7 +2516,7 @@ Data_<Sp>* Data_<Sp>::Mult( BaseGDL* r)
   // assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -2558,7 +2558,7 @@ Data_<Sp>* Data_<Sp>::MultS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s);
 //  dd *= s;
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -2617,7 +2617,7 @@ SizeT i = 0;
     }
   else
     {
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 //       bool zeroEncountered = false; // until zero operation is already done.
 #pragma omp for
@@ -2656,7 +2656,7 @@ SizeT i = 0;
     }
   else
     {
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 //       bool zeroEncountered = false; // until zero operation is already done.
 #pragma omp for
@@ -2737,7 +2737,7 @@ Data_<Sp>* Data_<Sp>::DivS( BaseGDL* r)
     {
       // right->Scalar(s); 
 //      dd /= s;
-/*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+/*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for*/
        for( SizeT i=0; i < nEl; ++i)
@@ -2771,7 +2771,7 @@ SizeT i=0;
     }
   else
     {
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 //       bool zeroEncountered = false;
 #pragma omp for
@@ -2865,7 +2865,7 @@ SizeT i=0;
     }
   else
     {
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 //       bool zeroEncountered = false;
 #pragma omp for
@@ -2909,7 +2909,7 @@ SizeT i=0;
     }
   else
     {
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 //       bool zeroEncountered = false;
 #pragma omp for
@@ -2948,7 +2948,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::Mod( BaseGDL* r)
   // assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -2967,7 +2967,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModInv( BaseGDL* r)
   // assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -2992,7 +2992,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::Mod( BaseGDL* r)
   // assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -3011,7 +3011,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModInv( BaseGDL* r)
   // assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -3116,7 +3116,7 @@ SizeT i=0;
       
       // right->Scalar(s); 
       assert( s == this->zero);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
       for( SizeT ix=i; ix < nEl; ++ix)
@@ -3150,7 +3150,7 @@ SizeT i=0;
     }
   else
     {
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
 //       bool zeroEncountered = false;
@@ -3183,7 +3183,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModS( BaseGDL* r)
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
   Ty s = (*right)[0];
   // right->Scalar(s); 
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -3202,7 +3202,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModInvS( BaseGDL* r)
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
   Ty s = (*right)[0];
   // right->Scalar(s); 
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -3219,7 +3219,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModS( BaseGDL* r)
   assert( nEl);
   Ty s = (*right)[0];
   // right->Scalar(s);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -3237,7 +3237,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModInvS( BaseGDL* r)
   assert( nEl);
   Ty s = (*right)[0];
   // right->Scalar(s); 
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -3356,7 +3356,7 @@ Data_<Sp>* Data_<Sp>::Pow( BaseGDL* r)
   //  assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -3378,7 +3378,7 @@ Data_<Sp>* Data_<Sp>::PowInv( BaseGDL* r)
   //      right->dd.resize(nEl);
   //      dd = pow( right->Resize(nEl), dd); // valarray
       
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -3403,7 +3403,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::Pow( BaseGDL* r)
     }
   else*/
     {
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
     for( SizeT i=0; i < nEl; ++i)
@@ -3448,7 +3448,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowInt( BaseGDL* r)
   if( r->StrictScalar())
     {
       DLong r0 = (*right)[0];  
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
       for( SizeT i=0; i < nEl; ++i)
@@ -3468,7 +3468,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowInt( BaseGDL* r)
     }
   if( nEl <= rEl)
     {
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
       for( SizeT i=0; i < nEl; ++i)
@@ -3499,7 +3499,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowIntNew( BaseGDL* r)
     {
       Data_* res = new Data_( Dim(), BaseGDL::NOZERO);
       DLong r0 = (*right)[0];  
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
       for( SizeT i=0; i < nEl; ++i)
@@ -3520,7 +3520,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowIntNew( BaseGDL* r)
   if( nEl <= rEl)
     {
       Data_* res = new Data_( Dim(), BaseGDL::NOZERO);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
       for( SizeT i=0; i < nEl; ++i)
@@ -3550,7 +3550,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowInt( BaseGDL* r)
   if( r->StrictScalar())
     {
       DLong r0 = (*right)[0];  
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
       for( SizeT i=0; i < nEl; ++i)
@@ -3570,7 +3570,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowInt( BaseGDL* r)
     }
   if( nEl <= rEl)
     {
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
       for( SizeT i=0; i < nEl; ++i)
@@ -3601,7 +3601,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowIntNew( BaseGDL* r)
     {
       Data_* res = new Data_( Dim(), BaseGDL::NOZERO);
       DLong r0 = (*right)[0];  
-  #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+  #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
     for( SizeT i=0; i < nEl; ++i)
@@ -3622,7 +3622,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowIntNew( BaseGDL* r)
   if( nEl <= rEl)
     {
       Data_* res = new Data_( Dim(), BaseGDL::NOZERO);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
       for( SizeT i=0; i < nEl; ++i)
@@ -3656,7 +3656,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowInv( BaseGDL* r)
 /*  if( rEl == nEl)
     dd = pow( right->dd, dd); // valarray
   else*/
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
     for( SizeT i=0; i < nEl; ++i)
@@ -3680,7 +3680,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::Pow( BaseGDL* r)
 /*  if( rEl == nEl)
     dd = pow( dd, right->dd); // valarray
   else*/
-  #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+  #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -3704,7 +3704,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowInv( BaseGDL* r)
 /*  if( rEl == nEl)
     dd = pow( right->dd, dd); // valarray
   else*/
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
     for( SizeT i=0; i < nEl; ++i)
@@ -3732,7 +3732,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
       // (must also be consistent with ComplexDbl)
       if( right->StrictScalar(s)) 
 	{
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
 	  for( SizeT i=0; i<nEl; ++i)
@@ -3759,7 +3759,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
 		  return res;
 		}
 
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
 	      for( SizeT i=0; i<nEl; ++i)
@@ -3792,7 +3792,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
       // (must also be consistent with ComplexDbl)
       if( right->StrictScalar(s)) 
 	{
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
 	  for( SizeT i=0; i<nEl; ++i)
@@ -3819,7 +3819,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
 		  return res;
 		}
 
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
 	      for( SizeT i=0; i<nEl; ++i)
@@ -3858,7 +3858,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
 /*  if( r->N_Elements() == nEl)
     dd = pow( dd, right->dd); // valarray
   else*/
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
     for( SizeT i=0; i < nEl; ++i)
@@ -3888,7 +3888,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowInv( BaseGDL* r)
 /*  if( rEl == nEl)
     dd = pow( right->dd, dd); // valarray
   else*/
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
     for( SizeT i=0; i < nEl; ++i)
@@ -3917,7 +3917,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
       // (concerning when a new variable is created vs. using this)
       if( right->StrictScalar(s)) 
 	{
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
 	  for( SizeT i=0; i<nEl; ++i)
@@ -3944,7 +3944,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
 		  return res;
 		}
 
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
 	      for( SizeT i=0; i<nEl; ++i)
@@ -3979,7 +3979,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
       // (concerning when a new variable is created vs. using this)
       if( right->StrictScalar(s)) 
 	{
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
 	  for( SizeT i=0; i<nEl; ++i)
@@ -4006,7 +4006,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
 		  return res;
 		}
 
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
 	      for( SizeT i=0; i<nEl; ++i)
@@ -4045,7 +4045,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
 /*  if( r->N_Elements() == nEl)
     dd = pow( dd, right->dd); // valarray
   else*/
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
     for( SizeT i=0; i < nEl; ++i)
@@ -4075,7 +4075,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowInv( BaseGDL* r)
 /*  if( rEl == nEl)
     dd = pow( right->dd, dd); // valarray
   else*/
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
     for( SizeT i=0; i < nEl; ++i)
@@ -4143,7 +4143,7 @@ Data_<Sp>* Data_<Sp>::PowS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s); 
 
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -4164,7 +4164,7 @@ Data_<Sp>* Data_<Sp>::PowInvS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s); 
   //      dd = pow( s, d); // valarray
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i < nEl; ++i)
@@ -4182,7 +4182,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowS( BaseGDL* r)
   assert( nEl);
   Ty s = (*right)[0];
   // right->Scalar(s); 
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i<nEl; ++i)	
@@ -4200,7 +4200,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowInvS( BaseGDL* r)
   assert( nEl);
   Ty s = (*right)[0];
   // right->Scalar(s); 
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i<nEl; ++i)	
@@ -4218,7 +4218,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowS( BaseGDL* r)
   assert( nEl);
   Ty s = (*right)[0];
   // right->Scalar(s); 
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i<nEl; ++i)	
@@ -4236,7 +4236,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowInvS( BaseGDL* r)
   assert( nEl);
   Ty s = (*right)[0];
   // right->Scalar(s); 
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i<nEl; ++i)	
@@ -4264,7 +4264,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowS( BaseGDL* r)
       // (must also be consistent with ComplexDbl)
       if( right->StrictScalar(s)) 
 	{
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
 	  for( SizeT i=0; i<nEl; ++i)
@@ -4291,7 +4291,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowS( BaseGDL* r)
 		  return res;
 		}
 
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
 	      for( SizeT i=0; i<nEl; ++i)
@@ -4324,7 +4324,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowS( BaseGDL* r)
       // (must also be consistent with ComplexDbl)
       if( right->StrictScalar(s)) 
 	{
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
 	  for( SizeT i=0; i<nEl; ++i)
@@ -4351,7 +4351,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowS( BaseGDL* r)
 		  return res;
 		}
 
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
 	      for( SizeT i=0; i<nEl; ++i)
@@ -4383,7 +4383,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s); 
 //#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i<nEl; ++i)
@@ -4410,7 +4410,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowInvS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s); 
 //#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i<nEl; ++i)
@@ -4442,7 +4442,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowS( BaseGDL* r)
       // (concerning when a new variable is created vs. using this)
       if( right->StrictScalar(s)) 
 	{
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
 	  for( SizeT i=0; i<nEl; ++i)
@@ -4469,7 +4469,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowS( BaseGDL* r)
 		  return res;
 		}
 
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
 	      for( SizeT i=0; i<nEl; ++i)
@@ -4504,7 +4504,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowS( BaseGDL* r)
       // (concerning when a new variable is created vs. using this)
       if( right->StrictScalar(s)) 
 	{
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
 	  for( SizeT i=0; i<nEl; ++i)
@@ -4531,7 +4531,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowS( BaseGDL* r)
 		  return res;
 		}
 
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
 	      for( SizeT i=0; i<nEl; ++i)
@@ -4563,7 +4563,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s); 
 //#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i<nEl; ++i)
@@ -4587,7 +4587,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowInvS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s); 
 //#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
   for( SizeT i=0; i<nEl; ++i)
@@ -4672,7 +4672,7 @@ Data_<Sp>* Data_<Sp>::SubNew( BaseGDL* r)
   Ty s;
   if( right->StrictScalar(s)) 
     {
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
       for( SizeT i=0; i < nEl; ++i)
@@ -4681,7 +4681,7 @@ Data_<Sp>* Data_<Sp>::SubNew( BaseGDL* r)
     }
   else 
     {
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
       for( SizeT i=0; i < nEl; ++i)
@@ -4730,7 +4730,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew( BaseGDL* r)
 	{
 	  DComplexGDL* res = new DComplexGDL( this->Dim(), 
 					      BaseGDL::NOZERO);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
 	  for( SizeT i=0; i<nEl; ++i)
@@ -4759,7 +4759,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew( BaseGDL* r)
 
 	      DComplexGDL* res = new DComplexGDL( this->Dim(), 
 						  BaseGDL::NOZERO);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
 	      for( SizeT i=0; i<nEl; ++i)
@@ -4794,7 +4794,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew( BaseGDL* r)
 	{
 	  DComplexGDL* res = new DComplexGDL( this->Dim(), 
 					      BaseGDL::NOZERO);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
 	  for( SizeT i=0; i<nEl; ++i)
@@ -4823,7 +4823,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew( BaseGDL* r)
 
 	      DComplexGDL* res = new DComplexGDL( this->Dim(), 
 						  BaseGDL::NOZERO);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
 	      for( SizeT i=0; i<nEl; ++i)
@@ -4858,7 +4858,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew( BaseGDL* r)
       DComplexGDL* res = new DComplexGDL( this->Dim(), 
 					  BaseGDL::NOZERO);
 //#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
       for( SizeT i=0; i<nEl; ++i)
@@ -4882,7 +4882,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew( BaseGDL* r)
 /*      if( r->N_Elements() == nEl)
 	res->dd = pow( dd, right->dd); // valarray
       else*/
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
 	for( SizeT i=0; i < nEl; ++i)
@@ -4914,7 +4914,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew( BaseGDL* r)
 	{
 	  DComplexDblGDL* res = new DComplexDblGDL( this->Dim(), 
 						    BaseGDL::NOZERO);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
 	  for( SizeT i=0; i<nEl; ++i)
@@ -4943,7 +4943,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew( BaseGDL* r)
 
 	      DComplexDblGDL* res = new DComplexDblGDL( this->Dim(), 
 							BaseGDL::NOZERO);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
 	      for( SizeT i=0; i<nEl; ++i)
@@ -4978,7 +4978,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew( BaseGDL* r)
 	{
 	  DComplexDblGDL* res = new DComplexDblGDL( this->Dim(), 
 						    BaseGDL::NOZERO);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
 	  for( SizeT i=0; i<nEl; ++i)
@@ -5007,7 +5007,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew( BaseGDL* r)
 
 	      DComplexDblGDL* res = new DComplexDblGDL( this->Dim(), 
 							BaseGDL::NOZERO);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
 	      for( SizeT i=0; i<nEl; ++i)
@@ -5042,7 +5042,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew( BaseGDL* r)
       DComplexDblGDL* res = new DComplexDblGDL( this->Dim(), 
 						BaseGDL::NOZERO);
 //#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
       for( SizeT i=0; i<nEl; ++i)
@@ -5066,7 +5066,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew( BaseGDL* r)
 /*      if( r->N_Elements() == nEl)
 	res->dd = pow( dd, right->dd); // valarray
       else*/
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
 	for( SizeT i=0; i < nEl; ++i)
