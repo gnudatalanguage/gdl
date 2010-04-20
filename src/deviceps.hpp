@@ -154,14 +154,26 @@ public:
     return true;
   }
 
-  bool SetXPageSize( const float xs)
+  bool SetXPageSize( const float xs) // xs [cm]
   {
     XPageSize=xs;
+
+    (*static_cast<DLongGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("X_SIZE"))))[0] 
+      = DLong(
+        xs * (*static_cast<DFloatGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("X_PX_CM"))))[0]
+      );
+
     return true;
   }
-  bool SetYPageSize( const float ys)
+  bool SetYPageSize( const float ys) // ys [cm]
   {
     YPageSize=ys;
+
+    (*static_cast<DLongGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("Y_SIZE"))))[0] 
+      = DLong(
+        ys * (*static_cast<DFloatGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("Y_PX_CM"))))[0]
+      );
+
     return true;
   }
   bool SetColor()

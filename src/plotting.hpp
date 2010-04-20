@@ -102,6 +102,8 @@ namespace lib {
 
   BaseGDL* convert_coord( EnvT* e);
 
+  GDLGStream* GetPlotStream( EnvT* e);
+
 } // namespace
 
 #endif

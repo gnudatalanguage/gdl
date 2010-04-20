@@ -27,6 +27,7 @@
 #include "graphics.hpp"
 #include "plotting.hpp"
 #include "math_utl.hpp"
+#include <gsl/gsl_const_mksa.h> // GSL_CONST_MKSA_INCH
 
 #define PLK_Escape            0x1B
 #define free_mem(a) \
@@ -62,6 +63,7 @@ namespace lib {
     static int xSizeIx = e->KeywordIx( "XSIZE");
     static int ySizeIx = e->KeywordIx( "YSIZE");
     static int colorIx = e->KeywordIx( "COLOR");
+    static int inchesIx = e->KeywordIx( "INCHES");
  
     static int get_screen_sizeIx = e->KeywordIx( "GET_SCREEN_SIZE");
 
@@ -182,7 +184,9 @@ namespace lib {
       {
 	DFloat xSizeValue;
 	e->AssureFloatScalarKW( xSizeIx, xSizeValue);
-	bool success = actDevice->SetXPageSize( xSizeValue);
+	bool success = actDevice->SetXPageSize( xSizeValue 
+          * (e->KeywordPresent(inchesIx) ? 100. * GSL_CONST_MKSA_INCH : 1.)
+        );
 	if( !success)
 	  e->Throw( "Current device does not support "
 		    "keyword XSIZE.");
@@ -193,7 +197,9 @@ namespace lib {
       {
 	DFloat ySizeValue;
 	e->AssureFloatScalarKW( ySizeIx, ySizeValue);
-	bool success = actDevice->SetYPageSize( ySizeValue);
+	bool success = actDevice->SetYPageSize( ySizeValue
+          * (e->KeywordPresent(inchesIx) ? 100. * GSL_CONST_MKSA_INCH : 1.)
+        );
 	if( !success)
 	  e->Throw( "Current device does not support "
 		    "keyword YSIZE.");
@@ -2340,6 +2346,27 @@ actStream->wid( 0);
     }
 
     actStream->wind( xStart, xEnd, yStart, yEnd);
+
+/* SA: does not work at all (TODO, help welcome)
+    // LINE_FILL, SPACING, LINESTYLE, ORIENTATION, THICK
+    static int line_fillIx = e->KeywordIx("LINE_FILL");
+    if (e->KeywordSet(line_fillIx))
+    {
+      PLINT inc = 0, del = 1;
+
+      static int orientationIx = e->KeywordIx("ORIENTATION");
+      if (e->KeywordSet(orientationIx)) inc = PLINT(1e1 * (*e->GetKWAs<DFloatGDL>(orientationIx))[0]);
+
+      static int spacingIx = e->KeywordIx("SPACING");
+      if (e->KeywordSet(spacingIx)) del = PLINT(1e4 * (*e->GetKWAs<DFloatGDL>(spacingIx))[0]);
+      
+      gkw_thick(e, actStream);
+      gkw_linestyle(e, actStream);
+
+      actStream->pat(1, &inc, &del);
+    }
+*/
+
     actStream->fill(xEl, static_cast<PLFLT*>(&(*xVal)[0]), static_cast<PLFLT*>(&(*yVal)[0]));
     actStream->flush();
   }

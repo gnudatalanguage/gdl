@@ -42,6 +42,7 @@
 #endif
 
 #include "grib.hpp"
+//#include "gshhs.hpp"
 
 // for extensions
 #include "new.hpp"
@@ -462,7 +463,7 @@ void LibInit()
       "CLOSE_FILE","FILENAME","LANDSCAPE","PORTRAIT",
       "DECOMPOSED","GET_DECOMPOSED","Z_BUFFERING","SET_RESOLUTION",
       "SET_CHARACTER_SIZE","GET_VISUAL_DEPTH","XSIZE","YSIZE",
-      "COLOR","GET_SCREEN_SIZE",KLISTEND
+      "COLOR","GET_SCREEN_SIZE","INCHES",KLISTEND
     };
   const string deviceWarnKey[] = {"RETAIN", KLISTEND};
   new DLibPro(lib::device,string("DEVICE"),0, deviceKey, deviceWarnKey);
@@ -726,8 +727,9 @@ void LibInit()
 
   const string polyfillKey[]=
     {
-      "COLOR","DATA","NORMAL","DEVICE","CLIP",
-      "NOCLIP",KLISTEND
+      "COLOR","DATA","NORMAL","DEVICE","CLIP","NOCLIP",
+      /*"LINE_FILL","SPACING","LINESTYLE","ORIENTATION","THICK",*/
+      KLISTEND
     };
   new DLibPro(lib::polyfill, string("POLYFILL"), 3, polyfillKey);
 
@@ -801,6 +803,17 @@ void LibInit()
   new DLibFun(lib::wtn, string("WTN"), 2, wtnKey);
   const string zeropolyKey[] = {"DOUBLE", "COMPANION", "JENKINS_TRAUB", KLISTEND };
   new DLibFun(lib::zeropoly, string("IMSL_ZEROPOLY"), 1, zeropolyKey);
+
+/*
+  // SA: GSHHS dataset
+  // TODO: COASTS, CONTINENTS, ORIENTATION, LIMIT,
+  //       MAP_STRUCTURE, MLINESTYLE, MLINETHICK, SPACING, T3D, ZVALUE
+  const string map_continentsKey[] = {"COLOR", "RIVERS", "COUNTRIES", 
+    "HIRES", "FILL_CONTINENTS", KLISTEND};
+  const string map_continentsWarnKey[] = {"USA", KLISTEND};
+  new DLibPro(lib::map_continents, string("MAP_CONTINENTS"), 0, 
+    map_continentsKey, map_continentsWarnKey);
+*/
 
   // sort lists
   sort( libFunList.begin(), libFunList.end(), CompLibFunName());

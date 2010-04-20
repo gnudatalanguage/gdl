@@ -15,8 +15,8 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef GRIB_FUN_HPP_
-#define GRIB_FUN_HPP_
+#ifndef GRIB_HPP_
+#define GRIB_HPP_
 
 #include "datatypes.hpp"
 #include "envt.hpp"

@@ -1,5 +1,5 @@
 /***************************************************************************
-                          grib_fun.cpp  -  GRIB GDL library function
+                          grib.cpp  -  GRIB GDL library function
                              -------------------
     begin                : Jan 18 2009
     copyright            : (C) 2009 by Sylwester Arabas
@@ -27,7 +27,7 @@
 #include "grib.hpp"
 
 #ifdef USE_GRIB
-#  include "grib_api.h"
+#  include <grib_api.h>
 #  include <map>
 #endif
 

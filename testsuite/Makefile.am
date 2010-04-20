@@ -3,6 +3,7 @@ TESTS = \
   test_angles.pro \
   test_base64.pro \
   test_constants.pro \
+  test_device.pro \
   test_fft.pro \
   test_fix.pro \
   test_gc.pro \
