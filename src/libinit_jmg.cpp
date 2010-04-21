@@ -114,6 +114,17 @@ void LibInit_jmg()
   const string map_proj_inverseKey[]={"RADIANS",KLISTEND};
   new DLibFun(lib::map_proj_inverse_fun,
 	      string("MAP_PROJ_INVERSE"),3,map_proj_inverseKey);
+
+  // SA: GSHHS dataset
+  // TODO: COASTS, CONTINENTS, ORIENTATION, LIMIT,
+  //       MAP_STRUCTURE, MLINESTYLE, MLINETHICK, SPACING, T3D, ZVALUE
+  const string map_continentsKey[] = {"COLOR", "RIVERS", "COUNTRIES", 
+    "HIRES", "FILL_CONTINENTS", KLISTEND};
+  const string map_continentsWarnKey[] = {"USA", KLISTEND};
+  new DLibPro(lib::map_continents, string("MAP_CONTINENTS"), 0, 
+    map_continentsKey, map_continentsWarnKey);
+
+
 #endif
 
   const string convert_coordKey[]={"DATA","DEVICE","NORMAL","T3D","DOUBLE",

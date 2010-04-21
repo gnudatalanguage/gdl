@@ -804,14 +804,6 @@ void LibInit()
   const string zeropolyKey[] = {"DOUBLE", "COMPANION", "JENKINS_TRAUB", KLISTEND };
   new DLibFun(lib::zeropoly, string("IMSL_ZEROPOLY"), 1, zeropolyKey);
 
-  // SA: GSHHS dataset
-  // TODO: COASTS, CONTINENTS, ORIENTATION, LIMIT,
-  //       MAP_STRUCTURE, MLINESTYLE, MLINETHICK, SPACING, T3D, ZVALUE
-  const string map_continentsKey[] = {"COLOR", "RIVERS", "COUNTRIES", 
-    "HIRES", "FILL_CONTINENTS", KLISTEND};
-  const string map_continentsWarnKey[] = {"USA", KLISTEND};
-  new DLibPro(lib::map_continents, string("MAP_CONTINENTS"), 0, 
-    map_continentsKey, map_continentsWarnKey);
 
   // sort lists
   sort( libFunList.begin(), libFunList.end(), CompLibFunName());
