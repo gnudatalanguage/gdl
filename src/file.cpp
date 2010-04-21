@@ -376,21 +376,25 @@ namespace lib {
 	return;
       }
     
-    if( dirN[0] != '+')
+    if( dirN[0] != '+' && dirN[0] != '~')
       {
 	result.push_back( dirN);
 	return;
       }
     
-    if( dirN.length() == 1) // dirN == "+" 
-      return;
+    if( dirN.length() == 1) {
+      // dirN == "+" 
+      if (dirN[0] == '+') return;
+    }
 
     // dirN == "+DIRNAME"
 
     // do first a glob because of '~'
     int flags = GLOB_TILDE | GLOB_NOSORT;
     glob_t p;
-    int gRes = glob( dirN.substr(1).c_str(), flags, NULL, &p);
+    int offset_tilde=0;
+    if (dirN[0] == '+') offset_tilde=1;
+    int gRes = glob( dirN.substr(offset_tilde).c_str(), flags, NULL, &p);
     if( gRes != 0 || p.gl_pathc == 0)
       {
 	globfree( &p);
@@ -399,8 +403,16 @@ namespace lib {
 
     DString initDir = p.gl_pathv[ 0];
     globfree( &p);
-     
-    ExpandPathN( result, initDir, pat, all_dirs);
+    
+    if (dirN[0] == '+')
+      {
+	ExpandPathN( result, initDir, pat, all_dirs);
+      } 
+    else
+      {
+	result.push_back(initDir);
+      }
+
   }
 
   BaseGDL* expand_path( EnvT* e)
