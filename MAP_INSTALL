@@ -1,3 +1,4 @@
+===========================================================================
 
 To provide map projections support your first need to make sure the libproj4
 library is installed.  The source code for this can be found at:
@@ -12,7 +13,6 @@ of this library.
 The following additional PRO files must be acquired and placed in the
 appropriate directories:
 
-map_continents.pro
 map_grid.pro
 map_horizon.pro
 map_image.pro
@@ -35,29 +35,30 @@ clicking on the appropriate file and saving it to your computer.
 
 They can be placed in any directory within you GDL path.
 
+===========================================================================
 
-To provide support for MAP_CONTINENTS the database files must be
-downloaded:
+MAP_CONTINENTS is implemented in GDL using the GSHHS (Global 
+Self-consistent, Hierarchical, High-resolution Shoreline Database) 
+available under the GNU GPL. To provide support for MAP_CONTINENTS the 
+database files and one header file (gshhs.h) must be downloaded, e.g. from:
 
-blow.dat
-blow.ndx
-clow.dat
-clow.ndx
-plow.dat
-plow.ndx
-rlow.dat
-rlow.ndx
+http://www.ngdc.noaa.gov/mgg/shorelines/data/gshhs/version2.0/
 
-These files can be found at:
+When compiling GDL, the --with-gshhs option must be given (not enabled 
+by default), optionally with an argument pointing to the GSHHS installation
+prefix:
 
-http://comm.nsdl.org/viewcvs/viewcvs.cgi/ddtoolkitnfndry/ETA_Viewer/Development/resource/maps/low/
+--with-gshhs : searches gshhs.h in the default include path of the compiler
+--with-gshhs=/usr/local : searches for /usr/local/include/gshhs.h
 
-These files should be placed in the "resource/maps/low" subdirectory
-of the !DIR directory which can be found by starting GDL and printing
-the !DIR system variable.
+GDL searches for the GSHHS datafiles (gshhs_f.b, gshhs_l.b, etc...) in the
+$GDLDATADIR/../gshhs/ directory (we need a better solution - FIXME!)
 
-Note: Only low-resolution boundaries are currently supported.
+Reference:
+Wessel, P. and Smith, W.H.F., 1996. A global, self-consistent, hierarchical, 
+  high-resolution shoreline database. J. Geophys. Res., 101(B4): 8741--8743.
 
+===========================================================================
 
 The following projections are at least partially supported
 (numbers defined in the map_sep.pro file itself):

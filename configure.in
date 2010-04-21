@@ -22,6 +22,7 @@ if test "x$with_fftw"        = "x"; then with_fftw=auto;       fi
 if test "x$with_libproj4"    = "x"; then with_libproj4=no;     fi
 if test "x$with_mpich"       = "x"; then with_mpich=no;        fi
 if test "x$with_python"      = "x"; then with_python=yes;      fi
+if test "x$with_gshhs"       = "x"; then with_gshhs=no;        fi
 
 dnl default DATADIR subdirectory 
 datasubdir="gnudatalanguage"
@@ -865,6 +866,32 @@ if test "x$with_grib" != "xno"; then
 
 fi
 
+dnl == GSHHS ===============================================
+dnl ========================================================
+
+AC_ARG_WITH(gshhs,
+         [  --with-gshhs[=DIR]        use GSHHS package (with optional path DIR) ],
+         [with_gshhs="$withval" ])
+  
+if test "x$with_gshhs" != "xno"; then
+  if test "x$with_gshhs" != "xyes"; then
+    INCLUDES="$INCLUDES -I$with_gshhs/include"
+  fi
+
+  AC_CHECK_HEADERS(gshhs.h, [
+    AC_DEFINE([USE_GSHHS], [1], [Define if you want to use GSHHS])
+  ], [
+    echo ""
+    echo "Error! GSHHS is required but gshhs.h was not found"
+    echo "       Use --with-gshhs=DIR to specify the GSHHS directory tree"
+    echo "       Use --with-gshhs=no  to not use it"
+    echo "       Check the README or use configure --help for other libraries needed"
+    echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
+    exit -1
+  ])
+
+fi
+
 dnl == installation paths ==================================
 dnl ========================================================
 
@@ -1065,6 +1092,8 @@ echo "
     then echo 'no  (needs explicit enabling)'; else echo yes; fi`
   GRIB:                `if test no = $with_grib;
     then echo 'no  (needs explicit enabling)'; else echo yes; fi`
+  GSHHS:               `if test no = $with_gshhs;
+    then echo 'no  (see also MAP_INSTALL)'; else echo yes; fi`
   ----- notes on auxiliary files: ----------------------
   - consult MAP_INSTALL for details concerning auxiliary
     files needed for mapping support

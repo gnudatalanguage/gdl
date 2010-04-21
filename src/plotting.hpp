@@ -103,6 +103,10 @@ namespace lib {
   BaseGDL* convert_coord( EnvT* e);
 
   GDLGStream* GetPlotStream( EnvT* e);
+  void GetSFromPlotStructs(DDouble **sx, DDouble **sy);
+  void GetWFromPlotStructs(DFloat **wx, DFloat **wy);
+  void DataCoordLimits(DDouble *sx, DDouble *sy, DFloat *wx, DFloat *wy, 
+    DDouble *xStart, DDouble *xEnd, DDouble *yStart, DDouble *yEnd);
 
 } // namespace
 

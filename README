@@ -80,6 +80,7 @@ python      http://www.python.org
 libproj4    (consult the MAP_INSTALL file)
 UDUNITS-2   http://www.unidata.ucar.edu/software/udunits/
 GRIB API    http://www.ecmwf.int/products/data/software/grib_api.html        
+GSHHS       (consult the MAP_INSTALL file)
 
 Only with python:
 numarray    http://www.stsci.edu/resources/software_hardware/numarray
@@ -241,6 +242,8 @@ library (http://www.unidata.ucar.edu/software/udunits/)
 If you want to use it, use --with-udunits=DIR
 
 GDL supports the GRIB file format - see README_GRIB
+
+GDL uses GSHHS to implement MAP_CONTINENTS - see MAP_INSTALL
 
 GDL 0.9 was developed using ANTLR 2.7.6,   
 but unless you want to change the grammar (*.g files) you don't need

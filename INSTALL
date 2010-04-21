@@ -93,7 +93,7 @@ options can be used:
 --with-fftw=no         to not use FFTW
 
 ... and so on for: wxWidgets, hdf, hdf5, fftw, libproj4, python, udunits, 
-grib, and others - see README file for details (REQUIREMENTS section).
+grib, GSHHS, and others - see README file for details (REQUIREMENTS section).
 
 For example, if you have python installed in /usr/local, use
 

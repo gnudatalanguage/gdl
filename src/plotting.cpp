@@ -1711,6 +1711,36 @@ namespace lib {
     actStream->flush();
   } // oplot
 
+
+  void GetSFromPlotStructs(DDouble **sx, DDouble **sy)
+  {
+    static DStructGDL* xStruct = SysVar::X();
+    static DStructGDL* yStruct = SysVar::Y();
+    unsigned sxTag = xStruct->Desc()->TagIndex( "S");
+    unsigned syTag = yStruct->Desc()->TagIndex( "S");
+    *sx = &(*static_cast<DDoubleGDL*>( xStruct->GetTag( sxTag, 0)))[0];
+    *sy = &(*static_cast<DDoubleGDL*>( yStruct->GetTag( syTag, 0)))[0];
+  }
+    
+  void GetWFromPlotStructs(DFloat **wx, DFloat **wy)
+  {
+    static DStructGDL* xStruct = SysVar::X();
+    static DStructGDL* yStruct = SysVar::Y();
+    unsigned xwindowTag = xStruct->Desc()->TagIndex( "WINDOW");
+    unsigned ywindowTag = yStruct->Desc()->TagIndex( "WINDOW");
+    *wx = &(*static_cast<DFloatGDL*>( xStruct->GetTag( xwindowTag, 0)))[0];
+    *wy = &(*static_cast<DFloatGDL*>( yStruct->GetTag( ywindowTag, 0)))[0];
+  }
+    
+  void DataCoordLimits(DDouble *sx, DDouble *sy, DFloat *wx, DFloat *wy, 
+    DDouble *xStart, DDouble *xEnd, DDouble *yStart, DDouble *yEnd)
+  {
+    *xStart = (wx[0] - sx[0]) / sx[1];
+    *xEnd   = (wx[1] - sx[0]) / sx[1];
+    *yStart = (wy[0] - sy[0]) / sy[1];
+    *yEnd   = (wy[1] - sy[0]) / sy[1];
+  }
+
   // PLOTS
   void plots( EnvT* e)
   {
@@ -1863,30 +1893,15 @@ namespace lib {
     }
 #endif
 
+    DDouble *sx, *sy;
+    DFloat *wx, *wy;
+    GetSFromPlotStructs(&sx, &sy);
+    GetWFromPlotStructs(&wx, &wy);
+
     // Determine data coordinate limits (if mapSet is true)
     // These are computed from window and scaling axis system
     // variables because map routines change these directly.
-    DDouble *sx;
-    DDouble *sy;
-    DStructGDL* xStruct = SysVar::X();
-    DStructGDL* yStruct = SysVar::Y();
-    unsigned sxTag = xStruct->Desc()->TagIndex( "S");
-    unsigned syTag = yStruct->Desc()->TagIndex( "S");
-    sx = &(*static_cast<DDoubleGDL*>( xStruct->GetTag( sxTag, 0)))[0];
-    sy = &(*static_cast<DDoubleGDL*>( yStruct->GetTag( syTag, 0)))[0];
-    
-    DFloat *wx;
-    DFloat *wy;
-    unsigned xwindowTag = xStruct->Desc()->TagIndex( "WINDOW");
-    unsigned ywindowTag = yStruct->Desc()->TagIndex( "WINDOW");
-    wx = &(*static_cast<DFloatGDL*>( xStruct->GetTag( xwindowTag, 0)))[0];
-    wy = &(*static_cast<DFloatGDL*>( yStruct->GetTag( ywindowTag, 0)))[0];
-    
-    xStart = (wx[0] - sx[0]) / sx[1];
-    xEnd   = (wx[1] - sx[0]) / sx[1];
-    yStart = (wy[0] - sy[0]) / sy[1];
-    yEnd   = (wy[1] - sy[0]) / sy[1];
-
+    DataCoordLimits(sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd);
 
     if(e->KeywordSet("DEVICE")) {
       PLFLT xpix, ypix;
@@ -2050,31 +2065,15 @@ actStream->wid( 0);
     }
 #endif
 
+    DDouble *sx, *sy;
+    DFloat *wx, *wy;
+    GetSFromPlotStructs(&sx, &sy);
+    GetWFromPlotStructs(&wx, &wy);
 
     // Determine data coordinate limits
     // These are computed from window and scaling axis system
     // variables because map routines change these directly.
-    DDouble *sx;
-    DDouble *sy;
-    DStructGDL* xStruct = SysVar::X();
-    DStructGDL* yStruct = SysVar::Y();
-    unsigned sxTag = xStruct->Desc()->TagIndex( "S");
-    unsigned syTag = yStruct->Desc()->TagIndex( "S");
-    sx = &(*static_cast<DDoubleGDL*>( xStruct->GetTag( sxTag, 0)))[0];
-    sy = &(*static_cast<DDoubleGDL*>( yStruct->GetTag( syTag, 0)))[0];
-    
-    DFloat *wx;
-    DFloat *wy;
-    unsigned xwindowTag = xStruct->Desc()->TagIndex( "WINDOW");
-    unsigned ywindowTag = yStruct->Desc()->TagIndex( "WINDOW");
-    wx = &(*static_cast<DFloatGDL*>( xStruct->GetTag( xwindowTag, 0)))[0];
-    wy = &(*static_cast<DFloatGDL*>( yStruct->GetTag( ywindowTag, 0)))[0];
-    
-    xStart = (wx[0] - sx[0]) / sx[1];
-    xEnd   = (wx[1] - sx[0]) / sx[1];
-    yStart = (wy[0] - sy[0]) / sy[1];
-    yEnd   = (wy[1] - sy[0]) / sy[1];
-
+    DataCoordLimits(sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd);
 
     if(e->KeywordSet("DEVICE")) {
       PLFLT xpix, ypix;
@@ -2290,29 +2289,15 @@ actStream->wid( 0);
 #endif
 */
 
+    DDouble *sx, *sy;
+    DFloat *wx, *wy;
+    GetSFromPlotStructs(&sx, &sy);
+    GetWFromPlotStructs(&wx, &wy);
+
     // Determine data coordinate limits
     // These are computed from window and scaling axis system
     // variables because map routines change these directly.
-    DDouble *sx;
-    DDouble *sy;
-    DStructGDL* xStruct = SysVar::X();
-    DStructGDL* yStruct = SysVar::Y();
-    unsigned sxTag = xStruct->Desc()->TagIndex( "S");
-    unsigned syTag = yStruct->Desc()->TagIndex( "S");
-    sx = &(*static_cast<DDoubleGDL*>( xStruct->GetTag( sxTag, 0)))[0];
-    sy = &(*static_cast<DDoubleGDL*>( yStruct->GetTag( syTag, 0)))[0];
-    
-    DFloat *wx;
-    DFloat *wy;
-    unsigned xwindowTag = xStruct->Desc()->TagIndex( "WINDOW");
-    unsigned ywindowTag = yStruct->Desc()->TagIndex( "WINDOW");
-    wx = &(*static_cast<DFloatGDL*>( xStruct->GetTag( xwindowTag, 0)))[0];
-    wy = &(*static_cast<DFloatGDL*>( yStruct->GetTag( ywindowTag, 0)))[0];
-    
-    xStart = (wx[0] - sx[0]) / sx[1];
-    xEnd   = (wx[1] - sx[0]) / sx[1];
-    yStart = (wy[0] - sy[0]) / sy[1];
-    yEnd   = (wy[1] - sy[0]) / sy[1];
+    DataCoordLimits(sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd);
 
     if(e->KeywordSet("DEVICE")) {
       PLFLT xpix, ypix;
@@ -3279,14 +3264,8 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
     
     DDouble *sx, *sy;
     DFloat *wx, *wy;
-    unsigned sxTag = xStruct->Desc()->TagIndex( "S");
-    unsigned syTag = yStruct->Desc()->TagIndex( "S");
-    unsigned xwindowTag = xStruct->Desc()->TagIndex( "WINDOW");
-    unsigned ywindowTag = yStruct->Desc()->TagIndex( "WINDOW");
-    sx = &(*static_cast<DDoubleGDL*>( xStruct->GetTag( sxTag, 0)))[0];
-    sy = &(*static_cast<DDoubleGDL*>( yStruct->GetTag( syTag, 0)))[0];
-    wx = &(*static_cast<DFloatGDL*>( xStruct->GetTag( xwindowTag, 0)))[0];
-    wy = &(*static_cast<DFloatGDL*>( yStruct->GetTag( ywindowTag, 0)))[0];
+    GetSFromPlotStructs(&sx, &sy);
+    GetWFromPlotStructs(&wx, &wy);
 
     // mapping only in OVERPLOT mode
     if (!overplot) set_mapset(0);
@@ -3301,10 +3280,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
       } 
       else 
       {
-        xStart = (wx[0] - sx[0]) / sx[1];
-        xEnd   = (wx[1] - sx[0]) / sx[1];
-        yStart = (wy[0] - sy[0]) / sy[1];
-        yEnd   = (wy[1] - sy[0]) / sy[1];
+        DataCoordLimits(sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd);
       }
       get_axis_margin("X",xMarginL, xMarginR);
       get_axis_margin("Y",yMarginB, yMarginF);
@@ -4136,14 +4112,8 @@ clevel[nlevel-1]=zEnd; //make this explicit
     if (yVal->N_Elements() == 1 && yVal->Rank() == 0) 
       minEl = xVal->N_Elements();
 
-    DDouble *sx;
-    DDouble *sy;
-    static DStructGDL* xStruct = SysVar::X();
-    static DStructGDL* yStruct = SysVar::Y();
-    static unsigned sxTag = xStruct->Desc()->TagIndex( "S");
-    static unsigned syTag = yStruct->Desc()->TagIndex( "S");
-    sx = &(*static_cast<DDoubleGDL*>( xStruct->GetTag( sxTag, 0)))[0];
-    sy = &(*static_cast<DDoubleGDL*>( yStruct->GetTag( syTag, 0)))[0];
+    DDouble *sx, *sy;
+    GetSFromPlotStructs(&sx, &sy);
 
     bool mapSet=false;
 #ifdef USE_LIBPROJ4
@@ -4295,14 +4265,8 @@ clevel[nlevel-1]=zEnd; //make this explicit
     if (yVal->N_Elements() == 1 && yVal->Rank() == 0) 
       minEl = xVal->N_Elements();
 
-    DDouble *sx;
-    DDouble *sy;
-    static DStructGDL* xStruct = SysVar::X();
-    static DStructGDL* yStruct = SysVar::Y();
-    static unsigned sxTag = xStruct->Desc()->TagIndex( "S");
-    static unsigned syTag = yStruct->Desc()->TagIndex( "S");
-    sx = &(*static_cast<DDoubleGDL*>( xStruct->GetTag( sxTag, 0)))[0];
-    sy = &(*static_cast<DDoubleGDL*>( yStruct->GetTag( syTag, 0)))[0];
+    DDouble *sx, *sy;
+    GetSFromPlotStructs(&sx, &sy);
 
     bool mapSet=false;
 #ifdef USE_LIBPROJ4
@@ -5355,15 +5319,15 @@ clevel[nlevel-1]=zEnd; //make this explicit
     if (nParam == 3)
       p2 = e->GetParDefined( 2);
 
+    DDouble *sx, *sy;
+    GetSFromPlotStructs(&sx, &sy);
+
+    static DStructGDL* zStruct = SysVar::Z();
+    static unsigned szTag = zStruct->Desc()->TagIndex( "S");
+    DDouble *sz = &(*static_cast<DDoubleGDL*>( zStruct->GetTag( szTag, 0)))[0];
+
     static DStructGDL* xStruct = SysVar::X();
     static DStructGDL* yStruct = SysVar::Y();
-    static DStructGDL* zStruct = SysVar::Z();
-    static unsigned sxTag = xStruct->Desc()->TagIndex( "S");
-    static unsigned syTag = yStruct->Desc()->TagIndex( "S");
-    static unsigned szTag = zStruct->Desc()->TagIndex( "S");
-    DDouble *sx = &(*static_cast<DDoubleGDL*>( xStruct->GetTag( sxTag, 0)))[0];
-    DDouble *sy = &(*static_cast<DDoubleGDL*>( yStruct->GetTag( syTag, 0)))[0];
-    DDouble *sz = &(*static_cast<DDoubleGDL*>( zStruct->GetTag( szTag, 0)))[0];
     static unsigned xtTag = xStruct->Desc()->TagIndex( "TYPE");
     static unsigned ytTag = yStruct->Desc()->TagIndex( "TYPE");
     static unsigned ztTag = zStruct->Desc()->TagIndex( "TYPE");
