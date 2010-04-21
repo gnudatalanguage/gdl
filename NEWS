@@ -483,3 +483,16 @@
 	   - member function and procedure calls with '.' e. g.: object.aProcedure
 	   - support of negative index ranges. -1 is the last element, -2 the one before 
 	     the last and so on. E.g.: array[-7:-5]
+           - new widget features incl. WIDGET_DROPLIST
+           - automatic garbage collection
+           - numerous bugfixes (incl. SAVE/RESTORE)
+           - new routines: 
+             - HIST_2D
+             - MAP_CONTINENTS
+             - POLYFILL
+             - RESOLVE_ROUTINE 
+           - new keywords/calling sequences handled:
+             - DEVICE, /INCHES, GET_SCREEN_SIZE
+             - PRODUCT, /PRESERVE_TYPE, /INTEGER
+             - REBIN: support for specifying new dimensions as an array
+             - TOTAL, /PRESERVE_TYPE
