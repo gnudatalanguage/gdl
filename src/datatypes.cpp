@@ -663,10 +663,11 @@ BaseGDL* Data_<Sp>::CShift( DLong s[ MAXRANK])
 
       srcIx[ aSp] = 0;
       if( s[ aSp] >= 0)
-	dstIx[ aSp] = s[ aSp] % this_dim[ aSp];
+		dstIx[ aSp] = s[ aSp] % this_dim[ aSp];
       else
-	dstIx[ aSp] = -(-s[aSp] % this_dim[ aSp]);
-      if( dstIx[ aSp] < 0) dstIx[ aSp] += this_dim[ aSp];
+		dstIx[ aSp] = -(-s[aSp] % this_dim[ aSp]);
+      if( dstIx[ aSp] < 0)
+		dstIx[ aSp] += this_dim[ aSp];
 
       dim_stride[ aSp] = this_dim[ aSp] * stride[ aSp];
     }
@@ -1907,6 +1908,18 @@ void DStructGDL::ForCheck( BaseGDL** lEnd, BaseGDL** lStep)
 
 // ForCheck must have been called before
 template<class Sp>
+bool Data_<Sp>::ForAddCondUp( BaseGDL* endLoopVar)
+// bool Data_<Sp>::ForAddCondUp( ForLoopInfoT& loopInfo)
+{
+  (*this)[0] += 1;
+//   Data_* lEnd=static_cast<Data_*>(lEndIn);
+  Data_* lEnd=dynamic_cast<Data_*>(endLoopVar);
+  if( lEnd == NULL)
+    throw GDLException("Type of FOR index variable changed.");
+  return (*this)[0] <= (*lEnd)[0]; 
+}
+// ForCheck must have been called before
+template<class Sp>
 bool Data_<Sp>::ForCondUp( BaseGDL* lEndIn)
 {
 //   Data_* lEnd=static_cast<Data_*>(lEndIn);
@@ -1942,10 +1955,26 @@ bool Data_<SpDComplex>::ForCondUp( BaseGDL*)
     throw GDLException("Type of FOR index variable changed to COMPLEX.");
     return false; 
 }
+
+template<>
+bool Data_<SpDComplex>::ForAddCondUp( BaseGDL* loopInfo)
+// bool Data_<SpDComplex>::ForAddCondUp( ForLoopInfoT& loopInfo)
+{ 
+    throw GDLException("Type of FOR index variable changed to COMPLEX.");
+    return false; 
+}
 template<>
 bool Data_<SpDComplex>::ForCondDown( BaseGDL*)
 { 
     throw GDLException("Type of FOR index variable changed to COMPLEX.");
+    return false; 
+}
+
+template<>
+bool Data_<SpDComplexDbl>::ForAddCondUp( BaseGDL* loopInfo)
+// bool Data_<SpDComplexDbl>::ForAddCondUp( ForLoopInfoT& loopInfo)
+{ 
+    throw GDLException("Type of FOR index variable changed to DCOMPLEX.");
     return false; 
 }
 template<>
@@ -1976,6 +2005,7 @@ void Data_<Sp>::ForAdd( BaseGDL* addIn)
 }
 // cannnot be called, just to make the compiler shut-up
 void DStructGDL::ForAdd( BaseGDL* addIn) {}
+
 // normal (+1) version
 template<class Sp>
 void Data_<Sp>::ForAdd()

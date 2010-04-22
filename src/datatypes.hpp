@@ -214,6 +214,8 @@ static	void operator delete( void *ptr);
   void ForCheck( BaseGDL**, BaseGDL** =NULL);
   bool ForCondUp( BaseGDL*);
   bool ForCondDown( BaseGDL*);
+  bool ForAddCondUp( BaseGDL* loopInfo);
+//   bool ForAddCondUp( ForLoopInfoT& loopInfo);
   //  bool ForCondUpDown( BaseGDL*);
   void ForAdd();
   void ForAdd( BaseGDL* add);

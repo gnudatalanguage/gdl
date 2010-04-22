@@ -218,26 +218,6 @@ proUD->SetCompileOpt( cOpt);
 
 
 
-struct ForLoopInfoT
-{
-	BaseGDL*  endLoopVar; // the source for foreach as well
-	BaseGDL*  loopStepVar;
-	DLong        foreachIx;
-
-	ForLoopInfoT()
-	: endLoopVar(NULL)
-	, loopStepVar(NULL)
-	, foreachIx(-1)
-	{}
-	~ForLoopInfoT()
-	{
-		delete endLoopVar;
-		delete loopStepVar;
-	}
-};
-
-
-
 // for UD subroutines (written in GDL) ********************************
 class EnvUDT: public EnvBaseT
 {

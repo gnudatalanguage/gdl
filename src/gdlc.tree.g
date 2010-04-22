@@ -521,7 +521,7 @@ for_statement //!
                 }
             )? 
 //           for_block
-           unblock
+           unblock_empty
         )
         {
         #f->SetLabelRange( labelStart, comp.NDefLabel());
@@ -542,7 +542,8 @@ foreach_statement //!
             }
             expr
 //           for_block
-           unblock
+           unblock_empty
+//           unblock
         )
         {
         #f->SetLabelRange( labelStart, comp.NDefLabel());

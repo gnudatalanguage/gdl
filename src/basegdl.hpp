@@ -210,6 +210,8 @@ class   ExprListT;
 struct SpDULong;
 template<class> class Data_;
 
+struct ForLoopInfoT;
+
 void breakpoint();
 
 // --- SA: MemStats stuff
@@ -435,6 +437,9 @@ public:
   virtual void ForCheck( BaseGDL**, BaseGDL** = NULL);
   virtual bool ForCondUp( BaseGDL*);
   virtual bool ForCondDown( BaseGDL*);
+  virtual bool ForAddCondUp( BaseGDL* loopInfo);
+//   virtual bool ForAddCondUp( ForLoopInfoT& loopInfo);
+//  virtual bool ForAddCondDown( ForLoopInfoT& loopInfo);
 //   virtual bool ForCondUpDown( BaseGDL*);
   virtual void ForAdd( BaseGDL* add=NULL);
   virtual BaseGDL* CatArray( ExprListT& exprList,
@@ -579,7 +584,29 @@ this->reserve(ExprListDefaultLength);
   }
 };
 
+
+
 typedef ExprListT::iterator ExprListIterT;
+
+
+
+struct ForLoopInfoT
+{
+	BaseGDL*  endLoopVar; // the source for foreach as well
+	BaseGDL*  loopStepVar;
+	DLong        foreachIx;
+
+	ForLoopInfoT()
+	: endLoopVar(NULL)
+	, loopStepVar(NULL)
+	, foreachIx(-1)
+	{}
+	~ForLoopInfoT()
+	{
+		delete endLoopVar;
+		delete loopStepVar;
+	}
+};
 
 #endif
 

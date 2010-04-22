@@ -1762,7 +1762,7 @@ void image_del(image_t * d)
     int nForLoops = ProgNode::NumberForLoops( progAST, nForLoopsIn);
 	env->ResizeForLoops( nForLoops);
 
-    GDLInterpreter::RetCode retCode = caller->Interpreter()->execute( progAST);
+    RetCode retCode = caller->Interpreter()->execute( progAST);
   
   	env->ResizeForLoops( nForLoopsIn);
 }

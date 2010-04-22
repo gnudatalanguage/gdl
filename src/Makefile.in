@@ -121,7 +121,8 @@ am__libgdl_la_SOURCES_DIST = accessdesc.hpp arrayindex.hpp \
 	gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp \
 	arrayindex.cpp fftw.cpp fftw.hpp mpi.cpp mpi.hpp plot3d_nr.cpp \
 	grib.cpp grib.hpp prognode.cpp prognodeexpr.cpp \
-	strassenmatrix.hpp datatypesref.cpp lapack.cpp pythongdl.cpp
+	strassenmatrix.hpp datatypesref.cpp lapack.cpp gshhs.cpp \
+	gshhs.hpp pythongdl.cpp
 am__objects_1 = assocdata.lo basic_fun_cl.lo basic_fun.lo \
 	basic_fun_jmg.lo basic_op.lo basic_pro.lo basic_pro_jmg.lo \
 	CFMTLexer.lo color.lo convert2.lo datatypes.lo dcommon.lo \
@@ -143,7 +144,7 @@ am__objects_1 = assocdata.lo basic_fun_cl.lo basic_fun.lo \
 	image.lo gdljournal.lo convol.lo convol_inc0.lo convol_inc1.lo \
 	convol_inc2.lo sigfpehandler.lo gdlzstream.lo arrayindex.lo \
 	fftw.lo mpi.lo plot3d_nr.lo grib.lo prognode.lo \
-	prognodeexpr.lo datatypesref.lo lapack.lo
+	prognodeexpr.lo datatypesref.lo lapack.lo gshhs.lo
 @BUILDASLIBRARY_TRUE@am_libgdl_la_OBJECTS = $(am__objects_1) \
 @BUILDASLIBRARY_TRUE@	pythongdl.lo
 libgdl_la_OBJECTS = $(am_libgdl_la_OBJECTS)
@@ -200,7 +201,8 @@ am__gdl_SOURCES_DIST = accessdesc.hpp arrayindex.hpp assocdata.cpp \
 	gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp \
 	arrayindex.cpp fftw.cpp fftw.hpp mpi.cpp mpi.hpp plot3d_nr.cpp \
 	grib.cpp grib.hpp prognode.cpp prognodeexpr.cpp \
-	strassenmatrix.hpp datatypesref.cpp lapack.cpp gdl.cpp
+	strassenmatrix.hpp datatypesref.cpp lapack.cpp gshhs.cpp \
+	gshhs.hpp gdl.cpp
 am__objects_2 = gdl-assocdata.$(OBJEXT) gdl-basic_fun_cl.$(OBJEXT) \
 	gdl-basic_fun.$(OBJEXT) gdl-basic_fun_jmg.$(OBJEXT) \
 	gdl-basic_op.$(OBJEXT) gdl-basic_pro.$(OBJEXT) \
@@ -247,7 +249,8 @@ am__objects_2 = gdl-assocdata.$(OBJEXT) gdl-basic_fun_cl.$(OBJEXT) \
 	gdl-arrayindex.$(OBJEXT) gdl-fftw.$(OBJEXT) gdl-mpi.$(OBJEXT) \
 	gdl-plot3d_nr.$(OBJEXT) gdl-grib.$(OBJEXT) \
 	gdl-prognode.$(OBJEXT) gdl-prognodeexpr.$(OBJEXT) \
-	gdl-datatypesref.$(OBJEXT) gdl-lapack.$(OBJEXT)
+	gdl-datatypesref.$(OBJEXT) gdl-lapack.$(OBJEXT) \
+	gdl-gshhs.$(OBJEXT)
 @BUILDASLIBRARY_FALSE@am_gdl_OBJECTS = $(am__objects_2) \
 @BUILDASLIBRARY_FALSE@	gdl-gdl.$(OBJEXT) gdl-lapack.$(OBJEXT)
 gdl_OBJECTS = $(am_gdl_OBJECTS)
@@ -492,7 +495,8 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 		convol_inc1.cpp convol_inc2.cpp sigfpehandler.cpp sigfpehandler.hpp devicez.hpp \
 		gdlzstream.cpp gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp arrayindex.cpp \
 		fftw.cpp fftw.hpp mpi.cpp mpi.hpp plot3d_nr.cpp grib.cpp grib.hpp \
-                prognode.cpp prognodeexpr.cpp strassenmatrix.hpp datatypesref.cpp lapack.cpp
+                prognode.cpp prognodeexpr.cpp strassenmatrix.hpp datatypesref.cpp lapack.cpp \
+                gshhs.cpp gshhs.hpp 
 
 @BUILDASLIBRARY_FALSE@gdl_SOURCES = $(cpp_hpp_files) gdl.cpp lapack.cpp
 # trigger basename generation
@@ -725,6 +729,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-getfmtast.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-graphics.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-grib.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-gshhs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-gsl_fun.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-hdf5_fun.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-hdf_fun.Po@am__quote@
@@ -784,6 +789,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/getfmtast.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/graphics.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/grib.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gshhs.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gsl_fun.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hdf5_fun.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hdf_fun.Plo@am__quote@
@@ -2237,6 +2243,20 @@ gdl-lapack.obj: lapack.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='lapack.cpp' object='gdl-lapack.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-lapack.obj `if test -f 'lapack.cpp'; then $(CYGPATH_W) 'lapack.cpp'; else $(CYGPATH_W) '$(srcdir)/lapack.cpp'; fi`
+
+gdl-gshhs.o: gshhs.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-gshhs.o -MD -MP -MF $(DEPDIR)/gdl-gshhs.Tpo -c -o gdl-gshhs.o `test -f 'gshhs.cpp' || echo '$(srcdir)/'`gshhs.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/gdl-gshhs.Tpo $(DEPDIR)/gdl-gshhs.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='gshhs.cpp' object='gdl-gshhs.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-gshhs.o `test -f 'gshhs.cpp' || echo '$(srcdir)/'`gshhs.cpp
+
+gdl-gshhs.obj: gshhs.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-gshhs.obj -MD -MP -MF $(DEPDIR)/gdl-gshhs.Tpo -c -o gdl-gshhs.obj `if test -f 'gshhs.cpp'; then $(CYGPATH_W) 'gshhs.cpp'; else $(CYGPATH_W) '$(srcdir)/gshhs.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/gdl-gshhs.Tpo $(DEPDIR)/gdl-gshhs.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='gshhs.cpp' object='gdl-gshhs.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-gshhs.obj `if test -f 'gshhs.cpp'; then $(CYGPATH_W) 'gshhs.cpp'; else $(CYGPATH_W) '$(srcdir)/gshhs.cpp'; fi`
 
 gdl-gdl.o: gdl.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-gdl.o -MD -MP -MF $(DEPDIR)/gdl-gdl.Tpo -c -o gdl-gdl.o `test -f 'gdl.cpp' || echo '$(srcdir)/'`gdl.cpp

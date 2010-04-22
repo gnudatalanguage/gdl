@@ -252,6 +252,12 @@ bool BaseGDL::ForCondUp( BaseGDL*)
   throw GDLException("Operation not defined for UNDEF 8.");
 }
 
+bool BaseGDL::ForAddCondUp( BaseGDL* loopInfo)
+// bool BaseGDL::ForAddCondUp( ForLoopInfoT& loopInfo)
+{
+  throw GDLException("Operation not defined for UNDEF 8a.");
+}
+
 bool BaseGDL::ForCondDown( BaseGDL*)
 {
   throw GDLException("Operation not defined for UNDEF 9.");

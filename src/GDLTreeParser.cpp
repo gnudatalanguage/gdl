@@ -3152,7 +3152,7 @@ void GDLTreeParser::for_statement(RefDNode _t) {
 	}
 	}
 	}
-	unblock(_t);
+	unblock_empty(_t);
 	_t = _retTree;
 	astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 	currentAST = __currentAST66;
@@ -3205,7 +3205,7 @@ void GDLTreeParser::foreach_statement(RefDNode _t) {
 	expr(_t);
 	_t = _retTree;
 	astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-	unblock(_t);
+	unblock_empty(_t);
 	_t = _retTree;
 	astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 	currentAST = __currentAST69;

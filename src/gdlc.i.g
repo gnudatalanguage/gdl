@@ -133,6 +133,8 @@ friend class PCALL_LIBNode;//: public CommandNode
 friend class MPCALLNode;//: public CommandNode
 friend class MPCALL_PARENTNode;//: public CommandNode
 friend class PCALLNode;//: public CommandNode
+friend class RETFNode;
+friend class RETPNode;
 friend class FORNode;
 friend class FOR_LOOPNode;
 friend class FOREACHNode;
@@ -164,13 +166,13 @@ public:
 //         this->returnCode = rC;
 //     }
     
-    enum RetCode {
-        RC_OK=0,
-        RC_BREAK,
-        RC_CONTINUE,
-        RC_RETURN, 
-        RC_ABORT, // checked as retCode >= RC_RETURN
-    };  
+//     enum RetCode {
+//         RC_OK=0,
+//         RC_BREAK,
+//         RC_CONTINUE,
+//         RC_RETURN, 
+//         RC_ABORT, // checked as retCode >= RC_RETURN
+//     };  
 
     // code in: dinterpreter.cpp
     static bool SearchCompilePro(const std::string& pro);
@@ -747,14 +749,14 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
 //***********************************************************************
 
 // intercative usage
-interactive returns[ GDLInterpreter::RetCode retCode]
+interactive returns[ RetCode retCode]
 // {
 // 	return interactive_statement_list(_t);
 // }    
 //     : retCode=statement_list
 //     ;
 // // used from interactive nulls line number
-// interactive_statement_list returns[ GDLInterpreter::RetCode retCode]
+// interactive_statement_list returns[ RetCode retCode]
 {
 	for (; _t != NULL;) {
 
@@ -775,9 +777,9 @@ interactive returns[ GDLInterpreter::RetCode retCode]
     ;
 
 // execute statement
-execute returns[ GDLInterpreter::RetCode retCode]
+execute returns[ RetCode retCode]
 {
-//    GDLInterpreter::RetCode retCode;
+//    RetCode retCode;
     ValueGuard<bool> guard( interruptEnable);
     interruptEnable = false;
 
@@ -793,7 +795,7 @@ call_fun returns[ BaseGDL* res]
 
     res = NULL;
     returnValue = NULL;
-    GDLInterpreter::RetCode retCode;
+    RetCode retCode;
 
 	for (; _t != NULL;) {
 
@@ -838,7 +840,7 @@ call_lfun returns[ BaseGDL** res]
 {
     res = NULL;
     returnValueL = NULL;
-    GDLInterpreter::RetCode retCode;
+    RetCode retCode;
 
 	ProgNodeP in = _t;
 
@@ -888,7 +890,7 @@ call_lfun returns[ BaseGDL** res]
 // used to call procedures
 call_pro
 {
-    GDLInterpreter::RetCode retCode;
+    RetCode retCode;
 
 	for (; _t != NULL;) {
 			retCode=statement(_t);
@@ -910,7 +912,7 @@ call_pro
 
 
 // used on many occasions
-statement_list returns[ GDLInterpreter::RetCode retCode]
+statement_list returns[ RetCode retCode]
 {
 	for (; _t != NULL;) {
 
@@ -929,10 +931,12 @@ statement_list returns[ GDLInterpreter::RetCode retCode]
         )+
     ;
 
-statement returns[ GDLInterpreter::RetCode retCode]
+statement returns[ RetCode retCode]
 {
-    ProgNodeP& actPos = statement_AST_in;
+//    ProgNodeP& actPos = statement_AST_in;
     assert( _t != NULL);
+    ProgNodeP last;
+    _retTree = _t;
 //  if( callStack.back()->GetLineNumber() == 0) 
 //  if( _t->getLine() != 0) 
 //      callStack.back()->SetLineNumber( _t->getLine());
@@ -940,57 +944,22 @@ statement returns[ GDLInterpreter::RetCode retCode]
 	:  
         {
             do {
-                if( _t->getLine() != 0) 
-                    callStack.back()->SetLineNumber( _t->getLine());
-
-                if( _t->getType() == RETF)
-                    {
-                        _t = _t->getFirstChild();
-                        assert( _t != NULL);
-                        if ( !static_cast<EnvUDT*>(callStack.back())->LFun())
-                            {
-                                BaseGDL* e=expr(_t);
-                                
-                                delete returnValue;
-                                returnValue=e;
-                            
-                                callStack.back()->RemoveLoc( e); // steal e from local list
-                                
-                            }
-                        else
-                            {
-                                BaseGDL** eL=l_ret_expr(_t);
-                                
-                                // returnValueL is otherwise owned
-                                returnValueL=eL;
-                            }
-                        //if( !(interruptEnable && sigControlC) && ( debugMode == DEBUG_CLEAR))
-                        //return RC_RETURN;
-                        retCode = RC_RETURN;
-                    }
-                else if( _t->getType() == RETP)
-                    {
-                        //if( !(interruptEnable && sigControlC) && ( debugMode == DEBUG_CLEAR))
-                        //return RC_RETURN;
-                        retCode = RC_RETURN;
-                    }
-                else
-                    {
-                        _t->Run(); // sets _retTree
-                        
-                        //if( !(interruptEnable && sigControlC) && ( debugMode == DEBUG_CLEAR))
-                        //return RC_OK;
-                        retCode = RC_OK;
-                    }
+//                 if( _t->getLine() != 0) 
+//                     callStack.back()->SetLineNumber( _t->getLine());
                 
-                // if( _retTree == NULL) // keep _t (but _t needs to be NULL then)
-                //    goto afterStatement;
-                // break;
+                last = _retTree;
 
-                _t = _retTree;
+                retCode = last->Run(); // Run() sets _retTree
+                        
             }
-            while( _retTree != NULL && retCode == RC_OK && 
-                   !(interruptEnable && sigControlC) && ( debugMode == DEBUG_CLEAR));
+            while( 
+                    _retTree != NULL && 
+                    retCode == RC_OK && 
+                    !(sigControlC && interruptEnable) && 
+                    (debugMode == DEBUG_CLEAR));
+
+            if( _retTree != NULL) 
+                last = _retTree;
 
             goto afterStatement;
 }
@@ -1060,7 +1029,7 @@ statement returns[ GDLInterpreter::RetCode retCode]
 //            {co->Run(); _t = _retTree;}
         |   GOTO
 //            {g->Run(); _t = _retTree;}
-        | RETF 
+        |   RETF 
 //             ( { !static_cast<EnvUDT*>(callStack.back())->LFun()}? e=expr // expr -> r value
 //                 {
 //                     delete returnValue;
@@ -1089,17 +1058,17 @@ statement returns[ GDLInterpreter::RetCode retCode]
            // possible optimization: make sigControlC a debugMode 
            if( interruptEnable && sigControlC)
             {
-                DebugMsg( actPos, "Interrupted at: "); 
+                DebugMsg( last, "Interrupted at: "); 
 
                 sigControlC = false;
 
-                retCode = NewInterpreterInstance(actPos->getLine()-1);
+                retCode = NewInterpreterInstance( last->getLine()-1);
             }
            else if( debugMode != DEBUG_CLEAR)
             {
                 if( debugMode == DEBUG_STOP)
                 {
-                    DebugMsg( actPos, "Stop encoutered: ");
+                    DebugMsg( last, "Stop encoutered: ");
                     if( !interruptEnable)
                         debugMode = DEBUG_PROCESS_STOP;
                 }
@@ -1108,18 +1077,19 @@ statement returns[ GDLInterpreter::RetCode retCode]
                 {
                     if( debugMode == DEBUG_PROCESS_STOP)
                     {
-                        DebugMsg( actPos, "Stepped to: ");
+                        DebugMsg( last, "Stepped to: ");
                     }
 
                     debugMode = DEBUG_CLEAR;
                 
-                    retCode = NewInterpreterInstance(actPos->getLine()-1);
+                    retCode = NewInterpreterInstance( last->getLine()-1);
                 }   
                 else
                 {
                     retCode = RC_ABORT;
                 }
             }
+           return retCode;
         }
 	;
     exception 
@@ -1128,15 +1098,14 @@ statement returns[ GDLInterpreter::RetCode retCode]
         if( dynamic_cast< GDLIOException*>( &e) != NULL)
             {
                 // set the jump target - also logs the jump
-                ProgNodeP onIOErr = static_cast<EnvUDT*>(callStack.back())->GetIOError();
+                ProgNodeP onIOErr = 
+                    static_cast<EnvUDT*>(callStack.back())->GetIOError();
                 if( onIOErr != NULL)
                     {
                         SysVar::SetErr_String( e.getMessage());
-                        _t = onIOErr;
-                        retCode=RC_OK;		
 
-                        _retTree = _t;
-                        return retCode;
+                        _retTree = onIOErr;
+                        return RC_OK;
                     }
             }
 
@@ -1195,8 +1164,8 @@ statement returns[ GDLInterpreter::RetCode retCode]
 //                         e.SetLine( _t->getLine());
 //                     if( e.getLine() == 0 && _retTree != NULL)
 //                         e.SetLine( _retTree->getLine());
-                    if( e.getLine() == 0 && actPos != NULL)
-                        e.SetLine( actPos->getLine());
+                    if( e.getLine() == 0 && last != NULL)
+                        e.SetLine( last->getLine());
 
                     if( interruptEnable)
                         ReportError(e, "Error occurred at:");
@@ -1255,9 +1224,11 @@ statement returns[ GDLInterpreter::RetCode retCode]
 
                 retCode = RC_ABORT;
             }
+
+        return retCode;
     }
 
-block returns[ GDLInterpreter::RetCode retCode]
+block returns[ RetCode retCode]
 {
 	match(antlr::RefAST(_t),BLOCK);
 	_retTree = _t->getFirstChild();
@@ -1287,7 +1258,7 @@ block returns[ GDLInterpreter::RetCode retCode]
 	: #(BLOCK (retCode=statement_list)?)
 	;
 
-switch_statement returns[ GDLInterpreter::RetCode retCode]
+switch_statement returns[ RetCode retCode]
 {
     BaseGDL* e;
     retCode = RC_OK; // not set if no branch is executed
@@ -1388,7 +1359,7 @@ switch_statement returns[ GDLInterpreter::RetCode retCode]
         )
     ;
 
-case_statement returns[ GDLInterpreter::RetCode retCode]
+case_statement returns[ RetCode retCode]
 {
     BaseGDL* e;
     retCode = RC_OK; // not set if no branch is executed
@@ -1494,7 +1465,7 @@ case_statement returns[ GDLInterpreter::RetCode retCode]
 
 
 
-repeat_statement returns[ GDLInterpreter::RetCode retCode]
+repeat_statement returns[ RetCode retCode]
 	: #(r:REPEAT // block expr
             {
                 // _t is REPEAT_LOOP, GetFirstChild() is expr, GetNextSibling is first loop statement
@@ -1504,7 +1475,7 @@ repeat_statement returns[ GDLInterpreter::RetCode retCode]
         )
 	;
 
-repeat_loop_statement returns[ GDLInterpreter::RetCode retCode]
+repeat_loop_statement returns[ RetCode retCode]
 // {
 //     retCode = RC_OK; // not set if no branch is executed
 // }
@@ -1572,7 +1543,7 @@ repeat_loop_statement returns[ GDLInterpreter::RetCode retCode]
         )
 	;
 
-while_statement returns[ GDLInterpreter::RetCode retCode]
+while_statement returns[ RetCode retCode]
 {
     retCode = RC_OK;
 }
@@ -1629,7 +1600,7 @@ while_statement returns[ GDLInterpreter::RetCode retCode]
         )
 	;
 
-for_statement returns[ GDLInterpreter::RetCode retCode]
+for_statement returns[ RetCode retCode]
 {
     BaseGDL** v;
     BaseGDL* s;
@@ -1949,7 +1920,7 @@ for_statement returns[ GDLInterpreter::RetCode retCode]
 
 
 
-foreach_statement returns[ GDLInterpreter::RetCode retCode]
+foreach_statement returns[ RetCode retCode]
 {
     BaseGDL** v;
     BaseGDL* s;
@@ -2086,7 +2057,7 @@ foreach_statement returns[ GDLInterpreter::RetCode retCode]
 
 
 
-if_statement returns[ GDLInterpreter::RetCode retCode]
+if_statement returns[ RetCode retCode]
 {
     BaseGDL* e;
 //    retCode = RC_OK; // not set if not executed
@@ -2119,7 +2090,7 @@ if_statement returns[ GDLInterpreter::RetCode retCode]
         )
 	;   
 
-if_else_statement returns[ GDLInterpreter::RetCode retCode]
+if_else_statement returns[ RetCode retCode]
 {
     BaseGDL* e;
     retCode = RC_OK; // not set if not executed
@@ -2173,7 +2144,7 @@ if_else_statement returns[ GDLInterpreter::RetCode retCode]
 	;   
 
 // to be processed (to make sure it really returns)
-jump_statement returns[ GDLInterpreter::RetCode retCode]
+jump_statement returns[ RetCode retCode]
 {
 BaseGDL*  e;
 BaseGDL** eL;
@@ -3262,36 +3233,22 @@ l_simple_var returns [BaseGDL** res]
 
 	if( _t->getType() == VAR)
 	{
-		ProgNodeP var = _t;
+		res=&callStack.back()->GetKW(_t->varIx); 
+//		ProgNodeP var = _t;
 // 		match(antlr::RefAST(_t),VAR);
-		_t = _t->getNextSibling();
-		
-		
-		res=&callStack.back()->GetKW(var->varIx); 
-		
 	}
 	else
 	{
-		ProgNodeP varPtr = _t;
+		res= &_t->var->Data(); // returns BaseGDL* of var (DVar*) 
+//		ProgNodeP varPtr = _t;
 // 		match(antlr::RefAST(_t),VARPTR);
-		_t = _t->getNextSibling();
-		
-		res=&varPtr->var->Data(); // returns BaseGDL* of var (DVar*) 
-		
 	}
 
-	_retTree = _t;
+	_retTree = _t->getNextSibling();
 	return res;
 }
-    : var:VAR // DNode.varIx is index into functions/procedures environment
-        {
-
-            res=&callStack.back()->GetKW(var->varIx); 
-        }
-    | varPtr:VARPTR // DNode.var   is ptr to common block variable
-        {
-            res=&varPtr->var->Data(); // returns BaseGDL* of var (DVar*) 
-        }
+    : VAR // DNode.varIx is index into functions/procedures environment
+    | VARPTR // DNode.var   is ptr to common block variable
     ;
 
 l_defined_simple_var returns [BaseGDL** res]

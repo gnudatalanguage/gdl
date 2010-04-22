@@ -497,6 +497,8 @@ buf = scalar;
 //   }
 };
 
+
+
 // friend  GDLArray pow(const GDLArray& left, const GDLArray& right);
 
 // friend  GDLArray pow(const GDLArray& left, const T& right);

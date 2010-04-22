@@ -122,7 +122,9 @@ public:
 
   virtual BaseGDL* Eval();
   virtual BaseGDL* EvalNC(); // non-copy
-  virtual void     Run();
+  virtual RetCode    Run();
+
+//   RetCode  (*RunP)();
 
   bool ConstantNode();
 
@@ -273,14 +275,36 @@ public:
   }
 };
 
+class RETPNode: public DefaultNode
+{
+public:
+	RetCode      Run();
+	
+public:
+    RETPNode(): DefaultNode()  {}
+	
+	RETPNode( const RefDNode& refNode): DefaultNode( refNode)
+	{}
+};
+class RETFNode: public DefaultNode
+{
+public:
+ RetCode      Run();
+	
+public:
+    RETFNode(): DefaultNode()  {}
+	
+	RETFNode( const RefDNode& refNode): DefaultNode( refNode)
+	{}
+};
 class GOTONode: public DefaultNode
 {
 public:
-	void     Run();
+ RetCode      Run();
 	
 	void SetAllBreak( ProgNodeP target)
 	{
-		breakTarget = target;
+// 		breakTarget = target;
 		
 		if( right != NULL && !keepRight)
 		{
@@ -296,7 +320,7 @@ public:
 class CONTINUENode: public DefaultNode
 {
 public:
-	void     Run();
+ RetCode      Run();
 	
 
 	void SetAllContinue( ProgNodeP target)
@@ -318,7 +342,7 @@ public:
 class BREAKNode: public DefaultNode
 {
 public:
-	void     Run();
+ RetCode      Run();
 	
 
 	void SetAllBreak( ProgNodeP target)
@@ -339,7 +363,7 @@ public:
 class LABELNode: public DefaultNode
 {
 public:
-	void     Run();
+ RetCode      Run();
 	
 
 public:
@@ -351,7 +375,7 @@ public:
 class ON_IOERROR_NULLNode: public DefaultNode
 {
 public:
-	void     Run();
+ RetCode      Run();
 	
 
 public:
@@ -363,7 +387,7 @@ public:
 class ON_IOERRORNode: public DefaultNode
 {
 public:
-	void     Run();
+ RetCode      Run();
 	
 
 public:
@@ -418,7 +442,7 @@ public:
 class FOR_LOOPNode: public BreakableNode
 {
   public:
-	void     Run();
+ RetCode      Run();
 	
 	ProgNodeP GetStatementList()
 	{
@@ -430,7 +454,8 @@ class FOR_LOOPNode: public BreakableNode
 	{
 		right = r;
 		keepRight = true;
-		if( this->GetStatementList() != NULL)
+		assert( this->GetStatementList() != NULL);
+// 		if( this->GetStatementList() != NULL)
 			this->GetStatementList()->SetAllBreak( right);
 	}
   
@@ -439,7 +464,7 @@ class FOR_LOOPNode: public BreakableNode
 	this->forLoopIx = actNum;
 	actNum++;
 	ProgNodeP statementList = this->GetStatementList();
-	if( statementList != NULL)
+	if( statementList != NULL && !down->KeepRight())
 		{
 			actNum = statementList->NumberForLoops( actNum);
 		}
@@ -465,6 +490,10 @@ class FOR_LOOPNode: public BreakableNode
 			statementList->GetLastSibling()->KeepRight( this);
 			if( right != NULL) statementList->SetAllBreak( right);
 		}
+	else
+		{
+			down->KeepRight( this);
+		}
   }
 
 };
@@ -473,9 +502,9 @@ class FOR_LOOPNode: public BreakableNode
 class FORNode: public BreakableNode
 {
   public:
-	void     Run();
+ RetCode      Run();
 	
-	void KeepRight( ProgNodeP r);
+  void KeepRight( ProgNodeP r);
 	
   int NumberForLoops( int actNum)
   {
@@ -516,7 +545,7 @@ class FORNode: public BreakableNode
 class FOR_STEP_LOOPNode: public BreakableNode
 {
   public:
-	void     Run();
+ RetCode      Run();
 	
 	ProgNodeP GetStatementList()
 	{
@@ -537,7 +566,7 @@ class FOR_STEP_LOOPNode: public BreakableNode
 	this->forLoopIx = actNum;
 	actNum++;
 	ProgNodeP statementList = this->GetStatementList();
-	if( statementList != NULL)
+	if( statementList != NULL && !down->KeepRight())
 		{
 			actNum = statementList->NumberForLoops( actNum);
 		}
@@ -563,6 +592,10 @@ class FOR_STEP_LOOPNode: public BreakableNode
 			statementList->GetLastSibling()->KeepRight( this);
 			if( right != NULL) statementList->SetAllBreak( right);
 		}
+	else
+		{
+			down->KeepRight( this);
+		}
   }
 
 };
@@ -572,7 +605,7 @@ class FOR_STEP_LOOPNode: public BreakableNode
 class FOR_STEPNode: public BreakableNode
 {
   public:
-	void     Run();
+ RetCode      Run();
 	
 	void KeepRight( ProgNodeP r);
 	
@@ -616,7 +649,7 @@ class FOR_STEPNode: public BreakableNode
 class FOREACH_LOOPNode: public BreakableNode
 {
   public:
-	void     Run();
+ RetCode      Run();
 	
 	ProgNodeP GetStatementList()
 	{
@@ -637,7 +670,7 @@ class FOREACH_LOOPNode: public BreakableNode
 	this->forLoopIx = actNum;
 	actNum++;
 	ProgNodeP statementList = this->GetStatementList();
-	if( statementList != NULL)
+	if( statementList != NULL && !down->KeepRight())
 		{
 			actNum = statementList->NumberForLoops( actNum);
 		}
@@ -663,6 +696,10 @@ class FOREACH_LOOPNode: public BreakableNode
 			statementList->GetLastSibling()->KeepRight( this);
 			if( right != NULL) statementList->SetAllBreak( right);
 		}
+	else
+		{
+			down->KeepRight( this);
+		}
   }
 
 };
@@ -672,7 +709,7 @@ class FOREACH_LOOPNode: public BreakableNode
 class FOREACHNode: public BreakableNode
 {
   public:
-	void     Run();
+ RetCode      Run();
 	
 	void KeepRight( ProgNodeP r);
 	
@@ -713,7 +750,7 @@ class FOREACHNode: public BreakableNode
 class WHILENode: public BreakableNode
 {
   public:
-	void     Run();
+ RetCode      Run();
 	
 	ProgNodeP GetStatementList()
 	{
@@ -752,7 +789,7 @@ class WHILENode: public BreakableNode
 class REPEAT_LOOPNode: public BreakableNode
 {
   public:
-	void     Run();
+ RetCode      Run();
 	
 	ProgNodeP GetStatementList()
 	{
@@ -792,7 +829,7 @@ class REPEAT_LOOPNode: public BreakableNode
 class REPEATNode: public BreakableNode
 {
   public:
-	void     Run();
+ RetCode      Run();
 	
 	void KeepRight( ProgNodeP r)
 	{
@@ -819,7 +856,7 @@ public:
 class CASENode: public BreakableNode
 {
   public:
-	void     Run();
+ RetCode      Run();
   
 	ProgNodeP GetStatementList()
 	{
@@ -906,7 +943,7 @@ public:
 class SWITCHNode: public BreakableNode
 {
   public:
-	void     Run();
+ RetCode      Run();
   
 	ProgNodeP GetStatementList()
 	{
@@ -1002,7 +1039,7 @@ public:
 class BLOCKNode: public ProgNode
 {
   public:
-	void     Run();
+ RetCode      Run();
 	
   void KeepRight( ProgNodeP r)
   {
@@ -1043,7 +1080,7 @@ public:
 class IFNode: public ProgNode
 {
   public:
-	void     Run();
+ RetCode      Run();
   
   void KeepRight( ProgNodeP r)
   {
@@ -1082,7 +1119,7 @@ public:
 class IF_ELSENode: public ProgNode
 {
   public:
-	void     Run();
+ RetCode      Run();
   
   void KeepRight( ProgNodeP r)
   {
@@ -1219,68 +1256,68 @@ class ASSIGNNode: public CommandNode
 {
 public:
   ASSIGNNode( const RefDNode& refNode): CommandNode( refNode) {}
-  void Run();
+  RetCode Run();
 };
 class ASSIGN_ARRAYEXPR_MFCALLNode: public CommandNode
 {
 public:
   ASSIGN_ARRAYEXPR_MFCALLNode( const RefDNode& refNode): CommandNode( refNode) {}
-  void Run();
+  RetCode Run();
 };
 class ASSIGN_REPLACENode: public CommandNode
 {
 public:
   ASSIGN_REPLACENode( const RefDNode& refNode): CommandNode( refNode) {}
-  void Run();
+  RetCode Run();
 };
 class PCALL_LIBNode: public CommandNode
 {
 public:
   PCALL_LIBNode( const RefDNode& refNode): CommandNode( refNode) {}
-  void Run();
+  RetCode Run();
 };
 class MPCALLNode: public CommandNode
 {
 public:
   MPCALLNode( const RefDNode& refNode): CommandNode( refNode) {}
-  void Run();
+  RetCode Run();
 };
 class MPCALL_PARENTNode: public CommandNode
 {
 public:
   MPCALL_PARENTNode( const RefDNode& refNode): CommandNode( refNode) {}
-  void Run();
+  RetCode Run();
 };
 class PCALLNode: public CommandNode
 {
 public:
   PCALLNode( const RefDNode& refNode): CommandNode( refNode) {}
-  void Run();
+  RetCode Run();
 };
 class DECNode: public CommandNode
 { public:
   DECNode( const RefDNode& refNode): CommandNode( refNode){}
-  void Run();
+  RetCode Run();
 };
 class INCNode: public CommandNode
 { public:
   INCNode( const RefDNode& refNode): CommandNode( refNode){}
-  void Run();
+  RetCode Run();
 };
 // class FOR_INITNode: public CommandNode
 // { public:
 //   FOR_INITNode( const RefDNode& refNode): CommandNode( refNode){}
-//   void Run();
+//   RetCode Run();
 // };
 // class FORNode: public CommandNode
 // { public:
 //   FORNode( const RefDNode& refNode): CommandNode( refNode){}
-//   void Run();
+//   RetCode Run();
 // };
 // class FOR_STEPNode: public CommandNode
 // { public:
 //   FOR_STEPNode( const RefDNode& refNode): CommandNode( refNode){}
-//   void Run();
+//   RetCode Run();
 // };
 
 

@@ -323,10 +323,16 @@ int Data_<SpDObj>::Sgn(); // -1,0,1
 template<> 
 bool Data_<SpDComplex>::ForCondUp( BaseGDL*);
 template<> 
+bool Data_<SpDComplex>::ForAddCondUp( BaseGDL* loopInfo);
+// bool Data_<SpDComplex>::ForAddCondUp( ForLoopInfoT& loopInfo);
+template<>
 bool Data_<SpDComplex>::ForCondDown( BaseGDL*);
 template<> 
+bool Data_<SpDComplexDbl>::ForAddCondUp( BaseGDL* loopInfo);
+// bool Data_<SpDComplexDbl>::ForAddCondUp( ForLoopInfoT& loopInfo);
+template<>
 bool Data_<SpDComplexDbl>::ForCondUp( BaseGDL*);
-template<> 
+template<>
 bool Data_<SpDComplexDbl>::ForCondDown( BaseGDL*);
 template<> 
 void Data_<SpDFloat>::DecAt( ArrayIndexListT* ixList); 

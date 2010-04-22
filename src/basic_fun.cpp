@@ -1331,12 +1331,11 @@ namespace lib {
 
 		progAST->setLine( e->GetLineNumber());
 
-		GDLInterpreter::RetCode retCode =
-		caller->Interpreter()->execute( progAST);
+		RetCode retCode = caller->Interpreter()->execute( progAST);
 
 		caller->ResizeForLoops( nForLoopsIn);
 
-		if( retCode == GDLInterpreter::RC_OK)
+		if( retCode == RC_OK)
 		return new DIntGDL( 1);
 		else
 		return new DIntGDL( 0);

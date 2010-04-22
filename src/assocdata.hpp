@@ -175,6 +175,12 @@ static	void operator delete( void *ptr);
     throw GDLException("File expression not allowed in this context.");
   }
 
+  bool ForAddCondUp( BaseGDL* loopInfo)
+//   bool ForAddCondUp( ForLoopInfoT& loopInfo)
+  {
+    throw GDLException("File expression not allowed in this context.");
+  }
+  
   bool ForCondUp( BaseGDL*)
   {
     throw GDLException("File expression not allowed in this context.");

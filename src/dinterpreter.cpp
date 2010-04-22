@@ -96,7 +96,7 @@ DInterpreter::DInterpreter(): GDLInterpreter()
 // used in the statement function.
 // runs a new instance of the interpreter if not
 // at main level
-GDLInterpreter::RetCode GDLInterpreter::NewInterpreterInstance( SizeT lineOffset)
+RetCode GDLInterpreter::NewInterpreterInstance( SizeT lineOffset)
 {
   if( callStack.size() <= 1) return RC_ABORT; // stay in main loop 
   
@@ -889,7 +889,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
   cout << "end." << endl;
 #endif
 
-      GDLInterpreter::RetCode retCode = interactive( progAST);
+      RetCode retCode = interactive( progAST);
       
 	  env->ResizeForLoops( nForLoopsIn);
       
@@ -1026,7 +1026,7 @@ string DInterpreter::GetLine()
 
 // reads user input and executes it
 // inner loop (called via Control-C, STOP, error)
-GDLInterpreter::RetCode DInterpreter::InnerInterpreterLoop(SizeT lineOffset)
+RetCode DInterpreter::InnerInterpreterLoop(SizeT lineOffset)
 {
 
   bool runCmd = false;
@@ -1168,7 +1168,7 @@ void DInterpreter::RunDelTree()
 
 // reads user input and executes it
 // the main loop
-GDLInterpreter::RetCode DInterpreter::InterpreterLoop( const string& startup, 
+RetCode DInterpreter::InterpreterLoop( const string& startup,
   vector<string>& batch_files, const std::string& statement)
 {
   // process startup file

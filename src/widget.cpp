@@ -667,7 +667,7 @@ namespace lib {
     int nForLoops = ProgNode::NumberForLoops( progAST, nForLoopsIn);
 	env->ResizeForLoops( nForLoops);
 
-      GDLInterpreter::RetCode retCode = 
+    RetCode retCode =
 	caller->Interpreter()->execute( progAST);
 
 	env->ResizeForLoops( nForLoopsIn);

@@ -126,11 +126,12 @@ BaseGDL* ProgNode::EvalNC()
 		      "ProgNode::EvalNC() called.",true,false);
 }
 
-void  ProgNode::Run()
+RetCode   ProgNode::Run()
 { 
   throw GDLException( this,
 		      "Internal error. "
 		      "ProgNode::Run() called.",true,false);
+  return RC_OK; // silence compiler
 }
 
 void ProgNode::SetRightDown( const ProgNodeP r, const ProgNodeP d)
@@ -725,7 +726,7 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
       {
 	return new  CONTINUENode( refNode);
       }
-        case GDLTokenTypes::LABEL:
+    case GDLTokenTypes::LABEL:
       {
 	return new  LABELNode( refNode);
       }
@@ -737,8 +738,14 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
       {
 	return new  ON_IOERROR_NULLNode( refNode);
       }
-
-
+    case GDLTokenTypes::RETF:
+      {
+	return new  RETFNode( refNode);
+      }
+    case GDLTokenTypes::RETP:
+      {
+	return new  RETPNode( refNode);
+      }
     case GDLTokenTypes::FOR:
       {
 	return new  FORNode( refNode);

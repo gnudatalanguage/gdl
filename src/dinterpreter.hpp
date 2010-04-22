@@ -50,6 +50,7 @@
 #include <fstream>
 #include <vector>
 
+
 void ControlCHandler(int);
 
 extern bool lineEdit; // = false;
@@ -103,11 +104,11 @@ public:
   bool RunBatch( std::istream* in);
 
   // the main program for interactive mode
-  GDLInterpreter::RetCode InterpreterLoop( const std::string& startup, 
+  RetCode InterpreterLoop( const std::string& startup,
     std::vector<std::string>& batch_files, const std::string& statement);  
 
   // called within InterpreterLoop()
-  GDLInterpreter::RetCode InnerInterpreterLoop(SizeT lineOffset);  
+  RetCode InnerInterpreterLoop(SizeT lineOffset);
 
 };
 
