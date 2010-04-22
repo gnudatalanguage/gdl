@@ -40,12 +40,12 @@ They can be placed in any directory within you GDL path.
 MAP_CONTINENTS is implemented in GDL using the GSHHS (Global 
 Self-consistent, Hierarchical, High-resolution Shoreline Database) 
 available under the GNU GPL. To provide support for MAP_CONTINENTS the 
-database files and one header file (gshhs.h) need to be downloaded from:
+database files and one header file (gshhs.h) need to be downloaded e.g. from:
 
-http://www.ngdc.noaa.gov/mgg/shorelines/data/gshhs/version2.0/
 ftp://ftp.soest.hawaii.edu/pwessel/gshhs
 
 The header file for the 2.0 dataset is in the gshhs_1.12_src.zip file.
+The datafiles (*.b) are in the gshhs_2.0.tbz file.
 
 When compiling GDL, the --with-gshhs option must be given (not enabled 
 by default), optionally with an argument pointing to the GSHHS installation

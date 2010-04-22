@@ -1,5 +1,5 @@
 /***************************************************************************
-                          gshhs.cpp  -  GRIB GDL library function
+                          gshhs.cpp  -  GSHHS-related routines
                              -------------------
     begin                : Apr 18 2010
     copyright            : (C) 2010 by Sylwester Arabas 
@@ -20,7 +20,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #else
-// default: assume we have GRIB
+// default: assume we have GSHHS
 #define USE_GSHHS 1
 #endif
 

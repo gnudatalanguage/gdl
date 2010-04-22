@@ -1,5 +1,5 @@
 /***************************************************************************
-                          gshhs.hpp  -  GRIB GDL library function
+                          gshhs.hpp  -  GSHHS-related routines
                              -------------------
     begin                : Apr 18 2010
     copyright            : (C) 2010 by Sylwester Arabas

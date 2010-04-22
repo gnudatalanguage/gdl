@@ -50,6 +50,8 @@
 #include "fftw.hpp"
 #endif
 
+#include "gshhs.hpp"
+
 using namespace std;
 
 void LibInit_jmg()
@@ -115,6 +117,8 @@ void LibInit_jmg()
   new DLibFun(lib::map_proj_inverse_fun,
 	      string("MAP_PROJ_INVERSE"),3,map_proj_inverseKey);
 
+#endif
+
   // SA: GSHHS dataset
   // TODO: COASTS, CONTINENTS, ORIENTATION, LIMIT,
   //       MAP_STRUCTURE, MLINESTYLE, MLINETHICK, SPACING, T3D, ZVALUE
@@ -124,8 +128,6 @@ void LibInit_jmg()
   new DLibPro(lib::map_continents, string("MAP_CONTINENTS"), 0, 
     map_continentsKey, map_continentsWarnKey);
 
-
-#endif
 
   const string convert_coordKey[]={"DATA","DEVICE","NORMAL","T3D","DOUBLE",
 				   "TO_DATA","TO_DEVICE","TO_NORMAL",KLISTEND};

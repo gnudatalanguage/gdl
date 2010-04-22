@@ -42,7 +42,6 @@
 #endif
 
 #include "grib.hpp"
-#include "gshhs.hpp"
 
 // for extensions
 #include "new.hpp"
