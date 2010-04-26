@@ -2234,15 +2234,37 @@ actStream->wid( 0);
     SizeT nParam = e->NParam(1);
     DDoubleGDL* yVal, *xVal;
     SizeT xEl, yEl;
+
+    bool mapSet=false;
+#ifdef USE_LIBPROJ4
+    LPTYPE idata;
+    XYTYPE odata;
+    get_mapset(mapSet);
+    if (mapSet) 
+    {
+      ref = map_init();
+      if (ref == NULL) e->Throw( "Projection initialization failed.");
+    }
+#endif
+
     if(nParam == 1 || nParam == 3) 
     {
       e->Throw("1- and 3-argument case not implemented yet");
     }
     else
     {
-      xVal = e->GetParAs< DDoubleGDL>(0);
+      xVal = !mapSet
+        ? e->GetParAs< DDoubleGDL>(0)
+        : static_cast<DDoubleGDL*>(
+          e->GetNumericArrayParDefined(0)->Convert2(DOUBLE, BaseGDL::COPY)
+        );
+      yVal = !mapSet
+        ? e->GetParAs< DDoubleGDL>(1)
+        : static_cast<DDoubleGDL*>(
+          e->GetNumericArrayParDefined(1)->Convert2(DOUBLE, BaseGDL::COPY)
+        );
+
       xEl = xVal->N_Elements();
-      yVal = e->GetParAs< DDoubleGDL>(1);
       yEl = yVal->N_Elements();
     }
 
@@ -2270,24 +2292,6 @@ actStream->wid( 0);
 
     PLFLT xMR, xML, yMB, yMT;
     CheckMargin( e, actStream, xMarginL, xMarginR, yMarginB, yMarginT, xMR, xML, yMB, yMT);
-
-/* TODO
-    bool mapSet=false;
-#ifdef USE_LIBPROJ4
-    // Map Stuff (xtype = 3)
-    LPTYPE idata;
-    XYTYPE odata;
-
-    get_mapset(mapSet);
-
-    if ( mapSet) {
-      ref = map_init();
-      if ( ref == NULL) {
-	e->Throw( "Projection initialization failed.");
-      }
-    }
-#endif
-*/
 
     DDouble *sx, *sy;
     DFloat *wx, *wy;
@@ -2351,6 +2355,20 @@ actStream->wid( 0);
       actStream->pat(1, &inc, &del);
     }
 */
+
+#ifdef USE_LIBPROJ4
+    if (mapSet)
+    {
+      for (SizeT i = 0; i < xEl; ++i) 
+      {
+        idata.lam = (*xVal)[i] * DEG_TO_RAD;
+        idata.phi = (*yVal)[i] * DEG_TO_RAD;
+        odata = PJ_FWD(idata, ref);
+        (*xVal)[i] = odata.x;
+        (*yVal)[i] = odata.y;
+      }
+    }
+#endif
 
     actStream->fill(xEl, static_cast<PLFLT*>(&(*xVal)[0]), static_cast<PLFLT*>(&(*yVal)[0]));
     actStream->flush();

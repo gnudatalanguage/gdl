@@ -239,6 +239,7 @@ namespace lib {
             if ((greenwich && p.x > max_east) || (h.west > 180000000)) lon -= 360.0;
             double lat = p.y * GSHHS_SCL;
   
+#ifdef USE_LIBPROJ4
             // map projection
             if (mapSet) // ... always true
             {
@@ -248,6 +249,7 @@ namespace lib {
               lon = odata.x;
               lat = odata.y;
             }
+#endif
 
             // drawing line or recording data for drawing a polygon afterwards
             if (!kw_fill)
