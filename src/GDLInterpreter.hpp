@@ -53,27 +53,27 @@ private:
     friend class ASSIGNNode;
     friend class ASSIGN_ARRAYEXPR_MFCALLNode;
     friend class ASSIGN_REPLACENode;
-friend class PCALL_LIBNode;//: public CommandNode
-friend class MPCALLNode;//: public CommandNode
-friend class MPCALL_PARENTNode;//: public CommandNode
-friend class PCALLNode;//: public CommandNode
-friend class RETFNode;
-friend class RETPNode;
-friend class FORNode;
-friend class FOR_LOOPNode;
-friend class FOREACHNode;
-friend class FOREACH_LOOPNode;
-friend class FOR_STEPNode;
-friend class FOR_STEP_LOOPNode;
-
-  friend class KEYDEFNode;
-  friend class KEYDEF_REFNode;
-  friend class KEYDEF_REF_CHECKNode;
-  friend class KEYDEF_REF_EXPRNode;
-  friend class REFNode;
-  friend class REF_CHECKNode;
-  friend class REF_EXPRNode;
-  friend class ParameterNode;
+    friend class PCALL_LIBNode;//: public CommandNode
+    friend class MPCALLNode;//: public CommandNode
+    friend class MPCALL_PARENTNode;//: public CommandNode
+    friend class PCALLNode;//: public CommandNode
+    friend class RETFNode;
+    friend class RETPNode;
+    friend class FORNode;
+    friend class FOR_LOOPNode;
+    friend class FOREACHNode;
+    friend class FOREACH_LOOPNode;
+    friend class FOR_STEPNode;
+    friend class FOR_STEP_LOOPNode;
+    
+    friend class KEYDEFNode;
+    friend class KEYDEF_REFNode;
+    friend class KEYDEF_REF_CHECKNode;
+    friend class KEYDEF_REF_EXPRNode;
+    friend class REFNode;
+    friend class REF_CHECKNode;
+    friend class REF_EXPRNode;
+    friend class ParameterNode;
 
 public: 
 
@@ -107,9 +107,12 @@ public:
     DStructGDL* ObjectStruct( BaseGDL* self, ProgNodeP mp);
     DStructGDL* ObjectStructCheckAccess( BaseGDL* self, ProgNodeP mp);
 
-private: 
     // code in: dinterpreter.cpp
     static void SetFunIx( ProgNodeP f); // triggers read/compile
+
+
+private: 
+
     static void SetProIx( ProgNodeP f); // triggers read/compile
     static void AdjustTypes( BaseGDL*&, BaseGDL*&);
 

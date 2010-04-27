@@ -679,7 +679,44 @@ BaseGDL* Data_<Sp>::CShift( DLong s[ MAXRANK])
 
   Ty* ddP = &(*this)[0];
   Ty* shP = &(*sh)[0];
-  
+
+  if( nDim == 2)
+  {
+	for( SizeT a=0; a<nEl; ++srcIx[0],++dstIx[0])
+		{
+		if( dstIx[ 0] >= this_dim[ 0])
+			{
+			// dstIx[ aSp] -= dim[ aSp];
+			dstIx[ 0] = 0;
+			dstLonIx -= dim_stride[ 0];
+			}
+		if( srcIx[ 0] >= this_dim[ 0])
+		{
+			srcIx[ 0] = 0;
+			++srcIx[ 1];
+			++dstIx[ 1];
+			dstLonIx += stride[ 1];
+ 	
+			if( dstIx[ 1] >= this_dim[ 1])
+				{
+				// dstIx[ aSp] -= dim[ aSp];
+				dstIx[ 1] = 0;
+				dstLonIx -= dim_stride[ 1];
+				}
+			
+			assert( srcIx[ 1] < this_dim[ 1]);
+/*			if( srcIx[ 1] >= this_dim[ 1])
+				{
+				srcIx[ 1] = 0;
+				}*/
+		}
+		
+		shP[ dstLonIx++] = ddP[ a++];
+		}
+	
+	return sh;
+  }
+
   for( SizeT a=0; a<nEl; ++srcIx[0],++dstIx[0])
     {
       for( SizeT aSp=0; aSp<nDim;)
@@ -693,7 +730,9 @@ BaseGDL* Data_<Sp>::CShift( DLong s[ MAXRANK])
 	  if( srcIx[ aSp] < this_dim[ aSp]) break;
 
 	  srcIx[ aSp] = 0;
-	  ++srcIx[ ++aSp];
+	  if( ++aSp >= nDim) break; // ??
+	  
+	  ++srcIx[ aSp];
 	  ++dstIx[ aSp];
 	  dstLonIx += stride[ aSp];
 	}
@@ -1913,9 +1952,12 @@ bool Data_<Sp>::ForAddCondUp( BaseGDL* endLoopVar)
 {
   (*this)[0] += 1;
 //   Data_* lEnd=static_cast<Data_*>(lEndIn);
-  Data_* lEnd=dynamic_cast<Data_*>(endLoopVar);
-  if( lEnd == NULL)
+  if( endLoopVar->Type() != this->t)
     throw GDLException("Type of FOR index variable changed.");
+  Data_* lEnd=static_cast<Data_*>(endLoopVar);
+/*  Data_* lEnd=dynamic_cast<Data_*>(endLoopVar);
+  if( lEnd == NULL)
+    throw GDLException("Type of FOR index variable changed.");*/
   return (*this)[0] <= (*lEnd)[0]; 
 }
 // ForCheck must have been called before
@@ -1923,19 +1965,25 @@ template<class Sp>
 bool Data_<Sp>::ForCondUp( BaseGDL* lEndIn)
 {
 //   Data_* lEnd=static_cast<Data_*>(lEndIn);
-  Data_* lEnd=dynamic_cast<Data_*>(lEndIn);
-  if( lEnd == NULL)
+  if( lEndIn->Type() != this->t)
     throw GDLException("Type of FOR index variable changed.");
-  return (*this)[0] <= (*lEnd)[0]; 
+  Data_* lEnd=static_cast<Data_*>(lEndIn);
+/*  Data_* lEnd=dynamic_cast<Data_*>(lEndIn);
+  if( lEnd == NULL)
+    throw GDLException("Type of FOR index variable changed.");*/
+  return (*this)[0] <= (*lEnd)[0];
 }
 template<class Sp>
 bool Data_<Sp>::ForCondDown( BaseGDL* lEndIn)
 {
 //   Data_* lEnd=static_cast<Data_*>(lEndIn);
-  Data_* lEnd=dynamic_cast<Data_*>(lEndIn);
-  if( lEnd == NULL)
+  if( lEndIn->Type() != this->t)
     throw GDLException("Type of FOR index variable changed.");
-  return (*this)[0] >= (*lEnd)[0]; 
+  Data_* lEnd=static_cast<Data_*>(lEndIn);
+/*  Data_* lEnd=dynamic_cast<Data_*>(lEndIn);
+  if( lEnd == NULL)
+    throw GDLException("Type of FOR index variable changed.");*/
+  return (*this)[0] >= (*lEnd)[0];
 }
 
 // error if the type of the loop variable changed

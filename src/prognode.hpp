@@ -134,7 +134,7 @@ public:
   }
   ProgNodeP GetFirstChild() const
   {
-    return getFirstChild();
+    return down;//getFirstChild();
   }
   void SetFirstChild( ProgNodeP d)
   {
@@ -152,7 +152,7 @@ public:
   }
   ProgNodeP GetNextSibling() const
   {
-    return getNextSibling();
+    return right;//getNextSibling();
   }
   void SetNextSibling( ProgNodeP r)
   {
@@ -243,7 +243,7 @@ public:
 	friend class MPCALLNode;//: public CommandNode
 	friend class MPCALL_PARENTNode;//: public CommandNode
 	friend class PCALLNode;//: public CommandNode
-
+	friend class ARRAYEXPR_MFCALLNode;
 	friend class KEYDEF_Node;
 	friend class KEYDEF_REFNode;
 	friend class KEYDEF_REF_CHECKNode;
@@ -443,6 +443,8 @@ class FOR_LOOPNode: public BreakableNode
 {
   public:
  RetCode      Run();
+
+	ProgNodeP statementList;
 	
 	ProgNodeP GetStatementList()
 	{
@@ -483,7 +485,7 @@ class FOR_LOOPNode: public BreakableNode
 
 	assert( down != NULL);
 	
-	ProgNodeP statementList = this->GetStatementList();
+	statementList = this->GetStatementList();
 	if( statementList != NULL)
 		{
 			statementList->SetAllContinue( this);
@@ -493,6 +495,7 @@ class FOR_LOOPNode: public BreakableNode
 	else
 		{
 			down->KeepRight( this);
+			statementList = this;
 		}
   }
 

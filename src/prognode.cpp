@@ -905,7 +905,7 @@ RetCode   FORNode::Run()//for_statement(ProgNodeP _t) {
 		//(*v)->ForAdd();
 		if( (*v)->ForAddCondUp( endLoopVar))
 		{
-			ProgNode::interpreter->_retTree = this->GetFirstChild()->GetNextSibling();
+			ProgNode::interpreter->_retTree = this->statementList; //GetFirstChild()->GetNextSibling();
 // 			if( ProgNode::interpreter->_retTree == this) goto shortCut;
 		}
 		else

@@ -35,29 +35,6 @@ header "post_include_cpp" {
 #define RefAST( xxx)     ConvertAST( xxx) /* antlr::RefAST( Ref type)  */
 #define match( a, b)     /* remove from source */
 
-// optimizations
-// #define  constant constantNotOptimized
-// #define  interactive interactiveNotOptimized
-// #define  statement_list statement_listNotOptimized
-// #define  execute executeNotOptimized
-// #define  call_fun call_funNotOptimized
-// #define  call_lfun call_lfunNotOptimized
-// #define  call_pro call_proNotOptimized 
-// #define  block blockNotOptimized
-// #define  expr exprNotOptimized
-// #define  l_simple_var l_simple_varNotOptimized
-// #define  sys_var sys_varNotOptimized
-// #define  sys_var_nocopy sys_var_nocopyNotOptimized
-// #define  dot_expr dot_exprNotOptimized
-// #define  simple_var simple_varNotOptimized
-// #define  ref_parameter ref_parameterNotOptimized
-// #define  unnamed_struct_def unnamed_struct_defNotOptimized
-// #define  lib_function_call_retnew lib_function_call_retnewNotOptimized
-// #define  lib_function_call lib_function_callNotOptimized
-// #define  constant_nocopy constant_nocopyNotOptimized
-// #define  struct_def struct_defNotOptimized
-
-
 using namespace std;
 }
 
@@ -129,27 +106,27 @@ private:
     friend class ASSIGNNode;
     friend class ASSIGN_ARRAYEXPR_MFCALLNode;
     friend class ASSIGN_REPLACENode;
-friend class PCALL_LIBNode;//: public CommandNode
-friend class MPCALLNode;//: public CommandNode
-friend class MPCALL_PARENTNode;//: public CommandNode
-friend class PCALLNode;//: public CommandNode
-friend class RETFNode;
-friend class RETPNode;
-friend class FORNode;
-friend class FOR_LOOPNode;
-friend class FOREACHNode;
-friend class FOREACH_LOOPNode;
-friend class FOR_STEPNode;
-friend class FOR_STEP_LOOPNode;
-
-  friend class KEYDEFNode;
-  friend class KEYDEF_REFNode;
-  friend class KEYDEF_REF_CHECKNode;
-  friend class KEYDEF_REF_EXPRNode;
-  friend class REFNode;
-  friend class REF_CHECKNode;
-  friend class REF_EXPRNode;
-  friend class ParameterNode;
+    friend class PCALL_LIBNode;//: public CommandNode
+    friend class MPCALLNode;//: public CommandNode
+    friend class MPCALL_PARENTNode;//: public CommandNode
+    friend class PCALLNode;//: public CommandNode
+    friend class RETFNode;
+    friend class RETPNode;
+    friend class FORNode;
+    friend class FOR_LOOPNode;
+    friend class FOREACHNode;
+    friend class FOREACH_LOOPNode;
+    friend class FOR_STEPNode;
+    friend class FOR_STEP_LOOPNode;
+    
+    friend class KEYDEFNode;
+    friend class KEYDEF_REFNode;
+    friend class KEYDEF_REF_CHECKNode;
+    friend class KEYDEF_REF_EXPRNode;
+    friend class REFNode;
+    friend class REF_CHECKNode;
+    friend class REF_EXPRNode;
+    friend class ParameterNode;
 
 public: 
 
@@ -183,9 +160,12 @@ public:
     DStructGDL* ObjectStruct( BaseGDL* self, ProgNodeP mp);
     DStructGDL* ObjectStructCheckAccess( BaseGDL* self, ProgNodeP mp);
 
-private: 
     // code in: dinterpreter.cpp
     static void SetFunIx( ProgNodeP f); // triggers read/compile
+
+
+private: 
+
     static void SetProIx( ProgNodeP f); // triggers read/compile
     static void AdjustTypes( BaseGDL*&, BaseGDL*&);
 
@@ -800,7 +780,6 @@ call_fun returns[ BaseGDL* res]
 	for (; _t != NULL;) {
 
 			retCode=statement(_t);
-			_t = _retTree;
 			
 // 			if( retCode == RC_RETURN) 
 			if( retCode >= RC_RETURN) 
@@ -810,6 +789,8 @@ call_fun returns[ BaseGDL* res]
 			
 			break;
 			}					
+
+		_t = _retTree;
 	}
 	
 	// default return value if none was set
@@ -2358,32 +2339,78 @@ BaseGDL** eL;
 
 l_deref returns [BaseGDL** res]
 {
-    BaseGDL*       e1;
+	ProgNodeP retTree = _t->getNextSibling();
+
+	_t = _t->getFirstChild();
+
+    BaseGDL* e1;
+
+	auto_ptr<BaseGDL> e1_guard;
+
+    if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
+      {
+		e1=lib_function_call(_t);
+
+		if( e1 == NULL) // ROUTINE_NAMES
+			throw GDLException( _t, "Undefined return value", true, false);
+		
+		if( !ProgNode::interpreter->callStack.back()->Contains( e1)) 
+			e1_guard.reset( e1);
+      }
+    else
+      {
+			e1=tmp_expr(_t);
+			e1_guard.reset( e1);
+      }
+
+	DPtrGDL* ptr=dynamic_cast<DPtrGDL*>(e1);
+	if( ptr == NULL)
+	throw GDLException( _t, "Pointer type required"
+	" in this context: "+Name(e1),true,false);
+	DPtr sc; 
+	if( !ptr->Scalar(sc))
+	throw GDLException( _t, "Expression must be a "
+	"scalar in this context: "+Name(e1),true,false);
+	if( sc == 0)
+	throw GDLException( _t, "Unable to dereference"
+	" NULL pointer: "+Name(e1),true,false);
+	
+	try{
+        res = &GetHeap(sc);
+	}
+	catch( HeapException)
+	{
+        throw GDLException( _t, "Invalid pointer: "+Name(e1),true,false);
+	}
+	
+	_retTree = retTree;
+	return res;
+
 }
     : #(DEREF e1=expr 
-            {
-                auto_ptr<BaseGDL> e1_guard(e1);
+//             {
+//                 auto_ptr<BaseGDL> e1_guard(e1);
                 
-                DPtrGDL* ptr=dynamic_cast<DPtrGDL*>(e1);
-                if( ptr == NULL)
-                throw GDLException( _t, "Pointer type required"
-                    " in this context: "+Name(e1),true,false);
-                DPtr sc; 
-                if( !ptr->Scalar(sc))
-                throw GDLException( _t, "Expression must be a "
-                    "scalar in this context: "+Name(e1),true,false);
-                if( sc == 0)
-                throw GDLException( _t, "Unable to dereference"
-                    " NULL pointer: "+Name(e1),true,false);
+//                 DPtrGDL* ptr=dynamic_cast<DPtrGDL*>(e1);
+//                 if( ptr == NULL)
+//                 throw GDLException( _t, "Pointer type required"
+//                     " in this context: "+Name(e1),true,false);
+//                 DPtr sc; 
+//                 if( !ptr->Scalar(sc))
+//                 throw GDLException( _t, "Expression must be a "
+//                     "scalar in this context: "+Name(e1),true,false);
+//                 if( sc == 0)
+//                 throw GDLException( _t, "Unable to dereference"
+//                     " NULL pointer: "+Name(e1),true,false);
                 
-                try{
-                    res = &GetHeap(sc);
-                }
-                catch( HeapException)
-                {
-                    throw GDLException( _t, "Invalid pointer: "+Name(e1),true,false);
-                }
-            }
+//                 try{
+//                     res = &GetHeap(sc);
+//                 }
+//                 catch( HeapException)
+//                 {
+//                     throw GDLException( _t, "Invalid pointer: "+Name(e1),true,false);
+//                 }
+//             }
         )
     ;
 
@@ -3231,20 +3258,20 @@ l_simple_var returns [BaseGDL** res]
 {
 	assert( _t != NULL);
 
+	_retTree = _t->getNextSibling();
+
 	if( _t->getType() == VAR)
 	{
-		res=&callStack.back()->GetKW(_t->varIx); 
+		return &callStack.back()->GetKW(_t->varIx); 
 //		ProgNodeP var = _t;
 // 		match(antlr::RefAST(_t),VAR);
 	}
 	else
 	{
-		res= &_t->var->Data(); // returns BaseGDL* of var (DVar*) 
+		return &_t->var->Data(); // returns BaseGDL* of var (DVar*) 
 //		ProgNodeP varPtr = _t;
 // 		match(antlr::RefAST(_t),VARPTR);
 	}
-
-	_retTree = _t->getNextSibling();
 	return res;
 }
     : VAR // DNode.varIx is index into functions/procedures environment
@@ -3255,45 +3282,39 @@ l_defined_simple_var returns [BaseGDL** res]
 {
 	if( _t->getType() == VAR)
 	{
-		var = _t;
 // 		match(antlr::RefAST(_t),VAR);
-		_t = _t->getNextSibling();
-		
-		res=&callStack.back()->GetKW(var->varIx); 
+		res=&callStack.back()->GetKW(_t->varIx); 
 		if( *res == NULL)
-		throw GDLException( var, "Variable is undefined: "+
-		callStack.back()->GetString(var->varIx),true,false);
+		throw GDLException( _t, "Variable is undefined: "+
+		callStack.back()->GetString(_t->varIx),true,false);
 		
 	}
 	else
 	{
-		varPtr = _t;
 // 		match(antlr::RefAST(_t),VARPTR);
-		_t = _t->getNextSibling();
-		
-		res=&varPtr->var->Data(); // returns BaseGDL* of var (DVar*) 
+		res=&_t->var->Data(); // returns BaseGDL* of var (DVar*) 
 		if( *res == NULL)
 		throw GDLException( _t, "Variable is undefined: "+
 		callStack.back()->GetString( *res),true,false);
 		
 	}
-	_retTree = _t;
+	_retTree = _t->getNextSibling();
 	return res;
 }
-    : var:VAR // DNode.varIx is index into functions/procedures environment
-        {
-            res=&callStack.back()->GetKW(var->varIx); 
-            if( *res == NULL)
-            throw GDLException( _t, "Variable is undefined: "+
-                callStack.back()->GetString(var->varIx),true,false);
-        }
-    | varPtr:VARPTR // DNode.var   is ptr to common block variable
-        {
-            res=&varPtr->var->Data(); // returns BaseGDL* of var (DVar*) 
-            if( *res == NULL)
-            throw GDLException( _t, "Variable is undefined: "+
-                callStack.back()->GetString( *res),true,false);
-        }
+    : VAR // DNode.varIx is index into functions/procedures environment
+//         {
+//             res=&callStack.back()->GetKW(var->varIx); 
+//             if( *res == NULL)
+//             throw GDLException( _t, "Variable is undefined: "+
+//                 callStack.back()->GetString(var->varIx),true,false);
+//         }
+    | VARPTR // DNode.var   is ptr to common block variable
+//         {
+//             res=&varPtr->var->Data(); // returns BaseGDL* of var (DVar*) 
+//             if( *res == NULL)
+//             throw GDLException( _t, "Variable is undefined: "+
+//                 callStack.back()->GetString( *res),true,false);
+//         }
     ;
 
 l_sys_var returns [BaseGDL** res]
@@ -3327,18 +3348,57 @@ l_sys_var returns [BaseGDL** res]
 // expressions which always only return a value
 // expecting to delete any sub-expressions
 r_expr returns [BaseGDL* res]
-    : e:EXPR
-        { res = e->Eval(); }//_t=_retTree;}
-    | a:ARRAYDEF
-        { res = a->Eval(); _t=_retTree;}
+{
+	switch ( _t->getType()) {
+	case EXPR:
+	case ARRAYDEF:
+	case STRUC:
+	case NSTRUC:
+	case NSTRUC_REF:
+	{
+		res = _t->Eval(); 
+		break;
+	}
+	case DEC:
+	{
+		res=l_decinc_expr( _t->getFirstChild(), DEC);
+		break;
+	}
+	case INC:
+	{
+		res=l_decinc_expr( _t->getFirstChild(), INC);
+		break;
+	}
+	case POSTDEC:
+	{
+		res=l_decinc_expr( _t->getFirstChild(), POSTDEC);
+		break;
+	}
+	case POSTINC:
+	{
+		res=l_decinc_expr( _t->getFirstChild(), POSTINC);
+		break;
+	}
+	default:
+	{
+		throw antlr::NoViableAltException(antlr::RefAST(_t));
+	}
+	}
+	_retTree = _t->getNextSibling();
+	return res;
+}
+    : EXPR
+//        { res = e->Eval(); }//_t=_retTree;}
+    | ARRAYDEF
+//        { res = a->Eval(); _t=_retTree;}
 //     | c:ARRAYDEF_CONST
 //         { res = c->Eval(); _t=_retTree;}
-    | s:STRUC
-        { res = s->Eval(); _t=_retTree;}
-    | n:NSTRUC
-        { res = n->Eval(); _t=_retTree;}
-    | r:NSTRUC_REF
-        { res = r->Eval(); _t=_retTree;}
+    | STRUC
+//        { res = s->Eval(); _t=_retTree;}
+    | NSTRUC
+//        { res = n->Eval(); _t=_retTree;}
+    | NSTRUC_REF
+//        { res = r->Eval(); _t=_retTree;}
 //     | res=array_def
 //     | res=struct_def
 
@@ -4362,20 +4422,21 @@ sys_var_nocopy returns [BaseGDL* res]
     ;
 
 constant returns [BaseGDL* res]
-    : c:CONSTANT
-        {
-            res=c->cData->Dup(); 
-        }
+{
+	_retTree = _t->getNextSibling();
+	return _t->cData->Dup(); 
+}
+  : CONSTANT
+//         {
+//             res=c->cData->Dup(); 
+//         }
   ;
 
 constant_nocopy returns [BaseGDL* res]
 {
-
 	//BaseGDL* 
-    res = _t->cData; // no ->Dup(); 
-		
 	_retTree = _t->getNextSibling();
-	return res;
+	return _t->cData; // no ->Dup(); 
 }
     : c:CONSTANT
         {
@@ -5167,13 +5228,13 @@ arrayindex_list returns [ArrayIndexListT* aL]
 			case VARPTR:
 			{
 				s=indexable_expr(_t);
-				_t = _retTree;
+//				_t = _retTree;
 				break;
 			}
 			case FCALL_LIB:
 			{
 				s=lib_function_call(_t);
-				_t = _retTree;
+//				_t = _retTree;
 				
 				if( !callStack.back()->Contains( s)) 
 				exprList.push_back( s);
@@ -5183,7 +5244,7 @@ arrayindex_list returns [ArrayIndexListT* aL]
 			default:
 			{
 				s=indexable_tmp_expr(_t);
-				_t = _retTree;
+//				_t = _retTree;
 				exprList.push_back( s);
 				break;
 			}
@@ -5193,6 +5254,8 @@ arrayindex_list returns [ArrayIndexListT* aL]
 			ixExprList.push_back( s);
 			if( ixExprList.size() == nExpr)
                 break; // allows some manual tuning
+
+            _t = _t->getNextSibling();
 	}
 
 	aL->Init( ixExprList);

@@ -2594,3 +2594,334 @@ if( e1->StrictScalar())
 // { BaseGDL* res;
 //   return new POSTINCNode( refNode);
 // }
+
+  BaseGDL** FCALL_LIB_RETNEWNode::LEval()
+  {
+      // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+    StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
+	throw GDLException(this,"Internal error: FCALL_LIB_RETNEW as left expr.");
+  }
+  
+  BaseGDL* FCALL_LIB_RETNEWNode::Eval()
+  {
+      // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+    StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
+
+// 	match(antlr::RefAST(_t),FCALL_LIB_RETNEW);
+//	_t = _t->getFirstChild();
+// 	match(antlr::RefAST(_t),IDENTIFIER);
+	EnvT* newEnv=new EnvT( this, this->libFun);//libFunList[fl->funIx]);
+// 	_t =_t->getFirstChild();
+// 	EnvT* newEnv=new EnvT( fl, fl->libFun);//libFunList[fl->funIx]);
+    static int n_elementsIx = LibFunIx("N_ELEMENTS");
+    static DLibFun* n_elementsFun = libFunList[n_elementsIx];
+
+    if( this->libFun == n_elementsFun)
+        {
+            ProgNode::interpreter->parameter_def_n_elements(this->getFirstChild(), newEnv);
+        }
+    else
+        {
+            ProgNode::interpreter->parameter_def(this->getFirstChild(), newEnv);
+        }
+
+//	parameter_def(_t->getFirstChild(), newEnv);
+	// push id.pro onto call stack
+	ProgNode::interpreter->CallStack().push_back(newEnv);
+	// make the call
+	BaseGDL*
+    res=static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
+	//*** MUST always return a defined expression
+	
+	ProgNode::interpreter->SetRetTree( this->getNextSibling());
+	return res;
+  }
+
+  BaseGDL** FCALL_LIBNode::LEval()
+  {
+      // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+    StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
+// 	match(antlr::RefAST(_t),FCALL_LIB);
+	EnvT* newEnv=new EnvT( this, this->libFun);//libFunList[fl->funIx]);
+	
+    ProgNode::interpreter->parameter_def(this->getFirstChild(), newEnv);
+
+	EnvT* callerEnv = static_cast<EnvT*>(ProgNode::interpreter->CallStack().back());
+
+	// push id.pro onto call stack
+	ProgNode::interpreter->CallStack().push_back(newEnv);
+	// make the call
+	BaseGDL* libRes =	static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
+		
+	BaseGDL** res = callerEnv->GetPtrTo( libRes);
+	if( res == NULL)
+		throw GDLException( this, "Library function must return a "
+		"l-value in this context: "+this->getText());
+
+	ProgNode::interpreter->SetRetTree( this->getNextSibling());
+	return res;
+  }
+
+  BaseGDL* FCALL_LIBNode::Eval()
+  {
+      // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+    StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
+// 	match(antlr::RefAST(_t),FCALL_LIB);
+	EnvT* newEnv=new EnvT( this, this->libFun);//libFunList[fl->funIx]);
+	
+    ProgNode::interpreter->parameter_def(this->getFirstChild(), newEnv);
+
+	// push id.pro onto call stack
+	ProgNode::interpreter->CallStack().push_back(newEnv);
+	// make the call
+	BaseGDL* res=static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
+	// *** MUST always return a defined expression
+//    if( res == NULL)
+//       throw GDLException( _t, "");
+	ProgNode::interpreter->SetRetTree( this->getNextSibling());
+	return res;
+  }
+
+  BaseGDL** MFCALLNode::LEval()
+  {
+        // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+    StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
+
+//			match(antlr::RefAST(_t),MFCALL);
+		ProgNodeP _t = this->getFirstChild();
+		BaseGDL* self=ProgNode::interpreter->expr(_t);
+		auto_ptr<BaseGDL> self_guard(self);
+
+		ProgNodeP mp = _t->getNextSibling();
+//			match(antlr::RefAST(_t),IDENTIFIER);
+		_t = mp->getNextSibling();
+
+		EnvUDT* newEnv=new EnvUDT( self, mp, "", true);
+
+		self_guard.release();
+
+		ProgNode::interpreter->parameter_def(_t, newEnv);
+		
+		// push environment onto call stack
+	ProgNode::interpreter->CallStack().push_back(newEnv);
+		
+		// make the call
+	BaseGDL**	res=ProgNode::interpreter->
+			call_lfun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+
+	ProgNode::interpreter->SetRetTree( this->getNextSibling());
+	return res;
+  }
+
+  BaseGDL* MFCALLNode::Eval()
+  {
+      // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+    StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
+		
+		ProgNodeP _t = this->getFirstChild();
+
+		BaseGDL* self=ProgNode::interpreter->expr(_t);
+		auto_ptr<BaseGDL> self_guard(self);
+		
+		_t = _t->getNextSibling();
+		//match(antlr::RefAST(_t),IDENTIFIER);
+
+		EnvUDT* newEnv=new EnvUDT( self, _t);
+		
+		self_guard.release();
+		
+		_t = _t->getNextSibling();
+		
+		ProgNode::interpreter->parameter_def(_t, newEnv);
+  	
+  	// push environment onto call stack
+	ProgNode::interpreter->CallStack().push_back(newEnv);
+	
+	// make the call
+	BaseGDL* res=ProgNode::interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+	
+	ProgNode::interpreter->SetRetTree( this->getNextSibling());
+	return res;
+  }
+
+  BaseGDL** MFCALL_PARENTNode::LEval()
+  {
+      // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+    StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
+//			match(antlr::RefAST(_t),MFCALL_PARENT);
+	ProgNodeP _t = this->getFirstChild();
+	BaseGDL* self=ProgNode::interpreter->expr(_t);
+	auto_ptr<BaseGDL> self_guard(self);
+
+	_t = _t->getNextSibling();
+	ProgNodeP parent = _t;
+// 		match(antlr::RefAST(_t),IDENTIFIER);
+	_t = _t->getNextSibling();
+	ProgNodeP p = _t;
+// 		match(antlr::RefAST(_t),IDENTIFIER);
+	_t = _t->getNextSibling();
+
+	EnvUDT* newEnv=new EnvUDT( self, p,	parent->getText(), true);
+
+	self_guard.release();
+
+	ProgNode::interpreter->parameter_def(_t, newEnv);
+
+		// push environment onto call stack
+	ProgNode::interpreter->CallStack().push_back(newEnv);
+		
+		// make the call
+	BaseGDL**	res=ProgNode::interpreter->
+			call_lfun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+
+	ProgNode::interpreter->SetRetTree( this->getNextSibling());
+	return res;
+  }
+
+  BaseGDL* MFCALL_PARENTNode::Eval()
+  {
+      // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+    StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
+// 		match(antlr::RefAST(_t),MFCALL_PARENT);
+		ProgNodeP _t = this->getFirstChild();
+		BaseGDL* self=ProgNode::interpreter->expr(_t);
+		auto_ptr<BaseGDL> self_guard(self);
+		
+		_t = _t->getNextSibling();
+		ProgNodeP parent = _t;
+// 		match(antlr::RefAST(_t),IDENTIFIER);
+		_t = _t->getNextSibling();
+		ProgNodeP p = _t;
+// 		match(antlr::RefAST(_t),IDENTIFIER);
+		_t = _t->getNextSibling();
+
+		EnvUDT* newEnv=new EnvUDT( self, p,	parent->getText());
+		
+		self_guard.release();
+		
+		ProgNode::interpreter->parameter_def(_t, newEnv);
+  	
+  	// push environment onto call stack
+	ProgNode::interpreter->CallStack().push_back(newEnv);
+	
+	// make the call
+	BaseGDL* res=ProgNode::interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+	
+	ProgNode::interpreter->SetRetTree( this->getNextSibling());
+	return res;
+  }
+
+  BaseGDL** FCALLNode::LEval()
+  {
+      // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+    StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
+	//	match(antlr::RefAST(_t),FCALL);
+	ProgNodeP	_t = this->getFirstChild();
+			
+	ProgNode::interpreter->SetFunIx( this);
+			
+	EnvUDT* newEnv=new EnvUDT( this, funList[this->funIx], true);
+			
+	ProgNode::interpreter->parameter_def(_t, newEnv);
+		
+		// push environment onto call stack
+	ProgNode::interpreter->CallStack().push_back(newEnv);
+		
+		// make the call
+	BaseGDL**	res=
+		ProgNode::interpreter->call_lfun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+	
+	ProgNode::interpreter->SetRetTree( this->getNextSibling());
+	return res;
+  }
+
+  BaseGDL* FCALLNode::Eval()
+  {
+      // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+    StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
+		ProgNode::interpreter->SetFunIx( this);
+		
+		EnvUDT* newEnv=new EnvUDT( this, funList[this->funIx]);
+		
+		ProgNode::interpreter->parameter_def(this->getFirstChild(), newEnv);
+
+	// push environment onto call stack
+	ProgNode::interpreter->CallStack().push_back(newEnv);
+	
+	// make the call
+	BaseGDL*
+	res=ProgNode::interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+	
+	ProgNode::interpreter->SetRetTree( this->getNextSibling());
+	return res;
+  }
+
+  BaseGDL* ARRAYEXPR_MFCALLNode::Eval()
+  {
+      // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+    StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
+//		match(antlr::RefAST(_t),ARRAYEXPR_MFCALL);
+	ProgNodeP mark = this->getFirstChild();
+
+	ProgNodeP _t = mark->getNextSibling(); // skip DOT
+
+	BaseGDL* self=ProgNode::interpreter->expr(_t);
+	auto_ptr<BaseGDL> self_guard(self);
+
+	ProgNodeP mp2 = _t->getNextSibling();
+	//match(antlr::RefAST(_t),IDENTIFIER);
+
+	_t = mp2->getNextSibling();
+
+	BaseGDL* res;
+
+	EnvUDT* newEnv;
+	try {
+		newEnv=new EnvUDT( self, mp2);
+		self_guard.release();
+	}
+	catch( GDLException& ex)
+	{
+		goto tryARRAYEXPR;
+	}
+
+	ProgNode::interpreter->parameter_def(_t, newEnv);
+
+	// push environment onto call stack
+	ProgNode::interpreter->CallStack().push_back(newEnv);
+	
+	// make the call
+	res=
+		ProgNode::interpreter->
+			call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+	
+	ProgNode::interpreter->SetRetTree( this->getNextSibling());
+	return res;
+	
+	tryARRAYEXPR:;
+	//_t = mark;
+	
+	ProgNodeP dot = mark;
+	// 	match(antlr::RefAST(_t),DOT);
+	_t = mark->getFirstChild();
+		
+	SizeT nDot=dot->nDot;
+	auto_ptr<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
+		
+	ProgNode::interpreter->r_dot_array_expr(_t, aD.get());
+	_t = _t->getNextSibling();
+	for (; _t != NULL;) {
+	ProgNode::interpreter->tag_array_expr(_t, aD.get());
+	_t = _t->getNextSibling();
+	}
+	res= aD->Resolve();
+	
+	ProgNode::interpreter->SetRetTree( this->getNextSibling());
+	return res;
+  }
+
+  BaseGDL** ARRAYEXPR_MFCALLNode::LEval()
+  {
+      // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+    StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
+  }

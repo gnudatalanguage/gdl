@@ -92,6 +92,74 @@ public:
 
 
 
+
+
+class FCALL_LIB_RETNEWNode: public LeafNode
+{
+public:
+  FCALL_LIB_RETNEWNode( const RefDNode& refNode): LeafNode( refNode)
+  {}
+  BaseGDL** LEval();
+  BaseGDL* Eval();
+};
+
+
+
+class FCALL_LIBNode: public LeafNode
+{
+public:
+  FCALL_LIBNode( const RefDNode& refNode): LeafNode( refNode)
+  {}
+  BaseGDL** LEval();
+  BaseGDL* Eval();
+};
+
+
+
+class MFCALLNode: public LeafNode
+{
+public:
+  MFCALLNode( const RefDNode& refNode): LeafNode( refNode)
+  {}
+  BaseGDL** LEval();
+  BaseGDL* Eval();
+};
+
+
+
+class MFCALL_PARENTNode: public LeafNode
+{
+public:
+  MFCALL_PARENTNode( const RefDNode& refNode): LeafNode( refNode)
+  {}
+  BaseGDL** LEval();
+  BaseGDL* Eval();
+};
+
+
+
+class FCALLNode: public LeafNode
+{
+public:
+  FCALLNode( const RefDNode& refNode): LeafNode( refNode)
+  {}
+  BaseGDL** LEval();
+  BaseGDL* Eval();
+};
+
+
+
+class ARRAYEXPR_MFCALLNode: public LeafNode
+{
+public:
+  ARRAYEXPR_MFCALLNode( const RefDNode& refNode): LeafNode( refNode)
+  {}
+  BaseGDL** LEval();
+  BaseGDL* Eval();
+};
+
+
+
 class VARNode: public LeafNode
 {
 public:
