@@ -703,9 +703,8 @@ public:
 	public:  RetCode  foreach_statement(ProgNodeP _t);
 	public:  RetCode  if_statement(ProgNodeP _t);
 	public:  RetCode  if_else_statement(ProgNodeP _t);
-	public:  RetCode  jump_statement(ProgNodeP _t);
-	public: BaseGDL**  l_ret_expr(ProgNodeP _t);
 	public: BaseGDL**  l_deref(ProgNodeP _t);
+	public: BaseGDL**  l_ret_expr(ProgNodeP _t);
 	public:  BaseGDL**  l_arrayexpr_mfcall_as_mfcall(ProgNodeP _t);
 	public:  BaseGDL**  l_function_call(ProgNodeP _t);
 	public: BaseGDL*  tmp_expr(ProgNodeP _t);
@@ -797,8 +796,6 @@ private:
 	static const antlr::BitSet _tokenSet_0;
 	static const unsigned long _tokenSet_1_data_[];
 	static const antlr::BitSet _tokenSet_1;
-	static const unsigned long _tokenSet_2_data_[];
-	static const antlr::BitSet _tokenSet_2;
 };
 
 #endif /*INC_GDLInterpreter_hpp_*/

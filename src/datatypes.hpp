@@ -209,7 +209,8 @@ static	void operator delete( void *ptr);
   DLong* Where( bool comp, SizeT& count);
   Data_<SpDByte>* LogNeg();
   int  Sgn(); // returns -1,0,1
-  bool Equal( BaseGDL*);
+  bool Equal( BaseGDL*) const;
+  bool EqualNoDelete( const BaseGDL*) const;
   bool ArrayEqual( BaseGDL*);
   void ForCheck( BaseGDL**, BaseGDL** =NULL);
   bool ForCondUp( BaseGDL*);

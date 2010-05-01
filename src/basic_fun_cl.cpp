@@ -128,7 +128,7 @@ namespace lib {
       DIntGDL* v = static_cast<DIntGDL*>(e->GetParDefined(0)->Convert2(INT,BaseGDL::COPY));
       v_guard.reset( v); //  e->Guard(v);
 
-      if (v->Equal(new DIntGDL(1)))
+      if ( (*v)[0] == 1) //->EqualNoDelete( static_cDIntGDL(1)))
         ret_seconds=true;
     } else if (nParam == 2) {
       if (e->KeywordSet("JULIAN")) e->Throw("Conflicting keywords.");
@@ -140,7 +140,7 @@ namespace lib {
       v_guard.reset( v1); //  e->Guard(v1);
       DDoubleGDL* v2 = static_cast<DDoubleGDL*>(e->GetParDefined(1)->Convert2(DOUBLE,BaseGDL::COPY));
 
-      if(v1->Equal(new DIntGDL(0))) { //0, read the second argument as time_t;
+      if( (*v1)[0] == 0) { //v1->EqualNoDelete( DIntGDL(0))) { //0, read the second argument as time_t;
         tval.tv_sec = static_cast<long int>((*v2)[0]);
         tval.tv_usec = static_cast<long int>(((*v2)[0]-tval.tv_sec)*1e+6);
         delete v2; // we delete v2 here as it is not guarded. Avoids a "new" in the following "else"

@@ -1856,7 +1856,7 @@ int Data_<SpDObj>::Sgn() // -1,0,1
 
 // Equal (deletes r)
 template<class Sp>
-bool Data_<Sp>::Equal( BaseGDL* r)
+bool Data_<Sp>::Equal( BaseGDL* r) const
 {
   if( !r->Scalar())
     {
@@ -1869,9 +1869,38 @@ bool Data_<Sp>::Equal( BaseGDL* r)
   return ret;
 }
 
-bool DStructGDL::Equal( BaseGDL* r)
+// Equal (deletes r)
+template<class Sp>
+bool Data_<Sp>::EqualNoDelete( const BaseGDL* r) const
+{
+  if( !r->Scalar())
+    {
+      throw GDLException("Expression must be a scalar in this context.");
+    }
+  bool ret;
+  if( r->Type() != this->t)
+  {
+  const Data_* rr=static_cast<const Data_*>(const_cast<BaseGDL*>(r)->Convert2( this->t, BaseGDL::COPY));
+  ret= ((*this)[0] == (*rr)[0]);
+  delete rr;
+	}
+else
+{
+  const Data_* rr=static_cast<const Data_*>(r);
+  ret= ((*this)[0] == (*rr)[0]);
+}
+  return ret;
+}
+
+bool DStructGDL::Equal( BaseGDL* r) const
 {
   delete r;
+  throw GDLException("Struct expression not allowed in this context.");
+  return false;
+}
+
+bool DStructGDL::EqualNoDelete( const BaseGDL* r) const
+{
   throw GDLException("Struct expression not allowed in this context.");
   return false;
 }

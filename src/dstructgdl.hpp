@@ -500,7 +500,8 @@ public:
   Data_<SpDByte>* LogNeg()
   { throw GDLException("Struct expression not allowed in this context.");}
   int  Sgn(); // -1,0,1
-  bool Equal( BaseGDL*);
+  bool Equal( BaseGDL*) const;
+  bool EqualNoDelete( const BaseGDL*) const;
   bool ArrayEqual( BaseGDL*);
   // 'for' statement compliance (int types , float types scalar only)
   void ForCheck( BaseGDL**, BaseGDL** =NULL);

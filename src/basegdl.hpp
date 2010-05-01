@@ -431,7 +431,8 @@ public:
   virtual DLong* Where( bool comp, SizeT& count);
   virtual BaseGDL* LogNeg();
   virtual int Sgn(); // -1,0,1
-  virtual bool Equal( BaseGDL*);
+  virtual bool Equal( BaseGDL*) const;
+  virtual bool EqualNoDelete( const BaseGDL*) const;
   virtual bool ArrayEqual( BaseGDL*);
   // for statement compliance (int types , float types scalar only)
   virtual void ForCheck( BaseGDL**, BaseGDL** = NULL);

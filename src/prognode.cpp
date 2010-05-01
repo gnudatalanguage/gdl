@@ -27,6 +27,51 @@ email                : m_schellens@users.sf.net
 
 using namespace std;
 
+/////////////////////////////////////////////////////////////////////////////
+// c-tor d-tor
+/////////////////////////////////////////////////////////////////////////////
+
+// tanslation RefDNode -> ProgNode
+ProgNode::ProgNode( const RefDNode& refNode):
+	keepRight( false),
+	keepDown( false),
+	breakTarget( NULL),
+  ttype( refNode->getType()),
+  text( refNode->getText()),
+  down( NULL), 
+  right( NULL),
+  lineNumber( refNode->getLine()),
+  cData( refNode->StealCData()),
+  libPro( refNode->libPro),
+  libFun( refNode->libFun),
+  var( refNode->var),
+  arrIxList( refNode->StealArrIxList()),
+//   arrIxList( refNode->CloneArrIxList()),
+  labelStart( refNode->labelStart),
+  labelEnd( refNode->labelEnd)
+{
+  initInt = refNode->initInt;
+}
+
+
+
+ProgNode::~ProgNode()
+{
+  // delete cData in case this node is a constant
+  if( (getType() == GDLTokenTypes::CONSTANT))
+     {
+      delete cData;
+     }
+  if( (getType() == GDLTokenTypes::ARRAYIX))
+    {
+      delete arrIxList;
+    }
+  if( !keepDown) delete down;
+  if( !keepRight) delete right;
+}
+
+
+
 ProgNodeP ProgNode::GetNULLProgNodeP()
   {
 	return interpreter->GetNULLProgNodeP();
@@ -46,7 +91,6 @@ void FOREACHNode::KeepRight( ProgNodeP r)
 	throw GDLException( "Internal error: FOREACHNode::KeepRight() called. Please report.");
 }
 
-
 bool ProgNode::ConstantNode()
   {
     if( this->getType() == GDLTokenTypes::SYSVAR)
@@ -56,12 +100,15 @@ bool ProgNode::ConstantNode()
        SizeT rdOnlySize = sysVarRdOnlyList.size();
          for( SizeT i=0; i<rdOnlySize; ++i)
                   if( sysVarRdOnlyList[ i] == this->var)
-		    return true;
+					return true;
       }
 
     return this->getType() == GDLTokenTypes::CONSTANT;
   }
 
+/////////////////////////////////////////////////////////
+// Eval 
+/////////////////////////////////////////////////////////
 BaseGDL* ARRAYDEFNode::Eval()
 {
   // GDLInterpreter::
@@ -620,18 +667,18 @@ RetCode  ASSIGN_REPLACENode::Run()
   {
     if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
       {
-		r=ProgNode::interpreter->lib_function_call(_t);
+		r=_t->Eval();//ProgNode::interpreter->lib_function_call(_t);
+		r_guard.reset( r);
 
 		if( r == NULL) // ROUTINE_NAMES
 			throw GDLException( this, "Undefined return value", true, false);
 		
 		_t = ProgNode::interpreter->_retTree;
-				
-				
-		if( !ProgNode::interpreter->callStack.back()->Contains( r)) 
+		
+/*		if( !ProgNode::interpreter->callStack.back()->Contains( r))
 			r_guard.reset( r);
 		else
-			r_guard.reset( r->Dup());
+			r_guard.reset( r->Dup());*/
       }
     else
       {
@@ -1104,8 +1151,20 @@ RetCode   REPEAT_LOOPNode::Run()
 
 RetCode   WHILENode::Run()
 {
-	auto_ptr<BaseGDL> eVal( ProgNode::interpreter->expr( this->GetFirstChild()));
-	if( eVal.get()->True()) 
+  auto_ptr<BaseGDL> e1_guard;
+  BaseGDL* e1;
+  ProgNodeP evalExpr = this->getFirstChild();
+  if( NonCopyNode( evalExpr->getType()))
+  {
+	e1 = evalExpr->EvalNC();
+  }
+  else
+  {
+	e1 = evalExpr->Eval();
+    e1_guard.reset(e1);
+  }
+// 	auto_ptr<BaseGDL> eVal( ProgNode::interpreter->expr( this->GetFirstChild()));
+	if( e1->True()) 
 	{
 		ProgNode::interpreter->SetRetTree( this->GetFirstChild()->GetNextSibling());
 		if( this->GetFirstChild()->GetNextSibling() == NULL)
@@ -1122,8 +1181,20 @@ RetCode   WHILENode::Run()
 
 RetCode   IFNode::Run()
  {
-	auto_ptr<BaseGDL> eVal( ProgNode::interpreter->expr( this->GetFirstChild()));
-	if( eVal.get()->True()) 
+  auto_ptr<BaseGDL> e1_guard;
+  BaseGDL* e1;
+  ProgNodeP evalExpr = this->getFirstChild();
+  if( NonCopyNode( evalExpr->getType()))
+  {
+	e1 = evalExpr->EvalNC();
+  }
+  else
+  {
+	e1 = evalExpr->Eval();
+    e1_guard.reset(e1);
+  }
+//	auto_ptr<BaseGDL> eVal( ProgNode::interpreter->expr( this->GetFirstChild()));
+	if( e1->True()) 
 	{
 		ProgNode::interpreter->SetRetTree( this->GetFirstChild()->GetNextSibling());
 	}
@@ -1136,8 +1207,20 @@ RetCode   IFNode::Run()
 
 RetCode   IF_ELSENode::Run()
 {	
-	auto_ptr<BaseGDL> eVal( ProgNode::interpreter->expr( this->GetFirstChild()));
-	if( eVal.get()->True()) 
+  auto_ptr<BaseGDL> e1_guard;
+  BaseGDL* e1;
+  ProgNodeP evalExpr = this->getFirstChild();
+  if( NonCopyNode( evalExpr->getType()))
+  {
+	e1 = evalExpr->EvalNC();
+  }
+  else
+  {
+	e1 = evalExpr->Eval();
+    e1_guard.reset(e1);
+  }
+// 	auto_ptr<BaseGDL> eVal( ProgNode::interpreter->expr( this->GetFirstChild()));
+	if( e1->True()) 
 	{
 		ProgNode::interpreter->SetRetTree( this->GetFirstChild()->GetNextSibling()->GetFirstChild());
 	}
@@ -1152,10 +1235,23 @@ RetCode   IF_ELSENode::Run()
 
 RetCode   CASENode::Run()
 {
-	auto_ptr<BaseGDL> eVal( ProgNode::interpreter->expr( this->GetFirstChild()));
- 	if( !eVal.get()->Scalar())
-	throw GDLException( this->GetFirstChild(), "Expression must be a"
-	" scalar in this context: "+ProgNode::interpreter->Name(eVal.get()),true,false);
+  auto_ptr<BaseGDL> e1_guard;
+  BaseGDL* e1;
+  ProgNodeP evalExpr = this->getFirstChild();
+  if( NonCopyNode( evalExpr->getType()))
+  {
+	e1 = evalExpr->EvalNC();
+  }
+  else
+  {
+	e1 = evalExpr->Eval();
+    e1_guard.reset(e1);
+  }
+
+// 	auto_ptr<BaseGDL> eVal( ProgNode::interpreter->expr( this->GetFirstChild()));
+  	if( !e1->Scalar())
+		throw GDLException( this->GetFirstChild(), "Expression must be a"
+			" scalar in this context: "+ProgNode::interpreter->Name(e1),true,false);
 
 	ProgNodeP b=this->GetFirstChild()->GetNextSibling(); // remeber block begin
  
@@ -1173,28 +1269,39 @@ RetCode   CASENode::Run()
 			{
 				ProgNode::interpreter->SetRetTree( this->GetNextSibling());
 			}
-  return RC_OK;
+			return RC_OK;
 		}
 		else
 		{
 			ProgNodeP ex = b->GetFirstChild();  // EXPR
-			ProgNodeP bb = ex->GetNextSibling(); // statement_list
-		
-			BaseGDL* ee=ProgNode::interpreter->expr(ex);
+							
+			auto_ptr<BaseGDL> ee_guard;
+			BaseGDL* ee;
+			if( NonCopyNode( ex->getType()))
+				{
+					ee = ex->EvalNC();
+				}
+			else
+				{
+					ee = ex->Eval();
+					ee_guard.reset(ee);
+				}
+// 			BaseGDL* ee=ProgNode::interpreter->expr(ex);
 			// auto_ptr<BaseGDL> ee_guard(ee);
-			bool equalexpr=eVal.get()->Equal(ee); // Equal deletes ee
+			bool equalexpr=e1->EqualNoDelete(ee); // Equal deletes ee
 		
 			if( equalexpr)
 			{
+				ProgNodeP bb = ex->GetNextSibling(); // statement_list
 				if(bb != NULL )
 				{
 					ProgNode::interpreter->SetRetTree( bb);
-  return RC_OK;
+					return RC_OK;
 				}
 				else
 				{
 					ProgNode::interpreter->SetRetTree( this->GetNextSibling());
-  return RC_OK;
+					return RC_OK;
 				}
 			}
 		}
@@ -1202,17 +1309,30 @@ RetCode   CASENode::Run()
 	} // for
 	
 	throw GDLException( this, "CASE statement found no match.",true,false);
-  return RC_OK;
+	return RC_OK;
 }
 
 
 
 RetCode   SWITCHNode::Run()
 {
-	auto_ptr<BaseGDL> eVal( ProgNode::interpreter->expr( this->GetFirstChild()));
- 	if( !eVal.get()->Scalar())
+  auto_ptr<BaseGDL> e1_guard;
+  BaseGDL* e1;
+  ProgNodeP evalExpr = this->getFirstChild();
+  if( NonCopyNode( evalExpr->getType()))
+  {
+	e1 = evalExpr->EvalNC();
+  }
+  else
+  {
+	e1 = evalExpr->Eval();
+    e1_guard.reset(e1);
+  }
+
+// 	auto_ptr<BaseGDL> eVal( ProgNode::interpreter->expr( this->GetFirstChild()));
+ 	if( !e1->Scalar())
 	throw GDLException( this->GetFirstChild(), "Expression must be a"
-	" scalar in this context: "+ProgNode::interpreter->Name(eVal.get()),true,false);
+	" scalar in this context: "+ProgNode::interpreter->Name(e1),true,false);
 
 	ProgNodeP b=this->GetFirstChild()->GetNextSibling(); // remeber block begin
 	
@@ -1228,35 +1348,46 @@ RetCode   SWITCHNode::Run()
 				if(sL != NULL )
 				{
 					ProgNode::interpreter->SetRetTree( sL);
-  return RC_OK;
+					return RC_OK;
 				}
 			}
 		else
 			{
 				ProgNodeP ex = b->GetFirstChild();  // EXPR
-				ProgNodeP bb = ex->GetNextSibling(); // statement_list
 				
 				if( !hook)
 				{
-					BaseGDL* ee=ProgNode::interpreter->expr(ex);
+					auto_ptr<BaseGDL> ee_guard;
+					BaseGDL* ee;
+					if( NonCopyNode( ex->getType()))
+					{
+						ee = ex->EvalNC();
+					}
+					else
+					{
+						ee = ex->Eval();
+						ee_guard.reset(ee);
+					}
+// 					BaseGDL* ee=ProgNode::interpreter->expr(ex);
 					// auto_ptr<BaseGDL> ee_guard(ee);
-					hook=eVal.get()->Equal(ee); // Equal deletes ee
+					hook=e1->EqualNoDelete(ee); // Equal deletes ee
 				}
 				
 				if( hook)
 				{
+					ProgNodeP bb = ex->GetNextSibling(); // statement_list
 					// statement there
 					if(bb != NULL )
 					{
 						ProgNode::interpreter->SetRetTree( bb);
-  return RC_OK;
+						return RC_OK;
 					}
 				}
 			}
 		b=b->GetNextSibling(); // next block
 	} // for
 	ProgNode::interpreter->SetRetTree( this->GetNextSibling());
-  return RC_OK;
+	return RC_OK;
 }
 
 RetCode   BLOCKNode::Run()

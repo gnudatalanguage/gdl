@@ -231,14 +231,19 @@ int BaseGDL::Sgn() // -1,0,1
   throw GDLException("Operation not defined for UNDEF 5.");
 }
 
-bool BaseGDL::Equal( BaseGDL*)
+bool BaseGDL::Equal( BaseGDL*) const
 {
   throw GDLException("Operation not defined for UNDEF 6.");
 }
 
-bool BaseGDL::ArrayEqual( BaseGDL*)
+bool BaseGDL::EqualNoDelete( const BaseGDL*) const
 {
   throw GDLException("Operation not defined for UNDEF 6a.");
+}
+
+bool BaseGDL::ArrayEqual( BaseGDL*)
+{
+  throw GDLException("Operation not defined for UNDEF 6b.");
 }
 
 // for statement compliance (int types , float types scalar only)

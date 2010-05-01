@@ -33,6 +33,20 @@
 class ProgNode;
 typedef ProgNode* ProgNodeP;
 
+inline bool NonCopyNode( int type)
+{
+  return (type == GDLTokenTypes::DEREF) ||
+    (type == GDLTokenTypes::VAR) ||
+    (type == GDLTokenTypes::VARPTR) ||
+    (type == GDLTokenTypes::CONSTANT) ||
+    (type == GDLTokenTypes::SYSVAR) ;
+// are always copy nodes:
+//     (type == GDLTokenTypes::ARRAYDEF)
+//     (type == GDLTokenTypes::STRUC)
+//     (type == GDLTokenTypes::NSTRUC)
+//     (type == GDLTokenTypes::NSTRUC_REF)
+}
+
 class BreakableNode;
 
 // the nodes the programs are made of
@@ -96,6 +110,8 @@ public:
 
   ProgNode( const RefDNode& refNode);
 
+	// tree translation takes place here
+	// see newprognode.cpp
   static ProgNodeP NewProgNode( const RefDNode& refNode);
   static int NumberForLoops( ProgNodeP tree, int offset = 0)
   {
@@ -120,8 +136,8 @@ public:
   
   void SetRightDown( const ProgNodeP right, const ProgNodeP down);
 
-  virtual BaseGDL* Eval();
-  virtual BaseGDL* EvalNC(); // non-copy
+  virtual BaseGDL* Eval(); // caller receives ownership
+  virtual BaseGDL* EvalNC(); // non-copy used by all operators (and in other places)
   virtual RetCode    Run();
 
 //   RetCode  (*RunP)();

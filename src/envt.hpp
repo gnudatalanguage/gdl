@@ -70,6 +70,11 @@ protected:
 	    BaseGDL* p);
 
 public:
+// 	void DebugInfo()
+// 	{
+// 		std::cout << this->pro->ObjectName() << std::endl;
+// 	}
+
   virtual void ObjCleanup( DObj actID);
 
   // for CLEANUP calls due to reference counting
