@@ -126,9 +126,10 @@ if KEYWORD_SET(test) then STOP
 ;
 end
 ;
-; ---------------------------
+; ---------------------------------------------------
 ;
-pro TEST_PRODUCT_ALL_TYPE, test=test, verbose=verbose, nan=nan, $
+pro TEST_PRODUCT_ALL_TYPE, test=test, nan=nan, $
+                           verbose=verbose, very_verbose=very_verbose, $
                            exit_on_error=exit_on_error
 ; list of TYPE
 ; http://idlastro.gsfc.nasa.gov/idl_html_help/SIZE.html
@@ -137,8 +138,8 @@ a=INDGEN(5)+1
 ;
 ; not ready now, pb with INT types ...
 if KEYWORD_SET(nan) then begin
-    print, 'Sorry, this option is not ready now'
-    ;a[2]=!value.f_nan
+   print, 'Sorry, this option is not ready now'
+                                ;a[2]=!value.f_nan
 endif
 ;
 ref1=PRODUCT(a)
@@ -149,41 +150,47 @@ tref3=TOTAL(ref3)
 tref4=TOTAL(ref4)
 ;
 for ii=1, 15 do begin
-    if ii EQ 7 then CONTINUE ;; String
-    if ii EQ 8 then CONTINUE ;; Struc
-    if ii EQ 10 then CONTINUE ;; Pointer
-    if ii EQ 11 then CONTINUE ;; Objref
-    ;;
-    a=1b+INDGEN(5, type=ii)
-    ;;
-    err=''
-    if (ABS(ref1- PRODUCT(a)) GT 1e-6) then err=err+'Erreur 1, '
-    if (ABS(tref3-TOTAL(PRODUCT(a,/cumul))) GT 1e-6) then err=err+'Erreur 2, '
-    if (ABS(ref2- PRODUCT(a,/int)) GT 1e-6) then err=err+'Erreur 3, '
-    if (ABS(tref4-TOTAL(PRODUCT(a,/int, /cumul))) GT 1e-6) then err=err+'Erreur 4, '
-    ;;
-    if STRLEN(err) EQ 0 then begin
-       err='None'
-    endif else begin
-       if KEYWORD_SET(exit_on_error) then begin
-          MESSAGE, err + '(type: ' + SIZE(A,/type) + ')', /conti
-          EXIT, status=1
-       endif
-    endelse
-    print, 'current TYPE : ', SIZE(A,/type), ', Type of Errors: ', err
-    ;;
-    if KEYWORD_SET(verbose) then begin
-        print, 'raw :', PRODUCT(a)
-        print, '/cumul :', PRODUCT(a,/cumul)
-        print, '/int :', PRODUCT(a,/int)
-        print, '/int, /cumul :', PRODUCT(a,/cumul,/int)
-    endif
+   if ii EQ 7 then CONTINUE   ;; String
+   if ii EQ 8 then CONTINUE   ;; Struc
+   if ii EQ 10 then CONTINUE  ;; Pointer
+   if ii EQ 11 then CONTINUE  ;; Objref
+   ;;
+   a=1b+INDGEN(5, type=ii)
+   ;;
+   err=''
+   if (ABS(ref1- PRODUCT(a)) GT 1e-6) then err=err+'Erreur 1, '
+   if (ABS(tref3-TOTAL(PRODUCT(a,/cumul))) GT 1e-6) then err=err+'Erreur 2, '
+   if (ABS(ref2- PRODUCT(a,/int)) GT 1e-6) then err=err+'Erreur 3, '
+   if (ABS(tref4-TOTAL(PRODUCT(a,/int, /cumul))) GT 1e-6) then err=err+'Erreur 4, '
+   ;;
+   if STRLEN(err) EQ 0 then begin
+      err='None'
+   endif else begin
+      if KEYWORD_SET(exit_on_error) then begin
+         MESSAGE, err + '(type: ' + SIZE(A,/type) + ')', /conti
+         EXIT, status=1
+      endif
+   endelse
+   ;;
+   if KEYWORD_SET(verbose) then begin
+      print, 'current TYPE : ', SIZE(A,/type), ', Type of Errors: ', err
+   endif
+   if KEYWORD_SET(very_verbose) then begin
+      print, 'raw :', PRODUCT(a)
+      print, '/cumul :', PRODUCT(a,/cumul)
+      print, '/int :', PRODUCT(a,/int)
+      print, '/int, /cumul :', PRODUCT(a,/cumul,/int)
+   endif
 endfor
+;
+if KEYWORD_SET(exit_on_error) then MESSAGE, /continue, 'All tests OK'
 ;
 if KEYWORD_SET(test) then STOP
 ;
 end
-
+;
+; ---------------------------------------------------
+;
 ; SA: for inclusion in the "make check" rule
 pro TEST_PRODUCT
   TEST_PRODUCT_BASIC

@@ -16,6 +16,7 @@ TESTS = \
   test_rebin.pro \
   test_str_functions.pro \
   test_suite.pro \
+  test_get_screen_size.pro \	
   test_url.pro \
   test_wavelet.pro \
   test_zeropoly.pro \
