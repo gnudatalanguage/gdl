@@ -197,13 +197,13 @@ ArrayIndexListT* MakeArrayIndex( ArrayIndexVectorT* ixList)
   
   if( ixList->size() == 1)
     {
-      if( dynamic_cast< CArrayIndexScalar*>((*ixList)[0]))
+      if( CArrayIndexScalarID == (*ixList)[0]->Type())
 	return new ArrayIndexListOneConstScalarT( ixList);
       
-      if( dynamic_cast< ArrayIndexScalar*>((*ixList)[0]))
+      if( ArrayIndexScalarID == (*ixList)[0]->Type())
 	return new ArrayIndexListOneScalarT( ixList);
       
-      if( dynamic_cast< ArrayIndexScalarVP*>((*ixList)[0]))
+      if( ArrayIndexScalarVPID == (*ixList)[0]->Type())
 	return new ArrayIndexListOneScalarVPT( ixList);
       
       return new ArrayIndexListOneT( ixList);
@@ -212,9 +212,9 @@ ArrayIndexListT* MakeArrayIndex( ArrayIndexVectorT* ixList)
   SizeT nScalar  = 0;
   for( SizeT i=0; i<ixList->size(); ++i)
     {
-      if( dynamic_cast< ArrayIndexScalar*>((*ixList)[i]) ||
-	  dynamic_cast< ArrayIndexScalarVP*>((*ixList)[i]) ||
-	  dynamic_cast< CArrayIndexScalar*>((*ixList)[i])) ++nScalar;
+      if( ArrayIndexScalarID == (*ixList)[i]->Type() ||
+	  ArrayIndexScalarVPID == (*ixList)[i]->Type() ||
+	  CArrayIndexScalarID == (*ixList)[i]->Type() ) ++nScalar;
     }
   if( nScalar == ixList->size())
     return new ArrayIndexListScalarT( ixList);

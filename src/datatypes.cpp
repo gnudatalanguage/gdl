@@ -95,14 +95,14 @@ template<class Sp> void* Data_<Sp>::operator new( size_t bytes)
 {
 	assert( bytes == sizeof( Data_));
 	
+// 	cout << "Alloc: " << bytes << "  " << Sp::str << endl;
+
 	if( freeList.size() > 0)
 	{
 		void* res = freeList.back();
 		freeList.pop_back();
 		return res;	
 	}
-
-//	cout << "Alloc: " << bytes << "  " << Sp::str << endl;
 
 	const size_t newSize = multiAlloc - 1;
 	freeList.resize( newSize);
@@ -118,6 +118,8 @@ template<class Sp> void* Data_<Sp>::operator new( size_t bytes)
 
 template<class Sp> void Data_<Sp>::operator delete( void *ptr)
 {
+// 	cout << "Delete: " << ptr << endl;
+
 	freeList.push_back( ptr);
 }
 

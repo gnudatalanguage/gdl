@@ -27,9 +27,30 @@
 //typedef std::valarray<SizeT> AllIxT; // now in typedefs.hpp
 typedef std::vector<BaseGDL*>     IxExprListT;
 
+enum IndexType
+{
+ArrayIndexTID,
+ArrayIndexScalarID,
+ArrayIndexScalarVPID,
+CArrayIndexScalarID,
+ArrayIndexIndexedID,
+CArrayIndexIndexedID,
+ArrayIndexAllID,
+ArrayIndexORangeID,
+CArrayIndexORangeID,
+ArrayIndexRangeID,
+CArrayIndexRangeID,
+ArrayIndexORangeSID,
+CArrayIndexORangeSID,
+ArrayIndexRangeSID,
+CArrayIndexRangeSID
+};
+
 class ArrayIndexT
 {
 public:
+ virtual IndexType Type() { return ArrayIndexTID;}
+
 // this may be called from ArrayIndexListT::ToAssocIndex
   virtual void Init() {} 
   
@@ -68,6 +89,8 @@ protected:
   SizeT s;
 
 public:
+ IndexType Type() { return ArrayIndexScalarID;}
+
   SizeT GetVarIx() const { return varIx;}
 
   SizeT NParam() { return 0;} // number of parameter to Init(...)
@@ -123,6 +146,8 @@ protected:
   SizeT s;
 
 public:
+ IndexType Type() { return ArrayIndexScalarVPID;}
+
   DVar* GetVarPtr() const { return varPtr;}
 
   SizeT NParam() { return 0;} // number of parameter to Init(...)
@@ -180,6 +205,8 @@ private:
   SizeT s;
 
 public:
+ IndexType Type() { return CArrayIndexScalarID;}
+
   SizeT NParam() { return 0;} // number of parameter to Init(...)
 
   bool Scalar() { return true;}
@@ -256,6 +283,8 @@ protected:
   ArrayIndexIndexed( const ArrayIndexT& r) {}
 
 public:
+ IndexType Type() { return ArrayIndexIndexedID;}
+
   SizeT NParam() { return 1;} // number of parameter to Init(...)
 
   RangeT GetS() { return s;}
@@ -756,6 +785,8 @@ protected:
   SizeT      maxIx;
 
 public:
+ IndexType Type() { return CArrayIndexIndexedID;}
+
   ~CArrayIndexIndexed() { delete ixOri;}
 
   CArrayIndexIndexed( BaseGDL* c, bool strictArrSubs_ = false): 
@@ -887,6 +918,8 @@ public:
 class ArrayIndexAll: public ArrayIndexT
 {
 public:
+ IndexType Type() { return ArrayIndexAllID;}
+
   SizeT NParam() { return 0;} // number of parameter to Init(...)
 
   void Init() {};
@@ -923,6 +956,8 @@ protected:
   RangeT s;
 
 public:
+ IndexType Type() { return ArrayIndexORangeID;}
+
   SizeT NParam() { return 1;} // number of parameter to Init(...)
 
   RangeT GetS() { return s;}
@@ -1002,6 +1037,8 @@ public:
 class CArrayIndexORange: public ArrayIndexORange
 {
 public:
+ IndexType Type() { return CArrayIndexORangeID;}
+
   SizeT NParam() { return 0;} // number of parameter to Init(...)
 
   CArrayIndexORange( BaseGDL* c): ArrayIndexORange()
@@ -1047,6 +1084,8 @@ protected:
   RangeT s,e;
 
 public:
+ IndexType Type() { return ArrayIndexRangeID;}
+
   SizeT NParam() { return 2;} // number of parameter to Init(...)
 
   RangeT GetS() { return s;}
@@ -1176,6 +1215,8 @@ public:
 class CArrayIndexRange: public ArrayIndexRange
 {
 public:
+ IndexType Type() { return CArrayIndexRangeID;}
+
   SizeT NParam() { return 0;} // number of parameter to Init(...)
 
   CArrayIndexRange( BaseGDL* c1, BaseGDL* c2): ArrayIndexRange()
@@ -1236,6 +1277,8 @@ protected:
   SizeT stride;
 
 public:
+ IndexType Type() { return ArrayIndexORangeSID;}
+
   SizeT NParam() { return 2;} // number of parameter to Init(...)
 
   RangeT GetS() { return s;}
@@ -1332,6 +1375,8 @@ public:
 class CArrayIndexORangeS: public ArrayIndexORangeS
 {
 public:
+ IndexType Type() { return CArrayIndexORangeSID;}
+
   SizeT NParam() { return 0;} // number of parameter to Init(...)
 
   CArrayIndexORangeS( BaseGDL* c1, BaseGDL* c2): ArrayIndexORangeS()
@@ -1377,6 +1422,8 @@ protected:
   SizeT stride;
 
 public:
+ IndexType Type() { return ArrayIndexRangeSID;}
+
   SizeT NParam() { return 3;} // number of parameter to Init(...)
 
   RangeT GetS() { return s;}
@@ -1530,6 +1577,8 @@ public:
 class CArrayIndexRangeS: public ArrayIndexRangeS
 {
 public:
+ IndexType Type() { return CArrayIndexRangeSID;}
+
   SizeT NParam() { return 0;} // number of parameter to Init(...)
 
   CArrayIndexRangeS( BaseGDL* c1, BaseGDL* c2, BaseGDL* c3): 
