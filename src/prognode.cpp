@@ -914,15 +914,14 @@ RetCode   FORNode::Run()//for_statement(ProgNodeP _t) {
 		
 		if( (*v)->ForCondUp( loopInfo.endLoopVar))
 		{
-		  ProgNode::interpreter->_retTree = vP->GetNextSibling();
-  return RC_OK;
-
+			ProgNode::interpreter->_retTree = vP->GetNextSibling();
+			return RC_OK;
 		}
 		else
 		{
-		// skip if initial test fails
-		ProgNode::interpreter->_retTree = this->GetNextSibling()->GetNextSibling();
-  return RC_OK;
+			// skip if initial test fails
+			ProgNode::interpreter->_retTree = this->GetNextSibling()->GetNextSibling();
+			return RC_OK;
 		}
 }
 

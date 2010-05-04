@@ -275,9 +275,10 @@ class DSubUD: public DSub
 
   LabelListT          labelList;
 
-  int nForLoops;
-
   void ResolveLabel( ProgNodeP);
+
+protected:
+  int nForLoops;
 
 public:
   DSubUD(const std::string&,const std::string& o="",const std::string& f="");
@@ -431,7 +432,8 @@ class DPro: public DSubUD
 {
 public:
   // for main function, not inserted into proList
-  DPro(): DSubUD("$MAIN$","","") {}
+  // should be fine (way too much): 32 NESTED loops in $MAIN$ (elswhere: unlimited)
+  DPro(): DSubUD("$MAIN$","","") { this->nForLoops = 32;}
 
   DPro(const std::string& n,const std::string& o="",const std::string& f=""): 
     DSubUD(n,o,f)

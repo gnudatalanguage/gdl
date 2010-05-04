@@ -2134,32 +2134,61 @@ l_deref returns [BaseGDL** res]
 {
 	ProgNodeP retTree = _t->getNextSibling();
 
-	_t = _t->getFirstChild();
-
+    auto_ptr<BaseGDL> e1_guard;
     BaseGDL* e1;
-
-	auto_ptr<BaseGDL> e1_guard;
-
-    if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
+    ProgNodeP evalExpr = _t->getFirstChild();
+    if( NonCopyNode( evalExpr->getType()))
       {
-		e1=lib_function_call(_t);
+            e1 = evalExpr->EvalNC();
+      }
+    else if( evalExpr->getType() ==  GDLTokenTypes::FCALL_LIB)
+      {
+		e1=lib_function_call(evalExpr);
 
 		if( e1 == NULL) // ROUTINE_NAMES
-			throw GDLException( _t, "Undefined return value", true, false);
+			throw GDLException( evalExpr, "Undefined return value", true, false);
 		
-		if( !ProgNode::interpreter->callStack.back()->Contains( e1)) 
+		if( !callStack.back()->Contains( e1)) 
 			e1_guard.reset( e1);
       }
     else
       {
-			e1=tmp_expr(_t);
-			e1_guard.reset( e1);
+        e1 = evalExpr->Eval();
+        e1_guard.reset(e1);
       }
 
-	DPtrGDL* ptr=dynamic_cast<DPtrGDL*>(e1);
-	if( ptr == NULL)
-	throw GDLException( _t, "Pointer type required"
-	" in this context: "+Name(e1),true,false);
+  if( e1 == NULL || e1->Type() != PTR)
+    throw GDLException( evalExpr, "Pointer type required"
+			" in this context: "+Name(e1),true,false);
+
+  DPtrGDL* ptr=static_cast<DPtrGDL*>(e1);
+
+//     _t = _t->getFirstChild();
+
+//     BaseGDL* e1;
+
+// 	auto_ptr<BaseGDL> e1_guard;
+
+//     if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
+//       {
+// 		e1=lib_function_call(_t);
+
+// 		if( e1 == NULL) // ROUTINE_NAMES
+// 			throw GDLException( _t, "Undefined return value", true, false);
+		
+// 		if( !ProgNode::interpreter->callStack.back()->Contains( e1)) 
+// 			e1_guard.reset( e1);
+//       }
+//     else
+//       {
+// 			e1=tmp_expr(_t);
+// 			e1_guard.reset( e1);
+//       }
+
+// 	DPtrGDL* ptr=dynamic_cast<DPtrGDL*>(e1);
+// 	if( ptr == NULL)
+// 	throw GDLException( _t, "Pointer type required"
+// 	" in this context: "+Name(e1),true,false);
 	DPtr sc; 
 	if( !ptr->Scalar(sc))
 	throw GDLException( _t, "Expression must be a "
@@ -3895,7 +3924,7 @@ indexable_tmp_expr returns [BaseGDL* res]
 //                 }
 //             }
         ) // trinary operator
-    | res=array_expr
+    | (a:ARRAYEXPR { res = a->Eval();}) //res=array_expr
     | res=dot_expr
     | res=assign_expr
     | res=function_call
@@ -3986,7 +4015,8 @@ tmp_expr returns [BaseGDL* res]
 //                 }
 //             }
         ) // trinary operator
-    | res=array_expr
+    | (a:ARRAYEXPR { res = a->Eval();}) //res=array_expr
+//    | res=array_expr
     | res=dot_expr
     | res=assign_expr
     | res=function_call
@@ -4410,7 +4440,6 @@ lib_function_call returns[ BaseGDL* res]
 	// *** MUST always return a defined expression
 //    if( res == NULL)
 //       throw GDLException( _t, "");
-
 
 	_retTree = rTree;
 	return res;

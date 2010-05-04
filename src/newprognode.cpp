@@ -530,6 +530,11 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
 		return new ARRAYEXPR_MFCALLNode( refNode);
       }
 
+    case GDLTokenTypes::ARRAYEXPR:
+      {
+	return new ARRAYEXPRNode( refNode);
+      }
+    
     case GDLTokenTypes::VAR:
       {
 	return new VARNode( refNode);

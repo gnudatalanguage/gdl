@@ -136,6 +136,7 @@ public:
   
   void SetRightDown( const ProgNodeP right, const ProgNodeP down);
 
+//  virtual BaseGDL** LEval(); 
   virtual BaseGDL* Eval(); // caller receives ownership
   virtual BaseGDL* EvalNC(); // non-copy used by all operators (and in other places)
   virtual RetCode    Run();
@@ -268,7 +269,7 @@ public:
 	friend class REF_CHECKNode;
 	friend class REF_EXPRNode;
 	friend class ParameterNode;
-
+	friend class ARRAYEXPRNode;
 };
 
 
@@ -662,8 +663,6 @@ class FOR_STEPNode: public BreakableNode
 // 			this->GetStatementList()->GetLastSibling()->KeepRight( right);
 	}
 };
-
-
 
 class FOREACH_LOOPNode: public BreakableNode
 {
@@ -1323,29 +1322,12 @@ class INCNode: public CommandNode
   INCNode( const RefDNode& refNode): CommandNode( refNode){}
   RetCode Run();
 };
-// class FOR_INITNode: public CommandNode
-// { public:
-//   FOR_INITNode( const RefDNode& refNode): CommandNode( refNode){}
-//   RetCode Run();
-// };
-// class FORNode: public CommandNode
-// { public:
-//   FORNode( const RefDNode& refNode): CommandNode( refNode){}
-//   RetCode Run();
-// };
-// class FOR_STEPNode: public CommandNode
-// { public:
-//   FOR_STEPNode( const RefDNode& refNode): CommandNode( refNode){}
-//   RetCode Run();
-// };
 
-
-// class ARRAYDEFNode: public CommandNode
-// {
-// public:
-//   /*virtual*/ RetCode   Run();
-// 
-// };
-//#endif
+class ARRAYEXPRNode: public DefaultNode
+{
+public:
+ ARRAYEXPRNode( const RefDNode& refNode): DefaultNode( refNode) {}
+ BaseGDL* Eval(); // caller receives ownership
+};
 
 #endif

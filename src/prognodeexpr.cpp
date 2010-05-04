@@ -2140,3 +2140,153 @@ if( e1->StrictScalar())
       // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
   }
+
+
+
+  BaseGDL* ARRAYEXPRNode::Eval()
+  {
+	BaseGDL* res;
+	ProgNodeP ax;
+
+	ArrayIndexListT* aL;
+	BaseGDL* r;
+	ArrayIndexListGuard guard;
+	auto_ptr<BaseGDL> r_guard;
+
+	ExprListT        exprList; // for cleanup
+	IxExprListT      ixExprList;
+	SizeT nExpr;
+	BaseGDL* s;
+
+	//	match(antlr::RefAST(_t),ARRAYEXPR);
+	ProgNodeP	_t = this->getFirstChild();
+
+	switch ( _t->getType()) {
+		case GDLTokenTypes::VAR:
+		case GDLTokenTypes::CONSTANT:
+		case GDLTokenTypes::DEREF:
+		case GDLTokenTypes::SYSVAR:
+		case GDLTokenTypes::VARPTR:
+		{
+			r=_t->EvalNC();
+			//r=indexable_expr(_t);
+			break;
+		}
+		case GDLTokenTypes::FCALL_LIB:
+		{
+			// better than Eval(): no copying here if not necessary
+			r=ProgNode::interpreter->lib_function_call(_t);
+
+			if( !ProgNode::interpreter->CallStack().back()->Contains( r))
+			r_guard.reset( r); // guard if no global data
+
+			break;
+		}
+		// 	case ASSIGN:
+		// 	case ASSIGN_REPLACE:
+		// 	case ASSIGN_ARRAYEXPR_MFCALL:
+		// 	case ARRAYDEF:
+		// 	case ARRAYEXPR:
+		// 	case ARRAYEXPR_MFCALL:
+		// 	case EXPR:
+		// 	case FCALL:
+		// 	case FCALL_LIB_RETNEW:
+		// 	case MFCALL:
+		// 	case MFCALL_PARENT:
+		// 	case NSTRUC:
+		// 	case NSTRUC_REF:
+		// 	case POSTDEC:
+		// 	case POSTINC:
+		// 	case STRUC:
+		// 	case DEC:
+		// 	case INC:
+		// 	case DOT:
+		// 	case QUESTION:
+		default:
+		{
+			r=ProgNode::interpreter->indexable_tmp_expr(_t);
+			r_guard.reset( r);
+			break;
+		}
+	} // switch
+		
+		_t = _t->getNextSibling();
+	
+	aL = _t->arrIxList;
+	assert( aL != NULL);
+	guard.reset(aL);
+		
+	//    ax = _t
+	//	match(antlr::RefAST(_t),ARRAYIX);
+	_t = _t->getFirstChild();
+		
+	nExpr = aL->NParam();
+		
+	if( nExpr == 0)
+	{
+		goto empty;
+	}
+		
+	for (;;)
+	{
+		switch ( _t->getType()) {
+		case GDLTokenTypes::VAR:
+		case GDLTokenTypes::CONSTANT:
+		case GDLTokenTypes::DEREF:
+		case GDLTokenTypes::SYSVAR:
+		case GDLTokenTypes::VARPTR:
+		{
+			s=_t->EvalNC();//indexable_expr(_t);
+			_t = _t->getNextSibling();//_retTree;
+			break;
+		}
+		case GDLTokenTypes::FCALL_LIB:
+		{
+			s=ProgNode::interpreter->lib_function_call(_t);
+			_t = _t->getNextSibling();
+
+			if( !ProgNode::interpreter->CallStack().back()->Contains( s))
+			exprList.push_back( s);
+
+			break;
+		}
+		// 			case ASSIGN:
+		// 			case ASSIGN_REPLACE:
+		// 			case ASSIGN_ARRAYEXPR_MFCALL:
+		// 			case ARRAYDEF:
+		// 			case ARRAYEXPR:
+		// 			case ARRAYEXPR_MFCALL:
+		// 			case EXPR:
+		// 			case FCALL:
+		// 			case FCALL_LIB_RETNEW:
+		// 			case MFCALL:
+		// 			case MFCALL_PARENT:
+		// 			case NSTRUC:
+		// 			case NSTRUC_REF:
+		// 			case POSTDEC:
+		// 			case POSTINC:
+		// 			case STRUC:
+		// 			case DEC:
+		// 			case INC:
+		// 			case DOT:
+		// 			case QUESTION:
+		default:
+			{
+				s=ProgNode::interpreter->indexable_tmp_expr(_t);
+				_t = _t->getNextSibling();
+				exprList.push_back( s);
+				break;
+			}
+		} // switch
+
+		ixExprList.push_back( s);
+		if( ixExprList.size() == nExpr)
+				break; // for -> finish
+	} // for
+
+	empty:
+	res = aL->Index( r, ixExprList);
+
+	ProgNode::interpreter->SetRetTree( this->getNextSibling());
+	return res;
+}
