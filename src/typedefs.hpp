@@ -276,9 +276,9 @@ public:
   GDLArray() throw() : buf( NULL), sz( 0) {}
   GDLArray( const GDLArray& cp) : sz( cp.size())
   {
-//     try {
-    buf = (cp.size() > smallArraySize) ? new T[ cp.size()] : scalar;
-//     } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than GDL can address"); }
+    try {
+		buf = (cp.size() > smallArraySize) ? new T[ cp.size()] : scalar;
+    } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than GDL can address"); }
 /*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
 {
 #pragma omp for*/
@@ -289,15 +289,15 @@ public:
 
   GDLArray( SizeT s, bool b) : sz( s)
   {
-//     try {
+    try {
     buf = (s > smallArraySize) ? new T[ s] : scalar;
-//     } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than GDL can address"); }
+    } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than GDL can address"); }
   }
   GDLArray( T val, SizeT s) : sz( s)
   {
-//     try {
+    try {
     buf = (s > smallArraySize) ? new T[ s] : scalar;
-//     } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than GDL can address"); }
+    } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than GDL can address"); }
 /*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
 {
 #pragma omp for*/
@@ -307,9 +307,9 @@ public:
   }
   GDLArray( const T* arr, SizeT s) : sz( s)
   {
-//     try {
+    try {
     buf = (s > smallArraySize) ? new T[ s]: scalar;
-//     } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than GDL can address"); }
+    } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than GDL can address"); }
 /*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
 {
 #pragma omp for*/
