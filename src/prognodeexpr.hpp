@@ -165,6 +165,7 @@ class VARNode: public LeafNode
 public:
   VARNode( const RefDNode& refNode): LeafNode( refNode)
   {}
+  BaseGDL** LEval();
   BaseGDL* EvalNC();
 };
 class VARPTRNode: public LeafNode
@@ -172,6 +173,7 @@ class VARPTRNode: public LeafNode
 public:
   VARPTRNode( const RefDNode& refNode): LeafNode( refNode)
   {}
+  BaseGDL** LEval();
   BaseGDL* EvalNC();
 };
 class SYSVARNode: public LeafNode

@@ -12,6 +12,9 @@
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 
+/* Define to 1 if you have the <gshhs.h> header file. */
+#undef HAVE_GSHHS_H
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
@@ -135,6 +138,9 @@
 
 /* Define if you want to use GRIB */
 #undef USE_GRIB
+
+/* Define if you want to use GSHHS */
+#undef USE_GSHHS
 
 /* Define if you want to use HDF */
 #undef USE_HDF

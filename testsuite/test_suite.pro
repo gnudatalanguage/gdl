@@ -1398,6 +1398,7 @@ pro test_suite,MEMCHECK=mCheck
 
   s=systime(1)
 
+  if_test
   switch_test
   case_test
   while_test

@@ -944,7 +944,7 @@ RetCode   FORNode::Run()//for_statement(ProgNodeP _t) {
 		// // old sequence v might be invalidated -> segfault
 		// // note that the value (*v) is preserved by resize()
 		
-		BaseGDL** v=ProgNode::interpreter->l_simple_var(this->getFirstChild());
+		BaseGDL** v=this->getFirstChild()->LEval();//ProgNode::interpreter->l_simple_var(this->getFirstChild());
 
 // shortCut:;
 		

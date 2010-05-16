@@ -84,7 +84,7 @@ public:
     env.pop_back();
   }
 
-  SizeT size() { return env.size();}
+  SizeT size() const { return env.size();}
   void reserve( SizeT s)
   {
     env.reserve( s);

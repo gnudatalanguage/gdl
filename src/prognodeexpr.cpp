@@ -69,6 +69,13 @@ BaseGDL* ProgNode::EvalNC()
 		      "ProgNode::EvalNC() called.",true,false);
 }
 
+BaseGDL** ProgNode::LEval()
+{
+  throw GDLException( this,
+		      "Internal error. "
+		      "ProgNode::LEval() called.",true,false);
+}
+
 RetCode   ProgNode::Run()
 { 
   throw GDLException( this,
@@ -2141,6 +2148,16 @@ if( e1->StrictScalar())
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
   }
 
+  BaseGDL** VARNode::LEval()
+	{
+  	ProgNode::interpreter->SetRetTree( this->getNextSibling());
+	return &ProgNode::interpreter->CallStack().back()->GetKW(this->varIx);
+	}
+  BaseGDL** VARPTRNode::LEval()
+	{
+  	ProgNode::interpreter->SetRetTree( this->getNextSibling());
+	return &this->var->Data();
+	}
 
 
   BaseGDL* ARRAYEXPRNode::Eval()

@@ -136,7 +136,7 @@ public:
   
   void SetRightDown( const ProgNodeP right, const ProgNodeP down);
 
-//  virtual BaseGDL** LEval(); 
+  virtual BaseGDL** LEval();
   virtual BaseGDL* Eval(); // caller receives ownership
   virtual BaseGDL* EvalNC(); // non-copy used by all operators (and in other places)
   virtual RetCode    Run();

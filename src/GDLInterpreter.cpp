@@ -2645,15 +2645,16 @@ BaseGDL*  GDLInterpreter::r_expr(ProgNodeP _t) {
 			res=l_decinc_expr( _t->getFirstChild(), POSTDEC);
 			break;
 		}
-		case POSTINC:
+	//	case POSTINC:
+		default:
 		{
 			res=l_decinc_expr( _t->getFirstChild(), POSTINC);
 			break;
 		}
-		default:
-		{
-			throw antlr::NoViableAltException(antlr::RefAST(_t));
-		}
+	// 	default:
+	// 	{
+	// 		throw antlr::NoViableAltException(antlr::RefAST(_t));
+	// 	}
 		}
 		_retTree = _t->getNextSibling();
 		return res;
