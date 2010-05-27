@@ -73,6 +73,7 @@ public:
   // get widget from ID
   static GDLWidget* GetWidget( WidgetIDT widID);
   static GDLWidget* GetParent( WidgetIDT widID);
+  static WidgetIDT GetBase( WidgetIDT widID);
 
   static void Init(); // GUI intialization upon GDL startup
 

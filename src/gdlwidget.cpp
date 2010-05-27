@@ -13,12 +13,17 @@
  *   the Free Software Foundation; either version 2 of the License, or     *
  *   (at your option) any later version.                                   *
  *                                                                         *
+
  ***************************************************************************/
+
+#include <memory> 
 
 #include "includefirst.hpp"
 
 #include "basegdl.hpp"
 #include "dstructgdl.hpp"
+
+#include "dinterpreter.hpp"
 
 #ifdef HAVE_LIBWXWIDGETS
 
@@ -101,6 +106,22 @@ GDLWidget* GDLWidget::GetParent( WidgetIDT widID)
   WidgetIDT parentID = widget->parent;
   GDLWidget *parent = GetWidget( parentID);
   return widget;
+}
+
+// base widget ID from ID
+WidgetIDT GDLWidget::GetBase( WidgetIDT widID)
+{
+  GDLWidget *widget, *parent;
+  WidgetIDT parentID;
+
+  parentID = widID;
+  while ( 1) {
+    widget = GetWidget( parentID);
+    if ( widget->parent == 0) 
+      return parentID; 
+    else 
+      parentID = widget->parent;
+  }
 }
 
 void GDLWidget::SetManaged( bool manval)
@@ -461,7 +482,7 @@ GDLWidgetBase::~GDLWidgetBase()
   // Note: iterator for loop doesn't work when deleting widget
   cIter cI = children.begin();
   for( SizeT i=0; i<children.size(); i++) {
-    delete GetWidget( *cI++);
+    //delete GetWidget( *cI++);
   }
 
   // if TLB destroy wxWidget 
@@ -545,10 +566,11 @@ GDLWidgetButton::GDLWidgetButton( WidgetIDT p, BaseGDL *uV, DString value):
     }
   } // GetMap()
 
+
   // Generate event structure
   DStructGDL*  widgbut = new DStructGDL( "WIDGET_BUTTON");
   widgbut->InitTag("ID", DLongGDL( widgetID));
-  widgbut->InitTag("TOP", DLongGDL( p));
+  widgbut->InitTag("TOP", DLongGDL( GDLWidget::GetBase( p)));
   widgbut->InitTag("HANDLER", DLongGDL( 0));
   widgbut->InitTag("SELECT", DLongGDL( 0));
 
@@ -691,20 +713,6 @@ GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, BaseGDL *uV, DString value,
     }
   } // GetMap()
 
-  /*
-  // Generate event structure
-  DStructGDL*  widgtxt = new DStructGDL( "WIDGET_TEXT");
-  widgtxt->InitTag("ID", DLongGDL( widgetID));
-  widgtxt->InitTag("TOP", DLongGDL( p));
-  widgtxt->InitTag("HANDLER", DLongGDL( 0));
-  widgtxt->InitTag("SELECT", DLongGDL( 0));
-
-  // Push event structure into event variable list
-  std::ostringstream varname;
-  varname << "WTXT" << this->WidgetID();
-  DVar *v = new DVar( varname.rdbuf()->str().c_str(), widgtxt);
-  eventVarList.push_back(v);
-  */
 }
 
 void GDLWidgetLabel::SetLabelValue( DString value)
@@ -725,6 +733,13 @@ void GDLFrame::OnButton( wxCommandEvent& event)
 
   std::cout << "in OnButton: " << event.GetId() << std::endl;
 
+  // Get XmanagerActiveCommand status
+  WidgetIDT baseWidgetID = GDLWidget::GetBase( event.GetId());
+  // std::cout << "Base Widget ID: " << baseWidgetID << std::endl;
+  GDLWidget *baseWidget = GDLWidget::GetWidget( baseWidgetID);
+  bool xmanActCom = baseWidget->GetXmanagerActiveCommand();
+  //std::cout << "xmanActCom: " << xmanActCom << std::endl;
+
   // Form button event variable name
   std::ostringstream varname;
   varname << "WBUT" << event.GetId();
@@ -732,8 +747,71 @@ void GDLFrame::OnButton( wxCommandEvent& event)
   // Find name and set SELECT tag to 1
   DVar *var=FindInVarList( eventVarList, varname.rdbuf()->str().c_str());
   DStructGDL* s = static_cast<DStructGDL*>( var->Data());
+
   (*static_cast<DLongGDL*>
    (s->GetTag(s->Desc()->TagIndex("SELECT"), 0)))[0] = 1;
+
+  if ( xmanActCom == true) {
+    DString eventHandler;
+    eventHandler = baseWidget->GetEventPro();
+    eventHandler = StrUpCase( eventHandler);
+
+    int proIx = ProIx( eventHandler); 
+    DSub *sub =  proList[ proIx];
+    EnvBaseT* e;
+    e = new EnvUDT( NULL, sub);
+    std::auto_ptr< EnvBaseT> e_guard( e);
+    StackSizeGuard<EnvStackT> guard( GDLInterpreter::CallStack());
+    GDLInterpreter::CallStack().push_back( e);
+
+    EnvBaseT* caller;
+    caller = e->Caller();
+    e->Interpreter()->CallStack().pop_back();
+
+    DLong id, top, handler, select;
+    id = (*static_cast<DLongGDL*>
+	  (s->GetTag(s->Desc()->TagIndex("ID"), 0)))[0];
+    top = (*static_cast<DLongGDL*>
+	   (s->GetTag(s->Desc()->TagIndex("TOP"), 0)))[0];
+    handler = (*static_cast<DLongGDL*>
+	       (s->GetTag(s->Desc()->TagIndex("HANDLER"), 0)))[0];
+
+    // Build event handler command
+    std::ostringstream ostr;
+    ostr << "EV={WIDGET_BUTTON, ";
+    ostr << "ID: " << id << "L, TOP: " << top << "L, ";
+    ostr << "HANDLER: " << handler << "L, SELECT: " << select << "L } ";
+    ostr << "& " << eventHandler.c_str() << ", EV";
+
+    DString line = ostr.rdbuf()->str();
+    std::istringstream istr(line+"\n");
+
+    RefDNode theAST;
+
+    GDLLexer lexer(istr, "", GDLParser::NONE);
+    GDLParser& parser = lexer.Parser();
+    parser.interactive();
+
+    theAST = parser.getAST();
+    RefDNode trAST;
+    GDLTreeParser treeParser( caller);
+    treeParser.interactive(theAST);
+    trAST = treeParser.getAST();
+
+    ProgNodeP progAST = ProgNode::NewProgNode( trAST);
+    std::auto_ptr< ProgNode> progAST_guard( progAST);
+
+    // necessary for correct FOR loop handling
+    assert( dynamic_cast<EnvUDT*>(caller) != NULL);
+    EnvUDT* env = static_cast<EnvUDT*>(caller);
+    int nForLoopsIn = env->NForLoops();
+    int nForLoops = ProgNode::NumberForLoops( progAST, nForLoopsIn);
+    env->ResizeForLoops( nForLoops);
+    env->ResizeForLoops( nForLoopsIn);
+
+    RetCode retCode =
+      caller->Interpreter()->execute( progAST);
+  }
 
   // Pause 50 millisecs then refresh widget
   wxMilliSleep( 50);

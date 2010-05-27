@@ -33,7 +33,7 @@
 namespace lib {
   using namespace std;
 
-  void executeString( EnvBaseT* caller, istringstream *istr)
+  void executeString2( EnvBaseT* caller, istringstream *istr)
   {
     RefDNode theAST;
 
@@ -47,7 +47,16 @@ namespace lib {
     trAST = treeParser.getAST();
     ProgNodeP progAST = ProgNode::NewProgNode( trAST);
     auto_ptr< ProgNode> progAST_guard( progAST);
-    GDLInterpreter::RetCode retCode = caller->Interpreter()->execute( progAST);
+
+    // necessary for correct FOR loop handling
+    assert( dynamic_cast<EnvUDT*>(caller) != NULL);
+    EnvUDT* env = static_cast<EnvUDT*>(caller);
+    int nForLoopsIn = env->NForLoops();
+    int nForLoops = ProgNode::NumberForLoops( progAST, nForLoopsIn);
+    env->ResizeForLoops( nForLoops);
+    env->ResizeForLoops( nForLoopsIn);
+
+    RetCode retCode = caller->Interpreter()->execute( progAST);
   }
 
 
@@ -609,8 +618,8 @@ namespace lib {
     DLong select;
     //    int i; cin >> i;
 
-    while ( 1) {
-      std::cout << "In PollEvents loop" << std::endl;
+    while ( 1) { // outer while loop
+      std::cout << "In PollEvents loop (widget_event)" << std::endl;
       while ( 1) {
 	// Sleep a bit to prevent CPU overuse
 	wxMilliSleep( 50);
@@ -618,7 +627,7 @@ namespace lib {
 	  break;
       }
 
-      std::cout << "break from PollEvents" << std::endl;
+      std::cout << "break from PollEvents (widget_event)" << std::endl;
       std::cout << "top: " << top << std::endl;
       std::cout << "id:  " << id << std::endl;
 
@@ -645,6 +654,9 @@ namespace lib {
 	delete e;
       }
 
+      executeString2( caller, &istr);
+
+      /*
       RefDNode theAST;
 
       GDLLexer lexer(istr, "", GDLParser::NONE);
@@ -660,20 +672,22 @@ namespace lib {
       ProgNodeP progAST = ProgNode::NewProgNode( trAST);
       auto_ptr< ProgNode> progAST_guard( progAST);
 
-	// necessary for correct FOR loop handling
-	assert( dynamic_cast<EnvUDT*>(caller) != NULL);
-    EnvUDT* env = static_cast<EnvUDT*>(caller);
-	int nForLoopsIn = env->NForLoops();
-    int nForLoops = ProgNode::NumberForLoops( progAST, nForLoopsIn);
-	env->ResizeForLoops( nForLoops);
+      // necessary for correct FOR loop handling
+      assert( dynamic_cast<EnvUDT*>(caller) != NULL);
+      EnvUDT* env = static_cast<EnvUDT*>(caller);
+      int nForLoopsIn = env->NForLoops();
+      int nForLoops = ProgNode::NumberForLoops( progAST, nForLoopsIn);
+      env->ResizeForLoops( nForLoops);
 
-    RetCode retCode =
+      RetCode retCode =
 	caller->Interpreter()->execute( progAST);
 
 	env->ResizeForLoops( nForLoopsIn);
-      
+      */
+
       // Return from GDL/IDL event handler procedure
-      std::cout << "return from event handler" << std::endl << std::endl;
+      std::cout << "return from event handler (widget_event)" << 
+	std::endl << std::endl;
 
       if ( GDLWidget::GetWidget( top) == NULL) {
 	std::cout << "widget NULLed" << std::endl;
@@ -686,7 +700,8 @@ namespace lib {
       buttonWidget->SetManaged( false);
 
       lasttop = top;
-    }
+    } // outer while loop
+
     return new DLongGDL( 0);
   }
 
@@ -760,6 +775,7 @@ namespace lib {
     }
 
     if ( xmanActCom) {
+      cout << "Set xmanager active command: " << widgetID << endl;
       widget->SetXmanagerActiveCommand();
     }
 
@@ -773,21 +789,38 @@ namespace lib {
       widget->SetEventPro( eventPro);
     }
 
+
     if ( getuvalue) {
       BaseGDL** uvalueKW = &e->GetKW( getuvalueIx);
       delete (*uvalueKW);
 
-      *uvalueKW = widget->GetUvalue();
+      BaseGDL *widval = widget->GetUvalue();
+      //      *uvalueKW = widget->GetUvalue();
+      *uvalueKW = widval->Dup();
+
+      /*
       if ( *uvalueKW != NULL) {
 	if( (*uvalueKW)->Type() == STRING)
 	  *uvalueKW = new DStringGDL( (*( DStringGDL*) (*uvalueKW))[0]);
 	if( (*uvalueKW)->Type() == LONG)
 	  *uvalueKW = new DLongGDL( (*( DLongGDL*) (*uvalueKW))[0]);
+	if( (*uvalueKW)->Type() == STRUCT) {
+	  DStructGDL* s = static_cast<DStructGDL*>( *uvalueKW);
+	  //	  DStructGDL* parStruct = dynamic_cast<DStructGDL*>( *uvalueKW);
+	  cout << s->Desc()->Name() << endl;
+	}
       }
+      */
+
     }
 
     if ( setuvalue) {
       BaseGDL* uvalue = e->GetKW( setuvalueIx);
+      if( uvalue->Type() == STRUCT) {
+	//	cout << "Structure uvalue" << endl;
+	//DStructGDL* s1 = static_cast<DStructGDL*>( uvalue);
+	//cout << s1->Desc()->Name() << endl;
+      }
       if( uvalue != NULL) uvalue = uvalue->Dup();
       widget->SetUvalue( uvalue);
     }
@@ -841,7 +874,7 @@ namespace lib {
 	  // Call SETV procedure
 	  EnvBaseT* caller = e->Caller();
 	  e->Interpreter()->CallStack().pop_back();
-	  executeString( caller, &istr);
+	  executeString2( caller, &istr);
 	}
 
 
