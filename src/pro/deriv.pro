@@ -110,7 +110,7 @@ ON_ERROR, 2
 ; When GDL behavior of {MESSAGE, .skip, .Continue} will be similar to
 ; IDL, the following flag can be switch to 1 !
 ;
-flag_message=0
+flag_message=1
 name_proc='% DERIV: '
 ;
 if ((N_PARAMS() EQ 0) OR (N_PARAMS() GT 2)) then begin
