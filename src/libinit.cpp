@@ -802,7 +802,8 @@ void LibInit()
   new DLibFun(lib::wtn, string("WTN"), 2, wtnKey);
   const string zeropolyKey[] = {"DOUBLE", "COMPANION", "JENKINS_TRAUB", KLISTEND };
   new DLibFun(lib::zeropoly, string("IMSL_ZEROPOLY"), 1, zeropolyKey);
-
+  const string spher_harmKey[] = {"DOUBLE", KLISTEND };
+  new DLibFun(lib::spher_harm, string("SPHER_HARM"), 4, spher_harmKey);
 
   // sort lists
   sort( libFunList.begin(), libFunList.end(), CompLibFunName());

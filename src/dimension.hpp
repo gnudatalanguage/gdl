@@ -65,7 +65,7 @@ public:
       dim[i]= d[i];
   }
 
-  // simplified constructor for one to three dimensions
+  // simplified constructors for one to three dimensions
   dimension(const SizeT d0)
   {
     assert( d0 != 0);

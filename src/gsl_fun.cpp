@@ -68,6 +68,9 @@
 // zeropoly
 #include <gsl/gsl_poly.h>
 
+// spher_harm
+#include <gsl/gsl_sf_legendre.h>
+
 #define LOG10E 0.434294
 
 namespace lib {
@@ -2783,6 +2786,110 @@ res_guard.reset (dres);
         : COMPLEX, 
       BaseGDL::CONVERT
     );   
+  }
+
+  // SA: GDL implementation of LEGENDRE uses gsl_sf_legendre_Plm, while SPHER_HARM implem. 
+  //     below uses gsl_sf_legendre_sphPlm which is intended for use with sph. harms
+  template <class T_theta, class T_phi, class T_res>
+  void spher_harm_helper_helper_helper(EnvT *e, T_theta *theta, T_phi *phi, T_res *res, 
+    int l, int m, int step_theta, int step_phi, SizeT length)
+  {
+    double sign = (m < 0 && m % 2 == -1) ? -1. : 1.;
+    // SA: I haven't found any L,M values which GSL would not accept...
+    //gsl_sf_result sphPlm;
+    for (SizeT j = 0; j < length; ++j) 
+    {
+      /*
+        if (GSL_SUCCESS != gsl_sf_legendre_sphPlm_e(l, abs(m), cos(theta[j * step_theta]), &sphPlm))
+          e->Throw("GSL refused to compute Legendre polynomial value for the given L,M pair");
+        res[j] = sign * sphPlm.val;
+      */
+      res[j] = sign * gsl_sf_legendre_sphPlm(l, abs(m), cos(theta[j * step_theta]));
+      res[j] *= exp(complex<T_phi>(0., m * phi[j * step_phi]));
+    }
+  }
+  template <class T_phi, class T_res>
+  void spher_harm_helper_helper(EnvT* e, BaseGDL *theta, T_phi *phi, T_res *res,
+    int l, int m, int step_theta, int step_phi, SizeT length)
+  {
+    if (theta->Type() == DOUBLE || theta->Type() == COMPLEXDBL)
+    {
+      DDoubleGDL *theta_ = e->GetParAs<DDoubleGDL>(0);
+      spher_harm_helper_helper_helper(e, &((*theta_)[0]), phi, res, l, m, step_theta, step_phi, length);
+    }
+    else
+    {
+      DFloatGDL *theta_ = e->GetParAs<DFloatGDL>(0);
+      spher_harm_helper_helper_helper(e, &((*theta_)[0]), phi, res, l, m, step_theta, step_phi, length);
+    }
+  }
+  template <class T_res>
+  void spher_harm_helper(EnvT* e, BaseGDL *theta, BaseGDL *phi, T_res *res, 
+    int l, int m, int step_theta, int step_phi, SizeT length)
+  {
+    if (phi->Type() == DOUBLE || phi->Type() == COMPLEXDBL)
+    {
+      DDoubleGDL *phi_ = e->GetParAs<DDoubleGDL>(1);
+      spher_harm_helper_helper(e, theta, &((*phi_)[0]), res, l, m, step_theta, step_phi, length);
+    }
+    else 
+    {
+      DFloatGDL *phi_ = e->GetParAs<DFloatGDL>(1);
+      spher_harm_helper_helper(e, theta, &((*phi_)[0]), res, l, m, step_theta, step_phi, length);
+    }
+  }
+  BaseGDL* spher_harm(EnvT* e)
+  {
+    // sanity checks etc
+    SizeT nParam=e->NParam(4);   
+    
+    BaseGDL *theta = e->GetNumericParDefined(0);
+    BaseGDL *phi = e->GetNumericParDefined(1);
+
+    int step_theta = 1, step_phi = 1;
+    SizeT length = theta->N_Elements();
+    if (theta->N_Elements() != phi->N_Elements())
+    {
+      if (
+        (theta->N_Elements() > 1 && phi->Rank() != 0) ||
+        (phi->N_Elements() > 1 && theta->Rank() != 0)
+      ) e->Throw("Theta (1st arg.) or Phi (2nd arg.) must be scalar, or have the same number of values");
+      if (theta->N_Elements() > 1) step_phi = 0;
+      else
+      {
+        step_theta = 0;
+        length = phi->N_Elements();
+      }
+    }
+
+    DLong l;
+    e->AssureLongScalarPar(2, l);
+    if (l < 0) e->Throw("L (3rd arg.) must be greater than or equal to zero");
+  
+    DLong m;
+    e->AssureLongScalarPar(3, m);
+    if (abs(m) > l) e->Throw("M (4th arg.) must be in the range [-L, L]");
+
+    // allocating (and guarding) memory
+    BaseGDL *res;
+    bool dbl = e->KeywordSet(0) || theta->Type() == DOUBLE || phi->Type() == DOUBLE;
+    {
+      dimension dim = dimension(length);
+      if (phi->Rank() == 0 && theta->Rank() == 0) dim.Remove(0);
+      if (dbl) res = new DComplexDblGDL(dim);
+      else res = new DComplexGDL(dim);
+    }
+    auto_ptr<BaseGDL> res_guard(res);
+
+    // computing the result 
+    if (dbl) 
+      spher_harm_helper(e, theta, phi, &((*static_cast<DComplexDblGDL*>(res))[0]), l, m, step_theta, step_phi, length);
+    else
+      spher_harm_helper(e, theta, phi, &((*static_cast<DComplexGDL*>(res))[0]), l, m, step_theta, step_phi, length);
+    
+    // returning
+    res_guard.release();
+    return res;
   }
 
 } // namespace
