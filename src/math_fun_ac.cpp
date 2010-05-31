@@ -7,6 +7,10 @@
 
 ****************************************************************************/
 
+
+
+
+
 /***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -539,15 +543,16 @@ namespace lib {
 	return res;
       }
     }
+
     // we also check wether X input array is well ordered ...
     double step;
     int flag_skip=0;
-    for (count = 1; count < nElpYpos; ++count) {
+    for (count = 1; count < nElpXpos; ++count) {
       step=(*Xpos)[count]-(*Xpos)[count-1];
       if (step < 0.0) {
 	if (flag_skip == 0) {
 	  cout << "SPL_INIT (warning): at least one x[n+1]-x[n] step is negative: X is assumed to be ordered" << endl;
-	  flag_skip == 1;
+	  flag_skip = 1; 
 	}
       }
       if (abs(step) == 0.0) {
@@ -560,15 +565,23 @@ namespace lib {
     // may be we will have to check the size of these arrays ?
     
     BaseGDL* Yderiv0=e->GetKW(e->KeywordIx("YP0"));
-    if(Yderiv0 !=NULL) cout << "SPL_INIT: sorry Keyword YP0 not ready now"<< endl;
-    BaseGDL* YderivN=e->GetKW(e->KeywordIx("YPN_1"));
-    if(Yderiv0 !=NULL) cout << "SPL_INIT: sorry Keyword YPN_1 not ready now"<< endl;
+    DDoubleGDL* YP0;
 
-    (*res)[0] =0.;	
-    (*res)[nElpXpos-1] =0.;	
-    (*U)[0] =0.;	
+
+    if(Yderiv0 !=NULL && !isinf((*(YP0=e->GetKWAs<DDoubleGDL>(e->KeywordIx("YP0"))))[0] )){ 
+    // first derivative at the point X0 is defined and different to Inf
+      (*res)[0]=-0.5;
+      (*U)[0] = ( 3. / ((*Xpos)[1]-(*Xpos)[0])) * (((*Ypos)[1]-(*Ypos)[0]) / 
+                ((*Xpos)[1]-(*Xpos)[0]) - (*YP0)[0] );
+
+    }else{ 
+      // YP0 is omitted or equal to Inf
+      (*res)[0]=0.;
+      (*U)[0]=0.;
+    }
     
-    double psig, pu, x, xm, xp, y, ym, yp, p;
+    
+    double psig, pu, x, xm, xp, y, ym, yp, p, dx, qn;
 
     for (count = 1; count < nElpXpos-1; ++count) {
       x=(*Xpos)[count];
@@ -586,14 +599,31 @@ namespace lib {
       (*U)[count]=(6.00*pu-psig*(*U)[count-1])/p;
     }
 
-    //    for (SizeT count = 0; count < nElpXpos; ++count) {
-    //  cout<< " : " << count << " " << (*res)[count]  << " " << (*U)[count] << endl;
-    //}
+    BaseGDL* YderivN=e->GetKW(e->KeywordIx("YPN_1"));
+    DDoubleGDL* YPN;
 
-    for (count = nElpXpos-2; count > 0; count--)
-      (*res)[count] =(*res)[count]*(*res)[count+1]+(*U)[count];
+    if(YderivN !=NULL && !isinf((*(YPN=e->GetKWAs<DDoubleGDL>(e->KeywordIx("YPN_1"))))[0] )){ 
+    // first derivative at the point XN-1 is defined and different to Inf 
+      (*res)[nElpXpos-1] =0.;
+      qn=0.5;
 
+      dx=((*Xpos)[nElpXpos-1]-(*Xpos)[nElpXpos-2]);
+      (*U)[nElpXpos-1]= (3./dx)*((*YPN)[0]-((*Ypos)[nElpXpos-1]-(*Ypos)[nElpXpos-2])/dx);
+
+    }else{
+    // YPN_1 is omitted or equal to Inf
+      qn=0.;
+      (*U)[nElpXpos-1]=0.;
+    } 
+
+    (*res)[nElpXpos-1] =((*U)[nElpXpos-1]-qn*(*U)[nElpXpos-2])/(qn*(*res)[nElpXpos-2]+ 1.);
+
+    for (count = nElpXpos-2; count != -1; --count){
+       (*res)[count] =(*res)[count]*(*res)[count+1]+(*U)[count];
+    }
+      
     GM_CV0();
+    
   }
   
   BaseGDL* spl_interp_fun( EnvT* e)
