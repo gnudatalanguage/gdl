@@ -491,6 +491,7 @@
              - MAP_CONTINENTS
              - POLYFILL
              - RESOLVE_ROUTINE 
+             - SPHER_HARM
            - new keywords/calling sequences handled:
              - DEVICE, /INCHES, GET_SCREEN_SIZE
              - PRODUCT, /PRESERVE_TYPE, /INTEGER
