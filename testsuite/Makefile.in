@@ -182,6 +182,7 @@ TESTS = \
   test_fft.pro \
   test_fix.pro \
   test_gc.pro \
+  test_get_screen_size.pro \
   test_hist_2d.pro \
   test_idl8.pro \
   test_interpol.pro \
@@ -190,9 +191,9 @@ TESTS = \
   test_product.pro \
   test_rebin.pro \
   test_spher_harm.pro \
+  test_spl_init.pro \
   test_str_functions.pro \
   test_suite.pro \
-  test_get_screen_size.pro \
   test_url.pro \
   test_wavelet.pro \
   test_zeropoly.pro \
