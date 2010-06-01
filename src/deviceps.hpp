@@ -159,7 +159,7 @@ public:
     XPageSize=xs;
 
     (*static_cast<DLongGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("X_SIZE"))))[0] 
-      = DLong(
+      = floor(0.5+
         xs * (*static_cast<DFloatGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("X_PX_CM"))))[0]
       );
 
@@ -170,7 +170,7 @@ public:
     YPageSize=ys;
 
     (*static_cast<DLongGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("Y_SIZE"))))[0] 
-      = DLong(
+      = floor(0.5+
         ys * (*static_cast<DFloatGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("Y_PX_CM"))))[0]
       );
 
