@@ -1236,6 +1236,9 @@ namespace lib {
       }
     else
       {
+        if (!fileUnits[lun-1].IsOpen())
+          e->Throw("File unit is not open: " + i2s(lun));
+
 	compress = fileUnits[ lun-1].Compress();
 	if( !compress)
 		os = &fileUnits[ lun-1].OStream();
