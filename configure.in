@@ -569,17 +569,11 @@ fi
 dnl == FFTW ================================================
 dnl ========================================================
 
-AC_CHECK_LIB(fftw3, fftw_malloc, [
-dnl  do nothing
-], [
-if test "x$with_fftw" = "xauto"; then with_fftw=no;    fi
-])
-
-AC_CHECK_LIB(fftw3f, fftwf_malloc, [
-if test "x$with_fftw" = "xauto"; then with_fftw=yes;   fi
-], [
-if test "x$with_fftw" = "xauto"; then with_fftw=no;    fi
-])
+if test "x$with_fftw" = "xauto"; then 
+  AC_CHECK_LIB(fftw3, fftw_malloc, [
+    AC_CHECK_LIB(fftw3f, fftwf_malloc, [with_fftw=yes], [with_fftw=no])
+  ], [with_fftw=no])
+fi
 
 AC_ARG_WITH(fftw,	
 	[  --with-fftw[=DIR]         use FFTW package (with optional path DIR) ],
@@ -1081,7 +1075,7 @@ echo "
   HDF5:                `if test no = $with_hdf5;
     then echo 'no'; else echo yes; fi`
   FFTW:                `if test no = $with_fftw; 
-    then echo 'no  (GSL version used by default)'; else echo yes; fi`
+    then echo 'no  (GSL version used)'; else echo yes; fi`
   libproject:          `if test no = $with_libproj4;
     then echo 'no  (see also MAP_INSTALL)'; else echo yes; fi`
   MPICH:               `if test no = $with_mpich;
