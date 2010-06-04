@@ -11,6 +11,7 @@ TESTS = \
   test_hist_2d.pro \
   test_idl8.pro \
   test_interpol.pro \
+  test_memory.pro \
   test_multiroots.pro \
   test_nestedloop.pro \
   test_product.pro \
