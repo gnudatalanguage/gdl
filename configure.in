@@ -841,21 +841,31 @@ if test "x$with_grib" != "xno"; then
     LIBS="$LIBS -lgrib_api"
   fi
 
-  AC_CHECK_LIB(grib_api, grib_handle_new_from_file, [AC_DEFINE([USE_GRIB], [1], [Define if you want to use GRIB])], 
-    AC_MSG_CHECKING([if linking with Jasper helps])
-    echo ""
-    AC_CHECK_LIB(grib_api, grib_handle_clone, [
-      LIBS="$LIBS -ljasper"
+  AC_CHECK_LIB(grib_api, grib_handle_new_from_file, [
       AC_DEFINE([USE_GRIB], [1], [Define if you want to use GRIB])
-    ], [
+    ], [ 
+      AC_MSG_CHECKING([if linking with Jasper helps])
       echo ""
-      echo "Error! GRIB is required but was not found"
-      echo "       Use --with-grib=DIR to specify the GRIB directory tree"
-      echo "       Use --with-grib=no  to not use it"
-      echo "       Check the README or use configure --help for other libraries needed"
-      echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
-      exit -1
-    ], [-ljasper])
+      AC_CHECK_LIB(grib_api, grib_handle_clone, [
+        LIBS="$LIBS -ljasper"
+        AC_DEFINE([USE_GRIB], [1], [Define if you want to use GRIB])
+      ], [ 
+        AC_MSG_CHECKING([if linking with Jasper and OpenJPEG helps])
+        echo ""
+        AC_CHECK_LIB(grib_api, grib_handle_delete, [
+          LIBS="$LIBS -ljasper -lopenjpeg"
+          AC_DEFINE([USE_GRIB], [1], [Define if you want to use GRIB])
+        ], [
+          echo ""
+          echo "Error! GRIB is required but was not found"
+          echo "       Use --with-grib=DIR to specify the GRIB directory tree"
+          echo "       Use --with-grib=no  to not use it"
+          echo "       Check the README or use configure --help for other libraries needed"
+          echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
+          exit -1
+        ], [-ljasper -lopenjpeg])
+      ], [-ljasper])
+    ]
   )
 
 fi
