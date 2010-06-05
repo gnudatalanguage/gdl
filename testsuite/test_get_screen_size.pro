@@ -75,7 +75,12 @@ end
 ; ---------------------------------------------------
 ;
 pro TEST_GET_SCREEN_SIZE
-;
-TESTING_GET_SCREEN_SIZE, /exit_on_error
-;
+  ;
+  if getenv('DISPLAY') eq '' then begin
+    message, 'apparently no X connection is available (DISPLAY env. var. not set)', /conti
+    exit, status=77
+  endif 
+  ;
+  TESTING_GET_SCREEN_SIZE, /exit_on_error
+  ;
 end

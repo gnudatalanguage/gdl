@@ -190,6 +190,7 @@ TESTS = \
   test_multiroots.pro \
   test_nans_in_sort_and_median.pro \
   test_nestedloop.pro \
+  test_pmulti.pro \
   test_product.pro \
   test_rebin.pro \
   test_spher_harm.pro \
