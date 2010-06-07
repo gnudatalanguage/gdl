@@ -82,6 +82,11 @@ namespace lib {
 	}
 }
       }
+
+      // 02 06 2010
+      //cout << "fftw dest" << endl ;
+      fftw_destroy_plan(p); // 1 
+
     }
     else if( p0->Type() == COMPLEX) {
       float *dptrf;
@@ -107,6 +112,11 @@ namespace lib {
 	}
 }
       }
+
+      // 02 06 2010
+      //cout << "fftwF dest" << endl ;
+      fftwf_destroy_plan(p_f); // 2
+
     }
     
     return res;
@@ -165,6 +175,7 @@ namespace lib {
       DComplexDblGDL *p0C;
 
       auto_ptr<BaseGDL> guard_p0C;
+
       if( p0->Type() != COMPLEXDBL) {
 	p0C = static_cast<DComplexDblGDL*>(p0->Convert2( COMPLEXDBL, BaseGDL::COPY));
         guard_p0C.reset(p0C); 
@@ -190,6 +201,8 @@ namespace lib {
 
     }
   }
+
+
 } // namespace
 
 #endif // USE_FFTW
