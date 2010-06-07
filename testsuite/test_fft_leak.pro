@@ -47,14 +47,23 @@ if KEYWORD_SET(test) then STOP
 ;
 end
 
-pro TEST_FFT_LEAK, verbose=verbose, test=test, force=force
+pro TEST_FFT_LEAK, force=force, no_exit=no_exit, $
+                   verbose=verbose, test=test, help=help
 ;
-; /force will allow to skip the test on OS type ...
+if KEYWORD_SET(help) then begin
+   print, 'pro TEST_FFT_LEAK, force=force, no_exit=no_exit, $'
+   print, '                   help=help, test=test, verbose=verbose'
+endif
+;
+; /FORCE will allow to skip the test on OS type ...
 if NOT(KEYWORD_SET(force)) then begin
-    if (STRLOWCASE(!version.OS) NE 'darwin') then begin
-        MESSAGE, 'AC and LN 2010/06/07: because MEMORY() not working now on Linux', /continue
-        MESSAGE, 'AC and LN 2010/06/07: we cannont do these tests ...', /continue
-        EXIT, status=77
+   if (STRLOWCASE(!version.OS) NE 'darwin') then begin
+      txt='AC and LN 2010/06/07: '
+        MESSAGE, txt+'because MEMORY() not working now on Linux', /continue
+        MESSAGE, txt+'we cannot do these tests ...', /continue
+        MESSAGE, txt+'you can overpass this by using /FORCE'
+        ;;
+        if KEYWORD_SET(no_exit) then return else EXIT, status=77
     endif
 endif
 ;
@@ -74,7 +83,7 @@ endfor
 ;
 if nb_pb GT 0 then begin
     MESSAGE, STRING(nb_pb)+' case of memory leak when calling FFT have been found',/continue
-    EXIT, status=1
+    if NOT(KEYWORD_SET(no_exit)) then EXIT, status=1
 endif else begin
     MESSAGE, 'NO case of memory leak when calling FFT have been found',/continue
 endelse
