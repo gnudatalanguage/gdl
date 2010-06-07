@@ -559,6 +559,7 @@ namespace lib {
 
 	fft_1d( p0, &(*res)[0], nEl, offset, stride, 
 		direct, dbl, dimension);
+
     } else if ( p0->Rank() == 2) {
       stride=p0->Dim(0);
       for( SizeT i=0; i<p0->Dim(0); ++i) {
@@ -624,17 +625,21 @@ namespace lib {
 
     double direct=-1.0;
 
+
     if( nParam == 0)
       e->Throw( 
 			  "Incorrect number of arguments.");
 
-    BaseGDL* p0 = e->GetNumericArrayParDefined( 0);
+
+    //BaseGDL* p0 = e->GetNumericArrayParDefined( 0); 
+    BaseGDL* p0 = e->GetParDefined( 0);
 
     SizeT nEl = p0->N_Elements();
     if( nEl == 0)
       e->Throw( 
 			  "Variable is undefined: "+e->GetParString(0));
   
+
     if( nParam == 2) {
       BaseGDL* p1 = e->GetPar( 1);
       if (p1->N_Elements() > 1)
@@ -642,10 +647,13 @@ namespace lib {
 			    "Expression must be a scalar or 1 element array: "
 			    +e->GetParString(1));
 
+
+
       DDoubleGDL* direction = 
 	static_cast<DDoubleGDL*>(p1->Convert2( DOUBLE, BaseGDL::COPY));
       direct = GSL_SIGN((*direction)[0]);
     }
+
 
     if( e->KeywordSet(0)) dbl = 1;
     if( e->KeywordSet(1)) direct = +1.0;
@@ -662,12 +670,14 @@ namespace lib {
 
     if( p0->Type() == COMPLEXDBL || p0->Type() == DOUBLE || dbl) { 
 
+	//cout << "if 1" << endl;
       return fft_template< DComplexDblGDL> (p0, nEl, dbl, overwrite, 
 					    direct, dimension);
 
     }
     else if( p0->Type() == COMPLEX) {
 
+	//cout << "if 2" << endl;
       DComplexGDL* res;
 
       return fft_template< DComplexGDL> (p0, nEl, dbl, overwrite, 
@@ -681,15 +691,20 @@ namespace lib {
 	     p0->Type() == UINT ||
 	     p0->Type() == BYTE) {
 
+	//cout << "if 3" << endl;
       overwrite = 0;
       return fft_template< DComplexGDL> (p0, nEl, dbl, overwrite, 
 					 direct, dimension);
 
     } else {
-      DFloatGDL* res = static_cast<DFloatGDL*>
-	(p0->Convert2( FLOAT, BaseGDL::COPY));
+	//cout << "else" << endl;
 
-      return res;
+      overwrite = 0;
+      DComplexGDL* p0C = static_cast<DComplexGDL*>
+	(p0->Convert2( COMPLEX, BaseGDL::COPY));
+      auto_ptr<BaseGDL> guard_p0C( p0C); 
+      return fft_template< DComplexGDL> (p0C, nEl, dbl, overwrite, 
+					 direct,dimension); 
 
     }
   }
