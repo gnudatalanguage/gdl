@@ -2104,4 +2104,109 @@ template<>
     return a;             // `--->
   }
 
+
+  // SA: adapted from the GPL-licensed GNU plotutils (plotutils-2.5/ode/specfun.c)
+  // -----------------------------------------------------------------------------
+  template <typename T> 
+  T inverf (T p)               /* Inverse Error Function */
+  {
+  /*
+   * Source: This routine was derived (using f2c) from the Fortran
+   * subroutine MERFI found in ACM Algorithm 602, obtained from netlib.
+   *
+   * MDNRIS code is copyright 1978 by IMSL, Inc.  Since MERFI has been
+   * submitted to netlib, it may be used with the restrictions that it may
+   * only be used for noncommercial purposes, and that IMSL be acknowledged
+   * as the copyright-holder of the code.
+   */
+
+  /* Initialized data */
+  static T a1 = -.5751703,   a2 = -1.896513,   a3 = -.05496261,
+           b0 = -.113773,    b1 = -3.293474,   b2 = -2.374996,  b3 = -1.187515,
+           c0 = -.1146666,   c1 = -.1314774,   c2 = -.2368201,  c3 = .05073975,
+           d0 = -44.27977,   d1 = 21.98546,    d2 = -7.586103, 
+           e0 = -.05668422,  e1 = .3937021,    e2 = -.3166501,  e3 = .06208963,
+           f0 = -6.266786,   f1 = 4.666263,    f2 = -2.962883,
+           g0 = 1.851159e-4, g1 = -.002028152, g2 = -.1498384,  g3 = .01078639,
+           h0 = .09952975,   h1 = .5211733,    h2 = -.06888301;
+
+    /* Local variables */
+    static T a, b, f, w, x, y, z, sigma, z2, sd, wi, sn;
+
+    x = p;
+
+    /* determine sign of x */
+    sigma = (x > 0 ? 1.0 : -1.0);
+
+    /* Note: -1.0 < x < 1.0 */
+
+    z = abs(x);
+
+    /* z between 0.0 and 0.85, approx. f by a
+       rational function in z  */
+
+    if (z <= 0.85)
+    {
+      z2 = z * z;
+      f = z + z * (b0 + a1 * z2 / (b1 + z2 + a2 / (b2 + z2 + a3 / (b3 + z2))));
+    }
+    else  /* z greater than 0.85 */
+    {
+      a = 1.0 - z;
+      b = z;
+
+      /* reduced argument is in (0.85,1.0), obtain the transformed variable */
+
+      w = sqrt(-(T)log(a + a * b));
+
+      if (w >= 4.0)
+      /* w greater than 4.0, approx. f by a rational function in 1.0 / w */
+      {
+        wi = 1.0 / w;
+        sn = ((g3 * wi + g2) * wi + g1) * wi;
+        sd = ((wi + h2) * wi + h1) * wi + h0;
+        f = w + w * (g0 + sn / sd);
+      }
+      else if (w < 4.0 && w > 2.5)
+      /* w between 2.5 and 4.0, approx.  f by a rational function in w */
+      {
+        sn = ((e3 * w + e2) * w + e1) * w;
+        sd = ((w + f2) * w + f1) * w + f0;
+        f = w + w * (e0 + sn / sd);
+
+        /* w between 1.13222 and 2.5, approx. f by
+           a rational function in w */
+      }
+      else if (w <= 2.5 && w > 1.13222)
+      {
+        sn = ((c3 * w + c2) * w + c1) * w;
+        sd = ((w + d2) * w + d1) * w + d0;
+        f = w + w * (c0 + sn / sd);
+      }
+    }
+    y = sigma * f;
+
+    return y;
+  } 
+  // -----------------------------------------------------------------------------
+
+  BaseGDL* gdl_erfinv_fun(EnvT* e)
+  {
+    BaseGDL* p0 = e->GetNumericParDefined(0);    
+    SizeT n = p0->N_Elements();
+    static int doubleIx = e->KeywordIx("DOUBLE");
+    if (e->KeywordSet(doubleIx) || p0->Type() == DOUBLE)
+    {
+      DDoubleGDL *ret = new DDoubleGDL(dimension(n)), *p0d = e->GetParAs<DDoubleGDL>(0);
+      while (n != 0) --n, (*ret)[n] = inverf((*p0d)[n]);
+      return ret;
+    }
+    else
+    {
+      DFloatGDL *ret = new DFloatGDL(dimension(n)), *p0f = e->GetParAs<DFloatGDL>(0);
+      while (n != 0) --n, (*ret)[n] = inverf((*p0f)[n]); 
+      return ret;
+    }
+  }
+
 } // namespace

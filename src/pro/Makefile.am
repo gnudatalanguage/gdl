@@ -17,6 +17,7 @@ prolib_DATA = \
   hist_2d.pro \
   hist_nd.pro \
   identity.pro \
+  imsl_erf.pro \
   imsl_zerosys.pro \
   interpol.pro \
   ishft.pro \

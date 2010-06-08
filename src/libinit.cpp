@@ -804,6 +804,8 @@ void LibInit()
   new DLibFun(lib::zeropoly, string("IMSL_ZEROPOLY"), 1, zeropolyKey);
   const string spher_harmKey[] = {"DOUBLE", KLISTEND };
   new DLibFun(lib::spher_harm, string("SPHER_HARM"), 4, spher_harmKey);
+  const string gdl_erfinvKey[] = {"DOUBLE", KLISTEND };
+  new DLibFun(lib::gdl_erfinv_fun, string("GDL_ERFINV"), 1, gdl_erfinvKey);
 
   // sort lists
   sort( libFunList.begin(), libFunList.end(), CompLibFunName());

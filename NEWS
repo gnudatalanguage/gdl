@@ -485,15 +485,12 @@
 	     the last and so on. E.g.: array[-7:-5]
            - new widget features incl. WIDGET_DROPLIST
            - automatic garbage collection
-           - numerous bugfixes (incl. SAVE/RESTORE)
-           - new routines: 
-             - HIST_2D
-             - MAP_CONTINENTS
-             - POLYFILL
-             - RESOLVE_ROUTINE 
-             - SPHER_HARM
+           - numerous bugfixes (incl. SAVE/RESTORE, FFT, WRITEU, ...)
+           - new routines: HIST_2D, INTERPOL, MAP_CONTINENTS, POLYFILL, 
+             RESOLVE_ROUTINE, SPHER_HARM, IMSL_ERF
            - new keywords/calling sequences handled:
              - DEVICE, /INCHES, GET_SCREEN_SIZE
              - PRODUCT, /PRESERVE_TYPE, /INTEGER
              - REBIN: support for specifying new dimensions as an array
              - TOTAL, /PRESERVE_TYPE
+           - new test routines (invoked during "make check")

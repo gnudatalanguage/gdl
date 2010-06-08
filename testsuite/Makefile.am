@@ -4,6 +4,7 @@ TESTS = \
   test_base64.pro \
   test_constants.pro \
   test_device.pro \
+  test_erfinv.pro \
   test_fft.pro \
   test_fft_leak.pro \
   test_fix.pro \
