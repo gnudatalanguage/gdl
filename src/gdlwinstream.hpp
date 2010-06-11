@@ -22,8 +22,8 @@
 
 class GDLWINStream: public GDLGStream
 {
-  Atom wm_protocols;
-  Atom wm_delete_window;
+  //Atom wm_protocols;
+  //Atom wm_delete_window;
 
   PLStream* pls;
 

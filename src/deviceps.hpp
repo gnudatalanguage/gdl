@@ -20,6 +20,7 @@
 
 //#include "dstructgdl.hpp"
 #include "gdlpsstream.hpp"
+#include "initsysvar.hpp"
 
 class DevicePS: public Graphics
 {

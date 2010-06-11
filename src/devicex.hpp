@@ -18,6 +18,9 @@
 #ifndef DEVICEX_HPP_
 #define DEVICEX_HPP_
 
+#ifndef HAVE_X
+#else
+
 #include <algorithm>
 #include <vector>
 #include <cstring>
@@ -880,5 +883,7 @@ public:
 
 };
 
+
+#endif
 
 #endif

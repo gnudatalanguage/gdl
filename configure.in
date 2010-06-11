@@ -900,6 +900,19 @@ if test "x$with_gshhs" != "xno"; then
 
 fi
 
+dnl == Xlib ================================================
+dnl ========================================================
+
+AC_PATH_X
+if test "x$no_x" = "xyes"; then
+  echo ""
+  echo "Warning! X Window System not detected, building with Xlib calls disabled"
+  echo "         Use --x-includes=DIR and --x-libraries=DIR to pass any needed paths"
+  echo ""
+else
+  AC_DEFINE([HAVE_X], [1], [Define if you want to enable calls to Xlib])
+fi
+
 dnl == installation paths ==================================
 dnl ========================================================
 
@@ -1102,6 +1115,8 @@ echo "
     then echo 'no  (needs explicit enabling)'; else echo yes; fi`
   GSHHS:               `if test no = $with_gshhs;
     then echo 'no  (see also MAP_INSTALL)'; else echo yes; fi`
+  Xlib:                `if test xyes = x$no_x;
+    then echo 'no'; else echo yes; fi`
   ----- notes on auxiliary files: ----------------------
   - consult MAP_INSTALL for details concerning auxiliary
     files needed for mapping support

@@ -24,7 +24,12 @@
 extern "C" {
 #endif
 
-#include <wordexp.h>
+// quoting http://permalink.gmane.org/gmane.os.openbsd.tech/19860 :
+// 'wordexp() will never be in OpenBSD's libc' :)
+// (TODO: perhaps better to implement it using HAVE_WORDEXP_H? + once more below in WordExp())
+#if !defined(__OpenBSD__)
+#  include <wordexp.h>
+#endif
 
 #ifdef __CYGWIN__
 }
@@ -239,17 +244,19 @@ unsigned long int Str2UL( const string& s, int base)
 
 void WordExp( string& s)
 {
+#if !defined(__OpenBSD__)
   wordexp_t p;
   int ok0 = wordexp( s.c_str(), &p, 0);
   if( ok0 == 0) 
     {
       if( p.we_wordc > 0)
 	s = p.we_wordv[0];
-#if defined(__APPLE__)
+#  if defined(__APPLE__)
       p.we_offs = 0;
-#endif
+#  endif
       wordfree( &p);
     }
+#endif
 }
 
 // Tries to find file "fn" along GDLPATH.

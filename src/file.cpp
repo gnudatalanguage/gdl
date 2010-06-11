@@ -39,12 +39,18 @@
 #include <fnmatch.h>
 
 // workaround for HP-UX. A better solution is needed i think
-#if defined(__hpux__) || defined(__sun__)
+//#if defined(__hpux__) || defined(__sun__)
+#if !defined(GLOB_TILDE)
 #  define GLOB_TILDE 0
+#endif
+#if !defined(GLOB_BRACE)
 #  define GLOB_BRACE 0
 #endif
-#if defined(__hpux__) || defined(__sun__) || defined(__CYGWIN__)
+//#if defined(__hpux__) || defined(__sun__) || defined(__CYGWIN__) || defined(__OpenBSD__)
+#if !defined(GLOB_ONLYDIR)
 #  define GLOB_ONLYDIR 0
+#endif
+#if !defined(GLOB_PERIOD)
 #  define GLOB_PERIOD 0
 #endif
 

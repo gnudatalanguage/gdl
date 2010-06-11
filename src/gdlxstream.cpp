@@ -16,11 +16,13 @@
  ***************************************************************************/
 
 #include "includefirst.hpp"
-
 #include <iostream>
 
 #include "graphics.hpp"
 #include "gdlxstream.hpp"
+
+#ifndef HAVE_X
+#else
 
 using namespace std;
 
@@ -190,3 +192,5 @@ void GDLXStream::Lower()
   XwDisplay *xwd = (XwDisplay *) dev->xwd;
   XLowerWindow(dev->xwd->display, dev->window);
 }
+
+#endif

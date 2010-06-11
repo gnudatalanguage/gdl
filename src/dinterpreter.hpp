@@ -27,7 +27,20 @@
 
 #ifdef __cplusplus
   extern "C" {
+#if defined(__OpenBSD__)
+// SA: based on http://ftp2.cz.freesbie.org/pub/FreeBSD-cvs/gnats/i386/75862
+#  include <ieeefp.h>
+#  define feclearexcept(e)	(void)fpsetsticky(~((fp_except)(e)))
+#  define fetestexcept(e)	((int)(fpgetsticky() & (fp_except)(e)))
+#  define FE_ALL_EXCEPT 	(FP_X_INV | FP_X_DNML | FP_X_DZ | FP_X_OFL | FP_X_UFL | FP_X_IMP)
+#  define FE_DIVBYZERO		FP_X_DZ
+#  define FE_INEXACT		FP_X_IMP
+#  define FE_INVALID		FP_X_INV
+#  define FE_OVERFLOW		FP_X_OFL
+#  define FE_UNDERFLOW		FP_X_UFL
+#else
 #  include <fenv.h>
+#endif
     //#  if defined(__FreeBSD__)
 #    pragma STDC FENV_ACCESS ON
     //#  endif

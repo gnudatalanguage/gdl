@@ -38,7 +38,7 @@
 #include <unistd.h>
 #endif
 
-#if defined(__FreeBSD__) || defined(__sun__)
+#if defined(__FreeBSD__) || defined(__sun__) || defined(__OpenBSD__)
 extern "C" char **environ;
 #endif
 

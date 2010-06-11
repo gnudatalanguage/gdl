@@ -20,6 +20,9 @@
 
 #include "gdlgstream.hpp"
 
+#ifndef HAVE_X
+#else
+
 class GDLXStream: public GDLGStream
 {
   Atom wm_protocols;
@@ -49,5 +52,7 @@ public:
   void Raise();
   void Lower();
 };
+
+#endif
 
 #endif

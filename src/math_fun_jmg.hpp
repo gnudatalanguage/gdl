@@ -18,15 +18,6 @@
 #ifndef MATH_FUN_HPP_
 #define MATH_FUN_HPP_
 
-#ifdef __cplusplus
-  extern "C" {
-#  include <fenv.h>
-    //#  if defined(__FreeBSD__)
-#    pragma STDC FENV_ACCESS ON
-    //#  endif
-}
-#endif
-
 #include "datatypes.hpp"
 #include "envt.hpp"
 #include "math_utl.hpp"

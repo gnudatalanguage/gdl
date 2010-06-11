@@ -71,6 +71,9 @@ namespace lib {
     
     if( e->KeywordPresent( get_screen_sizeIx))
       {
+#ifndef HAVE_X
+        e->Throw("GDL was compiled without support for X-windows");
+#else
 	// see below in Function "get_scren_size()" explanations ...
 	Display* display = XOpenDisplay(NULL);
 	if (display == NULL)
@@ -89,6 +92,7 @@ namespace lib {
 	(*res)[0]= screen_width;
 	(*res)[1]= screen_height;
 	e->SetKW( get_screen_sizeIx, res);
+#endif
       }
 
 
@@ -157,12 +161,16 @@ namespace lib {
         if ((*static_cast<DStringGDL*>( dStruct->GetTag( nameTag, 0)))[0] != "X")
           e->Throw("GET_VISUAL_DEPTH is not supported by current device");
       }
+#ifndef HAVE_X
+      e->Throw("GDL was compiled without support for X-windows");
+#else
       Display* display = XOpenDisplay(NULL);
       if (display == NULL) 
         e->Throw("Cannot connect to X server");
       int depth = DefaultDepth(display, DefaultScreen(display));
       XCloseDisplay(display);
       e->SetKW( get_visual_depthIx, new DLongGDL( depth));
+#endif
     }
 
     BaseGDL* fileName = e->GetKW( fileNameIx);
@@ -946,6 +954,9 @@ namespace lib {
   BaseGDL* get_screen_size( EnvT* e)
   //void GetScreenSize( EnvT* e)
   {
+#ifndef HAVE_X
+    e->Throw("GDL was compiled without support for X-windows");
+#else
     SizeT nParam=e->NParam(); 
     
     if ( nParam > 1) e->Throw( "Incorrect number of arguments.");
@@ -1015,6 +1026,7 @@ namespace lib {
     (*res)[0]=screen_width;
     (*res)[1]=screen_height;
     return res->Convert2(FLOAT, BaseGDL::CONVERT);
+#endif
   }
 
 

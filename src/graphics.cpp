@@ -23,9 +23,9 @@
 #include "objects.hpp"
 #include "graphics.hpp"
 #ifdef _MSC_VER
-#include "devicewin.hpp"
+#  include "devicewin.hpp"
 #else
-#include "devicex.hpp"
+#  include "devicex.hpp"
 #endif
 #include "deviceps.hpp"
 #include "devicesvg.hpp"
@@ -147,7 +147,10 @@ void Graphics::Init()
 #ifdef _MSC_VER
   deviceList.push_back( new DeviceWIN());
 #else
+#  ifndef HAVE_X
+#  else
   deviceList.push_back( new DeviceX());
+#  endif
 #endif
   deviceList.push_back( new DevicePS());
   deviceList.push_back( new DeviceSVG());
@@ -156,12 +159,18 @@ void Graphics::Init()
 #ifdef _MSC_VER
   if( !SetDevice( "WIN")) 
 #else
+#  ifndef HAVE_X
+#  else
   if( !SetDevice( "X")) 
+#  endif
 #endif
+#  ifndef HAVE_X
+#  else
     {
     cerr << "Error initializing graphics." << endl;
     exit( EXIT_FAILURE);
     }
+#  endif
 }
 
 void Graphics::DestroyDevices()

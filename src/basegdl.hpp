@@ -33,6 +33,13 @@
 #ifdef HAVE_MALLOC_MALLOC_H
 #  include <malloc/malloc.h>
 #endif
+#if !defined(HAVE_MALLINFO) 
+#  if (!defined(HAVE_MALLOC_ZONE_STATISTICS) || !defined(HAVE_MALLOC_MALLOC_H))
+#    if defined(HAVE_SBRK)
+#      include <unistd.h>
+#    endif
+#  endif
+#endif
 
 // GDL typecodes
 enum DType {  // Object types (IDL type numbers)

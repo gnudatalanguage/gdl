@@ -19,7 +19,11 @@
 #define GDLGSTREAM_HPP_
 
 #include <plplot/plstream.h>
-#include <plplot/plxwd.h>
+#include <plplot/plstrm.h>
+#ifndef HAVE_X
+#else
+#  include <plplot/plxwd.h>
+#endif
 #include <plplot/plplot.h>
 #include <string>
 #include <iostream>
