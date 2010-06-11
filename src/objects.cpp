@@ -111,26 +111,39 @@ void InitStructs()
   // insert into structList
   structList.push_back(gdl_size);
 
-  DStructDesc* fstat = new DStructDesc( "FSTAT");
-  fstat->AddTag("UNIT", &aLong);
-  fstat->AddTag("NAME", &aString);
-  fstat->AddTag("OPEN", &aByte);
-  fstat->AddTag("ISATTY", &aByte);
-  fstat->AddTag("ISAGUI", &aByte);
-  fstat->AddTag("INTERACTIVE", &aByte);
-  fstat->AddTag("XDR", &aByte);
-  fstat->AddTag("COMPRESS", &aByte);
-  fstat->AddTag("READ", &aByte);
-  fstat->AddTag("WRITE", &aByte);
-  fstat->AddTag("ATIME", &aLong64);
-  fstat->AddTag("CTIME", &aLong64);
-  fstat->AddTag("MTIME", &aLong64);
-  fstat->AddTag("TRANSFER_COUNT", &aLong);
-  fstat->AddTag("CUR_PTR", &aLong);
-  fstat->AddTag("SIZE", &aLong);
-  fstat->AddTag("REC_LEN", &aLong);
-  // insert into structList
-  structList.push_back( fstat);
+  for (int big = 1; big >= 0; --big) 
+  {
+    DStructDesc* fstat = new DStructDesc( big ? "FSTAT64" : "FSTAT");
+    fstat->AddTag("UNIT", &aLong);
+    fstat->AddTag("NAME", &aString);
+    fstat->AddTag("OPEN", &aByte);
+    fstat->AddTag("ISATTY", &aByte);
+    fstat->AddTag("ISAGUI", &aByte);
+    fstat->AddTag("INTERACTIVE", &aByte);
+    fstat->AddTag("XDR", &aByte);
+    fstat->AddTag("COMPRESS", &aByte);
+    fstat->AddTag("READ", &aByte);
+    fstat->AddTag("WRITE", &aByte);
+    fstat->AddTag("ATIME", &aLong64);
+    fstat->AddTag("CTIME", &aLong64);
+    fstat->AddTag("MTIME", &aLong64);
+    if (big)
+    {
+      fstat->AddTag("TRANSFER_COUNT", &aLong64);
+      fstat->AddTag("CUR_PTR", &aLong64);
+      fstat->AddTag("SIZE", &aLong64);
+      fstat->AddTag("REC_LEN", &aLong64);
+    }
+    else
+    {
+      fstat->AddTag("TRANSFER_COUNT", &aLong);
+      fstat->AddTag("CUR_PTR", &aLong);
+      fstat->AddTag("SIZE", &aLong);
+      fstat->AddTag("REC_LEN", &aLong);
+    }
+    // insert into structList
+    structList.push_back( fstat);
+  }
 
   DStructDesc* finfo = new DStructDesc("FILE_INFO");
   finfo->AddTag("NAME", &aString);

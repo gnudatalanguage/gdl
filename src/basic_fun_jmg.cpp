@@ -189,7 +189,16 @@ namespace lib {
       throw GDLException( e->CallingNode(), 
 			  "FSTAT:  File unit is not within allowed range.");
 
-    DStructGDL*  fstat = new DStructGDL( "FSTAT");
+    SizeT size;
+    bool big = false;
+    if (lun > 0)
+    {
+      size = fileUnits[ lun-1].Size();
+      big = (DLong(size) != size);
+    }
+    DStructGDL* fstat;
+    if (big) fstat = new DStructGDL( "FSTAT64");
+    else fstat = new DStructGDL( "FSTAT");
    
     fstat->InitTag("UNIT", DLongGDL( lun));
 
@@ -243,7 +252,8 @@ namespace lib {
 	int status = stat(actUnit.Name().c_str(), &buffer);
 
 	fstat->InitTag("NAME", DStringGDL( actUnit.Name()));
-	fstat->InitTag("SIZE", DLongGDL( actUnit.Size())); 
+	if (big) fstat->InitTag("SIZE", DLong64GDL( size)); 
+        else fstat->InitTag("SIZE", DLongGDL( size));
 	fstat->InitTag("OPEN", DByteGDL( 1)); 
 	// fstat->InitTag("ISATTY", DByteGDL( 0)); 
 	// fstat->InitTag("ISAGUI", DByteGDL( 0)); 
@@ -254,7 +264,8 @@ namespace lib {
 	fstat->InitTag("ATIME", DLong64GDL( buffer.st_atime)); 
 	fstat->InitTag("CTIME", DLong64GDL( buffer.st_ctime)); 
 	fstat->InitTag("MTIME", DLong64GDL( buffer.st_mtime)); 
-        fstat->InitTag("CUR_PTR", DLongGDL( actUnit.Tell()));
+        if (big) fstat->InitTag("CUR_PTR", DLong64GDL( actUnit.Tell()));
+        else fstat->InitTag("CUR_PTR", DLongGDL( actUnit.Tell()));
       }
 
     return fstat;
