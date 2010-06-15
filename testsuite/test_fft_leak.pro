@@ -1,6 +1,6 @@
 ;
 ; do the call to FFTw give Memory leaks ?
-; (maybe we can generalyse such tests on other por/funct ?)
+; (maybe we can generalyse such tests on other pro/func ?)
 ;
 ; Lea Noreskal and Alain Coulais
 ; Mai 2010
@@ -59,9 +59,9 @@ endif
 if NOT(KEYWORD_SET(force)) then begin
    if (STRLOWCASE(!version.OS) NE 'darwin') then begin
       txt='AC and LN 2010/06/07: '
-        MESSAGE, txt+'because MEMORY() not working now on Linux', /continue
-        MESSAGE, txt+'we cannot do these tests ...', /continue
-        MESSAGE, txt+'you can overpass this by using /FORCE'
+        MESSAGE, /continue, txt+'because MEMORY() not working now on Linux'
+        MESSAGE, /continue, txt+'we cannot do these tests ...'
+        MESSAGE, /continue, txt+'you can overpass this by using /FORCE'
         ;;
         if KEYWORD_SET(no_exit) then return else EXIT, status=77
     endif
@@ -82,10 +82,10 @@ for ii=0, 15 do begin
 endfor
 ;
 if nb_pb GT 0 then begin
-    MESSAGE, STRING(nb_pb)+' case of memory leak when calling FFT have been found',/continue
+    MESSAGE, /continue, STRING(nb_pb)+' case of memory leak when calling FFT have been found'
     if NOT(KEYWORD_SET(no_exit)) then EXIT, status=1
 endif else begin
-    MESSAGE, 'NO case of memory leak when calling FFT have been found',/continue
+    MESSAGE, /continue, 'NO case of memory leak when calling FFT have been found'
 endelse
 ;
 if KEYWORD_SET(test) then STOP
