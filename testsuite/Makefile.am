@@ -19,6 +19,7 @@ TESTS = \
   test_nestedloop.pro \
   test_pmulti.pro \
   test_product.pro \
+  test_readf.pro \
   test_rebin.pro \
   test_spher_harm.pro \
   test_spl_init.pro \
