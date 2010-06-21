@@ -7,6 +7,7 @@
 ; MODIFICATION HISTORY:
 ;   01-Sep-2006 : written by Joel Gales
 ;   14-Apr-2010 : Alain Coulais : complete re-writing
+;   18-Jun-2010 : Alain Coulais and Lea N.: mandatory usage of /preserve_null
 ;
 ; LICENCE:
 ; Copyright (C) 2006, J. Gales
@@ -42,8 +43,8 @@ if KEYWORD_SET(escape) then begin
     MESSAGE, /continue, 'PLEASE CONTRIBUTE'
 endif
 
-if (STRLEN(sep) EQ 1) then res=STRSPLIT(str,sep, /extract)
-if (STRLEN(sep) GT 1) then res=STRSPLIT(str,sep, /regex, /extract)
+if (STRLEN(sep) EQ 1) then res=STRSPLIT(str,sep, /extract, /preserve_null)
+if (STRLEN(sep) GT 1) then res=STRSPLIT(str,sep, /regex, /extract, /preserve_null)
 ;
 nb_parts=N_ELEMENTS(res)
 ;
@@ -79,4 +80,18 @@ function OLD_STR_SEP, str, sep
   endfor
 
   return, res
+end
+;
+; --------- please add tests here ------------
+;
+pro TEST_STR_SEP, test=test
+;
+resu1=STR_SEP('../foo.txt','.')
+if n_elements(resu1) NE 4 then MESSAGE, 'problem 1'
+if resu1[3] NE '/foo' then MESSAGE, 'problem 1bis'
+if resu1[4] NE 'txt' then MESSAGE, 'problem 1ter'
+MESSAGE, /continue, 'First test OK'
+;
+if KEYWORD_SET(test) then STOP
+;
 end
