@@ -200,10 +200,9 @@
 	  and Inf values, add Nlevels= and /Fill
 	  Two new projections in MAP_SET: Satellite and Robinson
 	  Preliminary version for Width parameter in MEDIAN()
-	  add SPL_INIT() and SPL_INTERP() (GDL syntax)
+	  initial import for SPL_INIT() and SPL_INTERP() (GDL syntax)
 
 0.9rc2:   undocumented BYTSCL accepting three parameters (value,min,max)
-	  initial import for SPL_INIT() and SPL_INTERP()
 	  g++ 4.3 compatibility
 	  ignore something like a=(a=a) (so it is allowed even if a is undefined)
 	  accept self assignment of undefined variables
@@ -475,7 +474,7 @@
              test_plotting_ranges.pro, test_grib.pro, test_poly2d.pro, test_wavelet.pro
            - inclusion of some of the test-routines in the "make check" rule
            - quick_start_GDL.sh script 
-           - making the initial "DECOMPOSED" setting of the X device dependtant on the colour 
+           - making the initial "DECOMPOSED" setting of the X device dependant on the colour 
              depth reported by the X-server
 
 0.9rc5:	    
@@ -485,7 +484,9 @@
 	     the last and so on. E.g.: array[-7:-5]
            - new widget features incl. WIDGET_DROPLIST
            - automatic garbage collection
-           - numerous bugfixes (incl. SAVE/RESTORE, FFT, WRITEU, ...)
+           - numerous bugfixes (incl. SAVE/RESTORE, WRITEU, ...)
+           - memory leak in FFT when using FFTw lib should be solved
+           - all input types OK in FFT when using GSL FFT
            - new routines: HIST_2D, INTERPOL, MAP_CONTINENTS, POLYFILL, 
              RESOLVE_ROUTINE, SPHER_HARM, IMSL_ERF
            - new keywords/calling sequences handled:
@@ -493,4 +494,9 @@
              - PRODUCT, /PRESERVE_TYPE, /INTEGER
              - REBIN: support for specifying new dimensions as an array
              - TOTAL, /PRESERVE_TYPE
+             - FILE_SEARCH, /FOLD_CASE
+             - STRSPLIT, /preserve_null
            - new test routines (invoked during "make check")
+           - DIALOG_PICKFILE, based on Zenity, OK on most Linux and OSX
+           - FILE_DELETE, FILE_COPY and FILE_EXPAND_PATH
+	   - SPL_INIT: now y0= and yn_1= ready
