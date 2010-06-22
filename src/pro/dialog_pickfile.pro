@@ -117,7 +117,10 @@
 ; This function try to reproduce the IDL's DIALOG_PICKFILE
 ; behavior using "zenity".
 ;
-; zenity, under GNU GPL, is available on most Linux distributions and also on OSX
+; zenity, under GNU GPL, is available in package on most Linux
+; distributions (available and tested on CentOS 5.4, Mandriva 2010 and Ubuntu
+; 9.04)
+; Also on OSX: http://zenity.darwinports.com/
 ;
 ; Since the implementation use Zenity as File Selector, 
 ; some functionalities are different from the original one
@@ -166,7 +169,7 @@ if KEYWORD_SET(help) then begin
     print, '           TITLE=title, '
     print, '           ZENITY_NAME=zenity_name, ZENITY_PATH=zenity_path, $'
     print, '           HELP=help, test=test, debug=debug, verbose=verbose'
-    return, -1
+    return, ''
 endif
 ; name
 if (N_ELEMENTS(zenity_name) EQ 0) then ZenityName='zenity' else ZenityName=zenity_name
@@ -176,7 +179,7 @@ alt_ZenityPath=GETENV('ZENITY_PATH')
 if (N_ELEMENTS(zenity_path) GT 0) and (alt_ZenityPath NE '') then begin
     if ~STRCMP(zenity_path,alt_ZenityPath) then begin
         MESSAGE, /continue, 'You setup 2 different PATH to Zenity, please fix it !'
-        return, -1
+        return, ''
     endif
     ;; the two paths are the same ...
     ZenityPath=zenity_path
@@ -220,14 +223,19 @@ endif else begin
         MESSAGE, /continue, 'Multiple zenity found !'
         MESSAGE, /continue, 'Please select the good one using shell variables'
         MESSAGE, /continue, '($PATH or $ZENITY_PATH) or keyword ZENITY_PATH='
-        return, -1
+        return, ''
     endif
     if (list_zenity eq '') then begin
         MESSAGE, /continue, 'Zenity not found ! Zenity must be installed or in your PATH.'
         MESSAGE, /continue, 'Your current path is : '+GETENV('PATH')
         MESSAGE, /continue, 'You can give a path to Zenity with keyword ZENITY_PATH='
         MESSAGE, /continue, 'or using shell $ZENITY_PATH'
-        return, -1
+        if (STRLOWCASE(!version.OS) EQ 'darwin') then begin
+            MESSAGE, /continue, ' '
+            MESSAGE, /continue, 'How to install "zenity" on OSX ? Please have a look here:'
+            MESSAGE, /continue, 'http://zenity.darwinports.com/'
+        endif
+        return, ''
     endif
     ;; here we have one and only one no-null path-to-zenity !
     zen=list_zenity
