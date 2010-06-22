@@ -580,6 +580,47 @@ namespace lib {
       }
   }
 
+// Make s string case-insensitive for glob()
+void makeInsensitive(DString &s)
+{
+	DString insen;
+	char coupleBracket[5]={'[',0,0,']',0};
+	char couple[3]={0};
+	bool bracket=false;
+	
+	for(size_t i=0;i<s.size();i++) 
+		if((s[i]>='A' && s[i]<='Z') || (s[i]>='a' && s[i]<='z'))
+		{
+			char m,M;
+			if(s[i]>='a' && s[i]<='z')
+				m=s[i],M=m+'A'-'a';
+			else
+				M=s[i],m=M-'A'+'a';
+
+			if(bracket) // If bracket is open, then don't add bracket
+				couple[0]=m,couple[1]=M,insen+=couple;
+			else // else [aA]
+				coupleBracket[1]=m,coupleBracket[2]=M,insen+=coupleBracket;
+		}
+		else
+		{
+			if(s[i]=='[')
+			{
+				bracket=false;
+				for(size_t ii=i;ii<s.size();ii++) // Looking for matching right bracket
+					if(s[ii]==']') { bracket=true; break; }
+
+				if(bracket) insen+=s[i];
+				else insen+="[[]";
+			}
+			else if(s[i]==']' && s[(!i?0:i-1)]!='[')
+				bracket=false, insen+=s[i];
+			else
+				insen+=s[i];
+		}
+	s.swap(insen);
+}
+
   void FileSearch( FileListT& fL, const DString& s, 
 		   bool environment,
 		   bool tilde,
@@ -753,7 +794,9 @@ namespace lib {
 
     // ...
     if( fold_case)
-      Warning( "FILE_SEARCH: FOLD_CASE keyword ignored (not supported).");
+	for(SizeT f=0; f < nPath; ++f)
+		makeInsensitive((*pathSpec)[0]);
+
     if( match_all_dot)
       Warning( "FILE_SEARCH: MATCH_ALL_INITIAL_DOT keyword ignored (not supported).");
 
