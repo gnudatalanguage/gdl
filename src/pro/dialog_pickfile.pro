@@ -120,7 +120,7 @@
 ; zenity, under GNU GPL, is available in package on most Linux
 ; distributions (available and tested on CentOS 5.4, Mandriva 2010 and Ubuntu
 ; 9.04)
-; Also on OSX: http://zenity.darwinports.com/
+; Also on OSX: http://www.macports.org/ports.php?by=name&substr=zenity
 ;
 ; Since the implementation use Zenity as File Selector, 
 ; some functionalities are different from the original one
@@ -233,7 +233,7 @@ endif else begin
         if (STRLOWCASE(!version.OS) EQ 'darwin') then begin
             MESSAGE, /continue, ' '
             MESSAGE, /continue, 'How to install "zenity" on OSX ? Please have a look here:'
-            MESSAGE, /continue, 'http://zenity.darwinports.com/'
+            MESSAGE, /continue, 'http://www.macports.org/ports.php?by=name&substr=zenity'
         endif
         return, ''
     endif
