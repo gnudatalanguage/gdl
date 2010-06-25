@@ -682,6 +682,7 @@ void makeInsensitive(DString &s)
         pattern = GetCWD();
         pattern.append("/");
         pattern.append(s);
+	if(!( s.size() ==1 && s.at(0) == '.')) pattern.append(s);
         gRes = glob(pattern.c_str(), flags, NULL, &p);
       }
       else 
