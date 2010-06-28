@@ -56,12 +56,13 @@
 ; EXAMPLE:   
 ;
 ; print, file_basename('/usr/local/rsi/idl/lib/dist.pro', '.pro')  
-; IDL prints: 
+; GDL prints: 
 ; dist  
 ;
 ; MODIFICATION HISTORY:
 ;   - Sept 2007: created by Sebastien Masson
 ;   - Sept 2007: managing insufficient numbers of parameters, /help
+;   - June 2010: escape special characters by Lea Noreskal
 ;
 ;-
 ; LICENCE:
@@ -73,29 +74,33 @@
 ;-
 ;
 FUNCTION FILE_BASENAME, Path, RemoveSuffix, FOLD_CASE = fold_case, help=help
-  on_error, 2
+;
+ON_ERROR, 2
 ;
 if KEYWORD_SET(help) then begin
    print, 'FUNCTION FILE_BASENAME, Path, [RemoveSuffix], [/FOLD_CASE], [/help]'
    return, -1
 endif
 ;
-IF ((N_PARAMS() LT 1) OR (N_PARAMS() GT 2)) THEN BEGIN
-   message, 'Incorrect number of arguments.'
-ENDIF
+if ((N_PARAMS() LT 1) OR (N_PARAMS() GT 2)) then begin
+   MESSAGE, 'Incorrect number of arguments.'
+endif
 ;
-IF KEYWORD_SET(fold_case) THEN BEGIN
-    message, 'Sorry, Keyword fold_case is not available now.'
-ENDIF
+IF KEYWORD_SET(fold_case) then begin
+    MESSAGE, 'Sorry, Keyword FOLD_CASE is not available now.'
+endif
+;
+sfx = N_ELEMENTS(RemoveSuffix) NE 0 ? RemoveSuffix : ''
+result = STRARR(N_ELEMENTS(Path))
+;
+for i = 0, N_ELEMENTS(path) - 1 do begin
+  if STRTRIM(path[i], 2) ne '' then begin
+    SPAWN, '\basename ' + ESCAPE_SPECIAL_CHAR(path[i]) + ' ' + ESCAPE_SPECIAL_CHAR(sfx), res
+    result[i] = TEMPORARY(res)
+  endif else result[i] = path[i]
+endfor
+;
+return, SIZE(path, /n_dim) eq 0 ? result[0] : result
+;
+end
 
-SFX = N_ELEMENTS(RemoveSuffix) NE 0 ? RemoveSuffix : ''
-RESULT = STRARR(N_ELEMENTS(Path))
-FOR I = 0, N_ELEMENTS(Path) - 1 DO BEGIN
-  IF STRTRIM(PATH[I], 2) NE '' THEN BEGIN
-    SPAWN, '\basename ' + PATH[I] + ' ' + SFX, RES
-    RESULT[I] = TEMPORARY(RES)
-  ENDIF ELSE RESULT[I] = PATH[I]
-ENDFOR
-
-return, size(path, /N_DIM) eq 0 ? result[0] : result
-END

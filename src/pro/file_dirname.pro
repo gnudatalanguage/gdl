@@ -67,6 +67,7 @@
 ; MODIFICATION HISTORY:
 ;   - Sept 2007: created by Sebastien Masson
 ;   - Setp 2007: mananing wrong numbers of parameters, /help
+;   - June 2010: escape special characters by Lea Noreskal
 ;
 ;-
 ; LICENCE:
@@ -81,17 +82,18 @@ FUNCTION FILE_DIRNAME, Path, MARK_DIRECTORY = mark_directory, help=help
   on_error, 2
 ;
 if KEYWORD_SET(help) then begin
-   print, 'FUNCTION FILE_DIRNAME, Path [, /mark_directory] [, /help]'
+   PRINT, 'FUNCTION FILE_DIRNAME, Path [, /mark_directory] [, /help]'
    return, -1
 endif
 ;
 IF (N_PARAMS() NE 1) THEN BEGIN
-   message, 'Incorrect number of arguments.'
+   MESSAGE, 'Incorrect number of arguments.'
 ENDIF
 ;
-command = '\dirname ' + Path
-spawn, command, result
-IF keyword_set(mark_directory) THEN result = result + path_sep()
+command = '\dirname ' + ESCAPE_SPECIAL_CHAR(Path)
+SPAWN, command, result
+;
+IF KEYWORD_SET(mark_directory) THEN result = result + PATH_SEP()
 ;
 return, result
 ;
