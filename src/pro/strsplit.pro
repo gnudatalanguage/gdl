@@ -17,14 +17,14 @@
 ;   17-Jul-2005 : written by Pierre Chanial
 ;   30-Jun-2009 : Alain Coulais : will allow 1D string : 'string' and ['string']
 ;   14-Apr-2010 : Alain Coulais : complete re-writing
+;      Jun-2010 : Lea Noreskal : /preserve_null and other improvments
 ;
 ; LICENCE:
-; Copyright (C) 2004, Pierre Chanial
+; Copyright (C) 2004, Pierre Chanial; 2010, Alain Coulais
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
 ; the Free Software Foundation; either version 2 of the License, or
 ; (at your option) any later version.
-;
 ;
 ;-
 ;
@@ -54,13 +54,16 @@ return, resu
 ;
 end
 ;
-function STRSPLIT, input1, input2, $
+; ----------------------------------------
+;
+function STRSPLIT, input1, input2 , $
                    count=count, length=length, extract=extract, regex=regex, $
                    escape=escape, fold_case=fold_case, preserve_null=preserve_null, $
                    test=test, help=help
 ;
 ON_ERROR, 2
 ;
+
 if KEYWORD_SET(help) then begin
     print, 'function STRSPLIT, input1, input2, $'
     print, '                   count=count, length=length, extract=extract, regex=regex, $'
@@ -73,53 +76,78 @@ if KEYWORD_SET(escape) then begin
     MESSAGE, /continue, 'Sorry, this keyword ESCAPE is not implemented (no effect)'
     MESSAGE, /continue, 'PLEASE CONTRIBUTE'
 endif
-if KEYWORD_SET(preserve_null) then begin
-    if (N_PARAMS() EQ 1) then begin
-        MESSAGE, /continue, 'Sorry, this keyword PRESERVE_NULL is not implemented (no effect)'
-        MESSAGE, /continue, 'PLEASE CONTRIBUTE'
-    endif
+;
+default=0
+if (not KEYWORD_SET(input2)) then begin
+    input2=' '
+    default=1
 endif
+;
 if KEYWORD_SET(fold_case) then begin
-    MESSAGE, /continue, 'Sorry, this keyword FOLD_CASE is not implemented (no effect)'
+    MESSAGE, /continue, 'Sorry, this keyword /FOLD_CASE is not implemented (no effect)'
     MESSAGE, /continue, 'PLEASE CONTRIBUTE'
 endif
-;if keyword_set( regex) then begin
-;    message,'REGEX keyword not implemented yet.'
+;
+if KEYWORD_SET(regex) and KEYWORD_SET(preserve_null) then begin
+    MESSAGE, /continue, 'Keywords /REGEX and /PRESERVE_NULL are incompatible, /PRESERVE_NULL is ignored' 
+endif
+;
+;if (SIZE(input1, /n_dimensions) GT 1) then begin
+;    MESSAGE, 'Invalid input string.'
 ;endif
-
+;
+if (SIZE(input1, /n_elements) GT 1) then begin
+    MESSAGE, '% STRTOK: Expression must be a scalar or 1 element array in this context: STRINGIN.'
+endif
+;
 if (SIZE(input1, /type) NE 7) then begin
-    MESSAGE, 'Invalid input string.'
-endif
-;
-if (SIZE(input1, /n_dimensions) GT 1) then begin
-    MESSAGE, 'Invalid input string.'
-endif
-;
-local_input1=input1
-;
-if (SIZE(input1, /n_dimensions) EQ 1) then begin
-    local_input1=local_input1[0]
-endif
+    local_input1=STRING(input1)
+    ;;MESSAGE, 'Invalid input string.'
+endif else begin
+    local_input1=input1
+endelse
 ;
 if KEYWORD_SET(regex) then regex_flag=1 else regex_flag=0
 ;
-if (N_PARAMS() EQ 2) then begin
+if (N_PARAMS() EQ 2 or default) then begin
     if (N_ELEMENTS(input2) EQ 0) then begin
         MESSAGE, 'Undefined pattern string.'
     endif
-    if (STRLEN(input2) EQ 1) OR KEYWORD_SET(regex) then begin
+    ;;
+    if KEYWORD_SET(regex) then begin
         resu=STRTOK(local_input1, input2, extract=extract, REGEX=regex_flag)
     endif else begin
         resu=0
+	beg=0
+        ;;
         for ii=0, STRLEN(input2)-1 do resu=[resu, STRMULTIPOS(local_input1, STRMID(input2, ii, 1))]
+        ;;
         resu=resu[WHERE(resu GE 0)]
+	tst=resu[WHERE(resu EQ 0)]
         resu=resu[UNIQ(resu,SORT(resu))]
+        ;;
+        if N_ELEMENTS(tst) EQ 2 then beg=1
+        ;;
         if KEYWORD_SET(extract) then begin
+            if (beg eq 1) then resu=[0,resu]
             if N_ELEMENTS(resu) EQ 1 then begin
-                sresu=local_input1
+
+                if (beg eq 0) then begin 
+                    resu=local_input1
+                endif else begin
+                    resu=STRMID(local_input1, resu[0]+1)
+                endelse
+
             endif else begin
+                
                 sresu=STRARR(N_ELEMENTS(resu))
-                sresu[0]=STRMID(local_input1, 0, resu[1])
+
+                if (beg eq 0) then begin 
+                    sresu[0]=STRMID(local_input1, 0, resu[1])
+                endif else begin
+                    sresu[0]=STRMID(local_input1, resu[0]+1, resu[1]-resu[0]-1)
+                endelse
+
                 for ii=1, N_ELEMENTS(resu)-2 do begin
                     ;;print, resu[ii]+1,resu[ii+1]-resu[ii]-1                    
                     sresu[ii]=STRMID(local_input1, resu[ii]+1,resu[ii+1]-resu[ii]-1)
@@ -128,18 +156,30 @@ if (N_PARAMS() EQ 2) then begin
                 ;stop
                 resu=sresu
             endelse
+
             if NOT(KEYWORD_SET(preserve_null)) then begin
                 ok=WHERE(STRLEN(resu) GT 0, nb_ok)
-                if (nb_ok GT 0) then resu=resu[ok]
+                if (nb_ok GT 0) then resu=resu[ok] else resu=''
             endif
+
         endif else begin
-            if N_ELEMENTS(resu) GT 0 then resu[1:*]=resu[1:*]+1 else resu=0
+            if N_ELEMENTS(resu) GT 1 then resu[1:*]=resu[1:*]+1 else resu=0
+            if (beg EQ 1) then resu[0]=resu[0]+1 
+
+            if (KEYWORD_SET(preserve_null) and (N_ELEMENTS(resu) GT 1) and (resu[0] ne 0)) then resu=[0,resu]
+
             if NOT(KEYWORD_SET(preserve_null)) then begin
                 refresu=resu
-                resu=resu[0]
-                for ii=1, N_ELEMENTS(refresu)-1 do begin
-                    if (refresu[ii]-refresu[ii-1]) GT 1 then resu=[resu,refresu[ii]]
+                resu=-1
+
+                for ii=0, N_ELEMENTS(refresu)-2 do begin
+                    if ((refresu[ii+1]-refresu[ii]) ne 1) then resu=[resu,refresu[ii]]
                 endfor
+
+
+                if (refresu[N_ELEMENTS(refresu)-1] lt STRLEN(local_input1)) then resu=[resu,refresu[N_ELEMENTS(refresu)-1]]
+                if (N_ELEMENTS(resu) eq 1 ) then resu=0 else resu=resu[WHERE(resu GE 0)]
+            
             endif
         endelse
     endelse
