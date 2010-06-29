@@ -38,6 +38,14 @@ inline string double2string( DDouble d)
   return os.str();
 }
 
+// for float -> string
+inline string float2string( DFloat f)      
+{
+  std::ostringstream os;
+  OutAuto( os, f, 13, 6);
+  return os.str();
+}
+
 // every type need this function which defines its conversion to all other types
 // so for every new type each of this functions has to be extended
 // and a new function has to be 'specialized'
@@ -1008,7 +1016,7 @@ template<> BaseGDL* Data_<SpDFloat>::Convert2( DType destTy, BaseGDL::Convert2Mo
 {
 #pragma omp for
       	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=i2s((*this)[i],13);
+      	  (*dest)[i]=float2string((*this)[i]);
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
