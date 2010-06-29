@@ -22,7 +22,6 @@
 ;
 function ESCAPE_SPECIAL_CHAR, str_in,  show_list=show_list, $
                               list_of_special_char=list_of_special_char, $
-                              show_list=show_list, $
                               test=test, help=help, verbose=verbose
 ;
 if N_PARAMS() NE 1 then begin
