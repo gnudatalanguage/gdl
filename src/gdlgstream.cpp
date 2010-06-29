@@ -140,7 +140,9 @@ void GDLGStream::NextPlot( bool erase)
     {
       DLong pMod = (*pMulti)[ 0] % (nx*ny);
       if( dir == 0)
+      {
 	plstream::adv(nx*ny - pMod + 1);
+      }
       else
 	{
 	  int p = nx*ny - pMod;
@@ -148,7 +150,10 @@ void GDLGStream::NextPlot( bool erase)
 	  plstream::adv(pp);
 	}
 
-      if( erase) --(*pMulti)[ 0];
+      if( erase) 
+      {
+        --(*pMulti)[ 0];
+      }
     }
 
   // restore charsize
