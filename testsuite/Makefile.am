@@ -9,7 +9,7 @@ TESTS = \
   test_fft_leak.pro \
   test_file_basename.pro \
   test_file_copy.pro \
-  test_file_delete.pro\
+  test_file_delete.pro \
   test_file_dirname.pro \
   test_file_search.pro \
   test_fix.pro \
