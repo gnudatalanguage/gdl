@@ -252,13 +252,16 @@ namespace lib {
 	int status = stat(actUnit.Name().c_str(), &buffer);
 
 	fstat->InitTag("NAME", DStringGDL( actUnit.Name()));
-	if (big) fstat->InitTag("SIZE", DLong64GDL( size)); 
-        else fstat->InitTag("SIZE", DLongGDL( size));
+	if (big) fstat->InitTag("SIZE", DLong64GDL( buffer.st_size));//size)); 
+        else fstat->InitTag("SIZE", DLongGDL( buffer.st_size));//size));
 	fstat->InitTag("OPEN", DByteGDL( 1)); 
 	// fstat->InitTag("ISATTY", DByteGDL( 0)); 
 	// fstat->InitTag("ISAGUI", DByteGDL( 0)); 
 	// fstat->InitTag("INTERACTIVE", DByteGDL( 0)); 
 	// fstat->InitTag("COMPRESS", DByteGDL( 0)); 
+
+	fstat->InitTag("COMPRESS",DByteGDL( actUnit.Compress()));
+
 	fstat->InitTag("READ", DByteGDL( actUnit.IsReadable()?1:0)); 
 	fstat->InitTag("WRITE", DByteGDL( actUnit.IsWriteable()?1:0)); 
 	fstat->InitTag("ATIME", DLong64GDL( buffer.st_atime)); 

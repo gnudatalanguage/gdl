@@ -88,7 +88,7 @@ void AnyStream::Open(const std::string& name_,
 	  delete ogzStream;
 	  ogzStream = NULL;
 	}
-      if( (mode_ & std::ios::in))
+      if( (mode_ & std::ios::in) && !(mode_ & std::ios::out))
 	{
 	  if( igzStream == NULL)
 	    igzStream = new igzstream();
@@ -569,6 +569,43 @@ int gzstreambuf::sync() {
     return 0;
 }
 
+std::streampos gzstreambuf::pubseekpos(std::streampos sp, std::ios_base::openmode which)
+{
+	if(is_open())
+	{
+		if((which==std::ios_base::in && this->mode & std::ios::in) || /* read mode : ok */
+			(which==std::ios_base::out && this->mode & std::ios::out &&
+			static_cast<z_off_t>(sp)>=gztell(this->file))) /* write mode : seek forward only */
+		{
+			z_off_t off=gzseek(this->file,static_cast<z_off_t>(sp),SEEK_SET);
+			if(which==std::ios_base::in)
+				setg(buffer+buf4,buffer+buf4,buffer+buf4);
+			return off;
+		}
+		else return static_cast<std::streampos>(gztell(this->file)); /* Just don't Seek, no error */
+	}
+	return -1;
+}
+
+std::streampos gzstreambuf::pubseekoff(std::streamoff off, std::ios_base::seekdir way, std::ios_base::openmode which)
+{
+	if(is_open() && way!=std::ios_base::end) /* No seek with SEEK_END */
+	{
+		if((which==std::ios_base::in && this->mode & std::ios::in) || /* read mode : ok */
+			(which==std::ios_base::out && this->mode & std::ios::out && /* write mode : ok if */
+			((way==std::ios_base::cur && off>=0) || /* SEEK_CUR with positive offset */
+				(way==std::ios_base::beg && static_cast<z_off_t>(off)>=gztell(this->file))))) /* or SEEK_SET which go forward */
+		{
+			z_off_t off=gzseek(this->file,static_cast<z_off_t>(off),(way==std::ios_base::beg?SEEK_SET:SEEK_CUR));
+			if(which==std::ios_base::in)
+				setg(buffer+buf4,buffer+buf4,buffer+buf4);
+			return off;
+		}
+		else return static_cast<std::streampos>(gztell(this->file)); /* Just don't Seek, no error */
+	}
+	return -1;
+}
+
 // --------------------------------------
 // class gzstreambase:
 // --------------------------------------
@@ -591,6 +628,46 @@ void gzstreambase::close() {
     if ( buf.is_open())
         if ( ! buf.close())
             clear( rdstate() | std::ios::badbit);
+}
+
+// --------------------------------------
+// class igzstream:
+// --------------------------------------
+
+igzstream& igzstream::seekg(std::streampos pos) 
+{
+	if(rdbuf()->pubseekpos(pos,ios_base::in)==std::streampos(-1))
+		this->setstate(std::ios_base::badbit);
+	else this->setstate(std::ios_base::goodbit);
+	return *this;
+}
+
+igzstream& igzstream::seekg(std::streamoff off, std::ios_base::seekdir dir)
+{ 
+	if(rdbuf()->pubseekoff(off,dir,ios_base::in)==std::streampos(-1))
+		this->setstate(std::ios_base::badbit);
+	else this->setstate(std::ios_base::goodbit);
+	return *this;
+}
+
+// --------------------------------------
+// class ogzstream:
+// --------------------------------------
+
+ogzstream& ogzstream::seekp(std::streampos pos) 
+{
+	if(rdbuf()->pubseekpos(pos,ios_base::out)==std::streampos(-1))
+		this->setstate(std::ios_base::badbit);
+	else this->setstate(std::ios_base::goodbit);
+	return *this;
+}
+
+ogzstream& ogzstream::seekp(std::streamoff off, std::ios_base::seekdir dir)
+{ 
+	if(rdbuf()->pubseekoff(off,dir,ios_base::out)==std::streampos(-1))
+		this->setstate(std::ios_base::badbit);
+	else this->setstate(std::ios_base::goodbit);
+	return *this;
 }
 
 #ifdef GZSTREAM_NAMESPACE

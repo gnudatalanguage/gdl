@@ -103,9 +103,8 @@ void Assoc_<Parent_>::AssignAt( BaseGDL* srcIn,
 
       if( fileUnits[ lun].Size() > seekPos)
 	{
-	  fstream& fs = fileUnits[ lun].IStream();
 	  fileUnits[ lun].Seek( seekPos);
-	  Parent_::Read( fs, 
+	  Parent_::Read( (fileUnits[lun].Compress()?static_cast<std::istream&>(fileUnits[lun].IgzStream()):static_cast<std::istream&>(fileUnits[lun].IStream())), 
 			 fileUnits[ lun].SwapEndian(),
 			 fileUnits[ lun].Compress(),
 			 fileUnits[ lun].Xdr());
@@ -149,9 +148,9 @@ void Assoc_<Parent_>::AssignAt( BaseGDL* srcIn,
 
       if( fileUnits[ lun].Size() > seekPos)
 	{
-	  fstream& fs = fileUnits[ lun].IStream();
+//	  fstream& fs = fileUnits[ lun].IStream();
 	  fileUnits[ lun].Seek( seekPos);
-	  Parent_::Read( fs, 
+	  Parent_::Read( (fileUnits[lun].Compress()?static_cast<std::istream&>(fileUnits[lun].IgzStream()):static_cast<std::istream&>(fileUnits[lun].IStream())),  
 			 fileUnits[ lun].SwapEndian(),
 			 fileUnits[ lun].Compress(),
 			 fileUnits[ lun].Xdr());
@@ -234,7 +233,7 @@ void Assoc_<Parent_>::InsertAt( SizeT offset,
       // throw GDLException("File expression cannot be subindexed for output.");
       fstream& fs = fileUnits[ lun].IStream();
       fileUnits[ lun].Seek( fileOffset + recordNum * sliceSize);
-      Parent_::Read( fs, 
+      Parent_::Read( fs,
 		     fileUnits[ lun].SwapEndian(),
 		     fileUnits[ lun].Compress(),
 		     fileUnits[ lun].Xdr());
@@ -259,9 +258,9 @@ Parent_* Assoc_<Parent_>::Index( ArrayIndexListT* ixList)
   SizeT recordNum;
   bool ixEmpty = ixList->ToAssocIndex( recordNum);
 
-  fstream& fs = fileUnits[ lun].IStream();
+  istream& fs = fileUnits[lun].Compress()?static_cast<std::istream&>(fileUnits[lun].IgzStream()):static_cast<std::istream&>(fileUnits[lun].IStream());
   fileUnits[ lun].Seek( fileOffset + recordNum * sliceSize);
-  Parent_::Read( fs, 
+  Parent_::Read( fs,
 		 fileUnits[ lun].SwapEndian(),
 		 fileUnits[ lun].Compress(),
 		 fileUnits[ lun].Xdr());

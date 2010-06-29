@@ -94,7 +94,12 @@ namespace lib {
 	sockNum = fileUnits[ lun-1].SockNum();
 
 	if (sockNum == -1) 
-	  os = &fileUnits[ lun-1].OStream();
+	{
+	  if( fileUnits[ lun-1].Compress())
+		os = &fileUnits[ lun-1].OgzStream();
+	  else
+		os = &fileUnits[ lun-1].OStream();
+	}
 	else
 	  os = &oss;
 

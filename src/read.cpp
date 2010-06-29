@@ -62,7 +62,10 @@ namespace lib {
 
        	if (sockNum == -1) {
 	  // *** File Read *** //
-	  is = &fileUnits[ lun-1].IStream();
+	  if( fileUnits[ lun-1].Compress())
+		is = &fileUnits[ lun-1].IgzStream();
+	  else
+		is = &fileUnits[ lun-1].IStream();
 
 	} else {
 	  //  *** Socket Read *** //

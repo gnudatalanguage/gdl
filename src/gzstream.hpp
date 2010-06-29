@@ -18,8 +18,8 @@
 // ============================================================================
 //
 // File          : gzstream.h
-// Revision      : $Revision: 1.2 $
-// Revision_date : $Date: 2009-11-18 23:22:49 $
+// Revision      : $Revision: 1.3 $
+// Revision_date : $Date: 2010-06-29 09:17:52 $
 // Author(s)     : Deepak Bandyopadhyay, Lutz Kettner
 // 
 // Standard streambuf implementation following Nicolai Josuttis, "The 
@@ -72,6 +72,9 @@ public:
     virtual int     overflow( int c = EOF);
     virtual int     underflow();
     virtual int     sync();
+    std::streampos pubseekpos(std::streampos sp, std::ios_base::openmode which=std::ios_base::in|std::ios_base::out);
+    std::streampos pubseekoff(std::streamoff off, std::ios_base::seekdir way, std::ios_base::openmode which=std::ios_base::in|std::ios_base::out);
+
 };
 
 class gzstreambase : virtual public std::ios {
@@ -101,6 +104,9 @@ public:
     void open( const char* name, int open_mode = std::ios::in) {
         gzstreambase::open( name, open_mode);
     }
+    igzstream& seekg(std::streampos); 
+    igzstream& seekg(std::streamoff, std::ios_base::seekdir);
+
 };
 
 class ogzstream : public gzstreambase, public std::ostream {
@@ -112,6 +118,8 @@ public:
     void open( const char* name, int open_mode = std::ios::out) {
         gzstreambase::open( name, open_mode);
     }
+    ogzstream& seekp(std::streampos); 
+    ogzstream& seekp(std::streamoff, std::ios_base::seekdir);
 };
 
 #ifdef GZSTREAM_NAMESPACE
