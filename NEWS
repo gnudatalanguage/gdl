@@ -500,3 +500,5 @@
            - DIALOG_PICKFILE, based on Zenity, OK on most Linux and OSX
            - FILE_DELETE, FILE_COPY and FILE_EXPAND_PATH
 	   - SPL_INIT: now y0= and yn_1= ready
+           - Compressed files should be well processed now (readf, printf, fstat, point_lun, ...). See test_zip.pro
+
