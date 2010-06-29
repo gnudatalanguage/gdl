@@ -67,17 +67,6 @@ namespace lib {
     return DStringGDL("UNKNOWN");
   }
 
-  string _ncdf_itos(int i)
-  {
-    int mema=3;
-    char *n=new char(mema);
-    while (snprintf(n, sizeof n, "%d", i) >= sizeof n)
-      {			delete n;mema++; n=new char(mema);   }
-    string s=n;
-    delete n;
-    return s;
-  }
-  
   void ncdf_handle_error(EnvT *e, int status, const char *function)
   {
     if(status != NC_NOERR)
@@ -91,8 +80,8 @@ namespace lib {
 	  {
             DLong id;
             e->AssureLongScalarPar( 0, id);
-	    error+=_ncdf_itos(id);
-	    error+=" is not a valid cdfid";
+	    error += i2s(id);
+	    error += " is not a valid cdfid";
 	    
 	    error+="(NC_ERROR=-33)";
 	  }
@@ -163,9 +152,9 @@ namespace lib {
 	  {
             DLong id;
             e->AssureLongScalarPar( 0, id);
-	    error+="No Dimension with id = ";
-	    error+=_ncdf_itos(id);
-	    error+=" found. ";
+	    error += "No Dimension with id = ";
+	    error += i2s(id);
+	    error += " found. ";
 	    
 	    error+="(NC_ERROR=-46)";
 	  }
@@ -181,11 +170,11 @@ namespace lib {
 	else if(status==NC_ENOTVAR) 	/* Variable not found */
 	  {
             DLong id;
-            e->AssureLongScalarPar( 0, id);
-	    error+="Variable enquiry failed, ";
-	    error+=_ncdf_itos(id);	    
-	    error+=" is not a valid variable id.";
-	    error+="(NC_ERROR=-49)";
+            e->AssureLongScalarPar( 1, id);
+	    error += "Variable enquiry failed, ";
+	    error += i2s(id);	    
+	    error += " is not a valid variable id.";
+	    error += "(NC_ERROR=-49)";
 	  }
       	else if(status==NC_EGLOBAL) 	/* Action prohibited on NC_GLOBAL varid */
 	  {
