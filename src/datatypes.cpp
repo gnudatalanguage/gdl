@@ -876,21 +876,21 @@ void Data_<Sp>::Reverse( DLong dim)
   SizeT outerStride = this->dim.Stride(dim + 1);
   SizeT revLimit = this->dim[dim] * revStride;
   for (SizeT o = 0; o < nEl; o += outerStride)
-  {
-    for (SizeT i = 0; i < revStride; ++i) 
     {
-      SizeT oi = o + i; 
-      SizeT last_plus_oi = revLimit + oi - revStride + oi;
-      SizeT half = ((revLimit / revStride) / 2) * revStride + oi;
-      for (SizeT s = oi; s < half; s += revStride) 
-      {
-        SizeT opp = last_plus_oi - s;
-        Ty tmp = (*this)[s];
-        (*this)[s] = (*this)[opp];
-        (*this)[opp] = tmp;
-      }
-    }
-  } 
+      for (SizeT i = 0; i < revStride; ++i) 
+	{
+	  SizeT oi = o + i; 
+	  SizeT last_plus_oi = revLimit + oi - revStride + oi;
+	  SizeT half = ((revLimit / revStride) / 2) * revStride + oi;
+	  for (SizeT s = oi; s < half; s += revStride) 
+	    {
+	      SizeT opp = last_plus_oi - s;
+	      Ty tmp = (*this)[s];
+	      (*this)[s] = (*this)[opp];
+	      (*this)[opp] = tmp;
+	    }
+	}
+    } 
 }
 template<class Sp> 
 BaseGDL* Data_<Sp>::DupReverse( DLong dim)
@@ -909,10 +909,11 @@ BaseGDL* Data_<Sp>::DupReverse( DLong dim)
       SizeT oi = o + i; 
       SizeT last_plus_oi = revLimit + oi - revStride + oi;
       SizeT half = ((revLimit / revStride) / 2) * revStride + oi;
-      for (SizeT s = oi; s < half; s += revStride) 
+      for (SizeT s = oi; s < half+1; s += revStride) 
       {
         SizeT opp = last_plus_oi - s;
-        (*res)[s] = (*this)[opp];
+	//	cout << s <<" "<< opp << " " << (*this)[s] << " " << (*this)[opp] << endl;
+	(*res)[s] = (*this)[opp];
         (*res)[opp] = (*this)[s];
       }
     }
@@ -936,7 +937,7 @@ BaseGDL* Data_<SpDPtr>::DupReverse( DLong dim)
       SizeT oi = o + i; 
       SizeT last_plus_oi = revLimit + oi - revStride + oi;
       SizeT half = ((revLimit / revStride) / 2) * revStride + oi;
-      for (SizeT s = oi; s < half; s += revStride) 
+      for (SizeT s = oi; s < half+1; s += revStride) 
       {
         SizeT opp = last_plus_oi - s;
         (*res)[s] = (*this)[opp];
@@ -964,7 +965,7 @@ BaseGDL* Data_<SpDObj>::DupReverse( DLong dim)
       SizeT oi = o + i; 
       SizeT last_plus_oi = revLimit + oi - revStride + oi;
       SizeT half = ((revLimit / revStride) / 2) * revStride + oi;
-      for (SizeT s = oi; s < half; s += revStride) 
+      for (SizeT s = oi; s < half+1; s += revStride) 
       {
         SizeT opp = last_plus_oi - s;
         (*res)[s] = (*this)[opp];
