@@ -177,6 +177,7 @@ TESTS_ENVIRONMENT = $(top_srcdir)/testsuite/try $(top_srcdir)
 TESTS = \
   test_angles.pro \
   test_base64.pro \
+  test_clip.pro \
   test_constants.pro \
   test_device.pro \
   test_erfinv.pro \
@@ -204,7 +205,6 @@ TESTS = \
   test_spher_harm.pro \
   test_spl_init.pro \
   test_str_functions.pro \
-  test_strsplit.pro \
   test_suite.pro \
   test_url.pro \
   test_wavelet.pro \
