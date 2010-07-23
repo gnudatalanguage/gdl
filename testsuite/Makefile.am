@@ -2,6 +2,7 @@ TESTS_ENVIRONMENT = $(top_srcdir)/testsuite/try $(top_srcdir)
 TESTS = \
   test_angles.pro \
   test_base64.pro \
+  test_bug_3033108.pro \
   test_clip.pro \
   test_constants.pro \
   test_device.pro \
