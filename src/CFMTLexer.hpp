@@ -2,7 +2,7 @@
 #define INC_CFMTLexer_hpp_
 
 #include <antlr/config.hpp>
-/* $ANTLR 2.7.4: "cformat.g" -> "CFMTLexer.hpp"$ */
+/* $ANTLR 2.7.7 (20091222): "cformat.g" -> "CFMTLexer.hpp"$ */
 #include <antlr/CommonToken.hpp>
 #include <antlr/InputBuffer.hpp>
 #include <antlr/BitSet.hpp>
@@ -50,6 +50,7 @@ public:
 	protected: void mCF(bool _createToken);
 	protected: void mCG(bool _createToken);
 	protected: void mCO(bool _createToken);
+	protected: void mCB(bool _createToken);
 	protected: void mCS(bool _createToken);
 	protected: void mCX(bool _createToken);
 	protected: void mCZ(bool _createToken);

@@ -2,7 +2,7 @@
 #define INC_FMTParser_hpp_
 
 #include <antlr/config.hpp>
-/* $ANTLR 2.7.6 (20071205): "format.g" -> "FMTParser.hpp"$ */
+/* $ANTLR 2.7.7 (20091222): "format.g" -> "FMTParser.hpp"$ */
 #include <antlr/TokenStream.hpp>
 #include <antlr/TokenBuffer.hpp>
 #include "FMTTokenTypes.hpp"
@@ -82,10 +82,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 76;
+	static const int NUM_TOKENS = 78;
 #else
 	enum {
-		NUM_TOKENS = 76
+		NUM_TOKENS = 78
 	};
 #endif
 	

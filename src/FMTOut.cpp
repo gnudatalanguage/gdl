@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.6 (20071205): "format.out.g" -> "FMTOut.cpp"$ */
+/* $ANTLR 2.7.7 (20091222): "format.out.g" -> "FMTOut.cpp"$ */
 
 #include "includefirst.hpp"
 
@@ -73,7 +73,7 @@ void FMTOut::format(RefFMTNode _t) {
 	case NONL:
 	case Q: case T: case X: case A:
 	case F: case D: case E: case G:
-	case I: case O: case Z: case ZZ: case C:
+	case I: case O: case B: case Z: case ZZ: case C:
 	{
 	f(_t);
 	if( actPar == NULL && termFlag) goto endFMT;
@@ -135,6 +135,7 @@ void FMTOut::q(RefFMTNode _t) {
 	case G:
 	case I:
 	case O:
+	case B:
 	case Z:
 	case ZZ:
 	case C:
@@ -159,6 +160,7 @@ void FMTOut::f(RefFMTNode _t) {
 	RefFMTNode g = RefFMTNode(antlr::nullAST);
 	RefFMTNode i = RefFMTNode(antlr::nullAST);
 	RefFMTNode o = RefFMTNode(antlr::nullAST);
+	RefFMTNode b = RefFMTNode(antlr::nullAST);
 	RefFMTNode z = RefFMTNode(antlr::nullAST);
 	RefFMTNode zz = RefFMTNode(antlr::nullAST);
 	RefFMTNode c = RefFMTNode(antlr::nullAST);
@@ -344,6 +346,27 @@ void FMTOut::f(RefFMTNode _t) {
 		
 		break;
 	}
+	case B:
+	{
+		b = _t;
+		match(antlr::RefAST(_t),B);
+		_t = _t->getNextSibling();
+		
+		if( actPar == NULL) break;
+		
+		int r = b->getRep();
+		int w = b->getW();
+		int d = b->getD();
+		do {
+		SizeT tCount = actPar->OFmtI( os, valIx, r, w, d, 
+		BaseGDL::BIN);
+		r -= tCount;
+		NextVal( tCount);
+		if( actPar == NULL) break;
+		} while( r>0);
+		
+		break;
+	}
 	case Z:
 	{
 		z = _t;
@@ -467,7 +490,7 @@ void FMTOut::format_reversion(RefFMTNode _t) {
 	case NONL:
 	case Q: case T: case X: case A:
 	case F: case D: case E: case G:
-	case I: case O: case Z: case ZZ: case C:
+	case I: case O: case B: case Z: case ZZ: case C:
 	{
 	f(_t);
 	if( actPar == NULL) goto endFMT;
@@ -745,6 +768,7 @@ const char* FMTOut::tokenNames[] = {
 	"CF",
 	"CG",
 	"CO",
+	"CB",
 	"CS",
 	"CX",
 	"CZ",
@@ -772,6 +796,7 @@ const char* FMTOut::tokenNames[] = {
 	"G",
 	"I",
 	"O",
+	"B",
 	"Z",
 	"ZZ",
 	"C",
@@ -805,10 +830,10 @@ const char* FMTOut::tokenNames[] = {
 	0
 };
 
-const unsigned long FMTOut::_tokenSet_0_data_[] = { 2214592512UL, 130559UL, 0UL, 0UL };
-// FORMAT STRING "tl" "tr" TERM NONL Q T X A F E G I O Z ZZ C 
+const unsigned long FMTOut::_tokenSet_0_data_[] = { 134217728UL, 523263UL, 0UL, 0UL };
+// FORMAT STRING "tl" "tr" TERM NONL Q T X A F E G I O B Z ZZ C 
 const antlr::BitSet FMTOut::_tokenSet_0(_tokenSet_0_data_,4);
-const unsigned long FMTOut::_tokenSet_1_data_[] = { 2147483648UL, 4294836291UL, 3UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long FMTOut::_tokenSet_1_data_[] = { 0UL, 4294443143UL, 15UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // STRING "tl" "tr" X CMOA CMoA CmoA CHI ChI CDWA CDwA CdwA CAPA CApA CapA 
 // "cmoi" "cdi" "cyi" "cmi" "csi" "csf" 
 const antlr::BitSet FMTOut::_tokenSet_1(_tokenSet_1_data_,8);

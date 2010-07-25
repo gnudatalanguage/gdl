@@ -118,6 +118,7 @@ cformat
         | ff:CF { #ff->setW( w); #ff->setD( d); #ff->setType( F);}
         | g:CG { #g->setW( w); #g->setD( d); #g->setType( G);}
         | o:CO { #o->setW( w); #o->setD( d); #o->setType( O);}
+        | b:CB { #b->setW( w); #b->setD( d); #b->setType( B);}
         | x:CX { #x->setW( w); #x->setD( d); #x->setType( Z);}
         | z:CZ { #z->setW( w); #z->setD( d); #z->setType( Z);}
         | s:CS { #s->setW( w); #s->setType( A);}
@@ -159,6 +160,7 @@ rep_fmt [ int repeat]
     | g:G w_d_e[ #g] { #g->setRep( repeat);}
     | i:I w_d  [ #i] { #i->setRep( repeat);}
     | o:O w_d  [ #o] { #o->setRep( repeat);}
+    | b:B w_d  [ #b] { #b->setRep( repeat);}
     | z:Z w_d  [ #z] { #z->setRep( repeat);}
     | zz:ZZ w_d  [ #zz] { #zz->setRep( repeat);}
     | c:C^ RBRACE! csub LBRACE! { #c->setRep( repeat);}
@@ -290,6 +292,7 @@ G:('g'|'G');
 
 I:('i'|'I');
 O:('o'|'O');
+B:('b'|'B');
 Z:('Z');
 ZZ:('z'); // lower case output
 

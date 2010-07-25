@@ -75,6 +75,7 @@ ALL
                 |   CF { $setType(CF);}
                 |   CG { $setType(CG);}
                 |   CO { $setType(CO);}
+                |   CB { $setType(CB);}
                 |   CS { $setType(CS);}
                 |   CX { $setType(CX);}
                 |   CZ { $setType(CZ);}
@@ -173,6 +174,8 @@ protected
 CG: ('g'|'G');
 protected
 CO: ('o'|'O');
+protected
+CB: ('b'|'B');
 protected
 CS: ('s'|'S');
 protected

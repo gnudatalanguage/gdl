@@ -342,11 +342,12 @@ public:
   enum IOMode {
     FIXED=0,
     SCIENTIFIC,
-    AUTO,
+    BIN=2,
     OCT=8,
     DEC=10,
     HEX=16,
-    HEXL // lower case characters
+    HEXL, // lower case characters
+    AUTO
   };
   
   // FIRST VIRTUAL FUNCTION'S OBJECT FILE CONTAINS ALSO THE VTABLE

@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.4: "cformat.g" -> "CFMTLexer.cpp"$ */
+/* $ANTLR 2.7.7 (20091222): "cformat.g" -> "CFMTLexer.cpp"$ */
 
 #include "includefirst.hpp"
 
@@ -76,13 +76,14 @@ tryAgain:;
 }
 
 void CFMTLexer::mALL(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = ALL;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if (((_tokenSet_0.member(LA(1))) && (true))&&( format)) {
 		{
 		switch ( LA(1)) {
+		case 0x42 /* 'B' */ :
 		case 0x44 /* 'D' */ :
 		case 0x45 /* 'E' */ :
 		case 0x46 /* 'F' */ :
@@ -92,6 +93,7 @@ void CFMTLexer::mALL(bool _createToken) {
 		case 0x53 /* 'S' */ :
 		case 0x58 /* 'X' */ :
 		case 0x5a /* 'Z' */ :
+		case 0x62 /* 'b' */ :
 		case 0x64 /* 'd' */ :
 		case 0x65 /* 'e' */ :
 		case 0x66 /* 'f' */ :
@@ -145,6 +147,13 @@ void CFMTLexer::mALL(bool _createToken) {
 			{
 				mCO(false);
 				_ttype = CO;
+				break;
+			}
+			case 0x42 /* 'B' */ :
+			case 0x62 /* 'b' */ :
+			{
+				mCB(false);
+				_ttype = CB;
 				break;
 			}
 			case 0x53 /* 'S' */ :
@@ -230,20 +239,20 @@ void CFMTLexer::mALL(bool _createToken) {
 }
 
 void CFMTLexer::mCD(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CD;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	{
 	switch ( LA(1)) {
 	case 0x64 /* 'd' */ :
 	{
-		match('d');
+		match('d' /* charlit */ );
 		break;
 	}
 	case 0x44 /* 'D' */ :
 	{
-		match('D');
+		match('D' /* charlit */ );
 		break;
 	}
 	default:
@@ -261,20 +270,20 @@ void CFMTLexer::mCD(bool _createToken) {
 }
 
 void CFMTLexer::mCE(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CE;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	{
 	switch ( LA(1)) {
 	case 0x65 /* 'e' */ :
 	{
-		match('e');
+		match('e' /* charlit */ );
 		break;
 	}
 	case 0x45 /* 'E' */ :
 	{
-		match('E');
+		match('E' /* charlit */ );
 		break;
 	}
 	default:
@@ -292,20 +301,20 @@ void CFMTLexer::mCE(bool _createToken) {
 }
 
 void CFMTLexer::mCI(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CI;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	{
 	switch ( LA(1)) {
 	case 0x69 /* 'i' */ :
 	{
-		match('i');
+		match('i' /* charlit */ );
 		break;
 	}
 	case 0x49 /* 'I' */ :
 	{
-		match('I');
+		match('I' /* charlit */ );
 		break;
 	}
 	default:
@@ -323,20 +332,20 @@ void CFMTLexer::mCI(bool _createToken) {
 }
 
 void CFMTLexer::mCF(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CF;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	{
 	switch ( LA(1)) {
 	case 0x66 /* 'f' */ :
 	{
-		match('f');
+		match('f' /* charlit */ );
 		break;
 	}
 	case 0x46 /* 'F' */ :
 	{
-		match('F');
+		match('F' /* charlit */ );
 		break;
 	}
 	default:
@@ -354,20 +363,20 @@ void CFMTLexer::mCF(bool _createToken) {
 }
 
 void CFMTLexer::mCG(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CG;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	{
 	switch ( LA(1)) {
 	case 0x67 /* 'g' */ :
 	{
-		match('g');
+		match('g' /* charlit */ );
 		break;
 	}
 	case 0x47 /* 'G' */ :
 	{
-		match('G');
+		match('G' /* charlit */ );
 		break;
 	}
 	default:
@@ -385,20 +394,51 @@ void CFMTLexer::mCG(bool _createToken) {
 }
 
 void CFMTLexer::mCO(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CO;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	{
 	switch ( LA(1)) {
 	case 0x6f /* 'o' */ :
 	{
-		match('o');
+		match('o' /* charlit */ );
 		break;
 	}
 	case 0x4f /* 'O' */ :
 	{
-		match('O');
+		match('O' /* charlit */ );
+		break;
+	}
+	default:
+	{
+		throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());
+	}
+	}
+	}
+	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
+	   _token = makeToken(_ttype);
+	   _token->setText(text.substr(_begin, text.length()-_begin));
+	}
+	_returnToken = _token;
+	_saveIndex=0;
+}
+
+void CFMTLexer::mCB(bool _createToken) {
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
+	_ttype = CB;
+	std::string::size_type _saveIndex;
+	
+	{
+	switch ( LA(1)) {
+	case 0x62 /* 'b' */ :
+	{
+		match('b' /* charlit */ );
+		break;
+	}
+	case 0x42 /* 'B' */ :
+	{
+		match('B' /* charlit */ );
 		break;
 	}
 	default:
@@ -416,20 +456,20 @@ void CFMTLexer::mCO(bool _createToken) {
 }
 
 void CFMTLexer::mCS(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CS;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	{
 	switch ( LA(1)) {
 	case 0x73 /* 's' */ :
 	{
-		match('s');
+		match('s' /* charlit */ );
 		break;
 	}
 	case 0x53 /* 'S' */ :
 	{
-		match('S');
+		match('S' /* charlit */ );
 		break;
 	}
 	default:
@@ -447,20 +487,20 @@ void CFMTLexer::mCS(bool _createToken) {
 }
 
 void CFMTLexer::mCX(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CX;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	{
 	switch ( LA(1)) {
 	case 0x78 /* 'x' */ :
 	{
-		match('x');
+		match('x' /* charlit */ );
 		break;
 	}
 	case 0x58 /* 'X' */ :
 	{
-		match('X');
+		match('X' /* charlit */ );
 		break;
 	}
 	default:
@@ -478,20 +518,20 @@ void CFMTLexer::mCX(bool _createToken) {
 }
 
 void CFMTLexer::mCZ(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CZ;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	{
 	switch ( LA(1)) {
 	case 0x7a /* 'z' */ :
 	{
-		match('z');
+		match('z' /* charlit */ );
 		break;
 	}
 	case 0x5a /* 'Z' */ :
 	{
-		match('Z');
+		match('Z' /* charlit */ );
 		break;
 	}
 	default:
@@ -509,9 +549,9 @@ void CFMTLexer::mCZ(bool _createToken) {
 }
 
 void CFMTLexer::mCNUMBER(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CNUMBER;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	mDIGITS(false);
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
@@ -523,11 +563,11 @@ void CFMTLexer::mCNUMBER(bool _createToken) {
 }
 
 void CFMTLexer::mCDOT(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CDOT;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
-	match('.');
+	match('.' /* charlit */ );
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
 	   _token->setText(text.substr(_begin, text.length()-_begin));
@@ -537,32 +577,32 @@ void CFMTLexer::mCDOT(bool _createToken) {
 }
 
 void CFMTLexer::mCWS(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CWS;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	{ // ( ... )+
-	int _cnt63=0;
+	int _cnt65=0;
 	for (;;) {
 		switch ( LA(1)) {
 		case 0x20 /* ' ' */ :
 		{
-			match(' ');
+			match(' ' /* charlit */ );
 			break;
 		}
 		case 0x9 /* '\t' */ :
 		{
-			match('\t');
+			match('\t' /* charlit */ );
 			break;
 		}
 		default:
 		{
-			if ( _cnt63>=1 ) { goto _loop63; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+			if ( _cnt65>=1 ) { goto _loop65; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 		}
 		}
-		_cnt63++;
+		_cnt65++;
 	}
-	_loop63:;
+	_loop65:;
 	}  // ( ... )+
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -573,19 +613,19 @@ void CFMTLexer::mCWS(bool _createToken) {
 }
 
 void CFMTLexer::mCSTR(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CSTR;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	if ((((LA(1) >= 0x3 /* '\3' */  && LA(1) <= 0xff)) && (true))&&( doubleQuotes)) {
 		{
 		mCSTR1(false);
 		{
 		switch ( LA(1)) {
-		case 0x22 /* '"' */ :
+		case 0x22 /* '\"' */ :
 		{
 			_saveIndex = text.length();
-			match('"');
+			match('\"' /* charlit */ );
 			text.erase(_saveIndex);
 			selector->pop();
 			break;
@@ -593,7 +633,7 @@ void CFMTLexer::mCSTR(bool _createToken) {
 		case 0x25 /* '%' */ :
 		{
 			_saveIndex = text.length();
-			match('%');
+			match('%' /* charlit */ );
 			text.erase(_saveIndex);
 			format = true;
 			break;
@@ -614,7 +654,7 @@ void CFMTLexer::mCSTR(bool _createToken) {
 		case 0x27 /* '\'' */ :
 		{
 			_saveIndex = text.length();
-			match('\'');
+			match('\'' /* charlit */ );
 			text.erase(_saveIndex);
 			selector->pop();
 			break;
@@ -622,7 +662,7 @@ void CFMTLexer::mCSTR(bool _createToken) {
 		case 0x25 /* '%' */ :
 		{
 			_saveIndex = text.length();
-			match('%');
+			match('%' /* charlit */ );
 			text.erase(_saveIndex);
 			format = true;
 			break;
@@ -648,17 +688,17 @@ void CFMTLexer::mCSTR(bool _createToken) {
 }
 
 void CFMTLexer::mCSTR1(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CSTR1;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	{ // ( ... )*
 	for (;;) {
 		if ((LA(1) == 0x25 /* '%' */ ) && (LA(2) == 0x25 /* '%' */ )) {
 			_saveIndex = text.length();
-			match('%');
+			match('%' /* charlit */ );
 			text.erase(_saveIndex);
-			match('%');
+			match('%' /* charlit */ );
 		}
 		else if ((LA(1) == 0x5c /* '\\' */ )) {
 			mESC(false);
@@ -684,17 +724,17 @@ void CFMTLexer::mCSTR1(bool _createToken) {
 }
 
 void CFMTLexer::mCSTR2(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = CSTR2;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	{ // ( ... )*
 	for (;;) {
 		if ((LA(1) == 0x25 /* '%' */ ) && (LA(2) == 0x25 /* '%' */ )) {
 			_saveIndex = text.length();
-			match('%');
+			match('%' /* charlit */ );
 			text.erase(_saveIndex);
-			match('%');
+			match('%' /* charlit */ );
 		}
 		else if ((LA(1) == 0x5c /* '\\' */ )) {
 			mESC(false);
@@ -720,12 +760,12 @@ void CFMTLexer::mCSTR2(bool _createToken) {
 }
 
 void CFMTLexer::mESC(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = ESC;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	_saveIndex = text.length();
-	match('\\');
+	match('\\' /* charlit */ );
 	text.erase(_saveIndex);
 	{
 	switch ( LA(1)) {
@@ -736,12 +776,12 @@ void CFMTLexer::mESC(bool _createToken) {
 		switch ( LA(1)) {
 		case 0x61 /* 'a' */ :
 		{
-			match('a');
+			match('a' /* charlit */ );
 			break;
 		}
 		case 0x41 /* 'A' */ :
 		{
-			match('A');
+			match('A' /* charlit */ );
 			break;
 		}
 		default:
@@ -760,12 +800,12 @@ void CFMTLexer::mESC(bool _createToken) {
 		switch ( LA(1)) {
 		case 0x62 /* 'b' */ :
 		{
-			match('b');
+			match('b' /* charlit */ );
 			break;
 		}
 		case 0x42 /* 'B' */ :
 		{
-			match('B');
+			match('B' /* charlit */ );
 			break;
 		}
 		default:
@@ -784,12 +824,12 @@ void CFMTLexer::mESC(bool _createToken) {
 		switch ( LA(1)) {
 		case 0x66 /* 'f' */ :
 		{
-			match('f');
+			match('f' /* charlit */ );
 			break;
 		}
 		case 0x46 /* 'F' */ :
 		{
-			match('F');
+			match('F' /* charlit */ );
 			break;
 		}
 		default:
@@ -808,12 +848,12 @@ void CFMTLexer::mESC(bool _createToken) {
 		switch ( LA(1)) {
 		case 0x6e /* 'n' */ :
 		{
-			match('n');
+			match('n' /* charlit */ );
 			break;
 		}
 		case 0x4e /* 'N' */ :
 		{
-			match('N');
+			match('N' /* charlit */ );
 			break;
 		}
 		default:
@@ -832,12 +872,12 @@ void CFMTLexer::mESC(bool _createToken) {
 		switch ( LA(1)) {
 		case 0x72 /* 'r' */ :
 		{
-			match('r');
+			match('r' /* charlit */ );
 			break;
 		}
 		case 0x52 /* 'R' */ :
 		{
-			match('R');
+			match('R' /* charlit */ );
 			break;
 		}
 		default:
@@ -856,12 +896,12 @@ void CFMTLexer::mESC(bool _createToken) {
 		switch ( LA(1)) {
 		case 0x74 /* 't' */ :
 		{
-			match('t');
+			match('t' /* charlit */ );
 			break;
 		}
 		case 0x54 /* 'T' */ :
 		{
-			match('T');
+			match('T' /* charlit */ );
 			break;
 		}
 		default:
@@ -880,12 +920,12 @@ void CFMTLexer::mESC(bool _createToken) {
 		switch ( LA(1)) {
 		case 0x76 /* 'v' */ :
 		{
-			match('v');
+			match('v' /* charlit */ );
 			break;
 		}
 		case 0x56 /* 'V' */ :
 		{
-			match('V');
+			match('V' /* charlit */ );
 			break;
 		}
 		default:
@@ -916,12 +956,12 @@ void CFMTLexer::mESC(bool _createToken) {
 		switch ( LA(1)) {
 		case 0x78 /* 'x' */ :
 		{
-			match('x');
+			match('x' /* charlit */ );
 			break;
 		}
 		case 0x58 /* 'X' */ :
 		{
-			match('X');
+			match('X' /* charlit */ );
 			break;
 		}
 		default:
@@ -953,9 +993,9 @@ void CFMTLexer::mESC(bool _createToken) {
 }
 
 void CFMTLexer::mOCTESC(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = OCTESC;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	mODIGIT(false);
 	{
@@ -994,9 +1034,9 @@ void CFMTLexer::mOCTESC(bool _createToken) {
 }
 
 void CFMTLexer::mHEXESC(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = HEXESC;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	mHDIGIT(false);
 	{
@@ -1024,9 +1064,9 @@ void CFMTLexer::mHEXESC(bool _createToken) {
 }
 
 void CFMTLexer::mODIGIT(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = ODIGIT;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	{
 	matchRange('0','7');
@@ -1040,9 +1080,9 @@ void CFMTLexer::mODIGIT(bool _createToken) {
 }
 
 void CFMTLexer::mHDIGIT(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = HDIGIT;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	{
 	switch ( LA(1)) {
@@ -1095,23 +1135,23 @@ void CFMTLexer::mHDIGIT(bool _createToken) {
 }
 
 void CFMTLexer::mDIGITS(bool _createToken) {
-	int _ttype; antlr::RefToken _token; int _begin=text.length();
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = DIGITS;
-	int _saveIndex;
+	std::string::size_type _saveIndex;
 	
 	{ // ( ... )+
-	int _cnt59=0;
+	int _cnt61=0;
 	for (;;) {
 		if (((LA(1) >= 0x30 /* '0' */  && LA(1) <= 0x39 /* '9' */ ))) {
 			matchRange('0','9');
 		}
 		else {
-			if ( _cnt59>=1 ) { goto _loop59; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+			if ( _cnt61>=1 ) { goto _loop61; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 		}
 		
-		_cnt59++;
+		_cnt61++;
 	}
-	_loop59:;
+	_loop61:;
 	}  // ( ... )+
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1122,20 +1162,20 @@ void CFMTLexer::mDIGITS(bool _createToken) {
 }
 
 
-const unsigned long CFMTLexer::_tokenSet_0_data_[] = { 512UL, 67059713UL, 84443888UL, 84443888UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long CFMTLexer::_tokenSet_0_data_[] = { 512UL, 67059713UL, 84443892UL, 84443892UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // 0x9 
 const antlr::BitSet CFMTLexer::_tokenSet_0(_tokenSet_0_data_,10);
 const unsigned long CFMTLexer::_tokenSet_1_data_[] = { 4294967288UL, 4294967259UL, 4026531839UL, 4294967295UL, 4294967295UL, 4294967295UL, 4294967295UL, 4294967295UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // 0x3 0x4 0x5 0x6 0x7 0x8 0x9 0xa 0xb 0xc 0xd 0xe 0xf 0x10 0x11 0x12 0x13 
-// 0x14 0x15 0x16 0x17 0x18 0x19 
+// 0x14 0x15 0x16 0x17 0x18 0x19 0x1a 
 const antlr::BitSet CFMTLexer::_tokenSet_1(_tokenSet_1_data_,16);
 const unsigned long CFMTLexer::_tokenSet_2_data_[] = { 4294967288UL, 4294967135UL, 4026531839UL, 4294967295UL, 4294967295UL, 4294967295UL, 4294967295UL, 4294967295UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // 0x3 0x4 0x5 0x6 0x7 0x8 0x9 0xa 0xb 0xc 0xd 0xe 0xf 0x10 0x11 0x12 0x13 
-// 0x14 0x15 0x16 0x17 0x18 0x19 
+// 0x14 0x15 0x16 0x17 0x18 0x19 0x1a 
 const antlr::BitSet CFMTLexer::_tokenSet_2(_tokenSet_2_data_,16);
 const unsigned long CFMTLexer::_tokenSet_3_data_[] = { 4294967288UL, 4278255615UL, 4272668601UL, 4272668601UL, 4294967295UL, 4294967295UL, 4294967295UL, 4294967295UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // 0x3 0x4 0x5 0x6 0x7 0x8 0x9 0xa 0xb 0xc 0xd 0xe 0xf 0x10 0x11 0x12 0x13 
-// 0x14 0x15 0x16 0x17 0x18 0x19 
+// 0x14 0x15 0x16 0x17 0x18 0x19 0x1a 
 const antlr::BitSet CFMTLexer::_tokenSet_3(_tokenSet_3_data_,16);
 const unsigned long CFMTLexer::_tokenSet_4_data_[] = { 0UL, 67043328UL, 126UL, 126UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 const antlr::BitSet CFMTLexer::_tokenSet_4(_tokenSet_4_data_,10);

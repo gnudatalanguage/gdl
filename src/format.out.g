@@ -196,7 +196,7 @@ format
                         case NONL:
                         case Q: case T: case X: case A:
                         case F: case D: case E: case G:
-                        case I: case O: case Z: case ZZ: case C:
+                        case I: case O: case B: case Z: case ZZ: case C:
                             {
                                 f(_t);
                                 if( actPar == NULL && termFlag) goto endFMT;
@@ -242,7 +242,7 @@ format_reversion
                 case NONL:
                 case Q: case T: case X: case A:
                 case F: case D: case E: case G:
-                case I: case O: case Z: case ZZ: case C:
+                case I: case O: case B: case Z: case ZZ: case C:
                     {
                         f(_t);
                         if( actPar == NULL) goto endFMT;
@@ -389,6 +389,21 @@ f
             do {
                 SizeT tCount = actPar->OFmtI( os, valIx, r, w, d, 
                                                BaseGDL::OCT);
+                r -= tCount;
+                NextVal( tCount);
+                if( actPar == NULL) break;
+            } while( r>0);
+        }
+    | b:B
+        {
+            if( actPar == NULL) break;
+            
+            int r = b->getRep();
+            int w = b->getW();
+            int d = b->getD();
+            do {
+                SizeT tCount = actPar->OFmtI( os, valIx, r, w, d, 
+                                               BaseGDL::BIN);
                 r -= tCount;
                 NextVal( tCount);
                 if( actPar == NULL) break;

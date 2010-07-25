@@ -1,7 +1,7 @@
 #ifndef INC_CFMTTokenTypes_hpp_
 #define INC_CFMTTokenTypes_hpp_
 
-/* $ANTLR 2.7.4: "cformat.g" -> "CFMTTokenTypes.hpp"$ */
+/* $ANTLR 2.7.7 (20091222): "cformat.g" -> "CFMTTokenTypes.hpp"$ */
 
 #ifndef CUSTOM_API
 # define CUSTOM_API
@@ -27,13 +27,14 @@ struct CUSTOM_API CFMTTokenTypes {
 		CF = 16,
 		CG = 17,
 		CO = 18,
-		CS = 19,
-		CX = 20,
-		CZ = 21,
-		CDOT = 22,
-		DIGITS = 23,
-		CNUMBER = 24,
-		CWS = 25,
+		CB = 19,
+		CS = 20,
+		CX = 21,
+		CZ = 22,
+		CDOT = 23,
+		DIGITS = 24,
+		CNUMBER = 25,
+		CWS = 26,
 		NULL_TREE_LOOKAHEAD = 3
 	};
 #ifdef __cplusplus

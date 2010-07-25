@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.6 (20071205): "format.g" -> "FMTParser.cpp"$ */
+/* $ANTLR 2.7.7 (20091222): "format.g" -> "FMTParser.cpp"$ */
 
 #include "includefirst.hpp"
 
@@ -88,6 +88,7 @@ void FMTParser::qfq() {
 	case CF:
 	case CG:
 	case CO:
+	case CB:
 	case CS:
 	case CX:
 	case CZ:
@@ -108,6 +109,7 @@ void FMTParser::qfq() {
 	case G:
 	case I:
 	case O:
+	case B:
 	case Z:
 	case ZZ:
 	case C:
@@ -236,6 +238,7 @@ void FMTParser::f() {
 	case CF:
 	case CG:
 	case CO:
+	case CB:
 	case CS:
 	case CX:
 	case CZ:
@@ -257,6 +260,7 @@ void FMTParser::f() {
 	case G:
 	case I:
 	case O:
+	case B:
 	case Z:
 	case ZZ:
 	case C:
@@ -280,6 +284,7 @@ void FMTParser::f() {
 		case G:
 		case I:
 		case O:
+		case B:
 		case Z:
 		case ZZ:
 		case C:
@@ -353,6 +358,7 @@ void FMTParser::f_csubcode() {
 	case CF:
 	case CG:
 	case CO:
+	case CB:
 	case CS:
 	case CX:
 	case CZ:
@@ -421,6 +427,7 @@ void FMTParser::cstring() {
 		case CF:
 		case CG:
 		case CO:
+		case CB:
 		case CS:
 		case CX:
 		case CZ:
@@ -478,6 +485,8 @@ void FMTParser::cformat() {
 	RefFMTNode g_AST = RefFMTNode(antlr::nullAST);
 	antlr::RefToken  o = antlr::nullToken;
 	RefFMTNode o_AST = RefFMTNode(antlr::nullAST);
+	antlr::RefToken  b = antlr::nullToken;
+	RefFMTNode b_AST = RefFMTNode(antlr::nullAST);
 	antlr::RefToken  x = antlr::nullToken;
 	RefFMTNode x_AST = RefFMTNode(antlr::nullAST);
 	antlr::RefToken  z = antlr::nullToken;
@@ -510,6 +519,7 @@ void FMTParser::cformat() {
 		case CF:
 		case CG:
 		case CO:
+		case CB:
 		case CS:
 		case CX:
 		case CZ:
@@ -530,6 +540,7 @@ void FMTParser::cformat() {
 	case CF:
 	case CG:
 	case CO:
+	case CB:
 	case CS:
 	case CX:
 	case CZ:
@@ -596,6 +607,15 @@ void FMTParser::cformat() {
 		astFactory->addASTChild(currentAST, antlr::RefAST(o_AST));
 		match(CO);
 		o_AST->setW( w); o_AST->setD( d); o_AST->setType( O);
+		break;
+	}
+	case CB:
+	{
+		b = LT(1);
+		b_AST = astFactory->create(b);
+		astFactory->addASTChild(currentAST, antlr::RefAST(b_AST));
+		match(CB);
+		b_AST->setW( w); b_AST->setD( d); b_AST->setType( B);
 		break;
 	}
 	case CX:
@@ -674,6 +694,8 @@ void FMTParser::rep_fmt(
 	RefFMTNode i_AST = RefFMTNode(antlr::nullAST);
 	antlr::RefToken  o = antlr::nullToken;
 	RefFMTNode o_AST = RefFMTNode(antlr::nullAST);
+	antlr::RefToken  b = antlr::nullToken;
+	RefFMTNode b_AST = RefFMTNode(antlr::nullAST);
 	antlr::RefToken  z = antlr::nullToken;
 	RefFMTNode z_AST = RefFMTNode(antlr::nullAST);
 	antlr::RefToken  zz = antlr::nullToken;
@@ -792,6 +814,18 @@ void FMTParser::rep_fmt(
 		w_d( o_AST);
 		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 		o_AST->setRep( repeat);
+		rep_fmt_AST = RefFMTNode(currentAST.root);
+		break;
+	}
+	case B:
+	{
+		b = LT(1);
+		b_AST = astFactory->create(b);
+		astFactory->addASTChild(currentAST, antlr::RefAST(b_AST));
+		match(B);
+		w_d( b_AST);
+		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+		b_AST->setRep( repeat);
 		rep_fmt_AST = RefFMTNode(currentAST.root);
 		break;
 	}
@@ -1386,6 +1420,7 @@ void FMTParser::csubcode() {
 	case CF:
 	case CG:
 	case CO:
+	case CB:
 	case CS:
 	case CX:
 	case CZ:
@@ -1409,7 +1444,7 @@ void FMTParser::csubcode() {
 
 void FMTParser::initializeASTFactory( antlr::ASTFactory& factory )
 {
-	factory.setMaxNodeType(75);
+	factory.setMaxNodeType(77);
 }
 const char* FMTParser::tokenNames[] = {
 	"<0>",
@@ -1431,6 +1466,7 @@ const char* FMTParser::tokenNames[] = {
 	"CF",
 	"CG",
 	"CO",
+	"CB",
 	"CS",
 	"CX",
 	"CZ",
@@ -1458,6 +1494,7 @@ const char* FMTParser::tokenNames[] = {
 	"G",
 	"I",
 	"O",
+	"B",
 	"Z",
 	"ZZ",
 	"C",
@@ -1491,7 +1528,7 @@ const char* FMTParser::tokenNames[] = {
 	0
 };
 
-const unsigned long FMTParser::_tokenSet_0_data_[] = { 1879048192UL, 1024UL, 4UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long FMTParser::_tokenSet_0_data_[] = { 3758096384UL, 2048UL, 16UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // COMMA RBRACE SLASH E NUMBER 
 const antlr::BitSet FMTParser::_tokenSet_0(_tokenSet_0_data_,8);
 

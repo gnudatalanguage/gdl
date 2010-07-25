@@ -3,7 +3,7 @@
 
 #include <antlr/config.hpp>
 #include "FMTOutTokenTypes.hpp"
-/* $ANTLR 2.7.6 (20071205): "format.out.g" -> "FMTOut.hpp"$ */
+/* $ANTLR 2.7.7 (20091222): "format.out.g" -> "FMTOut.hpp"$ */
 #include <antlr/TreeParser.hpp>
 
 
@@ -161,10 +161,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 76;
+	static const int NUM_TOKENS = 78;
 #else
 	enum {
-		NUM_TOKENS = 76
+		NUM_TOKENS = 78
 	};
 #endif
 	
