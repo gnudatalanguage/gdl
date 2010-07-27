@@ -45,7 +45,7 @@ pro test_zeropoly
   endfor
 
   ; freeing heap vars
-  foreach i of c do ptr_free, i
-  foreach i of c do ptr_free, i
+  foreach i, c do ptr_free, i
+  foreach i, c do ptr_free, i
 
 end

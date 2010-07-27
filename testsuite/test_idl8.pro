@@ -15,9 +15,9 @@ pro test_idl8
   a = [1, 2, 3]
 
   message, 'testing FOREACH statement', /conti
-  foreach i of a do i = 0 ; should do nothing
+  foreach i, a do i = 0 ; should do nothing
   sum = 0
-  foreach i of a do begin
+  foreach i, a do begin
     sum += i
   end
   if sum ne total(a) then begin

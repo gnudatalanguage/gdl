@@ -46,7 +46,7 @@ pro test_spher_harm
     ptr_new([complex(1,1)]), $
     ptr_new([dcomplex(1,1)]) $
   ]
-  foreach i of in do begin
+  foreach i, in do begin
     if (size(spher_harm(*i, 0d, 0, 0), /type) ne 9) then begin
       message, 'spher_harm(*, double, ...) should be dcomplex'
       exit, status=1
@@ -62,15 +62,15 @@ pro test_spher_harm
       endif
     endif
   endforeach
-  foreach i of in do ptr_free, i
+  foreach i, in do ptr_free, i
 
   ; testing output values against GDL-computed harmonics
   thetas = findgen(10.)
   phis = dindgen(5.)
   ls = indgen(2)
   eps = 1e-7
-  foreach theta of thetas do foreach phi of phis do foreach l of ls do begin
-    foreach m of indgen(2*l+1) - l do begin
+  foreach theta, thetas do foreach phi, phis do foreach l, ls do begin
+    foreach m, indgen(2*l+1) - l do begin
       ; scalar computations
       if abs(spher_harm(theta, phi, l, m) - spher_harm_gdl(theta, phi, l, m)) gt eps then begin
         message, 'spher_harm() != spher_harm_gdl()', /conti

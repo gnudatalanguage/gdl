@@ -1,7 +1,7 @@
 ; by Sylwester Arabas <slayoo@igf.fuw.edu.pl>
 pro test_pmulti
 
-  foreach dev of ['z', 'ps', 'svg'] do begin
+  foreach dev, ['z', 'ps', 'svg'] do begin
 
     set_plot, dev
     if dev ne 'z' then device, filename='/dev/null'
