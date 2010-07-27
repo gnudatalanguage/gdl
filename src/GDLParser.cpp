@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.6 (20071205): "gdlc.g" -> "GDLParser.cpp"$ */
+/* $ANTLR 2.7.7 (20091222): "gdlc.g" -> "GDLParser.cpp"$ */
 
 #include "includefirst.hpp"
 
@@ -4524,7 +4524,7 @@ void GDLParser::foreach_statement() {
 		astFactory->addASTChild(currentAST, antlr::RefAST(tmp125_AST));
 	}
 	match(IDENTIFIER);
-	match(OF);
+	match(COMMA);
 	expr();
 	if (inputState->guessing==0) {
 		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));

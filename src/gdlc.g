@@ -786,7 +786,7 @@ for_block
 	;	
 
 foreach_statement
-	: FOREACH^ IDENTIFIER OF! expr DO!
+	: FOREACH^ IDENTIFIER COMMA! expr DO!
 		foreach_block
 	;
 
