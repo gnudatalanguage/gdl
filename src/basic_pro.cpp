@@ -989,7 +989,12 @@ namespace lib {
       }
 
     // Assume variable-length VMS file initially
-    fileUnits[ lun-1].PutVarLenVMS( true);
+    // fileUnits[ lun-1].PutVarLenVMS( true);
+
+   // m_schellens: this is no good. It fails for regular files which by accident fit the 
+   // variable-length VMS file criteria (see bug tracker ID: 3028279)
+   // we need something more sophisticated here
+   fileUnits[ lun-1].PutVarLenVMS( false);
 
     try{
       fileUnits[ lun-1].Open( name, mode, swapEndian, deleteKey, 
