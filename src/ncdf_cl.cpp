@@ -150,12 +150,36 @@ namespace lib {
 	  }
 	else if(status==NC_EBADDIM)  	/* Invalid dimension id or name */  
 	  {
+		size_t nParam=e->NParam();
+
+		if(nParam >= 3)
+		{
+			BaseGDL* v=e->GetParDefined(2);
+			DIntGDL* dim_in=static_cast<DIntGDL*>(v->Convert2(INT, BaseGDL::COPY));
+			auto_ptr<DIntGDL> dim_in_guard( dim_in);
+			int var_ndims=dim_in->N_Elements();
+			if(var_ndims > NC_MAX_VAR_DIMS)
+			{
+				throw GDLException(e->CallingNode(),
+					"NCDF internal error in error handler (too many dimension IDs).");
+			}					      
+
+			error += "No Dimension with ID = ";
+		
+			for (int i=0; i<var_ndims;++i)
+				error += i2s((*dim_in)[i]) + " ";
+
+			error += "found. ";
+		}
+		else
+		{
             DLong id;
             e->AssureLongScalarPar( 0, id);
-	    error += "No Dimension with id = ";
-	    error += i2s(id);
-	    error += " found. ";
 	    
+			error += "Invalid dimension or name.  ID = ";
+			
+			error += i2s(id) + " ";
+		}	    
 	    error+="(NC_ERROR=-46)";
 	  }
 	else if(status==NC_EUNLIMPOS) 	/* NC_UNLIMITED in the wrong index */ 

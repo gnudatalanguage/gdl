@@ -760,26 +760,25 @@ else if(var_type == NC_LONG)
       {
 	v=e->GetParDefined(2);
 	DIntGDL* dim_in=static_cast<DIntGDL*>(v->Convert2(INT, BaseGDL::COPY));
+	auto_ptr<DIntGDL> dim_in_guard( dim_in);
 	var_ndims=dim_in->N_Elements();
 	if(var_ndims > NC_MAX_VAR_DIMS)
 	  {
 	    throw GDLException(e->CallingNode(),
-			       "NCDF_VARDEF: Too many elements error 1 in array"				       +e->GetParString(0));
+			       "Too many elements error 1 in array"				       +e->GetParString(0));
 	  }					      
 
 	for (i=0; i<var_ndims;++i)
 	  dims[var_ndims-i-1]=(*dim_in)[i];
-
-
-	//dim is set
+	
+	//dims is set
       } 
     else if(nParam == 2)
       {
 	var_ndims=0;
-	//dim is not set, scalar
+	//dims is not set, scalar
       }
 
-    
     if(e->KeywordSet(0))//BYTE
       type=NC_BYTE;
     else if(e->KeywordSet(1))//CHAR
@@ -792,7 +791,6 @@ else if(var_type == NC_LONG)
       type=NC_SHORT;
     else
       type=NC_FLOAT;
-
 
 	status=nc_def_var(cdfid,
 			  var_name.c_str(),
