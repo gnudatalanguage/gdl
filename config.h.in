@@ -90,6 +90,9 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
+/* Define if you want to enable calls to Xlib */
+#undef HAVE_X
+
 /* Define to 1 if you have the <"netcdfcpp.h"> header file. */
 #undef HAVE__NETCDFCPP_H_
 

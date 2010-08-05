@@ -4669,6 +4669,44 @@ BaseGDL**  GDLInterpreter::l_array_expr(ProgNodeP _t,
 	ArrayIndexListT* aL;
 	ArrayIndexListGuard guard;
 	
+		ProgNodeP astIn = _t;
+	// 	match(antlr::RefAST(_t),ARRAYEXPR);
+		_t = _t->getFirstChild();
+		res=l_indexable_expr(_t);
+		_t = _retTree;
+		aL=arrayindex_list(_t);
+	
+		guard.reset(aL);
+		
+		if( right == NULL)
+		throw GDLException( astIn, 
+		"Indexed expression not allowed in this context.",true,false);
+		
+		try {
+		aL->AssignAt( *res, right);
+		}
+		catch( GDLException& ex)
+		{
+		ex.SetErrorNodeP( astIn);
+		throw ex;
+		}
+		//             aL->AssignAt( *res, right);
+		
+		//             aL->SetVariable( *res);
+		//             if( (*res)->EqType( right))
+		//             {
+		//                 (*res)->AssignAt( right, aL); // assigns inplace
+		//             }
+		//             else
+		//             {
+		//                 BaseGDL* rConv = right->Convert2( (*res)->Type(), BaseGDL::COPY);
+		//                 auto_ptr<BaseGDL> conv_guard( rConv);
+		//                 (*res)->AssignAt( rConv, aL); // assigns inplace
+		//             }
+		
+		_retTree = astIn->getNextSibling();
+		return res;
+	
 	
 	ProgNodeP __t76 = _t;
 	ProgNodeP tmp72_AST_in = _t;
@@ -4681,25 +4719,6 @@ BaseGDL**  GDLInterpreter::l_array_expr(ProgNodeP _t,
 	guard.reset(aL);
 	_t = __t76;
 	_t = _t->getNextSibling();
-	
-	if( right == NULL)
-	throw GDLException( _t, 
-	"Indexed expression not allowed in this context.",true,false);
-	
-	aL->AssignAt( *res, right);
-	
-	//             aL->SetVariable( *res);
-	//             if( (*res)->EqType( right))
-	//             {
-	//                 (*res)->AssignAt( right, aL); // assigns inplace
-	//             }
-	//             else
-	//             {
-	//                 BaseGDL* rConv = right->Convert2( (*res)->Type(), BaseGDL::COPY);
-	//                 auto_ptr<BaseGDL> conv_guard( rConv);
-	//                 (*res)->AssignAt( rConv, aL); // assigns inplace
-	//             }
-	
 	_retTree = _t;
 	return res;
 }

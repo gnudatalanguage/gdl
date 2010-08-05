@@ -2787,27 +2787,72 @@ l_array_expr [BaseGDL* right] returns [BaseGDL** res]
 {
     ArrayIndexListT* aL;
     ArrayIndexListGuard guard;
+
+	ProgNodeP astIn = _t;
+// 	match(antlr::RefAST(_t),ARRAYEXPR);
+	_t = _t->getFirstChild();
+	res=l_indexable_expr(_t);
+	_t = _retTree;
+	aL=arrayindex_list(_t);
+
+	guard.reset(aL);
+	
+	if( right == NULL)
+	throw GDLException( astIn, 
+	"Indexed expression not allowed in this context.",true,false);
+	
+	try {
+	aL->AssignAt( *res, right);
+	}
+	catch( GDLException& ex)
+	{
+	ex.SetErrorNodeP( astIn);
+	throw ex;
+	}
+	//             aL->AssignAt( *res, right);
+	
+	//             aL->SetVariable( *res);
+	//             if( (*res)->EqType( right))
+	//             {
+	//                 (*res)->AssignAt( right, aL); // assigns inplace
+	//             }
+	//             else
+	//             {
+	//                 BaseGDL* rConv = right->Convert2( (*res)->Type(), BaseGDL::COPY);
+	//                 auto_ptr<BaseGDL> conv_guard( rConv);
+	//                 (*res)->AssignAt( rConv, aL); // assigns inplace
+	//             }
+	
+	_retTree = astIn->getNextSibling();
+	return res;
 }
-    : #(ARRAYEXPR res=l_indexable_expr aL=arrayindex_list { guard.reset(aL);})   
-        {
-            if( right == NULL)
-            throw GDLException( _t, 
-                "Indexed expression not allowed in this context.",true,false);
+    : #(ARRAYEXPR res=l_indexable_expr aL=arrayindex_list { guard.reset(aL);})   //         {
+//             if( right == NULL)
+//             throw GDLException( _t, 
+//                 "Indexed expression not allowed in this context.",true,false);
 
-            aL->AssignAt( *res, right);
+//             try {
+//                 aL->AssignAt( *res, right);
+//             }
+//             catch( GDLException& ex)
+//             {
+//                 ex.SetLine( _t->getLine());
+//                 throw ex;
+//             }
+// //             aL->AssignAt( *res, right);
 
-//             aL->SetVariable( *res);
-//             if( (*res)->EqType( right))
-//             {
-//                 (*res)->AssignAt( right, aL); // assigns inplace
-//             }
-//             else
-//             {
-//                 BaseGDL* rConv = right->Convert2( (*res)->Type(), BaseGDL::COPY);
-//                 auto_ptr<BaseGDL> conv_guard( rConv);
-//                 (*res)->AssignAt( rConv, aL); // assigns inplace
-//             }
-        }
+// //             aL->SetVariable( *res);
+// //             if( (*res)->EqType( right))
+// //             {
+// //                 (*res)->AssignAt( right, aL); // assigns inplace
+// //             }
+// //             else
+// //             {
+// //                 BaseGDL* rConv = right->Convert2( (*res)->Type(), BaseGDL::COPY);
+// //                 auto_ptr<BaseGDL> conv_guard( rConv);
+// //                 (*res)->AssignAt( rConv, aL); // assigns inplace
+// //             }
+//         }
     ;
 
 l_dot_array_expr [DotAccessDescT* aD] // 1st

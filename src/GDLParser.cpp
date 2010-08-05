@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.7 (20091222): "gdlc.g" -> "GDLParser.cpp"$ */
+/* $ANTLR 2.7.6 (20071205): "gdlc.g" -> "GDLParser.cpp"$ */
 
 #include "includefirst.hpp"
 
