@@ -2105,6 +2105,10 @@ void GDLTreeParser::assign_expr_statement(RefDNode _t) {
 	// #a->setType( ASSIGN_REPLACE);
 	assign_expr_statement_AST=RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(a_AST))->add(antlr::RefAST(r_AST))->add(antlr::RefAST(l_AST))));  
 	}
+	else
+	{
+	assign_expr_statement_AST=RefDNode(astFactory->make((new antlr::ASTArray(1))->add(antlr::RefAST(astFactory->create(BLOCK,"block")))));                
+	}
 	
 	currentAST.root = assign_expr_statement_AST;
 	if ( assign_expr_statement_AST!=RefDNode(antlr::nullAST) &&

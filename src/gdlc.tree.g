@@ -1100,6 +1100,10 @@ assign_expr_statement!
                 // #a->setType( ASSIGN_REPLACE);
                 #assign_expr_statement=#(a,r,l);  
             }
+            else
+            {
+                #assign_expr_statement=#([BLOCK,"block"]);                
+            }
         }
     ;
 
