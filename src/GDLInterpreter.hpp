@@ -63,6 +63,8 @@ private:
     friend class FOR_LOOPNode;
     friend class FOREACHNode;
     friend class FOREACH_LOOPNode;
+    friend class FOREACH_INDEXNode;
+    friend class FOREACH_INDEX_LOOPNode;
     friend class FOR_STEPNode;
     friend class FOR_STEP_LOOPNode;
     
@@ -785,10 +787,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 225;
+	static const int NUM_TOKENS = 227;
 #else
 	enum {
-		NUM_TOKENS = 225
+		NUM_TOKENS = 227
 	};
 #endif
 	

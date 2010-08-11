@@ -125,6 +125,8 @@ private:
     friend class FOR_LOOPNode;
     friend class FOREACHNode;
     friend class FOREACH_LOOPNode;
+    friend class FOREACH_INDEXNode;
+    friend class FOREACH_INDEX_LOOPNode;
     friend class FOR_STEPNode;
     friend class FOR_STEP_LOOPNode;
     
@@ -985,6 +987,10 @@ statement returns[ RetCode retCode]
         |   FOREACH
 //            {fe->Run(); _t = _retTree;}
         |   FOREACH_LOOP
+//            {fel->Run(); _t = _retTree;}
+        |   FOREACH_INDEX
+//            {fe->Run(); _t = _retTree;}
+        |   FOREACH_INDEX_LOOP
 //            {fel->Run(); _t = _retTree;}
         |   FOR_STEP
 //            {fs->Run(); _t = _retTree;}
@@ -1912,7 +1918,8 @@ for_statement returns[ RetCode retCode]
 
 foreach_statement returns[ RetCode retCode]
 {
-    BaseGDL** v;
+    BaseGDL** v; // loop variable
+    BaseGDL** l; // loop index (or hash) variable
     BaseGDL* s;
     retCode = RC_OK;
 }
@@ -1986,6 +1993,87 @@ foreach_statement returns[ RetCode retCode]
                 loopInfo.endLoopVar = NULL;
                 loopInfo.foreachIx = -1;
                 _retTree = fl->GetNextSibling();
+                return RC_OK;
+            }
+        )
+    | #(fi:FOREACH_INDEX // #(FOREACH_INDEX_LOOP (VAR|VARPTR) expr (VAR|VARPTR) ...)
+            {
+                _t = fi->GetNextSibling()->GetFirstChild();
+
+                EnvUDT* callStack_back = 
+                static_cast<EnvUDT*>(callStack.back());
+
+                ForLoopInfoT& loopInfo = 
+                    callStack_back->GetForLoopInfo( fi->forLoopIx);
+
+                v=l_simple_var(_t);
+                _t = _retTree;
+
+                delete loopInfo.endLoopVar;
+                loopInfo.endLoopVar=expr(_t);
+
+                // loop index (or hash) variable
+                l=l_simple_var(_t);
+                _t = _retTree;
+
+                ProgNodeP b = _retTree;
+		
+                loopInfo.foreachIx = 0;
+
+                // currently there are no empty arrays
+                //SizeT nEl = loopInfo.endLoopVar->N_Elements();
+
+                // ASSIGNMENT used here also
+                delete (*v);
+                (*v) = loopInfo.endLoopVar->NewIx( 0);
+
+                _retTree = b;
+                return RC_OK;
+            }
+        )
+    | #(fil:FOREACH_INDEX_LOOP // (VAR|VARPTR) expr (VAR|VARPTR)
+            {
+                EnvUDT* callStack_back = 
+                static_cast<EnvUDT*>(callStack.back());
+
+                ForLoopInfoT& loopInfo = 
+                    callStack_back->GetForLoopInfo( fil->forLoopIx);
+
+                if( loopInfo.endLoopVar == NULL)
+                    {
+                        // non-initialized loop (GOTO)
+                        _retTree = fil->GetNextSibling();
+                        return RC_OK;
+                    }
+
+                v=l_simple_var(_t);
+                _t = _retTree;
+
+                // skip expr
+                _t = _t->getNextSibling();
+
+                // loop index variable
+                l=l_simple_var(_t);
+                _t = _retTree;
+
+                ++loopInfo.foreachIx;
+
+                SizeT nEl = loopInfo.endLoopVar->N_Elements();
+
+                if( loopInfo.foreachIx < nEl)
+                    {
+                        // ASSIGNMENT used here also
+                        delete (*v);
+                        (*v) = loopInfo.endLoopVar->NewIx( loopInfo.foreachIx);
+
+                        _retTree = _t;
+                        return RC_OK;
+                    }
+
+                delete loopInfo.endLoopVar;
+                loopInfo.endLoopVar = NULL;
+                loopInfo.foreachIx = -1;
+                _retTree = fil->GetNextSibling();
                 return RC_OK;
             }
         )

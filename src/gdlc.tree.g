@@ -537,10 +537,20 @@ foreach_statement //!
         	{ 
                 #i->setType(VAR);
                 comp.Var(#i);	
-
                 loopVarStack.push_back(#i->getText());
             }
             expr
+            (l:IDENTIFIER
+                { 
+                #l->setType(VAR);
+                comp.Var(#l);	
+                loopVarStack.push_back(#l->getText());
+
+                #f->setType(FOREACH_INDEX);
+                #f->setText("foreach_index");
+                }
+            )? 
+
 //           for_block
            unblock_empty
 //           unblock

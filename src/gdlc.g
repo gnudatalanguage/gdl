@@ -98,9 +98,11 @@ tokens {
     FOR;
     FOR_STEP; // for with step
     FOREACH;
+    FOREACH_INDEX; // foreach with index (hash) variable
     FOR_LOOP;
     FOR_STEP_LOOP; // for with step
     FOREACH_LOOP;
+    FOREACH_INDEX_LOOP;
 	FCALL;
 	FCALL_LIB; // library function call
 // 	FCALL_LIB_N_ELEMENTS; // N_ELEMENTS
@@ -535,7 +537,7 @@ end_mark!
 	;
 
 endforeach_mark!
-	: ENDFOREACH | ENDFOR | END
+	: ENDFOREACH | END
 	;
 
 endfor_mark!
@@ -786,7 +788,7 @@ for_block
 	;	
 
 foreach_statement
-	: FOREACH^ IDENTIFIER COMMA! expr DO!
+	: FOREACH^ IDENTIFIER COMMA! expr (COMMA! IDENTIFIER)? DO!
 		foreach_block
 	;
 
