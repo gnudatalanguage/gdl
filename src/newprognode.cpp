@@ -671,6 +671,10 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
       {
 	return new  FOREACHNode( refNode);
       }
+    case GDLTokenTypes::FOREACH_INDEX:
+      {
+	return new  FOREACH_INDEXNode( refNode);
+      }
     case GDLTokenTypes::WHILE:
       {
 	return new  WHILENode( refNode);

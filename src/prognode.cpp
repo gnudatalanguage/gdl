@@ -90,6 +90,10 @@ void FOREACHNode::KeepRight( ProgNodeP r)
 {
 	throw GDLException( "Internal error: FOREACHNode::KeepRight() called. Please report.");
 }
+void FOREACH_INDEXNode::KeepRight( ProgNodeP r)
+{
+	throw GDLException( "Internal error: FOREACH_INDEXNode::KeepRight() called. Please report.");
+}
 
 bool ProgNode::ConstantNode()
   {
@@ -1108,6 +1112,79 @@ RetCode   FOREACH_LOOPNode::Run()
 
 		ProgNode::interpreter->_retTree = this->GetFirstChild()->GetNextSibling();
   return RC_OK;
+	}
+
+	delete loopInfo.endLoopVar;
+	loopInfo.endLoopVar = NULL;
+	// 	loopInfo.foreachIx = -1;
+	ProgNode::interpreter->SetRetTree( this->GetNextSibling());
+  return RC_OK;
+}
+
+
+
+RetCode   FOREACH_INDEXNode::Run()
+{
+	EnvUDT* callStack_back = 	static_cast<EnvUDT*>(GDLInterpreter::CallStack().back());
+	ForLoopInfoT& loopInfo = callStack_back->GetForLoopInfo( this->forLoopIx);
+
+	ProgNodeP vP = this->GetNextSibling()->GetFirstChild();
+	ProgNodeP indexP = vP->GetNextSibling();
+
+	BaseGDL** v=ProgNode::interpreter->l_simple_var(vP);
+	BaseGDL** index=ProgNode::interpreter->l_simple_var(indexP);
+
+	delete loopInfo.endLoopVar;
+	loopInfo.endLoopVar=ProgNode::interpreter->expr(this->GetFirstChild());
+
+	loopInfo.foreachIx = 0;
+
+	// currently there are no empty arrays
+	//SizeT nEl = loopInfo.endLoopVar->N_Elements();
+
+	// ASSIGNMENT used here also
+	delete (*v);
+	(*v) = loopInfo.endLoopVar->NewIx( 0);
+	
+	// ASSIGNMENT used here also
+	delete (*index);
+	(*index) = new DLongGDL( 0);
+
+	ProgNode::interpreter->_retTree = indexP->GetNextSibling();
+	return RC_OK;
+}
+
+RetCode   FOREACH_INDEX_LOOPNode::Run()
+{
+	EnvUDT* callStack_back = 	static_cast<EnvUDT*>(GDLInterpreter::CallStack().back());
+	ForLoopInfoT& loopInfo = callStack_back->GetForLoopInfo( this->forLoopIx);
+
+	if( loopInfo.endLoopVar == NULL)
+	{
+	// non-initialized loop (GOTO)
+	ProgNode::interpreter->_retTree = this->GetNextSibling();
+  return RC_OK;
+	}
+
+	BaseGDL** v=ProgNode::interpreter->l_simple_var(this->GetFirstChild());
+	BaseGDL** index=ProgNode::interpreter->l_simple_var(this->GetFirstChild()->GetNextSibling());
+	
+	++loopInfo.foreachIx;
+
+	SizeT nEl = loopInfo.endLoopVar->N_Elements();
+
+	if( loopInfo.foreachIx < nEl)
+	{
+		// ASSIGNMENT used here also
+		delete (*v);
+		(*v) = loopInfo.endLoopVar->NewIx( loopInfo.foreachIx);
+
+		// ASSIGNMENT used here also
+		delete (*index);
+		(*index) = new DLongGDL( loopInfo.foreachIx);
+		
+		ProgNode::interpreter->_retTree = this->GetFirstChild()->GetNextSibling()->GetNextSibling();
+		return RC_OK;
 	}
 
 	delete loopInfo.endLoopVar;

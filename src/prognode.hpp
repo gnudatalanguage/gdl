@@ -765,6 +765,112 @@ class FOREACHNode: public BreakableNode
 
 
 
+class FOREACH_INDEX_LOOPNode: public BreakableNode
+{
+  public:
+ RetCode      Run();
+	
+	ProgNodeP GetStatementList()
+	{
+		return down->GetNextSibling();
+	}
+	
+  public:
+	void KeepRight( ProgNodeP r)
+	{
+		right = r;
+		keepRight = true;
+		if( this->GetStatementList() != NULL)
+			this->GetStatementList()->SetAllBreak( right);
+	}
+  
+  int NumberForLoops( int actNum)
+  {
+	this->forLoopIx = actNum;
+	actNum++;
+	ProgNodeP statementList = this->GetStatementList();
+	if( statementList != NULL && !down->KeepRight())
+		{
+			actNum = statementList->NumberForLoops( actNum);
+		}
+	if( right != NULL && !keepRight)
+		{
+			actNum = right->NumberForLoops( actNum);
+		}
+	return actNum;
+ }
+  
+  public:
+  FOREACH_INDEX_LOOPNode( ProgNodeP r, ProgNodeP d): BreakableNode()
+  {
+    SetType( GDLTokenTypes::FOREACH_INDEX_LOOP, "foreach_index_loop");
+	SetRightDown( r, d);
+
+	assert( down != NULL);
+	
+	ProgNodeP statementList = this->GetStatementList();
+	if( statementList != NULL)
+		{
+			statementList->SetAllContinue( this);
+			statementList->GetLastSibling()->KeepRight( this);
+			if( right != NULL) statementList->SetAllBreak( right);
+		}
+	else
+		{
+			down->KeepRight( this);
+		}
+  }
+
+};
+
+
+
+class FOREACH_INDEXNode: public BreakableNode
+{
+  public:
+ RetCode      Run();
+	
+  void KeepRight( ProgNodeP r);
+	
+  int NumberForLoops( int actNum)
+  {
+	this->forLoopIx = actNum;
+	
+// 	assert( down == NULL);
+		
+	assert( right != NULL && !keepRight);
+			
+	actNum = right->NumberForLoops( actNum);
+	
+	return actNum;
+ }
+  
+  public:
+  FOREACH_INDEXNode(): BreakableNode()  {}
+
+  FOREACH_INDEXNode( const RefDNode& refNode): BreakableNode( refNode)
+  {
+    // down is variable,array,variable
+	ProgNodeP keep = down->GetNextSibling(); // the array to loop over
+
+	ProgNodeP index = down->GetNextSibling()->GetNextSibling(); // the index variable
+
+	down->SetRight( index); // jump over array
+
+	// cut away everything after the array from keep
+	keep->SetRight( NULL);
+
+	FOREACH_INDEX_LOOPNode* forLoop = new FOREACH_INDEX_LOOPNode( right, down);
+	forLoop->setLine( getLine());
+
+	down = keep;
+
+	right = forLoop;
+ }
+};
+
+
+
 class WHILENode: public BreakableNode
 {
   public:
