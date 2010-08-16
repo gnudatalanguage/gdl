@@ -678,7 +678,7 @@ const char * GDLGStream::TranslateFormatCodes(const char *in)
           switch (in[i])
           {
             // non-equivalent letters
-            case 'C' : out += "#gG"; break; case 'c' : out += "#gc"; break;
+            case 'C' : out += "#gG"; break; case 'c' : out += "#gg"; break;
             case 'F' : out += "#gZ"; break; case 'f' : out += "#gz"; break;
             case 'G' : out += "#gY"; break; case 'g' : out += "#gy"; break;
             case 'J' : out += "#gK"; break; case 'j' : out += "#gk"; break;
