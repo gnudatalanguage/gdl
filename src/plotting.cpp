@@ -287,7 +287,7 @@ namespace lib {
     DString title;
     if( e->KeywordPresent( 4)) // TITLE
       {
-	e->AssureScalarKW< DStringGDL>( 4, title);
+	e->AssureStringScalarKWIfPresent( 4, title);
       }
     else
       {
@@ -1121,6 +1121,7 @@ namespace lib {
     if (wait == 1) {
       while (1) {
 	plg->GetCursor(&gin);
+	//	cout << gin.button << endl;
 	if (gin.button > 0) break;
  	if( sigControlC)
  		return;
