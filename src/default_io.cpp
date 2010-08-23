@@ -460,36 +460,70 @@ istream& operator>>(istream& is, Data_<SpDString>& data_)
   stringstream ioss;
 
   SizeT nEl = data_.dd.size();
+  
+  char delim = '\n';
+  streampos startPos = is.tellg();
+  bool checkForCROnly = true;
+  goto start;
+
+  rerunCR:
+  delim = '\r';
+  is.seekg( startPos);
+  ioss.str("");
+
+  start:
   for( SizeT c=0; c < nEl; c++)
     {
-      is.get( *ioss.rdbuf());
-      if ( (is.rdstate() & ifstream::failbit ) != 0 )
-	{
-	  if ( (is.rdstate() & ifstream::eofbit ) != 0 )
-	    throw GDLIOException( "End of file encountered. "+
-				StreamInfo( &is));
-      
-	  if ( (is.rdstate() & ifstream::badbit ) != 0 )
-	    throw GDLIOException( "Error reading STRING. "+
-				StreamInfo( &is));
-      
-	  is.clear();
-	  is.get();   // remove delimiter
-	  data_[ c] = "";
+//      is.get( *ioss.rdbuf());
+      is.get( *ioss.rdbuf(), delim);
 
-	  continue;
-	}
+	  // error handling
+      if ( (is.rdstate() & ifstream::failbit ) != 0 )
+		{
+		if ( (is.rdstate() & ifstream::eofbit ) != 0 )
+			throw GDLIOException( "End of file encountered. "+
+					StreamInfo( &is));
+      
+		if ( (is.rdstate() & ifstream::badbit ) != 0 )
+			throw GDLIOException( "Error reading STRING. "+
+					StreamInfo( &is));
+      
+		is.clear();
+		is.get();   // remove delimiter
+		data_[ c] = "";
+
+		continue;
+		}
 
       if( !is.good() && !is.eof())
-	throw GDLIOException( "Error reading STRING. "+StreamInfo( &is));
+		throw GDLIOException( "Error reading STRING. "+StreamInfo( &is));
   
       if( !is.eof()) is.get(); // remove delimiter
 
       const string& str = ioss.str();
-      if( str.length() > 0 && str[ str.length()-1] == '\r')
-	data_[ c] = str.substr(0,str.length()-1);
+
+	  if( checkForCROnly)
+		{
+			// do only once
+			checkForCROnly = false;
+			
+			SizeT posCR = str.find( '\r');
+			if( posCR != string::npos && posCR != str.length()-1)
+				{
+					goto rerunCR;
+				}
+		}
+      
+      // handle \r\n (\n not read)
+      if( delim == '\n' && str.length() > 0 && str[ str.length()-1] == '\r')
+		{
+		data_[ c] = str.substr(0,str.length()-1);
+		}
       else
-	data_[ c] = str;
+		{
+		data_[ c] = str;
+		}
+		
       ioss.str("");
     }
   return is;
