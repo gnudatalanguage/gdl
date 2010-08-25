@@ -27,6 +27,13 @@ An ignorable failure can be indicated by e.g.:
     exit, status=77
   endif
 
+A known-bug case of interest to developers only may be conditionally 
+tested when using the CVS version using the following construct:
+
+  if if strpos(!GDL.RELEASE,'CVS') ne -1 then begin
+    ...
+  endif
+
 Any GDL error (e.g. parser error or library-routine-triggered error)
 causing GDL to return to the $MAIN$ level will cause make to assume 
 _success_! (GDL exits normally in this case). Any GDL error causing

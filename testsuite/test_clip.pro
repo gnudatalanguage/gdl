@@ -4,6 +4,9 @@
 ; - https://sourceforge.net/tracker/?func=detail&aid=3029082&group_id=97659&atid=618685
 pro test_clip
 
+  ; this is a known-bug case -> not bothering non-developers
+  if strpos(!GDL.RELEASE,'CVS') eq -1 then exit, status=77 
+
   set_plot, 'z'
 
   erase
