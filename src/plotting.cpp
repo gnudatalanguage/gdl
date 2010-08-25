@@ -2788,15 +2788,24 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
     // plot the data
     actStream->lsty(linestyle);
 
-    actStream->vpor(0.0, 1.0, 0.0, 0.9);
-    actStream->wind(-1.0, 1.0, -1.0, 1.5);
+    actStream->vpor(0.0, 1.0, 0.0, .9);
+    //    actStream->wind(-0.8, 0.8, -0.8, .8);
+    actStream->wind( -1.0, 1.0, -0.9, 2.0 );
+    //    actStream->wind(-1.0, 1.0, -1.0, 1.5);
 
-    const PLFLT alt[] = {33.0, 17.0};
-    const PLFLT az[] = {24.0, 115.0};
+    PLFLT alt = 33.0;
+    DFloat alt_change = alt;
+    e->AssureFloatScalarKWIfPresent( "AX", alt_change);
+    alt=alt_change;
 
-    actStream->w3d( 1.0, 1.0, 1.2, 
+    PLFLT az = 30.0;
+    DFloat az_change = az;
+    e->AssureFloatScalarKWIfPresent( "AZ", az_change);
+    az=az_change;
+
+    actStream->w3d( 1.2, 1.2, 2.2, 
 		    xStart, xEnd, yStart, yEnd, minVal, maxVal,
-		    alt[0], az[0] );
+		    alt, az);
 
     actStream->box3( "bnstu", xTitle.c_str(), 0.0, 0,
 		     "bnstu", yTitle.c_str(), 0.0, 0,
