@@ -29,6 +29,8 @@
 
 #include "gdlwidget.hpp"
 
+//#define GDL_DEBUG_WIDGETS
+
 // instantiation
 WidgetIDT                   GDLWidget::widgetIx;
 WidgetListT                 GDLWidget::widgetList;
@@ -377,14 +379,23 @@ GDLWidgetBase::GDLWidgetBase( WidgetIDT parentID,
     thread = new guiThread();
 
     // Defined in threadpsx.cpp (wxWidgets)
+#ifdef GDL_DEBUG_WIDGETS
     std::cout << "Creating thread: " << thread << std::endl;
+#endif    
+    
     thread->Create();
     thread->Run();
 
     // GUI lock defined in threadpsx.cpp
+#ifdef GDL_DEBUG_WIDGETS
     std::cout << "before wxMutexGuiEnter()" << std::endl;
+#endif    
+    
     wxMutexGuiEnter();
+
+#ifdef GDL_DEBUG_WIDGETS
     std::cout << "after wxMutexGuiEnter()" << std::endl;
+#endif    
 
     // GDLFrame is derived from wxFrame
     GDLFrame *frame = new GDLFrame( wxParent, widgetID, wxString(title_.c_str(), wxConvUTF8));
@@ -882,8 +893,9 @@ int GDLApp::OnExit()
 void guiThread::OnExit( guiThread *thread)
 {
   // Called by GDLApp::OnExit() in gdlwidget.cpp
-
+#ifdef GDL_DEBUG_WIDGETS
   std::cout << "In guiThread::OnExit(): " << thread << std::endl;
+#endif
 
   delete thread;
 }

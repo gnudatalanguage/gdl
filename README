@@ -1,4 +1,4 @@
-                    GDL - GNU Data Language 
+                    GDL - GNU Data Language
                     =======================
 
 A free IDL (Interactive Data Language) compatible incremental compiler
@@ -16,9 +16,9 @@ http://gnudatalanguage.sourceforge.net
 FEATURES:
 =========
 
-Full syntax compatibility with IDL version 6.0 and later.
+Full syntax compatibility with IDL up to version 7.1 (for 8.0 and later see below).
 
-All IDL language elements are supported, including:
+All IDL language elements up to IDL version 7.1 are supported, including:
 
 Pointer, objects, structs,
 arrays, system variables,
@@ -26,7 +26,26 @@ common blocks, assoc variables,
 all operators, all datatypes,
 _EXTRA, _STRICT_EXTRA and _REF_EXTRA keywords...
 
-The file input output system is fully implemented including full support of 
+
+Supported IDL 8.0 language elements:
+
+FOREACH loop
+negative array indices
+garbage collection pointers and objects
+call methods on an object using "." (e. g. object.aMemberProcedure,arg1)
+
+Not yet supported:
+
+Operator overloading
+LIST and HASH types
+simplified property access on objects (e. g. object.aProperty = value & print,object.aProperty)
+automatic promotion of FOR loop variable types
+empty arrays (!NULL)
+
+
+GUI support (widgets) is now officially provided (not complete yet).
+
+The file input output system is fully implemented including full support of
 F77_UNFORMATTED.
 (Exception: For formatted I/O the C() sub-codes are not supported yet)
 
@@ -57,14 +76,12 @@ iteration variable ‘i’ is unsigned
 They are harmless, see http://gcc.gnu.org/ml/gcc-bugs/2006-05/msg00878.html
 for details.
 
-No GUI support (widgets) is implemented so far (but under development).
-
 
 REQUIREMENTS:
 =============
 
 In short:
-Obligatory libraries:
+Mandatory libraries:
 plplot      http://plplot.sourceforge.net/source/index.html
 gsl         http://www.gnu.org/software/gsl
 readline    http://ftp.gnu.org/pub/gnu/readline/readline-4.3.tar.gz
@@ -72,20 +89,20 @@ zlib        http://www.zlib.net/
 
 Optional libraries:
 ImageMagick http://www.imagemagick.org/www/download.html
-netCDF *)   ftp://ftp.unidata.ucar.edu/pub/netcdf
-HDF4 *)     ftp://ftp.ncsa.uiuc.edu/HDF/HDF/HDF_Current
-HDF5        ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/current
-FFTW        http://www.fftw.org/download.html
-python      http://www.python.org
-libproj4    (consult the MAP_INSTALL file)
+netCDF *)      ftp://ftp.unidata.ucar.edu/pub/netcdf
+HDF4 *)         ftp://ftp.ncsa.uiuc.edu/HDF/HDF/HDF_Current
+HDF5             ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/current
+FFTW              http://www.fftw.org/download.html
+python           http://www.python.org
+libproj4           (consult the MAP_INSTALL file)
 UDUNITS-2   http://www.unidata.ucar.edu/software/udunits/
-GRIB API    http://www.ecmwf.int/products/data/software/grib_api.html        
-GSHHS       (consult the MAP_INSTALL file)
+GRIB API       http://www.ecmwf.int/products/data/software/grib_api.html        
+GSHHS          (consult the MAP_INSTALL file)
+wxWidgets     http://www.wxwidgets.org/
 
 Only with python:
-numarray    http://www.stsci.edu/resources/software_hardware/numarray
+numarray  http://www.stsci.edu/resources/software_hardware/numarray
 matplotlib  http://matplotlib.sourceforge.net
-
 
 *) please see below for potential problems using netCDF and HDF4
 
@@ -136,8 +153,17 @@ Note that version 1.1.1 was reported to NOT work with GDL)
 You find it at:
 http://www.gnu.org/software/gsl
 
-The HDF4 format is (not completely yet) supported (thanks to Joel
-Gales). If you want to use it, you need the HDF library (here HDF
+GDL supports GUI (widget) programming (thanks to Joel Gales)
+using the wxWidgets library. It is required by default.
+If you don't want to use it, use
+--with-wxWidgets=no
+wxWidgets can be obtained from:
+http://www.wxwidgets.org/downloads
+Only some WIDGET_... functions are implemented so far
+(use HELP,/LIB for an overview).
+
+The HDF4 format is (not completely yet) supported (thanks to Joel Gales).
+If you want to use it, you need the HDF library (here HDF
 always means version 4).
 Note that if you plan to use netCDF also, it might be necessary to
 install HDF4 before netCDF due to same named but different header
@@ -250,7 +276,7 @@ but unless you want to change the grammar (*.g files) you don't need
 ANTLR. All relevant ANTLR files are included in the package.
 For more information on ANTRL see: http://www.antlr.org
 
-GDL is currently developed using KDevelop 3.5.1 under the GNU/Linux 
+GDL is currently developed using KDevelop 3.5.5 under the GNU/Linux
 distribution Kubuntu. The KDevelop project file
 is included in the tarball, so if you have KDevelop you should be able
 to use it with GDL seamlessly.
@@ -260,7 +286,7 @@ INSTALLATION:
 =============
 
 Please see the INSTALL file for details.
-
+For an alternative installation using CMake see README.CMake .
 
 For french readers, please have a look to
 http://aramis.obspm.fr/~coulais/IDL_et_GDL/memo_GDL0.8.11.html
@@ -272,7 +298,7 @@ CONTRIBUTIONS:
 ==============
 
 GDL 0.9 is actively developed, but due to the vast amount of subroutines
-to implement still in beta state as of February 2010.
+to implement still in beta state as of August 2010.
 Even though it can already be used for several tasks, there are many
 things to be done.
 Bug reports, feedback in general and interested people who would

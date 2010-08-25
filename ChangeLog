@@ -1,3 +1,914 @@
+GDL 0.9:
+2010-08-25  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* CMake.tar.gz, README.CMake, README.GRIB, README_GRIB: added CMake
+
+2010-08-23  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/default_io.cpp, NEWS: Handle test files with CR delimiter
+
+2010-08-18  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/plotting.cpp:
+	in WINDOW, allowing title= no present OR to be converted (1e1 must be converted in 10.000)
+
+2010-08-16  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/gdlgstream.cpp:
+	fixing lowercase gamma letter in greek script (reported by lolkje on the SF GDL forum)
+
+2010-08-12  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/newprognode.cpp, src/prognode.cpp, src/prognode.hpp:
+	Implemented optional loop index (or hash value) variable for FOREACH
+
+2010-08-11  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/GDLInterpreterTokenTypes.hpp, src/GDLInterpreterTokenTypes.txt, src/GDLLexer.cpp, src/GDLParser.cpp, src/GDLParser.hpp, src/GDLTokenTypes.hpp, src/GDLTokenTypes.txt, src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/GDLTreeParserTokenTypes.hpp, src/GDLTreeParserTokenTypes.txt, src/gdlc.g, src/gdlc.i.g, src/gdlc.tree.g:
+	Added optional loop index (or hash value) variable to FOREACH (not functional yet)
+
+2010-08-05  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basic_pro.cpp:
+	Changed default behaviour to not assume variable lenght VMS files (see bug tracker ID: 3028279)
+
+	* src/ncdf_cl.cpp, src/ncdf_var_cl.cpp:
+	Fixed error reporting for netCDF dimension IDs
+
+	* src/GDLTreeParser.cpp, src/dcompiler.cpp, src/dinterpreter.cpp, src/dpro.cpp, src/gdlc.tree.g:
+	Fixed optimization for self assignment
+
+	* config.h.in, src/GDLInterpreter.cpp, src/GDLParser.cpp, src/gdlc.i.g:
+	Fixed error message reporting (bug tracker ID: 2999950)
+
+2010-07-27  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* testsuite/test_idl8.pro, testsuite/test_pmulti.pro, testsuite/test_spher_harm.pro, testsuite/test_zeropoly.pro:
+	updating testsuite to match the change in FOREACH syntax
+
+	* src/GDLParser.cpp, src/gdlc.g:
+	FOREACH: using COMMA instead of OF as in IDL8 (foreach i, arr do ...)
+
+2010-07-25  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/CFMTLexer.cpp, src/CFMTLexer.hpp, src/CFMTTokenTypes.hpp, src/CFMTTokenTypes.txt, src/FMTIn.cpp, src/FMTIn.hpp, src/FMTInTokenTypes.hpp, src/FMTInTokenTypes.txt, src/FMTLexer.cpp, src/FMTLexer.hpp, src/FMTOut.cpp, src/FMTOut.hpp, src/FMTOutTokenTypes.hpp, src/FMTOutTokenTypes.txt, src/FMTParser.cpp, src/FMTParser.hpp, src/FMTTokenTypes.hpp, src/FMTTokenTypes.txt, src/basegdl.hpp, src/cformat.g, src/format.g, src/format.in.g, src/format.out.g, src/ofmt.cpp, testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_binfmt.pro:
+	binary format codes for PRINT/STRING/READS/... (tracker item no. 3031999)
+
+2010-07-23  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_bug_3033108.pro:
+	testsuite/test_bug_3033108.pro: initial import
+
+2010-07-19  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* testsuite/test_clip.pro:
+	test_clip.pro: adding PLOTS and XYOUTS (tracker item no. 3029082)
+
+	* testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_clip.pro:
+	adding test_clip.pro to the testsuite (tracker item no. 3029085)
+
+2010-07-16  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/datatypes.cpp:
+	correcting bug 3030379 in REVERSE when call with odd elements and without /overwrite
+
+2010-06-29  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/convert2.cpp: STRING: fixing bug 3022828
+
+	* src/gdlgstream.cpp, src/plotting.cpp: SET_PLOT: fixing bug 2913872
+
+2010-06-29  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* testsuite/test_float2string.pro, testsuite/test_point_lun.pro:
+	initial import of 2 new tests, not added in Makefile.am, not well packeged now ...
+
+	* testsuite/Makefile.in, testsuite/Makefile.am:
+	sing space between ".pro" and "\"
+
+	* src/pro/Makefile.in: idem: missing files
+
+	* src/pro/Makefile.am: adding missing new files.
+
+	* src/pro/escape_special_char.pro:
+	removing stupid duplication of keyword !
+
+	* NEWS: mention of Maxime' work on compressed files
+
+	* testsuite/test_zip.pro:
+	initial import of a testsuite around /compress keyword ... (Maxime L.)
+
+	* src/assocdata.cpp, src/basic_fun_jmg.cpp, src/gzstream.hpp, src/io.cpp, src/print.cpp, src/read.cpp:
+	Now, compress files (using gzip) should work (impacts on : readf, printf, seek, point_lun).
+	Fstat outputs: size changed, new compress flag. Work done by Maxime L.
+
+2010-06-29  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/ncdf_cl.cpp:
+	NCDF_*: fixing inf. loop in error message, corrected variable ids in error messages
+
+2010-06-29  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/pro/file_copy.pro, src/pro/file_delete.pro:
+	initial import of 2 new functionnalities: FILE_COPY and FILE_DELETE (writtent by Lea N.)
+
+	* testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_file_basename.pro, testsuite/test_file_copy.pro, testsuite/test_file_delete.pro, testsuite/test_file_dirname.pro, testsuite/test_strsplit.pro:
+	initial import of a serie of tests (written by Lea) for new functionnalities:
+	file_copy, file_delete
+	and also corrected/improved codes:
+	file_basename, file_dirname (escaping), strsplit
+	Makefile.am and Makefile.in updated.
+
+	* src/pro/strsplit.pro:
+	some improvments in STRPLIT() bye Lea, including /preserve_null
+
+	* src/pro/file_expand_path.pro:
+	initial import of FILE_EXPAND_PATH (by Lea)
+
+2010-06-28  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/pro/escape_special_char.pro:
+	initial import of ESCAPE_SPECIAL_CHAR(), used by some procedures managing Strings ...
+	(e.g.: file_basename.pro, file_dirname.pro, file_delete.pro, file_copy.pro, ...)
+
+	* src/pro/file_basename.pro, src/pro/file_dirname.pro:
+	Escaping special Chars in FILE_DIRNAME and FILE_BASENAME
+
+2010-06-25  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/file.cpp: correction for "." in FILE_SEARCH (Lea)
+
+2010-06-23  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/pro/dialog_pickfile.pro:
+	DIALOG_PICKFILE: referencing Macports instead of Darwinports (the latter is bogus, see: http://trac.macports.org/wiki/DarwinPortsFraud)
+
+2010-06-22  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_file_search.pro:
+	initial import of "test_file_search.pro" (Makefile* upgrade done)
+
+	* src/file.cpp:
+	Activating the /FOLD_CASE keyword in FILE_SEARCH (code by M. Lenoir)
+
+	* NEWS:
+	upgrading informations in NEWS (important bugs corrections and new features)
+
+	* src/pro/dialog_pickfile.pro:
+	URL to Zenity HowTo install on OSX; unifying return to null string when failures.
+
+2010-06-22  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* doc/www/credits.html, doc/www/require.html:
+	doc/www updates (fixed broken links in require.html)
+
+2010-06-22  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/pro/dialog_pickfile.pro:
+	Initial import of DIALOG_PICKFILE(), implementation by Maxime Lenoir.
+	This code is using "zenity" (gdialog is now an alias to zenity).
+	This code should work on most Linux distros (tested on CentOS 5.4, Mandriva 2010, Ubuntu 9.04)
+	and OSX (tested on 10.6.2, after installation of Gnome Package).
+	Keyword "filter" works since Zenity >= 2.23.1
+
+2010-06-21  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/pro/str_sep.pro:
+	correcting obsolete STR_SEP routine using /preverse_null in STRSPLIT;
+	test at the end of the file.
+
+2010-06-15  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* configure:
+	upgrading "configure" in order to have the HAVE_X working ...
+
+	* testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_readf.pro:
+	Initial import for "test_readf.pro" for testing CR/LF/(CR+LF) readings in ASCII files
+	Makefile.am and Makefile.in in testsuite/ also upgraded
+
+	* testsuite/test_fft_leak.pro:
+	A /continue was missing in test_fft_leak.pro
+
+2010-06-11  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* configure.in, src/basegdl.hpp, src/basic_fun.cpp, src/deviceps.hpp, src/devicex.hpp, src/dinterpreter.hpp, src/file.cpp, src/gdlgstream.hpp, src/gdlwinstream.hpp, src/gdlxstream.cpp, src/gdlxstream.hpp, src/graphics.cpp, src/math_fun_jmg.hpp, src/plotting.cpp, src/str.cpp:
+	OpenBSD compatibility fixes, making Xlib an optional dependency
+
+	* src/basic_fun_jmg.cpp, src/objects.cpp:
+	FSTAT: support for large (> 2GB) files (tracker item no. 3014216)
+
+2010-06-09  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* configure.in:
+	configure: simplifying wxWidgets detection - now only wx-config is checked what should help od Fedora
+
+2010-06-08  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* NEWS, src/libinit.cpp, src/math_fun.cpp, src/math_fun.hpp, src/pro/Makefile.am, src/pro/Makefile.in, src/pro/imsl_erf.pro, testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_erfinv.pro:
+	IMSL_ERF: initial import + test-routine
+
+2010-06-07  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* testsuite/test_fft_leak.pro:
+	improvments (allowing not to exist with /no_exit, /force mentionned if Linux ...)
+
+	* src/gsl_fun.cpp:
+	when using GSL version of FFT, correcting input conversion for three types
+	(now testsuite/test_fft.pro works for GSL only and also FFTw)
+
+	* testsuite/Makefile.am, testsuite/Makefile.in:
+	adding TEST_FFT_LEAK.pro in "make check"
+
+	* testsuite/test_fft_leak.pro:
+	initial import of TEST_FFT_LEAK.pro, checking memory leak when using GSL FFT or FFTw libs.
+
+	* src/fftw.cpp:
+	FFTw: correction of memory leak by Léa, using fftw_destroy_plan(p). See test_fft_leak.pro in testsuite/
+
+2010-06-05  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_get_screen_size.pro, testsuite/test_pmulti.pro:
+	testsuite: adding test_pmulti, skipping test_get_screen_size if no X connection is available
+
+	* testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_nans_in_sort_and_median.pro:
+	adding test_nans_in_sort_and_median.pro (cf. tracker item no. 2985552)
+
+	* configure.in: configure: compatibility with grib_api 1.9.0
+
+2010-06-04  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/basic_pro.cpp:
+	WRITEU: preventing segfault writing to freed/unopened lun (tracker item no. 3007448)
+
+	* src/gdlwidget.cpp:
+	unicode-wxWidgets compatibility fixes in gdlwidget.cpp (tracker item no. 3005435)
+
+	* testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_memory.pro:
+	adding test_memory.pro
+
+	* configure.in: configure: fixing auto-detection of FFTW
+
+2010-06-01  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/deviceps.hpp:
+	correcting rounding errors in functions SetXPageSize and SetYPageSize,
+	affecting !D.X_SIZE in postscript mode
+
+2010-05-31  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* testsuite/Makefile.am, testsuite/Makefile.in:
+	updating Makefile.am and Makefile.in to include "test_spl_init.pro" in testsuite/.
+	Also changing place of "test_get_screen_size" in list (alpha order)
+
+	* testsuite/test_spl_init.pro:
+	initial import of TEST_SPL_INIT in testsuite/ (by Lea N.)
+
+	* src/math_fun_ac.cpp: Adding YP0 and YPN_1 keywords to SPL_INIT
+
+2010-05-31  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* NEWS, src/dimension.hpp, src/gsl_fun.cpp, src/gsl_fun.hpp, src/libinit.cpp, testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_spher_harm.pro:
+	SPHER_HARM: initial import (using GSL gsl_sf_legendre_sphPlm) + test routine
+
+2010-05-28  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/pro/deriv.pro: DERIV: enabling error-reporting via MESSAGE
+
+2010-05-27  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/gdlwidget.cpp, src/gdlwidget.hpp, src/widget.cpp:
+	Further widget updates
+
+2010-05-16  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* testsuite/test_suite.pro, config.h.in, src/GDLInterpreter.cpp, src/datalistt.hpp, src/gdlc.i.g, src/prognode.cpp, src/prognode.hpp, src/prognodeexpr.cpp, src/prognodeexpr.hpp, testsuite/Makefile.am:
+	sync
+
+2010-05-05  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/typedefs.hpp, src/GDLInterpreter.cpp, src/basegdl.hpp, src/gdlc.i.g:
+	enable memstats
+
+2010-05-04  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLInterpreter.cpp, src/dpro.hpp, src/gdlc.i.g, src/newprognode.cpp, src/prognode.cpp, src/prognode.hpp, src/prognodeexpr.cpp, src/typedefs.hpp:
+	fixed FOR loops within $
+
+2010-05-03  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_get_screen_size.pro, testsuite/test_product.pro:
+	Less messages in TEST_PRODUCT; adding revised TEST_GET_SCREEN_SIZE in "make check"
+
+2010-05-03  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLInterpreter.cpp, src/arrayindex.cpp, src/arrayindex.hpp, src/arrayindexlistt.hpp, src/datatypes.cpp, src/gdlc.i.g, src/newprognode.cpp:
+	add file
+
+2010-05-01  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLInterpreter.hpp, src/Makefile.am, src/Makefile.in, src/assocdata.hpp, src/basegdl.cpp, src/basegdl.hpp, src/basic_fun_cl.cpp, src/datatypes.cpp, src/datatypes.hpp, src/dstructgdl.hpp, src/envt.hpp, src/gdlc.i.g, src/prognode.cpp, src/prognode.hpp, src/prognodeexpr.cpp, src/GDLInterpreter.cpp:
+	removed unnecessary copying in deref, IF, SWITCH, CASE
+
+2010-04-27  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/basegdl.hpp, src/datatypes.cpp, src/gdlc.i.g, src/prognode.cpp, src/prognode.hpp, src/prognodeexpr.cpp, src/prognodeexpr.hpp:
+	interpreter improvements
+
+2010-04-26  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/gshhs.cpp, src/plotting.cpp: POLYFILL: mapping support
+
+2010-04-22  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* MAP_INSTALL, src/gshhs.cpp, src/gshhs.hpp, src/libinit.cpp, src/libinit_jmg.cpp:
+	some GSHHS-related cleanups
+
+2010-04-22  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/pro/Makefile.in, src/pro/Makefile.am:
+	forgot to include LUDC.pro in the Makefile.* files :(
+
+2010-04-22  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/GDLTreeParser.cpp, src/Makefile.in, src/assocdata.hpp, src/basegdl.cpp, src/basegdl.hpp, src/basic_fun.cpp, src/datatypes.cpp, src/datatypes.hpp, src/dinterpreter.cpp, src/dinterpreter.hpp, src/envt.hpp, src/gdlc.i.g, src/gdlc.tree.g, src/math_fun_jmg.cpp, src/prognode.cpp, src/prognode.hpp, src/prognodeexpr.cpp, src/specializations.hpp, src/typedefs.hpp, src/widget.cpp:
+	optimized interpreter
+
+2010-04-21  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/libinit.cpp, src/libinit_jmg.cpp:
+	moving new SA declarations from "libinit.cpp" to "libinit_jmg.cpp" to keep map_* together and protected by
+	the optionnal block for LIBPROJ4  #if defined(USE_LIBPROJ4)
+
+	* src/pro/ludc.pro:
+	LUDC.pro: initial import of a fake one to be able to run the full time_test3 suite
+
+	* src/file.cpp:
+	trying to manage "~" in GDL_PATH, also for EXPAND_PATH. No managment of redundant entry (like ".");
+	not sure path expansion always done ...
+
+2010-04-21  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* MAP_INSTALL: adding a hint to the MAP_INSTALL file
+
+	* NEWS: update of the NEWS file
+
+	* src/gshhs.cpp, src/gshhs.hpp, src/libinit.cpp, src/plotting.hpp, src/Makefile.am, src/plotting.cpp, INSTALL, MAP_INSTALL, README, configure.in:
+	MAP_CONTINENTS: initial import (a lot needs to be done... but it works; uses GSHHS - a GPL-licensed shoreline database)
+
+2010-04-20  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basic_op.cpp, src/datatypes.cpp, src/gdlc.i.g, src/prognode.cpp, src/typedefs.hpp:
+	commented out OpenMP usage for mere copy
+
+2010-04-20  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* doc/www/screenshot.html, src/deviceps.hpp, src/grib.cpp, src/grib.hpp, src/libinit.cpp, src/plotting.cpp, src/plotting.hpp, testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_device.pro:
+	DEVICE: support for the INCHES kw, updating !D when called with XSIZE, YSIZE; test_device.pro;  some other tiny cleanups
+
+2010-04-20  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/gdlc.i.g, src/prognode.cpp:
+	reduced overhead between statements
+
+2010-04-19  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLInterpreter.cpp, src/basic_fun.cpp, src/gdlc.i.g:
+	reduced overhead between statements
+
+	* src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/GDLLexer.hpp, src/GDLParser.hpp, src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/basic_fun.cpp, src/basic_pro.cpp, src/dinterpreter.cpp, src/dpro.cpp, src/envt.hpp, src/gdlc.g, src/gdlc.i.g, src/gdlc.tree.g, src/libinit.cpp, src/objects.hpp, src/prognode.cpp, src/prognode.hpp, src/prognodeexpr.cpp, src/str.cpp:
+	Fixed STRMID for 64 bit systems
+
+2010-04-19  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/gdlwidget.cpp, src/gdlwidget.hpp, src/libinit_jmg.cpp, src/objects.cpp, src/widget.cpp:
+	Update widget code
+
+2010-04-19  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* testsuite/Makefile.in, src/prognode.cpp:
+	fixed FOR_STEP handling also negative steps
+
+2010-04-18  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/str.cpp: debug info for STRMID
+
+	* src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/gdlc.i.g, src/prognode.cpp, src/prognode.hpp:
+	interpreter optimizations
+
+2010-04-17  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* configure.in:
+	making the plplot-modules/imagemagick message a warning (instead of an error)
+
+2010-04-17  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/dinterpreter.cpp, src/dpro.cpp, src/dpro.hpp, src/envt.cpp, src/envt.hpp, src/gdlc.g, src/gdlc.i.g, src/math_fun_jmg.cpp, src/prognode.cpp, src/prognode.hpp, src/widget.cpp, src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/GDLInterpreterTokenTypes.hpp, src/GDLInterpreterTokenTypes.txt, src/GDLLexer.cpp, src/GDLParser.cpp, src/GDLParser.hpp, src/GDLTokenTypes.hpp, src/GDLTokenTypes.txt, src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/GDLTreeParserTokenTypes.hpp, src/GDLTreeParserTokenTypes.txt, src/basic_fun.cpp:
+	changed internal representation of FOR/FOREACH loops
+
+2010-04-16  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basic_fun.cpp: removed OpenMP usage in STRMID
+
+	* src/basic_fun.cpp: changed OpenMP options for STRMID
+
+2010-04-16  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* testsuite/Makefile.am, testsuite/test_str_functions.pro:
+	introduction of TEST_STR_FUNCTIONS in the "make check" testsuite
+
+	* src/pro/strsplit.pro: updating STRSPLIT, correcting bugs
+
+	* testsuite/test_str_functions.pro:
+	initial import of TEST_STR_FUNCTIONS, regrouping tests on functions working on STRING,
+	like STRMID, STRSPLIT, ... (to be included in "make check")
+
+2010-04-16  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* doc/www/screenshots/screenshot12.png, doc/www/screenshots/screenshot12_thumb.png, doc/www/screenshot.html:
+	doc/www: adding a new screenshot (by Michal Piadlowski)
+
+2010-04-16  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basic_fun.cpp:
+	fixed MEDIAN with NaN for floating types (1 dimensional case only)
+
+2010-04-15  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basic_fun.cpp: fixed SORT for floating types
+
+2010-04-15  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/pro/str_sep.pro, src/pro/strsplit.pro:
+	STR_SEP: rewriting and now managing sep. string with more than only one char
+	STRSPLIT: cleanup and improvments
+
+2010-04-14  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLInterpreter.hpp, src/envt.cpp, src/envt.hpp, src/gdlc.i.g:
+	make CLEANUP call when object is garbage collected
+
+2010-04-14  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/pro/tvscl.pro:
+	in TVSCL, return when input array not given or without elements
+
+	* testsuite/test_read_jpeg.pro:
+	better managment of big images/small screen (and vertical/horizontal modes)
+
+2010-04-13  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/envt.cpp: fixed reference counting in OBJ_DESTROY
+
+2010-04-12  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLInterpreter.cpp, src/gdlc.i.g: add comment
+
+	* src/strassenmatrix.hpp: fixed openmp
+
+	* src/gdljournal.cpp, src/initsysvar.cpp:
+	changed \!GDL sysvar, true GDL version for journal files
+
+	* src/GDLInterpreter.cpp, src/basic_fun.cpp, src/gdlc.i.g:
+	fixed EXECUTE messaging
+
+	* src/envt.cpp, src/gsl_fun.cpp, src/hdf_pro.cpp, src/prognode.hpp, src/read.cpp:
+	removed warning
+
+	* NEWS, src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/GDLTreeParser.cpp, src/dcompiler.cpp, src/dinterpreter.cpp, src/gdlc.i.g, src/gdlc.tree.g, src/prognode.cpp, src/prognode.hpp:
+	fixed IF_ELSE
+
+	* src/dcompiler.cpp, src/dinterpreter.cpp, src/prognode.hpp, src/prognodeexpr.cpp:
+	fixed empty block handling
+
+	* src/dcompiler.cpp, src/prognode.hpp: fixed IF_ELSE
+
+	* src/GDLInterpreter.hpp, src/gdlc.i.g:
+	localization info for out of scope message
+
+	* src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/GDLInterpreterTokenTypes.hpp, src/GDLInterpreterTokenTypes.txt, src/GDLLexer.cpp, src/GDLParser.cpp, src/GDLParser.hpp, src/GDLTokenTypes.hpp, src/GDLTokenTypes.txt, src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/GDLTreeParserTokenTypes.hpp, src/GDLTreeParserTokenTypes.txt, src/dcompiler.cpp, src/gdlc.g, src/gdlc.i.g, src/prognode.hpp, src/prognodeexpr.cpp:
+	optimized implementation of REPEAT/WHILE loops
+
+2010-04-11  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/gsl_fun.cpp, src/libinit_jmg.cpp: cosmetics...
+
+2010-04-11  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/GDLParser.cpp, src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/basic_fun_jmg.cpp, src/gdlc.g, src/gdlc.i.g, src/gdlc.tree.g, src/prognode.cpp:
+	implemented special handling for N_ELEMENTS
+
+2010-04-10  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLTreeParser.cpp, src/basic_pro_jmg.cpp, src/envt.cpp, src/gdlc.tree.g, src/prognodeexpr.cpp:
+	fixed error message info
+
+	* src/envt.cpp: fixed WARNING message
+
+	* src/read.cpp: Fixed behaviour of READ from cin
+
+	* src/GDLTreeParser.hpp, src/GDLTreeParserTokenTypes.hpp, src/GDLTreeParserTokenTypes.txt, src/dcompiler.cpp, src/dinterpreter.cpp, src/dnode.cpp, src/dnode.hpp, src/dpro.cpp, src/gdlc.g, src/gdlc.i.g, src/gdlc.tree.g, src/prognode.cpp, src/prognode.hpp, src/prognodeexpr.cpp, src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/GDLInterpreterTokenTypes.hpp, src/GDLInterpreterTokenTypes.txt, src/GDLLexer.cpp, src/GDLParser.cpp, src/GDLParser.hpp, src/GDLTokenTypes.hpp, src/GDLTokenTypes.txt, src/GDLTreeParser.cpp:
+	fixed error message info
+
+2010-04-09  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* testsuite/test_tv.pro:
+	more tests for TV: positionning and all Colors Tables
+
+2010-04-09  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_fix.pro:
+	adding test_fix.pro to the make-check list
+
+	* src/pro/Makefile.am, src/pro/Makefile.in:
+	reordering file list in src/pro/Makefile.*
+
+	* src/pro/Makefile.am, src/pro/Makefile.in, src/pro/findex.pro, src/pro/interpol.pro, testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_interpol.pro:
+	INTERPOL: initial import (using FINDEX and SPL_INTERP, QUADRATIC and LSQUADRATIC not implemented yet)
+
+2010-04-08  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/pro/restore.pro:
+	RESTORE: fixing compatibility with current CMSVLIB version; allowing restoration of more than 30 variables
+
+2010-04-08  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* testsuite/test_tv.pro:
+	adding TEST_TV_DAMIER in TEST_TV to check whether positionning with TV is OK or not
+
+	* testsuite/Saturn.jpg, testsuite/test_read_jpeg.pro:
+	reading back a JPEG file and testing TVSCL ... (initial import of Saturn.jpg and test_read_jpeg.pro)
+
+2010-04-08  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_idl8.pro:
+	adding test_idl8.pro with short tests of new features: FOREACH statement, negative indices, dot op. for member routine access
+
+2010-04-07  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* testsuite/Makefile.am, testsuite/Makefile.in, testsuite/checks, testsuite/test_zeropoly.pro, testsuite/test_zzz.pro, testsuite/try:
+	testsuite: checking if all .pro files in testsuite are included in the make-check rule, fixing memory leak in test_zeropoly
+
+	* src/basic_fun.cpp:
+	adding a specialization for DComplexGDL in product_template() (fixes compilation problem with OpenMP enabled)
+
+	* src/basic_fun.cpp, src/libinit.cpp, testsuite/test_hist_2d.pro:
+	TOTAL/PRODUCT: support for the PRESERVE_TYPE keyword; test_hist_2d.pro: making the tests shorter
+
+2010-04-07  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/antlr/LLkParser.cpp, src/antlr/Parser.cpp, src/GDLLexer.cpp, src/GDLParser.cpp, src/GDLParser.hpp, src/GDLTreeParser.hpp, src/basic_pro_jmg.cpp, src/basic_pro_jmg.hpp, src/dinterpreter.cpp, src/gdlc.g, src/gdlc.tree.g, src/libinit_jmg.cpp:
+	fixed tag access
+
+2010-04-06  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* testsuite/test_url.pro:
+	test_url: fixing behaviour on terminals with small number of columns
+
+2010-04-06  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* NEWS: update NEWS
+
+	* src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/arrayindex.hpp, src/basegdl.cpp, src/basegdl.hpp, src/datatypes.cpp, src/datatypes.hpp, src/dstructgdl.hpp, src/gdlc.i.g, src/typedefs.hpp:
+	support negative index ranges -1 is the last element, -2 the one before the last and so on
+
+2010-04-06  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* testsuite/test_url.pro:
+	try to improve TEST_URL without stopping the "make check" run ...
+
+2010-04-06  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* NEWS: update NEWS
+
+	* src/GDLInterpreter.hpp, src/GDLInterpreterTokenTypes.hpp, src/GDLInterpreterTokenTypes.txt, src/GDLLexer.cpp, src/GDLParser.cpp, src/GDLParser.hpp, src/GDLTokenTypes.hpp, src/GDLTokenTypes.txt, src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/GDLTreeParserTokenTypes.hpp, src/GDLTreeParserTokenTypes.txt, src/gdlc.g, src/gdlc.i.g, src/gdlc.tree.g, src/GDLInterpreter.cpp:
+	added FOREACH statement, syntax: FOREACH loopVar OF array DO
+
+2010-04-05  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/dinterpreter.cpp:
+	enabled auto printing of expressions again (was off dor debug)
+
+	* src/GDLTreeParser.cpp, src/basic_fun.cpp, src/datatypes.cpp, src/gdlc.tree.g, src/prognodeexpr.cpp, src/GDLTreeParser.hpp, src/GDLTreeParserTokenTypes.hpp, src/GDLTreeParserTokenTypes.txt, src/antlr/LLkParser.cpp, src/antlr/Parser.cpp, src/antlr/TreeParser.cpp, src/dinterpreter.cpp, src/dnode.hpp, src/gdlc.g, src/gdlc.i.g, src/prognode.cpp, src/prognode.hpp, src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/GDLInterpreterTokenTypes.hpp, src/GDLInterpreterTokenTypes.txt, src/GDLLexer.cpp, src/GDLParser.cpp, src/GDLParser.hpp, src/GDLTokenTypes.hpp, src/GDLTokenTypes.txt:
+	allow DOT \(.\) for member function calls
+
+2010-04-02  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* testsuite/test_known_bugs.pro: Quickly testing known problems
+
+2010-03-31  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLTokenTypes.txt, src/GDLTreeParser.cpp, src/GDLTreeParserTokenTypes.hpp, src/GDLTreeParserTokenTypes.txt, src/basic_pro.cpp, src/datatypesref.cpp, src/gdlc.g, src/gdlwidget.cpp, src/GDLInterpreter.cpp, src/GDLInterpreterTokenTypes.hpp, src/GDLInterpreterTokenTypes.txt, src/GDLLexer.cpp, src/GDLParser.cpp, src/GDLParser.hpp, src/GDLTokenTypes.hpp, README:
+	fixed reference counting
+
+2010-03-30  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* configure.in:
+	configure: checking if plplot uses dynamic drivers when compiling with ImageMagick
+
+	* testsuite/test_constants.pro:
+	test_constants.pro: re-enabling some tests which do not need UDUNITS
+
+2010-03-30  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* testsuite/test_constants.pro, testsuite/test_fft.pro:
+	Reducing amount of un-useful messages for "make check"; desactivating UDUNITS if not available
+
+2010-03-30  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/libinit.cpp, src/plotting.cpp, src/plotting.hpp:
+	POLYFILL: initial import (just an early draft)
+
+2010-03-27  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/dinterpreter.cpp, src/libinit_jmg.cpp, src/widget.cpp:
+	added keywords to keyword list for WIDGET_CONTROL
+
+	* src/math_fun.cpp:
+	improved accuracy of TAN for COMPLEX (by using double precision internally)
+
+	* src/gdlgstream.cpp, src/gdlgstream.hpp, src/gdlpsstream.cpp, src/gdlpsstream.hpp, src/gdlsvgstream.cpp, src/gdlxstream.cpp, src/gdlxstream.hpp, src/gdlzstream.cpp:
+	working plplot
+
+2010-03-26  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/gdlxstream.cpp, src/gdlgstream.hpp, src/gdlwidget.cpp, src/gdlwidget.hpp, src/gdlxstream.hpp, src/widget.cpp, gdl.kdevelop:
+	fixed plplot issues
+
+	* gdl.kdevelop, src/devicex.hpp: *** empty log message ***
+
+	* src/gdlpsstream.hpp, configure, configure.in, gdl.kdevelop, src/datatypes.cpp:
+	made wroking reference counting independent from use of python
+
+2010-03-25  jomoga  <jomoga@DaMachineInDaMachine>
+
+	* src/gdlwidget.cpp, src/gdlwidget.hpp, src/widget.cpp, src/widget.hpp:
+	Added functionality
+
+2010-03-25  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* gdl.kdevelop: removed debug message
+
+2010-03-24  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/gdlgstream.hpp, configure.in, gdl.kdevelop, configure:
+	removed debug message
+
+	* src/devicex.hpp, src/gdlgstream.cpp, src/gdlgstream.hpp, src/gdlxstream.cpp, src/gdlxstream.hpp, gdl.kdevelop:
+	sync
+
+2010-03-22  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* testsuite/test_gc.pro, testsuite/Makefile.am, testsuite/Makefile.in:
+	test_gc.pro: initial import
+
+2010-03-20  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/plotting.cpp: AXIS: support for the /SAVE keyword
+
+2010-03-16  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/Makefile.am, src/Makefile.in, src/deviceps.hpp, configure, configure.in, gdl.kdevelop:
+	removed ` at end of line 1057
+
+2010-03-16  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/libinit.cpp, src/plotting.cpp:
+	Adding keyword GET_SCREEN_SIZE in DEVICE
+
+2010-03-15  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* configure, configure.in: Correcting typo in 2 configure files ...
+
+2010-03-15  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/sigfpehandler.cpp:
+	sigfpehandler.cpp: adding the <csignal> system include needed for SIGFPE in GCC 4.3
+
+2010-03-14  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/plotting.cpp: insert checks for sigControlC
+
+	* src/dcompiler.cpp, src/dinterpreter.cpp, src/gdl.cpp, gdl.kdevelop:
+	catch GDLRetAllException wiht -e
+
+2010-03-13  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/basic_pro.cpp, src/dinterpreter.cpp, src/dinterpreter.hpp:
+	prevent GDL from deleting history file
+
+	* src/dinterpreter.cpp, src/read.cpp, src/sigfpehandler.cpp:
+	fixed control-C and fpe handling
+
+	* src/dinterpreter.cpp, src/dinterpreter.hpp, src/io.cpp, src/read.cpp:
+	get input from READ thru readline
+
+	* src/plotting.cpp, src/envt.hpp: working [XY]RANGE for AXIS
+
+	* src/GDLInterpreter.hpp, src/convert2.cpp, src/gdlc.i.g:
+	Changed string lenght of string for (unsigned)long to string conversion
+
+2010-03-12  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLInterpreter.hpp, src/gdlc.i.g:
+	reference counting this time without debug messages :-)
+
+	* src/accessdesc.hpp, src/basic_fun.cpp, src/datatypes.cpp, src/datatypes.hpp:
+	reference counting this time without fail (so far :-)
+
+	* src/GDLInterpreter.hpp, src/basegdl.hpp, src/datatypes.cpp, src/datatypes.hpp, src/datatypesref.cpp, src/gdlc.i.g, src/objects.hpp:
+	corrections for reference counting (more pemding, but previous version was broken
+
+2010-03-11  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLInterpreter.hpp, src/assocdata.hpp, src/basegdl.hpp, src/datatypes.cpp, src/dstructgdl.cpp, src/dstructgdl.hpp, src/envt.cpp, src/gdlc.i.g:
+	reference counting for structures
+
+2010-03-10  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/datatypes.cpp, src/GDLInterpreter.hpp, src/Makefile.am, src/Makefile.in, src/datatypesref.cpp, src/gdlc.i.g:
+	reference counting for objects and pointer (only prints an info on out of scope, changes nothing)
+
+2010-03-09  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/antlr/RefCount.hpp, src/GDLInterpreter.hpp, src/Makefile.am, src/Makefile.in, src/basic_fun.cpp, src/datatypes.cpp, src/datatypes.hpp, src/datatypesref.cpp, src/gdlc.i.g, src/objects.hpp:
+	reference counting for objects and pointer (only prints an info on out of scope, changes nothing)
+
+2010-03-08  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/io.hpp, src/io.cpp, src/magick_cl.cpp, src/basic_pro.cpp:
+	expand path for ImageMagick-related routines
+
+2010-03-07  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/GDLInterpreter.cpp, src/basegdl.cpp, src/basegdl.hpp, src/basic_fun.cpp, src/basic_op.cpp, src/datatypes.hpp, src/dstructgdl.hpp, src/gdlc.i.g, src/specializations.hpp, src/strassenmatrix.hpp:
+	handle nested ON_ERROR,2
+
+2010-02-26  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* doc/www/download.html: fixing typo for link
+
+2010-02-23  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/plotting.cpp: CONTOUR: support for [x|y]style
+
+2010-02-22  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* doc/www/screenshot.html: Including Saturn Legend
+
+	* doc/www/screenshots/screenshot11.png, doc/www/screenshots/screenshot11_thumb.png:
+	Initial import for Saturn page
+
+2010-02-22  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* MAP_INSTALL, README:
+	correcting libproj4 url in README and MAP_INSTALL
+
+	* src/plotting.cpp:
+	AXIS: support for axes with arbitrary origin (patch from Joanna / cokhavim)
+
+2010-02-20  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/libinit.cpp, src/pro/Makefile.am, src/pro/Makefile.in, src/pro/STATUS, src/pro/UrgentNeed.txt, src/pro/hist_2d.pro, src/pro/hist_nd.pro, testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_hist_2d.pro, testsuite/test_rebin.pro, src/basic_fun.cpp, src/dpro.cpp:
+	HIST_2D: initial import (using a GPL-licensed HIST_ND) + test routine
+	REBIN: support for specifying new dimensions as an array + test routine
+	dpro.cpp/DLibFunRetNew() - support for specifying warnKeywords
+	TOAL/PRODUCT: ignoring PRESERVE_TYPE keyword (treating as warnKeyword)
+
+2010-02-20  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* configure.in, src/GDLInterpreter.hpp, src/gdlc.i.g, configure:
+	included suggestion for directly linking dl, see https://sourceforge.net/tracker/?func=detail&aid=2952365&group_id=97659&atid=618683
+
+2010-02-19  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/print.cpp, README, configure, configure.in, gdl.kdevelop:
+	made FORMAT accept (but ignore) an empty format string
+
+2010-02-19  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* testsuite/test_fft.pro: error in call to EXIT ...
+
+	* testsuite/test_fft.pro:
+	improved TEST_FFT to test in N dims consitancy of direct then forward FFTs.
+
+2010-02-17  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/math_utl.hpp, doc/www/home.html, configure.in, gdl.kdevelop, configure:
+	use FFTW automatically if found
+
+2010-02-17  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* testsuite/Makefile.am, testsuite/Makefile.in, testsuite/README, testsuite/test_suite.pro:
+	adding test_suite.pro to the make-check rule
+
+2010-02-13  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* INSTALL, README, testsuite/README:
+	initial import of gdl/testsuite/README, minor updates in gdl/README and gdl/INSTALL
+
+2010-02-12  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/pythongdl.cpp:
+	pythongdl.cpp: Python >2.4 compatibility (Py_ssize_t)
+
+	* configure.in, src/antlr/Makefile.am, src/antlr/Makefile.in, src/gdlpython.cpp, src/pythongdl.cpp:
+	not installing libantrl.a during make-install (gdl is statically linked with it), fixing a missing include in pythongdl.cpp, informing about the build type (standalone/Python module) in the post-configure message
+
+2010-02-11  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* src/pro/README.txt, src/math_utl.hpp:
+	GCC 4.5 compatibility (math_utl.hpp); corrected some typos in the src/pro/README.txt file noted by the Debian packager
+
+	* doc/www/download.html:
+	doc/www: adding info about the Debian GNU/kFreeBSD packages
+
+2010-02-11  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* testsuite/Makefile.am, testsuite/Makefile.in:
+	upgrading automatic test suite files in directory testsuite/
+
+	* testsuite/test_fft.pro:
+	Initial important of "test_fft.pro", a preliminary version of a testsuite for FFT
+
+	* src/fftw.cpp: Important change in FFT when using FFTw lib.
+	This bug correction is not now propagated in FFT when using GSL (in "gsl_fun.cpp")
+	Please test using "test_fft.pro"
+
+	* testsuite/test_product.pro:
+	Wider tests for PRODUCT(), including /int, /nan, and dim param.
+
+	* src/basic_fun.cpp:
+	dding managment of keyword /Integer to PRODUCT function (see test_product.pro)
+	This Keyword is used in current Astron Lib.
+
+2010-02-09  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* src/libinit.cpp: adding INTEGER keyword in the PRODUCT function
+
+2010-02-08  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* doc/Makefile, testsuite/Makefile, testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_product.pro:
+	adding test_product.pro to the make-check rule, removing doc/Makefile and testsuite/Makefile files
+
+2010-02-08  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* testsuite/test_product.pro:
+	Initial import for TEST_PRODUCT.pro: testing some options of PRODUCT function
+
+2010-02-07  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* doc/www/credits.html: alphabetic order
+
+	* src/dinterpreter.cpp:
+	Corrected error reporting for GDLDirectPrint(tm)
+
+2010-02-06  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* gdl.kdevelop, src/dinterpreter.cpp:
+	command line calculator mode - just type an expression GDL prints it
+
+2010-02-05  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/dnode.cpp: test CVS access
+
+2010-02-03  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* doc/www/credits.html: rc4
+
+2010-02-02  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* src/lapack.cpp: add file
+
+	* src/GDLParser.cpp, src/Makefile.am, src/Makefile.in, src/dnode.cpp, src/dnode.hpp, src/gdlc.g, README, config.h.in, configure:
+	Fixed missing promption of integer constants with DEFINT32 set
+
+2010-02-01  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* configure.in:
+	configure: adding -lrps flag to LIBS for the Cygwin case (patch from Mateusz Turcza)
+
+	* configure.in: autodetection of OpenMP using AC_CHECK_HEADERS(omp.h)
+
+2010-01-31  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* configure.in:
+	re-enabling autodetection of Ubuntu-style wxWidgets installation; change of GDL version number
+
+	* src/widget.cpp:
+	fixing widget.cpp after a change in arguments of GDLParser constructor
+
+2010-01-30  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* NEWS: update of the NEWS file (.9rc4 section)
+
+2010-01-30  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* configure.in, gdl.kdevelop, configure: handling --with-openmp
+
+	* ChangeLog, NEWS: update NEWS
+
+
+	
 GDL 0.9rc4:
 2010-01-30  m_schellens  <m_schellens@DaMachineInDaMachine>
 

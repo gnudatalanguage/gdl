@@ -1,4 +1,4 @@
-AC_INIT(gdl, 0.9rc4 CVS)
+AC_INIT(gdl, 0.9)
 AC_CONFIG_MACRO_DIR([m4])
 
 dnl == Configuration (of the configure script)  ============
@@ -11,7 +11,7 @@ dnl optional-packages defaults:
 dnl  - yes = require by default
 dnl  - no  = needs explicit enabling
 if test "x$with_readlinedir" = "x"; then with_readlinedir=yes; fi
-if test "x$with_wxWidgets"   = "x"; then with_wxWidgets=no;    fi
+if test "x$with_wxWidgets"   = "x"; then with_wxWidgets=yes;    fi
 if test "x$with_udunits"     = "x"; then with_udunits=no;      fi
 if test "x$with_grib"        = "x"; then with_grib=no;         fi
 if test "x$with_Magick"      = "x"; then with_Magick=yes;      fi
@@ -1092,7 +1092,7 @@ echo "
     then echo 'library (Python module)'; else echo 'standalone (other: Python module)'; fi`
   ----- optional libraries (consult README/INSTALL): ---
   wxWidgets:           `if test no = $with_wxWidgets;
-    then echo 'no  (needs explicit enabling)'; else echo yes; fi`
+    then echo 'no'; else echo yes; fi`
   Magick:              `if test no = $with_Magick;
     then echo 'no'; else echo yes; fi`
   NetCDF:              `if test no = $with_netcdf;
