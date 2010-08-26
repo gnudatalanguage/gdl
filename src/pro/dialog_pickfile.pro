@@ -32,7 +32,7 @@
 ; definition. Individual files are displayed but can't be selected.
 ; The return value contains the path of the directory selected, or
 ; directory created and selected by the user. 
-;	DISPLAY_NAME: This keyword isn't supported
+;	DISPLAY_NAME: X display
 ;	FILE: Set this keyword to a scalar string that contains the name
 ; of the initial file selection. This keyword is useful for specifying a default 
 ; filename.
@@ -66,7 +66,7 @@
 ; which to select files. Relative paths are appended to current working directory.
 ; If this keyword is not set, current working directory is used.
 ;	READ: Set this keyword to make the title of the dialog "Please Select a File|Directory for Reading". 
-;	RESOURCE_NAME: This keyword isn't supported
+;	RESOURCE_NAME: X name
 ;	TITLE: Set this keyword to a scalar string to be used for the dialog title.
 ; If it is not specified, the default title is "Please Select a File|Directory". 
 ;	WRITE: Set this keyword to make the title of the dialog "Please Select a
@@ -76,7 +76,7 @@
 ;
 ;	ZENITY_NAME: Set this keyword to a scalar string used to overwrite Zenity
 ; executable name.
-;	ZENITY_PATH: If set, Zenith will be searched in this path. If it doesn't 
+;	ZENITY_PATH: If set, Zenity will be searched in this path. If it doesn't 
 ; exist, then it will be searched in common unix paths. This can also be done
 ; by exporting the shell variable $ZENITY_PATH.
 ;	HELP: Display a help message and return
@@ -244,7 +244,7 @@ endelse
 ; Check default_extension
 if KEYWORD_SET(default_extension) then default_extension=STRING(default_extension[0])
 ;
-; Zenith file selection mode
+; Zenity file selection mode
 cmd=zen+' --file-selection '
 get_path=''
 ;
@@ -257,7 +257,8 @@ endif else type='File'
 ; Dialog_parent can't be used w/ Zenity
 
 ; Set the X Window display
-; if KEYWORD_SET(display_name) then cmd+='--display="'+STRING(display_name)+'" '
+if KEYWORD_SET(display_name) then cmd+='--display="'+STRING(display_name)+'" '
+if KEYWORD_SET(resource_name) then cmd+='--name="'+STRING(resource_name)+'" '
 
 ; Set the initial file selection. Since zenity can't distinguish initial path from initial selected file, 
 ; we have to concatenate path and file
@@ -274,15 +275,15 @@ endif
 if KEYWORD_SET(file) then file=STRING(file[0])
 
 if start ne '' then $
-  if KEYWORD_SET(file) && file_test(start+file) then cmd+='--filename="'+start+file+'" ' else $
-  if file_test(start) then cmd+='--filename="'+start+'" '
+  if KEYWORD_SET(file) && FILE_TEST(start+file) then cmd+='--filename="'+start+file+'" ' else $
+  if FILE_TEST(start) then cmd+='--filename="'+start+'" '
 
 ; Set the filters (Zenity version >= 2.23.1)
 if KEYWORD_SET(filter) then begin
-    SPAWN, zen+' --version', ver ; Get current Zenith version
-    version=STRSPLIT(ver, '\.', /extract)
+    SPAWN, zen+' --version', ver ; Get current Zenity version
+    version=STRSPLIT(ver, '.', /extract)
     version=UINT(version[0])*10000+UINT(version[1])*100+UINT(version[2])
-    if version lt 22301 then MESSAGE, 'Zenith version need to be >= 2.23.1 to support filters', /cont else begin ; Check if zenity ver < 2.23.1
+    if version lt 22301 then MESSAGE, 'Zenity version need to be >= 2.23.1 to support filters', /cont else begin ; Check if zenity ver < 2.23.1
         if SIZE(filter, /dimensions) eq 0 then filter=[filter] ; Filter is as scalar STRING
         filters=''
         fsize=SIZE(filter, /n_elements)
@@ -350,7 +351,7 @@ if KEYWORD_SET(directory) then get_path=results[0]+PATH_SEP() else get_path=FILE
 
 ; Must exist filter
 if KEYWORD_SET(must_exist) then begin
-    ix=where(file_test(results), c)
+    ix=WHERE(FILE_TEST(results), c)
     if c eq 0 then return, ''   ; No file exist
     results=results[ix]
     rsize=SIZE(results, /n_elements)
@@ -364,12 +365,12 @@ if KEYWORD_SET(overwrite_prompt) && KEYWORD_SET(write) then begin
     MESSAGE, 'For each cancelation, associated file will be deleted from the file list at return', /cont 
     over=BYTARR(rsize)
     for i=0, rsize-1 do begin   ; for each selected files
-        if file_test(results[i]) then begin ; check if it already exists
-            SPAWN, 'zenity --question --title='+readtitle+'--text="'+results[i]+' already exists.\nDo you want to replace it ?"', exit_status=ex
+        if FILE_TEST(results[i]) then begin ; check if it already exists
+            SPAWN, zen+' --question --title='+readtitle+'--text="'+results[i]+' already exists.\nDo you want to replace it ?"', exit_status=ex
             over[i]=~ex ; As Zenity can't pop-up question dialog, if user don't want to overwrite the file, just pop it from the list
         endif
     endfor
-    ix=where(over, c)         ; indexes of files which must be deleted
+    ix=WHERE(over, c)         ; indexes of files which must be deleted
     if c eq 0 then return, '' ; if every files have to be deleted, return
     results=results[ix]    ; Delete file that shouldn't be overwritten
     rsize=SIZE(results, /n_elements)
@@ -377,9 +378,11 @@ if KEYWORD_SET(overwrite_prompt) && KEYWORD_SET(write) then begin
 endif
 
 ; default extension (simple behaviour, unlike IDL [no filter taken into account])
-if KEYWORD_SET(default_extension) then $
-  for i=0, rsize-1 do if STRPOS(file_basename(results[i]), '.') eq -1 then $
-  results[i]+='.'+default_extension ; no extension, then append default extension
+if KEYWORD_SET(default_extension) then begin
+	w=WHERE(STRPOS(FILE_BASENAME(results,'.') eq -1)
+	if w ne [-1] then results[w]+='.'+default_extension
+endif
+
 ;
 if KEYWORD_SET(debug) OR KEYWORD_SET(debug) then STOP
 ;
