@@ -79,6 +79,7 @@ prolib_DATA = \
   str_sep.pro \
   strsplit.pro \
   swap_endian.pro \
+  swap_endian_inplace.pro \
   template.pro \
   template_blank.pro \
   trace.pro \
