@@ -581,9 +581,9 @@ namespace lib {
   }
 
 // Make s string case-insensitive for glob()
-void makeInsensitive(DString &s)
+DString makeInsensitive(const DString &s)
 {
-	DString insen;
+	DString insen="";
 	char coupleBracket[5]={'[',0,0,']',0};
 	char couple[3]={0};
 	bool bracket=false;
@@ -618,7 +618,7 @@ void makeInsensitive(DString &s)
 			else
 				insen+=s[i];
 		}
-	s.swap(insen);
+	return insen;
 }
 
   void FileSearch( FileListT& fL, const DString& s, 
@@ -630,9 +630,11 @@ void makeInsensitive(DString &s)
 		   bool quote,
 		   bool dir,
 		   bool period,
-                   bool forceAbsPath)
+                   bool forceAbsPath,
+		   bool fold_case)
   {
     int flags = 0;
+    DString st;
 
     if( environment)
       flags |= GLOB_BRACE;
@@ -661,12 +663,16 @@ void makeInsensitive(DString &s)
 #else
     struct stat    statStruct;
 #endif
+    if( fold_case)
+	st=makeInsensitive(s);
+   else
+	st=s;
 
     glob_t p;
     int gRes;
     if (!forceAbsPath)
     {
-      if (s != "") gRes = glob(s.c_str(), flags, NULL, &p);
+      if (st != "") gRes = glob(st.c_str(), flags, NULL, &p);
       else gRes = glob("*", flags, NULL, &p);
     }
     else 
@@ -674,20 +680,20 @@ void makeInsensitive(DString &s)
       string pattern;
       if 
       (
-        s.at(0) != '/' && 
-        !(tilde && s.at(0) == '~') && 
-        !(environment && s.at(0) == '$')
+        st.at(0) != '/' && 
+        !(tilde && st.at(0) == '~') && 
+        !(environment && st.at(0) == '$')
       ) 
       { 
         pattern = GetCWD();
         pattern.append("/");
         pattern.append(s);
-	if(!( s.size() ==1 && s.at(0) == '.')) pattern.append(s);
+	if(!( st.size() ==1 && st.at(0) == '.')) pattern.append(st);
         gRes = glob(pattern.c_str(), flags, NULL, &p);
       }
       else 
       {
-        gRes = glob(s.c_str(), flags, NULL, &p);
+        gRes = glob(st.c_str(), flags, NULL, &p);
       }
     }
 
@@ -717,7 +723,7 @@ void makeInsensitive(DString &s)
 	}
     globfree( &p);
 
-    if( s == "" && dir)
+    if( st == "" && dir)
       fL.push_back( "");
   }
 
@@ -793,11 +799,6 @@ void makeInsensitive(DString &s)
     static int fully_qualified_pathIx = e->KeywordIx( "FULLY_QUALIFY_PATH");
     bool forceAbsPath = e->KeywordSet( fully_qualified_pathIx);
 
-    // ...
-    if( fold_case)
-	for(SizeT f=0; f < nPath; ++f)
-		makeInsensitive((*pathSpec)[0]);
-
     if( match_all_dot)
       Warning( "FILE_SEARCH: MATCH_ALL_INITIAL_DOT keyword ignored (not supported).");
 
@@ -808,16 +809,16 @@ void makeInsensitive(DString &s)
     if( nPath == 0)
       FileSearch( fileList, "", 
 		  environment, tilde, 
-		  accErr, mark, noSort, quote, onlyDir, match_dot, forceAbsPath);
+		  accErr, mark, noSort, quote, onlyDir, match_dot, forceAbsPath, fold_case);
     else
       FileSearch( fileList, (*pathSpec)[0],
 		  environment, tilde, 
-		  accErr, mark, noSort, quote, onlyDir, match_dot, forceAbsPath);
+		  accErr, mark, noSort, quote, onlyDir, match_dot, forceAbsPath, fold_case);
     
     for( SizeT f=1; f < nPath; ++f) 
       FileSearch( fileList, (*pathSpec)[f],
 		  environment, tilde, 
-		  accErr, mark, noSort, quote, onlyDir, match_dot, forceAbsPath);
+		  accErr, mark, noSort, quote, onlyDir, match_dot, forceAbsPath, fold_case);
 
     DLong count = fileList.size();
 

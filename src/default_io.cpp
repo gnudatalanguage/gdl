@@ -1459,16 +1459,22 @@ istream& Data_<Sp>::Read( istream& os, bool swapEndian,
     }
   else if (compress)
     {
+      /* modifications by Maxime Lenoir June 2010
+	 this modification was succesfully checked on bigs PDS files ...
+	 Nevertheless we decided not to merge the two bloks in case other
+	 problems will be found later ...
+
       char* cData = reinterpret_cast<char*>(&(*this)[0]);
       SizeT cCount = count * sizeof(Ty);
       char c;
       for( SizeT i=0; i<cCount; i += sizeof(Ty))
-	os.get( cData[ i]);
+      os.get( cData[ i]);
+      */
+      os.read(reinterpret_cast<char*>(&(*this)[0]), count * sizeof(Ty));
     }    
   else
     {
-      os.read( reinterpret_cast<char*>(&(*this)[0]),
-		count * sizeof(Ty));
+      os.read(reinterpret_cast<char*>(&(*this)[0]), count * sizeof(Ty));
     }
   
   if( os.eof())
