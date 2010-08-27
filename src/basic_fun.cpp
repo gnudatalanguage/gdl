@@ -1261,6 +1261,9 @@ namespace lib {
 	
 	quietCompile = p1->True();
       }
+
+    if (e->GetParDefined(0)->Rank() != 0)
+      e->Throw("Expression must be scalar in this context: "+e->GetParString(0));
     
     DString line;
     e->AssureScalarPar<DStringGDL>( 0, line);

@@ -8,6 +8,7 @@ TESTS = \
   test_constants.pro \
   test_device.pro \
   test_erfinv.pro \
+  test_execute.pro \
   test_fft.pro \
   test_fft_leak.pro \
   test_file_basename.pro \
