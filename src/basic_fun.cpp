@@ -1034,26 +1034,6 @@ namespace lib {
   {
     return type_fun<DByteGDL>( e);
   }
-  BaseGDL* fix_fun( EnvT* e)
-  {
-    DIntGDL* type = e->IfDefGetKWAs<DIntGDL>( 0);
-    if (type != NULL) {
-      int typ = (*type)[0];
-      if (typ == BYTE) return type_fun<DByteGDL>( e);
-      if (typ == INT) return type_fun<DIntGDL>( e);
-      if (typ == UINT) return type_fun<DUIntGDL>( e);
-      if (typ == LONG) return type_fun<DLongGDL>( e);
-      if (typ == ULONG) return type_fun<DULongGDL>( e);
-      if (typ == LONG64) return type_fun<DLong64GDL>( e);
-      if (typ == ULONG64) return type_fun<DULong64GDL>( e);
-      if (typ == FLOAT) return type_fun<DFloatGDL>( e);
-      if (typ == DOUBLE) return type_fun<DDoubleGDL>( e);
-      if (typ == COMPLEX) return type_fun<DComplexGDL>( e);
-      if (typ == COMPLEXDBL) return type_fun<DComplexDblGDL>( e);
-      e->Throw( "Improper TYPE value.");
-    }
-    return type_fun<DIntGDL>( e);
-  }
   BaseGDL* uint_fun( EnvT* e)
   {
     return type_fun<DUIntGDL>( e);
@@ -1177,6 +1157,43 @@ namespace lib {
 	    return new DStringGDL( s);
 	  }
       }
+  }
+  BaseGDL* fix_fun( EnvT* e)
+  {
+    DIntGDL* type = e->IfDefGetKWAs<DIntGDL>( 0);
+    if (type != NULL) {
+      int typ = (*type)[0];
+      if (typ == BYTE)
+      {
+        // SA: slow yet simple solution using BYTE->INT->BYTE conversion
+        return (e->KeywordSet(1) && e->GetPar(0)->Type() == STRING)
+          ? type_fun<DIntGDL>( e)->Convert2(BYTE, BaseGDL::CONVERT) 
+          : type_fun<DByteGDL>( e);
+      }
+      if (typ == 0 || typ == INT) return type_fun<DIntGDL>( e);
+      if (typ == UINT) return type_fun<DUIntGDL>( e);
+      if (typ == LONG) return type_fun<DLongGDL>( e);
+      if (typ == ULONG) return type_fun<DULongGDL>( e);
+      if (typ == LONG64) return type_fun<DLong64GDL>( e);
+      if (typ == ULONG64) return type_fun<DULong64GDL>( e);
+      if (typ == FLOAT) return type_fun<DFloatGDL>( e);
+      if (typ == DOUBLE) return type_fun<DDoubleGDL>( e);
+      if (typ == COMPLEX) return type_fun<DComplexGDL>( e);
+      if (typ == COMPLEXDBL) return type_fun<DComplexDblGDL>( e);
+      if (typ == STRING) 
+      {
+        // SA: calling STRING() with correct parameters
+        static int stringIx = LibFunIx("STRING");
+        EnvT* newEnv= new EnvT(e, libFunList[stringIx], NULL);
+        newEnv->SetNextPar(&e->GetPar(0)); // pass as global
+        if (e->KeywordSet(1) && e->GetPar(0)->Type() == BYTE)
+          newEnv->SetKeyword("PRINT", new DIntGDL(1));
+        e->Interpreter()->CallStack().push_back( newEnv); 
+        return static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
+      }
+      e->Throw( "Improper TYPE value.");
+    }
+    return type_fun<DIntGDL>( e);
   }
 
   BaseGDL* call_function( EnvT* e)

@@ -17,6 +17,7 @@ TESTS = \
   test_file_dirname.pro \
   test_file_search.pro \
   test_fix.pro \
+  test_fixprint.pro \
   test_gc.pro \
   test_get_screen_size.pro \
   test_hist_2d.pro \

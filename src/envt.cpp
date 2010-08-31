@@ -888,6 +888,8 @@ void EnvT::PushNewEnvUD(  DSub* newPro, SizeT skipP, BaseGDL** newObj)
 }
 // used by obj_new (basic_fun.cpp)
 // and obj_destroy (basic_pro.cpp)
+// and call_function (basic_fun.cpp)
+// and call_procedure (basic_pro.cpp)
 void EnvT::PushNewEnv(  DSub* newPro, SizeT skipP, BaseGDL** newObj)
 {
   EnvT* newEnv= new EnvT( this, newPro, newObj);
