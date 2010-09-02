@@ -1,10 +1,10 @@
 # HDF_LIBRARIES
 # HDF_EXTRA_LIBRARIES
 find_package(JPEG)
-find_library(HDF_LIBRARY NAMES df dfalt)
-find_library(MFHDF_LIBRARY NAMES mfhdf mfhdfalt)
+find_library(HDF_LIBRARY NAMES df dfalt PATH_SUFFIXES hdf)
+find_library(MFHDF_LIBRARY NAMES mfhdf mfhdfalt PATH_SUFFIXES hdf)
 set(HDF_LIBRARIES ${MFHDF_LIBRARY} ${HDF_LIBRARY})
-find_path(HDF_INCLUDE_DIR NAMES hdf.h)
+find_path(HDF_INCLUDE_DIR NAMES hdf.h PATH_SUFFIXES hdf)
 include(CheckLibraryExists)
 include(FindPackageHandleStandardArgs)
 if(HDF_LIBRARIES)
