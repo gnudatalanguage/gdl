@@ -1,0 +1,9 @@
+find_library(UDUNITS_LIBRARIES NAMES udunits2)
+find_path(UDUNITS_INCLUDE_DIR NAMES udunits2.h)
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(UDUNITS DEFAULT_MSG UDUNITS_LIBRARIES UDUNITS_INCLUDE_DIR)
+
+mark_as_advanced(
+UDUNITS_LIBRARIES
+UDUNITS_INCLUDE_DIR
+)

@@ -1,0 +1,9 @@
+find_library(LIBPROJ4_LIBRARIES NAMES proj4)
+find_path(LIBPROJ4_INCLUDE_DIR NAMES lib_proj.h)
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(LIBPROJ4 DEFAULT_MSG LIBPROJ4_LIBRARIES LIBPROJ4_INCLUDE_DIR)
+
+mark_as_advanced(
+LIBPROJ4_LIBRARIES
+LIBPROJ4_INCLUDE_DIR
+)

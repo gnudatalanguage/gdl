@@ -1,0 +1,10 @@
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} ANTLRSOURCES)
+list(REMOVE_ITEM ANTLRSOURCES ${CMAKE_CURRENT_SOURCE_DIR}/dll.cpp)
+include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/antlr)
+
+if(PYTHON_MODULE)
+	add_library(antlr SHARED ${ANTLRSOURCES})
+	install(TARGETS antlr DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+else(PYTHON_MODULE)
+	add_library(antlr STATIC ${ANTLRSOURCES})
+endif(PYTHON_MODULE)
