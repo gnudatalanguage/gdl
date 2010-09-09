@@ -64,7 +64,7 @@ for __i__=0,n_params()-1 do begin
    endif
    cmd = arg + '=temporary(' + p + ')'
    cmd = arg + '=' + p
-   stat = execute(cmd)
+   stat = execute(cmd[0])
    parm = parm + arg + ','
 endfor
 
@@ -114,13 +114,13 @@ endif
 ; help for debugging ...
 ;
 if KEYWORD_SET(test) then begin
-   print,parm
+   print, parm
    STOP
 endif
 ;
 ; real call to the CMSAVE routine
 ;
-stat=execute(parm)
+stat=execute(parm[0])
 ;
 return
 end
