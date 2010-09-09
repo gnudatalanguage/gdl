@@ -49,7 +49,7 @@ if TOTAL(ABS(a-b)) EQ 0 then begin
     print, 'You are using an old version of GDL, please upgrade to gdl >= gdl-0.9rc4'
     print, '(using FFTw library is better)'
     print, 'test TEST_BUG_FFT *NOT* passed'
-    exit, 1
+    exit, status=1
 endif
 ;
 print, 'test TEST_BUG_FFT passed'
