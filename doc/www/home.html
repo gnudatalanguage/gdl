@@ -17,15 +17,24 @@ IDL is a registered trademark of <a href="http://www.ittvis.com" target="_self">
 
 <center><h3><u>Features</u></h3></center>
 
-<p>Full syntax compatibility with IDL 6.0 and later</p>
+<p>Full syntax compatibility with IDL up to version 7.1 (for 8.0 and later see below).</p>
 
-<p><b>ALL</b> IDL language elements are supported, including:</p>
+<p><b>ALL</b> IDL language elements up to IDL version 7.1 are supported, including:</p>
 
 <ul>
     <li>objects, pointers, structs and arrays,</li>
     <li>system, common block and assoc variables,</li>
     <li>all operators and datatypes,</li>
     <li>_EXTRA, _STRICT_EXTRA and _REF_EXTRA keywords...</li>
+</ul>
+
+<p>Supported IDL 8.0 language elements:</p>
+
+<ul>
+    <li>FOREACH loop</li>
+    <li>negative array indices</li>
+    <li>garbage collection pointers and objects</li>
+    <li>call methods on an object using "." (e. g. object.aMemberProcedure,arg1)</li>
 </ul>
 
 <p>The file input output system is fully implemented<br/>
@@ -57,10 +66,10 @@ system variable tags and multi-plots are supported)
 for X windows, z-buffer and postscript output.
 </p>
 
-<p> GDL has an interface to <a href="http://www.python.org" target="_self">python</a> (python routines can be called from GDL).</p>
-<p> GDL can be build as a pyhton module (GDL subroutines can be called from python).</p>
+<p>GDL has an interface to <a href="http://www.python.org" target="_self">python</a> (python routines can be called from GDL).</p>
+<p>GDL can be build as a pyhton module (GDL subroutines can be called from python).</p>
 
-<p>No GUI support (widgets) is implemented so far.</p>
+<p>GUI support (widgets) is officially provided since the 0.9 version (but it's not complete yet).</p>
 
 
  <p>GDL is free software licensed under the <a href="http://www.gnu.org/licenses/gpl.html" target="_self">GPL</a>.</p>
