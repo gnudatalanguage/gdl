@@ -1101,7 +1101,8 @@ namespace lib {
 	SizeT width = 0;
 	if( printKey) // otherwise: FORMAT -> width is ignored
 	  {
-	    width = TermWidth();
+	    // for /PRINT always a terminal width of 80 is assumed
+	    width = 80;//TermWidth();
 	  }
 	
 	print_os( &os, e, parOffset, width);

@@ -477,7 +477,7 @@
            - making the initial "DECOMPOSED" setting of the X device dependant on the colour 
              depth reported by the X-server
 
-0.9rc5:	    
+0.9:	    
 	   - FOREACH statement, syntax: FOREACH loopVar,array[,indexVar] DO
 	   - member function and procedure calls with '.' e. g.: object.aProcedure
 	   - support of negative index ranges. -1 is the last element, -2 the one before 
