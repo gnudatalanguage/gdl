@@ -155,20 +155,40 @@ namespace lib {
       throw GDLException( e->CallingNode(), 
   			  "WAIT:  Argument must be non-negative"
 			  +e->GetParString( 0));
-    struct timeval tval;
-    struct timezone tzone;
-    
-    // derivated from the current version of SYSTIME()
+    int old_version=0;
 
-    gettimeofday(&tval,&tzone);
-    double t_start = tval.tv_sec+tval.tv_usec/1e+6; // time in UTC seconds
-    double t_current=0.0;
+    if (waittime <= 0.005) old_version=1;
 
-    double diff=0.0;
-    while (diff < waittime ) {      
+    // AC 2010-09-16
+    // this version is OK and very accurate for small durations
+    // but used 100% of one CPU :((
+    if (old_version == 1) {
+
+      struct timeval tval;
+      struct timezone tzone;
+      
+      // derivated from the current version of SYSTIME()
+      
       gettimeofday(&tval,&tzone);
-      t_current= tval.tv_sec+tval.tv_usec/1e+6;
-      diff=t_current - t_start;
+      double t_start = tval.tv_sec+tval.tv_usec/1e+6; // time in UTC seconds
+      double t_current=0.0;
+      
+      double diff=0.0;
+      while (diff < waittime ) {      
+	gettimeofday(&tval,&tzone);
+	t_current= tval.tv_sec+tval.tv_usec/1e+6;
+	diff=t_current - t_start;
+      }
+    }
+
+    // AC 2010-09-16 this version should used much less CPU !
+    if (old_version == 0) {
+      cout << floor(waittime) << " " <<  waittime-floor(waittime) << endl;
+      struct timespec tv;
+      tv.tv_sec = floor(waittime);
+      tv.tv_nsec = (waittime-floor(waittime))*1e9;
+      int retval;
+      retval=nanosleep(&tv,NULL);
     }
   }
 
