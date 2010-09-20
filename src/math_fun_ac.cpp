@@ -520,8 +520,11 @@ namespace lib {
     // new arrays
     DDoubleGDL* res;  // the "res" array;
     res = new DDoubleGDL(nElpXpos, BaseGDL::NOZERO);
+
+    auto_ptr<BaseGDL> U_guard;
     DDoubleGDL* U;
     U = new DDoubleGDL(nElpXpos, BaseGDL::NOZERO);
+    U_guard.reset(U); // delete upon exit
 
     SizeT count, count1;
 
