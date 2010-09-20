@@ -183,7 +183,7 @@ namespace lib {
 
     // AC 2010-09-16 this version should used much less CPU !
     if (old_version == 0) {
-      cout << floor(waittime) << " " <<  waittime-floor(waittime) << endl;
+      //cout << floor(waittime) << " " <<  waittime-floor(waittime) << endl;
       struct timespec tv;
       tv.tv_sec = floor(waittime);
       tv.tv_nsec = (waittime-floor(waittime))*1e9;
