@@ -692,5 +692,40 @@ namespace lib {
     GM_CV0();
   }
 
+  BaseGDL* sobel_fun( EnvT* e){
+    e->Throw( "sorry, SOBEL not ready.");
+    //return 1;
+  }
+
+  BaseGDL* roberts_fun( EnvT* e){
+  
+    DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>(0);
+    if( p0->Rank() != 2)
+      e->Throw( "Array must have 2 dimensions: "+ e->GetParString(0));
+
+    DDoubleGDL* res = new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);
+    SizeT nbX = p0->Dim(0);
+    SizeT nbY = p0->Dim(1);
+    
+    int debug=0;
+    if (debug ==1) {
+      cout << "nbX : " << nbX << endl; 
+      cout << "nbY : " << nbY << endl; 
+    }
+
+    //DDoubleGDL z = new DDoubleGDL[nbX,nbY];
+    for( SizeT k=0; k<nbY-1; k++) {
+      for( SizeT j=0; j< nbX-1; j++) {
+	(*res)[j+nbX*k] = abs((*p0)[j+nbX*k]-(*p0)[j+1+nbX*(k+1)])+
+	  abs((*p0)[j+nbX*(k+1)]-(*p0)[j+1+nbX*k]);
+      }
+    }
+    return res;
+  }
+  
+  BaseGDL* prewitt_fun( EnvT* e){
+    e->Throw( "sorry, PREWITT not ready.");
+  }
+
 } // namespace
 

@@ -46,5 +46,12 @@ void LibInit_ac()
   const string spl2Key[]={"DOUBLE","HELP",KLISTEND};
   new DLibFun(lib::spl_interp_fun,string("SPL_INTERP"),4,spl2Key);
 
+  const string robertsKey[]={"HELP",KLISTEND};
+  new DLibFun(lib::roberts_fun,string("ROBERTS"),1,robertsKey);
+  const string sobelKey[]={"HELP",KLISTEND};
+  new DLibFun(lib::sobel_fun,string("SOBEL"),1,sobelKey);
+  const string prewittKey[]={"HELP",KLISTEND};
+  new DLibFun(lib::prewitt_fun,string("PREWITT"),1,prewittKey);
+
 }
 
