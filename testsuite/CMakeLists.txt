@@ -41,6 +41,7 @@ test_hist_2d.pro
 test_idl8.pro
 test_interpol.pro
 test_memory.pro
+test_mpfit.pro
 test_multiroots.pro
 test_nans_in_sort_and_median.pro
 test_nestedloop.pro
