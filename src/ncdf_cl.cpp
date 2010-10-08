@@ -41,6 +41,7 @@
 #include "terminfo.hpp"
 #include "typedefs.hpp"
 
+#include "time.h"
 
 
 #define GDL_DEBUG
@@ -452,6 +453,26 @@ namespace lib {
       }
 
   }
+
+  void ncdf_epoch(EnvT* e)
+  {
+    if (e->KeywordSet("BREAKDOWN_EPOCH") && e->KeywordSet("COMPUTE_EPOCH"))
+       e->Throw( "sorry, mutualy exclusive keywords.");
+
+    if (e->KeywordSet("BREAKDOWN_EPOCH"))
+      {
+	//http://www.cplusplus.com/reference/clibrary/ctime/tm/
+	struct tm *t;
+	DLong epoch;	
+	e->AssureLongScalarPar( 0, epoch);
+	
+	t = gmtime ((time_t *)&epoch);
+	printf("The year is: %d\n", t->tm_year + 1900);
+	printf("The julian day is: %d\n", t->tm_yday + 1);
+      }
+    //conversion tm --> t_time
+    //    http://www.cplusplus.com/reference/clibrary/ctime/mktime/
+  };
 
 }
 #endif
