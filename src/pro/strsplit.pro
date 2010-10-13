@@ -88,9 +88,10 @@ if KEYWORD_SET(fold_case) then begin
     MESSAGE, /continue, 'PLEASE CONTRIBUTE'
 endif
 ;
-if KEYWORD_SET(regex) and KEYWORD_SET(preserve_null) then begin
-    MESSAGE, /continue, 'Keywords /REGEX and /PRESERVE_NULL are incompatible, /PRESERVE_NULL is ignored' 
-endif
+;; AC 14-Oct-2010: may be not fully OK (see below)
+;if KEYWORD_SET(regex) and KEYWORD_SET(preserve_null) then begin
+;    MESSAGE, /continue, 'Keywords /REGEX and /PRESERVE_NULL are incompatible, /PRESERVE_NULL is ignored' 
+;endif
 ;
 ;if (SIZE(input1, /n_dimensions) GT 1) then begin
 ;    MESSAGE, 'Invalid input string.'
@@ -114,7 +115,8 @@ if (N_PARAMS() EQ 2 or default) then begin
         MESSAGE, 'Undefined pattern string.'
     endif
     ;;
-    if KEYWORD_SET(regex) then begin
+    ;; AC 14-Oct-2010: may be not fully OK
+    if KEYWORD_SET(regex) and ~KEYWORD_SET(preserve_null) then begin
         resu=STRTOK(local_input1, input2, extract=extract, REGEX=regex_flag)
     endif else begin
         resu=0
