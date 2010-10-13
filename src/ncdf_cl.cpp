@@ -454,7 +454,8 @@ namespace lib {
 
   }
 
-  void ncdf_epoch(EnvT* e)
+  // see also http://www.mathworks.com/help/techdoc/ref/cdflib.epochbreakdown.html
+  void cdf_epoch(EnvT* e)
   {
     if (e->KeywordSet("BREAKDOWN_EPOCH") && e->KeywordSet("COMPUTE_EPOCH"))
        e->Throw( "sorry, mutualy exclusive keywords.");

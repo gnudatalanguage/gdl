@@ -50,7 +50,7 @@ namespace lib {
   BaseGDL* ncdf_inquire(EnvT* e);
   void ncdf_control(EnvT* e);
 
-  void ncdf_epoch(EnvT* e);
+  void cdf_epoch(EnvT* e);
 
 
   //------------------

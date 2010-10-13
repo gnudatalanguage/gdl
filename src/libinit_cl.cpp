@@ -154,8 +154,8 @@ void LibInit_cl()
   new DLibPro(lib::ncdf_varput, string("NCDF_VARPUT"), 3,ncdf_varputKey);
 
   //epoch time conversion
-  const string ncdf_epochKey[]={"BREAKDOWN_EPOCH","COMPUTE_EPOCH",KLISTEND};
-  new DLibPro(lib::ncdf_epoch, string("NCDF_EPOCH"), 2,ncdf_epochKey);
+  const string cdf_epochKey[]={"BREAKDOWN_EPOCH","COMPUTE_EPOCH",KLISTEND};
+  new DLibPro(lib::cdf_epoch, string("CDF_EPOCH"),8,cdf_epochKey);
 
 #endif
 
