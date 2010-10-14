@@ -4,6 +4,7 @@ TESTS = \
   test_base64.pro \
   test_binfmt.pro \
   test_bug_3033108.pro \
+  test_bug_3086851.pro \
   test_clip.pro \
   test_constants.pro \
   test_device.pro \
