@@ -29,6 +29,7 @@ class DevicePS: public Graphics
   float            XPageSize;
   float            YPageSize;
   int              color;
+  int              decomposed; // false -> use color table
 
   void InitStream()
   {
@@ -98,7 +99,7 @@ class DevicePS: public Graphics
   }
 
 public:
-  DevicePS(): Graphics(), fileName( "gdl.ps"), actStream( NULL), XPageSize(0.), YPageSize(0.), color(0)
+  DevicePS(): Graphics(), fileName( "gdl.ps"), actStream( NULL), XPageSize(0.), YPageSize(0.), color(0), decomposed( 0)
   {
     name = "PS";
 
@@ -177,12 +178,23 @@ public:
 
     return true;
   }
+
   bool SetColor()
   {
     color=1;
     return true;
   }
 
+  bool Decomposed( bool value)           
+  {   
+    decomposed = value;
+    return true;
+  }
+
+  DLong GetDecomposed()        
+  {
+    return decomposed;  
+  }
 };
 
 #endif
