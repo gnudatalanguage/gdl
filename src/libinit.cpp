@@ -727,7 +727,7 @@ void LibInit()
   const string polyfillKey[]=
     {
       "COLOR","DATA","NORMAL","DEVICE","CLIP","NOCLIP",
-      /*"LINE_FILL","SPACING","LINESTYLE","ORIENTATION","THICK",*/
+      "LINE_FILL","SPACING","LINESTYLE","ORIENTATION","THICK",
       KLISTEND
     };
   new DLibPro(lib::polyfill, string("POLYFILL"), 3, polyfillKey);

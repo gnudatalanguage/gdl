@@ -2350,12 +2350,11 @@ actStream->wid( 0);
 
     actStream->wind( xStart, xEnd, yStart, yEnd);
 
-/* SA: does not work at all (TODO, help welcome)
-    // LINE_FILL, SPACING, LINESTYLE, ORIENTATION, THICK
+    // LINE_FILL, SPACING, LINESTYLE, ORIENTATION, THICK (thanks to JW)
     static int line_fillIx = e->KeywordIx("LINE_FILL");
     if (e->KeywordSet(line_fillIx))
     {
-      PLINT inc = 0, del = 1;
+      PLINT inc = 0, del = 1500;
 
       static int orientationIx = e->KeywordIx("ORIENTATION");
       if (e->KeywordSet(orientationIx)) inc = PLINT(1e1 * (*e->GetKWAs<DFloatGDL>(orientationIx))[0]);
@@ -2366,9 +2365,13 @@ actStream->wid( 0);
       gkw_thick(e, actStream);
       gkw_linestyle(e, actStream);
 
+      actStream->psty(8);
       actStream->pat(1, &inc, &del);
     }
-*/
+    else 
+    {
+      actStream->psty(0);
+    }
 
 #ifdef USE_LIBPROJ4
     if (mapSet)
