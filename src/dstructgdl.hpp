@@ -247,6 +247,12 @@ return Buf();
 private:
   void ClearTag( SizeT t)
   {
+  if( dd.size() == 0)
+	{
+	typeVar[ t]->Clear();
+	}
+  else
+  {
     char*    offs = Buf() + Desc()->Offset( t);
     BaseGDL* tVar  = typeVar[ t];
     SizeT step    = Desc()->NBytes();
@@ -255,6 +261,7 @@ private:
       {
 	tVar->SetBuffer( offs + ix)->Clear();
       }
+  }
   }
   void ConstructTagTo0( SizeT t)
   {
