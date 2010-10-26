@@ -72,7 +72,7 @@ namespace lib {
     GetWFromPlotStructs(&wx, &wy); 
 
     DDouble xStart, xEnd, yStart, yEnd;
-    DataCoordLimits(sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd);
+    DataCoordLimits(sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, true);
 
     actStream->vpor(wx[0], wx[1], wy[0], wy[1]);
     actStream->wind( xStart, xEnd, yStart, yEnd);

@@ -1490,22 +1490,6 @@ namespace lib {
     // axis
     string xOpt="bc", yOpt="bc";
     AdjustAxisOpts(xOpt, yOpt, xStyle, yStyle, xTicks, yTicks, xTickformat, yTickformat, xLog, yLog);
-    /* SA: moved into a common AdjustAxisOpts() function
-    if ((xStyle & 8) == 8) xOpt = "b";
-    if ((yStyle & 8) == 8) yOpt = "b";
-
-    if (xTicks == 1) xOpt += "t"; else xOpt += "st";
-    if (yTicks == 1) yOpt += "tv"; else yOpt += "stv";
-
-    if (xTickformat != "(A1)") xOpt += "n";
-    if (yTickformat != "(A1)") yOpt += "n";
-
-    if( xLog) xOpt += "l";
-    if( yLog) yOpt += "l";
-
-    if ((xStyle & 4) == 4) xOpt = "";
-    if ((yStyle & 4) == 4) yOpt = "";
-    */
 
     // axis titles
     actStream->schr( 0.0, actH/defH * xCharSize);
@@ -1747,12 +1731,24 @@ namespace lib {
   }
     
   void DataCoordLimits(DDouble *sx, DDouble *sy, DFloat *wx, DFloat *wy, 
-    DDouble *xStart, DDouble *xEnd, DDouble *yStart, DDouble *yEnd)
+    DDouble *xStart, DDouble *xEnd, DDouble *yStart, DDouble *yEnd, bool clip_by_default)
   {
     *xStart = (wx[0] - sx[0]) / sx[1];
     *xEnd   = (wx[1] - sx[0]) / sx[1];
     *yStart = (wy[0] - sy[0]) / sy[1];
     *yEnd   = (wy[1] - sy[0]) / sy[1];
+
+    // patch from Joanna (tracker item no. 3029409, see test_clip.pro)
+    if (!clip_by_default) {
+      DFloat wxlen = wx[1] - wx[0];
+      DFloat wylen = wy[1] - wy[0];
+      DFloat xlen = *xEnd - *xStart;
+      DFloat ylen = *yEnd - *yStart;
+      *xStart = *xStart - xlen/wxlen * wx[0];
+      *xEnd = *xEnd + xlen/wxlen * (1 - wx[1]);
+      *yStart = *yStart - ylen/wylen * wy[0];
+      *yEnd = *yEnd + ylen/wylen * (1 - wy[1]);
+    }   
   }
 
   // PLOTS
@@ -1915,7 +1911,7 @@ namespace lib {
     // Determine data coordinate limits (if mapSet is true)
     // These are computed from window and scaling axis system
     // variables because map routines change these directly.
-    DataCoordLimits(sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd);
+    DataCoordLimits(sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, false);
 
     if(e->KeywordSet("DEVICE")) {
       PLFLT xpix, ypix;
@@ -1935,7 +1931,7 @@ namespace lib {
       xLog = false; yLog = false;
     } else {
       actStream->NoSub();
-      actStream->vpor(wx[0], wx[1], wy[0], wy[1]);
+      actStream->vpor(0, 1, 0, 1);
     }
 
     minVal=yStart; maxVal=yEnd;
@@ -1964,8 +1960,12 @@ namespace lib {
 	if( yEnd   <= 0.0) return; else yEnd = log10( yEnd);
       }
 
-    actStream->wind( xStart, xEnd, yStart, yEnd);
-
+    // SA: following a patch from Joanna (3029409) TODO: this is repeated in PLOTS POLYFILL and XYOUTS
+    if ( xEnd - xStart == 0 || yEnd - yStart == 0 || isnan(xStart) || isnan(yStart) ) {
+      actStream->wind( 0, 1, 0, 1 ); 
+    } else {
+      actStream->wind( xStart, xEnd, yStart, yEnd);
+    } 
 
     // pen thickness for plot
     gkw_thick(e, actStream);
@@ -2087,7 +2087,7 @@ actStream->wid( 0);
     // Determine data coordinate limits
     // These are computed from window and scaling axis system
     // variables because map routines change these directly.
-    DataCoordLimits(sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd);
+    DataCoordLimits(sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, false);
 
     if(e->KeywordSet("DEVICE")) {
       PLFLT xpix, ypix;
@@ -2107,7 +2107,7 @@ actStream->wid( 0);
       xLog = false; yLog = false;
     } else {
       actStream->NoSub();
-      actStream->vpor(wx[0], wx[1], wy[0], wy[1]);
+      actStream->vpor(0, 1, 0, 1);
     }
 
     minVal=yStart; maxVal=yEnd;
@@ -2129,19 +2129,12 @@ actStream->wid( 0);
 	if( yEnd   <= 0.0) return; else yEnd = log10( yEnd);
       }
 
-    actStream->wind( xStart, xEnd, yStart, yEnd);
-
-    // ranges are already log10
-//     if( xLog)
-//       {
-// 	if( xStart <= 0.0) xStart = 0.0; else xStart = log10( xStart);
-// 	if( xEnd   <= 0.0) return; else xEnd = log10( xEnd);
-//       }
-//     if( yLog)
-//       {
-// 	if( minVal <= 0.0) minVal = 0.0; else minVal = log10( minVal);
-// 	if( maxVal <= 0.0) return; else maxVal = log10( maxVal);
-//       }
+    // SA: following a patch from Joanna (3029409) TODO: this is repeated in PLOTS POLYFILL and XYOUTS
+    if ( xEnd - xStart == 0 || yEnd - yStart == 0 || isnan(xStart) || isnan(yStart) ) {
+      actStream->wind( 0, 1, 0, 1 ); 
+    } else {
+      actStream->wind( xStart, xEnd, yStart, yEnd);
+    }
 
     PLFLT x,y;
     string out;
@@ -2315,7 +2308,7 @@ actStream->wid( 0);
     // Determine data coordinate limits
     // These are computed from window and scaling axis system
     // variables because map routines change these directly.
-    DataCoordLimits(sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd);
+    DataCoordLimits(sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, false);
 
     if(e->KeywordSet("DEVICE")) {
       PLFLT xpix, ypix;
@@ -2335,8 +2328,10 @@ actStream->wid( 0);
       xLog = false; yLog = false;
     } else {
       actStream->NoSub();
-      actStream->vpor(wx[0], wx[1], wy[0], wy[1]);
+      actStream->vpor(0, 1, 0, 1);
     }
+
+    DDouble minVal = yStart, maxVal = yEnd;
 
     //CLIPPING
     DLong noclip = 1;
@@ -2345,10 +2340,15 @@ actStream->wid( 0);
     {
       static int clippingix = e->KeywordIx( "CLIP"); 
       DDoubleGDL* clippingD = e->IfDefGetKWAs<DDoubleGDL>( clippingix);
-      if (clippingD != NULL) Clipping( clippingD, xStart, xEnd, yStart, yEnd);
+      if (clippingD != NULL) Clipping( clippingD, xStart, xEnd, minVal, maxVal);
     }
 
-    actStream->wind( xStart, xEnd, yStart, yEnd);
+    // SA: following a patch from Joanna (3029409) TODO: this is repeated in PLOTS POLYFILL and XYOUTS
+    if ( xEnd - xStart == 0 || yEnd - yStart == 0 || isnan(xStart) || isnan(yStart) ) {
+      actStream->wind( 0, 1, 0, 1 ); 
+    } else {
+      actStream->wind( xStart, xEnd, yStart, yEnd);
+    }
 
     // LINE_FILL, SPACING, LINESTYLE, ORIENTATION, THICK (thanks to JW)
     static int line_fillIx = e->KeywordIx("LINE_FILL");
@@ -3324,7 +3324,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
       } 
       else 
       {
-        DataCoordLimits(sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd);
+        DataCoordLimits(sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, true);
       }
       get_axis_margin("X",xMarginL, xMarginR);
       get_axis_margin("Y",yMarginB, yMarginF);
@@ -3686,10 +3686,6 @@ clevel[nlevel-1]=zEnd; //make this explicit
       string xOpt = "bcnst";
       string yOpt = "bcnstv";
 
-      /* SA: moved into a common AdjustAxisOpts()
-      if( xLog) xOpt += "l";
-      if( yLog) yOpt += "l";
-      */
       DString xTickformat, yTickformat;
       e->AssureStringScalarKWIfPresent( "XTICKFORMAT", xTickformat);
       e->AssureStringScalarKWIfPresent( "YTICKFORMAT", yTickformat);
@@ -3897,13 +3893,7 @@ clevel[nlevel-1]=zEnd; //make this explicit
     bool xLog, yLog;
     get_axis_type("X", xLog);
     get_axis_type("Y", yLog);
-    /*
-    //if log, x/y/Start/End are already logarithmic. 
-    if( xLog && xStart <= 0.0)
-      Warning( "AXIS: Infinite x plot range.");
-    if( yLog && minVal <= 0.0)
-      Warning( "AXIS: Infinite y plot range.");
-    */
+
     // test for x/yVal
     if (xLog) { if (xVal <= 0.) xVal=xStart; else xVal=log10(xVal);}
     if (yLog) { if (yVal <= 0.) yVal=yStart; else yVal=log10(yVal);}
