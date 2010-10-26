@@ -12,7 +12,7 @@ return, params[2]*x*params[1]*x+x+params[0]
 ;
 end
 ;
-pro  OTHER_TEST_MPFIT, kgauss1=kgauss1, kpoly1=kpoly1, $
+pro OTHER_TEST_MPFIT, kgauss1=kgauss1, kpoly1=kpoly1, $
                        nbiter=nbiter, display=display
 ;
 npts = 200
@@ -21,7 +21,7 @@ x  = dindgen(npts) * 0.1 - 10.                  ; Independent variable
 
 if keyword_set(kgauss1) then begin
     ;; GAUSS1 is provided by MPfit lib.
-    yi = gauss1(x, [2.2D, 1.4, 3000.]) ; "Ideal" Y variable
+    yi = GAUSS1(x, [2.2D, 1.4, 3000.]) ; "Ideal" Y variable
     name='GAUSS1'
 endif
 if keyword_set(kpoly1) then begin
@@ -54,12 +54,12 @@ function MYGAUSS, X, P
   return, P[0] + GAUSS1(X, P[1:3])
 end
 ;
-pro TEST_MPFIT_ON_GAUSS1D, path=path, error=error, $
-                           test=test, verbose=verbose, help=help
+pro TEST_MPFIT_ON_GAUSS1D, path=path, error=error, verbose=verbose, $
+                           test=test, debug=debug, help=help
 ;
 if KEYWORD_SET(help) then begin
-   print, 'pro TEST_MPFIT_ON_GAUSS1D, path=path, error=error, $'
-   print, '                           test=test, verbose=verbose, help=help'
+   print, 'pro TEST_MPFIT_ON_GAUSS1D, path=path, error=error, verbose=verbose, $'
+   print, '                           test=test, debug=debug, help=help'
    return
 endif
 ;
@@ -82,6 +82,8 @@ start = [950.D, 2.5, 1., 1000.]
 expr = 'P[0] + GAUSS1(X, P[1:3])'
 ;
 expected_result=[997.61864, 2.1550703, 1.4488421, 3040.2411]
+;
+if KEYWORD_SET(debug) then STOP
 ;
 result1 = MPFITEXPR(expr,     t, r, rerr, start, /quiet)
 result2 = MPFITFUN('MYGAUSS', t, r, rerr, start, /quiet)
