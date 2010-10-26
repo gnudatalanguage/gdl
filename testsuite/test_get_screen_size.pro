@@ -9,16 +9,30 @@
 ;
 pro DEMO_GET_SCREEN_SIZE
 ;
+sep = '=============================='
+;
+print,  sep
 print, 'basic test (call without Display name)'
 taille=GET_SCREEN_SIZE(resolution=resolution)
 print, 'Screen Size (in pixels) :', taille
 print, 'Pixel Size (in mm) :', resolution
 ;
+print,  sep
+SPAWN, 'echo $DISPLAY',  display
+print, 'On current Display, using "'+display+'" as name'
+taille=GET_SCREEN_SIZE(display, resolution=resolution)
+print, 'Screen Size (in pixels) :', taille
+print, 'Pixel Size (in mm) :', resolution
+;
+print,  sep
 print, 'On current Display, using ":0" as name'
+print, '(may give <<Xlib: connection to ":0.0" refused by server>> on remote)'
 display=':0'
 taille=GET_SCREEN_SIZE(display, resolution=resolution)
 print, 'Screen Size (in pixels) :', taille
 print, 'Pixel Size (in mm) :', resolution
+;;
+print,  sep
 ;
 end
 ;
@@ -75,12 +89,13 @@ end
 ; ---------------------------------------------------
 ;
 pro TEST_GET_SCREEN_SIZE
-  ;
-  if getenv('DISPLAY') eq '' then begin
-    message, 'apparently no X connection is available (DISPLAY env. var. not set)', /conti
-    exit, status=77
-  endif 
-  ;
-  TESTING_GET_SCREEN_SIZE, /exit_on_error
-  ;
+;;
+if GETENV('DISPLAY') eq '' then begin
+    MESSAGE, /continue, $
+      'apparently no X connection is available (DISPLAY env. var. not set)'
+    EXIT, status=77
+endif 
+;;
+TESTING_GET_SCREEN_SIZE, /exit_on_error
+;;
 end

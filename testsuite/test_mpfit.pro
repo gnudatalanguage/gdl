@@ -3,7 +3,8 @@
 ; Simple way to test if MPFIT is working ...
 ; Examples derived from Craig Markwardt WEB site
 ;
-; AC 01/10/2010: 
+; AC 26/10/2010: better managment of error when CMSV lib. or MPFIT
+; lib. are not in the path ...
 ;
 function PARABOLE, x, params
 ;
@@ -118,6 +119,24 @@ pro TEST_MPFIT, help=help
 if KEYWORD_SET(help) then begin
    print, 'pro TEST_MPFIT, help=help'
    return
+endif
+;
+if (EXECUTE('res=CMSVLIB(/QUERY)') EQ 0) then begin
+    MESSAGE, /CONTINUE, "Missing CMSVlib in your GDL_PATH or IDL_PATH"
+    MESSAGE, /CONTINUE, "please read HELP or RESTORE header for help."
+    EXIT, status=77
+endif
+;
+if (EXECUTE('res=GAUSS1([1], [1,1,1])') EQ 0) then begin
+    MESSAGE, /CONTINUE, "Missing GAUSS1 in your GDL_PATH or IDL_PATH"
+    MESSAGE, /CONTINUE, "please add MPfit lib (http://www.physics.wisc.edu/~craigm/idl/fitting.html)"
+    EXIT, status=77
+endif
+;
+if (EXECUTE('res=MPFIT()') EQ 0) then begin
+    MESSAGE, /CONTINUE, "Missing MPFIT in your GDL_PATH or IDL_PATH"
+    MESSAGE, /CONTINUE, "please add MPfit lib (http://www.physics.wisc.edu/~craigm/idl/fitting.html)"
+    EXIT, status=77
 endif
 ;
 error=0
