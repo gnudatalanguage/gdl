@@ -31,7 +31,7 @@ dnl == some basics =========================================
 dnl ======================================================== 
 
 AM_CONFIG_HEADER(config.h)
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE(color-tests)
 AC_LANG(C++)
 AC_PROG_CXX
 AC_PROG_RANLIB

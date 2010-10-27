@@ -1,0 +1,132 @@
+/***************************************************************************
+                          call_external -  CALL_EXTERNAL function for GDL
+                             -------------------
+    begin                : October 16, 2010
+    copyright            : (C) 2010 by Christoph Fuchs
+    email                : j.c.fuchs@gmx.de
+ ***************************************************************************/
+
+/***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
+
+ CALL_EXTERNAL: call a routine from a sharable object library
+
+ This is the Linux/Unix implementation of call_external for GDL,
+ and should compile on systems which support dlopen/dlsym/dlclose.
+ It should work as close as possible as in IDL (exceptions see below).
+
+ It has been tested on
+    Linux (SuSe 11, both 32 and 64 bit) 
+    Solaris 5.10 (x86 32bit)
+
+
+INSTALLATION
+============
+
+1. Copy new.cpp and new.hpp to the src directory of your gdl-0.9
+   distribution
+
+2. Edit libinit.cpp and enter the following lines near the end
+   of the file (before the //sort ) 
+
+  // call_external
+  const string call_externalKey[] = {"VALUE", "ALL_VALUE", "RETURN_TYPE",
+               "B_VALUE", "I_VALUE", "L_VALUE", "F_VALUE", "D_VALUE",
+               "UI_VALUE", "UL_VALUE", "L64_VALUE", "UL64_VALUE", "S_VALUE",
+               "UNLOAD", "ALL_GDL", "STRUCT_ALIGN_BYTES", KLISTEND };
+  new DLibFun(lib::call_external, string("CALL_EXTERNAL"), -1, call_externalKey);
+
+3. make && make install
+
+TEST
+====
+
+1. Generate a shared object file from test_ce.c (see comments in this file)
+2. Start gdl and enter the command
+     test_ce
+
+SYNTAX
+=======
+
+    ret = CALL_EXTERNAL(image, entry [, p1, ... pn] [, keywords] )
+
+Arguments:
+    image	  (string)	Name of the sharable object
+    entry	  (string)	Name of the routine in image
+    p1, ..., pn   (any)         Any number of parameters passed
+                                to the routine
+
+Keywords: (*)=extension in GDL, not in IDL
+
+    RETURN_TYPE=n Indicates the type of the return value of the called
+                  routine, this value will be returned by CALL_EXTERNAL
+		  to GDL.
+		  n is an integer with the same meaning as e.g. the type
+		  field of the SIZE function (see basegdl.hpp for a list
+		  of types). Possible values for n are those for numeric
+		  types except COMPLEX and DCOMPLEX.
+		  The default value is n=3 (GDL type LONG, which corresponds
+		  to C type int).
+		  Alternatively one of the following keywords may be used:
+    /B_VALUE	  equivalent to RETURN_TYPE=1  (BYTE)
+    /I_VALUE	  equivalent to RETURN_TYPE=2  (INTEGER)
+    /L_VALUE (*)  equivalent to RETURN_TYPE=3  (LONG)    (default)
+    /F_VALUE	  equivalent to RETURN_TYPE=4  (FLOAT)
+    /D_VALUE	  equivalent to RETURN_TYPE=5  (DOUBLE)
+    /UI_VALUE	  equivalent to RETURN_TYPE=12 (UINT)
+    /UL_VALUE	  equivalent to RETURN_TYPE=13 (ULONG)
+    /L64_VALUE	  equivalent to RETURN_TYPE=14 (LONG64)
+    /UL64_VALUE	  equivalent to RETURN_TYPE=15 (ULONG64)
+    /S_VALUE	  equivalent to RETURN_TYPE=6  (STRING, the called function
+                                                 should return char*)
+
+    /ALL_VALUE    The default is to pass all parameters by reference.
+                  If this keyword is set, all parameters are passed by value.
+    /ALL_GDL (*)  Pass all parameters as BaseGDL*  
+		  Alternatively these methods can be requested for each parameter
+		  individually with the following keyword:
+    VALUE=array   where array is an integer array with as many elements as parameters.
+		  If the i_th element of array is 0, the i_th parameter will be 
+		  passed by reference to an equivalent C variable, strings are
+		  passed by reference to a C structure
+		  struct {
+		    int   len;
+		    short unused;
+		    char* string;
+		  }
+		  and GDL structures are passed by reference to equivalent
+		  C structures. Changes made to any variables are reflected
+		  back to GDL.
+		  If the i_th element of array is >0, the i_th parameter will be
+		  passed by value, strings are passed as char*.
+		  Only scalar parameters which are small enough to fit into 
+		  a pointer (void*) can be passed by value this way.
+		  Changes made to these parameters are not reflected back to GDL.
+              (*) If the i_th element of array is <0, then the i_th parameter
+		  will be passed directly as BaseGDL*. Shared objects which use
+		  this feature can be used only with GDL, but not with IDL.
+
+    /UNLOAD	  Unload the shared object after calling the routine
+
+    STRUCT_ALIGN_BYTES=n (*)
+                  Assume that structures in the shared object are aligned
+		  at boundaries of n bytes, where n should be a power of 2.
+		  If n=0 or if this keyword is not given, the default machine 
+		  dependent alignment is assumed (normally 4/8 bytes on 32/64
+		  bit systems). 
+		  It should only be necessary to use this keyword if the 
+		  called shared object has been compiled with a different 
+		  alignment, e.g. with #pragma pack(n)
+
+ Keywords from IDL which are not supported in GDL:
+    CDECL	  (relevant for MS Windows only)
+    WRITE_WRAPPER
+    all AUTO_GLUE keywords (you have to write and compile your routines 
+                  yourself :-)
+

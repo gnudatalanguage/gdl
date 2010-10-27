@@ -3,6 +3,7 @@
                              -------------------
     begin                : 2004
     copyright            : (C) 2004 by Joel Gales
+                         : (C) 2010 by Christoph Fuchs (CALL_EXTERNAL)
     email                : jomoga@users.sourceforge.net
  ***************************************************************************/
 
@@ -226,5 +227,457 @@ namespace lib {
     static int testIx = e->KeywordIx( "TEST");
     e->SetKW( testIx, res);
   }
+
+  // CALL_EXTERNAL by Christoph Fuchs
+  typedef struct {
+    char      c;
+    long long l;
+  } testAlign;
+  SizeT defaultAlign = (SizeT)( sizeof(testAlign)-sizeof(long long) );
+
+  BaseGDL* call_external( EnvT* e)
+  {
+    DString image, entry;
+    SizeT myAlign      = defaultAlign;
+    DType myReturnType = UNDEF;
+
+    SizeT nParam=e->NParam(2);
+
+    // Interpret keywords
+
+    // Return-Type
+
+    static int kwIxReturnType = e->KeywordIx("RETURN_TYPE");
+    DIntGDL* KWReturnType     = e->IfDefGetKWAs<DIntGDL>(kwIxReturnType);
+    if (KWReturnType != NULL && (*KWReturnType)[0] != 0) {
+	myReturnType = (DType) (*KWReturnType)[0];
+    }
+
+    string TypeKW[16] = {
+	"", "B_VALUE", "I_VALUE", "L_VALUE", "F_VALUE", "D_VALUE",
+	"", "S_VALUE", "", "", "", "",
+	"UI_VALUE", "UL_VALUE", "L64_VALUE", "UL64_VALUE"
+    };
+
+    for (int i=0; i<16; i++) {
+	if (strcmp(TypeKW[i].c_str(), "") == 0) {continue;}
+	int kwIxType = e->KeywordIx(TypeKW[i]);
+	if (e->KeywordSet(kwIxType)) {
+	    if (myReturnType != UNDEF) {
+		e->Throw("Multiple requests of return type not allowed: "
+			 + TypeKW[i] );
+	    }
+	    myReturnType = (DType)i;
+	}
+    }
+
+    if (myReturnType == UNDEF) {
+	myReturnType = LONG;
+    }
+
+    // STRUCT_ALIGN_BYTES
+
+    static int kwIxStructAlign = e->KeywordIx("STRUCT_ALIGN_BYTES");
+    DIntGDL* KWStructAlign     = e->IfDefGetKWAs<DIntGDL>(kwIxStructAlign);
+    if (KWStructAlign != NULL && (*KWStructAlign)[0] != 0) {
+	myAlign = (SizeT) (*KWStructAlign)[0];
+    }
+
+    // UNLOAD
+
+    static int kwIxUnload  = e->KeywordIx("UNLOAD");
+    bool flagUnload = e->KeywordSet(kwIxUnload);
+
+    // parameters by value/reference/GDL reference
+
+    static int kwIxAllValue  = e->KeywordIx("ALL_VALUE");
+    bool flagAllValue = e->KeywordSet(kwIxAllValue);
+
+    static int kwIxAllGdl  = e->KeywordIx("ALL_GDL");
+    bool flagAllGdl = e->KeywordSet(kwIxAllGdl);
+    if (flagAllValue && flagAllGdl) {
+	e->Throw("Conflicting keywords ALL_VALUE and ALL_GDL");
+    }
+
+    short* byValue = (short*) malloc( (nParam-2) * sizeof(short) );
+    if (byValue == NULL) {
+	e->Throw("Internal error allocating memory for byValue");
+    }
+
+    for (SizeT i=0; i<nParam-2;i++) {
+	byValue[i] = flagAllValue ? 1 : flagAllGdl ? -1 : 0;
+    }
+
+    static int kwIxValue = e->KeywordIx("VALUE");
+    DIntGDL* KWValue     = e->IfDefGetKWAs<DIntGDL>(kwIxValue);
+    if (KWValue != NULL) {
+	if (flagAllValue || flagAllGdl) {
+	    e->Throw("Only one of VALUE,  ALL_VALUE, or ALL_GDL allowed");
+	}
+	if (KWValue->N_Elements() < nParam - 2) {
+	    e->Throw("VALUE must have an entry for every parameter");
+	}
+	for (SizeT i=0; i<nParam-2;i++) {
+	    byValue[i] = (short)(*KWValue)[i];
+	}
+    }
+
+    e->AssureStringScalarPar( (SizeT)0, image);
+    e->AssureStringScalarPar( (SizeT)1, entry);
+
+    int argc      = nParam-2;
+    void **argv   = (void**)malloc((nParam-2) * sizeof(void*) );
+    if (argv == NULL) {
+	e->Throw("Internal error allocating memory for argv");
+    }
+
+    // Fill argv with the parameters
+
+    for(SizeT i =2; i < nParam; i++){
+	BaseGDL* par = e->GetParDefined(i);
+	DType    pType  = par->Type();
+
+	if (byValue[i-2] > 0 ) {	// By Value
+	    if (! par->StrictScalar() ) {
+		e->Throw("Must be a scalar here: "
+			 + e->GetParString(i)
+		);
+	    }
+
+	    if (IsNumericType[pType]) {
+		if (par->Sizeof() > sizeof(void*)) {
+		    e->Throw("Parameter is larger than pointer: "
+			     + e->GetParString(i)
+		    );
+		}
+		memcpy(argv+i-2, (void*) par->DataAddr(), par->Sizeof());
+	    }
+	    else if (pType == STRING) {
+		argv[i-2] = (void*) (*(DStringGDL*)(par))[0].c_str();
+	    }
+	    else {
+		e->Throw("Unsupported type for call by value: "
+			 + e->GetParString(i)
+		);
+	    }
+	}
+	else if (byValue[i-2] < 0) {		// by GDL pointer
+	    argv[i-2] = (void*) par;
+	}
+	else {					// By reference (default)
+	    if (IsNumericType[pType] || pType == PTR || pType == OBJECT ) {
+		argv[i-2] = (void*) par->DataAddr();
+	    }
+	    else if (pType == STRING) {
+		argv[i-2] = (void*) ce_StringGDLtoIDL(e, par);
+	    }
+	    else if (pType == STRUCT) {
+		argv[i-2] = ce_StructGDLtoIDL(e, par, NULL, myAlign);
+	    }
+	    else {
+		e->Throw("Objects and Pointers not yet supported");
+	    }
+	}
+    }
+
+    // Load shared object, call function
+
+    void* handle =  dlopen(image.c_str(),  RTLD_NOW || RTLD_GLOBAL);
+    if (handle == NULL) {
+	cout << dlerror() << endl;
+	e->Throw("Error opening shared object: " + image);
+    }
+
+    void* func = dlsym(handle,entry.c_str());
+    if (func == NULL) {
+	e->Throw("Entry not found: " + entry);
+    }
+
+    union {
+	DByte		d_byte;
+	DInt		d_int;
+	DLong		d_long;
+	DFloat		d_float;
+	DDouble		d_double;
+	DUInt		d_uint;
+	DULong		d_ulong;
+	DLong64		d_long64;
+	DULong64	d_ulong64;
+	char*		d_string;
+    } ret;
+
+    switch (myReturnType) {
+	case BYTE:    ret.d_byte    = ((DByte(*)   (int, void**))func)(argc, argv);
+		      break;
+	case INT:     ret.d_int     = ((DInt(*)    (int, void**))func)(argc, argv);
+		      break;
+	case LONG:    ret.d_long    = ((DLong(*)   (int, void**))func)(argc, argv);
+		      break;
+	case FLOAT:   ret.d_float   = ((DFloat(*)  (int, void**))func)(argc, argv);
+		      break;
+	case DOUBLE:  ret.d_double  = ((DDouble(*) (int, void**))func)(argc, argv);
+		      break;
+	case UINT:    ret.d_uint    = ((DUInt(*)   (int, void**))func)(argc, argv);
+		      break;
+	case ULONG:   ret.d_ulong   = ((DULong(*)  (int, void**))func)(argc, argv);
+		      break;
+	case LONG64:  ret.d_long64  = ((DLong64(*) (int, void**))func)(argc, argv);
+		      break;
+	case ULONG64: ret.d_ulong64 = ((DULong64(*)(int, void**))func)(argc, argv);
+		      break;
+	case STRING:  ret.d_string  = ((char*(*)   (int, void**))func)(argc, argv);
+		      break;
+	default:      e->Throw("Return type not supported: " + myReturnType );
+		      break;
+    }
+
+    if (flagUnload) {
+	while (! dlclose(handle) ) {}
+    }
+
+    // Copy strings and structures back to GDL, free memory
+
+    for(SizeT i = nParam-1; i >= 2; i--){
+	if (byValue[i-2] != 0) {continue;}
+	BaseGDL* par = e->GetParDefined(i);
+	SizeT pType  = par->Type();
+	if (pType == STRING) {
+	    ce_StringIDLtoGDL((EXTERN_STRING*) argv[i-2], par, 1);
+	}
+	else if (pType == STRUCT) {
+	    ce_StructIDLtoGDL( e, argv[i-2], par, 1, myAlign);
+	}
+    }
+
+    free(argv);
+
+    // Return the return value
+
+    switch (myReturnType) {
+        case BYTE:      return new DByteGDL(ret.d_byte);
+			break;
+        case INT:       return new DIntGDL(ret.d_int);
+			break;
+        case LONG:      return new DLongGDL(ret.d_long);
+			break;
+        case FLOAT:     return new DFloatGDL(ret.d_float);
+			break;
+        case DOUBLE:    return new DDoubleGDL(ret.d_double);
+			break;
+        case UINT:      return new DUIntGDL(ret.d_uint);
+			break;
+        case ULONG:     return new DULongGDL(ret.d_ulong);
+			break;
+        case LONG64:    return new DLong64GDL(ret.d_long64);
+			break;
+        case ULONG64:   return new DULong64GDL(ret.d_ulong64);
+			break;
+        case STRING:    return new DStringGDL(ret.d_string);
+			break;
+    }
+	    
+  }
+
+
+    // ce_StringGDLtoIDL: Convert a GDL string (array) to the IDL string structure
+    //                   used for call_external
+    //                   Allocates memory, which should be freed later with
+    //                   ce_StringIDLtoGDL
+
+    EXTERN_STRING* ce_StringGDLtoIDL(EnvT* e, const BaseGDL* par) 
+    {
+	SizeT NEl = par->N_Elements();
+	EXTERN_STRING* extstring = (EXTERN_STRING*) malloc(NEl * sizeof(EXTERN_STRING));
+	if (extstring == NULL) {
+	    e->Throw("Internal error allocating memory for extstring");
+	}
+	for (SizeT iEl=0; iEl < NEl; iEl++) {
+	    // DString     parstring = (*static_cast<DStringGDL*>(par))[iEl];
+	    DString   parstring = (*(DStringGDL*)(par))[iEl];
+	    extstring[iEl].slen = parstring.length();
+	    extstring[iEl].s    = (char*) malloc( (extstring[iEl].slen+1) * sizeof(char) );
+	    if (extstring[iEl].s == NULL) {
+		e->Throw("Internal error allocating memory for extstring[iEl].s");
+	    }
+	    strcpy(extstring[iEl].s, parstring.c_str());
+	}
+	return extstring;
+    }
+
+    // ce_StringIDLtoGDL: copy any changes made in the IDL string stucture
+    //                   back to an GDL string 
+    //                   possibly free any memory allocated by ce_StringGDLtoIDL
+
+    void ce_StringIDLtoGDL( EXTERN_STRING* extstring, BaseGDL* par, int freeMemory)
+    {
+	SizeT NEl = par->N_Elements();
+	for (SizeT iEl=0; iEl < NEl; iEl++) {
+	    DString parstring = (*static_cast<DStringGDL*>(par))[iEl];
+	    if (strcmp( extstring[iEl].s, parstring.c_str()) ) {
+		((*static_cast<DStringGDL*>(par))[iEl]).assign(extstring[iEl].s);
+	    }
+	    if (freeMemory) {free(extstring[iEl].s); }
+	}
+	if (freeMemory) {free(extstring); }
+    }
+    
+
+    // ce_StructGDLtoIDL: Convert a GDL structure (array) to the IDL (C) structure
+    //                   used for call_external
+    //                   Allocates memory, which should be freed later with
+    //                   ce_StructIDLtoGDL
+
+    void* ce_StructGDLtoIDL( EnvT* e, const BaseGDL* par, SizeT* length, SizeT myAlign) 
+    {
+	SizeT totalSize = ce_LengthOfIDLStruct( e, par, myAlign);
+	if (length != NULL) {*length = totalSize;}
+
+	SizeT nEl       = par->N_Elements();
+	void* IDLStruct = malloc(nEl * totalSize);
+	if (IDLStruct == NULL) {
+	    e->Throw("Internal error allocating memory for IDLStruct");
+	}
+
+	DStructGDL* s = (DStructGDL*) par;
+	SizeT nTags   = s->Desc()->NTags();
+
+	for (SizeT iEl=0; iEl < nEl; iEl++) {
+	    char* p = (char*) IDLStruct + iEl*totalSize;
+	    for (SizeT iTag=0; iTag < nTags; iTag++) {
+		BaseGDL* member = s->GetTag(iTag, iEl);
+		DType    pType  = member->Type();
+		SizeT length;
+		SizeT sizeOf;
+		void* source;
+		int   doFree = 0;
+		if (IsNumericType[pType] || pType == PTR || pType == OBJECT) {
+		    source = (void*) member->DataAddr();
+		    length = member->NBytes();
+		    sizeOf = member->Sizeof();
+		}
+		else if (pType == STRING) {
+		    source = (void*) ce_StringGDLtoIDL(e, member);
+		    length = member->N_Elements() * sizeof(EXTERN_STRING);
+		    sizeOf = 8;
+		    doFree = 1;
+		}
+		else if (pType == STRUCT) {
+		    source = ce_StructGDLtoIDL( e, member, &length, myAlign );
+		    length *= member->N_Elements();
+		    sizeOf = 8;
+		}
+		else {
+		    e->Throw("Unsupported type in structure: " + pType );
+		}
+		SizeT align = sizeOf < myAlign ? sizeOf : myAlign;
+		if ((SizeT)p % align) {
+		    SizeT space = align - (SizeT)p % align;
+		    p += space;
+		}
+		memcpy(p, source, length);
+		p+=length;
+		if (doFree) {free(source);}
+		    
+	    }
+	}
+
+	return IDLStruct;
+    }
+
+    // ce_StructIDLtoGDL: copy any changes made in the IDL stucture
+    //                   back to an GDL structure
+    //                   possibly free any memory allocated bi ce_StructGDLtoIDL
+
+    void ce_StructIDLtoGDL( EnvT* e,  void* IDLStruct, BaseGDL* par, int freeMemory, SizeT myAlign)
+    {
+	SizeT nEl     = par->N_Elements();
+	DStructGDL* s = (DStructGDL*) par;
+	SizeT nTags   = s->Desc()->NTags();
+
+	char* p = (char*) IDLStruct;
+	for (SizeT iEl=0; iEl < nEl; iEl++) {
+	    for (SizeT iTag=0; iTag < nTags; iTag++) {
+		BaseGDL* member = s->GetTag(iTag, iEl);
+		DType    pType  = member->Type();
+		SizeT length;
+		SizeT sizeOf;
+		void* dest;
+		if (IsNumericType[pType]) {
+		    sizeOf = member->Sizeof();
+		}
+		else {
+		    sizeOf = 8;
+		}
+		SizeT align = sizeOf < myAlign ? sizeOf : myAlign;
+		if ((SizeT)p % align) {
+		    SizeT space = align - (SizeT)p % align;
+		    p += space;
+		}
+
+		if (IsNumericType[pType] || pType == PTR || pType == OBJECT) {
+		    length = member->NBytes();
+		    dest   = (void*) member->DataAddr();
+		    memcpy(dest, p, length);
+		}
+		else if (pType == STRING) {
+		    ce_StringIDLtoGDL((EXTERN_STRING*) p, member, 0);
+		    length = member->N_Elements() * sizeof(EXTERN_STRING);
+		}
+		else if (pType == STRUCT) {
+		    ce_StructIDLtoGDL( e, (void*)p, member, 0, myAlign );
+		    length = member->N_Elements() * ce_LengthOfIDLStruct(e, member, myAlign);
+		}
+		else {
+		    e->Throw("Unsupported type");
+		}
+
+		p += length;
+	    }
+	    if ((SizeT)p%myAlign) {
+		p+= (myAlign - (SizeT)p%myAlign);
+	    }
+	}
+
+	if (freeMemory) {
+	    free(IDLStruct);
+	}
+    }
+
+    SizeT ce_LengthOfIDLStruct( EnvT* e, const BaseGDL* par, SizeT myAlign) 
+    {
+	DStructGDL* s = (DStructGDL*) par;
+	SizeT nTags   = s->Desc()->NTags();
+
+	SizeT totalSize = 0;
+	SizeT sizeOf;
+	for (SizeT iTag=0; iTag < nTags; iTag++) {
+	    BaseGDL* member = s->GetTag(iTag);
+	    DType    pType  = member->Type();
+	    if (IsNumericType[pType] || pType == PTR || pType == OBJECT) {
+		totalSize += member->NBytes();
+		sizeOf    =  member->Sizeof();
+	    }
+	    else if (pType == STRING) {
+		totalSize += member->N_Elements() * sizeof(EXTERN_STRING);
+		sizeOf    =  8;
+	    }
+	    else if (pType == STRUCT) {
+		totalSize += member->N_Elements() * ce_LengthOfIDLStruct( e, member, myAlign);
+		sizeOf    =  8;
+	    }
+	    else {
+		e->Throw("Unsupported type");
+	    }
+
+	    SizeT align = sizeOf < myAlign ? sizeOf : myAlign;
+	    if (totalSize%align) {
+		totalSize+= (align - totalSize%align);
+	    }
+	}
+	if (totalSize%myAlign) {
+	    totalSize+= (myAlign - totalSize%myAlign);
+	}
+	return totalSize;
+    }
 
 } // namespace

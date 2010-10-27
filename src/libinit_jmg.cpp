@@ -295,6 +295,13 @@ void LibInit_jmg()
 	      widget_controlKey);
 #endif
 
+  // call_external (by Christoph Fuchs)
+  const string call_externalKey[] = {"VALUE", "ALL_VALUE", "RETURN_TYPE",
+               "B_VALUE", "I_VALUE", "L_VALUE", "F_VALUE", "D_VALUE",
+               "UI_VALUE", "UL_VALUE", "L64_VALUE", "UL64_VALUE", "S_VALUE",
+               "UNLOAD", "ALL_GDL", "STRUCT_ALIGN_BYTES", KLISTEND };
+  new DLibFun(lib::call_external, string("CALL_EXTERNAL"), -1, call_externalKey);
+
 }
 
 

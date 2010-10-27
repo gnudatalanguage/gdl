@@ -3,6 +3,7 @@
                              -------------------
     begin                : 2004
     copyright            : (C) 2004 by Joel Gales
+                         : (C) 2010 by Christoph Fuchs (CALL_EXTERNAL)
     email                : jomoga@users.sourceforge.net
  ***************************************************************************/
 
@@ -28,6 +29,21 @@ namespace lib {
   void wait( EnvT* e);
 
   void kwtest( EnvT* e);
+
+
+  // CALL_EXTERNAL by Christoph Fuchs
+  typedef struct {
+    int   slen;
+    short stype;
+    char  *s;
+  } EXTERN_STRING;
+
+  BaseGDL* call_external( EnvT* e);
+  EXTERN_STRING* ce_StringGDLtoIDL( EnvT* e, const BaseGDL* par);
+  void ce_StringIDLtoGDL( EXTERN_STRING* extstring, BaseGDL* par, int freeMemory);
+  void* ce_StructGDLtoIDL( EnvT* e, const BaseGDL* par, SizeT* length, SizeT myAlign);
+  void ce_StructIDLtoGDL( EnvT* e,  void* IDLStruct, BaseGDL* par, int freeMemory, SizeT myAlign);
+  SizeT ce_LengthOfIDLStruct( EnvT* e, const BaseGDL* par, SizeT myAlign);
 
 } // namespace
 
