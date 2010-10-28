@@ -109,7 +109,7 @@ int testce_long(int argc, void* argv[]) {
 	|| *(int*)argv[0] != 1
 	|| *((int*)argv[1]+0) != 2
 	|| *((int*)argv[1]+1) != 3
-	|| (int)argv[2] != 4
+	|| *(int*)argv[2] != 4
     ) {
 
 	printf("Error:\n");
@@ -119,7 +119,7 @@ int testce_long(int argc, void* argv[]) {
 	printf("                Expected: %d\n\n", 1);
 	printf("Second arg:          Got: %d %d\n", *((int*)argv[1]+0), *((int*)argv[1]+1));
 	printf("                Expected: %d %d\n\n", 2, 3);
-	printf("Third arg:           Got: %d\n", (int)argv[2]);
+	printf("Third arg:           Got: %d\n", *(int*)argv[2]);
 	printf("                Expected: %d\n\n", 4);
 
     }
@@ -246,7 +246,7 @@ unsigned int testce_ulong(int argc, void* argv[]) {
 	|| *(unsigned int*)argv[0] != 1
 	|| *((unsigned int*)argv[1]+0) != 2
 	|| *((unsigned int*)argv[1]+1) != 3
-	|| (unsigned int)argv[2] != 4
+	|| *(unsigned int*)argv[2] != 4
     ) {
 
 	printf("Error:\n");
@@ -256,7 +256,7 @@ unsigned int testce_ulong(int argc, void* argv[]) {
 	printf("                Expected: %d\n\n", 1);
 	printf("Second arg:          Got: %d %d\n", *((unsigned int*)argv[1]+0), *((unsigned int*)argv[1]+1));
 	printf("                Expected: %d %d\n\n", 2, 3);
-	printf("Third arg:           Got: %d\n", (unsigned int)argv[2]);
+	printf("Third arg:           Got: %d\n", *(unsigned int*)argv[2]);
 	printf("                Expected: %d\n\n", 4);
 
     }
