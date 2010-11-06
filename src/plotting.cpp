@@ -1908,11 +1908,6 @@ namespace lib {
     GetSFromPlotStructs(&sx, &sy);
     GetWFromPlotStructs(&wx, &wy);
 
-    // Determine data coordinate limits (if mapSet is true)
-    // These are computed from window and scaling axis system
-    // variables because map routines change these directly.
-    DataCoordLimits(sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, false);
-
     if(e->KeywordSet("DEVICE")) {
       PLFLT xpix, ypix;
       PLINT xleng, yleng, xoff, yoff;
@@ -1931,8 +1926,14 @@ namespace lib {
       xLog = false; yLog = false;
     } else {
       actStream->NoSub();
-      actStream->vpor(0, 1, 0, 1);
+      if (xLog || yLog) actStream->vpor(wx[0], wx[1], wy[0], wy[1]);
+      else actStream->vpor(0, 1, 0, 1); // (to be merged with the condition on DataCoordLimits...)
     }
+
+    // Determine data coordinate limits (if mapSet is true)
+    // These are computed from window and scaling axis system
+    // variables because map routines change these directly.
+    DataCoordLimits(sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, xLog || yLog);
 
     minVal=yStart; maxVal=yEnd;
 
@@ -2084,11 +2085,6 @@ actStream->wid( 0);
     GetSFromPlotStructs(&sx, &sy);
     GetWFromPlotStructs(&wx, &wy);
 
-    // Determine data coordinate limits
-    // These are computed from window and scaling axis system
-    // variables because map routines change these directly.
-    DataCoordLimits(sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, false);
-
     if(e->KeywordSet("DEVICE")) {
       PLFLT xpix, ypix;
       PLINT xleng, yleng, xoff, yoff;
@@ -2107,8 +2103,14 @@ actStream->wid( 0);
       xLog = false; yLog = false;
     } else {
       actStream->NoSub();
-      actStream->vpor(0, 1, 0, 1);
+      if (xLog || yLog) actStream->vpor(wx[0], wx[1], wy[0], wy[1]);
+      else actStream->vpor(0, 1, 0, 1); // (to be merged with the condition on DataCoordLimits...)
     }
+
+    // Determine data coordinate limits
+    // These are computed from window and scaling axis system
+    // variables because map routines change these directly.
+    DataCoordLimits(sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, (xLog || yLog));
 
     minVal=yStart; maxVal=yEnd;
 
@@ -2305,11 +2307,6 @@ actStream->wid( 0);
     GetSFromPlotStructs(&sx, &sy);
     GetWFromPlotStructs(&wx, &wy);
 
-    // Determine data coordinate limits
-    // These are computed from window and scaling axis system
-    // variables because map routines change these directly.
-    DataCoordLimits(sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, false);
-
     if(e->KeywordSet("DEVICE")) {
       PLFLT xpix, ypix;
       PLINT xleng, yleng, xoff, yoff;
@@ -2328,8 +2325,14 @@ actStream->wid( 0);
       xLog = false; yLog = false;
     } else {
       actStream->NoSub();
-      actStream->vpor(0, 1, 0, 1);
+      if (xLog || yLog) actStream->vpor(wx[0], wx[1], wy[0], wy[1]);
+      else actStream->vpor(0, 1, 0, 1); // (to be merged with the condition on DataCoordLimits...)
     }
+
+    // Determine data coordinate limits
+    // These are computed from window and scaling axis system
+    // variables because map routines change these directly.
+    DataCoordLimits(sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, false);
 
     DDouble minVal = yStart, maxVal = yEnd;
 

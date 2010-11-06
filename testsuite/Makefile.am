@@ -10,6 +10,7 @@ TESTS = \
   test_bug_3033108.pro \
   test_bug_3054361.pro \
   test_bug_3086851.pro \
+  test_bug_3104214.pro \
   test_ce.pro \
   test_clip.pro \
   test_constants.pro \
