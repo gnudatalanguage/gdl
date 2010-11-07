@@ -10,6 +10,8 @@ function interpol, p0, p1, p2, lsquadratic=lsquadratic, quadratic=quadratic, spl
     message, 'LSQUADRATIC keyword not supported yet (FIXME!)'
   if keyword_set(quadratic) then $
     message, 'QUADRATIC keyword not supported yet (FIXME!)'
+  if n_params() eq 3 and n_elements(p0) ne n_elements(p1) then $
+    message, 'In the three-parameter case the first and second argument must be of equal length'
 
   isint = size(p0, /ty) lt 4 || size(p0, /ty) gt 11
 
