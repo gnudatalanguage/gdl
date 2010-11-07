@@ -728,8 +728,13 @@ namespace lib {
 #endif
 
 #ifdef HAVE_LIBWXWIDGETS
-    wxTheApp->OnExit(); // Defined in GDLApp::OnExit() in gdlwidget.cpp
-//     wxUninitialize();
+    // wxTheApp may be a null pointer (tracker item no. 2946058)
+    if (wxTheApp) wxTheApp->OnExit(); // Defined in GDLApp::OnExit() in gdlwidget.cpp
+
+    // SA: gives the following error message with no connection to X-server:
+    //   GDL> exit
+    //   Error: Unable to initialize gtk, is DISPLAY set properly?
+    //wxUninitialize();
 #endif
 
     BaseGDL* status=e->GetKW( 1);
