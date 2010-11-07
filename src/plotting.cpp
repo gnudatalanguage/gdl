@@ -2970,7 +2970,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
 	xEl = zVal->Dim(1);
 	yEl = zVal->Dim(0);
 
-	if(zVal->Dim(0) == 1)
+	if(zVal->Rank() != 2)
 	  e->Throw(  "Array must have 2 dimensions: "
 			      +e->GetParString(0));
 
