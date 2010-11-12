@@ -562,12 +562,22 @@ macro(MODULE MOD NAME)
 	endif(${MOD})
 endmacro(MODULE)
 
-# summary
+# python
 if(PYTHON_MODULE)
 	set(BUILDTYPE "Python Module")
 else(PYTHON_MODULE)
 	set(BUILDTYPE "Standalone")
 endif(PYTHON_MODULE)
+
+
+#
+IF(NOT CMAKE_BUILD_TYPE)
+  SET(CMAKE_BUILD_TYPE Release CACHE STRING
+    "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
+    FORCE)
+ENDIF(NOT CMAKE_BUILD_TYPE)
+
+#
 if(CMAKE_BUILD_TYPE STREQUAL None OR NOT CMAKE_BUILD_TYPE)
 	set(FLAGS ${CMAKE_CXX_FLAGS})
 elseif(CMAKE_BUILD_TYPE STREQUAL Debug)
