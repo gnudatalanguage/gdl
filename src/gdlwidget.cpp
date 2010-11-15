@@ -16,9 +16,9 @@
 
  ***************************************************************************/
 
-#include <memory> 
-
 #include "includefirst.hpp"
+
+#include <memory> 
 
 #include "basegdl.hpp"
 #include "dstructgdl.hpp"
