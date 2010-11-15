@@ -7,6 +7,8 @@ Then you can run cmake on the root directory of gdl.
 e.g. `cmake ..'
 You can also specify an install directory `cmake .. -DCMAKE_INSTALL_PREFIX=$PWD/../install'
 
+The default buid mode is "Release", to use the "Debug" mode try `cmake ... -DCMAKE_BUILD_TYPE=Debug'
+
 You can choose to pass parameters to cmake in the manner of configure.
 For each non-mandatory module, you can choose to enable/disable it
 (default values are the same than in configure)
