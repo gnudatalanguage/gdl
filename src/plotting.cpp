@@ -5235,9 +5235,12 @@ clevel[nlevel-1]=zEnd; //make this explicit
 	}
       }
       // Change Inf to Nan
-      for( SizeT i = 0; i<res->N_Elements(); ++i) {	
-	if (isinf((DDouble) (*res)[i]) != 0)
-	  (*res)[i] = 1e300000/1e300000;
+      {
+        static DStructGDL *Values = SysVar::Values();
+        DDouble d_nan = (*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_NAN"), 0)))[0];
+        for( SizeT i = 0; i<res->N_Elements(); ++i) {	
+          if (isinf((DDouble) (*res)[i]) != 0) (*res)[i] = d_nan;
+        }
       }
       return res;
     }

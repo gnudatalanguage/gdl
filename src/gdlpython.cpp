@@ -40,7 +40,7 @@ void PythonInit()
   Py_Initialize(); // signal handlers?
   
   static int argc = 1;
-  static char* arg0 = "./py/python.exe";
+  static char* arg0 = (char*)"./py/python.exe";
   static char* argv[] = {arg0};
   PySys_SetArgv(argc, argv);
 

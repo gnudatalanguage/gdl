@@ -1,4 +1,4 @@
-/* $Id: plot3d_nr.cpp,v 1.6 2008-04-03 21:45:55 m_schellens Exp $
+/* $Id: plot3d_nr.cpp,v 1.7 2010-11-17 07:24:55 slayoo Exp $
 
 	3d plot routines.
 
@@ -341,7 +341,7 @@ plnxtvhi(PLINT *u, PLINT *v, PLFLT* c, PLINT n, PLINT init)
     int i;
     oldhiview = (PLINT *) malloc((size_t) (2 * n * sizeof(PLINT)));
     if ( ! oldhiview)
-      myexit("plnxtvhi: Out of memory.");
+      myexit((char*)"plnxtvhi: Out of memory.");
 
     oldhiview[0] = u[0];
     oldhiview[1] = v[0];
@@ -381,7 +381,7 @@ plnxtvhi(PLINT *u, PLINT *v, PLFLT* c, PLINT n, PLINT init)
 	(PLINT *) malloc((size_t) (newhisize * sizeof(PLINT)));
     }
     if ( ! newhiview)
-      myexit("plnxtvhi: Out of memory.");
+      myexit((char*)"plnxtvhi: Out of memory.");
   }
 
   /* Do the draw or shading with hidden line removal */
@@ -630,7 +630,7 @@ plnxtvlo(PLINT *u, PLINT *v, PLFLT*c, PLINT n, PLINT init)
 
     oldloview = (PLINT *) malloc((size_t) (2 * n * sizeof(PLINT)));
     if ( ! oldloview)
-      myexit("\nplnxtvlo: Out of memory.");
+      myexit((char*)"\nplnxtvlo: Out of memory.");
 
     plP_draw3d(u[0], v[0], c, 0, 1);
     oldloview[0] = u[0];
@@ -672,7 +672,7 @@ plnxtvlo(PLINT *u, PLINT *v, PLFLT*c, PLINT n, PLINT init)
 	(PLINT *) malloc((size_t) (newlosize * sizeof(PLINT)));
     }
     if ( ! newloview)
-      myexit("plnxtvlo: Out of memory.");
+      myexit((char*)"plnxtvlo: Out of memory.");
   }
 
   /*
@@ -874,7 +874,7 @@ savehipoint(PLINT px, PLINT py)
 	newhiview = (PLINT *) realloc((void *) newhiview,
 				      (size_t) (newhisize * sizeof(PLINT)));
 	if ( ! newhiview)
-	    myexit("savehipoint: Out of memory.");
+	    myexit((char*)"savehipoint: Out of memory.");
     }
 
     newhiview[xxhi] = px;
@@ -894,7 +894,7 @@ savelopoint(PLINT px, PLINT py)
 	newloview = (PLINT *) realloc((void *) newloview,
 				      (size_t) (newlosize * sizeof(PLINT)));
 	if ( ! newloview)
-	    myexit("savelopoint: Out of memory.");
+	    myexit((char*)"savelopoint: Out of memory.");
     }
 
     newloview[xxlo] = px;
@@ -1112,17 +1112,17 @@ c_plot3dcl_nr(PLFLT *x, PLFLT *y, PLFLT **z,
     pl3mode = 0;
 
     if (plsc->level < 3) {
-	myabort("plot3dcl: Please set up window first");
+	myabort((char*)"plot3dcl: Please set up window first");
 	return;
     }
 
     if (opt < 1) {
-	myabort("plot3dcl: Bad option");
+	myabort((char*)"plot3dcl: Bad option");
 	return;
     }
 
     if (nx <= 0 || ny <= 0) {
-	myabort("plot3dcl: Bad array dimensions.");
+	myabort((char*)"plot3dcl: Bad array dimensions.");
 	return;
     }
 
@@ -1180,7 +1180,7 @@ c_plot3dcl_nr(PLFLT *x, PLFLT *y, PLFLT **z,
     vtmp = (PLINT *) malloc((size_t) (2 * MAX(nx, ny) * sizeof(PLINT)));
 
     if ( ! utmp || ! vtmp)
-	myexit("plot3dcl: Out of memory.");
+	myexit((char*)"plot3dcl: Out of memory.");
 
     plP_gw3wc(&cxx, &cxy, &cyx, &cyy, &cyz);
     init = 1;

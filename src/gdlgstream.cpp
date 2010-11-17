@@ -712,7 +712,7 @@ const char * GDLGStream::TranslateFormatCodes(const char *in)
           }
           break;
         case 3 : // simplex roman
-          switch (in[i])
+          switch ((unsigned char)in[i])
           {
             // unsupported chars
             case '^' : case '~' : case '\\' :

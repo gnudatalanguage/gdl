@@ -38,7 +38,7 @@ pro test_ce
 	print, 'Third arg      Got: ', p3
 	print, '          Expected: ', 4B
 	error = error + 1
-	stop
+	;stop
     endif else begin
 	print, 'back in IDL: OK'
 	print
@@ -74,7 +74,7 @@ pro test_ce
 	print, 'Third arg      Got: ', p3
 	print, '          Expected: ', 4
 	error = error + 1
-	stop
+	;stop
     endif else begin
 	print, 'back in IDL: OK'
 	print
@@ -109,7 +109,7 @@ pro test_ce
 	print, 'Third arg      Got: ', p3
 	print, '          Expected: ', 4L
 	error = error + 1
-	stop
+	;stop
     endif else begin
 	print, 'back in IDL: OK'
 	print
@@ -147,7 +147,7 @@ pro test_ce
 	print, 'Third arg      Got: ', p3
 	print, '          Expected: ', 4.44
 	error = error + 1
-	stop
+	;stop
     endif else begin
 	print, 'back in IDL: OK'
 	print
@@ -181,7 +181,7 @@ pro test_ce
 	print, 'Second arg     Got: ', p2
 	print, '          Expected: ', [12.12D, 13.13D]
 	error = error + 1
-	stop
+	;stop
     endif else begin
 	print, 'back in IDL: OK'
 	print
@@ -217,7 +217,7 @@ pro test_ce
 	print, 'Third arg      Got: ', p3
 	print, '          Expected: ', 4U
 	error = error + 1
-	stop
+	;stop
     endif else begin
 	print, 'back in IDL: OK'
 	print
@@ -252,7 +252,7 @@ pro test_ce
 	print, 'Third arg      Got: ', p3
 	print, '          Expected: ', 4UL
 	error = error + 1
-	stop
+	;stop
     endif else begin
 	print, 'back in IDL: OK'
 	print
@@ -284,7 +284,7 @@ pro test_ce
 	print, 'Second arg     Got: ', p2
 	print, '          Expected: ', [12LL, 13LL]
 	error = error + 1
-	stop
+	;stop
     endif else begin
 	print, 'back in IDL: OK'
 	print
@@ -317,7 +317,7 @@ pro test_ce
 	print, 'Second arg     Got: ', p2
 	print, '          Expected: ', [12ULL, 13ULL]
 	error = error + 1
-	stop
+	;stop
     endif else begin
 	print, 'back in IDL: OK'
 	print
@@ -353,7 +353,7 @@ pro test_ce
 	print, 'Second arg     Got: ', p2
 	print, '          Expected: ', ["  owT", "eerhT"]
 	error = error + 1
-	stop
+	;stop
     endif else begin
 	print, 'back in IDL: OK'
 	if (c1 ne "One"+"  ") then begin
@@ -413,7 +413,7 @@ pro test_ce
 	print, 'Second arg     Got: ', p2
 	print, '          Expected: ', [complex(3.3,4.4), complex(55.55, 6.6)]
 	error = error + 1
-	stop
+	;stop
     endif else begin
 	print, 'back in IDL: OK'
 	print
@@ -451,7 +451,7 @@ pro test_ce
 	print, 'Second arg     Got: ', p2
 	print, '          Expected: ', [dcomplex(3.3D,4.4D), dcomplex(55.55D, 6.6D)]
 	error = error + 1
-	stop
+	;stop
     endif else begin
 	print, 'back in IDL: OK'
 	print
@@ -478,7 +478,7 @@ pro test_ce
 	    print, 'Return value:  Got: ', ret
 	    print, '          Expected: ', 15.15D
 	    error = error + 1
-	    stop
+	    ;stop
 	endif else begin
 	    print, 'back in IDL: OK'
 	    print
@@ -508,7 +508,7 @@ pro test_ce
     endif else begin
 	print, 'ERROR: Test did not fail.'
 	error = error + 1
-	stop
+	;stop
     endelse
 
     print, 'Non-existing entry:'
@@ -520,7 +520,7 @@ pro test_ce
     endif else begin
 	print, 'ERROR: Test did not fail.'
 	error = error + 1
-	stop
+	;stop
     endelse
 
     ; --------------------------------------------------------------------------
@@ -538,7 +538,7 @@ pro test_ce
     endif else begin
 	print, 'ERROR: Test did not fail.'
 	error = error + 1
-	stop
+	;stop
     endelse
 
 
@@ -557,7 +557,7 @@ pro test_ce
 	endif else begin
 	    print, 'ERROR: Test did not fail.'
 	    error = error + 1
-	    stop
+	    ;stop
 	endelse
     endif else begin
 	print, 'Test skipped , !version.memory_bits > 64'
