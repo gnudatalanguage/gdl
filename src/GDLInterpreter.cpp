@@ -3987,8 +3987,9 @@ BaseGDL*  GDLInterpreter::indexable_expr(ProgNodeP _t) {
 	BaseGDL* res;
 	ProgNodeP indexable_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
+	res = _t->EvalNC();
 		_retTree = _t->getNextSibling();
-	return _t->EvalNC();
+	return res;
 	
 	BaseGDL** e2;
 	

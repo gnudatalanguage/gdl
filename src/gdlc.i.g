@@ -3779,8 +3779,9 @@ indexable_tmp_expr returns [BaseGDL* res]
 // not owned by caller 
 indexable_expr returns [BaseGDL* res]
 {
+    res = _t->EvalNC();
 	_retTree = _t->getNextSibling();
-    return _t->EvalNC();
+    return res;
 
     BaseGDL** e2;
 }

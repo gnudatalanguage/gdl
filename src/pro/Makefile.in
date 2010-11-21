@@ -83,8 +83,21 @@ AM_RECURSIVE_TARGETS = $(RECURSIVE_TARGETS:-recursive=) \
 	distdir
 ETAGS = etags
 CTAGS = ctags
+# If stdout is a non-dumb tty, use colors.  If test -t is not supported,
+# then this fails; a conservative approach.  Of course do not redirect
+# stdout here, just stderr.
 am__tty_colors = \
-red=; grn=; lgn=; blu=; std=
+red=; grn=; lgn=; blu=; std=; \
+test "X$(AM_COLOR_TESTS)" != Xno \
+&& test "X$$TERM" != Xdumb \
+&& { test "X$(AM_COLOR_TESTS)" = Xalways || test -t 1 2>/dev/null; } \
+&& { \
+  red='[0;31m'; \
+  grn='[0;32m'; \
+  lgn='[1;32m'; \
+  blu='[1;34m'; \
+  std='[m'; \
+}
 DIST_SUBDIRS = $(SUBDIRS)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 am__relativize = \

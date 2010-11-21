@@ -37,7 +37,7 @@
 
 // print out AST tree
 //#define GDL_DEBUG
-//#undef GDL_DEBUG
+#undef GDL_DEBUG
 
 // print out an exspression entered at teh comand line
 //#define 	AUTO_PRINT_EXPR
