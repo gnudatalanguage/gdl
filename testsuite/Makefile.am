@@ -9,6 +9,7 @@ TESTS = \
   test_binfmt.pro \
   test_bug_3033108.pro \
   test_bug_3054361.pro \
+  test_bug_3081887.pro \
   test_bug_3086851.pro \
   test_bug_3104214.pro \
   test_bug_3104349.pro \
@@ -38,6 +39,7 @@ TESTS = \
   test_multiroots.pro \
   test_nans_in_sort_and_median.pro \
   test_nestedloop.pro \
+  test_plotting_ranges.pro \
   test_pmulti.pro \
   test_product.pro \
   test_ps_decomposed.pro \
