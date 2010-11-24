@@ -27,6 +27,12 @@
 
 // Python.h must be included before everything else
 #if defined(USE_PYTHON) || defined(PYTHON_MODULE)
+
+// save HAVE_LIBREADLINE status (Python.h defines HAVE_LIBREADLINE)
+#ifndef HAVE_LIBREADLINE
+#define GDL_NOT_HAVE_READLINE
+#endif
+
 //#undef _POSIX_C_SOURCE // get rid of warning
 #include <Python.h>
 //#ifndef _POSIX_C_SOURCE 
@@ -39,6 +45,13 @@
 #undef HAVE_LIBREADLINE
 #endif
 
+#ifdef GDL_NOT_HAVE_READLINE
+#undef HAVE_LIBREADLINE
+#endif
+
+#undef GDL_NOT_HAVE_READLINE
+
+//#if defined(USE_PYTHON) || defined(PYTHON_MODULE)
 #endif
 
 #if defined(__sun__)

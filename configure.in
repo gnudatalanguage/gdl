@@ -137,7 +137,6 @@ dnl as OS X provides another readline library
 	echo "         For resized terminals the size might not be updated correctly"
 	echo "         If this is a problem please install a recent version of readline"
 	])
-
 fi
 
 dnl == zlib ================================================

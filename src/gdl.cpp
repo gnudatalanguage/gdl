@@ -49,17 +49,17 @@ using namespace std;
 
 static void StartupMessage()
 {
-  cout << endl;
-  cout << "  GDL - GNU Data Language, Version " << VERSION << endl;
-  cout << endl;
-  cout << "- For basic information type HELP,/INFO" << endl;
+  cerr << endl;
+  cerr << "  GDL - GNU Data Language, Version " << VERSION << endl;
+  cerr << endl;
+  cerr << "- For basic information type HELP,/INFO" << endl;
 }
 
 void LibInit(); // defined in libinit.cpp
 
 void AtExit()
 {
-//   cout << "AtExit()" << endl;
+//   cerr << "AtExit()" << endl;
   cerr << flush; cout << flush; clog << flush;
   // clean up everything
   // (for debugging memory leaks)
@@ -209,7 +209,7 @@ int main(int argc, char *argv[])
   if( gdlPath == "")
     {
       gdlPath = GDLDATADIR "/lib:" GDLDATADIR "/lib/dicom";
-      if (isatty(0) && !quiet) cout <<
+      if (isatty(0) && !quiet) cerr <<
         "- Default library routine search path used (GDL_PATH/IDL_PATH env. var. not set): " << endl << 
         "  " << gdlPath << endl;
     }
@@ -219,13 +219,13 @@ int main(int argc, char *argv[])
   if( startup == "") startup=GetEnvString("IDL_STARTUP");
   if( startup == "")
     {
-      if (isatty(0) && !quiet) cout << 
+      if (isatty(0) && !quiet) cerr << 
         "- No startup file read (GDL_STARTUP/IDL_STARTUP env. var. not set). " << endl;
     }
 
   if (isatty(0) && !quiet) 
   {
-    cout << "- Please report bugs, feature or help requests and patches at:" << endl <<
+    cerr << "- Please report bugs, feature or help requests and patches at:" << endl <<
       "  http://sourceforge.net/projects/gnudatalanguage/" << endl << endl;
   }
 //   else
@@ -251,7 +251,7 @@ int main(int argc, char *argv[])
     MPI_Init(&argc, &argv);
     wd2p = getcwd(wd2, PATH_MAX);
     if (strcmp(wd1, wd2) != 0)
-      cout << "Warning: MPI has changed the working directory of GDL!" << endl;
+      cerr << "Warning: MPI has changed the working directory of GDL!" << endl;
   }
   int myrank = 0;
   MPI_Comm_rank( MPI_COMM_WORLD, &myrank);
