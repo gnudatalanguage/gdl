@@ -1480,7 +1480,15 @@ RetCode      GOTONode::Run()
 	}
 RetCode      CONTINUENode::Run()
 {
-assert( this->breakTarget != NULL); ProgNode::interpreter->SetRetTree( this->breakTarget);
+  // this->breakTarget is NULL when STOP is last statement in subroutine
+  //assert( this->breakTarget != NULL);
+  if( this->breakTarget == NULL)
+	{
+	assert( interpreter != NULL);
+	EnvBaseT* e = interpreter->CallStack().back();
+	throw GDLException( this, "CONTINUE must be enclosed within a FOR, WHILE, or REPEAT loop.", true, false);
+	}
+  ProgNode::interpreter->SetRetTree( this->breakTarget);
   return RC_OK;
 }
 RetCode      BREAKNode::Run()
