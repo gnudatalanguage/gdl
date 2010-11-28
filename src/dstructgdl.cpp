@@ -661,8 +661,13 @@ DStructGDL* DStructGDL::Index( ArrayIndexListT* ixList)
 //       SizeT srcTag=(*allIx)[ c]*nTags;
       SizeT srcTag=(*allIx)[ c];
       for( SizeT tagIx=0; tagIx<nTags; tagIx++)
-	*res->GetTag( tagIx, c) = *GetTag( tagIx, srcTag);
+		*res->GetTag( tagIx, c) = *GetTag( tagIx, srcTag);
     }
+
+	if( nCp == 1)
+	{
+		res->SetDim( dimension(1));
+	}
   
   return res;
 }
