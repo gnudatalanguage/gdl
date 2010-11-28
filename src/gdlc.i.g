@@ -234,6 +234,8 @@ protected:
 
     static EnvStackT  callStack; 
 
+    static DLong stepCount;
+
 
 // smuggle optimizations in
 //#include "GDLInterpreterOptimized.inc"
@@ -1067,6 +1069,26 @@ statement returns[ RetCode retCode]
                         debugMode = DEBUG_PROCESS_STOP;
                 }
 
+                if( debugMode == DEBUG_STEP)
+                    {
+                        if( stepCount == 1)
+                            {
+                                stepCount = 0;
+                                DebugMsg( last, "Stepped to: ");
+                                
+                                debugMode = DEBUG_CLEAR;
+                
+                                retCode = NewInterpreterInstance( last->getLine());//-1);
+                            }
+                        else
+                            {
+                            --stepCount;
+#ifdef GDL_DEBUG
+                            std::cout << "stepCount-- = " << stepCount << std::endl;
+#endif
+                            }
+                    }
+                else    
                 if( interruptEnable)
                 {
                     if( debugMode == DEBUG_PROCESS_STOP)

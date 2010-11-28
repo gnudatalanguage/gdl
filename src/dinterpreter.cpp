@@ -56,7 +56,8 @@ GDLInterpreter::HeapT     GDLInterpreter::heap;
 GDLInterpreter::ObjHeapT  GDLInterpreter::objHeap; 
 SizeT                     GDLInterpreter::objHeapIx;
 SizeT                     GDLInterpreter::heapIx;
-EnvStackT                 GDLInterpreter::callStack; 
+EnvStackT             GDLInterpreter::callStack;
+DLong                   GDLInterpreter::stepCount;
 
 ProgNode GDLInterpreter::NULLProgNode;
 ProgNodeP GDLInterpreter::NULLProgNodeP = &GDLInterpreter::NULLProgNode;
@@ -72,6 +73,8 @@ DInterpreter::DInterpreter(): GDLInterpreter()
   heapIx=1;    // map version (0 is NULL ptr)
   returnValue  = NULL;
   returnValueL = NULL;
+
+	stepCount = 0;
   
     // setup main level environment
   DPro* mainPro=new DPro();        // $MAIN$  NOT inserted into proList
@@ -568,8 +571,10 @@ DInterpreter::CommandCode DInterpreter::CmdRun( const string& command)
 DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command)
 {
   string cmdstr = command;
+  string args;
   int sppos = cmdstr.find(" ",0);
   if (sppos != string::npos) {
+    args = cmdstr.substr(sppos+1);
     cmdstr = cmdstr.substr(0, sppos);
   }
     
@@ -636,8 +641,25 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command)
     }
   if( cmd( "STEP"))
     {
-      cout << "STEP not implemented yet." << endl;
-      return CC_OK;
+      	    DLong sCount;
+      	    if( args == "")
+      	    {
+				sCount = 1;
+      	    }
+      	    else
+      	    {
+				const char* cStart=args.c_str();
+				char* cEnd;
+				sCount = strtol(cStart,&cEnd,10);
+				if( cEnd == cStart)
+				{
+				cout << "Type conversion error: Unable to convert given STRING: '"+args+"' to LONG." << endl;
+				return CC_OK;
+				}
+      	      }
+      	      stepCount = sCount;
+			  debugMode = DEBUG_STEP;
+			  return CC_STEP;
     }
   if( cmd( "STEPOVER"))
     {
@@ -1042,6 +1064,7 @@ RetCode DInterpreter::InnerInterpreterLoop(SizeT lineOffset)
 	DInterpreter::CommandCode ret=ExecuteLine(NULL, lineOffset);
 	if( ret == CC_RETURN) return RC_RETURN;
 	if( ret == CC_CONTINUE) return RC_OK; 
+	if( ret == CC_STEP) return RC_OK;
 //       }
 //     catch( RetAllException&)
 //       {
@@ -1333,6 +1356,10 @@ historyIntialized = true;
 	else
 	  {
 	    DInterpreter::CommandCode ret=ExecuteLine();
+
+		// stop steppig when at main level
+		stepCount = 0;
+		debugMode = DEBUG_CLEAR;
 
 	    if( ret == CC_CONTINUE)
 	      {

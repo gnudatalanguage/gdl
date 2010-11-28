@@ -181,6 +181,8 @@ protected:
 
     static EnvStackT  callStack; 
 
+    static DLong stepCount;
+
 
 // smuggle optimizations in
 //#include "GDLInterpreterOptimized.inc"

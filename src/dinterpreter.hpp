@@ -76,6 +76,7 @@ public:
    enum CommandCode {
      CC_OK=0,
      CC_CONTINUE,
+     CC_STEP,
      CC_RETURN
    };
 
