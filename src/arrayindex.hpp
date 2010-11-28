@@ -273,7 +273,7 @@ class ArrayIndexIndexed: public ArrayIndexT
 protected:
   bool      strictArrSubs;          // for compile_opt STRICTARRSUBS
   
-  SizeT s;
+  RangeT s;
   SizeT maxVal;
 
   AllIxT*    ix;
@@ -290,7 +290,7 @@ public:
   RangeT GetS() { return s;}
 
   bool Scalar() { return (ix == NULL);}
-  bool Scalar( SizeT& s_)
+  bool Scalar( RangeT& s_)
   { 
     if( ix == NULL)
       {
@@ -351,30 +351,54 @@ public:
   BaseGDL* Index( BaseGDL* var, IxExprListT& ixL)
   {
 
-    int ret = ixL[0]->Scalar2index(s);
+    int ret = ixL[0]->Scalar2RangeT(s);
 
     if( ret == 0) // more than one element
       return var->NewIx( ixL[0], strictArrSubs);
 
     // scalar (-1,1) or one-element array (-2,2)
-    if( ret >= 1) // type ONE
-      {
-	if( s >= var->Size())
-	  {
-	    if( strictArrSubs || ret == 1)
-	      throw GDLException(NULL,"Subscript out of range [i].",true,false);
-	    return var->NewIx( var->Size()-1);
-	  }
+    //if( ret >= 1) // type ONE
+    if( ret == 1) // type ONE
+	{
+		if( s < 0) //&& s >= var->Size())
+		{
+			RangeT ix = var->Size() + s;
+			if( ix < 0)
+				throw GDLException(NULL,"Subscript out of range [-i].",true,false);
+			//if( strictArrSubs || ret == 1)
+			//return var->NewIx( var->Size()-1);
+			return var->NewIx( ix);
+		}
+		if( s >= var->Size())
+		{
+			throw GDLException(NULL,"Subscript out of range [i].",true,false);
+		}
+		return var->NewIx( s);
+	}
 
-	if( ret == 2)
-	  {
-	    BaseGDL* res = var->NewIx( s);
-	    res->SetDim( dimension( 1));
-	    return res;
-	  }	
-	else
-	  return var->NewIx( s);
-      }
+	// ret == 2 (one dim array)
+	if( s < 0) //&& s >= var->Size())
+	{
+		if( strictArrSubs)
+			throw GDLException(NULL,"Subscript out of range [-i].",true,false);
+		BaseGDL* res = var->NewIx( 0);
+		res->SetDim( dimension( 1));
+		return res;
+	}
+	if( s >= var->Size())
+	{
+		if( strictArrSubs)
+			throw GDLException(NULL,"Subscript out of range [i].",true,false);
+		BaseGDL* res = var->NewIx( var->Size()-1);
+		res->SetDim( dimension( 1));
+		return res;
+	}
+
+	BaseGDL* res = var->NewIx( s);
+	res->SetDim( dimension( 1));
+	return res;
+	
+    // unreachable because using now Scala2RangeT which returns always 0 ,1 or 2  
     if( strictArrSubs || ret == -1) // scalar index < 0
       {
 	throw 
@@ -397,14 +421,15 @@ public:
   {
     if( ix_->Rank() == 0) // type ONE
       {
-	int ret = ix_->Scalar2index(s);
-	if( ret == -1) // index < 0
-	  {
-	    throw 
-	      GDLException(NULL, "Subscript range values of the"
-			    " form low:high must be >= 0, < size,"
-			    " with low <= high.",true,false);
-	  }
+	int ret = ix_->Scalar2RangeT(s);
+// from GDL 0.9 on negative indices are fine
+// 	if( ret == -1) // index < 0
+// 	  {
+// 	    throw 
+// 	      GDLException(NULL, "Subscript range values of the"
+// 			    " form low:high must be >= 0, < size,"
+// 			    " with low <= high.",true,false);
+// 	  }
 	return;
       }
 
@@ -744,8 +769,10 @@ public:
 
     if( ix == NULL) // ONE
       {
-	if( s >= varDim)
+	if( s > 0 && s >= varDim)
 	  throw GDLException(NULL,"Subscript out of range [i].",true,false);
+	if( s < 0 && -s > varDim)
+	  throw GDLException(NULL,"Subscript out of range [-i].",true,false);
 	return 1;
       }
 

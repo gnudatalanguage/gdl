@@ -2096,16 +2096,36 @@ void Data_<Sp>::ForAdd()
 void DStructGDL::ForAdd() {}
 
 template<class Sp>
-void Data_<Sp>::AssignAtIx( SizeT ix, BaseGDL* srcIn)
+void Data_<Sp>::AssignAtIx( RangeT ixR, BaseGDL* srcIn)
 {
-  if( srcIn->Type() != this->Type())
+	if( ixR < 0)
+	{
+	SizeT nEl = this->N_Elements();
+	
+	if( -ixR > nEl)
+		throw GDLException("Subscript out of range: " + i2s(ixR));
+
+	SizeT ix = nEl + ixR;
+  
+	if( srcIn->Type() != this->Type())
     {
       Data_* rConv = static_cast<Data_*>(srcIn->Convert2( this->Type(), BaseGDL::COPY));
       auto_ptr<Data_> conv_guard( rConv);
       (*this)[ix] = (*rConv)[0];
     }
+	else
+		(*this)[ix] = (*static_cast<Data_*>(srcIn))[0];
+
+	return;
+	}
+  if( srcIn->Type() != this->Type())
+    {
+      Data_* rConv = static_cast<Data_*>(srcIn->Convert2( this->Type(), BaseGDL::COPY));
+      auto_ptr<Data_> conv_guard( rConv);
+      (*this)[ixR] = (*rConv)[0];
+    }
   else
-    (*this)[ix] = (*static_cast<Data_*>(srcIn))[0];
+    (*this)[ixR] = (*static_cast<Data_*>(srcIn))[0];
 }
 
 // assigns srcIn to this at ixList, if ixList is NULL does linear copy

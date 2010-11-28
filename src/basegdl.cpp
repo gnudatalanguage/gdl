@@ -709,7 +709,7 @@ void BaseGDL::Log10This()
   throw GDLException("Operation not defined for UNDEF 27d.");
 }
 
-void BaseGDL::AssignAtIx( SizeT ix, BaseGDL* srcIn)
+void BaseGDL::AssignAtIx( RangeT ix, BaseGDL* srcIn)
 { 
   throw GDLException("Operation not defined for UNDEF 28.");
 }

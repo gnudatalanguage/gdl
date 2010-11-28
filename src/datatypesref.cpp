@@ -252,7 +252,7 @@ for( SizeT c=1; c<=nCp; ++c) // linearized verison of nested loops
 
 
 template<>
-void Data_<SpDPtr>::AssignAtIx( SizeT ix, BaseGDL* srcIn)
+void Data_<SpDPtr>::AssignAtIx( RangeT ix, BaseGDL* srcIn)
 {
   if( srcIn->Type() != this->Type())
 		throw GDLException("Only expressions of type " + srcIn->TypeStr() + " can be assigned to " + this->TypeStr());
@@ -261,7 +261,7 @@ void Data_<SpDPtr>::AssignAtIx( SizeT ix, BaseGDL* srcIn)
   (*this)[ix] = (*static_cast<Data_*>(srcIn))[0];
 }
 template<>
-void Data_<SpDObj>::AssignAtIx( SizeT ix, BaseGDL* srcIn)
+void Data_<SpDObj>::AssignAtIx( RangeT ix, BaseGDL* srcIn)
 {
   if( srcIn->Type() != this->Type())
 		throw GDLException("Only expressions of type " + srcIn->TypeStr() + " can be assigned to " + this->TypeStr());

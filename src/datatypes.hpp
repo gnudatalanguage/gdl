@@ -312,7 +312,7 @@ static	void operator delete( void *ptr);
   void AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList);
   void AssignAt( BaseGDL* srcIn);
 
-  void AssignAtIx( SizeT ix, BaseGDL* srcIn);
+  void AssignAtIx( RangeT ix, BaseGDL* srcIn);
 
   // decrement (--) and increment (++) operators
   void DecAt( ArrayIndexListT* ixList);
