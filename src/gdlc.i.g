@@ -746,7 +746,7 @@ interactive returns[ RetCode retCode]
 {
 	for (; _t != NULL;) {
 
-        _t->setLine(0);
+        //_t->setLine(0);
 		retCode=statement(_t);
 		_t = _retTree;
 			
@@ -936,6 +936,9 @@ statement returns[ RetCode retCode]
                 
                 last = _retTree;
 
+                // track actual line number
+                callStack.back()->SetLineNumber( last->getLine());
+
                 retCode = last->Run(); // Run() sets _retTree
                         
             }
@@ -1053,13 +1056,13 @@ statement returns[ RetCode retCode]
 
                 sigControlC = false;
 
-                retCode = NewInterpreterInstance( last->getLine()-1);
+                retCode = NewInterpreterInstance( last->getLine());//-1);
             }
            else if( debugMode != DEBUG_CLEAR)
             {
                 if( debugMode == DEBUG_STOP)
                 {
-                    DebugMsg( last, "Stop encoutered: ");
+                    DebugMsg( last, "Stop encountered: ");
                     if( !interruptEnable)
                         debugMode = DEBUG_PROCESS_STOP;
                 }
@@ -1073,7 +1076,7 @@ statement returns[ RetCode retCode]
 
                     debugMode = DEBUG_CLEAR;
                 
-                    retCode = NewInterpreterInstance( last->getLine()-1);
+                    retCode = NewInterpreterInstance( last->getLine());//-1);
                 }   
                 else
                 {
@@ -1196,7 +1199,7 @@ statement returns[ RetCode retCode]
                 // tell where we are
                 ReportError(e, "Execution halted at:", targetEnv == NULL); 
 
-                retCode = NewInterpreterInstance(e.getLine()-1);
+                retCode = NewInterpreterInstance(e.getLine());//-1);
             }    
         else
             {

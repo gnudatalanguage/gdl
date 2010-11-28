@@ -78,6 +78,11 @@ class CUSTOM_API GDLLexer : public antlr::CharScanner, public GDLTokenTypes
         selector->addInputStream(this, f);
         selector->select(f); // start with main lexer
         
+        // set line number to 0 in interactive mode
+        if( f == "")
+            { 
+                setLine(0);
+            }
 //        p=parserPtr;
     }
 

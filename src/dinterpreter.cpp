@@ -821,7 +821,8 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
   if( theAST == NULL) return CC_OK;
 
     // consider line offset
-    AddLineOffset( lineOffset, theAST);
+    if( lineOffset > 0)
+		AddLineOffset( lineOffset, theAST);
 
 #ifdef GDL_DEBUG
   antlr::print_tree pt;
@@ -857,6 +858,9 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
   cout << "ExecuteLine: Tree parser end." << endl;
 #endif
 
+	// **************************************
+	// this is the call of the ProgNode factory
+	// **************************************
     progAST = ProgNode::NewProgNode( trAST);
 
 	assert( dynamic_cast<EnvUDT*>(callStack.back()) != NULL);

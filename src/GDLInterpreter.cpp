@@ -35,7 +35,7 @@ GDLInterpreter::GDLInterpreter()
 	
 		for (; _t != NULL;) {
 	
-	_t->setLine(0);
+	//_t->setLine(0);
 			retCode=statement(_t);
 			_t = _retTree;
 				
@@ -89,6 +89,9 @@ GDLInterpreter::GDLInterpreter()
 		//                     callStack.back()->SetLineNumber( _t->getLine());
 		
 		last = _retTree;
+		
+		// track actual line number
+		callStack.back()->SetLineNumber( last->getLine());
 		
 		retCode = last->Run(); // Run() sets _retTree
 		
@@ -355,13 +358,13 @@ GDLInterpreter::GDLInterpreter()
 		
 		sigControlC = false;
 		
-		retCode = NewInterpreterInstance( last->getLine()-1);
+		retCode = NewInterpreterInstance( last->getLine());//-1);
 		}
 		else if( debugMode != DEBUG_CLEAR)
 		{
 		if( debugMode == DEBUG_STOP)
 		{
-		DebugMsg( last, "Stop encoutered: ");
+		DebugMsg( last, "Stop encountered: ");
 		if( !interruptEnable)
 		debugMode = DEBUG_PROCESS_STOP;
 		}
@@ -375,7 +378,7 @@ GDLInterpreter::GDLInterpreter()
 		
 		debugMode = DEBUG_CLEAR;
 		
-		retCode = NewInterpreterInstance( last->getLine()-1);
+		retCode = NewInterpreterInstance( last->getLine());//-1);
 		}   
 		else
 		{
@@ -497,7 +500,7 @@ GDLInterpreter::GDLInterpreter()
 		// tell where we are
 		ReportError(e, "Execution halted at:", targetEnv == NULL); 
 		
-		retCode = NewInterpreterInstance(e.getLine()-1);
+		retCode = NewInterpreterInstance(e.getLine());//-1);
 		}    
 		else
 		{
