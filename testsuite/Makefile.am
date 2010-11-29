@@ -50,6 +50,7 @@ TESTS = \
   test_rebin.pro \
   test_spher_harm.pro \
   test_spl_init.pro \
+  test_step.pro \
   test_str_functions.pro \
   test_suite.pro \
   test_url.pro \
