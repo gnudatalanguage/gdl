@@ -75,7 +75,7 @@ public:
     if( ogzStream&&ogzStream->eof()) ogzStream->clear();
   }
 
-  void Write( char* buf, SizeT nBytes)
+  void Write( char* buf, std::streamsize nBytes)
   {
     if( fStream != NULL)
       {
@@ -88,7 +88,7 @@ public:
     else assert( 0);
   }
 
-  void Read( char* buf, SizeT nBytes)
+  void Read( char* buf, std::streamsize nBytes)
   {
     if( fStream != NULL)
       {
@@ -149,7 +149,7 @@ public:
       }
     return true;
   }
-  void Seek( SizeT pos)
+  void Seek( std::streampos pos)
   {
     if( fStream == NULL && igzStream == NULL && ogzStream == NULL)
       throw GDLException("inner file unit is not open.");
@@ -178,12 +178,12 @@ public:
 // 	ogzStream->rdbuf()->pubseekpos( pos, std::ios_base::out);
       }
   }
-  SizeT Size()
+  std::streampos Size()
   {  
     if( fStream != NULL)
       {
-	SizeT cur = Tell();
-	SizeT end = fStream->rdbuf()->pubseekoff( 0, std::ios_base::end);
+	std::streampos cur = Tell();
+	std::streampos end = fStream->rdbuf()->pubseekoff( 0, std::ios_base::end);
 	fStream->rdbuf()->pubseekpos( cur, std::ios_base::in | std::ios_base::out);
 	return end;
       }
@@ -191,22 +191,22 @@ public:
       {
 	if( igzStream != NULL)
 	  {
-	    SizeT cur = igzStream->rdbuf()->pubseekoff( 0, std::ios_base::cur);
-	    SizeT end = igzStream->rdbuf()->pubseekoff( 0, std::ios_base::end);
+	    std::streampos cur = igzStream->rdbuf()->pubseekoff( 0, std::ios_base::cur);
+	    std::streampos end = igzStream->rdbuf()->pubseekoff( 0, std::ios_base::end);
 	    igzStream->rdbuf()->pubseekpos( cur, std::ios_base::in);
 	    return end;
 	  }
 	if( ogzStream != NULL)
 	  {
-	    SizeT cur = ogzStream->rdbuf()->pubseekoff( 0, std::ios_base::cur);
-	    SizeT end = ogzStream->rdbuf()->pubseekoff( 0, std::ios_base::end);
+	    std::streampos cur = ogzStream->rdbuf()->pubseekoff( 0, std::ios_base::cur);
+	    std::streampos end = ogzStream->rdbuf()->pubseekoff( 0, std::ios_base::end);
 	    ogzStream->rdbuf()->pubseekpos( cur, std::ios_base::out);
 	    return end;
 	  }
       }
   }
 
-  SizeT Tell()
+  std::streampos Tell()
   {
     if( fStream != NULL)
       return( fStream->tellg());
@@ -220,7 +220,7 @@ public:
       }
   }
 
-  void SeekPad( SizeT pos)
+  void SeekPad( std::streampos pos)
   {
     if( fStream == NULL && ogzStream == NULL)
       throw GDLException("File unit is not open.");
@@ -229,7 +229,7 @@ public:
 	if( fStream->eof())
 	  fStream->clear();
 
-	SizeT fSize = Size();
+	std::streampos fSize = Size();
 	if( pos > fSize) Pad( pos - fSize);
 
 	fStream->rdbuf()->pubseekpos( pos, std::ios_base::in | std::ios_base::out);
@@ -239,7 +239,7 @@ public:
 	if( ogzStream->eof())
 	  ogzStream->clear();
 
-	SizeT fSize = Size();
+	std::streampos fSize = Size();
 	if( pos > fSize) Pad( pos - fSize);
 
 	ogzStream->rdbuf()->pubseekpos( pos, std::ios_base::in | std::ios_base::out);
@@ -250,7 +250,7 @@ public:
   bool IsOpen()
   { return (fStream != NULL && fStream->is_open()) || (igzStream != NULL && igzStream->rdbuf()->is_open()) || (ogzStream != NULL && ogzStream->rdbuf()->is_open());} 
 
-  void Pad( SizeT nBytes);
+  void Pad( std::streamsize nBytes);
 
   void Clear()
   {
@@ -288,13 +288,13 @@ class GDLStream
 
   SizeT width;
 
-  SizeT lastSeekPos;
+  std::streampos lastSeekPos;
 
   // for F77
-  SizeT lastRecord;
-  SizeT lastRecordStart;
+  std::streampos lastRecord;
+  std::streampos lastRecordStart;
   
-  void Pad( SizeT nBytes); // puts out nBytes zero bytes
+  void Pad( std::streamsize nBytes); // puts out nBytes zero bytes
 
 public:
   GDLStream(): 
@@ -354,7 +354,7 @@ public:
     return anyStream->Eof();
   }
 
-  void Seek( SizeT pos)
+  void Seek( std::streampos pos)
   {
     if( anyStream == NULL)
       throw GDLException("File unit is not open.");
@@ -362,12 +362,12 @@ public:
     lastSeekPos = pos;
   }
 
-  SizeT Size()
+  std::streampos Size()
   {
     return anyStream->Size();
   }
 
-  SizeT Tell()
+  std::streampos Tell()
   {
     return anyStream->Tell();
   }
@@ -377,7 +377,7 @@ public:
     return width;
   }
 
-  void SeekPad( SizeT pos)
+  void SeekPad( std::streampos pos)
   {
     if( anyStream == NULL)
       throw GDLException("File unit is not open.");

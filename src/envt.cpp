@@ -1225,6 +1225,15 @@ BaseGDL*& EnvT::GetPar(SizeT i)
   return env[ ix];
 }
 
+void EnvBaseT::AssureLongScalarPar( SizeT pIx, DLong64& scalar)
+{
+  BaseGDL* p = GetParDefined( pIx);
+  DLong64GDL* lp = static_cast<DLong64GDL*>(p->Convert2( LONG64, BaseGDL::COPY));
+  auto_ptr<DLong64GDL> guard_lp( lp);
+  if( !lp->Scalar( scalar))
+    Throw("Parameter must be a scalar in this context: "+
+		       GetParString(pIx));
+}
 void EnvBaseT::AssureLongScalarPar( SizeT pIx, DLong& scalar)
 {
   BaseGDL* p = GetParDefined( pIx);
@@ -1233,6 +1242,10 @@ void EnvBaseT::AssureLongScalarPar( SizeT pIx, DLong& scalar)
   if( !lp->Scalar( scalar))
     Throw("Parameter must be a scalar in this context: "+
 		       GetParString(pIx));
+}
+void EnvT::AssureLongScalarPar( SizeT pIx, DLong64& scalar)
+{
+  EnvBaseT::AssureLongScalarPar( pIx, scalar);
 }
 void EnvT::AssureLongScalarPar( SizeT pIx, DLong& scalar)
 {

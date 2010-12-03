@@ -319,26 +319,26 @@ istringstream& GDLStream::ISocketStream()
   return *iSocketStream;
 }
 
-void GDLStream::Pad( SizeT nBytes)
+void GDLStream::Pad( std::streamsize nBytes)
 {
 	if( anyStream != NULL)
 		anyStream->Pad( nBytes);
 }
 
-void AnyStream::Pad( SizeT nBytes)
+void AnyStream::Pad( std::streamsize nBytes)
 {
-  const SizeT bufSize = 1024;
+  const std::streamsize bufSize = 1024;
   static char buf[ bufSize];
   SizeT nBuf = nBytes / bufSize;
-  SizeT lastBytes = nBytes % bufSize;
+  std::streamsize lastBytes = nBytes % bufSize;
   if( fStream != NULL)
 {
-  for( SizeT i=0; i<nBuf; i++) fStream->write( buf, bufSize);
+  for( SizeT i=0; i<nBuf; ++i) fStream->write( buf, bufSize);
   if( lastBytes > 0) fStream->write( buf, lastBytes);
 }
  else if( ogzStream != NULL)
 {
-  for( SizeT i=0; i<nBuf; i++) ogzStream->write( buf, bufSize);
+  for( SizeT i=0; i<nBuf; ++i) ogzStream->write( buf, bufSize);
   if( lastBytes > 0) ogzStream->write( buf, lastBytes);
 }
 }
@@ -405,7 +405,7 @@ void GDLStream::F77ReadEnd()
   if( anyStream->EofRaw())
     throw GDLIOException("End of file encountered.");
 
-  SizeT actPos = Tell();
+  std::streampos actPos = Tell();
   if( actPos > (lastRecordStart+lastRecord))
     throw GDLIOException( "Read past end of Record of F77_UNFORAMTTED file.");
 

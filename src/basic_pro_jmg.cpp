@@ -63,7 +63,7 @@ namespace lib {
       return;
 
     } else {
-      DLong pos;
+      DLong64 pos;
       e->AssureLongScalarPar( 1, pos);
       actUnit.Seek( pos);
     }

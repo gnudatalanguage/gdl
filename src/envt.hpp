@@ -207,6 +207,7 @@ proUD->SetCompileOpt( cOpt);
 
   // converts parameter 'ix' if necessary and sets 'scalar' 
   void AssureLongScalarPar( SizeT ix, DLong& scalar);
+  void AssureLongScalarPar( SizeT ix, DLong64& scalar);
   // get i'th parameter
   // throws if not defined (ie. never returns NULL)
   BaseGDL*& GetParDefined(SizeT i); //, const std::string& subName = "");
@@ -581,6 +582,7 @@ public:
   void AssureLongScalarKW( SizeT ix, DLong& scalar);
   // converts parameter 'ix' if necessary and sets 'scalar' 
   void AssureLongScalarPar( SizeT ix, DLong& scalar);
+  void AssureLongScalarPar( SizeT ix, DLong64& scalar);
 
   // same as for Long
   void AssureDoubleScalarKWIfPresent( const std::string& kw, DDouble& scalar);
