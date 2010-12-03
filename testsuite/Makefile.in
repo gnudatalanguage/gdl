@@ -217,8 +217,13 @@ TESTS = \
   test_binfmt.pro \
   test_bug_3033108.pro \
   test_bug_3054361.pro \
+  test_bug_3081887.pro \
+  test_bug_3085858.pro \
   test_bug_3086851.pro \
+  test_bug_3091599.pro \
+  test_bug_3104209.pro \
   test_bug_3104214.pro \
+  test_bug_3104326.pro \
   test_bug_3104349.pro \
   test_ce.pro \
   test_clip.pro \
@@ -246,6 +251,7 @@ TESTS = \
   test_multiroots.pro \
   test_nans_in_sort_and_median.pro \
   test_nestedloop.pro \
+  test_plotting_ranges.pro \
   test_pmulti.pro \
   test_product.pro \
   test_ps_decomposed.pro \
@@ -253,6 +259,7 @@ TESTS = \
   test_rebin.pro \
   test_spher_harm.pro \
   test_spl_init.pro \
+  test_step.pro \
   test_str_functions.pro \
   test_suite.pro \
   test_url.pro \

@@ -295,18 +295,23 @@ void DSubUD::ResolveLabel( ProgNodeP p)
 // 	ResolveLabel( p->getNextSibling());
 }
 
+  // **************************************
   // the final "compilation" takes part here 
+  // **************************************
 void DSubUD::SetTree( RefDNode n)
 {
   //
   // Converter Translation Transcription Rewrite RefDNode ProgNode ProgNodeP
-  //
+  // ***************************************************
   // here the conversion RefDNode -> ProgNode is done
-  //
+  // ***************************************************
   tree = ProgNode::NewProgNode( n);
 
-  nForLoops = ProgNode::NumberForLoops( tree);
-
+  if( tree != NULL)
+    nForLoops = ProgNode::NumberForLoops( tree);
+  else
+	nForLoops = 0;
+  
 #ifdef GDL_DEBUG
       cout << "DSubUD::SetTree:" << endl;
       antlr::print_tree pt;
