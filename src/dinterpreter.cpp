@@ -1040,11 +1040,27 @@ string DInterpreter::GetLine()
   //    stifle_history( edit_input);
   //  }
 
+static string lastAdded;
+  
   // we would not like to add the current command if is "EXIT" !!
-  if ( StrUpCase(line) != "EXIT") {
+  if ( StrUpCase(line) != "EXIT" && line != lastAdded) {
     // const_cast to make it work with older readline versions
-    add_history(const_cast<char*>(line.c_str())); 
+    add_history(const_cast<char*>(line.c_str()));
+
+    lastAdded = line;
   }
+
+/*
+cout << "################ " << history_length << endl;
+for( int h=0;h<history_length; ++h)
+{
+HIST_ENTRY *lH = history_get (h);
+if( lH != NULL)
+	cout << h << ": " << string(lH->line) << endl;
+else
+	cout << h << ": NULL" << endl;
+}
+*/
 #endif
   
   return line;
