@@ -115,6 +115,9 @@ public:
   static ProgNodeP NewProgNode( const RefDNode& refNode);
   static int NumberForLoops( ProgNodeP tree, int offset = 0)
   {
+	if( tree == NULL)
+		return offset;
+		
 	return tree->NumberForLoops( offset);
   }
 

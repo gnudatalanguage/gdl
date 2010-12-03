@@ -307,10 +307,10 @@ void DSubUD::SetTree( RefDNode n)
   // ***************************************************
   tree = ProgNode::NewProgNode( n);
 
-  if( tree != NULL)
+//   if( tree != NULL)
     nForLoops = ProgNode::NumberForLoops( tree);
-  else
-	nForLoops = 0;
+//   else
+// 	nForLoops = 0;
   
 #ifdef GDL_DEBUG
       cout << "DSubUD::SetTree:" << endl;
