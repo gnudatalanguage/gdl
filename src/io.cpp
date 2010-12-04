@@ -418,8 +418,7 @@ void GDLStream::F77ReadEnd()
       char swapTCount[ sizeof( DULong)];
       anyStream->Read( swapTCount, sizeof( DULong));
       for( SizeT i=0; i<sizeof( DULong); ++i)
-	reinterpret_cast<char*>(&tCountRd)[ sizeof( DULong)-1-i] = 
-	  swapTCount[i];
+		reinterpret_cast<char*>(&tCountRd)[ sizeof( DULong)-1-i] = swapTCount[i];
     }
   else
     {
@@ -434,7 +433,7 @@ void GDLStream::F77ReadEnd()
       throw GDLIOException("Error reading F77_UNFORMATTED record data.");
     }  
 
-  if( lastRecord != tCountRd)
+  if( lastRecord !=static_cast<std::streampos>( tCountRd))
     throw GDLIOException( "Logical error in F77_UNFORAMTTED file.");
 
 }
