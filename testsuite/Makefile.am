@@ -19,6 +19,7 @@ TESTS = \
   test_bug_3104349.pro \
   test_ce.pro \
   test_clip.pro \
+  test_common.pro \
   test_constants.pro \
   test_device.pro \
   test_erfinv.pro \
