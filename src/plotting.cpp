@@ -1738,9 +1738,11 @@ namespace lib {
     *xEnd   = (wx[1] - sx[0]) / sx[1];
     *yStart = (wy[0] - sy[0]) / sy[1];
     *yEnd   = (wy[1] - sy[0]) / sy[1];
+    //    cout << *xStart <<" "<< *xEnd << " "<< *yStart <<" "<< *yEnd << ""<< endl;
 
     // patch from Joanna (tracker item no. 3029409, see test_clip.pro)
     if (!clip_by_default) {
+      //      cout << "joanna" << endl;
       DFloat wxlen = wx[1] - wx[0];
       DFloat wylen = wy[1] - wy[0];
       DFloat xlen = *xEnd - *xStart;
@@ -1749,7 +1751,8 @@ namespace lib {
       *xEnd = *xEnd + xlen/wxlen * (1 - wx[1]);
       *yStart = *yStart - ylen/wylen * wy[0];
       *yEnd = *yEnd + ylen/wylen * (1 - wy[1]);
-    }   
+    }  
+    //    cout << *xStart <<" "<< *xEnd << " "<< *yStart <<" "<< *yEnd << ""<< endl;
   }
 
   // PLOTS
@@ -1909,6 +1912,8 @@ namespace lib {
     GetSFromPlotStructs(&sx, &sy);
     GetWFromPlotStructs(&wx, &wy);
 
+    int toto=0;
+
     if(e->KeywordSet("DEVICE")) {
       PLFLT xpix, ypix;
       PLINT xleng, yleng, xoff, yoff;
@@ -1927,6 +1932,7 @@ namespace lib {
       actStream->vpor(0, 1, 0, 1);
       xLog = false; yLog = false;
     } else {
+      toto=1;
       actStream->NoSub();
       if (xLog || yLog) actStream->vpor(wx[0], wx[1], wy[0], wy[1]);
       else actStream->vpor(0, 1, 0, 1); // (to be merged with the condition on DataCoordLimits...)
@@ -1936,7 +1942,8 @@ namespace lib {
     // These are computed from window and scaling axis system
     // variables because map routines change these directly.
     
-    if (e->KeywordSet("NORMAL") || e->KeywordSet("DATA")) {
+    if (e->KeywordSet("DATA") || (toto == 1)) {
+      //    if (e->KeywordSet("NORMAL") || e->KeywordSet("DATA")) {
       DataCoordLimits(sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, xLog || yLog);
     }
 
@@ -2090,6 +2097,8 @@ actStream->wid( 0);
     GetSFromPlotStructs(&sx, &sy);
     GetWFromPlotStructs(&wx, &wy);
 
+    int toto=0;
+
     if(e->KeywordSet("DEVICE")) {
       PLFLT xpix, ypix;
       PLINT xleng, yleng, xoff, yoff;
@@ -2108,6 +2117,7 @@ actStream->wid( 0);
       actStream->vpor(0, 1, 0, 1);
       xLog = false; yLog = false;
     } else {
+      toto=1;
       actStream->NoSub();
       if (xLog || yLog) actStream->vpor(wx[0], wx[1], wy[0], wy[1]);
       else actStream->vpor(0, 1, 0, 1); // (to be merged with the condition on DataCoordLimits...)
@@ -2117,7 +2127,8 @@ actStream->wid( 0);
     // These are computed from window and scaling axis system
     // variables because map routines change these directly.
 
-    if (e->KeywordSet("NORMAL") || e->KeywordSet("DATA")) {
+    //    if (e->KeywordSet("NORMAL") || e->KeywordSet("DATA")) {
+    if (e->KeywordSet("DATA") || (toto == 1)) {
       DataCoordLimits(sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, (xLog || yLog));
     }
 
@@ -2316,6 +2327,8 @@ actStream->wid( 0);
     GetSFromPlotStructs(&sx, &sy);
     GetWFromPlotStructs(&wx, &wy);
 
+    int toto=0;
+
     if(e->KeywordSet("DEVICE")) {
       PLFLT xpix, ypix;
       PLINT xleng, yleng, xoff, yoff;
@@ -2324,6 +2337,7 @@ actStream->wid( 0);
       yStart=0; yEnd=yleng;
       xLog = false; yLog = false;
       actStream->NoSub();
+      actStream->vpor(0, 1, 0, 1);
     } else if(e->KeywordSet("NORMAL")) {
       xStart = 0;
       xEnd   = 1;
@@ -2333,6 +2347,7 @@ actStream->wid( 0);
       actStream->vpor(0, 1, 0, 1);
       xLog = false; yLog = false;
     } else {
+      toto=1;
       actStream->NoSub();
       if (xLog || yLog) actStream->vpor(wx[0], wx[1], wy[0], wy[1]);
       else actStream->vpor(0, 1, 0, 1); // (to be merged with the condition on DataCoordLimits...)
@@ -2341,8 +2356,10 @@ actStream->wid( 0);
     // Determine data coordinate limits
     // These are computed from window and scaling axis system
     // variables because map routines change these directly.
-    DataCoordLimits(sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, false);
-
+    //if (e->KeywordSet("NORMAL") || e->KeywordSet("DATA")) {
+    if (e->KeywordSet("DATA") || (toto == 1)) {
+      DataCoordLimits(sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, false);
+    }
     DDouble minVal = yStart, maxVal = yEnd;
 
     //CLIPPING
