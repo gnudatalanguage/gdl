@@ -779,8 +779,9 @@ namespace lib {
       
     xML = xMarginL * actH / scrX;
     xMR = xMarginR * actH / scrX;
-      
-    const float yCharExtension = 1.5;
+    
+    // factor 1.111 by ACoulais on 16/12/2010. Consequences on CONVERT_COORD
+    const float yCharExtension = 1.5*1.11111;
     yMB = yMarginB * actH / scrY * yCharExtension;
     yMT = yMarginT * actH / scrY * yCharExtension;
     
@@ -1916,6 +1917,7 @@ namespace lib {
       yStart=0; yEnd=yleng;
       xLog = false; yLog = false;
       actStream->NoSub();
+      actStream->vpor(0, 1, 0, 1);
     } else if(e->KeywordSet("NORMAL")) {
       xStart = 0;
       xEnd   = 1;
@@ -1933,7 +1935,10 @@ namespace lib {
     // Determine data coordinate limits (if mapSet is true)
     // These are computed from window and scaling axis system
     // variables because map routines change these directly.
-    DataCoordLimits(sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, xLog || yLog);
+    
+    if (e->KeywordSet("NORMAL") || e->KeywordSet("DATA")) {
+      DataCoordLimits(sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, xLog || yLog);
+    }
 
     minVal=yStart; maxVal=yEnd;
 
@@ -2093,7 +2098,8 @@ actStream->wid( 0);
       yStart=0; yEnd=yleng;
       xLog = false; yLog = false;
       actStream->NoSub();
-    } else if(e->KeywordSet("NORMAL")) {
+      actStream->vpor(0, 1, 0, 1);
+   } else if(e->KeywordSet("NORMAL")) {
       xStart = 0;
       xEnd   = 1;
       yStart = 0;
@@ -2110,7 +2116,10 @@ actStream->wid( 0);
     // Determine data coordinate limits
     // These are computed from window and scaling axis system
     // variables because map routines change these directly.
-    DataCoordLimits(sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, (xLog || yLog));
+
+    if (e->KeywordSet("NORMAL") || e->KeywordSet("DATA")) {
+      DataCoordLimits(sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, (xLog || yLog));
+    }
 
     minVal=yStart; maxVal=yEnd;
 
@@ -5325,7 +5334,7 @@ clevel[nlevel-1]=zEnd; //make this explicit
 	    (*res)[ires++] = pow(10.,((*ptr1) / xv - sx[0]) / sx[1]);
 	  
 	  if (yt == 0)
-	    (*res)[ires++] = ((*ptr2) / yv - sx[0]) / sy[1];
+	    (*res)[ires++] = ((*ptr2) / yv - sy[0]) / sy[1];
 	  else
 	    (*res)[ires++] = pow(10.,((*ptr2) / yv - sy[0]) / sy[1]);
 	  
@@ -5372,7 +5381,7 @@ clevel[nlevel-1]=zEnd; //make this explicit
     static unsigned ytTag = yStruct->Desc()->TagIndex( "TYPE");
     static unsigned ztTag = zStruct->Desc()->TagIndex( "TYPE");
     DLong xt = (*static_cast<DLongGDL*>( xStruct->GetTag( xtTag, 0)))[0];
-    DLong yt = (*static_cast<DLongGDL*>( xStruct->GetTag( ytTag, 0)))[0];
+    DLong yt = (*static_cast<DLongGDL*>( yStruct->GetTag( ytTag, 0)))[0];
 
     DLong xv=1, yv=1;
     int xSize, ySize, xPos, yPos;
