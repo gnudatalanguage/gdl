@@ -8,6 +8,7 @@ TESTS = \
   test_base64.pro \
   test_binfmt.pro \
   test_bug_1779553.pro \
+  test_bug_2555865.pro \
   test_bug_3033108.pro \
   test_bug_3054361.pro \
   test_bug_3081887.pro \
