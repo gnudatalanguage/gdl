@@ -131,7 +131,7 @@ pro BENCH_TEST_MINMAX, nbp=nbp, test=test
 a=RANDOMN(seed,nbp)
 b=a
 ;
-print, 'First column should alway have the same value'
+print, 'First column should always have the same value'
 ;
 t0=SYSTIME(1)
 print, 'result: ', MIN(b), ' CASE: no Nan included', SYSTIME(1)-t0

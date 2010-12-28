@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.7 (20091222): "format.g" -> "FMTLexer.cpp"$ */
+/* $ANTLR 2.7.7 (20101124): "format.g" -> "FMTLexer.cpp"$ */
 
 #include "includefirst.hpp"
 
@@ -344,11 +344,11 @@ void FMTLexer::mSTRING(bool _createToken) {
 				}
 			}
 			else {
-				goto _loop45;
+				goto _loop47;
 			}
 			
 		}
-		_loop45:;
+		_loop47:;
 		} // ( ... )*
 		_saveIndex = text.length();
 		match('\"' /* charlit */ );
@@ -374,11 +374,11 @@ void FMTLexer::mSTRING(bool _createToken) {
 				}
 			}
 			else {
-				goto _loop48;
+				goto _loop50;
 			}
 			
 		}
-		_loop48:;
+		_loop50:;
 		} // ( ... )*
 		_saveIndex = text.length();
 		match('\'' /* charlit */ );
@@ -1286,18 +1286,18 @@ void FMTLexer::mWHITESPACE(bool _createToken) {
 	std::string::size_type _saveIndex;
 	
 	{ // ( ... )+
-	int _cnt118=0;
+	int _cnt120=0;
 	for (;;) {
 		if ((LA(1) == 0x9 /* '\t' */  || LA(1) == 0x20 /* ' ' */ )) {
 			mW(false);
 		}
 		else {
-			if ( _cnt118>=1 ) { goto _loop118; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+			if ( _cnt120>=1 ) { goto _loop120; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 		}
 		
-		_cnt118++;
+		_cnt120++;
 	}
-	_loop118:;
+	_loop120:;
 	}  // ( ... )+
 	_ttype=antlr::Token::SKIP;
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
@@ -1314,18 +1314,18 @@ void FMTLexer::mDIGITS(bool _createToken) {
 	std::string::size_type _saveIndex;
 	
 	{ // ( ... )+
-	int _cnt121=0;
+	int _cnt123=0;
 	for (;;) {
 		if (((LA(1) >= 0x30 /* '0' */  && LA(1) <= 0x39 /* '9' */ ))) {
 			matchRange('0','9');
 		}
 		else {
-			if ( _cnt121>=1 ) { goto _loop121; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+			if ( _cnt123>=1 ) { goto _loop123; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 		}
 		
-		_cnt121++;
+		_cnt123++;
 	}
-	_loop121:;
+	_loop123:;
 	}  // ( ... )+
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1408,7 +1408,7 @@ void FMTLexer::mNUMBER(bool _createToken) {
 		match('H' /* charlit */ );
 		text.erase(_saveIndex);
 		{ // ( ... )+
-		int _cnt128=0;
+		int _cnt130=0;
 		for (;;) {
 			// init action gets executed even in guessing mode
 			if( i == n )
@@ -1419,12 +1419,12 @@ void FMTLexer::mNUMBER(bool _createToken) {
 				mCHAR(false);
 			}
 			else {
-				if ( _cnt128>=1 ) { goto _loop128; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+				if ( _cnt130>=1 ) { goto _loop130; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 			}
 			
-			_cnt128++;
+			_cnt130++;
 		}
-		_loop128:;
+		_loop130:;
 		}  // ( ... )+
 	}
 	else {

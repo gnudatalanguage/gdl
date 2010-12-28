@@ -109,19 +109,20 @@ cformat
 {
     int w = -1;
     int d = -1;
+    char f = ' ';
 }
-    : (w=cnn (CDOT! d=cnn)?)?
+    : (w=cnnf { if (w<0) { w *= -1; f = '0'; } } (CDOT! d=cnn)?)?
         (
-          c:CD { #c->setW( w); #c->setD( d); #c->setType( I);}
-        | e:CE { #e->setW( w); #e->setD( d); #e->setType( E);}
-        | i:CI { #i->setW( w); #i->setD( d); #i->setType( I);}
-        | ff:CF { #ff->setW( w); #ff->setD( d); #ff->setType( F);}
-        | g:CG { #g->setW( w); #g->setD( d); #g->setType( G);}
-        | o:CO { #o->setW( w); #o->setD( d); #o->setType( O);}
-        | b:CB { #b->setW( w); #b->setD( d); #b->setType( B);}
-        | x:CX { #x->setW( w); #x->setD( d); #x->setType( Z);}
-        | z:CZ { #z->setW( w); #z->setD( d); #z->setType( Z);}
-        | s:CS { #s->setW( w); #s->setType( A);}
+           c:CD {  #c->setW( w);  #c->setD( d);  #c->setType( I);  #c->setFill( f); }
+        |  e:CE {  #e->setW( w);  #e->setD( d);  #e->setType( E);  #e->setFill( f); }
+        |  i:CI {  #i->setW( w);  #i->setD( d);  #i->setType( I);  #i->setFill( f); }
+        | ff:CF { #ff->setW( w); #ff->setD( d); #ff->setType( F); #ff->setFill( f); }
+        |  g:CG {  #g->setW( w);  #g->setD( d);  #g->setType( G);  #g->setFill( f); }
+        |  o:CO {  #o->setW( w);  #o->setD( d);  #o->setType( O);  #o->setFill( f); }
+        |  b:CB {  #b->setW( w);  #b->setD( d);  #b->setType( B);  #b->setFill( f); }
+        |  x:CX {  #x->setW( w);  #x->setD( d);  #x->setType( Z);  #x->setFill( f); }
+        |  z:CZ {  #z->setW( w);  #z->setD( d);  #z->setType( Z);  #z->setFill( f); }
+        |  s:CS {  #s->setW( w);  #s->setType( A);}
         )
     ;
 
@@ -131,6 +132,18 @@ cnn! returns[ int n]
         { 
             std::istringstream s(#num->getText());
             s >> n;
+        }
+    ;
+
+// no nodes for cnumbers with zero padding
+cnnf! returns[ int n]
+    : num:CNUMBER 
+        { 
+            std::istringstream s(#num->getText());
+            char c = s.get();
+            s.putback(c);
+            s >> n;
+            if (c == '0') n *= -1;
         }
     ;
 
@@ -204,14 +217,25 @@ nn! returns[ int n]
         }
     ;
 
-// TODO: Zero padding (width starting with 0 (e.g. I=03)
+// no nodes for numbers with zero padding
+nnf! returns[ int n]
+    : num:NUMBER 
+        { 
+            std::istringstream s(#num->getText());
+            char c = s.get();
+            s.putback(c);
+            s >> n;
+            if (c == '0') n *= -1; 
+        }
+    ;
+
 w_d! [ RefFMTNode fNode]
 {
     int n1, n2;
     fNode->setW( -1);
     fNode->setD( -1);
 }
-    : (n1=nn { fNode->setW( n1);} (DOT n2=nn { fNode->setD( n2);} )?)?
+    : (n1=nnf { if (n1<0) { n1 *= -1; fNode->setFill('0'); } fNode->setW( n1);} (DOT n2=nn { fNode->setD( n2);} )?)?
     ;
 
 w_d_e! [ RefFMTNode fNode]

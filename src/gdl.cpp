@@ -208,7 +208,7 @@ int main(int argc, char *argv[])
   if( gdlPath == "") gdlPath=GetEnvString("IDL_PATH");
   if( gdlPath == "")
     {
-      gdlPath = GDLDATADIR "/lib:" GDLDATADIR "/lib/dicom";
+      gdlPath = "+" GDLDATADIR "/lib";
       if (isatty(0) && !quiet) cerr <<
         "- Default library routine search path used (GDL_PATH/IDL_PATH env. var. not set): " << endl << 
         "  " << gdlPath << endl;

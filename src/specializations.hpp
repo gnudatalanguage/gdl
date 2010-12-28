@@ -499,34 +499,34 @@ OFmtA( std::ostream* os, SizeT offs, SizeT r, int w);
 template<>  SizeT Data_<SpDComplexDbl>::
 OFmtA( std::ostream* os, SizeT offs, SizeT r, int w); 
 template<>  SizeT Data_<SpDDouble>::
-OFmtF( std::ostream* os, SizeT offs, SizeT r, int w, int d, 
+OFmtF( std::ostream* os, SizeT offs, SizeT r, int w, int d, char f,
        BaseGDL::IOMode oMode); 
 template<>  SizeT Data_<SpDFloat>::
-OFmtF( std::ostream* os, SizeT offs, SizeT r, int w, int d, 
+OFmtF( std::ostream* os, SizeT offs, SizeT r, int w, int d, char f,
        BaseGDL::IOMode oMode); 
 template<>  SizeT Data_<SpDComplex>::
-OFmtF( std::ostream* os, SizeT offs, SizeT r, int w, int d, 
+OFmtF( std::ostream* os, SizeT offs, SizeT r, int w, int d, char f,
        BaseGDL::IOMode oMode); 
 template<>  SizeT Data_<SpDComplexDbl>::
-OFmtF( std::ostream* os, SizeT offs, SizeT r, int w, int d, 
+OFmtF( std::ostream* os, SizeT offs, SizeT r, int w, int d, char f,
        BaseGDL::IOMode oMode); 
 template<>  SizeT Data_<SpDLong>::
-OFmtI( std::ostream* os, SizeT offs, SizeT r, int w, int d, 
+OFmtI( std::ostream* os, SizeT offs, SizeT r, int w, int d, char f,
        BaseGDL::IOMode oMode); 
 template<>  SizeT Data_<SpDULong>::
-OFmtI( std::ostream* os, SizeT offs, SizeT r, int w, int d, 
+OFmtI( std::ostream* os, SizeT offs, SizeT r, int w, int d, char f,
        BaseGDL::IOMode oMode); 
 template<>  SizeT Data_<SpDLong64>::
-OFmtI( std::ostream* os, SizeT offs, SizeT r, int w, int d, 
+OFmtI( std::ostream* os, SizeT offs, SizeT r, int w, int d, char f,
        BaseGDL::IOMode oMode); 
 template<>  SizeT Data_<SpDULong64>::
-OFmtI( std::ostream* os, SizeT offs, SizeT r, int w, int d, 
+OFmtI( std::ostream* os, SizeT offs, SizeT r, int w, int d, char f,
        BaseGDL::IOMode oMode); 
 template<>  SizeT Data_<SpDComplex>::
-OFmtI( std::ostream* os, SizeT offs, SizeT r, int w, int d, 
+OFmtI( std::ostream* os, SizeT offs, SizeT r, int w, int d, char f,
        BaseGDL::IOMode oMode); 
 template<>  SizeT Data_<SpDComplexDbl>::
-OFmtI( std::ostream* os, SizeT offs, SizeT r, int w, int d, 
+OFmtI( std::ostream* os, SizeT offs, SizeT r, int w, int d, char f,
        BaseGDL::IOMode oMode); 
 
 

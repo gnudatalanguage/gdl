@@ -15,5 +15,5 @@
 # a quick & dirty way of making the "checks" script work
 test "x$2" = "x./checks" && exit
 
-IDL_PATH="" IDL_STARTUP="" GDL_STARTUP="" GDL_PATH=$1/src/pro:$1/testsuite \
+IDL_PATH="" IDL_STARTUP="" GDL_STARTUP="" GDL_PATH=+$1/src/pro:$1/testsuite \
   $1/src/gdl -quiet -e `echo $2 | cut -d/ -f2 | cut -d. -f1`

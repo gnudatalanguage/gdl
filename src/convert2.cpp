@@ -34,7 +34,7 @@ using namespace std;
 inline string double2string( DDouble d)      
 {
   std::ostringstream os;
-  OutAuto( os, d, 16, 8);
+  OutAuto( os, d, 16, 8, ' ');
   return os.str();
 }
 
@@ -42,7 +42,7 @@ inline string double2string( DDouble d)
 inline string float2string( DFloat f)      
 {
   std::ostringstream os;
-  OutAuto( os, f, 13, 6);
+  OutAuto( os, f, 13, 6, ' ');
   return os.str();
 }
 

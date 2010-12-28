@@ -876,6 +876,7 @@ ostream& Data_<SpDFloat>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 {
   const int prec = 6;
   const int width = 13;
+  const char fill = ' ';
 
   SizeT nElem=N_Elements();
   if( nElem == 0)
@@ -886,7 +887,7 @@ ostream& Data_<SpDFloat>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   if( this->dim.Rank() == 0)
     {
       o << CheckNL( w, actPosPtr, width); 
-      OutAuto( o, (*this)[0], width, prec);
+      OutAuto( o, (*this)[0], width, prec, fill);
       return o;
     }
 
@@ -905,7 +906,7 @@ ostream& Data_<SpDFloat>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 	  for( SizeT i0=0; i0<d0; i0++)
 	    {
 	      o << CheckNL( w, actPosPtr, width);
-	      OutAuto( o, (*this)[eIx++], width, prec);
+	      OutAuto( o, (*this)[eIx++], width, prec, fill);
 	    }
 	  InsNL( o, actPosPtr);
 	}
@@ -918,7 +919,7 @@ ostream& Data_<SpDFloat>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
       for( SizeT i0=0; i0<d0; i0++)
 	{
 	  o << CheckNL( w, actPosPtr, width); 
-	  OutAuto( o, (*this)[eIx++], width, prec);
+	  OutAuto( o, (*this)[eIx++], width, prec, fill);
 	}
       //      if( (i1+1) < d1) InsNL( o, actPosPtr);
       InsNL( o, actPosPtr);
@@ -931,6 +932,7 @@ ostream& Data_<SpDDouble>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 {
   const int prec = 8;
   const int width = 16;
+  const char fill = ' ';
 
   SizeT nElem=N_Elements();
   if( nElem == 0)
@@ -941,7 +943,7 @@ ostream& Data_<SpDDouble>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   if( this->dim.Rank() == 0)
     {
       o << CheckNL( w, actPosPtr, width); 
-      OutAuto( o, (*this)[0], width, prec);
+      OutAuto( o, (*this)[0], width, prec, fill);
       return o;
     }
 
@@ -960,7 +962,7 @@ ostream& Data_<SpDDouble>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 	  for( SizeT i0=0; i0<d0; i0++)
 	    {
 	      o << CheckNL( w, actPosPtr, width); 
-	      OutAuto( o, (*this)[eIx++], width, prec);
+	      OutAuto( o, (*this)[eIx++], width, prec, fill);
 	    }
 	  InsNL( o, actPosPtr);
 	}
@@ -973,7 +975,7 @@ ostream& Data_<SpDDouble>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
       for( SizeT i0=0; i0<d0; i0++)
 	{
 	  o << CheckNL( w, actPosPtr, width); 
-	  OutAuto( o, (*this)[eIx++], width, prec);
+	  OutAuto( o, (*this)[eIx++], width, prec, fill);
 	}
       //      if( (i1+1) < d1) InsNL( o, actPosPtr);
       InsNL( o, actPosPtr);
@@ -986,6 +988,7 @@ ostream& Data_<SpDComplex>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 {
   const int prec = 6;
   const int width = 13;
+  const char fill = ' ';
 
   SizeT nElem=N_Elements();
   if( nElem == 0)
@@ -995,7 +998,7 @@ ostream& Data_<SpDComplex>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 
   if( this->dim.Rank() == 0)
     {
-      o << CheckNL( w, actPosPtr, 2*width+3) << AsComplex< DComplex>( (*this)[0], width, prec);
+      o << CheckNL( w, actPosPtr, 2*width+3) << AsComplex< DComplex>( (*this)[0], width, prec, fill);
       return o;
     }
 
@@ -1012,7 +1015,7 @@ ostream& Data_<SpDComplex>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
       for( SizeT i1=0; i1<d1; i1++)
 	{
 	  for( SizeT i0=0; i0<d0; i0++)
-	    o << CheckNL( w, actPosPtr, 2*width+3) << AsComplex< DComplex>( (*this)[eIx++], width, prec);
+	    o << CheckNL( w, actPosPtr, 2*width+3) << AsComplex< DComplex>( (*this)[eIx++], width, prec, fill);
 	  InsNL( o, actPosPtr);
 	}
       InsNL( o, actPosPtr);
@@ -1022,7 +1025,7 @@ ostream& Data_<SpDComplex>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   for( SizeT i1=0; i1<d1; i1++)
     {
       for( SizeT i0=0; i0<d0; i0++)
-	o << CheckNL( w, actPosPtr, 2*width+3) << AsComplex< DComplex>( (*this)[eIx++], width, prec);
+	o << CheckNL( w, actPosPtr, 2*width+3) << AsComplex< DComplex>( (*this)[eIx++], width, prec, fill);
       //      if( (i1+1) < d1) InsNL( o, actPosPtr);
       InsNL( o, actPosPtr);
     }
@@ -1033,6 +1036,7 @@ ostream& Data_<SpDComplexDbl>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 {
   const int prec = 8;
   const int width = 16;
+  const char fill = ' ';
 
   SizeT nElem=N_Elements();
   if( nElem == 0)
@@ -1042,7 +1046,7 @@ ostream& Data_<SpDComplexDbl>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 
   if( this->dim.Rank() == 0)
     {
-      o << CheckNL( w, actPosPtr, 2*width+3) << AsComplex< DComplexDbl>( (*this)[0], width, prec);
+      o << CheckNL( w, actPosPtr, 2*width+3) << AsComplex< DComplexDbl>( (*this)[0], width, prec, fill);
       return o;
     }
 
@@ -1059,7 +1063,7 @@ ostream& Data_<SpDComplexDbl>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
       for( SizeT i1=0; i1<d1; i1++)
 	{
 	  for( SizeT i0=0; i0<d0; i0++)
-	    o << CheckNL( w, actPosPtr, 2*width+3) << AsComplex< DComplexDbl>( (*this)[eIx++], width, prec);
+	    o << CheckNL( w, actPosPtr, 2*width+3) << AsComplex< DComplexDbl>( (*this)[eIx++], width, prec, fill);
 	  InsNL( o, actPosPtr);
 	}
       InsNL( o, actPosPtr);
@@ -1069,7 +1073,7 @@ ostream& Data_<SpDComplexDbl>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   for( SizeT i1=0; i1<d1; i1++)
     {
       for( SizeT i0=0; i0<d0; i0++)
-	o << CheckNL( w, actPosPtr, 2*width+3) << AsComplex< DComplexDbl>( (*this)[eIx++], width, prec);
+	o << CheckNL( w, actPosPtr, 2*width+3) << AsComplex< DComplexDbl>( (*this)[eIx++], width, prec, fill);
       //      if( (i1+1) < d1) InsNL( o, actPosPtr);
       InsNL( o, actPosPtr);
     }

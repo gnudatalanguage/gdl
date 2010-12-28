@@ -605,9 +605,9 @@ public:
   
   SizeT OFmtA( std::ostream* os, SizeT offset, SizeT num, int width); 
   SizeT OFmtF( std::ostream* os, SizeT offs, SizeT num, int width, 
-		int prec, BaseGDL::IOMode oM = FIXED);
+		int prec, char fill, BaseGDL::IOMode oM = FIXED);
   SizeT OFmtI( std::ostream* os, SizeT offs, SizeT num, int width, 
-		int minN, BaseGDL::IOMode oM = DEC);
+		int minN, char fill, BaseGDL::IOMode oM = DEC);
   
   SizeT IFmtA( std::istream* is, SizeT offset, SizeT num, int width); 
   SizeT IFmtF( std::istream* is, SizeT offs, SizeT num, int width); 

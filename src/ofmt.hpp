@@ -37,9 +37,10 @@ public: // MSC cannot handle friend template specialization properly
   T   flt;
   int width;
   int prec;
+  char fill;
 
 public:
-  AsComplex( const T f, const int w, const int p): flt( f), width( w), prec( p) 
+  AsComplex( const T f, const int w, const int p, const char fill): flt( f), width( w), prec( p), fill( fill) 
   {}
 
   template< typename T2> 
@@ -50,9 +51,9 @@ template <typename T>
 std::ostream& operator<<(std::ostream& os, const AsComplex<T>& a) 
 {
   os << "(";
-  OutAuto( os, a.flt.real(), a.width, a.prec);
+  OutAuto( os, a.flt.real(), a.width, a.prec, a.fill);
   os << ",";
-  OutAuto( os, a.flt.imag(), a.width, a.prec);
+  OutAuto( os, a.flt.imag(), a.width, a.prec, a.fill);
   os << ")";
   return os;
 }
@@ -85,30 +86,39 @@ inline void OutStars( std::ostream& os, int n)
 }
 
 template <typename T>
-inline void OutFixedZero( std::ostream& os, int w, int d)
+inline void OutFixedZero( std::ostream& os, int w, int d, char f)
 {
   if( w == 1) 
     os << "*";
   else if( d >= w)
     OutStars( os, w);
   else if( d == 1) 
-    os << std::setw( w) << "0.";
+    os << std::setw( w) << std::setfill(f) << "0.";
   else 
     {
-      os << std::setw( w-(d<=0?1:d)+1) << "0.";
+      os << std::setw( w-(d<=0?1:d)+1) << std::setfill(f) << "0.";
       for( int i=1; i<d; ++i) os << "0";
     }
 }
 
+inline void OutFixFill(std::ostream& os, std::string str, int w, char f)
+{
+  os << std::setfill(f);
+  if (f == '0' && str.substr(0, 1) == "-") // preventing "00-1.00"
+    os << "-" << std::setw(w - 1) << str.substr(1);
+  else
+    os << std::setw(w) << str;
+}
+
 template <typename T>
-void OutFixed( std::ostream& os, T val, int w, int d)
+void OutFixed( std::ostream& os, T val, int w, int d, char f)
 {
   if( val == T(0.0)) // handle 0.0
     {
       if( w == 0)
 	os << "0.000000";
       else
-	OutFixedZero<T>( os, w, d+1);
+	OutFixedZero<T>( os, w, d+1, f);
     return;
     }
   std::ostringstream oss;
@@ -118,42 +128,43 @@ void OutFixed( std::ostream& os, T val, int w, int d)
   else if( oss.tellp() > w)
     OutStars( os, w);
   else
-    os << std::setw( w) << oss.str();
+    OutFixFill(os, oss.str(), w, f);
 }
 
 template <>
-void OutFixed<DComplex>( std::ostream& os, DComplex val, int w, int d);
+void OutFixed<DComplex>( std::ostream& os, DComplex val, int w, int d, char f);
 template <>
-void OutFixed<DComplexDbl>( std::ostream& os, DComplexDbl val, int w, int d);
+void OutFixed<DComplexDbl>( std::ostream& os, DComplexDbl val, int w, int d, char f);
 
 
 template <typename T>
-void OutScientific( std::ostream& os, T val, int w, int d)
+void OutScientific( std::ostream& os, T val, int w, int d, char f)
 {
-  std::ostringstream oss;
-  oss << std::scientific << std::setprecision(d) << val;
+  std::ostringstream oss; 
+  // TODO: IDL handles both lower and upper case "E" (tracker item no. 3147155)
+  oss << std::scientific << std::uppercase << std::setprecision(d) << val; 
   if( w == 0)
     os << oss.str();
   else if( oss.tellp() > w)
     OutStars( os, w);
   else
-    os << std::setw( w) << oss.str();
+    OutFixFill(os, oss.str(), w, f);
 }
 
 template <>
-void OutScientific<DComplex>( std::ostream& os, DComplex val, int w, int d);
+void OutScientific<DComplex>( std::ostream& os, DComplex val, int w, int d, char f);
 template <>
-void OutScientific<DComplexDbl>( std::ostream& os, DComplexDbl val, int w, int d);
+void OutScientific<DComplexDbl>( std::ostream& os, DComplexDbl val, int w, int d, char f);
 
 template <typename T>
-void OutAuto( std::ostream& os, T val, int w, int d)
+void OutAuto( std::ostream& os, T val, int w, int d, char f)
 {
   if( val == T(0.0)) // handle 0.0
     {
       if( w == 0)
 	os << "0";
       else
-	OutFixedZero<T>( os, w, d);
+	OutFixedZero<T>( os, w, d, f); 
     return;
     }
 
@@ -185,19 +196,19 @@ void OutAuto( std::ostream& os, T val, int w, int d)
     else if( ossS.tellp() > w)
       OutStars( os, w);
     else
-      os << std::setw( w) << ossS.str();
+      OutFixFill(os, ossS.str(), w, f);
   else
     if( w == 0)
       os << ossF.str();
     else if( ossF.tellp() > w)
       OutStars( os, w);
     else
-      os << std::setw( w) << ossF.str();
+      OutFixFill(os, ossF.str(), w, f);
 }
 
 template <>
-void OutAuto<DComplex>( std::ostream& os, DComplex val, int w, int d);
+void OutAuto<DComplex>( std::ostream& os, DComplex val, int w, int d, char f);
 template <>
-void OutAuto<DComplexDbl>( std::ostream& os, DComplexDbl val, int w, int d);
+void OutAuto<DComplexDbl>( std::ostream& os, DComplexDbl val, int w, int d, char f);
 
 #endif

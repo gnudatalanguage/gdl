@@ -7,6 +7,7 @@ TESTS = \
   test_angles.pro \
   test_base64.pro \
   test_binfmt.pro \
+  test_bug_1779553.pro \
   test_bug_3033108.pro \
   test_bug_3054361.pro \
   test_bug_3081887.pro \
@@ -17,11 +18,14 @@ TESTS = \
   test_bug_3104214.pro \
   test_bug_3104326.pro \
   test_bug_3104349.pro \
+  test_bug_3147146.pro \
   test_ce.pro \
   test_clip.pro \
   test_common.pro \
   test_constants.pro \
+  test_deriv.pro \
   test_device.pro \
+  test_dicom.pro \
   test_erfinv.pro \
   test_execute.pro \
   test_fft.pro \
@@ -35,6 +39,7 @@ TESTS = \
   test_fixprint.pro \
   test_gc.pro \
   test_get_screen_size.pro \
+  test_grib.pro \
   test_hist_2d.pro \
   test_idl8.pro \
   test_interpol.pro \
@@ -50,10 +55,12 @@ TESTS = \
   test_ps_decomposed.pro \
   test_readf.pro \
   test_rebin.pro \
+  test_rk4.pro \
   test_spher_harm.pro \
   test_spl_init.pro \
   test_step.pro \
   test_str_functions.pro \
+  test_strsplit.pro \
   test_suite.pro \
   test_url.pro \
   test_wavelet.pro \

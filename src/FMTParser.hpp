@@ -2,7 +2,7 @@
 #define INC_FMTParser_hpp_
 
 #include <antlr/config.hpp>
-/* $ANTLR 2.7.7 (20091222): "format.g" -> "FMTParser.hpp"$ */
+/* $ANTLR 2.7.7 (20101124): "format.g" -> "FMTParser.hpp"$ */
 #include <antlr/TokenStream.hpp>
 #include <antlr/TokenBuffer.hpp>
 #include "FMTTokenTypes.hpp"
@@ -59,6 +59,7 @@ public:
 	public: void cstring();
 	public:  int  nn();
 	public: void cformat();
+	public:  int  cnnf();
 	public:  int  cnn();
 	public: void rep_fmt(
 		 int repeat
@@ -71,6 +72,7 @@ public:
 	);
 	public: void csub();
 	public: void csubcode();
+	public:  int  nnf();
 public:
 	antlr::RefAST getAST()
 	{

@@ -372,12 +372,12 @@ static	void operator delete( void *ptr);
     throw GDLException("File expression not allowed in this context.");
   }
   SizeT OFmtF( std::ostream* os, SizeT offs, SizeT num, int width, 
-		int prec, BaseGDL::IOMode oM = BaseGDL::FIXED)
+		int prec, char fill, BaseGDL::IOMode oM = BaseGDL::FIXED)
   {
     throw GDLException("File expression not allowed in this context.");
   }
   SizeT OFmtI( std::ostream* os, SizeT offs, SizeT num, int width, 
-		int minN, BaseGDL::IOMode oM = BaseGDL::DEC)
+		int minN, char fill, BaseGDL::IOMode oM = BaseGDL::DEC)
   {
     throw GDLException("File expression not allowed in this context.");
   }

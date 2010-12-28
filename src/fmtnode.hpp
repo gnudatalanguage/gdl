@@ -36,12 +36,12 @@ public:
 
   ~FMTNode();
 
-  FMTNode(): CommonAST(), down(), right(), w(-1), d(-1), rep(1)
+  FMTNode(): CommonAST(), down(), right(), w(-1), d(-1), rep(1), fill(' ')
   {
   }
 
   FMTNode( antlr::RefToken t) : 
-    CommonAST(t), down(), right(), w(-1), d(-1), rep(1)
+    CommonAST(t), down(), right(), w(-1), d(-1), rep(1), fill(' ')
   {
   }
 
@@ -123,6 +123,14 @@ public:
   {
     return rep;
   }
+  void setFill( const char fill_)
+  {
+    fill=fill_;
+  }
+  char getFill()
+  {
+    return fill;
+  }
   
 private:
   RefFMTNode down;
@@ -132,6 +140,7 @@ private:
   int d;
 
   int rep;
+  char fill; // fill (for zero padding)
 
 // private:
 

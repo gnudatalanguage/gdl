@@ -344,9 +344,9 @@ static	void operator delete( void *ptr);
   
   SizeT OFmtA( std::ostream* os, SizeT offset, SizeT num, int width);
   SizeT OFmtF( std::ostream* os, SizeT offs, SizeT num, int width, 
-		int prec, BaseGDL::IOMode oM = BaseGDL::FIXED);
+		int prec, char fill, BaseGDL::IOMode oM = BaseGDL::FIXED);
   SizeT OFmtI( std::ostream* os, SizeT offs, SizeT num, int width, 
-		int minN, BaseGDL::IOMode oM = BaseGDL::DEC);
+		int minN, char fill, BaseGDL::IOMode oM = BaseGDL::DEC);
 
   // formatting input functions
   SizeT IFmtA( std::istream* is, SizeT offset, SizeT num, int width); 

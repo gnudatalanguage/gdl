@@ -482,28 +482,34 @@ end
 ; ------------------------------------------------------------
 ; General description
 ;
-pro TEST_RK4
-print, ' This test suite is based on RK4 tests on Nose-Hoover equations'
-print, ' We use with permission a code initially written by S. Arabas.'
-print, ' '
-print, 'The equation it-self is coded in "Functionnal" and in "Procedural" ways'
-print, '(EQSYS_FUN and EQSYS_PRO). A general wrapper (RK4_PRO) is provided for'
-print, 'calling RK4 when the code of the derivative is in Procedural form.'
-print, ''
-print, ' You can call:'
-print, '  -- NOSE_HOOVER : just basic test (3 methods inside)'
-print, '  -- NOSE_HOOVER_STABILITY_CHECK : is a couple of parameters stable with Dt ?'
-print, '  -- EXPLORE_NOSE_HOOVER: reproducing the 4 examples in Arabas'' demo'
-print, '                          or giving other inputs parameters'
-print, '  -- COMPARE_RK4_METHODS: does differents ways to code and call RK4'
-print, '                          give the same outputs ?'
-print, ' '
-print, 'Calling sequences:'
-print, ' '
-NOSE_HOOVER, /help
-NOSE_HOOVER_STABILITY_CHECK, /help
-COMPARE_RK4_METHODS, /help
-EXPLORE_NOSE_HOOVER, /help
-;
+pro TEST_RK4, help=help
+
+  if keyword_set(help) then begin
+    print, ' This test suite is based on RK4 tests on Nose-Hoover equations'
+    print, ' We use with permission a code initially written by S. Arabas.'
+    print, ' '
+    print, 'The equation it-self is coded in "Functionnal" and in "Procedural" ways'
+    print, '(EQSYS_FUN and EQSYS_PRO). A general wrapper (RK4_PRO) is provided for'
+    print, 'calling RK4 when the code of the derivative is in Procedural form.'
+    print, ''
+    print, ' You can call:'
+    print, '  -- NOSE_HOOVER : just basic test (3 methods inside)'
+    print, '  -- NOSE_HOOVER_STABILITY_CHECK : is a couple of parameters stable with Dt ?'
+    print, '  -- EXPLORE_NOSE_HOOVER: reproducing the 4 examples in Arabas'' demo'
+    print, '                          or giving other inputs parameters'
+    print, '  -- COMPARE_RK4_METHODS: does differents ways to code and call RK4'
+    print, '                          give the same outputs ?'
+    print, ' '
+    print, 'Calling sequences:'
+    print, ' '
+    NOSE_HOOVER, /help
+    NOSE_HOOVER_STABILITY_CHECK, /help
+    COMPARE_RK4_METHODS, /help
+    EXPLORE_NOSE_HOOVER, /help
+  endif
+
+  ; doing it as a port of "make check":
+  compare_rk4_methods, /nodisplay
+
 end
 

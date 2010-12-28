@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.7 (20091222): "format.out.g" -> "FMTOut.cpp"$ */
+/* $ANTLR 2.7.7 (20101124): "format.out.g" -> "FMTOut.cpp"$ */
 
 #include "includefirst.hpp"
 
@@ -253,8 +253,9 @@ void FMTOut::f(RefFMTNode _t) {
 		int r = ff->getRep();
 		int w = ff->getW();
 		int d = ff->getD();
+		char f = ff->getFill();
 		do {
-		SizeT tCount = actPar->OFmtF( os, valIx, r, w, d);
+		SizeT tCount = actPar->OFmtF( os, valIx, r, w, d, f);
 		r -= tCount;
 		NextVal( tCount);
 		if( actPar == NULL) break;
@@ -273,8 +274,9 @@ void FMTOut::f(RefFMTNode _t) {
 		int r = ee->getRep();
 		int w = ee->getW();
 		int d = ee->getD();
+		char f = ee->getFill();
 		do {
-		SizeT tCount = actPar->OFmtF( os, valIx, r, w, d, 
+		SizeT tCount = actPar->OFmtF( os, valIx, r, w, d, f,
 		BaseGDL::SCIENTIFIC);
 		r -= tCount;
 		NextVal( tCount);
@@ -294,8 +296,9 @@ void FMTOut::f(RefFMTNode _t) {
 		int r = g->getRep();
 		int w = g->getW();
 		int d = g->getD();
+		int f = g->getFill();
 		do {
-		SizeT tCount = actPar->OFmtF( os, valIx, r, w, d, 
+		SizeT tCount = actPar->OFmtF( os, valIx, r, w, d, f,
 		BaseGDL::AUTO);
 		r -= tCount;
 		NextVal( tCount);
@@ -315,8 +318,9 @@ void FMTOut::f(RefFMTNode _t) {
 		int r = i->getRep();
 		int w = i->getW();
 		int d = i->getD();
+		int f = i->getFill();
 		do {
-		SizeT tCount = actPar->OFmtI( os, valIx, r, w, d, 
+		SizeT tCount = actPar->OFmtI( os, valIx, r, w, d, f,
 		BaseGDL::DEC);
 		r -= tCount;
 		NextVal( tCount);
@@ -336,8 +340,9 @@ void FMTOut::f(RefFMTNode _t) {
 		int r = o->getRep();
 		int w = o->getW();
 		int d = o->getD();
+		int f = o->getFill();
 		do {
-		SizeT tCount = actPar->OFmtI( os, valIx, r, w, d, 
+		SizeT tCount = actPar->OFmtI( os, valIx, r, w, d, f,
 		BaseGDL::OCT);
 		r -= tCount;
 		NextVal( tCount);
@@ -357,8 +362,9 @@ void FMTOut::f(RefFMTNode _t) {
 		int r = b->getRep();
 		int w = b->getW();
 		int d = b->getD();
+		int f = b->getFill();
 		do {
-		SizeT tCount = actPar->OFmtI( os, valIx, r, w, d, 
+		SizeT tCount = actPar->OFmtI( os, valIx, r, w, d, f,
 		BaseGDL::BIN);
 		r -= tCount;
 		NextVal( tCount);
@@ -378,8 +384,9 @@ void FMTOut::f(RefFMTNode _t) {
 		int r = z->getRep();
 		int w = z->getW();
 		int d = z->getD();
+		int f = z->getFill();
 		do {
-		SizeT tCount = actPar->OFmtI( os, valIx, r, w, d, 
+		SizeT tCount = actPar->OFmtI( os, valIx, r, w, d, f,
 		BaseGDL::HEX);
 		r -= tCount;
 		NextVal( tCount);
@@ -399,8 +406,9 @@ void FMTOut::f(RefFMTNode _t) {
 		int r = zz->getRep();
 		int w = zz->getW();
 		int d = zz->getD();
+		int f = zz->getFill();
 		do {
-		SizeT tCount = actPar->OFmtI( os, valIx, r, w, d, 
+		SizeT tCount = actPar->OFmtI( os, valIx, r, w, d, f,
 		BaseGDL::HEXL);
 		r -= tCount;
 		NextVal( tCount);
