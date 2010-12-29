@@ -6190,6 +6190,9 @@ BaseGDL* transpose( EnvT* e)
   //     defined and filled with data (pointers) in gdl.cpp
   BaseGDL* command_line_args_fun(EnvT* e)
   {
+#ifdef PYTHON_MODULE
+    e->Throw("no command line arguments available (GDL built as a Python module)");
+#else
     static int countIx = e->KeywordIx("COUNT");
     extern std::vector<char*> command_line_args; 
 
@@ -6209,6 +6212,7 @@ BaseGDL* transpose( EnvT* e)
         (*static_cast<DStringGDL*>(ret))[i] = command_line_args[i];
       return ret;
     }
+#endif
   }
 
   // SA: relies in the uname() from libc (must be there if POSIX)
