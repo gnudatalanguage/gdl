@@ -938,14 +938,16 @@ dnl == OS-/architecture-dependant options ==================
 dnl ========================================================
 
 DARWIN="no"
+case "${host}" in
+  *darwin*)
+    DARWIN="yes"
+esac
 
 dnl check for specific architecture
 case "${host}" in
   powerpc-*-darwin* )
     dnl PowerPC Darwin based distributions (including Mac OS X)
     LDFLAGS="$LDFLAGS -bind_at_load"
-    DARWIN="yes"
-    dnl   LDFLAGS="$LDFLAGS"
     ;;
 
   powerpc*-*-linux* )
