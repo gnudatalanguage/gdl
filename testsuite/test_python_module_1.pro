@@ -8,8 +8,13 @@ pro test_python_module_1
     exit, status=77
   endif
 
-  spawn, (!VERSION.OS_NAME eq 'Darwin' ? "otool -L" : "ldd") + ' GDL.so | grep Python | cut -d'' '' -f1', python
-  python = file_dirname(strtrim(python, 2)) + '/bin/python'
+  if !VERSION.OS_NAME eq 'Darwin' then begin
+    spawn, 'otool -L GDL.so | grep Python | cut -d'' '' -f1', python
+    python = file_dirname(strtrim(python, 2)) + '/bin/python'
+  endif else begin
+    spawn, 'ldd GDL.so | grep python | cut -d'' '' -f3', python
+    python = file_dirname(strtrim(python, 2)) + '/../bin/python' ; TODO python2.X
+  endelse
 
   if ~file_test(python) then begin
     message, /conti, python + ' not found'
@@ -31,8 +36,8 @@ pro test_python_module_1
   ; testing GDL.function
   spawn, 'echo "import GDL; print GDL.function(\"sin\", 1)" | ' + python, out, exit_status=ex
   if ex ne 0 then exit, status=1
-  if strpos(out[0], '0.841470956802') eq -1 then begin
-    message, /cont, 'sin(1) != 0.841470956802 (GDL.function failed?)'
+  if strpos(out[0], '0.841') eq -1 then begin
+    message, /cont, 'sin(1) != 0.841... (GDL.function failed?)'
     exit, status=1
   endif
 

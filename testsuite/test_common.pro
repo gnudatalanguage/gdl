@@ -25,3 +25,6 @@ function TEST_FUN_COMMON
 common c_fun, aa
 y=2
 end
+; just to avoid an error message
+pro test_common
+end
