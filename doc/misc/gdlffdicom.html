@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<!DOCTYPE html PUBLIC "-//ABISOURCE//DTD XHTML plus AWML 2.2//EN" "http://www.abisource.com/2004/xhtml-awml/xhtml-awml.mod">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:awml="http://www.abisource.com/2004/xhtml-awml/">
+ <head>
+  <!-- ======================================================= -->
+  <!-- Created by AbiWord, a free, Open Source wordprocessor.  -->
+  <!-- For more information visit http://www.abisource.com.    -->
+  <!-- ======================================================= -->
+  <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
+  <title>gdlffdicom.html</title>
+  <style type="text/css">
+   <!--
+@media print {
+	body {
+		padding-top:1in;
+		padding-bottom:1in;
+		padding-left:1in;
+		padding-right:1in;
+	}
+}
+body {
+	text-indent:0in;
+	text-align:left;
+	font-weight:normal;
+	text-decoration:none;
+	font-variant:normal;
+	color:#000000;
+	font-size:12pt;
+	font-style:normal;
+	widows:2;
+	font-family:'Times New Roman';
+}
+table {
+}
+td {
+	border-collapse:collapse;
+	text-align:left;
+	vertical-align:top;
+}
+p, h1, h2, h3, li {
+	color:#000000;
+	font-family:'Times New Roman';
+	font-size:12pt;
+	text-align:left;
+	vertical-align:normal;
+}
+h1 {
+	font-family:'Bitstream Vera Sans';
+	font-size:17pt;
+	font-weight:bold;
+	margin-bottom:0.0417in;
+	margin-top:0.3056in;
+}
+h2 {
+	font-family:'Bitstream Vera Sans';
+	font-size:14pt;
+	font-weight:bold;
+	margin-bottom:0.0417in;
+	margin-top:0.3056in;
+}
+     -->
+  </style>
+ </head>
+ <body>
+  <div>
+   <h1>GDLffDICOM</h1>
+   <p></p>
+   <p>GDLffDICOM is an adaptation of IDLffDICOM to achieve several outcomes.</p>
+   <ul>
+    <li><span xml:lang="en-US" lang="en-US">	Better runtime error handling</span></li>
+    <li><span xml:lang="en-US" lang="en-US">	Ability to read a broader range of DICOM files</span></li>
+    <li><span xml:lang="en-US" lang="en-US">	Limited ability to write DICOM files</span></li>
+    <li><span xml:lang="en-US" lang="en-US">	Drop in replacement of IDLffDICOM</span></li>
+   </ul>
+   <p style="margin-left:0.5000in"></p>
+   <h2>Better runtime handling</h2>
+   <p></p>
+   <p><span xml:lang="en-US" lang="en-US">GDLffDICOM is written completely in IDL. Whilst this decreases performance, it also ensures that all runtime errors are not fatal and can be captured. This is advantageous over IDLffDICOM, which is written in C/C++ and can cause IDL to terminate abnormally if an error is encountered.</span></p>
+   <p></p>
+   <h2>Ability to read a broader range of DICOM files</h2>
+   <p></p>
+   <p>GDLffDICOM can read a slightly borader range of DICOM files than IDLffDICOM. GDLffDICOM is more lenient about accepting non-compliant tags. You can also avoid further parsing errors by using the GDLffDIOM__assoc class. </p>
+   <p></p>
+   <h2>Limited ability to write DICOM files</h2>
+   <p></p>
+   <p><span xml:lang="en-US" lang="en-US">GDLffDICOM allows you to associate the image data of a DICOM file with an IDL variable. This provides a reasonably efficient method of altering the pixel data in a DICOM file. Other DICOM tags can be set via the GDLffDICOM::SetValue method and are written to a DICOM file using the GDLffDICOM::Commit function.</span></p>
+   <p></p>
+   <h2>Drop-in replacement of IDLffDICOM</h2>
+   <p></p>
+   <p><span xml:lang="en-US" lang="en-US">The GDLffDICOM method signature is almost identical to IDLffDICOM. This allows you to avoid significant alteration of code if you wish to only use a small portion of GDLffDICOMs features.</span></p>
+   <h2>Authors Node</h2>
+   <p></p>
+   <p>GDLffDICOM has acquired its name from the GNU Data Language (GDL) project. &nbsp;Whilst GDLffDICOM might work with GDL it may not exclusively work on either platform. It has only been named with the GDL prefix so it can be effectively maintained by both the IDL and GDL community without namespace issues.</p>
+   <p></p>
+  </div>
+ </body>
+</html>

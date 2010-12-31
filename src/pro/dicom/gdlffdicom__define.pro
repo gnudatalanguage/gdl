@@ -1,29 +1,39 @@
 ;L+
 ; LICENSE:
-; Copyright 2004/2005 Robbie Barnett
-; Robbie's Tools (RT)
-; Tools written for applications at Westmead Hospital, Sydney. 
-; These tools come with absolutley no warranty and are not necessarily
-; built with other applications in mind.
+;
+; IDL user contributed source code
+; Copyright (C) 2006 Robbie Barnett
+;
+;    This library is free software;
+;    you can redistribute it and/or modify it under the
+;    terms of the GNU Lesser General Public License as published
+;    by the Free Software Foundation;
+;    either version 2.1 of the License,
+;    or (at your option) any later version.
+;
+;    This library is distributed in the hope that it will
+;    be useful, but WITHOUT ANY WARRANTY;
+;    without even the implied warranty of MERCHANTABILITY
+;    or FITNESS FOR A PARTICULAR PURPOSE.
+;    See the GNU Lesser General Public License for more details.
+;
+;    You should have received a copy of the GNU Lesser General Public License
+;    along with this library; if not, write to the
+;    Free Software Foundation, Inc., 59 Temple Place,
+;    Suite 330, Boston, MA 02111-1307 USA
+;
 ; Please send queries to:
 ; Robbie Barnett
 ; Nuclear Medicine and Ultrasound
 ; Westmead Hospital
 ; +61 2 9845 7223
-; The library is distributed under the terms of the Gnu 
-; general public license. A copy of the GPL (gpl.txt) should be  
-; available in this distribution
-; You're free to copy, modify and further distribute the library
-; itself as a whole (incl. this README.txt and a copy of the
-; GPL) under the terms of the license. However I'd be pleased to
-; hear from you - any feedback is welcome.
 ;L-
 
 
 
 ;+
 ;<P>Convert a GDLffDICOM References into GDLffDICOM__assoc indexes</P>
-;@private 
+;@private
 ;-
 function GDLffDICOM::Indexes, references
 if (self.size lt self.ntags) then begin
@@ -35,16 +45,16 @@ end
 
 ;+
 ;<P>Find the indexes of DICOM tags which match the ith Dictionary entry</P>
-;@private 
+;@private
 ;@param inds {in}{required} A subset of indexes to search
 ;@param find_inds {out}{required} The indicies to the indexes which
 ;match
 ;@param i {in}{required} The dictionary entry to search
 ;-
 pro GDLffDICOM::FindDefinedElement, inds, find_inds, i
-group_inds = where((self.dictionary[i]).group_number eq (*self.group_numbers)[inds],group_count) 
+group_inds = where((self.dictionary[i]).group_number eq (*self.group_numbers)[inds],group_count)
 if (group_count gt 0) then begin
-    element_inds = where((self.dictionary[i]).element_number eq (*self.element_numbers)[inds[group_inds]],element_count) 
+    element_inds = where((self.dictionary[i]).element_number eq (*self.element_numbers)[inds[group_inds]],element_count)
     if (element_count gt 0) then begin
         if (n_elements(find_inds) gt 0) then $
           find_inds = [find_inds,group_inds[element_inds]] $
@@ -67,9 +77,9 @@ dictionaries = replicate({GDLffDICOMDictionary},n_elements(references))
 for i=0l,n_elements(references)-1l do begin
     group_number = (*self.group_numbers)[self -> indexes(references[i])]
     element_number = (*self.element_numbers)[self -> indexes(references[i])]
-    group_inds = where(self.dictionary.group_number eq group_number,group_count) 
+    group_inds = where(self.dictionary.group_number eq group_number,group_count)
     if (group_count gt 0) then begin
-        element_inds = where((self.dictionary.element_number)[group_inds] eq element_number,element_count) 
+        element_inds = where((self.dictionary.element_number)[group_inds] eq element_number,element_count)
         if (element_count gt 0) then begin
             dictionaries[i] = (self.dictionary)[group_inds[element_inds[0]]]
         endif
@@ -98,40 +108,6 @@ endif
 return, result
 end
 
-;+
-;<P>Definition of each DICOM tag in the buffer</P>
-;@private
-;-
-pro GDLffDICOMTag__define, struct
-struct = {GDLffDICOMTag, $
-          group_number: 0u, $
-          element_number: 0u, $
-          index:0l,$
-          vr:'', $
-          len:0l, $
-          description: '', $
-          commit: 0b, $
-          value: ptr_new()}
-end
-
-;+
-;<P>Definition of each DICOM Dictionary entry</P>
-;@private
-;-
-pro GDLffDICOMDictionary__define, struct, INIT=init
-struct = replicate({GDLffDICOMDictionary, $
-                    group_number: 0u, $
-                    element_number: 0u,$
-                    vr: '', $
-                    vm: '', $
-                    name: '', $
-                    version: ''},2085)
-if (keyword_set(init)) then begin
-; The Dictionary procedure is generated code from dicom.dic in the GPL
-; release of DCMTK by OFFIS software
-@gdlffdicom__dictionary
-endif
-end
 
 ;+
 ;<P>Destroy the object</P>
@@ -150,12 +126,13 @@ end
 pro GDLffDICOM::DumpElements, filename
 fmt = "(I4,' : (',Z04,',',Z04,') : ',A2,' : ',A,' : ',I0,' : ',A)"
 
+if (n_elements(filename) gt 0) then openw, lun, filename, /GET_LUN
 values = self -> getValue(/NO_COPY)
 for i=0l,self.ntags-1l do begin
     dicom_tag = (*self.dicom_tags)[i]
-    if ((ptr_valid(dicom_tag.value) && (n_elements(*dicom_tag.value) gt 0))) then value = *dicom_tag.value $ 
+    if ((ptr_valid(dicom_tag.value) && (n_elements(*dicom_tag.value) gt 0))) then value = *dicom_tag.value $
     else value = ""
-    case (size(value,/type)) of 
+    case (size(value,/type)) of
         else: begin
             if (n_elements(value) gt 12) then $
               value = strjoin(strtrim((string(value[0:11])),2),' ') + ' ...' $
@@ -163,11 +140,17 @@ for i=0l,self.ntags-1l do begin
               value = strjoin(strtrim((string(value)),2),' ')
         end
     endcase
-    print, i, dicom_tag.group_number, dicom_tag.element_number, $
-           dicom_tag.vr, dicom_tag.description, dicom_tag.len, value, $
-           FORMAT=fmt
+    if (n_elements(lun) gt 0) then begin
+	    printf, lun, i, dicom_tag.group_number, dicom_tag.element_number, $
+	           dicom_tag.vr, dicom_tag.description, dicom_tag.len, value, $
+	           FORMAT=fmt
+	endif else begin
+	    print, i, dicom_tag.group_number, dicom_tag.element_number, $
+	           dicom_tag.vr, dicom_tag.description, dicom_tag.len, value, $
+	           FORMAT=fmt
+	endelse
 endfor
-
+if (n_elements(lun) gt 0) then free_lun, lun
 end
 
 ;+
@@ -177,7 +160,7 @@ function GDLffDICOM::GetChildren, reference
 if (self.index_sequences and (n_elements(reference) gt 0)) then begin
     references = where((*self.parent_sequences) eq self -> indexes(reference[0]),count)
     if (count gt 0) then return, references $
-    else return, -1 
+    else return, -1
 endif else $
   return, -1
 end
@@ -253,11 +236,11 @@ end
 function GDLffDICOM::GetReference, group_number, element_number, DESCRIPTION=description, VR=vr
 inds = indgen(self.ntags)
 if (n_elements(group_number) gt 0) then begin
-    group_inds = where(group_number eq (*self.group_numbers)[inds],group_count) 
+    group_inds = where(group_number eq (*self.group_numbers)[inds],group_count)
     if (group_count gt 0) then inds = inds[group_inds] else return, -1
 endif
 if (n_elements(element_number) gt 0) then begin
-    element_inds = where(element_number eq (*self.element_numbers)[inds],element_count) 
+    element_inds = where(element_number eq (*self.element_numbers)[inds],element_count)
     if (element_count gt 0) then inds = inds[element_inds] else return, -1
 endif
 if ((n_elements(description) gt 0)) then begin
@@ -269,15 +252,15 @@ if ((n_elements(description) gt 0)) then begin
     if (n_elements(desc_inds) gt 0) then inds = inds[desc_inds] else return, -1
 endif
 if ((n_elements(vr) gt 0)) then begin
-    if (self.explicit_vr) then begin
-        vr_inds = where(vr eq (*self.vrs)[inds],vr_count) 
-        if (vr_count gt 0) then inds = inds[vr_inds] else return, -1
-   endif else begin
-        dict_inds = where((self.dictionary.vr) eq vr,dict_count)
-        for j=0l,n_elements(dict_inds)-1l do $
-          self -> FindDefinedElement, inds, vr_inds, dict_inds[j]
-        if (n_elements(vr_inds) gt 0) then inds = inds[vr_inds] else return, -1
-    endelse
+;    if (self.explicit_vr) then begin
+    vr_inds = where(vr eq (*self.vrs)[inds],vr_count)
+    if (vr_count gt 0) then inds = inds[vr_inds] else return, -1
+;   endif else begin
+;    dict_inds = where((self.dictionary.vr) eq vr,dict_count)
+;    for j=0l,n_elements(dict_inds)-1l do $
+;      self -> FindDefinedElement, inds, vr_inds, dict_inds[j]
+;    if (n_elements(vr_inds) gt 0) then inds = inds[vr_inds] else return, -1
+;    endelse
 endif
 pixel_inds = where(inds eq self.pixel_index, pixel_count)
 if ((pixel_count gt 0) and (self.ntags gt self.size)) then begin
@@ -310,7 +293,7 @@ for i=0,n_elements(references)-1l do begin
          (*self.dicom_tags)[references[i]].group_number = (*self.group_numbers)[references[i]]
          (*self.dicom_tags)[references[i]].element_number = (*self.element_numbers)[references[i]]
          (*self.dicom_tags)[references[i]].index = references[i]
-         (*self.dicom_tags)[references[i]].commit = 0b           
+         (*self.dicom_tags)[references[i]].commit = 0b
          if ((references[i] eq self.pixel_index)) then begin ;  and (self.ntags gt self.size)
              (*self.dicom_tags)[references[i]].len = (*self.lens)[references[i]]/self.frame_count
              (*self.dicom_tags)[references[i]].value = ptr_new((*self.pixel_assoc)[0])
@@ -321,16 +304,16 @@ for i=0,n_elements(references)-1l do begin
          endif else begin
              inds = where(vrs[i] eq ['','SQ','DL'],unsupported_count)
              if (unsupported_count eq 0) then begin
-                 if (self -> readelement(group_number, element_number, value_out, OFFSET=offset, INDEX=references[i], VR=vrs[i])) then begin
+                 if (self -> readelement(group_number, element_number, value_out, OFFSET=offset, INDEX=references[i], VR=vrs[i], /SKIP_UNSUPPORTED)) then begin
                      (*self.dicom_tags)[references[i]].len = (*self.lens)[references[i]]
-                     (*self.dicom_tags)[references[i]].value = ptr_new(value_out)             
+                     (*self.dicom_tags)[references[i]].value = ptr_new(value_out)
                  endif else begin
                      (*self.dicom_tags)[references[i]].len = 0
-                     (*self.dicom_tags)[references[i]].value = ptr_new(/ALLOCATE_HEAP)             
+                     (*self.dicom_tags)[references[i]].value = ptr_new(/ALLOCATE_HEAP)
                  endelse
              endif else begin
                  (*self.dicom_tags)[references[i]].len = (*self.lens)[references[i]]
-                 (*self.dicom_tags)[references[i]].value = ptr_new(/ALLOCATE_HEAP)             
+                 (*self.dicom_tags)[references[i]].value = ptr_new(/ALLOCATE_HEAP)
              endelse
          endelse
     endif
@@ -357,10 +340,10 @@ if (self.explicit_vr) then begin
     if (n_elements(references) eq 0) then begin
         references = self -> GetReference(group_number, element_number)
     endif else references = [references]
-    if (references[0] eq -1) then return, [-1] 
+    if (references[0] eq -1) then return, [-1]
    return, (*self.vrs)[self -> indexes(references)]
 endif else begin
-    dictionaries = self -> GetDictionary(group_number, element_number,REFERENCES=references)
+    dictionaries = self -> GetDictionary(group_number, element_number,REFERENCE=references)
     if (size(dictionaries,/type) eq 8) then return, (dictionaries.vr)
     return, [-1]
 endelse
@@ -371,8 +354,6 @@ end
 ;-
 function GDLffDICOM::Init, filename, VERBOSE=verbose
 if (~ self -> GDLffDICOM__assoc::Init()) then return, 0
-GDLffDICOMDictionary__define, dictionary, /INIT
-self.dictionary  = dictionary
 self.dicom_tags = ptr_new(/ALLOCATE_HEAP)
 self.pixel_assoc = ptr_new(/ALLOCATE_HEAP)
 if (n_elements(filename)) then return, self -> Read(filename)
@@ -488,9 +469,9 @@ if ((reference gt 0) and (reference lt self.size) and (reference ne self.pixel_i
     if (count gt 0) then begin
         type = types[vr_inds[0]]
         ; Temporarily dereference the pointer without copying the data
-        if (keyword_set(use_ptr)) then vvalue = temporary(*value) $ 
+        if (keyword_set(use_ptr)) then vvalue = temporary(*value) $
         else vvalue = temporary(value)
-        if (type ne size(vvalue,/type)) then message, "IDL type does not match VR" 
+        if (type ne size(vvalue,/type)) then message, "IDL type does not match VR"
         case (type) of
             1: len = n_elements(vvalue)
             2: len = n_elements(vvalue) * 2l
@@ -519,14 +500,14 @@ if ((reference gt 0) and (reference lt self.size) and (reference ne self.pixel_i
     else *(*self.dicom_tags)[reference].value = value
     (*self.dicom_tags)[reference].commit = 1b
     (*self.dicom_tags)[reference].index = reference
-endif
+endif else message, 'Cannot set value'
 end
 
 ;+
 ;<P>Write all DICOM tags to a new file</P>
 ;-
 function GDLffDICOM::Commit, filename
-inds = where(((*self.dicom_tags)[0:self.size-1l]).commit,count) 
+inds = where(((*self.dicom_tags)[0:self.size-1l]).commit,count)
 if (count gt 0) then values = (*self.dicom_tags)[inds]
 self -> write, filename, values
 return, 1
@@ -537,10 +518,8 @@ end
 ;<P>A DICOM reader and writer</P>
 ;-
 pro GDLffDICOM__define, struct
-GDLffDICOMDictionary__define, struct
 struct = {GDLffDICOM, inherits GDLffDICOM__assoc, $
-          dictionary: struct, $
-          dicom_tags: ptr_new(), $      
+          dicom_tags: ptr_new(), $
           pixel_index: 0l, $
           pixel_assoc: ptr_new(), $
           frame_count: 0l, $

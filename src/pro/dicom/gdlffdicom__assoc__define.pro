@@ -1,26 +1,70 @@
 ;L+
 ; LICENSE:
-; Copyright 2004/2005 Robbie Barnett
-; Robbie's Tools (RT)
-; Tools written for applications at Westmead Hospital, Sydney. 
-; These tools come with absolutley no warranty and are not necessarily
-; built with other applications in mind.
+;
+; IDL user contributed source code
+; Copyright (C) 2006 Robbie Barnett
+;
+;    This library is free software;
+;    you can redistribute it and/or modify it under the
+;    terms of the GNU Lesser General Public License as published
+;    by the Free Software Foundation;
+;    either version 2.1 of the License,
+;    or (at your option) any later version.
+;
+;    This library is distributed in the hope that it will
+;    be useful, but WITHOUT ANY WARRANTY;
+;    without even the implied warranty of MERCHANTABILITY
+;    or FITNESS FOR A PARTICULAR PURPOSE.
+;    See the GNU Lesser General Public License for more details.
+;
+;    You should have received a copy of the GNU Lesser General Public License
+;    along with this library; if not, write to the
+;    Free Software Foundation, Inc., 59 Temple Place,
+;    Suite 330, Boston, MA 02111-1307 USA
+;
 ; Please send queries to:
 ; Robbie Barnett
 ; Nuclear Medicine and Ultrasound
 ; Westmead Hospital
 ; +61 2 9845 7223
-; The library is distributed under the terms of the Gnu 
-; general public license. A copy of the GPL (gpl.txt) should be  
-; available in this distribution
-; You're free to copy, modify and further distribute the library
-; itself as a whole (incl. this README.txt and a copy of the
-; GPL) under the terms of the license. However I'd be pleased to
-; hear from you - any feedback is welcome.
 ;L-
 
 
 
+;+
+;<P>Definition of each DICOM tag in the buffer</P>
+;@private
+;-
+pro GDLffDICOMTag__define, struct
+struct = {GDLffDICOMTag, $
+          group_number: 0u, $
+          element_number: 0u, $
+          index:0l,$
+          vr:'', $
+          len:0l, $
+          description: '', $
+          commit: 0b, $
+          value: ptr_new()}
+end
+
+;+
+;<P>Definition of each DICOM Dictionary entry</P>
+;@private
+;-
+pro GDLffDICOMDictionary__define, struct, INIT=init
+struct = replicate({GDLffDICOMDictionary, $
+                    group_number: 0u, $
+                    element_number: 0u,$
+                    vr: '', $
+                    vm: '', $
+                    name: '', $
+                    version: ''},2085)
+if (keyword_set(init)) then begin
+; The Dictionary procedure is generated code from dicom.dic in the GPL
+; release of DCMTK by OFFIS software
+gdlffdicom__dictionary, struct
+endif
+end
 
 ;+
 ;<P>Open a DICOM file and parse DICOM tags</P>
@@ -45,7 +89,7 @@
 ;@returns 1 if file was opened and parsed, 0 if there was an error
 ;-
 function GDLffDICOM__assoc::Open, filename, IMPLICIT_VR=implicit_vr, EXPLICIT_VR=explicit_vr, ACCESS_TIME=access_time, BIG_ENDIAN=big_endian, LITTLE_ENDIAN=little_endian, $
-LIMIT=limit, INDEX_TAGS=index_tags, META_ONLY=meta_only, AUTO_SYNTAX=auto_syntax, NO_CATCH=no_catch, RAISE=raise, INDEX_SEQUENCES=index_sequences
+LIMIT=limit, INDEX_TAGS=index_tags, META_ONLY=meta_only, AUTO_SYNTAX=auto_syntax, NO_CATCH=no_catch, RAISE=raise, INDEX_SEQUENCES=index_sequences, READ_ONLY=read_only
 
 ; Check keywords
 if (keyword_set(auto_syntax) and keyword_set(meta_only)) then message, LEVEL=-1, "Auto syntax and meta only are mutually exclusive keywords."
@@ -79,7 +123,7 @@ if (arg_present(access_time) or (n_elements(access_time) gt 0)) then start_time 
 if (keyword_set(auto_syntax)) then begin
     index_tags = 1
     ; Just open the meta header of the file at little endian
-    if (self -> open(filename,  /IMPLICIT_VR, /LITTLE_ENDIAN, /META_ONLY, INDEX_TAGS=index_tags, /NO_CATCH)) then begin
+    if (self -> open(filename,  /IMPLICIT_VR, /LITTLE_ENDIAN, /META_ONLY, INDEX_TAGS=index_tags, /NO_CATCH, /READ_ONLY)) then begin
         ; Read the tansfer syntax tag
         if (self -> readelement('0002'x,'0010'x, TransferSyntaxUID, VR='UI')) then begin
             TransferSyntaxUID = (strtrim(gdlffdicom_trim(strjoin(TransferSyntaxUID,'')),2))
@@ -114,10 +158,18 @@ self.index_sequences = keyword_set(index_sequences)
 if (keyword_set(big_endian)) then self.big_endian = 1b
 if (keyword_set(little_endian)) then self.big_endian = 0b
 
-if (self.big_endian) then $
-  openu, lun, filename, /get_lun, /swap_if_little_endian $ ; This is a big endian file 
-else $
-  openu, lun, filename, /get_lun, /swap_if_big_endian ; This is a little endian file
+self.read_only = keyword_set(read_only)
+if (self.read_only) then begin
+   if (self.big_endian) then $
+      openr, lun, filename, /get_lun, /swap_if_little_endian $ ; This is a big endian file
+   else $
+      openr, lun, filename, /get_lun, /swap_if_big_endian ; This is a little endian file
+endif else begin
+   if (self.big_endian) then $
+      openu, lun, filename, /get_lun, /swap_if_little_endian $ ; This is a big endian file
+   else $
+      openu, lun, filename, /get_lun, /swap_if_big_endian ; This is a little endian file
+endelse
 
 self.lun = lun
 ; The standard DICOM header is 132 bytes
@@ -133,7 +185,7 @@ bufgrow = 1024l
 bufsize = bufgrow
 (*self.offsets) = lonarr(bufgrow)
 (*self.lens) = lonarr(bufgrow)
-if (self.explicit_vr) then (*self.vrs) = strarr(bufgrow)
+(*self.vrs) = strarr(bufgrow)
 if (self.index_tags) then begin
     (*self.group_numbers) = uintarr(bufgrow)
     (*self.element_numbers) = uintarr(bufgrow)
@@ -147,7 +199,7 @@ if (self.index_sequences) then begin
     current_item_number = replicate(-1l,20)
     current_nesting = 0l
     stop_offset = replicate('FFFFFFFF'x,20)
-endif    
+endif
 stat = fstat(lun)
 if (n_elements(limit) eq 0) then limit =  stat.size
 while (offset + 4l lt limit) do begin
@@ -182,7 +234,7 @@ while (offset + 4l lt limit) do begin
     endif
 
     if (~is_delimiter and (self.explicit_vr or inside_metadata)) then begin
-        
+
         offset = offset + 4l
         point_lun, self.lun, offset
         vr = '  '
@@ -204,6 +256,8 @@ while (offset + 4l lt limit) do begin
         endelse
     endif else begin
         vr = ''
+        dict_inds = where((self.dictionary.group_number eq tag[0]) and (self.dictionary.element_number eq tag[1]),dict_count)
+        if (dict_count gt 0) then vr =  self.dictionary[dict_inds[0]].vr
         offset = offset + 4l
         point_lun, self.lun, offset
         len = 0l
@@ -220,7 +274,7 @@ while (offset + 4l lt limit) do begin
 
     (*self.offsets)[index] = offset
     (*self.lens)[index] = len
-    if (self.explicit_vr) then (*self.vrs)[index] = vr
+    (*self.vrs)[index] = vr
     if (self.index_tags) then begin
         (*self.group_numbers)[index] = tag[0]
         (*self.element_numbers)[index] = tag[1]
@@ -229,14 +283,14 @@ while (offset + 4l lt limit) do begin
         (*self.parent_sequences)[index] = current_sequence[current_nesting]
         if (is_delimiter and (tag[1] eq 'E000'x)) then begin
             len = 0l
-            current_item_number[current_nesting] = current_item_number[current_nesting] + 1l          
+            current_item_number[current_nesting] = current_item_number[current_nesting] + 1l
             (*self.item_numbers)[index] = current_item_number[current_nesting]
             current_item[current_nesting] = index
             if ((*self.parent_sequences)[index] ge 0) then $
               (*self.parent_items)[index] = (*self.parent_items)[(*self.parent_sequences)[index]]
-        endif else begin 
+        endif else begin
             (*self.parent_items)[index] = current_item[current_nesting]
-            (*self.item_numbers)[index] = current_item_number[current_nesting]            
+            (*self.item_numbers)[index] = current_item_number[current_nesting]
             if (vr eq 'SQ') then begin
                 current_nesting = current_nesting + 1
                 if (current_nesting ge 20) then message, "No more than 20 sequences can be nested"
@@ -247,7 +301,7 @@ while (offset + 4l lt limit) do begin
                 len = 0l
             endif
             if (is_delimiter and (tag[1] eq 'E0DD'x) and (stop_offset[current_nesting] eq 'FFFFFFFF'x)) then $
-              stop_offset[current_nesting] = offset + len            
+              stop_offset[current_nesting] = offset + len
         endelse
         while ((current_nesting gt 0) and (stop_offset[current_nesting] ne 'FFFFFFFF'x) and $
                (stop_offset[current_nesting] le offset + len)) do begin
@@ -257,12 +311,12 @@ while (offset + 4l lt limit) do begin
 
     if (len ne 'FFFFFFFF'x) then offset = offset + len
 
-    
+
     index = index + 1
     if (index ge bufsize) then begin
         (*self.offsets) = [(*self.offsets),lonarr(bufgrow)]
         (*self.lens) = [(*self.lens),lonarr(bufgrow)]
-        if (self.explicit_vr) then  (*self.vrs) = [(*self.vrs),strarr(bufgrow)]
+        (*self.vrs) = [(*self.vrs),strarr(bufgrow)]
         if (self.index_tags) then begin
             (*self.group_numbers) = [(*self.group_numbers),bytarr(bufgrow)]
             (*self.element_numbers) =  [(*self.element_numbers),bytarr(bufgrow)]
@@ -335,22 +389,27 @@ end
 ;rather than searching for the group, element pair
 ;@returns 1 if the element was read. 0 if it wasn't found
 ;-
-function GDLffDICOM__assoc::readelement, group_number, element_number, value_out, OFFSET=offset, INDEX=index, VR=vr
+function GDLffDICOM__assoc::readelement, group_number, element_number, value_out, OFFSET=offset, INDEX=index, VR=vr, SKIP_UNSUPPORTED=skip_unsupported
 
 if ((n_elements(index) eq 0)) then begin
     inds = self -> findtaginds(group_number, element_number,COUNT=count)
     if ((count gt 0)) then index = inds[0]
 endif
-if (n_elements(index) gt 0) then begin    
+if (n_elements(index) gt 0) then begin
     offset = (*self.offsets)[index]
     point_lun, self.lun, offset
     len = (*self.lens)[index]
     if (len eq 0) then return, 0b
-    if (self.explicit_vr) then vr = (*self.vrs)[index]
-    if (n_elements(vr) gt 0) then value_out = self -> generatevalue(vr, len) $
-    else message, "VR keyword must be specified for implicit files"
-    readu, self.lun, value_out
-    return, 1b
+    vr = (*self.vrs)[index]
+    if (n_elements(vr) gt 0) then begin
+    	value_out = self -> generatevalue(vr, len,SKIP_UNSUPPORTED=skip_unsupported)
+	    readu, self.lun, value_out
+	    return, 1b
+    endif else begin
+    	if (~keyword_set(skip_unsupported)) then $
+    		message, "VR keyword must be specified for implicit files"
+		return, 0b
+    endelse
 endif
 return, 0b
 end
@@ -363,10 +422,11 @@ end
 ;@param len {required}{in} The length of the value
 ;@returns The IDL variable
 ;-
-function GDLffDICOM__assoc::generatevalue, vr, len
+function GDLffDICOM__assoc::generatevalue, vr, len, SKIP_UNSUPPORTED=skip_unsupported
 
-vrs =   ['AE','AS','AT','CS','DA','DL','DS','DT','FL','FD','IS','LO','LT','OB','OF','OW','PN','SH','SL','SQ','SS','ST','TM','UI','UL','UN','US','UT']
-types = [7   ,7   ,13  ,7   ,7   ,0   ,7   ,7   ,4   ,5   ,7   ,7   , 7  ,1   ,5   ,2   ,7   ,7   ,3   ,0   ,2   ,7   ,7   ,7   ,13  ,1   ,12  ,7]
+vrs =   ['AE','AS','AT','CS','DA','DL','DS','DT','FL','FD','IS','LO','LT','OB','OF','OW','PN','SH','SL','SQ','SS','ST','TM','UI','UL','UN','US','UT','xs']
+types = [7   ,7   ,13  ,7   ,7   ,0   ,7   ,7   ,4   ,5   ,7   ,7   , 7  ,1   ,5   ,2   ,7   ,7   ,3   ,0   ,2   ,7   ,7   ,7   ,13  ,1   ,12  ,7, 12]
+; xs could be SS or US depending on context
 
 vr_inds = where(vrs eq vr,count)
 if (count gt 0) then begin
@@ -380,10 +440,13 @@ if (count gt 0) then begin
         7: return, strjoin(replicate(' ', len),'')
         12: return, uintarr(len/2l)
         13: return, ulonarr(len/4l)
-        else: message, "Unsupported VR type"
+        else: message, "Unsupported VR type " + vr
     endcase
-endif else message, 'Unsupported VR'
-    
+endif else begin
+	if (~keyword_set(skip_unsupported)) then message, 'Unsupported VR ' + vr
+	return, 0b
+endelse
+
 
 end
 
@@ -391,74 +454,6 @@ function GDLffDICOM__assoc::NewSOPInstanceUID, group_number, element_number
 if (n_elements(group_number) eq 0) then group_number = '0008'x
 if (n_elements(element_number) eq 0) then element_number = '0018'x
 return, self -> NewUID(group_number, element_number)
-end
-
-
-function GDLffDICOM__assoc_GenerateUID, length, EMPTY_ON_ERROR=eoe, ERROR=error
-common GDLffDICOM__assoc, instance_id, last_time, root, seed
-
-root = '1.2.826.4567.'
-nr = strlen(root)
-nl = 18ul
-nt = 10ul
-ni = 4ul
-ns = nl + nt + ni
-if (n_elements(length) gt 0) then begin
-    if (length - nr gt 99) then begin
-        error = "Cannot generate a UID that long ("+string(length,FORMAT="(I0)")+"), maximum length is " + string(nr+99,FORMAT="(I0)")
-        if (keyword_set(eoe)) then return, '' $
-        else message, error
-    endif
-    if (length - nr lt 6) then begin
-        error = "Cannot generate a UID that short ("+string(length,FORMAT="(I0)")+"), minimum length is " + string(nr+6,FORMAT="(I0)")
-        if (keyword_set(eoe)) then return, '' $
-        else message, error
-    endif
-    ratio = float(length - nr)/ns
-    nl = ceil(nl*ratio)
-    nt = ceil(nt*ratio)
-    ni= ceil(ni*ratio)
-endif
-nts = string(nt,FORMAT="(I0)")
-nis = string(ni,FORMAT="(I0)")
-byte = 0b
-lmhostid = ''
-result = lmgr(LMHOSTID=lmhostid_hex)
-nlh = ceil(2.0*nl/3.0)
-for i=strlen(lmhostid_hex)-nlh,strlen(lmhostid_hex)-1,2 do begin
-    reads, strmid(lmhostid_hex,i,2),byte, FORMAT="(Z2)"
-    lmhostid = lmhostid + string(byte,FORMAT="(I3.3)")
-endfor
-lmhostid = strmid(lmhostid,0,nl)
-current_time = ulong(systime(1))
-if (n_elements(instance_id) eq 0) then begin
-    instance_id = ulong(randomu(seed)*10l^(nis-1)) ; Start somewhere in the first tenth of the instances
-endif
-if (n_elements(last_time) eq 0) then last_time = 0l
-;print, current_time eq last_time, instance_id, ni
-if ((instance_id gt 10ul^ni) and (current_time eq last_time)) then begin
-                                ; This whole waiting business is going
-                                ; to ensure that the programmer/tester
-                                ; increased the length of the field
-                                ; before there is any possibility of
-                                ; non-unique IDs
-    print, "Warning: GDLffDICOM needs to wait 1 second to generate a UID. Please try setting the length of the UID field to larger."
-    wait, 1
-    instance_id = ulong(randomu(seed)*10ul^(nis-1)) ; Start somewhere in the first tenth of the instances
-    current_time = current_time + 1
-endif
-time = string(current_time mod 10ul^nt,FORMAT="(I"+nts+"."+nts+")")
-;instance_id = instance_id mod 10ul^ni
-;help, instance_id
-instance = string(instance_id mod 10ul^ni,FORMAT="(I"+nis+"."+nis+")")
-;print, instance, nis, instance_id
-instance_id = instance_id + 1
-uid = root + lmhostid + time + instance
-offset = strlen(uid) - length
-if (offset gt 0) then lmhostid = strmid(lmhostid,offset,nl-offset)
-uid = root + lmhostid + time + instance
-last_time = current_time
-return, uid
 end
 
 ;+
@@ -478,8 +473,9 @@ if (self -> readelement(group_number,element_number, SOPInstanceUID, OFFSET=offs
     SOPInstanceUID = GDLffDICOM__assoc_GenerateUID(strlen(SOPInstanceUID),/EMPTY_ON_ERROR,ERROR=error)
     if ((SOPInstanceUID ne '')) then begin
         point_lun, self.lun, offset
-        if (~lmgr(/demo)) then $
-            writeu, self.lun, SOPInstanceUID
+        if (~ self.read_only) then $
+            writeu, self.lun, SOPInstanceUID $
+        else return, ''
     endif else errm = dialog_message(["GDLffDICOM Error: Cannot set UID of " + (fstat(self.lun)).name,error])
     return, SOPInstanceUID
 endif
@@ -487,6 +483,44 @@ endif
 return, ''
 end
 
+;+
+;<P>Write a new SOP Instance UID. This generates a UID
+;must be the same length such that it doesn't change the length of the file.</P>
+;-
+function GDLffDICOM__assoc::WriteElement, group_number, element_number, newValue, VR=vr
+if (self -> readelement(group_number,element_number, value, OFFSET=offset, VR=vr)) then begin
+    value = strtrim(value) ; Remove trailing blanks only
+    if (strlen(value) ne strlen(newValue)) then return, 0b
+    if ((value ne '')) then begin
+        point_lun, self.lun, offset
+        if (~ self.read_only) then $
+            writeu, self.lun, newValue $
+        else return, 0b
+    endif else errm = dialog_message(["GDLffDICOM Error: Cannot set value of " + (fstat(self.lun)).name,error])
+    return, 1b
+endif
+
+return, 0b
+end
+
+;+
+;<P>Write a new SOP Instance UID. This generates a UID
+;must be the same length such that it doesn't change the length of the file.</P>
+;-
+function GDLffDICOM__assoc::WriteUID, group_number, element_number, NewInstanceUID
+if (self -> readelement(group_number,element_number, SOPInstanceUID, OFFSET=offset, VR='UI')) then begin
+    SOPInstanceUID = strtrim(SOPInstanceUID) ; Remove trailing blanks only
+    if (strlen(SOPInstanceUID) ne strlen(NewInstanceUID)) then return, 0b
+    if ((NewInstanceUID ne '')) then begin
+        point_lun, self.lun, offset
+        if (~ self.read_only) then $
+            writeu, self.lun, NewInstanceUID
+    endif else errm = dialog_message(["GDLffDICOM Error: Cannot set UID of " + (fstat(self.lun)).name,error])
+    return, 1b
+endif
+
+return, 0b
+end
 
 
 
@@ -507,7 +541,8 @@ end
 ;@keyword no_catch {private} Do not catch any exceptions
 ;@returns The associated variable
 ;-
-function GDLffDICOM__assoc::assoc, INDEX=index, IMAGE=value, COUNT=count, ACCESS_TIME=access_time, NO_CATCH=no_catch, RAISE=raise, TRUE=true
+function GDLffDICOM__assoc::assoc, INDEX=index, IMAGE=value, COUNT=count, ACCESS_TIME=access_time, $
+                          NO_CATCH=no_catch, RAISE=raise, TRUE=true, OFFSET=offset
 
 
 if (~ keyword_set(no_catch)) then begin
@@ -596,7 +631,8 @@ if ((index ge 0) and (index lt self.size)) then begin
     if (count * nbytes ne (*self.lens)[index]) then $
       message, "The size of the value doesn't wholly fit inside the dicom field. " + string( nbytes, (*self.lens)[index], FORMAT="('value[',I0,'], dicom[',I0,']')")
     if (arg_present(access_time) or (n_elements(access_time) gt 0)) then access_time = systime(1) - start_time
-    return, assoc(self.lun, value, (*self.offsets)[index])
+    offset = (*self.offsets)[index]
+    return, assoc(self.lun, value, offset)
 endif else count = 0
 
 
@@ -623,7 +659,7 @@ pro GDLffDICOM__assoc::write, filename, values
 if ((fstat(self.lun)).name eq filename) then message, "Cannot commit to a file from which we are reading"
 
 if (self.big_endian) then $
-  openw, write_lun, filename, /get_lun, /swap_if_little_endian $ ; This is a big endian file 
+  openw, write_lun, filename, /get_lun, /swap_if_little_endian $ ; This is a big endian file
 else $
   openw, write_lun, filename, /get_lun, /swap_if_big_endian ; This is a little endian file
 
@@ -641,7 +677,7 @@ for i=0,n_elements(values)-1l do begin
     ;print, adj_lens[index] ne values[i].len
     if (adj_lens[index] ne values[i].len) then begin
         diff =  values[i].len - adj_lens[index]
-        help, diff
+  ;      help, diff
         if (self.index_sequences) then begin
             parent_index = (*self.parent_sequences)[index]
             parent_item = (*self.parent_items)[index]
@@ -671,12 +707,12 @@ for index=0l,self.size-1l do begin
     endif else begin
         tag = uint([(*self.group_numbers)[index],(*self.element_numbers)[index]])
         len = adj_lens[index]
-        if (self.explicit_vr) then vr = (*self.vrs)[index]
+        vr = (*self.vrs)[index]
     endelse
 
     ;inds = where((*self.parent_items) eq index,count)
     ;if (count gt 0) then begin
-    ;    total_len = ulong(total(adj_lens[inds])) 
+    ;    total_len = ulong(total(adj_lens[inds]))
     ;    if (total_len ne len) then print, "Length mismatch ", len, total_len,count
     ;    ;else  print, "Length match ", total_len, len
     ;endif
@@ -699,18 +735,18 @@ for index=0l,self.size-1l do begin
     endif
     if (inside_metadata) then begin
                                 ; metadata is always little endian
-                                ; a big endian file will need to be swapped again        
+                                ; a big endian file will need to be swapped again
                                 ; No more 0002 group tags indicates the end of the meta-data set
         if (tag[0] ne '0002'x) then $
           inside_metadata = 0b
-    endif 
+    endif
     if (inside_metadata) then begin
          if (self.big_endian) then $
-          swap_endian_inplace, tag        
-    endif 
-    
+          swap_endian_inplace, tag
+    endif
+
     writeu, write_lun, tag[0:1]
-        
+
     if (~is_delimiter and (self.explicit_vr or inside_metadata)) then begin
 
         writeu, write_lun, strmid(vr,0,2)
@@ -722,7 +758,7 @@ for index=0l,self.size-1l do begin
 
             len = ulong(len)
         endif else begin
-            len = uint(len)  
+            len = uint(len)
         endelse
     endif else begin
         len = ulong(len)
@@ -738,9 +774,9 @@ for index=0l,self.size-1l do begin
     ;if (write_len eq ulong('FFFFFFFF'x)) then print, "undefined length" $
     ;else begin
     ;endelse
-        
 
-    writeu, write_lun, write_len   
+
+    writeu, write_lun, write_len
 
 
     if ((vr ne 'SQ') and ~is_delimiter and self.index_sequences) then begin
@@ -795,6 +831,8 @@ end
 ;<P>Initialise the object</P>
 ;-
 function GDLffDICOM__assoc::init
+GDLffDICOMDictionary__define, dictionary, /INIT
+self.dictionary  = dictionary
 self.lens = ptr_new(/ALLOCATE_HEAP)
 self.offsets = ptr_new(/ALLOCATE_HEAP)
 self.vrs = ptr_new(/ALLOCATE_HEAP)
@@ -817,8 +855,10 @@ end
 ;</P>
 ;-
 pro GDLffDICOM__assoc__define, struct
+GDLffDICOMDictionary__define, struct
 
 struct = {GDLffDICOM__assoc, $
+          dictionary: struct, $
           lun: 0l, $
           lens: ptr_new(), $
           offsets: ptr_new(), $
@@ -832,6 +872,7 @@ struct = {GDLffDICOM__assoc, $
           size: 0l, $
           index_tags: 0B, $
           explicit_vr: 0B, $
-          big_endian: 0B $
+          big_endian: 0B, $
+          read_only: 0b $
 }
 end

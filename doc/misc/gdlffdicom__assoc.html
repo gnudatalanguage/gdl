@@ -1,0 +1,106 @@
+<?xml version="1.0"?>
+<!DOCTYPE html PUBLIC "-//ABISOURCE//DTD XHTML plus AWML 2.2//EN" "http://www.abisource.com/2004/xhtml-awml/xhtml-awml.mod">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:awml="http://www.abisource.com/2004/xhtml-awml/">
+ <head>
+  <!-- ======================================================= -->
+  <!-- Created by AbiWord, a free, Open Source wordprocessor.  -->
+  <!-- For more information visit http://www.abisource.com.    -->
+  <!-- ======================================================= -->
+  <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
+  <title>gdlffdicom__assoc.html</title>
+  <style type="text/css">
+   <!--
+@media print {
+	body {
+		padding-top:1in;
+		padding-bottom:1in;
+		padding-left:1in;
+		padding-right:1in;
+	}
+}
+body {
+	text-indent:0in;
+	text-align:left;
+	font-weight:normal;
+	text-decoration:none;
+	font-variant:normal;
+	color:#000000;
+	font-size:12pt;
+	font-style:normal;
+	widows:2;
+	font-family:'Times New Roman';
+}
+table {
+}
+td {
+	border-collapse:collapse;
+	text-align:left;
+	vertical-align:top;
+}
+p, h1, h2, h3, li {
+	color:#000000;
+	font-family:'Times New Roman';
+	font-size:12pt;
+	text-align:left;
+	vertical-align:normal;
+}
+h1 {
+	font-family:'Bitstream Vera Sans';
+	font-size:17pt;
+	font-weight:bold;
+	margin-bottom:0.0417in;
+	margin-top:0.3056in;
+}
+h2 {
+	font-family:'Bitstream Vera Sans';
+	font-size:14pt;
+	font-weight:bold;
+	margin-bottom:0.0417in;
+	margin-top:0.3056in;
+}
+     -->
+  </style>
+ </head>
+ <body>
+  <div>
+   <p></p>
+   <h1>GDLffDICOM__assoc</h1>
+   <p></p>
+   <p>The GDLffDICOM__assoc class provides methods to read and update images embedded in a DICOM Part 10 file. The <span xml:lang="en-US" lang="en-US">GDLffDICOM__assoc class takes advantage to the IDL </span><span>assoc f</span><span>unction to allow for direct access to frame data in the DICOM file. Such direct access means that you cannot make alter the image dimensions.</span></p>
+   <p></p>
+   <p><span xml:lang="en-US" lang="en-US">The GDLffDICOM__assoc class also provides a method for generating a new SOP Instance UID. Generating a new UID is necessary if you intend on altering the DICOM file. If you do not generate a new UID then you may experience data loss:</span></p>
+   <ul>
+    <li><span xml:lang="en-US" lang="en-US">	A vendor may not import your image because it appears to </span><span>already </span><span> exist in their database. (Expected behavior according to the DICOM standard)</span></li>
+    <li><span xml:lang="en-US" lang="en-US">	A vendor will overwrite any images in their database which appear to have the same UID.</span></li>
+   </ul>
+   <p style="margin-left:0pt;text-indent:0in"></p>
+   <h2>Limitations</h2>
+   <p></p>
+   <ul>
+    <li><span xml:lang="en-US" lang="en-US">&nbsp;</span><span>Because of the nature of direct access, changes to DICOM files are committed immediately, thus there is no way to rollback in the event of an error.</span></li>
+    <li><span xml:lang="en-US" lang="en-US">&nbsp;</span><span>The GDLffDICOM__assoc class does not support the manipulation of image dimensions.</span></li>
+    <li><span xml:lang="en-US" lang="en-US">	By default, the </span><span>GDLffDICOM__assoc</span><span> class does not recognise sequences of tags. Thus, </span><span>GDLffDICOM__assoc</span><span> will completely skip over sequences which have their length explicitly set unless you use the /INDEX_SEQUENCES keyword</span></li>
+   </ul>
+   <p style="margin-left:0pt;text-indent:0in"></p>
+   <p style="margin-left:0pt;text-indent:0in"></p>
+   <p style="margin-left:0pt;text-indent:0in"></p>
+   <h2>Example</h2>
+   <p style="margin-left:0pt;text-indent:0in"></p>
+   <p style="margin-left:36pt"><span style="font-family:'Courier 10 Pitch'">; Initialise the DICOM update class</span></p>
+   <p style="margin-left:36pt"><span style="font-family:'Courier 10 Pitch'">du = obj_new('</span><span>GDLffDICOM__assoc</span><span>')</span></p>
+   <p style="margin-left:36pt"><span style="font-family:'Courier 10 Pitch'">; Open and parse the DICOM file</span></p>
+   <p style="margin-left:36pt"><span style="font-family:'Courier 10 Pitch'">if (du -&gt; open('image.dcm')) then begin</span></p>
+   <p style="margin-left:72pt"><span style="font-family:'Courier 10 Pitch'">; Associate the image embedded in the file</span></p>
+   <p style="margin-left:72pt"><span style="font-family:'Courier 10 Pitch'">images = du -&gt; assoc(COUNT=count)</span></p>
+   <p style="margin-left:72pt"><span style="font-family:'Courier 10 Pitch'">; Display the slices</span></p>
+   <p style="margin-left:72pt"><span style="font-family:'Courier 10 Pitch'">for i=0l,count-1l do tvscl, images[i], i</span></p>
+   <p style="margin-left:72pt"><span style="font-family:'Courier 10 Pitch'" xml:lang="en-US" lang="en-US">;</span><span> Close the file</span></p>
+   <p style="margin-left:72pt"><span style="font-family:'Courier 10 Pitch'">du -&gt; close</span></p>
+   <p style="margin-left:36pt"><span style="font-family:'Courier 10 Pitch'">endif</span></p>
+   <p style="margin-left:36pt"><span style="font-family:'Courier 10 Pitch'">; Cleanup</span></p>
+   <p style="margin-left:36pt"><span style="font-family:'Courier 10 Pitch'">obj_destroy, du</span></p>
+   <p style="margin-left:36pt;text-indent:0in"></p>
+   <p style="margin-left:0pt;text-indent:0in"></p>
+  </div>
+ </body>
+</html>
