@@ -18,8 +18,8 @@
 #ifndef GDLPYTHON_HPP_
 #define GDLPYTHON_HPP_
 
-//void PythonInit();
-//void PythonEnd();
+void PythonInit();
+void PythonEnd();
 BaseGDL* FromPython( PyObject* pyObj);
 
 namespace lib {

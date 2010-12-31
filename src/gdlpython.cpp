@@ -30,8 +30,6 @@
 //#include "envt.hpp"
 //#include "objects.hpp"
 
-//#include <numarray/libnumarray.h>
-
 using namespace std;
 
 void PythonInit()
@@ -44,14 +42,17 @@ void PythonInit()
   static char* argv[] = {arg0};
   PySys_SetArgv(argc, argv);
 
-  import_libnumarray();
+  // http://docs.scipy.org/doc/numpy/reference/c-api.array.html#miscellaneous
+  import_array();
 }
 
-// don't use, as numarray cannot be restarted
 void PythonEnd()
 {
-  if( !Py_IsInitialized()) return;
-  Py_Finalize();
+  // was not possible with numarray (numarray cannot be restarted)
+  // but now we use Numpy??? (TODO/FIXME)
+
+  //if( !Py_IsInitialized()) return;
+  //Py_Finalize();
 }
 
 template< typename T>
@@ -60,7 +61,7 @@ T* NewFromPyArrayObject( const dimension& dim, PyArrayObject *array)
   T* res = new T( dim, BaseGDL::NOZERO);
   SizeT nEl = res->N_Elements();
   typename T::Ty* dPtr = 
-    reinterpret_cast<typename T::Ty*>( NA_OFFSETDATA(array));
+    reinterpret_cast<typename T::Ty*>( PyArray_DATA(array));
   for( SizeT i=0; i<nEl; ++i) (*res)[i] = dPtr[i];
   Py_DECREF(array); // must be decremented
   return res;
@@ -68,8 +69,7 @@ T* NewFromPyArrayObject( const dimension& dim, PyArrayObject *array)
 
 BaseGDL* FromPython( PyObject* pyObj)
 {
-  int isArray = NA_NumArrayCheck( pyObj);
-  if( !isArray)
+  if( !PyArray_Check( pyObj))
     {
       if( PyString_Check( pyObj))
 	{
@@ -97,11 +97,9 @@ BaseGDL* FromPython( PyObject* pyObj)
       throw GDLException( "Cannot convert python scalar.") ;
     }
 
-  PyArrayObject* array = reinterpret_cast< PyArrayObject*>( pyObj); 
-  NumarrayType item_type = static_cast< NumarrayType>( array->descr->type_num);
-
   // make array contiguous
-  array = NA_InputArray( pyObj, item_type, C_ARRAY);
+  PyArrayObject* array = PyArray_GETCONTIGUOUS( reinterpret_cast< PyArrayObject *>( pyObj));
+
   if( array == NULL)
     throw GDLException( "Error getting python array.") ;
   
@@ -125,35 +123,26 @@ BaseGDL* FromPython( PyObject* pyObj)
     }
   dimension dim( dimArr, nDim);
 
-  switch( item_type) 
+  switch( array->descr->type_num) 
     {
-      // case tAny:  //UNDEF***
-    case tUInt8:   //BYTE
+    case NPY_UINT8:   //BYTE
       return NewFromPyArrayObject< DByteGDL>( dim, array);
-    case tInt16:   //INT
+    case NPY_INT16:   //INT
       return NewFromPyArrayObject< DIntGDL>( dim, array);
-    case tInt32:     //LONG	
+    case NPY_INT32:     //LONG	
       return NewFromPyArrayObject< DLongGDL>( dim, array);
-    case tFloat32:   //FLOAT	
+    case NPY_FLOAT32:   //FLOAT	
       return NewFromPyArrayObject< DFloatGDL>( dim, array);
-    case tFloat64:  //DOUBLE	
+    case NPY_FLOAT64:  //DOUBLE	
       return NewFromPyArrayObject< DDoubleGDL>( dim, array);
-    case tComplex32:  //COMPLEX	
+    case NPY_COMPLEX64:  //COMPLEX	
       return NewFromPyArrayObject< DComplexGDL>( dim, array);
-      // case tAny:  //STRING***	
-      // case tAny:  //STRUCT***	
-    case tComplex64: //COMPLEXDBL	
+    case NPY_COMPLEX128: //COMPLEXDBL	
       return NewFromPyArrayObject< DComplexDblGDL>( dim, array);
-      // case tAny:  //PTR***		
-      // case tAny:  //OBJECT***
-    case tUInt16:         //UINT*
+    case NPY_UINT16:         //UINT*
       return NewFromPyArrayObject< DUIntGDL>( dim, array);
-    case tUInt32:         //ULONG*
+    case NPY_UINT32:         //ULONG*
       return NewFromPyArrayObject< DULongGDL>( dim, array);
-//     case tLong64:          //LONG64*
-//       return NewFromPyArrayObject< DLong64GDL>( dim, array);
-//     case tULong64:         //ULONG64*
-//       return NewFromPyArrayObject< DULong64GDL>( dim, array);
     default:
       Py_DECREF(array); // must be decremented
       throw GDLException( "FromPython: Unknown array type.") ;

@@ -265,7 +265,7 @@ int main(int argc, char *argv[])
       MPI_Send(mpi_procedure, strlen(mpi_procedure)+1, MPI_CHAR, i, 
 	       tag, MPI_COMM_WORLD);
   }
-#endif
+#endif // USE_MPI
 
   interpreter.InterpreterLoop( startup, batch_files, statement);
 

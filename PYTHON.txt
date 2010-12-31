@@ -33,12 +33,10 @@ python_function the python function to call. If this paramter is not
 arg1,...,argN   arguments to be passed to the python function
                 scalars and one dimensional arrays are passed 
                 as python scalars, an array is passed as a python
-                numarray.
+                Numpy array.
 
-Numarray is a popular extension to python. Using it let python be
-integrated in GDL quite seamlessly. See:
-http://www.stsci.edu/resources/software_hardware/numarray
-for details.
+Numpy is a popular extension to python. Using it let python be integrated 
+in GDL quite seamlessly. See: http://numpy.scipy.org/ for details.
 
 ARGV           set this keyword to a string or string array
                which is set to the command line options for python.
@@ -109,9 +107,9 @@ if an arg or a keyword is a tuple, they are NOT copied back
 when the GDL subroutine returns. This is done to save
 resources. (Only the first item of each tuple is passed to GDL).
 
-GDL arrays are passed to/from GDL as python numarrays.
-Numarray is a popular extension to python. See:
-http://www.stsci.edu/resources/software_hardware/numarray
+GDL arrays are passed to/from GDL as python Numpy arrays.
+Numpy is a popular extension to python. See:
+http://numpy.scipy.org/
 for details.
 
 Example:

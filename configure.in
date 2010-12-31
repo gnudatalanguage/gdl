@@ -692,7 +692,7 @@ AC_ARG_WITH(python,
 	[with_python="$withval" ])
 
 if test "x$with_python" != "xno"; then
-
+   AM_PATH_PYTHON
   dnl  PYTHON_VERSION="2.3"
   AC_ARG_ENABLE(python_version,	
  	[  --enable-python_version set explicit python version to use (eg. 2.4)],
@@ -723,7 +723,6 @@ dnl    LIBS="$LIBS -L$with_python/lib/python2.3/config -lpython2.3"
 dnl    LIBS="$LIBS -lpython2.3"
     PYTHON_INCLUDES="/usr/include/python$PYTHON_VERSION"
   fi
-  INCLUDES="$INCLUDES -I$PYTHON_INCLUDES"
 
   AC_CHECK_LIB(python$PYTHON_VERSION, Py_Initialize, 
   [AC_DEFINE([USE_PYTHON],[1],[Define if you want to use python])], 
@@ -751,17 +750,21 @@ dnl    ])
     exit -1
   ])
 
-  OLDCXXFLAGS=$CXXFLAGS
-  CXXFLAGS="$CXXFLAGS -I$PYTHON_INCLUDES"
-  AC_CHECK_HEADER($PYTHON_INCLUDES/numarray/libnumarray.h, [], [
+  OLDCPPFLAGS=$CPPFLAGS
+  AC_MSG_CHECKING([for Numpy include directory])
+  pinc=`echo "import numpy; print numpy.get_include()" | $PYTHON - 2>/dev/null`
+  AC_MSG_RESULT([${pinc:-unknown}])
+  test -n "$pinc" && PYTHON_INCLUDES="-I$PYTHON_INCLUDES -I$pinc"
+  CPPFLAGS="$CPPFLAGS $PYTHON_INCLUDES"
+  AC_CHECK_HEADER([numpy/arrayobject.h], [], [
     echo ""
-    echo "Error! Python numarray package was not found"
+    echo "Error! Python numpy package was not found"
     echo "  Use --with-python=no to disable Python support"
     exit -1
   ], [#include <Python.h>])
-  CXXFLAGS=$OLDCXXFLAGS
-  unset OLDCXXFLAGS
-
+  CPPFLAGS=$OLDCPPFLAGS
+  unset OLDCPPFLAGS
+  INCLUDES="$INCLUDES $PYTHON_INCLUDES"
 fi
 
 dnl == UDUNITS-2 ===========================================

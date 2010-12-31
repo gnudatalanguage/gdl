@@ -82,8 +82,7 @@ void ResetObjects()
   // no purging of library
 
 #ifdef USE_PYTHON
-  // numarray cannot be restarted
-  //  PythonEnd();
+  PythonEnd();
 #endif
 }
 

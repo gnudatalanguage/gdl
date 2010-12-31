@@ -41,4 +41,8 @@ pro test_python_module_1
     exit, status=1
   endif
 
+  ; testing Numpy
+  spawn, 'echo "import GDL; print GDL.function(\"findgen\", 100)" | ' + python, out, exit_status=ex
+  if ex ne 0 then exit, status=1
+
 end

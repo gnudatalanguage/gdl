@@ -18,63 +18,25 @@
 // to be included from datatypes.cpp
 #ifdef INCLUDE_TOPYTHON_CPP
 
-//#include <Python.h>
-//#include <numarray/libnumarray.h>
-//#include <numarray/numarray.h>
-
-//#include "datatypes.hpp"
-//#include "objects.hpp"
-
 using namespace std;
 
-// from numarray.h
-// struct s_PyArrayObject {
-// 	/* Numeric compatible stuff */
-
-// 	PyObject_HEAD
-// 	char *data;
-// 	int nd;
-// 	maybelong dimensions[MAXDIM];
-// 	maybelong strides[MAXDIM];
-// 	PyObject *base;
-// 	PyArray_Descr *descr;
-// 	int flags;
-
-// 	/* numarray extras */
-
-// 	PyObject *_data;       /* object must meet buffer API */
-// 	PyObject *_shadows;    /* ill-behaved original array. */
-// 	int      nstrides;     /* elements in strides array */
-// 	long     byteoffset;   /* offset into buffer where array data begins */
-// 	long     bytestride;   /* basic seperation of elements in bytes */
-// 	long     itemsize;     /* length of 1 element in bytes */
-
-// 	char      byteorder;   /* NUM_BIG_ENDIAN, NUM_LITTLE_ENDIAN */
-
-// 	char      _aligned;    /* test override flag */      
-// 	char      _contiguous; /* test override flag */
-
-// 	Complex64      temp;   /* temporary for gettitem/setitem MACROS */
-// 	char *         wptr;   /* working pointer for getitem/setitem MACROS */
-// };       
-
-const NumarrayType pyType[] = {
-  tAny,     //UNDEF***
-  tUInt8,   //BYTE
-  tInt16,   //INT
-  tInt32,   //LONG,	
-  tFloat32, //FLOAT,	
-  tFloat64, //DOUBLE,	
-  tComplex32,  //COMPLEX,	
-  tAny,        //STRING***	
-  tAny,        //STRUCT***	
-  tComplex64,  //COMPLEXDBL,	
-  tAny,        //PTR***		
-  tAny,        //OBJECT***
-  tUInt16,     //UINT*
-  tUInt32,     //ULONG*
-  tInt64,      //LONG64*
-  tUInt64      //ULONG64*
+const int pyType[] = {
+  NPY_NOTYPE,     //UNDEF***
+  NPY_UINT8,   //BYTE
+  NPY_INT16,   //INT
+  NPY_INT32,   //LONG,	
+  NPY_FLOAT32, //FLOAT,	
+  NPY_FLOAT64, //DOUBLE,	
+  NPY_COMPLEX64,  //COMPLEX,	
+  NPY_NOTYPE,        //STRING***	
+  NPY_NOTYPE,        //STRUCT***	
+  NPY_COMPLEX128,  //COMPLEXDBL,	
+  NPY_NOTYPE,        //PTR***		
+  NPY_NOTYPE,        //OBJECT***
+  NPY_UINT32,     //UINT*
+  NPY_UINT32,     //ULONG*
+  NPY_INT64,      //LONG64*
+  NPY_UINT64      //ULONG64*
 };	
 
 template < typename Sp>
@@ -87,16 +49,16 @@ PyObject* Data_<Sp>::ToPython()
       return ToPythonScalar();
     }
 
-  const NumarrayType item_type = pyType[ Sp::t];
-  if( item_type == tAny)
+  const int item_type = pyType[ Sp::t];
+  if( item_type == NPY_NOTYPE)
     throw GDLException("Cannot convert "+this->TypeStr()+" array to python.");
 
   int n_dim = this->Rank();
-  maybelong dimArr[ MAXRANK];
+  npy_intp dimArr[MAXRANK];
   for( int i=0; i<n_dim; ++i) dimArr[i]=this->dim[i];
 
-  return reinterpret_cast< PyObject*>
-    (NA_vNewArray( DataAddr(), item_type, n_dim, dimArr));
+  return //reinterpret_cast< PyObject*>
+    (PyArray_SimpleNewFromData( n_dim, dimArr, item_type, DataAddr()));
 }
 
 template < typename Sp>

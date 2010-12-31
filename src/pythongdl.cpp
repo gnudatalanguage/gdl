@@ -41,8 +41,6 @@
 //#include "terminfo.hpp"
 //#include "dinterpreter.hpp"
 
-//#include <numarray/numarray.h>
-
 #include "gdleventhandler.hpp"
 
 // SA fix based on:
@@ -518,6 +516,9 @@ extern "C" {
   // python GDL module init function
   PyMODINIT_FUNC initGDL()
   { 
+    // http://docs.scipy.org/doc/numpy/reference/c-api.array.html#miscellaneous
+    import_array();
+
     // note: we don't use atexit here
     // ncurses blurs the output, initialize TermWidth here
     TermWidth();
@@ -533,11 +534,9 @@ extern "C" {
 
     PyObject* m = Py_InitModule("GDL", GDLMethods);
 
-    gdlError = PyErr_NewException("GDL.error", NULL, NULL);
+    gdlError = PyErr_NewException((char*)"GDL.error", NULL, NULL);
     Py_INCREF(gdlError);
     PyModule_AddObject(m, "error", gdlError);
-
-    import_libnumarray(); // obligatory with GDL
 
     // GDL event handling
     oldInputHook = PyOS_InputHook;

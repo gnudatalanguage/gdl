@@ -56,6 +56,7 @@ TESTS = \
   test_pmulti.pro \
   test_product.pro \
   test_ps_decomposed.pro \
+  test_python.pro \
   test_python_module_0.pro \
   test_python_module_1.pro \
   test_python_module_2.pro \

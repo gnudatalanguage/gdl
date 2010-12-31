@@ -89,20 +89,19 @@ zlib        http://www.zlib.net/
 
 Optional libraries:
 ImageMagick http://www.imagemagick.org/www/download.html
-netCDF *)      ftp://ftp.unidata.ucar.edu/pub/netcdf
-HDF4 *)         ftp://ftp.ncsa.uiuc.edu/HDF/HDF/HDF_Current
-HDF5             ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/current
-FFTW              http://www.fftw.org/download.html
-python           http://www.python.org
-libproj4           (consult the MAP_INSTALL file)
-UDUNITS-2   http://www.unidata.ucar.edu/software/udunits/
-GRIB API       http://www.ecmwf.int/products/data/software/grib_api.html        
-GSHHS          (consult the MAP_INSTALL file)
+netCDF *)     ftp://ftp.unidata.ucar.edu/pub/netcdf
+HDF4 *)       ftp://ftp.ncsa.uiuc.edu/HDF/HDF/HDF_Current
+HDF5          ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/current
+FFTW          http://www.fftw.org/download.html
+python        http://www.python.org
+libproj4      (consult the MAP_INSTALL file)
+UDUNITS-2     http://www.unidata.ucar.edu/software/udunits/
+GRIB API      http://www.ecmwf.int/products/data/software/grib_api.html        
+GSHHS         (consult the MAP_INSTALL file)
 wxWidgets     http://www.wxwidgets.org/
 
 Only with python:
-numarray  http://www.stsci.edu/resources/software_hardware/numarray
-matplotlib  http://matplotlib.sourceforge.net
+numpy          http://numpy.scipy.org/
 
 *) please see below for potential problems using netCDF and HDF4
 
@@ -248,9 +247,8 @@ use is optional for now but required by default. If you don't want to use
 it, use  
 --with-python=no
 as a command line option to 'configure'.
-If you want to use it you need python 2.3 or 2.4 and the python package
-'numarray' version 0.9 or later
-(http://www.stsci.edu/resources/software_hardware/numarray).
+If you want to use it you need python and the python package Numpy.
+(http://numpy.scipy.org/).
 The GDL configure script will determine the installed python version
 automatically. For this the python executable must be installed.
 The python version can be explictely set with 

@@ -48,7 +48,7 @@ if( nDim == 1)
 		//       IDL> a=[0,0,0] & a[2]=[2,2,2]
 		//       % Out of range subscript encountered: A.
 	if( (destStart+len) > this->N_Elements()) //dim[0])
-		throw GDLException("Out of range subscript encountered (lenght of insert exceeds array boundaries).");
+		throw GDLException("Out of range subscript encountered (length of insert exceeds array boundaries).");
 
 	// DataT& srcIn_dd = srcIn->dd;
 	SizeT srcIx = 0; // this one simply runs from 0 to N_Elements(srcIn)
@@ -163,7 +163,7 @@ if( nDim == 1)
 		//       IDL> a=[0,0,0] & a[2]=[2,2,2]
 		//       % Out of range subscript encountered: A.
 	if( (destStart+len) > this->N_Elements()) //dim[0])
-		throw GDLException("Out of range subscript encountered (lenght of insert exceeds array boundaries).");
+		throw GDLException("Out of range subscript encountered (length of insert exceeds array boundaries).");
 
 	// DataT& srcIn_dd = srcIn->dd;
 	SizeT srcIx = 0; // this one simply runs from 0 to N_Elements(srcIn)
