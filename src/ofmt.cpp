@@ -564,8 +564,11 @@ void ZeroPad( ostream* os, int w, int d, char f, longT dd)
   std::ostringstream ossF;
   ossF << noshowpoint << setprecision(0) << dd;
   int ddLen = ossF.str().size();
-  if (d > 0 && dd < 0) ++d; 
-  if (f == '0' && d == -1) d = w;
+
+  if (w == 0) w = ddLen; // I0 -> auto width
+  if (d > 0 && dd < 0) ++d; // minus sign
+  if (f == '0' && d == -1) d = w; // zero padding
+
   if( w < ddLen || d > w) 
     {
       OutStars( *os, w);

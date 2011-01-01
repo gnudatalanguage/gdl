@@ -53,8 +53,9 @@ netCDF files are fully supported.
 HDF4 files are supported.
 Basic support for HDF5 files.
 
-DICOM files are supported via the GDLffDICOM object
-(src/pro/dicom subdirectory).
+DICOM files are supported via the GDLffDICOM object (http://idl.barnett.id.au/idl-projects)
+(files in the src/pro/dicom subdirectory).
+
 
 Overall more than 380 library routines are implemented.
 For a list enter HELP,/LIB at the command prompt and look for
@@ -296,7 +297,7 @@ CONTRIBUTIONS:
 ==============
 
 GDL 0.9 is actively developed, but due to the vast amount of subroutines
-to implement still in beta state as of August 2010.
+to implement still in beta state as of December 2010.
 Even though it can already be used for several tasks, there are many
 things to be done.
 Bug reports, feedback in general and interested people who would

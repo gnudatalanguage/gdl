@@ -147,6 +147,11 @@ PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
+PYTHON = @PYTHON@
+PYTHON_EXEC_PREFIX = @PYTHON_EXEC_PREFIX@
+PYTHON_PLATFORM = @PYTHON_PLATFORM@
+PYTHON_PREFIX = @PYTHON_PREFIX@
+PYTHON_VERSION = @PYTHON_VERSION@
 RANLIB = @RANLIB@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
@@ -197,9 +202,13 @@ mkdir_p = @mkdir_p@
 nc_config = @nc_config@
 oldincludedir = @oldincludedir@
 pdfdir = @pdfdir@
+pkgpyexecdir = @pkgpyexecdir@
+pkgpythondir = @pkgpythondir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
+pyexecdir = @pyexecdir@
+pythondir = @pythondir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -232,6 +241,7 @@ TESTS = \
   test_bug_3104326.pro \
   test_bug_3104349.pro \
   test_bug_3147146.pro \
+  test_bug_3147181.pro \
   test_ce.pro \
   test_clip.pro \
   test_common.pro \
@@ -266,6 +276,7 @@ TESTS = \
   test_pmulti.pro \
   test_product.pro \
   test_ps_decomposed.pro \
+  test_python.pro \
   test_python_module_0.pro \
   test_python_module_1.pro \
   test_python_module_2.pro \

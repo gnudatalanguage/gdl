@@ -107,7 +107,7 @@ cstring
 // but as this is wrong syntax anyway, we go with this implementation
 cformat
 {
-    int w = -1;
+    int w = 0;
     int d = -1;
     char f = ' ';
 }

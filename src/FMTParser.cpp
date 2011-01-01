@@ -494,7 +494,7 @@ void FMTParser::cformat() {
 	antlr::RefToken  s = antlr::nullToken;
 	RefFMTNode s_AST = RefFMTNode(antlr::nullAST);
 	
-	int w = -1;
+	int w = 0;
 	int d = -1;
 	char f = ' ';
 	
