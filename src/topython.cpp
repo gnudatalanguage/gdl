@@ -57,8 +57,18 @@ PyObject* Data_<Sp>::ToPython()
   npy_intp dimArr[MAXRANK];
   for( int i=0; i<n_dim; ++i) dimArr[i]=this->dim[i];
 
-  return //reinterpret_cast< PyObject*>
-    (PyArray_SimpleNewFromData( n_dim, dimArr, item_type, DataAddr()));
+  // SA: this does not copy the data (see tracker item no. 3148396)
+  // return //reinterpret_cast< PyObject*>
+  //  (PyArray_SimpleNewFromData( n_dim, dimArr, item_type, DataAddr()));
+
+  PyObject* ret = PyArray_SimpleNew(n_dim, dimArr, item_type);
+  if (!PyArray_CHKFLAGS(ret, NPY_C_CONTIGUOUS))
+  {
+    // TODO: free the memory:  PyArray_Free(PyObject* op, void* ptr) ?
+    throw GDLException("Failed to convert array to python.");
+  }
+  memcpy(PyArray_DATA(ret), DataAddr(), this->N_Elements() * sizeof(Sp::t));
+  return ret;
 }
 
 template < typename Sp>
