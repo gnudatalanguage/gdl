@@ -31,7 +31,19 @@ dnl == some basics =========================================
 dnl ======================================================== 
 
 AM_CONFIG_HEADER(config.h)
-AM_INIT_AUTOMAKE(color-tests)
+
+dnl checking for Automake version is tricky:
+dnl (http://www.mail-archive.com/automake@gnu.org/msg15292.html)
+dnl color-tests require AM >=1.11 and AM 1.11 requires AC >=2.62
+AC_MSG_CHECKING([autoconf version])
+m4_version_prereq([2.62], [
+  AC_MSG_RESULT([>=2.62])
+  AM_INIT_AUTOMAKE(color-tests)
+],[
+  AC_MSG_RESULT([<2.62])
+  AM_INIT_AUTOMAKE
+]) 
+
 AC_LANG(C++)
 AC_PROG_CXX
 AC_PROG_RANLIB
