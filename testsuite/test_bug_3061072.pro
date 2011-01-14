@@ -1,4 +1,6 @@
 pro test_bug_3061072
+  if ~ncdf_exists() then exit, status=77
+
   n = ncdf_create('/dev/null',/clo)
   ncdf_control, n, /endef
 

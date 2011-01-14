@@ -1,4 +1,5 @@
 pro test_bug_3057520
+  if ~ncdf_exists() then exit, status=77
   nc = ncdf_create('/dev/null', /clobber)
   dt = ncdf_dimdef(nc, 'T', /unlimited)
   dx = ncdf_dimdef(nc, 'X', 1024)

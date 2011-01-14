@@ -125,10 +125,9 @@ namespace lib {
     e->AssureStringScalarPar(1,dim_name);
 
     if(nParam == 3 && e->KeywordSet(0))
-      {
-	throw GDLException(e->CallingNode(),
-			   "NCDF_DIMDEF size and unlimited error");
-      } 
+      e->Throw("Dimension cannot have a specific size and UNLIMITED size.");
+    else if (nParam == 2 && !e->KeywordSet(0))
+      e->Throw("No dimension size specified.");
     else if(nParam == 2 && e->KeywordSet(0)) //unlimited
       {
 	//umlimited is set
