@@ -948,6 +948,7 @@ else if(var_type == NC_LONG)
       //offset
       DLongGDL *o = e->GetKWAs<DLongGDL>(1);
       noff = o->N_Elements();
+      if (noff < var_ndims) e->Throw("Insufficient number of indices in OFFSET array (" + i2s(noff) + ", should be " + i2s(var_ndims) + ")");
 
       //  offset[0]=0;
       for (int i = 0; i < noff; ++i)
