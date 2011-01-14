@@ -99,11 +99,15 @@ namespace lib {
     //get the att_name variable.
     status=nc_inq_attname(cdfid, varid, attnum, att_name);
 
+    if (status == NC_ENOTATT) 
+    {
+      Warning("NCDF_ATTNAME: Attribute " + i2s(attnum) + " not found.");
+      return new DStringGDL("");
+    }
+
     //handle the error
     ncdf_handle_error(e,status,"NCDF_ATTNAME");
 
-    // SA: TODO: should return null string if argument not found
-	
     return new DStringGDL(att_name);
 
   } // }}}

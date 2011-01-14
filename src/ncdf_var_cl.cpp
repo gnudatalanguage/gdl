@@ -204,8 +204,12 @@ namespace lib {
     e->AssureScalarPar<DStringGDL>(1, dim_name);
     
     status=nc_inq_varid(cdfid, dim_name.c_str(),&var_id);
+    if (status == NC_ENOTVAR) 
+    {
+      Warning("NCDF_VARID: Variable not found \"" + dim_name + "\"");
+      return new DLongGDL(-1);
+    }
     ncdf_handle_error(e,status,"NCDF_VARID");
-
     return new DLongGDL(var_id);
   }
 

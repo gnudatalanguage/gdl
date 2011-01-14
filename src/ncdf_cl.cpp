@@ -82,8 +82,7 @@ namespace lib {
             DLong id;
             e->AssureLongScalarPar( 0, id);
 	    error += i2s(id);
-	    error += " is not a valid cdfid";
-	    
+	    error += " is not a valid cdfid. ";
 	    error+="(NC_ERROR=-33)";
 	  }
 	else if(status==NC_ENFILE)	/* Too many netcdfs open */
@@ -102,32 +101,28 @@ namespace lib {
 	  }
 	else if(status==NC_EPERM) 	/* Write to read only */
 	  {
-	    error+="Write permission not enabled.";
-	    
+	    error+="Write permission not enabled. ";
 	    error+="(NC_ERROR=-37)";
 	  }
       	else if(status==NC_ENOTINDEFINE) /* Operation not allowed in data mode */
 	  {
-	    error+=" Unable to define variable, not in define mode.";
-	    
+	    error+=" Unable to define variable, not in define mode. ";
 	    error+="(NC_ERROR=-38)";
 	  }
 	else if(status== NC_EINDEFINE) 	/* Operation not allowed in define mode */
 	  {
-	    error+=" Cannot acces data in DEFINE mode.";
-	    
+	    error+=" Cannot acces data in DEFINE mode. ";
 	    error+="(NC_ERROR=-39)";
 	  }
 	else if(status==NC_EINVALCOORDS) /* Index exceeds dimension bound */
 	  {
 	    //this error should never be triggered
-	    error+="GDL INTERNAL ERROR, PLEASE REPORT TO CODE MAINTAINER";
-	    
+	    error+="GDL INTERNAL ERROR, PLEASE REPORT TO CODE MAINTAINER ";
 	    error+="(NC_ERROR=-40)";
 	  }
 	else if(status==NC_EMAXDIMS) 	/* NC_MAX_DIMS exceeded */
 	  {
-	    error+="Unable to define variable, maximum number of attributes exceeded";
+	    error+="Unable to define variable, maximum number of attributes exceeded. ";
 	    error+="(NC_ERROR=-41)";
 	  }
 	else if(status==NC_ENAMEINUSE) 	/* String match to name in use */
@@ -137,12 +132,11 @@ namespace lib {
       	else if(status==NC_ENOTATT) /* Attribute not found */
 	  {
 	    error+="Attribute enquiry failed. ";
-	    
 	    error+="(NC_ERROR=-43)";
 	  }
 	else if(status==NC_EMAXATTS) 	/* NC_MAX_ATTRS exceeded */
 	  {
-	    error+="Attribute write failed, maximum number of attributes exceeded";
+	    error+="Attribute write failed, maximum number of attributes exceeded. ";
 	    error+="(NC_ERROR=-44)";
 	  }
       	else if(status==NC_EBADTYPE) 	/* Not a netcdf data type */    
@@ -160,16 +154,10 @@ namespace lib {
 			auto_ptr<DIntGDL> dim_in_guard( dim_in);
 			int var_ndims=dim_in->N_Elements();
 			if(var_ndims > NC_MAX_VAR_DIMS)
-			{
-				throw GDLException(e->CallingNode(),
-					"NCDF internal error in error handler (too many dimension IDs).");
-			}					      
-
+                          e->Throw("NCDF internal error in error handler (too many dimension IDs).");
 			error += "No Dimension with ID = ";
-		
 			for (int i=0; i<var_ndims;++i)
 				error += i2s((*dim_in)[i]) + " ";
-
 			error += "found. ";
 		}
 		else
@@ -189,16 +177,25 @@ namespace lib {
 	  }
       	else if(status==NC_EMAXVARS) 	/* NC_MAX_VARS exceeded */
 	  {
-	    error+="Unable to define variable, maximum number of attributes exceeded";
+	    error+="Unable to define variable, maximum number of attributes exceeded. ";
 	    error+="(NC_ERROR=-48)";
 	  }
 	else if(status==NC_ENOTVAR) 	/* Variable not found */
 	  {
-            DLong id;
-            e->AssureLongScalarPar( 1, id);
 	    error += "Variable enquiry failed, ";
-	    error += i2s(id);	    
-	    error += " is not a valid variable id.";
+            if (e->GetPar(1)->Type() == STRING)
+            {
+              DString id;
+              e->AssureStringScalarPar( 1, id);
+              error += "\"" + id + "\"";
+            }
+            else
+            {
+              DLong id;
+              e->AssureLongScalarPar( 1, id);
+	      error += i2s(id);	    
+            }
+	    error += " is not a valid variable id. ";
 	    error += "(NC_ERROR=-49)";
 	  }
       	else if(status==NC_EGLOBAL) 	/* Action prohibited on NC_GLOBAL varid */
