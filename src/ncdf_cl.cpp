@@ -232,9 +232,7 @@ namespace lib {
 	  }
 	else if(status==NC_EEDGE)   	/* Edge+start exceeds dimension bound */
 	  {
-	    //this error should never be triggered
-	    error+="GDL INTERNAL ERROR, PLEASE REPORT TO CODE MAINTAINER";
-
+	    error+="Dimension bound exceeded. ";
 	    error+="(NC_ERROR=-57)";
 	  }
 	else if(status==NC_ESTRIDE) 	/* Illegal stride */
@@ -244,14 +242,12 @@ namespace lib {
 	else if(status==NC_EBADNAME)	/* Attribute or variable name
                                         contains illegal characters */  
 	  {
-    
 	    error+="(NC_ERROR=-59)";
 	  }
 	else if(status==NC_ERANGE)  	/* Math result not representable */ 
 	  {
 	    error+="(NC_ERROR=-60)";
 	  }
-
 	else if(status==NC_ENOMEM)	/* Memory allocation (malloc) failure */
 	  {
 	    error+="(NC_ERROR=-61)";
