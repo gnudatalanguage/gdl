@@ -74,8 +74,7 @@ namespace lib {
 
     if (e->KeywordSet(0)) 
     {
-      e->AssureLongScalarPar(1, varid);
-      attnum = varid;
+      e->AssureLongScalarPar(1, attnum);
       varid = NC_GLOBAL;
     } 
     else 
@@ -93,7 +92,7 @@ namespace lib {
         status=nc_inq_varid(cdfid, var_name.c_str(), &varid);
         ncdf_handle_error(e,status,"NCDF_ATTNAME");
       }
-      e->AssureStringScalarPar(2, attname);
+      e->AssureLongScalarPar(2, attnum);
     }
 
     //get the att_name variable.
