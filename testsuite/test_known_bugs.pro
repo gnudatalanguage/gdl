@@ -12,6 +12,7 @@
 ;
 pro TEST_BUG_LENNY, verbose=verbose
 ;
+; tested aldo in test_bug_2974380.pro 
 if KEYWORD_SET(verbose) then begin
     print, 'A bug related to ImageMagick and Plplot exists in'
     print, 'Debian Lenny and (maybe) in recent Ubuntu (9.10, 10.4).'
