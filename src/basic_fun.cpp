@@ -847,7 +847,6 @@ namespace lib {
   BaseGDL* complex_fun_template( EnvT* e)
   {
     SizeT nParam=e->NParam( 1);
-  
     if( nParam <= 2)
       {
 	if( nParam == 2)
@@ -925,7 +924,11 @@ namespace lib {
 	  }
 	else
 	  {
+            // SA: see tracker item 3151760 ... but it does not work yet :(
 	    BaseGDL* p0 = e->GetParDefined( 0);
+            // if (ComplexGDL::t == p0->Type() && e->GlobalPar(0)) 
+            //  return p0;
+            //else 
 	    return p0->Convert2( ComplexGDL::t, BaseGDL::COPY);
 	  }
       }
@@ -989,6 +992,9 @@ namespace lib {
 	if( static_cast< EnvUDT*>( e->Caller())->GetIOError() != NULL) 
 	  return p0->Convert2( TargetClass::t, 
 			       BaseGDL::COPY_THROWIOERROR);
+        // SA: see tracker item no. 3151760 ... does not work yet
+        //else if (TargetClass::t == p0->Type() && e->GlobalPar(0)) 
+        //  return p0;
 	else
 	  return p0->Convert2( TargetClass::t, BaseGDL::COPY);
       }
@@ -1075,14 +1081,14 @@ namespace lib {
 
     // SA: handling special VMS-compatibility syntax, e.g.: string(1,'$(F)')
     //     (if nor FORMAT neither PRINT defined, >1 parameter, last param is scalar string
-    //     which begins with "$(" or "(" then last param [minus "$"] is treated as FORMAT)
+    //     which begins with "$(" or "(" but is not "()" then last param [minus "$"] is treated as FORMAT)
     if (!printKey && (e->GetKW(0) == NULL) && nParam > 1) 
     {    
       BaseGDL* par = e->GetParDefined(nParam - 1);
       if (par->Type() == STRING && par->Scalar())
       {
         int dollar = (*static_cast<DStringGDL*>(par))[0].compare(0,2,"$(");
-        if (dollar == 0 || (*static_cast<DStringGDL*>(par))[0].compare(0,1,"(") == 0)   
+        if (dollar == 0 || ((*static_cast<DStringGDL*>(par))[0].compare(0,1,"(") == 0 && (*static_cast<DStringGDL*>(par))[0] != "()"))   
         {    
           e->SetKeyword("FORMAT", new DStringGDL(
             (*static_cast<DStringGDL*>(par))[0].c_str() + (dollar == 0 ? 1 : 0) 
@@ -1094,7 +1100,12 @@ namespace lib {
       }    
     }    
 
-    if( printKey || (e->GetKW( 0) != NULL)) // PRINT or FORMAT
+    BaseGDL* format_kw = e->GetKW( 0);
+    bool formatKey = format_kw != NULL;
+
+    if (formatKey && format_kw->Type() == STRING && (*static_cast<DStringGDL*>(format_kw))[0] == "") formatKey = false;
+
+    if( printKey || formatKey) // PRINT or FORMAT
       {
 	stringstream os;
 
@@ -1137,6 +1148,8 @@ namespace lib {
 	if( nParam == 1) // nParam == 1 -> conversion
 	  {
 	    BaseGDL* p0 = e->GetParDefined( 0);
+            // SA: see tracker item no. 3151760 ... but it does not work yet
+            //if (p0->Type() == STRING && e->GlobalPar(0)) return p0;
 	    return p0->Convert2( STRING, BaseGDL::COPY);
 	  }
 	else // concatenation
@@ -5930,7 +5943,6 @@ BaseGDL* transpose( EnvT* e)
     if (e->KeywordSet("OVERWRITE"))
     {
       p0->Reverse(dim-1);
-//       e->Throw("OVERWRITE keyword not supported yet (FIXME)");
       bool stolen = e->StealLocalPar( 0);
       if( !stolen) e->GetPar(0) = NULL;
       return p0;
