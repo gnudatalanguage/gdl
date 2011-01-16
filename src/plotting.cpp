@@ -2198,6 +2198,23 @@ actStream->wid( 0);
     bool kwWidth = e->KeywordPresent(widthIx);
     PLFLT width = 0.;
 
+    // SA: plplot uses a "reference point" that "lies along a line passing 
+    //     through the string at half the height of a capital letter"
+    //     getting character height so it can be later used to move the 
+    //     "reference point" half character height lower (tracker item no. 2982623)
+    PLFLT charheight;
+    {
+      PLFLT nullf, htmm;
+      plgchr(&nullf, &htmm); // height of a letter in millimetres
+      PLINT htpc = plP_mmpcy(htmm); // height of a letter in physical coordinates
+      PLINT nulli, p_iymin, p_iymax;
+      plP_gphy(&nulli, &nulli, &p_iymin, &p_iymax); // physical device limits in physical coordinates
+      PLFLT wy, wy0;
+      plcalc_world(0., htpc / double(p_iymax - p_iymin), &nullf, &wy, &nulli); // wy = height of a letter in world coordinates
+      plcalc_world(0., 0., &nullf, &wy0, &nulli); // wy = height of a letter in world coordinates
+      charheight = wy - wy0;
+    }
+
     if(minEl == 1)
       {
 	x=static_cast<PLFLT>((*xVal)[0]);
@@ -2216,12 +2233,7 @@ actStream->wid( 0);
 	}
 #endif
 
-        // TODO
-        // SA: plplot uses a "reference point" that "lies along a line passing 
-        //     through the string at half the height of a capital letter"
-        // we should move the "reference point" to the bottom (tracker item no. 2982623)
-        //  PLFLT def, ht;
-        //  plgchr(&def, &ht); // height of a letter
+        y += .5 * charheight;
 
 	out=(*strVal)[0];
 	actStream->ptex(x,y,p_orient_x, p_orient_y,alignment,out.c_str());
@@ -2262,6 +2274,7 @@ actStream->wid( 0);
 		actStream->Color((*l_color_arr)[i]);
 	    */
 	    out=(*strVal)[i];
+            y += .5 * charheight;
 	    actStream->ptex(x,y,p_orient_x, p_orient_y,alignment,out.c_str());
             if (kwWidth) width = max(plstrl(out.c_str()), width);
 	  }
