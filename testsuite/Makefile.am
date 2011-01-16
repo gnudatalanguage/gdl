@@ -9,6 +9,7 @@ TESTS = \
   test_binfmt.pro \
   test_bug_1779553.pro \
   test_bug_2555865.pro \
+  test_bug_2610174.pro \
   test_bug_2846561.pro \
   test_bug_2876150.pro \
   test_bug_2974380.pro \

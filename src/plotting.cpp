@@ -21,6 +21,7 @@
 
 // PLplot is used for direct graphics
 #include <plplot/plstream.h>
+#include <plplot/plplotP.h>
 
 #include "initsysvar.hpp"
 #include "envt.hpp"
@@ -30,8 +31,6 @@
 #include <gsl/gsl_const_mksa.h> // GSL_CONST_MKSA_INCH
 
 #define PLK_Escape            0x1B
-#define free_mem(a) \
-    if (a != NULL) { free((void *) a); a = NULL; }
 
 namespace lib {
 
@@ -2194,6 +2193,11 @@ actStream->wid( 0);
     gkw_charsize(e, actStream, charsize);
 
 
+    // WIDTH keyword
+    static int widthIx = e->KeywordIx( "WIDTH");
+    bool kwWidth = e->KeywordPresent(widthIx);
+    PLFLT width = 0.;
+
     if(minEl == 1)
       {
 	x=static_cast<PLFLT>((*xVal)[0]);
@@ -2212,8 +2216,16 @@ actStream->wid( 0);
 	}
 #endif
 
+        // TODO
+        // SA: plplot uses a "reference point" that "lies along a line passing 
+        //     through the string at half the height of a capital letter"
+        // we should move the "reference point" to the bottom (tracker item no. 2982623)
+        //  PLFLT def, ht;
+        //  plgchr(&def, &ht); // height of a letter
+
 	out=(*strVal)[0];
 	actStream->ptex(x,y,p_orient_x, p_orient_y,alignment,out.c_str());
+        if (kwWidth) width = plstrl(out.c_str());
       }
     else
       {
@@ -2251,11 +2263,22 @@ actStream->wid( 0);
 	    */
 	    out=(*strVal)[i];
 	    actStream->ptex(x,y,p_orient_x, p_orient_y,alignment,out.c_str());
+            if (kwWidth) width = max(plstrl(out.c_str()), width);
 	  }
       }
     
   skip:
     actStream->flush();
+    if (kwWidth)
+    {
+      // SA: we should return value of width in "normalized coordinate units"
+      //     width contains output from plstrl() expressed in millimetres
+      //     plP_mmpcx() converts it into physical coordinates
+      //     plP_gphy() gives "physical device limits in physical coordinates"
+      PLINT p_ixmin, p_ixmax, p_iymin, p_iymax;
+      plP_gphy(&p_ixmin, &p_ixmax, &p_iymin, &p_iymax);
+      e->SetKW(widthIx, new DFloatGDL(plP_mmpcx(width)/double(p_ixmax - p_ixmin)));
+    }
   }
 
   void polyfill( EnvT* e)
@@ -2858,7 +2881,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
 		      static_cast<PLFLT*> (&(*yVal)[0]), 
 		      z, (long int) xEl, (long int) yEl, 3);
       //delete[] z;
-      free_mem(z);
+      if (z != NULL) { free((void *) z); z = NULL; }
     }
 
     // 2 DIM X & Y

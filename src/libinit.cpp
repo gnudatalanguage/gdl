@@ -720,7 +720,7 @@ void LibInit()
     {
       "COLOR","DATA","NORMAL","DEVICE","CLIP",
       "ORIENTATION","ALIGNMENT","CHARSIZE","CHARTHICK",
-      "NOCLIP","Z",KLISTEND
+      "NOCLIP","Z","WIDTH",KLISTEND
     };
   new DLibPro(lib::xyouts, string("XYOUTS"), 3, xyoutsKey);
 
