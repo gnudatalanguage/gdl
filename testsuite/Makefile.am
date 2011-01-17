@@ -12,6 +12,7 @@ TESTS = \
   test_bug_2610174.pro \
   test_bug_2846561.pro \
   test_bug_2876150.pro \
+  test_bug_2876161.pro \
   test_bug_2974380.pro \
   test_bug_3033108.pro \
   test_bug_3054361.pro \

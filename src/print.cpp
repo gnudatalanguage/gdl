@@ -168,12 +168,14 @@ namespace lib {
       
 	BaseGDL* par;
 	bool lastParScalar = false;
+        bool anyArrayBefore = e->GetParDefined( parOffset)->Rank() > 0;
 	SizeT actPos = 0;
 	for( SizeT i=parOffset; i<nParam; i++)
 	  {
-	    if( i > parOffset)
-		lastParScalar = /*par->Type() == STRING &&*/ par->Scalar();
+	    if( i > parOffset) lastParScalar = /*par->Type() == STRING &&*/ par->Scalar();
 	    par=e->GetParDefined( i);
+            if (lastParScalar && anyArrayBefore && par->Rank() != 0) (*os) << endl; // e.g. print,[1],1,[1] 
+            anyArrayBefore |= par->Rank() != 0;
 	    par->ToStream( *os, width, &actPos);
 	  }
         bool singleNullChar = (par->Type() == STRING &&
