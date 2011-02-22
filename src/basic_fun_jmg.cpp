@@ -187,15 +187,19 @@ namespace lib {
 
     if( lun < -2 || lun > maxLun)
       throw GDLException( e->CallingNode(), 
-			  "FSTAT:  File unit is not within allowed range.");
+			  " File unit is not within allowed range.");
 
     SizeT size;
     bool big = false;
+
     if (lun > 0)
     {
-      size = fileUnits[ lun-1].Size();
-      big = (DLong(size) != size);
+      if(fileUnits[ lun-1].IsOpen())  {
+	size = fileUnits[ lun-1].Size();
+	big = (DLong(size) != size);
+      }
     }
+
     DStructGDL* fstat;
     if (big) fstat = new DStructGDL( "FSTAT64");
     else fstat = new DStructGDL( "FSTAT");
