@@ -1,6 +1,6 @@
-;$Id: identity.pro,v 1.1.1.1 2004-12-09 15:10:19 m_schellens Exp $
+;$Id: identity.pro,v 1.2 2011-02-27 19:05:38 slayoo Exp $
 
-function identity, n,double_keyword=double_keyword
+function identity, n,double=double_keyword
 
 ;+
 ;

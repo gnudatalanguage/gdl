@@ -2,7 +2,7 @@
 
 # SA: checking if every .pro file is listed in the Makefile.am
 test \
-  "`fgrep '.pro' Makefile.am | tr '\\' ' ' | tr "\n" ' ' | tr -s ' '`" \
+  "`fgrep '.pro' Makefile.am | tr '\\\\' ' ' | tr "\n" ' ' | tr -s ' '`" \
   = \
   " `LC_COLLATE=C ls *.pro | tr "\n" ' ' | tr -s ' '`" && exit
 echo "--------------------------------------------------------------"

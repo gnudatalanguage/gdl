@@ -1,5 +1,5 @@
-;$Id: trace.pro,v 1.1.1.1 2004-12-09 15:10:19 m_schellens Exp $
-function trace, matrix,double_keyword=double_keyword
+;$Id: trace.pro,v 1.2 2011-02-27 19:05:38 slayoo Exp $
+function trace, matrix,double=double_keyword
 
 ;+
 ;
