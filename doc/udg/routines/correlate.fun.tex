@@ -1,0 +1,40 @@
+When called with two vector arguments $x$ and $y$ it returns 
+  the correlation coefficient $r$ defined as:
+\begin{equation}
+  r = \frac{{\rm cov}(x,y)}{{\rm stdev}(x) \cdot {\rm stdev}(y)}
+\end{equation}
+where
+\begin{equation}
+  {\rm cov}(x,y) = \frac{1}{N - 1} \sum\limits_{i=0}^{N-1} 
+    \left( x[i] - \overline{x} \right) \cdot
+    \left( y[i] - \overline{y} \right)
+\end{equation}
+\begin{equation}
+  {\rm stdev}(x) = \sqrt{
+    \frac{1}{N - 1} \sum\limits_{i=0}^{N-1} \left[ 
+      x[i] - \overline{x}
+    \right]^2
+  }
+\end{equation}
+and 
+\begin{equation}
+  \overline{x} = \sum\limits_{i=0}^{N-1} \frac{x[i]}{N}
+\end{equation}
+($N$ is the length of the longer vector).
+
+\gdlcodeexample{correlate_0}{correlate}{}
+
+\gdlkeyworddesc{DOUBLE}
+
+Forces double-precision calculations and output value type.
+
+\gdlcodeexample{correlate_1}{double}{}
+
+\gdlkeyworddesc{COVARIANCE}
+
+If called with the COVARIANCE keyword, the covariance ${\rm cov}(x,y)$ 
+  of the two vectors is returned instead.
+
+\gdlcodeexample{correlate_2}{covariance}{}
+
+%compat info

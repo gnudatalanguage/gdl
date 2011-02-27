@@ -1,0 +1,315 @@
+% by Sylwester Arabas <slayoo@igf.fuw.edu.pl>
+% this file is a part of the GNU Data Language package
+% ----------------------------------------------------
+% required LaTeX packages:
+% - ifthen
+% - stringstrings (\def\@MAXSTRINGSIZE{1000} !!!)
+%   http://ctan.org/tex-archive/macros/latex/contrib/stringstrings/
+%   
+% - hyperref
+%   http://ctan.org/tex-archive/macros/latex/contrib/hyperref/
+% - makeidx (+ makeindex command-line tool)
+% - vmargin
+%   http://ctan.org/tex-archive/macros/latex/contrib/vmargin/
+% - mwcls (document class)                
+%   http://ctan.org/tex-archive/macros/latex/contrib/mwcls/
+% - multicol
+% - nnfootnote
+% ----------------------------------------------------
+
+% mwbk for a more European look & feel :)
+
+%\documentclass[10pt,titleauthor,openany]{mwbk}
+
+\documentclass[10pt,titleauthor,openany]{mwbk}
+\SetSectionFormatting{section}{14pt plus5pt minus2pt}{\FormatHangHeading{\large}}{5pt plus3pt}
+\usepackage[T1]{fontenc} % otherwise underscores are not "searchable in PDFs"
+\usepackage{lmodern} % to get a vector font with the T1 enc
+
+% string manipultation macros (also includes the ifthen package)
+\usepackage{stringstrings}
+
+% margins fine-tuning
+% usage: \setmarginsrb{ leftmargin }{ topmargin }{ rightmargin }{ bottommargin }
+% default: \setmarginsrb{35mm}{20mm}{25mm}{15mm}{12pt}{11mm}{0pt}{11mm}
+%                     { headheight }{ headsep }{ footheight }{ footskip }
+\usepackage{vmargin}
+\setpapersize[landscape]{A4}
+\setmarginsrb{20mm}{20mm}{20mm}{5mm}{15mm}{10mm}{0mm}{0mm}
+\linespread{1}
+
+% index
+\usepackage{makeidx}
+\makeindex
+\renewenvironment{theindex}{\begin{description}}{\end{description}}
+
+% multi-column page layout
+\usepackage{multicol}
+
+% the "for" loop construct for LaTeX
+\usepackage{forloop}
+
+\ifx\HCode\Undef
+  % draft watermark
+  \usepackage[draft]{pdfdraftcopy}
+  \draftstring{DRAFT}
+  \draftfontsize{220pt}
+  \draftangle{35}
+\else
+\fi
+
+% sans-serif font for a better screen-reading experience
+\renewcommand{\familydefault}{\sfdefault}
+
+% no paragraph indentation, bigger paragraph separation
+\setlength\parindent{0pt}
+
+% non-numbered footnotes
+\usepackage{nnfootnote}
+
+% code listings
+\usepackage{listings}
+
+% graphics
+\usepackage{graphics}
+
+% definitions of GDL-related macros
+\usepackage{gdldoc}
+
+% row-clustering in tabulars
+\usepackage{multirow}
+
+% prettier math
+\usepackage{amsmath}
+
+% hyperlinks in the output PDF (and HTML)
+\ifx\HCode\Undef
+  \usepackage[colorlinks,plainpages=false]{hyperref} % plainpages=false for authorindex package
+\else
+  \usepackage[tex4ht]{hyperref}
+\fi
+
+% bibliography
+\usepackage[miniindex]{authorindex} % page references in the bibliography
+\def\theaipage{\string\hyperpage{\thepage}}
+\usepackage[numbers]{natbib}
+%\aipagetypeorder
+\bibliographystyle{copernicus} % e.g. http://www.atmospheric-chemistry-and-physics.net/Copernicus.bst
+
+% not numbering sections (e.g. function names and deeper)
+\setcounter{secnumdepth}{0}
+\setcounter{tocdepth}{1}
+
+% IDL + trademark sign
+\def\IDL{IDL\leavevmode\hbox{$\rm {}^{TM}$}}
+\def\PVWAVE{PV-WAVE\leavevmode\hbox{$\rm {}^{TM}$}}
+
+\title{
+  \Huge GDL -- GNU Data Language\\
+  \Large a free/libre/open-source implementation of IDL/PV-WAVE\textsuperscript{*}\nnfoottext{
+    \textsuperscript{*}
+    IDL (Interactive Data Language) and PV-WAVE (Precision Visuals - Workstation Analysis and Visualization Environment)\\
+    are/were registered trademarks of Research Systems, Inc./ITT Visual Information Solutions and Precision Visuals/Visual Numerics/Rogue Wave Software, respectively
+  }
+}
+\author{
+  developed by Marc Schellens and The GDL team\\
+  documentation maintained by Sylwester Arabas and Alain Coulais
+}
+\date{\today}
+
+% putting a list of files (packages, styles, etc) used during compilation
+\listfiles
+
+\begin{document}
+  \maketitle
+  \input{chapters/toc}
+
+  \clearpage
+  \twocolumn
+  \setlength\parskip{4pt}
+ 
+  \section{About GDL}
+  \input{chapters/about}
+  \section{License}
+  \input{chapters/license}
+  \section{Credits}
+  \input{chapters/credits}
+  \section{Providing fedback}
+  \input{chapters/feedback}
+  \section{Organization of this document}
+  \input{chapters/dochowto}
+
+  \part{User's guide}
+
+  \chapter{Obtaining, installing, and invoking GDL}
+  \section{Requirements and supported environments}
+  \section{Availability of pre-compiled packages}
+  \section{Compiling GDL from source}
+  \subsection{Compiler requirements}
+  \input{chapters/compilers}
+  \subsection{Autotools}
+  \input{chapters/compile-autotools}
+  \subsection{Cmake}
+  \input{chapters/compile-cmake}
+  \section{Installation layout}
+  \section{Command-line options}
+  \section{Influential environmental variables}
+
+  \chapter{Language reference}
+  %\input{chapters/syntax-intro}
+  \section{Syntax basics}
+  \input{chapters/syntax}
+  \section{Datatypes}
+  \input{chapters/syntax-types}
+  \section{Operators}
+  \section{Flow control structures}
+  \input{chapters/syntax-flowcon}
+  \section{Variable scoping rules}
+  \input{chapters/syntax-scope}
+  \section{Functions and procedures}
+  \section{Argument passing}
+  \input{chapters/syntax-arguments}
+  \section{Arrays}
+  \input{chapters/syntax-array}
+  \section{Structures}
+  \section{System variables (global)}
+  \section{Heap variables (pointers)}
+  \section{The HELP procedure}
+  \section{Object-oriented programming}
+  \input{chapters/syntax-oop}
+  \section{Handling Overflows, Floating Point Special Values}
+  \section{Error handling}
+  \input{chapters/syntax-errhandle}
+  \section{Compile options}
+
+  \chapter{Interpreter commands and built-in debugging facilities}
+  \input{chapters/debug}
+
+  \chapter{Maths}
+
+  \section{Basic scalar and vector operations}
+  \input{chapters/math-basic}
+  \section{Basic and special function library}
+  \section{Linear algebra}
+  \section{Statistics}
+  \section{Interpolation}
+  \section{Function fitting}
+  \input{chapters/math-fitting}
+  \section{Fourier analysis}
+  \input{chapters/math-fourier}
+  \section{Multidimensional root-finding}
+  \input{chapters/math-multiroots}
+  \section{Random numbers}
+  \input{chapters/math-rng}
+  \section{Ordinary differential equations}
+  \input{chapters/math-ode}
+  \section{Wavelet analysis}
+
+  \chapter{Input/output, supported data formats}
+  \section{Basics -- accessing files}
+  \input{chapters/io}
+  \section{ASCII}
+  \input{chapters/io-ascii}
+  \section{CSV}
+  \input{chapters/io-csv}
+  \section{Binary data (raw access)}
+  \section{FITS}
+  \section{netCDF}
+  \input{chapters/io-netcdf}
+  \section{HDF4}
+  \input{chapters/io-hdf4}
+  \section{HDF5}
+  \section{raster images (TIFF, PNG, JPEG, \ldots)}
+  \section{DICOM}
+  \section{GRIB}
+  \input{chapters/io-grib}
+  \section{IDL save files}
+
+  \chapter{Plotting and mapping}
+  \section{2D plots}
+  \input{chapters/plot-2d}
+  \section{3D plots}
+  \input{chapters/plot-3d}
+  \section{Plotting raster data}
+  \section{Managing multiple windows}
+  \section{Map projections}
+  \input{chapters/plot-map}
+  \section{Output terminals}
+  \section{Working with colours}
+  \input{chapters/plot-colours}
+  \section{Fonts, symbols and text formatting}
+  \input{chapters/plot-fonts}
+
+  \chapter{Interaction with host OS}
+  \section{Executing external commands (via shell or not)}
+  \section{Filesystem operations}
+  \section{Network operations}
+  \section{Command-line options and environmental variables}
+
+  \chapter{Manipulating strings}
+  \input{chapters/strings}
+  \section{Basic operations}
+  \section{Base64 encoding/decoding}
+  \section{Parsing URLs}
+  \section{Sorting}
+
+  \chapter{Representing date \& time}
+
+  \chapter{Image processing}
+  
+  \chapter{Parallel processing}
+  \section{Built-in features (OpenMP)}
+  \input{chapters/openmp}
+  \section{ImageMagick's features}
+  \section{MPI and GDL}
+
+  \chapter{GUI programming (widgets)}
+  \input{chapters/widgets}
+ 
+  \chapter{The Python bridge}
+  \section{calling Python code from GDL}
+  \section{calling GDL code from Python}
+  \input{chapters/python}
+
+  \onecolumn
+  \chapter{Alphabetical list of library routines}
+  {
+    \secondarysize
+    \begin{multicols}{2}{\input{chapters/routine-list}}
+    \end{multicols}
+  }
+
+  \part{Developer's guide}
+  \twocolumn
+
+  \chapter{General remarks and coding guidelines}
+  \input{chapters/coding}
+ 
+  \chapter{The library-routine API}
+  \input{chapters/api}
+
+  \chapter{Extending the documentation}
+  \input{chapters/docs}
+  \chapter{A short overview of how GDL works internally}
+  \input{chapters/internals}
+
+  \chapter{How to make use of OpenMP in GDL}
+ 
+  \chapter{Notes for packagers}
+  \section{Optional features of PLplot and ImageMagick}
+  \section{The HDF4-netCDF conflict}
+
+  \part{Indices}
+  \onecolumn
+  \appendix
+  \phantomsection
+  \secondarysize
+  \chapter*{Subject Index}
+  \begin{multicols}{3}{\printindex}
+  \end{multicols}
+
+  \twocolumn
+  \bibliography{gdl}
+
+\end{document}

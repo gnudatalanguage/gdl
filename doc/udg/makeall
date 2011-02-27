@@ -1,0 +1,166 @@
+# by Sylwester Arabas <slayoo@igf.fuw.edu.pl>
+# part of GDL -- GNU Data Language
+
+# this is still a quick-and-dirty bash "makefile" (FIXME!)
+# TODO: trap?
+# TODO: sprawdzanie daty python-lib i samego makeall
+# TODO: tex4ht i latex2txt? 
+#  HTOPT="xhtml,pmathml,css2,next,sec-filename,index=1,2,frames"
+#  htlatex gdl "$HTOPT"             &&\
+#  tex '\def\filename{{gdl}{idx}{4dx}{ind}} \input  idxmake.4ht' &&\ 
+#  makeindex -o gdl.ind gdl.4dx     &&\ 
+#  htlatex gdl "$HTOPT"  
+
+# generate the list of routines (./routinelist.tmp), do it only
+#   - if routinelist.tmp does not exist or
+#   - if the gdl binary has changed (C++ routines might have changed) or
+#   - if any of the src/pro/*.pro files has changed (GDL-written routines) 
+#   - if routinelist.pro or gdl.pro has changed
+echo -n "--- Generating routinelist.tmp file (may take a while) ... "
+newest=`ls -1 -t ../../src/pro/*.pro ../../src/gdl ./gdl.pro ./routinelist.pro | head -1`
+if `test ! -e routinelist.tmp` || `test $newest -nt routinelist.tmp`; then
+  ../../src/gdl -quiet -e "routinelist, 'routinelist.tmp'" 2>/dev/stdout 1>routinelist.log;
+  if `test 0 -eq $?`; then
+    echo "done";
+  else
+    echo "error (consult routinelist.log)";
+    exit 1
+  fi
+else
+  echo "skipped (appears to be up to date)";
+fi
+
+# generate the LaTeX chapter file (./chapters/routine-list.tex), do it only
+#   - if it does not exist yet
+#   - if routinelist.tmp is newer
+#   - if routinelist.awk is newer
+echo -n "--- Generating chapters/routine-list.tex file ... "
+newest=`ls -1 -t routinelist.tmp routinelist.awk | head -1`
+if `test ! -e chapters/routine-list.tex` || `test $newest -nt chapters/routine-list.tex`; then
+  awk -f routinelist.awk < routinelist.tmp > chapters/routine-list.tex 2>routinelist.log;
+  if `test 0 -eq $?`; then
+    echo "done";
+  else
+    echo "error (consult routinelist.log)";
+    exit 1
+  fi
+else
+  echo "skipped (appears to be up to date)";
+fi
+
+# touching any missing routines/*.tex files
+echo -n "--- Touching routines/*.tex files ... "
+awk -f routinefiles.awk < routinelist.tmp > routinefiles.tmp
+. routinefiles.tmp
+rm routinefiles.tmp
+echo "done"
+
+# regenerating examples (if needed, i.e. if gdl binary or any routine in src/pro/ changed)
+for i in `cd examples; find * -type d`; do  
+  echo -n "--- Regenerating example file $i... "
+  newest=`ls -1 -t ../../src/pro/*.pro ../../src/gdl examples/_pre examples/_post examples/$i/$i.pro | head -1`
+  if `test ! -e examples/$i/$i.out.txt` || `test $newest -nt examples/$i/$i.out.txt`; then
+    cd examples/$i
+    IDL_PATH= GDL_PATH=+../../../../src/pro ../../../../src/gdl -quiet ../_pre $i.pro ../_post 2>/dev/stdout 1>$i.out.txt.tmp; 
+    cd ../..
+    tail -`wc -l examples/$i/$i.out.txt.tmp | awk '{print $1-1}'` examples/$i/$i.out.txt.tmp > examples/$i/$i.out.txt
+    rm examples/$i/$i.out.txt.tmp
+    if `test 0 -eq $?`; then 
+      echo "done"
+    else 
+      echo "error (consult $i.out.txt)"
+      exit
+    fi
+    touch examples/$i/$i.out.tex # TODO: czy to jest potrzebne?
+    if test -e examples/$i/gdl.ps; then 
+      echo -n "--- Regenerating example plot file $i.out.pdf ... "
+      ps2pdf examples/$i/gdl.ps examples/$i/$i.out.pdf 1>/dev/stderr 2>ps2pdf.log
+      if `test 0 -eq $?`; then
+        echo "done"
+      else
+        echo "error (consult ps2pdf.log)"
+        exit 1
+      fi
+      rm examples/$i/gdl.ps
+      echo -n "--- Cropping $i.out.pdf ... "
+      pdfcrop examples/$i/$i.out.pdf 2>/dev/stdout 1>pdfcrop.log
+      if `test 0 -eq $?`; then
+        echo "done"
+      else
+        echo "error (consult pdfcrop.log)"
+        exit 1
+      fi
+      mv examples/$i/$i.out-crop.pdf examples/$i/$i.out.pdf
+      echo "\begin{center}
+  \includegraphics[type=pdf,ext=.pdf,read=.pdf,width=.4\textwidth,angle=0]{examples/$i/$i.out}
+\end{center}" > examples/$i/$i.out.tex
+    fi  
+  else
+    echo "skipped (appears to be up to date)"
+  fi
+done
+
+# doing LaTeX 1st pass
+echo -n "--- Doing LaTeX 1-st pass (generating gdl.aux, gdl.idx and gdl.out files - this takes a while) ... "
+pdflatex -draftmode -halt-on-error gdl.tex 2>/dev/stdout 1>pdflatex.log
+if `test 0 -eq $?`; then
+  echo "done";
+else
+  echo "error (consult pdflatex.log)";
+  exit 1
+fi
+
+# running BiBTeX
+echo -n "--- Running BiBTeX (generating gdl.bbl) ..."
+bibtex gdl 2>/dev/stdout 1>bibtex.log
+if `test 0 -eq $?`; then
+  echo "done";
+else
+  echo "error (consult bibtex.log)";
+  exit 1
+fi
+
+# outputting diagnostic info for BibTeX
+fgrep Warning bibtex.log > diag/broken-references
+
+# doing LaTeX 2nd pass
+echo -n "--- Doing LaTeX 2-nd pass (generating gdl.pdf - this takes a while) ... "
+pdflatex -halt-on-error gdl.tex 2>/dev/stdout 1>pdflatex.log
+if `test 0 -eq $?`; then
+  echo "done";
+else
+  echo "error (consult pdflatex.log)";
+  exit 1
+fi
+
+# running authorindex
+echo -n "--- Running authorindex (generating gdl.ain) ..."
+authorindex gdl 1>/dev/stderr 2>authorindex.log
+if `test 0 -eq $?`; then
+  echo "done";
+else
+  echo "error (consult authorindex.log)";
+  exit 1
+fi
+
+# running makeindex
+echo -n "--- Running makeindex (generating gdl.ind) ... "
+makeindex gdl 1>/dev/stderr 2>makeindex.log
+if `test 0 -eq $?`; then
+  echo "done";
+else
+  echo "error (consult makeindex.log)";
+  exit 1
+fi
+
+# doing LaTeX 3rd pass
+echo -n "--- Doing LaTeX 3-rd pass (correcting references in gdl.pdf - this takes a while) ... "
+pdflatex -halt-on-error gdl.tex 2>/dev/stdout 1>pdflatex.log
+if `test 0 -eq $?`; then
+  echo "done";
+else
+  echo "error (consult pdflatex.log)";
+  exit 1
+fi
+
+#  fgrep -1 warning gdl.log             # re-outputing warnings

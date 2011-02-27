@@ -1,0 +1,11 @@
+Programs (*.pro files) or command line input is parsed (GDLLexer.cpp,
+GDLParser.cpp generated with ANTLR from gdlc.g). These results in an
+abstract syntax tree (AST) consisting of 'DNode' (dnode.hpp).
+This systax tree is further manipulated (compiled) with a tree parser
+(GDLTreeParser.cpp generated with ANTLR from gdlc.tree.g,
+dcompiler.hpp).
+Here the AST is splitted into the different functions/procedures and
+the DNode(s) are annotated with further information and converted to
+ProgNode(s).
+Then these compiled (ProgNode) ASTs are interpreted
+(GDLInterpreter.cpp generated with ANTLR from gdlc.i.g, dinterpreter.cpp).

@@ -1,0 +1,85 @@
+\subsection{Conditional execution}
+\subsubsection{IF%
+  \index{IF}%
+  \index{THEN}%
+  \index{BEGIN!in IF/THEN/ELSE statement}%
+  \index{ENDIF}%
+  \index{ELSE!in IF/THEN/ELSE statement}%
+  \index{BEGIN!in IF/THEN/ELSE statement}%
+  \index{ENDELSE}%
+}
+\gdlcodeexample{if_0}{if,then}{}
+\gdlcodeexample{if_1}{if,then,else}{}
+contrary to... cannot be used in interactive mode nor in batch scripts, but only within ...
+\gdlcodeexample{if_2}{}{if,then,begin,endif}
+
+\subsubsection{CASE%
+  \index{CASE}%
+  \index{OF!in CASE statement}%
+  \index{ELSE!in CASE statement}%
+  \index{ENDCASE}%
+  \index{BREAK!in CASE statement}%
+  \index{BEGIN!in CASE statement}%
+  \index{ENDCASE}%
+}
+\subsubsection{SWITCH%
+  \index{SWITCH}%
+  \index{OF!in SWITCH statement}%
+  \index{ELSE!in SWITCH statement}%
+  \index{BEGIN!in SWITCH statement}%
+  \index{ENDSWITCH}%
+  \index{BREAK!in SWITCH statement}%
+}
+\subsection{Loops}
+\subsubsection{FOR%
+  \index{FOR}%
+  \index{DO!in FOR statement}%
+  \index{BEGIN!in FOR statement}%
+  \index{ENDFOR}%
+  \index{BREAK!in FOR statement}%
+  \index{CONTINUE!in FOR statement}%
+}
+\subsection{FOREACH%
+  \index{FOREACH}%
+  \index{DO!in FOREACH statement}%
+  \index{ENDFOREACH}%
+  \index{BREAK!in FOREACH statement}%
+  \index{CONTINUE!in FOREACH statement}%
+}
+FOREACH statement allows to simplify loop constructs when the array 
+  index is not used within the loop:
+\gdlcodeexample{foreach_0}{}{foreach,do}
+As with index variables in FOR loops, the lifetime of the ''loop variables''
+  in FOREACH statements extends beyond the loop execution (see example below).
+Both BREAK and CONTINUE statements work in FOREACH in the same way as in other 
+  loop constructs:
+\gdlcodeexample{foreach_1}{}{foreach,do,begin,continue,break,endforeach}
+Loop variables in FOREACH statements contain copies of the array elements
+  thus assigning them a value within the loop does not change contents 
+  of the array and as a potentially bug-prone situation causes a compiler
+  warning (see example above).
+\subsubsection{REPEAT%
+  \index{REPEAT}%
+  \index{BEGIN}%
+  \index{ENDREP}%
+  \index{UNTIL}%
+  \index{BREAK!in REPEAT statement}%
+  \index{CONTINUE!in CONTINUE statement}%
+}
+\subsubsection{WHILE%
+  \index{WHILE}%
+  \index{DO!in WHILE statement}%
+  \index{BEGIN!in WHILE statement}%
+  \index{ENDWHILE}%
+  \index{BREAK!in WHILE statement}%
+  \index{CONTINUE!in WHILE statement}%
+}
+\subsection{Jumps}
+\subsubsection{GOTO\index{GOTO statement}}
+Highly deprecated as it usually make the code difficult to read
+  and prone to errors.
+Anyhow, the syntax is as follows
+\gdlcodeexample{goto_0}{goto}{}
+As most of the flow control operator described in this section GOTO
+  is usable only within a GDL routine -- not within a batch script
+  which is equivalent to a series of statements in the interactive mode.

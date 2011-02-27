@@ -1,0 +1,30 @@
+\begin{table*}
+  \begin{tabular}{@{}l@{}c@{}@{}c@{}@{}c@{}@{}c@{}@{}c@{}@{}c@{}@{}c@{}@{}c@{}@{}c@{}}
+    data type                                              & size      & constants       & min                  & max                     & casting              & array allocation         & index array alloc.     & freeing                                \\ \hline
+    \multirow{4}{*}{natural numbers incl. zero (unsigned)} & 8b        & 1b              & 0                    & 255                     & \gdlfunref{byte}     & \gdlfunref{bytarr}       & \gdlfunref{bindgen}    & \multirow{4}{*}{\gdlfunref{temporary}} \\
+                                                           & 16b       & 1u              & 0                    & 65535                   & \gdlfunref{uint}     & \gdlfunref{uintarr}      & \gdlfunref{uindgen}    &                                        \\
+                                                           & 32b       & 1ul             & 0                    & $4\!\cdot\!10^9$        & \gdlfunref{ulong}    & \gdlfunref{ulonarr}      & \gdlfunref{ulindgen}   &                                        \\
+                                                           & 64b       & 1ull            & 0                    & $1,\!8\!\cdot\!10^{19}$ & \gdlfunref{ulong64}  & \gdlfunref{ulon64arr}    & \gdlfunref{ul64indgen} &                                        \\ \hline
+    \multirow{3}{*}{integer numbers (signed)}              & 16b       & 1               & -32768               & 32767                   & \gdlfunref{fix}      & \gdlfunref{intarr}       & \gdlfunref{indgen}     & \multirow{3}{*}{\gdlfunref{temporary}} \\
+                                                           & 32b       & 1l              & -$2\!\cdot\!10^9$    & $2\!\cdot\!10^9$        & \gdlfunref{long}     & \gdlfunref{lonarr}       & \gdlfunref{lindgen}    &                                        \\
+                                                           & 64b       & 1ll             & -$9\!\cdot\!10^{18}$ & $9\!\cdot\!10^{18}$     & \gdlfunref{long64}   & \gdlfunref{long64arr}    & \gdlfunref{l64indgen}  &                                        \\ \hline
+    \multirow{2}{*}{real numbers}                          & 32b       & 1.              & -$10^{38}$           & $10^{38}$               & \gdlfunref{float}    & \gdlfunref{fltarr}       & \gdlfunref{findgen}    & \multirow{2}{*}{\gdlfunref{temporary}} \\
+                                                           & 64b       & 1d              & -$10^{308}$          & $10^{308}$              & \gdlfunref{double}   & \gdlfunref{dblarr}       & \gdlfunref{dindgen}    &                                        \\ \hline
+    \multirow{2}{*}{complex numbers}                       & 64b       & complex(1,0)    & 2x float             & 2x float                & \gdlfunref{complex}  & \gdlfunref{complexarr}   & \gdlfunref{cindgen}    & \multirow{2}{*}{\gdlfunref{temporary}} \\       
+                                                           & 128b      & dcomplex(1,0)   & 2x double~           & 2x double~              & \gdlfunref{dcomplex} & \gdlfunref{dcomplexarr}  & \gdlfunref{dcindgen}   &                                        \\ \hline
+    character (byte) strings                               & variable  & 'one'           & --                   & --                      & \gdlfunref{string}   & \gdlfunref{strarr}       & --                     & \gdlfunref{temporary}                  \\ \hline
+    structures                                             & variable  & \{a:1, b:1\}    & --                   & --                      & --                   & \gdlfunref{replicate}    & --                     & \gdlfunref{temporary}                  \\ \hline
+    pointers                                               & n/a       & ptr\_new(1)     & --                   & --                      & --                   & \gdlfunref{ptrarr}       & --                     & \gdlfunref{ptr-free}                   \\ \hline
+    objects                                                & n/a       & obj\_new('One') & --                   & --                      & --                   & \gdlfunref{objarr}       & --                     & \gdlfunref{obj-destroy} 
+  \end{tabular}
+\end{table*}
+%\footnote{\tiny compileopt, defint32 powoduje domyslny zapis liczb calk w 32b}  
+%\footnote{\tiny ptr_new bez argumentu tworzy wskaznik zerowy (null-pointer)}       
+%\footnote{\tiny obj\_new() wywoluje konstruktor -- metodê init() danej klasy, bez argumentu tworzy null-object} 
+%\footnote{\tiny kazda z metod akceptuje flagê ,,$\slash$nozero'', przy obecnosci ktorej alokowana pamiec nie jest zerowana}
+%\footnote{\tiny make\_array() tworzy tablicê typu zadanego w argumencie-- okresl. typu w czasie wykonania programu}
+%\footnote{\tiny delvar() zwalnia pamiec dowolnej zmiennej, ale tylko w programie glownym}                                 
+%\footnote{\tiny temporary() zwraca wartosc argumentu -- do uzycia przy ostatnim odwolaniu do danych}
+%\footnote{\tiny replicate() moze byc uzyta dla dowolnego typu poza obiektami i wskaznikami} 
+%\footnote{\tiny heap\_free() rekursywenie usuwa odniesienia, heap\_gc() zwalnia pamiec do ktorej nie prowadza odnies.}
+%\textsuperscript{9}\footnote{\tiny heap\_free() rekursywnie usuwa odniesienia, w obu przypadkach wywolywana jest metoda cleanup()} 
