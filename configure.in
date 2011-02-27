@@ -137,7 +137,8 @@ dnl as OS X provides another readline library
 	echo "Error! GNU readline was not found."
 	echo "       Use --with-readlinedir=no to expicitely disable it"
 	echo "       Check the README or use configure --help for other libraries needed"
-
+        echo ""
+        echo "       (suitable Debian/Ubuntu package: libreadline5-dev)"
 	exit -1
 	])
 
@@ -180,6 +181,8 @@ AC_CHECK_LIB(z, gzopen, [AC_DEFINE([HAVE_LIBZ], [1], [Zlib library])],
  	echo ""
  	echo "Error! zlib library is required but was not found"
  	echo "       Use --with-zlibdir=DIR to specify the zlib directory tree"
+        echo ""
+        echo "       (suitable Debian/Ubuntu package: zlib1g-dev)"
  	exit -1
  	])
 
@@ -262,6 +265,8 @@ fi
 AC_CHECK_LIB(gsl, gsl_ran_binomial_knuth, [], [
 	echo ""
 	echo "Error! Gnu Scientific Library (1.7 or higher) is mandatory"
+        echo ""
+        echo "       (suitable Debian/Ubuntu package: libgsl0-dev)"
         exit -1
 	])
 AC_CHECK_LIB(gslcblas, cblas_drot, [], [
@@ -312,6 +317,8 @@ AC_CHECK_LIB(plplotcxxd, plsexit, [AC_DEFINE([HAVE_LIBPLPLOTCXXD], [1], [plplot 
 	echo ""
 	echo "Error! plplot library is required but was not found"
 	echo "       Use --with-plplot=DIR to specify the plplot directory tree"
+        echo ""
+        echo "       (suitable Debian/Ubuntu packages: libplplot-dev, [plplot9-driver-xwin])"
 	exit -1
 	])
 
@@ -345,10 +352,15 @@ if test "x$with_wxWidgets" != "xno"; then
   fi
 
   if test "x$wxConfig" = "xno"; then
-    AC_MSG_ERROR(wxWidgets are required but were not found (wx-config program not found)
-      Use --with-wxWidgets=DIR to specify the wxWidgets directory tree
-      Use --with-wxWidgets=no  to not use it
-    )
+    echo ""
+    echo "Error! wxWidgets version 2.8 or later is required but was not found (wx-config program not found)"
+    echo "       Use --with-wxWidgets=DIR to specify the wxWidgets directory tree"
+    echo "       Use --with-wxWidgets=no  to not use it"
+    echo "       Check the README or use configure --help for other libraries needed"
+    echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
+    echo ""
+    echo "       (suitable Debian/Ubuntu package: libwxgtk2.8-dev)"
+    exit -1
   else
     LIBS="$LIBS `wx-config --libs`"
     INCLUDES="$INCLUDES `wx-config --cxxflags`"
@@ -418,6 +430,8 @@ if test "x$with_Magick" != "xno"; then
         echo "       Use --with-Magick=no  to not use it"
         echo "       Check the README or use configure --help for other libraries needed"
         echo "       (--with-xxxdir = mandatory, --with-xxx = optional (--with-xxx=no to disable))"
+        echo ""
+        echo "       (suitable Debian/Ubuntu package: libmagick-dev)"
         exit -1
       ])
     ]
@@ -461,6 +475,8 @@ if test "x$with_netcdf" != "xno"; then
     echo "       Use --with-netcdf=no  to not use it"
     echo "       Check the README or use configure --help for other libraries needed"
     echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
+    echo ""
+    echo "       (suitable Debian/Ubuntu package: libnetcdf-dev)"
     exit -1
     ])
 
@@ -513,6 +529,8 @@ if test "x$with_hdf" != "xno"; then
           echo "       Use --with-hdf=no  to not use it"
           echo "       Check the README or use configure --help for other libraries needed"
           echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
+          echo ""
+          echo "       (suitable Debian/Ubuntu package: libhdf4-alt-dev)"
           exit -1
         else
           continue # switchng to non-alt-suffixed naming
@@ -527,6 +545,8 @@ if test "x$with_hdf" != "xno"; then
       echo "       Use --with-hdf=no  to not use it"
       echo "       Check the README or use configure --help for other libraries needed"
       echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
+      echo ""
+      echo "       (suitable Debian/Ubuntu package: libhdf4-alt-dev)"
       exit -1
     ])
 
@@ -538,6 +558,9 @@ if test "x$with_hdf" != "xno"; then
         echo "       in order to be used with the original netCDF library"
         echo "       (-alt suffixed HDF4 packages in case of Debian)"
         echo "       Check the INSTALL file of the HDF4 package for details"
+        echo ""
+        echo "       (suitable Debian/Ubuntu package: libhdf4-alt-dev)"
+        echo "                                                ^^^"
         exit -1
       ])
     fi
@@ -577,6 +600,8 @@ if test "x$with_hdf5" != "xno"; then
     echo "       Use --with-hdf5=no  to not use it"
     echo "       Check the README or use configure --help for other libraries needed"
     echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
+    echo ""
+    echo "       (suitable Debian/Ubuntu package: libhdf5-serial-dev)"
     exit -1
     ], [-lsz]))
 fi
@@ -610,6 +635,8 @@ if test "x$with_fftw" != "xno"; then
     echo "       Use --with-fftw=no  to not use it"
     echo "       Check the README or use configure --help for other libraries needed"
     echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
+    echo ""
+    echo "       (suitable Debian/Ubuntu package: libfftw3-dev)"
     exit -1
     ])
 fi
@@ -752,6 +779,8 @@ dnl    ])
     echo "Error! Python version $PYTHON_VERSION is required but was not found"
     echo "       Use --with-python=DIR to specify the python directory tree"
     echo "       Use --with-python=no  to not use it"
+    echo ""
+    echo "       (suitable Debian/Ubuntu package: python$PYTHON_VERSION-dev)"
     exit -1
     ])
 
