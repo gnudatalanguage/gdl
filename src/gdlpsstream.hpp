@@ -22,6 +22,8 @@
 
 class GDLPSStream: public GDLGStream
 {
+private:
+  int page;
 public:
   GDLPSStream( int nx, int ny):
     GDLGStream( nx, ny, "ps")
@@ -31,7 +33,7 @@ public:
   ~GDLPSStream()
   {}
  
-  //  void eop() {};
+  void eop();
 
   void Init();
 };

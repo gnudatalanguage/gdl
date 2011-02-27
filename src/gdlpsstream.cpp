@@ -26,5 +26,12 @@ using namespace std;
 void GDLPSStream::Init()
 {
    plstream::init();
+   page = 0;
 }
+ 
+void GDLPSStream::eop()
+{
+   if (page != 0) plstream::eop();
+   page++;
+};
 
