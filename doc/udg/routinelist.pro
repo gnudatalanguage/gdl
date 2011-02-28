@@ -68,6 +68,12 @@ pro routinelist, outfile
   openw, o, outfile, /get_lun
   for i = 0, n_elements(liblist_name) - 1 do begin
     s = srt[i]
+    ; sorting keywords
+    if liblist_kwrd[s] ne '' then begin
+      tmp = strsplit(liblist_kwrd[s], ',', /extract)
+      liblist_kwrd[s] = strjoin(tmp[sort(tmp)], ',')
+    endif
+    ; outputting everything to a file
     printf, o, string($
       liblist_name[s], ",", $
       string(strtrim(fix(liblist_isfn[s]), 2)), ",", $

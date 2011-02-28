@@ -2,4 +2,4 @@
 # by Sylwester Arabas <slayoo@igf.fuw.edu.pl>
 # part of GDL -- GNU Data Language
 
-rm -f *.tmp *.log gdl.ind gdl.toc gdl.aux gdl.out gdl.ild gdl.blg gdl.bbl gdl.ain gdldoc_tmp_*.pro gdl.ilg gdl.idx
+rm -f *.tmp *.log gdl.ind gdl.toc gdl.aux gdl.out gdl.ild gdl.blg gdl.bbl gdl.ain gdldoc_tmp_*.pro gdl.ilg gdl.idx chapters/routine-list.tex

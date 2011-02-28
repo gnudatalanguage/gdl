@@ -56,7 +56,7 @@ rm routinefiles.tmp
 echo "done"
 
 # regenerating examples (if needed, i.e. if gdl binary or any routine in src/pro/ changed)
-for i in `cd examples; find * -type d`; do  
+for i in `cd examples; find * -type d -and ! -name CVS`; do  
   echo -n "--- Regenerating example file $i... "
   newest=`ls -1 -t ../../src/pro/*.pro ../../src/gdl examples/_pre examples/_post examples/$i/$i.pro | head -1`
   if `test ! -e examples/$i/$i.out.txt` || `test $newest -nt examples/$i/$i.out.txt`; then
