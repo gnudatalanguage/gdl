@@ -408,6 +408,8 @@ if test "x$with_Magick" != "xno"; then
     AC_MSG_ERROR(ImageMagick is required but was not found (Magick++-config program not found)
       Use --with-Magick=DIR to specify the ImageMagick directory tree
       Use --with-Magick=no  to not use it
+    
+      (suitable Debian/Ubuntu package: libmagick++-dev)
     )
   else
     LIBS="$LIBS `$MagickConfig --libs`"
@@ -731,10 +733,9 @@ AC_ARG_WITH(python,
 	[with_python="$withval" ])
 
 if test "x$with_python" != "xno"; then
-   AM_PATH_PYTHON
-  dnl  PYTHON_VERSION="2.3"
+  AM_PATH_PYTHON
   AC_ARG_ENABLE(python_version,	
- 	[  --enable-python_version set explicit python version to use (eg. 2.4)],
+ 	[  --enable-python_version set explicit python version to use (eg. 2.6)],
 	[ PYTHON_VERSION="$enableval"
 	])
 
@@ -752,29 +753,16 @@ dnl   echo print sys.version.split\(\'.\'\)[\[0\]]+\".\"+sys.version.split\(\'.\
 
   if test "x$with_python" != "xyes"; then
     LIBS="$LIBS -L$with_python/lib" 
-dnl "-lpython2.3"
-dnl for Mac OS X 
     LIBS="$LIBS -L$with_python/lib/python$PYTHON_VERSION/config -lpython$PYTHON_VERSION"
-dnl    LIBS="$LIBS -L$with_python/lib/python2.3/config -lpython2.3"
     PYTHON_INCLUDES="$with_python/include/python$PYTHON_VERSION"
   else
     LIBS="$LIBS -lpython$PYTHON_VERSION"
-dnl    LIBS="$LIBS -lpython2.3"
     PYTHON_INCLUDES="/usr/include/python$PYTHON_VERSION"
   fi
 
   AC_CHECK_LIB(python$PYTHON_VERSION, Py_Initialize, 
   [AC_DEFINE([USE_PYTHON],[1],[Define if you want to use python])], 
   [ 
-dnl  AC_CHECK_LIB(python2.3, Py_Initialize, 
-dnl  [AC_DEFINE([USE_PYTHON],[1],[Define if you want to use python])], 
-dnl  [ echo ""
-dnl    echo "Error! Python version 2.4 or 2.3 is required but was not found"
-dnl    echo "       Use --with-python=DIR to specify the python directory tree"
-dnl    echo "       Use --with-python=no  to not use it"
-dnl    exit -1
-dnl    ])
-
     echo ""
     echo "Error! Python version $PYTHON_VERSION is required but was not found"
     echo "       Use --with-python=DIR to specify the python directory tree"
@@ -795,17 +783,19 @@ dnl    ])
   AC_MSG_CHECKING([for Numpy include directory])
   pinc=`echo "import numpy; print numpy.get_include()" | $PYTHON - 2>/dev/null`
   AC_MSG_RESULT([${pinc:-unknown}])
-  test -n "$pinc" && PYTHON_INCLUDES="-I$PYTHON_INCLUDES -I$pinc"
-  CPPFLAGS="$CPPFLAGS $PYTHON_INCLUDES"
+  test -n "$pinc" && PYTHON_INCLUDES="$PYTHON_INCLUDES -I$pinc"
+  CPPFLAGS="$CPPFLAGS -I$PYTHON_INCLUDES"
   AC_CHECK_HEADER([numpy/arrayobject.h], [], [
     echo ""
     echo "Error! Python numpy package was not found"
     echo "  Use --with-python=no to disable Python support"
+    echo ""
+    echo "  (suitable Debian/Ubuntu package: python-numpy)"
     exit -1
   ], [#include <Python.h>])
   CPPFLAGS=$OLDCPPFLAGS
   unset OLDCPPFLAGS
-  INCLUDES="$INCLUDES $PYTHON_INCLUDES"
+  INCLUDES="$INCLUDES -I$PYTHON_INCLUDES"
 fi
 
 dnl == UDUNITS-2 ===========================================
@@ -831,46 +821,11 @@ if test "x$with_udunits" != "xno"; then
     echo "       Use --with-udunits=no  to not use it"
     echo "       Check the README or use configure --help for other libraries needed"
     echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
+    echo ""
+    echo "       (suitable Debian/Ubuntu package: libudunits2-dev)"
     exit -1
     ])
 fi
-
-dnl SA: comming soon...
-dnl 
-dnl dnl == QHULL ===========================================
-dnl ========================================================
-dnl 
-dnl AC_ARG_WITH(qhull,
-dnl          [  --with-qhull[=DIR]     use QHULL package (with optional path DIR) ],
-dnl          [with_qhull="$withval" ])
-dnl  
-dnl dnl QHULL: default is no
-dnl if test "x$with_qhull" = "x"; then
-dnl   with_qhull=no
-dnl   echo "QHULL lib not explicitely enabled. Quick hull algorithms for triangulation etc not supported."
-dnl fi
-dnl 
-dnl if test "x$with_qhull" != "xno"; then
-dnl   if test "x$with_qhull" != "xyes"; then
-dnl     LIBS="$LIBS -L$with_qhull/lib -lqhull"
-dnl     INCLUDES="$INCLUDES -I$with_qhull/include"
-dnl   else
-dnl     INCLUDES="$INCLUDES -I/usr/include"
-dnl     LIBS="$LIBS -lqhull"
-dnl   fi
-dnl 
-dnl   AC_CHECK_LIB(qhull, qh_qhull, [AC_DEFINE([USE_QHULL], [1], [Define if you want to use QHULL])], [
-dnl     echo ""
-dnl     echo "Error! QHULL is required but was not found"
-dnl     echo "       Use --with-qhull=DIR to specify the QHULL directory tree"
-dnl     echo "       Use --with-qhull=no  to not use it"
-dnl     echo "       Check the README or use configure --help for other libraries needed"
-dnl     echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
-dnl     exit -1
-dnl     ])
-dnl fi
-dnl
-dnl SA: end of comming soon
 
 dnl == GRIB ================================================
 dnl ========================================================
@@ -909,6 +864,8 @@ if test "x$with_grib" != "xno"; then
           echo "       Use --with-grib=no  to not use it"
           echo "       Check the README or use configure --help for other libraries needed"
           echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
+          echo ""
+          echo "       (suitable Debian/Ubuntu package: libgrib-api-dev)"
           exit -1
         ], [-ljasper -lopenjpeg])
       ], [-ljasper])

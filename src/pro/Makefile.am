@@ -5,6 +5,7 @@ prolib_DATA = \
   array_indices.pro \
   calendar.pro \
   deriv.pro \
+  dialog_message.pro \
   dialog_pickfile.pro \
   dist.pro \
   escape_special_char.pro \
