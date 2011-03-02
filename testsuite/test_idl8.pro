@@ -30,6 +30,14 @@ pro test_idl8
     message, '2+3 != 5', /conti
     exit, status=1
   endif
+
+  message, 'testing negative array indices (for single elements)', /conti
+  a = findgen(10)
+  res = execute('a=a[-1]') 
+  if res ne 1 or a ne 9 then begin
+    message, 'a[-1] failed', /conti
+    exit, status=1
+  endif
   
   message, 'testing the dot operator for member routine access', /conti
   o = obj_new('o')
