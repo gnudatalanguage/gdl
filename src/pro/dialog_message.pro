@@ -94,6 +94,7 @@
 ;
 ;  Implemented by Pedro Corona (23 Febrary 2011) from DIALOG_PICKFILE
 ;  written by Maxime Lenoir.
+;  Included the capability of manage more than one line of text (2 March 2011)
 ;-
 ;
 ; This function try to reproduce the IDL's DIALOG_MESSAGE
@@ -226,7 +227,12 @@ endif else begin
     zen=list_zenity
 endelse
 
-cmd=zen+' --text="'+Message_Text+'" '
+; improbing more than one text line
+zenity_message_text=Message_Text[0]
+for i=1, n_elements(Message_Text)-1 do zenity_message_text+='\n'+Message_Text[i]
+
+
+cmd=zen+' --text="'+zenity_message_text+'" '
 
 ; TITLE
 if KEYWORD_SET(title) then begin
