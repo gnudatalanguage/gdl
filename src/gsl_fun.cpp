@@ -668,10 +668,13 @@ namespace lib {
       overwrite = 0;  // Disable overwrite
     }
 
-    if( p0->Type() == COMPLEXDBL || p0->Type() == DOUBLE || dbl) { 
+    if( p0->Type() == COMPLEXDBL || p0->Type() == DOUBLE || dbl) {
 
 	//cout << "if 1" << endl;
-      return fft_template< DComplexDblGDL> (p0, nEl, dbl, overwrite, 
+	  if( overwrite)
+		e->StealLocalPar(0);
+    
+      return fft_template< DComplexDblGDL> (p0, nEl, dbl, overwrite,
 					    direct, dimension);
 
     }
@@ -680,6 +683,9 @@ namespace lib {
 	//cout << "if 2" << endl;
       DComplexGDL* res;
 
+	  if( overwrite)
+		e->StealLocalPar(0);
+    
       return fft_template< DComplexGDL> (p0, nEl, dbl, overwrite, 
 					 direct, dimension);
 
