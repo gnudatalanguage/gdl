@@ -165,7 +165,7 @@ namespace lib {
     if( e->KeywordSet(2)) overwrite = 1;
 
     // If not global parameter no overwrite
-    if( !e->GlobalPar( 0)) overwrite = 0;
+    // ok as we steal it then //if( !e->GlobalPar( 0)) overwrite = 0;
 
     // If double keyword no overwrite
     if( dbl) overwrite = 0;
@@ -179,7 +179,12 @@ namespace lib {
       if( p0->Type() != COMPLEXDBL) {
 	p0C = static_cast<DComplexDblGDL*>(p0->Convert2( COMPLEXDBL, BaseGDL::COPY));
         guard_p0C.reset(p0C); 
-      } else p0C = (DComplexDblGDL *) p0;
+      } else
+      {
+	  if( overwrite)
+		e->StealLocalPar(0);
+       p0C = (DComplexDblGDL *) p0;
+	 }
 
       return fftw_template< DComplexDblGDL> (p0C, nEl, dbl, overwrite, direct);
 
@@ -187,6 +192,8 @@ namespace lib {
     else if( p0->Type() == COMPLEX) {
 
       //      DComplexGDL* res;
+	  if( overwrite)
+		e->StealLocalPar(0);
 
       return fftw_template< DComplexGDL> (p0, nEl, dbl, overwrite, direct);
 
