@@ -720,7 +720,6 @@ RetCode  ASSIGN_REPLACENode::Run()
   }
 //  if( r != (*l))
 //     {
-    delete *l;
 //      if( r_guard.get() == r)
 	*l = r_guard.release();
 //       else
