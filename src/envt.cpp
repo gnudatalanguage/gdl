@@ -1439,5 +1439,7 @@ BaseGDL** EnvBaseT::GetPtrTo( BaseGDL* p)
 { 
   BaseGDL** pp = env.GetPtrTo( p);
   if( pp != NULL) return pp;
-  return static_cast<DSubUD*>(pro)->GetCommonVarPtr( p);
+  pp = static_cast<DSubUD*>(pro)->GetCommonVarPtr( p);
+  if( pp != NULL) return pp;
+  return GDLInterpreter::GetPtrToHeap( p);
 }
