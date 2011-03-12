@@ -672,7 +672,7 @@ namespace lib {
 
 	//cout << "if 1" << endl;
 	  if( overwrite)
-		e->StealLocalPar(0);
+		e->StealLocalParUndefGlobal(0);
     
       return fft_template< DComplexDblGDL> (p0, nEl, dbl, overwrite,
 					    direct, dimension);
@@ -684,7 +684,7 @@ namespace lib {
       DComplexGDL* res;
 
 	  if( overwrite)
-		e->StealLocalPar(0);
+		e->StealLocalParUndefGlobal(0);
     
       return fft_template< DComplexGDL> (p0, nEl, dbl, overwrite, 
 					 direct, dimension);

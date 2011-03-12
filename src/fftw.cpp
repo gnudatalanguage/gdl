@@ -182,7 +182,10 @@ namespace lib {
       } else
       {
 	  if( overwrite)
-		e->StealLocalPar(0);
+	  {
+//		e->StealLocalPar(0);
+		e->StealLocalParUndefGlobal(0);
+		}
        p0C = (DComplexDblGDL *) p0;
 	 }
 
@@ -193,7 +196,7 @@ namespace lib {
 
       //      DComplexGDL* res;
 	  if( overwrite)
-		e->StealLocalPar(0);
+		e->StealLocalParUndefGlobal(0);
 
       return fftw_template< DComplexGDL> (p0, nEl, dbl, overwrite, direct);
 
