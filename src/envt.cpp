@@ -392,9 +392,9 @@ void EnvT::HeapGC( bool doPtr, bool doObj, bool verbose)
       {
 	std::vector<DObj>* heap = interpreter->GetAllObjHeapSTL();
 	auto_ptr< std::vector<DObj> > heap_guard( heap);
-	if( heap->size() > 0 && (*heap)[0] != 0)
-	  {
 	    SizeT nH = heap->size();//N_Elements();
+	if( nH > 0 && (*heap)[0] != 0)
+	  {
 	    for( SizeT h=0; h<nH; ++h)
 	      {
 		DObj p = (*heap)[ h];
@@ -420,9 +420,9 @@ void EnvT::HeapGC( bool doPtr, bool doObj, bool verbose)
       {
 	std::vector<DPtr>* heap = interpreter->GetAllHeapSTL();
 	auto_ptr< std::vector<DPtr> > heap_guard( heap);
-	if( heap->size() > 0 && (*heap)[0] != 0)
-	  {
 	    SizeT nH = heap->size();
+	if( nH > 0 && (*heap)[0] != 0)
+	  {
 	    for( SizeT h=0; h<nH; ++h)
 	      {
 		DPtr p = (*heap)[ h];

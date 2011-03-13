@@ -307,6 +307,8 @@ public:
     f77(false),
     swapEndian(false),
     deleteOnClose(false),
+    varlenVMS(false),
+    compress(false),
     xdrs(NULL),
 
     iSocketStream(NULL), 

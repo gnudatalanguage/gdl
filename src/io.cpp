@@ -278,7 +278,7 @@ void GDLStream::Free()
  
 igzstream& GDLStream::IgzStream()
 {
-  if( anyStream->IgzStream() == NULL || !anyStream->IsOpen()) 
+  if( anyStream == NULL || anyStream->IgzStream() == NULL || !anyStream->IsOpen()) 
     throw GDLIOException("File unit is not open for compressed reading or writing.");
   if( !(mode & ios::in))
     throw GDLIOException("File unit is not open for reading.");
@@ -287,7 +287,7 @@ igzstream& GDLStream::IgzStream()
 
 ogzstream& GDLStream::OgzStream()
 {
-  if( anyStream->OgzStream() == NULL || !anyStream->IsOpen()) 
+  if( anyStream == NULL || anyStream->OgzStream() == NULL || !anyStream->IsOpen())
     throw GDLIOException("File unit is not open for compressed reading or writing.");
   if( !(mode & ios::out))
     throw GDLIOException("File unit is not open for compressed writing.");
@@ -296,7 +296,7 @@ ogzstream& GDLStream::OgzStream()
 
 fstream& GDLStream::IStream()
 {
-  if( anyStream->FStream() == NULL || !anyStream->IsOpen()) 
+  if( anyStream == NULL || anyStream->FStream() == NULL || !anyStream->IsOpen()) 
     throw GDLIOException("File unit is not open.");
   if( !(mode & ios::in))
     throw GDLIOException("File unit is not open for reading.");
@@ -305,7 +305,7 @@ fstream& GDLStream::IStream()
 
 fstream& GDLStream::OStream()
 {
-  if( anyStream->FStream() == NULL || !anyStream->IsOpen()) 
+  if( anyStream == NULL || anyStream->FStream() == NULL || !anyStream->IsOpen()) 
     throw GDLIOException("File unit is not open.");
   if( !(mode & ios::out))
     throw GDLIOException("File unit is not open for writing.");
