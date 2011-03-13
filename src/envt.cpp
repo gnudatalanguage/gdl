@@ -336,6 +336,14 @@ void EnvBaseT::AddEnv( DPtrListT& ptrAccessible, DPtrListT& objAccessible)
       Add( ptrAccessible, objAccessible, env[ e]);
     }
 }
+void EnvBaseT::AddToDestroy( DPtrListT& ptrAccessible, DPtrListT& objAccessible)
+{
+    for( SizeT i=0; i<toDestroy.size(); ++i)
+      {
+         Add( ptrAccessible, objAccessible, toDestroy[i]);
+	  }
+}
+
 void EnvT::HeapGC( bool doPtr, bool doObj, bool verbose)
 {
   // within CLEANUP method HEAP_GC could be called again
@@ -386,6 +394,8 @@ void EnvT::HeapGC( bool doPtr, bool doObj, bool verbose)
       {
 	(*r)->AddEnv( ptrAccessible, objAccessible);
       }
+
+	AddToDestroy( ptrAccessible, objAccessible);  
 
     // do OBJ first as the cleanup might need the PTR be valid
     if( doObj)
