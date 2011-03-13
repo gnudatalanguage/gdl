@@ -1903,6 +1903,11 @@ BaseGDL**  GDLInterpreter::l_deref(ProgNodeP _t) {
 	
 		ProgNodeP retTree = _t->getNextSibling();
 	
+	EnvBaseT* actEnv = callStack.back()->GetNewEnv();
+	if( actEnv == NULL) actEnv = callStack.back();
+	
+	assert( actEnv != NULL);
+	
 	auto_ptr<BaseGDL> e1_guard;
 	BaseGDL* e1;
 	ProgNodeP evalExpr = _t->getFirstChild();
@@ -1918,12 +1923,21 @@ BaseGDL**  GDLInterpreter::l_deref(ProgNodeP _t) {
 				throw GDLException( evalExpr, "Undefined return value", true, false);
 			
 			if( !callStack.back()->Contains( e1)) 
-				e1_guard.reset( e1);
+				{
+	//                if( actEnv != NULL)
+	actEnv->Guard( e1); 
+	//                else
+	//                    e1_guard.reset( e1);
+	}
 	}
 	else
 	{
 	e1 = evalExpr->Eval();
-	e1_guard.reset(e1);
+	
+	//      if( actEnv != NULL)
+	actEnv->Guard( e1); 
+	//      else
+	//          e1_guard.reset(e1);
 	}
 	
 	if( e1 == NULL || e1->Type() != PTR)
@@ -4683,6 +4697,11 @@ void GDLInterpreter::parameter_def(ProgNodeP _t,
 	ProgNodeP parameter_def_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	auto_ptr<EnvBaseT> guard(actEnv); 
+	
+	EnvBaseT* callerEnv = callStack.back();
+	EnvBaseT* oldNewEnv = callerEnv->GetNewEnv();
+		callerEnv->SetNewEnv( actEnv);
+	
 	try{
 	
 	_retTree = _t;
@@ -4695,6 +4714,7 @@ void GDLInterpreter::parameter_def(ProgNodeP _t,
 	} 
 	catch( GDLException& e)
 	{
+	callerEnv->SetNewEnv( oldNewEnv);
 	// update line number, currently set to caller->CallingNode()
 	// because actEnv is not on the stack yet, 
 	// report caller->Pro()'s name is ok, because we are not inside
@@ -4702,6 +4722,7 @@ void GDLInterpreter::parameter_def(ProgNodeP _t,
 	e.SetErrorNodeP( actEnv->CallingNode());
 	throw e;
 	}
+	callerEnv->SetNewEnv( oldNewEnv);
 	
 		guard.release();
 		
@@ -6482,7 +6503,9 @@ BaseGDL**  GDLInterpreter::l_arrayexpr_mfcall_as_arrayexpr(ProgNodeP _t,
 	return res;
 }
 
- BaseGDL**  GDLInterpreter::ref_parameter(ProgNodeP _t) {
+ BaseGDL**  GDLInterpreter::ref_parameter(ProgNodeP _t,
+	EnvBaseT* actEnv
+) {
 	 BaseGDL** ret;
 	ProgNodeP ref_parameter_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
@@ -6490,7 +6513,7 @@ BaseGDL**  GDLInterpreter::l_arrayexpr_mfcall_as_arrayexpr(ProgNodeP _t,
 	
 			if ( _t->getType() == DEREF) {
 				//ret=
-	return l_deref(_t);
+	return l_deref( _t);//, actEnv);
 	// 			_t = _retTree;
 			}
 			else	

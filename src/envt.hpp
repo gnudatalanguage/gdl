@@ -41,6 +41,26 @@ namespace lib {
 
 class EnvBaseT
 {
+private:
+  typedef std::deque<BaseGDL*> ContainerT;
+
+  //protected:
+  // stores all data which has to deleted upon destruction
+  static ContainerT toDestroy;
+
+  SizeT toDestroyInitialIndex;
+
+  EnvBaseT(){}
+  
+public:
+  // not anmore: DEPRECATED due to poor perfomance, this does not belong into an environment
+  // needed to delete temporary ptr parameters only after subroutine completion
+  // 'guards' a newly created variable which should be deleted
+  // upon library routines exit (normal or on error)
+  // elimates the need of auto_ptr
+  void Guard( BaseGDL* toGuard)
+    { toDestroy.push_back( toGuard);}
+
 protected:
   // for obj cleanup
   static std::set< DObj> inProgress;
@@ -53,6 +73,8 @@ protected:
   int			  lineNumber;
   bool                 obj;       // member subroutine?
   ExtraT*              extra;
+
+	EnvBaseT* newEnv;
 
   // finds the local variable pp points to
   int FindLocalKW( BaseGDL** pp) { return env.FindLocal( pp);}
@@ -75,6 +97,9 @@ public:
 // 		std::cout << this->pro->ObjectName() << std::endl;
 // 	}
 
+	EnvBaseT* GetNewEnv() {return newEnv; }
+	void SetNewEnv( EnvBaseT* nE) { newEnv = nE;}
+
   virtual void ObjCleanup( DObj actID);
 
   // for CLEANUP calls due to reference counting
@@ -82,7 +107,18 @@ public:
   
   void AddEnv( DPtrListT& ptrAccessible, DPtrListT& objAccessible);
 
-  virtual ~EnvBaseT() { delete extra;}
+  virtual ~EnvBaseT()
+  {
+  delete extra;
+    for( SizeT i=toDestroyInitialIndex; i<toDestroy.size(); ++i)
+      {
+	delete toDestroy[i];
+      }
+    toDestroy.resize( toDestroyInitialIndex);
+//      for( ContainerT::iterator i=toDestroy.begin();
+//  	 i != toDestroy.end(); ++i) 
+//        delete *i;
+  }
 
   EnvBaseT( ProgNodeP cN, DSub* pro_);
 
@@ -296,26 +332,10 @@ class EnvT: public EnvBaseT
 {
   // Please use non library API (see below) function with caution
   // (most of them can be ignored by library function authors)
-private:
-  typedef std::deque<BaseGDL*> ContainerT;
-
-  //protected:
-  // stores all data which has to deleted upon destruction
-  static ContainerT toDestroy;
-
-  SizeT toDestroyInitialIndex;
 
 public:
   ~EnvT()
   {
-    for( SizeT i=toDestroyInitialIndex; i<toDestroy.size(); ++i)
-      {
-	delete toDestroy[i];
-      }
-    toDestroy.resize( toDestroyInitialIndex);
-//      for( ContainerT::iterator i=toDestroy.begin();
-//  	 i != toDestroy.end(); ++i) 
-//        delete *i;
   }
 
   EnvT( ProgNodeP cN, DSub* pro_);
@@ -366,12 +386,6 @@ public:
     }
   }
 
-  // DEPRECATED due to poor perfomance, this does not belong into an environment
-  // 'guards' a newly created variable which should be deleted
-  // upon library routines exit (normal or on error)
-  // elimates the need of auto_ptr
-  //  void Guard( BaseGDL* toGuard)
-  //  { toDestroy.push_back( toGuard);}
 
   // returns environment data, by value (but that by C++ reference)
   BaseGDL*& GetKW(SizeT ix) { return env[ix];}

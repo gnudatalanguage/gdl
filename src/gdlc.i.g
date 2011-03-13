@@ -294,6 +294,7 @@ public:
     static void FreeHeapDirect( DPtr id, HeapT::iterator it)
     {
         delete (*it).second.get();
+        // useless because of next: (*it).second.get() = NULL;
         heap.erase( id); 
     }
 
@@ -2260,6 +2261,11 @@ l_deref returns [BaseGDL** res]
 {
 	ProgNodeP retTree = _t->getNextSibling();
 
+    EnvBaseT* actEnv = callStack.back()->GetNewEnv();
+    if( actEnv == NULL) actEnv = callStack.back();
+
+    assert( actEnv != NULL);
+
     auto_ptr<BaseGDL> e1_guard;
     BaseGDL* e1;
     ProgNodeP evalExpr = _t->getFirstChild();
@@ -2275,12 +2281,21 @@ l_deref returns [BaseGDL** res]
 			throw GDLException( evalExpr, "Undefined return value", true, false);
 		
 		if( !callStack.back()->Contains( e1)) 
-			e1_guard.reset( e1);
+			{
+//                if( actEnv != NULL)
+                    actEnv->Guard( e1); 
+//                else
+//                    e1_guard.reset( e1);
+            }
       }
     else
       {
         e1 = evalExpr->Eval();
-        e1_guard.reset(e1);
+
+  //      if( actEnv != NULL)
+            actEnv->Guard( e1); 
+  //      else
+  //          e1_guard.reset(e1);
       }
 
   if( e1 == NULL || e1->Type() != PTR)
@@ -4697,13 +4712,13 @@ l_function_call returns[ BaseGDL** res]
         )
 	;	
 
-ref_parameter returns[ BaseGDL** ret]
+ref_parameter [EnvBaseT* actEnv] returns[ BaseGDL** ret]
 {
 	assert(_t != NULL);
 
 		if ( _t->getType() == DEREF) {
 			//ret=
-            return l_deref(_t);
+            return l_deref( _t);//, actEnv);
 // 			_t = _retTree;
 		}
 		else	
@@ -4722,7 +4737,7 @@ ref_parameter returns[ BaseGDL** ret]
     | ret=l_deref
     ;
 
-// the environment must be on the callstack
+// the environment is not on the callstack
 parameter_def_n_elements [EnvBaseT* actEnv] 
 {
     auto_ptr<EnvBaseT> guard(actEnv); 
@@ -4776,10 +4791,15 @@ parameter_def_n_elements [EnvBaseT* actEnv]
         )             
 ;
 
-// the environment must be on the callstack
+// the environment is not on the callstack
 parameter_def [EnvBaseT* actEnv] 
 {
     auto_ptr<EnvBaseT> guard(actEnv); 
+
+    EnvBaseT* callerEnv = callStack.back();
+    EnvBaseT* oldNewEnv = callerEnv->GetNewEnv();
+	callerEnv->SetNewEnv( actEnv);
+
     try{
 
         _retTree = _t;
@@ -4792,6 +4812,7 @@ parameter_def [EnvBaseT* actEnv]
     } 
     catch( GDLException& e)
         {
+            callerEnv->SetNewEnv( oldNewEnv);
             // update line number, currently set to caller->CallingNode()
             // because actEnv is not on the stack yet, 
             // report caller->Pro()'s name is ok, because we are not inside
@@ -4799,6 +4820,7 @@ parameter_def [EnvBaseT* actEnv]
             e.SetErrorNodeP( actEnv->CallingNode());
             throw e;
         }
+    callerEnv->SetNewEnv( oldNewEnv);
 
 	guard.release();
 	

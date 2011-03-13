@@ -1859,10 +1859,10 @@ if( e1->StrictScalar())
 // 	match(antlr::RefAST(_t),FCALL_LIB);
 	EnvT* newEnv=new EnvT( this, this->libFun);//libFunList[fl->funIx]);
 	
-    ProgNode::interpreter->parameter_def(this->getFirstChild(), newEnv);
-
 	EnvT* callerEnv = static_cast<EnvT*>(ProgNode::interpreter->CallStack().back());
 
+    ProgNode::interpreter->parameter_def(this->getFirstChild(), newEnv);
+    
 	// push id.pro onto call stack
 	ProgNode::interpreter->CallStack().push_back(newEnv);
 	// make the call

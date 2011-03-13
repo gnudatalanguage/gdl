@@ -241,6 +241,7 @@ public:
     static void FreeHeapDirect( DPtr id, HeapT::iterator it)
     {
         delete (*it).second.get();
+        // useless because of next: (*it).second.get() = NULL;
         heap.erase( id); 
     }
 
@@ -786,7 +787,9 @@ public:
 	public: BaseGDL**  l_arrayexpr_mfcall_as_arrayexpr(ProgNodeP _t,
 		BaseGDL* right
 	);
-	public:  BaseGDL**  ref_parameter(ProgNodeP _t);
+	public:  BaseGDL**  ref_parameter(ProgNodeP _t,
+		EnvBaseT* actEnv
+	);
 	public: void parameter_def_n_elements(ProgNodeP _t,
 		EnvBaseT* actEnv
 	);

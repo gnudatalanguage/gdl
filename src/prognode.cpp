@@ -415,7 +415,7 @@ void KEYDEF_REFNode::Parameter( EnvBaseT* actEnv)
 //   ProgNodeP knameR = _t;
   // 			match(antlr::RefAST(_t),IDENTIFIER);
 //   _t = _t->getNextSibling();
-  BaseGDL** kvalRef=ProgNode::interpreter->ref_parameter(_t->getNextSibling());
+  BaseGDL** kvalRef=ProgNode::interpreter->ref_parameter(_t->getNextSibling(), actEnv);
 
   // pass reference
   actEnv->SetKeyword( _t->getText(), kvalRef); 
@@ -434,7 +434,7 @@ void KEYDEF_REF_EXPRNode::Parameter( EnvBaseT* actEnv)
 
 //   _t = ProgNode::interpreter->_retTree;
   BaseGDL** kvalRef=ProgNode::interpreter->
-    ref_parameter(ProgNode::interpreter->_retTree);
+    ref_parameter(ProgNode::interpreter->_retTree, actEnv);
 
   // pass reference
   actEnv->SetKeyword( _t->getText(), kvalRef); 
@@ -456,7 +456,7 @@ void KEYDEFNode::Parameter( EnvBaseT* actEnv)
 void REFNode::Parameter( EnvBaseT* actEnv)
 {
 //   ProgNodeP _t = this->getFirstChild();
-  BaseGDL** pvalRef=ProgNode::interpreter->ref_parameter(this->getFirstChild());
+  BaseGDL** pvalRef=ProgNode::interpreter->ref_parameter(this->getFirstChild(), actEnv);
 //   _t = ProgNode::interpreter->_retTree;
   // pass reference
   actEnv->SetNextPar(pvalRef); 
@@ -471,7 +471,7 @@ void REF_EXPRNode::Parameter( EnvBaseT* actEnv)
   delete pval;
 //   _t = ProgNode::interpreter->_retTree;
   BaseGDL** pvalRef=ProgNode::interpreter->
-    ref_parameter( ProgNode::interpreter->_retTree);
+    ref_parameter( ProgNode::interpreter->_retTree, actEnv);
 
   // pass reference
   actEnv->SetNextPar(pvalRef); 
