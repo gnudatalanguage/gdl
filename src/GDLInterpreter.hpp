@@ -192,6 +192,18 @@ public:
     // triggers read/compile/interpret
     DStructDesc* GetStruct(const std::string& name, const ProgNodeP cN); 
 
+//     bool Called( std::string proName)
+//     {
+//         for( EnvStackT::reverse_iterator env = callStack.rbegin();
+//             env != callStack.rend();
+//             ++env)
+//             {
+//                 //std::cout <<  (*env)->GetPro()->ObjectFileName() << std::endl;
+//                 if( proName == (*env)->GetPro()->ObjectFileName()) return true;
+//             }
+//         return false;
+//     }
+
     // the New... functions 'own' their BaseGDL*
     SizeT NewObjHeap( SizeT n=1, DStructGDL* var=NULL)
     {

@@ -44,7 +44,7 @@ namespace lib {
     return actDevice->TVRD( e);
   }
 
-  void loadct( EnvT* e) // LOADCT_INTERNALGDL for exclusive use by LOADCT
+  void loadct( EnvT* e) // = LOADCT_INTERNALGDL for exclusive use by LOADCT
   {
     SizeT nCT = Graphics::N_CT();
 

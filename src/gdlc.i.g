@@ -245,6 +245,18 @@ public:
     // triggers read/compile/interpret
     DStructDesc* GetStruct(const std::string& name, const ProgNodeP cN); 
 
+//     bool Called( std::string proName)
+//     {
+//         for( EnvStackT::reverse_iterator env = callStack.rbegin();
+//             env != callStack.rend();
+//             ++env)
+//             {
+//                 //std::cout <<  (*env)->GetPro()->ObjectFileName() << std::endl;
+//                 if( proName == (*env)->GetPro()->ObjectFileName()) return true;
+//             }
+//         return false;
+//     }
+
     // the New... functions 'own' their BaseGDL*
     SizeT NewObjHeap( SizeT n=1, DStructGDL* var=NULL)
     {
@@ -1143,7 +1155,10 @@ statement returns[ RetCode retCode]
             for( EnvStackT::reverse_iterator i = callStack.rbegin();
                 i != callStack.rend(); ++i)
             {
-                DLong oE = static_cast<EnvUDT*>(*i)->GetOnError();
+                DLong oE = -1;
+                EnvUDT* envUD = dynamic_cast<EnvUDT*>(*i);
+                if( envUD != NULL)
+                    oE = envUD->GetOnError();
                 
                 if( oE != -1) 
                 { // oE was set

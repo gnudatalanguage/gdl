@@ -187,8 +187,26 @@ DStructDesc* GDLInterpreter::GetStruct(const string& name, ProgNodeP cN)
   // member function/pro declaration inserts an empty DStructDesc
   if( dStruct != NULL && dStruct->NTags() > 0) return dStruct;
 
+  static StrArr getStructList;
+  
   // read/compile of IDENTIFIER__define.pro
   string proName=name+"__DEFINE";
+
+  for( StrArr::iterator i=getStructList.begin(); i != getStructList.end(); ++i)
+    {
+      if( proName == *i) 
+		throw GDLException(cN, "Structure type not defined (recursive call): "+name,true,false);
+    }
+
+  StackSizeGuard<StrArr> guardStructList( getStructList);
+
+  // append file to list
+  getStructList.push_back(proName);
+
+//   if( Called( proName))
+//     {
+//       throw GDLException(cN, "Structure type not defined (recursive call): "+name);
+//     }
   
   /*bool found=*/ SearchCompilePro(proName);
 
@@ -215,7 +233,7 @@ DStructDesc* GDLInterpreter::GetStruct(const string& name, ProgNodeP cN)
   dStruct=FindInStructList( structList, name);
   if( dStruct == NULL)
     {
-      throw GDLException(cN, "Structure type not defined: "+name);
+      throw GDLException(cN, "Structure type not defined: "+name,true,false);
     }
      
   return dStruct;

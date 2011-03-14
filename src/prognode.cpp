@@ -394,11 +394,12 @@ BaseGDL* NSTRUC_REFNode::Eval()
       ProgNodeP _t = this->getFirstChild();
       ProgNodeP idRef = _t;
       // 	match(antlr::RefAST(_t),IDENTIFIER);
-      _t = _t->getNextSibling();
       
       // find struct 'id'
       // returns it or throws an exception
       /* DStructDesc* */ dStruct=ProgNode::interpreter->GetStruct( idRef->getText(), _t);
+      
+      _t = _t->getNextSibling();
      }		
 
   BaseGDL* res = new DStructGDL( dStruct, dimension(1));

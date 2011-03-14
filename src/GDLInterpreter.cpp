@@ -432,7 +432,10 @@ GDLInterpreter::GDLInterpreter()
 		for( EnvStackT::reverse_iterator i = callStack.rbegin();
 		i != callStack.rend(); ++i)
 		{
-		DLong oE = static_cast<EnvUDT*>(*i)->GetOnError();
+		DLong oE = -1;
+		EnvUDT* envUD = dynamic_cast<EnvUDT*>(*i);
+		if( envUD != NULL)
+		oE = envUD->GetOnError();
 		
 		if( oE != -1) 
 		{ // oE was set
