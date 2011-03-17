@@ -39,7 +39,11 @@
 #include "gdleventhandler.hpp"
 
 #ifdef USE_MPI
-#include "mpi.h"
+#  include "mpi.h"
+#endif
+
+#ifdef HAVE_LOCALE_H
+#  include <locale.h>
 #endif
 
 // GDLDATADIR
@@ -79,12 +83,17 @@ void InitGDL()
   //     enabling one to set the history-file length via the !EDIT_INPUT sysvar
   // stifle_history( 20);
 #endif
-  
+
   // ncurses blurs the output, initialize TermWidth here
   TermWidth();
 
   // initializations
   InitObjects();
+
+  // ensuring we work in the C locale (needs to be called after InitObjects!!!)
+#ifdef HAVE_LOCALE_H
+  setlocale(LC_ALL, "C");
+#endif
 
   // init library functions
   LibInit(); 
@@ -94,6 +103,7 @@ void InitGDL()
 
   signal(SIGINT,ControlCHandler);
   signal(SIGFPE,SigFPEHandler);
+  
 }
 
 // SA: for use in COMMAND_LINE_ARGS()
