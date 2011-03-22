@@ -49,7 +49,8 @@
 #include <gsl/gsl_const_num.h>
 #include <gsl/gsl_math.h>
 #ifdef USE_UDUNITS
-#  include <udunits2.h>
+//#  include <udunits2.h>
+#  include <udunits2/udunits2.h>
 #endif
 
 // binomialcoef

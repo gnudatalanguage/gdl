@@ -502,3 +502,4 @@
 	   - SPL_INIT: now y0= and yn_1= ready
            - Compressed files should be well processed now (readf, printf, fstat, point_lun, ...). See test_zip.pro
 
+0.9.1
