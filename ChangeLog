@@ -1,3 +1,528 @@
+GDL 9.1:
+2011-03-18  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* configure, gdl/configure:
+	updating configure to reflect changes in configure.in (tracker item no. 3221630)
+
+2011-03-17  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* gdl/src/gdl.cpp, src/gdl.cpp:
+	fixing behaviour with non-comma locale-defined decimal separators (tracker item no. 3164856)
+
+2011-03-14  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* gdl/src/GDLInterpreter.cpp, gdl/src/GDLInterpreter.hpp, gdl/src/dinterpreter.cpp, gdl/src/envt.hpp, gdl/src/gdlc.i.g, gdl/src/image.cpp, gdl/src/prognode.cpp, src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/dinterpreter.cpp, src/envt.hpp, src/gdlc.i.g, src/image.cpp, src/prognode.cpp:
+	Fixed infinite recursion when struct are referenced but not defined in STRUCTNAME__DEFINE. Bug tracker ID 3189072
+
+2011-03-13  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* gdl/src/envt.cpp, gdl/src/envt.hpp, src/envt.cpp, src/envt.hpp:
+	Made HEAP_GC consider EnvBaseT::toDestroy list
+
+	* gdl/src/envt.cpp, gdl/src/io.cpp, gdl/src/io.hpp, src/envt.cpp, src/io.cpp, src/io.hpp:
+	Fixed bug tracker ID 3189068. PRINTF to closed stream segfault
+
+	* gdl/src/envt.cpp, src/envt.cpp:
+	Fixed bug tracker ID 3199465. HEAP_GC segfault.
+
+	* gdl/src/GDLInterpreter.cpp, gdl/src/GDLInterpreter.hpp, gdl/src/envt.cpp, gdl/src/envt.hpp, gdl/src/gdlc.i.g, gdl/src/prognode.cpp, gdl/src/prognodeexpr.cpp, src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/envt.cpp, src/envt.hpp, src/gdlc.i.g, src/prognode.cpp, src/prognodeexpr.cpp:
+	Fixed bug tracker ID 3152892. Temprorary pointers were garbage collected too early.
+
+2011-03-12  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* gdl/src/envt.hpp, gdl/src/fftw.cpp, gdl/src/gsl_fun.cpp, src/envt.hpp, src/fftw.cpp, src/gsl_fun.cpp:
+	Bug tracker ID: 3152899 - now input variable is explicitely undefined
+
+2011-03-11  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* doc/Makefile.in, gdl/doc/Makefile.in, gdl/src/GDLInterpreter.hpp, gdl/src/Makefile.in, gdl/src/antlr/Makefile.in, gdl/src/envt.cpp, gdl/src/fftw.cpp, gdl/src/gdlc.i.g, gdl/src/gsl_fun.cpp, gdl/src/pro/Makefile.in, gdl/src/pro/dicom/Makefile.in, gdl/src/prognode.cpp, gdl/testsuite/Makefile.in, src/GDLInterpreter.hpp, src/Makefile.in, src/antlr/Makefile.in, src/envt.cpp, src/fftw.cpp, src/gdlc.i.g, src/gsl_fun.cpp, src/pro/Makefile.in, src/pro/dicom/Makefile.in, src/prognode.cpp, testsuite/Makefile.in, Makefile.in, aclocal.m4, gdl/Makefile.in, gdl/aclocal.m4:
+	Fixed: FFT: segfault when overwriting a heap variable - Bug tracker ID: 3152899
+
+2011-03-03  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* gdl/doc/udg/examples/execute_0/execute_0.pro, gdl/doc/udg/makeall, gdl/doc/udg/routines/execute.fun.tex:
+	doc/udg updates (EXECUTE + fixes in makeall)
+
+2011-03-03  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* gdl/src/pro/dialog_message.pro, src/pro/dialog_message.pro:
+	improved version of DIALOG_MESSAGE
+
+2011-03-02  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* gdl/testsuite/test_idl8.pro, testsuite/test_idl8.pro:
+	adding test for a single-element negative array addressing to test_idl8.pro
+
+2011-03-01  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* configure.in, gdl/configure.in, gdl/src/pro/Makefile.am, src/pro/Makefile.am:
+	Debian compatibility fixes in configure.in
+
+2011-03-01  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* NEWS, gdl/NEWS: I just add ref. to new DIALOG_MESSAGE
+
+	* gdl/src/pro/dialog_message.pro, src/pro/dialog_message.pro:
+	initial import of DIALOG_MESSAGE, derived from DIALOG_PICKFILE, provided by P. Corona.
+	You must have "zenity" to be able to use this functionality.
+
+2011-02-28  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* gdl/doc/udg/chapters/routine-list.tex, gdl/doc/udg/examples/helloworld_2/helloworld_2.pro, gdl/doc/udg/makeall, gdl/doc/udg/makeclean, gdl/doc/udg/routinelist.pro, gdl/doc/udg/routines/imsl-binomialcoef.fun.tex:
+	doc/udg update: keywords are now listed in alphabetical order; some
+	  cosmetic changes and minor fixes
+
+2011-02-27  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* gdl/doc/udg/examples/if_0/if_0.pro, gdl/doc/udg/examples/if_1/if_1.pro, gdl/doc/udg/examples/if_2/if_2.pro, gdl/doc/udg/examples/if_2/replace_with_nans.pro, gdl/doc/udg/examples/imsl_binomialcoef_0/imsl_binomialcoef_0.pro, gdl/doc/udg/examples/imsl_binomialcoef_0/pascal.pro, gdl/doc/udg/examples/imsl_binomialcoef_1/imsl_binomialcoef_1.pro, gdl/doc/udg/examples/ncdf_exists_0/ncdf_exists_0.pro, gdl/doc/udg/examples/obj_class_0/alcoholic_drink__define.pro, gdl/doc/udg/examples/obj_class_0/beer__define.pro, gdl/doc/udg/examples/obj_class_0/drink__define.pro, gdl/doc/udg/examples/obj_class_0/obj_class_0.pro, gdl/doc/udg/examples/obj_class_1/obj_class_1.pro, gdl/doc/udg/examples/openr_2/openr_2.pro, gdl/doc/udg/examples/parse_url_0/parse_url_0.pro, gdl/doc/udg/examples/pm_0/pm_0.pro, gdl/doc/udg/examples/ptr_free_0/ptr_free_0.pro, gdl/doc/udg/examples/python_fun_0/python_fun_0.pro, gdl/doc/udg/examples/query_bmp_0/query_bmp_0.pro, gdl/doc/udg/examples/scope_0/scope_0.pro, gdl/doc/udg/examples/string_4/string_4.pro, gdl/doc/udg/examples/strjoin_0/strjoin_0.pro, gdl/doc/udg/examples/strjoin_1/strjoin_1.pro, gdl/doc/udg/examples/strjoin_2/strjoin_2.pro, gdl/doc/udg/routines/abs.fun.tex, gdl/doc/udg/routines/appleman.pro.tex, gdl/doc/udg/routines/array-indices.fun.tex, gdl/doc/udg/routines/calendar.pro.tex, gdl/doc/udg/routines/call-external.fun.tex, gdl/doc/udg/routines/correlate.fun.tex, gdl/doc/udg/routines/exit.pro.tex, gdl/doc/udg/routines/exp.fun.tex, gdl/doc/udg/routines/fft.fun.tex, gdl/doc/udg/routines/file-basename.fun.tex, gdl/doc/udg/routines/file-lines.fun.tex, gdl/doc/udg/routines/get-login-info.fun.tex, gdl/doc/udg/routines/h5-get-libversion.fun.tex, gdl/doc/udg/routines/imsl-binomialcoef.fun.tex, gdl/doc/udg/routines/linkimage.pro.tex, gdl/doc/udg/routines/ll-arc-distance.fun.tex, gdl/doc/udg/routines/map-continents.pro.tex, gdl/doc/udg/routines/ncdf-exists.fun.tex, gdl/doc/udg/routines/ncdf-varput.pro.tex, gdl/doc/udg/routines/newton.fun.tex, gdl/doc/udg/routines/obj-class.fun.tex, gdl/doc/udg/routines/openr.pro.tex, gdl/doc/udg/routines/parse-url.fun.tex, gdl/doc/udg/routines/pm.pro.tex, gdl/doc/udg/routines/ptr-free.pro.tex, gdl/doc/udg/routines/python.fun.tex, gdl/doc/udg/routines/query-bmp.fun.tex, gdl/doc/udg/routines/string.fun.tex, gdl/doc/udg/routines/strjoin.fun.tex, gdl/doc/udg/routines/where.fun.tex, gdl/doc/udg/chapters/about.tex, gdl/doc/udg/chapters/api.tex, gdl/doc/udg/chapters/coding.tex, gdl/doc/udg/chapters/compile-autotools.tex, gdl/doc/udg/chapters/compile-cmake.tex, gdl/doc/udg/chapters/compilers.tex, gdl/doc/udg/chapters/credits.tex, gdl/doc/udg/chapters/debug.tex, gdl/doc/udg/chapters/dochowto.tex, gdl/doc/udg/chapters/docs.tex, gdl/doc/udg/chapters/feedback.tex, gdl/doc/udg/chapters/internals.tex, gdl/doc/udg/chapters/io-ascii.tex, gdl/doc/udg/chapters/io-csv.tex, gdl/doc/udg/chapters/io-dicom.tex, gdl/doc/udg/chapters/io-grib.tex, gdl/doc/udg/chapters/io-hdf4.tex, gdl/doc/udg/chapters/io-idlsave.tex, gdl/doc/udg/chapters/io-netcdf.tex, gdl/doc/udg/chapters/io.tex, gdl/doc/udg/chapters/license.tex, gdl/doc/udg/chapters/math-basic.tex, gdl/doc/udg/chapters/math-fitting.tex, gdl/doc/udg/chapters/math-fourier.tex, gdl/doc/udg/chapters/math-multiroots.tex, gdl/doc/udg/chapters/math-ode.tex, gdl/doc/udg/chapters/math-rng.tex, gdl/doc/udg/chapters/openmp.tex, gdl/doc/udg/chapters/plot-2d.tex, gdl/doc/udg/chapters/plot-3d.tex, gdl/doc/udg/chapters/plot-colours.tex, gdl/doc/udg/chapters/plot-fonts.tex, gdl/doc/udg/chapters/plot-map.tex, gdl/doc/udg/chapters/python.tex, gdl/doc/udg/chapters/routine-list.tex, gdl/doc/udg/chapters/strings.tex, gdl/doc/udg/chapters/syntax-arguments.tex, gdl/doc/udg/chapters/syntax-array.tex, gdl/doc/udg/chapters/syntax-errhandle.tex, gdl/doc/udg/chapters/syntax-flowcon.tex, gdl/doc/udg/chapters/syntax-oop.tex, gdl/doc/udg/chapters/syntax-scope.tex, gdl/doc/udg/chapters/syntax-types.tex, gdl/doc/udg/chapters/syntax.tex, gdl/doc/udg/chapters/toc.tex, gdl/doc/udg/chapters/widgets.tex, gdl/doc/udg/examples/_post, gdl/doc/udg/examples/_pre, gdl/doc/udg/examples/abs_0/abs_0.pro, gdl/doc/udg/examples/calendar_0/calendar_0.pro, gdl/doc/udg/examples/colours_0/colours_0.pro, gdl/doc/udg/examples/colours_1/colours_1.pro, gdl/doc/udg/examples/correlate_0/correlate_0.pro, gdl/doc/udg/examples/correlate_1/correlate_1.pro, gdl/doc/udg/examples/correlate_2/correlate_2.pro, gdl/doc/udg/examples/exit_0/exit_0.pro, gdl/doc/udg/examples/exp_0/exp_0.pro, gdl/doc/udg/examples/fft_1/fft_1.pro, gdl/doc/udg/examples/fft_1/stddevfft.pro, gdl/doc/udg/examples/fft_1/stddevsum.pro, gdl/doc/udg/examples/file_basename_0/file_basename_0.pro, gdl/doc/udg/examples/file_basename_1/file_basename_1.pro, gdl/doc/udg/examples/file_basename_2/file_basename_2.pro, gdl/doc/udg/examples/file_lines_0/file_lines_0.pro, gdl/doc/udg/examples/foreach_0/foreach_0.pro, gdl/doc/udg/examples/foreach_1/example.pro, gdl/doc/udg/examples/foreach_1/foreach_1.pro, gdl/doc/udg/examples/get_login_info_0/get_login_info_0.pro, gdl/doc/udg/examples/goto_0/example.pro, gdl/doc/udg/examples/goto_0/goto_0.pro, gdl/doc/udg/examples/h5_get_libversion_0/h5_get_libversion_0.pro, gdl/doc/udg/examples/helloworld_0/helloworld_0.pro, gdl/doc/udg/examples/helloworld_1/helloworld_1.pro, gdl/doc/udg/examples/helloworld_2/helloworld_2.pro, gdl/doc/udg/gdl.bib, gdl/doc/udg/gdl.pro, gdl/doc/udg/gdl.tex, gdl/doc/udg/gdldoc.sty, gdl/doc/udg/makeall, gdl/doc/udg/makeclean, gdl/doc/udg/natbib.cfg, gdl/doc/udg/routinefiles.awk, gdl/doc/udg/routinelist.awk, gdl/doc/udg/routinelist.pro:
+	doc/udg: initial import
+
+	* gdl/src/gdlpsstream.cpp, gdl/src/gdlpsstream.hpp, src/gdlpsstream.cpp, src/gdlpsstream.hpp:
+	PostScript: fixing bogus empty first page bug (tracker item no. 3029064)
+
+	* configure.in, gdl/configure.in:
+	configure.in: adding hints for Debian/Ubuntu users
+
+	* gdl/testsuite/checks, testsuite/checks:
+	fixing backslash escape warning
+
+	* gdl/src/pro/identity.pro, gdl/src/pro/trace.pro, src/pro/identity.pro, src/pro/trace.pro, gdl/src/pro/checks, src/pro/checks:
+	minor fixes in src/pro/
+
+2011-02-22  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* gdl/src/basic_fun_jmg.cpp, src/basic_fun_jmg.cpp:
+	correcting a problem in FSTAT(nlun) when "nlun" is not open
+
+2011-01-23  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* doc/www/screenshot.html, doc/www/tdl.html, gdl/doc/www/screenshot.html, gdl/doc/www/tdl.html:
+	fixing two typos in doc/www (reported by Reuben Thomas)
+
+2011-01-19  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* gdl/testsuite/CMakeLists.txt, testsuite/CMakeLists.txt:
+	cmake: update of test-routine list
+
+2011-01-17  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* gdl/src/print.cpp, src/print.cpp, gdl/testsuite/Makefile.am, gdl/testsuite/Makefile.in, gdl/testsuite/test_bug_2876161.pro, testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_bug_2876161.pro:
+	PRINT: fixing behaviur with e.g. print,[1],1,[1] (tracker item no. 2876161)
+
+2011-01-16  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* gdl/src/plotting.cpp, src/plotting.cpp:
+	XYOUTS: fixing vertical position of text (moving it half the charsize up) - tracker item no. 2982623
+
+	* gdl/src/libinit.cpp, gdl/src/plotting.cpp, gdl/testsuite/Makefile.am, gdl/testsuite/Makefile.in, gdl/testsuite/test_bug_2610174.pro, src/libinit.cpp, src/plotting.cpp, testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_bug_2610174.pro:
+	XYOUTS: adding support for the WIDTH keyword (trakcer item no. 2610174)
+
+2011-01-15  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* gdl/src/basic_fun.cpp, gdl/testsuite/Makefile.am, gdl/testsuite/Makefile.in, gdl/testsuite/test_bug_2876150.pro, src/basic_fun.cpp, testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_bug_2876150.pro:
+	fixing string(1,"()") (tracker item no. 2876150)
+
+	* gdl/testsuite/Makefile.am, gdl/testsuite/test_bug_2974380.pro, gdl/testsuite/test_known_bugs.pro, testsuite/Makefile.am, testsuite/test_bug_2974380.pro, testsuite/test_known_bugs.pro:
+	adding test_bug_2974380.pro
+
+	* gdl/src/ncdf_att_cl.cpp, gdl/testsuite/test_bug_3100945.pro, src/ncdf_att_cl.cpp, testsuite/test_bug_3100945.pro:
+	NCDF_ATTNAME: fixing argument handling (tracker item no. 3100945)
+
+2011-01-14  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* gdl/src/ncdf_cl.cpp, src/ncdf_cl.cpp, gdl/testsuite/Makefile.am, gdl/testsuite/Makefile.in, gdl/testsuite/test_bug_3055720.pro, testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_bug_3055720.pro:
+	fixing error message in ncdf_varput (tracker item no. 3055720)
+
+	* gdl/src/ncdf_dim_cl.cpp, gdl/testsuite/Makefile.am, gdl/testsuite/Makefile.in, gdl/testsuite/test_bug_3057511.pro, gdl/testsuite/test_bug_3057520.pro, gdl/testsuite/test_bug_3061072.pro, src/ncdf_dim_cl.cpp, testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_bug_3057511.pro, testsuite/test_bug_3057520.pro, testsuite/test_bug_3061072.pro:
+	NCDF_DIMDEF: requireing dimension size for limited dims (tracker item no. 3057511)
+
+	* gdl/src/ncdf_var_cl.cpp, src/ncdf_var_cl.cpp, gdl/testsuite/Makefile.am, gdl/testsuite/Makefile.in, gdl/testsuite/test_bug_3057520.pro, testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_bug_3057520.pro:
+	NCDF_VARPUT: checking OFFSET kw. dimensions (tracker item no. 3057520)
+
+	* gdl/src/ncdf_att_cl.cpp, gdl/src/ncdf_cl.cpp, gdl/src/ncdf_var_cl.cpp, gdl/testsuite/Makefile.am, gdl/testsuite/Makefile.in, gdl/testsuite/test_bug_3061072.pro, src/ncdf_att_cl.cpp, src/ncdf_cl.cpp, src/ncdf_var_cl.cpp, testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_bug_3061072.pro:
+	proper behaviour with non-existent attributes and variables in NCDF_VARID and NCDF_ATTNAME (tracker item no. 3061072)
+
+2011-01-05  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* gdl/testsuite/Makefile.am, gdl/testsuite/Makefile.in, gdl/testsuite/test_bug_3151760.pro, testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_bug_3151760.pro:
+	test_bug_3151760.pro
+
+2011-01-03  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* configure.in, gdl/configure.in:
+	configure.in: trying to be backward compatible (color-tests)
+
+	* gdl/src/topython.cpp, src/topython.cpp:
+	copying data to Python instead passing a soon-invalid pointer (tracker item no. 3148396)
+
+2011-01-02  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* doc/www/contribute.html, doc/www/require.html, doc/www/screenshot.html, doc/www/screenshots/screenshot13.png, doc/www/screenshots/screenshot13_thumb.png, gdl/doc/www/contribute.html, gdl/doc/www/require.html, gdl/doc/www/screenshot.html, gdl/doc/www/screenshots/screenshot13.png, gdl/doc/www/screenshots/screenshot13_thumb.png:
+	doc/www update (numarray -> Numpy)
+
+2011-01-01  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* README, gdl/README, gdl/src/FMTParser.cpp, gdl/src/format.g, gdl/src/ofmt.cpp, gdl/testsuite/Makefile.am, gdl/testsuite/Makefile.in, gdl/testsuite/test_bug_3147181.pro, src/FMTParser.cpp, src/format.g, src/ofmt.cpp, testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_bug_3147181.pro:
+	fixing two formatting bugs: 3147181 & 2555865
+
+2010-12-31  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* gdl/doc/misc/gdlffdicom.html, gdl/doc/misc/gdlffdicom__assoc.html, gdl/src/pro/dicom/Makefile.am, gdl/src/pro/dicom/Makefile.in, gdl/src/pro/dicom/gdlffdicom__assoc__define.pro, gdl/src/pro/dicom/gdlffdicom__assoc__test.pro, gdl/src/pro/dicom/gdlffdicom__assoc_generateuid.pro, gdl/src/pro/dicom/gdlffdicom__define.pro, gdl/src/pro/dicom/gdlffdicom__dictionary.pro, gdl/src/pro/dicom/gdlffdicom__test.pro, gdl/src/pro/dicom/gdlffdicom_copy_lun.pro, gdl/src/pro/dicom/gdlffdicom_date.pro, gdl/src/pro/dicom/gdlffdicom_time.pro, gdl/src/pro/dicom/gdlffdicom_trim.pro, src/pro/dicom/Makefile.am, src/pro/dicom/Makefile.in, src/pro/dicom/gdlffdicom__assoc__define.pro, src/pro/dicom/gdlffdicom__assoc__test.pro, src/pro/dicom/gdlffdicom__assoc_generateuid.pro, src/pro/dicom/gdlffdicom__define.pro, src/pro/dicom/gdlffdicom__dictionary.pro, src/pro/dicom/gdlffdicom__test.pro, src/pro/dicom/gdlffdicom_copy_lun.pro, src/pro/dicom/gdlffdicom_date.pro, src/pro/dicom/gdlffdicom_time.pro, src/pro/dicom/gdlffdicom_trim.pro:
+	updating gdlffdicom to v20100309 (http://idl.barnett.id.au/idl-code/dicom20100309.zip)
+
+	* gdl/testsuite/test_python.pro, testsuite/test_python.pro:
+	test_python.pro update
+
+	* gdl/src/gdl.cpp, gdl/src/gdlpython.cpp, gdl/src/gdlpython.hpp, gdl/src/objects.cpp, gdl/src/pythongdl.cpp, gdl/src/topython.cpp, gdl/testsuite/Makefile.am, gdl/testsuite/test_python.pro, gdl/testsuite/test_python_module_1.pro, src/gdl.cpp, src/gdlpython.cpp, src/gdlpython.hpp, src/objects.cpp, src/pythongdl.cpp, src/topython.cpp, testsuite/Makefile.am, testsuite/test_python.pro, testsuite/test_python_module_1.pro, PYTHON.txt, README, configure.in, gdl/PYTHON.txt, gdl/README, gdl/configure.in, gdl/src/datatypes.cpp, gdl/src/datatypesref.cpp, src/datatypes.cpp, src/datatypesref.cpp:
+	numarray -> Numpy transition (based on the patch by Orion Poplawski, the Gentoo GDL patch by Sebastien Fabbro and a helpful post by Ondrej Certik: http://mail.scipy.org/pipermail/numpy-discussion/2009-October/045888.html)
+
+2010-12-29  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* gdl/testsuite/Makefile.am, gdl/testsuite/Makefile.in, gdl/testsuite/test_bug_3091610.pro, gdl/testsuite/test_common.pro, gdl/testsuite/test_python_module_1.pro, testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_bug_3091610.pro, testsuite/test_common.pro, testsuite/test_python_module_1.pro:
+	testsuite update
+
+	* configure.in, gdl/configure.in:
+	fixing Python module compilation on OSX
+
+	* gdl/src/basic_fun.cpp, src/basic_fun.cpp, gdl/testsuite/Makefile.am, gdl/testsuite/test_python_module_0.pro, gdl/testsuite/test_python_module_1.pro, gdl/testsuite/test_python_module_2.pro, testsuite/Makefile.am, testsuite/test_python_module_0.pro, testsuite/test_python_module_1.pro, testsuite/test_python_module_2.pro:
+	fixing Python module + test_python_module* test routines (tracker item no. 3127190)
+
+2010-12-28  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* gdl/testsuite/Makefile.am, gdl/testsuite/test_bug_2846561.pro, testsuite/Makefile.am, testsuite/test_bug_2846561.pro:
+	adding test_bug_2846561.pro
+
+	* gdl/testsuite/Makefile.am, gdl/testsuite/test_bug_2555865.pro, testsuite/Makefile.am, testsuite/test_bug_2555865.pro:
+	adding test_bug_2555865.pro
+
+	* gdl/src/FMTLexer.cpp, gdl/src/FMTOut.cpp, gdl/src/FMTParser.cpp, gdl/src/FMTParser.hpp, gdl/src/assocdata.hpp, gdl/src/basegdl.cpp, gdl/src/basegdl.hpp, gdl/src/convert2.cpp, gdl/src/datatypes.hpp, gdl/src/default_io.cpp, gdl/src/dstructgdl.hpp, gdl/src/fmtnode.hpp, gdl/src/format.g, gdl/src/format.out.g, gdl/src/gdl.cpp, gdl/src/ofmt.cpp, gdl/src/ofmt.hpp, gdl/src/specializations.hpp, gdl/testsuite/Makefile.am, gdl/testsuite/test_bug_1779553.pro, gdl/testsuite/test_bug_3147146.pro, gdl/testsuite/test_deriv.pro, gdl/testsuite/test_dicom.pro, gdl/testsuite/test_grib.pro, gdl/testsuite/test_minmax.pro, gdl/testsuite/test_rk4.pro, gdl/testsuite/try, src/FMTLexer.cpp, src/FMTOut.cpp, src/FMTParser.cpp, src/FMTParser.hpp, src/assocdata.hpp, src/basegdl.cpp, src/basegdl.hpp, src/convert2.cpp, src/datatypes.hpp, src/default_io.cpp, src/dstructgdl.hpp, src/fmtnode.hpp, src/format.g, src/format.out.g, src/gdl.cpp, src/ofmt.cpp, src/ofmt.hpp, src/specializations.hpp, testsuite/Makefile.am, testsuite/test_bug_1779553.pro, testsuite/test_bug_3147146.pro, testsuite/test_deriv.pro, testsuite/test_dicom.pro, testsuite/test_grib.pro, testsuite/test_minmax.pro, testsuite/test_rk4.pro, testsuite/try:
+	zero padding in format strings, testsuite update
+
+2010-12-16  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* gdl/src/plotting.cpp, src/plotting.cpp:
+	continuing improving XYOUTS, PLOTS and POLYFILL. May have effects on others graphic routines (CONTOUR, SURFACE
+	, ...)
+
+	* gdl/src/plotting.cpp, src/plotting.cpp:
+	extra factor 1.1111 for Y axis; option /device in XYOUTS and PLOTS (correcting bug 3085586). Maybe new bug for /data introduced but easy to see and solve.
+
+2010-12-06  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* gdl/testsuite/Makefile.am, gdl/testsuite/Makefile.in, testsuite/Makefile.am, testsuite/Makefile.in:
+	adding test_common.pro to the make-check file list
+
+2010-12-04  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* gdl/src/io.cpp, src/io.cpp:
+	fixed problem with CentOS (missing != operator)
+
+2010-12-03  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* gdl/src/dinterpreter.cpp, src/dinterpreter.cpp:
+	prevent identical lines being added to history
+
+	* gdl/src/envt.hpp, gdl/src/io.cpp, gdl/src/io.hpp, src/envt.hpp, src/io.cpp, src/io.hpp, gdl/src/basic_pro_jmg.cpp, gdl/src/envt.cpp, src/basic_pro_jmg.cpp, src/envt.cpp:
+	LONG64 for POINT_LUN (bug tracker ID: 3126348)
+
+	* gdl/src/dpro.cpp, gdl/src/prognode.hpp, src/dpro.cpp, src/prognode.hpp, gdl/testsuite/Makefile.in, testsuite/Makefile.in:
+	handle empty subroutine tree (NULL) (bug tracker ID: 3079713)
+
+2010-11-30  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* gdl/testsuite/test_common.pro, testsuite/test_common.pro:
+	initial import of a fast way to check if "common" are OK at compilation level (.r step)
+
+2010-11-29  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* gdl/testsuite/Makefile.am, gdl/testsuite/test_bug_3104326.pro, testsuite/Makefile.am, testsuite/test_bug_3104326.pro:
+	test_bug_3104326.pro
+
+	* gdl/testsuite/Makefile.am, gdl/testsuite/test_step.pro, testsuite/Makefile.am, testsuite/test_step.pro:
+	test_step.pro
+
+	* gdl/testsuite/Makefile.am, gdl/testsuite/test_bug_3104209.pro, testsuite/Makefile.am, testsuite/test_bug_3104209.pro:
+	test_bug_3104209.pro
+
+	* gdl/testsuite/Makefile.am, gdl/testsuite/test_bug_3085858.pro, testsuite/Makefile.am, testsuite/test_bug_3085858.pro:
+	test_bug_3085858.pro
+
+	* gdl/testsuite/Makefile.am, gdl/testsuite/test_bug_3091599.pro, testsuite/Makefile.am, testsuite/test_bug_3091599.pro:
+	test_bug_3091599.pro
+
+2010-11-28  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* gdl/src/GDLInterpreter.cpp, gdl/src/GDLInterpreter.hpp, gdl/src/dinterpreter.cpp, gdl/src/dinterpreter.hpp, gdl/src/gdlc.i.g, gdl/src/objects.hpp, src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/dinterpreter.cpp, src/dinterpreter.hpp, src/gdlc.i.g, src/objects.hpp:
+	.STEP command
+
+	* gdl/src/dstructgdl.cpp, src/dstructgdl.cpp:
+	STRUCT: Made single array index access return array[1] (bug tracker ID: 3091599)
+
+	* gdl/src/arrayindex.hpp, gdl/src/basegdl.cpp, gdl/src/basegdl.hpp, gdl/src/datatypes.cpp, gdl/src/datatypes.hpp, gdl/src/datatypesref.cpp, src/arrayindex.hpp, src/basegdl.cpp, src/basegdl.hpp, src/datatypes.cpp, src/datatypes.hpp, src/datatypesref.cpp:
+	Fixed negative index access
+
+	* gdl/src/GDLInterpreter.cpp, gdl/src/GDLLexer.hpp, gdl/src/dinterpreter.cpp, gdl/src/gdlc.g, gdl/src/gdlc.i.g, gdl/src/prognode.cpp, src/GDLInterpreter.cpp, src/GDLLexer.hpp, src/dinterpreter.cpp, src/gdlc.g, src/gdlc.i.g, src/prognode.cpp:
+	Fixed line number reporting for the call stack dump
+
+2010-11-25  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* gdl/src/prognode.cpp, src/prognode.cpp:
+	Clearer error message for CONTINUE outside loops
+
+2010-11-24  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* configure.in, gdl/configure.in, gdl/src/gdl.cpp, gdl/src/includefirst.hpp, src/gdl.cpp, src/includefirst.hpp:
+	Fixed preprocessor's HAVE_LIBREADLINE handling with python
+
+2010-11-22  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* gdl/testsuite/Makefile.am, gdl/testsuite/test_bug_3081887.pro, gdl/testsuite/test_plotting_ranges.pro, testsuite/Makefile.am, testsuite/test_bug_3081887.pro, testsuite/test_plotting_ranges.pro:
+	testsuite update
+
+2010-11-21  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* gdl/src/GDLInterpreter.cpp, gdl/src/dinterpreter.cpp, gdl/src/gdlc.i.g, gdl/src/pro/Makefile.in, gdl/testsuite/Makefile.in, src/GDLInterpreter.cpp, src/dinterpreter.cpp, src/gdlc.i.g, src/pro/Makefile.in, testsuite/Makefile.in:
+	fixed _retTree for indexable_expr (bug tracker ID: 3081887)
+
+2010-11-17  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* gdl/src/gdlgstream.cpp, gdl/src/gdlpython.cpp, gdl/src/plot3d_nr.cpp, gdl/src/plotting.cpp, gdl/testsuite/libtest_ce.cpp, gdl/testsuite/test_ce.pro, src/gdlgstream.cpp, src/gdlpython.cpp, src/plot3d_nr.cpp, src/plotting.cpp, testsuite/libtest_ce.cpp, testsuite/test_ce.pro:
+	fixing compiler warnings with GCC 4.4; temporarily commenting out a part of testsuite/libtest_ce.cpp (the rest works)
+
+2010-11-15  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* gdl/src/gdlwidget.cpp, src/gdlwidget.cpp:
+	fixing compatibility with old (2007) libstdc++ (cf. http://gcc.gnu.org/bugzilla/show_bug.cgi?id=31005)
+
+	* INSTALL.CMake, gdl/INSTALL.CMake:
+	INSTALL.CMake: adding info about the Debug mode
+
+2010-11-12  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* CMakeLists.txt, gdl/CMakeLists.txt:
+	defaut compilation mode with CMake switched to "Release" in order to have good perfs'
+
+2010-11-07  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* gdl/src/basic_pro.cpp, src/basic_pro.cpp:
+	EXIT: fixed segfault when compiled with wxWidgets and no X-server connection available (tracker item no. 2946058, patch by Orion Poplawski)
+
+	* gdl/src/plotting.cpp, src/plotting.cpp:
+	CONTOUR: better input dimesion check (tracker item no. 3055761)
+
+	* gdl/src/pro/interpol.pro, gdl/testsuite/Makefile.am, gdl/testsuite/test_bug_3104349.pro, src/pro/interpol.pro, testsuite/Makefile.am, testsuite/test_bug_3104349.pro:
+	INTERPOL: sanity check added (tracker item no. 3104349)
+
+2010-11-06  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* gdl/testsuite/Makefile.am, gdl/testsuite/test_bug_3104214.pro, testsuite/Makefile.am, testsuite/test_bug_3104214.pro, gdl/src/plotting.cpp, src/plotting.cpp:
+	PLOTS vs. logscale fix (tracker item no. 3104214)
+
+2010-10-28  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* gdl/testsuite/libtest_ce.cpp, testsuite/libtest_ce.cpp:
+	libtest_ce.cpp: GCC 4.3.3 (e.g.) compatibility fix
+
+2010-10-27  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* configure.in, gdl/configure.in, gdl/doc/misc/README.call_external, gdl/src/basic_pro_jmg.cpp, gdl/src/basic_pro_jmg.hpp, gdl/src/libinit_jmg.cpp, src/basic_pro_jmg.cpp, src/basic_pro_jmg.hpp, src/libinit_jmg.cpp, gdl/testsuite/Makefile.am, gdl/testsuite/libtest_ce.cpp, gdl/testsuite/test_ce.pro, testsuite/Makefile.am, testsuite/libtest_ce.cpp, testsuite/test_ce.pro:
+	CALL_EXTERNAL: initial import (patch by Christoph Fuchs, tracker item no. 3096214)
+
+2010-10-26  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* gdl/testsuite/test_mpfit.pro, testsuite/test_mpfit.pro:
+	adding keyword /debug in TEST_MPFIT ...
+
+2010-10-26  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* gdl/src/gshhs.cpp, gdl/src/plotting.cpp, gdl/src/plotting.hpp, src/gshhs.cpp, src/plotting.cpp, src/plotting.hpp, gdl/testsuite/test_clip.pro, testsuite/test_clip.pro:
+	default range (if called before plot) and corrected clipping behaviour in XYOUTS, POLYFILL and PLOTS (patch from Joanna, tracker item no. 3029409)
+
+2010-10-26  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* gdl/src/pro/restore.pro, gdl/src/pro/save.pro, src/pro/restore.pro, src/pro/save.pro:
+	better messages when CMSV lib. not in the GDL/IDL_PATH
+
+	* gdl/testsuite/test_get_screen_size.pro, gdl/testsuite/test_mpfit.pro, testsuite/test_get_screen_size.pro, testsuite/test_mpfit.pro:
+	adding details to improve tests and warnings
+
+2010-10-25  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* gdl/src/dstructgdl.hpp, src/dstructgdl.hpp:
+	Fixed Clear() for tag by tag created structs (bug tracker ID: 3091610)
+
+2010-10-23  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* gdl/src/libinit.cpp, gdl/src/plotting.cpp, src/libinit.cpp, src/plotting.cpp:
+	POLYFILL: support for LINE_FILL, SPACING, LINESTYLE, ORIENTATION and THICK (thanks to Joanna, tracker item no. 3029507)
+
+2010-10-17  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* gdl/testsuite/Makefile.am, gdl/testsuite/Makefile.in, gdl/testsuite/test_ps_decomposed.pro, testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_ps_decomposed.pro, gdl/src/deviceps.hpp, src/deviceps.hpp:
+	decomposed colours with PostScript + test routine test_ps_decomposed.pro
+
+2010-10-16  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* gdl/testsuite/test_strsplit.pro, testsuite/test_strsplit.pro, gdl/src/pro/strsplit.pro, src/pro/strsplit.pro:
+	correcting bugs in STRSPLIT(); updating TEST_STRSPLIT in consequence.
+
+2010-10-14  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* gdl/testsuite/Makefile.am, gdl/testsuite/Makefile.in, gdl/testsuite/test_bug_3054361.pro, testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_bug_3054361.pro:
+	testsuite/test_bug_3054361.pro: initial import
+
+	* gdl/testsuite/Makefile.am, gdl/testsuite/Makefile.in, gdl/testsuite/test_bug_3086851.pro, testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_bug_3086851.pro:
+	testsuite/test_bug_3086851.pro: initial import
+
+2010-10-13  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* gdl/src/pro/strsplit.pro, src/pro/strsplit.pro:
+	STRSPLIT: /REGEX and /PRESERVE_NULL should be compatible
+	(may not work due to the complexity of STRSPLIT(), but "test_strsplit.pro" was OK)
+
+	* gdl/testsuite/CMakeLists.txt, gdl/testsuite/Makefile.am, gdl/testsuite/Makefile.in, gdl/testsuite/test_moment.pro, testsuite/CMakeLists.txt, testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_moment.pro:
+	adding TEST_MOMENT in testsuite
+
+	* gdl/src/libinit_cl.cpp, gdl/src/ncdf_cl.cpp, gdl/src/ncdf_cl.hpp, src/libinit_cl.cpp, src/ncdf_cl.cpp, src/ncdf_cl.hpp:
+	renaming all occurences of NCDF_EPOCH to CDF_EPOCH
+
+	* gdl/src/pro/moment.pro, src/pro/moment.pro:
+	correcting bug for Kurtosis in MOMENT()
+
+2010-10-08  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* gdl/src/libinit_cl.cpp, gdl/src/ncdf_cl.cpp, gdl/src/ncdf_cl.hpp, src/libinit_cl.cpp, src/ncdf_cl.cpp, src/ncdf_cl.hpp:
+	initial import of interface for NCDF_EPOCH, code not working ...
+
+2010-10-01  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* gdl/testsuite/CMakeLists.txt, gdl/testsuite/Makefile.am, gdl/testsuite/Makefile.in, testsuite/CMakeLists.txt, testsuite/Makefile.am, testsuite/Makefile.in:
+	upgrading list of files used in launchers of test/check
+
+	* gdl/testsuite/test_mpfit.pro, testsuite/test_mpfit.pro:
+	initial import of TEST_MPFIT, fast test of widely used Lib. MPFIT
+
+	* gdl/quick_start_GDL.sh, quick_start_GDL.sh:
+	adding the option for keeping current GDL_PATH when running "fast launcher"
+
+2010-09-21  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* gdl/src/libinit_ac.cpp, gdl/src/math_fun_ac.cpp, gdl/src/math_fun_ac.hpp, src/libinit_ac.cpp, src/math_fun_ac.cpp, src/math_fun_ac.hpp:
+	Initial import of missing functions PREWITT(), SOBEL() and ROBERTS().
+	Interfaces only, code not finished.
+
+2010-09-20  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* gdl/src/math_fun_ac.cpp, src/math_fun_ac.cpp:
+	fixing memory leak in SPL_INIT (bug 3070190)
+
+	* gdl/src/basic_pro_jmg.cpp, src/basic_pro_jmg.cpp:
+	removing useless comment in revisited WAIT
+
+2010-09-16  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* doc/www/resources.html, gdl/doc/www/resources.html:
+	fixed broken link to a relocated bu.edu website
+
+2010-09-15  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* gdl/src/basic_pro_jmg.cpp, src/basic_pro_jmg.cpp:
+	WAIT: using nanosleep to avoid using 100% of CPU for long waits ...
+	but keeping old code to have accurates small waits ;-)
+
+2010-09-14  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* NEWS, gdl/NEWS, gdl/src/basic_fun.cpp, src/basic_fun.cpp:
+	Set constant terminal with of 80 for STRING(/PRINT) (bug tracker ID: 3054361)
+
+2010-09-10  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* doc/www/contribute.html, doc/www/download.html, doc/www/home.html, gdl/doc/www/contribute.html, gdl/doc/www/download.html, gdl/doc/www/home.html:
+	doc/www updates corresponding to the 0.9 release
+
+2010-09-09  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* gdl/src/pro/save.pro, src/pro/save.pro:
+	consequence of change 1.131 in "basic_fun.cpp" when calling EXECUTE, array not allowed now ...
+
+	* gdl/testsuite/test_known_bugs.pro, testsuite/test_known_bugs.pro:
+	correcting small bug in "test_known_bugs.pro"
+
+	* CMakeLists.txt, gdl/CMakeLists.txt:
+	upgrading version number (rc4 is over)
+
+2010-09-02  opoplawski  <opoplawski@DaMachineInDaMachine>
+
+	* gdl/CMakeModules/FindHDF.cmake:
+	Search hdf sub-directories - finds hdf4 on Fedora
+
+	* CMake.tar.gz, CMakeLists.txt, INSTALL.CMake, README.CMake, config.h.cmake, gdl/CMake.tar.gz, gdl/CMakeLists.txt, gdl/CMakeModules/FindFFTW.cmake, gdl/CMakeModules/FindGSL.cmake, gdl/CMakeModules/FindGrib.cmake, gdl/CMakeModules/FindHDF.cmake, gdl/CMakeModules/FindLibproj4.cmake, gdl/CMakeModules/FindNetCDF.cmake, gdl/CMakeModules/FindPlplot.cmake, gdl/CMakeModules/FindPythonLibs.cmake, gdl/CMakeModules/FindReadline.cmake, gdl/CMakeModules/FindUdunits.cmake, gdl/INSTALL.CMake, gdl/README.CMake, gdl/config.h.cmake, gdl/src/CMakeLists.txt, gdl/src/antlr/CMakeLists.txt, gdl/testsuite/CMakeLists.txt, src/CMakeLists.txt, src/antlr/CMakeLists.txt, testsuite/CMakeLists.txt:
+	Check in CMake files into tree
+
+2010-08-31  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* gdl/src/basic_fun.cpp, gdl/src/envt.cpp, gdl/src/libinit.cpp, gdl/testsuite/Makefile.am, gdl/testsuite/Makefile.in, gdl/testsuite/test_fixprint.pro, src/basic_fun.cpp, src/envt.cpp, src/libinit.cpp, testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_fixprint.pro:
+	FIX: support for TYPE=7 and /PRINT + test routine (test_fixprint.pro)
+
+2010-08-30  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* CMake.tar.gz, gdl/CMake.tar.gz:
+	Still improving the CMake alternative. Now target (gdl) don't loose PATH to alternative librairies (pb on Debian where we need dedicated Image Magick version).
+
+	* CMake.tar.gz, gdl/CMake.tar.gz:
+	better managment of alternative path to ImageMagick lib. (need a "by-hand" Image Magick Lib. under Debian to avoid a known pb with Plplot (two seccessive calls to WINDOW will crash, see testsuite/test_known_bugs.pro))
+
+2010-08-27  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* gdl/src/basic_fun.cpp, gdl/testsuite/Makefile.am, gdl/testsuite/Makefile.in, gdl/testsuite/test_execute.pro, src/basic_fun.cpp, testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_execute.pro:
+	EXECUTE: disallowing array arguments for compatibility with IDL
+
+2010-08-26  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* gdl/src/pro/Makefile.am, gdl/src/pro/Makefile.in, src/pro/Makefile.am, src/pro/Makefile.in:
+	adding new function SWAP_ENDIAN_INPLACE in Makefile.am and Makefile.in
+
+	* gdl/src/pro/dialog_pickfile.pro, src/pro/dialog_pickfile.pro:
+	missing a ")" in DIALOG_PICKFILE ...
+
+	* gdl/src/default_io.cpp, gdl/src/file.cpp, src/default_io.cpp, src/file.cpp:
+	default_io: being able to read (big) compressed files
+	file.cpp: for FILE_SEARCH()
+
+	* gdl/src/pro/swap_endian_inplace.pro, src/pro/swap_endian_inplace.pro:
+	initial import of SWAP_ENDIAN_INPLACE(), derivate work from SWAP_ENDIAN().
+	This function is needed for the PDS Library (Planetary Data System, http://pds.nasa.gov/)
+
+	* gdl/src/pro/dialog_pickfile.pro, src/pro/dialog_pickfile.pro:
+	in DIALOG_PICKFILE, typos, and also new keywords: Display_name and Ressource_name
+
+	* CMake.tar.gz, gdl/CMake.tar.gz:
+	Upgrade of CMake tar (the alternative way to compile GDL)
+
+2010-08-25  alaingdl  <alaingdl@DaMachineInDaMachine>
+
+	* gdl/src/plotting.cpp, src/plotting.cpp:
+	preliminary version for AX and AZ keywords in SURFACE
+
+2010-08-25  slayoo  <slayoo@DaMachineInDaMachine>
+
+	* gdl/testsuite/README, gdl/testsuite/test_clip.pro, gdl/testsuite/test_fix.pro, gdl/testsuite/test_nans_in_sort_and_median.pro, gdl/testsuite/test_zzz.pro, testsuite/README, testsuite/test_clip.pro, testsuite/test_fix.pro, testsuite/test_nans_in_sort_and_median.pro, testsuite/test_zzz.pro:
+	skipping known-bug cases in testsuite when not run using the CVS version of gdl
+
+2010-08-25  m_schellens  <m_schellens@DaMachineInDaMachine>
+
+	* gdl/src/Makefile.am, gdl/src/Makefile.in, src/Makefile.am, src/Makefile.in, configure.in, gdl/configure.in:
+	Fixed inconsistency
+
+	* ChangeLog, README, configure.in, gdl/ChangeLog, gdl/README, gdl/configure.in, gdl/src/GDLInterpreter.hpp, gdl/src/gdlc.i.g, gdl/src/gdlwidget.cpp, src/GDLInterpreter.hpp, src/gdlc.i.g, src/gdlwidget.cpp:
+	release GDL 0.9
+
+	* CMake.tar.gz, README.CMake, README.GRIB, README_GRIB, gdl/CMake.tar.gz, gdl/README.CMake, gdl/README.GRIB, gdl/README_GRIB:
+	added CMake
+
+
+
+
 GDL 0.9:
 2010-08-25  m_schellens  <m_schellens@DaMachineInDaMachine>
 
