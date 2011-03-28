@@ -63,8 +63,8 @@ namespace lib {
     static int ySizeIx = e->KeywordIx( "YSIZE");
     static int colorIx = e->KeywordIx( "COLOR");
     static int inchesIx = e->KeywordIx( "INCHES");
- 
     static int get_screen_sizeIx = e->KeywordIx( "GET_SCREEN_SIZE");
+    static int window_stateIx = e->KeywordIx( "WINDOW_STATE");
 
     Graphics* actDevice = Graphics::GetDevice();
     
@@ -94,6 +94,20 @@ namespace lib {
 #endif
       }
 
+    if (e->KeywordPresent(window_stateIx))
+    {
+      // check if X (could be more elegant...)
+      DStructGDL* dStruct = SysVar::D();
+      static unsigned nameTag = dStruct->Desc()->TagIndex( "NAME");
+      DString d_name = (*static_cast<DStringGDL*>( dStruct->GetTag( nameTag, 0)))[0];
+      // if PS and not noErase (ie, erase) then set !p.noerase=0    
+      if (d_name != "X") e->Throw("WINDOW_STATE not supported for the current device (" + d_name + "), it works for X only");
+      int maxwin = actDevice->MaxWin();
+      assert(maxwin > 0);
+      DByteGDL* ret = new DByteGDL(dimension( maxwin), BaseGDL::NOZERO);
+      for (int i = 0; i < maxwin; i++) (*ret)[i] = actDevice->WState(i);
+      e->SetKW( window_stateIx, ret);
+    }
 
     if( e->KeywordSet( closeFileIx))
       {

@@ -162,6 +162,7 @@ public:
 		      int* xsize, int* ysize, 
 		      int* xpos, int* ypos)           { return false;}
   virtual bool WShow( int ix, bool show, bool iconic) { return false;}
+  virtual bool WState( int ix)                        { return false;}
   virtual bool WDelete( int ix)                       { return false;}
   virtual int  MaxWin()                               { return 0;}
   virtual int  ActWin()                               { return -1;}

@@ -459,6 +459,11 @@ public:
     return true; //winList[ wIx]->Valid(); // Valid() need to called once
   }
 
+  bool WState( int wIx)
+  { 
+    return wIx >= 0 && wIx < oList.size() && oList[ wIx] != 0;
+  }
+
   bool WSize( int wIx, int *xSize, int *ySize, int *xPos, int *yPos)
   {
     ProcessDeleted();
@@ -561,7 +566,7 @@ public:
     return 0;
   }
 
-  int MaxWin() { ProcessDeleted(); return maxWin;}
+  int MaxWin() { ProcessDeleted(); return winList.size();}
   int ActWin() { ProcessDeleted(); return actWin;}
 
   BaseGDL* TVRD( EnvT* e)
