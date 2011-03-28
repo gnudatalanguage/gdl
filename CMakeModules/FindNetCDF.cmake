@@ -6,7 +6,7 @@ if(NETCDFPKG)
 	pkg_check_modules(NETCDF netcdf)
 	if(NETCDF_FOUND)
 		set(NETCDF_INCLUDE_DIR ${NETCDF_INCLUDE_DIRS})
-		find_package_handle_standard_args(NETCDF DEFAULT_MSG NETCDF_LIBRARIES NETCDF_INCLUDE_DIR)
+		find_package_handle_standard_args(NETCDF DEFAULT_MSG NETCDF_LIBRARIES)
 	endif(NETCDF_FOUND)
 else(NETCDFPKG) # no netcdf.pc file
 	find_library(NETCDF_LIBRARIES NAMES netcdf)
