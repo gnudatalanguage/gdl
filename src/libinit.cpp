@@ -462,7 +462,7 @@ void LibInit()
       "CLOSE_FILE","FILENAME","LANDSCAPE","PORTRAIT",
       "DECOMPOSED","GET_DECOMPOSED","Z_BUFFERING","SET_RESOLUTION",
       "SET_CHARACTER_SIZE","GET_VISUAL_DEPTH","XSIZE","YSIZE",
-      "COLOR","GET_SCREEN_SIZE","INCHES",KLISTEND
+      "COLOR","GET_SCREEN_SIZE","INCHES","WINDOW_STATE",KLISTEND
     };
   const string deviceWarnKey[] = {"RETAIN", KLISTEND};
   new DLibPro(lib::device,string("DEVICE"),0, deviceKey, deviceWarnKey);
