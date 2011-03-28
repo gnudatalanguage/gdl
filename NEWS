@@ -497,9 +497,22 @@
              - FILE_SEARCH, /FOLD_CASE
              - STRSPLIT, /preserve_null
            - new test routines (invoked during "make check")
-           - DIALOG_PICKFILE and DIALOG_MESSAGE, based on Zenity, OK on most Linux and OSX
+           - DIALOG_PICKFILE, based on Zenity, OK on most Linux and OSX
            - FILE_DELETE, FILE_COPY and FILE_EXPAND_PATH
 	   - SPL_INIT: now y0= and yn_1= ready
            - Compressed files should be well processed now (readf, printf, fstat, point_lun, ...). See test_zip.pro
 
-0.9.1
+0.9.1:
+           - fixes/improveents in: CONTOUR, DIALOG_PICKFILE, EXECUTE, EXIT, FIX (TYPE=7 and /PRINT),
+             FFT, FSTAT, HEAP_GC, MOMENT, NCDF_ATTNAME, NCDF_DIMDEF, NCDF_VARID, NCDF_VARPUT, INTERPOL,
+             PLOTS, POINT_LUN (64-bit addressing), POLYFILL (support for LINE_FILL, SPACING, LINESTYLE, 
+             ORIENTATION and THICK), PRINT, PRINTF, SAVE/RESTORE, SPL_INIT (mem leak), STRSPLIT,
+             SURFACE (added AX,AZ), WAIT, XYOUTS (support for the WIDTH kw)
+           - other improvements: fixed reading of (big) compressed files, decomposed colours with PostScript, 
+             gdlffdicom update (v20100309), new test routines, improved cmake configuration (still experimental),
+             fixed behaviour with non-comma locale-defined decimal separators
+           - early draft of GDL User's & Developer's guide: source files in doc/udg, current pdf version at:
+             http://gnudatalanguage.sf.net/gdl.pdf
+           - Python bridge: Numarray -> NumPy transition (several known bugs still exist)
+           - the .STEP command
+           - new routines: CALL_EXTERNAL (by Christoph Fuch), DIALOG_MESSAGE, ROBERTS, SWAP_ENDIAN_INPLACE
