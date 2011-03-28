@@ -825,6 +825,7 @@ if test "x$with_udunits" != "xno"; then
     echo "       (suitable Debian/Ubuntu package: libudunits2-dev)"
     exit -1
     ])
+  AC_CHECK_HEADERS(udunits2/udunits2.h)
 fi
 
 dnl == GRIB ================================================
