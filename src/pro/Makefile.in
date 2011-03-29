@@ -265,6 +265,7 @@ prolib_DATA = \
   appleman.pro \
   array_indices.pro \
   calendar.pro \
+  correlate.pro \
   deriv.pro \
   dialog_message.pro \
   dialog_pickfile.pro \
