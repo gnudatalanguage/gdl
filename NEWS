@@ -507,7 +507,7 @@
              FFT, FSTAT, HEAP_GC, MOMENT, NCDF_ATTNAME, NCDF_DIMDEF, NCDF_VARID, NCDF_VARPUT, INTERPOL,
              PLOTS, POINT_LUN (64-bit addressing), POLYFILL (support for LINE_FILL, SPACING, LINESTYLE, 
              ORIENTATION and THICK), PRINT, PRINTF, SAVE/RESTORE, SPL_INIT (mem leak), STRSPLIT,
-             SURFACE (added AX,AZ), WAIT, XYOUTS (support for the WIDTH kw)
+             SURFACE (added AX,AZ), WAIT, XYOUTS (support for the WIDTH kw), DEVICE (WINDOW_STATE kw)
            - other improvements: fixed reading of (big) compressed files, decomposed colours with PostScript, 
              gdlffdicom update (v20100309), new test routines, improved cmake configuration (still experimental),
              fixed behaviour with non-comma locale-defined decimal separators
@@ -515,4 +515,5 @@
              http://gnudatalanguage.sf.net/gdl.pdf
            - Python bridge: Numarray -> NumPy transition (several known bugs still exist)
            - the .STEP command
-           - new routines: CALL_EXTERNAL (by Christoph Fuch), DIALOG_MESSAGE, ROBERTS, SWAP_ENDIAN_INPLACE
+           - new routines: CALL_EXTERNAL (by Christoph Fuch), DIALOG_MESSAGE, ROBERTS, SWAP_ENDIAN_INPLACE,
+             CORRELATE
