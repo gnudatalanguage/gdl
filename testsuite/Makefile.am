@@ -39,6 +39,7 @@ TESTS = \
   test_clip.pro \
   test_common.pro \
   test_constants.pro \
+  test_correlate.pro \
   test_deriv.pro \
   test_device.pro \
   test_dicom.pro \
