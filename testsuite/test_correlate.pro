@@ -28,6 +28,17 @@ pro test_correlate
     err++
   endif
 
+  ; two-dimensional case
+  n = !VALUES.F_NAN
+  if ~array_equal(finite(correlate([[1,-1],[1,2]])), [[0,0], [0, 1]]) then begin
+    message, '5', /conti
+    err++
+  endif
+  if ~array_equal(correlate([[1,-1],[1,2]], /cov), [[0,0], [0, 4.5]]) then begin
+    message, '5', /conti
+    err++
+  endif
+
   if err ne 0 then exit, status=-1
 
 end
