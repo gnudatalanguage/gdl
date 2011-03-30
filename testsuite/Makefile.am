@@ -52,6 +52,7 @@ TESTS = \
   test_file_delete.pro \
   test_file_dirname.pro \
   test_file_search.pro \
+  test_file_which.pro \
   test_fix.pro \
   test_fixprint.pro \
   test_gc.pro \

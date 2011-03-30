@@ -17,6 +17,7 @@ prolib_DATA = \
   file_dirname.pro \
   file_expand_path.pro \
   file_lines.pro \
+  file_which.pro \
   filepath.pro \
   findex.pro \
   findfile.pro \
