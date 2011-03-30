@@ -35,6 +35,7 @@ TESTS = \
   test_bug_3151760.pro \
   test_bug_3189068.pro \
   test_bug_3199465.pro \
+  test_bug_3244840.pro \
   test_ce.pro \
   test_clip.pro \
   test_common.pro \

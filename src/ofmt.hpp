@@ -47,17 +47,6 @@ public:
   friend std::ostream& operator<<(std::ostream& os, const AsComplex<T2>& a); 
 };
 
-template <typename T>
-std::ostream& operator<<(std::ostream& os, const AsComplex<T>& a) 
-{
-  os << "(";
-  OutAuto( os, a.flt.real(), a.width, a.prec, a.fill);
-  os << ",";
-  OutAuto( os, a.flt.imag(), a.width, a.prec, a.fill);
-  os << ")";
-  return os;
-}
-
 class CheckNL 
 {
 #ifdef _MSC_VER
@@ -93,10 +82,10 @@ inline void OutFixedZero( std::ostream& os, int w, int d, char f)
   else if( d >= w)
     OutStars( os, w);
   else if( d == 1) 
-    os << std::setw( w) << std::setfill(f) << "0.";
+    os << std::setw( w) << std::setfill(f) << std::right << "0.";
   else 
     {
-      os << std::setw( w-(d<=0?1:d)+1) << std::setfill(f) << "0.";
+      os << std::setw( w-(d<=0?1:d)+1) << std::setfill(f) << std::right << "0."; 
       for( int i=1; i<d; ++i) os << "0";
     }
 }
@@ -210,5 +199,16 @@ template <>
 void OutAuto<DComplex>( std::ostream& os, DComplex val, int w, int d, char f);
 template <>
 void OutAuto<DComplexDbl>( std::ostream& os, DComplexDbl val, int w, int d, char f);
+
+template <typename T>
+std::ostream& operator<<(std::ostream& os, const AsComplex<T>& a) 
+{
+  os << "(";
+  OutAuto( os, a.flt.real(), a.width, a.prec, a.fill);
+  os << ",";
+  OutAuto( os, a.flt.imag(), a.width, a.prec, a.fill);
+  os << ")";
+  return os;
+}
 
 #endif
