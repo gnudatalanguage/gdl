@@ -205,7 +205,7 @@ widget.cpp
 
 add_subdirectory(antlr)
 
-include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/antlr)
+include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/antlr ${CMAKE_BINARY_DIR})
 link_directories(${LINK_DIRECTORIES})
 
 if(PYTHON_MODULE) #libgdl
