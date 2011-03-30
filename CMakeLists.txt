@@ -451,15 +451,13 @@ if(PYTHON OR PYTHON_MODULE)
 	endif(PYTHONVERSION)
 	set(USE_PYTHON ${PYTHONLIBS_FOUND})
 	if(PYTHONLIBS_FOUND)
-		set(CMAKE_REQUIRED_INCLUDES ${PYTHON_INCLUDE_DIRS})
-		check_include_file(numarray/libnumarray.h HAVE_LIBNUMARRAY_H)
-		if(NOT HAVE_LIBNUMARRAY_H)
-			message(FATAL_ERROR "Python numarray package was not found.\n"
+		find_package(Numpy QUIET)
+		if(NOT PYTHON_NUMPY_FOUND)
+			message(FATAL_ERROR "Python numpy package was not found.\n"
 			"${PYTHONMSG} ${PYTHON_MODULEMSG}")
-		endif(NOT HAVE_LIBNUMARRAY_H)
+		endif(NOT PYTHON_NUMPY_FOUND)
 		set(LIBRARIES ${LIBRARIES} ${PYTHON_LIBRARIES})
 		include_directories(${PYTHON_INCLUDE_DIRS})	
-		set(CMAKE_REQUIRED_INCLUDES)
 	else(PYTHONLIBS_FOUND)
 		message(FATAL_ERROR "Python is required but was not found.\n"
 		"Use -DPYTHONDIR=DIR to specify the Python directory tree.\n"
