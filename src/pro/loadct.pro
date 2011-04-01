@@ -63,14 +63,16 @@ pro LOADCT, table, GET_NAMES=names, FILE=file,$
 on_error, 2
 common colors, r_orig, g_orig, b_orig, r_curr, g_curr, b_curr
 
-if N_ELEMENTS( table) eq 0 or $
-  not KEYWORD_SET( silent) or $
-  ARG_PRESENT( names) then begin
+if keyword_set(file) then message, 'FILE keyword not implemented yet, ignored. (FIXME)', /conti
+
+if N_ELEMENTS( table) eq 0 and ARG_PRESENT( names) then begin
+  LOADCT_INTERNALGDL,GET_NAMES=names
+  return
+endif
+
+if N_ELEMENTS( table) eq 0 or not KEYWORD_SET( silent) then begin
 
     LOADCT_INTERNALGDL,GET_NAMES=names
-
-
-
     if n_elements( table) eq 0 then begin
         for n=0,n_elements(names)-1 do begin
 
