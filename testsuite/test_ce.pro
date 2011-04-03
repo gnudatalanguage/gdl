@@ -52,7 +52,9 @@ IF STRLOWCASE(!version.os) EQ 'linux' THEN begin
    command = "cc -o "+image +" "+ fullname +" -shared -fPIC"
 endif
 IF STRLOWCASE(!version.os) EQ 'darwin' THEN begin
-   command = "cc -o "+image +" -c "+ fullname +" -shared -fPIC"
+   tmp_image='tmp.o'
+   command = "g++ -o "+tmp_image +" -c "+ fullname
+   command = command+"; g++ -dynamiclib -o "+image+" "+tmp_image
 endif
 IF STRLOWCASE(!version.os) EQ 'sunos' THEN begin
    command = "cc -o "+image +" "+ fullname +" -G -KPIC"
@@ -157,10 +159,12 @@ ENDIF
 ;;
 do_compil = 0
 IF (CHECK_LIBTEST_CE(file=file, image=image, path=image_path) EQ 0) THEN BEGIN
-    print, "we will try to make an inline compilation of the lib."
-    print, "You may have problem related to you OS/compiler, please report pbs"
-    do_compil = 1
-ENDIF
+   print, "we will try to make an inline compilation of the lib."
+   print, "You may have problem related to you OS/compiler, please report pbs"
+   do_compil = 1
+ENDIF ELSE BEGIN
+   print, "precompiled lib. founded; we will used it."
+endelse
 IF KEYWORD_SET(overwrite) THEN BEGIN
     print, "we will overwrite the lib."
     print, "You may have problem related to you OS/compiler, please report pbs"
