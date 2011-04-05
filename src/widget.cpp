@@ -25,10 +25,9 @@
 #include "envt.hpp"
 #include "dinterpreter.hpp"
 
-
 #ifdef HAVE_LIBWXWIDGETS
-
-#include "gdlwidget.hpp"
+#  include "gdlwidget.hpp"
+#endif
 
 namespace lib {
   using namespace std;
@@ -62,6 +61,9 @@ namespace lib {
 
   BaseGDL* widget_base( EnvT* e)
   {
+#ifndef HAVE_LIBWXWIDGETS
+    e->Throw("GDL was compiled without support for wxWidgets");
+#else
     SizeT nParam = e->NParam();
 
     WidgetIDT parentID = 0;
@@ -320,12 +322,16 @@ namespace lib {
 
     // return widget ID
     return new DLongGDL( base->WidgetID());
+#endif
   }
 
 
   // WIDGET_BUTTON
   BaseGDL* widget_button( EnvT* e)
   {
+#ifndef HAVE_LIBWXWIDGETS
+    e->Throw("GDL was compiled without support for wxWidgets");
+#else
     DLongGDL* p0L = e->GetParAs<DLongGDL>( 0);
     WidgetIDT parentID = (*p0L)[0];
     GDLWidget *widget = GDLWidget::GetWidget( parentID);
@@ -346,12 +352,16 @@ namespace lib {
     button->SetButtonOff();
 
     return new DLongGDL( button->WidgetID());
+#endif
   }
 
 
   // WIDGET_DROPLIST
   BaseGDL* widget_droplist( EnvT* e)
   {
+#ifndef HAVE_LIBWXWIDGETS
+    e->Throw("GDL was compiled without support for wxWidgets");
+#else
     DLongGDL* p0L = e->GetParAs<DLongGDL>( 0);
     WidgetIDT parentID = (*p0L)[0];
     GDLWidget *widget = GDLWidget::GetWidget( parentID);
@@ -384,12 +394,16 @@ namespace lib {
     droplist->SetWidgetType( "DROPLIST");
 
     return new DLongGDL( droplist->WidgetID());
+#endif
   }
 
 
   // WIDGET_TEXT
   BaseGDL* widget_text( EnvT* e)
   {
+#ifndef HAVE_LIBWXWIDGETS
+    e->Throw("GDL was compiled without support for wxWidgets");
+#else
     DLongGDL* p0L = e->GetParAs<DLongGDL>( 0);
     WidgetIDT parentID = (*p0L)[0];
     GDLWidget *widget = GDLWidget::GetWidget( parentID);
@@ -412,12 +426,16 @@ namespace lib {
     text->SetWidgetType( "TEXT");
 
     return new DLongGDL( text->WidgetID());
+#endif
   }
 
 
   // WIDGET_LABEL
   BaseGDL* widget_label( EnvT* e)
   {
+#ifndef HAVE_LIBWXWIDGETS
+    e->Throw("GDL was compiled without support for wxWidgets");
+#else
     DLongGDL* p0L = e->GetParAs<DLongGDL>( 0);
     WidgetIDT parentID = (*p0L)[0];
     GDLWidget *widget = GDLWidget::GetWidget( parentID);
@@ -441,12 +459,16 @@ namespace lib {
     label->SetWidgetType( "LABEL");
 
     return new DLongGDL( label->WidgetID());
+#endif
   }
 
 
   // WIDGET_INFO
   BaseGDL* widget_info( EnvT* e)
   {
+#ifndef HAVE_LIBWXWIDGETS
+    e->Throw("GDL was compiled without support for wxWidgets");
+#else
     SizeT nParam=e->NParam();
 
     DLongGDL* p0L;
@@ -591,12 +613,16 @@ namespace lib {
       return new DLongGDL( GDLWidget::GetXmanagerBlock());
     }
     // End /XMANAGER_BLOCK
+#endif
   }
 
 
   // WIDGET_EVENT
   BaseGDL* widget_event( EnvT* e)
   {
+#ifndef HAVE_LIBWXWIDGETS
+    e->Throw("GDL was compiled without support for wxWidgets");
+#else
     SizeT nParam=e->NParam();
 
     DLongGDL* p0L;
@@ -703,12 +729,16 @@ namespace lib {
     } // outer while loop
 
     return new DLongGDL( 0);
+#endif
   }
 
 
   // WIDGET_CONTROL
   void widget_control( EnvT* e)
   {
+#ifndef HAVE_LIBWXWIDGETS
+    e->Throw("GDL was compiled without support for wxWidgets");
+#else
     DLongGDL* p0L = e->GetParAs<DLongGDL>( 0);
 
     WidgetIDT widgetID = (*p0L)[0];
@@ -941,8 +971,8 @@ namespace lib {
 	}
       }
     }
+#endif
   }
 
 } // namespace
 
-#endif

@@ -37,9 +37,7 @@
 
 #include "gsl_fun.hpp"
 
-#ifdef USE_PYTHON
-#  include "gdlpython.hpp"
-#endif
+#include "gdlpython.hpp"
 
 #include "grib.hpp"
 
@@ -328,6 +326,10 @@ void LibInit()
 			    "PRINT",KLISTEND};
   new DLibFunRetNew(lib::string_fun,string("STRING"),-1,stringKey,NULL,true);
   new DLibFunRetNew(lib::byte_fun,string("BYTE"),10,NULL,NULL,true);
+/* that's apparently the desired bahaviour, see bug no. 3151760
+  new DLibFun(lib::string_fun,string("STRING"),-1,stringKey,NULL);
+  new DLibFun(lib::byte_fun,string("BYTE"),10,NULL,NULL);
+*/
   const string fixKey[]={"TYPE","PRINT",KLISTEND};
   new DLibFunRetNew(lib::fix_fun,string("FIX"),10,fixKey,NULL,true);
   new DLibFunRetNew(lib::uint_fun,string("UINT"),10,NULL,NULL,true);
@@ -339,6 +341,18 @@ void LibInit()
   new DLibFunRetNew(lib::double_fun,string("DOUBLE"),10,NULL,NULL,true);
   new DLibFunRetNew(lib::complex_fun,string("COMPLEX"),MAXRANK+2,NULL,NULL,true);
   new DLibFunRetNew(lib::dcomplex_fun,string("DCOMPLEX"),MAXRANK+2,NULL,NULL,true);
+/* that's apparently the desired bahaviour, see bug no. 3151760
+  new DLibFun(lib::fix_fun,string("FIX"),10,fixKey,NULL);
+  new DLibFun(lib::uint_fun,string("UINT"),10,NULL,NULL);
+  new DLibFun(lib::long_fun,string("LONG"),10,NULL,NULL);
+  new DLibFun(lib::ulong_fun,string("ULONG"),10,NULL,NULL);
+  new DLibFun(lib::long64_fun,string("LONG64"),10,NULL,NULL);
+  new DLibFun(lib::ulong64_fun,string("ULONG64"),10,NULL,NULL);
+  new DLibFun(lib::float_fun,string("FLOAT"),10,NULL,NULL);
+  new DLibFun(lib::double_fun,string("DOUBLE"),10,NULL,NULL);
+  new DLibFun(lib::complex_fun,string("COMPLEX"),MAXRANK+2,NULL,NULL);
+  new DLibFun(lib::dcomplex_fun,string("DCOMPLEX"),MAXRANK+2,NULL,NULL);
+*/
 
   new DLibFunRetNew(lib::gdl_logical_and,string("LOGICAL_AND"),2,NULL,NULL,true);
   new DLibFunRetNew(lib::gdl_logical_or,string("LOGICAL_OR"),2,NULL,NULL,true);
@@ -428,13 +442,11 @@ void LibInit()
 //   const string maxKey[]={"MIN",KLISTEND};
 //   new DLibFun(lib::max_fun,string("MAX"),2,maxKey);
 
-#ifdef USE_PYTHON
   const string python_funKey[]={"ARGV","DEFAULTRETURNVALUE",KLISTEND};
   new DLibFun(lib::gdlpython_fun,string("PYTHON"),-1,python_funKey);
 
   const string python_proKey[]={"ARGV",KLISTEND};
   new DLibPro(lib::gdlpython_pro,string("PYTHON"),-1,python_proKey);
-#endif
 
   // graphics *******************************************************
   const string windowKey[]={"COLORS","FREE","PIXMAP","RETAIN","TITLE",

@@ -250,7 +250,7 @@ void LibInit_jmg()
  
 #endif
 
-  const string tvKey[]={"TRUE","NORMAL","CHANNEL","XSIZE","YSIZE","ORDER",KLISTEND};
+  const string tvKey[]={"TRUE","NORMAL","CHANNEL","XSIZE","YSIZE","ORDER","DEVICE",KLISTEND};
   new DLibPro(lib::tv,string("TV"),4,tvKey);
 
   const string tvrdKey[]={"CHANNEL","ORDER","TRUE","WORDS",KLISTEND};
@@ -259,8 +259,6 @@ void LibInit_jmg()
   const string loadctKey[]={"GET_NAMES",KLISTEND};
   new DLibPro(lib::loadct,string("LOADCT_INTERNALGDL"),1,loadctKey);
 
-
-#ifdef HAVE_LIBWXWIDGETS
   const string widget_baseKey[] = {"ALIGN_BOTTOM","ALIGN_CENTER","ALIGN_LEFT","ALIGN_RIGHT","ALIGN_TOP","MBAR","MODAL","BASE_ALIGN_BOTTOM","BASE_ALIGN_CENTER","BASE_ALIGN_LEFT","BASE_ALIGN_RIGHT","BASE_ALIGN_TOP","COLUMN","ROW","CONTEXT_EVENTS","CONTEXT_MENU","EVENT_FUNC","EVENT_PRO","EXCLUSIVE","NONEXCLUSIVE","FLOATING","FRAME","FUNC_GET_VALUE","GRID_LAYOUT","GROUP_LEADER","KBRD_FOCUS_EVENTS","KILL_NOTIFY","MAP","NO_COPY","NOTIFY_REALIZE","PRO_SET_VALUE","SCR_XSIZE","SCR_YSIZE","SCROLL","SENSITIVE","SPACE","TITLE","TLB_FRAME_ATTR","TLB_ICONIFY_EVENTS","TLB_KILL_REQUEST_EVENTS","TLB_MOVE_EVENTS","TLB_SIZE_EVENTS","TOOLBAR","TRACKING_EVENTS","UNITS","UNAME","UVALUE","XOFFSET","XPAD","XSIZE","X_SCROLL_SIZE","YOFFSET","YPAD","YSIZE","Y_SCROLL_SIZE","DISPLAY_NAME","RESOURCE_NAME","RNAME_MBAR",KLISTEND};
   new DLibFun(lib::widget_base,string("WIDGET_BASE"),1,widget_baseKey);
 
@@ -293,7 +291,6 @@ void LibInit_jmg()
 				      "GET_VALUE",KLISTEND};
   new DLibPro(lib::widget_control,string("WIDGET_CONTROL"),1, 
 	      widget_controlKey);
-#endif
 
   // call_external (by Christoph Fuchs)
   const string call_externalKey[] = {"VALUE", "ALL_VALUE", "RETURN_TYPE",

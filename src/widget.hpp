@@ -19,8 +19,6 @@
 #include <config.h>
 #endif
 
-#if defined(HAVE_LIBWXWIDGETS)
-
 #ifndef WIDGET_HPP_
 #define WIDGET_HPP_
 
@@ -37,7 +35,5 @@ namespace lib {
   void widget_control( EnvT* e);
 
 } // namespace
-
-#endif
 
 #endif
