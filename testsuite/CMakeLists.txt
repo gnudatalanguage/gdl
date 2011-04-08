@@ -25,6 +25,6 @@ execute_process(
   COMMAND "fgrep" ".pro" "${BASE_SOURCE}/testsuite/Makefile.am" 
   COMMAND "awk" "{printf(\"%s;\",$1)}" 
   OUTPUT_VARIABLE TESTS)
-foreach(TEST IN ITEMS ${TESTS})
+foreach(TEST ${TESTS})
 	add_test(${TEST} ${LAUNCHTESTLOCATION} ${TEST})
 endforeach(TEST TESTS)
