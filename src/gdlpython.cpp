@@ -27,7 +27,6 @@
 //#include <iterator>
 
 //#include "datatypes.hpp"
-//#include "envt.hpp"
 //#include "objects.hpp"
 
 using namespace std;
@@ -151,6 +150,9 @@ BaseGDL* FromPython( PyObject* pyObj)
   return NULL; // compiler shut-up
 }
 
+#else
+#  include "envt.hpp"
+#endif // #ifdef INCLUDE_GDLPYTHON_CPP
 
 namespace lib {
 
@@ -305,9 +307,3 @@ namespace lib {
 
 
 } // namespace
-
-
-
-//#endif // #if defined(USE_PYTHON) || defined(PYTHON_MODULE)
-
-#endif // #ifdef INCLUDE_GDLPYTHON_CPP
