@@ -1,0 +1,7 @@
+pro example
+  compile_opt idl2
+  help, 1
+end
+<Expression>    INT       =        1
+% Compiled module: EXAMPLE.
+<Expression>    LONG      =            1
