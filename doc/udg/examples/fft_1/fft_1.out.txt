@@ -1,0 +1,13 @@
+==> stddevfft.pro <==
+function stddevfft, x
+  return, sqrt(total((abs(fft(x))^2)[1:-1]))
+end
+
+==> stddevsum.pro <==
+function stddevsum, x
+  return, sqrt(mean(x^2) - mean(x)^2)
+end
+% Compiled module: STDDEVSUM.
+% Compiled module: MEAN.
+% Compiled module: STDDEVFFT.
+      1.15258      1.15258

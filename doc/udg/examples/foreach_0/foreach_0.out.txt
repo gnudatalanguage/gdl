@@ -1,0 +1,2 @@
+A               STRING    = 'apples'
+A               STRING    = 'orrages'

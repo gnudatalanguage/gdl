@@ -1,0 +1,19 @@
+==> alcoholic_drink__define.pro <==
+pro alcoholic_drink__define
+  struct = {alcoholic_drink, proof : 0, inherits drink}
+end
+
+==> beer__define.pro <==
+pro beer__define
+  struct = {beer, inherits alcoholic_drink}
+end
+
+==> drink__define.pro <==
+pro drink__define
+  struct = {drink, color : 0}
+end
+% Compiled module: BEER__DEFINE.
+% Compiled module: ALCOHOLIC_DRINK__DEFINE.
+% Compiled module: DRINK__DEFINE.
+bottle is a[n] BEER
+beer has 1 direct superclass[es]: ALCOHOLIC_DRINK

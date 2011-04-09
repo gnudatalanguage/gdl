@@ -1,0 +1,4 @@
+Hello world!
+STATUS          INT       =        1
+% Parser syntax error: unexpected token: HELLO
+STATUS          INT       =        0

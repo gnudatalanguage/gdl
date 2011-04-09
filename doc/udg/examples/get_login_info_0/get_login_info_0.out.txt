@@ -1,0 +1,3 @@
+** Structure <Anonymous>, 2 tags, data length=16:
+   MACHINE_NAME    STRING    'eyrie.local'
+   USER_NAME       STRING    'slayoo'

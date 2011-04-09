@@ -1,0 +1,2 @@
+% Compiled module: LOADCT.
+% LOADCT: Loading table BLUE/WHITE

@@ -1,0 +1,2 @@
+<Expression>    FLOAT     =           inf
+<Expression>    DOUBLE    =    3.3948281e+41

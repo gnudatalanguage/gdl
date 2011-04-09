@@ -1,0 +1,5 @@
+<Expression>    STRING    = '7'
+<Expression>    STRING    = '  55'
+<Expression>    STRING    = Array[2, 2]
+<Expression>    STRING    = Array[2]
+<Expression>    STRING    = '      0.00000      1.00000'

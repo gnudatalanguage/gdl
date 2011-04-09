@@ -1,0 +1,2 @@
+% PYTHON: GDL was compiled without support for Python
+% Execution halted at: $MAIN$          

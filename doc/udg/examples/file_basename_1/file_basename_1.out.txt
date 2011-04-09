@@ -1,0 +1,5 @@
+% Compiled module: FILE_BASENAME.
+% Compiled module: ESCAPE_SPECIAL_CHAR.
+% Compiled module: STRSPLIT.
+% Compiled module: UNIQ.
+resolv

@@ -1,0 +1,4 @@
+% Compiled module: CORRELATE.
+% Compiled module: MEAN.
+<Expression>    FLOAT     =       0.99813
+<Expression>    DOUBLE    =        0.9981310

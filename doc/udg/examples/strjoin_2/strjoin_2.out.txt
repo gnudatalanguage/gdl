@@ -1,0 +1,2 @@
+ARR             STRING    = Array[3, 2]
+STR             STRING    = 'a-b-c-d-e-f'
