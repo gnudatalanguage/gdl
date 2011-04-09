@@ -1,0 +1,42 @@
+% Compiled module: LOADCT.
+0: B-W LINEAR
+1: BLUE/WHITE
+2: GRN-RED-BLU-WHT
+3: RED TEMPERATURE
+4: BLUE/GREEN/RED/YELLOW
+5: STD GAMMA-II
+6: PRISM
+7: RED-PURPLE
+8: GREEN/WHITE LINEAR
+9: GRN/WHT EXPONENTIAL
+10: GREEN-PINK
+11: BLUE-RED
+12: 16 LEVEL
+13: RAINBOW
+14: STEPS
+15: BOW SPECIAL
+16: Haze
+17: Blue - Pastel - Red
+18: Pastels
+19: Hue Sat Lightness 1
+20: Hue Sat Lightness 2
+21: Hue Sat Value 1
+22: Hue Sat Value 2
+23: Purple-Red + Stripes
+24: Beach
+25: Mac Style
+26: Eos A
+27: Eos B
+28: Hardcandy
+29: Nature
+30: Ocean
+31: Peppermint
+32: Plasma
+33: Blue-Red
+34: Rainbow
+35: Blue Waves
+36: Volcano
+37: Waves
+38: Rainbow18
+39: Rainbow + white
+40: Rainbow + black
