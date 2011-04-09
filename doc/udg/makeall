@@ -59,7 +59,7 @@ echo "done"
 for i in `cd examples; find * -type d -and ! -name CVS`; do  
   echo -n "--- Regenerating example file $i... "
   newest=`ls -1 -t ../../src/pro/*.pro ../../src/gdl examples/_pre examples/_post examples/$i/$i.pro | head -1`
-  if `test ! -e examples/$i/$i.out.txt` || `test $newest -nt examples/$i/$i.out.txt`; then
+  if `test ! -e examples/$i/$i.out.txt` || `test ! -e examples/$i/$i.out.tex` || `test $newest -nt examples/$i/$i.out.txt`; then
     cd examples/$i
     IDL_PATH= GDL_PATH=+../../../../src/pro ../../../../src/gdl -quiet ../_pre $i.pro ../_post &>$i.out.txt.tmp; 
     cd ../..
@@ -81,7 +81,7 @@ for i in `cd examples; find * -type d -and ! -name CVS`; do
         echo "error (consult ps2pdf.log)"
         exit 1
       fi
-      rm examples/$i/gdl.ps
+      #rm examples/$i/gdl.ps # keeping the file for inclusion in the CVS for tracking regressions
       echo -n "--- Cropping $i.out.pdf ... "
       pdfcrop examples/$i/$i.out.pdf &>pdfcrop.log
       if `test 0 -eq $?`; then

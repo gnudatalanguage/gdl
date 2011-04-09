@@ -82,6 +82,9 @@
 % prettier math
 \usepackage{amsmath}
 
+% the verbatiminput command
+\usepackage{verbatim}
+
 % hyperlinks in the output PDF (and HTML)
 \ifx\HCode\Undef
   \usepackage[colorlinks,plainpages=false]{hyperref} % plainpages=false for authorindex package
@@ -168,6 +171,7 @@
   \section{Variable scoping rules}
   \input{chapters/syntax-scope}
   \section{Functions and procedures}
+  \input{chapters/syntax-udsub}
   \section{Argument passing}
   \input{chapters/syntax-arguments}
   \section{Arrays}
@@ -182,7 +186,7 @@
   \section{Error handling}
   \input{chapters/syntax-errhandle}
   \section{Compile options}
-
+  \input{chapters/syntax-compileopt}
   \chapter{Interpreter commands and built-in debugging facilities}
   \input{chapters/debug}
 
@@ -291,6 +295,8 @@
 
   \chapter{Extending the documentation}
   \input{chapters/docs}
+  \chapter{Extending the testsuite}
+  \input{chapters/testsuite}
   \chapter{A short overview of how GDL works internally}
   \input{chapters/internals}
 

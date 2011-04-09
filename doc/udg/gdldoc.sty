@@ -21,7 +21,14 @@
   \caseupper[q]{#1}
   \let\gdlroutinecode\thestring
   % section header
-  \section{\gdlroutinename\gdlroutinetype}\label{LIB.#1.\gdlroutinetypepfx}%\label{name{LIB.#1.\gdlroutinetypepfx}}
+
+  % that's one option which gives correct references but no header information
+  %\subsection{\Large\bf\gdlroutinename\gdlroutinetype}
+  %\phantomsection
+  %\addcontentsline{toc}{chapter}{\numberline{}\gdlroutinename\gdlroutinetype}
+
+  \section{\gdlroutinename\gdlroutinetype}
+  \label{LIB.#1.\gdlroutinetypepfx}%\label{name{LIB.#1.\gdlroutinetypepfx}}
   \begin{description}
     \item[positional\ arguments:]{\ifthenelse{\equal{#3}{0}}{none}{\ifthenelse{\equal{#3}{-1}}{any number}{#3}}}
     \item[keywords:]{

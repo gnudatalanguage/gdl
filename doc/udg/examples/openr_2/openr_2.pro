@@ -5,3 +5,4 @@ s = '          '
 readu, u, s
 free_lun, u
 print, s
+$ rm file.txt.gz
