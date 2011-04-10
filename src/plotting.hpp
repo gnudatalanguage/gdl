@@ -44,6 +44,14 @@ namespace lib {
   void cursor( EnvT* e);
   void polyfill( EnvT* e);
 
+  // Map stuff
+#ifdef USE_LIBPROJ4
+  BaseGDL* map_proj_forward_fun( EnvT* e);
+  BaseGDL* map_proj_inverse_fun( EnvT* e);
+#endif
+
+  BaseGDL* convert_coord( EnvT* e);
+
 
   //helper functions
   template <typename T> 
@@ -94,19 +102,20 @@ namespace lib {
   void mesh_nr(PLFLT *, PLFLT *, PLFLT **, PLINT, PLINT, PLINT);
 
 
-  // Map stuff
-#ifdef USE_LIBPROJ4
-  BaseGDL* map_proj_forward_fun( EnvT* e);
-  BaseGDL* map_proj_inverse_fun( EnvT* e);
-#endif
-
-  BaseGDL* convert_coord( EnvT* e);
-
   GDLGStream* GetPlotStream( EnvT* e);
   void GetSFromPlotStructs(DDouble **sx, DDouble **sy);
   void GetWFromPlotStructs(DFloat **wx, DFloat **wy);
   void DataCoordLimits(DDouble *sx, DDouble *sy, DFloat *wx, DFloat *wy, 
     DDouble *xStart, DDouble *xEnd, DDouble *yStart, DDouble *yEnd, bool);
+
+  PLFLT AutoIntvAC(DDouble &val_min, DDouble &val_max, DLong NoZero);
+  PLFLT AutoTick(DDouble x);
+  void AdjustAxisOpts(string& xOpt, string& yOpt,
+    DLong xStyle, DLong yStyle, DLong xTicks, DLong yTicks,
+    string& xTickformat, string& yTickformat, DLong xLog, DLong yLog);
+  bool SetVP_WC( EnvT* e, GDLGStream* actStream, DFloatGDL* pos, DDoubleGDL* clippingD, bool xLog, bool yLog,
+                 DFloat xMarginL, DFloat xMarginR, DFloat yMarginB, DFloat yMarginT, // input/output
+                 DDouble& xStart, DDouble& xEnd, DDouble& minVal, DDouble& maxVal);
 
 } // namespace
 
