@@ -477,7 +477,10 @@ void LibInit()
       "SET_CHARACTER_SIZE","GET_VISUAL_DEPTH","XSIZE","YSIZE",
       "COLOR","GET_SCREEN_SIZE","INCHES","WINDOW_STATE",KLISTEND
     };
-  const string deviceWarnKey[] = {"RETAIN", "SET_FONT", KLISTEND};
+  const string deviceWarnKey[] = {"RETAIN", "SET_FONT", "HELVETICA", 
+    "ENCAPSULATED", "AVANTGARDE", "BKMAN", "COURIER", "PALATINO", 
+    "SCHOOLBOOK", "TIMES", "ZAPFCHANCERY", "ZAPFDINGBATS", "BITS_PER_PIXEL", 
+    KLISTEND};
   new DLibPro(lib::device,string("DEVICE"),0, deviceKey, deviceWarnKey);
 
   const string plotKey[]=
@@ -586,6 +589,7 @@ void LibInit()
      // AXIS keywords
      // 47
      "SAVE", "XAXIS", "YAXIS", "XLOG", "YLOG", "XTYPE", "YTYPE", "YNOZERO", "THICK",
+     "XTICKINTERVAL", "YTICKINTERVAL",
      KLISTEND
     };
   new DLibPro(lib::axis,string("AXIS"),3,axisKey);
