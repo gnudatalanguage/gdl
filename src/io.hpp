@@ -105,12 +105,17 @@ public:
   {
     if( fStream != NULL) 
       return fStream->good();
-    if( igzStream != NULL && ogzStream != NULL) 
+    else if( igzStream != NULL && ogzStream != NULL) 
       return igzStream->good() && ogzStream->good();
-    if( igzStream != NULL) 
+    else if( igzStream != NULL) 
       return igzStream->good();
-    if( ogzStream != NULL) 
+    else if( ogzStream != NULL) 
       return ogzStream->good();
+    else
+    {
+      assert(false);
+      throw; // getting rid of compiler warning
+    }
   }
 
   bool EofRaw()
@@ -203,21 +208,27 @@ public:
 	    ogzStream->rdbuf()->pubseekpos( cur, std::ios_base::out);
 	    return end;
 	  }
+        else
+          {
+            assert(false);
+            throw; // getting rid of compiler warning
+          }
       }
   }
 
   std::streampos Tell()
   {
-    if( fStream != NULL)
+    if (fStream != NULL)
       return( fStream->tellg());
-    if( igzStream != NULL)
-      {
-	return igzStream->rdbuf()->pubseekoff( 0, std::ios_base::cur);
-      }
-    if( ogzStream != NULL)
-      {
-	return ogzStream->rdbuf()->pubseekoff( 0, std::ios_base::cur);
-      }
+    else if(igzStream != NULL)
+      return igzStream->rdbuf()->pubseekoff( 0, std::ios_base::cur);
+    else if( ogzStream != NULL)
+      return ogzStream->rdbuf()->pubseekoff( 0, std::ios_base::cur);
+    else
+    {
+      assert(false);
+      throw; // getting rid of compiler warning
+    }
   }
 
   void SeekPad( std::streampos pos)

@@ -41,9 +41,9 @@
 #else
 #  include <fenv.h>
 #endif
-    //#  if defined(__FreeBSD__)
+#  if defined(__FreeBSD__)
 #    pragma STDC FENV_ACCESS ON
-    //#  endif
+#  endif
 }
 #endif
 

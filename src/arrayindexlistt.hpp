@@ -46,32 +46,32 @@ public:
   virtual void Init( IxExprListT& ix) { assert( 0);}
   virtual void Init() {}
   
-  virtual bool ToAssocIndex( SizeT& lastIx) {}
+  virtual bool ToAssocIndex( SizeT& lastIx) = 0;
 
   // set the root variable which is indexed by this ArrayIndexListT
   virtual void SetVariable( BaseGDL* var) {}
 
   // structure of indexed expression
-  virtual dimension GetDim() {}
+  virtual dimension GetDim() = 0;
 
-  virtual SizeT N_Elements() {}
+  virtual SizeT N_Elements() = 0;
 
   // returns 1-dim index for all elements
   virtual AllIxT* BuildIx();
 
   // returns one dim long ix in case of one element array index
   // used by AssignAt functions
-  virtual SizeT LongIx() {}
+  virtual SizeT LongIx() = 0;
 
   virtual void AssignAt( BaseGDL* var, BaseGDL* right) {}
 
   // optimized for one dimensional access
-  virtual BaseGDL* Index( BaseGDL* var, IxExprListT& ix) {}
+  virtual BaseGDL* Index( BaseGDL* var, IxExprListT& ix) = 0;
 
   // returns multi-dim index for 1st element
   // used by InsAt functions
-  virtual dimension GetDimIx0( SizeT& destStart) {}
-  virtual SizeT NDim() {}
+  virtual dimension GetDimIx0( SizeT& destStart) = 0;
+  virtual SizeT NDim() = 0;
 };
 
 // only one index [ix],[s:e],...

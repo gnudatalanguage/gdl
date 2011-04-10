@@ -759,6 +759,11 @@ public:
 	      }
 	  break;
 	}
+      default: // (UNDEF)
+        {
+          assert(false);
+          throw; // getting rid of compiler warning
+        }
       }
   } 
 

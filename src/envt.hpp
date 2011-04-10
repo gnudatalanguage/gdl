@@ -46,14 +46,14 @@ class EnvBaseT
 private:
   typedef std::deque<BaseGDL*> ContainerT;
 
-  //protected:
-  // stores all data which has to deleted upon destruction
-  static ContainerT toDestroy;
-
   SizeT toDestroyInitialIndex;
 
   EnvBaseT(){}
   
+protected:
+  // stores all data which has to deleted upon destruction
+  static ContainerT toDestroy;
+
 public:
   // not anmore: DEPRECATED due to poor perfomance, this does not belong into an environment
   // needed to delete temporary ptr parameters only after subroutine completion
@@ -426,6 +426,8 @@ public:
     BaseGDL*& p0 = GetNumericParDefined( ix);
     if (p0->Rank() != 0) return p0;
     Throw("Expression must be an array in this context: "+GetParString(ix));
+    assert(false);
+    throw;
   }
 
   // get i'th parameter
