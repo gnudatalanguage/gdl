@@ -116,6 +116,16 @@ namespace lib {
   bool SetVP_WC( EnvT* e, GDLGStream* actStream, DFloatGDL* pos, DDoubleGDL* clippingD, bool xLog, bool yLog,
                  DFloat xMarginL, DFloat xMarginR, DFloat yMarginB, DFloat yMarginT, // input/output
                  DDouble& xStart, DDouble& xEnd, DDouble& minVal, DDouble& maxVal);
+  void GetMinMaxVal( DDoubleGDL* val, double* minVal, double* maxVal);
+  void GetAxisData( DStructGDL* xStruct,
+                    DLong& style, DString& title, DFloat& charSize,
+                    DFloat& margin0, DFloat& margin1, DFloat& ticklen);
+  void GetMinMaxVal( DDoubleGDL* val, double* minVal, double* maxVal);
+  void GetPData( DLong& p_background,
+                 DLong& p_noErase, DLong& p_color, DLong& p_psym,
+                 DLong& p_linestyle,
+                 DFloat& p_symsize, DFloat& p_charsize, DFloat& p_thick,
+                 DString& p_title, DString& p_subTitle, DFloat& p_ticklen);
 
 } // namespace
 
