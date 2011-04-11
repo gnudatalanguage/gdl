@@ -44,7 +44,7 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 		gdlzstream.cpp gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp arrayindex.cpp \
 		fftw.cpp fftw.hpp mpi.cpp mpi.hpp plot3d_nr.cpp grib.cpp grib.hpp \
                 prognode.cpp prognodeexpr.cpp strassenmatrix.hpp datatypesref.cpp lapack.cpp \
-                gshhs.cpp gshhs.hpp newprognode.cpp plotting_plot.cpp plotting_oplot.cpp
+                gshhs.cpp gshhs.hpp newprognode.cpp plotting_plot.cpp plotting_oplot.cpp plotting_device.cpp
 # Makefile.am Makefile.in 
 
 

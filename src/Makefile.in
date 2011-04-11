@@ -123,7 +123,7 @@ am__libgdl_la_SOURCES_DIST = accessdesc.hpp arrayindex.hpp \
 	grib.cpp grib.hpp prognode.cpp prognodeexpr.cpp \
 	strassenmatrix.hpp datatypesref.cpp lapack.cpp gshhs.cpp \
 	gshhs.hpp newprognode.cpp plotting_plot.cpp plotting_oplot.cpp \
-	pythongdl.cpp
+	plotting_device.cpp pythongdl.cpp
 am__objects_1 = assocdata.lo basic_fun_cl.lo basic_fun.lo \
 	basic_fun_jmg.lo basic_op.lo basic_pro.lo basic_pro_jmg.lo \
 	CFMTLexer.lo color.lo convert2.lo datatypes.lo dcommon.lo \
@@ -146,7 +146,8 @@ am__objects_1 = assocdata.lo basic_fun_cl.lo basic_fun.lo \
 	convol_inc2.lo sigfpehandler.lo gdlzstream.lo arrayindex.lo \
 	fftw.lo mpi.lo plot3d_nr.lo grib.lo prognode.lo \
 	prognodeexpr.lo datatypesref.lo lapack.lo gshhs.lo \
-	newprognode.lo plotting_plot.lo plotting_oplot.lo
+	newprognode.lo plotting_plot.lo plotting_oplot.lo \
+	plotting_device.lo
 @BUILDASLIBRARY_TRUE@am_libgdl_la_OBJECTS = $(am__objects_1) \
 @BUILDASLIBRARY_TRUE@	pythongdl.lo
 libgdl_la_OBJECTS = $(am_libgdl_la_OBJECTS)
@@ -205,7 +206,7 @@ am__gdl_SOURCES_DIST = accessdesc.hpp arrayindex.hpp assocdata.cpp \
 	grib.cpp grib.hpp prognode.cpp prognodeexpr.cpp \
 	strassenmatrix.hpp datatypesref.cpp lapack.cpp gshhs.cpp \
 	gshhs.hpp newprognode.cpp plotting_plot.cpp plotting_oplot.cpp \
-	gdl.cpp
+	plotting_device.cpp gdl.cpp
 am__objects_2 = gdl-assocdata.$(OBJEXT) gdl-basic_fun_cl.$(OBJEXT) \
 	gdl-basic_fun.$(OBJEXT) gdl-basic_fun_jmg.$(OBJEXT) \
 	gdl-basic_op.$(OBJEXT) gdl-basic_pro.$(OBJEXT) \
@@ -254,7 +255,8 @@ am__objects_2 = gdl-assocdata.$(OBJEXT) gdl-basic_fun_cl.$(OBJEXT) \
 	gdl-prognode.$(OBJEXT) gdl-prognodeexpr.$(OBJEXT) \
 	gdl-datatypesref.$(OBJEXT) gdl-lapack.$(OBJEXT) \
 	gdl-gshhs.$(OBJEXT) gdl-newprognode.$(OBJEXT) \
-	gdl-plotting_plot.$(OBJEXT) gdl-plotting_oplot.$(OBJEXT)
+	gdl-plotting_plot.$(OBJEXT) gdl-plotting_oplot.$(OBJEXT) \
+	gdl-plotting_device.$(OBJEXT)
 @BUILDASLIBRARY_FALSE@am_gdl_OBJECTS = $(am__objects_2) \
 @BUILDASLIBRARY_FALSE@	gdl-gdl.$(OBJEXT) gdl-lapack.$(OBJEXT)
 gdl_OBJECTS = $(am_gdl_OBJECTS)
@@ -511,7 +513,7 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 		gdlzstream.cpp gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp arrayindex.cpp \
 		fftw.cpp fftw.hpp mpi.cpp mpi.hpp plot3d_nr.cpp grib.cpp grib.hpp \
                 prognode.cpp prognodeexpr.cpp strassenmatrix.hpp datatypesref.cpp lapack.cpp \
-                gshhs.cpp gshhs.hpp newprognode.cpp plotting_plot.cpp plotting_oplot.cpp
+                gshhs.cpp gshhs.hpp newprognode.cpp plotting_plot.cpp plotting_oplot.cpp plotting_device.cpp
 
 @BUILDASLIBRARY_FALSE@gdl_SOURCES = $(cpp_hpp_files) gdl.cpp lapack.cpp
 # trigger basename generation
@@ -780,6 +782,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-ofmt.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-plot3d_nr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-plotting.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-plotting_device.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-plotting_oplot.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-plotting_plot.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-print.Po@am__quote@
@@ -843,6 +846,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ofmt.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/plot3d_nr.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/plotting.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/plotting_device.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/plotting_oplot.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/plotting_plot.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/print.Plo@am__quote@
@@ -2320,6 +2324,20 @@ gdl-plotting_oplot.obj: plotting_oplot.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='plotting_oplot.cpp' object='gdl-plotting_oplot.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-plotting_oplot.obj `if test -f 'plotting_oplot.cpp'; then $(CYGPATH_W) 'plotting_oplot.cpp'; else $(CYGPATH_W) '$(srcdir)/plotting_oplot.cpp'; fi`
+
+gdl-plotting_device.o: plotting_device.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-plotting_device.o -MD -MP -MF $(DEPDIR)/gdl-plotting_device.Tpo -c -o gdl-plotting_device.o `test -f 'plotting_device.cpp' || echo '$(srcdir)/'`plotting_device.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/gdl-plotting_device.Tpo $(DEPDIR)/gdl-plotting_device.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='plotting_device.cpp' object='gdl-plotting_device.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-plotting_device.o `test -f 'plotting_device.cpp' || echo '$(srcdir)/'`plotting_device.cpp
+
+gdl-plotting_device.obj: plotting_device.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-plotting_device.obj -MD -MP -MF $(DEPDIR)/gdl-plotting_device.Tpo -c -o gdl-plotting_device.obj `if test -f 'plotting_device.cpp'; then $(CYGPATH_W) 'plotting_device.cpp'; else $(CYGPATH_W) '$(srcdir)/plotting_device.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/gdl-plotting_device.Tpo $(DEPDIR)/gdl-plotting_device.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='plotting_device.cpp' object='gdl-plotting_device.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-plotting_device.obj `if test -f 'plotting_device.cpp'; then $(CYGPATH_W) 'plotting_device.cpp'; else $(CYGPATH_W) '$(srcdir)/plotting_device.cpp'; fi`
 
 gdl-gdl.o: gdl.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-gdl.o -MD -MP -MF $(DEPDIR)/gdl-gdl.Tpo -c -o gdl-gdl.o `test -f 'gdl.cpp' || echo '$(srcdir)/'`gdl.cpp
