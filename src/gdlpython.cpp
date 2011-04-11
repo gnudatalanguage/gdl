@@ -27,6 +27,7 @@
 //#include <iterator>
 
 //#include "datatypes.hpp"
+//#include "envt.hpp"
 //#include "objects.hpp"
 
 using namespace std;
@@ -150,9 +151,9 @@ BaseGDL* FromPython( PyObject* pyObj)
   return NULL; // compiler shut-up
 }
 
-#else
-#  include "envt.hpp"
-#endif // #ifdef INCLUDE_GDLPYTHON_CPP
+// you can compile GDL as a python module without supporting
+// python *within* GDL
+#ifdef USE_PYTHON
 
 namespace lib {
 
@@ -160,10 +161,6 @@ namespace lib {
 
   BaseGDL* gdlpython( EnvT* e, int kIx)
   {
-// you can compile GDL as a python module without supporting
-// python *within* GDL
-#ifdef USE_PYTHON
-
     PythonInit();
 
     SizeT nParam = e->NParam();
@@ -287,8 +284,6 @@ namespace lib {
       }
     
     return res;
-#endif // #ifdef USE_PYTHON
-    e->Throw("GDL was compiled without support for Python");
   }
 
   // GDL PYTHON procedure
@@ -307,3 +302,10 @@ namespace lib {
 
 
 } // namespace
+
+
+#endif // #ifdef USE_PYTHON
+
+//#endif // #if defined(USE_PYTHON) || defined(PYTHON_MODULE)
+
+#endif // #ifdef INCLUDE_GDLPYTHON_CPP

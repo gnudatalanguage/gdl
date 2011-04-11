@@ -20,10 +20,7 @@
 
 void PythonInit();
 void PythonEnd();
-
-#if defined(USE_PYTHON) || defined(PYTHON_MODULE)
-  BaseGDL* FromPython( PyObject* pyObj);
-#endif
+BaseGDL* FromPython( PyObject* pyObj);
 
 namespace lib {
 
