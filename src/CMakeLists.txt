@@ -185,6 +185,7 @@ plotting_convert_coord.cpp
 plotting_cursor.cpp
 plotting_device.cpp
 plotting_map_proj.cpp
+plotting_misc.cpp
 plotting_oplot.cpp
 plotting_plot.cpp
 plotting_plots.cpp
