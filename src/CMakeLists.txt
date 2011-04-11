@@ -185,6 +185,7 @@ plotting_cursor.cpp
 plotting_device.cpp
 plotting_oplot.cpp
 plotting_plot.cpp
+plotting_plots.cpp
 plotting_surface.cpp
 plotting.cpp
 plotting.hpp

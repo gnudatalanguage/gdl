@@ -126,6 +126,11 @@ namespace lib {
                  DLong& p_linestyle,
                  DFloat& p_symsize, DFloat& p_charsize, DFloat& p_thick,
                  DString& p_title, DString& p_subTitle, DFloat& p_ticklen);
+    void CheckMargin( EnvT* e, GDLGStream* actStream,
+                    DFloat xMarginL, DFloat xMarginR, DFloat yMarginB, DFloat yMarginT,
+                    PLFLT& xMR, PLFLT& xML, PLFLT& yMB, PLFLT& yMT);
+    void Clipping( DDoubleGDL* clippingD, 
+                 DDouble& xStart, DDouble& xEnd, DDouble& minVal, DDouble& maxVal);
 
 } // namespace
 
