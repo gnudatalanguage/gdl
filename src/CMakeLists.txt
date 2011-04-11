@@ -188,6 +188,7 @@ plotting_plot.cpp
 plotting_plots.cpp
 plotting_polyfill.cpp
 plotting_surface.cpp
+plotting_windows.cpp
 plotting_xyouts.cpp
 plotting.cpp
 plotting.hpp
