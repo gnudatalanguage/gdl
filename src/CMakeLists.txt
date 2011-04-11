@@ -181,6 +181,7 @@ ofmt.hpp
 plot3d_nr.cpp
 plotting_axis.cpp
 plotting_contour.cpp
+plotting_convert_coord.cpp
 plotting_cursor.cpp
 plotting_device.cpp
 plotting_oplot.cpp
