@@ -46,7 +46,7 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
                 prognode.cpp prognodeexpr.cpp strassenmatrix.hpp datatypesref.cpp lapack.cpp \
                 gshhs.cpp gshhs.hpp newprognode.cpp plotting_plot.cpp plotting_oplot.cpp \
                 plotting_device.cpp plotting_cursor.cpp plotting_contour.cpp plotting_surface.cpp \
-                plotting_axis.cpp plotting_plots.cpp
+                plotting_axis.cpp plotting_plots.cpp plotting_xyouts.cpp
 # Makefile.am Makefile.in 
 
 

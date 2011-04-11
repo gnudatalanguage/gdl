@@ -187,6 +187,7 @@ plotting_oplot.cpp
 plotting_plot.cpp
 plotting_plots.cpp
 plotting_surface.cpp
+plotting_xyouts.cpp
 plotting.cpp
 plotting.hpp
 print.cpp
