@@ -179,6 +179,7 @@ objects.hpp
 ofmt.cpp
 ofmt.hpp
 plot3d_nr.cpp
+plotting_oplot.cpp
 plotting_plot.cpp
 plotting.cpp
 plotting.hpp
