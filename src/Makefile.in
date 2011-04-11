@@ -124,7 +124,7 @@ am__libgdl_la_SOURCES_DIST = accessdesc.hpp arrayindex.hpp \
 	strassenmatrix.hpp datatypesref.cpp lapack.cpp gshhs.cpp \
 	gshhs.hpp newprognode.cpp plotting_plot.cpp plotting_oplot.cpp \
 	plotting_device.cpp plotting_cursor.cpp plotting_contour.cpp \
-	plotting_surface.cpp pythongdl.cpp
+	plotting_surface.cpp plotting_axis.cpp pythongdl.cpp
 am__objects_1 = assocdata.lo basic_fun_cl.lo basic_fun.lo \
 	basic_fun_jmg.lo basic_op.lo basic_pro.lo basic_pro_jmg.lo \
 	CFMTLexer.lo color.lo convert2.lo datatypes.lo dcommon.lo \
@@ -149,7 +149,7 @@ am__objects_1 = assocdata.lo basic_fun_cl.lo basic_fun.lo \
 	prognodeexpr.lo datatypesref.lo lapack.lo gshhs.lo \
 	newprognode.lo plotting_plot.lo plotting_oplot.lo \
 	plotting_device.lo plotting_cursor.lo plotting_contour.lo \
-	plotting_surface.lo
+	plotting_surface.lo plotting_axis.lo
 @BUILDASLIBRARY_TRUE@am_libgdl_la_OBJECTS = $(am__objects_1) \
 @BUILDASLIBRARY_TRUE@	pythongdl.lo
 libgdl_la_OBJECTS = $(am_libgdl_la_OBJECTS)
@@ -209,7 +209,7 @@ am__gdl_SOURCES_DIST = accessdesc.hpp arrayindex.hpp assocdata.cpp \
 	strassenmatrix.hpp datatypesref.cpp lapack.cpp gshhs.cpp \
 	gshhs.hpp newprognode.cpp plotting_plot.cpp plotting_oplot.cpp \
 	plotting_device.cpp plotting_cursor.cpp plotting_contour.cpp \
-	plotting_surface.cpp gdl.cpp
+	plotting_surface.cpp plotting_axis.cpp gdl.cpp
 am__objects_2 = gdl-assocdata.$(OBJEXT) gdl-basic_fun_cl.$(OBJEXT) \
 	gdl-basic_fun.$(OBJEXT) gdl-basic_fun_jmg.$(OBJEXT) \
 	gdl-basic_op.$(OBJEXT) gdl-basic_pro.$(OBJEXT) \
@@ -260,7 +260,8 @@ am__objects_2 = gdl-assocdata.$(OBJEXT) gdl-basic_fun_cl.$(OBJEXT) \
 	gdl-gshhs.$(OBJEXT) gdl-newprognode.$(OBJEXT) \
 	gdl-plotting_plot.$(OBJEXT) gdl-plotting_oplot.$(OBJEXT) \
 	gdl-plotting_device.$(OBJEXT) gdl-plotting_cursor.$(OBJEXT) \
-	gdl-plotting_contour.$(OBJEXT) gdl-plotting_surface.$(OBJEXT)
+	gdl-plotting_contour.$(OBJEXT) gdl-plotting_surface.$(OBJEXT) \
+	gdl-plotting_axis.$(OBJEXT)
 @BUILDASLIBRARY_FALSE@am_gdl_OBJECTS = $(am__objects_2) \
 @BUILDASLIBRARY_FALSE@	gdl-gdl.$(OBJEXT) gdl-lapack.$(OBJEXT)
 gdl_OBJECTS = $(am_gdl_OBJECTS)
@@ -518,7 +519,8 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 		fftw.cpp fftw.hpp mpi.cpp mpi.hpp plot3d_nr.cpp grib.cpp grib.hpp \
                 prognode.cpp prognodeexpr.cpp strassenmatrix.hpp datatypesref.cpp lapack.cpp \
                 gshhs.cpp gshhs.hpp newprognode.cpp plotting_plot.cpp plotting_oplot.cpp \
-                plotting_device.cpp plotting_cursor.cpp plotting_contour.cpp plotting_surface.cpp
+                plotting_device.cpp plotting_cursor.cpp plotting_contour.cpp plotting_surface.cpp \
+                plotting_axis.cpp
 
 @BUILDASLIBRARY_FALSE@gdl_SOURCES = $(cpp_hpp_files) gdl.cpp lapack.cpp
 # trigger basename generation
@@ -787,6 +789,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-ofmt.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-plot3d_nr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-plotting.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-plotting_axis.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-plotting_contour.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-plotting_cursor.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-plotting_device.Po@am__quote@
@@ -854,6 +857,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ofmt.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/plot3d_nr.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/plotting.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/plotting_axis.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/plotting_contour.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/plotting_cursor.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/plotting_device.Plo@am__quote@
@@ -2391,6 +2395,20 @@ gdl-plotting_surface.obj: plotting_surface.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='plotting_surface.cpp' object='gdl-plotting_surface.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-plotting_surface.obj `if test -f 'plotting_surface.cpp'; then $(CYGPATH_W) 'plotting_surface.cpp'; else $(CYGPATH_W) '$(srcdir)/plotting_surface.cpp'; fi`
+
+gdl-plotting_axis.o: plotting_axis.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-plotting_axis.o -MD -MP -MF $(DEPDIR)/gdl-plotting_axis.Tpo -c -o gdl-plotting_axis.o `test -f 'plotting_axis.cpp' || echo '$(srcdir)/'`plotting_axis.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/gdl-plotting_axis.Tpo $(DEPDIR)/gdl-plotting_axis.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='plotting_axis.cpp' object='gdl-plotting_axis.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-plotting_axis.o `test -f 'plotting_axis.cpp' || echo '$(srcdir)/'`plotting_axis.cpp
+
+gdl-plotting_axis.obj: plotting_axis.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-plotting_axis.obj -MD -MP -MF $(DEPDIR)/gdl-plotting_axis.Tpo -c -o gdl-plotting_axis.obj `if test -f 'plotting_axis.cpp'; then $(CYGPATH_W) 'plotting_axis.cpp'; else $(CYGPATH_W) '$(srcdir)/plotting_axis.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/gdl-plotting_axis.Tpo $(DEPDIR)/gdl-plotting_axis.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='plotting_axis.cpp' object='gdl-plotting_axis.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-plotting_axis.obj `if test -f 'plotting_axis.cpp'; then $(CYGPATH_W) 'plotting_axis.cpp'; else $(CYGPATH_W) '$(srcdir)/plotting_axis.cpp'; fi`
 
 gdl-gdl.o: gdl.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-gdl.o -MD -MP -MF $(DEPDIR)/gdl-gdl.Tpo -c -o gdl-gdl.o `test -f 'gdl.cpp' || echo '$(srcdir)/'`gdl.cpp
