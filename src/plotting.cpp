@@ -919,10 +919,10 @@ namespace lib {
   {
     DLong noErase=0;
     DLongGDL* pMulti = SysVar::GetPMulti();
+    static DStructGDL* pStruct = SysVar::P();
 
     if(!noe)
       {
-	static DStructGDL* pStruct = SysVar::P();
 	noErase = (*static_cast<DLongGDL*>
 		   ( pStruct->
 		     GetTag( pStruct->Desc()->TagIndex("NOERASE"), 0)))[0];
@@ -935,13 +935,24 @@ namespace lib {
 	noErase=1;
       }
 
-    DSub* pro = e->GetPro();
-    int positionIx = pro->FindKey( "POSITION");
-    DFloatGDL* pos = NULL;
-    if( positionIx != -1)
-      pos = e->IfDefGetKWAs<DFloatGDL>( positionIx);
-
     a->NextPlot( !noErase);
+
+    // !P.MULTI is ignored if POSITION kw or !P.POSITION or !P.REGION is specified
+    // TODO: !P.REGION!
+
+    DFloatGDL* pos = NULL;
+
+    // system variable
+    pos = static_cast<DFloatGDL*>(pStruct-> GetTag( pStruct->Desc()->TagIndex("POSITION"), 0));
+    if ((*pos)[0] == (*pos)[2]) pos = NULL;
+
+    // keyword
+    if (pos == NULL) 
+    {
+      DSub* pro = e->GetPro();
+      int positionIx = pro->FindKey( "POSITION");
+      if (positionIx != -1) pos = e->IfDefGetKWAs<DFloatGDL>( positionIx);
+    }
 
     if (pos != NULL) a->NoSub();
   }
