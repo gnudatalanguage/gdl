@@ -186,6 +186,7 @@ plotting_device.cpp
 plotting_oplot.cpp
 plotting_plot.cpp
 plotting_plots.cpp
+plotting_polyfill.cpp
 plotting_surface.cpp
 plotting_xyouts.cpp
 plotting.cpp

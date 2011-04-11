@@ -125,7 +125,7 @@ am__libgdl_la_SOURCES_DIST = accessdesc.hpp arrayindex.hpp \
 	gshhs.hpp newprognode.cpp plotting_plot.cpp plotting_oplot.cpp \
 	plotting_device.cpp plotting_cursor.cpp plotting_contour.cpp \
 	plotting_surface.cpp plotting_axis.cpp plotting_plots.cpp \
-	plotting_xyouts.cpp pythongdl.cpp
+	plotting_xyouts.cpp plotting_polyfill.cpp pythongdl.cpp
 am__objects_1 = assocdata.lo basic_fun_cl.lo basic_fun.lo \
 	basic_fun_jmg.lo basic_op.lo basic_pro.lo basic_pro_jmg.lo \
 	CFMTLexer.lo color.lo convert2.lo datatypes.lo dcommon.lo \
@@ -151,7 +151,7 @@ am__objects_1 = assocdata.lo basic_fun_cl.lo basic_fun.lo \
 	newprognode.lo plotting_plot.lo plotting_oplot.lo \
 	plotting_device.lo plotting_cursor.lo plotting_contour.lo \
 	plotting_surface.lo plotting_axis.lo plotting_plots.lo \
-	plotting_xyouts.lo
+	plotting_xyouts.lo plotting_polyfill.lo
 @BUILDASLIBRARY_TRUE@am_libgdl_la_OBJECTS = $(am__objects_1) \
 @BUILDASLIBRARY_TRUE@	pythongdl.lo
 libgdl_la_OBJECTS = $(am_libgdl_la_OBJECTS)
@@ -212,7 +212,7 @@ am__gdl_SOURCES_DIST = accessdesc.hpp arrayindex.hpp assocdata.cpp \
 	gshhs.hpp newprognode.cpp plotting_plot.cpp plotting_oplot.cpp \
 	plotting_device.cpp plotting_cursor.cpp plotting_contour.cpp \
 	plotting_surface.cpp plotting_axis.cpp plotting_plots.cpp \
-	plotting_xyouts.cpp gdl.cpp
+	plotting_xyouts.cpp plotting_polyfill.cpp gdl.cpp
 am__objects_2 = gdl-assocdata.$(OBJEXT) gdl-basic_fun_cl.$(OBJEXT) \
 	gdl-basic_fun.$(OBJEXT) gdl-basic_fun_jmg.$(OBJEXT) \
 	gdl-basic_op.$(OBJEXT) gdl-basic_pro.$(OBJEXT) \
@@ -265,7 +265,7 @@ am__objects_2 = gdl-assocdata.$(OBJEXT) gdl-basic_fun_cl.$(OBJEXT) \
 	gdl-plotting_device.$(OBJEXT) gdl-plotting_cursor.$(OBJEXT) \
 	gdl-plotting_contour.$(OBJEXT) gdl-plotting_surface.$(OBJEXT) \
 	gdl-plotting_axis.$(OBJEXT) gdl-plotting_plots.$(OBJEXT) \
-	gdl-plotting_xyouts.$(OBJEXT)
+	gdl-plotting_xyouts.$(OBJEXT) gdl-plotting_polyfill.$(OBJEXT)
 @BUILDASLIBRARY_FALSE@am_gdl_OBJECTS = $(am__objects_2) \
 @BUILDASLIBRARY_FALSE@	gdl-gdl.$(OBJEXT) gdl-lapack.$(OBJEXT)
 gdl_OBJECTS = $(am_gdl_OBJECTS)
@@ -524,7 +524,7 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
                 prognode.cpp prognodeexpr.cpp strassenmatrix.hpp datatypesref.cpp lapack.cpp \
                 gshhs.cpp gshhs.hpp newprognode.cpp plotting_plot.cpp plotting_oplot.cpp \
                 plotting_device.cpp plotting_cursor.cpp plotting_contour.cpp plotting_surface.cpp \
-                plotting_axis.cpp plotting_plots.cpp plotting_xyouts.cpp
+                plotting_axis.cpp plotting_plots.cpp plotting_xyouts.cpp plotting_polyfill.cpp
 
 @BUILDASLIBRARY_FALSE@gdl_SOURCES = $(cpp_hpp_files) gdl.cpp lapack.cpp
 # trigger basename generation
@@ -800,6 +800,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-plotting_oplot.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-plotting_plot.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-plotting_plots.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-plotting_polyfill.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-plotting_surface.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-plotting_xyouts.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-print.Po@am__quote@
@@ -870,6 +871,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/plotting_oplot.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/plotting_plot.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/plotting_plots.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/plotting_polyfill.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/plotting_surface.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/plotting_xyouts.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/print.Plo@am__quote@
@@ -2445,6 +2447,20 @@ gdl-plotting_xyouts.obj: plotting_xyouts.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='plotting_xyouts.cpp' object='gdl-plotting_xyouts.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-plotting_xyouts.obj `if test -f 'plotting_xyouts.cpp'; then $(CYGPATH_W) 'plotting_xyouts.cpp'; else $(CYGPATH_W) '$(srcdir)/plotting_xyouts.cpp'; fi`
+
+gdl-plotting_polyfill.o: plotting_polyfill.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-plotting_polyfill.o -MD -MP -MF $(DEPDIR)/gdl-plotting_polyfill.Tpo -c -o gdl-plotting_polyfill.o `test -f 'plotting_polyfill.cpp' || echo '$(srcdir)/'`plotting_polyfill.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/gdl-plotting_polyfill.Tpo $(DEPDIR)/gdl-plotting_polyfill.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='plotting_polyfill.cpp' object='gdl-plotting_polyfill.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-plotting_polyfill.o `test -f 'plotting_polyfill.cpp' || echo '$(srcdir)/'`plotting_polyfill.cpp
+
+gdl-plotting_polyfill.obj: plotting_polyfill.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-plotting_polyfill.obj -MD -MP -MF $(DEPDIR)/gdl-plotting_polyfill.Tpo -c -o gdl-plotting_polyfill.obj `if test -f 'plotting_polyfill.cpp'; then $(CYGPATH_W) 'plotting_polyfill.cpp'; else $(CYGPATH_W) '$(srcdir)/plotting_polyfill.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/gdl-plotting_polyfill.Tpo $(DEPDIR)/gdl-plotting_polyfill.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='plotting_polyfill.cpp' object='gdl-plotting_polyfill.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-plotting_polyfill.obj `if test -f 'plotting_polyfill.cpp'; then $(CYGPATH_W) 'plotting_polyfill.cpp'; else $(CYGPATH_W) '$(srcdir)/plotting_polyfill.cpp'; fi`
 
 gdl-gdl.o: gdl.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-gdl.o -MD -MP -MF $(DEPDIR)/gdl-gdl.Tpo -c -o gdl-gdl.o `test -f 'gdl.cpp' || echo '$(srcdir)/'`gdl.cpp
