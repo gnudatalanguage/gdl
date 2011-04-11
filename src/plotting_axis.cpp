@@ -144,8 +144,14 @@ namespace lib {
     e->AssureStringScalarKWIfPresent( "YTICKFORMAT", yTickformat);
 
     bool xLog, yLog;
-    get_axis_type("X", xLog);
-    get_axis_type("Y", yLog);
+    //get_axis_type("X", xLog);
+    //get_axis_type("Y", yLog);
+
+    // keyword overrides
+    static int xLogIx = e->KeywordIx( "XLOG");
+    static int yLogIx = e->KeywordIx( "YLOG");
+    xLog = e->KeywordSet( xLogIx);
+    yLog = e->KeywordSet( yLogIx);
 
     // test for x/yVal
     if (xLog) { if (xVal <= 0.) xVal=xStart; else xVal=log10(xVal);}

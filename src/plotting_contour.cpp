@@ -74,7 +74,7 @@ namespace lib {
     *ty = y;
   } // }}}
 
-  void contour( EnvT* e)
+  void contour( EnvT* e) // {{{
   {
     int debug=0;
     
@@ -902,6 +902,6 @@ clevel[nlevel-1]=zEnd; //make this explicit
       set_axis_type("X",xLog);
       set_axis_type("Y",yLog);
     }
-  } // contour		 
+  } // }}}
   
 } // namespace
