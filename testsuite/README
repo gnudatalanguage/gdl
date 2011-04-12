@@ -1,13 +1,11 @@
-How to add a new test-routine to the automatic "make check" rule:
---------------------------------------------------------------------
-
-The list of GDL routines to be executed during the make-check run
-is defined (implicitly, through a list of .pro files) in the 
-Makefile.am file. After adding a new item (filename) to the list,
-please rerun "automake" being in the root folder of the source tree.
+The list of GDL routines to be executed during the make-check run is 
+defined in the testsuite/Makefile.am file. After adding a new item 
+(filename) to the list, please rerun "automake" being in the root 
+folder of the source tree. CMake also uses the list in Makefile.am.
 
 Each test routine is invoked using the GDL "-e" command-line option 
-by the "try" shell script in the testsuite directory. "make" decides
+by the "try" shell script in the testsuite directory (and in an
+analogous manner for the case of CMake/CTest). "make" decides
 on the status of a test basing on the exit code of this script:
 - "success" for exit code 0 
 - "ignorable failure" for code 77
@@ -30,7 +28,7 @@ An ignorable failure can be indicated by e.g.:
 A known-bug case of interest to developers only may be conditionally 
 tested when using the CVS version using the following construct:
 
-  if if strpos(!GDL.RELEASE,'CVS') ne -1 then begin
+  if strpos(!GDL.RELEASE,'CVS') ne -1 then begin
     ...
   endif
 
@@ -40,16 +38,21 @@ _success_! (GDL exits normally in this case). Any GDL error causing
 GDL to stop execution on an other-than-$MAIN$ level will bring the
 GDL interpreter prompt.
 
-The name of the file must match the name of the test routine, e.g. for
-the example above: testsuite/test_dummy.pro
+The name of the file must match the name of the test routine, e.g.
+testsuite/test_dummy.pro for
+  
+  pro test_dummy
+    ...
+  end
 
-GDL segfaults, assertion-exits, std::terminate() exits, etc. are handled
-as failures by make.
+GDL segfaults, assertion-exits, std::terminate() exits, etc. are 
+handled as failures by make.
 
-The "try" script always uses the gdl binary in the build tree - not the
-one installed in the system. The "try" script also sets appropriate env. 
-variables so that the GDL-written library routines are taken from the 
-source tree as well (e.g. src/pro/mean.pro).
+The "try" script always uses the gdl binary in the build tree - 
+not the one installed in the system. The "try" script also sets 
+appropriate env. variables so that the GDL-written library routines 
+are taken from the source tree as well (e.g. src/pro/mean.pro).
 
-Sylwester Arabas
-February 2010
+Regardless if the autotools or the CMake/CTest configuration 
+mechanism, the testsuite run is invoked by "make check" (not the 
+default CMakes's "make test").

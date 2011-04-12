@@ -285,7 +285,7 @@ INSTALLATION:
 =============
 
 Please see the INSTALL file for details.
-For an alternative installation using CMake see README.CMake .
+For an alternative installation using CMake see INSATLL.CMake .
 
 For french readers, please have a look to
 http://aramis.obspm.fr/~coulais/IDL_et_GDL/memo_GDL0.8.11.html

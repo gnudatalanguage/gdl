@@ -5,6 +5,7 @@ e.g. `mkdir build; cd !$'
 
 Then you can run cmake on the root directory of gdl.
 e.g. `cmake ..'
+
 You can also specify an install directory `cmake .. -DCMAKE_INSTALL_PREFIX=$PWD/../install'
 
 The default buid mode is "Release", to use the "Debug" mode try `cmake ... -DCMAKE_BUILD_TYPE=Debug'
@@ -61,7 +62,7 @@ found you have to delete CMakeCache.txt and rerun cmake.
 If you are on a Unix system, you can run `make'
 For other systems, a native project file should be produced.
 
-To launch the tests, run `make test'.
+To launch the tests, run `make check'.
 To install, type `make install'.
 
 Usefull commands :
