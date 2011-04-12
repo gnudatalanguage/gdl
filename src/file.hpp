@@ -41,6 +41,9 @@ namespace lib {
 
   DString GetCWD(); // also used by gdljournal.cpp
 
+  // SA:
+  void file_mkdir( EnvT* e);
+
 } // namespace
 
 #endif

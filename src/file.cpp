@@ -1075,6 +1075,36 @@ DString makeInsensitive(const DString &s)
 
   }
 
+  void file_mkdir( EnvT* e)
+  {
+    // sanity checks
+    SizeT nParam=e->NParam( 1);
+    for (int i=0; i<nParam; i++)
+    {
+      if (dynamic_cast<DStringGDL*>(e->GetParDefined(i)) == NULL) 
+        e->Throw( "All arguments must be string scalars/arrays, argument " + i2s(i+1) + " is: " + e->GetParString(i));
+    }
+
+    static int noexpand_pathIx = e->KeywordIx( "NOEXPAND_PATH");
+    bool noexpand_path = e->KeywordSet( noexpand_pathIx);
+
+    string cmd = "mkdir -p";
+    for (int i=0; i<nParam; i++)
+    {
+      DStringGDL* pi = dynamic_cast<DStringGDL*>(e->GetParDefined(i));
+      for (int j=0; j<pi->N_Elements(); j++)
+      {
+        string tmp = (*pi)[j];
+        if (!noexpand_path) WordExp(tmp);
+        cmd.append(" " + tmp);
+      }
+    }
+    cmd.append(" 2>&1 | awk '{print \"% FILE_MKDIR: \" $0; exit 1}'");
+    // SA: calling system(), mkdir and awk is surely not the most efficient way, 
+    //     but copying a bunch of code from coreutils does not seem elegant either
+    if (system(cmd.c_str()) != 0) e->Throw("failed to create a directory (or execute mkdir).");
+  }
+
 }
 
 //#endif

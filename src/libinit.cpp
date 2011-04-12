@@ -164,6 +164,9 @@ void LibInit()
   const string file_infoKey[]={"NOEXPAND_PATH",KLISTEND};
   new DLibFunRetNew(lib::file_info,string("FILE_INFO"),2,file_infoKey);
 
+  const string file_mkdirKey[]={"NOEXPAND_PATH",KLISTEND};
+  new DLibPro(lib::file_mkdir,string("FILE_MKDIR"),-1,file_mkdirKey);
+
   new DLibFunRetNew(lib::shift_fun,string("SHIFT"),9,NULL,NULL,true);
 
   const string sortKey[]={"L64",KLISTEND};
