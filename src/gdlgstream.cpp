@@ -319,7 +319,7 @@ const char * GDLGStream::TranslateFormatCodes(const char *in)
           curr_fnt = 12; 
           break;
 
-        case 'C' : case 'c' : // carriage return
+        case 'C' : case 'c' : // carriage return (TODO FIXME: does not work in PostScript!)
           out += "#[0xD]";
           break;
 

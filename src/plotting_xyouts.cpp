@@ -24,6 +24,15 @@ namespace lib {
 
   using namespace std;
 
+  void takelog(PLFLT *a, PLFLT *a_orient)
+  {
+    if (*a_orient != 0.) 
+    {
+      *a_orient = log10( *a + *a_orient) - log10( *a); 
+    }   
+    *a = log10( *a); 
+  }
+
   void xyouts( EnvT* e)
   {
     SizeT nParam = e->NParam(1);
@@ -174,6 +183,10 @@ actStream->wid( 0);
 	    Clipping( clippingD, xStart, xEnd, minVal, maxVal);
       }
 
+    // for orient
+    PLFLT xScale = abs(xEnd - xStart), yScale = abs(yEnd - yStart);
+
+    // ??
     if( yLog)
       {
 	if( yStart <= 0.0) yStart = 0.0; else yStart = log10( yStart);
@@ -196,7 +209,7 @@ actStream->wid( 0);
     DDoubleGDL* d_orient;
     PLFLT p_orient, p_orient_x, p_orient_y;
     p_orient=0.0;
-    p_orient_x=1.0;
+    p_orient_x=xScale;
     p_orient_y=0.0;
 
     if(orient != NULL)
@@ -211,8 +224,8 @@ actStream->wid( 0);
 	  while(p_orient > 360.0) p_orient-=360.0;
       }
 
-    p_orient_x=1.0*cos(p_orient*0.0174533);
-    p_orient_y=1.0*sin(p_orient*0.0174533);
+    p_orient_x=xScale*cos(p_orient*0.0174533);
+    p_orient_y=yScale*sin(p_orient*0.0174533);
 
     //ALIGNMENT
     DDouble alignment = 0.0;
@@ -222,6 +235,8 @@ actStream->wid( 0);
     DFloat charsize;
     gkw_charsize(e, actStream, charsize);
 
+    // !P.MULTI vs. POSITION
+    handle_pmulti_position(e, actStream);
 
     // WIDTH keyword
     static int widthIx = e->KeywordIx( "WIDTH");
@@ -250,8 +265,8 @@ actStream->wid( 0);
 	x=static_cast<PLFLT>((*xVal)[0]);
 	y=static_cast<PLFLT>((*yVal)[0]);
 
-	if( yLog) if( y <= 0.0) goto skip; else y = log10( y);
-	if( xLog) if( x <= 0.0) goto skip; else x = log10( x);
+	if( yLog) if( y <= 0.0) goto skip; else takelog(&y, &p_orient_y);
+	if( xLog) if( x <= 0.0) goto skip; else takelog(&x, &p_orient_x);
 
 #ifdef USE_LIBPROJ4
 	if (mapSet && !e->KeywordSet("NORMAL")) {
@@ -261,6 +276,7 @@ actStream->wid( 0);
 	  x = odata.x;
 	  y = odata.y;
 	}
+        // TODO: p_orient_x? p_orient_y?
 #endif
 
         y += .5 * charheight;
@@ -273,11 +289,21 @@ actStream->wid( 0);
       {
 	for(int i=0; i<minEl;++i)
 	  {
+
+	    if(orient != NULL && orient->N_Elements() > 1) 
+	    {
+	      p_orient=(*d_orient)[i];
+	      while(p_orient < 0) p_orient+=360.0;
+	      while(p_orient > 360.0) p_orient-=360.0;
+	      p_orient_x=xScale*cos(p_orient*0.0174533);
+	      p_orient_y=yScale*sin(p_orient*0.0174533);
+	    }
+
 	    x=static_cast<PLFLT>((*xVal)[i]);
 	    y=static_cast<PLFLT>((*yVal)[i]);
 
-	    if( yLog) if( y <= 0.0) continue; else y = log10( y);
-	    if( xLog) if( x <= 0.0) continue; else x = log10( x);
+	    if( yLog) if( y <= 0.0) continue; else takelog( &y, &p_orient_y);
+	    if( xLog) if( x <= 0.0) continue; else takelog( &x, &p_orient_x);
 
 #ifdef USE_LIBPROJ4
 	    if (mapSet && !e->KeywordSet("NORMAL")) {
@@ -289,15 +315,6 @@ actStream->wid( 0);
 	      if (!isfinite(x) || !isfinite(y)) continue;
 	    }
 #endif
-	    if(orient != NULL)
-	      if(orient->N_Elements() > 1) 
-		{
-		  p_orient=(*d_orient)[i];
-		  while(p_orient < 0) p_orient+=360.0;
-		  while(p_orient > 360.0) p_orient-=360.0;
-		  p_orient_x=1.0*cos(p_orient*0.0174533);
-		  p_orient_y=1.0*sin(p_orient*0.0174533);
-		}
 
 	    /*	    if(color_arr != NULL)  
 	      if(color_arr->N_Elements() > 1)

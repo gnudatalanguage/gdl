@@ -131,6 +131,7 @@ namespace lib {
                     PLFLT& xMR, PLFLT& xML, PLFLT& yMB, PLFLT& yMT);
     void Clipping( DDoubleGDL* clippingD, 
                  DDouble& xStart, DDouble& xEnd, DDouble& minVal, DDouble& maxVal);
+    void handle_pmulti_position(EnvT *e, GDLGStream *a);
 
 } // namespace
 

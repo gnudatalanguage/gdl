@@ -914,6 +914,30 @@ namespace lib {
     a->Color( color, decomposed, 2);  
   }
 
+  // helper for NOERASE (but also used in XYOUTS)
+  void handle_pmulti_position(EnvT *e, GDLGStream *a)
+  {
+    // !P.MULTI is ignored if POSITION kw or !P.POSITION or !P.REGION is specified
+    // TODO: !P.REGION!
+
+    DFloatGDL* pos = NULL;
+
+    // system variable
+    static DStructGDL* pStruct = SysVar::P();
+    pos = static_cast<DFloatGDL*>(pStruct-> GetTag( pStruct->Desc()->TagIndex("POSITION"), 0));
+    if ((*pos)[0] == (*pos)[2]) pos = NULL;
+
+    // keyword
+    if (pos == NULL) 
+    {
+      DSub* pro = e->GetPro();
+      int positionIx = pro->FindKey( "POSITION");
+      if (positionIx != -1) pos = e->IfDefGetKWAs<DFloatGDL>( positionIx);
+    }
+
+    if (pos != NULL) a->NoSub();
+  }
+
   //NOERASE
   void gkw_noerase(EnvT *e,GDLGStream *a, bool noe)
   {
@@ -936,27 +960,8 @@ namespace lib {
       }
 
     a->NextPlot( !noErase);
-
-    // !P.MULTI is ignored if POSITION kw or !P.POSITION or !P.REGION is specified
-    // TODO: !P.REGION!
-
-    DFloatGDL* pos = NULL;
-
-    // system variable
-    pos = static_cast<DFloatGDL*>(pStruct-> GetTag( pStruct->Desc()->TagIndex("POSITION"), 0));
-    if ((*pos)[0] == (*pos)[2]) pos = NULL;
-
-    // keyword
-    if (pos == NULL) 
-    {
-      DSub* pro = e->GetPro();
-      int positionIx = pro->FindKey( "POSITION");
-      if (positionIx != -1) pos = e->IfDefGetKWAs<DFloatGDL>( positionIx);
-    }
-
-    if (pos != NULL) a->NoSub();
+    handle_pmulti_position(e, a);
   }
-
 
   //PSYM
   void gkw_psym(EnvT *e, GDLGStream *a, bool &line, DLong &psym)
