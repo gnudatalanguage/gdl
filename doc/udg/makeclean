@@ -9,5 +9,8 @@ rm -f *.tmp *.log gdl.ind gdl.toc gdl.aux gdl.out gdl.ild gdl.blg gdl.bbl gdl.ai
 for i in routines/*.tex; do if [ ! -s $i ]; then rm $i ; fi; done;
 
 # removing examples output (all but the text and figure files which go into the CVS to track regressions)
-for i in examples/*/*.out.tex; do rm $i; done;
-for i in examples/*/*.out.pdf; do rm $i; done;
+for i in examples/*/*.out.tex; do rm -f $i; done;
+for i in examples/*/*.out.pdf; do rm -f $i; done;
+
+# removing "CreationDate" tag from all PostScript files
+for i in examples/*/gdl.ps; do sed -i -e "/^%%CreationDate.*$/d" $i ; done;

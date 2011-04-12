@@ -173,4 +173,8 @@ fi
 #  exit 1
 #fi
 
-#  fgrep -1 warning gdl.log             # re-outputing warnings
+grep -1 "^LaTeX Warning: Hyper reference \`LIB." gdl.log \
+  | awk '{ if ($0=="--") print ""; else printf("%s",$0)} END {print ""}' \
+  | cut -d\` -f 2 \
+  | cut -d \' -f1 \
+  > diag/broken-references
