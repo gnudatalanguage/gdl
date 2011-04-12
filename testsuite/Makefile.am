@@ -79,6 +79,7 @@ TESTS = \
   test_readf.pro \
   test_rebin.pro \
   test_rk4.pro \
+  test_scope_varfetch.pro \
   test_spher_harm.pro \
   test_spl_init.pro \
   test_step.pro \
