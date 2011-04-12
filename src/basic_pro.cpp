@@ -1469,7 +1469,11 @@ namespace lib {
 
   void catch_pro( EnvT* e)
   {
-    Warning("CATCH: feature not implemented yet (FIXME!).");
+    static bool warned = false;
+    if (!warned) {
+      Warning("CATCH: feature not implemented yet (FIXME!).");
+      warned = true;
+    }
     e->Catch();
   }
 
