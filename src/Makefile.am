@@ -65,7 +65,7 @@ endif
 
 # build as library (for python module)
 if BUILDASLIBRARY
-lib_LTLIBRARIES = libgdl.la
+noinst_LTLIBRARIES = libgdl.la
 libgdl_la_SOURCES = $(cpp_hpp_files) pythongdl.cpp
 
 # netCDF and HDF define some same symbols
