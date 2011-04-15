@@ -1,1 +1,2 @@
-print, 'GDL compiled with netCDF support: ' + (ncdf_exists() ? 'yes' : 'no')
+print, 'GDL compiled with netCDF support: ' $
+  + (ncdf_exists() ? 'yes' : 'no')

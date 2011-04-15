@@ -2,4 +2,4 @@
 % Compiled module: ESCAPE_SPECIAL_CHAR.
 % Compiled module: STRSPLIT.
 % Compiled module: UNIQ.
-cformat.g format.g format.in.g format.out.g gdlc.g gdlc.i.g gdlc.tree.g
+gdlc.g gdlc.i.g gdlc.tree.g
