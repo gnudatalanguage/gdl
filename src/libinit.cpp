@@ -488,60 +488,31 @@ void LibInit()
 
   const string plotKey[]=
     {
-     // GRAPHIC KEYWORDS
-     // 0
      "BACKGROUND","CHARSIZE","CHARTHICK","CLIP",
-     // 4
-     "COLOR",     "DATA",    "DEVICE",   "FONT",
-     // 8
+     "COLOR",     "DATA",    "DEVICE", 
      "LINESTYLE", "NOCLIP",  "NODATA",   "NOERASE", 
-     // 12
      "NORMAL",    "POSITION","PSYM",     "SUBTITLE",
-     // 16
-     "SYMSIZE",   "T3D",     "THICK",    "TICKLEN", 
-     // 20
-     "TITLE",
-     // 21
-     "XCHARSIZE",    "XGRIDSTYLE", "XMARGIN", "XMINOR",
-     // 25
-     "XRANGE",       "XSTYLE",     "XTHICK",  "XTICKFORMAT",
-     // 29
-     "XTICKINTERVAL","XTICKLAYOUT","XTICKLEN","XTICKNAME",
-     // 33
-     "XTICKS",       "XTICKUNITS", "XTICKV",  "XTICK_GET",
-     // 37
-     "XTITLE",
-     // 38
-     "YCHARSIZE",    "YGRIDSTYLE", "YMARGIN", "YMINOR",
-     // 42
-     "YRANGE",       "YSTYLE",     "YTHICK",  "YTICKFORMAT",
-     // 46
-     "YTICKINTERVAL","YTICKLAYOUT","YTICKLEN","YTICKNAME",
-     // 50
-     "YTICKS",       "YTICKUNITS", "YTICKV",  "YTICK_GET",
-     // 51
-     "YTITLE",
-     // 55
-     "ZCHARSIZE",    "ZGRIDSTYLE", "ZMARGIN", "ZMINOR",
-     // 59
-     "ZRANGE",       "ZSTYLE",     "ZTHICK",  "ZTICKFORMAT",
-     // 63
-     "ZTICKINTERVAL","ZTICKLAYOUT","ZTICKLEN","ZTICKNAME",
-     // 67
-     "ZTICKS",       "ZTICKUNITS", "ZTICKV",  "ZTICK_GET",
-     // 71
-     "ZTITLE",
-     // 72
-     "ZVALUE", 
-
-     // PLOT keywords
-     // 73
-     "ISOTROPIC",
-     "MAX_VALUE", "MIN_VALUE","NSUM",     "POLAR",
-     "XLOG",     "YLOG",     "YNOZERO", "XTYPE", "YTYPE", 
+     "SYMSIZE",   "THICK",    "TICKLEN", "TITLE",
+     "XCHARSIZE", "XMARGIN", "XMINOR",
+     "XRANGE",    "XSTYLE",     "XTHICK",  "XTICKFORMAT",
+     "XTICKLEN",  "XTICKS",     "XTITLE",
+     "YCHARSIZE", "YMARGIN", "YMINOR",
+     "YRANGE",    "YSTYLE",     "YTHICK",  "YTICKFORMAT", "YTICKLEN",
+     "YTICKS",    "YTITLE", "ZCHARSIZE",    "ZGRIDSTYLE", "ZMARGIN", "ZMINOR",
+     "ZRANGE",    "ZSTYLE",     "ZTHICK",  "ZTICKFORMAT",
+     "ZTICKLEN",  "ZTICKS",    "ZTITLE", "ZVALUE", "MAX_VALUE", "MIN_VALUE",
+     "XLOG",      "YLOG",     "YNOZERO", "XTYPE", "YTYPE", 
      KLISTEND
     };
-  new DLibPro(lib::plot,string("PLOT"),2,plotKey);
+  //"POLAR",
+  const string plotWarnKey[]= {
+    "ISOTROPIC", "FONT", "T3D", "YTICKUNITS", "NSUM", "XTICKLAYOUT", "YTICKLAYOUT", 
+    "ZTICKLAYOUT", "XGRIDSTYLE", "YGRIDSTYLE", "XTICKUNITS", "XTICKV", "XTICK_GET", "YTICKV",
+    "YTICK_GET", "XTICKNAME", "ZTICKNAME", "ZTICKUNITS", "ZTICKV",  "ZTICK_GET",
+    "XTICKINTERVAL", "YTICKINTERVAL", "YTICKNAME", "ZTICKINTERVAL", 
+    KLISTEND
+  };
+  new DLibPro(lib::plot,string("PLOT"),2,plotKey,plotWarnKey);
 
   const string axisKey[]=
     {
