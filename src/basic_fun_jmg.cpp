@@ -646,7 +646,7 @@ namespace lib {
 	s = s.substr(4);  // Remove "res="
 
 	size_t left_paren = s.find_first_of("(");
-	subList.push_back( s.substr( 0, left_paren-1));
+	subList.push_back( s.substr( 0, left_paren));
       }
 
       sort( subList.begin(), subList.end());
@@ -666,7 +666,7 @@ namespace lib {
 	DString s = libProList[ i]->ToString();
 
 	size_t comma_brac = s.find_first_of(",[");
-	subList.push_back( s.substr( 0, comma_brac-1));
+	subList.push_back( s.substr( 0, comma_brac));
       }
 
       sort( subList.begin(), subList.end());
