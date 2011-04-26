@@ -859,15 +859,22 @@ if test "x$with_grib" != "xno"; then
           LIBS="$LIBS -ljasper -lopenjpeg"
           AC_DEFINE([USE_GRIB], [1], [Define if you want to use GRIB])
         ], [
+          AC_MSG_CHECKING([if linking with Jasper and OpenJPEG and PNG helps])
           echo ""
-          echo "Error! GRIB is required but was not found"
-          echo "       Use --with-grib=DIR to specify the GRIB directory tree"
-          echo "       Use --with-grib=no  to not use it"
-          echo "       Check the README or use configure --help for other libraries needed"
-          echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
-          echo ""
-          echo "       (suitable Debian/Ubuntu package: libgrib-api-dev)"
-          exit -1
+          AC_CHECK_LIB(grib_api, grib_handle_new_from_message, [
+            LIBS="$LIBS -ljasper -lopenjpeg -lpng"
+            AC_DEFINE([USE_GRIB], [1], [Define if you want to use GRIB])
+          ], [
+            echo ""
+            echo "Error! GRIB is required but was not found"
+            echo "       Use --with-grib=DIR to specify the GRIB directory tree"
+            echo "       Use --with-grib=no  to not use it"
+            echo "       Check the README or use configure --help for other libraries needed"
+            echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
+            echo ""
+            echo "       (suitable Debian/Ubuntu package: libgrib-api-dev)"
+            exit -1
+          ], [-ljasper -lopenjpeg -lpng])
         ], [-ljasper -lopenjpeg])
       ], [-ljasper])
     ]
