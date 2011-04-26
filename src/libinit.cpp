@@ -37,7 +37,9 @@
 
 #include "gsl_fun.hpp"
 
-#include "gdlpython.hpp"
+#ifdef USE_PYTHON
+#  include "gdlpython.hpp"
+#endif
 
 #include "grib.hpp"
 
@@ -445,11 +447,13 @@ void LibInit()
 //   const string maxKey[]={"MIN",KLISTEND};
 //   new DLibFun(lib::max_fun,string("MAX"),2,maxKey);
 
+#ifdef USE_PYTHON
   const string python_funKey[]={"ARGV","DEFAULTRETURNVALUE",KLISTEND};
   new DLibFun(lib::gdlpython_fun,string("PYTHON"),-1,python_funKey);
 
   const string python_proKey[]={"ARGV",KLISTEND};
   new DLibPro(lib::gdlpython_pro,string("PYTHON"),-1,python_proKey);
+#endif
 
   // graphics *******************************************************
   const string windowKey[]={"COLORS","FREE","PIXMAP","RETAIN","TITLE",

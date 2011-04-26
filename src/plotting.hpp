@@ -45,10 +45,8 @@ namespace lib {
   void polyfill( EnvT* e);
 
   // Map stuff
-#ifdef USE_LIBPROJ4
   BaseGDL* map_proj_forward_fun( EnvT* e);
   BaseGDL* map_proj_inverse_fun( EnvT* e);
-#endif
 
   BaseGDL* convert_coord( EnvT* e);
 

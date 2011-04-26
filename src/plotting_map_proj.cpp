@@ -23,10 +23,10 @@ namespace lib {
 
   using namespace std;
 
-#ifdef USE_LIBPROJ4
 
   BaseGDL* map_proj_forward_fun( EnvT* e)
   {
+#ifdef USE_LIBPROJ4
     // lonlat -> xy
 
     SizeT nParam=e->NParam();
@@ -103,11 +103,15 @@ namespace lib {
       }
       return res;
     }
+#else
+    e->Throw("GDL was compiled without support for map projections");
+#endif
   }
 
 
   BaseGDL* map_proj_inverse_fun( EnvT* e)
   {
+#ifdef USE_LIBPROJ4
     // xy -> lonlat
     SizeT nParam=e->NParam();
     if( nParam < 1)
@@ -183,8 +187,10 @@ namespace lib {
       }
       return res;
     }
-  }
+#else
+    e->Throw("GDL was compiled without support for map projections");
 #endif
+  }
 
 } // namespace
 
