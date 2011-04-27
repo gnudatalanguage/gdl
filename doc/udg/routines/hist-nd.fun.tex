@@ -1,0 +1,56 @@
+\index{joint density function}%
+Performs an N-dimensional histogram, also known as the joint
+density function of N variables.
+
+The first argument is an N$\times$P array representing P data points in N dimensions.  
+The second argument is optional, and it may be used to specify the size of the bin to use. 
+Either an N point vector specifying a separate size for each dimension, or a scalar,
+which will be used for all dimensions.  If BINSIZE is not passed, the NBINS keyword must be set (see below).
+
+The function returns the N-Dimensional histogram, an array of size
+N1$\times$N2$\times$N3$\times$\ldots$\times$ND where the Ni's are the 
+number of bins implied by the data, and/or the optional inputs (see below).
+
+\gdlkeyworddesc{MIN}
+The minimum value for the histogram.  Either a P point
+vector specifying a separate minimum for each dimension, or
+a scalar, which will be used for all dimensions.  
+If omitted, the natural minimum within the dataset will be used.
+
+\gdlkeyworddesc{MAX}
+The maximum value for the histogram.  Either a P point vector specifying 
+a separate maximmum for each dimension, or a scalar, which will be used for 
+all dimensions. If omitted, the natural maximum within the dataset will be used.
+
+\gdlkeyworddesc{NBINS}
+Rather than specifying the binsize, you can pass NBINS,
+the number of bins in each dimension, which can be a P point
+vector, or a scalar.  If BINSIZE it also passed, NBINS will
+be ignored, otherwise BINSIZE will then be calculated as
+binsize=(max-min)/nbins.  
+
+\gdlkeyworddesc{REVERSE-INDICES}
+Set to a named variable to receive the reverse indices, for mapping which 
+points occurred in a given bin.  Note that this is a 1-dimensional reverse index
+vector (see \gdlfunref{HISTOGRAM}).  E.g., to find the indices of points
+which fell in a histogram bin [i,j,k], look up:
+\begin{verbatim}
+  ind=[i+nx*(j+ny*k)]
+  ri[ri[ind]:ri[ind+1]-1]
+\end{verbatim}
+See also \gdlfunref{ARRAY-INDICES} for converting in the other direction.
+
+%; EXAMPLE:
+%;       
+%;       v=randomu(sd,3,100)
+%;       h=hist_nd(v,.25,MIN=0,MAX=1,REVERSE_INDICES=ri)
+%;
+\gdlseealso{\gdlfunref{HISTOGRAM}, \gdlfunref{HIST-2D}}
+\gdldisclaimer{Entry based on J.D. Smith's documentation for his 
+  implementation of HIST\_ND which was included in GDL unchanged.
+  Copyright (C) 2001-2007, J.D Smith.
+  This software is provided as is without any warranty whatsoever. 
+  Permission to use, copy, modify, and distribute modified or  
+  unmodified copies is granted, provided this copyright and disclaimer 
+  are included unchanged.
+}
