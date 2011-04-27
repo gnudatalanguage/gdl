@@ -106,6 +106,23 @@
   \gdldisclaimer{the name of this GDL routine includes the {\bf IMSL\_} prefix for 
     compatibility with IDL, it has no ...}
 }
+\newcommand{\gdlidldisclaimer}{
+  \gdldisclaimer{the name of this GDL routine includes the {\bf IDL\_} prefix for 
+    compatibility with IDL, it has no ...}
+}
+
+\newcommand{\gdlusesopenmp}{
+  \index{multithreading!in \gdlroutinename\gdlroutinetype}%
+  \begin{description}
+    \item[multi-threading:]{this routine uses GDL thread pool if working on large array, see the...}
+  \end{description}
+}
+
+\newcommand{\gdlcallingseq}[1]{
+  \begin{description}
+    \item[calling sequence:]{#1}
+  \end{description}
+}
 
 \catcode`\&=4
 \endinput

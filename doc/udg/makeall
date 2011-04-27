@@ -102,7 +102,7 @@ done
 
 # doing LaTeX 1st pass
 echo -n "--- Doing LaTeX 1-st pass (generating gdl.aux, gdl.idx and gdl.out files - this takes a while) ... "
-pdflatex -draftmode -halt-on-error gdl.tex &>pdflatex.log
+pdflatex -draftmode -halt-on-error -interaction=nonstopmode gdl.tex &>pdflatex.log
 if `test 0 -eq $?`; then
   echo "done";
 else
@@ -125,7 +125,7 @@ fgrep Warning bibtex.log > diag/broken-references
 
 # doing LaTeX 2nd pass
 echo -n "--- Doing LaTeX 2-nd pass (generating gdl.pdf - this takes a while) ... "
-pdflatex -halt-on-error gdl.tex &>pdflatex.log
+pdflatex -halt-on-error -interaction=nonstopmode gdl.tex &>pdflatex.log
 if `test 0 -eq $?`; then
   echo "done";
 else
@@ -155,7 +155,7 @@ fi
 
 # doing LaTeX 3rd pass
 echo -n "--- Doing LaTeX 3-rd pass (that should give a final gdl.aux file - this takes a while) ... "
-pdflatex -halt-on-error gdl.tex &>pdflatex.log
+pdflatex -halt-on-error -interaction=nonstopmode gdl.tex &>pdflatex.log
 if `test 0 -eq $?`; then
   echo "done";
 else
@@ -165,7 +165,7 @@ fi
 
 ## doing LaTeX 3rd pass
 #echo -n "--- Doing LaTeX 4-th pass (that should give a final gdl.pdf file - this takes a while) ... "
-#pdflatex -halt-on-error gdl.tex &>pdflatex.log
+#pdflatex -halt-on-error -interaction=nonstopmode gdl.tex &>pdflatex.log
 #if `test 0 -eq $?`; then
 #  echo "done";
 #else
