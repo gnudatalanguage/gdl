@@ -1,1 +1,101 @@
+Calls a routine from a sharable object library.
+The first argument should be a string containing the filename of the 
+sharable object to load (standard library paths are searched).
+The second argument should be a string with the name of the routine 
+in the image to ba called.
+All subsequent arguments are passed to the routine.
+
+Here is a, hopefully concise, example covering all the steps
+one could take to write, build and call a C routine from GDL:
+\gdlcodeexample{call_external_0}{}{}
+
+\gdlkeyworddesc{RETURN-TYPE}
+Indicates the type of the return value of the called
+routine, this value will be returned by CALL\_EXTERNAL to GDL.
+The value of the keyword is interpreted in the same way as the type
+field of the \gdlfunref{SIZE} function. Possible values for it are those for numeric
+types except COMPLEX and DCOMPLEX.
+The default value is 3 (GDL type LONG, which corresponds to C type int).
+Alternatively one of the following keywords may be used:
+
+\gdlkeyworddesc{B-VALUE}
+equivalent to RETURN\_TYPE=1  (BYTE)
+
+\gdlkeyworddesc{I-VALUE}
+equivalent to RETURN\_TYPE=2  (INTEGER)
+
+\gdlkeyworddesc{L-VALUE} 
+equivalent to RETURN\_TYPE=3  (LONG)\\
+This correspodns to the default behaviour. 
+%This keyword is not available in IDL.
+
+\gdlkeyworddesc{F-VALUE}
+equivalent to RETURN\_TYPE=4  (FLOAT)
+
+\gdlkeyworddesc{D-VALUE}
+equivalent to RETURN\_TYPE=5  (DOUBLE)
+
+\gdlkeyworddesc{UI-VALUE}
+equivalent to RETURN\_TYPE=12 (UINT)
+
+\gdlkeyworddesc{UL-VALUE}
+equivalent to RETURN\_TYPE=13 (ULONG)
+
+\gdlkeyworddesc{L64-VALUE}
+equivalent to RETURN\_TYPE=14 (LONG64)
+
+\gdlkeyworddesc{UL64-VALUE}
+equivalent to RETURN\_TYPE=15 (ULONG64)
+
+\gdlkeyworddesc{S-VALUE}
+equivalent to RETURN\_TYPE=6  (STRING, the called function should return char*)
+
+\gdlkeyworddesc{ALL-VALUE}
+The default is to pass all parameters by reference.
+If this keyword is set, all parameters are passed by value.
+
+%    /ALL_GDL (*)  Pass all parameters as BaseGDL*  
+%		  Alternatively these methods can be requested for each parameter
+%		  individually with the following keyword:
+%    VALUE=array   where array is an integer array with as many elements as parameters.
+%		  If the i_th element of array is 0, the i_th parameter will be 
+%		  passed by reference to an equivalent C variable, strings are
+%		  passed by reference to a C structure
+%		  struct {
+%		    int   len;
+%		    short unused;
+%		    char* string;
+%		  }
+%		  and GDL structures are passed by reference to equivalent
+%		  C structures. Changes made to any variables are reflected
+%		  back to GDL.
+%		  If the i_th element of array is >0, the i_th parameter will be
+%		  passed by value, strings are passed as char*.
+%		  Only scalar parameters which are small enough to fit into 
+%		  a pointer (void*) can be passed by value this way.
+%		  Changes made to these parameters are not reflected back to GDL.
+%              (*) If the i_th element of array is <0, then the i_th parameter
+%		  will be passed directly as BaseGDL*. Shared objects which use
+%		  this feature can be used only with GDL, but not with IDL.
+%
+\gdlkeyworddesc{UNLOAD}
+If set (/UNLOAD or UNLOAD=1) the shared object will be unloaded after calling the routine.
+
+\gdlkeyworddesc{STRUCT-ALIGN-BYTES}
+If set to an integer n, CALL\_EXTERNAL assumes that structures in the shared object 
+are aligned at boundaries of n bytes, where n should be a power of 2.
+If n=0 or if this keyword is not given, the default machine 
+dependent alignment is assumed (normally 4/8 bytes on 32/64 bit systems). 
+It should only be necessary to use this keyword if the 
+called shared object has been compiled with a different 
+alignment, e.g. with \#pragma pack(n)
+%This keyword is not available in IDL.
+
+\gdlimplmtndtls{This routine uses the dlopen/dlsym/dlclose calls, and thus 
+  is available only on systems that support them.
+  It has been tested on Linux, Apple OS X and Solaris.}
 \gdlseealso{\gdlproref{LINKIMAGE}}
+\gdldisclaimer{CALL\_EXTERNAL was implemented in GDL by Christoph Fuchs,
+  who also wrote the documentation for it which was the base for this entry.
+  Copyright: (C) 2010 by Christoph Fuchs.  The original file was licensed under GNU GPL v>=2.
+}
