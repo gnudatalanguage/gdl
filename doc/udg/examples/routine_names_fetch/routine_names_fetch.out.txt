@@ -1,0 +1,2 @@
+% $MAIN$: a is not defined!
+% Execution halted at: $MAIN$          
