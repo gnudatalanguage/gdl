@@ -574,26 +574,19 @@ public:
     Graphics* actDevice = Graphics::GetDevice();
 
     XwDev *dev = (XwDev *) plsc->dev;
-    if( dev == NULL)
+    if( dev == NULL || dev->xwd == NULL)
     {
       GDLGStream* newStream = actDevice->GetStream();
       //already done: newStream->Init();
       dev = (XwDev *) plsc->dev;
-      if( dev == NULL)
-       {
-          throw GDLException( e->CallingNode(), "Device not open.");
-       }
+      if( dev == NULL) e->Throw( "Device not open.");
     }
 
     XwDisplay *xwd = (XwDisplay *) dev->xwd;
     XImage *ximg = NULL;
 
-    if (e->KeywordSet("ORDER"))
-      throw GDLException( e->CallingNode(), 
-			  "TVRD: ORDER keyword not yet supported.");
-    if (e->KeywordSet("WORDS"))
-      throw GDLException( e->CallingNode(), 
-			  "TVRD: WORDS keyword not yet supported.");
+    if (e->KeywordSet("ORDER")) e->Throw( "ORDER keyword not yet supported.");
+    if (e->KeywordSet("WORDS")) e->Throw( "WORDS keyword not yet supported.");
 
     /* this variable will contain the attributes of the window. */
     //    XWindowAttributes win_attr;
@@ -620,9 +613,7 @@ public:
 
     DLong channel=-1;
     e->AssureLongScalarKWIfPresent( "CHANNEL", channel);
-    if (channel > 3)
-      throw GDLException( e->CallingNode(), 
-			  "TVRD: Value of Channel is out of allowed range.");
+    if (channel > 3) e->Throw("Value of Channel is out of allowed range.");
 
     if (tru == 0 || channel != -1) {
       dims[0] = xSize;
@@ -657,9 +648,7 @@ public:
       return res;
 
     } else {
-      if (tru > 3)
-	throw GDLException( e->CallingNode(), 
-			    "TVRD: Value of TRUE keyword is out of allowed range.");
+      if (tru > 3) e->Throw("Value of TRUE keyword is out of allowed range.");
 
       dims[0] = 3;
       dims[1] = xSize;
@@ -723,10 +712,7 @@ public:
     BaseGDL* p0=e->GetParDefined( 0);
     SizeT rank = p0->Rank();
 
-    if (rank < 2 || rank > 3) {
-      throw GDLException( e->CallingNode(), 
-			  "Image array must have rank 2 or 3");
-    }
+    if (rank < 2 || rank > 3) e->Throw("Image array must have rank 2 or 3");
 
     DLong orderVal=0;
     e->AssureLongScalarKWIfPresent( "ORDER", orderVal);
@@ -743,25 +729,16 @@ public:
     e->AssureLongScalarKWIfPresent( "TRUE", tru);
 
     if (rank == 2) {
-      if (tru != 0)
-	throw GDLException( e->CallingNode(),
-			    "TV:  Array must have 3 dimensions: "
-			    +e->GetParString(0));
+      if (tru != 0) e->Throw("Array must have 3 dimensions: " +e->GetParString(0));
 
       width = p0B->Dim(0);
       height = p0B->Dim(1);
 
     } 
     if (rank == 3) {
-      if (tru < 0 || tru > 3) {
-	throw GDLException( e->CallingNode(), 
-			    "TV: Value of TRUE keyword is out of allowed range.");
-      }
-      if (tru == 1 && xwd->depth < 24) {
-	throw GDLException( e->CallingNode(), 
-			    "TV: Device depth must be 24 or greater "
-			    "for true color display");
-      }
+      if (tru < 0 || tru > 3) e->Throw("Value of TRUE keyword is out of allowed range.");
+      if (tru == 1 && xwd->depth < 24) e->Throw("Device depth must be 24 or greater for true color display");
+
       int DimProblem=0;
       if (tru == 1) {
 	if (p0B->Dim(1) < 3) DimProblem=1;
@@ -791,8 +768,7 @@ public:
 	}
       }
       if (DimProblem == 1) {
-	throw GDLException( e->CallingNode(),
-			    "TV: Array <BYTE     Array[" +i2s(p0B->Dim(0))+","+
+        e->Throw("Array <BYTE     Array[" +i2s(p0B->Dim(0))+","+
 			    i2s(p0B->Dim(1))+","+i2s(p0B->Dim(2))
 			    +"]> does not have enough elements.");
       }
@@ -843,8 +819,7 @@ public:
     DLong channel=0;
     e->AssureLongScalarKWIfPresent( "CHANNEL", channel);
     if (channel < 0 || channel > 3)
-	throw GDLException( e->CallingNode(),
-			    "TV: Value of Channel is out of allowed range.");
+      e->Throw("Value of Channel is out of allowed range.");
 
     std::auto_ptr<BaseGDL> chan_guard;
     if (channel == 0) {
