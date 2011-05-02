@@ -154,8 +154,8 @@ float testce_float(int argc, void* argv[]) {
 	printf("                Expected: %d\n\n", 3);
 	printf("First arg:           Got: %f\n", *(float*)argv[0]);
 	printf("                Expected: %f\n\n", 1.11);
-	printf("Second arg:          Got: %f %d\n", *((float*)argv[1]+0), *((float*)argv[1]+1));
-	printf("                Expected: %f %d\n\n", 2.22, 3.33);
+	printf("Second arg:          Got: %f %f\n", *((float*)argv[1]+0), *((float*)argv[1]+1));
+	printf("                Expected: %f %f\n\n", 2.22, 3.33);
 	printf("Third arg:           Got: %f\n", f);
 	printf("                Expected: %f\n\n", 4.44);
 
@@ -190,8 +190,8 @@ double testce_double(int argc, void* argv[]) {
 	printf("                Expected: %d\n\n", 2);
 	printf("First arg:           Got: %f\n", *(double*)argv[0]);
 	printf("                Expected: %f\n\n", 1.11);
-	printf("Second arg:          Got: %f %d\n", *((double*)argv[1]+0), *((double*)argv[1]+1));
-	printf("                Expected: %f %d\n\n", 2.22, 3.33);
+	printf("Second arg:          Got: %f %f\n", *((double*)argv[1]+0), *((double*)argv[1]+1));
+	printf("                Expected: %f %f\n\n", 2.22, 3.33);
 
     }
     else {
@@ -284,9 +284,9 @@ long long testce_long64(int argc, void* argv[]) {
 	printf("Error:\n");
 	printf("number of arguments: Got: %d\n", argc);
 	printf("                Expected: %d\n\n", 2);
-	printf("First arg:           Got: %d\n", *(long long*)argv[0]);
+	printf("First arg:           Got: %lld\n", *(long long*)argv[0]);
 	printf("                Expected: %d\n\n", 1);
-	printf("Second arg:          Got: %d %d\n", *((long long*)argv[1]+0), *((long long*)argv[1]+1));
+	printf("Second arg:          Got: %lld %lld\n", *((long long*)argv[1]+0), *((long long*)argv[1]+1));
 	printf("                Expected: %d %d\n\n", 2, 3);
 
     }
@@ -314,9 +314,9 @@ unsigned long long testce_ulong64(int argc, void* argv[]) {
 	printf("Error:\n");
 	printf("number of arguments: Got: %d\n", argc);
 	printf("                Expected: %d\n\n", 3);
-	printf("First arg:           Got: %d\n", *(unsigned long long*)argv[0]);
+	printf("First arg:           Got: %llu\n", *(unsigned long long*)argv[0]);
 	printf("                Expected: %d\n\n", 1);
-	printf("Second arg:          Got: %d %d\n", *((unsigned long long*)argv[1]+0), *((unsigned long long*)argv[1]+1));
+	printf("Second arg:          Got: %llu %llu\n", *((unsigned long long*)argv[1]+0), *((unsigned long long*)argv[1]+1));
 	printf("                Expected: %d %d\n\n", 2, 3);
 
     }
@@ -408,14 +408,14 @@ int testce_struct(int argc, void* argv[]) {
 	printf("Error:\n");
 	printf("number of arguments: Got: %d\n", argc);
 	printf("                Expected: %d\n", 1);
-	printf("First Element:       Got: %d / %d %ld ", 
+	printf("First Element:       Got: %d / %d %lld ", 
 	       so->l1, so->si.c, so->si.d );
 	printf("'%s' ", so->si.s[0].s);
 	printf("'%s' / ", so->si.s[1].s);
 	printf("%d %d\n", so->l2, so->c);
 	printf("                Expected: %d / %d %d '%s' '%s' / %d %d\n", 
 	       1, 1, 2, "One", "Two", 2, 2);
-	printf("Second Element       Got: %d / %d %ld ", 
+	printf("Second Element       Got: %d / %d %lld ", 
 	       (so+1)->l1, (so+1)->si.c, (so+1)->si.d );
 	printf("'%s' ", (so+1)->si.s[0].s);
 	printf("'%s' / ", (so+1)->si.s[1].s);
