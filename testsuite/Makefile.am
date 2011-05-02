@@ -30,10 +30,7 @@ TESTS = \
   test_bug_3104214.pro \
   test_bug_3104326.pro \
   test_bug_3104349.pro \
-  test_bug_3147146.pro \
   test_bug_3147181.pro \
-  test_bug_3151760.pro \
-  test_bug_3189068.pro \
   test_bug_3199465.pro \
   test_bug_3244840.pro \
   test_bug_3288652.pro \
@@ -67,7 +64,6 @@ TESTS = \
   test_moment.pro \
   test_mpfit.pro \
   test_multiroots.pro \
-  test_nans_in_sort_and_median.pro \
   test_nestedloop.pro \
   test_plotting_ranges.pro \
   test_pmulti.pro \

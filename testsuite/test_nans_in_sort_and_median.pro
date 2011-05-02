@@ -54,31 +54,28 @@ pro test_nans_in_sort_and_median
     exit, status=1
   endif
 
-  ; this is a known-bug case -> not bothering non-developers
-  if strpos(!GDL.RELEASE,'CVS') ne -1 then begin
-    a = [[-500, !VALUES.F_NAN], [-!VALUES.F_NAN, 600.0]]
-    if ~array_equal(median(a, dim=1), [-500, 600]) then begin
-      message, 'median() failed to compute the median for a 2D array cotaining float NaNs', /conti
-      exit, status=1
-    endif
+  a = [[-500, !VALUES.F_NAN], [-!VALUES.F_NAN, 600.0]]
+  if ~array_equal(median(a, dim=1), [-500, 600]) then begin
+    message, 'median() failed to compute the median for a 2D array cotaining float NaNs', /conti
+    exit, status=1
+  endif
 
-    a = double(a)
-    if ~array_equal(median(a, dim=1), [-500, 600]) then begin
-      message, 'median() failed to compute the median for a 2D array cotaining double NaNs', /conti
-      exit, status=1
-    endif
+  a = double(a)
+  if ~array_equal(median(a, dim=1), [-500, 600]) then begin
+    message, 'median() failed to compute the median for a 2D array cotaining double NaNs', /conti
+    exit, status=1
+  endif
 
-    a = [[-500, !VALUES.F_NAN, !VALUES.F_INFINITY], [-!VALUES.F_INFINITY, 500, 600.0]]
-    if ~array_equal(median(a, dim=1), [!VALUES.F_INFINITY, 500]) then begin
-      message, 'median() failed to compute the median for a 2D array cotaining float NaNs and Infs', /conti
-      exit, status=1
-    endif
+  a = [[-500, !VALUES.F_NAN, !VALUES.F_INFINITY], [-!VALUES.F_INFINITY, 500, 600.0]]
+  if ~array_equal(median(a, dim=1), [!VALUES.F_INFINITY, 500]) then begin
+    message, 'median() failed to compute the median for a 2D array cotaining float NaNs and Infs', /conti
+    exit, status=1
+  endif
 
-    a = double(a)
-    if ~array_equal(median(a, dim=1), [!VALUES.F_INFINITY, 500]) then begin
-      message, 'median() failed to compute the median for a 2D array cotaining double NaNs and Infs', /conti
-      exit, status=1
-    endif
+  a = double(a)
+  if ~array_equal(median(a, dim=1), [!VALUES.F_INFINITY, 500]) then begin
+    message, 'median() failed to compute the median for a 2D array cotaining double NaNs and Infs', /conti
+    exit, status=1
   endif
 
 end

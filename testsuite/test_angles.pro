@@ -60,7 +60,7 @@ pro test_angles
                                                          exit, status=1
                                                        endif
             ; A.02 for any input Z = tan(atan(Z)) (not for /PHASE)
-            if ~ph && total(abs(fix(a1, ty=s.type) - tan(v)) gt max([abs(a1/1e3), 1e-3])) gt 0 $
+            if ~ph && total(abs(fix(a1, ty=s.type) - tan(v)) gt max([abs(a1/.5e3), .5e-3])) gt 0 $
                                                        then begin
                                                          message, 'FAILED (A.02)' + e, /conti
                                                          exit, status=1
