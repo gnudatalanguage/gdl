@@ -2491,7 +2491,7 @@ res_guard.reset (dres);
     {
       res = new DDoubleGDL(GSL_CONST_MKSA_GRAVITATIONAL_CONSTANT);
 #ifdef USE_UDUNITS
-      if (twoparams) unit_from = ut_parse(unitsys, "N m2 kg2", UT_ASCII);
+      if (twoparams) unit_from = ut_parse(unitsys, "N m2 kg-2", UT_ASCII);
 #endif
     }
     else if (name.compare("hbar") == 0) 
