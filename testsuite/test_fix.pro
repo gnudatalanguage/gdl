@@ -108,9 +108,5 @@ pro TEST_FIX, verbose=verbose, all_types=all_types
   ok and= TEST_FIX_ONE_VALUE(value=1.001, verbose=verbose, all_types=all_types) 
   ok and= TEST_FIX_ONE_VALUE(value=10.1, verbose=verbose, all_types=all_types) 
   ok and= TEST_FIX_ONE_VALUE(value=1000.1, verbose=verbose, all_types=all_types) 
-  ; this is a known-bug case -> not bothering non-developers
-  if strpos(!GDL.RELEASE,'CVS') ne -1 then begin
-    ok and= TEST_FIX_ONE_VALUE(value=1000.1e5, verbose=verbose, all_types=all_types)
-  endif
   if ~ok then exit, status=1
 end

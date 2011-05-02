@@ -88,5 +88,4 @@ TESTS = \
   test_wavelet.pro \
   test_zeropoly.pro \
   test_zip.pro \
-  test_zzz.pro \
   checks
