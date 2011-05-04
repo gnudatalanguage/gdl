@@ -56,15 +56,23 @@
 #include <cassert>
 
 
-#if defined(HAVE_64BIT_OS)
+// SA: fixing bug no. 3296360
 typedef unsigned long long int      SizeT;
 typedef long long int RangeT;
 
-#else
-typedef unsigned int        	    SizeT;
-typedef int                            RangeT;
-#endif
+//// SA: the version introduced by Joel in 2006:
+////#if defined(HAVE_64BIT_OS)
+////  typedef unsigned long long int      SizeT;
+////  typedef long long int RangeT;
+////#else
+////  typedef unsigned int        	    SizeT;
+////  typedef int                            RangeT;
+////#endif
+
+// SA: the original version from 2005:
 //typedef size_t              SizeT;
+
+
 typedef unsigned int        UInt;
 typedef unsigned long       ULong;
 
