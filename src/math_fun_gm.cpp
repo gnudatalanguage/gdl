@@ -135,7 +135,12 @@
   									\
   DDoubleGDL* res;							\
   if (nElp0 == 1 && nElp1 == 1)						\
-    res = new DDoubleGDL(1, BaseGDL::NOZERO);				\
+  {                                                                     \
+    if (p0->Rank() == 0 && p1->Rank() == 0)                             \
+      res = new DDoubleGDL(BaseGDL::NOZERO);				\
+    else                                                                \
+      res = new DDoubleGDL(1, BaseGDL::NOZERO);				\
+  }                                                                     \
   else if (nElp0 > 1 && nElp1 == 1)					\
     res = new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);			\
   else if (nElp0 == 1 && nElp1 > 1)					\
