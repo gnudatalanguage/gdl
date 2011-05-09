@@ -538,17 +538,18 @@ public:
       }
     return false;
   }
-  void StealLocalParUndefGlobal( SizeT ix)
-  {
-    if( LocalKW( ix + pro->key.size()))
-      {
-	env.Clear( ix + pro->key.size());
-      }
-      else
-      {
-      env[ ix + pro->key.size()] = NULL;
-      }
-  }
+// removed: IDL does not undefine the global parameter with OVERWRITE
+//   void StealLocalParUndefGlobal( SizeT ix)
+//   {
+//     if( LocalKW( ix + pro->key.size()))
+//       {
+// 	env.Clear( ix + pro->key.size());
+//       }
+//       else
+//       {
+//       env[ ix + pro->key.size()] = NULL;
+//       }
+//   }
   bool GlobalPar( SizeT ix) { return GlobalKW( ix + pro->key.size());}
 
   // next two to set keywords/paramters

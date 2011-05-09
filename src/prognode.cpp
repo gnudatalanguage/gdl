@@ -720,13 +720,9 @@ RetCode  ASSIGN_REPLACENode::Run()
     }
   }
   if( r != (*l))
-//     {
-delete *l;
-//      if( r_guard.get() == r)
-	*l = r_guard.release();
-//       else
-// 	*l = r->Dup();
-//     }
+		delete *l;
+  
+  *l = r_guard.release();
 
   ProgNode::interpreter->SetRetTree( this->getNextSibling());
   return RC_OK;
