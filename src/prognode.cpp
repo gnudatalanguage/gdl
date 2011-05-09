@@ -719,7 +719,7 @@ RetCode  ASSIGN_REPLACENode::Run()
       break;
     }
   }
-//  if( r != (*l))
+  if( r != (*l))
 //     {
 delete *l;
 //      if( r_guard.get() == r)
