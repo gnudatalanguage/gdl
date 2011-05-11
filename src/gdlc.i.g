@@ -1133,6 +1133,11 @@ statement returns[ RetCode retCode]
     exception 
     catch [ GDLException& e] 
     { 
+        // reset _retTree to last statement
+        // (might otherwise be inside an expression in which case 
+        // .CONTINUE does not work)
+        _retTree = last; 
+
         if( dynamic_cast< GDLIOException*>( &e) != NULL)
             {
                 // set the jump target - also logs the jump

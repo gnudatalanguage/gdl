@@ -189,7 +189,7 @@ inline void InsNL(ostream& o, SizeT* actPosPtr)
 ostream& operator<<(ostream& os, const CheckNL& c)
 {
   if( c.actPosPtr == NULL) return os;
-  if( (*c.actPosPtr + c.nextW) > c.width) 
+  if( (*c.actPosPtr + c.nextW) > c.width && *c.actPosPtr > 0) 
     {
       os << '\n';
       *c.actPosPtr = 0;
@@ -1181,7 +1181,7 @@ ostream& Data_<SpDString>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 	}
       length = (*this)[eIx].length();
       if( length > 0)
-	o << CheckNL( w, actPosPtr, length) << (*this)[eIx++]; 
+		o << CheckNL( w, actPosPtr, length) << (*this)[eIx++]; 
       else eIx++;
       InsNL( o, actPosPtr);
       
@@ -1193,13 +1193,13 @@ ostream& Data_<SpDString>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
       for( SizeT i0=1; i0<d0; i0++)
 	{
 	  length = (*this)[eIx].length() + 1;
-	  if( length > 1)
+// 	  if( length > 1) // for array output a space should be inserted e.g. a=strarr(9)&a[8]=':'&a[0]='>'&aa=[[a],[a]]&print,aa
 	    o << CheckNL( w, actPosPtr, length) << (*this)[eIx++] << " ";
-	  else eIx++;
+// 	  else eIx++;
 	}
       length = (*this)[eIx].length();
       if( length > 0)
-	o << CheckNL( w, actPosPtr, length) << (*this)[eIx++]; 
+		o << CheckNL( w, actPosPtr, length) << (*this)[eIx++]; 
       else eIx++;
       InsNL( o, actPosPtr);
     }
@@ -1207,9 +1207,9 @@ ostream& Data_<SpDString>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   for( SizeT i0=1; i0<d0; i0++)
     {
       length = (*this)[eIx].length() + 1;
-      if( length > 1)
+//       if( length > 1) // for array output a space should be inserted e.g. a=strarr(9)&a[8]=':'&a[0]='>'&print,a
 	o << CheckNL( w, actPosPtr, length) << (*this)[eIx++] << " ";
-      else eIx++;
+//       else eIx++;
     }
   length = (*this)[eIx].length();
   if( length > 0)
