@@ -46,7 +46,8 @@ public:
   virtual void Init( IxExprListT& ix) { assert( 0);}
   virtual void Init() {}
   
-  virtual bool ToAssocIndex( SizeT& lastIx) = 0;
+   virtual bool ToAssocIndex( SizeT& lastIx) = 0;
+//  virtual bool ToAssocIndex( RangeT& lastIx) = 0;
 
   // set the root variable which is indexed by this ArrayIndexListT
   virtual void SetVariable( BaseGDL* var) {}
@@ -152,6 +153,7 @@ public:
   // requires special handling
   // used by Assoc_<> returns last index in lastIx, removes it
   // and returns true is the list is empty
+//   bool ToAssocIndex( SizeT& lastIx)
   bool ToAssocIndex( SizeT& lastIx)
   {
     // cannot be ArrayIndexScalar[VP] ix->Init();

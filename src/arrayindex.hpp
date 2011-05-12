@@ -66,8 +66,10 @@ public:
   virtual RangeT GetS() { return 0;}
   virtual SizeT GetStride() { return 0;}
   
-  virtual bool Scalar()           { return false;}
-  virtual bool Scalar( SizeT& s_) { return false;}
+  virtual bool Scalar()  const         { return false;}
+  virtual bool Scalar( SizeT& s_) const {  return false;}
+//  virtual bool Scalar( RangeT& s_) {  return false;}
+  
   virtual bool Indexed()          { return false;}  
 
   virtual BaseGDL* Index( BaseGDL* var, IxExprListT& ix)=0;
@@ -97,8 +99,8 @@ public:
 
   RangeT GetS() { return s;}
 
-  bool Scalar() { return true;}
-  bool Scalar( SizeT& s_)
+  bool Scalar() const { return true;}
+  bool Scalar( SizeT& s_) const
   { 
     s_ = s;
     return true;
@@ -154,8 +156,8 @@ public:
 
   RangeT GetS() { return s;}
 
-  bool Scalar() { return true;}
-  bool Scalar( SizeT& s_)
+  bool Scalar() const { return true;}
+  bool Scalar( SizeT& s_) const
   { 
     s_ = s;
     return true;
@@ -209,8 +211,8 @@ public:
 
   SizeT NParam() { return 0;} // number of parameter to Init(...)
 
-  bool Scalar() { return true;}
-  bool Scalar( SizeT& s_)
+  bool Scalar() const { return true;}
+  bool Scalar( SizeT& s_) const
   { 
     s_ = s;
     return true;
@@ -289,8 +291,8 @@ public:
 
   RangeT GetS() { return s;}
 
-  bool Scalar() { return (ix == NULL);}
-  bool Scalar( RangeT& s_)
+  bool Scalar() const { return (ix == NULL);}
+  bool Scalar( SizeT& s_) const // changed from RangeT for proper overloading
   { 
     if( ix == NULL)
       {
@@ -852,8 +854,8 @@ public:
   void Clear() { delete ix; ix=NULL;} // note that ixDim is untouched
 
   // make the following work even before call to NIter(...)
-  bool Scalar() { return (ixOri == NULL);}
-  bool Scalar( SizeT& s_)
+  bool Scalar() const { return (ixOri == NULL);}
+  bool Scalar( SizeT& s_) const
   { 
     if( ixOri == NULL)
       {
