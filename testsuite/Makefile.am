@@ -31,13 +31,14 @@ TESTS = \
   test_bug_3104326.pro \
   test_bug_3104349.pro \
   test_bug_3147181.pro \
+  test_bug_3147733.pro \
   test_bug_3189072.pro \
   test_bug_3199465.pro \
   test_bug_3244840.pro \
   test_bug_3275334.pro \
   test_bug_3286031.pro \
   test_bug_3288652.pro \
-  test_bug_3290532.pro \ 
+  test_bug_3290532.pro \
   test_bug_3296360.pro \
   test_bug_3298378.pro \
   test_ce.pro \
