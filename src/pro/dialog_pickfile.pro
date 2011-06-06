@@ -112,6 +112,13 @@
 ;  Idea by Alain Coulais on June 2010, implementation by Maxime Lenoir
 ;  (first public version 16 June 2010).
 ;
+; 06-JUN-2011: - dates in ESO FITS files are using ":" as a separator,
+;              in conflict with Zenity internal separator. Adding
+;              a new parameter (ZENITY_SEP) and move to "|" as
+;              default.
+;              - if keyword DEBUG set to a number > 1 then the zenity command
+;              is printed, if > 2 then we exit 
+;
 ;-
 ;
 ; This function try to reproduce the IDL's DIALOG_PICKFILE
@@ -156,6 +163,7 @@ function DIALOG_PICKFILE, DEFAULT_EXTENSION=default_extension, $
                           READ=read, WRITE=write, RESOURCE_NAME=resource_name, $
                           TITLE=title, $
                           ZENITY_NAME=zenity_name, ZENITY_PATH=zenity_path, $
+                          ZENITY_SEP=ZENITY_SEP, $
                           HELP=help, test=test, debug=debug, verbose=verbose
 ;
 if KEYWORD_SET(help) then begin
@@ -168,6 +176,7 @@ if KEYWORD_SET(help) then begin
     print, '           READ=read, WRITE=write, RESOURCE_NAME=resource_name, $'
     print, '           TITLE=title, '
     print, '           ZENITY_NAME=zenity_name, ZENITY_PATH=zenity_path, $'
+    print, '           ZENITY_SEP=ZENITY_SEP, $'
     print, '           HELP=help, test=test, debug=debug, verbose=verbose'
     return, ''
 endif
@@ -274,49 +283,69 @@ endif
 
 if KEYWORD_SET(file) then file=STRING(file[0])
 
-if start ne '' then $
-  if KEYWORD_SET(file) && FILE_TEST(start+file) then cmd+='--filename="'+start+file+'" ' else $
-  if FILE_TEST(start) then cmd+='--filename="'+start+'" '
-
+if start ne '' then begin
+   if KEYWORD_SET(file) && FILE_TEST(start+file) then begin
+      cmd+='--filename="'+start+file+'" ' 
+   endif else begin
+      if FILE_TEST(start) then cmd+='--filename="'+start+'" '
+   endelse
+endif
+;
 ; Set the filters (Zenity version >= 2.23.1)
+;
 if KEYWORD_SET(filter) then begin
-    SPAWN, zen+' --version', ver ; Get current Zenity version
-    version=STRSPLIT(ver, '.', /extract)
-    version=UINT(version[0])*10000+UINT(version[1])*100+UINT(version[2])
-    if version lt 22301 then MESSAGE, 'Zenity version need to be >= 2.23.1 to support filters', /cont else begin ; Check if zenity ver < 2.23.1
-        if SIZE(filter, /dimensions) eq 0 then filter=[filter] ; Filter is as scalar STRING
-        filters=''
-        fsize=SIZE(filter, /n_elements)
-        if fsize gt 0 then begin
-            ;; Transform filter in Zenity(GTK) syntax
-            for i=0, fsize-1 do filter[i]=STRJOIN(STRSPLIT(STRING(filter[i]), ';', /extract), ' ')
-            if fsize gt 1 then begin ; concatenate all filters
-                for i=0, fsize-2 do begin
-                    filters+=STRING(filter[i])+' '
-                endfor
-                filters+=STRING(filter[fsize-1])
-                cmd+='--file-filter="'+filters+'" ' ; Add gobal filter
-            endif
-            for i=0, fsize-1 do cmd+='--file-filter="'+filter[i]+'" ' ; Add individual filters
-            cmd+='--file-filter="*.*" ' ; Add no-filter
-        endif
-    endelse
+   SPAWN, zen+' --version', ver ; Get current Zenity version
+   version=STRSPLIT(ver, '.', /extract)
+   version=UINT(version[0])*10000+UINT(version[1])*100+UINT(version[2])
+   if version lt 22301 then begin
+      MESSAGE, 'Zenity version need to be >= 2.23.1 to support filters', /cont
+   endif else begin
+      ;; Check if zenity ver < 2.23.1
+      if SIZE(filter, /dimensions) eq 0 then filter=[filter] ; Filter is as scalar STRING
+      filters=''
+      fsize=SIZE(filter, /n_elements)
+      if fsize gt 0 then begin
+         ;; Transform filter in Zenity(GTK) syntax
+         for i=0, fsize-1 do filter[i]=STRJOIN(STRSPLIT(STRING(filter[i]), ';', /extract), ' ')
+         if fsize gt 1 then begin ; concatenate all filters
+            for i=0, fsize-2 do begin
+               filters+=STRING(filter[i])+' '
+            endfor
+            filters+=STRING(filter[fsize-1])
+            cmd+='--file-filter="'+filters+'" ' ; Add gobal filter
+         endif
+         for i=0, fsize-1 do cmd+='--file-filter="'+filter[i]+'" ' ; Add individual filters
+         cmd+='--file-filter="*.*" '                               ; Add no-filter
+      endif
+   endelse
 endif
 
 ; Can't perform fix_filter w/ Zenity
 ; Group (Dialog_parent) can't be used w/ Zenity
 
 ; Set multiple files option
-if KEYWORD_SET(multiple_files) then $
-  if KEYWORD_SET(directory) then message,'Selecting multiple directories is not supported.',/cont else cmd+='--multiple --separator=":" '
+;
+if N_ELEMENTS(zenity_sep) EQ 0 then zenity_sep='|'
 
-; Must exist can't be used w/ Zenity, but if the selected file doesn't exist, it won't be returned (see below)
-
+;
+if KEYWORD_SET(multiple_files) then begin
+   if KEYWORD_SET(directory) then begin
+      MESSAGE, 'Selecting multiple directories is not supported.',/cont
+   endif else begin
+      cmd+='--multiple --separator="'+zenity_sep+'" '
+   endelse
+endif
+;
+; Must exist can't be used w/ Zenity, but if the selected file
+; doesn't exist, it won't be returned (see below)
+;
 ; Read KW
-if KEYWORD_SET(read) && ~KEYWORD_SET(title) && ~KEYWORD_SET(write) then cmd+='--title="Please Select a '+type+' for Reading" '
-
+if KEYWORD_SET(read) && ~KEYWORD_SET(title) && ~KEYWORD_SET(write) then begin
+   cmd+='--title="Please Select a '+type+' for Reading" '
+endif
+;
 ; Resource_name can't be used w/ Zenity
-
+;
 ; Write KW
 if KEYWORD_SET(write) && ~KEYWORD_SET(title) && ~KEYWORD_SET(read) then begin
     readtitle='"Please Select a '+type+' for Writing" '
@@ -331,23 +360,35 @@ endif
 
 ; Set window title
 if KEYWORD_SET(title) then begin
-    title=STRING(title[0])
-    cmd+='--title="'+title+'" '
-endif else $
-  if ~KEYWORD_SET(read) && ~KEYWORD_SET(write) then cmd+='--title="Please Select a '+type+'" '
-
+   title=STRING(title[0])
+   cmd+='--title="'+title+'" '
+endif else begin
+   if ~KEYWORD_SET(read) && ~KEYWORD_SET(write) then begin
+      cmd+='--title="Please Select a '+type+'" '
+   endif
+endelse
+;
+if KEYWORD_SET(debug) then begin
+   if debug GT 1 then MESSAGE,/continue, "Zenity command: "+cmd
+   if debug GT 2 then return, ''
+endif
+;
 ; Call Zenity
 SPAWN, cmd, result, exit_status=ex
 if (ex ne 0) then return, ''
 
-results=STRSPLIT(result, ':', /extract)
+results=STRSPLIT(result, zenity_sep, /extract)
 rsize=SIZE(results, /n_elements)
 if (rsize eq 0) then return, ''
 
 ; Set the path
 ; If directory, get_path = the directory
 ; else get_path = result's directory
-if KEYWORD_SET(directory) then get_path=results[0]+PATH_SEP() else get_path=FILE_DIRNAME(results[0])+PATH_SEP()
+if KEYWORD_SET(directory) then begin
+   get_path=results[0]+PATH_SEP()
+endif else begin
+   get_path=FILE_DIRNAME(results[0])+PATH_SEP()
+endelse
 
 ; Must exist filter
 if KEYWORD_SET(must_exist) then begin
