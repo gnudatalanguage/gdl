@@ -62,11 +62,14 @@ pro regression, a
 
 end
 
- ; we need a way to know whether IDL or GDL is running...
- isGDL = !version.build_date eq 'Jul 07 2005'
- filename = (isGDL?'gdl':'idl'+strtrim(!version.release,1))+$
-            '-test-total.txt'
- journal, filename
+pro TEST_TOTAL
+
+;; we need a way to know whether IDL or GDL is running...
+DEFSYSV, '!gdl', exists=isGDL
+
+filename = (isGDL?'gdl':'idl'+strtrim(!version.release,1))+$
+           '-test-total.txt'
+journal, filename
  
  a = bytarr(3, 3, 3)+1b
  regression, a

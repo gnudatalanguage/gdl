@@ -65,6 +65,7 @@ end
 ; ----------------------
 ; directly running an example !
 ;
+pro TEST_PLOT_LINESTYLE
 multi_linestyle
 end
 

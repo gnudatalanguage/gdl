@@ -1390,11 +1390,14 @@ pro stride_index_test
 
 end
 
+;  'TEST_SUITE main program called.'
+;
 ;; set MEMCHECK to perform a memory leak check
 ;; as the heap (number of allocated cells) always grows so does
 ;; the memory consumption
 ;; with MEMCHECK set, no ptr and object allocations are made
-pro test_suite,MEMCHECK=mCheck
+
+pro TEST_SUITE, MEMCHECK=mCheck
 
   s=systime(1)
 
@@ -1425,10 +1428,4 @@ pro test_suite,MEMCHECK=mCheck
   stride_index_test
 
   print,"TEST_SUITE finished. Time: ",systime(1)-s
-end
-
-;; main program
-print,'TEST_SUITE main program called.'
-test_suite
-
 end

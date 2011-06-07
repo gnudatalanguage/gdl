@@ -1,7 +1,9 @@
 ; Script : test-swap_endian
 
+pro TEST_SWAP_ENDIAN
+
  ; we need a way to know whether IDL or GDL is running...
- isGDL = !version.build_date eq 'Jul 07 2005'
+  DEFSYSV, '!gdl', exists=isGDL
  filename = (isGDL?'gdl':'idl'+strtrim(!version.release,1))+$
             '-test-swap_endian.txt'
  journal, filename

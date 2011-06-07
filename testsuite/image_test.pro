@@ -1,3 +1,5 @@
+pro IMAGE_TEST
+
 tdir="/home/chris/ei/"
 
 print,"Read BMP TrueColor"
@@ -47,10 +49,11 @@ print,"Write PICT"
 write_jpeg,tdir+"i256_pict.pict",a
 
 
-a=read_bmp(tdir+"i256_bmp.bmp",r,g,b) & $
-write_bmp,tdir+"i256_bmp100.bmp",a,r,g,b & $
-for i=0, 100 do begin & $
-print, "Quantizing: ",i & $
-a=read_bmp(tdir+"i256_bmp100.bmp",r,g,b) & $
-write_bmp,tdir+"i256_bmp100.bmp",a,r,g,b & $
+a=read_bmp(tdir+"i256_bmp.bmp",r,g,b)
+write_bmp,tdir+"i256_bmp100.bmp",a,r,g,b
+for i=0, 100 do begin
+   print, "Quantizing: ",i
+   a=read_bmp(tdir+"i256_bmp100.bmp",r,g,b)
+   write_bmp,tdir+"i256_bmp100.bmp",a,r,g,b
+endfor
 end
