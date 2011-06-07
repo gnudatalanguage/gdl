@@ -420,7 +420,7 @@ endif
 
 ; default extension (simple behaviour, unlike IDL [no filter taken into account])
 if KEYWORD_SET(default_extension) then begin
-	w=WHERE(STRPOS(FILE_BASENAME(results,'.') eq -1))
+	w=WHERE(STRPOS(FILE_BASENAME(results),'.') eq -1)
 	if w ne [-1] then results[w]+='.'+default_extension
 endif
 
