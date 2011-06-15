@@ -376,7 +376,11 @@ endif
 ; Call Zenity
 SPAWN, cmd, result, exit_status=ex
 if (ex ne 0) then return, ''
-
+;
+; Zenity is known to return string arrays if result is gt than some
+; length ... (1024 on CentOS 5.5 x86_64) merge in one string
+result=STRJOIN(TEMPORARY(result))
+;
 results=STRSPLIT(result, zenity_sep, /extract)
 rsize=SIZE(results, /n_elements)
 if (rsize eq 0) then return, ''
