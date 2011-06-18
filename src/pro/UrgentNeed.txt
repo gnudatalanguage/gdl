@@ -20,7 +20,6 @@ Please indicate what you are doing and starting time
 !complexround.pro
 !congrid.pro
 !coord2to3.pro
-!correlate.pro
 !cramer.pro
 !crvlength.pro
 !curvefit.pro
@@ -28,7 +27,6 @@ Please indicate what you are doing and starting time
 !eigenvec.pro
 !errplot.pro
 !f_cvf.pro
-!file_which.pro
 !f_pdf.pro
 !fx_root.pro
 !gauss2dfit.pro
@@ -43,7 +41,6 @@ Please indicate what you are doing and starting time
 !int_3d.pro
 !int_tabulated_2d.pro
 !int_tabulated.pro
-!interpol.pro
 !ladfit.pro
 !linfit.pro
 !lmfit.pro
