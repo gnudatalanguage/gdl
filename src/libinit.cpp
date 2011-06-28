@@ -97,7 +97,7 @@ void LibInit()
   new DLibFun(lib::routine_info,string("ROUTINE_INFO"),1,routine_infoKey);
 
   const string spawnKey[]={ "COUNT","EXIT_STATUS","PID",
-			    "SH","NOSHELL",KLISTEND};
+			    "SH","NOSHELL","UNIT",KLISTEND};
   new DLibPro(lib::spawn_pro,string("SPAWN"),3,spawnKey);
 
   const string bytsclKey[]={"MIN","MAX","TOP","NAN",KLISTEND};

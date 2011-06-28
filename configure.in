@@ -98,6 +98,9 @@ AC_CHECK_HEADERS([locale.h])
 dnl used in histogram
 AC_CHECK_FUNCS([nexttoward])
 
+dnl used by SPAWN, UNIT=
+AC_CHECK_HEADERS([ext/stdio_filebuf.h])
+
 dnl == ncurses =============================================
 dnl ========================================================
 

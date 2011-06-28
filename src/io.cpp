@@ -260,6 +260,27 @@ void GDLStream::Close()
   c_timeout = 0.0;
   r_timeout = 0.0;
   w_timeout = 0.0;
+
+#ifdef HAVE_EXT_STDIO_FILEBUF_H
+  // GGH: ggh hack to implement SPAWN keyword UNIT
+  // Do housekeeping before closure
+  if (readbuf_frb_destroy_on_close_p != NULL)   
+  {
+    readbuf_frb_destroy_on_close_p->~stdio_filebuf();
+    readbuf_frb_destroy_on_close_p = NULL;
+  }
+  if (readbuf_bsrb_destroy_on_close_p != NULL)  
+  {
+    readbuf_bsrb_destroy_on_close_p->~basic_streambuf();
+    readbuf_bsrb_destroy_on_close_p = NULL;
+  }
+  if (fd_close_on_close != -1)  
+  {
+    close(fd_close_on_close);
+    fd_close_on_close = -1;
+  }
+#endif
+
 }
 
 void GDLStream::Free()
@@ -440,6 +461,37 @@ void GDLStream::F77ReadEnd()
 
 
 // ============================================================================
+
+
+#ifdef HAVE_EXT_STDIO_FILEBUF_H
+// GGH ggh hack to implement SPAWN keyword UNIT
+
+std::basic_streambuf<char> *GDLStream::get_stream_readbuf_bsrb()	
+{
+  return anyStream->fStream->std::ios::rdbuf();
+}
+int GDLStream::set_stream_readbuf_bsrb_from_frb(__gnu_cxx::stdio_filebuf<char> *frb_p)	
+{
+  anyStream->fStream->std::ios::rdbuf(frb_p);
+  return 0;
+}
+int GDLStream::set_readbuf_frb_destroy_on_close(__gnu_cxx::stdio_filebuf<char> *frb_p)	
+{
+  readbuf_frb_destroy_on_close_p = frb_p;
+  return 0;
+}
+int GDLStream::set_readbuf_bsrb_destroy_on_close(std::basic_streambuf<char> *bsrb_p)	
+{
+  readbuf_bsrb_destroy_on_close_p = bsrb_p;
+  return 0;
+}
+int GDLStream::set_fd_close_on_close(int fd)	
+{
+  fd_close_on_close = fd;
+  return 0;
+}
+#endif
+
 // gzstream, C++ iostream classes wrapping the zlib compression library.
 // Copyright (C) 2001  Deepak Bandyopadhyay, Lutz Kettner
 //

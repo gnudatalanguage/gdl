@@ -37,6 +37,12 @@
 
 #include "gdlexception.hpp"
 
+// GGH ggh hack to implement SPAWN keyword UNIT
+#ifdef HAVE_EXT_STDIO_FILEBUF_H
+#  include <ext/stdio_filebuf.h>
+#endif
+//#include <bits/basic_ios.h>
+
 
 // the file IO system consists of 128 GDLStream objects
 
@@ -49,10 +55,12 @@ const SizeT defaultStreamWidth = 80; // used by open_lun
 
 class AnyStream
 {
+// GGH ggh made all these public
+public:
   std::fstream* fStream;
   igzstream* igzStream; // for gzip compressed input
   ogzstream* ogzStream; // for gzip compressed output
-public:
+//public:
   AnyStream()
     : fStream(NULL) 
     , igzStream(NULL) 
@@ -297,6 +305,13 @@ class GDLStream
   DDouble r_timeout;
   DDouble w_timeout;
 
+#ifdef HAVE_EXT_STDIO_FILEBUF_H
+// GGH ggh hack to implement SPAWN keyword UNIT
+  __gnu_cxx::stdio_filebuf<char> *readbuf_frb_destroy_on_close_p;
+  std::basic_streambuf<char> *readbuf_bsrb_destroy_on_close_p;
+  int fd_close_on_close;
+#endif
+
   SizeT width;
 
   std::streampos lastSeekPos;
@@ -333,7 +348,11 @@ public:
     lastSeekPos( 0),
     lastRecord( 0),
     lastRecordStart( 0)
-  {}
+  {
+	readbuf_frb_destroy_on_close_p = NULL;
+	readbuf_bsrb_destroy_on_close_p = NULL;
+	fd_close_on_close = -1;
+	}
 
   ~GDLStream() 
   {
@@ -442,6 +461,17 @@ public:
 
   DULong F77ReadStart();
   void   F77ReadEnd();
+
+
+#ifdef HAVE_EXT_STDIO_FILEBUF_H
+// GGH ggh hack to implement SPAWN keyword UNIT
+  std::basic_streambuf<char> *get_stream_readbuf_bsrb();
+  int set_stream_readbuf_bsrb_from_frb(__gnu_cxx::stdio_filebuf<char> *frb_p);
+  int set_readbuf_frb_destroy_on_close(__gnu_cxx::stdio_filebuf<char> *frb_p);
+  int set_readbuf_bsrb_destroy_on_close(std::basic_streambuf<char> *bsrb_p);
+  int set_fd_close_on_close(int fd);
+#endif
+
 };
 
 

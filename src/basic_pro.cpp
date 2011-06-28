@@ -4,6 +4,8 @@
     begin                : July 22 2002
     copyright            : (C) 2002 by Marc Schellens
     email                : m_schellens@users.sf.net
+         
+    - UNIT keyword for SPAWN by Greg Huey
  ***************************************************************************/
 
 /***************************************************************************
@@ -48,6 +50,11 @@
 #include "dpro.hpp"
 #include "io.hpp"
 #include "basic_pro.hpp"
+
+#ifdef HAVE_EXT_STDIO_FILEBUF_H
+#  include <ext/stdio_filebuf.h> // TODO: is it portable across compilers?
+#endif
+#include <signal.h>
 
 namespace lib {
  
@@ -1922,6 +1929,12 @@ namespace lib {
       }
   }
 
+  // helper function for spawn_pro
+  static void child_sighandler(int x){
+    pid_t pid;
+    while((pid=waitpid(-1,NULL,WNOHANG)) > 0);
+  }
+
   void spawn_pro( EnvT* e)
   {
     SizeT nParam = e->NParam();
@@ -1944,6 +1957,25 @@ namespace lib {
     static int noshellIx = e->KeywordIx( "NOSHELL");
     bool noshellKeyword = e->KeywordSet( noshellIx);
     
+    static int unitIx = e->KeywordIx( "UNIT");
+    bool unitKeyword = e->KeywordPresent( unitIx);
+    if( unitKeyword) e->AssureGlobalKW( unitIx);
+
+    if (unitKeyword)
+    {
+      if (exit_statusKeyword) 
+      {
+        Warning("SPAWN: specifying EXIT_STATUS with UNIT keyword has no meaning (assigning zero)");
+        e->SetKW( exit_statusIx, new DLongGDL( 0));
+      }
+      if (countKeyword)
+      {
+        Warning("SPAWN: specifying COUNT with UNIT keyword has no meaning (assigning zero)");
+        e->SetKW( countIx, new DLongGDL( 0)); 
+      }
+      if (nParam != 1) e->Throw("Invalid use of the UNIT keyword (only one argument allowed when using UNIT).");
+    }
+
     string shellCmd;
     if( shKeyword) 
       shellCmd = "/bin/sh"; // must be there if POSIX
@@ -1967,6 +1999,9 @@ namespace lib {
 	return;
       }
 
+    // added on occasion of the UNIT kw patch
+    signal(SIGCHLD,child_sighandler);
+
     DStringGDL* command = e->GetParAs<DStringGDL>( 0);
     DString cmd = (*command)[0];
 
@@ -1977,26 +2012,47 @@ namespace lib {
     if( nParam > 2) e->AssureGlobalPar( 2);
 
     int coutP[2];
-    if( nParam > 1 && pipe(coutP)) return;	
+    if (nParam > 1 || unitKeyword)  
+    {
+      if (pipe(coutP)) return;
+    }
 
     int cerrP[2];
-    if( nParam > 2 && pipe(cerrP)) return;	
+    if( nParam > 2 && !unitKeyword && pipe(cerrP)) return;
 	
     pid_t pid = fork(); // *** fork
     if( pid == -1) // error in fork
       {
 	close( coutP[0]); close( coutP[1]);
-	if( nParam > 2) { close( cerrP[0]); close( cerrP[1]);}
+        if( nParam > 2 && !unitKeyword) { close( cerrP[0]); close( cerrP[1]);}
 	return;
       }
 
     if( pid == 0) // we are child
       {
-	if( nParam > 1) dup2(coutP[1], 1); // cout
-	if( nParam > 2) dup2(cerrP[1], 2); // cerr
+        if (unitKeyword) 
+        {
+          dup2(coutP[1], 1); // cout
+          dup2(coutP[1], 2); // cout
+          close( coutP[0]); 
+          close( coutP[1]);
+        }
+        else
+        {
+	  if( nParam > 1) dup2(coutP[1], 1); // cout
+	  if( nParam > 2) dup2(cerrP[1], 2); // cerr
 
-	if( nParam > 1) { close( coutP[0]); close( coutP[1]);}
-	if( nParam > 2) { close( cerrP[0]); close( cerrP[1]);}
+	  if( nParam > 1) 
+          { 
+            close( coutP[0]); 
+            close( coutP[1]);
+          }
+	  if( nParam > 2) 
+          { 
+            close( cerrP[0]); 
+            close( cerrP[1]);
+          }
+        }
 
 	if( noshellKeyword)
 	  {
@@ -2022,94 +2078,129 @@ namespace lib {
 	if( pidKeyword)
 	  e->SetKW( pidIx, new DLongGDL( pid));
 
-	if( nParam > 1) close( coutP[1]);
-	if( nParam > 2) close( cerrP[1]);
+        if( nParam > 1 || unitKeyword) close( coutP[1]);
+        if( nParam > 2 && !unitKeyword) close( cerrP[1]);
 
-	FILE *coutF, *cerrF;
-	if( nParam > 1) 
+        if (unitKeyword)
+        {
+#ifdef HAVE_EXT_STDIO_FILEBUF_H
+          // UNIT kw code based on the patch by Greg Huey:
+ 
+          Warning("Warning: UNIT keyword to SPAWN may not yet be fully implemented (proceeding)");
+          // This is just code stolen from void get_lun( EnvT* e)
+          // here lun is the GDL lun, not the internal one
+          DLong unit_lun = GetLUN();
+
+          if( unit_lun == 0)
+            e->Throw( "SPAWN: Failed to get new LUN: GetLUN says: All available logical units are currently in use.");
+ 
+           FILE *coutF;
+           coutF = fdopen( coutP[0], "r");
+           if( coutF == NULL) close( coutP[0]);
+
+           e->SetKW( unitIx, new DLongGDL( unit_lun ));
+           bool stdLun = check_lun( e, unit_lun);
+           if( stdLun)
+             e->Throw( "SPAWN: Failed to open new LUN: Unit already open. Unit: "+i2s( unit_lun));
+           fileUnits[ unit_lun-1].PutVarLenVMS( false);
+ 
+           // Here we invoke the black arts of converting from a C FILE*/fd to an fstream object
+           __gnu_cxx::stdio_filebuf<char> *frb_p;
+           frb_p = new __gnu_cxx::stdio_filebuf<char>(coutF, std::ios_base::in);
+ 
+           fileUnits[ unit_lun-1].Close();
+           fileUnits[ unit_lun-1].Open("/dev/zero", std::ios_base::in, 0, 0, 0, 0, 0, 0);
+
+           basic_streambuf<char> *bsrb_old_p;
+           bsrb_old_p = fileUnits[ unit_lun-1].get_stream_readbuf_bsrb();
+           fileUnits[ unit_lun-1].set_stream_readbuf_bsrb_from_frb(frb_p);
+           fileUnits[ unit_lun-1].set_readbuf_frb_destroy_on_close(frb_p);
+           fileUnits[ unit_lun-1].set_readbuf_bsrb_destroy_on_close(bsrb_old_p);
+           fileUnits[ unit_lun-1].set_fd_close_on_close(coutP[0]);
+#else
+           e->Throw("UNIT kw. relies on GNU extensions to the std C++ library (that were not availble during compilation?)");
+#endif
+
+        }
+        else
+        {
+	  FILE *coutF, *cerrF;
+	  if( nParam > 1) 
 	  {
 	    coutF = fdopen( coutP[0], "r");
 	    if( coutF == NULL) close( coutP[0]);
 	  }
-	if( nParam > 2) 
+	  if( nParam > 2) 
 	  {
 	    cerrF = fdopen( cerrP[0], "r");
 	    if( cerrF == NULL) close( cerrP[0]);
 	  }
 
-	vector<DString> outStr;
-	vector<DString> errStr;
+          vector<DString> outStr;
+          vector<DString> errStr;
 	    
-	// read cout
-	if( nParam > 1 && coutF != NULL)
+          // read cout
+          if( nParam > 1 && coutF != NULL)
 	  {
-	    while( fgets(buf, bufSize, coutF) != NULL)
-	      {
-		SizeT len = strlen( buf);
-		if( len != 0 && buf[ len-1] == '\n') 
-		  buf[ len-1] = 0;
-		outStr.push_back( DString( buf));
-	      }
-	    fclose( coutF);
-	  }
+            while( fgets(buf, bufSize, coutF) != NULL)
+            {
+              SizeT len = strlen( buf);
+              if( len != 0 && buf[ len-1] == '\n') buf[ len-1] = 0;
+              outStr.push_back( DString( buf));
+            }
+            fclose( coutF);
+          }
 
-	// read cerr
-	if( nParam > 2 && cerrF != NULL) 
-	  {
-	    while( fgets(buf, bufSize, cerrF) != NULL)
-	      {
-		SizeT len = strlen( buf);
-		if( len != 0 && buf[ len-1] == '\n') 
-		  buf[ len-1] = 0;
-		errStr.push_back( DString( buf));
-	      }
-	    fclose( cerrF);
-	  }
+          // read cerr
+          if( nParam > 2 && cerrF != NULL) 
+          {
+            while( fgets(buf, bufSize, cerrF) != NULL)
+            {
+              SizeT len = strlen( buf);
+              if( len != 0 && buf[ len-1] == '\n') buf[ len-1] = 0;
+              errStr.push_back( DString( buf));
+            }
+            fclose( cerrF);
+          }
 
-	// wait until child terminates
-	int status;
-	pid_t wpid  = wait( &status);
+          // wait until child terminates
+          int status;
+          pid_t wpid  = wait( &status);
 	
-	if( exit_statusKeyword)
-	  e->SetKW( exit_statusIx, new DLongGDL( status >> 8));
+          if( exit_statusKeyword)
+            e->SetKW( exit_statusIx, new DLongGDL( status >> 8));
 	    
-	SizeT nLines = 0;
-	if( nParam > 1)
-	  {
-	    DStringGDL* result;
-	    nLines = outStr.size();
-	    if( nLines == 0)
-	      result = new DStringGDL("");
-	    else 
-	      {
-		result = new DStringGDL( dimension( nLines), 
-					 BaseGDL::NOZERO);
-		for( SizeT l=0; l<nLines; ++l)
-		  (*result)[ l] = outStr[ l];
-	      }
-	    e->SetPar( 1, result);
-	  }
+          SizeT nLines = 0;
+          if( nParam > 1)
+          {
+            DStringGDL* result;
+            nLines = outStr.size();
+            if( nLines == 0)
+              result = new DStringGDL("");
+            else 
+            {
+              result = new DStringGDL( dimension( nLines), BaseGDL::NOZERO);
+              for( SizeT l=0; l<nLines; ++l) (*result)[ l] = outStr[ l];
+            }
+            e->SetPar( 1, result);
+          }
 
-	if( countKeyword)
-	  e->SetKW( countIx, new DLongGDL( nLines));
+          if( countKeyword) e->SetKW( countIx, new DLongGDL( nLines));
 	    
-	if( nParam > 2)
-	  {
-	    DStringGDL* errResult;
-	    SizeT nErrLines = errStr.size();
-	    if( nErrLines == 0)
-	      errResult = new DStringGDL("");
-	    else 
-	      {
-		errResult = new DStringGDL( dimension( nErrLines), 
-					    BaseGDL::NOZERO);
-		for( SizeT l=0; l<nErrLines; ++l)
-		  (*errResult)[ l] = errStr[ l];
-	      }
-	    e->SetPar( 2, errResult);
-	  }
-
-	return;
+          if( nParam > 2)
+          {
+            DStringGDL* errResult;
+            SizeT nErrLines = errStr.size();
+            if( nErrLines == 0)
+              errResult = new DStringGDL("");
+            else 
+            {
+              errResult = new DStringGDL( dimension( nErrLines), BaseGDL::NOZERO);
+              for( SizeT l=0; l<nErrLines; ++l) (*errResult)[ l] = errStr[ l];
+            }
+            e->SetPar( 2, errResult);
+          }
+        }
       }
   }
 
