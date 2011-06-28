@@ -24,27 +24,33 @@ namespace lib {
 
   using namespace std;
 
-  void takelog(PLFLT *a, PLFLT *a_orient)
+  void takelog(PLFLT *a, PLFLT *a_orient) // {{{
   {
     if (*a_orient != 0.) 
     {
       *a_orient = log10( *a + *a_orient) - log10( *a); 
     }   
     *a = log10( *a); 
-  }
+  } // }}}
 
-  void xyouts( EnvT* e)
+  class xyouts_call : public plotting_routine_call
   {
-    SizeT nParam = e->NParam(1);
+
+    private: void handle_args( EnvT* e) // {{{
+    {
+    } // }}}
+
+  private: void old_body( EnvT* e, GDLGStream* actStream) // {{{
+  {
     DDoubleGDL* yVal, *xVal;
     DStringGDL* strVal;
     SizeT xEl, yEl,strEl;
-    if(nParam == 1) 
+    if(nParam() == 1) 
       {
 	//string only... 
 	  e->Throw("String only, not implemented");
       }
-    else if(nParam == 3)
+    else if(nParam() == 3)
       {
 	xVal = e->GetParAs< DDoubleGDL>(0);
 	xEl = xVal->N_Elements();
@@ -94,7 +100,6 @@ namespace lib {
       if(color_arr->N_Elements() >= 1) 
 	color=(*l_color_arr)[0];
     */
-    GDLGStream* actStream = GetPlotStream( e); 
     
 // pen thickness for axis
 actStream->wid( 0);
@@ -328,7 +333,6 @@ actStream->wid( 0);
       }
     
   skip:
-    actStream->flush();
     if (kwWidth)
     {
       // SA: we should return value of width in "normalized coordinate units"
@@ -339,6 +343,22 @@ actStream->wid( 0);
       plP_gphy(&p_ixmin, &p_ixmax, &p_iymin, &p_iymax);
       e->SetKW(widthIx, new DFloatGDL(plP_mmpcx(width)/double(p_ixmax - p_ixmin)));
     }
-  }
+  } // }}}
 
+  private: void call_plplot(EnvT* e, GDLGStream* actStream) // {{{
+  {
+  } // }}}
+
+    private: virtual void post_call(EnvT*, GDLGStream*) // {{{
+    {
+    } // }}}
+
+  }; 
+
+  void xyouts(EnvT* e)
+  {
+    xyouts_call xyouts;
+    xyouts.call(e, 1);
+  }
+ 
 } // namespace

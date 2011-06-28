@@ -25,24 +25,28 @@
 namespace lib {
 
   using namespace std;
-  void set_plot( EnvT* e);
-  BaseGDL* get_screen_size( EnvT* e);
-  void device( EnvT* e);
+
+  // main plotting routine (all defined using the plotting_routine_call class)
   void plot( EnvT* e);
   void oplot( EnvT* e);
   void plots( EnvT* e);
   void surface( EnvT* e);
   void contour( EnvT* e);
   void xyouts( EnvT* e);
-  void wset( EnvT* e);
-  void window( EnvT* e);
+  void axis( EnvT* e);
+  void polyfill( EnvT* e);
+
+  // other plotting routines
+  void erase( EnvT* e);
+  void tvlct( EnvT* e);
   void wshow( EnvT* e);
   void wdelete( EnvT* e);
-  void tvlct( EnvT* e);
-  void axis( EnvT* e);
-  void erase( EnvT* e);
+  void wset( EnvT* e);
+  void window( EnvT* e);
+  void set_plot( EnvT* e);
+  BaseGDL* get_screen_size( EnvT* e);
+  void device( EnvT* e);
   void cursor( EnvT* e);
-  void polyfill( EnvT* e);
 
   // Map stuff
   BaseGDL* map_proj_forward_fun( EnvT* e);
@@ -50,8 +54,45 @@ namespace lib {
 
   BaseGDL* convert_coord( EnvT* e);
 
+  //helper functions / classes
 
-  //helper functions
+  class plotting_routine_call
+  {
+    // ensure execution of child-class destructors
+    public: virtual ~plotting_routine_call() {};
+    
+    // private fields
+    private: SizeT _nParam;
+    private: bool xlog, ylog;
+
+    // common helper methods
+    protected: inline SizeT nParam() { return _nParam; }
+
+    // prototypes for methods defining various steps
+    private: virtual void handle_args(EnvT*) = 0;
+    private: virtual void old_body(EnvT*, GDLGStream*) = 0;
+    private: virtual void call_plplot(EnvT*, GDLGStream*) = 0;
+    private: virtual void post_call(EnvT*, GDLGStream*) = 0;
+
+    // all steps combined (virtual methods cannot be called from ctor)
+    public: void call(EnvT* e, SizeT n_params_required) // {{{
+    {
+      _nParam = e->NParam(n_params_required);
+
+      handle_args(e);
+
+      GDLGStream* actStream = Graphics::GetDevice()->GetStream();
+      if (actStream == NULL) e->Throw("Unable to create window.");
+
+      old_body(e, actStream); // TODO: to be removed!
+      call_plplot(e, actStream);
+
+      actStream->flush();
+
+      post_call(e, actStream);
+    } // }}}
+  };
+
   template <typename T> 
   bool draw_polyline(EnvT *e,  GDLGStream *a, T * xVal, T* yVal, 
 		     bool xLog, bool yLog, 
@@ -99,8 +140,6 @@ namespace lib {
 
   void mesh_nr(PLFLT *, PLFLT *, PLFLT **, PLINT, PLINT, PLINT);
 
-
-  GDLGStream* GetPlotStream( EnvT* e);
   void GetSFromPlotStructs(DDouble **sx, DDouble **sy);
   void GetWFromPlotStructs(DFloat **wx, DFloat **wy);
   void DataCoordLimits(DDouble *sx, DDouble *sy, DFloat *wx, DFloat *wy, 

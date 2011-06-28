@@ -22,52 +22,64 @@ namespace lib {
 
   using namespace std;
 
-  void plot( EnvT* e)
+  class plot_call : public plotting_routine_call 
   {
-    SizeT nParam=e->NParam( 1); 
-    bool valid=true;
     DDoubleGDL *yVal, *xVal;
-    SizeT xEl, yEl;
+    DDouble minVal, maxVal, xStart, xEnd, yStart, yEnd;
+    bool xLog, yLog;
+    DLong psym;
     auto_ptr<BaseGDL> xval_guard;
 
-    if( nParam == 1)
+    private: void handle_args( EnvT* e) // {{{
+    {
+      if( nParam() == 1)
       {
-	yVal = e->GetParAs< DDoubleGDL>( 0);
+        yVal = e->GetParAs< DDoubleGDL>( 0);
         if (yVal->Rank() == 0) 
           e->Throw("Expression must be an array in this context: "+e->GetParString(0));
-	yEl = yVal->N_Elements();
-	xVal = new DDoubleGDL( dimension( yEl), BaseGDL::INDGEN);
-	xval_guard.reset( xVal); // delete upon exit
-	xEl = yEl;
+        xVal = new DDoubleGDL( dimension( yVal->N_Elements()), BaseGDL::INDGEN);
+        xval_guard.reset( xVal); // delete upon exit
       }
-    else
+      else
       {
-	xVal = e->GetParAs< DDoubleGDL>( 0);
+        xVal = e->GetParAs< DDoubleGDL>( 0);
         if (xVal->Rank() == 0) 
           e->Throw("Expression must be an array in this context: "+e->GetParString(0));
-	xEl = xVal->N_Elements();
-	yVal = e->GetParAs< DDoubleGDL>( 1);
+        yVal = e->GetParAs< DDoubleGDL>( 1);
         if (yVal->Rank() == 0) 
           e->Throw("Expression must be an array in this context: "+e->GetParString(1));
-	yEl = yVal->N_Elements();
-      }
-    DLong minEl = (xEl < yEl)? xEl : yEl;
-
-    if ( e->KeywordSet( "POLAR")) {
-       e->Throw( "Sorry, POLAR keyword not ready");
       }
 
-    DLong psym;
-    bool line;
+      if ( e->KeywordSet( "POLAR")) 
+      {
+        e->Throw( "Sorry, POLAR keyword not ready");
+      }
 
-    // !X, !Y (also used below)
+      //   BaseGDL *x, *y;
+      {
+        DLong minEl, maxEl;
 
-    DLong xStyle=0, yStyle=0; 
-    DString xTitle, yTitle; 
-    DFloat x_CharSize, y_CharSize; 
-    DFloat xMarginL, xMarginR, yMarginB, yMarginT; 
+        xVal->MinMax( &minEl, &maxEl, NULL, NULL, true);
+        xStart = (*xVal)[minEl];
+        xEnd = (*xVal)[maxEl];
+
+        yVal->MinMax( &minEl, &maxEl, NULL, NULL, true);
+        yStart = (*yVal)[minEl];
+        yEnd = (*yVal)[maxEl];
+      }
+
+      if (xLog && xStart <= 0.0)
+        Warning( "PLOT: Infinite x plot range.");
+      if (yLog && yStart <= 0.0)
+        Warning( "PLOT: Infinite y plot range.");
+
+    } // }}}
+
+  private: void old_body( EnvT* e, GDLGStream* actStream) // {{{
+  {
 
     // [XY]STYLE
+    DLong xStyle=0, yStyle=0; 
     gkw_axis_style(e, "X", xStyle);
     gkw_axis_style(e, "Y", yStyle);
 
@@ -75,52 +87,16 @@ namespace lib {
     e->AssureLongScalarKWIfPresent( "YSTYLE", yStyle);
 
     // AXIS TITLE
+    DString xTitle, yTitle; 
     gkw_axis_title(e, "X", xTitle);
     gkw_axis_title(e, "Y", yTitle);
+
     // MARGIN
+    DFloat xMarginL, xMarginR, yMarginB, yMarginT; 
     gkw_axis_margin(e, "X", xMarginL, xMarginR);
     gkw_axis_margin(e, "Y", yMarginB, yMarginT);
 
-    // x and y range
-    //    DDouble xStart = xVal->min(); 
-    //DDouble xEnd   = xVal->max(); 
-    //DDouble yStart = yVal->min(); 
-    //DDouble yEnd   = yVal->max(); 
-    //    cout << xStart << " " << xEnd << endl;
-    
-    bool debug=false;
-    DLong MyXminEl;
-    DLong MyXmaxEl;
-    //   BaseGDL *x, *y;
-    xVal->MinMax( &MyXminEl, &MyXmaxEl, NULL, NULL, true);
-    DDouble xStart = (*xVal)[MyXminEl];
-    DDouble xEnd = (*xVal)[MyXmaxEl];
-    if (debug) { cout << "X indices (min,max) " << MyXminEl << " " << MyXmaxEl << endl;
-    cout << "X values (min,max)  " << xStart << " " << xEnd << endl;}
-
-    DLong MyYminEl;
-    DLong MyYmaxEl;
-    //   BaseGDL *x, *y;
-    yVal->MinMax( &MyYminEl, &MyYmaxEl, NULL, NULL, true);
-    DDouble yStart = (*yVal)[MyYminEl];
-    DDouble yEnd = (*yVal)[MyYmaxEl];
-    if (debug) {cout << "Y indices (min,max) " << MyYminEl << " " << MyYmaxEl << endl;
-    cout << "Y values (min,max)  " << yStart << " " << yEnd << endl;}
-
-    //    cout << yStart << " " << yEnd << endl;
-
-    DDouble xStartRaw = xStart;
-    DDouble yStartRaw = yStart;
-
-//     bool x0Range = (xStart == xEnd);
-//     bool y0Range = (yStart == yEnd);
-
-    // PLOT defines the setting but does not read it
-    //    get_axis_type("X", xLog);
-    //    get_axis_type("Y", yLog);
-
     // keyword overrides
-    bool xLog, yLog;
     static int xLogIx = e->KeywordIx( "XLOG");
     static int yLogIx = e->KeywordIx( "YLOG");
     xLog = e->KeywordSet( xLogIx);
@@ -145,18 +121,8 @@ namespace lib {
 
     if ( e->KeywordSet( "YNOZERO")) ynozero = 1;
 
-    // AC: should be now useless (done in AutoIntvAC)
-    //if( xStart > 0 && xnozero == 0 && xLog == false) xStart = 0; 
-    //if( yStart > 0 && ynozero == 0 && yLog == false) yStart = 0; 
-
-    // no more useful
-    //    if(xEnd == xStart) xEnd=xStart+1;
-    // AC
-    //if(yEnd == yStart) yEnd=yStart+1;
-     if (debug) {cout << " Y range" << yStart << " e "<< yEnd << endl;}
-
-    DDouble minVal = yStart;
-    DDouble maxVal = yEnd;
+    minVal = yStart;
+    maxVal = yEnd;
     e->AssureDoubleScalarKWIfPresent( "MIN_VALUE", minVal);
     e->AssureDoubleScalarKWIfPresent( "MAX_VALUE", maxVal);
 
@@ -172,13 +138,6 @@ namespace lib {
     e->AssureStringScalarKWIfPresent( "XTICKFORMAT", xTickformat);
     e->AssureStringScalarKWIfPresent( "YTICKFORMAT", yTickformat);
 
-    if( xLog && xStartRaw <= 0.0)
-      Warning( "PLOT: Infinite x plot range.");
-    if( yLog && yStartRaw <= 0.0)
-      Warning( "PLOT: Infinite y plot range.");
-
-    //    int just = (e->KeywordSet("ISOTROPIC"))? 1 : 0;
-
     DDouble ticklen = 0.02;
     e->AssureDoubleScalarKWIfPresent( "TICKLEN", ticklen);
 
@@ -187,7 +146,6 @@ namespace lib {
     e->AssureFloatScalarKWIfPresent( "YTICKLEN", yTicklen);
     // plsmin (def, scale);
 
-						 
     // POSITION
     PLFLT xScale = 1.0;
     PLFLT yScale = 1.0;
@@ -196,31 +154,20 @@ namespace lib {
     static int positionIx = e->KeywordIx( "POSITION"); 
     DFloatGDL* pos = e->IfDefGetKWAs<DFloatGDL>( positionIx);
     if (pos == NULL) pos = (DFloatGDL*) 0xF;
-    /*
-    PLFLT position[ 4] = { 0.0, 0.0, 1.0, 1.0};
-    if( pos != NULL)
-      {
-      for( SizeT i=0; i<4 && i<pos->N_Elements(); ++i)
-	position[ i] = (*pos)[ i];
 
-      xScale = position[2]-position[0];
-      yScale = position[3]-position[1];
-      //      scale = sqrt( pow( xScale,2) + pow( yScale,2));
-      }
-    */
-
-
-    DFloat charsize, xCharSize, yCharSize;
     // *** start drawing
-    GDLGStream* actStream = GetPlotStream( e); 
     gkw_background(e, actStream);  //BACKGROUND
     gkw_color(e, actStream);       //COLOR
 
-    gkw_psym(e, actStream, line, psym);//PSYM
-    gkw_charsize(e, actStream, charsize);    //CHARSIZE
-    gkw_axis_charsize(e, "X",xCharSize);//XCHARSIZE
-    gkw_axis_charsize(e, "Y",yCharSize);//YCHARSIZE
+    {
+      bool line;
+      gkw_psym(e, actStream, line, psym);//PSYM
+    }
 
+    DFloat charsize, xCharSize, yCharSize;
+    gkw_charsize(e, actStream, charsize);  //CHARSIZE
+    gkw_axis_charsize(e, "X", xCharSize);   //XCHARSIZE
+    gkw_axis_charsize(e, "Y", yCharSize);   //YCHARSIZE
 
     // Turn off map projection processing
     set_mapset(0);
@@ -265,10 +212,10 @@ namespace lib {
     DLong noclip=0;
     e->AssureLongScalarKWIfPresent( "NOCLIP", noclip);
     if(noclip == 0)
-      {
-	static int clippingix = e->KeywordIx( "CLIP"); 
-	clippingD = e->IfDefGetKWAs<DDoubleGDL>( clippingix);
-      }
+    {
+      static int clippingix = e->KeywordIx( "CLIP"); 
+      clippingD = e->IfDefGetKWAs<DDoubleGDL>( clippingix);
+    }
     
     // viewport and world coordinates
     bool okVPWC = SetVP_WC( e, actStream, pos, clippingD, 
@@ -324,7 +271,8 @@ namespace lib {
     Struct = SysVar::X();
     static unsigned windowTag = Struct->Desc()->TagIndex( "WINDOW");
     static unsigned sTag = Struct->Desc()->TagIndex( "S");
-    if(Struct != NULL) {
+    if (Struct != NULL) 
+    {
       (*static_cast<DFloatGDL*>( Struct->GetTag( windowTag, 0)))[0] = p_xmin;
       (*static_cast<DFloatGDL*>( Struct->GetTag( windowTag, 0)))[1] = p_xmax;
 
@@ -332,11 +280,11 @@ namespace lib {
 	(p_xmin*xEnd - p_xmax*xStart) / (xEnd - xStart);
       (*static_cast<DDoubleGDL*>( Struct->GetTag( sTag, 0)))[1] = 
 	(p_xmax - p_xmin) / (xEnd - xStart);
-      
     }
 
     Struct = SysVar::Y();
-    if(Struct != NULL) {
+    if(Struct != NULL) 
+    {
       (*static_cast<DFloatGDL*>( Struct->GetTag( windowTag, 0)))[0] = p_ymin;
       (*static_cast<DFloatGDL*>( Struct->GetTag( windowTag, 0)))[1] = p_ymax;
 
@@ -346,26 +294,39 @@ namespace lib {
 	(p_ymax - p_ymin) / (yEnd - yStart);
     }
 
+  } // }}}
+  
+    private: void call_plplot(EnvT* e, GDLGStream* actStream) // {{{
+    {
+      // plot the data
+      static int nodataIx = e->KeywordIx( "NODATA"); 
+      if (!e->KeywordSet(nodataIx)) 
+      {
+        bool valid = draw_polyline(e, actStream, xVal, yVal, xLog, yLog, yStart, yEnd, psym);
+        // TODO: handle valid?
+      }
+    } // }}}
 
-    // plot the data
-    if(!e->KeywordSet("NODATA"))
-      if(valid)
-	valid=draw_polyline(e, actStream, 
-			    xVal, yVal, xLog, yLog, 
-			    yStart, yEnd, psym);
+    private: void post_call(EnvT* e, GDLGStream* actStream) // {{{
+    {
+      actStream->lsty(1);//reset linestyle
 
-    actStream->lsty(1);//reset linestyle
-    actStream->flush();
+      // set ![XY].CRANGE
+      set_axis_crange("X", xStart, xEnd);
+      set_axis_crange("Y", minVal, maxVal);    
 
-    // set ![XY].CRANGE
-    set_axis_crange("X", xStart, xEnd);
-    set_axis_crange("Y", minVal, maxVal);    
+      //set ![x|y].type
+      set_axis_type("X",xLog);
+      set_axis_type("Y",yLog);
+    } // }}}
 
+  };
 
-    //set ![x|y].type
-    set_axis_type("X",xLog);
-    set_axis_type("Y",yLog);
-  } // plot
+  void plot(EnvT* e)
+  {
+    plot_call plot;
+    plot.call(e, 1);
+  }
 
 } // namespace
 

@@ -47,7 +47,8 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
                 gshhs.cpp gshhs.hpp newprognode.cpp plotting_plot.cpp plotting_oplot.cpp \
                 plotting_device.cpp plotting_cursor.cpp plotting_contour.cpp plotting_surface.cpp \
                 plotting_axis.cpp plotting_plots.cpp plotting_xyouts.cpp plotting_polyfill.cpp \
-                plotting_windows.cpp plotting_convert_coord.cpp plotting_map_proj.cpp plotting_misc.cpp
+                plotting_windows.cpp plotting_convert_coord.cpp plotting_map_proj.cpp plotting_misc.cpp \
+                plotting_erase.cpp
 # Makefile.am Makefile.in 
 
 

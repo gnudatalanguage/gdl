@@ -22,9 +22,15 @@ namespace lib {
 
   using namespace std;
 
-  void axis( EnvT* e)
+  class axis_call : public plotting_routine_call 
   {
-    SizeT nParam=e->NParam( 0); 
+
+    private: void handle_args(EnvT* e) // {{{
+    {
+    } // }}}
+
+  private: void old_body( EnvT* e, GDLGStream* actStream) // {{{
+  { 
     bool valid=true;
     // !X, !Y (also used below)
 
@@ -104,19 +110,19 @@ namespace lib {
 
     DDouble zVal, yVal, xVal;
     //read arguments 
-    if (nParam == 1) {
+    if (nParam() == 1) {
       e->AssureDoubleScalarPar( 0, xVal);
       yVal=0.; //IDL behaviour
     }
-    if (nParam == 2) {
+    if (nParam() == 2) {
       e->AssureDoubleScalarPar( 0, xVal);
       e->AssureDoubleScalarPar( 1, yVal);
     }
-    if (nParam == 3) {
+    if (nParam() == 3) {
       e->Throw( "Sorry, we do not yet support the 3D case");
     }
-    if (nParam == 0 && standardNumPos) { xVal = xStart; yVal = yStart; }
-    if (nParam == 0 && !standardNumPos) { xVal = xEnd; yVal = yEnd; }
+    if (nParam() == 0 && standardNumPos) { xVal = xStart; yVal = yStart; }
+    if (nParam() == 0 && !standardNumPos) { xVal = xEnd; yVal = yEnd; }
 
     /*
     DLong ynozero, xnozero;
@@ -162,7 +168,6 @@ namespace lib {
 						 
     DFloat charsize, xCharSize, yCharSize;
     // *** start drawing
-    GDLGStream* actStream = GetPlotStream( e); 
     gkw_color(e, actStream);       //COLOR
     gkw_noerase(e, actStream, true);     //NOERASE
     gkw_charsize(e, actStream, charsize);    //CHARSIZE
@@ -344,7 +349,22 @@ namespace lib {
     // axis has subtitle but no title, gkw_title requires both
     //    gkw_title(e, actStream, actH/defH);
 
-    actStream->flush();
-  } // axis
+  } // }}}
+
+    private: void call_plplot(EnvT* e, GDLGStream* actStream) // {{{
+    {
+    } // }}}
+ 
+    private: virtual void post_call(EnvT*, GDLGStream*) // {{{
+    {
+    } // }}}
+
+  }; // axis_call
+
+  void axis(EnvT* e)
+  {
+    axis_call axis;
+    axis.call(e, 0);
+  }
 
 } // namespace

@@ -46,7 +46,8 @@ namespace lib {
     e->AssureGlobalPar( 0);
     e->AssureGlobalPar( 1);
     
-    GDLGStream *plg  = GetPlotStream( e);
+    GDLGStream *plg = actDevice->GetStream();
+    if (plg == NULL) e->Throw("Unable to create window.");
 
     static PLGraphicsIn gin;
 

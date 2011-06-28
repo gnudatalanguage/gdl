@@ -23,9 +23,15 @@ namespace lib {
 
   using namespace std;
 
-  void plots( EnvT* e)
+  class plots_call : public plotting_routine_call
   {
-    SizeT nParam=e->NParam( 1); 
+
+    private: void handle_args(EnvT* e) // {{{
+    {
+    } // }}}
+
+  private: void old_body( EnvT* e, GDLGStream* actStream) // {{{
+  {
     bool valid, line;
     valid=true;
     DLong psym;
@@ -36,7 +42,7 @@ namespace lib {
     auto_ptr<BaseGDL> xval_guard;
     auto_ptr<BaseGDL> yval_guard;
 
-    if( nParam == 1)
+    if( nParam() == 1)
       {
 	BaseGDL* p0;
 	p0 = e->GetParDefined( 0);  
@@ -58,7 +64,7 @@ namespace lib {
 	  (*yVal)[i] = (*val)[2*i+1];
 	}
       }
-    else if(nParam == 2)
+    else if(nParam() == 2)
       {
 	xVal = e->GetParAs< DDoubleGDL>( 0);
 	xEl = xVal->N_Elements();
@@ -66,7 +72,7 @@ namespace lib {
 	yVal = e->GetParAs< DDoubleGDL>( 1);
 	yEl = yVal->N_Elements();
       }
-    else if(nParam == 3)
+    else if(nParam() == 3)
       {
 	zVal = e->GetParAs< DDoubleGDL>( 2);
 	zEl = zVal->N_Elements();
@@ -127,8 +133,6 @@ namespace lib {
 	  	color=(*l_color_arr)[0];
     */
 
-    GDLGStream* actStream = GetPlotStream( e); 
-    
     // start drawing
     gkw_background(e, actStream, false);
     gkw_color(e, actStream);
@@ -259,7 +263,22 @@ namespace lib {
 			  yStart, yEnd, psym);
 
     actStream->lsty(1);//reset linestyle
-    actStream->flush();
-  } // plots
+  } // }}}
+
+    private: void call_plplot(EnvT* e, GDLGStream* actStream) // {{{
+    {
+    } // }}}
+
+    private: virtual void post_call(EnvT*, GDLGStream*) // {{{
+    {
+    } // }}}
+
+  }; // oplot_call class 
+
+  void plots(EnvT* e)
+  {
+    plots_call plots;
+    plots.call(e, 1);
+  }  
 
 } // namespace

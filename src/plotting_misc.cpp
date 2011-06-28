@@ -202,23 +202,4 @@ namespace lib {
       }
   }
 
-  void erase( EnvT* e)
-  {
-    SizeT nParam=e->NParam();
-    GDLGStream* actStream = GetPlotStream( e);
-
-    if( nParam > 1)
-      e->Throw( "Incorrect number of arguments.");
-
-    if( nParam == 0)
-      actStream->Clear();
-    else {
-      DLong bColor;
-      e->AssureLongScalarPar( 0, bColor);
-      if (bColor > 255) bColor = 255;
-      if (bColor < 0)   bColor = 0;
-      actStream->Clear( bColor);
-    }
-  }
-
 } // namespace

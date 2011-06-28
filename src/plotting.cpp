@@ -250,15 +250,6 @@ namespace lib {
     if ((yStyle & 4) == 4) yOpt = "";
   } // }}}
 
-  GDLGStream* GetPlotStream( EnvT* e)
-  {
-    Graphics* actDevice=Graphics::GetDevice();
-    GDLGStream* actStream = actDevice->GetStream();
-    if( actStream == NULL)
-      e->Throw( "Unable to create window.");
-    return actStream;
-  }
-  
   void CheckMargin( EnvT* e, GDLGStream* actStream,
 		    DFloat xMarginL, 
 		    DFloat xMarginR, 

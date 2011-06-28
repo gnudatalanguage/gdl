@@ -22,9 +22,15 @@ namespace lib {
 
   using namespace std;
 
-  void oplot( EnvT* e)
+  class oplot_call : public plotting_routine_call 
   {
-    SizeT nParam=e->NParam( 1); 
+
+    private: void handle_args( EnvT* e) // {{{
+    {
+    } // }}}
+
+  private: void old_body( EnvT* e, GDLGStream* actStream) // {{{
+  {
     bool valid, line;
     valid=true;
     DLong psym;
@@ -38,7 +44,7 @@ namespace lib {
 
     SizeT xEl;
     SizeT yEl;
-    if( nParam == 1)
+    if( nParam() == 1)
       {
 	yVal = e->GetParAs< DDoubleGDL>( 0);
         if (yVal->Rank() == 0) 
@@ -83,8 +89,6 @@ namespace lib {
     
     //    int just = (e->KeywordSet("ISOTROPIC"))? 1 : 0;
 
-    GDLGStream* actStream = GetPlotStream( e); 
-    
     // start drawing
     gkw_background(e, actStream,false);
     gkw_color(e, actStream);
@@ -154,8 +158,23 @@ namespace lib {
 
 
     actStream->lsty(1);//reset linestyle
-    actStream->flush();
-  } // oplot
+  } // }}}
+
+    private: void call_plplot(EnvT* e, GDLGStream* actStream) // {{{
+    {
+    } // }}}
+
+    private: void post_call(EnvT* e, GDLGStream* actStream) // {{{
+    {
+    } // }}}
+
+  }; // oplot_call class 
+
+  void oplot(EnvT* e)
+  {
+    oplot_call oplot;
+    oplot.call(e, 1);
+  }
 
 } // namespace
 

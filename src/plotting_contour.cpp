@@ -74,24 +74,15 @@ namespace lib {
     *ty = y;
   } // }}}
 
-  void contour( EnvT* e) // {{{
+  class contour_call : public plotting_routine_call
   {
-    int debug=0;
-    
-    SizeT nParam=e->NParam( 1); 
-    
-    DDoubleGDL* zVal;
-    DDoubleGDL* yVal;
-    DDoubleGDL* xVal;
-    //    DDoubleGDL* zValT;
-    auto_ptr<BaseGDL> xval_guard;
-    auto_ptr<BaseGDL> yval_guard;
-    auto_ptr<BaseGDL> p0_guard;
+    DDoubleGDL *zVal, *yVal, *xVal;
+    auto_ptr<BaseGDL> xval_guard, yval_guard, p0_guard;
+    SizeT xEl, yEl, zEl;
 
-    SizeT xEl;
-    SizeT yEl;
-    SizeT zEl;
-    if( nParam == 1)
+    private: void handle_args( EnvT* e) // {{{
+    {
+      if( nParam() == 1)
       {
 	BaseGDL* p0 = e->GetNumericArrayParDefined( 0)->Transpose( NULL);
 
@@ -110,9 +101,13 @@ namespace lib {
 	xval_guard.reset( xVal); // delete upon exit
 	yVal = new DDoubleGDL( dimension( yEl), BaseGDL::INDGEN);
 	yval_guard.reset( yVal); // delete upon exit
-      } else if ( nParam == 2 || nParam > 3) {
-	e->Throw( "Incorrect number of arguments.");
-      } else {
+      } 
+      else if ( nParam() == 2 || nParam() > 3) 
+      {
+        e->Throw( "Incorrect number of arguments.");
+      } 
+      else 
+      {
 	BaseGDL* p0 = e->GetNumericArrayParDefined( 0)->Transpose( NULL);
 	zVal = static_cast<DDoubleGDL*>
 	  (p0->Convert2( DOUBLE, BaseGDL::COPY));
@@ -155,7 +150,10 @@ namespace lib {
 	    e->Throw( "X, Y, or Z array dimensions are incompatible.");
 	}
       }
+    } // }}}
 
+  private: void old_body( EnvT* e, GDLGStream* actStream) // {{{
+  {
     // !P 
     DLong p_background; 
     DLong p_noErase; 
@@ -178,15 +176,9 @@ namespace lib {
     static DStructGDL* xStruct = SysVar::X();
     static DStructGDL* yStruct = SysVar::Y();
     static DStructGDL* zStruct = SysVar::Z();
-    DLong xStyle; 
-    DLong yStyle; 
-    DLong zStyle; 
-    DString xTitle; 
-    DString yTitle; 
-    DString zTitle; 
-    DFloat x_CharSize; 
-    DFloat y_CharSize; 
-    DFloat z_CharSize; 
+    DLong xStyle, yStyle, zStyle;
+    DString xTitle, yTitle, zTitle;
+    DFloat x_CharSize, y_CharSize, z_CharSize;
     DFloat xMarginL; 
     DFloat xMarginR; 
     DFloat yMarginB; 
@@ -376,11 +368,11 @@ namespace lib {
     bool yLog = e->KeywordSet( "YLOG");
     bool zLog = e->KeywordSet( "ZLOG");
     if( xLog && xStart <= 0.0)
-      Warning( "PLOT: Infinite x plot range.");
+      Warning( "CONTOUR: Infinite x plot range.");
     if( yLog && yStart <= 0.0)
-      Warning( "PLOT: Infinite y plot range.");
+      Warning( "CONTOUR: Infinite y plot range.");
     if( zLog && zStart <= 0.0)
-      Warning( "PLOT: Infinite z plot range.");
+      Warning( "CONTOUR: Infinite z plot range.");
 
     DDouble ticklen = p_ticklen;
     e->AssureDoubleScalarKWIfPresent( "TICKLEN", ticklen);
@@ -435,8 +427,6 @@ namespace lib {
 
    // CHARTHICK (thickness of "char")
     PLINT charthick=1;
-
-    GDLGStream* actStream = GetPlotStream( e); 
 
     static int overplotKW = e->KeywordIx("OVERPLOT");
     bool overplot = e->KeywordSet( overplotKW);
@@ -530,10 +520,6 @@ namespace lib {
     PLFLT *clevel;
     ArrayGuard<PLFLT> clevel_guard;
 
-    if (debug == 1) {
-      cout << "zStart :" << zStart <<", zEnd :" << zEnd << endl;
-    }
-
     // we need to define the NaN value
     static DStructGDL *Values =  SysVar::Values();       
     DDouble d_nan=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_NAN"), 0)))[0]; 
@@ -576,9 +562,6 @@ namespace lib {
         // SA: sanity check to prevent segfaults, e.g. with solely non-finite values 
         if (zintv == 0 || nlevel < 0) nlevel = 0; 
       }
-      if (debug) cout << "internal Nlevels == " << nlevel << endl;
-
-
 
 
 //       clevel = new PLFLT[nlevel+1];
@@ -596,11 +579,6 @@ clevel_guard.Reset( clevel);
 for( SizeT i=1; i<=nlevel; i++) clevel[i-1] = zintv * i + zStart - offset;
 clevel[nlevel-1]=zEnd; //make this explicit
 
-    }
-    // AC would like to check the values (nlevel and values) ...
-    if (debug == 1) {
-      cout << "Nlevels == " << nlevel << endl;
-      for (SizeT i=0; i<=nlevel; i++) cout << i << " " << clevel[i] << endl;
     }
     
 //     // Jo: added keyword FILL
@@ -630,10 +608,6 @@ clevel[nlevel-1]=zEnd; //make this explicit
 //         clevel_fill[2] = clevel[0] < zEnd ? zEnd : clevel[0] + 1.;
 //       }
       
-//       if (debug ==1 ) {
-// 	cout << "zStart "<< zStart << " zEnd "<< zEnd <<endl ;
-// 	for( SizeT i=0; i<nlevel_fill; i++) cout << i << " " << clevel_fill[i] << endl;
-//       }
 //     }
 
 //     // levels outside limits are changed ...
@@ -889,7 +863,6 @@ clevel[nlevel-1]=zEnd; //make this explicit
     
     }
 
-    actStream->flush();
     actStream->lsty(1);//reset linestyle
 
     if (!overplot)
@@ -903,5 +876,21 @@ clevel[nlevel-1]=zEnd; //make this explicit
       set_axis_type("Y",yLog);
     }
   } // }}}
+
+    private: void call_plplot(EnvT* e, GDLGStream* actStream) // {{{
+    {
+    } // }}}
+
+    private: virtual void post_call(EnvT*, GDLGStream*) // {{{
+    {
+    } // }}}
+
+  }; // contour_call class
+
+  void contour(EnvT* e)
+  {
+    contour_call contour;
+    contour.call(e, 1);
+  }
   
 } // namespace

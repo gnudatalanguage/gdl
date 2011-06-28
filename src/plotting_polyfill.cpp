@@ -23,11 +23,18 @@ namespace lib {
 
   using namespace std;
 
-  void polyfill( EnvT* e)
+  class polyfill_call : public plotting_routine_call
   {
-    SizeT nParam = e->NParam(1);
-    DDoubleGDL* yVal, *xVal;
-    SizeT xEl, yEl;
+
+    private: DDoubleGDL* yVal, *xVal;
+    private: SizeT xEl, yEl;
+
+    private: void handle_args(EnvT* e) // {{{
+    {
+    } // }}}
+
+  void old_body( EnvT* e, GDLGStream* actStream) // {{{
+  {
 
     bool mapSet=false;
 #ifdef USE_LIBPROJ4
@@ -41,7 +48,7 @@ namespace lib {
     }
 #endif
 
-    if(nParam == 1 || nParam == 3) 
+    if(nParam() == 1 || nParam() == 3) 
     {
       e->Throw("1- and 3-argument case not implemented yet");
     }
@@ -80,8 +87,6 @@ namespace lib {
     get_axis_type("X", xLog);
     get_axis_type("Y", yLog);
 
-    GDLGStream* actStream = GetPlotStream( e); 
-    
     gkw_color(e, actStream);
 
     PLFLT xMR, xML, yMB, yMT;
@@ -181,8 +186,23 @@ namespace lib {
     }
 #endif
 
-    actStream->fill(xEl, static_cast<PLFLT*>(&(*xVal)[0]), static_cast<PLFLT*>(&(*yVal)[0]));
-    actStream->flush();
+  } // }}}
+
+    private: void call_plplot(EnvT* e, GDLGStream* actStream) // {{{
+    {
+      actStream->fill(xEl, static_cast<PLFLT*>(&(*xVal)[0]), static_cast<PLFLT*>(&(*yVal)[0]));
+    } // }}}
+
+    private: virtual void post_call(EnvT*, GDLGStream*) // {{{
+    {
+    } // }}}
+
+  };
+
+  void polyfill(EnvT* e)
+  {
+    polyfill_call polyfill;
+    polyfill.call(e, 1); 
   }
 
 } // namespace

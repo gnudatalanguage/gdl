@@ -22,10 +22,15 @@ namespace lib {
 
   using namespace std;
 
-  void surface( EnvT* e)
+  class surface_call : public plotting_routine_call
   {
-    SizeT nParam=e->NParam( 1); 
 
+    private: void handle_args(EnvT* e) // {{{
+    {
+    } // }}}
+
+  private: void old_body( EnvT* e, GDLGStream* actStream) // {{{
+  {
     DDoubleGDL* zVal;
     DDoubleGDL* yVal;
     DDoubleGDL* xVal;
@@ -37,7 +42,7 @@ namespace lib {
     SizeT yEl;
     SizeT zEl;
 
-    if (nParam == 2 || nParam > 3) {
+    if (nParam() == 2 || nParam() > 3) {
       e->Throw( "Incorrect number of arguments.");
     }
     
@@ -52,14 +57,14 @@ namespace lib {
 			  +e->GetParString(0));    
     xEl = zVal->Dim(1);
     yEl = zVal->Dim(0);
-    if (nParam == 1) {
+    if (nParam() == 1) {
       xVal = new DDoubleGDL( dimension( xEl), BaseGDL::INDGEN);
       xval_guard.reset( xVal); // delete upon exit
       yVal = new DDoubleGDL( dimension( yEl), BaseGDL::INDGEN);
       yval_guard.reset( yVal); // delete upon exit
     }
 
-    if (nParam == 3) {
+    if (nParam() == 3) {
       
       xVal = e->GetParAs< DDoubleGDL>( 1);
       yVal = e->GetParAs< DDoubleGDL>( 2);
@@ -271,11 +276,11 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
     bool yLog = e->KeywordSet( "YLOG");
     bool zLog = e->KeywordSet( "ZLOG");
     if( xLog && xStart <= 0.0)
-      Warning( "PLOT: Infinite x plot range.");
+      Warning( "SURFACE: Infinite x plot range.");
     if( yLog && yStart <= 0.0)
-      Warning( "PLOT: Infinite y plot range.");
+      Warning( "SURFACE: Infinite y plot range.");
     if( zLog && zStart <= 0.0)
-      Warning( "PLOT: Infinite z plot range.");
+      Warning( "SURFACE: Infinite z plot range.");
 
     DLong noErase = p_noErase;
     if( e->KeywordSet( "NOERASE")) noErase = 1;
@@ -327,8 +332,6 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
     DFloat thick = p_thick;
     e->AssureFloatScalarKWIfPresent( "THICK", thick);
 
-    GDLGStream* actStream = GetPlotStream( e); 
-    
     // *** start drawing
     gkw_background(e, actStream);  //BACKGROUND   
     gkw_color(e, actStream);       //COLOR
@@ -507,8 +510,6 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
     actStream->mtex("b",5.4,0.5,0.5,subTitle.c_str());
     
     actStream->lsty(1);//reset linestyle
-    actStream->flush();
-
 
     // set ![XY].CRANGE
     set_axis_crange("X", xStart, xEnd);
@@ -517,6 +518,22 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
     //set ![x|y].type
     set_axis_type("X",xLog);
     set_axis_type("Y",yLog);
-  } // surface
+  } // }}}
+
+    private: void call_plplot(EnvT* e, GDLGStream* actStream) // {{{
+    { 
+    } // }}}
+
+    private: virtual void post_call(EnvT*, GDLGStream*) // {{{
+    {
+    } // }}}
+
+  }; // surface_call class
+
+  void surface(EnvT* e)
+  {
+    surface_call surface;
+    surface.call(e, 1);
+  }
 
 } // namespace
