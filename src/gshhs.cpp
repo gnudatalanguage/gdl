@@ -37,7 +37,14 @@ namespace lib {
 
   using namespace std;
 
-  void map_continents(EnvT* e)
+  class map_continents_call : public plotting_routine_call
+  {
+
+    private: void handle_args(EnvT* e)
+    {
+    }
+
+  private: void old_body(EnvT* e, GDLGStream* actStream)
   {
 #ifndef USE_GSHHS
     e->Throw("GDL was compiled without support for GSHHS");
@@ -57,9 +64,6 @@ namespace lib {
 #endif
     if (!mapSet) 
       e->Throw("Map transform not established (MAP_SET).");
-
-    // plotting init
-    GDLGStream* actStream = GetPlotStream(e);
 
     gkw_color(e, actStream);
 
@@ -279,9 +283,24 @@ namespace lib {
     }
 
     actStream->lsty(1); //reset linestyle
-    actStream->flush(); 
 
 #endif
+  } // old_body
+ 
+    private: void call_plplot(EnvT* e, GDLGStream* actStream)
+    {
+    }
+
+    private: void post_call(EnvT* e, GDLGStream* actStream)
+    {
+    }
+
+  }; // class definition
+
+  void map_continents(EnvT* e)
+  {
+    map_continents_call map_continents;
+    map_continents.call(e, 1); 
   }
 
 } // namespace
