@@ -400,7 +400,7 @@ namespace lib {
  8   SYNC = update the file on disk
     */
     size_t nParam=e->NParam(1);
-    int status,omode    ;
+    int status,omode;
 
     DLong cdfid;
     e->AssureLongScalarPar( 0, cdfid);
@@ -410,9 +410,8 @@ namespace lib {
       e->KeywordSet(4)+      e->KeywordSet(5)+
       e->KeywordSet(7)+      e->KeywordSet(8);
     
-    if(total != 1) throw GDLException(e->CallingNode(),
-				      "NCDF_CONTROL: Error message here(too many keywords).");
-
+    if (total == 0) return;
+    if (total != 1) e->Throw("Only one control may be selected per call.");
 
     status=NC_NOERR;
     if(e->KeywordSet(0))//ABORT
