@@ -1029,6 +1029,34 @@ const string EnvBaseT::GetString( SizeT ix)
     return subUD->GetVarName( ix);
   }
 
+// SA: used by STRING() for VMS-compat hack
+void EnvT::ShiftParNumbering(int n)
+{
+  assert(abs(n) == 1); // currently the code below works for n = +/- 1 only
+
+  SizeT nParam = NParam();
+  SizeT oParam = pro->key.size();
+
+  if (n == 1)
+  {
+    BaseGDL* tmp = env[oParam + nParam - 1];
+    for (int i = nParam - 1; i > 0; --i) 
+    {
+      env[oParam + i] = env[oParam + i - 1];
+    }
+    env[oParam] = tmp;
+  }
+  else if (n == -1)
+  {
+    BaseGDL* tmp = env[oParam];
+    for (int i = 0; i < nParam - 1; ++i) 
+    {
+      env[oParam + i] = env[oParam + i + 1];
+    }
+    env[oParam + nParam - 1] = tmp;
+  }
+}
+
 BaseGDL*& EnvBaseT::GetParDefined(SizeT i)
 {
   SizeT ix = i + pro->key.size();

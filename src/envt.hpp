@@ -637,6 +637,9 @@ public:
   void AssureStringScalarPar( SizeT ix, DString& scalar);
 
   // to be extended on demand for other data types  
+
+  // SA: used by STRING() for VMS-compat hack
+  void ShiftParNumbering(int n);
 };
 
 

@@ -1082,8 +1082,10 @@ namespace lib {
     // SA: handling special VMS-compatibility syntax, e.g.: string(1,'$(F)')
     //     (if nor FORMAT neither PRINT defined, >1 parameter, last param is scalar string
     //     which begins with "$(" or "(" but is not "()" then last param [minus "$"] is treated as FORMAT)
+    bool vmshack = false;
     if (!printKey && (e->GetKW(0) == NULL) && nParam > 1) 
     {    
+      vmshack = true;
       BaseGDL* par = e->GetParDefined(nParam - 1);
       if (par->Type() == STRING && par->Scalar())
       {
@@ -1093,9 +1095,6 @@ namespace lib {
           e->SetKeyword("FORMAT", new DStringGDL(
             (*static_cast<DStringGDL*>(par))[0].c_str() + (dollar == 0 ? 1 : 0) 
           ));
-          parOffset = 1; 
-          for (SizeT i = nParam - 1; i > 0; i--) e->GetParDefined(i) = e->GetParDefined(i-1);
-          e->GetParDefined(0) = par; 
         }
       }    
     }    
@@ -1116,8 +1115,17 @@ namespace lib {
 	    width = 80;//TermWidth();
 	  }
 	
+        if (vmshack)
+        {
+          parOffset = 1; 
+          e->ShiftParNumbering(1);
+        }
 	print_os( &os, e, parOffset, width);
-	
+        if (vmshack) 
+        {
+          e->ShiftParNumbering(-1);
+	}
+
 	deque<DString> buf;
 	while( os.good())
 	  {
@@ -1172,6 +1180,7 @@ namespace lib {
 	  }
       }
   }
+
   BaseGDL* fix_fun( EnvT* e)
   {
     DIntGDL* type = e->IfDefGetKWAs<DIntGDL>( 0);
