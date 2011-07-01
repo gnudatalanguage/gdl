@@ -40,15 +40,24 @@ namespace lib {
 
     DString hdfFilename;
     e->AssureScalarPar<DStringGDL>( 0, hdfFilename); 
-    //    printf("%s\n", hdfFilename.c_str());
+    WordExp( hdfFilename);
 
-    if (e->KeywordSet( "READ"))
-      hdf_id = Hopen(hdfFilename.c_str(), DFACC_RDONLY, 0);
-    else if (e->KeywordSet( "RDWR"))
-      hdf_id = Hopen(hdfFilename.c_str(), DFACC_RDWR, 0);
-    else if (e->KeywordSet( "CREATE"))
-      hdf_id = Hopen(hdfFilename.c_str(), DFACC_CREATE, 0);
+    static int allIx = e->KeywordIx("ALL");
+    static int createIx = e->KeywordIx("CREATE");
+    static int num_ddIx = e->KeywordIx("NUM_DD");
+    static int rdwrIx = e->KeywordIx("RDWR");
+    static int readIx = e->KeywordIx("READ");
+    static int writeIx = e->KeywordIx("WRITE");
 
+    intn access;
+    if (e->KeywordSet(createIx) || e->KeywordSet(allIx)) access = DFACC_CREATE;
+    else if (e->KeywordSet(writeIx) || e->KeywordSet(rdwrIx)) access = DFACC_RDWR;
+    else access = DFACC_RDONLY;
+
+    DLong n_adds = DEF_NDDS;
+    e->AssureLongScalarKWIfPresent(num_ddIx, n_adds);
+
+    hdf_id = Hopen(hdfFilename.c_str(), access, n_adds);
     Vstart(hdf_id);
 
     return new DLongGDL( hdf_id );
@@ -267,14 +276,16 @@ namespace lib {
 
     DString hdfFilename;
     e->AssureScalarPar<DStringGDL>( 0, hdfFilename); 
-    //    printf("%s\n", hdfFilename.c_str());
+    WordExp( hdfFilename);
 
-    if (e->KeywordSet( "READ"))
-      sd_id = SDstart(hdfFilename.c_str(), DFACC_RDONLY);
-    else if (e->KeywordSet( "RDWR"))
-      sd_id = SDstart(hdfFilename.c_str(), DFACC_RDWR);
-    else if (e->KeywordSet( "CREATE"))
-      sd_id = SDstart(hdfFilename.c_str(), DFACC_CREATE);
+    static int createIx = e->KeywordIx("CREATE");
+    static int rdwrIx = e->KeywordIx("RDWR");
+ 
+    intn access = DFACC_RDONLY;
+    if (e->KeywordSet(rdwrIx)) access = DFACC_RDWR;
+    else if (e->KeywordSet(createIx)) access = DFACC_CREATE;
+
+    sd_id = SDstart(hdfFilename.c_str(), access);
 
     return new DLongGDL( sd_id );
   }

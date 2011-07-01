@@ -283,30 +283,23 @@ namespace lib {
   BaseGDL * ncdf_open(EnvT * e)
   {
     size_t nParam=e->NParam(1);
-    if(nParam != 1) throw GDLException(e->CallingNode(),
-				       "NCDF_OPEN: Wrong number of arguments.");
-    
+    if(nParam != 1) e->Throw("Wrong number of arguments."); 
     
     DString s;
     e->AssureScalarPar<DStringGDL>(0, s);
+    WordExp(s);
 
     int cdfid,status;
     if(e->KeywordSet("WRITE") &&!e->KeywordSet("NOWRITE"))
-      {
-	status=nc_open(s.c_str(),
-		       NC_WRITE,
-		       &cdfid);
-      } else {
-	status=nc_open(s.c_str(),
-		       NC_NOWRITE,
-		       &cdfid);
-      }
+    {
+      status=nc_open(s.c_str(), NC_WRITE, &cdfid);
+    } else {
+      status=nc_open(s.c_str(), NC_NOWRITE, &cdfid);
+    }
 
-	ncdf_handle_error(e,status,"NCDF_OPEN");
+    ncdf_handle_error(e,status,"NCDF_OPEN");
 
     return new DLongGDL(cdfid);
-
-
   }
 
 

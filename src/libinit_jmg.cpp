@@ -166,7 +166,7 @@ void LibInit_jmg()
   new DLibPro(lib::wait,string("WAIT"),1);
 
 #if defined(USE_HDF)
-  const string hdf_openKey[]={"READ","RDWR","CREATE",KLISTEND};
+  const string hdf_openKey[]={"READ","RDWR","CREATE","ALL","NUM_DD","WRITE",KLISTEND};
   new DLibFun(lib::hdf_open_fun,string("HDF_OPEN"),2,hdf_openKey);
 
   new DLibFun(lib::hdf_vg_getid_fun,string("HDF_VG_GETID"),2);
