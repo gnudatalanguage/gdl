@@ -50,6 +50,7 @@
 #include "dpro.hpp"
 #include "io.hpp"
 #include "basic_pro.hpp"
+#include "semshm.hpp"
 
 #ifdef HAVE_EXT_STDIO_FILEBUF_H
 #  include <ext/stdio_filebuf.h> // TODO: is it portable across compilers?
@@ -743,6 +744,8 @@ namespace lib {
     //   Error: Unable to initialize gtk, is DISPLAY set properly?
     //wxUninitialize();
 #endif
+
+    sem_onexit();
 
     BaseGDL* status=e->GetKW( 1);
     if( status == NULL) exit( EXIT_SUCCESS);

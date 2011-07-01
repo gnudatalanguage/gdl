@@ -87,6 +87,7 @@ TESTS = \
   test_rebin.pro \
   test_rk4.pro \
   test_scope_varfetch.pro \
+  test_sem.pro \
   test_spawn_unit.pro \
   test_spher_harm.pro \
   test_spl_init.pro \

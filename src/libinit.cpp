@@ -42,6 +42,7 @@
 #endif
 
 #include "grib.hpp"
+#include "semshm.hpp"
 
 // for extensions
 #include "new.hpp"
@@ -801,6 +802,13 @@ void LibInit()
   new DLibFun(lib::spher_harm, string("SPHER_HARM"), 4, spher_harmKey);
   const string gdl_erfinvKey[] = {"DOUBLE", KLISTEND };
   new DLibFun(lib::gdl_erfinv_fun, string("GDL_ERFINV"), 1, gdl_erfinvKey);
+
+  // by Mateusz Turcza
+  const string sem_createKey[] = {"DESTROY_SEMAPHORE", KLISTEND };
+  new DLibFun(lib::sem_create, string("SEM_CREATE"), 1, sem_createKey);
+  new DLibPro(lib::sem_delete, string("SEM_DELETE"), 1);
+  new DLibFun(lib::sem_lock, string("SEM_LOCK"), 1);
+  new DLibPro(lib::sem_release, string("SEM_RELEASE"), 1);
 
   // sort lists
   sort( libFunList.begin(), libFunList.end(), CompLibFunName());

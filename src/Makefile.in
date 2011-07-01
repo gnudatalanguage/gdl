@@ -105,7 +105,7 @@ am__libgdl_la_SOURCES_DIST = accessdesc.hpp arrayindex.hpp \
 	plotting_surface.cpp plotting_axis.cpp plotting_plots.cpp \
 	plotting_xyouts.cpp plotting_polyfill.cpp plotting_windows.cpp \
 	plotting_convert_coord.cpp plotting_map_proj.cpp \
-	plotting_misc.cpp plotting_erase.cpp pythongdl.cpp
+	plotting_misc.cpp plotting_erase.cpp semshm.cpp pythongdl.cpp
 am__objects_1 = assocdata.lo basic_fun_cl.lo basic_fun.lo \
 	basic_fun_jmg.lo basic_op.lo basic_pro.lo basic_pro_jmg.lo \
 	CFMTLexer.lo color.lo convert2.lo datatypes.lo dcommon.lo \
@@ -133,7 +133,7 @@ am__objects_1 = assocdata.lo basic_fun_cl.lo basic_fun.lo \
 	plotting_surface.lo plotting_axis.lo plotting_plots.lo \
 	plotting_xyouts.lo plotting_polyfill.lo plotting_windows.lo \
 	plotting_convert_coord.lo plotting_map_proj.lo \
-	plotting_misc.lo plotting_erase.lo
+	plotting_misc.lo plotting_erase.lo semshm.lo
 @BUILDASLIBRARY_TRUE@am_libgdl_la_OBJECTS = $(am__objects_1) \
 @BUILDASLIBRARY_TRUE@	pythongdl.lo
 libgdl_la_OBJECTS = $(am_libgdl_la_OBJECTS)
@@ -197,7 +197,7 @@ am__gdl_SOURCES_DIST = accessdesc.hpp arrayindex.hpp assocdata.cpp \
 	plotting_surface.cpp plotting_axis.cpp plotting_plots.cpp \
 	plotting_xyouts.cpp plotting_polyfill.cpp plotting_windows.cpp \
 	plotting_convert_coord.cpp plotting_map_proj.cpp \
-	plotting_misc.cpp plotting_erase.cpp gdl.cpp
+	plotting_misc.cpp plotting_erase.cpp semshm.cpp gdl.cpp
 am__objects_2 = gdl-assocdata.$(OBJEXT) gdl-basic_fun_cl.$(OBJEXT) \
 	gdl-basic_fun.$(OBJEXT) gdl-basic_fun_jmg.$(OBJEXT) \
 	gdl-basic_op.$(OBJEXT) gdl-basic_pro.$(OBJEXT) \
@@ -254,7 +254,7 @@ am__objects_2 = gdl-assocdata.$(OBJEXT) gdl-basic_fun_cl.$(OBJEXT) \
 	gdl-plotting_windows.$(OBJEXT) \
 	gdl-plotting_convert_coord.$(OBJEXT) \
 	gdl-plotting_map_proj.$(OBJEXT) gdl-plotting_misc.$(OBJEXT) \
-	gdl-plotting_erase.$(OBJEXT)
+	gdl-plotting_erase.$(OBJEXT) gdl-semshm.$(OBJEXT)
 @BUILDASLIBRARY_FALSE@am_gdl_OBJECTS = $(am__objects_2) \
 @BUILDASLIBRARY_FALSE@	gdl-gdl.$(OBJEXT) gdl-lapack.$(OBJEXT)
 gdl_OBJECTS = $(am_gdl_OBJECTS)
@@ -515,7 +515,7 @@ cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
                 plotting_device.cpp plotting_cursor.cpp plotting_contour.cpp plotting_surface.cpp \
                 plotting_axis.cpp plotting_plots.cpp plotting_xyouts.cpp plotting_polyfill.cpp \
                 plotting_windows.cpp plotting_convert_coord.cpp plotting_map_proj.cpp plotting_misc.cpp \
-                plotting_erase.cpp
+                plotting_erase.cpp semshm.cpp
 
 @BUILDASLIBRARY_FALSE@gdl_SOURCES = $(cpp_hpp_files) gdl.cpp lapack.cpp
 # trigger basename generation
@@ -782,6 +782,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-prognode.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-prognodeexpr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-read.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-semshm.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-sigfpehandler.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-str.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-terminfo.Po@am__quote@
@@ -859,6 +860,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/prognodeexpr.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pythongdl.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/read.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/semshm.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sigfpehandler.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/str.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/terminfo.Plo@am__quote@
@@ -2510,6 +2512,20 @@ gdl-plotting_erase.obj: plotting_erase.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='plotting_erase.cpp' object='gdl-plotting_erase.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-plotting_erase.obj `if test -f 'plotting_erase.cpp'; then $(CYGPATH_W) 'plotting_erase.cpp'; else $(CYGPATH_W) '$(srcdir)/plotting_erase.cpp'; fi`
+
+gdl-semshm.o: semshm.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-semshm.o -MD -MP -MF $(DEPDIR)/gdl-semshm.Tpo -c -o gdl-semshm.o `test -f 'semshm.cpp' || echo '$(srcdir)/'`semshm.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/gdl-semshm.Tpo $(DEPDIR)/gdl-semshm.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='semshm.cpp' object='gdl-semshm.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-semshm.o `test -f 'semshm.cpp' || echo '$(srcdir)/'`semshm.cpp
+
+gdl-semshm.obj: semshm.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-semshm.obj -MD -MP -MF $(DEPDIR)/gdl-semshm.Tpo -c -o gdl-semshm.obj `if test -f 'semshm.cpp'; then $(CYGPATH_W) 'semshm.cpp'; else $(CYGPATH_W) '$(srcdir)/semshm.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/gdl-semshm.Tpo $(DEPDIR)/gdl-semshm.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='semshm.cpp' object='gdl-semshm.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-semshm.obj `if test -f 'semshm.cpp'; then $(CYGPATH_W) 'semshm.cpp'; else $(CYGPATH_W) '$(srcdir)/semshm.cpp'; fi`
 
 gdl-gdl.o: gdl.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-gdl.o -MD -MP -MF $(DEPDIR)/gdl-gdl.Tpo -c -o gdl-gdl.o `test -f 'gdl.cpp' || echo '$(srcdir)/'`gdl.cpp
