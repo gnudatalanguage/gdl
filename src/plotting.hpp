@@ -169,6 +169,7 @@ namespace lib {
     void Clipping( DDoubleGDL* clippingD, 
                  DDouble& xStart, DDouble& xEnd, DDouble& minVal, DDouble& maxVal);
     void handle_pmulti_position(EnvT *e, GDLGStream *a);
+    void UpdateSWPlotStructs(GDLGStream* actStream, DDouble xStart, DDouble xEnd, DDouble yStart, DDouble yEnd);
 
 } // namespace
 

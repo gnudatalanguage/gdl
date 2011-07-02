@@ -825,6 +825,8 @@ clevel[nlevel-1]=zEnd; //make this explicit
       }
       actStream->box( "", 0.0, 0, yOpt.c_str(), yintv, yMinor);
 
+      UpdateSWPlotStructs(actStream, xStart, xEnd, yStart, yEnd);
+/*
       // Get viewpoint parameters and store in WINDOW & S
       PLFLT p_xmin, p_xmax, p_ymin, p_ymax;
       actStream->gvpd (p_xmin, p_xmax, p_ymin, p_ymax);
@@ -854,6 +856,7 @@ clevel[nlevel-1]=zEnd; //make this explicit
         (*static_cast<DDoubleGDL*>( Struct->GetTag( sTag, 0)))[1] =
           (p_ymax - p_ymin) / (yEnd - yStart);
       }
+*/
 
       // title and sub title
       actStream->schr( 0.0, 1.25*actH/defH);

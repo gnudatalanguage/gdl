@@ -17,6 +17,7 @@
 
 #include "includefirst.hpp"
 #include "plotting.hpp"
+#include "devicex.hpp"
 
 namespace lib {
 
@@ -67,9 +68,10 @@ namespace lib {
     if( e->KeywordPresent( 6)) // YPOS
 	e->AssureLongScalarKW( 6, yPos);
 
-    DLong xSize = 640;
+    DLong xSize, ySize;
+    DeviceX::DefaultXYSize(&xSize, &ySize);
+
     e->AssureLongScalarKWIfPresent( "XSIZE", xSize);
-    DLong ySize = 512;
     e->AssureLongScalarKWIfPresent( "YSIZE", ySize);
 
     if( xSize <= 0 || ySize <= 0 || xPos < 0 || yPos < 0)
@@ -100,7 +102,9 @@ namespace lib {
       {
 	if( actDevice->ActWin() == -1)
 	  {
-	    bool success = actDevice->WOpen( 0, "GDL 0", 640, 512, 0, 0);
+            DLong xSize, ySize;
+            DeviceX::DefaultXYSize(&xSize, &ySize);
+	    bool success = actDevice->WOpen( 0, "GDL 0", xSize, ySize, 0, 0);
 	    if( !success)
 	      e->Throw( "Unable to create window.");
 	    return;
@@ -191,11 +195,6 @@ namespace lib {
     int screen_width;
     int screen_height;
    
-    /* this variable will be used to store the ID of the root window of our */
-    /* screen. Each screen always has a root window that covers the whole   */
-    /* screen, and always exists.                                           */
-    Window root_window;
-    
     /* check the number of the default screen for our X server. */
     screen_num = DefaultScreen(display);
     
@@ -205,10 +204,10 @@ namespace lib {
     /* find the height of the default screen of our X server, in pixels. */
     screen_height = DisplayHeight(display, screen_num);
 
-    int debug=0;
-    if (debug ==1) {
-      cout << "Nb pixels: " << screen_width << " x " << screen_height << endl;
-    }
+    //int debug=0;
+    //if (debug ==1) {
+    //  cout << "Nb pixels: " << screen_width << " x " << screen_height << endl;
+    //}
 
     static int resolutionIx = e->KeywordIx( "RESOLUTION");
     if( e->KeywordPresent( resolutionIx)) {
@@ -221,10 +220,10 @@ namespace lib {
       (*resolution)[0]=(screen_width_mm/10.)/screen_width;
       (*resolution)[1]=(screen_height_mm/10.)/screen_height;
       e->SetKW(0, resolution);
-      if (debug ==1) {
-	cout << "screen (mm): " << screen_width_mm << " x " << screen_height_mm << endl;
-	cout << "pixels (mm): " << (*resolution)[0] << " x " << (*resolution)[1] << endl;
-      }
+      //if (debug ==1) {
+      //  cout << "screen (mm): " << screen_width_mm << " x " << screen_height_mm << endl;
+      //  cout << "pixels (mm): " << (*resolution)[0] << " x " << (*resolution)[1] << endl;
+      //}
     }
     
     XCloseDisplay(display);

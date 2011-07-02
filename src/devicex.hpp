@@ -534,7 +534,9 @@ public:
 	if( !open) return NULL;
 
 	DString title = "GDL 0";
-	bool success = WOpen( 0, title, 640, 512, 0, 0);
+        DLong xSize, ySize;
+        DefaultXYSize(&xSize, &ySize);
+	bool success = WOpen( 0, title, xSize, ySize, 0, 0);
 	if( !success)
 	  return NULL;
 	if( actWin == -1)
@@ -859,6 +861,21 @@ public:
       std::cerr << "xwin: Error in XGetImage: " << buffer << std::endl;
     }
     return 1;
+  }
+
+  static void DefaultXYSize(DLong *xSize, DLong *ySize)
+  {
+    *ySize = 640;
+    *ySize = 512;
+#ifdef HAVE_X
+    Display* display = XOpenDisplay(NULL);
+    if (display != NULL)
+    {   
+      *xSize = .5 * DisplayWidth(display, DefaultScreen(display)); 
+      *ySize = .5 * DisplayHeight(display, DefaultScreen(display));
+      XCloseDisplay(display);
+    }   
+#endif
   }
 
 };

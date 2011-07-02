@@ -443,6 +443,40 @@ namespace lib {
     return true;
   }
   
+  void UpdateSWPlotStructs(GDLGStream* actStream, DDouble xStart, DDouble xEnd, DDouble yStart, DDouble yEnd)
+  {
+    // Get viewpoint parameters and store in WINDOW & S
+    PLFLT p_xmin, p_xmax, p_ymin, p_ymax;
+    actStream->gvpd (p_xmin, p_xmax, p_ymin, p_ymax);
+
+    DStructGDL* Struct = NULL;
+
+    Struct = SysVar::X();
+    static unsigned windowTag = Struct->Desc()->TagIndex( "WINDOW");
+    static unsigned sTag = Struct->Desc()->TagIndex( "S");
+    if (Struct != NULL) 
+    {   
+      (*static_cast<DFloatGDL*>( Struct->GetTag( windowTag, 0)))[0] = p_xmin;
+      (*static_cast<DFloatGDL*>( Struct->GetTag( windowTag, 0)))[1] = p_xmax;
+
+      (*static_cast<DDoubleGDL*>( Struct->GetTag( sTag, 0)))[0] = 
+        (p_xmin*xEnd - p_xmax*xStart) / (xEnd - xStart);
+      (*static_cast<DDoubleGDL*>( Struct->GetTag( sTag, 0)))[1] = 
+        (p_xmax - p_xmin) / (xEnd - xStart);
+    }   
+
+    Struct = SysVar::Y();
+    if(Struct != NULL) 
+    {   
+      (*static_cast<DFloatGDL*>( Struct->GetTag( windowTag, 0)))[0] = p_ymin;
+      (*static_cast<DFloatGDL*>( Struct->GetTag( windowTag, 0)))[1] = p_ymax;
+
+      (*static_cast<DDoubleGDL*>( Struct->GetTag( sTag, 0)))[0] = 
+        (p_ymin*yEnd - p_ymax*yStart) / (yEnd - yStart);
+      (*static_cast<DDoubleGDL*>( Struct->GetTag( sTag, 0)))[1] = 
+        (p_ymax - p_ymin) / (yEnd - yStart);
+    }
+  }
 
   void GetSFromPlotStructs(DDouble **sx, DDouble **sy)
   {
@@ -657,6 +691,8 @@ namespace lib {
   }
   // explicit instantiation for SpDDouble
   template bool draw_polyline(EnvT*, GDLGStream*, Data_<SpDDouble>*, Data_<SpDDouble>*, bool, bool, DDouble, DDouble, DLong);
+
+/********* SA: this is not used anywhere!
   
   //CORE PLOT FUNCTION -> Draws a line along xVal, yVal
   template <typename T> bool draw_polyline_ref(EnvT *e,  GDLGStream *a,
@@ -827,6 +863,7 @@ namespace lib {
       }
     return (valid);
   }
+*********/
 
   //MARGIN
   void gkw_axis_margin(EnvT *e, string axis,DFloat &start, DFloat &end)
@@ -1121,6 +1158,7 @@ namespace lib {
     DStructGDL* Struct=NULL;
     if(axis=="X") Struct = SysVar::X();
     if(axis=="Y") Struct = SysVar::Y();
+    if(axis=="Z") Struct = SysVar::Z();
     if(Struct!=NULL)
       {
 	static unsigned crangeTag = Struct->Desc()->TagIndex( "CRANGE");
@@ -1135,6 +1173,7 @@ namespace lib {
     DStructGDL* Struct=NULL;
     if(axis=="X") Struct = SysVar::X();
     if(axis=="Y") Struct = SysVar::Y();
+    if(axis=="Z") Struct = SysVar::Z();
     if(Struct!=NULL)
       {
 	static unsigned crangeTag = Struct->Desc()->TagIndex( "CRANGE");

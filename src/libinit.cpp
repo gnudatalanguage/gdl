@@ -521,52 +521,28 @@ void LibInit()
 
   const string axisKey[]=
     {
-     // GRAPHIC KEYWORDS
-     // 0
      "CHARSIZE","CHARTHICK",
-     // 2
      "COLOR",     "DATA",    "DEVICE",   "FONT",
-     // 6
      "NODATA",    "NOERASE", 
-     // 8
      "NORMAL",    "SUBTITLE",
-     // 10
      "T3D",       "TICKLEN", 
-     // 12
      "XCHARSIZE", "XGRIDSTYLE", "XMARGIN", "XMINOR",
-     // 16
      "XRANGE",    "XSTYLE",     "XTHICK",  "XTICKFORMAT",
-     // 20
      "XTICKLEN",  "XTICKNAME",
-     // 22
      "XTICKS",    
-     // 23
      "XTITLE",
-     // 24
      "YCHARSIZE",  "YGRIDSTYLE", "YMARGIN", "YMINOR",
-     // 28
      "YRANGE",     "YSTYLE",     "YTHICK",  "YTICKFORMAT",
-     // 30
      "YTICKLEN",   "YTICKNAME",
-     // 32
      "YTICKS",
-     // 33
      "YTITLE",
-     // 34
      "ZCHARSIZE",  "ZGRIDSTYLE", "ZMARGIN", "ZMINOR",
-     // 38
      "ZRANGE",     "ZSTYLE",     "ZTHICK",  "ZTICKFORMAT",
-     // 42
      "ZTICKLEN",   "ZTICKNAME",
-     // 44
      "ZTICKS",
-     // 45
      "ZTITLE",
-     // 46
      "ZVALUE", 
 
-     // AXIS keywords
-     // 47
      "SAVE", "XAXIS", "YAXIS", "XLOG", "YLOG", "XTYPE", "YTYPE", "YNOZERO", "THICK",
      "XTICKINTERVAL", "YTICKINTERVAL",
      KLISTEND
@@ -588,12 +564,8 @@ void LibInit()
 
   const string plotsKey[]=
     {
-      // GRAPHIC KEYWORDS
-      // 0
       "CLIP","COLOR", "LINESTYLE", "NOCLIP",
-      // 4
       "PSYM", "SYMSIZE",  "T3D",  "THICK",
-      // 8
       "DATA","DEVICE","NORMAL",
       KLISTEND
     };
@@ -653,7 +625,11 @@ void LibInit()
      "XLOG", "XTYPE", "YLOG", "YTYPE", "ZLOG", "ZTYPE",
      KLISTEND
     };
-  new DLibPro(lib::surface,string("SURFACE"),3,surfaceKey);
+  const string surfaceWarnKey[]=
+  {
+    "SAVE", KLISTEND 
+  };
+  new DLibPro(lib::surface,string("SURFACE"),3,surfaceKey, surfaceWarnKey);
 
   const string contourKey[]=
     {

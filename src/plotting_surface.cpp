@@ -24,90 +24,78 @@ namespace lib {
 
   class surface_call : public plotting_routine_call
   {
+    DDouble xStart, xEnd, yStart, yEnd, zStart, zEnd;
+    bool xLog, yLog, zLog;
+    DDoubleGDL *zVal, *yVal, *xVal;
+    auto_ptr<BaseGDL> xval_guard, yval_guard;
+    SizeT xEl, yEl, zEl;
 
     private: void handle_args(EnvT* e) // {{{
     {
+
+      if (nParam() == 2 || nParam() > 3) 
+        e->Throw( "Incorrect number of arguments.");
+    
+      BaseGDL* p0 = e->GetNumericArrayParDefined( 0)->Transpose( NULL);
+      auto_ptr<BaseGDL> p0_guard;
+      zVal = static_cast<DDoubleGDL*> (p0->Convert2( DOUBLE, BaseGDL::COPY));
+      p0_guard.reset( p0); // delete upon exit
+
+      if(zVal->Dim(0) == 1)
+        e->Throw( "Array must have 2 dimensions:" +e->GetParString(0));    
+
+      xEl = zVal->Dim(1);
+      yEl = zVal->Dim(0);
+      if (nParam() == 1) 
+      {
+        xVal = new DDoubleGDL( dimension( xEl), BaseGDL::INDGEN);
+        xval_guard.reset( xVal); // delete upon exit
+        yVal = new DDoubleGDL( dimension( yEl), BaseGDL::INDGEN);
+        yval_guard.reset( yVal); // delete upon exit
+      }
+
+      if (nParam() == 3) 
+      {
+      
+        xVal = e->GetParAs< DDoubleGDL>( 1);
+        yVal = e->GetParAs< DDoubleGDL>( 2);
+
+        if (xVal->Rank() > 2)
+          e->Throw( "X, Y, or Z array dimensions are incompatible.");
+      
+        if (yVal->Rank() > 2)
+          e->Throw( "X, Y, or Z array dimensions are incompatible.");
+      
+        if (xVal->Rank() == 1) {
+          if (xEl != xVal->Dim(0))
+            e->Throw( "X, Y, or Z array dimensions are incompatible.");
+	}
+      
+        if (yVal->Rank() == 1) {
+          if (yEl != yVal->Dim(0))
+            e->Throw( "X, Y, or Z array dimensions are incompatible.");
+        }
+
+        if (xVal->Rank() == 2) {
+          if((xVal->Dim(0) != xEl) && (xVal->Dim(1) != yEl))
+            e->Throw( "X, Y, or Z array dimensions are incompatible.");
+        }
+      
+        if (yVal->Rank() == 2) 
+        {
+	  if((yVal->Dim(0) != xEl) && (yVal->Dim(1) != yEl))
+            e->Throw( "X, Y, or Z array dimensions are incompatible.");
+        }
+      }
     } // }}}
 
   private: void old_body( EnvT* e, GDLGStream* actStream) // {{{
   {
-    DDoubleGDL* zVal;
-    DDoubleGDL* yVal;
-    DDoubleGDL* xVal;
-    //    DDoubleGDL* zValT;
-    auto_ptr<BaseGDL> xval_guard;
-    auto_ptr<BaseGDL> yval_guard;
-
-    SizeT xEl;
-    SizeT yEl;
-    SizeT zEl;
-
-    if (nParam() == 2 || nParam() > 3) {
-      e->Throw( "Incorrect number of arguments.");
-    }
-    
-    BaseGDL* p0 = e->GetNumericArrayParDefined( 0)->Transpose( NULL);
-    auto_ptr<BaseGDL> p0_guard;
-    zVal = static_cast<DDoubleGDL*>
-      (p0->Convert2( DOUBLE, BaseGDL::COPY));
-    p0_guard.reset( p0); // delete upon exit
-
-    if(zVal->Dim(0) == 1)
-      e->Throw( "Array must have 2 dimensions:"
-			  +e->GetParString(0));    
-    xEl = zVal->Dim(1);
-    yEl = zVal->Dim(0);
-    if (nParam() == 1) {
-      xVal = new DDoubleGDL( dimension( xEl), BaseGDL::INDGEN);
-      xval_guard.reset( xVal); // delete upon exit
-      yVal = new DDoubleGDL( dimension( yEl), BaseGDL::INDGEN);
-      yval_guard.reset( yVal); // delete upon exit
-    }
-
-    if (nParam() == 3) {
-      
-      xVal = e->GetParAs< DDoubleGDL>( 1);
-      yVal = e->GetParAs< DDoubleGDL>( 2);
-
-      if (xVal->Rank() > 2)
-	e->Throw( "X, Y, or Z array dimensions are incompatible.");
-      
-      if (yVal->Rank() > 2)
-	e->Throw( "X, Y, or Z array dimensions are incompatible.");
-      
-      if (xVal->Rank() == 1) {
-	if (xEl != xVal->Dim(0))
-	  e->Throw( "X, Y, or Z array dimensions are incompatible.");
-	}
-      
-      if (yVal->Rank() == 1) {
-	if (yEl != yVal->Dim(0))
-	  e->Throw( "X, Y, or Z array dimensions are incompatible.");
-      }
-
-      if (xVal->Rank() == 2) {
-	if((xVal->Dim(0) != xEl) && (xVal->Dim(1) != yEl))
-	  e->Throw( "X, Y, or Z array dimensions are incompatible.");
-      }
-      
-      if (yVal->Rank() == 2) {
-	if((yVal->Dim(0) != xEl) && (yVal->Dim(1) != yEl))
-	  e->Throw( "X, Y, or Z array dimensions are incompatible.");
-      }
-    }
 
     // !P 
-    DLong p_background; 
-    DLong p_noErase; 
-    DLong p_color; 
-    DLong p_psym; 
-    DLong p_linestyle;
-    DFloat p_symsize; 
-    DFloat p_charsize; 
-    DFloat p_thick; 
-    DString p_title; 
-    DString p_subTitle; 
-    DFloat p_ticklen; 
+    DLong p_background, p_noErase, p_color, p_psym, p_linestyle;
+    DFloat p_symsize, p_charsize, p_thick, p_ticklen; 
+    DString p_title, p_subTitle; 
 
     GetPData( p_background,
 	      p_noErase, p_color, p_psym, p_linestyle,
@@ -118,30 +106,16 @@ namespace lib {
     static DStructGDL* xStruct = SysVar::X();
     static DStructGDL* yStruct = SysVar::Y();
     static DStructGDL* zStruct = SysVar::Z();
-    DLong xStyle; 
-    DLong yStyle; 
-    DLong zStyle; 
-    DString xTitle; 
-    DString yTitle; 
-    DString zTitle; 
-    DFloat x_CharSize; 
-    DFloat y_CharSize; 
-    DFloat z_CharSize; 
-    DFloat xMarginL; 
-    DFloat xMarginR; 
-    DFloat yMarginB; 
-    DFloat yMarginF; 
-    DFloat zMarginB; 
-    DFloat zMarginT; 
-    DFloat xTicklen;
-    DFloat yTicklen;
-    DFloat zTicklen;
-    GetAxisData( xStruct, xStyle, xTitle, x_CharSize, xMarginL, xMarginR,
-		 xTicklen);
-    GetAxisData( yStruct, yStyle, yTitle, y_CharSize, yMarginB, yMarginF,
-		 yTicklen);
-    GetAxisData( zStruct, zStyle, zTitle, z_CharSize, zMarginB, zMarginT,
-		 zTicklen);
+
+    DLong xStyle, yStyle, zStyle;
+    DString xTitle, yTitle, zTitle; 
+    DFloat x_CharSize, y_CharSize, z_CharSize; 
+    DFloat xMarginL, xMarginR, yMarginB, yMarginF, zMarginB, zMarginT; 
+    DFloat xTicklen, yTicklen, zTicklen;
+
+    GetAxisData( xStruct, xStyle, xTitle, x_CharSize, xMarginL, xMarginR, xTicklen);
+    GetAxisData( yStruct, yStyle, yTitle, y_CharSize, yMarginB, yMarginF, yTicklen);
+    GetAxisData( zStruct, zStyle, zTitle, z_CharSize, zMarginB, zMarginT, zTicklen);
     
     // [XY]STYLE
     e->AssureLongScalarKWIfPresent( "XSTYLE", xStyle);
@@ -207,15 +181,9 @@ namespace lib {
       }
 
     // x and y and z range
-     DDouble xStart;// = xVal->min(); 
-     DDouble xEnd;//   = xVal->max(); 
-GetMinMaxVal( xVal, &xStart, &xEnd);
-     DDouble yStart;// = yVal->min(); 
-     DDouble yEnd;//   = yVal->max(); 
-GetMinMaxVal( yVal, &yStart, &yEnd);
-     DDouble zStart;// = zVal->min(); 
-     DDouble zEnd;//   = zVal->max(); 
-GetMinMaxVal( zVal, &zStart, &zEnd);
+    GetMinMaxVal( xVal, &xStart, &xEnd);
+    GetMinMaxVal( yVal, &yStart, &yEnd);
+    GetMinMaxVal( zVal, &zStart, &zEnd);
 
     //[x|y|z]range keyword
     static int zRangeEnvIx = e->KeywordIx("ZRANGE");
@@ -272,9 +240,9 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
     e->AssureDoubleScalarKWIfPresent( "MAX_VALUE", maxVal);
 
 
-    bool xLog = e->KeywordSet( "XLOG");
-    bool yLog = e->KeywordSet( "YLOG");
-    bool zLog = e->KeywordSet( "ZLOG");
+    xLog = e->KeywordSet( "XLOG");
+    yLog = e->KeywordSet( "YLOG");
+    zLog = e->KeywordSet( "ZLOG");
     if( xLog && xStart <= 0.0)
       Warning( "SURFACE: Infinite x plot range.");
     if( yLog && yStart <= 0.0)
@@ -430,7 +398,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
     actStream->wind( -1.0, 1.0, -0.9, 2.0 );
     //    actStream->wind(-1.0, 1.0, -1.0, 1.5);
 
-    PLFLT alt = 33.0;
+    PLFLT alt = 30.0;
     DFloat alt_change = alt;
     e->AssureFloatScalarKWIfPresent( "AX", alt_change);
     alt=alt_change;
@@ -440,7 +408,7 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
     e->AssureFloatScalarKWIfPresent( "AZ", az_change);
     az=az_change;
 
-    actStream->w3d( 1.2, 1.2, 2.2, 
+    actStream->w3d( 1.2, 1.2, 2.2,  // TODO!
 		    xStart, xEnd, yStart, yEnd, minVal, maxVal,
 		    alt, az);
 
@@ -503,29 +471,34 @@ GetMinMaxVal( zVal, &zStart, &zEnd);
       delete[] yVec2;
     }
 
+    // TODO: not sure if this is also valid for 3D?
+    UpdateSWPlotStructs(actStream, xStart, xEnd, yStart, yEnd);
+
     // title and sub title
     actStream->schr( 0.0, 1.25*actH/defH);
     actStream->mtex("t",1.25,0.5,0.5,title.c_str());
     actStream->schr( 0.0, actH/defH); // charsize is reset here
     actStream->mtex("b",5.4,0.5,0.5,subTitle.c_str());
     
-    actStream->lsty(1);//reset linestyle
-
-    // set ![XY].CRANGE
-    set_axis_crange("X", xStart, xEnd);
-    set_axis_crange("Y", yStart, yEnd);
-
-    //set ![x|y].type
-    set_axis_type("X",xLog);
-    set_axis_type("Y",yLog);
   } // }}}
 
     private: void call_plplot(EnvT* e, GDLGStream* actStream) // {{{
     { 
     } // }}}
 
-    private: virtual void post_call(EnvT*, GDLGStream*) // {{{
+    private: virtual void post_call(EnvT*, GDLGStream* actStream) // {{{
     {
+      actStream->lsty(1);//reset linestyle
+
+      // set ![XY].CRANGE
+      set_axis_crange("X", xStart, xEnd);
+      set_axis_crange("Y", yStart, yEnd);
+      set_axis_crange("Z", zStart, zEnd);
+
+      //set ![x|y].type
+      set_axis_type("X", xLog);
+      set_axis_type("Y", yLog);
+      set_axis_type("Z", zLog);
     } // }}}
 
   }; // surface_call class

@@ -335,7 +335,11 @@ namespace SysVar
     plt->NewTag("REGION", new DFloatGDL( dimension( &regionDim, one))); 
     plt->NewTag("SUBTITLE", new DStringGDL( "")); 
     plt->NewTag("SYMSIZE", new DFloatGDL( 0.0)); 
-    plt->NewTag("T", new DDoubleGDL( dimension( tDim, 2))); 
+    {
+      DDoubleGDL* tmp = new DDoubleGDL( dimension( tDim, 2));
+      (*tmp)[0] = (*tmp)[5] = (*tmp)[10] = (*tmp)[15] = 1;
+      plt->NewTag("T", tmp); 
+    }
     plt->NewTag("T3D", new DLongGDL( 0)); 
     plt->NewTag("THICK", new DFloatGDL( 0.0)); 
     plt->NewTag("TITLE", new DStringGDL( "")); 

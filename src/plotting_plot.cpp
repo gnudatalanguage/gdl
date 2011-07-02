@@ -263,6 +263,8 @@ namespace lib {
     gkw_symsize(e, actStream);
     gkw_linestyle(e, actStream);
 
+    UpdateSWPlotStructs(actStream, xStart, xEnd, yStart, yEnd);
+/*
     // Get viewpoint parameters and store in WINDOW & S
     PLFLT p_xmin, p_xmax, p_ymin, p_ymax;
     actStream->gvpd (p_xmin, p_xmax, p_ymin, p_ymax);
@@ -293,6 +295,7 @@ namespace lib {
       (*static_cast<DDoubleGDL*>( Struct->GetTag( sTag, 0)))[1] = 
 	(p_ymax - p_ymin) / (yEnd - yStart);
     }
+*/
 
   } // }}}
   
