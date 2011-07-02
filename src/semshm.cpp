@@ -112,7 +112,7 @@ namespace lib {
     sem_map_t &map = sem_map();
     for (sem_map_t::iterator it = map.begin(); it != map.end(); ++it)
     {
-      if (sem_is_owner(it->second))
+      if (sem_is_deletable(it->second))
       {
         sem_unlink(it->first.c_str());
       }
