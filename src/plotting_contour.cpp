@@ -273,7 +273,7 @@ namespace lib {
     }
     
     if ((zStyle & 1) != 1) {
-      PLFLT zintv = AutoIntvAC(zStart, zEnd, false, zLog );
+      PLFLT intv = AutoIntvAC(zStart, zEnd, false, zLog );
     }
 
     //[x|y|z]range keyword

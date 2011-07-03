@@ -2003,7 +2003,7 @@ namespace lib {
       }
 
     // added on occasion of the UNIT kw patch
-    signal(SIGCHLD,child_sighandler);
+    if (unitKeyword) signal(SIGCHLD,child_sighandler);
 
     DStringGDL* command = e->GetParAs<DStringGDL>( 0);
     DString cmd = (*command)[0];

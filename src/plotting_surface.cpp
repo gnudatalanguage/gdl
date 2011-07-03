@@ -185,6 +185,22 @@ namespace lib {
     GetMinMaxVal( yVal, &yStart, &yEnd);
     GetMinMaxVal( zVal, &zStart, &zEnd);
 
+    xLog = e->KeywordSet( "XLOG");
+    yLog = e->KeywordSet( "YLOG");
+    zLog = e->KeywordSet( "ZLOG");
+
+    if ((xStyle & 1) != 1) {
+      PLFLT intv = AutoIntvAC(xStart, xEnd, false, xLog );
+    }   
+
+    if ((yStyle & 1) != 1) {
+      PLFLT intv = AutoIntvAC(yStart, yEnd, false, yLog );
+    }   
+    
+    if ((zStyle & 1) != 1) {
+      PLFLT intv = AutoIntvAC(zStart, zEnd, false, zLog );
+    } 
+
     //[x|y|z]range keyword
     static int zRangeEnvIx = e->KeywordIx("ZRANGE");
     static int yRangeEnvIx = e->KeywordIx("YRANGE");
@@ -232,17 +248,13 @@ namespace lib {
       }
 
     // AC is it useful ? Why not for Y ?
-    if(xEnd == xStart) xEnd=xStart+1;
+    //if(xEnd == xStart) xEnd=xStart+1;
 
     DDouble minVal = zStart;
     DDouble maxVal = zEnd;
     e->AssureDoubleScalarKWIfPresent( "MIN_VALUE", minVal);
     e->AssureDoubleScalarKWIfPresent( "MAX_VALUE", maxVal);
 
-
-    xLog = e->KeywordSet( "XLOG");
-    yLog = e->KeywordSet( "YLOG");
-    zLog = e->KeywordSet( "ZLOG");
     if( xLog && xStart <= 0.0)
       Warning( "SURFACE: Infinite x plot range.");
     if( yLog && yStart <= 0.0)
