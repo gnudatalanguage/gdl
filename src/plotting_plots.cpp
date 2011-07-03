@@ -304,9 +304,9 @@ namespace lib {
 
         actStream->line3(n, x, y, z);
 
-        delete x;
-        delete y;
-        delete z;
+        delete[] x;
+        delete[] y;
+        delete[] z;
       }
       else 
       {

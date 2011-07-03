@@ -145,14 +145,14 @@ namespace lib {
   void DataCoordLimits(DDouble *sx, DDouble *sy, DFloat *wx, DFloat *wy, 
     DDouble *xStart, DDouble *xEnd, DDouble *yStart, DDouble *yEnd, bool);
 
-  PLFLT AutoIntvAC(DDouble &val_min, DDouble &val_max, DLong NoZero);
+  PLFLT AutoIntvAC(DDouble &val_min, DDouble &val_max, DLong NoZero, bool log = false);
   PLFLT AutoTick(DDouble x);
   void AdjustAxisOpts(string& xOpt, string& yOpt,
     DLong xStyle, DLong yStyle, DLong xTicks, DLong yTicks,
     string& xTickformat, string& yTickformat, DLong xLog, DLong yLog);
   bool SetVP_WC( EnvT* e, GDLGStream* actStream, DFloatGDL* pos, DDoubleGDL* clippingD, bool xLog, bool yLog,
                  DFloat xMarginL, DFloat xMarginR, DFloat yMarginB, DFloat yMarginT, // input/output
-                 DDouble& xStart, DDouble& xEnd, DDouble& minVal, DDouble& maxVal);
+                 DDouble xStart, DDouble xEnd, DDouble minVal, DDouble maxVal);
   void GetMinMaxVal( DDoubleGDL* val, double* minVal, double* maxVal);
   void GetAxisData( DStructGDL* xStruct,
                     DLong& style, DString& title, DFloat& charSize,

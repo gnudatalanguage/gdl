@@ -34,6 +34,8 @@ namespace lib {
     DDouble d_nan;
     bool mapSet;
 #endif
+    bool xLog;
+    bool yLog;
   }; // }}}
 
   void mypltr(PLFLT x, PLFLT y, PLFLT *tx, PLFLT *ty, void *pltr_data) // {{{
@@ -70,8 +72,8 @@ namespace lib {
 #endif
 
     // assignment to pointers passed in arguments
-    *tx = x;
-    *ty = y;
+    *tx = ptr->xLog ? log10(x) : x;
+    *ty = ptr->yLog ? log10(y) : y;
   } // }}}
 
   class contour_call : public plotting_routine_call
@@ -79,6 +81,9 @@ namespace lib {
     DDoubleGDL *zVal, *yVal, *xVal;
     auto_ptr<BaseGDL> xval_guard, yval_guard, p0_guard;
     SizeT xEl, yEl, zEl;
+    DDouble xStart, xEnd, yStart, yEnd, zStart, zEnd;
+    bool xLog, yLog, zLog;
+    bool overplot;
 
     private: void handle_args( EnvT* e) // {{{
     {
@@ -155,17 +160,9 @@ namespace lib {
   private: void old_body( EnvT* e, GDLGStream* actStream) // {{{
   {
     // !P 
-    DLong p_background; 
-    DLong p_noErase; 
-    DLong p_color; 
-    DLong p_psym; 
-    DLong p_linestyle;
-    DFloat p_symsize; 
-    DFloat p_charsize; 
-    DFloat p_thick; 
-    DString p_title; 
-    DString p_subTitle; 
-    DFloat p_ticklen; 
+    DLong p_background, p_noErase, p_color, p_psym, p_linestyle;
+    DFloat p_symsize, p_charsize, p_thick, p_ticklen; 
+    DString p_title, p_subTitle; 
     
     GetPData( p_background,
 	      p_noErase, p_color, p_psym, p_linestyle,
@@ -259,31 +256,24 @@ namespace lib {
       }
 
     // x and y and z range
-    DDouble xStart;// = xVal->min(); 
-    DDouble xEnd;//   = xVal->max(); 
     GetMinMaxVal( xVal, &xStart, &xEnd);
-    
-    DDouble yStart;// = yVal->min(); 
-    DDouble yEnd;//   = yVal->max(); 
     GetMinMaxVal( yVal, &yStart, &yEnd);
-
-    DDouble zStart;// = zVal->min(); 
-    DDouble zEnd;//   = zVal->max(); 
     GetMinMaxVal( zVal, &zStart, &zEnd);
     
+    xLog = e->KeywordSet( "XLOG");
+    yLog = e->KeywordSet( "YLOG");
+    zLog = e->KeywordSet( "ZLOG");
+
     if ((xStyle & 1) != 1) {
-      PLFLT intv;
-      intv = AutoIntvAC(xStart, xEnd, false );
+      PLFLT intv = AutoIntvAC(xStart, xEnd, false, xLog );
     }
 
     if ((yStyle & 1) != 1) {
-      PLFLT intv;
-      intv = AutoIntvAC(yStart, yEnd, false );
+      PLFLT intv = AutoIntvAC(yStart, yEnd, false, yLog );
     }
     
     if ((zStyle & 1) != 1) {
-      PLFLT zintv;
-      zintv = AutoIntvAC(zStart, zEnd, false );
+      PLFLT zintv = AutoIntvAC(zStart, zEnd, false, zLog );
     }
 
     //[x|y|z]range keyword
@@ -364,9 +354,6 @@ namespace lib {
     e->AssureStringScalarKWIfPresent( "YTICKFORMAT", yTickformat);
     e->AssureStringScalarKWIfPresent( "ZTICKFORMAT", zTickformat);
 
-    bool xLog = e->KeywordSet( "XLOG");
-    bool yLog = e->KeywordSet( "YLOG");
-    bool zLog = e->KeywordSet( "ZLOG");
     if( xLog && xStart <= 0.0)
       Warning( "CONTOUR: Infinite x plot range.");
     if( yLog && yStart <= 0.0)
@@ -429,7 +416,7 @@ namespace lib {
     PLINT charthick=1;
 
     static int overplotKW = e->KeywordIx("OVERPLOT");
-    bool overplot = e->KeywordSet( overplotKW);
+    overplot = e->KeywordSet( overplotKW);
     
     DDouble *sx, *sy;
     DFloat *wx, *wy;
@@ -616,8 +603,6 @@ clevel[nlevel-1]=zEnd; //make this explicit
 //       if (clevel[i] > zEnd) clevel[i]=zEnd;
 //     }
 
-
-
     // pen thickness for plot
     actStream->wid( static_cast<PLINT>(floor( thick-0.5)));
 
@@ -655,17 +640,16 @@ clevel[nlevel-1]=zEnd; //make this explicit
       PLFLT spa[4];
       
       // don't forgot we have to use the real limits, not the adjusted ones
-      DDouble xMin;// = zVal->min(); 
-      DDouble xMax;//   = zVal->max(); 
+      DDouble xMin, xMax, yMin, yMax;
       GetMinMaxVal( xVal, &xMin, &xMax);
-      DDouble yMin;// = zVal->min(); 
-      DDouble yMax;//   = zVal->max(); 
       GetMinMaxVal( yVal, &yMin, &yMax);
  
       passinfo.spa[0] = (xMax - xMin) / (xEl - 1);
       passinfo.spa[1] = (yMax - yMin) / (yEl - 1);
       passinfo.spa[2] = xMin;
       passinfo.spa[3] = yMin;
+      passinfo.xLog = xLog;
+      passinfo.yLog = yLog;
 
 #ifdef USE_LIBPROJ4
       passinfo.mapSet = mapSet;
@@ -684,11 +668,15 @@ clevel[nlevel-1]=zEnd; //make this explicit
 #endif
 
       PLFLT** z = new PLFLT*[xEl];
-      for( SizeT i=0; i<xEl; i++) z[i] = &(*zVal)[i*yEl];
+      for( SizeT i=0; i<xEl; i++) 
+      {
+        z[i] = &(*zVal)[i*yEl];
+      }
       
       // plplot knows how to manage NaN but not Infinity ...
       // we remplace Infinity by Nan
-      for( SizeT i=0; i<xEl*yEl; i++) {
+      for( SizeT i=0; i<xEl*yEl; i++) 
+      {
 	if (isinf((*zVal)[i])) (*z)[i]= d_nan;
       }
       // a draft for MaxVal ...
@@ -714,9 +702,7 @@ clevel[nlevel-1]=zEnd; //make this explicit
 	// the "clevel_fill, nlevel_fill" have been computed before
         actStream->shades(z, xEl, yEl, NULL, xStart, xEnd, yStart, yEnd,
  			  clevel_fill, nlevel_fill, 2, 0, 0, plstream::fill,
-// 			  clevel, nlevel, 2, 0, 0, plstream::fill,
-//			  false, mypltr, static_cast<void*>( spa));
-                          false, mypltr, static_cast<void*>(&passinfo));
+                          mapSet, mypltr, static_cast<void*>(&passinfo));
 	
 	gkw_color(e, actStream);//needs to be called again or else PS files look wrong
 	// Redraw the axes just in case the filling overlaps them
@@ -731,8 +717,8 @@ clevel[nlevel-1]=zEnd; //make this explicit
       }
       delete[] z;
     }
-    
-    if (xVal->Rank() == 2 && yVal->Rank() == 2) {
+    else if (xVal->Rank() == 2 && yVal->Rank() == 2) 
+    {
       // FIXME: mapping not supported here yet
       
       PLcGrid2 cgrid2;
@@ -825,58 +811,12 @@ clevel[nlevel-1]=zEnd; //make this explicit
       }
       actStream->box( "", 0.0, 0, yOpt.c_str(), yintv, yMinor);
 
-      UpdateSWPlotStructs(actStream, xStart, xEnd, yStart, yEnd);
-/*
-      // Get viewpoint parameters and store in WINDOW & S
-      PLFLT p_xmin, p_xmax, p_ymin, p_ymax;
-      actStream->gvpd (p_xmin, p_xmax, p_ymin, p_ymax);
-
-      DStructGDL* Struct=NULL;
-      Struct = SysVar::X();
-      static unsigned windowTag = Struct->Desc()->TagIndex( "WINDOW");
-      static unsigned sTag = Struct->Desc()->TagIndex( "S");
-      if(Struct != NULL) 
-      {
-        (*static_cast<DFloatGDL*>( Struct->GetTag( windowTag, 0)))[0] = p_xmin;
-        (*static_cast<DFloatGDL*>( Struct->GetTag( windowTag, 0)))[1] = p_xmax;
-        (*static_cast<DDoubleGDL*>( Struct->GetTag( sTag, 0)))[0] =
-          (p_xmin*xEnd - p_xmax*xStart) / (xEnd - xStart);
-        (*static_cast<DDoubleGDL*>( Struct->GetTag( sTag, 0)))[1] =
-          (p_xmax - p_xmin) / (xEnd - xStart);
-      }
-
-      Struct = SysVar::Y();
-      if(Struct != NULL) 
-      {
-        (*static_cast<DFloatGDL*>( Struct->GetTag( windowTag, 0)))[0] = p_ymin;
-        (*static_cast<DFloatGDL*>( Struct->GetTag( windowTag, 0)))[1] = p_ymax;
-
-        (*static_cast<DDoubleGDL*>( Struct->GetTag( sTag, 0)))[0] =
-          (p_ymin*yEnd - p_ymax*yStart) / (yEnd - yStart);
-        (*static_cast<DDoubleGDL*>( Struct->GetTag( sTag, 0)))[1] =
-          (p_ymax - p_ymin) / (yEnd - yStart);
-      }
-*/
-
       // title and sub title
       actStream->schr( 0.0, 1.25*actH/defH);
       actStream->mtex("t",1.25,0.5,0.5,title.c_str());
       actStream->schr( 0.0, actH/defH); // charsize is reset here
       actStream->mtex("b",5.4,0.5,0.5,subTitle.c_str());
-    
-    }
 
-    actStream->lsty(1);//reset linestyle
-
-    if (!overplot)
-    {
-      // set ![XY].CRANGE
-      set_axis_crange("X", xStart, xEnd);
-      set_axis_crange("Y", yStart, yEnd);
-
-      //set ![x|y].type
-      set_axis_type("X",xLog);
-      set_axis_type("Y",yLog);
     }
   } // }}}
 
@@ -884,8 +824,22 @@ clevel[nlevel-1]=zEnd; //make this explicit
     {
     } // }}}
 
-    private: virtual void post_call(EnvT*, GDLGStream*) // {{{
+    private: virtual void post_call(EnvT*, GDLGStream* actStream) // {{{
     {
+      UpdateSWPlotStructs(actStream, xStart, xEnd, yStart, yEnd);
+
+      actStream->lsty(1);//reset linestyle
+
+      if (!overplot)
+      {
+        // set ![XY].CRANGE
+        set_axis_crange("X", xStart, xEnd);
+        set_axis_crange("Y", yStart, yEnd);
+
+        //set ![x|y].type
+        set_axis_type("X",xLog);
+        set_axis_type("Y",yLog);
+      }
     } // }}}
 
   }; // contour_call class

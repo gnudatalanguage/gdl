@@ -90,7 +90,7 @@ namespace lib {
   // 2/ mimic IDL behavior when data are all posivite
   // please notice that (val_min, val_max) will be changed
   // and "epsilon" is a coefficient if "extended range" is expected
-  PLFLT AutoIntvAC(DDouble &val_min, DDouble &val_max, DLong NoZero)
+  PLFLT AutoIntvAC(DDouble &val_min, DDouble &val_max, DLong NoZero, bool log)
   {
     PLFLT intv = 1.;
     int cas = 0 ;
@@ -98,6 +98,13 @@ namespace lib {
     bool debug = false ;
     if (debug) {cout << "init: " <<  val_min << " " << val_max << endl;}
     
+    if (log)
+    {
+      if (val_min == 0 || val_max == 0) return intv;
+      val_min = log10(val_min);
+      val_max = log10(val_max);
+    }
+
     // case "all below ABS((MACHAR()).xmin)
     if ((abs(val_min) < 1e-38) && (abs(val_max) < 1e-38)) 
       {
@@ -158,6 +165,12 @@ namespace lib {
       }
   
     if (debug) {cout << "cas: "<< cas << " new range: "<<  val_min << " " << val_max << endl;}
+
+    if (log)
+    {
+      val_min = pow(10, val_min);
+      val_max = pow(10, val_max);
+    }
     
     return intv;
   }
@@ -335,10 +348,10 @@ namespace lib {
 		 DFloat yMarginB, 
 		 DFloat yMarginT,
 		 // input/output
-		 DDouble& xStart,
-		 DDouble& xEnd,
-		 DDouble& minVal,
-		 DDouble& maxVal)
+		 DDouble xStart,
+		 DDouble xEnd,
+		 DDouble minVal,
+		 DDouble maxVal)
   {
     //    cout << "xStart " << xStart << "  xEnd "<<xEnd<<endl;
     //    cout << "yStart " << minVal << "  yEnd "<<maxVal<<endl;
@@ -419,6 +432,7 @@ namespace lib {
 	Clipping( clippingD, xStart, xEnd, minVal, maxVal);
 
     // for OPLOT start and end values are already log
+    // SA: changing only local variables!
     if( pos != NULL)
       {
 	if( xLog)

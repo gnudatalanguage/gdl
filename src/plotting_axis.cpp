@@ -94,7 +94,6 @@ namespace lib {
     if ((xStyle & 1) != 1 && xAxis) {
       PLFLT intv;
       intv = AutoIntvAC(xStart, xEnd, false );
-      //      intv = AutoIntv(xEnd-xStart);
       // xEnd = ceil(xEnd/intv) * intv;
       // xStart = floor(xStart/intv) * intv;
     }
@@ -102,7 +101,6 @@ namespace lib {
     if ((yStyle & 1) != 1 && yAxis) {
       PLFLT intv;
       intv = AutoIntvAC(yStart, yEnd, false );
-      //      intv = AutoIntv(yEnd-yStart);
       //yEnd = ceil(yEnd/intv) * intv;
       //yStart = floor(yStart/intv) * intv;
     }

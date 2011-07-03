@@ -68,11 +68,6 @@ namespace lib {
         yEnd = (*yVal)[maxEl];
       }
 
-      if (xLog && xStart <= 0.0)
-        Warning( "PLOT: Infinite x plot range.");
-      if (yLog && yStart <= 0.0)
-        Warning( "PLOT: Infinite y plot range.");
-
     } // }}}
 
   private: void old_body( EnvT* e, GDLGStream* actStream) // {{{
@@ -96,22 +91,27 @@ namespace lib {
     gkw_axis_margin(e, "X", xMarginL, xMarginR);
     gkw_axis_margin(e, "Y", yMarginB, yMarginT);
 
+    DLong xnozero=1, ynozero=0;
+    if ( e->KeywordSet( "YNOZERO")) ynozero = 1;
+
     // keyword overrides
     static int xLogIx = e->KeywordIx( "XLOG");
     static int yLogIx = e->KeywordIx( "YLOG");
     xLog = e->KeywordSet( xLogIx);
     yLog = e->KeywordSet( yLogIx);
 
-    DLong xnozero=1, ynozero=0;
+    if (xLog && xStart <= 0.0)
+      Warning( "PLOT: Infinite x plot range.");
+    if (yLog && yStart <= 0.0)
+      Warning( "PLOT: Infinite y plot range.");
+
     if ( e->KeywordSet( "YNOZERO")) ynozero = 1;
 
-    if ((xStyle & 1) != 1 && xLog == false) {
-      PLFLT intv;
-      intv = AutoIntvAC(xStart, xEnd, xnozero);
+    if ((xStyle & 1) != 1) {
+      PLFLT intv = AutoIntvAC(xStart, xEnd, xnozero, xLog);
     }
-    if ((yStyle & 1) != 1 && yLog == false) {
-      PLFLT intv;
-      intv = AutoIntvAC(yStart, yEnd, ynozero);
+    if ((yStyle & 1) != 1) {
+      PLFLT intv = AutoIntvAC(yStart, yEnd, ynozero, yLog);
     }
 
     // Please remember the {X|Y}range overwrite the data range
@@ -119,7 +119,10 @@ namespace lib {
     gkw_axis_range(e, "X", xStart, xEnd, xnozero);
     gkw_axis_range(e, "Y", yStart, yEnd, ynozero);
 
-    if ( e->KeywordSet( "YNOZERO")) ynozero = 1;
+    if (xLog && xStart <= 0.0)
+      Warning( "PLOT: Infinite x plot range.");
+    if (yLog && yStart <= 0.0)
+      Warning( "PLOT: Infinite y plot range.");
 
     minVal = yStart;
     maxVal = yEnd;
@@ -264,38 +267,6 @@ namespace lib {
     gkw_linestyle(e, actStream);
 
     UpdateSWPlotStructs(actStream, xStart, xEnd, yStart, yEnd);
-/*
-    // Get viewpoint parameters and store in WINDOW & S
-    PLFLT p_xmin, p_xmax, p_ymin, p_ymax;
-    actStream->gvpd (p_xmin, p_xmax, p_ymin, p_ymax);
-
-    DStructGDL* Struct=NULL;
-    Struct = SysVar::X();
-    static unsigned windowTag = Struct->Desc()->TagIndex( "WINDOW");
-    static unsigned sTag = Struct->Desc()->TagIndex( "S");
-    if (Struct != NULL) 
-    {
-      (*static_cast<DFloatGDL*>( Struct->GetTag( windowTag, 0)))[0] = p_xmin;
-      (*static_cast<DFloatGDL*>( Struct->GetTag( windowTag, 0)))[1] = p_xmax;
-
-      (*static_cast<DDoubleGDL*>( Struct->GetTag( sTag, 0)))[0] = 
-	(p_xmin*xEnd - p_xmax*xStart) / (xEnd - xStart);
-      (*static_cast<DDoubleGDL*>( Struct->GetTag( sTag, 0)))[1] = 
-	(p_xmax - p_xmin) / (xEnd - xStart);
-    }
-
-    Struct = SysVar::Y();
-    if(Struct != NULL) 
-    {
-      (*static_cast<DFloatGDL*>( Struct->GetTag( windowTag, 0)))[0] = p_ymin;
-      (*static_cast<DFloatGDL*>( Struct->GetTag( windowTag, 0)))[1] = p_ymax;
-
-      (*static_cast<DDoubleGDL*>( Struct->GetTag( sTag, 0)))[0] = 
-	(p_ymin*yEnd - p_ymax*yStart) / (yEnd - yStart);
-      (*static_cast<DDoubleGDL*>( Struct->GetTag( sTag, 0)))[1] = 
-	(p_ymax - p_ymin) / (yEnd - yStart);
-    }
-*/
 
   } // }}}
   

@@ -9,10 +9,16 @@ pro test_plotting_ranges
 
   set_plot, 'z'
 
+  print, '1'
   plot, [1948, 2006], [0,1]
   if !X.CRANGE[1] gt 2100 then err += 1
 
+  print, '2'
+  plot, [1, 10], /ylog
+  if !Y.CRANGE[0] ne 1 then err += 1
+
 ; still to be fixed 
+;  print, '3'
 ;  plot, [0], yrange=[400,1500] 
 ;  if !Y.CRANGE[1] lt 1600 then err += 1
 
