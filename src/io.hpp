@@ -348,13 +348,13 @@ public:
     lastSeekPos( 0),
     lastRecord( 0),
     lastRecordStart( 0)
-#ifdef HAVE_EXT_STDIO_FILEBUF_H
     {
+#ifdef HAVE_EXT_STDIO_FILEBUF_H
       readbuf_frb_destroy_on_close_p = NULL;
       readbuf_bsrb_destroy_on_close_p = NULL;
       fd_close_on_close = -1;
-    }
 #endif
+    }
 
   ~GDLStream() 
   {
