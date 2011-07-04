@@ -23,6 +23,7 @@
 #include <semaphore.h>
 #include <fcntl.h>
 #include <map>
+#include <cerrno>
 
 #include "envt.hpp"
 
