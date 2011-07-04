@@ -184,6 +184,7 @@ plotting_contour.cpp
 plotting_convert_coord.cpp
 plotting_cursor.cpp
 plotting_device.cpp
+plotting_erase.cpp
 plotting_map_proj.cpp
 plotting_misc.cpp
 plotting_oplot.cpp
@@ -202,6 +203,8 @@ prognode.cpp
 prognodeexpr.cpp
 read.cpp
 real2int.hpp
+semshm.cpp
+semshm.hpp
 sigfpehandler.cpp
 sigfpehandler.hpp
 specializations.hpp
