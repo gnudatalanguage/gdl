@@ -871,8 +871,8 @@ public:
     Display* display = XOpenDisplay(NULL);
     if (display != NULL)
     {   
-      *xSize = .5 * DisplayWidth(display, DefaultScreen(display)); 
-      *ySize = .5 * DisplayHeight(display, DefaultScreen(display));
+      *xSize = DisplayWidth(display, DefaultScreen(display)) / 2; 
+      *ySize = DisplayHeight(display, DefaultScreen(display)) / 2;
       XCloseDisplay(display);
     }   
 #endif
