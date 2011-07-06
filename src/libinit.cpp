@@ -330,13 +330,14 @@ void LibInit()
   
   const string stringKey[]={"FORMAT","AM_PM","DAYS_OF_WEEK","MONTH",
 			    "PRINT",KLISTEND};
-  new DLibFunRetNew(lib::string_fun,string("STRING"),-1,stringKey,NULL,true);
-  new DLibFunRetNew(lib::byte_fun,string("BYTE"),10,NULL,NULL,true);
-/* that's apparently the desired bahaviour, see bug no. 3151760
+//  new DLibFunRetNew(lib::string_fun,string("STRING"),-1,stringKey,NULL,true);
+//  new DLibFunRetNew(lib::byte_fun,string("BYTE"),10,NULL,NULL,true);
+// that's apparently the desired bahaviour, see bug no. 3151760
   new DLibFun(lib::string_fun,string("STRING"),-1,stringKey,NULL);
   new DLibFun(lib::byte_fun,string("BYTE"),10,NULL,NULL);
-*/
+
   const string fixKey[]={"TYPE","PRINT",KLISTEND};
+/*
   new DLibFunRetNew(lib::fix_fun,string("FIX"),10,fixKey,NULL,true);
   new DLibFunRetNew(lib::uint_fun,string("UINT"),10,NULL,NULL,true);
   new DLibFunRetNew(lib::long_fun,string("LONG"),10,NULL,NULL,true);
@@ -347,7 +348,8 @@ void LibInit()
   new DLibFunRetNew(lib::double_fun,string("DOUBLE"),10,NULL,NULL,true);
   new DLibFunRetNew(lib::complex_fun,string("COMPLEX"),MAXRANK+2,NULL,NULL,true);
   new DLibFunRetNew(lib::dcomplex_fun,string("DCOMPLEX"),MAXRANK+2,NULL,NULL,true);
-/* that's apparently the desired bahaviour, see bug no. 3151760
+*/
+// that's apparently the desired bahaviour, see bug no. 3151760
   new DLibFun(lib::fix_fun,string("FIX"),10,fixKey,NULL);
   new DLibFun(lib::uint_fun,string("UINT"),10,NULL,NULL);
   new DLibFun(lib::long_fun,string("LONG"),10,NULL,NULL);
@@ -358,7 +360,6 @@ void LibInit()
   new DLibFun(lib::double_fun,string("DOUBLE"),10,NULL,NULL);
   new DLibFun(lib::complex_fun,string("COMPLEX"),MAXRANK+2,NULL,NULL);
   new DLibFun(lib::dcomplex_fun,string("DCOMPLEX"),MAXRANK+2,NULL,NULL);
-*/
 
   new DLibFunRetNew(lib::gdl_logical_and,string("LOGICAL_AND"),2,NULL,NULL,true);
   new DLibFunRetNew(lib::gdl_logical_or,string("LOGICAL_OR"),2,NULL,NULL,true);

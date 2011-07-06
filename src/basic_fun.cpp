@@ -924,11 +924,9 @@ namespace lib {
 	  }
 	else
 	  {
-            // SA: see tracker item 3151760 ... but it does not work yet :(
+            // SA: see tracker item 3151760 
 	    BaseGDL* p0 = e->GetParDefined( 0);
-            // if (ComplexGDL::t == p0->Type() && e->GlobalPar(0)) 
-            //  return p0;
-            //else 
+            if (ComplexGDL::t == p0->Type() && e->GlobalPar(0)) return p0;
 	    return p0->Convert2( ComplexGDL::t, BaseGDL::COPY);
 	  }
       }
@@ -992,9 +990,9 @@ namespace lib {
 	if( static_cast< EnvUDT*>( e->Caller())->GetIOError() != NULL) 
 	  return p0->Convert2( TargetClass::t, 
 			       BaseGDL::COPY_THROWIOERROR);
-        // SA: see tracker item no. 3151760 ... does not work yet
-        //else if (TargetClass::t == p0->Type() && e->GlobalPar(0)) 
-        //  return p0;
+        // SA: see tracker item no. 3151760 
+        else if (TargetClass::t == p0->Type() && e->GlobalPar(0)) 
+          return p0;
 	else
 	  return p0->Convert2( TargetClass::t, BaseGDL::COPY);
       }
@@ -1156,8 +1154,8 @@ namespace lib {
 	if( nParam == 1) // nParam == 1 -> conversion
 	  {
 	    BaseGDL* p0 = e->GetParDefined( 0);
-            // SA: see tracker item no. 3151760 ... but it does not work yet
-            //if (p0->Type() == STRING && e->GlobalPar(0)) return p0;
+            // SA: see tracker item no. 3151760 
+            if (p0->Type() == STRING && e->GlobalPar(0)) return p0;
 	    return p0->Convert2( STRING, BaseGDL::COPY);
 	  }
 	else // concatenation
