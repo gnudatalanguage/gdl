@@ -85,7 +85,7 @@ namespace lib {
     bool xLog, yLog, zLog;
     bool overplot;
 
-    private: void handle_args( EnvT* e) // {{{
+    private: bool handle_args( EnvT* e) // {{{
     {
       if( nParam() == 1)
       {
@@ -155,6 +155,10 @@ namespace lib {
 	    e->Throw( "X, Y, or Z array dimensions are incompatible.");
 	}
       }
+      static int overplotKW = e->KeywordIx("OVERPLOT");
+      overplot = e->KeywordSet( overplotKW);
+    
+      return overplot;
     } // }}}
 
   private: void old_body( EnvT* e, GDLGStream* actStream) // {{{
@@ -415,9 +419,6 @@ namespace lib {
    // CHARTHICK (thickness of "char")
     PLINT charthick=1;
 
-    static int overplotKW = e->KeywordIx("OVERPLOT");
-    overplot = e->KeywordSet( overplotKW);
-    
     DDouble *sx, *sy;
     DFloat *wx, *wy;
     GetSFromPlotStructs(&sx, &sy);
@@ -635,8 +636,10 @@ clevel[nlevel-1]=zEnd; //make this explicit
     // starting plotting the data
     struct mypltr_passinfo passinfo;
 
+    static int c_colorsIx = e->KeywordIx("C_COLORS");
     // 1 DIM X & Y
-    if (xVal->Rank() == 1 && yVal->Rank() == 1) {
+    if (xVal->Rank() == 1 && yVal->Rank() == 1) 
+    {
       PLFLT spa[4];
       
       // don't forgot we have to use the real limits, not the adjusted ones
@@ -711,9 +714,19 @@ clevel[nlevel-1]=zEnd; //make this explicit
 	// pen thickness for axis
 	actStream->wid(charthick);
       } else {
-        actStream->cont(z, xEl, yEl, 1, xEl, 1, yEl, 
-                        clevel, nlevel, mypltr, static_cast<void*>(&passinfo)) ;
-
+        if (e->GetKW(c_colorsIx) != NULL)
+        {
+          DLongGDL *colors = e->GetKWAs<DLongGDL>(c_colorsIx);
+          for (SizeT i = 0; i < nlevel; ++i) 
+          { 
+            actStream->Color((*colors)[i % colors->N_Elements()], true, 2);
+            actStream->cont(z, xEl, yEl, 1, xEl, 1, yEl, &(clevel[i]), 1, mypltr, static_cast<void*>(&passinfo));
+          }
+        }
+        else
+        {
+          actStream->cont(z, xEl, yEl, 1, xEl, 1, yEl, clevel, nlevel, mypltr, static_cast<void*>(&passinfo));
+        }
       }
       delete[] z;
     }
@@ -746,7 +759,6 @@ clevel[nlevel-1]=zEnd; //make this explicit
         actStream->shades(z, xVal->Dim(0), xVal->Dim(1), 
 			  NULL, xStart, xEnd, yStart, yEnd,
  			  clevel_fill, nlevel_fill, 2, 0, 0, plstream::fill,
-// 			  clevel, nlevel, 2, 0, 0, plstream::fill,
 			  false, plstream::tr2, (void *) &cgrid2 );
 
 	gkw_color(e, actStream);//needs to be called again or else PS files look wrong
@@ -756,9 +768,25 @@ clevel[nlevel-1]=zEnd; //make this explicit
 	// pen thickness for axis
 	actStream->wid(charthick);
       } else {	      
-	actStream->cont(z, xVal->Dim(0), xVal->Dim(1), 
-			1, xVal->Dim(0), 1, xVal->Dim(1), clevel, nlevel,
-			plstream::tr2, (void *) &cgrid2 );
+        if (e->GetKW(c_colorsIx) != NULL)
+        {
+          DLongGDL *colors = e->GetKWAs<DLongGDL>(c_colorsIx);
+          for (SizeT i = 0; i < nlevel; ++i) 
+          { 
+            actStream->Color((*colors)[i % colors->N_Elements()], true, 2);
+	    actStream->cont(z, xVal->Dim(0), xVal->Dim(1), 
+              1, xVal->Dim(0), 1, xVal->Dim(1), &(clevel[i]), 1,
+              plstream::tr2, (void *) &cgrid2 
+            );
+          }
+        }
+        else
+        {
+	  actStream->cont(z, xVal->Dim(0), xVal->Dim(1), 
+            1, xVal->Dim(0), 1, xVal->Dim(1), clevel, nlevel,
+            plstream::tr2, (void *) &cgrid2 
+          );
+        }
       }
       actStream->Free2dGrid(cgrid2.xg,xVal->Dim(0),xVal->Dim(1));
       actStream->Free2dGrid(cgrid2.yg,xVal->Dim(0),xVal->Dim(1));
