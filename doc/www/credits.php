@@ -18,7 +18,7 @@ As of 2011 the core team consists additionally of:
 
 <ul>
 <li>
-<a href="mailto:slayoo@users.sourceforge.net>">Sylwester Arabas</a> 
+<a href="mailto:slayoo@users.sourceforge.net">Sylwester Arabas</a> 
 <br/>
 Library routines, testing, documentation, portability issues 
 </li>
