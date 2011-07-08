@@ -1,0 +1,513 @@
+/* ----------------------------------------------
+	Template Name : Colourise
+	Template Code : S-0022
+	Version : 1.1   
+	Author : Erwin Aligam
+	Author URI : http://www.styleshout.com/       
+	Last Date Modified :  January 17, 2010
+ ------------------------------------------------ */
+ 
+/* ----------------------------------------------
+   HTML ELEMENTS
+------------------------------------------------- */ 
+
+/* Top Elements */
+* { margin: 0; padding: 0; outline: 0 }
+
+body {
+	font: 11px/165% 'Lucida Grande', Geneva, Verdana, Arial, Helvetica, sans-serif;
+	color: #9B9B9B; 	
+	margin: 0; 	padding: 0; 
+	background: #070707 url(bg.jpg) no-repeat center top;
+	text-align: center;
+}
+
+/* Links */
+a, a:active, a:link {
+	text-decoration: none;
+	color: #006193;			
+}
+a:visited {
+	text-decoration: none;
+}
+a:hover {
+	color: #fff;
+	border-bottom: 1px dotted #438800;
+}
+
+/* headers */
+h1, h2, h3 {
+	font-family: 'Trebuchet MS', Tahoma, Arial, Sans-serif;
+	color: #ABABAB;
+}
+h1 {
+	font-size: 3.6em;
+	font-weight: normal;
+	letter-spacing: -2px;
+	padding: 15px 10px 5px 10px;	
+}
+h2 {
+	font-size: 2.2em;
+	color: #895F30;
+	padding: 20px 10px 5px 10px;	
+}
+h3 {
+	font-size: 1.8em;
+	font-weight: normal;
+	padding: 20px 10px 5px 10px;	
+}
+
+p, dl { padding: 10px; margin: 0; }
+
+ul, ol {
+	margin: 10px 20px;
+	padding: 0 20px;
+}
+ul { list-style: none; }
+
+dt {
+  font-weight: bold;
+  color: #fff;
+}
+dd {
+  padding-left: 25px; 
+}
+
+/* images */
+img {
+	background: #1B1B1B;
+    border: 1px solid #1B1B1B;
+	padding: 8px;
+}
+img.float-right {
+  	margin: 5px 0px 10px 10px;  
+}
+img.float-left {
+  	margin: 5px 10px 10px 0px;
+}
+
+code {
+  	margin: 5px 0;
+  	padding: 15px;
+  	text-align: left;
+  	display: block;
+  	overflow: auto;  
+  	font: 500 1em/1.5em 'Lucida Console', 'Courier New', Monospace ;
+  	/* white-space: pre; */
+  	background: #111;  
+}
+acronym {
+  	cursor: help;
+  	border-bottom: 1px dotted #5B5B5B;
+}
+blockquote {
+	margin: 15px 10px;
+ 	padding: 10px 10px 10px 35px;  
+   background: #111 url(quote.jpg) no-repeat 10px 10px;
+	font-weight: normal;
+	font-size: 18px;
+	line-height: 1.6em;
+	font-style: italic;
+	font-family: Georgia, 'Times New Roman', Times, serif;	
+	color: #808080;	
+}
+
+/* start - table */
+table {
+	margin: 15px 10px; 
+	border-collapse: collapse;			
+}
+th {
+	background: #000;
+	color: #fff;
+	height: 38px;
+	padding-left: 12px;
+	padding-right: 12px;	
+	text-align: left;
+	border-left: 1px solid #211E20;
+	border-right: 1px solid #211E20;
+	border-bottom: 1px solid #211E20; 
+	border-top: 1px solid #48780E;
+}
+tr {
+	color: #5b5b5b;
+	height: 34px;	
+}
+td {
+	padding-left: 12px;
+	padding-right: 12px;
+	border: 1px solid #111;	
+}
+/* end - table */
+
+/* form elements */
+form {
+	margin: 20px 10px; padding: 5px 10px 20px 10px;
+	border: 1px solid #111; 
+	background: #070707; 	
+}
+label {
+	display: block;
+	font-weight: bold;
+	margin: 8px 0;
+	color: #fff;
+}
+input, select, textarea {
+	padding: 5px 4px;
+	font: normal 1em Verdana, Tahoma, sans-serif;
+	color: #6A6969;
+	background: #0C0C0C;  
+	border: 1px solid #1C1C1C;
+}
+textarea {
+	width: 400px;
+	height: 100px;
+	display: block;	
+}
+input.button { 
+	font: bold 12px Arial, Sans-serif; 
+	height: 30px;
+	margin: 0;
+	padding: 2px 3px; 
+	color: #48780E;
+	background: #000;
+	
+	border-width: 1px;
+  	border-style: solid;
+  	border-color: #1c1c1c;
+}
+
+/* search form */
+.searchform {
+	background-color: transparent;
+	border: none;	
+	margin: 0; padding: 20px 0 15px 8px;	
+	width: 270px;	
+}
+.searchform p { margin: 0; padding: 0 0 10px 0; }
+.searchform input.textbox { 
+	width: 185px;
+	height: 18px;
+	padding: 2px;	
+	vertical-align: top;
+}
+.searchform input.button { 
+	width: 60px;
+	height: 24px;
+	padding: 2px 5px;
+	vertical-align: top;
+}
+
+/* ------------------------------------------
+   LAYOUT
+------------------------------------------- */ 
+#wrap {
+	position: relative;
+	width: 900px;	
+	margin: 0 auto;
+	text-align: left;		
+}
+#content-wrap {
+	position: relative;
+	clear: both;
+	width: 900px;	
+	padding: 0; 		
+	margin-left: 5px;	
+	background: transparent;
+	float: left;	
+	display: inline;	
+	border-top: 1px solid #1A1A1A;
+}
+#header {
+	position: relative;
+	width: 900px;	
+	height: 370px;	
+	margin: 0; padding: 0;		
+	background: transparent;
+}
+
+/* header search */
+#header form#quick-search {
+	position: absolute;
+	top: 38px; right: 0;
+	padding: 0; margin: 0;
+	border: none;
+	width: 262px; height: 30px;
+	background: url(header-search.jpg) no-repeat;	
+	z-index: 999999;
+}
+#header form#quick-search p {
+	margin: 0; padding: 0;		
+}
+#header form#quick-search .tbox {
+	margin: 2px 0 0 5px; 
+	width: 210px;
+	background: none;
+	border: none;
+}
+#header form#quick-search label,
+#header form#quick-search .btn {
+	display: none;	
+}
+
+/*  Navigation  */
+#nav {
+	position: absolute;
+	margin: 0; padding: 0;		
+	height: 40px;
+	width: 900px;	
+	left: 0;	top: 35px;	
+	border-bottom: 1px solid #1A1A1A;
+}
+#nav ul {
+	float: left;
+	list-style: none;
+	width: 880px;		
+	height: 40px;
+	margin: 0 0 0 5px; padding: 0;	
+	display: inline;
+}
+#nav ul li {
+	display: inline;
+	margin: 0; padding: 0;
+}
+#nav ul li a {
+	float: left;
+	margin: 0;	padding: 0 8px;
+	font: bold 15px/35px 'Trebuchet MS', Helvetica, Arial, Geneva, sans-serif;
+	text-decoration: none;	
+	color: #5c9a12;	
+}
+#nav ul li a:hover, 
+#nav ul li a:active {
+	color: #eee;
+	background: none;
+	border: none;
+}
+#nav ul li#current a {	
+	color: #0077B5;	
+}
+
+#header h1#logo-text a {
+	position: absolute;
+	margin: 0; padding: 0;
+	font: normal 60px Georgia, 'Times New Roman', Times, serif;
+	letter-spacing: -1.5px;
+	color: #fff;
+	text-decoration: none;
+	
+	/* change the values of top and left to adjust the position of the logo*/
+	top: 120px; left: 10px;	
+}
+#header h1#logo-text a:hover {
+	background: none;	border: none;
+}
+#header p#intro {
+	position: absolute;
+	margin: 0; padding: 0;
+	font-family: Georgia, 'Times New Roman', Times, serif;
+	font-weight: normal;
+	font-size: 18px;
+	line-height: 1.6em;
+	font-style: italic;
+	text-transform: none;
+	color: #cd9857;
+	width: 500px;
+	
+	/* change the values of top and left to adjust the position */
+	top: 195px; left: 15px;		
+}
+
+/* Main Column */
+#main {
+	float: left;
+	width: 545px;
+	padding: 0; margin: 0;
+	display: inline;		
+}
+#main h2 {
+	padding-bottom: 3px;
+	margin-top: 15px;
+	font: normal 3.5em 'Trebuchet MS', Tahoma, Helvetica, Arial, sans-serif;
+	color: #fff; 
+	letter-spacing: -2px;	
+	text-transform: none;	
+}
+#main h2 a {
+	color: #fff;
+	text-decoration: none;		
+	border: none;	
+}
+#main ul li {
+	list-style-image: url(bullet.gif);
+	font-size: 14px;
+}
+#main p {
+	font-size: 14px;
+}
+
+/* Sidebar */	
+#sidebar {
+	float: right;
+	width: 290px;
+	padding: 0; margin: 25px 0 0 0;		
+	display: inline;	
+}	
+#sidebar h3 {
+	margin-top: 10px;
+	padding: 15px 5px 10px 5px; 
+	font: bold 2em 'Trebuchet MS', Tahoma, Helvetica, Arial, sans-serif;
+	background: url(footer-top.jpg) no-repeat center bottom;
+	color: #fefefe;
+}
+#sidebar ul.sidemenu {
+	text-align: left;
+	margin: 7px 5px 8px 0px; padding: 0;				
+}
+#sidebar ul.sidemenu li {
+	list-style: none;
+	padding: 8px 10px;
+	margin: 0;		
+	border-bottom: 1px solid #111;
+}
+* html body #sidebar ul.sidemenu li {
+	height: 1%;
+}
+#sidebar ul.sidemenu li a {
+	text-decoration: none;	
+	border: none;
+	color: #5d5d5d; 	
+		
+	font-weight: bold;		
+	font-family: 'Trebuchet MS', Tahoma, Helvetica, Arial, Sans-serif;
+	font-size: 14px;	
+	/* letter-spacing: .5px;  */
+}
+#sidebar ul.sidemenu li a span {
+	color: #444;	
+	font-family: Georgia, 'Times New Roman', Times, serif;
+	font-style: italic;
+	font-weight: normal;	
+	font-size: 11px;
+}
+#sidebar ul.sidemenu li a:hover,
+#sidebar ul.sidemenu li a:hover span {	
+	color: #fff;	
+}
+#sidebar ul.sidemenu ul { margin: 0 0 0 5px; padding: 0; }
+#sidebar ul.sidemenu ul li { border: none; }
+
+/* footer */
+#footer-wrap {
+	position: relative;
+	clear: both;
+	padding: 1em 0 2.5em 0;
+	margin-top: 30px;
+	font: normal 1em 'Trebuchet MS', Tahoma, sans-serif;	
+	background: #070707 url(footer-top.jpg) no-repeat center top;
+	color: #555;
+	width: 900px;
+	float: left;	
+	display: inline;
+}
+#footer-wrap h3 {
+	font: bold 2em/1.6em 'Trebuchet MS', Tahoma, sans-serif;
+	color: #ABABAB;	
+}
+#footer-content {	
+	margin: 0 auto;		
+	width: 880px;
+	text-align: left;		
+}
+#footer-content ul.col-list {
+	border-top: 1px solid #111;
+	list-style: none;
+	margin: 5px 0 0 5px; padding: 0;	
+	width: 98%;
+}
+#footer-content ul.col-list li {
+	border-bottom: 1px solid #111;
+}
+#footer-content ul.col-list li a {
+	display: block;
+	line-height: 1.5em;
+	font-weight: bold;
+	padding: 7px 0 7px 8px;
+	width: 98%;	
+	color: #555;
+	border: none;
+}
+#footer-content ul.col-list li a span {
+	color: #444;
+	font-style: italic;
+	font-weight: normal;
+	font-family: Georgia, 'Times New Roman', Times, serif;
+}
+#footer-content ul.col-list li a:hover,
+#footer-content ul.col-list li a:hover span {
+	color: #fff;
+	text-decoration: none;
+}
+
+#footer-content .col {
+	width: 280px;
+	padding: 0 0 30px 0;			
+	display: inline;
+}
+#footer-content .col2 {
+	width: 285px;
+	padding: 0 0 30px 0;	
+	display: inline;	
+}
+#footer-content .space-sep {
+	margin-right: 12px;
+}
+
+/* postmeta */
+.postmeta {	
+	padding: 7px 5px; margin: 20px 10px 15px 10px;	
+	font-size: 1em;	
+	color: #545454;
+	border: 1px solid #111;
+	background: #111;
+}
+.postmeta .date{ margin: 0 10px 0 5px;	}
+.postmeta a.comments { margin: 0 10px 0 5px;	}
+.postmeta a.readmore { margin: 0 10px 0 5px;	}
+
+.post-info { font-size: .95em; padding-top: 3px; margin-left: 5px; color: #444;	}
+.post-info a { color: #BD4200; }
+
+/* alignment classes */
+.float-left  { float: left; }
+.float-right { float: right; }
+.align-left  { text-align: left; }
+.align-right { text-align: right; }
+
+/* display and additional classes */
+.clearer { clear: both; }
+
+.clear {
+	display:inline-block;
+}
+.clear:after {
+	display:block; 
+	visibility:hidden; 
+	clear:both; 
+	height:0; 
+	content: "."; 
+}
+
+div.ohloh, div.ohloh div div p, div.ohloh div div h3, div.ohloh div div a 
+{ 
+	padding:1px;
+	font-size:12px;
+        color: black;
+        background-color: white;
+}
+
+div.ohloh img
+{
+  border-color: white;
+  padding:0;
+}
