@@ -25,10 +25,11 @@ namespace lib {
   class erase_call : public plotting_routine_call
   {
 
-    private: void handle_args(EnvT* e) // {{{
+    private: bool handle_args(EnvT* e) // {{{
     {
       if (nParam() > 1)
         e->Throw( "Incorrect number of arguments.");
+      return false;
     } // }}}
 
     void old_body( EnvT* e, GDLGStream* actStream) // {{{

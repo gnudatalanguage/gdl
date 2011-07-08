@@ -34,7 +34,7 @@ namespace lib {
     SizeT xEl, yEl, zEl;
     DDouble minVal, maxVal;
 
-    private: void handle_args(EnvT* e) // {{{
+    private: bool handle_args(EnvT* e) // {{{
     {
       if( nParam() == 1)
       {

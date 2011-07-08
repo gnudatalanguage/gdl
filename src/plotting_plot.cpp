@@ -30,7 +30,7 @@ namespace lib {
     DLong psym;
     auto_ptr<BaseGDL> xval_guard;
 
-    private: void handle_args( EnvT* e) // {{{
+    private: bool handle_args( EnvT* e) // {{{
     {
       if( nParam() == 1)
       {
@@ -67,7 +67,7 @@ namespace lib {
         yStart = (*yVal)[minEl];
         yEnd = (*yVal)[maxEl];
       }
-
+      return false;
     } // }}}
 
   private: void old_body( EnvT* e, GDLGStream* actStream) // {{{

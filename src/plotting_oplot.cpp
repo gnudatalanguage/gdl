@@ -25,8 +25,9 @@ namespace lib {
   class oplot_call : public plotting_routine_call 
   {
 
-    private: void handle_args( EnvT* e) // {{{
+    private: bool handle_args( EnvT* e) // {{{
     {
+      return true;
     } // }}}
 
   private: void old_body( EnvT* e, GDLGStream* actStream) // {{{

@@ -29,8 +29,9 @@ namespace lib {
     private: DDoubleGDL* yVal, *xVal;
     private: SizeT xEl, yEl;
 
-    private: void handle_args(EnvT* e) // {{{
+    private: bool handle_args(EnvT* e) // {{{
     {
+      return true;
     } // }}}
 
   void old_body( EnvT* e, GDLGStream* actStream) // {{{

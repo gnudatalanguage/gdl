@@ -30,7 +30,7 @@ namespace lib {
     auto_ptr<BaseGDL> xval_guard, yval_guard;
     SizeT xEl, yEl, zEl;
 
-    private: void handle_args(EnvT* e) // {{{
+    private: bool handle_args(EnvT* e) // {{{
     {
 
       if (nParam() == 2 || nParam() > 3) 
@@ -87,6 +87,7 @@ namespace lib {
             e->Throw( "X, Y, or Z array dimensions are incompatible.");
         }
       }
+      return false;
     } // }}}
 
   private: void old_body( EnvT* e, GDLGStream* actStream) // {{{

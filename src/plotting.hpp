@@ -63,13 +63,13 @@ namespace lib {
     
     // private fields
     private: SizeT _nParam;
-    private: bool xlog, ylog;
+    private: bool overplot;
 
     // common helper methods
     protected: inline SizeT nParam() { return _nParam; }
 
     // prototypes for methods defining various steps
-    private: virtual void handle_args(EnvT*) = 0;
+    private: virtual bool handle_args(EnvT*) = 0; // return value = overplot
     private: virtual void old_body(EnvT*, GDLGStream*) = 0;
     private: virtual void call_plplot(EnvT*, GDLGStream*) = 0;
     private: virtual void post_call(EnvT*, GDLGStream*) = 0;
@@ -79,7 +79,7 @@ namespace lib {
     {
       _nParam = e->NParam(n_params_required);
 
-      handle_args(e);
+      overplot = handle_args(e);
 
       GDLGStream* actStream = Graphics::GetDevice()->GetStream();
       if (actStream == NULL) e->Throw("Unable to create window.");
