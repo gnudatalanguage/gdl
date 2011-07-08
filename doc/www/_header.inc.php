@@ -3,18 +3,16 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 
 <head>
-
-<title>GDL - GNU Data Language</title>
-
-<meta http-equiv="content-type" content="application/xhtml+xml; charset=UTF-8" />
+  <title>GDL - GNU Data Language</title>
+  <meta http-equiv="content-type" content="application/xhtml+xml; charset=UTF-8" />
+<?php /*
 <meta name="author" content="Erwin Aligam - styleshout.com" />
 <meta name="description" content="Site Description Here" />
 <meta name="keywords" content="keywords, here" />
 <meta name="robots" content="index, follow, noarchive" />
 <meta name="googlebot" content="noarchive" />
-
-<link rel="stylesheet" href="images/Colourise.css" type="text/css" />
-
+*/ ?>
+  <link rel="stylesheet" href="images/Colourise.css" type="text/css" />
 </head>
 
 <body>
