@@ -50,7 +50,7 @@ public:
   {
 //   std::cerr << "GDLGStream()" << std::endl;
     if (!checkPlplotDriver(driver))
-      ThrowGDLException(string("PLplot installation lacks the requested driver: ") + driver);
+      ThrowGDLException(std::string("PLplot installation lacks the requested driver: ") + driver);
   }
 
   virtual ~GDLGStream()
@@ -103,7 +103,7 @@ if( devNames.empty())// == NULL)
 
 //     devNames = new std::vector<std::string>( numdevs_plus_one - 1);
     for( int i = 0; i < numdevs_plus_one - 1; ++i)
-		devNames.push_back(string(devnames[ i]));
+		devNames.push_back(std::string(devnames[ i]));
     
     free(devnames);
 }
@@ -111,7 +111,7 @@ if( devNames.empty())// == NULL)
 // for debug
 std::vector<std::string> devnamesDbg = devNames;
 
-return std::find( devNames.begin(), devNames.end(), string( driver)) != devNames.end();
+return std::find( devNames.begin(), devNames.end(), std::string( driver)) != devNames.end();
 
 //     checking if a given driver is in the list
 //     bool supported = false;
