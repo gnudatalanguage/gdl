@@ -25,6 +25,7 @@ prolib_DATA = \
   hist_2d.pro \
   hist_nd.pro \
   identity.pro \
+  idl_validname.pro \
   imsl_erf.pro \
   imsl_zerosys.pro \
   interpol.pro \
