@@ -35,7 +35,8 @@
 	<div id="footer-wrap"><div id="footer-content">
 	
 		<p>
-			Website content is developed by <a href="credits.php">The GDL Team</a> as a part of the GDL project released under the GNU General Public License<br />
+			Website content is developed by <a href="credits.php">The GDL Team</a> and is released under the CC BY-SA license (i.e. Wikipedia compatible)<br />
+                        GDL documentation is a part of the GDL project and is released under the GNU General Public License<br />
 			Website layout based on the <strong>Colourise</strong> template by <a href="http://www.styleshout.com/">styleshout.com</a><br />
                         Hosted by <a href="http://sf.net/">Sourceforge.net</a>
           	</p>

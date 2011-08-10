@@ -54,6 +54,7 @@ Among many good folks who provided patches and valuable feedback (in alphabetica
 <a>Thibaut&nbsp;Mermet</a>, 
 <a>Lea&nbsp;Noreskal</a>, 
 <a>Orion&nbsp;Poplawski</a>, 
+<a>Rene&nbsp;Preusker</a>,
 <a>Mateusz&nbsp;Turcza</a>, 
 <a>Joanna&nbsp;Woo</a>, 
 <a>H&nbsp;Xu</a>, 
