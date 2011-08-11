@@ -35,7 +35,7 @@
     <li><a href="http://cow.physics.wisc.edu/~craigm/idl/cmsave.html">CMSVLIB</a> (for SAVE and RESTORE)</li>
     <li><a href="http://cow.physics.wisc.edu/~craigm/idl/fitting.html">MPFIT</a> (fitting)</li>
     <li><a href="http://idlastro.gsfc.nasa.gov/">Astron Lib</a> (FITS format I/O, astronomy-related procedures)</li>
-    <li><a href="http://physweb.mnstate.edu/mcraig/textoidl/">TeXtoIDL</a> (Greek letters, special symbols, sub/superscripts via TeX commands)</li>
+    <li><a href="http://physics.mnstate.edu/craig/textoidl/">TeXtoIDL</a> (Greek letters, special symbols, sub/superscripts via TeX commands)</li>
 </ul>
 
 <p>At least g++ 3.2 (or a similar C++ standard conforming
