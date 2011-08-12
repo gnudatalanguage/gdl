@@ -14,8 +14,11 @@
 ;   30-Jun-2009 : Alain Coulais : will allow 1D string : 'string' and ['string']
 ;   14-Apr-2010 : Alain Coulais : complete re-writing
 ;      Jun-2010 : Lea Noreskal : /preserve_null and other improvments
-;   15-Oct-2010 : Alain Coulais : bug in COUNT, activating no
-;                 exclusive keywords, better managment of (missing/void) inputs
+;   15-Oct-2010 : Alain Coulais : bug in COUNT, 
+;                 activating no exclusive keywords,
+;                 better managment of (missing/void) inputs
+;   11-Aug-2011 : Alain Coulais : solving conflits due to
+;                 /preserve_null and /regex; curing bugs in special cases
 ;
 ; LICENCE:
 ; Copyright (C)
@@ -108,16 +111,19 @@ endelse
 ; When no Pattern is provided, default pattern is white space (' ')
 ;
 short_cut=0
+;
 if (STRLEN(local_input1) EQ 0) then begin
    short_cut=1
-   resu=''
+   if KEYWORD_SET(extract) then resu='' else resu=0
 endif
 if (N_PARAMS() EQ 2) then begin
    if (STRLEN(input2) EQ 0) then begin
       short_cut=1
-      resu=''
+      if KEYWORD_SET(extract) then resu='' else resu=0
    endif
 endif
+;
+; When no Pattern is provided, default pattern is white space (' ')
 ;
 if ((short_cut EQ 0) AND (N_PARAMS() EQ 1)) then begin
    resu=STRTOK(local_input1, extract=extract, preserve_null=preserve_null)
@@ -126,8 +132,9 @@ endif
 if ((short_cut EQ 0) AND (N_PARAMS() EQ 2)) then begin
    ;;
    ;; AC 14-Oct-2010: may be not fully OK
-   if KEYWORD_SET(regex) and ~KEYWORD_SET(preserve_null) then begin
-      resu=STRTOK(local_input1, input2, extract=extract, REGEX=regex)
+   if KEYWORD_SET(regex) then begin
+      resu=STRTOK(local_input1, input2, extract=extract,$
+                  REGEX=regex, preserve_null=preserve_null)
    endif else begin
       resu=0
       beg=0
@@ -143,17 +150,13 @@ if ((short_cut EQ 0) AND (N_PARAMS() EQ 2)) then begin
       if KEYWORD_SET(extract) then begin
          if (beg eq 1) then resu=[0,resu]
          if N_ELEMENTS(resu) EQ 1 then begin
-
             if (beg eq 0) then begin 
                resu=local_input1
             endif else begin
                resu=STRMID(local_input1, resu[0]+1)
             endelse
-
-         endif else begin
-            
+         endif else begin            
             sresu=STRARR(N_ELEMENTS(resu))
-
             if (beg eq 0) then begin 
                sresu[0]=STRMID(local_input1, 0, resu[1])
             endif else begin
@@ -168,12 +171,12 @@ if ((short_cut EQ 0) AND (N_PARAMS() EQ 2)) then begin
                                 ;stop
             resu=sresu
          endelse
-
+         ;;
          if NOT(KEYWORD_SET(preserve_null)) then begin
             ok=WHERE(STRLEN(resu) GT 0, nb_ok)
             if (nb_ok GT 0) then resu=resu[ok] else resu=''
          endif
-
+         ;; going back to the case /extract not set 
       endif else begin
          if N_ELEMENTS(resu) GT 1 then resu[1:*]=resu[1:*]+1 else resu=0
          if (beg EQ 1) then resu[0]=resu[0]+1 
@@ -208,6 +211,8 @@ endif
 if ARG_PRESENT(length) then length=STRLEN(resu)
 ;
 if KEYWORD_SET(test) then STOP
+;
+if (SIZE(resu,/type) NE 7) then resu=LONG(resu)
 ;
 return, resu
 ;
