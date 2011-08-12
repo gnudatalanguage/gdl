@@ -11,16 +11,16 @@
 
 <p>Optional libraries:</p>
 <ul>
-    <li>Xlib (part of any X11 distribution)</li>
-    <li><a href="http://www.imagemagick.org/Magick++/">Magick++</a> (ImageMagick's C++ API)</li>   
-    <li><a href="http://www.fftw.org/">FFTW</a> (both float and double versions needed)</li>
+    <li>Xlib (part of any X11 distribution; needed for ploting on screens !)</li>
+    <li><a href="http://www.imagemagick.org/Magick++/">Magick++</a> (ImageMagick's C++ API; PNG and JPEG support)</li>   
+    <li><a href="http://www.fftw.org/">FFTW</a> (both float and double versions needed; faster than FFT code provide by the GSL for 2^N 3^M 5^O cases)</li>
     <li><a href="http://www.unidata.ucar.edu/software/netcdf/">netCDF</a> (v3 or v4)</li>   
     <li><a href="http://www.hdfgroup.org/products/hdf4/">HDF4</a></li>
     <li><a href="http://www.hdfgroup.org/HDF5/">HDF5</a></li>
     <li><a href="http://www.ecmwf.int/products/data/software/grib_api.html">GRIB API</a></li>
     <li><a href="http://www.unidata.ucar.edu/software/udunits/">UDUNITS-2</a></li>
     <li><a href="http://www.wxwidgets.org/">wxWidgets</a></li>
-    <li><a href="http://home.comcast.net/~gevenden56/proj/">libproject</a></li>
+    <li><a href="http://home.comcast.net/~gevenden56/proj/">libproject</a> (mapping on Earth)</li>
     <li><a href="ftp://ftp.soest.hawaii.edu/pwessel/gshhs/">GSHHS</a> (see GDL's <a href="http://gnudatalanguage.cvs.sourceforge.net/viewvc/gnudatalanguage/gdl/MAP_INSTALL">MAP_INSTALL</a> file)</li>
 </ul>
 
@@ -64,7 +64,7 @@ not</b> GNU readline. You need to install GNU readline and set the --with-readli
 </p>
 
 <p>
-  GDL supports compilation using both the shipped autotools "conigure" script as well as using CMake.
+  GDL supports compilation using both the shipped autotools "configure" script as well as using CMake.
   Consult the <a href="http://gnudatalanguage.cvs.sourceforge.net/viewvc/gnudatalanguage/gdl/README">README</a> 
   and the <a href="http://gnudatalanguage.cvs.sourceforge.net/viewvc/gnudatalanguage/gdl/INSTALL">INSTALL</a> 
   files in the GDL distribution for further details on GDL requirements and configuration.

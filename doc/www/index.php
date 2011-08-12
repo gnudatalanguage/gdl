@@ -72,6 +72,8 @@ Other open-source numerical data analysis tools similar to GDL include
   <li>HDF4 (read/write)</li>
   <li>HDF5 (read-only, limited support)</li>
   <li>IDL SAVE files (supported using the Craig Markwardt's <a href="http://cow.physics.wisc.edu/~craigm/idl/down/cmsvlib.tar.gz">CMSVLIB</a>)</li>
+  <li>FITS files, when Astro Lib. is in the path (<a href="http://www.cv.nrao.edu/fits/data/tests/pg93/NRAO pg93"> test suite</a> OK)</li>
+  <li>various graphic formats (e.g. PNG if compiled with ImageMagick)</li>
   <li>...</li>
 </ul>
 
