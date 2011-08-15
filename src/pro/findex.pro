@@ -4,11 +4,11 @@
    ; PURPOSE:  Compute "floating point index" into a table using binary
    ;           search.  The resulting output may be used with INTERPOLATE.
    ;
-   ; USEAGE:   result = findex(u,v)
+   ; USAGE:    result = findex(u,v)
    ;
    ; INPUT:    
-   ;   u       a monitically increasing or decreasing 1-D grid
-   ;   v       a scalor, or array of values
+   ;   u       a monotonically increasing or decreasing 1-D grid
+   ;   v       a scalar, or array of values
    ;
    ; OUTPUT:
    ;   result  Floating point index. Integer part of RESULT(i) gives

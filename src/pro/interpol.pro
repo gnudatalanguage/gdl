@@ -10,8 +10,18 @@ function interpol, p0, p1, p2, lsquadratic=lsquadratic, quadratic=quadratic, spl
     message, 'LSQUADRATIC keyword not supported yet (FIXME!)'
   if keyword_set(quadratic) then $
     message, 'QUADRATIC keyword not supported yet (FIXME!)'
-  if n_params() eq 3 and n_elements(p0) ne n_elements(p1) then $
-    message, 'In the three-parameter case the first and second argument must be of equal length'
+
+;  if n_params() eq 3 and n_elements(p0) ne n_elements(p1) then $
+;    message, 'In the three-parameter case the first and second argument must be of equal length'
+; <see bug no. 3104537>
+  if n_params() eq 3 then begin
+    if n_elements(p0) ne n_elements(p1) then $
+      message, 'In the three-parameter case the first and second argument must be of equal length'
+    all_equal_test=abs((p1 - shift(p1,+1))(1:*))
+    if min(temporary(all_equal_test)) eq 0 then message, $ ; usually only triggered for integer arrarys
+      'In the three-parameter case, the second argument must be strictly increasing or strictly decreasing.'
+  endif
+; </...>
 
   isint = size(p0, /ty) lt 4 || size(p0, /ty) gt 11
 
