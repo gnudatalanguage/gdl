@@ -121,14 +121,6 @@ namespace lib {
 
   BaseGDL* magick_open(EnvT* e)
   {
-    // see bug no. 3376577
-    static bool initialised = false;
-    if (!initialised)
-    {
-      InitializeMagick(NULL); 
-      initialised = true;
-    }
-
     try{
       DString filename;
       e->AssureScalarPar<DStringGDL>(0,filename);
