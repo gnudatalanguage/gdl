@@ -1381,26 +1381,32 @@ namespace lib {
 
   void interpolate_linear(gsl_interp_accel *acc, gsl_interp *interp, 
 			  double *xa, SizeT nx, const double ya[], 
-			  double x[], double y[])
+			  double x[], double y[], bool use_missing, double missing)
   {
     for( SizeT i=0; i<nx; ++i)
-      y[i] = gsl_interp_eval (interp, xa, ya, x[i], acc);
+    {
+      int status = gsl_interp_eval_e (interp, xa, ya, x[i], acc, &y[i]);
+      if (status == GSL_EDOM && use_missing) y[i] = missing;
+    }
   }
 
 
   void interpolate_cubic(gsl_interp_accel *acc, gsl_spline *spline, 
 			 double *xa, SizeT nx, const double ya[], 
-			 double x[], double y[])
+			 double x[], double y[], bool use_missing, double missing)
   {
     for( SizeT i=0; i<nx; ++i)
-      y[i] = gsl_spline_eval (spline, x[i], acc);
+    {
+      int status = gsl_spline_eval_e (spline, x[i], acc, &y[i]);
+      if (status == GSL_EDOM && use_missing) y[i] = missing;
+    }
   }
 
 
   void twoD_lin_interpolate(SizeT ninterp,
 			    double *xa, bool grid, 
 			    SizeT nx, SizeT ny, SizeT nxa, SizeT nya,
-			    double *p0, double *p1, double *p2, double *res)  
+			    double *p0, double *p1, double *p2, double *res, bool use_missing, double missing)  
   {
     gsl_interp_accel *acc = gsl_interp_accel_alloc ();
     gsl_interp *interp;
@@ -1443,14 +1449,14 @@ namespace lib {
 	  if (row >= nya) row = nya - 1;
 
 	  interpolate_linear(acc, interp, xa, nx, 
-			     ya[row], dptr, &work[0][0]);
+			     ya[row], dptr, &work[0][0], use_missing, missing);
 
 	  // Correct if row out of bounds
 	  if (row < -1) row = -1;
 	  if (row >= nya-1) row = nya - 2;
 
 	  interpolate_linear(acc, interp, xa, nx, 
-			     ya[(row+1)], dptr, &work[1][0]);
+			     ya[(row+1)], dptr, &work[1][0], use_missing, missing);
 	}
 	first = false;
 	lastrow = row;
@@ -1509,11 +1515,16 @@ namespace lib {
     if( p0->Rank() < nParam-1)
       e->Throw("Number of parameters must agree with dimensions of argument.");
 
-    bool cubic = false;
-    if ( e->KeywordSet(0)) cubic = true;
+    static int cubicIx = e->KeywordIx("CUBIC");
+    bool cubic = e->KeywordSet(cubicIx);
 
-    bool grid = false;
-    if ( e->KeywordSet(1)) grid = true;
+    static int gridIx = e->KeywordIx("GRID");
+    bool grid = e->KeywordSet(gridIx);
+
+    static int missingIx = e->KeywordIx("MISSING");
+    bool use_missing = e->KeywordSet(missingIx);
+    DDouble missing;
+    e->AssureDoubleScalarKWIfPresent(missingIx, missing);
 
     if ( nParam == 3)
       if (p1->N_Elements() == 1 && p2->N_Elements() == 1)
@@ -1625,11 +1636,11 @@ namespace lib {
 	if( cubic)
 	  // cubic interpolation
 	  interpolate_cubic(acc, spline, xa, p1D->N_Elements(), 
-			    &(*p0D)[0], &(*p1D)[0], &(*res)[0]);
+			    &(*p0D)[0], &(*p1D)[0], &(*res)[0], use_missing, missing);
 	else
 	  // linear interpolation
 	  interpolate_linear(acc, interp, xa, p1D->N_Elements(), 
-			     &(*p0D)[0], &(*p1D)[0], &(*res)[0]);
+			     &(*p0D)[0], &(*p1D)[0], &(*res)[0], use_missing, missing);
       } else {
 	// Multiple Interpolation
 	for( SizeT i=0; i<ninterp; ++i) {
@@ -1642,11 +1653,11 @@ namespace lib {
 	  if( cubic)
 	    // cubic interpolation
 	    interpolate_cubic(acc, spline, xa, p1D->N_Elements(), 
-			      ya, &(*p1D)[0], &(*res)[0]);
+			      ya, &(*p1D)[0], &(*res)[0], use_missing, missing);
 	  else
 	    // linear interpolation
 	    interpolate_linear(acc, interp, xa, p1D->N_Elements(), 
-			       ya, &(*p1D)[0], y);
+			       ya, &(*p1D)[0], y, use_missing, missing);
 
 	  // Write to output array
 	  for( SizeT j=0; j<p1D->N_Elements(); ++j) (*res)[j*ninterp+i] = y[j];
@@ -1708,7 +1719,7 @@ namespace lib {
       twoD_lin_interpolate(ninterp,
 			   xa, grid, 
 			   nx, ny, nxa, nya,
-			   &(*p0D)[0], &(*p1D)[0], &(*p2D)[0], &(*res)[0]);
+			   &(*p0D)[0], &(*p1D)[0], &(*p2D)[0], &(*res)[0], use_missing, missing);
       
       delete [] xa;
 
@@ -1775,7 +1786,7 @@ namespace lib {
 			     xa, grid, 
 			     nx, ny, nxa, nya,
 			     &(*p0D)[nxa*nya*i], &(*p1D)[0], &(*p2D)[0], 
-			     &work_xy[i*nx*ny]);
+			     &work_xy[i*nx*ny], use_missing, missing);
       }
 
       double *za = new double[nza];
@@ -1796,7 +1807,7 @@ namespace lib {
 	    for( SizeT k=0; k<nza; ++k) 
 	      work_za[k] = work_xy[k*nx*ny + j*nx + i];
 	    interpolate_linear(acc, interp_z, za, nz, work_za, 
-			       &(*p3D)[0], work_z);
+			       &(*p3D)[0], work_z, use_missing, missing);
 
 	    for( SizeT k=0; k<nz; ++k) (*res)[k*nx*ny + j*nx + i] = work_z[k];
 	  }
@@ -1805,7 +1816,7 @@ namespace lib {
 	for( SizeT i=0; i<nz; ++i) {
 	  for( SizeT k=0; k<nza; ++k) work_za[k] = work_xy[k*ny + i];
 	  interpolate_linear(acc, interp_z, za, 1, work_za, 
-			     &(*p3D)[i], &(*res)[i]);
+			     &(*p3D)[i], &(*res)[i], use_missing, missing);
 	}
       }
 
