@@ -520,10 +520,10 @@
 0.9.2:
            - UNIT keyword for SPAWN (thanks to patch by Greg Huey)
            - fixed ASSOC var indexing with a variable
-           - new routines: FILE_MKDIR, FILE_WHICH (patch by H Xu), IDL_VALIDNAME(by Rene Preusker), SCOPE_VARFETCH,
+           - new routines: FILE_MKDIR, FILE_WHICH (patch by H Xu), IDL_VALIDNAME (by Rene Preusker), SCOPE_VARFETCH,
              SEM_CREATE, SEM_LOCK, SEM_RELEASE, SEM_DELETE (SEM_* routines by Mateusz Turcza),
            - fixes/enhancements in: BETA, CONTOUR, CORRELATE, DIALOG_PICKFILE, EXPINT, HDF_OPEN, H5F_OPEN, HDF_SD_START,
-             IGAMMA, IMSL_CONSTANT, INTERPOL, LOADCT, NCDF_CONTROL, NCDF_OPEN, ROUTINE_NAMES, STRPOS, TV, TVRD, 
-             XYOUTS (!P.MULTI vs. !P.POSITION, ORIENTATION with logscales)
+             IGAMMA, IMSL_CONSTANT, INTERPOL, LOADCT, NCDF_CONTROL, NCDF_OPEN, ROUTINE_NAMES, STRPOS, STRSPLIT, TV, TVRD, 
+             XYOUTS (!P.MULTI vs. !P.POSITION, ORIENTATION with logscales), INTERPOLATE (the MISSING kw)
            - memory leak fix (bug introduced in the previous version)
            - various testsuite & docs updates (incl. docs and examples for CALL_EXTERNAL)
