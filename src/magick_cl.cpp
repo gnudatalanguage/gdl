@@ -126,7 +126,9 @@ namespace lib {
       e->AssureScalarPar<DStringGDL>(0,filename);
 
       WordExp( filename);
-      
+
+      if (filename.length() == 0) e->Throw("Void file Name");
+
       Image a;
       try 
       {
