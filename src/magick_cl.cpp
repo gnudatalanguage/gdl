@@ -500,10 +500,6 @@ namespace lib {
 	
 	columns=image.columns();
 	rows=image.rows();
-	SizeT c[3];
-	if(image.matte()) c[0]=4;
-	else c[0]=3;
-
 	
 	string map="BGR";
 	if(e->GetKW(0) != NULL)//RGB
@@ -524,8 +520,8 @@ namespace lib {
 		Message(s);		
 		map="BGR";
 	      }
-	    if(image.matte()) map=map+"A";
 	  }
+	if(image.matte()) map=map+"A";
 
 	if(e->KeywordSet(2)) //MAP
 	  e->AssureScalarPar<DStringGDL>(0,map);    
@@ -547,14 +543,12 @@ namespace lib {
 
 	    if(ly+wy > rows) 
 	      e->Throw("Requested height exceeds number of rows. Either reduce the height or the Y origin.");
-
-
-	    
 	  }	
 
-	c[0]=map.length();
-	c[1]=wx;
-	c[2]=wy;
+	SizeT c[3];
+	c[0] = map.length();
+	c[1] = wx;
+	c[2] = wy;
 	dimension dim(c,3);	  
 
 	if(image.depth() == 8)
