@@ -1,25 +1,33 @@
-;$Id: read_png.pro,v 1.2 2010-01-20 11:41:59 slayoo Exp $
-
-function read_png, filename, red,green,blue,order=order,verbose=verbose,transparent=transparent
-  on_error, 2
+;$Id: read_png.pro,v 1.3 2011-08-18 17:26:43 alaingdl Exp $
+;
+pro READ_PNG, filename, image, red, green, blue, $
+              order=order, verbose=verbose, transparent=transparent, $
+              help=help, test=test
+;
+image=READ_PNG(filename, red, green, blue, $
+              order=order, verbose=verbose, transparent=transparent, $
+              help=help, test=test)
+;
+end
+;
+; ---------------------------------
+;
+function READ_PNG, filename, red, green, blue, $
+                   order=order, verbose=verbose, transparent=transparent, $
+                   help=help, test=test
+;
+ON_ERROR, 2
 ;+
-;
-;
 ;
 ; NAME: READ_PNG
 ;
 ;
-; PURPOSE: Reads a png file into memory
-;
-;
+; PURPOSE: Reads a PNG file into memory
 ;
 ; CATEGORY: Images (IO)
 ;
 ;
-; CALLING SEQUENCE: image=read_png(filename,r,g,b)
-;
-;
-;
+; CALLING SEQUENCE: image=READ_PNG(filename,r,g,b)
 ;
 ;
 ; KEYWORD PARAMETERS: 
@@ -38,7 +46,7 @@ function read_png, filename, red,green,blue,order=order,verbose=verbose,transpar
 ;        blue : the Blue colormap vector (for PseudoColor images)
 ;
 ; RESTRICTIONS:
-;         Requires ImageMagick
+;         Requires ImageMagick (tests added)
 ;
 ; PROCEDURE:
 ;         Use ImageMagick to read the data as requested
@@ -49,8 +57,8 @@ function read_png, filename, red,green,blue,order=order,verbose=verbose,transpar
 ;
 ; MODIFICATION HISTORY:
 ; 	Written by: Christopher Lee 2004-05-23
-;
-;
+;       2011-Aug-18, Alain Coulais : More checks on inputs; now verify if
+;       compiled with ImageMagick support !
 ;
 ;-
 ; LICENCE:
@@ -62,24 +70,45 @@ function read_png, filename, red,green,blue,order=order,verbose=verbose,transpar
 ;
 ;
 ;-
-mid=magick_open(filename)
-
-
+;
+if KEYWORD_SET(help) then begin
+    print, 'function READ_PNG, filename, red, green, blue, $'
+    print, '                   order=order, verbose=verbose, transparent=transparent, $'
+    print, '                   help=help, test=test'
+    return, -1
+endif
+;
+; Do we have access to ImageMagick functionnalities ??
+;
+if (MAGICK_EXISTS() EQ 0) then begin
+    MESSAGE, /continue, "GDL was compiled without ImageMagick support."
+    MESSAGE, "You must have ImageMagick support to use this functionaly."
+endif
+;
+if (N_PARAMS() EQ 0) then MESSAGE, "Incorrect number of arguments."
+;
+if (STRLEN(filename) EQ 0) then MESSAGE, "Null filename not allowed."
+if ((FILE_INFO(filename)).exists EQ 0) then MESSAGE, "Error opening file. File: "+filename
+;
+mid=MAGICK_OPEN(filename)
+;
 ;;flip if order is set
-if(keyword_set(order)) then magick_flip,mid
+;
+if (KEYWORD_SET(order)) then MAGICK_FLIP, mid
 
-if(magick_IndexedColor(mid)) then begin
-    image=magick_readIndexes(mid)
-    magick_readcolormapRGB,mid,red,green,blue
+if (magick_IndexedColor(mid)) then begin
+    image=MAGICK_READINDEXES(mid)
+    MAGICK_READCOLORMAPRGB, mid, red, green, blue
     colortable=[[red],[green],[blue]]
 endif else begin
-    image=magick_read(mid)
+    image=MAGICK_READ(mid)
 endelse
-
-magick_close,mid
-return,image
-
+;
+MAGICK_CLOSE, mid
+;
+if KEYWORD_SET(test) then STOP
+;
+return, image
+;
 end
-
-
 
