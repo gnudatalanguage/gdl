@@ -1,28 +1,21 @@
-;$Id: read_jpeg.pro,v 1.4 2010-01-20 11:41:59 slayoo Exp $
+;$Id: read_jpeg.pro,v 1.5 2011-08-18 17:24:43 alaingdl Exp $
 
-pro read_jpeg, filename, unit=unit,image, colortable,buffer=buffer,$
-              colors=colors,dither=dither,grayscale=grayscale,order=order,$
-              true=true,two_pass_quantize=two_pass_quantize
-  on_error, 2
+pro READ_JPEG, filename, unit=unit, image, colortable, buffer=buffer, $
+               colors=colors, dither=dither, grayscale=grayscale, order=order, $
+               true=true, two_pass_quantize=two_pass_quantize, $
+               help=help, test=test
+;
+ON_ERROR, 2
 ;+
-;
-;
 ;
 ; NAME: READ_JPEG
 ;
-;
 ; PURPOSE: Reads a jpeg file into memory
-;
-;
 ;
 ; CATEGORY: Images (IO)
 ;
-;
-; CALLING SEQUENCE: read_jpeg,filename,image, colortable
-;
-;
-;
-;
+; CALLING SEQUENCE: 
+;      READ_JPEG, filename, image, colortable
 ;
 ; KEYWORD PARAMETERS: 
 ;        UNIT: not supported yet
@@ -37,8 +30,6 @@ pro read_jpeg, filename, unit=unit,image, colortable,buffer=buffer,$
 ; OUTPUTS: For true color images, data is a three dimensional array
 ; with interleaving set by TRUE keyword
 ;
-;
-;
 ; OPTIONAL OUTPUTS: For pseudocolor only
 ;        COLORTABLE: the colortable produced (ncolors,3)
 ;
@@ -47,24 +38,25 @@ pro read_jpeg, filename, unit=unit,image, colortable,buffer=buffer,$
 ;
 ;
 ; RESTRICTIONS:
-;         Requires ImageMagick
-;
+;         Requires ImageMagick (that means that GDL must have been
+;         compiled with ImageMagick)
 ;
 ; PROCEDURE:
 ;         Use ImageMagick to read the data as requested
 ;
-; EXAMPLE:
-;         
-;
+; EXAMPLE: An image of Saturn should be around in the GDL CVS
+;         file=FILE_WHICH('Saturn.jpg')
+;         READ_JPEG, file, image
 ;
 ; MODIFICATION HISTORY:
 ; 	Written by: Christopher Lee 2004-05-17
-;       Add convert to byte if 16-bit image     Joel Gales  02/05/06
-;
+;       2006-May-02, Joel Gales    : Add convert to byte if 16-bit image
+;       2011-Aug-18, Alain Coulais : More checks on inputs, verify if
+;       compiled with ImageMagick support !
 ;
 ;-
 ; LICENCE:
-; Copyright (C) 2004,
+; Copyright (C) 2004, 2011
 ; This program is free software; you can redistribute it and/or modify  
 ; it under the terms of the GNU General Public License as published by  
 ; the Free Software Foundation; either version 2 of the License, or     
@@ -72,65 +64,85 @@ pro read_jpeg, filename, unit=unit,image, colortable,buffer=buffer,$
 ;
 ;
 ;-
-
-if(keyword_set(unit)) then Message, "Keyword UNIT not supported"
-if(keyword_set(buffer)) then Message, "Keyword BUFFER not supported"
-
-
-if(not keyword_set(unit)) then mid=magick_open(filename)
-
-;;DITHER if necessary
-if(keyword_set(GRAYSCALE)) then begin
-    magick_quantize, mid,/GRAYSCALE
-endif else if(keyword_set(COLORS)) then begin
-    if(colors lt 8 or color gt 256) then Message, "COLORS must be in the range 8 to 256"
-    if(keyword_set(TWO_PASS_QUANTIZE)) then Message, "TWO_PASS_QUANTIZE not supported by ImageMagick."
-
-    magick_quantize,mid,colors,dither=dither
-
+;
+if KEYWORD_SET(help) then begin
+    print, 'pro READ_JPEG, filename, unit=unit, image, colortable, buffer=buffer, $'
+    print, '               colors=colors, dither=dither, grayscale=grayscale, order=order, $'
+    print, '               true=true, two_pass_quantize=two_pass_quantize, $'
+    print, '               help=help, test=test'
+    return
 endif
-
-
+;
+; Do we have access to ImageMagick functionnalities ??
+;
+if (MAGICK_EXISTS() EQ 0) then begin
+    MESSAGE, /continue, "GDL was compiled without ImageMagick support."
+    MESSAGE, "You must have ImageMagick support to use this functionaly."
+endif
+;
+; AC 2011-Aug-18: this test will be wrong when UNIT will be available
+if (N_PARAMS() EQ 0) then MESSAGE, "Incorrect number of arguments."
+;
+if (STRLEN(filename) EQ 0) then MESSAGE, "Null filename not allowed."
+if ((FILE_INFO(filename)).exists EQ 0) then MESSAGE, "Error opening file. File: "+filename
+;
+if KEYWORD_SET(unit) then MESSAGE, "Keyword UNIT not supported"
+if KEYWORD_SET(buffer) then MESSAGE, "Keyword BUFFER not supported"
+;
+if (not KEYWORD_SET(unit)) then mid=MAGICK_OPEN(filename)
+;
+;;DITHER if necessary
+if (KEYWORD_SET(grayscale)) then begin
+    MAGICK_QUANTIZE, mid, /GRAYSCALE
+endif else begin
+    if (KEYWORD_SET(colors)) then begin
+        if ((colors LT 8) OR (color GT 256)) then MESSAGE, "COLORS must be in the range 8 to 256"
+        if (KEYWORD_SET(two_pass_quantize)) then MESSAGE, "TWO_PASS_QUANTIZE not supported by ImageMagick."
+        MAGICK_QUANTIZE, mid, colors, dither=dither
+    endif
+endif
+;
 ;;flip if order is set
-if(keyword_set(order)) then magick_flip,mid
-
-
-if(magick_IndexedColor(mid)) then begin
-    image=magick_readIndexes(mid)
-    magick_readcolormapRGB,mid,red,green,blue
+if (KEYWORD_SET(order)) then MAGICK_FLIP, mid
+;
+if (MAGICK_INDEXEDCOLOR(mid)) then begin
+    image=MAGICK_READINDEXES(mid)
+    MAGICK_READCOLORMAPRGB, mid, red, green, blue
     colortable=[[red],[green],[blue]]
 endif else begin
-    image=magick_read(mid)
+    image=MAGICK_READ(mid)
 endelse
-
+;
 ; if 16-bit (unsigned short int) image convert to byte
-sz = size(image)
+sz = SIZE(image)
 type = sz[sz[0]+1]
-if (type eq 2 or type eq 12) then begin
+if ((type EQ 2) OR (type EQ 12)) then begin
     print, 'Converting 16-bit image to byte'
     image = image / 256
-    image = byte(image)
+    image = BYTE(image)
 endif
-
-if(not keyword_set(unit)) then magick_close,mid
-
+;
+if (not KEYWORD_SET(unit)) then MAGICK_CLOSE, mid
+;
 ;; "rotate" image to agree with IDL (JMG 08/18/04)
-    tmp = image[0,*,*]
-    image[0,*,*] = image[2,*,*]
-    image[2,*,*] = tmp
+tmp = image[0,*,*]
+image[0,*,*] = image[2,*,*]
+image[2,*,*] = tmp
 
-if(keyword_set(TRUE)) then begin
-    if(TRUE eq 1) then t=[0,1,2]
-    if(TRUE eq 2) then t=[1,0,2]
-    if(TRUE eq 3) then t=[1,2,0]
-    
-    image=transpose(image, t)
-;    image=transpose(image[[2,1,0],*,*], t)
+if KEYWORD_SET(TRUE) then begin
+    if (TRUE eq 1) then t=[0,1,2]
+    if (TRUE eq 2) then t=[1,0,2]
+    if (TRUE eq 3) then t=[1,2,0]
+    ;;
+    image=TRANSPOSE(image, t)
+    ;;  image=transpose(image[[2,1,0],*,*], t)
 endif 
 ;else begin
 ;    image = image[[2,1,0],*,*]
 ;endelse
-
+;
+if KEYWORD_SET(test) then STOP
+;
 end
 
 
