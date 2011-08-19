@@ -11,7 +11,7 @@
 ; -- change from /quiet to /verbose
 ; -- no exit on error if /debug or /test (suppose to be interactive ;-)
 ; -- adding test for bug 3286746 (STR_SEP)
-; -- adding basci test for TexToIDL
+; -- adding basic test for TexToIDL
 ;
 pro IPRINT, texte, indice
 print, texte, indice
@@ -257,15 +257,17 @@ endif else begin
    endif
 endelse
 ;
+MESSAGE, /Continue, "=============================="
 mess=' errors encoutered during STRSPLIT tests'
 if (nb_pbs GT 0) then mess=STRING(nb_pbs)+mess else mess='NO'+mess
 MESSAGE, /Continue, mess
 ;
-if KEYWORD_SET(test) then STOP
-;
+; if /debug OR /test nodes, we don't want to exit
 if (nb_pbs GT 0) then begin
- ;  if ~(KEYWORD_SET(debug) or KEYWORD_SET(test)) then EXIT, status=1
+    if ~(KEYWORD_SET(debug) or KEYWORD_SET(test)) then EXIT, status=1
 endif
+;
+if KEYWORD_SET(test) then STOP
 ;
 end
 
