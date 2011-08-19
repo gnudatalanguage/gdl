@@ -1,9 +1,18 @@
+#
+# copyright : (c) 2010 Maxime Lenoir and Alain Coulais
+#
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 of the License, or
+#  (at your option) any later version.
+#
+
 # tested with 2.4 and doesn't seem to run.
 cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
 
 project(GDL)
 
-set(VERSION "0.9 CVS")
+set(VERSION "0.9.1 CVS")
 enable_testing()
 
 include(CheckIncludeFile)
