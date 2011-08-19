@@ -1,99 +1,121 @@
-;
-; Name:  FILE_WHICH
+;+
+; NAME:  FILE_WHICH
 ; 
-; Purpose:
+; PURPOSE:
 ; 
 ; This function searches for a specific file in several specific directories.
 ;
-; Syntax:
+; SYNTAX:
 ; 
 ; result = FILE_WHICH( [path, ] file [, /INCLUDE_CURRENT_DIR] ) 
 ;
-; Return Value:
+; RETURN VALUE:
 ;
 ; If any file is found, returns the full path of the first found file; if no
-; file is found, returns a NULL string.
+; file is found, returns a NULL STRING.
 ;
-; Arguments:
+; ARGUMENTS:
 ;
-; path:
+; - path:  A search path to be searched. If this argument is not given, the value of
+;          !path will be used.
+; - file:  The file which is going to be searched for.
 ;
-; A search path to be searched. If this argument is not given, the value of
-; !path will be used.
+; KEYWORDS:
 ;
-; file:
-;
-; The file which is going to be searched for.
-;
-; Keywords:
-;
-; INCLUDE_CURRENT_DIR:
-;
-; If set, FILE_WHICH function will search current directory for the file before
+; - INCLUDE_CURRENT_DIR:  If set, FILE_WHICH function will search current directory for the file before
 ; searching the directories in the "path" argument. If not set, current
 ; directory will not be searched.
 ;
-; Examples:
+; EXAMPLES:
 ;
 ; To search for the file "file_which.pro":
 ;
-; file_which_path = file_which( 'file_which.pro' )
+; file_which_path = FILE_WHICH( 'file_which.pro' )
 ;
+; MODIFICATION HISTORY:
+;   30-Mar-2011 : written by H. Xu (xuhdev), initial import by Sylwester
+;   19-Aug-2010 : Alain Coulais : small bug (double last "/")
 ;
-FUNCTION file_which, path, file, include_current_dir=include_current_dir
-
-on_error, 2
-
-IF( n_params() EQ 2 ) THEN BEGIN
+; LICENCE:
+; Copyright (C) 2011, H. Xu
+; This program is free software; you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
+; the Free Software Foundation; either version 2 of the License, or
+; (at your option) any later version.
+;
+;-
+;
+function FILE_WHICH, path, file, include_current_dir=include_current_dir, $
+                     help=help, test=test, debug=debug
+;
+ON_ERROR, 2
+;
+if KEYWORD_SET(help) then begin
+    print, 'function FILE_WHICH, path, file, include_current_dir=include_current_dir, $'
+    print, '                     help=help, test=test, debug=debug'
+    return, -1
+endif
+;
+if KEYWORD_SET(test) then begin
+    MESSAGE, /continue, "no actif keyword /TEST due to multiple return"
+endif
+;
+if (N_PARAMS() EQ 0) then begin
+    MESSAGE, /continue, "No file/path provided !"
+    return, ''
+end
+;
+if (N_PARAMS() EQ 2 ) then begin
     the_path = path
     the_file = file
-ENDIF ELSE BEGIN
-    the_path = !path
+endif else begin
+    the_path = !PATH
     the_file = path
-ENDELSE
-
+endelse
+;
+if KEYWORD_SET(debug) then STOP
+;
 ; if the file is empty, then we don't need to search for it
-IF the_file EQ '' THEN BEGIN
+if (the_file eq '') then begin
     return, ''
-ENDIF
-
+endif
+;
 ; split the_path into a list
-paths = strsplit( the_path, path_sep( /SEARCH_PATH ), /EXTRACT )
-
-; if include_current_dir is set, then add current path in front of the paths
-IF( keyword_set( include_current_dir ) ) THEN BEGIN
-    cd, CURRENT = cur_path
+paths = STRSPLIT(the_path, PATH_SEP(/SEARCH_PATH), /EXTRACT )
+;
+; if keyword INCLUDE_CURRENT_DIR is set, then add current path in front of the paths
+if (KEYWORD_SET(include_current_dir)) then begin
+    CD, CURRENT = cur_path
     paths = [cur_path, paths]
-ENDIF
-
-path_seper = path_sep() ; path seperator for current platform
-n_paths = n_elements( paths ) ; path count
-
-FOR i = 0, n_paths - 1 DO BEGIN
-
+endif
+;
+path_seper = PATH_SEP() ; path seperator for current platform
+n_paths = N_ELEMENTS(paths) ; path count
+;
+for i = 0, n_paths - 1 do begin
+    ;;
     apath = paths[i] ; ith path
-    len_apath = strlen( apath )
-    apath_last_char = strmid( apath, len_apath - 2, 1 ) ; the last character
-
-
-    ; if apath doesn't end with a path seperator, then append one onto it
-    IF( ( apath_last_char EQ path_seper ) OR $
+    len_apath = STRLEN( apath )
+    apath_last_char = STRMID(apath, len_apath-1) ; the last character
+    ;;
+    ;; if apath doesn't end with a path seperator, then append one onto it
+    if ((apath_last_char EQ path_seper ) OR $
         ( !version.os_family EQ 'Windows' AND apath_last_char EQ '/' ) )$
-        THEN BEGIN
-
-        apath = strmid( apath, 0, len_apath - 1 )
-    ENDIF
-
-    ; now apath should be the full path of the file which is to be checked
+        then begin
+        apath = STRMID( apath, 0, len_apath - 1 )
+    endif
+    ;;
+    ;; now apath should be the full path of the file which is to be checked
     apath = apath + path_seper + the_file
-
+    ;;
     ; apath exists means it's what we want
-    IF( file_test( apath ) ) THEN BEGIN
+    if (FILE_TEST(apath)) then begin
         return, apath
-    ENDIF
-ENDFOR
-
-; return an empty string if we didn't find the file
+    endif
+endfor
+;
+; return an empty STRING if we didn't find the file
+;
 return, ''
-
-END
+;
+end
