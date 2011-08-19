@@ -14,6 +14,19 @@ if [ $BASH_SOURCE != $0 ] ; then
    return
 fi
 #
+# AC 2011/08/19 to avoid conflict with other IDL/GDL environmments
+# which have been setup before
+#
+REF_IDL_PATH=${IDL_PATH}
+REF_GDL_PATH=${GDL_PATH}
+REF_IDL_STARTUP=${IDL_STARTUP}
+REF_GDL_STARTUP=${GDL_STARTUP}
+#
+IDL_PATH=""
+GDL_PATH=""
+IDL_STARTUP=""
+GDL_STARTUP=""
+#
 if [ -z $flag_help ] ;     then flag_help=0 ; fi
 if [ -z $flag_quiet ] ;    then flag_quiet=0 ; fi
 if [ -z $flag_valgrind ] ; then flag_valgrind=0 ; fi
@@ -60,7 +73,7 @@ fi
 if [ "$flag_gdl_path" -eq 0 ] ; then
     export GDL_PATH='+'${PWD}'/src/pro/:+'${PWD}'/testsuite/'
 else
-    export GDL_PATH='+'${PWD}'/src/pro/:+'${PWD}'/testsuite/:'${GDL_PATH}    
+    export GDL_PATH='+'${PWD}'/src/pro/:+'${PWD}'/testsuite/:'${REF_GDL_PATH}
 fi
 #
 if [ "$flag_quiet" -eq 0 ] ; then
@@ -72,4 +85,10 @@ if [ "$flag_valgrind" -eq 1 ] ; then
 else
     ./src/gdl
 fi
-
+#
+# restoring initial envionment
+#
+export IDL_PATH=${REF_IDL_PATH}
+export GDL_PATH=${REF_GDL_PATH}
+export IDL_STARTUP=${REF_IDL_STARTUP}
+export GDL_STARTUP=${REF_GDL_STARTUP}
