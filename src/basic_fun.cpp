@@ -5610,10 +5610,10 @@ BaseGDL* transpose( EnvT* e)
 		  }
 		if( fold)
 		  for( SizeT i=0; i<nEl; ++i)
-		    (*res)[i] = StrCmpFold( (*s0)[i], (*s1)[0]);
+		    (*res)[i] = StrCmpFold( (*s0)[i], (*s1)[i]);
 		else
 		  for( SizeT i=0; i<nEl; ++i)
-		    (*res)[i] = StrCmp( (*s0)[i], (*s1)[0]);
+		    (*res)[i] = StrCmp( (*s0)[i], (*s1)[i]);
 		return res;
 	      }
 	  }
