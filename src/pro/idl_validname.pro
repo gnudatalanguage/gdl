@@ -6,10 +6,11 @@
 ;	THIS IS JUST A DRAFT (but working)
 ;
 ; MODIFICATION HISTORY:
-; 	creation by Rene Preusker 10/2010
-;       2011-Aug-18: modification by Alain Coulais :
-;         adding fake keywords /CONVERT_ALL,
+;   - creation by Rene Preusker 10/2010
+;   - 2011-Aug-18: modification by Alain Coulais :
+;         adding FAKE keywords /CONVERT_ALL,
 ;         /CONVERT_SPACES for test with HealPix lib.
+;   - 2011-Aug-20: Alain: implement draft of CONVERT_SPACES
 ;
 ; TODO: 
 ;	1. include working keywords
@@ -46,18 +47,58 @@ end
 ;
 ; --------------------------------
 ;
-function IDL_VALIDNAME, in, $
-                        convert_all=convert_all, convert_spaces=convert_spaces
+function IDL_VALIDNAME, in, convert_all=convert_all, $
+                        convert_spaces=convert_spaces
+;
+print, "sorry, not finish"
+;
 out=in
-verboten=["#",":",".","/","+","-","*","!","$",";",'"',"&",":",",","?","@","\",")","(","]","[","{","}"]
-out=IDL_VALIDNAME_REPLACE_SPACE(out)
-for i=0,N_ELEMENTS(verboten)-1 do begin
-    out=IDL_VALIDNAME_REPLACE_STRING(out,verboten(i),"_")
-endfor
-first_char=STRMID(out,0,1)
-;;
-;;  number is not allowed as first char
-if STREGEX(out,'^[0-9]') eq 0 then out="N"+out
+;
+spezial=[" ","$","!"]
+verboten=[spezial,"#",":",".","/","+","-","*",";",'"',"&",":"]
+verboten=[verboten,",","?","@","\",")","(","]","[","{","}"]
+;
+nb_verbot=N_ELEMENTS(verboten)
+;
+if NOT(KEYWORD_SET(convert_all) OR KEYWORD_SET(convert_spaces)) then begin
+   for i=0, N_ELEMENTS(out)-1 do begin
+      first_char=STRMID(out[i],0,1)
+      if (STREGEX(first_char,'[0-9]') EQ 0) then begin
+         out[i]=''
+         break
+      endif
+      for j=0, nb_verbot-1 do begin
+         if (STRPOS(out[i], verboten[j]) GE 0) then begin
+            out[i]=''
+            break
+         endif
+      endfor
+   endfor
+   return, out
+endif
+;
+if KEYWORD_SET(convert_spaces) AND NOT(KEYWORD_SET(convert_all)) then begin
+   for i=0, N_ELEMENTS(out)-1 do begin
+      first_char=STRMID(out[i],0,1)
+      if (STREGEX(first_char,'[0-9]') EQ 0) then begin
+         out[i]=''
+         break
+      endif
+      out[i]=IDL_VALIDNAME_REPLACE_SPACE(out[i])
+   endfor
+endif
+;
+if KEYWORD_SET(convert_all) then begin
+   for i=0, N_ELEMENTS(out)-1 do begin
+      first_char=STRMID(out[i],0,1)
+      if (STREGEX(first_char,'[0-9]') EQ 0) then begin
+         out[i]='_'+out[i]
+      endif
+      for i=0,N_ELEMENTS(verboten)-1 do begin
+         out=IDL_VALIDNAME_REPLACE_STRING(out,verboten(i),"_")
+      endfor
+   endfor
+endif
 ;
 return, out
 ;
