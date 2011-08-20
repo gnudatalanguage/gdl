@@ -359,6 +359,48 @@ namespace SysVar
     // !GDL (to allow distinguish IDL/GDL with DEFSYSV, '!gdl', exists=exists )
     DStructGDL*  gdlStruct = new DStructGDL( "!GNUDATALANGUAGE");
     gdlStruct->NewTag("RELEASE", new DStringGDL( VERSION));
+
+    // creating and Epoch entry in order to have a simple incremental number 
+    string MyDate= __DATE__;
+    int CompilationMonth =0, CompilationYear=0, CompilationDay=0;
+    string SCompilationYear;
+    SCompilationYear=MyDate.substr(7,4);
+    CompilationYear=atoi(SCompilationYear.c_str());
+    string SCompilationDay;
+    SCompilationDay=MyDate.substr(4,2);
+    CompilationDay=atoi(SCompilationDay.c_str());
+
+    // for the months, it is more difficult
+    if (MyDate.find("Jan")!=string::npos) CompilationMonth=1;
+    if (MyDate.find("Feb")!=string::npos) CompilationMonth=2;
+    if (MyDate.find("Mar")!=string::npos) CompilationMonth=3;
+    if (MyDate.find("Apr")!=string::npos) CompilationMonth=4;
+    if (MyDate.find("May")!=string::npos) CompilationMonth=5;
+    if (MyDate.find("Jun")!=string::npos) CompilationMonth=6;
+    if (MyDate.find("Jul")!=string::npos) CompilationMonth=7;
+    if (MyDate.find("Aug")!=string::npos) CompilationMonth=8;
+    if (MyDate.find("Sep")!=string::npos) CompilationMonth=9;
+    if (MyDate.find("Oct")!=string::npos) CompilationMonth=10;
+    if (MyDate.find("Nov")!=string::npos) CompilationMonth=11;
+    if (MyDate.find("Dec")!=string::npos) CompilationMonth=12;
+		     
+    //cout << SCompilationYear << " "<< CompilationMonth <<endl;
+    //cout << CompilationYear<< endl;
+    struct tm t;
+    time_t t_of_day;
+    t.tm_year = CompilationYear -1900;
+    t.tm_mon = CompilationMonth-1;           // Month, 0 - jan
+    t.tm_mday = CompilationDay;          // Day of the month
+    t.tm_hour = 0;     
+    t.tm_min = 0;
+    t.tm_sec = 0;
+    t.tm_isdst = -1;        // Is DST on? 1 = yes, 0 = no, -1 = unknown
+    t_of_day = mktime(&t);
+
+    // printing Epoch on the Command Line $   date +"%s"
+    // printf("seconds since the Epoch: %ld\n", (long) t_of_day);
+
+    gdlStruct->NewTag("EPOCH", new DLongGDL((long) t_of_day));
     DVar *gdl        = new DVar( "GDL", gdlStruct);
     sysVarList.push_back(gdl);
     sysVarRdOnlyList.push_back( gdl); // make it read only
