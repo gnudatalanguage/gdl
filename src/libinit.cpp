@@ -489,7 +489,7 @@ void LibInit()
   const string deviceWarnKey[] = {"RETAIN", "SET_FONT", "HELVETICA", 
     "ENCAPSULATED", "AVANTGARDE", "BKMAN", "COURIER", "PALATINO", 
     "SCHOOLBOOK", "TIMES", "ZAPFCHANCERY", "ZAPFDINGBATS", "BITS_PER_PIXEL", 
-    "ITALIC", "BOLD", KLISTEND};
+    "ITALIC", "BOLD", "XOFFSET", "YOFFSET", KLISTEND};
   new DLibPro(lib::device,string("DEVICE"),0, deviceKey, deviceWarnKey);
 
   const string plotKey[]=
@@ -663,7 +663,7 @@ void LibInit()
      "LEVELS", "NLEVELS",
      "MAX_VALUE", "MIN_VALUE",
      "XLOG", "XTYPE", "YLOG", "YTYPE", "ZLOG", "ZTYPE", "FILL",  "ISOTROPIC",
-     "FOLLOW", "C_CHARSIZE","OVERPLOT","C_COLORS",
+     "FOLLOW", "C_CHARSIZE","OVERPLOT","C_COLORS","C_LINESTYLE",
      KLISTEND
     };
   new DLibPro(lib::contour,string("CONTOUR"),3,contourKey);
