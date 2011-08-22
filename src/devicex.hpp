@@ -431,10 +431,10 @@ public:
     static char buf[ 256];
     strncpy( buf, title.c_str(), 255);
     buf[ 255] = 0;
-    winList[ wIx]->SetOpt( "plwindow", buf);
+    winList[ wIx]->setopt( "plwindow", buf);
 
     // we use our own window handling
-    winList[ wIx]->SetOpt( "drvopt","usepth=0");
+    winList[ wIx]->setopt( "drvopt","usepth=0");
 
     // set color map
     PLINT r[ctSize], g[ctSize], b[ctSize];

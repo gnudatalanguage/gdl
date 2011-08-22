@@ -55,7 +55,7 @@ class DeviceSVG : public Graphics
     //    actStream->scmap0( r, g, b, ctSize); 
     actStream->scmap1( r, g, b, ctSize); 
 
-    actStream->SetOpt( "drvopt","text_clipping=1"); // clear drvopt
+    actStream->setopt( "drvopt","text_clipping=1"); // clear drvopt
 
     actStream->Init();
     

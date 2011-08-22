@@ -214,10 +214,10 @@ public:
     static char buf[ 256];
     strncpy( buf, title.c_str(), 255);
     buf[ 255] = 0;
-    winList[ wIx]->SetOpt( "plwindow", buf);
+    winList[ wIx]->setopt( "plwindow", buf);
 
     // we want color (and the driver options need to be overwritten)
-    winList[ wIx]->SetOpt( "drvopt","color=1");
+    winList[ wIx]->setopt( "drvopt","color=1");
 
     // set color map
     PLINT r[ctSize], g[ctSize], b[ctSize];

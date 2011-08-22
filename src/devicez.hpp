@@ -129,7 +129,7 @@ class DeviceZ: public Graphics
       { r[ i] = g[ i] = b[ i] = i;}
     actStream->scmap1( r, g, b, ctSize); 
 
-    actStream->SetOpt( "drvopt","text=0"); // clear drvopt
+    actStream->setopt( "drvopt","text=0"); // clear drvopt
 
     actStream->Init();
     
