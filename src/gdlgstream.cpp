@@ -201,7 +201,7 @@ const char * GDLGStream::TranslateFormatCodes(const char *in)
   // skip conversion if the string is empty
   if (len == 0) return in;
 
-  const string fonts[] = {
+  const std::string fonts[] = {
     "#fn",      // !0  : unused
     "#fn",      // !1  : unused
     "#fn",      // !2  : unused
@@ -240,7 +240,7 @@ const char * GDLGStream::TranslateFormatCodes(const char *in)
   int curr_lev = 0; // (incremented with #u, decremented with #d)
   int curr_pos = 0; // (current position in string)
   int save_pos = 0; // (position in string used in !S/!R save/restore)
-  string out = string("");
+  std::string out = std::string("");
 
   for (size_t i = 0; i < len; i++) {
     if (in[i] == '!' && in[i + 1] != '!')
