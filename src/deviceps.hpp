@@ -22,6 +22,12 @@
 #include "gdlpsstream.hpp"
 #include "initsysvar.hpp"
 
+#ifdef HAVE_OLDPLPLOT
+#define SETOPT SetOpt
+#else
+#define SETOPT setopt
+#endif
+
 class DevicePS: public Graphics
 {
   std::string      fileName;
@@ -60,14 +66,14 @@ class DevicePS: public Graphics
     if (XPageSize != 0. && YPageSize == 0.) {a=XPageSize/16.5*540/720; scale=1.;}
     char as[32];
     sprintf(as, "%f",a);
-    actStream->setopt( "a", as); // this necessary to keep labels from looking stretched (plplot bug)
+    actStream->SETOPT( "a", as); // this necessary to keep labels from looking stretched (plplot bug)
                                  // but plrender -a is also buggy: aspect ratios are not exactly correct 
     xleng=static_cast<PLINT>(floor(scale*540. +0.5));
     yleng=static_cast<PLINT>(floor(scale*720. +0.5));
     // setting this without plrender -a makes the labels stretched (plplot bug)
     actStream->spage( xp, yp, xleng, yleng, xoff, yoff); 
 
-    actStream->setopt( "ori","1"); // portrait (upright)
+    actStream->SETOPT( "ori","1"); // portrait (upright)
 
     // no pause on destruction
     actStream->spause( false);
@@ -84,8 +90,8 @@ class DevicePS: public Graphics
 
     // default: black+white (IDL behaviour)
     //actStream->scolor( color); // has no effect
-    if (color == 0) { actStream->setopt( "drvopt","text=0,color=0"); } 
-    else { actStream->setopt( "drvopt","text=0,color=1");}
+    if (color == 0) { actStream->SETOPT( "drvopt","text=0,color=0"); } 
+    else { actStream->SETOPT( "drvopt","text=0,color=1");}
     color=0;
 
     actStream->Init();

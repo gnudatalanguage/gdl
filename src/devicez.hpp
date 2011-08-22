@@ -21,6 +21,12 @@
 //#include "dstructgdl.hpp"
 #include "gdlzstream.hpp"
 
+#ifdef HAVE_OLDPLPLOT
+#define SETOPT SetOpt
+#else
+#define SETOPT setopt
+#endif
+
 class DeviceZ: public Graphics
 {
   GDLZStream*     actStream;
@@ -129,7 +135,7 @@ class DeviceZ: public Graphics
       { r[ i] = g[ i] = b[ i] = i;}
     actStream->scmap1( r, g, b, ctSize); 
 
-    actStream->setopt( "drvopt","text=0"); // clear drvopt
+    actStream->SETOPT( "drvopt","text=0"); // clear drvopt
 
     actStream->Init();
     

@@ -38,6 +38,12 @@
     if (a != NULL) { free((void *) a); a = NULL; }
 #endif
 
+#ifdef HAVE_OLDPLPLOT
+#define SETOPT SetOpt
+#else
+#define SETOPT setopt
+#endif
+
 const int maxWin=32;  
 
 class DeviceX: public Graphics
@@ -431,10 +437,10 @@ public:
     static char buf[ 256];
     strncpy( buf, title.c_str(), 255);
     buf[ 255] = 0;
-    winList[ wIx]->setopt( "plwindow", buf);
+    winList[ wIx]->SETOPT( "plwindow", buf);
 
     // we use our own window handling
-    winList[ wIx]->setopt( "drvopt","usepth=0");
+    winList[ wIx]->SETOPT( "drvopt","usepth=0");
 
     // set color map
     PLINT r[ctSize], g[ctSize], b[ctSize];

@@ -25,6 +25,12 @@
 #include "gdlwinstream.hpp"
 #include "initsysvar.hpp"
 
+#ifdef HAVE_OLDPLPLOT
+#define SETOPT SetOpt
+#else
+#define SETOPT setopt
+#endif
+
 const int maxWin=32;  
 
 class DeviceWIN: public Graphics
@@ -214,10 +220,10 @@ public:
     static char buf[ 256];
     strncpy( buf, title.c_str(), 255);
     buf[ 255] = 0;
-    winList[ wIx]->setopt( "plwindow", buf);
+    winList[ wIx]->SETOPT( "plwindow", buf);
 
     // we want color (and the driver options need to be overwritten)
-    winList[ wIx]->setopt( "drvopt","color=1");
+    winList[ wIx]->SETOPT( "drvopt","color=1");
 
     // set color map
     PLINT r[ctSize], g[ctSize], b[ctSize];

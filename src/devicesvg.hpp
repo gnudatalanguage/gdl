@@ -20,6 +20,12 @@
 
 #include "gdlsvgstream.hpp"
 
+#ifdef HAVE_OLDPLPLOT
+#define SETOPT SetOpt
+#else
+#define SETOPT setopt
+#endif
+
 class DeviceSVG : public Graphics
 {
   std::string      fileName;
@@ -55,7 +61,7 @@ class DeviceSVG : public Graphics
     //    actStream->scmap0( r, g, b, ctSize); 
     actStream->scmap1( r, g, b, ctSize); 
 
-    actStream->setopt( "drvopt","text_clipping=1"); // clear drvopt
+    actStream->SETOPT( "drvopt","text_clipping=1"); // clear drvopt
 
     actStream->Init();
     
