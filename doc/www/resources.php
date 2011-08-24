@@ -51,6 +51,9 @@
 </p>
   <ul>
     <li>article ''<a href="http://arxiv.org/abs/1004.1507">Scalelength of disc galaxies</a>'' by Fathi et al. mentioning use of GDL</li>
+    <li>article ''<a href="http://arxiv.org/abs/0903.2056">Detection of VHE Gamma Radiation from the Pulsar Wind Nebula MSH 15-52 with H.E.S.S.</a>'' by Frank Breitling mentioning use of GDL</li>
+    <li>article ''<a href="http://arxiv.org/abs/0903.2979">ULySS: A Full Spectrum Fitting Package</a>'' by Koleva et al. mentioning GDL</li>
+    <li>article ''<a href="http://arxiv.org/abs/1004.4506v3">On the suspected timing error in WMAP map-making</a>'' by Boudewijn Roukema mentioning use of GDL</a> 
     <li><a href="http://www.nvidia.com/content/GTC/posters/89_Cheung_GPU_Acceleration_of_the_Scientific_Data.pdf">GPU Acceleration of the Scientific Data Analysis Package GDL</a> by A. Jaffey, A. Kobashi and M. C. M. Cheung (AGU poster)</li>
     <li><a href="http://esoads.eso.org/abs/2008AGUFMIN13A1062J">Online data analysis using Web GDL</a> by Jaffey, A., Cheung, M. &amp; Kobashi, A. (AGU abstract)</li>
     <li><a href="http://healpix.jpl.nasa.gov/html/install.htm">HEALPix Facility Installation Guidelines</a>(including a section on GDL compatibility)</li>
