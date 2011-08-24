@@ -166,6 +166,7 @@
   \section{Datatypes}
   \input{chapters/syntax-types}
   \section{Operators}
+  \input{chapters/syntax-ops}
   \section{Flow control structures}
   \input{chapters/syntax-flowcon}
   \section{Variable scoping rules}
@@ -177,12 +178,17 @@
   \section{Arrays}
   \input{chapters/syntax-array}
   \section{Structures}
+  \input{chapters/syntax-stru}
   \section{System variables (global)}
+  \input{chapters/syntax-sysvars}
   \section{Heap variables (pointers)}
+  \input{chapters/syntax-heap}
   \section{The HELP procedure}
+  \input{chapters/syntax-help}
   \section{Object-oriented programming}
   \input{chapters/syntax-oop}
   \section{Handling Overflows, Floating Point Special Values}
+  \input{chapters/syntax-infnans}
   \section{Error handling}
   \input{chapters/syntax-errhandle}
   \section{Compile options}
@@ -192,12 +198,22 @@
 
   \chapter{Maths}
 
-  \section{Basic scalar and vector operations}
+  \section{Basic Scalar, vector and array operations}
   \input{chapters/math-basic}
   \section{Basic and special function library}
+  \input{chapters/math-func}
   \section{Linear algebra}
+  \input{chapters/math-la}
   \section{Statistics}
+  \input{chapters/math-stats}
   \section{Interpolation}
+  \input{chapters/math-interpol}
+  \section{Polynomials}
+  \input{chapters/math-poly}
+  \section{Geometric calculations}
+  \input{chapters/math-geom}
+  \section{Bitwise operations}
+  \input{chapters/math-bits}
   \section{Function fitting}
   \input{chapters/math-fitting}
   \section{Fourier analysis}
@@ -209,26 +225,34 @@
   \section{Ordinary differential equations}
   \input{chapters/math-ode}
   \section{Wavelet analysis}
+  \input{chapters/math-wavelet}
+  \section{Mathematical and physical constants}
+  \input{chapters/math-constants}
 
   \chapter{Input/output, supported data formats}
-  \section{Basics -- accessing files}
+  \section{Basics -- accessing files and io streams}
   \input{chapters/io}
   \section{ASCII}
   \input{chapters/io-ascii}
   \section{CSV}
   \input{chapters/io-csv}
   \section{Binary data (raw access)}
+  \input{chapters/io-bin}
   \section{FITS}
+  \input{chapters/io-fits}
   \section{netCDF}
   \input{chapters/io-netcdf}
   \section{HDF4}
   \input{chapters/io-hdf4}
   \section{HDF5}
+  \input{chapters/io-hdf5}
   \section{raster images (TIFF, PNG, JPEG, \ldots)}
+  \input{chapters/io-img}
   \section{DICOM}
   \section{GRIB}
   \input{chapters/io-grib}
   \section{IDL save files}
+  \input{chapters/io-idlsave}
 
   \chapter{Plotting and mapping}
   \section{2D plots}
@@ -236,31 +260,39 @@
   \section{3D plots}
   \input{chapters/plot-3d}
   \section{Plotting raster data}
+  \input{chapters/plot-raster}
   \section{Managing multiple windows}
+  \input{chapters/plot-windows}
   \section{Map projections}
   \input{chapters/plot-map}
   \section{Output terminals}
+  \input{chapters/plot-term}
   \section{Working with colours}
   \input{chapters/plot-colours}
   \section{Fonts, symbols and text formatting}
   \input{chapters/plot-fonts}
+  \section{Misc}
+  \input{chapters/plot-misc}
 
   \chapter{Interaction with host OS}
+  \input{chapters/os}
   \section{Executing external commands (via shell or not)}
+  \input{chapters/exec}
   \section{Filesystem operations}
+  \input{chapters/filesys}
   \section{Network operations}
+  \input{chapters/net}
   \section{Command-line options and environmental variables}
+  \input{chapters/cmdline}
 
   \chapter{Manipulating strings}
   \input{chapters/strings}
-  \section{Basic operations}
-  \section{Base64 encoding/decoding}
-  \section{Parsing URLs}
-  \section{Sorting}
 
   \chapter{Representing date \& time}
+  \input{chapters/time}
 
   \chapter{Image processing}
+  \input{chapters/image}
   
   \chapter{Parallel processing}
   \section{Built-in features (OpenMP)}
@@ -273,10 +305,15 @@
   \chapter{GUI programming (widgets)}
   \input{chapters/widgets}
  
+  \chapter{Dynamic loading}
+  \input{chapters/dynload}
+
   \chapter{The Python bridge}
-  \section{calling Python code from GDL}
-  \section{calling GDL code from Python}
   \input{chapters/python}
+  \section{calling Python code from GDL}
+  \input{chapters/python-in-gdl}
+  \section{calling GDL code from Python}
+  \input{chapters/python-module}
 
   \onecolumn
   \chapter{Alphabetical list of library routines}
