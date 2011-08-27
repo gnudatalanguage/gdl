@@ -1,12 +1,10 @@
-;$Id: write_jpeg.pro,v 1.4 2010-01-20 11:41:59 slayoo Exp $
+;$Id: write_jpeg.pro,v 1.5 2011-08-27 14:51:57 alaingdl Exp $
 
 pro write_jpeg, filename, image,$
                 ORDER=ORDER,QUALITY=QUALITY, TRUE=TRUE,UNIT=UNIT,$
-                PROGRESSIVE=PROGRESSIVE
-  on_error, 2
+                PROGRESSIVE=PROGRESSIVE, $
+                test=test, help=help, debug=debug
 ;+
-;
-;
 ;
 ; NAME: WRITE_JPEG
 ;
@@ -44,18 +42,19 @@ pro write_jpeg, filename, image,$
 ; PROCEDURE:
 ;         Use ImageMagick to write the data as requested
 ;
-; EXAMPLE:
-;         
+; EXAMPLE: 
+;   READ_JPEG, 'testsuite/Saturn.jpg', image
+;   WRITE_JPEG, 'Saturn2.jpg', image
 ;
 ;
 ; MODIFICATION HISTORY:
-; 	Written by: Christopher Lee 2004-05-17
-;
-;
+;  Written by: Christopher Lee 2004-05-17
+;  Modification by Alain Coulais 27-Aug-2011, changing q*1U to UINT(q)
+;  to be able to do very simple End-To-End test on "Saturn.jpg" as input
 ;
 ;-
 ; LICENCE:
-; Copyright (C) 2004,
+; Copyright (C) 2004, 2011
 ; This program is free software; you can redistribute it and/or modify  
 ; it under the terms of the GNU General Public License as published by  
 ; the Free Software Foundation; either version 2 of the License, or     
@@ -63,50 +62,60 @@ pro write_jpeg, filename, image,$
 ;
 ;
 ;-
-
+;
+if ~KEYWORD_SET(debug) then ON_ERROR, 2
+;
+; Do we have access to ImageMagick functionnalities ??
+;
+if (MAGICK_EXISTS() EQ 0) then begin
+    MESSAGE, /continue, "GDL was compiled without ImageMagick support."
+    MESSAGE, "You must have ImageMagick support to use this functionaly."
+endif
+;
 rgb=1
-if(keyword_set(unit)) then message, "UNIT not supported"
-
-if(keyword_set(unit)) then begin
-    print, "UNIT not supported"
-    return
+;
+if(KEYWORD_SET(unit)) then begin
+   print, "UNIT not supported"
+   return
 endif
 
-
-if(keyword_set(TRUE)) then begin
-    if(TRUE eq 1) then t=[0,1,2]
-    if(TRUE eq 2) then t=[1,0,2]
-    if(TRUE eq 3) then t=[2,0,1]
-    image=transpose(image, t)
+if(KEYWORD_SET(TRUE)) then begin
+   if(TRUE eq 1) then t=[0,1,2]
+   if(TRUE eq 2) then t=[1,0,2]
+   if(TRUE eq 3) then t=[2,0,1]
+   image=transpose(image, t)
 endif
 
-n=size(image, /n_dimensions)
-s=size(image,/dimensions)
+n=SIZE(image, /n_dimensions)
+s=SIZE(image,/dimensions)
+
+if KEYWORD_SET(test) then STOP
 q=75
 
 ;generic
-mid=magick_create(s[1],s[2])
-magick_write,mid,image,rgb=rgb
+mid=MAGICK_CREATE(s[1],s[2])
+MAGICK_WRITE,mid,image,rgb=rgb
 
-if(keyword_set(progressive)) then $
-    magick_interlace, mid, /PLANEINTERLACE
+if(KEYWORD_SET(progressive)) then $
+   MAGICK_INTERLACE, mid, /PLANEINTERLACE
 
-if(keyword_set(order)) then magick_flip,mid
-if(keyword_set(quality)) then q=quality
+if(KEYWORD_SET(order)) then MAGICK_FLIP,mid
+if(KEYWORD_SET(quality)) then q=quality
 
-magick_quality, mid,q*1U
-magick_writefile,mid,filename,"JPEG"
-magick_close,mid
+MAGICK_QUALITY, mid, UINT(q)
+MAGICK_WRITEFILE, mid, filename,"JPEG"
+MAGICK_CLOSE, mid
 
 ;reverse
-if(keyword_set(TRUE)) then begin
-    if(TRUE eq 1) then t=[0,1,2]
-    if(TRUE eq 2) then t=[1,0,2]
-    if(TRUE eq 3) then t=[1,2,0]
-    
-    image=transpose(image, t)
+if(KEYWORD_SET(TRUE)) then begin
+   if(TRUE eq 1) then t=[0,1,2]
+   if(TRUE eq 2) then t=[1,0,2]
+   if(TRUE eq 3) then t=[1,2,0]
+   
+   image=TRANSPOSE(image, t)
 endif
 
+if KEYWORD_SET(test) then STOP
 
 
 end
