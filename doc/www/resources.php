@@ -10,6 +10,7 @@
   There were several talks and posters on GDL prepared by the project team:
 </p>
 <ul>
+  <li><a href="http://www.igf.fuw.edu.pl/~slayoo/gdl-ghm2011paris.pdf">talk @ GHM 2011</a> by Alain Coulais &amp; Sylwester Arabas</li>
   <li><a href="http://www.igf.fuw.edu.pl/~slayoo/gdl-fosdem-2011-talk.pdf">talk @ FOSDEM 2011</a> by Sylwester Arabas</li>
   <li><a href="http://www.igf.fuw.edu.pl/~slayoo/prezentacja-jamstec-20100820.pdf">talk/tutorial at The Earth Simulator Center</a> by Alain Coulais, Sylwester Arabas &amp; Takeshi Enomoto</li>
   <li><a href="http://www.igf.fuw.edu.pl/~slayoo/gdl-poster-egu2010.pdf">poster @ EGU 2010</a> by Sylwester Arabas</li>

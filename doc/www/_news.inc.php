@@ -1,7 +1,8 @@
+<h2>GDL @GHM2011</h2>
+<p>2011-08-27: <a href="http://www.igf.fuw.edu.pl/~slayoo/gdl-ghm2011paris.pdf">GDL talk</a> at the <a href="http://www.gnu.org/ghm/2011/paris/">GHM</a> in Paris</p>
+
 <h2>New website</h2>
-<p>2011-08-25/28: GDL present at next <a href="http://www.gnu.org/ghm/2011/paris/">GHM</a> in Paris<br />
-2011-08-12: serious bug corrected in STRSPLIT<br />
-2011-07-07: We have new website!</p>
+<p>2011-07-07: We have new website!</p>
 
 <h2>GDL 0.9.1 released</h2>
 <p>
