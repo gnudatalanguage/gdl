@@ -93,7 +93,8 @@ void InitGDL()
   // init library functions
   LibInit(); 
     
-  // ensuring we work in the C locale (needs to be called after InitObjects!!!)
+  // ensuring we work in the C locale (needs to be called after InitObjects and LibInit!!! 
+  // as some code there calls setlocale as well, e.g. MagickInit)
 #ifdef HAVE_LOCALE_H
   setlocale(LC_ALL, "C");
 #endif
