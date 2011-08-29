@@ -90,14 +90,14 @@ void InitGDL()
   // initializations
   InitObjects();
 
+  // init library functions
+  LibInit(); 
+    
   // ensuring we work in the C locale (needs to be called after InitObjects!!!)
 #ifdef HAVE_LOCALE_H
   setlocale(LC_ALL, "C");
 #endif
 
-  // init library functions
-  LibInit(); 
-    
   // turn on all floating point exceptions
   //  feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
 
