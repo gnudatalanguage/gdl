@@ -99,6 +99,7 @@ TESTS = \
   test_str_sep.pro \
   test_strsplit.pro \
   test_suite.pro \
+  test_systime.pro \
   test_url.pro \
   test_wavelet.pro \
   test_zeropoly.pro \
