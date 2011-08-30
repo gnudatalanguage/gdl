@@ -50,16 +50,16 @@ endif
 
 ; Positional Parameters
 parm = 'cmsave,'
-for __i__=0,n_params()-1 do begin
+for __i__=0,N_PARAMS()-1 do begin
     p = STRCOMPRESS('p' + STRING(__i__), /remove_all)
     stat = EXECUTE('arg=ROUTINE_NAMES(' + p +',arg_name=-1)')
     ;; we manage "arg" to reject "unmaned" variables
     if (STRLEN(arg) LT 1) then begin
-        message="Expression must be named variable in this context: <"
-        message=message+STRCOMPRESS(HELPFORM('', p1,/short)+">.")
+        txt_mess="Expression must be named variable in this context: <"
+        txt_mess=txt_mess+STRCOMPRESS(HELPFORM('', p1,/short)+">.")
         ;; AC 27/02/2007: will be better to not do a /continue
         ;; but currently hard to escape from the ON_ERROR, 2 in GDL
-        MESSAGE, message,/continue
+        MESSAGE, txt_mess, /continue
         return
     endif
     cmd = arg + '=TEMPORARY(' + p + ')'
