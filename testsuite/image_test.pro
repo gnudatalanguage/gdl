@@ -132,7 +132,6 @@ suffixe='.pict'
 SPAWN, 'convert '+one_file_and_path+' '+no_suffixe+suffixe, resu, error
 if STRLEN(error) EQ 0 then begin
    MESSAGE, /continue, "external converting from JPG to PICT DONE"
-   MESSAGE, /continue, "internal TESTING of PICT format DONE"
    if (QUERY_PICT(no_suffixe+suffixe) EQ 1) then begin
       MESSAGE, /continue, "internal SUCCESSFULL TESTING of PICT format DONE"
    endif else begin
@@ -149,7 +148,7 @@ endif
 if ~KEYWORD_SET(no_cleaning) then begin
    command='\rm '+mypath+prefixe+'*'
    SPAWN, command, result, error
-   if SRTLEN(error) EQ 0 then MESSAGE, /continue, 'cleaning OK' $
+   if STRLEN(error) EQ 0 then MESSAGE, /continue, 'cleaning OK' $
    else MESSAGE, /continue, 'problem during cleaning'
 endif
 ;
