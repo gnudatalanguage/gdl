@@ -1,25 +1,17 @@
-;$Id: write_jpeg.pro,v 1.5 2011-08-27 14:51:57 alaingdl Exp $
-
-pro write_jpeg, filename, image,$
-                ORDER=ORDER,QUALITY=QUALITY, TRUE=TRUE,UNIT=UNIT,$
-                PROGRESSIVE=PROGRESSIVE, $
-                test=test, help=help, debug=debug
 ;+
 ;
 ; NAME: WRITE_JPEG
 ;
-;
 ; PURPOSE: write a image from memory to a jpeg
-;
 ;
 ; CATEGORY: Images (IO)
 ;
-;
 ; CALLING SEQUENCE: 
-;         write_jpeg,filename,image,[ORDER=ORDER,QUALITY=QUALITY,
-;                                                  TRUE=TRUE]
-;
-;
+;    WRITE_JPEG, filename, image, true=true, $
+;                order=order, quality=quality, unit=unit, $
+;                progressive=progressive, $
+;                test=test, help=help, debug=debug
+;                     
 ;
 ; KEYWORD PARAMETERS: 
 ;     UNIT        : not supported
@@ -36,8 +28,7 @@ pro write_jpeg, filename, image,$
 ;
 ;
 ; RESTRICTIONS:
-;         Requires ImageMagick
-;
+;         Requires ImageMagick (tested)
 ;
 ; PROCEDURE:
 ;         Use ImageMagick to write the data as requested
@@ -60,10 +51,22 @@ pro write_jpeg, filename, image,$
 ; the Free Software Foundation; either version 2 of the License, or     
 ; (at your option) any later version.                                   
 ;
-;
 ;-
 ;
+pro WRITE_JPEG, filename, image, true=true, $
+                order=order, quality=quality, unit=unit,$
+                progressive=progressive, $
+                test=test, help=help, debug=debug
+;
 if ~KEYWORD_SET(debug) then ON_ERROR, 2
+;
+if KEYWORD_SET(help) then begin
+    print, 'pro WRITE_JPEG, filename, image, true=true, $'
+    print, '               order=order, quality=quality, unit=unit,$'
+    print, '               progressive=progressive, $'
+    print, '               help=help, test=test, debug=debug'
+    return
+endif
 ;
 ; Do we have access to ImageMagick functionnalities ??
 ;
@@ -74,33 +77,33 @@ endif
 ;
 rgb=1
 ;
-if(KEYWORD_SET(unit)) then begin
-   print, "UNIT not supported"
-   return
+if (KEYWORD_SET(unit)) then begin
+    print, "UNIT not supported"
+    return
 endif
 
-if(KEYWORD_SET(TRUE)) then begin
-   if(TRUE eq 1) then t=[0,1,2]
-   if(TRUE eq 2) then t=[1,0,2]
-   if(TRUE eq 3) then t=[2,0,1]
-   image=transpose(image, t)
+if (KEYWORD_SET(TRUE)) then begin
+    if (TRUE eq 1) then t=[0,1,2]
+    if (TRUE eq 2) then t=[1,0,2]
+    if (TRUE eq 3) then t=[2,0,1]
+    image=TRANSPOSE(image, t)
 endif
 
 n=SIZE(image, /n_dimensions)
-s=SIZE(image,/dimensions)
-
+s=SIZE(image, /dimensions)
+;
 if KEYWORD_SET(test) then STOP
 q=75
-
+;
 ;generic
 mid=MAGICK_CREATE(s[1],s[2])
-MAGICK_WRITE,mid,image,rgb=rgb
+MAGICK_WRITE, mid, image,rgb=rgb
 
-if(KEYWORD_SET(progressive)) then $
-   MAGICK_INTERLACE, mid, /PLANEINTERLACE
+if (KEYWORD_SET(progressive)) then $
+  MAGICK_INTERLACE, mid, /PLANEINTERLACE
 
-if(KEYWORD_SET(order)) then MAGICK_FLIP,mid
-if(KEYWORD_SET(quality)) then q=quality
+if (KEYWORD_SET(order)) then MAGICK_FLIP,mid
+if (KEYWORD_SET(quality)) then q=quality
 
 MAGICK_QUALITY, mid, UINT(q)
 MAGICK_WRITEFILE, mid, filename,"JPEG"
@@ -108,11 +111,11 @@ MAGICK_CLOSE, mid
 
 ;reverse
 if(KEYWORD_SET(TRUE)) then begin
-   if(TRUE eq 1) then t=[0,1,2]
-   if(TRUE eq 2) then t=[1,0,2]
-   if(TRUE eq 3) then t=[1,2,0]
-   
-   image=TRANSPOSE(image, t)
+    if(TRUE eq 1) then t=[0,1,2]
+    if(TRUE eq 2) then t=[1,0,2]
+    if(TRUE eq 3) then t=[1,2,0]
+    
+    image=TRANSPOSE(image, t)
 endif
 
 if KEYWORD_SET(test) then STOP

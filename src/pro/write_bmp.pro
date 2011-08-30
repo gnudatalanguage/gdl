@@ -1,22 +1,10 @@
-;$Id: write_bmp.pro,v 1.2 2010-01-20 11:41:59 slayoo Exp $
-
-pro write_bmp, filename, image,red, green, blue, $
-                    FOUR_BIT=FOUR_BIT,$
-                    IHDR=IHDR,HEADER_DEFINE=HEADER_DEFINE,$
-                    RGB=RGB
-  on_error, 2
 ;+
-;
-;
 ;
 ; NAME: WRITE_BMP
 ;
-;
 ; PURPOSE: write a image from memory to a bitmap
 ;
-;
 ; CATEGORY: Images (IO)
-;
 ;
 ; CALLING SEQUENCE: 
 ;         write_bmp,filename,image,red,green,blue,[RGB=RGB,FOUR_BIT=FOUR_BIT,$ 
@@ -40,76 +28,89 @@ pro write_bmp, filename, image,red, green, blue, $
 ;
 ;
 ; RESTRICTIONS:
-;         Requires ImageMagick
-;
+;         Requires ImageMagick (tested)
 ;
 ; PROCEDURE:
 ;         Use ImageMagick to write the data as requested
 ;
-; EXAMPLE:
-;         
-;
+; EXAMPLE: 
+;         See "image_test.pro" in testsuite/
 ;
 ; MODIFICATION HISTORY:
-; 	Written by: Christopher Lee 2004-05-17
 ;
+; Written by: Christopher Lee 2004-05-17
 ;
+; Modification by Alain Coulais, 30-AUG-2011:
+;  adding check on ImageMagick
 ;
 ;-
 ; LICENCE:
-; Copyright (C) 2004,
+; Copyright (C) 2004, 2011
 ; This program is free software; you can redistribute it and/or modify  
 ; it under the terms of the GNU General Public License as published by  
 ; the Free Software Foundation; either version 2 of the License, or     
 ; (at your option) any later version.                                   
 ;
-;
 ;-
+;
+pro WRITE_BMP, filename, image, red, green, blue, $
+               rgb=rgb, four_bit=four_bit, $
+               ihdr=ihdr,header_define=header_define, $
+               test=test, help=help, debug=debug
+;
+if ~KEYWORD_SET(test) then ON_ERROR, 2
+;
+if KEYWORD_SET(help) then begin
+    print, 'pro WRITE_BMP, filename, image, red, green, blue, $'
+    print, '               rgb=rgb, four_bit=four_bit, $'
+    print, '               ihdr=ihdr,header_define=header_define, $'
+    print, '               help=help, test=test, debug=debug'
+    return
+endif
+;
+; Do we have access to ImageMagick functionnalities ??
+;
+if (MAGICK_EXISTS() EQ 0) then begin
+    MESSAGE, /continue, "GDL was compiled without ImageMagick support."
+    MESSAGE, "You must have ImageMagick support to use this functionaly."
+endif
 
-if(keyword_set(header_define)) then begin
-    message, "header define not yet supported"
+;
+if(KEYWORD_SET(header_define)) then begin
+    MESSAGE, "header define not yet supported"
 endif else begin
-    
-    n=size(image, /n_dimensions)
-    s=size(image,/dimensions)
-    
-    if(n eq 2) then begin
-                                ;pseudocolor
-        
-        if(n_params() lt 5) then tvlct, red, green, blue, /get
-        
-        
-                                ;colorvectors provided
-        mid=magick_create(s[0],s[1])
-        _image=transpose([[[blue[image]]],[[green[image]]],[[red[image]]]],[2,0,1])
- 
-        magick_write,mid,_image,rgb=rgb
-        magick_flip,mid
-        if(n_elements(red) eq n_elements(green) and $
-           n_elements(red) eq n_elements(blue)) then begin
-            magick_quantize,mid,long(n_elements(red))
-
-;            magick_writeIndexes,mid,image
-;            magick_writeColorTable,mid,red,green,blue
-            
-            magick_writefile,mid,filename,"BMP"
-            magick_close,mid
-        endif
-        
+    n=SIZE(image, /n_dimensions)
+    s=SIZE(image,/dimensions)
+    if (n EQ 2) then begin
+        ;;pseudocolor
+        if (N_PARAMS() lt 5) then TVLCT, red, green, blue, /get
+        ;;
+        ;;colorvectors provided
+        mid=MAGICK_CREATE(s[0],s[1])
+        _image=TRANSPOSE([[[blue[image]]],[[green[image]]],[[red[image]]]],[2,0,1])
+        ;;
+        MAGICK_WRITE, mid,_image,rgb=rgb
+        MAGICK_FLIP, mid
+        if (N_ELEMENTS(red) eq N_ELEMENTS(green) and $
+            N_ELEMENTS(red) eq N_ELEMENTS(blue)) then begin
+            MAGICK_QUANTIZE,mid,long(N_ELEMENTS(red))
+            ;;
+            ;;  MAGICK_WRITEIndexes,mid,image
+            ;;  MAGICK_WRITEColorTable,mid,red,green,blue
+            ;;
+            MAGICK_WRITEFILE, mid, filename, "BMP"
+            MAGICK_CLOSE, mid
+        endif        
     endif else if(n eq 3) then begin
-        mid=magick_create(s[1],s[2])
-        magick_write,mid,image,rgb=rgb
-        magick_writefile,mid,filename,"BMP"
-        magick_close,mid
+        mid=MAGICK_CREATE(s[1],s[2])
+        MAGICK_WRITE, mid, image, rgb=rgb
+        MAGICK_WRITEFILE, mid, filename, "BMP"
+        MAGICK_CLOSE, mid
     endif
-    
-    
 endelse
-
-
-
-
-    
+;
+if KEYWORD_SET(test) OR KEYWORD_SET(debug) then STOP
+;   
 end
 
 
