@@ -80,7 +80,7 @@ ls = INDGEN(2)
 eps = 1e-7
 foreach theta, thetas do begin
    foreach phi, phis do begin
-      foreach l, ls do begin begin
+      foreach l, ls do begin
          foreach m, INDGEN(2*l+1) - l do begin
             ;; scalar computations
             if ABS(SPHER_HARM(theta, phi, l, m) - SPHER_HARM_GDL(theta, phi, l, m)) gt eps then begin
