@@ -12,6 +12,9 @@
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 
+/* Define to 1 if you have the <ext/stdio_filebuf.h> header file. */
+#undef HAVE_EXT_STDIO_FILEBUF_H
+
 /* Define to 1 if you have the <gshhs.h> header file. */
 #undef HAVE_GSHHS_H
 

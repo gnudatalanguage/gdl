@@ -42,6 +42,12 @@ protected:
   // and DStringGDL (considers actual string sizes)
   SizeT nBytes = tags.back()->NBytes();
 
+  // alignment
+  const int sizeOfPtr = sizeof( char*);
+  SizeT exceed = nBytes % sizeOfPtr;
+  if( exceed > 0)
+	nBytes += sizeOfPtr - exceed;
+
   // valid tagOffset (used by NBytes())
   tagOffset.push_back( tagOffset.back() + nBytes);
   }
