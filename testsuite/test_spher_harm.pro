@@ -1,10 +1,15 @@
+;+
+; WARNING: If tested on IDL, required IDL >= 8.0 because this code
+; uses "foreach" instructions
 ;
 ; by Sylwester Arabas <slayoo@igf.fuw.edu.pl>
 ;
 ; Revised by Alain Coulais, 31-Aug-2011
 ;
-; this one does not perform any sanity checks, and is intended
-; only for testing the C++ implementation as done below
+;-
+;
+; This version of SPHER_HARM_GDL does not perform any sanity checks, and is intended
+; only for testing the C++ implementation (SPHER_HARM) as done below
 ;
 function SPHER_HARM_GDL, theta, phi, l, m
 ;
@@ -16,9 +21,15 @@ end
 ;
 ; tests SPHER_HARM (and btw FACTORIAL and LEGENDRE)
 ;
-pro test_spher_harm, test=test, help=help, debug=debug
+pro TEST_SPHER_HARM, test=test, help=help, debug=debug
+;
+if KEYWORD_SET(help) then begin
+    print, 'pro TEST_SPHER_HARM, test=test, help=help, debug=debug'
+    return
+endif
 ;
 ;; testing output shape
+;
 if SIZE(spher_harm(0.,0.,0,0), /dimensions) ne 0 then begin
    MESSAGE, 'spher_harm(scalar, ...) should be scalar', /conti
    if ~KEYWORD_SET(debug) then EXIT, status=1
