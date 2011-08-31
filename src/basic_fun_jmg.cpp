@@ -402,7 +402,7 @@ namespace lib {
 	  }
       }
 
-    // BYTE
+    // BYTEDComplexDblGDL
     if (e->KeywordSet(6) || type == BYTE) {
 
       return make_array_template< DByteGDL>( e, dimKey, value);
@@ -455,18 +455,25 @@ namespace lib {
       // STRING (added by MS 29.10.2005)
     } else if (e->KeywordSet(17) || type == STRING) {
 
+      if (!e->KeywordSet(indexix))
+		return make_array_template< DStringGDL>( e, dimKey, value);
+      
       // 'true' for ignoring /INDEX keyword 
-      BaseGDL* ret = make_array_template< DStringGDL>( e, dimKey, value, true);
-      if (e->KeywordSet(indexix))
-      {
-        for (DLong i = 0; i < ret->N_Elements(); ++i) 
-        {
-          char tmp[13];
-          assert(sprintf(tmp, "%12d", i) == 12);
-          (*static_cast<DStringGDL*>(ret))[i] = tmp;
-        }
-      }
-      return ret;
+	 // BaseGDL* ret = make_array_template< DStringGDL>( e, dimKey, value, true);
+//       if (e->KeywordSet(indexix))
+//       {
+
+	  BaseGDL* ret = make_array_template< DULongGDL>( e, dimKey, value); //, true);
+      return ret->Convert2( STRING);
+
+//         for (DLong i = 0; i < ret->N_Elements(); ++i)
+//         {
+//           char tmp[13];
+//           assert(sprintf(tmp, "%12d", i) == 12);
+//           (*static_cast<DStringGDL*>(ret))[i] = tmp;
+//         }
+//       }
+//       return ret;
 
       // PTR (added by SA 15.08.2009)
     } else if (e->KeywordSet(18) || type == PTR) {
