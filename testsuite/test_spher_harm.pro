@@ -77,7 +77,7 @@ foreach i, in do ptr_free, i
 thetas = FINDGEN(10.)
 phis = DINDGEN(5.)
 ls = INDGEN(2)
-eps = 1e-7
+eps = 1e-6
 foreach theta, thetas do begin
    foreach phi, phis do begin
       foreach l, ls do begin
