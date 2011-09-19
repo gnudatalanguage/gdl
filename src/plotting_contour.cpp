@@ -637,6 +637,7 @@ clevel[nlevel-1]=zEnd; //make this explicit
     struct mypltr_passinfo passinfo;
 
     static int c_colorsIx = e->KeywordIx("C_COLORS");
+    static int c_linestyleIx = e->KeywordIx("C_LINESTYLE");
     // 1 DIM X & Y
     if (xVal->Rank() == 1 && yVal->Rank() == 1) 
     {
@@ -774,18 +775,12 @@ clevel[nlevel-1]=zEnd; //make this explicit
           for (SizeT i = 0; i < nlevel; ++i) 
           { 
             actStream->Color((*colors)[i % colors->N_Elements()], true, 2);
-	    actStream->cont(z, xVal->Dim(0), xVal->Dim(1), 
-              1, xVal->Dim(0), 1, xVal->Dim(1), &(clevel[i]), 1,
-              plstream::tr2, (void *) &cgrid2 
-            );
+	    actStream->cont(z, xVal->Dim(0), xVal->Dim(1), 1, xVal->Dim(0), 1, xVal->Dim(1), &(clevel[i]), 1, plstream::tr2, (void *) &cgrid2);
           }
         }
         else
         {
-	  actStream->cont(z, xVal->Dim(0), xVal->Dim(1), 
-            1, xVal->Dim(0), 1, xVal->Dim(1), clevel, nlevel,
-            plstream::tr2, (void *) &cgrid2 
-          );
+	  actStream->cont(z, xVal->Dim(0), xVal->Dim(1), 1, xVal->Dim(0), 1, xVal->Dim(1), clevel, nlevel, plstream::tr2, (void *) &cgrid2);
         }
       }
       actStream->Free2dGrid(cgrid2.xg,xVal->Dim(0),xVal->Dim(1));

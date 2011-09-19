@@ -175,6 +175,12 @@ public:
   virtual bool SetXPageSize( const float xs)          { return false;}
   virtual bool SetYPageSize( const float ys)          { return false;}
   virtual bool SetColor()                             { return false;}
+  virtual bool SetScale(const float)                  { return false;}
+  virtual bool SetXOffset(const float)                { return false;}
+  virtual bool SetYOffset(const float)                { return false;}
+  virtual bool SetPortrait()                          { return false;}
+  virtual bool SetLandscape()                         { return false;}
+  virtual bool SetEncapsulated(bool)                  { return false;}
 
   // Z buffer device
   virtual bool ZBuffering( bool yes)                  { return false;}

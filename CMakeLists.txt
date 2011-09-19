@@ -47,6 +47,9 @@ set(WXWIDGETSDIR "" CACHE PATH "Specify WxWidgets directory tree")
 set(UDUNITS OFF CACHE BOOL "Enable UDUNITS-2 ?")
 set(UDUNITSDIR "" CACHE PATH "Specify the UDUNITS-2 directory tree")
 
+set(PSLIB ON CACHE BOOL "Enable pslib ?")
+set(PSLIBDIR "" CACHE PATH "Specify the pslib directory tree")
+
 set(GRIB OFF CACHE BOOL "Enable Grib ?")
 set(GRIBDIR "" CACHE PATH "Specifiy the GRIB directory tree")
 
@@ -497,6 +500,23 @@ if(UDUNITS)
 	endif(UDUNITS_FOUND)
 endif(UDUNITS)
 
+# pslib
+# -DPSLIB=ON|OFF
+# -DPSLIBDIR=DIR
+if(PSLIB)
+	set(CMAKE_PREFIX_PATH ${PSLIBDIR})
+	find_package(libps QUIET)
+	set(USE_PSLIB ${LIBPS_FOUND})
+	if(LIBPS_FOUND)
+		set(LIBRARIES ${LIBRARIES} ${LIBPS_LIBRARIES})
+		include_directories(${LIBPS_INCLUDE_DIR})	
+	else(LIBPS_FOUND)
+		message(FATAL_ERROR "pslib is required but was not found.\n"
+		"Use -DPSLIBDIR=DIR to specify the pslib directory tree.\n"
+		"Use -DPSLIBS=OFF to not use it.")
+	endif(LIBPS_FOUND)
+endif(PSLIB)
+
 # grib
 # -DGRIB=ON|OFF
 # -DGRIBDIR=DIR
@@ -632,6 +652,7 @@ module(UDUNITS   "UDUNITS-2  ")
 module(GRIB      "GRIB       ")
 set(GSHHS_LIBRARIES ${GSHHS_INCLUDE_DIR})
 module(GSHHS     "GSHHS      ")
+module(PSLIB	 "pslib      ")
 module(X11	 "Xlib       ")
 message("")
 message(STATUS "Mandatory modules")

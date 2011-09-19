@@ -31,7 +31,20 @@ void GDLPSStream::Init()
  
 void GDLPSStream::eop()
 {
-   if (page != 0) plstream::eop();
+   if (page != 0) 
+   {
+     if (encapsulated) 
+     {
+       Warning("Warning: multi-page output violates Encapsulated PostScript specification");
+     }
+     else
+     {
+#ifdef USE_PSLIB
+       Warning("Warning: multi-page PostScript not supported yet (FIXME!)");
+#endif
+     }
+     plstream::eop();
+   }
    page++;
 };
 

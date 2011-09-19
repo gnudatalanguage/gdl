@@ -57,7 +57,7 @@ echo "done"
 
 # regenerating examples (if needed, i.e. if gdl binary or any routine in src/pro/ changed)
 for i in `cd examples; find * -type d -and ! -name CVS`; do  
-  echo -n "--- Regenerating example file $i... "
+  echo -n "--- [Re]generating example file $i... "
   newest=`ls -1 -t ../../src/pro/*.pro ../../src/gdl examples/_pre examples/_post examples/$i/$i.pro | head -1`
   if `test ! -e examples/$i/$i.out.txt` || `test ! -e examples/$i/$i.out.tex` || `test $newest -nt examples/$i/$i.out.txt`; then
     cd examples/$i
@@ -73,7 +73,7 @@ for i in `cd examples; find * -type d -and ! -name CVS`; do
     fi
     touch examples/$i/$i.out.tex # TODO: czy to jest potrzebne?
     if test -e examples/$i/gdl.ps; then 
-      echo -n "--- Regenerating example plot file $i.out.pdf ... "
+      echo -n "--- [Re]generating example plot file $i.out.pdf ... "
       ps2pdf examples/$i/gdl.ps examples/$i/$i.out.pdf &>ps2pdf.log
       if `test 0 -eq $?`; then
         echo "done"

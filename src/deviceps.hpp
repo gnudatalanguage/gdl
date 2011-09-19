@@ -16,17 +16,23 @@
  ***************************************************************************/
 
 #ifndef DEVICEPS_HPP_
-#define DEVICEPS_HPP_
+#  define DEVICEPS_HPP_
 
-//#include "dstructgdl.hpp"
-#include "gdlpsstream.hpp"
-#include "initsysvar.hpp"
+#  include "gdlpsstream.hpp"
+#  include "initsysvar.hpp"
+#  include <gsl/gsl_const_mksa.h> // GSL_CONST_MKSA_INCH
 
-#ifdef HAVE_OLDPLPLOT
-#define SETOPT SetOpt
-#else
-#define SETOPT setopt
-#endif
+#  ifdef USE_PSLIB
+#    include <stdio.h> // tmpnam
+#    include <sys/utsname.h> // uname
+#    include <libps/pslib.h>
+#  endif
+
+#  ifdef HAVE_OLDPLPLOT
+#    define SETOPT SetOpt
+#  else
+#    define SETOPT setopt
+#  endif
 
 class DevicePS: public Graphics
 {
@@ -34,8 +40,16 @@ class DevicePS: public Graphics
   GDLPSStream*     actStream;
   float            XPageSize;
   float            YPageSize;
+  float            XOffset;
+  float            YOffset;
   int              color;
   int              decomposed; // false -> use color table
+  bool	           orient_portrait; 
+  bool             encapsulated;
+  float	           scale;
+
+  static const int dpi = 72;
+  static const float cm2in = .01 / GSL_CONST_MKSA_INCH;
 
   void InitStream()
   {
@@ -48,32 +62,19 @@ class DevicePS: public Graphics
     if( nx <= 0) nx = 1;
     if( ny <= 0) ny = 1;
 
-    actStream = new GDLPSStream( nx, ny);
+    actStream = new GDLPSStream( nx, ny, SysVar::GetPFont(), encapsulated);
 
     actStream->sfnam( fileName.c_str());
 
-    PLFLT xp; PLFLT yp; 
-    PLINT xleng; PLINT yleng;
-    PLINT xoff; PLINT yoff;
-    actStream->gpage( xp, yp, xleng, yleng, xoff, yoff);
-    
-    //default xleng,yleng: 720,540
-    //default in cm: 16.5,12.6
-    float a; float scale;
-    if (XPageSize != 0. && YPageSize != 0.) {a=XPageSize/YPageSize; scale=XPageSize/16.5;} 
-    if (XPageSize == 0. && YPageSize == 0.) {a=540/720; scale=1.;} // default aspect ratio
-    if (XPageSize == 0. && YPageSize != 0.) {a=540/720/(YPageSize/12.6); scale=1.;}
-    if (XPageSize != 0. && YPageSize == 0.) {a=XPageSize/16.5*540/720; scale=1.;}
+    // as setting the offsets and sizes with plPlot is (extremely) tricky, and some of these setting
+    // are hardcoded into plplot (like EPS header, and offsets in older versions of plplot)
+    // here we only specify the aspect ratio - size an offset are handled by pslib when device,/close is called
     char as[32];
-    sprintf(as, "%f",a);
-    actStream->SETOPT( "a", as); // this necessary to keep labels from looking stretched (plplot bug)
-                                 // but plrender -a is also buggy: aspect ratios are not exactly correct 
-    xleng=static_cast<PLINT>(floor(scale*540. +0.5));
-    yleng=static_cast<PLINT>(floor(scale*720. +0.5));
-    // setting this without plrender -a makes the labels stretched (plplot bug)
-    actStream->spage( xp, yp, xleng, yleng, xoff, yoff); 
+    sprintf(as, "%f", XPageSize / YPageSize);
+    actStream->SETOPT( "a", as);
 
-    actStream->SETOPT( "ori","1"); // portrait (upright)
+    // plot orientation
+    actStream->sori(orient_portrait ? 1 : 2);
 
     // no pause on destruction
     actStream->spause( false);
@@ -90,8 +91,10 @@ class DevicePS: public Graphics
 
     // default: black+white (IDL behaviour)
     //actStream->scolor( color); // has no effect
-    if (color == 0) { actStream->SETOPT( "drvopt","text=0,color=0"); } 
-    else { actStream->SETOPT( "drvopt","text=0,color=1");}
+    if (color == 0) 
+      actStream->SETOPT( "drvopt","text=0,color=0"); 
+    else 
+      actStream->SETOPT( "drvopt","text=0,color=1");
     color=0;
 
     actStream->Init();
@@ -104,8 +107,102 @@ class DevicePS: public Graphics
     actStream->adv(0);
   }
 
+private:
+  void pslibHacks()
+  {
+#  ifndef USE_PSLIB
+    Warning("Warning: pslib support is mandatory for the PostScript driver to handle the following");
+    Warning("         keywords: [X,Y]SIZE, [X,Y]OFFSET, SCALE_FACTOR, LANDSCAPE, PORTRAIT, ENCAPSULATED");
+#  else
+    PSDoc *ps = PS_new(); 
+    if (ps == NULL)
+    {
+      Warning("Warning: pslib failed to allocate memory.");
+      return;
+    }
+    FILE *fp = tmpfile(); // this creates a file which should be deleted automaticaly when it is closed
+    if (fp == NULL) 
+    {
+      Warning("Warning: failed to create temporary PostScript file.");
+      PS_delete(ps);
+      return;
+    }
+    if (PS_open_fp(ps, fp) == -1) 
+    { 
+      Warning("Warning: pslib failed to open a new PostScript file.");
+      goto cleanup;
+    }
+    
+    PS_set_parameter(ps, "imagereuse", "false");
+    PS_set_info(ps, "Title", "Graphics produced by GDL"); 
+    PS_set_info(ps, "Orientation", orient_portrait ? "Portrait" : "Landscape"); 
+    {
+      struct utsname uts;
+      uname(&uts);
+      PS_set_info(ps, "Creator", string("GDL Version " + string(VERSION) + ", " + string(uts.sysname) + " " + string(uts.machine)).c_str()); 
+      PS_set_info(ps, "Author", string(string(getlogin()) + "@" + string(uts.nodename)).c_str());
+    }
+
+    // TODO
+    //psfont = PS_findfont(ps, "Helvetica", "", 0); 
+    //PS_setfont(ps, psfont, 8.0); 
+
+    {
+      PS_begin_page(ps, XPageSize * cm2in * dpi, YPageSize * cm2in * dpi);
+      {
+        int psimage = PS_open_image_file(ps, "eps", fileName.c_str(), NULL, 0);
+        if (psimage == 0)
+        {
+          Warning("Warning: pslib failed to load plPlot output file.");
+          goto cleanup;
+        }
+
+        float scl = orient_portrait
+          ? (XPageSize * cm2in * dpi) / (PS_get_value(ps, "imagewidth", (float) psimage))
+          : (YPageSize * cm2in * dpi) / (PS_get_value(ps, "imagewidth", (float) psimage));
+        PS_place_image(ps, psimage, 
+          XOffset * cm2in * dpi,
+          YOffset * cm2in * dpi, 
+          scale * scl
+        );
+        PS_close_image(ps, psimage); 
+      }
+      PS_end_page(ps);
+      PS_close(ps);
+    }
+    
+    // write contents to fileName
+    {
+      rewind(fp);
+      FILE *fp_plplot = fopen(fileName.c_str(), "w");
+      if (fp_plplot == NULL)
+      {
+        Warning("Warning: failed to open plPlot-generated file");
+        goto cleanup;
+      }
+      const size_t buflen=4096;
+      unsigned char buff[buflen];;
+      while (true)
+      {
+        size_t cnt = fread(&buff, 1, buflen, fp);
+        if (!cnt) break;
+        if (fwrite(&buff, 1, cnt, fp_plplot) < cnt)
+        {
+          Warning("Warning: failed to overwrite the plPlot-generated file with pslib output");
+        }
+      }
+      fclose(fp_plplot);
+    }
+
+    cleanup:
+    PS_delete(ps);
+    fclose(fp); // this deletes the temporary file as well
+#  endif
+  }
+
 public:
-  DevicePS(): Graphics(), fileName( "gdl.ps"), actStream( NULL), XPageSize(0.), YPageSize(0.), color(0), decomposed( 0)
+  DevicePS(): Graphics(), fileName( "gdl.ps"), actStream( NULL), color(0), 
+    decomposed( 0), encapsulated(false), scale(1.)
   {
     name = "PS";
 
@@ -132,11 +229,20 @@ public:
     dStruct->InitTag("FLAGS",      DLongGDL( 266807)); 
     dStruct->InitTag("ORIGIN",     origin); 
     dStruct->InitTag("ZOOM",       zoom); 
+
+    SetPortrait();
+
+#  ifdef USE_PSLIB
+    PS_boot();
+#  endif
   }
   
   ~DevicePS()
   {
     delete actStream;
+#  ifdef USE_PSLIB
+    PS_shutdown();
+#  endif
   }
 
   GDLGStream* GetStream( bool open=true)
@@ -159,35 +265,78 @@ public:
   {
     delete actStream;
     actStream = NULL;
+    if (!encapsulated) pslibHacks(); // needs to be called after the plPlot-generated file is closed
+    return true;
+  }
+
+  bool SetXOffset( const float xo) // xo [cm]
+  {
+    XOffset=xo;
+    return true;
+  }
+
+  bool SetYOffset( const float yo) // yo [cm]
+  {
+    YOffset=yo;
     return true;
   }
 
   bool SetXPageSize( const float xs) // xs [cm]
   {
     XPageSize=xs;
-
     (*static_cast<DLongGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("X_SIZE"))))[0] 
       = DLong(floor(0.5+
         xs * (*static_cast<DFloatGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("X_PX_CM"))))[0]
       ));
-
     return true;
   }
+
   bool SetYPageSize( const float ys) // ys [cm]
   {
     YPageSize=ys;
-
     (*static_cast<DLongGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("Y_SIZE"))))[0] 
       = DLong(floor(0.5+
         ys * (*static_cast<DFloatGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("Y_PX_CM"))))[0]
       ));
-
     return true;
   }
 
   bool SetColor()
   {
     color=1;
+    return true;
+  }
+
+  bool SetPortrait()
+  {
+    orient_portrait = true;
+    XPageSize = 7 * 100. * GSL_CONST_MKSA_INCH;
+    YPageSize = 5 * 100. * GSL_CONST_MKSA_INCH; 
+    XOffset = .75 * 100. * GSL_CONST_MKSA_INCH; 
+    YOffset = 3 * 100. * GSL_CONST_MKSA_INCH; // TODO: this is different from IDL docs
+    return true;
+  }
+
+  bool SetLandscape()
+  {
+    orient_portrait = false;
+    XPageSize = 10 * 100. * GSL_CONST_MKSA_INCH; 
+    YPageSize = 7 * 100. * GSL_CONST_MKSA_INCH; 
+    XOffset = .5 * 100. * GSL_CONST_MKSA_INCH; 
+    YOffset = .75 * 100. * GSL_CONST_MKSA_INCH;
+    return true;
+  }
+
+  bool SetScale(float value)
+  {
+    scale = value;
+    return true;
+  }
+
+  bool SetEncapsulated(bool val)
+  {
+    // TODO ?: change XPageSize, YPageSize, XOffset, YOffset
+    encapsulated = val;
     return true;
   }
 

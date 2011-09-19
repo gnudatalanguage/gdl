@@ -525,5 +525,7 @@
            - fixes/enhancements in: BETA, CONTOUR, CORRELATE, DIALOG_PICKFILE, EXPINT, HDF_OPEN, H5F_OPEN, HDF_SD_START,
              IGAMMA, IMSL_CONSTANT, INTERPOL, LOADCT, NCDF_CONTROL, NCDF_OPEN, ROUTINE_NAMES, STRPOS, STRSPLIT, TV, TVRD, 
              XYOUTS (!P.MULTI vs. !P.POSITION, ORIENTATION with logscales), INTERPOLATE (the MISSING kw)
+           - non-Encapsulated PostScript support along with XSIZE, YSIZE, XOFFSET, YOFFSET, PORTRAIT, LANDSCAPE and
+             SCALE_FACTOR settings support for PostScript output (requires pslib - http://pslib.sourceforge.net/)
            - memory leak fix (bug introduced in the previous version)
            - various testsuite & docs updates (incl. docs and examples for CALL_EXTERNAL)

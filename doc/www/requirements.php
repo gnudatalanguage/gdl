@@ -22,6 +22,7 @@
     <li><a href="http://www.wxwidgets.org/">wxWidgets</a></li>
     <li><a href="http://home.comcast.net/~gevenden56/proj/">libproject</a> (mapping on Earth)</li>
     <li><a href="ftp://ftp.soest.hawaii.edu/pwessel/gshhs/">GSHHS</a> (see GDL's <a href="http://gnudatalanguage.cvs.sourceforge.net/viewvc/gnudatalanguage/gdl/MAP_INSTALL">MAP_INSTALL</a> file)</li>
+    <li><a href="http://pslib.sourceforge.net/">pslib</a> (fine-tuning PostScript output)</li>
 </ul>
 
 <p>The Python interface (see <a href="http://gnudatalanguage.cvs.sourceforge.net/viewvc/gnudatalanguage/gdl/PYTHON.txt">PYTHON.txt</a>) requires:</p>

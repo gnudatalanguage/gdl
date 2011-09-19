@@ -185,6 +185,13 @@ namespace SysVar
     return static_cast<DLongGDL*>( pStruct->GetTag( tag, 0));
   }
 
+  DLong GetPFont()
+  {
+    static DStructGDL* pStruct = SysVar::P();
+    static int tag = pStruct->Desc()->TagIndex( "FONT");
+    return (*static_cast<DLongGDL*>( pStruct->GetTag( tag)))[0];
+  }
+
   DStructGDL* X()
   {
     DVar& var = *sysVarList[ xIx];

@@ -11,7 +11,7 @@ dnl optional-packages defaults:
 dnl  - yes = require by default
 dnl  - no  = needs explicit enabling
 if test "x$with_readlinedir" = "x"; then with_readlinedir=yes; fi
-if test "x$with_wxWidgets"   = "x"; then with_wxWidgets=yes;    fi
+if test "x$with_wxWidgets"   = "x"; then with_wxWidgets=yes;   fi
 if test "x$with_udunits"     = "x"; then with_udunits=no;      fi
 if test "x$with_grib"        = "x"; then with_grib=no;         fi
 if test "x$with_Magick"      = "x"; then with_Magick=yes;      fi
@@ -23,6 +23,7 @@ if test "x$with_libproj4"    = "x"; then with_libproj4=no;     fi
 if test "x$with_mpich"       = "x"; then with_mpich=no;        fi
 if test "x$with_python"      = "x"; then with_python=yes;      fi
 if test "x$with_gshhs"       = "x"; then with_gshhs=no;        fi
+if test "x$with_pslib"       = "x"; then with_pslib=yes;       fi
 
 dnl default DATADIR subdirectory 
 datasubdir="gnudatalanguage"
@@ -229,17 +230,6 @@ if test "x$with_openmp" != "xno"; then
 	LDFLAGS="$LDFLAGS -fopenmp"
 fi
 
-
-dnl == tdl =================================================
-dnl ========================================================
-
-dnl AC_CHECK_LIB(ltdl, lt_dlopen,
-dnl [AC_DEFINE([HAVE_LIBLTDL], [1], [Use libltdl])], 
-dnl [
-dnl echo ""
-dnl echo "Error! ltdl library is required but was not found"
-dnl exit -1
-dnl ])
 
 dnl == GSL =================================================
 dnl ========================================================
@@ -924,6 +914,37 @@ else
   AC_DEFINE([HAVE_X], [1], [Define if you want to enable calls to Xlib])
 fi
 
+dnl == pslib ===============================================
+dnl ========================================================
+
+AC_ARG_WITH(pslib,
+         [  --with-pslib[=DIR]        use pslib package (with optional path DIR) ],
+         [with_pslib="$withval" ])
+  
+if test "x$with_pslib" != "xno"; then
+  if test "x$with_pslib" != "xyes"; then
+    LIBS="$LIBS -L$with_pslib/lib -lps"
+    INCLUDES="$INCLUDES -I$with_pslib/include"
+  else
+    INCLUDES="$INCLUDES -I/usr/include"
+    LIBS="$LIBS -lps"
+  fi
+
+  AC_CHECK_LIB(ps, PS_new, [AC_DEFINE([USE_PSLIB], [1], [Define if you want to use pslib])], [
+    echo ""
+    echo "Error! pslib is required but it was not found"
+    echo "       Use --with-pslib=DIR to specify the pslib directory tree"
+    echo "       Use --with-pslib=no  to not use it"
+    echo "       Check the README or use configure --help for other libraries needed"
+    echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
+    echo ""
+    echo "       (suitable Debian/Ubuntu package: pslib-dev)"
+    exit -1
+  ])
+
+fi
+
+
 dnl == installation paths ==================================
 dnl ========================================================
 
@@ -1129,6 +1150,8 @@ echo "
   GSHHS:               `if test no = $with_gshhs;
     then echo 'no  (see also MAP_INSTALL)'; else echo yes; fi`
   Xlib:                `if test xyes = x$no_x;
+    then echo 'no'; else echo yes; fi`
+  pslib:               `if test no = $with_pslib;
     then echo 'no'; else echo yes; fi`
   ----- notes on auxiliary files: ----------------------
   - consult MAP_INSTALL for details concerning auxiliary

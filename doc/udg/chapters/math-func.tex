@@ -1,38 +1,74 @@
-\gdlfunref{ABS}
-\gdlfunref{CEIL}
-\gdlfunref{FLOOR} (aka the Gauss' symbol\index{Gauss symbol})
-\gdlfunref{ROUND}
+GDL has a built-in collection of mathematical functions that are listed below.
+A great majority of these routines accept both scalar and vector arguments of any
+  numerical type and return the result as scalars or vectors, respectively,
+  preserving the type of the argument, e.g.:
+\gdlcodeexample{mathfunc_0}{}{}
+Some of the routines support a /DOUBLE\index{DOUBLE keyword} keyword (flag) which enables one
+  to force GDL to perform the calculations in (if applicable) and return the value[s] 
+  as double precision floating point numbers regardless of the type of the argument[s] passed, e.g:
+\gdlcodeexample{mathfunc_1}{}{}
+Similarily, if a functions returns integer numbers, the /L64\index{L64 keyword} keyword (flag)
+  can be used to force usage of 64-bit integers, e.g.:
+\gdlcodeexample{mathfunc_2}{}{}
+If GDL was compiled with OpenMP support (which is the default if the compiler supports it, and most
+  of them do nowadays), and if GDL is run on a multi-cpu (or multi-core) system, and 
+  if the array[s] passed as the argument[s] are big enough (see chapter ... TODO) the computations
+  are performed by multiple threads.
+Consult the individual documentation entries of each of the routines for details.
 
-\gdlfunref{ALOG}
-\gdlfunref{ALOG10}
-\gdlfunref{EXP} (\gdlfunref{GSL-EXP})
+\begin{description}
+  \item[\gdlfunref{ABS}]{returns the absolute value[s] of the real number[s] passed as the argument 
+    (integer or floating point) or the magnitude[s]\index{magnitude of a complex number}\index{complex numbers!magnitude} 
+    in case of complex number[s]}
+  \item[\gdlfunref{CEIL}]{returns the smallest integer number[s] greater than or equal to the argument}
+  \item[\gdlfunref{FLOOR}]{returns the greatest integer number[s] less than or equal to the argument (aka the Gauss' symbol\index{Gauss symbol})}
+  \item[\gdlfunref{ROUND}]{returns an integer value[s] closest to the argument}
+\end{description}
 
-\gdlfunref{ACOS}
-\gdlfunref{ASIN}
-\gdlfunref{ATAN}
-\gdlfunref{COS}
-\gdlfunref{COSH}
-\gdlfunref{SIN}
-\gdlfunref{SINH}
-\gdlfunref{TAN}
-\gdlfunref{TANH}
-\gdlfunref{LL-ARC-DISTANCE}
+\begin{description}
+  \item[\gdlfunref{ERF}]{}
+  \item[\gdlfunref{IMSL-ERF}]{}
+  \item[\gdlfunref{ERFC}]{}
+  \item[\gdlfunref{ERRORF}]{}
+  \item[\gdlfunref{EXPINT}]{}
+  \item[\gdlfunref{ALOG}]{}
+  \item[\gdlfunref{ALOG10}]{}
+  \item[\gdlfunref{EXP}]{ (\gdlfunref{GSL-EXP})}
+\end{description}
 
-\gdlfunref{BESELI}
-\gdlfunref{BESELJ}
-\gdlfunref{BESELK}
-\gdlfunref{BESELY}
+... the following trigonometric functions:\index{trigonometric functions}
+\begin{description}
+  \item[\gdlfunref{SIN}]{returns the sine of the argument}
+  \item[\gdlfunref{ASIN}]{returns the cosine of the argument}
+  \item[\gdlfunref{COS}]{}
+  \item[\gdlfunref{ACOS}]{}
+  \item[\gdlfunref{TAN}]{}
+  \item[\gdlfunref{ATAN}]{... complex! ...}
+\end{description}
+the following hyperbolic functions:\index{hyperbolic functions}
+\begin{description}
+  \item[\gdlfunref{SINH}]{}
+  \item[\gdlfunref{COSH}]{}
+  \item[\gdlfunref{TANH}]{}
+\end{description}
+as well as the following related functions:
+\begin{description}
+  \item[\gdlfunref{LL-ARC-DISTANCE}]{}
+\end{description}
 
-\gdlfunref{ERF} 
-\gdlfunref{IMSL-ERF} 
-\gdlfunref{ERFC}
-\gdlfunref{ERRORF}
-\gdlfunref{EXPINT}
+\begin{description}
+  \item[\gdlfunref{BESELI}]{}
+  \item[\gdlfunref{BESELJ}]{}
+  \item[\gdlfunref{BESELK}]{}
+  \item[\gdlfunref{BESELY}]{}
+\end{description}
 
-\gdlfunref{LAGUERRE}
-\gdlfunref{LEGENDRE}
+\begin{description}
+  \item[\gdlfunref{SPHER-HARM}]{}
+  \item[\gdlfunref{LAGUERRE}]{}
+  \item[\gdlfunref{LEGENDRE}]{}
+\end{description}
 
-\gdlfunref{SPHER-HARM}
 
 \gdlfunref{GAUSSINT}\index{Gaussian probability function}
 \gdlfunref{GAUSS-CVF}

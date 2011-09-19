@@ -100,6 +100,7 @@ UDUNITS-2     http://www.unidata.ucar.edu/software/udunits/
 GRIB API      http://www.ecmwf.int/products/data/software/grib_api.html        
 GSHHS         (consult the MAP_INSTALL file)
 wxWidgets     http://www.wxwidgets.org/
+pslib         http://pslib.sourceforge.net/
 
 Only with python:
 numpy          http://numpy.scipy.org/
@@ -109,7 +110,7 @@ numpy          http://numpy.scipy.org/
 NOTE: If you install the libraries as precompiled
 packages rather than compiling them from sources, please note that
 depending on your distribution, you may need development packages
-as well. Examples are (for FC5):
+as well. Examples are (for Fedora):
 plplot-devel
 ImageMagick-devel
 ImageMagick-c++-devel
@@ -269,6 +270,8 @@ If you want to use it, use --with-udunits=DIR
 GDL supports the GRIB file format - see README_GRIB
 
 GDL uses GSHHS to implement MAP_CONTINENTS - see MAP_INSTALL
+
+GDL uses pslib for fine-tuning PostScript output.
 
 GDL 0.9 was developed using ANTLR 2.7.6,   
 but unless you want to change the grammar (*.g files) you don't need

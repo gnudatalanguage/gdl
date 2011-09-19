@@ -18,16 +18,19 @@
 #ifndef GDLPSSTREAM_HPP_
 #define GDLPSSTREAM_HPP_
 
+#include "initsysvar.hpp"
 #include "gdlgstream.hpp"
 
 class GDLPSStream: public GDLGStream
 {
 private:
   int page;
+  bool encapsulated;
 public:
-  GDLPSStream( int nx, int ny):
-    GDLGStream( nx, ny, "ps")
+  GDLPSStream( int nx, int ny, int pfont, bool encaps):
+    GDLGStream::GDLGStream( nx, ny, pfont == 1 ? "ps-ttf" : "ps")
   {
+    encapsulated = encaps;
   }
 
   ~GDLPSStream()

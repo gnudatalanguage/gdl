@@ -30,6 +30,7 @@ namespace SysVar
   // returns !P
   DStructGDL* P();
   DLongGDL*   GetPMulti();
+  DLong       GetPFont();
 
   // returns ![XYZ]
   DStructGDL* X();

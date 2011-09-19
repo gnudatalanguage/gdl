@@ -1055,32 +1055,6 @@ namespace lib {
     a->wid( static_cast<PLINT>(floor( thick-0.5)));
   }
 
-  // AC 18 juin 2007 
-  // NOT READY NOW
-  //LINESTYLE for contour
-  void gkw_linestyle_c(EnvT *e, GDLGStream *a, bool OnlyPline)
-  {
-    if (OnlyPline == false) {
-      // if the LINESTYLE keyword is present, the value will be change
-      DLong temp_linestyle=-1111;
-      e->AssureLongScalarKWIfPresent( "LINESTYLE",temp_linestyle);
-    }
-    static DStructGDL* pStruct = SysVar::P();
-    DLong linestyle= 
-      (*static_cast<DLongGDL*>
-       (pStruct->GetTag( pStruct->Desc()->TagIndex("LINESTYLE"), 0)))[0];
-
-    if (linestyle < 0 ) {linestyle=0;}
-    if (linestyle > 5 ) {linestyle=5;}
-
-    //    if (linestyle == 1) { // dots
-      static PLINT nbp=1;
-      static PLINT mark[] = {75};
-      static PLINT space[] = {1500};
-      a->styl(nbp, mark, space);
-    
-    
-  }
   //LINESTYLE
   void gkw_linestyle(EnvT *e, GDLGStream *a)
   {
