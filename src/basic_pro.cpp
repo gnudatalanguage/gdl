@@ -2332,7 +2332,7 @@ namespace lib {
 	    // append file to list
 		openFiles.push_back(proFile);
 
-		bool success =  GDLInterpreter::CompileFile( proFile, ""); // this might trigger recursion
+		bool success =  GDLInterpreter::CompileFile( proFile); // this might trigger recursion
 			
 		if( success)
 			Message("RESOLVE_ROUTINE: Compiled file: " + proFile);

@@ -1072,7 +1072,7 @@ void GDLParser::procedure_def() {
 	match(END);
 	if ( inputState->guessing==0 ) {
 		
-		if( subName == name) subReached=true;
+		if( subName == name && searchForPro == true) subReached=true;
 		p_AST->SetCompileOpt( compileOpt);
 		
 	}
@@ -1189,7 +1189,7 @@ void GDLParser::function_def() {
 	match(END);
 	if ( inputState->guessing==0 ) {
 		
-		if( subName == name) subReached=true;
+		if( subName == name && searchForPro == false) subReached=true;
 		f_AST->SetCompileOpt( compileOpt);
 		
 	}

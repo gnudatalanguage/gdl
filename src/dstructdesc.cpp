@@ -212,7 +212,7 @@ DPro* DStructDesc::GetPro( const string& pName)
   int fInIDList=FindInIDList( noDirectMembers, pName);
   if( fInIDList == -1)
     {
-      bool found=GDLInterpreter::SearchCompilePro( name+"__"+pName);
+      bool found=GDLInterpreter::SearchCompilePro( name+"__"+pName, true); // true -> search for procedure
       if( found)
 	{
 	  p=FindInProList( pName);
@@ -241,7 +241,7 @@ DFun* DStructDesc::GetFun( const string& pName)
   int fInIDList=FindInIDList( noDirectMembers, pName);
   if( fInIDList == -1)
     {
-      bool found=GDLInterpreter::SearchCompilePro( name+"__"+pName);
+      bool found=GDLInterpreter::SearchCompilePro( name+"__"+pName, false); // false -> search for function
       if( found)
 	{
 	  p=FindInFunList( pName);

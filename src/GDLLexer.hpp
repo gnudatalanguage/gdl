@@ -58,7 +58,7 @@ class CUSTOM_API GDLLexer : public antlr::CharScanner, public GDLTokenTypes
 
     // main lexer constructor
     GDLLexer( std::istream& in, const std::string f, unsigned int compileOptIn,
-        const std::string pro="") 
+        const std::string pro="", bool searchForPro=true) 
     : antlr::CharScanner(new antlr::CharBuffer(in),false),
       lineContinuation( 0)
 //    : antlr::CharScanner(in)
@@ -68,7 +68,7 @@ class CUSTOM_API GDLLexer : public antlr::CharScanner, public GDLTokenTypes
   
         selector=     new antlr::TokenStreamSelector();
         mainLexerPtr= this;
-        parserPtr=    new GDLParser( *selector, pro, compileOptIn);
+        parserPtr=    new GDLParser( *selector, pro, searchForPro, compileOptIn);
 
         parserPtr->setFilename(f);
         parserPtr->initializeASTFactory( DNodeFactory);

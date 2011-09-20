@@ -65,7 +65,8 @@ class CUSTOM_API GDLParser : public antlr::LLkParser, public GDLTokenTypes
     }
 
     std::string subName; // name of procedure function to be compiled ("" -> all file)
-    bool   subReached;
+    bool   searchForPro; // true -> procedure subName, false -> function subName 
+    bool   subReached; 
     unsigned int compileOpt;
 
     bool ConstantExprNode( int t)
@@ -75,8 +76,11 @@ class CUSTOM_API GDLParser : public antlr::LLkParser, public GDLTokenTypes
     }
 
     public:
-    GDLParser(antlr::TokenStream& selector, const std::string& sName, unsigned int compileOptIn):
-    antlr::LLkParser(selector,2), subName(sName), 
+    GDLParser(antlr::TokenStream& selector, 
+              const std::string& sName, 
+              bool searchPro, // true -> search for procedure sName, false -> for function
+              unsigned int compileOptIn):
+    antlr::LLkParser(selector,2), subName(sName), searchForPro( searchPro), 
     subReached(false), compileOpt(compileOptIn)
     { 
         //        setTokenNames(_tokenNames);

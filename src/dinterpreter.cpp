@@ -151,8 +151,8 @@ DStructGDL* GDLInterpreter::ObjectStructCheckAccess( BaseGDL* self, ProgNodeP mp
   return oStruct;
 }
 
-// searches and compiles procedure 'pro'
-bool GDLInterpreter::SearchCompilePro(const string& pro)
+// searches and compiles procedure (searchForPro == true) or function (searchForPro == false)  'pro'
+bool GDLInterpreter::SearchCompilePro(const string& pro, bool searchForPro) 
 {
   static StrArr openFiles;
 
@@ -173,7 +173,7 @@ bool GDLInterpreter::SearchCompilePro(const string& pro)
   // append file to list
   openFiles.push_back(proFile);
 
-  return CompileFile( proFile, pro); // this might trigger recursion
+  return CompileFile( proFile, pro, searchForPro); // this might trigger recursion
 }
 
 // returns the struct descriptor with name 'name'
@@ -208,7 +208,7 @@ DStructDesc* GDLInterpreter::GetStruct(const string& name, ProgNodeP cN)
 //       throw GDLException(cN, "Structure type not defined (recursive call): "+name);
 //     }
   
-  /*bool found=*/ SearchCompilePro(proName);
+  /*bool found=*/ SearchCompilePro(proName, true);
 
   // if an exception occurs in SearchCompilePro, the struct is not compiled
             
@@ -252,7 +252,7 @@ int GDLInterpreter::GetFunIx( ProgNodeP f)
   if( funIx == -1)
     {
       // trigger reading/compiling of source file
-      /*bool found=*/ SearchCompilePro(subName);
+      /*bool found=*/ SearchCompilePro(subName, false);
             
       funIx=FunIx(subName);
       if( funIx == -1)
@@ -268,7 +268,7 @@ int GDLInterpreter::GetFunIx( const string& subName)
   if( funIx == -1)
     {
       // trigger reading/compiling of source file
-      /*bool found=*/ SearchCompilePro(subName);
+      /*bool found=*/ SearchCompilePro(subName, false);
             
       funIx=FunIx(subName);
       if( funIx == -1)
@@ -292,7 +292,7 @@ int GDLInterpreter::GetProIx( ProgNodeP f)
   if( proIx == -1)
     {
       // trigger reading/compiling of source file
-      /*bool found=*/ SearchCompilePro(subName);
+      /*bool found=*/ SearchCompilePro(subName, true);
 	  
       proIx=ProIx(subName);
       if( proIx == -1)
@@ -308,7 +308,7 @@ int GDLInterpreter::GetProIx( const string& subName)
   if( proIx == -1)
     {
       // trigger reading/compiling of source file
-      /*bool found=*/ SearchCompilePro(subName);
+      /*bool found=*/ SearchCompilePro(subName, true);
 	  
       proIx=ProIx(subName);
       if( proIx == -1)
@@ -363,14 +363,15 @@ void GDLInterpreter::ReportCompileError( GDLException& e, const string& file)
 
 // compiles file, returns success
 // if untilPro is set to "" the whole file is compiled
-bool GDLInterpreter::CompileFile(const string& f, const string& untilPro) 
+// procedure (searchForPro == true (default)) or function (searchForPro == false)
+bool GDLInterpreter::CompileFile(const string& f, const string& untilPro, bool searchForPro) 
 {
   ifstream in(f.c_str());
   if( !in) return false; // maybe throw exception here
   
   RefDNode theAST;
   try {  
-    GDLLexer   lexer(in, f, GDLParser::NONE, untilPro);
+    GDLLexer   lexer(in, f, GDLParser::NONE, untilPro, searchForPro);
     GDLParser& parser=lexer.Parser();
     
     // parsing

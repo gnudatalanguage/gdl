@@ -101,7 +101,8 @@ public:
 //     };  
 
     // code in: dinterpreter.cpp
-    static bool SearchCompilePro(const std::string& pro);
+    // procedure (searchForPro == true) or function (searchForPro == false)
+    static bool SearchCompilePro(const std::string& pro, bool searchForPro); 
     static int GetFunIx( ProgNodeP);
     static int GetFunIx( const std::string& subName);
     static int GetProIx( ProgNodeP);//const std::string& subName);
@@ -157,7 +158,10 @@ protected:
     bool interruptEnable;
 
 public:
-    static bool CompileFile(const std::string& f, const std::string& untilPro=""); 
+    // procedure (searchForPro == true) or function (searchForPro == false)
+    static bool CompileFile(const std::string& f, 
+                            const std::string& untilPro="",
+                            bool searchForPro=true); 
 
     typedef RefHeap<BaseGDL> RefBaseGDL;
     typedef RefHeap<DStructGDL> RefDStructGDL;

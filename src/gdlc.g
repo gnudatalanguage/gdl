@@ -184,7 +184,8 @@ tokens {
     }
 
     std::string subName; // name of procedure function to be compiled ("" -> all file)
-    bool   subReached;
+    bool   searchForPro; // true -> procedure subName, false -> function subName 
+    bool   subReached; 
     unsigned int compileOpt;
 
     bool ConstantExprNode( int t)
@@ -194,8 +195,11 @@ tokens {
     }
 
     public:
-    GDLParser(antlr::TokenStream& selector, const std::string& sName, unsigned int compileOptIn):
-    antlr::LLkParser(selector,2), subName(sName), 
+    GDLParser(antlr::TokenStream& selector, 
+              const std::string& sName, 
+              bool searchPro, // true -> search for procedure sName, false -> for function
+              unsigned int compileOptIn):
+    antlr::LLkParser(selector,2), subName(sName), searchForPro( searchPro), 
     subReached(false), compileOpt(compileOptIn)
     { 
         //        setTokenNames(_tokenNames);
@@ -476,7 +480,7 @@ procedure_def
         (COMMA! parameter_declaration)? end_unit
         (statement_list)? END!
         { 
-            if( subName == name) subReached=true;
+            if( subName == name && searchForPro == true) subReached=true;
             #p->SetCompileOpt( compileOpt);
         }
   ;
@@ -492,7 +496,7 @@ function_def
         (COMMA! parameter_declaration)? end_unit
         (statement_list)? END!
         { 
-            if( subName == name) subReached=true;
+            if( subName == name && searchForPro == false) subReached=true;
             #f->SetCompileOpt( compileOpt);
         }
     ;
@@ -1835,7 +1839,7 @@ tokens {
 
     // main lexer constructor
     GDLLexer( std::istream& in, const std::string f, unsigned int compileOptIn,
-        const std::string pro="") 
+        const std::string pro="", bool searchForPro=true) 
     : antlr::CharScanner(new antlr::CharBuffer(in),false),
       lineContinuation( 0)
 //    : antlr::CharScanner(in)
@@ -1845,7 +1849,7 @@ tokens {
   
         selector=     new antlr::TokenStreamSelector();
         mainLexerPtr= this;
-        parserPtr=    new GDLParser( *selector, pro, compileOptIn);
+        parserPtr=    new GDLParser( *selector, pro, searchForPro, compileOptIn);
 
         parserPtr->setFilename(f);
         parserPtr->initializeASTFactory( DNodeFactory);

@@ -318,7 +318,7 @@ PyObject *GDLSub( PyObject *self, PyObject *argTuple, PyObject *kwDict,
 	    proIx = FunIx( pro);
 	    if( proIx == -1)
 	      {
-		/*bool found=*/ interpreter->SearchCompilePro( pro);
+		/*bool found=*/ interpreter->SearchCompilePro( pro, false);
 	      
 		proIx = FunIx( pro);
 		if( proIx == -1)
@@ -349,7 +349,7 @@ PyObject *GDLSub( PyObject *self, PyObject *argTuple, PyObject *kwDict,
 	    proIx = ProIx( pro);
 	    if( proIx == -1)
 	      {
-		/*bool found=*/ interpreter->SearchCompilePro( pro);
+		/*bool found=*/ interpreter->SearchCompilePro( pro, true);
 	      
 		proIx = ProIx( pro);
 		if( proIx == -1)

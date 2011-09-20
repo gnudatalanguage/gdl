@@ -172,6 +172,9 @@
 /* Define if you want to use netCDF */
 #undef USE_NETCDF
 
+/* Define if you want to use pslib */
+#undef USE_PSLIB
+
 /* Define if you want to use python */
 #undef USE_PYTHON
 
