@@ -6858,6 +6858,7 @@ const char* GDLInterpreter::tokenNames[] = {
 	"SKIP_LINES",
 	"CONT_STATEMENT",
 	"END_OF_LINE",
+	"MAX_TOKEN_NUMBER",
 	0
 };
 

@@ -254,6 +254,7 @@ public:
 	protected: void mSKIP_LINES(bool _createToken);
 	public: void mCONT_STATEMENT(bool _createToken);
 	public: void mEND_OF_LINE(bool _createToken);
+	protected: void mMAX_TOKEN_NUMBER(bool _createToken);
 private:
 	
 	static const unsigned long _tokenSet_0_data_[];

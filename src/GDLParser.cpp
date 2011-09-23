@@ -9302,7 +9302,7 @@ void GDLParser::logical_expr() {
 
 void GDLParser::initializeASTFactory( antlr::ASTFactory& factory )
 {
-	factory.setMaxNodeType(226);
+	factory.setMaxNodeType(227);
 }
 const char* GDLParser::tokenNames[] = {
 	"<0>",
@@ -9532,6 +9532,7 @@ const char* GDLParser::tokenNames[] = {
 	"SKIP_LINES",
 	"CONT_STATEMENT",
 	"END_OF_LINE",
+	"MAX_TOKEN_NUMBER",
 	0
 };
 

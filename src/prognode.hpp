@@ -33,13 +33,31 @@
 class ProgNode;
 typedef ProgNode* ProgNodeP;
 
+bool* GetNonCopyNodeLookupArray()
+{
+static bool nonCopyNodeLookupArray[ GDLTokenTypes::MAX_TOKEN_NUMBER];
+for( int i=0; i<GDLTokenTypes::MAX_TOKEN_NUMBER; ++i)
+	nonCopyNodeLookupArray[ i] = false;
+nonCopyNodeLookupArray[ GDLTokenTypes::VAR] = true;
+nonCopyNodeLookupArray[ GDLTokenTypes::VARPTR] = true;
+nonCopyNodeLookupArray[ GDLTokenTypes::DEREF] = true;
+nonCopyNodeLookupArray[ GDLTokenTypes::CONSTANT] = true;
+nonCopyNodeLookupArray[ GDLTokenTypes::SYSVAR] = true;
+return nonCopyNodeLookupArray;
+}
+
 inline bool NonCopyNode( int type)
 {
-  return (type == GDLTokenTypes::DEREF) ||
-    (type == GDLTokenTypes::VAR) ||
-    (type == GDLTokenTypes::VARPTR) ||
-    (type == GDLTokenTypes::CONSTANT) ||
-    (type == GDLTokenTypes::SYSVAR) ;
+  static bool* nonCopyNodeLookupArray = GetNonCopyNodeLookupArray();
+  return nonCopyNodeLookupArray[ type];
+  
+//   return 
+//     (type == GDLTokenTypes::VAR) ||
+//     (type == GDLTokenTypes::VARPTR) ||
+//     (type == GDLTokenTypes::DEREF) ||
+//     (type == GDLTokenTypes::CONSTANT) ||
+//     (type == GDLTokenTypes::SYSVAR) ;
+
 // are always copy nodes:
 //     (type == GDLTokenTypes::ARRAYDEF)
 //     (type == GDLTokenTypes::STRUC)

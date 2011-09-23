@@ -2305,3 +2305,7 @@ END_OF_LINE
 	SKIP_LINES
 	{ _ttype=END_U; }
   ;
+
+// just to know how many tokens are there
+protected
+MAX_TOKEN_NUMBER :;

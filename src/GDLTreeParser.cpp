@@ -6974,7 +6974,7 @@ void GDLTreeParser::tag_array_expr(RefDNode _t) {
 
 void GDLTreeParser::initializeASTFactory( antlr::ASTFactory& factory )
 {
-	factory.setMaxNodeType(226);
+	factory.setMaxNodeType(227);
 }
 const char* GDLTreeParser::tokenNames[] = {
 	"<0>",
@@ -7204,6 +7204,7 @@ const char* GDLTreeParser::tokenNames[] = {
 	"SKIP_LINES",
 	"CONT_STATEMENT",
 	"END_OF_LINE",
+	"MAX_TOKEN_NUMBER",
 	0
 };
 

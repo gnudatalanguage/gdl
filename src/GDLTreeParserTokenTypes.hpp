@@ -235,6 +235,7 @@ struct CUSTOM_API GDLTreeParserTokenTypes {
 		SKIP_LINES = 224,
 		CONT_STATEMENT = 225,
 		END_OF_LINE = 226,
+		MAX_TOKEN_NUMBER = 227,
 		NULL_TREE_LOOKAHEAD = 3
 	};
 #ifdef __cplusplus
