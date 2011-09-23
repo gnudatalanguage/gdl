@@ -14,9 +14,11 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#else
+#include "includefirst.hpp"
+
+#ifndef HAVE_CONFIG_H
+// #include <config.h>
+// #else
 // default: assume we have ImageMagick
 #define USE_MAGICK 1
 #define USE_MAGICK6 1
@@ -24,8 +26,6 @@
 
 
 #ifdef USE_MAGICK
-
-#include "includefirst.hpp"
 
 #include <string>
 #include <fstream>
@@ -989,7 +989,7 @@ namespace lib {
     PixelPacket* pixels;
     IndexPacket* index;
 
-    unsigned int columns, rows, cx, cy;
+    unsigned int columns, rows;
     columns=image.columns();
     rows=image.rows();
 
@@ -1000,9 +1000,9 @@ SizeT nEl = columns*rows;
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-    for(cx=0;cx<nEl;++cx)
+    for(SizeT cx=0;cx<nEl;++cx)
       {
-	    index[cx]=(unsigned int)(*bImage)[cx];
+	    index[cx]=static_cast<unsigned int>((*bImage)[cx]);
 /*	    *index=(unsigned int)(*bImage)[cx];
 	    index++;*/
       }
