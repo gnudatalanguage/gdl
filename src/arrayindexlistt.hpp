@@ -213,11 +213,11 @@ public:
       {
 	if( nIx == 1)
 	  {
-	    allIx = new AllIxT( ix->GetS(), 1);
+	    allIx = new AllIxT( ix->GetS());
 	    return allIx;
 	  }
 
-	allIx = new AllIxT( nIx);
+	allIx = new AllIxMultiT( nIx);
 	SizeT s = ix->GetS();
 	SizeT ixStride = ix->GetStride();
 	if( ixStride <= 1) 
@@ -370,11 +370,12 @@ public:
   {
     if( allIx != NULL)
       {
-	allIx[0] = s;
+		allIx->Set( s);
+//	allIx[0] = s; // error?
 	return allIx;
       }
 
-    allIx = new AllIxT( s, 1);
+    allIx = new AllIxT( s);
     return allIx;
   }
 
@@ -491,11 +492,12 @@ public:
   {
     if( allIx != NULL)
       {
-	allIx[0] = s;
+		allIx->Set( s);
+//	allIx[0] = s; // error?
 	return allIx;
       }
 
-    allIx = new AllIxT( s, 1);
+    allIx = new AllIxT( s);
     return allIx;
   }
 
@@ -605,7 +607,7 @@ public:
     if( allIx != NULL)
       return allIx;
 
-    allIx = new AllIxT( s, 1);
+    allIx = new AllIxT( s);
     return allIx;
   }
 
@@ -866,8 +868,8 @@ public:
       {
 	s += ixList[l]->GetS() * varStride[l]; 
       }
-    allIx = new AllIxT( 1);
-    (*allIx)[0] = s;
+    allIx = new AllIxT(s);
+//     (*allIx)[0] = s;
 
     return allIx;
   }
@@ -1268,8 +1270,8 @@ public:
 	  {
 	    s += ixList[l]->GetS() * varStride[l]; 
 	  }
-	allIx = new AllIxT( 1);
-	(*allIx)[0] = s;
+	allIx = new AllIxT(s);
+// 	(*allIx)[0] = s;
 
 	return allIx;
       }
@@ -1296,7 +1298,7 @@ public:
     // higher indices of variable are implicitely zero,
     // therefore they are not checked in 'SetRoot'
 
-    allIx = new AllIxT( nIx);
+    allIx = new AllIxMultiT( nIx);
 
     // init allIx from first index
     if( ixList[0]->Indexed())

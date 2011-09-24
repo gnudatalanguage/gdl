@@ -114,7 +114,89 @@ typedef std::deque<std::string>       StrArr;
 // used by file.cpp and in other places 
 typedef std::deque<DString>           FileListT;
 
-typedef std::valarray<SizeT>          AllIxT;
+//typedef std::valarray<SizeT>          AllIxT;
+class AllIxT
+{
+private:
+	SizeT ix;
+
+protected:
+	AllIxT() {}
+
+public:
+	//AllIxT( SizeT i, SizeT n): ix( i)
+	AllIxT( SizeT i): ix( i)
+	{
+// 		assert( n == 1);
+	}
+	
+	virtual ~AllIxT() {};
+
+	virtual AllIxT* Clone()
+	{
+		return new AllIxT( ix);
+	}
+
+	virtual SizeT operator[]( SizeT i) const
+	{
+		assert( i == 0);
+		return ix;
+	}	
+	virtual SizeT& operator[]( SizeT i)
+	{
+		assert( i == 0);
+		return ix;
+	}
+
+	virtual SizeT size() const { return 1;}
+	virtual SizeT max() const { return ix;}
+
+	void Set( SizeT i) { ix = i;}
+};
+class AllIxMultiT: public AllIxT
+{
+private:
+	SizeT* ixArr;
+	SizeT  sz;
+		
+public:
+	AllIxMultiT( SizeT s): sz( s)
+	{
+		assert( s > 0);
+		ixArr = new SizeT[ s];
+	}
+	~AllIxMultiT() { delete[] ixArr;}
+	
+	 AllIxT* Clone()
+	{
+		AllIxMultiT* clone = new AllIxMultiT( sz);
+		for( SizeT i=0; i<sz; ++i)
+			clone[ i] = ixArr[ i];
+		return clone;
+	}
+	
+	SizeT operator[]( SizeT i) const
+	{
+	assert( i < sz);
+	return ixArr[ i];
+	}
+	SizeT& operator[]( SizeT i)
+	{
+	assert( i < sz);
+	return ixArr[ i];
+	}
+
+	SizeT size() const { return sz;}
+	SizeT max() const
+	 {
+		SizeT m = ixArr[0];
+		for( SizeT i=1; i<sz; ++i)
+			if( ixArr[ i] > m)
+				m = ixArr[ i] ;
+		return m;		
+	 }
+};
+
 
 typedef std::set< DPtr>               DPtrListT;
 
