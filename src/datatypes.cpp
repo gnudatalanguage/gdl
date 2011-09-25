@@ -176,9 +176,9 @@ template<class Sp> Data_<Sp>::Data_(const dimension& dim_, BaseGDL::InitType iT)
     {
       SizeT sz=dd.size();
 //       Ty val=Sp::zero;
-#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+// #pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
 {
-#pragma omp for
+// #pragma omp for
       for( SizeT i=0; i<sz; i++)
 	{
 	  (*this)[i]=i;//val;
@@ -985,9 +985,9 @@ BaseGDL* Data_<Sp>::Rotate( DLong dir)
       Data_* res = new Data_( this->dim, BaseGDL::NOZERO);
       SizeT nEl = N_Elements();
       
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
-#pragma omp for
+// #pragma omp for
       for( SizeT i=0; i<nEl; ++i)
 	(*res)[i] = (*this)[ nEl-1-i];
 }
@@ -1006,9 +1006,9 @@ BaseGDL* Data_<Sp>::Rotate( DLong dir)
 	{
 	  Data_* res = new Data_( this->dim, BaseGDL::NOZERO);
 	  SizeT nEl = N_Elements();
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
-#pragma omp for
+// #pragma omp for
 	  for( SizeT i=0; i<nEl; ++i)
 	    (*res)[ i] = (*this)[ nEl-1-i];
 }
@@ -1017,9 +1017,9 @@ BaseGDL* Data_<Sp>::Rotate( DLong dir)
       // 3 || 6
       Data_* res = new Data_( dimension( 1, N_Elements()), BaseGDL::NOZERO);
       SizeT nEl = N_Elements();
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
-#pragma omp for
+// #pragma omp for
       for( SizeT i=0; i<nEl; ++i)
 	(*res)[ i] = (*this)[ nEl-1-i];
 }

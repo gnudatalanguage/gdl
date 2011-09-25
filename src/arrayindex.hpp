@@ -278,7 +278,7 @@ protected:
   RangeT s;
   SizeT maxVal;
 
-  AllIxT*    ix;
+  AllIxMultiT*    ix;
   dimension* ixDim; // keep dimension of ix
 
   // forbid c-i

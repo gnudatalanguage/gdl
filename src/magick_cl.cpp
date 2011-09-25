@@ -997,9 +997,9 @@ namespace lib {
     index=image.getIndexes();
 
 SizeT nEl = columns*rows;
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
-#pragma omp for
+// #pragma omp for
     for(SizeT cx=0;cx<nEl;++cx)
       {
 	    index[cx]=static_cast<unsigned int>((*bImage)[cx]);

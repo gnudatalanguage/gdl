@@ -56,9 +56,9 @@ namespace lib {
   template< typename srcT, typename destT>
   void FromToGSL(  srcT* src, destT* dest, SizeT nEl)
   {
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
-#pragma omp for
+// #pragma omp for
       for( SizeT d = 0; d<nEl; ++d)
 	{
 	  dest[ d] = src[ d];
@@ -1710,9 +1710,9 @@ template<>
       {
 	DComplexGDL* c0 = static_cast<DComplexGDL*>(p0);
 	DFloatGDL* res = new DFloatGDL( c0->Dim(), BaseGDL::NOZERO);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
-#pragma omp for
+// #pragma omp for
 	  for( SizeT i=0; i<nEl; ++i)
 	    {
 	      (*res)[i] = (*c0)[i].imag();
@@ -1724,9 +1724,9 @@ template<>
       {
 	DComplexDblGDL* c0 = static_cast<DComplexDblGDL*>(p0);
 	DDoubleGDL* res = new DDoubleGDL( c0->Dim(), BaseGDL::NOZERO);
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
-#pragma omp for
+// #pragma omp for
 	  for( SizeT i=0; i<nEl; ++i)
 	    {
 	      (*res)[i] = (*c0)[i].imag();
@@ -1957,16 +1957,16 @@ template<>
       double gamma_kn1 = gsl_sf_gamma(k+n+1.);
       DDoubleGDL* coefKW = new DDoubleGDL(dimension(n+1) , BaseGDL::NOZERO);
 
-      /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
-	#pragma omp for*/
+#pragma omp for
       for(count = 0;count<=n;++count) {
         dcount = static_cast<double>(count);
         (*coefKW)[count] = ((count & 0x0001)?-1.0:1.0)*gamma_kn1/
           (gsl_sf_gamma(n-dcount+1.)*gsl_sf_gamma(k+dcount+1.)*
            gsl_sf_gamma(dcount+1.));
       }
-      // }        
+      }
       if(e->GetParDefined(0)->Type() != DOUBLE && !e->KeywordSet(doubleKWIx))
         coefKW = static_cast<DDoubleGDL*>(coefKW->
 					  Convert2(FLOAT,BaseGDL::CONVERT));
