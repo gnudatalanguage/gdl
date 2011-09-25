@@ -1957,9 +1957,9 @@ template<>
       double gamma_kn1 = gsl_sf_gamma(k+n+1.);
       DDoubleGDL* coefKW = new DDoubleGDL(dimension(n+1) , BaseGDL::NOZERO);
 
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      //#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
-#pragma omp for
+	  //#pragma omp for
       for(count = 0;count<=n;++count) {
         dcount = static_cast<double>(count);
         (*coefKW)[count] = ((count & 0x0001)?-1.0:1.0)*gamma_kn1/
