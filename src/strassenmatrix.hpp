@@ -2239,6 +2239,7 @@ void SM1( SizeT mSz, SizeT l, SizeT m, SizeT n, T *A, T *B, T *C)
       if( 0+n_2 >= n)
 	{
 	  cxLim = n-0;
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for
 	  for( long ix=0;ix<cxLim;++ix)
 	    for( long iy=0;iy<cyLim;++iy)
@@ -2275,6 +2276,7 @@ void SM1( SizeT mSz, SizeT l, SizeT m, SizeT n, T *A, T *B, T *C)
 	  do22 = true;
 	}
     }
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for
   for( long ix=0;ix<cxLim;++ix)
     for( long iy=0;iy<cyLim;++iy)
@@ -2305,6 +2307,7 @@ void SM1( SizeT mSz, SizeT l, SizeT m, SizeT n, T *A, T *B, T *C)
 	{
 	  cxLim = n_2;
 	}
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for
       for( long ix=0;ix<cxLim;++ix)
 	for( long iy=0;iy<cyLim;++iy)
@@ -2335,6 +2338,7 @@ void SM1( SizeT mSz, SizeT l, SizeT m, SizeT n, T *A, T *B, T *C)
 	{
 	  cxLim = n_2;
 	}
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for
       for( long ix=0;ix<cxLim;++ix)
 	for( long iy=0;iy<cyLim;++iy)
@@ -2366,6 +2370,7 @@ void SM1( SizeT mSz, SizeT l, SizeT m, SizeT n, T *A, T *B, T *C)
 	{
 	  cxLim = n_2;
 	}
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for
       for( long ix=0;ix<cxLim;++ix)
 	for( long iy=0;iy<cyLim;++iy)

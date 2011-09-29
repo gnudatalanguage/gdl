@@ -314,7 +314,7 @@ public:
   }
 
   //  SizeT* StealIx() { SizeT* ret = ix; ix = NULL; return ret;} 
-  AllIxT* StealIx() { AllIxT* ret = ix; ix = NULL; return ret;} 
+  AllIxMultiT* StealIx() { AllIxMultiT* ret = ix; ix = NULL; return ret;}
 
   ~ArrayIndexIndexed() 
   {

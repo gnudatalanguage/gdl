@@ -356,6 +356,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::Log()
 
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -374,6 +375,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::Log()
 
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
   for( SizeT i=0; i<nEl; ++i)
     (*n)[ i] = log( (*this)[ i]);
@@ -389,6 +391,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Log()
 
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
   for( SizeT i=0; i<nEl; ++i)
     (*n)[ i] = log( (*this)[ i]);
@@ -404,6 +407,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Log()
 
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 for( SizeT i=0; i<nEl; ++i)
     (*n)[ i] = log( (*this)[ i]);
@@ -424,6 +428,7 @@ void Data_<SpDFloat>::LogThis()
 //#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   SizeT nEl = N_Elements();
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
   for( SizeT i=0; i<nEl; ++i)
     (*this)[ i] = log( (*this)[ i]);
@@ -437,6 +442,7 @@ void Data_<SpDDouble>::LogThis()
 //#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   SizeT nEl = N_Elements();
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
   for( SizeT i=0; i<nEl; ++i)
     (*this)[ i] = log( (*this)[ i]);
@@ -450,6 +456,7 @@ void Data_<SpDComplex>::LogThis()
 //#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   SizeT nEl = N_Elements();
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 for( SizeT i=0; i<nEl; ++i)
     (*this)[ i] = log( (*this)[ i]);
@@ -463,6 +470,7 @@ void Data_<SpDComplexDbl>::LogThis()
 //#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   SizeT nEl = N_Elements();
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
   for( SizeT i=0; i<nEl; ++i)
     (*this)[ i] = log( (*this)[ i]);
@@ -484,6 +492,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::Log10()
 
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
   for( SizeT i=0; i<nEl; ++i)
     (*n)[ i] = log10( (*this)[ i]);
@@ -499,6 +508,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::Log10()
 
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
   for( SizeT i=0; i<nEl; ++i)
     (*n)[ i] = log10( (*this)[ i]);
@@ -514,6 +524,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Log10()
 
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
   for( SizeT i=0; i<nEl; ++i)
     (*n)[ i] = log10( (*this)[ i]);
@@ -529,6 +540,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Log10()
 
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
   for( SizeT i=0; i<nEl; ++i)
     (*n)[ i] = log10( (*this)[ i]);
@@ -549,6 +561,7 @@ void Data_<SpDFloat>::Log10This()
 #if 1 || (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   SizeT nEl = N_Elements();
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
   for( SizeT i=0; i<nEl; ++i)
     (*this)[ i] = log10( (*this)[ i]);
@@ -562,6 +575,7 @@ void Data_<SpDDouble>::Log10This()
 #if 1 || (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   SizeT nEl = N_Elements();
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
   for( SizeT i=0; i<nEl; ++i)
     (*this)[ i] = log10( (*this)[ i]);
@@ -575,6 +589,7 @@ void Data_<SpDComplex>::Log10This()
 #if 1 || (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   SizeT nEl = N_Elements();
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
   for( SizeT i=0; i<nEl; ++i)
     (*this)[ i] = log10( (*this)[ i]);
@@ -588,6 +603,7 @@ void Data_<SpDComplexDbl>::Log10This()
 #if 1 || (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   SizeT nEl = N_Elements();
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
   for( SizeT i=0; i<nEl; ++i)
     (*this)[ i] = log10( (*this)[ i]);
@@ -634,6 +650,7 @@ BaseGDL* Data_<Sp>::CShift( DLong d)
     d = (-d % dd.size());
 
 SizeT nEl = dd.size();
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
   for( SizeT i=0; i<nEl; ++i)
     sh->dd[i] = dd[ (i+d)%nEl];//.cshift( -d);
@@ -1065,6 +1082,7 @@ typename Data_<Sp>::Ty Data_<Sp>::Sum() const
 {
 Ty s= dd[ 0];
 SizeT nEl = dd.size();
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( s)
 {
 #pragma omp for reduction(+:s)

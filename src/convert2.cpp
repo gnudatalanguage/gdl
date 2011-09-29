@@ -214,6 +214,7 @@ template<> BaseGDL* Data_<SpDByte>::Convert2( DType destTy, BaseGDL::Convert2Mod
 	if( mode == BaseGDL::COPY_BYTE_AS_INT)
 	  {
 	    Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -375,6 +376,7 @@ template<> BaseGDL* Data_<SpDInt>::Convert2( DType destTy, BaseGDL::Convert2Mode
     case STRING: 
       {
       	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -533,6 +535,7 @@ template<> BaseGDL* Data_<SpDUInt>::Convert2( DType destTy, BaseGDL::Convert2Mod
     case STRING: 
       {
       	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -694,6 +697,7 @@ template<> BaseGDL* Data_<SpDLong>::Convert2( DType destTy, BaseGDL::Convert2Mod
     case STRING: 
       {
       	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -855,11 +859,12 @@ template<> BaseGDL* Data_<SpDULong>::Convert2( DType destTy, BaseGDL::Convert2Mo
     case STRING: 
       {
       	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
       	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=i2s((*this)[i],12);
+      	  (*dest)[i]=((*this)[i],12);
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
@@ -915,6 +920,7 @@ template<> BaseGDL* Data_<SpDFloat>::Convert2( DType destTy, BaseGDL::Convert2Mo
     case BYTE:
       {
       	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
 {
 #pragma omp for
@@ -927,6 +933,7 @@ template<> BaseGDL* Data_<SpDFloat>::Convert2( DType destTy, BaseGDL::Convert2Mo
     case INT:
       {
       	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
 {
 #pragma omp for
@@ -951,6 +958,7 @@ template<> BaseGDL* Data_<SpDFloat>::Convert2( DType destTy, BaseGDL::Convert2Mo
     case LONG:
       {
       	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
 {
 #pragma omp for
@@ -975,6 +983,7 @@ template<> BaseGDL* Data_<SpDFloat>::Convert2( DType destTy, BaseGDL::Convert2Mo
     case LONG64:
       {
       	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
 {
 #pragma omp for
@@ -1012,6 +1021,7 @@ template<> BaseGDL* Data_<SpDFloat>::Convert2( DType destTy, BaseGDL::Convert2Mo
     case STRING: 
       {
       	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
 {
 #pragma omp for
@@ -1071,6 +1081,7 @@ template<> BaseGDL* Data_<SpDDouble>::Convert2( DType destTy, BaseGDL::Convert2M
     case BYTE:
       {
       	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
 {
 #pragma omp for
@@ -1084,6 +1095,7 @@ template<> BaseGDL* Data_<SpDDouble>::Convert2( DType destTy, BaseGDL::Convert2M
     case INT:
       {
       	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
 {
 #pragma omp for
@@ -1108,6 +1120,7 @@ template<> BaseGDL* Data_<SpDDouble>::Convert2( DType destTy, BaseGDL::Convert2M
     case LONG:
       {
       	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -1132,6 +1145,7 @@ template<> BaseGDL* Data_<SpDDouble>::Convert2( DType destTy, BaseGDL::Convert2M
     case LONG64:
       {
       	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
 {
 #pragma omp for
@@ -1169,6 +1183,7 @@ template<> BaseGDL* Data_<SpDDouble>::Convert2( DType destTy, BaseGDL::Convert2M
     case STRING: 
       {
       	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
 {
 #pragma omp for
@@ -1251,6 +1266,7 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
 	bytDim >> maxLen;
 
       	Data_<SpDByte>* dest=new Data_<SpDByte>( bytDim); // zero fields
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -1269,6 +1285,7 @@ template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2M
     case INT:
       {
       	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( errorFlag, mode)
 {
 #pragma omp for
@@ -1297,6 +1314,7 @@ StringConversionError( errorFlag, mode, "Type conversion error: "
     case UINT: 
       {
       	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( errorFlag, mode)
 {
 #pragma omp for
@@ -1325,6 +1343,7 @@ StringConversionError( errorFlag, mode, "Type conversion error: "
     case LONG: 
       {
       	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( errorFlag, mode)
 {
 #pragma omp for
@@ -1353,6 +1372,7 @@ StringConversionError( errorFlag, mode, "Type conversion error: "
     case ULONG: 
       {
       	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( errorFlag, mode)
 {
 #pragma omp for
@@ -1381,6 +1401,7 @@ StringConversionError( errorFlag, mode, "Type conversion error: "
     case LONG64: 
       {
       	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( errorFlag, mode)
 {
 #pragma omp for
@@ -1409,6 +1430,7 @@ StringConversionError( errorFlag, mode, "Type conversion error: "
     case ULONG64: 
       {
       	Data_<SpDULong64>* dest=new Data_<SpDULong64>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( errorFlag, mode)
 {
 #pragma omp for
@@ -1437,6 +1459,7 @@ StringConversionError( errorFlag, mode, "Type conversion error: "
     case FLOAT: 
       {
       	Data_<SpDFloat>* dest=new Data_<SpDFloat>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( errorFlag, mode)
 {
 #pragma omp for
@@ -1465,6 +1488,7 @@ StringConversionError( errorFlag, mode, "Type conversion error: "
     case DOUBLE: 
       {
       	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( errorFlag, mode)
 {
 #pragma omp for
@@ -1494,6 +1518,7 @@ StringConversionError( errorFlag, mode, "Type conversion error: "
     case COMPLEX: 
       {
       	Data_<SpDComplex>* dest=new Data_<SpDComplex>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( errorFlag, mode)
 {
 #pragma omp for
@@ -1523,6 +1548,7 @@ StringConversionError( errorFlag, mode, "Type conversion error: "
       {
       	Data_<SpDComplexDbl>* dest=
 	  new Data_<SpDComplexDbl>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( errorFlag, mode)
 {
 #pragma omp for
@@ -1574,6 +1600,7 @@ template<> BaseGDL* Data_<SpDComplex>::Convert2( DType destTy, BaseGDL::Convert2
     case BYTE:
       {
       	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -1586,6 +1613,7 @@ template<> BaseGDL* Data_<SpDComplex>::Convert2( DType destTy, BaseGDL::Convert2
     case INT:
       {
       	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -1610,6 +1638,7 @@ template<> BaseGDL* Data_<SpDComplex>::Convert2( DType destTy, BaseGDL::Convert2
     case LONG:
       {
       	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -1634,6 +1663,7 @@ template<> BaseGDL* Data_<SpDComplex>::Convert2( DType destTy, BaseGDL::Convert2
     case LONG64:
       {
       	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -1682,6 +1712,7 @@ template<> BaseGDL* Data_<SpDComplex>::Convert2( DType destTy, BaseGDL::Convert2
     case STRING: 
       {
       	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -1730,6 +1761,7 @@ template<> BaseGDL* Data_<SpDComplexDbl>::Convert2( DType destTy, BaseGDL::Conve
     case BYTE:
       {
       	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -1742,6 +1774,7 @@ template<> BaseGDL* Data_<SpDComplexDbl>::Convert2( DType destTy, BaseGDL::Conve
     case INT:
       {
       	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -1766,6 +1799,7 @@ template<> BaseGDL* Data_<SpDComplexDbl>::Convert2( DType destTy, BaseGDL::Conve
     case LONG:
       {
       	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -1790,6 +1824,7 @@ template<> BaseGDL* Data_<SpDComplexDbl>::Convert2( DType destTy, BaseGDL::Conve
     case LONG64:
       {
       	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -1838,6 +1873,7 @@ template<> BaseGDL* Data_<SpDComplexDbl>::Convert2( DType destTy, BaseGDL::Conve
     case STRING: 
       {
       	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -1988,6 +2024,7 @@ template<> BaseGDL* Data_<SpDLong64>::Convert2( DType destTy, BaseGDL::Convert2M
     case STRING: 
       {
       	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -2146,6 +2183,7 @@ template<> BaseGDL* Data_<SpDULong64>::Convert2( DType destTy, BaseGDL::Convert2
     case STRING: 
       {
       	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for

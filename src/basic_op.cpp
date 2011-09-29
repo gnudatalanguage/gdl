@@ -43,6 +43,8 @@ Data_<Sp>* Data_<Sp>::NotOp()
   ULong nEl=N_Elements();
   assert( nEl != 0);
   //  if( !nEl) throw GDLException("Variable is undefined.");  
+TRACEOMP( __FILE__, __LINE__)
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -57,6 +59,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::NotOp()
   ULong nEl=N_Elements();
   assert( nEl != 0);
   //  if( !nEl) throw GDLException("Variable is undefined.");  
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -70,6 +73,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::NotOp()
   ULong nEl=N_Elements();
   assert( nEl != 0);
   //  if( !nEl) throw GDLException("Variable is undefined.");  
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -122,6 +126,7 @@ BaseGDL* Data_<Sp>::UMinus()
   ULong nEl=N_Elements();
   assert( nEl != 0);
   //  if( !nEl) throw GDLException("Variable is undefined.");  
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -167,6 +172,7 @@ Data_<SpDByte>* Data_<Sp>::LogNeg()
   //  if( nEl == 0) throw GDLException("Variable is undefined.");  
   
   DByteGDL* res = new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -182,6 +188,7 @@ Data_<SpDByte>* Data_<SpDFloat>::LogNeg()
   //  if( nEl == 0) throw GDLException("Variable is undefined.");  
   
   DByteGDL* res = new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -197,6 +204,7 @@ Data_<SpDByte>* Data_<SpDDouble>::LogNeg()
   //  if( nEl == 0) throw GDLException("Variable is undefined.");  
   
   DByteGDL* res = new Data_<SpDByte>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -211,6 +219,7 @@ Data_<SpDByte>* Data_<SpDString>::LogNeg()
   assert( nEl);
   //  if( nEl == 0) throw GDLException("Variable is undefined.");  
   DByteGDL* res = new Data_<SpDByte>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -225,6 +234,7 @@ Data_<SpDByte>* Data_<SpDComplex>::LogNeg()
   assert( nEl);
   //  if( nEl == 0) throw GDLException("Variable is undefined.");  
   DByteGDL* res = new Data_<SpDByte>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -239,6 +249,7 @@ Data_<SpDByte>* Data_<SpDComplexDbl>::LogNeg()
   assert( nEl);
   //  if( nEl == 0) throw GDLException("Variable is undefined.");  
   DByteGDL* res = new Data_<SpDByte>( dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -255,6 +266,7 @@ void Data_<Sp>::Dec()
   ULong nEl=N_Elements();
   assert( nEl != 0);
   // if( !nEl) throw GDLException("Variable is undefined.");  
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -267,6 +279,7 @@ void Data_<Sp>::Inc()
   ULong nEl=N_Elements();
   assert( nEl != 0);
   // if( !nEl) throw GDLException("Variable is undefined.");  
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -281,6 +294,7 @@ void Data_<SpDFloat>::Dec()
   ULong nEl=N_Elements();
   assert( nEl != 0);
   // if( !nEl) throw GDLException("Variable is undefined.");  
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -294,6 +308,7 @@ void Data_<SpDFloat>::Inc()
   ULong nEl=N_Elements();
   assert( nEl != 0);
   // if( !nEl) throw GDLException("Variable is undefined.");  
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -308,6 +323,7 @@ void Data_<SpDDouble>::Dec()
   ULong nEl=N_Elements();
   assert( nEl != 0);
   // if( !nEl) throw GDLException("Variable is undefined.");  
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -321,6 +337,7 @@ void Data_<SpDDouble>::Inc()
   ULong nEl=N_Elements();
   assert( nEl != 0);
   // if( !nEl) throw GDLException("Variable is undefined.");  
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -335,6 +352,7 @@ void Data_<SpDComplex>::Dec()
   ULong nEl=N_Elements();
   assert( nEl != 0);
   // if( !nEl) throw GDLException("Variable is undefined.");  
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -348,6 +366,7 @@ void Data_<SpDComplex>::Inc()
   ULong nEl=N_Elements();
   assert( nEl != 0);
   // if( !nEl) throw GDLException("Variable is undefined.");  
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -361,6 +380,7 @@ void Data_<SpDComplexDbl>::Dec()
   ULong nEl=N_Elements();
   assert( nEl != 0);
   // if( !nEl) throw GDLException("Variable is undefined.");  
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -374,6 +394,7 @@ void Data_<SpDComplexDbl>::Inc()
   ULong nEl=N_Elements();
   assert( nEl != 0);
   // if( !nEl) throw GDLException("Variable is undefined.");  
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -432,11 +453,18 @@ Data_<SpDByte>* Data_<Sp>::EqOp( BaseGDL* r)
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
 
   Data_<SpDByte>* res;
+if( rEl == 1 && nEl == 1)
+{
+    res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
+	(*res)[0] = ((*right)[0] == (*this)[0]);
+	return res;
+}
 
   Ty s;
   if( right->StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -446,6 +474,7 @@ Data_<SpDByte>* Data_<Sp>::EqOp( BaseGDL* r)
   else if( StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( right->dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
 {
 #pragma omp for
@@ -455,6 +484,7 @@ Data_<SpDByte>* Data_<Sp>::EqOp( BaseGDL* r)
   else if( rEl < nEl) 
     {
       res= new Data_<SpDByte>( right->dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
 {
 #pragma omp for
@@ -464,6 +494,7 @@ Data_<SpDByte>* Data_<Sp>::EqOp( BaseGDL* r)
   else // ( rEl >= nEl)
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -507,11 +538,18 @@ Data_<SpDByte>* Data_<Sp>::NeOp( BaseGDL* r)
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
 
   Data_<SpDByte>* res;
+if( rEl == 1 && nEl == 1)
+{
+    res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
+	(*res)[0] = ((*right)[0] != (*this)[0]);
+	return res;
+}
 
   Ty s;
   if( right->StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -521,6 +559,7 @@ Data_<SpDByte>* Data_<Sp>::NeOp( BaseGDL* r)
   else if( StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( right->dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
 {
 #pragma omp for
@@ -530,6 +569,7 @@ Data_<SpDByte>* Data_<Sp>::NeOp( BaseGDL* r)
   else if( rEl < nEl) 
     {
       res= new Data_<SpDByte>( right->dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
 {
 #pragma omp for
@@ -539,6 +579,7 @@ Data_<SpDByte>* Data_<Sp>::NeOp( BaseGDL* r)
   else // ( rEl >= nEl)
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -582,11 +623,18 @@ Data_<SpDByte>* Data_<Sp>::LeOp( BaseGDL* r)
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
 
   Data_<SpDByte>* res;
+if( rEl == 1 && nEl == 1)
+{
+    res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
+	(*res)[0] = ((*right)[0] >= (*this)[0]);
+	return res;
+}
 
   Ty s;
   if( right->StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -596,6 +644,7 @@ Data_<SpDByte>* Data_<Sp>::LeOp( BaseGDL* r)
   else if( StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( right->dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
 {
 #pragma omp for
@@ -605,6 +654,7 @@ Data_<SpDByte>* Data_<Sp>::LeOp( BaseGDL* r)
   else if( rEl < nEl) 
     {
       res= new Data_<SpDByte>( right->dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
 {
 #pragma omp for
@@ -614,6 +664,7 @@ Data_<SpDByte>* Data_<Sp>::LeOp( BaseGDL* r)
   else // ( rEl >= nEl)
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -669,11 +720,18 @@ Data_<SpDByte>* Data_<Sp>::LtOp( BaseGDL* r)
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
 
   Data_<SpDByte>* res;
+if( rEl == 1 && nEl == 1)
+{
+    res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
+	(*res)[0] = ((*right)[0] > (*this)[0]);
+	return res;
+}
 
   Ty s;
   if( right->StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -683,6 +741,7 @@ Data_<SpDByte>* Data_<Sp>::LtOp( BaseGDL* r)
   else if( StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( right->dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
 {
 #pragma omp for
@@ -692,6 +751,7 @@ Data_<SpDByte>* Data_<Sp>::LtOp( BaseGDL* r)
   else if( rEl < nEl) 
     {
       res= new Data_<SpDByte>( right->dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
 {
 #pragma omp for
@@ -701,6 +761,7 @@ Data_<SpDByte>* Data_<Sp>::LtOp( BaseGDL* r)
   else // ( rEl >= nEl)
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -756,11 +817,18 @@ Data_<SpDByte>* Data_<Sp>::GeOp( BaseGDL* r)
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
 
   Data_<SpDByte>* res;
+if( rEl == 1 && nEl == 1)
+{
+    res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
+	(*res)[0] = ((*right)[0] <= (*this)[0]);
+	return res;
+}
 
   Ty s;
   if( right->StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -770,6 +838,7 @@ Data_<SpDByte>* Data_<Sp>::GeOp( BaseGDL* r)
   else if( StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( right->dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
 {
 #pragma omp for
@@ -779,6 +848,7 @@ Data_<SpDByte>* Data_<Sp>::GeOp( BaseGDL* r)
   else if( rEl < nEl) 
     {
       res= new Data_<SpDByte>( right->dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
 {
 #pragma omp for
@@ -788,6 +858,7 @@ Data_<SpDByte>* Data_<Sp>::GeOp( BaseGDL* r)
   else // ( rEl >= nEl)
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -844,10 +915,18 @@ Data_<SpDByte>* Data_<Sp>::GtOp( BaseGDL* r)
 
   Data_<SpDByte>* res;
 
+if( rEl == 1 && nEl == 1)
+{
+    res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
+	(*res)[0] = ((*right)[0] < (*this)[0]);
+	return res;
+}
+
   Ty s;
   if( right->StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -857,6 +936,7 @@ Data_<SpDByte>* Data_<Sp>::GtOp( BaseGDL* r)
   else if( StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( right->dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
 {
 #pragma omp for
@@ -866,6 +946,7 @@ Data_<SpDByte>* Data_<Sp>::GtOp( BaseGDL* r)
   else if( rEl < nEl) 
     {
       res= new Data_<SpDByte>( right->dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
 {
 #pragma omp for
@@ -875,6 +956,7 @@ Data_<SpDByte>* Data_<Sp>::GtOp( BaseGDL* r)
   else // ( rEl >= nEl)
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -948,6 +1030,7 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool transpose, bool transposeResult
 #ifdef _OPENMP 
       SizeT nOp = nRow * nCol;
 #endif
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) default(shared)
 {
 #pragma omp for 
@@ -1068,6 +1151,7 @@ if( !transposeResult) // normal
 {
 if( !transpose) // normal
 {
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) default(shared)
 {
 #pragma omp for
@@ -1084,6 +1168,7 @@ if( !transpose) // normal
 }
 else // transpose r
 {
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) default(shared)
 {
 #pragma omp for
@@ -1102,6 +1187,7 @@ else // transposeResult
 {
 if( !transpose) // normal
 {
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) default(shared)
 {
 #pragma omp for
@@ -1118,6 +1204,7 @@ if( !transpose) // normal
 }
 else // transpose r
 {
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) default(shared)
 {
 #pragma omp for
@@ -1186,6 +1273,7 @@ Data_<Sp>* Data_<Sp>::AndOp( BaseGDL* r)
   assert( nEl);
   // note: we can't use valarray operation here as right->dd 
   // might be larger than this->dd
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -1210,6 +1298,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::AndOp( BaseGDL* r)
   ULong nEl=N_Elements();
   // assert( rEl);
   assert( nEl);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -1227,6 +1316,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::AndOpInv( BaseGDL* r)
   ULong nEl=N_Elements();
   // assert( rEl);
   assert( nEl);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -1245,6 +1335,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOp( BaseGDL* r)
   ULong nEl=N_Elements();
   // assert( rEl);
   assert( nEl);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -1262,6 +1353,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOpInv( BaseGDL* r)
   ULong nEl=N_Elements();
   // assert( rEl);
   assert( nEl);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -1348,6 +1440,7 @@ Data_<Sp>* Data_<Sp>::AndOpS( BaseGDL* r)
 
   // s &= Ty(1);
 //  dd &= s;
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared(s)
 {
 #pragma omp for
@@ -1405,6 +1498,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::AndOpInvS( BaseGDL* r)
 }}
   else
 {
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -1455,6 +1549,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOpInvS( BaseGDL* r)
 }}
   else
 {
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -1532,6 +1627,7 @@ Data_<Sp>* Data_<Sp>::OrOp( BaseGDL* r)
   // assert( rEl);
   assert( nEl);
   //if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -1558,6 +1654,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::OrOp( BaseGDL* r)
   // assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -1576,6 +1673,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::OrOpInv( BaseGDL* r)
   // assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -1595,6 +1693,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOp( BaseGDL* r)
   // assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -1613,6 +1712,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOpInv( BaseGDL* r)
   // assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -1677,6 +1777,7 @@ Data_<Sp>* Data_<Sp>::OrOpS( BaseGDL* r)
   // right->Scalar(s); 
   //s &= Ty(1);
 //  dd |= s;
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -1704,6 +1805,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::OrOpS( BaseGDL* r)
   // right->Scalar(s); 
   if( s != zero)
 {
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -1738,6 +1840,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOpS( BaseGDL* r)
   // right->Scalar(s);
   if( s != zero)
 {
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -1766,6 +1869,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOpInvS( BaseGDL* r)
 }}
   else
 {
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -1836,6 +1940,7 @@ Data_<Sp>* Data_<Sp>::XorOp( BaseGDL* r)
       if( s != Sp::zero)
 //	dd ^= s;
 {
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -1845,6 +1950,7 @@ Data_<Sp>* Data_<Sp>::XorOp( BaseGDL* r)
     }
   else
     {
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -1911,6 +2017,7 @@ Data_<Sp>* Data_<Sp>::XorOpS( BaseGDL* r)
   assert( nEl);
   Ty s = (*right)[0];
 //  dd ^= s;
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -1983,6 +2090,7 @@ Data_<Sp>* Data_<Sp>::Add( BaseGDL* r)
   ULong nEl=N_Elements();
   // assert( rEl);
   assert( nEl);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -2006,6 +2114,7 @@ Data_<SpDString>* Data_<SpDString>::AddInv( BaseGDL* r)
   // assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -2048,6 +2157,7 @@ Data_<Sp>* Data_<Sp>::AddS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s);
 //  dd += s;
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -2071,6 +2181,7 @@ Data_<SpDString>* Data_<SpDString>::AddInvS( BaseGDL* r)
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
   Ty s = (*right)[0];
   // right->Scalar(s);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -2120,6 +2231,7 @@ Data_<Sp>* Data_<Sp>::Sub( BaseGDL* r)
     dd -= right->dd;
   else
 {
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -2142,6 +2254,7 @@ Data_<Sp>* Data_<Sp>::SubInv( BaseGDL* r)
 /*  if( nEl == rEl)
     dd = right->dd - dd;
   else*/
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -2207,6 +2320,7 @@ Data_<Sp>* Data_<Sp>::SubS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s); 
 //  dd -= s;
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -2223,9 +2337,17 @@ Data_<Sp>* Data_<Sp>::SubInvS( BaseGDL* r)
 
   ULong nEl=N_Elements();
   assert( nEl);
+
+if( nEl == 1)
+{
+    (*this)[0] = (*right)[0] - (*this)[0];
+    return this;
+}
+  
   Ty s = (*right)[0];
   // right->Scalar(s); 
 //  dd = s - dd;
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -2295,6 +2417,7 @@ Data_<Sp>* Data_<Sp>::LtMark( BaseGDL* r)
   //  assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -2348,6 +2471,7 @@ Data_<Sp>* Data_<Sp>::LtMarkS( BaseGDL* r)
   assert( nEl);
   Ty s = (*right)[0];
   // right->Scalar(s);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -2405,6 +2529,7 @@ Data_<Sp>* Data_<Sp>::GtMark( BaseGDL* r)
   // assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -2458,6 +2583,7 @@ Data_<Sp>* Data_<Sp>::GtMarkS( BaseGDL* r)
   assert( nEl);
   Ty s = (*right)[0];
   // right->Scalar(s);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -2516,6 +2642,7 @@ Data_<Sp>* Data_<Sp>::Mult( BaseGDL* r)
   // assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -2558,6 +2685,7 @@ Data_<Sp>* Data_<Sp>::MultS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s);
 //  dd *= s;
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -2617,6 +2745,7 @@ SizeT i = 0;
     }
   else
     {
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 //       bool zeroEncountered = false; // until zero operation is already done.
@@ -2656,6 +2785,7 @@ SizeT i = 0;
     }
   else
     {
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 //       bool zeroEncountered = false; // until zero operation is already done.
@@ -2737,6 +2867,7 @@ Data_<Sp>* Data_<Sp>::DivS( BaseGDL* r)
     {
       // right->Scalar(s); 
 //      dd /= s;
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -2771,6 +2902,7 @@ SizeT i=0;
     }
   else
     {
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 //       bool zeroEncountered = false;
@@ -2865,6 +2997,7 @@ SizeT i=0;
     }
   else
     {
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 //       bool zeroEncountered = false;
@@ -2909,6 +3042,7 @@ SizeT i=0;
     }
   else
     {
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 //       bool zeroEncountered = false;
@@ -2948,6 +3082,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::Mod( BaseGDL* r)
   // assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -2967,6 +3102,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModInv( BaseGDL* r)
   // assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -2992,6 +3128,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::Mod( BaseGDL* r)
   // assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -3011,6 +3148,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModInv( BaseGDL* r)
   // assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -3150,6 +3288,7 @@ SizeT i=0;
     }
   else
     {
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -3183,6 +3322,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModS( BaseGDL* r)
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
   Ty s = (*right)[0];
   // right->Scalar(s); 
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -3202,6 +3342,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModInvS( BaseGDL* r)
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
   Ty s = (*right)[0];
   // right->Scalar(s); 
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -3219,6 +3360,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModS( BaseGDL* r)
   assert( nEl);
   Ty s = (*right)[0];
   // right->Scalar(s);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -3237,6 +3379,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModInvS( BaseGDL* r)
   assert( nEl);
   Ty s = (*right)[0];
   // right->Scalar(s); 
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -3356,6 +3499,7 @@ Data_<Sp>* Data_<Sp>::Pow( BaseGDL* r)
   //  assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -3378,6 +3522,7 @@ Data_<Sp>* Data_<Sp>::PowInv( BaseGDL* r)
   //      right->dd.resize(nEl);
   //      dd = pow( right->Resize(nEl), dd); // valarray
       
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -3403,6 +3548,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::Pow( BaseGDL* r)
     }
   else*/
     {
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -3448,6 +3594,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowInt( BaseGDL* r)
   if( r->StrictScalar())
     {
       DLong r0 = (*right)[0];  
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -3459,6 +3606,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowInt( BaseGDL* r)
     {
       Data_* res = new Data_( right->Dim(), BaseGDL::NOZERO);
       Ty s0 = (*this)[ 0];  
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 {
 #pragma omp for
@@ -3468,6 +3616,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowInt( BaseGDL* r)
     }
   if( nEl <= rEl)
     {
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -3478,6 +3627,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowInt( BaseGDL* r)
   else
     {
       Data_* res = new Data_( right->Dim(), BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 {
 #pragma omp for
@@ -3499,6 +3649,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowIntNew( BaseGDL* r)
     {
       Data_* res = new Data_( Dim(), BaseGDL::NOZERO);
       DLong r0 = (*right)[0];  
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -3510,6 +3661,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowIntNew( BaseGDL* r)
     {
       Data_* res = new Data_( right->Dim(), BaseGDL::NOZERO);
       Ty s0 = (*this)[ 0];  
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 {
 #pragma omp for
@@ -3520,6 +3672,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowIntNew( BaseGDL* r)
   if( nEl <= rEl)
     {
       Data_* res = new Data_( Dim(), BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -3530,6 +3683,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowIntNew( BaseGDL* r)
   else
     {
       Data_* res = new Data_( right->Dim(), BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 {
 #pragma omp for
@@ -3550,6 +3704,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowInt( BaseGDL* r)
   if( r->StrictScalar())
     {
       DLong r0 = (*right)[0];  
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -3561,6 +3716,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowInt( BaseGDL* r)
     {
       Data_* res = new Data_( right->Dim(), BaseGDL::NOZERO);
       Ty s0 = (*this)[ 0];  
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 {
 #pragma omp for
@@ -3570,6 +3726,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowInt( BaseGDL* r)
     }
   if( nEl <= rEl)
     {
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -3580,6 +3737,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowInt( BaseGDL* r)
   else
     {
       Data_* res = new Data_( right->Dim(), BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 {
 #pragma omp for
@@ -3601,6 +3759,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowIntNew( BaseGDL* r)
     {
       Data_* res = new Data_( Dim(), BaseGDL::NOZERO);
       DLong r0 = (*right)[0];  
+TRACEOMP( __FILE__, __LINE__)
   #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -3612,6 +3771,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowIntNew( BaseGDL* r)
     {
       Data_* res = new Data_( right->Dim(), BaseGDL::NOZERO);
       Ty s0 = (*this)[ 0];  
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 {
 #pragma omp for
@@ -3622,6 +3782,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowIntNew( BaseGDL* r)
   if( nEl <= rEl)
     {
       Data_* res = new Data_( Dim(), BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -3632,6 +3793,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowIntNew( BaseGDL* r)
   else
     {
       Data_* res = new Data_( right->Dim(), BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 {
 #pragma omp for
@@ -3656,6 +3818,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowInv( BaseGDL* r)
 /*  if( rEl == nEl)
     dd = pow( right->dd, dd); // valarray
   else*/
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -3680,6 +3843,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::Pow( BaseGDL* r)
 /*  if( rEl == nEl)
     dd = pow( dd, right->dd); // valarray
   else*/
+TRACEOMP( __FILE__, __LINE__)
   #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -3704,6 +3868,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowInv( BaseGDL* r)
 /*  if( rEl == nEl)
     dd = pow( right->dd, dd); // valarray
   else*/
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -3732,6 +3897,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
       // (must also be consistent with ComplexDbl)
       if( right->StrictScalar(s)) 
 	{
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -3750,6 +3916,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
 		{
 		  DComplexGDL* res = new DComplexGDL( right->Dim(), 
 						      BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 {
 #pragma omp for
@@ -3759,6 +3926,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
 		  return res;
 		}
 
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -3771,6 +3939,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
 	    {
 	      DComplexGDL* res = new DComplexGDL( right->Dim(), 
 						  BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 {
 #pragma omp for
@@ -3792,6 +3961,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
       // (must also be consistent with ComplexDbl)
       if( right->StrictScalar(s)) 
 	{
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -3810,6 +3980,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
 		{
 		  DComplexGDL* res = new DComplexGDL( right->Dim(), 
 						      BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 {
 #pragma omp for
@@ -3819,6 +3990,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
 		  return res;
 		}
 
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -3831,6 +4003,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
 	    {
 	      DComplexGDL* res = new DComplexGDL( right->Dim(), 
 						  BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 {
 #pragma omp for
@@ -3858,6 +4031,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
 /*  if( r->N_Elements() == nEl)
     dd = pow( dd, right->dd); // valarray
   else*/
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -3888,6 +4062,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowInv( BaseGDL* r)
 /*  if( rEl == nEl)
     dd = pow( right->dd, dd); // valarray
   else*/
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -3917,6 +4092,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
       // (concerning when a new variable is created vs. using this)
       if( right->StrictScalar(s)) 
 	{
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -3935,6 +4111,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
 		{
 		  DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
 							    BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 {
 #pragma omp for
@@ -3944,6 +4121,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
 		  return res;
 		}
 
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -3956,6 +4134,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
 	    {
 	      DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
 							BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 {
 #pragma omp for
@@ -3979,6 +4158,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
       // (concerning when a new variable is created vs. using this)
       if( right->StrictScalar(s)) 
 	{
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -3997,6 +4177,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
 		{
 		  DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
 							    BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 {
 #pragma omp for
@@ -4006,6 +4187,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
 		  return res;
 		}
 
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -4018,6 +4200,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
 	    {
 	      DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
 							BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 {
 #pragma omp for
@@ -4045,6 +4228,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
 /*  if( r->N_Elements() == nEl)
     dd = pow( dd, right->dd); // valarray
   else*/
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -4075,6 +4259,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowInv( BaseGDL* r)
 /*  if( rEl == nEl)
     dd = pow( right->dd, dd); // valarray
   else*/
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -4143,6 +4328,7 @@ Data_<Sp>* Data_<Sp>::PowS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s); 
 
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -4164,6 +4350,7 @@ Data_<Sp>* Data_<Sp>::PowInvS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s); 
   //      dd = pow( s, d); // valarray
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -4182,6 +4369,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowS( BaseGDL* r)
   assert( nEl);
   Ty s = (*right)[0];
   // right->Scalar(s); 
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -4200,6 +4388,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowInvS( BaseGDL* r)
   assert( nEl);
   Ty s = (*right)[0];
   // right->Scalar(s); 
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -4218,6 +4407,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowS( BaseGDL* r)
   assert( nEl);
   Ty s = (*right)[0];
   // right->Scalar(s); 
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -4236,6 +4426,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowInvS( BaseGDL* r)
   assert( nEl);
   Ty s = (*right)[0];
   // right->Scalar(s); 
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -4264,6 +4455,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowS( BaseGDL* r)
       // (must also be consistent with ComplexDbl)
       if( right->StrictScalar(s)) 
 	{
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -4282,6 +4474,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowS( BaseGDL* r)
 		{
 		  DComplexGDL* res = new DComplexGDL( right->Dim(), 
 						      BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 {
 #pragma omp for
@@ -4291,6 +4484,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowS( BaseGDL* r)
 		  return res;
 		}
 
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -4303,6 +4497,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowS( BaseGDL* r)
 	    {
 	      DComplexGDL* res = new DComplexGDL( right->Dim(), 
 						  BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 {
 #pragma omp for
@@ -4324,6 +4519,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowS( BaseGDL* r)
       // (must also be consistent with ComplexDbl)
       if( right->StrictScalar(s)) 
 	{
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -4342,6 +4538,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowS( BaseGDL* r)
 		{
 		  DComplexGDL* res = new DComplexGDL( right->Dim(), 
 						      BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 {
 #pragma omp for
@@ -4351,6 +4548,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowS( BaseGDL* r)
 		  return res;
 		}
 
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -4363,6 +4561,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowS( BaseGDL* r)
 	    {
 	      DComplexGDL* res = new DComplexGDL( right->Dim(), 
 						  BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 {
 #pragma omp for
@@ -4383,6 +4582,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s); 
 //#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -4410,6 +4610,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowInvS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s); 
 //#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -4442,6 +4643,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowS( BaseGDL* r)
       // (concerning when a new variable is created vs. using this)
       if( right->StrictScalar(s)) 
 	{
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -4460,6 +4662,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowS( BaseGDL* r)
 		{
 		  DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
 							    BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 {
 #pragma omp for
@@ -4469,6 +4672,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowS( BaseGDL* r)
 		  return res;
 		}
 
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -4481,6 +4685,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowS( BaseGDL* r)
 	    {
 	      DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
 							BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 {
 #pragma omp for
@@ -4504,6 +4709,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowS( BaseGDL* r)
       // (concerning when a new variable is created vs. using this)
       if( right->StrictScalar(s)) 
 	{
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -4522,6 +4728,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowS( BaseGDL* r)
 		{
 		  DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
 							    BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 {
 #pragma omp for
@@ -4531,6 +4738,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowS( BaseGDL* r)
 		  return res;
 		}
 
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -4543,6 +4751,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowS( BaseGDL* r)
 	    {
 	      DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
 							BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 {
 #pragma omp for
@@ -4563,6 +4772,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s); 
 //#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -4587,6 +4797,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowInvS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s); 
 //#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -4672,6 +4883,7 @@ Data_<Sp>* Data_<Sp>::SubNew( BaseGDL* r)
   Ty s;
   if( right->StrictScalar(s)) 
     {
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -4681,6 +4893,7 @@ Data_<Sp>* Data_<Sp>::SubNew( BaseGDL* r)
     }
   else 
     {
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -4730,6 +4943,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew( BaseGDL* r)
 	{
 	  DComplexGDL* res = new DComplexGDL( this->Dim(), 
 					      BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -4748,6 +4962,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew( BaseGDL* r)
 		{
 		  DComplexGDL* res = new DComplexGDL( right->Dim(), 
 						      BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 {
 #pragma omp for
@@ -4759,6 +4974,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew( BaseGDL* r)
 
 	      DComplexGDL* res = new DComplexGDL( this->Dim(), 
 						  BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -4771,6 +4987,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew( BaseGDL* r)
 	    {
 	      DComplexGDL* res = new DComplexGDL( right->Dim(), 
 						  BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 {
 #pragma omp for
@@ -4794,6 +5011,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew( BaseGDL* r)
 	{
 	  DComplexGDL* res = new DComplexGDL( this->Dim(), 
 					      BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -4812,6 +5030,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew( BaseGDL* r)
 		{
 		  DComplexGDL* res = new DComplexGDL( right->Dim(), 
 						      BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 {
 #pragma omp for
@@ -4823,6 +5042,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew( BaseGDL* r)
 
 	      DComplexGDL* res = new DComplexGDL( this->Dim(), 
 						  BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -4835,6 +5055,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew( BaseGDL* r)
 	    {
 	      DComplexGDL* res = new DComplexGDL( right->Dim(), 
 						  BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 {
 #pragma omp for
@@ -4858,6 +5079,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew( BaseGDL* r)
       DComplexGDL* res = new DComplexGDL( this->Dim(), 
 					  BaseGDL::NOZERO);
 //#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -4882,6 +5104,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew( BaseGDL* r)
 /*      if( r->N_Elements() == nEl)
 	res->dd = pow( dd, right->dd); // valarray
       else*/
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -4914,6 +5137,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew( BaseGDL* r)
 	{
 	  DComplexDblGDL* res = new DComplexDblGDL( this->Dim(), 
 						    BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -4932,6 +5156,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew( BaseGDL* r)
 		{
 		  DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
 							    BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 {
 #pragma omp for
@@ -4943,6 +5168,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew( BaseGDL* r)
 
 	      DComplexDblGDL* res = new DComplexDblGDL( this->Dim(), 
 							BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -4955,6 +5181,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew( BaseGDL* r)
 	    {
 	      DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
 							BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 {
 #pragma omp for
@@ -4978,6 +5205,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew( BaseGDL* r)
 	{
 	  DComplexDblGDL* res = new DComplexDblGDL( this->Dim(), 
 						    BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -4996,6 +5224,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew( BaseGDL* r)
 		{
 		  DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
 							    BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 {
 #pragma omp for
@@ -5007,6 +5236,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew( BaseGDL* r)
 
 	      DComplexDblGDL* res = new DComplexDblGDL( this->Dim(), 
 							BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -5019,6 +5249,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew( BaseGDL* r)
 	    {
 	      DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
 							BaseGDL::NOZERO);
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
 {
 #pragma omp for
@@ -5042,6 +5273,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew( BaseGDL* r)
       DComplexDblGDL* res = new DComplexDblGDL( this->Dim(), 
 						BaseGDL::NOZERO);
 //#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
@@ -5066,6 +5298,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew( BaseGDL* r)
 /*      if( r->N_Elements() == nEl)
 	res->dd = pow( dd, right->dd); // valarray
       else*/
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for

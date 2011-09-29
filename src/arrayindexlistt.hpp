@@ -223,17 +223,21 @@ public:
 	if( ixStride <= 1) 
 	  if( s != 0) 
 	    for( SizeT i=0; i<nIx; ++i)
-	      (*allIx)[i] = i + s;
+			static_cast<AllIxMultiT*>(allIx)->SetIx( i, i + s);
+// 	      (*allIx)[i] = i + s;
 	  else
 	    for( SizeT i=0; i<nIx; ++i)
-	      (*allIx)[i] = i;
+			static_cast<AllIxMultiT*>(allIx)->SetIx( i, i );
+// 	      (*allIx)[i] = i;
 	else
 	  if( s != 0) 
 	    for( SizeT i=0; i<nIx; ++i)
-	      (*allIx)[i] = i * ixStride + s;
+			static_cast<AllIxMultiT*>(allIx)->SetIx( i, i * ixStride + s);
+// 	      (*allIx)[i] = i * ixStride + s;
 	  else
 	    for( SizeT i=0; i<nIx; ++i)
-	      (*allIx)[i] = i * ixStride;
+			static_cast<AllIxMultiT*>(allIx)->SetIx( i, i * ixStride);
+// 	      (*allIx)[i] = i * ixStride;
 	return allIx;
       }
   }
@@ -1280,13 +1284,16 @@ public:
       {
 	// ALLINDEXED -> all ArrayIndexT::INDEXED
 	allIx = static_cast< ArrayIndexIndexed*>(ixList[0])->StealIx();
+
+	assert( dynamic_cast<AllIxMultiT*>( allIx) != NULL);
 	
 	for( SizeT l=1; l < acRank; ++l)
 	  {
-	    AllIxT* tmpIx = static_cast< ArrayIndexIndexed*>(ixList[l])->StealIx();
+	    AllIxMultiT* tmpIx = static_cast< ArrayIndexIndexed*>(ixList[l])->StealIx();
 	    
 	    for( SizeT i=0; i<nIx; ++i)
-	      (*allIx)[i] += (*tmpIx)[i] * varStride[l];
+	      static_cast<AllIxMultiT*>( allIx)->AddToIx( i, tmpIx->GetIx( i) * varStride[l]);
+// 	      (*allIx)[i] += (*tmpIx)[i] * varStride[l];
 	    
 	    delete tmpIx;
 	  }
@@ -1303,11 +1310,12 @@ public:
     // init allIx from first index
     if( ixList[0]->Indexed())
       {
-	AllIxT* tmpIx = static_cast< ArrayIndexIndexed*>(ixList[0])->StealIx();
+	AllIxMultiT* tmpIx = static_cast< ArrayIndexIndexed*>(ixList[0])->StealIx();
 
 	for( SizeT i=0; i<nIx; ++i)
 	  {
-	    (*allIx)[ i] = (*tmpIx)[ i %  nIterLimit[0]];
+	  static_cast<AllIxMultiT*>(allIx)->SetIx( i, tmpIx->GetIx( i %  nIterLimit[0]));
+// 	  	    (*allIx)[ i] = (*tmpIx)[ i %  nIterLimit[0]];
 	  }
 
 	delete tmpIx;
@@ -1321,23 +1329,27 @@ public:
 	  if( s != 0) 
 	    for( SizeT i=0; i<nIx; ++i)
 	      {
-		(*allIx)[i] = (i %  nIterLimit[0]) + s; // stride[0], varStride[0] == 1
+	  static_cast<AllIxMultiT*>(allIx)->SetIx( i,  (i %  nIterLimit[0]) + s);
+// 		(*allIx)[i] = (i %  nIterLimit[0]) + s; // stride[0], varStride[0] == 1
 	      }
 	  else
 	    for( SizeT i=0; i<nIx; ++i)
 	      {
-		(*allIx)[i] = (i %  nIterLimit[0]); // stride[0], varStride[0] == 1
+	  static_cast<AllIxMultiT*>(allIx)->SetIx( i, (i %  nIterLimit[0]));
+// 		(*allIx)[i] = (i %  nIterLimit[0]); // stride[0], varStride[0] == 1
 	      }
 	else
 	  if( s != 0) 
 	    for( SizeT i=0; i<nIx; ++i)
 	      {
-		(*allIx)[i] = (i %  nIterLimit[0]) * ixStride + s; // stride[0], varStride[0] == 1
+	  static_cast<AllIxMultiT*>(allIx)->SetIx( i, (i %  nIterLimit[0]) * ixStride + s);
+// 		(*allIx)[i] = (i %  nIterLimit[0]) * ixStride + s; // stride[0], varStride[0] == 1
 	      }
 	  else
 	    for( SizeT i=0; i<nIx; ++i)
 	      {
-		(*allIx)[i] = (i %  nIterLimit[0]) * ixStride; // stride[0], varStride[0] == 1
+	  static_cast<AllIxMultiT*>(allIx)->SetIx( i, (i %  nIterLimit[0]) * ixStride);
+// 		(*allIx)[i] = (i %  nIterLimit[0]) * ixStride; // stride[0], varStride[0] == 1
 	      }
       }
 
@@ -1346,13 +1358,13 @@ public:
 
 	if( ixList[l]->Indexed())
 	  {
-	    AllIxT* tmpIx = static_cast< ArrayIndexIndexed*>(ixList[l])->StealIx();
+	    AllIxMultiT* tmpIx = static_cast< ArrayIndexIndexed*>(ixList[l])->StealIx();
 	    //	    SizeT* tmpIx = ixList[l]->StealIx();
 	    
 	    for( SizeT i=0; i<nIx; ++i)
 	      {
-		(*allIx)[ i] += (*tmpIx)[ (i / stride[l]) %  nIterLimit[l]] * 
-		  varStride[l];
+	  static_cast<AllIxMultiT*>(allIx)->AddToIx( i,  tmpIx->GetIx( (i / stride[l]) %  nIterLimit[l]) * varStride[l]);
+// 		(*allIx)[ i] += (*tmpIx)[ (i / stride[l]) %  nIterLimit[l]] * varStride[l];
 	      }
 	    
 	    delete tmpIx;
@@ -1366,27 +1378,26 @@ public:
 	    if( s != 0) 
 	      for( SizeT i=0; i<nIx; ++i)
 		{
-		  (*allIx)[i] += ((i / stride[l]) %  nIterLimit[l] + s) * 
-		    varStride[l]; 
+	  static_cast<AllIxMultiT*>(allIx)->AddToIx( i, ((i / stride[l]) %  nIterLimit[l] + s) * varStride[l]);
+// 		  (*allIx)[i] += ((i / stride[l]) %  nIterLimit[l] + s) * varStride[l];
 		}
 	    else
 	      for( SizeT i=0; i<nIx; ++i)
 		{
-		  (*allIx)[i] += ((i / stride[l]) %  nIterLimit[l]) * 
-		    varStride[l]; 
+	  static_cast<AllIxMultiT*>(allIx)->AddToIx( i, ((i / stride[l]) %  nIterLimit[l]) * varStride[l]);
+// 		  (*allIx)[i] += ((i / stride[l]) %  nIterLimit[l]) * varStride[l];
 		}
 	    else // ixStride > 1 
 	    if( s != 0) 
 	      for( SizeT i=0; i<nIx; ++i)
 		{
-		  (*allIx)[i] += (((i / stride[l]) %  nIterLimit[l]) 
-				  * ixStride + s) * varStride[l]; 
+	  static_cast<AllIxMultiT*>(allIx)->AddToIx( i, (((i / stride[l]) %  nIterLimit[l]) * ixStride + s) * varStride[l]);
+// 		  (*allIx)[i] += (((i / stride[l]) %  nIterLimit[l]) * ixStride + s) * varStride[l];
 		}
 	    else
 	      for( SizeT i=0; i<nIx; ++i)
 		{
-		  (*allIx)[i] += ((i * ixStride / stride[l]) %  nIterLimit[l]) 
-		    * ixStride * varStride[l]; 
+// 		  (*allIx)[i] += ((i * ixStride / stride[l]) %  nIterLimit[l]) * ixStride * varStride[l];
 		}
 	  }
       }

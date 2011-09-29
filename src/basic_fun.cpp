@@ -1667,6 +1667,7 @@ namespace lib {
 
     if( mode == 2) // both
    {
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
 {
 #pragma omp for
@@ -1687,6 +1688,7 @@ namespace lib {
   }
   else if( mode == 1) // leading
      {
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
 {
 #pragma omp for
@@ -1706,6 +1708,7 @@ namespace lib {
     }
     else // trailing
       {
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
 {
 #pragma omp for
@@ -1737,6 +1740,7 @@ namespace lib {
     DStringGDL* res = new DStringGDL( p0S->Dim(), BaseGDL::NOZERO);
 
     SizeT nEl = p0S->N_Elements();
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
 {
 #pragma omp for
@@ -1784,6 +1788,7 @@ namespace lib {
     DLongGDL* res = new DLongGDL( p0S->Dim(), BaseGDL::NOZERO);
 
     SizeT nSrcStr = p0S->N_Elements();
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if ((nSrcStr*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nSrcStr*10)))
 {
 #pragma omp for
@@ -1851,6 +1856,7 @@ namespace lib {
     SizeT nEl2 = (sc2)? 1 : p2L->N_Elements();
 
     SizeT nSrcStr = p0S->N_Elements();
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if ((nSrcStr*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nSrcStr*10))) default( shared)
 {
 #pragma omp for
@@ -1880,6 +1886,7 @@ namespace lib {
     DStringGDL* res = new DStringGDL( p0S->Dim(), BaseGDL::NOZERO);
     
     SizeT nEl = p0S->N_Elements();
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
 {
 #pragma omp for
@@ -1900,6 +1907,7 @@ namespace lib {
     DStringGDL* res = new DStringGDL( p0S->Dim(), BaseGDL::NOZERO);
     
     SizeT nEl = p0S->N_Elements();
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
 {
 #pragma omp for
@@ -2094,6 +2102,7 @@ namespace lib {
     if (!omitNaN) return new T(src->Sum());
     typename T::Ty sum = 0;
     SizeT nEl = src->N_Elements();
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared(sum)
 {
 #pragma omp for
@@ -2613,6 +2622,7 @@ namespace lib {
     SizeT nEl = src->N_Elements();
     if( !omitNaN) 
 	{
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared(sum)
 {
 #pragma omp for reduction(*:sum)
@@ -2624,6 +2634,7 @@ namespace lib {
 	}
     else
 	{
+TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared(sum)
 {
 #pragma omp for reduction(*:sum)

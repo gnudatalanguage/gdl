@@ -55,6 +55,14 @@
 #include <valarray>
 #include <cassert>
 
+//#define TRACE_OMP_CALLS
+#undef TRACE_OMP_CALLS
+
+#if defined(_OPENMP) && defined(TRACE_OMP_CALLS)
+#define TRACEOMP( file, line)   std::cout << "TRACEOMP\t" << file << "\t" << line << std::endl;
+#else
+#define TRACEOMP( file, line) 
+#endif
 
 // SA: fixing bug no. 3296360
 typedef unsigned long long int      SizeT;
@@ -141,7 +149,7 @@ public:
 	{
 		assert( i == 0);
 		return ix;
-	}	
+	}
 	virtual SizeT& operator[]( SizeT i)
 	{
 		assert( i == 0);
@@ -193,7 +201,23 @@ public:
 		for( SizeT i=1; i<sz; ++i)
 			if( ixArr[ i] > m)
 				m = ixArr[ i] ;
-		return m;		
+		return m;
+	 }
+
+	 SizeT GetIx( SizeT i) const
+	 {
+		assert( i < sz);
+		return ixArr[ i];			
+	 }
+	 void SetIx( SizeT i, SizeT value)
+	 {
+		assert( i < sz);
+		ixArr[ i] = value;			
+	 }
+	 void AddToIx( SizeT i, SizeT value)
+	 {
+		assert( i < sz);
+		ixArr[ i] += value;			
 	 }
 };
 
