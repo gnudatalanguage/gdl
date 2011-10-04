@@ -2131,7 +2131,7 @@ void Data_<Sp>::AssignAtIx( RangeT ixR, BaseGDL* srcIn)
 		(*this)[ix] = (*static_cast<Data_*>(srcIn))[0];
 
 	return;
-	}
+	} // ixR >= 0
   if( srcIn->Type() != this->Type())
     {
       Data_* rConv = static_cast<Data_*>(srcIn->Convert2( this->Type(), BaseGDL::COPY));
@@ -2737,6 +2737,13 @@ Data_<Sp>* Data_<Sp>::Index( ArrayIndexListT* ixList)
   
   //  DataT& res_dd = res->dd; 
   AllIxT* allIx = ixList->BuildIx();
+
+//   if( nCp == 1)
+//   {
+// 		(*res)[0]=(*this)[ (*allIx)[ 0]];
+//   }
+//   else
+//   {
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 #pragma omp for*/
@@ -2744,7 +2751,7 @@ Data_<Sp>* Data_<Sp>::Index( ArrayIndexListT* ixList)
     (*res)[c]=(*this)[ (*allIx)[ c]];
 //}  //    res_(*this)[c]=(*this)[ (*allIx)[ c]];
   //    (*res)[c]=(*this)[ ixList->GetIx(c)];
-  
+//   }
   return res;
 }
 

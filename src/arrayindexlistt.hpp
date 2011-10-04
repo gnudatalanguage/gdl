@@ -202,7 +202,8 @@ public:
   // returns 1-dim index for all elements
   AllIxT* BuildIx()
   {
-    if( allIx != NULL) return allIx;
+    if( allIx != NULL)
+		return allIx;
 
     if( ix->Indexed())
       {
@@ -217,27 +218,39 @@ public:
 	    return allIx;
 	  }
 
-	allIx = new AllIxMultiT( nIx);
+// 	allIx = new AllIxMultiT( nIx);
 	SizeT s = ix->GetS();
 	SizeT ixStride = ix->GetStride();
 	if( ixStride <= 1) 
-	  if( s != 0) 
-	    for( SizeT i=0; i<nIx; ++i)
-			static_cast<AllIxMultiT*>(allIx)->SetIx( i, i + s);
+	  if( s != 0)
+		{
+		allIx = new AllIxRangeT( nIx, s);
+// 	    for( SizeT i=0; i<nIx; ++i)
+// 			static_cast<AllIxMultiT*>(allIx)->SetIx( i, i + s);
 // 	      (*allIx)[i] = i + s;
+		}
 	  else
-	    for( SizeT i=0; i<nIx; ++i)
-			static_cast<AllIxMultiT*>(allIx)->SetIx( i, i );
+		{
+		allIx = new AllIxRange0T( nIx);
+// 	    for( SizeT i=0; i<nIx; ++i)
+// 			static_cast<AllIxMultiT*>(allIx)->SetIx( i, i );
 // 	      (*allIx)[i] = i;
+		}
 	else
 	  if( s != 0) 
-	    for( SizeT i=0; i<nIx; ++i)
-			static_cast<AllIxMultiT*>(allIx)->SetIx( i, i * ixStride + s);
+	    {
+		allIx = new AllIxRangeStrideT( nIx, s, ixStride);
+// 	    for( SizeT i=0; i<nIx; ++i)
+// 			static_cast<AllIxMultiT*>(allIx)->SetIx( i, i * ixStride + s);
 // 	      (*allIx)[i] = i * ixStride + s;
+		}
 	  else
-	    for( SizeT i=0; i<nIx; ++i)
-			static_cast<AllIxMultiT*>(allIx)->SetIx( i, i * ixStride);
+		{
+		allIx = new AllIxRange0StrideT( nIx, ixStride);
+// 	    for( SizeT i=0; i<nIx; ++i)
+// 			static_cast<AllIxMultiT*>(allIx)->SetIx( i, i * ixStride);
 // 	      (*allIx)[i] = i * ixStride;
+		}
 	return allIx;
       }
   }
@@ -308,33 +321,33 @@ protected:
   SizeT varIx;
   SizeT s;
 
-  AllIxT* allIx;
+  AllIxT allIx;
 
 public:    
   
   ~ArrayIndexListOneScalarT()
   {
-    delete allIx;
+//     delete allIx;
   }
 
   // constructor
-  ArrayIndexListOneScalarT():
-    varIx( 0),
-    allIx( NULL)
+  ArrayIndexListOneScalarT()
+    : varIx( 0)
+//     , allIx( NULL)
   { nParam = 0;}
 
-  ArrayIndexListOneScalarT( const ArrayIndexListOneScalarT& cp):
-    ArrayIndexListT( cp),
-    varIx( cp.varIx),
-    s( cp.s),
-    allIx( NULL)
+  ArrayIndexListOneScalarT( const ArrayIndexListOneScalarT& cp)
+    : ArrayIndexListT( cp)
+    , varIx( cp.varIx)
+    , s( cp.s)
+//     , allIx( NULL)
   {
-    assert( cp.allIx == NULL);
+//     assert( cp.allIx == NULL);
   }
 
   // called after structure is fixed
-  ArrayIndexListOneScalarT( ArrayIndexVectorT* aIV):
-    allIx( NULL)
+  ArrayIndexListOneScalarT( ArrayIndexVectorT* aIV)
+//     : allIx( NULL)
   {
     nParam = 0;
     
@@ -372,15 +385,17 @@ public:
   // returns 1-dim index for all elements
   AllIxT* BuildIx()
   {
-    if( allIx != NULL)
-      {
-		allIx->Set( s);
-//	allIx[0] = s; // error?
-	return allIx;
-      }
-
-    allIx = new AllIxT( s);
-    return allIx;
+	allIx.Set( s);
+	return &allIx;
+  
+//     if( allIx != NULL)
+//       {
+// 		allIx->Set( s);
+// 	return allIx;
+//       }
+// 
+//     allIx = new AllIxT( s);
+//     return allIx;
   }
 
   // returns one dim long ix in case of one element array index
@@ -417,33 +432,34 @@ protected:
 
   SizeT s;
 
-  AllIxT* allIx;
+  AllIxT allIx;
+//   AllIxT* allIx;
 
 public:    
   
   ~ArrayIndexListOneScalarVPT()
   {
-    delete allIx;
+//     delete allIx;
   }
 
   // constructor
-  ArrayIndexListOneScalarVPT():
-    varPtr( NULL),
-    allIx( NULL)
+  ArrayIndexListOneScalarVPT()
+    : varPtr( NULL)
+//     , allIx( NULL)
   { nParam = 0;}
 
-  ArrayIndexListOneScalarVPT( const ArrayIndexListOneScalarVPT& cp):
-    ArrayIndexListT( cp),
-    varPtr( cp.varPtr),
-    s( cp.s),
-    allIx( NULL)
+  ArrayIndexListOneScalarVPT( const ArrayIndexListOneScalarVPT& cp)
+    : ArrayIndexListT( cp)
+    , varPtr( cp.varPtr)
+    , s( cp.s)
+//     , allIx( NULL)
   {
-    assert( cp.allIx == NULL);
+//     assert( cp.allIx == NULL);
   }
 
   // called after structure is fixed
-  ArrayIndexListOneScalarVPT( ArrayIndexVectorT* aIV):
-    allIx( NULL)
+  ArrayIndexListOneScalarVPT( ArrayIndexVectorT* aIV)
+//     : allIx( NULL)
   {
     nParam = 0;
     
@@ -494,15 +510,17 @@ public:
   // returns 1-dim index for all elements
   AllIxT* BuildIx()
   {
-    if( allIx != NULL)
-      {
-		allIx->Set( s);
-//	allIx[0] = s; // error?
-	return allIx;
-      }
-
-    allIx = new AllIxT( s);
-    return allIx;
+	allIx.Set( s);
+	return &allIx;
+    
+//     if( allIx != NULL)
+//       {
+// 		allIx->Set( s);
+// 		return allIx;
+//       }
+// 
+//     allIx = new AllIxT( s);
+//     return allIx;
   }
 
   // returns one dim long ix in case of one element array index
@@ -559,32 +577,34 @@ public:
 class ArrayIndexListOneConstScalarT: public ArrayIndexListT
 {
   SizeT s;
-  AllIxT* allIx;
+  AllIxT allIx;
+//   AllIxT* allIx;
 
 public:    
   
   ~ArrayIndexListOneConstScalarT() 
   {
-    delete allIx;
+//     delete allIx;
   }
 
   // constructor
-  ArrayIndexListOneConstScalarT(): allIx( NULL)
+  ArrayIndexListOneConstScalarT()
+// 	: allIx( NULL)
   {
     nParam = 0;
   }
 
-  ArrayIndexListOneConstScalarT( const ArrayIndexListOneConstScalarT& cp):
-    ArrayIndexListT( cp),
-    s( cp.s),
-    allIx( NULL)
+  ArrayIndexListOneConstScalarT( const ArrayIndexListOneConstScalarT& cp)
+    : ArrayIndexListT( cp)
+    , s( cp.s)
+//     , allIx( NULL)
   {
-    assert( cp.allIx == NULL); // all copying should be done before using.
+//     assert( cp.allIx == NULL); // all copying should be done before using.
   }
 
   // called after structure is fixed
-  ArrayIndexListOneConstScalarT( ArrayIndexVectorT* aIV):
-    allIx( NULL)
+  ArrayIndexListOneConstScalarT( ArrayIndexVectorT* aIV)
+//     : allIx( NULL)
   {
     s = (*aIV)[0]->GetS();
     nParam = 0;
@@ -608,11 +628,14 @@ public:
   // returns 1-dim index for all elements
   AllIxT* BuildIx()
   {
-    if( allIx != NULL)
-      return allIx;
-
-    allIx = new AllIxT( s);
-    return allIx;
+	allIx.Set( s);
+	return &allIx;
+  
+//     if( allIx != NULL)
+//       return allIx;
+// 
+//     allIx = new AllIxT( s);
+//     return allIx;
   }
 
   // requires special handling
@@ -655,14 +678,14 @@ public:
     SetVariable( var);
     if( var->EqType( right))
       {
-	var->AssignAt( right, this); // assigns inplace
+		var->AssignAt( right, this); // assigns inplace
       }
     else
       {
-	BaseGDL* rConv = right->Convert2( var->Type(), BaseGDL::COPY);
-	std::auto_ptr<BaseGDL> conv_guard( rConv);
+		BaseGDL* rConv = right->Convert2( var->Type(), BaseGDL::COPY);
+		std::auto_ptr<BaseGDL> conv_guard( rConv);
 	
-	var->AssignAt( rConv, this); // assigns inplace
+		var->AssignAt( rConv, this); // assigns inplace
       }
   }
 
@@ -716,7 +739,8 @@ private:
   SizeT    varStride[MAXRANK+1]; // variables stride
   SizeT    nIx;                  // number of indexed elements
 
-  AllIxT* allIx;
+  AllIxT allIx;
+//   AllIxT allIxInstance;
 
   ArrayIndexT* ixListEnd; // for assoc index
 
@@ -724,7 +748,7 @@ public:
   
   ~ArrayIndexListScalarT()
   {
-    delete allIx;
+//     delete allIx;
     for( std::vector<ArrayIndexT*>::iterator i=ixList.begin(); 
 	 i != ixList.end(); ++i)
       {	delete *i;}
@@ -733,7 +757,7 @@ public:
   // constructor
   ArrayIndexListScalarT():
     acRank(0),
-    allIx( NULL),
+//     allIx( NULL),
     ixListEnd( NULL)
   { nParam = 0;}
 
@@ -741,11 +765,11 @@ public:
     ArrayIndexListT( cp),
     paramPresent( cp.paramPresent),
     acRank(cp.acRank),
-    allIx( NULL),
+//     allIx( NULL),
     ixListEnd( NULL)
   {
     //    ixList.reserve(MAXRANK); 
-    assert( cp.allIx == NULL);
+//     assert( cp.allIx == NULL);
     assert( cp.ixListEnd == NULL);
 
     for( SizeT i=0; i<cp.ixList.size(); ++i)
@@ -755,7 +779,7 @@ public:
   // called after structure is fixed
   ArrayIndexListScalarT( ArrayIndexVectorT* ix):
     ixList( *ix),
-    allIx( NULL),
+//     allIx( NULL),
     ixListEnd( NULL)
   {
     assert( ixList.size() > 1); // must be, from compiler
@@ -777,8 +801,8 @@ public:
   
   void Clear()
   {
-    delete allIx;
-    allIx = NULL;
+//     delete allIx;
+//     allIx = NULL;
     
     if( ixListEnd != NULL) // revert assoc indexing
       {
@@ -830,7 +854,7 @@ public:
   // set the root variable which is indexed by this ArrayIndexListScalarT
   void SetVariable( BaseGDL* var) 
   {
-    assert( allIx == NULL);
+//     assert( allIx == NULL);
     
     // set acRank
     acRank = ixList.size();
@@ -838,7 +862,7 @@ public:
     // for assoc variables last index is the record
     if( var->IsAssoc()) 
       {
-	acRank--;
+		acRank--;
 	// if( acRank == 0) return; // multi dim
       }
 
@@ -865,17 +889,21 @@ public:
   // returns 1-dim index for all elements
   AllIxT* BuildIx()
   {
-    if( allIx != NULL) return allIx;
+//     if( allIx != NULL)
+// 		return allIx;
 
     SizeT s = ixList[0]->GetS();
     for( SizeT l=1; l < acRank; ++l)
       {
-	s += ixList[l]->GetS() * varStride[l]; 
+			s += ixList[l]->GetS() * varStride[l]; 
       }
-    allIx = new AllIxT(s);
+//     allIx = &allIxInstance; //new AllIxT(s);
+//     allIx->Set( s);
+    allIx.Set( s);
+//     allIx = new AllIxT(s);
 //     (*allIx)[0] = s;
 
-    return allIx;
+    return &allIx;
   }
 
   // returns one dim long ix in case of one element array index
@@ -926,9 +954,8 @@ public:
     SizeT actIx[ MAXRANK];
     for( SizeT i=0; i < acRank; ++i)
       {
-	actIx[ i] = ixList[i]->GetS();
-
-	dStart += actIx[ i] * varStride[ i];
+		actIx[ i] = ixList[i]->GetS();
+		dStart += actIx[ i] * varStride[ i];
       }
 
     destStart = dStart;
@@ -1265,39 +1292,39 @@ public:
   // returns 1-dim index for all elements
   AllIxT* BuildIx()
   {
-    if( allIx != NULL) return allIx;
+    if( allIx != NULL)
+		return allIx;
 
     if( accessType == ALLONE)
       {
-	SizeT s = ixList[0]->GetS();
-	for( SizeT l=1; l < acRank; ++l)
-	  {
-	    s += ixList[l]->GetS() * varStride[l]; 
-	  }
-	allIx = new AllIxT(s);
-// 	(*allIx)[0] = s;
-
-	return allIx;
+		SizeT s = ixList[0]->GetS();
+		for( SizeT l=1; l < acRank; ++l)
+		{
+			s += ixList[l]->GetS() * varStride[l];
+		}
+		allIx = new AllIxT(s);
+	// 	(*allIx)[0] = s;
+		return allIx;
       }
 
     if( accessType == ALLINDEXED)
       {
-	// ALLINDEXED -> all ArrayIndexT::INDEXED
-	allIx = static_cast< ArrayIndexIndexed*>(ixList[0])->StealIx();
+		// ALLINDEXED -> all ArrayIndexT::INDEXED
+		allIx = static_cast< ArrayIndexIndexed*>(ixList[0])->StealIx();
 
-	assert( dynamic_cast<AllIxMultiT*>( allIx) != NULL);
-	
-	for( SizeT l=1; l < acRank; ++l)
-	  {
-	    AllIxMultiT* tmpIx = static_cast< ArrayIndexIndexed*>(ixList[l])->StealIx();
-	    
-	    for( SizeT i=0; i<nIx; ++i)
-	      static_cast<AllIxMultiT*>( allIx)->AddToIx( i, tmpIx->GetIx( i) * varStride[l]);
-// 	      (*allIx)[i] += (*tmpIx)[i] * varStride[l];
-	    
-	    delete tmpIx;
-	  }
-	return allIx;
+		assert( dynamic_cast<AllIxMultiT*>( allIx) != NULL);
+		
+		for( SizeT l=1; l < acRank; ++l)
+		{
+			AllIxMultiT* tmpIx = static_cast< ArrayIndexIndexed*>(ixList[l])->StealIx();
+ 		
+			for( SizeT i=0; i<nIx; ++i)
+			static_cast<AllIxMultiT*>( allIx)->AddToIx( i, tmpIx->GetIx( i) * varStride[l]);
+	// 	      (*allIx)[i] += (*tmpIx)[i] * varStride[l];
+ 		
+			delete tmpIx;
+		}
+		return allIx;
       }
 
     // NORMAL
@@ -1310,97 +1337,97 @@ public:
     // init allIx from first index
     if( ixList[0]->Indexed())
       {
-	AllIxMultiT* tmpIx = static_cast< ArrayIndexIndexed*>(ixList[0])->StealIx();
+		AllIxMultiT* tmpIx = static_cast< ArrayIndexIndexed*>(ixList[0])->StealIx();
 
-	for( SizeT i=0; i<nIx; ++i)
-	  {
-	  static_cast<AllIxMultiT*>(allIx)->SetIx( i, tmpIx->GetIx( i %  nIterLimit[0]));
-// 	  	    (*allIx)[ i] = (*tmpIx)[ i %  nIterLimit[0]];
-	  }
+		for( SizeT i=0; i<nIx; ++i)
+		{
+		static_cast<AllIxMultiT*>(allIx)->SetIx( i, tmpIx->GetIx( i %  nIterLimit[0]));
+	// 	  	    (*allIx)[ i] = (*tmpIx)[ i %  nIterLimit[0]];
+		}
 
-	delete tmpIx;
+		delete tmpIx;
       }
     else
       {
-	SizeT s = ixList[0]->GetS();
-	SizeT ixStride = ixList[0]->GetStride();
-	
-	if( ixStride <= 1)
-	  if( s != 0) 
-	    for( SizeT i=0; i<nIx; ++i)
-	      {
-	  static_cast<AllIxMultiT*>(allIx)->SetIx( i,  (i %  nIterLimit[0]) + s);
-// 		(*allIx)[i] = (i %  nIterLimit[0]) + s; // stride[0], varStride[0] == 1
-	      }
-	  else
-	    for( SizeT i=0; i<nIx; ++i)
-	      {
-	  static_cast<AllIxMultiT*>(allIx)->SetIx( i, (i %  nIterLimit[0]));
-// 		(*allIx)[i] = (i %  nIterLimit[0]); // stride[0], varStride[0] == 1
-	      }
-	else
-	  if( s != 0) 
-	    for( SizeT i=0; i<nIx; ++i)
-	      {
-	  static_cast<AllIxMultiT*>(allIx)->SetIx( i, (i %  nIterLimit[0]) * ixStride + s);
-// 		(*allIx)[i] = (i %  nIterLimit[0]) * ixStride + s; // stride[0], varStride[0] == 1
-	      }
-	  else
-	    for( SizeT i=0; i<nIx; ++i)
-	      {
-	  static_cast<AllIxMultiT*>(allIx)->SetIx( i, (i %  nIterLimit[0]) * ixStride);
-// 		(*allIx)[i] = (i %  nIterLimit[0]) * ixStride; // stride[0], varStride[0] == 1
-	      }
+		SizeT s = ixList[0]->GetS();
+		SizeT ixStride = ixList[0]->GetStride();
+		
+		if( ixStride <= 1)
+			if( s != 0)
+				for( SizeT i=0; i<nIx; ++i)
+				{
+					static_cast<AllIxMultiT*>(allIx)->SetIx( i,  (i %  nIterLimit[0]) + s);
+		// 		(*allIx)[i] = (i %  nIterLimit[0]) + s; // stride[0], varStride[0] == 1
+				}
+			else
+				for( SizeT i=0; i<nIx; ++i)
+				{
+					static_cast<AllIxMultiT*>(allIx)->SetIx( i, (i %  nIterLimit[0]));
+		// 		(*allIx)[i] = (i %  nIterLimit[0]); // stride[0], varStride[0] == 1
+				}
+		else
+			if( s != 0)
+				for( SizeT i=0; i<nIx; ++i)
+				{
+					static_cast<AllIxMultiT*>(allIx)->SetIx( i, (i %  nIterLimit[0]) * ixStride + s);
+		// 		(*allIx)[i] = (i %  nIterLimit[0]) * ixStride + s; // stride[0], varStride[0] == 1
+				}
+			else
+				for( SizeT i=0; i<nIx; ++i)
+				{
+					static_cast<AllIxMultiT*>(allIx)->SetIx( i, (i %  nIterLimit[0]) * ixStride);
+		// 		(*allIx)[i] = (i %  nIterLimit[0]) * ixStride; // stride[0], varStride[0] == 1
+				}
       }
 
     for( SizeT l=1; l < acRank; ++l)
-      {
-
-	if( ixList[l]->Indexed())
-	  {
-	    AllIxMultiT* tmpIx = static_cast< ArrayIndexIndexed*>(ixList[l])->StealIx();
-	    //	    SizeT* tmpIx = ixList[l]->StealIx();
-	    
-	    for( SizeT i=0; i<nIx; ++i)
-	      {
-	  static_cast<AllIxMultiT*>(allIx)->AddToIx( i,  tmpIx->GetIx( (i / stride[l]) %  nIterLimit[l]) * varStride[l]);
-// 		(*allIx)[ i] += (*tmpIx)[ (i / stride[l]) %  nIterLimit[l]] * varStride[l];
-	      }
-	    
-	    delete tmpIx;
-	  }
-	else
-	  {
-	    SizeT s = ixList[l]->GetS();
-	    SizeT ixStride = ixList[l]->GetStride();
-	    
-	    if( ixStride <= 1)
-	    if( s != 0) 
-	      for( SizeT i=0; i<nIx; ++i)
+    {
+		if( ixList[l]->Indexed())
 		{
-	  static_cast<AllIxMultiT*>(allIx)->AddToIx( i, ((i / stride[l]) %  nIterLimit[l] + s) * varStride[l]);
-// 		  (*allIx)[i] += ((i / stride[l]) %  nIterLimit[l] + s) * varStride[l];
+				AllIxMultiT* tmpIx = static_cast< ArrayIndexIndexed*>(ixList[l])->StealIx();
+				//	    SizeT* tmpIx = ixList[l]->StealIx();
+			
+				for( SizeT i=0; i<nIx; ++i)
+				{
+					static_cast<AllIxMultiT*>(allIx)->AddToIx( i,  tmpIx->GetIx( (i / stride[l]) %  nIterLimit[l]) * varStride[l]);
+			// 		(*allIx)[ i] += (*tmpIx)[ (i / stride[l]) %  nIterLimit[l]] * varStride[l];
+				}
+			
+				delete tmpIx;
 		}
-	    else
-	      for( SizeT i=0; i<nIx; ++i)
+		else
 		{
-	  static_cast<AllIxMultiT*>(allIx)->AddToIx( i, ((i / stride[l]) %  nIterLimit[l]) * varStride[l]);
-// 		  (*allIx)[i] += ((i / stride[l]) %  nIterLimit[l]) * varStride[l];
+				SizeT s = ixList[l]->GetS();
+				SizeT ixStride = ixList[l]->GetStride();
+			
+				if( ixStride <= 1)
+				if( s != 0)
+				for( SizeT i=0; i<nIx; ++i)
+				{
+					static_cast<AllIxMultiT*>(allIx)->AddToIx( i, ((i / stride[l]) %  nIterLimit[l] + s) * varStride[l]);
+		// 		  (*allIx)[i] += ((i / stride[l]) %  nIterLimit[l] + s) * varStride[l];
+				}
+				else
+				for( SizeT i=0; i<nIx; ++i)
+				{
+					static_cast<AllIxMultiT*>(allIx)->AddToIx( i, ((i / stride[l]) %  nIterLimit[l]) * varStride[l]);
+		// 		  (*allIx)[i] += ((i / stride[l]) %  nIterLimit[l]) * varStride[l];
+				}
+				else // ixStride > 1
+				if( s != 0)
+				for( SizeT i=0; i<nIx; ++i)
+				{
+					static_cast<AllIxMultiT*>(allIx)->AddToIx( i, (((i / stride[l]) %  nIterLimit[l]) * ixStride + s) * varStride[l]);
+		// 		  (*allIx)[i] += (((i / stride[l]) %  nIterLimit[l]) * ixStride + s) * varStride[l];
+				}
+				else
+				for( SizeT i=0; i<nIx; ++i)
+				{
+					static_cast<AllIxMultiT*>(allIx)->AddToIx( i, ((i * ixStride / stride[l]) %  nIterLimit[l]) * ixStride * varStride[l]);
+		// 		  (*allIx)[i] += ((i * ixStride / stride[l]) %  nIterLimit[l]) * ixStride * varStride[l];
+				}
 		}
-	    else // ixStride > 1 
-	    if( s != 0) 
-	      for( SizeT i=0; i<nIx; ++i)
-		{
-	  static_cast<AllIxMultiT*>(allIx)->AddToIx( i, (((i / stride[l]) %  nIterLimit[l]) * ixStride + s) * varStride[l]);
-// 		  (*allIx)[i] += (((i / stride[l]) %  nIterLimit[l]) * ixStride + s) * varStride[l];
-		}
-	    else
-	      for( SizeT i=0; i<nIx; ++i)
-		{
-// 		  (*allIx)[i] += ((i * ixStride / stride[l]) %  nIterLimit[l]) * ixStride * varStride[l];
-		}
-	  }
-      }
+	}
     
     return allIx;
   }
@@ -1411,7 +1438,7 @@ public:
   {
     SizeT dStart = ixList[0]->GetIx0();
     for( SizeT i=1; i < acRank; ++i)
-	dStart += ixList[i]->GetIx0() * varStride[ i];
+		dStart += ixList[i]->GetIx0() * varStride[ i];
 
     return dStart;
   }

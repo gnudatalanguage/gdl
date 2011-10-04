@@ -461,7 +461,7 @@ public:
 	  DByteGDL* src = static_cast<DByteGDL*>( ix_);
 	  for( SizeT i=0; i < nElem; ++i)
 	      {
-		(*ix)[i]= (*src)[i]; 
+		static_cast<AllIxMultiT*>(ix)->SetIx( i, (*src)[i]);
 		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
 	      }
 	  break;
@@ -476,21 +476,25 @@ public:
 		if( strictArrSubs)
 		  throw GDLException(NULL,"Array used to subscript array "
 				     "contains out of range (<0) subscript.",true,false);
-		(*ix)[i++] = 0;
+		static_cast<AllIxMultiT*>(ix)->SetIxTo0( i++);
+// 		(*ix)[i++] = 0;
 		break;
 	      }
 	    else
 	      {
-		(*ix)[i]= (*src)[i]; 
+		static_cast<AllIxMultiT*>(ix)->SetIx( i, (*src)[i]);
+// 		(*ix)[i]= (*src)[i]; 
 		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
 	      }
 	  
 	  for(; i < nElem; ++i)
 	    if( (*src)[i] < 0)
-	      (*ix)[i] = 0;
+	    static_cast<AllIxMultiT*>(ix)->SetIxTo0( i); 
+// 	      (*ix)[i] = 0;
 	    else
 	      {
-		(*ix)[i]= (*src)[i]; 
+		static_cast<AllIxMultiT*>(ix)->SetIx( i, (*src)[i]);
+// 		(*ix)[i]= (*src)[i]; 
 		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
 	      }
 	  break;
@@ -516,7 +520,8 @@ public:
 	  DUIntGDL* src = static_cast<DUIntGDL*>( ix_);
 	  for( SizeT i=0; i < nElem; ++i)
 	      {
-		(*ix)[i]= (*src)[i]; 
+			static_cast<AllIxMultiT*>(ix)->SetIx( i, (*src)[i]);
+// 	(*ix)[i]= (*src)[i];
 		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
 	      }
 	  break;
@@ -531,12 +536,14 @@ public:
 		if( strictArrSubs)
 		  throw GDLException(NULL,"Array used to subscript array "
 				     "contains out of range (<0) subscript.",true,false);
-		(*ix)[i++] = 0;
+	    static_cast<AllIxMultiT*>(ix)->SetIxTo0( i++); 
+// 		(*ix)[i++] = 0;
 		break;
 	      }
 	    else
 	      {
-		(*ix)[i]= (*src)[i]; 
+		static_cast<AllIxMultiT*>(ix)->SetIx( i, (*src)[i]);
+// 		(*ix)[i]= (*src)[i]; 
 		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
 	      }
 	  
@@ -572,10 +579,12 @@ public:
 // 	  break;
 	  for(; i < nElem; ++i)
 	    if( (*src)[i] < 0)
-	      (*ix)[i] = 0;
+			static_cast<AllIxMultiT*>(ix)->SetIxTo0( i);
+// 	      (*ix)[i] = 0;
 	    else
 	      {
-		(*ix)[i]= (*src)[i]; 
+		static_cast<AllIxMultiT*>(ix)->SetIx( i, (*src)[i]);
+// 		(*ix)[i]= (*src)[i];
 		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
 	      }
 	  break;
@@ -600,7 +609,8 @@ public:
 	  DULongGDL* src = static_cast<DULongGDL*>( ix_);
 	  for( SizeT i=0; i < nElem; ++i)
 	      {
-		(*ix)[i]= (*src)[i]; 
+		static_cast<AllIxMultiT*>(ix)->SetIx( i, (*src)[i]);
+// 		(*ix)[i]= (*src)[i]; 
 		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
 	      }
 	  break;
@@ -615,21 +625,25 @@ public:
 		if( strictArrSubs)
 		  throw GDLException(NULL,"Array used to subscript array "
 				     "contains out of range (<0) subscript.",true,false);
-		(*ix)[i++] = 0;
+		    static_cast<AllIxMultiT*>(ix)->SetIxTo0( i++); 
+// 	(*ix)[] = 0;
 		break;
 	      }
 	    else
 	      {
-		(*ix)[i]= (*src)[i]; 
+		static_cast<AllIxMultiT*>(ix)->SetIx( i, (*src)[i]);
+// 		(*ix)[i]= (*src)[i];
 		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
 	      }
 	  
 	  for(; i < nElem; ++i)
 	    if( (*src)[i] < 0)
-	      (*ix)[i] = 0;
+	    static_cast<AllIxMultiT*>(ix)->SetIxTo0( i); 
+// 	      (*ix)[i] = 0;
 	    else
 	      {
-		(*ix)[i]= (*src)[i]; 
+		static_cast<AllIxMultiT*>(ix)->SetIx( i, (*src)[i]);
+// 		(*ix)[i]= (*src)[i]; 
 		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
 	      }
 	  break;
@@ -655,7 +669,8 @@ public:
 	  DULong64GDL* src = static_cast<DULong64GDL*>( ix_);
 	  for( SizeT i=0; i < nElem; ++i)
 	      {
-		(*ix)[i]= (*src)[i]; 
+			static_cast<AllIxMultiT*>(ix)->SetIx( i, (*src)[i]);
+//           (*ix)[i]= (*src)[i]; 
 		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
 	      }
 	  break;
@@ -666,14 +681,16 @@ public:
 	  for( SizeT i=0; i < nElem; ++i)
 	    if( (*src)[i] <= 0.0)
 	      {
-		(*ix)[i] = 0;
+	    static_cast<AllIxMultiT*>(ix)->SetIxTo0( i); 
+// 		(*ix)[i] = 0;
 		if( (*src)[i] <= -1.0 && strictArrSubs)
 		  throw GDLException(NULL,"Array used to subscript array "
 				     "contains out of range (<0) subscript.",true,false);
 	      }
 	    else
 	      {
-		(*ix)[i]= Real2Int<SizeT,float>((*src)[i]); 
+		static_cast<AllIxMultiT*>(ix)->SetIx( i, Real2Int<SizeT,float>((*src)[i]));
+// 		(*ix)[i]= Real2Int<SizeT,float>((*src)[i]); 
 		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
 	      }
 	  break;
@@ -684,14 +701,16 @@ public:
 	  for( SizeT i=0; i < nElem; ++i)
 	    if( (*src)[i] <= 0.0)
 	      {
-		(*ix)[i] = 0;
+	    static_cast<AllIxMultiT*>(ix)->SetIxTo0( i); 
+// 		(*ix)[i] = 0;
 		if( (*src)[i] <= -1.0 && strictArrSubs)
 		  throw GDLException(NULL,"Array used to subscript array "
 				     "contains out of range (<0) subscript.",true,false);
 	      }
 	    else
 	      {
-		(*ix)[i]= Real2Int<SizeT,double>((*src)[i]); 
+		static_cast<AllIxMultiT*>(ix)->SetIx( i, Real2Int<SizeT,double>((*src)[i]));
+// 		(*ix)[i]= Real2Int<SizeT,double>((*src)[i]); 
 		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
 	      }
 	  break;
@@ -708,18 +727,21 @@ public:
 		{
 		  Warning("Type conversion error: "
 			  "Unable to convert given STRING to LONG.");
-		  (*ix)[i] = 0;
+	    static_cast<AllIxMultiT*>(ix)->SetIxTo0( i); 
+// 		  (*ix)[i] = 0;
 		}
 	      else if( l < 0)
 		{
 		  if( strictArrSubs)
 		    throw GDLException(NULL,"Array used to subscript array "
 				       "contains out of range (<0) subscript.",true,false);
-		  (*ix)[i] = 0;
+	    static_cast<AllIxMultiT*>(ix)->SetIxTo0( i); 
+// 		  (*ix)[i] = 0;
 		}
 	      else
 		{
-		  (*ix)[i] = l;
+		static_cast<AllIxMultiT*>(ix)->SetIx( i, l);
+// 		  (*ix)[i] = l;
 		  if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
 		}
 	    }
@@ -734,11 +756,13 @@ public:
 		if( real((*src)[i]) <= -1.0 && strictArrSubs)
 		  throw GDLException(NULL,"Array used to subscript array "
 				     "contains out of range (<0) subscript.",true,false);
-		(*ix)[i] = 0;
+	    static_cast<AllIxMultiT*>(ix)->SetIxTo0( i); 
+// 		(*ix)[i] = 0;
 	      }
 	    else
 	      {
-		(*ix)[i]= Real2Int<DLong,float>(real((*src)[i])); 
+		static_cast<AllIxMultiT*>(ix)->SetIx( i, Real2Int<DLong,float>(real((*src)[i])));
+// 		(*ix)[i]= Real2Int<DLong,float>(real((*src)[i])); 
 		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
 	      }
 	  break;
@@ -752,11 +776,13 @@ public:
 		if( real((*src)[i]) <= -1.0 && strictArrSubs)
 		  throw GDLException(NULL,"Array used to subscript array "
 				     "contains out of range (<0) subscript.",true,false);
-		(*ix)[i] = 0;
+	    static_cast<AllIxMultiT*>(ix)->SetIxTo0( i); 
+// 		(*ix)[i] = 0;
 	      }
 	    else
 	      {
-		(*ix)[i]= Real2Int<DLong,double>(real((*src)[i])); 
+		static_cast<AllIxMultiT*>(ix)->SetIx( i, Real2Int<DLong,double>(real((*src)[i])));
+// 		(*ix)[i]= Real2Int<DLong,double>(real((*src)[i])); 
 		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
 	      }
 	  break;
@@ -801,7 +827,9 @@ public:
 	SizeT ix_size = ix->size();
 	for( SizeT i=0; i < ix_size; ++i)
 	  {
-	    if( (*ix)[i] > upper) (*ix)[i]=upper;
+	    if( (*ix)[i] > upper)
+    		ix->SetIx( i, upper);
+// 			(*ix)[i]=upper;
 	  }
 	return ix_size; 
       }
@@ -815,7 +843,7 @@ public:
 class CArrayIndexIndexed: public ArrayIndexIndexed
 {
 protected:
-  AllIxT*    ixOri;
+  AllIxMultiT*    ixOri;
   SizeT      maxIx;
 
 public:
@@ -890,10 +918,12 @@ public:
 	SizeT upper = var->Size()-1;
 	for( SizeT i=0; i < ix_size; ++i)
 	  {
-	    if( (*ixOri)[i] > upper) 
-	      (*ix)[i] = upper;
+	    if( (*ixOri)[i] > upper)
+	    	    static_cast<AllIxMultiT*>(ix)->SetIx( i, upper);
+// 	      (*ix)[i] = upper;
 	    else
-	      (*ix)[i] = (*ixOri)[i];
+	    	    static_cast<AllIxMultiT*>(ix)->SetIx( i, (*ixOri)[i]);
+// 	      (*ix)[i] = (*ixOri)[i];
 	  }
 	return var->NewIx( ix, ixDim);
       }
@@ -930,15 +960,18 @@ public:
 	SizeT upper = varDim-1;
 	for( SizeT i=0; i < ix_size; ++i)
 	  {
-	    if( (*ixOri)[i] > upper) 
-	      (*ix)[i] = upper;
+	    if( (*ixOri)[i] > upper)
+	   		static_cast<AllIxMultiT*>(ix)->SetIx( i, upper);
+// 	      (*ix)[i] = upper;
 	    else
-	      (*ix)[i] = (*ixOri)[i];
+	   		static_cast<AllIxMultiT*>(ix)->SetIx( i, (*ixOri)[i]);
+// 	      (*ix)[i] = (*ixOri)[i];
 	  }
       }
     else
       for( SizeT i=0; i < ix_size; ++i)
-	(*ix)[i] = (*ixOri)[i];
+	   		static_cast<AllIxMultiT*>(ix)->SetIx( i, (*ixOri)[i]);
+// 	(*ix)[i] = (*ixOri)[i];
     
     return ix_size; 
   }

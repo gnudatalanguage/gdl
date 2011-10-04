@@ -128,7 +128,8 @@ class AllIxT
 private:
 	SizeT ix;
 
-protected:
+//protected:
+public:
 	AllIxT() {}
 
 public:
@@ -150,11 +151,11 @@ public:
 		assert( i == 0);
 		return ix;
 	}
-	virtual SizeT& operator[]( SizeT i)
-	{
-		assert( i == 0);
-		return ix;
-	}
+// 	virtual SizeT& operator[]( SizeT i)
+// 	{
+// 		assert( i == 0);
+// 		return ix;
+// 	}
 
 	virtual SizeT size() const { return 1;}
 	virtual SizeT max() const { return ix;}
@@ -175,7 +176,7 @@ public:
 	}
 	~AllIxMultiT() { delete[] ixArr;}
 	
-	 AllIxT* Clone()
+	 AllIxMultiT* Clone()
 	{
 		AllIxMultiT* clone = new AllIxMultiT( sz);
 		for( SizeT i=0; i<sz; ++i)
@@ -188,11 +189,11 @@ public:
 	assert( i < sz);
 	return ixArr[ i];
 	}
-	SizeT& operator[]( SizeT i)
-	{
-	assert( i < sz);
-	return ixArr[ i];
-	}
+// 	SizeT& operator[]( SizeT i)
+// 	{
+// 	assert( i < sz);
+// 	return ixArr[ i];
+// 	}
 
 	SizeT size() const { return sz;}
 	SizeT max() const
@@ -214,6 +215,11 @@ public:
 		assert( i < sz);
 		ixArr[ i] = value;			
 	 }
+	 void SetIxTo0( SizeT i)
+	 {
+		assert( i < sz);
+		ixArr[ i] = 0;			
+	 }
 	 void AddToIx( SizeT i, SizeT value)
 	 {
 		assert( i < sz);
@@ -221,6 +227,126 @@ public:
 	 }
 };
 
+class AllIxRange0T: public AllIxT
+{
+private:
+	SizeT  sz;
+		
+public:
+	AllIxRange0T( SizeT s): sz( s)
+	{
+	}
+	~AllIxRange0T() {}
+	
+	 AllIxRange0T* Clone()
+	{
+		AllIxRange0T* clone = new AllIxRange0T( sz);
+		return clone;
+	}
+	
+	SizeT operator[]( SizeT i) const
+	{
+	assert( i < sz);
+	return i;
+	}
+
+	SizeT size() const { return sz;}
+	SizeT max() const
+	 {
+		return sz - 1;
+	 }
+};
+class AllIxRangeT: public AllIxT
+{
+private:
+	SizeT  sz;
+	SizeT  st;	
+		
+public:
+	AllIxRangeT( SizeT sz_, SizeT st_): sz( sz_), st( st_)
+	{
+	}
+	~AllIxRangeT() {}
+	
+	 AllIxRangeT* Clone()
+	{
+		AllIxRangeT* clone = new AllIxRangeT( sz, st);
+		return clone;
+	}
+	
+	SizeT operator[]( SizeT i) const
+	{
+	assert( i < sz);
+	return i + st;
+	}
+
+	SizeT size() const { return sz;}
+	SizeT max() const
+	 {
+		return sz - 1 + st;
+	 }
+};
+class AllIxRangeStrideT: public AllIxT
+{
+private:
+	SizeT  sz;
+	SizeT  st;	
+	SizeT  stride;
+		
+public:
+	AllIxRangeStrideT( SizeT sz_, SizeT st_, SizeT stride_): sz( sz_), st( st_), stride( stride_)
+	{
+	}
+	~AllIxRangeStrideT() {}
+	
+	 AllIxRangeStrideT* Clone()
+	{
+		AllIxRangeStrideT* clone = new AllIxRangeStrideT( sz, st, stride);
+		return clone;
+	}
+	
+	SizeT operator[]( SizeT i) const
+	{
+	assert( i < sz);
+	return i * stride + st;
+	}
+
+	SizeT size() const { return sz;}
+	SizeT max() const
+	 {
+		return (sz - 1) * stride + st;
+	 }
+};
+class AllIxRange0StrideT: public AllIxT
+{
+private:
+	SizeT  sz;
+	SizeT  stride;
+		
+public:
+	AllIxRange0StrideT( SizeT sz_, SizeT stride_): sz( sz_), stride( stride_)
+	{
+	}
+	~AllIxRange0StrideT() {}
+	
+	 AllIxRange0StrideT* Clone()
+	{
+		AllIxRange0StrideT* clone = new AllIxRange0StrideT( sz, stride);
+		return clone;
+	}
+	
+	SizeT operator[]( SizeT i) const
+	{
+	assert( i < sz);
+	return i * stride;
+	}
+
+	SizeT size() const { return sz;}
+	SizeT max() const
+	 {
+		return (sz - 1) * stride;
+	 }
+};
 
 typedef std::set< DPtr>               DPtrListT;
 
