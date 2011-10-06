@@ -79,7 +79,7 @@ private:
 	ArrayIndexListT& actIx= *ix[depth];
 	nCp=actIx.N_Elements();
 
-	AllIxT* allIx = actIx.BuildIx();
+	AllIxBaseT* allIx = actIx.BuildIx();
 
 	if( (depth+1) == tag.size())
 	  {
@@ -136,7 +136,7 @@ private:
 	ArrayIndexListT& actIx= *ix[depth];
 	nCp=actIx.N_Elements();
 
-	AllIxT* allIx = actIx.BuildIx();
+	AllIxBaseT* allIx = actIx.BuildIx();
 
 	if( (depth+1) == tag.size())
 	  {
@@ -190,7 +190,7 @@ private:
 	ArrayIndexListT& actIx= *ix[depth];
 	nCp=actIx.N_Elements();
 
-	AllIxT* allIx = actIx.BuildIx();
+	AllIxBaseT* allIx = actIx.BuildIx();
 
 	if( (depth+1) == tag.size())
 	  {
@@ -249,7 +249,7 @@ private:
 	ArrayIndexListT& actIx= *ix[depth];
 	nCp=actIx.N_Elements();
 
-	AllIxT* allIx = actIx.BuildIx();
+	AllIxBaseT* allIx = actIx.BuildIx();
 
 	if( (depth+1) == tag.size())
 	  {

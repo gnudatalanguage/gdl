@@ -153,6 +153,10 @@ static	void operator delete( void *ptr);
   int Scalar2index( SizeT& st) const;
   int Scalar2RangeT( RangeT& st) const;
   SizeT LoopIndex() const;
+
+  // used for indexing of arrays
+  SizeT GetAsIndex( SizeT i) const;
+  SizeT GetAsIndexStrict( SizeT i) const;
   
   // make a duplicate on the heap
   Data_* Dup() const;
@@ -330,7 +334,7 @@ static	void operator delete( void *ptr);
   // return a new type of itself
   Data_* NewIx( SizeT ix);
   Data_* NewIx( BaseGDL* ix, bool strict);
-  Data_* NewIx( AllIxT* ix, dimension* dIn);
+  Data_* NewIx( AllIxBaseT* ix, dimension* dIn);
   Data_* NewIxFrom( SizeT s);
   Data_* NewIxFrom( SizeT s, SizeT e);
   Data_* NewIxFromStride( SizeT s, SizeT stride);

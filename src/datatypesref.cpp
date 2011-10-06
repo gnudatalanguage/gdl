@@ -312,7 +312,7 @@ void Data_<SpDPtr>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT off
 	{
 	  SizeT nCp=ixList->N_Elements();
 	  
-	  AllIxT* allIx = ixList->BuildIx();
+	  AllIxBaseT* allIx = ixList->BuildIx();
 	  
 	  GDLInterpreter::AddRef( scalar, nCp);
 
@@ -376,7 +376,7 @@ void Data_<SpDPtr>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT off
 		    throw GDLException("Array subscript must have same size as"
 				       " source expression.");
 		  
-		  AllIxT* allIx = ixList->BuildIx();
+		  AllIxBaseT* allIx = ixList->BuildIx();
 //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 //#pragma omp for
@@ -396,7 +396,7 @@ void Data_<SpDPtr>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT off
 		    throw GDLException("Array subscript must have same size as"
 				       " source expression.");
 		  
-		  AllIxT* allIx = ixList->BuildIx();
+		  AllIxBaseT* allIx = ixList->BuildIx();
 //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 //#pragma omp for
@@ -448,7 +448,7 @@ void Data_<SpDObj>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT off
 	{
 	  SizeT nCp=ixList->N_Elements();
 	  
-	  AllIxT* allIx = ixList->BuildIx();
+	  AllIxBaseT* allIx = ixList->BuildIx();
 	  
 	  GDLInterpreter::AddRefObj( scalar, nCp);
 
@@ -512,7 +512,7 @@ void Data_<SpDObj>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT off
 		    throw GDLException("Array subscript must have same size as"
 				       " source expression.");
 		  
-		  AllIxT* allIx = ixList->BuildIx();
+		  AllIxBaseT* allIx = ixList->BuildIx();
 //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 //#pragma omp for
@@ -532,7 +532,7 @@ void Data_<SpDObj>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT off
 		    throw GDLException("Array subscript must have same size as"
 				       " source expression.");
 		  
-		  AllIxT* allIx = ixList->BuildIx();
+		  AllIxBaseT* allIx = ixList->BuildIx();
 //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 //#pragma omp for
@@ -608,7 +608,7 @@ if( isScalar)
 	else
 	{
 	Ty scalar=(*src)[0];
-	AllIxT* allIx = ixList->BuildIx();
+	AllIxBaseT* allIx = ixList->BuildIx();
 	
 	GDLInterpreter::AddRef( scalar, nCp);
 
@@ -640,7 +640,7 @@ else
 		throw GDLException("Array subscript must have same size as"
 				" source expression.");
 
-	AllIxT* allIx = ixList->BuildIx();
+	AllIxBaseT* allIx = ixList->BuildIx();
 //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 //#pragma omp for
@@ -736,7 +736,7 @@ if( isScalar)
 	else
 	{
 	Ty scalar=(*src)[0];
-	AllIxT* allIx = ixList->BuildIx();
+	AllIxBaseT* allIx = ixList->BuildIx();
 	
 	GDLInterpreter::AddRefObj( scalar, nCp);
 
@@ -767,7 +767,7 @@ else
 		throw GDLException("Array subscript must have same size as"
 				" source expression.");
 
-	AllIxT* allIx = ixList->BuildIx();
+	AllIxBaseT* allIx = ixList->BuildIx();
 //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 //#pragma omp for
@@ -854,7 +854,7 @@ SizeT nCp=ixList->N_Elements();
 //  cout << "dim = " << this->dim << endl;
 
 //  DataT& res_dd = res->dd;
-AllIxT* allIx = ixList->BuildIx();
+AllIxBaseT* allIx = ixList->BuildIx();
 //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 //#pragma omp for
@@ -883,7 +883,7 @@ SizeT nCp=ixList->N_Elements();
 //  cout << "dim = " << this->dim << endl;
 
 //  DataT& res_dd = res->dd;
-AllIxT* allIx = ixList->BuildIx();
+AllIxBaseT* allIx = ixList->BuildIx();
 //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 //#pragma omp for
@@ -929,7 +929,7 @@ else
 	{
 	SizeT nCp=ixList->N_Elements();
 
-	AllIxT* allIx = ixList->BuildIx();
+	AllIxBaseT* allIx = ixList->BuildIx();
 //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 //#pragma omp for
@@ -1035,7 +1035,7 @@ else
 	{
 	SizeT nCp=ixList->N_Elements();
 
-	AllIxT* allIx = ixList->BuildIx();
+	AllIxBaseT* allIx = ixList->BuildIx();
 //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 //#pragma omp for
@@ -1186,7 +1186,7 @@ return new Data_( (*this)[ ix]);
 
 
 template<>
-Data_<SpDPtr>* Data_<SpDPtr>::NewIx( AllIxT* ix, dimension* dIn)
+Data_<SpDPtr>* Data_<SpDPtr>::NewIx( AllIxBaseT* ix, dimension* dIn)
 {
 SizeT nCp = ix->size();
 Data_* res=Data_::New( *dIn, BaseGDL::NOZERO);
@@ -1203,7 +1203,7 @@ for( SizeT c=0; c<nCp; ++c)
 return res;
 }
 template<>
-Data_<SpDObj>* Data_<SpDObj>::NewIx( AllIxT* ix, dimension* dIn)
+Data_<SpDObj>* Data_<SpDObj>::NewIx( AllIxBaseT* ix, dimension* dIn)
 {
 SizeT nCp = ix->size();
 Data_* res=Data_::New( *dIn, BaseGDL::NOZERO);

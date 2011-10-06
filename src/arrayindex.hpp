@@ -23,6 +23,7 @@
 
 #include "datatypes.hpp"
 #include "real2int.hpp"
+#include "allix.hpp"
 
 //typedef std::valarray<SizeT> AllIxT; // now in typedefs.hpp
 typedef std::vector<BaseGDL*>     IxExprListT;
@@ -64,7 +65,7 @@ public:
 
   virtual RangeT GetIx0()=0;
   virtual RangeT GetS() { return 0;}
-  virtual SizeT GetStride() { return 0;}
+  virtual SizeT GetStride() { return 1;} // changed from 0
   
   virtual bool Scalar()  const         { return false;}
   virtual bool Scalar( SizeT& s_) const {  return false;}
@@ -276,9 +277,9 @@ protected:
   bool      strictArrSubs;          // for compile_opt STRICTARRSUBS
   
   RangeT s;
-  SizeT maxVal;
+//  SizeT maxVal;
 
-  AllIxMultiT*    ix;
+  AllIxIndicesT*    ix;
   dimension* ixDim; // keep dimension of ix
 
   // forbid c-i
@@ -312,9 +313,15 @@ public:
     if( ix != NULL) return (*ix)[0]; // from array
     return s;
   }
+  
+  SizeT GetIx( SizeT i)
+  {
+	assert( ix != NULL);
+    return (*ix)[ i];
+  }
 
   //  SizeT* StealIx() { SizeT* ret = ix; ix = NULL; return ret;} 
-  AllIxMultiT* StealIx() { AllIxMultiT* ret = ix; ix = NULL; return ret;}
+  AllIxIndicesT* StealIx() { AllIxIndicesT* ret = ix; ix = NULL; return ret;}
 
   ~ArrayIndexIndexed() 
   {
@@ -324,7 +331,7 @@ public:
 
   ArrayIndexIndexed( bool strictArrSubs_ = false): 
     strictArrSubs( strictArrSubs_),
-    maxVal( 0),
+//    maxVal( 0),
     ix( NULL), ixDim( NULL)
   {}
 
@@ -336,14 +343,14 @@ public:
     assert( ixDim == NULL);
 
     d->s = s;
-    d->maxVal = maxVal;
+//     d->maxVal = maxVal;
     
     return d;
   }
  
   void Clear()
   {
-    maxVal = 0;
+//     maxVal = 0;
     delete ixDim;
     ixDim = NULL;
     delete ix; 
@@ -400,173 +407,114 @@ public:
 	res->SetDim( dimension( 1));
 	return res;
 	
-    // unreachable because using now Scala2RangeT which returns always 0 ,1 or 2  
-    if( strictArrSubs || ret == -1) // scalar index < 0
-      {
-	throw 
-	  GDLException( NULL,"Subscript range values of the"
-			" form low:high must be >= 0, < size,"
-			" with low <= high.",true,false);
-      }
-    // one element array index < 0
-    if( ret == -2)
-      {
-	BaseGDL* res = var->NewIx( 0);
-	res->SetDim( dimension( 1));
-	return res;
-      }	
-    else
-      return var->NewIx( 0);
+//     // unreachable because using now Scala2RangeT which returns always 0 ,1 or 2
+//     if( strictArrSubs || ret == -1) // scalar index < 0
+//       {
+// 	throw 
+// 	  GDLException( NULL,"Subscript range values of the"
+// 			" form low:high must be >= 0, < size,"
+// 			" with low <= high.",true,false);
+//       }
+//     one element array index < 0
+//     if( ret == -2)
+//       {
+// 	BaseGDL* res = var->NewIx( 0);
+// 	res->SetDim( dimension( 1));
+// 	return res;
+//       }	
+//     else
+//       return var->NewIx( 0);
   }
 
   void Init( BaseGDL* ix_) 
   {
     if( ix_->Rank() == 0) // type ONE
       {
-	int ret = ix_->Scalar2RangeT(s);
-// from GDL 0.9 on negative indices are fine
-// 	if( ret == -1) // index < 0
-// 	  {
-// 	    throw 
-// 	      GDLException(NULL, "Subscript range values of the"
-// 			    " form low:high must be >= 0, < size,"
-// 			    " with low <= high.",true,false);
-// 	  }
-	return;
+		int ret = ix_->Scalar2RangeT(s);
+	// from GDL 0.9 on negative indices are fine
+	// 	if( ret == -1) // index < 0
+	// 	  {
+	// 	    throw 
+	// 	      GDLException(NULL, "Subscript range values of the"
+	// 			    " form low:high must be >= 0, < size,"
+	// 			    " with low <= high.",true,false);
+	// 	  }
+		return;
       }
 
     // type INDEXED
     DType dType = ix_->Type();
 
     assert( dType != UNDEF);
-    assert( maxVal == 0);
+//     assert( maxVal == 0);
 
     int typeCheck = DTypeOrder[ dType];
     if( typeCheck >= 100)
       throw GDLException(NULL,"Type not allowed as subscript.",true,false);
     
-    SizeT nElem = ix_->N_Elements();
+    //SizeT nElem = ix_->N_Elements();
     //    ix = new SizeT[ nElem]; // allocate array
 
     assert( ix == NULL);
 
-    ix = new AllIxMultiT( nElem);
+//     ix = new AllIxMultiT( nElem);
+	if( strictArrSubs)
+		ix = new AllIxIndicesStrictT( ix_);
+	else
+		ix = new AllIxIndicesT( ix_);
 
     ixDim = new dimension( ix_->Dim());
-
-    switch( dType)
-      {
-      case BYTE:
-	{
-	  DByteGDL* src = static_cast<DByteGDL*>( ix_);
-	  for( SizeT i=0; i < nElem; ++i)
-	      {
-		static_cast<AllIxMultiT*>(ix)->SetIx( i, (*src)[i]);
-		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
-	      }
-	  break;
-	}
-      case INT:
-	{
-	  DIntGDL* src = static_cast<DIntGDL*>( ix_);
-	  SizeT i = 0;
-	  for(; i < nElem; ++i)
-	    if( (*src)[i] < 0)
-	      {
-		if( strictArrSubs)
-		  throw GDLException(NULL,"Array used to subscript array "
-				     "contains out of range (<0) subscript.",true,false);
-		static_cast<AllIxMultiT*>(ix)->SetIxTo0( i++);
-// 		(*ix)[i++] = 0;
-		break;
-	      }
-	    else
-	      {
-		static_cast<AllIxMultiT*>(ix)->SetIx( i, (*src)[i]);
-// 		(*ix)[i]= (*src)[i]; 
-		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
-	      }
-	  
-	  for(; i < nElem; ++i)
-	    if( (*src)[i] < 0)
-	    static_cast<AllIxMultiT*>(ix)->SetIxTo0( i); 
-// 	      (*ix)[i] = 0;
-	    else
-	      {
-		static_cast<AllIxMultiT*>(ix)->SetIx( i, (*src)[i]);
-// 		(*ix)[i]= (*src)[i]; 
-		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
-	      }
-	  break;
-
-	  // older version
-/*	  DInt minVal = src->min();
-	  if( minVal < 0)
-	    {
-	      //	      negative = true;
-	      for( SizeT i=0; i < nElem; ++i)
-		if( (*src)[i] < 0)
-		  (*ix)[i] = 0;
-		else
-		  (*ix)[i]= (*src)[i]; 
-	    }
-	  else
-	    for( SizeT i=0; i < nElem; ++i)
-	      (*ix)[i]= (*src)[i]; 
-	  break;*/
-	}
-      case UINT:
-	{
-	  DUIntGDL* src = static_cast<DUIntGDL*>( ix_);
-	  for( SizeT i=0; i < nElem; ++i)
-	      {
-			static_cast<AllIxMultiT*>(ix)->SetIx( i, (*src)[i]);
-// 	(*ix)[i]= (*src)[i];
-		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
-	      }
-	  break;
-	}
-      case LONG: // typical type (returned from WHERE)
-	{
-	  DLongGDL* src = static_cast<DLongGDL*>( ix_);
-	  SizeT i = 0;
-	  for(; i < nElem; ++i)
-	    if( (*src)[i] < 0)
-	      {
-		if( strictArrSubs)
-		  throw GDLException(NULL,"Array used to subscript array "
-				     "contains out of range (<0) subscript.",true,false);
-	    static_cast<AllIxMultiT*>(ix)->SetIxTo0( i++); 
-// 		(*ix)[i++] = 0;
-		break;
-	      }
-	    else
-	      {
-		static_cast<AllIxMultiT*>(ix)->SetIx( i, (*src)[i]);
-// 		(*ix)[i]= (*src)[i]; 
-		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
-	      }
-	  
-// 	  for(; i < nElem; ++i)
-// 	    if( (*src)[i] < 0)
-// 	      (*ix)[i] = 0;
-// 	    else
+}
+//    switch( dType)
+//       {
+//       case BYTE:
+// 	{
+// 	  DByteGDL* src = static_cast<DByteGDL*>( ix_);
+// 	  for( SizeT i=0; i < nElem; ++i)
 // 	      {
-// 		(*ix)[i]= (*src)[i]; 
+// 		static_cast<AllIxMultiT*>(ix)->SetIx( i, (*src)[i]);
 // 		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
 // 	      }
 // 	  break;
-
-// 	  // older version
-// 	  DLong minVal = src->min();
+// 	}
+//       case INT:
+// 	{
+// 	  DIntGDL* src = static_cast<DIntGDL*>( ix_);
+// 	  SizeT i = 0;
+// 	  for(; i < nElem; ++i)
+// 	    if( (*src)[i] < 0)
+// 	      {
+// 		if( strictArrSubs)
+// 		  throw GDLException(NULL,"Array used to subscript array "
+// 				     "contains out of range (<0) subscript.",true,false);
+// 		static_cast<AllIxMultiT*>(ix)->SetIxTo0( i++);
+// 		(*ix)[i++] = 0;
+// 		break;
+// 	      }
+// 	    else
+// 	      {
+// 		static_cast<AllIxMultiT*>(ix)->SetIx( i, (*src)[i]);
+// 		(*ix)[i]= (*src)[i];
+// 		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
+// 	      }
+// 	  
+// 	  for(; i < nElem; ++i)
+// 	    if( (*src)[i] < 0)
+// 	    static_cast<AllIxMultiT*>(ix)->SetIxTo0( i); 
+// 	      (*ix)[i] = 0;
+// 	    else
+// 	      {
+// 		static_cast<AllIxMultiT*>(ix)->SetIx( i, (*src)[i]);
+// 		(*ix)[i]= (*src)[i];
+// 		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
+// 	      }
+// 	  break;
+// 
+// 	  older version
+// /*	  DInt minVal = src->min();
 // 	  if( minVal < 0)
 // 	    {
-// 	      for( SizeT i=0; i < nElem; ++i)
-// 		if( (*src)[i] < 0)
-// 		  (*ix)[i] = 0;
-// 		else
-// 		  (*ix)[i]= (*src)[i]; 
-// 	      //	      negative = true;
+// 	      	      negative = true;
 // 	      for( SizeT i=0; i < nElem; ++i)
 // 		if( (*src)[i] < 0)
 // 		  (*ix)[i] = 0;
@@ -576,228 +524,306 @@ public:
 // 	  else
 // 	    for( SizeT i=0; i < nElem; ++i)
 // 	      (*ix)[i]= (*src)[i]; 
+// 	  break;*/
+// 	}
+//       case UINT:
+// 	{
+// 	  DUIntGDL* src = static_cast<DUIntGDL*>( ix_);
+// 	  for( SizeT i=0; i < nElem; ++i)
+// 	      {
+// 			static_cast<AllIxMultiT*>(ix)->SetIx( i, (*src)[i]);
+// 	(*ix)[i]= (*src)[i];
+// 		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
+// 	      }
 // 	  break;
-	  for(; i < nElem; ++i)
-	    if( (*src)[i] < 0)
-			static_cast<AllIxMultiT*>(ix)->SetIxTo0( i);
-// 	      (*ix)[i] = 0;
-	    else
-	      {
-		static_cast<AllIxMultiT*>(ix)->SetIx( i, (*src)[i]);
+// 	}
+//       case LONG: // typical type (returned from WHERE)
+// 	{
+// 	  DLongGDL* src = static_cast<DLongGDL*>( ix_);
+// 	  SizeT i = 0;
+// 	  for(; i < nElem; ++i)
+// 	    if( (*src)[i] < 0)
+// 	      {
+// 		if( strictArrSubs)
+// 		  throw GDLException(NULL,"Array used to subscript array "
+// 				     "contains out of range (<0) subscript.",true,false);
+// 	    static_cast<AllIxMultiT*>(ix)->SetIxTo0( i++); 
+// 		(*ix)[i++] = 0;
+// 		break;
+// 	      }
+// 	    else
+// 	      {
+// 		static_cast<AllIxMultiT*>(ix)->SetIx( i, (*src)[i]);
 // 		(*ix)[i]= (*src)[i];
-		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
-	      }
-	  break;
-
-/*	  // older version
-	  DLong minVal = src->min();
-	  if( minVal < 0)
-	    {
-	      for( SizeT i=0; i < nElem; ++i)
-		if( (*src)[i] < 0)
-		  (*ix)[i] = 0;
-		else
-		  (*ix)[i]= (*src)[i]; 
-	    }
-	  else
-	    for( SizeT i=0; i < nElem; ++i)
-	      (*ix)[i]= (*src)[i]; 
-	  break;*/
-	}
-      case ULONG:
-	{
-	  DULongGDL* src = static_cast<DULongGDL*>( ix_);
-	  for( SizeT i=0; i < nElem; ++i)
-	      {
-		static_cast<AllIxMultiT*>(ix)->SetIx( i, (*src)[i]);
-// 		(*ix)[i]= (*src)[i]; 
-		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
-	      }
-	  break;
-	}
-      case LONG64:
-	{
-	  DLong64GDL* src = static_cast<DLong64GDL*>( ix_);
-	  SizeT i = 0;
-	  for(; i < nElem; ++i)
-	    if( (*src)[i] < 0)
-	      {
-		if( strictArrSubs)
-		  throw GDLException(NULL,"Array used to subscript array "
-				     "contains out of range (<0) subscript.",true,false);
-		    static_cast<AllIxMultiT*>(ix)->SetIxTo0( i++); 
+// 		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
+// 	      }
+// 	  
+// 	  for(; i < nElem; ++i)
+// 	    if( (*src)[i] < 0)
+// 	      (*ix)[i] = 0;
+// 	    else
+// 	      {
+// 		(*ix)[i]= (*src)[i];
+// 		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
+// 	      }
+// 	  break;
+// 
+// 	  older version
+// 	  DLong minVal = src->min();
+// 	  if( minVal < 0)
+// 	    {
+// 	      for( SizeT i=0; i < nElem; ++i)
+// 		if( (*src)[i] < 0)
+// 		  (*ix)[i] = 0;
+// 		else
+// 		  (*ix)[i]= (*src)[i];
+// 	      	      negative = true;
+// 	      for( SizeT i=0; i < nElem; ++i)
+// 		if( (*src)[i] < 0)
+// 		  (*ix)[i] = 0;
+// 		else
+// 		  (*ix)[i]= (*src)[i];
+// 	    }
+// 	  else
+// 	    for( SizeT i=0; i < nElem; ++i)
+// 	      (*ix)[i]= (*src)[i];
+// 	  break;
+// 	  for(; i < nElem; ++i)
+// 	    if( (*src)[i] < 0)
+// 			static_cast<AllIxMultiT*>(ix)->SetIxTo0( i);
+// 	      (*ix)[i] = 0;
+// 	    else
+// 	      {
+// 		static_cast<AllIxMultiT*>(ix)->SetIx( i, (*src)[i]);
+// 		(*ix)[i]= (*src)[i];
+// 		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
+// 	      }
+// 	  break;
+// 
+// /*	  // older version
+// 	  DLong minVal = src->min();
+// 	  if( minVal < 0)
+// 	    {
+// 	      for( SizeT i=0; i < nElem; ++i)
+// 		if( (*src)[i] < 0)
+// 		  (*ix)[i] = 0;
+// 		else
+// 		  (*ix)[i]= (*src)[i]; 
+// 	    }
+// 	  else
+// 	    for( SizeT i=0; i < nElem; ++i)
+// 	      (*ix)[i]= (*src)[i]; 
+// 	  break;*/
+// 	}
+//       case ULONG:
+// 	{
+// 	  DULongGDL* src = static_cast<DULongGDL*>( ix_);
+// 	  for( SizeT i=0; i < nElem; ++i)
+// 	      {
+// 		static_cast<AllIxMultiT*>(ix)->SetIx( i, (*src)[i]);
+// 		(*ix)[i]= (*src)[i];
+// 		if( (*ix)[i] >    if( strictArrSubs)
+//       { // strictArrSubs -> exception if out of bounds
+//       }
+//     else
+//       {
+// 	SizeT upper = varDim-1;
+// 	SizeT ix_size = ix->size();
+// 	for( SizeT i=0; i < ix_size; ++i)
+// 	  {
+// 	    if( (*ix)[i] > upper)
+//     		ix->SetIx( i, upper);
+// 			(*ix)[i]=upper;
+// 	  }
+// 	return ix_size;
+//       }
+//  maxVal) maxVal = (*ix)[i];
+// 	      }
+// 	  break;
+// 	}
+//       case LONG64:
+// 	{
+// 	  DLong64GDL* src = static_cast<DLong64GDL*>( ix_);
+// 	  SizeT i = 0;
+// 	  for(; i < nElem; ++i)
+// 	    if( (*src)[i] < 0)
+// 	      {
+// 		if( strictArrSubs)
+// 		  throw GDLException(NULL,"Array used to subscript array "
+// 				     "contains out of range (<0) subscript.",true,false);
+// 		    static_cast<AllIxMultiT*>(ix)->SetIxTo0( i++); 
 // 	(*ix)[] = 0;
-		break;
-	      }
-	    else
-	      {
-		static_cast<AllIxMultiT*>(ix)->SetIx( i, (*src)[i]);
+// 		break;
+// 	      }
+// 	    else
+// 	      {
+// 		static_cast<AllIxMultiT*>(ix)->SetIx( i, (*src)[i]);
 // 		(*ix)[i]= (*src)[i];
-		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
-	      }
-	  
-	  for(; i < nElem; ++i)
-	    if( (*src)[i] < 0)
-	    static_cast<AllIxMultiT*>(ix)->SetIxTo0( i); 
+// 		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
+// 	      }
+// 	  
+// 	  for(; i < nElem; ++i)
+// 	    if( (*src)[i] < 0)
+// 	    static_cast<AllIxMultiT*>(ix)->SetIxTo0( i); 
 // 	      (*ix)[i] = 0;
-	    else
-	      {
-		static_cast<AllIxMultiT*>(ix)->SetIx( i, (*src)[i]);
-// 		(*ix)[i]= (*src)[i]; 
-		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
-	      }
-	  break;
-
-/*	  // older version
-	  DLong64 minVal = src->min();
-	  if( minVal < 0)
-	    {
-	      //	      negative = true;
-	      for( SizeT i=0; i < nElem; ++i)
-		if( (*src)[i] < 0)
-		  (*ix)[i] = 0;
-		else
-		  (*ix)[i]= (*src)[i]; 
-	    }
-	  else
-	    for( SizeT i=0; i < nElem; ++i)
-	      (*ix)[i]= (*src)[i]; 
-	  break;*/
-      }
-      case ULONG64:
-	{
-	  DULong64GDL* src = static_cast<DULong64GDL*>( ix_);
-	  for( SizeT i=0; i < nElem; ++i)
-	      {
-			static_cast<AllIxMultiT*>(ix)->SetIx( i, (*src)[i]);
-//           (*ix)[i]= (*src)[i]; 
-		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
-	      }
-	  break;
-	}
-      case FLOAT: 
-	{
-	  DFloatGDL* src = static_cast<DFloatGDL*>( ix_);
-	  for( SizeT i=0; i < nElem; ++i)
-	    if( (*src)[i] <= 0.0)
-	      {
-	    static_cast<AllIxMultiT*>(ix)->SetIxTo0( i); 
-// 		(*ix)[i] = 0;
-		if( (*src)[i] <= -1.0 && strictArrSubs)
-		  throw GDLException(NULL,"Array used to subscript array "
-				     "contains out of range (<0) subscript.",true,false);
-	      }
-	    else
-	      {
-		static_cast<AllIxMultiT*>(ix)->SetIx( i, Real2Int<SizeT,float>((*src)[i]));
-// 		(*ix)[i]= Real2Int<SizeT,float>((*src)[i]); 
-		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
-	      }
-	  break;
-	}
-      case DOUBLE: 
-	{
-	  DDoubleGDL* src = static_cast<DDoubleGDL*>( ix_);
-	  for( SizeT i=0; i < nElem; ++i)
-	    if( (*src)[i] <= 0.0)
-	      {
-	    static_cast<AllIxMultiT*>(ix)->SetIxTo0( i); 
-// 		(*ix)[i] = 0;
-		if( (*src)[i] <= -1.0 && strictArrSubs)
-		  throw GDLException(NULL,"Array used to subscript array "
-				     "contains out of range (<0) subscript.",true,false);
-	      }
-	    else
-	      {
-		static_cast<AllIxMultiT*>(ix)->SetIx( i, Real2Int<SizeT,double>((*src)[i]));
-// 		(*ix)[i]= Real2Int<SizeT,double>((*src)[i]); 
-		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
-	      }
-	  break;
-	}
-      case STRING: 
-	{
-	  DStringGDL* src = static_cast<DStringGDL*>( ix_);
-	  for( SizeT i=0; i < nElem; ++i)
-	    {
-	      const char* cStart=(*src)[i].c_str();
-	      char* cEnd;
-	      long l=strtol(cStart,&cEnd,10);
-	      if( cEnd == cStart)
-		{
-		  Warning("Type conversion error: "
-			  "Unable to convert given STRING to LONG.");
-	    static_cast<AllIxMultiT*>(ix)->SetIxTo0( i); 
+// 	    else
+// 	      {
+// 		static_cast<AllIxMultiT*>(ix)->SetIx( i, (*src)[i]);
+// 		(*ix)[i]= (*src)[i];
+// 		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
+// 	      }
+// 	  break;
+// 
+// /*	  // older version
+// 	  DLong64 minVal = src->min();
+// 	  if( minVal < 0)
+// 	    {
+// 	      	      negative = true;
+// 	      for( SizeT i=0; i < nElem; ++i)
+// 		if( (*src)[i] < 0)
 // 		  (*ix)[i] = 0;
-		}
-	      else if( l < 0)
-		{
-		  if( strictArrSubs)
-		    throw GDLException(NULL,"Array used to subscript array "
-				       "contains out of range (<0) subscript.",true,false);
-	    static_cast<AllIxMultiT*>(ix)->SetIxTo0( i); 
+// 		else
+// 		  (*ix)[i]= (*src)[i]; 
+// 	    }
+// 	  else
+// 	    for( SizeT i=0; i < nElem; ++i)
+// 	      (*ix)[i]= (*src)[i]; 
+// 	  break;*/
+//       }
+//       case ULONG64:
+// 	{
+// 	  DULong64GDL* src = static_cast<DULong64GDL*>( ix_);
+// 	  for( SizeT i=0; i < nElem; ++i)
+// 	      {
+// 			static_cast<AllIxMultiT*>(ix)->SetIx( i, (*src)[i]);
+//           (*ix)[i]= (*src)[i];
+// 		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
+// 	      }
+// 	  break;
+// 	}
+//       case FLOAT: 
+// 	{
+// 	  DFloatGDL* src = static_cast<DFloatGDL*>( ix_);
+// 	  for( SizeT i=0; i < nElem; ++i)
+// 	    if( (*src)[i] <= 0.0)
+// 	      {
+// 	    static_cast<AllIxMultiT*>(ix)->SetIxTo0( i); 
+// 		(*ix)[i] = 0;
+// 		if( (*src)[i] <= -1.0 && strictArrSubs)
+// 		  throw GDLException(NULL,"Array used to subscript array "
+// 				     "contains out of range (<0) subscript.",true,false);
+// 	      }
+// 	    else
+// 	      {
+// 		static_cast<AllIxMultiT*>(ix)->SetIx( i, Real2Int<SizeT,float>((*src)[i]));
+// 		(*ix)[i]= Real2Int<SizeT,float>((*src)[i]);
+// 		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
+// 	      }
+// 	  break;
+// 	}
+//       case DOUBLE: 
+// 	{
+// 	  DDoubleGDL* src = static_cast<DDoubleGDL*>( ix_);
+// 	  for( SizeT i=0; i < nElem; ++i)
+// 	    if( (*src)[i] <= 0.0)
+// 	      {
+// 	    static_cast<AllIxMultiT*>(ix)->SetIxTo0( i); 
+// 		(*ix)[i] = 0;
+// 		if( (*src)[i] <= -1.0 && strictArrSubs)
+// 		  throw GDLException(NULL,"Array used to subscript array "
+// 				     "contains out of range (<0) subscript.",true,false);
+// 	      }
+// 	    else
+// 	      {
+// 		static_cast<AllIxMultiT*>(ix)->SetIx( i, Real2Int<SizeT,double>((*src)[i]));
+// 		(*ix)[i]= Real2Int<SizeT,double>((*src)[i]);
+// 		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
+// 	      }
+// 	  break;
+// 	}
+//       case STRING: 
+// 	{
+// 	  DStringGDL* src = static_cast<DStringGDL*>( ix_);
+// 	  for( SizeT i=0; i < nElem; ++i)
+// 	    {
+// 	      const char* cStart=(*src)[i].c_str();
+// 	      char* cEnd;
+// 	      long l=strtol(cStart,&cEnd,10);
+// 	      if( cEnd == cStart)
+// 		{
+// 		  Warning("Type conversion error: "
+// 			  "Unable to convert given STRING to LONG.");
+// 	    static_cast<AllIxMultiT*>(ix)->SetIxTo0( i); 
 // 		  (*ix)[i] = 0;
-		}
-	      else
-		{
-		static_cast<AllIxMultiT*>(ix)->SetIx( i, l);
+// 		}
+// 	      else if( l < 0)
+// 		{
+// 		  if( strictArrSubs)
+// 		    throw GDLException(NULL,"Array used to subscript array "
+// 				       "contains out of range (<0) subscript.",true,false);
+// 	    static_cast<AllIxMultiT*>(ix)->SetIxTo0( i); 
+// 		  (*ix)[i] = 0;
+// 		}
+// 	      else
+// 		{
+// 		static_cast<AllIxMultiT*>(ix)->SetIx( i, l);
 // 		  (*ix)[i] = l;
-		  if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
-		}
-	    }
-	  break;
-	}
-      case COMPLEX: 
-	{
-	  DComplexGDL* src = static_cast<DComplexGDL*>( ix_);
-	  for( SizeT i=0; i < nElem; ++i)
-	    if( real((*src)[i]) <= 0.0)
-	      {
-		if( real((*src)[i]) <= -1.0 && strictArrSubs)
-		  throw GDLException(NULL,"Array used to subscript array "
-				     "contains out of range (<0) subscript.",true,false);
-	    static_cast<AllIxMultiT*>(ix)->SetIxTo0( i); 
+// 		  if( (*ix)[i] > maxVal)  = (*ix)[i];
+// 		}
+// 	    }
+// 	  break;
+// 	}
+//       case COMPLEX: 
+// 	{
+// 	  DComplexGDL* src = static_cast<DComplexGDL*>( ix_);
+// 	  for( SizeT i=0; i < nElem; ++i)
+// 	    if( real((*src)[i]) <= 0.0)
+// 	      {
+// 		if( real((*src)[i]) <= -1.0 && strictArrSubs)
+// 		  throw GDLException(NULL,"Array used to subscript array "
+// 				     "contains out of range (<0) subscript.",true,false);
+// 	    static_cast<AllIxMultiT*>(ix)->SetIxTo0( i); 
 // 		(*ix)[i] = 0;
-	      }
-	    else
-	      {
-		static_cast<AllIxMultiT*>(ix)->SetIx( i, Real2Int<DLong,float>(real((*src)[i])));
-// 		(*ix)[i]= Real2Int<DLong,float>(real((*src)[i])); 
-		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
-	      }
-	  break;
-	}
-      case COMPLEXDBL: 
-	{
-	  DComplexDblGDL* src = static_cast<DComplexDblGDL*>( ix_);
-	  for( SizeT i=0; i < nElem; ++i)
-	    if( real((*src)[i]) <= 0.0)
-	      {
-		if( real((*src)[i]) <= -1.0 && strictArrSubs)
-		  throw GDLException(NULL,"Array used to subscript array "
-				     "contains out of range (<0) subscript.",true,false);
-	    static_cast<AllIxMultiT*>(ix)->SetIxTo0( i); 
+// 	      }
+// 	    else
+// 	      {
+// 		static_cast<AllIxMultiT*>(ix)->SetIx( i, Real2Int<DLong,float>(real((*src)[i])));
+// 		(*ix)[i]= Real2Int<DLong,float>(real((*src)[i]));
+// 		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
+// 	      }
+// 	  break;
+// 	}
+//       case COMPLEXDBL: 
+// 	{
+// 	  DComplexDblGDL* src = static_cast<DComplexDblGDL*>( ix_);
+// 	  for( SizeT i=0; i < nElem; ++i)
+// 	    if( real((*src)[i]) <= 0.0)
+// 	      {
+// 		if( real((*src)[i]) <= -1.0 && strictArrSubs)
+// 		  throw GDLException(NULL,"Array used to subscript array "
+// 				     "contains out of range (<0) subscript.",true,false);
+// 	    static_cast<AllIxMultiT*>(ix)->SetIxTo0( i); 
 // 		(*ix)[i] = 0;
-	      }
-	    else
-	      {
-		static_cast<AllIxMultiT*>(ix)->SetIx( i, Real2Int<DLong,double>(real((*src)[i])));
-// 		(*ix)[i]= Real2Int<DLong,double>(real((*src)[i])); 
-		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
-	      }
-	  break;
-	}
-      default: // (UNDEF)
-        {
-          assert(false);
-          throw; // getting rid of compiler warning
-        }
-      }
-  } 
+// 	      }
+// 	    else
+// 	      {
+// 		static_cast<AllIxMultiT*>(ix)->SetIx( i, Real2Int<DLong,double>(real((*src)[i])));
+// 		(*ix)[i]= Real2Int<DLong,double>(real((*src)[i]));
+// 		if( (*ix)[i] > maxVal) maxVal = (*ix)[i];
+// 	      }
+// 	  break;
+// 	}
+//       default: // (UNDEF)
+//         {
+//           assert(false);
+//           throw; // getting rid of compiler warning
+//         }
+//       }*/
+//   } 
 
   // number of iterations
-  // also checks/adjusts range 
-  SizeT NIter( SizeT varDim) 
+  // also checks/adjusts range
+  SizeT NIter( SizeT varDim)
   {
 
     if( ix == NULL) // ONE
@@ -813,28 +839,29 @@ public:
     // note: this should be faster as most arrays are within bounds
     // (like returned from WHERE function)
     //    SizeT maxIx = ix->max();
-    if( maxVal < varDim)
-      return ix->size();
+//     if( maxVal < varDim)
+// 		  return ix->size();
 
-    if( strictArrSubs)
-      { // strictArrSubs -> exception if out of bounds
-	throw GDLException(NULL,"Array used to subscript array "
-			   "contains out of range subscript.",true,false);
-      }
-    else
-      {
-	SizeT upper = varDim-1;
-	SizeT ix_size = ix->size();
-	for( SizeT i=0; i < ix_size; ++i)
-	  {
-	    if( (*ix)[i] > upper)
-    		ix->SetIx( i, upper);
+	ix->SetUpper( varDim-1);
+
+    return ix->size();
+
+//     if( strictArrSubs)
+//       { // strictArrSubs -> exception if out of bounds
+//       }
+//     else
+//       {
+// 	SizeT upper = varDim-1;
+// 	SizeT ix_size = ix->size();
+// 	for( SizeT i=0; i < ix_size; ++i)
+// 	  {
+// 	    if( (*ix)[i] > upper)
+//     		ix->SetIx( i, upper);
 // 			(*ix)[i]=upper;
-	  }
-	return ix_size; 
-      }
+// 	  }
+// 	return ix_size;
+//       }
   }
-
 };
 
 
@@ -843,8 +870,8 @@ public:
 class CArrayIndexIndexed: public ArrayIndexIndexed
 {
 protected:
-  AllIxMultiT*    ixOri;
-  SizeT      maxIx;
+  AllIxIndicesT*    ixOri;
+//  SizeT      maxIx;
 
 public:
  IndexType Type() { return CArrayIndexIndexedID;}
@@ -852,22 +879,22 @@ public:
   ~CArrayIndexIndexed() { delete ixOri;}
 
   CArrayIndexIndexed( BaseGDL* c, bool strictArrSubs_ = false): 
-    ArrayIndexIndexed( strictArrSubs_), ixOri( NULL), maxIx( 0)
+    ArrayIndexIndexed( strictArrSubs_), ixOri( NULL) //, maxIx( 0)
   {
     ArrayIndexIndexed::Init( c);
     ixOri = ix;
     ix = NULL;
-    if( ixOri != NULL) maxIx = ixOri->max();
+//     if( ixOri != NULL) maxIx = ixOri->max();
   }
 
   CArrayIndexIndexed( const CArrayIndexIndexed& cp):
-    ArrayIndexIndexed( cp.strictArrSubs), ixOri( NULL), maxIx( cp.maxIx)
+    ArrayIndexIndexed( cp.strictArrSubs), ixOri( NULL) //, maxIx( cp.maxIx)
   {
     assert( cp.ix == NULL);
 
     s = cp.s;
-    maxVal = cp.maxVal;
-    maxIx  = cp.maxIx;
+//    maxVal = cp.maxVal;
+//     maxIx  = cp.maxIx;
 
     if( cp.ixOri != NULL)
       ixOri = cp.ixOri->Clone();
@@ -888,8 +915,8 @@ public:
   { 
     if( ixOri == NULL)
       {
-	s_ = s;
-	return true;
+		s_ = s;
+		return true;
       }
     s_ = (*ixOri)[0];
     return (ixOri->size() == 1);
@@ -900,34 +927,36 @@ public:
   {
     if( ixOri == NULL) // ONE
       {
-	if( s >= var->Size())
-	  throw GDLException(NULL,"Subscript out of range [i].",true,false);
-	return var->NewIx( s);
+		if( s >= var->Size())
+			throw GDLException(NULL,"Subscript out of range [i].",true,false);
+		return var->NewIx( s);
       }
 
-    if( maxIx >= var->Size())
-      {
-	if( strictArrSubs)
-	  { // strictArrSubs -> exception if out of bounds
-	    throw GDLException(NULL,"Array used to subscript array "
-			       "contains out of range subscript.",true,false);
-	  }
+	ixOri->SetUpper(var->Size()-1);
 
-	SizeT ix_size = ix->size();
-	ix = new AllIxMultiT( ixOri->size()); // make copy as changed (see below)
-	SizeT upper = var->Size()-1;
-	for( SizeT i=0; i < ix_size; ++i)
-	  {
-	    if( (*ixOri)[i] > upper)
-	    	    static_cast<AllIxMultiT*>(ix)->SetIx( i, upper);
-// 	      (*ix)[i] = upper;
-	    else
-	    	    static_cast<AllIxMultiT*>(ix)->SetIx( i, (*ixOri)[i]);
-// 	      (*ix)[i] = (*ixOri)[i];
-	  }
-	return var->NewIx( ix, ixDim);
-      }
-    else
+//     if( maxIx >= var->Size())
+//       {
+// 		if( strictArrSubs)
+// 		{ // strictArrSubs -> exception if out of bounds
+// 			throw GDLException(NULL,"Array used to subscript array "
+// 					"contains out of range subscript.",true,false);
+// 		}
+// 
+// 		SizeT ix_size = ix->size();
+// 		ix = new AllIxMultiT( ixOri->size()); // make copy as changed (see below)
+// 		SizeT upper = var->Size()-1;
+// 		for( SizeT i=0; i < ix_size; ++i)
+// 		{
+// 			if( (*ixOri)[i] > upper)
+// 					static_cast<AllIxMultiT*>(ix)->SetIx( i, upper);
+// 		      (*ix)[i] = upper;
+// 			else
+// 					static_cast<AllIxMultiT*>(ix)->SetIx( i, (*ixOri)[i]);
+// 		      (*ix)[i] = (*ixOri)[i];
+// 		}
+// 		return var->NewIx( ix, ixDim);
+//       }
+//     else
       return var->NewIx( ixOri, ixDim);
   }
 
@@ -940,37 +969,40 @@ public:
   {
     if( ixOri == NULL) // ONE
       {
-	if( s >= varDim)
-	  throw GDLException(NULL,"Subscript out of range [i].",true,false);
-	return 1;
+		if( s >= varDim)
+		throw GDLException(NULL,"Subscript out of range [i].",true,false);
+		return 1;
       }
 
     // INDEXED
     assert( ix == NULL);
-    ix = new AllIxMultiT( ixOri->size()); // make copy as changed (see below)
+    ix = ixOri->Clone(); //new AllIxMultiT( ixOri->size()); // make copy as changed (see below)
     SizeT ix_size = ix->size();
-    if( maxIx >= varDim)
-      {
-	if( strictArrSubs)
-	  { // strictArrSubs -> exception if out of bounds
-	    throw GDLException(NULL,"Array used to subscript array "
-			       "contains out of range subscript.",true,false);
-	  }
 
-	SizeT upper = varDim-1;
-	for( SizeT i=0; i < ix_size; ++i)
-	  {
-	    if( (*ixOri)[i] > upper)
-	   		static_cast<AllIxMultiT*>(ix)->SetIx( i, upper);
-// 	      (*ix)[i] = upper;
-	    else
-	   		static_cast<AllIxMultiT*>(ix)->SetIx( i, (*ixOri)[i]);
-// 	      (*ix)[i] = (*ixOri)[i];
-	  }
-      }
-    else
-      for( SizeT i=0; i < ix_size; ++i)
-	   		static_cast<AllIxMultiT*>(ix)->SetIx( i, (*ixOri)[i]);
+	ix->SetUpper( varDim-1);
+    
+//     if( maxIx >= varDim)
+//       {
+// 		if( strictArrSubs)
+// 		{ // strictArrSubs -> exception if out of bounds
+// 			throw GDLException(NULL,"Array used to subscript array "
+// 					"contains out of range subscript.",true,false);
+// 		}
+// 
+// 		SizeT upper = varDim-1;
+// 		for( SizeT i=0; i < ix_size; ++i)
+// 		{
+// 			if( (*ixOri)[i] > upper)
+// 				static_cast<AllIxMultiT*>(ix)->SetIx( i, upper);
+// 		      (*ix)[i] = upper;
+// 			else
+// 				static_cast<AllIxMultiT*>(ix)->SetIx( i, (*ixOri)[i]);
+// 		      (*ix)[i] = (*ixOri)[i];
+// 		}
+//       }
+//     else
+//       for( SizeT i=0; i < ix_size; ++i)
+// 	   		static_cast<AllIxMultiT*>(ix)->SetIx( i, (*ixOri)[i]);
 // 	(*ix)[i] = (*ixOri)[i];
     
     return ix_size; 
@@ -1433,7 +1465,7 @@ public:
 				throw GDLException(NULL,"Subscript out of range [-S:*:stride].",true,false);
 			return (varDim - sl + stride - 1)/stride;
 		}
-    
+
     if( s >= varDim)
       throw GDLException(NULL,"Subscript out of range [s:*:stride].",true,false);
     return (varDim - s + stride - 1)/stride;
@@ -1702,5 +1734,51 @@ CArrayIndexRangeS(){}
   }
 };
 
+class ArrayIndexVectorT
+{
+private:
+ArrayIndexT* arrayIxArr[ MAXRANK];
+SizeT             sz;
+public:
+ArrayIndexVectorT(): sz(0) {}
+~ArrayIndexVectorT()
+{} // for( int i=0; i<sz; ++i) delete arrayIxArr[ i];}
+ArrayIndexVectorT( const ArrayIndexVectorT& cp): sz( cp.sz)
+{
+for( SizeT i=0; i<sz;++i)
+	arrayIxArr[ i] = cp.arrayIxArr[ i];
+}
+
+SizeT FrontGetS() const
+{
+assert( sz > 0);
+return arrayIxArr[0]->GetS();
+}
+
+ArrayIndexT* operator[]( SizeT ix) const
+{
+assert( ix < MAXRANK);
+return arrayIxArr[ ix];
+}
+SizeT size() const { return sz;}
+void push_back( ArrayIndexT* aIx)
+{
+assert( sz < MAXRANK);
+arrayIxArr[ sz++] = aIx;
+}
+void Clear()
+{
+for( int i=0; i<sz; ++i)
+	arrayIxArr[ i]->Clear();
+}
+void Destruct()  // only to be used from destructor (instance is not valid anymore afterwards)
+{
+for( int i=0; i<sz; ++i)
+	delete arrayIxArr[ i];
+ //sz = 0;	
+}
+ArrayIndexT* back() const { return arrayIxArr[ sz-1];}
+void pop_back() { --sz;}
+};
 
 #endif

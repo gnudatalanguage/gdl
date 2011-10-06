@@ -23,8 +23,8 @@
 #include "typedefs.hpp"
 #include "gdlexception.hpp"
 
-const SizeT MAXRANK=8;         // arrays are limited to 8 dimensions
-const std::string MAXRANK_STR("8");  // for use in strings (error messages)
+// const SizeT MAXRANK=8;         // arrays are limited to 8 dimensions
+// const std::string MAXRANK_STR("8");  // for use in strings (error messages)
 
 inline SizeT RankIx( const SizeT rank)
 {

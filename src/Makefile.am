@@ -1,10 +1,9 @@
 # set the include path found by configure
 INCLUDES = $(EXT_INCLUDES) $(all_includes)
 SUBDIRS = antlr pro
-noinst_HEADERS = ArrayIndexListMultiT_tmp.hpp ArrayIndexListScalarT_tmp.hpp \
-	gdlwidget.hpp prognode.hpp prognodeexpr.hpp
 
-cpp_hpp_files = accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
+cpp_hpp_files = prognode.hpp prognodeexpr.hpp \
+		accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 		basegdl.hpp basic_fun_cl.cpp basic_fun_cl.hpp basic_fun.cpp basic_fun.hpp \
 		basic_fun_jmg.cpp basic_fun_jmg.hpp basic_op.cpp basic_pro.cpp basic_pro.hpp \
 		basic_pro_jmg.cpp basic_pro_jmg.hpp CFMTLexer.cpp CFMTLexer.hpp CFMTTokenTypes.hpp \

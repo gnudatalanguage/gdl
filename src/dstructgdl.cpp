@@ -319,7 +319,7 @@ void DStructGDL::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
 	{
 	  SizeT nCp=ixList->N_Elements();
 
-	  AllIxT* allIx = ixList->BuildIx();
+	  AllIxBaseT* allIx = ixList->BuildIx();
 	  for( SizeT c=0; c<nCp; c++)
 	    {
 // 	      SizeT cTag=(*allIx)[ c]*nTags;
@@ -377,7 +377,7 @@ void DStructGDL::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
 		throw GDLException("Array subscript must have"
 				   " same size as source expression.");
 
-	      AllIxT* allIx = ixList->BuildIx();
+	      AllIxBaseT* allIx = ixList->BuildIx();
 	      for( SizeT c=0; c<nCp; c++)
 		{
 // 		  SizeT cTag= (*allIx)[ c]*nTags;
@@ -428,7 +428,7 @@ void DStructGDL::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList)
 	{
 	  SizeT nCp=ixList->N_Elements();
 
-	  AllIxT* allIx = ixList->BuildIx();
+	  AllIxBaseT* allIx = ixList->BuildIx();
 	  for( SizeT c=0; c<nCp; c++)
 	    {
 // 	      SizeT cTag=(*allIx)[ c]*nTags;
@@ -479,7 +479,7 @@ void DStructGDL::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList)
 		throw GDLException("Array subscript must have"
 				   " same size as source expression.");
 
-	      AllIxT* allIx = ixList->BuildIx();
+	      AllIxBaseT* allIx = ixList->BuildIx();
 	      for( SizeT c=0; c<nCp; c++)
 		{
 // 		  SizeT cTag= (*allIx)[ c]*nTags;
@@ -577,7 +577,7 @@ void DStructGDL::InsertAt( SizeT offset, BaseGDL* srcIn,
     {
       SizeT nCp=ixList->N_Elements();
       
-      AllIxT* allIx = ixList->BuildIx();
+      AllIxBaseT* allIx = ixList->BuildIx();
       for( SizeT c=0; c<nCp; c++)
 	{
 // 	  SizeT cTag=(c+offset)*nTags;
@@ -654,7 +654,7 @@ DStructGDL* DStructGDL::Index( ArrayIndexListT* ixList)
   SizeT nTags=NTags();
   
   SizeT nCp=ixList->N_Elements();
-  AllIxT* allIx = ixList->BuildIx();
+  AllIxBaseT* allIx = ixList->BuildIx();
   for( SizeT c=0; c<nCp; c++)
     {
 //       SizeT cTag=c*nTags;

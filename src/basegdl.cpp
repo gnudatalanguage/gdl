@@ -196,6 +196,15 @@ int BaseGDL::Scalar2RangeT(RangeT& ret) const
   throw GDLException("Operation not defined for UNDEF 1a.");
 }
 
+SizeT BaseGDL::GetAsIndex( SizeT i) const
+{ 
+  throw GDLException("BaseGDL::GetAsIndex called.");
+}
+SizeT BaseGDL::GetAsIndexStrict( SizeT i) const
+{ 
+  throw GDLException("BaseGDL::GetAsIndexStrict called.");
+}
+
 bool BaseGDL::BaseGDL::True()
 {
   throw GDLException("Operation not defined for UNDEF 3.");
@@ -672,7 +681,7 @@ BaseGDL* BaseGDL::NewIx( BaseGDL* ix, bool strict)
 {
   throw GDLException("Operation not defined for UNDEF 21.");
 }
-BaseGDL* BaseGDL::NewIx( AllIxT* ix, dimension* dIn)
+BaseGDL* BaseGDL::NewIx( AllIxBaseT* ix, dimension* dIn)
 {
   throw GDLException("Operation not defined for UNDEF 22.");
 }

@@ -2174,7 +2174,7 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT offset)
 	{
 	  SizeT nCp=ixList->N_Elements();
 	  
-	  AllIxT* allIx = ixList->BuildIx();
+	  AllIxBaseT* allIx = ixList->BuildIx();
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 #pragma omp for*/
@@ -2224,7 +2224,7 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT offset)
 		    throw GDLException("Array subscript must have same size as"
 				       " source expression.");
 		  
-		  AllIxT* allIx = ixList->BuildIx();
+		  AllIxBaseT* allIx = ixList->BuildIx();
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 #pragma omp for*/
@@ -2238,7 +2238,7 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT offset)
 		    throw GDLException("Array subscript must have same size as"
 				       " source expression.");
 		  
-		  AllIxT* allIx = ixList->BuildIx();
+		  AllIxBaseT* allIx = ixList->BuildIx();
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 #pragma omp for*/
@@ -2271,7 +2271,7 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList)
       else
 	{
 	  Ty scalar=(*src)[0];
-	  AllIxT* allIx = ixList->BuildIx();
+	  AllIxBaseT* allIx = ixList->BuildIx();
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 #pragma omp for*/
@@ -2295,7 +2295,7 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList)
 	    throw GDLException("Array subscript must have same size as"
 			       " source expression.");
 	  
-	  AllIxT* allIx = ixList->BuildIx();
+	  AllIxBaseT* allIx = ixList->BuildIx();
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 #pragma omp for*/
@@ -2365,7 +2365,7 @@ void Data_<Sp>::DecAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=ixList->N_Elements();
 
-      AllIxT* allIx = ixList->BuildIx();
+      AllIxBaseT* allIx = ixList->BuildIx();
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 #pragma omp for*/
@@ -2388,7 +2388,7 @@ void Data_<Sp>::IncAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=ixList->N_Elements();
       
-      AllIxT* allIx = ixList->BuildIx();
+      AllIxBaseT* allIx = ixList->BuildIx();
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 #pragma omp for*/
@@ -2413,7 +2413,7 @@ void Data_<SpDFloat>::DecAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=ixList->N_Elements();
 
-      AllIxT* allIx = ixList->BuildIx();
+      AllIxBaseT* allIx = ixList->BuildIx();
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 #pragma omp for*/
@@ -2437,7 +2437,7 @@ void Data_<SpDFloat>::IncAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=ixList->N_Elements();
       
-      AllIxT* allIx = ixList->BuildIx();
+      AllIxBaseT* allIx = ixList->BuildIx();
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 #pragma omp for*/
@@ -2461,7 +2461,7 @@ void Data_<SpDDouble>::DecAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=ixList->N_Elements();
       
-      AllIxT* allIx = ixList->BuildIx();
+      AllIxBaseT* allIx = ixList->BuildIx();
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 #pragma omp for*/
@@ -2485,7 +2485,7 @@ void Data_<SpDDouble>::IncAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=ixList->N_Elements();
       
-      AllIxT* allIx = ixList->BuildIx();
+      AllIxBaseT* allIx = ixList->BuildIx();
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 #pragma omp for*/
@@ -2513,7 +2513,7 @@ void Data_<SpDComplex>::DecAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=ixList->N_Elements();
       
-      AllIxT* allIx = ixList->BuildIx();
+      AllIxBaseT* allIx = ixList->BuildIx();
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 #pragma omp for*/
@@ -2540,7 +2540,7 @@ void Data_<SpDComplex>::IncAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=ixList->N_Elements();
       
-      AllIxT* allIx = ixList->BuildIx();
+      AllIxBaseT* allIx = ixList->BuildIx();
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 #pragma omp for*/
@@ -2567,7 +2567,7 @@ void Data_<SpDComplexDbl>::DecAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=ixList->N_Elements();
       
-      AllIxT* allIx = ixList->BuildIx();
+      AllIxBaseT* allIx = ixList->BuildIx();
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 #pragma omp for*/
@@ -2594,7 +2594,7 @@ void Data_<SpDComplexDbl>::IncAt( ArrayIndexListT* ixList)
     {
       SizeT nCp=ixList->N_Elements();
       
-      AllIxT* allIx = ixList->BuildIx();
+      AllIxBaseT* allIx = ixList->BuildIx();
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 #pragma omp for*/
@@ -2657,7 +2657,7 @@ void Data_<Sp>::InsertAt( SizeT offset, BaseGDL* srcIn,
     {
       SizeT nCp=ixList->N_Elements();
 
-      AllIxT* allIx = ixList->BuildIx();
+      AllIxBaseT* allIx = ixList->BuildIx();
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 #pragma omp for*/
@@ -2736,7 +2736,7 @@ Data_<Sp>* Data_<Sp>::Index( ArrayIndexListT* ixList)
   //  cout << "dim = " << this->dim << endl;
   
   //  DataT& res_dd = res->dd; 
-  AllIxT* allIx = ixList->BuildIx();
+  AllIxBaseT* allIx = ixList->BuildIx();
 
 //   if( nCp == 1)
 //   {
@@ -4393,7 +4393,7 @@ Data_<Sp>* Data_<Sp>::NewIx( SizeT ix)
   return new Data_( (*this)[ ix]);
 }
 template<class Sp>
-Data_<Sp>* Data_<Sp>::NewIx( AllIxT* ix, dimension* dIn)
+Data_<Sp>* Data_<Sp>::NewIx( AllIxBaseT* ix, dimension* dIn)
 {
   SizeT nCp = ix->size();
   Data_* res=Data_::New( *dIn, BaseGDL::NOZERO);
@@ -4886,6 +4886,161 @@ Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
 
 #undef NEWIX_SIGNEDINT
 #undef NEWIX_UNSIGNEDINT
+
+template<class Sp> SizeT Data_<Sp>::GetAsIndex( SizeT i) const
+{
+return (*this)[ i];
+}
+template<class Sp> SizeT Data_<Sp>::GetAsIndexStrict( SizeT i) const
+{
+return GetAsIndex( i); // good for unsigned types
+}
+
+template<>
+SizeT Data_<SpDInt>::GetAsIndex( SizeT i) const
+{
+    if( (*this)[i] < 0)
+		return 0;
+	return (*this)[i];
+}	
+template<>
+SizeT Data_<SpDInt>::GetAsIndexStrict( SizeT i) const
+{
+    if( (*this)[i] < 0)
+		  throw GDLException(NULL,"Array used to subscript array "
+				     "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
+	return (*this)[i];
+}	
+template<>
+SizeT Data_<SpDLong>::GetAsIndex( SizeT i) const
+{
+    if( (*this)[i] < 0)
+		return 0;
+	return (*this)[i];
+}	
+template<>
+SizeT Data_<SpDLong>::GetAsIndexStrict( SizeT i) const
+{
+    if( (*this)[i] < 0)
+		  throw GDLException(NULL,"Array used to subscript array "
+				     "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
+	return (*this)[i];
+}	
+template<>
+SizeT Data_<SpDLong64>::GetAsIndex( SizeT i) const
+{
+    if( (*this)[i] < 0)
+		return 0;
+	return (*this)[i];
+}	
+template<>
+SizeT Data_<SpDLong64>::GetAsIndexStrict( SizeT i) const
+{
+    if( (*this)[i] < 0)
+		  throw GDLException(NULL,"Array used to subscript array "
+				     "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
+	return (*this)[i];
+}	
+template<>
+SizeT Data_<SpDFloat>::GetAsIndex( SizeT i) const
+{
+    if( (*this)[i] <= 0.0)
+		return 0;
+	return Real2Int<SizeT,float>((*this)[i]);
+}	
+template<>
+SizeT Data_<SpDFloat>::GetAsIndexStrict( SizeT i) const
+{
+    if( (*this)[i] <= -1.0)
+		  throw GDLException(NULL,"Array used to subscript array "
+				     "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
+    if( (*this)[i] <= 0.0)
+		return 0;
+	return Real2Int<SizeT,float>((*this)[i]);
+}	
+template<>
+SizeT Data_<SpDDouble>::GetAsIndex( SizeT i) const
+{
+    if( (*this)[i] <= 0.0)
+		return 0;
+	return Real2Int<SizeT,double>((*this)[i]);
+}	
+template<>
+SizeT Data_<SpDDouble>::GetAsIndexStrict( SizeT i) const
+{
+    if( (*this)[i] <= -1.0)
+		  throw GDLException(NULL,"Array used to subscript array "
+				     "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
+    if( (*this)[i] <= 0.0)
+		return 0;
+	return Real2Int<SizeT,double>((*this)[i]);
+}	
+template<>
+SizeT Data_<SpDString>::GetAsIndex( SizeT i) const
+{
+	const char* cStart=(*this)[i].c_str();
+	char* cEnd;
+	long l=strtol(cStart,&cEnd,10);
+	if( cEnd == cStart)
+	{
+		Warning("Type conversion error: Unable to convert given STRING to LONG (at index: " + i2s(i) + ")");
+		return 0;
+	}
+	if( l < 0)
+		return 0;
+	return l;
+}	
+template<>
+SizeT Data_<SpDString>::GetAsIndexStrict( SizeT i) const
+{
+	const char* cStart=(*this)[i].c_str();
+	char* cEnd;
+	long l=strtol(cStart,&cEnd,10);
+	if( cEnd == cStart)
+	{
+		Warning("Type conversion error: Unable to convert given STRING to LONG (at index: " + i2s(i) + ")");
+		return 0;
+	}
+	if( l < 0)
+		throw GDLException(NULL,"Array used to subscript array "
+					"contains out of range (<0) subscript.",true,false);
+	return l;
+}	
+
+template<>
+SizeT Data_<SpDComplex>::GetAsIndex( SizeT i) const
+{
+    if( real((*this)[i]) <= 0.0)
+		return 0;
+	return Real2Int<SizeT,float>(real((*this)[i]));
+}	
+template<>
+SizeT Data_<SpDComplex>::GetAsIndexStrict( SizeT i) const
+{
+    if( real((*this)[i]) <= -1.0)
+		  throw GDLException(NULL,"Array used to subscript array "
+				     "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
+    if( real((*this)[i]) <= 0.0)
+		return 0;
+	return Real2Int<SizeT,float>(real((*this)[i]));
+}	
+template<>
+SizeT Data_<SpDComplexDbl>::GetAsIndex( SizeT i) const
+{
+    if( real((*this)[i]) <= 0.0)
+		return 0;
+	return Real2Int<SizeT,double>(real((*this)[i]));
+}	
+template<>
+SizeT Data_<SpDComplexDbl>::GetAsIndexStrict( SizeT i) const
+{
+    if( real((*this)[i]) <= -1.0)
+		  throw GDLException(NULL,"Array used to subscript array "
+				     "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
+    if( real((*this)[i]) <= 0.0)
+		return 0;
+	return Real2Int<SizeT,double>(real((*this)[i]));
+}	
 
 //#include "instantiate_templates.hpp"
 

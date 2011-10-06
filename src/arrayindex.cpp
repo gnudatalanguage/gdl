@@ -22,6 +22,82 @@
 
 using namespace std;
 
+SizeT AllIxIndicesT::operator[]( SizeT i) const
+{
+assert( upperSet);
+SizeT index = ref->GetAsIndex( i);
+if( index > upper)
+	return upper;
+return index;
+}
+
+SizeT AllIxIndicesT::size() const
+{
+return ref->N_Elements();
+}
+
+SizeT AllIxIndicesStrictT::operator[]( SizeT i) const
+{
+assert( upperSet);
+SizeT index = ref->GetAsIndexStrict( i);
+if( index > upper)
+	throw GDLException(NULL,"Array used to subscript array "
+			   "contains out of range subscript (at index: "+i2s(i)+").",true,false);
+return index;
+}
+
+SizeT AllIxAllIndexedT::operator[]( SizeT i) const
+  {
+    assert( i < nIx);
+	
+    assert( dynamic_cast<ArrayIndexIndexed*>( (*ixList)[0]) != NULL);
+    SizeT resIndex = static_cast< ArrayIndexIndexed*>( (*ixList)[0])->GetIx( i);
+		
+    for( SizeT l=1; l < acRank; ++l)
+      {
+	assert( dynamic_cast<ArrayIndexIndexed*>( (*ixList)[l]) != NULL);
+	resIndex += static_cast< ArrayIndexIndexed*>( (*ixList)[l])->GetIx( i) * varStride[l];
+      }
+    return resIndex;
+  }
+
+SizeT AllIxNewMultiT::operator[]( SizeT i) const
+  {
+    assert( i < nIx);
+    
+    SizeT resIndex;
+    if( (*ixList)[0]->Indexed())
+      {
+		resIndex = static_cast< ArrayIndexIndexed*>((*ixList)[0])->GetIx( i %  nIterLimit[0]);
+      }
+    else
+      {
+		SizeT ixStride = (*ixList)[0]->GetStride();
+		if( ixStride == 0)
+			assert( ixStride >= 1);
+		
+		SizeT s = ixList->FrontGetS(); //ixList[0]->GetS();
+		resIndex = (i %  nIterLimit[0]) * ixStride + s;
+      }
+
+    for( SizeT l=1; l < acRank; ++l)
+    {
+		if( (*ixList)[l]->Indexed())
+		{
+			resIndex += static_cast< ArrayIndexIndexed*>( (*ixList)[l])->GetIx( (i / stride[l]) %  nIterLimit[l]) * varStride[l];
+		}
+		else
+		{
+			SizeT ixStride = (*ixList)[l]->GetStride();
+			assert( ixStride >= 1);
+
+			SizeT s = (*ixList)[l]->GetS();
+			resIndex += (((i / stride[l]) %  nIterLimit[l]) * ixStride + s) * varStride[l];
+		}
+	}
+	return resIndex;
+  }
+
 ArrayIndexScalar::ArrayIndexScalar( RefDNode& dNode)
 {
   assert( dNode->getType() == GDLTokenTypes::VAR);
@@ -187,7 +263,7 @@ void ArrayIndexListOneScalarT::AssignAt( BaseGDL* var, BaseGDL* right)
 // vtable
 ArrayIndexListT::~ArrayIndexListT() {}
 
-AllIxT* ArrayIndexListT::BuildIx() {}
+AllIxBaseT* ArrayIndexListT::BuildIx() {}
 
 
 // called after structure is fixed

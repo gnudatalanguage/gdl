@@ -311,6 +311,7 @@ public:
 };
 
 // ---
+class AllIxBaseT;
 
 class BaseGDL: private MemStats
 {
@@ -431,7 +432,9 @@ public:
   virtual void     SetBufferSize( SizeT s);
   virtual int Scalar2index(SizeT& ret) const;
   virtual int Scalar2RangeT(RangeT& ret) const;
-  virtual SizeT LoopIndex() const; 
+  virtual SizeT GetAsIndex( SizeT i) const;
+  virtual SizeT GetAsIndexStrict( SizeT i) const;
+  virtual SizeT LoopIndex() const;
   virtual bool True();
   virtual bool False();
   virtual bool LogTrue();
@@ -460,7 +463,7 @@ public:
   // return a new type of itself
   virtual BaseGDL* NewIx( SizeT ix);
   virtual BaseGDL* NewIx( BaseGDL* ix, bool strict);
-  virtual BaseGDL* NewIx( AllIxT* ix, dimension* dIn);
+  virtual BaseGDL* NewIx( AllIxBaseT* ix, dimension* dIn);
   virtual BaseGDL* NewIxFrom( SizeT s);
   virtual BaseGDL* NewIxFrom( SizeT s, SizeT e);
   virtual BaseGDL* NewIxFromStride( SizeT s, SizeT stride);

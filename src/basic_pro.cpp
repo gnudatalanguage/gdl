@@ -2272,7 +2272,7 @@ TRACEOMP( __FILE__, __LINE__)
 	auto_ptr< ArrayIndexVectorT> ixList_guard( ixList);
 // 	BaseGDL* loc1 = p3->Dup();
 // 	loc1->SetDim (dimension( loc1->N_Elements()));
-	ixList->reserve( p3->N_Elements());
+//	ixList->reserve( p3->N_Elements());
 	for (size_t i=0; i<p3->N_Elements(); i++)
 	  if( (i+1) == d1)
 	    ixList->push_back( new ArrayIndexAll());
