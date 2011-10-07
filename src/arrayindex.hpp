@@ -206,6 +206,10 @@ public:
   SizeT NIter( SizeT varDim);
 };
 
+
+
+
+
 // constant SCALAR
 class CArrayIndexScalar: public ArrayIndexT
 {
@@ -272,6 +276,8 @@ public:
     return 1;
   }
 };
+
+
 
 
 

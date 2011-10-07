@@ -190,6 +190,7 @@ BaseGDL* ArrayIndexListOneScalarT::Index( BaseGDL* var, IxExprListT& ix_)
 	  {
 	    throw GDLException("Scalar subscript out of range [>].e");
 	  }
+
 	    
 	return var->NewIx( s);
       }

@@ -42,15 +42,21 @@ Data_<Sp>* Data_<Sp>::NotOp()
 {
   ULong nEl=N_Elements();
   assert( nEl != 0);
+
+  if( nEl == 1)
+    {
+      (*this)[0] = ~(*this)[0];
+      return this;
+    }
+
   //  if( !nEl) throw GDLException("Variable is undefined.");  
-TRACEOMP( __FILE__, __LINE__)
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
+      for( SizeT i=0; i < nEl; ++i)
 	(*this)[i] = ~(*this)[i];
-}  return this;
+    }  return this;
 }
 // others
 template<>
@@ -59,13 +65,19 @@ Data_<SpDFloat>* Data_<SpDFloat>::NotOp()
   ULong nEl=N_Elements();
   assert( nEl != 0);
   //  if( !nEl) throw GDLException("Variable is undefined.");  
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  if( nEl == 1)
+    {
+      (*this)[0] = ((*this)[0] == 0.0f)? 1.0f : 0.0f;
+      return this;
+    }
+
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] = ((*this)[i] == 0.0f)? 1.0f : 0.0f;
-}  return this;
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] = ((*this)[i] == 0.0f)? 1.0f : 0.0f;
+    }  return this;
 }
 template<>
 Data_<SpDDouble>* Data_<SpDDouble>::NotOp()
@@ -73,13 +85,18 @@ Data_<SpDDouble>* Data_<SpDDouble>::NotOp()
   ULong nEl=N_Elements();
   assert( nEl != 0);
   //  if( !nEl) throw GDLException("Variable is undefined.");  
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  if( nEl == 1)
+    {
+      (*this)[0] = ((*this)[0] == 0.0)? 1.0 : 0.0;
+      return this;
+    }
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] = ((*this)[i] == 0.0)? 1.0 : 0.0;
-}  return this;
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] = ((*this)[i] == 0.0)? 1.0 : 0.0;
+    }  return this;
 }
 template<>
 Data_<SpDString>* Data_<SpDString>::NotOp()
@@ -122,17 +139,22 @@ Data_<SpDObj>* Data_<SpDObj>::NotOp()
 template<class Sp>
 BaseGDL* Data_<Sp>::UMinus()
 {
-//  dd = -dd;
+  //  dd = -dd;
   ULong nEl=N_Elements();
   assert( nEl != 0);
   //  if( !nEl) throw GDLException("Variable is undefined.");  
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  if( nEl == 1)
+    {
+      (*this)[0] = -(*this)[0];
+      return this;
+    }
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] = -(*this)[i];
-}  return this;
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] = -(*this)[i];
+    }  return this;
 }
 template<>
 BaseGDL* Data_<SpDString>::UMinus()
@@ -170,15 +192,21 @@ Data_<SpDByte>* Data_<Sp>::LogNeg()
   SizeT nEl = dd.size();
   assert( nEl);
   //  if( nEl == 0) throw GDLException("Variable is undefined.");  
-  
   DByteGDL* res = new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  
+  if( nEl == 1)
+    {
+      (*res)[0] = ((*this)[0] == 0)? 1 : 0;
+      return res;
+    }
+  
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*res)[i] = ((*this)[i] == 0)? 1 : 0;
-}  return res;
+      for( SizeT i=0; i < nEl; ++i)
+	(*res)[i] = ((*this)[i] == 0)? 1 : 0;
+    }  return res;
 }
 template<>
 Data_<SpDByte>* Data_<SpDFloat>::LogNeg()
@@ -188,13 +216,18 @@ Data_<SpDByte>* Data_<SpDFloat>::LogNeg()
   //  if( nEl == 0) throw GDLException("Variable is undefined.");  
   
   DByteGDL* res = new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  if( nEl == 1)
+    {
+      (*res)[0] = ((*this)[0] == 0.0f)? 1 : 0;
+      return res;
+    }
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*res)[i] = ((*this)[i] == 0.0f)? 1 : 0;
-}  return res;
+      for( SizeT i=0; i < nEl; ++i)
+	(*res)[i] = ((*this)[i] == 0.0f)? 1 : 0;
+    }  return res;
 }
 template<>
 Data_<SpDByte>* Data_<SpDDouble>::LogNeg()
@@ -204,13 +237,18 @@ Data_<SpDByte>* Data_<SpDDouble>::LogNeg()
   //  if( nEl == 0) throw GDLException("Variable is undefined.");  
   
   DByteGDL* res = new Data_<SpDByte>( dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  if( nEl == 1)
+    {
+      (*res)[0] = ((*this)[0] == 0.0)? 1 : 0;
+      return res;
+    }
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*res)[i] = ((*this)[i] == 0.0)? 1 : 0;
-}  return res;
+      for( SizeT i=0; i < nEl; ++i)
+	(*res)[i] = ((*this)[i] == 0.0)? 1 : 0;
+    }  return res;
 }
 template<>
 Data_<SpDByte>* Data_<SpDString>::LogNeg()
@@ -219,13 +257,18 @@ Data_<SpDByte>* Data_<SpDString>::LogNeg()
   assert( nEl);
   //  if( nEl == 0) throw GDLException("Variable is undefined.");  
   DByteGDL* res = new Data_<SpDByte>( dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  if( nEl == 1)
+    {
+      (*res)[0] = ((*this)[0] == "")? 1 : 0;
+      return res;
+    }
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*res)[i] = ((*this)[i] == "")? 1 : 0;
-}  return res;
+      for( SizeT i=0; i < nEl; ++i)
+	(*res)[i] = ((*this)[i] == "")? 1 : 0;
+    }  return res;
 }
 template<>
 Data_<SpDByte>* Data_<SpDComplex>::LogNeg()
@@ -234,13 +277,18 @@ Data_<SpDByte>* Data_<SpDComplex>::LogNeg()
   assert( nEl);
   //  if( nEl == 0) throw GDLException("Variable is undefined.");  
   DByteGDL* res = new Data_<SpDByte>( dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  if( nEl == 1)
+    {
+      (*res)[0] = ((*this)[0].real() == 0.0 && (*this)[0].imag() == 0.0)? 1 : 0;
+      return res;
+    }
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*res)[i] = ((*this)[i].real() == 0.0 && (*this)[i].imag() == 0.0)? 1 : 0;
-}  return res;
+      for( SizeT i=0; i < nEl; ++i)
+	(*res)[i] = ((*this)[i].real() == 0.0 && (*this)[i].imag() == 0.0)? 1 : 0;
+    }  return res;
 }
 template<>
 Data_<SpDByte>* Data_<SpDComplexDbl>::LogNeg()
@@ -249,13 +297,18 @@ Data_<SpDByte>* Data_<SpDComplexDbl>::LogNeg()
   assert( nEl);
   //  if( nEl == 0) throw GDLException("Variable is undefined.");  
   DByteGDL* res = new Data_<SpDByte>( dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  if( nEl == 1)
+    {
+      (*res)[0] = ((*this)[0].real() == 0.0 && (*this)[0].imag() == 0.0)? 1 : 0;
+      return res;
+    }
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*res)[i] = ((*this)[i].real() == 0.0 && (*this)[i].imag() == 0.0)? 1 : 0;
-}  return res;
+      for( SizeT i=0; i < nEl; ++i)
+	(*res)[i] = ((*this)[i].real() == 0.0 && (*this)[i].imag() == 0.0)? 1 : 0;
+    }  return res;
 }
 
 // increment decrement operators
@@ -266,141 +319,191 @@ void Data_<Sp>::Dec()
   ULong nEl=N_Elements();
   assert( nEl != 0);
   // if( !nEl) throw GDLException("Variable is undefined.");  
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  if( nEl == 1)
+    {
+      (*this)[0]--;
+      return;
+    }
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i]--;
-}}
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i]--;
+    }}
 template<class Sp>
 void Data_<Sp>::Inc()
 {
   ULong nEl=N_Elements();
   assert( nEl != 0);
   // if( !nEl) throw GDLException("Variable is undefined.");  
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  if( nEl == 1)
+    {
+      (*this)[0]++;
+      return;
+    }
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i]++;
-}}
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i]++;
+    }}
 // float
 template<>
 void Data_<SpDFloat>::Dec()
 {
-//   dd -= 1.0f;
+  //   dd -= 1.0f;
   ULong nEl=N_Elements();
   assert( nEl != 0);
   // if( !nEl) throw GDLException("Variable is undefined.");  
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  if( nEl == 1)
+    {
+      (*this)[0] -= 1.0;
+      return;
+    }
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] -= 1.0;
-}}
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] -= 1.0;
+    }}
 template<>
 void Data_<SpDFloat>::Inc()
 {
-//   dd += 1.0f;
+  //   dd += 1.0f;
   ULong nEl=N_Elements();
   assert( nEl != 0);
   // if( !nEl) throw GDLException("Variable is undefined.");  
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  if( nEl == 1)
+    {
+      (*this)[0] += 1.0;
+      return;
+    }
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] += 1.0;
-}}
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] += 1.0;
+    }}
 // double
 template<>
 void Data_<SpDDouble>::Dec()
 {
-//   dd -= 1.0;
+  //   dd -= 1.0;
   ULong nEl=N_Elements();
   assert( nEl != 0);
   // if( !nEl) throw GDLException("Variable is undefined.");  
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  if( nEl == 1)
+    {
+      (*this)[0] -= 1.0;
+      return;
+    }
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] -= 1.0;
-}}
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] -= 1.0;
+    }}
 template<>
 void Data_<SpDDouble>::Inc()
 {
-//   dd += 1.0;
+  //   dd += 1.0;
   ULong nEl=N_Elements();
   assert( nEl != 0);
   // if( !nEl) throw GDLException("Variable is undefined.");  
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  if( nEl == 1)
+    {
+      (*this)[0] += 1.0;
+      return;
+    }
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] += 1.0;
-}}
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] += 1.0;
+    }}
 // complex
 template<>
 void Data_<SpDComplex>::Dec()
 {
-//   dd -= 1.0f;
+  //   dd -= 1.0f;
   ULong nEl=N_Elements();
   assert( nEl != 0);
   // if( !nEl) throw GDLException("Variable is undefined.");  
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  if( nEl == 1)
+    {
+      (*this)[0] -= 1.0;
+      return;
+    }
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] -= 1.0;
-}}
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] -= 1.0;
+    }}
 template<>
 void Data_<SpDComplex>::Inc()
 {
-//   dd += 1.0f;
+  //   dd += 1.0f;
   ULong nEl=N_Elements();
   assert( nEl != 0);
   // if( !nEl) throw GDLException("Variable is undefined.");  
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  if( nEl == 1)
+    {
+      (*this)[0] += 1.0;
+      return;
+    }
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] += 1.0;
-}}
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] += 1.0;
+    }}
 template<>
 void Data_<SpDComplexDbl>::Dec()
 {
-//   dd -= 1.0;
+  //   dd -= 1.0;
   ULong nEl=N_Elements();
   assert( nEl != 0);
   // if( !nEl) throw GDLException("Variable is undefined.");  
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  if( nEl == 1)
+    {
+      (*this)[0] -= 1.0;
+      return;
+    }
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] -= 1.0;
-}}
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] -= 1.0;
+    }}
 template<>
 void Data_<SpDComplexDbl>::Inc()
 {
-//   dd += 1.0;
+  //   dd += 1.0;
   ULong nEl=N_Elements();
   assert( nEl != 0);
   // if( !nEl) throw GDLException("Variable is undefined.");  
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  if( nEl == 1)
+    {
+      (*this)[0] += 1.0;
+      return;
+    }
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] += 1.0;
-}}
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] += 1.0;
+    }}
 // forbidden types
 template<>
 void Data_<SpDString>::Dec()
@@ -446,61 +549,70 @@ Data_<SpDByte>* Data_<Sp>::EqOp( BaseGDL* r)
 
   ULong rEl=right->N_Elements();
   ULong nEl=N_Elements();
-//   if( nEl == 0)
-// 	 nEl=N_Elements();
+  //   if( nEl == 0)
+  // 	 nEl=N_Elements();
   assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
 
   Data_<SpDByte>* res;
-if( rEl == 1 && nEl == 1)
-{
-    res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
-	(*res)[0] = ((*right)[0] == (*this)[0]);
-	return res;
-}
 
   Ty s;
   if( right->StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+      if( nEl == 1)
+	{
+	  (*res)[0] = (s == (*this)[0]);
+	  return res;
+	}
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
 #pragma omp for
-      for( SizeT i=0; i < nEl; ++i)
-	(*res)[i] = ((*this)[i] == s);
-}    }
+	  for( SizeT i=0; i < nEl; ++i)
+	    (*res)[i] = ((*this)[i] == s);
+	}    }
   else if( StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( right->dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+      if( rEl == 1)
+	{
+	  (*res)[0] = ((*right)[0] == s);
+	  return res;
+	}
+      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
-{
+	{
 #pragma omp for
-      for( SizeT i=0; i < rEl; ++i)
-	(*res)[i] = ((*right)[i] == s);
-}    }
+	  for( SizeT i=0; i < rEl; ++i)
+	    (*res)[i] = ((*right)[i] == s);
+	}    }
   else if( rEl < nEl) 
     {
       res= new Data_<SpDByte>( right->dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
-{
+	{
 #pragma omp for
-      for( SizeT i=0; i < rEl; ++i)
-	(*res)[i] = ((*right)[i] == (*this)[i]);
-}    }
+	  for( SizeT i=0; i < rEl; ++i)
+	    (*res)[i] = ((*right)[i] == (*this)[i]);
+	}    }
   else // ( rEl >= nEl)
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+      if( rEl == 1)
+	{
+	  (*res)[0] = ((*right)[0] == (*this)[0]);
+	  return res;
+	}
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
 #pragma omp for
-      for( SizeT i=0; i < nEl; ++i)
-	(*res)[i] = ((*right)[i] == (*this)[i]);
-}    }
+	  for( SizeT i=0; i < nEl; ++i)
+	    (*res)[i] = ((*right)[i] == (*this)[i]);
+	}    }
   //C delete right;
   //C delete this;
   return res;
@@ -538,54 +650,64 @@ Data_<SpDByte>* Data_<Sp>::NeOp( BaseGDL* r)
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
 
   Data_<SpDByte>* res;
-if( rEl == 1 && nEl == 1)
-{
-    res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
-	(*res)[0] = ((*right)[0] != (*this)[0]);
-	return res;
-}
-
+  
   Ty s;
   if( right->StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+      if( nEl == 1)
+	{
+	  (*res)[0] = (s != (*this)[0]);
+	  return res;
+	}
+
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
 #pragma omp for
-      for( SizeT i=0; i < nEl; ++i)
-	(*res)[i] = ((*this)[i] != s);
-}    }
+	  for( SizeT i=0; i < nEl; ++i)
+	    (*res)[i] = ((*this)[i] != s);
+	}    }
   else if( StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( right->dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+      if( rEl == 1)
+	{
+	  (*res)[0] = ((*right)[0] != s);
+	  return res;
+	}
+      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
-{
+	{
 #pragma omp for
-    for( SizeT i=0; i < rEl; ++i)
-	(*res)[i] = ((*right)[i] != s);
-}    }
+	  for( SizeT i=0; i < rEl; ++i)
+	    (*res)[i] = ((*right)[i] != s);
+	}    }
   else if( rEl < nEl) 
     {
       res= new Data_<SpDByte>( right->dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
-{
+	{
 #pragma omp for
-      for( SizeT i=0; i < rEl; ++i)
-	(*res)[i] = ((*right)[i] != (*this)[i]);
-}    }
+	  for( SizeT i=0; i < rEl; ++i)
+	    (*res)[i] = ((*right)[i] != (*this)[i]);
+	}    }
   else // ( rEl >= nEl)
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+      if( rEl == 1)
+	{
+	  (*res)[0] = ((*right)[0] != (*this)[0]);
+	  return res;
+	}
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
 #pragma omp for
-      for( SizeT i=0; i < nEl; ++i)
-	(*res)[i] = ((*right)[i] != (*this)[i]);
-}    }
+	  for( SizeT i=0; i < nEl; ++i)
+	    (*res)[i] = ((*right)[i] != (*this)[i]);
+	}    }
   //C delete right;
   //C delete this;
   return res;
@@ -623,54 +745,63 @@ Data_<SpDByte>* Data_<Sp>::LeOp( BaseGDL* r)
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
 
   Data_<SpDByte>* res;
-if( rEl == 1 && nEl == 1)
-{
-    res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
-	(*res)[0] = ((*right)[0] >= (*this)[0]);
-	return res;
-}
 
   Ty s;
   if( right->StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+      if( nEl == 1)
+	{
+	  (*res)[0] = ((*this)[0] <= s);
+	  return res;
+	}
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
 #pragma omp for
-    for( SizeT i=0; i < nEl; ++i)
-	(*res)[i] = ((*this)[i] <= s);
-}    }
+	  for( SizeT i=0; i < nEl; ++i)
+	    (*res)[i] = ((*this)[i] <= s);
+	}    }
   else if( StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( right->dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+      if( rEl == 1)
+	{
+	  (*res)[0] = ((*right)[0] >= s);
+	  return res;
+	}
+      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
-{
+	{
 #pragma omp for
-      for( SizeT i=0; i < rEl; ++i)
-	(*res)[i] = ((*right)[i] >= s);
-}    }
+	  for( SizeT i=0; i < rEl; ++i)
+	    (*res)[i] = ((*right)[i] >= s);
+	}    }
   else if( rEl < nEl) 
     {
       res= new Data_<SpDByte>( right->dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
-{
+	{
 #pragma omp for
-      for( SizeT i=0; i < rEl; ++i)
-	(*res)[i] = ((*right)[i] >= (*this)[i]);
-}    }
+	  for( SizeT i=0; i < rEl; ++i)
+	    (*res)[i] = ((*right)[i] >= (*this)[i]);
+	}    }
   else // ( rEl >= nEl)
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+      if( rEl == 1)
+	{
+	  (*res)[0] = ((*right)[0] >= (*this)[0]);
+	  return res;
+	}
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
 #pragma omp for
-      for( SizeT i=0; i < nEl; ++i)
-	(*res)[i] = ((*right)[i] >= (*this)[i]);
-}    }
+	  for( SizeT i=0; i < nEl; ++i)
+	    (*res)[i] = ((*right)[i] >= (*this)[i]);
+	}    }
   //C delete right;
   //C delete this;
   return res;
@@ -720,54 +851,63 @@ Data_<SpDByte>* Data_<Sp>::LtOp( BaseGDL* r)
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
 
   Data_<SpDByte>* res;
-if( rEl == 1 && nEl == 1)
-{
-    res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
-	(*res)[0] = ((*right)[0] > (*this)[0]);
-	return res;
-}
 
   Ty s;
   if( right->StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+      if( nEl == 1)
+	{
+	  (*res)[0] = ((*this)[0] < s);
+	  return res;
+	}
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
 #pragma omp for
-      for( SizeT i=0; i < nEl; ++i)
-	(*res)[i] = ((*this)[i] < s);
-}    }
+	  for( SizeT i=0; i < nEl; ++i)
+	    (*res)[i] = ((*this)[i] < s);
+	}    }
   else if( StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( right->dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+      if( rEl == 1)
+	{
+	  (*res)[0] = ((*right)[0] > s);
+	  return res;
+	}
+      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
-{
+	{
 #pragma omp for
-      for( SizeT i=0; i < rEl; ++i)
-	(*res)[i] = ((*right)[i] > s);
-}    }
+	  for( SizeT i=0; i < rEl; ++i)
+	    (*res)[i] = ((*right)[i] > s);
+	}    }
   else if( rEl < nEl) 
     {
       res= new Data_<SpDByte>( right->dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
-{
+	{
 #pragma omp for
-      for( SizeT i=0; i < rEl; ++i)
-	(*res)[i] = ((*right)[i] > (*this)[i]);
-}    }
+	  for( SizeT i=0; i < rEl; ++i)
+	    (*res)[i] = ((*right)[i] > (*this)[i]);
+	}    }
   else // ( rEl >= nEl)
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+      if( rEl == 1)
+	{
+	  (*res)[0] = ((*right)[0] > (*this)[0]);
+	  return res;
+	}
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
 #pragma omp for
-      for( SizeT i=0; i < nEl; ++i)
-	(*res)[i] = ((*right)[i] > (*this)[i]);
-}    }
+	  for( SizeT i=0; i < nEl; ++i)
+	    (*res)[i] = ((*right)[i] > (*this)[i]);
+	}    }
   //C delete right;
   //C delete this;
   return res;
@@ -817,54 +957,63 @@ Data_<SpDByte>* Data_<Sp>::GeOp( BaseGDL* r)
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
 
   Data_<SpDByte>* res;
-if( rEl == 1 && nEl == 1)
-{
-    res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
-	(*res)[0] = ((*right)[0] <= (*this)[0]);
-	return res;
-}
-
+  
   Ty s;
   if( right->StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+      if( nEl == 1)
+	{
+	  (*res)[0] = ((*this)[0] >= s);
+	  return res;
+	}
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
 #pragma omp for
-      for( SizeT i=0; i < nEl; ++i)
-	(*res)[i] = ((*this)[i] >= s);
-}    }
+	  for( SizeT i=0; i < nEl; ++i)
+	    (*res)[i] = ((*this)[i] >= s);
+	}    }
   else if( StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( right->dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+      if( rEl == 1)
+	{
+	  (*res)[0] = ((*right)[0] <= s);
+	  return res;
+	}
+      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
-{
+	{
 #pragma omp for
-      for( SizeT i=0; i < rEl; ++i)
-	(*res)[i] = ((*right)[i] <= s);
-}    }
+	  for( SizeT i=0; i < rEl; ++i)
+	    (*res)[i] = ((*right)[i] <= s);
+	}    }
   else if( rEl < nEl) 
     {
       res= new Data_<SpDByte>( right->dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
-{
+	{
 #pragma omp for
-      for( SizeT i=0; i < rEl; ++i)
-	(*res)[i] = ((*right)[i] <= (*this)[i]);
-}    }
+	  for( SizeT i=0; i < rEl; ++i)
+	    (*res)[i] = ((*right)[i] <= (*this)[i]);
+	}    }
   else // ( rEl >= nEl)
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+      if( rEl == 1)
+	{
+	  (*res)[0] = ((*right)[0] <= (*this)[0]);
+	  return res;
+	}
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
 #pragma omp for
-      for( SizeT i=0; i < nEl; ++i)
-	(*res)[i] = ((*right)[i] <= (*this)[i]);
-}    }
+	  for( SizeT i=0; i < nEl; ++i)
+	    (*res)[i] = ((*right)[i] <= (*this)[i]);
+	}    }
   //C delete right;
   //C delete this;
   return res;
@@ -915,54 +1064,62 @@ Data_<SpDByte>* Data_<Sp>::GtOp( BaseGDL* r)
 
   Data_<SpDByte>* res;
 
-if( rEl == 1 && nEl == 1)
-{
-    res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
-	(*res)[0] = ((*right)[0] < (*this)[0]);
-	return res;
-}
-
   Ty s;
   if( right->StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+      if( nEl == 1)
+	{
+	  (*res)[0] = ((*this)[0] > s);
+	  return res;
+	}
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
 #pragma omp for
-      for( SizeT i=0; i < nEl; ++i)
-	(*res)[i] = ((*this)[i] > s);
-}    }
+	  for( SizeT i=0; i < nEl; ++i)
+	    (*res)[i] = ((*this)[i] > s);
+	}    }
   else if( StrictScalar(s)) 
     {
       res= new Data_<SpDByte>( right->dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+      if( rEl == 1)
+	{
+	  (*res)[0] = ((*right)[0] < s);
+	  return res;
+	}
+      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
-{
+	{
 #pragma omp for
-      for( SizeT i=0; i < rEl; ++i)
-	(*res)[i] = ((*right)[i] < s);
-}    }
+	  for( SizeT i=0; i < rEl; ++i)
+	    (*res)[i] = ((*right)[i] < s);
+	}    }
   else if( rEl < nEl) 
     {
       res= new Data_<SpDByte>( right->dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
-{
+	{
 #pragma omp for
-      for( SizeT i=0; i < rEl; ++i)
-	(*res)[i] = ((*right)[i] < (*this)[i]);
-}    }
+	  for( SizeT i=0; i < rEl; ++i)
+	    (*res)[i] = ((*right)[i] < (*this)[i]);
+	}    }
   else // ( rEl >= nEl)
     {
       res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+      if( rEl == 1)
+	{
+	  (*res)[0] = ((*right)[0] < (*this)[0]);
+	  return res;
+	}
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
 #pragma omp for
-      for( SizeT i=0; i < nEl; ++i)
-	(*res)[i] = ((*right)[i] < (*this)[i]);
-}    }
+	  for( SizeT i=0; i < nEl; ++i)
+	    (*res)[i] = ((*right)[i] < (*this)[i]);
+	}    }
   //C delete right;
   //C delete this;
   return res;
@@ -1004,10 +1161,10 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool transpose, bool transposeResult
 {
   Data_* right=static_cast<Data_*>(r);
 
-//   ULong rEl=right->N_Elements();
-//   ULong nEl=N_Elements();
-//   assert( rEl);
-//   assert( nEl);
+  //   ULong rEl=right->N_Elements();
+  //   ULong nEl=N_Elements();
+  //   assert( rEl);
+  //   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
 
   Data_* res;
@@ -1030,14 +1187,14 @@ Data_<Sp>* Data_<Sp>::MatrixOp( BaseGDL* r, bool transpose, bool transposeResult
 #ifdef _OPENMP 
       SizeT nOp = nRow * nCol;
 #endif
-TRACEOMP( __FILE__, __LINE__)
+      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) default(shared)
-{
+	{
 #pragma omp for 
-      for( SizeT colA=0; colA < nCol; colA++)   // res dim 0
-	for( SizeT rowB=0; rowB < nRow; rowB++) // res dim 1
-	  (*res)[ rowB * nCol + colA] += (*this)[colA] * (*right)[rowB];
-}
+	  for( SizeT colA=0; colA < nCol; colA++)   // res dim 0
+	    for( SizeT rowB=0; rowB < nRow; rowB++) // res dim 1
+	      (*res)[ rowB * nCol + colA] += (*this)[colA] * (*right)[rowB];
+	}
     }
   else
     {
@@ -1080,28 +1237,28 @@ TRACEOMP( __FILE__, __LINE__)
 	  //	  if( nColEl == 0) nColEl=1;
 	}
       
-//       cout << "nColEl, nRowEl: " << nColEl << " " << nRowEl << endl;
-//       cout << "nCol, nRow:     " << nCol << " " << nRow << endl;
+      //       cout << "nColEl, nRowEl: " << nColEl << " " << nRowEl << endl;
+      //       cout << "nCol, nRow:     " << nCol << " " << nRow << endl;
 
-//      SizeT nRowEl=right->dim[0];
+      //      SizeT nRowEl=right->dim[0];
       if( nColEl != nRowEl)
 	throw GDLException("Operands of matrix multiply have"
 			   " incompatible dimensions.",true,false);  
 
       if( transposeResult)
-      {
-      if( nCol > 1)
-	res=New(dimension( nRow, nCol),BaseGDL::NOZERO);
+	{
+	  if( nCol > 1)
+	    res=New(dimension( nRow, nCol),BaseGDL::NOZERO);
+	  else
+	    res=New(dimension(nRow),BaseGDL::NOZERO);
+	}
       else
-	res=New(dimension(nRow),BaseGDL::NOZERO);
-      }
-      else
-      {
-      if( nRow > 1)
-	res=New(dimension(nCol,nRow),BaseGDL::NOZERO);
-      else
-	res=New(dimension(nCol),BaseGDL::NOZERO);
-     }
+	{
+	  if( nRow > 1)
+	    res=New(dimension(nCol,nRow),BaseGDL::NOZERO);
+	  else
+	    res=New(dimension(nCol),BaseGDL::NOZERO);
+	}
      
       SizeT rIxEnd = nRow * nColEl;
       //#ifdef _OPENMP 
@@ -1109,7 +1266,7 @@ TRACEOMP( __FILE__, __LINE__)
 
 #ifdef USE_STRASSEN_MATRIXMULTIPLICATION
       if( !transpose && !transposeResult && strassen)
-      //if( nOp > 1000000)
+	//if( nOp > 1000000)
 	{
 	  SizeT maxDim;
 	  if( nCol >= nColEl && nCol >= nRow)
@@ -1121,107 +1278,107 @@ TRACEOMP( __FILE__, __LINE__)
 
 	  SizeT sOp = maxDim * maxDim * maxDim;
 	  //if( (sOp / nOp) < 8)
-	    {
-	      SizeT mSz = 2;
-	      while (mSz < maxDim) mSz <<= 1;
+	  {
+	    SizeT mSz = 2;
+	    while (mSz < maxDim) mSz <<= 1;
 
-// 	      Ty* buf = new Ty[ 3 * mSz * mSz];
+	    // 	      Ty* buf = new Ty[ 3 * mSz * mSz];
 
-	      SM1<Ty>( mSz, nCol, nColEl, nRow,
-		  static_cast<Ty*>(right->DataAddr()),
-		  static_cast<Ty*>(this->DataAddr()),
-		  static_cast<Ty*>(res->DataAddr()));
+	    SM1<Ty>( mSz, nCol, nColEl, nRow,
+		     static_cast<Ty*>(right->DataAddr()),
+		     static_cast<Ty*>(this->DataAddr()),
+		     static_cast<Ty*>(res->DataAddr()));
 
-// 		delete[] buf;
+	    // 		delete[] buf;
 
-	      return res;
-	    }
+	    return res;
+	  }
 	}
 #endif
 
-//  for( SizeT j=0; j < nCol; ++j) // res dim 0
-// 	for( SizeT i=0; i < rIxEnd; i++) // res dim 1
-// 	    for( SizeT k=0; k < nColEl; ++k)
-// 	       (*res)[ (i * nCol) + j] += (*right)[ (i*nColEl)+k] * (*this)[ k*nCol+j];
+      //  for( SizeT j=0; j < nCol; ++j) // res dim 0
+      // 	for( SizeT i=0; i < rIxEnd; i++) // res dim 1
+      // 	    for( SizeT k=0; k < nColEl; ++k)
+      // 	       (*res)[ (i * nCol) + j] += (*right)[ (i*nColEl)+k] * (*this)[ k*nCol+j];
 
 
       //#endif
 
-if( !transposeResult) // normal
-{
-if( !transpose) // normal
-{
-TRACEOMP( __FILE__, __LINE__)
+      if( !transposeResult) // normal
+	{
+	  if( !transpose) // normal
+	    {
+	      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) default(shared)
-{
+		{
 #pragma omp for
-      for( SizeT colA=0; colA < nCol; ++colA) // res dim 0
-	for( SizeT rIx=0, rowBnCol=0; rIx < rIxEnd;
-	     rIx += nColEl, rowBnCol += nCol) // res dim 1
-	  {
-	    Ty& resEl = (*res)[ rowBnCol + colA];
-	    resEl = 0;//(*this)[ colA] * (*right)[ rIx]; // initialization
-	    for( SizeT i=0; i < nColEl; ++i)
-	      resEl += (*this)[ i*nCol+colA] * (*right)[ rIx+i];
-	  }
-    }
-}
-else // transpose r
-{
-TRACEOMP( __FILE__, __LINE__)
+		  for( SizeT colA=0; colA < nCol; ++colA) // res dim 0
+		    for( SizeT rIx=0, rowBnCol=0; rIx < rIxEnd;
+			 rIx += nColEl, rowBnCol += nCol) // res dim 1
+		      {
+			Ty& resEl = (*res)[ rowBnCol + colA];
+			resEl = 0;//(*this)[ colA] * (*right)[ rIx]; // initialization
+			for( SizeT i=0; i < nColEl; ++i)
+			  resEl += (*this)[ i*nCol+colA] * (*right)[ rIx+i];
+		      }
+		}
+	    }
+	  else // transpose r
+	    {
+	      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) default(shared)
-{
+		{
 #pragma omp for
-      for( SizeT colA=0; colA < nCol; ++colA) // res dim 0
-	for( SizeT rIx=0, rowBnCol=0; rIx < nRow; ++rIx, rowBnCol += nCol) // res dim 1
-	  {
-	    Ty& resEl = (*res)[ rowBnCol + colA];
-	    resEl = 0;//(*this)[ colA] * (*right)[ rIx]; // initialization
-	    for( SizeT i=0; i < nColEl; ++i)
-	      resEl += (*this)[ i*nCol+colA] * (*right)[ rIx + i * nRow];
-	  }
-    }
-}
-}
-else // transposeResult
-{
-if( !transpose) // normal
-{
-TRACEOMP( __FILE__, __LINE__)
+		  for( SizeT colA=0; colA < nCol; ++colA) // res dim 0
+		    for( SizeT rIx=0, rowBnCol=0; rIx < nRow; ++rIx, rowBnCol += nCol) // res dim 1
+		      {
+			Ty& resEl = (*res)[ rowBnCol + colA];
+			resEl = 0;//(*this)[ colA] * (*right)[ rIx]; // initialization
+			for( SizeT i=0; i < nColEl; ++i)
+			  resEl += (*this)[ i*nCol+colA] * (*right)[ rIx + i * nRow];
+		      }
+		}
+	    }
+	}
+      else // transposeResult
+	{
+	  if( !transpose) // normal
+	    {
+	      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) default(shared)
-{
+		{
 #pragma omp for
-      for( SizeT colA=0; colA < nCol; ++colA) // res dim 0
-	for( SizeT rIx=0, rowBnCol=0; rIx < rIxEnd;
-	     rIx += nColEl, ++rowBnCol) // res dim 1
-	  {
-	    Ty& resEl = (*res)[ rowBnCol + colA * nRow];
-	    resEl = 0;//(*this)[ colA] * (*right)[ rIx]; // initialization
-	    for( SizeT i=0; i < nColEl; ++i)
-	      resEl += (*this)[ i*nCol+colA] * (*right)[ rIx+i];
-	  }
-    }
-}
-else // transpose r
-{
-TRACEOMP( __FILE__, __LINE__)
+		  for( SizeT colA=0; colA < nCol; ++colA) // res dim 0
+		    for( SizeT rIx=0, rowBnCol=0; rIx < rIxEnd;
+			 rIx += nColEl, ++rowBnCol) // res dim 1
+		      {
+			Ty& resEl = (*res)[ rowBnCol + colA * nRow];
+			resEl = 0;//(*this)[ colA] * (*right)[ rIx]; // initialization
+			for( SizeT i=0; i < nColEl; ++i)
+			  resEl += (*this)[ i*nCol+colA] * (*right)[ rIx+i];
+		      }
+		}
+	    }
+	  else // transpose r
+	    {
+	      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) default(shared)
-{
+		{
 #pragma omp for
-      for( SizeT colA=0; colA < nCol; ++colA) // res dim 0
-	for( SizeT rIx=0; rIx < nRow; ++rIx) // res dim 1
-	  {
-	    Ty& resEl = (*res)[ rIx + colA * nRow];
-	    resEl = 0;//(*this)[ colA] * (*right)[ rIx]; // initialization
-	    for( SizeT i=0; i < nColEl; ++i)
-	      resEl += (*this)[ i*nCol+colA] * (*right)[ rIx + i * nRow];
-	  }
-    }
-}
-}
+		  for( SizeT colA=0; colA < nCol; ++colA) // res dim 0
+		    for( SizeT rIx=0; rIx < nRow; ++rIx) // res dim 1
+		      {
+			Ty& resEl = (*res)[ rIx + colA * nRow];
+			resEl = 0;//(*this)[ colA] * (*right)[ rIx]; // initialization
+			for( SizeT i=0; i < nColEl; ++i)
+			  resEl += (*this)[ i*nCol+colA] * (*right)[ rIx + i * nRow];
+		      }
+		}
+	    }
+	}
 
 
-}
+    }
   //C delete right;
   //C delete this;
   return res;
@@ -1271,15 +1428,20 @@ Data_<Sp>* Data_<Sp>::AndOp( BaseGDL* r)
   ULong nEl=N_Elements();
   // assert( rEl);
   assert( nEl);
+  if( nEl == 1)
+    {
+      (*this)[0] = (*this)[0] & (*right)[0]; // & Ty(1);
+      return this;
+    }
   // note: we can't use valarray operation here as right->dd 
   // might be larger than this->dd
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] = (*this)[i] & (*right)[i]; // & Ty(1);
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] = (*this)[i] & (*right)[i]; // & Ty(1);
+    }  //C delete right;
   return this;
 }
 // different for floats
@@ -1298,13 +1460,19 @@ Data_<SpDFloat>* Data_<SpDFloat>::AndOp( BaseGDL* r)
   ULong nEl=N_Elements();
   // assert( rEl);
   assert( nEl);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  if( nEl == 1)
+    {
+      if( (*right)[0] == zero) (*this)[0]=zero;
+      return this;
+    }
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    if( (*this)[i] == zero || (*right)[i] == zero) (*this)[i]=zero;
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	if( (*right)[i] == zero) (*this)[i]=zero;
+      //     if( (*this)[i] == zero || (*right)[i] == zero) (*this)[i]=zero;
+    }  //C delete right;
   return this;
 }
 template<>
@@ -1316,13 +1484,18 @@ Data_<SpDFloat>* Data_<SpDFloat>::AndOpInv( BaseGDL* r)
   ULong nEl=N_Elements();
   // assert( rEl);
   assert( nEl);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  if( nEl == 1)
+    {
+      if( (*this)[0] != zero) (*this)[0] = (*right)[0];
+      return this;
+    }
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    if( (*this)[i] != zero) (*this)[i] = (*right)[i];
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	if( (*this)[i] != zero) (*this)[i] = (*right)[i];
+    }  //C delete right;
   return this;
 }
 // for doubles
@@ -1335,13 +1508,19 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOp( BaseGDL* r)
   ULong nEl=N_Elements();
   // assert( rEl);
   assert( nEl);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  if( nEl == 1)
+    {
+      if( (*right)[0] == zero) (*this)[0]=zero;
+      return this;
+    }
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    if( (*this)[i] == zero || (*right)[i] == zero) (*this)[i]=zero;
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	if( (*right)[i] == zero) (*this)[i]=zero;
+      //     if( (*this)[i] == zero || (*right)[i] == zero) (*this)[i]=zero;
+    }  //C delete right;
   return this;
 }
 template<>
@@ -1353,13 +1532,18 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOpInv( BaseGDL* r)
   ULong nEl=N_Elements();
   // assert( rEl);
   assert( nEl);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  if( nEl == 1)
+    {
+      if( (*this)[0] != zero) (*this)[0] = (*right)[0];
+      return this;
+    }
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    if( (*this)[i] != zero) (*this)[i] = (*right)[i];
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	if( (*this)[i] != zero) (*this)[i] = (*right)[i];
+    }  //C delete right;
   return this;
 }
 // invalid types
@@ -1439,14 +1623,19 @@ Data_<Sp>* Data_<Sp>::AndOpS( BaseGDL* r)
   // right->Scalar(s);
 
   // s &= Ty(1);
-//  dd &= s;
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared(s)
-{
+  //  dd &= s;
+  if( nEl == 1)
+    {
+      (*this)[0] &= s;
+      return this;
+    }
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared(s)
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] &= s;
-}
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] &= s;
+    }
   return this;
 }
 // different for floats
@@ -1466,14 +1655,14 @@ Data_<SpDFloat>* Data_<SpDFloat>::AndOpS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s);
   if( s == zero)
- //   dd = zero;
- {
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-    for( SizeT i=0; i < nEl; ++i)
-       (*this)[i] = zero;
-}}
+    //   dd = zero;
+    {
+      // #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      {
+	// #pragma omp for
+	for( SizeT i=0; i < nEl; ++i)
+	  (*this)[i] = zero;
+      }}
   return this;
 }
 template<>
@@ -1488,23 +1677,28 @@ Data_<SpDFloat>* Data_<SpDFloat>::AndOpInvS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s);
   if( s == zero)
-//    dd = zero;
-{
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-     for( SizeT i=0; i < nEl; ++i)
-       (*this)[i] = zero;
-}}
+    //    dd = zero;
+    {
+      // #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      {
+	// #pragma omp for
+	for( SizeT i=0; i < nEl; ++i)
+	  (*this)[i] = zero;
+      }}
   else
-{
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+    {
+      if( nEl == 1)
+	{
+	  if( (*this)[0] != zero) (*this)[0] = s;
+	  return this;
+	}
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
 #pragma omp for
-    for( SizeT i=0; i < nEl; ++i)
-      if( (*this)[i] != zero) (*this)[i] = s;
-}}
+	  for( SizeT i=0; i < nEl; ++i)
+	    if( (*this)[i] != zero) (*this)[i] = s;
+	}}
   return this;
 }
 // for doubles
@@ -1520,13 +1714,13 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOpS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s); 
   if( s == zero)
-//    dd = zero;
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-    for( SizeT i=0; i < nEl; ++i)
-      (*this)[i] = zero;
-}
+    //    dd = zero;
+    // #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+      // #pragma omp for
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] = zero;
+    }
   return this;
 }
 template<>
@@ -1539,23 +1733,28 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOpInvS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s);
   if( s == zero)
-//    dd = zero;
- {
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-   for( SizeT i=0; i < nEl; ++i)
-      (*this)[i] = zero;
-}}
+    //    dd = zero;
+    {
+      // #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      {
+	// #pragma omp for
+	for( SizeT i=0; i < nEl; ++i)
+	  (*this)[i] = zero;
+      }}
   else
-{
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+    {
+      if( nEl == 1)
+	{
+	  if( (*this)[0] != zero) (*this)[0] = s;
+	  return this;
+	}
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
 #pragma omp for
-    for( SizeT i=0; i < nEl; ++i)
-      if( (*this)[i] != zero) (*this)[i] = s;
-}}
+	  for( SizeT i=0; i < nEl; ++i)
+	    if( (*this)[i] != zero) (*this)[i] = s;
+	}}
   return this;
 }
 // invalid types
@@ -1627,13 +1826,18 @@ Data_<Sp>* Data_<Sp>::OrOp( BaseGDL* r)
   // assert( rEl);
   assert( nEl);
   //if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  if( nEl == 1)
+    {
+      (*this)[0] = (*this)[0] | (*right)[0]; // | Ty(1);
+      return this;
+    }
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] = (*this)[i] | (*right)[i]; // | Ty(1);
-}
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] = (*this)[i] | (*right)[i]; // | Ty(1);
+    }
   //C delete right;
   return this;
 }
@@ -1654,13 +1858,18 @@ Data_<SpDFloat>* Data_<SpDFloat>::OrOp( BaseGDL* r)
   // assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  if( nEl == 1)
+    {
+      if( (*this)[0] == zero) (*this)[0]=(*right)[0];
+      return this;
+    }
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    if( (*this)[i] == zero) (*this)[i]=(*right)[i];
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	if( (*this)[i] == zero) (*this)[i]=(*right)[i];
+    }  //C delete right;
   return this;
 }
 template<>
@@ -1673,13 +1882,18 @@ Data_<SpDFloat>* Data_<SpDFloat>::OrOpInv( BaseGDL* r)
   // assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  if( nEl == 1)
+    {
+      if( (*right)[0] != zero) (*this)[0] = (*right)[0];
+      return this;
+    }
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    if( (*right)[i] != zero) (*this)[i] = (*right)[i];
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	if( (*right)[i] != zero) (*this)[i] = (*right)[i];
+    }  //C delete right;
   return this;
 }
 // for doubles
@@ -1693,13 +1907,18 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOp( BaseGDL* r)
   // assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  if( nEl == 1)
+    {
+      if( (*this)[0] == zero) (*this)[0]= (*right)[0];
+      return this;
+    }
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    if( (*this)[i] == zero) (*this)[i]= (*right)[i];
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	if( (*this)[i] == zero) (*this)[i]= (*right)[i];
+    }  //C delete right;
   return this;
 }
 template<>
@@ -1712,13 +1931,18 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOpInv( BaseGDL* r)
   // assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  if( nEl == 1)
+    {
+      if( (*right)[0] != zero) (*this)[0] = (*right)[0];
+      return this;
+    }
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    if( (*right)[i] != zero) (*this)[i] = (*right)[i];
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	if( (*right)[i] != zero) (*this)[i] = (*right)[i];
+    }  //C delete right;
   return this;
 }
 // invalid types
@@ -1776,14 +2000,19 @@ Data_<Sp>* Data_<Sp>::OrOpS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s); 
   //s &= Ty(1);
-//  dd |= s;
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  //  dd |= s;
+  if( nEl == 1)
+    {
+      (*this)[0] = (*this)[0] | s;
+      return this;
+    }
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] = (*this)[i] | s;
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] = (*this)[i] | s;
+    }  //C delete right;
   return this;
 }
 // different for floats
@@ -1804,14 +2033,19 @@ Data_<SpDFloat>* Data_<SpDFloat>::OrOpS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s); 
   if( s != zero)
-{
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+    {
+      if( nEl == 1)
+	{
+	  if( (*this)[0] == zero) (*this)[0] = s;
+	  return this;
+	}
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
 #pragma omp for
-    for( SizeT i=0; i < nEl; ++i)
-      if( (*this)[i] == zero) (*this)[i] = s;
-}}  //C delete right;
+	  for( SizeT i=0; i < nEl; ++i)
+	    if( (*this)[i] == zero) (*this)[i] = s;
+	}}  //C delete right;
   return this;
 }
 template<>
@@ -1824,9 +2058,9 @@ Data_<SpDFloat>* Data_<SpDFloat>::OrOpInvS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s);
   if( s != zero)
-//    dd = s;
-  //C delete right;
-  return this;
+    //    dd = s;
+    //C delete right;
+    return this;
 }
 // for doubles
 template<>
@@ -1839,14 +2073,19 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOpS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s);
   if( s != zero)
-{
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+    {
+      if( nEl == 1)
+	{
+	  if( (*this)[0] == zero) (*this)[0] = s;
+	  return this;
+	}
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
 #pragma omp for
-    for( SizeT i=0; i < nEl; ++i)
-      if( (*this)[i] == zero) (*this)[i] = s;
-}}  //C delete right;
+	  for( SizeT i=0; i < nEl; ++i)
+	    if( (*this)[i] == zero) (*this)[i] = s;
+	}}  //C delete right;
   return this;
 }
 template<>
@@ -1859,23 +2098,28 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOpInvS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s);
   if( s != zero)
-//    dd = s;
-{
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-    for( SizeT i=0; i < nEl; ++i)
-      (*this)[i] = s;
-}}
+    //    dd = s;
+    {
+      // #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      {
+	// #pragma omp for
+	for( SizeT i=0; i < nEl; ++i)
+	  (*this)[i] = s;
+      }}
   else
-{
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+    {
+      if( nEl == 1)
+	{
+	  if( (*this)[0] != zero) (*this)[0] = s;
+	  return this;
+	}
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
 #pragma omp for
-    for( SizeT i=0; i < nEl; ++i)
-      if( (*this)[i] != zero) (*this)[i] = s;
-}}  //C delete right;
+	  for( SizeT i=0; i < nEl; ++i)
+	    if( (*this)[i] != zero) (*this)[i] = s;
+	}}  //C delete right;
   return this;
 }
 // invalid types
@@ -1933,30 +2177,35 @@ Data_<Sp>* Data_<Sp>::XorOp( BaseGDL* r)
   ULong nEl=N_Elements();
   // assert( rEl);
   assert( nEl);
-  //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
+  //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");
+  if( nEl == 1)
+    {
+      (*this)[0] ^= (*right)[0];
+      return this;
+    }
   Ty s = (*right)[0];
   if( right->StrictScalar(s))
     {
       if( s != Sp::zero)
-//	dd ^= s;
-{
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+	//	dd ^= s;
+	{
+	  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	    {
 #pragma omp for
-	for( SizeT i=0; i < nEl; ++i)
-	  (*this)[i] ^= s;
-}}
+	      for( SizeT i=0; i < nEl; ++i)
+		(*this)[i] ^= s;
+	    }}
     }
   else
     {
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
 #pragma omp for
-      for( SizeT i=0; i < nEl; ++i)
-	(*this)[i] ^= (*right)[i];
-}    }
+	  for( SizeT i=0; i < nEl; ++i)
+	    (*this)[i] ^= (*right)[i];
+	}    }
   //C delete right;
   return this;
 }
@@ -2015,15 +2264,21 @@ Data_<Sp>* Data_<Sp>::XorOpS( BaseGDL* r)
 
   ULong nEl=N_Elements();
   assert( nEl);
+  if( nEl == 1)
+    {
+      (*this)[0] ^= /*(*this)[0] ^*/  (*right)[0];
+      return this;
+    }
   Ty s = (*right)[0];
-//  dd ^= s;
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  //  dd ^= s;
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] = (*this)[i] ^ s;
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] ^= s;
+      //     (*this)[i] = (*this)[i] ^ s;
+    }  //C delete right;
   return this;
 }
 // different for floats
@@ -2090,13 +2345,19 @@ Data_<Sp>* Data_<Sp>::Add( BaseGDL* r)
   ULong nEl=N_Elements();
   // assert( rEl);
   assert( nEl);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  if( nEl == 1)
+    {
+      (*this)[0] += (*right)[0];
+      return this;
+    }
+
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] += (*right)[i];
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] += (*right)[i];
+    }  //C delete right;
   return this;
 }
 template<class Sp>
@@ -2113,14 +2374,19 @@ Data_<SpDString>* Data_<SpDString>::AddInv( BaseGDL* r)
   ULong nEl=N_Elements();
   // assert( rEl);
   assert( nEl);
+  if( nEl == 1)
+    {
+      (*this)[0] = (*right)[0] + (*this)[0];
+      return this;
+    }
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] = (*right)[i] + (*this)[i];
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] = (*right)[i] + (*this)[i];
+    }  //C delete right;
   return this;
 }
 // invalid types
@@ -2154,16 +2420,21 @@ Data_<Sp>* Data_<Sp>::AddS( BaseGDL* r)
   ULong nEl=N_Elements();
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
+  if( nEl == 1)
+    {
+      (*this)[0] += (*right)[0];
+      return this;
+    }
   Ty s = (*right)[0];
   // right->Scalar(s);
-//  dd += s;
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  //  dd += s;
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] += s;
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] += s;
+    }  //C delete right;
   return this;
 }
 template<class Sp>
@@ -2179,15 +2450,20 @@ Data_<SpDString>* Data_<SpDString>::AddInvS( BaseGDL* r)
   ULong nEl=N_Elements();
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
+  if( nEl == 1)
+    {
+      (*this)[0] = (*right)[0] + (*this)[0] ;
+      return this;
+    }
   Ty s = (*right)[0];
   // right->Scalar(s);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] = s + (*this)[i];
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] = s + (*this)[i];
+    }  //C delete right;
   return this;
 }
 
@@ -2230,14 +2506,14 @@ Data_<Sp>* Data_<Sp>::Sub( BaseGDL* r)
   if( nEl == rEl)
     dd -= right->dd;
   else
-{
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+    {
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
 #pragma omp for
-    for( SizeT i=0; i < nEl; ++i)
-      (*this)[i] -= (*right)[i];
-}}  //C delete right;
+	  for( SizeT i=0; i < nEl; ++i)
+	    (*this)[i] -= (*right)[i];
+	}}  //C delete right;
   return this;
 }
 // inverse substraction: left=right-left
@@ -2251,16 +2527,21 @@ Data_<Sp>* Data_<Sp>::SubInv( BaseGDL* r)
   assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-/*  if( nEl == rEl)
-    dd = right->dd - dd;
-  else*/
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  /*  if( nEl == rEl)
+      dd = right->dd - dd;
+      else*/
+  if( nEl == 1)
+    {
+      (*this)[0] = (*right)[0] - (*this)[0];
+      return this;
+    }
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-    for( SizeT i=0; i < nEl; ++i)
-      (*this)[i] = (*right)[i] - (*this)[i];
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] = (*right)[i] - (*this)[i];
+    }  //C delete right;
   return this;
 }
 // invalid types
@@ -2317,16 +2598,22 @@ Data_<Sp>* Data_<Sp>::SubS( BaseGDL* r)
 
   ULong nEl=N_Elements();
   assert( nEl);
+  if( nEl == 1)
+    {
+      (*this)[0] -= (*right)[0];
+      return this;
+    }
+  
   Ty s = (*right)[0];
   // right->Scalar(s); 
-//  dd -= s;
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  //  dd -= s;
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] -= s;
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] -= s;
+    }  //C delete right;
   return this;
 }
 // inverse substraction: left=right-left
@@ -2338,22 +2625,22 @@ Data_<Sp>* Data_<Sp>::SubInvS( BaseGDL* r)
   ULong nEl=N_Elements();
   assert( nEl);
 
-if( nEl == 1)
-{
-    (*this)[0] = (*right)[0] - (*this)[0];
-    return this;
-}
+  if( nEl == 1)
+    {
+      (*this)[0] = (*right)[0] - (*this)[0];
+      return this;
+    }
   
   Ty s = (*right)[0];
   // right->Scalar(s); 
-//  dd = s - dd;
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  //  dd = s - dd;
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] = s - (*this)[i];
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] = s - (*this)[i];
+    }  //C delete right;
   return this;
 }
 // invalid types
@@ -2417,13 +2704,18 @@ Data_<Sp>* Data_<Sp>::LtMark( BaseGDL* r)
   //  assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  if( nEl == 1)
+    {
+      if( (*this)[0] > (*right)[0]) (*this)[0]=(*right)[0];
+      return this;
+    }
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    if( (*this)[i] > (*right)[i]) (*this)[i]=(*right)[i];
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	if( (*this)[i] > (*right)[i]) (*this)[i]=(*right)[i];
+    }  //C delete right;
   return this;
 }
 // invalid types
@@ -2469,15 +2761,20 @@ Data_<Sp>* Data_<Sp>::LtMarkS( BaseGDL* r)
   
   ULong nEl=N_Elements();
   assert( nEl);
+  if( nEl == 1)
+    {
+      if( (*this)[0] > (*right)[0]) (*this)[0]=(*right)[0];
+      return this;
+    }
   Ty s = (*right)[0];
   // right->Scalar(s);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    if( (*this)[i] > s) (*this)[i]=s;
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	if( (*this)[i] > s) (*this)[i]=s;
+    }  //C delete right;
   return this;
 }
 // invalid types
@@ -2529,13 +2826,18 @@ Data_<Sp>* Data_<Sp>::GtMark( BaseGDL* r)
   // assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  if( nEl == 1)
+    {
+      if( (*this)[0] < (*right)[0]) (*this)[0]=(*right)[0];
+      return this;
+    }
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    if( (*this)[i] < (*right)[i]) (*this)[i]=(*right)[i];
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	if( (*this)[i] < (*right)[i]) (*this)[i]=(*right)[i];
+    }  //C delete right;
   return this;
 }
 // invalid types
@@ -2581,15 +2883,21 @@ Data_<Sp>* Data_<Sp>::GtMarkS( BaseGDL* r)
 
   ULong nEl=N_Elements();
   assert( nEl);
+  if( nEl == 1)
+    {
+      if( (*this)[0] < (*right)[0]) (*this)[0]=(*right)[0];
+      return this;
+    }
+
   Ty s = (*right)[0];
   // right->Scalar(s);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    if( (*this)[i] < s) (*this)[i]=s;
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	if( (*this)[i] < s) (*this)[i]=s;
+    }  //C delete right;
   return this;
 }
 // invalid types
@@ -2642,13 +2950,18 @@ Data_<Sp>* Data_<Sp>::Mult( BaseGDL* r)
   // assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  if( nEl == 1)
+    {
+      (*this)[0] *= (*right)[0];
+      return this;
+    }
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] *= (*right)[i];
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] *= (*right)[i];
+    }  //C delete right;
   return this;
 }
 // invalid types
@@ -2682,16 +2995,21 @@ Data_<Sp>* Data_<Sp>::MultS( BaseGDL* r)
 
   ULong nEl=N_Elements();
   assert( nEl);
+  if( nEl == 1)
+    {
+      (*this)[0] *= (*right)[0];
+      return this;
+    }
   Ty s = (*right)[0];
   // right->Scalar(s);
-//  dd *= s;
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  //  dd *= s;
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] *= s;
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] *= s;
+    }  //C delete right;
   return this;
 }
 // invalid types
@@ -2732,12 +3050,12 @@ Data_<Sp>* Data_<Sp>::Div( BaseGDL* r)
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
 
-SizeT i = 0;
+  SizeT i = 0;
 
   if( sigsetjmp( sigFPEJmpBuf, 1) == 0)
     {
-// TODO: Check if we can use OpenMP here (is longjmp allowed?)
-//             if yes: need to run the full loop after the longjmp
+      // TODO: Check if we can use OpenMP here (is longjmp allowed?)
+      //             if yes: need to run the full loop after the longjmp
       for( /*SizeT i=0*/; i < nEl; ++i)
 	(*this)[i] /= (*right)[i];
       //C delete right;
@@ -2745,20 +3063,20 @@ SizeT i = 0;
     }
   else
     {
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-//       bool zeroEncountered = false; // until zero operation is already done.
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
+	  //       bool zeroEncountered = false; // until zero operation is already done.
 #pragma omp for
-      for( SizeT ix=i; ix < nEl; ++ix)
-/*	if( !zeroEncountered)
-	  {
-	    if( (*right)[ix] == this->zero)
-	      zeroEncountered = true;
-	  }
-	else*/
-	  if( (*right)[ix] != this->zero) (*this)[ix] /= (*right)[ix];
-}      //C delete right;
+	  for( SizeT ix=i; ix < nEl; ++ix)
+	    /*	if( !zeroEncountered)
+		{
+		if( (*right)[ix] == this->zero)
+		zeroEncountered = true;
+		}
+		else*/
+	    if( (*right)[ix] != this->zero) (*this)[ix] /= (*right)[ix];
+	}      //C delete right;
       return this;
     }
 }
@@ -2773,7 +3091,7 @@ Data_<Sp>* Data_<Sp>::DivInv( BaseGDL* r)
   //  assert( rEl);
   assert( nEl);
 
-SizeT i = 0;
+  SizeT i = 0;
 
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
   if( sigsetjmp( sigFPEJmpBuf, 1) == 0)
@@ -2785,26 +3103,26 @@ SizeT i = 0;
     }
   else
     {
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-//       bool zeroEncountered = false; // until zero operation is already done.
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
+	  //       bool zeroEncountered = false; // until zero operation is already done.
 #pragma omp for
-      for( SizeT ix=i; ix < nEl; ++ix)
-/*	if( !zeroEncountered)
-	  {
-	    if( (*this)[ix] == this->zero)
-	      {
+	  for( SizeT ix=i; ix < nEl; ++ix)
+	    /*	if( !zeroEncountered)
+		{
+		if( (*this)[ix] == this->zero)
+		{
 		zeroEncountered = true;
 		(*this)[ ix] = (*right)[i];
-	      }
-	  }
-	else*/
-	  if( (*this)[ix] != this->zero) 
-	    (*this)[ix] = (*right)[ix] / (*this)[ix]; 
-	  else
-	    (*this)[ix] = (*right)[ix];
-}      //C delete right;
+		}
+		}
+		else*/
+	    if( (*this)[ix] != this->zero) 
+	      (*this)[ix] = (*right)[ix] / (*this)[ix]; 
+	    else
+	      (*this)[ix] = (*right)[ix];
+	}      //C delete right;
       return this;
     }
 }
@@ -2866,14 +3184,14 @@ Data_<Sp>* Data_<Sp>::DivS( BaseGDL* r)
   if( sigsetjmp( sigFPEJmpBuf, 1) == 0)
     {
       // right->Scalar(s); 
-//      dd /= s;
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+      //      dd /= s;
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
 #pragma omp for
-       for( SizeT i=0; i < nEl; ++i)
- 	(*this)[i] /= s;
-}      //C delete right;
+	  for( SizeT i=0; i < nEl; ++i)
+	    (*this)[i] /= s;
+	}      //C delete right;
       return this;
     }
   return this;
@@ -2890,7 +3208,7 @@ Data_<Sp>* Data_<Sp>::DivInvS( BaseGDL* r)
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
   Ty s = (*right)[0];
 
-SizeT i=0;
+  SizeT i=0;
 
   if( sigsetjmp( sigFPEJmpBuf, 1) == 0)
     {
@@ -2902,27 +3220,27 @@ SizeT i=0;
     }
   else
     {
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-//       bool zeroEncountered = false;
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
+	  //       bool zeroEncountered = false;
 #pragma omp for
-      // right->Scalar(s); 
-      for( SizeT ix=i; ix < nEl; ++ix)
-/*	if( !zeroEncountered)
-	  {
-	    if( (*this)[ix] == this->zero)
-	      {
+	  // right->Scalar(s); 
+	  for( SizeT ix=i; ix < nEl; ++ix)
+	    /*	if( !zeroEncountered)
+		{
+		if( (*this)[ix] == this->zero)
+		{
 		zeroEncountered = true;
 		(*this)[ix] = s;
-	      }
-	  }
-	else*/
-	  if( (*this)[ix] != this->zero) 
-	    (*this)[ix] = s / (*this)[ix]; 
-	  else 
-	    (*this)[ix] = s;
-}      //C delete right;
+		}
+		}
+		else*/
+	    if( (*this)[ix] != this->zero) 
+	      (*this)[ix] = s / (*this)[ix]; 
+	    else 
+	      (*this)[ix] = s;
+	}      //C delete right;
       return this;
     }
 }
@@ -2986,7 +3304,7 @@ Data_<Sp>* Data_<Sp>::Mod( BaseGDL* r)
   //  assert( rEl);
   assert( nEl);
 
-SizeT i=0;
+  SizeT i=0;
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
   if( sigsetjmp( sigFPEJmpBuf, 1) == 0)
     {
@@ -2997,26 +3315,26 @@ SizeT i=0;
     }
   else
     {
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-//       bool zeroEncountered = false;
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
+	  //       bool zeroEncountered = false;
 #pragma omp for
-      for( SizeT ix=i; ix < nEl; ++ix)
-/*	if( !zeroEncountered)
-	  {
-	    if( (*right)[i] == this->zero)
-	      {
+	  for( SizeT ix=i; ix < nEl; ++ix)
+	    /*	if( !zeroEncountered)
+		{
+		if( (*right)[i] == this->zero)
+		{
 		zeroEncountered = true;
 		(*this)[i] = this->zero;
-	      }
-	  }
-	else*/
-	  if( (*right)[ix] != this->zero) 
-	    (*this)[ix] %= (*right)[ix];
-	  else
-	    (*this)[ix] = this->zero;
-  }    //C delete right;
+		}
+		}
+		else*/
+	    if( (*right)[ix] != this->zero) 
+	      (*this)[ix] %= (*right)[ix];
+	    else
+	      (*this)[ix] = this->zero;
+	}    //C delete right;
       return this;
     }
 }
@@ -3031,7 +3349,7 @@ Data_<Sp>* Data_<Sp>::ModInv( BaseGDL* r)
   //  assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-SizeT i=0;
+  SizeT i=0;
 
   if( sigsetjmp( sigFPEJmpBuf, 1) == 0)
     {
@@ -3042,26 +3360,26 @@ SizeT i=0;
     }
   else
     {
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-//       bool zeroEncountered = false;
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
+	  //       bool zeroEncountered = false;
 #pragma omp for
-      for( SizeT ix=i; ix < nEl; ++ix)
-/*	if( !zeroEncountered)
-	  {
-	    if( (*this)[ix] == this->zero)
-	      {
+	  for( SizeT ix=i; ix < nEl; ++ix)
+	    /*	if( !zeroEncountered)
+		{
+		if( (*this)[ix] == this->zero)
+		{
 		zeroEncountered = true;
 		(*this)[ ix] = this->zero;
-	      }
-	  }
-	else*/
-	  if( (*this)[ix] != this->zero) 
-	    (*this)[ix] = (*right)[ix] % (*this)[ix]; 
-	  else
-	    (*this)[ix] = this->zero;
-}      //C delete right;
+		}
+		}
+		else*/
+	    if( (*this)[ix] != this->zero) 
+	      (*this)[ix] = (*right)[ix] % (*this)[ix]; 
+	    else
+	      (*this)[ix] = this->zero;
+	}      //C delete right;
       return this;
     }    
 }
@@ -3082,13 +3400,13 @@ Data_<SpDFloat>* Data_<SpDFloat>::Mod( BaseGDL* r)
   // assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] = Modulo((*this)[i],(*right)[i]);
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] = Modulo((*this)[i],(*right)[i]);
+    }  //C delete right;
   return this;
 }
 // float  inverse modulo division: left=right % left
@@ -3102,13 +3420,13 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModInv( BaseGDL* r)
   // assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] = Modulo((*right)[i],(*this)[i]);
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] = Modulo((*right)[i],(*this)[i]);
+    }  //C delete right;
   return this;
 }
 // double modulo division: left=left % right
@@ -3128,13 +3446,13 @@ Data_<SpDDouble>* Data_<SpDDouble>::Mod( BaseGDL* r)
   // assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] = Modulo((*this)[i],(*right)[i]);
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] = Modulo((*this)[i],(*right)[i]);
+    }  //C delete right;
   return this;
 }
 // double inverse modulo division: left=right % left
@@ -3148,13 +3466,13 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModInv( BaseGDL* r)
   // assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] = Modulo((*right)[i],(*this)[i]);
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] = Modulo((*right)[i],(*this)[i]);
+    }  //C delete right;
   return this;
 }
 // invalid types
@@ -3237,12 +3555,12 @@ Data_<Sp>* Data_<Sp>::ModS( BaseGDL* r)
   assert( nEl);
   Ty s = (*right)[0];
 
-SizeT i=0;
+  SizeT i=0;
 
   if( sigsetjmp( sigFPEJmpBuf, 1) == 0)
     {
       // right->Scalar(s); 
-//     dd %= s;
+      //     dd %= s;
       for( /*SizeT i=0*/; i < nEl; ++i)
 	(*this)[i] %= s;
       //C delete right;
@@ -3250,16 +3568,16 @@ SizeT i=0;
     }
   else
     {
-//       bool zeroEncountered = false; // until zero operation is already done.
+      //       bool zeroEncountered = false; // until zero operation is already done.
       
       // right->Scalar(s); 
       assert( s == this->zero);
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      for( SizeT ix=i; ix < nEl; ++ix)
-	(*this)[ix] = 0;
-}      //C delete right;
+      // #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      {
+	// #pragma omp for
+	for( SizeT ix=i; ix < nEl; ++ix)
+	  (*this)[ix] = 0;
+      }      //C delete right;
       return this;
     }
 }
@@ -3274,7 +3592,7 @@ Data_<Sp>* Data_<Sp>::ModInvS( BaseGDL* r)
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
   Ty s = (*right)[0];
 
-SizeT i=0;
+  SizeT i=0;
 
   if( sigsetjmp( sigFPEJmpBuf, 1) == 0)
     {
@@ -3288,27 +3606,27 @@ SizeT i=0;
     }
   else
     {
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
 #pragma omp for
-//       bool zeroEncountered = false;
-      // right->Scalar(s); 
-      for( SizeT ix=i; ix < nEl; ++ix)
-/*	if( !zeroEncountered)
-	  {
-	    if( (*this)[ix] == this->zero)
-	      {
+	  //       bool zeroEncountered = false;
+	  // right->Scalar(s); 
+	  for( SizeT ix=i; ix < nEl; ++ix)
+	    /*	if( !zeroEncountered)
+		{
+		if( (*this)[ix] == this->zero)
+		{
 		zeroEncountered = true;
 		(*this)[ix] = this->zero;
-	      }
-	  }
-	else*/
-	  if( (*this)[ix] != this->zero) 
-	    (*this)[ix] = s % (*this)[ix]; 
-	  else 
-	    (*this)[ix] = this->zero;
-}      //C delete right;
+		}
+		}
+		else*/
+	    if( (*this)[ix] != this->zero) 
+	      (*this)[ix] = s % (*this)[ix]; 
+	    else 
+	      (*this)[ix] = this->zero;
+	}      //C delete right;
       return this;
     }    
 }
@@ -3322,13 +3640,13 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModS( BaseGDL* r)
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
   Ty s = (*right)[0];
   // right->Scalar(s); 
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] = Modulo((*this)[i],s);
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] = Modulo((*this)[i],s);
+    }  //C delete right;
   return this;
 }
 // float  inverse modulo division: left=right % left
@@ -3342,13 +3660,13 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModInvS( BaseGDL* r)
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
   Ty s = (*right)[0];
   // right->Scalar(s); 
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] = Modulo(s,(*this)[i]);
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] = Modulo(s,(*this)[i]);
+    }  //C delete right;
   return this;
 }
 template<>
@@ -3360,13 +3678,13 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModS( BaseGDL* r)
   assert( nEl);
   Ty s = (*right)[0];
   // right->Scalar(s);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] = Modulo((*this)[i],s);
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] = Modulo((*this)[i],s);
+    }  //C delete right;
   return this;
 }
 // double inverse modulo division: left=right % left
@@ -3379,13 +3697,13 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModInvS( BaseGDL* r)
   assert( nEl);
   Ty s = (*right)[0];
   // right->Scalar(s); 
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] = Modulo(s,(*this)[i]);
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] = Modulo(s,(*this)[i]);
+    }  //C delete right;
   return this;
 }
 // invalid types
@@ -3499,13 +3817,13 @@ Data_<Sp>* Data_<Sp>::Pow( BaseGDL* r)
   //  assert( rEl);
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] = pow( (*this)[i], (*right)[i]); // valarray
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] = pow( (*this)[i], (*right)[i]); // valarray
+    }  //C delete right;
   return this;
 }
 // inverse power of value: left=right ^ left
@@ -3522,13 +3840,13 @@ Data_<Sp>* Data_<Sp>::PowInv( BaseGDL* r)
   //      right->dd.resize(nEl);
   //      dd = pow( right->Resize(nEl), dd); // valarray
       
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] = pow( (*right)[i], (*this)[i]);
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] = pow( (*right)[i], (*this)[i]);
+    }  //C delete right;
   return this;
 }
 // floats power of value: left=left ^ right
@@ -3541,20 +3859,20 @@ Data_<SpDFloat>* Data_<SpDFloat>::Pow( BaseGDL* r)
   ULong nEl=N_Elements();
   assert( rEl);
   assert( nEl);
-/*  if( rEl == nEl)
-    {
-    for( SizeT i=0; i < nEl; ++i)
+  /*  if( rEl == nEl)
+      {
+      for( SizeT i=0; i < nEl; ++i)
       dd[ i] = pow( dd[ i], right->dd[ i]); // valarray
-    }
-  else*/
-    {
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+      }
+      else*/
+  {
+    TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      {
 #pragma omp for
-    for( SizeT i=0; i < nEl; ++i)
-      (*this)[i] = pow( (*this)[i], (*right)[i]);
-}    }
+	for( SizeT i=0; i < nEl; ++i)
+	  (*this)[i] = pow( (*this)[i], (*right)[i]);
+      }    }
   return this;
 }
 
@@ -3594,46 +3912,46 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowInt( BaseGDL* r)
   if( r->StrictScalar())
     {
       DLong r0 = (*right)[0];  
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
 #pragma omp for
-      for( SizeT i=0; i < nEl; ++i)
-	(*this)[i] = pow( (*this)[i], r0);
-}      return this;
+	  for( SizeT i=0; i < nEl; ++i)
+	    (*this)[i] = pow( (*this)[i], r0);
+	}      return this;
     }
   if( StrictScalar())
     {
       Data_* res = new Data_( right->Dim(), BaseGDL::NOZERO);
       Ty s0 = (*this)[ 0];  
-TRACEOMP( __FILE__, __LINE__)
+      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-{
+	{
 #pragma omp for
-      for( SizeT i=0; i < rEl; ++i)
-	(*res)[ i] = pow( s0, (*right)[ i]);
-}      return res;
+	  for( SizeT i=0; i < rEl; ++i)
+	    (*res)[ i] = pow( s0, (*right)[ i]);
+	}      return res;
     }
   if( nEl <= rEl)
     {
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
 #pragma omp for
-      for( SizeT i=0; i < nEl; ++i)
-	(*this)[i] = pow( (*this)[i], (*right)[i]);
-}      return this;
+	  for( SizeT i=0; i < nEl; ++i)
+	    (*this)[i] = pow( (*this)[i], (*right)[i]);
+	}      return this;
     }
   else
     {
       Data_* res = new Data_( right->Dim(), BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-{
+	{
 #pragma omp for
-      for( SizeT i=0; i < rEl; ++i)
-	(*res)[i] = pow( (*this)[i], (*right)[i]);
-}      return res;
+	  for( SizeT i=0; i < rEl; ++i)
+	    (*res)[i] = pow( (*this)[i], (*right)[i]);
+	}      return res;
     }
 }
 template<>
@@ -3649,47 +3967,47 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowIntNew( BaseGDL* r)
     {
       Data_* res = new Data_( Dim(), BaseGDL::NOZERO);
       DLong r0 = (*right)[0];  
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
 #pragma omp for
-      for( SizeT i=0; i < nEl; ++i)
-	(*res)[i] = pow( (*this)[i], r0);
-}      return res;
+	  for( SizeT i=0; i < nEl; ++i)
+	    (*res)[i] = pow( (*this)[i], r0);
+	}      return res;
     }
   if( StrictScalar())
     {
       Data_* res = new Data_( right->Dim(), BaseGDL::NOZERO);
       Ty s0 = (*this)[ 0];  
-TRACEOMP( __FILE__, __LINE__)
+      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-{
+	{
 #pragma omp for
-      for( SizeT i=0; i < rEl; ++i)
-	(*res)[ i] = pow( s0, (*right)[ i]);
-}      return res;
+	  for( SizeT i=0; i < rEl; ++i)
+	    (*res)[ i] = pow( s0, (*right)[ i]);
+	}      return res;
     }
   if( nEl <= rEl)
     {
       Data_* res = new Data_( Dim(), BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
 #pragma omp for
-      for( SizeT i=0; i < nEl; ++i)
-	(*res)[i] = pow( (*this)[i], (*right)[i]);
-}      return res;
+	  for( SizeT i=0; i < nEl; ++i)
+	    (*res)[i] = pow( (*this)[i], (*right)[i]);
+	}      return res;
     }
   else
     {
       Data_* res = new Data_( right->Dim(), BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-{
+	{
 #pragma omp for
-      for( SizeT i=0; i < rEl; ++i)
-	(*res)[i] = pow( (*this)[i], (*right)[i]);
-}      return res;
+	  for( SizeT i=0; i < rEl; ++i)
+	    (*res)[i] = pow( (*this)[i], (*right)[i]);
+	}      return res;
     }
 }
 template<>
@@ -3704,46 +4022,46 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowInt( BaseGDL* r)
   if( r->StrictScalar())
     {
       DLong r0 = (*right)[0];  
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
 #pragma omp for
-      for( SizeT i=0; i < nEl; ++i)
-	(*this)[i] = pow( (*this)[i], r0);
-}      return this;
+	  for( SizeT i=0; i < nEl; ++i)
+	    (*this)[i] = pow( (*this)[i], r0);
+	}      return this;
     }
   if( StrictScalar())
     {
       Data_* res = new Data_( right->Dim(), BaseGDL::NOZERO);
       Ty s0 = (*this)[ 0];  
-TRACEOMP( __FILE__, __LINE__)
+      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-{
+	{
 #pragma omp for
-      for( SizeT i=0; i < rEl; ++i)
-	(*res)[ i] = pow( s0, (*right)[ i]);
-}      return res;
+	  for( SizeT i=0; i < rEl; ++i)
+	    (*res)[ i] = pow( s0, (*right)[ i]);
+	}      return res;
     }
   if( nEl <= rEl)
     {
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
 #pragma omp for
-      for( SizeT i=0; i < nEl; ++i)
-	(*this)[i] = pow( (*this)[i], (*right)[i]);
-}      return this;
+	  for( SizeT i=0; i < nEl; ++i)
+	    (*this)[i] = pow( (*this)[i], (*right)[i]);
+	}      return this;
     }
   else
     {
       Data_* res = new Data_( right->Dim(), BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-{
+	{
 #pragma omp for
-      for( SizeT i=0; i < rEl; ++i)
-	(*res)[i] = pow( (*this)[i], (*right)[i]);
-}      return res;
+	  for( SizeT i=0; i < rEl; ++i)
+	    (*res)[i] = pow( (*this)[i], (*right)[i]);
+	}      return res;
     }
 }
 template<>
@@ -3759,47 +4077,47 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowIntNew( BaseGDL* r)
     {
       Data_* res = new Data_( Dim(), BaseGDL::NOZERO);
       DLong r0 = (*right)[0];  
-TRACEOMP( __FILE__, __LINE__)
-  #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
 #pragma omp for
-    for( SizeT i=0; i < nEl; ++i)
-	(*res)[i] = pow( (*this)[i], r0);
-}      return res;
+	  for( SizeT i=0; i < nEl; ++i)
+	    (*res)[i] = pow( (*this)[i], r0);
+	}      return res;
     }
   if( StrictScalar())
     {
       Data_* res = new Data_( right->Dim(), BaseGDL::NOZERO);
       Ty s0 = (*this)[ 0];  
-TRACEOMP( __FILE__, __LINE__)
+      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-{
+	{
 #pragma omp for
-      for( SizeT i=0; i < rEl; ++i)
-	(*res)[ i] = pow( s0, (*right)[ i]);
-}      return res;
+	  for( SizeT i=0; i < rEl; ++i)
+	    (*res)[ i] = pow( s0, (*right)[ i]);
+	}      return res;
     }
   if( nEl <= rEl)
     {
       Data_* res = new Data_( Dim(), BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
 #pragma omp for
-      for( SizeT i=0; i < nEl; ++i)
-	(*res)[i] = pow( (*this)[i], (*right)[i]);
-}      return res;
+	  for( SizeT i=0; i < nEl; ++i)
+	    (*res)[i] = pow( (*this)[i], (*right)[i]);
+	}      return res;
     }
   else
     {
       Data_* res = new Data_( right->Dim(), BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-{
+	{
 #pragma omp for
-      for( SizeT i=0; i < rEl; ++i)
-	(*res)[i] = pow( (*this)[i], (*right)[i]);
-}      return res;
+	  for( SizeT i=0; i < rEl; ++i)
+	    (*res)[i] = pow( (*this)[i], (*right)[i]);
+	}      return res;
     }
 }
 
@@ -3815,16 +4133,16 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowInv( BaseGDL* r)
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
   //      right->dd.resize(nEl);
-/*  if( rEl == nEl)
-    dd = pow( right->dd, dd); // valarray
-  else*/
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  /*  if( rEl == nEl)
+      dd = pow( right->dd, dd); // valarray
+      else*/
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-    for( SizeT i=0; i < nEl; ++i)
-      (*this)[i] = pow( (*right)[i], (*this)[i]);
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] = pow( (*right)[i], (*this)[i]);
+    }  //C delete right;
   return this;
 }
 // doubles power of value: left=left ^ right
@@ -3840,16 +4158,16 @@ Data_<SpDDouble>* Data_<SpDDouble>::Pow( BaseGDL* r)
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
   //      right->dd.resize(nEl);
   //      dd = pow( dd, right->Resize(nEl)); // valarray
-/*  if( rEl == nEl)
-    dd = pow( dd, right->dd); // valarray
-  else*/
-TRACEOMP( __FILE__, __LINE__)
-  #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  /*  if( rEl == nEl)
+      dd = pow( dd, right->dd); // valarray
+      else*/
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-      (*this)[i] = pow( (*this)[i], (*right)[i]);
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] = pow( (*this)[i], (*right)[i]);
+    }  //C delete right;
   return this;
 }
 // doubles inverse power of value: left=right ^ left
@@ -3865,16 +4183,16 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowInv( BaseGDL* r)
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
   //      right->dd.resize(nEl);
   // dd = pow( right->Resize(nEl), dd); // valarray
-/*  if( rEl == nEl)
-    dd = pow( right->dd, dd); // valarray
-  else*/
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  /*  if( rEl == nEl)
+      dd = pow( right->dd, dd); // valarray
+      else*/
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-    for( SizeT i=0; i < nEl; ++i)
-      (*this)[i] = pow( (*right)[i], (*this)[i]);
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] = pow( (*right)[i], (*this)[i]);
+    }  //C delete right;
   return this;
 }
 // complex power of value: left=left ^ right
@@ -3897,13 +4215,13 @@ Data_<SpDComplex>* Data_<SpDComplex>::Pow( BaseGDL* r)
       // (must also be consistent with ComplexDbl)
       if( right->StrictScalar(s)) 
 	{
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+	  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	    {
 #pragma omp for
-	  for( SizeT i=0; i<nEl; ++i)
-	    (*this)[ i] = pow( (*this)[ i], s);
-}	  //C delete right;
+	      for( SizeT i=0; i<nEl; ++i)
+		(*this)[ i] = pow( (*this)[ i], s);
+	    }	  //C delete right;
 	  return this;
 	}
       else 
@@ -3916,36 +4234,36 @@ TRACEOMP( __FILE__, __LINE__)
 		{
 		  DComplexGDL* res = new DComplexGDL( right->Dim(), 
 						      BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+		  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-{
+		    {
 #pragma omp for
-		  for( SizeT i=0; i<rEl; ++i)
-		    (*res)[ i] = pow( s, (*right)[ i]);
-}		  //C delete right;
+		      for( SizeT i=0; i<rEl; ++i)
+			(*res)[ i] = pow( s, (*right)[ i]);
+		    }		  //C delete right;
 		  return res;
 		}
 
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+	      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+		{
 #pragma omp for
-	      for( SizeT i=0; i<nEl; ++i)
-		(*this)[ i] = pow( (*this)[ i], (*right)[ i]);
-}	      //C delete right;
+		  for( SizeT i=0; i<nEl; ++i)
+		    (*this)[ i] = pow( (*this)[ i], (*right)[ i]);
+		}	      //C delete right;
 	      return this;
 	    }
 	  else
 	    {
 	      DComplexGDL* res = new DComplexGDL( right->Dim(), 
 						  BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+	      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-{
+		{
 #pragma omp for
-	      for( SizeT i=0; i<rEl; ++i)
-		(*res)[ i] = pow( (*this)[ i], (*right)[ i]);
-}	      //C delete right;
+		  for( SizeT i=0; i<rEl; ++i)
+		    (*res)[ i] = pow( (*this)[ i], (*right)[ i]);
+		}	      //C delete right;
 	      //C delete this;
 	      return res;
 	    }
@@ -3961,13 +4279,13 @@ TRACEOMP( __FILE__, __LINE__)
       // (must also be consistent with ComplexDbl)
       if( right->StrictScalar(s)) 
 	{
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+	  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	    {
 #pragma omp for
-	  for( SizeT i=0; i<nEl; ++i)
-	    (*this)[ i] = pow( (*this)[ i], s);
-}	  //C delete right;
+	      for( SizeT i=0; i<nEl; ++i)
+		(*this)[ i] = pow( (*this)[ i], s);
+	    }	  //C delete right;
 	  return this;
 	}
       else 
@@ -3980,36 +4298,36 @@ TRACEOMP( __FILE__, __LINE__)
 		{
 		  DComplexGDL* res = new DComplexGDL( right->Dim(), 
 						      BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+		  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-{
+		    {
 #pragma omp for
-		  for( SizeT i=0; i<rEl; ++i)
-		    (*res)[ i] = pow( s, (*right)[ i]);
-}		  //C delete right;
+		      for( SizeT i=0; i<rEl; ++i)
+			(*res)[ i] = pow( s, (*right)[ i]);
+		    }		  //C delete right;
 		  return res;
 		}
 
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+	      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+		{
 #pragma omp for
-	      for( SizeT i=0; i<nEl; ++i)
-		(*this)[ i] = pow( (*this)[ i], (*right)[ i]);
-}	      //C delete right;
+		  for( SizeT i=0; i<nEl; ++i)
+		    (*this)[ i] = pow( (*this)[ i], (*right)[ i]);
+		}	      //C delete right;
 	      return this;
 	    }
 	  else
 	    {
 	      DComplexGDL* res = new DComplexGDL( right->Dim(), 
 						  BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+	      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-{
+		{
 #pragma omp for
-	      for( SizeT i=0; i<rEl; ++i)
-		(*res)[ i] = pow( (*this)[ i], (*right)[ i]);
-}	      //C delete right;
+		  for( SizeT i=0; i<rEl; ++i)
+		    (*res)[ i] = pow( (*this)[ i], (*right)[ i]);
+		}	      //C delete right;
 	      //C delete this;
 	      return res;
 	    }
@@ -4028,16 +4346,16 @@ TRACEOMP( __FILE__, __LINE__)
     (*this)[ i] = pow( (*this)[ i], (*right)[ i]);
 #else
   //      dd = pow( dd, right->Resize(nEl)); // valarray
-/*  if( r->N_Elements() == nEl)
-    dd = pow( dd, right->dd); // valarray
-  else*/
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  /*  if( r->N_Elements() == nEl)
+      dd = pow( dd, right->dd); // valarray
+      else*/
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-    for( SizeT i=0; i < nEl; ++i)
-      (*this)[i] = pow( (*this)[i], (*right)[i]);
-}
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] = pow( (*this)[i], (*right)[i]);
+    }
 #endif
   //C delete right;
   return this;
@@ -4059,17 +4377,17 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowInv( BaseGDL* r)
 #else
   //      right->dd.resize(nEl);
   //      dd = pow( right->Resize(nEl), dd); // valarray
-/*  if( rEl == nEl)
-    dd = pow( right->dd, dd); // valarray
-  else*/
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  /*  if( rEl == nEl)
+      dd = pow( right->dd, dd); // valarray
+      else*/
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-    for( SizeT i=0; i < nEl; ++i)
-      (*this)[i] = pow( (*right)[i], (*this)[i]);
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] = pow( (*right)[i], (*this)[i]);
 #endif
-}  //C delete right;
+    }  //C delete right;
   return this;
 }
 // double complex power of value: left=left ^ right
@@ -4092,13 +4410,13 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Pow( BaseGDL* r)
       // (concerning when a new variable is created vs. using this)
       if( right->StrictScalar(s)) 
 	{
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+	  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	    {
 #pragma omp for
-	  for( SizeT i=0; i<nEl; ++i)
-	    (*this)[ i] = pow( (*this)[ i], s);
-}	  //C delete right;
+	      for( SizeT i=0; i<nEl; ++i)
+		(*this)[ i] = pow( (*this)[ i], s);
+	    }	  //C delete right;
 	  return this;
 	}
       else 
@@ -4111,36 +4429,36 @@ TRACEOMP( __FILE__, __LINE__)
 		{
 		  DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
 							    BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+		  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-{
+		    {
 #pragma omp for
-		  for( SizeT i=0; i<rEl; ++i)
-		    (*res)[ i] = pow( s, (*right)[ i]);
-}		  //C delete right;
+		      for( SizeT i=0; i<rEl; ++i)
+			(*res)[ i] = pow( s, (*right)[ i]);
+		    }		  //C delete right;
 		  return res;
 		}
 
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+	      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+		{
 #pragma omp for
-	      for( SizeT i=0; i<nEl; ++i)
-		(*this)[ i] = pow( (*this)[ i], (*right)[ i]);
-}	      //C delete right;
+		  for( SizeT i=0; i<nEl; ++i)
+		    (*this)[ i] = pow( (*this)[ i], (*right)[ i]);
+		}	      //C delete right;
 	      return this;
 	    }
 	  else
 	    {
 	      DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
 							BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+	      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-{
+		{
 #pragma omp for
-	      for( SizeT i=0; i<rEl; ++i)
-		(*res)[ i] = pow( (*this)[ i], (*right)[ i]);
-}	      //C delete right;
+		  for( SizeT i=0; i<rEl; ++i)
+		    (*res)[ i] = pow( (*this)[ i], (*right)[ i]);
+		}	      //C delete right;
 	      //C delete this;
 	      return res;
 	    }
@@ -4158,13 +4476,13 @@ TRACEOMP( __FILE__, __LINE__)
       // (concerning when a new variable is created vs. using this)
       if( right->StrictScalar(s)) 
 	{
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+	  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	    {
 #pragma omp for
-	  for( SizeT i=0; i<nEl; ++i)
-	    (*this)[ i] = pow( (*this)[ i], s);
-}	  //C delete right;
+	      for( SizeT i=0; i<nEl; ++i)
+		(*this)[ i] = pow( (*this)[ i], s);
+	    }	  //C delete right;
 	  return this;
 	}
       else 
@@ -4177,36 +4495,36 @@ TRACEOMP( __FILE__, __LINE__)
 		{
 		  DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
 							    BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+		  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-{
+		    {
 #pragma omp for
-		  for( SizeT i=0; i<rEl; ++i)
-		    (*res)[ i] = pow( s, (*right)[ i]);
-}		  //C delete right;
+		      for( SizeT i=0; i<rEl; ++i)
+			(*res)[ i] = pow( s, (*right)[ i]);
+		    }		  //C delete right;
 		  return res;
 		}
 
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+	      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+		{
 #pragma omp for
-	      for( SizeT i=0; i<nEl; ++i)
-		(*this)[ i] = pow( (*this)[ i], (*right)[ i]);
-}	      //C delete right;
+		  for( SizeT i=0; i<nEl; ++i)
+		    (*this)[ i] = pow( (*this)[ i], (*right)[ i]);
+		}	      //C delete right;
 	      return this;
 	    }
 	  else
 	    {
 	      DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
 							BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+	      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-{
+		{
 #pragma omp for
-	      for( SizeT i=0; i<rEl; ++i)
-		(*res)[ i] = pow( (*this)[ i], (*right)[ i]);
-}	      //C delete right;
+		  for( SizeT i=0; i<rEl; ++i)
+		    (*res)[ i] = pow( (*this)[ i], (*right)[ i]);
+		}	      //C delete right;
 	      //C delete this;
 	      return res;
 	    }
@@ -4225,16 +4543,16 @@ TRACEOMP( __FILE__, __LINE__)
     (*this)[ i] = pow( (*this)[ i], (*right)[ i]);
 #else
   //      dd = pow( dd, right->Resize(nEl)); // valarray
-/*  if( r->N_Elements() == nEl)
-    dd = pow( dd, right->dd); // valarray
-  else*/
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  /*  if( r->N_Elements() == nEl)
+      dd = pow( dd, right->dd); // valarray
+      else*/
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-    for( SizeT i=0; i < nEl; ++i)
-      (*this)[i] = pow( (*this)[i], (*right)[i]);
-}
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] = pow( (*this)[i], (*right)[i]);
+    }
 #endif
   //C delete right;
   return this;
@@ -4256,16 +4574,16 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowInv( BaseGDL* r)
 #else
   //      right->dd.resize(nEl);
   //      dd = pow( right->Resize(nEl), dd); // valarray
-/*  if( rEl == nEl)
-    dd = pow( right->dd, dd); // valarray
-  else*/
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  /*  if( rEl == nEl)
+      dd = pow( right->dd, dd); // valarray
+      else*/
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-    for( SizeT i=0; i < nEl; ++i)
-      (*this)[i] = pow( (*right)[i], (*this)[i]);
-}
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] = pow( (*right)[i], (*this)[i]);
+    }
 #endif
   //C delete right;
   return this;
@@ -4328,13 +4646,13 @@ Data_<Sp>* Data_<Sp>::PowS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s); 
 
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] = pow( (*this)[i], s); 
-}
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] = pow( (*this)[i], s); 
+    }
   //C delete right;
   return this;
 }
@@ -4350,13 +4668,13 @@ Data_<Sp>* Data_<Sp>::PowInvS( BaseGDL* r)
   Ty s = (*right)[0];
   // right->Scalar(s); 
   //      dd = pow( s, d); // valarray
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i < nEl; ++i)
-    (*this)[i] = pow( s, (*this)[i]);
-}  //C delete right;
+      for( SizeT i=0; i < nEl; ++i)
+	(*this)[i] = pow( s, (*this)[i]);
+    }  //C delete right;
   return this;
 }
 // floats power of value: left=left ^ right
@@ -4369,13 +4687,13 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowS( BaseGDL* r)
   assert( nEl);
   Ty s = (*right)[0];
   // right->Scalar(s); 
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i<nEl; ++i)	
-  dd[ i] = pow( dd[ i], s); // valarray
-}  //C delete right;
+      for( SizeT i=0; i<nEl; ++i)	
+	dd[ i] = pow( dd[ i], s); // valarray
+    }  //C delete right;
   return this;
 }
 // floats inverse power of value: left=right ^ left
@@ -4388,13 +4706,13 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowInvS( BaseGDL* r)
   assert( nEl);
   Ty s = (*right)[0];
   // right->Scalar(s); 
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i<nEl; ++i)	
-  dd[ i] = pow( s, dd[ i]); // valarray
-}  //C delete right;
+      for( SizeT i=0; i<nEl; ++i)	
+	dd[ i] = pow( s, dd[ i]); // valarray
+    }  //C delete right;
   return this;
 }
 // doubles power of value: left=left ^ right
@@ -4407,13 +4725,13 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowS( BaseGDL* r)
   assert( nEl);
   Ty s = (*right)[0];
   // right->Scalar(s); 
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i<nEl; ++i)	
-  dd[ i] = pow( dd[ i], s); // valarray
-}  //C delete right;
+      for( SizeT i=0; i<nEl; ++i)	
+	dd[ i] = pow( dd[ i], s); // valarray
+    }  //C delete right;
   return this;
 }
 // doubles inverse power of value: left=right ^ left
@@ -4426,13 +4744,13 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowInvS( BaseGDL* r)
   assert( nEl);
   Ty s = (*right)[0];
   // right->Scalar(s); 
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i<nEl; ++i)	
-  dd[ i] = pow( s, dd[ i]); // valarray
-}  //C delete right;
+      for( SizeT i=0; i<nEl; ++i)	
+	dd[ i] = pow( s, dd[ i]); // valarray
+    }  //C delete right;
   return this;
 }
 // complex power of value: left=left ^ right
@@ -4455,13 +4773,13 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowS( BaseGDL* r)
       // (must also be consistent with ComplexDbl)
       if( right->StrictScalar(s)) 
 	{
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+	  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	    {
 #pragma omp for
-	  for( SizeT i=0; i<nEl; ++i)
-	    (*this)[ i] = pow( (*this)[ i], s);
-}	  //C delete right;
+	      for( SizeT i=0; i<nEl; ++i)
+		(*this)[ i] = pow( (*this)[ i], s);
+	    }	  //C delete right;
 	  return this;
 	}
       else 
@@ -4474,36 +4792,36 @@ TRACEOMP( __FILE__, __LINE__)
 		{
 		  DComplexGDL* res = new DComplexGDL( right->Dim(), 
 						      BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+		  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-{
+		    {
 #pragma omp for
-		  for( SizeT i=0; i<rEl; ++i)
-		    (*res)[ i] = pow( s, (*right)[ i]);
-}		  //C delete right;
+		      for( SizeT i=0; i<rEl; ++i)
+			(*res)[ i] = pow( s, (*right)[ i]);
+		    }		  //C delete right;
 		  return res;
 		}
 
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+	      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+		{
 #pragma omp for
-	      for( SizeT i=0; i<nEl; ++i)
-		(*this)[ i] = pow( (*this)[ i], (*right)[ i]);
-}	      //C delete right;
+		  for( SizeT i=0; i<nEl; ++i)
+		    (*this)[ i] = pow( (*this)[ i], (*right)[ i]);
+		}	      //C delete right;
 	      return this;
 	    }
 	  else
 	    {
 	      DComplexGDL* res = new DComplexGDL( right->Dim(), 
 						  BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+	      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-{
+		{
 #pragma omp for
-	      for( SizeT i=0; i<rEl; ++i)
-		(*res)[ i] = pow( (*this)[ i], (*right)[ i]);
-}	      //C delete right;
+		  for( SizeT i=0; i<rEl; ++i)
+		    (*res)[ i] = pow( (*this)[ i], (*right)[ i]);
+		}	      //C delete right;
 	      //C delete this;
 	      return res;
 	    }
@@ -4519,13 +4837,13 @@ TRACEOMP( __FILE__, __LINE__)
       // (must also be consistent with ComplexDbl)
       if( right->StrictScalar(s)) 
 	{
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+	  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	    {
 #pragma omp for
-	  for( SizeT i=0; i<nEl; ++i)
-	    (*this)[ i] = pow( (*this)[ i], s);
-}	  //C delete right;
+	      for( SizeT i=0; i<nEl; ++i)
+		(*this)[ i] = pow( (*this)[ i], s);
+	    }	  //C delete right;
 	  return this;
 	}
       else 
@@ -4538,36 +4856,36 @@ TRACEOMP( __FILE__, __LINE__)
 		{
 		  DComplexGDL* res = new DComplexGDL( right->Dim(), 
 						      BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+		  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-{
+		    {
 #pragma omp for
-		  for( SizeT i=0; i<rEl; ++i)
-		    (*res)[ i] = pow( s, (*right)[ i]);
-}		  //C delete right;
+		      for( SizeT i=0; i<rEl; ++i)
+			(*res)[ i] = pow( s, (*right)[ i]);
+		    }		  //C delete right;
 		  return res;
 		}
 
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+	      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+		{
 #pragma omp for
-	      for( SizeT i=0; i<nEl; ++i)
-		(*this)[ i] = pow( (*this)[ i], (*right)[ i]);
-}	      //C delete right;
+		  for( SizeT i=0; i<nEl; ++i)
+		    (*this)[ i] = pow( (*this)[ i], (*right)[ i]);
+		}	      //C delete right;
 	      return this;
 	    }
 	  else
 	    {
 	      DComplexGDL* res = new DComplexGDL( right->Dim(), 
 						  BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+	      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-{
+		{
 #pragma omp for
-	      for( SizeT i=0; i<rEl; ++i)
-		(*res)[ i] = pow( (*this)[ i], (*right)[ i]);
-}	      //C delete right;
+		  for( SizeT i=0; i<rEl; ++i)
+		    (*res)[ i] = pow( (*this)[ i], (*right)[ i]);
+		}	      //C delete right;
 	      //C delete this;
 	      return res;
 	    }
@@ -4581,17 +4899,17 @@ TRACEOMP( __FILE__, __LINE__)
   //   if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
   Ty s = (*right)[0];
   // right->Scalar(s); 
-//#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  //#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i<nEl; ++i)
-    (*this)[ i] = pow( (*this)[ i], s);
-}
-//#else
-//  dd = pow( dd, s); // valarray
-//#endif
+      for( SizeT i=0; i<nEl; ++i)
+	(*this)[ i] = pow( (*this)[ i], s);
+    }
+  //#else
+  //  dd = pow( dd, s); // valarray
+  //#endif
   //C delete right;
 
   return this;
@@ -4609,17 +4927,17 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowInvS( BaseGDL* r)
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
   Ty s = (*right)[0];
   // right->Scalar(s); 
-//#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  //#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i<nEl; ++i)
-    (*this)[ i] = pow( s, (*this)[ i]);
-}
-//#else
-//  dd = pow( s, dd); // valarray
-//#endif
+      for( SizeT i=0; i<nEl; ++i)
+	(*this)[ i] = pow( s, (*this)[ i]);
+    }
+  //#else
+  //  dd = pow( s, dd); // valarray
+  //#endif
   //C delete right;
   return this;
 }
@@ -4643,13 +4961,13 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowS( BaseGDL* r)
       // (concerning when a new variable is created vs. using this)
       if( right->StrictScalar(s)) 
 	{
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+	  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	    {
 #pragma omp for
-	  for( SizeT i=0; i<nEl; ++i)
-	    (*this)[ i] = pow( (*this)[ i], s);
-}	  //C delete right;
+	      for( SizeT i=0; i<nEl; ++i)
+		(*this)[ i] = pow( (*this)[ i], s);
+	    }	  //C delete right;
 	  return this;
 	}
       else 
@@ -4662,36 +4980,36 @@ TRACEOMP( __FILE__, __LINE__)
 		{
 		  DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
 							    BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+		  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-{
+		    {
 #pragma omp for
-		  for( SizeT i=0; i<rEl; ++i)
-		    (*res)[ i] = pow( s, (*right)[ i]);
-}		  //C delete right;
+		      for( SizeT i=0; i<rEl; ++i)
+			(*res)[ i] = pow( s, (*right)[ i]);
+		    }		  //C delete right;
 		  return res;
 		}
 
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+	      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+		{
 #pragma omp for
-	      for( SizeT i=0; i<nEl; ++i)
-		(*this)[ i] = pow( (*this)[ i], (*right)[ i]);
-}	      //C delete right;
+		  for( SizeT i=0; i<nEl; ++i)
+		    (*this)[ i] = pow( (*this)[ i], (*right)[ i]);
+		}	      //C delete right;
 	      return this;
 	    }
 	  else
 	    {
 	      DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
 							BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+	      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-{
+		{
 #pragma omp for
-	      for( SizeT i=0; i<rEl; ++i)
-		(*res)[ i] = pow( (*this)[ i], (*right)[ i]);
-}	      //C delete right;
+		  for( SizeT i=0; i<rEl; ++i)
+		    (*res)[ i] = pow( (*this)[ i], (*right)[ i]);
+		}	      //C delete right;
 	      //C delete this;
 	      return res;
 	    }
@@ -4709,13 +5027,13 @@ TRACEOMP( __FILE__, __LINE__)
       // (concerning when a new variable is created vs. using this)
       if( right->StrictScalar(s)) 
 	{
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+	  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	    {
 #pragma omp for
-	  for( SizeT i=0; i<nEl; ++i)
-	    (*this)[ i] = pow( (*this)[ i], s);
-}	  //C delete right;
+	      for( SizeT i=0; i<nEl; ++i)
+		(*this)[ i] = pow( (*this)[ i], s);
+	    }	  //C delete right;
 	  return this;
 	}
       else 
@@ -4728,36 +5046,36 @@ TRACEOMP( __FILE__, __LINE__)
 		{
 		  DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
 							    BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+		  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-{
+		    {
 #pragma omp for
-		  for( SizeT i=0; i<rEl; ++i)
-		    (*res)[ i] = pow( s, (*right)[ i]);
-}		  //C delete right;
+		      for( SizeT i=0; i<rEl; ++i)
+			(*res)[ i] = pow( s, (*right)[ i]);
+		    }		  //C delete right;
 		  return res;
 		}
 
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+	      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+		{
 #pragma omp for
-	      for( SizeT i=0; i<nEl; ++i)
-		(*this)[ i] = pow( (*this)[ i], (*right)[ i]);
-}	      //C delete right;
+		  for( SizeT i=0; i<nEl; ++i)
+		    (*this)[ i] = pow( (*this)[ i], (*right)[ i]);
+		}	      //C delete right;
 	      return this;
 	    }
 	  else
 	    {
 	      DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
 							BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+	      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-{
+		{
 #pragma omp for
-	      for( SizeT i=0; i<rEl; ++i)
-		(*res)[ i] = pow( (*this)[ i], (*right)[ i]);
-}	      //C delete right;
+		  for( SizeT i=0; i<rEl; ++i)
+		    (*res)[ i] = pow( (*this)[ i], (*right)[ i]);
+		}	      //C delete right;
 	      //C delete this;
 	      return res;
 	    }
@@ -4771,17 +5089,17 @@ TRACEOMP( __FILE__, __LINE__)
   //   if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
   Ty s = (*right)[0];
   // right->Scalar(s); 
-//#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  //#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i<nEl; ++i)
-    (*this)[ i] = pow( (*this)[ i], s);
-}
-//#else
-//  dd = pow( dd, s); // valarray
-//#endif
+      for( SizeT i=0; i<nEl; ++i)
+	(*this)[ i] = pow( (*this)[ i], s);
+    }
+  //#else
+  //  dd = pow( dd, s); // valarray
+  //#endif
   //C delete right;
   return this;
 }
@@ -4796,17 +5114,17 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowInvS( BaseGDL* r)
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
   Ty s = (*right)[0];
   // right->Scalar(s); 
-//#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+  //#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
 #pragma omp for
-  for( SizeT i=0; i<nEl; ++i)
-    (*this)[ i] = pow( s, (*this)[ i]);
-}
-//#else
-//  dd = pow( s, dd); // valarray
-//#endif
+      for( SizeT i=0; i<nEl; ++i)
+	(*this)[ i] = pow( s, (*this)[ i]);
+    }
+  //#else
+  //  dd = pow( s, dd); // valarray
+  //#endif
   //C delete right;
   return this;
 }
@@ -4879,27 +5197,32 @@ Data_<Sp>* Data_<Sp>::SubNew( BaseGDL* r)
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
   
   Data_* res = New( this->Dim(), BaseGDL::NOZERO);
+  if( nEl == 1 && rEl == 1)
+    {
+      (*res)[0] = (*this)[0] - (*right)[0];
+      return res;
+    }
 
   Ty s;
   if( right->StrictScalar(s)) 
     {
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
 #pragma omp for
-      for( SizeT i=0; i < nEl; ++i)
-	(*res)[i] = (*this)[i] - s;
-}
+	  for( SizeT i=0; i < nEl; ++i)
+	    (*res)[i] = (*this)[i] - s;
+	}
     }
   else 
     {
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
 #pragma omp for
-      for( SizeT i=0; i < nEl; ++i)
-	(*res)[i] = (*this)[i] - (*right)[i];
-}
+	  for( SizeT i=0; i < nEl; ++i)
+	    (*res)[i] = (*this)[i] - (*right)[i];
+	}
     }
   //C delete right;
   return res;
@@ -4943,13 +5266,13 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew( BaseGDL* r)
 	{
 	  DComplexGDL* res = new DComplexGDL( this->Dim(), 
 					      BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+	  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	    {
 #pragma omp for
-	  for( SizeT i=0; i<nEl; ++i)
-	    (*res)[ i] = pow( (*this)[ i], s);
-}	  //C delete right;
+	      for( SizeT i=0; i<nEl; ++i)
+		(*res)[ i] = pow( (*this)[ i], s);
+	    }	  //C delete right;
 	  return res;
 	}
       else 
@@ -4962,38 +5285,38 @@ TRACEOMP( __FILE__, __LINE__)
 		{
 		  DComplexGDL* res = new DComplexGDL( right->Dim(), 
 						      BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+		  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-{
+		    {
 #pragma omp for
-		  for( SizeT i=0; i<rEl; ++i)
-		    (*res)[ i] = pow( s, (*right)[ i]);
-}		  //C delete right;
+		      for( SizeT i=0; i<rEl; ++i)
+			(*res)[ i] = pow( s, (*right)[ i]);
+		    }		  //C delete right;
 		  return res;
 		}
 
 	      DComplexGDL* res = new DComplexGDL( this->Dim(), 
 						  BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+	      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+		{
 #pragma omp for
-	      for( SizeT i=0; i<nEl; ++i)
-		(*res)[ i] = pow( (*this)[ i], (*right)[ i]);
-}	      //C delete right;
+		  for( SizeT i=0; i<nEl; ++i)
+		    (*res)[ i] = pow( (*this)[ i], (*right)[ i]);
+		}	      //C delete right;
 	      return res;
 	    }
 	  else
 	    {
 	      DComplexGDL* res = new DComplexGDL( right->Dim(), 
 						  BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+	      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-{
+		{
 #pragma omp for
-	      for( SizeT i=0; i<rEl; ++i)
-		(*res)[ i] = pow( (*this)[ i], (*right)[ i]);
-}	      //C delete right;
+		  for( SizeT i=0; i<rEl; ++i)
+		    (*res)[ i] = pow( (*this)[ i], (*right)[ i]);
+		}	      //C delete right;
 	      //C delete this;
 	      return res;
 	    }
@@ -5011,13 +5334,13 @@ TRACEOMP( __FILE__, __LINE__)
 	{
 	  DComplexGDL* res = new DComplexGDL( this->Dim(), 
 					      BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+	  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	    {
 #pragma omp for
-	  for( SizeT i=0; i<nEl; ++i)
-	    (*res)[ i] = pow( (*this)[ i], s);
-}	  //C delete right;
+	      for( SizeT i=0; i<nEl; ++i)
+		(*res)[ i] = pow( (*this)[ i], s);
+	    }	  //C delete right;
 	  return res;
 	}
       else 
@@ -5030,38 +5353,38 @@ TRACEOMP( __FILE__, __LINE__)
 		{
 		  DComplexGDL* res = new DComplexGDL( right->Dim(), 
 						      BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+		  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-{
+		    {
 #pragma omp for
-		  for( SizeT i=0; i<rEl; ++i)
-		    (*res)[ i] = pow( s, (*right)[ i]);
-}		  //C delete right;
+		      for( SizeT i=0; i<rEl; ++i)
+			(*res)[ i] = pow( s, (*right)[ i]);
+		    }		  //C delete right;
 		  return res;
 		}
 
 	      DComplexGDL* res = new DComplexGDL( this->Dim(), 
 						  BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+	      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+		{
 #pragma omp for
-	      for( SizeT i=0; i<nEl; ++i)
-		(*res)[ i] = pow( (*this)[ i], (*right)[ i]);
-}	      //C delete right;
+		  for( SizeT i=0; i<nEl; ++i)
+		    (*res)[ i] = pow( (*this)[ i], (*right)[ i]);
+		}	      //C delete right;
 	      return res;
 	    }
 	  else
 	    {
 	      DComplexGDL* res = new DComplexGDL( right->Dim(), 
 						  BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+	      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-{
+		{
 #pragma omp for
-	      for( SizeT i=0; i<rEl; ++i)
-		(*res)[ i] = pow( (*this)[ i], (*right)[ i]);
-}	      //C delete right;
+		  for( SizeT i=0; i<rEl; ++i)
+		    (*res)[ i] = pow( (*this)[ i], (*right)[ i]);
+		}	      //C delete right;
 	      //C delete this;
 	      return res;
 	    }
@@ -5078,17 +5401,17 @@ TRACEOMP( __FILE__, __LINE__)
     {
       DComplexGDL* res = new DComplexGDL( this->Dim(), 
 					  BaseGDL::NOZERO);
-//#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+      //#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
 #pragma omp for
-      for( SizeT i=0; i<nEl; ++i)
-	(*res)[ i] = pow( (*this)[ i], s);
-}
-//#else
-//      res->dd = pow( dd, s); // valarray
-//#endif
+	  for( SizeT i=0; i<nEl; ++i)
+	    (*res)[ i] = pow( (*this)[ i], s);
+	}
+      //#else
+      //      res->dd = pow( dd, s); // valarray
+      //#endif
     }
   else 
     {
@@ -5101,16 +5424,16 @@ TRACEOMP( __FILE__, __LINE__)
 	(*res)[ i] = pow( (*this)[ i], (*right)[ i]);
 #else
       //      dd = pow( dd, right->Resize(nEl)); // valarray
-/*      if( r->N_Elements() == nEl)
-	res->dd = pow( dd, right->dd); // valarray
-      else*/
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+      /*      if( r->N_Elements() == nEl)
+	      res->dd = pow( dd, right->dd); // valarray
+	      else*/
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
 #pragma omp for
-	for( SizeT i=0; i < nEl; ++i)
-	  (*res)[i] = pow( (*this)[i], (*right)[i]);
-}
+	  for( SizeT i=0; i < nEl; ++i)
+	    (*res)[i] = pow( (*this)[i], (*right)[i]);
+	}
 #endif
     }
   //C delete right;
@@ -5137,13 +5460,13 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew( BaseGDL* r)
 	{
 	  DComplexDblGDL* res = new DComplexDblGDL( this->Dim(), 
 						    BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+	  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	    {
 #pragma omp for
-	  for( SizeT i=0; i<nEl; ++i)
-	    (*res)[ i] = pow( (*this)[ i], s);
-}	  //C delete right;
+	      for( SizeT i=0; i<nEl; ++i)
+		(*res)[ i] = pow( (*this)[ i], s);
+	    }	  //C delete right;
 	  return res;
 	}
       else 
@@ -5156,38 +5479,38 @@ TRACEOMP( __FILE__, __LINE__)
 		{
 		  DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
 							    BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+		  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-{
+		    {
 #pragma omp for
-		  for( SizeT i=0; i<rEl; ++i)
-		    (*res)[ i] = pow( s, (*right)[ i]);
-}		  //C delete right;
+		      for( SizeT i=0; i<rEl; ++i)
+			(*res)[ i] = pow( s, (*right)[ i]);
+		    }		  //C delete right;
 		  return res;
 		}
 
 	      DComplexDblGDL* res = new DComplexDblGDL( this->Dim(), 
 							BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+	      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+		{
 #pragma omp for
-	      for( SizeT i=0; i<nEl; ++i)
-		(*res)[ i] = pow( (*this)[ i], (*right)[ i]);
-}	      //C delete right;
+		  for( SizeT i=0; i<nEl; ++i)
+		    (*res)[ i] = pow( (*this)[ i], (*right)[ i]);
+		}	      //C delete right;
 	      return res;
 	    }
 	  else
 	    {
 	      DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
 							BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+	      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-{
+		{
 #pragma omp for
-	      for( SizeT i=0; i<rEl; ++i)
-		(*res)[ i] = pow( (*this)[ i], (*right)[ i]);
-}	      //C delete right;
+		  for( SizeT i=0; i<rEl; ++i)
+		    (*res)[ i] = pow( (*this)[ i], (*right)[ i]);
+		}	      //C delete right;
 	      //C delete this;
 	      return res;
 	    }
@@ -5205,13 +5528,13 @@ TRACEOMP( __FILE__, __LINE__)
 	{
 	  DComplexDblGDL* res = new DComplexDblGDL( this->Dim(), 
 						    BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+	  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	    {
 #pragma omp for
-	  for( SizeT i=0; i<nEl; ++i)
-	    (*res)[ i] = pow( (*this)[ i], s);
-}	  //C delete right;
+	      for( SizeT i=0; i<nEl; ++i)
+		(*res)[ i] = pow( (*this)[ i], s);
+	    }	  //C delete right;
 	  return res;
 	}
       else 
@@ -5224,38 +5547,38 @@ TRACEOMP( __FILE__, __LINE__)
 		{
 		  DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
 							    BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+		  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-{
+		    {
 #pragma omp for
-		  for( SizeT i=0; i<rEl; ++i)
-		    (*res)[ i] = pow( s, (*right)[ i]);
-}		  //C delete right;
+		      for( SizeT i=0; i<rEl; ++i)
+			(*res)[ i] = pow( s, (*right)[ i]);
+		    }		  //C delete right;
 		  return res;
 		}
 
 	      DComplexDblGDL* res = new DComplexDblGDL( this->Dim(), 
 							BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+	      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+		{
 #pragma omp for
-	      for( SizeT i=0; i<nEl; ++i)
-		(*res)[ i] = pow( (*this)[ i], (*right)[ i]);
-}	      //C delete right;
+		  for( SizeT i=0; i<nEl; ++i)
+		    (*res)[ i] = pow( (*this)[ i], (*right)[ i]);
+		}	      //C delete right;
 	      return res;
 	    }
 	  else
 	    {
 	      DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
 							BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+	      TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-{
+		{
 #pragma omp for
-	      for( SizeT i=0; i<rEl; ++i)
-		(*res)[ i] = pow( (*this)[ i], (*right)[ i]);
-}	      //C delete right;
+		  for( SizeT i=0; i<rEl; ++i)
+		    (*res)[ i] = pow( (*this)[ i], (*right)[ i]);
+		}	      //C delete right;
 	      //C delete this;
 	      return res;
 	    }
@@ -5272,17 +5595,17 @@ TRACEOMP( __FILE__, __LINE__)
     {
       DComplexDblGDL* res = new DComplexDblGDL( this->Dim(), 
 						BaseGDL::NOZERO);
-//#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+      //#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
 #pragma omp for
-      for( SizeT i=0; i<nEl; ++i)
-	(*res)[ i] = pow( (*this)[ i], s);
-}
-//#else
-//      res->dd = pow( dd, s); // valarray
-//#endif
+	  for( SizeT i=0; i<nEl; ++i)
+	    (*res)[ i] = pow( (*this)[ i], s);
+	}
+      //#else
+      //      res->dd = pow( dd, s); // valarray
+      //#endif
     }
   else 
     {
@@ -5295,16 +5618,16 @@ TRACEOMP( __FILE__, __LINE__)
 	(*res)[ i] = pow( (*this)[ i], (*right)[ i]);
 #else
       //      dd = pow( dd, right->Resize(nEl)); // valarray
-/*      if( r->N_Elements() == nEl)
-	res->dd = pow( dd, right->dd); // valarray
-      else*/
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+      /*      if( r->N_Elements() == nEl)
+	      res->dd = pow( dd, right->dd); // valarray
+	      else*/
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
 #pragma omp for
-	for( SizeT i=0; i < nEl; ++i)
-	  (*res)[i] = pow( (*this)[i], (*right)[i]);
-}
+	  for( SizeT i=0; i < nEl; ++i)
+	    (*res)[i] = pow( (*this)[i], (*right)[i]);
+	}
 #endif
     }
   //C delete right;
