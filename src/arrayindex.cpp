@@ -22,6 +22,9 @@
 
 using namespace std;
 
+// older versions of gcc put the vtable into this file (where destructor is defined)
+AllIxBaseT::~AllIxBaseT() {}
+
 SizeT AllIxIndicesT::operator[]( SizeT i) const
 {
 assert( upperSet);
@@ -55,8 +58,8 @@ SizeT AllIxAllIndexedT::operator[]( SizeT i) const
 		
     for( SizeT l=1; l < acRank; ++l)
       {
-	assert( dynamic_cast<ArrayIndexIndexed*>( (*ixList)[l]) != NULL);
-	resIndex += static_cast< ArrayIndexIndexed*>( (*ixList)[l])->GetIx( i) * varStride[l];
+		assert( dynamic_cast<ArrayIndexIndexed*>( (*ixList)[l]) != NULL);
+		resIndex += static_cast< ArrayIndexIndexed*>( (*ixList)[l])->GetIx( i) * varStride[l];
       }
     return resIndex;
   }

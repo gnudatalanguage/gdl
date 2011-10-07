@@ -24,8 +24,7 @@
 class AllIxBaseT
 {
 public:
-	
-  virtual ~AllIxBaseT() {};
+  virtual ~AllIxBaseT(); // code in arrayindex.cpp
 
   virtual AllIxBaseT* Clone() = 0;
 
@@ -40,10 +39,10 @@ protected:
   SizeT ix;
 
 public:
-  AllIxT() {}
+  AllIxT() {}  	
+
   AllIxT( SizeT i): ix( i)
   {
-    // 		assert( n == 1);
   }
 	
   ~AllIxT() {};
@@ -268,6 +267,11 @@ public:
     AllIxIndicesT* clone = new AllIxIndicesT( ref);
     return clone;
   }
+  virtual AllIxIndicesT* CloneAt( char* buf)
+  {
+    AllIxIndicesT* clone = new (buf) AllIxIndicesT( ref);
+    return clone;
+  }
 
   SizeT operator[]( SizeT i) const; // code in arrayindex.cpp
 
@@ -290,6 +294,11 @@ public:
   AllIxIndicesStrictT* Clone()
   {
     AllIxIndicesStrictT* clone = new AllIxIndicesStrictT( ref);
+    return clone;
+  }
+  AllIxIndicesStrictT* CloneAt( char* buf)
+  {
+    AllIxIndicesStrictT* clone = new (buf) AllIxIndicesStrictT( ref);
     return clone;
   }
 

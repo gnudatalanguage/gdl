@@ -282,30 +282,32 @@ private:
     SizeT d;
     for( d=0; d<nDot; ++d)
       {
-	if( ix[d] == NULL)
-	  { // loop over all elements
-	    if( dStruct[d]->N_Elements() > 1)
-	      dim >> dStruct[d]->Dim();
-	  }
-	else
-	  {
-	    ix[d]->SetVariable( dStruct[d]);
-	    if( ix[d]->N_Elements() > 1) 
-	      dim >> ix[d]->GetDim();
-	  }
+		if( ix[d] == NULL)
+		{ // loop over all elements
+			if( dStruct[d]->N_Elements() > 1)
+				dim >> dStruct[d]->Dim();
+		}
+		else
+		{
+			ix[d]->SetVariable( dStruct[d]);
+			if( ix[d]->N_Elements() > 1)
+				dim >> ix[d]->GetDim();
+		}
       }
-    dimension topDim;
-    if( ix[d] == NULL)
-      { // loop over all elements
-	topDim=top->Dim();
-	dim >> topDim;
-      }
-    else
-      {
-	ix[d]->SetVariable( top);
-	topDim=ix[d]->GetDim();
-	dim >> topDim;
-      }
+	//     dimension topDim;
+		if( ix[d] == NULL)
+		{ // loop over all elements
+	// 	topDim=top->Dim();
+	// 	dim >> topDim;
+			dim >> top->Dim();
+		}
+		else
+		{
+			ix[d]->SetVariable( top);
+	// 	topDim=ix[d]->GetDim();
+	// 	dim >> topDim;
+			dim >> ix[d]->GetDim();
+		}
   }
 
 public:
@@ -519,7 +521,7 @@ public:
 
 };
 
-typedef std::vector<DotAccessDescT*> AccessStackT;
+// typedef std::vector<DotAccessDescT*> AccessStackT;
 
 #endif
 

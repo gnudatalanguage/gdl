@@ -35,7 +35,7 @@ class dimension
 {
   SizeT dim[MAXRANK];         // dimension
 
-  char rank;                 // how many dim are valid  
+  char rank;                 // how many dim are valid
 
 public:
   // structors

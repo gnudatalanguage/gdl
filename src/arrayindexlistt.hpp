@@ -53,7 +53,7 @@ public:
   virtual void SetVariable( BaseGDL* var) {}
 
   // structure of indexed expression
-  virtual dimension GetDim() = 0;
+   virtual const dimension GetDim() = 0;
 
   virtual SizeT N_Elements() = 0;
 
@@ -62,7 +62,7 @@ public:
 
   // returns one dim long ix in case of one element array index
   // used by AssignAt functions
-  virtual SizeT LongIx() = 0;
+  virtual SizeT LongIx() const = 0;
 
   virtual void AssignAt( BaseGDL* var, BaseGDL* right) {}
 
@@ -71,7 +71,7 @@ public:
 
   // returns multi-dim index for 1st element
   // used by InsAt functions
-  virtual dimension GetDimIx0( SizeT& destStart) = 0;
+  virtual const dimension GetDimIx0( SizeT& destStart) = 0;
   virtual SizeT NDim() = 0;
 };
 
@@ -86,11 +86,26 @@ private:
 
   AllIxBaseT* allIx;
 
+  static const int a = sizeof( AllIxRangeT);
+  static const int b = sizeof( AllIxRange0T);
+  static const int c = sizeof( AllIxRangeStrideT);
+  static const int d = sizeof( AllIxRange0StrideT);
+  static const int e = sizeof( AllIxT);
+  static const int ab = a > b ? a : b;
+  static const int abc = ab > c ? ab : c;
+  static const int abcd = abc > d ? abc : d;
+  static const int abcde = abcd > e ? abcd : e;
+  char allIxInstance[ abcde];
+/*  AllIxRangeT allIxRange;
+  AllIxRange0T allIxRange0;
+  AllIxRangeStrideT allIxRangeStride;
+  AllIxRange0StrideT allIxRange0Stride;*/
+  
 public:    
   
   ~ArrayIndexListOneT()
   {
-    delete allIx;
+//     delete allIx;
     delete ix;
   }
 
@@ -118,7 +133,7 @@ public:
   
   void Clear()
   {
-    delete allIx;
+//     delete allIx;
     allIx = NULL;
     
     ix->Clear();
@@ -134,17 +149,17 @@ public:
     if( nParam == 0) return;
     if( nParam == 1) 
       {
-	ix->Init( ix_[ 0]);
+		ix->Init( ix_[ 0]);
       }
     else if( nParam == 2) 
       {
-	ix->Init( ix_[ 0], ix_[ 1]);
-	return;
+		ix->Init( ix_[ 0], ix_[ 1]);
+		return;
       }
     else // nParam == 3
       {
-	ix->Init( ix_[ 0], ix_[ 1], ix_[ 2]);
-	return;
+		ix->Init( ix_[ 0], ix_[ 1], ix_[ 2]);
+		return;
       }
   }
 
@@ -177,20 +192,20 @@ public:
   }
   
   // structure of indexed expression
-  dimension GetDim()
+  const dimension GetDim()
   {
     if( ix->Scalar())
       {
-	return dimension();
+		return dimension();
       }
     else if( ix->Indexed())
       {
-	return static_cast<ArrayIndexIndexed*>(ix)->GetDim(); 
+		return static_cast<ArrayIndexIndexed*>(ix)->GetDim();
 	// gets structure of indexing array
       }
     else
       {
-	return dimension( nIx); // one dimensional if not indexed
+		return dimension( nIx); // one dimensional if not indexed
       }
   }
 
@@ -207,30 +222,31 @@ public:
 
     if( ix->Indexed())
       {
-		allIx = static_cast< ArrayIndexIndexed*>(ix)->StealIx();
+// 		allIx = static_cast< ArrayIndexIndexed*>(ix)->StealIx();
+		allIx = static_cast< ArrayIndexIndexed*>(ix)->GetIx();
 		return allIx;
       }
 		
 	if( nIx == 1)
 	{
-		allIx = new AllIxT( ix->GetS());
+		allIx = new (allIxInstance) AllIxT( ix->GetS());
 		return allIx;
 	}
 
-// 	allIx = new AllIxMultiT( nIx);
+// 	allIx = new AllIxMulAllIxRangeStrideTtiT( nIx);
 	SizeT s = ix->GetS();
 	SizeT ixStride = ix->GetStride();
 	if( ixStride <= 1) 
 	  if( s != 0)
 		{
-		allIx = new AllIxRangeT( nIx, s);
+		allIx = new (allIxInstance) AllIxRangeT( nIx, s);
 // 	    for( SizeT i=0; i<nIx; ++i)
 // 			static_cast<AllIxMultiT*>(allIx)->SetIx( i, i + s);
 // 	      (*allIx)[i] = i + s;
 		}
 	  else
 		{
-		allIx = new AllIxRange0T( nIx);
+		allIx = new (allIxInstance) AllIxRange0T( nIx);
 // 	    for( SizeT i=0; i<nIx; ++i)
 // 			static_cast<AllIxMultiT*>(allIx)->SetIx( i, i );
 // 	      (*allIx)[i] = i;
@@ -238,14 +254,14 @@ public:
 	else
 	  if( s != 0) 
 	    {
-		allIx = new AllIxRangeStrideT( nIx, s, ixStride);
+		allIx = new (allIxInstance) AllIxRangeStrideT( nIx, s, ixStride);
 // 	    for( SizeT i=0; i<nIx; ++i)
 // 			static_cast<AllIxMultiT*>(allIx)->SetIx( i, i * ixStride + s);
 // 	      (*allIx)[i] = i * ixStride + s;
 		}
 	  else
 		{
-		allIx = new AllIxRange0StrideT( nIx, ixStride);
+		allIx = new (allIxInstance) AllIxRange0StrideT( nIx, ixStride);
 // 	    for( SizeT i=0; i<nIx; ++i)
 // 			static_cast<AllIxMultiT*>(allIx)->SetIx( i, i * ixStride);
 // 	      (*allIx)[i] = i * ixStride;
@@ -255,7 +271,7 @@ public:
 
   // returns one dim long ix in case of one element array index
   // used by AssignAt functions
-  SizeT LongIx()
+  SizeT LongIx() const
   {
     return ix->GetIx0();
   }
@@ -299,7 +315,7 @@ public:
 
   // returns multi-dim index for 1st element
   // used by InsAt functions
-  dimension GetDimIx0( SizeT& destStart)
+  const dimension GetDimIx0( SizeT& destStart)
   {
     destStart = ix->GetIx0();
 
@@ -311,6 +327,10 @@ public:
     return 1;
   }
 }; //class ArrayIndexListOneT: public ArrayIndexListT
+
+
+
+
 
 // loop index
 class ArrayIndexListOneScalarT: public ArrayIndexListT
@@ -370,7 +390,7 @@ public:
   void SetVariable( BaseGDL* var);
   
   // structure of indexed expression
-  dimension GetDim()
+  const dimension GetDim()
   {
     return dimension();
   }
@@ -398,7 +418,7 @@ public:
 
   // returns one dim long ix in case of one element array index
   // used by AssignAt functions
-  SizeT LongIx()
+  SizeT LongIx() const
   {
     return s;
   }
@@ -410,7 +430,7 @@ public:
 
   // returns multi-dim index for 1st element
   // used by InsAt functions
-  dimension GetDimIx0( SizeT& destStart)
+  const dimension GetDimIx0( SizeT& destStart)
   {
     destStart = s;
     return dimension( destStart);
@@ -422,6 +442,10 @@ public:
   }
 
 }; // class ArrayIndexListOneScalarT: public ArrayIndexListT
+
+
+
+
 
 class ArrayIndexListOneScalarVPT: public ArrayIndexListT
 {
@@ -495,7 +519,7 @@ public:
   }
   
   // structure of indexed expression
-  dimension GetDim()
+  const dimension GetDim()
   {
     return dimension();
   }
@@ -523,7 +547,7 @@ public:
 
   // returns one dim long ix in case of one element array index
   // used by AssignAt functions
-  SizeT LongIx()
+  SizeT LongIx() const
   {
     return s;
   }
@@ -560,7 +584,7 @@ public:
 
   // returns multi-dim index for 1st element
   // used by InsAt functions
-  dimension GetDimIx0( SizeT& destStart)
+  const dimension GetDimIx0( SizeT& destStart)
   {
     destStart = s;
     return dimension( destStart);
@@ -571,6 +595,10 @@ public:
   }
 
 }; // class ArrayIndexListOneScalarVPT: public ArrayIndexListT
+
+
+
+
 
 class ArrayIndexListOneConstScalarT: public ArrayIndexListT
 {
@@ -656,7 +684,7 @@ public:
 
   // returns one dim long ix in case of one element array index
   // used by AssignAt functions
-  SizeT LongIx()
+  SizeT LongIx() const
   {
     return s;
   }
@@ -708,12 +736,12 @@ public:
     return var->Index( this);
   }
 
-  dimension GetDim()
+  const dimension GetDim()
   {
     return dimension();
   }
 
-  dimension GetDimIx0( SizeT& destStart)
+  const dimension GetDimIx0( SizeT& destStart)
   {
     destStart = s;
     return dimension( destStart);
@@ -725,6 +753,10 @@ public:
   }
 
 }; // class ArrayIndexListOneConstScalarT: public ArrayIndexListT
+
+
+
+
 
 // all scalar elements (multi-dim)
 class ArrayIndexListScalarT: public ArrayIndexListT
@@ -870,12 +902,12 @@ public:
     for( SizeT i=0; i<acRank; ++i)
       ixList[i]->NIter( var->Dim(i)); // check boundary
 
-    var->Dim().Stride( varStride,acRank); // copy variables stride into varStride
+    var->Dim().Stride( varStride, acRank); // copy variables stride into varStride
     nIx = 1;
   }
 
   // structure of indexed expression
-  dimension GetDim()
+  const dimension GetDim()
   {
     return dimension(); // -> results in scalar
   }
@@ -907,7 +939,7 @@ public:
 
   // returns one dim long ix in case of one element array index
   // used by AssignAt functions
-  SizeT LongIx()
+  SizeT LongIx() const
   {
     if( acRank == 1)
       return ixList.FrontGetS(); //ixList[0]->GetS();
@@ -946,7 +978,7 @@ public:
 
   // returns multi-dim index for 1st element
   // used by InsAt functions
-  dimension GetDimIx0( SizeT& destStart)
+  const dimension GetDimIx0( SizeT& destStart)
   {
     SizeT dStart = 0;
 
@@ -1271,7 +1303,7 @@ public:
   }
 
   // structure of indexed expression
-  dimension GetDim()
+  const dimension GetDim()
   {
     // should be changed to ALLINDEXED or ALLONE by now
     assert( accessType != INDEXED_ONE); 
@@ -1440,7 +1472,7 @@ public:
 
   // returns one dim long ix in case of one element array index
   // used by AssignAt functions
-  SizeT LongIx()
+  SizeT LongIx() const
   {
     SizeT dStart = ixList[0]->GetIx0();
     for( SizeT i=1; i < acRank; ++i)
@@ -1477,7 +1509,7 @@ public:
 
   // returns multi-dim index for 1st element
   // used by InsAt functions
-  dimension GetDimIx0( SizeT& destStart)
+  const dimension GetDimIx0( SizeT& destStart)
   {
     SizeT dStart = 0;
 
