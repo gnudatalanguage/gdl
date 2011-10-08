@@ -83,22 +83,26 @@ private:
 
 	if( (depth+1) == tag.size())
 	  {
-	    for( SizeT c=0; c<nCp; c++)
-	      { // the actual assignment
-		BaseGDL* actTop = l->GetTag( actTag,  (*allIx)[ c]);
-		//BaseGDL* actTop = l->Get( actTag,  actIx.GetIx( c));
-		actTop->AssignAt( r, ix[depth+1], rOffset);	
+		BaseGDL* actTop = l->GetTag( actTag,   allIx->InitSeqAccess());
+		actTop->AssignAt( r, ix[depth+1], rOffset);
 		rOffset += rStride;
+	    for( SizeT c=1; c<nCp; ++c)
+	      { // the actual assignment
+			actTop = l->GetTag( actTag,  allIx->SeqAccess());
+			//BaseGDL* actTop = l->Get( actTag,  actIx.GetIx( c));
+			actTop->AssignAt( r, ix[depth+1], rOffset);
+			rOffset += rStride;
 	      }
 	  }
 	else
 	  {
-	    for( SizeT c=0; c<nCp; c++)
-	      {
-		DStructGDL* nextL = static_cast
-		  <DStructGDL*>( l->GetTag( actTag, (*allIx)[ c]));
-		//<DStructGDL*>( l->Get( actTag, actIx.GetIx( c)));
+		DStructGDL* nextL = static_cast<DStructGDL*>( l->GetTag( actTag, allIx->InitSeqAccess()));
 		DoAssign( nextL, r, depth+1);
+	    for( SizeT c=1; c<nCp; ++c)
+	      {
+			nextL = static_cast<DStructGDL*>( l->GetTag( actTag, allIx->SeqAccess()));
+			//<DStructGDL*>( l->Get( actTag, actIx.GetIx( c)));
+			DoAssign( nextL, r, depth+1);
 	      }
 	  }
       }
@@ -140,20 +144,23 @@ private:
 
 	if( (depth+1) == tag.size())
 	  {
-	    for( SizeT c=0; c<nCp; c++)
+		BaseGDL* actTop = l->GetTag( actTag,  allIx->InitSeqAccess());
+		actTop->DecAt( ix[depth+1]);
+	    for( SizeT c=1; c<nCp; ++c)
 	      { // the actual decrement
-		BaseGDL* actTop = l->GetTag( actTag,  (*allIx)[c]);
-		//BaseGDL* actTop = l->Get( actTag,  actIx.GetIx( c));
-		actTop->DecAt( ix[depth+1]);	
+			actTop = l->GetTag( actTag,  allIx->SeqAccess());
+			//BaseGDL* actTop = l->Get( actTag,  actIx.GetIx( c));
+			actTop->DecAt( ix[depth+1]);	
 	      }
 	  }
 	else
 	  {
-	    for( SizeT c=0; c<nCp; c++)
-	      {
-		DStructGDL* nextL = static_cast
-		  <DStructGDL*>( l->GetTag( actTag, (*allIx)[c]));
+		DStructGDL* nextL = static_cast<DStructGDL*>( l->GetTag( actTag, allIx->InitSeqAccess()));
 		DoDec( nextL, depth+1);
+	    for( SizeT c=1; c<nCp; ++c)
+	      {
+			nextL = static_cast<DStructGDL*>( l->GetTag( actTag, allIx->SeqAccess()));
+			DoDec( nextL, depth+1);
 	      }
 	  }
       }
@@ -194,21 +201,25 @@ private:
 
 	if( (depth+1) == tag.size())
 	  {
-	    for( SizeT c=0; c<nCp; c++)
+		BaseGDL* actTop = l->GetTag( actTag,  allIx->InitSeqAccess());
+		actTop->IncAt( ix[depth+1]);
+	    for( SizeT c=1; c<nCp; ++c)
 	      { // the actual increment
-		BaseGDL* actTop = l->GetTag( actTag,  (*allIx)[c]);
-		//BaseGDL* actTop = l->Get( actTag,  actIx.GetIx( c));
-		actTop->IncAt( ix[depth+1]);	
+			actTop = l->GetTag( actTag,  allIx->SeqAccess());
+			//BaseGDL* actTop = l->Get( actTag,  actIx.GetIx( c));
+			actTop->IncAt( ix[depth+1]);	
 	      }
 	  }
 	else
 	  {
-	    for( SizeT c=0; c<nCp; c++)
-	      {
-		DStructGDL* nextL = static_cast
-		  <DStructGDL*>( l->GetTag( actTag, (*allIx)[c]));
-		//<DStructGDL*>( l->Get( actTag, actIx.GetIx( c)));
+		DStructGDL* nextL = static_cast<DStructGDL*>( l->GetTag( actTag, allIx->InitSeqAccess()));
 		DoInc( nextL, depth+1);
+	    for( SizeT c=1; c<nCp; c++)
+	      {
+			nextL = static_cast
+			<DStructGDL*>( l->GetTag( actTag, allIx->SeqAccess()));
+			//<DStructGDL*>( l->Get( actTag, actIx.GetIx( c)));
+			DoInc( nextL, depth+1);
 	      }
 	  }
       }
@@ -227,20 +238,19 @@ private:
 	  { // the actual resolving
 	    for( SizeT c=0; c<nCp; c++)
 	      {
-		BaseGDL* actTop=l->GetTag( actTag, c);
+			BaseGDL* actTop=l->GetTag( actTag, c);
 
-		// newVar is empty -> no deleting of old data in InsertAt
-		newVar->InsertAt( rOffset, actTop, ix[depth+1]);
-		rOffset += rStride;
+			// newVar is empty -> no deleting of old data in InsertAt
+			newVar->InsertAt( rOffset, actTop, ix[depth+1]);
+			rOffset += rStride;
 	      }
 	  }
 	else
 	  {
 	    for( SizeT c=0; c<nCp; c++)
 	      {
-		DStructGDL* nextL = static_cast
-		  <DStructGDL*>( l->GetTag( actTag, c));
-		DoResolve( newVar, nextL, depth+1);
+			DStructGDL* nextL = static_cast<DStructGDL*>( l->GetTag( actTag, c));
+			DoResolve( newVar, nextL, depth+1);
 	      }
 	  }
       }
@@ -253,22 +263,28 @@ private:
 
 	if( (depth+1) == tag.size())
 	  {
-	    for( SizeT c=0; c<nCp; c++)
-	      { // the actual resolving
-		BaseGDL* actTop = l->GetTag( actTag,  (*allIx)[ c]);
-		//BaseGDL* actTop = l->Get( actTag,  actIx.GetIx( c));
-		newVar->InsertAt( rOffset, actTop, ix[depth+1]);	
+		BaseGDL* actTop = l->GetTag( actTag,  allIx->InitSeqAccess());
+		newVar->InsertAt( rOffset, actTop, ix[depth+1]);
 		rOffset += rStride;
+	    for( SizeT c=1; c<nCp; ++c)
+	      { // the actual resolving
+			actTop = l->GetTag( actTag,  allIx->SeqAccess());
+			//BaseGDL* actTop = l->Get( actTag,  actIx.GetIx( c));
+			newVar->InsertAt( rOffset, actTop, ix[depth+1]);	
+			rOffset += rStride;
 	      }
 	  }
 	else
 	  {
-	    for( SizeT c=0; c<nCp; c++)
-	      {
 		DStructGDL* nextL = static_cast
-		  <DStructGDL*>( l->GetTag( actTag, (*allIx)[ c]));
-		//<DStructGDL*>( l->Get( actTag, actIx.GetIx( c)));
+		  <DStructGDL*>( l->GetTag( actTag, allIx->InitSeqAccess()));
 		DoResolve( newVar, nextL, depth+1);
+	    for( SizeT c=1; c<nCp; ++c)
+	      {
+			nextL = static_cast
+			<DStructGDL*>( l->GetTag( actTag, allIx->SeqAccess()));
+			//<DStructGDL*>( l->Get( actTag, actIx.GetIx( c)));
+			DoResolve( newVar, nextL, depth+1);
 	      }
 	  }
       }

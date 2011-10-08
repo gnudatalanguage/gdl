@@ -34,6 +34,25 @@ if( index > upper)
 return index;
 }
 
+SizeT AllIxIndicesT::InitSeqAccess()
+{
+assert( upperSet);
+seqIx = 0;
+SizeT index = ref->GetAsIndex( 0);
+if( index > upper)
+	return upper;
+return index;
+}
+
+SizeT AllIxIndicesT::SeqAccess() 
+{
+assert( upperSet);
+SizeT index = ref->GetAsIndex( ++seqIx);
+if( index > upper)
+	return upper;
+return index;
+}
+
 SizeT AllIxIndicesT::size() const
 {
 return ref->N_Elements();
@@ -46,6 +65,27 @@ SizeT index = ref->GetAsIndexStrict( i);
 if( index > upper)
 	throw GDLException(NULL,"Array used to subscript array "
 			   "contains out of range subscript (at index: "+i2s(i)+").",true,false);
+return index;
+}
+
+SizeT AllIxIndicesStrictT::InitSeqAccess()
+{
+assert( upperSet);
+seqIx = 0;
+SizeT index = ref->GetAsIndexStrict( 0);
+if( index > upper)
+	throw GDLException(NULL,"Array used to subscript array "
+			   "contains out of range subscript (at index: "+i2s(index)+").",true,false);
+return index;
+}
+
+SizeT AllIxIndicesStrictT::SeqAccess() 
+{
+assert( upperSet);
+SizeT index = ref->GetAsIndexStrict( ++seqIx);
+if( index > upper)
+	throw GDLException(NULL,"Array used to subscript array "
+			   "contains out of range subscript (at index: "+i2s(index)+").",true,false);
 return index;
 }
 
@@ -63,7 +103,37 @@ SizeT AllIxAllIndexedT::operator[]( SizeT i) const
       }
     return resIndex;
   }
+SizeT AllIxAllIndexedT::InitSeqAccess()
+  {
+    seqIx = 0;
+    
+    assert( dynamic_cast<ArrayIndexIndexed*>( (*ixList)[0]) != NULL);
+    SizeT resIndex = static_cast< ArrayIndexIndexed*>( (*ixList)[0])->GetIx( 0 /*seqIx*/);
+		
+    for( SizeT l=1; l < acRank; ++l)
+      {
+		assert( dynamic_cast<ArrayIndexIndexed*>( (*ixList)[l]) != NULL);
+		resIndex += static_cast< ArrayIndexIndexed*>( (*ixList)[l])->GetIx( 0 /*seqIx*/) * varStride[l];
+      }
+    return resIndex;
+  }
+SizeT AllIxAllIndexedT::SeqAccess()
+  {
+    ++seqIx;
+    assert( seqIx < nIx);
+	
+    assert( dynamic_cast<ArrayIndexIndexed*>( (*ixList)[0]) != NULL);
+    SizeT resIndex = static_cast< ArrayIndexIndexed*>( (*ixList)[0])->GetIx( seqIx);
+		
+    for( SizeT l=1; l < acRank; ++l)
+      {
+		assert( dynamic_cast<ArrayIndexIndexed*>( (*ixList)[l]) != NULL);
+		resIndex += static_cast< ArrayIndexIndexed*>( (*ixList)[l])->GetIx( seqIx) * varStride[l];
+      }
+    return resIndex;
+  }
 
+// Note: mixed indices can expand an array
 SizeT AllIxNewMultiT::operator[]( SizeT i) const
   {
     assert( i < nIx);
@@ -100,6 +170,15 @@ SizeT AllIxNewMultiT::operator[]( SizeT i) const
 	}
 	return resIndex;
   }
+SizeT AllIxNewMultiT::InitSeqAccess()
+{
+	seqIx = 0;
+	return (*this)[0];
+}
+SizeT AllIxNewMultiT::SeqAccess()
+{
+	return (*this)[++seqIx];
+}
 
 ArrayIndexScalar::ArrayIndexScalar( RefDNode& dNode)
 {

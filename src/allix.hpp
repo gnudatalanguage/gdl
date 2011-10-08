@@ -31,6 +31,9 @@ public:
   virtual SizeT operator[]( SizeT i) const = 0;
   virtual SizeT size() const = 0;
   // 	virtual SizeT max() const = 0;
+  
+  virtual SizeT InitSeqAccess() = 0;
+  virtual SizeT SeqAccess() =0;
 
 };
 class AllIxT: public AllIxBaseT
@@ -59,7 +62,11 @@ public:
   }
 
   SizeT size() const { return 1;}
-  SizeT max() const { return ix;}
+
+  SizeT InitSeqAccess() { return ix;}
+  SizeT SeqAccess() { assert(false); return 0;}
+
+//   SizeT max() const { return ix;}
 
   void Set( SizeT i) { ix = i;}
 };
@@ -127,7 +134,8 @@ class AllIxRange0T: public AllIxBaseT
 {
 private:
   SizeT  sz;
-		
+  SizeT seqIx;
+
 public:
   AllIxRange0T( SizeT sz_): sz( sz_)
   {
@@ -145,6 +153,9 @@ public:
     assert( i < sz);
     return i;
   }
+  
+  SizeT InitSeqAccess() { seqIx = 0; return 0;}
+  SizeT SeqAccess() { assert( (seqIx+1) < sz); return ++seqIx;}
 
   SizeT size() const { return sz;}
   SizeT max() const
@@ -157,6 +168,7 @@ class AllIxRangeT: public AllIxBaseT
 private:
   SizeT  sz;
   SizeT  st;
+  SizeT seqIx;
 		
 public:
   AllIxRangeT( SizeT sz_, SizeT st_): sz( sz_), st( st_)
@@ -175,6 +187,8 @@ public:
     assert( i < sz);
     return i + st;
   }
+  SizeT InitSeqAccess() { seqIx = st; return st;}
+  SizeT SeqAccess() { assert( (seqIx-st+1) < sz); return ++seqIx;}
 
   SizeT size() const { return sz;}
   SizeT max() const
@@ -188,6 +202,7 @@ private:
   SizeT  sz;
   SizeT  st;
   SizeT  stride;
+  SizeT seqIx;
 		
 public:
   AllIxRangeStrideT( SizeT sz_, SizeT st_, SizeT stride_): sz( sz_), st( st_), stride( stride_)
@@ -206,6 +221,8 @@ public:
     assert( i < sz);
     return i * stride + st;
   }
+  SizeT InitSeqAccess() { seqIx = st; return st;}
+  SizeT SeqAccess() { assert( ((seqIx+stride-st)/stride) < sz); seqIx += stride; return seqIx;}
 
   SizeT size() const { return sz;}
   SizeT max() const
@@ -218,6 +235,7 @@ class AllIxRange0StrideT: public AllIxBaseT
 private:
   SizeT  sz;
   SizeT  stride;
+  SizeT seqIx;
 		
 public:
   AllIxRange0StrideT( SizeT sz_, SizeT stride_): sz( sz_), stride( stride_)
@@ -236,6 +254,8 @@ public:
     assert( i < sz);
     return i * stride;
   }
+  SizeT InitSeqAccess() { seqIx = 0; return 0;}
+  SizeT SeqAccess() { assert( ((seqIx+stride)/stride) < sz); seqIx += stride; return seqIx;}
 
   SizeT size() const { return sz;}
   SizeT max() const
@@ -249,6 +269,7 @@ class AllIxIndicesT: public AllIxBaseT
 protected:
   BaseGDL* ref;
   SizeT         upper;
+  SizeT         seqIx;
 #ifndef NDEBUG
   bool upperSet;
 #endif  
@@ -275,6 +296,9 @@ public:
 
   SizeT operator[]( SizeT i) const; // code in arrayindex.cpp
 
+  SizeT InitSeqAccess();
+  SizeT SeqAccess(); // code in arrayindex.cpp
+  
   SizeT size() const;
   void SetUpper( SizeT u)
   {
@@ -303,6 +327,8 @@ public:
   }
 
   SizeT operator[]( SizeT i) const; // code in arrayindex.cpp
+  SizeT InitSeqAccess();
+  SizeT SeqAccess(); // code in arrayindex.cpp
 };
 
 class ArrayIndexVectorT;
@@ -313,6 +339,7 @@ private:
   SizeT* varStride;
   SizeT acRank;
   SizeT nIx;
+  SizeT         seqIx;
 	
 public:
   AllIxAllIndexedT( ArrayIndexVectorT* ixList_, SizeT acRank_, SizeT nIx_, SizeT* varStride_)
@@ -330,6 +357,8 @@ public:
   }
 
   SizeT operator[]( SizeT i) const; // code in arrayindex.cpp
+  SizeT InitSeqAccess();
+  SizeT SeqAccess(); // code in arrayindex.cpp
 	
   SizeT size() const { return nIx;}	
 };
@@ -343,6 +372,7 @@ private:
   SizeT* stride;
   SizeT acRank;
   SizeT nIx;
+  SizeT         seqIx;
 	
 public:
   AllIxNewMultiT( ArrayIndexVectorT* ixList_, SizeT acRank_, SizeT nIx_, SizeT* varStride_, SizeT* nIterLimit_, SizeT* stride_)
@@ -362,6 +392,8 @@ public:
   }
 
   SizeT operator[]( SizeT i) const; // code in arrayindex.cpp
+  SizeT InitSeqAccess();
+  SizeT SeqAccess(); // code in arrayindex.cpp
 	
   SizeT size() const { return nIx;}	
 };

@@ -110,9 +110,9 @@ public:
   }
 
   // constructor
-  ArrayIndexListOneT():
-    ix( NULL),
-    allIx( NULL)
+  ArrayIndexListOneT()
+    : ix( NULL)
+    , allIx( NULL)
   { nParam = 0;}
 
   ArrayIndexListOneT( const ArrayIndexListOneT& cp):
@@ -135,6 +135,7 @@ public:
   {
 //     delete allIx;
     allIx = NULL;
+//     allIxMulti.Clear();
     
     ix->Clear();
   }
@@ -223,7 +224,7 @@ public:
     if( ix->Indexed())
       {
 // 		allIx = static_cast< ArrayIndexIndexed*>(ix)->StealIx();
-		allIx = static_cast< ArrayIndexIndexed*>(ix)->GetIx();
+		allIx = static_cast< ArrayIndexIndexed*>(ix)->GetAllIx();
 		return allIx;
       }
 		

@@ -1186,7 +1186,7 @@ return new Data_( (*this)[ ix]);
 
 
 template<>
-Data_<SpDPtr>* Data_<SpDPtr>::NewIx( AllIxBaseT* ix, dimension* dIn)
+Data_<SpDPtr>* Data_<SpDPtr>::NewIx( AllIxBaseT* ix, const dimension* dIn)
 {
 SizeT nCp = ix->size();
 Data_* res=Data_::New( *dIn, BaseGDL::NOZERO);
@@ -1203,7 +1203,7 @@ for( SizeT c=0; c<nCp; ++c)
 return res;
 }
 template<>
-Data_<SpDObj>* Data_<SpDObj>::NewIx( AllIxBaseT* ix, dimension* dIn)
+Data_<SpDObj>* Data_<SpDObj>::NewIx( AllIxBaseT* ix, const dimension* dIn)
 {
 SizeT nCp = ix->size();
 Data_* res=Data_::New( *dIn, BaseGDL::NOZERO);

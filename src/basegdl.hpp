@@ -463,7 +463,7 @@ public:
   // return a new type of itself
   virtual BaseGDL* NewIx( SizeT ix);
   virtual BaseGDL* NewIx( BaseGDL* ix, bool strict);
-  virtual BaseGDL* NewIx( AllIxBaseT* ix, dimension* dIn);
+  virtual BaseGDL* NewIx( AllIxBaseT* ix, const dimension* dIn);
   virtual BaseGDL* NewIxFrom( SizeT s);
   virtual BaseGDL* NewIxFrom( SizeT s, SizeT e);
   virtual BaseGDL* NewIxFromStride( SizeT s, SizeT stride);

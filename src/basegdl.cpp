@@ -681,7 +681,7 @@ BaseGDL* BaseGDL::NewIx( BaseGDL* ix, bool strict)
 {
   throw GDLException("Operation not defined for UNDEF 21.");
 }
-BaseGDL* BaseGDL::NewIx( AllIxBaseT* ix, dimension* dIn)
+BaseGDL* BaseGDL::NewIx( AllIxBaseT* ix, const dimension* dIn)
 {
   throw GDLException("Operation not defined for UNDEF 22.");
 }

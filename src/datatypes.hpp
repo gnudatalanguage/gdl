@@ -334,7 +334,7 @@ static	void operator delete( void *ptr);
   // return a new type of itself
   Data_* NewIx( SizeT ix);
   Data_* NewIx( BaseGDL* ix, bool strict);
-  Data_* NewIx( AllIxBaseT* ix, dimension* dIn);
+  Data_* NewIx( AllIxBaseT* ix, const dimension* dIn);
   Data_* NewIxFrom( SizeT s);
   Data_* NewIxFrom( SizeT s, SizeT e);
   Data_* NewIxFromStride( SizeT s, SizeT stride);

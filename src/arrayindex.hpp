@@ -293,8 +293,7 @@ protected:
   AllIxIndicesT*    ix;
   char ixBuf[ sizeof( AllIxIndicesStrictT)];
   
-  dimension* ixDim; // keep dimension of ix
-  char ixDimBuf[ sizeof( dimension)];
+  const dimension* ixDim; // keep dimension of ix
 
   // forbid c-i
   ArrayIndexIndexed( const ArrayIndexT& r) {}
@@ -320,7 +319,7 @@ public:
 
   bool Indexed() { return (ix != NULL);}
 
-  dimension GetDim() { return *ixDim;}
+  const dimension& GetDim() { return *ixDim;}
 
   RangeT GetIx0()
   {
@@ -336,7 +335,7 @@ public:
 
   //  SizeT* StealIx() { SizeT* ret = ix; ix = NULL; return ret;} 
   //AllIxIndicesT* StealIx() { AllIxIndicesT* ret = ix; ix = NULL; return ret;}
-  AllIxIndicesT* GetIx() const { return ix;}
+  AllIxIndicesT* GetAllIx() const { return ix;}
 
   ~ArrayIndexIndexed() 
   {
@@ -445,7 +444,8 @@ public:
   {
     if( ix_->Rank() == 0) // type ONE
       {
-		int ret = ix_->Scalar2RangeT(s);
+		ix_->Scalar2RangeT(s);
+	// int ret = ix_->Scalar2RangeT(s);
 	// from GDL 0.9 on negative indices are fine
 	// 	if( ret == -1) // index < 0
 	// 	  {
@@ -478,7 +478,7 @@ public:
 	else
 		ix = new (ixBuf) AllIxIndicesT( ix_);
 
-    ixDim = new (ixDimBuf) dimension( ix_->Dim());
+    ixDim = &ix_->Dim();
 }
 
   // number of iterations
@@ -541,7 +541,7 @@ public:
   ~CArrayIndexIndexed() { /*delete ixOri;*/}
 
   CArrayIndexIndexed( BaseGDL* c, bool strictArrSubs_ = false): 
-    ArrayIndexIndexed( strictArrSubs_), ixOri( NULL) //, maxIx( 0)
+    ArrayIndexIndexed( strictArrSubs_)//, ixOri( NULL) //, maxIx( 0)
   {
     ArrayIndexIndexed::Init( c);
     ixOri = ix;

@@ -864,7 +864,7 @@ TRACEOMP( __FILE__, __LINE__)
 {
 #pragma omp for
       	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=((*this)[i],12);
+      	  (*dest)[i]=i2s((*this)[i],12);
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;

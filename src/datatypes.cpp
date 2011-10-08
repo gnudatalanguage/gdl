@@ -2178,8 +2178,9 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT offset)
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 #pragma omp for*/
-	  for( SizeT c=0; c<nCp; ++c)
-	    (*this)[ (*allIx)[ c]]=scalar;
+      (*this)[ allIx->InitSeqAccess()]=scalar;
+	  for( SizeT c=1; c<nCp; ++c)
+	    (*this)[ allIx->SeqAccess()]=scalar;
 //}	  //	    (*this)[ ixList->GetIx( c)]=scalar;
  	}
     }
@@ -2228,8 +2229,9 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT offset)
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 #pragma omp for*/
-		  for( SizeT c=0; c<nCp; ++c)
-		    (*this)[ (*allIx)[ c]]=(*src)[c];
+ 	      (*this)[ allIx->InitSeqAccess()]=(*src)[0];
+		  for( SizeT c=1; c<nCp; ++c)
+		    (*this)[ allIx->SeqAccess()]=(*src)[c];
 // }		  //		(*this)[ ixList->GetIx( c)]=(*src)[c+offset];
 		}
 	      else
@@ -2242,8 +2244,9 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT offset)
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 #pragma omp for*/
-		  for( SizeT c=0; c<nCp; ++c)
-		    (*this)[ (*allIx)[ c]]=(*src)[c+offset];
+  	      (*this)[ allIx->InitSeqAccess()]=(*src)[offset];
+		  for( SizeT c=1; c<nCp; ++c)
+		    (*this)[ allIx->SeqAccess()]=(*src)[c+offset];
 // }		  //		(*this)[ ixList->GetIx( c)]=(*src)[c+offset];
 		}
 	    }
@@ -2272,11 +2275,15 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList)
 	{
 	  Ty scalar=(*src)[0];
 	  AllIxBaseT* allIx = ixList->BuildIx();
+	  (*this)[ allIx->InitSeqAccess()]=scalar;
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 #pragma omp for*/
-	  for( SizeT c=0; c<nCp; ++c)
-	    (*this)[ (*allIx)[ c]]=scalar;
+	  for( SizeT c=1; c<nCp; ++c)
+	    (*this)[ allIx->SeqAccess()]=scalar;
+// 	    (*this)[ (*allIx)[ c]]=scalar;
+
+
 // }	  //	    (*this)[ ixList->GetIx( c)]=scalar;
 	}
     }
@@ -2296,11 +2303,13 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList)
 			       " source expression.");
 	  
 	  AllIxBaseT* allIx = ixList->BuildIx();
+	  (*this)[ allIx->InitSeqAccess()]=(*src)[0];
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 #pragma omp for*/
-	  for( SizeT c=0; c<nCp; ++c)
-	    (*this)[ (*allIx)[ c]]=(*src)[c];
+	  for( SizeT c=1; c<nCp; ++c)
+	    (*this)[ allIx->SeqAccess()]=(*src)[c];
+// 	    (*this)[ (*allIx)[ c]]=(*src)[c];
 // }	  //		(*this)[ ixList->GetIx( c)]=(*src)[c+offset];
 	}
     }
@@ -2369,8 +2378,9 @@ void Data_<Sp>::DecAt( ArrayIndexListT* ixList)
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 #pragma omp for*/
-      for( SizeT c=0; c<nCp; ++c)
-	(*this)[ (*allIx)[ c]]--;
+	(*this)[ allIx->InitSeqAccess()]--;
+    for( SizeT c=1; c<nCp; ++c)
+		(*this)[ allIx->SeqAccess()]--;
 }//    }
 }
 template<class Sp>
@@ -2392,8 +2402,9 @@ void Data_<Sp>::IncAt( ArrayIndexListT* ixList)
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 #pragma omp for*/
-      for( SizeT c=0; c<nCp; ++c)
-	(*this)[ (*allIx)[ c]]++;
+	(*this)[ allIx->InitSeqAccess()]++;
+    for( SizeT c=1; c<nCp; ++c)
+		(*this)[ allIx->SeqAccess()]++;
 	}//    }
 }
 // float, double
@@ -2417,8 +2428,9 @@ void Data_<SpDFloat>::DecAt( ArrayIndexListT* ixList)
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 #pragma omp for*/
-      for( SizeT c=0; c<nCp; ++c)
-	(*this)[ (*allIx)[ c]] -= 1.0;
+	(*this)[ allIx->InitSeqAccess()] -= 1.0f;
+    for( SizeT c=1; c<nCp; ++c)
+		(*this)[ allIx->SeqAccess()] -=1.0f;
 }//    }
 }
 template<>
@@ -2441,8 +2453,9 @@ void Data_<SpDFloat>::IncAt( ArrayIndexListT* ixList)
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 #pragma omp for*/
-      for( SizeT c=0; c<nCp; ++c)
-	(*this)[ (*allIx)[ c]] += 1.0;
+	(*this)[ allIx->InitSeqAccess()] += 1.0f;
+    for( SizeT c=1; c<nCp; ++c)
+		(*this)[ allIx->SeqAccess()] +=1.0f;
 }//    }
 }
 template<>
@@ -2465,8 +2478,9 @@ void Data_<SpDDouble>::DecAt( ArrayIndexListT* ixList)
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 #pragma omp for*/
-      for( SizeT c=0; c<nCp; ++c)
-	(*this)[ (*allIx)[ c]] -= 1.0;
+	(*this)[ allIx->InitSeqAccess()] -= 1.0;
+    for( SizeT c=1; c<nCp; ++c)
+		(*this)[ allIx->SeqAccess()] -=1.0;
 }//    }
 }
 template<>
@@ -2489,8 +2503,9 @@ void Data_<SpDDouble>::IncAt( ArrayIndexListT* ixList)
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 #pragma omp for*/
-      for( SizeT c=0; c<nCp; ++c)
-	(*this)[ (*allIx)[ c]] += 1.0;
+	(*this)[ allIx->InitSeqAccess()] += 1.0f;
+    for( SizeT c=1; c<nCp; ++c)
+		(*this)[ allIx->SeqAccess()] +=1.0f;
 }//    }
 }
 // complex
@@ -2501,13 +2516,13 @@ void Data_<SpDComplex>::DecAt( ArrayIndexListT* ixList)
     {
 //       dd -= 1.0f;
 
-            SizeT nCp=Data_::N_Elements();
+		SizeT nCp=Data_::N_Elements();
       
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 #pragma omp for*/
-            for( SizeT c=0; c<nCp; ++c)
-      	(*this)[ c] -= 1.0;
+        for( SizeT c=0; c<nCp; ++c)
+			(*this)[ c] -= 1.0;
 }//    }
   else
     {
@@ -2517,8 +2532,11 @@ void Data_<SpDComplex>::DecAt( ArrayIndexListT* ixList)
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 #pragma omp for*/
-      for( SizeT c=0; c<nCp; ++c)
-	(*this)[ (*allIx)[ c]] -= 1.0;
+	(*this)[ allIx->InitSeqAccess()] -= 1.0;
+    for( SizeT c=1; c<nCp; ++c)
+		(*this)[ allIx->SeqAccess()] -=1.0;
+//       for( SizeT c=0; c<nCp; ++c)
+// 	(*this)[ (*allIx)[ c]] -= 1.0;
 }//    }
 }
 template<>
@@ -2544,8 +2562,11 @@ void Data_<SpDComplex>::IncAt( ArrayIndexListT* ixList)
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 #pragma omp for*/
-      for( SizeT c=0; c<nCp; ++c)
-	(*this)[ (*allIx)[ c]] += 1.0;
+	(*this)[ allIx->InitSeqAccess()] += 1.0;
+    for( SizeT c=1; c<nCp; ++c)
+		(*this)[ allIx->SeqAccess()] +=1.0;
+//       for( SizeT c=0; c<nCp; ++c)
+// 	(*this)[ (*allIx)[ c]] += 1.0;
 }//    }
 }
 template<>
@@ -2571,8 +2592,11 @@ void Data_<SpDComplexDbl>::DecAt( ArrayIndexListT* ixList)
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 #pragma omp for*/
-      for( SizeT c=0; c<nCp; ++c)
-	(*this)[ (*allIx)[ c]] -= 1.0;
+	(*this)[ allIx->InitSeqAccess()] -= 1.0;
+    for( SizeT c=1; c<nCp; ++c)
+		(*this)[ allIx->SeqAccess()] -=1.0;
+//       for( SizeT c=0; c<nCp; ++c)
+// 	(*this)[ (*allIx)[ c]] -= 1.0;
 } //   }
 }
 template<>
@@ -2598,8 +2622,11 @@ void Data_<SpDComplexDbl>::IncAt( ArrayIndexListT* ixList)
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 #pragma omp for*/
-      for( SizeT c=0; c<nCp; ++c)
-	(*this)[ (*allIx)[ c]] += 1.0;
+	(*this)[ allIx->InitSeqAccess()] += 1.0;
+    for( SizeT c=1; c<nCp; ++c)
+		(*this)[ allIx->SeqAccess()] +=1.0;
+//       for( SizeT c=0; c<nCp; ++c)
+// 	(*this)[ (*allIx)[ c]] += 1.0;
 }//    }
 }
 // forbidden types
@@ -2661,8 +2688,9 @@ void Data_<Sp>::InsertAt( SizeT offset, BaseGDL* srcIn,
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 #pragma omp for*/
-      for( SizeT c=0; c<nCp; ++c)
-	(*this)[ c+offset]=(*src)[ (*allIx)[ c]];
+	(*this)[ offset]=(*src)[ allIx->InitSeqAccess()];
+    for( SizeT c=1; c<nCp; ++c)
+		(*this)[ c+offset]=(*src)[ allIx->SeqAccess()];
 //}      //	(*this)[ c+offset]=(*src)[ ixList->GetIx( c)];
     }
 }
@@ -2747,8 +2775,9 @@ Data_<Sp>* Data_<Sp>::Index( ArrayIndexListT* ixList)
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
 {
 #pragma omp for*/
-  for( SizeT c=0; c<nCp; ++c)
-    (*res)[c]=(*this)[ (*allIx)[ c]];
+  (*res)[0]=(*this)[ allIx->InitSeqAccess()];
+  for( SizeT c=1; c<nCp; ++c)
+    (*res)[c]=(*this)[ allIx->SeqAccess()];
 //}  //    res_(*this)[c]=(*this)[ (*allIx)[ c]];
   //    (*res)[c]=(*this)[ ixList->GetIx(c)];
 //   }
@@ -4393,7 +4422,7 @@ Data_<Sp>* Data_<Sp>::NewIx( SizeT ix)
   return new Data_( (*this)[ ix]);
 }
 template<class Sp>
-Data_<Sp>* Data_<Sp>::NewIx( AllIxBaseT* ix, dimension* dIn)
+Data_<Sp>* Data_<Sp>::NewIx( AllIxBaseT* ix, const dimension* dIn)
 {
   SizeT nCp = ix->size();
   Data_* res=Data_::New( *dIn, BaseGDL::NOZERO);
@@ -4521,26 +4550,24 @@ Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
 
 	NEWIX_UNSIGNEDINT
 	
-	  // 	SizeT i = 0;
-	  // 	for( ; i < nElem; ++i)
-	  // 	  if( (*src)[i] > upper)
-	  // 	    {
-	  // 	      if( strict)
-	  // 		throw GDLException("Array used to subscript array "
-	  // 				   "contains out of range (>) subscript.");
-	  // 	      (*res)[i++]= upperVal;
-	  // 	      break;
-	  // 	    }
-	  // 	  else
-	  // 	    (*res)[i]= (*this)[ (*src)[i]];
-
-	  // 	for(; i < nElem; ++i)
-	  // 	  if( (*src)[i] > upper)
-	  // 	    (*res)[i] = upperVal;
-	  // 	  else
-	  // 	    (*res)[i]= (*this)[ (*src)[i]]; 
-	
-	  // 	return guard.release();
+// 	SizeT i = 0;
+// 	for( ; i < nElem; ++i)
+// 	if( (*src)[i] > upper)
+// 		{
+// 		if( strict)
+// 		throw GDLException("Array used to subscript array "
+// 				"contains out of range (>) subscript.");
+// 		(*res)[i++]= upperVal;
+// 		break;
+// 		}
+// 	else
+// 		(*res)[i]= (*this)[ (*src)[i]];
+// 	for(; i < nElem; ++i)
+// 	if( (*src)[i] > upper)
+// 		(*res)[i] = upperVal;
+// 	else
+// 		(*res)[i]= (*this)[ (*src)[i]];
+// 	return guard.release();
 	  }
     case INT:
       {
@@ -4585,26 +4612,6 @@ Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
 
 	NEWIX_UNSIGNEDINT
 
-	  // 	SizeT i = 0;
-	  // 	for( ; i < nElem; ++i)
-	  // 	  if( (*src)[i] > upper)
-	  // 	    {
-	  // 	      if( strict)
-	  // 		throw GDLException("Array used to subscript array "
-	  // 				   "contains out of range (>) subscript.");
-	  // 	      (*res)[i++]= upperVal;
-	  // 	      break;
-	  // 	    }
-	  // 	  else
-	  // 	    (*res)[i]= (*this)[ (*src)[i]];
-
-	  // 	for(; i < nElem; ++i)
-	  // 	  if( (*src)[i] >= upper)
-	  // 	    (*res)[i] = upperVal;
-	  // 	  else
-	  // 	    (*res)[i]= (*this)[ (*src)[i]]; 
-	
-	  // 	return guard.release();
 	  }
     case LONG: // typical type (returned from WHERE)
       {
@@ -4612,36 +4619,6 @@ Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
 
 	NEWIX_SIGNEDINT
 
-	  // 	SizeT i = 0;
-	  // 	for(; i < nElem; ++i)
-	  // 	  if( (*src)[i] < 0)
-	  // 	    {
-	  // 	      if( strict)
-	  // 		throw GDLException("Array used to subscript array "
-	  // 				   "contains out of range (<0) subscript.");
-	  // 	      (*res)[i++]= zeroVal;
-	  // 	      break;
-	  // 	    }
-	  // 	  else if( (*src)[i] > upper)
-	  // 	    {
-	  // 	      if( strict)
-	  // 		throw GDLException("Array used to subscript array "
-	  // 				   "contains out of range (>) subscript.");
-	  // 	      (*res)[i++]= upperVal;
-	  // 	      break;
-	  // 	    }
-	  // 	  else
-	  // 	    (*res)[ i] = (*this)[ (*src)[ i]];
-	
-	  // 	for(; i < nElem; ++i)
-	  // 	  if( (*src)[i] <= 0)
-	  // 	    (*res)[i]= zeroVal;
-	  // 	  else if( (*src)[i] >= upper)
-	  // 	    (*res)[i]= upperVal;
-	  // 	  else
-	  // 	    (*res)[ i] = (*this)[ (*src)[ i]];
-	
-	  // 	return guard.release();
 	  }
     case ULONG:
       {
@@ -4649,26 +4626,6 @@ Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
 
 	NEWIX_UNSIGNEDINT
 
-	  // 	SizeT i = 0;
-	  // 	for( ; i < nElem; ++i)
-	  // 	  if( (*src)[i] > upper)
-	  // 	    {
-	  // 	      if( strict)
-	  // 		throw GDLException("Array used to subscript array "
-	  // 				   "contains out of range (>) subscript.");
-	  // 	      (*res)[i++]= upperVal;
-	  // 	      break;
-	  // 	    }
-	  // 	  else
-	  // 	    (*res)[i]= (*this)[ (*src)[i]];
-
-	  // 	for(; i < nElem; ++i)
-	  // 	  if( (*src)[i] > upper)
-	  // 	    (*res)[i] = upperVal;
-	  // 	  else
-	  // 	    (*res)[i]= (*this)[ (*src)[i]]; 
-	
-	  // 	return guard.release();
 	  }
     case LONG64:
       {
@@ -4676,36 +4633,6 @@ Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
 
 	NEWIX_SIGNEDINT
 
-	  // 	SizeT i = 0;
-	  // 	for(; i < nElem; ++i)
-	  // 	  if( (*src)[i] < 0)
-	  // 	    {
-	  // 	      if( strict)
-	  // 		throw GDLException("Array used to subscript array "
-	  // 				   "contains out of range (<0) subscript.");
-	  // 	      (*res)[i++]= zeroVal;
-	  // 	      break;
-	  // 	    }
-	  // 	  else if( (*src)[i] > upper)
-	  // 	    {
-	  // 	      if( strict)
-	  // 		throw GDLException("Array used to subscript array "
-	  // 				   "contains out of range (>) subscript.");
-	  // 	      (*res)[i++]= upperVal;
-	  // 	      break;
-	  // 	    }
-	  // 	  else
-	  // 	    (*res)[ i] = (*this)[ (*src)[ i]];
-	
-	  // 	for(; i < nElem; ++i)
-	  // 	  if( (*src)[i] <= 0)
-	  // 	    (*res)[i]= zeroVal;
-	  // 	  else if( (*src)[i] >= upper)
-	  // 	    (*res)[i]= upperVal;
-	  // 	  else
-	  // 	    (*res)[i] = (*this)[ (*src)[i]];
-	
-	  // 	return guard.release();
 	  }
     case ULONG64:
       {
@@ -4713,26 +4640,6 @@ Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
 
 	NEWIX_UNSIGNEDINT
 
-	  // 	SizeT i = 0;
-	  // 	for( ; i < nElem; ++i)
-	  // 	  if( (*src)[i] > upper)
-	  // 	    {
-	  // 	      if( strict)
-	  // 		throw GDLException("Array used to subscript array "
-	  // 				   "contains out of range (>) subscript.");
-	  // 	      (*res)[i++]= upperVal;
-	  // 	      break;
-	  // 	    }
-	  // 	  else
-	  // 	    (*res)[i]= (*this)[ (*src)[i]];
-
-	  // 	for(; i < nElem; ++i)
-	  // 	  if( (*src)[i] > upper)
-	  // 	    (*res)[i] = upperVal;
-	  // 	  else
-	  // 	    (*res)[i]= (*this)[ (*src)[i]]; 
-	
-	  // 	return guard.release();
 	  }
     case FLOAT: 
       {
@@ -4886,6 +4793,8 @@ Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
 
 #undef NEWIX_SIGNEDINT
 #undef NEWIX_UNSIGNEDINT
+
+
 
 template<class Sp> SizeT Data_<Sp>::GetAsIndex( SizeT i) const
 {

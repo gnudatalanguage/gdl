@@ -49,7 +49,7 @@ CONFIG_CLEAN_VPATH_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 @BUILDASLIBRARY_TRUE@libgdl_la_DEPENDENCIES =  \
 @BUILDASLIBRARY_TRUE@	$(top_builddir)/src/antlr/libantlr.la
-am__libgdl_la_SOURCES_DIST = prognode.hpp prognodeexpr.hpp \
+am__libgdl_la_SOURCES_DIST = allix.hpp prognode.hpp prognodeexpr.hpp \
 	accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 	basegdl.hpp basic_fun_cl.cpp basic_fun_cl.hpp basic_fun.cpp \
 	basic_fun.hpp basic_fun_jmg.cpp basic_fun_jmg.hpp basic_op.cpp \
@@ -142,22 +142,23 @@ libgdl_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 @BUILDASLIBRARY_TRUE@am_libgdl_la_rpath =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am__gdl_SOURCES_DIST = prognode.hpp prognodeexpr.hpp accessdesc.hpp \
-	arrayindex.hpp assocdata.cpp assocdata.hpp basegdl.hpp \
-	basic_fun_cl.cpp basic_fun_cl.hpp basic_fun.cpp basic_fun.hpp \
-	basic_fun_jmg.cpp basic_fun_jmg.hpp basic_op.cpp basic_pro.cpp \
-	basic_pro.hpp basic_pro_jmg.cpp basic_pro_jmg.hpp \
-	CFMTLexer.cpp CFMTLexer.hpp CFMTTokenTypes.hpp cformat.g \
-	color.cpp color.hpp convert2.cpp datalistt.hpp datatypes.cpp \
-	datatypes.hpp dcommon.cpp dcommon.hpp dcompiler.cpp \
-	dcompiler.hpp default_io.cpp deviceps.hpp devicesvg.hpp \
-	devicewin.hpp devicex.hpp dimension.hpp dinterpreter.cpp \
-	dinterpreter.hpp dnode.cpp dnodefactory.hpp dnode.hpp dpro.cpp \
-	dpro.hpp dstructdesc.cpp dstructdesc.hpp dstructgdl.cpp \
-	dstructgdl.hpp dvar.cpp dvar.hpp envt.cpp envt.hpp extrat.cpp \
-	extrat.hpp FMTIn.cpp FMTIn.hpp FMTInTokenTypes.hpp \
-	FMTLexer.cpp FMTLexer.hpp fmtnode.cpp fmtnode.hpp FMTOut.cpp \
-	FMTOut.hpp FMTOutTokenTypes.hpp FMTParser.cpp FMTParser.hpp \
+am__gdl_SOURCES_DIST = allix.hpp prognode.hpp prognodeexpr.hpp \
+	accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
+	basegdl.hpp basic_fun_cl.cpp basic_fun_cl.hpp basic_fun.cpp \
+	basic_fun.hpp basic_fun_jmg.cpp basic_fun_jmg.hpp basic_op.cpp \
+	basic_pro.cpp basic_pro.hpp basic_pro_jmg.cpp \
+	basic_pro_jmg.hpp CFMTLexer.cpp CFMTLexer.hpp \
+	CFMTTokenTypes.hpp cformat.g color.cpp color.hpp convert2.cpp \
+	datalistt.hpp datatypes.cpp datatypes.hpp dcommon.cpp \
+	dcommon.hpp dcompiler.cpp dcompiler.hpp default_io.cpp \
+	deviceps.hpp devicesvg.hpp devicewin.hpp devicex.hpp \
+	dimension.hpp dinterpreter.cpp dinterpreter.hpp dnode.cpp \
+	dnodefactory.hpp dnode.hpp dpro.cpp dpro.hpp dstructdesc.cpp \
+	dstructdesc.hpp dstructgdl.cpp dstructgdl.hpp dvar.cpp \
+	dvar.hpp envt.cpp envt.hpp extrat.cpp extrat.hpp FMTIn.cpp \
+	FMTIn.hpp FMTInTokenTypes.hpp FMTLexer.cpp FMTLexer.hpp \
+	fmtnode.cpp fmtnode.hpp FMTOut.cpp FMTOut.hpp \
+	FMTOutTokenTypes.hpp FMTParser.cpp FMTParser.hpp \
 	FMTTokenTypes.hpp format.g format.in.g format.out.g gdlc.g \
 	gdlc.i.g gdlc.tree.g gdleventhandler.cpp gdleventhandler.hpp \
 	gdlexception.cpp gdlexception.hpp gdlgstream.cpp \
@@ -465,7 +466,7 @@ wxConfig = @wxConfig@
 # set the include path found by configure
 INCLUDES = $(EXT_INCLUDES) $(all_includes)
 SUBDIRS = antlr pro
-cpp_hpp_files = prognode.hpp prognodeexpr.hpp \
+cpp_hpp_files = allix.hpp prognode.hpp prognodeexpr.hpp \
 		accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 		basegdl.hpp basic_fun_cl.cpp basic_fun_cl.hpp basic_fun.cpp basic_fun.hpp \
 		basic_fun_jmg.cpp basic_fun_jmg.hpp basic_op.cpp basic_pro.cpp basic_pro.hpp \
