@@ -659,6 +659,24 @@ struct ForLoopInfoT
 		delete endLoopVar;
 		delete loopStepVar;
 	}
+	void Init()
+	{
+		endLoopVar = NULL;
+		loopStepVar = NULL;
+		foreachIx = -1;
+	}
+	void Clear()
+	{
+		delete endLoopVar;
+		delete loopStepVar;
+	}
+	void ClearInit()
+	{
+		delete endLoopVar;
+		delete loopStepVar;
+		endLoopVar = NULL;
+		loopStepVar = NULL;
+	}
 };
 
 #endif

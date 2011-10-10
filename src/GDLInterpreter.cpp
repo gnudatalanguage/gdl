@@ -783,11 +783,11 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 	_retTree = _t;
 }
 
- RetCode  GDLInterpreter::block(ProgNodeP _t) {
+ RetCode  GDLInterpreter::unused_block(ProgNodeP _t) {
 	 RetCode retCode;
-	ProgNodeP block_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP unused_block_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
-		match(antlr::RefAST(_t),BLOCK);
+	//	match(antlr::RefAST(_t),BLOCK);
 		_retTree = _t->getFirstChild();
 	return RC_OK;
 	//     retCode = RC_OK;
@@ -875,9 +875,9 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 	return retCode;
 }
 
- RetCode  GDLInterpreter::switch_statement(ProgNodeP _t) {
+ RetCode  GDLInterpreter::unused_switch_statement(ProgNodeP _t) {
 	 RetCode retCode;
-	ProgNodeP switch_statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP unused_switch_statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP s = ProgNodeP(antlr::nullAST);
 	
 	BaseGDL* e;
@@ -1061,9 +1061,9 @@ BaseGDL*  GDLInterpreter::expr(ProgNodeP _t) {
 	return res;
 }
 
- RetCode  GDLInterpreter::case_statement(ProgNodeP _t) {
+ RetCode  GDLInterpreter::unused_case_statement(ProgNodeP _t) {
 	 RetCode retCode;
-	ProgNodeP case_statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP unused_case_statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP c = ProgNodeP(antlr::nullAST);
 	
 	BaseGDL* e;
@@ -1176,9 +1176,9 @@ BaseGDL*  GDLInterpreter::expr(ProgNodeP _t) {
 	return retCode;
 }
 
- RetCode  GDLInterpreter::repeat_statement(ProgNodeP _t) {
+ RetCode  GDLInterpreter::unused_repeat_statement(ProgNodeP _t) {
 	 RetCode retCode;
-	ProgNodeP repeat_statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP unused_repeat_statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP r = ProgNodeP(antlr::nullAST);
 	
 	ProgNodeP __t27 = _t;
@@ -1196,9 +1196,9 @@ BaseGDL*  GDLInterpreter::expr(ProgNodeP _t) {
 	return retCode;
 }
 
- RetCode  GDLInterpreter::repeat_loop_statement(ProgNodeP _t) {
+ RetCode  GDLInterpreter::unused_repeat_loop_statement(ProgNodeP _t) {
 	 RetCode retCode;
-	ProgNodeP repeat_loop_statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
+	ProgNodeP unused_repeat_loop_statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP r = ProgNodeP(antlr::nullAST);
 	
 	ProgNodeP __t29 = _t;
@@ -1933,7 +1933,7 @@ BaseGDL**  GDLInterpreter::l_deref(ProgNodeP _t) {
 			if( !callStack.back()->Contains( e1)) 
 				{
 	//                if( actEnv != NULL)
-	actEnv->Guard( e1);
+	actEnv->Guard( e1); 
 	//                else
 	//                    e1_guard.reset( e1);
 	}
@@ -1943,7 +1943,7 @@ BaseGDL**  GDLInterpreter::l_deref(ProgNodeP _t) {
 	e1 = evalExpr->Eval();
 	
 	//      if( actEnv != NULL)
-	actEnv->Guard( e1);
+	actEnv->Guard( e1); 
 	//      else
 	//          e1_guard.reset(e1);
 	}

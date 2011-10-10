@@ -726,12 +726,12 @@ public:
 	public:  BaseGDL*  call_fun(ProgNodeP _t);
 	public:  BaseGDL**  call_lfun(ProgNodeP _t);
 	public: void call_pro(ProgNodeP _t);
-	public:  RetCode  block(ProgNodeP _t);
-	public:  RetCode  switch_statement(ProgNodeP _t);
+	public:  RetCode  unused_block(ProgNodeP _t);
+	public:  RetCode  unused_switch_statement(ProgNodeP _t);
 	public: BaseGDL*  expr(ProgNodeP _t);
-	public:  RetCode  case_statement(ProgNodeP _t);
-	public:  RetCode  repeat_statement(ProgNodeP _t);
-	public:  RetCode  repeat_loop_statement(ProgNodeP _t);
+	public:  RetCode  unused_case_statement(ProgNodeP _t);
+	public:  RetCode  unused_repeat_statement(ProgNodeP _t);
+	public:  RetCode  unused_repeat_loop_statement(ProgNodeP _t);
 	public:  RetCode  while_statement(ProgNodeP _t);
 	public:  RetCode  for_statement(ProgNodeP _t);
 	public:  RetCode  foreach_statement(ProgNodeP _t);

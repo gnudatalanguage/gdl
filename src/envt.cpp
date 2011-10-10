@@ -35,7 +35,7 @@ DInterpreter* EnvBaseT::interpreter;
 
 EnvBaseT::EnvBaseT( ProgNodeP cN, DSub* pro_): 
   env(), 
-  toDestroy(NULL),
+  toDestroy(),
   pro(pro_),
   extra(NULL),
   newEnv(NULL), 
@@ -57,7 +57,7 @@ EnvUDT::EnvUDT( ProgNodeP cN, DSub* pro_, bool lF):
 {
   DSubUD* proUD=static_cast<DSubUD*>(pro);
 
-  forLoopInfo.resize( proUD->NForLoops());
+  forLoopInfo.InitSize( proUD->NForLoops());
   
   SizeT envSize;
   SizeT keySize;
@@ -126,7 +126,7 @@ EnvUDT::EnvUDT( ProgNodeP cN, BaseGDL* self,
 
   DSubUD* proUD=static_cast<DSubUD*>(pro);
 
-  forLoopInfo.resize( proUD->NForLoops());
+  forLoopInfo.InitSize( proUD->NForLoops());
 
   SizeT envSize;
   SizeT keySize;
@@ -178,7 +178,7 @@ EnvUDT::EnvUDT( BaseGDL* self, //DStructGDL* oStructGDL,
 
   DSubUD* proUD=static_cast<DSubUD*>(pro);
 
-  forLoopInfo.resize( proUD->NForLoops());
+  forLoopInfo.InitSize( proUD->NForLoops());
 
   SizeT envSize;
   SizeT keySize;
@@ -228,7 +228,7 @@ EnvUDT::EnvUDT( EnvBaseT* pEnv, DSub* newPro, BaseGDL** self):
 
   DSubUD* proUD=static_cast<DSubUD*>(pro);
   
-  forLoopInfo.resize( proUD->NForLoops());
+  forLoopInfo.InitSize( proUD->NForLoops());
 
   SizeT envSize;
   SizeT keySize;
@@ -339,11 +339,11 @@ void EnvBaseT::AddEnv( DPtrListT& ptrAccessible, DPtrListT& objAccessible)
 }
 void EnvBaseT::AddToDestroy( DPtrListT& ptrAccessible, DPtrListT& objAccessible)
 {
-	if( toDestroy == NULL)
-		return;
-    for( SizeT i=0; i<toDestroy->size(); ++i)
+// 	if( toDestroy == NULL)
+// 		return;
+    for( SizeT i=0; i<toDestroy.size(); ++i)
       {
-         Add( ptrAccessible, objAccessible, (*toDestroy)[i]);
+         Add( ptrAccessible, objAccessible, toDestroy[i]);
 	  }
 }
 

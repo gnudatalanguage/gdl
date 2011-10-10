@@ -1278,9 +1278,9 @@ statement returns[ RetCode retCode]
         return retCode;
     }
 
-block returns[ RetCode retCode]
+unused_block returns[ RetCode retCode]
 {
-	match(antlr::RefAST(_t),BLOCK);
+//	match(antlr::RefAST(_t),BLOCK);
 	_retTree = _t->getFirstChild();
     return RC_OK;
 //     retCode = RC_OK;
@@ -1308,7 +1308,7 @@ block returns[ RetCode retCode]
 	: #(BLOCK (retCode=statement_list)?)
 	;
 
-switch_statement returns[ RetCode retCode]
+unused_switch_statement returns[ RetCode retCode]
 {
     BaseGDL* e;
     retCode = RC_OK; // not set if no branch is executed
@@ -1409,7 +1409,7 @@ switch_statement returns[ RetCode retCode]
         )
     ;
 
-case_statement returns[ RetCode retCode]
+unused_case_statement returns[ RetCode retCode]
 {
     BaseGDL* e;
     retCode = RC_OK; // not set if no branch is executed
@@ -1515,7 +1515,7 @@ case_statement returns[ RetCode retCode]
 
 
 
-repeat_statement returns[ RetCode retCode]
+unused_repeat_statement returns[ RetCode retCode]
 	: #(r:REPEAT // block expr
             {
                 // _t is REPEAT_LOOP, GetFirstChild() is expr, GetNextSibling is first loop statement
@@ -1525,7 +1525,7 @@ repeat_statement returns[ RetCode retCode]
         )
 	;
 
-repeat_loop_statement returns[ RetCode retCode]
+unused_repeat_loop_statement returns[ RetCode retCode]
 // {
 //     retCode = RC_OK; // not set if no branch is executed
 // }

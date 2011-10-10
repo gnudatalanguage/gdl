@@ -53,7 +53,7 @@ private:
   
 protected:
   // stores all data which has to deleted upon destruction
-  ContainerT* toDestroy;
+  ContainerT toDestroy;
    //   static ContainerT toDestroy;
 
 public:
@@ -64,9 +64,9 @@ public:
   
   void Guard( BaseGDL* toGuard)
     {
-		if( toDestroy == NULL)
-			toDestroy = new ContainerT();
-		toDestroy->push_back( toGuard);
+// 		if( toDestroy == NULL)
+// 			toDestroy = new ContainerT();
+		toDestroy.push_back( toGuard);
 	}
 
 protected:
@@ -74,15 +74,15 @@ protected:
   static std::set< DObj> inProgress;
   
   static DInterpreter* interpreter;
-  DataListT            env;
+  DataListT         env;
   SizeT                parIx;     // ix of next parameter to put
-  DSub*                pro;
-  ProgNodeP            callingNode;
-  int			  lineNumber;
+  DSub*              pro;
+  ProgNodeP      callingNode;
+  int			          lineNumber;
   bool                 obj;       // member subroutine?
-  ExtraT*              extra;
+  ExtraT*            extra;
 
-  EnvBaseT* newEnv;
+  EnvBaseT*      newEnv;
 
   // finds the local variable pp points to
   int FindLocalKW( BaseGDL** pp) { return env.FindLocal( pp);}
@@ -119,7 +119,7 @@ public:
   virtual ~EnvBaseT()
   {
     delete extra;
-	delete toDestroy; // cleans up its content
+// 	delete toDestroy; // cleans up its content
 /*    for( SizeT i=toDestroyInitialIndex; i<toDestroy.size(); ++i)
       {
 		delete toDestroy[i];
@@ -196,7 +196,7 @@ proUD->SetCompileOpt( cOpt);
    }
 
   // the upper (calling) environment
-  // a EnvT must have always a EnvUDT caller
+  // a EnvT must have always a /*EnvUDT*/ caller
   // i.e. library functions never call each other
   // with a new EnvT environment
   EnvBaseT* Caller();
@@ -269,11 +269,115 @@ proUD->SetCompileOpt( cOpt);
 };
 
 
+// preallocates a buffer which should never be exceeded
+// but will work with any number of elements
+template< typename T, SizeT defaultLength> class ForInfoListT
+{
+public:
+typedef T* iterator;
+
+private:
+T* eArr;
+char buf[defaultLength * sizeof(T)]; // prevent constructor calls
+SizeT sz;
+
+public:
+ForInfoListT(): eArr( reinterpret_cast<T*>(buf))
+{
+#ifndef NDEBUG
+sz = 1234567; // there will be never so many FOR loops in one procedure
+#endif
+}
+~ForInfoListT()
+{
+	if( eArr != reinterpret_cast<T*>(buf))
+		delete[] eArr;
+	else
+	{
+		T* pEnd = &eArr[sz];
+		for( T* p = &eArr[0]; p!=pEnd; ++p)
+			p->Clear();
+	}
+}
+
+// must be called before access
+void InitSize( SizeT s)
+{
+    assert( sz == 1234567);
+    sz = s;
+    if( s == 0)
+		return;
+	if( s < defaultLength)
+	{
+		for( SizeT i=0; i<s; ++i)
+			eArr[ i].Init();
+		return;
+	}
+	eArr = new T[ s]; // constructor called
+}
+// only needed for EXECUTE
+void resize( SizeT s)
+{
+    assert( sz != 1234567);
+	if( s == sz)
+		return;
+	if( s < sz) // shrink
+	{
+		for( SizeT i=s; i<sz; ++i)
+			eArr[ i].ClearInit(); // in case eArr was allocated
+		sz = s;
+		return;
+	}
+	// s > sz -> grow
+    if( s <= defaultLength && eArr == reinterpret_cast<T*>(buf))
+    {
+		for( SizeT i=sz; i<s; ++i)
+			eArr[ i].Init();
+		sz = s;
+		return;
+    }
+    // this should never happen (or only in extreme rarely cases)
+    // hence the performance will go down
+    // s > defaultLength
+    T* newArr = new T[ s]; // ctor called
+	if( eArr != reinterpret_cast<T*>(buf))
+	{
+		for( SizeT i=0; i<sz; ++i)
+			{
+				newArr[i] = eArr[ i];
+				eArr[ i].Init(); // prevent dtor from freeing
+			}
+		delete[] eArr;
+	}
+    else
+    {
+		for( SizeT i=0; i<s; ++i)
+			{
+				newArr[i] = eArr[ i];
+			}
+    }
+    eArr = newArr;
+    sz = s;
+}
+// T operator[]( SizeT i) const { assert( i<sz);  return eArr[i];}
+T& operator[]( SizeT i) { assert( i<sz);  return eArr[i];}
+SizeT size() const { return sz;}
+iterator begin()  { return &eArr[0];}
+iterator end()  { return &eArr[sz];}
+bool empty() const { return sz == 0;}
+T& front() { return eArr[0];}
+const T& front() const { return eArr[0];}
+T& back() { return eArr[sz-1];}
+const T& back() const { return eArr[sz-1];}
+};
+
+
 
 // for UD subroutines (written in GDL) ********************************
 class EnvUDT: public EnvBaseT
 {
-  std::vector<ForLoopInfoT> forLoopInfo;
+ForInfoListT<ForLoopInfoT, 32> forLoopInfo;
+// std::vector<ForLoopInfoT> forLoopInfo;
 
   ProgNodeP         ioError; 
   DLong             onError; // on_error setting
@@ -650,7 +754,7 @@ public:
 };
 
 
-	typedef std::deque<EnvBaseT*> EnvStackT;
+typedef std::deque<EnvBaseT*> EnvStackT;
 
 #endif
 
