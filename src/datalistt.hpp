@@ -22,35 +22,176 @@
 
 struct EnvType
 {
-  EnvType( BaseGDL* pIn, BaseGDL** ppIn): p(pIn), pp(ppIn) {}
+//   EnvType( BaseGDL* pIn): p(pIn), pp(NULL) {}
+//   EnvType( BaseGDL** ppIn): p(NULL), pp(ppIn) {}
+  EnvType() {}
+//   ~EnvType() { delete p;}
+  void Null() { p = NULL; pp = NULL;}
+  void NullP() { p = NULL;}
+  void NullPP() { pp = NULL;}
+  
   bool IsSet() { return (p != NULL || pp != NULL);}
+
+  bool IsP() const { return p != NULL;}
+  bool IsPP() const { return pp != NULL;}
+
+  void SetPNullPP( BaseGDL* pIn) {p = pIn; pp = NULL;}
+  void SetPPNullP( BaseGDL** ppIn) {pp = ppIn; p = NULL;}
+  void SetP( BaseGDL* pIn) {p = pIn;}
+  void SetPP( BaseGDL** ppIn) {pp = ppIn;}
+  
+  BaseGDL* P() const { return p;}
+  BaseGDL** PP() const { return pp;}
+  BaseGDL*& PRef() { return p;}
+  BaseGDL**& PPRef() { return pp;}
+  BaseGDL* const& PRefC() const { return p;}
+  BaseGDL** const& PPRefC() const { return pp;}
+
+private:
   BaseGDL* p;
   BaseGDL** pp;
 };
 
+const SizeT DataListDefaultLength = 64;
+
+// this data structure is optimized for list sizes < defaultLength
+// DataListDefaultLength should be set such that it will probably never exceed
+// note: it will work for larger lists as well, but then copy operations are performed
+template< typename T, SizeT defaultLength> class EnvTypePreAllocListT
+{
+public:
+typedef T* iterator;
+
+private:
+T* eArr;
+T buf[defaultLength];
+SizeT sz;
+SizeT actLen;
+
+public:
+EnvTypePreAllocListT(): eArr(buf), sz(0), actLen(defaultLength) {}
+~EnvTypePreAllocListT()
+{
+	if( eArr != buf)
+		delete[] eArr;
+}
+void push_back( BaseGDL* p)
+{
+	if( sz >= actLen)
+	{
+		actLen *= 4; // should only happen rarely
+		T* newArr = new T[ actLen];
+		for( SizeT i=0; i<sz; ++i)
+			newArr[i] = eArr[i];
+		if( eArr != buf)
+			delete[] eArr;
+		eArr = newArr;
+	}
+	eArr[ sz++].SetPNullPP( p);
+}
+void push_back( BaseGDL** pp)
+{
+	if( sz >= actLen)
+	{
+		actLen *= 4; // should only happen rarely
+		T* newArr = new T[ actLen];
+		for( SizeT i=0; i<sz; ++i)
+			newArr[i] = eArr[i];
+		if( eArr != buf)
+			delete[] eArr;
+		eArr = newArr;
+	}
+	eArr[ sz++].SetPPNullP( pp);
+}
+void push_back()
+{
+	if( sz >= actLen)
+	{
+		actLen *= 4; // should only happen rarely
+		T* newArr = new T[ actLen];
+		for( SizeT i=0; i<sz; ++i)
+			newArr[i] = eArr[i];
+		if( eArr != buf)
+			delete[] eArr;
+		eArr = newArr;
+	}
+	eArr[ sz++].Null();
+}
+const T& operator[]( SizeT i) const { assert( i<sz);  return eArr[i];}
+T& operator[]( SizeT i)
+{
+assert( i<sz);
+return eArr[i];
+}
+  
+SizeT size() const { return sz;}
+iterator begin()  { return &eArr[0];}
+iterator end()  { return &eArr[sz];}
+bool empty() const { return sz == 0;}
+T& front() { return eArr[0];}
+const T& front() const { return eArr[0];}
+T& back() { return eArr[sz-1];}
+const T& back() const { return eArr[sz-1];}
+void pop_back() { --sz;}
+void resize( SizeT newSz)
+{
+	assert( newSz >= sz);
+	if( newSz > actLen) // should only happen rarely
+	{
+		actLen = newSz; 
+		T* newArr = new T[ actLen];
+		SizeT i=0;
+		for( ; i<sz; ++i)
+			newArr[i] = eArr[i];
+		for( ; i<newSz; ++i)
+			{
+				newArr[i].Null();
+			}
+		if( eArr != buf)
+			delete[] eArr;
+		eArr = newArr;
+		sz = newSz;
+		return;
+	}
+	for( SizeT i=sz; i<newSz; ++i)
+		{
+			eArr[i].Null();
+		}
+	sz = newSz;
+}
+
+};
+
 class DataListT
 {
-  std::vector<EnvType> env; // holds the variables
+// typedef std::vector<EnvType> ListT;
+typedef EnvTypePreAllocListT<EnvType, DataListDefaultLength> ListT;
+
+ListT env; // holds the variables
 
 public:
   DataListT(): env() {}
   ~DataListT()
   {
-    for( SizeT i=0; i<env.size(); i++)
-      delete env[i].p;
+	ListT::iterator pEnd = env.end();
+	for( ListT::iterator p = env.begin(); p!=pEnd;++p)
+		delete p->P();
+//     for( SizeT i=0; i<env.size(); i++)
+//       delete env[i];
+//       delete env[i].p;
   }
 
   bool InLoc( BaseGDL** p) const
   {
-    return ( !env.empty() && p >= &env.front().p && p <= &env.back().p);
+    return ( !env.empty() && p >= &env.front().PRefC() && p <= &env.back().PRefC());
   }
 
   bool Contains( BaseGDL* p) const
   {
     for( SizeT i=0; i<env.size(); i++)
       {
-	if( env[i].p == p) return true;
-	if( env[i].pp != NULL && *(env[i].pp) == p) return true;
+		if( env[i].P() == p) return true;
+		if( env[i].PP() != NULL && *(env[i].PP()) == p) return true;
       }
     return false;
   }
@@ -58,25 +199,25 @@ public:
   void RemoveLoc( BaseGDL* p) 
   {
     for( SizeT i=0; i<env.size(); i++)
-      if( env[i].p == p)
+      if( env[i].P() == p) 
 	{
-	  env[i].p = NULL;
+	  env[i].NullP(); 
 	  return;
 	}
   }
 
   void push_back( BaseGDL* p)
   {
-    env.push_back(EnvType(p,NULL));
+    env.push_back(p);
   }
   void push_back( BaseGDL** pp)
   {
-    env.push_back(EnvType(NULL,pp));
+    env.push_back(pp);
   }
 
   void AddOne()
   {
-    env.push_back(EnvType(NULL,NULL));
+    env.push_back();
   }
 
   void pop_back()
@@ -85,41 +226,55 @@ public:
   }
 
   SizeT size() const { return env.size();}
-  void reserve( SizeT s)
-  {
-    env.reserve( s);
-  }
-  void resize( SizeT s)
-  {
-    env.resize( s, EnvType(NULL,NULL));
-  }
+//    void reserve( SizeT s)
+//    {
+//      env.reserve( s);
+//    }
+   void resize( SizeT s)
+   {
+     env.resize( s); //, EnvType(NULL,NULL));
+   }
 
   BaseGDL*& operator[]( const SizeT ix)
   {
-    if( env[ ix].pp != NULL) return *env[ ix].pp;
-    return env[ ix].p;
+    if( env[ ix].IsPP() )
+		return *env[ ix].PP();
+    return env[ ix].PRef(); // ok, IsP
   }
   void Clear( SizeT ix)
   {
-    env[ ix]=EnvType(NULL,NULL);
+    env[ ix].Null();
   }
   void Reset( SizeT ix, BaseGDL* p)
   {
-    if( env[ ix].p != NULL) delete env[ ix].p;
-    env[ ix]=EnvType(p,NULL);
+    if( env[ ix].IsP()) // implies pp == NULL
+    {
+		delete env[ ix].P();
+		env[ ix].SetP( p);
+		return;
+    }
+    // !IsP -> p == NULL
+	env[ ix].SetPNullPP( p);
   }
   void Reset( SizeT ix, BaseGDL** pp)
   {
-    if( env[ ix].p != NULL) delete env[ ix].p;
-    env[ ix]=EnvType(NULL,pp);
+    if( env[ ix].IsP())
+    {
+		delete env[ ix].P();
+ 		env[ ix].NullP();
+    }
+    // !IsP -> p == NULL
+    env[ ix].SetPP( pp);
   }
   void Set( SizeT ix, BaseGDL* p)
   {
-    env[ ix]=EnvType(p,NULL);
+    env[ ix].SetPNullPP( p);
+//     env[ ix].NullPP();
   }
   void Set( SizeT ix, BaseGDL** pp)
   {
-    env[ ix]=EnvType(NULL,pp);
+//     env[ ix].NullP();
+    env[ ix].SetPPNullP( pp);
   }
   bool IsSet( SizeT ix)
   {
@@ -128,13 +283,14 @@ public:
   BaseGDL* Grab( SizeT ix)
   {
     BaseGDL* ret;
-    if( env[ ix].p != NULL) 
+    if( env[ ix].IsP())
       {
-	ret=env[ ix].p;
-	env[ ix].p=NULL;
-	return ret;
+		ret=env[ ix].P();
+		env[ ix].NullP();
+		return ret;
       }
-    if( env[ ix].pp != NULL) return (*env[ ix].pp)->Dup();
+    if( env[ ix].IsPP())
+		return (*env[ ix].PP())->Dup();
     return NULL;
  }
 
@@ -142,7 +298,7 @@ public:
   int FindLocal( BaseGDL** pp)
   {
     for( SizeT i=0; i<env.size(); i++)
-      if( &env[i].p == pp) return static_cast<int>(i);
+      if( &env[i].PRef() == pp) return static_cast<int>(i);
     return -1;
   }
 
@@ -150,27 +306,28 @@ public:
   int FindGlobal( BaseGDL** pp)
   {
     for( SizeT i=0; i<env.size(); i++)
-      if( env[i].pp == pp) return static_cast<int>(i);
+      if( env[i].PP() == pp) return static_cast<int>(i);
     return -1;
   }
 
   BaseGDL** GetPtrTo( BaseGDL* p)
   {
+	assert( p != NULL);
     for( SizeT i=0; i<env.size(); i++)
       {
-	if( env[i].p == p) return &env[i].p;
-	if( env[i].pp != NULL && *env[i].pp == p) return env[i].pp;
+		if( env[i].P() == p) return &env[i].PRef();
+		if( env[i].IsPP() && *env[i].PP() == p) return env[i].PP();
       }
     return NULL;
   }
 
   BaseGDL* Loc( SizeT ix)
   {
-    return env[ ix].p;
+    return env[ ix].P();
   }
   BaseGDL** Env( SizeT ix)
   {
-    return env[ ix].pp;
+    return env[ ix].PP();
   }
 };
 

@@ -31,17 +31,18 @@ using namespace std;
 // instance of static data
 DInterpreter* EnvBaseT::interpreter;
 
-EnvBaseT::ContainerT EnvBaseT::toDestroy;
+// EnvBaseT::ContainerT EnvBaseT::toDestroy;
 
 EnvBaseT::EnvBaseT( ProgNodeP cN, DSub* pro_): 
   env(), 
+  toDestroy(NULL),
   pro(pro_),
   extra(NULL),
   newEnv(NULL), 
   callingNode( cN),
   lineNumber( 0),
   obj(false)
-, toDestroyInitialIndex( toDestroy.size())
+//, toDestroyInitialIndex( toDestroy.size())
 {}
 
 EnvUDT::EnvUDT( ProgNodeP cN, DSub* pro_, bool lF): 
@@ -338,9 +339,11 @@ void EnvBaseT::AddEnv( DPtrListT& ptrAccessible, DPtrListT& objAccessible)
 }
 void EnvBaseT::AddToDestroy( DPtrListT& ptrAccessible, DPtrListT& objAccessible)
 {
-    for( SizeT i=0; i<toDestroy.size(); ++i)
+	if( toDestroy == NULL)
+		return;
+    for( SizeT i=0; i<toDestroy->size(); ++i)
       {
-         Add( ptrAccessible, objAccessible, toDestroy[i]);
+         Add( ptrAccessible, objAccessible, (*toDestroy)[i]);
 	  }
 }
 

@@ -26,7 +26,18 @@
 #include "allix.hpp"
 
 //typedef std::valarray<SizeT> AllIxT; // now in typedefs.hpp
-typedef std::vector<BaseGDL*>     IxExprListT;
+//typedef std::vector<BaseGDL*>     IxExprListT;
+class IxExprListT
+{
+private:
+BaseGDL* eArr[3*MAXRANK];
+int sz;
+public:
+IxExprListT(): sz(0) {}
+void push_back( BaseGDL* p) { assert( sz<3*MAXRANK); eArr[ sz++] = p;}
+BaseGDL* operator[]( SizeT i) const { assert( i<3*MAXRANK && i<sz); return eArr[i];}
+SizeT size() const { return sz;}
+};
 
 enum IndexType
 {
@@ -371,9 +382,9 @@ public:
     ix = NULL; // marker ONE or INDEXED
   }
 
+
   BaseGDL* Index( BaseGDL* var, IxExprListT& ixL)
   {
-
     int ret = ixL[0]->Scalar2RangeT(s);
 
     if( ret == 0) // more than one element
@@ -421,24 +432,24 @@ public:
 	res->SetDim( dimension( 1));
 	return res;
 	
-//     // unreachable because using now Scala2RangeT which returns always 0 ,1 or 2
-//     if( strictArrSubs || ret == -1) // scalar index < 0
-//       {
-// 	throw 
-// 	  GDLException( NULL,"Subscript range values of the"
-// 			" form low:high must be >= 0, < size,"
-// 			" with low <= high.",true,false);
-//       }
-//     one element array index < 0
-//     if( ret == -2)
-//       {
-// 	BaseGDL* res = var->NewIx( 0);
-// 	res->SetDim( dimension( 1));
-// 	return res;
-//       }	
-//     else
-//       return var->NewIx( 0);
-  }
+// //     // unreachable because using now Scala2RangeT which returns always 0 ,1 or 2
+// //     if( strictArrSubs || ret == -1) // scalar index < 0
+// //       {
+// // 	throw
+// // 	  GDLException( NULL,"Subscript range values of the"
+// // 			" form low:high must be >= 0, < size,"
+// // 			" with low <= high.",true,false);
+// //       }
+// //     one element array index < 0
+// //     if( ret == -2)
+// //       {
+// // 	BaseGDL* res = var->NewIx( 0);
+// // 	res->SetDim( dimension( 1));
+// // 	return res;
+// //       }
+// //     else
+// //       return var->NewIx( 0);
+   }
 
   void Init( BaseGDL* ix_) 
   {

@@ -44,24 +44,30 @@ namespace lib {
 class EnvBaseT
 {
 private:
-  typedef std::deque<BaseGDL*> ContainerT;
+//   typedef std::deque<BaseGDL*> ContainerT;
+  typedef ExprListT ContainerT;
 
-  SizeT toDestroyInitialIndex;
+//   SizeT toDestroyInitialIndex;
 
   EnvBaseT(){}
   
 protected:
   // stores all data which has to deleted upon destruction
-  static ContainerT toDestroy;
+  ContainerT* toDestroy;
+   //   static ContainerT toDestroy;
 
 public:
-  // not anmore: DEPRECATED due to poor perfomance, this does not belong into an environment
   // needed to delete temporary ptr parameters only after subroutine completion
   // 'guards' a newly created variable which should be deleted
   // upon library routines exit (normal or on error)
-  // elimates the need of auto_ptr
+  // elimates the need of auto_ptr and in some places later destruction is needed
+  
   void Guard( BaseGDL* toGuard)
-    { toDestroy.push_back( toGuard);}
+    {
+		if( toDestroy == NULL)
+			toDestroy = new ContainerT();
+		toDestroy->push_back( toGuard);
+	}
 
 protected:
   // for obj cleanup
@@ -76,7 +82,7 @@ protected:
   bool                 obj;       // member subroutine?
   ExtraT*              extra;
 
-	EnvBaseT* newEnv;
+  EnvBaseT* newEnv;
 
   // finds the local variable pp points to
   int FindLocalKW( BaseGDL** pp) { return env.FindLocal( pp);}
@@ -112,12 +118,13 @@ public:
 
   virtual ~EnvBaseT()
   {
-  delete extra;
-    for( SizeT i=toDestroyInitialIndex; i<toDestroy.size(); ++i)
+    delete extra;
+	delete toDestroy; // cleans up its content
+/*    for( SizeT i=toDestroyInitialIndex; i<toDestroy.size(); ++i)
       {
-	delete toDestroy[i];
+		delete toDestroy[i];
       }
-    toDestroy.resize( toDestroyInitialIndex);
+    toDestroy.resize( toDestroyInitialIndex);*/
 //      for( ContainerT::iterator i=toDestroy.begin();
 //  	 i != toDestroy.end(); ++i) 
 //        delete *i;
@@ -183,10 +190,10 @@ proUD->SetCompileOpt( cOpt);
     return s;
   }
 
-  void DelEnv()
-  {
-    env.pop_back();
-  }
+   void DelEnv()
+   {
+     env.pop_back();
+   }
 
   // the upper (calling) environment
   // a EnvT must have always a EnvUDT caller
@@ -447,7 +454,7 @@ public:
     T* res = dynamic_cast<T*>( p);
     if( res != NULL) return res;
     res = static_cast<T*>( p->Convert2( T::t, BaseGDL::COPY));
-    toDestroy.push_back( res);
+    Guard( res);
     return res;
   }
   // same as before for keywords
@@ -460,7 +467,7 @@ public:
     T* res = dynamic_cast<T*>( p);
     if( res != NULL) return res;
     res = static_cast<T*>( p->Convert2( T::t, BaseGDL::COPY));
-    toDestroy.push_back( res);
+    Guard( res);
     return res;
   }
 
@@ -473,7 +480,7 @@ public:
     T* res = dynamic_cast<T*>( p);
     if( res != NULL) return res;
     res = static_cast<T*>( p->Convert2( T::t, BaseGDL::COPY));
-    toDestroy.push_back( res);
+    Guard( res);
     return res;
   }
   // same as before for keywords
@@ -485,7 +492,7 @@ public:
     T* res = dynamic_cast<T*>( p);
     if( res != NULL) return res;
     res = static_cast<T*>( p->Convert2( T::t, BaseGDL::COPY));
-    toDestroy.push_back( res);
+    Guard( res);
     return res;
   }
 

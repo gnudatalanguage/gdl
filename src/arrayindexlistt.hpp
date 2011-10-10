@@ -67,6 +67,7 @@ public:
   virtual void AssignAt( BaseGDL* var, BaseGDL* right) {}
 
   // optimized for one dimensional access
+  // this is called from the interpreter
   virtual BaseGDL* Index( BaseGDL* var, IxExprListT& ix) = 0;
 
   // returns multi-dim index for 1st element
@@ -722,13 +723,13 @@ public:
     // Init() not called
     if( !var->IsAssoc() && var->Type() != STRUCT)
       {
-	if( s >= var->Size())
-	  {
-// 	    std::cout << s << " var->Size():" << var->Size() << std::endl;
-	    throw GDLException(NULL,"Scalar subscript out of range [>].3",true,false);
-	  }
-	    
-	return var->NewIx( s);
+		if( s >= var->Size())
+		{
+	// 	    std::cout << s << " var->Size():" << var->Size() << std::endl;
+			throw GDLException(NULL,"Scalar subscript out of range [>].3",true,false);
+		}
+ 		
+		return var->NewIx( s);
       }
     
     // normal case

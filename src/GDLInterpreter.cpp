@@ -1933,7 +1933,7 @@ BaseGDL**  GDLInterpreter::l_deref(ProgNodeP _t) {
 			if( !callStack.back()->Contains( e1)) 
 				{
 	//                if( actEnv != NULL)
-	actEnv->Guard( e1); 
+	actEnv->Guard( e1);
 	//                else
 	//                    e1_guard.reset( e1);
 	}
@@ -1943,7 +1943,7 @@ BaseGDL**  GDLInterpreter::l_deref(ProgNodeP _t) {
 	e1 = evalExpr->Eval();
 	
 	//      if( actEnv != NULL)
-	actEnv->Guard( e1); 
+	actEnv->Guard( e1);
 	//      else
 	//          e1_guard.reset(e1);
 	}

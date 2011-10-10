@@ -212,7 +212,7 @@ inline bool ConvertableType( DType t) // everything except Struct, Ptr, Obj
 
 class   BaseGDL;
 class   ArrayIndexListT;
-class   ExprListT;
+//class   ExprListT;
 
 struct SpDULong;
 template<class> class Data_;
@@ -578,28 +578,69 @@ public:
 #endif
 };
 
-const int ExprListDefaultLength = 128;
+// {
+// public:
+// typedef BaseGDL** iterator;
+// 
+// private:
+// BaseGDL** eArr;
+// BaseGDL* buf[ExprListDefaultLength];
+// SizeT sz;
+// SizeT actLen;
+// 
+// public:
+// ExprListT(): eArr(buf), sz(0) {}
+// ~ExprListT()
+// {
+// 	BaseGDL** pEnd = &eArr[sz];
+// 	for( BaseGDL** p = &eArr[0]; p!=pEnd;++p)
+// 		delete *p;
+// 	if( eArr != buf)
+// 		delete[] eArr;
+// }
+// void push_back( BaseGDL* p)
+// {
+// 	if( sz < ExprListDefaultLength)
+// 	{
+// 		eArr[ sz++] = p;
+// 		return;
+// 	}
+// 	if( sz == ExprListDefaultLength)
+// 		actLen =ExprListDefaultLength; // only init here
+// 	if( sz == actLen)
+// 	{
+// 		actLen *= 2;
+// 		BaseGDL** newArr = new BaseGDL*[ actLen];
+// 		for( SizeT i=0; i<sz; ++i)
+// 			newArr[i] = eArr[i];
+// 		if( eArr != buf)
+// 			delete[] eArr;
+// 		eArr = newArr;
+// 	}
+// 	eArr[ sz++] = p;
+// }
+// BaseGDL* operator[]( SizeT i) const { assert( i<sz);  return eArr[i];}
+// SizeT size() const { return sz;}
+// iterator begin()  { return &eArr[0];}
+// iterator end()  { return &eArr[sz];}
+// };
 
 // ExprListT deletes all members upon own destruction
-// class ExprListT: public std::list<BaseGDL*> 
-class ExprListT: public std::vector<BaseGDL*> 
-{
-public:
-ExprListT()
-{
-this->reserve(ExprListDefaultLength);
-}
-  ~ExprListT()
-  {
-    for( ExprListT::iterator i=this->begin(); i!=this->end(); ++i)
-      delete *i;
-  }
-};
 
-
-
-typedef ExprListT::iterator ExprListIterT;
-
+// old slow version (up to GDL 0.9.1):
+// class ExprListT: public std::vector<BaseGDL*>
+// {
+// public:
+// 	ExprListT()
+// 	{
+// 	this->reserve(ExprListDefaultLength);
+// 	}
+// 	~ExprListT()
+// 	{
+// 	for( ExprListT::iterator i=this->begin(); i!=this->end(); ++i)
+// 		delete *i;
+// 	}
+// };
 
 
 struct ForLoopInfoT

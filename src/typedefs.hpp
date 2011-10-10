@@ -54,6 +54,14 @@
 #include <vector>
 #include <valarray>
 #include <cassert>
+#ifdef CVS_VERSION
+#include <iostream>
+#endif
+
+// // undef for releases (should not give diagnostics)
+// // define for the CVS (where the default sizes can easily be adjusted)
+// // #define CVS_VERSION
+// // #undef CVS_VERSION
 
 //#define TRACE_OMP_CALLS
 #undef TRACE_OMP_CALLS
@@ -543,5 +551,74 @@ buf = scalar;
 //     GDLArray<Ty> pow(const GDLArray<Ty> left, const Ty& right);
 // template<class Ty>
 //     GDLArray<Ty> pow(const Ty& left, const GDLArray<Ty>& right);
+
+// this data structure is optimized for list sizes < ExprListDefaultLength
+// ExprListDefaultLength should be set such that it will probably never exceed
+// note: it will work for larger lists as well, but then copy operations are performed
+// The effect for indexed access was significant (>40%).
+template< typename T, SizeT defaultLength> class PreAllocPListT
+{
+public:
+typedef T* iterator;
+
+private:
+T* eArr;
+T buf[defaultLength];
+SizeT sz;
+SizeT actLen;
+
+public:
+PreAllocPListT(): eArr(buf), sz(0) {}
+~PreAllocPListT()
+{
+	T* pEnd = &eArr[sz];
+	for( T* p = &eArr[0]; p!=pEnd;++p)
+		delete *p;
+	if( eArr != buf)
+		delete[] eArr;
+}
+void push_back( T p)
+{
+	if( sz < defaultLength)
+	{
+		eArr[ sz++] = p;
+		return;
+	}
+	if( sz == defaultLength)
+		actLen =defaultLength; // only init here
+	if( sz == actLen)
+	{
+// /* #ifdef CVS_VERSION
+//  		only for CVS version
+//   		std::cerr << "PreAllocPListT: Resize triggered ("+i2s(sz)+"). All Ok! But please report at: http://sourceforge.net/tracker/?group_id=97659&atid=618683" << std::endl;
+// #endif*/
+		actLen *= 2;
+		T* newArr = new T[ actLen];
+		for( SizeT i=0; i<sz; ++i)
+			newArr[i] = eArr[i];
+		if( eArr != buf)
+			delete[] eArr;
+		eArr = newArr;
+	}
+	eArr[ sz++] = p;
+}
+T operator[]( SizeT i) const { assert( i<sz);  return eArr[i];}
+T& operator[]( SizeT i) { assert( i<sz);  return eArr[i];}
+SizeT size() const { return sz;}
+iterator begin()  { return &eArr[0];}
+iterator end()  { return &eArr[sz];}
+
+bool empty() const { return sz == 0;}
+T& front() { return eArr[0];}
+const T& front() const { return eArr[0];}
+T& back() { return eArr[sz-1];}
+const T& back() const { return eArr[sz-1];}
+};
+
+class BaseGDL;
+const int ExprListDefaultLength = 64;
+typedef PreAllocPListT<BaseGDL*, ExprListDefaultLength> ExprListT;
+typedef ExprListT::iterator ExprListIterT;
+
 
 #endif
