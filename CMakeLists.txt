@@ -513,7 +513,7 @@ if(PSLIB)
 	else(LIBPS_FOUND)
 		message(FATAL_ERROR "pslib is required but was not found.\n"
 		"Use -DPSLIBDIR=DIR to specify the pslib directory tree.\n"
-		"Use -DPSLIBS=OFF to not use it.")
+		"Use -DPSLIB=OFF to not use it.")
 	endif(LIBPS_FOUND)
 endif(PSLIB)
 
@@ -608,6 +608,10 @@ IF(NOT CMAKE_BUILD_TYPE)
     "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
     FORCE)
 ENDIF(NOT CMAKE_BUILD_TYPE)
+
+# AC, 12-oct-2011, may be 
+# set_target_properties(gdl PROPERTIES LINK_FLAGS "-Wl,-z,muldefs")
+set_target_properties(gdl PROPERTIES LINK_FLAGS "-z muldefs")
 
 #
 if(CMAKE_BUILD_TYPE STREQUAL None OR NOT CMAKE_BUILD_TYPE)
