@@ -163,8 +163,26 @@ DStructGDL(const DStructGDL& d_);
 	*GetTag( t, e) = *right.GetTag( t, e);
       }
 
-    //    dd = right.dd;
     return *this;
+  }
+  
+  void InitFrom(const BaseGDL& r)
+  {
+    assert( r.Type() == STRUCT);
+    const DStructGDL& right = static_cast<const DStructGDL&>( r);
+
+    assert( *Desc() == *right.Desc());
+    assert( &right != this);
+    
+    this->dim = right.dim;
+
+    SizeT nTags = NTags();
+    SizeT nEl   = N_Elements();
+    for( SizeT e=0; e < nEl; ++e)
+		for( SizeT t=0; t < nTags; ++t)
+		{
+			GetTag( t, e)->InitFrom( *right.GetTag( t, e));
+		}
   }
  
   inline BaseGDL* operator[] (const SizeT d1) 
@@ -412,7 +430,7 @@ public:
     //       used but never defined  
     //
     //static_cast<DataGDL&>( *GetTag( tIx)) = data; // copy data
-    *GetTag( tIx) = data; // copy data
+    GetTag( tIx)->InitFrom( data); // copy data
   }
   
   // members
@@ -427,35 +445,41 @@ public:
   // make a duplicate on the heap
   DStructGDL* Dup() const { return new DStructGDL(*this);}
   
-  DStructGDL* New( const dimension& dim_,
-		   BaseGDL::InitType noZero=BaseGDL::ZERO)
-  {
-// No NOZERO for structs  
-    if( noZero == BaseGDL::NOZERO)
-      {
-	DStructGDL* res = new DStructGDL( Desc(), dim_, noZero);
+DStructGDL* New ( const dimension& dim_,
+                  BaseGDL::InitType noZero=BaseGDL::ZERO ) const
+{
+// No NOZERO for structs
+	if ( noZero == BaseGDL::NOZERO )
+	{
+		DStructGDL* res = new DStructGDL ( Desc(), dim_, noZero );
+		res->MakeOwnDesc();
+		return res;
+	}
+	if ( noZero == BaseGDL::INIT )
+	{
+		DStructGDL* res =  new DStructGDL ( Desc(), dim_, BaseGDL::NOZERO );
+		res->MakeOwnDesc();
+		SizeT nEl = res->N_Elements();
+		SizeT nTags = NTags();
+		for ( SizeT t=0; t<nTags; ++t )
+		{
+			const BaseGDL& cpTag = *GetTag ( t );
+			for ( SizeT i=0; i<nEl; ++i )
+				res->GetTag ( t, i )->InitFrom( cpTag);
+			// 	      res->dd[ i] = dd[ i % nTags]->Dup();
+		}
+		return res;
+	}
+	DStructGDL* res = new DStructGDL ( Desc(), dim_ );
 	res->MakeOwnDesc();
 	return res;
-      }
-    if( noZero == BaseGDL::INIT)
-      {
-	DStructGDL* res =  new DStructGDL( Desc(), dim_, BaseGDL::NOZERO);
+}
+DStructGDL* NewResult() const
+{
+	DStructGDL* res = new DStructGDL ( Desc(), this->dim, BaseGDL::NOZERO);
 	res->MakeOwnDesc();
-	SizeT nEl = res->N_Elements();
-	SizeT nTags = NTags();
-	for( SizeT t=0; t<nTags; ++t)
-	  {
-	    BaseGDL& cpTag = *GetTag( t);
-	    for( SizeT i=0; i<nEl; ++i) 
-	      *res->GetTag( t, i) = cpTag;
-	    // 	      res->dd[ i] = dd[ i % nTags]->Dup();
-	  }
 	return res;
-      }
-    DStructGDL* res = new DStructGDL( Desc(), dim_);
-    res->MakeOwnDesc();
-    return res;
-  }
+}
 
   // used by interpreter, calls CatInsert
   DStructGDL* CatArray( ExprListT& exprList, 
@@ -526,11 +550,14 @@ public:
   DStructGDL*   XorOp( BaseGDL* r);
   DStructGDL*   Add( BaseGDL* r);
   DStructGDL*   AddInv( BaseGDL* r);
+  DStructGDL*   AddNew( BaseGDL* r);
+  DStructGDL*   AddInvNew( BaseGDL* r);
   DStructGDL*   Sub( BaseGDL* r);
   DStructGDL*   SubInv( BaseGDL* r);
   DStructGDL*   GtMark( BaseGDL* r);
   DStructGDL*   LtMark( BaseGDL* r);
   DStructGDL*   Mult( BaseGDL* r);
+  DStructGDL*   MultNew( BaseGDL* r);
   DStructGDL*   Div( BaseGDL* r);
   DStructGDL*   DivInv( BaseGDL* r);
   DStructGDL*   Mod( BaseGDL* r);
@@ -549,6 +576,8 @@ public:
   DStructGDL*   XorOpS( BaseGDL* r);
   DStructGDL*   AddS( BaseGDL* r);
   DStructGDL*   AddInvS( BaseGDL* r);
+  DStructGDL*   AddSNew( BaseGDL* r);
+  DStructGDL*   AddInvSNew( BaseGDL* r);
   DStructGDL*   SubS( BaseGDL* r);
   DStructGDL*   SubInvS( BaseGDL* r);
   DStructGDL*   GtMarkS( BaseGDL* r);
@@ -561,6 +590,7 @@ public:
   DStructGDL*   PowS( BaseGDL* r);
   DStructGDL*   PowInvS( BaseGDL* r);
 
+  DStructGDL*   MultSNew( BaseGDL* r);
   
   Data_<SpDByte>* EqOp( BaseGDL* r);
   Data_<SpDByte>* NeOp( BaseGDL* r);

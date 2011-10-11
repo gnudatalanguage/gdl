@@ -2361,7 +2361,39 @@ Data_<Sp>* Data_<Sp>::Add( BaseGDL* r)
   return this;
 }
 template<class Sp>
+Data_<Sp>* Data_<Sp>::AddNew( BaseGDL* r)
+{
+  Data_* right=static_cast<Data_*>(r);
+
+  // ULong rEl=right->N_Elements();
+  ULong nEl=N_Elements();
+  
+  Data_* res=new Data_( this->dim, BaseGDL::NOZERO);
+
+// assert( rEl);
+  assert( nEl);
+  if( nEl == 1)
+    {
+      (*res)[0] = (*this)[0] + (*right)[0];
+      return res;
+    }
+
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+#pragma omp for
+      for( SizeT i=0; i < nEl; ++i)
+		(*res)[i] = (*this)[i] + (*right)[i];
+    }  //C delete right;
+  return res;
+}
+template<class Sp>
 Data_<Sp>* Data_<Sp>::AddInv( BaseGDL* r)
+{
+  return Add( r);
+}
+template<class Sp>
+Data_<Sp>* Data_<Sp>::AddInvNew( BaseGDL* r)
 {
   return Add( r);
 }
@@ -2389,6 +2421,33 @@ Data_<SpDString>* Data_<SpDString>::AddInv( BaseGDL* r)
     }  //C delete right;
   return this;
 }
+template<>
+Data_<SpDString>* Data_<SpDString>::AddInvNew( BaseGDL* r)
+{
+  Data_* right=static_cast<Data_*>(r);
+
+  // ULong rEl=right->N_Elements();
+  ULong nEl=N_Elements();
+  
+  Data_* res=new Data_( this->dim, BaseGDL::NOZERO);
+
+// assert( rEl);
+  assert( nEl);
+  if( nEl == 1)
+    {
+      (*res)[0] = (*right)[0] + (*this)[0] ;
+      return res;
+    }
+
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+#pragma omp for
+      for( SizeT i=0; i < nEl; ++i)
+		(*res)[i] = (*right)[i] + (*this)[i];
+    }  //C delete right;
+  return res;
+}
 // invalid types
 DStructGDL* DStructGDL::Add( BaseGDL* r)
 {
@@ -2396,6 +2455,16 @@ DStructGDL* DStructGDL::Add( BaseGDL* r)
   return this;
 }
 DStructGDL* DStructGDL::AddInv( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+DStructGDL* DStructGDL::AddNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+DStructGDL* DStructGDL::AddInvNew( BaseGDL* r)
 {
   throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
@@ -2408,6 +2477,18 @@ Data_<SpDPtr>* Data_<SpDPtr>::Add( BaseGDL* r)
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::Add( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
+  return this;
+}
+template<>
+Data_<SpDPtr>* Data_<SpDPtr>::AddNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
+  return this;
+}
+template<>
+Data_<SpDObj>* Data_<SpDObj>::AddNew( BaseGDL* r)
 {
   throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
@@ -2438,9 +2519,41 @@ Data_<Sp>* Data_<Sp>::AddS( BaseGDL* r)
   return this;
 }
 template<class Sp>
+Data_<Sp>* Data_<Sp>::AddSNew( BaseGDL* r)
+{
+  Data_* right=static_cast<Data_*>(r);
+
+  Data_* res=new Data_( this->dim, BaseGDL::NOZERO);
+
+  ULong nEl=N_Elements();
+  assert( nEl);
+  //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
+  if( nEl == 1)
+    {
+		(*res)[0] = (*this)[0] + (*right)[0];
+		return res;
+    }
+  Ty s = (*right)[0];
+  // right->Scalar(s);
+  //  dd += s;
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+#pragma omp for
+      for( SizeT i=0; i < nEl; ++i)
+	(*res)[i] = (*this)[i] + s;
+    }  //C delete right;
+  return res;
+}
+template<class Sp>
 Data_<Sp>* Data_<Sp>::AddInvS( BaseGDL* r)
 {
   return AddS( r);
+}
+template<class Sp>
+Data_<Sp>* Data_<Sp>::AddInvSNew( BaseGDL* r)
+{
+  return AddSNew( r);
 }
 template<>
 Data_<SpDString>* Data_<SpDString>::AddInvS( BaseGDL* r)
@@ -2466,6 +2579,33 @@ Data_<SpDString>* Data_<SpDString>::AddInvS( BaseGDL* r)
     }  //C delete right;
   return this;
 }
+template<>
+Data_<SpDString>* Data_<SpDString>::AddInvSNew( BaseGDL* r)
+{
+  Data_* right=static_cast<Data_*>(r);
+
+  Data_* res=new Data_( this->dim, BaseGDL::NOZERO);
+
+  ULong nEl=N_Elements();
+  assert( nEl);
+  //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
+  if( nEl == 1)
+    {
+		(*res)[0] = (*right)[0] + (*this)[0];
+		return res;
+    }
+  Ty s = (*right)[0];
+  // right->Scalar(s);
+  //  dd += s;
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+#pragma omp for
+      for( SizeT i=0; i < nEl; ++i)
+	(*res)[i] = s + (*this)[i];
+    }  //C delete right;
+  return res;
+}
 
 // invalid types
 DStructGDL* DStructGDL::AddS( BaseGDL* r)
@@ -2478,6 +2618,16 @@ DStructGDL* DStructGDL::AddInvS( BaseGDL* r)
   throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
+DStructGDL* DStructGDL::AddSNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+DStructGDL* DStructGDL::AddInvSNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::AddS( BaseGDL* r)
 {
@@ -2486,6 +2636,18 @@ Data_<SpDPtr>* Data_<SpDPtr>::AddS( BaseGDL* r)
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::AddS( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
+  return this;
+}
+template<>
+Data_<SpDPtr>* Data_<SpDPtr>::AddSNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
+  return this;
+}
+template<>
+Data_<SpDObj>* Data_<SpDObj>::AddSNew( BaseGDL* r)
 {
   throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
@@ -2964,6 +3126,32 @@ Data_<Sp>* Data_<Sp>::Mult( BaseGDL* r)
     }  //C delete right;
   return this;
 }
+template<class Sp>
+Data_<Sp>* Data_<Sp>::MultNew( BaseGDL* r)
+{
+  Data_* right=static_cast<Data_*>(r);
+
+  Data_* res=NewResult();
+  
+  //  ULong rEl=right->N_Elements();
+  ULong nEl=N_Elements();
+  // assert( rEl);
+  assert( nEl);
+  //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
+  if( nEl == 1)
+    {
+      (*res)[0] = (*this)[0] * (*right)[0];
+      return res;
+    }
+  TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+#pragma omp for
+      for( SizeT i=0; i < nEl; ++i)
+		(*res)[i] = (*this)[i] * (*right)[i];
+    }  //C delete right;
+  return res;
+}
 // invalid types
 DStructGDL* DStructGDL::Mult( BaseGDL* r)
 {
@@ -2984,6 +3172,29 @@ Data_<SpDPtr>* Data_<SpDPtr>::Mult( BaseGDL* r)
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::Mult( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
+  return this;
+}
+DStructGDL* DStructGDL::MultNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+template<>
+Data_<SpDString>* Data_<SpDString>::MultNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
+  return this;
+}
+template<>
+Data_<SpDPtr>* Data_<SpDPtr>::MultNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
+  return this;
+}
+template<>
+Data_<SpDObj>* Data_<SpDObj>::MultNew( BaseGDL* r)
 {
   throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
@@ -3012,8 +3223,39 @@ Data_<Sp>* Data_<Sp>::MultS( BaseGDL* r)
     }  //C delete right;
   return this;
 }
+template<class Sp>
+Data_<Sp>* Data_<Sp>::MultSNew ( BaseGDL* r )
+{
+	Data_* right=static_cast<Data_*> ( r );
+
+	Data_* res = new Data_ ( this->dim, BaseGDL::NOZERO);
+
+	ULong nEl=N_Elements();
+	assert ( nEl );
+	if ( nEl == 1 )
+	{
+		( *res )[0] = ( *this )[0] * ( *right )[0];
+		return res;
+	}
+	Ty s = ( *right ) [0];
+	// right->Scalar(s);
+	//  dd *= s;
+	TRACEOMP ( __FILE__, __LINE__ )
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
+#pragma omp for
+		for ( SizeT i=0; i < nEl; ++i )
+			(*res ) [i] = (*this )[i] * s;
+	}  //C delete right;
+	return res;
+}
 // invalid types
 DStructGDL* DStructGDL::MultS( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
+  return this;
+}
+DStructGDL* DStructGDL::MultSNew( BaseGDL* r)
 {
   throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
@@ -3025,13 +3267,31 @@ Data_<SpDString>* Data_<SpDString>::MultS( BaseGDL* r)
   return this;
 }
 template<>
+Data_<SpDString>* Data_<SpDString>::MultSNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
+  return this;
+}
+template<>
 Data_<SpDPtr>* Data_<SpDPtr>::MultS( BaseGDL* r)
 {
   throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
+Data_<SpDPtr>* Data_<SpDPtr>::MultSNew( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
+  return this;
+}
+template<>
 Data_<SpDObj>* Data_<SpDObj>::MultS( BaseGDL* r)
+{
+  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
+  return this;
+}
+template<>
+Data_<SpDObj>* Data_<SpDObj>::MultSNew( BaseGDL* r)
 {
   throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
@@ -5176,14 +5436,14 @@ Data_<SpDObj>* Data_<SpDObj>::PowInvS( BaseGDL* r)
   return this;
 }
 
-template<class Sp> Data_<Sp>* Data_<Sp>::AndOpNew( BaseGDL* r) {}
-template<class Sp> Data_<Sp>* Data_<Sp>::OrOpNew( BaseGDL* r) {}    
-template<class Sp> Data_<Sp>* Data_<Sp>::XorOpNew( BaseGDL* r) {}    
-template<class Sp> Data_<Sp>* Data_<Sp>::AddNew( BaseGDL* r) {}      
-template<class Sp> Data_<Sp>* Data_<Sp>::MultNew( BaseGDL* r) {}   
-template<class Sp> Data_<Sp>* Data_<Sp>::DivNew( BaseGDL* r) {}      
-template<class Sp> Data_<Sp>* Data_<Sp>::ModNew( BaseGDL* r) {}      
-template<class Sp> Data_<Sp>* Data_<Sp>::PowNew( BaseGDL* r) {}     
+// template<class Sp> Data_<Sp>* Data_<Sp>::AndOpNew( BaseGDL* r) {}
+// template<class Sp> Data_<Sp>* Data_<Sp>::OrOpNew( BaseGDL* r) {}    
+// template<class Sp> Data_<Sp>* Data_<Sp>::XorOpNew( BaseGDL* r) {}    
+// template<class Sp> Data_<Sp>* Data_<Sp>::AddNew( BaseGDL* r) {}      
+// template<class Sp> Data_<Sp>* Data_<Sp>::MultNew( BaseGDL* r) {}   
+// template<class Sp> Data_<Sp>* Data_<Sp>::DivNew( BaseGDL* r) {}      
+// template<class Sp> Data_<Sp>* Data_<Sp>::ModNew( BaseGDL* r) {}      
+template<class Sp> Data_<Sp>* Data_<Sp>::PowNew( BaseGDL* r) {}
 
 template<class Sp>
 Data_<Sp>* Data_<Sp>::SubNew( BaseGDL* r)

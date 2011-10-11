@@ -104,9 +104,13 @@ static	void operator delete( void *ptr);
   //  const string& TypeStr() const; 
 
   //Don't overwrite New method
-  Parent_* New( const dimension& dim_, BaseGDL::InitType noZero=BaseGDL::ZERO)
+  Parent_* New( const dimension& dim_, BaseGDL::InitType noZero=BaseGDL::ZERO) const
   {
     throw GDLException("Assoc_::New(...) called.");
+  }
+  Parent_* NewResult() const
+  {
+    throw GDLException("Assoc_::NewResult() called.");
   }
   
   // cannot convert Assoc_ data

@@ -130,9 +130,9 @@ namespace lib {
     CpuTPOOL_MAX_ELTS=locCpuTPOOL_MAX_ELTS;
 
     // update !CPU system variable
-    (static_cast<DLongGDL*>( cpu->GetTag( NTHREADSTag, 0)))[0] = CpuTPOOL_NTHREADS;
-    (static_cast<DLongGDL*>( cpu->GetTag( TPOOL_MIN_ELTSTag, 0)))[0] = CpuTPOOL_MIN_ELTS;
-    (static_cast<DLongGDL*>( cpu->GetTag( TPOOL_MAX_ELTSTag, 0)))[0] = CpuTPOOL_MAX_ELTS;
+    (*static_cast<DLongGDL*>( cpu->GetTag( NTHREADSTag, 0)))[0] = CpuTPOOL_NTHREADS;
+    (*static_cast<DLongGDL*>( cpu->GetTag( TPOOL_MIN_ELTSTag, 0)))[0] = CpuTPOOL_MIN_ELTS;
+    (*static_cast<DLongGDL*>( cpu->GetTag( TPOOL_MAX_ELTSTag, 0)))[0] = CpuTPOOL_MAX_ELTS;
 
 #ifdef _OPENMP
     omp_set_num_threads(CpuTPOOL_NTHREADS);

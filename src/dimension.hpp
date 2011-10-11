@@ -34,7 +34,7 @@ inline SizeT RankIx( const SizeT rank)
 class dimension
 {
   SizeT dim[MAXRANK];         // dimension
-  SizeT stride[MAXRANK+1];      // stride
+  mutable SizeT stride[MAXRANK+1];      // stride
 
   char rank;                 // how many dim are valid
 
@@ -301,7 +301,8 @@ public:
   SizeT Stride(const SizeT i) const
   {
 	if( stride[0] == 0)
-		const_cast<dimension*>(this)->InitStride();
+		this->InitStride();
+// 		const_cast<dimension*>(this)->InitStride();
 	return stride[ (i<rank)?i:rank];
 
 // 	SizeT ret=1;
@@ -345,7 +346,7 @@ public:
     
   }
   
-  void InitStride()
+  void InitStride() const
   {
     stride[0]=1; // upto must be at least 1
     for(int m=1; m<=rank; ++m)

@@ -5443,19 +5443,19 @@ BaseGDL* transpose( EnvT* e)
       {
         ret = new DStructGDL("IDL_MEMORY64");
         DStructGDL* retStru = static_cast<DStructGDL*>(ret);
-        *(retStru->GetTag(retStru->Desc()->TagIndex("CURRENT"))) = DLong64GDL(MemStats::GetCurrent());
-        *(retStru->GetTag(retStru->Desc()->TagIndex("NUM_ALLOC"))) = DLong64GDL(MemStats::GetNumAlloc());
-        *(retStru->GetTag(retStru->Desc()->TagIndex("NUM_FREE"))) = DLong64GDL(MemStats::GetNumFree());
-        *(retStru->GetTag(retStru->Desc()->TagIndex("HIGHWATER"))) = DLong64GDL(MemStats::GetHighWater());
+        (retStru->GetTag(retStru->Desc()->TagIndex("CURRENT")))->InitFrom( DLong64GDL(MemStats::GetCurrent()));
+        (retStru->GetTag(retStru->Desc()->TagIndex("NUM_ALLOC")))->InitFrom( DLong64GDL(MemStats::GetNumAlloc()));
+        (retStru->GetTag(retStru->Desc()->TagIndex("NUM_FREE")))->InitFrom( DLong64GDL(MemStats::GetNumFree()));
+        (retStru->GetTag(retStru->Desc()->TagIndex("HIGHWATER")))->InitFrom( DLong64GDL(MemStats::GetHighWater()));
       }
       else 
       {
         ret = new DStructGDL("IDL_MEMORY");
         DStructGDL* retStru = static_cast<DStructGDL*>(ret);
-        *(retStru->GetTag(retStru->Desc()->TagIndex("CURRENT"))) = DLongGDL(MemStats::GetCurrent());
-        *(retStru->GetTag(retStru->Desc()->TagIndex("NUM_ALLOC"))) = DLongGDL(MemStats::GetNumAlloc());
-        *(retStru->GetTag(retStru->Desc()->TagIndex("NUM_FREE"))) = DLongGDL(MemStats::GetNumFree());
-        *(retStru->GetTag(retStru->Desc()->TagIndex("HIGHWATER"))) = DLongGDL(MemStats::GetHighWater());
+        (retStru->GetTag(retStru->Desc()->TagIndex("CURRENT")))->InitFrom( DLongGDL(MemStats::GetCurrent()));
+        (retStru->GetTag(retStru->Desc()->TagIndex("NUM_ALLOC")))->InitFrom( DLongGDL(MemStats::GetNumAlloc()));
+        (retStru->GetTag(retStru->Desc()->TagIndex("NUM_FREE")))->InitFrom( DLongGDL(MemStats::GetNumFree()));
+        (retStru->GetTag(retStru->Desc()->TagIndex("HIGHWATER")))->InitFrom( DLongGDL(MemStats::GetHighWater()));
       }
     }
     else 
@@ -5497,18 +5497,18 @@ BaseGDL* transpose( EnvT* e)
         if (kw_l64) 
         {
           ret = new DLong64GDL(dimension(4));
-          (*dynamic_cast<DLong64GDL*>(ret))[0] = MemStats::GetCurrent();
-          (*dynamic_cast<DLong64GDL*>(ret))[1] = MemStats::GetNumAlloc();
-          (*dynamic_cast<DLong64GDL*>(ret))[2] = MemStats::GetNumFree();
-          (*dynamic_cast<DLong64GDL*>(ret))[3] = MemStats::GetHighWater();
+          (*static_cast<DLong64GDL*>(ret))[0] = MemStats::GetCurrent();
+          (*static_cast<DLong64GDL*>(ret))[1] = MemStats::GetNumAlloc();
+          (*static_cast<DLong64GDL*>(ret))[2] = MemStats::GetNumFree();
+          (*static_cast<DLong64GDL*>(ret))[3] = MemStats::GetHighWater();
         }
         else 
         {
           ret = new DLongGDL(dimension(4));
-          (*dynamic_cast<DLongGDL*>(ret))[0] = MemStats::GetCurrent();
-          (*dynamic_cast<DLongGDL*>(ret))[1] = MemStats::GetNumAlloc();
-          (*dynamic_cast<DLongGDL*>(ret))[2] = MemStats::GetNumFree();
-          (*dynamic_cast<DLongGDL*>(ret))[3] = MemStats::GetHighWater();
+          (*static_cast<DLongGDL*>(ret))[0] = MemStats::GetCurrent();
+          (*static_cast<DLongGDL*>(ret))[1] = MemStats::GetNumAlloc();
+          (*static_cast<DLongGDL*>(ret))[2] = MemStats::GetNumFree();
+          (*static_cast<DLongGDL*>(ret))[3] = MemStats::GetHighWater();
         }
       }
     }

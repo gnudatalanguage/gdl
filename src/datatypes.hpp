@@ -92,6 +92,9 @@ static	void operator delete( void *ptr);
   // assignment. 
   Data_& operator=(const BaseGDL& right);
 
+  // for structs
+  void InitFrom(const BaseGDL& right);
+
   // one dim array access (unchecked)
   inline Ty& operator[] (const SizeT d1) { return dd[d1];}
   inline const Ty& operator[] (const SizeT d1) const { return dd[d1];}
@@ -175,7 +178,8 @@ static	void operator delete( void *ptr);
     s=dd[0];
     return true; }
 
-  Data_* New( const dimension& dim_, BaseGDL::InitType noZero=BaseGDL::ZERO);
+  Data_* New( const dimension& dim_, BaseGDL::InitType noZero=BaseGDL::ZERO) const;
+  Data_* NewResult() const;
 
   // convert *this to other 'destTy'
   BaseGDL* Convert2( DType destTy, 
@@ -248,11 +252,14 @@ static	void operator delete( void *ptr);
   Data_*   XorOp( BaseGDL* r);
   Data_*   Add( BaseGDL* r);
   Data_*   AddInv( BaseGDL* r);
+  Data_*   AddNew( BaseGDL* r);
+  Data_*   AddInvNew( BaseGDL* r);
   Data_*   Sub( BaseGDL* r);
   Data_*   SubInv( BaseGDL* r);
   Data_*   GtMark( BaseGDL* r);
   Data_*   LtMark( BaseGDL* r);
   Data_*   Mult( BaseGDL* r);
+  Data_*   MultNew( BaseGDL* r);
   Data_*   Div( BaseGDL* r);
   Data_*   DivInv( BaseGDL* r);
   Data_*   Mod( BaseGDL* r);
@@ -270,11 +277,14 @@ static	void operator delete( void *ptr);
   Data_*   XorOpS( BaseGDL* r);
   Data_*   AddS( BaseGDL* r);
   Data_*   AddInvS( BaseGDL* r);
+  Data_*   AddSNew( BaseGDL* r);
+  Data_*   AddInvSNew( BaseGDL* r);
   Data_*   SubS( BaseGDL* r);
   Data_*   SubInvS( BaseGDL* r);
   Data_*   GtMarkS( BaseGDL* r);
   Data_*   LtMarkS( BaseGDL* r);
   Data_*   MultS( BaseGDL* r);
+  Data_*   MultSNew( BaseGDL* r);
   Data_*   DivS( BaseGDL* r);
   Data_*   DivInvS( BaseGDL* r);
   Data_*   ModS( BaseGDL* r);
@@ -282,21 +292,21 @@ static	void operator delete( void *ptr);
   Data_*   PowS( BaseGDL* r);
   Data_*   PowInvS( BaseGDL* r);
   
-  Data_* AndOpNew( BaseGDL* r);    // create new result var      
+//   Data_* AndOpNew( BaseGDL* r);    // create new result var      
 //   Data_* AndOpInvNew( BaseGDL* r); // create new result var      
-  Data_* OrOpNew( BaseGDL* r);    
+//   Data_* OrOpNew( BaseGDL* r);    
 //   Data_* OrOpInvNew( BaseGDL* r); 
-  Data_* XorOpNew( BaseGDL* r);    
-  Data_* AddNew( BaseGDL* r);      
+//   Data_* XorOpNew( BaseGDL* r);    
+//   Data_* AddNew( BaseGDL* r);      
 //   Data_* AddInvNew( BaseGDL* r);      
-  Data_* SubNew( BaseGDL* r);      
+  Data_* SubNew( BaseGDL* r);
 //   Data_* SubInvNew( BaseGDL* r);   
-  Data_* MultNew( BaseGDL* r);   
-  Data_* DivNew( BaseGDL* r);      
+//   Data_* MultNew( BaseGDL* r);   
+//   Data_* DivNew( BaseGDL* r);      
 //   Data_* DivInvNew( BaseGDL* r);   
-  Data_* ModNew( BaseGDL* r);      
+//   Data_* ModNew( BaseGDL* r);      
 //   Data_* ModInvNew( BaseGDL* r);   
-  Data_* PowNew( BaseGDL* r);     
+  Data_* PowNew( BaseGDL* r);
 //   Data_* PowInvNew( BaseGDL* r);  
 
   Data_<SpDByte>* EqOp( BaseGDL* r);

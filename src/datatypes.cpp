@@ -1146,44 +1146,86 @@ for( SizeT i=1; i<nEl; ++i)
 // typename Data_<Sp>::Ty& Data_<Sp>::operator[] (const SizeT d1) 
 // { return (*this)[d1];}
 
+// only used from DStructGDL::DStructGDL(const DStructGDL& d_)
 template<class Sp> 
-//typename Data_<Sp>::Data_& Data_<Sp>::operator=(const Data_& right)
-// Data_<Sp>& Data_<Sp>::operator=(const Data_& right)
-Data_<Sp>& Data_<Sp>::operator=(const BaseGDL& r)
+Data_<Sp>&  Data_<Sp>::operator=(const BaseGDL& r)
 {
   assert( r.Type() == this->Type());
   const Data_<Sp>& right = static_cast<const Data_<Sp>&>( r);
   assert( &right != this);
-  if( &right == this) return *this; // self assignment
+//   if( &right == this) return *this; // self assignment
   this->dim = right.dim;
   dd = right.dd;
   return *this;
 }
+// only used from DStructGDL::DStructGDL(const DStructGDL& d_)
 template<>
 Data_<SpDPtr>& Data_<SpDPtr>::operator=(const BaseGDL& r)
 {
   assert( r.Type() == this->Type());
   const Data_& right = static_cast<const Data_&>( r);
   assert( &right != this);
-  if( &right == this) return *this; // self assignment
+//   if( &right == this) return *this; // self assignment
   this->dim = right.dim;
   GDLInterpreter::DecRef( this);
   dd = right.dd;
   GDLInterpreter::IncRef( this);
   return *this;
 }
+// only used from DStructGDL::DStructGDL(const DStructGDL& d_)
 template<>
 Data_<SpDObj>& Data_<SpDObj>::operator=(const BaseGDL& r)
 {
   assert( r.Type() == this->Type());
   const Data_& right = static_cast<const Data_&>( r);
   assert( &right != this);
-  if( &right == this) return *this; // self assignment
+//   if( &right == this) return *this; // self assignment
   this->dim = right.dim;
   GDLInterpreter::DecRefObj( this);
   dd = right.dd;
   GDLInterpreter::IncRefObj( this);
   return *this;
+}
+
+
+template<class Sp> 
+void Data_<Sp>::InitFrom(const BaseGDL& r)
+{
+  assert( r.Type() == this->Type());
+  const Data_<Sp>& right = static_cast<const Data_<Sp>&>( r);
+  assert( &right != this);
+//   if( &right == this) return *this; // self assignment
+  this->dim = right.dim;
+  dd.InitFrom( right.dd);
+//   return *this;
+}
+// only used from DStructGDL::DStructGDL(const DStructGDL& d_)
+template<>
+void Data_<SpDPtr>::InitFrom(const BaseGDL& r)
+{
+  assert( r.Type() == this->Type());
+  const Data_& right = static_cast<const Data_&>( r);
+  assert( &right != this);
+//   if( &right == this) return *this; // self assignment
+  this->dim = right.dim;
+//   GDLInterpreter::DecRef( this);
+  dd.InitFrom( right.dd);
+  GDLInterpreter::IncRef( this);
+//   return *this;
+}
+// only used from DStructGDL::DStructGDL(const DStructGDL& d_)
+template<>
+void Data_<SpDObj>::InitFrom(const BaseGDL& r)
+{
+  assert( r.Type() == this->Type());
+  const Data_& right = static_cast<const Data_&>( r);
+  assert( &right != this);
+//   if( &right == this) return *this; // self assignment
+  this->dim = right.dim;
+//   GDLInterpreter::DecRefObj( this);
+  dd.InitFrom( right.dd);
+  GDLInterpreter::IncRefObj( this);
+//   return *this;
 }
 
 template< class Sp>
@@ -1389,7 +1431,7 @@ void Data_<Sp>::SetBufferSize( SizeT s)
 // { return new Data_(*this);}
 
 template< class Sp>
-Data_<Sp>* Data_<Sp>::New( const dimension& dim_, BaseGDL::InitType noZero)
+Data_<Sp>* Data_<Sp>::New( const dimension& dim_, BaseGDL::InitType noZero) const
 {
   if( noZero == BaseGDL::NOZERO) return new Data_(dim_, BaseGDL::NOZERO);
   if( noZero == BaseGDL::INIT)
@@ -1403,7 +1445,13 @@ Data_<Sp>* Data_<Sp>::New( const dimension& dim_, BaseGDL::InitType noZero)
 //}
       return res;
     }
-  return new Data_(dim_);
+  return new Data_(dim_); // zero data
+}
+
+template< class Sp>
+Data_<Sp>* Data_<Sp>::NewResult() const 
+{
+  return new Data_(this->dim, BaseGDL::NOZERO);
 }
 
 // template< class Sp>

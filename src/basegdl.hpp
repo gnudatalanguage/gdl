@@ -375,7 +375,11 @@ public:
     return i;
   }
 
+//  private:
  virtual BaseGDL& operator=(const BaseGDL& right);
+//  public:
+ 
+ virtual void InitFrom(const BaseGDL& right); // for structs
 
   // virtual functions
   virtual bool IsAssoc() const;
@@ -421,8 +425,9 @@ public:
   virtual const std::string& TypeStr() const;
   virtual bool          EqType( const BaseGDL*) const;
   virtual void* DataAddr();// SizeT elem=0);
-  virtual BaseGDL* New( const dimension& dim_, InitType noZero=ZERO);
-  virtual BaseGDL* Dup() const; 
+  virtual BaseGDL* New( const dimension& dim_, InitType noZero=ZERO) const;
+  virtual BaseGDL* NewResult() const;
+  virtual BaseGDL* Dup() const;
 //   virtual BaseGDL* Dup( char*) const; 
   virtual BaseGDL* Convert2( DType destTy, Convert2Mode mode=CONVERT);
   virtual BaseGDL* GetTag() const; 
@@ -497,12 +502,15 @@ public:
   virtual BaseGDL* GtOp( BaseGDL* r);    
   virtual BaseGDL* Add( BaseGDL* r);      
   virtual BaseGDL* AddInv( BaseGDL* r);      
-  virtual BaseGDL* Sub( BaseGDL* r);      
+  virtual BaseGDL* AddNew( BaseGDL* r);      
+  virtual BaseGDL* AddInvNew( BaseGDL* r);
+  virtual BaseGDL* Sub( BaseGDL* r);
   virtual BaseGDL* SubInv( BaseGDL* r);   
   virtual BaseGDL* LtMark( BaseGDL* r);   
   virtual BaseGDL* GtMark( BaseGDL* r);   
   virtual BaseGDL* Mult( BaseGDL* r);   
-  virtual BaseGDL* Div( BaseGDL* r);      
+  virtual BaseGDL* MultNew( BaseGDL* r);   
+  virtual BaseGDL* Div( BaseGDL* r);
   virtual BaseGDL* DivInv( BaseGDL* r);   
   virtual BaseGDL* Mod( BaseGDL* r);      
   virtual BaseGDL* ModInv( BaseGDL* r);   
@@ -518,13 +526,16 @@ public:
   virtual BaseGDL* OrOpInvS( BaseGDL* r); 
   virtual BaseGDL* XorOpS( BaseGDL* r);    
   virtual BaseGDL* AddS( BaseGDL* r);      
-  virtual BaseGDL* AddInvS( BaseGDL* r);      
-  virtual BaseGDL* SubS( BaseGDL* r);      
+  virtual BaseGDL* AddInvS( BaseGDL* r);
+  virtual BaseGDL* AddSNew( BaseGDL* r);      
+  virtual BaseGDL* AddInvSNew( BaseGDL* r);      
+  virtual BaseGDL* SubS( BaseGDL* r);
   virtual BaseGDL* SubInvS( BaseGDL* r);   
   virtual BaseGDL* LtMarkS( BaseGDL* r);   
   virtual BaseGDL* GtMarkS( BaseGDL* r);   
   virtual BaseGDL* MultS( BaseGDL* r);   
-  virtual BaseGDL* DivS( BaseGDL* r);      
+  virtual BaseGDL* MultSNew( BaseGDL* r);   
+  virtual BaseGDL* DivS( BaseGDL* r);
   virtual BaseGDL* DivInvS( BaseGDL* r);   
   virtual BaseGDL* ModS( BaseGDL* r);      
   virtual BaseGDL* ModInvS( BaseGDL* r);   
@@ -532,22 +543,22 @@ public:
   virtual BaseGDL* PowInvS( BaseGDL* r);   
 
 
-  virtual BaseGDL* AndOpNew( BaseGDL* r);    // create new result var      
-  //  virtual BaseGDL* AndOpInvNew( BaseGDL* r); // create new result var      
-  virtual BaseGDL* OrOpNew( BaseGDL* r);    
+//   virtual BaseGDL* AndOpNew( BaseGDL* r);    // create new result var
+  //  virtual BaseGDL* AndOpInvNew( BaseGDL* r); // create new result var
+//   virtual BaseGDL* OrOpNew( BaseGDL* r);    
   //  virtual BaseGDL* OrOpInvNew( BaseGDL* r); 
-  virtual BaseGDL* XorOpNew( BaseGDL* r);    
-  virtual BaseGDL* AddNew( BaseGDL* r);      
+//   virtual BaseGDL* XorOpNew( BaseGDL* r);    
+//   virtual BaseGDL* AddNew( BaseGDL* r);      
   //  virtual BaseGDL* AddInvNew( BaseGDL* r);      
-  virtual BaseGDL* SubNew( BaseGDL* r);      
+   virtual BaseGDL* SubNew( BaseGDL* r);
   //  virtual BaseGDL* SubInvNew( BaseGDL* r);   
-  virtual BaseGDL* MultNew( BaseGDL* r);   
-  virtual BaseGDL* DivNew( BaseGDL* r);      
+//   virtual BaseGDL* MultNew( BaseGDL* r);   
+//   virtual BaseGDL* DivNew( BaseGDL* r);      
   //  virtual BaseGDL* DivInvNew( BaseGDL* r);   
-  virtual BaseGDL* ModNew( BaseGDL* r);      
+//   virtual BaseGDL* ModNew( BaseGDL* r);      
   //  virtual BaseGDL* ModInvNew( BaseGDL* r);   
-  virtual BaseGDL* PowNew( BaseGDL* r);     
-  //  virtual BaseGDL* PowInvNew( BaseGDL* r);  
+  virtual BaseGDL* PowNew( BaseGDL* r);
+  //  virtual BaseGDL* PowInvNew( BaseGDL* r);
   virtual BaseGDL* MatrixOp( BaseGDL* r, bool rtranspose = false, bool transposeResult =false, bool strassen = false);
   virtual void AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT offset);
   virtual void AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList);

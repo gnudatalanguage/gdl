@@ -193,12 +193,12 @@ void BinaryExprNC::AdjustTypesNC(auto_ptr<BaseGDL>& g1, BaseGDL*& e1,
 
 BaseGDL* VARNode::EvalNC()
 {
-      EnvStackT& callStack=interpreter->CallStack();
-      BaseGDL* res=static_cast<EnvUDT*>(callStack.back())->GetKW(this->varIx); 
-      if( res == NULL)
-	throw GDLException( this, "Variable is undefined: "+
-			    callStack.back()->GetString(this->varIx),true,false);
-      return res;
+	EnvStackT& callStack=interpreter->CallStack();
+	BaseGDL* res=static_cast<EnvUDT*> ( callStack.back() )->GetKW ( this->varIx );
+	if ( res == NULL )
+		throw GDLException ( this, "Variable is undefined: "+
+		                     callStack.back()->GetString ( this->varIx ),true,false );
+	return res;
 }
 
 BaseGDL* VARPTRNode::EvalNC()
@@ -453,33 +453,34 @@ BaseGDL* GT_OPNode::Eval()
   return res;
 }
 BaseGDL* PLUSNode::Eval()
-{ BaseGDL* res;
- auto_ptr<BaseGDL> e1( op1->Eval());
- auto_ptr<BaseGDL> e2( op2->Eval());
- AdjustTypes(e1,e2);
- if( e1->StrictScalar())
-   {
-     res= e2->AddInvS(e1.get()); // scalar+scalar or array+scalar
-     e2.release();
-   }
- else
-   if( e2->StrictScalar())
-     {
-       res= e1->AddS(e2.get()); // array+scalar
-       e1.release();
-     }
-   else
-     if( e1->N_Elements() <= e2->N_Elements())
-       {
-	 res= e1->Add(e2.get()); // smaller_array + larger_array or same size
-	 e1.release();
-       }
-     else
-       {
-	 res= e2->AddInv(e1.get()); // smaller + larger
-	 e2.release();
-       }
-return res;
+{
+	BaseGDL* res;
+	auto_ptr<BaseGDL> e1 ( op1->Eval() );
+	auto_ptr<BaseGDL> e2 ( op2->Eval() );
+	AdjustTypes ( e1,e2 );
+	if ( e1->StrictScalar() )
+	{
+		res= e2->AddInvS ( e1.get() ); // scalar+scalar or array+scalar
+		e2.release();
+	}
+	else
+		if ( e2->StrictScalar() )
+		{
+			res= e1->AddS ( e2.get() ); // array+scalar
+			e1.release();
+		}
+		else
+			if ( e1->N_Elements() <= e2->N_Elements() )
+			{
+				res= e1->Add ( e2.get() ); // smaller_array + larger_array or same size
+				e1.release();
+			}
+			else
+			{
+				res= e2->AddInv ( e1.get() ); // smaller + larger
+				e2.release();
+			}
+	return res;
 }
 BaseGDL* MINUSNode::Eval()
 { BaseGDL* res;
@@ -570,33 +571,33 @@ BaseGDL* GTMARKNode::Eval()
  return res;
 }
 BaseGDL* ASTERIXNode::Eval()
-{ BaseGDL* res;
- auto_ptr<BaseGDL> e1( op1->Eval());
- auto_ptr<BaseGDL> e2( op2->Eval());
- AdjustTypes(e1,e2);
- if( e1->StrictScalar())
-   {
-     res= e2->MultS(e1.get()); // scalar+scalar or array+scalar
-     e2.release();
-   }
- else
-   if( e2->StrictScalar())
-     {
-       res= e1->MultS(e2.get()); // array+scalar
-       e1.release();
-     }
-   else
-     if( e1->N_Elements() <= e2->N_Elements())
-       {
-	 res= e1->Mult(e2.get()); // smaller_array + larger_array or same size
-	 e1.release();
-       }
-     else
-       {
-	 res= e2->Mult(e1.get()); // smaller + larger
-	 e2.release();
-       }
- return res;
+{
+	BaseGDL* res;
+	auto_ptr<BaseGDL> e1 ( op1->Eval() );
+	auto_ptr<BaseGDL> e2 ( op2->Eval() );
+	AdjustTypes ( e1,e2 );
+	if ( e1->StrictScalar() )
+	{
+		res= e2->MultS ( e1.get() ); // scalar+scalar or array+scalar
+		e2.release();
+	}
+	else if ( e2->StrictScalar() )
+	{
+		res= e1->MultS ( e2.get() ); // array+scalar
+		e1.release();
+	}
+	else
+		if ( e1->N_Elements() <= e2->N_Elements() )
+		{
+			res= e1->Mult ( e2.get() ); // smaller_array + larger_array or same size
+			e1.release();
+		}
+		else
+		{
+			res= e2->Mult ( e1.get() ); // smaller + larger
+			e2.release();
+		}
+	return res;
 }
 
 BaseGDL* MATRIX_OP1Node::Eval()
@@ -842,7 +843,7 @@ BaseGDL* AND_OPNCNode::Eval()
 
  if( e1->StrictScalar())
    {
-     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+     if( g2.get() == NULL) e2 = e2->Dup();  else  g2.release();
      res= e2->AndOpS(e1); // scalar+scalar or array+scalar
      
    }
@@ -1104,56 +1105,75 @@ BaseGDL* GT_OPNCNode::Eval()
   return res;
 }
 BaseGDL* PLUSNCNode::Eval()
-{ BaseGDL* res;
- auto_ptr<BaseGDL> g1;
- auto_ptr<BaseGDL> g2;
- BaseGDL *e1, *e2; AdjustTypesNC( g1, e1, g2, e2); 
+{
+	BaseGDL* res;
+	auto_ptr<BaseGDL> g1;
+	auto_ptr<BaseGDL> g2;
+	BaseGDL *e1, *e2; AdjustTypesNC( g1, e1, g2, e2 );
 
- if( e1->StrictScalar())
-   {
-     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
-     res= e2->AddInvS(e1); // scalar+scalar or array+scalar
-     
-   }
- else
-   if( e2->StrictScalar())
-     {
-       if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
-       res= e1->AddS(e2); // array+scalar
-       
-     }
-   else if( e1->N_Elements() == e2->N_Elements())
-   {
-     if( g1.get() != NULL)
-       {
-	 g1.release();
-	 return e1->Add(e2);
-       }
-     if( g2.get() != NULL) 
-       {
-	 g2.release();
-	 res = e2->AddInv(e1);
-	 res->SetDim( e1->Dim());
-	 return res;
-       }
-     else
-       {
-       return e1->Dup()->Add(e2); 
-       }
-   }
-else if( e1->N_Elements() < e2->N_Elements())
-       {
-	 if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
-	 res= e1->Add(e2); // smaller_array + larger_array or same size
-	 
-       }
-     else
-       {
-	 if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
-	 res= e2->AddInv(e1); // smaller + larger
-	 
-       }
- return res;
+	if ( e1->StrictScalar() )
+	{
+		if ( g2.get() == NULL )
+		{
+			res= e2->AddInvSNew( e1 ); // scalar+scalar or array+scalar
+		}
+		else
+		{
+			g2.release();
+			res= e2->AddInvS( e1 ); // scalar+scalar or array+scalar
+		}
+	}
+	else if ( e2->StrictScalar() )
+	{
+		if ( g1.get() == NULL )
+			res= e1->AddSNew( e2); // array+scalar
+		else
+		{
+			g1.release();
+			res= e1->AddS( e2); // array+scalar
+		}
+	}
+	else if ( e1->N_Elements() == e2->N_Elements() )
+	{
+		if ( g1.get() != NULL )
+		{
+			g1.release();
+			return e1->Add ( e2 );
+		}
+		if ( g2.get() != NULL )
+		{
+			g2.release();
+			res = e2->AddInv ( e1 );
+			res->SetDim ( e1->Dim() );
+			return res;
+		}
+		else
+		{
+			return e1->AddNew ( e2 );
+// 			return e1->Dup()->Add ( e2 );
+		}
+	}
+	else if ( e1->N_Elements() < e2->N_Elements() )
+	{
+		if ( g1.get() == NULL )
+			res= e1->AddNew ( e2 ); // smaller_array + larger_array or same size
+		 else
+		 {
+			g1.release();
+			res= e1->Add ( e2 ); // smaller_array + larger_array or same size
+		}
+	}
+	else // e1->N_Elements() > e2->N_Elements() )
+	{
+		if ( g2.get() == NULL )
+			res= e2->AddInvNew( e1); // smaller + larger
+		else
+		{
+			g2.release();
+			res= e2->AddInv( e1); // smaller + larger
+		}
+	}
+	return res;
 }
 BaseGDL* MINUSNCNode::Eval()
 { BaseGDL* res;
@@ -1312,56 +1332,83 @@ else if( e1->N_Elements() < e2->N_Elements())
  return res;
 }
 BaseGDL* ASTERIXNCNode::Eval()
-{ BaseGDL* res;
- auto_ptr<BaseGDL> g1;
- auto_ptr<BaseGDL> g2;
- BaseGDL *e1, *e2; AdjustTypesNC( g1, e1, g2, e2); 
+{
+	BaseGDL* res;
+	auto_ptr<BaseGDL> g1;
+	auto_ptr<BaseGDL> g2;
+	BaseGDL *e1, *e2; AdjustTypesNC ( g1, e1, g2, e2 );
 
- if( e1->StrictScalar())
-   {
-     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
-     res= e2->MultS(e1); // scalar+scalar or array+scalar
-     
-   }
- else
-   if( e2->StrictScalar())
-     {
-       if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
-       res= e1->MultS(e2); // array+scalar
-       
-     }
-   else if( e1->N_Elements() == e2->N_Elements())
-   {
-     if( g1.get() != NULL)
-       {
-	 g1.release();
-	 return e1->Mult(e2);
-       }
-     if( g2.get() != NULL) 
-       {
-	 g2.release();
-	 res = e2->Mult(e1);
-	 res->SetDim( e1->Dim());
-	 return res;
-       }
-     else
-       {
-       return e1->Dup()->Mult(e2); 
-       }
-   }
-else if( e1->N_Elements() < e2->N_Elements())
-       {
-	 if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
-	 res= e1->Mult(e2); // smaller_array + larger_array or same size
-	 
-       }
-     else
-       {
-	 if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
-	 res= e2->Mult(e1); // smaller + larger
-	 
-       }
- return res;
+	if ( e1->StrictScalar() )
+	{
+		if ( g2.get() == NULL )
+		{
+			res= e2->MultSNew( e1); // scalar+scalar or array+scalar
+		}
+		else
+		{
+			g2.release();
+			res= e2->MultS( e1); // scalar+scalar or array+scalar
+		}
+	}
+	else	if ( e2->StrictScalar() )
+	{
+		if ( g1.get() == NULL )
+		{
+// 			e1 = e1->Dup();
+			res= e1->MultSNew( e2); // array+scalar
+		}
+		else
+		{
+			g1.release();
+			res= e1->MultS( e2); // array+scalar
+		}
+	}
+	else if ( e1->N_Elements() == e2->N_Elements() )
+	{
+		if ( g1.get() != NULL )
+		{
+			g1.release();
+			return e1->Mult( e2);
+		}
+		else if ( g2.get() != NULL )
+		{
+			g2.release();
+			res = e2->Mult( e1);
+			res->SetDim( e1->Dim());
+			return res;
+		}
+		else
+		{
+			return e1->MultNew( e2);
+// 			return e1->Dup()->Mult ( e2 );
+		}
+	}
+	else if ( e1->N_Elements() < e2->N_Elements() )
+	{
+		if ( g1.get() == NULL )
+		{
+			// 		 e1 = e1->Dup();
+			res= e1->MultNew( e2); // smaller_array + larger_array or same size
+		 }
+		else
+		{
+			g1.release();
+			res= e1->Mult( e2); // smaller_array + larger_array or same size
+		}
+	}
+	else
+	{
+		if ( g2.get() == NULL )
+		{
+			res = e2->MultNew( e1); // smaller + larger
+		}
+		 else
+		{
+			g2.release();
+			res= e2->Mult( e1); // smaller + larger
+		}
+	}
+	return res;
 }
 
 BaseGDL* MATRIX_OP1NCNode::Eval()

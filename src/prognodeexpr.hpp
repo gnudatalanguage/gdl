@@ -213,7 +213,7 @@ class ARRAYDEFNode: public DefaultNode
     while(  _t != NULL) {
 
       if( _t->getType() != GDLTokenTypes::CONSTANT)
-	return false;
+		return false;
 
       _t = _t->getNextSibling();
     }

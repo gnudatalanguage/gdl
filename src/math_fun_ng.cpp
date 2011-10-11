@@ -236,7 +236,9 @@ namespace lib {
     (*HH)[0]=(*H)[0]*0.50000;
     (*H6)[0]=(*H)[0]/6.00000;
     (*XH)[0] = (*X)[0] + (*HH)[0];
-    XplusH[0] = (*X)[0] +  (*H)[0];
+// marc: probably an error
+//     XplusH[0] = (*X)[0] +  (*H)[0];
+    (*XplusH)[0] = (*X)[0] +  (*H)[0];
 	
 		
     //dym=static_cast<DDoubleGDL*>(dymO);

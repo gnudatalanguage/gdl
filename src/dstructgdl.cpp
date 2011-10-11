@@ -105,7 +105,7 @@ DStructGDL::DStructGDL( const string& name_)
     { 
       SizeT nTags=NTags();
 
-      dd.resize( Desc()->NBytes());
+      dd.SetSize( Desc()->NBytes());
 
       typeVar.resize( nTags);
 
@@ -140,7 +140,7 @@ DStructGDL::DStructGDL(const DStructGDL& d_)
       ConstructTag( t);
 
       for( SizeT i=0; i < nEl; ++i)
-	*GetTag( t, i) = *d_.GetTag( t, i);
+		GetTag( t, i)->InitFrom( *d_.GetTag( t, i));
     }
 }
 
