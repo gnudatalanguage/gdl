@@ -147,7 +147,7 @@ template<class Sp> Data_<Sp>::Data_(const Ty& d_): Sp(), dd(d_)
 
 // new array, zero fields
 template<class Sp> Data_<Sp>::Data_(const dimension& dim_): 
-  Sp( dim_), dd( Sp::zero, this->dim.N_Elements())
+  Sp( dim_), dd( Sp::zero, this->dim.NDimElements())
 {
   this->dim.Purge();
 }
@@ -168,7 +168,7 @@ template<> Data_<SpDObj>::Data_( const Ty* p, const SizeT nEl):
 // Sp(d_.dim), dd(d_.dd) {}
 
 template<class Sp> Data_<Sp>::Data_(const dimension& dim_, BaseGDL::InitType iT):
-  Sp( dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.N_Elements(), false)
+  Sp( dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false)
 {
   this->dim.Purge();
 
@@ -256,7 +256,7 @@ template<> Data_<SpDComplexDbl>::Data_(const dimension& dim_,
 // need not to be zeroed if all intialized later)
 // struct (as a separate class) as well
 template<> Data_<SpDString>::Data_(const dimension& dim_, BaseGDL::InitType iT):
-  SpDString(dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.N_Elements(), false)
+  SpDString(dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false)
 {
   dim.Purge();
   
@@ -264,7 +264,7 @@ template<> Data_<SpDString>::Data_(const dimension& dim_, BaseGDL::InitType iT):
     throw GDLException("DStringGDL(dim,InitType=INDGEN) called.");
 }
 template<> Data_<SpDPtr>::Data_(const dimension& dim_,  BaseGDL::InitType iT):
-  SpDPtr(dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.N_Elements(), false)
+  SpDPtr(dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false)
 {
   dim.Purge();
   
@@ -286,7 +286,7 @@ template<> Data_<SpDPtr>::Data_(const dimension& dim_,  BaseGDL::InitType iT):
 	}
 }
 template<> Data_<SpDObj>::Data_(const dimension& dim_, BaseGDL::InitType iT):
-  SpDObj(dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.N_Elements(), false)
+  SpDObj(dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false)
 {
   dim.Purge();
 
@@ -836,15 +836,14 @@ BaseGDL* Data_<Sp>::Transpose( DUInt* perm)
       perm = &permDefault[ MAXRANK - rank];
     }
 
-  dimension newDim;
   SizeT this_dim[ MAXRANK]; // permutated!
   for( SizeT d=0; d<rank; ++d)
     {
       this_dim[ d] = this->dim[ perm[ d]];
-      newDim.Set( d, this_dim[ d]);
+//    newDim.Set( d, this_dim[ d]);
     }
-
-  Data_* res = new Data_( newDim, BaseGDL::NOZERO);
+  
+  Data_* res = new Data_( dimension( this_dim, rank), BaseGDL::NOZERO);
 
   // src stride
   SizeT srcStride[ MAXRANK];
@@ -2709,7 +2708,7 @@ Data_<Sp>* Data_<Sp>::CatArray( ExprListT& exprList,
   dimension     catArrDim(this->dim); // list contains at least one element
 
   catArrDim.MakeRank( maxIx+1);
-  catArrDim.Set(catRankIx,0);     // clear rank which is added up
+  catArrDim.SetOneDim(catRankIx,0);     // clear rank which is added up
 
   SizeT dimSum=0;
   ExprListIterT i=exprList.begin();
@@ -2735,7 +2734,7 @@ Data_<Sp>* Data_<Sp>::CatArray( ExprListT& exprList,
 	}
     }
   
-  catArrDim.Set(catRankIx,dimSum);
+  catArrDim.SetOneDim(catRankIx,dimSum);
   
   // the concatenated array
   Data_<Sp>* catArr=New(catArrDim, BaseGDL::NOZERO);
@@ -3868,7 +3867,7 @@ T* Rebin1( T* src,
 
   SizeT srcDimIx = destDim[ dimIx];
 
-  destDim.Set( dimIx, newDim);
+  destDim.SetOneDim( dimIx, newDim);
 
   SizeT resStride   = destDim.Stride( dimIx); 
 
@@ -4011,7 +4010,7 @@ T* Rebin1Int( T* src,
 
   SizeT srcDimIx = destDim[ dimIx];
 
-  destDim.Set( dimIx, newDim);
+  destDim.SetOneDim( dimIx, newDim);
 
   SizeT resStride   = destDim.Stride( dimIx); 
 

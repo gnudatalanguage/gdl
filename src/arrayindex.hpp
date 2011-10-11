@@ -23,7 +23,11 @@
 
 #include "datatypes.hpp"
 #include "real2int.hpp"
-#include "allix.hpp"
+
+// done below
+// #include "allix.hpp"
+
+
 
 //typedef std::valarray<SizeT> AllIxT; // now in typedefs.hpp
 //typedef std::vector<BaseGDL*>     IxExprListT;
@@ -41,21 +45,21 @@ SizeT size() const { return sz;}
 
 enum IndexType
 {
-ArrayIndexTID,
-ArrayIndexScalarID,
-ArrayIndexScalarVPID,
-CArrayIndexScalarID,
-ArrayIndexIndexedID,
-CArrayIndexIndexedID,
-ArrayIndexAllID,
-ArrayIndexORangeID,
-CArrayIndexORangeID,
-ArrayIndexRangeID,
-CArrayIndexRangeID,
-ArrayIndexORangeSID,
-CArrayIndexORangeSID,
-ArrayIndexRangeSID,
-CArrayIndexRangeSID
+ArrayIndexTID, // abstract
+ ArrayIndexScalarID,   // scalar
+CArrayIndexScalarID, // with const e. g. [42]
+ArrayIndexScalarVPID, // common blobck or sysvar
+ ArrayIndexIndexedID,   // indexed
+CArrayIndexIndexedID, // indexed with const
+ArrayIndexAllID,             // [*]
+ ArrayIndexORangeID,   // [3:*]
+CArrayIndexORangeID,  // with const
+ ArrayIndexRangeID,      // [a:b]
+CArrayIndexRangeID,     // with const
+ ArrayIndexORangeSID,  // [a:*:stride]
+CArrayIndexORangeSID, // with const
+ ArrayIndexRangeSID,     // [a:b:stride]
+CArrayIndexRangeSID     // with const
 };
 
 class ArrayIndexT
@@ -92,6 +96,55 @@ public:
 
   virtual ArrayIndexT* Dup() const =0;
 };
+
+class ArrayIndexVectorT
+{
+private:
+ArrayIndexT* arrayIxArr[ MAXRANK];
+SizeT             sz;
+public:
+ArrayIndexVectorT(): sz(0) {}
+~ArrayIndexVectorT()
+{} // for( int i=0; i<sz; ++i) delete arrayIxArr[ i];}
+ArrayIndexVectorT( const ArrayIndexVectorT& cp): sz( cp.sz)
+{
+for( SizeT i=0; i<sz;++i)
+	arrayIxArr[ i] = cp.arrayIxArr[ i];
+}
+
+SizeT FrontGetS() const
+{
+assert( sz > 0);
+return arrayIxArr[0]->GetS();
+}
+
+ArrayIndexT* operator[]( SizeT ix) const
+{
+assert( ix < MAXRANK);
+return arrayIxArr[ ix];
+}
+SizeT size() const { return sz;}
+void push_back( ArrayIndexT* aIx)
+{
+assert( sz < MAXRANK);
+arrayIxArr[ sz++] = aIx;
+}
+void Clear()
+{
+for( int i=0; i<sz; ++i)
+	arrayIxArr[ i]->Clear();
+}
+void Destruct()  // only to be used from destructor (instance is not valid anymore afterwards)
+{
+for( int i=0; i<sz; ++i)
+	delete arrayIxArr[ i];
+ //sz = 0;	
+}
+ArrayIndexT* back() const { return arrayIxArr[ sz-1];}
+void pop_back() { --sz;}
+};
+
+#include "allix.hpp"
 
 // SCALAR (only for FOR loop indices)
 // VAR
@@ -1411,51 +1464,5 @@ CArrayIndexRangeS(){}
   }
 };
 
-class ArrayIndexVectorT
-{
-private:
-ArrayIndexT* arrayIxArr[ MAXRANK];
-SizeT             sz;
-public:
-ArrayIndexVectorT(): sz(0) {}
-~ArrayIndexVectorT()
-{} // for( int i=0; i<sz; ++i) delete arrayIxArr[ i];}
-ArrayIndexVectorT( const ArrayIndexVectorT& cp): sz( cp.sz)
-{
-for( SizeT i=0; i<sz;++i)
-	arrayIxArr[ i] = cp.arrayIxArr[ i];
-}
-
-SizeT FrontGetS() const
-{
-assert( sz > 0);
-return arrayIxArr[0]->GetS();
-}
-
-ArrayIndexT* operator[]( SizeT ix) const
-{
-assert( ix < MAXRANK);
-return arrayIxArr[ ix];
-}
-SizeT size() const { return sz;}
-void push_back( ArrayIndexT* aIx)
-{
-assert( sz < MAXRANK);
-arrayIxArr[ sz++] = aIx;
-}
-void Clear()
-{
-for( int i=0; i<sz; ++i)
-	arrayIxArr[ i]->Clear();
-}
-void Destruct()  // only to be used from destructor (instance is not valid anymore afterwards)
-{
-for( int i=0; i<sz; ++i)
-	delete arrayIxArr[ i];
- //sz = 0;	
-}
-ArrayIndexT* back() const { return arrayIxArr[ sz-1];}
-void pop_back() { --sz;}
-};
 
 #endif

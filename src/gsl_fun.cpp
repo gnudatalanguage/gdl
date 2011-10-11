@@ -951,7 +951,7 @@ namespace lib {
 	    r = gsl_rng_alloc (gsl_rng_mt19937);
 	    gsl_rng_set (r, seed0);
 
-	    seed0 += dim.N_Elements() * seedMul; // avoid repetition in next call
+	    seed0 += dim.NDimElements() * seedMul; // avoid repetition in next call
 	    // if called with undefined global
 
 	    seed = new DLongGDL( seed0);
@@ -969,7 +969,7 @@ namespace lib {
 	    r = gsl_rng_alloc (gsl_rng_mt19937);
 	    gsl_rng_set (r, seed0);
 
-	    seed0 += dim.N_Elements() * seedMul; // avoid repetition in next call
+	    seed0 += dim.NDimElements() * seedMul; // avoid repetition in next call
 	    // which would be defined global if used in a loop
 	    
 	    seed = new DLongGDL( seed0);
@@ -984,7 +984,7 @@ namespace lib {
 	r = gsl_rng_alloc (gsl_rng_mt19937);
 	gsl_rng_set (r, seed0);
 
-	seed0 += dim.N_Elements() * seedMul; // avoid repetition in next call
+	seed0 += dim.NDimElements() * seedMul; // avoid repetition in next call
 	// if called with undefined global
       }
     

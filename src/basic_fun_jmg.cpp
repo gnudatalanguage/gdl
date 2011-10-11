@@ -551,7 +551,7 @@ namespace lib {
     } else arr( e, dim, 1);
 
 
-    if (dim.N_Elements() != nEl) 
+    if (dim.NDimElements() != nEl) 
       e->Throw( "New subscripts must not change the number of elements in " 
 		+ e->GetParString( 0));
 

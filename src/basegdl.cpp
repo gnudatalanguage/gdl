@@ -36,7 +36,10 @@ BaseGDL* BaseGDL::AssocVar( int, SizeT)
   throw GDLException("BaseGDL::AssocVar(...) called.");
 }
 
-SizeT BaseGDL::N_Elements() const { return dim.N_Elements();}
+SizeT BaseGDL::N_Elements() const 
+{
+  return dim.NDimElementsConst();
+}
 SizeT BaseGDL::Size() const { return 0;}
 SizeT BaseGDL::ToTransfer() const { return 0;}
 SizeT BaseGDL::Sizeof() const { return 0;}

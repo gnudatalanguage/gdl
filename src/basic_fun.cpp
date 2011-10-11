@@ -943,7 +943,7 @@ namespace lib {
 	dimension dim;
 	arr( e, dim, 2);
 
-	SizeT nElCreate=dim.N_Elements();
+	SizeT nElCreate=dim.NDimElements();
 	
 	SizeT nElSource=p0->N_Elements();
       
@@ -2136,7 +2136,7 @@ TRACEOMP( __FILE__, __LINE__)
   // total over one dim
   template< typename T>
   BaseGDL* total_over_dim_template( T* src, 
-				    const dimension& srcDim, 
+				    const dimension& srcDim,
 				    SizeT sumDimIx,
                                     bool omitNaN)
   {
@@ -5160,7 +5160,7 @@ BaseGDL* transpose( EnvT* e)
     regmatch_t* pmatch = new regmatch_t[nSubExpr];
     ArrayGuard<regmatch_t> pmatchGuard( pmatch);
  
-    for( SizeT s=0; s<dim.N_Elements(); ++s)
+    for( SizeT s=0; s<dim.NDimElements(); ++s)
       {
 	int eflags = 0; 
 

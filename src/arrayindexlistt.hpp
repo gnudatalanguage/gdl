@@ -765,7 +765,7 @@ class ArrayIndexListScalarT: public ArrayIndexListT
 {
 private:
   ArrayIndexVectorT ixList;
-  std::vector<SizeT> paramPresent;
+//   std::vector<SizeT> paramPresent;
 
   SizeT    acRank;               // rank upto which indexing is done
   SizeT    varStride[MAXRANK+1]; // variables stride
@@ -796,7 +796,7 @@ public:
 
   ArrayIndexListScalarT( const ArrayIndexListScalarT& cp):
     ArrayIndexListT( cp),
-    paramPresent( cp.paramPresent),
+//     paramPresent( cp.paramPresent),
     acRank(cp.acRank),
 //     allIx( NULL),
     ixListEnd( NULL)
@@ -823,12 +823,12 @@ public:
     nParam = 0;
     for( SizeT i=0; i<ixList.size(); ++i)
       {
-	SizeT actNParam = ixList[i]->NParam();
-	if( actNParam == 1) 
-	  {
-	    paramPresent.push_back( i);
-	    nParam++;
-	  }
+		SizeT actNParam = ixList[i]->NParam();
+		if( actNParam == 1) 
+		{
+// 			paramPresent.push_back( i);
+			nParam++;
+		}
       }
   }    
   
@@ -855,7 +855,7 @@ public:
     
 //     for( SizeT i=0; i<nParam; ++i)
 //       {
-// 	ixList[ paramPresent[i]]->Init( ix[ i]);
+// 	ixList[ /*paramPresent*/[i]]->Init( ix[ i]);
 //       }
 //   }
 
@@ -1203,8 +1203,8 @@ public:
     // for assoc variables last index is the record
     if( var->IsAssoc()) 
       {
-	acRank--;
-	accessType = accessTypeAssocInit;
+		acRank--;
+		accessType = accessTypeAssocInit;
       }
     else
       accessType = accessTypeInit;
@@ -1212,38 +1212,38 @@ public:
     // can happen due to assoc variables
     if( accessType == ALLONE)
       {
-	var->Dim().Stride( varStride,acRank); // copy variables stride into varStride
+		var->Dim().Stride( varStride,acRank); // copy variables stride into varStride
 
-	// check boundary
-	const dimension& varDim  = var->Dim();
-	SizeT            varRank = varDim.Rank();
-	for(SizeT i=0; i<acRank; ++i)
-	  ixList[i]->NIter( (i<varRank)?varDim[i]:1);
+		// check boundary
+		const dimension& varDim  = var->Dim();
+		SizeT            varRank = varDim.Rank();
+		for(SizeT i=0; i<acRank; ++i)
+		ixList[i]->NIter( (i<varRank)?varDim[i]:1);
 
-	nIx = 1;
-	return;
+		nIx = 1;
+		return;
       }
 
     if( accessType == ALLINDEXED || accessType == INDEXED_ONE)
       {
-	SizeT i=0;
-	for(; i<acRank; ++i)
-	  if( !ixList[i]->Scalar())
-	      break;
+		SizeT i=0;
+		for(; i<acRank; ++i)
+		if( !ixList[i]->Scalar())
+			break;
 
-	if( i == acRank) // counted up to acRank
-	  {
-	    accessType = ALLONE;
-	    var->Dim().Stride( varStride,acRank); // copy variables stride into varStride
+		if( i == acRank) // counted up to acRank
+		{
+			accessType = ALLONE;
+			var->Dim().Stride( varStride,acRank); // copy variables stride into varStride
 
-	    // check boundary
-	    const dimension& varDim  = var->Dim();
-	    SizeT            varRank = varDim.Rank();
-	    for(SizeT i=0; i<acRank; ++i)
-	      ixList[i]->NIter( (i<varRank)?varDim[i]:1);
+			// check boundary
+			const dimension& varDim  = var->Dim();
+			SizeT            varRank = varDim.Rank();
+			for(SizeT i=0; i<acRank; ++i)
+			ixList[i]->NIter( (i<varRank)?varDim[i]:1);
 
-	    nIx = 1;
-	    return; 
+			nIx = 1;
+			return;
 	  }
 	// after break
 	if( i > 0 || accessType == INDEXED_ONE)
@@ -1294,10 +1294,10 @@ public:
     stride[0]=1;
     for( SizeT i=1; i<acRank; ++i)
       {
-	nIterLimit[i]=ixList[i]->NIter( (i<varRank)?varDim[i]:1);
-	nIx *= nIterLimit[i]; // calc number of assignments
+		nIterLimit[i]=ixList[i]->NIter( (i<varRank)?varDim[i]:1);
+		nIx *= nIterLimit[i]; // calc number of assignments
 
-	stride[i]=stride[i-1]*nIterLimit[i-1]; // index stride 
+		stride[i]=stride[i-1]*nIterLimit[i-1]; // index stride 
       }
     stride[acRank]=stride[acRank-1]*nIterLimit[acRank-1]; // index stride 
     

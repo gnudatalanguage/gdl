@@ -73,7 +73,7 @@ public:
   DStructGDL( DStructDesc* desc_, const dimension& dim_)
     : SpDStruct( desc_, dim_)
     , typeVar( desc_->NTags())
-    , dd( dim.N_Elements() * desc_->NBytes(), false) //,SpDStruct::zero)
+    , dd( dim.NDimElements() * desc_->NBytes(), false) //,SpDStruct::zero)
   {
     dim.Purge();
     
@@ -90,7 +90,7 @@ public:
   DStructGDL( DStructDesc* desc_, const dimension& dim_, BaseGDL::InitType iT)
     : SpDStruct( desc_, dim_) 
     , typeVar( desc_->NTags())
-    , dd( (iT == BaseGDL::NOALLOC) ? 0 : dim.N_Elements() * desc_->NBytes(), 
+    , dd( (iT == BaseGDL::NOALLOC) ? 0 : dim.NDimElements() * desc_->NBytes(),
 	  false)
   {
     assert( iT == BaseGDL::NOZERO || iT == BaseGDL::NOALLOC);

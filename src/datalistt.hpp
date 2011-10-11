@@ -191,7 +191,7 @@ public:
     for( SizeT i=0; i<env.size(); i++)
       {
 		if( env[i].P() == p) return true;
-		if( env[i].PP() != NULL && *(env[i].PP()) == p) return true;
+		if( env[i].IsPP() && *(env[i].PP()) == p) return true;
       }
     return false;
   }
@@ -269,11 +269,9 @@ public:
   void Set( SizeT ix, BaseGDL* p)
   {
     env[ ix].SetPNullPP( p);
-//     env[ ix].NullPP();
   }
   void Set( SizeT ix, BaseGDL** pp)
   {
-//     env[ ix].NullP();
     env[ ix].SetPPNullP( pp);
   }
   bool IsSet( SizeT ix)

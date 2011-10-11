@@ -331,7 +331,8 @@ public:
   SizeT SeqAccess(); // code in arrayindex.cpp
 };
 
-class ArrayIndexVectorT;
+
+
 class AllIxAllIndexedT: public AllIxBaseT
 {
 private:
@@ -367,13 +368,16 @@ class AllIxNewMultiT: public AllIxBaseT
 {
 private:
   ArrayIndexVectorT* ixList;
+  SizeT ixListStride[MAXRANK];
   SizeT* varStride;
   SizeT* nIterLimit;
   SizeT* stride;
   SizeT acRank;
   SizeT nIx;
-  SizeT         seqIx;
-	
+  SizeT seqIx;
+//   SizeT s[MAXRANK];
+  SizeT add;
+
 public:
   AllIxNewMultiT( ArrayIndexVectorT* ixList_, SizeT acRank_, SizeT nIx_, SizeT* varStride_, SizeT* nIterLimit_, SizeT* stride_)
     : ixList( ixList_)
@@ -382,12 +386,27 @@ public:
     , varStride( varStride_)
     , nIterLimit( nIterLimit_)
     , stride( stride_)
-  {}
+  {
+    add = 0;
+	for( SizeT i=0; i<acRank;++i)
+		{
+		assert( varStride[0] == 1);
+		if( !(*ixList)[i]->Indexed())
+			{
+				ixListStride[i] = (*ixList)[i]->GetStride() * varStride[i];
+				assert( ixListStride[i] >= 1);
+
+// 				s[i]=(*ixList)[i]->GetS();
+				add += (*ixList)[i]->GetS() * varStride[i];
+			}
+		}
+// 	s = ixList->FrontGetS(); //ixList[0]->GetS();
+  }
   ~AllIxNewMultiT() {}
 
   AllIxNewMultiT* Clone()
   {
-    AllIxNewMultiT* clone = new AllIxNewMultiT( ixList, acRank, nIx, varStride, nIterLimit, stride);
+    AllIxNewMultiT* clone = new AllIxNewMultiT( *this);
     return clone;
   }
 

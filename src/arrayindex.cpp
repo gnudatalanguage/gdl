@@ -138,19 +138,16 @@ SizeT AllIxNewMultiT::operator[]( SizeT i) const
   {
     assert( i < nIx);
     
-    SizeT resIndex;
+    SizeT resIndex = add;
     if( (*ixList)[0]->Indexed())
       {
-		resIndex = static_cast< ArrayIndexIndexed*>((*ixList)[0])->GetIx( i %  nIterLimit[0]);
+		resIndex += static_cast< ArrayIndexIndexed*>((*ixList)[0])->GetIx( i %  nIterLimit[0]);
       }
     else
       {
-		SizeT ixStride = (*ixList)[0]->GetStride();
-		if( ixStride == 0)
-			assert( ixStride >= 1);
-		
-		SizeT s = ixList->FrontGetS(); //ixList[0]->GetS();
-		resIndex = (i %  nIterLimit[0]) * ixStride + s;
+// 		SizeT s = ixList->FrontGetS(); //ixList[0]->GetS();
+		if( nIterLimit[0] > 1)
+			resIndex += (i % nIterLimit[0]) * ixListStride[0]; // + s[0];
       }
 
     for( SizeT l=1; l < acRank; ++l)
@@ -161,11 +158,10 @@ SizeT AllIxNewMultiT::operator[]( SizeT i) const
 		}
 		else
 		{
-			SizeT ixStride = (*ixList)[l]->GetStride();
-			assert( ixStride >= 1);
-
-			SizeT s = (*ixList)[l]->GetS();
-			resIndex += (((i / stride[l]) %  nIterLimit[l]) * ixStride + s) * varStride[l];
+// 			SizeT s = (*ixList)[l]->GetS();
+			if( nIterLimit[l] > 1)
+				resIndex += ((i / stride[l]) %  nIterLimit[l]) * ixListStride[l]; //  + s[l] * varStride[l];
+// 			resIndex += (((i / stride[l]) %  nIterLimit[l]) * ixListStride[l] + s[l]) * varStride[l];
 		}
 	}
 	return resIndex;
@@ -349,7 +345,7 @@ ArrayIndexListT::~ArrayIndexListT() {}
 AllIxBaseT* ArrayIndexListT::BuildIx() {}
 
 
-// called after structure is fixed
+// called from compiler after structure is fixed
 ArrayIndexListT* MakeArrayIndex( ArrayIndexVectorT* ixList)
 {
   assert( ixList->size() != 0); // must be, from compiler

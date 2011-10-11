@@ -951,9 +951,9 @@ namespace lib {
   template< typename T1, typename T2>
   BaseGDL* poly_2d_fun_template( DLong nCol, DLong nRow, image_t* warped)
   {
-    dimension dim;  
-    dim.Set(0, nCol);
-    dim.Set(1, nRow);
+    dimension dim(nCol,nRow);  
+//     dim.Set(0, nCol);
+//     dim.Set(1, nRow);
     T1* res = new T1( dim, BaseGDL::NOZERO);
     for ( SizeT i=0; i<nCol*nRow; ++i) {
       int col = i / nRow;
@@ -969,9 +969,9 @@ namespace lib {
   BaseGDL* poly_2d_shift_template( BaseGDL* p0, DLong nCol, DLong nRow, 
 				   int shift_y, int shift_x)
   {
-    dimension dim;  
-    dim.Set(0, nCol);
-    dim.Set(1, nRow);
+    dimension dim(nCol,nRow);  
+//     dim.Set(0, nCol);
+//     dim.Set(1, nRow);
     T1* res = new T1( dim, BaseGDL::NOZERO);
 
     int lx = (int) p0->Dim(0);

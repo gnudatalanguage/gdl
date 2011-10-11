@@ -604,7 +604,7 @@ DStructGDL* DStructGDL::CatArray( ExprListT& exprList,
   dimension     catArrDim(dim); // list contains at least one element
 
   catArrDim.MakeRank( maxIx+1);
-  catArrDim.Set(catRankIx,0);     // clear rank which is added up
+  catArrDim.SetOneDim(catRankIx,0);     // clear rank which is added up
 
   SizeT dimSum=0;
   ExprListIterT i=exprList.begin();
@@ -627,7 +627,7 @@ DStructGDL* DStructGDL::CatArray( ExprListT& exprList,
 	}
     }
   
-  catArrDim.Set(catRankIx,dimSum);
+  catArrDim.SetOneDim(catRankIx,dimSum);
   
   // the concatenated array
   DStructGDL* catArr=New( catArrDim, BaseGDL::NOZERO);

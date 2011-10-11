@@ -34,13 +34,16 @@ inline SizeT RankIx( const SizeT rank)
 class dimension
 {
   SizeT dim[MAXRANK];         // dimension
+  SizeT stride[MAXRANK+1];      // stride
 
   char rank;                 // how many dim are valid
 
 public:
   // structors
   dimension(): rank(0)
-  {}
+  {
+	stride[0] = 0; // mark as not set
+  }
 
   // c-i
   dimension(const dimension& dim_)
@@ -48,6 +51,7 @@ public:
     rank = dim_.rank;
     for(unsigned i=0; i<rank; ++i)
       { dim[i]=dim_.dim[i];}
+    stride[0] = 0; // not set
   }
 
   // initialize from SizeT[ nD] array
@@ -56,6 +60,7 @@ public:
     rank = nD;
     for( SizeT i=0; i<rank; ++i)
       dim[i]=d[i];
+    stride[0] = 0; // not set
   }
   // initialize from DLong[ nD] array
   dimension(const DLong*  d, SizeT nD=MAXRANK)
@@ -63,6 +68,7 @@ public:
     rank = nD;
     for( SizeT i=0; i<rank; ++i)
       dim[i]= d[i];
+    stride[0] = 0; // not set
   }
 
   // simplified constructors for one to three dimensions
@@ -75,6 +81,8 @@ public:
 //       }
     dim[0] = d0;
     rank = 1;
+    stride[0] = 1; // set
+    stride[1] = d0;
   }
   dimension(const SizeT d0, const SizeT d1)
   {
@@ -83,17 +91,23 @@ public:
     assert( d1 != 0);
     dim[1] = d1;
     rank = 2;
+    stride[0] = 1; // set
+    stride[1] = d0; // set
+    stride[1] = d0 * d1;
   }
-  dimension(const SizeT d0, const SizeT d1, const SizeT d2)
-  {
-    assert( d0 != 0);
-    dim[0] = d0;
-    assert( d1 != 0);
-    dim[1] = d1;
-    assert( d2 != 0);
-    dim[2] = d2;
-    rank = 3;
-  }
+//   dimension(const SizeT d0, const SizeT d1, const SizeT d2)
+//   {
+//     assert( d0 != 0);
+//     dim[0] = d0;
+//     assert( d1 != 0);
+//     dim[1] = d1;
+//     assert( d2 != 0);
+//     dim[2] = d2;
+//     rank = 3;
+// //     stride[0] = 1; // set
+// //     stride[1] = d0; // set
+// //     stride[1] = d0 * d1; // set
+//   }
 
   // operators
   // assignment
@@ -102,6 +116,7 @@ public:
     if( &dim_ == this) return *this; // self assignment
     rank = dim_.rank;
     for(unsigned i=0; i<rank; ++i) dim[i]=dim_.dim[i];
+     stride[0] = 0; // not set
     return *this;
   }
 
@@ -118,6 +133,8 @@ public:
 
     for( SizeT i=thisRank; i<rank; ++i)
       dim[i]=add.dim[i-thisRank];
+    
+    stride[0] = 0; // not set
   }
 
   // cat one dim to the right
@@ -127,6 +144,8 @@ public:
       throw GDLException("Only "+MAXRANK_STR+" dimensions allowed.");
 
     dim[rank++]=add;
+    
+    stride[0] = 0; // not set
   }
 
   // cat one dim to the left
@@ -143,6 +162,8 @@ public:
       }
     
     dim[0]=add;
+    
+    stride[0] = 0; // not set
   }
 
   // cat add to left
@@ -158,12 +179,14 @@ public:
     // shift dim by addRank
     for( int i=thisRank-1; i>=0; i--)
       {
-	dim[i+addRank]=dim[i];
+		dim[i+addRank]=dim[i];
       }
 
     // insert add on the left
     for( int i=0; i<addRank; ++i)
       dim[i]=add.dim[i];
+    
+    stride[0] = 0; // not set
   }
 
 //   SizeT* Dim0Address()
@@ -184,13 +207,16 @@ public:
   {
     if( rank == 0) 
       {
-	assert( ix == 0);
-	return 0;
+		assert( ix == 0);
+		return 0;
       }
     SizeT res = dim[ix];
     rank--;
     for( SizeT i=ix; i<rank; ++i)
       dim[i]=dim[i+1];
+    
+    stride[0] = 0; // not set
+    
     return res;
   }
 
@@ -207,7 +233,7 @@ public:
     if( r == 0)
       {
 	o << "scalar ";
-	o << d.N_Elements();
+	o << d.NDimElementsConst();
       }
     else
       {
@@ -249,43 +275,81 @@ public:
   // members
 
   // number of elements
-  SizeT N_Elements() const
+  SizeT NDimElements() 
+  {
+	if( stride[0] == 0) InitStride();
+	return stride[ rank];
+//     SizeT res=1;
+//     for(unsigned i=0; i<rank; ++i) res *= dim[i];
+//     return res;
+  }
+  SizeT NDimElementsConst() const
   {
     SizeT res=1;
     for(unsigned i=0; i<rank; ++i) res *= dim[i];
     return res;
   }
 
-  void Set(const SizeT ix, const SizeT d) 
+  void SetOneDim(const SizeT ix, const SizeT d)
   {
     if( ix >= rank) rank = ix+1;
     dim[ix]=d;
+    
+    stride[0] = 0; // not set
   }
 
   SizeT Stride(const SizeT i) const
   {
-    SizeT ret=1;
-    SizeT l = (i<rank)?i:rank;
-    for(unsigned m=1; m<=l; ++m)
-      ret *= dim[m-1];
+	if( stride[0] == 0)
+		const_cast<dimension*>(this)->InitStride();
+	return stride[ (i<rank)?i:rank];
 
-    return ret;
+// 	SizeT ret=1;
+//     SizeT l = (i<rank)?i:rank;
+//     for(unsigned m=1; m<=l; ++m)
+//       ret *= dim[m-1];
+//     return ret;
   }
 
   void Stride( SizeT s[], SizeT upto) const
   {
     s[0]=1; // upto must be at least 1
-    unsigned m=1;
-    if( upto <= rank)
-      for(; m<=upto; ++m)
-	s[m] = s[m-1] * dim[m-1];
+    if( stride[0] == 0)
+    {
+		unsigned m=1;
+		if( upto <= rank)
+			for(; m<=upto; ++m)
+				s[m] = s[m-1] * dim[m-1];
+		else
+		{
+			for(; m<=rank; ++m)
+			s[m] = s[m-1] * dim[m-1];
+			for(; m<=upto; ++m)
+			s[m] = s[m-1];
+		}
+    }
     else
-      {
-      for(; m<=rank; ++m)
-	s[m] = s[m-1] * dim[m-1];
-      for(; m<=upto; ++m)
-	s[m] = s[m-1];
-      }
+    {
+		unsigned m=1;
+		if( upto <= rank)
+			for(; m<=upto; ++m)
+				s[m] = stride[m];
+		else
+		{
+			for(; m<=rank; ++m)
+				s[m] = stride[m];
+			for(; m<=upto; ++m)
+				s[m] = s[m-1];
+		}
+    }
+    
+  }
+  
+  void InitStride()
+  {
+    stride[0]=1; // upto must be at least 1
+    for(int m=1; m<=rank; ++m)
+		stride[m] = stride[m-1] * dim[m-1];
   }
 
   // actual rank (0->scalar .. MAXRANK)
@@ -310,9 +374,10 @@ public:
       throw GDLException("Maximum "+MAXRANK_STR+" dimensions are allowed.");
     for( SizeT i=rNow; i<r; ++i) dim[i]=1;
     rank = r;
+    stride[0] = 0;
   }
 
-  // multidim index to one dim index
+/*  // multidim index to one dim index
   SizeT LongIndex(const dimension& ix) const
   {
     // SizeT s[MAXRANK+1];    // multiplier for dimension
@@ -333,7 +398,7 @@ public:
       if( ix.dim[i] > 0)
 	throw GDLException("Array index out of range (2)");
     return res;
-  }
+  }*/
 };
 
 #endif
