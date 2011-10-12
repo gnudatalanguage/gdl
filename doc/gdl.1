@@ -1,18 +1,16 @@
-.TH GDL 1 "2010-01-14" "The GDL Team"
+.TH GDL 1 "2011-10-01" "The GDL Team"
 .SH NAME
 gdl \- GNU Data Language incremental compiler
 .SH SYNOPSIS
 .B gdl
-.RI [ 
---help
-]
-.RI [ 
---version 
-]
-.RI [ 
--quiet 
-]
-.RI [ 
+.RI [--help]
+.RI [-h]
+.RI [--version]
+.RI [-v]
+.RI [-V]
+.RI [[-]-quiet]
+.RI [-q]
+.RI [
 -arg 
 value 
 ]
@@ -49,16 +47,16 @@ Information on GDL/IDL/PV-WAVE syntax and library routines can be found in e.g.:
 - comp.lang.idl-pvwave newsgroup
 
 A vast part of GDL library routines is implemented using open-source libraries including
-GSL, plPlot, and optionally: FFTW, ImageMagick, netCDF, HDF4, HDF5, libproj4, UDUNITS-2, and others.
+GSL, plPlot, and optionally: readline, FFTW, ImageMagick, netCDF, HDF4, HDF5, libproj4, UDUNITS-2, libps and others.
 .SH OPTIONS
 .TP
-.B \-\-help
+.B \-\-help (or \-h)
 Show summary of options
 .TP
-.B \-\-version
+.B \-\-version (or \-v, \-V)
 Show version of program
 .TP
-.B \-quiet
+.B \-\-quiet (or \-quiet, \-q)
 Suppress welcome messages
 .TP
 .B \-arg value
