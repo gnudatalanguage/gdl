@@ -1463,7 +1463,8 @@ BaseGDL* MATRIX_OP1NCNode::Eval()
  return res;
 }
 BaseGDL* MATRIX_OP2NCNode::Eval()
-{ BaseGDL* res;
+{
+ BaseGDL* res;
  auto_ptr<BaseGDL> g1;
  auto_ptr<BaseGDL> g2;
  BaseGDL *e1, *e2;

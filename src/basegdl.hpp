@@ -363,7 +363,7 @@ public:
   inline const dimension& Dim()   const      { return dim;}
    inline SizeT    Dim(SizeT d)    const      { return dim[d];}
 //   inline SizeT*   Dim0Address()              { return dim.Dim0Address();}
-  inline SizeT    Stride(SizeT d) /*const*/      { return dim.Stride(d);}
+  inline SizeT    Stride(SizeT d) const      { return dim.Stride(d);}
   inline void     Purge()                    { dim.Purge();}
   inline SizeT    Rank()          const      { return dim.Rank();}
   inline void     SetDim(const dimension& d) { dim=d;}
@@ -486,9 +486,11 @@ public:
   virtual BaseGDL* Log10();              
   virtual void     Log10This();
 
+  // defined in basic_op.cpp
   // used in r_expr
   virtual BaseGDL* UMinus();              
-  virtual BaseGDL* NotOp();               
+  virtual BaseGDL* NotOp();
+             
   virtual BaseGDL* AndOp( BaseGDL* r);    
   virtual BaseGDL* AndOpInv( BaseGDL* r); 
   virtual BaseGDL* OrOp( BaseGDL* r);    
@@ -502,23 +504,18 @@ public:
   virtual BaseGDL* GtOp( BaseGDL* r);    
   virtual BaseGDL* Add( BaseGDL* r);      
   virtual BaseGDL* AddInv( BaseGDL* r);      
-  virtual BaseGDL* AddNew( BaseGDL* r);      
-  virtual BaseGDL* AddInvNew( BaseGDL* r);
   virtual BaseGDL* Sub( BaseGDL* r);
   virtual BaseGDL* SubInv( BaseGDL* r);   
   virtual BaseGDL* LtMark( BaseGDL* r);   
   virtual BaseGDL* GtMark( BaseGDL* r);   
   virtual BaseGDL* Mult( BaseGDL* r);   
-  virtual BaseGDL* MultNew( BaseGDL* r);   
   virtual BaseGDL* Div( BaseGDL* r);
   virtual BaseGDL* DivInv( BaseGDL* r);   
   virtual BaseGDL* Mod( BaseGDL* r);      
   virtual BaseGDL* ModInv( BaseGDL* r);   
   virtual BaseGDL* Pow( BaseGDL* r);      
   virtual BaseGDL* PowInv( BaseGDL* r);   
-
-  virtual BaseGDL* PowInt( BaseGDL* r);      
-  virtual BaseGDL* PowIntNew( BaseGDL* r);   
+  virtual BaseGDL* PowInt( BaseGDL* r);
 
   virtual BaseGDL* AndOpS( BaseGDL* r);    
   virtual BaseGDL* AndOpInvS( BaseGDL* r); 
@@ -527,14 +524,11 @@ public:
   virtual BaseGDL* XorOpS( BaseGDL* r);    
   virtual BaseGDL* AddS( BaseGDL* r);      
   virtual BaseGDL* AddInvS( BaseGDL* r);
-  virtual BaseGDL* AddSNew( BaseGDL* r);      
-  virtual BaseGDL* AddInvSNew( BaseGDL* r);      
   virtual BaseGDL* SubS( BaseGDL* r);
   virtual BaseGDL* SubInvS( BaseGDL* r);   
   virtual BaseGDL* LtMarkS( BaseGDL* r);   
   virtual BaseGDL* GtMarkS( BaseGDL* r);   
   virtual BaseGDL* MultS( BaseGDL* r);   
-  virtual BaseGDL* MultSNew( BaseGDL* r);   
   virtual BaseGDL* DivS( BaseGDL* r);
   virtual BaseGDL* DivInvS( BaseGDL* r);   
   virtual BaseGDL* ModS( BaseGDL* r);      
@@ -543,6 +537,63 @@ public:
   virtual BaseGDL* PowInvS( BaseGDL* r);   
 
 
+  
+  
+  
+// the New functions
+// defined in basic_op_new.cpp
+// results go into a new DataT
+
+//   virtual BaseGDL* AndOpNew( BaseGDL* r);
+//   virtual BaseGDL* AndOpInv( BaseGDL* r); 
+//   virtual BaseGDL* OrOpNew( BaseGDL* r);    
+//   virtual BaseGDL* OrOpInvNew( BaseGDL* r); 
+//   virtual BaseGDL* XorOpNew( BaseGDL* r);    
+//   virtual BaseGDL* EqOpNew( BaseGDL* r);    
+//   virtual BaseGDL* NeOpNew( BaseGDL* r);    
+//   virtual BaseGDL* LeOpNew( BaseGDL* r);    
+//   virtual BaseGDL* GeOpNew( BaseGDL* r);    
+//   virtual BaseGDL* LtOpNew( BaseGDL* r);    
+//   virtual BaseGDL* GtOpNew( BaseGDL* r);
+  virtual BaseGDL* AddNew( BaseGDL* r);      // implemented
+  virtual BaseGDL* AddInvNew( BaseGDL* r);      // implemented
+//   virtual BaseGDL* SubNew( BaseGDL* r);
+//   virtual BaseGDL* SubInvNew( BaseGDL* r);
+//   virtual BaseGDL* LtMarkNew( BaseGDL* r);   
+//   virtual BaseGDL* GtMarkNew( BaseGDL* r);   
+  virtual BaseGDL* MultNew( BaseGDL* r);   // implemented
+//   virtual BaseGDL* DivNew( BaseGDL* r);
+//   virtual BaseGDL* DivInvNew( BaseGDL* r);   
+//   virtual BaseGDL* ModNew( BaseGDL* r);      
+//   virtual BaseGDL* ModInvNew( BaseGDL* r);   
+//   virtual BaseGDL* PowNew( BaseGDL* r);      
+//   virtual BaseGDL* PowInvNew( BaseGDL* r);   
+  virtual BaseGDL* PowIntNew( BaseGDL* r);   // implemented
+
+//   virtual BaseGDL* AndOpSNew( BaseGDL* r);
+//   virtual BaseGDL* AndOpInvSNew( BaseGDL* r); 
+//   virtual BaseGDL* OrOpSNew( BaseGDL* r);    
+//   virtual BaseGDL* OrOpInvSNew( BaseGDL* r); 
+//   virtual BaseGDL* XorOpSNew( BaseGDL* r);
+  virtual BaseGDL* AddSNew( BaseGDL* r);         // implemented
+  virtual BaseGDL* AddInvSNew( BaseGDL* r);    // implemented
+//   virtual BaseGDL* AddInvSNew( BaseGDL* r);
+//   virtual BaseGDL* SubSNew( BaseGDL* r);
+//   virtual BaseGDL* SubInvSNew( BaseGDL* r);   
+//   virtual BaseGDL* LtMarkSNew( BaseGDL* r);   
+//   virtual BaseGDL* GtMarkSNew( BaseGDL* r);
+  virtual BaseGDL* MultSNew( BaseGDL* r);      // implemented
+//   virtual BaseGDL* DivSNew( BaseGDL* r);
+//   virtual BaseGDL* DivInvSNew( BaseGDL* r);   
+//   virtual BaseGDL* ModSNew( BaseGDL* r);      
+//   virtual BaseGDL* ModInvSNew( BaseGDL* r);   
+//   virtual BaseGDL* PowSNew( BaseGDL* r);      
+//   virtual BaseGDL* PowInvSNew( BaseGDL* r);   
+
+
+
+  
+  
 //   virtual BaseGDL* AndOpNew( BaseGDL* r);    // create new result var
   //  virtual BaseGDL* AndOpInvNew( BaseGDL* r); // create new result var
 //   virtual BaseGDL* OrOpNew( BaseGDL* r);    
@@ -550,14 +601,19 @@ public:
 //   virtual BaseGDL* XorOpNew( BaseGDL* r);    
 //   virtual BaseGDL* AddNew( BaseGDL* r);      
   //  virtual BaseGDL* AddInvNew( BaseGDL* r);      
+   
    virtual BaseGDL* SubNew( BaseGDL* r);
+  
   //  virtual BaseGDL* SubInvNew( BaseGDL* r);   
 //   virtual BaseGDL* MultNew( BaseGDL* r);   
 //   virtual BaseGDL* DivNew( BaseGDL* r);      
   //  virtual BaseGDL* DivInvNew( BaseGDL* r);   
 //   virtual BaseGDL* ModNew( BaseGDL* r);      
   //  virtual BaseGDL* ModInvNew( BaseGDL* r);   
+  
   virtual BaseGDL* PowNew( BaseGDL* r);
+  
+  
   //  virtual BaseGDL* PowInvNew( BaseGDL* r);
   virtual BaseGDL* MatrixOp( BaseGDL* r, bool rtranspose = false, bool transposeResult =false, bool strassen = false);
   virtual void AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT offset);

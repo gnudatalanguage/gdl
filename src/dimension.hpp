@@ -290,11 +290,12 @@ public:
     return res;
   }
 
+// used by some lib routines, not time critical
   void SetOneDim(const SizeT ix, const SizeT d)
   {
     if( ix >= rank) rank = ix+1;
     dim[ix]=d;
-    
+
     stride[0] = 0; // not set
   }
 
@@ -314,8 +315,9 @@ public:
 
   void Stride( SizeT s[], SizeT upto) const
   {
+    assert( upto >= 1);
     s[0]=1; // upto must be at least 1
-    if( stride[0] == 0)
+    if( stride[0] == 0) // stride not set yet
     {
 		unsigned m=1;
 		if( upto <= rank)
@@ -329,7 +331,7 @@ public:
 			s[m] = s[m-1];
 		}
     }
-    else
+    else // stride already calculated -> copy
     {
 		unsigned m=1;
 		if( upto <= rank)
@@ -348,8 +350,9 @@ public:
   
   void InitStride() const
   {
-    stride[0]=1; // upto must be at least 1
-    for(int m=1; m<=rank; ++m)
+    stride[0]=1; 
+    stride[1]=dim[0]; 
+    for(int m=2; m<=rank; ++m)
 		stride[m] = stride[m-1] * dim[m-1];
   }
 
