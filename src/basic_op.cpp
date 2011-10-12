@@ -2361,39 +2361,7 @@ Data_<Sp>* Data_<Sp>::Add( BaseGDL* r)
   return this;
 }
 template<class Sp>
-Data_<Sp>* Data_<Sp>::AddNew( BaseGDL* r)
-{
-  Data_* right=static_cast<Data_*>(r);
-
-  // ULong rEl=right->N_Elements();
-  ULong nEl=N_Elements();
-  
-  Data_* res=new Data_( this->dim, BaseGDL::NOZERO);
-
-// assert( rEl);
-  assert( nEl);
-  if( nEl == 1)
-    {
-      (*res)[0] = (*this)[0] + (*right)[0];
-      return res;
-    }
-
-  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-#pragma omp for
-      for( SizeT i=0; i < nEl; ++i)
-		(*res)[i] = (*this)[i] + (*right)[i];
-    }  //C delete right;
-  return res;
-}
-template<class Sp>
 Data_<Sp>* Data_<Sp>::AddInv( BaseGDL* r)
-{
-  return Add( r);
-}
-template<class Sp>
-Data_<Sp>* Data_<Sp>::AddInvNew( BaseGDL* r)
 {
   return Add( r);
 }
@@ -2421,33 +2389,6 @@ Data_<SpDString>* Data_<SpDString>::AddInv( BaseGDL* r)
     }  //C delete right;
   return this;
 }
-template<>
-Data_<SpDString>* Data_<SpDString>::AddInvNew( BaseGDL* r)
-{
-  Data_* right=static_cast<Data_*>(r);
-
-  // ULong rEl=right->N_Elements();
-  ULong nEl=N_Elements();
-  
-  Data_* res=new Data_( this->dim, BaseGDL::NOZERO);
-
-// assert( rEl);
-  assert( nEl);
-  if( nEl == 1)
-    {
-      (*res)[0] = (*right)[0] + (*this)[0] ;
-      return res;
-    }
-
-  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-#pragma omp for
-      for( SizeT i=0; i < nEl; ++i)
-		(*res)[i] = (*right)[i] + (*this)[i];
-    }  //C delete right;
-  return res;
-}
 // invalid types
 DStructGDL* DStructGDL::Add( BaseGDL* r)
 {
@@ -2455,16 +2396,6 @@ DStructGDL* DStructGDL::Add( BaseGDL* r)
   return this;
 }
 DStructGDL* DStructGDL::AddInv( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
-DStructGDL* DStructGDL::AddNew( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
-DStructGDL* DStructGDL::AddInvNew( BaseGDL* r)
 {
   throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
@@ -2477,18 +2408,6 @@ Data_<SpDPtr>* Data_<SpDPtr>::Add( BaseGDL* r)
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::Add( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
-  return this;
-}
-template<>
-Data_<SpDPtr>* Data_<SpDPtr>::AddNew( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
-  return this;
-}
-template<>
-Data_<SpDObj>* Data_<SpDObj>::AddNew( BaseGDL* r)
 {
   throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
@@ -2519,41 +2438,9 @@ Data_<Sp>* Data_<Sp>::AddS( BaseGDL* r)
   return this;
 }
 template<class Sp>
-Data_<Sp>* Data_<Sp>::AddSNew( BaseGDL* r)
-{
-  Data_* right=static_cast<Data_*>(r);
-
-  Data_* res=new Data_( this->dim, BaseGDL::NOZERO);
-
-  ULong nEl=N_Elements();
-  assert( nEl);
-  //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-  if( nEl == 1)
-    {
-		(*res)[0] = (*this)[0] + (*right)[0];
-		return res;
-    }
-  Ty s = (*right)[0];
-  // right->Scalar(s);
-  //  dd += s;
-  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-#pragma omp for
-      for( SizeT i=0; i < nEl; ++i)
-	(*res)[i] = (*this)[i] + s;
-    }  //C delete right;
-  return res;
-}
-template<class Sp>
 Data_<Sp>* Data_<Sp>::AddInvS( BaseGDL* r)
 {
   return AddS( r);
-}
-template<class Sp>
-Data_<Sp>* Data_<Sp>::AddInvSNew( BaseGDL* r)
-{
-  return AddSNew( r);
 }
 template<>
 Data_<SpDString>* Data_<SpDString>::AddInvS( BaseGDL* r)
@@ -2579,33 +2466,6 @@ Data_<SpDString>* Data_<SpDString>::AddInvS( BaseGDL* r)
     }  //C delete right;
   return this;
 }
-template<>
-Data_<SpDString>* Data_<SpDString>::AddInvSNew( BaseGDL* r)
-{
-  Data_* right=static_cast<Data_*>(r);
-
-  Data_* res=new Data_( this->dim, BaseGDL::NOZERO);
-
-  ULong nEl=N_Elements();
-  assert( nEl);
-  //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-  if( nEl == 1)
-    {
-		(*res)[0] = (*right)[0] + (*this)[0];
-		return res;
-    }
-  Ty s = (*right)[0];
-  // right->Scalar(s);
-  //  dd += s;
-  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-#pragma omp for
-      for( SizeT i=0; i < nEl; ++i)
-	(*res)[i] = s + (*this)[i];
-    }  //C delete right;
-  return res;
-}
 
 // invalid types
 DStructGDL* DStructGDL::AddS( BaseGDL* r)
@@ -2618,16 +2478,6 @@ DStructGDL* DStructGDL::AddInvS( BaseGDL* r)
   throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
 }
-DStructGDL* DStructGDL::AddSNew( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
-DStructGDL* DStructGDL::AddInvSNew( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::AddS( BaseGDL* r)
 {
@@ -2636,18 +2486,6 @@ Data_<SpDPtr>* Data_<SpDPtr>::AddS( BaseGDL* r)
 }
 template<>
 Data_<SpDObj>* Data_<SpDObj>::AddS( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
-  return this;
-}
-template<>
-Data_<SpDPtr>* Data_<SpDPtr>::AddSNew( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
-  return this;
-}
-template<>
-Data_<SpDObj>* Data_<SpDObj>::AddSNew( BaseGDL* r)
 {
   throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
@@ -3126,32 +2964,6 @@ Data_<Sp>* Data_<Sp>::Mult( BaseGDL* r)
     }  //C delete right;
   return this;
 }
-template<class Sp>
-Data_<Sp>* Data_<Sp>::MultNew( BaseGDL* r)
-{
-  Data_* right=static_cast<Data_*>(r);
-
-  Data_* res=NewResult();
-  
-  //  ULong rEl=right->N_Elements();
-  ULong nEl=N_Elements();
-  // assert( rEl);
-  assert( nEl);
-  //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-  if( nEl == 1)
-    {
-      (*res)[0] = (*this)[0] * (*right)[0];
-      return res;
-    }
-  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-#pragma omp for
-      for( SizeT i=0; i < nEl; ++i)
-		(*res)[i] = (*this)[i] * (*right)[i];
-    }  //C delete right;
-  return res;
-}
 // invalid types
 DStructGDL* DStructGDL::Mult( BaseGDL* r)
 {
@@ -3176,29 +2988,7 @@ Data_<SpDObj>* Data_<SpDObj>::Mult( BaseGDL* r)
   throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
 }
-DStructGDL* DStructGDL::MultNew( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
-template<>
-Data_<SpDString>* Data_<SpDString>::MultNew( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
-  return this;
-}
-template<>
-Data_<SpDPtr>* Data_<SpDPtr>::MultNew( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
-  return this;
-}
-template<>
-Data_<SpDObj>* Data_<SpDObj>::MultNew( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
-  return this;
-}
+
 template<class Sp>
 Data_<Sp>* Data_<Sp>::MultS( BaseGDL* r)
 {
@@ -3223,39 +3013,8 @@ Data_<Sp>* Data_<Sp>::MultS( BaseGDL* r)
     }  //C delete right;
   return this;
 }
-template<class Sp>
-Data_<Sp>* Data_<Sp>::MultSNew ( BaseGDL* r )
-{
-	Data_* right=static_cast<Data_*> ( r );
-
-	Data_* res = new Data_ ( this->dim, BaseGDL::NOZERO);
-
-	ULong nEl=N_Elements();
-	assert ( nEl );
-	if ( nEl == 1 )
-	{
-		( *res )[0] = ( *this )[0] * ( *right )[0];
-		return res;
-	}
-	Ty s = ( *right ) [0];
-	// right->Scalar(s);
-	//  dd *= s;
-	TRACEOMP ( __FILE__, __LINE__ )
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-	{
-#pragma omp for
-		for ( SizeT i=0; i < nEl; ++i )
-			(*res ) [i] = (*this )[i] * s;
-	}  //C delete right;
-	return res;
-}
 // invalid types
 DStructGDL* DStructGDL::MultS( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
-  return this;
-}
-DStructGDL* DStructGDL::MultSNew( BaseGDL* r)
 {
   throw GDLException("Cannot apply operation to datatype STRUCT.",true,false);  
   return this;
@@ -3267,31 +3026,13 @@ Data_<SpDString>* Data_<SpDString>::MultS( BaseGDL* r)
   return this;
 }
 template<>
-Data_<SpDString>* Data_<SpDString>::MultSNew( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
-  return this;
-}
-template<>
 Data_<SpDPtr>* Data_<SpDPtr>::MultS( BaseGDL* r)
 {
   throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
-Data_<SpDPtr>* Data_<SpDPtr>::MultSNew( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
-  return this;
-}
-template<>
 Data_<SpDObj>* Data_<SpDObj>::MultS( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
-  return this;
-}
-template<>
-Data_<SpDObj>* Data_<SpDObj>::MultSNew( BaseGDL* r)
 {
   throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
   return this;
@@ -3689,13 +3430,14 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModInv( BaseGDL* r)
     }  //C delete right;
   return this;
 }
+// in basic_op.cpp
 // double modulo division: left=left % right
-inline DDouble Modulo( const DDouble& l, const DDouble& r)
-{
-  DDouble t=abs(l/r);
-  if( l < 0.0) return t=(floor(t)-t)*abs(r);
-  return (t-floor(t))*abs(r);
-}
+// inline DDouble Modulo( const DDouble& l, const DDouble& r)
+// {
+//   DDouble t=abs(l/r);
+//   if( l < 0.0) return t=(floor(t)-t)*abs(r);
+//   return (t-floor(t))*abs(r);
+// }
 template<>
 Data_<SpDDouble>* Data_<SpDDouble>::Mod( BaseGDL* r)
 {
@@ -4143,18 +3885,7 @@ Data_<Sp>* Data_<Sp>::PowInt( BaseGDL* r)
   assert( 0);
   return this;
 }
-template<class Sp>
-Data_<Sp>* Data_<Sp>::PowIntNew( BaseGDL* r)
-{
-  assert( 0);
-  return this;
-}
 DStructGDL* DStructGDL::PowInt( BaseGDL* r)
-{
-  assert( 0);
-  return this;
-}
-DStructGDL* DStructGDL::PowIntNew( BaseGDL* r)
 {
   assert( 0);
   return this;
@@ -4214,62 +3945,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowInt( BaseGDL* r)
 	}      return res;
     }
 }
-template<>
-Data_<SpDFloat>* Data_<SpDFloat>::PowIntNew( BaseGDL* r)
-{
-  DLongGDL* right=static_cast<DLongGDL*>(r);
 
-  ULong rEl=right->N_Elements();
-  ULong nEl=N_Elements();
-  assert( rEl);
-  assert( nEl);
-  if( r->StrictScalar())
-    {
-      Data_* res = new Data_( Dim(), BaseGDL::NOZERO);
-      DLong r0 = (*right)[0];  
-      TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-	{
-#pragma omp for
-	  for( SizeT i=0; i < nEl; ++i)
-	    (*res)[i] = pow( (*this)[i], r0);
-	}      return res;
-    }
-  if( StrictScalar())
-    {
-      Data_* res = new Data_( right->Dim(), BaseGDL::NOZERO);
-      Ty s0 = (*this)[ 0];  
-      TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-	{
-#pragma omp for
-	  for( SizeT i=0; i < rEl; ++i)
-	    (*res)[ i] = pow( s0, (*right)[ i]);
-	}      return res;
-    }
-  if( nEl <= rEl)
-    {
-      Data_* res = new Data_( Dim(), BaseGDL::NOZERO);
-      TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-	{
-#pragma omp for
-	  for( SizeT i=0; i < nEl; ++i)
-	    (*res)[i] = pow( (*this)[i], (*right)[i]);
-	}      return res;
-    }
-  else
-    {
-      Data_* res = new Data_( right->Dim(), BaseGDL::NOZERO);
-      TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-	{
-#pragma omp for
-	  for( SizeT i=0; i < rEl; ++i)
-	    (*res)[i] = pow( (*this)[i], (*right)[i]);
-	}      return res;
-    }
-}
 template<>
 Data_<SpDDouble>* Data_<SpDDouble>::PowInt( BaseGDL* r)
 {
@@ -4311,62 +3987,6 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowInt( BaseGDL* r)
 	  for( SizeT i=0; i < nEl; ++i)
 	    (*this)[i] = pow( (*this)[i], (*right)[i]);
 	}      return this;
-    }
-  else
-    {
-      Data_* res = new Data_( right->Dim(), BaseGDL::NOZERO);
-      TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-	{
-#pragma omp for
-	  for( SizeT i=0; i < rEl; ++i)
-	    (*res)[i] = pow( (*this)[i], (*right)[i]);
-	}      return res;
-    }
-}
-template<>
-Data_<SpDDouble>* Data_<SpDDouble>::PowIntNew( BaseGDL* r)
-{
-  DLongGDL* right=static_cast<DLongGDL*>(r);
-
-  ULong rEl=right->N_Elements();
-  ULong nEl=N_Elements();
-  assert( rEl);
-  assert( nEl);
-  if( r->StrictScalar())
-    {
-      Data_* res = new Data_( Dim(), BaseGDL::NOZERO);
-      DLong r0 = (*right)[0];  
-      TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-	{
-#pragma omp for
-	  for( SizeT i=0; i < nEl; ++i)
-	    (*res)[i] = pow( (*this)[i], r0);
-	}      return res;
-    }
-  if( StrictScalar())
-    {
-      Data_* res = new Data_( right->Dim(), BaseGDL::NOZERO);
-      Ty s0 = (*this)[ 0];  
-      TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-	{
-#pragma omp for
-	  for( SizeT i=0; i < rEl; ++i)
-	    (*res)[ i] = pow( s0, (*right)[ i]);
-	}      return res;
-    }
-  if( nEl <= rEl)
-    {
-      Data_* res = new Data_( Dim(), BaseGDL::NOZERO);
-      TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-	{
-#pragma omp for
-	  for( SizeT i=0; i < nEl; ++i)
-	    (*res)[i] = pow( (*this)[i], (*right)[i]);
-	}      return res;
     }
   else
     {
@@ -5433,465 +5053,6 @@ template<>
 Data_<SpDObj>* Data_<SpDObj>::PowInvS( BaseGDL* r)
 {
   throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
-  return this;
-}
-
-// template<class Sp> Data_<Sp>* Data_<Sp>::AndOpNew( BaseGDL* r) {}
-// template<class Sp> Data_<Sp>* Data_<Sp>::OrOpNew( BaseGDL* r) {}    
-// template<class Sp> Data_<Sp>* Data_<Sp>::XorOpNew( BaseGDL* r) {}    
-// template<class Sp> Data_<Sp>* Data_<Sp>::AddNew( BaseGDL* r) {}      
-// template<class Sp> Data_<Sp>* Data_<Sp>::MultNew( BaseGDL* r) {}   
-// template<class Sp> Data_<Sp>* Data_<Sp>::DivNew( BaseGDL* r) {}      
-// template<class Sp> Data_<Sp>* Data_<Sp>::ModNew( BaseGDL* r) {}      
-template<class Sp> Data_<Sp>* Data_<Sp>::PowNew( BaseGDL* r) {}
-
-template<class Sp>
-Data_<Sp>* Data_<Sp>::SubNew( BaseGDL* r)
-{
-  Data_* right=static_cast<Data_*>(r);
-
-  ULong rEl=right->N_Elements();
-  ULong nEl=N_Elements();
-  assert( rEl);
-  assert( nEl);
-  //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-  
-  Data_* res = New( this->Dim(), BaseGDL::NOZERO);
-  if( nEl == 1 && rEl == 1)
-    {
-      (*res)[0] = (*this)[0] - (*right)[0];
-      return res;
-    }
-
-  Ty s;
-  if( right->StrictScalar(s)) 
-    {
-      TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-	{
-#pragma omp for
-	  for( SizeT i=0; i < nEl; ++i)
-	    (*res)[i] = (*this)[i] - s;
-	}
-    }
-  else 
-    {
-      TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-	{
-#pragma omp for
-	  for( SizeT i=0; i < nEl; ++i)
-	    (*res)[i] = (*this)[i] - (*right)[i];
-	}
-    }
-  //C delete right;
-  return res;
-}
-// invalid types
-template<>
-Data_<SpDString>* Data_<SpDString>::SubNew( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
-  return this;
-}
-template<>
-Data_<SpDPtr>* Data_<SpDPtr>::SubNew( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
-  return this;
-}
-template<>
-Data_<SpDObj>* Data_<SpDObj>::SubNew( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
-  return this;
-}
-template<>
-Data_<SpDComplex>* Data_<SpDComplex>::PowNew( BaseGDL* r)
-{
-  SizeT nEl = N_Elements();
-
-  assert( nEl > 0);
-  assert( r->N_Elements() > 0);
-
-  if( r->Type() == FLOAT)
-    {
-      Data_<SpDFloat>* right=static_cast<Data_<SpDFloat>* >(r);
-
-      DFloat s;
-      // note: changes here have to be reflected in POWNCNode::Eval() (dnode.cpp)
-      // (concerning when a new variable is created vs. using this)
-      // (must also be consistent with ComplexDbl)
-      if( right->StrictScalar(s)) 
-	{
-	  DComplexGDL* res = new DComplexGDL( this->Dim(), 
-					      BaseGDL::NOZERO);
-	  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-	    {
-#pragma omp for
-	      for( SizeT i=0; i<nEl; ++i)
-		(*res)[ i] = pow( (*this)[ i], s);
-	    }	  //C delete right;
-	  return res;
-	}
-      else 
-	{
-	  SizeT rEl = right->N_Elements();
-	  if( nEl < rEl)
-	    {
-	      DComplex s;
-	      if( StrictScalar(s)) 
-		{
-		  DComplexGDL* res = new DComplexGDL( right->Dim(), 
-						      BaseGDL::NOZERO);
-		  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-		    {
-#pragma omp for
-		      for( SizeT i=0; i<rEl; ++i)
-			(*res)[ i] = pow( s, (*right)[ i]);
-		    }		  //C delete right;
-		  return res;
-		}
-
-	      DComplexGDL* res = new DComplexGDL( this->Dim(), 
-						  BaseGDL::NOZERO);
-	      TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-		{
-#pragma omp for
-		  for( SizeT i=0; i<nEl; ++i)
-		    (*res)[ i] = pow( (*this)[ i], (*right)[ i]);
-		}	      //C delete right;
-	      return res;
-	    }
-	  else
-	    {
-	      DComplexGDL* res = new DComplexGDL( right->Dim(), 
-						  BaseGDL::NOZERO);
-	      TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-		{
-#pragma omp for
-		  for( SizeT i=0; i<rEl; ++i)
-		    (*res)[ i] = pow( (*this)[ i], (*right)[ i]);
-		}	      //C delete right;
-	      //C delete this;
-	      return res;
-	    }
-	}
-    }
-  if( r->Type() == LONG)
-    {
-      Data_<SpDLong>* right=static_cast<Data_<SpDLong>* >(r);
-
-      DLong s;
-      // note: changes here have to be reflected in POWNCNode::Eval() (dnode.cpp)
-      // (concerning when a new variable is created vs. using this)
-      // (must also be consistent with ComplexDbl)
-      if( right->StrictScalar(s)) 
-	{
-	  DComplexGDL* res = new DComplexGDL( this->Dim(), 
-					      BaseGDL::NOZERO);
-	  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-	    {
-#pragma omp for
-	      for( SizeT i=0; i<nEl; ++i)
-		(*res)[ i] = pow( (*this)[ i], s);
-	    }	  //C delete right;
-	  return res;
-	}
-      else 
-	{
-	  SizeT rEl = right->N_Elements();
-	  if( nEl < rEl)
-	    {
-	      DComplex s;
-	      if( StrictScalar(s)) 
-		{
-		  DComplexGDL* res = new DComplexGDL( right->Dim(), 
-						      BaseGDL::NOZERO);
-		  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-		    {
-#pragma omp for
-		      for( SizeT i=0; i<rEl; ++i)
-			(*res)[ i] = pow( s, (*right)[ i]);
-		    }		  //C delete right;
-		  return res;
-		}
-
-	      DComplexGDL* res = new DComplexGDL( this->Dim(), 
-						  BaseGDL::NOZERO);
-	      TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-		{
-#pragma omp for
-		  for( SizeT i=0; i<nEl; ++i)
-		    (*res)[ i] = pow( (*this)[ i], (*right)[ i]);
-		}	      //C delete right;
-	      return res;
-	    }
-	  else
-	    {
-	      DComplexGDL* res = new DComplexGDL( right->Dim(), 
-						  BaseGDL::NOZERO);
-	      TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-		{
-#pragma omp for
-		  for( SizeT i=0; i<rEl; ++i)
-		    (*res)[ i] = pow( (*this)[ i], (*right)[ i]);
-		}	      //C delete right;
-	      //C delete this;
-	      return res;
-	    }
-	}
-    }
-
-  Data_* right=static_cast<Data_*>(r);
-
-  //   ULong rEl=right->N_Elements();
-  //   ULong nEl=N_Elements();
-  //   if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-  Ty s;
-  if( right->StrictScalar(s)) 
-    {
-      DComplexGDL* res = new DComplexGDL( this->Dim(), 
-					  BaseGDL::NOZERO);
-      //#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
-      TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-	{
-#pragma omp for
-	  for( SizeT i=0; i<nEl; ++i)
-	    (*res)[ i] = pow( (*this)[ i], s);
-	}
-      //#else
-      //      res->dd = pow( dd, s); // valarray
-      //#endif
-    }
-  else 
-    {
-      DComplexGDL* res = new DComplexGDL( this->Dim(), 
-					  BaseGDL::NOZERO);
-      //      right->dd.resize(nEl);
-      //      dd = pow( dd, right->dd); // valarray
-#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
-      for( SizeT i=0; i<nEl; ++i)
-	(*res)[ i] = pow( (*this)[ i], (*right)[ i]);
-#else
-      //      dd = pow( dd, right->Resize(nEl)); // valarray
-      /*      if( r->N_Elements() == nEl)
-	      res->dd = pow( dd, right->dd); // valarray
-	      else*/
-      TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-	{
-#pragma omp for
-	  for( SizeT i=0; i < nEl; ++i)
-	    (*res)[i] = pow( (*this)[i], (*right)[i]);
-	}
-#endif
-    }
-  //C delete right;
-
-  return this;
-}
-template<>
-Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew( BaseGDL* r)
-{
-  SizeT nEl = N_Elements();
-
-  assert( nEl > 0);
-  assert( r->N_Elements() > 0);
-
-  if( r->Type() == DOUBLE)
-    {
-      Data_<SpDDouble>* right=static_cast<Data_<SpDDouble>* >(r);
-
-      DDouble s;
-      // note: changes here have to be reflected in POWNCNode::Eval() (dnode.cpp)
-      // (concerning when a new variable is created vs. using this)
-      // (must also be consistent with ComplexDbl)
-      if( right->StrictScalar(s)) 
-	{
-	  DComplexDblGDL* res = new DComplexDblGDL( this->Dim(), 
-						    BaseGDL::NOZERO);
-	  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-	    {
-#pragma omp for
-	      for( SizeT i=0; i<nEl; ++i)
-		(*res)[ i] = pow( (*this)[ i], s);
-	    }	  //C delete right;
-	  return res;
-	}
-      else 
-	{
-	  SizeT rEl = right->N_Elements();
-	  if( nEl < rEl)
-	    {
-	      DComplexDbl s;
-	      if( StrictScalar(s)) 
-		{
-		  DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
-							    BaseGDL::NOZERO);
-		  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-		    {
-#pragma omp for
-		      for( SizeT i=0; i<rEl; ++i)
-			(*res)[ i] = pow( s, (*right)[ i]);
-		    }		  //C delete right;
-		  return res;
-		}
-
-	      DComplexDblGDL* res = new DComplexDblGDL( this->Dim(), 
-							BaseGDL::NOZERO);
-	      TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-		{
-#pragma omp for
-		  for( SizeT i=0; i<nEl; ++i)
-		    (*res)[ i] = pow( (*this)[ i], (*right)[ i]);
-		}	      //C delete right;
-	      return res;
-	    }
-	  else
-	    {
-	      DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
-							BaseGDL::NOZERO);
-	      TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-		{
-#pragma omp for
-		  for( SizeT i=0; i<rEl; ++i)
-		    (*res)[ i] = pow( (*this)[ i], (*right)[ i]);
-		}	      //C delete right;
-	      //C delete this;
-	      return res;
-	    }
-	}
-    }
-  if( r->Type() == LONG)
-    {
-      Data_<SpDLong>* right=static_cast<Data_<SpDLong>* >(r);
-
-      DLong s;
-      // note: changes here have to be reflected in POWNCNode::Eval() (dnode.cpp)
-      // (concerning when a new variable is created vs. using this)
-      // (must also be consistent with ComplexDbl)
-      if( right->StrictScalar(s)) 
-	{
-	  DComplexDblGDL* res = new DComplexDblGDL( this->Dim(), 
-						    BaseGDL::NOZERO);
-	  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-	    {
-#pragma omp for
-	      for( SizeT i=0; i<nEl; ++i)
-		(*res)[ i] = pow( (*this)[ i], s);
-	    }	  //C delete right;
-	  return res;
-	}
-      else 
-	{
-	  SizeT rEl = right->N_Elements();
-	  if( nEl < rEl)
-	    {
-	      DComplexDbl s;
-	      if( StrictScalar(s)) 
-		{
-		  DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
-							    BaseGDL::NOZERO);
-		  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-		    {
-#pragma omp for
-		      for( SizeT i=0; i<rEl; ++i)
-			(*res)[ i] = pow( s, (*right)[ i]);
-		    }		  //C delete right;
-		  return res;
-		}
-
-	      DComplexDblGDL* res = new DComplexDblGDL( this->Dim(), 
-							BaseGDL::NOZERO);
-	      TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-		{
-#pragma omp for
-		  for( SizeT i=0; i<nEl; ++i)
-		    (*res)[ i] = pow( (*this)[ i], (*right)[ i]);
-		}	      //C delete right;
-	      return res;
-	    }
-	  else
-	    {
-	      DComplexDblGDL* res = new DComplexDblGDL( right->Dim(), 
-							BaseGDL::NOZERO);
-	      TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl)) 
-		{
-#pragma omp for
-		  for( SizeT i=0; i<rEl; ++i)
-		    (*res)[ i] = pow( (*this)[ i], (*right)[ i]);
-		}	      //C delete right;
-	      //C delete this;
-	      return res;
-	    }
-	}
-    }
-
-  Data_* right=static_cast<Data_*>(r);
-
-  //   ULong rEl=right->N_Elements();
-  //   ULong nEl=N_Elements();
-  //   if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-  Ty s;
-  if( right->StrictScalar(s)) 
-    {
-      DComplexDblGDL* res = new DComplexDblGDL( this->Dim(), 
-						BaseGDL::NOZERO);
-      //#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
-      TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-	{
-#pragma omp for
-	  for( SizeT i=0; i<nEl; ++i)
-	    (*res)[ i] = pow( (*this)[ i], s);
-	}
-      //#else
-      //      res->dd = pow( dd, s); // valarray
-      //#endif
-    }
-  else 
-    {
-      DComplexDblGDL* res = new DComplexDblGDL( this->Dim(), 
-						BaseGDL::NOZERO);
-      //      right->dd.resize(nEl);
-      //      dd = pow( dd, right->dd); // valarray
-#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
-      for( SizeT i=0; i<nEl; ++i)
-	(*res)[ i] = pow( (*this)[ i], (*right)[ i]);
-#else
-      //      dd = pow( dd, right->Resize(nEl)); // valarray
-      /*      if( r->N_Elements() == nEl)
-	      res->dd = pow( dd, right->dd); // valarray
-	      else*/
-      TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-	{
-#pragma omp for
-	  for( SizeT i=0; i < nEl; ++i)
-	    (*res)[i] = pow( (*this)[i], (*right)[i]);
-	}
-#endif
-    }
-  //C delete right;
-
   return this;
 }
 

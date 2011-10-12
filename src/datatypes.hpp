@@ -243,6 +243,7 @@ static	void operator delete( void *ptr);
   Data_*   Log10();
   void     Log10This();
 
+  // operators
   BaseGDL* UMinus(); // UMinus for SpDString returns float
   Data_*   NotOp();
   Data_*   AndOp( BaseGDL* r);
@@ -252,14 +253,14 @@ static	void operator delete( void *ptr);
   Data_*   XorOp( BaseGDL* r);
   Data_*   Add( BaseGDL* r);
   Data_*   AddInv( BaseGDL* r);
-  Data_*   AddNew( BaseGDL* r);
-  Data_*   AddInvNew( BaseGDL* r);
+//   Data_*   AddNew( BaseGDL* r);
+//   Data_*   AddInvNew( BaseGDL* r);
   Data_*   Sub( BaseGDL* r);
   Data_*   SubInv( BaseGDL* r);
   Data_*   GtMark( BaseGDL* r);
   Data_*   LtMark( BaseGDL* r);
   Data_*   Mult( BaseGDL* r);
-  Data_*   MultNew( BaseGDL* r);
+//   Data_*   MultNew( BaseGDL* r);
   Data_*   Div( BaseGDL* r);
   Data_*   DivInv( BaseGDL* r);
   Data_*   Mod( BaseGDL* r);
@@ -267,9 +268,10 @@ static	void operator delete( void *ptr);
   Data_*   Pow( BaseGDL* r);
   Data_*   PowInv( BaseGDL* r);
   Data_*   PowInt( BaseGDL* r);      
-  Data_*   PowIntNew( BaseGDL* r);   
+//   Data_*   PowIntNew( BaseGDL* r);   
   Data_*   MatrixOp( BaseGDL* r, bool transpose, bool transposeResult, bool strassen);
 
+  // operators with scalar
   Data_*   AndOpS( BaseGDL* r);
   Data_*   AndOpInvS( BaseGDL* r);
   Data_*   OrOpS( BaseGDL* r);
@@ -277,14 +279,14 @@ static	void operator delete( void *ptr);
   Data_*   XorOpS( BaseGDL* r);
   Data_*   AddS( BaseGDL* r);
   Data_*   AddInvS( BaseGDL* r);
-  Data_*   AddSNew( BaseGDL* r);
-  Data_*   AddInvSNew( BaseGDL* r);
+//   Data_*   AddSNew( BaseGDL* r);
+//   Data_*   AddInvSNew( BaseGDL* r);
   Data_*   SubS( BaseGDL* r);
   Data_*   SubInvS( BaseGDL* r);
   Data_*   GtMarkS( BaseGDL* r);
   Data_*   LtMarkS( BaseGDL* r);
   Data_*   MultS( BaseGDL* r);
-  Data_*   MultSNew( BaseGDL* r);
+//   Data_*   MultSNew( BaseGDL* r);
   Data_*   DivS( BaseGDL* r);
   Data_*   DivInvS( BaseGDL* r);
   Data_*   ModS( BaseGDL* r);
@@ -292,22 +294,53 @@ static	void operator delete( void *ptr);
   Data_*   PowS( BaseGDL* r);
   Data_*   PowInvS( BaseGDL* r);
   
-//   Data_* AndOpNew( BaseGDL* r);    // create new result var      
-//   Data_* AndOpInvNew( BaseGDL* r); // create new result var      
-//   Data_* OrOpNew( BaseGDL* r);    
-//   Data_* OrOpInvNew( BaseGDL* r); 
-//   Data_* XorOpNew( BaseGDL* r);    
-//   Data_* AddNew( BaseGDL* r);      
-//   Data_* AddInvNew( BaseGDL* r);      
+  // operators returning a new value
+  Data_* AndOpNew( BaseGDL* r);
+  Data_* AndOpInvNew( BaseGDL* r);
+  Data_* OrOpNew( BaseGDL* r);
+  Data_* OrOpInvNew( BaseGDL* r);
+  Data_* XorOpNew( BaseGDL* r);
+//   Data_* EqOpNew( BaseGDL* r);
+//   Data_* NeOpNew( BaseGDL* r);
+//   Data_* LeOpNew( BaseGDL* r);
+//   Data_* GeOpNew( BaseGDL* r);
+//   Data_* LtOpNew( BaseGDL* r);
+//   Data_* GtOpNew( BaseGDL* r);
+  Data_* AddNew( BaseGDL* r);      // implemented
+  Data_* AddInvNew( BaseGDL* r);      // implemented
   Data_* SubNew( BaseGDL* r);
-//   Data_* SubInvNew( BaseGDL* r);   
-//   Data_* MultNew( BaseGDL* r);   
-//   Data_* DivNew( BaseGDL* r);      
-//   Data_* DivInvNew( BaseGDL* r);   
-//   Data_* ModNew( BaseGDL* r);      
-//   Data_* ModInvNew( BaseGDL* r);   
+  Data_* SubInvNew( BaseGDL* r);
+  Data_* LtMarkNew( BaseGDL* r);
+  Data_* GtMarkNew( BaseGDL* r);
+  Data_* MultNew( BaseGDL* r);   // implemented
+  Data_* DivNew( BaseGDL* r);
+  Data_* DivInvNew( BaseGDL* r);
+  Data_* ModNew( BaseGDL* r);
+  Data_* ModInvNew( BaseGDL* r);
   Data_* PowNew( BaseGDL* r);
-//   Data_* PowInvNew( BaseGDL* r);  
+  Data_* PowInvNew( BaseGDL* r);
+  Data_* PowIntNew( BaseGDL* r);   // implemented
+
+  // operators with scalar returning a new value
+  Data_* AndOpSNew( BaseGDL* r);
+  Data_* AndOpInvSNew( BaseGDL* r);
+  Data_* OrOpSNew( BaseGDL* r);
+  Data_* OrOpInvSNew( BaseGDL* r);
+  Data_* XorOpSNew( BaseGDL* r);
+  Data_* AddSNew( BaseGDL* r);         // implemented
+  Data_* AddInvSNew( BaseGDL* r);    // implemented
+  Data_* SubSNew( BaseGDL* r);
+  Data_* SubInvSNew( BaseGDL* r);
+  Data_* LtMarkSNew( BaseGDL* r);
+  Data_* GtMarkSNew( BaseGDL* r);
+  Data_* MultSNew( BaseGDL* r);      // implemented
+  Data_* DivSNew( BaseGDL* r);
+  Data_* DivInvSNew( BaseGDL* r);
+  Data_* ModSNew( BaseGDL* r);
+  Data_* ModInvSNew( BaseGDL* r);
+  Data_* PowSNew( BaseGDL* r);
+  Data_* PowInvSNew( BaseGDL* r);
+
 
   Data_<SpDByte>* EqOp( BaseGDL* r);
   Data_<SpDByte>* NeOp( BaseGDL* r);

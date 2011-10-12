@@ -117,6 +117,93 @@ template<>
 Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::XorOpS( BaseGDL* r);
 template<> 
 Data_<SpDPtr>* Data_<SpDPtr>::XorOpS( BaseGDL* r);
+
+
+
+
+
+
+
+
+
+
+
+template<>
+Data_<SpDFloat>* Data_<SpDFloat>::AndOpNew( BaseGDL* r);
+template<> 
+Data_<SpDFloat>* Data_<SpDFloat>::AndOpInvNew( BaseGDL* r);
+template<> 
+Data_<SpDDouble>* Data_<SpDDouble>::AndOpNew( BaseGDL* r);
+template<> 
+Data_<SpDDouble>* Data_<SpDDouble>::AndOpInvNew( BaseGDL* r);
+template<> 
+Data_<SpDString>* Data_<SpDString>::AndOpNew( BaseGDL* r);
+template<> 
+Data_<SpDComplex>* Data_<SpDComplex>::AndOpNew( BaseGDL* r);
+template<> 
+Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::AndOpNew( BaseGDL* r);
+template<> 
+Data_<SpDPtr>* Data_<SpDPtr>::AndOpNew( BaseGDL* r);
+template<> 
+Data_<SpDFloat>* Data_<SpDFloat>::OrOpNew( BaseGDL* r);
+template<> 
+Data_<SpDFloat>* Data_<SpDFloat>::OrOpInvNew( BaseGDL* r);
+template<> 
+Data_<SpDDouble>* Data_<SpDDouble>::OrOpNew( BaseGDL* r);
+template<> 
+Data_<SpDDouble>* Data_<SpDDouble>::OrOpInvNew( BaseGDL* r);
+template<> 
+Data_<SpDString>* Data_<SpDString>::OrOpNew( BaseGDL* r);
+template<> 
+Data_<SpDComplex>* Data_<SpDComplex>::OrOpNew( BaseGDL* r);
+template<> 
+Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::OrOpNew( BaseGDL* r);
+template<> 
+Data_<SpDPtr>* Data_<SpDPtr>::OrOpNew( BaseGDL* r);
+template<> 
+Data_<SpDFloat>* Data_<SpDFloat>::XorOpNew( BaseGDL* r);
+template<> 
+Data_<SpDDouble>* Data_<SpDDouble>::XorOpNew( BaseGDL* r);
+template<> 
+Data_<SpDString>* Data_<SpDString>::XorOpNew( BaseGDL* r);
+template<> 
+Data_<SpDComplex>* Data_<SpDComplex>::XorOpNew( BaseGDL* r);
+template<> 
+Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::XorOpNew( BaseGDL* r);
+template<> 
+Data_<SpDPtr>* Data_<SpDPtr>::XorOpNew( BaseGDL* r);
+template<> 
+Data_<SpDFloat>* Data_<SpDFloat>::XorOpSNew( BaseGDL* r);
+template<> 
+Data_<SpDDouble>* Data_<SpDDouble>::XorOpSNew( BaseGDL* r);
+template<> 
+Data_<SpDString>* Data_<SpDString>::XorOpSNew( BaseGDL* r);
+template<> 
+Data_<SpDComplex>* Data_<SpDComplex>::XorOpSNew( BaseGDL* r);
+template<> 
+Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::XorOpSNew( BaseGDL* r);
+template<> 
+Data_<SpDPtr>* Data_<SpDPtr>::XorOpSNew( BaseGDL* r);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // template<> 
 // Data_<SpDByte>* Data_<SpDPtr>::EqOp( BaseGDL* r);
 // template<> 

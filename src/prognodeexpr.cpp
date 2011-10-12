@@ -1651,13 +1651,13 @@ BaseGDL* POWNCNode::Eval()
   if( aTy == STRING)
     {
       e1 = e1->Convert2( FLOAT, BaseGDL::COPY);
-      g1.reset( e1);
+      g1.reset( e1); // deletes old e1
       aTy = FLOAT;
     }
   if( bTy == STRING)
     {
       e2 = e2->Convert2( FLOAT, BaseGDL::COPY);
-      g2.reset( e2);
+      g2.reset( e2); // deletes old e2
       bTy = FLOAT;
     }
 
@@ -1743,7 +1743,7 @@ BaseGDL* POWNCNode::Eval()
 	{
 	  res = g1->PowInt( e2);
 	  if( res == g1.get())
-	    g1.release();
+		g1.release();
 	}
       return res;
     }

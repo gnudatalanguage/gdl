@@ -57,6 +57,7 @@ using namespace std;
 // can only be done once
 #define INCLUDE_BASIC_OP_CPP 1
 #include "basic_op.cpp"
+#include "basic_op_new.cpp"
 
 #define INCLUDE_DEFAULT_IO_CPP 1
 #include "default_io.cpp"

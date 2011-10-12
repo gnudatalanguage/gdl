@@ -27,7 +27,7 @@
 sigjmp_buf sigFPEJmpBuf;
 
 // this is only called from integer division by zero
-// and intager modulo division by zero
+// and integer modulo division by zero
 void SigFPEHandler( int signo) 
 {
   signal(SIGFPE,SigFPEHandler);

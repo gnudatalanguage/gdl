@@ -550,14 +550,11 @@ DStructGDL* NewResult() const
   DStructGDL*   XorOp( BaseGDL* r);
   DStructGDL*   Add( BaseGDL* r);
   DStructGDL*   AddInv( BaseGDL* r);
-  DStructGDL*   AddNew( BaseGDL* r);
-  DStructGDL*   AddInvNew( BaseGDL* r);
   DStructGDL*   Sub( BaseGDL* r);
   DStructGDL*   SubInv( BaseGDL* r);
   DStructGDL*   GtMark( BaseGDL* r);
   DStructGDL*   LtMark( BaseGDL* r);
   DStructGDL*   Mult( BaseGDL* r);
-  DStructGDL*   MultNew( BaseGDL* r);
   DStructGDL*   Div( BaseGDL* r);
   DStructGDL*   DivInv( BaseGDL* r);
   DStructGDL*   Mod( BaseGDL* r);
@@ -565,7 +562,6 @@ DStructGDL* NewResult() const
   DStructGDL*   Pow( BaseGDL* r);
   DStructGDL*   PowInv( BaseGDL* r);
   DStructGDL*   PowInt( BaseGDL* r);
-  DStructGDL*   PowIntNew( BaseGDL* r);
   DStructGDL*   MatrixOp( BaseGDL* r,bool,bool,bool);
 
 
@@ -576,8 +572,6 @@ DStructGDL* NewResult() const
   DStructGDL*   XorOpS( BaseGDL* r);
   DStructGDL*   AddS( BaseGDL* r);
   DStructGDL*   AddInvS( BaseGDL* r);
-  DStructGDL*   AddSNew( BaseGDL* r);
-  DStructGDL*   AddInvSNew( BaseGDL* r);
   DStructGDL*   SubS( BaseGDL* r);
   DStructGDL*   SubInvS( BaseGDL* r);
   DStructGDL*   GtMarkS( BaseGDL* r);
@@ -590,7 +584,55 @@ DStructGDL* NewResult() const
   DStructGDL*   PowS( BaseGDL* r);
   DStructGDL*   PowInvS( BaseGDL* r);
 
-  DStructGDL*   MultSNew( BaseGDL* r);
+
+  // operators returning a new value
+  DStructGDL* AndOpNew( BaseGDL* r);
+  DStructGDL* AndOpInvNew( BaseGDL* r);
+  DStructGDL* OrOpNew( BaseGDL* r);
+  DStructGDL* OrOpInvNew( BaseGDL* r);
+  DStructGDL* XorOpNew( BaseGDL* r);
+//   DStructGDL* EqOpNew( BaseGDL* r);
+//   DStructGDL* NeOpNew( BaseGDL* r);
+//   DStructGDL* LeOpNew( BaseGDL* r);
+//   DStructGDL* GeOpNew( BaseGDL* r);
+//   DStructGDL* LtOpNew( BaseGDL* r);
+//   DStructGDL* GtOpNew( BaseGDL* r);
+  DStructGDL* AddNew( BaseGDL* r);      // implemented
+  DStructGDL* AddInvNew( BaseGDL* r);      // implemented
+  DStructGDL* SubNew( BaseGDL* r);
+  DStructGDL* SubInvNew( BaseGDL* r);
+  DStructGDL* LtMarkNew( BaseGDL* r);
+  DStructGDL* GtMarkNew( BaseGDL* r);
+  DStructGDL* MultNew( BaseGDL* r);   // implemented
+  DStructGDL* DivNew( BaseGDL* r);
+  DStructGDL* DivInvNew( BaseGDL* r);
+  DStructGDL* ModNew( BaseGDL* r);
+  DStructGDL* ModInvNew( BaseGDL* r);
+  DStructGDL* PowNew( BaseGDL* r);
+  DStructGDL* PowInvNew( BaseGDL* r);
+  DStructGDL* PowIntNew( BaseGDL* r);   // implemented
+
+  // operators with scalar returning a new value
+  DStructGDL* AndOpSNew( BaseGDL* r);
+  DStructGDL* AndOpInvSNew( BaseGDL* r);
+  DStructGDL* OrOpSNew( BaseGDL* r);
+  DStructGDL* OrOpInvSNew( BaseGDL* r);
+  DStructGDL* XorOpSNew( BaseGDL* r);
+  DStructGDL* AddSNew( BaseGDL* r);         // implemented
+  DStructGDL* AddInvSNew( BaseGDL* r);    // implemented
+  DStructGDL* SubSNew( BaseGDL* r);
+  DStructGDL* SubInvSNew( BaseGDL* r);
+  DStructGDL* LtMarkSNew( BaseGDL* r);
+  DStructGDL* GtMarkSNew( BaseGDL* r);
+  DStructGDL* MultSNew( BaseGDL* r);      // implemented
+  DStructGDL* DivSNew( BaseGDL* r);
+  DStructGDL* DivInvSNew( BaseGDL* r);
+  DStructGDL* ModSNew( BaseGDL* r);
+  DStructGDL* ModInvSNew( BaseGDL* r);
+  DStructGDL* PowSNew( BaseGDL* r);
+  DStructGDL* PowInvSNew( BaseGDL* r);
+
+
   
   Data_<SpDByte>* EqOp( BaseGDL* r);
   Data_<SpDByte>* NeOp( BaseGDL* r);
