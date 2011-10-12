@@ -5066,13 +5066,23 @@ BaseGDL* transpose( EnvT* e)
     return tagNames;
   }
 
+// AC 12-Oc-2011: better version for: len=len, /Extract and /Sub
+// but it is still not perfect
+
   BaseGDL* stregex_fun( EnvT* e)
   {
     SizeT nParam=e->NParam( 2);
     
     DStringGDL* stringExpr= e->GetParAs<DStringGDL>(0);
+    dimension dim = stringExpr->Dim();
+
     DString pattern;
     e->AssureStringScalarPar(1, pattern);
+    if (pattern.size() <= 0)
+      {
+	e->Throw( "Error processing regular expression: "+pattern+
+		  "\n           empty (sub)expression");
+      }
 
     static int booleanIx = e->KeywordIx( "BOOLEAN" );
     bool booleanKW = e->KeywordSet( booleanIx );
@@ -5086,21 +5096,13 @@ BaseGDL* transpose( EnvT* e)
     //XXXpch: this is wrong, should check arg_present
     static int lengthIx = e->KeywordIx( "LENGTH" );
     bool lengthKW = e->KeywordPresent( lengthIx );
-//     bool lengthKW = e->KeywordSet( lengthIx );
    
     static int subexprIx = e->KeywordIx( "SUBEXPR" );
     bool subexprKW = e->KeywordSet( subexprIx );
  
     if( booleanKW && (subexprKW || extractKW || lengthKW))
       e->Throw( "Conflicting keywords.");
-    //    if( subexprKW) 
-    // e->Throw( "Subexpression not yet implemented.");
   
-    int nStr = stringExpr->N_Elements();
-    dimension dim = stringExpr->Dim();
-
-    BaseGDL* result;
-
     char err_msg[MAX_REGEXPERR_LENGTH];
 
     // set the compile flags 
@@ -5110,27 +5112,33 @@ BaseGDL* transpose( EnvT* e)
     if (booleanKW)
       cflags |= REG_NOSUB;
 
-    //    cout << pattern.c_str() << endl;
-
     // compile the regular expression
     regex_t regexp;
     int compRes = regcomp( &regexp, pattern.c_str(), cflags);
     SizeT nSubExpr = regexp.re_nsub + 1;
     
+    //    cout << regexp.re_nsub << endl;
+
     if (compRes) {
       regerror(compRes, &regexp, err_msg, MAX_REGEXPERR_LENGTH);
       e->Throw( "Error processing regular expression: "+
                          pattern+"\n           "+string(err_msg)+".");
     }
 
+    BaseGDL* result;
+
     if( booleanKW) 
       result = new DByteGDL(dim);
     else if( extractKW && !subexprKW)
-      result = new DStringGDL(dim);
+      {
+	//	cout << "my pb ! ? dim= " << dim << endl;
+	result = new DStringGDL(dim);
+      }
     else if( subexprKW)
       {
+	//	cout << "my pb 2 ? dim= " << dim << endl;
 	dimension subExprDim = dim;
-	subExprDim >> nSubExpr;
+	//	subExprDim >> nSubExpr;
 	if( extractKW)
 	  result = new DStringGDL(subExprDim);
 	else
@@ -5145,13 +5153,15 @@ BaseGDL* transpose( EnvT* e)
       if( subexprKW)
 	{
 	  dimension subExprDim = dim;
-	  subExprDim >> nSubExpr;
+	  //	  subExprDim >> nSubExpr;
 	  len = new DLongGDL(subExprDim);
 	}
       else
 	{
 	  len = new DLongGDL(dim);
 	}
+      for( SizeT i=0; i<len->N_Elements(); ++i)
+	   (*len)[i]= -1;
     } 
     
     int nmatch = 1;
@@ -5159,7 +5169,8 @@ BaseGDL* transpose( EnvT* e)
 
     regmatch_t* pmatch = new regmatch_t[nSubExpr];
     ArrayGuard<regmatch_t> pmatchGuard( pmatch);
- 
+
+    //    cout << "dim " << dim.NDimElements() << endl;	    
     for( SizeT s=0; s<dim.NDimElements(); ++s)
       {
 	int eflags = 0; 
@@ -5173,18 +5184,10 @@ BaseGDL* transpose( EnvT* e)
 	// subexpressions
 	if ( extractKW && subexprKW) {
 
-	  // Find number of subexpressions
-// 	  SizeT nOut = 0;
-// 	  for( SizeT i = 0; i<nmatch; ++i) {
-// 	    if ( pmatch[i].rm_so == -1) break;
-// 	    nOut++;
-// 	  }
-
 	  // Loop through subexpressions & fill output array
 	  for( SizeT i = 0; i<nSubExpr; ++i) {
-// 	  for( SizeT i = 0; i<=nOut; ++i) {
 	    if (pmatch[i].rm_so != -1) (* static_cast<DStringGDL*>(result))[i+s*nSubExpr] = 
-	      (*stringExpr)[s].substr( pmatch[i].rm_so, 
+	      (*stringExpr)[i+s*nSubExpr].substr( pmatch[i].rm_so, 
 				       pmatch[i].rm_eo - pmatch[i].rm_so);
 	    if( lengthKW)
 	      (*len)[i+s*nSubExpr] = pmatch[i].rm_so != -1 ? pmatch[i].rm_eo - pmatch[i].rm_so : -1;
@@ -5193,12 +5196,7 @@ BaseGDL* transpose( EnvT* e)
 	}
 	else  if ( subexprKW) 
 	  {
-	    // Find number of subexpressions
-//  	    SizeT nOut = 0;
-// 	    for( SizeT i = 0; i<nmatch; ++i) {
-// 	      if ( pmatch[i].rm_so == -1) break;
-// 	      nOut++;
-// 	    }
+	    //	    cout << "je ne comprends pas v2: "<< nSubExpr << endl;
 
 	    // Loop through subexpressions & fill output array
 	    for( SizeT i = 0; i<nSubExpr; ++i) {
