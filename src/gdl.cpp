@@ -126,14 +126,14 @@ int main(int argc, char *argv[])
 
   for( SizeT a=1; a< argc; ++a)
     {
-      if( string( argv[a]) == "--help")
+      if( string( argv[a]) == "--help" | string( argv[a]) == "-h")
 	{
 	  cout << "Usage: gdl [ OPTIONS ] [ batch_file ... ]" << endl;
 	  cout << "Start the GDL interpreter (incremental compiler)" << endl;
 	  cout << endl;
 	  cout << "GDL options:" << endl;
-	  cout << "  --help     display this message" << endl;
-	  cout << "  --version  show version information" << endl;
+	  cout << "  --help (-h)        display this message" << endl;
+	  cout << "  --version (-V, -v) show version information" << endl;
           cout << endl;
 	  cout << "IDL-compatible options:" << endl;
 	  cout << "  -arg value tells COMMAND_LINE_ARGS() to report" << endl;
@@ -142,12 +142,12 @@ int main(int argc, char *argv[])
           cout << "             all following arguments" << endl;
           cout << "  -e value   execute given statement and exit (last occurance taken into account only," << endl;
           cout << "             executed after startup file, may not be specified together with batch files)" << endl;
-	  cout << "  -quiet     suppress welcome messages" << endl;
+	  cout << "  -quiet (--quiet, -q) suppress welcome messages" << endl;
 	  cout << endl;
 	  cout << "Homepage: http://gnudatalanguage.sf.net" << endl;
 	  return 0;
 	}
-      else if( string( argv[a]) == "--version")
+      else if (string(argv[a])=="--version" | string(argv[a])=="-v" | string(argv[a])=="-V")
 	{
 	  cout << "GDL - GNU Data Language, Version " << VERSION << endl;
 	  return 0;
@@ -166,7 +166,7 @@ int main(int argc, char *argv[])
         for (int i = a + 1; i < argc; i++) lib::command_line_args.push_back(argv[i]);
         break;
       }
-      else if (string(argv[a]) == "-quiet") 
+      else if (string(argv[a])=="-quiet" | string(argv[a])=="--quiet" | string(argv[a])=="-q") 
       {
         quiet = true;
       }
