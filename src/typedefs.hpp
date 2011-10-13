@@ -56,14 +56,16 @@
 #include <vector>
 #include <valarray>
 #include <cassert>
-#ifdef CVS_VERSION
+
+
+// undef for releases (should not give diagnostics)
+// define for the CVS (where the default sizes can easily be adjusted)
+#define GDL_CVS_VERSION
+// #undef GDL_CVS_VERSION
+
+#ifdef GDL_CVS_VERSION
 #include <iostream>
 #endif
-
-// // undef for releases (should not give diagnostics)
-// // define for the CVS (where the default sizes can easily be adjusted)
-// // #define CVS_VERSION
-// // #undef CVS_VERSION
 
 //#define TRACE_OMP_CALLS
 #undef TRACE_OMP_CALLS
@@ -291,19 +293,43 @@ public:
   T* Release() { T* r=container; container=NULL; return r;}
 };
 
-const SizeT smallArraySize = 27;
+// #define GDLARRAY_CACHE
+#undef GDLARRAY_CACHE
+
+#define GDLARRAY_DEBUG
+// #undef GDLARRAY_DEBUG
+
+// const SizeT smallArraySize = 27;
+// const SizeT maxArrayCache = 1000 * 1000; // ComplexDbl is 16 bytes
 
 template <class T>
 class GDLArray
 {
 private:
-  typedef T Ty;
-  T scalar[ smallArraySize];
-  T*    buf;
-  SizeT sz;
+	enum GDLArrayConstants
+	{
+		smallArraySize = 27,
+		maxCache = 1000 * 1000 // ComplexDbl is 16 bytes
+	};
+		
+	typedef T Ty;
+
+#ifdef GDLARRAY_CACHE
+		
+	static SizeT cacheSize;
+	static T* cache;
+	static T* Cached( SizeT newSize);
+#endif
+		
+	T scalar[ smallArraySize];
+	T*    buf;
+	SizeT sz;
 
 public:
-  GDLArray() throw() : buf( NULL), sz( 0) {}
+  	GDLArray() throw() : buf( NULL), sz( 0) {}
+  
+#ifndef GDLARRAY_CACHE
+
   GDLArray( const GDLArray& cp) : sz( cp.size())
   {
     try {
@@ -321,15 +347,15 @@ public:
 
   GDLArray( SizeT s, bool b) : sz( s)
   {
-    try {
-    buf = (s > smallArraySize) ? new T[ s] : scalar;
+	  try {
+		buf = (s > smallArraySize) ? new T[ s] : scalar;
     } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
   }
   
   GDLArray( T val, SizeT s) : sz( s)
   {
-    try {
-    buf = (s > smallArraySize) ? new T[ s] : scalar;
+	  try {
+	    buf = (s > smallArraySize) ? new T[ s] : scalar;
     } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
 /*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
 {
@@ -341,9 +367,11 @@ public:
   
   GDLArray( const T* arr, SizeT s) : sz( s)
   {
-    try {
-    buf = (s > smallArraySize) ? new T[ s]: scalar;
-    } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
+	try
+	{
+		buf = ( s > smallArraySize ) ? new T[ s]: scalar;
+	}
+	catch ( std::bad_alloc& ) { ThrowGDLException ( "Array requires more memory than available" ); }
 /*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
 {
 #pragma omp for*/
@@ -355,14 +383,26 @@ public:
 // }
   }
 
-  explicit GDLArray( const T& s) throw() : /*scalar( s),*/ buf( scalar), sz( 1)
-  { scalar[0] = s;}
-
   ~GDLArray() throw()
   {
-    if( buf != scalar)
-      delete[] buf;
+	  if( buf != scalar)
+      	delete[] buf;
   }
+#else
+
+  // use definition in datatypes.cpp
+  GDLArray( const GDLArray& cp) ;
+  GDLArray( SizeT s, bool b) ;
+  GDLArray( T val, SizeT s) ;
+  GDLArray( const T* arr, SizeT s) ;
+  ~GDLArray() throw();
+
+#endif // GDLARRAY_DEBUG
+  
+
+
+  explicit GDLArray( const T& s) throw() : /*scalar( s),*/ buf( scalar), sz( 1)
+  { scalar[0] = s;}
 
   T& operator[]( SizeT ix) throw()
   {

@@ -88,6 +88,141 @@ using namespace std;
 template<class Sp>
 deque< void*> Data_<Sp>::freeList;
 
+#ifdef GDLARRAY_CACHE
+
+#ifdef GDLARRAY_DEBUG
+
+inline void TraceCache( SizeT& cacheSize, SizeT sz, bool cacheIsNull, SizeT smallArraySize)
+{
+// 	if( cacheSize > smallArraySize && cacheSize == sz  && !cacheIsNull)
+// 			std::cout << "+++ CACHE HIT\tID: ("  << &cacheSize  << ")   sz: " << cacheSize << std::endl;
+// 	else
+	if( sz > smallArraySize)
+		std::cout << "+ New\t\tID: ("  << &cacheSize  << ")   sz: " << sz << "   cache size: " <<  cacheSize <<std::endl;
+}
+		
+#else
+
+#define TraceCache( a, b, c, d)		
+
+#endif
+
+	template<class Sp>
+			SizeT GDLArray<Sp>::cacheSize = 0;
+
+	template<>
+			SizeT GDLArray<char>::cacheSize = 0;
+
+	template<class Sp>
+	typename	GDLArray<Sp>::Ty* GDLArray<Sp>::cache = NULL;
+
+	template<class Sp>
+	typename GDLArray<Sp>::Ty* GDLArray<Sp>::Cached( SizeT newSize)
+	{
+		assert( newSize > smallArraySize);
+		if( cache != NULL && cacheSize == newSize)
+		{
+#ifdef GDLARRAY_DEBUG
+			std::cout << "*** CACHE HIT\tID: ("  << &cacheSize << ")   sz: " << cacheSize << "   ***" << std::endl;
+#endif
+			Ty* hit = cache;
+			cache = NULL;
+			return hit;
+		}
+		return new Ty[ newSize];
+	}
+
+template<class Sp>GDLArray<Sp>::GDLArray( const GDLArray<Sp>& cp) : sz( cp.size())
+  {
+	  TraceCache( cacheSize, sz, cache==NULL, smallArraySize);
+	  
+	  try {
+		  buf = (sz > smallArraySize) ? Cached( sz) /* new Ty[ cp.size()]*/  : scalar;
+	  } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
+	  
+	  std::memcpy(buf,cp.buf,sz*sizeof(Ty));
+  }
+
+template<class Sp>GDLArray<Sp>::	GDLArray( SizeT s, bool b) : sz( s)
+  {
+	  TraceCache( cacheSize, sz, cache==NULL, smallArraySize);
+
+	  try {
+		  buf = (sz > smallArraySize) ? Cached( sz) /* new Ty[ sz]*/  : scalar;
+	  } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
+  }
+
+template<class Sp>GDLArray<Sp>::	GDLArray( Ty val, SizeT s) : sz( s)
+  {
+	  TraceCache( cacheSize, sz, cache==NULL, smallArraySize);
+
+	  try {
+		  buf = (sz > smallArraySize) ? Cached( sz) /* new Ty[ sz]*/  : scalar;
+	  } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
+	  for( SizeT i=0; i<sz; ++i)
+		  buf[ i] = val;
+  }
+
+template<class Sp>GDLArray<Sp>::	GDLArray( const Ty* arr, SizeT s) : sz( s)
+  {
+	  TraceCache( cacheSize, sz, cache==NULL, smallArraySize);
+	  
+	  try {
+		  buf = (sz > smallArraySize) ? Cached( sz) /* new Ty[ sz]*/  : scalar;
+	  } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
+	  std::memcpy(buf,arr,sz*sizeof(Ty));
+  }
+
+template<class Sp>GDLArray<Sp>::~GDLArray() throw()
+{
+#ifdef GDLARRAY_DEBUG
+	if( buf == cache)
+			std::cout << "~~~ recycled cache\tID: ("  << &cacheSize << ")   sz: " << sz << "\tcacheSize: " << cacheSize << std::endl;
+#endif			
+
+	assert( buf != cache || sz == cacheSize);
+	
+	if ( buf != NULL && buf != scalar &&
+			buf != cache // note: assumes cacheSize never changes for a given cache
+	   )
+	{		
+		assert( sz > smallArraySize);
+		if ( sz <= maxCache )
+		{
+			
+#ifdef GDLARRAY_DEBUG
+			std::cout << "--- free cache\tID: ("  << &cacheSize << ")   sz: " << cacheSize << "\tnew: " << sz << std::endl;
+#endif			
+			delete cache;
+			cache = buf;
+			cacheSize = sz;
+		}
+		else
+		{
+			delete[] buf;
+		}
+	}
+}
+// as strings may occupy arbitrary memory (regardless of the array size), better not cache them
+// note: Structs are ok, since GDL cleans up the strings they may contain and uses GDLArray as raw memory
+template<>
+		GDLArray<DString>::~GDLArray() throw()
+	{
+		if ( buf != scalar )
+		{
+			delete[] buf;
+		}
+	}
+
+
+template class GDLArray<char>;
+  
+#endif
+
+
+
+
+
 template<class Sp> void* Data_<Sp>::operator new( size_t bytes)
 {
 	assert( bytes == sizeof( Data_));
