@@ -220,6 +220,7 @@ DStructGDL* DStructGDL::CShift( DLong d)
   return sh;
 }
 
+// TODO: Implement fast 2D version (see datatypes.cpp)
 DStructGDL* DStructGDL::CShift( DLong s[MAXRANK])
 {
   DStructGDL* sh = new DStructGDL( Desc(), dim, BaseGDL::NOZERO);

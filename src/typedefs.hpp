@@ -385,8 +385,8 @@ public:
 
   ~GDLArray() throw()
   {
-	  if( buf != scalar)
-      	delete[] buf;
+  if( buf != scalar) 
+      	delete[] buf; // buf == NULL also possible
   }
 #else
 

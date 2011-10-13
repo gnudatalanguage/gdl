@@ -802,7 +802,7 @@ BaseGDL* Data_<Sp>::CShift( DLong d)
 	memcpy( &sh->dd[ shift], &dd[0], firstChunk * sizeof(Ty));
 	memcpy( &sh->dd[ 0], &dd[firstChunk], shift * sizeof(Ty));
   }
-  else
+  else // strings
   {
 	SizeT i=0;
 	for( ; i<firstChunk; ++i)
