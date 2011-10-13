@@ -813,19 +813,25 @@ BaseGDL* Data_<Sp>::CShift( DLong d)
 	for( ; i<nEl; ++i)
 	sh->dd[shift++] = dd[ i];
    }
-//   if (d > 0) d = d % dd.size();
-//   if( d > 0)
-//     d = dd.size() - d;
-//   else
-//     d = (-d % dd.size());
-// 
-// SizeT nEl = dd.size();
-// TRACEOMP( __FILE__, __LINE__)
-// #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-//   for( SizeT i=0; i<nEl; ++i)
-//     sh->dd[i] = dd[ (i+d)%nEl];//.cshift( -d);
    return sh;
 }
+
+template<typename Ty>
+inline void CShift1( Ty* dst, SizeT& dstLonIx, const Ty* src, SizeT& srcLonIx,
+	SizeT stride_1, SizeT chunk0, SizeT chunk1)
+	{
+		memcpy(  &dst[ dstLonIx], &src[ srcLonIx], chunk0 * sizeof(Ty));
+		dstLonIx += chunk0;
+		srcLonIx += chunk0;
+
+		dstLonIx -= stride_1;
+
+		memcpy( &dst[ dstLonIx], &src[ srcLonIx], chunk1 * sizeof(Ty));
+		dstLonIx += chunk1 ;
+		srcLonIx += chunk1;
+
+		dstLonIx += stride_1;
+	}
 
 template<class Sp>
 BaseGDL* Data_<Sp>::CShift( DLong s[ MAXRANK])
@@ -857,39 +863,17 @@ BaseGDL* Data_<Sp>::CShift( DLong s[ MAXRANK])
 		
 	if( Sp::t != STRING) // strings are not POD all others are
 	{
-		SizeT chunkSize0 = freeDstIx_0 * sizeof(Ty);
-		SizeT chunkSize1 = dstIx[0] * sizeof(Ty);
-
-		SizeT a=0;
+		SizeT srcLonIx=0;
 		SizeT t=0;
+	
 		for( ; t< freeDstIx_1; ++t)
 		{
-			memcpy( &shP[ dstLonIx], &ddP[ a], chunkSize0);
-			dstLonIx += freeDstIx_0;
-			a += freeDstIx_0;
-			
-			dstLonIx -= stride[ 1];
-				
-			memcpy( &shP[ dstLonIx], &ddP[ a], chunkSize1);
-			dstLonIx += dstIx[0] ;
-			a += dstIx[0] ;
-				
-			dstLonIx += stride[ 1];
+ 			CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
 		}
 		dstLonIx -= stride[ 2];
 		for( ; t< this_dim[ 1]; ++t)
 		{
-			memcpy( &shP[ dstLonIx], &ddP[ a], chunkSize0);
-			dstLonIx += freeDstIx_0;
-			a += freeDstIx_0;
-			
-			dstLonIx -= stride[ 1];
-				
-			memcpy( &shP[ dstLonIx], &ddP[ a], chunkSize1);
-			dstLonIx += dstIx[0] ;
-			a += dstIx[0] ;
-				
-			dstLonIx += stride[ 1];
+	 		CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
 		}
 	}
 	else  // Sp::t == STRING
@@ -945,6 +929,117 @@ BaseGDL* Data_<Sp>::CShift( DLong s[ MAXRANK])
   for( SizeT rSp=1; rSp<nDim; ++rSp)
 	dstLonIx += dstIx[ rSp] * stride[ rSp];
 
+  if( Sp::t != STRING)
+  {
+	if( nDim == 3)
+	{
+		SizeT freeDstIx_0 = this_dim[ 0] - dstIx[ 0] ;
+		SizeT freeDstIx_1 = this_dim[ 1] - dstIx[ 1] ;
+		SizeT freeDstIx_2 = this_dim[ 2] - dstIx[ 2] ;
+			
+		SizeT srcLonIx=0;
+		SizeT d2=0;
+		for( ; d2< freeDstIx_2; ++d2)
+		{
+			SizeT d1=0;
+			for( ; d1< freeDstIx_1; ++d1)
+			{
+				CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
+			}
+			dstLonIx -= stride[ 2];
+			for( ; d1< this_dim[ 1]; ++d1)
+			{
+				CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
+			}
+			dstLonIx += stride[ 2];
+		}
+		dstLonIx -= stride[ 3];
+		for( ; d2< this_dim[ 2]; ++d2)
+		{
+			SizeT d1=0;
+			for( ; d1< freeDstIx_1; ++d1)
+			{
+				CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
+			}
+			dstLonIx -= stride[ 2];
+			for( ; d1< this_dim[ 1]; ++d1)
+			{
+				CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
+			}
+			dstLonIx += stride[ 2];
+		}
+		assert(srcLonIx == nEl);
+		return sh;
+	} // nDim == 3
+	if( nDim == 4)
+	{
+		SizeT freeDstIx_0 = this_dim[ 0] - dstIx[ 0] ;
+		SizeT freeDstIx_1 = this_dim[ 1] - dstIx[ 1] ;
+		SizeT freeDstIx_2 = this_dim[ 2] - dstIx[ 2] ;
+		SizeT freeDstIx_3 = this_dim[ 3] - dstIx[ 3] ;
+			
+		SizeT srcLonIx=0;
+		
+		SizeT d3=0;
+		for( ; d3< freeDstIx_3; ++d3)
+		{
+		SizeT d2=0;
+		for( ; d2< freeDstIx_2; ++d2)
+			{
+				SizeT d1=0;
+				for( ; d1< freeDstIx_1; ++d1)
+					CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
+				dstLonIx -= stride[ 2];
+				for( ; d1< this_dim[ 1]; ++d1)
+					CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
+				dstLonIx += stride[ 2];
+			}
+			dstLonIx -= stride[ 3];
+			for( ; d2< this_dim[ 2]; ++d2)
+			{
+				SizeT d1=0;
+				for( ; d1< freeDstIx_1; ++d1)
+					CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
+				dstLonIx -= stride[ 2];
+				for( ; d1< this_dim[ 1]; ++d1)
+					CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
+				dstLonIx += stride[ 2];
+			}
+			dstLonIx += stride[ 3];
+		}
+		dstLonIx -= stride[ 4];
+		for( ; d3< this_dim[ 3]; ++d3)
+		{
+			SizeT d2=0;
+			for( ; d2< freeDstIx_2; ++d2)
+			{
+				SizeT d1=0;
+				for( ; d1< freeDstIx_1; ++d1)
+					CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
+				dstLonIx -= stride[ 2];
+				for( ; d1< this_dim[ 1]; ++d1)
+					CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
+				dstLonIx += stride[ 2];
+			}
+			dstLonIx -= stride[ 3];
+			for( ; d2< this_dim[ 2]; ++d2)
+			{
+				SizeT d1=0;
+				for( ; d1< freeDstIx_1; ++d1)
+					CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
+				dstLonIx -= stride[ 2];
+				for( ; d1< this_dim[ 1]; ++d1)
+					CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
+				dstLonIx += stride[ 2];
+			}
+			dstLonIx += stride[ 3];
+		}
+		assert(srcLonIx == nEl);
+		return sh;
+	} // nDim == 4
+  }  // if( Sp::t != STRING)
+
+// good 'ol version
   SizeT* dim_stride = &stride[1]; 
   for( SizeT a=0; a<nEl; ++srcIx[0],++dstIx[0])
     {
