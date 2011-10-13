@@ -833,6 +833,8 @@ inline void CShift1( Ty* dst, SizeT& dstLonIx, const Ty* src, SizeT& srcLonIx,
 		dstLonIx += stride_1;
 	}
 
+#undef TEST_GOOD_OL_VERSION
+
 template<class Sp>
 BaseGDL* Data_<Sp>::CShift( DLong s[ MAXRANK])
 {
@@ -916,6 +918,8 @@ BaseGDL* Data_<Sp>::CShift( DLong s[ MAXRANK])
   }
 
   assert( nDim > 2);
+
+#ifndef TEST_GOOD_OL_VERSION
 
   for( SizeT aSp=0; aSp<nDim; ++aSp)
     {
@@ -1039,29 +1043,62 @@ BaseGDL* Data_<Sp>::CShift( DLong s[ MAXRANK])
 	} // nDim == 4
   }  // if( Sp::t != STRING)
 
-// good 'ol version
-  SizeT* dim_stride = &stride[1]; 
-  for( SizeT a=0; a<nEl; ++srcIx[0],++dstIx[0])
+#else
+
+  // need to be done earlier within the TEST_GOOD_OL_VERSION section
+  for( SizeT aSp=0; aSp<nDim; ++aSp)
     {
-      for( SizeT aSp=0; aSp<nDim;)
+      this_dim[ aSp] = this->dim[ aSp];
+      srcIx[ aSp] = 0;
+      dstIx[ aSp] = CShiftNormalize( s[ aSp], this_dim[ aSp]);
+    }
+  SizeT dstLonIx = dstIx[ 0];
+  for( SizeT rSp=1; rSp<nDim; ++rSp)
+	dstLonIx += dstIx[ rSp] * stride[ rSp];
+
+#endif // TEST_GOOD_OL_VERSION
+  
+// good 'ol version
+  	SizeT* dim_stride = &stride[1]; 
+	SizeT freeDstIx_0 = this_dim[ 0] - dstIx[ 0] ; // how many elements till array border is reached (dim 0)
+//   for( SizeT a=0; a<nEl; ++srcIx[0],++dstIx[0])
+  for( SizeT a=0; a<nEl; ++srcIx[1],++dstIx[1])
+    {
+//     for( SizeT aSp=0; aSp<nDim;)
+    for( SizeT aSp=1; aSp<nDim;)
+		{
+			if( dstIx[ aSp] >= this_dim[ aSp])
+				{
+				// dstIx[ aSp] -= dim[ aSp];
+				dstIx[ aSp] = 0;
+				dstLonIx -= dim_stride[ aSp];
+				}
+			if( srcIx[ aSp] < this_dim[ aSp]) break;
+
+			srcIx[ aSp] = 0;
+			if( ++aSp >= nDim) break; // ??
+
+			++srcIx[ aSp];
+			++dstIx[ aSp];
+			dstLonIx += stride[ aSp];
+		}
+
+	// code from new version (to avoid the worst :-)
+	// copy one line
+	SizeT s=0;
+	for( ; s< freeDstIx_0; ++s)
 	{
-	  if( dstIx[ aSp] >= this_dim[ aSp]) 
-	    {
-	      // dstIx[ aSp] -= dim[ aSp];
-	      dstIx[ aSp] = 0;
-	      dstLonIx -= dim_stride[ aSp];
-	    }
-	  if( srcIx[ aSp] < this_dim[ aSp]) break;
-
-	  srcIx[ aSp] = 0;
-	  if( ++aSp >= nDim) break; // ??
-	  
-	  ++srcIx[ aSp];
-	  ++dstIx[ aSp];
-	  dstLonIx += stride[ aSp];
+		shP[ dstLonIx++] = ddP[ a++];
 	}
+	dstLonIx -= stride[ 1];
+	for( ; s<this_dim[ 0]; ++s)
+	{
+		shP[ dstLonIx++] = ddP[ a++];
+	}
+	dstLonIx += stride[ 1];	
 
-      shP[ dstLonIx++] = ddP[ a++];
+	// copy one element
+	//shP[ dstLonIx++] = ddP[ a++];
     }
   
   return sh;
