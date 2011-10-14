@@ -843,14 +843,14 @@ BaseGDL* AND_OPNCNode::Eval()
 
  if( e1->StrictScalar())
    {
-     if( g2.get() == NULL) e2 = e2->Dup();  else  g2.release();
+     if( g2.get() == NULL) return e2->AndOpSNew( e1);  else  g2.release();
      res= e2->AndOpS(e1); // scalar+scalar or array+scalar
      
    }
  else
    if( e2->StrictScalar())
      {
-       if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+       if( g1.get() == NULL) return e1->AndOpInvSNew( e2); else g1.release();
        res= e1->AndOpInvS(e2); // array+scalar
        
      }
@@ -876,13 +876,13 @@ BaseGDL* AND_OPNCNode::Eval()
        }
      else if( e1->N_Elements() < e2->N_Elements())
        {
-	 if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+	 if( g1.get() == NULL) return e1->AndOpInvNew( e2); else g1.release();
 	 res = e1->AndOpInv(e2); // smaller_array + larger_array or same size
 	 
        }
      else
        {
-	 if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+	 if( g2.get() == NULL) return e2->AndOpNew( e1); else g2.release();
 	 res = e2->AndOp(e1); // smaller + larger
 	 
        }
@@ -897,14 +897,14 @@ BaseGDL* OR_OPNCNode::Eval()
 
  if( e1->StrictScalar())
    {
-     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+     if( g2.get() == NULL) return e2->OrOpSNew( e1); else g2.release();
      res= e2->OrOpS(e1); // scalar+scalar or array+scalar
      
    }
  else
    if( e2->StrictScalar())
      {
-       if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+       if( g1.get() == NULL) return e1->OrOpInvSNew( e2); else g1.release();
        res= e1->OrOpInvS(e2); // array+scalar
        
      }
@@ -930,13 +930,13 @@ BaseGDL* OR_OPNCNode::Eval()
    }
 else if( e1->N_Elements() < e2->N_Elements())
        {
-	 if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+	 if( g1.get() == NULL) return e1->OrOpInvNew( e2); else g1.release();
 	 res= e1->OrOpInv(e2); // smaller_array + larger_array or same size
 	 
        }
      else
        {
-	 if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+	 if( g2.get() == NULL) return e2->OrOpNew( e1); else g2.release();
 	 res= e2->OrOp(e1); // smaller + larger
 	 
        }
@@ -950,13 +950,13 @@ BaseGDL* XOR_OPNCNode::Eval()
 
   if( e1->StrictScalar())
     {
-      if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+      if( g2.get() == NULL) return e2->XorOpSNew( e1); else g2.release();
       res= e2->XorOpS(e1); // scalar+scalar or array+scalar
      
     }
   else if( e2->StrictScalar())
       {
-	if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+	if( g1.get() == NULL) return e1->XorOpSNew( e2); else g1.release();
 	res= e1->XorOpS(e2); // array+scalar
        
       }
@@ -981,13 +981,13 @@ BaseGDL* XOR_OPNCNode::Eval()
       }
     else if( e1->N_Elements() < e2->N_Elements())
       {
-	if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+	if( g1.get() == NULL) return e1->XorOpNew( e2); else g1.release();
 	res= e1->XorOp(e2); // smaller_array + larger_array or same size
      
       }
     else
       {
-	if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+	if( g2.get() == NULL) return e2->XorOpNew( e1); else g2.release();
 	res= e2->XorOp(e1); // smaller + larger
      
       }
@@ -1183,14 +1183,14 @@ BaseGDL* MINUSNCNode::Eval()
 
  if( e1->StrictScalar())
    {
-     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+     if( g2.get() == NULL) return e2->SubInvSNew( e1); else g2.release();
      res= e2->SubInvS(e1); // scalar+scalar or array+scalar
      
    }
  else
    if( e2->StrictScalar())
      {
-       if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+       if( g1.get() == NULL) return e1->SubSNew( e2); else g1.release();
        res= e1->SubS(e2); // array+scalar
        
      }
@@ -1215,13 +1215,13 @@ BaseGDL* MINUSNCNode::Eval()
    }
 else if( e1->N_Elements() < e2->N_Elements())
        {
-	 if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+	 if( g1.get() == NULL) return e1->SubNew( e2); else g1.release();
 	 res= e1->Sub(e2); // smaller_array + larger_array or same size
 	 
        }
      else
        {
-	 if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+	 if( g2.get() == NULL) return e2->SubInvNew( e1); else g2.release();
 	 res= e2->SubInv(e1); // smaller + larger
 	 
        }
@@ -1235,14 +1235,14 @@ BaseGDL* LTMARKNCNode::Eval()
 
  if( e1->StrictScalar())
    {
-     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+     if( g2.get() == NULL) return e2->LtMarkSNew( e1); else g2.release();
      res= e2->LtMarkS(e1); // scalar+scalar or array+scalar
      
    }
  else
    if( e2->StrictScalar())
      {
-       if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+       if( g1.get() == NULL) return e1->LtMarkSNew( e2); else g1.release();
        res= e1->LtMarkS(e2); // array+scalar
        
      }
@@ -1267,13 +1267,13 @@ BaseGDL* LTMARKNCNode::Eval()
    }
    else if( e1->N_Elements() < e2->N_Elements())
        {
-	 if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+	 if( g1.get() == NULL) return e1->LtMarkNew( e2); else g1.release();
 	 res= e1->LtMark(e2); // smaller_array + larger_array or same size
 	 
        }
      else
        {
-	 if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+	 if( g2.get() == NULL) return e2->LtMarkNew( e1); else g2.release();
 	 res= e2->LtMark(e1); // smaller + larger
 	 
        }
@@ -1287,14 +1287,14 @@ BaseGDL* GTMARKNCNode::Eval()
 
  if( e1->StrictScalar())
    {
-     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+     if( g2.get() == NULL) return e2->GtMarkSNew( e1); else g2.release();
      res= e2->GtMarkS(e1); // scalar+scalar or array+scalar
      
    }
  else
    if( e2->StrictScalar())
      {
-       if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+       if( g1.get() == NULL) return e1->GtMarkSNew( e2); else g1.release();
        res= e1->GtMarkS(e2); // array+scalar
        
      }
@@ -1319,13 +1319,13 @@ BaseGDL* GTMARKNCNode::Eval()
    }
 else if( e1->N_Elements() < e2->N_Elements())
        {
-	 if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+	 if( g1.get() == NULL) return e1->GtMarkNew( e2); else g1.release();
 	 res= e1->GtMark(e2); // smaller_array + larger_array or same size
 	 
        }
      else
        {
-	 if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+	 if( g2.get() == NULL) return e2->GtMarkNew( e1); else g2.release();
 	 res= e2->GtMark(e1); // smaller + larger
 	 
        }
@@ -1354,7 +1354,7 @@ BaseGDL* ASTERIXNCNode::Eval()
 	{
 		if ( g1.get() == NULL )
 		{
-// 			e1 = e1->Dup();
+// 			return e1->New( e2);
 			res= e1->MultSNew( e2); // array+scalar
 		}
 		else
@@ -1387,7 +1387,7 @@ BaseGDL* ASTERIXNCNode::Eval()
 	{
 		if ( g1.get() == NULL )
 		{
-			// 		 e1 = e1->Dup();
+			// 		 return e1->New( e2);
 			res= e1->MultNew( e2); // smaller_array + larger_array or same size
 		 }
 		else
@@ -1522,14 +1522,14 @@ BaseGDL* SLASHNCNode::Eval()
 
  if( e1->StrictScalar())
    {
-     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+     if( g2.get() == NULL) return e2->DivInvSNew( e1); else g2.release();
      res= e2->DivInvS(e1); // scalar+scalar or array+scalar
      
    }
  else
    if( e2->StrictScalar())
      {
-       if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+       if( g1.get() == NULL) return e1->DivSNew( e2); else g1.release();
        res= e1->DivS(e2); // array+scalar
        
      }
@@ -1554,13 +1554,13 @@ BaseGDL* SLASHNCNode::Eval()
    }
 else if( e1->N_Elements() < e2->N_Elements())
        {
-	 if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+	 if( g1.get() == NULL) return e1->DivNew( e2); else g1.release();
 	 res= e1->Div(e2); // smaller_array + larger_array or same size
 	 
        }
      else
        {
-	 if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+	 if( g2.get() == NULL) return e2->DivInvNew( e1); else g2.release();
 	 res= e2->DivInv(e1); // smaller + larger
 	 
        }
@@ -1575,13 +1575,13 @@ BaseGDL* MOD_OPNCNode::Eval()
 
  if( e1->StrictScalar())
    {
-     if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+     if( g2.get() == NULL) return e2->ModInvSNew( e1); else g2.release();
      res= e2->ModInvS(e1); // scalar+scalar or array+scalar
      
    }
  else if( e2->StrictScalar())
      {
-       if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+       if( g1.get() == NULL) return e1->ModSNew( e2); else g1.release();
        res= e1->ModS(e2); // array+scalar
        
      }
@@ -1606,13 +1606,13 @@ BaseGDL* MOD_OPNCNode::Eval()
    }
 else if( e1->N_Elements() < e2->N_Elements())
        {
-	 if( g1.get() == NULL) e1 = e1->Dup(); else g1.release();
+	 if( g1.get() == NULL) return e1->ModNew( e2); else g1.release();
 	 res= e1->Mod(e2); // smaller_array + larger_array or same size
 	 
        }
      else
        {
-	 if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
+	 if( g2.get() == NULL) return e2->ModInvNew( e1); else g2.release();
 	 res= e2->ModInv(e1); // smaller + larger
 	 
        }
@@ -1780,16 +1780,20 @@ BaseGDL* POWNCNode::Eval()
   // AdjustTypes(e2,e1); // order crucial here (for converting back)
 if( e1->StrictScalar())
     {
-      if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
-      res= e2->PowInvS(e1); // scalar+scalar or array+scalar
-     
+	if( g2.get() == NULL)
+		res = e2->PowInvSNew( e1);
+	else
+	{
+		g2.release();
+		res = e2->PowInvS(e1); // scalar+scalar or array+scalar
+	}
     }
   else if( e2->StrictScalar())
     {
       if( g1.get() == NULL) 
 	{
-	  e1 = e1->Dup();
-	  res = e1->PowS(e2); // array+scalar
+	  res = e1->PowSNew( e2);
+// 	  res = e1->PowS(e2); // array+scalar
 	}
       else 
 	{
@@ -1812,16 +1816,16 @@ if( e1->StrictScalar())
 	}
       else
 	{
-	  e1 = e1->Dup();
-	  res = e1->Pow(e2); 
+	res = e1->PowNew( e2);
+// 	  res = e1->Pow(e2); 
 	}
     }
   else if( e1->N_Elements() < e2->N_Elements())
       {
 	if( g1.get() == NULL) 
 	  {
-	    e1 = e1->Dup();
-	    res= e1->Pow(e2); // smaller_array + larger_array or same size
+	    res = e1->PowNew( e2);
+// 	    res= e1->Pow(e2); // smaller_array + larger_array or same size
 	  }
 	else 
 	  {
@@ -1831,9 +1835,13 @@ if( e1->StrictScalar())
       }
     else
       {
-	if( g2.get() == NULL) e2 = e2->Dup(); else g2.release();
-	res= e2->PowInv(e1); // smaller + larger
-	 
+	if( g2.get() == NULL)
+		res = e2->PowInvNew( e1);
+	else
+	{
+		g2.release();
+		res= e2->PowInv(e1); // smaller + larger
+	}	 
       }
   if( convertBackT != UNDEF)
     {
