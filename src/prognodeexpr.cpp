@@ -871,7 +871,7 @@ BaseGDL* AND_OPNCNode::Eval()
 	   }
 	 else
 	   {
-	     return e1->Dup()->AndOpInv(e2);
+	     return e1->AndOpInvNew(e2);
 	   }
        }
      else if( e1->N_Elements() < e2->N_Elements())
@@ -925,7 +925,7 @@ BaseGDL* OR_OPNCNode::Eval()
        }
      else
        {
-	 return e1->Dup()->OrOpInv(e2);
+	 return e1->OrOpInvNew(e2);
        }
    }
 else if( e1->N_Elements() < e2->N_Elements())
@@ -976,7 +976,7 @@ BaseGDL* XOR_OPNCNode::Eval()
 	  }
 	else
 	  {
-	    return e1->Dup()->XorOp(e2); 
+	    return e1->XorOpNew(e2);
 	  }
       }
     else if( e1->N_Elements() < e2->N_Elements())
@@ -1150,7 +1150,6 @@ BaseGDL* PLUSNCNode::Eval()
 		else
 		{
 			return e1->AddNew ( e2 );
-// 			return e1->Dup()->Add ( e2 );
 		}
 	}
 	else if ( e1->N_Elements() < e2->N_Elements() )
@@ -1262,7 +1261,7 @@ BaseGDL* LTMARKNCNode::Eval()
        }
      else
        {
-       return e1->Dup()->LtMark(e2); 
+       return e1->LtMarkNew(e2);
        }
    }
    else if( e1->N_Elements() < e2->N_Elements())
@@ -1314,7 +1313,7 @@ BaseGDL* GTMARKNCNode::Eval()
        }
      else
        {
-       return e1->Dup()->GtMark(e2); 
+       return e1->GtMarkNew(e2);
        }
    }
 else if( e1->N_Elements() < e2->N_Elements())
@@ -1549,7 +1548,7 @@ BaseGDL* SLASHNCNode::Eval()
        }
      else
        {
-       return e1->Dup()->Div(e2); 
+       return e1->DivNew(e2); 
        }
    }
 else if( e1->N_Elements() < e2->N_Elements())
@@ -1601,7 +1600,7 @@ BaseGDL* MOD_OPNCNode::Eval()
        }
      else
        {
-       return e1->Dup()->Mod(e2); 
+       return e1->ModNew(e2); 
        }
    }
 else if( e1->N_Elements() < e2->N_Elements())
