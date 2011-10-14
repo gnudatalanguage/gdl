@@ -985,8 +985,9 @@ BaseGDL* Data_<Sp>::CShift( DLong s[ MAXRANK])
 			}
 			dstLonIx += stride[ 1];
 		}
+		//	dstLonIx += stride[ 2];
 		assert( a == nEl);
-	} // Sp::t != STRING
+	} // if( Sp::t != STRING) else
 	
 	return sh;
   }
@@ -1132,8 +1133,8 @@ BaseGDL* Data_<Sp>::CShift( DLong s[ MAXRANK])
 
 #endif // TEST_GOOD_OL_VERSION
   
-// good 'ol version RELOADED 
-  	SizeT* dim_stride = &stride[1]; 
+// good 'ol version RELOADED
+  	SizeT* dim_stride = &stride[1];
 	SizeT freeDstIx_0 = this_dim[ 0] - dstIx[ 0] ; // how many elements till array border is reached (dim 0)
 //   for( SizeT a=0; a<nEl; ++srcIx[0],++dstIx[0])
   for( SizeT a=0; a<nEl; ++srcIx[1],++dstIx[1])
@@ -1152,6 +1153,7 @@ BaseGDL* Data_<Sp>::CShift( DLong s[ MAXRANK])
 			srcIx[ aSp] = 0;
 			if( ++aSp >= nDim) break; // ??
 
+			
 			++srcIx[ aSp];
 			++dstIx[ aSp];
 			dstLonIx += stride[ aSp];
