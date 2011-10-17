@@ -388,9 +388,9 @@ public:
     , stride( stride_)
   {
     add = 0;
+	assert( varStride[0] == 1);
 	for( SizeT i=0; i<acRank;++i)
 		{
-		assert( varStride[0] == 1);
 		if( !(*ixList)[i]->Indexed())
 			{
 				ixListStride[i] = (*ixList)[i]->GetStride() * varStride[i];
@@ -410,11 +410,154 @@ public:
     return clone;
   }
 
-  SizeT operator[]( SizeT i) const; // code in arrayindex.cpp
+  SizeT operator[]( SizeT i) const;
   SizeT InitSeqAccess();
-  SizeT SeqAccess(); // code in arrayindex.cpp
+  SizeT SeqAccess(); 
 	
   SizeT size() const { return nIx;}	
 };
+
+
+class AllIxNewMultiNoneIndexedT: public AllIxBaseT
+{
+private:
+  ArrayIndexVectorT* ixList;
+  SizeT ixListStride[MAXRANK];
+  SizeT* varStride;
+  SizeT* nIterLimit;
+  SizeT* stride;
+  SizeT acRank;
+  SizeT nIx;
+  SizeT seqIx;
+  SizeT add;
+
+public:
+  AllIxNewMultiNoneIndexedT( ArrayIndexVectorT* ixList_, SizeT acRank_, SizeT nIx_, SizeT* varStride_, SizeT* nIterLimit_, SizeT* stride_)
+    : ixList( ixList_)
+    , acRank( acRank_)
+    , nIx( nIx_)
+    , varStride( varStride_)
+    , nIterLimit( nIterLimit_)
+    , stride( stride_)
+  {
+    add = 0;
+	for( SizeT i=0; i<acRank;++i)
+		{
+		assert( varStride[0] == 1);
+		ixListStride[i] = (*ixList)[i]->GetStride() * varStride[i];
+		assert( ixListStride[i] >= 1);
+		add += (*ixList)[i]->GetS() * varStride[i];
+		}
+  }
+  ~AllIxNewMultiNoneIndexedT() {}
+
+  AllIxNewMultiNoneIndexedT* Clone()
+  {
+    AllIxNewMultiNoneIndexedT* clone = new AllIxNewMultiNoneIndexedT( *this);
+    return clone;
+  }
+
+  SizeT operator[]( SizeT i) const;
+  SizeT InitSeqAccess();
+  SizeT SeqAccess();
+	
+  SizeT size() const { return nIx;}	
+};
+		
+
+		
+class AllIxNewMultiOneVariableIndexNoIndexT: public AllIxBaseT
+{
+private:
+  ArrayIndexVectorT* ixList;
+  SizeT ixListStride;
+  SizeT* varStride;
+  SizeT* nIterLimit;
+  SizeT* stride;
+  SizeT acRank;
+  SizeT nIx;
+  SizeT seqIx;
+  SizeT add;
+  RankT variableIndex;
+	
+public:
+  AllIxNewMultiOneVariableIndexNoIndexT( RankT gt1Rank, SizeT add_,
+								  ArrayIndexVectorT* ixList_, SizeT acRank_, SizeT nIx_, SizeT* varStride_, SizeT* nIterLimit_, SizeT* stride_)
+	: ixList( ixList_)
+    , acRank( acRank_)
+    , nIx( nIx_)
+    , varStride( varStride_)
+    , nIterLimit( nIterLimit_)
+    , stride( stride_)
+	, add( add_)
+	, variableIndex( gt1Rank)
+	{
+	assert( varStride[0] == 1);
+	ixListStride = (*ixList)[variableIndex]->GetStride() * varStride[variableIndex];
+	assert( ixListStride >= 1);
+	}
+  ~AllIxNewMultiOneVariableIndexNoIndexT() {}
+
+  AllIxNewMultiOneVariableIndexNoIndexT* Clone()
+  {
+    AllIxNewMultiOneVariableIndexNoIndexT* clone = new AllIxNewMultiOneVariableIndexNoIndexT( *this);
+    return clone;
+  }
+
+  SizeT operator[]( SizeT i) const;
+  SizeT InitSeqAccess();
+  SizeT SeqAccess();
+	
+  SizeT size() const { return nIx;}	
+};
+
+
+
+class AllIxNewMultiOneVariableIndexIndexedT: public AllIxBaseT
+{
+private:
+  ArrayIndexVectorT* ixList;
+  SizeT ixListStride;
+  SizeT* varStride;
+  SizeT* nIterLimit;
+  SizeT* stride;
+  SizeT acRank;
+  SizeT nIx;
+  SizeT seqIx;
+  SizeT add;
+  RankT variableIndex;
+  ArrayIndexT* arrayIndexIndexed;
+		  
+public:
+  AllIxNewMultiOneVariableIndexIndexedT( RankT gt1Rank, SizeT add_,
+								  ArrayIndexVectorT* ixList_, SizeT acRank_, SizeT nIx_, SizeT* varStride_, SizeT* nIterLimit_, SizeT* stride_)
+	: ixList( ixList_)
+    , acRank( acRank_)
+    , nIx( nIx_)
+    , varStride( varStride_)
+    , nIterLimit( nIterLimit_)
+    , stride( stride_)
+	, add( add_)
+	, variableIndex( gt1Rank)
+	{
+		arrayIndexIndexed = (*ixList)[variableIndex];
+		ixListStride = varStride[variableIndex];
+		assert( ixListStride >= 1);
+	}
+  ~AllIxNewMultiOneVariableIndexIndexedT() {}
+
+  AllIxNewMultiOneVariableIndexIndexedT* Clone()
+  {
+    AllIxNewMultiOneVariableIndexIndexedT* clone = new AllIxNewMultiOneVariableIndexIndexedT( *this);
+    return clone;
+  }
+
+  SizeT operator[]( SizeT i) const;
+  SizeT InitSeqAccess();
+  SizeT SeqAccess();
+	
+  SizeT size() const { return nIx;}	
+};
+
 
 #endif

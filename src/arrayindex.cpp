@@ -22,159 +22,6 @@
 
 using namespace std;
 
-// older versions of gcc put the vtable into this file (where destructor is defined)
-AllIxBaseT::~AllIxBaseT() {}
-
-SizeT AllIxIndicesT::operator[]( SizeT i) const
-{
-assert( upperSet);
-SizeT index = ref->GetAsIndex( i);
-if( index > upper)
-	return upper;
-return index;
-}
-
-SizeT AllIxIndicesT::InitSeqAccess()
-{
-assert( upperSet);
-seqIx = 0;
-SizeT index = ref->GetAsIndex( 0);
-if( index > upper)
-	return upper;
-return index;
-}
-
-SizeT AllIxIndicesT::SeqAccess() 
-{
-assert( upperSet);
-SizeT index = ref->GetAsIndex( ++seqIx);
-if( index > upper)
-	return upper;
-return index;
-}
-
-SizeT AllIxIndicesT::size() const
-{
-return ref->N_Elements();
-}
-
-SizeT AllIxIndicesStrictT::operator[]( SizeT i) const
-{
-assert( upperSet);
-SizeT index = ref->GetAsIndexStrict( i);
-if( index > upper)
-	throw GDLException(NULL,"Array used to subscript array "
-			   "contains out of range subscript (at index: "+i2s(i)+").",true,false);
-return index;
-}
-
-SizeT AllIxIndicesStrictT::InitSeqAccess()
-{
-assert( upperSet);
-seqIx = 0;
-SizeT index = ref->GetAsIndexStrict( 0);
-if( index > upper)
-	throw GDLException(NULL,"Array used to subscript array "
-			   "contains out of range subscript (at index: "+i2s(index)+").",true,false);
-return index;
-}
-
-SizeT AllIxIndicesStrictT::SeqAccess() 
-{
-assert( upperSet);
-SizeT index = ref->GetAsIndexStrict( ++seqIx);
-if( index > upper)
-	throw GDLException(NULL,"Array used to subscript array "
-			   "contains out of range subscript (at index: "+i2s(index)+").",true,false);
-return index;
-}
-
-SizeT AllIxAllIndexedT::operator[]( SizeT i) const
-  {
-    assert( i < nIx);
-	
-    assert( dynamic_cast<ArrayIndexIndexed*>( (*ixList)[0]) != NULL);
-    SizeT resIndex = static_cast< ArrayIndexIndexed*>( (*ixList)[0])->GetIx( i);
-		
-    for( SizeT l=1; l < acRank; ++l)
-      {
-		assert( dynamic_cast<ArrayIndexIndexed*>( (*ixList)[l]) != NULL);
-		resIndex += static_cast< ArrayIndexIndexed*>( (*ixList)[l])->GetIx( i) * varStride[l];
-      }
-    return resIndex;
-  }
-SizeT AllIxAllIndexedT::InitSeqAccess()
-  {
-    seqIx = 0;
-    
-    assert( dynamic_cast<ArrayIndexIndexed*>( (*ixList)[0]) != NULL);
-    SizeT resIndex = static_cast< ArrayIndexIndexed*>( (*ixList)[0])->GetIx( 0 /*seqIx*/);
-		
-    for( SizeT l=1; l < acRank; ++l)
-      {
-		assert( dynamic_cast<ArrayIndexIndexed*>( (*ixList)[l]) != NULL);
-		resIndex += static_cast< ArrayIndexIndexed*>( (*ixList)[l])->GetIx( 0 /*seqIx*/) * varStride[l];
-      }
-    return resIndex;
-  }
-SizeT AllIxAllIndexedT::SeqAccess()
-  {
-    ++seqIx;
-    assert( seqIx < nIx);
-	
-    assert( dynamic_cast<ArrayIndexIndexed*>( (*ixList)[0]) != NULL);
-    SizeT resIndex = static_cast< ArrayIndexIndexed*>( (*ixList)[0])->GetIx( seqIx);
-		
-    for( SizeT l=1; l < acRank; ++l)
-      {
-		assert( dynamic_cast<ArrayIndexIndexed*>( (*ixList)[l]) != NULL);
-		resIndex += static_cast< ArrayIndexIndexed*>( (*ixList)[l])->GetIx( seqIx) * varStride[l];
-      }
-    return resIndex;
-  }
-
-// Note: mixed indices can expand an array
-SizeT AllIxNewMultiT::operator[]( SizeT i) const
-  {
-    assert( i < nIx);
-    
-    SizeT resIndex = add;
-    if( (*ixList)[0]->Indexed())
-      {
-		resIndex += static_cast< ArrayIndexIndexed*>((*ixList)[0])->GetIx( i %  nIterLimit[0]);
-      }
-    else
-      {
-// 		SizeT s = ixList->FrontGetS(); //ixList[0]->GetS();
-		if( nIterLimit[0] > 1)
-			resIndex += (i % nIterLimit[0]) * ixListStride[0]; // + s[0];
-      }
-
-    for( SizeT l=1; l < acRank; ++l)
-    {
-		if( (*ixList)[l]->Indexed())
-		{
-			resIndex += static_cast< ArrayIndexIndexed*>( (*ixList)[l])->GetIx( (i / stride[l]) %  nIterLimit[l]) * varStride[l];
-		}
-		else
-		{
-// 			SizeT s = (*ixList)[l]->GetS();
-			if( nIterLimit[l] > 1)
-				resIndex += ((i / stride[l]) %  nIterLimit[l]) * ixListStride[l]; //  + s[l] * varStride[l];
-// 			resIndex += (((i / stride[l]) %  nIterLimit[l]) * ixListStride[l] + s[l]) * varStride[l];
-		}
-	}
-	return resIndex;
-  }
-SizeT AllIxNewMultiT::InitSeqAccess()
-{
-	seqIx = 0;
-	return (*this)[0];
-}
-SizeT AllIxNewMultiT::SeqAccess()
-{
-	return (*this)[++seqIx];
-}
 
 ArrayIndexScalar::ArrayIndexScalar( RefDNode& dNode)
 {
@@ -344,12 +191,12 @@ ArrayIndexListT::~ArrayIndexListT() {}
 
 AllIxBaseT* ArrayIndexListT::BuildIx() {}
 
-
 // called from compiler after structure is fixed
 ArrayIndexListT* MakeArrayIndex( ArrayIndexVectorT* ixList)
 {
   assert( ixList->size() != 0); // must be, from compiler
-  
+
+  // cannot be assoc index
   if( ixList->size() == 1)
     {
       if( CArrayIndexScalarID == (*ixList)[0]->Type())
@@ -365,14 +212,23 @@ ArrayIndexListT* MakeArrayIndex( ArrayIndexVectorT* ixList)
     }
   
   SizeT nScalar  = 0;
+  SizeT nIndexed = 0;
   for( SizeT i=0; i<ixList->size(); ++i)
     {
       if( ArrayIndexScalarID == (*ixList)[i]->Type() ||
 	  ArrayIndexScalarVPID == (*ixList)[i]->Type() ||
 	  CArrayIndexScalarID == (*ixList)[i]->Type() ) ++nScalar;
+	else if( ArrayIndexIndexedID == (*ixList)[i]->Type() ||
+		CArrayIndexIndexedID == (*ixList)[i]->Type()) nIndexed++;
     }
   if( nScalar == ixList->size())
     return new ArrayIndexListScalarT( ixList);
-  
+ 	
+  // Note that each index can be a assoc index anytime
+  // filter this special case out should save complexity in
+  // ArrayIndexListMultiT
+  if( nIndexed == 0)
+	  return new ArrayIndexListMultiNoneIndexedT( ixList);
+
   return new ArrayIndexListMultiT( ixList);
 }
