@@ -48,7 +48,7 @@ public:
   {
   }
 	
-  ~AllIxT() {};
+  ~AllIxT() {}
 
   AllIxT* Clone()
   {

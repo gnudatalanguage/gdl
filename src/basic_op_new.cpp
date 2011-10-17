@@ -1661,7 +1661,7 @@ Data_<Sp>* Data_<Sp>::MultSNew( BaseGDL* r )
 #pragma omp for
       for ( SizeT i=0; i < nEl; ++i )
 	(*res ) [i] = (*this )[i] * s;
-    }  //C delete right;
+    }
   return res;
 }
 // invalid types
