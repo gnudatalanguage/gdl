@@ -25,6 +25,8 @@ GDLTreeParser.cpp
 GDLTreeParser.hpp
 GDLTreeParserTokenTypes.hpp
 accessdesc.hpp
+allix.hpp
+allix.cpp
 arrayindex.cpp
 arrayindex.hpp
 arrayindexlistt.hpp
