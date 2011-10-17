@@ -1374,12 +1374,12 @@ public:
     // higher indices of variable are implicitely zero,
     // therefore they are not checked in 'SetRoot'
 
-    SizeT nIterLimitGt1 = 0;
+	SizeT nIterLimitGt1 = 0;
 	SizeT baseIx = 0;
 	RankT gt1Rank;
 	bool indexed;
 	for( SizeT l=0; l<acRank; ++l)
-      {
+	{
 		if( nIterLimit[l] > 1)
 		{
 			++nIterLimitGt1;
@@ -1405,7 +1405,7 @@ public:
 				baseIx += ixList[l]->GetS()  * varStride[l];
 			}
 		}
-      }
+	}
 	if( nIterLimitGt1 == 1) // only one variable dimension
 	{
 		if( indexed)
@@ -1712,11 +1712,11 @@ class ArrayIndexListMultiNoneIndexedT: public ArrayIndexListMultiT
   // returns 1-dim index for all elements
   AllIxBaseT* BuildIx()
   {
-    if( allIx != NULL)
+	if( allIx != NULL)
 		return allIx;
 
-    if( accessType == ALLONE)
-      {
+	if( accessType == ALLONE)
+	{
 		SizeT s = ixList.FrontGetS(); //ixList[0]->GetS();
 		for( SizeT l=1; l < acRank; ++l)
 		{
@@ -1725,14 +1725,31 @@ class ArrayIndexListMultiNoneIndexedT: public ArrayIndexListMultiT
 		allIx = new AllIxT(s);
 	// 	(*allIx)[0] = s;
 		return allIx;
-      }
+	}
 
-    // NORMAL
-    // loop only over specified indices
-    // higher indices of variable are implicitely zero,
-    // therefore they are not checked in 'SetRoot'
+	// NORMAL
+	// loop only over specified indices
+	// higher indices of variable are implicitely zero,
+	// therefore they are not checked in 'SetRoot'
+	SizeT nIterLimitGt1 = 0;
+	SizeT baseIx = 0;
+	RankT gt1Rank;
+	for( SizeT l=0; l<acRank; ++l)
+	{
+		if( nIterLimit[l] > 1)
+		{
+			++nIterLimitGt1;
+			gt1Rank = l;
+		}
+		baseIx += ixList[l]->GetS()  * varStride[l];
+	}
+	if( nIterLimitGt1 == 1) // only one variable dimension
+	{
+		allIx = new AllIxNewMultiOneVariableIndexNoIndexT( gt1Rank, baseIx, &ixList, acRank, nIx, varStride, nIterLimit, stride);
+		return allIx;
+	}
 
-    allIx = new AllIxNewMultiNoneIndexedT( &ixList, acRank, nIx, varStride, nIterLimit, stride);
+	allIx = new AllIxNewMultiNoneIndexedT( &ixList, acRank, nIx, varStride, nIterLimit, stride);
 	return allIx;
   }
 };

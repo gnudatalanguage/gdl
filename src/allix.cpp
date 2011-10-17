@@ -207,9 +207,9 @@ SizeT AllIxNewMultiNoneIndexedT::SeqAccess()
 
 SizeT AllIxNewMultiOneVariableIndexNoIndexT::operator[]( SizeT i) const
   {
-    assert( i < nIx);
+	assert( i < nIx);
 	return add + i * ixListStride; //  + s[l] * varStride[l];
-// 			resIndex += (((i / stride[l]) %  nIterLimit[l]) * ixListStride[l] + s[l]) * varStride[l];
+//      resIndex += (((i / stride[l]) %  nIterLimit[l]) * ixListStride[l] + s[l]) * varStride[l];
 	}
 SizeT AllIxNewMultiOneVariableIndexNoIndexT::InitSeqAccess()
 {
@@ -218,7 +218,7 @@ SizeT AllIxNewMultiOneVariableIndexNoIndexT::InitSeqAccess()
 }
 SizeT AllIxNewMultiOneVariableIndexNoIndexT::SeqAccess()
 {
-    seqIx += ixListStride;
+	seqIx += ixListStride;
 	assert( seqIx < nIx);
 	return seqIx;
 }
@@ -233,7 +233,7 @@ SizeT AllIxNewMultiOneVariableIndexIndexedT::operator[]( SizeT i) const
 SizeT AllIxNewMultiOneVariableIndexIndexedT::InitSeqAccess()
 {
 	seqIx = 0;
-    return add + static_cast< ArrayIndexIndexed*>( arrayIndexIndexed)->GetIx( 0) * ixListStride; //varStride[l];
+	return add + static_cast< ArrayIndexIndexed*>( arrayIndexIndexed)->GetIx( 0) * ixListStride; //varStride[l];
 }
 SizeT AllIxNewMultiOneVariableIndexIndexedT::SeqAccess()
 {

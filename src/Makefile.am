@@ -5,7 +5,7 @@ SUBDIRS = antlr pro
 cpp_hpp_files = allix.hpp allix.cpp prognode.hpp prognodeexpr.hpp \
 		accessdesc.hpp arrayindex.hpp assocdata.cpp assocdata.hpp \
 		basegdl.hpp basic_fun_cl.cpp basic_fun_cl.hpp basic_fun.cpp basic_fun.hpp \
-		basic_fun_jmg.cpp basic_fun_jmg.hpp basic_op.cpp basic_pro.cpp basic_pro.hpp \
+		basic_fun_jmg.cpp basic_fun_jmg.hpp basic_op.cpp basic_op_new.cpp basic_pro.cpp basic_pro.hpp \
 		basic_pro_jmg.cpp basic_pro_jmg.hpp CFMTLexer.cpp CFMTLexer.hpp CFMTTokenTypes.hpp \
 		cformat.g color.cpp color.hpp convert2.cpp datalistt.hpp datatypes.cpp \
 		datatypes.hpp dcommon.cpp dcommon.hpp dcompiler.cpp dcompiler.hpp default_io.cpp \
