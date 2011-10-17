@@ -233,9 +233,10 @@ SizeT AllIxNewMultiOneVariableIndexIndexedT::operator[]( SizeT i) const
 SizeT AllIxNewMultiOneVariableIndexIndexedT::InitSeqAccess()
 {
 	seqIx = 0;
-	return (*this)[0];
+    return add + static_cast< ArrayIndexIndexed*>( arrayIndexIndexed)->GetIx( 0) * ixListStride; //varStride[l];
 }
 SizeT AllIxNewMultiOneVariableIndexIndexedT::SeqAccess()
 {
-	return (*this)[++seqIx];
+    assert( (seqIx+1) < nIx);
+    return add + static_cast< ArrayIndexIndexed*>( arrayIndexIndexed)->GetIx( ++seqIx) * ixListStride; //varStride[l];
 }

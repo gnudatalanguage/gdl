@@ -219,7 +219,7 @@ ArrayIndexListT* MakeArrayIndex( ArrayIndexVectorT* ixList)
 	  ArrayIndexScalarVPID == (*ixList)[i]->Type() ||
 	  CArrayIndexScalarID == (*ixList)[i]->Type() ) ++nScalar;
 	else if( ArrayIndexIndexedID == (*ixList)[i]->Type() ||
-		CArrayIndexIndexedID == (*ixList)[i]->Type()) nIndexed++;
+		CArrayIndexIndexedID == (*ixList)[i]->Type()) ++nIndexed;
     }
   if( nScalar == ixList->size())
     return new ArrayIndexListScalarT( ixList);
