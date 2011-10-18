@@ -226,8 +226,6 @@ template class GDLArray<char>;
 template<class Sp> void* Data_<Sp>::operator new( size_t bytes)
 {
 	assert( bytes == sizeof( Data_));
-	
-// 	cout << "Alloc: " << bytes << "  " << Sp::str << endl;
 
 	if( freeList.size() > 0)
 	{
@@ -237,6 +235,7 @@ template<class Sp> void* Data_<Sp>::operator new( size_t bytes)
 	}
 
 	const size_t newSize = multiAlloc - 1;
+
 	freeList.resize( newSize);
 	char* res = static_cast< char*>( malloc( sizeof( Data_) * multiAlloc)); // one more than newSize
 	for( size_t i=0; i<newSize; ++i)
@@ -244,14 +243,13 @@ template<class Sp> void* Data_<Sp>::operator new( size_t bytes)
 		freeList[ i] = res;
 		res += sizeof( Data_);
 	} 
-	
+
+	// the one more
 	return res;
 }
 
 template<class Sp> void Data_<Sp>::operator delete( void *ptr)
 {
-// 	cout << "Delete: " << ptr << endl;
-
 	freeList.push_back( ptr);
 }
 
@@ -506,8 +504,6 @@ TRACEOMP( __FILE__, __LINE__)
 template<>
 Data_<SpDDouble>* Data_<SpDDouble>::Log()              
 { 
-#if 1 || (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
-
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
   if( nEl == 1)
@@ -520,15 +516,10 @@ TRACEOMP( __FILE__, __LINE__)
   for( SizeT i=0; i<nEl; ++i)
     (*n)[ i] = log( (*this)[ i]);
   return n;
-#else
-  return new Data_(this->dim, log(dd));
-#endif
 }
 template<>
 Data_<SpDComplex>* Data_<SpDComplex>::Log()              
 { 
-#if 1 || (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
-
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
   if( nEl == 1)
@@ -541,15 +532,10 @@ TRACEOMP( __FILE__, __LINE__)
   for( SizeT i=0; i<nEl; ++i)
     (*n)[ i] = log( (*this)[ i]);
   return n;
-#else
-  return new Data_(this->dim, log(dd));
-#endif
 }
 template<>
 Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Log()              
 { 
-#if 1 || (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
-
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
   if( nEl == 1)
@@ -562,9 +548,6 @@ TRACEOMP( __FILE__, __LINE__)
 for( SizeT i=0; i<nEl; ++i)
     (*n)[ i] = log( (*this)[ i]);
   return n;
-#else
-  return new Data_(this->dim, log(dd));
-#endif
 }
 
 template<class Sp>
@@ -575,8 +558,6 @@ void Data_<Sp>::LogThis()
 template<>
 void Data_<SpDFloat>::LogThis()              
 { 
-//#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
-
   SizeT nEl = N_Elements();
   if( nEl == 1)
   {
@@ -587,9 +568,6 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
   for( SizeT i=0; i<nEl; ++i)
     (*this)[ i] = log( (*this)[ i]);
-/*#else
-  dd = log(dd);
-#endif*/
 }
 template<>
 void Data_<SpDDouble>::LogThis()              

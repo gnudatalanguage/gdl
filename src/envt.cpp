@@ -69,22 +69,26 @@ EnvUDT::EnvUDT( ProgNodeP cN, DSub* pro_, bool lF):
   parIx=keySize; // set to first parameter
 }
 
-EnvT::EnvT( ProgNodeP cN, DSub* pro_):
-  EnvBaseT( cN, pro_)
+EnvT::EnvT ( ProgNodeP cN, DSub* pro_):
+		EnvBaseT ( cN, pro_)
 {
-  SizeT envSize;
-  SizeT keySize;
-  keySize=pro->key.size();
-  if( pro->nPar > 0)
-    envSize=pro->nPar+keySize;
-  else
-    {
-      envSize=keySize;
-      // performance optimization
-      //env.reserve(envSize+5);
-    }
-  env.resize(envSize);
-  parIx=keySize; // set to first parameter
+// 	SizeT envSize;
+// 	SizeT keySize;
+	parIx=pro->key.size();
+	if ( pro->nPar > 0 )
+	{
+		env.resize ( pro->nPar + parIx);
+// 		envSize=pro->nPar+parIx;
+	}
+	else
+	{
+		env.resize ( parIx);
+// 		envSize=parIx;
+		// performance optimization
+		//env.reserve(envSize+5);
+	}
+// 	env.resize ( envSize);
+//   parIx=keySize; // set to first parameter
 }
 
 // member pro
@@ -129,12 +133,12 @@ EnvUDT::EnvUDT( ProgNodeP cN, BaseGDL* self,
   forLoopInfo.InitSize( proUD->NForLoops());
 
   SizeT envSize;
-  SizeT keySize;
+//   SizeT keySize;
   envSize=proUD->var.size();
-  keySize=proUD->key.size();
+  parIx=proUD->key.size();
 
   env.resize(envSize);
-  parIx=keySize; // set to first parameter
+//   parIx=keySize; // set to first parameter
   // pass by value (self must not be changed)
   env.Set( parIx++, self); //static_cast<BaseGDL*>(oStructGDL));
 }
@@ -180,16 +184,16 @@ EnvUDT::EnvUDT( BaseGDL* self, //DStructGDL* oStructGDL,
 
   forLoopInfo.InitSize( proUD->NForLoops());
 
-  SizeT envSize;
-  SizeT keySize;
-  envSize=proUD->var.size();
-  keySize=proUD->key.size();
+  SizeT envSize=proUD->var.size();
+  parIx=proUD->key.size();
 
   env.resize(envSize);
-  parIx=keySize; // set to first parameter
+//   parIx=keySize; // set to first parameter
   // pass by value (self must not be changed)
   env.Set( parIx++, self); //static_cast<BaseGDL*>(oStructGDL));
 }
+
+
 
 // for obj_new, obj_destroy, call_procedure and call_function
 EnvT::EnvT( EnvT* pEnv, DSub* newPro, BaseGDL** self):
@@ -198,22 +202,24 @@ EnvT::EnvT( EnvT* pEnv, DSub* newPro, BaseGDL** self):
   obj = (self != NULL);
 
   SizeT envSize;
-  SizeT keySize;
-  keySize=pro->key.size();
-  if( pro->nPar >= 0)
-    envSize=pro->nPar+pro->key.size();
+  parIx=pro->key.size();
+  if( pro->nPar > 0)
+	{
+		envSize=pro->nPar+parIx;
+	}
   else
-    {
-      envSize=keySize;
-      // performance optimization
-      //env.reserve(envSize+5);
-    }
+	{
+		envSize=parIx;
+	}
   env.resize(envSize);
-  parIx=keySize; // set to first parameter
+//   parIx=keySize; // set to first parameter
   // pass by reference (self must not be deleted)
   if( self != NULL)
     env.Set( parIx++, self); //static_cast<BaseGDL*>(oStructGDL));
 }
+
+
+
 EnvUDT::EnvUDT( EnvBaseT* pEnv, DSub* newPro, BaseGDL** self):
   EnvBaseT( pEnv->CallingNode(), newPro),
   ioError(NULL), 
@@ -231,11 +237,11 @@ EnvUDT::EnvUDT( EnvBaseT* pEnv, DSub* newPro, BaseGDL** self):
   forLoopInfo.InitSize( proUD->NForLoops());
 
   SizeT envSize;
-  SizeT keySize;
+//   SizeT keySize;
   envSize=proUD->var.size();
-  keySize=proUD->key.size();
+  parIx=proUD->key.size();
   env.resize(envSize);
-  parIx=keySize; // set to first parameter
+//   parIx=keySize; // set to first parameter
   // pass by reference (self must not be deleted)
   if( self != NULL)
     env.Set( parIx++, self); //static_cast<BaseGDL*>(oStructGDL));

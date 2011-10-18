@@ -37,7 +37,7 @@
 #pragma interface
 #endif
 
-const size_t multiAlloc = 100;
+const size_t multiAlloc = 256;
 
 template<class Sp>
 class Data_: public Sp

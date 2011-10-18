@@ -4361,10 +4361,10 @@ BaseGDL* transpose( EnvT* e)
     SizeT nShift = nParam - 1;
     if( nShift == 1)
       {
-	DLong s1;
-	e->AssureLongScalarPar( 1, s1);
+		DLong s1;
+		e->AssureLongScalarPar( 1, s1);
 
-	return p0->CShift( s1);
+		return p0->CShift( s1);
       }
     
     if( p0->Rank() != nShift)

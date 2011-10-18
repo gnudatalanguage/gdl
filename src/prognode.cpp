@@ -931,13 +931,12 @@ RetCode   FORNode::Run()//for_statement(ProgNodeP _t) {
 	{
 		EnvUDT* callStack_back = 	static_cast<EnvUDT*>(GDLInterpreter::CallStack().back());
  		ForLoopInfoT& loopInfo = 	callStack_back->GetForLoopInfo( this->forLoopIx);
-		BaseGDL* endLoopVar = 	loopInfo.endLoopVar;
-		if( endLoopVar == NULL)
+// 		BaseGDL* endLoopVar = 	loopInfo.endLoopVar;
+		if( loopInfo.endLoopVar == NULL)
 		{
 			// non-initialized loop (GOTO)
 			ProgNode::interpreter->_retTree = this->GetNextSibling();
 			return RC_OK;
-
 		}
 
 		// // problem:
@@ -950,7 +949,7 @@ RetCode   FORNode::Run()//for_statement(ProgNodeP _t) {
 // shortCut:;
 		
 		//(*v)->ForAdd();
-		if( (*v)->ForAddCondUp( endLoopVar))
+		if( (*v)->ForAddCondUp( loopInfo.endLoopVar))
 		{
 			ProgNode::interpreter->_retTree = this->statementList; //GetFirstChild()->GetNextSibling();
 // 			if( ProgNode::interpreter->_retTree == this) goto shortCut;

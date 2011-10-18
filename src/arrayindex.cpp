@@ -192,6 +192,7 @@ ArrayIndexListT::~ArrayIndexListT() {}
 AllIxBaseT* ArrayIndexListT::BuildIx() {}
 
 // called from compiler after structure is fixed
+// the ArrayIndexListT factory
 ArrayIndexListT* MakeArrayIndex( ArrayIndexVectorT* ixList)
 {
   assert( ixList->size() != 0); // must be, from compiler

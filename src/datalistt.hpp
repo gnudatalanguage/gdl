@@ -153,11 +153,15 @@ void resize( SizeT newSz)
 		sz = newSz;
 		return;
 	}
-	for( SizeT i=sz; i<newSz; ++i)
+	for( ; sz<newSz; ++sz)
 		{
-			eArr[i].Null();
+			eArr[sz].Null();
 		}
-	sz = newSz;
+// 	for( SizeT i=sz; i<newSz; ++i)
+// 		{
+// 			eArr[i].Null();
+// 		}
+// 	sz = newSz;
 }
 
 };
