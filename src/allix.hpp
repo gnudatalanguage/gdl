@@ -364,6 +364,8 @@ public:
   SizeT size() const { return nIx;}	
 };
 
+
+
 class AllIxNewMultiT: public AllIxBaseT
 {
 private:
@@ -375,7 +377,6 @@ private:
   SizeT acRank;
   SizeT nIx;
   SizeT seqIx;
-//   SizeT s[MAXRANK];
   SizeT add;
 
 public:
@@ -395,12 +396,9 @@ public:
 			{
 				ixListStride[i] = (*ixList)[i]->GetStride() * varStride[i];
 				assert( ixListStride[i] >= 1);
-
-// 				s[i]=(*ixList)[i]->GetS();
 				add += (*ixList)[i]->GetS() * varStride[i];
 			}
 		}
-// 	s = ixList->FrontGetS(); //ixList[0]->GetS();
   }
   ~AllIxNewMultiT() {}
 
@@ -416,6 +414,62 @@ public:
 	
   SizeT size() const { return nIx;}	
 };
+
+
+
+// acRank == 2
+class AllIxNewMulti2DT: public AllIxBaseT
+{
+private:
+  ArrayIndexVectorT* ixList;
+  SizeT ixListStride[2];
+  SizeT* varStride;
+  SizeT* nIterLimit;
+  SizeT* stride;
+  SizeT nIx;
+  SizeT seqIx;
+//   SizeT s[MAXRANK];
+  SizeT add;
+
+public:
+  AllIxNewMulti2DT( ArrayIndexVectorT* ixList_, SizeT nIx_, SizeT* varStride_, SizeT* nIterLimit_, SizeT* stride_)
+    : ixList( ixList_)
+    , nIx( nIx_)
+    , varStride( varStride_)
+    , nIterLimit( nIterLimit_)
+    , stride( stride_)
+  {
+    add = 0;
+	if( !(*ixList)[0]->Indexed())
+	{
+		assert( varStride[0] == 1);
+		ixListStride[0] = (*ixList)[0]->GetStride();
+		assert( ixListStride[0] >= 1);
+		add += (*ixList)[0]->GetS();
+	}
+	if( !(*ixList)[1]->Indexed())
+		{
+			ixListStride[1] = (*ixList)[1]->GetStride() * varStride[1];
+			assert( ixListStride[1] >= 1);
+			add += (*ixList)[1]->GetS() * varStride[1];
+		}
+  }
+  ~AllIxNewMulti2DT() {}
+
+  AllIxNewMulti2DT* Clone()
+  {
+    AllIxNewMulti2DT* clone = new AllIxNewMulti2DT( *this);
+    return clone;
+  }
+
+  SizeT operator[]( SizeT i) const;
+  SizeT InitSeqAccess();
+  SizeT SeqAccess(); 
+	
+  SizeT size() const { return nIx;}	
+};
+
+
 
 
 class AllIxNewMultiNoneIndexedT: public AllIxBaseT
@@ -440,10 +494,10 @@ public:
     , nIterLimit( nIterLimit_)
     , stride( stride_)
   {
+	assert( varStride[0] == 1);
     add = 0;
 	for( SizeT i=0; i<acRank;++i)
 		{
-		assert( varStride[0] == 1);
 		ixListStride[i] = (*ixList)[i]->GetStride() * varStride[i];
 		assert( ixListStride[i] >= 1);
 		add += (*ixList)[i]->GetS() * varStride[i];
@@ -454,6 +508,48 @@ public:
   AllIxNewMultiNoneIndexedT* Clone()
   {
     AllIxNewMultiNoneIndexedT* clone = new AllIxNewMultiNoneIndexedT( *this);
+    return clone;
+  }
+
+  SizeT operator[]( SizeT i) const;
+  SizeT InitSeqAccess();
+  SizeT SeqAccess();
+	
+  SizeT size() const { return nIx;}	
+};
+		
+
+// acRank == 2
+class AllIxNewMultiNoneIndexed2DT: public AllIxBaseT
+{
+private:
+  ArrayIndexVectorT* ixList;
+  SizeT ixListStride[2];
+  SizeT* varStride;
+  SizeT* nIterLimit;
+  SizeT* stride;
+  SizeT nIx;
+  SizeT seqIx;
+  SizeT add;
+
+public:
+  AllIxNewMultiNoneIndexed2DT( ArrayIndexVectorT* ixList_, SizeT nIx_, SizeT* varStride_, SizeT* nIterLimit_, SizeT* stride_)
+    : ixList( ixList_)
+    , nIx( nIx_)
+    , varStride( varStride_)
+    , nIterLimit( nIterLimit_)
+    , stride( stride_)
+  {
+		assert( varStride[0] == 1);
+		ixListStride[0] = (*ixList)[0]->GetStride();
+		ixListStride[1] = (*ixList)[1]->GetStride() * varStride[1];
+		add = (*ixList)[0]->GetS() + (*ixList)[1]->GetS() * varStride[1];
+  }
+  ~AllIxNewMultiNoneIndexed2DT() {}
+
+  AllIxNewMultiNoneIndexed2DT* Clone()
+  {
+    AllIxNewMultiNoneIndexed2DT* clone = new AllIxNewMultiNoneIndexed2DT( *this);
     return clone;
   }
 

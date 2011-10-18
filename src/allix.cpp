@@ -177,6 +177,53 @@ SizeT AllIxNewMultiT::SeqAccess()
 
 
 
+SizeT AllIxNewMulti2DT::operator[]( SizeT i) const
+  {
+    assert( i < nIx);
+    
+    SizeT resIndex = add;
+	if( (*ixList)[0]->Indexed())
+	{
+		resIndex += static_cast< ArrayIndexIndexed*>((*ixList)[0])->GetIx( i %  nIterLimit[0]);
+	}
+	else
+	{
+		if( nIterLimit[0] > 1)
+			resIndex += (i % nIterLimit[0]) * ixListStride[0]; // + s[0];
+	}
+
+	if( (*ixList)[1]->Indexed())
+	{
+		return resIndex + static_cast< ArrayIndexIndexed*>( (*ixList)[1])->GetIx( (i / stride[1]) %  nIterLimit[1]) * varStride[1];
+	}
+	else
+	{
+		if( nIterLimit[1] > 1)
+			return resIndex + ((i / stride[1]) %  nIterLimit[1]) * ixListStride[1];
+		else
+			return resIndex;
+	}
+	return resIndex;
+  }
+SizeT AllIxNewMulti2DT::InitSeqAccess()
+{
+	seqIx = 0;
+	return (*this)[0];
+}
+SizeT AllIxNewMulti2DT::SeqAccess()
+{
+	return (*this)[++seqIx];
+}
+
+
+
+
+
+
+
+
+
+
 SizeT AllIxNewMultiNoneIndexedT::operator[]( SizeT i) const
   {
     assert( i < nIx);
@@ -204,6 +251,32 @@ SizeT AllIxNewMultiNoneIndexedT::SeqAccess()
 }
 
 
+// acRank == 2
+SizeT AllIxNewMultiNoneIndexed2DT::operator[]( SizeT i) const
+  {
+    assert( i < nIx);
+    // otherwise AllIxNewMultiOneVariableIndex...T in MakeArrayIndex
+	assert( nIterLimit[0] > 1 && nIterLimit[1] > 1);
+	
+    SizeT resIndex = add;
+// 	if( nIterLimit[0] > 1)
+		resIndex += (i % nIterLimit[0]) * ixListStride[0];
+// 	if( nIterLimit[1] > 1)
+		resIndex += ((i / stride[1]) %  nIterLimit[1]) * ixListStride[1];
+// 			resIndex += (((i / stride[l]) %  nIterLimit[l]) * ixListStride[l] + s[l]) * varStride[l];
+	return resIndex;
+  }
+SizeT AllIxNewMultiNoneIndexed2DT::InitSeqAccess()
+{
+	seqIx = 0;
+	return (*this)[0];
+}
+SizeT AllIxNewMultiNoneIndexed2DT::SeqAccess()
+{
+	return (*this)[++seqIx];
+}
+
+
 
 SizeT AllIxNewMultiOneVariableIndexNoIndexT::operator[]( SizeT i) const
   {
@@ -219,7 +292,7 @@ SizeT AllIxNewMultiOneVariableIndexNoIndexT::InitSeqAccess()
 SizeT AllIxNewMultiOneVariableIndexNoIndexT::SeqAccess()
 {
 	seqIx += ixListStride;
-	assert( seqIx < nIx);
+	assert( (seqIx - add) / ixListStride < nIx);
 	return seqIx;
 }
 

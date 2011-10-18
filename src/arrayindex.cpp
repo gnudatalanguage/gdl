@@ -197,7 +197,6 @@ ArrayIndexListT* MakeArrayIndex( ArrayIndexVectorT* ixList)
 {
   assert( ixList->size() != 0); // must be, from compiler
 
-  // cannot be assoc index
   if( ixList->size() == 1)
     {
       if( CArrayIndexScalarID == (*ixList)[0]->Type())

@@ -1475,7 +1475,11 @@ public:
 			allIx = new AllIxNewMultiOneVariableIndexNoIndexT( gt1Rank, baseIx, &ixList, acRank, nIx, varStride, nIterLimit, stride);
 		return allIx;
 	}
-    
+	if( acRank == 2)
+	{
+		allIx = new AllIxNewMulti2DT( &ixList, nIx, varStride, nIterLimit, stride);
+		return allIx;
+	}
 	allIx = new AllIxNewMultiT( &ixList, acRank, nIx, varStride, nIterLimit, stride);
 	return allIx;
 }
@@ -1683,15 +1687,17 @@ class ArrayIndexListMultiNoneIndexedT: public ArrayIndexListMultiT
 // 			CArrayIndexIndexedID == ixList[i]->Type()) nIndexed++;
       }
     if( nScalar == ixList.size()-1)
-      accessTypeAssocInit = ALLONE;
+    	accessTypeAssocInit = ALLONE;
 //     else if( nIndexed == ixList.size()-1)
 //       accessTypeAssocInit = ALLINDEXED; // might be ALLONE as well
 //     else if( nScalar + nIndexed < ixList.size()-1)
-      accessTypeAssocInit = NORMAL;
+    else  
+		accessTypeAssocInit = NORMAL;
 //     else
 //       accessTypeAssocInit = INDEXED_ONE;
     
 	if( ArrayIndexScalarID == ixList[ixList.size()-1]->Type() ||
+		ArrayIndexScalarVPID == ixList[ixList.size()-1]->Type() || // ? (from MakeArrayIndex)
 		CArrayIndexScalarID == ixList[ixList.size()-1]->Type()) nScalar++;
 // 	else if( ArrayIndexIndexedID == ixList[ixList.size()-1]->Type() ||
 // 		CArrayIndexIndexedID == ixList[ixList.size()-1]->Type()) nIndexed++;
@@ -1699,13 +1705,15 @@ class ArrayIndexListMultiNoneIndexedT: public ArrayIndexListMultiT
 	dynamic_cast< CArrayIndexScalar*>(ixList[ixList.size()-1])) nScalar++;
     if( dynamic_cast<ArrayIndexIndexed*>(ixList[ixList.size()-1]) ||
 	dynamic_cast<CArrayIndexIndexed*>(ixList[ixList.size()-1]) ) nIndexed++;*/
-    
-    if( nScalar == ixList.size())
-      accessTypeInit = ALLONE;
-//     else if( nIndexed == ixList.size())
-//       accessTypeInit = ALLINDEXED; // might be ALLONE as well
-//     else if( nScalar + nIndexed < ixList.size())
-      accessTypeInit = NORMAL;
+
+	assert( nScalar <= ixList.size()); // from MakeArrayIndex
+//     if( nScalar == ixList.size())
+//       accessTypeInit = ALLONE;
+// //     else if( nIndexed == ixList.size())
+// //       accessTypeInit = ALLINDEXED; // might be ALLONE as well
+// //     else if( nScalar + nIndexed < ixList.size())
+//     else
+		accessTypeInit = NORMAL;
 
 //     std::cout << "accessTypeInit: " << accessTypeInit << std::endl;
   }
@@ -1817,7 +1825,12 @@ class ArrayIndexListMultiNoneIndexedT: public ArrayIndexListMultiT
 		allIx = new AllIxNewMultiOneVariableIndexNoIndexT( gt1Rank, baseIx, &ixList, acRank, nIx, varStride, nIterLimit, stride);
 		return allIx;
 	}
-
+	if( acRank == 2)
+	{
+		allIx = new AllIxNewMultiNoneIndexed2DT( &ixList, nIx, varStride, nIterLimit, stride);
+		return allIx;
+	}
+	
 	allIx = new AllIxNewMultiNoneIndexedT( &ixList, acRank, nIx, varStride, nIterLimit, stride);
 	return allIx;
   }
