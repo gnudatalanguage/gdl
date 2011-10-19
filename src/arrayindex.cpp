@@ -200,13 +200,13 @@ ArrayIndexListT* MakeArrayIndex( ArrayIndexVectorT* ixList)
   if( ixList->size() == 1)
     {
       if( CArrayIndexScalarID == (*ixList)[0]->Type())
-	return new ArrayIndexListOneConstScalarT( ixList);
+		return new ArrayIndexListOneConstScalarT( ixList);
       
       if( ArrayIndexScalarID == (*ixList)[0]->Type())
-	return new ArrayIndexListOneScalarT( ixList);
+		return new ArrayIndexListOneScalarT( ixList);
       
       if( ArrayIndexScalarVPID == (*ixList)[0]->Type())
-	return new ArrayIndexListOneScalarVPT( ixList);
+		return new ArrayIndexListOneScalarVPT( ixList);
       
       return new ArrayIndexListOneT( ixList);
     }
@@ -221,7 +221,7 @@ ArrayIndexListT* MakeArrayIndex( ArrayIndexVectorT* ixList)
 	else if( ArrayIndexIndexedID == (*ixList)[i]->Type() ||
 		CArrayIndexIndexedID == (*ixList)[i]->Type()) ++nIndexed;
     }
-  if( nScalar == ixList->size())
+  if( nScalar == ixList->size())	  
     return new ArrayIndexListScalarT( ixList);
  	
   // Note that each index can be a assoc index anytime

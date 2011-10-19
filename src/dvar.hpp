@@ -43,6 +43,10 @@ public:
   {
     return d;
   }
+  BaseGDL* Data() const
+  {
+    return d;
+  }
 };
 
 typedef std::deque<DVar*>        VarListT;

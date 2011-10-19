@@ -315,6 +315,13 @@ public:
 //     return ret;
   }
 
+  const SizeT* Stride() const
+  {
+	if( stride[0] == 0)
+		this->InitStride();
+	return stride;
+  }
+	
   void Stride( SizeT s[], SizeT upto) const
   {
     assert( upto >= 1);

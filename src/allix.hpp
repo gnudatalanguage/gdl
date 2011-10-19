@@ -337,13 +337,13 @@ class AllIxAllIndexedT: public AllIxBaseT
 {
 private:
   ArrayIndexVectorT* ixList;
-  SizeT* varStride;
+  const SizeT* varStride;
   SizeT acRank;
   SizeT nIx;
   SizeT         seqIx;
 	
 public:
-  AllIxAllIndexedT( ArrayIndexVectorT* ixList_, SizeT acRank_, SizeT nIx_, SizeT* varStride_)
+  AllIxAllIndexedT( ArrayIndexVectorT* ixList_, SizeT acRank_, SizeT nIx_, const SizeT* varStride_)
     : ixList( ixList_)
     , acRank( acRank_)
     , nIx( nIx_)
@@ -371,7 +371,7 @@ class AllIxNewMultiT: public AllIxBaseT
 private:
   ArrayIndexVectorT* ixList;
   SizeT ixListStride[MAXRANK];
-  SizeT* varStride;
+  const SizeT* varStride;
   SizeT* nIterLimit;
   SizeT* stride;
   SizeT acRank;
@@ -380,7 +380,7 @@ private:
   SizeT add;
 
 public:
-  AllIxNewMultiT( ArrayIndexVectorT* ixList_, SizeT acRank_, SizeT nIx_, SizeT* varStride_, SizeT* nIterLimit_, SizeT* stride_)
+  AllIxNewMultiT( ArrayIndexVectorT* ixList_, SizeT acRank_, SizeT nIx_, const SizeT* varStride_, SizeT* nIterLimit_, SizeT* stride_)
     : ixList( ixList_)
     , acRank( acRank_)
     , nIx( nIx_)
@@ -423,7 +423,7 @@ class AllIxNewMulti2DT: public AllIxBaseT
 private:
   ArrayIndexVectorT* ixList;
   SizeT ixListStride[2];
-  SizeT* varStride;
+  const SizeT* varStride;
   SizeT* nIterLimit;
   SizeT* stride;
   SizeT nIx;
@@ -432,7 +432,7 @@ private:
   SizeT add;
 
 public:
-  AllIxNewMulti2DT( ArrayIndexVectorT* ixList_, SizeT nIx_, SizeT* varStride_, SizeT* nIterLimit_, SizeT* stride_)
+  AllIxNewMulti2DT( ArrayIndexVectorT* ixList_, SizeT nIx_, const SizeT* varStride_, SizeT* nIterLimit_, SizeT* stride_)
     : ixList( ixList_)
     , nIx( nIx_)
     , varStride( varStride_)
@@ -477,7 +477,7 @@ class AllIxNewMultiNoneIndexedT: public AllIxBaseT
 private:
   ArrayIndexVectorT* ixList;
   SizeT ixListStride[MAXRANK];
-  SizeT* varStride;
+  const SizeT* varStride;
   SizeT* nIterLimit;
   SizeT* stride;
   SizeT acRank;
@@ -486,7 +486,7 @@ private:
   SizeT add;
 
 public:
-  AllIxNewMultiNoneIndexedT( ArrayIndexVectorT* ixList_, SizeT acRank_, SizeT nIx_, SizeT* varStride_, SizeT* nIterLimit_, SizeT* stride_)
+  AllIxNewMultiNoneIndexedT( ArrayIndexVectorT* ixList_, SizeT acRank_, SizeT nIx_, const SizeT* varStride_, SizeT* nIterLimit_, SizeT* stride_)
     : ixList( ixList_)
     , acRank( acRank_)
     , nIx( nIx_)
@@ -525,7 +525,7 @@ class AllIxNewMultiNoneIndexed2DT: public AllIxBaseT
 private:
   ArrayIndexVectorT* ixList;
   SizeT ixListStride[2];
-  SizeT* varStride;
+  const SizeT* varStride;
   SizeT* nIterLimit;
   SizeT* stride;
   SizeT nIx;
@@ -533,7 +533,7 @@ private:
   SizeT add;
 
 public:
-  AllIxNewMultiNoneIndexed2DT( ArrayIndexVectorT* ixList_, SizeT nIx_, SizeT* varStride_, SizeT* nIterLimit_, SizeT* stride_)
+  AllIxNewMultiNoneIndexed2DT( ArrayIndexVectorT* ixList_, SizeT nIx_, const SizeT* varStride_, SizeT* nIterLimit_, SizeT* stride_)
     : ixList( ixList_)
     , nIx( nIx_)
     , varStride( varStride_)
@@ -567,7 +567,7 @@ class AllIxNewMultiOneVariableIndexNoIndexT: public AllIxBaseT
 private:
   ArrayIndexVectorT* ixList;
   SizeT ixListStride;
-  SizeT* varStride;
+  const SizeT* varStride;
   SizeT* nIterLimit;
   SizeT* stride;
   SizeT acRank;
@@ -578,7 +578,7 @@ private:
 	
 public:
   AllIxNewMultiOneVariableIndexNoIndexT( RankT gt1Rank, SizeT add_,
-								  ArrayIndexVectorT* ixList_, SizeT acRank_, SizeT nIx_, SizeT* varStride_, SizeT* nIterLimit_, SizeT* stride_)
+								  ArrayIndexVectorT* ixList_, SizeT acRank_, SizeT nIx_, const SizeT* varStride_, SizeT* nIterLimit_, SizeT* stride_)
 	: ixList( ixList_)
     , acRank( acRank_)
     , nIx( nIx_)
@@ -614,7 +614,7 @@ class AllIxNewMultiOneVariableIndexIndexedT: public AllIxBaseT
 private:
   ArrayIndexVectorT* ixList;
   SizeT ixListStride;
-  SizeT* varStride;
+  const SizeT* varStride;
   SizeT* nIterLimit;
   SizeT* stride;
   SizeT acRank;
@@ -626,7 +626,7 @@ private:
 		  
 public:
   AllIxNewMultiOneVariableIndexIndexedT( RankT gt1Rank, SizeT add_,
-								  ArrayIndexVectorT* ixList_, SizeT acRank_, SizeT nIx_, SizeT* varStride_, SizeT* nIterLimit_, SizeT* stride_)
+								  ArrayIndexVectorT* ixList_, SizeT acRank_, SizeT nIx_, const SizeT* varStride_, SizeT* nIterLimit_, SizeT* stride_)
 	: ixList( ixList_)
     , acRank( acRank_)
     , nIx( nIx_)
@@ -655,5 +655,30 @@ public:
   SizeT size() const { return nIx;}	
 };
 
+
+
+namespace AllIxMaxSizeCalculation
+{
+  static const int a = sizeof( AllIxRangeT);
+  static const int b = sizeof( AllIxRange0T);
+  static const int c = sizeof( AllIxRangeStrideT);
+  static const int d = sizeof( AllIxRange0StrideT);
+  static const int e = sizeof( AllIxT);
+  static const int f = sizeof( AllIxNewMultiOneVariableIndexIndexedT);
+  static const int g = sizeof( AllIxNewMultiOneVariableIndexNoIndexT);
+  static const int h = sizeof( AllIxNewMulti2DT);
+  static const int i = sizeof( AllIxNewMultiT);
+  static const int ab = a > b ? a : b;
+  static const int abc = ab > c ? ab : c;
+  static const int abcd = abc > d ? abc : d;
+  static const int abcde = abcd > e ? abcd : e;
+  static const int abcdef = abcde > f ? abcde : f;
+  static const int abcdefg = abcdef > g ? abcdef : g;
+  static const int abcdefgh = abcdefg > h ? abcdefg : h;
+  static const int abcdefghi = abcdefgh > i ? abcdefgh : i;
+  static const int Max = abcdefghi;
+}
+
+static const int AllIxMaxSize = AllIxMaxSizeCalculation::Max;
 
 #endif

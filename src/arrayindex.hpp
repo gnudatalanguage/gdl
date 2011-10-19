@@ -142,6 +142,7 @@ for( int i=0; i<sz; ++i)
 }
 ArrayIndexT* back() const { return arrayIxArr[ sz-1];}
 void pop_back() { --sz;}
+ArrayIndexT* pop_back_get() { --sz; return arrayIxArr[ sz];}
 };
 
 #include "allix.hpp"
@@ -355,7 +356,7 @@ protected:
 //  SizeT maxVal;
 
   AllIxIndicesT*    ix;
-  char ixBuf[ sizeof( AllIxIndicesStrictT)];
+  char ixBuf[ AllIxMaxSize];
   
   const dimension* ixDim; // keep dimension of ix
 
@@ -1463,6 +1464,5 @@ CArrayIndexRangeS(){}
     return var->NewIxFromStride( sl, el, stride);
   }
 };
-
 
 #endif

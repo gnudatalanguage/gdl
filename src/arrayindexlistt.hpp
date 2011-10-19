@@ -87,20 +87,7 @@ private:
 
   AllIxBaseT* allIx;
 
-  static const int a = sizeof( AllIxRangeT);
-  static const int b = sizeof( AllIxRange0T);
-  static const int c = sizeof( AllIxRangeStrideT);
-  static const int d = sizeof( AllIxRange0StrideT);
-  static const int e = sizeof( AllIxT);
-  static const int ab = a > b ? a : b;
-  static const int abc = ab > c ? ab : c;
-  static const int abcd = abc > d ? abc : d;
-  static const int abcde = abcd > e ? abcd : e;
-  char allIxInstance[ abcde];
-/*  AllIxRangeT allIxRange;
-  AllIxRange0T allIxRange0;
-  AllIxRangeStrideT allIxRangeStride;
-  AllIxRange0StrideT allIxRange0Stride;*/
+  char allIxInstance[ AllIxMaxSize];
   
 public:    
   
@@ -219,6 +206,7 @@ public:
   // returns 1-dim index for all elements
   AllIxBaseT* BuildIx()
   {
+    assert( allIx == NULL);
     if( allIx != NULL)
 		return allIx;
 
@@ -697,10 +685,10 @@ public:
     // scalar case
     if( right->N_Elements() == 1 && !var->IsAssoc() && var->Type() != STRUCT) 
       {
-	if( s >= var->Size())
-	  throw GDLException(NULL,"Scalar subscript out of range [>].2",true,false);
-	var->AssignAtIx( s, right);
-	return;
+		if( s >= var->Size())
+		throw GDLException(NULL,"Scalar subscript out of range [>].2",true,false);
+		var->AssignAtIx( s, right);
+		return;
       }
     
     SetVariable( var);
@@ -768,7 +756,8 @@ private:
 //   std::vector<SizeT> paramPresent;
 
   SizeT    acRank;               // rank upto which indexing is done
-  SizeT    varStride[MAXRANK+1]; // variables stride
+  const SizeT*    varStride; // variables stride
+//   SizeT    varStride[MAXRANK+1]; // variables stride
   SizeT    nIx;                  // number of indexed elements
 
   AllIxT allIx;
@@ -839,8 +828,8 @@ public:
     
     if( ixListEnd != NULL) // revert assoc indexing
       {
-	ixList.push_back( ixListEnd);
-	ixListEnd = NULL;
+		ixList.push_back( ixListEnd);
+		ixListEnd = NULL;
       }
 //     // no clearing of scalar indices
 //     for( std::vector<ArrayIndexT*>::iterator i=ixList.begin(); 
@@ -861,11 +850,9 @@ public:
 
   ArrayIndexListT* Clone() { return new ArrayIndexListScalarT( *this);}
 
-
   void Init()
   {}
   
-
   // requires special handling
   // used by Assoc_<> returns last index in lastIx, removes it
   // and returns true is the list is empty
@@ -873,8 +860,7 @@ public:
   {
     assert( ixListEnd == NULL);
     
-    ixListEnd = ixList.back();
-    ixList.pop_back();
+    ixListEnd = ixList.pop_back_get();
     
     // init in case of ixListEnd->NParam == 0
     ixListEnd->Init();
@@ -904,7 +890,8 @@ public:
     for( SizeT i=0; i<acRank; ++i)
       ixList[i]->NIter( var->Dim(i)); // check boundary
 
-    var->Dim().Stride( varStride, acRank); // copy variables stride into varStride
+    varStride = var->Dim().Stride();
+//     var->Dim().Stride( varStride, acRank); // copy variables stride into varStride
     nIx = 1;
   }
 
@@ -1001,6 +988,10 @@ public:
   }
 }; // class ArrayIndexListScalarT: public ArrayIndexListT
 
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // general case (mixed, multi-dim) at least one indexed
 // but note: last index can be assoc index
 class ArrayIndexListMultiT: public ArrayIndexListT
@@ -1023,10 +1014,12 @@ protected:
 	SizeT    acRank;               // rank upto which indexing is done
 	SizeT    nIterLimit[MAXRANK];  // for each dimension, how many iterations
 	SizeT    stride[MAXRANK+1];
-	SizeT    varStride[MAXRANK+1]; // variables stride
+	const SizeT*  varStride; // variables stride
+// 	SizeT    varStride[MAXRANK+1]; // variables stride
 	SizeT    nIx;                  // number of indexed elements
 
 	AllIxBaseT*      allIx;
+	char allIxInstance[ AllIxMaxSize];
 
 	ArrayIndexT* ixListEnd; // for assoc index
 
@@ -1040,7 +1033,7 @@ public:
   
   ~ArrayIndexListMultiT()
   {
-    delete allIx;
+//     delete allIx;
     ixList.Destruct();
 //     for( std::vector<ArrayIndexT*>::iterator i=ixList.begin();
 // 	 i != ixList.end(); ++i)
@@ -1131,13 +1124,13 @@ public:
   
   void Clear()
   {
-    delete allIx;
+//     delete allIx;
     allIx = NULL;
     
     if( ixListEnd != NULL) // revert assoc indexing
       {
-	ixList.push_back( ixListEnd);
-	ixListEnd = NULL;
+		ixList.push_back( ixListEnd);
+		ixListEnd = NULL;
       }
 
     ixList.Clear();
@@ -1183,7 +1176,6 @@ public:
       }
   }
   
-
   // requires special handling
   // used by Assoc_<> returns last index in lastIx, removes it
   // and returns true is the list is empty
@@ -1222,7 +1214,8 @@ public:
     // can happen due to assoc variables
     if( accessType == ALLONE)
       {
-		var->Dim().Stride( varStride,acRank); // copy variables stride into varStride
+		varStride = var->Dim().Stride();
+// 		var->Dim().Stride( varStride,acRank); // copy variables stride into varStride
 
 		// check boundary
 		const dimension& varDim  = var->Dim();
@@ -1244,7 +1237,8 @@ public:
 		if( i == acRank) // counted up to acRank
 		{
 			accessType = ALLONE;
-			var->Dim().Stride( varStride,acRank); // copy variables stride into varStride
+			varStride = var->Dim().Stride();
+// 			var->Dim().Stride( varStride,acRank); // copy variables stride into varStride
 
 			// check boundary
 			const dimension& varDim  = var->Dim();
@@ -1295,13 +1289,15 @@ public:
 		// indices are used only upto variables rank
 		if( varRank < acRank) acRank = varRank;
 		
-		varDim.Stride( varStride,acRank); // copy variables stride into varStride
+		varStride = var->Dim().Stride();
+// 		varDim.Stride( varStride,acRank); // copy variables stride into varStride
 		
 		return;
 	}
     
     // NORMAL
-    varDim.Stride( varStride,acRank); // copy variables stride into varStride
+    varStride = var->Dim().Stride();
+//     varDim.Stride( varStride,acRank); // copy variables stride into varStride
     
 	nIterLimit[0]=ixList[0]->NIter( (0<varRank)?varDim[0]:1);
     nIx = nIterLimit[0]; // calc number of assignments
@@ -1377,7 +1373,7 @@ public:
     if( accessType == ALLONE) return dimension(); // -> results in scalar
     if( accessType == ALLINDEXED)
       { // always indexed
-	return static_cast<ArrayIndexIndexed*>(ixList[0])->GetDim();
+		return static_cast<ArrayIndexIndexed*>(ixList[0])->GetDim();
       }
     // accessType == NORMAL -> structure from indices
     return dimension( nIterLimit, acRank);
@@ -1391,6 +1387,7 @@ public:
   // returns 1-dim index for all elements
   AllIxBaseT* BuildIx()
   {
+    assert( allIx == NULL);
     if( allIx != NULL)
 		return allIx;
 
@@ -1401,7 +1398,7 @@ public:
 		{
 			s += ixList[l]->GetS() * varStride[l];
 		}
-		allIx = new AllIxT(s);
+		allIx = new (allIxInstance) AllIxT(s);
 	// 	(*allIx)[0] = s;
 		return allIx;
       }
@@ -1409,7 +1406,7 @@ public:
     if( accessType == ALLINDEXED)
       {
 		// note that this indexer cannot live without this ArrayIndexListMultiT
-		allIx = new AllIxAllIndexedT( &ixList, acRank, nIx, varStride);
+		allIx = new (allIxInstance) AllIxAllIndexedT( &ixList, acRank, nIx, varStride);
 		return allIx;
         
 // 		// ALLINDEXED -> all ArrayIndexT::INDEXED
@@ -1429,6 +1426,42 @@ public:
 // 		}
 // 		return allIx;
       }
+	  
+	if( acRank == 1) // assoc already recognized
+	{
+		ArrayIndexT* ix = ixList[0];
+		if(  ix->Indexed())
+		{
+			allIx = static_cast< ArrayIndexIndexed*>(ix)->GetAllIx();
+			return allIx;
+		}
+		if( nIx == 1)
+		{
+			allIx = new (allIxInstance) AllIxT( ix->GetS());
+			return allIx;
+		}
+		SizeT s = ix->GetS();
+		SizeT ixStride = ix->GetStride();
+		if( ixStride <= 1) 
+		if( s != 0)
+			{
+			allIx = new (allIxInstance) AllIxRangeT( nIx, s);
+			}
+		else
+			{
+			allIx = new (allIxInstance) AllIxRange0T( nIx);
+			}
+		else
+		if( s != 0)
+			{
+			allIx = new (allIxInstance) AllIxRangeStrideT( nIx, s, ixStride);
+			}
+		else
+			{
+			allIx = new (allIxInstance) AllIxRange0StrideT( nIx, ixStride);
+			}
+		return allIx;
+ 	}
 
     // NORMAL
     // loop only over specified indices
@@ -1467,20 +1500,24 @@ public:
 // 			}
 // 		}
 // 	}
+	
+// // can happen	
+// 	if( nIterLimitGt1 == 0) // no variable dimension
+			
 	if( nIterLimitGt1 == 1) // only one variable dimension
 	{
 		if( indexed)
-			allIx = new AllIxNewMultiOneVariableIndexIndexedT( gt1Rank, baseIx, &ixList, acRank, nIx, varStride, nIterLimit, stride);
+			allIx = new (allIxInstance) AllIxNewMultiOneVariableIndexIndexedT( gt1Rank, baseIx, &ixList, acRank, nIx, varStride, nIterLimit, stride);
 		else
-			allIx = new AllIxNewMultiOneVariableIndexNoIndexT( gt1Rank, baseIx, &ixList, acRank, nIx, varStride, nIterLimit, stride);
+			allIx = new (allIxInstance) AllIxNewMultiOneVariableIndexNoIndexT( gt1Rank, baseIx, &ixList, acRank, nIx, varStride, nIterLimit, stride);
 		return allIx;
 	}
 	if( acRank == 2)
 	{
-		allIx = new AllIxNewMulti2DT( &ixList, nIx, varStride, nIterLimit, stride);
+		allIx = new (allIxInstance) AllIxNewMulti2DT( &ixList, nIx, varStride, nIterLimit, stride);
 		return allIx;
 	}
-	allIx = new AllIxNewMultiT( &ixList, acRank, nIx, varStride, nIterLimit, stride);
+	allIx = new (allIxInstance) AllIxNewMultiT( &ixList, acRank, nIx, varStride, nIterLimit, stride);
 	return allIx;
 }
 //     // init allIx from first index
@@ -1740,13 +1777,23 @@ class ArrayIndexListMultiNoneIndexedT: public ArrayIndexListMultiT
     // can happen due to assoc variables
     if( accessType == ALLONE)
       {
-		var->Dim().Stride( varStride,acRank); // copy variables stride into varStride
-
 		// check boundary
 		const dimension& varDim  = var->Dim();
 		SizeT            varRank = varDim.Rank();
 		for(SizeT i=0; i<acRank; ++i)
-		ixList[i]->NIter( (i<varRank)?varDim[i]:1);
+			ixList[i]->NIter( (i<varRank)?varDim[i]:1);
+
+		varStride = varDim.Stride();
+// 		var->Dim().Stride( varStride,acRank); // copy variables stride into varStride
+
+// // 		calculate already here
+// 		SizeT s = ixList.FrontGetS(); //ixList[0]->GetS();
+// 		for( SizeT l=1; l < acRank; ++l)
+// 		{
+// 			s += ixList[l]->GetS() * varStride[l];
+// 		}
+// // 		set already here
+//  		allIx = new AllIxT(s);
 
 		nIx = 1;
 		return;
@@ -1760,7 +1807,8 @@ class ArrayIndexListMultiNoneIndexedT: public ArrayIndexListMultiT
     // set varDim from variable
     const dimension& varDim  = var->Dim();
     SizeT            varRank = varDim.Rank();
-    varDim.Stride( varStride,acRank); // copy variables stride into varStride
+	varStride = varDim.Stride();
+//     varDim.Stride( varStride,acRank); // copy variables stride into varStride
 	
 	nIterLimit[0]=ixList[0]->NIter( (0<varRank)?varDim[0]:1);
     nIx = nIterLimit[0]; // calc number of assignments
@@ -1789,6 +1837,7 @@ class ArrayIndexListMultiNoneIndexedT: public ArrayIndexListMultiT
   // returns 1-dim index for all elements
   AllIxBaseT* BuildIx()
   {
+	assert( allIx == NULL);  
 	if( allIx != NULL)
 		return allIx;
 
@@ -1799,10 +1848,41 @@ class ArrayIndexListMultiNoneIndexedT: public ArrayIndexListMultiT
 		{
 			s += ixList[l]->GetS() * varStride[l];
 		}
-		allIx = new AllIxT(s);
+		allIx = new (allIxInstance) AllIxT(s);
 	// 	(*allIx)[0] = s;
 		return allIx;
 	}
+	  
+	if( acRank == 1) // assoc already recognized
+	{
+		ArrayIndexT* ix = ixList[0];
+		if( nIx == 1)
+		{
+			allIx = new (allIxInstance) AllIxT( ix->GetS());
+			return allIx;
+		}
+		SizeT s = ix->GetS();
+		SizeT ixStride = ix->GetStride();
+		if( ixStride <= 1) 
+		if( s != 0)
+			{
+			allIx = new (allIxInstance) AllIxRangeT( nIx, s);
+			}
+		else
+			{
+			allIx = new (allIxInstance) AllIxRange0T( nIx);
+			}
+		else
+		if( s != 0)
+			{
+			allIx = new (allIxInstance) AllIxRangeStrideT( nIx, s, ixStride);
+			}
+		else
+			{
+			allIx = new (allIxInstance) AllIxRange0StrideT( nIx, ixStride);
+			}
+		return allIx;
+ 	}
 
 	// NORMAL
 	// loop only over specified indices
@@ -1822,16 +1902,16 @@ class ArrayIndexListMultiNoneIndexedT: public ArrayIndexListMultiT
 // 	}
 	if( nIterLimitGt1 == 1) // only one variable dimension
 	{
-		allIx = new AllIxNewMultiOneVariableIndexNoIndexT( gt1Rank, baseIx, &ixList, acRank, nIx, varStride, nIterLimit, stride);
+		allIx = new (allIxInstance) AllIxNewMultiOneVariableIndexNoIndexT( gt1Rank, baseIx, &ixList, acRank, nIx, varStride, nIterLimit, stride);
 		return allIx;
 	}
-	if( acRank == 2)
+	if( acRank == 2) // assoc already recognized
 	{
-		allIx = new AllIxNewMultiNoneIndexed2DT( &ixList, nIx, varStride, nIterLimit, stride);
+		allIx = new (allIxInstance) AllIxNewMultiNoneIndexed2DT( &ixList, nIx, varStride, nIterLimit, stride);
 		return allIx;
 	}
 	
-	allIx = new AllIxNewMultiNoneIndexedT( &ixList, acRank, nIx, varStride, nIterLimit, stride);
+	allIx = new (allIxInstance) AllIxNewMultiNoneIndexedT( &ixList, acRank, nIx, varStride, nIterLimit, stride);
 	return allIx;
   }
 };
