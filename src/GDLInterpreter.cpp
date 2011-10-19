@@ -3092,7 +3092,6 @@ BaseGDL*  GDLInterpreter::l_decinc_array_expr(ProgNodeP _t,
 	ArrayIndexListGuard guard;
 	
 	
-	
 	if (_t == ProgNodeP(antlr::nullAST) )
 		_t = ASTNULL;
 	switch ( _t->getType()) {
@@ -3184,7 +3183,7 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t) {
 	ProgNodeP arrayindex_list_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP ax = ProgNodeP(antlr::nullAST);
 	
-	ExprListT        exprList; // for cleanup
+	IxExprListT      cleanupList; // for cleanup
 	IxExprListT      ixExprList;
 	SizeT nExpr;
 	BaseGDL* s;
@@ -3201,9 +3200,9 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t) {
 		nExpr = aL->NParam();
 		if( nExpr == 0)
 		{
-		aL->Init();
-		_retTree = retTree;
-		return aL;
+	aL->Init();
+	_retTree = retTree;
+	return aL;
 		}
 		
 		while( _t != NULL) {
@@ -3225,7 +3224,7 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t) {
 	//				_t = _retTree;
 					
 					if( !callStack.back()->Contains( s)) 
-					exprList.push_back( s);
+					cleanupList.push_back( s);
 					
 					break;
 				}
@@ -3233,7 +3232,7 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t) {
 				{
 					s=indexable_tmp_expr(_t);
 	//				_t = _retTree;
-					exprList.push_back( s);
+					cleanupList.push_back( s);
 					break;
 				}
 				} // switch
@@ -3246,7 +3245,7 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t) {
 	_t = _t->getNextSibling();
 		}
 	
-		aL->Init( ixExprList);
+		aL->Init( ixExprList, &cleanupList);
 		
 		_retTree = retTree;
 		return aL;
@@ -3279,10 +3278,6 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t) {
 			{
 				s=lib_function_call(_t);
 				_t = _retTree;
-				
-				if( !callStack.back()->Contains( s)) 
-				exprList.push_back( s);
-				
 				break;
 			}
 			case ASSIGN:
@@ -3308,7 +3303,6 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t) {
 			{
 				s=indexable_tmp_expr(_t);
 				_t = _retTree;
-				exprList.push_back( s);
 				break;
 			}
 			default:

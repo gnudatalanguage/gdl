@@ -137,21 +137,21 @@ private:
       }
     else
       { // indexed case
-	ArrayIndexListT& actIx= *ix[depth];
-	nCp=actIx.N_Elements();
+		ArrayIndexListT& actIx= *ix[depth];
+		nCp=actIx.N_Elements();
 
-	AllIxBaseT* allIx = actIx.BuildIx();
+		AllIxBaseT* allIx = actIx.BuildIx();
 
-	if( (depth+1) == tag.size())
-	  {
-		BaseGDL* actTop = l->GetTag( actTag,  allIx->InitSeqAccess());
-		actTop->DecAt( ix[depth+1]);
-	    for( SizeT c=1; c<nCp; ++c)
-	      { // the actual decrement
-			actTop = l->GetTag( actTag,  allIx->SeqAccess());
-			//BaseGDL* actTop = l->Get( actTag,  actIx.GetIx( c));
-			actTop->DecAt( ix[depth+1]);	
-	      }
+		if( (depth+1) == tag.size())
+		{
+			BaseGDL* actTop = l->GetTag( actTag,  allIx->InitSeqAccess());
+			actTop->DecAt( ix[depth+1]);
+			for( SizeT c=1; c<nCp; ++c)
+			{ // the actual decrement
+				actTop = l->GetTag( actTag,  allIx->SeqAccess());
+				//BaseGDL* actTop = l->Get( actTag,  actIx.GetIx( c));
+				actTop->DecAt( ix[depth+1]);	
+			}
 	  }
 	else
 	  {

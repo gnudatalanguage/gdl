@@ -43,7 +43,7 @@ public:
 
   virtual ArrayIndexListT* Clone() { assert( 0); return NULL;}
 
-  virtual void Init( IxExprListT& ix) { assert( 0);}
+  virtual void Init( IxExprListT& ix, IxExprListT* cleanupIx) { assert( 0);}
   virtual void Init() {}
   
    virtual bool ToAssocIndex( SizeT& lastIx) = 0;
@@ -67,7 +67,7 @@ public:
   virtual void AssignAt( BaseGDL* var, BaseGDL* right) {}
 
   // optimized for one dimensional access
-  // this is called from the interpreter
+  // this is called from the interpreter and ARRAYEXPRNode::Eval()
   virtual BaseGDL* Index( BaseGDL* var, IxExprListT& ix) = 0;
 
   // returns multi-dim index for 1st element
@@ -81,6 +81,8 @@ public:
 class ArrayIndexListOneT: public ArrayIndexListT
 {
 private:
+  IxExprListT cleanupIx;
+	
   ArrayIndexT* ix;
 
   SizeT    nIx;                  // number of indexed elements
@@ -95,20 +97,24 @@ public:
   {
 //     delete allIx;
     delete ix;
+	cleanupIx.Cleanup(); // must be explicitely cleaned up
   }
 
   // constructor
   ArrayIndexListOneT()
-    : ix( NULL)
+	: cleanupIx()
+    , ix( NULL)
     , allIx( NULL)
   { nParam = 0;}
 
   ArrayIndexListOneT( const ArrayIndexListOneT& cp):
+	cleanupIx(),
     ArrayIndexListT( cp),
     ix( cp.ix->Dup()),
     allIx( NULL)
   {
     assert( cp.allIx == NULL);
+	assert( cp.cleanupIx.size() == 0);
   }
 
   // called after structure is fixed
@@ -126,15 +132,19 @@ public:
 //     allIxMulti.Clear();
     
     ix->Clear();
+	cleanupIx.Cleanup();
   }
 
   ArrayIndexListT* Clone() { return new ArrayIndexListOneT( *this);}
 
-  void Init( IxExprListT& ix_)
+  void Init( IxExprListT& ix_, IxExprListT* cleanupIxIn)
   {
     assert( allIx == NULL);
     assert( ix_.size() == nParam);
-    
+
+	if( cleanupIxIn != NULL)
+		cleanupIx = *cleanupIxIn;
+	
     if( nParam == 0) return;
     if( nParam == 1) 
       {
@@ -298,7 +308,7 @@ public:
       return ix->Index( var, ix_);
     
     // normal case
-    Init( ix_);
+    Init( ix_, NULL);
     SetVariable( var);
     return var->Index( this);
   }
@@ -996,6 +1006,9 @@ public:
 // but note: last index can be assoc index
 class ArrayIndexListMultiT: public ArrayIndexListT
 {
+private:
+	IxExprListT cleanupIx;
+
 protected:
 	ArrayIndexVectorT ixList;
 
@@ -1038,6 +1051,7 @@ public:
 //     for( std::vector<ArrayIndexT*>::iterator i=ixList.begin();
 // 	 i != ixList.end(); ++i)
 //       {	delete *i;}
+	cleanupIx.Cleanup();
   }
 
   // constructor
@@ -1059,7 +1073,8 @@ public:
   {
     assert( cp.allIx == NULL);
     assert( cp.ixListEnd == NULL);
-
+	assert( cp.cleanupIx.size() == 0);
+	
     for( SizeT i=0; i<cp.ixList.size(); ++i)
       ixList.push_back( cp.ixList[i]->Dup());
   }
@@ -1136,16 +1151,20 @@ public:
     ixList.Clear();
 //     for( ArrayIndexVectorT::iterator i=ixList.begin(); i != ixList.end(); ++i)
 //       {	(*i)->Clear();}
+	cleanupIx.Cleanup();
   }
 
   ArrayIndexListT* Clone() { return new ArrayIndexListMultiT( *this);}
 
 
-  void Init( IxExprListT& ix)
+  void Init( IxExprListT& ix, IxExprListT* cleanupIxIn)
   {
     assert( allIx == NULL);
     assert( ix.size() == nParam);
-    
+    	
+	if( cleanupIxIn != NULL)
+		cleanupIx = *cleanupIxIn;
+
     SizeT pIX = 0;
     for( SizeT i=0; i<ixList.size(); ++i)
       {
@@ -1650,7 +1669,7 @@ public:
   BaseGDL* Index( BaseGDL* var, IxExprListT& ix)
   {
     // normal case
-    Init( ix);
+    Init( ix, NULL);
     SetVariable( var);
     return var->Index( this);
   }

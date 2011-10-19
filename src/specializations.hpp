@@ -636,6 +636,44 @@ void Data_< SpDComplex>::Destruct();
 template<>
 void Data_< SpDComplexDbl>::Destruct(); 
 
+// GetAsIndex/GetAsIndexStrict
+template<>
+SizeT Data_<SpDInt>::GetAsIndex( SizeT i) const;
+template<>
+SizeT Data_<SpDInt>::GetAsIndexStrict( SizeT i) const;
+template<>
+SizeT Data_<SpDLong>::GetAsIndex( SizeT i) const;
+template<>
+SizeT Data_<SpDLong>::GetAsIndexStrict( SizeT i) const;
+template<>
+SizeT Data_<SpDLong64>::GetAsIndex( SizeT i) const;
+template<>
+SizeT Data_<SpDLong64>::GetAsIndexStrict( SizeT i) const;
+template<>
+SizeT Data_<SpDFloat>::GetAsIndex( SizeT i) const;
+template<>
+SizeT Data_<SpDFloat>::GetAsIndexStrict( SizeT i) const;
+template<>
+SizeT Data_<SpDDouble>::GetAsIndex( SizeT i) const;
+template<>
+SizeT Data_<SpDDouble>::GetAsIndexStrict( SizeT i) const;
+template<>
+SizeT Data_<SpDString>::GetAsIndex( SizeT i) const;
+template<>
+SizeT Data_<SpDString>::GetAsIndexStrict( SizeT i) const;
+template<>
+SizeT Data_<SpDComplex>::GetAsIndex( SizeT i) const;
+template<>
+SizeT Data_<SpDComplex>::GetAsIndexStrict( SizeT i) const;
+template<>
+SizeT Data_<SpDComplexDbl>::GetAsIndex( SizeT i) const;
+template<>
+SizeT Data_<SpDComplexDbl>::GetAsIndexStrict( SizeT i) const;
+
+
+
+
+
 
 // topython.cpp
 #ifdef USE_PYTHON

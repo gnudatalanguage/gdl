@@ -2587,11 +2587,10 @@ l_decinc_array_expr [int dec_inc] returns [BaseGDL* res]
     ArrayIndexListT* aL;
     BaseGDL*         e;
     ArrayIndexListGuard guard;
-
 }
     : #(ARRAYEXPR 
             e=l_decinc_indexable_expr[ dec_inc]   
-            aL=arrayindex_list)
+            aL=arrayindex_list )
         {
             guard.reset( aL); 
             aL->SetVariable( e);
@@ -4857,7 +4856,7 @@ parameter_def [EnvBaseT* actEnv]
 
 arrayindex_list returns [ArrayIndexListT* aL]
 {
-    ExprListT        exprList; // for cleanup
+    IxExprListT      cleanupList; // for cleanup
     IxExprListT      ixExprList;
     SizeT nExpr;
     BaseGDL* s;
@@ -4874,9 +4873,9 @@ arrayindex_list returns [ArrayIndexListT* aL]
 	nExpr = aL->NParam();
 	if( nExpr == 0)
 	{
-	aL->Init();
-	_retTree = retTree;
-	return aL;
+        aL->Init();
+        _retTree = retTree;
+        return aL;
 	}
 	
 	while( _t != NULL) {
@@ -4898,7 +4897,7 @@ arrayindex_list returns [ArrayIndexListT* aL]
 //				_t = _retTree;
 				
 				if( !callStack.back()->Contains( s)) 
-				exprList.push_back( s);
+				cleanupList.push_back( s);
 				
 				break;
 			}
@@ -4906,7 +4905,7 @@ arrayindex_list returns [ArrayIndexListT* aL]
 			{
 				s=indexable_tmp_expr(_t);
 //				_t = _retTree;
-				exprList.push_back( s);
+				cleanupList.push_back( s);
 				break;
 			}
 			} // switch
@@ -4919,50 +4918,18 @@ arrayindex_list returns [ArrayIndexListT* aL]
             _t = _t->getNextSibling();
 	}
 
-	aL->Init( ixExprList);
+	aL->Init( ixExprList, &cleanupList);
 	
 	_retTree = retTree;
 	return aL;
 }
 	: #(ax:ARRAYIX
-//             {
-//                 aL = ax->arrIxList;
-//                 assert( aL != NULL);
-
-//                 nExpr = aL->NParam();
-//                 if( nExpr == 0)
-//                 {
-//                     aL->Init();
-//                     goto empty;
-//                 }
-
-// //                 if( nExpr > 1)
-// //                 {
-// //                     ixExprList.reserve( nExpr);
-// //                     exprList.reserve( nExpr);
-// //                 }
-// //                if( nExpr == 0) goto empty;
-//             }
             (
                 ( s=indexable_expr
                 | s=lib_function_call
-                    {
-                        if( !callStack.back()->Contains( s)) 
-                        exprList.push_back( s);
-                    }
-                | s=indexable_tmp_expr { exprList.push_back( s);}
+                | s=indexable_tmp_expr
                 )
-//                 {
-//                     ixExprList.push_back( s);
-//                     if( ixExprList.size() == nExpr)
-//                         break; // allows some manual tuning
-//                 }
             )*
-//            { empty: ;}
         )
-//         {
-//             aL->Init( ixExprList);
-//             empty:
-//         }
     ;
 

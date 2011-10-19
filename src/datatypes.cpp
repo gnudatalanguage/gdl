@@ -4973,7 +4973,7 @@ Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
 }
 
 
-
+// unsigned types
 template<class Sp> SizeT Data_<Sp>::GetAsIndex( SizeT i) const
 {
 return (*this)[ i];
