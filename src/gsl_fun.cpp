@@ -2807,15 +2807,16 @@ res_guard.reset (dres);
     gsl_poly_complex_workspace* w = gsl_poly_complex_workspace_alloc(coef->N_Elements());
     gsl_poly_complex_workspace_guard w_guard(w);
 
-    vector<double> tmp(2 * (coef->N_Elements() - 1)); 
+    SizeT resultSize = coef->N_Elements()-1;
+    vector<double> tmp(2 * resultSize);
     
     if (GSL_SUCCESS != gsl_poly_complex_solve(
       &(*coef)[0], coef->N_Elements(), w, &(tmp[0]))
     )
       e->Throw("Failed to compute the roots of the polynomial");
 
-    DComplexDblGDL* result = new DComplexDblGDL(dimension(coef->N_Elements() - 1));
-    for (SizeT i = 0; i < coef->N_Elements(); ++i) 
+    DComplexDblGDL* result = new DComplexDblGDL(dimension(resultSize), BaseGDL::NOZERO);
+    for (SizeT i = 0; i < resultSize; ++i) 
       (*result)[i] = complex<double>(tmp[2 * i], tmp[2 * i + 1]);
     
     return result->Convert2(
