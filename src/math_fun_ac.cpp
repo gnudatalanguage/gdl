@@ -506,25 +506,24 @@ namespace lib {
       int size_of_s = sizeof(inline_help) / sizeof(inline_help[0]);
       e->Help(inline_help, size_of_s);
     }
-
+    
     DDoubleGDL* Xpos = e->GetParAs<DDoubleGDL>(0);
     SizeT nElpXpos = Xpos->N_Elements();
  
     DDoubleGDL* Ypos = e->GetParAs<DDoubleGDL>(1);
     SizeT nElpYpos = Ypos->N_Elements();
 
-    // we only issu a message
-    if (nElpXpos != nElpYpos)
-	cout << "SPL_INIT (fatal): X and Y arrays do not have same lengths !" << endl;
+    // we only issue a message
+    if (nElpXpos != nElpYpos) {
+	cout << "SPL_INIT (warning): X and Y arrays do not have same lengths !" << endl;
+	// all next computations to be done on MIN(nElpXpos,nElpYpos) (except NaN/Inf checks)
+    	if (nElpXpos > nElpYpos)
+	  nElpXpos=nElpYpos;
+    }
 
-    // new arrays
+    // creating result array
     DDoubleGDL* res;  // the "res" array;
     res = new DDoubleGDL(nElpXpos, BaseGDL::NOZERO);
-
-    auto_ptr<BaseGDL> U_guard;
-    DDoubleGDL* U;
-    U = new DDoubleGDL(nElpXpos, BaseGDL::NOZERO);
-    U_guard.reset(U); // delete upon exit
 
     SizeT count, count1;
 
@@ -565,11 +564,15 @@ namespace lib {
       }
     }
 
-    // may be we will have to check the size of these arrays ?
+    auto_ptr<BaseGDL> U_guard;
+    DDoubleGDL* U;
+    U = new DDoubleGDL(nElpXpos, BaseGDL::NOZERO);
+    U_guard.reset(U); // delete upon exit
     
+    // may be we will have to check the size of these arrays ?
+
     BaseGDL* Yderiv0=e->GetKW(e->KeywordIx("YP0"));
     DDoubleGDL* YP0;
-
 
     if(Yderiv0 !=NULL && !isinf((*(YP0=e->GetKWAs<DDoubleGDL>(e->KeywordIx("YP0"))))[0] )){ 
     // first derivative at the point X0 is defined and different to Inf
@@ -582,8 +585,7 @@ namespace lib {
       (*res)[0]=0.;
       (*U)[0]=0.;
     }
-    
-    
+  
     double psig, pu, x, xm, xp, y, ym, yp, p, dx, qn;
 
     for (count = 1; count < nElpXpos-1; ++count) {
