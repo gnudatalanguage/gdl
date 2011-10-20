@@ -2019,7 +2019,7 @@ Data_<Sp>* Data_<Sp>::OrOpS( BaseGDL* r)
 template<class Sp>
 Data_<Sp>* Data_<Sp>::OrOpInvS( BaseGDL* right)
 {
-  return OrOp( right);
+  return OrOpS( right);
 }
 // for floats
 template<>
