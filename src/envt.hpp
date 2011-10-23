@@ -282,11 +282,8 @@ char buf[defaultLength * sizeof(T)]; // prevent constructor calls
 SizeT sz;
 
 public:
-ForInfoListT(): eArr( reinterpret_cast<T*>(buf))
+ForInfoListT(): eArr( reinterpret_cast<T*>(buf)), sz( 0)
 {
-#ifndef NDEBUG
-sz = 1234567; // there will be never so many FOR loops in one procedure
-#endif
 }
 ~ForInfoListT()
 {
@@ -303,32 +300,31 @@ sz = 1234567; // there will be never so many FOR loops in one procedure
 // must be called before access
 void InitSize( SizeT s)
 {
-    assert( sz == 1234567);
-    sz = s;
+    assert( sz == 0);
     if( s == 0)
-		return;
-	if( s < defaultLength)
-	{
-		for( SizeT i=0; i<s; ++i)
-			eArr[ i].Init();
-		return;
-	}
-	eArr = new T[ s]; // constructor called
+	  return;
+    sz = s;
+    if( s < defaultLength)
+    {
+	    for( SizeT i=0; i<s; ++i)
+		    eArr[ i].Init();
+	    return;
+    }
+    eArr = new T[ s]; // constructor called
 }
 // only needed for EXECUTE
 void resize( SizeT s)
 {
-    assert( sz != 1234567);
-	if( s == sz)
-		return;
-	if( s < sz) // shrink
-	{
-		for( SizeT i=s; i<sz; ++i)
-			eArr[ i].ClearInit(); // in case eArr was allocated
-		sz = s;
-		return;
-	}
-	// s > sz -> grow
+    if( s == sz)
+      return;
+    if( s < sz) // shrink
+    {
+	for( SizeT i=s; i<sz; ++i)
+		eArr[ i].ClearInit(); // in case eArr was allocated
+	sz = s;
+	return;
+    }
+    // s > sz -> grow
     if( s <= defaultLength && eArr == reinterpret_cast<T*>(buf))
     {
 		for( SizeT i=sz; i<s; ++i)
@@ -388,10 +384,10 @@ ForInfoListT<ForLoopInfoT, 32> forLoopInfo;
   int               lastJump; // to which label last jump went
   
 public:
-	ForLoopInfoT& GetForLoopInfo( int forIx) { return forLoopInfo[forIx];}
+  ForLoopInfoT& GetForLoopInfo( int forIx) { return forLoopInfo[forIx];}
     
-    int NForLoops() const { return forLoopInfo.size();}
-    void ResizeForLoops( int newSize) { forLoopInfo.resize(newSize);}
+  int NForLoops() const { return forLoopInfo.size();}
+  void ResizeForLoops( int newSize) { forLoopInfo.resize(newSize);}
 
   // UD pro/fun
   EnvUDT( ProgNodeP idN, DSub* pro_, bool lF = false);

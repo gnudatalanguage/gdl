@@ -256,7 +256,8 @@ SizeT AllIxNewMultiNoneIndexed2DT::operator[]( SizeT i) const
   {
     assert( i < nIx);
     // otherwise AllIxNewMultiOneVariableIndex...T in MakeArrayIndex
-	assert( nIterLimit[0] > 1 && nIterLimit[1] > 1);
+// 	if( ! (nIterLimit[0] > 1 && nIterLimit[1] > 1))
+		assert( nIterLimit[0] > 1 && nIterLimit[1] > 1);
 	
     SizeT resIndex = add;
 // 	if( nIterLimit[0] > 1)

@@ -5138,7 +5138,7 @@ BaseGDL* transpose( EnvT* e)
       {
 	//	cout << "my pb 2 ? dim= " << dim << endl;
 	dimension subExprDim = dim;
-	//	subExprDim >> nSubExpr;
+ 	subExprDim >> nSubExpr; // m_schellens: commented in, needed
 	if( extractKW)
 	  result = new DStringGDL(subExprDim);
 	else
@@ -5153,7 +5153,7 @@ BaseGDL* transpose( EnvT* e)
       if( subexprKW)
 	{
 	  dimension subExprDim = dim;
-	  //	  subExprDim >> nSubExpr;
+	  subExprDim >> nSubExpr; // m_schellens: commented in, needed
 	  len = new DLongGDL(subExprDim);
 	}
       else
@@ -5186,9 +5186,10 @@ BaseGDL* transpose( EnvT* e)
 
 	  // Loop through subexpressions & fill output array
 	  for( SizeT i = 0; i<nSubExpr; ++i) {
-	    if (pmatch[i].rm_so != -1) (* static_cast<DStringGDL*>(result))[i+s*nSubExpr] = 
-	      (*stringExpr)[i+s*nSubExpr].substr( pmatch[i].rm_so, 
-				       pmatch[i].rm_eo - pmatch[i].rm_so);
+	    if (pmatch[i].rm_so != -1)
+		(*static_cast<DStringGDL*>(result))[i+s*nSubExpr] =
+			(*stringExpr)[s].substr( pmatch[i].rm_so,  pmatch[i].rm_eo - pmatch[i].rm_so);
+// 			(*stringExpr)[i+s*nSubExpr].substr( pmatch[i].rm_so,  pmatch[i].rm_eo - pmatch[i].rm_so);
 	    if( lengthKW)
 	      (*len)[i+s*nSubExpr] = pmatch[i].rm_so != -1 ? pmatch[i].rm_eo - pmatch[i].rm_so : -1;
 //  	      (*len)[i+s*nSubExpr] = pmatch[i].rm_eo - pmatch[i].rm_so;
