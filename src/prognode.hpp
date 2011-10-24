@@ -33,7 +33,7 @@
 class ProgNode;
 typedef ProgNode* ProgNodeP;
 
-bool* GetNonCopyNodeLookupArray()
+inline bool* GetNonCopyNodeLookupArray()
 {
 static bool nonCopyNodeLookupArray[ GDLTokenTypes::MAX_TOKEN_NUMBER];
 for( int i=0; i<GDLTokenTypes::MAX_TOKEN_NUMBER; ++i)
