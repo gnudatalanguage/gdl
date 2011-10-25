@@ -282,9 +282,11 @@ char buf[defaultLength * sizeof(T)]; // prevent constructor calls
 SizeT sz;
 
 public:
+
 ForInfoListT(): eArr( reinterpret_cast<T*>(buf)), sz( 0)
 {
 }
+
 ~ForInfoListT()
 {
 	if( eArr != reinterpret_cast<T*>(buf))
@@ -384,8 +386,8 @@ ForInfoListT<ForLoopInfoT, 32> forLoopInfo;
   int               lastJump; // to which label last jump went
   
 public:
-  ForLoopInfoT& GetForLoopInfo( int forIx) { return forLoopInfo[forIx];}
-    
+   ForLoopInfoT& GetForLoopInfo( int forIx) { return forLoopInfo[forIx];}
+   
   int NForLoops() const { return forLoopInfo.size();}
   void ResizeForLoops( int newSize) { forLoopInfo.resize(newSize);}
 

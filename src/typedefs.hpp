@@ -614,10 +614,10 @@ void SetSize( SizeT newSz ) // only used in DStructGDL::DStructGDL( const string
 //       if( res < buf[ i]) res = buf[ i];
 //     return res;
 //   }
-};
+}; // GDLArray
 
 template<>
-void GDLArray<DString>::InitFrom( const GDLArray& right )
+inline void GDLArray<DString>::InitFrom( const GDLArray& right )
 {
 	assert( &right != this);
  	assert ( sz == right.size() );
@@ -626,7 +626,7 @@ void GDLArray<DString>::InitFrom( const GDLArray& right )
 }
 
 template<>
-GDLArray<DString>::GDLArray( const GDLArray& cp) : sz( cp.size())
+inline GDLArray<DString>::GDLArray( const GDLArray& cp) : sz( cp.size())
   {
     try {
 		buf = (cp.size() > smallArraySize) ? new Ty[ cp.size()] : scalar;
@@ -640,7 +640,7 @@ GDLArray<DString>::GDLArray( const GDLArray& cp) : sz( cp.size())
   }
 
 template<>
-GDLArray<DString>::GDLArray( const Ty* arr, SizeT s) : sz( s)
+inline GDLArray<DString>::GDLArray( const Ty* arr, SizeT s) : sz( s)
   {
     try {
     buf = (s > smallArraySize) ? new Ty[ s]: scalar;

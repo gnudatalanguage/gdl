@@ -366,89 +366,89 @@ protected:
   ArrayIndexIndexed( const ArrayIndexT& r) {}
 
 public:
- IndexType Type() { return ArrayIndexIndexedID;}
+	IndexType Type() { return ArrayIndexIndexedID;}
 
-  SizeT NParam() { return 1;} // number of parameter to Init(...)
+	SizeT NParam() { return 1;} // number of parameter to Init(...)
 
-  RangeT GetS() { return s;}
+	RangeT GetS() { return s;}
 
-  bool Scalar() const { return (ix == NULL);}
-  bool Scalar( SizeT& s_) const // changed from RangeT for proper overloading
-  { 
-    if( ix == NULL)
-      {
-		s_ = s;
-		return true;
-      }
-    s_ = (*ix)[0];
-    return (ix->size() == 1);
-  }
+	bool Scalar() const { return (ix == NULL);}
+	bool Scalar( SizeT& s_) const // changed from RangeT for proper overloading
+	{
+		if( ix == NULL)
+		{
+			s_ = s;
+			return true;
+		}
+		s_ = (*ix)[0];
+		return (ix->size() == 1);
+	}
 
-  bool Indexed() { return (ix != NULL);}
+	bool Indexed() { return (ix != NULL);}
 
-  const dimension& GetDim() { return *ixDim;}
+	const dimension& GetDim() { return *ixDim;}
 
-  RangeT GetIx0()
-  {
-    if( ix != NULL) return (*ix)[0]; // from array
-    return s;
-  }
-  
-  SizeT GetIx( SizeT i)
-  {
-	assert( ix != NULL);
-    return (*ix)[ i];
-  }
+	RangeT GetIx0()
+	{
+		if( ix != NULL) return (*ix)[0]; // from array
+		return s;
+	}
 
-  //  SizeT* StealIx() { SizeT* ret = ix; ix = NULL; return ret;} 
-  //AllIxIndicesT* StealIx() { AllIxIndicesT* ret = ix; ix = NULL; return ret;}
-  AllIxIndicesT* GetAllIx() const { return ix;}
+	SizeT GetIx( SizeT i)
+	{
+		assert( ix != NULL);
+		return (*ix)[ i];
+	}
 
-  ~ArrayIndexIndexed() 
-  {
-//     delete ix;
-//     delete ixDim;
-  }
+	//  SizeT* StealIx() { SizeT* ret = ix; ix = NULL; return ret;}
+	//AllIxIndicesT* StealIx() { AllIxIndicesT* ret = ix; ix = NULL; return ret;}
+	AllIxIndicesT* GetAllIx() const { return ix;}
 
-  ArrayIndexIndexed( bool strictArrSubs_ = false): 
-    strictArrSubs( strictArrSubs_),
-//    maxVal( 0),
-    ix( NULL), ixDim( NULL)
-  {}
+	~ArrayIndexIndexed()
+	{
+		//     delete ix;
+		//     delete ixDim;
+	}
 
-  ArrayIndexT* Dup() const
-  {
-    ArrayIndexIndexed* d =  new ArrayIndexIndexed( strictArrSubs);
-    
-    assert( ix == NULL);
-    assert( ixDim == NULL);
+	ArrayIndexIndexed( bool strictArrSubs_ = false):
+	strictArrSubs( strictArrSubs_),
+	//    maxVal( 0),
+	ix( NULL), ixDim( NULL)
+	{}
 
-    d->s = s;
-//     d->maxVal = maxVal;
-    
-    return d;
-  }
+	ArrayIndexT* Dup() const
+	{
+		ArrayIndexIndexed* d =  new ArrayIndexIndexed( strictArrSubs);
+
+		assert( ix == NULL);
+		assert( ixDim == NULL);
+
+		d->s = s;
+		//     d->maxVal = maxVal;
+
+		return d;
+	}
  
-  void Clear()
-  {
-//     maxVal = 0;
-//     delete ixDim;
-    ixDim = NULL;
-//     delete ix; 
-    ix = NULL; // marker ONE or INDEXED
-  }
+	void Clear()
+	{
+		//     maxVal = 0;
+		//     delete ixDim;
+		ixDim = NULL;
+		//     delete ix; 
+		ix = NULL; // marker ONE or INDEXED
+	}
 
 
-  BaseGDL* Index( BaseGDL* var, IxExprListT& ixL)
-  {
-    int ret = ixL[0]->Scalar2RangeT(s);
+	BaseGDL* Index( BaseGDL* var, IxExprListT& ixL)
+	{
+	int ret = ixL[0]->Scalar2RangeT(s);
 
-    if( ret == 0) // more than one element
-      return var->NewIx( ixL[0], strictArrSubs);
+	if( ret == 0) // more than one element
+	return var->NewIx( ixL[0], strictArrSubs);
 
-    // scalar (-1,1) or one-element array (-2,2)
-    //if( ret >= 1) // type ONE
-    if( ret == 1) // type ONE
+	// scalar (-1,1) or one-element array (-2,2)
+	//if( ret >= 1) // type ONE
+	if( ret == 1) // type ONE
 	{
 		if( s < 0) //&& s >= var->Size())
 		{
@@ -466,7 +466,7 @@ public:
 		return var->NewIx( s);
 	}
 
-	// ret == 2 (one dim array)
+		// ret == 2 (one dim array)
 	if( s < 0) //&& s >= var->Size())
 	{
 		if( strictArrSubs)
@@ -487,107 +487,66 @@ public:
 	BaseGDL* res = var->NewIx( s);
 	res->SetDim( dimension( 1));
 	return res;
-	
-// //     // unreachable because using now Scala2RangeT which returns always 0 ,1 or 2
-// //     if( strictArrSubs || ret == -1) // scalar index < 0
-// //       {
-// // 	throw
-// // 	  GDLException( NULL,"Subscript range values of the"
-// // 			" form low:high must be >= 0, < size,"
-// // 			" with low <= high.",true,false);
-// //       }
-// //     one element array index < 0
-// //     if( ret == -2)
-// //       {
-// // 	BaseGDL* res = var->NewIx( 0);
-// // 	res->SetDim( dimension( 1));
-// // 	return res;
-// //       }
-// //     else
-// //       return var->NewIx( 0);
-   }
+	}
 
-  void Init( BaseGDL* ix_) 
-  {
-    if( ix_->Rank() == 0) // type ONE
-      {
-		ix_->Scalar2RangeT(s);
-	// int ret = ix_->Scalar2RangeT(s);
-	// from GDL 0.9 on negative indices are fine
-	// 	if( ret == -1) // index < 0
-	// 	  {
-	// 	    throw 
-	// 	      GDLException(NULL, "Subscript range values of the"
-	// 			    " form low:high must be >= 0, < size,"
-	// 			    " with low <= high.",true,false);
-	// 	  }
-		return;
-      }
+	void Init( BaseGDL* ix_)
+	{
+		if( ix_->Rank() == 0) // type ONE
+		{
+			ix_->Scalar2RangeT(s);
+			// int ret = ix_->Scalar2RangeT(s);
+			// from GDL 0.9 on negative indices are fine
+			// 	if( ret == -1) // index < 0
+			// 	  {
+			// 	    throw 
+			// 	      GDLException(NULL, "Subscript range values of the"
+			// 			    " form low:high must be >= 0, < size,"
+			// 			    " with low <= high.",true,false);
+			// 	  }
+			return;
+		}
 
-    // type INDEXED
-    DType dType = ix_->Type();
+		// type INDEXED
+		DType dType = ix_->Type();
 
-    assert( dType != UNDEF);
-//     assert( maxVal == 0);
+		assert( dType != UNDEF);
+		//     assert( maxVal == 0);
 
-    int typeCheck = DTypeOrder[ dType];
-    if( typeCheck >= 100)
-      throw GDLException(NULL,"Type not allowed as subscript.",true,false);
-    
-    //SizeT nElem = ix_->N_Elements();
-    //    ix = new SizeT[ nElem]; // allocate array
+		int typeCheck = DTypeOrder[ dType];
+		if( typeCheck >= 100)
+		throw GDLException(NULL,"Type not allowed as subscript.",true,false);
 
-    assert( ix == NULL);
+		//SizeT nElem = ix_->N_Elements();
+		//    ix = new SizeT[ nElem]; // allocate array
 
-//     ix = new AllIxMultiT( nElem);
-	if( strictArrSubs)
-		ix = new (ixBuf) AllIxIndicesStrictT( ix_);
-	else
-		ix = new (ixBuf) AllIxIndicesT( ix_);
+		assert( ix == NULL);
 
-    ixDim = &ix_->Dim();
-}
+		//     ix = new AllIxMultiT( nElem);
+		if( strictArrSubs)
+			ix = new (ixBuf) AllIxIndicesStrictT( ix_);
+		else
+			ix = new (ixBuf) AllIxIndicesT( ix_);
 
-  // number of iterations
-  // also checks/adjusts range
-  SizeT NIter( SizeT varDim)
-  {
+		ixDim = &ix_->Dim();
+	}
 
-    if( ix == NULL) // ONE
-      {
+	// number of iterations
+	// also checks/adjusts range
+	SizeT NIter( SizeT varDim)
+	{
+	if( ix == NULL) // ONE
+	{
 		if( s > 0 && s >= varDim)
 		throw GDLException(NULL,"Subscript out of range [i].",true,false);
 		if( s < 0 && -s > varDim)
 		throw GDLException(NULL,"Subscript out of range [-i].",true,false);
 		return 1;
-      }
+	}
 
-    // INDEXED
-    // note: this should be faster as most arrays are within bounds
-    // (like returned from WHERE function)
-    //    SizeT maxIx = ix->max();
-//     if( maxVal < varDim)
-// 		  return ix->size();
-
+	// INDEXED
 	ix->SetUpper( varDim-1);
 
-    return ix->size();
-
-//     if( strictArrSubs)
-//       { // strictArrSubs -> exception if out of bounds
-//       }
-//     else
-//       {
-// 	SizeT upper = varDim-1;
-// 	SizeT ix_size = ix->size();
-// 	for( SizeT i=0; i < ix_size; ++i)
-// 	  {
-// 	    if( (*ix)[i] > upper)
-//     		ix->SetIx( i, upper);
-// 			(*ix)[i]=upper;
-// 	  }
-// 	return ix_size;
-//       }
+	return ix->size();
   }
 };
 
