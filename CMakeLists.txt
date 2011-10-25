@@ -323,7 +323,7 @@ if(NETCDF)
 			message(FATAL_ERROR "NetCDF installation seems not to be usable.\n"
 			"This suggests a conflicting netCDF-HDF4 installation e.g.\n"
 			"- Uninstalling HDF4 after installation of NetCDF.\n"
-			"- Installing NetDCF before HDF4.")
+			"- Installing NetCDF before HDF4.")
 		endif(HAVE_NETCDFCPP_H)
 		set(CMAKE_REQUIRED_INCLUDES)
 	else(NETCDF_FOUND)
