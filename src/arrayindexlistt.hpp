@@ -1144,14 +1144,14 @@ public:
     
     if( ixListEnd != NULL) // revert assoc indexing
       {
-		ixList.push_back( ixListEnd);
-		ixListEnd = NULL;
+	ixList.push_back( ixListEnd);
+	ixListEnd = NULL;
       }
 
     ixList.Clear();
 //     for( ArrayIndexVectorT::iterator i=ixList.begin(); i != ixList.end(); ++i)
 //       {	(*i)->Clear();}
-	cleanupIx.Cleanup();
+    cleanupIx.Cleanup();
   }
 
   ArrayIndexListT* Clone() { return new ArrayIndexListMultiT( *this);}
@@ -1263,33 +1263,33 @@ public:
       }
     if( accessType == ALLINDEXED || accessType == INDEXED_ONE)
       {
-		SizeT i=0;
-		for(; i<acRank; ++i)
-			if( !ixList[i]->Scalar())
-				break;
+	SizeT i=0;
+	for(; i<acRank; ++i)
+		if( !ixList[i]->Scalar())
+			break;
 
-		if( i == acRank) // counted up to acRank -> all scalar
+	if( i == acRank) // counted up to acRank -> all scalar
+	{
+		accessType = ALLONE; // needed for GetDim()
+		const dimension& varDim  = var->Dim();
+		SizeT            varRank = varDim.Rank();
+
+		varStride = varDim.Stride();
+		nIterLimitGt1 = 0; // marker for BuildIx
+
+		ixList[0]->NIter( (0<varRank)?varDim[0]:1);
+		assert( varStride[0] == 1);
+		baseIx = ixList[0]->GetIx0(); //  * varStride[0]; // GetS() not ok because INDEXED
+
+		// check boundary
+		for(SizeT i=1; i<acRank; ++i)
 		{
- 			accessType = ALLONE; // needed for GetDim()
-			const dimension& varDim  = var->Dim();
-			SizeT            varRank = varDim.Rank();
+			ixList[i]->NIter( (i<varRank)?varDim[i]:1);
+			baseIx += ixList[i]->GetIx0() * varStride[i]; // GetS() not ok because INDEXED
+		}
 
-			varStride = varDim.Stride();
-			nIterLimitGt1 = 0; // marker for BuildIx
-
-			ixList[0]->NIter( (0<varRank)?varDim[0]:1);
-			assert( varStride[0] == 1);
-			baseIx = ixList[0]->GetIx0(); //  * varStride[0]; // GetS() not ok because INDEXED
-
-			// check boundary
-			for(SizeT i=1; i<acRank; ++i)
-			{
-				ixList[i]->NIter( (i<varRank)?varDim[i]:1);
-				baseIx += ixList[i]->GetIx0() * varStride[i]; // GetS() not ok because INDEXED
-			}
-
-			nIx = 1;
-			return;			
+		nIx = 1;
+		return;			
 // 			accessType = ALLONE;
 // 			varStride = var->Dim().Stride();
 // 			// check boundary
@@ -1299,25 +1299,25 @@ public:
 // 			ixList[i]->NIter( (i<varRank)?varDim[i]:1);
 // 			nIx = 1;
 // 			return;
-	  	}
-		// after break
-		if( i > 0 || accessType == INDEXED_ONE)
-		{
-			accessType = NORMAL; // there was a scalar (and break because of non-scalar)
-		}
-		else // i == 0 -> first was (because of ALLINDEXED) indexed
-		{
-			++i; // first was already non-scalar -> indexed
-			for(; i<acRank; ++i)
-				if( !ixList[i]->Indexed())
-				{
-					accessType = NORMAL;
-					break;
-				}
-			// else
-			//	accessType = ALLINDEXED; // is already
-		}
-      }
+	}
+	// after break
+	if( i > 0 || accessType == INDEXED_ONE)
+	{
+		accessType = NORMAL; // there was a scalar (and break because of non-scalar)
+	}
+	else // i == 0 -> first was (because of ALLINDEXED) indexed
+	{
+		++i; // first was already non-scalar -> indexed
+		for(; i<acRank; ++i)
+			if( !ixList[i]->Indexed())
+			{
+				accessType = NORMAL;
+				break;
+			}
+		// else
+		//	accessType = ALLINDEXED; // is already
+	}
+}
 
 	// accessType can be at this point:
 	// NORMAL

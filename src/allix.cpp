@@ -229,52 +229,88 @@ SizeT AllIxNewMultiNoneIndexedT::operator[]( SizeT i) const
     assert( i < nIx);
     
     SizeT resIndex = add;
-	if( nIterLimit[0] > 1)
-		resIndex += (i % nIterLimit[0]) * ixListStride[0];
+    if( nIterLimit[0] > 1)
+	resIndex += (i % nIterLimit[0]) * ixListStride[0];
 
     for( SizeT l=1; l < acRank; ++l)
     {
-		if( nIterLimit[l] > 1)
-			resIndex += ((i / stride[l]) %  nIterLimit[l]) * ixListStride[l];
-// 			resIndex += (((i / stride[l]) %  nIterLimit[l]) * ixListStride[l] + s[l]) * varStride[l];
-	}
-	return resIndex;
+	if( nIterLimit[l] > 1)
+	  resIndex += ((i / stride[l]) %  nIterLimit[l]) * ixListStride[l];
+// resIndex += (((i / stride[l]) %  nIterLimit[l]) * ixListStride[l] + s[l]) * varStride[l];
+    }
+    return resIndex;
   }
 SizeT AllIxNewMultiNoneIndexedT::InitSeqAccess()
 {
-	seqIx = 0;
-	return (*this)[0];
+//  	seqIxDebug = 0;
+// 	return (*this)[0];
+	seqIx = add;
+	seqIter = 0;
+	correctionIncrease = stride[1] * ixListStride[0];
+	nextCorrection = seqIx + correctionIncrease; // stride[1] == nIterLimit[0]
+	return seqIx; //(*this)[0];
 }
-SizeT AllIxNewMultiNoneIndexedT::SeqAccess()
+SizeT AllIxNewMultiNoneIndexedT::SeqAccess() // 1st dim linearized
 {
-	return (*this)[++seqIx];
+//   return (*this)[++seqIx];
+  seqIx += ixListStride[0];
+  if( seqIx >= nextCorrection)
+    {
+      seqIter += stride[1];
+      seqIx = add;
+      for( SizeT l=1; l < acRank; ++l)
+      {
+	  if( nIterLimit[l] > 1)
+	    seqIx += ((seqIter / stride[l]) %  nIterLimit[l]) * ixListStride[l];
+      }
+      nextCorrection = seqIx + correctionIncrease; // stride[1] == nIterLimit[0]
+    }
+  return seqIx; // fast path
 }
 
 
 // acRank == 2
 SizeT AllIxNewMultiNoneIndexed2DT::operator[]( SizeT i) const
   {
+    // stride[1] == nIterLimit[0] (see SetVariable(...))
     assert( i < nIx);
+
     // otherwise AllIxNewMultiOneVariableIndex...T in MakeArrayIndex
-// 	if( ! (nIterLimit[0] > 1 && nIterLimit[1] > 1))
-		assert( nIterLimit[0] > 1 && nIterLimit[1] > 1);
+    assert( nIterLimit[0] > 1 && nIterLimit[1] > 1);
 	
     SizeT resIndex = add;
-// 	if( nIterLimit[0] > 1)
-		resIndex += (i % nIterLimit[0]) * ixListStride[0];
-// 	if( nIterLimit[1] > 1)
-		resIndex += ((i / stride[1]) %  nIterLimit[1]) * ixListStride[1];
-// 			resIndex += (((i / stride[l]) %  nIterLimit[l]) * ixListStride[l] + s[l]) * varStride[l];
-	return resIndex;
+// if( nIterLimit[0] > 1)
+    resIndex += (i % nIterLimit[0]) * ixListStride[0];
+// if( nIterLimit[1] > 1)
+    // 2D: nIx == nIterLimit[0] * nIterLimit[1] && stride[1] == nIterLimit[0] 
+    // -> nIterLimit[1] > i/stride[1] -> no %
+    resIndex += (i / stride[1]) * ixListStride[1];
+// resIndex += ((i / stride[1]) %  nIterLimit[1]) * ixListStride[1];
+// resIndex += (((i / stride[l]) %  nIterLimit[l]) * ixListStride[l] + s[l]) * varStride[l];
+    return resIndex;
   }
 SizeT AllIxNewMultiNoneIndexed2DT::InitSeqAccess()
 {
-	seqIx = 0;
-	return (*this)[0];
+    seqIx = add;
+    correctionIncrease = stride[1] * ixListStride[0];
+    nextCorrection = seqIx + correctionIncrease; // stride[1] == nIterLimit[0]
+    return seqIx; //(*this)[0];
 }
-SizeT AllIxNewMultiNoneIndexed2DT::SeqAccess()
+SizeT AllIxNewMultiNoneIndexed2DT::SeqAccess() // linearized
 {
-	return (*this)[++seqIx];
+//     return (*this)[++seqIx];
+    seqIx += ixListStride[0];
+    if( seqIx >= nextCorrection)
+    {
+      // increase 2nd dim
+      seqIx += ixListStride[1];
+      nextCorrection = seqIx; // stride[1] == nIterLimit[0]
+      // correct modulo
+      seqIx -= correctionIncrease;
+      // set new limit
+      // nextCorrection = seqIx + correctionIncrease; // stride[1] == nIterLimit[0]
+    }
+    return seqIx; // fast path
 }
 
 
@@ -306,8 +342,8 @@ SizeT AllIxNewMultiOneVariableIndexIndexedT::operator[]( SizeT i) const
   }
 SizeT AllIxNewMultiOneVariableIndexIndexedT::InitSeqAccess()
 {
-	seqIx = 0;
-	return add + static_cast< ArrayIndexIndexed*>( arrayIndexIndexed)->GetIx( 0) * ixListStride; //varStride[l];
+    seqIx = 0;
+    return add + static_cast< ArrayIndexIndexed*>( arrayIndexIndexed)->GetIx( 0) * ixListStride; //varStride[l];
 }
 SizeT AllIxNewMultiOneVariableIndexIndexedT::SeqAccess()
 {

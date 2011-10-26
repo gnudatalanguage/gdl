@@ -2218,9 +2218,8 @@ if( e1->StrictScalar())
   BaseGDL* ARRAYEXPRNode::Eval()
   {
 	BaseGDL* res;
-	ProgNodeP ax;
+// 	ProgNodeP ax;
 
-	ArrayIndexListT* aL;
 	BaseGDL* r;
 	ArrayIndexListGuard guard;
 	auto_ptr<BaseGDL> r_guard;
@@ -2282,14 +2281,13 @@ if( e1->StrictScalar())
 		}
 	} // switch
 		
-		_t = _t->getNextSibling();
+	_t = _t->getNextSibling();
 	
-	aL = _t->arrIxList;
-	assert( aL != NULL);
-	guard.reset(aL);
-		
-	//    ax = _t
+// 	ax = _t;
 	//	match(antlr::RefAST(_t),ARRAYIX);
+	ArrayIndexListT* aL = _t->arrIxList;
+	assert( aL != NULL);
+
 	_t = _t->getFirstChild();
 		
 	nExpr = aL->NParam();
@@ -2357,6 +2355,10 @@ if( e1->StrictScalar())
 	} // for
 
 	empty:
+
+	// better done here because of recursion
+	guard.reset(aL);
+	
 	res = aL->Index( r, ixExprList);
 
 	ProgNode::interpreter->SetRetTree( this->getNextSibling());

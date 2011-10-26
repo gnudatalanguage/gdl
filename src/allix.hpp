@@ -20,7 +20,6 @@
 
 #include "typedefs.hpp"
 
-
 class AllIxBaseT
 {
 public:
@@ -357,9 +356,9 @@ public:
     return clone;
   }
 
-  SizeT operator[]( SizeT i) const; // code in arrayindex.cpp
+  SizeT operator[]( SizeT i) const;
   SizeT InitSeqAccess();
-  SizeT SeqAccess(); // code in arrayindex.cpp
+  SizeT SeqAccess();
 	
   SizeT size() const { return nIx;}	
 };
@@ -484,6 +483,11 @@ private:
   SizeT nIx;
   SizeT seqIx;
   SizeT add;
+  SizeT seqIter;
+  SizeT correctionIncrease;
+  SizeT nextCorrection;
+
+//   SizeT seqIxDebug;
 
 public:
   AllIxNewMultiNoneIndexedT( ArrayIndexVectorT* ixList_, SizeT acRank_, SizeT nIx_, const SizeT* varStride_, SizeT* nIterLimit_, SizeT* stride_)
@@ -531,7 +535,9 @@ private:
   SizeT nIx;
   SizeT seqIx;
   SizeT add;
-
+  SizeT nextCorrection;
+  SizeT correctionIncrease;
+  
 public:
   AllIxNewMultiNoneIndexed2DT( ArrayIndexVectorT* ixList_, SizeT nIx_, const SizeT* varStride_, SizeT* nIterLimit_, SizeT* stride_)
     : ixList( ixList_)
@@ -668,6 +674,8 @@ namespace AllIxMaxSizeCalculation
   static const int g = sizeof( AllIxNewMultiOneVariableIndexNoIndexT);
   static const int h = sizeof( AllIxNewMulti2DT);
   static const int i = sizeof( AllIxNewMultiT);
+  static const int j = sizeof( AllIxNewMultiNoneIndexedT);
+  static const int k = sizeof( AllIxNewMultiNoneIndexed2DT);
   static const int ab = a > b ? a : b;
   static const int abc = ab > c ? ab : c;
   static const int abcd = abc > d ? abc : d;
@@ -676,7 +684,9 @@ namespace AllIxMaxSizeCalculation
   static const int abcdefg = abcdef > g ? abcdef : g;
   static const int abcdefgh = abcdefg > h ? abcdefg : h;
   static const int abcdefghi = abcdefgh > i ? abcdefgh : i;
-  static const int Max = abcdefghi;
+  static const int abcdefghij = abcdefghi > j ? abcdefghi : j;
+  static const int abcdefghijk = abcdefghij > k ? abcdefghij : k;
+  static const int Max = abcdefghijk;
 }
 
 static const int AllIxMaxSize = AllIxMaxSizeCalculation::Max;
