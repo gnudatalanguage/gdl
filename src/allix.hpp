@@ -377,6 +377,9 @@ private:
   SizeT nIx;
   SizeT seqIx;
   SizeT add;
+  SizeT ix2;
+  SizeT seqIter;
+  SizeT seqIter0;
 
 public:
   AllIxNewMultiT( ArrayIndexVectorT* ixList_, SizeT acRank_, SizeT nIx_, const SizeT* varStride_, SizeT* nIterLimit_, SizeT* stride_)
@@ -429,6 +432,10 @@ private:
   SizeT seqIx;
 //   SizeT s[MAXRANK];
   SizeT add;
+  SizeT ix2;
+  SizeT seqIter;
+  SizeT seqIter0;
+
 
 public:
   AllIxNewMulti2DT( ArrayIndexVectorT* ixList_, SizeT nIx_, const SizeT* varStride_, SizeT* nIterLimit_, SizeT* stride_)

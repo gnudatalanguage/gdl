@@ -119,9 +119,8 @@ SizeT AllIxAllIndexedT::SeqAccess()
     ++seqIx;
     assert( seqIx < nIx);
 	
-    assert( dynamic_cast<ArrayIndexIndexed*>( (*ixList)[0]) != NULL);
-    SizeT resIndex = static_cast< ArrayIndexIndexed*>( (*ixList)[0])->GetIx( seqIx);
-		
+    assert( dynamic_cast<ArrayIndexIndexed*>( (*ixList)[0]) != NULL);    
+    SizeT resIndex = static_cast< ArrayIndexIndexed*>( (*ixList)[0])->GetIx( seqIx);	
     for( SizeT l=1; l < acRank; ++l)
       {
 		assert( dynamic_cast<ArrayIndexIndexed*>( (*ixList)[l]) != NULL);
@@ -167,21 +166,81 @@ SizeT AllIxNewMultiT::operator[]( SizeT i) const
   }
 SizeT AllIxNewMultiT::InitSeqAccess()
 {
-	seqIx = 0;
-	return (*this)[0];
+// 	seqIx = 0;
+// 	return (*this)[0];
+	seqIter = 0;
+	seqIter0 = 0;
+	ix2 = add;
+	for( SizeT l=1; l < acRank; ++l)
+	{
+		if( (*ixList)[l]->Indexed())
+		{
+			ix2 += static_cast< ArrayIndexIndexed*>( (*ixList)[l])->GetIx( 0) * varStride[l];
+		}
+	}
+
+	seqIx = ix2;
+	if( (*ixList)[0]->Indexed())
+	{
+		seqIx += static_cast< ArrayIndexIndexed*>((*ixList)[0])->GetIx( 0);
+	}
+
+	assert( seqIx == (*this)[seqIter+seqIter0]);
+	return seqIx; //(*this)[0];
 }
 SizeT AllIxNewMultiT::SeqAccess()
 {
-	return (*this)[++seqIx];
+// 	return (*this)[++seqIx];
+	++seqIter0;
+	if( seqIter0 >= stride[1])
+	{
+		seqIter += stride[1];
+		seqIter0 = 0;
+		ix2 = add;
+		for( SizeT l=1; l < acRank; ++l)
+			{
+				if( (*ixList)[l]->Indexed())
+				{
+					ix2 += static_cast< ArrayIndexIndexed*>( (*ixList)[l])->GetIx( (seqIter / stride[l]) %  nIterLimit[l]) * varStride[l];
+				}
+				else
+				{
+					if( nIterLimit[l] > 1)
+						ix2 += ((seqIter / stride[l]) %  nIterLimit[l]) * ixListStride[l];
+				}
+			}
+		seqIx = ix2;
+		if( (*ixList)[0]->Indexed())
+		{
+			seqIx += static_cast< ArrayIndexIndexed*>((*ixList)[0])->GetIx( seqIter0);
+		}
+		assert( seqIx == (*this)[seqIter+seqIter0]);
+		return seqIx;
+	}
+	seqIx = ix2;
+	if( (*ixList)[0]->Indexed())
+	{
+		seqIx += static_cast< ArrayIndexIndexed*>((*ixList)[0])->GetIx( seqIter0);
+	}
+	else
+	{
+		if( nIterLimit[0] > 1)
+			seqIx += seqIter0 * ixListStride[0]; // + s[0];
+	}
+	assert( seqIx == (*this)[seqIter+seqIter0]);
+	return seqIx;
 }
+
+
+
 
 
 
 SizeT AllIxNewMulti2DT::operator[]( SizeT i) const
   {
-    assert( i < nIx);
-    
-    SizeT resIndex = add;
+	assert( i < nIx);
+
+	SizeT resIndex = add;
 	if( (*ixList)[0]->Indexed())
 	{
 		resIndex += static_cast< ArrayIndexIndexed*>((*ixList)[0])->GetIx( i %  nIterLimit[0]);
@@ -207,12 +266,66 @@ SizeT AllIxNewMulti2DT::operator[]( SizeT i) const
   }
 SizeT AllIxNewMulti2DT::InitSeqAccess()
 {
-	seqIx = 0;
-	return (*this)[0];
+// 	seqIx = 0;
+// 	return (*this)[0];
+
+	seqIter = 0;
+	seqIter0 = 0;
+	ix2 = add;
+	if( (*ixList)[1]->Indexed())
+	{
+		ix2 += static_cast< ArrayIndexIndexed*>( (*ixList)[1])->GetIx( 0) * varStride[1];
+	}
+
+	seqIx = ix2;
+	if( (*ixList)[0]->Indexed())
+	{
+		seqIx += static_cast< ArrayIndexIndexed*>((*ixList)[0])->GetIx( 0);
+	}
+
+	assert( seqIx == (*this)[seqIter+seqIter0]);
+	return seqIx; //(*this)[0];
 }
 SizeT AllIxNewMulti2DT::SeqAccess()
 {
-	return (*this)[++seqIx];
+// 	return (*this)[++seqIx];
+
+	++seqIter0;
+	if( seqIter0 >= stride[1])
+	{
+		seqIter += stride[1];
+		seqIter0 = 0;
+		ix2 = add;
+		if( (*ixList)[1]->Indexed())
+		{
+			ix2 += static_cast< ArrayIndexIndexed*>( (*ixList)[1])->GetIx( (seqIter / stride[1]) %  nIterLimit[1]) * varStride[1];
+		}
+		else
+		{
+			if( nIterLimit[1] > 1)
+				ix2 += ((seqIter / stride[1]) %  nIterLimit[1]) * ixListStride[1];
+		}
+		seqIx = ix2;
+		if( (*ixList)[0]->Indexed())
+		{
+			seqIx += static_cast< ArrayIndexIndexed*>((*ixList)[0])->GetIx( seqIter0);
+		}
+		assert( seqIx == (*this)[seqIter+seqIter0]);
+		return seqIx;
+	}
+	
+	seqIx = ix2;
+	if( (*ixList)[0]->Indexed())
+	{
+		seqIx += static_cast< ArrayIndexIndexed*>((*ixList)[0])->GetIx( seqIter0);
+	}
+	else
+	{
+		if( nIterLimit[0] > 1)
+			seqIx += seqIter0 * ixListStride[0]; // + s[0];
+	}
+	assert( seqIx == (*this)[seqIter+seqIter0]);
+	return seqIx;
 }
 
 

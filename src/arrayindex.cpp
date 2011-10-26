@@ -229,6 +229,8 @@ ArrayIndexListT* MakeArrayIndex( ArrayIndexVectorT* ixList)
   // ArrayIndexListMultiT
   if( nIndexed == 0)
 	  return new ArrayIndexListMultiNoneIndexedT( ixList);
+  if( nIndexed == ixList->size())
+	  return new ArrayIndexListMultiAllIndexedT( ixList);
 
   return new ArrayIndexListMultiT( ixList);
 }
