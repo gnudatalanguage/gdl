@@ -5211,11 +5211,15 @@ BaseGDL* transpose( EnvT* e)
 	    if( booleanKW)
 	      (* static_cast<DByteGDL*>(result))[s] = (matchres == 0);
 	    else if ( extractKW) // !subExprKW
-	      (* static_cast<DStringGDL*>(result))[s] = 
-		(*stringExpr)[s].substr( pmatch[0].rm_so, 
-					 pmatch[0].rm_eo - pmatch[0].rm_so);
+	      {
+	      if( matchres == 0)
+		(* static_cast<DStringGDL*>(result))[s] = 
+		  (*stringExpr)[s].substr( pmatch[0].rm_so, 
+					   pmatch[0].rm_eo - pmatch[0].rm_so);
+	      }
 	    else
-	      (* static_cast<DLongGDL*>(result))[s] = matchres? -1:pmatch[0].rm_so;
+	      (* static_cast<DLongGDL*>(result))[s] == matchres? -1:pmatch[0].rm_so;
+//	      (* static_cast<DLongGDL*>(result))[s] = matchres? -1:pmatch[0].rm_so;
 	  }
 
 	if( lengthKW && !subexprKW)
