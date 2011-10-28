@@ -44,8 +44,8 @@ struct EnvType
   BaseGDL** PP() const { return pp;}
   BaseGDL*& PRef() { return p;}
   BaseGDL**& PPRef() { return pp;}
-  BaseGDL* const& PRefC() const { return p;}
-  BaseGDL** const& PPRefC() const { return pp;}
+  BaseGDL* const& PRefConst() const { return p;}
+  BaseGDL** const& PPRefConst() const { return pp;}
 
 private:
   BaseGDL* p;
@@ -123,7 +123,24 @@ T& operator[]( SizeT i)
 assert( i<sz);
 return eArr[i];
 }
-  
+bool Contains( BaseGDL* p) const
+{
+  for( SizeT i=0; i<sz; ++i)
+    {
+      if( eArr[i].P() == p) return true;
+      if( eArr[i].IsPP() && *(eArr[i].PP()) == p) return true;
+    }
+  return false;
+}
+void RemoveLoc( BaseGDL* p) 
+  {
+    for( SizeT i=0; i<sz; ++i)
+      if( eArr[i].P() == p) 
+	{
+	  eArr[i].NullP(); 
+	  return;
+	}
+  }
 SizeT size() const { return sz;}
 iterator begin()  { return &eArr[0];}
 iterator end()  { return &eArr[sz];}
@@ -135,28 +152,28 @@ const T& back() const { return eArr[sz-1];}
 void pop_back() { --sz;}
 void resize( SizeT newSz)
 {
-	assert( newSz >= sz);
-	if( newSz > actLen) // should only happen rarely
-	{
-		actLen = newSz; 
-		T* newArr = new T[ actLen];
-		SizeT i=0;
-		for( ; i<sz; ++i)
-			newArr[i] = eArr[i];
-		for( ; i<newSz; ++i)
-			{
-				newArr[i].Null();
-			}
-		if( eArr != buf)
-			delete[] eArr;
-		eArr = newArr;
-		sz = newSz;
-		return;
-	}
-	for( ; sz<newSz; ++sz)
-		{
-			eArr[sz].Null();
-		}
+  assert( newSz >= sz);
+  if( newSz > actLen) // should only happen rarely
+    {
+      actLen = newSz; 
+      T* newArr = new T[ actLen];
+      SizeT i=0;
+      for( ; i<sz; ++i)
+	      newArr[i] = eArr[i];
+      for( ; i<newSz; ++i)
+	      {
+		      newArr[i].Null();
+	      }
+      if( eArr != buf)
+	      delete[] eArr;
+      eArr = newArr;
+      sz = newSz;
+      return;
+    }
+  for( ; sz<newSz; ++sz)
+    {
+      eArr[sz].Null();
+    }
 // 	for( SizeT i=sz; i<newSz; ++i)
 // 		{
 // 			eArr[i].Null();
@@ -187,27 +204,17 @@ public:
 
   bool InLoc( BaseGDL** p) const
   {
-    return ( !env.empty() && p >= &env.front().PRefC() && p <= &env.back().PRefC());
+    return ( !env.empty() && p >= &env.front().PRefConst() && p <= &env.back().PRefConst());
   }
 
   bool Contains( BaseGDL* p) const
   {
-    for( SizeT i=0; i<env.size(); i++)
-      {
-		if( env[i].P() == p) return true;
-		if( env[i].IsPP() && *(env[i].PP()) == p) return true;
-      }
-    return false;
+    return env.Contains( p);
   }
 
   void RemoveLoc( BaseGDL* p) 
   {
-    for( SizeT i=0; i<env.size(); i++)
-      if( env[i].P() == p) 
-	{
-	  env[i].NullP(); 
-	  return;
-	}
+    env.RemoveLoc( p);
   }
 
   void push_back( BaseGDL* p)

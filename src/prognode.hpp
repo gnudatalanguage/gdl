@@ -33,24 +33,24 @@
 class ProgNode;
 typedef ProgNode* ProgNodeP;
 
-inline bool* GetNonCopyNodeLookupArray()
-{
-static bool nonCopyNodeLookupArray[ GDLTokenTypes::MAX_TOKEN_NUMBER];
-for( int i=0; i<GDLTokenTypes::MAX_TOKEN_NUMBER; ++i)
-	nonCopyNodeLookupArray[ i] = false;
-nonCopyNodeLookupArray[ GDLTokenTypes::VAR] = true;
-nonCopyNodeLookupArray[ GDLTokenTypes::VARPTR] = true;
-nonCopyNodeLookupArray[ GDLTokenTypes::DEREF] = true;
-nonCopyNodeLookupArray[ GDLTokenTypes::CONSTANT] = true;
-nonCopyNodeLookupArray[ GDLTokenTypes::SYSVAR] = true;
-return nonCopyNodeLookupArray;
-}
+// inline bool* GetNonCopyNodeLookupArray()
+// {
+// static bool nonCopyNodeLookupArray[ GDLTokenTypes::MAX_TOKEN_NUMBER];
+// for( int i=0; i<GDLTokenTypes::MAX_TOKEN_NUMBER; ++i)
+// 	nonCopyNodeLookupArray[ i] = false;
+// nonCopyNodeLookupArray[ GDLTokenTypes::VAR] = true;
+// nonCopyNodeLookupArray[ GDLTokenTypes::VARPTR] = true;
+// nonCopyNodeLookupArray[ GDLTokenTypes::DEREF] = true;
+// nonCopyNodeLookupArray[ GDLTokenTypes::CONSTANT] = true;
+// nonCopyNodeLookupArray[ GDLTokenTypes::SYSVAR] = true;
+// return nonCopyNodeLookupArray;
+// }
+bool* GetNonCopyNodeLookupArray();
 
 inline bool NonCopyNode( int type)
 {
   static bool* nonCopyNodeLookupArray = GetNonCopyNodeLookupArray();
   return nonCopyNodeLookupArray[ type];
-  
 //   return 
 //     (type == GDLTokenTypes::VAR) ||
 //     (type == GDLTokenTypes::VARPTR) ||
@@ -106,12 +106,12 @@ protected:
     int        targetIx;   // Index into label list
     int        structDefined; // struct contains entry with no tag name
     int        compileOpt; // for PRO and FUNCTION nodes
-	int        forLoopIx; // acessing loop variables
+    int        forLoopIx; // acessing loop variables
   };
 
-	void SetType( int tt, const std::string& txt) { ttype = tt; text = txt;} 
+  void SetType( int tt, const std::string& txt) { ttype = tt; text = txt;} 
 
-	static ProgNodeP GetNULLProgNodeP(); 
+  static ProgNodeP GetNULLProgNodeP(); 
 
 private:
   // from DNode (see there)
@@ -291,6 +291,7 @@ public:
 	friend class REF_EXPRNode;
 	friend class ParameterNode;
 	friend class ARRAYEXPRNode;
+	friend class SYSVARNode;
 };
 
 

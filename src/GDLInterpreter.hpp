@@ -3,7 +3,7 @@
 
 #include <antlr/config.hpp>
 #include "GDLInterpreterTokenTypes.hpp"
-/* $ANTLR 2.7.6 (20071205): "gdlc.i.g" -> "GDLInterpreter.hpp"$ */
+/* $ANTLR 2.7.7 (20110618): "gdlc.i.g" -> "GDLInterpreter.hpp"$ */
 #include <antlr/TreeParser.hpp>
 
 
@@ -272,33 +272,33 @@ public:
     }
 
    static void DecRef( DPtr id)
-    {
-        if( id != 0)
-            {
+   {
+       if( id != 0)
+           {
 #ifdef GDL_DEBUG_HEAP
-                std::cout << "-- <PtrHeapVar" << id << ">" << std::endl; 
+               std::cout << "-- <PtrHeapVar" << id << ">" << std::endl; 
 #endif
-                HeapT::iterator it=heap.find( id);
-                if( it != heap.end()) 
-                    { 
-                        if( (*it).second.Dec())
-                            {
+               HeapT::iterator it=heap.find( id);
+               if( it != heap.end()) 
+                   { 
+                       if( (*it).second.Dec())
+                           {
 #ifdef GDL_DEBUG_HEAP
-                                std::cout << "Out of scope (garbage collected): <PtrHeapVar" << id 
-                                          << ">"
-                                          << " at: " << callStack.back()->GetProName()
-                                          << "  line: " << callStack.back()->GetLineNumber()
-                                          << std::endl; 
+                               std::cout << "Out of scope (garbage collected): <PtrHeapVar" << id 
+                                         << ">"
+                                         << " at: " << callStack.back()->GetProName()
+                                         << "  line: " << callStack.back()->GetLineNumber()
+                                         << std::endl; 
 #endif
-                                FreeHeapDirect( id, it);
-                            }
+                               FreeHeapDirect( id, it);
+                           }
 #ifdef GDL_DEBUG_HEAP
-                        else
-std::cout << "<PtrHeapVar" << id << "> = " << (*it).second.Count() << std::endl; 
+                       else
+                           std::cout << "<PtrHeapVar" << id << "> = " << (*it).second.Count() << std::endl; 
 #endif
-                    }
-            }
-    }
+                   }
+           }
+   }
    static void DecRef( DPtrGDL* p)
     {
         SizeT nEl=p->N_Elements();
@@ -322,10 +322,10 @@ std::cout << "-- <ObjHeapVar" << id << ">" << std::endl;
                            {
 #ifdef GDL_DEBUG_HEAP
                                std::cout << "Out of scope (garbage collected): <ObjHeapVar" << id 
-                                          << ">"
-                                          << " at: " << callStack.back()->GetProName()
-                                          << "  line: " << callStack.back()->GetLineNumber()
-                                          << std::endl; 
+                                         << ">"
+                                         << " at: " << callStack.back()->GetProName()
+                                         << "  line: " << callStack.back()->GetLineNumber()
+                                         << std::endl; 
 #endif
                                callStack.back()->ObjCleanup( id);
 //                             FreeObjHeapDirect( id, it);
@@ -726,18 +726,8 @@ public:
 	public:  BaseGDL*  call_fun(ProgNodeP _t);
 	public:  BaseGDL**  call_lfun(ProgNodeP _t);
 	public: void call_pro(ProgNodeP _t);
-	public:  RetCode  unused_block(ProgNodeP _t);
-	public:  RetCode  unused_switch_statement(ProgNodeP _t);
-	public: BaseGDL*  expr(ProgNodeP _t);
-	public:  RetCode  unused_case_statement(ProgNodeP _t);
-	public:  RetCode  unused_repeat_statement(ProgNodeP _t);
-	public:  RetCode  unused_repeat_loop_statement(ProgNodeP _t);
-	public:  RetCode  while_statement(ProgNodeP _t);
-	public:  RetCode  for_statement(ProgNodeP _t);
-	public:  RetCode  foreach_statement(ProgNodeP _t);
-	public:  RetCode  if_statement(ProgNodeP _t);
-	public:  RetCode  if_else_statement(ProgNodeP _t);
 	public: BaseGDL**  l_deref(ProgNodeP _t);
+	public: BaseGDL*  expr(ProgNodeP _t);
 	public: BaseGDL**  l_ret_expr(ProgNodeP _t);
 	public:  BaseGDL**  l_arrayexpr_mfcall_as_mfcall(ProgNodeP _t);
 	public:  BaseGDL**  l_function_call(ProgNodeP _t);
@@ -795,16 +785,13 @@ public:
 	);
 	public: BaseGDL*  dot_expr(ProgNodeP _t);
 	public: BaseGDL*  assign_expr(ProgNodeP _t);
-	public:  BaseGDL*  function_call(ProgNodeP _t);
+	public:  BaseGDL*  unused_function_call(ProgNodeP _t);
 	public:  BaseGDL*  lib_function_call_retnew(ProgNodeP _t);
 	public: BaseGDL*  constant(ProgNodeP _t);
 	public: BaseGDL*  simple_var(ProgNodeP _t);
 	public: BaseGDL*  sys_var(ProgNodeP _t);
 	public: BaseGDL**  l_arrayexpr_mfcall_as_arrayexpr(ProgNodeP _t,
 		BaseGDL* right
-	);
-	public:  BaseGDL**  ref_parameter(ProgNodeP _t,
-		EnvBaseT* actEnv
 	);
 	public: void parameter_def_n_elements(ProgNodeP _t,
 		EnvBaseT* actEnv

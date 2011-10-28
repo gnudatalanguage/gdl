@@ -231,7 +231,30 @@ BaseGDL* SYSVARNode::EvalNC()
   return this->var->Data(); 
 }
 
-
+BaseGDL** SYSVARNode::LEval()
+{
+  ProgNodeP sysVar = this;
+  //match(antlr::RefAST(_t),SYSVAR);
+  if( sysVar->var == NULL) 
+  {
+    sysVar->var=FindInVarList(sysVarList,sysVar->getText());
+    if( sysVar->var == NULL)		    
+      throw GDLException( sysVar, "Not a legal system variable: !"+
+	  sysVar->getText(),true,false);
+    
+    // note: this works, because system variables are never 
+    //       passed by reference
+    SizeT rdOnlySize = sysVarRdOnlyList.size();
+    for( SizeT i=0; i<rdOnlySize; ++i)
+      if( sysVarRdOnlyList[ i] == sysVar->var)
+	throw GDLException( this, 
+	"Attempt to write to a readonly variable: !"+
+	sysVar->getText(),true,false);
+  }  
+  interpreter->SetRetTree( sysVar->getNextSibling());
+  // system variables are always defined
+  return &sysVar->var->Data();
+}
 
 
 BaseGDL* DEREFNode::EvalNC()
@@ -241,11 +264,11 @@ BaseGDL* DEREFNode::EvalNC()
   ProgNodeP evalExpr = this->getFirstChild();
   if( NonCopyNode( evalExpr->getType()))
   {
-	e1 = evalExpr->EvalNC();
+    e1 = evalExpr->EvalNC();
   }
   else
   {
-	e1 = evalExpr->Eval();
+    e1 = evalExpr->Eval();
     e1_guard.reset(e1);
   }
 
@@ -269,6 +292,71 @@ BaseGDL* DEREFNode::EvalNC()
       throw GDLException( this, "Invalid pointer: "+interpreter->Name(e1),true,false);
     }
 }
+
+BaseGDL** DEREFNode::LEval()
+{
+  ProgNodeP retTree = this->getNextSibling();
+
+  // use new env if set (during parameter parsing)
+  EnvBaseT* actEnv = DInterpreter::CallStackBack()->GetNewEnv();
+  if( actEnv == NULL) actEnv = DInterpreter::CallStackBack();
+
+  assert( actEnv != NULL);
+
+  auto_ptr<BaseGDL> e1_guard;
+  BaseGDL* e1;
+  ProgNodeP evalExpr = this->getFirstChild();
+  if( NonCopyNode( evalExpr->getType()))
+    {
+      e1 = evalExpr->EvalNC();
+    }
+  else if( evalExpr->getType() ==  GDLTokenTypes::FCALL_LIB)
+    {
+      e1=interpreter->lib_function_call(evalExpr);
+
+      if( e1 == NULL) // ROUTINE_NAMES
+	      throw GDLException( evalExpr, "Undefined return value", true, false);
+      
+      if( !DInterpreter::CallStackBack()->Contains( e1)) 
+	{
+  	  actEnv->Guard( e1); 
+	}
+    }
+  else
+    {
+      e1 = evalExpr->Eval();
+      actEnv->Guard( e1); 
+    }
+
+  if( e1 == NULL || e1->Type() != PTR)
+  throw GDLException( evalExpr, "Pointer type required"
+		      " in this context: "+interpreter->Name(e1),true,false);
+
+  DPtrGDL* ptr=static_cast<DPtrGDL*>(e1);
+
+  DPtr sc; 
+  if( !ptr->Scalar(sc))
+  throw GDLException( this, "Expression must be a "
+  "scalar in this context: "+interpreter->Name(e1),true,false);
+  if( sc == 0)
+  throw GDLException( this, "Unable to dereference"
+  " NULL pointer: "+interpreter->Name(e1),true,false);
+  
+  BaseGDL** res;
+  try{
+    res = &interpreter->GetHeap(sc);
+  }
+  catch( DInterpreter::HeapException)
+  {
+    throw GDLException( this, "Invalid pointer: "+interpreter->Name(e1),true,false);
+  }
+  
+  interpreter->SetRetTree( retTree);
+  return res;
+}
+
+
+
 
 
 
@@ -1995,30 +2083,30 @@ if( e1->StrictScalar())
       // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
 		
-		ProgNodeP _t = this->getFirstChild();
+    ProgNodeP _t = this->getFirstChild();
 
-		BaseGDL* self=ProgNode::interpreter->expr(_t);
-		auto_ptr<BaseGDL> self_guard(self);
-		
-		_t = _t->getNextSibling();
-		//match(antlr::RefAST(_t),IDENTIFIER);
+    BaseGDL* self=ProgNode::interpreter->expr(_t);
+    auto_ptr<BaseGDL> self_guard(self);
+    
+    _t = _t->getNextSibling();
+    //match(antlr::RefAST(_t),IDENTIFIER);
 
-		EnvUDT* newEnv=new EnvUDT( self, _t);
-		
-		self_guard.release();
-		
-		_t = _t->getNextSibling();
-		
-		ProgNode::interpreter->parameter_def(_t, newEnv);
+    EnvUDT* newEnv=new EnvUDT( self, _t);
+    
+    self_guard.release();
+    
+    _t = _t->getNextSibling();
+    
+    ProgNode::interpreter->parameter_def(_t, newEnv);
   	
-  	// push environment onto call stack
-	ProgNode::interpreter->CallStack().push_back(newEnv);
-	
-	// make the call
-	BaseGDL* res=ProgNode::interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
-	
-	ProgNode::interpreter->SetRetTree( this->getNextSibling());
-	return res;
+    // push environment onto call stack
+    ProgNode::interpreter->CallStack().push_back(newEnv);
+    
+    // make the call
+    BaseGDL* res=ProgNode::interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+    
+    ProgNode::interpreter->SetRetTree( this->getNextSibling());
+    return res;
   }
 
   BaseGDL** MFCALL_PARENTNode::LEval()
@@ -2057,35 +2145,35 @@ if( e1->StrictScalar())
 
   BaseGDL* MFCALL_PARENTNode::Eval()
   {
-      // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+    // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
-// 		match(antlr::RefAST(_t),MFCALL_PARENT);
-		ProgNodeP _t = this->getFirstChild();
-		BaseGDL* self=ProgNode::interpreter->expr(_t);
-		auto_ptr<BaseGDL> self_guard(self);
-		
-		_t = _t->getNextSibling();
-		ProgNodeP parent = _t;
+//  match(antlr::RefAST(_t),MFCALL_PARENT);
+    ProgNodeP _t = this->getFirstChild();
+    BaseGDL* self=ProgNode::interpreter->expr(_t);
+    auto_ptr<BaseGDL> self_guard(self);
+    
+    _t = _t->getNextSibling();
+    ProgNodeP parent = _t;
 // 		match(antlr::RefAST(_t),IDENTIFIER);
-		_t = _t->getNextSibling();
-		ProgNodeP p = _t;
+    _t = _t->getNextSibling();
+    ProgNodeP p = _t;
 // 		match(antlr::RefAST(_t),IDENTIFIER);
-		_t = _t->getNextSibling();
+    _t = _t->getNextSibling();
 
-		EnvUDT* newEnv=new EnvUDT( self, p,	parent->getText());
-		
-		self_guard.release();
-		
-		ProgNode::interpreter->parameter_def(_t, newEnv);
+    EnvUDT* newEnv=new EnvUDT( self, p,	parent->getText());
+    
+    self_guard.release();
+    
+    ProgNode::interpreter->parameter_def(_t, newEnv);
   	
-  	// push environment onto call stack
-	ProgNode::interpreter->CallStack().push_back(newEnv);
-	
-	// make the call
-	BaseGDL* res=ProgNode::interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
-	
-	ProgNode::interpreter->SetRetTree( this->getNextSibling());
-	return res;
+    // push environment onto call stack
+    ProgNode::interpreter->CallStack().push_back(newEnv);
+    
+    // make the call
+    BaseGDL* res=ProgNode::interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+    
+    ProgNode::interpreter->SetRetTree( this->getNextSibling());
+    return res;
   }
 
   BaseGDL** FCALLNode::LEval()
@@ -2116,21 +2204,21 @@ if( e1->StrictScalar())
   {
       // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
-		ProgNode::interpreter->SetFunIx( this);
-		
-		EnvUDT* newEnv=new EnvUDT( this, funList[this->funIx]);
-		
-		ProgNode::interpreter->parameter_def(this->getFirstChild(), newEnv);
+    ProgNode::interpreter->SetFunIx( this);
+    
+    EnvUDT* newEnv=new EnvUDT( this, funList[this->funIx]);
+    
+    ProgNode::interpreter->parameter_def(this->getFirstChild(), newEnv);
 
-	// push environment onto call stack
-	ProgNode::interpreter->CallStack().push_back(newEnv);
-	
-	// make the call
-	BaseGDL*
-	res=ProgNode::interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
-	
-	ProgNode::interpreter->SetRetTree( this->getNextSibling());
-	return res;
+    // push environment onto call stack
+    ProgNode::interpreter->CallStack().push_back(newEnv);
+    
+    // make the call
+    BaseGDL*
+    res=ProgNode::interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+    
+    ProgNode::interpreter->SetRetTree( this->getNextSibling());
+    return res;
   }
 
   BaseGDL* ARRAYEXPR_MFCALLNode::Eval()
@@ -2138,63 +2226,63 @@ if( e1->StrictScalar())
       // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
 //		match(antlr::RefAST(_t),ARRAYEXPR_MFCALL);
-	ProgNodeP mark = this->getFirstChild();
+    ProgNodeP mark = this->getFirstChild();
 
-	ProgNodeP _t = mark->getNextSibling(); // skip DOT
+    ProgNodeP _t = mark->getNextSibling(); // skip DOT
 
-	BaseGDL* self=ProgNode::interpreter->expr(_t);
-	auto_ptr<BaseGDL> self_guard(self);
+    BaseGDL* self=ProgNode::interpreter->expr(_t);
+    auto_ptr<BaseGDL> self_guard(self);
 
-	ProgNodeP mp2 = _t->getNextSibling();
-	//match(antlr::RefAST(_t),IDENTIFIER);
+    ProgNodeP mp2 = _t->getNextSibling();
+    //match(antlr::RefAST(_t),IDENTIFIER);
 
-	_t = mp2->getNextSibling();
+    _t = mp2->getNextSibling();
 
-	BaseGDL* res;
+    BaseGDL* res;
 
-	EnvUDT* newEnv;
-	try {
-		newEnv=new EnvUDT( self, mp2);
-		self_guard.release();
-	}
-	catch( GDLException& ex)
-	{
-		goto tryARRAYEXPR;
-	}
+    EnvUDT* newEnv;
+    try {
+	    newEnv=new EnvUDT( self, mp2);
+	    self_guard.release();
+    }
+    catch( GDLException& ex)
+    {
+	    goto tryARRAYEXPR;
+    }
 
-	ProgNode::interpreter->parameter_def(_t, newEnv);
+    ProgNode::interpreter->parameter_def(_t, newEnv);
 
-	// push environment onto call stack
-	ProgNode::interpreter->CallStack().push_back(newEnv);
-	
-	// make the call
-	res=
-		ProgNode::interpreter->
-			call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
-	
-	ProgNode::interpreter->SetRetTree( this->getNextSibling());
-	return res;
-	
-	tryARRAYEXPR:;
-	//_t = mark;
-	
-	ProgNodeP dot = mark;
-	// 	match(antlr::RefAST(_t),DOT);
-	_t = mark->getFirstChild();
-		
-	SizeT nDot=dot->nDot;
-	auto_ptr<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
-		
-	ProgNode::interpreter->r_dot_array_expr(_t, aD.get());
-	_t = _t->getNextSibling();
-	for (; _t != NULL;) {
-	ProgNode::interpreter->tag_array_expr(_t, aD.get());
-	_t = _t->getNextSibling();
-	}
-	res= aD->Resolve();
-	
-	ProgNode::interpreter->SetRetTree( this->getNextSibling());
-	return res;
+    // push environment onto call stack
+    ProgNode::interpreter->CallStack().push_back(newEnv);
+    
+    // make the call
+    res=
+	    ProgNode::interpreter->
+		    call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+    
+    ProgNode::interpreter->SetRetTree( this->getNextSibling());
+    return res;
+    
+    tryARRAYEXPR:;
+    //_t = mark;
+    
+    ProgNodeP dot = mark;
+    // 	match(antlr::RefAST(_t),DOT);
+    _t = mark->getFirstChild();
+	    
+    SizeT nDot=dot->nDot;
+    auto_ptr<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
+	    
+    ProgNode::interpreter->r_dot_array_expr(_t, aD.get());
+    _t = _t->getNextSibling();
+    for (; _t != NULL;) {
+    ProgNode::interpreter->tag_array_expr(_t, aD.get());
+    _t = _t->getNextSibling();
+    }
+    res= aD->Resolve();
+    
+    ProgNode::interpreter->SetRetTree( this->getNextSibling());
+    return res;
   }
 
   BaseGDL** ARRAYEXPR_MFCALLNode::LEval()
@@ -2232,54 +2320,72 @@ if( e1->StrictScalar())
 	//	match(antlr::RefAST(_t),ARRAYEXPR);
 	ProgNodeP	_t = this->getFirstChild();
 
-	switch ( _t->getType()) {
-		case GDLTokenTypes::VAR:
-		case GDLTokenTypes::CONSTANT:
-		case GDLTokenTypes::DEREF:
-		case GDLTokenTypes::SYSVAR:
-		case GDLTokenTypes::VARPTR:
-		{
-			r=_t->EvalNC();
-			//r=indexable_expr(_t);
-			break;
-		}
-		case GDLTokenTypes::FCALL_LIB:
-		{
-			// better than Eval(): no copying here if not necessary
-			r=ProgNode::interpreter->lib_function_call(_t);
+	if( NonCopyNode(_t->getType()))
+	{
+	    r=_t->EvalNC();
+	    //r=indexable_expr(_t);
+	}
+	else if( _t->getType() == GDLTokenTypes::FCALL_LIB)
+	{
+	    // better than Eval(): no copying here if not necessary
+	    r=ProgNode::interpreter->lib_function_call(_t);
 
-			if( !ProgNode::interpreter->CallStack().back()->Contains( r))
-			r_guard.reset( r); // guard if no global data
-
-			break;
-		}
-		// 	case ASSIGN:
-		// 	case ASSIGN_REPLACE:
-		// 	case ASSIGN_ARRAYEXPR_MFCALL:
-		// 	case ARRAYDEF:
-		// 	case ARRAYEXPR:
-		// 	case ARRAYEXPR_MFCALL:
-		// 	case EXPR:
-		// 	case FCALL:
-		// 	case FCALL_LIB_RETNEW:
-		// 	case MFCALL:
-		// 	case MFCALL_PARENT:
-		// 	case NSTRUC:
-		// 	case NSTRUC_REF:
-		// 	case POSTDEC:
-		// 	case POSTINC:
-		// 	case STRUC:
-		// 	case DEC:
-		// 	case INC:
-		// 	case DOT:
-		// 	case QUESTION:
-		default:
-		{
-			r=ProgNode::interpreter->indexable_tmp_expr(_t);
-			r_guard.reset( r);
-			break;
-		}
-	} // switch
+	    if( !ProgNode::interpreter->CallStack().back()->Contains( r))
+	      r_guard.reset( r); // guard if no global data	  
+	}
+	else
+	{
+	    r=ProgNode::interpreter->indexable_tmp_expr(_t);
+	    r_guard.reset( r);  
+	}
+// 	switch ( _t->getType()) {
+// 		case GDLTokenTypes::VAR:
+// 		case GDLTokenTypes::CONSTANT:
+// 		case GDLTokenTypes::DEREF:
+// 		case GDLTokenTypes::SYSVAR:
+// 		case GDLTokenTypes::VARPTR:
+// 		{
+// 			r=_t->EvalNC();
+// 			//r=indexable_expr(_t);
+// 			break;
+// 		}
+// 		case GDLTokenTypes::FCALL_LIB:
+// 		{
+// 			// better than Eval(): no copying here if not necessary
+// 			r=ProgNode::interpreter->lib_function_call(_t);
+// 
+// 			if( !ProgNode::interpreter->CallStack().back()->Contains( r))
+// 			r_guard.reset( r); // guard if no global data
+// 
+// 			break;
+// 		}
+// 		// 	case ASSIGN:
+// 		// 	case ASSIGN_REPLACE:
+// 		// 	case ASSIGN_ARRAYEXPR_MFCALL:
+// 		// 	case ARRAYDEF:
+// 		// 	case ARRAYEXPR:
+// 		// 	case ARRAYEXPR_MFCALL:
+// 		// 	case EXPR:
+// 		// 	case FCALL:
+// 		// 	case FCALL_LIB_RETNEW:
+// 		// 	case MFCALL:
+// 		// 	case MFCALL_PARENT:
+// 		// 	case NSTRUC:
+// 		// 	case NSTRUC_REF:
+// 		// 	case POSTDEC:
+// 		// 	case POSTINC:
+// 		// 	case STRUC:
+// 		// 	case DEC:
+// 		// 	case INC:
+// 		// 	case DOT:
+// 		// 	case QUESTION:
+// 		default:
+// 		{
+// 			r=ProgNode::interpreter->indexable_tmp_expr(_t);
+// 			r_guard.reset( r);
+// 			break;
+// 		}
+// 	} // switch
 		
 	_t = _t->getNextSibling();
 	
@@ -2287,10 +2393,9 @@ if( e1->StrictScalar())
 	//	match(antlr::RefAST(_t),ARRAYIX);
 	ArrayIndexListT* aL = _t->arrIxList;
 	assert( aL != NULL);
-
-	_t = _t->getFirstChild();
-		
 	nExpr = aL->NParam();
+		
+	_t = _t->getFirstChild();
 		
 	if( nExpr == 0)
 	{
@@ -2299,66 +2404,82 @@ if( e1->StrictScalar())
 		
 	for (;;)
 	{
-		switch ( _t->getType()) {
-		case GDLTokenTypes::VAR:
-		case GDLTokenTypes::CONSTANT:
-		case GDLTokenTypes::DEREF:
-		case GDLTokenTypes::SYSVAR:
-		case GDLTokenTypes::VARPTR:
-		{
-			s=_t->EvalNC();//indexable_expr(_t);
-			_t = _t->getNextSibling();//_retTree;
-			break;
-		}
-		case GDLTokenTypes::FCALL_LIB:
-		{
-			s=ProgNode::interpreter->lib_function_call(_t);
-			_t = _t->getNextSibling();
+	  if( NonCopyNode(_t->getType()))
+	  {
+	      s=_t->EvalNC();//indexable_expr(_t);
+	  }
+	  else if( _t->getType() == GDLTokenTypes::FCALL_LIB)
+	  {
+	      s=ProgNode::interpreter->lib_function_call(_t);
+	      if( !ProgNode::interpreter->CallStack().back()->Contains( s))
+		exprList.push_back( s);
+	  }
+	  else
+	  {
+	      s=ProgNode::interpreter->indexable_tmp_expr(_t);
+	      exprList.push_back( s);
+	  }
+// 	switch ( _t->getType()) {
+// 	case GDLTokenTypes::VAR:
+// 	case GDLTokenTypes::CONSTANT:
+// 	case GDLTokenTypes::DEREF:
+// 	case GDLTokenTypes::SYSVAR:
+// 	case GDLTokenTypes::VARPTR:
+// 	{
+// 		s=_t->EvalNC();//indexable_expr(_t);
+// 		_t = _t->getNextSibling();//_retTree;
+// 		break;
+// 	}
+// 	case GDLTokenTypes::FCALL_LIB:
+// 	{
+// 		s=ProgNode::interpreter->lib_function_call(_t);
+// 		_t = _t->getNextSibling();
+// 
+// 		if( !ProgNode::interpreter->CallStack().back()->Contains( s))
+// 		exprList.push_back( s);
+// 
+// 		break;
+// 	}
+// 	// 			case ASSIGN:
+// 	// 			case ASSIGN_REPLACE:
+// 	// 			case ASSIGN_ARRAYEXPR_MFCALL:
+// 	// 			case ARRAYDEF:
+// 	// 			case ARRAYEXPR:
+// 	// 			case ARRAYEXPR_MFCALL:
+// 	// 			case EXPR:
+// 	// 			case FCALL:
+// 	// 			case FCALL_LIB_RETNEW:
+// 	// 			case MFCALL:
+// 	// 			case MFCALL_PARENT:
+// 	// 			case NSTRUC:
+// 	// 			case NSTRUC_REF:
+// 	// 			case POSTDEC:
+// 	// 			case POSTINC:
+// 	// 			case STRUC:
+// 	// 			case DEC:
+// 	// 			case INC:
+// 	// 			case DOT:
+// 	// 			case QUESTION:
+// 	default:
+// 		{
+// 			s=ProgNode::interpreter->indexable_tmp_expr(_t);
+// 			_t = _t->getNextSibling();
+// 			exprList.push_back( s);
+// 			break;
+// 		}
+// 	} // switch
 
-			if( !ProgNode::interpreter->CallStack().back()->Contains( s))
-			exprList.push_back( s);
+	  ixExprList.push_back( s);
+	  if( ixExprList.size() == nExpr)
+			  break; // for -> finish
 
-			break;
-		}
-		// 			case ASSIGN:
-		// 			case ASSIGN_REPLACE:
-		// 			case ASSIGN_ARRAYEXPR_MFCALL:
-		// 			case ARRAYDEF:
-		// 			case ARRAYEXPR:
-		// 			case ARRAYEXPR_MFCALL:
-		// 			case EXPR:
-		// 			case FCALL:
-		// 			case FCALL_LIB_RETNEW:
-		// 			case MFCALL:
-		// 			case MFCALL_PARENT:
-		// 			case NSTRUC:
-		// 			case NSTRUC_REF:
-		// 			case POSTDEC:
-		// 			case POSTINC:
-		// 			case STRUC:
-		// 			case DEC:
-		// 			case INC:
-		// 			case DOT:
-		// 			case QUESTION:
-		default:
-			{
-				s=ProgNode::interpreter->indexable_tmp_expr(_t);
-				_t = _t->getNextSibling();
-				exprList.push_back( s);
-				break;
-			}
-		} // switch
-
-		ixExprList.push_back( s);
-		if( ixExprList.size() == nExpr)
-				break; // for -> finish
+  	  _t = _t->getNextSibling(); // set to next index
 	} // for
 
 	empty:
 
 	// better done here because of recursion
 	guard.reset(aL);
-	
 	res = aL->Index( r, ixExprList);
 
 	ProgNode::interpreter->SetRetTree( this->getNextSibling());

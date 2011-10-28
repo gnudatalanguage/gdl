@@ -181,6 +181,7 @@ class SYSVARNode: public LeafNode
 public:
   SYSVARNode( const RefDNode& refNode): LeafNode( refNode)
   {}
+  BaseGDL** LEval();
   BaseGDL* EvalNC();
 };
 class DEREFNode: public LeafNode
@@ -188,6 +189,7 @@ class DEREFNode: public LeafNode
 public:
   DEREFNode( const RefDNode& refNode): LeafNode( refNode)
   {}
+  BaseGDL** LEval();
   BaseGDL* EvalNC();
 };
 class CONSTANTNode: public LeafNode

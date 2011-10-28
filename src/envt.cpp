@@ -33,6 +33,68 @@ DInterpreter* EnvBaseT::interpreter;
 
 // EnvBaseT::ContainerT EnvBaseT::toDestroy;
 
+// EnvT::new & delete 
+deque< void*> EnvT::freeList;
+const int multiAllocEnvT = 4;
+void* EnvT::operator new( size_t bytes)
+{
+  assert( bytes == sizeof( EnvT));
+  if( freeList.size() > 0)
+  {
+    void* res = freeList.back();
+    freeList.pop_back();
+    return res;	
+  }
+//   cout << "*** Resize EnvT " << endl;
+  const size_t newSize = multiAllocEnvT - 1;
+  freeList.resize( newSize);
+  char* res = static_cast< char*>( malloc( sizeof( EnvT) * multiAllocEnvT)); // one more than newSize
+  for( size_t i=0; i<newSize; ++i)
+  {
+    freeList[ i] = res;
+    res += sizeof( EnvT);
+  } 
+  // the one more
+  return res;
+}
+void EnvT::operator delete( void *ptr)
+{
+freeList.push_back( ptr);
+}
+
+// EnvUDT::new & delete 
+deque< void*> EnvUDT::freeList;
+const int multiAllocEnvUDT = 16;
+void* EnvUDT::operator new( size_t bytes)
+{
+  assert( bytes == sizeof( EnvUDT));
+  if( freeList.size() > 0)
+  {
+    void* res = freeList.back();
+    freeList.pop_back();
+    return res;	
+  }
+//   cout << "*** Resize EnvUDT " << endl;
+  const size_t newSize = multiAllocEnvUDT - 1;
+  freeList.resize( newSize);
+  char* res = static_cast< char*>( malloc( sizeof( EnvUDT) * multiAllocEnvUDT)); // one more than newSize
+  for( size_t i=0; i<newSize; ++i)
+  {
+    freeList[ i] = res;
+    res += sizeof( EnvUDT);
+  } 
+  // the one more
+  return res;
+}
+void EnvUDT::operator delete( void *ptr)
+{
+freeList.push_back( ptr);
+}
+
+
+
+
+
 EnvBaseT::EnvBaseT( ProgNodeP cN, DSub* pro_): 
   env(), 
   toDestroy(),

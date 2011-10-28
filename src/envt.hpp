@@ -374,6 +374,13 @@ const T& back() const { return eArr[sz-1];}
 // for UD subroutines (written in GDL) ********************************
 class EnvUDT: public EnvBaseT
 {
+static std::deque< void*> freeList;
+
+public:
+static 	void* operator new( size_t bytes);
+static	void operator delete( void *ptr);
+
+private:
 ForInfoListT<ForLoopInfoT, 32> forLoopInfo;
 // std::vector<ForLoopInfoT> forLoopInfo;
 
@@ -442,6 +449,12 @@ public:
 // this contains the library function API ***********************
 class EnvT: public EnvBaseT
 {
+static std::deque< void*> freeList;
+
+public:
+static 	void* operator new( size_t bytes);
+static	void operator delete( void *ptr);
+
   // Please use non library API (see below) function with caution
   // (most of them can be ignored by library function authors)
 

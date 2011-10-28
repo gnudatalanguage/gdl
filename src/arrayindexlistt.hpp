@@ -1099,12 +1099,12 @@ public:
     SizeT nScalar  = 0;
     for( SizeT i=0; (i+1)<ixList.size(); ++i)
       {
-		// note: here we examine the actual type
-		if( ArrayIndexScalarID == ixList[i]->Type() ||
-			ArrayIndexScalarVPID == ixList[i]->Type() || // ? (from MakeArrayIndex)
-			CArrayIndexScalarID == ixList[i]->Type() ) nScalar++;
-		else if( ArrayIndexIndexedID == ixList[i]->Type() ||
-			CArrayIndexIndexedID == ixList[i]->Type()) nIndexed++;
+	// note: here we examine the actual type
+	if( ArrayIndexScalarID == ixList[i]->Type() ||
+		ArrayIndexScalarVPID == ixList[i]->Type() || // ? (from MakeArrayIndex)
+		CArrayIndexScalarID == ixList[i]->Type() ) nScalar++;
+	else if( ArrayIndexIndexedID == ixList[i]->Type() ||
+		CArrayIndexIndexedID == ixList[i]->Type()) nIndexed++;
       }
     if( nScalar == ixList.size()-1)
       accessTypeAssocInit = ALLONE;
@@ -1113,26 +1113,28 @@ public:
     else if( nScalar + nIndexed < ixList.size()-1)
       accessTypeAssocInit = NORMAL;
     else
-      accessTypeAssocInit = INDEXED_ONE;
+      accessTypeAssocInit = INDEXED_ONE; // save some checking later
     
-	if( ArrayIndexScalarID == ixList[ixList.size()-1]->Type() ||
-		ArrayIndexScalarVPID == ixList[ixList.size()-1]->Type() || // ? (from MakeArrayIndex)
-		CArrayIndexScalarID == ixList[ixList.size()-1]->Type()) nScalar++;
-	else if( ArrayIndexIndexedID == ixList[ixList.size()-1]->Type() ||
-		CArrayIndexIndexedID == ixList[ixList.size()-1]->Type()) nIndexed++;
+    if( ArrayIndexScalarID == ixList[ixList.size()-1]->Type() ||
+	    ArrayIndexScalarVPID == ixList[ixList.size()-1]->Type() || // ? (from MakeArrayIndex)
+	    CArrayIndexScalarID == ixList[ixList.size()-1]->Type()) nScalar++;
+    else if( ArrayIndexIndexedID == ixList[ixList.size()-1]->Type() ||
+	    CArrayIndexIndexedID == ixList[ixList.size()-1]->Type()) nIndexed++;
 /*    if( dynamic_cast< ArrayIndexScalar*>(ixList[ixList.size()-1]) ||
-	dynamic_cast< CArrayIndexScalar*>(ixList[ixList.size()-1])) nScalar++;
-    if( dynamic_cast<ArrayIndexIndexed*>(ixList[ixList.size()-1]) ||
-	dynamic_cast<CArrayIndexIndexed*>(ixList[ixList.size()-1]) ) nIndexed++;*/
+    dynamic_cast< CArrayIndexScalar*>(ixList[ixList.size()-1])) nScalar++;
+if( dynamic_cast<ArrayIndexIndexed*>(ixList[ixList.size()-1]) ||
+    dynamic_cast<CArrayIndexIndexed*>(ixList[ixList.size()-1]) ) nIndexed++;*/
     
     if( nScalar == ixList.size())
       accessTypeInit = ALLONE;
     else if( nIndexed == ixList.size())
+      // actually cannot happen (ArrayIndexListMultiAllIndexedT)
+      // but better keep it for stability
       accessTypeInit = ALLINDEXED; // might be ALLONE as well
     else if( nScalar + nIndexed < ixList.size())
       accessTypeInit = NORMAL;
     else
-      accessTypeInit = INDEXED_ONE;
+      accessTypeInit = INDEXED_ONE; // save some checking later
 
 //     std::cout << "accessTypeInit: " << accessTypeInit << std::endl;
   }
@@ -1224,8 +1226,8 @@ public:
     // for assoc variables last index is the record
     if( var->IsAssoc()) 
       {
-		acRank--;
-		accessType = accessTypeAssocInit;
+	acRank--;
+	accessType = accessTypeAssocInit;
       }
     else
       accessType = accessTypeInit;
@@ -1303,120 +1305,120 @@ public:
 	// after break
 	if( i > 0 || accessType == INDEXED_ONE)
 	{
-		accessType = NORMAL; // there was a scalar (and break because of non-scalar)
+	    accessType = NORMAL; // there was a scalar (and break because of non-scalar)
 	}
 	else // i == 0 -> first was (because of ALLINDEXED) indexed
 	{
-		++i; // first was already non-scalar -> indexed
-		for(; i<acRank; ++i)
-			if( !ixList[i]->Indexed())
-			{
-				accessType = NORMAL;
-				break;
-			}
-		// else
-		//	accessType = ALLINDEXED; // is already
+	    ++i; // first was already non-scalar -> indexed
+	    for(; i<acRank; ++i)
+		if( !ixList[i]->Indexed())
+		{
+		  accessType = NORMAL;
+		  break;
+		}
+	    // else
+	    //	accessType = ALLINDEXED; // is already
 	}
-}
+    }
 
-	// accessType can be at this point:
-	// NORMAL
-	// ALLINDEXED
-	// both are the definite types here
-	assert( accessType == NORMAL || accessType == ALLINDEXED);
+    // accessType can be at this point:
+    // NORMAL
+    // ALLINDEXED
+    // both are the definite types here
+    assert( accessType == NORMAL || accessType == ALLINDEXED);
 
-	// set varDim from variable
-	const dimension& varDim  = var->Dim();
-	SizeT            varRank = varDim.Rank();
-    
-	if( accessType == ALLINDEXED)
-	{
-		nIx=ixList[0]->NIter( (0<varRank)?varDim[0]:1);
-		for( SizeT i=1; i<acRank; ++i)
-			{
-				SizeT nIter = ixList[i]->NIter( (i<varRank)?varDim[i]:1);
-				if( nIter != nIx)
-					throw GDLException(NULL, "All array subscripts must be of same size.", true, false);
-			}
+    // set varDim from variable
+    const dimension& varDim  = var->Dim();
+    SizeT            varRank = varDim.Rank();
 
-		// in this case, having more index dimensions does not matter
-		// indices are used only upto variables rank
-		if( varRank < acRank) acRank = varRank;
+    if( accessType == ALLINDEXED)
+    {
+      nIx=ixList[0]->NIter( (0<varRank)?varDim[0]:1);
+      for( SizeT i=1; i<acRank; ++i)
+	      {
+		SizeT nIter = ixList[i]->NIter( (i<varRank)?varDim[i]:1);
+		if( nIter != nIx)
+			throw GDLException(NULL, "All array subscripts must be of same size.", true, false);
+	      }
 
-		varStride = var->Dim().Stride();
+      // in this case, having more index dimensions does not matter
+      // indices are used only upto variables rank
+      if( varRank < acRank) acRank = varRank;
+
+      varStride = var->Dim().Stride();
 // 		varDim.Stride( varStride,acRank); // copy variables stride into varStride
-		return;
-	}
+      return;
+    }
     
-	// NORMAL
-	varStride = var->Dim().Stride();
-	//     varDim.Stride( varStride,acRank); // copy variables stride into varStride
-	assert( varStride[0] == 1);
+    // NORMAL
+    varStride = var->Dim().Stride();
+    //     varDim.Stride( varStride,acRank); // copy variables stride into varStride
+    assert( varStride[0] == 1);
 
-	nIterLimit[0]=ixList[0]->NIter( (0<varRank)?varDim[0]:1);
-	nIx = nIterLimit[0]; // calc number of assignments
-	stride[0]=1;
+    nIterLimit[0]=ixList[0]->NIter( (0<varRank)?varDim[0]:1);
+    nIx = nIterLimit[0]; // calc number of assignments
+    stride[0]=1;
 
-	if( nIterLimit[0] > 1)
-	{
-		nIterLimitGt1 = 1; // important for BuildIx
-		gt1Rank = 0;
-		if( ixList[0]->Indexed())
-		{
-			baseIx = 0;
-			indexed = true;
-		}
-		else
-		{
-			baseIx = ixList[0]->GetS();// * varStride[0];
-			indexed = false;
-		}
-	}
-	else
-	{
-		nIterLimitGt1 = 0; // important for BuildIx
-		if( ixList[0]->Indexed())
-		{
-			baseIx = static_cast< ArrayIndexIndexed*>( ixList[0])->GetIx0();// * varStride[0];
-		}
-		else
-		{
-			baseIx = ixList[0]->GetS();//  * varStride[0];
-		}
-	}
-	for( SizeT i=1; i<acRank; ++i)
-	{
-		nIterLimit[i]=ixList[i]->NIter( (i<varRank)?varDim[i]:1);
-		nIx *= nIterLimit[i]; // calc number of assignments
-		stride[i]=stride[i-1]*nIterLimit[i-1]; // index stride
+    if( nIterLimit[0] > 1)
+    {
+	    nIterLimitGt1 = 1; // important for BuildIx
+	    gt1Rank = 0;
+	    if( ixList[0]->Indexed())
+	    {
+		    baseIx = 0;
+		    indexed = true;
+	    }
+	    else
+	    {
+		    baseIx = ixList[0]->GetS();// * varStride[0];
+		    indexed = false;
+	    }
+    }
+    else
+    {
+	    nIterLimitGt1 = 0; // important for BuildIx
+	    if( ixList[0]->Indexed())
+	    {
+		    baseIx = static_cast< ArrayIndexIndexed*>( ixList[0])->GetIx0();// * varStride[0];
+	    }
+	    else
+	    {
+		    baseIx = ixList[0]->GetS();//  * varStride[0];
+	    }
+    }
+    for( SizeT i=1; i<acRank; ++i)
+    {
+	    nIterLimit[i]=ixList[i]->NIter( (i<varRank)?varDim[i]:1);
+	    nIx *= nIterLimit[i]; // calc number of assignments
+	    stride[i]=stride[i-1]*nIterLimit[i-1]; // index stride
 
-		if( nIterLimit[i] > 1)
-		{
-			++nIterLimitGt1;
-			gt1Rank = i;
-			if( ixList[i]->Indexed())
-			{
-				indexed = true;
-			}
-			else
-			{
-				baseIx += ixList[i]->GetS() * varStride[i];
-				indexed = false;
-			}
-		}
-		else
-		{
-			if( ixList[i]->Indexed())
-			{
-				baseIx += static_cast< ArrayIndexIndexed*>( ixList[i])->GetIx0() * varStride[i];
-			}
-			else
-			{
-				baseIx += ixList[i]->GetS()  * varStride[i];
-			}
-		}
-	}
-	stride[acRank]=stride[acRank-1]*nIterLimit[acRank-1]; // index stride
+	    if( nIterLimit[i] > 1)
+	    {
+		    ++nIterLimitGt1;
+		    gt1Rank = i;
+		    if( ixList[i]->Indexed())
+		    {
+			    indexed = true;
+		    }
+		    else
+		    {
+			    baseIx += ixList[i]->GetS() * varStride[i];
+			    indexed = false;
+		    }
+	    }
+	    else
+	    {
+		    if( ixList[i]->Indexed())
+		    {
+			    baseIx += static_cast< ArrayIndexIndexed*>( ixList[i])->GetIx0() * varStride[i];
+		    }
+		    else
+		    {
+			    baseIx += ixList[i]->GetS()  * varStride[i];
+		    }
+	    }
+    }
+    stride[acRank]=stride[acRank-1]*nIterLimit[acRank-1]; // index stride
   }
 
   // structure of indexed expression
@@ -1443,87 +1445,57 @@ public:
   AllIxBaseT* BuildIx() // ArrayIndexListMultiT
   {
     assert( allIx == NULL);
-//     if( allIx != NULL)
-// 		return allIx;
 
-//     if( accessType == ALLONE) // nIterLimitGt1 == 0 -> done there
-//       {
-// 		SizeT s = ixList.FrontGetS(); //ixList[0]->GetS();
-// 		for( SizeT l=1; l < acRank; ++l)
-// 		{
-// 			s += ixList[l]->GetS() * varStride[l];
-// 		}
-// 		allIx = new (allIxInstance) AllIxT(s);
-// 		return allIx;
-//       }
-
-	if( accessType == ALLINDEXED) //  nIterLimitGt1 is not properly set
+    if( accessType == ALLINDEXED) //  nIterLimitGt1 is not properly set
+    {
+	    // note that this indexer cannot live without this ArrayIndexListMultiT
+	    allIx = new (allIxInstance) AllIxAllIndexedT( &ixList, acRank, nIx, varStride);
+	    return allIx;
+    }
+    
+    // can happen
+    // this must be done only here as oterwise nIterLimitGt1 is not properly set
+    if( nIterLimitGt1 == 0) // only one single index
+    {
+	    allIx = new (allIxInstance) AllIxT( baseIx);
+	    return allIx;
+    }
+    
+    if( acRank == 1) // assoc already recognized
+    {
+	ArrayIndexT* ix = ixList[0];
+	if(  ix->Indexed())
 	{
-		// note that this indexer cannot live without this ArrayIndexListMultiT
-		allIx = new (allIxInstance) AllIxAllIndexedT( &ixList, acRank, nIx, varStride);
-		return allIx;
-
-// 		// ALLINDEXED -> all ArrayIndexT::INDEXED
-// 		allIx = static_cast< ArrayIndexIndexed*>(ixList[0])->StealIx();
-// 
-// 		assert( dynamic_cast<AllIxMultiT*>( allIx) != NULL);
-// 		
-// 		for( SizeT l=1; l < acRank; ++l)
-// 		{
-// 			AllIxMultiT* tmpIx = static_cast< ArrayIndexIndexed*>(ixList[l])->StealIx();
-//  		
-// 			for( SizeT i=0; i<nIx; ++i)
-// 			static_cast<AllIxMultiT*>( allIx)->AddToIx( i, tmpIx->GetIx( i) * varStride[l]);
-// //		      (*allIx)[i] += (*tmpIx)[i] * varStride[l];
-//  		
-// 			delete tmpIx;
-// 		}
-// 		return allIx;
+	    allIx = static_cast< ArrayIndexIndexed*>(ix)->GetAllIx();
+	    return allIx;
 	}
-	
-	// can happen
-	// this must be done only here as oterwise nIterLimitGt1 is not properly set
-	if( nIterLimitGt1 == 0) // only one single index
+	if( nIx == 1)
 	{
-		allIx = new (allIxInstance) AllIxT( baseIx);
-		return allIx;
+	    allIx = new (allIxInstance) AllIxT( ix->GetS());
+	    return allIx;
 	}
-	
-	if( acRank == 1) // assoc already recognized
-	{
-		ArrayIndexT* ix = ixList[0];
-		if(  ix->Indexed())
-		{
-			allIx = static_cast< ArrayIndexIndexed*>(ix)->GetAllIx();
-			return allIx;
-		}
-		if( nIx == 1)
-		{
-			allIx = new (allIxInstance) AllIxT( ix->GetS());
-			return allIx;
-		}
-		SizeT s = ix->GetS();
-		SizeT ixStride = ix->GetStride();
-		if( ixStride <= 1) 
-		if( s != 0)
-			{
-			allIx = new (allIxInstance) AllIxRangeT( nIx, s);
-			}
-		else
-			{
-			allIx = new (allIxInstance) AllIxRange0T( nIx);
-			}
-		else
-		if( s != 0)
-			{
-			allIx = new (allIxInstance) AllIxRangeStrideT( nIx, s, ixStride);
-			}
-		else
-			{
-			allIx = new (allIxInstance) AllIxRange0StrideT( nIx, ixStride);
-			}
-		return allIx;
- 	}
+	SizeT s = ix->GetS();
+	SizeT ixStride = ix->GetStride();
+	if( ixStride <= 1) 
+	if( s != 0)
+	    {
+	    allIx = new (allIxInstance) AllIxRangeT( nIx, s);
+	    }
+	else
+	    {
+	    allIx = new (allIxInstance) AllIxRange0T( nIx);
+	    }
+	else
+	if( s != 0)
+	    {
+	    allIx = new (allIxInstance) AllIxRangeStrideT( nIx, s, ixStride);
+	    }
+	else
+	    {
+	    allIx = new (allIxInstance) AllIxRange0StrideT( nIx, ixStride);
+	    }
+	return allIx;
+    }
 
     // NORMAL
     // loop only over specified indices
@@ -1562,21 +1534,21 @@ public:
 // 			}
 // 		}
 // 	}
-	if( nIterLimitGt1 == 1) // only one variable dimension
-	{
-		if( indexed)
-			allIx = new (allIxInstance) AllIxNewMultiOneVariableIndexIndexedT( gt1Rank, baseIx, &ixList, acRank, nIx, varStride, nIterLimit, stride);
-		else
-			allIx = new (allIxInstance) AllIxNewMultiOneVariableIndexNoIndexT( gt1Rank, baseIx, &ixList, acRank, nIx, varStride, nIterLimit, stride);
-		return allIx;
-	}
-	if( acRank == 2)
-	{
-		allIx = new (allIxInstance) AllIxNewMulti2DT( &ixList, nIx, varStride, nIterLimit, stride);
-		return allIx;
-	}
-	allIx = new (allIxInstance) AllIxNewMultiT( &ixList, acRank, nIx, varStride, nIterLimit, stride);
-	return allIx;
+    if( nIterLimitGt1 == 1) // only one variable dimension
+    {
+      if( indexed)
+	      allIx = new (allIxInstance) AllIxNewMultiOneVariableIndexIndexedT( gt1Rank, baseIx, &ixList, acRank, nIx, varStride, nIterLimit, stride);
+      else
+	      allIx = new (allIxInstance) AllIxNewMultiOneVariableIndexNoIndexT( gt1Rank, baseIx, &ixList, acRank, nIx, varStride, nIterLimit, stride);
+	    return allIx;
+    }
+    if( acRank == 2)
+    {
+      allIx = new (allIxInstance) AllIxNewMulti2DT( &ixList, nIx, varStride, nIterLimit, stride);
+      return allIx;
+    }
+    allIx = new (allIxInstance) AllIxNewMultiT( &ixList, acRank, nIx, varStride, nIterLimit, stride);
+    return allIx;
 }
 //     // init allIx from first index
 //     if( ixList[0]->Indexed())
