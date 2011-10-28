@@ -609,9 +609,9 @@ IF(NOT CMAKE_BUILD_TYPE)
     FORCE)
 ENDIF(NOT CMAKE_BUILD_TYPE)
 
-# AC, 12-oct-2011, may be 
+# AC, 12-oct-2011, solved by Marc 
 # set_target_properties(gdl PROPERTIES LINK_FLAGS "-Wl,-z,muldefs")
-set_target_properties(gdl PROPERTIES LINK_FLAGS "-z muldefs")
+# set_target_properties(gdl PROPERTIES LINK_FLAGS "-z muldefs")
 
 #
 if(CMAKE_BUILD_TYPE STREQUAL None OR NOT CMAKE_BUILD_TYPE)

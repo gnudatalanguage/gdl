@@ -52,21 +52,41 @@ FITS2CL, clw1, /wmap1, /show
 ;
 ; --- now maps, on screen and in PNG or PS files ---
 ;
-; display a CMB map
-;
-MOLLVIEW, !healpix.path.test+'map.fits', title='CMB', png=prefixe+'cmbmap.png'
-;
+; initializations
 preview=1
 map=FINDGEN(12)
 INIT_HEALPIX
 map[2]=!healpix.bad_value
-;
-MOLLVIEW, map, /grat,/igra,coord=['g','c'],rot=[10,20,30], png=prefixe+'grat.png'
-ORTHVIEW, map, /shade, png=prefixe+'shade.png',preview=preview
-MOLLVIEW, map, transp=3, png=prefixe+'map.png',preview=preview
-;
 noise = RANDOMN(seed,12,3)
-MOLLVIEW, noise, /true, png=prefixe+'noise_g.png',preview=preview
+;
+flag_PNG=MAGICK_EXISTS()
+if ~flag_PNG then begin
+   print, ' -----------------'
+   MESSAGE, /continue, "PNG output not avalaible"
+   print, ' -----------------'
+endif
+;
+if flag_PNG then begin
+   ;; display a CMB map
+   MOLLVIEW, !healpix.path.test+'map.fits', title='CMB', png=prefixe+'cmbmap.png'
+   ;; fake simple map
+   MOLLVIEW, map, /grat, /igra, coord=['g','c'],rot=[10,20,30], png=prefixe+'grat.png'
+   ORTHVIEW, map, /shade, png=prefixe+'shade.png', preview=preview
+   MOLLVIEW, map, transp=3, png=prefixe+'map.png', preview=preview
+   ;; noise
+   MOLLVIEW, noise, /true, png=prefixe+'noise_g.png', preview=preview
+endif else begin
+   ;; display a CMB map
+   MOLLVIEW, !healpix.path.test+'map.fits', title='CMB'
+   ;; fake simple map
+   MOLLVIEW, map, /grat, /igra, coord=['g','c'],rot=[10,20,30]
+   ORTHVIEW, map, /shade
+   MOLLVIEW, map, transp=3
+   ;; noise
+   MOLLVIEW, noise, /true
+endelse
+;
+; PS output
 MOLLVIEW, noise, ps=prefixe+'noise_g.ps', preview=preview
 ;
 ; can we display the in line documentation ?
