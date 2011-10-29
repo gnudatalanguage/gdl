@@ -30,12 +30,6 @@ end
 ;
 pro TEST_PS_DECOMPOSED, no_delete=no_delete
 ;
-if LOCALE_GET() NE 'C' then begin
-   print, '-----------------'
-   MESSAGE,/Continue, 'problem expected due to bad LOCALE'
-   print, '-----------------'
-endif
-;
 delete=0
 if ~KEYWORD_SET(no_delete) then delete=1
 ;

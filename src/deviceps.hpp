@@ -197,6 +197,10 @@ private:
     cleanup:
     PS_delete(ps);
     fclose(fp); // this deletes the temporary file as well
+    // PSlib changes locale - bug no. 3428043
+#    ifdef HAVE_LOCALE_H
+    setlocale(LC_ALL, "C");
+#    endif
 #  endif
   }
 
@@ -234,6 +238,10 @@ public:
 
 #  ifdef USE_PSLIB
     PS_boot();
+    // PSlib changes locale - bug no. 3428043
+#    ifdef HAVE_LOCALE_H
+    setlocale(LC_ALL, "C");
+#    endif
 #  endif
   }
   
@@ -242,6 +250,10 @@ public:
     delete actStream;
 #  ifdef USE_PSLIB
     PS_shutdown();
+    // PSlib changes locale - bug no. 3428043
+#    ifdef HAVE_LOCALE_H
+    setlocale(LC_ALL, "C");
+#    endif
 #  endif
   }
 
