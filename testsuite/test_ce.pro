@@ -1,5 +1,5 @@
 pro test_ce
-exit
+
     ;-----------------------------------------------------------------------
     ; test suite for IDL/GDL call_external
     ;
