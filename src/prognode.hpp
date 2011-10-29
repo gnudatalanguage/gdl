@@ -1443,12 +1443,24 @@ public:
 class DECNode: public CommandNode
 { public:
   DECNode( const RefDNode& refNode): CommandNode( refNode){}
+  BaseGDL* Eval();
   RetCode Run();
 };
 class INCNode: public CommandNode
 { public:
   INCNode( const RefDNode& refNode): CommandNode( refNode){}
+  BaseGDL* Eval();
   RetCode Run();
+};
+class POSTDECNode: public DECNode
+{ public:
+  POSTDECNode( const RefDNode& refNode): DECNode( refNode){}
+  BaseGDL* Eval();
+};
+class POSTINCNode: public INCNode
+{ public:
+  POSTINCNode( const RefDNode& refNode): INCNode( refNode){}
+  BaseGDL* Eval();
 };
 
 class ARRAYEXPRNode: public DefaultNode

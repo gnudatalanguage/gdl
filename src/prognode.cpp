@@ -916,26 +916,49 @@ RetCode  PCALLNode::Run()
   return RC_OK;
 }
 
+BaseGDL* POSTDECNode::Eval()
+{
+  BaseGDL* res=interpreter->l_decinc_expr( this->getFirstChild(), GDLTokenTypes::POSTDEC);
+  interpreter->SetRetTree(this->getNextSibling());
+  return res;
+}
 
+BaseGDL* DECNode::Eval()
+{
+  BaseGDL* res=interpreter->l_decinc_expr( this->getFirstChild(), GDLTokenTypes::DEC);
+  interpreter->SetRetTree(this->getNextSibling());
+  return res;
+}
 
 RetCode  DECNode::Run()
 {
   //		match(antlr::RefAST(_t),DEC);
   ProgNodeP _t = this->getFirstChild();
   ProgNode::interpreter->l_decinc_expr(_t, GDLTokenTypes::DECSTATEMENT);
-
   ProgNode::interpreter->SetRetTree( this->getNextSibling());
   return RC_OK;
 }
 
 
+BaseGDL* POSTINCNode::Eval()
+{
+  BaseGDL* res=interpreter->l_decinc_expr( this->getFirstChild(), GDLTokenTypes::POSTINC);
+  interpreter->SetRetTree(this->getNextSibling());
+  return res;
+}
+
+BaseGDL* INCNode::Eval()
+{
+  BaseGDL* res=interpreter->l_decinc_expr( this->getFirstChild(), GDLTokenTypes::INC);
+  interpreter->SetRetTree(this->getNextSibling());
+  return res;
+}
 
 RetCode  INCNode::Run()
 {
   //		match(antlr::RefAST(_t),INC);
   ProgNodeP _t = this->getFirstChild();
   ProgNode::interpreter->l_decinc_expr(_t, GDLTokenTypes::INCSTATEMENT);
-
   ProgNode::interpreter->SetRetTree( this->getNextSibling());
   return RC_OK;
 }

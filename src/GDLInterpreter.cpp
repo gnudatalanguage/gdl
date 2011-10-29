@@ -1555,6 +1555,7 @@ BaseGDL*  GDLInterpreter::tmp_expr(ProgNodeP _t) {
 		case MFCALL_PARENT:
 		{
 			res=_t->Eval(); //function_call(_t);
+			_retTree = _t->getNextSibling();
 	//		_t = _retTree;
 			break;
 		}
@@ -1716,7 +1717,6 @@ BaseGDL*  GDLInterpreter::tmp_expr(ProgNodeP _t) {
 		
 		ProgNodeP rTree = _t->getNextSibling();
 	// 	match(antlr::RefAST(_t),FCALL_LIB);
-	
 	// 	match(antlr::RefAST(_t),IDENTIFIER);
 	
 		ProgNodeP& fl = _t;
@@ -1727,12 +1727,10 @@ BaseGDL*  GDLInterpreter::tmp_expr(ProgNodeP _t) {
 		// push id.pro onto call stack
 		callStack.push_back(newEnv);
 		// make the call
-		//BaseGDL* 
+	
 	res=static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
 		// *** MUST always return a defined expression
-	//    if( res == NULL)
-	//       throw GDLException( _t, "");
-	
+	assert( res != NULL);
 		_retTree = rTree;
 		return res;
 	
@@ -1753,44 +1751,47 @@ BaseGDL*  GDLInterpreter::r_expr(ProgNodeP _t) {
 	BaseGDL* res;
 	ProgNodeP r_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
-		switch ( _t->getType()) {
-		case EXPR:
-		case ARRAYDEF:
-		case STRUC:
-		case NSTRUC:
-		case NSTRUC_REF:
-		{
-			res = _t->Eval(); 
-			break;
-		}
-		case DEC:
-		{
-			res=l_decinc_expr( _t->getFirstChild(), DEC);
-			break;
-		}
-		case INC:
-		{
-			res=l_decinc_expr( _t->getFirstChild(), INC);
-			break;
-		}
-		case POSTDEC:
-		{
-			res=l_decinc_expr( _t->getFirstChild(), POSTDEC);
-			break;
-		}
-	//	case POSTINC:
-		default:
-		{
-			res=l_decinc_expr( _t->getFirstChild(), POSTINC);
-			break;
-		}
-	// 	default:
-	// 	{
-	// 		throw antlr::NoViableAltException(antlr::RefAST(_t));
-	// 	}
-		}
+	res=_t->Eval();
 		_retTree = _t->getNextSibling();
 		return res;
+	
+	// 	switch ( _t->getType()) {
+	// 	case EXPR:
+	// 	case ARRAYDEF:
+	// 	case STRUC:
+	// 	case NSTRUC:
+	// 	case NSTRUC_REF:
+	// 	{
+	// 		res = _t->Eval(); 
+	// 		break;
+	// 	}
+	// 	case DEC:
+	// 	{
+	// 		res=_t->Eval(); //l_decinc_expr( _t->getFirstChild(), DEC);
+	// 		break;
+	// 	}
+	// 	case INC:
+	// 	{
+	// 		res=_t->Eval(); //l_decinc_expr( _t->getFirstChild(), INC);
+	// 		break;
+	// 	}
+	// 	case POSTDEC:
+	// 	{
+	// 		res=_t->Eval(); //l_decinc_expr( _t->getFirstChild(), POSTDEC);
+	// 		break;
+	// 	}
+	// 	case POSTINC:
+	// 	{
+	// 		res=_t->Eval(); //l_decinc_expr( _t->getFirstChild(), POSTINC);
+	// 		break;
+	// 	}
+	// // 	default:
+	// // 	{
+	// // 		throw antlr::NoViableAltException(antlr::RefAST(_t));
+	// // 	}
+	// 	}
+	// 	_retTree = _t->getNextSibling();
+	// 	return res;
 	
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
@@ -1984,11 +1985,11 @@ BaseGDL**  GDLInterpreter::l_defined_simple_var(ProgNodeP _t) {
 	throw GDLException( _t, "Common block variable is undefined: "+
 	callStack.back()->GetString( *res),true,false);
 	}
+	_retTree = _t->getNextSibling();
 	return res;
 	
 		if( _t->getType() == VAR)
 		{
-	// 		match(antlr::RefAST(_t),VAR);
 			res=&callStack.back()->GetKW(_t->varIx); 
 			if( *res == NULL)
 			throw GDLException( _t, "Variable is undefined: "+
@@ -1997,7 +1998,6 @@ BaseGDL**  GDLInterpreter::l_defined_simple_var(ProgNodeP _t) {
 		}
 		else
 		{
-	// 		match(antlr::RefAST(_t),VARPTR);
 			res=&_t->var->Data(); // returns BaseGDL* of var (DVar*) 
 			if( *res == NULL)
 			throw GDLException( _t, "Variable is undefined: "+
@@ -3045,15 +3045,14 @@ BaseGDL*  GDLInterpreter::indexable_tmp_expr(ProgNodeP _t) {
 	switch ( _t->getType()) {
 	case QUESTION:
 	{
-		      ProgNodeP q = _t;
-		      res = q->Eval();
-		      _retTree = q->getNextSibling();
+		      res = _t->Eval();
+		      _retTree = _t->getNextSibling();
 		      break;
 	}
 	case ARRAYEXPR:
 	{
-		      _retTree = _t->getNextSibling();
 		      res = _t->Eval();
+		      _retTree = _t->getNextSibling();
 		      break;
 	}
 	case DOT:
@@ -3076,6 +3075,7 @@ BaseGDL*  GDLInterpreter::indexable_tmp_expr(ProgNodeP _t) {
 	case MFCALL_PARENT:
 	{
 		      res=_t->Eval(); //function_call(_t);
+		      _retTree = _t->getNextSibling();
 	//	    _t = _retTree;
 		      break;
 	}
@@ -3089,7 +3089,8 @@ BaseGDL*  GDLInterpreter::indexable_tmp_expr(ProgNodeP _t) {
 	case DEC:
 	case INC:
 	{
-		      res=r_expr(_t);
+		      res=_t->Eval(); //r_expr(_t);
+		      _retTree = _t->getNextSibling();
 	//	    _t = _retTree;
 		      break;
 	}
@@ -3269,6 +3270,7 @@ BaseGDL**  GDLInterpreter::l_expr(ProgNodeP _t,
 		case VARPTR:
 		{
 		  res=_t->LEval(); //l_simple_var(_t);
+		  _retTree = tIn->getNextSibling();
 		  _t = _retTree;
 		  break;
 		}
@@ -3494,6 +3496,7 @@ BaseGDL**  GDLInterpreter::l_expr(ProgNodeP _t,
 		case VARPTR:
 		{
 		  res=_t->LEval(); //l_simple_var(_t);
+		  _retTree = tIn->getNextSibling();
 		  _t = _retTree;
 		  break;
 		}
@@ -4009,7 +4012,8 @@ BaseGDL**  GDLInterpreter::l_simple_var(ProgNodeP _t) {
 	ProgNodeP l_simple_var_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 		assert( _t != NULL);
-	return _t->LEval();    
+	res = _t->LEval();    
+	_retTree = _t->getNextSibling();
 	// 	_retTree = _t->getNextSibling();
 	// 	if( _t->getType() == VAR)
 	// 	{
@@ -4110,16 +4114,14 @@ BaseGDL**  GDLInterpreter::l_indexable_expr(ProgNodeP _t) {
 		switch ( _t->getType()) {
 		case EXPR:
 		{
-			ProgNodeP tIn = _t;
 			//match(antlr::RefAST(_t),EXPR);
 			//_t = _t->getFirstChild();
 			res=l_expr(_t->getFirstChild(), NULL);
 		
 			if( *res == NULL)
-	throw GDLException( tIn, "Variable is undefined: "+Name(res),true,false);
+	throw GDLException( _t, "Variable is undefined: "+Name(res),true,false);
 	
-			_retTree = tIn->getNextSibling();
-	
+			_retTree = _t->getNextSibling();
 	break;
 		}
 		case ARRAYEXPR_MFCALL:
@@ -4134,6 +4136,7 @@ BaseGDL**  GDLInterpreter::l_indexable_expr(ProgNodeP _t) {
 		case SYSVAR:
 		{
 			res=_t->LEval(); //l_sys_var(_t);
+			_retTree = _t->getNextSibling();
 	//		_t = _retTree;
 			break;
 		}
@@ -4162,6 +4165,7 @@ BaseGDL**  GDLInterpreter::l_indexable_expr(ProgNodeP _t) {
 	// 	case VARPTR:
 		{
 	res = _t->LEval();
+			_retTree = _t->getNextSibling();
 	if( *res == NULL)
 	{
 	if( _t->getType() == VARPTR)
@@ -4814,7 +4818,8 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	
 	
 	l=_t->LEval();
-	_t = _retTree;
+	_t = _t->getNextSibling();
+	//_t = _retTree;
 	
 	if( res != (*l))
 	{
@@ -5229,12 +5234,9 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	// 	match(antlr::RefAST(_t),IDENTIFIER);
 		EnvT* newEnv=new EnvT( _t, _t->libFun);//libFunList[fl->funIx]);
 	
-	// 	_t =_t->getFirstChild();
-		
-	// 	EnvT* newEnv=new EnvT( fl, fl->libFun);//libFunList[fl->funIx]);
+	// special handling for N_ELEMENTS()
 	static int n_elementsIx = LibFunIx("N_ELEMENTS");
 	static DLibFun* n_elementsFun = libFunList[n_elementsIx];
-	
 	if( _t->libFun == n_elementsFun)
 	{
 	parameter_def_n_elements(_t->getFirstChild(), newEnv);
@@ -5244,16 +5246,12 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	parameter_def(_t->getFirstChild(), newEnv);
 	}
 	
-	
-	//	parameter_def(_t->getFirstChild(), newEnv);
-		
 		// push id.pro onto call stack
 		callStack.push_back(newEnv);
 		// make the call
 		//BaseGDL* 
 	res=static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
 		//*** MUST always return a defined expression
-		
 		_retTree = rTree;
 		return res;
 	

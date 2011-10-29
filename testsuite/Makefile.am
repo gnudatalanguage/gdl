@@ -46,7 +46,6 @@ TESTS = \
   test_bug_3300626.pro \
   test_bug_3313522.pro \
   test_bug_3376577.pro \
-  test_ce.pro \
   test_clip.pro \
   test_common.pro \
   test_constants.pro \
@@ -90,8 +89,6 @@ TESTS = \
   test_rebin.pro \
   test_rk4.pro \
   test_scope_varfetch.pro \
-  test_sem.pro \
-  test_spawn_unit.pro \
   test_spher_harm.pro \
   test_spl_init.pro \
   test_step.pro \
