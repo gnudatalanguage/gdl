@@ -727,8 +727,8 @@ public:
 	public:  BaseGDL**  call_lfun(ProgNodeP _t);
 	public: void call_pro(ProgNodeP _t);
 	public: BaseGDL**  l_deref(ProgNodeP _t);
-	public: BaseGDL*  expr(ProgNodeP _t);
 	public: BaseGDL**  l_ret_expr(ProgNodeP _t);
+	public: BaseGDL*  expr(ProgNodeP _t);
 	public:  BaseGDL**  l_arrayexpr_mfcall_as_mfcall(ProgNodeP _t);
 	public:  BaseGDL**  l_function_call(ProgNodeP _t);
 	public: BaseGDL*  tmp_expr(ProgNodeP _t);
@@ -772,7 +772,6 @@ public:
 	public: BaseGDL**  l_arrayexpr_mfcall(ProgNodeP _t,
 		BaseGDL* right
 	);
-	public: BaseGDL*  array_expr(ProgNodeP _t);
 	public: void tag_expr(ProgNodeP _t,
 		DotAccessDescT* aD
 	);
