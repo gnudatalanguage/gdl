@@ -1514,6 +1514,7 @@ BaseGDL*  GDLInterpreter::tmp_expr(ProgNodeP _t) {
 		case DEREF:
 		{
 			e2=_t->LEval(); //l_deref(_t);
+			_retTree = _t->getNextSibling();
 	//		_t = _retTree;
 			
 			if( *e2 == NULL)
@@ -1976,6 +1977,7 @@ BaseGDL**  GDLInterpreter::l_defined_simple_var(ProgNodeP _t) {
 	
 		assert( _t != NULL);
 	res = _t->LEval();
+	_retTree = _t->getNextSibling();
 		if( *res == NULL)
 	{
 	if( _t->getType() == VAR)
@@ -1985,7 +1987,6 @@ BaseGDL**  GDLInterpreter::l_defined_simple_var(ProgNodeP _t) {
 	throw GDLException( _t, "Common block variable is undefined: "+
 	callStack.back()->GetString( *res),true,false);
 	}
-	_retTree = _t->getNextSibling();
 	return res;
 	
 		if( _t->getType() == VAR)
@@ -2044,6 +2045,7 @@ BaseGDL**  GDLInterpreter::l_sys_var(ProgNodeP _t) {
 	_t = _t->getNextSibling();
 	
 	res=sysVar->LEval();
+	_retTree = sysVar->getNextSibling();
 	
 	_retTree = _t;
 	return res;

@@ -2539,6 +2539,7 @@ l_defined_simple_var returns [BaseGDL** res]
 {
 	assert( _t != NULL);
     res = _t->LEval();
+    _retTree = _t->getNextSibling();
 	if( *res == NULL)
         {
             if( _t->getType() == VAR)
@@ -2548,7 +2549,6 @@ l_defined_simple_var returns [BaseGDL** res]
                 throw GDLException( _t, "Common block variable is undefined: "+
                                     callStack.back()->GetString( *res),true,false);
         }
-    _retTree = _t->getNextSibling();
     return res;
 
 	if( _t->getType() == VAR)
@@ -2590,6 +2590,7 @@ l_sys_var returns [BaseGDL** res]
     : sysVar:SYSVAR  
         {
             res=sysVar->LEval();
+            _retTree = sysVar->getNextSibling();
         }
         // ProgNodeP->getText() returns name which 
         // has to be searched 
@@ -2991,6 +2992,7 @@ tmp_expr returns [BaseGDL* res]
 	case DEREF:
 	{
 		e2=_t->LEval(); //l_deref(_t);
+		_retTree = _t->getNextSibling();
 //		_t = _retTree;
 		
 		if( *e2 == NULL)

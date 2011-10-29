@@ -209,7 +209,7 @@ BaseGDL* ARRAYDEFNode::Eval()
 	
   BaseGDL* res=cTypeData->CatArray(exprList,this->arrayDepth,maxRank);
 	
-  ProgNode::interpreter->_retTree = _t;
+//   ProgNode::interpreter->_retTree = _t;
   return res;
 }
 
@@ -245,7 +245,7 @@ BaseGDL* STRUCNode::Eval()
   instance_guard.release();
   BaseGDL* res=instance;
 	
-  ProgNode::interpreter->_retTree = rTree;
+//   ProgNode::interpreter->_retTree = rTree;
   return res;
 }
 
@@ -396,7 +396,7 @@ BaseGDL* NSTRUCNode::Eval()
   instance_guard.release();
   BaseGDL* res=instance;
 	
-  ProgNode::interpreter->_retTree = this->getNextSibling();
+//   ProgNode::interpreter->_retTree = this->getNextSibling();
   return res;
 }
 BaseGDL* NSTRUC_REFNode::Eval()
@@ -418,7 +418,7 @@ BaseGDL* NSTRUC_REFNode::Eval()
 
   BaseGDL* res = new DStructGDL( dStruct, dimension(1));
 	
-  ProgNode::interpreter->_retTree = this->getNextSibling();
+//   ProgNode::interpreter->_retTree = this->getNextSibling();
   return res;
 }
 
@@ -447,9 +447,9 @@ void KEYDEF_REF_EXPRNode::Parameter( EnvBaseT* actEnv)
 //   _t = _t->getNextSibling();
   BaseGDL* kval= _t->getNextSibling()->Eval();//expr(_t);
   delete kval;
-
 //   _t = ProgNode::interpreter->_retTree;
-  BaseGDL** kvalRef=ProgNode::interpreter->_retTree->LEval();
+  BaseGDL** kvalRef=_t->getNextSibling()->getNextSibling()->LEval();
+//   BaseGDL** kvalRef=ProgNode::interpreter->_retTree->LEval();
 //   ProgNode::interpreter->
 //     ref_parameter(ProgNode::interpreter->_retTree, actEnv);
 
@@ -488,7 +488,7 @@ void REF_EXPRNode::Parameter( EnvBaseT* actEnv)
   BaseGDL* pval= this->getFirstChild()->Eval();//expr(_t);
   delete pval;
 //   _t = ProgNode::interpreter->_retTree;
-  BaseGDL** pvalRef=ProgNode::interpreter->_retTree->LEval();
+  BaseGDL** pvalRef=this->getFirstChild()->getNextSibling()->LEval();
 //   ProgNode::interpreter->
 //     ref_parameter( ProgNode::interpreter->_retTree, actEnv);
 
@@ -722,12 +722,12 @@ RetCode  ASSIGN_REPLACENode::Run()
     if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
       {
 		r=_t->Eval();//ProgNode::interpreter->lib_function_call(_t);
+		_t = _t->getNextSibling(); //ProgNode::interpreter->_retTree;
 		r_guard.reset( r);
 
 		if( r == NULL) // ROUTINE_NAMES
 			throw GDLException( this, "Undefined return value", true, false);
 		
-		_t = ProgNode::interpreter->_retTree;
 		
 /*		if( !ProgNode::interpreter->callStack.back()->Contains( r))
 			r_guard.reset( r);
@@ -736,24 +736,19 @@ RetCode  ASSIGN_REPLACENode::Run()
       }
     else
       {
-			r=ProgNode::interpreter->tmp_expr(_t);
-			_t = ProgNode::interpreter->_retTree;
-					
-			r_guard.reset( r);
+	r=ProgNode::interpreter->tmp_expr(_t);
+	_t = ProgNode::interpreter->_retTree;
+
+	r_guard.reset( r);
       }
   }
 
   switch ( _t->getType()) {
   case GDLTokenTypes::VAR:
   case GDLTokenTypes::VARPTR:
-    {
-      l=_t->LEval(); //ProgNode::interpreter->l_simple_var(_t);
-//       _t = ProgNode::interpreter->_retTree;
-      break;
-    }
   case GDLTokenTypes::DEREF:
     {
-      l=ProgNode::interpreter->l_deref(_t);
+      l=_t->LEval(); //ProgNode::interpreter->l_simple_var(_t);
 //       _t = ProgNode::interpreter->_retTree;
       break;
     }
@@ -919,14 +914,14 @@ RetCode  PCALLNode::Run()
 BaseGDL* POSTDECNode::Eval()
 {
   BaseGDL* res=interpreter->l_decinc_expr( this->getFirstChild(), GDLTokenTypes::POSTDEC);
-  interpreter->SetRetTree(this->getNextSibling());
+//   interpreter->SetRetTree(this->getNextSibling());
   return res;
 }
 
 BaseGDL* DECNode::Eval()
 {
   BaseGDL* res=interpreter->l_decinc_expr( this->getFirstChild(), GDLTokenTypes::DEC);
-  interpreter->SetRetTree(this->getNextSibling());
+//   interpreter->SetRetTree(this->getNextSibling());
   return res;
 }
 
@@ -943,14 +938,14 @@ RetCode  DECNode::Run()
 BaseGDL* POSTINCNode::Eval()
 {
   BaseGDL* res=interpreter->l_decinc_expr( this->getFirstChild(), GDLTokenTypes::POSTINC);
-  interpreter->SetRetTree(this->getNextSibling());
+//   interpreter->SetRetTree(this->getNextSibling());
   return res;
 }
 
 BaseGDL* INCNode::Eval()
 {
   BaseGDL* res=interpreter->l_decinc_expr( this->getFirstChild(), GDLTokenTypes::INC);
-  interpreter->SetRetTree(this->getNextSibling());
+//   interpreter->SetRetTree(this->getNextSibling());
   return res;
 }
 
@@ -1300,24 +1295,24 @@ RetCode   WHILENode::Run()
   ProgNodeP evalExpr = this->getFirstChild();
   if( NonCopyNode( evalExpr->getType()))
   {
-	e1 = evalExpr->EvalNC();
+    e1 = evalExpr->EvalNC();
   }
   else
   {
-	e1 = evalExpr->Eval();
+    e1 = evalExpr->Eval();
     e1_guard.reset(e1);
   }
 // 	auto_ptr<BaseGDL> eVal( ProgNode::interpreter->expr( this->GetFirstChild()));
-	if( e1->True()) 
-	{
-		ProgNode::interpreter->SetRetTree( this->GetFirstChild()->GetNextSibling());
-		if( this->GetFirstChild()->GetNextSibling() == NULL)
-			throw GDLException(this,"Empty WHILE loop entered (infinite loop).",true,false);
-	}
-	else
-	{
-		ProgNode::interpreter->SetRetTree( this->GetNextSibling());
-	}
+  if( e1->True()) 
+  {
+    ProgNode::interpreter->SetRetTree( this->GetFirstChild()->GetNextSibling());
+    if( this->GetFirstChild()->GetNextSibling() == NULL)
+	    throw GDLException(this,"Empty WHILE loop entered (infinite loop).",true,false);
+  }
+  else
+  {
+    ProgNode::interpreter->SetRetTree( this->GetNextSibling());
+  }
   return RC_OK;
 }
 

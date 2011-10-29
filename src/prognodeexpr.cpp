@@ -233,7 +233,7 @@ BaseGDL* SYSVARNode::EvalNC()
 
 BaseGDL** SYSVARNode::LEval()
 {
-  ProgNodeP sysVar = this;
+  const ProgNodeP& sysVar = this;
   //match(antlr::RefAST(_t),SYSVAR);
   if( sysVar->var == NULL) 
   {
@@ -251,7 +251,7 @@ BaseGDL** SYSVARNode::LEval()
 	"Attempt to write to a readonly variable: !"+
 	sysVar->getText(),true,false);
   }  
-  interpreter->SetRetTree( sysVar->getNextSibling());
+//   interpreter->SetRetTree( sysVar->getNextSibling());
   // system variables are always defined
   return &sysVar->var->Data();
 }
@@ -295,7 +295,7 @@ BaseGDL* DEREFNode::EvalNC()
 
 BaseGDL** DEREFNode::LEval()
 {
-  ProgNodeP retTree = this->getNextSibling();
+//   ProgNodeP retTree = this->getNextSibling();
 
   // use new env if set (during parameter parsing)
   EnvBaseT* actEnv = DInterpreter::CallStackBack()->GetNewEnv();
@@ -351,7 +351,7 @@ BaseGDL** DEREFNode::LEval()
     throw GDLException( this, "Invalid pointer: "+interpreter->Name(e1),true,false);
   }
   
-  interpreter->SetRetTree( retTree);
+//   interpreter->SetRetTree( retTree);
   return res;
 }
 
@@ -2016,7 +2016,7 @@ if( e1->StrictScalar())
 		throw GDLException( this, "Library function must return a "
 		"l-value in this context: "+this->getText());
 
-	ProgNode::interpreter->SetRetTree( this->getNextSibling());
+// 	ProgNode::interpreter->SetRetTree( this->getNextSibling());
 	return res;
   }
 
@@ -2052,30 +2052,30 @@ if( e1->StrictScalar())
         // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
 
-//			match(antlr::RefAST(_t),MFCALL);
-		ProgNodeP _t = this->getFirstChild();
-		BaseGDL* self=ProgNode::interpreter->expr(_t);
-		auto_ptr<BaseGDL> self_guard(self);
+//		match(antlr::RefAST(_t),MFCALL);
+    ProgNodeP _t = this->getFirstChild();
+    BaseGDL* self=ProgNode::interpreter->expr(_t);
+    auto_ptr<BaseGDL> self_guard(self);
 
-		ProgNodeP mp = _t->getNextSibling();
-//			match(antlr::RefAST(_t),IDENTIFIER);
-		_t = mp->getNextSibling();
+    ProgNodeP mp = _t->getNextSibling();
+//		match(antlr::RefAST(_t),IDENTIFIER);
+    _t = mp->getNextSibling();
 
-		EnvUDT* newEnv=new EnvUDT( self, mp, "", true);
+    EnvUDT* newEnv=new EnvUDT( self, mp, "", true);
 
-		self_guard.release();
+    self_guard.release();
 
-		ProgNode::interpreter->parameter_def(_t, newEnv);
-		
-		// push environment onto call stack
-	ProgNode::interpreter->CallStack().push_back(newEnv);
-		
-		// make the call
-	BaseGDL**	res=ProgNode::interpreter->
-			call_lfun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+    ProgNode::interpreter->parameter_def(_t, newEnv);
+    
+    // push environment onto call stack
+    ProgNode::interpreter->CallStack().push_back(newEnv);
+	    
+	    // make the call
+    BaseGDL**	res=ProgNode::interpreter->
+		    call_lfun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 
-	ProgNode::interpreter->SetRetTree( this->getNextSibling());
-	return res;
+// 	ProgNode::interpreter->SetRetTree( this->getNextSibling());
+    return res;
   }
 
   BaseGDL* MFCALLNode::Eval()
@@ -2139,7 +2139,7 @@ if( e1->StrictScalar())
 	BaseGDL**	res=ProgNode::interpreter->
 			call_lfun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 
-	ProgNode::interpreter->SetRetTree( this->getNextSibling());
+// 	ProgNode::interpreter->SetRetTree( this->getNextSibling());
 	return res;
   }
 
@@ -2196,7 +2196,7 @@ if( e1->StrictScalar())
 	BaseGDL**	res=
 		ProgNode::interpreter->call_lfun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 	
-	ProgNode::interpreter->SetRetTree( this->getNextSibling());
+// 	ProgNode::interpreter->SetRetTree( this->getNextSibling());
 	return res;
   }
 
@@ -2285,20 +2285,20 @@ if( e1->StrictScalar())
     return res;
   }
 
-  BaseGDL** ARRAYEXPR_MFCALLNode::LEval()
-  {
-      // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
-    StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
-  }
+//   BaseGDL** ARRAYEXPR_MFCALLNode::LEval()
+//   {
+//       // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+//     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
+//   }
 
   BaseGDL** VARNode::LEval()
 	{
-  	ProgNode::interpreter->SetRetTree( this->getNextSibling());
+//   	ProgNode::interpreter->SetRetTree( this->getNextSibling());
 	return &ProgNode::interpreter->CallStack().back()->GetKW(this->varIx);
 	}
   BaseGDL** VARPTRNode::LEval()
 	{
-  	ProgNode::interpreter->SetRetTree( this->getNextSibling());
+//   	ProgNode::interpreter->SetRetTree( this->getNextSibling());
 	return &this->var->Data();
 	}
 
