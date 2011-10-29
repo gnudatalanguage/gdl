@@ -275,9 +275,12 @@ public:
 
   bool CloseFile()
   {
-    delete actStream;
-    actStream = NULL;
-    if (!encapsulated) pslibHacks(); // needs to be called after the plPlot-generated file is closed
+    if (actStream != NULL)
+    {
+      delete actStream;
+      actStream = NULL;
+      if (!encapsulated) pslibHacks(); // needs to be called after the plPlot-generated file is closed
+    }
     return true;
   }
 
