@@ -143,8 +143,13 @@ private:
     {
       struct utsname uts;
       uname(&uts);
-      PS_set_info(ps, "Creator", string("GDL Version " + string(VERSION) + ", " + string(uts.sysname) + " " + string(uts.machine)).c_str()); 
-      PS_set_info(ps, "Author", string(string(getlogin()) + "@" + string(uts.nodename)).c_str());
+      string tmp;
+      tmp = "GDL Version " + string(VERSION) + ", " + string(uts.sysname) + " " + string(uts.machine);
+      PS_set_info(ps, "Creator", tmp.c_str()); 
+      char* login = getlogin();
+      if (login == NULL) Warning("Warning: getlogin() failed!");
+      tmp = (login == NULL ? "?" : login) + string("@") + uts.nodename;
+      PS_set_info(ps, "Author", tmp.c_str());
     }
 
     // TODO
