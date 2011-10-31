@@ -534,6 +534,14 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
       {
 	return new ARRAYEXPRNode( refNode);
       }
+    case GDLTokenTypes::EXPR:
+      {
+	return new EXPRNode( refNode);
+      }
+    case GDLTokenTypes::DOT:
+      {
+	return new DOTNode( refNode);
+      }
     
     case GDLTokenTypes::VAR:
       {

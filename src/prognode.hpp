@@ -291,6 +291,7 @@ public:
 	friend class REF_EXPRNode;
 	friend class ParameterNode;
 	friend class ARRAYEXPRNode;
+	friend class EXPRNode;
 	friend class SYSVARNode;
 };
 
@@ -1468,6 +1469,21 @@ class ARRAYEXPRNode: public DefaultNode
 public:
  ARRAYEXPRNode( const RefDNode& refNode): DefaultNode( refNode) {}
  BaseGDL* Eval(); // caller receives ownership
+ //BaseGDL** LEval(); 
+};
+
+class EXPRNode: public DefaultNode
+{
+public:
+ EXPRNode( const RefDNode& refNode): DefaultNode( refNode) {}
+ BaseGDL** LEval();
+};
+
+class DOTNode: public DefaultNode
+{
+public:
+ EXPRNode( const RefDNode& refNode): DefaultNode( refNode) {}
+ BaseGDL* Eval();
 };
 
 #endif

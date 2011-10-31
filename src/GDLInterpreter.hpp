@@ -67,7 +67,6 @@ private:
     friend class FOREACH_INDEX_LOOPNode;
     friend class FOR_STEPNode;
     friend class FOR_STEP_LOOPNode;
-    
     friend class KEYDEFNode;
     friend class KEYDEF_REFNode;
     friend class KEYDEF_REF_CHECKNode;
@@ -86,6 +85,10 @@ public:
     void SetRetTree( ProgNodeP rT)
     {
         this->_retTree = rT;
+    }
+    ProgNodeP GetRetTree() const
+    {
+        return this->_retTree;
     }
 //     void SetReturnCode( RetCode rC)
 //     {
@@ -734,7 +737,6 @@ public:
 	public: BaseGDL*  tmp_expr(ProgNodeP _t);
 	public:  BaseGDL*  lib_function_call(ProgNodeP _t);
 	public: BaseGDL*  r_expr(ProgNodeP _t);
-	public: BaseGDL*  constant_nocopy(ProgNodeP _t);
 	public: BaseGDL*  l_decinc_indexable_expr(ProgNodeP _t,
 		int dec_inc
 	);
@@ -766,7 +768,7 @@ public:
 		EnvBaseT* actEnv
 	);
 	public: BaseGDL**  l_indexable_expr(ProgNodeP _t);
-	public: BaseGDL**  l_array_expr(ProgNodeP _t,
+	public: BaseGDL**  unused_l_array_expr(ProgNodeP _t,
 		BaseGDL* right
 	);
 	public: BaseGDL**  l_arrayexpr_mfcall(ProgNodeP _t,
@@ -789,6 +791,7 @@ public:
 	public: BaseGDL*  constant(ProgNodeP _t);
 	public: BaseGDL*  simple_var(ProgNodeP _t);
 	public: BaseGDL*  sys_var(ProgNodeP _t);
+	public: BaseGDL*  unused_constant_nocopy(ProgNodeP _t);
 	public: BaseGDL**  l_arrayexpr_mfcall_as_arrayexpr(ProgNodeP _t,
 		BaseGDL* right
 	);
