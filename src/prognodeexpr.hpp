@@ -154,7 +154,7 @@ class ARRAYEXPR_MFCALLNode: public LeafNode
 public:
   ARRAYEXPR_MFCALLNode( const RefDNode& refNode): LeafNode( refNode)
   {}
-  BaseGDL** LEval() { ThrowGDLException( "Internal errorr: ARRAYEXPR_MFCALLNode called.");}
+  BaseGDL** LEval(); //{ ThrowGDLException( "Internal errorr: ARRAYEXPR_MFCALLNode called.");}
   BaseGDL* Eval();
 };
 

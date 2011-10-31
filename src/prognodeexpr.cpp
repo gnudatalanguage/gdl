@@ -2221,6 +2221,45 @@ if( e1->StrictScalar())
     return res;
   }
 
+  
+  
+  
+  
+// from  l_arrayexpr_mfcall_as_mfcall
+BaseGDL** ARRAYEXPR_MFCALLNode::LEval()
+  {
+    // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+    StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
+    BaseGDL *self;
+    EnvUDT*   newEnv;
+    
+    ProgNodeP _t = this->getFirstChild();    
+    _t = _t->getNextSibling(); // skip DOT
+    
+    self= interpreter->expr(_t);
+    _t = interpreter->GetRetTree();
+    ProgNodeP mp2 = _t;
+    //match(antlr::RefAST(_t),IDENTIFIER);
+    _t = _t->getNextSibling();
+    
+    auto_ptr<BaseGDL> self_guard(self);
+    
+    newEnv=new EnvUDT( self, mp2, "", true);
+    
+    self_guard.release();
+    
+    ProgNode::interpreter->parameter_def(_t, newEnv);
+    
+    // push environment onto call stack
+    ProgNode::interpreter->CallStack().push_back(newEnv);
+    
+    // make the call
+    return ProgNode::interpreter->call_lfun(static_cast<DSubUD*>(
+    newEnv->GetPro())->GetTree());
+  }
+    
+  
+
   BaseGDL* ARRAYEXPR_MFCALLNode::Eval()
   {
       // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
@@ -2302,6 +2341,11 @@ if( e1->StrictScalar())
 	return &this->var->Data();
 	}
 
+
+  BaseGDL** EXPRNode::LEval()
+  {
+    return interpreter->l_expr( this->getFirstChild(), NULL);
+  }
 
   BaseGDL* ARRAYEXPRNode::Eval()
   {

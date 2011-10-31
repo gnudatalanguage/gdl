@@ -1482,8 +1482,8 @@ public:
 class DOTNode: public DefaultNode
 {
 public:
- EXPRNode( const RefDNode& refNode): DefaultNode( refNode) {}
- BaseGDL* Eval();
+ DOTNode( const RefDNode& refNode): DefaultNode( refNode) {}
+ //BaseGDL* Eval();
 };
 
 #endif
