@@ -133,9 +133,11 @@ You can get it at:
 http://ftp.gnu.org/pub/gnu/readline/readline-4.3.tar.gz
 
 For the graphics support of GDL, the plplot library version 5.9
-is necessary. See below if you have an older version of plplot.
+is necessary. PLplot >= 5.9.9 is recommended.
+See below if you have an older version of plplot.
 To download plplot please look here:
 http://plplot.sourceforge.net/source/index.html
+
 If you have plplot older than 5.9.0 use the configure
 option --enable-oldplplot 
 With this option, plplot down to 5.3 should work.

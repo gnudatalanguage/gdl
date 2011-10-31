@@ -528,6 +528,7 @@
              XYOUTS (!P.MULTI vs. !P.POSITION, ORIENTATION with logscales), INTERPOLATE (the MISSING kw)
 	   - fixes in STREGEX, STRPOS, STRSPLIT
            - non-Encapsulated PostScript support along with XSIZE, YSIZE, XOFFSET, YOFFSET, PORTRAIT, LANDSCAPE and
-             SCALE_FACTOR settings support for PostScript output (requires pslib - http://pslib.sourceforge.net/)
+             SCALE_FACTOR settings support for PostScript output (requires pslib - http://pslib.sourceforge.net/
+             and makes advantage of PLplot fixes introduced in PLplot 5.9.9)
            - memory leak fix (bug introduced in the previous version)
            - various testsuite & docs updates (incl. docs and examples for CALL_EXTERNAL)

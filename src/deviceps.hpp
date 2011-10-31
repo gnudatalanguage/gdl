@@ -66,6 +66,10 @@ class DevicePS: public Graphics
 
     actStream->sfnam( fileName.c_str());
 
+    // zeroing offsets (xleng and yleng are the default ones but they need to be specified 
+    // for the offsets to be taken into account by spage(), works with plplot >= 5.9.9)
+    actStream->spage(dpi, dpi, 540, 720, 0, 0);
+
     // as setting the offsets and sizes with plPlot is (extremely) tricky, and some of these setting
     // are hardcoded into plplot (like EPS header, and offsets in older versions of plplot)
     // here we only specify the aspect ratio - size an offset are handled by pslib when device,/close is called
