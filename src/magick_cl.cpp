@@ -388,6 +388,7 @@ namespace lib {
 	IndexPacket* index;
 	pixel=image.getPixels(0,0,columns,rows);
 	index=image.getIndexes();
+        if (index == NULL) e->Throw("(FIXME!) Magick's getIndexes() returned NULL for: " +e->GetParString(0));
 	unsigned int cx, cy;
 	for (cy=0;cy<rows;++cy)
 	  for (cx=0;cx<columns;++cx)
