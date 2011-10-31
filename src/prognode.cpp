@@ -605,7 +605,7 @@ RetCode  ASSIGNNode::Run()
 //       }
 //     }//switch
   }
-  l=ProgNode::interpreter->l_expr(_t, r);
+  l=_t->LExpr( r); //ProgNode::interpreter->l_expr(_t, r);
 
   ProgNode::interpreter->_retTree = this->getNextSibling();
 

@@ -43,7 +43,7 @@ cpp_hpp_files = allix.hpp allix.cpp prognode.hpp prognodeexpr.hpp \
 		convol_inc1.cpp convol_inc2.cpp sigfpehandler.cpp sigfpehandler.hpp devicez.hpp \
 		gdlzstream.cpp gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp arrayindex.cpp \
 		fftw.cpp fftw.hpp mpi.cpp mpi.hpp plot3d_nr.cpp grib.cpp grib.hpp \
-                prognode.cpp prognodeexpr.cpp strassenmatrix.hpp datatypesref.cpp lapack.cpp \
+                prognode.cpp prognode_lexpr.cpp prognodeexpr.cpp strassenmatrix.hpp datatypesref.cpp lapack.cpp \
                 gshhs.cpp gshhs.hpp newprognode.cpp plotting_plot.cpp plotting_oplot.cpp \
                 plotting_device.cpp plotting_cursor.cpp plotting_contour.cpp plotting_surface.cpp \
                 plotting_axis.cpp plotting_plots.cpp plotting_xyouts.cpp plotting_polyfill.cpp \

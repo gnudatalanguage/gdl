@@ -2504,6 +2504,34 @@ r_expr returns [BaseGDL* res]
 tag_expr [DotAccessDescT* aD] // 2nd...
 {
     BaseGDL* e;
+	
+	if( _t->getType() == EXPR)
+	{
+		ProgNodeP tIn = _t;
+		_t = _t->getFirstChild();
+		e=expr(_t);
+		
+		auto_ptr<BaseGDL> e_guard(e);
+		
+		SizeT tagIx;
+		int ret=e->Scalar2index(tagIx);
+		if( ret < 1) // this is a return code, not the index
+            throw GDLException( tIn, "Expression must be a scalar"
+                                " >= 0 in this context: "+Name(e),true,false);
+		aD->Add( tagIx);
+
+		_retTree = tIn->getNextSibling();
+	}
+    else
+	// case IDENTIFIER:
+	{
+        assert( _t->getType() == IDENTIFIER);
+		std::string tagName=_t->getText();
+
+		aD->Add( tagName);
+
+		_retTree = _t->getNextSibling();		
+	}
 }
     : #(EXPR e=expr
             {
@@ -2511,7 +2539,7 @@ tag_expr [DotAccessDescT* aD] // 2nd...
                 
                 SizeT tagIx;
                 int ret=e->Scalar2index(tagIx);
-                if( ret < 1)
+                if( ret < 1) // this is a return code, not the index
                 throw GDLException( _t, "Expression must be a scalar"
                     " >= 0 in this context: "+Name(e),true,false);
                 
@@ -2529,6 +2557,28 @@ tag_expr [DotAccessDescT* aD] // 2nd...
 tag_array_expr  [DotAccessDescT* aD] // 2nd...
 {
     ArrayIndexListT* aL;
+	
+	if( _t->getType() == ARRAYEXPR)
+	{
+		ProgNodeP tIn = _t;
+		_t = _t->getFirstChild();
+		tag_expr(_t, aD);
+		_t = _retTree;
+		aL=arrayindex_list(_t);
+		_t = _retTree;
+		aD->AddIx(aL);
+		_retTree = tIn->getNextSibling();
+	}
+    else
+	// case EXPR:
+	// case IDENTIFIER:
+	{
+		tag_expr(_t, aD);
+		//_t = _retTree;
+		aD->AddIx(NULL);
+	}
+	//_retTree = _t;
+    return;
 }
 	: #(ARRAYEXPR tag_expr[ aD] aL=arrayindex_list { aD->AddIx(aL);} )
     | tag_expr[ aD] { aD->AddIx(NULL);} 
@@ -2636,29 +2686,32 @@ r_dot_array_expr [DotAccessDescT* aD] // 1st
 //#(DOT array_expr (tag_array_expr)+)                     
 dot_expr returns [BaseGDL* res]
 {
-    ProgNodeP rTree = _t->getNextSibling();
-    //ProgNodeP 
-    dot = _t;
-    // match(antlr::RefAST(_t),DOT);
-    _t = _t->getFirstChild();
-    
-    SizeT nDot=dot->nDot;
-    
-    DotAccessDescT aD( nDot+1);
+    _retTree = _t->getNextSibling();
+    return _t->Eval();
 
-    r_dot_array_expr(_t, &aD);
-    _t = _retTree;
-    for (; _t != NULL;) {
-        tag_array_expr(_t, &aD); // nDot times
-        _t = _retTree;
-    }
-    res= aD.Resolve();
-    _retTree = rTree;
-    return res;
+    // ProgNodeP rTree = _t->getNextSibling();
+    // //ProgNodeP 
+    // dot = _t;
+    // // match(antlr::RefAST(_t),DOT);
+    // _t = _t->getFirstChild();
+    
+    // SizeT nDot=dot->nDot;
+    
+    // DotAccessDescT aD( nDot+1);
+
+    // r_dot_array_expr(_t, &aD);
+    // _t = _retTree;
+    // for (; _t != NULL;) {
+    //     tag_array_expr(_t, &aD); // nDot times
+    //     _t = _retTree;
+    // }
+    // res= aD.Resolve();
+    // _retTree = rTree;
+    // return res;
 }
-    : #(dot:DOT 
-            r_dot_array_expr[ &aD] 
-            (tag_array_expr[ &aD] /* nDot times*/ )+ 
+    : #(DOT 
+            r_dot_array_expr[ NULL]  
+            (tag_array_expr[ NULL] /* nDot times*/ )+ 
         )         
     ;
 
@@ -2704,15 +2757,16 @@ indexable_tmp_expr returns [BaseGDL* res]
       case STRUC:
       case DEC:
       case INC:
-      {
-	      res=_t->Eval(); //r_expr(_t);
-	      _retTree = _t->getNextSibling();
-  //	    _t = _retTree;
-	      break;
-      }
+  //     {
+  //         res=_t->Eval(); //r_expr(_t);
+  //         _retTree = _t->getNextSibling();
+  // //	    _t = _retTree;
+  //         break;
+  //     }
       case DOT:
       {
-	      res=dot_expr(_t);
+	      res=_t->Eval(); //dot_expr(_t);
+	      _retTree = _t->getNextSibling();
   //	    _t = _retTree;
 	      break;
       }
@@ -2816,11 +2870,11 @@ tmp_expr returns [BaseGDL* res]
 		break;
 	}
 	case QUESTION:
-	{
-		res = _t->Eval();
-		_retTree = _t->getNextSibling();
-		break;
-	}
+	// {
+	// 	res = _t->Eval();
+	// 	_retTree = _t->getNextSibling();
+	// 	break;
+	// }
 	case ARRAYEXPR:
 	{
 		res = _t->Eval();
@@ -2897,7 +2951,7 @@ tmp_expr returns [BaseGDL* res]
 	}
 //	_retTree = _t;
 	return res;
-}
+} // tmp_expr
     : e2=l_deref 
 	| #(q:QUESTION {res=q->Eval();}) // trinary operator
     | (ARRAYEXPR) //res=array_expr
@@ -2939,7 +2993,7 @@ assign_expr returns [BaseGDL* res]
 
   if( startNode->getType() == ASSIGN) 
   {
-    l=l_expr(_t, res);
+    l=_t->LExpr( res); //l_expr(_t, res);
     _t = _retTree;
     if( r_guard.get() == res) // owner
       r_guard.release();
@@ -3278,90 +3332,20 @@ unused_function_call returns[ BaseGDL* res]
     : ( 
           #(MFCALL 
                 self=expr mp:IDENTIFIER
-                {  
-                    auto_ptr<BaseGDL> self_guard(self);
-                    
-                    newEnv=new EnvUDT( self, mp);
-
-                    self_guard.release();
-                }
                 parameter_def[ newEnv]
             )
         | #(MFCALL_PARENT 
                 self=expr parent:IDENTIFIER p:IDENTIFIER
-                {
-                    auto_ptr<BaseGDL> self_guard(self);
-                    
-                    newEnv=new EnvUDT( self, p,
-                        parent->getText());
-
-                    self_guard.release();
-                }
                 parameter_def[ newEnv]
             )
         | #(f:FCALL //f:IDENTIFIER
-                {
-                    SetFunIx( f);
-                    
-                    newEnv=new EnvUDT( f, funList[f->funIx]);
-                }
                 parameter_def[ newEnv]
             )
         | #(ARRAYEXPR_MFCALL
-            {
-                mark = _t;
-                _t = _t->getNextSibling(); // skip DOT
-            }
-
             self=expr mp2:IDENTIFIER
-
-            {  
-                auto_ptr<BaseGDL> self_guard(self);
-        
-                try {
-                    newEnv=new EnvUDT( self, mp2);
-                    self_guard.release();
-                }
-                catch( GDLException& ex)
-                {
-                    goto tryARRAYEXPR;
-                }
-            } 
-
             parameter_def[ newEnv]
             )
         )        
-            {
-                // push environment onto call stack
-                callStack.push_back(newEnv);
-            
-                // make the call
-                res=call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
-
-                _retTree = startNode->getNextSibling();
-                return res;
-
-                tryARRAYEXPR:;
-                //_t = mark;
-
-                ProgNodeP dot = mark;
-                // 	match(antlr::RefAST(_t),DOT);
-                _t = mark->getFirstChild();
-	
-                SizeT nDot=dot->nDot;
-                auto_ptr<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
-	
-                r_dot_array_expr(_t, aD.get());
-                _t = _retTree;
-                for (; _t != NULL;) {
-                    tag_array_expr(_t, aD.get());
-                    _t = _retTree;
-                }
-                res= aD->Resolve();
-
-                _retTree = startNode->getNextSibling();
-                return res;
-            }
 	;	
 
 

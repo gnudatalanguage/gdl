@@ -157,6 +157,7 @@ public:
   
   void SetRightDown( const ProgNodeP right, const ProgNodeP down);
 
+  virtual BaseGDL** LExpr( BaseGDL* right);
   virtual BaseGDL** LEval();
   virtual BaseGDL* Eval(); // caller receives ownership
   virtual BaseGDL* EvalNC(); // non-copy used by all operators (and in other places)
@@ -1404,18 +1405,21 @@ class ASSIGNNode: public CommandNode
 public:
   ASSIGNNode( const RefDNode& refNode): CommandNode( refNode) {}
   RetCode Run();
+  BaseGDL** LExpr( BaseGDL* right);
 };
 class ASSIGN_ARRAYEXPR_MFCALLNode: public CommandNode
 {
 public:
   ASSIGN_ARRAYEXPR_MFCALLNode( const RefDNode& refNode): CommandNode( refNode) {}
   RetCode Run();
+  BaseGDL** LExpr( BaseGDL* right);
 };
 class ASSIGN_REPLACENode: public CommandNode
 {
 public:
   ASSIGN_REPLACENode( const RefDNode& refNode): CommandNode( refNode) {}
   RetCode Run();
+  BaseGDL** LExpr( BaseGDL* right);
 };
 class PCALL_LIBNode: public CommandNode
 {
@@ -1469,6 +1473,7 @@ class ARRAYEXPRNode: public DefaultNode
 public:
  ARRAYEXPRNode( const RefDNode& refNode): DefaultNode( refNode) {}
  BaseGDL* Eval(); // caller receives ownership
+ BaseGDL** LExpr(BaseGDL* r);
  //BaseGDL** LEval(); 
 };
 
@@ -1483,7 +1488,9 @@ class DOTNode: public DefaultNode
 {
 public:
  DOTNode( const RefDNode& refNode): DefaultNode( refNode) {}
- //BaseGDL* Eval();
+ BaseGDL* Eval();
+ BaseGDL** LExpr( BaseGDL* right);
+
 };
 
 #endif
