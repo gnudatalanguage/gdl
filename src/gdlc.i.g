@@ -1919,6 +1919,10 @@ l_dot_array_expr [DotAccessDescT* aD] // 1st
 // l_expr is only used in assignment and within itself
 l_expr [BaseGDL* right] returns [BaseGDL** res]
 {
+    res = _t->LExpr( right);
+    SetRetTree( _t->getNextSibling());
+    return res;
+
   BaseGDL*       e1;
 
   switch ( _t->getType()) {
@@ -2340,6 +2344,7 @@ l_simple_var returns [BaseGDL** res]
 	assert( _t != NULL);
     res = _t->LEval();    
     _retTree = _t->getNextSibling();
+    return res;
 // 	_retTree = _t->getNextSibling();
 // 	if( _t->getType() == VAR)
 // 	{
@@ -2532,6 +2537,7 @@ tag_expr [DotAccessDescT* aD] // 2nd...
 
 		_retTree = _t->getNextSibling();		
 	}
+    return;
 }
     : #(EXPR e=expr
             {
@@ -2686,8 +2692,10 @@ r_dot_array_expr [DotAccessDescT* aD] // 1st
 //#(DOT array_expr (tag_array_expr)+)                     
 dot_expr returns [BaseGDL* res]
 {
+    res = _t->Eval();
     _retTree = _t->getNextSibling();
-    return _t->Eval();
+    return res;
+
 
     // ProgNodeP rTree = _t->getNextSibling();
     // //ProgNodeP 
@@ -2720,6 +2728,9 @@ dot_expr returns [BaseGDL* res]
 // owned by caller
 indexable_tmp_expr returns [BaseGDL* res]
 {
+     res = _t->Eval(); //lib_function_call_retnew(_t);
+	_retTree = _t->getNextSibling();
+    return res;
 //    BaseGDL*  e1;
 //    BaseGDL* res;
 //    ProgNodeP q = ProgNodeP(antlr::nullAST);
@@ -2764,23 +2775,25 @@ indexable_tmp_expr returns [BaseGDL* res]
   //         break;
   //     }
       case DOT:
-      {
-	      res=_t->Eval(); //dot_expr(_t);
-	      _retTree = _t->getNextSibling();
-  //	    _t = _retTree;
-	      break;
-      }
+  //     {
+  //         res=_t->Eval(); //dot_expr(_t);
+  //         _retTree = _t->getNextSibling();
+  // //	    _t = _retTree;
+  //         break;
+  //     }
       case ASSIGN:
       case ASSIGN_REPLACE:
       case ASSIGN_ARRAYEXPR_MFCALL:
-      {
-	      res=assign_expr(_t);
-  //	    _t = _retTree;
-	      break;
-      }
+  //     {
+  //         res=_t->Eval(); //assign_expr(_t);
+  //         _retTree = _t->getNextSibling();
+  // //	    _t = _retTree;
+  //         break;
+  //     }
       case FCALL_LIB_RETNEW:
       {
-	      res=lib_function_call_retnew(_t);
+	      res=_t->Eval(); //lib_function_call_retnew(_t);
+	      _retTree = _t->getNextSibling();
   //	    _t = _retTree;
 	      break;
       }
@@ -3683,7 +3696,7 @@ arrayindex_list returns [ArrayIndexListT* aL]
             }				
         else
             {
-                s=indexable_tmp_expr(_t);
+                s=_t->Eval(); //indexable_tmp_expr(_t);
                 //_t = _retTree;
                 cleanupList.push_back( s);
             }

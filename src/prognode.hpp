@@ -1406,6 +1406,7 @@ public:
   ASSIGNNode( const RefDNode& refNode): CommandNode( refNode) {}
   RetCode Run();
   BaseGDL** LExpr( BaseGDL* right);
+  BaseGDL* Eval();
 };
 class ASSIGN_ARRAYEXPR_MFCALLNode: public CommandNode
 {
@@ -1413,6 +1414,7 @@ public:
   ASSIGN_ARRAYEXPR_MFCALLNode( const RefDNode& refNode): CommandNode( refNode) {}
   RetCode Run();
   BaseGDL** LExpr( BaseGDL* right);
+  BaseGDL* Eval();
 };
 class ASSIGN_REPLACENode: public CommandNode
 {
@@ -1420,6 +1422,7 @@ public:
   ASSIGN_REPLACENode( const RefDNode& refNode): CommandNode( refNode) {}
   RetCode Run();
   BaseGDL** LExpr( BaseGDL* right);
+  BaseGDL* Eval();
 };
 class PCALL_LIBNode: public CommandNode
 {

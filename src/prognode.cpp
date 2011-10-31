@@ -127,6 +127,133 @@ bool ProgNode::ConstantNode()
 /////////////////////////////////////////////////////////
 // Eval 
 /////////////////////////////////////////////////////////
+BaseGDL* ASSIGNNode::Eval()
+{
+    ProgNodeP _t = this->getFirstChild();
+
+    auto_ptr<BaseGDL> r_guard;
+	BaseGDL* res;
+    if( _t->getType() == GDLTokenTypes::FCALL_LIB)
+        {
+            res=interpreter->lib_function_call(_t);
+            _t = interpreter->GetRetTree();
+            if( !interpreter->CallStackBack()->Contains( res))
+                r_guard.reset( res);
+        }
+    else
+        {
+            res=interpreter->tmp_expr(_t);
+            _t = interpreter->GetRetTree();
+            r_guard.reset( res);
+        }
+
+    BaseGDL** l=_t->LExpr( res); //l_expr(_t, res);
+    //_t = _retTree;
+    if( r_guard.get() == res) // owner
+      r_guard.release();
+    else
+      res = res->Dup();
+	return res;
+}
+BaseGDL* ASSIGN_ARRAYEXPR_MFCALLNode::Eval()
+{
+    ProgNodeP _t = this->getFirstChild();
+
+    auto_ptr<BaseGDL> r_guard;
+
+	BaseGDL* res;
+    if( _t->getType() == GDLTokenTypes::FCALL_LIB)
+        {
+            res=interpreter->lib_function_call(_t);
+            _t = interpreter->GetRetTree();
+            if( !interpreter->CallStackBack()->Contains( res))
+                r_guard.reset( res);
+        }
+    else
+        {
+            res=interpreter->tmp_expr(_t);
+            _t = interpreter->GetRetTree();
+            r_guard.reset( res);
+        }
+
+    ProgNodeP mark = _t;
+    // try MFCALL
+    try
+	{
+	  BaseGDL** l=interpreter->l_arrayexpr_mfcall_as_mfcall( mark);
+
+	  if( res != (*l))
+	    {
+	      delete *l;
+	      *l = res->Dup();
+
+	      if( r_guard.get() == res) // owner
+		  {
+		      r_guard.release();
+		  }
+	      else
+			  res = res->Dup();
+	    }
+	}
+    catch( GDLException& ex)
+	{
+	  // try ARRAYEXPR
+	  try
+	    {
+		    BaseGDL** l=interpreter->l_arrayexpr_mfcall_as_arrayexpr(mark, res);
+		    if( r_guard.get() == res) // owner
+				r_guard.release();
+		    else
+			res = res->Dup();
+	    }
+	  catch( GDLException& ex2)
+	    {
+		throw GDLException(ex.toString() + " or "+ex2.toString());
+	    }
+	}
+	return res;
+}
+BaseGDL* ASSIGN_REPLACENode::Eval()
+{
+    ProgNodeP _t = this->getFirstChild();
+
+    auto_ptr<BaseGDL> r_guard;
+
+	BaseGDL* res;
+    if( _t->getType() == GDLTokenTypes::FCALL_LIB)
+        {
+            res=interpreter->lib_function_call(_t);
+            _t = interpreter->GetRetTree();
+            if( !interpreter->CallStackBack()->Contains( res))
+                r_guard.reset( res);
+        }
+    else
+        {
+            res=interpreter->tmp_expr(_t);
+            _t = interpreter->GetRetTree();
+            r_guard.reset( res);
+        }
+
+    BaseGDL** l=_t->LEval();
+    //_t = _t->getNextSibling();
+    //_t = _retTree;
+
+    if( res != (*l))
+    {
+      delete *l;
+      *l = res->Dup();
+
+      if( r_guard.get() == res) // owner
+      {
+		r_guard.release();
+      }
+      else
+	res = res->Dup();
+	}
+	return res;
+}
+
+
 BaseGDL* ARRAYDEFNode::Eval()
 {
   // GDLInterpreter::
@@ -723,6 +850,7 @@ RetCode  ASSIGN_REPLACENode::Run()
       {
 		r=_t->Eval();//ProgNode::interpreter->lib_function_call(_t);
 		_t = _t->getNextSibling(); //ProgNode::interpreter->_retTree;
+assert(_t != NULL);
 		r_guard.reset( r);
 
 		if( r == NULL) // ROUTINE_NAMES
@@ -738,7 +866,7 @@ RetCode  ASSIGN_REPLACENode::Run()
       {
 	r=ProgNode::interpreter->tmp_expr(_t);
 	_t = ProgNode::interpreter->_retTree;
-
+assert(_t != NULL);
 	r_guard.reset( r);
       }
   }

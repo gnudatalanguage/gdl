@@ -1991,7 +1991,7 @@ if( e1->StrictScalar())
     res=static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
 	//*** MUST always return a defined expression
 	
-	ProgNode::interpreter->SetRetTree( this->getNextSibling());
+	//ProgNode::interpreter->SetRetTree( this->getNextSibling());
 	return res;
   }
 
@@ -2016,7 +2016,7 @@ if( e1->StrictScalar())
 		throw GDLException( this, "Library function must return a "
 		"l-value in this context: "+this->getText());
 
-// 	ProgNode::interpreter->SetRetTree( this->getNextSibling());
+ 	//ProgNode::interpreter->SetRetTree( this->getNextSibling());
 	return res;
   }
 
@@ -2043,7 +2043,7 @@ if( e1->StrictScalar())
 	if( callStackBack->Contains( res))
 		res = res->Dup();
 
-	ProgNode::interpreter->SetRetTree( this->getNextSibling());
+	//ProgNode::interpreter->SetRetTree( this->getNextSibling());
 	return res;
   }
 
@@ -2074,7 +2074,7 @@ if( e1->StrictScalar())
     BaseGDL**	res=ProgNode::interpreter->
 		    call_lfun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 
-// 	ProgNode::interpreter->SetRetTree( this->getNextSibling());
+ 	//ProgNode::interpreter->SetRetTree( this->getNextSibling());
     return res;
   }
 
@@ -2105,7 +2105,7 @@ if( e1->StrictScalar())
     // make the call
     BaseGDL* res=ProgNode::interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
     
-    ProgNode::interpreter->SetRetTree( this->getNextSibling());
+    //ProgNode::interpreter->SetRetTree( this->getNextSibling());
     return res;
   }
 
@@ -2139,7 +2139,7 @@ if( e1->StrictScalar())
 	BaseGDL**	res=ProgNode::interpreter->
 			call_lfun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 
-// 	ProgNode::interpreter->SetRetTree( this->getNextSibling());
+ 	//ProgNode::interpreter->SetRetTree( this->getNextSibling());
 	return res;
   }
 
@@ -2172,7 +2172,7 @@ if( e1->StrictScalar())
     // make the call
     BaseGDL* res=ProgNode::interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
     
-    ProgNode::interpreter->SetRetTree( this->getNextSibling());
+    //ProgNode::interpreter->SetRetTree( this->getNextSibling());
     return res;
   }
 
@@ -2196,7 +2196,7 @@ if( e1->StrictScalar())
 	BaseGDL**	res=
 		ProgNode::interpreter->call_lfun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 	
-// 	ProgNode::interpreter->SetRetTree( this->getNextSibling());
+ 	//ProgNode::interpreter->SetRetTree( this->getNextSibling());
 	return res;
   }
 
@@ -2217,7 +2217,7 @@ if( e1->StrictScalar())
     BaseGDL*
     res=ProgNode::interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
     
-    ProgNode::interpreter->SetRetTree( this->getNextSibling());
+    //ProgNode::interpreter->SetRetTree( this->getNextSibling());
     return res;
   }
 
@@ -2299,7 +2299,7 @@ BaseGDL** ARRAYEXPR_MFCALLNode::LEval()
 	    ProgNode::interpreter->
 		    call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
     
-    ProgNode::interpreter->SetRetTree( this->getNextSibling());
+    //ProgNode::interpreter->SetRetTree( this->getNextSibling());
     return res;
     
     tryARRAYEXPR:;
@@ -2320,7 +2320,7 @@ BaseGDL** ARRAYEXPR_MFCALLNode::LEval()
     }
     res= aD->Resolve();
     
-    ProgNode::interpreter->SetRetTree( this->getNextSibling());
+    //ProgNode::interpreter->SetRetTree( this->getNextSibling());
     return res;
   }
 
@@ -2570,13 +2570,13 @@ BaseGDL** ARRAYEXPR_MFCALLNode::LEval()
 	  }
 	  else if( _t->getType() == GDLTokenTypes::FCALL_LIB)
 	  {
-	      s=ProgNode::interpreter->lib_function_call(_t);
+	      s=_t->Eval(); //ProgNode::interpreter->lib_function_call(_t);
 	      if( !ProgNode::interpreter->CallStack().back()->Contains( s))
-		exprList.push_back( s);
+			exprList.push_back( s);
 	  }
 	  else
 	  {
-	      s=ProgNode::interpreter->indexable_tmp_expr(_t);
+	      s=_t->Eval(); //ProgNode::interpreter->indexable_tmp_expr(_t);
 	      exprList.push_back( s);
 	  }
 // 	switch ( _t->getType()) {
@@ -2642,6 +2642,6 @@ BaseGDL** ARRAYEXPR_MFCALLNode::LEval()
 	guard.reset(aL);
 	res = aL->Index( r, ixExprList);
 
-	ProgNode::interpreter->SetRetTree( this->getNextSibling());
+	//ProgNode::interpreter->SetRetTree( this->getNextSibling());
 	return res;
 }
