@@ -173,6 +173,7 @@ public:
   {}
   BaseGDL** LEval();
   BaseGDL* EvalNC();
+  BaseGDL* Eval();
   BaseGDL** LExpr( BaseGDL* right);  
 };
 class VARPTRNode: public LeafNode
@@ -182,6 +183,7 @@ public:
   {}
   BaseGDL** LEval();
   BaseGDL* EvalNC();
+  BaseGDL* Eval();
   BaseGDL** LExpr( BaseGDL* right);
 };
 class SYSVARNode: public LeafNode
@@ -191,6 +193,7 @@ public:
   {}
   BaseGDL** LEval();
   BaseGDL* EvalNC();
+  BaseGDL* Eval();
   BaseGDL** LExpr(BaseGDL* r);
 };
 class DEREFNode: public LeafNode
@@ -200,6 +203,7 @@ public:
   {}
   BaseGDL** LEval();
   BaseGDL* EvalNC();
+  BaseGDL* Eval();
   BaseGDL** LExpr( BaseGDL* right);
 };
 class CONSTANTNode: public LeafNode
@@ -214,6 +218,7 @@ public:
   CONSTANTNode( const RefDNode& refNode): LeafNode( refNode)
   {}
   BaseGDL* EvalNC();
+  BaseGDL* Eval();
 };
 class ARRAYDEFNode: public DefaultNode
 { public:

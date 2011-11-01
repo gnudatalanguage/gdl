@@ -191,6 +191,29 @@ void BinaryExprNC::AdjustTypesNC(auto_ptr<BaseGDL>& g1, BaseGDL*& e1,
     }
 }
 
+BaseGDL* VARNode::Eval()
+{
+    BaseGDL* vData = this->EvalNC();
+	if( vData == NULL)
+        {
+            throw GDLException( this, "Variable is undefined: "+this->getText(),true,false);
+        }
+	return vData->Dup();
+}
+BaseGDL* VARPTRNode::Eval()
+{
+    BaseGDL* vData = this->EvalNC();
+	if( vData == NULL)
+        {
+            throw GDLException( this, "Common block variable is undefined.",true,false);
+        }
+	return vData->Dup();
+}
+BaseGDL* SYSVARNode::Eval()
+{
+	return this->EvalNC()->Dup();	
+}
+
 BaseGDL* VARNode::EvalNC()
 {
 	EnvStackT& callStack=interpreter->CallStack();
@@ -216,6 +239,10 @@ BaseGDL* VARPTRNode::EvalNC()
 BaseGDL* CONSTANTNode::EvalNC()
 {
   return this->cData;
+}
+BaseGDL* CONSTANTNode::Eval()
+{
+  return this->cData->Dup();
 }
 
 BaseGDL* SYSVARNode::EvalNC()
@@ -257,6 +284,15 @@ BaseGDL** SYSVARNode::LEval()
 }
 
 
+BaseGDL* DEREFNode::Eval()
+{
+	BaseGDL** e2=this->LEval();
+	if( *e2 == NULL)
+		throw GDLException( this, "Variable is undefined: "+
+			interpreter->Name(e2),true,false);
+	return (*e2)->Dup();
+}
+	
 BaseGDL* DEREFNode::EvalNC()
 {
   auto_ptr<BaseGDL> e1_guard;
@@ -1971,6 +2007,7 @@ if( e1->StrictScalar())
 	EnvT* newEnv=new EnvT( this, this->libFun);//libFunList[fl->funIx]);
 // 	_t =_t->getFirstChild();
 // 	EnvT* newEnv=new EnvT( fl, fl->libFun);//libFunList[fl->funIx]);
+	// special handling for N_ELEMENTS()
     static int n_elementsIx = LibFunIx("N_ELEMENTS");
     static DLibFun* n_elementsFun = libFunList[n_elementsIx];
 

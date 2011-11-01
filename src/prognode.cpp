@@ -361,7 +361,7 @@ BaseGDL* STRUCNode::Eval()
     ProgNodeP si = _t;
     // 			match(antlr::RefAST(_t),IDENTIFIER);
     _t = _t->getNextSibling();
-    BaseGDL* e=_t->Eval();//expr(_t);
+    BaseGDL* e=interpreter->expr(_t);
     _t = _t->getNextSibling();
     //WRONG    _t = ProgNode::interpreter->_retTree;
 			

@@ -493,7 +493,7 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
     {
     case GDLTokenTypes::FCALL_LIB_RETNEW:
       {
-	ProgNodeP c = new DefaultNode( refNode);
+	ProgNodeP c = new FCALL_LIB_RETNEWNode( refNode);
 
 	if( !static_cast<DLibFunRetNew*>(c->libFun)->RetConstant()
 	    || !ConstantPar( c->getFirstChild())) return c;
