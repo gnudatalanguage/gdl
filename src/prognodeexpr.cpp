@@ -2057,6 +2057,27 @@ if( e1->StrictScalar())
 	return res;
   }
 
+  BaseGDL* FCALL_LIBNode::EvalNC()
+  {
+    // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+    StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
+    EnvT* newEnv=new EnvT( this, this->libFun);//libFunList[fl->funIx]);
+	
+    ProgNode::interpreter->parameter_def(this->getFirstChild(), newEnv);
+
+    assert( dynamic_cast<EnvUDT*>(ProgNode::interpreter->CallStack().back()) != NULL);
+    EnvUDT* callStackBack = static_cast<EnvUDT*>(ProgNode::interpreter->CallStack().back());
+		
+    // push id.pro onto call stack
+    ProgNode::interpreter->CallStack().push_back(newEnv);
+    // make the call
+    BaseGDL* res=static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
+    // *** MUST always return a defined expression
+
+    //ProgNode::interpreter->SetRetTree( this->getNextSibling());
+    return res;
+  }
+
   BaseGDL* FCALL_LIBNode::Eval()
   {
       // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
@@ -2607,7 +2628,7 @@ BaseGDL** ARRAYEXPR_MFCALLNode::LEval()
 	  }
 	  else if( _t->getType() == GDLTokenTypes::FCALL_LIB)
 	  {
-	      s=_t->Eval(); //ProgNode::interpreter->lib_function_call(_t);
+	      s=ProgNode::interpreter->lib_function_call(_t);
 	      if( !ProgNode::interpreter->CallStack().back()->Contains( s))
 			exprList.push_back( s);
 	  }

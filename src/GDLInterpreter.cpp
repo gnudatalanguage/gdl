@@ -1732,7 +1732,7 @@ BaseGDL*  GDLInterpreter::tmp_expr(ProgNodeP _t) {
 	ProgNodeP lib_function_call_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP fll = ProgNodeP(antlr::nullAST);
 	
-		res = _t->Eval();
+		res = _t->EvalNC(); // not a true NC node
 		_retTree = _t->getNextSibling();
 	return res;
 	
@@ -2184,7 +2184,7 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t) {
 	}
 	else if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
 	{
-	s=_t->Eval(); //lib_function_call(_t);
+	s=lib_function_call(_t);
 	//_t = _retTree;
 	if( !callStack.back()->Contains( s)) 
 	cleanupList.push_back( s);

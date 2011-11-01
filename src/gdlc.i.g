@@ -3295,7 +3295,7 @@ unused_constant_nocopy returns [BaseGDL* res]
 
 lib_function_call returns[ BaseGDL* res]
 { 
- 	res = _t->Eval();
+ 	res = _t->EvalNC(); // not a true NC node
  	_retTree = _t->getNextSibling();
     return res;
 
@@ -3728,7 +3728,7 @@ arrayindex_list returns [ArrayIndexListT* aL]
             }
         else if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
             {
-                s=_t->Eval(); //lib_function_call(_t);
+                s=lib_function_call(_t);
                 //_t = _retTree;
                 if( !callStack.back()->Contains( s)) 
                     cleanupList.push_back( s);
