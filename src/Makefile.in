@@ -97,12 +97,13 @@ am__libgdl_la_SOURCES_DIST = allix.hpp allix.cpp prognode.hpp \
 	sigfpehandler.cpp sigfpehandler.hpp devicez.hpp gdlzstream.cpp \
 	gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp \
 	arrayindex.cpp fftw.cpp fftw.hpp mpi.cpp mpi.hpp plot3d_nr.cpp \
-	grib.cpp grib.hpp prognode.cpp prognodeexpr.cpp \
-	strassenmatrix.hpp datatypesref.cpp lapack.cpp gshhs.cpp \
-	gshhs.hpp newprognode.cpp plotting_plot.cpp plotting_oplot.cpp \
-	plotting_device.cpp plotting_cursor.cpp plotting_contour.cpp \
-	plotting_surface.cpp plotting_axis.cpp plotting_plots.cpp \
-	plotting_xyouts.cpp plotting_polyfill.cpp plotting_windows.cpp \
+	grib.cpp grib.hpp prognode.cpp prognode_lexpr.cpp \
+	prognodeexpr.cpp strassenmatrix.hpp datatypesref.cpp \
+	lapack.cpp gshhs.cpp gshhs.hpp newprognode.cpp \
+	plotting_plot.cpp plotting_oplot.cpp plotting_device.cpp \
+	plotting_cursor.cpp plotting_contour.cpp plotting_surface.cpp \
+	plotting_axis.cpp plotting_plots.cpp plotting_xyouts.cpp \
+	plotting_polyfill.cpp plotting_windows.cpp \
 	plotting_convert_coord.cpp plotting_map_proj.cpp \
 	plotting_misc.cpp plotting_erase.cpp semshm.cpp pythongdl.cpp
 am__objects_1 = allix.lo assocdata.lo basic_fun_cl.lo basic_fun.lo \
@@ -126,12 +127,12 @@ am__objects_1 = allix.lo assocdata.lo basic_fun_cl.lo basic_fun.lo \
 	hdf5_fun.lo libinit_mes.lo file.lo image.lo gdljournal.lo \
 	convol.lo convol_inc0.lo convol_inc1.lo convol_inc2.lo \
 	sigfpehandler.lo gdlzstream.lo arrayindex.lo fftw.lo mpi.lo \
-	plot3d_nr.lo grib.lo prognode.lo prognodeexpr.lo \
-	datatypesref.lo lapack.lo gshhs.lo newprognode.lo \
-	plotting_plot.lo plotting_oplot.lo plotting_device.lo \
-	plotting_cursor.lo plotting_contour.lo plotting_surface.lo \
-	plotting_axis.lo plotting_plots.lo plotting_xyouts.lo \
-	plotting_polyfill.lo plotting_windows.lo \
+	plot3d_nr.lo grib.lo prognode.lo prognode_lexpr.lo \
+	prognodeexpr.lo datatypesref.lo lapack.lo gshhs.lo \
+	newprognode.lo plotting_plot.lo plotting_oplot.lo \
+	plotting_device.lo plotting_cursor.lo plotting_contour.lo \
+	plotting_surface.lo plotting_axis.lo plotting_plots.lo \
+	plotting_xyouts.lo plotting_polyfill.lo plotting_windows.lo \
 	plotting_convert_coord.lo plotting_map_proj.lo \
 	plotting_misc.lo plotting_erase.lo semshm.lo
 @BUILDASLIBRARY_TRUE@am_libgdl_la_OBJECTS = $(am__objects_1) \
@@ -191,12 +192,13 @@ am__gdl_SOURCES_DIST = allix.hpp allix.cpp prognode.hpp \
 	sigfpehandler.cpp sigfpehandler.hpp devicez.hpp gdlzstream.cpp \
 	gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp \
 	arrayindex.cpp fftw.cpp fftw.hpp mpi.cpp mpi.hpp plot3d_nr.cpp \
-	grib.cpp grib.hpp prognode.cpp prognodeexpr.cpp \
-	strassenmatrix.hpp datatypesref.cpp lapack.cpp gshhs.cpp \
-	gshhs.hpp newprognode.cpp plotting_plot.cpp plotting_oplot.cpp \
-	plotting_device.cpp plotting_cursor.cpp plotting_contour.cpp \
-	plotting_surface.cpp plotting_axis.cpp plotting_plots.cpp \
-	plotting_xyouts.cpp plotting_polyfill.cpp plotting_windows.cpp \
+	grib.cpp grib.hpp prognode.cpp prognode_lexpr.cpp \
+	prognodeexpr.cpp strassenmatrix.hpp datatypesref.cpp \
+	lapack.cpp gshhs.cpp gshhs.hpp newprognode.cpp \
+	plotting_plot.cpp plotting_oplot.cpp plotting_device.cpp \
+	plotting_cursor.cpp plotting_contour.cpp plotting_surface.cpp \
+	plotting_axis.cpp plotting_plots.cpp plotting_xyouts.cpp \
+	plotting_polyfill.cpp plotting_windows.cpp \
 	plotting_convert_coord.cpp plotting_map_proj.cpp \
 	plotting_misc.cpp plotting_erase.cpp semshm.cpp gdl.cpp
 am__objects_2 = gdl-allix.$(OBJEXT) gdl-assocdata.$(OBJEXT) \
@@ -245,15 +247,15 @@ am__objects_2 = gdl-allix.$(OBJEXT) gdl-assocdata.$(OBJEXT) \
 	gdl-sigfpehandler.$(OBJEXT) gdl-gdlzstream.$(OBJEXT) \
 	gdl-arrayindex.$(OBJEXT) gdl-fftw.$(OBJEXT) gdl-mpi.$(OBJEXT) \
 	gdl-plot3d_nr.$(OBJEXT) gdl-grib.$(OBJEXT) \
-	gdl-prognode.$(OBJEXT) gdl-prognodeexpr.$(OBJEXT) \
-	gdl-datatypesref.$(OBJEXT) gdl-lapack.$(OBJEXT) \
-	gdl-gshhs.$(OBJEXT) gdl-newprognode.$(OBJEXT) \
-	gdl-plotting_plot.$(OBJEXT) gdl-plotting_oplot.$(OBJEXT) \
-	gdl-plotting_device.$(OBJEXT) gdl-plotting_cursor.$(OBJEXT) \
-	gdl-plotting_contour.$(OBJEXT) gdl-plotting_surface.$(OBJEXT) \
-	gdl-plotting_axis.$(OBJEXT) gdl-plotting_plots.$(OBJEXT) \
-	gdl-plotting_xyouts.$(OBJEXT) gdl-plotting_polyfill.$(OBJEXT) \
-	gdl-plotting_windows.$(OBJEXT) \
+	gdl-prognode.$(OBJEXT) gdl-prognode_lexpr.$(OBJEXT) \
+	gdl-prognodeexpr.$(OBJEXT) gdl-datatypesref.$(OBJEXT) \
+	gdl-lapack.$(OBJEXT) gdl-gshhs.$(OBJEXT) \
+	gdl-newprognode.$(OBJEXT) gdl-plotting_plot.$(OBJEXT) \
+	gdl-plotting_oplot.$(OBJEXT) gdl-plotting_device.$(OBJEXT) \
+	gdl-plotting_cursor.$(OBJEXT) gdl-plotting_contour.$(OBJEXT) \
+	gdl-plotting_surface.$(OBJEXT) gdl-plotting_axis.$(OBJEXT) \
+	gdl-plotting_plots.$(OBJEXT) gdl-plotting_xyouts.$(OBJEXT) \
+	gdl-plotting_polyfill.$(OBJEXT) gdl-plotting_windows.$(OBJEXT) \
 	gdl-plotting_convert_coord.$(OBJEXT) \
 	gdl-plotting_map_proj.$(OBJEXT) gdl-plotting_misc.$(OBJEXT) \
 	gdl-plotting_erase.$(OBJEXT) gdl-semshm.$(OBJEXT)
@@ -349,6 +351,7 @@ CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
+DLLTOOL = @DLLTOOL@
 DSYMUTIL = @DSYMUTIL@
 DUMPBIN = @DUMPBIN@
 ECHO_C = @ECHO_C@
@@ -377,6 +380,7 @@ LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
+MANIFEST_TOOL = @MANIFEST_TOOL@
 MKDIR_P = @MKDIR_P@
 MagickConfig = @MagickConfig@
 NM = @NM@
@@ -409,6 +413,7 @@ abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
+ac_ct_AR = @ac_ct_AR@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
 ac_ct_DUMPBIN = @ac_ct_DUMPBIN@
@@ -442,7 +447,6 @@ libdir = @libdir@
 libexecdir = @libexecdir@
 localedir = @localedir@
 localstatedir = @localstatedir@
-lt_ECHO = @lt_ECHO@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
 nc_config = @nc_config@
@@ -509,7 +513,7 @@ cpp_hpp_files = allix.hpp allix.cpp prognode.hpp prognodeexpr.hpp \
 		convol_inc1.cpp convol_inc2.cpp sigfpehandler.cpp sigfpehandler.hpp devicez.hpp \
 		gdlzstream.cpp gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp arrayindex.cpp \
 		fftw.cpp fftw.hpp mpi.cpp mpi.hpp plot3d_nr.cpp grib.cpp grib.hpp \
-                prognode.cpp prognodeexpr.cpp strassenmatrix.hpp datatypesref.cpp lapack.cpp \
+                prognode.cpp prognode_lexpr.cpp prognodeexpr.cpp strassenmatrix.hpp datatypesref.cpp lapack.cpp \
                 gshhs.cpp gshhs.hpp newprognode.cpp plotting_plot.cpp plotting_oplot.cpp \
                 plotting_device.cpp plotting_cursor.cpp plotting_contour.cpp plotting_surface.cpp \
                 plotting_axis.cpp plotting_plots.cpp plotting_xyouts.cpp plotting_polyfill.cpp \
@@ -783,6 +787,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-print.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-print_tree.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-prognode.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-prognode_lexpr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-prognodeexpr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-read.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-semshm.Po@am__quote@
@@ -860,6 +865,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/print.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/print_tree.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/prognode.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/prognode_lexpr.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/prognodeexpr.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pythongdl.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/read.Plo@am__quote@
@@ -2263,6 +2269,20 @@ gdl-prognode.obj: prognode.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='prognode.cpp' object='gdl-prognode.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-prognode.obj `if test -f 'prognode.cpp'; then $(CYGPATH_W) 'prognode.cpp'; else $(CYGPATH_W) '$(srcdir)/prognode.cpp'; fi`
+
+gdl-prognode_lexpr.o: prognode_lexpr.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-prognode_lexpr.o -MD -MP -MF $(DEPDIR)/gdl-prognode_lexpr.Tpo -c -o gdl-prognode_lexpr.o `test -f 'prognode_lexpr.cpp' || echo '$(srcdir)/'`prognode_lexpr.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/gdl-prognode_lexpr.Tpo $(DEPDIR)/gdl-prognode_lexpr.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='prognode_lexpr.cpp' object='gdl-prognode_lexpr.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-prognode_lexpr.o `test -f 'prognode_lexpr.cpp' || echo '$(srcdir)/'`prognode_lexpr.cpp
+
+gdl-prognode_lexpr.obj: prognode_lexpr.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-prognode_lexpr.obj -MD -MP -MF $(DEPDIR)/gdl-prognode_lexpr.Tpo -c -o gdl-prognode_lexpr.obj `if test -f 'prognode_lexpr.cpp'; then $(CYGPATH_W) 'prognode_lexpr.cpp'; else $(CYGPATH_W) '$(srcdir)/prognode_lexpr.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/gdl-prognode_lexpr.Tpo $(DEPDIR)/gdl-prognode_lexpr.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='prognode_lexpr.cpp' object='gdl-prognode_lexpr.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-prognode_lexpr.obj `if test -f 'prognode_lexpr.cpp'; then $(CYGPATH_W) 'prognode_lexpr.cpp'; else $(CYGPATH_W) '$(srcdir)/prognode_lexpr.cpp'; fi`
 
 gdl-prognodeexpr.o: prognodeexpr.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-prognodeexpr.o -MD -MP -MF $(DEPDIR)/gdl-prognodeexpr.Tpo -c -o gdl-prognodeexpr.o `test -f 'prognodeexpr.cpp' || echo '$(srcdir)/'`prognodeexpr.cpp
