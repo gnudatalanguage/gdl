@@ -114,6 +114,7 @@ public:
   BaseGDL* Eval();
   BaseGDL* EvalFCALL_LIB(); // might return a non new value
   BaseGDL** LExpr( BaseGDL* right);
+//   BaseGDL** LExprGrab( BaseGDL* right);  
 };
 
 
@@ -126,7 +127,7 @@ public:
   BaseGDL** LEval();
   BaseGDL* Eval();
   BaseGDL** LExpr( BaseGDL* right);
-
+//   BaseGDL** LExprGrab( BaseGDL* right);  
 };
 
 
@@ -139,6 +140,7 @@ public:
   BaseGDL** LEval();
   BaseGDL* Eval();
   BaseGDL** LExpr( BaseGDL* right);
+//   BaseGDL** LExprGrab( BaseGDL* right);  
 };
 
 
@@ -151,6 +153,7 @@ public:
   BaseGDL** LExpr( BaseGDL* right);
   BaseGDL** LEval();
   BaseGDL* Eval();
+//   BaseGDL** LExprGrab( BaseGDL* right);  
 };
 
 
@@ -163,6 +166,7 @@ public:
   BaseGDL** LEval(); //{ ThrowGDLException( "Internal errorr: ARRAYEXPR_MFCALLNode called.");}
   BaseGDL* Eval();
   BaseGDL** LExpr( BaseGDL* right);
+//   BaseGDL** LExprGrab( BaseGDL* right);  
 };
 
 
@@ -176,6 +180,7 @@ public:
   BaseGDL* EvalNC();
   BaseGDL* Eval();
   BaseGDL** LExpr( BaseGDL* right);  
+//   BaseGDL** LExprGrab( BaseGDL* right);  
 };
 class VARPTRNode: public LeafNode
 {
@@ -186,6 +191,7 @@ public:
   BaseGDL* EvalNC();
   BaseGDL* Eval();
   BaseGDL** LExpr( BaseGDL* right);
+//   BaseGDL** LExprGrab( BaseGDL* right);  
 };
 class SYSVARNode: public LeafNode
 {
@@ -196,6 +202,7 @@ public:
   BaseGDL* EvalNC();
   BaseGDL* Eval();
   BaseGDL** LExpr(BaseGDL* r);
+  //BaseGDL** LExprGrab( BaseGDL* right);    
 };
 class DEREFNode: public LeafNode
 {
@@ -206,6 +213,7 @@ public:
   BaseGDL* EvalNC();
   BaseGDL* Eval();
   BaseGDL** LExpr( BaseGDL* right);
+//   BaseGDL** LExprGrab( BaseGDL* right);  
 };
 class CONSTANTNode: public LeafNode
 {
@@ -263,7 +271,8 @@ class QUESTIONNode: public TrinaryExpr
 { public:
   QUESTIONNode( const RefDNode& refNode): TrinaryExpr( refNode){}
   BaseGDL* Eval();
-  BaseGDL** LExpr(BaseGDL* r);
+  BaseGDL** LExpr(BaseGDL* right);
+//   BaseGDL** LExprGrab(BaseGDL* right);
 };
 class UMINUSNode: public UnaryExpr
 { public:

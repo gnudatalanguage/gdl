@@ -153,7 +153,7 @@ BaseGDL* ASSIGNNode::Eval()
       r_guard.release();
     else
       res = res->Dup();
-	return res;
+    return res;
 }
 BaseGDL* ASSIGN_ARRAYEXPR_MFCALLNode::Eval()
 {
@@ -682,26 +682,27 @@ RetCode  ASSIGNNode::Run()
 	
   //     match(antlr::RefAST(_t),ASSIGN);
   ProgNodeP _t = this->getFirstChild();
+  if( NonCopyNode(_t->getType()))
   {
-    if( NonCopyNode(_t->getType()))
-    {
-	r= ProgNode::interpreter->indexable_expr(_t);
-	_t = ProgNode::interpreter->_retTree;
-    }
-    else if( _t->getType() == GDLTokenTypes::FCALL_LIB)
-    {
-	r=ProgNode::interpreter->lib_function_call(_t);
-	_t = ProgNode::interpreter->_retTree;
-			
-	if( !ProgNode::interpreter->callStack.back()->Contains( r)) 
-	  r_guard.reset( r); // guard if no global data
-    }
-    else
-    {
-	r=ProgNode::interpreter->indexable_tmp_expr(_t);
-	_t = ProgNode::interpreter->_retTree;
-	r_guard.reset( r);
-    }
+      r= ProgNode::interpreter->indexable_expr(_t);
+      _t = ProgNode::interpreter->_retTree;
+      l=_t->LExpr( r); //ProgNode::interpreter->l_expr(_t, r);
+  }
+  else if( _t->getType() == GDLTokenTypes::FCALL_LIB)
+  {
+      r=ProgNode::interpreter->lib_function_call(_t);
+      _t = ProgNode::interpreter->_retTree;		      
+      if( !ProgNode::interpreter->callStack.back()->Contains( r)) 
+ 	r_guard.reset( r); // guard if no global data
+      l=_t->LExpr( r); //ProgNode::interpreter->l_expr(_t, r);
+  }
+  else
+  {
+      r=ProgNode::interpreter->indexable_tmp_expr(_t);
+      _t = ProgNode::interpreter->_retTree;
+      r_guard.reset( r);
+      l=_t->LExpr( r); //ProgNode::interpreter->l_expr(_t, r);
+  }
 //     switch ( _t->getType()) {
 //     case GDLTokenTypes::CONSTANT:
 //     case GDLTokenTypes::DEREF:
@@ -731,11 +732,9 @@ RetCode  ASSIGNNode::Run()
 // 	break;
 //       }
 //     }//switch
-  }
-  l=_t->LExpr( r); //ProgNode::interpreter->l_expr(_t, r);
+//   l=_t->LExpr( r); //ProgNode::interpreter->l_expr(_t, r);
 
   ProgNode::interpreter->_retTree = this->getNextSibling();
-
   return RC_OK;
 }
 
@@ -753,15 +752,15 @@ RetCode  ASSIGN_ARRAYEXPR_MFCALLNode::Run()
     // BOTH
     if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
       {
-		r=ProgNode::interpreter->lib_function_call(_t);
+	r=ProgNode::interpreter->lib_function_call(_t);
 
-		if( r == NULL) // ROUTINE_NAMES
-			ProgNode::interpreter->callStack.back()->Throw( "Undefined return value");
+	if( r == NULL) // ROUTINE_NAMES
+		ProgNode::interpreter->callStack.back()->Throw( "Undefined return value");
+
+	_t = ProgNode::interpreter->_retTree;
 	
-		_t = ProgNode::interpreter->_retTree;
-		
-		if( !ProgNode::interpreter->callStack.back()->Contains( r)) 
-			r_guard.reset( r);
+	if( !ProgNode::interpreter->callStack.back()->Contains( r)) 
+		r_guard.reset( r);
 			
       }
     else
@@ -798,7 +797,7 @@ RetCode  ASSIGN_ARRAYEXPR_MFCALLNode::Run()
 // 	    break;
 // 	  }
 // 	}//switch
-		}
+    }
   }
 
     ProgNodeP lExpr = _t;
@@ -806,29 +805,29 @@ RetCode  ASSIGN_ARRAYEXPR_MFCALLNode::Run()
     // try MFCALL
     try
     {
-    l=ProgNode::interpreter->l_arrayexpr_mfcall_as_mfcall(_t);
-    
-	if( r != (*l))
-	  {
+      l=ProgNode::interpreter->l_arrayexpr_mfcall_as_mfcall(_t);
+  
+      if( r != (*l))
+	{
 	  delete *l;
 
 	  if( r_guard.get() == r)
 	    *l = r_guard.release();
 	  else
 	    *l = r->Dup();
-	  }
+	}
     }
     catch( GDLException& e)
     {
-	  // try ARRAYEXPR
-	  try
-	  {
-		  l=ProgNode::interpreter->l_arrayexpr_mfcall_as_arrayexpr(lExpr, r);
-	  }
-	  catch( GDLException& e2)
-	  {
-		  throw GDLException(e.toString() + " or "+e2.toString());
-	  }
+      // try ARRAYEXPR
+      try
+      {
+	l=ProgNode::interpreter->l_arrayexpr_mfcall_as_arrayexpr(lExpr, r);
+      }
+      catch( GDLException& e2)
+      {
+	throw GDLException(e.toString() + " or "+e2.toString());
+      }
     }
 
   ProgNode::interpreter->_retTree = this->getNextSibling();
@@ -840,59 +839,56 @@ RetCode  ASSIGN_ARRAYEXPR_MFCALLNode::Run()
 RetCode  ASSIGN_REPLACENode::Run()
 {
   BaseGDL*  r;
-  BaseGDL** l;
   auto_ptr<BaseGDL> r_guard;
 
   //match(antlr::RefAST(_t),ASSIGN_REPLACE);
   ProgNodeP _t = this->getFirstChild();
   {
-    if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
+//     if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
+//       {
+// 	r=_t->Eval();//different: ProgNode::interpreter->lib_function_call(_t);
+// 	_t = _t->getNextSibling(); //ProgNode::interpreter->_retTree;
+// 	assert(_t != NULL);
+// 	r_guard.reset( r);
+// // 	if( !ProgNode::interpreter->callStack.back()->Contains( r))
+// // 		r_guard.reset( r);
+// // 	else
+// // 		r_guard.reset( r->Dup());
+//       }
+//     else
       {
-		r=_t->Eval();//ProgNode::interpreter->lib_function_call(_t);
-		_t = _t->getNextSibling(); //ProgNode::interpreter->_retTree;
-assert(_t != NULL);
-		r_guard.reset( r);
-
-		if( r == NULL) // ROUTINE_NAMES
-			throw GDLException( this, "Undefined return value", true, false);
-		
-		
-/*		if( !ProgNode::interpreter->callStack.back()->Contains( r))
-			r_guard.reset( r);
-		else
-			r_guard.reset( r->Dup());*/
-      }
-    else
-      {
-	r=ProgNode::interpreter->tmp_expr(_t);
-	_t = ProgNode::interpreter->_retTree;
-assert(_t != NULL);
+	//r=ProgNode::interpreter->tmp_expr(_t);
+ 	r = _t->Eval();
 	r_guard.reset( r);
+ 	_t = _t->getNextSibling();
+	assert(_t != NULL);
       }
   }
+//   switch ( _t->getType()) {
+//   case GDLTokenTypes::VAR:
+//   case GDLTokenTypes::VARPTR:
+//   case GDLTokenTypes::DEREF:
+//     {
+//       l=_t->LEval(); //ProgNode::interpreter->l_simple_var(_t);
+// //       _t = ProgNode::interpreter->_retTree;
+//       break;
+//     }
+//   default:
+// //   case GDLTokenTypes::FCALL:
+// //   case GDLTokenTypes::FCALL_LIB:
+// //   case GDLTokenTypes::MFCALL:
+// //   case GDLTokenTypes::MFCALL_PARENT:
+//     {
+//       l=ProgNode::interpreter->l_function_call(_t);
+// //       _t = ProgNode::interpreter->_retTree;
+//       break;
+//     }
+//   } // switch
+  
+  BaseGDL** l=_t->LEval();
 
-  switch ( _t->getType()) {
-  case GDLTokenTypes::VAR:
-  case GDLTokenTypes::VARPTR:
-  case GDLTokenTypes::DEREF:
-    {
-      l=_t->LEval(); //ProgNode::interpreter->l_simple_var(_t);
-//       _t = ProgNode::interpreter->_retTree;
-      break;
-    }
-  default:
-//   case GDLTokenTypes::FCALL:
-//   case GDLTokenTypes::FCALL_LIB:
-//   case GDLTokenTypes::MFCALL:
-//   case GDLTokenTypes::MFCALL_PARENT:
-    {
-      l=ProgNode::interpreter->l_function_call(_t);
-//       _t = ProgNode::interpreter->_retTree;
-      break;
-    }
-  }
   if( r != (*l))
-		delete *l;
+    delete *l;
   
   *l = r_guard.release();
 

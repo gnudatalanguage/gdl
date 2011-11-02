@@ -25,6 +25,7 @@ email                : m_schellens@users.sf.net
 //#include "envt.hpp"
 #include "gdlexception.hpp"
 
+// illegal
 BaseGDL** ProgNode::LExpr( BaseGDL* right)
 //	default:
 {
@@ -42,6 +43,14 @@ BaseGDL** ProgNode::LExpr( BaseGDL* right)
 				  true,false);
 	return NULL; // avoid compiler warning
 }
+
+// // default version
+// BaseGDL** ProgNode::LExprGrab( BaseGDL* right)
+// {
+//   std::auto_ptr<BaseGDL> guard( right);	// grab version
+//   BaseGDL** res = this->LExpr( right);
+//   return res;
+// }
 
 BaseGDL** QUESTIONNode::LExpr( BaseGDL* right)
 		//case QUESTION:
@@ -89,7 +98,8 @@ BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right)
 	//_retTree = _t->getNextSibling();
 	return res;
 	}
-
+// default ...Grab version
+	
 BaseGDL** SYSVARNode::LExpr( BaseGDL* right)
 		//case SYSVAR:
 	{
@@ -114,6 +124,7 @@ BaseGDL** SYSVARNode::LExpr( BaseGDL* right)
 	(*res)->AssignAt( rConv); // linear copy
 	return res;
 	}
+// default ...Grab version
 
 // BaseGDL** XXXNode::LExpr( BaseGDL* right)
 // // 	case FCALL:
@@ -133,6 +144,28 @@ BaseGDL** SYSVARNode::LExpr( BaseGDL* right)
 // 	}
 // 	return res;
 // 	}
+
+// #define LEXPRGRAB \
+// 	{	BaseGDL** res=this->LEval(); \
+// 	if( right != NULL && right != (*res)) \
+// 	{	delete *res; *res = right;} \
+// 	return res;}
+// 
+// BaseGDL** FCALLNode::LExprGrab( BaseGDL* right)
+// LEXPRGRAB
+// BaseGDL** MFCALLNode::LExprGrab( BaseGDL* right)
+// LEXPRGRAB
+// BaseGDL** MFCALL_PARENTNode::LExprGrab( BaseGDL* right)
+// LEXPRGRAB
+// BaseGDL** FCALL_LIBNode::LExprGrab( BaseGDL* right)
+// LEXPRGRAB
+// BaseGDL** DEREFNode::LExprGrab( BaseGDL* right)
+// LEXPRGRAB
+// BaseGDL** VARNode::LExprGrab( BaseGDL* right)
+// LEXPRGRAB
+// BaseGDL** VARPTRNode::LExprGrab( BaseGDL* right)
+// LEXPRGRAB
+// #undef LEXPRGRAB
 
 #define LEXPR \
 	{	BaseGDL** res=this->LEval(); \
@@ -162,6 +195,7 @@ BaseGDL** ARRAYEXPR_MFCALLNode::LExpr( BaseGDL* right)
 	{
 	return interpreter->l_arrayexpr_mfcall(this, right);
 	}
+// default ...Grab version
 
 BaseGDL** DOTNode::LExpr( BaseGDL* right)
 	//case DOT:
@@ -193,207 +227,209 @@ BaseGDL** DOTNode::LExpr( BaseGDL* right)
 	//SetRetTree( tIn->getNextSibling());
 	return NULL;
 	}
+// default ...Grab version
 
 BaseGDL** ASSIGNNode::LExpr( BaseGDL* right)	
-	//case ASSIGN:
-	{
-	ProgNodeP _t = _t->getFirstChild();
-	if( NonCopyNode(_t->getType()))
-	{
-		BaseGDL*       e1=interpreter->indexable_expr(_t);
-		_t = interpreter->GetRetTree();
-	}
-	else if( _t->getType() == GDLTokenTypes::FCALL_LIB)
-	{
-		BaseGDL*       e1=interpreter->lib_function_call(_t);
-		_t = interpreter->GetRetTree();
-		if( !interpreter->CallStackBack()->Contains( e1))
-			delete e1; // guard if no global data
-	}
-	else
-	{
-	//       case ASSIGN:
-	//       case ASSIGN_REPLACE:
-	//       case ASSIGN_ARRAYEXPR_MFCALL:
-	//       case ARRAYDEF:
-	//       case ARRAYEXPR:
-	//       case ARRAYEXPR_MFCALL:
-	//       case EXPR:
-	//       case FCALL:
-	//       case FCALL_LIB_RETNEW:
-	//       case MFCALL:
-	//       case MFCALL_PARENT:
-	//       case NSTRUC:
-	//       case NSTRUC_REF:
-	//       case POSTDEC:
-	//       case POSTINC:
-	//       case STRUC:
-	//       case DEC:
-	//       case INC:
-	//       case DOT:
-	//       case QUESTION:
-	BaseGDL*       e1=interpreter->indexable_tmp_expr(_t);
-	_t = interpreter->GetRetTree();
-	delete e1;
-	}
-
-	//SetRetTree( tIn->getNextSibling());
-	return _t->LExpr( right); //l_expr(_t, right);
-	}
+//case ASSIGN:
+{
+  ProgNodeP _t = _t->getFirstChild();
+  if( NonCopyNode(_t->getType()))
+  {
+	  BaseGDL*       e1=interpreter->indexable_expr(_t);
+	  _t = interpreter->GetRetTree();
+  }
+  else if( _t->getType() == GDLTokenTypes::FCALL_LIB)
+  {
+	  BaseGDL*       e1=interpreter->lib_function_call(_t);
+	  _t = interpreter->GetRetTree();
+	  if( !interpreter->CallStackBack()->Contains( e1))
+		  delete e1; // guard if no global data
+  }
+  else
+  {
+    //       case ASSIGN:
+    //       case ASSIGN_REPLACE:
+    //       case ASSIGN_ARRAYEXPR_MFCALL:
+    //       case ARRAYDEF:
+    //       case ARRAYEXPR:
+    //       case ARRAYEXPR_MFCALL:
+    //       case EXPR:
+    //       case FCALL:
+    //       case FCALL_LIB_RETNEW:
+    //       case MFCALL:
+    //       case MFCALL_PARENT:
+    //       case NSTRUC:
+    //       case NSTRUC_REF:
+    //       case POSTDEC:
+    //       case POSTINC:
+    //       case STRUC:
+    //       case DEC:
+    //       case INC:
+    //       case DOT:
+    //       case QUESTION:
+    BaseGDL*       e1=interpreter->indexable_tmp_expr(_t);
+    _t = interpreter->GetRetTree();
+    delete e1;
+  }
+  //SetRetTree( tIn->getNextSibling());
+  return _t->LExpr( right); //l_expr(_t, right);
+}
 
 BaseGDL** ASSIGN_ARRAYEXPR_MFCALLNode::LExpr( BaseGDL* right)
-	//case ASSIGN_ARRAYEXPR_MFCALL:
-	{
-	ProgNodeP _t = _t->getFirstChild();
+//case ASSIGN_ARRAYEXPR_MFCALL:
+{
+  ProgNodeP _t = _t->getFirstChild();
 
-	if( NonCopyNode(_t->getType()))
-	{
-	BaseGDL*       e1=interpreter->indexable_expr(_t);
-	_t = interpreter->GetRetTree();
-	}
-	else if( _t->getType() == GDLTokenTypes::FCALL_LIB)
-	{
-	BaseGDL*       e1=interpreter->lib_function_call(_t);
-	_t = interpreter->GetRetTree();
-	if( !interpreter->CallStackBack()->Contains( e1))
-	delete e1; // guard if no global data
-	}
-	else
-	{
-	//       case ASSIGN:
-	//       case ASSIGN_REPLACE:
-	//       case ASSIGN_ARRAYEXPR_MFCALL:
-	//       case ARRAYDEF:
-	//       case ARRAYEXPR:
-	//       case ARRAYEXPR_MFCALL:
-	//       case EXPR:
-	//       case FCALL:
-	//       case FCALL_LIB_RETNEW:
-	//       case MFCALL:
-	//       case MFCALL_PARENT:
-	//       case NSTRUC:
-	//       case NSTRUC_REF:
-	//       case POSTDEC:
-	//       case POSTINC:
-	//       case STRUC:
-	//       case DEC:
-	//       case INC:
-	//       case DOT:
-	//       case QUESTION:
-	BaseGDL*       e1=interpreter->indexable_tmp_expr(_t);
-	_t = interpreter->GetRetTree();
-	delete e1;
-	}
-	ProgNodeP l = _t;
-	BaseGDL** res;
-	// try MFCALL
-	try
-	{
-	res=interpreter->l_arrayexpr_mfcall_as_mfcall( l);
-	if( right != (*res))
-	{
-	delete *res;
-	*res = right->Dup();
-	}
-	}
-	catch( GDLException& ex)
-	{
-	// try ARRAYEXPR
-	try
-	{
-	res=interpreter->l_arrayexpr_mfcall_as_arrayexpr(l, right);
-	}
-	catch( GDLException& ex2)
-	{
-	throw GDLException(ex.toString() + " or "+ex2.toString());
-	}
-	}
-	//SetRetTree( tIn->getNextSibling());
-	return res;
-	}
+  if( NonCopyNode(_t->getType()))
+  {
+    BaseGDL*       e1=interpreter->indexable_expr(_t);
+    _t = interpreter->GetRetTree();
+  }
+  else if( _t->getType() == GDLTokenTypes::FCALL_LIB)
+  {
+    BaseGDL*       e1=interpreter->lib_function_call(_t);
+    _t = interpreter->GetRetTree();
+    if( !interpreter->CallStackBack()->Contains( e1))
+      delete e1; // guard if no global data
+  }
+  else
+  {
+    //       case ASSIGN:
+    //       case ASSIGN_REPLACE:
+    //       case ASSIGN_ARRAYEXPR_MFCALL:
+    //       case ARRAYDEF:
+    //       case ARRAYEXPR:
+    //       case ARRAYEXPR_MFCALL:
+    //       case EXPR:
+    //       case FCALL:
+    //       case FCALL_LIB_RETNEW:
+    //       case MFCALL:
+    //       case MFCALL_PARENT:
+    //       case NSTRUC:
+    //       case NSTRUC_REF:
+    //       case POSTDEC:
+    //       case POSTINC:
+    //       case STRUC:
+    //       case DEC:
+    //       case INC:
+    //       case DOT:
+    //       case QUESTION:
+    BaseGDL*       e1=interpreter->indexable_tmp_expr(_t);
+    _t = interpreter->GetRetTree();
+    delete e1;
+  }
+  ProgNodeP l = _t;
+  BaseGDL** res;
+  // try MFCALL
+  try
+  {
+    res=interpreter->l_arrayexpr_mfcall_as_mfcall( l);
+    if( right != (*res))
+    {
+      delete *res;
+      *res = right->Dup();
+    }
+  }
+  catch( GDLException& ex)
+  {
+    // try ARRAYEXPR
+    try
+    {
+      res=interpreter->l_arrayexpr_mfcall_as_arrayexpr(l, right);
+    }
+    catch( GDLException& ex2)
+    {
+      throw GDLException(ex.toString() + " or "+ex2.toString());
+    }
+  }
+  //SetRetTree( tIn->getNextSibling());
+  return res;
+}
 
 
 BaseGDL** ASSIGN_REPLACENode::LExpr( BaseGDL* right)
 //	case ASSIGN_REPLACE:
 {
-	ProgNodeP _t = this->getFirstChild();
+  ProgNodeP _t = this->getFirstChild();
 
-	if( _t->getType() == GDLTokenTypes::FCALL_LIB)
-	{
-		BaseGDL*       e1=interpreter->lib_function_call(_t);
-		_t = interpreter->GetRetTree();
-		if( !interpreter->CallStackBack()->Contains( e1))
-		delete e1;
-	}
-	else
-	{
-	//     case ASSIGN:
-	//     case ASSIGN_REPLACE:
-	//     case ASSIGN_ARRAYEXPR_MFCALL:
-	//     case ARRAYDEF:
-	//     case ARRAYEXPR:
-	//     case ARRAYEXPR_MFCALL:
-	//     case CONSTANT:
-	//     case DEREF:
-	//     case EXPR:
-	//     case FCALL:
-	//     case FCALL_LIB_RETNEW:
-	//     case MFCALL:
-	//     case MFCALL_PARENT:
-	//     case NSTRUC:
-	//     case NSTRUC_REF:
-	//     case POSTDEC:
-	//     case POSTINC:
-	//     case STRUC:
-	//     case SYSVAR:
-	//     case VAR:
-	//     case VARPTR:
-	//     case DEC:
-	//     case INC:
-	//     case DOT:
-	//     case QUESTION:
-	BaseGDL*       e1=interpreter->tmp_expr(_t);
-	_t = interpreter->GetRetTree();
-	delete e1;
-	}
+  if( _t->getType() == GDLTokenTypes::FCALL_LIB)
+  {
+	  BaseGDL* e1=interpreter->lib_function_call(_t);
+	  _t = interpreter->GetRetTree();
+	  if( !interpreter->CallStackBack()->Contains( e1))
+	    delete e1;
+  }
+  else
+  {
+  //     case ASSIGN:
+  //     case ASSIGN_REPLACE:
+  //     case ASSIGN_ARRAYEXPR_MFCALL:
+  //     case ARRAYDEF:
+  //     case ARRAYEXPR:
+  //     case ARRAYEXPR_MFCALL:
+  //     case CONSTANT:
+  //     case DEREF:
+  //     case EXPR:
+  //     case FCALL:
+  //     case FCALL_LIB_RETNEW:
+  //     case MFCALL:
+  //     case MFCALL_PARENT:
+  //     case NSTRUC:
+  //     case NSTRUC_REF:
+  //     case POSTDEC:
+  //     case POSTINC:
+  //     case STRUC:
+  //     case SYSVAR:
+  //     case VAR:
+  //     case VARPTR:
+  //     case DEC:
+  //     case INC:
+  //     case DOT:
+  //     case QUESTION:
+  BaseGDL* e1=interpreter->tmp_expr(_t);
+  _t = interpreter->GetRetTree();
+  delete e1;
+  }
 
-	// switch ( _t->getType()) {
-	// case DEREF:
-	//     // 	  {
-	//     // 		  res=_t->LEval(); //l_deref(_t);
-	//     // 		  _t = _retTree;
-	//     // 		  break;
-	//     // 	  }
-	// case VAR:
-	// case VARPTR:
-	//     // {
-	//     //     res=_t->LEval(); //l_simple_var(_t);
-	//     //     _retTree = tIn->getNextSibling();
-	//     //     //_t = _retTree;
-	//     //     break;
-	//     // }
-	// default:
-	//     // 	  case FCALL:
-	//     // 	  case FCALL_LIB:
-	//     // 	  case MFCALL:
-	//     // 	  case MFCALL_PARENT:
-	//     {
-	BaseGDL** res=_t->LEval(); //l_function_call(_t);
-	//_retTree = tIn->getNextSibling();
-	//_t = _retTree;
-	//         break;
-	//     }
-	// }
-	if( right != (*res))
-	{
-	delete *res;
-	assert( right != NULL);
-	*res = right->Dup();
-	}
+  // switch ( _t->getType()) {
+  // case DEREF:
+  //     // 	  {
+  //     // 		  res=_t->LEval(); //l_deref(_t);
+  //     // 		  _t = _retTree;
+  //     // 		  break;
+  //     // 	  }
+  // case VAR:
+  // case VARPTR:
+  //     // {
+  //     //     res=_t->LEval(); //l_simple_var(_t);
+  //     //     _retTree = tIn->getNextSibling();
+  //     //     //_t = _retTree;
+  //     //     break;
+  //     // }
+  // default:
+  //     // 	  case FCALL:
+  //     // 	  case FCALL_LIB:
+  //     // 	  case MFCALL:
+  //     // 	  case MFCALL_PARENT:
+  //     {
+  BaseGDL** res=_t->LEval(); //l_function_call(_t);
+  //_retTree = tIn->getNextSibling();
+  //_t = _retTree;
+  //         break;
+  //     }
+  // }
+  if( right != (*res))
+  {
+    delete *res;
+    assert( right != NULL);
+    *res = right->Dup();
+  }
 // 	SetRetTree( this->getNextSibling());
-	return res;
+  return res;
 }
 
-	// l_expr finish /////////////////////////////////////////////
+
+
+// l_expr finish /////////////////////////////////////////////
 
 

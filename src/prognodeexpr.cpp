@@ -2034,7 +2034,7 @@ if( e1->StrictScalar())
     // 	match(antlr::RefAST(_t),FCALL_LIB);
     EnvT* newEnv=new EnvT( this, this->libFun);//libFunList[fl->funIx]);
 
-    EnvT* callerEnv = static_cast<EnvT*>(ProgNode::interpreter->CallStack().back());
+    EnvT* callerEnv = static_cast<EnvT*>(ProgNode::interpreter->CallStackBack());
 
     ProgNode::interpreter->parameter_def(this->getFirstChild(), newEnv);
 
@@ -2057,8 +2057,8 @@ if( e1->StrictScalar())
 	
     ProgNode::interpreter->parameter_def(this->getFirstChild(), newEnv);
 
-    assert( dynamic_cast<EnvUDT*>(ProgNode::interpreter->CallStack().back()) != NULL);
-    EnvUDT* callStackBack = static_cast<EnvUDT*>(ProgNode::interpreter->CallStack().back());
+    assert( dynamic_cast<EnvUDT*>(ProgNode::interpreter->CallStackBack()) != NULL);
+    EnvUDT* callStackBack = static_cast<EnvUDT*>(ProgNode::interpreter->CallStackBack());
 		
     // push id.pro onto call stack
     ProgNode::interpreter->CallStack().push_back(newEnv);
@@ -2069,7 +2069,8 @@ if( e1->StrictScalar())
     return res;
   }
 
-  BaseGDL* FCALL_LIBNode::Eval()
+  // returns always a new variable - see EvalFCALL_LIB
+  BaseGDL* FCALL_LIBNode::Eval() 
   {
     // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
@@ -2078,8 +2079,8 @@ if( e1->StrictScalar())
 
     ProgNode::interpreter->parameter_def(this->getFirstChild(), newEnv);
 
-    assert( dynamic_cast<EnvUDT*>(ProgNode::interpreter->CallStack().back()) != NULL);
-    EnvUDT* callStackBack = static_cast<EnvUDT*>(ProgNode::interpreter->CallStack().back());
+    assert( dynamic_cast<EnvUDT*>(ProgNode::interpreter->CallStackBack()) != NULL);
+    EnvUDT* callStackBack = static_cast<EnvUDT*>(ProgNode::interpreter->CallStackBack());
 	    
     // push id.pro onto call stack
     ProgNode::interpreter->CallStack().push_back(newEnv);
