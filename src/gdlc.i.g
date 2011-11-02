@@ -2593,6 +2593,36 @@ tag_array_expr  [DotAccessDescT* aD] // 2nd...
 r_dot_indexable_expr [DotAccessDescT* aD] returns [BaseGDL* res] // 1st
 {
     BaseGDL** e;
+
+	switch ( _t->getType()) {
+	case EXPR:
+	{
+		ProgNodeP tIn = _t;
+		_t = _t->getFirstChild();
+		res=expr(_t);
+		aD->SetOwner( true);
+		_retTree = tIn->getNextSibling();
+		break;
+	}
+	case VAR:
+	case VARPTR:
+	{
+		e=l_defined_simple_var(_t);
+		//_t = _retTree;
+		res = *e;
+		break;
+	}
+	case SYSVAR:
+	{
+        res = _t->EvalNC();
+        _retTree = _t->getNextSibling();
+		//res=sys_var_nocopy(_t);
+		//_t = _retTree;
+		break;
+	}
+	}
+	//_retTree = _t;
+	return res;
 }
     : #(EXPR res=expr { aD->SetOwner( true);}) // ({tag:0}).tag should work 
     | e=l_defined_simple_var { res = *e;}
@@ -2837,6 +2867,10 @@ indexable_expr returns [BaseGDL* res]
 expr returns [BaseGDL* res]
 {
 	assert( _t != NULL);
+
+    res = _t->Eval();
+    _retTree = _t->getNextSibling();
+    return res; //tmp_expr(_t);
 
 	if ( _t->getType() == FCALL_LIB) 
     {

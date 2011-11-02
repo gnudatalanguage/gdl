@@ -2397,121 +2397,121 @@ BaseGDL** ARRAYEXPR_MFCALLNode::LEval()
     return this->getFirstChild()->LExpr( NULL); //interpreter->l_expr( this->getFirstChild(), NULL);
   }
 
-  BaseGDL* DOTNode::Eval()
+BaseGDL* DOTNode::Eval()
+{
+  BaseGDL* res;
+
+  ProgNodeP _t = this->getFirstChild();
+
+  // SizeT nDot=this->nDot;
+
+  DotAccessDescT aD( nDot+1);
+
+  //interpreter->r_dot_array_expr(_t, &aD);
+  // r_dot_array_expr /////////////////////
+  BaseGDL*         r;
+  
+  if( _t->getType() == GDLTokenTypes::ARRAYEXPR)
   {
-  	BaseGDL* res;
+    ProgNodeP tIn = _t;
 
-	ProgNodeP _t = this->getFirstChild();
+    _t = _t->getFirstChild();
 
-	// SizeT nDot=this->nDot;
+    r = interpreter->r_dot_indexable_expr(_t, &aD);
 
-	DotAccessDescT aD( nDot+1);
+    _t = interpreter->GetRetTree();
 
-	//interpreter->r_dot_array_expr(_t, &aD);
-	// r_dot_array_expr /////////////////////
-	BaseGDL*         r;
-	
-	if( _t->getType() == GDLTokenTypes::ARRAYEXPR)
-	{
-		ProgNodeP tIn = _t;
+    ArrayIndexListT* aL=interpreter->arrayindex_list(_t);
 
-		_t = _t->getFirstChild();
+    ArrayIndexListGuard guard;
+    guard.reset(aL);
 
-		r = interpreter->r_dot_indexable_expr(_t, &aD);
+    _t = tIn->getNextSibling();
 
-		_t = interpreter->GetRetTree();
-
-		ArrayIndexListT* aL=interpreter->arrayindex_list(_t);
-
-		ArrayIndexListGuard guard;
-		guard.reset(aL);
-
-		_t = tIn->getNextSibling();
-
-		// check here for object and get struct
-		//structR=dynamic_cast<DStructGDL*>(r);
-		// this is much faster than a dynamic_cast
-		if( r->Type() != STRUCT)
+    // check here for object and get struct
+    //structR=dynamic_cast<DStructGDL*>(r);
+    // this is much faster than a dynamic_cast
+    if( r->Type() != STRUCT)
 // 		else
 // 			structR = NULL;
 // 		if( structR == NULL)
-		{
-			bool isObj = interpreter->CallStackBack()->IsObject();
-			if( isObj)
-			{
-				DStructGDL* oStruct = interpreter->ObjectStructCheckAccess( r, tIn);
+    {
+	    bool isObj = interpreter->CallStackBack()->IsObject();
+	    if( isObj)
+	    {
+		    DStructGDL* oStruct = interpreter->ObjectStructCheckAccess( r, tIn);
 
-				if( aD.IsOwner()) delete r;
-				aD.SetOwner( false); // object struct, not owned
+		    if( aD.IsOwner()) delete r;
+		    aD.SetOwner( false); // object struct, not owned
 
-				aD.Root( oStruct, guard.release());
-			}
-			else
-			{
-				throw GDLException( tIn, "Expression must be a"
-				" STRUCT in this context: "+interpreter->Name(r),true,false);
-			}
-		}
-		else
-		{
-			if( r->IsAssoc())
-			throw GDLException( tIn, "File expression not allowed "
-			"in this context: "+interpreter->Name(r),true,false);
+		    aD.Root( oStruct, guard.release());
+	    }
+	    else
+	    {
+		    throw GDLException( tIn, "Expression must be a"
+		    " STRUCT in this context: "+interpreter->Name(r),true,false);
+	    }
+    }
+    else
+    {
+	    if( r->IsAssoc())
+	    throw GDLException( tIn, "File expression not allowed "
+	    "in this context: "+interpreter->Name(r),true,false);
 
-			DStructGDL* structR = static_cast<DStructGDL*>(r);
-			aD.Root( structR, guard.release());
-		}
-	}
-	else
+	    DStructGDL* structR = static_cast<DStructGDL*>(r);
+	    aD.Root( structR, guard.release());
+    }
+  }
+  else
 // 	case EXPR:
 // 	case SYSVAR:
 // 	case VAR:
 // 	case VARPTR:
-	{
-		r=interpreter->r_dot_indexable_expr(_t, &aD);
-		_t = interpreter->GetRetTree();
+  {
+	  r=interpreter->r_dot_indexable_expr(_t, &aD);
+	  _t = interpreter->GetRetTree();
 
-		// check here for object and get struct
-		// this is much faster than a dynamic_cast
-		if( r->Type() != STRUCT)
+	  // check here for object and get struct
+	  // this is much faster than a dynamic_cast
+	  if( r->Type() != STRUCT)
 // 		else
 // 			structR = NULL;
 // 		if( structR == NULL)
-		{
-			bool isObj = interpreter->CallStackBack()->IsObject();
-			if( isObj) // memeber access to object?
-			{
-				DStructGDL* oStruct = interpreter->ObjectStructCheckAccess( r, _t);
-				// oStruct cannot be "Assoc_"
-				if( aD.IsOwner()) delete r;
-				aD.SetOwner( false); // object structs are never owned
-				aD.Root( oStruct);
-			}
-			else
-			{
-				throw GDLException( _t, "Expression must be a"
-				" STRUCT in this context: "+interpreter->Name(r),true,false);
-			}
-		}
-		else
-		{
-			if( r->IsAssoc())
-			{
-				throw GDLException( _t, "File expression not allowed "
-				"in this context: "+interpreter->Name(r),true,false);
-			}
-			DStructGDL* structR = static_cast<DStructGDL*>(r);
-			aD.Root(structR);
-		}
-	}
+	  {
+		  bool isObj = interpreter->CallStackBack()->IsObject();
+		  if( isObj) // memeber access to object?
+		  {
+			  DStructGDL* oStruct = interpreter->ObjectStructCheckAccess( r, _t);
+			  // oStruct cannot be "Assoc_"
+			  if( aD.IsOwner()) delete r;
+			  aD.SetOwner( false); // object structs are never owned
+			  aD.Root( oStruct);
+		  }
+		  else
+		  {
+			  throw GDLException( _t, "Expression must be a"
+			  " STRUCT in this context: "+interpreter->Name(r),true,false);
+		  }
+	  }
+	  else
+	  {
+		  if( r->IsAssoc())
+		  {
+			  throw GDLException( _t, "File expression not allowed "
+			  "in this context: "+interpreter->Name(r),true,false);
+		  }
+		  DStructGDL* structR = static_cast<DStructGDL*>(r);
+		  aD.Root(structR);
+	  }
+  }
 /////////
 
-	for (; _t != NULL;) {
-		interpreter->tag_array_expr(_t, &aD); // nDot times
-		_t = interpreter->GetRetTree();
-	}
-	return aD.Resolve();
-  } // DOTNode::Eval
+  for (; _t != NULL;) {
+	  interpreter->tag_array_expr(_t, &aD); // nDot times
+	  _t = interpreter->GetRetTree();
+  }
+  return aD.Resolve();
+} // DOTNode::Eval
   
   BaseGDL* ARRAYEXPRNode::Eval()
   {

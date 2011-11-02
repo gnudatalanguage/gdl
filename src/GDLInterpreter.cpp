@@ -1242,6 +1242,10 @@ BaseGDL*  GDLInterpreter::expr(ProgNodeP _t) {
 	
 		assert( _t != NULL);
 	
+	res = _t->Eval();
+	_retTree = _t->getNextSibling();
+	return res; //tmp_expr(_t);
+	
 		if ( _t->getType() == FCALL_LIB) 
 	{
 	BaseGDL* res=lib_function_call(_t);
@@ -4335,6 +4339,36 @@ BaseGDL*  GDLInterpreter::r_dot_indexable_expr(ProgNodeP _t,
 	ProgNodeP r_dot_indexable_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	BaseGDL** e;
+	
+		switch ( _t->getType()) {
+		case EXPR:
+		{
+			ProgNodeP tIn = _t;
+			_t = _t->getFirstChild();
+			res=expr(_t);
+			aD->SetOwner( true);
+			_retTree = tIn->getNextSibling();
+			break;
+		}
+		case VAR:
+		case VARPTR:
+		{
+			e=l_defined_simple_var(_t);
+			//_t = _retTree;
+			res = *e;
+			break;
+		}
+		case SYSVAR:
+		{
+	res = _t->EvalNC();
+	_retTree = _t->getNextSibling();
+			//res=sys_var_nocopy(_t);
+			//_t = _retTree;
+			break;
+		}
+		}
+		//_retTree = _t;
+		return res;
 	
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
