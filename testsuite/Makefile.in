@@ -290,6 +290,7 @@ TESTS = \
   test_grib.pro \
   test_hist_2d.pro \
   test_idl8.pro \
+  test_idl_validname.pro \
   test_interpol.pro \
   test_interpolate_missing.pro \
   test_memory.pro \
@@ -316,6 +317,7 @@ TESTS = \
   test_step.pro \
   test_str_functions.pro \
   test_str_sep.pro \
+  test_stregex.pro \
   test_strsplit.pro \
   test_suite.pro \
   test_systime.pro \
