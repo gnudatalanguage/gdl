@@ -92,7 +92,10 @@ void ProgNode::SetRightDown( const ProgNodeP r, const ProgNodeP d)
 
 BaseGDL* ProgNode::Eval()
 { 
-  return ProgNode::interpreter->expr( this);
+  throw GDLException( this,
+		      "Internal error. "
+		      "ProgNode::Eval() called.",true,false);
+//   return ProgNode::interpreter->expr( this);
 }
 
 
@@ -2104,7 +2107,7 @@ if( e1->StrictScalar())
 
 //		match(antlr::RefAST(_t),MFCALL);
     ProgNodeP _t = this->getFirstChild();
-    BaseGDL* self=ProgNode::interpreter->expr(_t);
+    BaseGDL* self=_t->Eval(); //ProgNode::interpreter->expr(_t);
     auto_ptr<BaseGDL> self_guard(self);
 
     ProgNodeP mp = _t->getNextSibling();
@@ -2135,7 +2138,7 @@ if( e1->StrictScalar())
 		
     ProgNodeP _t = this->getFirstChild();
 
-    BaseGDL* self=ProgNode::interpreter->expr(_t);
+    BaseGDL* self=_t->Eval(); //ProgNode::interpreter->expr(_t);
     auto_ptr<BaseGDL> self_guard(self);
     
     _t = _t->getNextSibling();
@@ -2165,7 +2168,7 @@ if( e1->StrictScalar())
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
 //			match(antlr::RefAST(_t),MFCALL_PARENT);
 	ProgNodeP _t = this->getFirstChild();
-	BaseGDL* self=ProgNode::interpreter->expr(_t);
+	BaseGDL* self=_t->Eval(); //ProgNode::interpreter->expr(_t);
 	auto_ptr<BaseGDL> self_guard(self);
 
 	_t = _t->getNextSibling();
@@ -2199,7 +2202,7 @@ if( e1->StrictScalar())
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
 //  match(antlr::RefAST(_t),MFCALL_PARENT);
     ProgNodeP _t = this->getFirstChild();
-    BaseGDL* self=ProgNode::interpreter->expr(_t);
+    BaseGDL* self=_t->Eval(); //ProgNode::interpreter->expr(_t);
     auto_ptr<BaseGDL> self_guard(self);
     
     _t = _t->getNextSibling();
@@ -2286,11 +2289,9 @@ BaseGDL** ARRAYEXPR_MFCALLNode::LEval()
     ProgNodeP _t = this->getFirstChild();    
     _t = _t->getNextSibling(); // skip DOT
     
-    self= interpreter->expr(_t);
-    _t = interpreter->GetRetTree();
-    ProgNodeP mp2 = _t;
+    self= _t->Eval(); //interpreter->expr(_t);
+    ProgNodeP mp2 = _t->getNextSibling(); // interpreter->GetRetTree();
     //match(antlr::RefAST(_t),IDENTIFIER);
-    _t = _t->getNextSibling();
     
     auto_ptr<BaseGDL> self_guard(self);
     
@@ -2298,7 +2299,7 @@ BaseGDL** ARRAYEXPR_MFCALLNode::LEval()
     
     self_guard.release();
     
-    ProgNode::interpreter->parameter_def(_t, newEnv);
+    ProgNode::interpreter->parameter_def( mp2->getNextSibling(), newEnv);
     
     // push environment onto call stack
     ProgNode::interpreter->CallStack().push_back(newEnv);
@@ -2319,7 +2320,7 @@ BaseGDL** ARRAYEXPR_MFCALLNode::LEval()
 
     ProgNodeP _t = mark->getNextSibling(); // skip DOT
 
-    BaseGDL* self=ProgNode::interpreter->expr(_t);
+    BaseGDL* self=_t->Eval(); //ProgNode::interpreter->expr(_t);
     auto_ptr<BaseGDL> self_guard(self);
 
     ProgNodeP mp2 = _t->getNextSibling();

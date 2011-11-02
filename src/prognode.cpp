@@ -361,7 +361,7 @@ BaseGDL* STRUCNode::Eval()
     ProgNodeP si = _t;
     // 			match(antlr::RefAST(_t),IDENTIFIER);
     _t = _t->getNextSibling();
-    BaseGDL* e=interpreter->expr(_t);
+    BaseGDL* e=_t->Eval(); //interpreter->expr(_t);
     _t = _t->getNextSibling();
     //WRONG    _t = ProgNode::interpreter->_retTree;
 			
@@ -940,8 +940,8 @@ RetCode  MPCALLNode::Run()
 	
   // 			match(antlr::RefAST(_t),MPCALL);
   ProgNodeP _t = this->getFirstChild();
-  self=ProgNode::interpreter->expr(_t);
-  _t = ProgNode::interpreter->_retTree;
+  self=_t->Eval(); //ProgNode::interpreter->expr(_t);
+  _t = _t->getNextSibling(); // ProgNode::interpreter->_retTree;
   ProgNodeP mp = _t;
   // 			match(antlr::RefAST(_t),IDENTIFIER);
   _t = _t->getNextSibling();
@@ -977,8 +977,10 @@ RetCode  MPCALL_PARENTNode::Run()
 
   // 			match(antlr::RefAST(_t),MPCALL_PARENT);
   ProgNodeP _t = this->getFirstChild();
-  self=ProgNode::interpreter->expr(_t);
-  _t = ProgNode::interpreter->_retTree;
+  self=_t->Eval(); //ProgNode::interpreter->expr(_t);
+  _t = _t->getNextSibling(); // ProgNode::interpreter->_retTree;
+//   self=ProgNode::interpreter->expr(_t);
+//   _t = ProgNode::interpreter->_retTree;
   ProgNodeP parent = _t;
   // 			match(antlr::RefAST(_t),IDENTIFIER);
   _t = _t->getNextSibling();
@@ -1095,11 +1097,13 @@ RetCode   FORNode::Run()//for_statement(ProgNodeP _t) {
   
   BaseGDL** v=vP->LEval(); //ProgNode::interpreter->l_simple_var(vP);
   
-  BaseGDL* s=ProgNode::interpreter->expr( this->GetFirstChild());
+  BaseGDL* s=this->GetFirstChild()->Eval(); 
+//   BaseGDL* s=ProgNode::interpreter->expr( this->GetFirstChild());
   auto_ptr<BaseGDL> s_guard(s);
   
   delete loopInfo.endLoopVar;
-  loopInfo.endLoopVar=ProgNode::interpreter->expr(this->GetFirstChild()->GetNextSibling());
+  loopInfo.endLoopVar=this->GetFirstChild()->GetNextSibling()->Eval();
+//   loopInfo.endLoopVar=ProgNode::interpreter->expr(this->GetFirstChild()->GetNextSibling());
   
   s->ForCheck( &loopInfo.endLoopVar);
   
@@ -1168,14 +1172,17 @@ RetCode   FOR_STEPNode::Run()//for_statement(ProgNodeP _t) {
 
   BaseGDL** v=vP->LEval(); //ProgNode::interpreter->l_simple_var(vP);
 
-  BaseGDL* s=ProgNode::interpreter->expr( this->GetFirstChild());
+  BaseGDL* s=this->GetFirstChild()->Eval(); 
+//  BaseGDL* s=ProgNode::interpreter->expr( this->GetFirstChild());
   auto_ptr<BaseGDL> s_guard(s);
 
   delete loopInfo.endLoopVar;
-  loopInfo.endLoopVar=ProgNode::interpreter->expr(this->GetFirstChild()->GetNextSibling());
+  loopInfo.endLoopVar=this->GetFirstChild()->GetNextSibling()->Eval();
+//  loopInfo.endLoopVar=ProgNode::interpreter->expr(this->GetFirstChild()->GetNextSibling());
 
   delete loopInfo.loopStepVar;
-  loopInfo.loopStepVar=ProgNode::interpreter->expr(this->GetFirstChild()->GetNextSibling()->GetNextSibling());
+  loopInfo.loopStepVar=this->GetFirstChild()->GetNextSibling()->GetNextSibling()->Eval();
+//   loopInfo.loopStepVar=ProgNode::interpreter->expr(this->GetFirstChild()->GetNextSibling()->GetNextSibling());
 
   s->ForCheck( &loopInfo.endLoopVar, &loopInfo.loopStepVar);
 
@@ -1261,7 +1268,8 @@ RetCode   FOREACHNode::Run()
 	BaseGDL** v=vP->LEval(); // ProgNode::interpreter->l_simple_var(vP);
 
 	delete loopInfo.endLoopVar;
-	loopInfo.endLoopVar=ProgNode::interpreter->expr(this->GetFirstChild());
+	loopInfo.endLoopVar=this->GetFirstChild()->Eval();
+//	loopInfo.endLoopVar=ProgNode::interpreter->expr(this->GetFirstChild());
 
 	loopInfo.foreachIx = 0;
 
@@ -1325,7 +1333,8 @@ RetCode   FOREACH_INDEXNode::Run()
 	BaseGDL** index=indexP->LEval(); //ProgNode::interpreter->l_simple_var(indexP);
 
 	delete loopInfo.endLoopVar;
-	loopInfo.endLoopVar=ProgNode::interpreter->expr(this->GetFirstChild());
+	loopInfo.endLoopVar=this->GetFirstChild()->Eval(); 
+// 	loopInfo.endLoopVar=ProgNode::interpreter->expr(this->GetFirstChild());
 
 	loopInfo.foreachIx = 0;
 
@@ -1400,7 +1409,8 @@ RetCode   REPEATNode::Run()
 
 RetCode   REPEAT_LOOPNode::Run()
 {
-  auto_ptr<BaseGDL> eVal( ProgNode::interpreter->expr(this->GetFirstChild()));
+  auto_ptr<BaseGDL> eVal( this->GetFirstChild()->Eval());
+//  auto_ptr<BaseGDL> eVal( ProgNode::interpreter->expr(this->GetFirstChild()));
   if( eVal.get()->False())
   {
   ProgNode::interpreter->SetRetTree( this->GetFirstChild()->GetNextSibling());     // 1st loop statement
@@ -1715,8 +1725,8 @@ RetCode   RETFNode::Run()
 	assert( _t != NULL);
 	if ( !static_cast<EnvUDT*>(GDLInterpreter::CallStack().back())->LFun())
 		{
-			BaseGDL* e=ProgNode::interpreter->expr(_t);
-
+			BaseGDL* e=_t->Eval(); //ProgNode::interpreter->expr(_t);
+			interpreter->SetRetTree( _t->getNextSibling()); // ???
 			delete ProgNode::interpreter->returnValue;
 			ProgNode::interpreter->returnValue=e;
 
@@ -1725,7 +1735,6 @@ RetCode   RETFNode::Run()
 	else
 		{
 			BaseGDL** eL=ProgNode::interpreter->l_ret_expr(_t);
-
 			// returnValueL is otherwise owned
 			ProgNode::interpreter->returnValueL=eL;
 		}
