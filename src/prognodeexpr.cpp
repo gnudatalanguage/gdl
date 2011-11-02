@@ -2384,7 +2384,7 @@ BaseGDL** ARRAYEXPR_MFCALLNode::LEval()
   BaseGDL** VARNode::LEval()
 	{
 //   	ProgNode::interpreter->SetRetTree( this->getNextSibling());
-	return &ProgNode::interpreter->CallStack().back()->GetKW(this->varIx);
+	return &ProgNode::interpreter->CallStackBack()->GetKW(this->varIx);
 	}
   BaseGDL** VARPTRNode::LEval()
 	{

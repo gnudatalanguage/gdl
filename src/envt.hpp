@@ -204,8 +204,8 @@ proUD->SetCompileOpt( cOpt);
   // returns environment data, by value (but that by C++ reference)
   BaseGDL*& GetKW(SizeT ix) { return env[ix];}
 
-  // used by HELP
-  SizeT EnvSize() { return env.size();}
+  // used by HELP and SetNextPar(...)
+  SizeT EnvSize() const { return env.size();}
 
   // next four are used by interpreter
   void SetNextPar( BaseGDL* const nextP); // by value (reset loc)

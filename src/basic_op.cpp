@@ -3182,7 +3182,8 @@ Data_<Sp>* Data_<Sp>::DivS( BaseGDL* r)
   ULong nEl=N_Elements();
   assert( nEl);
   Ty s = (*right)[0];
-  if( sigsetjmp( sigFPEJmpBuf, 1) == 0)
+  if( s != this->zero)
+//   if( sigsetjmp( sigFPEJmpBuf, 1) == 0)
     {
       // right->Scalar(s); 
       //      dd /= s;
@@ -3207,10 +3208,18 @@ Data_<Sp>* Data_<Sp>::DivInvS( BaseGDL* r)
   ULong nEl=N_Elements();
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
+
+  if( nEl == 1)
+  {
+    if( (*this)[0] != this->zero) 
+      (*this)[0] = (*right)[0] / (*this)[0]; 
+    else 
+      (*this)[0] = (*right)[0];
+    return this;
+  }
+  
   Ty s = (*right)[0];
-
   SizeT i=0;
-
   if( sigsetjmp( sigFPEJmpBuf, 1) == 0)
     {
       // right->Scalar(s); 
@@ -3555,11 +3564,12 @@ Data_<Sp>* Data_<Sp>::ModS( BaseGDL* r)
 
   ULong nEl=N_Elements();
   assert( nEl);
+  
   Ty s = (*right)[0];
-
   SizeT i=0;
 
-  if( sigsetjmp( sigFPEJmpBuf, 1) == 0)
+  if( s != this->zero)
+//   if( sigsetjmp( sigFPEJmpBuf, 1) == 0)
     {
       // right->Scalar(s); 
       //     dd %= s;
@@ -3592,10 +3602,18 @@ Data_<Sp>* Data_<Sp>::ModInvS( BaseGDL* r)
   ULong nEl=N_Elements();
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
+
+  if( nEl == 1)
+  {
+    if( (*this)[0] != this->zero) 
+      (*this)[0] = (*right)[0] % (*this)[0]; 
+    else 
+      (*this)[0] = this->zero;
+    return this;
+  }
+
   Ty s = (*right)[0];
-
   SizeT i=0;
-
   if( sigsetjmp( sigFPEJmpBuf, 1) == 0)
     {
       // right->Scalar(s); 

@@ -1823,21 +1823,22 @@ Data_<Sp>* Data_<Sp>::DivSNew( BaseGDL* r)
   Ty s = (*right)[0];
   SizeT i=0;
   Data_* res = NewResult();
-  if( sigsetjmp( sigFPEJmpBuf, 1) == 0)
+  if( s != this->zero)
+//   if( sigsetjmp( sigFPEJmpBuf, 1) == 0)
 	{
-	for( SizeT i=0; i < nEl; ++i)
+	 for( SizeT i=0; i < nEl; ++i)
 		(*res)[i] = (*this)[i] / s;
 	}
   else
 	{
-      TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-	{
-#pragma omp for
+//       TRACEOMP( __FILE__, __LINE__)
+// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+// 	{
+// #pragma omp for
 	// res is already allocated therefore we use it
 	for( SizeT i=0; i < nEl; ++i)
 		(*res)[i] = (*this)[i];
-	}
+// 	}
 	}
   return res;
 }
@@ -1851,10 +1852,18 @@ Data_<Sp>* Data_<Sp>::DivInvSNew( BaseGDL* r)
   ULong nEl=N_Elements(); Data_* res = NewResult();
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
+
+  if( nEl == 1)
+  {
+    if( (*this)[0] != this->zero)
+      (*res)[0] = (*right)[0] / (*this)[0];
+    else 
+      (*res)[0] = (*right)[0];
+    return res;    
+  }
+  
   Ty s = (*right)[0];
-
   SizeT i=0;
-
   if( sigsetjmp( sigFPEJmpBuf, 1) == 0)
     {
       for( ; i < nEl; ++i)
@@ -2194,7 +2203,8 @@ Data_<Sp>* Data_<Sp>::ModSNew( BaseGDL* r)
   Ty s = (*right)[0];
    
   Data_* res = NewResult();
-  if( sigsetjmp( sigFPEJmpBuf, 1) == 0)
+  if( s != this->zero)
+//  if( sigsetjmp( sigFPEJmpBuf, 1) == 0)
     {
       for( SizeT i=0; i < nEl; ++i)
 	(*res)[i] = (*this)[i] % s;
@@ -2217,10 +2227,19 @@ Data_<Sp>* Data_<Sp>::ModInvSNew( BaseGDL* r)
   ULong nEl=N_Elements(); 
   assert( nEl);
   
+  Data_* res = NewResult();
+  if( nEl == 1)
+  {
+    if( (*this)[0] != this->zero)
+      (*res)[0] = (*right)[0] % (*this)[0];
+    else 
+      (*res)[0] = this->zero;
+    return res;
+  }
+  
   Ty s = (*right)[0];
   SizeT i=0;
 
-  Data_* res = NewResult();
   if( sigsetjmp( sigFPEJmpBuf, 1) == 0)
     {
       for( /*SizeT i=0*/; i < nEl; ++i)

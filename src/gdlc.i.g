@@ -2856,11 +2856,6 @@ indexable_expr returns [BaseGDL* res]
     | res=sys_var_nocopy
     | CONSTANT //res=constant_nocopy
     | e2=l_deref 
-        { 
-            if( *e2 == NULL)
-            throw GDLException( _t, "Variable is undefined: "+Name(e2),true,false);
-            res = *e2;
-        }
     ;
 
 // l_expr used as r_expr and true r_expr
@@ -2872,20 +2867,20 @@ expr returns [BaseGDL* res]
     _retTree = _t->getNextSibling();
     return res; //tmp_expr(_t);
 
-	if ( _t->getType() == FCALL_LIB) 
-    {
-        BaseGDL* res=lib_function_call(_t);
-		if( callStack.back()->Contains( res)) 
-            res = res->Dup();
-        return res;    		
-	}
-	else
-	{
-        BaseGDL* res = _t->Eval();
-        _retTree = _t->getNextSibling();
-		return res; //tmp_expr(_t);
-	}
-    // finish
+	// if ( _t->getType() == FCALL_LIB) 
+    // {
+    //     BaseGDL* res=lib_function_call(_t);
+	// 	if( callStack.back()->Contains( res)) 
+    //         res = res->Dup();
+    //     return res;    		
+	// }
+	// else
+	// {
+    //     BaseGDL* res = _t->Eval();
+    //     _retTree = _t->getNextSibling();
+	// 	return res; //tmp_expr(_t);
+	// }
+    // // finish
 }
     : res=tmp_expr
     | res=lib_function_call
@@ -2902,116 +2897,6 @@ tmp_expr returns [BaseGDL* res]
  	res = _t->Eval();
  	_retTree = _t->getNextSibling();
     return res;
-
-    BaseGDL*  e1;
-    BaseGDL** e2;
-	
-	switch ( _t->getType()) {
-	case DEREF:
-// 	{
-// 	 	res = _t->Eval();
-// 	 	_retTree = _t->getNextSibling();
-// // 		e2=_t->LEval(); //l_deref(_t);
-// // 		_retTree = _t->getNextSibling();
-// // //		_t = _retTree;
-		
-// // 		if( *e2 == NULL)
-// // 		throw GDLException( _t, "Variable is undefined: "+Name(e2),true,false);
-		
-// // 		res = (*e2)->Dup();
-		
-// 		break;
-// 	}
-	case ARRAYDEF:
-	case EXPR:
-	case NSTRUC:
-	case NSTRUC_REF:
-	case POSTDEC:
-	case POSTINC:
-	case STRUC:
-	case DEC:
-	case INC:
-// 	{
-// 		res=r_expr(_t);
-// //		_t = _retTree;
-// 		break;
-// 	}
-	case QUESTION:
-	// {
-	// 	res = _t->Eval();
-	// 	_retTree = _t->getNextSibling();
-	// 	break;
-	// }
-	case ARRAYEXPR:
-	// {
-	// 	res = _t->Eval();
-	// 	_retTree = _t->getNextSibling();
-	// 	break;
-	// }
-	case DOT:
-// 	{
-//         res = _t->Eval();
-//         _retTree = _t->getNextSibling();
-// //		res=dot_expr(_t);
-// //		_t = _retTree;
-// 		break;
-// 	}
-	case ASSIGN:
-	case ASSIGN_REPLACE:
-	case ASSIGN_ARRAYEXPR_MFCALL:
-// 	{
-//         res = _t->Eval();
-//         _retTree = _t->getNextSibling();
-// //		res=assign_expr(_t);
-// //		_t = _retTree;
-// 		break;
-// 	}
-	case ARRAYEXPR_MFCALL:
-	case FCALL:
-	case MFCALL:
-	case MFCALL_PARENT:
-// 	{
-// 		res=_t->Eval(); //function_call(_t);
-// 		_retTree = _t->getNextSibling();
-// //		_t = _retTree;
-// 		break;
-// 	}
-	case CONSTANT:
-// 	{
-// 		res=constant(_t);
-// //		_t = _retTree;
-// 		break;
-// 	}
-	case VAR:
-	case VARPTR:
-// 	{
-// 		res=_t->Eval(); //		res=simple_var(_t);
-// 		_retTree = _t->getNextSibling();
-// //		_t = _retTree;
-// 		break;
-// 	}
-	case SYSVAR:
-// 	{
-// 		res=_t->Eval(); //		res=sys_var(_t);
-// 		_retTree = _t->getNextSibling();
-// //		_t = _retTree;
-// 		break;
-// 	}
-	case FCALL_LIB_RETNEW:
-	{
-        res = _t->Eval();
-        _retTree = _t->getNextSibling();
-		//res=lib_function_call_retnew(_t);
-//		_t = _retTree;
-		break;
-	}
-	default:
-	{
-		throw antlr::NoViableAltException(antlr::RefAST(_t));
-	}
-	}
-//	_retTree = _t;
-	return res;
 } // tmp_expr
     : e2=l_deref 
 	| #(q:QUESTION {res=q->Eval();}) // trinary operator
@@ -3033,118 +2918,6 @@ assign_expr returns [BaseGDL* res]
     res = _t->Eval();
 	_retTree = _t->getNextSibling();
     return res;
-
-    BaseGDL** l;
-    BaseGDL*  r;
-
-    ProgNodeP startNode = _t;
-    _t = _t->getFirstChild();
-    
-    auto_ptr<BaseGDL> r_guard;
-    
-    if( _t->getType() == FCALL_LIB)
-        {
-            res=lib_function_call(_t);
-            _t = _retTree;    
-            if( !callStack.back()->Contains( res)) 
-                r_guard.reset( res);
-        }
-    else
-        {
-            res=tmp_expr(_t);
-            _t = _retTree;	    
-            r_guard.reset( res);
-        }
-
-  if( startNode->getType() == ASSIGN) 
-  {
-    l=_t->LExpr( res); //l_expr(_t, res);
-    _t = _retTree;
-    if( r_guard.get() == res) // owner
-      r_guard.release();
-    else
-      res = res->Dup();	  
-  }
-  else if( startNode->getType() == ASSIGN_ARRAYEXPR_MFCALL) 
-  {
-    ProgNodeP mark = _t;
-    // try MFCALL
-    try
-	{
-	  l=l_arrayexpr_mfcall_as_mfcall( mark);
-
-	  if( res != (*l))
-	    {
-	      delete *l;
-	      *l = res->Dup();     
-      
-	      if( r_guard.get() == res) // owner
-		  {
-		      r_guard.release(); 
-		  }
-	      else
-		  res = res->Dup();
-	    }
-	}
-    catch( GDLException& ex)
-	{
-	  // try ARRAYEXPR
-	  try
-	    {
-	    l=l_arrayexpr_mfcall_as_arrayexpr(mark, res);
-
-	    if( r_guard.get() == res) // owner
-		r_guard.release();
-	    else
-		res = res->Dup();
-	    }
-	  catch( GDLException& ex2)
-	    {
-		throw GDLException(ex.toString() + " or "+ex2.toString());
-	    }
-	}
-  }
-  else // ASSIGN_REPLACE 
-  {
-    // match(antlr::RefAST(_t),ASSIGN_REPLACE);
-    // switch ( _t->getType()) {
-    //   case DEREF:
-    //   case VAR:
-    //   case VARPTR:
-    //   {
-	//       l=_t->LEval(); //l_simple_var(_t);
-	//       _t = _retTree;
-	//       break;
-    //   }
-    //   default:
-    //   {
-	//       l=_t->LEval(); //l_function_call(_t);
-	//       _t = _retTree;
-	//       break;
-    //   }
-    // } //     switch ( _t->getType()) {
-  
-    
-    l=_t->LEval();
-    _t = _t->getNextSibling();
-    //_t = _retTree;
-
-    if( res != (*l))
-    {
-      delete *l;
-      *l = res->Dup();     
-    
-      if( r_guard.get() == res) // owner
-      {
-	r_guard.release(); 
-      }
-      else
-	res = res->Dup();
-    }
-  }
-
-  _retTree = startNode->getNextSibling();
-  return res;
 }
     : #(ASSIGN 
             ( res=tmp_expr
@@ -3185,57 +2958,9 @@ simple_var returns [BaseGDL* res]
         }
 	_retTree = _t->getNextSibling();
 	return vData->Dup();
-
-	// if( _t->getType() == VAR)
-	// {
-	// 	ProgNodeP var = _t;
-	// 	match(antlr::RefAST(_t),VAR);
-	// 	_t = _t->getNextSibling();
-		
-	// 	BaseGDL* vData=callStack.back()->GetKW( var->varIx);
-		
-	// 	if( vData == NULL)
-	// 	throw GDLException( _t, "Variable is undefined: "+var->getText(),true,false);
-		
-	// 	res=vData->Dup();
-		
-	// }
-	// else // VARPTR
-	// {
-	// 	ProgNodeP varPtr = _t;
-	// 	match(antlr::RefAST(_t),VARPTR);
-	// 	_t = _t->getNextSibling();
-		
-	// 	BaseGDL* vData=varPtr->var->Data();
-		
-	// 	if( vData == NULL)
-	// 	throw GDLException( _t, "Common block variable is undefined.",true,false);
-		
-	// 	res=vData->Dup();
-		
-	// }
-
-	// _retTree = _t;
-	// return res;
 }
     : var:VAR // DNode.varIx is index into functions/procedures environment
-        // {
-        //     BaseGDL* vData=callStack.back()->GetKW( var->varIx);
-            
-        //     if( vData == NULL)
-        //     throw GDLException( _t, "Variable is undefined: "+var->getText(),true,false);
-            
-        //     res=vData->Dup();
-        // }
     | varPtr:VARPTR // DNode.var   is ptr to common block variable
-        // {
-        //     BaseGDL* vData=varPtr->var->Data();
-            
-        //     if( vData == NULL)
-        //     throw GDLException( _t, "Common block variable is undefined.",true,false);
-            
-        //     res=vData->Dup();
-        // }
     ;
 
 sys_var returns [BaseGDL* res]
@@ -3243,20 +2968,8 @@ sys_var returns [BaseGDL* res]
     res = _t->Eval();
 	_retTree = _t->getNextSibling();
 	return res; // no ->Dup()
-
-	BaseGDL* sv = sys_var_nocopy(_t);
-	//_t = _retTree;
-	
-	//BaseGDL* 
-    res=sv->Dup();
-	
-	//_retTree = _t;
-	return res;
 }
-    : sv=sys_var_nocopy 
-        {
-            res=sv->Dup();
-        }
+    : sys_var_nocopy 
     ;
 
 sys_var_nocopy returns [BaseGDL* res]
@@ -3264,43 +2977,8 @@ sys_var_nocopy returns [BaseGDL* res]
     res = _t->EvalNC();
 	_retTree = _t->getNextSibling();
 	return res; // no ->Dup()
-
-	ProgNodeP& sysVarRef = _t;
-	
-// 	match(antlr::RefAST(_t),SYSVAR);
-	
-	if( sysVarRef->var == NULL) 
-	{
-	sysVarRef->var=FindInVarList(sysVarList,sysVarRef->getText());
-	if( sysVarRef->var == NULL)		    
-	throw GDLException( _t, "Not a legal system variable: !"+
-	sysVarRef->getText(),true,false);
-	}
-	
-	if( sysVarRef->getText() == "STIME") SysVar::UpdateSTime();
-	
-	// note: system variables are always defined
-	
-	_retTree = _t->getNextSibling();;
-	return sysVarRef->var->Data(); // no ->Dup()
 }
-    : sysVar:SYSVAR 
-        // ProgNodeP->getText() returns name which has to be searched 
-        // in 'sysVarList' (objects.cpp) if ProgNodeP->var is NULL
-        {
-            if( sysVar->var == NULL) 
-            {
-                sysVar->var=FindInVarList(sysVarList,sysVar->getText());
-                if( sysVar->var == NULL)		    
-                throw GDLException( _t, "Not a legal system variable: !"+
-                                    sysVar->getText(),true,false);
-            }
-
-            if( sysVar->getText() == "STIME") SysVar::UpdateSTime();
-
-            // system variables are always defined
-            res=sysVar->var->Data(); // no ->Dup()
-        }
+    : SYSVAR 
     ;
 
 constant returns [BaseGDL* res]
