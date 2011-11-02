@@ -3973,6 +3973,7 @@ void GDLTreeParser::pos_parameter(RefDNode _t) {
 	else 
 	{
 	int t = e_AST->getType();
+	// Note: Right now there are no MFCALL_LIB or MFCALL_PARENT_LIB nodes
 	if( t == FCALL_LIB || t == MFCALL_LIB || //t == FCALL_LIB_N_ELEMENTS ||
 	t == MFCALL_PARENT_LIB //||
 	//                      t == FCALL_LIB_RETNEW || t == MFCALL_LIB_RETNEW || 

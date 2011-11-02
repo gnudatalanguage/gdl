@@ -1993,18 +1993,17 @@ if( e1->StrictScalar())
   {
       // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
-	throw GDLException(this,"Internal error: FCALL_LIB_RETNEW as left expr.");
+    throw GDLException(this,"Internal error: FCALL_LIB_RETNEW as left expr.");
   }
   
   BaseGDL* FCALL_LIB_RETNEWNode::Eval()
   {
-      // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+    // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
-
 // 	match(antlr::RefAST(_t),FCALL_LIB_RETNEW);
 //	_t = _t->getFirstChild();
 // 	match(antlr::RefAST(_t),IDENTIFIER);
-	EnvT* newEnv=new EnvT( this, this->libFun);//libFunList[fl->funIx]);
+    EnvT* newEnv=new EnvT( this, this->libFun);//libFunList[fl->funIx]);
 // 	_t =_t->getFirstChild();
 // 	EnvT* newEnv=new EnvT( fl, fl->libFun);//libFunList[fl->funIx]);
 	// special handling for N_ELEMENTS()
@@ -2019,45 +2018,38 @@ if( e1->StrictScalar())
         {
             ProgNode::interpreter->parameter_def(this->getFirstChild(), newEnv);
         }
-
-//	parameter_def(_t->getFirstChild(), newEnv);
-	// push id.pro onto call stack
-	ProgNode::interpreter->CallStack().push_back(newEnv);
-	// make the call
-	BaseGDL*
-    res=static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
-	//*** MUST always return a defined expression
-	
-	//ProgNode::interpreter->SetRetTree( this->getNextSibling());
-	return res;
+    // push id.pro onto call stack
+    ProgNode::interpreter->CallStack().push_back(newEnv);
+    // make the call
+    //*** MUST always return a defined expression
+    BaseGDL* res = static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
+    assert( res != NULL);
+    return res;
   }
 
   BaseGDL** FCALL_LIBNode::LEval()
   {
-      // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+    // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
-// 	match(antlr::RefAST(_t),FCALL_LIB);
-	EnvT* newEnv=new EnvT( this, this->libFun);//libFunList[fl->funIx]);
-	
-	EnvT* callerEnv = static_cast<EnvT*>(ProgNode::interpreter->CallStack().back());
+    // 	match(antlr::RefAST(_t),FCALL_LIB);
+    EnvT* newEnv=new EnvT( this, this->libFun);//libFunList[fl->funIx]);
+
+    EnvT* callerEnv = static_cast<EnvT*>(ProgNode::interpreter->CallStack().back());
 
     ProgNode::interpreter->parameter_def(this->getFirstChild(), newEnv);
-    
-	// push id.pro onto call stack
-	ProgNode::interpreter->CallStack().push_back(newEnv);
-	// make the call
-	BaseGDL* libRes =	static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
-		
-	BaseGDL** res = callerEnv->GetPtrTo( libRes);
-	if( res == NULL)
-		throw GDLException( this, "Library function must return a "
-		"l-value in this context: "+this->getText());
 
- 	//ProgNode::interpreter->SetRetTree( this->getNextSibling());
-	return res;
+    // push id.pro onto call stack
+    ProgNode::interpreter->CallStack().push_back(newEnv);
+    // make the call
+    BaseGDL* libRes =	static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
+    BaseGDL** res = callerEnv->GetPtrTo( libRes);
+    if( res == NULL)
+	    throw GDLException( this, "Library function must return a "
+	    "l-value in this context: "+this->getText());
+    return res;
   }
 
-  BaseGDL* FCALL_LIBNode::EvalNC()
+  BaseGDL* FCALL_LIBNode::EvalFCALL_LIB()
   {
     // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
@@ -2073,36 +2065,35 @@ if( e1->StrictScalar())
     // make the call
     BaseGDL* res=static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
     // *** MUST always return a defined expression
-
-    //ProgNode::interpreter->SetRetTree( this->getNextSibling());
+    assert( res != NULL);
     return res;
   }
 
   BaseGDL* FCALL_LIBNode::Eval()
   {
-      // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+    // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
-// 	match(antlr::RefAST(_t),FCALL_LIB);
-	EnvT* newEnv=new EnvT( this, this->libFun);//libFunList[fl->funIx]);
-	
+    // 	match(antlr::RefAST(_t),FCALL_LIB);
+    EnvT* newEnv=new EnvT( this, this->libFun);//libFunList[fl->funIx]);
+
     ProgNode::interpreter->parameter_def(this->getFirstChild(), newEnv);
 
-	assert( dynamic_cast<EnvUDT*>(ProgNode::interpreter->CallStack().back()) != NULL);
-	EnvUDT* callStackBack = static_cast<EnvUDT*>(ProgNode::interpreter->CallStack().back());
-		
-	// push id.pro onto call stack
-	ProgNode::interpreter->CallStack().push_back(newEnv);
-	// make the call
-	BaseGDL* res=static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
-	// *** MUST always return a defined expression
-//    if( res == NULL)
-//       throw GDLException( _t, "");
-	
-	if( callStackBack->Contains( res))
-		res = res->Dup();
+    assert( dynamic_cast<EnvUDT*>(ProgNode::interpreter->CallStack().back()) != NULL);
+    EnvUDT* callStackBack = static_cast<EnvUDT*>(ProgNode::interpreter->CallStack().back());
+	    
+    // push id.pro onto call stack
+    ProgNode::interpreter->CallStack().push_back(newEnv);
+    // make the call
+    BaseGDL* res=static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
+    // *** MUST always return a defined expression
+    assert( res != NULL);
+    //       throw GDLException( _t, "");
 
-	//ProgNode::interpreter->SetRetTree( this->getNextSibling());
-	return res;
+    if( callStackBack->Contains( res))
+	    res = res->Dup();
+
+    //ProgNode::interpreter->SetRetTree( this->getNextSibling());
+    return res;
   }
 
   BaseGDL** MFCALLNode::LEval()

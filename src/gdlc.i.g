@@ -3295,7 +3295,8 @@ unused_constant_nocopy returns [BaseGDL* res]
 
 lib_function_call returns[ BaseGDL* res]
 { 
- 	res = _t->EvalNC(); // not a true NC node
+    assert( _t->getType() == FCALL_LIB);
+ 	res = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB(); 
  	_retTree = _t->getNextSibling();
     return res;
 
@@ -3672,7 +3673,6 @@ parameter_def [EnvBaseT* actEnv]
         while(_retTree != NULL) {
             static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
         }    
-
         actEnv->Extra(); // expand _EXTRA        
     } 
     catch( GDLException& e)

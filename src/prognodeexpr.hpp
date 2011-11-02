@@ -112,7 +112,7 @@ public:
   {}
   BaseGDL** LEval();
   BaseGDL* Eval();
-  BaseGDL* EvalNC(); // this is only Non Copy if the return value is from the curren environment
+  BaseGDL* EvalFCALL_LIB(); // might return a non new value
   BaseGDL** LExpr( BaseGDL* right);
 };
 

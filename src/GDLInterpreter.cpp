@@ -1732,7 +1732,8 @@ BaseGDL*  GDLInterpreter::tmp_expr(ProgNodeP _t) {
 	ProgNodeP lib_function_call_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	ProgNodeP fll = ProgNodeP(antlr::nullAST);
 	
-		res = _t->EvalNC(); // not a true NC node
+	assert( _t->getType() == FCALL_LIB);
+		res = static_cast<FCALL_LIBNode*>(_t)->EvalFCALL_LIB(); 
 		_retTree = _t->getNextSibling();
 	return res;
 	
@@ -4015,7 +4016,6 @@ void GDLInterpreter::parameter_def(ProgNodeP _t,
 	while(_retTree != NULL) {
 	static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
 	}    
-	
 	actEnv->Extra(); // expand _EXTRA        
 	} 
 	catch( GDLException& e)
