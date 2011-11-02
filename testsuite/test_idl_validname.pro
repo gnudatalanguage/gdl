@@ -30,6 +30,15 @@ if KEYWORD_SET(help) then begin
    return
 endif
 ;
+; we need a working STREGEX to be able to run IDL_VALIDNAME
+;
+if (STREGEX('1abc','[^0-9a-z]') NE -1) then begin
+   MESSAGE, /continue, 'No working STREGEX, we cannot do this test.'
+   if KEYWORD_SET(test) then STOP else EXIT, status=77
+endif
+;
+; useful variables
+;
 nb_pbs=0
 if KEYWORD_SET(verbose) then kwverb=1 else kwverb=0
 ;
@@ -68,8 +77,8 @@ INTERNAL_TEST, '$5 a b c ', '_$5_a_b_c_', kwverb, nb_pbs, /convert_all
 print, 'This testsuite for IDL_VALIDNAME is not finished ...'
 print, 'Please contribute'
 ;
-print, nb_pbs
 if (nb_pbs GT 0) then begin
+   MESSAGE,/continue, 'Number of problems detected: '+STRING(nb_pbs)
    if ~KEYWORD_SET(test) then EXIT, status=1
 endif else begin
    MESSAGE, /Continue, "No problem found"
