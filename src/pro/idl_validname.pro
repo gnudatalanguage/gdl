@@ -1,104 +1,126 @@
 ;+
+;
 ; NAME: IDL_VALIDNAME
 ;
 ; PURPOSE:
-;	quick n dirty replacement for idl_validname
-;	THIS IS JUST A DRAFT (but working)
+; replacement for IDL_VALIDNAME
 ;
 ; MODIFICATION HISTORY:
-;   - creation by Rene Preusker 10/2010
+;   - 2010-Oct.  : creation by Rene Preusker
 ;   - 2011-Aug-18: modification by Alain Coulais :
 ;         adding FAKE keywords /CONVERT_ALL,
 ;         /CONVERT_SPACES for test with HealPix lib.
 ;   - 2011-Aug-20: Alain: implement draft of CONVERT_SPACES
-;
-; TODO: 
-;	1. include working keywords
-;	2. include reserved words
+;   - 2011-Aug: Hong Xu : implement "reserved words"
 ;
 ; LICENCE:
-; Copyright (C) 2010, R. Preusker, 2011, A. Coulais
+; Copyright (C) 2010, R. Preusker
+; Copyright (C) 2011, Alain Coulais, Hong Xu
+;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
 ; the Free Software Foundation; either version 2 of the License, or
 ; (at your option) any later version.
 ;
 ;-
-
-function IDL_VALIDNAME_REPLACE_SPACE, in
-out=in
-while 1 do begin
-    res= STRPOS(out," ")
-    if res eq -1 then return,out
-    STRPUT, out,"_",res
-endwhile
-end
 ;
-; --------------------------------
+function IDL_VALIDNAME, in, $
+                        convert_spaces=convert_spaces, $
+                        convert_all=convert_all, $
+                        help=help, test=test
 ;
-function IDL_VALIDNAME_REPLACE_STRING, in, was, womit
-out=in
-while 1 do begin
-    res= STRPOS(out,was)
-    if res eq -1 then return,out
-    STRPUT,out,womit,res
-endwhile
-end
-;
-; --------------------------------
-;
-function IDL_VALIDNAME, in, convert_all=convert_all, $
-                        convert_spaces=convert_spaces
-;
-print, "sorry, not finish"
-;
-out=in
-;
-spezial=[" ","$","!"]
-verboten=[spezial,"#",":",".","/","+","-","*",";",'"',"&",":"]
-verboten=[verboten,",","?","@","\",")","(","]","[","{","}"]
-;
-nb_verbot=N_ELEMENTS(verboten)
-;
-if NOT(KEYWORD_SET(convert_all) OR KEYWORD_SET(convert_spaces)) then begin
-   for i=0, N_ELEMENTS(out)-1 do begin
-      first_char=STRMID(out[i],0,1)
-      if (STREGEX(first_char,'[0-9]') EQ 0) then begin
-         out[i]=''
-         break
-      endif
-      for j=0, nb_verbot-1 do begin
-         if (STRPOS(out[i], verboten[j]) GE 0) then begin
-            out[i]=''
-            break
-         endif
-      endfor
-   endfor
-   return, out
+if KEYWORD_SET(help) then begin
+   print, 'function IDL_VALIDNAME, in, $'
+   print, '                        convert_spaces=convert_spaces, $'
+   print, '                        convert_all=convert_all, $'
+   print, '                        help=help, test=test'
+   return, -1
 endif
 ;
-if KEYWORD_SET(convert_spaces) AND NOT(KEYWORD_SET(convert_all)) then begin
-   for i=0, N_ELEMENTS(out)-1 do begin
-      first_char=STRMID(out[i],0,1)
-      if (STREGEX(first_char,'[0-9]') EQ 0) then begin
-         out[i]=''
-         break
-      endif
-      out[i]=IDL_VALIDNAME_REPLACE_SPACE(out[i])
-   endfor
+if (in EQ '') then begin
+   if KEYWORD_SET(convert_all) then return, '_' else return, ''
+endif
+;
+out=in
+;
+reserved_words=['AND', $
+                'BEGIN', $
+                'BREAK', $
+                'CASE', $
+                'COMMON', $
+                'COMPILE_OPT', $
+                'CONTINUE', $
+                'DO', $
+                'ELSE', $
+                'END', $
+                'ENDCASE', $
+                'ENDELSE', $
+                'ENDFOR', $
+                'ENDIF', $
+                'ENDREP', $
+                'ENDSWITCH', $
+                'ENDWHILE', $
+                'EQ', $
+                'FOR', $
+                'FORWARD_FUNCTION', $
+                'FUNCTION', $
+                'GE', $
+                'GOTO', $
+                'GT', $
+                'IF', $
+                'INHERITS', $
+                'LE', $
+                'LT', $
+                'MOD', $
+                'NE', $
+                'NOT', $
+                'OF', $
+                'ON_IOERROR', $
+                'OR', $
+                'PRO', $
+                'REPEAT', $
+                'SWITCH', $
+                'THEN', $
+                'UNTIL', $
+                'WHILE', $
+                'XOR']
+;
+if KEYWORD_SET(convert_spaces) or KEYWORD_SET(convert_all) then begin
+   while 1 do begin
+      res = STRPOS(out, ' ')
+      if (res EQ -1) then break
+      STRPUT, out, '_', res
+   endwhile
 endif
 ;
 if KEYWORD_SET(convert_all) then begin
-   for i=0, N_ELEMENTS(out)-1 do begin
-      first_char=STRMID(out[i],0,1)
-      if (STREGEX(first_char,'[0-9]') EQ 0) then begin
-         out[i]='_'+out[i]
-      endif
-      for i=0,N_ELEMENTS(verboten)-1 do begin
-         out=IDL_VALIDNAME_REPLACE_STRING(out,verboten(i),"_")
-      endfor
-   endfor
-endif
+   ;;
+   ;; AC 03/11/2011
+   ;; we need a working STREGEX to be able to run IDL_VALIDNAME
+   ;; (please don't remove this test: if STREGEX is wrong,
+   ;; infinite loop below)
+   if (STREGEX('1abc','[^0-9a-z]') NE -1) then begin
+      MESSAGE, 'No working STREGEX, we cannot do this test.'
+   endif
+   ;;
+   _ = WHERE(reserved_words EQ STRUPCASE(out), n)
+   if (n gt 0) then out = '_' + out
+   while 1 do begin
+      res = STREGEX(out, '[^0-9A-Za-z_\$!]')
+      if res EQ -1 then break
+      STRPUT, out, '_', res
+   endwhile
+   ;; numbers and $ are not allowed as first char
+   first_char = STRMID(out, 0, 1)
+   if STREGEX(out, '^[0-9\$]') EQ 0 then out = "_" + out
+endif else begin
+   _ = WHERE(reserved_words EQ STRUPCASE(out), n)
+   if (STREGEX(out, '^[0-9\$]') EQ 0) or $
+      STREGEX(out, '[^0-9A-Za-z_\$!]') ne -1 or $
+      n gt 0 then return, ''
+endelse
+;
+if KEYWORD_SET(test) then STOP
 ;
 return, out
 ;
