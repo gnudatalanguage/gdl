@@ -23,7 +23,12 @@ end
 ;
 ;---------------------------------------------
 ;
-pro TEST_IDL_VALIDNAME, test=test, verbose=verbose
+pro TEST_IDL_VALIDNAME, test=test, verbose=verbose, help=help
+;
+if KEYWORD_SET(help) then begin
+   print, 'pro TEST_IDL_VALIDNAME, test=test, verbose=verbose, help=help'
+   return
+endif
 ;
 nb_pbs=0
 if KEYWORD_SET(verbose) then kwverb=1 else kwverb=0
@@ -50,7 +55,18 @@ INTERNAL_TEST, '3 a b c', '_3_a_b_c', kwverb, nb_pbs, /convert_all
 INTERNAL_TEST, '4a b c ', '_4a_b_c_', kwverb, nb_pbs, /convert_all
 INTERNAL_TEST, '5 a b c ', '_5_a_b_c_', kwverb, nb_pbs, /convert_all
 ;
-print, 'no finish ...'
+; "$" at begining
+;
+INTERNAL_TEST, '$abc', '', kwverb, nb_pbs
+INTERNAL_TEST, '$abc', '', kwverb, nb_pbs, /convert_spaces
+INTERNAL_TEST, '$1abc', '_$1abc', kwverb, nb_pbs, /convert_all
+INTERNAL_TEST, '$2a b c', '_$2a_b_c', kwverb, nb_pbs, /convert_all
+INTERNAL_TEST, '$ 3 a b c', '_$_3_a_b_c', kwverb, nb_pbs, /convert_all
+INTERNAL_TEST, '$4a b c ', '_$4a_b_c_', kwverb, nb_pbs, /convert_all
+INTERNAL_TEST, '$5 a b c ', '_$5_a_b_c_', kwverb, nb_pbs, /convert_all
+;
+print, 'This testsuite for IDL_VALIDNAME is not finished ...'
+print, 'Please contribute'
 ;
 print, nb_pbs
 if (nb_pbs GT 0) then begin
