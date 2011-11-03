@@ -30,7 +30,7 @@ sigjmp_buf sigFPEJmpBuf;
 // and integer modulo division by zero
 void SigFPEHandler( int signo) 
 {
-  signal(SIGFPE,SigFPEHandler);
+  signal(SIGFPE,SigFPEHandler); // reset handler (is one-shot)
   Warning( "Program caused arithmetic error: Integer divide by 0");
-  siglongjmp( sigFPEJmpBuf,-1);
+  siglongjmp( sigFPEJmpBuf,-1); // jump back
 } 

@@ -3182,18 +3182,25 @@ Data_<Sp>* Data_<Sp>::DivS( BaseGDL* r)
   ULong nEl=N_Elements();
   assert( nEl);
   Ty s = (*right)[0];
+
+  // remember: this is a template (must work for several types)
+  // due to error handling the actual devision by 0
+  // has to be done 
+  // but if not 0, we save the expensive error handling
   if( s != this->zero)
-//   if( sigsetjmp( sigFPEJmpBuf, 1) == 0)
     {
-      // right->Scalar(s); 
-      //      dd /= s;
-      TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-	{
-#pragma omp for
-	  for( SizeT i=0; i < nEl; ++i)
-	    (*this)[i] /= s;
-	}      //C delete right;
+      for(SizeT i=0; i < nEl; ++i)
+      {
+	(*this)[i] /= s;
+      }
+      return this;
+    }
+  if( sigsetjmp( sigFPEJmpBuf, 1) == 0)
+    {
+      for(SizeT i=0; i < nEl; ++i)
+      {
+	(*this)[i] /= s;
+      }
       return this;
     }
   return this;
@@ -3209,12 +3216,13 @@ Data_<Sp>* Data_<Sp>::DivInvS( BaseGDL* r)
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
 
-  if( nEl == 1)
+  // remember: this is a template (must work for several types)
+  // due to error handling the actual devision by 0
+  // has to be done 
+  // but if not 0, we save the expensive error handling
+  if( nEl == 1 && (*this)[0] != this->zero) 
   {
-    if( (*this)[0] != this->zero) 
-      (*this)[0] = (*right)[0] / (*this)[0]; 
-    else 
-      (*this)[0] = (*right)[0];
+    (*this)[0] = (*right)[0] / (*this)[0]; 
     return this;
   }
   
@@ -3230,11 +3238,11 @@ Data_<Sp>* Data_<Sp>::DivInvS( BaseGDL* r)
     }
   else
     {
-      TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-	{
-	  //       bool zeroEncountered = false;
-#pragma omp for
+//      TRACEOMP( __FILE__, __LINE__)
+// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+// 	{
+// 	  //       bool zeroEncountered = false;
+// #pragma omp for
 	  // right->Scalar(s); 
 	  for( SizeT ix=i; ix < nEl; ++ix)
 	    /*	if( !zeroEncountered)
@@ -3250,7 +3258,7 @@ Data_<Sp>* Data_<Sp>::DivInvS( BaseGDL* r)
 	      (*this)[ix] = s / (*this)[ix]; 
 	    else 
 	      (*this)[ix] = s;
-	}      //C delete right;
+// 	}      //C delete right;
       return this;
     }
 }
@@ -3568,8 +3576,20 @@ Data_<Sp>* Data_<Sp>::ModS( BaseGDL* r)
   Ty s = (*right)[0];
   SizeT i=0;
 
+  // remember: this is a template (must work for several types)
+  // due to error handling the actual devision by 0
+  // has to be done 
+  // but if not 0, we save the expensive error handling
   if( s != this->zero)
-//   if( sigsetjmp( sigFPEJmpBuf, 1) == 0)
+    {
+      // right->Scalar(s); 
+      //     dd %= s;
+      for( /*SizeT i=0*/; i < nEl; ++i)
+	(*this)[i] %= s;
+      //C delete right;
+      return this;
+    }
+  if( sigsetjmp( sigFPEJmpBuf, 1) == 0)
     {
       // right->Scalar(s); 
       //     dd %= s;
@@ -3603,12 +3623,13 @@ Data_<Sp>* Data_<Sp>::ModInvS( BaseGDL* r)
   assert( nEl);
   //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
 
-  if( nEl == 1)
+  // remember: this is a template (must work for several types)
+  // due to error handling the actual devision by 0
+  // has to be done 
+  // but if not 0, we save the expensive error handling
+  if( nEl == 1 && (*this)[0] != this->zero) 
   {
-    if( (*this)[0] != this->zero) 
-      (*this)[0] = (*right)[0] % (*this)[0]; 
-    else 
-      (*this)[0] = this->zero;
+    (*this)[0] = (*right)[0] % (*this)[0]; 
     return this;
   }
 
