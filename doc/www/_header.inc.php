@@ -27,7 +27,7 @@
 		<p id="intro">
                   A free and open-source IDL<sup>&reg;*</sup>/PV-WAVE<sup>**</sup> compiler<br />
                   <small>
-                    * IDL is a registered trademark of <a href="http://ittvis.com/">ITT Visual Information Solutions</a><br />
+                    * IDL is a registered trademark of <a href="http://exelisvis.com/">Exelis Visual Information Solutions</a><br />
                     ** PV-WAVE is a product of <a href="http://roguewave.com/">Rogue Wave Software</a>
                   </small><br />
 		</p>	
