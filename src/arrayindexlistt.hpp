@@ -721,13 +721,13 @@ public:
     // Init() not called
     if( !var->IsAssoc() && var->Type() != STRUCT)
       {
-		if( s >= var->Size())
-		{
-	// 	    std::cout << s << " var->Size():" << var->Size() << std::endl;
-			throw GDLException(NULL,"Scalar subscript out of range [>].3",true,false);
-		}
- 		
-		return var->NewIx( s);
+	if( s >= var->Size())
+	{
+// 	    std::cout << s << " var->Size():" << var->Size() << std::endl;
+		throw GDLException(NULL,"Scalar subscript out of range [>].3",true,false);
+	}
+	
+	return var->NewIx( s);
       }
     
     // normal case
@@ -940,30 +940,30 @@ public:
   // used by AssignAt functions
   SizeT LongIx() const
   {
-    if( acRank == 1)
-      return ixList.FrontGetS(); //ixList[0]->GetS();
-    
+//     if( acRank == 1)
+//       return ixList.FrontGetS(); //ixList[0]->GetS();    
     SizeT dStart = ixList.FrontGetS(); //[0]->GetS();
     for( SizeT i=1; i < acRank; ++i)
-      dStart += ixList[i]->GetS() * varStride[ i];
-    
+      dStart += ixList[i]->GetS() * varStride[ i];    
     return dStart;
   }
 
   void AssignAt( BaseGDL* var, BaseGDL* right)
   {
     SetVariable( var);
-    
+    assert( nIx == 1);    
     if( var->EqType( right))
       {
-	var->AssignAt( right, this); // assigns inplace
+//	var->AssignAtIx( this->LongIx(), right); // assigns inplace
+	var->AssignAt( right, this); // assigns inplace (not only scalar)
       }
     else
       {
 	BaseGDL* rConv = right->Convert2( var->Type(), BaseGDL::COPY);
 	std::auto_ptr<BaseGDL> conv_guard( rConv);
 	
-	var->AssignAt( rConv, this); // assigns inplace
+//	var->AssignAtIx( this->LongIx(), rConv); // assigns inplace
+ 	var->AssignAt( rConv, this); // assigns inplace (not only scalar)
       }
   }
 
@@ -972,7 +972,9 @@ public:
   {
     //    Init();
     SetVariable( var);
-    return var->Index( this);
+    assert( nIx == 1);
+    return var->NewIx( this->LongIx());
+//    return var->Index( this);
   }
 
   // returns multi-dim index for 1st element
@@ -1010,37 +1012,37 @@ private:
 	IxExprListT cleanupIx;
 
 protected:
-	ArrayIndexVectorT ixList;
+  ArrayIndexVectorT ixList;
 
-	enum AccessType
-	{
-		UNDEF=0,      // for init access type
-		INDEXED_ONE,  // all indexed OR one
-		NORMAL,       // mixed
-		ALLINDEXED,
-		ALLONE        // all ONE
-	};
+  enum AccessType
+  {
+	  UNDEF=0,      // for init access type
+	  INDEXED_ONE,  // all indexed OR one
+	  NORMAL,       // mixed
+	  ALLINDEXED,
+	  ALLONE        // all ONE
+  };
 
-	AccessType accessType;         // actual access type
-	AccessType accessTypeInit;     // possible access type non assoc
-	AccessType accessTypeAssocInit;// possible access type for assoc
-	SizeT    acRank;               // rank upto which indexing is done
-	SizeT    nIterLimit[MAXRANK];  // for each dimension, how many iterations
-	SizeT    stride[MAXRANK+1];
-	const SizeT*  varStride; // variables stride
+  AccessType accessType;         // actual access type
+  AccessType accessTypeInit;     // possible access type non assoc
+  AccessType accessTypeAssocInit;// possible access type for assoc
+  SizeT    acRank;               // rank upto which indexing is done
+  SizeT    nIterLimit[MAXRANK];  // for each dimension, how many iterations
+  SizeT    stride[MAXRANK+1];
+  const SizeT*  varStride; // variables stride
 // 	SizeT    varStride[MAXRANK+1]; // variables stride
-	SizeT    nIx;                  // number of indexed elements
+  SizeT    nIx;                  // number of indexed elements
 
-	AllIxBaseT*      allIx;
-	char allIxInstance[ AllIxMaxSize];
+  AllIxBaseT*      allIx;
+  char allIxInstance[ AllIxMaxSize];
 
-	ArrayIndexT* ixListEnd; // for assoc index
+  ArrayIndexT* ixListEnd; // for assoc index
 
-	// for access with only a single variable index (column/row-extractor)
-	SizeT nIterLimitGt1; // how many dimensions > 1
-	RankT gt1Rank; // which rank is the variable rank
-	SizeT baseIx; // offset to add for all other constant dims
-	bool indexed; // is the variable index indexed?
+  // for access with only a single variable index (column/row-extractor)
+  SizeT nIterLimitGt1; // how many dimensions > 1
+  RankT gt1Rank; // which rank is the variable rank
+  SizeT baseIx; // offset to add for all other constant dims
+  bool indexed; // is the variable index indexed?
 
 public:    
   
@@ -1334,6 +1336,7 @@ if( dynamic_cast<ArrayIndexIndexed*>(ixList[ixList.size()-1]) ||
     if( accessType == ALLINDEXED)
     {
       nIx=ixList[0]->NIter( (0<varRank)?varDim[0]:1);
+      assert( nIx > 1);
       for( SizeT i=1; i<acRank; ++i)
 	      {
 		SizeT nIter = ixList[i]->NIter( (i<varRank)?varDim[i]:1);
@@ -1649,13 +1652,12 @@ if( dynamic_cast<ArrayIndexIndexed*>(ixList[ixList.size()-1]) ||
 //   }
 
   // returns one dim long ix in case of one element array index
-  // used by AssignAt functions
+  // used by AssignAt and Index functions
   SizeT LongIx() const
   {
     SizeT dStart = ixList[0]->GetIx0();
     for( SizeT i=1; i < acRank; ++i)
 		dStart += ixList[i]->GetIx0() * varStride[ i];
-
     return dStart;
   }
 
@@ -1682,6 +1684,10 @@ if( dynamic_cast<ArrayIndexIndexed*>(ixList[ixList.size()-1]) ||
     // normal case
     Init( ix, NULL);
     SetVariable( var);
+    if( nIx == 1)
+    {
+      return var->NewIx( baseIx);
+    }
     return var->Index( this);
   }
 
@@ -1721,16 +1727,15 @@ class ArrayIndexListMultiNoneIndexedT: public ArrayIndexListMultiT
 //   ArrayIndexListMultiNoneIndexedT( const ArrayIndexListMultiNoneIndexedT& cp):
 //   ArrayIndexListMultiT( cp)
 //   {}
-
 // called after structure is fixed
   ArrayIndexListMultiNoneIndexedT( ArrayIndexVectorT* ix)
 // 	: ixList( *ix),
 //     allIx( NULL),
 //     ixListEnd( NULL)
   {
-	ixList = *ix;
-	allIx = NULL;
-	ixListEnd = NULL;
+    ixList = *ix;
+    allIx = NULL;
+    ixListEnd = NULL;
 	  
     assert( ix->size() != 0); // must be, from compiler
 

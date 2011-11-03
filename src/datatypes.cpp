@@ -3215,10 +3215,11 @@ Data_<Sp>* Data_<Sp>::Index( ArrayIndexListT* ixList)
   //  DataT& res_dd = res->dd; 
   AllIxBaseT* allIx = ixList->BuildIx();
 
-//   if( nCp == 1)
-//   {
-// 		(*res)[0]=(*this)[ (*allIx)[ 0]];
-//   }
+  if( nCp == 1)
+  {
+    (*res)[0]=(*this)[ (*allIx)[ 0]];
+    return res;
+  }
 //   else
 //   {
 /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))

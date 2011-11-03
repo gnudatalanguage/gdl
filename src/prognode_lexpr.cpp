@@ -44,13 +44,6 @@ BaseGDL** ProgNode::LExpr( BaseGDL* right)
 	return NULL; // avoid compiler warning
 }
 
-// // default version
-// BaseGDL** ProgNode::LExprGrab( BaseGDL* right)
-// {
-//   std::auto_ptr<BaseGDL> guard( right);	// grab version
-//   BaseGDL** res = this->LExpr( right);
-//   return res;
-// }
 
 BaseGDL** QUESTIONNode::LExpr( BaseGDL* right)
 		//case QUESTION:

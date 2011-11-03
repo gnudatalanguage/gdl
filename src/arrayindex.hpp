@@ -338,7 +338,8 @@ public:
   // also checks/adjusts range 
   SizeT NIter( SizeT varDim) 
   {
-    if( s > 0 && s >= varDim)
+//     if( s > 0 && s >= varDim)
+    if( s >= varDim && s > 0) // varDim == 0 && s == 0 ok
       throw GDLException(NULL,"Scalar subscript out of range [>].h2",true,false);
     return 1;
   }
