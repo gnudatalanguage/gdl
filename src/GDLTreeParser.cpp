@@ -3757,6 +3757,11 @@ void GDLTreeParser::parameter_def(RefDNode _t) {
 	antlr::ASTPair currentAST;
 	RefDNode parameter_def_AST = RefDNode(antlr::nullAST);
 	
+	// count positional parameters
+	int nKey = 0;
+	int nPar = 0;
+	
+	
 	{ // ( ... )*
 	for (;;) {
 		if (_t == RefDNode(antlr::nullAST) )
@@ -3767,6 +3772,9 @@ void GDLTreeParser::parameter_def(RefDNode _t) {
 			key_parameter(_t);
 			_t = _retTree;
 			astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+			
+			++nKey;
+			
 			break;
 		}
 		case ASSIGN:
@@ -3838,6 +3846,9 @@ void GDLTreeParser::parameter_def(RefDNode _t) {
 			pos_parameter(_t);
 			_t = _retTree;
 			astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+			
+			++nPar;
+			
 			break;
 		}
 		default:
@@ -3848,6 +3859,12 @@ void GDLTreeParser::parameter_def(RefDNode _t) {
 	}
 	_loop87:;
 	} // ( ... )*
+	
+	if( nPar > 0 || nKey > 0)
+	{
+	RefDNode(currentAST.root)->SetNParam( nPar);
+	}
+	
 	parameter_def_AST = RefDNode(currentAST.root);
 	returnAST = parameter_def_AST;
 	_retTree = _t;
@@ -5269,6 +5286,9 @@ void GDLTreeParser::arrayindex_list_to_parameter_list(RefDNode _t) {
 	RefDNode e_AST = RefDNode(antlr::nullAST);
 	RefDNode e = RefDNode(antlr::nullAST);
 	
+	int nPar = 0;
+	
+	
 	{ // ( ... )+
 	int _cnt151=0;
 	for (;;) {
@@ -5296,6 +5316,7 @@ void GDLTreeParser::arrayindex_list_to_parameter_list(RefDNode _t) {
 			
 			arrayindex_list_to_parameter_list_AST=
 			RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(NULL))->add(antlr::RefAST(arrayindex_list_to_parameter_list_AST))->add(antlr::RefAST(e_AST))));
+			++nPar;
 			
 			currentAST.root = arrayindex_list_to_parameter_list_AST;
 			if ( arrayindex_list_to_parameter_list_AST!=RefDNode(antlr::nullAST) &&
@@ -5313,6 +5334,9 @@ void GDLTreeParser::arrayindex_list_to_parameter_list(RefDNode _t) {
 	}
 	_loop151:;
 	}  // ( ... )+
+	
+	arrayindex_list_to_parameter_list_AST->SetNParam( nPar);
+	
 	returnAST = arrayindex_list_to_parameter_list_AST;
 	_retTree = _t;
 }

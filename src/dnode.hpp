@@ -265,6 +265,8 @@ public:
   void SetLibPro(DLibPro* const l) { libPro=l;}
   void SetNDot(const int n) { nDot=n;}
   int GetNDot() const { return nDot;}
+  void SetNParam(const int n) { nParam=n;}
+  int GetNParam() const { return nParam;}
 
   void SetCompileOpt(const int n) { compileOpt=n; }
   int GetCompileOpt() { return compileOpt; }
@@ -327,6 +329,9 @@ private:
 
     int        structDefined; // struct contains entry with no tag name
 
+    int        nParam;	// number of positional parameters in this parameter list,
+			// stored at first parameter (keyword or positional)
+    
     int        compileOpt; // for PRO and FUNCTION nodes
   };
 

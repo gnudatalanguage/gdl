@@ -654,8 +654,28 @@ procedure_call
 	;	    
 
 parameter_def
-    : (key_parameter
-    | pos_parameter)*
+{
+ // count positional parameters
+ int nKey = 0;
+ int nPar = 0;
+}
+
+    : 
+    ( key_parameter
+            {
+                ++nKey;
+            }
+    | pos_parameter
+            {
+                ++nPar;
+            }
+    )*
+        {
+            if( nPar > 0 || nKey > 0)
+                {
+                    RefDNode(currentAST.root)->SetNParam( nPar);
+                }
+        }
     ;
 
 key_parameter!//
@@ -1220,15 +1240,19 @@ var!//
   ;
 
 arrayindex_list_to_parameter_list! // ???
-//{
-//    RefDNode variable;
-//}
+{
+    int nPar = 0;
+}
     : (options {greedy=true;}: #(ARRAYIX e:pos_parameter)
             {
                 #arrayindex_list_to_parameter_list=
                     #(NULL, arrayindex_list_to_parameter_list, e);
+                ++nPar;
             }
         )+
+        {
+            arrayindex_list_to_parameter_list_AST->SetNParam( nPar);
+        }
   ;
 
 // for function calls the arrayindex list is properly converted

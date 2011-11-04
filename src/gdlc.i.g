@@ -2897,6 +2897,8 @@ tmp_expr returns [BaseGDL* res]
  	res = _t->Eval();
  	_retTree = _t->getNextSibling();
     return res;
+
+    BaseGDL** e2;
 } // tmp_expr
     : e2=l_deref 
 	| #(q:QUESTION {res=q->Eval();}) // trinary operator
@@ -2918,6 +2920,8 @@ assign_expr returns [BaseGDL* res]
     res = _t->Eval();
 	_retTree = _t->getNextSibling();
     return res;
+
+    BaseGDL** l;
 }
     : #(ASSIGN 
             ( res=tmp_expr
@@ -2969,7 +2973,7 @@ sys_var returns [BaseGDL* res]
 	_retTree = _t->getNextSibling();
 	return res; // no ->Dup()
 }
-    : sys_var_nocopy 
+    : res=sys_var_nocopy 
     ;
 
 sys_var_nocopy returns [BaseGDL* res]
@@ -3382,9 +3386,19 @@ parameter_def [EnvBaseT* actEnv]
     try{
 
         _retTree = _t;
-        while(_retTree != NULL) {
-            static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
-        }    
+        if( _retTree != NULL)
+            {
+                int nPar = _retTree->GetNParam();
+                int nSub = actEnv->GetPro()->NPar();
+                if( nSub >= 0 && nPar > nSub)
+                    throw GDLException( _t, actEnv->GetProName() +
+                                        ": Incorrect number of arguments.",
+                                        false, false);
+                static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
+            }
+            while(_retTree != NULL) {
+                static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
+            }    
         actEnv->Extra(); // expand _EXTRA        
     } 
     catch( GDLException& e)

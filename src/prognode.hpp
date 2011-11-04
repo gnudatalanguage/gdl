@@ -99,6 +99,7 @@ protected:
     int        initInt;    // for c-i not actually used
     int        numBranch;  // number of branches in switch/case statements
     int        nDot;       // nesting level for tag access
+    int        nParam;     // number of parameters in this parameter list (stored in 1st par)
     int        arrayDepth; // dimension to cat
     int        proIx;      // Index into proList
     int        funIx;      // Index into funList
@@ -264,6 +265,8 @@ public:
   int getLine() const { return lineNumber;}
   void setLine( int l) { lineNumber = l;}
   void SetGotoIx( int ix) { targetIx=ix;}
+
+  int GetNParam() const { return nParam;}
 
   ProgNodeP BreakTarget() const { return breakTarget;}
   
