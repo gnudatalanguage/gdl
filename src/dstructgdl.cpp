@@ -712,7 +712,8 @@ DStructGDL* DStructGDL::Index( ArrayIndexListT* ixList)
 DStructGDL* DStructGDL::NewIx( SizeT ix)
 {
   SizeT nTags=NTags();
-  DStructGDL* res=New( dimension(), BaseGDL::NOZERO);
+  // bug ID 3091599: Indexed struct arrays retrun always an array
+  DStructGDL* res=New( dimension(1), BaseGDL::NOZERO);
   for( SizeT tagIx=0; tagIx<nTags; tagIx++)
     *res->GetTag( tagIx, 0) = *GetTag( tagIx, ix);
   return res;

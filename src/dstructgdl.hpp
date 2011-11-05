@@ -438,7 +438,8 @@ public:
   // throws (datatypes.cpp)
   int Scalar2index( SizeT& st) const;
   int Scalar2RangeT( RangeT& st) const;
-  
+  RangeT LoopIndex() const;
+
   bool Scalar() const 
   { return (N_Elements() == 1);}
   

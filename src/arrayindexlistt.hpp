@@ -171,8 +171,14 @@ public:
   bool ToAssocIndex( SizeT& lastIx)
   {
     // cannot be ArrayIndexScalar[VP] ix->Init();
-    if( !ix->Scalar( lastIx))
+    RangeT lastValIx;
+    if( !ix->Scalar( lastValIx))
       throw GDLException( NULL,"Record number must be a scalar in this context.",true,false);
+
+    if( lastValIx < 0)
+      throw GDLException( NULL,"Record number must be a scalar > 0 in this context.",true,false);
+
+    lastIx = lastValIx;
     return true;
   }
 
@@ -338,7 +344,8 @@ class ArrayIndexListOneScalarT: public ArrayIndexListT
 {
 protected:
   SizeT varIx;
-  SizeT s;
+  RangeT sInit;
+  RangeT s;
 
   AllIxT allIx;
 
@@ -453,7 +460,8 @@ class ArrayIndexListOneScalarVPT: public ArrayIndexListT
 protected:
   DVar* varPtr;
 
-  SizeT s;
+  RangeT sInit;
+  RangeT s;
 
   AllIxT allIx;
 //   AllIxT* allIx;
@@ -474,6 +482,7 @@ public:
   ArrayIndexListOneScalarVPT( const ArrayIndexListOneScalarVPT& cp)
     : ArrayIndexListT( cp)
     , varPtr( cp.varPtr)
+    , sInit( cp.sInit)
     , s( cp.s)
 //     , allIx( NULL)
   {
@@ -503,7 +512,10 @@ public:
   // and returns true is the list is empty
   bool ToAssocIndex( SizeT& lastIx)
   {
-    s = varPtr->Data()->LoopIndex();
+    sInit = varPtr->Data()->LoopIndex();
+    if( sInit < 0)
+      throw GDLException( NULL,"Record number must be a scalar > 0 in this context.",true,false);
+    s = sInit;
     lastIx = s;
     return true;
   }
@@ -511,12 +523,18 @@ public:
   // set the root variable which is indexed by this ArrayIndexListT
   void SetVariable( BaseGDL* var) 
   {
-    s = varPtr->Data()->LoopIndex();
-
+    sInit = varPtr->Data()->LoopIndex();
+    if( sInit < 0)
+      s = sInit + var->N_Elements();
+    else
+      s = sInit;
+    
     // for assoc variables last index is the record
     if( var->IsAssoc()) return;
     if( s >= var->Size())
       throw GDLException(NULL,"Scalar subscript out of range [>].1",true,false);
+    if( s < 0)
+      throw GDLException(NULL,"Scalar subscript out of range [<].1",true,false);
   }
   
   // structure of indexed expression
@@ -603,7 +621,8 @@ public:
 
 class ArrayIndexListOneConstScalarT: public ArrayIndexListT
 {
-  SizeT s;
+  RangeT sInit;
+  RangeT s;
   AllIxT allIx;
 //   AllIxT* allIx;
 
@@ -623,6 +642,7 @@ public:
 
   ArrayIndexListOneConstScalarT( const ArrayIndexListOneConstScalarT& cp)
     : ArrayIndexListT( cp)
+    , sInit( cp.sInit)
     , s( cp.s)
 //     , allIx( NULL)
   {
@@ -633,7 +653,9 @@ public:
   ArrayIndexListOneConstScalarT( ArrayIndexVectorT* aIV)
 //     : allIx( NULL)
   {
-    s = (*aIV)[0]->GetS();
+    sInit = (*aIV)[0]->GetS();
+    if( sInit >= 0)
+      s = sInit;
     nParam = 0;
 
     delete (*aIV)[0];
@@ -670,15 +692,21 @@ public:
   // and returns true is the list is empty
   bool ToAssocIndex( SizeT& lastIx)
   {
-    lastIx = s;
+    if( sInit < 0)
+      throw GDLException( NULL,"Record number must be a scalar > 0 in this context.",true,false);      
+    lastIx = sInit;
     return true;
   }
 
   // set the root variable which is indexed by this ArrayIndexListT
   void SetVariable( BaseGDL* var) 
   {
-    // for assoc variables last index is the record
     if( var->IsAssoc()) return;
+    if( sInit < 0)
+      s = sInit + var->Size();
+    // for assoc variables last index is the record
+    if( s < 0)
+      throw GDLException(NULL,"Scalar subscript out of range [<].1",true,false);
     if( s >= var->Size())
       throw GDLException(NULL,"Scalar subscript out of range [>].1",true,false);
   }
@@ -692,14 +720,22 @@ public:
 
   void AssignAt( BaseGDL* var, BaseGDL* right)
   {
+    // one index and assoc -> no index left -> no AssignAt
+    // wrong! This is the entry function
+    // assert( !var->IsAssoc());
+
     // Init() was already called
     // scalar case
     if( right->N_Elements() == 1 && !var->IsAssoc())// && var->Type() != STRUCT) 
       {
-		if( s >= var->Size())
-		throw GDLException(NULL,"Scalar subscript out of range [>].2",true,false);
-		var->AssignAtIx( s, right);
-		return;
+	if( sInit < 0)
+	  s = sInit + var->Size();
+	if( s < 0)
+	  throw GDLException(NULL,"Scalar subscript out of range [<].2",true,false);
+	if( s >= var->Size())
+	  throw GDLException(NULL,"Scalar subscript out of range [>].2",true,false);
+	var->AssignAtIx( s, right);
+	return;
       }
     
     SetVariable( var);
@@ -722,6 +758,10 @@ public:
     // Init() not called
     if( !var->IsAssoc())// && var->Type() != STRUCT)
       {
+	if( sInit < 0)
+	  s = sInit + var->Size();
+	if( s < 0)
+		throw GDLException(NULL,"Scalar subscript out of range [<].3",true,false);
 	if( s >= var->Size())
 	{
 // 	    std::cout << s << " var->Size():" << var->Size() << std::endl;
@@ -733,7 +773,7 @@ public:
     
     // normal case
     //Init();// ix_);
-    SetVariable( var);
+    //SetVariable( var);
     return var->Index( this);
   }
 
@@ -866,7 +906,7 @@ public:
   
   // requires special handling
   // used by Assoc_<> returns last index in lastIx, removes it
-  // and returns true is the list is empty
+  // and returns true if the list is empty
   bool ToAssocIndex( SizeT& lastIx)
   {
     assert( ixListEnd == NULL);
@@ -876,8 +916,13 @@ public:
     // init in case of ixListEnd->NParam == 0
     ixListEnd->Init();
 
-    ixListEnd->Scalar( lastIx);
+    RangeT lastIxVal;
+    ixListEnd->Scalar( lastIxVal); // always scalar
 
+    if( lastIxVal < 0)
+      throw GDLException( NULL,"Record number must be a scalar > 0 in this context.",true,false);
+    
+    lastIx = lastIxVal;
     return false; // multi dim
   }
 
@@ -1261,9 +1306,16 @@ if( dynamic_cast<ArrayIndexIndexed*>(ixList[ixList.size()-1]) ||
     
     ArrayIndexT* ixListEndTmp = ixList.back();
     ixListEndTmp->Init();
-    if( !ixListEndTmp->Scalar( lastIx))
+    
+    RangeT lastValIx;
+    if( !ixListEndTmp->Scalar( lastValIx))
       throw GDLException(NULL ,"Record number must be a scalar in this context.",true,false);
 
+    if( lastValIx < 0)
+      throw GDLException( NULL,"Record number must be a scalar > 0 in this context.",true,false);
+
+    lastIx = lastValIx;
+   
     ixListEnd = ixListEndTmp;
     ixList.pop_back();
     

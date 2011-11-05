@@ -2106,7 +2106,7 @@ int Data_<SpDObj>::Scalar2RangeT( RangeT& st) const
 
 // for FOR loop *indices*
 template<class Sp> 
-SizeT Data_<Sp>::LoopIndex() const
+RangeT Data_<Sp>::LoopIndex() const
 {
   //  if( dd.size() != 1) return 0;
 
@@ -2118,54 +2118,54 @@ SizeT Data_<Sp>::LoopIndex() const
   // for maintainability. And as any modern C++ compiler will optimize
   // away the superflous (for unsigned data) statement anyway, it is 
   // better to keep the code this way here.
-  if( (*this)[0] < 0)
-    throw GDLException( "Index variable <0.");
+//   if( (*this)[0] < 0)
+//     throw GDLException( "Index variable <0.");
 
-  return static_cast<SizeT>((*this)[0]);
+  return static_cast<RangeT>((*this)[0]);
 }
 template<> 
-SizeT Data_<SpDFloat>::LoopIndex() const
+RangeT Data_<SpDFloat>::LoopIndex() const
 {
-  if( (*this)[0] < 0.0f)
-    //if( (*this)[0] <= 1.0f)
-      throw GDLException( "Index variable <0.");
+//   if( (*this)[0] < 0.0f)
+//     //if( (*this)[0] <= 1.0f)
+//       throw GDLException( "Index variable <0.");
     //else
     //  return 0;
 
-  return static_cast<SizeT>((*this)[0]);
+  return static_cast<RangeT>((*this)[0]);
 }
 template<> 
-SizeT Data_<SpDDouble>::LoopIndex() const
+RangeT Data_<SpDDouble>::LoopIndex() const
 {
-  if( (*this)[0] < 0.0)
-    //if( (*this)[0] <= 1.0)
-      throw GDLException( "Index variable <0.");
+//   if( (*this)[0] < 0.0)
+//     //if( (*this)[0] <= 1.0)
+//       throw GDLException( "Index variable <0.");
     //else
     //  return 0;
 
-  return static_cast<SizeT>((*this)[0]);
+  return static_cast<RangeT>((*this)[0]);
 }
 template<> 
-SizeT Data_<SpDComplex>::LoopIndex() const
+RangeT Data_<SpDComplex>::LoopIndex() const
 {
   throw GDLException( "Complex expression not allowed as index.");
   return 0;
 }
 template<> 
-SizeT Data_<SpDComplexDbl>::LoopIndex() const
+RangeT Data_<SpDComplexDbl>::LoopIndex() const
 {
   throw GDLException( "Complex expression not allowed as index.");
   return 0;
 }
 template<> 
-SizeT Data_<SpDString>::LoopIndex() const
+RangeT Data_<SpDString>::LoopIndex() const
 {
-	if( (*this)[0] == "")
-		return 0;
+    if( (*this)[0] == "")
+	    return 0;
 	
     const char* cStart=(*this)[0].c_str();
     char* cEnd;
-    SizeT ix=strtol(cStart,&cEnd,10);
+    RangeT ix=strtol(cStart,&cEnd,10);
     if( cEnd == cStart)
 		{
 		Warning( "Type conversion error: "
@@ -2175,21 +2175,21 @@ SizeT Data_<SpDString>::LoopIndex() const
       	}
   return ix;
 }
-// SizeT DStructGDL::LoopIndex() const
-// {
-//   throw GDLException("STRUCT expression not allowed in this context.");
-//   return 0; // get rid of warning
-// }
+RangeT DStructGDL::LoopIndex() const
+{
+  throw GDLException("STRUCT expression not allowed in this context.");
+  return 0; // get rid of warning
+}
 
 template<> 
-SizeT Data_<SpDPtr>::LoopIndex() const
+RangeT Data_<SpDPtr>::LoopIndex() const
 {
   throw GDLException("PTR expression not allowed as index.");
   return 0; // get rid of warning
 }
 
 template<> 
-SizeT Data_<SpDObj>::LoopIndex() const
+RangeT Data_<SpDObj>::LoopIndex() const
 {
   throw GDLException("Object expression not allowed as index.");
   return 0; // get rid of warning

@@ -618,14 +618,14 @@ void REFNode::Parameter( EnvBaseT* actEnv)
 //   ProgNode::interpreter->ref_parameter(this->getFirstChild(), actEnv);
 //   _t = ProgNode::interpreter->_retTree;
   // pass reference
-  actEnv->SetNextPar(pvalRef); 
+  actEnv->SetNextParUnchecked(pvalRef); 
 			
   ProgNode::interpreter->_retTree = this->getNextSibling();
 }
 void REFNode::ParameterVarNum( EnvBaseT* actEnv)
 {
   BaseGDL** pvalRef=this->getFirstChild()->LEval();
-  actEnv->SetNextParVarNum(pvalRef); 
+  actEnv->SetNextParUncheckedVarNum(pvalRef); 
   ProgNode::interpreter->_retTree = this->getNextSibling();
 }
 
@@ -641,7 +641,7 @@ void REF_EXPRNode::Parameter( EnvBaseT* actEnv)
 //     ref_parameter( ProgNode::interpreter->_retTree, actEnv);
 
   // pass reference
-  actEnv->SetNextPar(pvalRef); 
+  actEnv->SetNextParUnchecked(pvalRef); 
 			
   ProgNode::interpreter->_retTree = this->getNextSibling();
 }
@@ -650,7 +650,7 @@ void REF_EXPRNode::ParameterVarNum( EnvBaseT* actEnv)
   BaseGDL* pval= this->getFirstChild()->Eval();//expr(_t);
   delete pval;
   BaseGDL** pvalRef=this->getFirstChild()->getNextSibling()->LEval();
-  actEnv->SetNextParVarNum(pvalRef); 
+  actEnv->SetNextParUncheckedVarNum(pvalRef); 
   ProgNode::interpreter->_retTree = this->getNextSibling();
 }
 
@@ -687,11 +687,11 @@ void REF_CHECKNode::Parameter( EnvBaseT* actEnv)
   BaseGDL** pvalRef = ProgNode::interpreter->callStack.back()->GetPtrTo( pval);
   if( pvalRef != NULL)
     {   // pass reference
-      actEnv->SetNextPar( pvalRef); 
+      actEnv->SetNextParUnchecked( pvalRef); 
     }
   else 
     {   // pass value
-      actEnv->SetNextPar( pval); 
+      actEnv->SetNextParUnchecked( pval); 
     }
 			
   ProgNode::interpreter->_retTree = this->getNextSibling();
@@ -702,11 +702,11 @@ void REF_CHECKNode::ParameterVarNum( EnvBaseT* actEnv)
   BaseGDL** pvalRef = ProgNode::interpreter->callStack.back()->GetPtrTo( pval);
   if( pvalRef != NULL)
     {   // pass reference
-      actEnv->SetNextParVarNum( pvalRef); 
+      actEnv->SetNextParUncheckedVarNum( pvalRef); 
     }
   else 
     {   // pass value
-      actEnv->SetNextParVarNum( pval); 
+      actEnv->SetNextParUncheckedVarNum( pval); 
     }
   ProgNode::interpreter->_retTree = this->getNextSibling();
 }
@@ -716,14 +716,14 @@ void ParameterNode::Parameter( EnvBaseT* actEnv)
 //   BaseGDL* pval=this->Eval();//expr(this);
 			
   // pass value
-  actEnv->SetNextPar(this->getFirstChild()->Eval()); 
+  actEnv->SetNextParUnchecked(this->getFirstChild()->Eval()); 
 			
   ProgNode::interpreter->_retTree = this->getNextSibling();
 }
 
 void ParameterNode::ParameterVarNum( EnvBaseT* actEnv)
 {
-  actEnv->SetNextParVarNum(this->getFirstChild()->Eval()); 
+  actEnv->SetNextParUncheckedVarNum(this->getFirstChild()->Eval()); 
   ProgNode::interpreter->_retTree = this->getNextSibling();
 }
 

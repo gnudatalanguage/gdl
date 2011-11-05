@@ -59,24 +59,36 @@ ArrayIndexScalarVP::ArrayIndexScalarVP( RefDNode& dNode)
 
 SizeT ArrayIndexScalar::NIter( SizeT varDim) 
 {
-  s = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
+  sInit = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
+  if( sInit < 0)
+    s = sInit + varDim;
+  else
+    s = sInit;
   
-  if( s>0 && s >= varDim)
+  if( s < 0)
+    throw GDLException("Scalar subscript out of range [<].c");
+  if( s >= varDim)
     throw GDLException("Scalar subscript out of range [>].c");
   return 1;
 }
 SizeT ArrayIndexScalarVP::NIter( SizeT varDim) 
 {
   s = varPtr->Data()->LoopIndex();
-
-  if( s>0 && s >= varDim)
+  if( sInit < 0)
+    s = sInit + varDim;
+  else
+    s = sInit;
+  
+  if( s < 0)
+    throw GDLException("Scalar subscript out of range [<].d");
+  if( s >= varDim)
     throw GDLException("Scalar subscript out of range [>].d");
   return 1;
 }
 
 void ArrayIndexScalar::Init() 
 {
-  s = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
+  sInit = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
 }
 
 
@@ -105,13 +117,21 @@ BaseGDL* ArrayIndexListOneScalarT::Index( BaseGDL* var, IxExprListT& ix_)
     // Init() not called
     if( !var->IsAssoc())// && var->Type() != STRUCT)
       {
-	s = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
+	sInit = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
 	  
+	if( sInit < 0)
+	  s = sInit + var->Size();
+	else
+	  s = sInit;
+	
 	if( s >= var->Size())
 	  {
 	    throw GDLException("Scalar subscript out of range [>].e");
 	  }
-
+	if( s < 0)
+	  {
+	    throw GDLException("Scalar subscript out of range [<].e");
+	  }
 	    
 	return var->NewIx( s);
       }
@@ -126,11 +146,19 @@ BaseGDL* ArrayIndexListOneScalarVPT::Index( BaseGDL* var, IxExprListT& ix_)
     // Init() not called
     if( !var->IsAssoc())// && var->Type() != STRUCT)
       {
-	s = varPtr->Data()->LoopIndex();
+	sInit = varPtr->Data()->LoopIndex();
+	if( sInit < 0)
+	  s = sInit + var->Size();
+	else
+	  s = sInit;
 
 	if( s >= var->Size())
 	  {
 	    throw GDLException("Scalar subscript out of range [>].f");
+	  }
+	if( s < 0)
+	  {
+	    throw GDLException("Scalar subscript out of range [<].f");
 	  }
 	    
 	return var->NewIx( s);
@@ -144,16 +172,26 @@ BaseGDL* ArrayIndexListOneScalarVPT::Index( BaseGDL* var, IxExprListT& ix_)
 
 bool ArrayIndexListOneScalarT::ToAssocIndex( SizeT& lastIx)
   {
-    s = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
-    lastIx = s;
+    sInit = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
+    if( sInit < 0)
+      throw GDLException( NULL,"Record number must be a scalar > 0 in this context.",true,false);      
+    lastIx = sInit;
     return true;
   }
 void ArrayIndexListOneScalarT::SetVariable( BaseGDL* var) 
   {
-    s = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
+    sInit = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
+    if( var->IsAssoc()) return;
+    if( sInit < 0)
+      s = sInit + var->Size();
+    else
+      s = sInit;
+    if( s < 0)
+      throw GDLException("Scalar subscript out of range [<].h");
+    if( s >= var->Size())
+      throw GDLException("Scalar subscript out of range [>].h");
 
     // for assoc variables last index is the record
-    if( var->IsAssoc()) return;
     if( s >= var->Size())
       throw GDLException("Scalar subscript out of range [>].g");
   }
@@ -163,7 +201,13 @@ void ArrayIndexListOneScalarT::AssignAt( BaseGDL* var, BaseGDL* right)
     // scalar case
     if( right->N_Elements() == 1 && !var->IsAssoc())// && var->Type() != STRUCT) 
       {
-	s = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
+	sInit = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
+	if( sInit < 0)
+	  s = sInit + var->Size();
+	else
+	  s = sInit;
+	if( s < 0)
+	  throw GDLException("Scalar subscript out of range [<].h");
 	if( s >= var->Size())
 	  throw GDLException("Scalar subscript out of range [>].h");
 	var->AssignAtIx( s, right);

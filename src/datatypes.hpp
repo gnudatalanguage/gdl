@@ -155,7 +155,7 @@ static	void operator delete( void *ptr);
   // used by the interpreter
   int Scalar2index( SizeT& st) const;
   int Scalar2RangeT( RangeT& st) const;
-  SizeT LoopIndex() const;
+  RangeT LoopIndex() const;
 
   // used for indexing of arrays
   SizeT GetAsIndex( SizeT i) const;

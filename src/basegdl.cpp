@@ -657,7 +657,7 @@ void BaseGDL::AssignAtIx( RangeT ix, BaseGDL* srcIn)
   throw GDLException("Operation not defined for UNDEF 28.");
 }
 
-SizeT BaseGDL::LoopIndex() const
+RangeT BaseGDL::LoopIndex() const
 { 
   throw GDLException("Operation not defined for UNDEF 29.");
 }

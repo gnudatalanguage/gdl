@@ -207,11 +207,14 @@ proUD->SetCompileOpt( cOpt);
   // used by HELP and SetNextPar(...)
   SizeT EnvSize() const { return env.size();}
 
-  // next four are used by interpreter
+  // next four are used by Parameter...(...) functions
+  void SetNextParUnchecked( BaseGDL* const nextP); // by value (reset loc)
+  void SetNextParUnchecked( BaseGDL** const nextP); // by reference (reset env)
+  void SetNextParUncheckedVarNum( BaseGDL* const nextP); // by value (reset loc)
+  void SetNextParUncheckedVarNum( BaseGDL** const nextP); // by reference (reset env)
+  // these are used outside Parameter functions
   void SetNextPar( BaseGDL* const nextP); // by value (reset loc)
   void SetNextPar( BaseGDL** const nextP); // by reference (reset env)
-  void SetNextParVarNum( BaseGDL* const nextP); // by value (reset loc)
-  void SetNextParVarNum( BaseGDL** const nextP); // by reference (reset env)
   void SetKeyword( const std::string& k, BaseGDL* const val);  // value
   void SetKeyword( const std::string& k, BaseGDL** const val); // reference
 
@@ -266,6 +269,7 @@ proUD->SetCompileOpt( cOpt);
     if( ix >= env.size()) return false;
     return ( env.Env( ix) != NULL);
   }
+    void SetNextParUnckeckedVarNum(BaseGDL** arg1);
 
   friend class DInterpreter; // gcc 4.4 compatibility
 };

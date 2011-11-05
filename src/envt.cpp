@@ -1181,59 +1181,62 @@ SizeT EnvT::NParam( SizeT minPar)
   return EnvBaseT::NParam( minPar);
 }
 
-void EnvBaseT::SetNextPar( BaseGDL* const nextP) // by value (reset loc)
+void EnvBaseT::SetNextParUnchecked( BaseGDL* const nextP) // by value (reset loc)
 {
-//   if( pro->nPar >= 0)
-//     {
-//       // Note: This is wrong for DSubUD as variables are in the environment too
-//       // uncommented because we do the checking now in paramter_def
-// //       if( parIx >= EnvSize())
-// // //       if( static_cast<int>(parIx - pro->key.size()) >= pro->nPar)
-// // 	{
-// // 	  throw GDLException(callingNode,
-// // 			     pro->Name()+": Incorrect number of arguments.",false,false);
-// // 	}
-//     }
-//   else
-//     { // variable number of parameters (only lib functions)
-//       AddEnv();
-//     }
   assert( static_cast<int>(parIx - pro->key.size()) < pro->nPar);
   env.Set(parIx++,nextP); // check done in parameter_def
 }
-void EnvBaseT::SetNextParVarNum( BaseGDL* const nextP) // by value (reset loc)
+void EnvBaseT::SetNextParUncheckedVarNum( BaseGDL* const nextP) // by reference (reset env)
 {
   AddEnv();
   env.Set(parIx++,nextP);
 }
 
-void EnvBaseT::SetNextPar( BaseGDL** const nextP) // by reference (reset env)
+void EnvBaseT::SetNextParUnchecked( BaseGDL** const nextP) // by reference (reset env)
 {
-//   if( pro->nPar >= 0)
-//     {
-//       // Note: This is wrong for DSubUD as variables are in the environment too
-//       // uncommented because we do the checking now in paramter_def
-// //       if( parIx >= EnvSize())
-// // //       if( static_cast<int>(parIx - pro->key.size()) >= pro->nPar)
-// // 	{
-// // 	  throw GDLException(callingNode,
-// // 			     pro->Name()+": Incorrect number of arguments.",false,false);
-// // 	}
-//     }
-//   else
-//     {  // variable number of parameters (only lib functions - which do not have local variables in env)
-//       AddEnv();
-//     }
   assert( static_cast<int>(parIx - pro->key.size()) < pro->nPar);
   env.Set(parIx++,nextP);
-  //  cout << "set: " << parIx-1 << " to "; (*nextP)->ToStream( cout); 
-  //  cout << "  " << nextP << endl;
 }
-void EnvBaseT::SetNextParVarNum( BaseGDL** const nextP) // by reference (reset env)
+void EnvBaseT::SetNextParUncheckedVarNum( BaseGDL** const nextP) // by reference (reset env)
 {
   AddEnv();
   env.Set(parIx++,nextP);
 }
+
+void EnvBaseT::SetNextPar( BaseGDL* const nextP) // by value (reset loc)
+{
+  if( pro->nPar >= 0)
+    {
+      if( static_cast<int>(parIx - pro->key.size()) >= pro->nPar)
+	{
+	  throw GDLException(callingNode,
+			     pro->Name()+": Incorrect number of arguments.",false,false);
+	}
+    }
+  else
+    { // variable number of parameters (only lib functions)
+      AddEnv();
+    }
+  env.Set(parIx++,nextP);
+}
+void EnvBaseT::SetNextPar( BaseGDL** const nextP) // by reference (reset env)
+{
+  if( pro->nPar >= 0)
+    {
+      if( static_cast<int>(parIx - pro->key.size()) >= pro->nPar)
+	{
+	  throw GDLException(callingNode,
+			     pro->Name()+": Incorrect number of arguments.",false,false);
+	}
+    }
+  else
+    {  // variable number of parameters (only lib functions)
+      AddEnv();
+    }
+  env.Set(parIx++,nextP);
+}
+
+
 
 // returns the keyword index, used for UD functions
 int EnvBaseT::GetKeywordIx( const std::string& k)

@@ -439,7 +439,7 @@ public:
   virtual int Scalar2RangeT(RangeT& ret) const;
   virtual SizeT GetAsIndex( SizeT i) const;
   virtual SizeT GetAsIndexStrict( SizeT i) const;
-  virtual SizeT LoopIndex() const;
+  virtual RangeT LoopIndex() const;
   virtual bool True();
   virtual bool False();
   virtual bool LogTrue();
