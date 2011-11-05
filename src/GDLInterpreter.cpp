@@ -3908,16 +3908,31 @@ void GDLInterpreter::parameter_def(ProgNodeP _t,
 	{
 	int nPar = _retTree->GetNParam();
 	int nSub = actEnv->GetPro()->NPar();
-	if( nSub >= 0 && nPar > nSub)
+	// variable number of parameters
+	if( nSub == -1)
+	{
+	// _retTree != NULL, save one check
+	static_cast<ParameterNode*>(_retTree)->ParameterVarNum( actEnv);
+	while(_retTree != NULL) 
+	static_cast<ParameterNode*>(_retTree)->ParameterVarNum( actEnv);
+	}
+	// fixed number of parameters
+	else if( nPar > nSub) // check here
+	{
 	throw GDLException( _t, actEnv->GetProName() +
 	": Incorrect number of arguments.",
 	false, false);
-	static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
 	}
-	while(_retTree != NULL) {
+	else
+	{
+	// _retTree != NULL, save one check
+	static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
+	// Parameter does no checking
+	while(_retTree != NULL) 
 	static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
 	}    
 	actEnv->Extra(); // expand _EXTRA        
+	}
 	} 
 	catch( GDLException& e)
 	{
@@ -5038,31 +5053,46 @@ void GDLInterpreter::parameter_def_n_elements(ProgNodeP _t,
 	//     bool interruptEnableIn = interruptEnable;
 	if( _retTree != NULL)
 	{
+	int nPar = _retTree->GetNParam();
+	int nSub = actEnv->GetPro()->NPar();
+	assert( nSub == 1); // N_ELEMENTS
+	// fixed number of parameters
+	if( nPar > nSub) // check here
+	{
+	throw GDLException( _t, actEnv->GetProName() +
+	": Incorrect number of arguments.",
+	false, false);
+	}
+	
 	if( _retTree->getType() == REF ||
 	_retTree->getType() == REF_EXPR ||
 	_retTree->getType() == REF_CHECK ||
 	_retTree->getType() == PARAEXPR)
 	{
-	try{
+	try
+	{
 	//                     interruptEnable = false;
 	static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
 	//                     interruptEnable = interruptEnableIn;
 	} 
 	catch( GDLException& e)
 	{
+	// an error occured -> parameter is undefined 
 	//                         interruptEnable = interruptEnableIn;
-	if( actEnv->NParam() == 0) 
+	if( actEnv->NParam() == 0) // not set yet
 	{
-	BaseGDL* nP = NULL;
-	actEnv->SetNextPar( nP);
+	BaseGDL* nullP = NULL;
+	actEnv->SetNextPar( nullP);
 	}
 	}
 	}
-	}
-	try{
-	while(_retTree != NULL) {
+	else // used for error handling: keywords are checked only here in Parameter()
+	{
+	try
+	{
+	// as N_ELEMENTS has no keywords this should throw always
 	static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
-	}    
+	assert( 0);
 	}
 	catch( GDLException& e)
 	{
@@ -5073,8 +5103,9 @@ void GDLInterpreter::parameter_def_n_elements(ProgNodeP _t,
 	e.SetErrorNodeP( actEnv->CallingNode());
 	throw e;
 	}
-	
-	actEnv->Extra(); // expand _EXTRA
+	}
+	// actEnv->Extra(); // expand _EXTRA
+	} // if( _retTree != NULL)
 	
 		guard.release();
 		

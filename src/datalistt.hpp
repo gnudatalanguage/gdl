@@ -34,6 +34,7 @@ struct EnvType
 
   bool IsP() const { return p != NULL;}
   bool IsPP() const { return pp != NULL;}
+  bool IsNULL() const { return (pp == NULL && p == NULL);}
 
   void SetPNullPP( BaseGDL* pIn) {p = pIn; pp = NULL;}
   void SetPPNullP( BaseGDL** ppIn) {pp = ppIn; p = NULL;}
@@ -245,6 +246,11 @@ public:
    {
      env.resize( s); //, EnvType(NULL,NULL));
    }
+   
+  bool IsNULL( const SizeT ix)
+  {
+    return env[ix].IsNULL();
+  }
 
   BaseGDL*& operator[]( const SizeT ix)
   {

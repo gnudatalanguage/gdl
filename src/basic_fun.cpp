@@ -830,11 +830,10 @@ namespace lib {
 
   BaseGDL* n_elements( EnvT* e)
   {
-    SizeT nParam=e->NParam();
+    SizeT nParam=e->NParam(1);
 
-    if( nParam != 1)
-      e->Throw( 
-			  "Incorrect number of arguments.");
+//     if( nParam != 1)
+//       e->Throw( "Incorrect number of arguments.");
 
     BaseGDL* p0=e->GetPar( 0);
 

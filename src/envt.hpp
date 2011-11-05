@@ -210,6 +210,8 @@ proUD->SetCompileOpt( cOpt);
   // next four are used by interpreter
   void SetNextPar( BaseGDL* const nextP); // by value (reset loc)
   void SetNextPar( BaseGDL** const nextP); // by reference (reset env)
+  void SetNextParVarNum( BaseGDL* const nextP); // by value (reset loc)
+  void SetNextParVarNum( BaseGDL** const nextP); // by reference (reset env)
   void SetKeyword( const std::string& k, BaseGDL* const val);  // value
   void SetKeyword( const std::string& k, BaseGDL** const val); // reference
 

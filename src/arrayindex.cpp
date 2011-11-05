@@ -34,29 +34,28 @@ ArrayIndexScalarVP::ArrayIndexScalarVP( RefDNode& dNode)
   varPtr = dNode->GetVar();
 }
 
-// if this is used, Init was NOT called before
-BaseGDL* ArrayIndexScalar::Index( BaseGDL* var, IxExprListT& ixL)
-{
-  s = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
-
-  if( s >= var->Size())
-    {
-      throw GDLException("Scalar subscript out of range [>].a");
-    }
-  
-  return var->NewIx( s);
-}
-BaseGDL* ArrayIndexScalarVP::Index( BaseGDL* var, IxExprListT& ixL)
-{
-  s = varPtr->Data()->LoopIndex();
-
-  if( s >= var->Size())
-    {
-      throw GDLException("Scalar subscript out of range [>].b");
-    }
-  
-  return var->NewIx( s);
-}
+// // if this is used, Init was NOT called before
+// // only called if !var->IsAssoc()
+// BaseGDL* ArrayIndexScalar::Index( BaseGDL* var, IxExprListT& ixL)
+// {
+//   s = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
+// 
+//   if( s >= var->Size())
+//     {
+//       throw GDLException("Scalar subscript out of range [>].a");
+//     }
+//   return var->NewIx( s);
+// }
+// BaseGDL* ArrayIndexScalarVP::Index( BaseGDL* var, IxExprListT& ixL)
+// {
+//   s = varPtr->Data()->LoopIndex();
+// 
+//   if( s >= var->Size())
+//     {
+//       throw GDLException("Scalar subscript out of range [>].b");
+//     }
+//   return var->NewIx( s);
+// }
 
 SizeT ArrayIndexScalar::NIter( SizeT varDim) 
 {
@@ -104,7 +103,7 @@ void ArrayIndexScalar::Init()
 BaseGDL* ArrayIndexListOneScalarT::Index( BaseGDL* var, IxExprListT& ix_)
   {
     // Init() not called
-    if( !var->IsAssoc() && var->Type() != STRUCT)
+    if( !var->IsAssoc())// && var->Type() != STRUCT)
       {
 	s = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
 	  
@@ -125,7 +124,7 @@ BaseGDL* ArrayIndexListOneScalarT::Index( BaseGDL* var, IxExprListT& ix_)
 BaseGDL* ArrayIndexListOneScalarVPT::Index( BaseGDL* var, IxExprListT& ix_)
   {
     // Init() not called
-    if( !var->IsAssoc() && var->Type() != STRUCT)
+    if( !var->IsAssoc())// && var->Type() != STRUCT)
       {
 	s = varPtr->Data()->LoopIndex();
 
@@ -162,7 +161,7 @@ void ArrayIndexListOneScalarT::AssignAt( BaseGDL* var, BaseGDL* right)
   {
     // Init() was already called
     // scalar case
-    if( right->N_Elements() == 1 && !var->IsAssoc() && var->Type() != STRUCT) 
+    if( right->N_Elements() == 1 && !var->IsAssoc())// && var->Type() != STRUCT) 
       {
 	s = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
 	if( s >= var->Size())

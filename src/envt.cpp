@@ -1133,7 +1133,7 @@ BaseGDL*& EnvBaseT::GetParDefined(SizeT i)
   SizeT ix = i + pro->key.size();
 
   //  cout << i << " -> " << ix << "  " << env.size() << "  env[ix] " << env[ix] << endl;
-  if( ix >= env.size() || env[ ix] == NULL) 
+  if( ix >= env.size() || env.IsNULL( ix)) //env[ ix] == NULL) 
     Throw("Variable is undefined: "+GetString( ix));
   return env[ ix];
 }
@@ -1183,41 +1183,56 @@ SizeT EnvT::NParam( SizeT minPar)
 
 void EnvBaseT::SetNextPar( BaseGDL* const nextP) // by value (reset loc)
 {
-  if( pro->nPar >= 0)
-    {
-      if( parIx >= EnvSize())
-//       if( static_cast<int>(parIx - pro->key.size()) >= pro->nPar)
-	{
-	  throw GDLException(callingNode,
-			     pro->Name()+": Incorrect number of arguments.",false,false);
-	}
-    }
-  else
-    { // variable number of parameters (only lib functions)
-      AddEnv();
-    }
+//   if( pro->nPar >= 0)
+//     {
+//       // Note: This is wrong for DSubUD as variables are in the environment too
+//       // uncommented because we do the checking now in paramter_def
+// //       if( parIx >= EnvSize())
+// // //       if( static_cast<int>(parIx - pro->key.size()) >= pro->nPar)
+// // 	{
+// // 	  throw GDLException(callingNode,
+// // 			     pro->Name()+": Incorrect number of arguments.",false,false);
+// // 	}
+//     }
+//   else
+//     { // variable number of parameters (only lib functions)
+//       AddEnv();
+//     }
+  assert( static_cast<int>(parIx - pro->key.size()) < pro->nPar);
+  env.Set(parIx++,nextP); // check done in parameter_def
+}
+void EnvBaseT::SetNextParVarNum( BaseGDL* const nextP) // by value (reset loc)
+{
+  AddEnv();
   env.Set(parIx++,nextP);
 }
 
 void EnvBaseT::SetNextPar( BaseGDL** const nextP) // by reference (reset env)
 {
-  if( pro->nPar >= 0)
-    {
-      if( parIx >= EnvSize())
-//       if( static_cast<int>(parIx - pro->key.size()) >= pro->nPar)
-	{
-	  throw GDLException(callingNode,
-			     pro->Name()+": Incorrect number of arguments.",false,false);
-	}
-    }
-  else
-    {  // variable number of parameters (only lib functions)
-      AddEnv();
-    }
+//   if( pro->nPar >= 0)
+//     {
+//       // Note: This is wrong for DSubUD as variables are in the environment too
+//       // uncommented because we do the checking now in paramter_def
+// //       if( parIx >= EnvSize())
+// // //       if( static_cast<int>(parIx - pro->key.size()) >= pro->nPar)
+// // 	{
+// // 	  throw GDLException(callingNode,
+// // 			     pro->Name()+": Incorrect number of arguments.",false,false);
+// // 	}
+//     }
+//   else
+//     {  // variable number of parameters (only lib functions - which do not have local variables in env)
+//       AddEnv();
+//     }
+  assert( static_cast<int>(parIx - pro->key.size()) < pro->nPar);
   env.Set(parIx++,nextP);
-
   //  cout << "set: " << parIx-1 << " to "; (*nextP)->ToStream( cout); 
   //  cout << "  " << nextP << endl;
+}
+void EnvBaseT::SetNextParVarNum( BaseGDL** const nextP) // by reference (reset env)
+{
+  AddEnv();
+  env.Set(parIx++,nextP);
 }
 
 // returns the keyword index, used for UD functions

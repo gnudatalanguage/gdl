@@ -3320,7 +3320,8 @@ l_function_call returns[ BaseGDL** res]
         )
 	;	
 
-// for N_ELEMENTS() the environment is not on the callstack
+// for N_ELEMENTS() the environment is (as well) not on the callstack
+// needed because N_ELEMENTS must handle undefined variables different
 parameter_def_n_elements [EnvBaseT* actEnv] 
 {
     auto_ptr<EnvBaseT> guard(actEnv); 
@@ -3328,43 +3329,59 @@ parameter_def_n_elements [EnvBaseT* actEnv]
 //     bool interruptEnableIn = interruptEnable;
     if( _retTree != NULL)
         {
-        if( _retTree->getType() == REF ||
-            _retTree->getType() == REF_EXPR ||
-            _retTree->getType() == REF_CHECK ||
-            _retTree->getType() == PARAEXPR)
-            {
-                try{
-//                     interruptEnable = false;
-                    static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
-//                     interruptEnable = interruptEnableIn;
-                } 
-                catch( GDLException& e)
-                    {
-//                         interruptEnable = interruptEnableIn;
-                        if( actEnv->NParam() == 0) 
-                            {
-                                BaseGDL* nP = NULL;
-                                actEnv->SetNextPar( nP);
-                            }
-                    }
-            }
-        }
-    try{
-        while(_retTree != NULL) {
-            static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
-        }    
-    }
-    catch( GDLException& e)
-        {
-            // update line number, currently set to caller->CallingNode()
-            // because actEnv is not on the stack yet, 
-            // report caller->Pro()'s name is ok, because we are not inside
-            // the call yet
-            e.SetErrorNodeP( actEnv->CallingNode());
-            throw e;
-        }
+            int nPar = _retTree->GetNParam();
+            int nSub = actEnv->GetPro()->NPar();
+            assert( nSub == 1); // N_ELEMENTS
+            // fixed number of parameters
+            if( nPar > nSub) // check here
+                {
+                    throw GDLException( _t, actEnv->GetProName() +
+                                        ": Incorrect number of arguments.",
+                                        false, false);
+                }
 
-    actEnv->Extra(); // expand _EXTRA
+            if( _retTree->getType() == REF ||
+                _retTree->getType() == REF_EXPR ||
+                _retTree->getType() == REF_CHECK ||
+                _retTree->getType() == PARAEXPR)
+                {
+                    try
+                        {
+                            //                     interruptEnable = false;
+                            static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
+                            //                     interruptEnable = interruptEnableIn;
+                        } 
+                    catch( GDLException& e)
+                        {
+                            // an error occured -> parameter is undefined 
+                            //                         interruptEnable = interruptEnableIn;
+                            if( actEnv->NParam() == 0) // not set yet
+                                {
+                                    BaseGDL* nullP = NULL;
+                                    actEnv->SetNextPar( nullP);
+                                }
+                        }
+                }
+            else // used for error handling: keywords are checked only here in Parameter()
+                {
+                    try
+                        {
+                            // as N_ELEMENTS has no keywords this should throw always
+                            static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
+                            assert( 0);
+                        }
+                    catch( GDLException& e)
+                        {
+                            // update line number, currently set to caller->CallingNode()
+                            // because actEnv is not on the stack yet, 
+                            // report caller->Pro()'s name is ok, because we are not inside
+                            // the call yet
+                            e.SetErrorNodeP( actEnv->CallingNode());
+                            throw e;
+                        }
+                }
+            // actEnv->Extra(); // expand _EXTRA
+        } // if( _retTree != NULL)
 
 	guard.release();
 	
@@ -3390,16 +3407,31 @@ parameter_def [EnvBaseT* actEnv]
             {
                 int nPar = _retTree->GetNParam();
                 int nSub = actEnv->GetPro()->NPar();
-                if( nSub >= 0 && nPar > nSub)
+                // variable number of parameters
+                if( nSub == -1)
+                    {
+                        // _retTree != NULL, save one check
+                        static_cast<ParameterNode*>(_retTree)->ParameterVarNum( actEnv);
+                        while(_retTree != NULL) 
+                            static_cast<ParameterNode*>(_retTree)->ParameterVarNum( actEnv);
+                    }
+                // fixed number of parameters
+                else if( nPar > nSub) // check here
+                    {
                     throw GDLException( _t, actEnv->GetProName() +
                                         ": Incorrect number of arguments.",
                                         false, false);
-                static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
+                    }
+                else
+                    {
+                        // _retTree != NULL, save one check
+                        static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
+                        // Parameter does no checking
+                        while(_retTree != NULL) 
+                            static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
+                    }    
+                actEnv->Extra(); // expand _EXTRA        
             }
-            while(_retTree != NULL) {
-                static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
-            }    
-        actEnv->Extra(); // expand _EXTRA        
     } 
     catch( GDLException& e)
         {

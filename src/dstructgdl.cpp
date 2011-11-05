@@ -396,6 +396,42 @@ void DStructGDL::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList,
  	}
     }
 }
+void DStructGDL::AssignAtIx( RangeT ixR, BaseGDL* srcIn)
+{
+  if( srcIn->Type() != this->Type())
+    throw 
+      GDLException( "Conflicting data structures.");
+
+  DStructGDL* src=static_cast<DStructGDL*>(srcIn);
+  // check struct compatibility
+  if( src->Desc() != this->Desc() && (*src->Desc()) != (*this->Desc()))
+    throw 
+      GDLException( "Conflicting data structures.");
+
+  SizeT nTags=NTags();
+
+  if( ixR < 0)
+  {
+    SizeT nEl = this->N_Elements();
+  
+    if( -ixR > nEl)
+      throw GDLException("Subscript out of range: " + i2s(ixR));
+
+    SizeT ix = nEl + ixR;
+  
+    //(*this)[ix] = (*static_cast<Data_*>(srcIn))[0];
+    for( SizeT tagIx=0; tagIx<nTags; ++tagIx)
+      {
+	*GetTag( tagIx, ix) = *src->GetTag( tagIx);
+      }
+    return;
+  } // ixR >= 0
+  //(*this)[ixR] = (*static_cast<Data_*>(srcIn))[0];
+  for( SizeT tagIx=0; tagIx<nTags; ++tagIx)
+    {
+      *GetTag( tagIx, ixR) = *src->GetTag( tagIx);
+    }
+}
 void DStructGDL::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList) 
 {
   DStructGDL* src=static_cast<DStructGDL*>(srcIn);
@@ -670,6 +706,15 @@ DStructGDL* DStructGDL::Index( ArrayIndexListT* ixList)
 		res->SetDim( dimension(1));
 	}
   
+  return res;
+}
+
+DStructGDL* DStructGDL::NewIx( SizeT ix)
+{
+  SizeT nTags=NTags();
+  DStructGDL* res=New( dimension(), BaseGDL::NOZERO);
+  for( SizeT tagIx=0; tagIx<nTags; tagIx++)
+    *res->GetTag( tagIx, 0) = *GetTag( tagIx, ix);
   return res;
 }
 

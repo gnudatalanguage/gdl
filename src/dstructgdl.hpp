@@ -118,7 +118,7 @@ public:
 
   // c-i (desc defined)
   // only called from Assoc_'s c-i
-DStructGDL(const DStructGDL& d_);
+  DStructGDL(const DStructGDL& d_);
 
   // For creating new structs (always scalar)
   DStructGDL( DStructDesc* desc_)
@@ -647,6 +647,7 @@ DStructGDL* NewResult() const
   void AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT offset);
   void AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList);
   void AssignAt( BaseGDL* srcIn);
+  void AssignAtIx( RangeT ixR, BaseGDL* srcIn);
 
   void DecAt( ArrayIndexListT* ixList)
   {
@@ -672,6 +673,7 @@ DStructGDL* NewResult() const
   
   // returns (*this)[ ixList]
   DStructGDL* Index( ArrayIndexListT* ixList);
+  DStructGDL* NewIx( SizeT ix);
 
   // formatting output functions
   

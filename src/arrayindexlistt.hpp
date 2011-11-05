@@ -142,9 +142,9 @@ public:
     assert( allIx == NULL);
     assert( ix_.size() == nParam);
 
-	if( cleanupIxIn != NULL)
-		cleanupIx = *cleanupIxIn;
-	
+    if( cleanupIxIn != NULL)
+      cleanupIx = *cleanupIxIn;
+    
     if( nParam == 0) return;
     if( nParam == 1) 
       {
@@ -222,51 +222,51 @@ public:
 
     if( ix->Indexed())
       {
-// 		allIx = static_cast< ArrayIndexIndexed*>(ix)->StealIx();
-		allIx = static_cast< ArrayIndexIndexed*>(ix)->GetAllIx();
-		return allIx;
+//	allIx = static_cast< ArrayIndexIndexed*>(ix)->StealIx();
+	allIx = static_cast< ArrayIndexIndexed*>(ix)->GetAllIx();
+	return allIx;
       }
 		
-	if( nIx == 1)
-	{
-		allIx = new (allIxInstance) AllIxT( ix->GetS());
-		return allIx;
-	}
+    if( nIx == 1)
+    {
+	    allIx = new (allIxInstance) AllIxT( ix->GetS());
+	    return allIx;
+    }
 
 // 	allIx = new AllIxMulAllIxRangeStrideTtiT( nIx);
-	SizeT s = ix->GetS();
-	SizeT ixStride = ix->GetStride();
-	if( ixStride <= 1) 
-	  if( s != 0)
-		{
-		allIx = new (allIxInstance) AllIxRangeT( nIx, s);
+    SizeT s = ix->GetS();
+    SizeT ixStride = ix->GetStride();
+    if( ixStride <= 1) 
+      if( s != 0)
+	    {
+	    allIx = new (allIxInstance) AllIxRangeT( nIx, s);
 // 	    for( SizeT i=0; i<nIx; ++i)
 // 			static_cast<AllIxMultiT*>(allIx)->SetIx( i, i + s);
 // 	      (*allIx)[i] = i + s;
-		}
-	  else
-		{
-		allIx = new (allIxInstance) AllIxRange0T( nIx);
+	    }
+      else
+	    {
+	    allIx = new (allIxInstance) AllIxRange0T( nIx);
 // 	    for( SizeT i=0; i<nIx; ++i)
 // 			static_cast<AllIxMultiT*>(allIx)->SetIx( i, i );
 // 	      (*allIx)[i] = i;
-		}
-	else
-	  if( s != 0) 
-	    {
-		allIx = new (allIxInstance) AllIxRangeStrideT( nIx, s, ixStride);
+	    }
+    else
+      if( s != 0) 
+	{
+	    allIx = new (allIxInstance) AllIxRangeStrideT( nIx, s, ixStride);
 // 	    for( SizeT i=0; i<nIx; ++i)
 // 			static_cast<AllIxMultiT*>(allIx)->SetIx( i, i * ixStride + s);
 // 	      (*allIx)[i] = i * ixStride + s;
-		}
-	  else
-		{
-		allIx = new (allIxInstance) AllIxRange0StrideT( nIx, ixStride);
+	    }
+      else
+	    {
+	    allIx = new (allIxInstance) AllIxRange0StrideT( nIx, ixStride);
 // 	    for( SizeT i=0; i<nIx; ++i)
 // 			static_cast<AllIxMultiT*>(allIx)->SetIx( i, i * ixStride);
 // 	      (*allIx)[i] = i * ixStride;
-		}
-	return allIx;
+	    }
+    return allIx;
   }
 
   // returns one dim long ix in case of one element array index
@@ -280,7 +280,7 @@ public:
   {
     // scalar case
     if( right->N_Elements() == 1 && !var->IsAssoc() &&
-	ix->NIter( var->Size()) == 1 && var->Type() != STRUCT) 
+	ix->NIter( var->Size()) == 1)// && var->Type() != STRUCT) 
       {
 	var->AssignAtIx( ix->GetIx0(), right);
 	return;
@@ -304,11 +304,12 @@ public:
   // optimized for one dimensional access
   BaseGDL* Index( BaseGDL* var, IxExprListT& ix_)
   {
-    if( !var->IsAssoc() && var->Type() != STRUCT)
-      return ix->Index( var, ix_);
-    
-    // normal case
     Init( ix_, NULL);
+    if( !var->IsAssoc() && ix->NIter( var->Size()) == 1)// && var->Type() != STRUCT) 
+      {
+	return var->NewIx( ix->GetIx0());
+      }
+    // normal case
     SetVariable( var);
     return var->Index( this);
   }
@@ -556,7 +557,7 @@ public:
   {
     // Init() was already called
     // scalar case
-    if( right->N_Elements() == 1 && !var->IsAssoc() && var->Type() != STRUCT) 
+    if( right->N_Elements() == 1 && !var->IsAssoc()) // && var->Type() != STRUCT) 
       {
 	s = varPtr->Data()->LoopIndex();
 	if( s >= var->Size())
@@ -693,7 +694,7 @@ public:
   {
     // Init() was already called
     // scalar case
-    if( right->N_Elements() == 1 && !var->IsAssoc() && var->Type() != STRUCT) 
+    if( right->N_Elements() == 1 && !var->IsAssoc())// && var->Type() != STRUCT) 
       {
 		if( s >= var->Size())
 		throw GDLException(NULL,"Scalar subscript out of range [>].2",true,false);
@@ -719,7 +720,7 @@ public:
   BaseGDL* Index( BaseGDL* var, IxExprListT& ix_)
   {
     // Init() not called
-    if( !var->IsAssoc() && var->Type() != STRUCT)
+    if( !var->IsAssoc())// && var->Type() != STRUCT)
       {
 	if( s >= var->Size())
 	{
@@ -731,7 +732,7 @@ public:
       }
     
     // normal case
-    Init();// ix_);
+    //Init();// ix_);
     SetVariable( var);
     return var->Index( this);
   }
@@ -891,7 +892,7 @@ public:
     // for assoc variables last index is the record
     if( var->IsAssoc()) 
       {
-		acRank--;
+	acRank--;
 	// if( acRank == 0) return; // multi dim
       }
 
@@ -950,11 +951,31 @@ public:
 
   void AssignAt( BaseGDL* var, BaseGDL* right)
   {
+    if( var->N_Elements() == 1 && !var->IsAssoc())
+    {
+      // SetVariable( var);
+      // set acRank
+      acRank = ixList.size();
+
+      varStride = var->Dim().Stride();
+      // ArrayIndexScalar[VP] need this call to read their actual data
+      // as their are not initalized (nParam == 0)
+      ixList[0]->NIter( var->Dim(0)); // check boundary
+      SizeT dStart = ixList.FrontGetS(); //[0]->GetS();
+      for( SizeT i=1; i < acRank; ++i)
+      {
+	ixList[i]->NIter( var->Dim(i)); // check boundary
+	dStart += ixList[i]->GetS() * varStride[ i];    
+      }
+      
+      var->AssignAtIx( dStart, right); // assigns inplace
+      return;
+    }
+    // var->N_Elements() > 1
     SetVariable( var);
     assert( nIx == 1);    
     if( var->EqType( right))
       {
-//	var->AssignAtIx( this->LongIx(), right); // assigns inplace
 	var->AssignAt( right, this); // assigns inplace (not only scalar)
       }
     else
@@ -962,8 +983,7 @@ public:
 	BaseGDL* rConv = right->Convert2( var->Type(), BaseGDL::COPY);
 	std::auto_ptr<BaseGDL> conv_guard( rConv);
 	
-//	var->AssignAtIx( this->LongIx(), rConv); // assigns inplace
- 	var->AssignAt( rConv, this); // assigns inplace (not only scalar)
+	var->AssignAt( rConv, this); // assigns inplace (not only scalar)
       }
   }
 
@@ -971,9 +991,42 @@ public:
   BaseGDL* Index( BaseGDL* var, IxExprListT& ix)
   {
     //    Init();
-    SetVariable( var);
-    assert( nIx == 1);
-    return var->NewIx( this->LongIx());
+    // SetVariable( var);
+    // set acRank
+    acRank = ixList.size();
+    // for assoc variables last index is the record
+    if( var->IsAssoc()) 
+      {
+	acRank--;
+	varStride = var->Dim().Stride();
+	// ArrayIndexScalar[VP] need this call to read their actual data
+	// as their are not initalized (nParam == 0)
+	ixList[0]->NIter( var->Dim(0)); // check boundary
+	for( SizeT i=1; i < acRank; ++i)
+	{
+	  ixList[i]->NIter( var->Dim(i)); // check boundary
+	}
+//     return dStart;
+//     for( SizeT i=0; i<acRank; ++i)
+//       ixList[i]->NIter( var->Dim(i)); // check boundary
+//    	return var->NewIx( dStart); //this->LongIx());
+	return var->Index( this);
+      }
+
+    varStride = var->Dim().Stride();
+    // ArrayIndexScalar[VP] need this call to read their actual data
+    // as their are not initalized (nParam == 0)
+    ixList[0]->NIter( var->Dim(0)); // check boundary
+    SizeT dStart = ixList.FrontGetS(); //[0]->GetS();
+    for( SizeT i=1; i < acRank; ++i)
+    {
+      ixList[i]->NIter( var->Dim(i)); // check boundary
+      dStart += ixList[i]->GetS() * varStride[ i];    
+    }
+//     return dStart;
+//     for( SizeT i=0; i<acRank; ++i)
+//       ixList[i]->NIter( var->Dim(i)); // check boundary
+    return var->NewIx( dStart); //this->LongIx());
 //    return var->Index( this);
   }
 
@@ -1684,7 +1737,7 @@ if( dynamic_cast<ArrayIndexIndexed*>(ixList[ixList.size()-1]) ||
     // normal case
     Init( ix, NULL);
     SetVariable( var);
-    if( nIx == 1)
+    if( nIx == 1 && !var->IsAssoc())
     {
       return var->NewIx( baseIx);
     }
