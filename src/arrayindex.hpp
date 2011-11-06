@@ -174,7 +174,7 @@ public:
   RangeT GetS() { return s;}
 
   bool Scalar() const { return true;}
-  bool Scalar( SizeT& s_) const
+  bool Scalar( RangeT& s_) const
   { 
     s_ = s;
     return true;
@@ -233,7 +233,7 @@ public:
   RangeT GetS() { return s;}
 
   bool Scalar() const { return true;}
-  bool Scalar( SizeT& s_) const
+  bool Scalar( RangeT& s_) const
   { 
     s_ = s;
     return true;
@@ -292,7 +292,7 @@ public:
   SizeT NParam() { return 0;} // number of parameter to Init(...)
 
   bool Scalar() const { return true;}
-  bool Scalar( SizeT& s_) const
+  bool Scalar( RangeT& s_) const
   { 
     s_ = s;
     return true;
@@ -378,7 +378,7 @@ public:
   RangeT GetS() { return s;}
 
   bool Scalar() const { return (ix == NULL);}
-  bool Scalar( SizeT& s_) const // changed from RangeT for proper overloading
+  bool Scalar( RangeT& s_) const // changed from RangeT for proper overloading
   {
     if( ix == NULL)
     {
@@ -611,7 +611,7 @@ public:
 
   // make the following work even before call to NIter(...)
   bool Scalar() const { return (ixOri == NULL);}
-  bool Scalar( SizeT& s_) const
+  bool Scalar( RangeT& s_) const
   { 
     if( ixOri == NULL)
       {

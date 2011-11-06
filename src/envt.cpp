@@ -1133,7 +1133,7 @@ BaseGDL*& EnvBaseT::GetParDefined(SizeT i)
   SizeT ix = i + pro->key.size();
 
   //  cout << i << " -> " << ix << "  " << env.size() << "  env[ix] " << env[ix] << endl;
-  if( ix >= env.size() || env.IsNULL( ix)) //env[ ix] == NULL) 
+  if( ix >= env.size() || env[ ix] == NULL) 
     Throw("Variable is undefined: "+GetString( ix));
   return env[ ix];
 }
