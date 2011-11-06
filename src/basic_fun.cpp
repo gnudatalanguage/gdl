@@ -5217,8 +5217,7 @@ BaseGDL* transpose( EnvT* e)
 					   pmatch[0].rm_eo - pmatch[0].rm_so);
 	      }
 	    else
-	      (* static_cast<DLongGDL*>(result))[s] == matchres? -1:pmatch[0].rm_so;
-//	      (* static_cast<DLongGDL*>(result))[s] = matchres? -1:pmatch[0].rm_so;
+	      (*static_cast<DLongGDL*>(result))[s] = matchres ? -1 : pmatch[0].rm_so;
 	  }
 
 	if( lengthKW && !subexprKW)
