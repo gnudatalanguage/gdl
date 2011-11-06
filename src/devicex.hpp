@@ -797,8 +797,9 @@ public:
       e->AssureLongScalarPar( 1, pos);
       nx = xSize/width;
       ny = ySize/height;
-      ix = pos % nx;
-      iy = (pos / nx) % ny;
+      // AC 2011/11/06, bug 3433502
+      if (nx > 0) { ix = pos % nx;} else ix=0;
+      if (ny > 0) { iy = (pos / nx) % ny;} else iy=0;
       xLL= width*ix;
       yLL= ySize - height*(iy+1);
     }
