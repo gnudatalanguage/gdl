@@ -77,7 +77,7 @@ public:
 };
 
 
-#include "arrayindexlistnoassoc.hpp"
+#include "arrayindexlistnoassoct.hpp"
 
 // only one index [ix],[s:e],...
 // NEVER ArrayIndexScalar types (they have their own ArrayIndexListT)

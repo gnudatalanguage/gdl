@@ -113,7 +113,6 @@ ArrayIndexVectorT( const ArrayIndexVectorT& cp): sz( cp.sz)
 for( SizeT i=0; i<sz;++i)
 	arrayIxArr[ i] = cp.arrayIxArr[ i];
 }
-
 SizeT FrontGetS() const
 {
 assert( sz > 0);
