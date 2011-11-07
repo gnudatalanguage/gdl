@@ -2598,15 +2598,16 @@ BaseGDL* DOTNode::Eval()
 // 		}
 // 	} // switch
 		
-	_t = _t->getNextSibling();
+	ProgNodeP ixListNode = _t->getNextSibling();
 	
 // 	ax = _t;
 	//	match(antlr::RefAST(_t),ARRAYIX);
-	ArrayIndexListT* aL = _t->arrIxListNoAssoc;
+	
+	ArrayIndexListT* aL = ixListNode->arrIxListNoAssoc;
 	assert( aL != NULL);
 	nExpr = aL->NParam();
 		
-	_t = _t->getFirstChild();
+	_t = ixListNode->getFirstChild();
 		
 	if( nExpr == 0)
 	{
@@ -2691,7 +2692,7 @@ BaseGDL* DOTNode::Eval()
 
 	if( r->IsAssoc())
 	{
-	  ArrayIndexListT* aL = _t->arrIxList;
+	  ArrayIndexListT* aL = ixListNode->arrIxList;
 	  assert( aL != NULL);
 	  guard.reset(aL);
 	  res = aL->Index( r, ixExprList);	  
