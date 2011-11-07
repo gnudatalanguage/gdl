@@ -2019,7 +2019,7 @@ if( e1->StrictScalar())
         }
     else
         {
-            ProgNode::interpreter->parameter_def(this->getFirstChild(), newEnv);
+            ProgNode::interpreter->parameter_def_nocheck(this->getFirstChild(), newEnv);
         }
     // push id.pro onto call stack
     ProgNode::interpreter->CallStack().push_back(newEnv);
@@ -2039,7 +2039,7 @@ if( e1->StrictScalar())
 
     EnvT* callerEnv = static_cast<EnvT*>(ProgNode::interpreter->CallStackBack());
 
-    ProgNode::interpreter->parameter_def(this->getFirstChild(), newEnv);
+    ProgNode::interpreter->parameter_def_nocheck(this->getFirstChild(), newEnv);
 
     // push id.pro onto call stack
     ProgNode::interpreter->CallStack().push_back(newEnv);
@@ -2058,7 +2058,7 @@ if( e1->StrictScalar())
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
     EnvT* newEnv=new EnvT( this, this->libFun);//libFunList[fl->funIx]);
 	
-    ProgNode::interpreter->parameter_def(this->getFirstChild(), newEnv);
+    ProgNode::interpreter->parameter_def_nocheck(this->getFirstChild(), newEnv);
 
     assert( dynamic_cast<EnvUDT*>(ProgNode::interpreter->CallStackBack()) != NULL);
     EnvUDT* callStackBack = static_cast<EnvUDT*>(ProgNode::interpreter->CallStackBack());
@@ -2080,7 +2080,7 @@ if( e1->StrictScalar())
     // 	match(antlr::RefAST(_t),FCALL_LIB);
     EnvT* newEnv=new EnvT( this, this->libFun);//libFunList[fl->funIx]);
 
-    ProgNode::interpreter->parameter_def(this->getFirstChild(), newEnv);
+    ProgNode::interpreter->parameter_def_nocheck(this->getFirstChild(), newEnv);
 
     assert( dynamic_cast<EnvUDT*>(ProgNode::interpreter->CallStackBack()) != NULL);
     EnvUDT* callStackBack = static_cast<EnvUDT*>(ProgNode::interpreter->CallStackBack());

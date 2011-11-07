@@ -1183,6 +1183,7 @@ SizeT EnvT::NParam( SizeT minPar)
 
 void EnvBaseT::SetNextParUnchecked( BaseGDL* const nextP) // by value (reset loc)
 {
+  if(!( static_cast<int>(parIx - pro->key.size()) < pro->nPar))
   assert( static_cast<int>(parIx - pro->key.size()) < pro->nPar);
   env.Set(parIx++,nextP); // check done in parameter_def
 }

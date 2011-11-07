@@ -128,6 +128,10 @@ private:
     friend class REF_CHECKNode;
     friend class REF_EXPRNode;
     friend class ParameterNode;
+    friend class REFVNNode;
+    friend class REF_CHECKVNNode;
+    friend class REF_EXPRVNNode;
+    friend class ParameterVNNode;
 
 public: 
 
@@ -3016,28 +3020,29 @@ lib_function_call returns[ BaseGDL* res]
  	_retTree = _t->getNextSibling();
     return res;
 
-    // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
-    StackGuard<EnvStackT> guard(callStack);
+//     // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+//     StackGuard<EnvStackT> guard(callStack);
 	
-	ProgNodeP rTree = _t->getNextSibling();
-// 	match(antlr::RefAST(_t),FCALL_LIB);
+// 	ProgNodeP rTree = _t->getNextSibling();
+// // 	match(antlr::RefAST(_t),FCALL_LIB);
 
-	ProgNodeP& fl = _t;
-	EnvT* newEnv=new EnvT( fl, fl->libFun);//libFunList[fl->funIx]);
+// 	ProgNodeP& fl = _t;
+// 	EnvT* newEnv=new EnvT( fl, fl->libFun);//libFunList[fl->funIx]);
 	
-    parameter_def(_t->getFirstChild(), newEnv);
+//     parameter_def(_t->getFirstChild(), newEnv);
 
-	// push id.pro onto call stack
-	callStack.push_back(newEnv);
-	// make the call
+// 	// push id.pro onto call stack
+// 	callStack.push_back(newEnv);
+// 	// make the call
 
-    res=static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
-	// *** MUST always return a defined expression
-    assert( res != NULL);
-	_retTree = rTree;
-	return res;
+//     res=static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
+// 	// *** MUST always return a defined expression
+//     assert( res != NULL);
+// 	_retTree = rTree;
+// 	return res;
+    EnvT*   newEnv;
 }
-	: #(fll:FCALL_LIB //fll:IDENTIFIER
+	: #(FCALL_LIB //fll:IDENTIFIER
             parameter_def[ newEnv]
         )
     ;    
@@ -3048,38 +3053,39 @@ lib_function_call_retnew returns[ BaseGDL* res]
 	_retTree = _t->getNextSibling();
 	return res; //_t->cData->Dup(); 
 
-    // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
-    StackGuard<EnvStackT> guard(callStack);
+//     // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+//     StackGuard<EnvStackT> guard(callStack);
 
-	ProgNodeP rTree = _t->getNextSibling();
+// 	ProgNodeP rTree = _t->getNextSibling();
 
-// 	match(antlr::RefAST(_t),FCALL_LIB_RETNEW);
-//	_t = _t->getFirstChild();
-// 	match(antlr::RefAST(_t),IDENTIFIER);
-	EnvT* newEnv=new EnvT( _t, _t->libFun);//libFunList[fl->funIx]);
+// // 	match(antlr::RefAST(_t),FCALL_LIB_RETNEW);
+// //	_t = _t->getFirstChild();
+// // 	match(antlr::RefAST(_t),IDENTIFIER);
+// 	EnvT* newEnv=new EnvT( _t, _t->libFun);//libFunList[fl->funIx]);
 
-    // special handling for N_ELEMENTS()
-    static int n_elementsIx = LibFunIx("N_ELEMENTS");
-    static DLibFun* n_elementsFun = libFunList[n_elementsIx];
-    if( _t->libFun == n_elementsFun)
-        {
-            parameter_def_n_elements(_t->getFirstChild(), newEnv);
-        }
-    else
-        {
-            parameter_def(_t->getFirstChild(), newEnv);
-        }
+//     // special handling for N_ELEMENTS()
+//     static int n_elementsIx = LibFunIx("N_ELEMENTS");
+//     static DLibFun* n_elementsFun = libFunList[n_elementsIx];
+//     if( _t->libFun == n_elementsFun)
+//         {
+//             parameter_def_n_elements(_t->getFirstChild(), newEnv);
+//         }
+//     else
+//         {
+//             parameter_def(_t->getFirstChild(), newEnv);
+//         }
 
-	// push id.pro onto call stack
-	callStack.push_back(newEnv);
-	// make the call
-	//BaseGDL* 
-    res=static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
-	//*** MUST always return a defined expression
-	_retTree = rTree;
-	return res;
+// 	// push id.pro onto call stack
+// 	callStack.push_back(newEnv);
+// 	// make the call
+// 	//BaseGDL* 
+//     res=static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
+// 	//*** MUST always return a defined expression
+// 	_retTree = rTree;
+// 	return res;
+    EnvT*   newEnv;
 }
-	: #(fll:FCALL_LIB_RETNEW //fll:IDENTIFIER
+	: #(FCALL_LIB_RETNEW //fll:IDENTIFIER
             parameter_def[ newEnv]
         )
     ;    
@@ -3248,75 +3254,28 @@ l_function_call returns[ BaseGDL** res]
     _retTree = _t->getNextSibling();
     return res;
 
-    // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
-    StackGuard<EnvStackT> guard(callStack);
     BaseGDL *self;
-    BaseGDL *libRes;
     EnvUDT*   newEnv;
 }
 
-	: #(fl:FCALL_LIB //fl:IDENTIFIER
-            {
-                EnvT* newEnv=new EnvT( fl, fl->libFun);//libFunList[fl->funIx]);
-            }
+	: #(FCALL_LIB //fl:IDENTIFIER
             parameter_def[ newEnv]
-            {
-                EnvT* callerEnv = static_cast<EnvT*>(callStack.back());
-                // push id.pro onto call stack
-                callStack.push_back(newEnv);
-                // make the call
-                BaseGDL* libRes = 
-                static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
-                
-                res = callerEnv->GetPtrTo( libRes);
-                if( res == NULL)
-                throw GDLException( _t, "Library function must return a "
-                    "l-value in this context: "+fl->getText());
-            }
         )
     |
         (
         ( #(MFCALL 
-                self=expr mp:IDENTIFIER
-                {  
-                    auto_ptr<BaseGDL> self_guard(self);
-                    
-                    newEnv=new EnvUDT( self, mp, "", true);
-
-                    self_guard.release();
-                }
+                self=expr IDENTIFIER
                 parameter_def[ newEnv]
             )
         | #(MFCALL_PARENT 
-                self=expr parent:IDENTIFIER p:IDENTIFIER
-                {
-                    auto_ptr<BaseGDL> self_guard(self);
-                    
-                    newEnv=new EnvUDT( self, p,
-                        parent->getText(), true);
-
-                    self_guard.release();
-                }
+                self=expr IDENTIFIER IDENTIFIER
                 parameter_def[ newEnv]
             )
 
-        | #(f:FCALL //f:IDENTIFIER
-                {
-                    SetFunIx( f);
-                    
-                    newEnv=new EnvUDT( f, funList[f->funIx], true);
-                }
+        | #(FCALL //f:IDENTIFIER
                 parameter_def[ newEnv]
             )
         )
-        {
-            // push environment onto call stack
-            callStack.push_back(newEnv);
-            
-            // make the call
-            res=call_lfun(static_cast<DSubUD*>(
-                    newEnv->GetPro())->GetTree());
-        }   
         )
 	;	
 
@@ -3330,10 +3289,10 @@ parameter_def_n_elements [EnvBaseT* actEnv]
     if( _retTree != NULL)
         {
             int nPar = _retTree->GetNParam();
-            int nSub = actEnv->GetPro()->NPar();
-            assert( nSub == 1); // N_ELEMENTS
+            //int nSub = actEnv->GetPro()->NPar();
+            assert(  actEnv->GetPro()->NPar() == 1); // N_ELEMENTS
             // fixed number of parameters
-            if( nPar > nSub) // check here
+            if( nPar > 1)//nSub) // check here
                 {
                     throw GDLException( _t, actEnv->GetProName() +
                                         ": Incorrect number of arguments.",
@@ -3407,16 +3366,16 @@ parameter_def [EnvBaseT* actEnv]
             {
                 int nPar = _retTree->GetNParam();
                 int nSub = actEnv->GetPro()->NPar();
-                // variable number of parameters
-                if( nSub == -1)
-                    {
-                        // _retTree != NULL, save one check
-                        static_cast<ParameterNode*>(_retTree)->ParameterVarNum( actEnv);
-                        while(_retTree != NULL) 
-                            static_cast<ParameterNode*>(_retTree)->ParameterVarNum( actEnv);
-                    }
-                // fixed number of parameters
-                else if( nPar > nSub) // check here
+                // // variable number of parameters
+                // if( nSub == -1)
+                //     {
+                //         // _retTree != NULL, save one check
+                //         static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
+                //         while(_retTree != NULL) 
+                //             static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
+                //     }
+                // // fixed number of parameters
+                if( nSub != -1 && nPar > nSub) // check here
                     {
                     throw GDLException( _t, actEnv->GetProName() +
                                         ": Incorrect number of arguments.",
@@ -3430,6 +3389,50 @@ parameter_def [EnvBaseT* actEnv]
                         while(_retTree != NULL) 
                             static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
                     }    
+                actEnv->Extra(); // expand _EXTRA        
+            }
+    } 
+    catch( GDLException& e)
+        {
+            callerEnv->SetNewEnv( oldNewEnv);
+            // update line number, currently set to caller->CallingNode()
+            // because actEnv is not on the stack yet, 
+            // report caller->Pro()'s name is ok, because we are not inside
+            // the call yet
+            e.SetErrorNodeP( actEnv->CallingNode());
+            throw e;
+        }
+    callerEnv->SetNewEnv( oldNewEnv);
+
+	guard.release();
+	
+    return;
+}
+    : (  #(KEYDEF_REF IDENTIFIER //ref_parameter
+            )
+        )
+	;
+// the environment is not on the callstack
+// for library subroutines, their number of parameters is already checked in the compiler
+parameter_def_nocheck [EnvBaseT* actEnv] 
+{
+    auto_ptr<EnvBaseT> guard(actEnv); 
+
+    EnvBaseT* callerEnv = callStack.back();
+    EnvBaseT* oldNewEnv = callerEnv->GetNewEnv();
+	callerEnv->SetNewEnv( actEnv);
+
+    try{
+
+        if( _t != NULL)
+            {
+                _retTree = _t;
+                // _retTree != NULL, save one check // 'if' is needed already for Extra()
+                static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
+                // Parameter does no checking
+                while(_retTree != NULL) 
+                     static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
+
                 actEnv->Extra(); // expand _EXTRA        
             }
     } 

@@ -75,6 +75,10 @@ private:
     friend class REF_CHECKNode;
     friend class REF_EXPRNode;
     friend class ParameterNode;
+    friend class REFVNNode;
+    friend class REF_CHECKVNNode;
+    friend class REF_EXPRVNNode;
+    friend class ParameterVNNode;
 
 public: 
 
@@ -798,6 +802,9 @@ public:
 	public: void parameter_def_n_elements(ProgNodeP _t,
 		EnvBaseT* actEnv
 	);
+	public: void parameter_def_nocheck(ProgNodeP _t,
+		EnvBaseT* actEnv
+	);
 	public: ArrayIndexListT*  arrayindex_list_noassoc(ProgNodeP _t);
 public:
 	antlr::RefAST getAST()
@@ -811,10 +818,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 228;
+	static const int NUM_TOKENS = 232;
 #else
 	enum {
-		NUM_TOKENS = 228
+		NUM_TOKENS = 232
 	};
 #endif
 	

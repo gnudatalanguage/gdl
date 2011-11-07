@@ -129,14 +129,18 @@ tokens {
 	PCALL;
 	PCALL_LIB; // libraray procedure call
 	PARADECL;
-	PARAEXPR;
+	PARAEXPR;  // parameter
+	PARAEXPR_VN; // _VN Variable Number of parameters version
     POSTDEC;
     POSTINC; 
     DECSTATEMENT; // as a statement
     INCSTATEMENT; // as a statement
     REF;        // expr pass by reference
+    REF_VN;        // expr pass by reference
     REF_CHECK;  // expr maybe be passed by reference
+    REF_CHECK_VN;  // expr maybe be passed by reference
     REF_EXPR;   // assign/dec/inc expr passed by reference
+    REF_EXPR_VN;   // assign/dec/inc expr passed by reference
     REPEAT;
     REPEAT_LOOP;
     RETURN;  // unspecified return (replaced by tree parser with RETF/RETP)

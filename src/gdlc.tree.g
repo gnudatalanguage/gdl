@@ -628,17 +628,28 @@ if_statement!//
 	;
 
 procedure_call
-	: #(MPCALL expr IDENTIFIER parameter_def
+	: #(MPCALL expr IDENTIFIER parameter_def[ false]
         )
 	| #(MPCALL_PARENT expr IDENTIFIER
-            IDENTIFIER parameter_def
+            IDENTIFIER parameter_def[ false]
         )
-	| #(p:PCALL id:IDENTIFIER parameter_def
+	| #(p:PCALL id:IDENTIFIER
             {
                 // first search library procedures
                 int i=LibProIx(#id->getText());
+            }
+            para:parameter_def[ i != -1 && libProList[ i]->NPar() == -1]
+            {
                 if( i != -1)
                 {
+                    int nParam = 0;
+                    if( #para != RefDNode(antlr::nullAST))
+                        nParam = #para->GetNParam();
+
+                    int libParam = libProList[i]->NPar();
+                    if( libParam != -1 && nParam > libParam)
+                        throw GDLException(	p, libProList[i]->Name() + ": Too many arguments.");
+
                     #p->setType(PCALL_LIB);
                     #p->setText("pcall_lib");
                     #id->SetLibPro( libProList[i]);
@@ -653,7 +664,7 @@ procedure_call
         )
 	;	    
 
-parameter_def
+parameter_def [bool varNum]
 {
  // count positional parameters
  int nKey = 0;
@@ -665,7 +676,7 @@ parameter_def
             {
                 ++nKey;
             }
-    | pos_parameter
+    | pos_parameter[ varNum]
             {
                 ++nPar;
             }
@@ -726,7 +737,7 @@ key_parameter!//
         )
     ;
 
-pos_parameter!//
+pos_parameter! [bool varNum]
 {
     RefDNode variable;
 }
@@ -737,11 +748,17 @@ pos_parameter!//
             {
                 if( variable == #e)
                     {
-                        #pos_parameter=#([REF,"ref"],variable);
+                        if( varNum)
+                            #pos_parameter=#([REF_VN,"ref_vn"],variable);
+                        else
+                            #pos_parameter=#([REF,"ref"],variable);
                     }
                     else
                     {
-                        #pos_parameter=#([REF_EXPR,"ref_expr"],e,variable);
+                        if( varNum)
+                            #pos_parameter=#([REF_EXPR_VN,"ref_expr_vn"],e,variable);
+                        else
+                            #pos_parameter=#([REF_EXPR,"ref_expr"],e,variable);
                     }
             }
             else 
@@ -756,11 +773,17 @@ pos_parameter!//
                     ) 
                 {
                     // something like: CALLAPRO,reform(a,/OVERWRITE)
-                    #pos_parameter=#([REF_CHECK,"ref_check"],e);
+                    if( varNum)
+                        #pos_parameter=#([REF_CHECK_VN,"ref_check_vn"],e);
+                    else
+                        #pos_parameter=#([REF_CHECK,"ref_check"],e);
                 }
                 else
                 {
-                    #pos_parameter= #([PARAEXPR,"paraexpr"], e);
+                    if( varNum)
+                        #pos_parameter= #([PARAEXPR_VN,"paraexpr_vn"], e);
+                    else
+                        #pos_parameter= #([PARAEXPR,"paraexpr"], e);
                 }
             }
         }
@@ -1241,11 +1264,11 @@ var!//
 	}
   ;
 
-arrayindex_list_to_parameter_list! // ???
+arrayindex_list_to_parameter_list! [bool varNum]// ???
 {
     int nPar = 0;
 }
-    : (options {greedy=true;}: #(ARRAYIX e:pos_parameter)
+    : (options {greedy=true;}: #(ARRAYIX e:pos_parameter[ varNum])
             {
                 #arrayindex_list_to_parameter_list=
                     #(NULL, arrayindex_list_to_parameter_list, e);
@@ -1263,7 +1286,7 @@ arrayexpr_fn!//
     std::string id_text;
     bool isVar;
 }   
-  	: #(ARRAYEXPR_FN 
+  	: #(aIn:ARRAYEXPR_FN 
             // always here: #(VAR IDENTIFIER)
             #(va:VAR id:IDENTIFIER)
             { 
@@ -1271,10 +1294,14 @@ arrayexpr_fn!//
 
                 // IsVar already tries to find the function and compile it
                 isVar = comp.IsVar( id_text);
+
+                int i=-1;
+                if( !isVar)
+                    i=LibFunIx(id_text);
             }
 
             (   { isVar}? al:arrayindex_list
-            |   el:arrayindex_list_to_parameter_list
+            |   el:arrayindex_list_to_parameter_list[ i != -1 && libFunList[ i]->NPar() == -1]
             )
             { 
                 if( !isVar)
@@ -1284,6 +1311,14 @@ arrayexpr_fn!//
                     int i=LibFunIx(id_text);
                     if( i != -1)
                     {
+                        int nParam = 0;
+                        if( #el != RefDNode(antlr::nullAST))
+                            nParam = #el->GetNParam();
+
+                        int libParam = libFunList[i]->NPar();
+                        if( libParam != -1 && nParam > libParam)
+                            throw GDLException(	aIn, libFunList[i]->Name() + ": Too many arguments.");
+
                         #id->SetLibFun( libFunList[i]);
                         if( libFunList[ i]->RetNew())
                             {
@@ -1374,7 +1409,7 @@ arrayexpr_mfcall!//
 
                 _t = mark; // rewind to parse again 
             }
-            e2:expr i2:IDENTIFIER a2:arrayindex_list_to_parameter_list
+            e2:expr i2:IDENTIFIER a2:arrayindex_list_to_parameter_list[ false]
             {
                 if( success)
                     #arrayexpr_mfcall = #(a, first, e2, i2, a2);
@@ -1394,17 +1429,20 @@ RefDNode mark;
     : assign_expr
     | comp_assign_expr
     | arrayexpr_mfcall 
-	| #(MFCALL expr IDENTIFIER parameter_def
+	| #(MFCALL expr IDENTIFIER parameter_def[ false]
         )
 	| #(MFCALL_PARENT expr IDENTIFIER
-            IDENTIFIER parameter_def
+            IDENTIFIER parameter_def[ false]
         )
 //     | #(nEl:FCALL_LIB_N_ELEMENTS id2:IDENTIFIER! parameter_def
 //         )
-	| #(f:FCALL id:IDENTIFIER! parameter_def
+	| #(f:FCALL id:IDENTIFIER!
             {
                 // first search library functions
                 int i=LibFunIx(id->getText());
+            }
+            p:parameter_def[  i != -1 && libFunList[ i]->NPar() == -1]
+            {
                 if( i != -1)
                 {
                     // N_ELEMENTS must handle exceptions during parameter evaluation
@@ -1417,8 +1455,16 @@ RefDNode mark;
 //                     }
 //                     else
                     {
+                    int nParam = 0;
+                    if( #p != RefDNode(antlr::nullAST))
+                        nParam = #p->GetNParam();
+
+                    int libParam = libFunList[i]->NPar();
+                    if( libParam != -1 && nParam > libParam)
+                        throw GDLException(	f, libFunList[i]->Name() + ": Too many arguments.");
                     if( libFunList[ i]->RetNew())
                     {
+
                         #f->setType(FCALL_LIB_RETNEW);
                         #f->setText(#id->getText());
                         #f->SetLibFun( libFunList[i]);

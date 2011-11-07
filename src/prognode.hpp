@@ -1347,7 +1347,15 @@ class ParameterNode: public DefaultNode
 public:
   ParameterNode( const RefDNode& refNode): DefaultNode( refNode) {}
   virtual void Parameter( EnvBaseT* actEnv);
-  virtual void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
+//   virtual void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
+};
+
+class ParameterVNNode: public ParameterNode
+{
+public:
+  ParameterVNNode( const RefDNode& refNode): ParameterNode( refNode) {}
+  void Parameter( EnvBaseT* actEnv);
+//   virtual void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
 };
 
 class KEYDEF_REFNode: public ParameterNode
@@ -1355,7 +1363,7 @@ class KEYDEF_REFNode: public ParameterNode
 public:
   KEYDEF_REFNode( const RefDNode& refNode): ParameterNode( refNode) {}
   void Parameter( EnvBaseT* actEnv);
-  void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
+//   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
 };
 
 class KEYDEF_REF_EXPRNode: public ParameterNode
@@ -1363,7 +1371,7 @@ class KEYDEF_REF_EXPRNode: public ParameterNode
 public:
   KEYDEF_REF_EXPRNode( const RefDNode& refNode): ParameterNode( refNode) {}
   void Parameter( EnvBaseT* actEnv);
-  void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
+//   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
 };
 
 class KEYDEF_REF_CHECKNode: public ParameterNode
@@ -1371,7 +1379,7 @@ class KEYDEF_REF_CHECKNode: public ParameterNode
 public:
   KEYDEF_REF_CHECKNode( const RefDNode& refNode): ParameterNode( refNode) {}
   void Parameter( EnvBaseT* actEnv);
-  void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
+//   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
 };
 
 class KEYDEFNode: public ParameterNode
@@ -1379,7 +1387,7 @@ class KEYDEFNode: public ParameterNode
 public:
   KEYDEFNode( const RefDNode& refNode): ParameterNode( refNode) {}
   void Parameter( EnvBaseT* actEnv);
-  void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
+//   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
 };
 
 class REF_EXPRNode: public ParameterNode
@@ -1387,7 +1395,14 @@ class REF_EXPRNode: public ParameterNode
 public:
   REF_EXPRNode( const RefDNode& refNode): ParameterNode( refNode) {}
   void Parameter( EnvBaseT* actEnv);
-  void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
+//   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
+};
+class REF_EXPRVNNode: public ParameterNode
+{
+public:
+  REF_EXPRVNNode( const RefDNode& refNode): ParameterNode( refNode) {}
+  void Parameter( EnvBaseT* actEnv);
+//   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
 };
 
 class REF_CHECKNode: public ParameterNode
@@ -1395,7 +1410,14 @@ class REF_CHECKNode: public ParameterNode
 public:
   REF_CHECKNode( const RefDNode& refNode): ParameterNode( refNode) {}
   void Parameter( EnvBaseT* actEnv);
-  void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
+//   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
+};
+class REF_CHECKVNNode: public ParameterNode
+{
+public:
+  REF_CHECKVNNode( const RefDNode& refNode): ParameterNode( refNode) {}
+  void Parameter( EnvBaseT* actEnv);
+//   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
 };
 
 class REFNode: public ParameterNode
@@ -1403,7 +1425,14 @@ class REFNode: public ParameterNode
 public:
   REFNode( const RefDNode& refNode): ParameterNode( refNode) {}
   void Parameter( EnvBaseT* actEnv);
-  void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
+//   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
+};
+class REFVNNode: public ParameterNode
+{
+public:
+  REFVNNode( const RefDNode& refNode): ParameterNode( refNode) {}
+  void Parameter( EnvBaseT* actEnv);
+//   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
 };
 
 

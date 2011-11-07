@@ -567,10 +567,10 @@ void KEYDEF_REFNode::Parameter( EnvBaseT* actEnv)
 			
   ProgNode::interpreter->_retTree = this->getNextSibling();
 }
-void KEYDEF_REFNode::ParameterVarNum( EnvBaseT* actEnv)
-{
-  return Parameter( actEnv);
-}
+// void KEYDEF_REFNode::ParameterVarNum( EnvBaseT* actEnv)
+// {
+//   return Parameter( actEnv);
+// }
 
 void KEYDEF_REF_EXPRNode::Parameter( EnvBaseT* actEnv)
 {
@@ -591,10 +591,10 @@ void KEYDEF_REF_EXPRNode::Parameter( EnvBaseT* actEnv)
 			
   ProgNode::interpreter->_retTree = this->getNextSibling();
 }
-void KEYDEF_REF_EXPRNode::ParameterVarNum( EnvBaseT* actEnv)
-{
-  return Parameter( actEnv);
-}
+// void KEYDEF_REF_EXPRNode::ParameterVarNum( EnvBaseT* actEnv)
+// {
+//   return Parameter( actEnv);
+// }
 
 void KEYDEFNode::Parameter( EnvBaseT* actEnv)
 {
@@ -608,10 +608,10 @@ void KEYDEFNode::Parameter( EnvBaseT* actEnv)
 			
   ProgNode::interpreter->_retTree = this->getNextSibling();
 }
-void KEYDEFNode::ParameterVarNum( EnvBaseT* actEnv)
-{
-  return Parameter( actEnv);
-}
+// void KEYDEFNode::ParameterVarNum( EnvBaseT* actEnv)
+// {
+//   return Parameter( actEnv);
+// }
 
 void REFNode::Parameter( EnvBaseT* actEnv)
 {
@@ -624,7 +624,7 @@ void REFNode::Parameter( EnvBaseT* actEnv)
 			
   ProgNode::interpreter->_retTree = this->getNextSibling();
 }
-void REFNode::ParameterVarNum( EnvBaseT* actEnv)
+void REFVNNode::Parameter( EnvBaseT* actEnv)
 {
   BaseGDL** pvalRef=this->getFirstChild()->LEval();
   actEnv->SetNextParUncheckedVarNum(pvalRef); 
@@ -647,7 +647,7 @@ void REF_EXPRNode::Parameter( EnvBaseT* actEnv)
 			
   ProgNode::interpreter->_retTree = this->getNextSibling();
 }
-void REF_EXPRNode::ParameterVarNum( EnvBaseT* actEnv)
+void REF_EXPRVNNode::Parameter( EnvBaseT* actEnv)
 {
   BaseGDL* pval= this->getFirstChild()->Eval();//expr(_t);
   delete pval;
@@ -677,10 +677,10 @@ void KEYDEF_REF_CHECKNode::Parameter( EnvBaseT* actEnv)
 			
   ProgNode::interpreter->_retTree = this->getNextSibling();
 }
-void KEYDEF_REF_CHECKNode::ParameterVarNum( EnvBaseT* actEnv)
-{
-  return Parameter( actEnv);
-}
+// void KEYDEF_REF_CHECKNode::ParameterVarNum( EnvBaseT* actEnv)
+// {
+//   return Parameter( actEnv);
+// }
 
 void REF_CHECKNode::Parameter( EnvBaseT* actEnv)
 {
@@ -698,7 +698,7 @@ void REF_CHECKNode::Parameter( EnvBaseT* actEnv)
 			
   ProgNode::interpreter->_retTree = this->getNextSibling();
 }
-void REF_CHECKNode::ParameterVarNum( EnvBaseT* actEnv)
+void REF_CHECKVNNode::Parameter( EnvBaseT* actEnv)
 {
   BaseGDL* pval=ProgNode::interpreter->lib_function_call(this->getFirstChild());
   BaseGDL** pvalRef = ProgNode::interpreter->callStack.back()->GetPtrTo( pval);
@@ -723,7 +723,7 @@ void ParameterNode::Parameter( EnvBaseT* actEnv)
   ProgNode::interpreter->_retTree = this->getNextSibling();
 }
 
-void ParameterNode::ParameterVarNum( EnvBaseT* actEnv)
+void ParameterVNNode::Parameter( EnvBaseT* actEnv)
 {
   actEnv->SetNextParUncheckedVarNum(this->getFirstChild()->Eval()); 
   ProgNode::interpreter->_retTree = this->getNextSibling();
@@ -971,7 +971,7 @@ RetCode  PCALL_LIBNode::Run()
 		
   EnvT* newEnv=new EnvT( pl, pl->libPro);//libProList[pl->proIx]);
 		
-  ProgNode::interpreter->parameter_def(_t, newEnv);
+  ProgNode::interpreter->parameter_def_nocheck(_t, newEnv);
   //   _t = _retTree;
   //if( this->getLine() != 0) ProgNode::interpreter->callStack.back()->SetLineNumber( this->getLine());
 		

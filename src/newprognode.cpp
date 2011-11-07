@@ -774,6 +774,12 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
 	new ParameterNode( refNode);
       return firstChild;
       }
+    case  GDLTokenTypes::PARAEXPR_VN:
+      {
+      ProgNodeP firstChild = 
+	new ParameterVNNode( refNode);
+      return firstChild;
+      }
     case  GDLTokenTypes::KEYDEF:
       {
       ProgNodeP nn = new KEYDEFNode( refNode);
@@ -792,9 +798,37 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
 	new ParameterNode( refNode);//->GetFirstChild());
       return firstChild;
     }
+    case GDLTokenTypes::REF_VN:
+    {
+      ProgNodeP nn = new REFVNNode( refNode);
+
+      if( !nn->getFirstChild()->ConstantNode())
+	return nn;
+      
+      delete nn;
+      
+      ProgNodeP firstChild = 
+	new ParameterNode( refNode);//->GetFirstChild());
+      return firstChild;
+    }
     case GDLTokenTypes::REF_EXPR:
     {
       ProgNodeP nn = new REF_EXPRNode( refNode);
+
+      if( !nn->getFirstChild()->ConstantNode())
+	return nn;
+      
+      delete nn;
+      ProgNodeP firstChild = 
+	new ParameterNode( refNode);//->GetFirstChild());
+      return firstChild;
+
+// 		  auto_ptr<ProgNode> guard(nn);
+// 		  return nn->StealFirstChild();
+    }
+    case GDLTokenTypes::REF_EXPR_VN:
+    {
+      ProgNodeP nn = new REF_EXPRVNNode( refNode);
 
       if( !nn->getFirstChild()->ConstantNode())
 	return nn;
@@ -821,6 +855,23 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
     case GDLTokenTypes::REF_CHECK:
     {
       ProgNodeP nn = new REF_CHECKNode( refNode);
+
+      if( !nn->getFirstChild()->ConstantNode())
+	return nn;
+      
+      delete nn;
+      ProgNodeP firstChild = 
+	new ParameterNode( refNode);
+      return firstChild;
+
+// 		  auto_ptr<ProgNode> guard(nn);
+// 		  ProgNodeP firstChild = nn->StealFirstChild();
+// 		  firstChild->SetNextSibling( nn->StealNextSibling());
+// 		  return firstChild;
+    }
+    case GDLTokenTypes::REF_CHECK_VN:
+    {
+      ProgNodeP nn = new REF_CHECKVNNode( refNode);
 
       if( !nn->getFirstChild()->ConstantNode())
 	return nn;

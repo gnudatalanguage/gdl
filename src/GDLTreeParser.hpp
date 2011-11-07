@@ -147,9 +147,13 @@ public:
 	public: void while_statement(RefDNode _t);
 	public: void jump_statement(RefDNode _t);
 	public: void if_statement(RefDNode _t);
-	public: void parameter_def(RefDNode _t);
+	public: void parameter_def(RefDNode _t,
+		bool varNum
+	);
 	public: void key_parameter(RefDNode _t);
-	public: void pos_parameter(RefDNode _t);
+	public: void pos_parameter(RefDNode _t,
+		bool varNum
+	);
 	public: int  array_def(RefDNode _t);
 	public: void struct_def(RefDNode _t);
 	public: void tag_def(RefDNode _t);
@@ -161,7 +165,9 @@ public:
 	public: void assign_expr(RefDNode _t);
 	public: void sysvar(RefDNode _t);
 	public: void var(RefDNode _t);
-	public: void arrayindex_list_to_parameter_list(RefDNode _t);
+	public: void arrayindex_list_to_parameter_list(RefDNode _t,
+		bool varNum
+	);
 	public: void arrayexpr_fn(RefDNode _t);
 	public: void arrayexpr_mfcall(RefDNode _t);
 	public: void primary_expr(RefDNode _t);
@@ -187,10 +193,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 228;
+	static const int NUM_TOKENS = 232;
 #else
 	enum {
-		NUM_TOKENS = 228
+		NUM_TOKENS = 232
 	};
 #endif
 	

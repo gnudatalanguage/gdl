@@ -1254,24 +1254,7 @@ if( dynamic_cast<ArrayIndexIndexed*>(ixList[ixList.size()-1]) ||
   // and returns true is the list is empty
   bool ToAssocIndex( SizeT& lastIx)
   {
-    assert( ixListEnd == NULL);
-    
-    ArrayIndexT* ixListEndTmp = ixList.back();
-    ixListEndTmp->Init();
-    
-    RangeT lastValIx;
-    if( !ixListEndTmp->Scalar( lastValIx))
-      throw GDLException(NULL ,"Record number must be a scalar in this context.",true,false);
-
-    if( lastValIx < 0)
-      throw GDLException( NULL,"Record number must be a scalar > 0 in this context.",true,false);
-
-    lastIx = lastValIx;
-   
-    ixListEnd = ixListEndTmp;
-    ixList.pop_back();
-    
-    return false; // multi dim ixList.empty();
+    assert( false);
   }
 
   // set the root variable which is indexed by this ArrayIndexListMultiT
@@ -1520,42 +1503,42 @@ if( dynamic_cast<ArrayIndexIndexed*>(ixList[ixList.size()-1]) ||
 	    allIx = new (allIxInstance) AllIxT( baseIx);
 	    return allIx;
     }
-    
-    if( acRank == 1) // assoc already recognized
-    {
-	ArrayIndexT* ix = ixList[0];
-	if(  ix->Indexed())
-	{
-	    allIx = static_cast< ArrayIndexIndexed*>(ix)->GetAllIx();
-	    return allIx;
-	}
-	if( nIx == 1)
-	{
-	    allIx = new (allIxInstance) AllIxT( ix->GetS());
-	    return allIx;
-	}
-	SizeT s = ix->GetS();
-	SizeT ixStride = ix->GetStride();
-	if( ixStride <= 1) 
-	if( s != 0)
-	    {
-	    allIx = new (allIxInstance) AllIxRangeT( nIx, s);
-	    }
-	else
-	    {
-	    allIx = new (allIxInstance) AllIxRange0T( nIx);
-	    }
-	else
-	if( s != 0)
-	    {
-	    allIx = new (allIxInstance) AllIxRangeStrideT( nIx, s, ixStride);
-	    }
-	else
-	    {
-	    allIx = new (allIxInstance) AllIxRange0StrideT( nIx, ixStride);
-	    }
-	return allIx;
-    }
+    assert( acRank > 1);
+//     if( acRank == 1) // assoc already recognized
+//     {
+// 	ArrayIndexT* ix = ixList[0];
+// 	if(  ix->Indexed())
+// 	{
+// 	    allIx = static_cast< ArrayIndexIndexed*>(ix)->GetAllIx();
+// 	    return allIx;
+// 	}
+// 	if( nIx == 1)
+// 	{
+// 	    allIx = new (allIxInstance) AllIxT( ix->GetS());
+// 	    return allIx;
+// 	}
+// 	SizeT s = ix->GetS();
+// 	SizeT ixStride = ix->GetStride();
+// 	if( ixStride <= 1) 
+// 	if( s != 0)
+// 	    {
+// 	    allIx = new (allIxInstance) AllIxRangeT( nIx, s);
+// 	    }
+// 	else
+// 	    {
+// 	    allIx = new (allIxInstance) AllIxRange0T( nIx);
+// 	    }
+// 	else
+// 	if( s != 0)
+// 	    {
+// 	    allIx = new (allIxInstance) AllIxRangeStrideT( nIx, s, ixStride);
+// 	    }
+// 	else
+// 	    {
+// 	    allIx = new (allIxInstance) AllIxRange0StrideT( nIx, ixStride);
+// 	    }
+// 	return allIx;
+//     }
 
     // NORMAL
     // loop only over specified indices
@@ -1952,36 +1935,37 @@ class ArrayIndexListMultiNoneIndexedNoAssocT: public ArrayIndexListMultiNoAssocT
 		return allIx;
 	}
 	  
-	if( acRank == 1) // assoc already recognized
-	{
-		ArrayIndexT* ix = ixList[0];
-		if( nIx == 1)
-		{
-			allIx = new (allIxInstance) AllIxT( ix->GetS());
-			return allIx;
-		}
-		SizeT s = ix->GetS();
-		SizeT ixStride = ix->GetStride();
-		if( ixStride <= 1) 
-		if( s != 0)
-			{
-			allIx = new (allIxInstance) AllIxRangeT( nIx, s);
-			}
-		else
-			{
-			allIx = new (allIxInstance) AllIxRange0T( nIx);
-			}
-		else
-		if( s != 0)
-			{
-			allIx = new (allIxInstance) AllIxRangeStrideT( nIx, s, ixStride);
-			}
-		else
-			{
-			allIx = new (allIxInstance) AllIxRange0StrideT( nIx, ixStride);
-			}
-		return allIx;
- 	}
+	assert( acRank > 1);  
+// 	if( acRank == 1) // assoc already recognized
+// 	{
+// 		ArrayIndexT* ix = ixList[0];
+// 		if( nIx == 1)
+// 		{
+// 			allIx = new (allIxInstance) AllIxT( ix->GetS());
+// 			return allIx;
+// 		}
+// 		SizeT s = ix->GetS();
+// 		SizeT ixStride = ix->GetStride();
+// 		if( ixStride <= 1) 
+// 		if( s != 0)
+// 			{
+// 			allIx = new (allIxInstance) AllIxRangeT( nIx, s);
+// 			}
+// 		else
+// 			{
+// 			allIx = new (allIxInstance) AllIxRange0T( nIx);
+// 			}
+// 		else
+// 		if( s != 0)
+// 			{
+// 			allIx = new (allIxInstance) AllIxRangeStrideT( nIx, s, ixStride);
+// 			}
+// 		else
+// 			{
+// 			allIx = new (allIxInstance) AllIxRange0StrideT( nIx, ixStride);
+// 			}
+// 		return allIx;
+//  	}
 
 	// NORMAL
 	// loop only over specified indices

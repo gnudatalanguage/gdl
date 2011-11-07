@@ -148,8 +148,8 @@ BaseGDL* ArrayIndexListOneScalarT::Index( BaseGDL* var, IxExprListT& ix_)
 BaseGDL* ArrayIndexListOneScalarNoAssocT::Index( BaseGDL* var, IxExprListT& ix_)
   {
     // Init() not called
-    if( !var->IsAssoc())// && var->Type() != STRUCT)
-      {
+//     if( !var->IsAssoc())// && var->Type() != STRUCT)
+//       {
 	sInit = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
 	  
 	if( sInit < 0)
@@ -167,12 +167,12 @@ BaseGDL* ArrayIndexListOneScalarNoAssocT::Index( BaseGDL* var, IxExprListT& ix_)
 	  }
 	    
 	return var->NewIx( s);
-      }
-    
-    // normal case
-    //    Init();
-    SetVariable( var);
-    return var->Index( this);
+//       }
+//     
+//     // normal case
+//     //    Init();
+//     SetVariable( var);
+//     return var->Index( this);
   }
 BaseGDL* ArrayIndexListOneScalarVPT::Index( BaseGDL* var, IxExprListT& ix_)
   {
