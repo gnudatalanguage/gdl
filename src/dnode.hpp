@@ -68,7 +68,7 @@ public:
 	   var(NULL), 
 	   libFun(NULL),
 	   libPro(NULL),
-	   arrIxList(NULL), labelStart( -1), labelEnd( -1)
+	   arrIxList(NULL),arrIxListNoAssoc(NULL), labelStart( -1), labelEnd( -1)
   {
   }
 
@@ -99,6 +99,7 @@ public:
     labelEnd   = -1;
     var=NULL;
     arrIxList=NULL;
+    arrIxListNoAssoc=NULL;
   }
 
   // used by DNodeFactory
@@ -280,8 +281,11 @@ public:
   void DefinedStruct( const bool noTagName)
   { if( noTagName) structDefined = 1; else structDefined = 0;}
 
-  void SetArrayIndexList( ArrayIndexListT* aL)
-  { arrIxList = aL;}
+  void SetArrayIndexList( ArrayIndexListT* aL, ArrayIndexListT* aLNoAssoc)
+  { 
+    arrIxList = aL;
+    arrIxListNoAssoc = aLNoAssoc;    
+  }
 
   BaseGDL* CData() { return cData;}
   void     ResetCData( BaseGDL* newCData);
@@ -292,9 +296,14 @@ public:
 private:
 
   BaseGDL* StealCData() { BaseGDL* res = cData; cData=NULL; return res;}
+
   ArrayIndexListT* StealArrIxList() 
   { ArrayIndexListT* res = arrIxList; arrIxList=NULL; return res;}
   ArrayIndexListT* CloneArrIxList(); 
+
+  ArrayIndexListT* StealArrIxNoAssocList() 
+  { ArrayIndexListT* res = arrIxListNoAssoc; arrIxListNoAssoc=NULL; return res;}
+  ArrayIndexListT* CloneArrIxNoAssocList(); 
 
 // 	bool keepRight; // for passing to ProgNode, nodes here are reference counted
 
@@ -313,6 +322,7 @@ private:
   DLibPro*   libPro;
 
   ArrayIndexListT* arrIxList; // ptr to array index list
+  ArrayIndexListT* arrIxListNoAssoc; // ptr to array index list
 //  ArrayIndexT*     arrIx;     // ptr to array index (1-dim)
 
   union {

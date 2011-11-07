@@ -30,6 +30,7 @@ allix.cpp
 arrayindex.cpp
 arrayindex.hpp
 arrayindexlistt.hpp
+arrayindexlistnoassoct.hpp
 assocdata.cpp
 assocdata.hpp
 basegdl.cpp

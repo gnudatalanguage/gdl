@@ -96,14 +96,14 @@ am__libgdl_la_SOURCES_DIST = allix.hpp allix.cpp prognode.hpp \
 	convol_inc0.cpp convol_inc1.cpp convol_inc2.cpp \
 	sigfpehandler.cpp sigfpehandler.hpp devicez.hpp gdlzstream.cpp \
 	gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp \
-	arrayindex.cpp fftw.cpp fftw.hpp mpi.cpp mpi.hpp plot3d_nr.cpp \
-	grib.cpp grib.hpp prognode.cpp prognode_lexpr.cpp \
-	prognodeexpr.cpp strassenmatrix.hpp datatypesref.cpp \
-	lapack.cpp gshhs.cpp gshhs.hpp newprognode.cpp \
-	plotting_plot.cpp plotting_oplot.cpp plotting_device.cpp \
-	plotting_cursor.cpp plotting_contour.cpp plotting_surface.cpp \
-	plotting_axis.cpp plotting_plots.cpp plotting_xyouts.cpp \
-	plotting_polyfill.cpp plotting_windows.cpp \
+	arrayindexlistnoassoct.hpp arrayindex.cpp fftw.cpp fftw.hpp \
+	mpi.cpp mpi.hpp plot3d_nr.cpp grib.cpp grib.hpp prognode.cpp \
+	prognode_lexpr.cpp prognodeexpr.cpp strassenmatrix.hpp \
+	datatypesref.cpp lapack.cpp gshhs.cpp gshhs.hpp \
+	newprognode.cpp plotting_plot.cpp plotting_oplot.cpp \
+	plotting_device.cpp plotting_cursor.cpp plotting_contour.cpp \
+	plotting_surface.cpp plotting_axis.cpp plotting_plots.cpp \
+	plotting_xyouts.cpp plotting_polyfill.cpp plotting_windows.cpp \
 	plotting_convert_coord.cpp plotting_map_proj.cpp \
 	plotting_misc.cpp plotting_erase.cpp semshm.cpp pythongdl.cpp
 am__objects_1 = allix.lo assocdata.lo basic_fun_cl.lo basic_fun.lo \
@@ -191,14 +191,14 @@ am__gdl_SOURCES_DIST = allix.hpp allix.cpp prognode.hpp \
 	convol_inc0.cpp convol_inc1.cpp convol_inc2.cpp \
 	sigfpehandler.cpp sigfpehandler.hpp devicez.hpp gdlzstream.cpp \
 	gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp \
-	arrayindex.cpp fftw.cpp fftw.hpp mpi.cpp mpi.hpp plot3d_nr.cpp \
-	grib.cpp grib.hpp prognode.cpp prognode_lexpr.cpp \
-	prognodeexpr.cpp strassenmatrix.hpp datatypesref.cpp \
-	lapack.cpp gshhs.cpp gshhs.hpp newprognode.cpp \
-	plotting_plot.cpp plotting_oplot.cpp plotting_device.cpp \
-	plotting_cursor.cpp plotting_contour.cpp plotting_surface.cpp \
-	plotting_axis.cpp plotting_plots.cpp plotting_xyouts.cpp \
-	plotting_polyfill.cpp plotting_windows.cpp \
+	arrayindexlistnoassoct.hpp arrayindex.cpp fftw.cpp fftw.hpp \
+	mpi.cpp mpi.hpp plot3d_nr.cpp grib.cpp grib.hpp prognode.cpp \
+	prognode_lexpr.cpp prognodeexpr.cpp strassenmatrix.hpp \
+	datatypesref.cpp lapack.cpp gshhs.cpp gshhs.hpp \
+	newprognode.cpp plotting_plot.cpp plotting_oplot.cpp \
+	plotting_device.cpp plotting_cursor.cpp plotting_contour.cpp \
+	plotting_surface.cpp plotting_axis.cpp plotting_plots.cpp \
+	plotting_xyouts.cpp plotting_polyfill.cpp plotting_windows.cpp \
 	plotting_convert_coord.cpp plotting_map_proj.cpp \
 	plotting_misc.cpp plotting_erase.cpp semshm.cpp gdl.cpp
 am__objects_2 = gdl-allix.$(OBJEXT) gdl-assocdata.$(OBJEXT) \
@@ -511,7 +511,8 @@ cpp_hpp_files = allix.hpp allix.cpp prognode.hpp prognodeexpr.hpp \
 		widget.cpp basegdl.cpp hdf5_fun.cpp hdf5_fun.hpp libinit_mes.cpp file.cpp file.hpp \
 		image.cpp image.hpp gdljournal.cpp gdljournal.hpp convol.cpp convol_inc0.cpp \
 		convol_inc1.cpp convol_inc2.cpp sigfpehandler.cpp sigfpehandler.hpp devicez.hpp \
-		gdlzstream.cpp gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp arrayindex.cpp \
+		gdlzstream.cpp gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp arrayindexlistnoassoct.hpp \
+		arrayindex.cpp \
 		fftw.cpp fftw.hpp mpi.cpp mpi.hpp plot3d_nr.cpp grib.cpp grib.hpp \
                 prognode.cpp prognode_lexpr.cpp prognodeexpr.cpp strassenmatrix.hpp datatypesref.cpp lapack.cpp \
                 gshhs.cpp gshhs.hpp newprognode.cpp plotting_plot.cpp plotting_oplot.cpp \

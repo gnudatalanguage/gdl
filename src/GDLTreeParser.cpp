@@ -5064,9 +5064,11 @@ void GDLTreeParser::arrayindex_list(RefDNode _t) {
 	//                 }
 	
 	guard.Release();
-	ArrayIndexListT* arrayIndex = MakeArrayIndex( ixList);
+	ArrayIndexListT* arrayIndexNoAssoc;
+	ArrayIndexListT* arrayIndex;
+	MakeArrayIndex( ixList, &arrayIndex, &arrayIndexNoAssoc);
 	delete ixList;
-	arrayindex_list_AST->SetArrayIndexList( arrayIndex);
+	arrayindex_list_AST->SetArrayIndexList( arrayIndex, arrayIndexNoAssoc);
 	
 	currentAST.root = arrayindex_list_AST;
 	if ( arrayindex_list_AST!=RefDNode(antlr::nullAST) &&

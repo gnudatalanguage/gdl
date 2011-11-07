@@ -992,9 +992,11 @@ PtrGuard< ArrayIndexVectorT> guard( ixList);
 //                 }
 
             guard.Release();
-            ArrayIndexListT* arrayIndex = MakeArrayIndex( ixList);
+            ArrayIndexListT* arrayIndexNoAssoc;
+            ArrayIndexListT* arrayIndex;
+            MakeArrayIndex( ixList, &arrayIndex, &arrayIndexNoAssoc);
             delete ixList;
-            #arrayindex_list->SetArrayIndexList( arrayIndex);
+            #arrayindex_list->SetArrayIndexList( arrayIndex, arrayIndexNoAssoc);
         }
 	;	
 

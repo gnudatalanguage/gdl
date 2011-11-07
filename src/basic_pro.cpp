@@ -2280,7 +2280,8 @@ TRACEOMP( __FILE__, __LINE__)
 	    ixList->push_back( new CArrayIndexIndexed( p5, true));
 	  else
 	    ixList->push_back( new CArrayIndexScalar( (*p3)[ i]));//p3->NewIx(i)));
-	ArrayIndexListT* ixL = MakeArrayIndex( ixList);
+	ArrayIndexListT* ixL;
+	MakeArrayIndex( ixList, &ixL);
 	auto_ptr< ArrayIndexListT> ixL_guard( ixL);
 	ixL->AssignAt( p0, p1);	
 	return;

@@ -77,7 +77,10 @@ BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right)
 	ArrayIndexListGuard guard;
 
 	BaseGDL** res=interpreter->l_indexable_expr( this->getFirstChild());
-	aL=interpreter->arrayindex_list( this->getFirstChild()->getNextSibling());
+	if( (*res)->IsAssoc())
+	  aL=interpreter->arrayindex_list( this->getFirstChild()->getNextSibling());
+	else
+	  aL=interpreter->arrayindex_list_noassoc( this->getFirstChild()->getNextSibling());	  
 	guard.reset(aL);
 
 	try {

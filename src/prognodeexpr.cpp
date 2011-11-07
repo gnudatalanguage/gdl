@@ -2602,7 +2602,7 @@ BaseGDL* DOTNode::Eval()
 	
 // 	ax = _t;
 	//	match(antlr::RefAST(_t),ARRAYIX);
-	ArrayIndexListT* aL = _t->arrIxList;
+	ArrayIndexListT* aL = _t->arrIxListNoAssoc;
 	assert( aL != NULL);
 	nExpr = aL->NParam();
 		
@@ -2689,10 +2689,17 @@ BaseGDL* DOTNode::Eval()
 
 	empty:
 
-	// better done here because of recursion
-	guard.reset(aL);
-	res = aL->Index( r, ixExprList);
-
-	//ProgNode::interpreter->SetRetTree( this->getNextSibling());
+	if( r->IsAssoc())
+	{
+	  ArrayIndexListT* aL = _t->arrIxList;
+	  assert( aL != NULL);
+	  guard.reset(aL);
+	  res = aL->Index( r, ixExprList);	  
+	}
+	else
+	{
+	  guard.reset(aL);
+	  res = aL->Index( r, ixExprList);
+	}
 	return res;
 }

@@ -1,6 +1,7 @@
 /***************************************************************************
-                          arrayindexlistt.hpp  -  array access descriptor
-                             -------------------
+                          arrayindexlistnoassoct.hpp  -  array access descriptor,
+			  optimization for non assoc index
+                          -------------------
     begin                : July 22 2005
     copyright            : (C) 2002 by Marc Schellens
     email                : m_schellens@users.sf.net
@@ -15,73 +16,20 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef ARRAYINDEXLISTT_HPP_
-#define ARRAYINDEXLISTT_HPP_
+#ifndef ARRAYINDEXLISTNOASSOCT_HPP_
+#define ARRAYINDEXLISTNOASSOCT_HPP_
 
 #include "arrayindex.hpp"
 
-class ArrayIndexListT
-{
-protected:
-
-  SizeT nParam; // number of (BaseGDL*) parameters
-
-public:    
-  
-  SizeT NParam() { return nParam;}
-
-  virtual ~ArrayIndexListT();
-
-  // constructor
-  ArrayIndexListT() {}
-
-  ArrayIndexListT( const ArrayIndexListT& cp):
-    nParam( cp.nParam)
-  {}
-  
-  virtual void Clear() {}
-
-  virtual ArrayIndexListT* Clone() { assert( 0); return NULL;}
-
-  virtual void Init( IxExprListT& ix, IxExprListT* cleanupIx) { assert( 0);}
-  virtual void Init() {}
-  
-   virtual bool ToAssocIndex( SizeT& lastIx) = 0;
-//  virtual bool ToAssocIndex( RangeT& lastIx) = 0;
-
-  // set the root variable which is indexed by this ArrayIndexListT
-  virtual void SetVariable( BaseGDL* var) {}
-
-  // structure of indexed expression
-   virtual const dimension GetDim() = 0;
-
-  virtual SizeT N_Elements() = 0;
-
-  // returns 1-dim index for all elements
-  virtual AllIxBaseT* BuildIx();
-
-  // returns one dim long ix in case of one element array index
-  // used by AssignAt functions
-  virtual SizeT LongIx() const = 0;
-
-  virtual void AssignAt( BaseGDL* var, BaseGDL* right) {}
-
-  // optimized for one dimensional access
-  // this is called from the interpreter and ARRAYEXPRNode::Eval()
-  virtual BaseGDL* Index( BaseGDL* var, IxExprListT& ix) = 0;
-
-  // returns multi-dim index for 1st element
-  // used by InsAt functions
-  virtual const dimension GetDimIx0( SizeT& destStart) = 0;
-  virtual SizeT NDim() = 0;
-};
-
-
-#include "arrayindexlistnoassoc.hpp"
+// this is the main file for non assco arrayindices, 
+// this classes here must only be used with non-assoc variables
+// the classes in arrayindexlistt.hpp can handle both, because 
+// as ASSOC variables are connected to files, a few more checks
+// do not hurt, other than here: These are the core routines for indexing
 
 // only one index [ix],[s:e],...
 // NEVER ArrayIndexScalar types (they have their own ArrayIndexListT)
-class ArrayIndexListOneT: public ArrayIndexListT
+class ArrayIndexListOneNoAssocT: public ArrayIndexListT
 {
 private:
   IxExprListT cleanupIx;
@@ -96,21 +44,21 @@ private:
   
 public:    
   
-  ~ArrayIndexListOneT()
+  ~ArrayIndexListOneNoAssocT()
   {
 //     delete allIx;
     delete ix;
-	cleanupIx.Cleanup(); // must be explicitely cleaned up
+    cleanupIx.Cleanup(); // must be explicitely cleaned up
   }
 
   // constructor
-  ArrayIndexListOneT()
+  ArrayIndexListOneNoAssocT()
 	: cleanupIx()
     , ix( NULL)
     , allIx( NULL)
   { nParam = 0;}
 
-  ArrayIndexListOneT( const ArrayIndexListOneT& cp):
+  ArrayIndexListOneNoAssocT( const ArrayIndexListOneNoAssocT& cp):
 	cleanupIx(),
     ArrayIndexListT( cp),
     ix( cp.ix->Dup()),
@@ -121,10 +69,10 @@ public:
   }
 
   // called after structure is fixed
-  ArrayIndexListOneT( ArrayIndexVectorT* aIV):
+  ArrayIndexListOneNoAssocT( ArrayIndexVectorT* aIV):
     allIx( NULL)
   {
-    ix = (*aIV)[0];
+    ix = (*aIV)[0]->Dup(); // ArrayIndexListOneT will grab here
     nParam = ix->NParam();
   }    
   
@@ -138,7 +86,7 @@ public:
 	cleanupIx.Cleanup();
   }
 
-  ArrayIndexListT* Clone() { return new ArrayIndexListOneT( *this);}
+  ArrayIndexListT* Clone() { return new ArrayIndexListOneNoAssocT( *this);}
 
   void Init( IxExprListT& ix_, IxExprListT* cleanupIxIn)
   {
@@ -191,7 +139,7 @@ public:
     assert( allIx == NULL);
 
     // for assoc variables last index is the record
-    if( var->IsAssoc()) return;
+//     if( var->IsAssoc()) return;
 
     // ArrayIndexScalar[VP] are not initialized
     // they need the NIter call, but
@@ -288,7 +236,7 @@ public:
   void AssignAt( BaseGDL* var, BaseGDL* right)
   {
     // scalar case
-    if( right->N_Elements() == 1 && !var->IsAssoc() &&
+    if( right->N_Elements() == 1 && //!var->IsAssoc() &&
 	ix->NIter( var->Size()) == 1)// && var->Type() != STRUCT) 
       {
 	var->AssignAtIx( ix->GetIx0(), right);
@@ -314,7 +262,8 @@ public:
   BaseGDL* Index( BaseGDL* var, IxExprListT& ix_)
   {
     Init( ix_, NULL);
-    if( !var->IsAssoc() && ix->NIter( var->Size()) == 1)// && var->Type() != STRUCT) 
+    if( ix->NIter( var->Size()) == 1)// && var->Type() != STRUCT) 
+//     if( !var->IsAssoc() && ix->NIter( var->Size()) == 1)// && var->Type() != STRUCT) 
       {
 	return var->NewIx( ix->GetIx0());
       }
@@ -343,7 +292,7 @@ public:
 
 
 // loop index
-class ArrayIndexListOneScalarT: public ArrayIndexListT
+class ArrayIndexListOneScalarNoAssocT: public ArrayIndexListT
 {
 protected:
   SizeT varIx;
@@ -354,18 +303,15 @@ protected:
 
 public:    
   
-  ~ArrayIndexListOneScalarT()
-  {
-//     delete allIx;
-  }
+  ~ArrayIndexListOneScalarNoAssocT();
 
   // constructor
-  ArrayIndexListOneScalarT()
+  ArrayIndexListOneScalarNoAssocT()
     : varIx( 0)
 //     , allIx( NULL)
   { nParam = 0;}
 
-  ArrayIndexListOneScalarT( const ArrayIndexListOneScalarT& cp)
+  ArrayIndexListOneScalarNoAssocT( const ArrayIndexListOneScalarNoAssocT& cp)
     : ArrayIndexListT( cp)
     , varIx( cp.varIx)
     , s( cp.s)
@@ -375,27 +321,28 @@ public:
   }
 
   // called after structure is fixed
-  ArrayIndexListOneScalarT( ArrayIndexVectorT* aIV)
+  ArrayIndexListOneScalarNoAssocT( ArrayIndexVectorT* aIV)
 //     : allIx( NULL)
   {
     nParam = 0;
     
     varIx = static_cast<ArrayIndexScalar*>((*aIV)[0])->GetVarIx();
 
-    delete (*aIV)[0];
+    // ArrayIndexListOneScalarT will do the cleanup
+//     delete (*aIV)[0];
   }    
   
   void Clear()
   {}
 
-  ArrayIndexListT* Clone() { return new ArrayIndexListOneScalarT( *this);}
+  ArrayIndexListT* Clone() { return new ArrayIndexListOneScalarNoAssocT( *this);}
 
   void Init() {}
 
   // requires special handling
   // used by Assoc_<> returns last index in lastIx, removes it
   // and returns true is the list is empty
-  bool ToAssocIndex( SizeT& lastIx);
+  bool ToAssocIndex( SizeT& lastIx) { assert( false);}
 
   // set the root variable which is indexed by this ArrayIndexListT
   void SetVariable( BaseGDL* var);
@@ -458,7 +405,7 @@ public:
 
 
 
-class ArrayIndexListOneScalarVPT: public ArrayIndexListT
+class ArrayIndexListOneScalarVPNoAssocT: public ArrayIndexListT
 {
 protected:
   DVar* varPtr;
@@ -471,18 +418,18 @@ protected:
 
 public:    
   
-  ~ArrayIndexListOneScalarVPT()
+  ~ArrayIndexListOneScalarVPNoAssocT()
   {
 //     delete allIx;
   }
 
   // constructor
-  ArrayIndexListOneScalarVPT()
+  ArrayIndexListOneScalarVPNoAssocT()
     : varPtr( NULL)
 //     , allIx( NULL)
   { nParam = 0;}
 
-  ArrayIndexListOneScalarVPT( const ArrayIndexListOneScalarVPT& cp)
+  ArrayIndexListOneScalarVPNoAssocT( const ArrayIndexListOneScalarVPNoAssocT& cp)
     : ArrayIndexListT( cp)
     , varPtr( cp.varPtr)
     , sInit( cp.sInit)
@@ -493,20 +440,21 @@ public:
   }
 
   // called after structure is fixed
-  ArrayIndexListOneScalarVPT( ArrayIndexVectorT* aIV)
+  ArrayIndexListOneScalarVPNoAssocT( ArrayIndexVectorT* aIV)
 //     : allIx( NULL)
   {
     nParam = 0;
     
     varPtr = static_cast<ArrayIndexScalarVP*>((*aIV)[0])->GetVarPtr();
 
-    delete (*aIV)[0];
+        // ArrayIndexListOneScalarVPT will do the cleanup
+//     delete (*aIV)[0];
   }    
   
   void Clear()
   {}
 
-  ArrayIndexListT* Clone() { return new ArrayIndexListOneScalarVPT( *this);}
+  ArrayIndexListT* Clone() { return new ArrayIndexListOneScalarVPNoAssocT( *this);}
 
   void Init() {}
 
@@ -533,7 +481,7 @@ public:
       s = sInit;
     
     // for assoc variables last index is the record
-    if( var->IsAssoc()) return;
+//     if( var->IsAssoc()) return;
     if( s >= var->Size())
       throw GDLException(NULL,"Scalar subscript out of range [>].1",true,false);
     if( s < 0)
@@ -578,7 +526,7 @@ public:
   {
     // Init() was already called
     // scalar case
-    if( right->N_Elements() == 1 && !var->IsAssoc()) // && var->Type() != STRUCT) 
+    if( right->N_Elements() == 1) // && !var->IsAssoc()) // && var->Type() != STRUCT) 
       {
 	s = varPtr->Data()->LoopIndex();
 	if( s >= var->Size())
@@ -622,7 +570,7 @@ public:
 
 
 
-class ArrayIndexListOneConstScalarT: public ArrayIndexListT
+class ArrayIndexListOneConstScalarNoAssocT: public ArrayIndexListT
 {
   RangeT sInit;
   RangeT s;
@@ -631,19 +579,19 @@ class ArrayIndexListOneConstScalarT: public ArrayIndexListT
 
 public:    
   
-  ~ArrayIndexListOneConstScalarT() 
+  ~ArrayIndexListOneConstScalarNoAssocT() 
   {
 //     delete allIx;
   }
 
   // constructor
-  ArrayIndexListOneConstScalarT()
+  ArrayIndexListOneConstScalarNoAssocT()
 // 	: allIx( NULL)
   {
     nParam = 0;
   }
 
-  ArrayIndexListOneConstScalarT( const ArrayIndexListOneConstScalarT& cp)
+  ArrayIndexListOneConstScalarNoAssocT( const ArrayIndexListOneConstScalarNoAssocT& cp)
     : ArrayIndexListT( cp)
     , sInit( cp.sInit)
     , s( cp.s)
@@ -653,7 +601,7 @@ public:
   }
 
   // called after structure is fixed
-  ArrayIndexListOneConstScalarT( ArrayIndexVectorT* aIV)
+  ArrayIndexListOneConstScalarNoAssocT( ArrayIndexVectorT* aIV)
 //     : allIx( NULL)
   {
     sInit = (*aIV)[0]->GetS();
@@ -661,13 +609,14 @@ public:
       s = sInit;
     nParam = 0;
 
-    delete (*aIV)[0];
+   // ArrayIndexListOneConstScalarT will do the cleanup
+//     delete (*aIV)[0];
   }    
   
   void Clear()
   {}
 
-  ArrayIndexListT* Clone() { return new ArrayIndexListOneConstScalarT( *this);}
+  ArrayIndexListT* Clone() { return new ArrayIndexListOneConstScalarNoAssocT( *this);}
 
   void Init()
   {}
@@ -704,7 +653,7 @@ public:
   // set the root variable which is indexed by this ArrayIndexListT
   void SetVariable( BaseGDL* var) 
   {
-    if( var->IsAssoc()) return;
+//     if( var->IsAssoc()) return;
     if( sInit < 0)
       s = sInit + var->Size();
     // for assoc variables last index is the record
@@ -729,7 +678,7 @@ public:
 
     // Init() was already called
     // scalar case
-    if( right->N_Elements() == 1 && !var->IsAssoc())// && var->Type() != STRUCT) 
+    if( right->N_Elements() == 1)// && !var->IsAssoc())// && var->Type() != STRUCT) 
       {
 	if( sInit < 0)
 	  s = sInit + var->Size();
@@ -759,7 +708,7 @@ public:
   BaseGDL* Index( BaseGDL* var, IxExprListT& ix_)
   {
     // Init() not called
-    if( !var->IsAssoc())// && var->Type() != STRUCT)
+//     if( !var->IsAssoc())// && var->Type() != STRUCT)
       {
 	if( sInit < 0)
 	  s = sInit + var->Size();
@@ -803,7 +752,7 @@ public:
 
 
 // all scalar elements (multi-dim)
-class ArrayIndexListScalarT: public ArrayIndexListT
+class ArrayIndexListScalarNoAssocT: public ArrayIndexListT
 {
 private:
   ArrayIndexVectorT ixList;
@@ -821,23 +770,23 @@ private:
 
 public:    
   
-  ~ArrayIndexListScalarT()
+  ~ArrayIndexListScalarNoAssocT()
   {
 //     delete allIx;
-	ixList.Destruct();
+// 	ixList.Destruct();
 //     for( std::vector<ArrayIndexT*>::iterator i=ixList.begin();
 // 	 i != ixList.end(); ++i)
 //       {	delete *i;}
   }
 
   // constructor
-  ArrayIndexListScalarT():
+  ArrayIndexListScalarNoAssocT():
     acRank(0),
 //     allIx( NULL),
     ixListEnd( NULL)
   { nParam = 0;}
 
-  ArrayIndexListScalarT( const ArrayIndexListScalarT& cp):
+  ArrayIndexListScalarNoAssocT( const ArrayIndexListScalarNoAssocT& cp):
     ArrayIndexListT( cp),
 //     paramPresent( cp.paramPresent),
     acRank(cp.acRank),
@@ -853,7 +802,7 @@ public:
   }
 
   // called after structure is fixed
-  ArrayIndexListScalarT( ArrayIndexVectorT* ix):
+  ArrayIndexListScalarNoAssocT( ArrayIndexVectorT* ix):
     ixList( *ix),
 //     allIx( NULL),
     ixListEnd( NULL)
@@ -902,7 +851,7 @@ public:
 //       }
 //   }
 
-  ArrayIndexListT* Clone() { return new ArrayIndexListScalarT( *this);}
+  ArrayIndexListT* Clone() { return new ArrayIndexListScalarNoAssocT( *this);}
 
   void Init()
   {}
@@ -938,11 +887,11 @@ public:
     acRank = ixList.size();
     
     // for assoc variables last index is the record
-    if( var->IsAssoc()) 
-      {
-	acRank--;
-	// if( acRank == 0) return; // multi dim
-      }
+//     if( var->IsAssoc()) 
+//       {
+// 	acRank--;
+// 	// if( acRank == 0) return; // multi dim
+//       }
 
     // ArrayIndexScalar[VP] need this call to read their actual data
     // as their are not initalized (nParam == 0)
@@ -999,7 +948,7 @@ public:
 
   void AssignAt( BaseGDL* var, BaseGDL* right)
   {
-    if( var->N_Elements() == 1 && !var->IsAssoc())
+    if( var->N_Elements() == 1)// && !var->IsAssoc())
     {
       // SetVariable( var);
       // set acRank
@@ -1043,23 +992,23 @@ public:
     // set acRank
     acRank = ixList.size();
     // for assoc variables last index is the record
-    if( var->IsAssoc()) 
-      {
-	acRank--;
-	varStride = var->Dim().Stride();
-	// ArrayIndexScalar[VP] need this call to read their actual data
-	// as their are not initalized (nParam == 0)
-	ixList[0]->NIter( var->Dim(0)); // check boundary
-	for( SizeT i=1; i < acRank; ++i)
-	{
-	  ixList[i]->NIter( var->Dim(i)); // check boundary
-	}
-//     return dStart;
-//     for( SizeT i=0; i<acRank; ++i)
-//       ixList[i]->NIter( var->Dim(i)); // check boundary
-//    	return var->NewIx( dStart); //this->LongIx());
-	return var->Index( this);
-      }
+//     if( var->IsAssoc()) 
+//       {
+// 	acRank--;
+// 	varStride = var->Dim().Stride();
+// 	// ArrayIndexScalar[VP] need this call to read their actual data
+// 	// as their are not initalized (nParam == 0)
+// 	ixList[0]->NIter( var->Dim(0)); // check boundary
+// 	for( SizeT i=1; i < acRank; ++i)
+// 	{
+// 	  ixList[i]->NIter( var->Dim(i)); // check boundary
+// 	}
+// //     return dStart;
+// //     for( SizeT i=0; i<acRank; ++i)
+// //       ixList[i]->NIter( var->Dim(i)); // check boundary
+// //    	return var->NewIx( dStart); //this->LongIx());
+// 	return var->Index( this);
+//       }
 
     varStride = var->Dim().Stride();
     // ArrayIndexScalar[VP] need this call to read their actual data
@@ -1107,7 +1056,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // general case (mixed, multi-dim) at least one indexed
 // but note: last index can be assoc index
-class ArrayIndexListMultiT: public ArrayIndexListT
+class ArrayIndexListMultiNoAssocT: public ArrayIndexListT
 {
 private:
 	IxExprListT cleanupIx;
@@ -1147,10 +1096,10 @@ protected:
 
 public:    
   
-  ~ArrayIndexListMultiT()
+  ~ArrayIndexListMultiNoAssocT()
   {
 //     delete allIx;
-    ixList.Destruct();
+//    ixList.Destruct(); // done in ArrayIndexListMultiT
 //     for( std::vector<ArrayIndexT*>::iterator i=ixList.begin();
 // 	 i != ixList.end(); ++i)
 //       {	delete *i;}
@@ -1158,14 +1107,14 @@ public:
   }
 
   // constructor
-  ArrayIndexListMultiT():
+  ArrayIndexListMultiNoAssocT():
     accessType(NORMAL),
     acRank(0),
     allIx( NULL),
     ixListEnd( NULL)
   { nParam = 0;}
 	
-  ArrayIndexListMultiT( const ArrayIndexListMultiT& cp):
+  ArrayIndexListMultiNoAssocT( const ArrayIndexListMultiNoAssocT& cp):
     ArrayIndexListT( cp),
     accessType(cp.accessType),
     accessTypeInit(cp.accessTypeInit),
@@ -1183,7 +1132,7 @@ public:
   }
 
   // called once after structure is fixed at (GDL-)compile time
-  ArrayIndexListMultiT( ArrayIndexVectorT* ix):
+  ArrayIndexListMultiNoAssocT( ArrayIndexVectorT* ix):
     ixList( *ix),
     allIx( NULL),
     ixListEnd( NULL)
@@ -1259,7 +1208,7 @@ if( dynamic_cast<ArrayIndexIndexed*>(ixList[ixList.size()-1]) ||
     cleanupIx.Cleanup();
   }
 
-  ArrayIndexListT* Clone() { return new ArrayIndexListMultiT( *this);}
+  ArrayIndexListT* Clone() { return new ArrayIndexListMultiNoAssocT( *this);}
 
 
   void Init( IxExprListT& ix, IxExprListT* cleanupIxIn)
@@ -1334,12 +1283,12 @@ if( dynamic_cast<ArrayIndexIndexed*>(ixList[ixList.size()-1]) ||
     acRank = ixList.size();
 
     // for assoc variables last index is the record
-    if( var->IsAssoc()) 
-      {
-	acRank--;
-	accessType = accessTypeAssocInit;
-      }
-    else
+//     if( var->IsAssoc()) 
+//       {
+// 	acRank--;
+// 	accessType = accessTypeAssocInit;
+//       }
+//     else
       accessType = accessTypeInit;
 
     // can happen due to assoc variables
@@ -1792,7 +1741,7 @@ if( dynamic_cast<ArrayIndexIndexed*>(ixList[ixList.size()-1]) ||
     // normal case
     Init( ix, NULL);
     SetVariable( var);
-    if( nIx == 1 && !var->IsAssoc())
+    if( nIx == 1)// && !var->IsAssoc())
     {
       return var->NewIx( baseIx);
     }
@@ -1824,7 +1773,7 @@ if( dynamic_cast<ArrayIndexIndexed*>(ixList[ixList.size()-1]) ||
 
 
 // some checks are not needed here
-class ArrayIndexListMultiNoneIndexedT: public ArrayIndexListMultiT
+class ArrayIndexListMultiNoneIndexedNoAssocT: public ArrayIndexListMultiNoAssocT
 {
 	public:	
   // constructor
@@ -1836,7 +1785,7 @@ class ArrayIndexListMultiNoneIndexedT: public ArrayIndexListMultiT
 //   ArrayIndexListMultiT( cp)
 //   {}
 // called after structure is fixed
-  ArrayIndexListMultiNoneIndexedT( ArrayIndexVectorT* ix)
+  ArrayIndexListMultiNoneIndexedNoAssocT( ArrayIndexVectorT* ix)
 // 	: ixList( *ix),
 //     allIx( NULL),
 //     ixListEnd( NULL)
@@ -1898,7 +1847,7 @@ class ArrayIndexListMultiNoneIndexedT: public ArrayIndexListMultiT
 //     std::cout << "accessTypeInit: " << accessTypeInit << std::endl;
   }
   
-  ArrayIndexListT* Clone() { return new ArrayIndexListMultiNoneIndexedT( *this);}
+  ArrayIndexListT* Clone() { return new ArrayIndexListMultiNoneIndexedNoAssocT( *this);}
 
   // set the root variable which is indexed by this ArrayIndexListMultiT
   void SetVariable( BaseGDL* var) 
@@ -1909,12 +1858,12 @@ class ArrayIndexListMultiNoneIndexedT: public ArrayIndexListMultiT
     acRank = ixList.size();
 
     // for assoc variables last index is the record
-    if( var->IsAssoc()) 
-      {
-		acRank--;
-		accessType = accessTypeAssocInit;
-      }
-    else
+//     if( var->IsAssoc()) 
+//       {
+// 		acRank--;
+// 		accessType = accessTypeAssocInit;
+//       }
+//     else
       accessType = accessTypeInit;
 
     // can happen due to assoc variables
@@ -2066,12 +2015,12 @@ class ArrayIndexListMultiNoneIndexedT: public ArrayIndexListMultiT
 
 
 
-class ArrayIndexListMultiAllIndexedT: public ArrayIndexListMultiT
+class ArrayIndexListMultiAllIndexedNoAssocT: public ArrayIndexListMultiNoAssocT
 {
 public:
   
   // called once after structure is fixed at (GDL-)compile time
-  ArrayIndexListMultiAllIndexedT( ArrayIndexVectorT* ix)
+  ArrayIndexListMultiAllIndexedNoAssocT( ArrayIndexVectorT* ix)
 // 	: ixList( *ix),
 //     allIx( NULL),
 //     ixListEnd( NULL)
@@ -2094,7 +2043,7 @@ public:
   }
   
 
-  ArrayIndexListT* Clone() { return new ArrayIndexListMultiAllIndexedT( *this);}
+  ArrayIndexListT* Clone() { return new ArrayIndexListMultiAllIndexedNoAssocT( *this);}
 
   // set the root variable which is indexed by this ArrayIndexListMultiT
   void SetVariable( BaseGDL* var) 
@@ -2105,12 +2054,12 @@ public:
 	acRank = ixList.size();
 
 	// for assoc variables last index is the record
-	if( var->IsAssoc())
-	{
-		acRank--;
-		accessType = accessTypeAssocInit;
-	}
-	else
+// 	if( var->IsAssoc())
+// 	{
+// 		acRank--;
+// 		accessType = accessTypeAssocInit;
+// 	}
+// 	else
 		accessType = accessTypeInit;
 
 	SizeT i=0;
@@ -2254,38 +2203,6 @@ public:
 	stride[acRank]=stride[acRank-1]*nIterLimit[acRank-1]; // index stride
   }
 }; //class ArrayIndexListMultiAllIndexedT: public ArrayIndexListMultiT
-
-
-
-
-
-
-
-
-
-class ArrayIndexListGuard
-{
-private:
-  ArrayIndexListT* aL;
-public:
-  ArrayIndexListGuard(): aL( NULL) {}
-  ~ArrayIndexListGuard() 
-  {
-    if( aL != NULL)
-      aL->Clear();
-  }
-  void reset( ArrayIndexListT* aL_) { aL = aL_;}
-  ArrayIndexListT* release() { ArrayIndexListT* res = aL; aL = NULL; return res;}
-};
-
-
-
-// called after structure is fixed (code in arrayindex.cpp)
-//ArrayIndexListT* MakeArrayIndex( ArrayIndexVectorT* ixList);
-void MakeArrayIndex( ArrayIndexVectorT* ixList, 
-				  ArrayIndexListT** arrayIndexOut, 
-				  ArrayIndexListT** arrayIndexNoAssocOut = NULL);
-
 
 
 #endif

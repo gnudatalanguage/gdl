@@ -118,6 +118,7 @@ private:
   // from DNode (see there)
   int lineNumber;
   ArrayIndexListT* arrIxList; // ptr to array index list
+  ArrayIndexListT* arrIxListNoAssoc; // ptr to array index list
   int labelStart; // for loops to determine if to bail out
   int labelEnd; // for loops to determine if to bail out
 

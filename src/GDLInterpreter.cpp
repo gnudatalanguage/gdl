@@ -5124,6 +5124,139 @@ void GDLInterpreter::parameter_def_n_elements(ProgNodeP _t,
 	_retTree = _t;
 }
 
+ArrayIndexListT*  GDLInterpreter::arrayindex_list_noassoc(ProgNodeP _t) {
+	ArrayIndexListT* aL;
+	ProgNodeP arrayindex_list_noassoc_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
+	
+	IxExprListT      cleanupList; // for cleanup
+	IxExprListT      ixExprList;
+	SizeT nExpr;
+	BaseGDL* s;
+		
+	//	ProgNodeP retTree = _t->getNextSibling();
+		ProgNodeP ax = _t;
+	// 	match(antlr::RefAST(_t),ARRAYIX);
+		_t = _t->getFirstChild();
+		
+		aL = ax->arrIxListNoAssoc;
+		assert( aL != NULL);
+		
+		nExpr = aL->NParam();
+		if( nExpr == 0)
+		{
+	aL->Init();
+	_retTree = ax->getNextSibling();//retTree;
+	return aL;
+		}
+		
+		while( true) {
+	assert( _t != NULL);
+	if( NonCopyNode( _t->getType()))
+	{
+	s= _t->EvalNC(); //indexable_expr(_t);
+	//_t = _retTree;
+	}
+	else if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
+	{
+	s=lib_function_call(_t);
+	//_t = _retTree;
+	if( !callStack.back()->Contains( s)) 
+	cleanupList.push_back( s);
+	}				
+	else
+	{
+	s=_t->Eval(); //indexable_tmp_expr(_t);
+	//_t = _retTree;
+	cleanupList.push_back( s);
+	}
+				
+	ixExprList.push_back( s);
+	if( ixExprList.size() == nExpr)
+	break; // allows some manual tuning
+	
+	_t = _t->getNextSibling();
+		}
+	
+		aL->Init( ixExprList, &cleanupList);
+		
+		_retTree = ax->getNextSibling();//retTree;
+		return aL;
+	
+	
+	ProgNodeP __t145 = _t;
+	ProgNodeP tmp97_AST_in = _t;
+	match(antlr::RefAST(_t),ARRAYIX);
+	_t = _t->getFirstChild();
+	{ // ( ... )*
+	for (;;) {
+		if (_t == ProgNodeP(antlr::nullAST) )
+			_t = ASTNULL;
+		if ((_tokenSet_1.member(_t->getType()))) {
+			{
+			if (_t == ProgNodeP(antlr::nullAST) )
+				_t = ASTNULL;
+			switch ( _t->getType()) {
+			case CONSTANT:
+			case DEREF:
+			case SYSVAR:
+			case VAR:
+			case VARPTR:
+			{
+				s=indexable_expr(_t);
+				_t = _retTree;
+				break;
+			}
+			case FCALL_LIB:
+			{
+				s=lib_function_call(_t);
+				_t = _retTree;
+				break;
+			}
+			case ASSIGN:
+			case ASSIGN_REPLACE:
+			case ASSIGN_ARRAYEXPR_MFCALL:
+			case ARRAYDEF:
+			case ARRAYEXPR:
+			case ARRAYEXPR_MFCALL:
+			case EXPR:
+			case FCALL:
+			case FCALL_LIB_RETNEW:
+			case MFCALL:
+			case MFCALL_PARENT:
+			case NSTRUC:
+			case NSTRUC_REF:
+			case POSTDEC:
+			case POSTINC:
+			case STRUC:
+			case DEC:
+			case INC:
+			case DOT:
+			case QUESTION:
+			{
+				s=indexable_tmp_expr(_t);
+				_t = _retTree;
+				break;
+			}
+			default:
+			{
+				throw antlr::NoViableAltException(antlr::RefAST(_t));
+			}
+			}
+			}
+		}
+		else {
+			goto _loop148;
+		}
+		
+	}
+	_loop148:;
+	} // ( ... )*
+	_t = __t145;
+	_t = _t->getNextSibling();
+	_retTree = _t;
+	return aL;
+}
+
 void GDLInterpreter::initializeASTFactory( antlr::ASTFactory& )
 {
 }

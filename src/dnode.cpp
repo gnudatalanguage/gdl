@@ -55,7 +55,7 @@ DNode::DNode( const DNode& cp):
 //   keepRight( false),
   CommonAST( cp), //down(), right(), 
   lineNumber( cp.getLine()), cData(NULL), 
-  var(cp.var), arrIxList(NULL), 
+  var(cp.var), arrIxList(NULL),arrIxListNoAssoc(NULL), 
   libFun( cp.libFun),
   libPro( cp.libPro),
   labelStart( cp.labelStart), labelEnd( cp.labelEnd)
@@ -63,6 +63,8 @@ DNode::DNode( const DNode& cp):
   if( cp.cData != NULL) cData = cp.cData->Dup();
   if( cp.arrIxList != NULL)
     arrIxList = cp.arrIxList->Clone();
+  if( cp.arrIxListNoAssoc != NULL)
+    arrIxListNoAssoc = cp.arrIxListNoAssoc->Clone();
 //     arrIxList = new ArrayIndexListT( *cp.arrIxList);
 
   initInt = cp.initInt;
@@ -73,6 +75,12 @@ ArrayIndexListT* DNode::CloneArrIxList()
     if( arrIxList == NULL) 
       return NULL;
     return arrIxList->Clone();
+  }
+ArrayIndexListT* DNode::CloneArrIxNoAssocList() 
+  { 
+    if( arrIxListNoAssoc == NULL) 
+      return NULL;
+    return arrIxListNoAssoc->Clone();
   }
 
 void DNode::ResetCData( BaseGDL* newCData)
@@ -97,6 +105,7 @@ DNode::~DNode()
     if( (getType() == GDLTokenTypes::ARRAYIX))
       {
 	delete arrIxList;
+	delete arrIxListNoAssoc;
       }
   }
 

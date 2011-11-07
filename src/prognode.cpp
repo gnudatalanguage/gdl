@@ -60,6 +60,7 @@ ProgNode::ProgNode( const RefDNode& refNode):
   libFun( refNode->libFun),
   var( refNode->var),
   arrIxList( refNode->StealArrIxList()),
+  arrIxListNoAssoc( refNode->StealArrIxNoAssocList()),
 //   arrIxList( refNode->CloneArrIxList()),
   labelStart( refNode->labelStart),
   labelEnd( refNode->labelEnd)
@@ -79,6 +80,7 @@ ProgNode::~ProgNode()
   if( (getType() == GDLTokenTypes::ARRAYIX))
     {
       delete arrIxList;
+      delete arrIxListNoAssoc;
     }
   if( !keepDown) delete down;
   if( !keepRight) delete right;

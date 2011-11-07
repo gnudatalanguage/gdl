@@ -798,6 +798,7 @@ public:
 	public: void parameter_def_n_elements(ProgNodeP _t,
 		EnvBaseT* actEnv
 	);
+	public: ArrayIndexListT*  arrayindex_list_noassoc(ProgNodeP _t);
 public:
 	antlr::RefAST getAST()
 	{
