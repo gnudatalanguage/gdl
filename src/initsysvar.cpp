@@ -487,9 +487,14 @@ namespace SysVar
     struct utsname uts;
     uname(&uts);
     ver->NewTag("ARCH", new DStringGDL( uts.machine)); 
-    ver->NewTag("OS", new DStringGDL( uts.sysname)); 
+
+    const char *SysName=uts.sysname;
+    if (strcmp(SysName,"Linux") ==0) SysName="linux";
+    if (strcmp(SysName,"Darwin") ==0) SysName="darwin";
+
+    ver->NewTag("OS", new DStringGDL(SysName));    
     ver->NewTag("OS_FAMILY", new DStringGDL( "unix")); 
-    ver->NewTag("OS_NAME", new DStringGDL( uts.sysname)); 
+    ver->NewTag("OS_NAME", new DStringGDL(SysName)); 
     ver->NewTag("RELEASE", new DStringGDL( "6.0")); 
     ver->NewTag("BUILD_DATE", new DStringGDL(__DATE__)); 
     ver->NewTag("MEMORY_BITS", new DIntGDL( sizeof(BaseGDL*)*8)); 
