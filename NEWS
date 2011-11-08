@@ -532,3 +532,5 @@
              and makes advantage of PLplot fixes introduced in PLplot 5.9.9)
            - memory leak fix (bug introduced in the previous version)
            - various testsuite & docs updates (incl. docs and examples for CALL_EXTERNAL)
+	   - fix in WordExp() when filename argument contain whitespaces (useful in various cases, including OPENR/W, FILE_MKDIR, ...)
+	   - !version.os now in lower case for Linux and Darwin
