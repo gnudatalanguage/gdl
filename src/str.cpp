@@ -244,25 +244,38 @@ unsigned long int Str2UL( const string& s, int base)
 
 void WordExp( string& s)
 {
+//cout << "WordExp  in: " << s << endl;
 #if !defined(__OpenBSD__)
-  wordexp_t p;
-  int ok0 = wordexp( s.c_str(), &p, 0);
-  if( ok0 == 0) 
-    {
-      if( p.we_wordc > 0)
-	s = p.we_wordv[0];
+// esc whitespace
+       string sEsc;
+       for( int i=0; i<s.length(); ++i)
+       {
+               if( s[i] == ' ')
+                       sEsc += "\\ ";
+               else
+                       sEsc += s[i];
+       }
+//cout << "WordExp esc: " << sEsc << endl;
+ wordexp_t p;
+ int ok0 = wordexp( sEsc.c_str(), &p, 0);
+ if( ok0 == 0)
+   {
+     if( p.we_wordc > 0)
+       s = p.we_wordv[0];
 #  if defined(__APPLE__)
-      p.we_offs = 0;
+     p.we_offs = 0;
 #  endif
-      wordfree( &p);
-    }
+     wordfree( &p);
+   }
 #endif
+//cout << "WordExp out: " << s << endl;
 }
+
 
 // Tries to find file "fn" along GDLPATH.
 // If found, sets fn to the full pathname.
 // and returns true, else false
-// If fn starts with '/' or ".." or "./", just checks it is readable.
+// If fn starts with '/' or ".." or "./", just checks if it is readable.
 bool CompleteFileName(string& fn)
 {
   WordExp( fn);
