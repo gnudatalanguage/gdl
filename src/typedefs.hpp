@@ -60,8 +60,8 @@
 
 // undef for releases (should not give diagnostics)
 // define for the CVS (where the default sizes can easily be adjusted)
-#define GDL_CVS_VERSION
-// #undef GDL_CVS_VERSION
+//#define GDL_CVS_VERSION
+#undef GDL_CVS_VERSION
 
 #ifdef GDL_CVS_VERSION
 #include <iostream>
