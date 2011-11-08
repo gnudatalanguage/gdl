@@ -1,3 +1,1048 @@
+GDL 0.9.2:
+2011-11-08  m_schellens  <m_schellens@sf.net>
+
+	* src/str.cpp: release
+
+2011-11-08  alaingdl  <alaingdl@sf.net>
+
+	* NEWS: details in NEWS
+
+	* src/initsysvar.cpp:
+	in !version, OS must be in lower case for Linux and Darwin ...
+
+2011-11-07  m_schellens  <m_schellens@sf.net>
+
+	* src/GDLTreeParser.hpp, src/GDLTreeParserTokenTypes.hpp, src/GDLTreeParserTokenTypes.txt, src/arrayindex.cpp, src/arrayindexlistnoassoct.hpp, src/envt.cpp, src/gdlc.g, src/gdlc.i.g, src/gdlc.tree.g, src/newprognode.cpp, src/prognode.cpp, src/prognode.hpp, src/prognodeexpr.cpp, src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/GDLInterpreterTokenTypes.hpp, src/GDLInterpreterTokenTypes.txt, src/GDLLexer.cpp, src/GDLParser.cpp, src/GDLParser.hpp, src/GDLTokenTypes.hpp, src/GDLTokenTypes.txt, src/GDLTreeParser.cpp:
+	optimized parameter passing
+
+	* src/prognodeexpr.cpp: fix bug 3300626
+
+	* src/arrayindex.hpp, src/arrayindexlistt.hpp: sync
+
+	* src/CMakeLists.txt, src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/GDLTreeParser.cpp, src/Makefile.am, src/Makefile.in, src/arrayindex.cpp, src/arrayindexlistnoassoct.hpp, src/arrayindexlistt.hpp, src/basic_pro.cpp, src/dnode.cpp, src/dnode.hpp, src/gdlc.i.g, src/gdlc.tree.g, src/prognode.cpp, src/prognode.hpp, src/prognode_lexpr.cpp, src/prognodeexpr.cpp:
+	add file
+
+2011-11-06  m_schellens  <m_schellens@sf.net>
+
+	* src/basic_fun.cpp: Fixed STREGEX
+
+	* src/arrayindex.hpp, src/envt.cpp: re-fix bug 3300626
+
+2011-11-06  alaingdl  <alaingdl@sf.net>
+
+	* CMakeLists.txt: version 0.9.2 in CMake way ;-)
+
+	* src/devicex.hpp: correcting bug 3433502 in TV
+
+2011-11-05  m_schellens  <m_schellens@sf.net>
+
+	* src/arrayindex.cpp, src/arrayindex.hpp, src/arrayindexlistt.hpp, src/basegdl.cpp, src/basegdl.hpp, src/datatypes.cpp, src/datatypes.hpp, src/dstructgdl.cpp, src/dstructgdl.hpp, src/envt.cpp, src/envt.hpp, src/prognode.cpp, src/typedefs.hpp:
+	bug fixes
+
+	* src/GDLInterpreter.cpp, src/arrayindex.cpp, src/arrayindex.hpp, src/arrayindexlistt.hpp, src/basic_fun.cpp, src/datalistt.hpp, src/dstructgdl.cpp, src/dstructgdl.hpp, src/envt.cpp, src/envt.hpp, src/gdlc.i.g, src/prognode.cpp, src/prognode.hpp:
+	removal of ArrayIndexT::Index()
+
+2011-11-04  m_schellens  <m_schellens@sf.net>
+
+	* src/GDLInterpreter.cpp, src/GDLTreeParser.cpp, src/dnode.hpp, src/gdlc.i.g, src/gdlc.tree.g, src/prognode.hpp:
+	implemented check for number of arguments to subroutines (TEST_DERIV bug)
+
+2011-11-03  m_schellens  <m_schellens@sf.net>
+
+	* src/basic_op.cpp, src/basic_op_new.cpp, src/sigfpehandler.cpp:
+	fixed error handling at division by 0
+
+2011-11-03  slayoo  <slayoo@sf.net>
+
+	* doc/www/resources.php:
+	www: adding a link to Mark Pipers website to resources.php
+
+	* doc/www/_header.inc.php: ITT -> Exelis in website header
+
+2011-11-03  m_schellens  <m_schellens@sf.net>
+
+	* src/arrayindex.hpp, src/arrayindexlistt.hpp, src/datatypes.cpp, src/prognode_lexpr.cpp:
+	optimization for Index with single element
+
+2011-11-02  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/idl_validname.pro:
+	we subsitute to the current limited version of IDL_VALIDNAME() a version provided by Hon Xu
+
+	* testsuite/test_idl_validname.pro:
+	before running TEST_IDL_VALIDNAME, we need to be sure STREGEX is working.
+
+	* testsuite/Makefile.am, testsuite/Makefile.in:
+	adding two files (test_idl_validname.pro and test_stregex.pro) in Makefile.am
+	in order to be run ...
+
+	* testsuite/test_idl_validname.pro:
+	one more case ($) in "test_idl_validname.pro"
+
+2011-11-02  m_schellens  <m_schellens@sf.net>
+
+	* src/basic_op.cpp, src/basic_op_new.cpp, src/envt.cpp, src/envt.hpp, src/gdlc.i.g, src/prognodeexpr.cpp:
+	optimization for scalar division and modulo
+
+	* src/prognode.cpp, src/prognodeexpr.cpp, src/GDLInterpreter.cpp, src/gdlc.i.g, src/prognode.hpp, src/prognode_lexpr.cpp, src/prognodeexpr.hpp:
+	cleanup
+
+	* ltmain.sh, src/GDLInterpreter.cpp, src/GDLTreeParser.cpp, src/gdlc.i.g, src/gdlc.tree.g, src/prognodeexpr.cpp, src/prognodeexpr.hpp:
+	fix make build system
+
+2011-11-01  m_schellens  <m_schellens@sf.net>
+
+	* doc/Makefile.in, src/Makefile.in, src/antlr/Makefile.in, src/pro/Makefile.in, src/pro/dicom/Makefile.in, testsuite/Makefile.in, Makefile.in, aclocal.m4, configure:
+	fix make build system
+
+	* src/gdlc.i.g, src/prognodeexpr.cpp, src/prognodeexpr.hpp, src/GDLInterpreter.cpp:
+	fixed bug around lib_function_call
+
+	* src/GDLInterpreter.cpp, src/gdlc.i.g, src/newprognode.cpp, src/prognode.cpp, src/prognodeexpr.cpp, src/prognodeexpr.hpp:
+	sync
+
+2011-10-31  m_schellens  <m_schellens@sf.net>
+
+	* src/GDLInterpreter.cpp, src/gdlc.i.g, src/prognode.cpp, src/prognode.hpp, src/prognodeexpr.cpp:
+	new Eval functions replacing calls in GDLInterpreter
+
+	* src/CMakeLists.txt, src/GDLInterpreter.cpp, src/Makefile.am, src/gdlc.i.g, src/prognode.cpp, src/prognode.hpp, src/prognode_lexpr.cpp, src/prognodeexpr.cpp, src/prognodeexpr.hpp:
+	Eval for DOTNode
+
+2011-10-31  slayoo  <slayoo@sf.net>
+
+	* src/magick_cl.cpp: Magick: adding a FIXME-throw in readindexes()
+
+	* src/deviceps.hpp:
+	PostScript: handling case when getlogin() returns a null pointer (apparently it happens!)
+
+	* src/deviceps.hpp, NEWS, README:
+	PostScript: making advantage of the change in plspage() introduced in plplot 5.9.9
+
+2011-10-31  m_schellens  <m_schellens@sf.net>
+
+	* src/prognode.hpp, src/prognode_lexpr.cpp, src/prognodeexpr.cpp, src/prognodeexpr.hpp, src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/gdlc.i.g, src/newprognode.cpp:
+	replacing parts of gdlc.i.g
+
+2011-10-29  m_schellens  <m_schellens@sf.net>
+
+	* src/GDLInterpreter.cpp, src/gdlc.i.g, src/prognode.cpp, src/prognodeexpr.cpp, src/prognodeexpr.hpp:
+	Removed _retTree setting in Eval functions
+
+2011-10-29  slayoo  <slayoo@sf.net>
+
+	* src/deviceps.hpp:
+	fixing device,/close behaviour when no plot was created before
+
+	* src/deviceps.hpp, testsuite/test_ps_decomposed.pro:
+	fixing bug 3428043 (PSlib was changing locale of GDL)
+
+2011-10-29  m_schellens  <m_schellens@sf.net>
+
+	* testsuite/Makefile.am, testsuite/test_ce.pro: undo testsuite changes
+
+	* testsuite/Makefile.am, testsuite/test_ce.pro, src/GDLInterpreter.cpp, src/gdlc.i.g, src/newprognode.cpp, src/prognode.cpp, src/prognode.hpp:
+	More LEval/Eval functions
+
+	* src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/gdlc.i.g:
+	Interpreter improvements
+
+2011-10-28  alaingdl  <alaingdl@sf.net>
+
+	* CMakeLists.txt, testsuite/test_healpix.pro:
+	option -muldefs no more needed in CMake; update for HealPix tests when PNG not available
+
+	* testsuite/test_stregex.pro:
+	initial import of TEST_STREGEX, not finished.
+
+2011-10-28  m_schellens  <m_schellens@sf.net>
+
+	* src/basic_fun.cpp: Fixed STREGEX with /EXTRACT
+
+	* src/GDLLexer.cpp, src/GDLLexer.hpp, src/GDLParser.cpp, src/GDLParser.hpp, src/GDLTokenTypes.hpp, src/GDLTokenTypes.txt, src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/GDLTreeParserTokenTypes.hpp, src/GDLTreeParserTokenTypes.txt, src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/GDLInterpreterTokenTypes.hpp, src/GDLInterpreterTokenTypes.txt, src/arrayindexlistt.hpp, src/datalistt.hpp, src/envt.cpp, src/envt.hpp, src/gdlc.i.g, src/prognode.cpp, src/prognode.hpp, src/prognodeexpr.cpp, src/prognodeexpr.hpp:
+	custom new/delete for Env[UD]T
+
+2011-10-26  m_schellens  <m_schellens@sf.net>
+
+	* src/allix.cpp, src/allix.hpp, src/arrayindex.cpp, src/arrayindexlistt.hpp:
+	introduced ArrayIndexListMultiAllIndexedT
+
+	* src/allix.cpp, src/allix.hpp, src/arrayindexlistt.hpp, src/prognodeexpr.cpp, config.h.in, configure:
+	Faster sequential indexing
+
+2011-10-25  m_schellens  <m_schellens@sf.net>
+
+	* src/pro/Makefile.in, src/pro/dicom/Makefile.in, testsuite/Makefile.in, doc/Makefile.in, src/Makefile.in, src/antlr/Makefile.in, Makefile.in, aclocal.m4:
+	fix linking
+
+	* src/arrayindex.hpp, src/envt.hpp, src/typedefs.hpp:
+	inline specialized GDLArray functions
+
+2011-10-25  alaingdl  <alaingdl@sf.net>
+
+	* CMakeLists.txt: typo netDCF / netCDF
+
+	* testsuite/test_ps_decomposed.pro:
+	now, if bad locale when calling "test_ps_decomposed.pro", problem.
+
+2011-10-24  m_schellens  <m_schellens@sf.net>
+
+	* src/prognode.hpp: inline
+
+2011-10-23  m_schellens  <m_schellens@sf.net>
+
+	* src/antlr/Makefile.in, src/pro/Makefile.in, src/pro/dicom/Makefile.in, testsuite/Makefile.in, doc/Makefile.in, src/Makefile.in, src/allix.cpp, src/arrayindexlistt.hpp, src/basic_fun.cpp, src/envt.hpp, src/typedefs.hpp, Makefile.in, aclocal.m4, configure:
+	Improved indexing. Fixed bug tracker ID 3426399 (\!sysvar.tag crash)
+
+2011-10-20  m_schellens  <m_schellens@sf.net>
+
+	* src/basic_op.cpp: Fixed: OrOpInvS called OrOp (instead of OrOpS)
+
+2011-10-20  alaingdl  <alaingdl@sf.net>
+
+	* src/math_fun_ac.cpp:
+	correcting small bug in X/Y lengths checks for "spl_init_fun(x,y, ...)"
+
+2011-10-20  m_schellens  <m_schellens@sf.net>
+
+	* src/gsl_fun.cpp, src/typedefs.hpp:
+	Fixing bug in BaseGDL* zeropoly(EnvT*) (causing failure in test_zeropoly.pro)
+
+2011-10-19  m_schellens  <m_schellens@sf.net>
+
+	* src/GDLInterpreter.cpp, src/accessdesc.hpp, src/arrayindex.hpp, src/arrayindexlistt.hpp, src/datatypes.cpp, src/gdlc.i.g, src/specializations.hpp:
+	fixed handling of temporary array indices
+
+	* src/allix.hpp, src/arrayindex.cpp, src/arrayindex.hpp, src/arrayindexlistt.hpp, src/dimension.hpp, src/dvar.hpp:
+	non-copy dim stride
+
+2011-10-18  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_healpix.pro:
+	initial import of test for the HealPix Library. Thanks to E. Hivon.
+
+	* NEWS: news in NEWS
+
+2011-10-18  m_schellens  <m_schellens@sf.net>
+
+	* src/allix.hpp, src/arrayindex.cpp, src/arrayindexlistt.hpp, src/allix.cpp:
+	2D index optimization
+
+	* src/arrayindex.cpp, src/arrayindexlistt.hpp, src/basic_fun.cpp, src/datalistt.hpp, src/datatypes.cpp, src/datatypes.hpp, src/envt.cpp, src/prognode.cpp:
+	sync
+
+2011-10-17  m_schellens  <m_schellens@sf.net>
+
+	* src/allix.hpp, src/basic_op_new.cpp: sync
+
+	* src/convert2.cpp: one element optimization for Convert2
+
+2011-10-17  alaingdl  <alaingdl@sf.net>
+
+	* src/CMakeLists.txt: adding two new files for CMake
+
+2011-10-17  m_schellens  <m_schellens@sf.net>
+
+	* src/Makefile.am, src/Makefile.in, src/allix.cpp, src/arrayindexlistt.hpp:
+	fast indexing with only one variable dimension (e. g. a[1,*])
+
+	* src/allix.cpp, src/arrayindex.cpp: sync
+
+	* src/allix.cpp: add file
+
+	* src/Makefile.am, src/Makefile.in, src/allix.hpp, src/arrayindex.cpp, src/arrayindexlistt.hpp, src/dimension.hpp:
+	indexing
+
+2011-10-14  m_schellens  <m_schellens@sf.net>
+
+	* src/datatypes.cpp: sync
+
+	* src/prognodeexpr.cpp: All OpNew functions utilized
+
+	* src/datatypes.cpp, src/prognodeexpr.cpp:
+	OpNew functions utilized. Faster TRANSPOSE 2D
+
+2011-10-13  m_schellens  <m_schellens@sf.net>
+
+	* src/datatypes.cpp: Fast SHIFT for all dimensions and types
+
+	* src/datatypes.cpp: fast SHIFT 3D and 4D (STRING only 1D and 2D)
+
+	* src/datatypes.cpp, src/dstructgdl.cpp, src/typedefs.hpp:
+	Fast SHIFT for 1D and 2D cases
+
+	* src/datatypes.cpp, src/typedefs.hpp: GDLArray buffer cache
+
+2011-10-12  alaingdl  <alaingdl@sf.net>
+
+	* doc/gdl.1:
+	upgrade of man page, in concordance to new options in main "gdl".
+
+	* src/gdl.cpp:
+	short and long (-h, --help) ways to call options, we always forgot the good way to call them. No effect on options known by IDL.
+
+	* src/basic_fun.cpp:
+	improvments in STREGEX, but not finished :(  (no test in testsuite; STRMATCH still missing)
+
+2011-10-12  m_schellens  <m_schellens@sf.net>
+
+	* src/basegdl.cpp, src/basegdl.hpp, src/basic_op.cpp, src/basic_op_new.cpp, src/datatypes.cpp, src/datatypes.hpp, src/dstructgdl.hpp, src/prognodeexpr.cpp, src/sigfpehandler.cpp, src/specializations.hpp:
+	37 new operator functions (not utilized yet)
+
+	* src/basic_op_new.cpp, src/dimension.hpp, src/prognodeexpr.cpp, src/basegdl.hpp:
+	added file for RetNew operators
+
+2011-10-11  alaingdl  <alaingdl@sf.net>
+
+	* CMakeLists.txt:
+	1/ now, we mandatory need the "-z muldefs" flag at linking in CMake way. See altenative in CMakeList.txt.
+	2/ typo PSLIBS --> PSLIB
+
+2011-10-11  m_schellens  <m_schellens@sf.net>
+
+	* src/assocdata.hpp, src/basegdl.cpp, src/basegdl.hpp, src/basic_fun.cpp, src/basic_op.cpp, src/basic_pro.cpp, src/datatypes.cpp, src/datatypes.hpp, src/dimension.hpp, src/dstructgdl.cpp, src/dstructgdl.hpp, src/math_fun_ng.cpp, src/prognodeexpr.cpp, src/prognodeexpr.hpp, src/typedefs.hpp:
+	For Eval(): AddNew, AddSNew and friends. GDLArray optimization
+
+	* src/allix.hpp, src/arrayindex.cpp, src/arrayindex.hpp, src/arrayindexlistt.hpp, src/basegdl.cpp, src/basegdl.hpp, src/basic_fun.cpp, src/basic_fun_jmg.cpp, src/datalistt.hpp, src/datatypes.cpp, src/dimension.hpp, src/dstructgdl.cpp, src/dstructgdl.hpp, src/gsl_fun.cpp, src/math_fun_jmg.cpp:
+	stride storage for dimension
+
+2011-10-10  m_schellens  <m_schellens@sf.net>
+
+	* src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/basegdl.hpp, src/envt.cpp, src/envt.hpp, src/gdlc.i.g:
+	Customized container for FoorLoopInfoT
+
+	* src/GDLInterpreter.cpp, src/arrayindex.hpp, src/arrayindexlistt.hpp, src/basegdl.hpp, src/datalistt.hpp, src/datatypes.cpp, src/datatypesref.cpp, src/envt.cpp, src/envt.hpp, src/typedefs.hpp:
+	New ExprListT definition
+
+2011-10-08  m_schellens  <m_schellens@sf.net>
+
+	* src/Makefile.am, src/Makefile.in, src/accessdesc.hpp, src/allix.hpp, src/arrayindex.cpp, src/arrayindex.hpp, src/arrayindexlistt.hpp, src/basegdl.cpp, src/basegdl.hpp, src/convert2.cpp, src/datatypes.cpp, src/datatypes.hpp, src/datatypesref.cpp:
+	Sequential indexing. Fixed Convert2(STRING).
+
+2011-10-07  m_schellens  <m_schellens@sf.net>
+
+	* src/arrayindex.hpp, src/basic_op.cpp, src/arrayindex.cpp:
+	optimizations for scalar handling (especially with OpenMP)
+
+	* src/accessdesc.hpp, src/allix.hpp, src/arrayindex.cpp, src/arrayindex.hpp, src/arrayindexlistt.hpp, src/dimension.hpp:
+	indexing optimizations
+
+	* src/allix.hpp: add allix.hpp
+
+2011-10-06  m_schellens  <m_schellens@sf.net>
+
+	* src/accessdesc.hpp, src/arrayindex.cpp, src/arrayindex.hpp, src/arrayindexlistt.hpp, src/basegdl.cpp, src/basegdl.hpp, src/basic_pro.cpp, src/datatypes.cpp, src/datatypes.hpp, src/datatypesref.cpp, src/dimension.hpp, src/dstructgdl.cpp, src/gdlc.tree.g, src/typedefs.hpp, src/GDLTreeParser.hpp, src/Makefile.am, src/Makefile.in:
+	more efficient indexing (5x faster for indexed case)
+
+2011-10-04  m_schellens  <m_schellens@sf.net>
+
+	* src/Makefile.am, src/Makefile.in, src/arrayindex.hpp, src/arrayindexlistt.hpp, src/datatypes.cpp, src/typedefs.hpp:
+	indexing speed up
+
+2011-09-29  m_schellens  <m_schellens@sf.net>
+
+	* src/arrayindex.hpp, src/arrayindexlistt.hpp, src/basic_fun.cpp, src/basic_op.cpp, src/basic_pro.cpp, src/convert2.cpp, src/datatypes.cpp, src/fftw.cpp, src/math_fun.cpp, src/strassenmatrix.hpp, src/typedefs.hpp:
+	tracing for OMP calls
+
+2011-09-25  alaingdl  <alaingdl@sf.net>
+
+	* src/math_fun.cpp: bad name for a counter in LAGUERE(), no time to fix
+
+2011-09-25  m_schellens  <m_schellens@sf.net>
+
+	* src/basic_op.cpp, src/convert2.cpp, src/datatypes.cpp, src/magick_cl.cpp, src/math_fun.cpp, src/arrayindex.hpp, src/basic_fun.cpp:
+	Removed usage of OpenMP for all simple copy operations
+
+2011-09-24  m_schellens  <m_schellens@sf.net>
+
+	* src/arrayindex.hpp, src/arrayindexlistt.hpp, src/typedefs.hpp:
+	changed defintion of AllIxT
+
+2011-09-23  m_schellens  <m_schellens@sf.net>
+
+	* src/GDLInterpreter.cpp, src/GDLInterpreter.hpp, src/GDLInterpreterTokenTypes.hpp, src/GDLInterpreterTokenTypes.txt, src/GDLLexer.cpp, src/GDLLexer.hpp, src/GDLParser.cpp, src/GDLParser.hpp, src/GDLTokenTypes.hpp, src/GDLTokenTypes.txt, src/GDLTreeParser.cpp, src/GDLTreeParser.hpp, src/GDLTreeParserTokenTypes.hpp, src/GDLTreeParserTokenTypes.txt, src/gdlc.g, src/prognode.hpp:
+	Lookup table for NonCopyNode()
+
+	* src/magick_cl.cpp: fix g++ segfault with -O2 and OpenMP
+
+2011-09-20  m_schellens  <m_schellens@sf.net>
+
+	* src/GDLInterpreter.hpp, src/GDLLexer.hpp, src/GDLParser.cpp, src/GDLParser.hpp, src/basic_pro.cpp, src/dinterpreter.cpp, src/dstructdesc.cpp, src/gdlc.g, src/gdlc.i.g, src/pro/Makefile.in, src/pythongdl.cpp, testsuite/Makefile.in, config.h.in:
+	Made GDL distinguish PRO and FUNCTION when searching for a subroutine (bug tracker ID 3394134)
+
+2011-09-19  slayoo  <slayoo@sf.net>
+
+	* CMakeLists.txt, INSTALL, NEWS, README, configure.in, doc/udg/chapters/math-func.tex, doc/udg/makeall, doc/www/requirements.php, src/gdlpsstream.cpp, src/gdlpsstream.hpp, src/graphics.hpp, src/initsysvar.cpp, src/initsysvar.hpp, src/libinit.cpp, src/plotting.cpp, src/plotting_contour.cpp, src/plotting_device.cpp, CMakeModules/Findlibps.cmake, src/deviceps.hpp:
+	non-Encapsulated PostScript support along with XSIZE, YSIZE, XOFFSET, YOFFSET, PORTRAIT, LANDSCAPE and SCALE_FACTOR settings support for PostScript output (requires pslib - http://pslib.sourceforge.net/)
+
+2011-09-01  slayoo  <slayoo@sf.net>
+
+	* testsuite/test_sem.pro: test_sem.pro: uncommenting debug printfs
+
+2011-08-31  m_schellens  <m_schellens@sf.net>
+
+	* src/basic_fun_jmg.cpp: fixed MAKE_ARRAY(/STRING, /INDEX,...)
+
+	* src/Makefile.in, src/dstructdesc.hpp, src/pro/dicom/Makefile.in, config.h.in:
+	allignment for structs
+
+2011-08-31  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_spher_harm.pro:
+	fixing doc.; this code required at least IDL 8.0 on IDL side
+
+2011-08-31  slayoo  <slayoo@sf.net>
+
+	* testsuite/test_spher_harm.pro:
+	test_spher_harm: making it work with IDL too (epsilon 1e-7 -> 1e-6)
+
+2011-08-30  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_spher_harm.pro: hum, stupid typo (duplicate begin ...)
+
+	* testsuite/Makefile.in, testsuite/image_test.pro, testsuite/test_spher_harm.pro:
+	fixing details in testsuite/
+
+	* src/pro/write_bmp.pro, src/pro/write_jpeg.pro, src/pro/write_pict.pro, src/pro/write_png.pro:
+	some cleaning in the WRITE_* procedures, not finished. N_PARAMS() tests not done :(
+
+	* src/pro/save.pro: details in SAVE
+
+	* testsuite/image_test.pro:
+	rewriting the "IMAGE_TEST" procedure to be usable, using the "Saturn.jpg" internal file.
+	Some tests in initial version are missing (ToDo)
+
+	* testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_postscript.pro, testsuite/test_systime.pro:
+	1/ very preliminary test suite for the PostScript output
+	(esp. XOFFSET and YOFFSET keywords are not working now)
+	2/ initial import of TEST_SYSTIME. The related bug was corrected in "gdl.cpp" by
+	Sylwester. When an external library (e.g. ImageMagick) is compiled with "bad" locale,
+	it may propagate inside GDL (one consequence: breaking SYSTIME(), another bad format in "printf").
+
+2011-08-29  slayoo  <slayoo@sf.net>
+
+	* src/gdl.cpp:
+	adding a note on why setlocale() has to be called after LibInit()
+
+	* src/gdl.cpp: trying to fix MagickInit-locale conflict
+
+	* doc/www/resources.php, doc/www/_news.inc.php: website update
+
+2011-08-27  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/write_jpeg.pro:
+	in WRITE_JPEG, changing q*1U to UINT(q) (blocking bug); other "input checks" changes
+
+2011-08-24  slayoo  <slayoo@sf.net>
+
+	* doc/udg/chapters/cmdline.tex, doc/udg/chapters/credits.tex, doc/udg/chapters/debug.tex, doc/udg/chapters/dynload.tex, doc/udg/chapters/exec.tex, doc/udg/chapters/filesys.tex, doc/udg/chapters/image.tex, doc/udg/chapters/io-ascii.tex, doc/udg/chapters/io-bin.tex, doc/udg/chapters/io-fits.tex, doc/udg/chapters/io-grib.tex, doc/udg/chapters/io-hdf4.tex, doc/udg/chapters/io-hdf5.tex, doc/udg/chapters/io-idlsave.tex, doc/udg/chapters/io-img.tex, doc/udg/chapters/io-netcdf.tex, doc/udg/chapters/io.tex, doc/udg/chapters/math-basic.tex, doc/udg/chapters/math-bits.tex, doc/udg/chapters/math-constants.tex, doc/udg/chapters/math-fourier.tex, doc/udg/chapters/math-func.tex, doc/udg/chapters/math-geom.tex, doc/udg/chapters/math-interpol.tex, doc/udg/chapters/math-la.tex, doc/udg/chapters/math-multiroots.tex, doc/udg/chapters/math-ode.tex, doc/udg/chapters/math-poly.tex, doc/udg/chapters/math-rng.tex, doc/udg/chapters/math-stats.tex, doc/udg/chapters/math-wavelet.tex, doc/udg/chapters/net.tex, doc/udg/chapters/os.tex, doc/udg/chapters/plot-2d.tex, doc/udg/chapters/plot-3d.tex, doc/udg/chapters/plot-colours.tex, doc/udg/chapters/plot-fonts.tex, doc/udg/chapters/plot-map.tex, doc/udg/chapters/plot-misc.tex, doc/udg/chapters/plot-raster.tex, doc/udg/chapters/plot-term.tex, doc/udg/chapters/plot-windows.tex, doc/udg/chapters/python-in-gdl.tex, doc/udg/chapters/python-module.tex, doc/udg/chapters/strings.tex, doc/udg/chapters/syntax-arguments.tex, doc/udg/chapters/syntax-array.tex, doc/udg/chapters/syntax-errhandle.tex, doc/udg/chapters/syntax-flowcon.tex, doc/udg/chapters/syntax-heap.tex, doc/udg/chapters/syntax-help.tex, doc/udg/chapters/syntax-infnans.tex, doc/udg/chapters/syntax-oop.tex, doc/udg/chapters/syntax-ops.tex, doc/udg/chapters/syntax-stru.tex, doc/udg/chapters/syntax-sysvars.tex, doc/udg/chapters/syntax-types.tex, doc/udg/chapters/syntax-udsub.tex, doc/udg/chapters/syntax.tex, doc/udg/chapters/time.tex, doc/udg/chapters/widgets.tex, doc/udg/diag/broken-references, doc/udg/examples/get_login_info_0/get_login_info_0.out.txt, doc/udg/examples/showfont_4/gdl.ps, doc/udg/examples/showfont_7/gdl.ps, doc/udg/gdl.tex:
+	doc/udg update
+
+	* doc/www/resources.php:
+	doc/www: updating resources.php with links to three other papers mentioning use of GDL
+
+2011-08-22  opoplawski  <opoplawski@sf.net>
+
+	* src/deviceps.hpp, src/devicesvg.hpp, src/devicewin.hpp, src/devicex.hpp, src/devicez.hpp:
+	Make setopt usage conditional on HAVE_OLDPLPLOT
+
+	* src/deviceps.hpp, src/devicesvg.hpp, src/devicewin.hpp, src/devicex.hpp, src/devicez.hpp:
+	SetOpt() was removed in plplot 5.9.8, use setopt() instead
+
+	* src/gdlgstream.cpp:
+	Use std::string() in gdlgstream.cpp to avoid ambiguity
+
+2011-08-22  slayoo  <slayoo@sf.net>
+
+	* src/libinit.cpp: DEVICE: ignoring XOFFSET and YOFFSET
+
+2011-08-20  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/idl_validname.pro:
+	improvment of IDL_VALIDNAME, but not finished
+
+	* testsuite/test_idl_validname.pro:
+	initial import of test for IDL_VALIDNAME (not finished)
+
+	* src/initsysvar.cpp:
+	initial import of a EPOCH field in the !GDL structure
+
+	* src/basic_fun.cpp:
+	in STRCMP(), 2 bugs corrected when 2 arrays of string are provided.
+
+2011-08-19  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_file_which.pro, src/pro/file_which.pro:
+	fixing last "/" in FILE_WHICH(), improving the related test file
+
+	* testsuite/test_bug_3286031.pro, testsuite/test_bug_3376577.pro, testsuite/test_strsplit.pro:
+	cleanup in 3 files in testsuite/
+
+	* CMakeModules/FindFFTW.cmake, CMakeModules/FindGSL.cmake, CMakeModules/FindGrib.cmake, CMakeModules/FindHDF.cmake, CMakeModules/FindLibproj4.cmake, CMakeModules/FindNetCDF.cmake, CMakeModules/FindNumpy.cmake, CMakeModules/FindPlplot.cmake, CMakeModules/FindReadline.cmake, CMakeModules/FindUdunits.cmake, CMakeLists.txt:
+	update GDL version in CMakeLists.txt; copyright and GNU GPL licences added to all CMake files in dir. CMakeModules/
+
+	* quick_start_GDL.sh:
+	in the script for quick start, preserving GDL_PATH/GDL_STARTUP
+
+2011-08-18  slayoo  <slayoo@sf.net>
+
+	* src/magick_cl.cpp: MAGICK_READ: fixing alpha channel read
+
+2011-08-18  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/idl_validname.pro:
+	adding two fake keywords in IDL_VALIDNAME (/CONVERT_ALL] [, /CONVERT_SPACES)
+	in order to be able to run End-To-End test of HealPix test program from E. Hivon.
+
+	* src/pro/read_jpeg.pro: hum, bad if/then/else correction
+
+	* src/pro/read_png.pro: better inputs checks for READ_PNG
+
+	* src/pro/query_bmp.pro, src/pro/query_dicom.pro, src/pro/query_gif.pro, src/pro/query_image.pro, src/pro/query_jpeg.pro, src/pro/query_pict.pro, src/pro/query_png.pro, src/pro/query_ppm.pro, src/pro/query_tiff.pro, src/pro/read_jpeg.pro:
+	now, we check we have compiled with ImageMagick support for these pro/functs which are using this external lib.
+
+	* src/magick_cl.cpp:
+	in MAGICK_OPEN, when filename is non existant, it is better to exist ...
+
+2011-08-17  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_interpolate_missing.pro:
+	initial import (at the right place) of this file for testsuite
+
+2011-08-17  slayoo  <slayoo@sf.net>
+
+	* NEWS: NEWS update
+
+	* testsuite/Makefile.am, testsuite/Makefile.in, src/gsl_fun.cpp, src/libinit_jmg.cpp:
+	INTERPOLATE: support for the MISSING keyword
+
+2011-08-16  slayoo  <slayoo@sf.net>
+
+	* src/libinit_cl.cpp, src/magick_cl.cpp:
+	moving fix of bug 3376577 from magick_open info libinit (so magick_create and magick_ping also benefit from it)
+
+2011-08-15  slayoo  <slayoo@sf.net>
+
+	* src/pro/findex.pro, src/pro/interpol.pro:
+	fixing 3104537 in interpo.pro (patch by boudgdl)
+
+	* doc/www/resources.php:
+	adding a link to the redbranch blog in the resources section of the website
+
+2011-08-12  alaingdl  <alaingdl@sf.net>
+
+	* doc/www/_news.inc.php: bad formatting news column
+
+	* doc/www/_news.inc.php, doc/www/index.php, doc/www/requirements.php:
+	few news; typo; details for libs.
+
+	* src/pro/strsplit.pro: various bugs solved in STRSPLIT
+
+	* testsuite/test_strsplit.pro:
+	correcting and improving testsuite for STRSPLIT
+
+2011-08-11  slayoo  <slayoo@sf.net>
+
+	* doc/www/requirements.php: updating TeXtoIDL website address
+
+2011-08-10  slayoo  <slayoo@sf.net>
+
+	* doc/www/_footer.inc.php, doc/www/credits.php:
+	Website update (incl. change of license for the website content so it is compatible with Wikipedia)
+
+	* src/magick_cl.cpp: update to the fix of bug 3376577
+
+2011-08-09  slayoo  <slayoo@sf.net>
+
+	* src/gdlgstream.hpp:
+	commiting changes suggested at https://sourceforge.net/projects/gnudatalanguage/forums/forum/338692/topic/4562373
+
+	* src/magick_cl.cpp, testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_bug_3376577.pro:
+	fixing bug 3376577 in Magick++ routines (fix by Lorenzo/lclem)
+
+	* NEWS: NEWS update
+
+	* src/pro/Makefile.am, src/pro/Makefile.in, src/pro/idl_validname.pro:
+	IDL_VALIDNAME: initial import (by Rene Preusker)
+
+2011-07-11  slayoo  <slayoo@sf.net>
+
+	* NEWS: NEWS update
+
+2011-07-08  slayoo  <slayoo@sf.net>
+
+	* doc/www/_header.inc.php: doc/www: new website
+
+2011-07-08  alaingdl  <alaingdl@sf.net>
+
+	* doc/www/credits.php: itypo in Sylwester email
+
+2011-07-08  slayoo  <slayoo@sf.net>
+
+	* doc/www/_footer.inc.php, doc/www/_header.inc.php, doc/www/_news.inc.php, doc/www/contribute.html, doc/www/credits.html, doc/www/credits.php, doc/www/documentation.php, doc/www/download.html, doc/www/downloads.php, doc/www/feedback.html, doc/www/gdl.css, doc/www/home.html, doc/www/images/Colourise.css, doc/www/images/bg.jpg, doc/www/images/bullet.gif, doc/www/images/footer-top.jpg, doc/www/images/header-search.jpg, doc/www/index.html, doc/www/index.php, doc/www/menu.html, doc/www/require.html, doc/www/requirements.php, doc/www/resources.html, doc/www/resources.php, doc/www/screenshot.html, doc/www/screenshots.php, doc/www/screenshots/make_thumbnails, doc/www/screenshots/screenshot01_thumb.png, doc/www/screenshots/screenshot02_thumb.png, doc/www/screenshots/screenshot03_thumb.png, doc/www/screenshots/screenshot04_thumb.png, doc/www/screenshots/screenshot05_thumb.png, doc/www/screenshots/screenshot06_thumb.png, doc/www/screenshots/screenshot07_thumb.png, doc/www/screenshots/screenshot08_thumb.png, doc/www/screenshots/screenshot09_thumb.png, doc/www/screenshots/screenshot10_thumb.png, doc/www/screenshots/screenshot11_thumb.png, doc/www/screenshots/screenshot12_thumb.png, doc/www/screenshots/screenshot13_thumb.png, doc/www/support.html, doc/www/support.php, doc/www/tdl.html:
+	doc/www: new website
+
+	* src/gshhs.cpp: plotting: uploading missing files
+
+	* src/plotting.hpp, src/plotting_axis.cpp, src/plotting_erase.cpp, src/plotting_oplot.cpp, src/plotting_plot.cpp, src/plotting_plots.cpp, src/plotting_polyfill.cpp, src/plotting_surface.cpp, src/plotting_xyouts.cpp:
+	plotting: uploading missing changes
+
+2011-07-07  slayoo  <slayoo@sf.net>
+
+	* src/libinit.cpp, src/plotting_contour.cpp:
+	CONTOUR: the C_COLORS keyword
+
+	* AUTHORS, doc/udg/diag/broken-references, doc/udg/gdl.tex, doc/udg/chapters/credits.tex, doc/udg/chapters/semshm.tex:
+	doc/udg update
+
+2011-07-06  slayoo  <slayoo@sf.net>
+
+	* src/basic_fun.cpp, src/libinit.cpp, testsuite/Makefile.am, testsuite/Makefile.in:
+	fixing bug no. 3151760
+
+2011-07-05  slayoo  <slayoo@sf.net>
+
+	* src/deviceps.hpp: one compiler warning less
+
+	* CMakeLists.txt: CMake: fix for supporting SPAWN, UNIT...
+
+	* src/devicex.hpp: one compiler warning less
+
+2011-07-04  slayoo  <slayoo@sf.net>
+
+	* src/semshm.cpp: semshm.cpp: include fix
+
+	* src/CMakeLists.txt: updating CMakeLists.txt - new files
+
+	* src/io.hpp: io.hpp: fixing include issue
+
+2011-07-03  slayoo  <slayoo@sf.net>
+
+	* doc/udg/examples/showfont_3/gdl.ps, doc/udg/examples/showfont_4/gdl.ps, doc/udg/examples/showfont_7/gdl.ps, doc/udg/examples/surface_ax/gdl.ps, doc/udg/examples/surface_ax/surface_ax.out.txt, doc/udg/examples/surface_ax/surface_ax.pro, doc/udg/examples/surface_az/gdl.ps, doc/udg/examples/surface_az/surface_az.out.txt, doc/udg/examples/surface_az/surface_az.pro, doc/udg/routines/str-sep.fun.tex, doc/udg/routines/surface.pro.tex, doc/udg/diag/broken-references, doc/udg/examples/dist_0/gdl.ps, doc/udg/examples/file_lines_0/file_lines_0.out.txt, doc/udg/examples/routine_names_s_functions/routine_names_s_functions.out.txt:
+	doc/udg update
+
+	* src/basic_pro.cpp, src/plotting_contour.cpp, src/plotting_surface.cpp:
+	SURFACE: using AutoIntvAC for xStart etc
+
+	* testsuite/test_plotting_ranges.pro, src/plotting.cpp, src/plotting.hpp, src/plotting_axis.cpp, src/plotting_contour.cpp, src/plotting_plot.cpp, src/plotting_plots.cpp:
+	CONTOUR: logscale plots when explicitely specifying X/Y values (tracker item no. 3321973)
+
+2011-07-02  slayoo  <slayoo@sf.net>
+
+	* src/devicex.hpp, src/initsysvar.cpp, src/libinit.cpp, src/plotting.cpp, src/plotting.hpp, src/plotting_contour.cpp, src/plotting_plot.cpp, src/plotting_plots.cpp, src/plotting_surface.cpp, src/plotting_windows.cpp:
+	SURCAFE: updating !Z.CRANGE; !P.T: initial values; default window size as a function of screen resolution (IDL behaviour); PLOTS: towards 3D support
+
+	* src/semshm.cpp:
+	semaphores: fixing on_exit behaviour (by Mateusz Turcza)
+
+2011-07-01  slayoo  <slayoo@sf.net>
+
+	* NEWS: NEWS update
+
+	* testsuite/test_sem.pro: sanitizing test_sem.pro
+
+	* src/basic_pro.cpp, testsuite/Makefile.am, testsuite/test_sem.pro, src/Makefile.am, src/Makefile.in, src/libinit.cpp, src/semshm.cpp, src/semshm.hpp:
+	SEM_CREATE, SEM_LOCK, SEM_RELEASE, SEM_DELETE: initial import (by Mateusz Turcza)
+
+	* src/hdf5_fun.cpp, src/hdf_fun.cpp, src/libinit_jmg.cpp, src/ncdf_cl.cpp:
+	filename expansion in NCDF_OPEN, H5F_OPEN, HDF_OPEN & HDF_SD_START (tracker item no. 3164308)
+
+2011-06-29  slayoo  <slayoo@sf.net>
+
+	* src/basic_fun.cpp, src/envt.cpp, src/envt.hpp, testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_bug_3313522.pro:
+	fixing bug 3313522
+
+2011-06-28  slayoo  <slayoo@sf.net>
+
+	* testsuite/test_bug_3275334.pro:
+	skipping test_bug_3275334.pro when X-server connection not available
+
+	* src/gshhs.cpp: plotting routines: first step towards code clean-up
+
+	* NEWS, configure.in, testsuite/Makefile.am, testsuite/test_spawn_unit.pro, src/basic_pro.cpp, src/io.cpp, src/io.hpp, src/libinit.cpp:
+	SPAWN: support for the UNIT keyword (relies on GNU extensions to libstdc++, patch by Greg Huey)
+
+	* src/ncdf_cl.cpp:
+	NCDF_CONTROL: fixing error message (tracker item no. 3192226)
+
+	* src/pro/dicom/Makefile.in, src/pro/dicom/gdlffdicom__assoc__define.pro, src/pro/dicom/gdlffdicom__assoc__test.pro, src/pro/dicom/gdlffdicom__define.pro, src/pro/dicom/gdlffdicom__test.pro, src/pro/dicom/gdlffdicom_copy_lun.pro, src/pro/dicom/gdlffdicom_date.pro, src/pro/dicom/gdlffdicom_time.pro, src/pro/dicom/gdlffdicom_trim.pro, COPYING:
+	FSF address update in various files
+
+	* src/Makefile.am, src/plotting.cpp, src/plotting.hpp, src/plotting_axis.cpp, src/plotting_contour.cpp, src/plotting_cursor.cpp, src/plotting_erase.cpp, src/plotting_misc.cpp, src/plotting_oplot.cpp, src/plotting_plot.cpp, src/plotting_plots.cpp, src/plotting_polyfill.cpp, src/plotting_surface.cpp, src/plotting_xyouts.cpp, src/Makefile.in:
+	plotting routines: first step towards code clean-up
+
+2011-06-18  slayoo  <slayoo@sf.net>
+
+	* src/pro/UrgentNeed.txt: updating src/pro/UrgentNeed.txt
+
+2011-06-15  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/dialog_pickfile.pro:
+	correcting a bug due to the fact that very long results from Zenity
+	may be cut in several parts (1024 here) and need to be joined.
+
+2011-06-07  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/image_test.pro, testsuite/test-read_ascii.pro, testsuite/test-swap_endian.pro, testsuite/test-total.pro, testsuite/test_erfinv.pro, testsuite/test_plot_linestyle.pro, testsuite/test_suite.pro:
+	1/ all progs. are changed to Procedures to help compilation tests.
+	2/ we changed the way isGDL test is done
+
+	* src/pro/dialog_pickfile.pro: Fixing parentheses around STRPOS
+
+2011-06-06  alaingdl  <alaingdl@sf.net>
+
+	* src/pro/dialog_pickfile.pro:
+	Using ":" as separator for zenity was not the best idea because some ESO FITS
+	are using ":" inside the date format (in the file names); we move to "|"
+	and also prepare a keyword: ZENITY_SEP to have more flexibility.
+
+2011-05-13  slayoo  <slayoo@sf.net>
+
+	* testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_bug_3152899.pro:
+	adding test routine for bug no. 3152899
+
+	* testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_bug_3300626.pro:
+	adding test routine for bug no. 3300626
+
+	* testsuite/test_bug_3147733.pro, testsuite/Makefile.am, testsuite/Makefile.in:
+	adding test routine for bug no. 3147733
+
+	* testsuite/test_bug_3290532.pro, testsuite/Makefile.am, testsuite/Makefile.in:
+	adding test_bug_3290532.pro
+
+	* testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_bug_3189072.pro:
+	adding test_bug_3189072.pro
+
+	* testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_bug_3286031.pro:
+	adding test_bug_3286031.pro
+
+2011-05-12  m_schellens  <m_schellens@sf.net>
+
+	* src/arrayindex.hpp, src/arrayindexlistt.hpp:
+	Fixed ASSOC var indexing with a variable. Bug tracker ID 3300626
+
+2011-05-11  m_schellens  <m_schellens@sf.net>
+
+	* src/GDLInterpreter.cpp, src/default_io.cpp, src/gdlc.i.g, src/print.cpp:
+	Fixed bug tracker ID 3290532 and 3286031
+
+2011-05-09  m_schellens  <m_schellens@sf.net>
+
+	* src/envt.hpp, src/fftw.cpp, src/gsl_fun.cpp, src/prognode.cpp:
+	removed EnvT::StealLocalParUndefGlobal function
+
+	* src/antlr/Makefile.in, src/pro/Makefile.in, testsuite/Makefile.in, src/Makefile.in, src/prognode.cpp:
+	Fixed segfault in ASSIGN_REPLACENode::Run(). See Bug tracker ID 3152899
+
+2011-05-06  slayoo  <slayoo@sf.net>
+
+	* src/math_fun_gm.cpp, testsuite/Makefile.am, testsuite/test_bug_3298378.pro:
+	fixing bug 3298378 (scalar return values from BETA, IGAMMA and EXPINT)
+
+2011-05-04  slayoo  <slayoo@sf.net>
+
+	* testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_bug_3296360.pro:
+	adding test_bug_3296360.pro
+
+	* src/typedefs.hpp: fixing bug no. 3296360
+
+	* testsuite/test_str_sep.pro: adding test_str_sep.pro
+
+2011-05-02  slayoo  <slayoo@sf.net>
+
+	* testsuite/Makefile.in, testsuite/Makefile.am, testsuite/test_bug_3275334.pro:
+	adding test_bug_3275334.pro
+
+	* src/devicex.hpp: TVRD: fixing bug no. 3275334
+
+	* testsuite/libtest_ce.cpp: fixing format labels in libtest_ce.cpp
+
+	* src/gsl_fun.cpp: IMSL_CONSTANT: fixing wrong unit of Gravity
+
+	* testsuite/Makefile.am, testsuite/Makefile.in, testsuite/test_clip.pro, testsuite/test_fix.pro, testsuite/test_plotting_ranges.pro, testsuite/test_zzz.pro:
+	testsuit update
+
+	* testsuite/Makefile.am, testsuite/Makefile.in, testsuite/README, testsuite/test_angles.pro, testsuite/test_bug_3189068.pro, testsuite/test_nans_in_sort_and_median.pro, testsuite/test_zzz.pro, testsuite/try:
+	testsuite update
+
+2011-05-01  slayoo  <slayoo@sf.net>
+
+	* src/prognode.cpp:
+	fixing memory leak bug no. 3282679 (and probably 3292468)
+
+2011-04-27  slayoo  <slayoo@sf.net>
+
+	* doc/udg/examples/call_external_0/CMakeLists.txt, doc/udg/examples/call_external_0/call_external_0.out.txt, doc/udg/examples/call_external_0/call_external_0.pro, doc/udg/examples/call_external_0/libexample.c:
+	doc/udg: adding call_external example to the repository
+
+	* doc/udg/examples/routine_names_0/library.pro, doc/udg/examples/routine_names_0/routine_names_0.out.txt, doc/udg/examples/routine_names_0/routine_names_0.pro, doc/udg/examples/routine_names_arg_name/procedure.pro, doc/udg/examples/routine_names_arg_name/routine_names_arg_name.out.txt, doc/udg/examples/routine_names_arg_name/routine_names_arg_name.pro, doc/udg/examples/routine_names_fetch/routine_names_fetch.out.txt, doc/udg/examples/routine_names_fetch/routine_names_fetch.pro, doc/udg/examples/routine_names_level/func.pro, doc/udg/examples/routine_names_level/routine_names_level.out.txt, doc/udg/examples/routine_names_level/routine_names_level.pro, doc/udg/examples/routine_names_s_functions/routine_names_s_functions.out.txt, doc/udg/examples/routine_names_s_functions/routine_names_s_functions.pro, doc/udg/examples/routine_names_s_procedures/routine_names_s_procedures.out.txt, doc/udg/examples/routine_names_s_procedures/routine_names_s_procedures.pro, doc/udg/examples/routine_names_store/routine_names_store.out.txt, doc/udg/examples/routine_names_store/routine_names_store.pro, doc/udg/examples/routine_names_variables/procedure.pro, doc/udg/examples/routine_names_variables/routine_names_variables.out.txt, doc/udg/examples/routine_names_variables/routine_names_variables.pro:
+	doc/udg: adding routine_names examples to the repository
+
+	* doc/udg/routines/acos.fun.tex, doc/udg/routines/asin.fun.tex, doc/udg/routines/atan.fun.tex, doc/udg/routines/ceil.fun.tex, doc/udg/routines/complex.fun.tex, doc/udg/routines/conj.fun.tex, doc/udg/routines/cos.fun.tex, doc/udg/routines/cosh.fun.tex, doc/udg/routines/file-mkdir.pro.tex, doc/udg/routines/floor.fun.tex, doc/udg/routines/hist-2d.fun.tex, doc/udg/routines/hist-nd.fun.tex, doc/udg/routines/idl-base64.fun.tex, doc/udg/routines/imaginary.fun.tex, doc/udg/routines/logical-and.fun.tex, doc/udg/routines/logical-or.fun.tex, doc/udg/routines/logical-true.fun.tex, doc/udg/routines/magick-writeindexes.pro.tex, doc/udg/routines/product.fun.tex, doc/udg/routines/ptrarr.fun.tex, doc/udg/routines/round.fun.tex, doc/udg/routines/routine-names.fun.tex, doc/udg/routines/sin.fun.tex, doc/udg/routines/sinh.fun.tex, doc/udg/routines/sqrt.fun.tex, doc/udg/routines/strcompress.fun.tex, doc/udg/routines/strlen.fun.tex, doc/udg/routines/strlowcase.fun.tex, doc/udg/routines/strmid.fun.tex, doc/udg/routines/strpos.fun.tex, doc/udg/routines/strput.pro.tex, doc/udg/routines/strtrim.fun.tex, doc/udg/routines/strupcase.fun.tex, doc/udg/routines/tan.fun.tex, doc/udg/routines/tanh.fun.tex, doc/udg/routines/total.fun.tex:
+	doc/udg: new routine descriptions (mostly only the OpenMP info)
+
+	* doc/udg/diag/broken-references, doc/udg/gdldoc.sty, doc/udg/makeall:
+	doc/udg: doc scripts/styles/diag update
+
+	* doc/udg/routines/abs.fun.tex:
+	doc/udg updates: indexing routines which use OpenMP
+
+	* doc/udg/routines/call-external.fun.tex:
+	doc/udg updates: CALL_EXTERNAL docs
+
+	* doc/udg/routines/exp.fun.tex, doc/udg/routines/fft.fun.tex, doc/udg/routines/where.fun.tex:
+	doc/udg updates: indexing routines which use OpenMP
+
+2011-04-26  slayoo  <slayoo@sf.net>
+
+	* configure.in:
+	quick'n'dirty solution to problems with compilation with GRIB when GRIB itself requires libpng (only autotools, not in CMake files)
+
+	* src/libinit.cpp, src/plotting.hpp, src/plotting_map_proj.cpp:
+	fixing compilation issue without Python
+
+2011-04-18  slayoo  <slayoo@sf.net>
+
+	* src/basic_fun_jmg.cpp, testsuite/Makefile.am, testsuite/test_bug_3288652.pro:
+	ROUTINE_NAMES: fixing bug 3288652
+
+2011-04-17  slayoo  <slayoo@sf.net>
+
+	* src/libinit.cpp: PLOT: moving not supported keywords to a warn-list
+
+2011-04-15  slayoo  <slayoo@sf.net>
+
+	* doc/udg/diag/broken-references, doc/udg/examples/file_basename_2/file_basename_2.out.txt, doc/udg/examples/file_basename_2/file_basename_2.pro, doc/udg/examples/ncdf_exists_0/ncdf_exists_0.pro:
+	doc/udg: various updates
+
+	* doc/udg/examples/imsl_constant_0/imsl_constant_0.out.txt, doc/udg/examples/imsl_constant_0/imsl_constant_0.pro, doc/udg/routines/imsl-constant.fun.tex, doc/udg/routines/imsl-zeropoly.fun.tex:
+	doc/udg: imcl_constant example
+
+2011-04-14  slayoo  <slayoo@sf.net>
+
+	* src/CMakeLists.txt, src/Makefile.am:
+	src/Makefile.am: not installing the Python library to default system library location
+
+	* CMakeModules/FindPythonLibs.cmake: removing FindPythonLibs.cmake
+
+2011-04-12  slayoo  <slayoo@sf.net>
+
+	* doc/udg/routines/dist.fun.tex, doc/udg/routines/imsl-zeropoly.fun.tex, doc/udg/examples/dist_0/dist_0.out.txt, doc/udg/examples/dist_0/dist_0.pro, doc/udg/examples/dist_0/gdl.ps, doc/udg/examples/imsl_zeropoly_0/gdl.ps, doc/udg/examples/imsl_zeropoly_0/imsl_zeropoly_0.out.txt, doc/udg/examples/imsl_zeropoly_0/imsl_zeropoly_0.pro:
+	doc/udg: new examples (imsl_zeropoly, dist)
+
+	* src/basic_pro.cpp:
+	CATCH: warning the user just once that it is not implemented
+
+	* src/file.cpp, src/file.hpp, src/libinit.cpp, src/pro/Makefile.in:
+	FILE_MKDIR: initial import
+
+	* src/pro/Makefile.am, src/pro/scope_varfetch.pro, testsuite/Makefile.am, testsuite/test_scope_varfetch.pro:
+	SCOPE_VARFETCH: initial import
+
+	* src/gdlgstream.cpp, src/plotting.cpp, src/plotting.hpp, src/plotting_xyouts.cpp:
+	XYOUTS: handling P.MULTI vs. P.POSITION, support for ORIENTATION with logscales, making ORIENTATION work with arbitrary axis scales
+
+	* INSTALL.CMake, README, testsuite/README: doc updates
+
+	* doc/udg/examples/compile_opt_0/compile_opt_0.out.tex, doc/udg/examples/helloworld_2/gdl.ps, doc/udg/examples/loadct_0/gdl.ps, doc/udg/examples/python_fun_0/python_fun_0.out.txt, doc/udg/examples/showfont_11/gdl.ps, doc/udg/examples/showfont_11/showfont_11.out.txt, doc/udg/examples/showfont_11/showfont_11.pro, doc/udg/examples/showfont_12/gdl.ps, doc/udg/examples/showfont_12/showfont_12.out.txt, doc/udg/examples/showfont_12/showfont_12.pro, doc/udg/examples/showfont_13/gdl.ps, doc/udg/examples/showfont_13/showfont_13.out.txt, doc/udg/examples/showfont_13/showfont_13.pro, doc/udg/examples/showfont_14/gdl.ps, doc/udg/examples/showfont_14/showfont_14.out.txt, doc/udg/examples/showfont_14/showfont_14.pro, doc/udg/examples/showfont_15/gdl.ps, doc/udg/examples/showfont_15/showfont_15.out.txt, doc/udg/examples/showfont_15/showfont_15.pro, doc/udg/examples/showfont_16/gdl.ps, doc/udg/examples/showfont_16/showfont_16.out.txt, doc/udg/examples/showfont_16/showfont_16.pro, doc/udg/examples/showfont_17/gdl.ps, doc/udg/examples/showfont_17/showfont_17.out.txt, doc/udg/examples/showfont_17/showfont_17.pro, doc/udg/examples/showfont_18/gdl.ps, doc/udg/examples/showfont_18/showfont_18.out.txt, doc/udg/examples/showfont_18/showfont_18.pro, doc/udg/examples/showfont_20/gdl.ps, doc/udg/examples/showfont_20/showfont_20.out.txt, doc/udg/examples/showfont_20/showfont_20.pro, doc/udg/examples/showfont_3/gdl.ps, doc/udg/examples/showfont_3/showfont_3.out.txt, doc/udg/examples/showfont_3/showfont_3.pro, doc/udg/examples/showfont_4/gdl.ps, doc/udg/examples/showfont_4/showfont_4.out.txt, doc/udg/examples/showfont_4/showfont_4.pro, doc/udg/examples/showfont_5/gdl.ps, doc/udg/examples/showfont_5/showfont_5.out.txt, doc/udg/examples/showfont_5/showfont_5.pro, doc/udg/examples/showfont_6/gdl.ps, doc/udg/examples/showfont_6/showfont_6.out.txt, doc/udg/examples/showfont_6/showfont_6.pro, doc/udg/examples/showfont_7/gdl.ps, doc/udg/examples/showfont_7/showfont_7.out.txt, doc/udg/examples/showfont_7/showfont_7.pro, doc/udg/examples/showfont_8/gdl.ps, doc/udg/examples/showfont_8/showfont_8.out.txt, doc/udg/examples/showfont_8/showfont_8.pro, doc/udg/examples/showfont_9/gdl.ps, doc/udg/examples/showfont_9/showfont_9.out.txt, doc/udg/examples/showfont_9/showfont_9.pro, doc/udg/routines/showfont.pro.tex, doc/udg/chapters/syntax-udsub.tex, doc/udg/diag/broken-references, doc/udg/examples/calendar_0/gdl.ps, doc/udg/examples/colours_0/gdl.ps, doc/udg/examples/colours_1/gdl.ps, doc/udg/makeall, doc/udg/makeclean:
+	doc/udg: various updates including SHOWFONT examples
+
+2011-04-11  slayoo  <slayoo@sf.net>
+
+	* src/gdlpython.cpp, src/gdlpython.hpp:
+	reverting a previous (working) version of gdlpython.*
+
+	* src/libinit.cpp, src/plotting_axis.cpp, src/plotting_contour.cpp:
+	XYOUTS: handling XLOG and YLOG keywords
+
+	* src/plotting.cpp:
+	ignoring !P.MULTI when !POSITION set in PLOT and other plotting routines
+
+	* src/CMakeLists.txt, src/Makefile.am, src/Makefile.in, src/plotting.cpp, src/plotting_misc.cpp:
+	moving ERASE,SET_PLOT and TVLCT to a separate file (plotting_misc.cpp)
+
+	* src/CMakeLists.txt, src/Makefile.am, src/Makefile.in, src/plotting.cpp, src/plotting_map_proj.cpp:
+	moving MAP_PROJ_FORWARD and MAP_PROJ_INVERSE to a separate file (plotting_map_proj.cpp)
+
+	* src/CMakeLists.txt, src/Makefile.am, src/Makefile.in, src/plotting.cpp, src/plotting_convert_coord.cpp:
+	moving CONVERT_COORD to a separate file (plotting_convert_coord.cpp)
+
+	* src/CMakeLists.txt, src/Makefile.am, src/Makefile.in, src/plotting.cpp, src/plotting_windows.cpp:
+	moving WINDOW,WSET,WSHOW,WDELETE,GET_SCREEN_SIZE to a separate file (plotting_windows.cpp)
+
+	* src/CMakeLists.txt, src/Makefile.am, src/Makefile.in, src/plotting.cpp, src/plotting_polyfill.cpp:
+	moving POLYFILL to a separate file (plotting_polyfill.cpp)
+
+	* src/CMakeLists.txt, src/Makefile.am, src/Makefile.in, src/plotting.cpp, src/plotting_xyouts.cpp:
+	moving XYOUTS to a separate file (plotting_xyouts.cpp)
+
+	* src/CMakeLists.txt, src/Makefile.am, src/Makefile.in, src/plotting.cpp, src/plotting.hpp, src/plotting_plots.cpp:
+	moving PLOTS to a separate file (plotting_plots.cpp)
+
+	* src/CMakeLists.txt, src/Makefile.am, src/Makefile.in, src/plotting.cpp, src/plotting_axis.cpp:
+	moving AXIS to a separate file (plotting_axis.cpp)
+
+	* src/CMakeLists.txt, src/Makefile.am, src/Makefile.in, src/plotting.cpp, src/plotting_surface.cpp:
+	moving SURFACE to a separate file (plotting_surface.cpp)
+
+	* src/CMakeLists.txt, src/Makefile.am, src/Makefile.in, src/plotting.cpp, src/plotting.hpp, src/plotting_contour.cpp:
+	moving CONTOUR to a separate file (plotting_contour.cpp)
+
+	* src/CMakeLists.txt, src/Makefile.am, src/Makefile.in, src/plotting.cpp, src/plotting_cursor.cpp:
+	moving CURSOR to a separate file (plotting_cursor.cpp)
+
+	* src/CMakeLists.txt, src/Makefile.am, src/Makefile.in, src/plotting.cpp, src/plotting_device.cpp:
+	moving DEVICE to a separate file (plotting_device.cpp)
+
+	* src/CMakeLists.txt, src/Makefile.am, src/Makefile.in, src/plotting.cpp, src/plotting_oplot.cpp:
+	moving OPLOT to a separate file (plotting_oplot.cpp)
+
+2011-04-10  slayoo  <slayoo@sf.net>
+
+	* src/Makefile.in, src/antlr/Makefile.in: Makefile.in update
+
+	* src/antlr/CMakeLists.txt:
+	cmake: updating antlr/CMakeLists.txt forgotten in one of previous commits
+
+	* src/libinit.cpp: device: ignoring yet some more font-related keywords
+
+	* src/pro/Makefile.in: src/pro/Makefile.in update
+
+	* src/CMakeLists.txt, src/Makefile.am, src/plotting.cpp, src/plotting.hpp, src/plotting_plot.cpp:
+	moving PLOT to a separate file (plotting_plot.cpp)
+
+	* src/arrayindex.hpp, src/arrayindexlistt.hpp, src/datatypes.cpp, src/dinterpreter.hpp, src/envt.hpp, src/io.hpp:
+	clang compatibility (mostly getting rid of compiler warnings)
+
+2011-04-09  slayoo  <slayoo@sf.net>
+
+	* doc/udg/examples/compile_opt_0/compile_opt_0.out.txt, doc/udg/examples/helloworld_2/gdl.ps, doc/udg/examples/loadct_0/gdl.ps, doc/udg/gdl.tex, doc/udg/chapters/syntax-compileopt.tex, doc/udg/chapters/testsuite.tex, doc/udg/examples/calendar_0/gdl.ps, doc/udg/examples/colours_0/gdl.ps, doc/udg/examples/colours_1/gdl.ps:
+	doc/udg: various updates...
+
+	* doc/udg/examples/openr_2/openr_2.pro, doc/udg/examples/query_bmp_0/query_bmp_0.pro, doc/udg/gdl.tex, doc/udg/gdldoc.sty, doc/udg/makeall, doc/udg/makeclean:
+	doc/udg: various updates
+
+	* doc/udg/examples/compile_opt_0/compile_opt_0.out.tex, doc/udg/examples/compile_opt_0/compile_opt_0.pro, doc/udg/examples/compile_opt_0/example.pro, doc/udg/examples/compile_opt_1/compile_opt_1.out.txt, doc/udg/examples/compile_opt_1/compile_opt_1.pro, doc/udg/examples/compile_opt_1/example.pro:
+	doc/udg: adding two examples for compile_opt
+
+	* src/basic_pro.cpp:
+	CATCH: warning the user that cathing is not implemented yet
+
+	* doc/udg/examples/calendar_0/calendar_0.out.txt, doc/udg/examples/colours_0/colours_0.out.txt, doc/udg/examples/colours_1/colours_1.out.txt, doc/udg/examples/correlate_0/correlate_0.out.txt, doc/udg/examples/correlate_1/correlate_1.out.txt, doc/udg/examples/correlate_2/correlate_2.out.txt, doc/udg/examples/execute_0/execute_0.out.txt, doc/udg/examples/exit_0/exit_0.out.txt, doc/udg/examples/exp_0/exp_0.out.txt, doc/udg/examples/fft_1/fft_1.out.txt, doc/udg/examples/file_basename_0/file_basename_0.out.txt, doc/udg/examples/file_basename_1/file_basename_1.out.txt, doc/udg/examples/file_basename_2/file_basename_2.out.txt, doc/udg/examples/file_lines_0/file_lines_0.out.txt, doc/udg/examples/foreach_0/foreach_0.out.txt, doc/udg/examples/foreach_1/foreach_1.out.txt, doc/udg/examples/get_login_info_0/get_login_info_0.out.txt, doc/udg/examples/goto_0/goto_0.out.txt, doc/udg/examples/h5_get_libversion_0/h5_get_libversion_0.out.txt, doc/udg/examples/helloworld_0/helloworld_0.out.txt, doc/udg/examples/helloworld_1/helloworld_1.out.txt, doc/udg/examples/helloworld_2/helloworld_2.out.txt, doc/udg/examples/if_0/if_0.out.txt, doc/udg/examples/if_1/if_1.out.txt, doc/udg/examples/if_2/if_2.out.txt, doc/udg/examples/imsl_binomialcoef_0/imsl_binomialcoef_0.out.txt, doc/udg/examples/imsl_binomialcoef_1/imsl_binomialcoef_1.out.txt, doc/udg/examples/ncdf_exists_0/ncdf_exists_0.out.txt, doc/udg/examples/obj_class_0/obj_class_0.out.txt, doc/udg/examples/obj_class_1/obj_class_1.out.txt, doc/udg/examples/openr_2/openr_2.out.txt, doc/udg/examples/parse_url_0/parse_url_0.out.txt, doc/udg/examples/pm_0/pm_0.out.txt, doc/udg/examples/ptr_free_0/ptr_free_0.out.txt, doc/udg/examples/python_fun_0/python_fun_0.out.txt, doc/udg/examples/query_bmp_0/query_bmp_0.out.txt, doc/udg/examples/scope_0/scope_0.out.txt, doc/udg/examples/string_4/string_4.out.txt, doc/udg/examples/strjoin_0/strjoin_0.out.txt, doc/udg/examples/strjoin_1/strjoin_1.out.txt, doc/udg/examples/abs_0/abs_0.out.txt, doc/udg/examples/strjoin_2/strjoin_2.out.txt:
+	doc/udg: adding text output files for examples into the repository (they are all auto-generted during makeall run but keeping them in the repository can help to track regressions)
+
+	* doc/udg/examples/obj_new_0/obj_new_0.out.txt, doc/udg/examples/obj_new_0/obj_new_0.pro, doc/udg/examples/obj_new_0/test__define.pro:
+	doc/udg: adding an OBJ_NEW example
+
+	* doc/udg/examples/loadct_0/listct.pro, doc/udg/examples/loadct_0/loadct_0.out.txt, doc/udg/examples/loadct_0/loadct_0.pro, doc/udg/examples/loadct_1/loadct_1.out.txt, doc/udg/examples/loadct_1/loadct_1.pro:
+	doc/udg: adding LOADCT examples
+
+	* doc/udg/routines/loadct.pro.tex, doc/udg/routines/obj-new.fun.tex:
+	doc/udg: LOADCT docs with two examples (incl. graphical colour-table list)
+
+2011-04-08  slayoo  <slayoo@sf.net>
+
+	* testsuite/CMakeLists.txt:
+	cmake/testsuite: cleanup in testsuite/CMakeLists.txt
+
+	* src/gdlpython.cpp, src/gdlpython.hpp:
+	fixing compilation issue with python
+
+	* CMakeLists.txt, testsuite/CMakeLists.txt, testsuite/test_ce.pro:
+	cmake: fxing issue with conflicting system-wide antlr headers, testsuite upgrades (list of test routines is now automatically extracted from Makefile.am, the libtest_ce.so and launchtest are now excluded from the all target but built during make-check)
+
+2011-04-05  slayoo  <slayoo@sf.net>
+
+	* src/libinit.cpp, src/libinit_jmg.cpp, src/widget.cpp, src/widget.hpp, src/gdlpython.cpp:
+	TV: accepting the DEVICE keyword (corresponding to the current default behaviour); including WIDGET_* and PYTHON routines in the library routine list regardless of GDL configuration, and warning the user of missing features if necesarry
+
+2011-04-03  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_ce.pro:
+	inline compilation for OSX now OK in "test_ce.pro"
+
+2011-04-01  alaingdl  <alaingdl@sf.net>
+
+	* testsuite/test_ce.pro:
+	improved version of TEST_CE.pro with the hope to have "dynamic" compilation of the lib.
+
+2011-04-01  slayoo  <slayoo@sf.net>
+
+	* src/pro/loadct.pro:
+	LOADCT: not prompting for an argument when GET_NAMES is set (tracker item no. 3206594)
+
+2011-03-30  slayoo  <slayoo@sf.net>
+
+	* src/ofmt.hpp, testsuite/Makefile.am, testsuite/test_bug_3244840.pro:
+	fixing bug 3244840 (bogus formatting of float zero after printing a string)
+
+	* src/pro/Makefile.am, testsuite/Makefile.am, testsuite/test_file_which.pro, src/pro/file_which.pro:
+	FILE_WHICH: initial import (patch by H Xu - xuhdev)
+
+	* testsuite/test_correlate.pro, src/pro/correlate.pro:
+	CORRELATE: support for the single-argument case
+
+	* CMakeLists.txt, src/CMakeLists.txt: yet another cmake patch by Orion
+
+	* CMakeLists.txt: cmake: numarray -> numpy transition (patch by Orion)
+
+	* CMakeModules/FindNetCDF.cmake:
+	cmake: patch by Orion to get netcdf working with centos 5
+
+	* CMakeModules/FindNumpy.cmake:
+	cmake: as suggested by Orion, removing FindPythonLibs.cmake and adding FindNumpy.cmake
+
+2011-03-29  m_schellens  <m_schellens@sf.net>
+
+	* configure.in: Put back CVS label for version string
+
+	* configure.in, config.h.in, src/pro/Makefile.in, testsuite/Makefile.in:
+	sync for release
+
+2011-03-29  slayoo  <slayoo@sf.net>
+
+	* NEWS: NEWS update
+
+	* src/libinit.cpp: DEVICE: ignoring SET_FONT kw
+
+	* src/libinit.cpp: WSHOW: ignoring ICONIC kw
+
+	* src/pro/Makefile.am, testsuite/Makefile.am, src/pro/correlate.pro, testsuite/test_correlate.pro:
+	CORRELATE: initial import (still without the single-argument option)
+
+2011-03-28  slayoo  <slayoo@sf.net>
+
+	* src/libinit.cpp, src/devicex.hpp, src/graphics.hpp, src/plotting.cpp:
+	DEVICE: support for the WINDOW_STATE keyword
+
+	* CMakeModules/FindNetCDF.cmake:
+	cmake/netcdf fix (tracker item no. 3058299, patch by Orion Poplawski)
+
+	* CMakeLists.txt:
+	cmake/hdf4 fix (tracker item no. 3058299, patch by Orion Poplawski)
+
+	* configure.in, src/gsl_fun.cpp:
+	fixing bug no. 3233853 (Udunits-2 include path)
+
+	* testsuite/Makefile.am, testsuite/test_bug_3199465.pro:
+	adding test_bug_3199465.pro
+
+	* testsuite/Makefile.am, testsuite/test_bug_3189068.pro:
+	adding test_bug_3189068.pro
+
+	* NEWS: updating NEWS (0.9.1)
+
+2011-03-22  m_schellens  <m_schellens@sf.net>
+
+	* NEWS, src/gsl_fun.cpp:
+	Included patch for udunits2. Bug tracker ID 3233853
+
+	* ChangeLog: Update ChangeLog
+
+	
+
+
+	
 GDL 0.9.1:
 2011-03-18  slayoo  <slayoo@DaMachineInDaMachine>
 

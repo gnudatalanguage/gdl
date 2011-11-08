@@ -518,12 +518,14 @@
            - new routines: CALL_EXTERNAL (by Christoph Fuch), DIALOG_MESSAGE, ROBERTS, SWAP_ENDIAN_INPLACE,
              CORRELATE
 0.9.2:
-	   - effective speed improvment using OpenMP
-           - UNIT keyword for SPAWN (thanks to patch by Greg Huey)
+	   - tremendous speed improvements: Indexing, subroutine calls, operators (especially for scalar values in 
+	     conjunction with OpenMP), ...
+           - UNIT keyword for SPAWN (thanks to a patch by Greg Huey)
            - fixed ASSOC var indexing with a variable
            - new routines: FILE_MKDIR, FILE_WHICH (patch by H Xu), IDL_VALIDNAME (by Rene Preusker), SCOPE_VARFETCH,
              SEM_CREATE, SEM_LOCK, SEM_RELEASE, SEM_DELETE (SEM_* routines by Mateusz Turcza),
-           - fixes/enhancements in: BETA, CONTOUR, CORRELATE, DIALOG_PICKFILE, EXPINT, HDF_OPEN, H5F_OPEN, HDF_SD_START,
+           - fixes/enhancements in: BETA, CONTOUR, CORRELATE, DIALOG_PICKFILE, EXPINT, HDF_OPEN, H5F_OPEN,
+	     HDF_SD_START,
              IGAMMA, IMSL_CONSTANT, INTERPOL, LOADCT, NCDF_CONTROL, NCDF_OPEN, ROUTINE_NAMES, TV, TVRD, 
              XYOUTS (!P.MULTI vs. !P.POSITION, ORIENTATION with logscales), INTERPOLATE (the MISSING kw)
 	   - fixes in STREGEX, STRPOS, STRSPLIT
@@ -532,5 +534,6 @@
              and makes advantage of PLplot fixes introduced in PLplot 5.9.9)
            - memory leak fix (bug introduced in the previous version)
            - various testsuite & docs updates (incl. docs and examples for CALL_EXTERNAL)
-	   - fix in WordExp() when filename argument contain whitespaces (useful in various cases, including OPENR/W, FILE_MKDIR, ...)
+	   - fix in WordExp() when filename argument contain whitespaces (useful in various cases, including 
+	     OPENR/W, FILE_MKDIR, ...)
 	   - !version.os now in lower case for Linux and Darwin
