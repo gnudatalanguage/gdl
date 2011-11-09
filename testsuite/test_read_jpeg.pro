@@ -6,6 +6,7 @@
 ; What is tested ?
 ; -- reading back a small (600x259) JPEG image
 ; -- using well positions index in TVSCL
+; -- reading a color image in Grayscale ... (09/11/2011)
 ;
 pro TEST_READ_JPEG, filename=filename, path=path, $
                     help=help, test=test, debug=debug, verbose=verbose
@@ -22,8 +23,9 @@ endif
 if N_ELEMENTS(path) EQ 0 then path=!path
 if N_ELEMENTS(filename) EQ 0 then filename='Saturn.jpg'
 ;
-title0='the 3 channels in greyscale'
+title0='the 3 channels in Grayscale'
 title1='<<'+filename+'>> in Colors'
+title2='read in Grayscale only'
 ;
 liste_of_files=FILE_SEARCH(STRSPLIT(path,':',/ex),filename)
 ;
@@ -102,6 +104,13 @@ TVSCL, image[2,*,*], 2
 ;
 WINDOW, 1, xsize=xy_win1[0], ysize=xy_win1[1], title=title1
 TVSCL, image, /true
+;
+; is the /Grayscale keyword OK ?
+;
+READ_JPEG, one_file_and_path, image_gray, /GRAY
+WINDOW, 2, xsize=xy_win1[0], ysize=xy_win1[1], title=title2
+image_gray=REBIN(image_gray[0:xy_win1[0]*factor-1,0:xy_win1[1]*factor-1],xy_win1[0],xy_win1[1])
+TVSCL, image_gray
 ;
 if KEYWORD_SET(test) then STOP
 ;
