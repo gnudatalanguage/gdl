@@ -914,49 +914,39 @@ namespace lib {
   void magick_quantize(EnvT* e)
   {
     try{
-      size_t nParam=e->NParam(2);
+      size_t nParam=e->NParam();
+
       DUInt mid;
       e->AssureScalarPar<DUIntGDL>(0,mid);    
       Image image=magick_image(e,mid);
-      DLong ncol;      
-      //set the number of colors;
-      if(!e->KeywordSet(0)) 
-	{
-	  if(nParam>1)
-	    e->AssureLongScalarPar(1,ncol);
-	  else
-	      ncol=256;
 
-	  image.quantizeColors(ncol);
-	  if(e->KeywordSet(1))//YUV
+      //set the number of colors;
+      DLong ncol=256;
+      if(nParam>1) e->AssureLongScalarPar(1,ncol);
+      image.quantizeColors(ncol);
+
+      if(e->KeywordSet("TRUECOLOR")) 
+	{
+	  image.quantizeColorSpace(RGBColorspace);
+	  image.quantizeColors((long)256*(long)256*(long)256-1);
+	  if(e->KeywordSet("DITHER")) 
+	    image.quantizeDither(true);
+	  image.quantize();
+	  image.classType(DirectClass);
+	}
+      else
+	{
+	  if(e->KeywordSet("YUV"))//YUV
 	    image.quantizeColorSpace(YUVColorspace);
-	  else if(e->KeywordSet(2))//Grayscale
+	  else if(e->KeywordSet("GRAYSCALE"))//Grayscale
 	    image.quantizeColorSpace(GRAYColorspace);
 	  else
 	    image.quantizeColorSpace(RGBColorspace);
-	  if(e->KeywordSet(3)) 
+	  if(e->KeywordSet("DITHER")) 
 	    image.quantizeDither(true);
 	  image.quantize();
 	  image.classType(PseudoClass);
 	}
-      else
-	{
-	  //truecolor
-	  if(nParam>1)
-	    e->AssureLongScalarPar(1,ncol);
-	  else
-	    ncol=256;
-
-	  image.quantizeColors(ncol);
-	  image.quantizeColorSpace(RGBColorspace);
-	  image.quantizeColors((long)256*(long)256*(long)256-1);
-	  if(e->KeywordSet(3)) 
-	    image.quantizeDither(true);
-	  image.quantize();
-	  image.classType(DirectClass);
-	  
-	}
-      
       
       magick_replace(e,mid,image);      
     }
