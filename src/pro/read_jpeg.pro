@@ -1,9 +1,9 @@
-;$Id: read_jpeg.pro,v 1.6 2011-08-18 17:39:08 alaingdl Exp $
+;$Id: read_jpeg.pro,v 1.7 2011-11-09 22:50:54 alaingdl Exp $
 
 pro READ_JPEG, filename, unit=unit, image, colortable, buffer=buffer, $
                colors=colors, dither=dither, grayscale=grayscale, order=order, $
                true=true, two_pass_quantize=two_pass_quantize, $
-               help=help, test=test
+               help=help, test=test, debug=debug
 ;
 ON_ERROR, 2
 ;+
@@ -49,10 +49,12 @@ ON_ERROR, 2
 ;         READ_JPEG, file, image
 ;
 ; MODIFICATION HISTORY:
-; 	Written by: Christopher Lee 2004-05-17
-;       2006-May-02, Joel Gales    : Add convert to byte if 16-bit image
-;       2011-Aug-18, Alain Coulais : More checks on inputs, verify if
+;    Written by: Christopher Lee 2004-05-17
+;    2006-May-02, Joel Gales    : Add convert to byte if 16-bit image
+;    2011-Aug-18, Alain Coulais : More checks on inputs, verify if
 ;       compiled with ImageMagick support !
+;    2011-Nov-09, Alain Coulais : correction for bug 3435468
+;       Grayscale (2D case)
 ;
 ;-
 ; LICENCE:
@@ -62,14 +64,13 @@ ON_ERROR, 2
 ; the Free Software Foundation; either version 2 of the License, or     
 ; (at your option) any later version.                                   
 ;
-;
 ;-
 ;
 if KEYWORD_SET(help) then begin
     print, 'pro READ_JPEG, filename, unit=unit, image, colortable, buffer=buffer, $'
     print, '               colors=colors, dither=dither, grayscale=grayscale, order=order, $'
     print, '               true=true, two_pass_quantize=two_pass_quantize, $'
-    print, '               help=help, test=test'
+    print, '               help=help, test=test, debug=debug'
     return
 endif
 ;
@@ -113,6 +114,8 @@ endif else begin
     image=MAGICK_READ(mid)
 endelse
 ;
+if KEYWORD_SET(debug) then STOP
+;
 ; if 16-bit (unsigned short int) image convert to byte
 sz = SIZE(image)
 type = sz[sz[0]+1]
@@ -124,19 +127,28 @@ endif
 ;
 if (not KEYWORD_SET(unit)) then MAGICK_CLOSE, mid
 ;
-;; "rotate" image to agree with IDL (JMG 08/18/04)
-tmp = image[0,*,*]
-image[0,*,*] = image[2,*,*]
-image[2,*,*] = tmp
-
-if KEYWORD_SET(TRUE) then begin
-    if (TRUE eq 1) then t=[0,1,2]
-    if (TRUE eq 2) then t=[1,0,2]
-    if (TRUE eq 3) then t=[1,2,0]
-    ;;
-    image=TRANSPOSE(image, t)
-    ;;  image=transpose(image[[2,1,0],*,*], t)
-endif 
+if (sz[0] EQ 2) then begin
+   image=ROTATE(image,7)
+endif
+if (sz[0] EQ 3) then begin
+   ;; "rotate" image to agree with IDL (JMG 08/18/04)
+   tmp = image[0,*,*]
+   image[0,*,*] = image[2,*,*]
+   image[2,*,*] = tmp
+   ;;
+   if KEYWORD_SET(TRUE) then begin
+      if (TRUE eq 1) then t=[0,1,2]
+      if (TRUE eq 2) then t=[1,0,2]
+      if (TRUE eq 3) then t=[1,2,0]
+      ;;
+      image=TRANSPOSE(image, t)
+      ;;  image=transpose(image[[2,1,0],*,*], t)
+   endif
+endif
+if (sz[0] GT 3) then begin
+    MESSAGE, /continue, $
+             "Dimensions of image > 3 : we don't know how to process now"
+endif
 ;else begin
 ;    image = image[[2,1,0],*,*]
 ;endelse
