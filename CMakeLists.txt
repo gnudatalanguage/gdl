@@ -12,9 +12,8 @@ cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
 
 project(GDL)
 
-# we hope a 0.9.2 very soon !
-# set(VERSION "0.9.2 CVS")
-set(VERSION "0.9.2")
+# X.X.X CVS becomes release X.X.X
+set(VERSION "0.9.2 CVS")
 enable_testing()
 
 include(CheckIncludeFile)
