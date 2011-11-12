@@ -43,6 +43,7 @@
     'documentation.php' => 'Documentation',
     'support.php' => 'Support &amp; Feedback',
     'resources.php' => 'Resources',
+    'faq.php' => 'FAQ',
     'credits.php' => 'Credits'
   );
   foreach ($menu as $file => $name) 
