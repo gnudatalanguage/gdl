@@ -1,6 +1,7 @@
 <h2>GDL 0.9.2 released</h2>
 <p>
   2011-11-13: FreeBSD port updated<br />
+  2011-11-11: Fedora package updated<br />
   2011-11-09: GDL 0.9.2 source tarball released.<br />
   <span class="align-right"><a href="http://sourceforge.net/projects/gnudatalanguage/files/gdl/0.9.2/README/download">release notes</a> | <a href="downloads.php">downloads</a></span>
 </p>
