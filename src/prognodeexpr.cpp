@@ -168,9 +168,11 @@ void BinaryExprNC::AdjustTypesNC(auto_ptr<BaseGDL>& g1, BaseGDL*& e1,
 //       throw GDLException( "Expressions of this type cannot be converted.");
 //     }
 
+  // Change > to >= JMG
+  if( DTypeOrder[aTy] >= DTypeOrder[bTy])
+    {
   // COMPLEX op DOUBLE = COMPLEXDBL
-  if( (aTy == COMPLEX && bTy == DOUBLE) ||
-      (bTy == COMPLEX && aTy == DOUBLE))
+  if( (aTy == COMPLEX && bTy == DOUBLE))
     {
       e2 = e2->Convert2( COMPLEXDBL, BaseGDL::COPY);
       g2.reset( e2); // delete former e2
@@ -179,15 +181,22 @@ void BinaryExprNC::AdjustTypesNC(auto_ptr<BaseGDL>& g1, BaseGDL*& e1,
       return;
     }
 
-  // Change > to >= JMG
-  if( DTypeOrder[aTy] >= DTypeOrder[bTy])
-    {
       // convert e2 to e1
       e2 = e2->Convert2( aTy, BaseGDL::COPY);
       g2.reset( e2); // delete former e2
     }
   else
     {
+  // COMPLEX op DOUBLE = COMPLEXDBL
+  if( (bTy == COMPLEX && aTy == DOUBLE))
+    {
+      e2 = e2->Convert2( COMPLEXDBL, BaseGDL::COPY);
+      g2.reset( e2); // delete former e2
+      e1 = e1->Convert2( COMPLEXDBL, BaseGDL::COPY);
+      g1.reset( e1); // delete former e1
+      return;
+    }
+
       // convert e1 to e2
       e1 = e1->Convert2( bTy, BaseGDL::COPY);
       g1.reset( e1); // delete former e1
@@ -1231,6 +1240,132 @@ BaseGDL* GT_OPNCNode::Eval()
   res=e1->GtOp(e2);
   return res;
 }
+BaseGDL* PLUSNC12Node::Eval()
+{
+  BaseGDL *e1 = op1->EvalNC();
+  BaseGDL *e2 = op2->EvalNC();
+  DType aTy=e1->Type();
+  DType bTy=e2->Type();
+  if( aTy == bTy)
+  {
+    if ( e1->StrictScalar() )
+    {
+      return e2->AddInvSNew( e1 ); // scalar+scalar or array+scalar
+    }
+    else if ( e2->StrictScalar() )
+    {
+      return e1->AddSNew( e2); // array+scalar
+    }
+    else if ( e1->N_Elements() <= e2->N_Elements() )
+    {
+      return e1->AddNew ( e2 );
+    }
+    else // e1->N_Elements() > e2->N_Elements() )
+    {
+      return e2->AddInvNew( e1); // smaller + larger
+    }
+  }
+  auto_ptr<BaseGDL> g1;
+  auto_ptr<BaseGDL> g2;
+  if( DTypeOrder[aTy] >= DTypeOrder[bTy])
+    {
+      // COMPLEX op DOUBLE = COMPLEXDBL
+      if(aTy == COMPLEX && bTy == DOUBLE)
+      {
+	  e2 = e2->Convert2( COMPLEXDBL, BaseGDL::COPY);
+	  g2.reset( e2);
+	  e1 = e1->Convert2( COMPLEXDBL, BaseGDL::COPY);
+	  g1.reset( e1);
+      }
+      else
+      {
+	// convert e2 to e1
+	e2 = e2->Convert2( aTy, BaseGDL::COPY);
+	g2.reset( e2);
+      }
+    }
+  else
+    {
+      // COMPLEX op DOUBLE = COMPLEXDBL
+      if( (bTy == COMPLEX && aTy == DOUBLE))
+	{
+	  e2 = e2->Convert2( COMPLEXDBL, BaseGDL::COPY);
+	  g2.reset( e2);
+	  e1 = e1->Convert2( COMPLEXDBL, BaseGDL::COPY);
+	  g1.reset( e1);
+	}
+      else
+	{// convert e1 to e2
+	    e1 = e1->Convert2( bTy, BaseGDL::COPY);
+	    g1.reset( e1);
+	}
+    }
+    
+  // 'classic handling from here
+  BaseGDL* res;
+  if ( e1->StrictScalar() )
+  {
+	  if ( g2.get() == NULL )
+	  {
+		  res= e2->AddInvSNew( e1 ); // scalar+scalar or array+scalar
+	  }
+	  else
+	  {
+		  g2.release();
+		  res= e2->AddInvS( e1 ); // scalar+scalar or array+scalar
+	  }
+  }
+  else if ( e2->StrictScalar() )
+  {
+	  if ( g1.get() == NULL )
+		  res= e1->AddSNew( e2); // array+scalar
+	  else
+	  {
+		  g1.release();
+		  res= e1->AddS( e2); // array+scalar
+	  }
+  }
+  else if ( e1->N_Elements() == e2->N_Elements() )
+  {
+	  if ( g1.get() != NULL )
+	  {
+		  g1.release();
+		  return e1->Add ( e2 );
+	  }
+	  if ( g2.get() != NULL )
+	  {
+		  g2.release();
+		  res = e2->AddInv ( e1 );
+		  res->SetDim ( e1->Dim() );
+		  return res;
+	  }
+	  else
+	  {
+		  return e1->AddNew ( e2 );
+	  }
+  }
+  else if ( e1->N_Elements() < e2->N_Elements() )
+  {
+	  if ( g1.get() == NULL )
+		  res= e1->AddNew ( e2 ); // smaller_array + larger_array or same size
+	    else
+	    {
+		  g1.release();
+		  res= e1->Add ( e2 ); // smaller_array + larger_array or same size
+	  }
+  }
+  else // e1->N_Elements() > e2->N_Elements() )
+  {
+	  if ( g2.get() == NULL )
+		  res= e2->AddInvNew( e1); // smaller + larger
+	  else
+	  {
+		  g2.release();
+		  res= e2->AddInv( e1); // smaller + larger
+	  }
+  }
+  return res;
+}
 BaseGDL* PLUSNCNode::Eval()
 {
 	BaseGDL* res;
@@ -1301,8 +1436,121 @@ BaseGDL* PLUSNCNode::Eval()
 	}
 	return res;
 }
+
+
+BaseGDL* MINUSNC12Node::Eval()
+{ 
+  BaseGDL *e1 = op1->EvalNC();
+  BaseGDL *e2 = op2->EvalNC();
+  DType aTy=e1->Type();
+  DType bTy=e2->Type();
+  if( aTy == bTy)
+  {
+    if ( e1->StrictScalar() )
+    {
+      return e2->SubInvSNew( e1 ); // scalar+scalar or array+scalar
+    }
+    else if ( e2->StrictScalar() )
+    {
+      return e1->SubSNew( e2); // array+scalar
+    }
+    else if ( e1->N_Elements() <= e2->N_Elements() )
+    {
+      return e1->SubNew ( e2 );
+    }
+    else // e1->N_Elements() > e2->N_Elements() )
+    {
+      return e2->SubInvNew( e1); // smaller + larger
+    }
+  }
+
+  auto_ptr<BaseGDL> g1;
+  auto_ptr<BaseGDL> g2;
+  if( DTypeOrder[aTy] >= DTypeOrder[bTy])
+    {
+      // COMPLEX op DOUBLE = COMPLEXDBL
+      if( aTy == COMPLEX && bTy == DOUBLE)
+      {
+	  e2 = e2->Convert2( COMPLEXDBL, BaseGDL::COPY);
+	  g2.reset( e2);
+	  e1 = e1->Convert2( COMPLEXDBL, BaseGDL::COPY);
+	  g1.reset( e1);
+      }
+      else
+      {
+	// convert e2 to e1
+	e2 = e2->Convert2( aTy, BaseGDL::COPY);
+	g2.reset( e2);
+      }
+    }
+  else
+    {
+      // COMPLEX op DOUBLE = COMPLEXDBL
+      if( (bTy == COMPLEX && aTy == DOUBLE))
+	{
+	  e2 = e2->Convert2( COMPLEXDBL, BaseGDL::COPY);
+	  g2.reset( e2);
+	  e1 = e1->Convert2( COMPLEXDBL, BaseGDL::COPY);
+	  g1.reset( e1);
+	}
+      else
+	{// convert e1 to e2
+	    e1 = e1->Convert2( bTy, BaseGDL::COPY);
+	    g1.reset( e1);
+	}
+    }
+    
+  // 'classic handling from here
+  BaseGDL* res;
+  if( e1->StrictScalar())
+    {
+      if( g2.get() == NULL) return e2->SubInvSNew( e1); else g2.release();
+      res= e2->SubInvS(e1); // scalar+scalar or array+scalar
+      
+    }
+  else
+    if( e2->StrictScalar())
+      {
+	if( g1.get() == NULL) return e1->SubSNew( e2); else g1.release();
+	res= e1->SubS(e2); // array+scalar
+	
+      }
+    else if( e1->N_Elements() == e2->N_Elements())
+    {
+      if( g1.get() != NULL)
+	{
+	  g1.release();
+	  return e1->Sub(e2);
+	}
+      if( g2.get() != NULL) 
+	{
+	  g2.release();
+	  res = e2->SubInv(e1);
+	  res->SetDim( e1->Dim());
+	  return res;
+	}
+      else
+	{
+	return e1->SubNew(e2); 
+	}
+    }
+  else if( e1->N_Elements() < e2->N_Elements())
+	{
+	  if( g1.get() == NULL) return e1->SubNew( e2); else g1.release();
+	  res= e1->Sub(e2); // smaller_array + larger_array or same size
+	  
+	}
+      else
+	{
+	  if( g2.get() == NULL) return e2->SubInvNew( e1); else g2.release();
+	  res= e2->SubInv(e1); // smaller + larger
+	  
+	}
+  return res;
+}
 BaseGDL* MINUSNCNode::Eval()
-{ BaseGDL* res;
+{ 
+ BaseGDL* res;
  auto_ptr<BaseGDL> g1;
  auto_ptr<BaseGDL> g2;
  BaseGDL *e1, *e2; AdjustTypesNC( g1, e1, g2, e2); 
@@ -1456,6 +1704,143 @@ else if( e1->N_Elements() < e2->N_Elements())
 	 
        }
  return res;
+}
+
+BaseGDL* ASTERIXNC12Node::Eval()
+{
+  BaseGDL *e1 = op1->EvalNC();
+  BaseGDL *e2 = op2->EvalNC();
+  DType aTy=e1->Type();
+  DType bTy=e2->Type();
+  if( aTy == bTy)
+  {
+    if ( e1->StrictScalar() )
+    {
+      return e2->MultSNew( e1 ); // scalar+scalar or array+scalar
+    }
+    else if ( e2->StrictScalar() )
+    {
+      return e1->MultSNew( e2); // array+scalar
+    }
+    else if ( e1->N_Elements() <= e2->N_Elements() )
+    {
+      return e1->MultNew ( e2 );
+    }
+    else // e1->N_Elements() > e2->N_Elements() )
+    {
+      return e2->MultNew( e1); // smaller + larger
+    }
+  }
+  
+  auto_ptr<BaseGDL> g1;
+  auto_ptr<BaseGDL> g2;
+  if( DTypeOrder[aTy] >= DTypeOrder[bTy])
+    {
+      // COMPLEX op DOUBLE = COMPLEXDBL
+      if( aTy == COMPLEX && bTy == DOUBLE)
+      {
+	  e2 = e2->Convert2( COMPLEXDBL, BaseGDL::COPY);
+	  g2.reset( e2);
+	  e1 = e1->Convert2( COMPLEXDBL, BaseGDL::COPY);
+	  g1.reset( e1);
+      }
+      else
+      {
+	// convert e2 to e1
+	e2 = e2->Convert2( aTy, BaseGDL::COPY);
+	g2.reset( e2);
+      }
+    }
+  else
+    {
+      // COMPLEX op DOUBLE = COMPLEXDBL
+      if( (bTy == COMPLEX && aTy == DOUBLE))
+	{
+	  e2 = e2->Convert2( COMPLEXDBL, BaseGDL::COPY);
+	  g2.reset( e2);
+	  e1 = e1->Convert2( COMPLEXDBL, BaseGDL::COPY);
+	  g1.reset( e1);
+	}
+      else
+	{// convert e1 to e2
+	    e1 = e1->Convert2( bTy, BaseGDL::COPY);
+	    g1.reset( e1);
+	}
+    }
+    
+  // 'classic handling from here
+  BaseGDL* res;
+  if ( e1->StrictScalar() )
+  {
+	  if ( g2.get() == NULL )
+	  {
+		  res= e2->MultSNew( e1); // scalar+scalar or array+scalar
+	  }
+	  else
+	  {
+		  g2.release();
+		  res= e2->MultS( e1); // scalar+scalar or array+scalar
+	  }
+  }
+  else	if ( e2->StrictScalar() )
+  {
+	  if ( g1.get() == NULL )
+	  {
+// 			return e1->New( e2);
+		  res= e1->MultSNew( e2); // array+scalar
+	  }
+	  else
+	  {
+		  g1.release();
+		  res= e1->MultS( e2); // array+scalar
+	  }
+  }
+  else if ( e1->N_Elements() == e2->N_Elements() )
+  {
+	  if ( g1.get() != NULL )
+	  {
+		  g1.release();
+		  return e1->Mult( e2);
+	  }
+	  else if ( g2.get() != NULL )
+	  {
+		  g2.release();
+		  res = e2->Mult( e1);
+		  res->SetDim( e1->Dim());
+		  return res;
+	  }
+	  else
+	  {
+		  return e1->MultNew( e2);
+// 			return e1->Dup()->Mult ( e2 );
+	  }
+  }
+  else if ( e1->N_Elements() < e2->N_Elements() )
+  {
+	  if ( g1.get() == NULL )
+	  {
+		  // 		 return e1->New( e2);
+		  res= e1->MultNew( e2); // smaller_array + larger_array or same size
+	    }
+	  else
+	  {
+		  g1.release();
+		  res= e1->Mult( e2); // smaller_array + larger_array or same size
+	  }
+  }
+  else
+  {
+	  if ( g2.get() == NULL )
+	  {
+		  res = e2->MultNew( e1); // smaller + larger
+	  }
+	    else
+	  {
+		  g2.release();
+		  res= e2->Mult( e1); // smaller + larger
+	  }
+  }
+  return res;
 }
 BaseGDL* ASTERIXNCNode::Eval()
 {
@@ -1638,6 +2023,118 @@ BaseGDL* MATRIX_OP2NCNode::Eval()
    }
 
  res=e2->MatrixOp(e1);
+ return res;
+}
+
+BaseGDL* SLASHNC12Node::Eval()
+{
+  BaseGDL *e1 = op1->EvalNC();
+  BaseGDL *e2 = op2->EvalNC();
+  DType aTy=e1->Type();
+  DType bTy=e2->Type();
+  if( aTy == bTy)
+  {
+    if ( e1->StrictScalar() )
+    {
+      return e2->DivInvSNew( e1 ); // scalar+scalar or array+scalar
+    }
+    else if ( e2->StrictScalar() )
+    {
+      return e1->DivSNew( e2); // array+scalar
+    }
+    else if ( e1->N_Elements() <= e2->N_Elements() )
+    {
+      return e1->DivNew ( e2 );
+    }
+    else // e1->N_Elements() > e2->N_Elements() )
+    {
+      return e2->DivInvNew( e1); // smaller + larger
+    }
+  }
+
+  auto_ptr<BaseGDL> g1;
+  auto_ptr<BaseGDL> g2;
+  if( DTypeOrder[aTy] >= DTypeOrder[bTy])
+    {
+      // COMPLEX op DOUBLE = COMPLEXDBL
+      if( aTy == COMPLEX && bTy == DOUBLE)
+      {
+	  e2 = e2->Convert2( COMPLEXDBL, BaseGDL::COPY);
+	  g2.reset( e2);
+	  e1 = e1->Convert2( COMPLEXDBL, BaseGDL::COPY);
+	  g1.reset( e1);
+      }
+      else
+      {
+	// convert e2 to e1
+	e2 = e2->Convert2( aTy, BaseGDL::COPY);
+	g2.reset( e2);
+      }
+    }
+  else
+    {
+      // COMPLEX op DOUBLE = COMPLEXDBL
+      if( (bTy == COMPLEX && aTy == DOUBLE))
+	{
+	  e2 = e2->Convert2( COMPLEXDBL, BaseGDL::COPY);
+	  g2.reset( e2);
+	  e1 = e1->Convert2( COMPLEXDBL, BaseGDL::COPY);
+	  g1.reset( e1);
+	}
+      else
+	{// convert e1 to e2
+	    e1 = e1->Convert2( bTy, BaseGDL::COPY);
+	    g1.reset( e1);
+	}
+    }
+    
+ // 'classic handling from here
+ BaseGDL* res;
+ if( e1->StrictScalar())
+   {
+     if( g2.get() == NULL) return e2->DivInvSNew( e1); else g2.release();
+     res= e2->DivInvS(e1); // scalar+scalar or array+scalar
+     
+   }
+ else
+   if( e2->StrictScalar())
+     {
+       if( g1.get() == NULL) return e1->DivSNew( e2); else g1.release();
+       res= e1->DivS(e2); // array+scalar
+       
+     }
+   else if( e1->N_Elements() == e2->N_Elements())
+   {
+     if( g1.get() != NULL)
+       {
+	 g1.release();
+	 return e1->Div(e2);
+       }
+     if( g2.get() != NULL) 
+       {
+	 g2.release();
+	 res = e2->DivInv(e1);
+	 res->SetDim( e1->Dim());
+	 return res;
+       }
+     else
+       {
+       return e1->DivNew(e2); 
+       }
+   }
+else if( e1->N_Elements() < e2->N_Elements())
+       {
+	 if( g1.get() == NULL) return e1->DivNew( e2); else g1.release();
+	 res= e1->Div(e2); // smaller_array + larger_array or same size
+	 
+       }
+     else
+       {
+	 if( g2.get() == NULL) return e2->DivInvNew( e1); else g2.release();
+	 res= e2->DivInv(e1); // smaller + larger
+	 
+       }
+
  return res;
 }
 BaseGDL* SLASHNCNode::Eval()

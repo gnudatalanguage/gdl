@@ -499,9 +499,19 @@ class PLUSNCNode: public BinaryExprNC
   PLUSNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
   BaseGDL* Eval();
 };
+class PLUSNC12Node: public BinaryExprNC // both are NC
+{ public:
+  PLUSNC12Node( const RefDNode& refNode): BinaryExprNC( refNode){}
+  BaseGDL* Eval();
+};
 class MINUSNCNode: public BinaryExprNC
 { public:
   MINUSNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
+  BaseGDL* Eval();
+};
+class MINUSNC12Node: public BinaryExprNC
+{ public:
+  MINUSNC12Node( const RefDNode& refNode): BinaryExprNC( refNode){}
   BaseGDL* Eval();
 };
 class LTMARKNCNode: public BinaryExprNC
@@ -512,6 +522,11 @@ class LTMARKNCNode: public BinaryExprNC
 class GTMARKNCNode: public BinaryExprNC
 { public:
   GTMARKNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
+  BaseGDL* Eval();
+};
+class ASTERIXNC12Node: public BinaryExprNC // both are NC
+{ public:
+  ASTERIXNC12Node( const RefDNode& refNode): BinaryExprNC( refNode){}
   BaseGDL* Eval();
 };
 class ASTERIXNCNode: public BinaryExprNC
@@ -532,6 +547,11 @@ class MATRIX_OP2NCNode: public BinaryExprNC
 class SLASHNCNode: public BinaryExprNC
 { public:
   SLASHNCNode( const RefDNode& refNode): BinaryExprNC( refNode){}
+  BaseGDL* Eval();
+};
+class SLASHNC12Node: public BinaryExprNC
+{ public:
+  SLASHNC12Node( const RefDNode& refNode): BinaryExprNC( refNode){}
   BaseGDL* Eval();
 };
 class MOD_OPNCNode: public BinaryExprNC

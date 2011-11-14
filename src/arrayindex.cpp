@@ -395,8 +395,13 @@ void MakeArrayIndex( ArrayIndexVectorT* ixList,
     }
   if( nScalar == ixList->size())
   {
-	if( arrayIndexNoAssocOut != NULL)
-    *arrayIndexNoAssocOut = new ArrayIndexListScalarNoAssocT( ixList);
+    if( arrayIndexNoAssocOut != NULL)
+    {
+      if( ixList->size() == 2)
+	*arrayIndexNoAssocOut = new ArrayIndexListScalarNoAssoc2DT( ixList);
+      else
+	*arrayIndexNoAssocOut = new ArrayIndexListScalarNoAssocT( ixList);
+    }
     *arrayIndexOut = new ArrayIndexListScalarT( ixList);
     return;
   }	
@@ -405,20 +410,23 @@ void MakeArrayIndex( ArrayIndexVectorT* ixList,
   // ArrayIndexListMultiT
   if( nIndexed == 0)
   {
-	if( arrayIndexNoAssocOut != NULL)
-    *arrayIndexNoAssocOut = new ArrayIndexListMultiNoneIndexedNoAssocT( ixList);
+    if( arrayIndexNoAssocOut != NULL)
+      if( ixList->size() == 2)
+	*arrayIndexNoAssocOut = new ArrayIndexListMultiNoneIndexedNoAssoc2DT( ixList);
+      else
+	*arrayIndexNoAssocOut = new ArrayIndexListMultiNoneIndexedNoAssocT( ixList);
     *arrayIndexOut = new ArrayIndexListMultiNoneIndexedT( ixList);
     return;
   }	
   if( nIndexed == ixList->size())
   {
-	if( arrayIndexNoAssocOut != NULL)
-    *arrayIndexNoAssocOut = new ArrayIndexListMultiAllIndexedNoAssocT( ixList);
+    if( arrayIndexNoAssocOut != NULL)
+      *arrayIndexNoAssocOut = new ArrayIndexListMultiAllIndexedNoAssocT( ixList);
     *arrayIndexOut = new ArrayIndexListMultiAllIndexedT( ixList);
     return;
   }	
 
-	if( arrayIndexNoAssocOut != NULL)
-  *arrayIndexNoAssocOut = new ArrayIndexListMultiNoAssocT( ixList);
+  if( arrayIndexNoAssocOut != NULL)
+    *arrayIndexNoAssocOut = new ArrayIndexListMultiNoAssocT( ixList);
   *arrayIndexOut = new ArrayIndexListMultiT( ixList);
 }

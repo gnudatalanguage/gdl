@@ -2257,12 +2257,13 @@ TRACEOMP( __FILE__, __LINE__)
 	}
 #endif
 // #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+//{
 // #pragma omp for
       	for( SizeT i=0; i < nEl; ++i)
-	  (*dest)[i] = DComplex( static_cast<float>((*this)[i].real()), 
-				 static_cast<float>((*this)[i].imag()) );
-}	//      	  (*dest)[i]=(*this)[i];
+// 	  (*dest)[i] = DComplex( static_cast<float>((*this)[i].real()), 
+// 				 static_cast<float>((*this)[i].imag()) );
+//}      	  
+	(*dest)[i]=(*this)[i];
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }

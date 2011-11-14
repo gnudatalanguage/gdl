@@ -55,6 +55,9 @@ using namespace std;
 // this (ugly) including of other sourcefiles has to be done, because
 // on Mac OS X a template instantiation request (see bottom of file)
 // can only be done once
+#define INCLUDE_GETAS_CPP 1
+#include "getas.cpp"
+
 #define INCLUDE_BASIC_OP_CPP 1
 #include "basic_op.cpp"
 #include "basic_op_new.cpp"
@@ -218,7 +221,6 @@ template<>
 template class GDLArray<char>;
   
 #endif
-
 
 
 

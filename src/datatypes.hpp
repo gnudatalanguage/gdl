@@ -237,6 +237,11 @@ static	void operator delete( void *ptr);
 
   void Assign( BaseGDL* src, SizeT nEl);
 
+  template< typename To> typename Data_<To>::Ty GetAs( SizeT i);
+//   {
+//     return dd[ i];
+//   }
+  
   Data_*   Log();
   void     LogThis();
 

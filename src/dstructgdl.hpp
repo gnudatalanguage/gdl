@@ -487,6 +487,8 @@ DStructGDL* NewResult() const
 			const SizeT catRank, 
 			const SizeT rank);
 
+  template< typename To> typename Data_<To>::Ty GetAs( SizeT i);
+
   BaseGDL* Convert2( DType destTy, 
 		     BaseGDL::Convert2Mode mode = BaseGDL::CONVERT);
   

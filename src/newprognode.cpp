@@ -103,13 +103,19 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
   if( refNode == RefDNode(antlr::nullAST)) return NULL;
 
   bool nonCopy = false;
+  bool nonCopy12 = false;
   if( refNode->GetFirstChild() != RefDNode(antlr::nullAST))
     {
       if( NonCopyNode( refNode->GetFirstChild()->getType()))
 	nonCopy = true;
       if( refNode->GetFirstChild()->GetNextSibling() != RefDNode(antlr::nullAST))
 		if( NonCopyNode( refNode->GetFirstChild()->GetNextSibling()->getType()))
-			nonCopy = true;
+		{
+		  if( nonCopy)
+		    nonCopy12 = true;
+		  else  
+		    nonCopy = true;
+		}
     }
   
   // note: constant expressions are always nonCopy
@@ -154,106 +160,169 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
 	  // binary
 	case GDLTokenTypes::AND_OP:
 	  {
-	    newNode = new AND_OPNCNode( refNode);
+	    if( nonCopy12)
+	      newNode = new AND_OPNCNode( refNode);
+	    else
+	      newNode = new AND_OPNCNode( refNode);
 	    break;
 	  }
 	case GDLTokenTypes::OR_OP:
 	  {
+	    if( nonCopy12)
+	    newNode = new OR_OPNCNode( refNode);
+	    else
 	    newNode = new OR_OPNCNode( refNode);
 	    break;
 	  }
 	case GDLTokenTypes::XOR_OP:
 	  {
+	    if( nonCopy12)
+	    newNode = new XOR_OPNCNode( refNode);
+	    else
 	    newNode = new XOR_OPNCNode( refNode);
 	    break;
 	  }
 	case GDLTokenTypes::LOG_AND:
 	  {
+	    if( nonCopy12)
+	    newNode = new LOG_ANDNCNode( refNode);
+	    else
 	    newNode = new LOG_ANDNCNode( refNode);
 	    break;
 	  }
 	case GDLTokenTypes::LOG_OR:
 	  {
+	    if( nonCopy12)
+	    newNode = new LOG_ORNCNode( refNode);
+	    else
 	    newNode = new LOG_ORNCNode( refNode);
 	    break;
 	  }
 	case GDLTokenTypes::EQ_OP:
 	  {
+	    if( nonCopy12)
+	    newNode = new EQ_OPNCNode( refNode);
+	    else
 	    newNode = new EQ_OPNCNode( refNode);
 	    break;
 	  }
 	case GDLTokenTypes::NE_OP:
 	  {
+	    if( nonCopy12)
+	    newNode = new NE_OPNCNode( refNode);
+	    else
 	    newNode = new NE_OPNCNode( refNode);
 	    break;
 	  }
 	case GDLTokenTypes::LE_OP:
 	  {
+	    if( nonCopy12)
+	    newNode = new LE_OPNCNode( refNode);
+	    else
 	    newNode = new LE_OPNCNode( refNode);
 	    break;
 	  }
 	case GDLTokenTypes::LT_OP:
 	  {
+	    if( nonCopy12)
+	    newNode = new LT_OPNCNode( refNode);
+	    else
 	    newNode = new LT_OPNCNode( refNode);
 	    break;
 	  }
 	case GDLTokenTypes::GE_OP:
 	  {
+	    if( nonCopy12)
+	    newNode = new GE_OPNCNode( refNode);
+	    else
 	    newNode = new GE_OPNCNode( refNode);
 	    break;
 	  }
 	case GDLTokenTypes::GT_OP:
 	  {
+	    if( nonCopy12)
+	    newNode = new GT_OPNCNode( refNode);
+	    else
 	    newNode = new GT_OPNCNode( refNode);
 	    break;
 	  }
 	case GDLTokenTypes::PLUS:
 	  {
+	    if( nonCopy12)
+	    newNode = new PLUSNC12Node( refNode);
+	    else
 	    newNode = new PLUSNCNode( refNode);
 	    break;
 	  }
 	case GDLTokenTypes::MINUS:
 	  {
+	    if( nonCopy12)
+	    newNode = new MINUSNC12Node( refNode);
+	    else
 	    newNode = new MINUSNCNode( refNode);
 	    break;
 	  }
 	case GDLTokenTypes::LTMARK:
 	  {
+	    if( nonCopy12)
+	    newNode = new LTMARKNCNode( refNode);
+	    else
 	    newNode = new LTMARKNCNode( refNode);
 	    break;
 	  }
 	case GDLTokenTypes::GTMARK:
 	  {
+	    if( nonCopy12)
+	    newNode = new GTMARKNCNode( refNode);
+	    else
 	    newNode = new GTMARKNCNode( refNode);
 	    break;
 	  }
 	case GDLTokenTypes::ASTERIX:
 	  {
+	    if( nonCopy12)
+	    newNode = new ASTERIXNC12Node( refNode);
+	    else
 	    newNode = new ASTERIXNCNode( refNode);
 	    break;
 	  }
 	case GDLTokenTypes::MATRIX_OP1:
 	  {
+	    if( nonCopy12)
+	    newNode = new MATRIX_OP1NCNode( refNode);
+	    else
 	    newNode = new MATRIX_OP1NCNode( refNode);
 	    break;
 	  }
 	case GDLTokenTypes::MATRIX_OP2:
 	  {
+	    if( nonCopy12)
+	    newNode = new MATRIX_OP2NCNode( refNode);
+	    else
 	    newNode = new MATRIX_OP2NCNode( refNode);
 	    break;
 	  }
 	case GDLTokenTypes::SLASH:
 	  {
+	    if( nonCopy12)
+	    newNode = new SLASHNC12Node( refNode);
+	    else
 	    newNode = new SLASHNCNode( refNode);
 	    break;
 	  }
 	case GDLTokenTypes::MOD_OP:
 	  {
+	    if( nonCopy12)
+	    newNode = new MOD_OPNCNode( refNode);
+	    else
 	    newNode = new MOD_OPNCNode( refNode);
 	    break;
 	  }
 	case GDLTokenTypes::POW:
 	  {
+	    if( nonCopy12)
+	    newNode = new POWNCNode( refNode);
+	    else
 	    newNode = new POWNCNode( refNode);
 	    break;
 	  }

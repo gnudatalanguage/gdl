@@ -43,10 +43,18 @@ public:
 
   virtual ArrayIndexListT* Clone() { assert( 0); return NULL;}
 
-  virtual void Init( IxExprListT& ix, IxExprListT* cleanupIx) { assert( 0);}
+  virtual void Init( IxExprListT& ix, IxExprListT* cleanupIx) 
+  { 
+    assert( 0);
+    throw GDLException( NULL,"Internal error: ArrayIndexListT::Init( IxExprListT& ix, IxExprListT* cleanupIx) called.",true,false);    
+  }
   virtual void Init() {}
   
-   virtual bool ToAssocIndex( SizeT& lastIx) = 0;
+   virtual bool ToAssocIndex( SizeT& lastIx) 
+   { 
+    assert( 0);       
+    throw GDLException( NULL,"Internal error: ArrayIndexListT::ToAssocIndex( SizeT& lastIx) called.",true,false);
+   }
 //  virtual bool ToAssocIndex( RangeT& lastIx) = 0;
 
   // set the root variable which is indexed by this ArrayIndexListT
