@@ -106,49 +106,49 @@ typename Data_<To>::Ty DStructGDL::GetAs( SizeT i)
 // DByteGDL full specializations  
 template<>
 template<> 
-typename Data_<SpDString>::Ty Data_<SpDByte>::GetAs<SpDString>( SizeT i)
+/*typename*/ Data_<SpDString>::Ty Data_<SpDByte>::GetAs<SpDString>( SizeT i)
   {
     return i2s<>(this->dd[ i],4);
   }
 // DIntGDL full specializations  
 template<>
 template<> 
-typename Data_<SpDString>::Ty Data_<SpDInt>::GetAs<SpDString>( SizeT i)
+/*typename*/ Data_<SpDString>::Ty Data_<SpDInt>::GetAs<SpDString>( SizeT i)
   {
     return i2s<>(this->dd[ i],8);
   }
 // DUIntGDL full specializations  
 template<>
 template<> 
-typename Data_<SpDString>::Ty Data_<SpDUInt>::GetAs<SpDString>( SizeT i)
+/*typename*/ Data_<SpDString>::Ty Data_<SpDUInt>::GetAs<SpDString>( SizeT i)
   {
     return i2s<>(this->dd[ i],8);
   }
 // DLongGDL full specializations  
 template<>
 template<> 
-typename Data_<SpDString>::Ty Data_<SpDLong>::GetAs<SpDString>( SizeT i)
+/*typename*/ Data_<SpDString>::Ty Data_<SpDLong>::GetAs<SpDString>( SizeT i)
   {
     return i2s<>(this->dd[ i],12);
   }
 // DULongGDL full specializations  
 template<>
 template<> 
-typename Data_<SpDString>::Ty Data_<SpDULong>::GetAs<SpDString>( SizeT i)
+/*typename*/ Data_<SpDString>::Ty Data_<SpDULong>::GetAs<SpDString>( SizeT i)
   {
     return i2s<>(this->dd[ i],12);
   }
 // DLong64GDL full specializations  
 template<>
 template<> 
-typename Data_<SpDString>::Ty Data_<SpDLong64>::GetAs<SpDString>( SizeT i)
+/*typename*/ Data_<SpDString>::Ty Data_<SpDLong64>::GetAs<SpDString>( SizeT i)
   {
     return i2s<>(this->dd[ i],22);
   }
 // DULong64GDL full specializations  
 template<>
 template<> 
-typename Data_<SpDString>::Ty Data_<SpDULong64>::GetAs<SpDString>( SizeT i)
+/*typename*/ Data_<SpDString>::Ty Data_<SpDULong64>::GetAs<SpDString>( SizeT i)
   {
     return i2s<>(this->dd[ i],22);
   }
@@ -157,49 +157,49 @@ typename Data_<SpDString>::Ty Data_<SpDULong64>::GetAs<SpDString>( SizeT i)
 // DFloatGDL full specializations  
 template<>
 template<> 
-typename Data_<SpDByte>::Ty Data_<SpDFloat>::GetAs<SpDByte>( SizeT i)
+/*typename*/ Data_<SpDByte>::Ty Data_<SpDFloat>::GetAs<SpDByte>( SizeT i)
   {
     return Real2DByte<float>((*this)[i]);
   }
 template<>
 template<> 
-typename Data_<SpDInt>::Ty Data_<SpDFloat>::GetAs<SpDInt>( SizeT i)
+/*typename*/ Data_<SpDInt>::Ty Data_<SpDFloat>::GetAs<SpDInt>( SizeT i)
   {
     return Real2Int<DInt,float>((*this)[i]);
   }
 template<>
 template<> 
-typename Data_<SpDUInt>::Ty Data_<SpDFloat>::GetAs<SpDUInt>( SizeT i)
+/*typename*/ Data_<SpDUInt>::Ty Data_<SpDFloat>::GetAs<SpDUInt>( SizeT i)
   {
     return static_cast< DUInt>((*this)[i]);
   }
 template<>
 template<> 
-typename Data_<SpDLong>::Ty Data_<SpDFloat>::GetAs<SpDLong>( SizeT i)
+/*typename*/ Data_<SpDLong>::Ty Data_<SpDFloat>::GetAs<SpDLong>( SizeT i)
   {
     return Real2Int<DLong,float>((*this)[i]);
   }
 template<>
 template<> 
-typename Data_<SpDLong64>::Ty Data_<SpDFloat>::GetAs<SpDLong64>( SizeT i)
+/*typename*/ Data_<SpDLong64>::Ty Data_<SpDFloat>::GetAs<SpDLong64>( SizeT i)
   {
     return Real2Int<DLong64,float>((*this)[i]);
   }
 template<>
 template<> 
-typename Data_<SpDULong>::Ty Data_<SpDFloat>::GetAs<SpDULong>( SizeT i)
+/*typename*/ Data_<SpDULong>::Ty Data_<SpDFloat>::GetAs<SpDULong>( SizeT i)
   {
     return static_cast< DULong>((*this)[i]);
   }
 template<>
 template<> 
-typename Data_<SpDULong64>::Ty Data_<SpDFloat>::GetAs<SpDULong64>( SizeT i)
+/*typename*/ Data_<SpDULong64>::Ty Data_<SpDFloat>::GetAs<SpDULong64>( SizeT i)
   {
     return static_cast< DULong64>((*this)[i]);
   }
 template<>
 template<> 
-typename Data_<SpDString>::Ty Data_<SpDFloat>::GetAs<SpDString>( SizeT i)
+/*typename*/ Data_<SpDString>::Ty Data_<SpDFloat>::GetAs<SpDString>( SizeT i)
   {
     return float2string((*this)[i]);
   }
@@ -209,49 +209,49 @@ typename Data_<SpDString>::Ty Data_<SpDFloat>::GetAs<SpDString>( SizeT i)
 // DDoubleGDL full specializations  
 template<>
 template<> 
-typename Data_<SpDByte>::Ty Data_<SpDDouble>::GetAs<SpDByte>( SizeT i)
+/*typename*/ Data_<SpDByte>::Ty Data_<SpDDouble>::GetAs<SpDByte>( SizeT i)
   {
     return Real2DByte<double>((*this)[i]);
   }
 template<>
 template<> 
-typename Data_<SpDInt>::Ty Data_<SpDDouble>::GetAs<SpDInt>( SizeT i)
+/*typename*/ Data_<SpDInt>::Ty Data_<SpDDouble>::GetAs<SpDInt>( SizeT i)
   {
     return Real2Int<DInt,double>((*this)[i]);
   }
 template<>
 template<> 
-typename Data_<SpDUInt>::Ty Data_<SpDDouble>::GetAs<SpDUInt>( SizeT i)
+/*typename*/ Data_<SpDUInt>::Ty Data_<SpDDouble>::GetAs<SpDUInt>( SizeT i)
   {
     return static_cast< DUInt>((*this)[i]);
   }
 template<>
 template<> 
-typename Data_<SpDLong>::Ty Data_<SpDDouble>::GetAs<SpDLong>( SizeT i)
+/*typename*/ Data_<SpDLong>::Ty Data_<SpDDouble>::GetAs<SpDLong>( SizeT i)
   {
     return Real2Int<DLong,double>((*this)[i]);
   }
 template<>
 template<> 
-typename Data_<SpDLong64>::Ty Data_<SpDDouble>::GetAs<SpDLong64>( SizeT i)
+/*typename*/ Data_<SpDLong64>::Ty Data_<SpDDouble>::GetAs<SpDLong64>( SizeT i)
   {
     return Real2Int<DLong64,double>((*this)[i]);
   }
 template<>
 template<> 
-typename Data_<SpDULong>::Ty Data_<SpDDouble>::GetAs<SpDULong>( SizeT i)
+/*typename*/ Data_<SpDULong>::Ty Data_<SpDDouble>::GetAs<SpDULong>( SizeT i)
   {
     return static_cast< DULong>((*this)[i]);
   }
 template<>
 template<> 
-typename Data_<SpDULong64>::Ty Data_<SpDDouble>::GetAs<SpDULong64>( SizeT i)
+/*typename*/ Data_<SpDULong64>::Ty Data_<SpDDouble>::GetAs<SpDULong64>( SizeT i)
   {
     return static_cast< DULong64>((*this)[i]);
   }
 template<>
 template<> 
-typename Data_<SpDString>::Ty Data_<SpDDouble>::GetAs<SpDString>( SizeT i)
+/*typename*/ Data_<SpDString>::Ty Data_<SpDDouble>::GetAs<SpDString>( SizeT i)
   {
     return double2string((*this)[i]);
   }
@@ -270,7 +270,7 @@ inline void StringConversionErrorGetAs( const string& msg)
 
 template<>
 template<> 
-typename Data_<SpDByte>::Ty Data_<SpDString>::GetAs<SpDByte>( SizeT i)
+/*typename*/ Data_<SpDByte>::Ty Data_<SpDString>::GetAs<SpDByte>( SizeT i)
   {
     const char* cStart=(*this)[i].c_str();
     char* cEnd;
@@ -284,7 +284,7 @@ typename Data_<SpDByte>::Ty Data_<SpDString>::GetAs<SpDByte>( SizeT i)
   }
 template<>
 template<> 
-typename Data_<SpDInt>::Ty Data_<SpDString>::GetAs<SpDInt>( SizeT i)
+/*typename*/ Data_<SpDInt>::Ty Data_<SpDString>::GetAs<SpDInt>( SizeT i)
   {
     const char* cStart=(*this)[i].c_str();
     char* cEnd;
@@ -298,7 +298,7 @@ typename Data_<SpDInt>::Ty Data_<SpDString>::GetAs<SpDInt>( SizeT i)
   }
 template<>
 template<> 
-typename Data_<SpDUInt>::Ty Data_<SpDString>::GetAs<SpDUInt>( SizeT i)
+/*typename*/ Data_<SpDUInt>::Ty Data_<SpDString>::GetAs<SpDUInt>( SizeT i)
   {
     const char* cStart=(*this)[i].c_str();
     char* cEnd;
@@ -312,7 +312,7 @@ typename Data_<SpDUInt>::Ty Data_<SpDString>::GetAs<SpDUInt>( SizeT i)
   }
 template<>
 template<> 
-typename Data_<SpDLong>::Ty Data_<SpDString>::GetAs<SpDLong>( SizeT i)
+/*typename*/ Data_<SpDLong>::Ty Data_<SpDString>::GetAs<SpDLong>( SizeT i)
   {
     const char* cStart=(*this)[i].c_str();
     char* cEnd;
@@ -326,7 +326,7 @@ typename Data_<SpDLong>::Ty Data_<SpDString>::GetAs<SpDLong>( SizeT i)
   }
 template<>
 template<> 
-typename Data_<SpDULong>::Ty Data_<SpDString>::GetAs<SpDULong>( SizeT i)
+/*typename*/ Data_<SpDULong>::Ty Data_<SpDString>::GetAs<SpDULong>( SizeT i)
   {
     const char* cStart=(*this)[i].c_str();
     char* cEnd;
@@ -340,7 +340,7 @@ typename Data_<SpDULong>::Ty Data_<SpDString>::GetAs<SpDULong>( SizeT i)
   }
 template<>
 template<> 
-typename Data_<SpDLong64>::Ty Data_<SpDString>::GetAs<SpDLong64>( SizeT i)
+/*typename*/ Data_<SpDLong64>::Ty Data_<SpDString>::GetAs<SpDLong64>( SizeT i)
   {
     const char* cStart=(*this)[i].c_str();
     char* cEnd;
@@ -354,7 +354,7 @@ typename Data_<SpDLong64>::Ty Data_<SpDString>::GetAs<SpDLong64>( SizeT i)
   }
 template<>
 template<> 
-typename Data_<SpDULong64>::Ty Data_<SpDString>::GetAs<SpDULong64>( SizeT i)
+/*typename*/ Data_<SpDULong64>::Ty Data_<SpDString>::GetAs<SpDULong64>( SizeT i)
   {
     const char* cStart=(*this)[i].c_str();
     char* cEnd;
@@ -368,7 +368,7 @@ typename Data_<SpDULong64>::Ty Data_<SpDString>::GetAs<SpDULong64>( SizeT i)
   }
 template<>
 template<> 
-typename Data_<SpDFloat>::Ty Data_<SpDString>::GetAs<SpDFloat>( SizeT i)
+/*typename*/ Data_<SpDFloat>::Ty Data_<SpDString>::GetAs<SpDFloat>( SizeT i)
   {
     const char* cStart=(*this)[i].c_str();
     char* cEnd;
@@ -382,7 +382,7 @@ typename Data_<SpDFloat>::Ty Data_<SpDString>::GetAs<SpDFloat>( SizeT i)
   }
 template<>
 template<> 
-typename Data_<SpDDouble>::Ty Data_<SpDString>::GetAs<SpDDouble>( SizeT i)
+/*typename*/ Data_<SpDDouble>::Ty Data_<SpDString>::GetAs<SpDDouble>( SizeT i)
   {
     const char* cStart=(*this)[i].c_str();
     char* cEnd;
@@ -396,7 +396,7 @@ typename Data_<SpDDouble>::Ty Data_<SpDString>::GetAs<SpDDouble>( SizeT i)
   }
 template<>
 template<> 
-typename Data_<SpDComplex>::Ty Data_<SpDString>::GetAs<SpDComplex>( SizeT i)
+/*typename*/ Data_<SpDComplex>::Ty Data_<SpDString>::GetAs<SpDComplex>( SizeT i)
   {
     const char* cStart=(*this)[i].c_str();
     char* cEnd;
@@ -410,7 +410,7 @@ typename Data_<SpDComplex>::Ty Data_<SpDString>::GetAs<SpDComplex>( SizeT i)
   }
 template<>
 template<> 
-typename Data_<SpDComplexDbl>::Ty Data_<SpDString>::GetAs<SpDComplexDbl>( SizeT i)
+/*typename*/ Data_<SpDComplexDbl>::Ty Data_<SpDString>::GetAs<SpDComplexDbl>( SizeT i)
   {
     const char* cStart=(*this)[i].c_str();
     char* cEnd;
@@ -427,61 +427,61 @@ typename Data_<SpDComplexDbl>::Ty Data_<SpDString>::GetAs<SpDComplexDbl>( SizeT 
 // DComplexGDL full specializations  
 template<>
 template<> 
-typename Data_<SpDByte>::Ty Data_<SpDComplex>::GetAs<SpDByte>( SizeT i)
+/*typename*/ Data_<SpDByte>::Ty Data_<SpDComplex>::GetAs<SpDByte>( SizeT i)
   {
     return Real2DByte<float>(real((*this)[i])); 
   }
 template<>
 template<> 
-typename Data_<SpDInt>::Ty Data_<SpDComplex>::GetAs<SpDInt>( SizeT i)
+/*typename*/ Data_<SpDInt>::Ty Data_<SpDComplex>::GetAs<SpDInt>( SizeT i)
   {
     return Real2Int<DInt,float>(real((*this)[i]));
   }
 template<>
 template<> 
-typename Data_<SpDUInt>::Ty Data_<SpDComplex>::GetAs<SpDUInt>( SizeT i)
+/*typename*/ Data_<SpDUInt>::Ty Data_<SpDComplex>::GetAs<SpDUInt>( SizeT i)
   {
     return static_cast< DUInt>(real((*this)[i]));
   }
 template<>
 template<> 
-typename Data_<SpDLong>::Ty Data_<SpDComplex>::GetAs<SpDLong>( SizeT i)
+/*typename*/ Data_<SpDLong>::Ty Data_<SpDComplex>::GetAs<SpDLong>( SizeT i)
   {
     return Real2Int<DLong,float>(real((*this)[i])); 
   }
 template<>
 template<> 
-typename Data_<SpDLong64>::Ty Data_<SpDComplex>::GetAs<SpDLong64>( SizeT i)
+/*typename*/ Data_<SpDLong64>::Ty Data_<SpDComplex>::GetAs<SpDLong64>( SizeT i)
   {
     return Real2Int<DLong64,float>(real((*this)[i]));
   }
 template<>
 template<> 
-typename Data_<SpDULong>::Ty Data_<SpDComplex>::GetAs<SpDULong>( SizeT i)
+/*typename*/ Data_<SpDULong>::Ty Data_<SpDComplex>::GetAs<SpDULong>( SizeT i)
   {
     return static_cast< DULong>(real((*this)[i]));
   }
 template<>
 template<> 
-typename Data_<SpDULong64>::Ty Data_<SpDComplex>::GetAs<SpDULong64>( SizeT i)
+/*typename*/ Data_<SpDULong64>::Ty Data_<SpDComplex>::GetAs<SpDULong64>( SizeT i)
   {
     return static_cast< DULong64>(real((*this)[i]));
   }
 template<>
 template<> 
-typename Data_<SpDFloat>::Ty Data_<SpDComplex>::GetAs<SpDFloat>( SizeT i)
+/*typename*/ Data_<SpDFloat>::Ty Data_<SpDComplex>::GetAs<SpDFloat>( SizeT i)
   {
     return real((*this)[i]); 
   }
 template<>
 template<> 
-typename Data_<SpDDouble>::Ty Data_<SpDComplex>::GetAs<SpDDouble>( SizeT i)
+/*typename*/ Data_<SpDDouble>::Ty Data_<SpDComplex>::GetAs<SpDDouble>( SizeT i)
   {
     return real((*this)[i]); 
   }
 template<>
 template<> 
-typename Data_<SpDString>::Ty Data_<SpDComplex>::GetAs<SpDString>( SizeT i)
+/*typename*/ Data_<SpDString>::Ty Data_<SpDComplex>::GetAs<SpDString>( SizeT i)
   {
     return "("+i2s(real((*this)[i]))+","+i2s(imag((*this)[i]))+")";
   }
@@ -491,61 +491,61 @@ typename Data_<SpDString>::Ty Data_<SpDComplex>::GetAs<SpDString>( SizeT i)
 // DComplexDblGDL full specializations  
 template<>
 template<> 
-typename Data_<SpDByte>::Ty Data_<SpDComplexDbl>::GetAs<SpDByte>( SizeT i)
+/*typename*/ Data_<SpDByte>::Ty Data_<SpDComplexDbl>::GetAs<SpDByte>( SizeT i)
   {
     return Real2DByte<double>(real((*this)[i])); 
   }
 template<>
 template<> 
-typename Data_<SpDInt>::Ty Data_<SpDComplexDbl>::GetAs<SpDInt>( SizeT i)
+/*typename*/ Data_<SpDInt>::Ty Data_<SpDComplexDbl>::GetAs<SpDInt>( SizeT i)
   {
     return Real2Int<DInt,double>(real((*this)[i]));
   }
 template<>
 template<> 
-typename Data_<SpDUInt>::Ty Data_<SpDComplexDbl>::GetAs<SpDUInt>( SizeT i)
+/*typename*/ Data_<SpDUInt>::Ty Data_<SpDComplexDbl>::GetAs<SpDUInt>( SizeT i)
   {
     return static_cast< DUInt>(real((*this)[i]));
   }
 template<>
 template<> 
-typename Data_<SpDLong>::Ty Data_<SpDComplexDbl>::GetAs<SpDLong>( SizeT i)
+/*typename*/ Data_<SpDLong>::Ty Data_<SpDComplexDbl>::GetAs<SpDLong>( SizeT i)
   {
     return Real2Int<DLong,double>(real((*this)[i])); 
   }
 template<>
 template<> 
-typename Data_<SpDLong64>::Ty Data_<SpDComplexDbl>::GetAs<SpDLong64>( SizeT i)
+/*typename*/ Data_<SpDLong64>::Ty Data_<SpDComplexDbl>::GetAs<SpDLong64>( SizeT i)
   {
     return Real2Int<DLong64,double>(real((*this)[i]));
   }
 template<>
 template<> 
-typename Data_<SpDULong>::Ty Data_<SpDComplexDbl>::GetAs<SpDULong>( SizeT i)
+/*typename*/ Data_<SpDULong>::Ty Data_<SpDComplexDbl>::GetAs<SpDULong>( SizeT i)
   {
     return static_cast< DULong>(real((*this)[i]));
   }
 template<>
 template<> 
-typename Data_<SpDULong64>::Ty Data_<SpDComplexDbl>::GetAs<SpDULong64>( SizeT i)
+/*typename*/ Data_<SpDULong64>::Ty Data_<SpDComplexDbl>::GetAs<SpDULong64>( SizeT i)
   {
     return static_cast< DULong64>(real((*this)[i]));
   }
 template<>
 template<> 
-typename Data_<SpDFloat>::Ty Data_<SpDComplexDbl>::GetAs<SpDFloat>( SizeT i)
+/*typename*/ Data_<SpDFloat>::Ty Data_<SpDComplexDbl>::GetAs<SpDFloat>( SizeT i)
   {
     return real((*this)[i]); 
   }
 template<>
 template<> 
-typename Data_<SpDDouble>::Ty Data_<SpDComplexDbl>::GetAs<SpDDouble>( SizeT i)
+/*typename*/ Data_<SpDDouble>::Ty Data_<SpDComplexDbl>::GetAs<SpDDouble>( SizeT i)
   {
     return real((*this)[i]); 
   }
 template<>
 template<> 
-typename Data_<SpDString>::Ty Data_<SpDComplexDbl>::GetAs<SpDString>( SizeT i)
+/*typename*/ Data_<SpDString>::Ty Data_<SpDComplexDbl>::GetAs<SpDString>( SizeT i)
   {
     return "("+i2s(real((*this)[i]))+","+i2s(imag((*this)[i]))+")";
   }
