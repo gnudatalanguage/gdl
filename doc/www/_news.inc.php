@@ -1,6 +1,6 @@
 <h2>GDL 0.9.2 released</h2>
 <p>
-  2011-11-04: Macports port updated<br />
+  2011-11-14: Macports port updated<br />
   2011-11-13: FreeBSD port updated<br />
   2011-11-12: ArchLinux package updated<br />
   2011-11-11: Fedora package updated<br />
