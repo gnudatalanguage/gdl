@@ -51,7 +51,8 @@
 ; LICENCE: this code is under GNU GPL v2 or later. (C) 2011
 ; 
 ; MODIFICATION HISTORY:
-; - first draft created by Alain Coulais, 10-Nov-2011
+; -- first draft created by Alain Coulais, 10-Nov-2011
+; -- 15-Nov-2011 : AC : better managmenet of output types
 ;
 ;-
 ;
@@ -96,10 +97,12 @@ if KEYWORD_SET(mask) then begin
    if (nbp_ok GT 0) then image=input_data[OK]
 endif
 ;
-count=N_ELEMENTS(image)
+count=ULONG(N_ELEMENTS(image))
 data_sum=TOTAL(image)
 mean_=MEAN(image)
 maximum=MAX(image, min=minimum)
+maximum=FLOAT(maximum)
+minimum=FLOAT(minimum)
 sum_of_squares=TOTAL(image^2.) ; to avoid overflow
 ;
 if N_ELEMENTS(image) GT 1 then begin
