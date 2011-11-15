@@ -2489,36 +2489,83 @@ if( e1->StrictScalar())
 //   return new POSTINCNode( refNode);
 // }
 
+  BaseGDL** FCALL_LIB_N_ELEMENTSNode::LEval()
+  {
+      // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+    StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
+    throw GDLException(this,"Internal error: N_ELEMENTS called as left expr.");
+  }
+
+  BaseGDL* FCALL_LIB_N_ELEMENTSNode::Eval()
+  {
+    // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+//    StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
+// 	match(antlr::RefAST(_t),FCALL_LIB_RETNEW);
+//	_t = _t->getFirstChild();
+// 	match(antlr::RefAST(_t),IDENTIFIER);
+    EnvT* newEnv=new EnvT( this, this->libFun);//libFunList[fl->funIx]);
+    auto_ptr< EnvT> guardEnv( newEnv);
+// 	_t =_t->getFirstChild();
+// 	EnvT* newEnv=new EnvT( fl, fl->libFun);//libFunList[fl->funIx]);
+	// special handling for N_ELEMENTS()
+//     static int n_elementsIx = LibFunIx("N_ELEMENTS");
+//     static DLibFun* n_elementsFun = libFunList[n_elementsIx];
+// 
+//     if( this->libFun == n_elementsFun)
+//         {
+            ProgNode::interpreter->parameter_def_n_elements(this->getFirstChild(), newEnv);
+//         }
+//     else
+//         {
+//             ProgNode::interpreter->parameter_def_nocheck(this->getFirstChild(), newEnv);
+//         }
+    BaseGDL* p0=newEnv->GetPar( 0);
+    if( p0 == NULL)
+		return new DLongGDL( 0);
+	else
+	    return new DLongGDL( p0->N_Elements());
+
+    // push id.pro onto call stack
+//     ProgNode::interpreter->CallStack().push_back(newEnv);
+//     // make the call
+//     //*** MUST always return a defined expression
+//     BaseGDL* res = static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
+//     assert( res != NULL);
+//     return res;
+  }
+
   BaseGDL** FCALL_LIB_RETNEWNode::LEval()
   {
       // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
     throw GDLException(this,"Internal error: FCALL_LIB_RETNEW as left expr.");
   }
-  
+
   BaseGDL* FCALL_LIB_RETNEWNode::Eval()
   {
-    // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
-    StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
 // 	match(antlr::RefAST(_t),FCALL_LIB_RETNEW);
 //	_t = _t->getFirstChild();
 // 	match(antlr::RefAST(_t),IDENTIFIER);
     EnvT* newEnv=new EnvT( this, this->libFun);//libFunList[fl->funIx]);
+    auto_ptr< EnvT> guardEnv( newEnv);
 // 	_t =_t->getFirstChild();
 // 	EnvT* newEnv=new EnvT( fl, fl->libFun);//libFunList[fl->funIx]);
 	// special handling for N_ELEMENTS()
-    static int n_elementsIx = LibFunIx("N_ELEMENTS");
-    static DLibFun* n_elementsFun = libFunList[n_elementsIx];
-
-    if( this->libFun == n_elementsFun)
-        {
-            ProgNode::interpreter->parameter_def_n_elements(this->getFirstChild(), newEnv);
-        }
-    else
-        {
+//     static int n_elementsIx = LibFunIx("N_ELEMENTS");
+//     static DLibFun* n_elementsFun = libFunList[n_elementsIx];
+// 
+//     if( this->libFun == n_elementsFun)
+//         {
+//             ProgNode::interpreter->parameter_def_n_elements(this->getFirstChild(), newEnv);
+//         }
+//     else
+//         {
             ProgNode::interpreter->parameter_def_nocheck(this->getFirstChild(), newEnv);
-        }
+//         }
     // push id.pro onto call stack
+	guardEnv.release();
+    // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+    StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
     ProgNode::interpreter->CallStack().push_back(newEnv);
     // make the call
     //*** MUST always return a defined expression

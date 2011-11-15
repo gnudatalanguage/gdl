@@ -566,15 +566,32 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
 
 	if( !static_cast<DLibFunRetNew*>(c->libFun)->RetConstant()
 	    || !ConstantPar( c->getFirstChild())) return c;
-	
+
 	auto_ptr< ProgNode> guard( c);
-	
+
 	BaseGDL* cData = c->Eval();
-	
+
 	ProgNodeP cN = new CONSTANTNode( c->StealNextSibling(), cData);
 	cN->lineNumber = refNode->getLine();
 	cN->setText( "C()");
-	
+
+	return cN;
+      }
+    case GDLTokenTypes::FCALL_LIB_N_ELEMENTS:
+      {
+	ProgNodeP c = new FCALL_LIB_N_ELEMENTSNode( refNode);
+
+	if( !static_cast<DLibFunRetNew*>(c->libFun)->RetConstant()
+	    || !ConstantPar( c->getFirstChild())) return c;
+
+	auto_ptr< ProgNode> guard( c);
+
+	BaseGDL* cData = c->Eval();
+
+	ProgNodeP cN = new CONSTANTNode( c->StealNextSibling(), cData);
+	cN->lineNumber = refNode->getLine();
+	cN->setText( "C()");
+
 	return cN;
       }
 

@@ -103,6 +103,15 @@ public:
   BaseGDL* Eval();
 };
 
+class FCALL_LIB_N_ELEMENTSNode: public LeafNode
+{
+public:
+  FCALL_LIB_N_ELEMENTSNode( const RefDNode& refNode): LeafNode( refNode)
+  {}
+  BaseGDL** LEval();
+  BaseGDL* Eval();
+};
+
 
 
 class FCALL_LIBNode: public LeafNode

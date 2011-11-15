@@ -1322,7 +1322,10 @@ arrayexpr_fn!//
                         #id->SetLibFun( libFunList[i]);
                         if( libFunList[ i]->RetNew())
                             {
-                                #id->setType( FCALL_LIB_RETNEW);
+                                if( libFunList[ i]->Name() == "N_ELEMENTS")
+                                    #id->setType( FCALL_LIB_N_ELEMENTS);
+                                else
+                                    #id->setType( FCALL_LIB_RETNEW);
                                 #arrayexpr_fn =
                                 #( id, el);
 //                              #([/*FCALL_LIB_RETNEW,"fcall_lib_retnew"],*/ id, el);
@@ -1464,8 +1467,10 @@ RefDNode mark;
                         throw GDLException(	f, libFunList[i]->Name() + ": Too many arguments.");
                     if( libFunList[ i]->RetNew())
                     {
-
-                        #f->setType(FCALL_LIB_RETNEW);
+                        if( libFunList[ i]->Name() == "N_ELEMENTS")
+                            #f->setType( FCALL_LIB_N_ELEMENTS);
+                        else
+                            #f->setType(FCALL_LIB_RETNEW);
                         #f->setText(#id->getText());
                         #f->SetLibFun( libFunList[i]);
                         //                    #id->SetFunIx(i);

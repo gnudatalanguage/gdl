@@ -36,47 +36,47 @@ GDLLexer::GDLLexer(const antlr::LexerSharedInputState& state)
 
 void GDLLexer::initLiterals()
 {
-	literals["endcase"] = 95;
-	literals["case"] = 89;
-	literals["repeat"] = 75;
-	literals["endforeach"] = 98;
-	literals["ne"] = 114;
-	literals["end"] = 94;
-	literals["le"] = 111;
-	literals["then"] = 121;
-	literals["begin"] = 88;
-	literals["endswitch"] = 101;
-	literals["and"] = 87;
-	literals["endrep"] = 100;
-	literals["not"] = 115;
-	literals["on_ioerror"] = 117;
-	literals["mod"] = 113;
-	literals["do"] = 92;
-	literals["function"] = 105;
-	literals["endfor"] = 97;
-	literals["gt"] = 108;
-	literals["inherits"] = 110;
-	literals["of"] = 116;
-	literals["or"] = 118;
-	literals["if"] = 109;
-	literals["pro"] = 119;
-	literals["xor"] = 123;
-	literals["compile_opt"] = 91;
-	literals["ge"] = 106;
-	literals["goto"] = 107;
+	literals["endcase"] = 96;
+	literals["case"] = 90;
+	literals["repeat"] = 76;
+	literals["endforeach"] = 99;
+	literals["ne"] = 115;
+	literals["end"] = 95;
+	literals["le"] = 112;
+	literals["then"] = 122;
+	literals["begin"] = 89;
+	literals["endswitch"] = 102;
+	literals["and"] = 88;
+	literals["endrep"] = 101;
+	literals["not"] = 116;
+	literals["on_ioerror"] = 118;
+	literals["mod"] = 114;
+	literals["do"] = 93;
+	literals["function"] = 106;
+	literals["endfor"] = 98;
+	literals["gt"] = 109;
+	literals["inherits"] = 111;
+	literals["of"] = 117;
+	literals["or"] = 119;
+	literals["if"] = 110;
+	literals["pro"] = 120;
+	literals["xor"] = 124;
+	literals["compile_opt"] = 92;
+	literals["ge"] = 107;
+	literals["goto"] = 108;
 	literals["for"] = 30;
-	literals["eq"] = 103;
-	literals["forward_function"] = 104;
+	literals["eq"] = 104;
+	literals["forward_function"] = 105;
 	literals["foreach"] = 32;
-	literals["endelse"] = 96;
-	literals["until"] = 122;
-	literals["else"] = 93;
-	literals["lt"] = 112;
-	literals["endwhile"] = 102;
-	literals["switch"] = 120;
-	literals["common"] = 90;
-	literals["endif"] = 99;
-	literals["while"] = 85;
+	literals["endelse"] = 97;
+	literals["until"] = 123;
+	literals["else"] = 94;
+	literals["lt"] = 113;
+	literals["endwhile"] = 103;
+	literals["switch"] = 121;
+	literals["common"] = 91;
+	literals["endif"] = 100;
+	literals["while"] = 86;
 }
 
 antlr::RefToken GDLLexer::nextToken()
@@ -3618,7 +3618,7 @@ const unsigned long GDLLexer::_tokenSet_2_data_[] = { 4294958072UL, 4294967295UL
 // 0xbc 0xbd 0xbe 0xbf 0xc0 0xc1 0xc2 0xc3 0xc4 0xc5 0xc6 0xc7 0xc8 0xc9 
 // 0xca 0xcb 0xcc 0xcd 0xce 0xcf 0xd0 0xd1 0xd2 0xd3 0xd4 0xd5 0xd6 0xd7 
 // 0xd8 0xd9 0xda 0xdb 0xdc 0xdd 0xde 0xdf 0xe0 0xe1 0xe2 0xe3 0xe4 0xe5 
-// 0xe6 0xe7 
+// 0xe6 0xe7 0xe8 
 const antlr::BitSet GDLLexer::_tokenSet_2(_tokenSet_2_data_,16);
 const unsigned long GDLLexer::_tokenSet_3_data_[] = { 0UL, 67053568UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // + - 0 1 2 3 4 5 6 7 8 9 
@@ -3654,7 +3654,7 @@ const unsigned long GDLLexer::_tokenSet_10_data_[] = { 4294958072UL, 4294967291U
 // 0xbd 0xbe 0xbf 0xc0 0xc1 0xc2 0xc3 0xc4 0xc5 0xc6 0xc7 0xc8 0xc9 0xca 
 // 0xcb 0xcc 0xcd 0xce 0xcf 0xd0 0xd1 0xd2 0xd3 0xd4 0xd5 0xd6 0xd7 0xd8 
 // 0xd9 0xda 0xdb 0xdc 0xdd 0xde 0xdf 0xe0 0xe1 0xe2 0xe3 0xe4 0xe5 0xe6 
-// 0xe7 
+// 0xe7 0xe8 
 const antlr::BitSet GDLLexer::_tokenSet_10(_tokenSet_10_data_,16);
 const unsigned long GDLLexer::_tokenSet_11_data_[] = { 4294958072UL, 4294967167UL, 4294967295UL, 4294967295UL, 4294967295UL, 4294967295UL, 4294967295UL, 4294967295UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // 0x3 0x4 0x5 0x6 0x7 0x8 0x9 0xb 0xc 0xe 0xf 0x10 0x11 0x12 0x13 0x14 
@@ -3669,6 +3669,6 @@ const unsigned long GDLLexer::_tokenSet_11_data_[] = { 4294958072UL, 4294967167U
 // 0xbd 0xbe 0xbf 0xc0 0xc1 0xc2 0xc3 0xc4 0xc5 0xc6 0xc7 0xc8 0xc9 0xca 
 // 0xcb 0xcc 0xcd 0xce 0xcf 0xd0 0xd1 0xd2 0xd3 0xd4 0xd5 0xd6 0xd7 0xd8 
 // 0xd9 0xda 0xdb 0xdc 0xdd 0xde 0xdf 0xe0 0xe1 0xe2 0xe3 0xe4 0xe5 0xe6 
-// 0xe7 
+// 0xe7 0xe8 
 const antlr::BitSet GDLLexer::_tokenSet_11(_tokenSet_11_data_,16);
 

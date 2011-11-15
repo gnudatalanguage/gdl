@@ -9302,7 +9302,7 @@ void GDLParser::logical_expr() {
 
 void GDLParser::initializeASTFactory( antlr::ASTFactory& factory )
 {
-	factory.setMaxNodeType(231);
+	factory.setMaxNodeType(232);
 }
 const char* GDLParser::tokenNames[] = {
 	"<0>",
@@ -9345,6 +9345,7 @@ const char* GDLParser::tokenNames[] = {
 	"FOREACH_INDEX_LOOP",
 	"FCALL",
 	"FCALL_LIB",
+	"FCALL_LIB_N_ELEMENTS",
 	"FCALL_LIB_RETNEW",
 	"IF_ELSE",
 	"KEYDECL",
@@ -9540,12 +9541,12 @@ const char* GDLParser::tokenNames[] = {
 	0
 };
 
-const unsigned long GDLParser::_tokenSet_0_data_[] = { 1073741826UL, 1UL, 257951744UL, 2174774016UL, 276824070UL, 0UL, 64UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_0_data_[] = { 1073741826UL, 1UL, 515903488UL, 54580736UL, 553648141UL, 0UL, 128UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // EOF "for" "foreach" "repeat" "while" IDENTIFIER "begin" "case" "common" 
 // "compile_opt" "forward_function" "function" "goto" "if" "inherits" "on_ioerror" 
 // "pro" "switch" END_U DEC INC LBRACE SYSVARNAME ASTERIX 
 const antlr::BitSet GDLParser::_tokenSet_0(_tokenSet_0_data_,16);
-const unsigned long GDLParser::_tokenSet_1_data_[] = { 1073741826UL, 1UL, 4016048128UL, 2175298431UL, 1417674758UL, 4294967295UL, 78207UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_1_data_[] = { 1073741826UL, 1UL, 3737128960UL, 55629567UL, 2835349517UL, 4294967294UL, 156415UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // EOF "for" "foreach" "repeat" "while" IDENTIFIER "begin" "case" "common" 
 // "compile_opt" "else" "end" "endcase" "endelse" "endfor" "endforeach" 
 // "endif" "endrep" "endswitch" "endwhile" "forward_function" "function" 
@@ -9562,12 +9563,12 @@ const unsigned long GDLParser::_tokenSet_1_data_[] = { 1073741826UL, 1UL, 401604
 // CONSTANT_BIN_UI CONSTANT_BIN_UINT ASTERIX STRING_LITERAL PLUS MINUS 
 // LOG_NEG 
 const antlr::BitSet GDLParser::_tokenSet_1(_tokenSet_1_data_,16);
-const unsigned long GDLParser::_tokenSet_2_data_[] = { 1073741824UL, 1UL, 257951744UL, 18901248UL, 276824070UL, 0UL, 64UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_2_data_[] = { 1073741824UL, 1UL, 515903488UL, 37802496UL, 553648140UL, 0UL, 128UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // "for" "foreach" "repeat" "while" IDENTIFIER "begin" "case" "common" 
 // "compile_opt" "forward_function" "goto" "if" "inherits" "on_ioerror" 
 // "switch" DEC INC LBRACE SYSVARNAME ASTERIX 
 const antlr::BitSet GDLParser::_tokenSet_2(_tokenSet_2_data_,16);
-const unsigned long GDLParser::_tokenSet_3_data_[] = { 1073741824UL, 1UL, 257951744UL, 2703780096UL, 1426063359UL, 4294967295UL, 78335UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_3_data_[] = { 1073741824UL, 1UL, 515903488UL, 1112592896UL, 2852126719UL, 4294967294UL, 156671UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // "for" "foreach" "repeat" "while" IDENTIFIER "begin" "case" "common" 
 // "compile_opt" "forward_function" "goto" "if" "inherits" "not" "on_ioerror" 
 // "switch" COMMA END_U EQUAL DEC INC AND_OP_EQ ASTERIX_EQ EQ_OP_EQ GE_OP_EQ 
@@ -9585,10 +9586,10 @@ const unsigned long GDLParser::_tokenSet_3_data_[] = { 1073741824UL, 1UL, 257951
 // CONSTANT_BIN_UI CONSTANT_BIN_UINT ASTERIX DOT STRING_LITERAL PLUS MINUS 
 // LOG_NEG 
 const antlr::BitSet GDLParser::_tokenSet_3(_tokenSet_3_data_,16);
-const unsigned long GDLParser::_tokenSet_4_data_[] = { 0UL, 0UL, 4194304UL, 16384UL, 276824064UL, 0UL, 64UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_4_data_[] = { 0UL, 0UL, 8388608UL, 32768UL, 553648128UL, 0UL, 128UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER "inherits" LBRACE SYSVARNAME ASTERIX 
 const antlr::BitSet GDLParser::_tokenSet_4(_tokenSet_4_data_,16);
-const unsigned long GDLParser::_tokenSet_5_data_[] = { 0UL, 0UL, 4194304UL, 540672UL, 1417674758UL, 4294967295UL, 78335UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_5_data_[] = { 0UL, 0UL, 8388608UL, 1081344UL, 2835349516UL, 4294967294UL, 156671UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER "inherits" "not" DEC INC LBRACE LSQUARE SYSVARNAME LCURLY 
 // CONSTANT_HEX_BYTE CONSTANT_HEX_LONG CONSTANT_HEX_LONG64 CONSTANT_HEX_INT 
 // CONSTANT_HEX_I CONSTANT_HEX_ULONG CONSTANT_HEX_ULONG64 CONSTANT_HEX_UI 
@@ -9601,7 +9602,7 @@ const unsigned long GDLParser::_tokenSet_5_data_[] = { 0UL, 0UL, 4194304UL, 5406
 // CONSTANT_BIN_ULONG64 CONSTANT_BIN_UI CONSTANT_BIN_UINT ASTERIX DOT STRING_LITERAL 
 // PLUS MINUS LOG_NEG 
 const antlr::BitSet GDLParser::_tokenSet_5(_tokenSet_5_data_,16);
-const unsigned long GDLParser::_tokenSet_6_data_[] = { 0UL, 0UL, 4194304UL, 540672UL, 1426063359UL, 4294967295UL, 78335UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_6_data_[] = { 0UL, 0UL, 8388608UL, 1081344UL, 2852126718UL, 4294967294UL, 156671UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER "inherits" "not" EQUAL DEC INC AND_OP_EQ ASTERIX_EQ EQ_OP_EQ 
 // GE_OP_EQ GTMARK_EQ GT_OP_EQ LE_OP_EQ LTMARK_EQ LT_OP_EQ MATRIX_OP1_EQ 
 // MATRIX_OP2_EQ MINUS_EQ MOD_OP_EQ NE_OP_EQ OR_OP_EQ PLUS_EQ POW_EQ SLASH_EQ 
@@ -9617,10 +9618,10 @@ const unsigned long GDLParser::_tokenSet_6_data_[] = { 0UL, 0UL, 4194304UL, 5406
 // CONSTANT_BIN_UI CONSTANT_BIN_UINT ASTERIX DOT STRING_LITERAL PLUS MINUS 
 // LOG_NEG 
 const antlr::BitSet GDLParser::_tokenSet_6(_tokenSet_6_data_,16);
-const unsigned long GDLParser::_tokenSet_7_data_[] = { 0UL, 0UL, 536870912UL, 2751463424UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_7_data_[] = { 0UL, 0UL, 1073741824UL, 1207959552UL, 1UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // "else" "until" COMMA END_U 
-const antlr::BitSet GDLParser::_tokenSet_7(_tokenSet_7_data_,8);
-const unsigned long GDLParser::_tokenSet_8_data_[] = { 0UL, 0UL, 541065216UL, 540672UL, 1417674758UL, 4294967295UL, 78207UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const antlr::BitSet GDLParser::_tokenSet_7(_tokenSet_7_data_,12);
+const unsigned long GDLParser::_tokenSet_8_data_[] = { 0UL, 0UL, 1082130432UL, 1081344UL, 2835349516UL, 4294967294UL, 156415UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER "else" "inherits" "not" DEC INC LBRACE LSQUARE SYSVARNAME 
 // LCURLY CONSTANT_HEX_BYTE CONSTANT_HEX_LONG CONSTANT_HEX_LONG64 CONSTANT_HEX_INT 
 // CONSTANT_HEX_I CONSTANT_HEX_ULONG CONSTANT_HEX_ULONG64 CONSTANT_HEX_UI 
@@ -9633,7 +9634,7 @@ const unsigned long GDLParser::_tokenSet_8_data_[] = { 0UL, 0UL, 541065216UL, 54
 // CONSTANT_BIN_ULONG64 CONSTANT_BIN_UI CONSTANT_BIN_UINT ASTERIX STRING_LITERAL 
 // PLUS MINUS LOG_NEG 
 const antlr::BitSet GDLParser::_tokenSet_8(_tokenSet_8_data_,16);
-const unsigned long GDLParser::_tokenSet_9_data_[] = { 1073741826UL, 1UL, 4292872192UL, 2415919103UL, 1451229190UL, 4294967295UL, 78207UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_9_data_[] = { 1073741826UL, 1UL, 4290777088UL, 536870911UL, 2902458381UL, 4294967294UL, 156415UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // EOF "for" "foreach" "repeat" "while" IDENTIFIER "and" "begin" "case" 
 // "common" "compile_opt" "do" "else" "end" "endcase" "endelse" "endfor" 
 // "endforeach" "endif" "endrep" "endswitch" "endwhile" "eq" "forward_function" 
@@ -9651,14 +9652,14 @@ const unsigned long GDLParser::_tokenSet_9_data_[] = { 1073741826UL, 1UL, 429287
 // CONSTANT_BIN_UI CONSTANT_BIN_UINT ASTERIX STRING_LITERAL PLUS MINUS 
 // LOG_NEG 
 const antlr::BitSet GDLParser::_tokenSet_9(_tokenSet_9_data_,16);
-const unsigned long GDLParser::_tokenSet_10_data_[] = { 1073741824UL, 1UL, 4292872192UL, 268435455UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_10_data_[] = { 1073741824UL, 1UL, 4290777088UL, 536870911UL, 0UL, 0UL, 0UL, 0UL };
 // "for" "foreach" "repeat" "while" IDENTIFIER "and" "begin" "case" "common" 
 // "compile_opt" "do" "else" "end" "endcase" "endelse" "endfor" "endforeach" 
 // "endif" "endrep" "endswitch" "endwhile" "eq" "forward_function" "function" 
 // "ge" "goto" "gt" "if" "inherits" "le" "lt" "mod" "ne" "not" "of" "on_ioerror" 
 // "or" "pro" "switch" "then" "until" "xor" 
 const antlr::BitSet GDLParser::_tokenSet_10(_tokenSet_10_data_,8);
-const unsigned long GDLParser::_tokenSet_11_data_[] = { 0UL, 0UL, 4194304UL, 540672UL, 1417674758UL, 4294967295UL, 78207UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_11_data_[] = { 0UL, 0UL, 8388608UL, 1081344UL, 2835349516UL, 4294967294UL, 156415UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER "inherits" "not" DEC INC LBRACE LSQUARE SYSVARNAME LCURLY 
 // CONSTANT_HEX_BYTE CONSTANT_HEX_LONG CONSTANT_HEX_LONG64 CONSTANT_HEX_INT 
 // CONSTANT_HEX_I CONSTANT_HEX_ULONG CONSTANT_HEX_ULONG64 CONSTANT_HEX_UI 
@@ -9671,7 +9672,7 @@ const unsigned long GDLParser::_tokenSet_11_data_[] = { 0UL, 0UL, 4194304UL, 540
 // CONSTANT_BIN_ULONG64 CONSTANT_BIN_UI CONSTANT_BIN_UINT ASTERIX STRING_LITERAL 
 // PLUS MINUS LOG_NEG 
 const antlr::BitSet GDLParser::_tokenSet_11(_tokenSet_11_data_,16);
-const unsigned long GDLParser::_tokenSet_12_data_[] = { 0UL, 0UL, 549453824UL, 2890912896UL, 2009071622UL, 4294967295UL, 1048575UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_12_data_[] = { 0UL, 0UL, 1098907648UL, 1486858496UL, 4018143245UL, 4294967294UL, 2097151UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER "and" "else" "eq" "ge" "gt" "inherits" "le" "lt" "mod" "ne" 
 // "not" "or" "until" "xor" COMMA END_U DEC INC MEMBER LBRACE RBRACE SLASH 
 // LSQUARE SYSVARNAME EXCLAMATION LCURLY CONSTANT_HEX_BYTE CONSTANT_HEX_LONG 
@@ -9686,10 +9687,10 @@ const unsigned long GDLParser::_tokenSet_12_data_[] = { 0UL, 0UL, 549453824UL, 2
 // CONSTANT_BIN_UI CONSTANT_BIN_UINT ASTERIX DOT STRING_LITERAL POW MATRIX_OP1 
 // MATRIX_OP2 PLUS MINUS LTMARK GTMARK LOG_NEG LOG_AND LOG_OR QUESTION 
 const antlr::BitSet GDLParser::_tokenSet_12(_tokenSet_12_data_,16);
-const unsigned long GDLParser::_tokenSet_13_data_[] = { 0UL, 0UL, 4194304UL, 16384UL, 805306368UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_13_data_[] = { 0UL, 0UL, 8388608UL, 32768UL, 1610612736UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER "inherits" SYSVARNAME EXCLAMATION 
 const antlr::BitSet GDLParser::_tokenSet_13(_tokenSet_13_data_,12);
-const unsigned long GDLParser::_tokenSet_14_data_[] = { 2UL, 0UL, 12582912UL, 676320384UL, 4139778054UL, 4294967295UL, 1048575UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_14_data_[] = { 2UL, 0UL, 25165824UL, 1352640768UL, 3984588812UL, 4294967295UL, 2097151UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // EOF IDENTIFIER "and" "eq" "ge" "gt" "inherits" "le" "lt" "mod" "ne" 
 // "not" "or" "xor" COMMA DEC INC MEMBER LBRACE SLASH LSQUARE SYSVARNAME 
 // EXCLAMATION LCURLY RCURLY CONSTANT_HEX_BYTE CONSTANT_HEX_LONG CONSTANT_HEX_LONG64 
@@ -9704,7 +9705,7 @@ const unsigned long GDLParser::_tokenSet_14_data_[] = { 2UL, 0UL, 12582912UL, 67
 // ASTERIX DOT STRING_LITERAL POW MATRIX_OP1 MATRIX_OP2 PLUS MINUS LTMARK 
 // GTMARK LOG_NEG LOG_AND LOG_OR QUESTION 
 const antlr::BitSet GDLParser::_tokenSet_14(_tokenSet_14_data_,16);
-const unsigned long GDLParser::_tokenSet_15_data_[] = { 0UL, 0UL, 4194304UL, 540672UL, 1954545670UL, 4294967295UL, 78207UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_15_data_[] = { 0UL, 0UL, 8388608UL, 1081344UL, 3909091340UL, 4294967294UL, 156415UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER "inherits" "not" DEC INC LBRACE LSQUARE SYSVARNAME EXCLAMATION 
 // LCURLY CONSTANT_HEX_BYTE CONSTANT_HEX_LONG CONSTANT_HEX_LONG64 CONSTANT_HEX_INT 
 // CONSTANT_HEX_I CONSTANT_HEX_ULONG CONSTANT_HEX_ULONG64 CONSTANT_HEX_UI 
@@ -9717,7 +9718,7 @@ const unsigned long GDLParser::_tokenSet_15_data_[] = { 0UL, 0UL, 4194304UL, 540
 // CONSTANT_BIN_ULONG64 CONSTANT_BIN_UI CONSTANT_BIN_UINT ASTERIX STRING_LITERAL 
 // PLUS MINUS LOG_NEG 
 const antlr::BitSet GDLParser::_tokenSet_15(_tokenSet_15_data_,16);
-const unsigned long GDLParser::_tokenSet_16_data_[] = { 0UL, 0UL, 12582912UL, 1750062208UL, 4139778054UL, 4294967295UL, 1048575UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_16_data_[] = { 0UL, 0UL, 25165824UL, 3500124416UL, 3984588812UL, 4294967295UL, 2097151UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER "and" "eq" "ge" "gt" "inherits" "le" "lt" "mod" "ne" "not" 
 // "or" "xor" COMMA COLON DEC INC MEMBER LBRACE SLASH LSQUARE SYSVARNAME 
 // EXCLAMATION LCURLY RCURLY CONSTANT_HEX_BYTE CONSTANT_HEX_LONG CONSTANT_HEX_LONG64 
@@ -9732,7 +9733,7 @@ const unsigned long GDLParser::_tokenSet_16_data_[] = { 0UL, 0UL, 12582912UL, 17
 // ASTERIX DOT STRING_LITERAL POW MATRIX_OP1 MATRIX_OP2 PLUS MINUS LTMARK 
 // GTMARK LOG_NEG LOG_AND LOG_OR QUESTION 
 const antlr::BitSet GDLParser::_tokenSet_16(_tokenSet_16_data_,16);
-const unsigned long GDLParser::_tokenSet_17_data_[] = { 0UL, 0UL, 12582912UL, 1750062208UL, 2143289350UL, 4294967295UL, 1048575UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_17_data_[] = { 0UL, 0UL, 25165824UL, 3500124416UL, 4286578700UL, 4294967294UL, 2097151UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER "and" "eq" "ge" "gt" "inherits" "le" "lt" "mod" "ne" "not" 
 // "or" "xor" COMMA COLON DEC INC MEMBER LBRACE RBRACE SLASH LSQUARE RSQUARE 
 // SYSVARNAME EXCLAMATION LCURLY CONSTANT_HEX_BYTE CONSTANT_HEX_LONG CONSTANT_HEX_LONG64 
@@ -9747,10 +9748,10 @@ const unsigned long GDLParser::_tokenSet_17_data_[] = { 0UL, 0UL, 12582912UL, 17
 // ASTERIX DOT STRING_LITERAL POW MATRIX_OP1 MATRIX_OP2 PLUS MINUS LTMARK 
 // GTMARK LOG_NEG LOG_AND LOG_OR QUESTION 
 const antlr::BitSet GDLParser::_tokenSet_17(_tokenSet_17_data_,16);
-const unsigned long GDLParser::_tokenSet_18_data_[] = { 0UL, 0UL, 0UL, 1610612736UL, 150994944UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_18_data_[] = { 0UL, 0UL, 0UL, 3221225472UL, 301989888UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // COMMA COLON RBRACE RSQUARE 
 const antlr::BitSet GDLParser::_tokenSet_18(_tokenSet_18_data_,12);
-const unsigned long GDLParser::_tokenSet_19_data_[] = { 0UL, 0UL, 12582912UL, 676320384UL, 2143289350UL, 4294967295UL, 1048575UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_19_data_[] = { 0UL, 0UL, 25165824UL, 1352640768UL, 4286578700UL, 4294967294UL, 2097151UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER "and" "eq" "ge" "gt" "inherits" "le" "lt" "mod" "ne" "not" 
 // "or" "xor" COMMA DEC INC MEMBER LBRACE RBRACE SLASH LSQUARE RSQUARE 
 // SYSVARNAME EXCLAMATION LCURLY CONSTANT_HEX_BYTE CONSTANT_HEX_LONG CONSTANT_HEX_LONG64 
@@ -9765,13 +9766,13 @@ const unsigned long GDLParser::_tokenSet_19_data_[] = { 0UL, 0UL, 12582912UL, 67
 // ASTERIX DOT STRING_LITERAL POW MATRIX_OP1 MATRIX_OP2 PLUS MINUS LTMARK 
 // GTMARK LOG_NEG LOG_AND LOG_OR QUESTION 
 const antlr::BitSet GDLParser::_tokenSet_19(_tokenSet_19_data_,16);
-const unsigned long GDLParser::_tokenSet_20_data_[] = { 0UL, 0UL, 4194304UL, 0UL, 813694976UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_20_data_[] = { 0UL, 0UL, 8388608UL, 0UL, 1627389952UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER LBRACE SYSVARNAME EXCLAMATION 
 const antlr::BitSet GDLParser::_tokenSet_20(_tokenSet_20_data_,12);
-const unsigned long GDLParser::_tokenSet_21_data_[] = { 0UL, 0UL, 536870912UL, 3019898880UL, 75497472UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_21_data_[] = { 0UL, 0UL, 1073741824UL, 1744830464UL, 150994945UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // "else" "until" METHOD COMMA END_U LBRACE LSQUARE 
 const antlr::BitSet GDLParser::_tokenSet_21(_tokenSet_21_data_,12);
-const unsigned long GDLParser::_tokenSet_22_data_[] = { 2UL, 0UL, 817889280UL, 3999257728UL, 3753902086UL, 4294967295UL, 1048575UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_22_data_[] = { 2UL, 0UL, 1635778560UL, 3703548160UL, 3212836877UL, 4294967295UL, 2097151UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // EOF IDENTIFIER "and" "do" "else" "eq" "ge" "gt" "inherits" "le" "lt" 
 // "mod" "ne" "not" "of" "or" "then" "until" "xor" COMMA COLON END_U DEC 
 // INC MEMBER LBRACE RBRACE SLASH LSQUARE RSQUARE SYSVARNAME LCURLY RCURLY 
@@ -9787,10 +9788,10 @@ const unsigned long GDLParser::_tokenSet_22_data_[] = { 2UL, 0UL, 817889280UL, 3
 // POW MATRIX_OP1 MATRIX_OP2 PLUS MINUS LTMARK GTMARK LOG_NEG LOG_AND LOG_OR 
 // QUESTION 
 const antlr::BitSet GDLParser::_tokenSet_22(_tokenSet_22_data_,16);
-const unsigned long GDLParser::_tokenSet_23_data_[] = { 0UL, 0UL, 0UL, 131072UL, 33554432UL, 0UL, 3136UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_23_data_[] = { 0UL, 0UL, 0UL, 262144UL, 67108864UL, 0UL, 6272UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // "mod" SLASH ASTERIX MATRIX_OP1 MATRIX_OP2 
 const antlr::BitSet GDLParser::_tokenSet_23(_tokenSet_23_data_,16);
-const unsigned long GDLParser::_tokenSet_24_data_[] = { 0UL, 0UL, 0UL, 365696UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_24_data_[] = { 0UL, 0UL, 0UL, 731392UL, 0UL, 0UL, 0UL, 0UL };
 // "eq" "ge" "gt" "le" "lt" "ne" 
 const antlr::BitSet GDLParser::_tokenSet_24(_tokenSet_24_data_,8);
 

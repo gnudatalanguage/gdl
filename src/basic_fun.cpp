@@ -830,6 +830,9 @@ namespace lib {
 
   BaseGDL* n_elements( EnvT* e)
   {
+	// never called (executed directly in interpreter)
+	  
+	assert( 0);
     SizeT nParam=e->NParam(1);
 
 //     if( nParam != 1)
