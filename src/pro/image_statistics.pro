@@ -98,16 +98,16 @@ if KEYWORD_SET(mask) then begin
 endif
 ;
 count=ULONG(N_ELEMENTS(image))
-data_sum=TOTAL(image)
-mean_=MEAN(image)
+data_sum=FLOAT(TOTAL(image,/double))
+mean_=FLOAT(MEAN(image,/double))
 maximum=MAX(image, min=minimum)
 maximum=FLOAT(maximum)
 minimum=FLOAT(minimum)
-sum_of_squares=TOTAL(image^2.) ; to avoid overflow
+sum_of_squares=FLOAT(TOTAL(image^2.D,/double))
 ;
 if N_ELEMENTS(image) GT 1 then begin
-   stddev_=STDDEV(image)
-   variance_=VARIANCE(image)
+   stddev_=FLOAT(STDDEV(image,/double))
+   variance_=FLOAT(VARIANCE(image,/double))
 endif else begin
    stddev_=0.0
    variance_=0.0
