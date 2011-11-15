@@ -105,6 +105,7 @@ tokens {
     FOREACH_INDEX_LOOP;
 	FCALL;
 	FCALL_LIB; // library function call
+ 	FCALL_LIB_DIRECT; // direct call
  	FCALL_LIB_N_ELEMENTS; // N_ELEMENTS
 	FCALL_LIB_RETNEW; // library function call always return newly allocated data
     IF_ELSE;

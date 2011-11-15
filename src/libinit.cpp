@@ -381,11 +381,13 @@ void LibInit()
   const string atanKey[] = {"PHASE", KLISTEND};
   new DLibFunRetNew(lib::atan_fun,string("ATAN"),2,atanKey,NULL,true);
 
-  new DLibFunRetNew(lib::alog_fun,string("ALOG"),1,NULL,NULL,true);
-  new DLibFunRetNew(lib::alog10_fun,string("ALOG10"),1,NULL,NULL,true);
+  new DLibFunDirect(lib::alog_fun,string("ALOG"));
+  new DLibFunDirect(lib::alog10_fun,string("ALOG10"));
+//   new DLibFunRetNew(lib::alog_fun,string("ALOG"),1,NULL,NULL,true,1);
+//   new DLibFunRetNew(lib::alog10_fun,string("ALOG10"),1,NULL,NULL,true,1);
 
-  new DLibFunRetNew(lib::sqrt_fun,string("SQRT"),1,NULL,NULL,true);
-  new DLibFunRetNew(lib::abs_fun,string("ABS"),1,NULL,NULL,true);
+  new DLibFunDirect(lib::sqrt_fun,string("SQRT"));
+  new DLibFunDirect(lib::abs_fun,string("ABS"));
 
   new DLibFunRetNew(lib::exp_fun,string("EXP"),1,NULL,NULL,true);
 

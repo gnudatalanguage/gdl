@@ -42,6 +42,7 @@ class CUSTOM_API GDLTreeParser : public antlr::TreeParser, public GDLTreeParserT
             lT == FCALL_LIB ||
 //            lT == FCALL_LIB_N_ELEMENTS ||
             lT == FCALL_LIB_RETNEW || 
+            lT == FCALL_LIB_DIRECT || 
             lT == MFCALL_LIB || 
             lT == MFCALL_LIB_RETNEW || 
             lT == MFCALL_PARENT_LIB ||
@@ -193,10 +194,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 233;
+	static const int NUM_TOKENS = 234;
 #else
 	enum {
-		NUM_TOKENS = 233
+		NUM_TOKENS = 234
 	};
 #endif
 	

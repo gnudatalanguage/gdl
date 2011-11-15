@@ -95,6 +95,7 @@ options {
             lT == FCALL_LIB ||
 //            lT == FCALL_LIB_N_ELEMENTS ||
             lT == FCALL_LIB_RETNEW || 
+            lT == FCALL_LIB_DIRECT || 
             lT == MFCALL_LIB || 
             lT == MFCALL_LIB_RETNEW || 
             lT == MFCALL_PARENT_LIB ||
@@ -647,8 +648,11 @@ procedure_call
                         nParam = #para->GetNParam();
 
                     int libParam = libProList[i]->NPar();
+                    int libParamMin = libProList[i]->NParMin();
                     if( libParam != -1 && nParam > libParam)
                         throw GDLException(	p, libProList[i]->Name() + ": Too many arguments.");
+                    if( libParam != -1 && nParam < libParamMin)
+                        throw GDLException(	p, libProList[i]->Name() + ": Too few arguments.");
 
                     #p->setType(PCALL_LIB);
                     #p->setText("pcall_lib");
@@ -1316,16 +1320,21 @@ arrayexpr_fn!//
                             nParam = #el->GetNParam();
 
                         int libParam = libFunList[i]->NPar();
+                        int libParamMin = libFunList[i]->NParMin();
                         if( libParam != -1 && nParam > libParam)
                             throw GDLException(	aIn, libFunList[i]->Name() + ": Too many arguments.");
+                    if( libParam != -1 && nParam < libParamMin)
+                        throw GDLException(	aIn, libFunList[i]->Name() + ": Too few arguments.");
 
                         #id->SetLibFun( libFunList[i]);
                         if( libFunList[ i]->RetNew())
                             {
                                 if( libFunList[ i]->Name() == "N_ELEMENTS")
                                     #id->setType( FCALL_LIB_N_ELEMENTS);
-                                else
-                                    #id->setType( FCALL_LIB_RETNEW);
+                                else if( libFunList[ i]->DirectCall())
+                                        #id->setType( FCALL_LIB_DIRECT);
+                                    else
+                                        #id->setType( FCALL_LIB_RETNEW);
                                 #arrayexpr_fn =
                                 #( id, el);
 //                              #([/*FCALL_LIB_RETNEW,"fcall_lib_retnew"],*/ id, el);
@@ -1463,14 +1472,19 @@ RefDNode mark;
                         nParam = #p->GetNParam();
 
                     int libParam = libFunList[i]->NPar();
+                    int libParamMin = libFunList[i]->NParMin();
                     if( libParam != -1 && nParam > libParam)
                         throw GDLException(	f, libFunList[i]->Name() + ": Too many arguments.");
+                    if( libParam != -1 && nParam < libParamMin)
+                        throw GDLException(	f, libFunList[i]->Name() + ": Too few arguments.");
                     if( libFunList[ i]->RetNew())
                     {
                         if( libFunList[ i]->Name() == "N_ELEMENTS")
                             #f->setType( FCALL_LIB_N_ELEMENTS);
-                        else
-                            #f->setType(FCALL_LIB_RETNEW);
+                        else if( libFunList[ i]->DirectCall())
+                                #f->setType( FCALL_LIB_DIRECT);
+                            else
+                                #f->setType(FCALL_LIB_RETNEW);
                         #f->setText(#id->getText());
                         #f->SetLibFun( libFunList[i]);
                         //                    #id->SetFunIx(i);

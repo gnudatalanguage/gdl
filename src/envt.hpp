@@ -523,6 +523,10 @@ public:
 
   // returns the ix'th parameter (NULL if not defined)
   BaseGDL*& GetPar(SizeT i);
+  
+  // it is now possible to define a niminum number of parameters for library subroutines
+  // if this is done the next function can be used
+//   BaseGDL*& GetParUnchecked(SizeT i);
 
   // get i'th parameter
   // throws if not defined (ie. never returns NULL)

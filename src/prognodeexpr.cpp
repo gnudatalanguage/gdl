@@ -2536,8 +2536,6 @@ if( e1->StrictScalar())
 
   BaseGDL** FCALL_LIB_RETNEWNode::LEval()
   {
-      // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
-    StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
     throw GDLException(this,"Internal error: FCALL_LIB_RETNEW as left expr.");
   }
 
@@ -2572,6 +2570,43 @@ if( e1->StrictScalar())
     BaseGDL* res = static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
     assert( res != NULL);
     return res;
+  }
+
+  BaseGDL** FCALL_LIB_DIRECTNode::LEval()
+  {
+    throw GDLException(this,"Internal error: FCALL_LIB_DIRECTNode as left expr.");
+  }
+
+  BaseGDL* FCALL_LIB_DIRECTNode::Eval()
+  {
+    BaseGDL* param;
+    bool isReference = 
+      static_cast<ParameterNode*>(this->getFirstChild())->ParameterDirect( param);
+    auto_ptr<BaseGDL> guard;
+    if( !isReference)
+      guard.reset( param);
+    // check already here to keep functions leaner
+    if( param == NULL)
+    {
+      assert( isReference);
+      // unfortunately we cannot retrieve the variable's name here without some effort
+      throw GDLException(this, 
+			 this->libFun->ObjectName()+": Variable is undefined.",
+			 false,false);
+    }
+    try {
+      BaseGDL* res = 
+	static_cast<DLibFunDirect*>(this->libFun)->FunDirect()(param, isReference);
+      assert( res != NULL); //*** MUST always return a defined expression
+      if( res == param)
+	guard.release();
+      return res;
+    }
+    catch( GDLException& ex)
+    {
+      // annotate exception
+      throw GDLException(this, this->libFun->ObjectName()+": "+ ex.getMessage(),false,false); 
+    }
   }
 
   BaseGDL** FCALL_LIBNode::LEval()

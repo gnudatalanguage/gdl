@@ -117,6 +117,7 @@ protected:
   IDList              key;    // keyword names (IDList: typedefs.hpp)
                               // (KEYWORD_NAME=keyword_value)
   int                 nPar;   // number of parameters (-1 = infinite)
+  int                 nParMin;  // minimum number of parameters (-1 = infinite)
 
   ExtraType           extra;
   int                 extraIx; // index of extra keyword
@@ -126,7 +127,7 @@ protected:
 
 public:
   DSub( const std::string& n, const std::string& o=""): 
-    name(n), object(o), nPar(0), extra(NONE), extraIx(-1) 
+    name(n), object(o), nPar(0), nParMin(0), extra(NONE), extraIx(-1) 
   {}
 
   virtual ~DSub(); // polymorphism
@@ -168,6 +169,7 @@ public:
 
   int   NKey() const { return key.size();}
   int   NPar() const { return nPar;}
+  int   NParMin() const { return nParMin;}
 
   //  bool AKey() { return aKey;} // additional keywords allowed
 
@@ -181,6 +183,7 @@ class EnvT;
 
 typedef void     (*LibPro)(EnvT*);
 typedef BaseGDL* (*LibFun)(EnvT*);
+typedef BaseGDL* (*LibFunDirect)(BaseGDL* param,bool canGrab);
 
 // library procedure/function (in cases both are handled the same way)
 class DLib: public DSub
@@ -188,7 +191,7 @@ class DLib: public DSub
 public:
   DLib( const std::string& n, const std::string& o, const int nPar_,
 	const std::string keyNames[],
-	const std::string warnKeyNames[]);
+	const std::string warnKeyNames[], const int nParMin_);
 
   virtual const std::string ToString() = 0;
 };
@@ -207,12 +210,12 @@ public:
   // on which a value is returned.
   DLibPro( LibPro p, const std::string& n, const int nPar_=0, 
 	   const std::string keyNames[]=NULL,
-	   const std::string warnKeyNames[]=NULL);
+	   const std::string warnKeyNames[]=NULL, const int nParMin_=0);
 
   DLibPro( LibPro p, const std::string& n, const std::string& o, 
 	   const int nPar_=0, 
 	   const std::string keyNames[]=NULL,
-	   const std::string warnKeyNames[]=NULL);
+	   const std::string warnKeyNames[]=NULL, const int nParMin_=0);
 
   LibPro Pro() { return pro;}
 
@@ -226,38 +229,56 @@ class DLibFun: public DLib
 public:
   DLibFun( LibFun f, const std::string& n, const int nPar_=0, 
 	   const std::string keyNames[]=NULL,
-	   const std::string warnKeyNames[]=NULL);
+	   const std::string warnKeyNames[]=NULL, const int nParMin_=0);
 
   DLibFun( LibFun f, const std::string& n, const std::string& o, 
 	   const int nPar_=0, 
 	   const std::string keyNames[]=NULL,
-	   const std::string warnKeyNames[]=NULL);
+	   const std::string warnKeyNames[]=NULL, const int nParMin_=0);
 
   LibFun Fun() { return fun;}
 
   const std::string ToString();
 
   virtual bool RetNew() { return false;}
+  virtual bool DirectCall() { return false;}
 };
 
 // library function which ALWAYS return a new value
 // (as opposite to returning an input value)
 class DLibFunRetNew: public DLibFun
 {
-  bool   retConstant;
+  bool   retConstant; // means: can be pre-evaluated with constant input 
 public:
   DLibFunRetNew( LibFun f, const std::string& n, const int nPar_=0, 
 		 const std::string keyNames[]=NULL,
-		 const std::string warnKeyNames[]=NULL, bool rConstant=false);
+		 const std::string warnKeyNames[]=NULL, bool rConstant=false, const int nParMin_=0);
 
 
   DLibFunRetNew( LibFun f, const std::string& n, const std::string& o, 
 		 const int nPar_=0, 
 		 const std::string keyNames[]=NULL,
-		 const std::string warnKeyNames[]=NULL);
+		 const std::string warnKeyNames[]=NULL, const int nParMin_=0);
 
   bool RetNew() { return true;}
   bool RetConstant() { return this->retConstant;}
+};
+
+// direct call functions must have:
+// ony one parameter, no keywords
+// these functions are called "direct", no environment is created
+class DLibFunDirect: public DLibFun
+{
+  bool   retConstantDirect; // means: can be pre-evaluated with constant input 
+  LibFunDirect funDirect;
+public:
+  DLibFunDirect( LibFunDirect f, const std::string& n, bool retConstant_=true);
+
+  LibFunDirect FunDirect() { return funDirect;}
+
+  bool RetNew() { return true;}
+  bool DirectCall() { return true;}
+  bool RetConstant() { return this->retConstantDirect;}
 };
 
 // UD pro/fun ********************************************************

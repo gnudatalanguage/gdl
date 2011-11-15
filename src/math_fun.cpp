@@ -980,99 +980,38 @@ TRACEOMP( __FILE__, __LINE__)
   //     return res;
   //   }
 
-  BaseGDL* alog_fun( EnvT* e)
+//   BaseGDL* alog_fun( EnvT* e)
+  BaseGDL* alog_fun( BaseGDL* p0, bool isReference)
   {
-    e->NParam( 1);//,"ALOG");
-
-    BaseGDL* p0 = e->GetParDefined( 0);//, "ALOG");
-
-    SizeT nEl = p0->N_Elements();
-    if( nEl == 0)
-      e->Throw( "Variable is undefined: "+e->GetParString(0));
+    assert( p0 != NULL);
+    assert( p0->N_Elements() > 0);
     
     if( FloatType( p0->Type()) || ComplexType( p0->Type()))
-      if( e->StealLocalPar( 0))
+      if( !isReference) //e->StealLocalPar( 0))
 	{
 	  p0->LogThis();
 	  return p0;
 	}
       else
-	return p0->Log(); //alog_fun_template< DComplexGDL>( p0);
-    //     else if( p0->Type() == COMPLEXDBL)
-    //       return p0->Log(); //alog_fun_template< DComplexDblGDL>( p0);
-    //     else if( p0->Type() == DOUBLE)
-    //       return p0->Log(); //alog_fun_template< DDoubleGDL>( p0);
-    //     else if( p0->Type() == FLOAT)
-    //       return p0->Log(); //alog_fun_template< DFloatGDL>( p0);
+	return p0->Log();
     else 
       {
 	DFloatGDL* res = static_cast<DFloatGDL*>
 	  (p0->Convert2( FLOAT, BaseGDL::COPY));
 	res->LogThis();
-	// 	for( SizeT i=0; i<nEl; ++i)
-	// 	  {
-	// 	    (*res)[ i] = log((*res)[ i]); 
-	// 	  }
 	return res;
       }
   }
 
-  //   template< typename T>
-  //   BaseGDL* alog10_fun_template( BaseGDL* p0)
-  //   {
-  //     T* p0C = static_cast<T*>( p0);
-  //     T* res = new T( p0C->Dim(), BaseGDL::NOZERO);
-  //     SizeT nEl = p0->N_Elements();
-  //     for( SizeT i=0; i<nEl; ++i)
-  //       {
-  // 	(*res)[ i] = log10((*p0C)[ i]); 
-  //       }
-  //     return res;
-  //   }
 
-  //   BaseGDL* alog10_fun( EnvT* e)
-  //   {
-  //     e->NParam( 1);//, "ALOG10");
-
-  //     BaseGDL* p0 = e->GetParDefined( 0);//, "ALOG10");
-
-  //     SizeT nEl = p0->N_Elements();
-  //     if( nEl == 0)
-  //       e->Throw( 
-  // 			  "ALOG10: Variable is undefined: "+e->GetParString(0));
-    
-  //     if( p0->Type() == COMPLEX)
-  // 	return alog10_fun_template< DComplexGDL>( p0);
-  //     else if( p0->Type() == COMPLEXDBL)
-  // 	return alog10_fun_template< DComplexDblGDL>( p0);
-  //     else if( p0->Type() == DOUBLE)
-  // 	return alog10_fun_template< DDoubleGDL>( p0);
-  //     else if( p0->Type() == FLOAT)
-  // 	return alog10_fun_template< DFloatGDL>( p0);
-  //     else 
-  //       {
-  // 	DFloatGDL* res = static_cast<DFloatGDL*>
-  // 	  (p0->Convert2( FLOAT, BaseGDL::COPY));
-  // 	for( SizeT i=0; i<nEl; ++i)
-  // 	  {
-  // 	    (*res)[ i] = log10((*res)[ i]); 
-  // 	  }
-  // 	return res;
-  //       }
-  //   }
-
-  BaseGDL* alog10_fun( EnvT* e)
+//   BaseGDL* alog10_fun( EnvT* e)
+BaseGDL* alog10_fun( BaseGDL* p0, bool isReference)
   {
-    e->NParam( 1);
-
-    BaseGDL* p0 = e->GetParDefined( 0);
-
-    SizeT nEl = p0->N_Elements();
-    if( nEl == 0)
-      e->Throw( "Variable is undefined: "+e->GetParString(0));
+    assert( p0 != NULL);
+    assert( p0->N_Elements() > 0);
     
     if( FloatType( p0->Type()) || ComplexType( p0->Type()))
-      if( e->StealLocalPar( 0))
+      if( !isReference) //e->StealLocalPar( 0))
 	{
 	  p0->Log10This();
 	  return p0;
@@ -1088,7 +1027,7 @@ TRACEOMP( __FILE__, __LINE__)
       }
   }
 
-  // by joel gales
+  // original by joel gales
   template< typename T>
   BaseGDL* sqrt_fun_template( BaseGDL* p0)
   {
@@ -1098,7 +1037,7 @@ TRACEOMP( __FILE__, __LINE__)
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
-#pragma omp for
+#pragma omp forthis
       for( SizeT i=0; i<nEl; ++i)
 	{
 	  (*res)[ i] = sqrt((*p0C)[ i]); 
@@ -1107,17 +1046,30 @@ TRACEOMP( __FILE__, __LINE__)
     return res;
   }
 
-  BaseGDL* sqrt_fun( EnvT* e)
+  template< typename T>
+  BaseGDL* sqrt_fun_template_grab( BaseGDL* p0)
   {
-    e->NParam( 1);//, "SQRT");
-
-    BaseGDL* p0 = e->GetParDefined( 0);//, "SQRT");
-
+    T* p0C = static_cast<T*>( p0);
     SizeT nEl = p0->N_Elements();
-    if( nEl == 0)
-      e->Throw( 
-	       "SQRT: Variable is undefined: "+e->GetParString(0));
+TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+#pragma omp for
+      for( SizeT i=0; i<nEl; ++i)
+	{
+	  (*p0C)[ i] = sqrt((*p0C)[ i]); 
+	}
+    }
+    return p0C;
+  }
+
+  BaseGDL* sqrt_fun( BaseGDL* p0, bool isReference)//( EnvT* e)
+  {
+    assert( p0 != NULL);
+    assert( p0->N_Elements() > 0);
     
+    if( isReference)
+    {
     if( p0->Type() == COMPLEX)
       return sqrt_fun_template< DComplexGDL>( p0);
     else if( p0->Type() == COMPLEXDBL)
@@ -1126,10 +1078,22 @@ TRACEOMP( __FILE__, __LINE__)
       return sqrt_fun_template< DDoubleGDL>( p0);
     else if( p0->Type() == FLOAT)
       return sqrt_fun_template< DFloatGDL>( p0);
-    else 
+    }
+    else
+    {
+    if( p0->Type() == COMPLEX)
+      return sqrt_fun_template_grab< DComplexGDL>( p0);
+    else if( p0->Type() == COMPLEXDBL)
+      return sqrt_fun_template_grab< DComplexDblGDL>( p0);
+    else if( p0->Type() == DOUBLE)
+      return sqrt_fun_template_grab< DDoubleGDL>( p0);
+    else if( p0->Type() == FLOAT)
+      return sqrt_fun_template_grab< DFloatGDL>( p0);
+    } 
       {
 	DFloatGDL* res = static_cast<DFloatGDL*>
 	  (p0->Convert2( FLOAT, BaseGDL::COPY));
+	SizeT nEl = p0->N_Elements();
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
@@ -1162,15 +1126,17 @@ TRACEOMP( __FILE__, __LINE__)
     return res;
   }
 
-  BaseGDL* abs_fun( EnvT* e)
+  BaseGDL* abs_fun( BaseGDL* p0, bool isReference)
   {
-    e->NParam( 1);
-
-    BaseGDL* p0 = e->GetParDefined( 0);
-
-    SizeT nEl = p0->N_Elements();
-    if( nEl == 0)
-      e->Throw( "Variable is undefined: "+e->GetParString(0));
+    assert( p0 != NULL);
+    assert( p0->N_Elements() > 0);
+//     e->NParam( 1);
+// 
+//     BaseGDL* p0 = e->GetParDefined( 0);
+// 
+//     SizeT nEl = p0->N_Elements();
+//     if( nEl == 0)
+//       e->Throw( "Variable is undefined: "+e->GetParString(0));
     
     if( p0->Type() == COMPLEX) 
       {
@@ -1220,7 +1186,9 @@ TRACEOMP( __FILE__, __LINE__)
       return abs_fun_template< DLongGDL>( p0);
     else if( p0->Type() == INT)
       return abs_fun_template< DIntGDL>( p0);
-    else if( p0->Type() == ULONG64)
+    else if( isReference)
+    {
+    if( p0->Type() == ULONG64)
       return p0->Dup();
     else if( p0->Type() == ULONG)
       return p0->Dup();
@@ -1228,21 +1196,31 @@ TRACEOMP( __FILE__, __LINE__)
       return p0->Dup();
     else if( p0->Type() == BYTE)
       return p0->Dup();
-    else 
-      {
-	DFloatGDL* res = static_cast<DFloatGDL*>
-	  (p0->Convert2( FLOAT, BaseGDL::COPY));
+    }
+    else
+    {
+    if( p0->Type() == ULONG64)
+      return p0;
+    else if( p0->Type() == ULONG)
+      return p0;
+    else if( p0->Type() == UINT)
+      return p0;
+    else if( p0->Type() == BYTE)
+      return p0;     
+    }
+    DFloatGDL* res = static_cast<DFloatGDL*>
+      (p0->Convert2( FLOAT, BaseGDL::COPY));
+    SizeT nEl = p0->N_Elements();
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-	{
+    {
 #pragma omp for
-	  for( SizeT i=0; i<nEl; ++i)
-	    {
-	      (*res)[ i] = abs( (*res)[ i]); 
-	    }
+      for( SizeT i=0; i<nEl; ++i)
+	{
+	  (*res)[ i] = abs( (*res)[ i]); 
 	}
-	return res;
-      }
+    }
+    return res;
   }
 
 

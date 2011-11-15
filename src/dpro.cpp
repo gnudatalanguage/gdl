@@ -44,11 +44,12 @@ DSub::~DSub() {}
 // DLib ******************************************************
 DLib::DLib( const string& n, const string& o, const int nPar_, 
 	    const string keyNames[],
-	    const string warnKeyNames[]): 
+	    const string warnKeyNames[], const int nParMin_): 
   DSub(n,o)
 {
   nPar=nPar_;
-
+  nParMin = nParMin_;
+  
   // find out number of keywords and set them
   SizeT nKey_=0;
   if( keyNames != NULL)
@@ -121,41 +122,51 @@ const string DLibFun::ToString()
   return s;
 }
 
+// const string DLibFunDirect::ToString()
+// {
+//   string s = "res=";
+//   s += name+"(";
+//   s += "["+i2s( nPar)+" Arg]";
+//   s += ")";
+//   return s;
+// }
+
 DLibPro::DLibPro( LibPro p, const string& n, const string& o, const int nPar_, 
-	 const string keyNames[], const string warnKeyNames[])
-  : DLib(n,o,nPar_,keyNames, warnKeyNames), pro(p)
+	 const string keyNames[], const string warnKeyNames[], const int nParMin_)
+  : DLib(n,o,nPar_,keyNames, warnKeyNames, nParMin_), pro(p)
 {
   libProList.push_back(this);
 }
 DLibPro::DLibPro( LibPro p, const string& n, const int nPar_, 
-	 const string keyNames[], const string warnKeyNames[])
-  : DLib(n,"",nPar_,keyNames, warnKeyNames), pro(p)
+	 const string keyNames[], const string warnKeyNames[], const int nParMin_)
+  : DLib(n,"",nPar_,keyNames, warnKeyNames, nParMin_), pro(p)
 {
   libProList.push_back(this);
 }
 
 DLibFun::DLibFun( LibFun f, const string& n, const string& o, const int nPar_, 
-	 const string keyNames[], const string warnKeyNames[])
-  : DLib(n,o,nPar_,keyNames, warnKeyNames), fun(f)
+	 const string keyNames[], const string warnKeyNames[], const int nParMin_)
+  : DLib(n,o,nPar_,keyNames, warnKeyNames, nParMin_), fun(f)
 {
   libFunList.push_back(this);
 }
 
 DLibFun::DLibFun( LibFun f, const string& n, const int nPar_, 
-	 const string keyNames[], const string warnKeyNames[])
-  : DLib(n,"",nPar_,keyNames, warnKeyNames), fun(f)
+	 const string keyNames[], const string warnKeyNames[], const int nParMin_)
+  : DLib(n,"",nPar_,keyNames, warnKeyNames, nParMin_), fun(f)
 {
   libFunList.push_back(this);
 }
 DLibFunRetNew::DLibFunRetNew( LibFun f, const string& n, 
 			const string& o, const int nPar_, 
-			const string keyNames[], const string warnKeyNames[])
-  : DLibFun(f,n,o,nPar_,keyNames, warnKeyNames)
+			const string keyNames[], const string warnKeyNames[], const int nParMin_)
+  : DLibFun(f,n,o,nPar_,keyNames, warnKeyNames, nParMin_)
 {}
 
 DLibFunRetNew::DLibFunRetNew( LibFun f, const string& n, const int nPar_, 
-			const string keyNames[], const string warnKeyNames[], bool rConstant)
-  : DLibFun(f,n,nPar_,keyNames, warnKeyNames), retConstant( rConstant)
+			const string keyNames[], const string warnKeyNames[], bool rConstant,
+			const int nParMin_)
+  : DLibFun(f,n,nPar_,keyNames, warnKeyNames, nParMin_), retConstant( rConstant)
 {}
 // DLibFunRetNew::DLibFunRetNew( LibFun f, const string& n, const int nPar_, 
 // 			bool rConstant)
@@ -164,6 +175,9 @@ DLibFunRetNew::DLibFunRetNew( LibFun f, const string& n, const int nPar_,
 // DLibFunRetNew::DLibFunRetNew( LibFun f, const string& n, bool rConstant)
 //   : DLibFun(f,n), retConstant( rConstant)
 // {}
+DLibFunDirect::DLibFunDirect( LibFunDirect f, const std::string& n, bool rConstant)
+  : DLibFun(NULL,n,1,NULL,NULL,1), funDirect(f), retConstantDirect( rConstant)
+{}
 
 
 // DSubUD ****************************************************

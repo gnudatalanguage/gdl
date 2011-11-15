@@ -1347,6 +1347,7 @@ class ParameterNode: public DefaultNode
 public:
   ParameterNode( const RefDNode& refNode): DefaultNode( refNode) {}
   virtual void Parameter( EnvBaseT* actEnv);
+  virtual bool ParameterDirect( BaseGDL*& paramP);
 //   virtual void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
 };
 
@@ -1395,6 +1396,7 @@ class REF_EXPRNode: public ParameterNode
 public:
   REF_EXPRNode( const RefDNode& refNode): ParameterNode( refNode) {}
   void Parameter( EnvBaseT* actEnv);
+  bool ParameterDirect( BaseGDL*& paramP);
 //   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
 };
 class REF_EXPRVNNode: public ParameterNode
@@ -1410,6 +1412,7 @@ class REF_CHECKNode: public ParameterNode
 public:
   REF_CHECKNode( const RefDNode& refNode): ParameterNode( refNode) {}
   void Parameter( EnvBaseT* actEnv);
+  bool ParameterDirect( BaseGDL*& paramP);
 //   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
 };
 class REF_CHECKVNNode: public ParameterNode
@@ -1425,6 +1428,7 @@ class REFNode: public ParameterNode
 public:
   REFNode( const RefDNode& refNode): ParameterNode( refNode) {}
   void Parameter( EnvBaseT* actEnv);
+  bool ParameterDirect( BaseGDL*& paramP);
 //   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
 };
 class REFVNNode: public ParameterNode

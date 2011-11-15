@@ -37,11 +37,11 @@ namespace lib {
   BaseGDL* acos_fun( EnvT* e);
   BaseGDL* atan_fun( EnvT* e);
 
-  BaseGDL* alog_fun( EnvT* e);
-  BaseGDL* alog10_fun( EnvT* e);
+  BaseGDL* alog_fun( BaseGDL* p0, bool isReference);//( EnvT* e);
+  BaseGDL* alog10_fun( BaseGDL* p0, bool isReference);//( EnvT* e);
 
-  BaseGDL* sqrt_fun( EnvT* e);
-  BaseGDL* abs_fun( EnvT* e);
+  BaseGDL* sqrt_fun( BaseGDL* p0, bool isReference);//( EnvT* e);
+  BaseGDL* abs_fun( BaseGDL* p0, bool isReference);//( EnvT* e);
 
   BaseGDL* round_fun( EnvT* e);
   BaseGDL* floor_fun( EnvT* e);

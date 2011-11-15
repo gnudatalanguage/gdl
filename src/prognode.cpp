@@ -552,7 +552,8 @@ BaseGDL* NSTRUC_REFNode::Eval()
 }
 
 
-
+// parameter nodes ////////////////////////////////////////////////
+// 1. keywords ////
 void KEYDEF_REFNode::Parameter( EnvBaseT* actEnv)
 {
   ProgNodeP _t = this->getFirstChild();
@@ -567,10 +568,6 @@ void KEYDEF_REFNode::Parameter( EnvBaseT* actEnv)
 			
   ProgNode::interpreter->_retTree = this->getNextSibling();
 }
-// void KEYDEF_REFNode::ParameterVarNum( EnvBaseT* actEnv)
-// {
-//   return Parameter( actEnv);
-// }
 
 void KEYDEF_REF_EXPRNode::Parameter( EnvBaseT* actEnv)
 {
@@ -591,10 +588,6 @@ void KEYDEF_REF_EXPRNode::Parameter( EnvBaseT* actEnv)
 			
   ProgNode::interpreter->_retTree = this->getNextSibling();
 }
-// void KEYDEF_REF_EXPRNode::ParameterVarNum( EnvBaseT* actEnv)
-// {
-//   return Parameter( actEnv);
-// }
 
 void KEYDEFNode::Parameter( EnvBaseT* actEnv)
 {
@@ -608,11 +601,37 @@ void KEYDEFNode::Parameter( EnvBaseT* actEnv)
 			
   ProgNode::interpreter->_retTree = this->getNextSibling();
 }
-// void KEYDEFNode::ParameterVarNum( EnvBaseT* actEnv)
-// {
-//   return Parameter( actEnv);
-// }
 
+void KEYDEF_REF_CHECKNode::Parameter( EnvBaseT* actEnv)
+{
+//   ProgNodeP _t = this->getFirstChild();
+//   ProgNodeP knameCk = _t;
+  // 			match(antlr::RefAST(_t),IDENTIFIER);
+//   _t = _t->getNextSibling();
+  BaseGDL* kval=ProgNode::interpreter->
+    lib_function_call(this->getFirstChild()->getNextSibling());
+			
+  BaseGDL** kvalRef = ProgNode::interpreter->callStack.back()->GetPtrTo( kval);
+  if( kvalRef != NULL)
+    {   // pass reference
+      actEnv->SetKeyword(this->getFirstChild()->getText(), kvalRef); 
+    }
+  else 
+    {   // pass value
+      actEnv->SetKeyword(this->getFirstChild()->getText(), kval); 
+    }
+			
+  ProgNode::interpreter->_retTree = this->getNextSibling();
+}
+
+
+// 2. Parameters ////
+bool REFNode::ParameterDirect( BaseGDL*& ref)
+{
+  BaseGDL** pvalRef=this->getFirstChild()->LEval();
+  ref = *pvalRef;
+  return true;
+}
 void REFNode::Parameter( EnvBaseT* actEnv)
 {
 //   ProgNodeP _t = this->getFirstChild();
@@ -631,6 +650,15 @@ void REFVNNode::Parameter( EnvBaseT* actEnv)
   ProgNode::interpreter->_retTree = this->getNextSibling();
 }
 
+
+bool REF_EXPRNode::ParameterDirect( BaseGDL*& ref)
+{
+  BaseGDL* pval= this->getFirstChild()->Eval();//expr(_t);
+  delete pval;
+  BaseGDL** pvalRef=this->getFirstChild()->getNextSibling()->LEval();
+  ref = *pvalRef;
+  return true;
+}
 void REF_EXPRNode::Parameter( EnvBaseT* actEnv)
 {
   // 			match(antlr::RefAST(_t),REF_EXPR);
@@ -656,32 +684,21 @@ void REF_EXPRVNNode::Parameter( EnvBaseT* actEnv)
   ProgNode::interpreter->_retTree = this->getNextSibling();
 }
 
-void KEYDEF_REF_CHECKNode::Parameter( EnvBaseT* actEnv)
+// returns true if reference, false else
+bool REF_CHECKNode::ParameterDirect( BaseGDL*& pval)
 {
-//   ProgNodeP _t = this->getFirstChild();
-//   ProgNodeP knameCk = _t;
-  // 			match(antlr::RefAST(_t),IDENTIFIER);
-//   _t = _t->getNextSibling();
-  BaseGDL* kval=ProgNode::interpreter->
-    lib_function_call(this->getFirstChild()->getNextSibling());
-			
-  BaseGDL** kvalRef = ProgNode::interpreter->callStack.back()->GetPtrTo( kval);
-  if( kvalRef != NULL)
+  pval=ProgNode::interpreter->lib_function_call(this->getFirstChild());		
+  BaseGDL** pvalRef = ProgNode::interpreter->callStack.back()->GetPtrTo( pval);
+  return (pvalRef != NULL);
+  if( pvalRef != NULL)
     {   // pass reference
-      actEnv->SetKeyword(this->getFirstChild()->getText(), kvalRef); 
+      return true;
     }
   else 
     {   // pass value
-      actEnv->SetKeyword(this->getFirstChild()->getText(), kval); 
+      return false;
     }
-			
-  ProgNode::interpreter->_retTree = this->getNextSibling();
 }
-// void KEYDEF_REF_CHECKNode::ParameterVarNum( EnvBaseT* actEnv)
-// {
-//   return Parameter( actEnv);
-// }
-
 void REF_CHECKNode::Parameter( EnvBaseT* actEnv)
 {
   BaseGDL* pval=ProgNode::interpreter->lib_function_call(this->getFirstChild());
@@ -713,6 +730,11 @@ void REF_CHECKVNNode::Parameter( EnvBaseT* actEnv)
   ProgNode::interpreter->_retTree = this->getNextSibling();
 }
 
+bool ParameterNode::ParameterDirect( BaseGDL*& pval)
+{
+  pval = this->getFirstChild()->Eval(); 
+  return false;			
+}
 void ParameterNode::Parameter( EnvBaseT* actEnv)
 {
 //   BaseGDL* pval=this->Eval();//expr(this);
@@ -722,7 +744,6 @@ void ParameterNode::Parameter( EnvBaseT* actEnv)
 			
   ProgNode::interpreter->_retTree = this->getNextSibling();
 }
-
 void ParameterVNNode::Parameter( EnvBaseT* actEnv)
 {
   actEnv->SetNextParUncheckedVarNum(this->getFirstChild()->Eval()); 

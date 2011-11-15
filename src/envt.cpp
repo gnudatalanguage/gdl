@@ -1354,6 +1354,11 @@ BaseGDL*& EnvT::GetPar(SizeT i)
     }
   return env[ ix];
 }
+// BaseGDL*& EnvT::GetParUnchecked(SizeT i)
+// {
+//   SizeT ix= i + pro->key.size();
+//   return env[ ix];
+// }
 
 void EnvBaseT::AssureLongScalarPar( SizeT pIx, DLong64& scalar)
 {
