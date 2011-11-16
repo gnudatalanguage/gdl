@@ -45,4 +45,12 @@
     </li>
   </ul>
 
+<h3>Mapping</h3>
+  <ul>
+    <li>
+      <a>Why the continent/country/shoreline boundaries have so poor resolution in comparison with IDL</a><br />
+      Try the HIRES keyword to MAP_CONTINENTS!
+      </li>
+  </ul>
+
 <?php require('_footer.inc.php'); ?>
