@@ -301,7 +301,7 @@ namespace lib {
   void map_continents(EnvT* e)
   {
     map_continents_call map_continents;
-    map_continents.call(e, 1); 
+    map_continents.call(e, 0); 
   }
 
 } // namespace
