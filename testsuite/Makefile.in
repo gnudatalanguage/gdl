@@ -291,6 +291,7 @@ TESTS = \
   test_hist_2d.pro \
   test_idl8.pro \
   test_idl_validname.pro \
+  test_image_statistics.pro \
   test_interpol.pro \
   test_interpolate_missing.pro \
   test_memory.pro \
