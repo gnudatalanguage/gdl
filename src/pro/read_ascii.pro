@@ -1,5 +1,4 @@
 ;+
-;
 ; NAME: READ_ASCII
 ;
 ;
@@ -64,7 +63,7 @@
 ;   if field of different types are grouped together, the following priority
 ;   if assumed to determine the tag type:
 ;     BYTE<UINT<INT<ULONG<LONG<ULONG64<LONG64<FLOAT<DOUBLE<COMPLEX<DCOMPLEX
-;   Exception: grouping double and complex will result in a dcomplex
+;   Exception: grouping double and COMPLEX will result in a DCOMPLEX
 ;   No boundary check is made, so information could be lost.
 ;
 ;
@@ -82,7 +81,7 @@
 ;
 ;
 ; EXAMPLES:
-; t = {version:1.0, fieldnames : strsplit('fa,fb,fc,fd,fe,ff',',', /extr), $
+; t = {version:1.0, fieldnames : STRSPLIT('fa,fb,fc,fd,fe,ff',',', /extr), $
 ;      fieldtypes : [7, 4, 7, 2, 1, 5], fieldgroups : [0, 1, 2, 3, 4, 5], $
 ;      fieldcount: 6, fieldlocations:[0, 5, 9, 11, 14, 16], datastart:0, $
 ;      delimiter:'', missingvalue:-999, commentsymbol:';'}
@@ -98,10 +97,12 @@
 ; MODIFICATION HISTORY:
 ;   13-Jan-2006 : written by Pierre Chanial
 ;   06-APr-2008 : m_schellens: made data_start independent of header
+;   15-Nov-2011 : A. Coulais : better management of dir/file and
+;                 missing file
 ;
 ;-
 ; LICENCE:
-; Copyright (C) 2006, P. Chanial
+; Copyright (C) 2006, P. Chanial; 2011 A. Coulais
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
 ; the Free Software Foundation; either version 2 of the License, or
@@ -109,283 +110,313 @@
 ;
 ;
 ;-
- 
+;
+pro READ_ASCII_HELPER, tags, tag, structure, variable, default
+;
+COMPILE_OPT hidden
 
-pro read_ascii_helper, tags, tag, structure, variable, default
- compile_opt hidden
-
- if n_elements(variable) ne 0 then return
- if n_elements(tags) eq 0 then begin
-    variable = default
-    return
- endif
- index = (where(tags eq tag, count))[0]
- if count eq 0 then begin
-    variable = default
- endif else begin
-    variable = structure.(index)
- endelse
+if N_ELEMENTS(variable) ne 0 then return
+if N_ELEMENTS(tags) eq 0 then begin
+   variable = default
+   return
+endif
+index = (WHERE(tags eq tag, count))[0]
+if count eq 0 then begin
+   variable = default
+endif else begin
+   variable = structure.(index)
+endelse;
 end
-
-function read_ascii_read, filename
- compile_opt hidden
- on_error, 2
- 
- if not file_test(filename) then message, 'Invalid filename'
- nline = file_lines(filename) 
- text = strarr(nline)
- openr, unit, filename, /get_lun
- readf, unit, text
- free_lun, unit
- return, text
- 
+;
+; -----------------------------------
+;
+function READ_ASCII_READ, filename
+;
+COMPILE_OPT hidden
+ON_ERROR, 2
+;
+if FILE_TEST(filename, /directory) then $
+   MESSAGE, 'this is not a file but a directory !'
+if not FILE_TEST(filename) then MESSAGE, 'Invalid filename'
+;
+nline = FILE_LINES(filename) 
+text = STRARR(nline)
+OPENR, unit, filename, /GET_LUN
+READF, unit, text
+FREE_LUN, unit
+return, text
+; 
 end
+;
+; -----------------------------------
+;
+function READ_ASCII_GETTYPE, types
 
-function read_ascii_gettype, types
- compile_opt hidden
- on_error, 2
- 
- priority = [ 0,  $; undefined
-              1,  $; byte
-              3,  $; int
-              5,  $; long
-              8,  $; float
-              9,  $; double
-              10, $; complex
-              99, $; string
-              0,  $; struct
-              11, $; dcomplex
-              0,  $; pointer
-              0,  $; object
-              2,  $; uint
-              4,  $; ulong
-              7,  $; long64
-              6   $; ulong64
- ]
- 
- p = max(priority[types], itype, min=status)
- if status eq 0 then message, 'Invalid field type.'
- type = types[itype]
+compile_opt hidden
+on_error, 2
 
- ; special case: double+complex -> dcomplex
- if max(types eq 5) and max(types eq 6) and (type ne 7) then type = 11
+priority = [ 0,  $              ; undefined
+             1,  $              ; byte
+             3,  $              ; int
+             5,  $              ; long
+             8,  $              ; float
+             9,  $              ; double
+             10, $              ; COMPLEX
+             99, $              ; STRING
+             0,  $              ; struct
+             11, $              ; DCOMPLEX
+             0,  $              ; pointer
+             0,  $              ; object
+             2,  $              ; uint
+             4,  $              ; ulong
+             7,  $              ; long64
+             6   $              ; ulong64
+           ]
  
- return, type
- 
+p = MAX(priority[types], itype, min=status)
+if (status eq 0) then MESSAGE, 'Invalid field type.'
+type = types[itype]
+;
+; special case: double+COMPLEX -> DCOMPLEX
+if MAX(types eq 5) and MAX(types eq 6) and (type ne 7) then type = 11
+;
+return, type
+;
 end
+;
+; ----------------------------------
+;
 
-function read_ascii, filename, count=linecount, $
-                     data_start=data_start, delimiter=delimiter,               $
-                     missing_value=missing_value,comment_symbol=comment_symbol,$
+function READ_ASCII, filename, count=linecount, $
+                     data_start=data_start, delimiter=delimiter, $
+                     missing_value=missing_value, $
+                     comment_symbol=comment_symbol, $
                      num_records=num_records, record_start=record_start,   $
-                     template=template, header=header, verbose=verbose
-
- on_error, 2
-  
- if size(template, /tname) eq 'STRUCT' then begin
-    tags = tag_names(template)
-    deldefault = ''
- endif else begin
-    deldefault = ' 	'
- endelse
- read_ascii_helper, tags, 'DATASTART',     template, data_start,     0
- read_ascii_helper, tags, 'DELIMITER',     template, delimiter,      deldefault
- read_ascii_helper, tags, 'MISSINGVALUE',  template, missing_value,  'NaN'
- read_ascii_helper, tags, 'COMMENTSYMBOL', template, comment_symbol, ';'
- 
- text = read_ascii_read(filename)
-
- 
- ;----------------
- ; get the header
- ;----------------
-
- if arg_present(header) then begin
-    if data_start eq 0 then begin
-       if n_elements(header) ne 0 then junk = temporary(header)
-    endif else begin
-       header = text[0:data_start-1]
-       ;; text = text[data_start:*]
-    endelse
+                     template=template, header=header, $
+                     help=help, test=test, verbose=verbose
+;
+ON_ERROR, 2
+;
+if KEYWORD_SET(help) then begin
+   print, 'function READ_ASCII, filename, count=linecount, $'
+   print, '                     data_start=data_start, delimiter=delimiter, $'
+   print, '                     missing_value=missing_value, $'
+   print, '                     comment_symbol=comment_symbol, $
+   print, '                     num_records=num_records, record_start=record_start,   $'
+   print, '                     template=template, header=header, $'
+   print, '                     help=help, test=test, verbose=verbose'
+   return, -1
 endif
-
+;
+if (N_PARAMS() EQ 0) then begin
+; ~(FILE_INFO(filename)).exits then begin
+   filename=DIALOG_PICKFILE()
+endif
+;
+if SIZE(template, /tname) eq 'STRUCT' then begin
+   tags = tag_names(template)
+   deldefault = ''
+endif else begin
+   deldefault = ' 	'
+endelse
+READ_ASCII_HELPER, tags, 'DATASTART',     template, data_start,     0
+READ_ASCII_HELPER, tags, 'DELIMITER',     template, delimiter,      deldefault
+READ_ASCII_HELPER, tags, 'MISSINGVALUE',  template, missing_value,  'NaN'
+READ_ASCII_HELPER, tags, 'COMMENTSYMBOL', template, comment_symbol, ';'
+;
+text=READ_ASCII_READ(filename)
+;
+;----------------
+; get the header
+;----------------
+;
+if ARG_PRESENT(header) then begin
+   if data_start eq 0 then begin
+      if N_ELEMENTS(header) ne 0 then junk = TEMPORARY(header)
+   endif else begin
+      header = text[0:data_start-1]
+      ;; text = text[data_start:*]
+   endelse
+endif
+;
 if data_start ne 0 then begin
-    if data_start gt n_elements(text) - 1 then message, 'DATA_START value >= data length (' $
-      + strtrim(string(data_start), 2) + ' >= ' + strtrim(string(n_elements(text)),2) + ')' 
-    text = text[data_start:*]
+   if data_start gt N_ELEMENTS(text) - 1 then begin
+      MESSAGE, 'DATA_START value >= data length (' $
+               + STRTRIM(STRING(data_start), 2) + ' >= ' $
+               + STRTRIM(STRING(N_ELEMENTS(text)),2) + ')' 
+      text = text[data_start:*]
+   endif
+endif
+;
+;-----------------
+; remove comments
+;-----------------
+;
+if KEYWORD_SET(comment_symbol) then begin
+   pos = STRPOS(text, comment_symbol)
+   index = WHERE(pos ne -1, count)
+   for i=0, count-1 do begin
+      j = index[i]
+      text[j] = STRMID(text[j], 0, pos[j])
+   endfor
 endif
 
- 
- ;-----------------
- ; remove comments
- ;-----------------
+;--------------------
+; remove blank lines
+;--------------------
 
- if keyword_set(comment_symbol) then begin
-    pos = strpos(text, comment_symbol)
-    index = where(pos ne -1, count)
-    for i=0, count-1 do begin
-       j = index[i]
-       text[j] = strmid(text[j], 0, pos[j])
-    endfor
- endif
- 
- 
- ;--------------------
- ; remove blank lines
- ;--------------------
+text = STRTRIM(text, 2)
+index = WHERE(STRLEN(text) ne 0, linecount)
+if linecount eq 0 then return, 0
+text = text[index]
 
- text = strtrim(text, 2)
- index = where(strlen(text) ne 0, linecount)
- if linecount eq 0 then return, 0
- text = text[index]
+;---------------------------
+; get the requested records
+;---------------------------
 
- 
- ;---------------------------
- ; get the requested records
- ;---------------------------
+if KEYWORD_SET(record_start) then begin
+   if record_start ge linecount then begin
+      MESSAGE, 'Invalid record start ('+STRTRIM(record_start,1)+$
+               '): the file only has '+STRTRIM(linecount,1)+' lines.'
+   endif
+   text = text[record_start:*]
+   linecount = N_ELEMENTS(text)
+endif
 
- if keyword_set(record_start) then begin
-    if record_start ge linecount then begin
-       message, 'Invalid record start ('+strtrim(record_start,1)+$
-                '): the file only has '+strtrim(linecount,1)+' lines.'
-    endif
-    text = text[record_start:*]
-    linecount = n_elements(text)
- endif
- 
- if keyword_set(num_records) then begin
-    if num_records gt linecount then begin
-       message, 'Excessive number of requested records.'
-    endif
-    text = text[0:num_records-1]
-    linecount = num_records
- endif
- 
- rnumber = '^[+-]?([0-9]*\.?[0-9]*[ed]?[+-]?[0-9]+\.?[0-9]*|NaN|Inf|Infinity)$'
+if KEYWORD_SET(num_records) then begin
+   if num_records gt linecount then begin
+      MESSAGE, 'Excessive number of requested records.'
+   endif
+   text = text[0:num_records-1]
+   linecount = num_records
+endif
 
- 
- ;------------------
- ; no-template case
- ;------------------
- 
- if n_elements(template) eq 0 then begin
-    ncolumns = lonarr(linecount)
-    for line=0l, linecount-1 do begin
-       ncolumns[line] = n_elements(strsplit(text[line], delimiter))
-    endfor
-    ncolumn = max(ncolumns)
-    result = make_array(ncolumn, linecount, /float, value=float(missing_value))
-    for line=0l, linecount-1 do begin
-       row = strsplit(text[line], delimiter, /extract)
-       index = where(stregex(row, rnumber, /fold_case, /boolean), count)
-       if count gt 0 then result[index, line] = float(row[index])
-    endfor
-    return, {field1:temporary(result)}
- endif
- 
- ; should take into account the field keyword, when RSI implements it.
- fieldcount  = template.fieldcount
- fieldtypes  = template.fieldtypes
- fieldnames  = template.fieldnames
- fieldlocs   = template.fieldlocations
- fieldgroups = template.fieldgroups
+rnumber = '^[+-]?([0-9]*\.?[0-9]*[ed]?[+-]?[0-9]+\.?[0-9]*|NaN|Inf|Infinity)$'
 
- strresult = strarr(fieldcount, linecount)
+;------------------
+; no-template case
+;------------------
 
- 
- ;-------------------------------------
- ; slice the file content into columns
- ;-------------------------------------
- 
- if keyword_set(delimiter) then begin
-    for line=0l, linecount-1 do begin
-       row = strsplit(text[line], string(delimiter), /extract)
-       strresult[0, line] = row
-    endfor
- endif else begin
-    for i=0l, fieldcount-2 do begin
-       strresult[i,*] = strmid(text, fieldlocs[i], fieldlocs[i+1]-fieldlocs[i])
-    endfor
-    strresult[i,*] = strmid(text, fieldlocs[i])
- endelse
- strresult = strtrim(strresult,2)
+if N_ELEMENTS(template) eq 0 then begin
+   ncolumns = LONARR(linecount)
+   for line=0l, linecount-1 do begin
+      ncolumns[line] = N_ELEMENTS(STRSPLIT(text[line], delimiter))
+   endfor
+   ncolumn = MAX(ncolumns)
+   result = MAKE_ARRAY(ncolumn, linecount, /float, value=FLOAT(missing_value))
+   for line=0l, linecount-1 do begin
+      row = STRSPLIT(text[line], delimiter, /extract)
+      index = WHERE(STREGEX(row, rnumber, /fold_case, /boolean), count)
+      if count gt 0 then result[index, line] = float(row[index])
+   endfor
+   return, {field1:TEMPORARY(result)}
+endif
+;
+; should take into account the field keyword, when RSI implements it.
+;
+fieldcount  = template.fieldcount
+fieldtypes  = template.fieldtypes
+fieldnames  = template.fieldnames
+fieldlocs   = template.fieldlocations
+fieldgroups = template.fieldgroups
 
- 
- ;---------------------------
- ; get output structure info
- ;---------------------------
- 
- tagcount  = n_elements(uniq(fieldgroups, sort(fieldgroups)))
- tagncols  = lonarr(tagcount)
- tagnames  = strarr(tagcount)
- tagtypes  = intarr(tagcount)
- taggroups = lonarr(tagcount)
+strresult = STRARR(fieldcount, linecount)
 
- ; get the group IDs of the tags, which are the unique elements of |fieldgroups|
- ; with preserved order (we can not use uniq)
- taggroups[0] = fieldgroups[0]
- itag = 1l
- for i=1l, fieldcount-1 do begin
-    if max(fieldgroups[i] eq taggroups[0:itag-1]) then continue
-    taggroups[itag++] = fieldgroups[i]
- endfor
 
- for i=0l, tagcount-1 do begin
-    index = where(fieldgroups eq taggroups[i], count)
-    tagncols[i] = count
-    tagnames[i] = fieldnames[index[0]]
-    tagtypes[i] = read_ascii_gettype(fieldtypes[index])
- endfor
- 
- 
- ;-----------------------------
- ; create the output structure
- ;-----------------------------
+;-------------------------------------
+; slice the file content into columns
+;-------------------------------------
 
- ; deal with columns that will be grouped as a 2D array into a single tag
- dims = replicate(strtrim(linecount,1), tagcount)
- index = where(tagncols gt 1, count)
- if count gt 0 then dims[index] = strtrim(tagncols[index],1)+','+dims[index]
- 
- ; deal with the missing value. If it is not finite, use 0 for integers
- values = strarr(tagcount)
- index = where(tagtypes ne 7, count)
- if count gt 0 then values[index] = ', value=missing_value'
- 
- ; construct the statement
- arrays = 'make_array(dim=['+dims+'], type='+strtrim(tagtypes,1)+values+')'
- str = 'result={'+strjoin(tagnames+':'+arrays, ',')+'}'
- ok = execute(str)
+if KEYWORD_SET(delimiter) then begin
+   for line=0l, linecount-1 do begin
+      row = STRSPLIT(text[line], STRING(delimiter), /extract)
+      strresult[0, line] = row
+   endfor
+endif else begin
+   for i=0l, fieldcount-2 do begin
+      strresult[i,*] = STRMID(text, fieldlocs[i], fieldlocs[i+1]-fieldlocs[i])
+   endfor
+   strresult[i,*] = STRMID(text, fieldlocs[i])
+endelse
+strresult = STRTRIM(strresult,2)
 
- 
- ;---------------------------
- ; fill the output structure
- ;---------------------------
- 
- ; loop over the output structure tags
- for i=0l, tagcount-1 do begin
-    icol = where(fieldgroups eq taggroups[i], ncol)
-    ; loop over the columns in the same group
-    for j=0l, ncol-1 do begin
-       row = reform(strresult[icol[j],*])
-       if fieldtypes[i] eq 7 then begin
-          if ncol eq 1 then begin
-             result.(i) = row
-          endif else begin
-             result.(i)[j,*] = row
-          endelse
-       endif else begin
-          index = where(stregex(row, rnumber, /fold_case, /boolean), count)
-          if count eq 0 then continue
-          if ncol eq 1 then begin
-             result.(i)[index] = row[index]
-          endif else begin
-             result.(i)[j,index] = row[index]
-          endelse
-       endelse
-    endfor
- endfor
- 
- return, result
-    
+
+;---------------------------
+; get output structure info
+;---------------------------
+
+tagcount  = N_ELEMENTS(UNIQ(fieldgroups, SORT(fieldgroups)))
+tagncols  = LONARR(tagcount)
+tagnames  = STRARR(tagcount)
+tagtypes  = INTARR(tagcount)
+taggroups = LONARR(tagcount)
+
+; get the group IDs of the tags, which are the UNIQue elements of |fieldgroups|
+; with preserved order (we can not use UNIQ)
+taggroups[0] = fieldgroups[0]
+itag = 1l
+for i=1l, fieldcount-1 do begin
+   if max(fieldgroups[i] eq taggroups[0:itag-1]) then continue
+   taggroups[itag++] = fieldgroups[i]
+endfor
+
+for i=0l, tagcount-1 do begin
+   index = where(fieldgroups eq taggroups[i], count)
+   tagncols[i] = count
+   tagnames[i] = fieldnames[index[0]]
+   tagtypes[i] = read_ascii_gettype(fieldtypes[index])
+endfor
+
+
+;-----------------------------
+; create the output structure
+;-----------------------------
+
+; deal with columns that will be grouped as a 2D array into a single tag
+dims = replicate(STRTRIM(linecount,1), tagcount)
+index = where(tagncols gt 1, count)
+if count gt 0 then dims[index] = STRTRIM(tagncols[index],1)+','+dims[index]
+
+; deal with the missing value. If it is not finite, use 0 for integers
+values = STRARR(tagcount)
+index = where(tagtypes ne 7, count)
+if count gt 0 then values[index] = ', value=missing_value'
+
+; construct the statement
+arrays = 'MAKE_ARRAY(dim=['+dims+'], type='+STRTRIM(tagtypes,1)+values+')'
+str = 'result={'+STRJOIN(tagnames+':'+arrays, ',')+'}'
+ok = EXECUTE(str)
+
+;---------------------------
+; fill the output structure
+;---------------------------
+
+; loop over the output structure tags
+for i=0l, tagcount-1 do begin
+   icol = WHERE(fieldgroups eq taggroups[i], ncol)
+   ;; loop over the columns in the same group
+   for j=0l, ncol-1 do begin
+      row = REFORM(strresult[icol[j],*])
+      if fieldtypes[i] eq 7 then begin
+         if ncol eq 1 then begin
+            result.(i) = row
+         endif else begin
+            result.(i)[j,*] = row
+         endelse
+      endif else begin
+         index = WHERE(STREGEX(row, rnumber, /fold_case, /boolean), count)
+         if count eq 0 then continue
+         if ncol eq 1 then begin
+            result.(i)[index] = row[index]
+         endif else begin
+            result.(i)[j,index] = row[index]
+         endelse
+      endelse
+   endfor
+endfor
+;
+if KEYWORD_SET(test) then STOP
+;
+return, result
+;
 end

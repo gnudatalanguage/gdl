@@ -1,4 +1,4 @@
-;$Id: read_png.pro,v 1.3 2011-08-18 17:26:43 alaingdl Exp $
+;$Id: read_png.pro,v 1.4 2011-11-16 00:51:17 alaingdl Exp $
 ;
 pro READ_PNG, filename, image, red, green, blue, $
               order=order, verbose=verbose, transparent=transparent, $
@@ -89,6 +89,7 @@ if (N_PARAMS() EQ 0) then MESSAGE, "Incorrect number of arguments."
 ;
 if (STRLEN(filename) EQ 0) then MESSAGE, "Null filename not allowed."
 if ((FILE_INFO(filename)).exists EQ 0) then MESSAGE, "Error opening file. File: "+filename
+if (FILE_TEST(filename, /regular) EQ 0) then MESSAGE, "Not a regular File: "+filename
 ;
 mid=MAGICK_OPEN(filename)
 ;

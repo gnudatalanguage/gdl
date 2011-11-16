@@ -1,4 +1,4 @@
-;$Id: read_jpeg.pro,v 1.7 2011-11-09 22:50:54 alaingdl Exp $
+;$Id: read_jpeg.pro,v 1.8 2011-11-16 00:51:17 alaingdl Exp $
 
 pro READ_JPEG, filename, unit=unit, image, colortable, buffer=buffer, $
                colors=colors, dither=dither, grayscale=grayscale, order=order, $
@@ -86,6 +86,7 @@ if (N_PARAMS() EQ 0) then MESSAGE, "Incorrect number of arguments."
 ;
 if (STRLEN(filename) EQ 0) then MESSAGE, "Null filename not allowed."
 if ((FILE_INFO(filename)).exists EQ 0) then MESSAGE, "Error opening file. File: "+filename
+if (FILE_TEST(filename, /regular) EQ 0) then MESSAGE, "Not a regular File: "+filename
 ;
 if KEYWORD_SET(unit) then MESSAGE, "Keyword UNIT not supported"
 if KEYWORD_SET(buffer) then MESSAGE, "Keyword BUFFER not supported"
