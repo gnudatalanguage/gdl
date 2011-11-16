@@ -6,6 +6,12 @@
 ; AC 26/10/2010: better managment of error when CMSV lib. or MPFIT
 ; lib. are not in the path ...
 ;
+; 16-Nov-2011
+; G. Duvert submitted a patch when we have several occurences
+; of MPFIT files in the GDL_PATH !
+;
+; this file is under GNU GPL v2 or later
+;
 function PARABOLE, x, params
 ;
 return, params[2]*x*params[1]*x+x+params[0]
@@ -69,11 +75,15 @@ MESSAGE, /continue, 'http://www.physics.wisc.edu/~craigm/idl/mpfittut.html'
 ; We are checking if MPFIT Lib. is in the !PATH
 ;
 paths=STRSPLIT(!PATH, PATH_SEP(/SEARCH_PATH), /EXTRACT)
-mpfit_path=FILE_SEARCH(paths+'/mpfit.pro')
-if STRLEN(mpfit_path) EQ 0 then MESSAGE, 'MPfit Lib. not in PATH ...'
+mpfit_path=FILE_SEARCH(paths+'/mpfit.pro', count=nfiles)
+if (nfiles EQ 0) then MESSAGE, 'MPfit Lib. not in PATH ...'
+if (nfiles GT 1) then MESSAGE, /cont, 'multiple occurence of MPfit Lib., first used'
+mpfit_path=mpfit_path[0]
 ;
-datafile=FILE_SEARCH(paths+'/fakedata.sav')
-if STRLEN(datafile) EQ 0 then MESSAGE, '<<fakedata.sav>> file missing ...'
+datafile=FILE_SEARCH(paths+'/fakedata.sav', count=nfiles)
+if (nfiles EQ 0) then MESSAGE, '<<fakedata.sav>> file missing ...'
+if (nfiles GT 1) then MESSAGE, /cont, 'multiple occurence of <<fakedata.sav>> file, first used'
+datafile=datafile[0]
 ;
 ; reading back the data
 RESTORE, datafile
