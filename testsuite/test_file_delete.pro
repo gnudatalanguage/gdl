@@ -5,56 +5,61 @@
 ; initial version by AC, 28 Avril 2009
 ; very basic tests for FILE_DELETE
 ;
-pro TEST_FILE_DELETE, full_test=full_test, test=test
-
-; Files
+pro TEST_FILE_DELETE, full_test=full_test, test=test, help=help
+;
+;
+if KEYWORD_SET(help) then begin
+   print, 'pro TEST_FILE_DELETE, full_test=full_test, test=test, help=help'
+   return
+endif
+;
+; Files Names
 files1=['fd_test1a','fd_test1b', '$chops &up str*ings.' ]
 file2='fd_test2'
 files3=['/etc/passwd', '/etc/passwd1']
 specfile='$f_tst*.mq' ; filename with special characters
-
 ;
 ; creation des fichiers temporaires de test
 ;
 if FILE_TEST(files1[0]) EQ 0 then SPAWN, 'touch '+files1[0]
 if FILE_TEST(files1[1]) EQ 0 then SPAWN, 'touch '+files1[1]
-if FILE_TEST(files1[2]) EQ 0 then SPAWN, 'touch '+escape_special_char(files1[2])
+if FILE_TEST(files1[2]) EQ 0 then SPAWN, 'touch '+ESCAPE_SPECIAL_CHAR(files1[2])
 if FILE_TEST(file2) EQ 0 then SPAWN, 'touch '+file2
 ;
-
 all_files_and_directories=files1 
 all_files_and_directories=[all_files_and_directories,file2]
-
+;
 FILE_DELETE, files1, file2, /quiet
-
+;
 for ii=0,N_ELEMENTS(files1)-1 do begin
    if (FILE_TEST(files1[ii]) EQ 1 ) then begin
-      MESSAGE, 'files1 has not been deleted', /continue
-      del_test_files , all_files_and_directories
+      MESSAGE, 'files1 >>'+files1[ii]+'<<has not been deleted', /continue
+      DEL_TEST_FILES, all_files_and_directories
       EXIT, status=1
    endif
 endfor
-
+;
 if (FILE_TEST(file2) EQ 1) then begin
    MESSAGE, 'file2 has not been deleted', /continue
-   del_test_files , all_files_and_directories
+   DEL_TEST_FILES, all_files_and_directories
    EXIT, status=1
 endif
-
-; test with no existing file
+;
+; Test with no existing file
+;
 FILE_DELETE, specfile
 FILE_DELETE, specfile , /quiet
 FILE_DELETE, specfile , /allow_nonexistent
 FILE_DELETE, specfile , /quiet , /verbose
-
+;
 ; Test with directories 
+;
 tdir=['test_dir1' , '$&dir2_&-spec$'] ; empty directories 
 tdir2=['td2_1' , 'td2_2'] ; Not empty directories
-
-
+;
 print , 'Empty directories'
 if FILE_TEST(tdir[0], /directory) EQ 0 then SPAWN, 'mkdir '+tdir[0]
-if FILE_TEST(escape_special_char(tdir[1]), /directory) EQ 0 then SPAWN, 'mkdir '+escape_special_char(tdir[1])
+if FILE_TEST(ESCAPE_SPECIAL_CHAR(tdir[1]), /directory) EQ 0 then SPAWN, 'mkdir '+ESCAPE_SPECIAL_CHAR(tdir[1])
 
 all_files_and_directories=[all_files_and_directories,tdir]
 
