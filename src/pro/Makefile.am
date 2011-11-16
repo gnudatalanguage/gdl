@@ -91,6 +91,7 @@ prolib_DATA = \
   trace.pro \
   tvscl.pro \
   uniq.pro \
+  usersym.pro \
   value_locate.pro \
   variance.pro \
   write_bmp.pro \
