@@ -83,7 +83,7 @@ namespace lib {
 
   BaseGDL* gdl_logical_and( EnvT* e);
   BaseGDL* gdl_logical_or( EnvT* e);
-  BaseGDL* logical_true( EnvT* e);
+  BaseGDL* logical_true( BaseGDL* p0, bool isReference);//( EnvT* e);
 
   BaseGDL* replicate( EnvT* e);
 

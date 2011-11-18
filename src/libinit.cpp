@@ -363,18 +363,18 @@ void LibInit()
 
   new DLibFunRetNew(lib::gdl_logical_and,string("LOGICAL_AND"),2,NULL,NULL,true);
   new DLibFunRetNew(lib::gdl_logical_or,string("LOGICAL_OR"),2,NULL,NULL,true);
-  new DLibFunRetNew(lib::logical_true,string("LOGICAL_TRUE"),1,NULL,NULL,true);
+  new DLibFunDirect(lib::logical_true,string("LOGICAL_TRUE"));
 
   new DLibFunRetNew(lib::replicate,string("REPLICATE"),9,NULL,NULL,true);
   new DLibPro(lib::replicate_inplace_pro,string("REPLICATE_INPLACE"),6);
 
   new DLibFunDirect(lib::sin_fun,string("SIN"));
   new DLibFunDirect(lib::cos_fun,string("COS"));
-  new DLibFunRetNew(lib::tan_fun,string("TAN"),1,NULL,NULL,true);
+  new DLibFunDirect(lib::tan_fun,string("TAN"));//,1,NULL,NULL,true);
 
-  new DLibFunRetNew(lib::sinh_fun,string("SINH"),1,NULL,NULL,true);
-  new DLibFunRetNew(lib::cosh_fun,string("COSH"),1,NULL,NULL,true);
-  new DLibFunRetNew(lib::tanh_fun,string("TANH"),1,NULL,NULL,true);
+  new DLibFunDirect(lib::sinh_fun,string("SINH"));//,1,NULL,NULL,true);
+  new DLibFunDirect(lib::cosh_fun,string("COSH"));//,1,NULL,NULL,true);
+  new DLibFunDirect(lib::tanh_fun,string("TANH"));//,1,NULL,NULL,true);
 
   new DLibFunDirect(lib::asin_fun,string("ASIN"));
   new DLibFunDirect(lib::acos_fun,string("ACOS"));

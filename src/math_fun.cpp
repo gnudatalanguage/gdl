@@ -360,20 +360,23 @@ TRACEOMP( __FILE__, __LINE__)
     return res;
   }
 
-  BaseGDL* tan_fun( EnvT* e)
+  BaseGDL* tan_fun( BaseGDL* p0, bool isReference)
   {
-    SizeT nParam=e->NParam();
+    assert( p0 != NULL);
+    assert( p0->N_Elements() > 0);
 
-    if( nParam == 0)
-      e->Throw( 
-	       "Incorrect number of arguments.");
-
-    BaseGDL* p0 = e->GetParDefined( 0);//, "TAN");
-
+//     SizeT nParam=e->NParam();
+// 
+//     if( nParam == 0)
+//       e->Throw( 
+// 	       "Incorrect number of arguments.");
+// 
+//     BaseGDL* p0 = e->GetParDefined( 0);//, "TAN");
+// 
     SizeT nEl = p0->N_Elements();
-    if( nEl == 0)
-      e->Throw( 
-	       "Variable is undefined: "+e->GetParString(0));
+//     if( nEl == 0)
+//       e->Throw( 
+// 	       "Variable is undefined: "+e->GetParString(0));
     
     if( p0->Type() == COMPLEX)
       return tan_fun_template< DComplexGDL>( p0);
@@ -418,20 +421,23 @@ TRACEOMP( __FILE__, __LINE__)
     return res;
   }
 
-  BaseGDL* sinh_fun( EnvT* e)
+  BaseGDL* sinh_fun( BaseGDL* p0, bool isReference)
   {
-    SizeT nParam=e->NParam();
+    assert( p0 != NULL);
+    assert( p0->N_Elements() > 0);
 
-    if( nParam == 0)
-      e->Throw( 
-	       "Incorrect number of arguments.");
-
-    BaseGDL* p0 = e->GetParDefined( 0);//, "SINH");
-
+//     SizeT nParam=e->NParam();
+// 
+//     if( nParam == 0)
+//       e->Throw( 
+// 	       "Incorrect number of arguments.");
+// 
+//     BaseGDL* p0 = e->GetParDefined( 0);//, "SINH");
+// 
     SizeT nEl = p0->N_Elements();
-    if( nEl == 0)
-      e->Throw( 
-	       "Variable is undefined: "+e->GetParString(0));
+//     if( nEl == 0)
+//       e->Throw( 
+// 	       "Variable is undefined: "+e->GetParString(0));
     
     if( p0->Type() == COMPLEX)
       return sinh_fun_template< DComplexGDL>( p0);
@@ -476,20 +482,23 @@ TRACEOMP( __FILE__, __LINE__)
     return res;
   }
 
-  BaseGDL* cosh_fun( EnvT* e)
+  BaseGDL* cosh_fun( BaseGDL* p0, bool isReference)
   {
-    SizeT nParam=e->NParam();
-
-    if( nParam == 0)
-      e->Throw( 
-	       "Incorrect number of arguments.");
-
-    BaseGDL* p0 = e->GetParDefined( 0);//, "COSH");
-
+    assert( p0 != NULL);
+    assert( p0->N_Elements() > 0);
+    
+//     SizeT nParam=e->NParam();
+// 
+//     if( nParam == 0)
+//       e->Throw( 
+// 	       "Incorrect number of arguments.");
+// 
+//     BaseGDL* p0 = e->GetParDefined( 0);//, "COSH");
+// 
     SizeT nEl = p0->N_Elements();
-    if( nEl == 0)
-      e->Throw( 
-	       "Variable is undefined: "+e->GetParString(0));
+//     if( nEl == 0)
+//       e->Throw( 
+// 	       "Variable is undefined: "+e->GetParString(0));
     
     if( p0->Type() == COMPLEX)
       return cosh_fun_template< DComplexGDL>( p0);
@@ -534,20 +543,22 @@ TRACEOMP( __FILE__, __LINE__)
     return res;
   }
 
-  BaseGDL* tanh_fun( EnvT* e)
+  BaseGDL* tanh_fun( BaseGDL* p0, bool isReference)
   {
-    SizeT nParam=e->NParam();
+    assert( p0 != NULL);
+    assert( p0->N_Elements() > 0);
 
-    if( nParam == 0)
-      e->Throw( 
-	       "Incorrect number of arguments.");
-
-    BaseGDL* p0 = e->GetParDefined( 0);//, "TANH");
-
-    SizeT nEl = p0->N_Elements();
-    if( nEl == 0)
-      e->Throw( 
-	       "Variable is undefined: "+e->GetParString(0));
+//     SizeT nParam=e->NParam();
+// 
+//     if( nParam == 0)
+//       e->Throw( 
+// 	       "Incorrect number of arguments.");
+// 
+//     BaseGDL* p0 = e->GetParDefined( 0);//, "TANH");
+// 
+//     if( nEl == 0)
+//       e->Throw( 
+// 	       "Variable is undefined: "+e->GetParString(0));
     
     if( p0->Type() == COMPLEX)
       return tanh_fun_template< DComplexGDL>( p0);
@@ -561,6 +572,7 @@ TRACEOMP( __FILE__, __LINE__)
       {
 	DFloatGDL* res = static_cast<DFloatGDL*>
 	  (p0->Convert2( FLOAT, BaseGDL::COPY));
+	SizeT nEl = p0->N_Elements();
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{

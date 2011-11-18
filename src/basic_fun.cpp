@@ -1581,15 +1581,19 @@ namespace lib {
     return res;
   }
 
-  BaseGDL* logical_true( EnvT* e)
+  BaseGDL* logical_true( BaseGDL* e1, bool isReference)//( EnvT* e);
   {
-    SizeT nParam=e->NParam();
-    if( nParam != 1)
-      e->Throw(
-			  "Incorrect number of arguments.");
-
-    BaseGDL* e1=e->GetParDefined( 0);//, "LOGICAL_TRUE");
+    assert( e1 != NULL);
+    assert( e1->N_Elements() > 0);
     
+
+//     SizeT nParam=e->NParam();
+//     if( nParam != 1)
+//       e->Throw(
+// 			  "Incorrect number of arguments.");
+// 
+//     BaseGDL* e1=e->GetParDefined( 0);//, "LOGICAL_TRUE");
+//     
     ULong nEl1 = e1->N_Elements();
 
     Data_<SpDByte>* res = new Data_<SpDByte>( e1->Dim(), BaseGDL::NOZERO);
