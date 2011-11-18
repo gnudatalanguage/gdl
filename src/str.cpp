@@ -247,14 +247,26 @@ void WordExp( string& s)
 //cout << "WordExp  in: " << s << endl;
 #if !defined(__OpenBSD__)
 // esc whitespace
-       string sEsc;
-       for( int i=0; i<s.length(); ++i)
-       {
-               if( s[i] == ' ')
-                       sEsc += "\\ ";
-               else
-                       sEsc += s[i];
-       }
+// which is not already escaped
+  string sEsc;
+  for( int i=0; i<s.length(); ++i)
+  {
+    if( s[i] == ' ')
+	sEsc += "\\ ";
+    else if( s[i] == '\\')
+      {
+	if( (i+1)<s.length())
+	{
+	  if( s[i+1] == ' ')
+	  {
+	    sEsc += "\\ ";
+	    ++i;
+	  }
+	}	  
+      }    
+    else
+	sEsc += s[i];
+  }
 //cout << "WordExp esc: " << sEsc << endl;
  wordexp_t p;
  int ok0 = wordexp( sEsc.c_str(), &p, 0);

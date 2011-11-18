@@ -17,6 +17,7 @@
 
 #include "includefirst.hpp"
 
+#include <limits>
 #include <ios>
 
 #include "str.hpp"
@@ -65,6 +66,7 @@ int           debugMode;
 DLong CpuTPOOL_NTHREADS;
 DLong CpuTPOOL_MIN_ELTS;
 DLong CpuTPOOL_MAX_ELTS;
+const DLong CpuTPOOL_MAX_ELTS_max = numeric_limits<DLong>::max();
 
 // instantiate own AST factory
 //_DNodeFactory DNodeFactory;
