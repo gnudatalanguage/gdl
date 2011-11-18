@@ -828,21 +828,16 @@ namespace lib {
       }
  */ }
 
+  // never called 
+  // done directly in FCALL_LIB_N_ELEMENTSNode::Eval();
+  // needed for LibInit() for correct parametrization
+  // N_ELEMENTS is special because on error it just returns 0L
+  // (the error is just caught and dropped)
   BaseGDL* n_elements( EnvT* e)
   {
-	// never called (executed directly in interpreter)
-	  
-	assert( 0);
-    SizeT nParam=e->NParam(1);
-
-//     if( nParam != 1)
-//       e->Throw( "Incorrect number of arguments.");
-
-    BaseGDL* p0=e->GetPar( 0);
-
-    if( p0 == NULL) return new DLongGDL( 0);
-    
-    return new DLongGDL( p0->N_Elements());
+    assert( 0);
+    e->Throw("Internal error: lib::n_elements called.");
+    return NULL; // get rid of compiler warning
   }
 
   template< typename ComplexGDL, typename Complex, typename Float>

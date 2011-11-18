@@ -25,16 +25,16 @@ namespace lib {
 
   void svdc( EnvT* e);
 
-  BaseGDL* sin_fun( EnvT* e);
-  BaseGDL* cos_fun( EnvT* e);
+  BaseGDL* sin_fun( BaseGDL* p0, bool isReference);//( EnvT* e);
+  BaseGDL* cos_fun( BaseGDL* p0, bool isReference);//( EnvT* e);
   BaseGDL* tan_fun( EnvT* e);
 
   BaseGDL* sinh_fun( EnvT* e);
   BaseGDL* cosh_fun( EnvT* e);
   BaseGDL* tanh_fun( EnvT* e);
 
-  BaseGDL* asin_fun( EnvT* e);
-  BaseGDL* acos_fun( EnvT* e);
+  BaseGDL* asin_fun( BaseGDL* p0, bool isReference);//( EnvT* e);
+  BaseGDL* acos_fun( BaseGDL* p0, bool isReference);//( EnvT* e);
   BaseGDL* atan_fun( EnvT* e);
 
   BaseGDL* alog_fun( BaseGDL* p0, bool isReference);//( EnvT* e);

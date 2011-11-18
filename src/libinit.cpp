@@ -282,7 +282,7 @@ void LibInit()
   new DLibFunRetNew(lib::cindgen,string("CINDGEN"),MAXRANK,NULL,NULL,true);
   new DLibFunRetNew(lib::dcindgen,string("DCINDGEN"),MAXRANK,NULL,NULL,true);
 
-  new DLibFunRetNew(lib::n_elements,string("N_ELEMENTS"),1,NULL,NULL,true);
+  new DLibFunRetNew(lib::n_elements,string("N_ELEMENTS"),1,NULL,NULL,true,1);
 
   new DLibFun(lib::execute,string("EXECUTE"),2);
 
@@ -368,16 +368,16 @@ void LibInit()
   new DLibFunRetNew(lib::replicate,string("REPLICATE"),9,NULL,NULL,true);
   new DLibPro(lib::replicate_inplace_pro,string("REPLICATE_INPLACE"),6);
 
-  new DLibFunRetNew(lib::sin_fun,string("SIN"),1,NULL,NULL,true);
-  new DLibFunRetNew(lib::cos_fun,string("COS"),1,NULL,NULL,true);
+  new DLibFunDirect(lib::sin_fun,string("SIN"));
+  new DLibFunDirect(lib::cos_fun,string("COS"));
   new DLibFunRetNew(lib::tan_fun,string("TAN"),1,NULL,NULL,true);
 
   new DLibFunRetNew(lib::sinh_fun,string("SINH"),1,NULL,NULL,true);
   new DLibFunRetNew(lib::cosh_fun,string("COSH"),1,NULL,NULL,true);
   new DLibFunRetNew(lib::tanh_fun,string("TANH"),1,NULL,NULL,true);
 
-  new DLibFunRetNew(lib::asin_fun,string("ASIN"),1,NULL,NULL,true);
-  new DLibFunRetNew(lib::acos_fun,string("ACOS"),1,NULL,NULL,true);
+  new DLibFunDirect(lib::asin_fun,string("ASIN"));
+  new DLibFunDirect(lib::acos_fun,string("ACOS"));
   const string atanKey[] = {"PHASE", KLISTEND};
   new DLibFunRetNew(lib::atan_fun,string("ATAN"),2,atanKey,NULL,true);
 

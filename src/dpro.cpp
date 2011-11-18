@@ -176,7 +176,7 @@ DLibFunRetNew::DLibFunRetNew( LibFun f, const string& n, const int nPar_,
 //   : DLibFun(f,n), retConstant( rConstant)
 // {}
 DLibFunDirect::DLibFunDirect( LibFunDirect f, const std::string& n, bool rConstant)
-  : DLibFun(NULL,n,1,NULL,NULL,1), funDirect(f), retConstantDirect( rConstant)
+  : DLibFunRetNew(NULL,n,1,NULL,NULL,rConstant,1), funDirect(f)
 {}
 
 

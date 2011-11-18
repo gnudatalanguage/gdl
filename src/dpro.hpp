@@ -267,18 +267,16 @@ public:
 // direct call functions must have:
 // ony one parameter, no keywords
 // these functions are called "direct", no environment is created
-class DLibFunDirect: public DLibFun
+class DLibFunDirect: public DLibFunRetNew
 {
-  bool   retConstantDirect; // means: can be pre-evaluated with constant input 
   LibFunDirect funDirect;
 public:
   DLibFunDirect( LibFunDirect f, const std::string& n, bool retConstant_=true);
 
   LibFunDirect FunDirect() { return funDirect;}
 
-  bool RetNew() { return true;}
+//   bool RetNew() { return true;}
   bool DirectCall() { return true;}
-  bool RetConstant() { return this->retConstantDirect;}
 };
 
 // UD pro/fun ********************************************************

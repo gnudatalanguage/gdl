@@ -482,9 +482,9 @@ public:
   virtual void Assign( BaseGDL* src, SizeT nEl);
 
   virtual BaseGDL* Log();              
-  virtual void     LogThis();
+  virtual BaseGDL* LogThis();
   virtual BaseGDL* Log10();              
-  virtual void     Log10This();
+  virtual BaseGDL* Log10This();
 
   // defined in basic_op.cpp
   // used in r_expr

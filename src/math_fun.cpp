@@ -223,16 +223,19 @@ TRACEOMP( __FILE__, __LINE__)
     return res;
   }
 
-  BaseGDL* sin_fun( EnvT* e)
+  BaseGDL* sin_fun( BaseGDL* p0, bool isReference)
   {
-    e->NParam( 1);//, "SIN");
+    assert( p0 != NULL);
+    assert( p0->N_Elements() > 0);
 
-    BaseGDL* p0 = e->GetParDefined( 0);//, "SIN");
-
+//     e->NParam( 1);//, "SIN");
+// 
+//     BaseGDL* p0 = e->GetParDefined( 0);//, "SIN");
+// 
     SizeT nEl = p0->N_Elements();
-    if( nEl == 0)
-      e->Throw( 
-	       "Variable is undefined: "+e->GetParString(0));
+//     if( nEl == 0)
+//       e->Throw( 
+// 	       "Variable is undefined: "+e->GetParString(0));
     
     if( p0->Type() == COMPLEX)
       return sin_fun_template< DComplexGDL>( p0);
@@ -277,20 +280,23 @@ TRACEOMP( __FILE__, __LINE__)
     return res;
   }
 
-  BaseGDL* cos_fun( EnvT* e)
+  BaseGDL* cos_fun( BaseGDL* p0, bool isReference)
   {
-    SizeT nParam=e->NParam();
+    assert( p0 != NULL);
+    assert( p0->N_Elements() > 0);
 
-    if( nParam == 0)
-      e->Throw( 
-	       "Incorrect number of arguments.");
-
-    BaseGDL* p0 = e->GetParDefined( 0);//, "COS");
-
+//     SizeT nParam=e->NParam();
+// 
+//     if( nParam == 0)
+//       e->Throw( 
+// 	       "Incorrect number of arguments.");
+// 
+//     BaseGDL* p0 = e->GetParDefined( 0);//, "COS");
+// 
     SizeT nEl = p0->N_Elements();
-    if( nEl == 0)
-      e->Throw( 
-	       "Variable is undefined: "+e->GetParString(0));
+//     if( nEl == 0)
+//       e->Throw( 
+// 	       "Variable is undefined: "+e->GetParString(0));
     
     if( p0->Type() == COMPLEX)
       return cos_fun_template< DComplexGDL>( p0);
@@ -568,21 +574,22 @@ TRACEOMP( __FILE__, __LINE__)
       }
   }
 
-  BaseGDL* asin_fun( EnvT* e)
+  BaseGDL* asin_fun( BaseGDL* p0, bool isReference)
   {
-    e->NParam( 1);//, "ASIN");
-
-    BaseGDL* p0 = e->GetParDefined( 0);//, "ASIN");
-
+    assert( p0 != NULL);
+    assert( p0->N_Elements() > 0);
+//     e->NParam( 1);//, "ASIN");
+// 
+//     BaseGDL* p0 = e->GetParDefined( 0);//, "ASIN");
+// 
     SizeT nEl = p0->N_Elements();
-    if( nEl == 0)
-      e->Throw( 
-	       "Variable is undefined: "+e->GetParString(0));
-    
+//     if( nEl == 0)
+//       e->Throw( 
+// 	       "Variable is undefined: "+e->GetParString(0));
+ 
     if( p0->Type() == COMPLEX || p0->Type() == COMPLEXDBL)
       {
-	e->Throw( 
-		 "Operation illegal with complex type.");
+	throw GDLException( "Operation illegal with complex type.");
       }
     else if( p0->Type() == DOUBLE)
       {
@@ -631,21 +638,22 @@ TRACEOMP( __FILE__, __LINE__)
       }
   }
 
-  BaseGDL* acos_fun( EnvT* e)
+  BaseGDL* acos_fun( BaseGDL* p0, bool isReference)
   {
-    e->NParam( 1);//, "ACOS");
-
-    BaseGDL* p0 = e->GetParDefined( 0);//, "ACOS");
-
+    assert( p0 != NULL);
+    assert( p0->N_Elements() > 0);
+//     e->NParam( 1);//, "ACOS");
+// 
+//     BaseGDL* p0 = e->GetParDefined( 0);//, "ACOS");
+// 
     SizeT nEl = p0->N_Elements();
-    if( nEl == 0)
-      e->Throw( 
-	       "Variable is undefined: "+e->GetParString(0));
+//     if( nEl == 0)
+//       e->Throw( 
+// 	       "Variable is undefined: "+e->GetParString(0));
     
     if( p0->Type() == COMPLEX || p0->Type() == COMPLEXDBL)
       {
-	e->Throw( 
-		 "Operation illegal with complex type.");
+	throw GDLException( "Operation illegal with complex type.");
       }
     else if( p0->Type() == DOUBLE)
       {
@@ -986,21 +994,27 @@ TRACEOMP( __FILE__, __LINE__)
     assert( p0 != NULL);
     assert( p0->N_Elements() > 0);
     
-    if( FloatType( p0->Type()) || ComplexType( p0->Type()))
-      if( !isReference) //e->StealLocalPar( 0))
-	{
-	  p0->LogThis();
-	  return p0;
-	}
-      else
-	return p0->Log();
-    else 
+    if( !isReference) //e->StealLocalPar( 0))
       {
-	DFloatGDL* res = static_cast<DFloatGDL*>
-	  (p0->Convert2( FLOAT, BaseGDL::COPY));
-	res->LogThis();
-	return res;
+	return p0->LogThis();
       }
+    return p0->Log();
+
+//       if( FloatType( p0->Type()) || ComplexType( p0->Type()))
+//       if( !isReference) //e->StealLocalPar( 0))
+// 	{
+// 	  p0->LogThis();
+// 	  return p0;
+// 	}
+//       else
+// 	return p0->Log();
+//     else 
+//       {
+// 	DFloatGDL* res = static_cast<DFloatGDL*>
+// 	  (p0->Convert2( FLOAT, BaseGDL::COPY));
+// 	res->LogThis();
+// 	return res;
+//       }
   }
 
 
@@ -1010,21 +1024,27 @@ BaseGDL* alog10_fun( BaseGDL* p0, bool isReference)
     assert( p0 != NULL);
     assert( p0->N_Elements() > 0);
     
-    if( FloatType( p0->Type()) || ComplexType( p0->Type()))
-      if( !isReference) //e->StealLocalPar( 0))
-	{
-	  p0->Log10This();
-	  return p0;
-	}
-      else
-	return p0->Log10();
-    else 
+    if( !isReference) //e->StealLocalPar( 0))
       {
-	DFloatGDL* res = static_cast<DFloatGDL*>
-	  (p0->Convert2( FLOAT, BaseGDL::COPY));
-	res->Log10This();
-	return res;
+	return p0->Log10This();
       }
+    return p0->Log10();
+
+//     if( FloatType( p0->Type()) || ComplexType( p0->Type()))
+//       if( !isReference) //e->StealLocalPar( 0))
+// 	{
+// 	  p0->Log10This();
+// 	  return p0;
+// 	}
+//       else
+// 	return p0->Log10();
+//     else 
+//       {
+// 	DFloatGDL* res = static_cast<DFloatGDL*>
+// 	  (p0->Convert2( FLOAT, BaseGDL::COPY));
+// 	res->Log10This();
+// 	return res;
+//       }
   }
 
   // original by joel gales

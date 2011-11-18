@@ -242,11 +242,11 @@ static	void operator delete( void *ptr);
 //     return dd[ i];
 //   }
   
-  Data_*   Log();
-  void     LogThis();
+  BaseGDL* Log();
+  BaseGDL* LogThis();
 
-  Data_*   Log10();
-  void     Log10This();
+  BaseGDL* Log10();
+  BaseGDL* Log10This();
 
   // operators
   BaseGDL* UMinus(); // UMinus for SpDString returns float

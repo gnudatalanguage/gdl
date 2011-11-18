@@ -639,7 +639,7 @@ BaseGDL* BaseGDL::Log()
 { 
   throw GDLException("Operation not defined for UNDEF 27a.");
 }
-void BaseGDL::LogThis()              
+BaseGDL* BaseGDL::LogThis()              
 { 
   throw GDLException("Operation not defined for UNDEF 27b.");
 }
@@ -647,7 +647,7 @@ BaseGDL* BaseGDL::Log10()
 { 
   throw GDLException("Operation not defined for UNDEF 27c.");
 }
-void BaseGDL::Log10This()              
+BaseGDL* BaseGDL::Log10This()              
 { 
   throw GDLException("Operation not defined for UNDEF 27d.");
 }

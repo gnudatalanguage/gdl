@@ -2498,40 +2498,25 @@ if( e1->StrictScalar())
 
   BaseGDL* FCALL_LIB_N_ELEMENTSNode::Eval()
   {
-    // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
-//    StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
-// 	match(antlr::RefAST(_t),FCALL_LIB_RETNEW);
-//	_t = _t->getFirstChild();
-// 	match(antlr::RefAST(_t),IDENTIFIER);
-    EnvT* newEnv=new EnvT( this, this->libFun);//libFunList[fl->funIx]);
-    auto_ptr< EnvT> guardEnv( newEnv);
-// 	_t =_t->getFirstChild();
-// 	EnvT* newEnv=new EnvT( fl, fl->libFun);//libFunList[fl->funIx]);
-	// special handling for N_ELEMENTS()
-//     static int n_elementsIx = LibFunIx("N_ELEMENTS");
-//     static DLibFun* n_elementsFun = libFunList[n_elementsIx];
-// 
-//     if( this->libFun == n_elementsFun)
-//         {
-            ProgNode::interpreter->parameter_def_n_elements(this->getFirstChild(), newEnv);
-//         }
-//     else
-//         {
-//             ProgNode::interpreter->parameter_def_nocheck(this->getFirstChild(), newEnv);
-//         }
-    BaseGDL* p0=newEnv->GetPar( 0);
-    if( p0 == NULL)
-		return new DLongGDL( 0);
-	else
-	    return new DLongGDL( p0->N_Elements());
+    try
+      {
+	BaseGDL* param;
+	bool isReference = 
+	  static_cast<ParameterNode*>(this->getFirstChild())->ParameterDirect( param);
+	auto_ptr<BaseGDL> guard;
+	if( !isReference)
+	  guard.reset( param);
 
-    // push id.pro onto call stack
-//     ProgNode::interpreter->CallStack().push_back(newEnv);
-//     // make the call
-//     //*** MUST always return a defined expression
-//     BaseGDL* res = static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
-//     assert( res != NULL);
-//     return res;
+	if( param == NULL)
+	  return new DLongGDL( 0);
+	
+	return new DLongGDL( param->N_Elements());   
+      } 
+    catch( GDLException& e)
+      {
+	// an error occured -> parameter is undefined 
+	return new DLongGDL( 0);
+      }
   }
 
   BaseGDL** FCALL_LIB_RETNEWNode::LEval()

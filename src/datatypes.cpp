@@ -479,13 +479,15 @@ Data_<Sp>* Data_<Sp>::Dup() const { return new Data_(*this);}
 
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::Log()              
+BaseGDL* Data_<Sp>::Log()              
 { 
-  assert( 0);
-  return NULL;
+  DFloatGDL* res = static_cast<DFloatGDL*>
+    (this->Convert2( FLOAT, BaseGDL::COPY));
+  res->LogThis();
+  return res;
 }
 template<>
-Data_<SpDFloat>* Data_<SpDFloat>::Log()              
+BaseGDL* Data_<SpDFloat>::Log()              
 { 
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
@@ -504,7 +506,7 @@ TRACEOMP( __FILE__, __LINE__)
   return n;
 }
 template<>
-Data_<SpDDouble>* Data_<SpDDouble>::Log()              
+BaseGDL* Data_<SpDDouble>::Log()              
 { 
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
@@ -520,7 +522,7 @@ TRACEOMP( __FILE__, __LINE__)
   return n;
 }
 template<>
-Data_<SpDComplex>* Data_<SpDComplex>::Log()              
+BaseGDL* Data_<SpDComplex>::Log()              
 { 
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
@@ -536,7 +538,7 @@ TRACEOMP( __FILE__, __LINE__)
   return n;
 }
 template<>
-Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Log()              
+BaseGDL* Data_<SpDComplexDbl>::Log()              
 { 
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
@@ -552,27 +554,35 @@ for( SizeT i=0; i<nEl; ++i)
   return n;
 }
 
+// this is actually not a "log" of "this",
+// but the behaviour is fine with the usage in the library function
+// the real LogThis is done in the specializations for floating and 
+// complex types
 template<class Sp>
-void Data_<Sp>::LogThis()              
+BaseGDL* Data_<Sp>::LogThis()              
 { 
-  assert( 0);
+  DFloatGDL* res = static_cast<DFloatGDL*>
+    (this->Convert2( FLOAT, BaseGDL::COPY));
+  res->LogThis(); // calls correct LogThis for float
+  return res;
 }
 template<>
-void Data_<SpDFloat>::LogThis()              
+BaseGDL* Data_<SpDFloat>::LogThis()              
 { 
   SizeT nEl = N_Elements();
   if( nEl == 1)
   {
     (*this)[ 0] = log( (*this)[ 0]);
-    return;
+return this;
   }
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
   for( SizeT i=0; i<nEl; ++i)
     (*this)[ i] = log( (*this)[ i]);
+return this;
 }
 template<>
-void Data_<SpDDouble>::LogThis()              
+BaseGDL* Data_<SpDDouble>::LogThis()              
 { 
 //#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
@@ -580,7 +590,7 @@ void Data_<SpDDouble>::LogThis()
   if( nEl == 1)
   {
     (*this)[ 0] = log( (*this)[ 0]);
-    return;
+return this;
   }
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
@@ -589,9 +599,10 @@ TRACEOMP( __FILE__, __LINE__)
 /*#else
   dd = log(dd);
 #endif*/
+return this;
 }
 template<>
-void Data_<SpDComplex>::LogThis()              
+BaseGDL* Data_<SpDComplex>::LogThis()              
 { 
 //#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
@@ -599,7 +610,7 @@ void Data_<SpDComplex>::LogThis()
   if( nEl == 1)
   {
     (*this)[ 0] = log( (*this)[ 0]);
-    return;
+return this;
   }
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
@@ -608,9 +619,10 @@ for( SizeT i=0; i<nEl; ++i)
 /*#else
   dd = log(dd);
 #endif*/
+return this;
 }
 template<>
-void Data_<SpDComplexDbl>::LogThis()              
+BaseGDL* Data_<SpDComplexDbl>::LogThis()              
 { 
 //#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
@@ -618,7 +630,7 @@ void Data_<SpDComplexDbl>::LogThis()
   if( nEl == 1)
   {
     (*this)[ 0] = log( (*this)[ 0]);
-    return;
+return this;
   }
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
@@ -627,16 +639,19 @@ TRACEOMP( __FILE__, __LINE__)
 /*#else
   dd = log(dd);
 #endif*/
+return this;
 }
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::Log10()              
+BaseGDL* Data_<Sp>::Log10()              
 { 
-  assert( 0);
-  return NULL;
+  DFloatGDL* res = static_cast<DFloatGDL*>
+    (this->Convert2( FLOAT, BaseGDL::COPY));
+  res->Log10This();
+  return res;
 }
 template<>
-Data_<SpDFloat>* Data_<SpDFloat>::Log10()              
+BaseGDL* Data_<SpDFloat>::Log10()              
 { 
 //#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
@@ -657,7 +672,7 @@ TRACEOMP( __FILE__, __LINE__)
 #endif*/
 }
 template<>
-Data_<SpDDouble>* Data_<SpDDouble>::Log10()              
+BaseGDL* Data_<SpDDouble>::Log10()              
 { 
 //#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
@@ -678,7 +693,7 @@ TRACEOMP( __FILE__, __LINE__)
 #endif*/
 }
 template<>
-Data_<SpDComplex>* Data_<SpDComplex>::Log10()              
+BaseGDL* Data_<SpDComplex>::Log10()              
 { 
 //#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
@@ -699,7 +714,7 @@ TRACEOMP( __FILE__, __LINE__)
 #endif*/
 }
 template<>
-Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::Log10()              
+BaseGDL* Data_<SpDComplexDbl>::Log10()              
 { 
 //#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
@@ -720,13 +735,17 @@ TRACEOMP( __FILE__, __LINE__)
 #endif*/
 }
 
+// see comment at void Data_<Sp>::LogThis()              
 template<class Sp>
-void Data_<Sp>::Log10This()              
+BaseGDL* Data_<Sp>::Log10This()              
 { 
-  assert( 0);
+  DFloatGDL* res = static_cast<DFloatGDL*>
+    (this->Convert2( FLOAT, BaseGDL::COPY));
+  res->Log10This(); // calls correct Log10This for float
+  return res;
 }
 template<>
-void Data_<SpDFloat>::Log10This()              
+BaseGDL* Data_<SpDFloat>::Log10This()              
 { 
 #if 1 || (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
@@ -734,7 +753,7 @@ void Data_<SpDFloat>::Log10This()
   if( nEl == 1)
   {
     (*this)[ 0] = log10( (*this)[ 0]);
-    return;
+    return this;
   }
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
@@ -743,9 +762,10 @@ TRACEOMP( __FILE__, __LINE__)
 #else
   dd = log10(dd);
 #endif
+    return this;
 }
 template<>
-void Data_<SpDDouble>::Log10This()              
+BaseGDL* Data_<SpDDouble>::Log10This()              
 { 
 #if 1 || (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
@@ -753,7 +773,7 @@ void Data_<SpDDouble>::Log10This()
   if( nEl == 1)
   {
     (*this)[ 0] = log10( (*this)[ 0]);
-    return;
+    return this;
   }
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
@@ -762,9 +782,10 @@ TRACEOMP( __FILE__, __LINE__)
 #else
   dd = log10(dd);
 #endif
+    return this;
 }
 template<>
-void Data_<SpDComplex>::Log10This()              
+BaseGDL* Data_<SpDComplex>::Log10This()              
 { 
 #if 1 || (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
@@ -772,7 +793,7 @@ void Data_<SpDComplex>::Log10This()
   if( nEl == 1)
   {
     (*this)[ 0] = log10( (*this)[ 0]);
-    return;
+    return this;
   }
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
@@ -781,9 +802,10 @@ TRACEOMP( __FILE__, __LINE__)
 #else
   dd = log10(dd);
 #endif
+    return this;
 }
 template<>
-void Data_<SpDComplexDbl>::Log10This()              
+BaseGDL* Data_<SpDComplexDbl>::Log10This()              
 { 
 #if 1 || (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
@@ -791,7 +813,7 @@ void Data_<SpDComplexDbl>::Log10This()
   if( nEl == 1)
   {
     (*this)[ 0] = log10( (*this)[ 0]);
-    return;
+    return this;
   }
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
@@ -800,6 +822,7 @@ TRACEOMP( __FILE__, __LINE__)
 #else
   dd = log10(dd);
 #endif
+    return this;
 }
 
 
