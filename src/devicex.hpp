@@ -703,8 +703,8 @@ public:
     GDLGStream* actStream = GetStream();
     if( actStream == NULL)
       {
-	std::cerr << "TV: Internal error: plstream not set." << std::endl;
-	exit( EXIT_FAILURE);
+		std::cerr << "TV: Internal error: plstream not set." << std::endl;
+		exit( EXIT_FAILURE);
       }
 
     //    actStream->NextPlot( false);
@@ -730,7 +730,7 @@ public:
     //DByteGDL* p0B = e->GetParAs<DByteGDL>( 0);
     DByteGDL* p0B;
     p0B =static_cast<DByteGDL*>(p0->Convert2(BYTE,BaseGDL::COPY));
-    //e->Guard( p0B);
+    e->Guard( p0B);
     
     int width, height;
     DLong tru=0;
