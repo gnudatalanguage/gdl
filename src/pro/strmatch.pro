@@ -3,15 +3,19 @@
 
 ; search & replace helper for strmatch()
 function strmatch_strreplace, str, a, b
-  tmp = strsplit(str, '\\\' + a, /extract, /regex)
-  for i = 0, n_elements(tmp) - 1 do tmp[i] = strjoin(strsplit(tmp[i], '\' + a, /extract, /regex), b)
-  tmp = $
-    (strmid(str,0,2) eq ('\' + a) ? ('\' + a) : '') + $
-    (strmid(str,0,1) eq a ? b : '') + $
-    strjoin(tmp, '\' + a) + $
-    (strmid(str,0,1,/rev) eq a ? b : '') + $
-    (strmid(str,0,2,/rev) eq ('\' + a) ? ('\' + a) : '')
-  return, tmp
+  pos = strpos(str, a)
+  if pos eq -1 then return, str
+  ret = strmid(str,0,pos)
+  la = strlen(a)
+  last = pos 
+  for i = pos, strlen(str) - 1 do begin
+    if strmid(str,i,la) eq a && (i eq 0 || strmid(str,i-1,1) ne '\') then begin
+      ret += strmid(str,last,i-last) + b 
+      last = i + la
+    endif
+  endfor
+  ret += strmid(str,last)
+  return, ret
 end
 
 ; quick & dirty strmatch() implementation using stregex()
@@ -46,6 +50,5 @@ function strmatch, mstr, sstr, fold_case=fold_case
   tmp = strmatch_strreplace(tmp, '[!', '[^')
   ; the leading a trailing markers
   tmp = '^' + tmp + '$'
-
   return, stregex(mstr, tmp, /boolean, fold_case=fold_case)
 end

@@ -39,6 +39,7 @@ pro test_strmatch
   err += assert('.()+{}|^$', '.()+{}|^$', 1)
   err += assert('.()+{}|^$', '.()+{*^$', 1)
   err += assert('.()+{}|^$', '.()+{?^$', 0)
+  err += assert('foot', 'f??t', 1)
   err += ~array_equal(strmatch(['gdl', 'GDL'], 'gdl'), [1,0])
   if err ne 0 then exit, status=1
 end
