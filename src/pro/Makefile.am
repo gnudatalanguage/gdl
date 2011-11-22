@@ -83,6 +83,7 @@ prolib_DATA = \
   spl_interp_old.pro \
   stddev.pro \
   str_sep.pro \
+  strmatch.pro \
   strsplit.pro \
   swap_endian.pro \
   swap_endian_inplace.pro \
@@ -91,7 +92,6 @@ prolib_DATA = \
   trace.pro \
   tvscl.pro \
   uniq.pro \
-  usersym.pro \
   value_locate.pro \
   variance.pro \
   write_bmp.pro \
