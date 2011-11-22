@@ -100,6 +100,7 @@ TESTS = \
   test_str_functions.pro \
   test_str_sep.pro \
   test_stregex.pro \
+  test_strmatch.pro \
   test_strsplit.pro \
   test_suite.pro \
   test_systime.pro \
