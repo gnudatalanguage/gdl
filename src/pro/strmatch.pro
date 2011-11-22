@@ -14,17 +14,37 @@ function strmatch_strreplace, str, a, b
   return, tmp
 end
 
-; strmatch() implementation using stregex()
+; quick & dirty strmatch() implementation using stregex()
 function strmatch, mstr, sstr, fold_case=fold_case
   on_error, 2
   if (size(sstr))[0] ne 0 then message, 'second argument must be a scalar string'
 
+  tmp = sstr
+  ; . -> \. (but not \.)
+  tmp = strmatch_strreplace(tmp, '.', '\.')
+  ; ( -> \( (but not \()
+  tmp = strmatch_strreplace(tmp, '(', '\(')
+  ; ) -> \) (but not \))
+  tmp = strmatch_strreplace(tmp, ')', '\)')
+  ; + -> \+ (but not \+)
+  tmp = strmatch_strreplace(tmp, '+', '\+')
+  ; { -> \{ (but not \{)
+  tmp = strmatch_strreplace(tmp, '{', '\{')
+  ; } -> \} (but not \})
+  tmp = strmatch_strreplace(tmp, '}', '\}')
+  ; | -> \| (but not \|)
+  tmp = strmatch_strreplace(tmp, '|', '\|')
+  ; ^ -> \^ (but not \^)
+  tmp = strmatch_strreplace(tmp, '^', '\^')
+  ; $ -> \$ (but not \$)
+  tmp = strmatch_strreplace(tmp, '$', '\$')
   ; * -> .* (but not \*)
-  tmp = strmatch_strreplace(sstr, '*', '.*')
+  tmp = strmatch_strreplace(tmp, '*', '.*')
   ; ? -> . (but not \?)
   tmp = strmatch_strreplace(tmp, '?', '.')
   ; [!...] -> [^...] (but not \[!...)
   tmp = strmatch_strreplace(tmp, '[!', '[^')
+  ; the leading a trailing markers
   tmp = '^' + tmp + '$'
 
   return, stregex(mstr, tmp, /boolean, fold_case=fold_case)
