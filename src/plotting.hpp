@@ -35,6 +35,7 @@ namespace lib {
   void xyouts( EnvT* e);
   void axis( EnvT* e);
   void polyfill( EnvT* e);
+  void usersym( EnvT* e);
 
   // other plotting routines
   void erase( EnvT* e);

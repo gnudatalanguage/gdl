@@ -511,7 +511,39 @@ namespace lib {
     *wx = &(*static_cast<DFloatGDL*>( xStruct->GetTag( xwindowTag, 0)))[0];
     *wy = &(*static_cast<DFloatGDL*>( yStruct->GetTag( ywindowTag, 0)))[0];
   }
+ 
+  void GetUsym(DLong **n, DInt **do_fill, DFloat **x, DFloat **y)
+  {
+    static DStructGDL* usymStruct = SysVar::USYM();
+    unsigned nTag = usymStruct->Desc()->TagIndex( "DIM");
+    unsigned fillTag = usymStruct->Desc()->TagIndex( "FILL");
+    unsigned xTag = usymStruct->Desc()->TagIndex( "X");
+    unsigned yTag = usymStruct->Desc()->TagIndex( "Y");
     
+    *n = &(*static_cast<DLongGDL*>( usymStruct->GetTag( nTag, 0)))[0];
+    *do_fill = &(*static_cast<DIntGDL*>( usymStruct->GetTag( fillTag, 0)))[0];
+    *x = &(*static_cast<DFloatGDL*>( usymStruct->GetTag( xTag, 0)))[0];
+    *y = &(*static_cast<DFloatGDL*>( usymStruct->GetTag( yTag, 0)))[0];
+  }
+
+  void SetUsym(DLong n, DInt do_fill, DFloat *x, DFloat *y)
+  {
+    static DStructGDL* usymStruct = SysVar::USYM();
+    unsigned xTag = usymStruct->Desc()->TagIndex( "X");
+    unsigned yTag = usymStruct->Desc()->TagIndex( "Y");
+    unsigned nTag = usymStruct->Desc()->TagIndex( "DIM");
+    unsigned fillTag = usymStruct->Desc()->TagIndex( "FILL");
+
+    (*static_cast<DLongGDL*>( usymStruct->GetTag( nTag, 0)))[0] = n;
+    (*static_cast<DIntGDL*>( usymStruct->GetTag( fillTag, 0)))[0] = do_fill;
+  
+     for (int i=0; i<n; i++)
+     {
+        (*static_cast<DFloatGDL*>( usymStruct->GetTag( xTag, 0)))[i] = x[i];
+        (*static_cast<DFloatGDL*>( usymStruct->GetTag( yTag, 0)))[i] = y[i];
+     }
+   }
+     
   void DataCoordLimits(DDouble *sx, DDouble *sy, DFloat *wx, DFloat *wy, 
     DDouble *xStart, DDouble *xEnd, DDouble *yStart, DDouble *yEnd, bool clip_by_default)
   {
@@ -519,7 +551,7 @@ namespace lib {
     *xEnd   = (wx[1] - sx[0]) / sx[1];
     *yStart = (wy[0] - sy[0]) / sy[1];
     *yEnd   = (wy[1] - sy[0]) / sy[1];
-    //    cout << *xStart <<" "<< *xEnd << " "<< *yStart <<" "<< *yEnd << ""<< endl;
+    //   cout << *xStart <<" "<< *xEnd << " "<< *yStart <<" "<< *yEnd << ""<< endl;
 
     // patch from Joanna (tracker item no. 3029409, see test_clip.pro)
     if (!clip_by_default) {
@@ -565,6 +597,30 @@ namespace lib {
     if(psym <0 ) {line=true; psym_=-psym;}
     else if(psym == 0 ) {line=true;psym_=psym;}
     else {psym_=psym;}
+    
+    DFloat *userSymX, *userSymY;
+    DLong *userSymArrayDim;
+    DInt  *do_fill;
+    DDouble *sx, *sy;
+    GetSFromPlotStructs(&sx, &sy);
+    // get subpage in mm
+    PLFLT scrXL, scrXR, scrYB, scrYT;
+    a->gspa( scrXL, scrXR, scrYB, scrYT); 
+    PLFLT scrX = scrXR-scrXL;
+    PLFLT scrY = scrYT-scrYB;
+    // get char size in mm (default, actual)
+    PLFLT defH, actH;
+    a->gchr( defH, actH);
+    DDouble UsymConvX, UsymConvY;
+    UsymConvX=0.5*(actH/scrX)/sx[1];
+    UsymConvY=0.5*(actH/scrY)/sy[1];
+    if (psym_ == 8) {
+      GetUsym(&userSymArrayDim, &do_fill, &userSymX, &userSymY);
+      if (*userSymArrayDim == 0) {
+         e->Throw("No user symbol defined.");
+      }
+    }
+ 
     DLong minEl = (xVal->N_Elements() < yVal->N_Elements())? 
       xVal->N_Elements() : yVal->N_Elements();
     // if scalar x
@@ -573,10 +629,7 @@ namespace lib {
     // if scalar y
     if (yVal->N_Elements() == 1 && yVal->Rank() == 0) 
       minEl = xVal->N_Elements();
-
-    DDouble *sx, *sy;
-    GetSFromPlotStructs(&sx, &sy);
-
+                 
     bool mapSet=false;
 #ifdef USE_LIBPROJ4
     // Map Stuff (xtype = 3)
@@ -624,8 +677,7 @@ namespace lib {
     // flag to reset Buffer when a NaN or a Infinity are founded
     int reset=0;
 
-    // translation plplot symbols - GDL symbols
-    // for now usersym is a circle
+    // translation plplot symbols - 8th symbol is superseded by USERSYM.
     const PLINT codeArr[]={ 0,2,3,1,11,7,6,5,4};
 
     for( int i=0; i<minEl; ++i)
@@ -650,9 +702,25 @@ namespace lib {
 	  reset=1;
 	  if (i_buff > 0) {
 	    if (line) { a->line (i_buff, x_buff, y_buff);}
-	    if (psym_ > 0 && psym_ < 10) { a->poin(i_buff, x_buff, y_buff, codeArr[psym_]);}
-	    if (psym_ == 10) {  ac_histo( a, i_buff, x_buff, y_buff ); }
-	    i_buff=0;
+	    if ((psym_ > 0 && psym_ < 8) || psym_ == 9) { a->poin(i_buff, x_buff, y_buff, codeArr[psym_]);}
+	    if (psym_ == 8) {
+                 PLFLT *xx = new PLFLT[*userSymArrayDim];
+                 PLFLT *yy = new PLFLT[*userSymArrayDim];
+                for( int j=0; j<minEl-1; j++){
+                   for (int kk=0; kk < *userSymArrayDim ; kk++){
+                      xx[kk]=x_buff[j]+userSymX[kk]*UsymConvX;
+                      yy[kk]=y_buff[j]+userSymY[kk]*UsymConvY;
+                   }
+                   if (*do_fill==1){
+                      a->fill(*userSymArrayDim,xx,yy);
+                   }
+                   else {
+                      a->line(*userSymArrayDim, xx, yy);
+                   }
+                 }
+             }
+	  if (psym_ == 10) {  ac_histo( a, i_buff, x_buff, y_buff ); }
+	  i_buff=0;
 	  }
 	  continue;
 	}
@@ -688,7 +756,24 @@ namespace lib {
 	
 	if ((i_buff == n_buff_max-1) || (i == minEl-1 )) {
 	  if (line) { a->line(i_buff, x_buff, y_buff); };
-	  if (psym_ > 0 && psym_ < 10) { a->poin(i_buff, x_buff, y_buff, codeArr[psym_]);}
+	  if ((psym_ > 0 && psym_ < 8) || psym_ == 9) { a->poin(i_buff, x_buff, y_buff, codeArr[psym_]);}
+	  if (psym_ == 8) 
+          {
+                 PLFLT *xx = new PLFLT[*userSymArrayDim];
+                 PLFLT *yy = new PLFLT[*userSymArrayDim];
+                for( int j=0; j<minEl-1; j++){
+                   for (int kk=0; kk < *userSymArrayDim ; kk++){
+                      xx[kk]=x_buff[j]+userSymX[kk]*UsymConvX;
+                      yy[kk]=y_buff[j]+userSymY[kk]*UsymConvY;
+                   }
+                   if (*do_fill==1){
+                      a->fill(*userSymArrayDim,xx,yy);
+                   }
+                   else {
+                      a->line(*userSymArrayDim, xx, yy);
+                   }
+                 }
+          }
 	  if (psym_ == 10) {  ac_histo( a, i_buff, x_buff, y_buff ); }
 	    
 	  // we must recopy the last point since the line must continue (tested via small buffer ...)
@@ -1325,5 +1410,59 @@ namespace lib {
 	high = (*static_cast<DFloatGDL*>( Struct->GetTag( marginTag, 0)))[1];
       }
   }
+  void usersym(EnvT *e)
+{
+      DFloatGDL *xyVal, *xVal, *yVal;
+      auto_ptr<BaseGDL> p0_guard;
+      DLong n;
+      DInt do_fill;
+      DFloat *x, *y;
+      SizeT nParam = e->NParam();
 
+      if (nParam == 1) {
+ 	   BaseGDL* p0 = e->GetNumericArrayParDefined( 0)->Transpose( NULL); //hence [1024,2]
+
+	xyVal = static_cast<DFloatGDL*>
+	  (p0->Convert2( FLOAT, BaseGDL::COPY));
+	p0_guard.reset( p0); // delete upon exit
+        
+	if(xyVal->Rank() != 2 || xyVal->Dim(1) != 2)
+          e->Throw(e->GetParString(0)+" must be a 2-dim array of type [2,N] in this context.");
+
+            if (xyVal->Dim(0) > 1024)
+            {
+                e->Throw("Max array size for USERSYM is 1024"); 
+            }
+            n = xyVal->Dim(0);
+            // array is in the good order for direct C assignement
+            x=&(*xyVal)[0];
+            y=&(*xyVal)[n];          
+       } else {
+            xVal = e->GetParAs< DFloatGDL > (0);
+            if (xVal->Rank() != 1)
+                e->Throw(e->GetParString(0)+" must be a 1D array in this context: ");
+
+            yVal = e->GetParAs< DFloatGDL > (1);
+            if (yVal->Rank() != 1)
+                e->Throw("Expression must be a 1D array in this context: " + e->GetParString(1));
+
+            if (xVal->Dim(0)!= yVal->Dim(0))
+            {
+               e->Throw("Arrays must have same size "); 
+            }
+            
+            if (xVal->Dim(0) > 1024)
+            {
+                e->Throw("Max array size for USERSYM is 1024"); 
+            }
+            n = xVal->Dim(0);
+            x=&(*xVal)[0];
+            y=&(*yVal)[0];
+        }
+        do_fill=0;
+        if (e->KeywordSet("FILL")) {
+        do_fill=1;
+        }
+        SetUsym(n,do_fill, x, y);
+  }
 } // namespace

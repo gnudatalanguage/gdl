@@ -42,7 +42,7 @@ namespace SysVar
   UInt pathIx, promptIx, edit_inputIx, quietIx, 
     dIx, pIx, xIx, yIx, zIx, vIx, gdlIx, cIx, MouseIx,
     errorStateIx, errorIx, errIx, err_stringIx, valuesIx,
-    journalIx, exceptIx, mapIx, cpuIx, dirIx, stimeIx, warnIx;
+    journalIx, exceptIx, mapIx, cpuIx, dirIx, stimeIx, warnIx, usersymIx;
 
   // !D structs
   const int nDevices = 4;
@@ -271,7 +271,13 @@ namespace SysVar
     DVar& jSysVar=*sysVarList[journalIx];
     static_cast<DLongGDL&>(*jSysVar.Data())[0] = jLUN;
   }
-
+  
+  DStructGDL* USYM()
+  {
+    DVar& pSysVar = *sysVarList[ usersymIx];
+    return static_cast<DStructGDL*>(pSysVar.Data());
+  }
+    
   // call only once in main
   void InitSysVar()
   { 
@@ -689,6 +695,24 @@ namespace SysVar
     warnIx     = sysVarList.size();
     sysVarList.push_back(warn);
 
+    // !USERSYM (sorry if this is not how to do the job!)
+    
+    DStructGDL* usersymData = new DStructGDL( "!USERSYM");
+    usersymData->NewTag("DIM", new DLongGDL(0));
+    usersymData->NewTag("FILL", new DIntGDL(0));
+    SizeT usersymDim = 1024;
+    {
+      DFloatGDL* tmp = new DFloatGDL( dimension( &usersymDim, one));
+      usersymData->NewTag("X", tmp); 
+    }
+    {
+      DFloatGDL* tmp = new DFloatGDL( dimension( &usersymDim, one));
+      usersymData->NewTag("Y", tmp); 
+    }
+    DVar *usym = new DVar ("USERSYM", usersymData);
+    usersymIx  = sysVarList.size();
+    sysVarList.push_back( usym);
+ 
   }
 
 }

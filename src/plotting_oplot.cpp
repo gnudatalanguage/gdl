@@ -40,7 +40,7 @@ namespace lib {
     auto_ptr<BaseGDL> xval_guard;
 
     if ( e->KeywordSet( "POLAR")) {
-       e->Throw( "Soory, POLAR keyword not ready");
+       e->Throw( "Sorry, POLAR keyword not ready");
       }
 
     SizeT xEl;

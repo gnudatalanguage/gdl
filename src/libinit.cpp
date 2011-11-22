@@ -495,6 +495,13 @@ void LibInit()
     "ITALIC", "BOLD", KLISTEND};
   new DLibPro(lib::device,string("DEVICE"),0, deviceKey, deviceWarnKey);
 
+  const string usersymKey[]= 
+  {
+    "COLOR","FILL","THICK",
+    KLISTEND
+   };
+  new DLibPro(lib::usersym,string("USERSYM"),2, usersymKey);
+
   const string plotKey[]=
     {
      "BACKGROUND","CHARSIZE","CHARTHICK","CLIP",

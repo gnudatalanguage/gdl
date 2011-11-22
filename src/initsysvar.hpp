@@ -82,7 +82,10 @@ namespace SysVar
   DLong JournalLUN();
   void JournalLUN( DLong jLUN);
 
-  // initialize the predefined system variabes (!IDNAME)
+  // get and set USERSYM
+  DStructGDL* USYM();
+  
+  // initialize the predefined system variables (!IDNAME)
   void InitSysVar();
 }
 
