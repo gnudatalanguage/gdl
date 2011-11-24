@@ -1710,10 +1710,13 @@ TRACEOMP( __FILE__, __LINE__)
       }
   }
 
-  BaseGDL* conj_fun( EnvT* e)
+  BaseGDL* conj_fun( BaseGDL* p0, bool isReference)//( EnvT* e)
   {
-    e->NParam( 1);
-    BaseGDL* p0 = e->GetParDefined( 0);
+    assert( p0 != NULL);
+    assert( p0->N_Elements() > 0);
+
+//     e->NParam( 1);
+//     BaseGDL* p0 = e->GetParDefined( 0);
     SizeT nEl = p0->N_Elements();
     //    if( nEl == 0)
     //      e->Throw( "Variable is undefined: "+e->GetParString(0));
@@ -1761,10 +1764,13 @@ TRACEOMP( __FILE__, __LINE__)
     return res;
   }
 
-  BaseGDL* imaginary_fun( EnvT* e)
+  BaseGDL* imaginary_fun( BaseGDL* p0, bool isReference)//( EnvT* e)
   {
-    e->NParam( 1);
-    BaseGDL* p0 = e->GetParDefined( 0);
+    assert( p0 != NULL);
+    assert( p0->N_Elements() > 0);
+
+//     e->NParam( 1);
+//     BaseGDL* p0 = e->GetParDefined( 0);
     SizeT nEl = p0->N_Elements();
 
     //    if( nEl == 0) 
@@ -1802,17 +1808,13 @@ TRACEOMP( __FILE__, __LINE__)
 
     // forbidden types
     if( p0->Type() == STRING)
-      e->Throw( "String expression not allowed in this context: "+
-		e->GetParString(0));
+      throw GDLException( "String expression not allowed in this context.");
     if( p0->Type() == STRUCT)
-      e->Throw( "Struct expression not allowed in this context: "+
-		e->GetParString(0));
+      throw GDLException( "Struct expression not allowed in this context.");
     if( p0->Type() == PTR)
-      e->Throw( "Pointer expression not allowed in this context: "+
-		e->GetParString(0));
+      throw GDLException( "Pointer expression not allowed in this context.");
     if( p0->Type() == OBJECT)
-      e->Throw( "Object reference not allowed in this context: "+
-		e->GetParString(0));
+      throw GDLException( "Object reference not allowed in this context.");
     
     // all other types (return array of zeros)
     DFloatGDL* res = new DFloatGDL( p0->Dim()); // ZERO

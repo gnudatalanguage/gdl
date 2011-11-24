@@ -576,9 +576,11 @@ public:
   T* GetParAs( SizeT pIx)
   {
     BaseGDL* p = GetParDefined( pIx);
-    T* res = dynamic_cast<T*>( p);
-    if( res != NULL) return res;
-    res = static_cast<T*>( p->Convert2( T::t, BaseGDL::COPY));
+	if( p->Type() == T::t)
+		return static_cast<T*>( p);
+//     T* res = dynamic_cast<T*>( p);
+//     if( res != NULL) return res;
+    T* res = static_cast<T*>( p->Convert2( T::t, BaseGDL::COPY));
     Guard( res);
     return res;
   }
@@ -589,9 +591,11 @@ public:
     BaseGDL* p = GetKW( ix);
     if( p == NULL)
       Throw( "Keyword is undefined: "+GetString( ix));
-    T* res = dynamic_cast<T*>( p);
-    if( res != NULL) return res;
-    res = static_cast<T*>( p->Convert2( T::t, BaseGDL::COPY));
+	if( p->Type() == T::t)
+		return static_cast<T*>( p);
+//     T* res = dynamic_cast<T*>( p);
+//     if( res != NULL) return res;
+    T* res = static_cast<T*>( p->Convert2( T::t, BaseGDL::COPY));
     Guard( res);
     return res;
   }
@@ -602,9 +606,11 @@ public:
   {
     BaseGDL* p = GetPar( pIx);
     if( p == NULL) return NULL;
-    T* res = dynamic_cast<T*>( p);
-    if( res != NULL) return res;
-    res = static_cast<T*>( p->Convert2( T::t, BaseGDL::COPY));
+	if( p->Type() == T::t)
+		return static_cast<T*>( p);
+//     T* res = dynamic_cast<T*>( p);
+//     if( res != NULL) return res;
+    T* res = static_cast<T*>( p->Convert2( T::t, BaseGDL::COPY));
     Guard( res);
     return res;
   }
@@ -614,9 +620,11 @@ public:
   {
     BaseGDL* p = GetKW( ix);
     if( p == NULL) return NULL;
-    T* res = dynamic_cast<T*>( p);
-    if( res != NULL) return res;
-    res = static_cast<T*>( p->Convert2( T::t, BaseGDL::COPY));
+	if( p->Type() == T::t)
+		return static_cast<T*>( p);
+//     T* res = dynamic_cast<T*>( p);
+//     if( res != NULL) return res;
+    T* res = static_cast<T*>( p->Convert2( T::t, BaseGDL::COPY));
     Guard( res);
     return res;
   }

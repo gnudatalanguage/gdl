@@ -1878,11 +1878,21 @@ TRACEOMP( __FILE__, __LINE__)
     return res;
   }
 
-  BaseGDL* strlowcase( EnvT* e)
+  BaseGDL* strlowcase( BaseGDL* p0, bool isReference)//( EnvT* e)
   {
-    e->NParam( 1);//, "STRLOWCASE");
+//     e->NParam( 1);//, "STRLOWCASE");
 
-    DStringGDL* p0S = e->GetParAs<DStringGDL>( 0);
+//     DStringGDL* p0S = e->GetParAs<DStringGDL>( 0);
+    DStringGDL* p0S;
+	auto_ptr<DStringGDL> guard;
+
+	if( p0->Type() == STRING)
+		p0S = static_cast<DStringGDL*>( p0);
+	else
+	{
+		p0S = static_cast<DStringGDL*>( p0->Convert2( STRING, BaseGDL::COPY));
+	    guard.reset( p0S);
+	}
 
     DStringGDL* res = new DStringGDL( p0S->Dim(), BaseGDL::NOZERO);
     
@@ -1899,11 +1909,21 @@ TRACEOMP( __FILE__, __LINE__)
     return res;
   }
 
-  BaseGDL* strupcase( EnvT* e)
+  BaseGDL* strupcase( BaseGDL* p0, bool isReference)//( EnvT* e)
   {
-    e->NParam( 1);//, "STRUPCASE");
+//     e->NParam( 1);//, "STRUPCASE");
 
-    DStringGDL* p0S = e->GetParAs<DStringGDL>( 0);
+//     DStringGDL* p0S = e->GetParAs<DStringGDL>( 0);
+    DStringGDL* p0S;
+	auto_ptr<DStringGDL> guard;
+
+	if( p0->Type() == STRING)
+		p0S = static_cast<DStringGDL*>( p0);
+	else
+	{
+		p0S = static_cast<DStringGDL*>( p0->Convert2( STRING, BaseGDL::COPY));
+	    guard.reset( p0S);
+	}
 
     DStringGDL* res = new DStringGDL( p0S->Dim(), BaseGDL::NOZERO);
     
@@ -1920,11 +1940,20 @@ TRACEOMP( __FILE__, __LINE__)
     return res;
   }
 
-  BaseGDL* strlen( EnvT* e)
+  BaseGDL* strlen( BaseGDL* p0, bool isReference)//( EnvT* e)
   {
-    e->NParam( 1);//, "STRLEN");
+//     e->NParam( 1);//, "STRLEN");
 
-    DStringGDL* p0S = e->GetParAs<DStringGDL>( 0);
+    DStringGDL* p0S;
+	auto_ptr<DStringGDL> guard;
+	
+	if( p0->Type() == STRING)
+		p0S = static_cast<DStringGDL*>( p0);
+	else
+	{
+		p0S = static_cast<DStringGDL*>( p0->Convert2( STRING, BaseGDL::COPY));
+	    guard.reset( p0S);
+	}
 
     DLongGDL* res = new DLongGDL( p0S->Dim(), BaseGDL::NOZERO);
 
@@ -1934,7 +1963,7 @@ TRACEOMP( __FILE__, __LINE__)
 // #pragma omp for
     for( SizeT i=0; i<nEl; ++i)
       {
-	(*res)[ i] = (*p0S)[ i].length();
+		(*res)[ i] = (*p0S)[ i].length();
       }
 }
     return res;

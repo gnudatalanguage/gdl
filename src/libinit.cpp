@@ -400,14 +400,16 @@ void LibInit()
   new DLibFunRetNew(lib::ceil_fun,string("CEIL"),1,ceilfloorKey);
   new DLibFunRetNew(lib::floor_fun,string("FLOOR"),1,ceilfloorKey);
 
-  new DLibFunRetNew(lib::conj_fun,string("CONJ"),1);
-  new DLibFunRetNew(lib::imaginary_fun,string("IMAGINARY"),1);
+  new DLibFunDirect(lib::conj_fun,string("CONJ"));
+  new DLibFunDirect(lib::imaginary_fun,string("IMAGINARY"));
 
   const string strcompressKey[]={"REMOVE_ALL",KLISTEND};
   new DLibFunRetNew(lib::strcompress,string("STRCOMPRESS"),1,strcompressKey,NULL,true);
-  new DLibFunRetNew(lib::strlowcase,string("STRLOWCASE"),1,NULL,NULL,true);
-  new DLibFunRetNew(lib::strupcase,string("STRUPCASE"),1,NULL,NULL,true);
-  new DLibFunRetNew(lib::strlen,string("STRLEN"),1,NULL,NULL,true);
+  
+  new DLibFunDirect(lib::strlowcase,string("STRLOWCASE"));
+  new DLibFunDirect(lib::strupcase,string("STRUPCASE"));
+  new DLibFunDirect(lib::strlen,string("STRLEN"));
+
   const string strmidKey[]={"REVERSE_OFFSET",KLISTEND};
   new DLibFunRetNew(lib::strmid,string("STRMID"),3,strmidKey,NULL,true);
   new DLibFunRetNew(lib::strtrim,string("STRTRIM"),2,NULL,NULL,true);

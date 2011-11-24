@@ -88,9 +88,9 @@ namespace lib {
   BaseGDL* replicate( EnvT* e);
 
   BaseGDL* strcompress( EnvT* e);
-  BaseGDL* strlowcase( EnvT* e);
-  BaseGDL* strupcase( EnvT* e);
-  BaseGDL* strlen( EnvT* e);
+  BaseGDL* strlowcase( BaseGDL* p0, bool isReference);//( EnvT* e);
+  BaseGDL* strupcase( BaseGDL* p0, bool isReference);//( EnvT* e);
+  BaseGDL* strlen( BaseGDL* p0, bool isReference);//( EnvT* e);
   BaseGDL* strmid( EnvT* e);
   BaseGDL* strpos( EnvT* e);
   BaseGDL* strtrim( EnvT* e);

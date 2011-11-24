@@ -47,8 +47,8 @@ namespace lib {
   BaseGDL* floor_fun( EnvT* e);
   BaseGDL* ceil_fun( EnvT* e);
 
-  BaseGDL* conj_fun( EnvT* e);
-  BaseGDL* imaginary_fun( EnvT* e);
+  BaseGDL* conj_fun( BaseGDL* p0, bool isReference);//( EnvT* e);
+  BaseGDL* imaginary_fun( BaseGDL* p0, bool isReference);//( EnvT* e);
 
   BaseGDL* exp_fun( BaseGDL* p0, bool isReference);//( EnvT* e);
 
