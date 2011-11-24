@@ -1723,28 +1723,30 @@ TRACEOMP( __FILE__, __LINE__)
     
     if( p0->Type() == COMPLEX)
       {
-	DComplexGDL* res = static_cast<DComplexGDL*>(p0->Dup());
+	DComplexGDL* res = static_cast<DComplexGDL*>(p0)->NewResult();// static_cast<DComplexGDL*>(p0->Dup());
+	DComplexGDL* p0C = static_cast<DComplexGDL*>(p0);
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
 	  for( SizeT i=0; i<nEl; ++i)
 	    {
-	      (*res)[i] = DComplex( (*res)[i].real(), -(*res)[i].imag());
+	      (*res)[i] = DComplex( (*p0C)[i].real(), -(*p0C)[i].imag());
 	    }
 	}
 	return res;
       }
     if( p0->Type() == COMPLEXDBL)
       {
-	DComplexDblGDL* res = static_cast<DComplexDblGDL*>(p0->Dup());
+	DComplexDblGDL* res = static_cast<DComplexDblGDL*>(p0)->NewResult();//static_cast<DComplexDblGDL*>(p0->Dup());
+	DComplexDblGDL* p0C = static_cast<DComplexDblGDL*>(p0);
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 	{
 #pragma omp for
 	  for( SizeT i=0; i<nEl; ++i)
 	    {
-	      (*res)[i] = DComplexDbl( (*res)[i].real(), -(*res)[i].imag());
+	      (*res)[i] = DComplexDbl( (*p0C)[i].real(), -(*p0C)[i].imag());
 	    }
 	}
 	return res;
@@ -1807,13 +1809,14 @@ TRACEOMP( __FILE__, __LINE__)
       }
 
     // forbidden types
-    if( p0->Type() == STRING)
+    DType t = p0->Type();
+    if( t == STRING)
       throw GDLException( "String expression not allowed in this context.");
-    if( p0->Type() == STRUCT)
+    if( t == STRUCT)
       throw GDLException( "Struct expression not allowed in this context.");
-    if( p0->Type() == PTR)
+    if( t == PTR)
       throw GDLException( "Pointer expression not allowed in this context.");
-    if( p0->Type() == OBJECT)
+    if( t == OBJECT)
       throw GDLException( "Object reference not allowed in this context.");
     
     // all other types (return array of zeros)
@@ -1832,14 +1835,7 @@ TRACEOMP( __FILE__, __LINE__)
 	SizeT nEl = p0->N_Elements();
 
     DType t = p0->Type();
-
-    if( t == PTR)
-      throw GDLException( "Pointer not allowed in this context.");
-    else if( t == OBJECT)
-      throw GDLException( "Object references not allowed in this context.");
-    else if( t == STRUCT)
-      throw GDLException( "Struct expression not allowed in this context.");
-    else if( t == COMPLEXDBL)
+	if( t == COMPLEXDBL)
       {
 	DComplexDblGDL *c0 = static_cast< DComplexDblGDL*>( p0);
 	DComplexDblGDL *res = c0->New( c0->Dim(), BaseGDL::NOZERO);
@@ -1891,7 +1887,13 @@ TRACEOMP( __FILE__, __LINE__)
 	}
 	return res;
       }
-    else
+    else if( t == PTR)
+      throw GDLException( "Pointer not allowed in this context.");
+    else if( t == OBJECT)
+      throw GDLException( "Object references not allowed in this context.");
+    else if( t == STRUCT)
+      throw GDLException( "Struct expression not allowed in this context.");
+    else 
       {
 	DFloatGDL *res = 
 	  static_cast< DFloatGDL*>( p0->Convert2( FLOAT, BaseGDL::COPY));
