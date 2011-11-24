@@ -1819,21 +1819,24 @@ TRACEOMP( __FILE__, __LINE__)
     return res;
   }
 
-  BaseGDL* exp_fun( EnvT* e)
+  BaseGDL* exp_fun( BaseGDL* p0, bool isReference)
   {
-    e->NParam( 1);
-    BaseGDL* p0 = e->GetParDefined( 0);
+    assert( p0 != NULL);
+    assert( p0->N_Elements() > 0);
+	
+//     e->NParam( 1);
+//     BaseGDL* p0 = e->GetParDefined( 0);
 
-    SizeT nEl = p0->N_Elements();
+	SizeT nEl = p0->N_Elements();
 
     DType t = p0->Type();
 
     if( t == PTR)
-      e->Throw( "Pointer not allowed in this context.");
+      throw GDLException( "Pointer not allowed in this context.");
     else if( t == OBJECT)
-      e->Throw( "Object references not allowed in this context.");
+      throw GDLException( "Object references not allowed in this context.");
     else if( t == STRUCT)
-      e->Throw( "Struct expression not allowed in this context.");
+      throw GDLException( "Struct expression not allowed in this context.");
     else if( t == COMPLEXDBL)
       {
 	DComplexDblGDL *c0 = static_cast< DComplexDblGDL*>( p0);

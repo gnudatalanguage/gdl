@@ -50,7 +50,7 @@ namespace lib {
   BaseGDL* conj_fun( EnvT* e);
   BaseGDL* imaginary_fun( EnvT* e);
 
-  BaseGDL* exp_fun( EnvT* e);
+  BaseGDL* exp_fun( BaseGDL* p0, bool isReference);//( EnvT* e);
 
   // by medericboquien@users.sourceforge.net
   BaseGDL* gauss_pdf(EnvT* e);

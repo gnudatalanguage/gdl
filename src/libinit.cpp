@@ -389,7 +389,7 @@ void LibInit()
   new DLibFunDirect(lib::sqrt_fun,string("SQRT"));
   new DLibFunDirect(lib::abs_fun,string("ABS"));
 
-  new DLibFunRetNew(lib::exp_fun,string("EXP"),1,NULL,NULL,true);
+  new DLibFunDirect(lib::exp_fun,string("EXP"));
 
   const string roundKey[]={"L64",KLISTEND};
   // retConstant: check definition of the rounding functions if they depend 
