@@ -1880,6 +1880,9 @@ TRACEOMP( __FILE__, __LINE__)
 
   BaseGDL* strlowcase( BaseGDL* p0, bool isReference)//( EnvT* e)
   {
+    assert( p0 != NULL);
+    assert( p0->N_Elements() > 0);
+
 //     e->NParam( 1);//, "STRLOWCASE");
 
 //     DStringGDL* p0S = e->GetParAs<DStringGDL>( 0);
@@ -1911,6 +1914,10 @@ TRACEOMP( __FILE__, __LINE__)
 
   BaseGDL* strupcase( BaseGDL* p0, bool isReference)//( EnvT* e)
   {
+    assert( p0 != NULL);
+    assert( p0->N_Elements() > 0);
+
+
 //     e->NParam( 1);//, "STRUPCASE");
 
 //     DStringGDL* p0S = e->GetParAs<DStringGDL>( 0);
@@ -1942,6 +1949,9 @@ TRACEOMP( __FILE__, __LINE__)
 
   BaseGDL* strlen( BaseGDL* p0, bool isReference)//( EnvT* e)
   {
+    assert( p0 != NULL);
+    assert( p0->N_Elements() > 0);
+
 //     e->NParam( 1);//, "STRLEN");
 
     DStringGDL* p0S;
