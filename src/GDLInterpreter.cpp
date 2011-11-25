@@ -3848,7 +3848,8 @@ void GDLInterpreter::parameter_def(ProgNodeP _t,
 	
 	EnvBaseT* callerEnv = callStack.back();
 	EnvBaseT* oldNewEnv = callerEnv->GetNewEnv();
-		callerEnv->SetNewEnv( actEnv);
+	
+	callerEnv->SetNewEnv( actEnv);
 	
 	try{
 	
@@ -5082,7 +5083,8 @@ void GDLInterpreter::parameter_def_nocheck(ProgNodeP _t,
 	
 	EnvBaseT* callerEnv = callStack.back();
 	EnvBaseT* oldNewEnv = callerEnv->GetNewEnv();
-		callerEnv->SetNewEnv( actEnv);
+	
+	callerEnv->SetNewEnv( actEnv);
 	
 	try{
 	

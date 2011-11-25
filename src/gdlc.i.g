@@ -3358,7 +3358,8 @@ parameter_def [EnvBaseT* actEnv]
 
     EnvBaseT* callerEnv = callStack.back();
     EnvBaseT* oldNewEnv = callerEnv->GetNewEnv();
-	callerEnv->SetNewEnv( actEnv);
+
+    callerEnv->SetNewEnv( actEnv);
 
     try{
 
@@ -3421,7 +3422,8 @@ parameter_def_nocheck [EnvBaseT* actEnv]
 
     EnvBaseT* callerEnv = callStack.back();
     EnvBaseT* oldNewEnv = callerEnv->GetNewEnv();
-	callerEnv->SetNewEnv( actEnv);
+
+    callerEnv->SetNewEnv( actEnv);
 
     try{
 
