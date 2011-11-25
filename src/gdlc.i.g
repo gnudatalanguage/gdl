@@ -3353,6 +3353,7 @@ parameter_def_n_elements [EnvBaseT* actEnv]
 // the environment is not on the callstack
 parameter_def [EnvBaseT* actEnv] 
 {
+    // as actEnv is not on the stack guard it here
     auto_ptr<EnvBaseT> guard(actEnv); 
 
     EnvBaseT* callerEnv = callStack.back();

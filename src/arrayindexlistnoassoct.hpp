@@ -676,9 +676,9 @@ public:
 	if( sInit < 0)
 	  s = sInit + var->Size();
 	if( s < 0)
-	  throw GDLException(NULL,"Scalar subscript out of range [<].2",true,false);
+	  throw GDLException(NULL,"Scalar subscript out of range [<].4",true,false);
 	if( s >= var->Size())
-	  throw GDLException(NULL,"Scalar subscript out of range [>].2",true,false);
+	  throw GDLException(NULL,"Scalar subscript out of range [>].4",true,false);
 	var->AssignAtIx( s, right);
 	return;
       }
@@ -706,11 +706,11 @@ public:
 	if( sInit < 0)
 	  s = sInit + var->Size();
 	if( s < 0)
-		throw GDLException(NULL,"Scalar subscript out of range [<].3",true,false);
+		throw GDLException(NULL,"Scalar subscript out of range [<].5",true,false);
 	if( s >= var->Size())
 	{
 // 	    std::cout << s << " var->Size():" << var->Size() << std::endl;
-		throw GDLException(NULL,"Scalar subscript out of range [>].3",true,false);
+		throw GDLException(NULL,"Scalar subscript out of range [>].5",true,false);
 	}
 	
 	return var->NewIx( s);

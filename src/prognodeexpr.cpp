@@ -2530,7 +2530,7 @@ if( e1->StrictScalar())
 //	_t = _t->getFirstChild();
 // 	match(antlr::RefAST(_t),IDENTIFIER);
     EnvT* newEnv=new EnvT( this, this->libFun);//libFunList[fl->funIx]);
-    auto_ptr< EnvT> guardEnv( newEnv);
+//     auto_ptr< EnvT> guardEnv( newEnv);
 // 	_t =_t->getFirstChild();
 // 	EnvT* newEnv=new EnvT( fl, fl->libFun);//libFunList[fl->funIx]);
 	// special handling for N_ELEMENTS()
@@ -2546,7 +2546,7 @@ if( e1->StrictScalar())
             ProgNode::interpreter->parameter_def_nocheck(this->getFirstChild(), newEnv);
 //         }
     // push id.pro onto call stack
-	guardEnv.release();
+// 	guardEnv.release();
     // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
     ProgNode::interpreter->CallStack().push_back(newEnv);
