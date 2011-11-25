@@ -3843,7 +3843,8 @@ void GDLInterpreter::parameter_def(ProgNodeP _t,
 ) {
 	ProgNodeP parameter_def_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
-	auto_ptr<EnvBaseT> guard(actEnv); 
+	// as actEnv is not on the stack guard it here
+	auto_ptr<EnvBaseT> guard(actEnv);
 	
 	EnvBaseT* callerEnv = callStack.back();
 	EnvBaseT* oldNewEnv = callerEnv->GetNewEnv();
