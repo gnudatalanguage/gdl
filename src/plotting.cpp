@@ -667,8 +667,11 @@ namespace lib {
     // trick 1/ size of buffer is limited to 1e4 (compromize syze/speed) in order to be able to manage very
     //    large among of data whitout duplicating all the arrays
     // trick 2/ when we have a NaN or and Inf, we realize the plot, then reset.
+
+    int debug_ac=0;
     
     int n_buff_max=500000; // idl default seems to be more than 2e6 !!
+
     if (minEl < n_buff_max)  n_buff_max=minEl;
     int i_buff=0;
     PLFLT *x_buff = new PLFLT[n_buff_max];
@@ -704,23 +707,24 @@ namespace lib {
 	    if (line) { a->line (i_buff, x_buff, y_buff);}
 	    if ((psym_ > 0 && psym_ < 8) || psym_ == 9) { a->poin(i_buff, x_buff, y_buff, codeArr[psym_]);}
 	    if (psym_ == 8) {
-                 PLFLT *xx = new PLFLT[*userSymArrayDim];
-                 PLFLT *yy = new PLFLT[*userSymArrayDim];
-                for( int j=0; j<minEl-1; j++){
-                   for (int kk=0; kk < *userSymArrayDim ; kk++){
-                      xx[kk]=x_buff[j]+userSymX[kk]*UsymConvX;
-                      yy[kk]=y_buff[j]+userSymY[kk]*UsymConvY;
-                   }
-                   if (*do_fill==1){
-                      a->fill(*userSymArrayDim,xx,yy);
-                   }
-                   else {
-                      a->line(*userSymArrayDim, xx, yy);
-                   }
-                 }
-             }
-	  if (psym_ == 10) {  ac_histo( a, i_buff, x_buff, y_buff ); }
-	  i_buff=0;
+	      PLFLT *xx = new PLFLT[*userSymArrayDim];
+	      PLFLT *yy = new PLFLT[*userSymArrayDim];
+	      for( int j=0; j<i_buff; ++j){
+		if (debug_ac) {cout << "j: " << j << ", X: " << x_buff[j] << ", Y: "<< y_buff[j] << endl;};
+		for (int kk=0; kk < *userSymArrayDim ; kk++){
+		  xx[kk]=x_buff[j]+userSymX[kk]*UsymConvX;
+		  yy[kk]=y_buff[j]+userSymY[kk]*UsymConvY;
+		}
+		if (*do_fill==1){
+		  a->fill(*userSymArrayDim,xx,yy);
+		}
+		else {
+		  a->line(*userSymArrayDim, xx, yy);
+		}
+	      }
+	    }
+	    if (psym_ == 10) {  ac_histo( a, i_buff, x_buff, y_buff ); }
+	    i_buff=0;
 	  }
 	  continue;
 	}
@@ -754,26 +758,29 @@ namespace lib {
 	y_buff[i_buff]=y;
 	i_buff=i_buff+1;
 	
-	if ((i_buff == n_buff_max-1) || (i == minEl-1 )) {
+	//	cout << "nbuf: " << i << " " << i_buff << " "<< n_buff_max-1 << " " << minEl-1 << endl;
+
+	if ((i_buff == n_buff_max) || (i == minEl-1 )) {
 	  if (line) { a->line(i_buff, x_buff, y_buff); };
 	  if ((psym_ > 0 && psym_ < 8) || psym_ == 9) { a->poin(i_buff, x_buff, y_buff, codeArr[psym_]);}
 	  if (psym_ == 8) 
-          {
-                 PLFLT *xx = new PLFLT[*userSymArrayDim];
-                 PLFLT *yy = new PLFLT[*userSymArrayDim];
-                for( int j=0; j<minEl-1; j++){
-                   for (int kk=0; kk < *userSymArrayDim ; kk++){
-                      xx[kk]=x_buff[j]+userSymX[kk]*UsymConvX;
-                      yy[kk]=y_buff[j]+userSymY[kk]*UsymConvY;
-                   }
-                   if (*do_fill==1){
-                      a->fill(*userSymArrayDim,xx,yy);
-                   }
-                   else {
-                      a->line(*userSymArrayDim, xx, yy);
-                   }
-                 }
-          }
+	    {
+	      PLFLT *xx = new PLFLT[*userSymArrayDim];
+	      PLFLT *yy = new PLFLT[*userSymArrayDim];
+	      for( int j=0; j<i_buff; ++j){
+		if (debug_ac) {cout << "j: " << j << ", X: " << x_buff[j] << ", Y: "<< y_buff[j] << endl;};
+		for (int kk=0; kk < *userSymArrayDim ; kk++){
+		  xx[kk]=x_buff[j]+userSymX[kk]*UsymConvX;
+		  yy[kk]=y_buff[j]+userSymY[kk]*UsymConvY;
+		}
+		if (*do_fill==1){
+		  a->fill(*userSymArrayDim,xx,yy);
+		}
+		else {
+		  a->line(*userSymArrayDim, xx, yy);
+		}
+	      }
+	    }
 	  if (psym_ == 10) {  ac_histo( a, i_buff, x_buff, y_buff ); }
 	    
 	  // we must recopy the last point since the line must continue (tested via small buffer ...)
