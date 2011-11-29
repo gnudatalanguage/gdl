@@ -410,7 +410,7 @@ void LibInit()
   new DLibFunDirect(lib::strupcase,string("STRUPCASE"));
   new DLibFunDirect(lib::strlen,string("STRLEN"));
 
-  const string strmidKey[]={"RwhereEVERSE_OFFSET",KLISTEND};
+  const string strmidKey[]={"REVERSE_OFFSET",KLISTEND};
   new DLibFunRetNew(lib::strmid,string("STRMID"),3,strmidKey,NULL,true);
   new DLibFunRetNew(lib::strtrim,string("STRTRIM"),2,NULL,NULL,true);
   const string strposKey[]={"REVERSE_OFFSET","REVERSE_SEARCH",KLISTEND};
