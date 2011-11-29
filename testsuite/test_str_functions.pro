@@ -3,6 +3,10 @@
 ;
 ; Few basic tests on functions working on Strings
 ;
+; Adding few new tests for STRMID, /reverse was broken but not tested !
+; We really need as exhaustive as possible tests to avoid
+; any unwanted regression, including improbables (e.g. typo in commit !)
+;
 pro TEST_STRMID, exit_on_error=exit_on_error, test=test
 ;
 a='azerty'
@@ -14,11 +18,20 @@ if NOT(STRCMP(a,STRMID(a,0,100))) then flag_pb=flag_pb+1
 res=STRMID(a,3)
 if NOT(STRCMP(res,'rty')) then flag_pb=flag_pb+1
 ;
+res=STRMID(a,3,1)
+if NOT(STRCMP(res,'r')) then flag_pb=flag_pb+1
+;
+res=STRMID(a,2,1,/reverse)
+if NOT(STRCMP(res,'r')) then flag_pb=flag_pb+1
+;
+res=STRMID(a,2,/reverse)
+if NOT(STRCMP(res,'rty')) then flag_pb=flag_pb+1
+;
 if flag_pb GT 0 then begin
     MESSAGE, /continue, STRING(flag_pb)+' ERROR(s) found in STRMID'
     if KEYWORD_SET(exit_on_error) then  EXIT, status=1
 endif else begin
-    MESSAGE, /continue, 'No  ERROR found in STRMID'
+    MESSAGE, /continue, 'No ERROR found in STRMID'
 endelse
 ;
 if KEYWORD_SET(test) then STOP
@@ -63,7 +76,7 @@ if flag_pb GT 0 then begin
     MESSAGE, /continue, STRING(flag_pb)+' ERROR(s) found in STRSPLIT'
     if KEYWORD_SET(exit_on_error) then  EXIT, status=1
 endif else begin
-    MESSAGE, /continue, 'No  ERROR found in STRSPLIT'
+    MESSAGE, /continue, 'No ERROR found in STRSPLIT'
 endelse
 ;
 if KEYWORD_SET(test) then STOP
@@ -74,6 +87,9 @@ end
 ;
 pro TEST_STR_FUNCTIONS
 ;
+; this is bad because tests in TEST_STRSPLIT
+; will not be done if fails in TEST_STRMID ...
+; 
 TEST_STRMID, /exit_on_error
 TEST_STRSPLIT, /exit_on_error
 ;
