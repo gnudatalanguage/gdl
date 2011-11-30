@@ -1001,6 +1001,17 @@ namespace lib {
 
     DSub* pro=dynamic_cast<DSub*>(e->GetPro());
     DDoubleGDL* binomialKey = e->IfDefGetKWAs<DDoubleGDL>( 4);
+
+    SizeT nBinomialKey = binomialKey->N_Elements();
+    if (nBinomialKey != 2) {
+      e->Throw("Keyword array parameter BINOMIAL must have 2 elements.");
+    } else {
+      e->Throw("AC 2011-11-30 : BINOMIAL: code is wrong now.");
+    }
+ 
+    if (((*binomialKey)[1] < 0.0) || ((*binomialKey)[1] > 1.0))
+      e->Throw(" Value of BINOMIAL[1] is out of allowed range: 0.0 <= p <= 1.0");
+
     DDoubleGDL* poissonKey = e->IfDefGetKWAs<DDoubleGDL>( 5);
 
     if( e->KeywordSet(0)) { // DOUBLE
@@ -1014,7 +1025,7 @@ namespace lib {
       return res;
     } else {
       DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
-
+      
       random_template< DFloatGDL, float>( e, res, r, dim, 
 					  binomialKey, poissonKey);
 
