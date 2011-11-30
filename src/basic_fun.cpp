@@ -1887,28 +1887,52 @@ TRACEOMP( __FILE__, __LINE__)
 
 //     DStringGDL* p0S = e->GetParAs<DStringGDL>( 0);
     DStringGDL* p0S;
-	auto_ptr<DStringGDL> guard;
+    DStringGDL* res;
+// 	auto_ptr<DStringGDL> guard;
 
 	if( p0->Type() == STRING)
+	{
 		p0S = static_cast<DStringGDL*>( p0);
+		if( !isReference)
+			res = p0S;
+		else
+			res = new DStringGDL( p0S->Dim(), BaseGDL::NOZERO);
+	}
 	else
 	{
 		p0S = static_cast<DStringGDL*>( p0->Convert2( STRING, BaseGDL::COPY));
-	    guard.reset( p0S);
+		res = p0S;
+// 	    guard.reset( p0S);
 	}
 
-    DStringGDL* res = new DStringGDL( p0S->Dim(), BaseGDL::NOZERO);
+//     DStringGDL* res = new DStringGDL( p0S->Dim(), BaseGDL::NOZERO);
     
     SizeT nEl = p0S->N_Elements();
+
+	if( res == p0S)
+	{
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
 {
 #pragma omp for
     for( SizeT i=0; i<nEl; ++i)
       {
-	(*res)[ i] = StrLowCase((*p0S)[ i]);
+		StrLowCaseInplace((*p0S)[ i]);
       }
 }
+	}
+	else
+	{
+TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
+{
+#pragma omp for
+    for( SizeT i=0; i<nEl; ++i)
+      {
+		(*res)[ i] = StrLowCase((*p0S)[ i]);
+      }
+}
+	}
     return res;
   }
 
@@ -1917,33 +1941,56 @@ TRACEOMP( __FILE__, __LINE__)
     assert( p0 != NULL);
     assert( p0->N_Elements() > 0);
 
-
-//     e->NParam( 1);//, "STRUPCASE");
+//     e->NParam( 1);//, "STRLOWCASE");
 
 //     DStringGDL* p0S = e->GetParAs<DStringGDL>( 0);
     DStringGDL* p0S;
-	auto_ptr<DStringGDL> guard;
+    DStringGDL* res;
+// 	auto_ptr<DStringGDL> guard;
 
 	if( p0->Type() == STRING)
+	{
 		p0S = static_cast<DStringGDL*>( p0);
+		if( !isReference)
+			res = p0S;
+		else
+			res = new DStringGDL( p0S->Dim(), BaseGDL::NOZERO);
+	}
 	else
 	{
 		p0S = static_cast<DStringGDL*>( p0->Convert2( STRING, BaseGDL::COPY));
-	    guard.reset( p0S);
+		res = p0S;
+// 	    guard.reset( p0S);
 	}
 
-    DStringGDL* res = new DStringGDL( p0S->Dim(), BaseGDL::NOZERO);
-    
+//     DStringGDL* res = new DStringGDL( p0S->Dim(), BaseGDL::NOZERO);
+
     SizeT nEl = p0S->N_Elements();
+
+	if( res == p0S)
+	{
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
 {
 #pragma omp for
     for( SizeT i=0; i<nEl; ++i)
       {
-	(*res)[ i] = StrUpCase((*p0S)[ i]);
+		StrUpCaseInplace((*p0S)[ i]);
       }
 }
+	}
+	else
+	{
+TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
+{
+#pragma omp for
+    for( SizeT i=0; i<nEl; ++i)
+      {
+		(*res)[ i] = StrUpCase((*p0S)[ i]);
+      }
+}
+	}
     return res;
   }
 

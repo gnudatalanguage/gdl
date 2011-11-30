@@ -75,7 +75,9 @@ DLong StrPos(const std::string& s, const std::string& searchStr, long pos,
 	     bool reverseOffset, bool reverseSearch);
 std::string StrMid(const std::string& s, long first, long len, bool reverse);
 std::string StrUpCase(const std::string&);
+void StrUpCaseInplace(std::string&);
 std::string StrLowCase(const std::string&);
+void StrLowCaseInplace(std::string&);
 std::string StrCompress(const std::string&,bool removeAll);
 void StrPut(std::string& s1, const std::string& s2, DLong pos);
 

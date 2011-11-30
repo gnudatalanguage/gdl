@@ -179,6 +179,17 @@ string StrUpCase(const string& s)
     r[i]=toupper(sCStr[i]);
   return string(r);
 }
+void StrUpCaseInplace( string& s)
+{
+  unsigned len=s.length();
+//   char const *sCStr=s.c_str();
+//   char* r = new char[len+1];
+//   ArrayGuard<char> guard( r);
+//   r[len]=0;
+  for(unsigned i=0;i<len;i++)
+    s[i]=toupper(s[i]);
+//   return string(r);
+}
 
 string StrLowCase(const string& s)
 {
@@ -190,6 +201,14 @@ string StrLowCase(const string& s)
   for(unsigned i=0;i<len;i++)
     r[i]=tolower(sCStr[i]);
   return string(r);
+}
+void StrLowCaseInplace(string& s)
+{
+  unsigned len=s.length();
+//   char const *sCStr=s.c_str();
+  for(unsigned i=0;i<len;i++)
+    s[i]=tolower(s[i]);
+//     s[i]=tolower(sCStr[i]);
 }
 
 double Str2D( const char* cStart)
