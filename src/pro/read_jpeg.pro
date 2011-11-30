@@ -1,4 +1,4 @@
-;$Id: read_jpeg.pro,v 1.8 2011-11-16 00:51:17 alaingdl Exp $
+;$Id: read_jpeg.pro,v 1.9 2011-11-30 12:02:49 alaingdl Exp $
 
 pro READ_JPEG, filename, unit=unit, image, colortable, buffer=buffer, $
                colors=colors, dither=dither, grayscale=grayscale, order=order, $
@@ -98,7 +98,7 @@ if (KEYWORD_SET(grayscale)) then begin
     MAGICK_QUANTIZE, mid, /GRAYSCALE
 endif else begin
    if (KEYWORD_SET(colors)) then begin
-      if ((colors LT 8) OR (color GT 256)) then MESSAGE, "COLORS must be in the range 8 to 256"
+      if ((colors LT 8) OR (colors GT 256)) then MESSAGE, "COLORS must be in the range 8 to 256"
       if (KEYWORD_SET(two_pass_quantize)) then MESSAGE, "TWO_PASS_QUANTIZE not supported by ImageMagick."
       MAGICK_QUANTIZE, mid, colors, dither=dither
    endif
