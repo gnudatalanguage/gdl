@@ -980,8 +980,8 @@ RetCode  ASSIGN_REPLACENode::Run()
 
 RetCode  PCALL_LIBNode::Run()
 {
-  // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
-  StackGuard<EnvStackT> guard( ProgNode::interpreter->CallStack());
+//   // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+//   StackGuard<EnvStackT> guard( ProgNode::interpreter->CallStack());
   BaseGDL *self;
 	
   // 		match(antlr::RefAST(_t),PCALL_LIB);
@@ -993,11 +993,13 @@ RetCode  PCALL_LIBNode::Run()
   EnvT* newEnv=new EnvT( pl, pl->libPro);//libProList[pl->proIx]);
 		
   ProgNode::interpreter->parameter_def_nocheck(_t, newEnv);
+  auto_ptr<EnvT> guardEnv( newEnv);
+
   //   _t = _retTree;
   //if( this->getLine() != 0) ProgNode::interpreter->callStack.back()->SetLineNumber( this->getLine());
 		
-  // push environment onto call stack
-  ProgNode::interpreter->callStack.push_back(newEnv);
+//   // push environment onto call stack
+//   ProgNode::interpreter->callStack.push_back(newEnv);
 		
   // make the call
   static_cast<DLibPro*>(newEnv->GetPro())->Pro()(newEnv);

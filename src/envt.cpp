@@ -918,12 +918,17 @@ EnvBaseT* EnvBaseT::Caller()
 
   if( callStack.size() <= 1) return NULL;
 
-  if( callStack.back() != this) 
-    return callStack.back();
-//     return static_cast< EnvUDT*>( callStack.back());
+  // library environments are no longer on the call stack
+  assert( callStack.back() != this);
 
-  return callStack[ callStack.size()-2];
-//   return static_cast< EnvUDT*>( callStack[ callStack.size()-2]);
+  return callStack.back();
+  
+//   if( callStack.back() != this) 
+//     return callStack.back();
+// //     return static_cast< EnvUDT*>( callStack.back());
+// 
+//   return callStack[ callStack.size()-2];
+// //   return static_cast< EnvUDT*>( callStack[ callStack.size()-2]);
 }
 
 // used by obj_new (basic_fun.cpp)
@@ -971,7 +976,7 @@ void EnvT::PushNewEnvUD(  DSub* newPro, SizeT skipP, BaseGDL** newObj)
 // and obj_destroy (basic_pro.cpp)
 // and call_function (basic_fun.cpp)
 // and call_procedure (basic_pro.cpp)
-void EnvT::PushNewEnv(  DSub* newPro, SizeT skipP, BaseGDL** newObj)
+EnvT* EnvT::NewEnv(  DSub* newPro, SizeT skipP, BaseGDL** newObj)
 {
   EnvT* newEnv= new EnvT( this, newPro, newObj);
 
@@ -982,12 +987,14 @@ void EnvT::PushNewEnv(  DSub* newPro, SizeT skipP, BaseGDL** newObj)
       newEnv->SetNextPar( &GetPar( p)); // pass as global
     }
 
-  interpreter->CallStack().push_back( newEnv); 
+//   interpreter->CallStack().push_back( newEnv); 
 
   // _REF_EXTRA is set to the keyword string array
   newEnv->extra = new ExtraT( newEnv);
   newEnv->extra->Set( &env[0]);
   newEnv->extra->Resolve();
+
+  return newEnv;
 }
 
 void EnvT::AssureGlobalPar( SizeT pIx)

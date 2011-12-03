@@ -2547,9 +2547,10 @@ if( e1->StrictScalar())
 //         }
     // push id.pro onto call stack
 // 	guardEnv.release();
-    // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
-    StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
-    ProgNode::interpreter->CallStack().push_back(newEnv);
+	auto_ptr<EnvT> guardEnv( newEnv);
+//     // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+//     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
+//     ProgNode::interpreter->CallStack().push_back(newEnv);
     // make the call
     //*** MUST always return a defined expression
     BaseGDL* res = static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
@@ -2596,17 +2597,18 @@ if( e1->StrictScalar())
 
   BaseGDL** FCALL_LIBNode::LEval()
   {
-    // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
-    StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
+//     // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+//     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
     // 	match(antlr::RefAST(_t),FCALL_LIB);
     EnvT* newEnv=new EnvT( this, this->libFun);//libFunList[fl->funIx]);
 
     EnvT* callerEnv = static_cast<EnvT*>(ProgNode::interpreter->CallStackBack());
 
     ProgNode::interpreter->parameter_def_nocheck(this->getFirstChild(), newEnv);
+	auto_ptr<EnvT> guardEnv( newEnv);
 
-    // push id.pro onto call stack
-    ProgNode::interpreter->CallStack().push_back(newEnv);
+//     // push id.pro onto call stack
+//     ProgNode::interpreter->CallStack().push_back(newEnv);
     // make the call
     BaseGDL* libRes =	static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
     BaseGDL** res = callerEnv->GetPtrTo( libRes);
@@ -2618,17 +2620,18 @@ if( e1->StrictScalar())
 
   BaseGDL* FCALL_LIBNode::EvalFCALL_LIB()
   {
-    // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
-    StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
+//     // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+//     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
     EnvT* newEnv=new EnvT( this, this->libFun);//libFunList[fl->funIx]);
 	
     ProgNode::interpreter->parameter_def_nocheck(this->getFirstChild(), newEnv);
+	auto_ptr<EnvT> guardEnv( newEnv);
 
     assert( dynamic_cast<EnvUDT*>(ProgNode::interpreter->CallStackBack()) != NULL);
     EnvUDT* callStackBack = static_cast<EnvUDT*>(ProgNode::interpreter->CallStackBack());
 		
-    // push id.pro onto call stack
-    ProgNode::interpreter->CallStack().push_back(newEnv);
+//     // push id.pro onto call stack
+//     ProgNode::interpreter->CallStack().push_back(newEnv);
     // make the call
     BaseGDL* res=static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
     // *** MUST always return a defined expression
@@ -2639,18 +2642,19 @@ if( e1->StrictScalar())
   // returns always a new variable - see EvalFCALL_LIB
   BaseGDL* FCALL_LIBNode::Eval() 
   {
-    // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
-    StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
+//     // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+//     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
     // 	match(antlr::RefAST(_t),FCALL_LIB);
     EnvT* newEnv=new EnvT( this, this->libFun);//libFunList[fl->funIx]);
 
     ProgNode::interpreter->parameter_def_nocheck(this->getFirstChild(), newEnv);
+	auto_ptr<EnvT> guardEnv( newEnv);
 
     assert( dynamic_cast<EnvUDT*>(ProgNode::interpreter->CallStackBack()) != NULL);
     EnvUDT* callStackBack = static_cast<EnvUDT*>(ProgNode::interpreter->CallStackBack());
-	    
-    // push id.pro onto call stack
-    ProgNode::interpreter->CallStack().push_back(newEnv);
+
+//     // push id.pro onto call stack
+//     ProgNode::interpreter->CallStack().push_back(newEnv);
     // make the call
     BaseGDL* res=static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
     // *** MUST always return a defined expression

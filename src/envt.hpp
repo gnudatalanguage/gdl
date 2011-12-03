@@ -478,7 +478,7 @@ public:
   void ObjCleanup( DObj actID);
 
   // used by obj_new (basic_fun.cpp)
-  void PushNewEnv(  DSub* newPro, SizeT skipP, BaseGDL** newObj=NULL);
+  EnvT* NewEnv(  DSub* newPro, SizeT skipP, BaseGDL** newObj=NULL);
   void PushNewEnvUD(  DSub* newPro, SizeT skipP, BaseGDL** newObj=NULL);
   // for exclusive use by lib::on_error
   void OnError();

@@ -1216,8 +1216,6 @@ namespace lib {
 
   BaseGDL* call_function( EnvT* e)
   {
-    StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
-
     int nParam=e->NParam();
     if( nParam == 0)
      e->Throw( "No function specified.");
@@ -1232,14 +1230,17 @@ namespace lib {
     int funIx=LibFunIx( callF);
     if( funIx != -1)
       {
-	e->PushNewEnv( libFunList[ funIx], 1);
-	
+// 	e->PushNewEnv( libFunList[ funIx], 1);
 	// make the call
-	EnvT* newEnv = static_cast<EnvT*>(e->Interpreter()->CallStack().back());
+// 	EnvT* newEnv = static_cast<EnvT*>(e->Interpreter()->CallStack().back());
+	EnvT* newEnv = e->NewEnv( libFunList[ funIx], 1);
+	auto_ptr<EnvT> guard( newEnv);
 	return static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
       }
     else
       {
+    StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
+
 	funIx = GDLInterpreter::GetFunIx( callF);
 	
 	e->PushNewEnvUD( funList[ funIx], 1);
@@ -1273,7 +1274,7 @@ namespace lib {
     if( method == NULL)
       e->Throw( "Method not found: "+callP);
 
-    e->PushNewEnv( method, 2, &e->GetPar( 1));
+    e->PushNewEnvUD( method, 2, &e->GetPar( 1));
     
     // make the call
     return e->Interpreter()->call_fun( method->GetTree());
@@ -1288,13 +1289,13 @@ namespace lib {
     bool quietCompile = false;
     if( nParam == 2)
       {
-	BaseGDL* p1 = e->GetParDefined( 1);
-	
-	if( !p1->Scalar())
-	  e->Throw( "Expression must be scalar in this context: "+
-			      e->GetParString(1));
-	
-	quietCompile = p1->True();
+		BaseGDL* p1 = e->GetParDefined( 1);
+
+		if( !p1->Scalar())
+		  e->Throw( "Expression must be scalar in this context: "+
+				      e->GetParString(1));
+
+		quietCompile = p1->True();
       }
 
     if (e->GetParDefined(0)->Rank() != 0)
@@ -1306,7 +1307,7 @@ namespace lib {
     // remove current environment (own one)
     assert( dynamic_cast<EnvUDT*>(e->Caller()) != NULL);
     EnvUDT* caller = static_cast<EnvUDT*>(e->Caller());
-    e->Interpreter()->CallStack().pop_back();
+//     e->Interpreter()->CallStack().pop_back();
     delete e;
 
     istringstream istr(line+"\n");

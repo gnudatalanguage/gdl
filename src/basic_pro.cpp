@@ -817,8 +817,6 @@ namespace lib {
   
   void call_procedure( EnvT* e)
   {
-    StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
-
     int nParam=e->NParam();
     if( nParam == 0)
       e->Throw( "No procedure specified.");
@@ -833,14 +831,17 @@ namespace lib {
     int proIx=LibProIx( callP);
     if( proIx != -1)
       {
-	e->PushNewEnv( libProList[ proIx], 1);
-	
+// 	e->PushNewEnv( libProList[ proIx], 1);
 	// make the call
-	EnvT* newEnv = static_cast<EnvT*>(e->Interpreter()->CallStack().back());
+// 	EnvT* newEnv = static_cast<EnvT*>(e->Interpreter()->CallStack().back());
+	EnvT* newEnv = e->NewEnv( libProList[ proIx], 1);
+	auto_ptr<EnvT> guard( newEnv);
 	static_cast<DLibPro*>(newEnv->GetPro())->Pro()(newEnv);
       }
     else
       {
+    StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
+
 	proIx = DInterpreter::GetProIx( callP);
 	
 	e->PushNewEnvUD( proList[ proIx], 1);
