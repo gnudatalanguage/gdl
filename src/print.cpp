@@ -200,8 +200,8 @@ namespace lib {
 
     // GDL magick (based on the Python interface code)
     static int printIx = LibProIx("PRINT");
-    EnvBaseT* env = new EnvT(NULL, libProList[printIx]);
-    auto_ptr<EnvBaseT> env_guard(env);
+    EnvT* env = new EnvT(NULL, libProList[printIx]);
+    auto_ptr<EnvT> env_guard(env);
     BaseGDL* par;
     env->SetNextPar(&par);
 
@@ -214,16 +214,16 @@ namespace lib {
       env->SetKeyword("FORMAT", &e->GetKW(formatIx));
     }
 
-    // is it needed here?
-    StackSizeGuard<EnvStackT> guard( GDLInterpreter::CallStack());
-    GDLInterpreter::CallStack().push_back(env);
+//     // is it needed here? MS: not anymore :-)
+//     StackSizeGuard<EnvStackT> guard( GDLInterpreter::CallStack());
+//     GDLInterpreter::CallStack().push_back(env);
 
     // printing the title if TITLE keyword present
     static int titleIx = e->KeywordIx("TITLE");
     if (e->GetKW(titleIx) != NULL)
     {
       par = e->GetKW(titleIx);
-      static_cast<DLibPro*>(env->GetPro())->Pro()(static_cast<EnvT*>(env));
+      static_cast<DLibPro*>(env->GetPro())->Pro()( env);
     }
     
     // looping over the parameters

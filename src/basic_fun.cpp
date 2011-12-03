@@ -1202,11 +1202,17 @@ namespace lib {
       {
         // SA: calling STRING() with correct parameters
         static int stringIx = LibFunIx("STRING");
+
+		assert( stringIx >= 0);
+		
         EnvT* newEnv= new EnvT(e, libFunList[stringIx], NULL);
-        newEnv->SetNextPar(&e->GetPar(0)); // pass as global
+
+		auto_ptr<EnvT> guard( newEnv);
+
+		newEnv->SetNextPar(&e->GetPar(0)); // pass as global
         if (e->KeywordSet(1) && e->GetPar(0)->Type() == BYTE)
           newEnv->SetKeyword("PRINT", new DIntGDL(1));
-        e->Interpreter()->CallStack().push_back( newEnv); 
+//         e->Interpreter()->CallStack().push_back( newEnv); 
         return static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
       }
       e->Throw( "Improper TYPE value.");
@@ -1273,7 +1279,7 @@ namespace lib {
 
     if( method == NULL)
       e->Throw( "Method not found: "+callP);
-
+// // // /**/
     e->PushNewEnvUD( method, 2, &e->GetPar( 1));
     
     // make the call

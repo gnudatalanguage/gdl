@@ -2602,7 +2602,7 @@ if( e1->StrictScalar())
     // 	match(antlr::RefAST(_t),FCALL_LIB);
     EnvT* newEnv=new EnvT( this, this->libFun);//libFunList[fl->funIx]);
 
-    EnvT* callerEnv = static_cast<EnvT*>(ProgNode::interpreter->CallStackBack());
+//     EnvUDT* callerEnv = ProgNode::interpreter->CallStackBack();
 
     ProgNode::interpreter->parameter_def_nocheck(this->getFirstChild(), newEnv);
 	auto_ptr<EnvT> guardEnv( newEnv);
@@ -2611,7 +2611,7 @@ if( e1->StrictScalar())
 //     ProgNode::interpreter->CallStack().push_back(newEnv);
     // make the call
     BaseGDL* libRes =	static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
-    BaseGDL** res = callerEnv->GetPtrTo( libRes);
+    BaseGDL** res = ProgNode::interpreter->CallStackBack()->GetPtrTo( libRes);
     if( res == NULL)
 	    throw GDLException( this, "Library function must return a "
 	    "l-value in this context: "+this->getText());

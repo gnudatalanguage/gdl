@@ -696,7 +696,8 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
     }
 
     static EnvStackT& CallStack() { return callStack;} // the callstack
-    static EnvBaseT*  CallStackBack() { return callStack.back();} 
+//    static EnvBaseT*  CallStackBack() { return callStack.back();} 
+    static EnvUDT*  CallStackBack() { return callStack.back();} 
     
     std::string GetClearActualLine()
     {
