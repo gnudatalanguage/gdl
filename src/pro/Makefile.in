@@ -328,6 +328,7 @@ prolib_DATA = \
   read_binary.pro \
   read_bmp.pro \
   read_dicom.pro \
+  read_gif.pro \
   read_jpeg.pro \
   read_pict.pro \
   read_png.pro \
@@ -358,6 +359,7 @@ prolib_DATA = \
   value_locate.pro \
   variance.pro \
   write_bmp.pro \
+  write_gif.pro \
   write_jpeg.pro \
   write_pict.pro \
   write_png.pro \
