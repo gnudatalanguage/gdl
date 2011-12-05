@@ -2648,6 +2648,7 @@ if( e1->StrictScalar())
     EnvT* newEnv=new EnvT( this, this->libFun);//libFunList[fl->funIx]);
 
     ProgNode::interpreter->parameter_def_nocheck(this->getFirstChild(), newEnv);
+
 	auto_ptr<EnvT> guardEnv( newEnv);
 
     assert( dynamic_cast<EnvUDT*>(ProgNode::interpreter->CallStackBack()) != NULL);

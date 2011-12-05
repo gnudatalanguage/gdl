@@ -1314,7 +1314,9 @@ namespace lib {
     assert( dynamic_cast<EnvUDT*>(e->Caller()) != NULL);
     EnvUDT* caller = static_cast<EnvUDT*>(e->Caller());
 //     e->Interpreter()->CallStack().pop_back();
-    delete e;
+
+// wrong: e is guarded, do not delete it here	
+//	delete e;
 
     istringstream istr(line+"\n");
 
