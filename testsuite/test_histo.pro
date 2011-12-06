@@ -1,9 +1,9 @@
 ;
-; AC 01-jun-2007
-; SA 30-aug-2009 (test_histo_basic)
+; AC 01-Jun-2007
+; SA 30-Aug-2009 (TEST_HISTO_BASIC)
+; AC 06-Dec-2011 (adding TEST_HISTO_NAN)
 ;
-;
-pro test_histo_randomu, nbp=nbp, nan=nan
+pro TEST_HISTO_RANDOMU, nbp=nbp, nan=nan
 ;
 if (N_ELEMENTS(nbp) EQ 0) then nbp=1e2
 a=randomu(seed,nbp)
@@ -40,7 +40,7 @@ if KEYWORD_SET(test) then stop
 end
 
 ; SA: intended for checking basic histogram functionality
-pro test_histo_basic
+pro TEST_HISTO_BASIC
 
   ; for any input if MAX/MIN kw. value is the max/min element of input
   ; it shoud be counted in the last/first bins
@@ -76,3 +76,47 @@ pro test_histo_basic
   ; TODO: test other possible keyword/input combinations...
 
 end
+;
+; ----------------------------------
+;
+; array "b" did not contain +/- Inf, it is OK
+; array "c" did contain +/- Inf, it is not OK without /nan
+;
+pro TEST_HISTO_NAN, all=all
+;
+a=FINDGEN(10)
+;
+b=a
+b[5]=!values.f_nan
+;
+c=b
+c[7]=!values.f_infinity
+;
+print, HISTOGRAM(a)
+print, HISTOGRAM(b)
+print, HISTOGRAM(b,/nan)
+if KEYWORD_SET(all) then begin
+   print, HISTOGRAM(c)
+   print, HISTOGRAM(c,/nan)
+endif
+;
+print, HISTOGRAM(a, bin=2)
+print, HISTOGRAM(b, bin=2)
+print, HISTOGRAM(b, bin=2,/nan)
+if KEYWORD_SET(all) then begin
+   print, HISTOGRAM(c, bin=2)
+   print, HISTOGRAM(c, bin=2,/nan)
+endif
+;
+print, HISTOGRAM(a, nbin=4)
+print, HISTOGRAM(b, nbin=4)
+print, HISTOGRAM(b, nbin=4,/nan)
+if KEYWORD_SET(all) then begin
+   print, HISTOGRAM(c, nbin=4)
+   print, HISTOGRAM(c, nbin=4,/nan)
+endif
+;
+end
+
+
+
