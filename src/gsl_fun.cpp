@@ -1095,7 +1095,7 @@ namespace lib {
       e->Throw( "Complex expression not allowed in this context: "
 		+e->GetParString(0));
     
-    BaseGDL* binsizeKW = e->GetKW( 0);
+    BaseGDL* binsizeKW = e->GetKW(e->KeywordIx("BINSIZE"));
     DDouble bsize = 1.0;
     if( binsizeKW != NULL)
       {
@@ -1104,14 +1104,14 @@ namespace lib {
 	  e->Throw( "Illegal BINSIZE.");
       }
 
-    BaseGDL* maxKW = e->GetKW( 2);
-    BaseGDL* minKW = e->GetKW( 3);
+    BaseGDL* maxKW = e->GetKW(e->KeywordIx("MAX"));
+    BaseGDL* minKW = e->GetKW(e->KeywordIx("MIN"));
 
-    BaseGDL* nbinsKW = e->GetKW( 4);
+    BaseGDL* nbinsKW = e->GetKW(e->KeywordIx("NBINS"));
     DLong nbins;
     if( nbinsKW != NULL)
       {
-	e->AssureLongScalarKW( 4, nbins);
+	e->AssureLongScalarKW(e->KeywordIx("NBINS"), nbins);
 	if( nbins < 0)
 	  e->Throw( "Illegal NBINS (<0).");
 	if( nbins == 0) // NBINS=0 is ignored
@@ -1131,13 +1131,32 @@ namespace lib {
 
     // get min max
     // use MinMax here when NAN will be supported
-    DDouble minVal = (*p0D)[0];
-    DDouble maxVal = minVal;
-    for( SizeT i=1; i<nEl; ++i)
-      if ((*p0D)[i] < minVal) 
-	minVal = (*p0D)[i];
-      else if ((*p0D)[i] > maxVal) 
-	maxVal = (*p0D)[i];
+
+    DDouble minVal, maxVal;
+
+    if( e->KeywordSet( "NAN")) {
+      DLong minEl, maxEl;
+      p0D->MinMax( &minEl, &maxEl, NULL, NULL, true);
+      minVal=(*p0D)[minEl];
+      maxVal=(*p0D)[maxEl];
+    } else {
+      minVal = (*p0D)[0];
+      maxVal = minVal;
+      for( SizeT i=1; i<nEl; ++i) {
+	if (!isfinite((*p0D)[i])) {
+	  if (!isnan((*p0D)[i])) {
+	    e->Throw("Array has too many elements (Infinite value encoutered).");
+	  };
+	}
+	if ((*p0D)[i] < minVal) 
+	  minVal = (*p0D)[i];
+	else if ((*p0D)[i] > maxVal) 
+	  maxVal = (*p0D)[i];
+      }
+    }
+
+    int debug=0;
+    cout << "min/max : " << minVal << " " << maxVal << endl;
 
     // min
     if (minKW == NULL) 
@@ -1148,7 +1167,7 @@ namespace lib {
 	  a = minVal;
       } 
     else 
-      e->AssureDoubleScalarKW( 3, a);
+      e->AssureDoubleScalarKW(e->KeywordIx("MIN"), a);
     // max
     if (maxKW == NULL) 
       {
@@ -1168,7 +1187,7 @@ namespace lib {
       } 
     else
       {
-	e->AssureDoubleScalarKW( 2, b);
+	e->AssureDoubleScalarKW(e->KeywordIx("MAX"), b);
 
 	// MAX && !BINSIZE && NBINS -> determine BINSIZE
 	if( binsizeKW == NULL && nbinsKW != NULL)
@@ -1188,7 +1207,7 @@ namespace lib {
       nbins = static_cast< DLong>( floor( (b - a) / bsize) + 1);
 
     // INPUT keyword
-    static int inputIx = e->KeywordIx( "INPUT"); 
+    static int inputIx = e->KeywordIx("INPUT"); 
     DLongGDL* input = e->IfDefGetKWAs<DLongGDL>( inputIx);
     if (input != NULL)
       if (input->N_Elements() < nbins)
@@ -1210,7 +1229,7 @@ namespace lib {
     gsl_histogram_set_ranges_uniform( hh, a, b);
 
     // Set maxVal from keyword if present
-    if (maxKW != NULL) e->AssureDoubleScalarKW( 2, maxVal);
+    if (maxKW != NULL) e->AssureDoubleScalarKW(e->KeywordIx("MAX"), maxVal);
 
     // Generate histogram
     for( SizeT i=0; i<nEl; ++i) {
@@ -1232,18 +1251,18 @@ namespace lib {
     // SA: using aOri/bOri instead of gsl_histogram_min(hh) (as in calculation of LOCATIONS) 
     //     otherwise, when converting e.g. to INT the conversion might give bad results
     // OMAX
-    if( e->KeywordPresent( 5)) {
+    if( e->KeywordPresent(e->KeywordIx("OMAX"))) {
       // e->SetKW( 5, (new DDoubleGDL( gsl_histogram_max(hh)))->Convert2(p0->Type(), BaseGDL::CONVERT));
-      e->SetKW( 5, (new DDoubleGDL( bOri))->Convert2(p0->Type(), BaseGDL::CONVERT));
+      e->SetKW(e->KeywordIx("OMAX"), (new DDoubleGDL( bOri))->Convert2(p0->Type(), BaseGDL::CONVERT));
     }
     // OMIN
-    if( e->KeywordPresent( 6)) {
+    if( e->KeywordPresent(e->KeywordIx("OMIN"))) {
       // e->SetKW( 6, (new DDoubleGDL( gsl_histogram_min(hh)))->Convert2(p0->Type(), BaseGDL::CONVERT));
-      e->SetKW( 6, (new DDoubleGDL( aOri))->Convert2(p0->Type(), BaseGDL::CONVERT));
+      e->SetKW(e->KeywordIx("OMIN"), (new DDoubleGDL( aOri))->Convert2(p0->Type(), BaseGDL::CONVERT));
     }
 
     // REVERSE_INDICES
-    if( e->KeywordPresent( 7)) {
+    if( e->KeywordPresent(e->KeywordIx("REVERSE_INDICES"))) {
 
       if (input != NULL)
 	e->Throw("Conflicting keywords.");
@@ -1313,12 +1332,12 @@ namespace lib {
 	(*revindKW)[i] = k + nbins + 1;
       }
 
-      e->SetKW( 7, revindKW);
+      e->SetKW(e->KeywordIx("REVERSE_INDICES"), revindKW);
     }
     
     // LOCATIONS
-    if( e->KeywordPresent( 8)) {
-      BaseGDL** locationsKW = &e->GetKW( 8);
+    if( e->KeywordPresent(e->KeywordIx("LOCATIONS"))) {
+      BaseGDL** locationsKW = &e->GetKW(e->KeywordIx("LOCATIONS"));
       delete (*locationsKW);
 
       dimension dim( nbins);

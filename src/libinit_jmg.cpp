@@ -89,7 +89,7 @@ void LibInit_jmg()
 
   const string histogramKey[]={"BINSIZE","INPUT","MAX","MIN","NBINS",
 			       "OMAX","OMIN","REVERSE_INDICES",
-			       "LOCATIONS",KLISTEND};
+			       "LOCATIONS","NAN",KLISTEND};
   new DLibFun(lib::histogram_fun,string("HISTOGRAM"),1,histogramKey);
 
   const string interpolateKey[]={"CUBIC","GRID","MISSING",KLISTEND};
