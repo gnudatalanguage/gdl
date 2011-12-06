@@ -537,3 +537,11 @@
 	   - fix in WordExp() when filename argument contain whitespaces (useful in various cases, including 
 	     OPENR/W, FILE_MKDIR, ...)
 	   - !version.os now in lower case for Linux and Darwin
+
+0.9.3:
+	   - activities on speed improvements continuing
+	   - Initial import of STRMATCH()
+	   - Initial import of USERSYM
+	   - keyword /NaN for HISTOGRAM
+
+
