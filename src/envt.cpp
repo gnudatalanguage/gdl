@@ -916,7 +916,7 @@ EnvBaseT* EnvBaseT::Caller()
 {
   EnvStackT& callStack=interpreter->CallStack();
 
-  if( callStack.size() <= 1) return NULL;
+  //if( callStack.size() <= 1) return NULL;
 
   // library environments are no longer on the call stack
   assert( callStack.back() != this);
