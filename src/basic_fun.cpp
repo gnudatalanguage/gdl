@@ -4460,6 +4460,7 @@ BaseGDL* transpose( EnvT* e)
 		DLong s1;
 		e->AssureLongScalarPar( 1, s1);
 
+		// IncRef[Obj] done for PTR and OBJECT
 		return p0->CShift( s1);
       }
     
@@ -4470,7 +4471,12 @@ BaseGDL* transpose( EnvT* e)
     for( SizeT i=0; i< nShift; i++)
       e->AssureLongScalarPar( i+1, sIx[ i]);
 
-    return p0->CShift( sIx);
+	if( p0->Type() == OBJECT)
+		GDLInterpreter::IncRefObj( static_cast<DObjGDL*>(p0));
+	else if( p0->Type() == PTR)
+		GDLInterpreter::IncRef( static_cast<DPtrGDL*>(p0));
+
+	return p0->CShift( sIx);
   }
 
   BaseGDL* arg_present( EnvT* e)

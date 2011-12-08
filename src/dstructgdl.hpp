@@ -217,8 +217,8 @@ return Buf();
    DStructGDL* SetBuffer( const void* b);
   void SetBufferSize( SizeT s);
 
-  DStructGDL* CShift( DLong d);
-  DStructGDL* CShift( DLong d[MAXRANK]);
+  DStructGDL* CShift( DLong d) const;
+  DStructGDL* CShift( DLong d[MAXRANK]) const;
 
   // for use by MIN and MAX functions
   void MinMax( DLong* minE, DLong* maxE, 

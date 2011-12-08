@@ -673,6 +673,12 @@ SizeT Data_<SpDComplexDbl>::GetAsIndexStrict( SizeT i) const;
 
 
 
+template<>
+BaseGDL* Data_<SpDString>::CShift( DLong d) const;
+template<>
+BaseGDL* Data_<SpDPtr>::CShift( DLong d) const;
+template<>
+BaseGDL* Data_<SpDObj>::CShift( DLong d) const;
 
 
 // topython.cpp

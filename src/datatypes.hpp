@@ -113,8 +113,8 @@ static	void operator delete( void *ptr);
   bool Greater(SizeT i1, SizeT i2) const; // comp 2 elements
   bool Equal(SizeT i1, SizeT i2) const; // comp 2 elements
 
-  BaseGDL* CShift( DLong d); 
-  BaseGDL* CShift( DLong d[MAXRANK]); 
+  BaseGDL* CShift( DLong d) const; 
+  BaseGDL* CShift( DLong d[MAXRANK]) const; 
 
   BaseGDL* Transpose( DUInt* perm);
   BaseGDL* Rotate( DLong dir);

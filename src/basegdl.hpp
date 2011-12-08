@@ -416,8 +416,8 @@ public:
   virtual bool Greater(SizeT i1, SizeT i2) const; // comp 2 elements
   virtual bool Equal(SizeT i1, SizeT i2) const; // comp 2 elements
 
-  virtual BaseGDL* CShift( DLong d); // circular shift
-  virtual BaseGDL* CShift( DLong d[MAXRANK]); // circular shift multi dim
+  virtual BaseGDL* CShift( DLong d) const; // circular shift
+  virtual BaseGDL* CShift( DLong d[MAXRANK]) const; // circular shift multi dim
 
   virtual bool Scalar() const;
   virtual bool StrictScalar() const;

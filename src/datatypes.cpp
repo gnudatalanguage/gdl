@@ -865,32 +865,97 @@ return dstIx + this_dim;
 }
 
 template<class Sp>
-BaseGDL* Data_<Sp>::CShift( DLong d)
+BaseGDL* Data_<Sp>::CShift( DLong d) const
 {
-  Data_* sh = new Data_( this->dim, BaseGDL::NOZERO); 
+	SizeT nEl = dd.size();
+	SizeT shift = CShiftNormalize( d, nEl);
 
-  SizeT nEl = dd.size();
-  SizeT shift = CShiftNormalize( d, nEl);
+	if( shift == 0)
+	  return this->Dup();
 
-  SizeT firstChunk = nEl - shift;
+	Data_* sh = new Data_( this->dim, BaseGDL::NOZERO);
 
-  if( Sp::t != STRING) // strings are not POD all others are
-  {
+	SizeT firstChunk = nEl - shift;
+
 	memcpy( &sh->dd[ shift], &dd[0], firstChunk * sizeof(Ty));
 	memcpy( &sh->dd[ 0], &dd[firstChunk], shift * sizeof(Ty));
-  }
-  else // strings
-  {
+	
+	return sh;
+}
+
+template<>
+BaseGDL* Data_<SpDString>::CShift( DLong d) const
+{
+	SizeT nEl = dd.size();
+	SizeT shift = CShiftNormalize( d, nEl);
+
+	if( shift == 0)
+	  return this->Dup();
+
+	Data_* sh = new Data_( this->dim, BaseGDL::NOZERO);
+
+	SizeT firstChunk = nEl - shift;
+
 	SizeT i=0;
 	for( ; i<firstChunk; ++i)
-	sh->dd[shift++] = dd[ i];
+		sh->dd[shift++] = dd[ i];
 
 	shift = 0;
-	
+
 	for( ; i<nEl; ++i)
-	sh->dd[shift++] = dd[ i];
-   }
-   return sh;
+		sh->dd[shift++] = dd[ i];
+
+	return sh;
+}
+template<>
+BaseGDL* Data_<SpDPtr>::CShift( DLong d) const
+{
+	SizeT nEl = dd.size();
+	SizeT shift = CShiftNormalize( d, nEl);
+
+	if( shift == 0)
+	  return this->Dup(); // does IncRef
+
+	Data_* sh = new Data_( this->dim, BaseGDL::NOZERO);
+
+	SizeT firstChunk = nEl - shift;
+
+	SizeT i=0;
+	for( ; i<firstChunk; ++i)
+		sh->dd[shift++] = dd[ i];
+
+	shift = 0;
+
+	for( ; i<nEl; ++i)
+		sh->dd[shift++] = dd[ i];
+
+	GDLInterpreter::IncRef( sh);
+	return sh;
+}
+template<>
+BaseGDL* Data_<SpDObj>::CShift( DLong d) const
+{
+	SizeT nEl = dd.size();
+	SizeT shift = CShiftNormalize( d, nEl);
+
+	if( shift == 0)
+	  return this->Dup(); // does IncRefObj
+
+	Data_* sh = new Data_( this->dim, BaseGDL::NOZERO);
+
+	SizeT firstChunk = nEl - shift;
+
+	SizeT i=0;
+	for( ; i<firstChunk; ++i)
+		sh->dd[shift++] = dd[ i];
+
+	shift = 0;
+
+	for( ; i<nEl; ++i)
+		sh->dd[shift++] = dd[ i];
+
+	GDLInterpreter::IncRefObj( sh);
+	return sh;
 }
 
 template<typename Ty>
@@ -913,7 +978,7 @@ inline void CShift1( Ty* dst, SizeT& dstLonIx, const Ty* src, SizeT& srcLonIx,
 #undef TEST_GOOD_OL_VERSION
 
 template<class Sp>
-BaseGDL* Data_<Sp>::CShift( DLong s[ MAXRANK])
+BaseGDL* Data_<Sp>::CShift( DLong s[ MAXRANK]) const
 {
   Data_* sh = new Data_( this->dim, BaseGDL::NOZERO); 
 
@@ -927,7 +992,7 @@ BaseGDL* Data_<Sp>::CShift( DLong s[ MAXRANK])
   long  dstIx[ MAXRANK+1];
   SizeT this_dim[ MAXRANK];
 
-  Ty* ddP = &(*this)[0];
+  const Ty* ddP = &(*this)[0];
   Ty* shP = &(*sh)[0];
 
   if( nDim == 2)
@@ -1573,7 +1638,7 @@ for( SizeT i=1; i<nEl; ++i)
 // typename Data_<Sp>::Ty& Data_<Sp>::operator[] (const SizeT d1) 
 // { return (*this)[d1];}
 
-// only used from DStructGDL::DStructGDL(const DStructGDL& d_)
+// only used from DStructGDL
 template<class Sp> 
 Data_<Sp>&  Data_<Sp>::operator=(const BaseGDL& r)
 {
@@ -1585,7 +1650,7 @@ Data_<Sp>&  Data_<Sp>::operator=(const BaseGDL& r)
   dd = right.dd;
   return *this;
 }
-// only used from DStructGDL::DStructGDL(const DStructGDL& d_)
+// only used from DStructGDL
 template<>
 Data_<SpDPtr>& Data_<SpDPtr>::operator=(const BaseGDL& r)
 {
@@ -1599,7 +1664,7 @@ Data_<SpDPtr>& Data_<SpDPtr>::operator=(const BaseGDL& r)
   GDLInterpreter::IncRef( this);
   return *this;
 }
-// only used from DStructGDL::DStructGDL(const DStructGDL& d_)
+// only used from DStructGDL
 template<>
 Data_<SpDObj>& Data_<SpDObj>::operator=(const BaseGDL& r)
 {

@@ -72,11 +72,11 @@ bool BaseGDL::Equal(SizeT i1, SizeT i2) const
   throw GDLException("BaseGDL::Equal(SizeT,SizeT) called.");
 }
 
-BaseGDL* BaseGDL::CShift( DLong d)
+BaseGDL* BaseGDL::CShift( DLong d) const
 {
   throw GDLException("BaseGDL::CShift(...) called.");
 }
-BaseGDL* BaseGDL::CShift( DLong d[MAXRANK])
+BaseGDL* BaseGDL::CShift( DLong d[MAXRANK]) const
 {
   throw GDLException("BaseGDL::CShift( DLong d[MAXRANK]) called.");
 }

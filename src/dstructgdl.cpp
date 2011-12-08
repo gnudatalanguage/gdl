@@ -202,9 +202,10 @@ void DStructGDL::SetBufferSize( SizeT s)
 }
 
 
-DStructGDL* DStructGDL::CShift( DLong d)
+DStructGDL* DStructGDL::CShift( DLong d) const
 {
-  DStructGDL* sh = new DStructGDL( Desc(), dim, BaseGDL::NOZERO);
+  // must be nulled for correct reference counting
+  DStructGDL* sh = new DStructGDL( Desc(), dim);//, BaseGDL::NOZERO);
 
   SizeT nEl = N_Elements();
   SizeT nTag = NTags();
@@ -221,9 +222,10 @@ DStructGDL* DStructGDL::CShift( DLong d)
 }
 
 // TODO: Implement fast 2D version (see datatypes.cpp)
-DStructGDL* DStructGDL::CShift( DLong s[MAXRANK])
+DStructGDL* DStructGDL::CShift( DLong s[MAXRANK]) const
 {
-  DStructGDL* sh = new DStructGDL( Desc(), dim, BaseGDL::NOZERO);
+  // must be nulled for correct reference counting
+  DStructGDL* sh = new DStructGDL( Desc(), dim);//, BaseGDL::NOZERO);
 
   SizeT nDim = Rank();
   SizeT nEl = N_Elements();
