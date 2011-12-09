@@ -35,7 +35,6 @@ prolib_DATA = \
   last_item.pro \
   lmgr.pro \
   loadct.pro \
-  ludc.pro \
   map_clip_set.pro \
   matrix_multiply.pro \
   mean.pro \
