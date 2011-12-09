@@ -611,9 +611,15 @@ namespace lib {
     // get char size in mm (default, actual)
     PLFLT defH, actH;
     a->gchr( defH, actH);
+    //get symsize 
+    static DStructGDL* pStruct = SysVar::P();
+    DFloat symsize = (*static_cast<DFloatGDL*>
+		      (pStruct->GetTag( pStruct->Desc()->TagIndex("SYMSIZE"), 0)))[0];
+    e->AssureFloatScalarKWIfPresent( "SYMSIZE", symsize);
+    if( symsize <= 0.0) symsize = 1.0;
     DDouble UsymConvX, UsymConvY;
-    UsymConvX=0.5*(actH/scrX)/sx[1];
-    UsymConvY=0.5*(actH/scrY)/sy[1];
+    UsymConvX=0.5*symsize*(defH/scrX)/sx[1];
+    UsymConvY=0.5*symsize*(defH/scrY)/sy[1];
     if (psym_ == 8) {
       GetUsym(&userSymArrayDim, &do_fill, &userSymX, &userSymY);
       if (*userSymArrayDim == 0) {
