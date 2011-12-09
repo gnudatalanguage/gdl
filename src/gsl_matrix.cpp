@@ -119,7 +119,7 @@ namespace lib {
 	delete (*p1D);
 	*p1D = new DLongGDL(dim1, BaseGDL::NOZERO);
 	memcpy(&(*(DLongGDL*) *p1D)[0], p->data, 
-	       p0->Dim(0)*szdbl);
+	       p0->Dim(0)*szlng);
 
 	gsl_matrix_free(mat);
 	gsl_permutation_free(p);
