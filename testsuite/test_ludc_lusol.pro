@@ -15,6 +15,7 @@ pro TEST_LUDC_IDL, test=test, verbose=verbose
 A = [[ 2.0,  1.0,  1.0], $
      [ 4.0, -6.0,  0.0], $  
      [-2.0,  7.0,  2.0]]
+a_ref=a
 ; Define right-hand side vector B:  
 B = [3.0, -8.0, 10.0]  
 ;
@@ -27,6 +28,10 @@ LUDC, A, INDEX
 ;print, a
 res=LUSOL(a, index, b*1.D)
 ;print, res
+;print, a_ref##res
+
+print, "expected:", b
+print, "computed:", a_ref##res
 ;
 if KEYWORD_SET(test) then STOP
 ;
@@ -42,12 +47,14 @@ A = [[ 0.18, 0.60, 0.57, 0.96], $
      [ 0.41, 0.24, 0.99, 0.58], $
      [ 0.14, 0.30, 0.97, 0.66], $
      [ 0.51, 0.13, 0.19, 0.85]]
+a_ref=a
+;
 ; A must be DOUBLE now ...
 a=A*1.D
 ;
 b=[ 1.0, 2.0, 3.0, 4.0]
 ; B must be DOUBLE now ...
-b=A*1.D
+b=b*1.D
 
 LUDC, A, INDEX
 ;print, a
@@ -55,6 +62,9 @@ LUDC, A, INDEX
 
 res=LUSOL(a, index, b*1.D)
 ;print, res
+
+print, "expected:", b
+print, "computed:", a_ref##res
 
 if KEYWORD_SET(test) then STOP
 
