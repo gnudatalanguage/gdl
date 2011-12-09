@@ -10,6 +10,8 @@
 ; http://idlastro.gsfc.nasa.gov/idl_html_help/LUSOL.html
 ;
 pro TEST_LUDC_IDL, test=test, verbose=verbose
+;
+print, 'testing LUDC then LUSOL on IDL example'
 
 ; Define array A:  
 A = [[ 2.0,  1.0,  1.0], $
@@ -31,7 +33,7 @@ res=LUSOL(a, index, b*1.D)
 ;print, a_ref##res
 
 print, "expected:", b
-print, "computed:", a_ref##res
+print, "computed:", TRANSPOSE(a_ref##res)
 ;
 if KEYWORD_SET(test) then STOP
 ;
@@ -43,6 +45,8 @@ end
 
 pro TEST_LUDC_GSL, test=test, verbose=verbose
 ;
+print, 'testing LUDC then LUSOL on GSL example'
+
 A = [[ 0.18, 0.60, 0.57, 0.96], $
      [ 0.41, 0.24, 0.99, 0.58], $
      [ 0.14, 0.30, 0.97, 0.66], $
@@ -64,7 +68,7 @@ res=LUSOL(a, index, b*1.D)
 ;print, res
 
 print, "expected:", b
-print, "computed:", a_ref##res
+print, "computed:", TRANSPOSE(a_ref##res)
 
 if KEYWORD_SET(test) then STOP
 
