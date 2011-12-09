@@ -48,7 +48,8 @@ void LibInit_ac()
   new DLibPro(lib::ludc_pro,string("LUDC"),2,ludcKey);
   const string lusolKey[]={"COLUMN","DOUBLE",KLISTEND};
   new DLibFun(lib::lusol_fun,string("LUSOL"),3,lusolKey);
-
+  const string determKey[]={"DOUBLE",KLISTEND};
+  new DLibFun(lib::determ_fun,string("DETERM"),1,determKey);
 
 #endif
   

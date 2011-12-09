@@ -31,6 +31,7 @@ namespace lib {
 
   void ludc_pro( EnvT* e);
   BaseGDL* lusol_fun( EnvT* e);
+  BaseGDL* determ_fun( EnvT* e);
 
 } // namespace
 
