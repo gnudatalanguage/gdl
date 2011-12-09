@@ -23,6 +23,7 @@
 #endif
 
 #include "math_fun_ac.hpp"
+#include "gsl_matrix.hpp"
 
 using namespace std;
 
@@ -31,6 +32,8 @@ void LibInit_ac()
   const char KLISTEND[] = "";
 
 #if defined(HAVE_LIBGSL)
+
+  // Besel functions family
   const string beseliKey[]={"DOUBLE","ITER","HELP",KLISTEND};
   new DLibFun(lib::beseli_fun,string("BESELI"),2,beseliKey);
   const string beseljKey[]={"DOUBLE","ITER","HELP",KLISTEND};
@@ -39,6 +42,14 @@ void LibInit_ac()
   new DLibFun(lib::beselk_fun,string("BESELK"),2,beselkKey);
   const string beselyKey[]={"DOUBLE","ITER","HELP",KLISTEND};
   new DLibFun(lib::besely_fun,string("BESELY"),2,beselyKey);
+
+  // Matrix functions family
+  const string ludcKey[]={"COLUMN","DOUBLE","INTERCHANGES",KLISTEND};
+  new DLibPro(lib::ludc_pro,string("LUDC"),2,ludcKey);
+  const string lusolKey[]={"COLUMN","DOUBLE",KLISTEND};
+  new DLibFun(lib::lusol_fun,string("LUSOL"),3,lusolKey);
+
+
 #endif
   
   const string spl1Key[]={"YP0","YPN_1","DOUBLE","HELP",KLISTEND};
