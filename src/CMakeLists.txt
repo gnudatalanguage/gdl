@@ -130,6 +130,8 @@ gshhs.cpp
 gshhs.hpp
 gsl_fun.cpp
 gsl_fun.hpp
+gsl_matrix.cpp
+gsl_matrix.hpp
 gzstream.hpp
 hdf5_fun.cpp
 hdf5_fun.hpp
