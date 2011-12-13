@@ -1771,13 +1771,13 @@ RetCode      CONTINUENode::Run()
 }
 RetCode      BREAKNode::Run()
 {
-  if( this->breakTarget == NULL)
+  if( !this->breakTargetSet)
 	{
 	assert( interpreter != NULL);
 	EnvBaseT* e = interpreter->CallStack().back();
-	throw GDLException( this, "BREAK must be enclosed within a FOR, WHILE, or REPEAT loop.", true, false);
+	throw GDLException( this, "BREAK must be enclosed within a loop (FOR, WHILE, REPEAT), CASE or SWITCH statement.", true, false);
 	}
-ProgNode::interpreter->SetRetTree( this->breakTarget);
+  ProgNode::interpreter->SetRetTree( this->breakTarget);
   return RC_OK;
 }
 RetCode      LABELNode::Run()

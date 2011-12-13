@@ -387,13 +387,17 @@ public:
 };
 class BREAKNode: public DefaultNode
 {
+private:
+	bool breakTargetSet;
+
 public:
- RetCode      Run();
+	RetCode      Run();
 	
 
 	void SetAllBreak( ProgNodeP target)
 	{
 		breakTarget = target;
+		breakTargetSet = true;
 		
 		if( right != NULL && !keepRight)
 		{
@@ -401,9 +405,9 @@ public:
 		}
 	}
 public:
-    BREAKNode(): DefaultNode()  {}
+    BREAKNode(): DefaultNode(), breakTargetSet(false)  {}
 	
-	BREAKNode( const RefDNode& refNode): DefaultNode( refNode)
+	BREAKNode( const RefDNode& refNode): DefaultNode( refNode), breakTargetSet(false)
 	{}
 };
 class LABELNode: public DefaultNode
