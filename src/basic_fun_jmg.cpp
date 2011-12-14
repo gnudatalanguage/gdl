@@ -642,7 +642,9 @@ namespace lib {
     SizeT nParam=e->NParam();
 
     EnvStackT& callStack = e->Interpreter()->CallStack();
-    DLong curlevnum = callStack.size()-1;
+//     DLong curlevnum = callStack.size()-1;
+	// 'e' is not on the stack
+	DLong curlevnum = callStack.size();
 
     if (e->KeywordSet( "S_FUNCTIONS")) {
       deque<DString> subList;
@@ -766,15 +768,21 @@ namespace lib {
 	DStringGDL* res = new DStringGDL( dimension( nParam), BaseGDL::NOZERO);
 
 	//	cout << "nVar:" << nVar << endl;
-
-	SizeT nCall = callStack[desiredlevnum]->NParam();
-
+	EnvBaseT* desiredCallStack;
+	if( desiredlevnum >= callStack.size())
+		desiredCallStack = e;
+	else
+		desiredCallStack = callStack[ desiredlevnum];
+	
+// 	SizeT nCall = callStack[desiredlevnum]->NParam();
+	SizeT nCall = desiredCallStack->NParam();
+	
 	//	cout << "nCall:" << nCall << "curlevnum:" << curlevnum << endl;
 	for( SizeT i = 0; i<nParam; ++i) {
 	  for( SizeT j = 0; j<nCall; ++j) {
 
 	    if (e->GetParString(i) == 
-		callStack[desiredlevnum]->GetParString(j)) {
+		desiredCallStack->GetParString(j)) {
 	      //	      cout << "Calling param: " << j+1 << endl;
 	      BaseGDL*& p = e->GetPar( i);
 	      if (p == NULL) {
