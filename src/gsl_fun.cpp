@@ -1446,7 +1446,6 @@ namespace lib {
 
     // Allocate and initialize interpolation arrays
     interp = gsl_interp_alloc (gsl_interp_linear, nxa);
-    //    gsl_interp_init (interp, xa, &(*p0D)[0], nxa);
 
     // Allocate "work" arrays
     SizeT ny2 = (ny == 1) * 2 + (ny > 1) * ny;
@@ -1465,7 +1464,9 @@ namespace lib {
 	  //  cout << k << "  " << j << "  " << ya[k][j] << endl;
 	}
       }
-
+      
+      gsl_interp_init (interp, xa, ya[0], nxa);
+          
       bool first = true;
       DLong lastrow;
       double *dptr;
@@ -1644,13 +1645,26 @@ namespace lib {
       // Determine number and value of input points along x-axis
       SizeT nxa = p0->Dim(p0->Rank()-nParam+1);
       double *xa = new double[nxa];
-      for( SizeT i=0; i<nxa; ++i) xa[i] = (double) i;
+      for( SizeT i=0; i<nxa; i++) xa[i] = (double) i;
       
       // Allocate and initialize interpolation arrays
       if( cubic) {
-	spline = gsl_spline_alloc (gsl_interp_cspline, nxa);
-	gsl_spline_init (spline, xa, &(*p0D)[0], nxa);
-      } else {
+       // test if sufficient points for cubic. It seems impossible to get the minsize
+       // without allocating a spline. This is really dumb since we know the answer is 3,
+       // however the use of this function is a template for future interpolants available
+       // in the gsl library. It seems that the mimicked program ;^) silently reverts to
+       // linear interpolation if the number of points is not present. So do I.
+	spline = gsl_spline_alloc (gsl_interp_cspline, 100); //100 seems reasonable.
+        if (nxa < gsl_spline_min_size (spline)) {
+//          e->Throw("Not enough point for cubic interpolation.");
+          cubic=FALSE;
+        }
+        gsl_spline_free (spline);
+      }
+      if( cubic) {
+        spline = gsl_spline_alloc (gsl_interp_cspline, nxa);
+        gsl_spline_init (spline, xa, &(*p0D)[0], nxa);
+     } else {
 	interp = gsl_interp_alloc (gsl_interp_linear, nxa);
 	gsl_interp_init (interp, xa, &(*p0D)[0], nxa);
       }
@@ -1712,10 +1726,11 @@ namespace lib {
     // 2D Interpolation
     if( nParam == 3) {
 
-      if( cubic)
-	e->Throw("Bicubic interpolation not yet supported.");
-
-      if ( p1->Type() == DOUBLE) 
+      if( cubic) {
+        Message( e->GetProName() + ": 2D Cubic interpolation not yet supported. Using Linear.");
+//      e->Throw("Bicubic interpolation not yet supported.");
+      }
+      if ( p1->Type() == DOUBLE)
 	p1D = static_cast<DDoubleGDL*> ( p1);
       else
 	{
@@ -1763,7 +1778,8 @@ namespace lib {
     if( nParam == 4) {
 
       if( cubic)
-	e->Throw("Bicubic interpolation not supported.");
+        Message( e->GetProName() + ": 3D Cubic interpolation not supported. Using Linear.");
+//	e->Throw("Bicubic interpolation not supported.");
 
       if ( p1->Type() == DOUBLE) 
 	p1D = static_cast<DDoubleGDL*> ( p1);
