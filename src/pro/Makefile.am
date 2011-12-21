@@ -3,7 +3,9 @@ prolibdir = $(GDLDATADIR)/lib
 prolib_DATA = \
   appleman.pro \
   array_indices.pro \
+  bilinear.pro \
   calendar.pro \
+  congrid.pro \
   correlate.pro \
   deriv.pro \
   dialog_message.pro \

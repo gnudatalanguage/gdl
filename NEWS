@@ -544,5 +544,7 @@
 	   - Initial import of USERSYM
 	   - keyword /NaN for HISTOGRAM
 	   - Initial import of LUDC, LUSOL and DETERM, OK now only for DOUBLE
+	   - Initial import of CONGRID and BILINEAR
+
 
 
