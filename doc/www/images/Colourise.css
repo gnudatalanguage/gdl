@@ -498,10 +498,23 @@ input.button {
 	content: "."; 
 }
 
+div.ohloh div.gadget 
+{
+	border:0;
+}
+div.ohloh div.gadget div.main 
+{
+	width:140px;
+}
+div.ohloh div.gadget div.updated
+{
+	width:240px;
+}
+
 div.ohloh, div.ohloh div div p, div.ohloh div div h3, div.ohloh div div a 
 { 
 	padding:1px;
-	font-size:12px;
+	font-size:10px;
         color: black;
         background-color: white;
 }
