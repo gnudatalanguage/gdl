@@ -41,6 +41,7 @@
   Several people prepared scholarly materials using or mentioning GDL:
 </p>
   <ul>
+    <li><a href="http://www.ita.uni-heidelberg.de/~dullemond/lectures/num_fluid_2009/index.shtml">A series of lectures on numerical hydrodynamics including ''IDL / GDL Micro-manual and exercises''</a></li>
     <li><a href="http://blog.redbranch.net/series/gdl-gnu-data-language/">A series of blog posts on GDL (installation, usage, code examples)</a></li>
     <li><a href="http://www.sgeier.net/tools/GDL-intro.pdf">Getting started with GDL</a> by Sven Geier (2006)</li>
     <li><a href="http://solar.physics.montana.edu/clowder/IDL/idlguide.pdf">Interactive Data Language Guide</a> by Chris Lowder (2010)</li>
