@@ -277,7 +277,7 @@ public:
     //    Graphics* actDevice = Graphics::GetDevice();
     SizeT nParam=e->NParam( 1); 
 
-    GDLGStream* actStream = /* actDevice-> */ GetStream();
+    GDLGStream* actStream = GetStream();
 
     //    actStream->NextPlot( false); // JMG
 

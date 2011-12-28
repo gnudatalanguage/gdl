@@ -19,6 +19,7 @@
 #  define DEVICEPS_HPP_
 
 #  include "gdlpsstream.hpp"
+#  include "plotting.hpp" // get_axis_crange for TV()
 #  include "initsysvar.hpp"
 #  include <gsl/gsl_const_mksa.h> // GSL_CONST_MKSA_INCH
 
@@ -374,6 +375,121 @@ public:
   {
     return decomposed;  
   }
+
+  // TODO: SA: this TV() should be merged with TV() in DeviceX and DeviceZ!
+  // TODO: SA: just a draft - a lot more needs to be done...
+  void TV( EnvT* e)
+  {
+    SizeT nParam=e->NParam( 1); 
+
+    GDLGStream* actStream = GetStream();
+
+    // TODO: use it is XSIZE and YSIZE is not specified!
+    //DLong xsize = (*static_cast<DLongGDL*>( dStruct->GetTag( xSTag, 0)))[0];
+    //DLong ysize = (*static_cast<DLongGDL*>( dStruct->GetTag( ySTag, 0)))[0];
+
+    DLong pos=0; // TODO: handle it!
+    DDouble xmin, ymin;
+    {
+      DDouble null;
+      lib::get_axis_crange("X", xmin, null);
+      lib::get_axis_crange("Y", ymin, null);
+    }
+    if (nParam == 2) {
+      e->AssureLongScalarPar( 1, pos);
+    } else if (nParam >= 3) {
+      if (e->KeywordSet("NORMAL")) 
+      {
+        e->Throw("NORMAL keyword not supported yet");
+	//e->AssureDoubleScalarPar( 1, xmin);
+	//e->AssureDoubleScalarPar( 2, ymin);
+	//xLL = (DLong) rint(xLLf * xsize);
+	//yLL = (DLong) rint(yLLf * ysize);
+      } 
+      else if (e->KeywordSet("DEVICE")) 
+      {
+        e->Throw("DEVICE keyword not supported yet");
+      }
+      else // aka DATA
+      {
+	e->AssureDoubleScalarPar( 1, xmin);
+	e->AssureDoubleScalarPar( 2, ymin);
+      }
+    }
+
+    DByteGDL* p0B = e->GetParAs<DByteGDL>( 0);
+    SizeT rank = p0B->Rank();
+
+    int width, height;
+    DLong tru=0;
+    e->AssureLongScalarKWIfPresent( "TRUE", tru);
+    if (rank == 2) 
+      {
+	if (tru != 0)
+	  e->Throw( "Array must have 3 dimensions: "+
+		    e->GetParString(0));
+	width  = p0B->Dim(0);
+	height = p0B->Dim(1);
+      } 
+    else if( rank == 3) 
+      {
+	if (tru == 1) {
+	  width = p0B->Dim(1);
+	  height = p0B->Dim(2);
+	} else if (tru == 2) {
+	  width = p0B->Dim(0);
+	  height = p0B->Dim(2);
+	} else if (tru == 3) {
+	  width = p0B->Dim(0);
+	  height = p0B->Dim(1);
+	} else {
+	  e->Throw( "TRUE must be between 1 and 3");
+	}
+      } else {
+	e->Throw( "Image array must have rank 2 or 3");
+      }
+    if (tru != 0) e->Throw("Decomposed images not supported yet with PostScript + TV() (FIXME)"); // TODO!
+
+    /* TODO...
+    if( width + xLL > xsize || height + yLL > ysize)
+      e->Throw( "Value of image coordinates is out of allowed range.");
+    */
+
+    DLong chan = 0;
+    // </copied from devicez::TV()>
+
+    PLFLT **idata;
+    actStream->plAlloc2dGrid(&idata, width, height);
+    for (int x=0; x < width; ++x)
+      for (int y=0; y < height; ++y)
+        idata[x][y] = (*p0B)[x + y * width]; // TODO: czy to jest dobra kolejno¶æ?
+
+    PLFLT xmax, ymax;
+    if (e->KeywordSet("XSIZE")) 
+    {
+      DDouble tmp;
+      e->AssureDoubleScalarKW("XSIZE", tmp);
+      xmax = xmin + tmp;
+    }
+    else e->Throw("Specification of XSIZE is mandatory for PostScript/TV() (FIXME!)"); // TODO!
+    if (e->KeywordSet("YSIZE")) 
+    {
+      DDouble tmp;
+      e->AssureDoubleScalarKW("YSIZE", tmp);
+      ymax = ymin + tmp;
+    }
+    else e->Throw("Specification of YSIZE is mandatory for PostScript/TV() (FIXME!)"); // TODO!
+
+    // TODO: map projection (via the last two arguments - same as was done in CONTOUR e.g.)
+    bool mapSet = false;
+#ifdef USE_LIBPROJ4
+    get_mapset(mapSet);
+#endif
+    if (mapSet) e->Throw("PostScript + TV() + mapping cobination not available yet (FIXME!)");
+
+    plimagefr(idata, width, height, xmin, xmax, ymin, ymax, 0., 255., 0., 255., NULL, NULL); 
+  }
+
 };
 
 #endif
