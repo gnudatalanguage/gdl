@@ -455,14 +455,17 @@ public:
       e->Throw( "Value of image coordinates is out of allowed range.");
     */
 
-    DLong chan = 0;
-    // </copied from devicez::TV()>
-
-    PLFLT **idata;
-    actStream->plAlloc2dGrid(&idata, width, height);
+    class grid2d {
+      public: PLFLT** data;
+      private: GDLGStream *pls;
+      private: int w, h;
+      public: grid2d(GDLGStream *actStream, int w, int h) 
+        : pls(actStream), w(w), h(h) { pls->plAlloc2dGrid(&data, w, h); }
+      public: ~grid2d() { pls->plFree2dGrid(data, w, h); }
+    } idata(actStream, width, height);
     for (int x=0; x < width; ++x)
       for (int y=0; y < height; ++y)
-        idata[x][y] = (*p0B)[x + y * width]; // TODO: czy to jest dobra kolejno¶æ?
+        idata.data[x][y] = (*p0B)[x + y * width]; 
 
     PLFLT xmax, ymax;
     if (e->KeywordSet("XSIZE")) 
@@ -487,7 +490,7 @@ public:
 #endif
     if (mapSet) e->Throw("PostScript + TV() + mapping cobination not available yet (FIXME!)");
 
-    plimagefr(idata, width, height, xmin, xmax, ymin, ymax, 0., 255., 0., 255., NULL, NULL); 
+    plimagefr(idata.data, width, height, xmin, xmax, ymin, ymax, 0., 255., 0., 255., NULL, NULL); 
   }
 
 };
