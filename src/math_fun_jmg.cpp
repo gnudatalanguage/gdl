@@ -967,19 +967,25 @@ namespace lib {
 
   template< typename T1, typename T2>
   BaseGDL* poly_2d_shift_template( BaseGDL* p0, DLong nCol, DLong nRow, 
-				   int shift_y, int shift_x)
+				   int shift_y, int shift_x, DDouble missing)
   {
     dimension dim(nCol,nRow);  
 //     dim.Set(0, nCol);
 //     dim.Set(1, nRow);
+    cout<<"shifting"<<endl;
     T1* res = new T1( dim, BaseGDL::NOZERO);
-
+    T2 missed=missing;
+    
     int lx = (int) p0->Dim(0);
     int ly = (int) p0->Dim(1);
     int lx_out = (int) nCol;
     int ly_out = (int) nRow;
 
     char *p_out = (char *) res->DataAddr();
+    T2 *resAddr = (T2 *) res->DataAddr();
+    for ( SizeT i=0; i<nCol*nRow; i++) {
+      resAddr[i] = missed;
+    }
     char *p_in  = (char *) p0->DataAddr();
 
     SizeT sz = sizeof(T2);
@@ -1095,39 +1101,39 @@ namespace lib {
 	  if (p0->Type() == BYTE) {
 	    return poly_2d_shift_template< DByteGDL, DByte>( p0, nCol, nRow,  
 							     (int) (*Q)[0], 
-							     (int) (*P)[0]);
+							     (int) (*P)[0],missing);
 	  } else if (p0->Type() == INT) {
 	    return poly_2d_shift_template< DIntGDL, DInt>( p0, nCol, nRow,  
 							    (int) (*Q)[0], 
-							    (int) (*P)[0]);
+							    (int) (*P)[0],missing);
 	  } else if (p0->Type() == UINT) {
 	    return poly_2d_shift_template< DUIntGDL, DUInt>( p0, nCol, nRow,  
 							     (int) (*Q)[0], 
-							     (int) (*P)[0]);
+							     (int) (*P)[0],missing);
 	  } else if (p0->Type() == LONG) {
 	    return poly_2d_shift_template< DLongGDL, DLong>( p0, nCol, nRow,  
 							     (int) (*Q)[0], 
-							     (int) (*P)[0]);
+							     (int) (*P)[0],missing);
 	  } else if (p0->Type() == ULONG) {
 	    return poly_2d_shift_template< DULongGDL, DULong>( p0, nCol, nRow,  
 							       (int) (*Q)[0], 
-							       (int) (*P)[0]);
+							       (int) (*P)[0],missing);
 	  } else if (p0->Type() == LONG64) {
 	    return poly_2d_shift_template< DLong64GDL, DLong64>( p0, nCol, nRow,  
 								 (int) (*Q)[0], 
-								 (int) (*P)[0]);
+								 (int) (*P)[0],missing);
 	  } else if (p0->Type() == ULONG64) {
 	    return poly_2d_shift_template< DULong64GDL, DULong64>( p0, nCol, nRow,  
 								   (int) (*Q)[0], 
-								   (int) (*P)[0]);
+								   (int) (*P)[0],missing);
 	  } else if (p0->Type() == FLOAT) {
 	    return poly_2d_shift_template< DFloatGDL, DFloat>( p0, nCol, nRow,  
 							       (int) (*Q)[0], 
-							       (int) (*P)[0]);
+							       (int) (*P)[0],missing);
 	  } else if (p0->Type() == DOUBLE) {
 	    return poly_2d_shift_template< DDoubleGDL, DDouble>( p0, nCol, nRow,  
 								 (int) (*Q)[0], 
-								 (int) (*P)[0]);
+								 (int) (*P)[0],missing);
 	  }
 	}
       } else {
@@ -1141,7 +1147,7 @@ namespace lib {
 	warped = image_warp(p0->Dim(1), p0->Dim(0), nRow, nCol, p0->Type(), 
 			    p0->DataAddr(), kernel_name,
 			    lineartrans, poly_v, poly_u,
-			    interp, cubic, LINEAR);
+			    interp, cubic, LINEAR, missing);
       }
     } else {
       // Polynomial
@@ -1172,7 +1178,7 @@ namespace lib {
       warped = image_warp(p0->Dim(1), p0->Dim(0), nRow, nCol, p0->Type(), 
 			  p0->DataAddr(), kernel_name, 
 			  lineartrans, poly_v, poly_u, 
-			  interp, cubic, GENERIC);
+			  interp, cubic, GENERIC, missing);
 
       if (poly_u->px != NULL) free(poly_u->px);
       if (poly_u->py != NULL) free(poly_u->py);
@@ -1427,7 +1433,7 @@ double * generate_interpolation_kernel(char * kernel_type, DDouble cubic)
  */
 /*--------------------------------------------------------------------------*/
 
-image_t * image_warp(
+image_t * image_warp (
 		     SizeT  lx,		     
 		     SizeT  ly,		     
 		     SizeT  lx_out,		     
@@ -1440,7 +1446,8 @@ image_t * image_warp(
 		     poly2d		*	poly_v,
 		     DLong interp,
 		     DDouble cubic,
-		     DLong warpType)
+		     DLong warpType,
+                     DDouble initvalue)
 {
     image_t    *	image_out ;
     int         	i, j, k ;
@@ -1484,7 +1491,7 @@ image_t * image_warp(
       }
     }
 
-    image_out = image_new(lx_out, ly_out) ;
+    image_out = image_new(lx_out, ly_out, initvalue) ;
 
     /* Pre compute leaps for 16 closest neighbors positions */
 
@@ -1531,7 +1538,10 @@ image_t * image_warp(
 	      (px > (lx-1)) ||
 	      (py < 1) ||
 	      (py > (ly-1)))
-	    image_out->data[i+j*lx_out] = (pixelvalue)0.0 ;
+          {
+          //already initialised to 'missing' value. No need to put zero here.
+          //	    image_out->data[i+j*lx_out] = (pixelvalue)0.0 ;
+          }
 	  else {
 	    /* Now feed the positions for the closest 16 neighbors  */
 	    pos = px + py * lx ;
@@ -1700,7 +1710,8 @@ image_t * image_warp(
 /*--------------------------------------------------------------------------*/
 image_t * image_new(
 		int 	size_x, 
-		int 	size_y)
+		int 	size_y,
+                DDouble  initvalue)
 {
     image_t    *	image_new ;
 
@@ -1717,6 +1728,9 @@ image_t * image_new(
     image_new->lx = size_x ;
     image_new->ly = size_y ;
     image_new->data = (pixelvalue *) calloc(size_x * size_y, sizeof(pixelvalue));
+ 
+    for (SizeT i=0; i < size_x * size_y; i++) (image_new->data)[i]=initvalue;
+    
     return image_new ;
 }
 
