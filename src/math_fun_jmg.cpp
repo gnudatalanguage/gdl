@@ -972,7 +972,7 @@ namespace lib {
     dimension dim(nCol,nRow);  
 //     dim.Set(0, nCol);
 //     dim.Set(1, nRow);
-    cout<<"shifting"<<endl;
+//    cout<<"shifting"<<endl;
     T1* res = new T1( dim, BaseGDL::NOZERO);
     T2 missed=missing;
     
