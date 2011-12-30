@@ -34,6 +34,9 @@ end
 ;
 pro TEST_GET_KBRD_WAIT, wait=wait
 ;
+if N_ELEMENTS(wait) EQ 0 then wait=1
+if wait LE 0 then wait=1
+;
 print, 'During 3 seconds delay, please type : azerty'
 WAIT, 3
 ;
