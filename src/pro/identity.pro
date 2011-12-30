@@ -1,10 +1,6 @@
-;$Id: identity.pro,v 1.2 2011-02-27 19:05:38 slayoo Exp $
-
-function identity, n,double=double_keyword
-
+;$Id: identity.pro,v 1.3 2011-12-30 02:02:47 alaingdl Exp $
+function IDENTITY, n, double=double_keyword, help=help
 ;+
-;
-;
 ;
 ; NAME:
 ;    identity
@@ -12,13 +8,11 @@ function identity, n,double=double_keyword
 ; PURPOSE: 
 ;   returns an n x n identity matrix
 ;
-;
 ; CATEGORY:
 ;   Mathematics: Matrices
 ;
 ; CALLING SEQUENCE:
-;   i=identity(4)
-;
+;   i=IDENTITY(4)
 ;
 ; KEYWORD PARAMETERS: 
 ;     DOUBLE_KEYWORD : Keyword for double precision calculation
@@ -26,13 +20,12 @@ function identity, n,double=double_keyword
 ; OUTPUTS:
 ;     The identity matrix
 ;
-;
 ; PROCEDURE:
 ;     Creates an n x n matrix, fills the diagonal elements with the
 ;     value 1.0
 ;
 ; EXAMPLE:
-;     i = identity(4)
+;     i = IDENTITY(4)
 ;     print, i
 ;     1.00000    0.00000   0.0000    0.00000
 ;     0.00000    1.00000   0.0000    0.00000
@@ -41,32 +34,35 @@ function identity, n,double=double_keyword
 ;
 ; MODIFICATION HISTORY:
 ; 	Written by:  2004-03-20 Christopher Lee.
-;
+;                    2011-12-17 G. Duvert (if n==1 !)
 ;
 ;-
 ; LICENCE:
-; Copyright (C) 2004,
+; Copyright (C) 2004, 2011
 ; This program is free software; you can redistribute it and/or modify  
 ; it under the terms of the GNU General Public License as published by  
 ; the Free Software Foundation; either version 2 of the License, or     
 ; (at your option) any later version.                                   
 ;
-;
 ;-
-
-
-
-on_Error, 2
-if(keyword_set(double_keyword)) then begin
-    id=dblarr(n,n)
-    for i=0, n-1 do id[i,i]=1.0
+;
+ON_ERROR, 2
+;
+if KEYWORD_SET(help) then begin
+    print, "function IDENTITY, n, double=double_keyword, help=help"
+    return, -1
+endif
+;
+diag=INDGEN(n)
+;
+if (KEYWORD_SET(double_keyword)) then begin
+    id=DBLARR(n,n)
 endif else begin
-    id=fltarr(n,n)
-    for i=0, n-1 do id[i,i]=1.0d
+    id=FLTARR(n,n)
 endelse
-
+;
+id(diag,diag)=1
+;
 return, id
-
-
-
+;
 end
