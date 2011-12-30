@@ -5470,7 +5470,12 @@ BaseGDL* transpose( EnvT* e)
 
   BaseGDL* get_kbrd( EnvT* e)
   {
-    SizeT nParam=e->NParam();
+#if defined(HAVE_LIBREADLINE)
+#include <readline/readline.h>
+      rl_prep_terminal (0);
+#endif
+      
+ SizeT nParam=e->NParam();
 
     bool doWait = true;
     if( nParam > 0)
@@ -5484,39 +5489,51 @@ BaseGDL* transpose( EnvT* e)
 	  }
       }
 
-//     if( doWait)
-//       {
- 
-// 	char c = cin.get();
-// 	DStringGDL* res = new DStringGDL( DString( i2s( c)));
-// 	return res;
-//       }
-//     else
-//       {
-// 	char c = cin.get();
-// 	DStringGDL* res = new DStringGDL( DString( i2s( c)));
-// 	return res;
-//       }
-
     // https://sourceforge.net/forum/forum.php?thread_id=3292183&forum_id=338691
-    // TODO Implement proper SCALAR parameter handling (doWait variable?). 
- 
+    // DONE: Implement proper SCALAR parameter handling (doWait variable)
+    // which is/was not blocking in the original program. 
+    // note: multi-byte input is not supported here.
+    
+    char c='\0'; //initialize is never a bad idea...
+
+    int fd=fileno(stdin);
     struct termios orig, get; 
-    (void)tcgetattr(fileno(stdin), &orig); 
-    get = orig; 
- 
-    // Disable terminal echoing and set it to non-canonical mode. 
-    get.c_lflag &= ~(ECHO|ICANON); 
- 
-    (void)tcsetattr(fileno(stdin), TCSANOW, &get); 
- 
-    char c = cin.get(); 
- 
+    
+    // Get terminal setup to revert to it at end. 
+    (void)tcgetattr(fd, &orig); 
+    // New terminal setup, non-canonical.
+    get.c_lflag = ISIG; 
+    if (doWait)
+    {
+     // will wait for a character
+     get.c_cc[VTIME]=0;
+     get.c_cc[VMIN]=1;
+     (void)tcsetattr(fd, TCSANOW, &get); 
+     cin.get(c);
+    }
+    else 
+    {
+     // will not wait, but return EOF or next character in terminal buffer if present
+     get.c_cc[VTIME]=0;
+     get.c_cc[VMIN]=0;
+     (void)tcsetattr(fd, TCSANOW, &get); 
+     //the trick is *not to use C++ functions here. cin.get would wait.*
+     c=std::fgetc(stdin);
+     //and to convert EOF to null (otherwise GDL may exit if not compiled with
+     //[lib][n]curses)
+     if(c==EOF) c='\0';
+    }
+    
     // Restore original terminal settings. 
-    (void)tcsetattr(fileno(stdin), TCSANOW, &orig); 
- 
+    (void)tcsetattr(fd, TCSANOW, &orig); 
+#if defined(HAVE_LIBREADLINE)
+    rl_deprep_terminal ();
+#endif
+
     DStringGDL* res = new DStringGDL( DString( i2s( c))); 
-    return res; 
+
+    return res;
+ 
   }
 
 
