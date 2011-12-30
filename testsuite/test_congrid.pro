@@ -48,7 +48,7 @@ if (SIZE(image, /n_dim) EQ 2) then gray_image=image
 ;screensize=GET_SCREEN_SIZE()
 ndims=SIZE(gray_image,/dim)
 ;
-stop
+;stop
 
 LOADCT, 28  
 DEVICE, DECOMPOSED = 0
