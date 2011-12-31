@@ -64,5 +64,6 @@
 #cmakedefine USE_NETCDF 1
 #cmakedefine USE_PYTHON 1
 #cmakedefine USE_UDUNITS 1
+#cmakedefine USE_PSLIB 1
 
 #endif
