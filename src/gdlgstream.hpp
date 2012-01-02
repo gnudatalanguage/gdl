@@ -40,7 +40,7 @@ protected:
   bool valid;
 
 public:
-  GDLGStream( int nx, int ny, const char *driver, const char *file="/dev/null")
+  GDLGStream( int nx, int ny, const char *driver, const char *file=NULL)
     : plstream( nx, ny, driver, file), valid( true)
   {
     if (!checkPlplotDriver(driver))
