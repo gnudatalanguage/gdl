@@ -191,7 +191,7 @@ private:
         goto cleanup;
       }
       const size_t buflen=4096;
-      unsigned char buff[buflen];;
+      unsigned char buff[buflen];
       while (true)
       {
         size_t cnt = fread(&buff, 1, buflen, fp);
@@ -460,8 +460,8 @@ public:
       private: GDLGStream *pls;
       private: int w, h;
       public: grid2d(GDLGStream *actStream, int w, int h) 
-        : pls(actStream), w(w), h(h) { pls->plAlloc2dGrid(&data, w, h); }
-      public: ~grid2d() { pls->plFree2dGrid(data, w, h); }
+        : pls(actStream), w(w), h(h) { pls->Alloc2dGrid(&data, w, h); }
+      public: ~grid2d() { pls->Free2dGrid(data, w, h); }
     } idata(actStream, width, height);
     for (int x=0; x < width; ++x)
       for (int y=0; y < height; ++y)
@@ -486,10 +486,11 @@ public:
     // TODO: map projection (via the last two arguments - same as was done in CONTOUR e.g.)
     bool mapSet = false;
 #ifdef USE_LIBPROJ4
-    get_mapset(mapSet);
+    //get_mapset(mapSet);
 #endif
     if (mapSet) e->Throw("PostScript + TV() + mapping cobination not available yet (FIXME!)");
 
+    //plimagefr(const_cast<const PLFLT**>(idata.data), width, height, xmin, xmax, ymin, ymax, 0., 255., 0., 255., NULL, NULL); 
     plimagefr(idata.data, width, height, xmin, xmax, ymin, ymax, 0., 255., 0., 255., NULL, NULL); 
   }
 

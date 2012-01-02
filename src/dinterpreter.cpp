@@ -949,7 +949,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
     {
 	  env->ResizeForLoops( nForLoopsIn);
       
-      cerr << "Unhandled GDL exception: " <<  e.toString() << endl;;
+      cerr << "Unhandled GDL exception: " <<  e.toString() << endl;
       return CC_OK;
     }
   catch( ANTLRException& e)

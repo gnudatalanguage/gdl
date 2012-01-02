@@ -1,8 +1,6 @@
-;$Id: appleman.pro,v 1.4 2011-12-30 01:12:30 alaingdl Exp $
-pro AppleMan, xRange, yRange, RESULT=res, $
+pro AppleMan,xRange,yRange,RESULT=res,XSIZE=xS,YSIZE=yS,$
               NoDisplay=NoDisplay, test=test, help=help
-;
-ON_ERROR, 2
+  on_error, 2
 ;+
 ;
 ; NAME:     appleman
@@ -54,13 +52,13 @@ if N_ELEMENTS(xRange) eq 0 then xRange = [ -1.0, 2.3]
 if N_ELEMENTS(yRange) eq 0 then yRange = [ -1.3, 1.3]
 ;
 iter = 255
-;
-xS = 640
-yS = 512
-;
-xD = FLOAT(xRange[1]-xRange[0])
-yD = FLOAT(yRange[1]-yRange[0])
-;
+
+if ~keyword_set(xS) then xS = 640
+if ~keyword_set(yS) then yS = 512
+
+xD = float(xRange[1]-xRange[0])
+yD = float(yRange[1]-yRange[0])
+
 xStep = xD / xS
 yStep = yD / yS
 ;
@@ -93,12 +91,11 @@ for i = 0, iter-1 do begin
    endif
 endfor
 
-if ~KEYWORD_SET(NoDisplay) then begin
-   LOADCT, 15
-   TV, res
+if ~arg_present(res) || ~KEYWORD_SET(NoDisplay) then begin
+  loadct,15
+  tv,res
 endif
-;
+
 if KEYWORD_SET(test) then STOP
 ;
 end
-;

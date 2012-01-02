@@ -422,7 +422,7 @@ void InitFrom( const GDLArray& right )
 {
 // 	// assert( sz == right.size());
 // 	if ( sz != right.size() )
-// 		ThrowGDLException ( "GDLArray::operator= operands have not same size (this: " + i2s ( sz ) +", right: " + i2s ( right.size() ) + ")");;
+// 		ThrowGDLException ( "GDLArray::operator= operands have not same size (this: " + i2s ( sz ) +", right: " + i2s ( right.size() ) + ")");
 	assert( &right != this);
  	assert ( sz == right.size() );
     std::memcpy(buf,right.buf,sz*sizeof(T));
@@ -431,7 +431,7 @@ void InitFrom( const GDLArray& right )
 GDLArray& operator= ( const GDLArray& right )
 {
 // 	if ( sz != right.size() )
-// 		ThrowGDLException ( "GDLArray::operator= operands have not same size (this: " + i2s ( sz ) +", right: " + i2s ( right.size() ) + ")");;
+// 		ThrowGDLException ( "GDLArray::operator= operands have not same size (this: " + i2s ( sz ) +", right: " + i2s ( right.size() ) + ")");
 
     assert( this != &right);
 	assert( sz == right.size());

@@ -72,7 +72,7 @@ public:
     const char **devnames = NULL;
 #endif
 
-    static vector<std::string> devNames;;
+    static vector<std::string> devNames;
 
     // do only once
     if( devNames.empty())

@@ -123,7 +123,7 @@ void LibInit_jmg()
   //       MAP_STRUCTURE, MLINESTYLE, MLINETHICK, SPACING, T3D, ZVALUE
   const string map_continentsKey[] = {"COLOR", "RIVERS", "COUNTRIES", 
     "HIRES", "FILL_CONTINENTS", KLISTEND};
-  const string map_continentsWarnKey[] = {"USA", KLISTEND};
+  const string map_continentsWarnKey[] = {"USA", "COASTS", KLISTEND};
   new DLibPro(lib::map_continents, string("MAP_CONTINENTS"), 0, 
     map_continentsKey, map_continentsWarnKey);
 
@@ -249,7 +249,7 @@ void LibInit_jmg()
  
 #endif
 
-  const string tvKey[]={"TRUE","NORMAL","CHANNEL","XSIZE","YSIZE","ORDER","DEVICE",KLISTEND};
+  const string tvKey[]={"TRUE","NORMAL","CHANNEL","XSIZE","YSIZE","ORDER","DEVICE","DATA",KLISTEND};
   new DLibPro(lib::tv,string("TV"),4,tvKey);
 
   const string tvrdKey[]={"CHANNEL","ORDER","TRUE","WORDS",KLISTEND};
