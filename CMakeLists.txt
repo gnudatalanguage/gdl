@@ -8,6 +8,7 @@
 #
 
 # tested with 2.4 and doesn't seem to run.
+# SA: 2.6 supports simplified if constructs, e.g. endif()
 cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
 
 project(GDL)
@@ -461,12 +462,44 @@ if(PYTHON OR PYTHON_MODULE)
 	if(PYTHON_MODULE)
 		set(PYTHON_MODULEMSG "Use -DPYTHON_MODULE=OFF to disable Python module.\n")
 	endif(PYTHON_MODULE)
-	set(CMAKE_PREFIX_PATH ${PYTHONDIR})
-	if(PYTHONVERSION)
-		find_package(PythonLibs ${PYTHONVERSION} EXACT QUIET)
-	else(PYTHONVERSION)
-		find_package(PythonLibs QUIET)
-	endif(PYTHONVERSION)
+	if(PYTHONDIR)
+		find_library(PYTHONLIBS 
+                  NAMES python${PYTHONVERSION}
+                  PATHS ${PYTHONDIR} 
+                  PATH_SUFFIXES lib lib/python${PYTHONVERSION}/config 
+                  NO_DEFAULT_PATH NO_CMAKE_PATH
+                )
+                string(COMPARE NOTEQUAL "${PYTHONLIBS}" "PYTHONLIBS-NOTFOUND" PYTHONLIBS_FOUND) 
+                if (NOT PYTHONLIBS_FOUND)
+                  message(FATAL_ERROR "Python libraries not found in ${PYTHONDIR}.")
+                else()
+                  set(PYTHON_LIBRARIES "${PYTHONLIBS}")
+                  message("-- Found Python libs: ${PYTHONLIBS}")
+                endif()
+                find_path(PYTHON_INCLUDE_DIRS 
+                  NAMES Python.h 
+                  PATHS ${PYTHONDIR}
+                  PATH_SUFFIXES include include/python${PYTHONVERSION}
+                  NO_DEFAULT_PATH NO_CMAKE_PATH
+                )
+                string(COMPARE NOTEQUAL "${PYTHONLIBS}" "PYTHON_INCLUDE_DIRS-NOTFOUND" PYTHONHEADERS_FOUND) 
+                if (PYTHONHEADERS_FOUND)
+                  message("-- Found Python headers: ${PYTHON_INCLUDE_DIRS}")
+                  set(PYTHON_INCLUDES "${PYTHON_INCLUDE_DIRS}")
+                else()
+                  message(FATAL_ERROR "Python headers not found in ${PYTHONDIR}.")
+                endif()
+                find_program(PYTHON_EXECUTABLE NAMES python${PYTHONVERSION} PATHS ${PYTHONDIR} PATH_SUFFIXES bin NO_DEFAULT_PATH NO_CMAKE_PATH)
+                string(COMPARE NOTEQUAL "${PYTHON_EXECUTABLE}" "PYTHON_EXECUTABLE-NOTFOUND" PYTHON_EXECUTABLE_FOUND) 
+                if(NOT PYTHON_EXECUTABLE_FOUND)
+                  message(FATAL_ERROR "Python executable not found in ${PYTHONDIR}.")
+                else()
+                  message("-- Found Python executable: ${PYTHON_EXECUTABLE}")
+                endif()
+	else()
+		find_package(PythonLibs)
+                include(FindPythonInterp)
+	endif()
 	set(USE_PYTHON ${PYTHONLIBS_FOUND})
 	if(PYTHONLIBS_FOUND)
 		find_package(Numpy QUIET)
@@ -475,12 +508,12 @@ if(PYTHON OR PYTHON_MODULE)
 			"${PYTHONMSG} ${PYTHON_MODULEMSG}")
 		endif(NOT PYTHON_NUMPY_FOUND)
 		set(LIBRARIES ${LIBRARIES} ${PYTHON_LIBRARIES})
-		include_directories(${PYTHON_INCLUDE_DIRS})	
+		include_directories(${PYTHON_INCLUDE_DIRS} ${PYTHON_NUMPY_INCLUDE_DIR})	
 	else(PYTHONLIBS_FOUND)
 		message(FATAL_ERROR "Python is required but was not found.\n"
 		"Use -DPYTHONDIR=DIR to specify the Python directory tree.\n"
-		"${PYTHONMSG} ${PYTHON_MODULEMSG}"
-		"Use -DPYTHONVERSION=VERSION to help searching for the right version.")
+                "Use -DPYTHONVERSION=VERSION to help searching for the right version.")
+		"${PYTHONMSG} ${PYTHON_MODULEMSG}")
 	endif(PYTHONLIBS_FOUND)
 endif(PYTHON OR PYTHON_MODULE)
 
