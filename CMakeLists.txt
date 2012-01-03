@@ -512,7 +512,7 @@ if(PYTHON OR PYTHON_MODULE)
 	else(PYTHONLIBS_FOUND)
 		message(FATAL_ERROR "Python is required but was not found.\n"
 		"Use -DPYTHONDIR=DIR to specify the Python directory tree.\n"
-                "Use -DPYTHONVERSION=VERSION to help searching for the right version.")
+                "Use -DPYTHONVERSION=VERSION to help searching for the right version."
 		"${PYTHONMSG} ${PYTHON_MODULEMSG}")
 	endif(PYTHONLIBS_FOUND)
 endif(PYTHON OR PYTHON_MODULE)
