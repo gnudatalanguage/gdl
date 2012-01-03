@@ -19,7 +19,7 @@
 echo -n "--- Generating routinelist.tmp file (may take a while) ... "
 newest=`ls -1 -t ../../src/pro/*.pro ../../src/gdl ./gdl.pro ./routinelist.pro | head -1`
 if `test ! -e routinelist.tmp` || `test $newest -nt routinelist.tmp`; then
-  ../../src/gdl -quiet -e "routinelist, 'routinelist.tmp'" &>routinelist.log;
+  IDL_PATH= GDL_PATH=+../../src/pro ../../src/gdl -quiet -e "routinelist, 'routinelist.tmp'" &>routinelist.log;
   if `test 0 -eq $?`; then
     echo "done";
   else

@@ -1,0 +1,5 @@
+<Expression>    LONG      =            3
+<Expression>    LONG      =            3
+% STRPOS: Ambiguous keyword abbreviation: REV
+% Execution halted at: $MAIN$          
+<Expression>    LONG      =            1
