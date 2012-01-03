@@ -490,8 +490,7 @@ public:
 #endif
     if (mapSet) e->Throw("PostScript + TV() + mapping cobination not available yet (FIXME!)");
 
-    //plimagefr(const_cast<const PLFLT**>(idata.data), width, height, xmin, xmax, ymin, ymax, 0., 255., 0., 255., NULL, NULL); 
-    plimagefr(idata.data, width, height, xmin, xmax, ymin, ymax, 0., 255., 0., 255., NULL, NULL); 
+    actStream->imagefr(idata.data, width, height, xmin, xmax, ymin, ymax, 0., 255., 0., 255., NULL, NULL); 
   }
 
 };
