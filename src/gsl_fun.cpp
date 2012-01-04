@@ -878,10 +878,22 @@ namespace lib {
 		       DDoubleGDL* binomialKey, DDoubleGDL* poissonKey)
   {
     SizeT nEl = res->N_Elements();
+    int debug=0;
 
     if( e->KeywordSet(1)) {// GAMMA
       DLong n;
       e->AssureLongScalarKWIfPresent( "GAMMA", n);
+      if (debug) cout << "(Int) Gamma Value: "<< n << endl;
+      if (n == 0) {
+	DDouble test_n;
+	e->AssureDoubleScalarKWIfPresent( "GAMMA", test_n);
+	if (debug) cout << "(Double) Gamma Value: "<< test_n << endl;
+	if (test_n > 0.0) n=1;
+      }
+      if (n <= 0)
+	e->Throw("Value of (Int/Long) GAMMA is out of allowed range: Gamma = 1, 2, 3, ...");    
+      if (debug) cout << "(Effective) Gamma Value: "<< n << endl;
+
       for( SizeT i=0; i<nEl; ++i) (*res)[ i] = 
 				    (T2) gsl_ran_gamma_int (r,n);
     } else if( e->KeywordSet(3)) { // NORMAL
