@@ -877,10 +877,20 @@ namespace lib {
 		       dimension dim, 
 		       DDoubleGDL* binomialKey, DDoubleGDL* poissonKey)
   {
-    SizeT nEl = res->N_Elements();
     int debug=0;
 
-    if( e->KeywordSet(1)) {// GAMMA
+    // testing Exclusive Keywords ...
+    int exclusiveKW= e->KeywordPresent(e->KeywordIx("GAMMA"));
+    exclusiveKW=exclusiveKW+ e->KeywordPresent(e->KeywordIx("NORMAL"));
+    exclusiveKW=exclusiveKW+ e->KeywordPresent(e->KeywordIx("BINOMIAL"));
+    exclusiveKW=exclusiveKW+ e->KeywordPresent(e->KeywordIx("POISSON"));
+    exclusiveKW=exclusiveKW+ e->KeywordPresent(e->KeywordIx("UNIFORM"));
+
+    if (exclusiveKW > 1) e->Throw("Conflicting keywords.");
+
+    SizeT nEl = res->N_Elements();
+
+    if (e->KeywordPresent(e->KeywordIx("GAMMA"))) {
       DLong n;
       e->AssureLongScalarKWIfPresent( "GAMMA", n);
       if (debug) cout << "(Int) Gamma Value: "<< n << endl;
@@ -896,22 +906,23 @@ namespace lib {
 
       for( SizeT i=0; i<nEl; ++i) (*res)[ i] = 
 				    (T2) gsl_ran_gamma_int (r,n);
-    } else if( e->KeywordSet(3)) { // NORMAL
-      SizeT nEl = res->N_Elements();
-      for( SizeT i=0; i<nEl; ++i) (*res)[ i] =
-				    (T2) gsl_ran_ugaussian (r);
-    } else if( e->KeywordSet(4)) { // BINOMIAL
+      return 0;
+    }
+
+    if (e->KeywordPresent(e->KeywordIx("BINOMIAL"))) {
       if (binomialKey != NULL) {
 	DULong  n = (DULong)  (*binomialKey)[0];
 	DDouble p = (DDouble) (*binomialKey)[1];
-	SizeT nEl = res->N_Elements();
+	if (debug) cout << "Binomial Values (n,p): "<< n << " " << p << endl;
 	for( SizeT i=0; i<nEl; ++i) (*res)[ i] =
 				      (T2) gsl_ran_binomial (r, p, n);
       }
-    } else if( e->KeywordSet(5)) { // POISSON
+      return 0;
+    } 
+
+    if( e->KeywordSet("POISSON")) { // POISSON
       if (poissonKey != NULL) {
 	DDouble mu = (DDouble) (*poissonKey)[0];
-	SizeT nEl = res->N_Elements();
 	if (mu < 100000) {
 	  for( SizeT i=0; i<nEl; ++i) (*res)[ i] =
 					(T2) gsl_ran_poisson (r, mu);
@@ -922,19 +933,20 @@ namespace lib {
 	  for( SizeT i=0; i<nEl; ++i) (*res)[ i] += mu;
 	}
       }
-    } else if( e->KeywordSet(6)) { // UNIFORM
-      SizeT nEl = res->N_Elements();
-      for( SizeT i=0; i<nEl; ++i) (*res)[ i] =
-				    (T2) gsl_rng_uniform (r);
-    } else if ( e->GetProName() == "RANDOMU") {
-      for( SizeT i=0; i<nEl; ++i) (*res)[ i] = 
-				    (T2) gsl_rng_uniform (r);
-    } else if ( e->GetProName() == "RANDOMN") {
-      for( SizeT i=0; i<nEl; ++i) (*res)[ i] = 
-				    (T2) gsl_ran_ugaussian (r);
+      return 0;
     }
 
-    return 0;
+    if (e->KeywordSet("UNIFORM") || ((e->GetProName() == "RANDOMU") && !e->KeywordSet("NORMAL"))) {
+      for( SizeT i=0; i<nEl; ++i) (*res)[ i] =
+				    (T2) gsl_rng_uniform (r);
+      return 0;
+    } 
+
+    if (e->KeywordSet("NORMAL") || ((e->GetProName() == "RANDOMN") && !e->KeywordSet("UNIFORM"))) {
+      for( SizeT i=0; i<nEl; ++i) (*res)[ i] = 
+				    (T2) gsl_ran_ugaussian (r);
+      return 0;
+    }
   }
 
 
@@ -1017,12 +1029,8 @@ namespace lib {
 	if( binomialKey != NULL)
 	{
 	    SizeT nBinomialKey = binomialKey->N_Elements();
-	    if (nBinomialKey != 2) {
+	    if (nBinomialKey != 2)
 	      e->Throw("Keyword array parameter BINOMIAL must have 2 elements.");
-	    } else {
-	      e->Throw("AC 2011-11-30 : BINOMIAL: code is wrong now.");
-	    }
-
 	    if (((*binomialKey)[1] < 0.0) || ((*binomialKey)[1] > 1.0))
 	      e->Throw(" Value of BINOMIAL[1] is out of allowed range: 0.0 <= p <= 1.0");
 	}
