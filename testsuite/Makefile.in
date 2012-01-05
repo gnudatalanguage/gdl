@@ -308,6 +308,7 @@ TESTS = \
   test_python_module_0.pro \
   test_python_module_1.pro \
   test_python_module_2.pro \
+  test_random.pro \
   test_readf.pro \
   test_rebin.pro \
   test_rk4.pro \
