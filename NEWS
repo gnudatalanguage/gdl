@@ -535,7 +535,7 @@
            - memory leak fix (bug introduced in the previous version)
            - various testsuite & docs updates (incl. docs and examples for CALL_EXTERNAL)
 	   - fix in WordExp() when filename argument contain whitespaces (useful in various cases, including 
-	     OPENR/W, FILE_MKDIR, ...)
+	     OPENR/W, FILE_MKDIR, ...) [AC 2012/01/04: not finished :( 
 	   - !version.os now in lower case for Linux and Darwin
 
 0.9.3:
@@ -545,6 +545,8 @@
 	   - keyword /NaN for HISTOGRAM
 	   - Initial import of LUDC, LUSOL and DETERM, OK now only for DOUBLE
 	   - Initial import of CONGRID and BILINEAR
+	   - Initial import of TV for PS output
+	   - fix in RANDOMN/RANDOMU (Binomial OK, conflicting keywords detected ...)
 
 
 
