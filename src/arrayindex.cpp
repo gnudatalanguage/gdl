@@ -67,7 +67,7 @@ SizeT ArrayIndexScalar::NIter( SizeT varDim)
   
   if( s < 0)
     throw GDLException("Scalar subscript out of range [<].c");
-  if( s >= varDim)
+  if( s >= varDim && s > 0) // s == 0 is fine
     throw GDLException("Scalar subscript out of range [>].c");
   return 1;
 }
@@ -81,7 +81,7 @@ SizeT ArrayIndexScalarVP::NIter( SizeT varDim)
   
   if( s < 0)
     throw GDLException("Scalar subscript out of range [<].d");
-  if( s >= varDim)
+  if( s >= varDim && s > 0) // s == 0 is fine
     throw GDLException("Scalar subscript out of range [>].d");
   return 1;
 }
