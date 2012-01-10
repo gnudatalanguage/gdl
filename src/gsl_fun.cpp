@@ -25,6 +25,7 @@
 #include "basic_fun.hpp"
 #include "gsl_fun.hpp"
 #include "dinterpreter.hpp"
+//#include "libinit_ac.cpp"
 
 #include <gsl/gsl_sys.h>
 #include <gsl/gsl_linalg.h>
@@ -43,6 +44,9 @@
 // newton/broyden
 #include <gsl/gsl_multiroots.h>
 #include <gsl/gsl_vector.h>
+
+// numerical integration (alternative to Qromb)
+#include <gsl/gsl_integration.h>
 
 // constant
 #include <gsl/gsl_const_mksa.h>
@@ -2224,6 +2228,7 @@ namespace lib {
       }
   }
 
+
   // gsl_multiroot_function-compatible function serving as a wrapper to the 
   // user-defined function passed (by name) as the second arg. to NEWTON or BROYDEN
   class n_b_param 
@@ -2417,6 +2422,104 @@ res_guard.reset (dres);
       BaseGDL::CONVERT
     );
   }
+
+  // -------------------------------------------------------------------------
+  // GSL don't have implementations of QROMB and QROMO but alternatives
+
+  // AC, 10 Jan 2011, to have it for iCosmos
+
+  class qromb_param 
+  { 
+    public: 
+    EnvT* envt; 
+    EnvUDT* nenvt; 
+    DDoubleGDL* arg; 
+    string errmsg; 
+  };
+
+  double qromb_function(double x, void* params)
+  {
+    qromb_param *p = static_cast<qromb_param*>(params);
+    // copying from GSL to GDL
+    //    for (size_t i = 0; i < x->size; i++) (*(p->arg))[i] = gsl_vector_get(x, i);
+    // executing GDL code
+    (*(p->arg))[0]=x;
+
+    BaseGDL* res;
+    res = p->envt->Interpreter()->call_fun(static_cast<DSubUD*>(p->nenvt->GetPro())->GetTree());
+
+    return (*static_cast<DDoubleGDL*>(res))[0]; 
+  }
+
+  // AC: the library routine is registered in libinit_ac.cpp
+  BaseGDL* qromb_fun(EnvT* e)
+  {
+    int debug=0;
+
+    // sanity check (for number of parameters)
+    SizeT nParam = e->NParam();
+
+    // 2-nd argument : initial bound
+    BaseGDL* p1 = e->GetParDefined(1);
+    BaseGDL* par1 = p1->Convert2(DOUBLE, BaseGDL::COPY);
+    auto_ptr<BaseGDL> par1_guard(par1);
+    // 3-th argument : final bound
+    BaseGDL* p2 = e->GetParDefined(2);
+    BaseGDL* par2 = p2->Convert2(DOUBLE, BaseGDL::COPY);
+    auto_ptr<BaseGDL> par2_guard(par2);
+
+
+    // 1-st argument : name of user function defining the system
+    DString fun;
+    e->AssureScalarPar<DStringGDL>(0, fun);
+    fun = StrUpCase(fun);
+    if (LibFunIx(fun) != -1)
+      e->Throw("only user-defined functions allowed (library-routine name given)");
+
+    // GDL magick
+    StackGuard<EnvStackT> guard(e->Interpreter()->CallStack());
+    EnvUDT* newEnv = new EnvUDT(e, funList[GDLInterpreter::GetFunIx(fun)], NULL);
+    newEnv->SetNextPar(&par1);
+    e->Interpreter()->CallStack().push_back(newEnv);
+
+    // GSL function parameter initialization  
+    qromb_param param;
+    param.envt = e;
+    param.nenvt = newEnv;
+    param.arg = static_cast<DDoubleGDL*>(par1); 
+    
+    // GSL function initialization
+    gsl_function F; 
+    F.function = &qromb_function;
+    F.params = &param;
+  
+    double result, error;
+    double first, last;
+    first=(*static_cast<DDoubleGDL*>(par1))[0];
+    last=(*static_cast<DDoubleGDL*>(par2))[0];
+
+    if (debug) cout << "Boundaries : "<< first << " " << last <<endl;
+
+    gsl_integration_workspace *w = gsl_integration_workspace_alloc (1000);
+    gsl_integration_qag (&F, first, last, 0, 1e-7, GSL_INTEG_GAUSS61, 1000, w, &result, &error); 
+    gsl_integration_workspace_free (w);
+
+    if (debug) cout << "Result : " << result << endl;
+
+    DDoubleGDL* res ;
+    res = new DDoubleGDL(1, BaseGDL::NOZERO);
+    (*res)[0]=result;
+    
+    if (e->KeywordSet("DOUBLE") || p1->Type() == DOUBLE || p2->Type() == DOUBLE)
+      {
+	return res;
+      }
+    else
+      {
+	return res->Convert2(FLOAT, BaseGDL::CONVERT);
+      }
+  }
+
 
   /*
    * SA: TODO:
