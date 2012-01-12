@@ -52,8 +52,10 @@ void LibInit_ac()
   const string determKey[]={"DOUBLE",KLISTEND};
   new DLibFun(lib::determ_fun,string("DETERM"),1,determKey);
 
-  // QROMB/QROMO
-  const string qrombKey[]={"DOUBLE","EPS","JMAX", "K",KLISTEND};
+  // QSIMP/QROMB/QROMO (we used same code for QSIMP and QROMB)
+  const string qsimpKey[]={"DOUBLE","EPS","JMAX",KLISTEND};
+  new DLibFun(lib::qromb_fun,string("QSIMP"),3,qsimpKey);
+  const string qrombKey[]={"DOUBLE","EPS","JMAX","K",KLISTEND};
   new DLibFun(lib::qromb_fun,string("QROMB"),3,qrombKey);
 
 #endif
