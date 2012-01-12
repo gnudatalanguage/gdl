@@ -547,6 +547,6 @@
 	   - Initial import of CONGRID and BILINEAR
 	   - Initial import of TV for PS output
 	   - fix in RANDOMN/RANDOMU (Binomial OK, conflicting keywords detected ...)
-           - Initial import for QROMB(), not for arrays
+           - Initial import for QROMB() and QSIMP()
 
 
