@@ -2440,11 +2440,7 @@ res_guard.reset (dres);
   double qromb_function(double x, void* params)
   {
     qromb_param *p = static_cast<qromb_param*>(params);
-    // copying from GSL to GDL
-    //    for (size_t i = 0; i < x->size; i++) (*(p->arg))[i] = gsl_vector_get(x, i);
-    // executing GDL code
     (*(p->arg))[0]=x;
-
     BaseGDL* res;
     res = p->envt->Interpreter()->call_fun(static_cast<DSubUD*>(p->nenvt->GetPro())->GetTree());
 
@@ -2463,11 +2459,11 @@ res_guard.reset (dres);
     BaseGDL* p1 = e->GetParDefined(1);
     BaseGDL* par1 = p1->Convert2(DOUBLE, BaseGDL::COPY);
     auto_ptr<BaseGDL> par1_guard(par1);
+
     // 3-th argument : final bound
     BaseGDL* p2 = e->GetParDefined(2);
     BaseGDL* par2 = p2->Convert2(DOUBLE, BaseGDL::COPY);
     auto_ptr<BaseGDL> par2_guard(par2);
-
 
     // 1-st argument : name of user function defining the system
     DString fun;
@@ -2495,21 +2491,35 @@ res_guard.reset (dres);
   
     double result, error;
     double first, last;
-    first=(*static_cast<DDoubleGDL*>(par1))[0];
-    last=(*static_cast<DDoubleGDL*>(par2))[0];
 
-    if (debug) cout << "Boundaries : "<< first << " " << last <<endl;
-
+    SizeT nEl1=par1->N_Elements();
+    SizeT nEl2=par2->N_Elements();
+    SizeT nEl=nEl1;
+    DDoubleGDL* res;
+    if (nEl1 <= nEl2) {
+      res=new DDoubleGDL(par1->Dim(), BaseGDL::NOZERO);      
+    } else {
+      res=new DDoubleGDL(par2->Dim(), BaseGDL::NOZERO);
+      nEl=nEl2;
+    }
     gsl_integration_workspace *w = gsl_integration_workspace_alloc (1000);
-    gsl_integration_qag (&F, first, last, 0, 1e-7, GSL_INTEG_GAUSS61, 1000, w, &result, &error); 
+
+    for( SizeT i=0; i<nEl; i++) {
+      first=(*static_cast<DDoubleGDL*>(par1))[i];
+      last =(*static_cast<DDoubleGDL*>(par2))[i];
+
+      if (debug) cout << "Boundaries : "<< first << " " << last <<endl;
+
+      gsl_integration_qag (&F, first, last, 0, 1e-7, GSL_INTEG_GAUSS61,
+			   1000, w, &result, &error); 
+
+      if (debug) cout << "Result : " << result << endl;
+
+      (*res)[i]=result;
+    }
+
     gsl_integration_workspace_free (w);
-
-    if (debug) cout << "Result : " << result << endl;
-
-    DDoubleGDL* res ;
-    res = new DDoubleGDL(1, BaseGDL::NOZERO);
-    (*res)[0]=result;
-    
+ 
     if (e->KeywordSet("DOUBLE") || p1->Type() == DOUBLE || p2->Type() == DOUBLE)
       {
 	return res;
