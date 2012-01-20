@@ -2496,17 +2496,33 @@ res_guard.reset (dres);
     SizeT nEl2=par2->N_Elements();
     SizeT nEl=nEl1;
     DDoubleGDL* res;
-    if (nEl1 <= nEl2) {
-      res=new DDoubleGDL(par1->Dim(), BaseGDL::NOZERO);      
+
+    if (nEl1 == 1 || nEl2 == 1) {
+      if (nEl1 == 1) {
+	nEl=nEl2;
+	res=new DDoubleGDL(par2->Dim(), BaseGDL::NOZERO);
+      }
+      if (nEl2 == 1) {
+	res=new DDoubleGDL(par1->Dim(), BaseGDL::NOZERO);
+	nEl=nEl1;
+      }
     } else {
-      res=new DDoubleGDL(par2->Dim(), BaseGDL::NOZERO);
-      nEl=nEl2;
-    }
+      if (nEl1 <= nEl2) {
+	res=new DDoubleGDL(par1->Dim(), BaseGDL::NOZERO);      
+      } else {
+	res=new DDoubleGDL(par2->Dim(), BaseGDL::NOZERO);
+	nEl=nEl2;
+      }
+    }  
+    
     gsl_integration_workspace *w = gsl_integration_workspace_alloc (1000);
 
+    first=(*static_cast<DDoubleGDL*>(par1))[0];
+    last =(*static_cast<DDoubleGDL*>(par2))[0];
+    
     for( SizeT i=0; i<nEl; i++) {
-      first=(*static_cast<DDoubleGDL*>(par1))[i];
-      last =(*static_cast<DDoubleGDL*>(par2))[i];
+      if (nEl1 > 1) {first=(*static_cast<DDoubleGDL*>(par1))[i];}
+      if (nEl2 > 1) {last =(*static_cast<DDoubleGDL*>(par2))[i];}
 
       if (debug) cout << "Boundaries : "<< first << " " << last <<endl;
 
