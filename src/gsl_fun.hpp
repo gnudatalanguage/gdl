@@ -51,6 +51,7 @@ namespace lib {
 
   // the following by AC
   BaseGDL* qromb_fun(EnvT* e);
+  BaseGDL* qromo_fun(EnvT* e);
 
   // the following by SA
   BaseGDL* newton_broyden(EnvT* e);

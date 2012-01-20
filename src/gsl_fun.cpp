@@ -25,7 +25,7 @@
 #include "basic_fun.hpp"
 #include "gsl_fun.hpp"
 #include "dinterpreter.hpp"
-//#include "libinit_ac.cpp"
+#include "libinit_ac.cpp"
 
 #include <gsl/gsl_sys.h>
 #include <gsl/gsl_linalg.h>
@@ -2253,7 +2253,9 @@ namespace lib {
     // NO!!! the return value of call_fun() is always owned by the caller (constants are Dup()ed)
    auto_ptr<BaseGDL> res_guard(res);
     // sanity checks
-    if (res->Rank() != 1 || res->N_Elements() != x->size) 
+   if (res->Rank() != 1 || res->N_Elements() != x->size) 
+   //AC for iCosmo
+   // if (res->N_Elements() != x->size) 
     {
       p->errmsg = "user-defined function must evaluate to a vector of the size of its argument";
       return GSL_EBADFUNC;
@@ -2320,7 +2322,8 @@ res_guard.reset (dres);
     SizeT nParam = e->NParam();
 
     // 1-st argument : initial guess vector
-    BaseGDL* p0 = e->GetParDefined(0);   
+    BaseGDL* p0 = e->GetParDefined(0);
+    //AC for iCosmo
     if (p0->Rank() != 1) e->Throw("the first argument is expected to be a vector");
     BaseGDL* par = p0->Convert2(DOUBLE, BaseGDL::COPY);
     auto_ptr<BaseGDL> par_guard(par);
@@ -2545,6 +2548,105 @@ res_guard.reset (dres);
 	return res->Convert2(FLOAT, BaseGDL::CONVERT);
       }
   }
+
+  // AC: the library routine is registered in libinit_ac.cpp
+  BaseGDL* qromo_fun(EnvT* e)
+  {
+    int debug=0;
+
+    // sanity check (for number of parameters)
+    SizeT nParam = e->NParam();
+
+    // 2-nd argument : initial bound
+    BaseGDL* p1 = e->GetParDefined(1);
+    BaseGDL* par1 = p1->Convert2(DOUBLE, BaseGDL::COPY);
+    auto_ptr<BaseGDL> par1_guard(par1);
+
+    // 3-th argument : final bound
+    BaseGDL* p2 = e->GetParDefined(2);
+    BaseGDL* par2 = p2->Convert2(DOUBLE, BaseGDL::COPY);
+    auto_ptr<BaseGDL> par2_guard(par2);
+
+    // 1-st argument : name of user function defining the system
+    DString fun;
+    e->AssureScalarPar<DStringGDL>(0, fun);
+    fun = StrUpCase(fun);
+    if (LibFunIx(fun) != -1)
+      e->Throw("only user-defined functions allowed (library-routine name given)");
+
+    // GDL magick
+    StackGuard<EnvStackT> guard(e->Interpreter()->CallStack());
+    EnvUDT* newEnv = new EnvUDT(e, funList[GDLInterpreter::GetFunIx(fun)], NULL);
+    newEnv->SetNextPar(&par1);
+    e->Interpreter()->CallStack().push_back(newEnv);
+
+    // GSL function parameter initialization  
+    qromb_param param;
+    param.envt = e;
+    param.nenvt = newEnv;
+    param.arg = static_cast<DDoubleGDL*>(par1); 
+    
+    // GSL function initialization
+    gsl_function F; 
+    F.function = &qromb_function;
+    F.params = &param;
+  
+    double result, error;
+    double first, last;
+
+    SizeT nEl1=par1->N_Elements();
+    SizeT nEl2=par2->N_Elements();
+    SizeT nEl=nEl1;
+    DDoubleGDL* res;
+
+    if (nEl1 == 1 || nEl2 == 1) {
+      if (nEl1 == 1) {
+	nEl=nEl2;
+	res=new DDoubleGDL(par2->Dim(), BaseGDL::NOZERO);
+      }
+      if (nEl2 == 1) {
+	res=new DDoubleGDL(par1->Dim(), BaseGDL::NOZERO);
+	nEl=nEl1;
+      }
+    } else {
+      if (nEl1 <= nEl2) {
+	res=new DDoubleGDL(par1->Dim(), BaseGDL::NOZERO);      
+      } else {
+	res=new DDoubleGDL(par2->Dim(), BaseGDL::NOZERO);
+	nEl=nEl2;
+      }
+    }  
+    
+    gsl_integration_workspace *w = gsl_integration_workspace_alloc (1000);
+
+    first=(*static_cast<DDoubleGDL*>(par1))[0];
+    last =(*static_cast<DDoubleGDL*>(par2))[0];
+    
+    for( SizeT i=0; i<nEl; i++) {
+      if (nEl1 > 1) {first=(*static_cast<DDoubleGDL*>(par1))[i];}
+      if (nEl2 > 1) {last =(*static_cast<DDoubleGDL*>(par2))[i];}
+
+      if (debug) cout << "Boundaries : "<< first << " " << last <<endl;
+
+      gsl_integration_qagiu(&F, first, 0, 1e-7, 1000, w, &result, &error); 
+
+      if (debug) cout << "Result : " << result << endl;
+
+      (*res)[i]=result;
+    }
+
+    gsl_integration_workspace_free (w);
+ 
+    if (e->KeywordSet("DOUBLE") || p1->Type() == DOUBLE || p2->Type() == DOUBLE)
+      {
+	return res;
+      }
+    else
+      {
+	return res->Convert2(FLOAT, BaseGDL::CONVERT);
+      }
+  }
+
 
 
   /*
