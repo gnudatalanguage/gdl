@@ -2252,12 +2252,12 @@ namespace lib {
     // TODO: no guarding if res is an optimized constant
     // NO!!! the return value of call_fun() is always owned by the caller (constants are Dup()ed)
    auto_ptr<BaseGDL> res_guard(res);
-    // sanity checks
-   if (res->Rank() != 1 || res->N_Elements() != x->size) 
+   // sanity checks
+   //   if (res->Rank() != 1 || res->N_Elements() != x->size) 
    //AC for iCosmo
-   // if (res->N_Elements() != x->size) 
-    {
-      p->errmsg = "user-defined function must evaluate to a vector of the size of its argument";
+   if (res->N_Elements() != x->size) 
+     {
+       p->errmsg = "user-defined function must evaluate to a vector of the size of its argument";
       return GSL_EBADFUNC;
     }
     DDoubleGDL* dres;
@@ -2324,7 +2324,7 @@ res_guard.reset (dres);
     // 1-st argument : initial guess vector
     BaseGDL* p0 = e->GetParDefined(0);
     //AC for iCosmo
-    if (p0->Rank() != 1) e->Throw("the first argument is expected to be a vector");
+    //if (p0->Rank() != 1) e->Throw("the first argument is expected to be a vector");
     BaseGDL* par = p0->Convert2(DOUBLE, BaseGDL::COPY);
     auto_ptr<BaseGDL> par_guard(par);
 
@@ -2627,8 +2627,13 @@ res_guard.reset (dres);
       if (nEl2 > 1) {last =(*static_cast<DDoubleGDL*>(par2))[i];}
 
       if (debug) cout << "Boundaries : "<< first << " " << last <<endl;
+      
+      // intregation on open range ]first,last[
+      gsl_integration_qags(&F, first, last, 0, 1e-7, 1000, w, &result, &error);
 
-      gsl_integration_qagiu(&F, first, 0, 1e-7, 1000, w, &result, &error); 
+      // unfinished
+      // intregation on open range [first,+inf[
+      // gsl_integration_qagiu(&F, first, 0, 1e-7, 1000, w, &result, &error); 
 
       if (debug) cout << "Result : " << result << endl;
 
