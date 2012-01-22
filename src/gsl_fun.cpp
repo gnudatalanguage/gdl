@@ -2562,11 +2562,12 @@ res_guard.reset (dres);
     BaseGDL* par1 = p1->Convert2(DOUBLE, BaseGDL::COPY);
     auto_ptr<BaseGDL> par1_guard(par1);
 
+    //   if (!e->KeywordSet("MIDEXP")) {
     // 3-th argument : final bound
     BaseGDL* p2 = e->GetParDefined(2);
     BaseGDL* par2 = p2->Convert2(DOUBLE, BaseGDL::COPY);
     auto_ptr<BaseGDL> par2_guard(par2);
-
+    
     // 1-st argument : name of user function defining the system
     DString fun;
     e->AssureScalarPar<DStringGDL>(0, fun);
@@ -2595,6 +2596,8 @@ res_guard.reset (dres);
     double first, last;
 
     SizeT nEl1=par1->N_Elements();
+    //SizeT nEl2=nEl1;
+    //if (!e->KeywordSet("MIDEXP"))
     SizeT nEl2=par2->N_Elements();
     SizeT nEl=nEl1;
     DDoubleGDL* res;
@@ -2620,7 +2623,7 @@ res_guard.reset (dres);
     gsl_integration_workspace *w = gsl_integration_workspace_alloc (1000);
 
     first=(*static_cast<DDoubleGDL*>(par1))[0];
-    last =(*static_cast<DDoubleGDL*>(par2))[0];
+    if (!e->KeywordSet("MIDEXP")) last =(*static_cast<DDoubleGDL*>(par2))[0];
     
     for( SizeT i=0; i<nEl; i++) {
       if (nEl1 > 1) {first=(*static_cast<DDoubleGDL*>(par1))[i];}
@@ -2628,15 +2631,22 @@ res_guard.reset (dres);
 
       if (debug) cout << "Boundaries : "<< first << " " << last <<endl;
       
-      // intregation on open range ]first,last[
-      gsl_integration_qags(&F, first, last, 0, 1e-7, 1000, w, &result, &error);
+      // MIDEXP, MIDINF, MIDPNT, MIDSQL, MIDSQU
 
-      // unfinished
       // intregation on open range [first,+inf[
-      // gsl_integration_qagiu(&F, first, 0, 1e-7, 1000, w, &result, &error); 
+      if (e->KeywordSet("MIDEXP"))
+	{
+	  gsl_integration_qagiu(&F, first, 0, 1e-7, 1000, w, &result, &error);
+	} 
+      else
+	{	
+	  if (nEl2 > 1) {last =(*static_cast<DDoubleGDL*>(par2))[i];}	  
+	  // intregation on open range ]first,last[
+	  gsl_integration_qags(&F, first, last, 0, 1e-7, 1000, w, &result, &error);
+	}
 
       if (debug) cout << "Result : " << result << endl;
-
+      
       (*res)[i]=result;
     }
 

@@ -21,7 +21,16 @@ common agnesi_param, a
 if N_ELEMENTS(param) EQ 0 then a=1. else a=param[0]
 ;
 if N_ELEMENTS(param) EQ 0 then debut=2.0 else debut=value[0]
-print, QROMO('AGNESI_SQUARE', debut, /MIDEXP)
+;
+; hum, not all is solved in QROMO :((
+;
+print, 'infinite integration:'
+DEFSYSV, '!gdl', exists=isGDL
+if ~isGDL then print, QROMO('AGNESI_SQUARE', debut, /MIDEXP)
+if isGDL then print, QROMO('AGNESI_SQUARE', debut, 0., /MIDEXP)
+;
+print, 'finite integration:'
+print, QROMO('AGNESI_SQUARE', debut, 4.)
 ;
 end
 ;

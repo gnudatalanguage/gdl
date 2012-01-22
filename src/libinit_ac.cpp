@@ -57,7 +57,8 @@ void LibInit_ac()
   new DLibFun(lib::qromb_fun,string("QSIMP"),3,qsimpKey);
   const string qrombKey[]={"DOUBLE","EPS","JMAX","K",KLISTEND};
   new DLibFun(lib::qromb_fun,string("QROMB"),3,qrombKey);
-  const string qromoKey[]={"DOUBLE","EPS","JMAX","K",KLISTEND};
+  const string qromoKey[]={"DOUBLE","EPS","JMAX","K","MIDEXP",
+			   "MIDINF","MIDPNT","MIDSQL","MIDSQU",KLISTEND};
   new DLibFun(lib::qromo_fun,string("QROMO"),3,qromoKey);
 
 #endif
