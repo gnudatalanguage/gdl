@@ -519,12 +519,12 @@ void LibInit()
      "YTICKS",    "YTITLE", "ZCHARSIZE",    "ZGRIDSTYLE", "ZMARGIN", "ZMINOR",
      "ZRANGE",    "ZSTYLE",     "ZTHICK",  "ZTICKFORMAT",
      "ZTICKLEN",  "ZTICKS",    "ZTITLE", "ZVALUE", "MAX_VALUE", "MIN_VALUE",
-     "XLOG",      "YLOG",     "YNOZERO", "XTYPE", "YTYPE", 
+     "XLOG",      "YLOG",     "YNOZERO", "XTYPE", "YTYPE", "POLAR", "NSUM",
      KLISTEND
     };
-  //"POLAR",
+  //
   const string plotWarnKey[]= {
-    "ISOTROPIC", "FONT", "T3D", "YTICKUNITS", "NSUM", "XTICKLAYOUT", "YTICKLAYOUT", 
+    "ISOTROPIC", "FONT", "T3D", "YTICKUNITS", "XTICKLAYOUT", "YTICKLAYOUT", 
     "ZTICKLAYOUT", "XGRIDSTYLE", "YGRIDSTYLE", "XTICKUNITS", "XTICKV", "XTICK_GET", "YTICKV",
     "YTICK_GET", "XTICKNAME", "ZTICKNAME", "ZTICKUNITS", "ZTICKV",  "ZTICK_GET",
     "XTICKINTERVAL", "YTICKINTERVAL", "YTICKNAME", "ZTICKINTERVAL", 
@@ -570,7 +570,7 @@ void LibInit()
       // 4
       "PSYM", "SYMSIZE",  "T3D",  "THICK",
       // 8
-      "MAX_VALUE", "MIN_VALUE","NSUM",  "POLAR",
+      "MAX_VALUE", "MIN_VALUE", "NSUM", "POLAR",
       KLISTEND
     };
   new DLibPro(lib::oplot, string("OPLOT"),2,oplotKey);
@@ -680,15 +680,21 @@ void LibInit()
     };
   new DLibPro(lib::contour,string("CONTOUR"),3,contourKey);
 
+  // note that although  SIZE is not in IDL6+ documentation, it is widely used
+  // in place of CHARSIZE....
   const string xyoutsKey[]=
     {
       "COLOR","DATA","NORMAL","DEVICE","CLIP",
-      "ORIENTATION","ALIGNMENT","CHARSIZE","CHARTHICK",
-      "NOCLIP","Z","WIDTH",KLISTEND
+      "ORIENTATION","ALIGNMENT","CHARSIZE","SIZE","CHARTHICK",
+      "NOCLIP","Z","WIDTH","FONT",KLISTEND
     };
-  new DLibPro(lib::xyouts, string("XYOUTS"), 3, xyoutsKey);
-
-  const string polyfillKey[]=
+   const string xyoutsWarnKey[]=
+    {
+      "TEXT_AXES","T3D", KLISTEND 
+    };  
+   new DLibPro(lib::xyouts, string("XYOUTS"), 3, xyoutsKey, xyoutsWarnKey);
+   
+   const string polyfillKey[]=
     {
       "COLOR","DATA","NORMAL","DEVICE","CLIP","NOCLIP",
       "LINE_FILL","SPACING","LINESTYLE","ORIENTATION","THICK",

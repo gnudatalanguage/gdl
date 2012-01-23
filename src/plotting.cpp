@@ -87,7 +87,7 @@ namespace lib {
 
   //improved version of "AutoIntv" for:
   // 1/ better managing ranges when all the data have same value
-  // 2/ mimic IDL behavior when data are all posivite
+  // 2/ mimic IDL behavior when data are all positive
   // please notice that (val_min, val_max) will be changed
   // and "epsilon" is a coefficient if "extended range" is expected
   PLFLT AutoIntvAC(DDouble &val_min, DDouble &val_max, DLong NoZero, bool log)
@@ -242,6 +242,29 @@ namespace lib {
       (*static_cast<DFloatGDL*>( xStruct->GetTag( ticklenTag, 0)))[0];
   }
 
+  void GetUserSymSize(EnvT *e,  GDLGStream *a, DDouble& UsymConvX, DDouble& UsymConvY)
+  {
+    DDouble *scaleX, *scaleY;
+    GetSFromPlotStructs(&scaleX, &scaleY);
+    // get subpage in mm
+    PLFLT scrXL, scrXR, scrYB, scrYT;
+    a->gspa( scrXL, scrXR, scrYB, scrYT); 
+    PLFLT scrX = scrXR-scrXL;
+    PLFLT scrY = scrYT-scrYB;
+    // get char size in mm (default, actual)
+    PLFLT defH, actH;
+    a->gchr( defH, actH);
+    //get symsize 
+    static DStructGDL* pStruct = SysVar::P();
+    DFloat symsize = (*static_cast<DFloatGDL*>
+		      (pStruct->GetTag( pStruct->Desc()->TagIndex("SYMSIZE"), 0)))[0];
+    e->AssureFloatScalarKWIfPresent( "SYMSIZE", symsize);
+    if( symsize <= 0.0) symsize = 1.0;
+    UsymConvX=0.5*symsize*(defH/scrX)/scaleX[1];
+    UsymConvY=0.5*symsize*(defH/scrY)/scaleY[1];
+   
+  }
+  
   void AdjustAxisOpts(string& xOpt, string& yOpt,
     DLong xStyle, DLong yStyle, DLong xTicks, DLong yTicks,
     string& xTickformat, string& yTickformat, DLong xLog, DLong yLog
@@ -337,7 +360,6 @@ namespace lib {
     xStart=wcxs; xEnd=wcxe; minVal=wcys; maxVal=wcye;
   }
 
-
   bool SetVP_WC( EnvT* e, 
 		 GDLGStream* actStream,
 		 DFloatGDL* pos,
@@ -385,46 +407,58 @@ namespace lib {
 
     // If pos == NULL (oplot)
 
-    if ( pos == NULL) {
+  if (pos == NULL)
+  {
 
-      // If position keyword previously set
-      if( kwP) {
-	actStream->vpor(position[0],position[2],position[1],position[3]);
-      } else {
-	// If !P.position not set
-	if (positionP[0] == 0 && positionP[1] == 0 &&
-	    positionP[2] == 0 && positionP[3] == 0)
-	  actStream->vpor(position[0],position[2],position[1],position[3]);
-	else {
-	  // !P.position set
-	  actStream->vpor(positionP[0],positionP[2],positionP[1],positionP[3]);
-	}
-      }
-      // New plot
-    } else if ( pos == (DFloatGDL*) 0xF) {
-      kwP = false;
-
-      // If !P.position not set use default values
-      if (positionP[0] == 0 && positionP[1] == 0 &&
-	  positionP[2] == 0 && positionP[3] == 0) {
-
-	// Set to default values
-	position[0] = xML;
-	position[1] = yMB;
-	position[2] = 1.0 - xMR;
-	position[3] = 1.0 - yMT;
-	actStream->vpor(position[0],position[2],position[1],position[3]);
-      } else {
-	// !P.position values
-	actStream->vpor(positionP[0],positionP[2],positionP[1],positionP[3]);
-      }
-      // Position keyword set
-    } else {
-      kwP = true;
-      for( SizeT i=0; i<4 && i<pos->N_Elements(); ++i)
-	position[ i] = (*pos)[ i];
-      actStream->vpor(position[0],position[2],position[1],position[3]);
+    // If position keyword previously set
+    if (kwP)
+    {
+      actStream->vpor(position[0], position[2], position[1], position[3]);
     }
+    else
+    {
+      // If !P.position not set
+      if (positionP[0] == 0 && positionP[1] == 0 &&
+          positionP[2] == 0 && positionP[3] == 0)
+        actStream->vpor(position[0], position[2], position[1], position[3]);
+      else
+      {
+        // !P.position set
+        actStream->vpor(positionP[0], positionP[2], positionP[1], positionP[3]);
+      }
+    }
+    // New plot
+  }
+  else if (pos == (DFloatGDL*) 0xF)
+  {
+    kwP = false;
+
+    // If !P.position not set use default values
+    if (positionP[0] == 0 && positionP[1] == 0 &&
+        positionP[2] == 0 && positionP[3] == 0)
+    {
+
+      // Set to default values
+      position[0] = xML;
+      position[1] = yMB;
+      position[2] = 1.0 - xMR;
+      position[3] = 1.0 - yMT;
+      actStream->vpor(position[0], position[2], position[1], position[3]);
+    }
+    else
+    {
+      // !P.position values
+      actStream->vpor(positionP[0], positionP[2], positionP[1], positionP[3]);
+    }
+    // Position keyword set
+  }
+  else
+  {
+    kwP = true;
+    for (SizeT i = 0; i < 4 && i < pos->N_Elements(); ++i)
+      position[ i] = (*pos)[ i];
+    actStream->vpor(position[0], position[2], position[1], position[3]);
+  }
 
 
     // CLIPPING
@@ -435,28 +469,27 @@ namespace lib {
     // SA: changing only local variables!
     if( pos != NULL)
       {
-	if( xLog)
+	if( xLog) //normally xStart at this point should never be <=0!
 	  {	  
-	    if( xStart <= 0.0) xStart = 0.0; else xStart = log10( xStart);
+	    if( xStart <= 0.0) xStart = -12; else xStart = log10( xStart);
 	    if( xEnd   <= 0.0) return false; else xEnd = log10( xEnd);
 	  }
-	if( yLog)
+	if( yLog) //normally yStart at this point should never be <=0!
 	  {
-	    if( minVal <= 0.0) minVal = 0.0; else minVal = log10( minVal);
+	    if( minVal <= 0.0) minVal = -12; else minVal = log10( minVal);
 	    if( maxVal <= 0.0) return false; else maxVal = log10( maxVal);
 	  }
       }
-	  
+//    cout << "VP wind: "<<xStart<<" "<<xEnd<<" "<<minVal<<" "<<maxVal<<endl;
+     //   printf("data lim (setv): %f %f %f %f\n", xStart, xEnd, minVal, maxVal);	  
     // set world coordinates
-    // cout << "VP wind: "<<xStart<<" "<<xEnd<<" "<<minVal<<" "<<maxVal<<endl;
-    //    printf("data lim (setv): %f %f %f %f\n", xStart, xEnd, minVal, maxVal);
     actStream->wind( xStart, xEnd, minVal, maxVal);
-    //    cout << "xStart " << xStart << "  xEnd "<<xEnd<<endl;
-    //    cout << "yStart " << minVal << "  yEnd "<<maxVal<<endl;
-
-    return true;
+//       cout << "xStart " << xStart << "  xEnd "<<xEnd<<endl;
+//        cout << "yStart " << minVal << "  yEnd "<<maxVal<<endl;
+        
+   return true;
   }
-  
+
   void UpdateSWPlotStructs(GDLGStream* actStream, DDouble xStart, DDouble xEnd, DDouble yStart, DDouble yEnd)
   {
     // Get viewpoint parameters and store in WINDOW & S
@@ -569,26 +602,73 @@ namespace lib {
   }
 
 
-  void ac_histo(GDLGStream *a, int i_buff, PLFLT *x_buff, PLFLT *y_buff )
+  void ac_histo(GDLGStream *a, int i_buff, PLFLT *x_buff, PLFLT *y_buff, bool xLog )
   {
-    PLFLT x,x1,y,y1;
-    for ( int jj=1; jj<i_buff; ++jj){
+    PLFLT x,x1,y,y1,val;
+    for ( int jj=1; jj<i_buff; ++jj)
+    {
       x1=x_buff[jj-1];
       x=x_buff[jj];
       y1=y_buff[jj-1];
       y=y_buff[jj];
-      a->join(x1,y1,(x1+x)/2.0,y1);
-      a->join((x1+x)/2.0,y1,(x1+x)/2.0,y);
-      a->join((x1+x)/2.0,y,x,y);
+      if (xLog) val=(x1+x)/2.0; 
+      else val=log10((pow(10.0,x1)+pow(10.0,x))/2.0);
+      a->join(x1,y1,val,y1);
+      a->join(val,y1,val,y);
+      a->join(val,y,x,y);
     }
   }
 
+  void getNormalizedCoordinatesFromPLPLOT(GDLGStream *a, DDouble wx, DDouble wy, DDouble *nx, DDouble *ny)
+  {
+    // from current values derive the relative coordinates in the sense of plplot
+    DDouble s1,s2;
+    PLFLT nxmin,nxmax,nymin,nymax,wxmin,wxmax,wymin,wymax;
+    a->gvpd(nxmin,nxmax,nymin,nymax);//norm of current box
+    a->gvpw(wxmin,wxmax,wymin,wymax);
+//   fprintf(stderr,"World: x=[%lf,%lf] y=[%lf,%lf] Norm: x=[%lf,%lf] y=[%lf,%lf]\n",wxmin,wxmax,wymin,wymax,nxmin,nxmax,nymin,nymax);
+    s1=(nxmax-nxmin)/(wxmax-wxmin);
+    s2=nxmin;
+    *nx=s1*(wx-wxmin)+s2;
+    s1=(nymax-nymin)/(wymax-wymin);
+    s2=nymin;
+    *ny=s1*(wy-wymin)+s2;
+  }
+  void getWorldCoordinatesFromPLPLOT(GDLGStream *a, DDouble nx, DDouble ny, DDouble *wx, DDouble *wy)
+  {
+    // from current values derive the world coordinates in the sense of plplot
+    DDouble s1,s2;
+    PLFLT nxmin,nxmax,nymin,nymax,wxmin,wxmax,wymin,wymax;
+    a->gvpd(nxmin,nxmax,nymin,nymax); //norm of current box
+    a->gvpw(wxmin,wxmax,wymin,wymax); //world of current box
+//   fprintf(stderr,"World: x=[%lf,%lf] y=[%lf,%lf] Norm: x=[%lf,%lf] y=[%lf,%lf]\n",wxmin,wxmax,wymin,wymax,nxmin,nxmax,nymin,nymax);
+    s1=(wxmax-wxmin)/(nxmax-nxmin);
+    s2=wxmin;
+    *wx=s1*(nx-nxmin)+s2;
+    s1=(wymax-wymin)/(nymax-nymin);
+    s2=wymin;
+    *wy=s1*(ny-nymin)+s2;
+ }
+ 
+ static DDouble savedPointX=0.0;
+ static DDouble savedPointY=0.0;
+ void saveLastPoint(GDLGStream *a, DDouble wx, DDouble wy)
+  {
+   DDouble nx;
+   DDouble ny;
+   getNormalizedCoordinatesFromPLPLOT(a, wx, wy, &savedPointX, &savedPointY);
+//   fprintf(stderr,"Saved norm: %lf %lf\n",savedPointX,savedPointY);
+  }
+  void getLastPoint(GDLGStream *a, DDouble* wx, DDouble* wy)
+  {
+   getWorldCoordinatesFromPLPLOT(a, savedPointX, savedPointY , wx, wy);
+//   fprintf(stderr,"Got norm: %lf %lf giving %lf %lf world\n", savedPointX, savedPointY, *wx, *wy);
+  }
   //CORE PLOT FUNCTION -> Draws a line along xVal, yVal
   template <typename T> bool draw_polyline(EnvT *e,  GDLGStream *a,
 					   T * xVal, T* yVal, 
 					   bool xLog, bool yLog, 
-					   DDouble yStart, DDouble yEnd, 
-					   DLong psym)
+					   DLong psym, bool append)
   {
     bool line=false;
     bool valid=true;
@@ -598,35 +678,19 @@ namespace lib {
     else if(psym == 0 ) {line=true;psym_=psym;}
     else {psym_=psym;}
     
+    //usersym
     DFloat *userSymX, *userSymY;
     DLong *userSymArrayDim;
     DInt  *do_fill;
-    DDouble *sx, *sy;
-    GetSFromPlotStructs(&sx, &sy);
-    // get subpage in mm
-    PLFLT scrXL, scrXR, scrYB, scrYT;
-    a->gspa( scrXL, scrXR, scrYB, scrYT); 
-    PLFLT scrX = scrXR-scrXL;
-    PLFLT scrY = scrYT-scrYB;
-    // get char size in mm (default, actual)
-    PLFLT defH, actH;
-    a->gchr( defH, actH);
-    //get symsize 
-    static DStructGDL* pStruct = SysVar::P();
-    DFloat symsize = (*static_cast<DFloatGDL*>
-		      (pStruct->GetTag( pStruct->Desc()->TagIndex("SYMSIZE"), 0)))[0];
-    e->AssureFloatScalarKWIfPresent( "SYMSIZE", symsize);
-    if( symsize <= 0.0) symsize = 1.0;
-    DDouble UsymConvX, UsymConvY;
-    UsymConvX=0.5*symsize*(defH/scrX)/sx[1];
-    UsymConvY=0.5*symsize*(defH/scrY)/sy[1];
     if (psym_ == 8) {
       GetUsym(&userSymArrayDim, &do_fill, &userSymX, &userSymY);
       if (*userSymArrayDim == 0) {
          e->Throw("No user symbol defined.");
       }
     }
- 
+    DDouble UsymConvX,UsymConvY;
+    GetUserSymSize(e,a , UsymConvX, UsymConvY);
+    
     DLong minEl = (xVal->N_Elements() < yVal->N_Elements())? 
       xVal->N_Elements() : yVal->N_Elements();
     // if scalar x
@@ -635,7 +699,7 @@ namespace lib {
     // if scalar y
     if (yVal->N_Elements() == 1 && yVal->Rank() == 0) 
       minEl = xVal->N_Elements();
-                 
+
     bool mapSet=false;
 #ifdef USE_LIBPROJ4
     // Map Stuff (xtype = 3)
@@ -678,7 +742,7 @@ namespace lib {
     
     int n_buff_max=500000; // idl default seems to be more than 2e6 !!
 
-    if (minEl < n_buff_max)  n_buff_max=minEl;
+    if (minEl < n_buff_max)  n_buff_max=append?minEl+1:minEl;
     int i_buff=0;
     PLFLT *x_buff = new PLFLT[n_buff_max];
     PLFLT *y_buff = new PLFLT[n_buff_max];
@@ -691,9 +755,19 @@ namespace lib {
 
     for( int i=0; i<minEl; ++i)
       {
-	if (!flag_x_const) x = static_cast<PLFLT>( (*xVal)[i]); else x=x_ref;
-	if (!flag_y_const) y = static_cast<PLFLT>( (*yVal)[i]); else y=y_ref;
 
+    if (append) //start with the old point
+    {
+      getLastPoint(a, &x, &y); i--; //to get good counter afterwards
+      append=FALSE; //and stop appending after!
+      if(xLog) x=pow(10,x);
+      if(yLog) y=pow(10,y);
+    }
+    else
+    {
+	  if (!flag_x_const) x = static_cast<PLFLT>( (*xVal)[i]); else x=x_ref;
+	  if (!flag_y_const) y = static_cast<PLFLT>( (*yVal)[i]); else y=y_ref;
+    }
 #ifdef USE_LIBPROJ4
 	if (mapSet && !e->KeywordSet("NORMAL")) {
 	  idata.lam = x * DEG_TO_RAD;
@@ -719,7 +793,7 @@ namespace lib {
 		if (debug_ac) {cout << "j: " << j << ", X: " << x_buff[j] << ", Y: "<< y_buff[j] << endl;};
 		for (int kk=0; kk < *userSymArrayDim ; kk++){
 		  xx[kk]=x_buff[j]+userSymX[kk]*UsymConvX;
-		  yy[kk]=y_buff[j]+userSymY[kk]*UsymConvY;
+                  yy[kk]=y_buff[j]+userSymY[kk]*UsymConvY;
 		}
 		if (*do_fill==1){
 		  a->fill(*userSymArrayDim,xx,yy);
@@ -729,7 +803,7 @@ namespace lib {
 		}
 	      }
 	    }
-	    if (psym_ == 10) {  ac_histo( a, i_buff, x_buff, y_buff ); }
+	    if (psym_ == 10) {  ac_histo( a, i_buff, x_buff, y_buff, xLog ); }
 	    i_buff=0;
 	  }
 	  continue;
@@ -763,10 +837,10 @@ namespace lib {
 	x_buff[i_buff]=x;
 	y_buff[i_buff]=y;
 	i_buff=i_buff+1;
-	
+
 	//	cout << "nbuf: " << i << " " << i_buff << " "<< n_buff_max-1 << " " << minEl-1 << endl;
 
-	if ((i_buff == n_buff_max) || (i == minEl-1 )) {
+	if ((i_buff == n_buff_max) || ((i == minEl-1 )&&!append) ||((i == minEl )&&append) ) {
 	  if (line) { a->line(i_buff, x_buff, y_buff); };
 	  if ((psym_ > 0 && psym_ < 8) || psym_ == 9) { a->poin(i_buff, x_buff, y_buff, codeArr[psym_]);}
 	  if (psym_ == 8) 
@@ -781,13 +855,15 @@ namespace lib {
 		}
 		if (*do_fill==1){
 		  a->fill(*userSymArrayDim,xx,yy);
+//to be tested: provided we define a 'non-gradient' gradient before this should work
+//                a->gradient(*userSymArrayDim,xx,yy,0.0);
 		}
 		else {
 		  a->line(*userSymArrayDim, xx, yy);
 		}
 	      }
 	    }
-	  if (psym_ == 10) {  ac_histo( a, i_buff, x_buff, y_buff ); }
+	  if (psym_ == 10) {  ac_histo( a, i_buff, x_buff, y_buff, xLog ); }
 	    
 	  // we must recopy the last point since the line must continue (tested via small buffer ...)
 	  x_buff[0]=x_buff[i_buff-1];
@@ -798,186 +874,14 @@ namespace lib {
     
     delete[] x_buff;
     delete[] y_buff;
-    
+    //save last point
+    saveLastPoint(a,x,y);
     return (valid);
   }
   // explicit instantiation for SpDDouble
-  template bool draw_polyline(EnvT*, GDLGStream*, Data_<SpDDouble>*, Data_<SpDDouble>*, bool, bool, DDouble, DDouble, DLong);
-
-/********* SA: this is not used anywhere!
-  
-  //CORE PLOT FUNCTION -> Draws a line along xVal, yVal
-  template <typename T> bool draw_polyline_ref(EnvT *e,  GDLGStream *a,
-					   T *xVal, T *yVal, 
-					   bool xLog, bool yLog, 
-					   DDouble yStart, DDouble yEnd, 
-					   DLong psym)
-  {
-    bool line=false;
-    bool valid=true;
-    DLong psym_=0;
-
-    if(psym <0 ) {line=true; psym_=-psym;}
-    else if(psym == 0 ) {line=true;psym_=psym;}
-    else {psym_=psym;}
-    DLong minEl = (xVal->N_Elements() < yVal->N_Elements())? 
-      xVal->N_Elements() : yVal->N_Elements();
-    // if scalar x
-    if (xVal->N_Elements() == 1 && xVal->Rank() == 0) 
-      minEl = yVal->N_Elements();
-    // if scalar y
-    if (yVal->N_Elements() == 1 && yVal->Rank() == 0) 
-      minEl = xVal->N_Elements();
-
-    DDouble *sx, *sy;
-    GetSFromPlotStructs(&sx, &sy);
-
-    bool mapSet=false;
-#ifdef USE_LIBPROJ4
-    // Map Stuff (xtype = 3)
-    LPTYPE idata;
-    XYTYPE odata;
-
-    get_mapset(mapSet);
-
-    DDouble xStart, xEnd;
-    get_axis_crange("X", xStart, xEnd);
-
-    if ( mapSet) {
-      ref = map_init();
-      if ( ref == NULL) {
-	e->Throw( "Projection initialization failed.");
-      }
-    }
-#endif
-
-    for( int i=0; i<minEl; ++i)
-      {
-	PLFLT y;
-	if (yVal->N_Elements() == 1 && yVal->Rank() == 0) 
-	  y = static_cast<PLFLT>( (*yVal)[0]);
-	else
-	  y = static_cast<PLFLT>( (*yVal)[i]);
-
-	if( yLog) if( y <= 0.0) continue; else y = log10( y);
-	
-	PLFLT x;
-	if (xVal->N_Elements() == 1 && xVal->Rank() == 0) 
-	  x = static_cast<PLFLT>( (*xVal)[0]);
-	else
-	  x = static_cast<PLFLT>( (*xVal)[i]);
-
-	if( xLog) 
-	  if( x <= 0.0) 
-	    continue; 
-	  else 
-	    x = log10( x);
-
-#ifdef USE_LIBPROJ4
-	if (mapSet && !e->KeywordSet("NORMAL")) {
-	  idata.lam = x * DEG_TO_RAD;
-	  idata.phi = y * DEG_TO_RAD;
-	  odata = PJ_FWD(idata, ref);
-	  x = odata.x;
-	  y = odata.y;
-	  if (!isfinite(x) || !isfinite(y)) continue;
-	}
-#endif
-
-	if( i>0)
-	  {
-	    if( line)
-	      {
-		PLFLT y1;
-		if (yVal->N_Elements() == 1 && yVal->Rank() == 0) 
-		  y1 = static_cast<PLFLT>( (*yVal)[0]);
-		else
-		  y1 = static_cast<PLFLT>( (*yVal)[i-1]);
-
-		if( !yLog || y1 > 0.0)
-		  {
-		    if( yLog) y1 = log10( y1);
-
-		    PLFLT x1;
-		    if (xVal->N_Elements() == 1 && xVal->Rank() == 0) 
-		      x1 = static_cast<PLFLT>( (*xVal)[0]);
-		    else
-		      x1 = static_cast<PLFLT>( (*xVal)[i-1]);
-		    
-		    if( !xLog || x1 > 0.0)
-		      {
-			if( xLog) x1 = log10( x1);
-
-#ifdef USE_LIBPROJ4
-			// Convert from lon/lat in degrees to radians
-			// Convert from lon/lat in radians to data coord
-			if (mapSet && !e->KeywordSet("NORMAL")) {
-			  idata.lam = x1 * DEG_TO_RAD;
-			  idata.phi = y1 * DEG_TO_RAD;
-			  odata = PJ_FWD(idata, ref);
-			  x1 = odata.x;
-			  y1 = odata.y;
-			  if (!isfinite(x1) || !isfinite(y1)) continue;
-
-			  // Break "jumps" across maps (kludge!)
-			  if (fabs(x-x1) > 0.5*(xEnd-xStart)) continue;
-			}
-#endif
-
-			a->join(x1,y1,x,y);
-
-			// cout << "join( "<<x1<<", "<<y1<<", "<<
-			// x<<", "<<y<<")"<<endl;
-		      }
-		  }
-	      }
-	    else if( psym_ == 10)
-	      {	// histogram
-		PLFLT y1 = static_cast<PLFLT>( (*yVal)[i-1]);
-		
-		if( !yLog || y1 > 0.0)
-		  {
-		    if( yLog) y1 = log10( y1);
-		    if( y1 >= yStart && y1 <= yEnd)
-		      {
-			PLFLT x1 = static_cast<PLFLT>( (*xVal)[i-1]);
-			
-			if( !xLog || x1 > 0.0)
-			  {
-			    if( xLog) x1 = log10( x1);
-	
-#ifdef USE_LIBPROJ4
-			    if (mapSet && !e->KeywordSet("NORMAL")) {
-			      idata.lam = x1 * DEG_TO_RAD;
-			      idata.phi = y1 * DEG_TO_RAD;
-			      odata = PJ_FWD(idata, ref);
-			      x1 = odata.x;
-			      y1 = odata.y;
-			    }
-#endif		    
-			    a->join(x1,y1,(x1+x)/2.0,y1);
-			    a->join((x1+x)/2.0,y1,(x1+x)/2.0,y);
-			    a->join((x1+x)/2.0,y,x,y);
-			  }
-		      }
-		  }
-	      }
-	  }
-	if( psym_ == 0 || psym_ == 10) continue;
-	
-	// translation plplot symbols - GDL symbols
-	// for now usersym is a circle
-	const PLINT codeArr[]={ 0,2,3,1,11,7,6,5,4};
-
-	if (isfinite(x) && isfinite(y)) {
-	  a->poin(1,&x,&y,codeArr[psym_]);
-	}
-      }
-    return (valid);
-  }
-*********/
-
-  //MARGIN
+  template bool draw_polyline(EnvT*, GDLGStream*, Data_<SpDDouble>*, Data_<SpDDouble>*, bool, bool, DLong, bool);
+ 
+  //[XYZ]MARGIN kw decoding
   void gkw_axis_margin(EnvT *e, string axis,DFloat &start, DFloat &end)
   {
     DStructGDL* Struct;
@@ -1104,13 +1008,12 @@ namespace lib {
   }
 
   //PSYM
-  void gkw_psym(EnvT *e, GDLGStream *a, bool &line, DLong &psym)
+  void gkw_psym(EnvT *e, DLong &psym)
   {
     static DStructGDL* pStruct = SysVar::P();
     psym= (*static_cast<DLongGDL*>
 	   (pStruct->GetTag(pStruct->Desc()->TagIndex("PSYM"), 0)))[0];
 
-    line = false;
     e->AssureLongScalarKWIfPresent( "PSYM", psym);
     if( psym > 10 || psym < -8 || psym == 9)
       e->Throw( 
@@ -1139,7 +1042,21 @@ namespace lib {
       e->AssureFloatScalarKWIfPresent( "CHARSIZE", charsize);
 
     if( charsize <= 0.0) charsize = 1.0;
-    a->schr(0.0, charsize);  
+    a->schr(0.0, charsize);
+  }
+  //OLD CHARSIZE (for xyouts only?)
+  void gkw_charsize_xyouts(EnvT *e, GDLGStream *a, DFloat &charsize)
+  {
+    static DStructGDL* pStruct = SysVar::P();
+    charsize = (*static_cast<DFloatGDL*>
+			(pStruct->GetTag
+			 ( pStruct->Desc()->TagIndex("CHARSIZE"), 0)))[0];
+    //imagine CHARSIZE & SIZE: we prefer CHARSIZE of course
+    if(e->KeywordSet("SIZE")) e->AssureFloatScalarKWIfPresent( "SIZE", charsize);
+    e->AssureFloatScalarKWIfPresent( "CHARSIZE", charsize);
+
+    if( charsize <= 0.0) charsize = 1.0;
+    a->schr(0.0, charsize);
   }
   //THICK
   void gkw_thick(EnvT *e, GDLGStream *a)
@@ -1410,7 +1327,7 @@ namespace lib {
 	if(axis=="Y") ynozero=1;
       }
   }
-
+  //current value of margin of axis 'axis'
   void get_axis_margin(string axis, DFloat &low, DFloat &high)
   {
     DStructGDL* Struct=NULL;

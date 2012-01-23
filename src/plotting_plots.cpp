@@ -29,13 +29,16 @@ namespace lib {
     DDoubleGDL *xVal, *yVal, *zVal;
     auto_ptr<BaseGDL> xval_guard, yval_guard;
     DLong psym;
-    DDouble xStart, xEnd, yStart, yEnd, zStart, zEnd;
-    bool xLog, yLog;
+    PLFLT xStart, xEnd, yStart, yEnd, zStart, zEnd;
+    PLFLT xMarginL, xMarginR, yMarginB, yMarginT;
+    bool xLog, yLog, xLogOrig, yLogOrig;
     SizeT xEl, yEl, zEl;
     DDouble minVal, maxVal;
+    bool append;
 
     private: bool handle_args(EnvT* e) // {{{
     {
+      append=e->KeywordSet("CONTINUE");
       if( nParam() == 1)
       {
         BaseGDL* p0;
@@ -83,42 +86,27 @@ namespace lib {
 
           yVal = e->GetParAs< DDoubleGDL>( 1);
           yEl = yVal->N_Elements();
-	//}  
-        //else 
-        //{
-        //}
       }
-    } // }}}
+    } 
 
   private: void old_body( EnvT* e, GDLGStream* actStream) // {{{
   {
-    bool line;
+    DDoubleGDL* clippingD;
 
-
-    // !X, !Y (also used below)
-    DFloat xMarginL, xMarginR, yMarginB, yMarginT; 
-    get_axis_margin("X",xMarginL, xMarginR);
-    get_axis_margin("Y",yMarginB, yMarginT);
-    // get ![XY].CRANGE
-    get_axis_crange("X", xStart, xEnd);
-    get_axis_crange("Y", yStart, yEnd);
-    if (e->KeywordSet("T3D")) get_axis_crange("Z", zStart, zEnd);
-
-    get_axis_type("X", xLog);
-    get_axis_type("Y", yLog);
+    actStream->gvpd(xMarginL,xMarginR,yMarginB,yMarginT);
+    if((xMarginL==0.0&&xMarginR==0.0)||(yMarginB==0.0&&yMarginT==0.0)) //if not initialized, set normalized mode
+    {
+        actStream->NoSub();
+        actStream->vpor(0, 1, 0, 1);
+        actStream->gvpd(xMarginL,xMarginR,yMarginB,yMarginT);
+        actStream->wind(0.0,1.0,0.0,1.0);
+   }
+    // get current viewport limit in world coords
+    actStream->gvpw(xStart,xEnd,yStart,yEnd);
+    // Axis type
+    get_axis_type("X", xLogOrig); xLog=xLogOrig;
+    get_axis_type("Y", yLogOrig); yLog=yLogOrig;
     
-//     if( xLog)
-//       {
-// 	xStart = pow(10.0,xStart);
-// 	xEnd   = pow(10.0,xEnd);
-//       }
-//     if( yLog)
-//       {
-// 	yStart = pow(10.0,yStart);
-// 	yEnd   = pow(10.0,yEnd);
-//       }
-    
-    //    int just = (e->KeywordSet("ISOTROPIC"))? 1 : 0;
     /*    DLong background = p_background;
     static int cix=e->KeywordIx("COLOR");
     BaseGDL* color_arr=e->GetKW(cix);
@@ -138,36 +126,7 @@ namespace lib {
       if(color_arr->N_Elements() >= 1) 
 	  	color=(*l_color_arr)[0];
     */
-
-    // start drawing
-    gkw_background(e, actStream, false);
-    gkw_color(e, actStream);
-
-    gkw_psym(e, actStream, line, psym);
-    gkw_linestyle(e, actStream);
-    gkw_symsize(e, actStream);
-    gkw_thick(e, actStream);
-    DFloat charsize;
-    gkw_charsize(e,actStream, charsize, false);
-
-    // plplot stuff
-    PLFLT scrXL, scrXR, scrYB, scrYT;
-    actStream->gspa( scrXL, scrXR, scrYB, scrYT);
-    PLFLT scrX = scrXR-scrXL;
-    PLFLT scrY = scrYT-scrYB;
-
-    PLFLT xMR, xML, yMB, yMT;
-
-    CheckMargin( e, actStream,
-		 xMarginL, 
-		 xMarginR, 
-		 yMarginB, 
-		 yMarginT,
-		 xMR,
-		 xML,
-		 yMB,
-		 yMT);
-
+  
     bool mapSet=false;
 #ifdef USE_LIBPROJ4
     // Map Stuff (xtype = 3)
@@ -183,92 +142,59 @@ namespace lib {
       }
     }
 #endif
-
-    DDouble *sx, *sy;
-    DFloat *wx, *wy;
-    GetSFromPlotStructs(&sx, &sy);
-    GetWFromPlotStructs(&wx, &wy);
-
-    int toto=0;
-
-    if (!e->KeywordSet("T3D"))
-    {
-    if(e->KeywordSet("DEVICE")) {
-      PLFLT xpix, ypix;
-      PLINT xleng, yleng, xoff, yoff;
-      actStream->gpage(xpix, ypix,xleng, yleng, xoff, yoff);
-      xStart=0; xEnd=xleng;
-      yStart=0; yEnd=yleng;
-      xLog = false; yLog = false;
-      actStream->NoSub();
-      actStream->vpor(0, 1, 0, 1);
-    } else if(e->KeywordSet("NORMAL")) {
-      xStart = 0;
-      xEnd   = 1;
-      yStart = 0;
-      yEnd   = 1;
-      actStream->NoSub();
-      actStream->vpor(0, 1, 0, 1);
-      xLog = false; yLog = false;
-    } else {
-      toto=1;
-      actStream->NoSub();
-      if (xLog || yLog) actStream->vpor(wx[0], wx[1], wy[0], wy[1]);
-      else actStream->vpor(0, 1, 0, 1); // TODO (to be merged with the condition on DataCoordLimits...)
-    }
-    }
-
-    // Determine data coordinate limits (if mapSet is true)
-    // These are computed from window and scaling axis system
-    // variables because map routines change these directly.
-    
-    if (e->KeywordSet("DATA") || (toto == 1)) {
-      //    if (e->KeywordSet("NORMAL") || e->KeywordSet("DATA")) {
-      DataCoordLimits(sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, xLog || yLog);
-    }
-
-    minVal=yStart; maxVal=yEnd;
-
     //CLIPPING
     DLong noclip = 1;
     e->AssureLongScalarKWIfPresent( "NOCLIP", noclip);
     if( noclip == 0)
     {
-    static int clippingix = e->KeywordIx( "CLIP"); 
+    static int clippingix = e->KeywordIx( "CLIP");
     DDoubleGDL* clippingD = e->IfDefGetKWAs<DDoubleGDL>( clippingix);
-    if( clippingD != NULL)
-      Clipping( clippingD, xStart, xEnd, minVal, maxVal);
     }
 
-//    Comment out to fix bug [1560714] JMG 06/09/27
-//    if( xLog)
-//      {
-//	if( xStart <= 0.0) xStart = 0.0; else xStart = log10( xStart);
-//	if( xEnd   <= 0.0) return; else xEnd = log10( xEnd);
-//      }
-
-    if( yLog)
-      {
-	if( yStart <= 0.0) yStart = 0.0; else yStart = log10( yStart);
-	if( yEnd   <= 0.0) return; else yEnd = log10( yEnd);
-      }
-
-    if (!e->KeywordSet("T3D")) 
+    if (!e->KeywordSet("T3D"))
     {
-      // SA: following a patch from Joanna (3029409) TODO: this is repeated in PLOTS POLYFILL and XYOUTS
-      if ( xEnd - xStart == 0 || yEnd - yStart == 0 || isnan(xStart) || isnan(yStart) ) {
-        actStream->wind( 0, 1, 0, 1 ); 
-      } else {
-        actStream->wind( xStart, xEnd, yStart, yEnd);
-      } 
-    }
+      if (e->KeywordSet("DEVICE"))
+      {
+        actStream->NoSub();
+        actStream->vpor(0, 1, 0, 1);
+        PLFLT xpix, ypix;
+        PLFLT un,deux,trois,quatre;
+        PLINT xleng, yleng, xoff, yoff;
+        actStream->gpage(xpix, ypix, xleng, yleng, xoff, yoff);
+        un=0.0; deux=xleng; trois=0.0; quatre=yleng;
+        if( clippingD != NULL) Clipping( clippingD, un, deux, trois, quatre);
+        actStream->wind(un, deux, trois, quatre);
+        xLog = false;
+        yLog = false;
+      }
+      else if (e->KeywordSet("NORMAL"))
+      {
+        PLFLT un,deux,trois,quatre;
+        actStream->NoSub();
+        actStream->vpor(0, 1, 0, 1);
+        un=0.0; deux=1.0; trois=0.0; quatre=1.0;
+        if( clippingD != NULL) Clipping( clippingD, un, deux, trois, quatre);
+        actStream->wind(un, deux, trois, quatre);
+        xLog = false;
+        yLog = false;
+      }
+      else if( clippingD != NULL)
+      {
+         PLFLT un,deux,trois,quatre;
+         un=xStart; deux=xEnd; trois=yStart; quatre=yEnd;
+         Clipping( clippingD, un, deux, trois, quatre);
+         actStream->wind(un, deux, trois, quatre);
+       }
+   }
+    // start drawing. Graphic Keywords accepted: CLIP(YES), COLOR(OK), DATA(YES), DEVICE(YES),
+    //LINESTYLE(OK), NOCLIP(YES), NORMAL(YES), PSYM(OK), SYMSIZE(OK), T3D(NO), THICK(OK), Z(NO)
+    gkw_color(e, actStream); //COLOR
+    gkw_psym(e, psym); //PSYM
+    gkw_linestyle(e, actStream); //LINESTYLE
+    gkw_symsize(e, actStream); //SYMSIZE
+    gkw_thick(e, actStream); //THICK
 
-    // pen thickness for plot
-    gkw_thick(e, actStream);
-    gkw_symsize(e, actStream);
-    gkw_linestyle(e, actStream);
-
-  } // }}}
+  } 
 
     private: void call_plplot(EnvT* e, GDLGStream* actStream) // {{{
     {
@@ -310,15 +236,17 @@ namespace lib {
       }
       else 
       {
-        bool valid = draw_polyline(e, actStream, xVal, yVal, xLog, yLog, yStart, yEnd, psym);
+        bool valid = draw_polyline(e, actStream, xVal, yVal, xLog, yLog, psym, append);
         // TODO: handle valid?
       }
-    } // }}}
+    } 
 
-    private: virtual void post_call(EnvT*, GDLGStream* actStream) // {{{
+    private: virtual void post_call(EnvT*, GDLGStream* actStream) 
     {
       actStream->lsty(1);//reset linestyle
-    } // }}}
+      actStream->vpor(xMarginL, xMarginR, yMarginB, yMarginT);
+      actStream->wind(xStart, xEnd, yStart, yEnd);
+    } 
 
   }; // oplot_call class 
 

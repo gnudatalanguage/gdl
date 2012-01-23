@@ -97,7 +97,7 @@ namespace lib {
   template <typename T> 
   bool draw_polyline(EnvT *e,  GDLGStream *a, T * xVal, T* yVal, 
 		     bool xLog, bool yLog, 
-		     DDouble yStart, DDouble yEnd, DLong psym=0);
+		     DLong psym=0, bool append=FALSE);
   
   void gkw_axis_margin(EnvT *e, string axis,DFloat &start, DFloat &end);
 
@@ -108,9 +108,11 @@ namespace lib {
   //set the noerase flag
   void gkw_noerase(EnvT * e, GDLGStream * a,bool noe=0);
   //set the symbol shape
-  void gkw_psym(EnvT *e, GDLGStream *a, bool &line, DLong &psym);
+  void gkw_psym(EnvT *e, DLong &psym);
   //set the symbol size
   void gkw_symsize(EnvT * e, GDLGStream * a);
+  //set the character size, special version authorizing 'SIZE' keyword
+  void gkw_charsize_xyouts(EnvT * e, GDLGStream * a, DFloat& charsize);
   //set the character size
   void gkw_charsize(EnvT * e, GDLGStream * a, DFloat& charsize, bool kw=true);
   //set the line thickness

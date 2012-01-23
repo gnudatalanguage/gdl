@@ -24,51 +24,146 @@ namespace lib {
 
   class plot_call : public plotting_routine_call 
   {
-    DDoubleGDL *yVal, *xVal;
+    DDoubleGDL *yVal, *xVal, *xTemp, *yTemp;
     DDouble minVal, maxVal, xStart, xEnd, yStart, yEnd;
-    bool xLog, yLog;
+    bool xLog, yLog, wasBadxLog, wasBadyLog;
     DLong psym;
-    auto_ptr<BaseGDL> xval_guard;
+    auto_ptr<BaseGDL> xval_guard,yval_guard,xtempval_guard;
 
-    private: bool handle_args( EnvT* e) // {{{
+private:
+
+  bool handle_args(EnvT* e) // {{{
+  {
+    bool polar = FALSE;
+    DLong nsum = 1;
+    e->AssureLongScalarKWIfPresent("NSUM", nsum);
+    if (e->KeywordSet("POLAR"))
     {
-      if( nParam() == 1)
+      polar = TRUE;
+      // e->Throw( "Sorry, POLAR keyword not ready");
+    }
+
+    DDoubleGDL *yValBis, *xValBis;
+    auto_ptr<BaseGDL> xvalBis_guard, yvalBis_guard;
+    //test and transform eventually if POLAR and/or NSUM!
+    if (nParam() == 1)
+    {
+      yTemp = e->GetParAs< DDoubleGDL > (0);
+      if (yTemp->Rank() == 0)
+        e->Throw("Expression must be an array in this context: " + e->GetParString(0));
+      xTemp = new DDoubleGDL(dimension(yVal->N_Elements()), BaseGDL::INDGEN);
+      xtempval_guard.reset(xTemp); // delete upon exit
+    }
+    else
+    {
+      xTemp = e->GetParAs< DDoubleGDL > (0);
+      if (xTemp->Rank() == 0)
+        e->Throw("Expression must be an array in this context: " + e->GetParString(0));
+      yTemp = e->GetParAs< DDoubleGDL > (1);
+      if (yTemp->Rank() == 0)
+        e->Throw("Expression must be an array in this context: " + e->GetParString(1));
+    }
+    //check nsum validity
+    nsum = max(1, nsum);
+    nsum = min(nsum, (DLong) xTemp->N_Elements());
+
+    if (nsum == 1)
+    {
+      if (polar)
       {
-        yVal = e->GetParAs< DDoubleGDL>( 0);
-        if (yVal->Rank() == 0) 
-          e->Throw("Expression must be an array in this context: "+e->GetParString(0));
-        xVal = new DDoubleGDL( dimension( yVal->N_Elements()), BaseGDL::INDGEN);
-        xval_guard.reset( xVal); // delete upon exit
+        xVal = new DDoubleGDL(dimension(xTemp->N_Elements()), BaseGDL::NOZERO);
+        xval_guard.reset(xVal); // delete upon exit
+        yVal = new DDoubleGDL(dimension(yTemp->N_Elements()), BaseGDL::NOZERO);
+        yval_guard.reset(yVal); // delete upon exit
+        for (int i = 0; i < xVal->N_Elements(); i++) (*xVal)[i] = (*xTemp)[i] * cos((*yTemp)[i]);
+        for (int i = 0; i < yVal->N_Elements(); i++) (*yVal)[i] = (*xTemp)[i] * sin((*yTemp)[i]);
       }
       else
-      {
-        xVal = e->GetParAs< DDoubleGDL>( 0);
-        if (xVal->Rank() == 0) 
-          e->Throw("Expression must be an array in this context: "+e->GetParString(0));
-        yVal = e->GetParAs< DDoubleGDL>( 1);
-        if (yVal->Rank() == 0) 
-          e->Throw("Expression must be an array in this context: "+e->GetParString(1));
+      { //careful about previously set autopointers!
+        if (nParam() == 1) xval_guard = xtempval_guard;
+        xVal = xTemp;
+        yVal = yTemp;
       }
-
-      if ( e->KeywordSet( "POLAR")) 
+    }
+    else
+    {
+      int i, j, k;
+      DLong size = xTemp->N_Elements() / nsum;
+      xVal = new DDoubleGDL(size, BaseGDL::ZERO); //SHOULD BE ZERO, IS NOT!
+      xval_guard.reset(xVal); // delete upon exit
+      yVal = new DDoubleGDL(size, BaseGDL::ZERO); //IDEM
+      yval_guard.reset(yVal); // delete upon exit
+      for (i = 0, k = 0; i < size; i++)
       {
-        e->Throw( "Sorry, POLAR keyword not ready");
+        (*xVal)[i] = 0.0;
+        (*yVal)[i] = 0.0;
+        for (j = 0; j < nsum; j++, k++)
+        {
+          (*xVal)[i] += (*xTemp)[k];
+          (*yVal)[i] += (*yTemp)[k];
+        }
       }
+      for (i = 0; i < size; i++) (*xVal)[i] /= nsum;
+      for (i = 0; i < size; i++) (*yVal)[i] /= nsum;
 
-      //   BaseGDL *x, *y;
+      if (polar)
       {
-        DLong minEl, maxEl;
-
-        xVal->MinMax( &minEl, &maxEl, NULL, NULL, true);
-        xStart = (*xVal)[minEl];
-        xEnd = (*xVal)[maxEl];
-
-        yVal->MinMax( &minEl, &maxEl, NULL, NULL, true);
-        yStart = (*yVal)[minEl];
-        yEnd = (*yVal)[maxEl];
+        DDouble x, y;
+        for (i = 0; i < size; i++)
+        {
+          x = (*xVal)[i] * cos((*yVal)[i]);
+          y = (*xVal)[i] * sin((*yVal)[i]);
+          (*xVal)[i] = x;
+          (*yVal)[i] = y;
+        }
       }
-      return false;
-    } // }}}
+    }
+    // keyword overrides
+    static int xLogIx = e->KeywordIx("XLOG");
+    static int yLogIx = e->KeywordIx("YLOG");
+    xLog = e->KeywordSet(xLogIx);
+    yLog = e->KeywordSet(yLogIx);
+    // compute adequate values for log scale, warn adequately...
+    wasBadxLog = FALSE;
+    wasBadyLog = FALSE;
+    if (xLog)
+    {
+      DLong minEl, maxEl;
+      xVal->MinMax(&minEl, &maxEl, NULL, NULL, true);
+      if ((*xVal)[minEl] <= 0.0) wasBadxLog = TRUE;
+      xValBis = new DDoubleGDL(dimension(xVal->N_Elements()), BaseGDL::NOZERO);
+      xvalBis_guard.reset(xValBis); // delete upon exit
+      for (int i = 0; i < xVal->N_Elements(); i++) (*xValBis)[i] = log10((*xVal)[i]);
+    }
+    else xValBis = xVal;
+    if (yLog)
+    {
+      DLong minEl, maxEl;
+      yVal->MinMax(&minEl, &maxEl, NULL, NULL, true);
+      if ((*yVal)[minEl] <= 0.0) wasBadyLog = TRUE;
+      yValBis = new DDoubleGDL(dimension(yVal->N_Elements()), BaseGDL::NOZERO);
+      yvalBis_guard.reset(yValBis); // delete upon exit
+      for (int i = 0; i < yVal->N_Elements(); i++) (*yValBis)[i] = log10((*yVal)[i]);
+    }
+    else yValBis = yVal;
+    //   BaseGDL *x, *y;
+    {
+      DLong minEl, maxEl;
+
+      xValBis->MinMax(&minEl, &maxEl, NULL, NULL, true);
+      xStart = (*xVal)[minEl];
+      if (isnan(xStart)) xStart = 1e-12;
+      xEnd = (*xVal)[maxEl];
+      if (isnan(xEnd)) xEnd = 1.0;
+
+      yValBis->MinMax(&minEl, &maxEl, NULL, NULL, true);
+      yStart = (*yVal)[minEl];
+      if (isnan(yStart)) yStart = 1e-12;
+      yEnd = (*yVal)[maxEl];
+      if (isnan(yEnd)) yEnd = 1.0;
+    }
+    return false;
+  } // }}}
 
   private: void old_body( EnvT* e, GDLGStream* actStream) // {{{
   {
@@ -94,19 +189,23 @@ namespace lib {
     DLong xnozero=1, ynozero=0;
     if ( e->KeywordSet( "YNOZERO")) ynozero = 1;
 
-    // keyword overrides
-    static int xLogIx = e->KeywordIx( "XLOG");
-    static int yLogIx = e->KeywordIx( "YLOG");
-    xLog = e->KeywordSet( xLogIx);
-    yLog = e->KeywordSet( yLogIx);
+    // Please remember the {X|Y}range overwrite the data range
+    //[x|y]range keyword
+    gkw_axis_range(e, "X", xStart, xEnd, xnozero);
+    gkw_axis_range(e, "Y", yStart, yEnd, ynozero);
 
-    if (xLog && xStart <= 0.0)
-      Warning( "PLOT: Infinite x plot range.");
-    if (yLog && yStart <= 0.0)
-      Warning( "PLOT: Infinite y plot range.");
+    if ((xLog && xStart <= 0.0) || wasBadxLog) Warning( "PLOT: Infinite x plot range.");
+    if ((yLog && yStart <= 0.0) || wasBadyLog) Warning( "PLOT: Infinite y plot range.");
+    //xStyle and yStyle apply on range values
 
-    if ( e->KeywordSet( "YNOZERO")) ynozero = 1;
+    minVal = yStart;
+    maxVal = yEnd;
+    e->AssureDoubleScalarKWIfPresent( "MIN_VALUE", minVal);
+    e->AssureDoubleScalarKWIfPresent( "MAX_VALUE", maxVal);
 
+    // style applies on the final values
+    yStart=max(minVal,yStart);
+    yEnd=min(maxVal,yEnd);
     if ((xStyle & 1) != 1) {
       PLFLT intv = AutoIntvAC(xStart, xEnd, xnozero, xLog);
     }
@@ -114,22 +213,7 @@ namespace lib {
       PLFLT intv = AutoIntvAC(yStart, yEnd, ynozero, yLog);
     }
 
-    // Please remember the {X|Y}range overwrite the data range
-    //[x|y]range keyword
-    gkw_axis_range(e, "X", xStart, xEnd, xnozero);
-    gkw_axis_range(e, "Y", yStart, yEnd, ynozero);
-
-    if (xLog && xStart <= 0.0)
-      Warning( "PLOT: Infinite x plot range.");
-    if (yLog && yStart <= 0.0)
-      Warning( "PLOT: Infinite y plot range.");
-
-    minVal = yStart;
-    maxVal = yEnd;
-    e->AssureDoubleScalarKWIfPresent( "MIN_VALUE", minVal);
-    e->AssureDoubleScalarKWIfPresent( "MAX_VALUE", maxVal);
-
-    DLong xTicks=0, yTicks=0; 
+    DLong xTicks=0, yTicks=0;
     e->AssureLongScalarKWIfPresent( "XTICKS", xTicks);
     e->AssureLongScalarKWIfPresent( "YTICKS", yTicks);
 
@@ -158,14 +242,11 @@ namespace lib {
     DFloatGDL* pos = e->IfDefGetKWAs<DFloatGDL>( positionIx);
     if (pos == NULL) pos = (DFloatGDL*) 0xF;
 
-    // *** start drawing
+    // *** start drawing. Graphic Keywords accepted: BACKGROUND, CHARSIZE, CHARTHICK, CLIP, COLOR, DATA, DEVICE, FONT, LINESTYLE, NOCLIP, NODATA, NOERASE, NORMAL, POSITION, PSYM, SUBTITLE, SYMSIZE, T3D, THICK, TICKLEN, TITLE, [XYZ]CHARSIZE, [XYZ]GRIDSTYLE, [XYZ]MARGIN(OK), [XYZ]MINOR, [XYZ]RANGE, [XYZ]STYLE, [XYZ]THICK, [XYZ]TICKFORMAT, [XYZ]TICKINTERVAL, [XYZ]TICKLAYOUT, [XYZ]TICKLEN, [XYZ]TICKNAME, [XYZ]TICKS, [XYZ]TICKUNITS, [XYZ]TICKV, [XYZ]TICK_GET, [XYZ]TITLE, ZVALUE
     gkw_background(e, actStream);  //BACKGROUND
     gkw_color(e, actStream);       //COLOR
 
-    {
-      bool line;
-      gkw_psym(e, actStream, line, psym);//PSYM
-    }
+    gkw_psym(e, psym);//PSYM
 
     DFloat charsize, xCharSize, yCharSize;
     gkw_charsize(e, actStream, charsize);  //CHARSIZE
@@ -224,7 +305,7 @@ namespace lib {
     bool okVPWC = SetVP_WC( e, actStream, pos, clippingD, 
 			    xLog, yLog,
 			    xMarginL, xMarginR, yMarginB, yMarginT,
-			    xStart, xEnd, minVal, maxVal);
+			    xStart, xEnd, yStart, yEnd);
     if( !okVPWC) return;
 
     // pen thickness for axis
@@ -234,10 +315,18 @@ namespace lib {
     string xOpt="bc", yOpt="bc";
     AdjustAxisOpts(xOpt, yOpt, xStyle, yStyle, xTicks, yTicks, xTickformat, yTickformat, xLog, yLog);
 
+    DLong charthick=0;
+    e->AssureLongScalarKWIfPresent("CHARTHICK",charthick);
+    actStream->wid(charthick);
+
+//X
     // axis titles
     actStream->schr( 0.0, actH/defH * xCharSize);
     actStream->mtex("b",3.5,0.5,0.5,xTitle.c_str());
 
+    DLong xthick=0;
+    e->AssureLongScalarKWIfPresent("XTHICK",xthick);
+    actStream->wid(xthick);
     // the axis (separate for x and y axis because of charsize)
     PLFLT xintv;
     if (xTicks == 0) {
@@ -246,9 +335,14 @@ namespace lib {
       xintv = (xEnd - xStart) / xTicks;
     }
     actStream->box( xOpt.c_str(), xintv, xMinor, "", 0.0, 0);
-
+//Y
+    actStream->wid(charthick);
     actStream->schr( 0.0, actH/defH * yCharSize);
     actStream->mtex("l",5.0,0.5,0.5,yTitle.c_str());
+    
+    DLong ythick=0;
+    e->AssureLongScalarKWIfPresent("YTHICK",ythick);
+    actStream->wid(ythick);
     // the axis (separate for x and y axis because of charsize)
     PLFLT yintv;
     if (yTicks == 0) {
@@ -257,6 +351,8 @@ namespace lib {
       yintv = (yEnd - yStart) / yTicks;
     }
     actStream->box( "", 0.0, 0, yOpt.c_str(), yintv, yMinor);
+    // reset pen thickness
+    actStream->wid( 0);
 
     // title and sub title
     gkw_title(e, actStream, actH/defH);
@@ -265,7 +361,11 @@ namespace lib {
     gkw_thick(e, actStream);
     gkw_symsize(e, actStream);
     gkw_linestyle(e, actStream);
-
+    
+    if(xLog)xStart=log10(xStart);
+    if(xLog)xEnd=log10(xEnd);
+    if(yLog)yStart=log10(yStart);
+    if(yLog)yEnd=log10(yEnd);
     UpdateSWPlotStructs(actStream, xStart, xEnd, yStart, yEnd);
 
   } // }}}
@@ -276,7 +376,7 @@ namespace lib {
       static int nodataIx = e->KeywordIx( "NODATA"); 
       if (!e->KeywordSet(nodataIx)) 
       {
-        bool valid = draw_polyline(e, actStream, xVal, yVal, xLog, yLog, yStart, yEnd, psym);
+        bool valid = draw_polyline(e, actStream, xVal, yVal, xLog, yLog, psym, FALSE);
         // TODO: handle valid?
       }
     } // }}}

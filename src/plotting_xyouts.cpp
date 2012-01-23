@@ -141,7 +141,7 @@ actStream->wid( 0);
     GetSFromPlotStructs(&sx, &sy);
     GetWFromPlotStructs(&wx, &wy);
 
-    int toto=0;
+    int isdatabydefault=0;
 
     if(e->KeywordSet("DEVICE")) {
       PLFLT xpix, ypix;
@@ -161,7 +161,7 @@ actStream->wid( 0);
       actStream->vpor(0, 1, 0, 1);
       xLog = false; yLog = false;
     } else {
-      toto=1;
+      isdatabydefault=1;
       actStream->NoSub();
       if (xLog || yLog) actStream->vpor(wx[0], wx[1], wy[0], wy[1]);
       else actStream->vpor(0, 1, 0, 1); // (to be merged with the condition on DataCoordLimits...)
@@ -172,7 +172,7 @@ actStream->wid( 0);
     // variables because map routines change these directly.
 
     //    if (e->KeywordSet("NORMAL") || e->KeywordSet("DATA")) {
-    if (e->KeywordSet("DATA") || (toto == 1)) {
+    if (e->KeywordSet("DATA") || (isdatabydefault == 1)) {
       DataCoordLimits(sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, (xLog || yLog));
     }
 
@@ -192,12 +192,6 @@ actStream->wid( 0);
     // for orient
     PLFLT xScale = abs(xEnd - xStart), yScale = abs(yEnd - yStart);
 
-    // ??
-    if( yLog)
-      {
-	if( yStart <= 0.0) yStart = 0.0; else yStart = log10( yStart);
-	if( yEnd   <= 0.0) return; else yEnd = log10( yEnd);
-      }
 
     // SA: following a patch from Joanna (3029409) TODO: this is repeated in PLOTS POLYFILL and XYOUTS
     if ( xEnd - xStart == 0 || yEnd - yStart == 0 || isnan(xStart) || isnan(yStart) ) {
@@ -237,9 +231,10 @@ actStream->wid( 0);
     DDouble alignment = 0.0;
     e->AssureDoubleScalarKWIfPresent( "ALIGNMENT", alignment);
 
-    //CHARSIZE
+    //CHARSIZE Note that SIZE is apparently used in some old implementations and
+    //seems to be supported silently with *DL. So we support it also:
     DFloat charsize;
-    gkw_charsize(e, actStream, charsize);
+    gkw_charsize_xyouts(e, actStream, charsize);
 
     // !P.MULTI vs. POSITION
     handle_pmulti_position(e, actStream);
