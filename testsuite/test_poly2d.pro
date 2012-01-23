@@ -27,23 +27,23 @@ a1=double(a[0:99,0:199])
 
 window,0,xs=300,ys=300 & tv,a1
 
-B0 = POLY_2D(A1, P, Q,missing=0)
+B0 = POLY_2D(A1, P, Q,missing=128)
 window,1,xs=220,ys=220
 tv,b0
 
-B1 = POLY_2D(A1, P, Q,missing=0,cubic=-0.5)
+B1 = POLY_2D(A1, P, Q,missing=128,cubic=-0.5)
 window,2,xs=220,ys=220
 tv,b1
 
-B2 = POLY_2D(A1, P, Q,2,missing=0)
+B2 = POLY_2D(A1, P, Q,2,missing=128)
 window,3,xs=220,ys=220
 tv,b1
 
-B3 = POLY_2D(A1, P, Q,1,missing=0)
+B3 = POLY_2D(A1, P, Q,1,missing=128)
 window,4,xs=220,ys=220
 tv,b3
 
-B4 = POLY_2D(A1, P, Q,1,50,100,missing=0)
+B4 = POLY_2D(A1, P, Q,1,50,100,missing=128)
 window,5,xs=220,ys=220
 tv,b4
 
@@ -109,10 +109,10 @@ window,12,xs=220,ys=220 & tv,b1
 z=30.5
 p=[[z,0.],[1,0]] & q=[[0.,1],[0,0]]
 
-B1a = POLY_2D(A1, P, Q,missing=0)
+B1a = POLY_2D(A1, P, Q,missing=128)
 window,13,xs=220,ys=220 & tv,b1a
 
-B1b = POLY_2D(A1, P, Q,missing=0,cubic=-0.5)
+B1b = POLY_2D(A1, P, Q,missing=128,cubic=-0.5)
 window,14,xs=220,ys=220 & tv,b1b
 
 diff=b1b-b1a
@@ -123,10 +123,10 @@ tv,diff
 z=40.5
 p=[[0,0.],[1,0]] & q=[[z,1],[0,0]]
 
-B1a = POLY_2D(A1, P, Q,missing=0)
+B1a = POLY_2D(A1, P, Q,missing=128)
 window,13,xs=220,ys=220 & tv,b1a
 
-B1b = POLY_2D(A1, P, Q,missing=0,cubic=-0.5)
+B1b = POLY_2D(A1, P, Q,missing=128,cubic=-0.5)
 window,14,xs=220,ys=220 & tv,b1b
 
 diff=b1b-b1a
@@ -137,10 +137,10 @@ tv,diff
 z=40.5
 p=[[z,0.],[1,0]] & q=[[z,1],[0,0]]
 
-B1a = POLY_2D(A1, P, Q,missing=0)
+B1a = POLY_2D(A1, P, Q,missing=128)
 window,13,xs=220,ys=220 & tv,b1a
 
-B1b = POLY_2D(A1, P, Q,missing=0,cubic=-0.5)
+B1b = POLY_2D(A1, P, Q,missing=128,cubic=-0.5)
 window,14,xs=220,ys=220 & tv,b1b
 
 diff=b1b-b1a
@@ -230,17 +230,17 @@ position=0
 ;
 TV_OR_WINDOW, a1, position, split, title='ref.'
 ;
-B0 = POLY_2D(a1, P, Q, missing=0)
+B0 = POLY_2D(a1, P, Q, missing=128)
 TV_OR_WINDOW, b0, position+1, split, title='ref.'
 TV, b0, position+1
 ;
-b1 = POLY_2D(a1, P, Q, missing=0, cubic=-0.5)
+b1 = POLY_2D(a1, P, Q, missing=128, cubic=-0.5)
 TV_OR_WINDOW, b1, position+2, split, title='ref.'
 ;
-b2 = POLY_2D(a1, P, Q, 2, missing=0)
+b2 = POLY_2D(a1, P, Q, 2, missing=128)
 TV_OR_WINDOW, b2, position+3, split, title=''
 ;
-b3 = POLY_2D(a1, P, Q, 1, missing=0)
+b3 = POLY_2D(a1, P, Q, 1, missing=128)
 TV_OR_WINDOW, b3, position+4, split, title=''
 ;
 ; here it is more tricky because the size of "b4"
@@ -341,10 +341,10 @@ stop
 z=30.5
 p=[[z,0.],[1,0]] & q=[[0.,1],[0,0]]
 
-b1a = POLY_2D(a1, P, Q,missing=0)
+b1a = POLY_2D(a1, P, Q,missing=128)
 WINDOW,13,xs=220,ys=220 & TV, b1a
 
-b1b = POLY_2D(a1, P, Q,missing=0,cubic=-0.5)
+b1b = POLY_2D(a1, P, Q,missing=128,cubic=-0.5)
 WINDOW,14,xs=220,ys=220 & TV, b1b
 
 diff=b1b-b1a
@@ -355,10 +355,10 @@ TV,diff
 z=40.5
 p=[[0,0.],[1,0]] & q=[[z,1],[0,0]]
 
-b1a = POLY_2D(a1, P, Q,missing=0)
+b1a = POLY_2D(a1, P, Q,missing=128)
 WINDOW,13,xs=220,ys=220 & TV, b1a
 
-b1b = POLY_2D(a1, P, Q,missing=0,cubic=-0.5)
+b1b = POLY_2D(a1, P, Q,missing=128,cubic=-0.5)
 WINDOW,14,xs=220,ys=220 & TV, b1b
 
 diff=b1b-b1a
@@ -369,10 +369,10 @@ TV,diff
 z=40.5
 p=[[z,0.],[1,0]] & q=[[z,1],[0,0]]
 
-b1a = POLY_2D(a1, P, Q,missing=0)
+b1a = POLY_2D(a1, P, Q,missing=128)
 WINDOW,13,xs=220,ys=220 & TV, b1a
 
-b1b = POLY_2D(a1, P, Q,missing=0,cubic=-0.5)
+b1b = POLY_2D(a1, P, Q,missing=128,cubic=-0.5)
 WINDOW,14,xs=220,ys=220 & TV, b1b
 
 diff=b1b-b1a
