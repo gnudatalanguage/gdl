@@ -25,7 +25,9 @@
 #include "basic_fun.hpp"
 #include "gsl_fun.hpp"
 #include "dinterpreter.hpp"
-#include "libinit_ac.cpp"
+
+// ms: must not be inlcuded here
+//#include "libinit_ac.cpp"
 
 #include <gsl/gsl_sys.h>
 #include <gsl/gsl_linalg.h>

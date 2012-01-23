@@ -241,6 +241,7 @@ public:
   void Init() 
   {
     sInit = varPtr->Data()->LoopIndex();
+    s = sInit;
   }
 
   void Clear()
@@ -493,11 +494,12 @@ public:
 //     return res;
 //   }
 
-  void Init( BaseGDL* ix_)
+  void Init( BaseGDL* ix_)   
   {
     if( ix_->Rank() == 0) // type ONE
     {
       ix_->Scalar2RangeT(sInit);
+      s = sInit; // in case of assoc NIter is not called
       // int ret = ix_->Scalar2RangeT(s);
       // from GDL 0.9 on negative indices are fine
       // 	if( ret == -1) // index < 0

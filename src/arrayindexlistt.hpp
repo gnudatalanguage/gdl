@@ -199,7 +199,8 @@ public:
     assert( allIx == NULL);
 
     // for assoc variables last index is the record
-    if( var->IsAssoc()) return;
+    // we cannot return here as sInit is not yet copied to s
+    //if( var->IsAssoc()) return;
 
     // ArrayIndexScalar[VP] are not initialized
     // they need the NIter call, but
