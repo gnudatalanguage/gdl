@@ -51,7 +51,7 @@ private:
       yTemp = e->GetParAs< DDoubleGDL > (0);
       if (yTemp->Rank() == 0)
         e->Throw("Expression must be an array in this context: " + e->GetParString(0));
-      xTemp = new DDoubleGDL(dimension(yVal->N_Elements()), BaseGDL::INDGEN);
+      xTemp = new DDoubleGDL(dimension(yTemp->N_Elements()), BaseGDL::INDGEN);
       xtempval_guard.reset(xTemp); // delete upon exit
     }
     else
