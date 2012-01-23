@@ -73,7 +73,7 @@ SizeT ArrayIndexScalar::NIter( SizeT varDim)
 }
 SizeT ArrayIndexScalarVP::NIter( SizeT varDim) 
 {
-  s = varPtr->Data()->LoopIndex();
+  sInit = varPtr->Data()->LoopIndex();
   if( sInit < 0)
     s = sInit + varDim;
   else
@@ -89,7 +89,7 @@ SizeT ArrayIndexScalarVP::NIter( SizeT varDim)
 void ArrayIndexScalar::Init() 
 {
   sInit = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
-//   s = sInit;
+  s = sInit;
 }
 
 
