@@ -8,7 +8,7 @@
 ; -- using well positions index in TVSCL
 ; -- reading a color image in Grayscale ... (09/11/2011)
 ;
-pro TEST_READ_JPEG, filename=filename, path=path, $
+pro TEST_READ_JPEG, filename=filename, path=path, factor=factor, $
                     help=help, test=test, debug=debug, verbose=verbose
 ;
 if KEYWORD_SET(help) then begin
@@ -22,6 +22,8 @@ endif
 ;
 if N_ELEMENTS(path) EQ 0 then path=!path
 if N_ELEMENTS(filename) EQ 0 then filename='Saturn.jpg'
+;
+if N_ELEMENTS(factor) EQ 0 then factor=1
 ;
 title0='the 3 channels in Grayscale'
 title1='<<'+filename+'>> in Colors'
