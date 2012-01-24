@@ -8,6 +8,7 @@ prolib_DATA = \
   congrid.pro \
   correlate.pro \
   deriv.pro \
+  diag_matrix.pro \
   dialog_message.pro \
   dialog_pickfile.pro \
   dist.pro \
@@ -34,6 +35,7 @@ prolib_DATA = \
   interpol.pro \
   ishft.pro \
   kurtosis.pro \
+  la_invert.pro \
   last_item.pro \
   lmgr.pro \
   loadct.pro \
