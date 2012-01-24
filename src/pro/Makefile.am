@@ -27,6 +27,7 @@ prolib_DATA = \
   helpform.pro \
   hist_2d.pro \
   hist_nd.pro \
+  get_login_info.pro \
   identity.pro \
   idl_validname.pro \
   image_statistics.pro \

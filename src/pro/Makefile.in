@@ -287,6 +287,7 @@ prolib_DATA = \
   filepath.pro \
   findex.pro \
   findfile.pro \
+  get_login_info.pro \
   helpform.pro \
   hist_2d.pro \
   hist_nd.pro \
