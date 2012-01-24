@@ -11,6 +11,14 @@
 ;
 pro TEST_CONGRID_ON_IMAGES, image=image, filename=filename
 ;
+; Do we have access to ImageMagick functionnalities ??
+;
+if (MAGICK_EXISTS() EQ 0) then begin
+    MESSAGE, /continue, "GDL was compiled without ImageMagick support."
+    MESSAGE, /con, "You must have ImageMagick support to use this functionaly."
+    EXIT, status=77
+endif
+;
 if (N_ELEMENTS(image) EQ 0) then begin
     if (N_ELEMENTS(filename) EQ 0) then begin
         ;; we know we have "Saturn" in testsuite/, which should be in !PATH
