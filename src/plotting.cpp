@@ -1165,6 +1165,10 @@ namespace lib {
     if(Struct!=NULL)
       {
 	static unsigned crangeTag = Struct->Desc()->TagIndex( "CRANGE");
+	if (Struct->Desc()->TagIndex( "TYPE") == 1) {
+	  Start=log10(Start);
+	  End=log10(End);
+	}
 	(*static_cast<DDoubleGDL*>( Struct->GetTag( crangeTag, 0)))[0] = Start;
 	(*static_cast<DDoubleGDL*>( Struct->GetTag( crangeTag, 0)))[1] = End;
       }
@@ -1182,6 +1186,10 @@ namespace lib {
 	static unsigned crangeTag = Struct->Desc()->TagIndex( "CRANGE");
 	Start = (*static_cast<DDoubleGDL*>( Struct->GetTag( crangeTag, 0)))[0]; 
 	End = (*static_cast<DDoubleGDL*>( Struct->GetTag( crangeTag, 0)))[1];
+	if (Struct->Desc()->TagIndex( "TYPE") == 1) {
+	  Start=pow(Start,10.);
+	  End=pow(End,10.);
+	}
       }
   }
 
