@@ -1200,8 +1200,8 @@ namespace lib {
 	static unsigned typeTag = Struct->Desc()->TagIndex( "TYPE");
 	if ((*static_cast<DLongGDL*>(Struct->GetTag( typeTag, 0)))[0] == 1)
 	  {
-	    Start=pow(Start,10.);
-	    End=pow(End,10.);
+	    Start=pow(10.,Start);
+	    End=pow(10.,End);
 	    if (debug) cout << "Get log :" << Start << " " << End << endl;
 	  }
       }
