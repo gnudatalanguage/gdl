@@ -1164,11 +1164,18 @@ namespace lib {
     if(axis=="Z") Struct = SysVar::Z();
     if(Struct!=NULL)
       {
+	int debug=0;
+	if (debug) cout << "Set     :" << Start << " " << End << endl;
+
+	static unsigned typeTag = Struct->Desc()->TagIndex( "TYPE");
+	if ((*static_cast<DLongGDL*>(Struct->GetTag( typeTag, 0)))[0] == 1)
+	  {
+	    Start=log10(Start);
+	    End=log10(End);
+	    if (debug) cout << "set log" << Start << " " << End << endl;
+	  }
+	
 	static unsigned crangeTag = Struct->Desc()->TagIndex( "CRANGE");
-	if (Struct->Desc()->TagIndex( "TYPE") == 1) {
-	  Start=log10(Start);
-	  End=log10(End);
-	}
 	(*static_cast<DDoubleGDL*>( Struct->GetTag( crangeTag, 0)))[0] = Start;
 	(*static_cast<DDoubleGDL*>( Struct->GetTag( crangeTag, 0)))[1] = End;
       }
@@ -1183,13 +1190,20 @@ namespace lib {
     if(axis=="Z") Struct = SysVar::Z();
     if(Struct!=NULL)
       {
+	int debug=0;
+	if (debug) cout << "Get     :" << Start << " " << End << endl;
+	
 	static unsigned crangeTag = Struct->Desc()->TagIndex( "CRANGE");
 	Start = (*static_cast<DDoubleGDL*>( Struct->GetTag( crangeTag, 0)))[0]; 
 	End = (*static_cast<DDoubleGDL*>( Struct->GetTag( crangeTag, 0)))[1];
-	if (Struct->Desc()->TagIndex( "TYPE") == 1) {
-	  Start=pow(Start,10.);
-	  End=pow(End,10.);
-	}
+
+	static unsigned typeTag = Struct->Desc()->TagIndex( "TYPE");
+	if ((*static_cast<DLongGDL*>(Struct->GetTag( typeTag, 0)))[0] == 1)
+	  {
+	    Start=pow(Start,10.);
+	    End=pow(End,10.);
+	    if (debug) cout << "Get log :" << Start << " " << End << endl;
+	  }
       }
   }
 
