@@ -15,12 +15,11 @@ pro test_plotting_ranges
 
   print, '2'
   plot, [1, 10], /ylog
-  if !Y.CRANGE[0] ne 1 then err += 1
+  if !Y.CRANGE[0] ne 0 then err += 1
 
-; still to be fixed 
-;  print, '3'
-;  plot, [0], yrange=[400,1500] 
-;  if !Y.CRANGE[1] lt 1600 then err += 1
+  print, '3'
+  plot, [0], yrange=[400,1500] 
+  if !Y.CRANGE[1] lt 1600 then err += 1
 
   if err ne 0 then exit, status=1
 
