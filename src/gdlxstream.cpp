@@ -171,12 +171,13 @@ void GDLXStream::Clear( DLong bColor)
   r1 = (PLINT) rb;
   g1 = (PLINT) gb;
   b1 = (PLINT) bb;
-
+// this mimics better the *DL behaviour.
+  ::c_plbop();
   plscolbg (r1, g1, b1);
 
-  ::c_plclear();
-
-  plscolbg (r0, g0, b0);
+//  ::c_plclear();
+//
+//  plscolbg (r0, g0, b0);
 }
 
 void GDLXStream::Raise()
