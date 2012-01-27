@@ -279,7 +279,7 @@ namespace lib {
       if (e->KeywordSet("SAVE"))
       {
         // X.CRANGE
-        set_axis_crange("X", xStart, xEnd);
+        set_axis_crange("X", xStart, xEnd, xLog);
 
         // X.TYPE
         set_axis_type("X",xLog);
@@ -319,7 +319,7 @@ namespace lib {
       if (e->KeywordSet("SAVE"))
       {
         // Y.CRANGE
-        set_axis_crange("Y", yStart, yEnd);
+        set_axis_crange("Y", yStart, yEnd, yLog);
 
         // Y.TYPE
         set_axis_type("Y",yLog);

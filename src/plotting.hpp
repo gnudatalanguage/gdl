@@ -96,6 +96,7 @@ namespace lib {
 
   template <typename T> 
   bool draw_polyline(EnvT *e,  GDLGStream *a, T * xVal, T* yVal, 
+             DDouble minVal, DDouble maxVal,
 		     bool xLog, bool yLog, 
 		     DLong psym=0, bool append=FALSE);
   
@@ -122,7 +123,7 @@ namespace lib {
   //title
   void gkw_title(EnvT* e, GDLGStream *a, PLFLT ad);
   //set the !axis.crange vector
-  void set_axis_crange(string axis, DDouble Start, DDouble End);
+  void set_axis_crange(string axis, DDouble Start, DDouble End, bool log);
   //get the !axis.crange vector
   void get_axis_crange(string axis, DDouble &Start, DDouble &End);
   void get_axis_margin(string axis, DFloat &low, DFloat &high);
@@ -145,6 +146,7 @@ namespace lib {
 
   void GetSFromPlotStructs(DDouble **sx, DDouble **sy);
   void GetWFromPlotStructs(DFloat **wx, DFloat **wy);
+  void getWorldCoordinatesFromPLPLOT(GDLGStream *a, DDouble nx, DDouble ny, DDouble *wx, DDouble *wy);
   void DataCoordLimits(DDouble *sx, DDouble *sy, DFloat *wx, DFloat *wy, 
     DDouble *xStart, DDouble *xEnd, DDouble *yStart, DDouble *yEnd, bool);
 
@@ -172,7 +174,7 @@ namespace lib {
     void Clipping( DDoubleGDL* clippingD, 
                  DDouble& xStart, DDouble& xEnd, DDouble& minVal, DDouble& maxVal);
     void handle_pmulti_position(EnvT *e, GDLGStream *a);
-    void UpdateSWPlotStructs(GDLGStream* actStream, DDouble xStart, DDouble xEnd, DDouble yStart, DDouble yEnd);
+    void UpdateSWPlotStructs(GDLGStream* actStream, DDouble xStart, DDouble xEnd, DDouble yStart, DDouble yEnd, bool xLog, bool yLog);
 
 } // namespace
 
