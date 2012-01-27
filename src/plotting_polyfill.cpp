@@ -134,14 +134,14 @@ namespace lib {
     DDouble minVal = yStart, maxVal = yEnd;
 
     //CLIPPING
-    DLong noclip = 1;
-    e->AssureLongScalarKWIfPresent( "NOCLIP", noclip);
-    if (noclip == 0)
-    {
-      static int clippingix = e->KeywordIx( "CLIP"); 
-      DDoubleGDL* clippingD = e->IfDefGetKWAs<DDoubleGDL>( clippingix);
-      if (clippingD != NULL) Clipping( clippingD, xStart, xEnd, minVal, maxVal);
-    }
+//    DLong noclip = 1;
+//    e->AssureLongScalarKWIfPresent( "NOCLIP", noclip);
+//    if (noclip == 0)
+//    {
+//      static int clippingix = e->KeywordIx( "CLIP");
+//      DDoubleGDL* clippingD = e->IfDefGetKWAs<DDoubleGDL>( clippingix);
+//      if (clippingD != NULL) Clipping( clippingD, xStart, xEnd, minVal, maxVal);
+//    }
 
     // SA: following a patch from Joanna (3029409) TODO: this is repeated in PLOTS POLYFILL and XYOUTS
     if ( xEnd - xStart == 0 || yEnd - yStart == 0 || isnan(xStart) || isnan(yStart) ) {

@@ -28,7 +28,7 @@ namespace lib {
     DDouble minVal, maxVal, xStart, xEnd, yStart, yEnd;
     bool xLog, yLog, wasBadxLog, wasBadyLog;
     DLong psym;
-    auto_ptr<BaseGDL> xval_guard,yval_guard,xtempval_guard;
+    auto_ptr<BaseGDL> xval_guard,yval_guard,xtemp_guard;
 
 private:
 
@@ -52,7 +52,7 @@ private:
       if (yTemp->Rank() == 0)
         e->Throw("Expression must be an array in this context: " + e->GetParString(0));
       xTemp = new DDoubleGDL(dimension(yTemp->N_Elements()), BaseGDL::INDGEN);
-      xtempval_guard.reset(xTemp); // delete upon exit
+      xtemp_guard.reset(xTemp); // delete upon exit
     }
     else
     {
@@ -80,7 +80,7 @@ private:
       }
       else
       { //careful about previously set autopointers!
-        if (nParam() == 1) xval_guard = xtempval_guard;
+        if (nParam() == 1) xval_guard = xtemp_guard;
         xVal = xTemp;
         yVal = yTemp;
       }
@@ -198,14 +198,9 @@ private:
     if ((yLog && yStart <= 0.0) || wasBadyLog) Warning( "PLOT: Infinite y plot range.");
     //xStyle and yStyle apply on range values
 
-    minVal = yStart;
-    maxVal = yEnd;
-    e->AssureDoubleScalarKWIfPresent( "MIN_VALUE", minVal);
-    e->AssureDoubleScalarKWIfPresent( "MAX_VALUE", maxVal);
-
-    // style applies on the final values
-    yStart=max(minVal,yStart);
-    yEnd=min(maxVal,yEnd);
+//    // style applies on the final values
+//    yStart=max(minVal,yStart);
+//    yEnd=min(maxVal,yEnd);
     if ((xStyle & 1) != 1) {
       PLFLT intv = AutoIntvAC(xStart, xEnd, xnozero, xLog);
     }
@@ -234,10 +229,6 @@ private:
     // plsmin (def, scale);
 
     // POSITION
-    PLFLT xScale = 1.0;
-    PLFLT yScale = 1.0;
-
-    //    PLFLT scale = 1.0;
     static int positionIx = e->KeywordIx( "POSITION"); 
     DFloatGDL* pos = e->IfDefGetKWAs<DFloatGDL>( positionIx);
     if (pos == NULL) pos = (DFloatGDL*) 0xF;
@@ -281,12 +272,6 @@ private:
     if( (*pMulti)[1] > 2 || (*pMulti)[2] > 2) charScale = 0.5;
     actStream->schr( 0.0, charsize * charScale);
 
-    // get subpage in mm
-    PLFLT scrXL, scrXR, scrYB, scrYT;
-    actStream->gspa( scrXL, scrXR, scrYB, scrYT); 
-    PLFLT scrX = scrXR-scrXL;
-    PLFLT scrY = scrYT-scrYB;
-
     // get char size in mm (default, actual)
     PLFLT defH, actH;
     actStream->gchr( defH, actH);
@@ -308,6 +293,14 @@ private:
 			    xStart, xEnd, yStart, yEnd);
     if( !okVPWC) return;
 
+
+    //now we can setup minVal and maxVal to defaults: Start-End and overload if KW present
+    minVal = yStart;
+    maxVal = yEnd;
+    e->AssureDoubleScalarKWIfPresent( "MIN_VALUE", minVal);
+    e->AssureDoubleScalarKWIfPresent( "MAX_VALUE", maxVal);
+
+    //AXES:
     // pen thickness for axis
     actStream->wid( 0);
 
@@ -361,12 +354,8 @@ private:
     gkw_thick(e, actStream);
     gkw_symsize(e, actStream);
     gkw_linestyle(e, actStream);
-    
-    if(xLog)xStart=log10(xStart);
-    if(xLog)xEnd=log10(xEnd);
-    if(yLog)yStart=log10(yStart);
-    if(yLog)yEnd=log10(yEnd);
-    UpdateSWPlotStructs(actStream, xStart, xEnd, yStart, yEnd);
+
+    UpdateSWPlotStructs(actStream, xStart, xEnd, yStart, yEnd, xLog, yLog);
 
   } // }}}
   
@@ -376,7 +365,7 @@ private:
       static int nodataIx = e->KeywordIx( "NODATA"); 
       if (!e->KeywordSet(nodataIx)) 
       {
-        bool valid = draw_polyline(e, actStream, xVal, yVal, xLog, yLog, psym, FALSE);
+        bool valid = draw_polyline(e, actStream, xVal, yVal, minVal, maxVal, xLog, yLog, psym, FALSE);
         // TODO: handle valid?
       }
     } // }}}
@@ -386,8 +375,8 @@ private:
       actStream->lsty(1);//reset linestyle
 
       // set ![XY].CRANGE
-      set_axis_crange("X", xStart, xEnd);
-      set_axis_crange("Y", minVal, maxVal);    
+      set_axis_crange("X", xStart, xEnd, xLog);
+      set_axis_crange("Y", yStart, yEnd, yLog);
 
       //set ![x|y].type
       set_axis_type("X",xLog);

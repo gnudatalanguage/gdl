@@ -849,15 +849,15 @@ clevel[nlevel-1]=zEnd; //make this explicit
 
     private: virtual void post_call(EnvT*, GDLGStream* actStream) // {{{
     {
-      UpdateSWPlotStructs(actStream, xStart, xEnd, yStart, yEnd);
+      UpdateSWPlotStructs(actStream, xStart, xEnd, yStart, yEnd, xLog, yLog);
 
       actStream->lsty(1);//reset linestyle
 
       if (!overplot)
       {
         // set ![XY].CRANGE
-        set_axis_crange("X", xStart, xEnd);
-        set_axis_crange("Y", yStart, yEnd);
+        set_axis_crange("X", xStart, xEnd, xLog);
+        set_axis_crange("Y", yStart, yEnd, yLog);
 
         //set ![x|y].type
         set_axis_type("X",xLog);

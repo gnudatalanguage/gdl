@@ -132,21 +132,21 @@ namespace lib {
     get_axis_type("X", xLog);
     get_axis_type("Y", yLog);
 
-    if( (yStart == yEnd) || (xStart == xEnd))
-      {
-	if( yStart != 0.0 && yStart == yEnd)
-	  Message("OPLOT: !Y.CRANGE ERROR, setting to [0,1]");
-	yStart = 0; //yVal->min();
-	yEnd   = 1; //yVal->max();
-	    
-	if(xStart != 0.0 && xStart == xEnd)
-	  Message("OPLOT: !X.CRANGE ERROR, resetting range to data");
-	xStart = 0; //xVal->min();
-	xEnd   = 1; //xVal->max();
-	
-	set_axis_crange("X", xStart, xEnd);
-	set_axis_crange("Y", yStart, yEnd);
-      }	    
+    if ((yStart == yEnd) || (xStart == xEnd))
+    {
+      if (yStart != 0.0 && yStart == yEnd)
+        Message("OPLOT: !Y.CRANGE ERROR, setting to [0,1]");
+      yStart = 0; //yVal->min();
+      yEnd = 1; //yVal->max();
+
+      if (xStart != 0.0 && xStart == xEnd)
+        Message("OPLOT: !X.CRANGE ERROR, setting to [0,1]");
+      xStart = 0; //xVal->min();
+      xEnd = 1; //xVal->max();
+
+      set_axis_crange("X", xStart, xEnd, xLog);
+      set_axis_crange("Y", yStart, yEnd, yLog);
+    }
     
     minVal = yStart;
     maxVal = yEnd;
@@ -179,7 +179,7 @@ namespace lib {
     // plot the data
     if(valid) //invalid is not yet possible. Could be done by a severe clipping for example.
       valid=draw_polyline(e, actStream, 
-			  xVal, yVal, xLog, yLog, 
+			  xVal, yVal, minVal, maxVal, xLog, yLog,
 			  psym, FALSE);
 
 

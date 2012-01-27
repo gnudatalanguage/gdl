@@ -75,7 +75,7 @@ namespace lib {
     
     DDouble xStart, xEnd, yStart, yEnd;
     bool xLog, yLog;
-    DDouble minVal, maxVal;
+//    DDouble minVal, maxVal;
 
     get_axis_crange("X", xStart, xEnd);
     get_axis_crange("Y", yStart, yEnd);
@@ -106,7 +106,8 @@ namespace lib {
 actStream->wid( 0);
 
 
-    //start drawing
+    //start drawing. KEYWORDS are: CLIP(NO), COLOR(PARTIALLY), DATA(YES) , DEVICE(YES) ,
+    // NORMAL(YES) , FONT(NO), ORIENTATION(YES), /NOCLIP(YES), T3D(NO), Z(NO)
     //    actStream->Background( background);
     //    actStream->Color( color);
     //    gkw_background(e, actStream);
@@ -176,18 +177,18 @@ actStream->wid( 0);
       DataCoordLimits(sx, sy, wx, wy, &xStart, &xEnd, &yStart, &yEnd, (xLog || yLog));
     }
 
-    minVal=yStart; maxVal=yEnd;
+//    minVal=yStart; maxVal=yEnd;
 
     //CLIPPING
-    DLong noclip=1;
-    e->AssureLongScalarKWIfPresent( "NOCLIP", noclip);
-    if(noclip == 0)
-      {
-	static int clippingix = e->KeywordIx( "CLIP"); 
-	DDoubleGDL* clippingD = e->IfDefGetKWAs<DDoubleGDL>( clippingix);
-	if( clippingD != NULL)
-	    Clipping( clippingD, xStart, xEnd, minVal, maxVal);
-      }
+//    DLong noclip=1;
+//    e->AssureLongScalarKWIfPresent( "NOCLIP", noclip);
+//    if(noclip == 0)
+//      {
+//	static int clippingix = e->KeywordIx( "CLIP");
+//	DDoubleGDL* clippingD = e->IfDefGetKWAs<DDoubleGDL>( clippingix);
+//	if( clippingD != NULL)
+//	    Clipping( clippingD, xStart, xEnd, minVal, maxVal);
+//      }
 
     // for orient
     PLFLT xScale = abs(xEnd - xStart), yScale = abs(yEnd - yStart);

@@ -485,7 +485,7 @@ namespace lib {
     }
 
     // TODO: not sure if this is also valid for 3D?
-    UpdateSWPlotStructs(actStream, xStart, xEnd, yStart, yEnd);
+    UpdateSWPlotStructs(actStream, xStart, xEnd, yStart, yEnd, xLog, yLog);
 
     // title and sub title
     actStream->schr( 0.0, 1.25*actH/defH);
@@ -504,9 +504,9 @@ namespace lib {
       actStream->lsty(1);//reset linestyle
 
       // set ![XY].CRANGE
-      set_axis_crange("X", xStart, xEnd);
-      set_axis_crange("Y", yStart, yEnd);
-      set_axis_crange("Z", zStart, zEnd);
+      set_axis_crange("X", xStart, xEnd, xLog);
+      set_axis_crange("Y", yStart, yEnd, yLog);
+      set_axis_crange("Z", zStart, zEnd, zLog);
 
       //set ![x|y].type
       set_axis_type("X", xLog);

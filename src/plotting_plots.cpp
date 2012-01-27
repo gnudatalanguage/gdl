@@ -91,7 +91,7 @@ namespace lib {
 
   private: void old_body( EnvT* e, GDLGStream* actStream) // {{{
   {
-    DDoubleGDL* clippingD;
+    DDoubleGDL* clippingD=NULL;
 
     actStream->gvpd(xMarginL,xMarginR,yMarginB,yMarginT);
     if((xMarginL==0.0&&xMarginR==0.0)||(yMarginB==0.0&&yMarginT==0.0)) //if not initialized, set normalized mode
@@ -102,8 +102,10 @@ namespace lib {
         actStream->wind(0.0,1.0,0.0,1.0);
    }
     // get current viewport limit in world coords
+    get_axis_crange("X",xStart,xEnd);
+    get_axis_crange("Y",yStart,yEnd);
     actStream->gvpw(xStart,xEnd,yStart,yEnd);
-    // Axis type
+    // get_axis_type
     get_axis_type("X", xLogOrig); xLog=xLogOrig;
     get_axis_type("Y", yLogOrig); yLog=yLogOrig;
     
@@ -143,26 +145,28 @@ namespace lib {
     }
 #endif
     //CLIPPING
-    DLong noclip = 1;
+    DLong noclip = 1; //PLOTS: default is not to clip, even when clip= is present. Only with noclip=0 a clip is done.
     e->AssureLongScalarKWIfPresent( "NOCLIP", noclip);
     if( noclip == 0)
     {
-    static int clippingix = e->KeywordIx( "CLIP");
-    DDoubleGDL* clippingD = e->IfDefGetKWAs<DDoubleGDL>( clippingix);
+      static int clippingix = e->KeywordIx( "CLIP");
+      clippingD = e->IfDefGetKWAs<DDoubleGDL>( clippingix);
     }
 
     if (!e->KeywordSet("T3D"))
     {
-      if (e->KeywordSet("DEVICE"))
-      {
         actStream->NoSub();
+        if (e->KeywordSet("DEVICE"))
+      {
         actStream->vpor(0, 1, 0, 1);
         PLFLT xpix, ypix;
         PLFLT un,deux,trois,quatre;
         PLINT xleng, yleng, xoff, yoff;
         actStream->gpage(xpix, ypix, xleng, yleng, xoff, yoff);
         un=0.0; deux=xleng; trois=0.0; quatre=yleng;
-        if( clippingD != NULL) Clipping( clippingD, un, deux, trois, quatre);
+        minVal=trois;
+        maxVal=quatre;
+//        if( clippingD != NULL) Clipping( clippingD, un, deux, trois, quatre);
         actStream->wind(un, deux, trois, quatre);
         xLog = false;
         yLog = false;
@@ -170,21 +174,35 @@ namespace lib {
       else if (e->KeywordSet("NORMAL"))
       {
         PLFLT un,deux,trois,quatre;
-        actStream->NoSub();
         actStream->vpor(0, 1, 0, 1);
         un=0.0; deux=1.0; trois=0.0; quatre=1.0;
-        if( clippingD != NULL) Clipping( clippingD, un, deux, trois, quatre);
+        minVal=trois;
+        maxVal=quatre;
+ //       if( clippingD != NULL) Clipping( clippingD, un, deux, trois, quatre);
         actStream->wind(un, deux, trois, quatre);
         xLog = false;
         yLog = false;
       }
-      else if( clippingD != NULL)
+//      else if( clippingD != NULL)
+//      {
+//         PLFLT un,deux,trois,quatre;
+//         un=xStart; deux=xEnd; trois=yStart; quatre=yEnd;
+//         minVal=trois;
+//         maxVal=quatre;
+//         Clipping( clippingD, un, deux, trois, quatre);
+//         actStream->wind(un, deux, trois, quatre);
+//       }
+      else //with PLOTS, we can plot *outside* the box(e)s in DATA coordinates.
       {
-         PLFLT un,deux,trois,quatre;
-         un=xStart; deux=xEnd; trois=yStart; quatre=yEnd;
-         Clipping( clippingD, un, deux, trois, quatre);
-         actStream->wind(un, deux, trois, quatre);
-       }
+        DDouble un, deux, trois, quatre;
+        getWorldCoordinatesFromPLPLOT(actStream, 0.0, 0.0, &un, &trois);
+        getWorldCoordinatesFromPLPLOT(actStream, 1.0, 1.0, &deux, &quatre);
+
+        actStream->vpor(0, 1, 0, 1);
+        actStream->wind((PLFLT)un, (PLFLT)deux, (PLFLT)trois, (PLFLT)quatre);
+        minVal=yLog?pow(10,trois):trois;
+        maxVal=yLog?pow(10,quatre):quatre;
+      }
    }
     // start drawing. Graphic Keywords accepted: CLIP(YES), COLOR(OK), DATA(YES), DEVICE(YES),
     //LINESTYLE(OK), NOCLIP(YES), NORMAL(YES), PSYM(OK), SYMSIZE(OK), T3D(NO), THICK(OK), Z(NO)
@@ -236,7 +254,7 @@ namespace lib {
       }
       else 
       {
-        bool valid = draw_polyline(e, actStream, xVal, yVal, xLog, yLog, psym, append);
+        bool valid = draw_polyline(e, actStream, xVal, yVal, minVal, maxVal, xLog, yLog, psym, append);
         // TODO: handle valid?
       }
     } 
