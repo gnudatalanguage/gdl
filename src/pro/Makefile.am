@@ -24,10 +24,10 @@ prolib_DATA = \
   filepath.pro \
   findex.pro \
   findfile.pro \
+  get_login_info.pro \
   helpform.pro \
   hist_2d.pro \
   hist_nd.pro \
-  get_login_info.pro \
   identity.pro \
   idl_validname.pro \
   image_statistics.pro \
