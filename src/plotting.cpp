@@ -1378,9 +1378,9 @@ namespace lib {
       if (Range->N_Elements() != 2)
         e->Throw("Keyword array parameter " + RangeName +
                  " must have 2 elements.");
-      auto_ptr<DFloatGDL> guard;
-      DFloatGDL* RangeF = static_cast<DFloatGDL*>
-          (Range->Convert2(FLOAT, BaseGDL::COPY));
+      auto_ptr<DDoubleGDL> guard;
+      DDoubleGDL* RangeF = static_cast<DDoubleGDL*>
+	(Range->Convert2(DOUBLE, BaseGDL::COPY));
       guard.reset(RangeF);
       start = (*RangeF)[0];
       end = (*RangeF)[1];
