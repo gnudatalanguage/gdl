@@ -24,7 +24,8 @@ namespace lib {
 
   class oplot_call : public plotting_routine_call 
   {
-   DDoubleGDL *yVal, *xVal, *xTemp, *yTemp;
+    DDoubleGDL *yVal, *xVal, *xTemp, *yTemp;
+    SizeT xEl, yEl;
     auto_ptr<BaseGDL> xval_guard,yval_guard,xtempval_guard;
 
     private: bool handle_args( EnvT* e) // {{{
@@ -46,7 +47,9 @@ namespace lib {
         yTemp = e->GetParAs< DDoubleGDL>( 0);
         if (yTemp->Rank() == 0)
           e->Throw("Expression must be an array in this context: "+e->GetParString(0));
-        xTemp = new DDoubleGDL( dimension( yTemp->N_Elements()), BaseGDL::INDGEN);
+        yEl=yTemp->N_Elements();
+        xEl=yEl;
+        xTemp = new DDoubleGDL( dimension( xEl), BaseGDL::INDGEN);
         xtempval_guard.reset( xTemp); // delete upon exit
       }
       else
@@ -54,23 +57,34 @@ namespace lib {
         xTemp = e->GetParAs< DDoubleGDL>( 0);
         if (xTemp->Rank() == 0)
           e->Throw("Expression must be an array in this context: "+e->GetParString(0));
+        xEl=xTemp->N_Elements();
+
         yTemp = e->GetParAs< DDoubleGDL>( 1);
         if (yTemp->Rank() == 0)
           e->Throw("Expression must be an array in this context: "+e->GetParString(1));
+        yEl=yTemp->N_Elements();
+        //silently drop unmatched values
+        if (yEl != xEl)
+        {
+          SizeT size;
+          size = min(xEl, yEl);
+          xEl = size;
+          yEl = size;
+        }
       }
       //check nsum validity
       nsum=max(1,nsum);
-      nsum=min(nsum,(DLong)xTemp->N_Elements());
+      nsum=min(nsum,(DLong)xEl);
       if (nsum == 1)
       {
         if (polar)
         {
-          xVal = new DDoubleGDL(dimension(xTemp->N_Elements()), BaseGDL::NOZERO);
+          xVal = new DDoubleGDL(dimension(xEl), BaseGDL::NOZERO);
           xval_guard.reset(xVal); // delete upon exit
-          yVal = new DDoubleGDL(dimension(yTemp->N_Elements()), BaseGDL::NOZERO);
+          yVal = new DDoubleGDL(dimension(yEl), BaseGDL::NOZERO);
           yval_guard.reset(yVal); // delete upon exit
-          for (int i = 0; i < xVal->N_Elements(); i++) (*xVal)[i] = (*xTemp)[i] * cos((*yTemp)[i]);
-          for (int i = 0; i < yVal->N_Elements(); i++) (*yVal)[i] = (*xTemp)[i] * sin((*yTemp)[i]);
+          for (int i = 0; i < xEl; i++) (*xVal)[i] = (*xTemp)[i] * cos((*yTemp)[i]);
+          for (int i = 0; i < yEl; i++) (*yVal)[i] = (*xTemp)[i] * sin((*yTemp)[i]);
         }
         else
         { //careful about previously set autopointers!
@@ -82,7 +96,7 @@ namespace lib {
       else
       {
         int i, j, k;
-        DLong size = xTemp->N_Elements() / nsum;
+        DLong size = xEl / nsum;
         xVal = new DDoubleGDL(size, BaseGDL::ZERO); //SHOULD BE ZERO, IS NOT!
         xval_guard.reset(xVal); // delete upon exit
         yVal = new DDoubleGDL(size, BaseGDL::ZERO); //IDEM

@@ -74,6 +74,14 @@ namespace lib {
 
         yVal = e->GetParAs< DDoubleGDL>( 1);
         yEl = yVal->N_Elements();
+        //silently drop unmatched values
+        if (yEl!=xEl)
+        {
+          SizeT size;
+          size=min(xEl,yEl);
+          xEl=size;
+          yEl=size;
+        }
       }
       else if(nParam() == 3)
       {
@@ -86,6 +94,15 @@ namespace lib {
 
           yVal = e->GetParAs< DDoubleGDL>( 1);
           yEl = yVal->N_Elements();
+        if (!(xEl==yEl && yEl==zEl))
+        {
+          SizeT size;
+          size=min(xEl,yEl);
+          size=min(size,zEl);
+          xEl=size;
+          yEl=size;
+          zEl=size;
+        }
       }
     } 
 
@@ -102,8 +119,8 @@ namespace lib {
         actStream->wind(0.0,1.0,0.0,1.0);
    }
     // get current viewport limit in world coords
-    get_axis_crange("X",xStart,xEnd);
-    get_axis_crange("Y",yStart,yEnd);
+//    get_axis_crange("X",xStart,xEnd);
+//    get_axis_crange("Y",yStart,yEnd);
     actStream->gvpw(xStart,xEnd,yStart,yEnd);
     // get_axis_type
     get_axis_type("X", xLogOrig); xLog=xLogOrig;

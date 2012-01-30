@@ -25,6 +25,7 @@ namespace lib {
   class plot_call : public plotting_routine_call 
   {
     DDoubleGDL *yVal, *xVal, *xTemp, *yTemp;
+    SizeT xEl, yEl;
     DDouble minVal, maxVal, xStart, xEnd, yStart, yEnd;
     bool xLog, yLog, wasBadxLog, wasBadyLog;
     DLong psym;
@@ -51,7 +52,9 @@ private:
       yTemp = e->GetParAs< DDoubleGDL > (0);
       if (yTemp->Rank() == 0)
         e->Throw("Expression must be an array in this context: " + e->GetParString(0));
-      xTemp = new DDoubleGDL(dimension(yTemp->N_Elements()), BaseGDL::INDGEN);
+      yEl=yTemp->N_Elements();
+      xEl=yEl;
+      xTemp = new DDoubleGDL(dimension(xEl), BaseGDL::INDGEN);
       xtemp_guard.reset(xTemp); // delete upon exit
     }
     else
@@ -59,24 +62,34 @@ private:
       xTemp = e->GetParAs< DDoubleGDL > (0);
       if (xTemp->Rank() == 0)
         e->Throw("Expression must be an array in this context: " + e->GetParString(0));
+      xEl=xTemp->N_Elements();
       yTemp = e->GetParAs< DDoubleGDL > (1);
       if (yTemp->Rank() == 0)
         e->Throw("Expression must be an array in this context: " + e->GetParString(1));
+      yEl=yTemp->N_Elements();
+      //silently drop unmatched values
+      if (yEl!= xEl)
+      {
+        SizeT size;
+        size = min(xEl, yEl);
+        xEl = size;
+        yEl = size;
+      }
     }
     //check nsum validity
     nsum = max(1, nsum);
-    nsum = min(nsum, (DLong) xTemp->N_Elements());
+    nsum = min(nsum, (DLong)xEl);
 
     if (nsum == 1)
     {
       if (polar)
       {
-        xVal = new DDoubleGDL(dimension(xTemp->N_Elements()), BaseGDL::NOZERO);
+        xVal = new DDoubleGDL(dimension(xEl), BaseGDL::NOZERO);
         xval_guard.reset(xVal); // delete upon exit
-        yVal = new DDoubleGDL(dimension(yTemp->N_Elements()), BaseGDL::NOZERO);
+        yVal = new DDoubleGDL(dimension(yEl), BaseGDL::NOZERO);
         yval_guard.reset(yVal); // delete upon exit
-        for (int i = 0; i < xVal->N_Elements(); i++) (*xVal)[i] = (*xTemp)[i] * cos((*yTemp)[i]);
-        for (int i = 0; i < yVal->N_Elements(); i++) (*yVal)[i] = (*xTemp)[i] * sin((*yTemp)[i]);
+        for (int i = 0; i < xEl; i++) (*xVal)[i] = (*xTemp)[i] * cos((*yTemp)[i]);
+        for (int i = 0; i < yEl; i++) (*yVal)[i] = (*xTemp)[i] * sin((*yTemp)[i]);
       }
       else
       { //careful about previously set autopointers!
@@ -88,7 +101,7 @@ private:
     else
     {
       int i, j, k;
-      DLong size = xTemp->N_Elements() / nsum;
+      DLong size = (DLong)xEl / nsum;
       xVal = new DDoubleGDL(size, BaseGDL::ZERO); //SHOULD BE ZERO, IS NOT!
       xval_guard.reset(xVal); // delete upon exit
       yVal = new DDoubleGDL(size, BaseGDL::ZERO); //IDEM
@@ -131,9 +144,9 @@ private:
       DLong minEl, maxEl;
       xVal->MinMax(&minEl, &maxEl, NULL, NULL, true);
       if ((*xVal)[minEl] <= 0.0) wasBadxLog = TRUE;
-      xValBis = new DDoubleGDL(dimension(xVal->N_Elements()), BaseGDL::NOZERO);
+      xValBis = new DDoubleGDL(dimension(xEl), BaseGDL::NOZERO);
       xvalBis_guard.reset(xValBis); // delete upon exit
-      for (int i = 0; i < xVal->N_Elements(); i++) (*xValBis)[i] = log10((*xVal)[i]);
+      for (int i = 0; i < xEl; i++) (*xValBis)[i] = log10((*xVal)[i]);
     }
     else xValBis = xVal;
     if (yLog)
@@ -141,9 +154,9 @@ private:
       DLong minEl, maxEl;
       yVal->MinMax(&minEl, &maxEl, NULL, NULL, true);
       if ((*yVal)[minEl] <= 0.0) wasBadyLog = TRUE;
-      yValBis = new DDoubleGDL(dimension(yVal->N_Elements()), BaseGDL::NOZERO);
+      yValBis = new DDoubleGDL(dimension(yEl), BaseGDL::NOZERO);
       yvalBis_guard.reset(yValBis); // delete upon exit
-      for (int i = 0; i < yVal->N_Elements(); i++) (*yValBis)[i] = log10((*yVal)[i]);
+      for (int i = 0; i < yEl; i++) (*yValBis)[i] = log10((*yVal)[i]);
     }
     else yValBis = yVal;
     //   BaseGDL *x, *y;
