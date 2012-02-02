@@ -1,4 +1,4 @@
-;$Id: read_png.pro,v 1.4 2011-11-16 00:51:17 alaingdl Exp $
+;$Id: read_png.pro,v 1.5 2012-02-02 17:07:26 alaingdl Exp $
 ;
 pro READ_PNG, filename, image, red, green, blue, $
               order=order, verbose=verbose, transparent=transparent, $
@@ -56,9 +56,15 @@ ON_ERROR, 2
 ;
 ;
 ; MODIFICATION HISTORY:
-; 	Written by: Christopher Lee 2004-05-23
-;       2011-Aug-18, Alain Coulais : More checks on inputs; now verify if
-;       compiled with ImageMagick support !
+;  Written by: Christopher Lee 2004-05-23
+;  2011-Aug-18, Alain Coulais : More checks on inputs; now verify if
+;      compiled with ImageMagick support !
+;  2012-Feb-02, Alain Coulais :  the effective order of reading was bad ...
+;      now it is OK on all tested PNG images, including images with transparency
+;      see 3 examples:
+;  * testsuite/Saturn.jpg default conversion by Image Magick in PNG
+;  * http://www.gnu.org/graphics/meditate_fel.png (big, no transparency)
+;  * http://www.gnu.org/graphics/meditate.png (transparency)
 ;
 ;-
 ; LICENCE:
@@ -102,7 +108,9 @@ if (magick_IndexedColor(mid)) then begin
     MAGICK_READCOLORMAPRGB, mid, red, green, blue
     colortable=[[red],[green],[blue]]
 endif else begin
-    image=MAGICK_READ(mid)
+   ;; AC 2012-Feb-02 the effective order of reading was bad ...
+   ;; now it is OK on all tested PNG images, including images with transparency
+   image=MAGICK_READ(mid, rgb=1)
 endelse
 ;
 MAGICK_CLOSE, mid
