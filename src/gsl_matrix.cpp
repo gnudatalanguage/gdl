@@ -299,5 +299,80 @@ namespace lib {
     }
     //    return res;
   }
+
+  BaseGDL* trisol_fun( EnvT* e){
+    SizeT nParam=e->NParam(1);
+    
+    // managing first input: Square Matrix
+    
+    BaseGDL* p0 = e->GetParDefined(0); // sub-diag elements
+    BaseGDL* p1 = e->GetParDefined(1); // diagonal elements
+    BaseGDL* p2 = e->GetParDefined(2); // sup-diag elements
+    BaseGDL* p3 = e->GetParDefined(3); // right-hand side vector
+
+    SizeT nEl = p0->N_Elements();
+    if( nEl == 0)
+      e->Throw( "Variable is undefined: " + e->GetParString(0));
+
+    // status 
+    // check here, if not done, res would be pending in case of SetPar() throws
+    // SetPar() only throws in AssureGlobalPar()
+    //    if (nParam == 2) e->AssureGlobalPar( 1);
+    
+    if (p0->Type() == COMPLEXDBL || p0->Type() == COMPLEX){
+      e->Throw( "Input type cannot be COMPLEX, please use LA_DETERM (not ready)");
+    }
+        
+    if( p0->Type() != DOUBLE){      
+      e->Throw("Sorry, Input type can be only DOUBLE now (please contribute)");
+    } else{
+
+      DDoubleGDL *p0D = static_cast<DDoubleGDL*>(p0);
+      gsl_vector *subd = gsl_vector_alloc(nEl-1);
+      memcpy(subd->data, &(*p0D)[1], (nEl-1)*szdbl);
+
+      DDoubleGDL *p1D = static_cast<DDoubleGDL*>(p1);
+      gsl_vector *diag = gsl_vector_alloc(nEl);
+      memcpy(diag->data, &(*p1D)[0], nEl*szdbl);
+
+      DDoubleGDL *p2D = static_cast<DDoubleGDL*>(p2);
+      gsl_vector *supd = gsl_vector_alloc(nEl-1);
+      memcpy(supd->data, &(*p2D)[0], (nEl-1)*szdbl);
+
+      DDoubleGDL *p3D = static_cast<DDoubleGDL*>(p3);
+      gsl_vector *rhs = gsl_vector_alloc(nEl);
+      memcpy(rhs->data, &(*p3D)[0], nEl*szdbl);
+
+      gsl_vector *x = gsl_vector_alloc(nEl);
+
+      // computation by GSL
+     
+      int error_code;
+      error_code=gsl_linalg_solve_tridiag (diag, supd, subd, rhs, x);
+   
+      int debug=1;
+      if (debug) {
+	gsl_vector_fprintf (stdout, diag, "diag: %g");
+	gsl_vector_fprintf (stdout, subd, "subd: %g");
+	gsl_vector_fprintf (stdout, supd, "supd: %g");
+	gsl_vector_fprintf (stdout, rhs, "rhs: %g");
+	gsl_vector_fprintf (stdout, x, "res: %g");
+		
+	//	cout << "Determ : " << determ << endl;
+      }
+
+      gsl_vector_free(diag);
+      gsl_vector_free(subd);
+      gsl_vector_free(supd);
+      gsl_vector_free(rhs);
+
+      DDoubleGDL* res = new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);
+      memcpy(&(*res)[0], x->data, nEl*szdbl);
+
+      return res;
+    
+    }
+    //    return res;
+  }
 }
 
