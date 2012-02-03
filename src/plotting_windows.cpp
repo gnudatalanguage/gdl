@@ -61,18 +61,21 @@ namespace lib {
 	title = "GDL "+i2s( wIx);
       }
 
-    DLong xPos = 0;
-    if( e->KeywordPresent( 5)) // XPOS
-	e->AssureLongScalarKW( 5, xPos);
-    DLong yPos = 0;
-    if( e->KeywordPresent( 6)) // YPOS
-	e->AssureLongScalarKW( 6, yPos);
+    DLong xPos=0, yPos=0;
+    e->AssureLongScalarKWIfPresent( "XPOS", xPos);
+    e->AssureLongScalarKWIfPresent( "YPOS", yPos);
 
     DLong xSize, ySize;
     DeviceX::DefaultXYSize(&xSize, &ySize);
 
     e->AssureLongScalarKWIfPresent( "XSIZE", xSize);
     e->AssureLongScalarKWIfPresent( "YSIZE", ySize);
+
+    int debug=0;
+    if (debug) {
+      cout << "xPos/yPos   :"<<  xPos << " " << yPos << endl;
+      cout << "xSize/ySize :"<<  xSize << " " << ySize << endl;
+    }
 
     if( xSize <= 0 || ySize <= 0 || xPos < 0 || yPos < 0)
       e->Throw(  "Unable to create window "

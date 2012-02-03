@@ -417,10 +417,19 @@ public:
     PLINT xoff; PLINT yoff;
     winList[ wIx]->gpage( xp, yp, xleng, yleng, xoff, yoff);
 
+    int debug=0;
+    if (debug) cout <<xp<<" "<<yp<<" "<<xleng<<" "<<yleng<<" "<<xoff<<" "<<yoff<<endl;
+
+    DLong xMaxSize, yMaxSize;
+    DeviceX::MaxXYSize(&xMaxSize, &yMaxSize);
+
     xleng = xSize;
     yleng = ySize;
     xoff  = xPos;
-    yoff  = yPos;
+    yoff  = yMaxSize-(yPos+ySize);
+    if (yoff <= 0) yoff=1;
+    
+    if (debug) cout <<xp<<" "<<yp<<" "<<xleng<<" "<<yleng<<" "<<xoff<<" "<<yoff<<endl;
 
     winList[ wIx]->spage( xp, yp, xleng, yleng, xoff, yoff);
 
@@ -882,6 +891,21 @@ public:
       *ySize = DisplayHeight(display, DefaultScreen(display)) / 2;
       XCloseDisplay(display);
     }   
+#endif
+  }
+  
+  static void MaxXYSize(DLong *xSize, DLong *ySize)
+  {
+    *ySize = 640;
+    *ySize = 512;
+#ifdef HAVE_X
+    Display* display = XOpenDisplay(NULL);
+    if (display != NULL)
+    {
+      *xSize = DisplayWidth(display, DefaultScreen(display));
+      *ySize = DisplayHeight(display, DefaultScreen(display));
+      XCloseDisplay(display);
+    }
 #endif
   }
 
