@@ -13,10 +13,15 @@ pro TEST_CONGRID_ON_IMAGES, image=image, filename=filename
 ;
 ; Do we have access to ImageMagick functionnalities ??
 ;
-if (MAGICK_EXISTS() EQ 0) then begin
-    MESSAGE, /continue, "GDL was compiled without ImageMagick support."
-    MESSAGE, /con, "You must have ImageMagick support to use this functionaly."
-    EXIT, status=77
+DEFSYSV, '!gdl', exists=is_it_gdl
+;
+if (is_it_gdl EQ 1) then begin
+   ok=EXECUTE('resu=MAGICK_EXISTS()')
+   if (resu EQ 0) then begin
+      MESSAGE, /continue, "GDL was compiled without ImageMagick support."
+      MESSAGE, /con, "You must have ImageMagick support to use this functionaly."
+      EXIT, status=77
+   endif
 endif
 ;
 if (N_ELEMENTS(image) EQ 0) then begin
