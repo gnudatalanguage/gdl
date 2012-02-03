@@ -327,6 +327,7 @@ TESTS = \
   test_strsplit.pro \
   test_suite.pro \
   test_systime.pro \
+  test_trisol.pro \
   test_url.pro \
   test_wavelet.pro \
   test_zeropoly.pro \

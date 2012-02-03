@@ -301,7 +301,7 @@ namespace lib {
   }
 
   BaseGDL* trisol_fun( EnvT* e){
-    SizeT nParam=e->NParam(1);
+    //    SizeT nParam=e->NParam(1);
     
     // managing first input: Square Matrix
     
@@ -310,69 +310,84 @@ namespace lib {
     BaseGDL* p2 = e->GetParDefined(2); // sup-diag elements
     BaseGDL* p3 = e->GetParDefined(3); // right-hand side vector
 
-    SizeT nEl = p0->N_Elements();
-    if( nEl == 0)
-      e->Throw( "Variable is undefined: " + e->GetParString(0));
+    SizeT nEl0 = p0->N_Elements();
+    if( nEl0 == 0) e->Throw( "Variable is undefined: " + e->GetParString(0));
+    SizeT nEl1 = p1->N_Elements();
+    if( nEl1 == 0) e->Throw( "Variable is undefined: " + e->GetParString(1));
+    SizeT nEl2 = p2->N_Elements();
+    if( nEl2 == 0) e->Throw( "Variable is undefined: " + e->GetParString(2));
+    SizeT nEl3 = p3->N_Elements();
+    if( nEl3 == 0) e->Throw( "Variable is undefined: " + e->GetParString(3));
 
-    // status 
-    // check here, if not done, res would be pending in case of SetPar() throws
-    // SetPar() only throws in AssureGlobalPar()
-    //    if (nParam == 2) e->AssureGlobalPar( 1);
+    //    cout << nEl0 << " " << nEl1 << " " << nEl2 << " " << nEl3 << " " << endl;
+
+    SizeT nEl = nEl0;
+    if (nEl1 != nEl) e->Throw( "Argument: " + e->GetParString(1)+" does not have correct size");
+    if (nEl2 != nEl) e->Throw( "Argument: " + e->GetParString(2)+" does not have correct size");
+    if (nEl3 != nEl) e->Throw( "Argument: " + e->GetParString(3)+" does not have correct size");
     
-    if (p0->Type() == COMPLEXDBL || p0->Type() == COMPLEX){
-      e->Throw( "Input type cannot be COMPLEX, please use LA_DETERM (not ready)");
+    int complex_flag=0;
+    if (p0->Type() == COMPLEXDBL || p0->Type() == COMPLEX) complex_flag=1;
+    if (p1->Type() == COMPLEXDBL || p1->Type() == COMPLEX) complex_flag=1;
+    if (p2->Type() == COMPLEXDBL || p2->Type() == COMPLEX) complex_flag=1;
+    if (p3->Type() == COMPLEXDBL || p3->Type() == COMPLEX) complex_flag=1;
+    if (complex_flag) {
+      e->Throw( "Input type cannot be COMPLEX, please use LA_TRISOL (not ready)");
     }
-        
-    if( p0->Type() != DOUBLE){      
-      e->Throw("Sorry, Input type can be only DOUBLE now (please contribute)");
-    } else{
 
-      DDoubleGDL *p0D = static_cast<DDoubleGDL*>(p0);
-      gsl_vector *subd = gsl_vector_alloc(nEl-1);
-      memcpy(subd->data, &(*p0D)[1], (nEl-1)*szdbl);
-
-      DDoubleGDL *p1D = static_cast<DDoubleGDL*>(p1);
-      gsl_vector *diag = gsl_vector_alloc(nEl);
-      memcpy(diag->data, &(*p1D)[0], nEl*szdbl);
-
-      DDoubleGDL *p2D = static_cast<DDoubleGDL*>(p2);
-      gsl_vector *supd = gsl_vector_alloc(nEl-1);
-      memcpy(supd->data, &(*p2D)[0], (nEl-1)*szdbl);
-
-      DDoubleGDL *p3D = static_cast<DDoubleGDL*>(p3);
-      gsl_vector *rhs = gsl_vector_alloc(nEl);
-      memcpy(rhs->data, &(*p3D)[0], nEl*szdbl);
-
-      gsl_vector *x = gsl_vector_alloc(nEl);
-
-      // computation by GSL
-     
-      int error_code;
-      error_code=gsl_linalg_solve_tridiag (diag, supd, subd, rhs, x);
-   
-      int debug=1;
-      if (debug) {
-	gsl_vector_fprintf (stdout, diag, "diag: %g");
-	gsl_vector_fprintf (stdout, subd, "subd: %g");
-	gsl_vector_fprintf (stdout, supd, "supd: %g");
-	gsl_vector_fprintf (stdout, rhs, "rhs: %g");
-	gsl_vector_fprintf (stdout, x, "res: %g");
-		
-	//	cout << "Determ : " << determ << endl;
-      }
-
-      gsl_vector_free(diag);
-      gsl_vector_free(subd);
-      gsl_vector_free(supd);
-      gsl_vector_free(rhs);
-
-      DDoubleGDL* res = new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);
-      memcpy(&(*res)[0], x->data, nEl*szdbl);
-
-      return res;
+    // computations are done in Double type, conversion at the end
     
+    DDoubleGDL *p0D = e->GetParAs<DDoubleGDL>(0);
+    gsl_vector *subd = gsl_vector_alloc(nEl-1);
+    memcpy(subd->data, &(*p0D)[1], (nEl-1)*szdbl);
+    
+    DDoubleGDL *p1D= e->GetParAs<DDoubleGDL>(1);// = static_cast<DDoubleGDL*>(p1);
+    gsl_vector *diag = gsl_vector_alloc(nEl);
+    memcpy(diag->data, &(*p1D)[0], nEl*szdbl);
+    
+    DDoubleGDL *p2D= e->GetParAs<DDoubleGDL>(2); // = static_cast<DDoubleGDL*>(p2);
+    gsl_vector *supd = gsl_vector_alloc(nEl-1);
+    memcpy(supd->data, &(*p2D)[0], (nEl-1)*szdbl);
+    
+    DDoubleGDL *p3D= e->GetParAs<DDoubleGDL>(3);// = static_cast<DDoubleGDL*>(p3);
+    gsl_vector *rhs = gsl_vector_alloc(nEl);
+    memcpy(rhs->data, &(*p3D)[0], nEl*szdbl);
+    
+    gsl_vector *x = gsl_vector_alloc(nEl);
+    
+    // computation by GSL  
+    int error_code=-1;
+    error_code=gsl_linalg_solve_tridiag (diag, supd, subd, rhs, x);
+
+    if (error_code > 0)
+      Message( e->GetProName() + ": GSL did return an error. Is realy the matrix Pos. Define ?");
+  
+    int debug=0;
+    if (debug) {
+      gsl_vector_fprintf (stdout, diag, "diag: %g");
+      gsl_vector_fprintf (stdout, subd, "subd: %g");
+      gsl_vector_fprintf (stdout, supd, "supd: %g");
+      gsl_vector_fprintf (stdout, rhs, "rhs: %g");
+      gsl_vector_fprintf (stdout, x, "res: %g");
     }
-    //    return res;
+    
+    gsl_vector_free(diag);
+    gsl_vector_free(subd);
+    gsl_vector_free(supd);
+    gsl_vector_free(rhs);
+    
+    int double_flag=0;
+    if (p0->Type() == DOUBLE || p1->Type() == DOUBLE) double_flag=1;
+    if (p2->Type() == DOUBLE || p2->Type() == DOUBLE) double_flag=1;
+    if (e->KeywordSet("DOUBLE")) double_flag=1;
+    
+    DDoubleGDL* res = new DDoubleGDL(nEl, BaseGDL::NOZERO);
+    memcpy(&(*res)[0], x->data, nEl*szdbl);
+    
+    if (double_flag)
+      {	return res; }
+    else
+      { return res->Convert2(FLOAT, BaseGDL::CONVERT); }
   }
 }
 

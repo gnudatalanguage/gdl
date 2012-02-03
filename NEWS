@@ -548,5 +548,6 @@
 	   - Initial import of TV for PS output
 	   - fix in RANDOMN/RANDOMU (Binomial OK, conflicting keywords detected ...)
            - Initial import for QROMB() and QSIMP() (based on QROMB) and QROMO() [not finished]
+           - Initial import for TRISOL()
 
 
