@@ -106,6 +106,8 @@ pro TEST_READ_STANDARD_IMAGES, download=download, delais=delais, $
                                verbose=verbose, $
                                test=test, help=help
 ;
+DEVICE, decomposed=0
+;
 if KEYWORD_SET(help) then begin
    print, 'pro TEST_READ_STANDARD_IMAGES, download=download, delais=delais, $'
    print, '                               verbose=verbose, $'
@@ -140,7 +142,10 @@ for ii=0, nb_images-1 do begin
       ;;
       if (info.type EQ 'JPEG') then begin
          READ_JPEG, list_of_names[ii], image
-         if (info.channels EQ 1) then TV, image
+         if (info.channels EQ 1) then begin
+            LOADCT, 0
+            TV, image
+         endif
          if (info.channels EQ 3) then TV, image, /true
       endif
       ;;
