@@ -200,6 +200,16 @@ namespace lib {
 	      }
 	  }
       }
-  }
 
+    // AC, 07/02/2012, please report any unexpected side effect (see test_tvlct.pro)
+    if (~get) {
+      GDLGStream* actStream = Graphics::GetDevice()->GetStream(false);
+      if (actStream != NULL) {
+	PLINT red[ctSize], green[ctSize], blue[ctSize];
+	actCT->Get( red, green, blue);
+	actStream->scmap1( red, green, blue, ctSize); 
+      }
+    }
+  }
+  
 } // namespace
