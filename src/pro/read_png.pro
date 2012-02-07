@@ -1,4 +1,4 @@
-;$Id: read_png.pro,v 1.5 2012-02-02 17:07:26 alaingdl Exp $
+;$Id: read_png.pro,v 1.6 2012-02-07 22:39:56 alaingdl Exp $
 ;
 pro READ_PNG, filename, image, red, green, blue, $
               order=order, verbose=verbose, transparent=transparent, $
@@ -66,14 +66,17 @@ ON_ERROR, 2
 ;  * http://www.gnu.org/graphics/meditate_fel.png (big, no transparency)
 ;  * http://www.gnu.org/graphics/meditate.png (transparency)
 ;
+;  2012-Feb-07, Alain Coulais : new test cases in testsuite:
+;   test_read_standard_images.pro : 2 JPEG and 4 PNG (2 with transparency)
+;   The transpose for 2D image is no more need.
+;
 ;-
 ; LICENCE:
-; Copyright (C) 2004,
+; Copyright (C) 2004, 2011, 2012
 ; This program is free software; you can redistribute it and/or modify  
 ; it under the terms of the GNU General Public License as published by  
 ; the Free Software Foundation; either version 2 of the License, or     
 ; (at your option) any later version.                                   
-;
 ;
 ;-
 ;
@@ -92,7 +95,10 @@ if (MAGICK_EXISTS() EQ 0) then begin
 endif
 ;
 if (N_PARAMS() EQ 0) then MESSAGE, "Incorrect number of arguments."
+if ~((N_PARAMS() EQ 1) OR (N_PARAMS() EQ 4)) then $
+   MESSAGE, "Only 1 or 4 arguments allowed."
 ;
+if (SIZE(filename,/type) NE 7) then MESSAGE, "String expression required in this context: filename"
 if (STRLEN(filename) EQ 0) then MESSAGE, "Null filename not allowed."
 if ((FILE_INFO(filename)).exists EQ 0) then MESSAGE, "Error opening file. File: "+filename
 if (FILE_TEST(filename, /regular) EQ 0) then MESSAGE, "Not a regular File: "+filename

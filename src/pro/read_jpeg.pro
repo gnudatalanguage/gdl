@@ -1,4 +1,4 @@
-;$Id: read_jpeg.pro,v 1.10 2012-01-28 01:16:07 alaingdl Exp $
+;$Id: read_jpeg.pro,v 1.11 2012-02-07 22:39:56 alaingdl Exp $
 
 pro READ_JPEG, filename, unit=unit, image, colortable, buffer=buffer, $
                colors=colors, dither=dither, grayscale=grayscale, order=order, $
@@ -49,16 +49,19 @@ ON_ERROR, 2
 ;         READ_JPEG, file, image
 ;
 ; MODIFICATION HISTORY:
-;    Written by: Christopher Lee 2004-05-17
-;    2006-May-02, Joel Gales    : Add convert to byte if 16-bit image
-;    2011-Aug-18, Alain Coulais : More checks on inputs, verify if
+;  Written by: Christopher Lee 2004-05-17
+;  2006-May-02, Joel Gales    : Add convert to byte if 16-bit image
+;  2011-Aug-18, Alain Coulais : More checks on inputs, verify if
 ;       compiled with ImageMagick support !
-;    2011-Nov-09, Alain Coulais : correction for bug 3435468
+;  2011-Nov-09, Alain Coulais : correction for bug 3435468
 ;       Grayscale (2D case)
+;  2012-Feb-07, Alain Coulais : new test cases in testsuite:
+;   test_read_standard_images.pro : 2 JPEG and 4 PNG (2 with transparency)
+;   The transpose for 2D image is no more need.
 ;
 ;-
 ; LICENCE:
-; Copyright (C) 2004, 2011
+; Copyright (C) 2004, 2011, 2012
 ; This program is free software; you can redistribute it and/or modify  
 ; it under the terms of the GNU General Public License as published by  
 ; the Free Software Foundation; either version 2 of the License, or     
@@ -140,9 +143,10 @@ endif
 ;
 if (not KEYWORD_SET(unit)) then MAGICK_CLOSE, mid
 ;
-if (sz[0] EQ 2) then begin
-   image=ROTATE(image,7)
-endif
+; this is no more need, code changed in MAGICK_READINDEXES
+;if (sz[0] EQ 2) then begin
+;   image=ROTATE(image,7)
+;endif
 if (sz[0] EQ 3) then begin
    ;; "rotate" image to agree with IDL (JMG 08/18/04)
    tmp = image[0,*,*]

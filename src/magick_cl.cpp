@@ -378,30 +378,46 @@ namespace lib {
 
 	columns=image.columns();
 	rows=image.rows();
-	SizeT c[2];
-	c[0]=columns;
-	c[1]=rows;
-	dimension dim(c,2);
-	DByteGDL *bImage=new DByteGDL(dim,BaseGDL::NOZERO);
 
-	PixelPacket* pixel;
-	IndexPacket* index;
-	pixel=image.getPixels(0,0,columns,rows);
-	index=image.getIndexes();
-        if (index == NULL) e->Throw("(FIXME!) Magick's getIndexes() returned NULL for: " +e->GetParString(0));
-	unsigned int cx, cy;
-	for (cy=0;cy<rows;++cy)
-	  for (cx=0;cx<columns;++cx)
-	    (*bImage)[cx+(rows-cy-1)*columns]= index[cx+(cy)*columns];
-	
-	return bImage;
+	if (image.matte() == 0){
+	  
+	  SizeT c[2];
+	  c[0]=columns;
+	  c[1]=rows;
+	  dimension dim(c,2);
+	  DByteGDL *bImage=new DByteGDL(dim,BaseGDL::NOZERO);
+	  
+	  PixelPacket* pixel;
+	  IndexPacket* index;
+	  pixel=image.getPixels(0,0,columns,rows);
+	  index=image.getIndexes();
+	  string txt="(FIXME!) Magick's getIndexes() returned NULL for: ";
+	  if (index == NULL) e->Throw(txt + e->GetParString(0));
+	  unsigned int cx, cy;
+	  for (cy=0;cy<rows;++cy)
+	    for (cx=0;cx<columns;++cx)
+	      // note by AC, 07Feb2012: why this transpose here ??
+	      // (*bImage)[cx+(rows-cy-1)*columns]= index[cx+(cy)*columns];
+	      (*bImage)[cx+cy*columns]= index[cx+cy*columns];
+	  return bImage;
+	} else {
+	  // we do have to manage an extra channel for transparency
+	  string map="RA";
+	  SizeT c[3];
+	  c[0] = map.length(); // see code "magick_read" below
+	  c[1] = columns;
+	  c[2] = rows;
+	  dimension dim(c,3);
+	  DByteGDL *bImage=new DByteGDL(dim,BaseGDL::NOZERO);
+	  image.write(0,0,columns,rows,map, CharPixel,&(*bImage)[0]);
+	  return bImage;
+	} 
       }
     catch (Exception &error_ )
       {
         e->Throw(error_.what());
       }
   }
-
 
   void magick_readcolormapRGB(EnvT* e)
   {
@@ -412,7 +428,6 @@ namespace lib {
       Image image=magick_image(e,mid);
       if(image.classType()==DirectClass)
 	e->Throw("Not an indexed image: " +e->GetParString(0));
-      
 
       if(image.classType()==PseudoClass)
 	{
@@ -469,14 +484,13 @@ namespace lib {
 		  (*B)[i]=(col.blueQuantum())*scale/Quant;
 		}
 	      if(nParam > 1) e->SetPar(1,R);
-		if(nParam > 2) e->SetPar(2,G);
-		if(nParam > 3) e->SetPar(3,B);
+	      if(nParam > 2) e->SetPar(2,G);
+	      if(nParam > 3) e->SetPar(3,B);
 	    }
-	    else
-	      {
-		e->Throw("Uknown Image type, too many colors");
-	      }
-	  
+	  else
+	    {
+	      e->Throw("Uknown Image type, too many colors");
+	    }	  
 	}
       else
 	{
@@ -522,6 +536,7 @@ namespace lib {
 		map="BGR";
 	      }
 	  }
+
 	if(image.matte()) map=map+"A";
 
 	if(e->KeywordSet(2)) //MAP
