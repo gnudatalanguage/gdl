@@ -1,4 +1,4 @@
-;$Id: read_jpeg.pro,v 1.11 2012-02-07 22:39:56 alaingdl Exp $
+;$Id: read_jpeg.pro,v 1.12 2012-02-07 23:16:49 alaingdl Exp $
 
 pro READ_JPEG, filename, unit=unit, image, colortable, buffer=buffer, $
                colors=colors, dither=dither, grayscale=grayscale, order=order, $
@@ -90,6 +90,16 @@ if (N_PARAMS() EQ 0) then MESSAGE, "Incorrect number of arguments."
 if (STRLEN(filename) EQ 0) then MESSAGE, "Null filename not allowed."
 if ((FILE_INFO(filename)).exists EQ 0) then MESSAGE, "Error opening file. File: "+filename
 if (FILE_TEST(filename, /regular) EQ 0) then MESSAGE, "Not a regular File: "+filename
+;
+; testing whether the format is as expected
+;
+if ~MAGICK_PING(filename, 'PNG') then begin
+   MESSAGE, /continue, "JPEG error: Not a JPEG file:"
+   if MAGICK_PING(filename, 'PNG') then MESSAGE, "seems to be a PNG file"
+   if MAGICK_PING(filename, 'GIF') then MESSAGE, "seems to be a GIF file"
+   if MAGICK_PING(filename, 'PDF') then MESSAGE, "seems to be a PDF file"
+   MESSAGE, "unknown/untested format file"   
+endif
 ;
 if KEYWORD_SET(unit) then MESSAGE, "Keyword UNIT not supported"
 if KEYWORD_SET(buffer) then MESSAGE, "Keyword BUFFER not supported"

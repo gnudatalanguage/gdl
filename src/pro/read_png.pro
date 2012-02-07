@@ -1,4 +1,4 @@
-;$Id: read_png.pro,v 1.6 2012-02-07 22:39:56 alaingdl Exp $
+;$Id: read_png.pro,v 1.7 2012-02-07 23:16:49 alaingdl Exp $
 ;
 pro READ_PNG, filename, image, red, green, blue, $
               order=order, verbose=verbose, transparent=transparent, $
@@ -102,6 +102,16 @@ if (SIZE(filename,/type) NE 7) then MESSAGE, "String expression required in this
 if (STRLEN(filename) EQ 0) then MESSAGE, "Null filename not allowed."
 if ((FILE_INFO(filename)).exists EQ 0) then MESSAGE, "Error opening file. File: "+filename
 if (FILE_TEST(filename, /regular) EQ 0) then MESSAGE, "Not a regular File: "+filename
+;
+; testing whether the format is as expected
+;
+if ~MAGICK_PING(filename, 'PNG') then begin
+   MESSAGE, /continue, "PNG error: Not a PNG file:"
+   if MAGICK_PING(filename, 'JPEG') then MESSAGE, "seems to be a JPEG file"
+   if MAGICK_PING(filename, 'GIF') then MESSAGE, "seems to be a GIF file"
+   if MAGICK_PING(filename, 'PDF') then MESSAGE, "seems to be a PDF file"
+   MESSAGE, "unknown/untested format file"   
+endif
 ;
 mid=MAGICK_OPEN(filename)
 ;
