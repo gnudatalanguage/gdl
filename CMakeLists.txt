@@ -192,7 +192,9 @@ if(READLINE)
 		set(CMAKE_REQUIRED_LIBRARIES)
 	else(READLINE_FOUND)
 		message(FATAL_ERROR "GNU readline was not found.\n"
-		"Use -DREADLINEDIR=no to explicitely disable it.")
+		  "Use -DREADLINEDIR=no to explicitely disable it.\n"
+                  "(suitable Debian/Ubuntu package: libreadline5-dev)\n"
+                  "(suitable Fedora package: readline-devel)")
 	endif(READLINE_FOUND)
 endif(READLINE)
 
@@ -206,7 +208,9 @@ if(ZLIB_FOUND)
 	include_directories(${ZLIB_INCLUDE_DIR})
 else(ZLIB_FOUND)
 	message(FATAL_ERROR "ZLib library is required but was not found.\n"
-	"Use -DZLIBDIR=DIR to specify the zlib directory tree.")
+	"Use -DZLIBDIR=DIR to specify the zlib directory tree.\n"
+        "(suitable Debian/Ubuntu package: zlib1g-dev)\n"
+        "(suitable Fedora package: zlib-devel)")
 endif(ZLIB_FOUND)
 
 # openmp
@@ -230,7 +234,9 @@ if(GSL_FOUND)
 	include_directories(${GSL_INCLUDE_DIR})
 else(GSL_FOUND)
 	message(FATAL_ERROR "Gnu Scientific library (1.7 or higher) and libgslcblas are mandatory.\n"
-	"Use -DGSLDIR=DIR to specify the gsl directory tree.")
+	"Use -DGSLDIR=DIR to specify the gsl directory tree.\n"
+        "(suitable Debian/Ubuntu package: libgsl0-dev)\n"
+        "(suitable Fedora package: gsl-devel)")
 endif(GSL_FOUND)
 
 # PLplot MANDATORY
@@ -245,7 +251,9 @@ if(PLPLOT_FOUND)
 	include_directories(${PLPLOT_INCLUDE_DIR})
 else(PLPLOT_FOUND)
 	message(FATAL_ERROR "plplot library is required but was not found.\n"
-	"Use -DPLPLOTDIR=DIR to specify the plplot directory tree.")
+	"Use -DPLPLOTDIR=DIR to specify the plplot directory tree.\n"
+        "(suitable Debian/Ubuntu packages: libplplot-dev, [plplot9-driver-xwin])"
+        "(suitable Fedora package: plplot-devel)")
 endif(PLPLOT_FOUND)
 if(MAGICK) # support Magick
 	check_library_exists("${PLPLOT_LIBRARIES}" plGetDrvDir "" HAVE_PLGETDRVDIR)
@@ -274,7 +282,9 @@ if(WXWIDGETS)
 	else(wxWidgets_FOUND)
 		message(FATAL_ERROR "wxWidgets are required but were not found.\n"
 		"Use -DWXWIDGETSDIR=DIR to specify the wxWidgets directory tree.\n"
-		"Use -DWXWIDGETS=OFF to not use it.")
+		"Use -DWXWIDGETS=OFF to not use it.\n"
+                "(suitable Debian/Ubuntu package: libwxgtk2.8-dev)\n"
+                "(suitable Fedora package: wxGTK-devel)")
 	endif(wxWidgets_FOUND)
 endif(WXWIDGETS)
 
@@ -295,7 +305,9 @@ if(MAGICK)
 		else(MAGICKXXCONFIG)
 			message(FATAL_ERROR "ImageMagick is required but was not found (Magick++-config).\n"
 			"Use -DMAGICKDIR=DIR to specify the ImageMagick directory.\n"
-			"Use -DMAGICK=OFF to not use it.")
+			"Use -DMAGICK=OFF to not use it.\n"
+                        "(suitable Debian/Ubuntu package: libmagick-dev)\n"
+                        "(suitable Fedora package: ImageMagick-c++-devel)")
 		endif(MAGICKXXCONFIG)
 		set(LIBRARIES ${LIBRARIES} ${ImageMagick_LIBRARIES})
 		include_directories(${ImageMagick_INCLUDE_DIRS})
@@ -303,7 +315,9 @@ if(MAGICK)
 	else(ImageMagick_FOUND)
 		message(FATAL_ERROR "ImageMagick is required but was not found.\n"
 		"Use -DMAGICKDIR=DIR to specify the ImageMagick directory.\n"
-		"Use -DMAGICK=OFF to not use it.")
+		"Use -DMAGICK=OFF to not use it."
+                "(suitable Debian/Ubuntu package: libmagick-dev)\n"
+                "(suitable Fedora package: ImageMagick-c++-devel)")
 	endif(ImageMagick_FOUND)
 endif(MAGICK)
 
@@ -331,7 +345,9 @@ if(NETCDF)
 	else(NETCDF_FOUND)
 		message(FATAL_ERROR "NetCDF version 3.5.1 or later is required but was not found.\n"
 		"Use -DNETCDFDIR=DIR to specify the netcdf directory tree.\n"
-		"Use -DNETCDF=OFF to not use it.")	
+		"Use -DNETCDF=OFF to not use it.\n"
+                "(suitable Debian/Ubuntu package: libnetcdf-dev)\n"
+                "(suitable Fedora package: netcdf-devel)")
 	endif(NETCDF_FOUND)
 endif(NETCDF)
 
@@ -358,7 +374,8 @@ if(HDF)
 	else(HDF_FOUND)
 		message(FATAL_ERROR "HDF4 libraries were not found.\n"
 		"Use -DHDFDIR=DIR to specify the HDF directory tree.\n"
-		"Use -DHDF=OFF to not use it. "
+		"Use -DHDF=OFF to not use it.\n"
+                "(suitable Debian/Ubuntu package: libhdf4-alt-dev)\n"
 		"You can use -DJPEGDIR=DIR to specify the JPEG directory tree. "
 		"You can also use -DSZIPDIR=DIR to specify SZip directory tree if "
 		"HDF was compiled with SZip support.")
@@ -383,7 +400,9 @@ if(HDF5)
 	else(HDF5_FOUND)
 		message(FATAL_ERROR "HDF version 5 is required but was not found.\n"
 		"Use -DHDF5DIR=DIR to specify the HDF5 directory tree.\n"
-		"Use -DHDF5=OFF to not use it.")
+		"Use -DHDF5=OFF to not use it.\n"
+                "(suitable Debian/Ubuntu package: libhdf5-serial-dev)\n"
+                "(suitable Fedora package: hdf-devel)")
 	endif(HDF5_FOUND)
 endif(HDF5)
 
@@ -400,7 +419,9 @@ if(FFTW)
 	else(FFTW_FOUND)
 		message(FATAL_ERROR "FFTW3 is required but was not found.\n"
 		"Use -DFFTWDIR=DIR to specify the FFTW directory tree.\n"
-		"Use -DFFTW=OFF to not use it.")
+		"Use -DFFTW=OFF to not use it.\n"
+                "(suitable Debian/Ubuntu package: libfftw3-dev)\n
+                "(suitable Fedora package: fftw-devel)"")
 	endif(FFTW_FOUND)
 endif(FFTW)
 
@@ -512,7 +533,9 @@ if(PYTHON OR PYTHON_MODULE)
 	else(PYTHONLIBS_FOUND)
 		message(FATAL_ERROR "Python is required but was not found.\n"
 		"Use -DPYTHONDIR=DIR to specify the Python directory tree.\n"
-                "Use -DPYTHONVERSION=VERSION to help searching for the right version."
+                "Use -DPYTHONVERSION=VERSION to help searching for the right version.\n"
+                "(suitable Debian/Ubuntu package: python-dev)\n"
+                "(suitable Fedora package: python-devel)\n"
 		"${PYTHONMSG} ${PYTHON_MODULEMSG}")
 	endif(PYTHONLIBS_FOUND)
 endif(PYTHON OR PYTHON_MODULE)
@@ -530,7 +553,9 @@ if(UDUNITS)
 	else(UDUNITS_FOUND)
 		message(FATAL_ERROR "UDUNITS-2 is required but was not found.\n"
 		"Use -DUDUNITSDIR=DIR to specify the Udunits directory tree.\n"
-		"Use -DUDUNITS=OFF to not use it.")
+		"Use -DUDUNITS=OFF to not use it.\n"
+                "(suitable Debian/Ubuntu package: libudunits2-dev)\n"
+                "(suitable Fedora package: udunits2-devel)")
 	endif(UDUNITS_FOUND)
 endif(UDUNITS)
 
@@ -547,7 +572,9 @@ if(PSLIB)
 	else(LIBPS_FOUND)
 		message(FATAL_ERROR "pslib is required but was not found.\n"
 		"Use -DPSLIBDIR=DIR to specify the pslib directory tree.\n"
-		"Use -DPSLIB=OFF to not use it.")
+		"Use -DPSLIB=OFF to not use it.\n"
+                "(suitable Debian/Ubuntu package: pslib-dev)\n"
+                "(suitable Fedora package: pslib-devel)")
 	endif(LIBPS_FOUND)
 endif(PSLIB)
 
@@ -566,7 +593,9 @@ if(GRIB)
 		"Use -DGRIBDIR=DIR to specify the GRIB directory tree.\n"
 		"Use -DGRIB=OFF to not use it.\n"
 		"Use -DJASPERDIR=DIR and|or -DJPEGDIR=DIR to specify "
-		"the directory trees of JasPer and openJPEG libraries.")
+		"the directory trees of JasPer and openJPEG libraries.\n"
+                "(suitable Debian/Ubuntu package: libgrib-api-dev)\n"
+                "(suitable Fedora package: grib_api-devel)")
 	endif(GRIB_FOUND)
 endif(GRIB)
 
