@@ -7,9 +7,47 @@
 ; Note by Alain: it would also be great to have some "numerical null
 ; tests"
 ;
+; AC 10-Feb-2012: adding a true self-consistant test (TEST_CONGRID_BASIC)
+;
 ; ---------------------------------
 ;
-pro TEST_CONGRID_ON_IMAGES, image=image, filename=filename
+pro TEST_CONGRID_BASIC, nbp=nbp, test=test, noexit=noexit
+;
+if N_ELEMENTS(nbp) EQ 0 then nbp=9
+;
+nb_errors=0
+error=1e-9
+;
+in=BINDGEN(3,3)
+;
+; test /Sample
+;
+out_rs=REBIN(in,9,9, /sample)
+out_c=CONGRID(in,9,9)
+resu=SQRT(TOTAL((out_rs-out_c)^2))
+if (resu GT error) then nb_errors=nb_errors+1
+;
+; test /interpol
+;
+out_r=REBIN(in,9,9)
+out_ci=CONGRID(in,9,9,/interp)
+resu=SQRT(TOTAL((out_r-out_ci)^2))
+if (resu GT error) then nb_errors=nb_errors+1
+;
+if (nb_errors GT 0) then begin
+   MESSAGE, /continue, "Problems !! on nbp="+STRING(nbp)
+   if ~KEYWORD_SET(noexit) then EXIT, status=1
+endif else begin
+   MESSAGE, /continue, "Basic tests OK on nbp="+STRING(nbp)
+endelse
+;
+if KEYWORD_SET(test) then STOP
+;
+end
+;
+; -----------------------------
+;
+pro TEST_CONGRID_ON_IMAGES, image=image, filename=filename, test=test
 ;
 ; Do we have access to ImageMagick functionnalities ??
 ;
@@ -39,6 +77,7 @@ if (N_ELEMENTS(image) EQ 0) then begin
     endelse
     ;;
     if STRLEN(file) EQ 0 then MESSAGE, 'File not found :'+filename
+    file=file[0]
     ;;   
     status=QUERY_IMAGE(file, info)
     CASE info.type OF
@@ -89,11 +128,17 @@ small_image=CONGRID(gray_image, nbpX, nbpY, /INTERP, /CENTER, /CUB)
 WINDOW, 3, XSIZE=nbpX, YSIZE=nbpY
 TV, small_image
 ;
+if KEYWORD_SET(test) then STOP
+;
 end
 ;
 ; ---------------------------------
 ;
-pro TEST_CONGRID
+pro TEST_CONGRID, noexit=noexit
+;
+TEST_CONGRID_BASIC, noexit=noexit, nbp=9
+TEST_CONGRID_BASIC, noexit=noexit, nbp=21
+TEST_CONGRID_BASIC, noexit=noexit, nbp=121
 ;
 TEST_CONGRID_ON_IMAGES
 ;
