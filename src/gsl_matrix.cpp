@@ -44,12 +44,9 @@ namespace lib {
 
   void ludc_pro( EnvT* e)
   {
-
     //  cout << szdbl << " " <<szflt << " " << szlng << endl;
 
     SizeT nParam=e->NParam(1);
-    int s;
-    
     //     if( nParam == 0)
     //       e->Throw( "Incorrect number of arguments.");
 
@@ -74,56 +71,60 @@ namespace lib {
 
     // only one element matrix
 
-
     if (p0->Type() == COMPLEXDBL || p0->Type() == COMPLEX){
       e->Throw( "Input type cannot be COMPLEX, please use LA_LUDC (not ready)");
     }
     
-    if ( p0->Type() != DOUBLE) {
-      e->Throw("Sorry, Input type can be only DOUBLE now (please contribute)");
-    } else {
-      DDoubleGDL* p0D = static_cast<DDoubleGDL*>( p0);
-      
-      gsl_matrix *mat = gsl_matrix_alloc(p0->Dim(0), p0->Dim(0));
-      
-      memcpy(mat->data, &(*p0D)[0], nEl*szdbl);
-      
-      gsl_permutation * p = gsl_permutation_alloc (p0->Dim(0));
-      int s;
-      gsl_linalg_LU_decomp (mat, p, &s);
-      //	gsl_linalg_LU_solve (mat, p, &b.vector, x);
+    //DDoubleGDL* p0D = static_cast<DDoubleGDL*>( p0);
+    DDoubleGDL *p0D = e->GetParAs<DDoubleGDL>(0);
 
-      int debug=0;
-      if (debug) {
-	cout << "permutation order: " << s << endl;
-	cout << "permutation vector:"<< endl;
-	gsl_permutation_fprintf (stdout, p, " %u");
-	cout << endl;
-      }
+    gsl_matrix *mat = gsl_matrix_alloc(p0->Dim(0), p0->Dim(0));
+   
+    memcpy(mat->data, &(*p0D)[0], nEl*szdbl);
 
-      // copying over p0 the updated matrix	
-      DLong dims[2] = {p0->Dim(0), p0->Dim(0)};
-      dimension dim0(dims, (SizeT) 2);
-      BaseGDL** p0Do = &e->GetPar( 0);
-      delete (*p0Do);
-      *p0Do = new DDoubleGDL(dim0, BaseGDL::NOZERO);
-	
-      memcpy(&(*(DDoubleGDL*) *p0Do)[0], mat->data, 
-	     p0->Dim(0)*p0->Dim(0)*szdbl);
+    gsl_permutation * p = gsl_permutation_alloc (p0->Dim(0));
+    int s;
+    gsl_linalg_LU_decomp (mat, p, &s);
 
-      // copying over p1 the permutation vector
-      DLong n = p0->Dim(0);
-      dimension dim1(&n, (SizeT) 1);
-      BaseGDL** p1D = &e->GetPar( 1);
-      delete (*p1D);
-      *p1D = new DLongGDL(dim1, BaseGDL::NOZERO);
-      memcpy(&(*(DLongGDL*) *p1D)[0], p->data, 
-	     p0->Dim(0)*szlng);
-
-      gsl_matrix_free(mat);
-      gsl_permutation_free(p);
+    int debug=0;
+    if (debug) {
+      cout << "permutation order: " << s << endl;
+      cout << "permutation vector:"<< endl;
+      gsl_permutation_fprintf (stdout, p, " %u");
+      cout << endl;
     }
+    
+    // copying over p0 the updated matrix	
+    DLong dims[2] = {p0->Dim(0), p0->Dim(0)};
+    dimension dim0(dims, (SizeT) 2);
 
+    BaseGDL** p0Do = &e->GetPar( 0);
+    delete (*p0Do);
+    *p0Do = new DDoubleGDL(dim0, BaseGDL::NOZERO);  
+    memcpy(&(*(DDoubleGDL*) *p0Do)[0], mat->data,
+	   p0->Dim(0)*p0->Dim(0)*szdbl);
+
+    int double_flag=0;
+    if (p0->Type() == DOUBLE) double_flag=1;
+    if (e->KeywordSet("DOUBLE")) double_flag=1;
+    
+    // this code will always return DOUBLE because I don't know how to do :(
+    // AC 13-Feb-2012 : this is not working and I don't know how to do :(
+    // if (double_flag == 0)
+    // { p0->Convert2(FLOAT, BaseGDL::CONVERT); }
+
+    // copying over p1 the permutation vector
+    DLong n = p0->Dim(0);
+    dimension dim1(&n, (SizeT) 1);
+    BaseGDL** p1D = &e->GetPar( 1);
+    delete (*p1D);
+    *p1D = new DLongGDL(dim1, BaseGDL::NOZERO);
+    memcpy(&(*(DLongGDL*) *p1D)[0], p->data, 
+	   p0->Dim(0)*szlng);
+    
+    gsl_matrix_free(mat);
+    gsl_permutation_free(p);
+  
   }
   
   BaseGDL* lusol_fun( EnvT* e)
@@ -177,70 +178,63 @@ namespace lib {
     if (p2->Rank() > 2)
       e->Throw( "Input must be a Vector:" + e->GetParString(2));
     
-    
     if (p0->Type() == COMPLEXDBL || p0->Type() == COMPLEX){
       e->Throw( "Input type cannot be COMPLEX, please use LA_LUDC (not ready)");
     }
+  
+    DDoubleGDL *p0D = e->GetParAs<DDoubleGDL>(0);
+    gsl_matrix *mat = gsl_matrix_alloc(p0->Dim(0), p0->Dim(0));
+    memcpy(mat->data, &(*p0D)[0], nEl*szdbl);
+
+    DLongGDL* p1L =e->GetParAs<DLongGDL>(1);
+    gsl_permutation *p = gsl_permutation_alloc (nEl1);
+    memcpy(p->data, &(*p1L)[0], nEl1*szlng);
+      
+    DDoubleGDL *p2D = e->GetParAs<DDoubleGDL>(2);
+    gsl_vector *b = gsl_vector_alloc(nEl2);
+    memcpy(b->data, &(*p2D)[0], nEl1*szdbl);
     
-    DDoubleGDL* res ;
-    res = new DDoubleGDL(p2->Dim(0));
+    gsl_vector *x = gsl_vector_alloc(nEl2);
+      
+    // computation by GSL
+    gsl_linalg_LU_solve (mat, p, b, x);
     
-    if( p0->Type() != DOUBLE) {
-      e->Throw("Sorry, Input type can be only DOUBLE now (please contribute)");
-    } else {
-	
-      DDoubleGDL* p0D = static_cast<DDoubleGDL*>(p0);
-      gsl_matrix *mat = gsl_matrix_alloc(p0->Dim(0), p0->Dim(0));      
-      memcpy(mat->data, &(*p0D)[0], nEl*szdbl);
-      
-      DLongGDL* p1L = static_cast<DLongGDL*>( p1);
-      gsl_permutation *p = gsl_permutation_alloc (nEl1);
-      memcpy(p->data, &(*p1L)[0], nEl1*szlng);
-      
-      DDoubleGDL* p2D = static_cast<DDoubleGDL*>( p2);
-      gsl_vector *b = gsl_vector_alloc(nEl2);
-      memcpy(b->data, &(*p2D)[0], nEl1*szdbl);
-
-      gsl_vector *x = gsl_vector_alloc(nEl2);
-
-      // computation by GSL
-      gsl_linalg_LU_solve (mat, p, b, x);
-
-      int debug=0;
-      if (debug) {
-	cout << "permutation order: " << s << endl;
-	cout << "permutation vector:";
-	gsl_permutation_fprintf (stdout, p, " %u");
-	cout << endl;
-	cout << "input vector:";
-	gsl_vector_fprintf (stdout, b, " %g");
-	cout << endl;
-	cout << "result vector:";
-	gsl_vector_fprintf (stdout, x, " %g");
-	cout << endl;
-      }
-      
-      DDoubleGDL* res = new DDoubleGDL( p2->Dim(), BaseGDL::NOZERO);
-      memcpy(&(*res)[0], x->data, nEl1*szdbl);
-	
-      gsl_matrix_free(mat);
-      gsl_vector_free(x);
-      gsl_permutation_free(p);
-      return res;
-
+    int debug=0;
+    if (debug) {
+      cout << "permutation order: " << s << endl;
+      cout << "permutation vector:";
+      gsl_permutation_fprintf (stdout, p, " %u");
+      cout << endl;
+      cout << "input vector:";
+      gsl_vector_fprintf (stdout, b, " %g");
+      cout << endl;
+      cout << "result vector:";
+      gsl_vector_fprintf (stdout, x, " %g");
+      cout << endl;
     }
-    
-    return res;
-    
+      
+    DDoubleGDL* res = new DDoubleGDL( p2->Dim(), BaseGDL::NOZERO);
+    memcpy(&(*res)[0], x->data, nEl1*szdbl);
+	
+    gsl_matrix_free(mat);
+    gsl_vector_free(x);
+    gsl_permutation_free(p);
+
+    int double_flag=0;
+    if (p0->Type() == DOUBLE || p2->Type() == DOUBLE) double_flag=1;
+    if (e->KeywordSet("DOUBLE")) double_flag=1;
+
+    if (double_flag)
+      {	return res; }
+    else
+      { return res->Convert2(FLOAT, BaseGDL::CONVERT); }
   }
 
-  
-  BaseGDL* determ_fun( EnvT* e)
-  {
+  BaseGDL* determ_fun( EnvT* e) {
     SizeT nParam=e->NParam(1);
-
+    
     // managing first input: Square Matrix
-
+    
     BaseGDL* p0 = e->GetParDefined( 0);
     
     SizeT nEl = p0->N_Elements();
@@ -249,58 +243,51 @@ namespace lib {
   
     if (p0->Rank() > 2)
       e->Throw( "Input must be a square matrix:" + e->GetParString(0));
-    
+
     if (p0->Rank() > 1) {
       if (p0->Dim(0) != p0->Dim(1))
         e->Throw( "Input must be a square matrix:" + e->GetParString(0));
     }
-
-    // status 
-    // check here, if not done, res would be pending in case of SetPar() throws
-    // SetPar() only throws in AssureGlobalPar()
-    //    if (nParam == 2) e->AssureGlobalPar( 1);
     
     if (p0->Type() == COMPLEXDBL || p0->Type() == COMPLEX){
       e->Throw( "Input type cannot be COMPLEX, please use LA_DETERM (not ready)");
     }
     
-    DDoubleGDL res=0.0 ;
-    
-    if( p0->Type() != DOUBLE){      
-      e->Throw("Sorry, Input type can be only DOUBLE now (please contribute)");
-    } else{
+    DDoubleGDL *p0D = e->GetParAs<DDoubleGDL>(0);
+    gsl_matrix *mat = gsl_matrix_alloc(p0->Dim(0), p0->Dim(0));
+    memcpy(mat->data, &(*p0D)[0], nEl*szdbl);
       
-      DDoubleGDL* p0D = static_cast<DDoubleGDL*>(p0);
-      gsl_matrix *mat = gsl_matrix_alloc(p0->Dim(0), p0->Dim(0));
-      memcpy(mat->data, &(*p0D)[0], nEl*szdbl);
-      
-      gsl_permutation *p = gsl_permutation_alloc(p0->Dim(0));
+    gsl_permutation *p = gsl_permutation_alloc(p0->Dim(0));
 
-      int sign;
-      double determ=0.0;
+    int sign;
+    double determ=0.0;
    
-      // computation by GSL
-      gsl_linalg_LU_decomp (mat, p, &sign);
-      determ=gsl_linalg_LU_det (mat, sign);
+    // computation by GSL
+    gsl_linalg_LU_decomp (mat, p, &sign);
+    determ=gsl_linalg_LU_det (mat, sign);
 
-      int debug=0;
-      if (debug) {
-	cout << "Determ : " << determ << endl;
-      }
-
-      gsl_matrix_free(mat);
-      gsl_permutation_free(p);
-
-      DDoubleGDL* res = new DDoubleGDL(1, BaseGDL::NOZERO);
-      (*res)[0]=determ;
-
-      return res;
-    
+    int debug=0;
+    if (debug) {
+      cout << "Determ : " << determ << endl;
     }
-    //    return res;
-  }
 
-  BaseGDL* trisol_fun( EnvT* e){
+    gsl_matrix_free(mat);
+    gsl_permutation_free(p);
+
+    DDoubleGDL* res = new DDoubleGDL(1, BaseGDL::NOZERO);
+    (*res)[0]=determ;
+
+    int double_flag=0;
+    if (p0->Type() == DOUBLE) double_flag=1;
+    if (e->KeywordSet("DOUBLE")) double_flag=1;
+
+    if (double_flag)
+      {	return res; }
+    else
+      { return res->Convert2(FLOAT, BaseGDL::CONVERT); }
+  }
+  
+  BaseGDL* trisol_fun( EnvT* e) {
     //    SizeT nParam=e->NParam(1);
     
     // managing first input: Square Matrix
