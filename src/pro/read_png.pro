@@ -1,8 +1,10 @@
-;$Id: read_png.pro,v 1.7 2012-02-07 23:16:49 alaingdl Exp $
+;$Id: read_png.pro,v 1.8 2012-02-15 15:09:52 alaingdl Exp $
 ;
 pro READ_PNG, filename, image, red, green, blue, $
               order=order, verbose=verbose, transparent=transparent, $
               help=help, test=test
+;
+ON_ERROR, 2
 ;
 image=READ_PNG(filename, red, green, blue, $
               order=order, verbose=verbose, transparent=transparent, $

@@ -70,6 +70,7 @@ prolib_DATA = \
   read_bmp.pro \
   read_dicom.pro \
   read_gif.pro \
+  read_image.pro \
   read_jpeg.pro \
   read_pict.pro \
   read_png.pro \
@@ -101,6 +102,7 @@ prolib_DATA = \
   variance.pro \
   write_bmp.pro \
   write_gif.pro \
+  write_image.pro \
   write_jpeg.pro \
   write_pict.pro \
   write_png.pro \
