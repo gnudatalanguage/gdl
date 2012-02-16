@@ -201,8 +201,8 @@ SizeT nOp = kxLimit * kyLimit;
 	}
 
 	//std::cout << "XPutPixel: "<<kx<<"  "<< dev->height-ky-1 << std::endl;
-	//	if( ky < dev->height && kx < dev->width)
 	// TODO check if XPutPixel() and XGetPixel() are thread save
+	if( ky < dev->height && kx < dev->width)
 	XPutPixel(ximg, kx, dev->height-1-ky, curcolor.pixel);
       }
     }
