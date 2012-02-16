@@ -589,6 +589,10 @@ public:
   BaseGDL* TVRD( EnvT* e)
   {
     Graphics* actDevice = Graphics::GetDevice();
+    //everywhere we use XGetImage we need to set an error handler, since GTK crashes on every puny
+    //BadMatch error, and if you read the XGetImage doc you'll see that such errors are prone to happen
+    //as soon as part of the window is obscured.
+    int (*oldErrorHandler)(Display*, XErrorEvent*);
 
     XwDev *dev = (XwDev *) plsc->dev;
     if( dev == NULL || dev->xwd == NULL)
@@ -606,20 +610,20 @@ public:
     if (e->KeywordSet("WORDS")) e->Throw( "WORDS keyword not yet supported.");
 
     /* this variable will contain the attributes of the window. */
-    //    XWindowAttributes win_attr;
+      XWindowAttributes win_attr;
 
     /* query the window's attributes. */
-    // Status rc = XGetWindowAttributes(xwd->display, dev->window, &win_attr);
-    // SizeT xSize = win_attr.width;
-    // SizeT ySize = win_attr.height;
-
-    int xSize, ySize, xPos, yPos;
+     Status rc = XGetWindowAttributes(xwd->display, dev->window, &win_attr);
+    unsigned int xSize = win_attr.width;
+    unsigned int ySize = win_attr.height;
+    //cout<<xSize<<" "<<ySize<<endl;
+    //int xPos, yPos;
     int actWin = /* actDevice-> */ ActWin();
-    bool success = /* actDevice-> */ WSize( actWin, &xSize, &ySize, &xPos, &yPos);
-
-    ximg = XGetImage( xwd->display, dev->window, 0, 0, 
+   // bool success = /* actDevice-> */ WSize( actWin, &xSize, &ySize, &xPos, &yPos);
+    oldErrorHandler = XSetErrorHandler(GetImageErrorHandler);
+    ximg = XGetImage( xwd->display, dev->window, (int) 0, (int) 0,
 		      xSize, ySize, AllPlanes, ZPixmap);
-
+    XSetErrorHandler(oldErrorHandler);
 
     SizeT dims[3];
     
@@ -638,29 +642,31 @@ public:
       dimension dim(dims, (SizeT) 2);
       res = new DByteGDL( dim, BaseGDL::ZERO);
 
-      if (channel <= 0) { 
-	DByte mx, mx1;
-	for( SizeT i=0; i<xSize*ySize; ++i) {
-	  mx = (DByte) ximg->data[4*i];
-	  for( SizeT j=1; j<=2; ++j) {
-	    mx1 = (DByte) ximg->data[4*i+j];
-	    if (mx1 > mx) mx = mx1;
-	  }
-	  (*res)[ xSize*ySize-1-i] = mx;
-	}
+      if (ximg == NULL) return res;
+
+      if (channel <= 0) {
+        DByte mx, mx1;
+        for (SizeT i = 0; i < xSize * ySize; ++i) {
+          mx = (DByte) ximg->data[4 * i];
+          for (SizeT j = 1; j <= 2; ++j) {
+            mx1 = (DByte) ximg->data[4 * i + j];
+            if (mx1 > mx) mx = mx1;
+          }
+          (*res)[ xSize * ySize - 1 - i] = mx;
+        }
       } else {
-	for( SizeT i=0; i<xSize*ySize; ++i) {
-	  (*res)[ xSize*ySize-1-i] = ximg->data[4*i+(3-channel)];
-	}
+        for (SizeT i = 0; i < xSize * ySize; ++i) {
+          (*res)[ xSize * ySize - 1 - i] = ximg->data[4 * i + (3 - channel)];
+        }
       }
 
       // Reflect about y-axis
-      for( SizeT i=0; i<ySize; ++i) {
-	for( SizeT j=0; j<xSize/2; ++j) {
-	  DByte c = (*res)[ i*xSize+(xSize-1-j)];
-	  (*res)[ i*xSize+(xSize-1-j)] = (*res)[ i*xSize+j];
-	  (*res)[ i*xSize+j] = c;
-	}
+      for (SizeT i = 0; i < ySize; ++i) {
+        for (SizeT j = 0; j < xSize / 2; ++j) {
+          DByte c = (*res)[ i * xSize + (xSize - 1 - j)];
+          (*res)[ i * xSize + (xSize - 1 - j)] = (*res)[ i * xSize + j];
+          (*res)[ i * xSize + j] = c;
+        }
       }
       return res;
 
@@ -671,17 +677,18 @@ public:
       dims[1] = xSize;
       dims[2] = ySize;
       dimension dim(dims, (SizeT) 3);
-      res = new DByteGDL( dim, BaseGDL::NOZERO);
+      res = new DByteGDL(dim, BaseGDL::NOZERO);
+      if (ximg == NULL) return res;
 
-      for( SizeT i=0; i<ySize; ++i) {
-	for( SizeT j=0; j<xSize; ++j) {
-	  for( SizeT k=0; k<4; ++k) {
-	    if (k < 3) {
-	      (*res)[(ySize-i-1)*xSize*3 + j*3 + 2-k] = 
-		ximg->data[i*xSize*4 + j*4 + k];
-	    }
-	  }
-	}
+      for (SizeT i = 0; i < ySize; ++i) {
+        for (SizeT j = 0; j < xSize; ++j) {
+          for (SizeT k = 0; k < 4; ++k) {
+            if (k < 3) {
+              (*res)[(ySize - i - 1) * xSize * 3 + j * 3 + 2 - k] =
+                  ximg->data[i * xSize * 4 + j * 4 + k];
+            }
+          }
+        }
       }
     }
 
