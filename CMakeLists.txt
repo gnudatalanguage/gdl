@@ -43,7 +43,7 @@ set(GSLDIR "" CACHE PATH "Specify the GSL directory tree")
 
 set(ZLIBDIR "" CACHE PATH "specify the Zlib directory tree")
 
-set(WXWIDGETS OFF CACHE BOOL "Enable WxWidgets ?")
+set(WXWIDGETS ON CACHE BOOL "Enable WxWidgets ?")
 set(WXWIDGETSDIR "" CACHE PATH "Specify WxWidgets directory tree")
 
 set(UDUNITS OFF CACHE BOOL "Enable UDUNITS-2 ?")
@@ -306,7 +306,7 @@ if(MAGICK)
 			message(FATAL_ERROR "ImageMagick is required but was not found (Magick++-config).\n"
 			"Use -DMAGICKDIR=DIR to specify the ImageMagick directory.\n"
 			"Use -DMAGICK=OFF to not use it.\n"
-                        "(suitable Debian/Ubuntu package: libmagick-dev)\n"
+                        "(suitable Debian/Ubuntu package: libmagick++-dev)\n"
                         "(suitable Fedora package: ImageMagick-c++-devel)")
 		endif(MAGICKXXCONFIG)
 		set(LIBRARIES ${LIBRARIES} ${ImageMagick_LIBRARIES})
@@ -315,8 +315,8 @@ if(MAGICK)
 	else(ImageMagick_FOUND)
 		message(FATAL_ERROR "ImageMagick is required but was not found.\n"
 		"Use -DMAGICKDIR=DIR to specify the ImageMagick directory.\n"
-		"Use -DMAGICK=OFF to not use it."
-                "(suitable Debian/Ubuntu package: libmagick-dev)\n"
+		"Use -DMAGICK=OFF to not use it.\n"
+                "(suitable Debian/Ubuntu package: libmagick++-dev)\n"
                 "(suitable Fedora package: ImageMagick-c++-devel)")
 	endif(ImageMagick_FOUND)
 endif(MAGICK)

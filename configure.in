@@ -432,7 +432,7 @@ if test "x$with_Magick" != "xno"; then
         echo "       Check the README or use configure --help for other libraries needed"
         echo "       (--with-xxxdir = mandatory, --with-xxx = optional (--with-xxx=no to disable))"
         echo ""
-        echo "       (suitable Debian/Ubuntu package: libmagick-dev)"
+        echo "       (suitable Debian/Ubuntu package: libmagick++-dev)"
         echo "       (suitable Fedora package: ImageMagick-c++-devel)"
         exit -1
       ])
@@ -1180,6 +1180,15 @@ echo "
   echo '  ------------------------------------------------------'; fi`
   use 'make' to build and 'make install' to install GDL
   (optional 'make check' tests the build - experimental)
+"
+echo "
+*********************** WARNING ******************************
+We plan to drop support for Autotools-based configuration
+(i.e. the configure script) and switch to CMake. If possible,
+please try to compile GDL with CMake (e.g. by typing \"cmake .\"
+instead of \"./configure\") and please do report any problems.
+Consult INSTALL.CMake for help on passing options to CMake.
+**************************************************************
 "
 
 dnl == EOF =================================================
