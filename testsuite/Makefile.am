@@ -33,6 +33,7 @@ TESTS = \
   test_bug_3147181.pro \
   test_bug_3147733.pro \
   test_bug_3151760.pro \
+  test_bug_3152892.pro \
   test_bug_3152899.pro \
   test_bug_3189072.pro \
   test_bug_3199465.pro \
@@ -48,6 +49,7 @@ TESTS = \
   test_bug_3376577.pro \
   test_bug_3441031.pro \
   test_bug_3453775.pro \
+  test_bug_3488003.pro \
   test_ce.pro \
   test_clip.pro \
   test_common.pro \
