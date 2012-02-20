@@ -1935,7 +1935,8 @@ void image_del(image_t * d)
     // Execute command string
     EnvBaseT* caller;
     caller = e->Caller();
-    e->Interpreter()->CallStack().pop_back();
+// ms: commented out to comply with new stack handling
+//     e->Interpreter()->CallStack().pop_back();
 
     executeString( caller, &istr);
 

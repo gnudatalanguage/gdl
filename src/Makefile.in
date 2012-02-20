@@ -76,25 +76,24 @@ am__libgdl_la_SOURCES_DIST = allix.hpp allix.cpp prognode.hpp \
 	GDLTokenTypes.hpp GDLTreeParser.cpp GDLTreeParser.hpp \
 	GDLTreeParserTokenTypes.hpp gdlwinstream.cpp gdlwinstream.hpp \
 	gdlxstream.cpp gdlxstream.hpp getfmtast.cpp getfmtast.hpp \
-	graphics.cpp graphics.hpp \
-	gsl_fun.cpp gsl_fun.hpp gsl_matrix.cpp gsl_matrix.hpp gstream.hpp \
-	ifmt.cpp initct.cpp initsysvar.cpp initsysvar.hpp io.cpp \
-	io.hpp libinit_cl.cpp libinit.cpp libinit_jmg.cpp math_fun.cpp \
-	math_fun.hpp math_fun_jmg.cpp math_fun_jmg.hpp math_utl.cpp \
-	math_utl.hpp ncdf_att_cl.cpp ncdf_cl.cpp ncdf_cl.hpp \
-	ncdf_dim_cl.cpp ncdf_var_cl.cpp new.cpp new.hpp objects.cpp \
-	objects.hpp ofmt.cpp math_fun_ac.hpp math_fun_ac.cpp \
-	libinit_ac.cpp math_fun_gm.hpp math_fun_gm.cpp libinit_gm.cpp \
-	math_fun_ng.hpp math_fun_ng.cpp libinit_ng.cpp ofmt.hpp \
-	plotting.cpp plotting.hpp print.cpp print_tree.cpp \
-	print_tree.hpp read.cpp real2int.hpp str.cpp str.hpp \
-	terminfo.cpp terminfo.hpp topython.cpp typedefs.hpp \
-	typetraits.cpp typetraits.hpp hdf_fun.cpp hdf_fun.hpp \
-	hdf_pro.cpp hdf_pro.hpp magick_cl.cpp magick_cl.hpp \
-	specializations.hpp gdlwidget.cpp widget.cpp basegdl.cpp \
-	hdf5_fun.cpp hdf5_fun.hpp libinit_mes.cpp file.cpp file.hpp \
-	image.cpp image.hpp gdljournal.cpp gdljournal.hpp convol.cpp \
-	convol_inc0.cpp convol_inc1.cpp convol_inc2.cpp \
+	graphics.cpp graphics.hpp gsl_fun.cpp gsl_fun.hpp \
+	gsl_matrix.cpp gsl_matrix.hpp gstream.hpp ifmt.cpp initct.cpp \
+	initsysvar.cpp initsysvar.hpp io.cpp io.hpp libinit_cl.cpp \
+	libinit.cpp libinit_jmg.cpp math_fun.cpp math_fun.hpp \
+	math_fun_jmg.cpp math_fun_jmg.hpp math_utl.cpp math_utl.hpp \
+	ncdf_att_cl.cpp ncdf_cl.cpp ncdf_cl.hpp ncdf_dim_cl.cpp \
+	ncdf_var_cl.cpp new.cpp new.hpp objects.cpp objects.hpp \
+	ofmt.cpp math_fun_ac.hpp math_fun_ac.cpp libinit_ac.cpp \
+	math_fun_gm.hpp math_fun_gm.cpp libinit_gm.cpp math_fun_ng.hpp \
+	math_fun_ng.cpp libinit_ng.cpp ofmt.hpp plotting.cpp \
+	plotting.hpp print.cpp print_tree.cpp print_tree.hpp read.cpp \
+	real2int.hpp str.cpp str.hpp terminfo.cpp terminfo.hpp \
+	topython.cpp typedefs.hpp typetraits.cpp typetraits.hpp \
+	hdf_fun.cpp hdf_fun.hpp hdf_pro.cpp hdf_pro.hpp magick_cl.cpp \
+	magick_cl.hpp specializations.hpp gdlwidget.cpp widget.cpp \
+	basegdl.cpp hdf5_fun.cpp hdf5_fun.hpp libinit_mes.cpp file.cpp \
+	file.hpp image.cpp image.hpp gdljournal.cpp gdljournal.hpp \
+	convol.cpp convol_inc0.cpp convol_inc1.cpp convol_inc2.cpp \
 	sigfpehandler.cpp sigfpehandler.hpp devicez.hpp gdlzstream.cpp \
 	gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp \
 	arrayindexlistnoassoct.hpp arrayindex.cpp fftw.cpp fftw.hpp \
@@ -117,20 +116,20 @@ am__objects_1 = allix.lo assocdata.lo basic_fun_cl.lo basic_fun.lo \
 	gdlgstream.lo GDLInterpreter.lo GDLLexer.lo GDLParser.lo \
 	gdlpsstream.lo gdlsvgstream.lo gdlpython.lo GDLTreeParser.lo \
 	gdlwinstream.lo gdlxstream.lo getfmtast.lo graphics.lo \
-	gsl_fun.lo ifmt.lo initct.lo initsysvar.lo io.lo libinit_cl.lo \
-	libinit.lo libinit_jmg.lo math_fun.lo math_fun_jmg.lo \
-	math_utl.lo ncdf_att_cl.lo ncdf_cl.lo ncdf_dim_cl.lo \
-	ncdf_var_cl.lo new.lo objects.lo ofmt.lo math_fun_ac.lo \
-	libinit_ac.lo math_fun_gm.lo libinit_gm.lo math_fun_ng.lo \
-	libinit_ng.lo plotting.lo print.lo print_tree.lo read.lo \
-	str.lo terminfo.lo topython.lo typetraits.lo hdf_fun.lo \
-	hdf_pro.lo magick_cl.lo gdlwidget.lo widget.lo basegdl.lo \
-	hdf5_fun.lo libinit_mes.lo file.lo image.lo gdljournal.lo \
-	convol.lo convol_inc0.lo convol_inc1.lo convol_inc2.lo \
-	sigfpehandler.lo gdlzstream.lo arrayindex.lo fftw.lo mpi.lo \
-	plot3d_nr.lo grib.lo prognode.lo prognode_lexpr.lo \
-	prognodeexpr.lo datatypesref.lo lapack.lo gshhs.lo \
-	newprognode.lo plotting_plot.lo plotting_oplot.lo \
+	gsl_fun.lo gsl_matrix.lo ifmt.lo initct.lo initsysvar.lo io.lo \
+	libinit_cl.lo libinit.lo libinit_jmg.lo math_fun.lo \
+	math_fun_jmg.lo math_utl.lo ncdf_att_cl.lo ncdf_cl.lo \
+	ncdf_dim_cl.lo ncdf_var_cl.lo new.lo objects.lo ofmt.lo \
+	math_fun_ac.lo libinit_ac.lo math_fun_gm.lo libinit_gm.lo \
+	math_fun_ng.lo libinit_ng.lo plotting.lo print.lo \
+	print_tree.lo read.lo str.lo terminfo.lo topython.lo \
+	typetraits.lo hdf_fun.lo hdf_pro.lo magick_cl.lo gdlwidget.lo \
+	widget.lo basegdl.lo hdf5_fun.lo libinit_mes.lo file.lo \
+	image.lo gdljournal.lo convol.lo convol_inc0.lo convol_inc1.lo \
+	convol_inc2.lo sigfpehandler.lo gdlzstream.lo arrayindex.lo \
+	fftw.lo mpi.lo plot3d_nr.lo grib.lo prognode.lo \
+	prognode_lexpr.lo prognodeexpr.lo datatypesref.lo lapack.lo \
+	gshhs.lo newprognode.lo plotting_plot.lo plotting_oplot.lo \
 	plotting_device.lo plotting_cursor.lo plotting_contour.lo \
 	plotting_surface.lo plotting_axis.lo plotting_plots.lo \
 	plotting_xyouts.lo plotting_polyfill.lo plotting_windows.lo \
@@ -172,24 +171,24 @@ am__gdl_SOURCES_DIST = allix.hpp allix.cpp prognode.hpp \
 	GDLTokenTypes.hpp GDLTreeParser.cpp GDLTreeParser.hpp \
 	GDLTreeParserTokenTypes.hpp gdlwinstream.cpp gdlwinstream.hpp \
 	gdlxstream.cpp gdlxstream.hpp getfmtast.cpp getfmtast.hpp \
-	graphics.cpp graphics.hpp gsl_fun.cpp gsl_fun.hpp gstream.hpp \
-	ifmt.cpp initct.cpp initsysvar.cpp initsysvar.hpp io.cpp \
-	io.hpp libinit_cl.cpp libinit.cpp libinit_jmg.cpp math_fun.cpp \
-	math_fun.hpp math_fun_jmg.cpp math_fun_jmg.hpp math_utl.cpp \
-	math_utl.hpp ncdf_att_cl.cpp ncdf_cl.cpp ncdf_cl.hpp \
-	ncdf_dim_cl.cpp ncdf_var_cl.cpp new.cpp new.hpp objects.cpp \
-	objects.hpp ofmt.cpp math_fun_ac.hpp math_fun_ac.cpp \
-	libinit_ac.cpp math_fun_gm.hpp math_fun_gm.cpp libinit_gm.cpp \
-	math_fun_ng.hpp math_fun_ng.cpp libinit_ng.cpp ofmt.hpp \
-	plotting.cpp plotting.hpp print.cpp print_tree.cpp \
-	print_tree.hpp read.cpp real2int.hpp str.cpp str.hpp \
-	terminfo.cpp terminfo.hpp topython.cpp typedefs.hpp \
-	typetraits.cpp typetraits.hpp hdf_fun.cpp hdf_fun.hpp \
-	hdf_pro.cpp hdf_pro.hpp magick_cl.cpp magick_cl.hpp \
-	specializations.hpp gdlwidget.cpp widget.cpp basegdl.cpp \
-	hdf5_fun.cpp hdf5_fun.hpp libinit_mes.cpp file.cpp file.hpp \
-	image.cpp image.hpp gdljournal.cpp gdljournal.hpp convol.cpp \
-	convol_inc0.cpp convol_inc1.cpp convol_inc2.cpp \
+	graphics.cpp graphics.hpp gsl_fun.cpp gsl_fun.hpp \
+	gsl_matrix.cpp gsl_matrix.hpp gstream.hpp ifmt.cpp initct.cpp \
+	initsysvar.cpp initsysvar.hpp io.cpp io.hpp libinit_cl.cpp \
+	libinit.cpp libinit_jmg.cpp math_fun.cpp math_fun.hpp \
+	math_fun_jmg.cpp math_fun_jmg.hpp math_utl.cpp math_utl.hpp \
+	ncdf_att_cl.cpp ncdf_cl.cpp ncdf_cl.hpp ncdf_dim_cl.cpp \
+	ncdf_var_cl.cpp new.cpp new.hpp objects.cpp objects.hpp \
+	ofmt.cpp math_fun_ac.hpp math_fun_ac.cpp libinit_ac.cpp \
+	math_fun_gm.hpp math_fun_gm.cpp libinit_gm.cpp math_fun_ng.hpp \
+	math_fun_ng.cpp libinit_ng.cpp ofmt.hpp plotting.cpp \
+	plotting.hpp print.cpp print_tree.cpp print_tree.hpp read.cpp \
+	real2int.hpp str.cpp str.hpp terminfo.cpp terminfo.hpp \
+	topython.cpp typedefs.hpp typetraits.cpp typetraits.hpp \
+	hdf_fun.cpp hdf_fun.hpp hdf_pro.cpp hdf_pro.hpp magick_cl.cpp \
+	magick_cl.hpp specializations.hpp gdlwidget.cpp widget.cpp \
+	basegdl.cpp hdf5_fun.cpp hdf5_fun.hpp libinit_mes.cpp file.cpp \
+	file.hpp image.cpp image.hpp gdljournal.cpp gdljournal.hpp \
+	convol.cpp convol_inc0.cpp convol_inc1.cpp convol_inc2.cpp \
 	sigfpehandler.cpp sigfpehandler.hpp devicez.hpp gdlzstream.cpp \
 	gdlzstream.hpp gdlwidget.hpp arrayindexlistt.hpp \
 	arrayindexlistnoassoct.hpp arrayindex.cpp fftw.cpp fftw.hpp \
@@ -223,7 +222,8 @@ am__objects_2 = gdl-allix.$(OBJEXT) gdl-assocdata.$(OBJEXT) \
 	gdl-gdlpython.$(OBJEXT) gdl-GDLTreeParser.$(OBJEXT) \
 	gdl-gdlwinstream.$(OBJEXT) gdl-gdlxstream.$(OBJEXT) \
 	gdl-getfmtast.$(OBJEXT) gdl-graphics.$(OBJEXT) \
-	gdl-gsl_fun.$(OBJEXT) gdl-ifmt.$(OBJEXT) gdl-initct.$(OBJEXT) \
+	gdl-gsl_fun.$(OBJEXT) gdl-gsl_matrix.$(OBJEXT) \
+	gdl-ifmt.$(OBJEXT) gdl-initct.$(OBJEXT) \
 	gdl-initsysvar.$(OBJEXT) gdl-io.$(OBJEXT) \
 	gdl-libinit_cl.$(OBJEXT) gdl-libinit.$(OBJEXT) \
 	gdl-libinit_jmg.$(OBJEXT) gdl-math_fun.$(OBJEXT) \
@@ -495,7 +495,8 @@ cpp_hpp_files = allix.hpp allix.cpp prognode.hpp prognodeexpr.hpp \
 		gdlsvgstream.cpp gdlsvgstream.hpp gdlpython.cpp gdlpython.hpp \
 		GDLTokenTypes.hpp GDLTreeParser.cpp GDLTreeParser.hpp GDLTreeParserTokenTypes.hpp \
 		gdlwinstream.cpp gdlwinstream.hpp gdlxstream.cpp gdlxstream.hpp getfmtast.cpp \
-		getfmtast.hpp graphics.cpp graphics.hpp gsl_fun.cpp gsl_fun.hpp \
+		getfmtast.hpp graphics.cpp graphics.hpp \
+		gsl_fun.cpp gsl_fun.hpp gsl_matrix.cpp gsl_matrix.hpp \
 		gstream.hpp ifmt.cpp \
 		initct.cpp initsysvar.cpp initsysvar.hpp io.cpp io.hpp libinit_cl.cpp libinit.cpp \
 		libinit_jmg.cpp \
@@ -737,6 +738,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-grib.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-gshhs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-gsl_fun.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-gsl_matrix.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-hdf5_fun.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-hdf_fun.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdl-hdf_pro.Po@am__quote@
@@ -815,6 +817,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/grib.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gshhs.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gsl_fun.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gsl_matrix.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hdf5_fun.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hdf_fun.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hdf_pro.Plo@am__quote@
@@ -1515,6 +1518,20 @@ gdl-gsl_fun.obj: gsl_fun.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='gsl_fun.cpp' object='gdl-gsl_fun.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-gsl_fun.obj `if test -f 'gsl_fun.cpp'; then $(CYGPATH_W) 'gsl_fun.cpp'; else $(CYGPATH_W) '$(srcdir)/gsl_fun.cpp'; fi`
+
+gdl-gsl_matrix.o: gsl_matrix.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-gsl_matrix.o -MD -MP -MF $(DEPDIR)/gdl-gsl_matrix.Tpo -c -o gdl-gsl_matrix.o `test -f 'gsl_matrix.cpp' || echo '$(srcdir)/'`gsl_matrix.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/gdl-gsl_matrix.Tpo $(DEPDIR)/gdl-gsl_matrix.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='gsl_matrix.cpp' object='gdl-gsl_matrix.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-gsl_matrix.o `test -f 'gsl_matrix.cpp' || echo '$(srcdir)/'`gsl_matrix.cpp
+
+gdl-gsl_matrix.obj: gsl_matrix.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-gsl_matrix.obj -MD -MP -MF $(DEPDIR)/gdl-gsl_matrix.Tpo -c -o gdl-gsl_matrix.obj `if test -f 'gsl_matrix.cpp'; then $(CYGPATH_W) 'gsl_matrix.cpp'; else $(CYGPATH_W) '$(srcdir)/gsl_matrix.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/gdl-gsl_matrix.Tpo $(DEPDIR)/gdl-gsl_matrix.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='gsl_matrix.cpp' object='gdl-gsl_matrix.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -c -o gdl-gsl_matrix.obj `if test -f 'gsl_matrix.cpp'; then $(CYGPATH_W) 'gsl_matrix.cpp'; else $(CYGPATH_W) '$(srcdir)/gsl_matrix.cpp'; fi`
 
 gdl-ifmt.o: ifmt.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gdl_CXXFLAGS) $(CXXFLAGS) -MT gdl-ifmt.o -MD -MP -MF $(DEPDIR)/gdl-ifmt.Tpo -c -o gdl-ifmt.o `test -f 'ifmt.cpp' || echo '$(srcdir)/'`ifmt.cpp

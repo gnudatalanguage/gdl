@@ -15588,6 +15588,7 @@ else
 	echo "       Check the README or use configure --help for other libraries needed"
         echo ""
         echo "       (suitable Debian/Ubuntu package: libreadline5-dev)"
+        echo "       (suitable Fedora package: readline-devel)"
 	exit -1
 
 fi
@@ -15717,6 +15718,7 @@ else
  	echo "       Use --with-zlibdir=DIR to specify the zlib directory tree"
         echo ""
         echo "       (suitable Debian/Ubuntu package: zlib1g-dev)"
+        echo "       (suitable Fedora package: zlib-devel)"
  	exit -1
 
 fi
@@ -15843,6 +15845,7 @@ else
 	echo "Error! Gnu Scientific Library (1.7 or higher) is mandatory"
         echo ""
         echo "       (suitable Debian/Ubuntu package: libgsl0-dev)"
+        echo "       (suitable Fedora package: gsl-dev)"
         exit -1
 
 fi
@@ -15986,6 +15989,7 @@ else
 	echo "       Use --with-plplot=DIR to specify the plplot directory tree"
         echo ""
         echo "       (suitable Debian/Ubuntu packages: libplplot-dev, plplot9-driver-xwin)"
+        echo "       (suitable Fedora package: plplot-devel)"
 	exit -1
 
 fi
@@ -16149,6 +16153,7 @@ fi
     echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
     echo ""
     echo "       (suitable Debian/Ubuntu package: libwxgtk2.8-dev)"
+    echo "       (suitable Fedora package: wxGTK-devel)"
     exit -1
   else
     LIBS="$LIBS `wx-config --libs`"
@@ -16279,6 +16284,7 @@ fi
       Use --with-Magick=no  to not use it
 
       (suitable Debian/Ubuntu package: libmagick++-dev)
+      (suitable Fedora package: ImageMagick-c++-devel)
     " "$LINENO" 5
   else
     LIBS="$LIBS `$MagickConfig --libs`"
@@ -16575,6 +16581,7 @@ else
         echo "       (--with-xxxdir = mandatory, --with-xxx = optional (--with-xxx=no to disable))"
         echo ""
         echo "       (suitable Debian/Ubuntu package: libmagick-dev)"
+        echo "       (suitable Fedora package: ImageMagick-c++-devel)"
         exit -1
 
 fi
@@ -16746,6 +16753,7 @@ else
     echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
     echo ""
     echo "       (suitable Debian/Ubuntu package: libnetcdf-dev)"
+    echo "       (suitable Fedora package: netcdf-devel)"
     exit -1
 
 fi
@@ -17168,6 +17176,7 @@ else
     echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
     echo ""
     echo "       (suitable Debian/Ubuntu package: libhdf5-serial-dev)"
+    echo "       (suitable Fedora package: hdf-devel)"
     exit -1
 
 fi
@@ -17331,6 +17340,7 @@ else
     echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
     echo ""
     echo "       (suitable Debian/Ubuntu package: libfftw3-dev)"
+    echo "       (suitable Fedora package: fftw-devel)"
     exit -1
 
 fi
@@ -17893,6 +17903,7 @@ else
     echo "       Use --with-python=no  to not use it"
     echo ""
     echo "       (suitable Debian/Ubuntu package: python$PYTHON_VERSION-dev)"
+    echo "       (suitable Fedora package: python-devel)"
     exit -1
 
 fi
@@ -18009,6 +18020,7 @@ else
     echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
     echo ""
     echo "       (suitable Debian/Ubuntu package: libudunits2-dev)"
+    echo "       (suitable Fedora package: udunits2-devel)"
     exit -1
 
 fi
@@ -18240,6 +18252,7 @@ else
             echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
             echo ""
             echo "       (suitable Debian/Ubuntu package: libgrib-api-dev)"
+            echo "       (suitable Fedora package: grib_api-devel)"
             exit -1
 
 fi
@@ -18571,6 +18584,7 @@ else
     echo "       (--with-xxxdir = obligatory, --with-xxx = optional (--with-xxx=no to disable))"
     echo ""
     echo "       (suitable Debian/Ubuntu package: pslib-dev)"
+    echo "       (suitable Fedora package: pslib-devel)"
     exit -1
 
 fi

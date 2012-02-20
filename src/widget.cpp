@@ -675,9 +675,10 @@ namespace lib {
       // Call widget event handler routine
       if ( lasttop != top) {
 	caller = e->Caller();
-	e->Interpreter()->CallStack().pop_back();
+// ms: commented out to comply with new stack handling
+	// 	e->Interpreter()->CallStack().pop_back();
 	//	std::cout << "before delete e" << std::endl;
-	delete e;
+// 	delete e;
       }
 
       executeString2( caller, &istr);
@@ -902,8 +903,9 @@ namespace lib {
 	  istringstream istr(line+"\n");
 
 	  // Call SETV procedure
+// ms: commented out to comply with new stack handling
 	  EnvBaseT* caller = e->Caller();
-	  e->Interpreter()->CallStack().pop_back();
+// 	  e->Interpreter()->CallStack().pop_back();
 	  executeString2( caller, &istr);
 	}
 

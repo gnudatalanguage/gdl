@@ -769,17 +769,18 @@ void GDLFrame::OnButton( wxCommandEvent& event)
 
     int proIx = ProIx( eventHandler); 
     DSub *sub =  proList[ proIx];
-    EnvUDT* e;
-    e = new EnvUDT( NULL, sub);
-    std::auto_ptr< EnvUDT> e_guard( e);
-    StackSizeGuard<EnvStackT> guard( GDLInterpreter::CallStack());
-    GDLInterpreter::CallStack().push_back( e);
+//     EnvUDT* e;
+//     e = new EnvUDT( NULL, sub);
+//     std::auto_ptr< EnvUDT> e_guard( e);
+//     StackSizeGuard<EnvStackT> guard( GDLInterpreter::CallStack());
+//     GDLInterpreter::CallStack().push_back( e);
 
 	// TODO: MS: if the only purpose of e is to get the caller:
 	// EnvBaseT* caller = GDLInterpreter::CallStack().back(); is sufficient
-    EnvBaseT* caller;
-    caller = e->Caller();
-    e->Interpreter()->CallStack().pop_back();
+// ms: commented out to comply with new stack handling
+    EnvBaseT* caller = GDLInterpreter::CallStackBack();
+//     caller = e->Caller();
+//     e->Interpreter()->CallStack().pop_back();
 
     DLong id, top, handler, select;
     id = (*static_cast<DLongGDL*>
