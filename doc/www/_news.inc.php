@@ -1,5 +1,6 @@
 <h2>GDL 0.9.2 released</h2>
 <p>
+  2012-02-20: Ubuntu package updated<br />
   2011-12-27: Gentoo package updated<br />
   2011-11-16: Fink package updated<br />
   2011-11-15: Debian package updated<br />
