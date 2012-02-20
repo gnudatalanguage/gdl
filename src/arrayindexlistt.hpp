@@ -234,6 +234,8 @@ public:
   // returns 1-dim index for all elements
   AllIxBaseT* BuildIx()
   {
+    if( allIx != NULL) // can happen if called from DotAccessDescT::DoAssign()
+      return allIx;
     assert( allIx == NULL);
 //     if( allIx != NULL)
 // 		return allIx;
@@ -1564,6 +1566,9 @@ if( dynamic_cast<ArrayIndexIndexed*>(ixList[ixList.size()-1]) ||
   // returns 1-dim index for all elements
   AllIxBaseT* BuildIx() // ArrayIndexListMultiT
   {
+    if( allIx != NULL) // can happen if called from DotAccessDescT::DoAssign()
+      return allIx;
+
     assert( allIx == NULL);
 
     if( accessType == ALLINDEXED) //  nIterLimitGt1 is not properly set
@@ -1990,6 +1995,9 @@ class ArrayIndexListMultiNoneIndexedT: public ArrayIndexListMultiT
   // returns 1-dim index for all elements
   AllIxBaseT* BuildIx()
   {
+    if( allIx != NULL) // can happen if called from DotAccessDescT::DoAssign()
+      return allIx;
+
 	assert( allIx == NULL);  
 // 	if( allIx != NULL)
 // 		return allIx;
