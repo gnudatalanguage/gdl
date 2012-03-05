@@ -49,16 +49,21 @@ endif
 ;
 isint = SIZE(p0, /type) lt 4 || SIZE(p0, /type) gt 11
 ;
+; AC 2012/03/05: useful values ... may be updated later
+nbp_inside=N_ELEMENTS(p0)
+nbp_outside=0
+;
 if N_PARAMS() eq 2 then begin
    ;; regular grid case
    if SIZE(p1, /dimensions) eq 0 then begin
-      ind = FINDGEN(p1) / (p1 - (p1 eq 1 ? 0 : 1)) * (N_ELEMENTS(p0) - 1)
+       ind = FINDGEN(p1) / (p1 - (p1 eq 1 ? 0 : 1)) * (N_ELEMENTS(p0) - 1)
    endif else begin
       MESSAGE, 'In the two-parameter case the second parameter must be a scalar'
       ;; TODO: IDL does something else here...
    endelse
 endif else if ~KEYWORD_SET(spline) then begin
    ;; irregular grid case
+   ;; we need to manage points outside p1 range
    p1_min=MIN(p1, max=p1_max)
    outside_OK=WHERE((p2 LT p1_min) OR (p2 GT p1_max), nbp_outside)
    if (nbp_outside GT 0) then begin
