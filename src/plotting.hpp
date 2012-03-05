@@ -96,7 +96,7 @@ namespace lib {
 
   template <typename T> 
   bool draw_polyline(EnvT *e,  GDLGStream *a, T * xVal, T* yVal, 
-             DDouble minVal, DDouble maxVal,
+             DDouble minVal, DDouble maxVal, bool doMinMax,
 		     bool xLog, bool yLog, 
 		     DLong psym=0, bool append=FALSE);
   

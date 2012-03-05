@@ -33,7 +33,6 @@ namespace lib {
     PLFLT xMarginL, xMarginR, yMarginB, yMarginT;
     bool xLog, yLog, xLogOrig, yLogOrig;
     SizeT xEl, yEl, zEl;
-    DDouble minVal, maxVal;
     bool append;
 
     private: bool handle_args(EnvT* e) // {{{
@@ -181,8 +180,6 @@ namespace lib {
         PLINT xleng, yleng, xoff, yoff;
         actStream->gpage(xpix, ypix, xleng, yleng, xoff, yoff);
         un=0.0; deux=xleng; trois=0.0; quatre=yleng;
-        minVal=trois;
-        maxVal=quatre;
 //        if( clippingD != NULL) Clipping( clippingD, un, deux, trois, quatre);
         actStream->wind(un, deux, trois, quatre);
         xLog = false;
@@ -193,8 +190,6 @@ namespace lib {
         PLFLT un,deux,trois,quatre;
         actStream->vpor(0, 1, 0, 1);
         un=0.0; deux=1.0; trois=0.0; quatre=1.0;
-        minVal=trois;
-        maxVal=quatre;
  //       if( clippingD != NULL) Clipping( clippingD, un, deux, trois, quatre);
         actStream->wind(un, deux, trois, quatre);
         xLog = false;
@@ -204,8 +199,6 @@ namespace lib {
 //      {
 //         PLFLT un,deux,trois,quatre;
 //         un=xStart; deux=xEnd; trois=yStart; quatre=yEnd;
-//         minVal=trois;
-//         maxVal=quatre;
 //         Clipping( clippingD, un, deux, trois, quatre);
 //         actStream->wind(un, deux, trois, quatre);
 //       }
@@ -217,8 +210,6 @@ namespace lib {
 
         actStream->vpor(0, 1, 0, 1);
         actStream->wind((PLFLT)un, (PLFLT)deux, (PLFLT)trois, (PLFLT)quatre);
-        minVal=yLog?pow(10,trois):trois;
-        maxVal=yLog?pow(10,quatre):quatre;
       }
    }
     // start drawing. Graphic Keywords accepted: CLIP(YES), COLOR(OK), DATA(YES), DEVICE(YES),
@@ -271,7 +262,8 @@ namespace lib {
       }
       else 
       {
-        bool valid = draw_polyline(e, actStream, xVal, yVal, minVal, maxVal, xLog, yLog, psym, append);
+        // there is no 'minmax' option for plots. 
+        bool valid = draw_polyline(e, actStream, xVal, yVal, 0.0, 0.0, false, xLog, yLog, psym, append);
         // TODO: handle valid?
       }
     } 

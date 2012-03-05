@@ -679,7 +679,7 @@ namespace lib {
 
   template <typename T> bool draw_polyline(EnvT *e, GDLGStream *a,
   T * xVal, T* yVal,
-  DDouble minVal, DDouble maxVal,
+  DDouble minVal, DDouble maxVal, bool doMinMax,
   bool xLog, bool yLog,
   DLong psym, bool append){
     bool line = false;
@@ -800,7 +800,7 @@ namespace lib {
       }
   #endif
       isBad = (!isfinite(x) || !isfinite(y) || isnan(x) || isnan(y));
-      isBad = (isBad || (y < minVal) || (y > maxVal));
+      if (doMinMax) isBad = (isBad || (y < minVal) || (y > maxVal));
       if (isBad) {
         reset = 1;
         if (i_buff > 0) {
@@ -914,7 +914,7 @@ namespace lib {
     return (valid);
   }
   // explicit instantiation for SpDDouble
-  template bool draw_polyline(EnvT*, GDLGStream*, Data_<SpDDouble>*, Data_<SpDDouble>*, DDouble, DDouble, bool, bool, DLong, bool);
+  template bool draw_polyline(EnvT*, GDLGStream*, Data_<SpDDouble>*, Data_<SpDDouble>*, DDouble, DDouble, bool, bool, bool, DLong, bool);
 
   //[XYZ]MARGIN kw decoding
   void gkw_axis_margin(EnvT *e, string axis,DFloat &start, DFloat &end)

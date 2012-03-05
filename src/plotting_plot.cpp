@@ -27,6 +27,7 @@ namespace lib {
     DDoubleGDL *yVal, *xVal, *xTemp, *yTemp;
     SizeT xEl, yEl;
     DDouble minVal, maxVal, xStart, xEnd, yStart, yEnd;
+    bool doMinMax;
     bool xLog, yLog, wasBadxLog, wasBadyLog;
     DLong psym;
     auto_ptr<BaseGDL> xval_guard,yval_guard,xtemp_guard;
@@ -212,8 +213,6 @@ private:
     //xStyle and yStyle apply on range values
 
 //    // style applies on the final values
-//    yStart=max(minVal,yStart);
-//    yEnd=min(maxVal,yEnd);
     if ((xStyle & 1) != 1) {
       PLFLT intv = AutoIntvAC(xStart, xEnd, xnozero, xLog);
     }
@@ -308,8 +307,12 @@ private:
 
 
     //now we can setup minVal and maxVal to defaults: Start-End and overload if KW present
-    minVal = yStart;
-    maxVal = yEnd;
+
+    minVal = yStart; //to give a reasonable value...
+    maxVal = yEnd;   //idem
+    doMinMax = false; //although we will not use it...
+    if( e->KeywordSet( "MIN_VALUE") || e->KeywordSet( "MAX_VALUE"))
+      doMinMax = true; //...unless explicitely required
     e->AssureDoubleScalarKWIfPresent( "MIN_VALUE", minVal);
     e->AssureDoubleScalarKWIfPresent( "MAX_VALUE", maxVal);
 
@@ -378,7 +381,7 @@ private:
       static int nodataIx = e->KeywordIx( "NODATA"); 
       if (!e->KeywordSet(nodataIx)) 
       {
-        bool valid = draw_polyline(e, actStream, xVal, yVal, minVal, maxVal, xLog, yLog, psym, FALSE);
+        bool valid = draw_polyline(e, actStream, xVal, yVal, minVal, maxVal, doMinMax, xLog, yLog, psym, FALSE);
         // TODO: handle valid?
       }
     } // }}}

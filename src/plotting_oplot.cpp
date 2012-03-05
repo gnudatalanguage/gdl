@@ -138,8 +138,8 @@ namespace lib {
     DDouble xStart, xEnd, yStart, yEnd;
     get_axis_crange("X", xStart, xEnd);
     get_axis_crange("Y", yStart, yEnd);
-    DDouble minVal;
-    DDouble maxVal;
+    DDouble minVal, maxVal;
+    bool doMinMax;
 
     bool xLog;
     bool yLog;
@@ -162,8 +162,13 @@ namespace lib {
       set_axis_crange("Y", yStart, yEnd, yLog);
     }
     
-    minVal = yStart;
-    maxVal = yEnd;
+    //now we can setup minVal and maxVal to defaults: Start-End and overload if KW present
+
+    minVal = yStart; //to give a reasonable value...
+    maxVal = yEnd;   //idem
+    doMinMax = false; //although we will not use it...
+    if( e->KeywordSet( "MIN_VALUE") || e->KeywordSet( "MAX_VALUE"))
+      doMinMax = true; //...unless explicitely required
     e->AssureDoubleScalarKWIfPresent( "MIN_VALUE", minVal);
     e->AssureDoubleScalarKWIfPresent( "MAX_VALUE", maxVal);
 
@@ -193,7 +198,7 @@ namespace lib {
     // plot the data
     if(valid) //invalid is not yet possible. Could be done by a severe clipping for example.
       valid=draw_polyline(e, actStream, 
-			  xVal, yVal, minVal, maxVal, xLog, yLog,
+			  xVal, yVal, minVal, maxVal, doMinMax, xLog, yLog,
 			  psym, FALSE);
 
 
