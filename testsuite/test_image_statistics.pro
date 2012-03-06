@@ -10,7 +10,14 @@ function DIFF_BELOW_TOL, number1, number2, tolerance
 if (ABS(number1-number2) LT tolerance) then return, 1 else return, 0
 end
 ;
-pro TEST_IMAGE_STATISTICS, test=test, verbose=verbose
+pro TEST_IMAGE_STATISTICS, fake_error=fake_error, $
+                           help=help, test=test, verbose=verbose
+;
+if KEYWORD_SET(help) then begin
+   print, 'pro TEST_IMAGE_STATISTICS, fake_error=fake_error, $'
+   print, '                           help=help, test=test, verbose=verbose'
+   return
+endif
 ;
 ; Do we have access to ImageMagick functionnalities ??
 ;
@@ -52,11 +59,10 @@ if SIZE(cube, /N_dim) NE 3 then begin
    EXIT, status=1
 endif
 ;
-; computation of various numbers ...
-;
 ; exemple of introducing fake error:
-fake=0
-if (fake EQ 1) then cube[0,0,1]=234
+if KEYWORD_SET(fake_error) then cube[0,0,1]=234
+;
+; computation of various numbers ...
 ;
 IMAGE_STATISTICS, cube, COUNT = pixelNumber, $  
                   DATA_SUM = pixelTotal, MAXIMUM = pixelMax, $  
