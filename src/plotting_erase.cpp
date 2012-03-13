@@ -38,19 +38,47 @@ namespace lib {
 
     private: void call_plplot(EnvT* e, GDLGStream* actStream) // {{{
     {
+      //      if (e->KeywordPresent(0))
+      if (e->KeywordPresent(e->KeywordIx("CHANNEL")))
+	Message(e->GetProName() + " : CHANNEL keyword not yet supported.");
+
+      static int bColorIx = e->KeywordIx("COLOR");
+      
+      //      cout << "bColorIx"<< bColorIx << endl;
+
+      DLong MaxColorIdx;
+      DLong bColor=-1;
+      MaxColorIdx=256*256*256-1;
+      //      cout << MaxColorIdx << endl;
+      
       if (nParam() == 0)
-      {
-        actStream->Clear();
-      }
+	{
+	  if (e->KeywordPresent(e->KeywordIx("COLOR")))
+	    {
+	      e->AssureLongScalarKWIfPresent(bColorIx, bColor);
+	      if (bColor > MaxColorIdx) bColor = MaxColorIdx;
+	      if (bColor < 0)   bColor = 0;
+	      //if (bColor >= 0 & bColor <= MaxColorIdx)
+	      //actStream->Background( bColor, 1);
+	    }
+	  else
+	    // we have to read back !p.background value
+	    {
+	      static DStructGDL* pStruct = SysVar::P();
+	      bColor =(*static_cast<DLongGDL*>
+		       (pStruct->GetTag(pStruct->Desc()->TagIndex("BACKGROUND"),0)))[0];
+	    }
+	}
       else 
-      {
-        DLong bColor;
-        e->AssureLongScalarPar( 0, bColor);
-        if (bColor > 255) bColor = 255;
-        if (bColor < 0)   bColor = 0;
-        actStream->Clear( bColor);
-      }
-    } // }}}
+	{
+	  e->AssureLongScalarPar(0, bColor);	
+	  if (bColor > MaxColorIdx) bColor = MaxColorIdx;
+	  if (bColor < 0)   bColor = 0;
+	}
+
+      actStream->Background( bColor, 1);
+      actStream->Clear();      
+    }
 
     private: virtual void post_call(EnvT*, GDLGStream*) // {{{
     {

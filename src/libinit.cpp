@@ -702,7 +702,8 @@ void LibInit()
     };
   new DLibPro(lib::polyfill, string("POLYFILL"), 3, polyfillKey);
 
-  new DLibPro(lib::erase,string("ERASE"),1);
+  const string eraseKey[]= {"CHANNEL","COLOR",KLISTEND};
+  new DLibPro(lib::erase,string("ERASE"),1, eraseKey);
   
   const string laguerreKey[]={"DOUBLE","COEFFICIENTS",KLISTEND};
   new DLibFun(lib::laguerre,string("LAGUERRE"),3,laguerreKey);
