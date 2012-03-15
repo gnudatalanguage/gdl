@@ -576,7 +576,18 @@ public:
     {
       Display* display = XOpenDisplay(NULL);
       if (display == NULL) ThrowGDLException("Cannot connect to X server");
-      decomposed = (DefaultDepth(display, DefaultScreen(display)) >= 15 ? true : false);
+
+      int Depth;
+      Depth=DefaultDepth(display, DefaultScreen(display));      
+      decomposed = (Depth >= 15 ? true : false);
+      DLong toto=16777216;
+      if (Depth == 24) 
+	(*static_cast<DLongGDL*>(dStruct->GetTag(n_colorsTag)))[0] = toto;
+      int debug=0;
+      if (debug) {
+	cout << "Display Depth " << Depth << endl;
+	cout << "n_colors " << toto << endl;
+      }
       XCloseDisplay(display);
     }
     if( decomposed) return 1;

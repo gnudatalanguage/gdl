@@ -93,10 +93,18 @@ if N_ELEMENTS(bottom) eq 0 then bottom=0
 TVLCT,r,g,b,/GET
 
 if N_ELEMENTS( r_orig) eq 0 then begin
-
     r_orig = bytarr( !D.TABLE_SIZE)
     g_orig = bytarr( !D.TABLE_SIZE)
     b_orig = bytarr( !D.TABLE_SIZE)
+ endif
+
+if KEYWORD_SET(Ncolors) then begin
+   if N_ELEMENTS(Ncolors) NE 256 then begin
+      idx=Lindgen(Ncolors)*255/(Ncolors-1)
+      r=r[idx]
+      g=g[idx]
+      b=b[idx]
+   endif
 endif
 
 r_orig[bottom] = r
@@ -105,6 +113,8 @@ b_orig[bottom] = b
 r_curr = r_orig
 g_curr = g_orig
 b_curr = b_orig
+
+TVLCT, r, g, b, bottom
 
 end
 
