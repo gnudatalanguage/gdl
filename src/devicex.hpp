@@ -599,7 +599,13 @@ public:
 
   BaseGDL* TVRD( EnvT* e)
   {
+    // AC 17 march 2012: needed to catch the rigth current window (wset ...)
+    DLong wIx = -1;
     Graphics* actDevice = Graphics::GetDevice();
+    wIx = actDevice->ActWin();
+    bool success = actDevice->WSet( wIx);
+    cout << "wIx :" << wIx << " " << success << endl;
+
     //everywhere we use XGetImage we need to set an error handler, since GTK crashes on every puny
     //BadMatch error, and if you read the XGetImage doc you'll see that such errors are prone to happen
     //as soon as part of the window is obscured.
@@ -647,6 +653,41 @@ public:
     e->AssureLongScalarKWIfPresent( "CHANNEL", channel);
     if (channel > 3) e->Throw("Value of Channel is out of allowed range.");
 
+    unsigned int x0u=0;
+    unsigned int y0u=0;
+    unsigned int Nxu=xSize-1;
+    unsigned int Nyu=ySize-1;
+    unsigned int Channelu=0;
+
+    int nParam = e->NParam();
+    if (nParam >= 1) {
+      DLongGDL* x0 = e->GetParAs<DLongGDL>(0);
+      x0u=(*x0)[0];
+    }
+    if (nParam >= 2) {
+      DLongGDL* y0 = e->GetParAs<DLongGDL>(1);
+      y0u=(*y0)[0];
+    }
+    if (nParam >= 3) {
+      DLongGDL* Nx = e->GetParAs<DLongGDL>(2);
+      Nxu=(*Nx)[0];
+    }
+    if (nParam >= 4) {
+      DLongGDL* Ny = e->GetParAs<DLongGDL>(3);
+      Nyu=(*Ny)[0];
+    }
+    if (nParam == 5) {
+      DLongGDL* Channel = e->GetParAs<DLongGDL>(4);
+      Channelu=(*Channel)[0];
+    }
+
+    int debug =1;
+    if (debug) {
+      cout << "hello"<<endl;
+      //     cout << (*x0)[0] <<" "<< (*x1)[0] <<" "<< (*Nx)[0] <<" "<< (*Ny)[0] <<" "<< (*Channel)[0] <<endl;
+      cout << x0u <<" "<< y0u <<" "<< Nxu <<" "<< Nyu <<" "<< Channelu <<endl;
+    }
+
     if (tru == 0 || channel != -1) {
       dims[0] = xSize;
       dims[1] = ySize;
@@ -684,23 +725,58 @@ public:
     } else {
       if (tru > 3) e->Throw("Value of TRUE keyword is out of allowed range.");
 
-      dims[0] = 3;
-      dims[1] = xSize;
-      dims[2] = ySize;
-      dimension dim(dims, (SizeT) 3);
-      res = new DByteGDL(dim, BaseGDL::NOZERO);
-      if (ximg == NULL) return res;
+      // AC 17 march 2012
+      // below something is wrong
+      // window, 3,xsize=10, ysize=7
+      // plot, findgen(10), col='ff'x, back='ff'x ;; all in red
+      // uu=tvrd(/tru)
+      // plot, uu(0,*,*) ; should be at 255, but not all :(
+      // It seems to be related to refreshment of the screen !
 
-      for (SizeT i = 0; i < ySize; ++i) {
-        for (SizeT j = 0; j < xSize; ++j) {
-          for (SizeT k = 0; k < 4; ++k) {
-            if (k < 3) {
-              (*res)[(ySize - i - 1) * xSize * 3 + j * 3 + 2 - k] =
-                  ximg->data[i * xSize * 4 + j * 4 + k];
-            }
-          }
-        }
-      }
+      if (nParam ==0)
+	{
+	  // AC 17 march 2012 : we may have a mirror effect here
+	  dims[0] = 3;
+	  dims[1] = xSize;
+	  dims[2] = ySize;
+	  dimension dim(dims, (SizeT) 3);
+	  res = new DByteGDL(dim, BaseGDL::NOZERO);
+	  if (ximg == NULL) return res;
+	  
+	  SizeT jj=0;
+	  for (SizeT i = 0; i < xSize; ++i) {
+	    for (SizeT j = 0; j < ySize; ++j) {
+	      for (SizeT k = 0; k < 4; ++k) {
+		if (k < 3) {
+		  (*res)[xSize*j * 3 + i * 3 + 2 - k] =
+		        ximg->data[j * xSize * 4 + i * 4 + k];
+		}
+	      }
+	    }
+	  }
+	}
+      else
+	{
+	  // AC 17 march 2012 : we may have a mirror effect here
+	  dims[0] = 3;
+	  dims[1] = Nxu;
+	  dims[2] = Nyu;
+	  cout << dims[1] << " " << dims[2] <<endl;
+	  dimension dim(dims, (SizeT) 3);
+	  res = new DByteGDL(dim, BaseGDL::NOZERO);
+	  if (ximg == NULL) return res;
+	  
+	  for (SizeT i = x0u; i < x0u+Nxu; ++i) {
+	    for (SizeT j = y0u; j < y0u+Nyu; ++j) {
+	      for (SizeT k = 0; k < 4; ++k) {
+		if (k < 3) {		  
+		  (*res)[dims[1]*(j-y0u) * 3 + (i-x0u) * 3 + 2 - k] =
+		    ximg->data[j * xSize * 4 + i * 4 + k];
+		}
+	      }
+	    }
+	  }
+	}
     }
 
     XDestroyImage(ximg);
