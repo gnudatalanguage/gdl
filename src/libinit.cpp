@@ -557,10 +557,19 @@ void LibInit()
      "ZVALUE", 
 
      "SAVE", "XAXIS", "YAXIS", "XLOG", "YLOG", "XTYPE", "YTYPE", "YNOZERO", "THICK",
-     "XTICKINTERVAL", "YTICKINTERVAL",
-     KLISTEND
-    };
-  new DLibPro(lib::axis,string("AXIS"),3,axisKey);
+      KLISTEND
+     };
+   const string axisWarnKey[]=
+   {
+   "ZAXIS","ZLOG", 
+   "XTICKINTERVAL", "YTICKINTERVAL", "ZTICKINTERVAL",
+   "XTICKLAYOUT", "YTICKLAYOUT", "ZTICKLAYOUT",
+   "XTICKUNITS", "YTICKUNITS", "ZTICKUNITS",
+   "XTICKV", "YTICKV", "ZTICKV",
+   "XTICK_GET", "YTICK_GET", "ZTICK_GET",
+   KLISTEND
+  };
+  new DLibPro(lib::axis,string("AXIS"),3,axisKey,axisWarnKey);
 
   const string oplotKey[]=
     {
@@ -638,13 +647,12 @@ void LibInit()
 
      // SURFACE keywords
      // 73
-     "MAX_VALUE", "MIN_VALUE","AX", "AZ",
-     "XLOG", "XTYPE", "YLOG", "YTYPE", "ZLOG", "ZTYPE",
-     KLISTEND
+     "MAX_VALUE",  "MIN_VALUE", "AX", "AZ", "XLOG", "YLOG", "ZLOG", KLISTEND
     };
   const string surfaceWarnKey[]=
   {
-    "SAVE", KLISTEND 
+    "SAVE", "BOTTOM", "HORIZONTAL", "LOWER_ONLY", "UPPER_ONLY",
+    "SHADES", "SKIRT", "ZAXIS", "LEGO", KLISTEND
   };
   new DLibPro(lib::surface,string("SURFACE"),3,surfaceKey, surfaceWarnKey);
 
@@ -674,11 +682,15 @@ void LibInit()
      "ZVALUE", 
      "LEVELS", "NLEVELS",
      "MAX_VALUE", "MIN_VALUE",
-     "XLOG", "XTYPE", "YLOG", "YTYPE", "ZLOG", "ZTYPE", "FILL",  "ISOTROPIC",
+     "XLOG", "XTYPE", "YLOG", "YTYPE", "ZLOG", "ZTYPE", "FILL", "ISOTROPIC",
      "FOLLOW", "C_CHARSIZE","OVERPLOT","C_COLORS","C_LINESTYLE",
      KLISTEND
     };
-  new DLibPro(lib::contour,string("CONTOUR"),3,contourKey);
+   const string contourWarnKey[]=
+    {
+        "CELL_FILL","C_LABELS","C_ANNOTATIONS", "C_CHARTHICK","C_ORIENTATION","C_SPACING","C_THICK",KLISTEND 
+    };
+   new DLibPro(lib::contour,string("CONTOUR"),3,contourKey,contourWarnKey);
 
   // note that although  SIZE is not in IDL6+ documentation, it is widely used
   // in place of CHARSIZE....
