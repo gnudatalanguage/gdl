@@ -50,27 +50,35 @@ void ExtraT::Resolve()
 	  IDList::iterator f=find_if(pro->key.begin(),
 				     pro->key.end(),
 				     String_abbref_eq( tName));
-	  if( f != pro->key.end())
-	    { // found, _EXTRA always overrides explicit keywords
-	      SizeT varIx=distance(pro->key.begin(),f);
-	      
-	      thisEnv->env.Reset( varIx, extraStruct->Get( t)); // local
-	    }
-	  else // not found -> add tag to extra data
-	    { 
-	      if( extraType != DSub::NONE)
-		{
-		  listName.push_back( tName);
-		  listEnv.push_back( extraStruct->Get( t)); // always local
-		}
-	      else if( strict)
-		{ // pro has no (_REF)_EXTRA) and _STRICT_EXTRA -> error
-		  thisEnv->Throw( "Keyword "+tName+
-				      " not allowed in call to: "+
-				      pro->ObjectName());
-		}
-	    }
-	}
+      if (f != pro->key.end())
+      { // found, _EXTRA always overrides explicit keywords
+        SizeT varIx = distance(pro->key.begin(), f);
+
+        thisEnv->env.Reset(varIx, extraStruct->Get(t)); // local
+      }
+      else // not found -> add tag to extra data
+      {
+        if (extraType != DSub::NONE)
+        {
+          listName.push_back(tName);
+          listEnv.push_back(extraStruct->Get(t)); // always local
+        }
+        else if (strict)
+        { // pro has no (_REF)_EXTRA) and _STRICT_EXTRA -> error
+          // ... unless keyword is a warnkey!
+          // search warn keyword
+          IDList::iterator wf=find_if(pro->warnKey.begin(),
+				     pro->warnKey.end(),
+				     String_abbref_eq( tName));
+          if (wf == pro->warnKey.end())
+          {
+            thisEnv->Throw("Keyword " + tName +
+            " not allowed in call to: " +
+            pro->ObjectName());
+          }
+        }
+      }
+    }
     }
   else // _REF_EXTRA
     {
