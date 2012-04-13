@@ -3479,7 +3479,7 @@ BaseGDL* transpose( EnvT* e)
 	for( SizeT i=0; i<rank; ++i) perm[i] = (*p1L)[ i];
 	delete p1L;
 
-	// check permutaion vector
+	// check permutation vector
 	for( SizeT i=0; i<rank; ++i) 
 	  {
 	    DUInt j;
