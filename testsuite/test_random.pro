@@ -35,17 +35,17 @@ values=[0.10,0.25,0.50,0.75,0.90]
 error=0
 ;
 if KEYWORD_SET(verbose) then begin
-   print, format='(5A12)', ['Amplitude', 'values', 'expected', 'Mean', 'disp.']
+   print, format='(6A12)', ['Amplitude', 'values', 'expected', 'Mean', 'disp.', 'Error']
 endif
 for ii=0, N_ELEMENTS(values)-1 do begin
    resu=RANDOMU(seed, nbp, BINOMIAL=[amplitude,values[ii]])
    dispersion=ABS(MEAN(resu)-amplitude*values[ii])
+   if (dispersion GT amplitude/100.) then error=error+1
    if KEYWORD_SET(verbose) then begin
-      print, format='(5f12)', amplitude, values[ii], $
-             amplitude*values[ii], MEAN(resu), dispersion
+      print, format='(5f12,6x,I1.1)', amplitude, values[ii], $
+             amplitude*values[ii], MEAN(resu), dispersion,  (dispersion GT amplitude/100.)
    endif
    ;;
-   if (dispersion GT amplitude/100.) then error=error+1
 endfor
 ;
 if KEYWORD_SET(test) then stop
