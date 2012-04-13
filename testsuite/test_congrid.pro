@@ -11,14 +11,15 @@
 ;
 ; ---------------------------------
 ;
-pro TEST_CONGRID_BASIC, nbp=nbp, test=test, noexit=noexit
-;
+pro TEST_CONGRID_BASIC, nbp=nbp, test=test, byte=byte, noexit=noexit
+;default is double, byte errors come from gdl rounding, not congrid.
 if N_ELEMENTS(nbp) EQ 0 then nbp=9
 ;
+isbyte=KEYWORD_SET(byte)
 nb_errors=0
 error=1e-9
 ;
-in=BINDGEN(3,3)
+if (isbyte) then in=BINDGEN(3,3) else in=DINDGEN(3,3)
 ;
 ; test /Sample
 ;
