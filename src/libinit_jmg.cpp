@@ -92,7 +92,7 @@ void LibInit_jmg()
 			       "LOCATIONS","NAN",KLISTEND};
   new DLibFun(lib::histogram_fun,string("HISTOGRAM"),1,histogramKey);
 
-  const string interpolateKey[]={"CUBIC","GRID","MISSING",KLISTEND};
+  const string interpolateKey[]={"CUBIC","GRID","MISSING","NEAREST_NEIGHBOUR",KLISTEND};
   new DLibFun(lib::interpolate_fun,string("INTERPOLATE"),4,interpolateKey);
 
   const string la_triredKey[]={"DOUBLE","UPPER",KLISTEND};

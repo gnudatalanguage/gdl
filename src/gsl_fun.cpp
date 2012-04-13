@@ -81,6 +81,10 @@
 // spher_harm
 #include <gsl/gsl_sf_legendre.h>
 
+//interpolate
+#include <gsl/gsl_errno.h>
+#include "interp_multid.h"
+
 #define LOG10E 0.434294
 
 namespace lib {
@@ -1436,531 +1440,482 @@ namespace lib {
 
     return(res);
   }
+ 
+DDoubleGDL* interpolate_1dim(EnvT* e, const gdl_interp1d_type* interp_type, DDoubleGDL* array, DDoubleGDL* x, bool use_missing, DDouble missing, DDouble gamma)
+{
 
+    SizeT nx = x->N_Elements();
 
-  void interpolate_linear(gsl_interp_accel *acc, gsl_interp *interp, 
-			  double *xa, SizeT nx, const double ya[], 
-			  double x[], double y[], bool use_missing, double missing)
-  {
-    for( SizeT i=0; i<nx; ++i)
-    {
-      int status = gsl_interp_eval_e (interp, xa, ya, x[i], acc, &y[i]);
-      if (status == GSL_EDOM && use_missing) y[i] = missing;
-    }
-  }
+    // Determine number and value of input points along x-axis and y-axis
+    SizeT rankLeft = array->Rank()-1;
+    if (rankLeft < 0) e->Throw("Number of parameters must agree with dimensions of argument.");
 
-
-  void interpolate_cubic(gsl_interp_accel *acc, gsl_spline *spline, 
-			 double *xa, SizeT nx, const double ya[], 
-			 double x[], double y[], bool use_missing, double missing)
-  {
-    for( SizeT i=0; i<nx; ++i)
-    {
-      int status = gsl_spline_eval_e (spline, x[i], acc, &y[i]);
-      if (status == GSL_EDOM && use_missing) y[i] = missing;
-    }
-  }
-
-
-  void twoD_lin_interpolate(SizeT ninterp,
-			    double *xa, bool grid, 
-			    SizeT nx, SizeT ny, SizeT nxa, SizeT nya,
-			    double *p0, double *p1, double *p2, double *res, bool use_missing, double missing)  
-  {
-    gsl_interp_accel *acc = gsl_interp_accel_alloc ();
-    gsl_interp *interp;
-
-    // Allocate and initialize interpolation arrays
-    interp = gsl_interp_alloc (gsl_interp_linear, nxa);
-
-    // Allocate "work" arrays
-    SizeT ny2 = (ny == 1) * 2 + (ny > 1) * ny;
-    double **work = new double*[ny2];
-    for( SizeT k=0; k<ny2; ++k) work[k] = new double[nx];
-
-    double **ya = new double*[nya];
-    for( SizeT k=0; k<nya; ++k) ya[k] = new double[nxa];
-
-    for( SizeT i=0; i<ninterp; ++i) {
-
-      // Get input y-axis values
-      for( SizeT k=0; k<nya; ++k) {
-	for( SizeT j=0; j<nxa; ++j) {
-	  ya[k][j] = p0[i+(ninterp*j)+(ninterp*nxa)*k];
-	  //  cout << k << "  " << j << "  " << ya[k][j] << endl;
-	}
-      }
-      
-      gsl_interp_init (interp, xa, ya[0], nxa);
-          
-      bool first = true;
-      DLong lastrow;
-      double *dptr;
-      for( SizeT k=0; k<ny; ++k) {
-	//	    printf("k: %d\n", k);
-	// Interpolate along rows
-	DLong row = (DLong) floor(p2[k]);
-	if (grid) dptr = &p1[0]; else dptr = &p1[k]; 
-
-	if (first || (row != lastrow) || !grid) {
-
-	  // Correct if row out of bounds
-	  if (row < 0) row = 0;
-	  if (row >= nya) row = nya - 1;
-
-	  interpolate_linear(acc, interp, xa, nx, 
-			     ya[row], dptr, &work[0][0], use_missing, missing);
-
-	  // Correct if row out of bounds
-	  if (row < -1) row = -1;
-	  if (row >= nya-1) row = nya - 2;
-
-	  interpolate_linear(acc, interp, xa, nx, 
-			     ya[(row+1)], dptr, &work[1][0], use_missing, missing);
-	}
-	first = false;
-	lastrow = row;
-
-	if (grid) {
-	  // Interpolate between rows
-	  for( SizeT j=0; j<nx; ++j) {
-	    res[i+ninterp*j+(ninterp*nx)*k] = 
-	      work[0][j] + (work[1][j]-work[0][j]) * (p2[k] - row); 
-	  } // column (j) loop
-	} else {
-	  res[i+ninterp*k] = 
-	    work[0][0] + (work[1][0]-work[0][0]) * (p2[k] - row); 
-	}
-
-      } // row (k) loop
-    } // interp loop 
-
-    // Free dynamic arrays
-    for( SizeT k=0; k<ny2; ++k) 
-      delete [] work[k];
-    delete [] work;
-
-    for( SizeT k=0; k<nya; ++k) 
-      delete [] ya[k];
-    delete [] ya;
-
-    gsl_interp_accel_free (acc);
-    gsl_interp_free (interp);
-  }
-
-
-  BaseGDL* interpolate_fun( EnvT* e)
-  {
-    SizeT nParam=e->NParam();
-
-    if( nParam < 2)
-      e->Throw("Incorrect number of arguments.");
-
-    BaseGDL* p0 = e->GetParDefined( 0);
-    BaseGDL* p1 = e->GetParDefined( 1);
-    BaseGDL* p2=NULL;
-    BaseGDL* p3=NULL;
-    if ( nParam >= 3) p2 = e->GetParDefined( 2);
-    if ( nParam >= 4) p3 = e->GetParDefined( 3);
-
-    DDoubleGDL* p0D;
-    DDoubleGDL* p1D;
-    DDoubleGDL* p2D;
-    DDoubleGDL* p3D;
-    auto_ptr<BaseGDL> guard0;
-    auto_ptr<BaseGDL> guard1;
-    auto_ptr<BaseGDL> guard2;
-    auto_ptr<BaseGDL> guard3;
-
-    if( p0->Rank() < nParam-1)
-      e->Throw("Number of parameters must agree with dimensions of argument.");
-
-    static int cubicIx = e->KeywordIx("CUBIC");
-    bool cubic = e->KeywordSet(cubicIx);
-
-    static int gridIx = e->KeywordIx("GRID");
-    bool grid = e->KeywordSet(gridIx);
-
-    static int missingIx = e->KeywordIx("MISSING");
-    bool use_missing = e->KeywordSet(missingIx);
-    DDouble missing;
-    e->AssureDoubleScalarKWIfPresent(missingIx, missing);
-
-    if ( nParam == 3)
-      if (p1->N_Elements() == 1 && p2->N_Elements() == 1)
-	grid = false;
-
-    // If not GRID then check that rank and dims match
-    if ( nParam == 3 && !grid) {
-      if (p1->Rank() != p2->Rank())
-	e->Throw("Coordinate arrays must have same length if Grid not set.");
-      else {
-	for( SizeT i=0; i<p1->Rank(); ++i) {
-	  if (p1->Dim(i) != p2->Dim(i))
-	    e->Throw("Coordinate arrays must have same length if Grid not set.");
-	}
-      }
-    }
-
-    if (p0->Type() == DOUBLE)
-	p0D = static_cast<DDoubleGDL*> ( p0);
-    else
-	{
-	p0D = static_cast<DDoubleGDL*>
-	  (p0->Convert2( DOUBLE, BaseGDL::COPY));
-	guard0.reset( p0D);
-	}
-
-    // Determine dimensions of output
-    DDoubleGDL* res;
-    DLong dims[8]={0,0,0,0,0,0,0,0};
+    //initialize output array with correct dimensions
+    DLong dims[MAXRANK] = {0, 0, 0, 0, 0, 0, 0, 0};
     SizeT resRank;
-    // Linear Interpolation or No GRID
-    if ( nParam == 2 || !grid) {
-      for( SizeT i=0; i<p0->Rank()-(nParam-1); ++i) 
-	dims[i] = p0->Dim(i);
-      for( SizeT i=0; i<p1->Rank(); ++i) 
-	dims[i+p0->Rank()-(nParam-1)] = p1->Dim(i);
-      resRank = p0->Rank()-(nParam-1)+p1->Rank();
-      if (p0->N_Elements() == 1 && 
-	  p1->N_Elements() == 1 && 
-	  !e->KeywordSet(1) && 
-	  nParam < 3) {
-	dims[0] = 0;
-	resRank = 0;
-      }
-    } else {
-      // GRID
-      for( SizeT i=0; i<p0->Rank()-(nParam-1); ++i) 
-	dims[i] = p0->Dim(i);
+    SizeT chunksize;
+    for (SizeT i = 0; i < rankLeft; ++i) dims[i] = array->Dim(i);
+    resRank = rankLeft;
 
-      dims[p0->Rank()-(nParam-1)] = p1->Dim(0);
-      for( SizeT i=1; i<p1->Rank(); ++i) 
-	dims[p0->Rank()-(nParam-1)] *= p1->Dim(i);
-
-      dims[p0->Rank()-(nParam-1)+1] = p2->Dim(0);
-      for( SizeT i=1; i<p2->Rank(); ++i) 
-	dims[p0->Rank()-(nParam-1)+1] *= p2->Dim(i);
-
-      if (nParam == 4) {
-	dims[p0->Rank()-(nParam-1)+2] = p3->Dim(0);
-	for( SizeT i=1; i<p3->Rank(); ++i) 
-	  dims[p0->Rank()-(nParam-1)+2] *= p3->Dim(i);
-      }
-
-      resRank = 0;
-      for( SizeT i=0; i<8; ++i) { 
-	if (dims[i] != 0) resRank++;
-      }
+    for (SizeT i = 0; i < x->Rank(); ++i)
+    {
+      dims[resRank++] = x->Dim(i); if (resRank>MAXRANK) e->Throw("Rank of resulting array is currently limited to 8.");
     }
-    dimension dim((DLong *) dims, resRank);
+    chunksize=nx;
+
+    dimension dim((DLong *)dims, resRank);
+    DDoubleGDL *res;
     res = new DDoubleGDL(dim, BaseGDL::NOZERO);
 
-    // Determine number of interpolations
+    // Determine number of interpolations for remaining dimensions
     SizeT ninterp = 1;
-    for( SizeT i=0; i<p0->Rank()-(nParam-1); ++i) ninterp *= p0->Dim(i);
+    for (SizeT i = 0; i < rankLeft; ++i) ninterp *= array->Dim(i);
 
-    // 1D Interpolation
-    if( nParam == 2) {
+    //need to PAD the intermediate work array to satisfy the IDL requirement that
+    //INTERPOLATE considers location points with values between zero and n,
+    //where n is the number of values in the input array, to be valid.
+    // Seems however to be the case only for 1D interpolation.
+    SizeT nxa = array->Dim(rankLeft)+1;
+    double *xa = new double[nxa];
+    for (SizeT i = 0; i < nxa; ++i) xa[i] = (double)i;
 
-      // Setup interpolation arrays
-      gsl_interp_accel *acc = gsl_interp_accel_alloc ();
-      gsl_interp *interp;
-      gsl_spline *spline;
+    // Setup interpolation arrays
+    gsl_interp_accel *accx = gsl_interp_accel_alloc();
+    gdl_interp1d* interpolant = gdl_interp1d_alloc(interp_type, nxa);
 
-      // Determine number and value of input points along x-axis
-      SizeT nxa = p0->Dim(p0->Rank()-nParam+1);
-      double *xa = new double[nxa];
-      for( SizeT i=0; i<nxa; i++) xa[i] = (double) i;
-      
-      // Allocate and initialize interpolation arrays
-      if( cubic) {
-       // test if sufficient points for cubic. It seems impossible to get the minsize
-       // without allocating a spline. This is really dumb since we know the answer is 3,
-       // however the use of this function is a template for future interpolants available
-       // in the gsl library. It seems that the mimicked program ;^) silently reverts to
-       // linear interpolation if the number of points is not present. So do I.
-	spline = gsl_spline_alloc (gsl_interp_cspline, 100); //100 seems reasonable.
-        if (nxa < gsl_spline_min_size (spline)) {
-//          e->Throw("Not enough point for cubic interpolation.");
-          cubic=FALSE;
+    // output locations tables:
+    double *xval = new double[chunksize];
+    for (SizeT count = 0; count < chunksize; ++count)
+    {
+        xval[count] = (*x)[count]; 
+    }
+    //construct 1d intermediate array, subset of array with stride ninterp
+    double *temp = new double[nxa];
+    // Interpolate iteratively ninterp times:
+    // loop could be multihreaded easily
+    for (SizeT iterate = 0; iterate < ninterp; ++iterate)
+    {
+      //here we use a padded temp array (1D only):
+      for (SizeT k = 0; k < nxa-1; ++k) temp[k]=(*array)[k*ninterp+iterate]; temp[nxa-1]=temp[nxa-2]; //pad!
+      gdl_interp1d_init(interpolant, xa, temp, nxa, use_missing?missing_GIVEN:missing_NEAREST, missing, gamma);
+      for (SizeT i = 0; i < chunksize; ++i)
+      {
+        double x = xval[i];
+        (*res)[i*ninterp+iterate] = gdl_interp1d_eval(interpolant, xa, temp, x, accx);
+      }
+    }
+
+    gsl_interp_accel_free(accx);
+    gdl_interp1d_free(interpolant);
+    return res;
+ }
+
+
+DDoubleGDL* interpolate_2dim(EnvT* e, const gdl_interp2d_type* interp_type, DDoubleGDL* array, DDoubleGDL* x, DDoubleGDL* y, bool grid, bool use_missing, DDouble missing, DDouble gamma)
+{
+
+    SizeT nx = x->N_Elements();
+    SizeT ny = y->N_Elements();
+
+    if (nx == 1 && ny == 1)  grid = false;
+
+    // Determine number and value of input points along x-axis and y-axis
+    SizeT rankLeft = array->Rank()-2;
+
+    if (rankLeft < 0) e->Throw("Number of parameters must agree with dimensions of argument.");
+
+    // If not GRID then check that rank and dims match
+    if  (!grid)
+    {
+      if (x->Rank() != y->Rank())
+        e->Throw("Coordinate arrays must have same rank if Grid not set.");
+      else
+      {
+        for (SizeT i = 0; i < x->Rank(); ++i)
+        {
+          if (x->Dim(i) != y->Dim(i))
+            e->Throw("Coordinate arrays must have same shape if Grid not set.");
         }
-        gsl_spline_free (spline);
       }
-      if( cubic) {
-        spline = gsl_spline_alloc (gsl_interp_cspline, nxa);
-        gsl_spline_init (spline, xa, &(*p0D)[0], nxa);
-     } else {
-	interp = gsl_interp_alloc (gsl_interp_linear, nxa);
-	gsl_interp_init (interp, xa, &(*p0D)[0], nxa);
-      }
-
-      if ( p1->Type() == DOUBLE) 
-	p1D = static_cast<DDoubleGDL*> ( p1);
-      else
-	{
-	p1D = static_cast<DDoubleGDL*>
-	  (p1->Convert2( DOUBLE, BaseGDL::COPY));
-	guard1.reset( p1D);
-	}	
-
-      // Single Interpolation
-      if (ninterp == 1) {
-	if( cubic)
-	  // cubic interpolation
-	  interpolate_cubic(acc, spline, xa, p1D->N_Elements(), 
-			    &(*p0D)[0], &(*p1D)[0], &(*res)[0], use_missing, missing);
-	else
-	  // linear interpolation
-	  interpolate_linear(acc, interp, xa, p1D->N_Elements(), 
-			     &(*p0D)[0], &(*p1D)[0], &(*res)[0], use_missing, missing);
-      } else {
-	// Multiple Interpolation
-	for( SizeT i=0; i<ninterp; ++i) {
-
-	  double *ya = new double[nxa];
-	  for( SizeT j=0; j<nxa; ++j) ya[j] = (*p0D)[j*ninterp+i];
-
-	  double *y = new double[p1D->N_Elements()];
-
-	  if( cubic)
-	    // cubic interpolation
-	    interpolate_cubic(acc, spline, xa, p1D->N_Elements(), 
-			      ya, &(*p1D)[0], &(*res)[0], use_missing, missing);
-	  else
-	    // linear interpolation
-	    interpolate_linear(acc, interp, xa, p1D->N_Elements(), 
-			       ya, &(*p1D)[0], y, use_missing, missing);
-
-	  // Write to output array
-	  for( SizeT j=0; j<p1D->N_Elements(); ++j) (*res)[j*ninterp+i] = y[j];
-
-	  delete [] ya;
-	  delete [] y;
-	}
-      }
-
-      gsl_interp_accel_free (acc);
-
-      if (cubic)
-	gsl_spline_free (spline);
-      else
-	gsl_interp_free (interp);
     }
 
-
-    // 2D Interpolation
-    if( nParam == 3) {
-
-      if( cubic) {
-        Message( e->GetProName() + ": 2D Cubic interpolation not yet supported. Using Linear.");
-//      e->Throw("Bicubic interpolation not yet supported.");
-      }
-      if ( p1->Type() == DOUBLE)
-	p1D = static_cast<DDoubleGDL*> ( p1);
-      else
-	{
-	p1D = static_cast<DDoubleGDL*>
-	  (p1->Convert2( DOUBLE, BaseGDL::COPY));
-	guard1.reset( p1D);
-	}	
-      if ( p2->Type() == DOUBLE) 
-	p2D = static_cast<DDoubleGDL*> ( p2);
-      else
-	{
-	p2D = static_cast<DDoubleGDL*>
-	  (p2->Convert2( DOUBLE, BaseGDL::COPY));
-	guard2.reset( p2D);
-	}	
-
-      // Compute nx,ny (number of interpolated points along each dimension
-      SizeT nx = 1;
-      if (grid) nx = res->Dim(resRank-2);
-      
-      SizeT ny = 1;
-      if (resRank != 0 && res->Dim(resRank-1) != 0) ny = res->Dim(resRank-1);
-      if (resRank == 1) ny = dims[0];
-      if (!grid) ny = p1->N_Elements();
-
-      // Determine number and value of input points along x-axis
-      SizeT nxa = p0->Dim(p0->Rank()-nParam+1);
-      double *xa = new double[nxa];
-      for( SizeT i=0; i<nxa; ++i) xa[i] = (double) i;
-
-      // Determine number and value of input points along y-axis
-      SizeT nya = p0->Dim(p0->Rank()-1);
-      
-      twoD_lin_interpolate(ninterp,
-			   xa, grid, 
-			   nx, ny, nxa, nya,
-			   &(*p0D)[0], &(*p1D)[0], &(*p2D)[0], &(*res)[0], use_missing, missing);
-      
-      delete [] xa;
-
-    } // if( nParam == 3)
-
-
-    // 3D Interpolation
-    if( nParam == 4) {
-
-      if( cubic)
-        Message( e->GetProName() + ": 3D Cubic interpolation not supported. Using Linear.");
-//	e->Throw("Bicubic interpolation not supported.");
-
-      if ( p1->Type() == DOUBLE) 
-	p1D = static_cast<DDoubleGDL*> ( p1);
-      else
-	{
-	p1D = static_cast<DDoubleGDL*>
-	  (p1->Convert2( DOUBLE, BaseGDL::COPY));
-	guard1.reset( p1D);
-	}	
-
-      if ( p2->Type() == DOUBLE) 
-	p2D = static_cast<DDoubleGDL*> ( p2);
-      else
-	{
-	p2D = static_cast<DDoubleGDL*>
-	  (p2->Convert2( DOUBLE, BaseGDL::COPY));
-	guard2.reset( p2D);
-	}	
-
-      if ( p3->Type() == DOUBLE) 
-	p3D = static_cast<DDoubleGDL*> ( p3);
-      else
-	{
-	p3D = static_cast<DDoubleGDL*>
-	  (p3->Convert2( DOUBLE, BaseGDL::COPY));
-	guard3.reset( p3D);
-	}	
-
-
-      // Compute nx,ny (number of interpolated points along each dimension
-      SizeT nx = 1;
-      if (grid) nx = res->Dim(resRank-3);
-      
-      SizeT ny = 1;
-      if (resRank != 0 && res->Dim(resRank-2) != 0) ny = res->Dim(resRank-2);
-      if (resRank == 1) ny = dims[0];
-      if (!grid) ny = p1->N_Elements();
-
-      // Determine number and value of input points along x-axis
-      SizeT nxa = p0->Dim(p0->Rank()-nParam+1);
-      double *xa = new double[nxa];
-      for( SizeT i=0; i<nxa; ++i) xa[i] = (double) i;
-
-      // Determine number and value of input points along y-axis
-      SizeT nya = p0->Dim(p0->Rank()-2);
-
-      // Determine number and value of input points along z-axis
-      SizeT nza = p0->Dim(p0->Rank()-1);
-
-      double *work_xy = new double [nza*nx*ny];
-      for( SizeT i=0; i<nza; ++i) {
-	twoD_lin_interpolate(ninterp,
-			     xa, grid, 
-			     nx, ny, nxa, nya,
-			     &(*p0D)[nxa*nya*i], &(*p1D)[0], &(*p2D)[0], 
-			     &work_xy[i*nx*ny], use_missing, missing);
-      }
-
-      double *za = new double[nza];
-      for( SizeT i=0; i<nza; ++i) za[i] = (double) i;
-      double *work_za  = new double [nza];
-
-      SizeT nz = p3D->N_Elements();
-      double *work_z   = new double [nz];
-
-      gsl_interp *interp_z;
-      gsl_interp_accel *acc = gsl_interp_accel_alloc ();
-      interp_z = gsl_interp_alloc (gsl_interp_linear, nza);
-      //      gsl_interp_init (interp_z, za, &(*p0D)[0], nza);
-
-      if (grid ) {
-	for( SizeT i=0; i<nx; ++i) {
-	  for( SizeT j=0; j<ny; ++j) {
-	    for( SizeT k=0; k<nza; ++k) 
-	      work_za[k] = work_xy[k*nx*ny + j*nx + i];
-	    interpolate_linear(acc, interp_z, za, nz, work_za, 
-			       &(*p3D)[0], work_z, use_missing, missing);
-
-	    for( SizeT k=0; k<nz; ++k) (*res)[k*nx*ny + j*nx + i] = work_z[k];
-	  }
-	}
-      } else {
-	for( SizeT i=0; i<nz; ++i) {
-	  for( SizeT k=0; k<nza; ++k) work_za[k] = work_xy[k*ny + i];
-	  interpolate_linear(acc, interp_z, za, 1, work_za, 
-			     &(*p3D)[i], &(*res)[i], use_missing, missing);
-	}
-      }
-
-      gsl_interp_accel_free (acc);
-      gsl_interp_free (interp_z);
-
-      delete [] xa;
-      delete [] za;
-      delete [] work_xy;
-      delete [] work_z;
-      delete [] work_za;
-
-    } // if( nParam == 4)
-
-
-//    if (p0->Type() != DOUBLE) delete p0D;
-//    if (p1->Type() != DOUBLE) delete p1D;
-//    if (p2 != NULL)
-//      if (p2->Type() != DOUBLE) delete p2D;
-//    if (p3 != NULL)
-//      if (p3->Type() != DOUBLE) delete p3D;
-
-    if (p0->Type() == DOUBLE) {
-      return res;	
-    } else if (p0->Type() == FLOAT) {
-      DFloatGDL* res1 = static_cast<DFloatGDL*>
-	(res->Convert2( FLOAT, BaseGDL::COPY));
-      delete res;
-      return res1;
-    } else if (p0->Type() == INT) {
-      DIntGDL* res1 = static_cast<DIntGDL*>
-	(res->Convert2( INT, BaseGDL::COPY));
-      delete res;
-      return res1;
-    } else if (p0->Type() == UINT) {
-      DUIntGDL* res1 = static_cast<DUIntGDL*>
-	(res->Convert2( UINT, BaseGDL::COPY));
-      delete res;
-      return res1;
-    } else if (p0->Type() == LONG) {
-      DLongGDL* res1 = static_cast<DLongGDL*>
-	(res->Convert2( LONG, BaseGDL::COPY));
-      delete res;
-      return res1;
-    } else if (p0->Type() == ULONG) {
-      DULongGDL* res1 = static_cast<DULongGDL*>
-	(res->Convert2( ULONG, BaseGDL::COPY));
-      delete res;
-      return res1;
-    } else if (p0->Type() == LONG64) {
-      DLong64GDL* res1 = static_cast<DLong64GDL*>
-	(res->Convert2( LONG64, BaseGDL::COPY));
-      delete res;
-      return res1;
-    } else if (p0->Type() == ULONG64) {
-      DULong64GDL* res1 = static_cast<DULong64GDL*>
-	(res->Convert2( ULONG64, BaseGDL::COPY));
-      delete res;
-      return res1;
-    }  else if (p0->Type() == BYTE) {
-      DByteGDL* res1 = static_cast<DByteGDL*>
-	(res->Convert2( BYTE, BaseGDL::COPY));
-      delete res;
-      return res1;
-    } else {
-      return res;
+    //initialize output array with correct dimensions
+    DLong dims[MAXRANK] = {0, 0, 0, 0, 0, 0, 0, 0};
+    SizeT resRank;
+    SizeT chunksize;
+    for (SizeT i = 0; i < rankLeft; ++i) dims[i] = array->Dim(i);
+    resRank = rankLeft;
+    if (grid)
+    {
+      dims[resRank++] = nx;
+      if (resRank>MAXRANK-1) e->Throw("Rank of resulting array is currently limited to 8.");
+      dims[resRank++] = ny;
+      chunksize=nx*ny;
     }
-    
+    else
+    {
+      for (SizeT i = 0; i < x->Rank(); ++i)
+      {
+        dims[resRank++] = x->Dim(i); if (resRank>MAXRANK) e->Throw("Rank of resulting array is currently limited to 8.");
+      }
+      chunksize=nx;
+    }
+    dimension dim((DLong *)dims, resRank);
+    DDoubleGDL *res;
+    res = new DDoubleGDL(dim, BaseGDL::NOZERO);
+
+    // Determine number of interpolations for remaining dimensions
+    SizeT ninterp = 1;
+    for (SizeT i = 0; i < rankLeft; ++i) ninterp *= array->Dim(i);
+
+    SizeT nxa = array->Dim(rankLeft);
+    double *xa = new double[nxa];
+    for (SizeT i = 0; i < nxa; ++i) xa[i] = (double)i;
+    SizeT nya = array->Dim(rankLeft+1);
+    double *ya = new double[nya];
+    for (SizeT i = 0; i < nya; ++i) ya[i] = (double)i;
+
+    // Setup interpolation arrays
+    gsl_interp_accel *accx = gsl_interp_accel_alloc();
+    gsl_interp_accel *accy = gsl_interp_accel_alloc();
+    gdl_interp2d* interpolant = gdl_interp2d_alloc(interp_type, nxa, nya);
+
+    // output locations tables:
+    double *xval = new double[chunksize];
+    double *yval = new double[chunksize];
+    if (grid)
+    {
+      for (SizeT i = 0, count = 0; i < nx; i++)
+      {
+        for (SizeT j = 0; j < ny; j++)
+        {
+          count = INDEX_2D(i, j, nx, ny);
+          xval[count] = (*x)[i];
+          yval[count] = (*y)[j];
+       }
+      }
+    }
+    else
+    {
+      for (SizeT count=0; count < chunksize; ++count)
+      {
+          xval[count]=(*x)[count];
+          yval[count]=(*y)[count];
+      }
+    }
+    //construct 2d intermediate array, subset of array with stride ninterp
+    double *temp = new double[nxa*nya];
+    // Interpolate iteratively ninterp times:
+    // loop could be multihreaded easily
+    for (SizeT iterate = 0; iterate < ninterp; ++iterate)
+    {
+     
+     for (SizeT k = 0; k < nxa*nya; ++k) temp[k]=(*array)[k*ninterp+iterate];
+      gdl_interp2d_init(interpolant, xa, ya, temp, nxa, nya, use_missing?missing_GIVEN:missing_NEAREST, missing, gamma);
+      for (SizeT i = 0; i < chunksize; ++i)
+      {
+        double x = xval[i];
+        double y = yval[i];
+        (*res)[i*ninterp+iterate] = gdl_interp2d_eval(interpolant, xa, ya, temp, x, y, accx, accy);
+      }
+    }
+
+    gsl_interp_accel_free(accx);
+    gsl_interp_accel_free(accy);
+    gdl_interp2d_free(interpolant);
+    return res;
+ }
+
+
+DDoubleGDL* interpolate_3dim(EnvT* e, const gdl_interp3d_type* interp_type, DDoubleGDL* array, DDoubleGDL* x, DDoubleGDL* y, DDoubleGDL* z, bool grid, bool use_missing, DDouble missing)
+{
+    SizeT nx = x->N_Elements();
+    SizeT ny = y->N_Elements();
+    SizeT nz = z->N_Elements();
+
+    if (nx == 1 && ny == 1 && nz == 1)  grid = false;
+
+    // Determine number and value of input points along x-axis and y-axis
+    SizeT rankLeft = array->Rank()-3;
+    if (rankLeft < 0) e->Throw("Number of parameters must agree with dimensions of argument.");
+
+    // If not GRID then check that rank and dims match
+    if  (!grid)
+    {
+      if (x->Rank() != y->Rank() || x->Rank() != z->Rank() )
+        e->Throw("Coordinate arrays must have same rank if Grid not set.");
+      else
+      {
+        for (SizeT i = 0; i < x->Rank(); ++i)
+        {
+          if (x->Dim(i) != y->Dim(i) || x->Dim(i) != z->Dim(i))
+            e->Throw("Coordinate arrays must have same shape if Grid not set.");
+        }
+      }
+    }
+
+    //initialize output array with correct dimensions
+    DLong dims[MAXRANK] = {0, 0, 0, 0, 0, 0, 0, 0};
+    SizeT resRank;
+    SizeT chunksize;
+    for (SizeT i = 0; i < rankLeft; ++i) dims[i] = array->Dim(i);
+    resRank = rankLeft;
+    if (grid)
+    {
+      dims[resRank++] = nx;
+      if (resRank>MAXRANK-2) e->Throw("Rank of resulting array is currently limited to 8.");
+      dims[resRank++] = ny;
+      dims[resRank++] = nz;
+      chunksize=nx*ny*nz;
+    }
+    else
+    {
+      for (SizeT i = 0; i < x->Rank(); ++i)
+      {
+        dims[resRank++] = x->Dim(i); if (resRank>MAXRANK) e->Throw("Rank of resulting array is currently limited to 8.");
+      }
+      chunksize=nx;
+    }
+    dimension dim((DLong *)dims, resRank);
+    DDoubleGDL *res;
+    res = new DDoubleGDL(dim, BaseGDL::NOZERO);
+
+    // Determine number of interpolations for remaining dimensions
+    SizeT ninterp = 1;
+    for (SizeT i = 0; i < rankLeft; ++i) ninterp *= array->Dim(i);
+
+    SizeT nxa = array->Dim(rankLeft);
+    double *xa = new double[nxa];
+    for (SizeT i = 0; i < nxa; ++i) xa[i] = (double)i;
+
+    SizeT nya = array->Dim(rankLeft+1);
+    double *ya = new double[nya];
+    for (SizeT i = 0; i < nya; ++i) ya[i] = (double)i;
+
+    SizeT nza = array->Dim(rankLeft+2);
+    double *za = new double[nza];
+    for (SizeT i = 0; i < nza; ++i) za[i] = (double)i;
+
+// test if interp_type kernel trace is statisfied by nxa,nya,nza:
+    if (nxa<gdl_interp3d_type_min_size(interp_type)||nya<gdl_interp3d_type_min_size(interp_type)||nza<gdl_interp3d_type_min_size(interp_type)) e->Throw("Array(s) dimensions too small for this interpolation type.");
+    // Setup interpolation arrays
+    gsl_interp_accel *accx = gsl_interp_accel_alloc();
+    gsl_interp_accel *accy = gsl_interp_accel_alloc();
+    gsl_interp_accel *accz = gsl_interp_accel_alloc();
+    gdl_interp3d* interpolant = gdl_interp3d_alloc(interp_type, nxa, nya, nza);
+
+    // output locations tables:
+    double *xval = new double[chunksize];
+    double *yval = new double[chunksize];
+    double *zval = new double[chunksize];
+    if (grid)
+    {
+      for (SizeT i = 0, count = 0; i < nx; ++i)
+      {
+        for (SizeT j = 0; j < ny; ++j)
+        {
+          for (SizeT k = 0; k < nz; ++k)
+          {
+            count = INDEX_3D(i, j, k, nx, ny, nz);
+            xval[count] = (*x)[i];
+            yval[count] = (*y)[j];
+            zval[count] = (*z)[k];
+          }
+        }
+      }
+    }
+    else
+    {
+      for (SizeT count = 0; count < chunksize; ++count)
+      {
+          xval[count]=(*x)[count];
+          yval[count]=(*y)[count];
+          zval[count]=(*z)[count];
+      }
+    }
+    //construct 3d intermediate array, subset of array with stride ninterp
+    double *temp = new double[nxa*nya*nza];
+
+    // Interpolate iteratively ninterp times:
+    // this outer loop could be multihreaded easily
+    for (SizeT iterate = 0; iterate < ninterp; ++iterate)
+    {
+      for (SizeT k = 0; k < nxa*nya*nza; ++k) temp[k]=(*array)[k*ninterp+iterate];
+      gdl_interp3d_init(interpolant, xa, ya, za, temp, nxa, nya, nza, use_missing?missing_GIVEN:missing_NEAREST, missing);
+      for (SizeT i = 0; i < chunksize; ++i)
+      {
+        double x = xval[i];
+        double y = yval[i];
+        double z = zval[i];
+        (*res)[i*ninterp+iterate] = gdl_interp3d_eval(interpolant, xa, ya, za, temp, x, y, z, accx, accy, accz);
+      }
+    }
+
+    gsl_interp_accel_free(accx);
+    gsl_interp_accel_free(accy);
+    gsl_interp_accel_free(accz);
+    gdl_interp3d_free(interpolant);
+    return res;
+ }
+
+
+BaseGDL* interpolate_fun(EnvT* e){
+  SizeT nParam = e->NParam();
+  // options
+  static int cubicIx = e->KeywordIx("CUBIC");
+  bool cubic = e->KeywordSet(cubicIx);
+  DDouble gamma=-1.0;
+  e->AssureDoubleScalarKWIfPresent(cubicIx, gamma);
+
+  static int nnborIx = e->KeywordIx("NEAREST_NEIGHBOUR"); //usage restricted to GDL, undocumented, normally for CONGRID.
+  bool nnbor = e->KeywordSet(nnborIx);
+  if (nnbor && cubic) nnbor=false;  //undocumented nearest neighbour give way wrt. other options.
+
+  static int gridIx = e->KeywordIx("GRID");
+  bool grid = e->KeywordSet(gridIx);
+
+  static int missingIx = e->KeywordIx("MISSING");
+  bool use_missing = e->KeywordSet(missingIx);
+  DDouble missing;
+  e->AssureDoubleScalarKWIfPresent(missingIx, missing);
+
+  DDoubleGDL* p0D;
+  DDoubleGDL* p1D;
+  DDoubleGDL* p2D;
+  DDoubleGDL* p3D;
+  auto_ptr<BaseGDL> guard0;
+  auto_ptr<BaseGDL> guard1;
+  auto_ptr<BaseGDL> guard2;
+  auto_ptr<BaseGDL> guard3;
+
+  if (nParam < 2) e->Throw("Incorrect number of arguments.");
+
+  // convert to internal double arrays
+  BaseGDL* p0 = e->GetParDefined(0);
+  if (p0->Rank() < nParam - 1)
+    e->Throw("Number of parameters must agree with dimensions of argument.");
+  if (p0->Type() == DOUBLE) p0D = static_cast<DDoubleGDL*>(p0);
+  else
+  {
+    p0D = static_cast<DDoubleGDL*>(p0->Convert2(DOUBLE, BaseGDL::COPY));
+    guard0.reset(p0D);
   }
+
+  BaseGDL* p1 = e->GetParDefined(1);
+  if (p1->Type() == DOUBLE) p1D = static_cast<DDoubleGDL*>(p1);
+  else
+  {
+    p1D = static_cast<DDoubleGDL*>(p1->Convert2(DOUBLE, BaseGDL::COPY));
+    guard1.reset(p1D);
+  }
+
+  BaseGDL* p2 = NULL;
+  if (nParam >= 3) {
+    p2 = e->GetParDefined(2);
+    if (p2->Type() == DOUBLE) p2D = static_cast<DDoubleGDL*>(p2);
+    else
+    {
+      p2D = static_cast<DDoubleGDL*>(p2->Convert2(DOUBLE, BaseGDL::COPY));
+      guard2.reset(p2D);
+    }
+  }
+
+  BaseGDL* p3 = NULL;
+  if (nParam >= 4) {
+    p3 = e->GetParDefined(3);
+    if (p3->Type() == DOUBLE) p3D = static_cast<DDoubleGDL*>(p3);
+    else
+    {
+      p3D = static_cast<DDoubleGDL*>(p3->Convert2(DOUBLE, BaseGDL::COPY));
+      guard3.reset(p3D);
+    }
+  }
+
+  // Determine dimensions of output
+  DDoubleGDL* res;
+  // 1D Interpolation
+  if (nParam == 2) {
+ //   res=interpolate_1dim(e,p0D,p1D,cubic,use_missing,missing);
+    if (nnbor)   res=interpolate_1dim(e,gdl_interp1d_nearest,p0D,p1D,use_missing,missing,NULL);
+    else if (cubic)   res=interpolate_1dim(e,gdl_interp1d_cubic,p0D,p1D,use_missing,missing,gamma);
+    else         res=interpolate_1dim(e,gdl_interp1d_linear,p0D,p1D,use_missing,missing,NULL);
+  }
+ 
+  if (nParam == 3) {
+    if (nnbor)        res=interpolate_2dim(e,gdl_interp2d_binearest,p0D,p1D,p2D,grid,use_missing,missing,NULL);
+    else if (cubic)   res=interpolate_2dim(e,gdl_interp2d_bicubic,p0D,p1D,p2D,grid,use_missing,missing,gamma);
+    else              res=interpolate_2dim(e,gdl_interp2d_bilinear,p0D,p1D,p2D,grid,use_missing,missing,NULL);
+  }
+  if (nParam == 4) {
+    res=interpolate_3dim(e,gdl_interp3d_trilinear,p0D,p1D,p2D,p3D,grid,use_missing,missing);
+  }
+
+  if (p0->Type() == DOUBLE)
+  {
+    return res;
+  }
+  else if (p0->Type() == FLOAT)
+  {
+    DFloatGDL* res1 = static_cast<DFloatGDL*>
+    (res->Convert2(FLOAT, BaseGDL::COPY));
+    delete res;
+    return res1;
+  }
+  else if (p0->Type() == INT)
+  {
+    DIntGDL* res1 = static_cast<DIntGDL*>
+    (res->Convert2(INT, BaseGDL::COPY));
+    delete res;
+    return res1;
+  }
+  else if (p0->Type() == UINT)
+  {
+    DUIntGDL* res1 = static_cast<DUIntGDL*>
+    (res->Convert2(UINT, BaseGDL::COPY));
+    delete res;
+    return res1;
+  }
+  else if (p0->Type() == LONG)
+  {
+    DLongGDL* res1 = static_cast<DLongGDL*>
+    (res->Convert2(LONG, BaseGDL::COPY));
+    delete res;
+    return res1;
+  }
+  else if (p0->Type() == ULONG)
+  {
+    DULongGDL* res1 = static_cast<DULongGDL*>
+    (res->Convert2(ULONG, BaseGDL::COPY));
+    delete res;
+    return res1;
+  }
+  else if (p0->Type() == LONG64)
+  {
+    DLong64GDL* res1 = static_cast<DLong64GDL*>
+    (res->Convert2(LONG64, BaseGDL::COPY));
+    delete res;
+    return res1;
+  }
+  else if (p0->Type() == ULONG64)
+  {
+    DULong64GDL* res1 = static_cast<DULong64GDL*>
+    (res->Convert2(ULONG64, BaseGDL::COPY));
+    delete res;
+    return res1;
+  }
+  else if (p0->Type() == BYTE)
+  {
+    DByteGDL* res1 = static_cast<DByteGDL*>
+    (res->Convert2(BYTE, BaseGDL::COPY));
+    delete res;
+    return res1;
+  }
+  else
+  {
+    return res;
+  }
+
+}
 
 
   void la_trired_pro( EnvT* e)
