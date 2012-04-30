@@ -14,7 +14,7 @@
 </p>
 
 <h2>GDL @ADASS XXI</h2>
-<p>2011-11-09: <a href="http://aramis.obspm.fr/~coulais/IDL_et_GDL/Adass2011/CoulaisADASS2011.pdf">GDL talk</a> at the <a href="http://www.eso.org/sci/meetings/2011/adass2011.html">ADASS XXI</a> in Paris</p>
+<p>2011-11-09: <a href="http://aramis.obspm.fr/~coulais/IDL_et_GDL/Adass2011/slides_ADASS2011_GDL_Coulais.pdf">GDL talk</a> and<a href="http://aramis.obspm.fr/~coulais/IDL_et_GDL/Adass2011/O11_ADASS2011_GDL_Coulais.pdf">GDL paper</a> at the <a href="http://www.eso.org/sci/meetings/2011/adass2011.html">ADASS XXI</a> in Paris</p>
 
 <h2>GDL @GHM2011</h2>
 <p>2011-08-27: <a href="http://www.igf.fuw.edu.pl/~slayoo/gdl-ghm2011paris.pdf">GDL talk</a> at the <a href="http://www.gnu.org/ghm/2011/paris/">GHM</a> in Paris</p>
