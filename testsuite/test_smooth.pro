@@ -1,8 +1,111 @@
 ;
-; ARSC 13/07/2006
-; some tests for SMOOTH
+; under GNU GPL v2 or later
+;
+; Important remark: this code is not ready for inclusion in Regression
+; Tests (make check) Help welcome.
+;
+; Alain Coulais
+; Initial version 13/07/2006, only some basic fonctional tests for SMOOTH
+;
+; Extended on 7 May 2012 for testing new algo and time
+;
+; Just testing if new algo for SMOOTH is well scaled
+; and errors did not diverge
+; 
+; A way to test the patch and also that a new algo
+; did not change the outputs values too much ...
+;
+; If a third algo will be provided, we have to  manage "/slow"
+; and put it as param ...
+;
+; -----------------------------------------------
+;
+pro Internal_Calcul, array, window, times, error, $
+                     test=test, verbose=verbose
+;
+times=FLTARR(2)
+;
+t0=SYSTIME(1)
+r1=SMOOTH(array,window,/slow)
+times[0]=SYSTIME(1)-t0
+
+t0=systime(1)
+r2=SMOOTH(array,window)
+times[1]=systime(1)-t0
+
+error=SQRT(TOTAL((r1-r2)^2))
+if KEYWORD_SET(verbose) then begin
+   print, 'kernel ', window, ': ', times, ', Error :', error
+endif
+;
+if KEYWORD_SET(test) then STOP
+;
+end
+;
+; -----------------------------------------------
+;
+pro TEST_TIME_SMOOTH, testcase, nbpX=nbpX, nbpY=nbpY, $
+                      test=test, help=help, verbose=verbose
+;
+if KEYWORD_SET(help) then begin
+   print, 'pro TEST_TIME_SMOOTH, testcase, nbpX=nbpX, nbpX=nbpX, $'
+   print, '                      test=test, help=help, verbose=verbose'
+   return
+endif
+;
+if N_PARAMS() EQ 0 then testcase=0
+;
+if ~KEYWORD_SET(nbpX) then nbpX=1024
+if ~KEYWORD_SET(nbpY) then nbpY=nbpX
+;
+max_testcase=4
+if testcase EQ 0 then test_array=DIST(nbpX)
+if testcase EQ 1 then test_array=RANDOMU(seed, nbpX, nbpY)
+if testcase EQ 2 then test_array=RANDOMU(seed, nbpX)
+if testcase EQ 3 then test_array=REPLICATE(1.,nbpX, nbpY)
+if testcase EQ 4 then test_array=REPLICATE(1.,nbpX)
+;
+if testcase LT 0 OR testcase GT max_testcase then MESSAGE, 'bad testcase ...'
+;
+kernels=[3,5,7,9,15,21,31,41,51]
+nb_kernels=N_ELEMENTS(kernels)
+alltimes=FLTARR(2,nb_kernels)
+allerrors=FLTARR(nb_kernels)
+;
+for ii=0, nb_kernels-1 do begin
+   Internal_Calcul, test_array, kernels[ii] , times, error, verbose=verbose
+   alltimes[*,ii]=times
+   allerrors[ii]=error
+endfor
+;
+WINDOW, 0
+PLOT, kernels, alltimes[0,*], psym=-2, linestyle=1, $
+      xtitle='kernel size', ytitle='time (s)'
+OPLOT, kernels, alltimes[1,*], psym=-4, linestyle=4
+; legend
+xpos=[0.05, 0.2, 0.25]*!x.crange[1]
+ypos=[0.9, 0.9]*!y.crange[1]
+OPLOT, xpos[0:1], ypos, psym=-2, linestyle=1
+XYOUTS, xpos[2], ypos, 'Old Slow Ref'
+ypos=[0.8, 0.8]*!y.crange[1]
+OPLOT, xpos[0:1], ypos, psym=-4, linestyle=4
+XYOUTS, xpos[2], ypos, 'New faster'
+;
+WINDOW, 1
+PLOT, kernels, allerrors, psym=-2, linestyle=2, $
+      xtitle='kernel size', ytitle='time (s)'
+;
+if KEYWORD_SET(test) then STOP
+;
+end
+;
+; -----------------------------------------------
 ;
 pro TEST_SMOOTH, nbp=nbp
+;
+print, 'No clear test defined now'
+print, 'Only Time Test between two versions ...'
+print, 'Help welcome !'
 ;
 if (N_ELEMENTS(nbp) EQ 0) then nbp=9
 ;
