@@ -15,6 +15,7 @@ if test "x$with_wxWidgets"   = "x"; then with_wxWidgets=yes;   fi
 if test "x$with_udunits"     = "x"; then with_udunits=no;      fi
 if test "x$with_grib"        = "x"; then with_grib=no;         fi
 if test "x$with_Magick"      = "x"; then with_Magick=yes;      fi
+if test "x$with_GraphicsMagick" = "x"; then with_GraphicsMagick=yes;      fi
 if test "x$with_netcdf"      = "x"; then with_netcdf=yes;      fi
 if test "x$with_hdf"         = "x"; then with_hdf=yes;         fi
 if test "x$with_hdf5"        = "x"; then with_hdf5=yes;        fi
@@ -434,6 +435,57 @@ if test "x$with_Magick" != "xno"; then
         echo ""
         echo "       (suitable Debian/Ubuntu package: libmagick++-dev)"
         echo "       (suitable Fedora package: ImageMagick-c++-devel)"
+        exit -1
+      ])
+    ]
+  )
+fi
+dnl == GraphicsMagick ======================================
+dnl ========================================================
+ 
+AC_ARG_WITH(GraphicsMagick,	
+	[  --with-GraphicsMagick[=DIR]  use GraphicsMagick package (with optional path DIR) ],
+	[with_GraphicsMagick="$withval" ])
+
+if test "x$with_GraphicsMagick" != "xno"; then
+  if test "x$with_GraphicsMagick" = "xyes"; then
+    AC_PATH_PROG(GraphicsMagickConfig, GraphicsMagick++-config, no)
+  else
+    AC_PATH_PROG(GraphicsMagickConfig, GraphicsMagick++-config, no, "$with_GraphicsMagick/bin")
+  fi
+
+  if test "x$GraphicsMagickConfig" = "xno"; then
+    AC_MSG_ERROR(GraphicsMagick is required but was not found (GraphicsMagick++-config program not found)
+      Use --with-GraphicsMagick=DIR to specify the GraphicsMagick directory tree
+      Use --with-GraphicsMagick=no  to not use it
+    
+      (suitable Debian/Ubuntu package: libmagick++-dev)
+      (suitable Fedora package: GraphicsMagick-c++-devel)
+    )
+  else
+    LIBS="$LIBS `$GraphicsMagickConfig --libs`"
+    INCLUDES="$INCLUDES `$GraphicsMagickConfig --cppflags`"
+    LDFLAGS="$LDFLAGS `$GraphicsMagickConfig --ldflags`"
+  fi
+
+  AC_CHECK_LIB(
+    GraphicsMagick++, 
+    GetMagickVersion, 
+    [AC_DEFINE([USE_MAGICK], [1], [Define if you want to use GraphicsMagick])], [
+      AC_MSG_CHECKING(if adding X library path helps)
+      AC_MSG_RESULT(?)
+      AC_PATH_X
+      LDFLAGS="$LDFLAGS -L$x_libraries"
+      AC_CHECK_LIB(GraphicsMagick++, GetMagickReleaseDate, AC_DEFINE([USE_MAGICK], [1]), [
+        echo ""
+        echo "Error! GraphicsMagick version 1.3 or later is required but was not found"
+        echo "       Use --with-GraphicsMagick=DIR to specify the GraphicsMagick directory tree"
+        echo "       Use --with-GraphicsMagick=no  to not use it"
+        echo "       Check the README or use configure --help for other libraries needed"
+        echo "       (--with-xxxdir = mandatory, --with-xxx = optional (--with-xxx=no to disable))"
+        echo ""
+        echo "       (suitable Debian/Ubuntu package: libgraphicsmagick++-dev)"
+        echo "       (suitable Fedora package: graphicsMagick-c++-devel)"
         exit -1
       ])
     ]
@@ -1142,6 +1194,8 @@ echo "
   wxWidgets:           `if test no = $with_wxWidgets;
     then echo 'no'; else echo yes; fi`
   Magick:              `if test no = $with_Magick;
+    then echo 'no'; else echo yes; fi`
+  GraphicsMagick:      `if test no = $with_GraphicsMagick;
     then echo 'no'; else echo yes; fi`
   NetCDF:              `if test no = $with_netcdf;
     then echo 'no'; else echo yes; fi`
