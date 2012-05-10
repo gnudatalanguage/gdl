@@ -15,7 +15,7 @@ if test "x$with_wxWidgets"   = "x"; then with_wxWidgets=yes;   fi
 if test "x$with_udunits"     = "x"; then with_udunits=no;      fi
 if test "x$with_grib"        = "x"; then with_grib=no;         fi
 if test "x$with_Magick"      = "x"; then with_Magick=yes;      fi
-if test "x$with_GraphicsMagick" = "x"; then with_GraphicsMagick=yes;      fi
+if test "x$with_GraphicsMagick" = "x"; then with_GraphicsMagick=no;      fi
 if test "x$with_netcdf"      = "x"; then with_netcdf=yes;      fi
 if test "x$with_hdf"         = "x"; then with_hdf=yes;         fi
 if test "x$with_hdf5"        = "x"; then with_hdf5=yes;        fi
