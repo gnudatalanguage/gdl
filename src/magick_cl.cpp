@@ -168,7 +168,9 @@ namespace lib {
       Image a;
       try 
       {
-        a.ping(filename);
+	a.ping(filename);
+        // we must used read method to have realiable infos after ...
+	// a.read(filename);
       }
       catch (WarningCoder &warning_ )
       {
@@ -186,6 +188,19 @@ namespace lib {
       DLong channels, num_images, image_index;
       DString type;
      
+      // a.type() is reliable if and only if a.read() was done before !!! 
+      //http://www.graphicsmagick.org/Magick++/Image.html#type
+
+      int debug=0;
+      if (debug == 1) {
+	cout << "a.type()      :" << a.type() << endl;
+	//	cout << "a.ImageType()      :" << a.imageType() << endl;
+	cout << "a.classType() :" << a.classType() << endl;
+	// Always 8:cout << "a.depth()     :" << a.depth() << endl;
+	cout << "a.matte()     :" << a.matte() << endl;
+	// Always 1: cout << "a.colorSpace() :" << a.colorSpace() << endl;
+      }
+      
       // relevant information that, in some cases, is provided after pinging:
       // a.type(), a.matte(), a.classType(), a.colorSpace()
       channels = a.classType() == PseudoClass 
@@ -195,6 +210,8 @@ namespace lib {
           : a.type() == ColorSeparationType 
             ? 4  // CMYK
             : 3; // RGB
+
+      // AC 2012-May-10 this is wrong, see exemple "589 Lavandula mono"
       if (a.matte()) channels += 1;
 
       // TODO! multiple images (using the Magick++ STL interface)
@@ -203,6 +220,8 @@ namespace lib {
 
       pixel_type = a.depth() == 16 ? 2 : 1;
 
+      // AC 2012-May-10 this is wrong, only if type == 4 OR 5
+      // cannot be read reliably with only a ping
       has_palette = a.classType() == PseudoClass ? 1 : 0;
 
       // TODO: 
