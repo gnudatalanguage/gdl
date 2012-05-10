@@ -169,8 +169,7 @@ namespace lib {
       try 
       {
 	a.ping(filename);
-        // we must used read method to have realiable infos after ...
-	// a.read(filename);
+	//a.read(filename);
       }
       catch (WarningCoder &warning_ )
       {
@@ -184,25 +183,30 @@ namespace lib {
         if (a.magick() != magick) return new DLongGDL(0); 
       }
   
-      DInt has_palette, pixel_type;
-      DLong channels, num_images, image_index;
-      DString type;
-     
-      // a.type() is reliable if and only if a.read() was done before !!! 
-      //http://www.graphicsmagick.org/Magick++/Image.html#type
-
       int debug=0;
       if (debug == 1) {
 	cout << "a.type()      :" << a.type() << endl;
-	//	cout << "a.ImageType()      :" << a.imageType() << endl;
 	cout << "a.classType() :" << a.classType() << endl;
-	// Always 8:cout << "a.depth()     :" << a.depth() << endl;
 	cout << "a.matte()     :" << a.matte() << endl;
+	// no useful info here:cout << "a.colorSpace()     :" << a.colorSpace() << endl;
+	// Always 8:cout << "a.depth()     :" << a.depth() << endl;
 	// Always 1: cout << "a.colorSpace() :" << a.colorSpace() << endl;
       }
       
+      // AC 2012-May-10
+      // http://www.graphicsmagick.org/Magick++/Image.html#type
       // relevant information that, in some cases, is provided after pinging:
-      // a.type(), a.matte(), a.classType(), a.colorSpace()
+      // a.matte(), a.classType() [and a.type() for Palette info only]
+      DLong channels=0;
+      if (a.classType() == 1) channels=3; // DirectColor
+      if (a.classType() == 2) channels=1; // PseudoColor
+      if (channels ==0) cout << "no ClassType found for current Image" << endl;
+
+      // AC 2012-May-10 this is NOT working with only a a.ping()
+      // a.type() is FULLY reliable if and only if a.read() was done before !!! 
+      //http://www.graphicsmagick.org/Magick++/Image.html#type
+      // (should be OK with a a.read())
+      /*
       channels = a.classType() == PseudoClass 
         ? 1      // color palette
         : a.type() == GrayscaleType 
@@ -210,25 +214,33 @@ namespace lib {
           : a.type() == ColorSeparationType 
             ? 4  // CMYK
             : 3; // RGB
+      */
 
-      // AC 2012-May-10 this is wrong, see exemple "589 Lavandula mono"
+      // AC 2012-May-10 this is OK (reliable), see exemple "589 Lavandula mono"
       if (a.matte()) channels += 1;
 
       // TODO! multiple images (using the Magick++ STL interface)
+      DLong image_index, num_images;
       image_index = 0; 
       num_images = 1;
 
+      DInt pixel_type;
       pixel_type = a.depth() == 16 ? 2 : 1;
 
-      // AC 2012-May-10 this is wrong, only if type == 4 OR 5
-      // cannot be read reliably with only a ping
-      has_palette = a.classType() == PseudoClass ? 1 : 0;
+      // AC 2012-May-10 Palette only if type == 4 OR 5
+      // Despite Type is NOT useful without a a.read(), it is OK for Palette !
+      // This should be reliable (OK with ImageMagick AND GraphicsMagick)
+      DInt has_palette=0;
+      if (a.type() == 4 | a.type() == 5) has_palette=1;
 
       // TODO: 
-      // - JP2->JPEG2000 ?
+      // - JP2->JPEG2000 ?      
+      DString type;
       type = a.magick() == "PNM" ? "PPM" : 
              a.magick() == "DCM" ? "DICOM" :
              a.magick();
+
+      if (debug ==1) cout << "Type (via a.magick()) : " << type <<endl;
 
       static int infoIx = e->KeywordIx("INFO");
       if (e->KeywordPresent(infoIx))
