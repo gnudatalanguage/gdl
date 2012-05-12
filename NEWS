@@ -550,5 +550,5 @@
            - Initial import for QROMB() and QSIMP() (based on QROMB) and QROMO() [not finished]
            - Initial import for TRISOL()
 	   - fix in ERASE for background color (preparing Coyote lib. support)
-
-
+	   - Initial import of STANDARDIZE and HIST_EQUAL
+	   - improvment in MAGICK related codes, especially MAGICK_PING (pb with ImageMagick (IM) in Ubuntu 12.04; GraphicsMagick can also be used instead of IM)
