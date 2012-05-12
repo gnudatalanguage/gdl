@@ -105,6 +105,7 @@ TESTS = \
   test_spawn_unit.pro \
   test_spher_harm.pro \
   test_spl_init.pro \
+  test_standardize.pro \
   test_step.pro \
   test_str_functions.pro \
   test_str_sep.pro \
