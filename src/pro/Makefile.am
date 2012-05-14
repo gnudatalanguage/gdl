@@ -27,6 +27,7 @@ prolib_DATA = \
   get_login_info.pro \
   helpform.pro \
   hist_2d.pro \
+  hist_equal.pro \
   hist_nd.pro \
   identity.pro \
   idl_validname.pro \
@@ -87,6 +88,7 @@ prolib_DATA = \
   smooth.pro \
   spl_init_old.pro \
   spl_interp_old.pro \
+  standardize.pro \
   stddev.pro \
   str_sep.pro \
   strmatch.pro \

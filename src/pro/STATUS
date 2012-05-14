@@ -124,7 +124,7 @@ Codes:
 !h_eq_int.pro
 !hilbert.pro
 =hist_2d.pro
-!hist_equal.pro
+~hist_equal.pro
  hls.pro
  hsv.pro
 !ibeta.pro
@@ -226,8 +226,8 @@ Codes:
 ~read_binary.pro              ; TEMPLATE keyword missing
 =read_bmp.pro
 =read_dicom.pro
- read_gif.pro
- read_image.pro
+~read_gif.pro
+~read_image.pro
  read_interfile.pro
 =read_pict.pro
  read_ppm.pro
@@ -271,7 +271,7 @@ Codes:
  sph_scat.pro
 !spline_p.pro
 !spline.pro
-!standardize.pro
+~standardize.pro
 =stddev.pro
  streamline.pro
  stretch.pro
@@ -313,8 +313,8 @@ Codes:
  warp_tri.pro
  wf_draw.pro
 =write_bmp.pro
- write_gif.pro
- write_image.pro
+~write_gif.pro
+~write_image.pro
  write_nrif.pro
 =write_pict.pro
  write_ppm.pro
