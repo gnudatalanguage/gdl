@@ -12,6 +12,9 @@
 ; an alternative via GDL Bug Traker on SourceForge.
 ; You can see the cammands used by running /verbose
 ;
+; by default, we exit at first pb, maybe to be less strict later
+; --but no problem today with /compress files ...--
+;
 pro CATCH_EXIT, nb_problems, no_exit=no_exit
 ;
 if KEYWORD_SET(no_exit) then begin
