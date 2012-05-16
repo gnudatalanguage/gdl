@@ -37,6 +37,8 @@
 ; MODIFICATION HISTORY:
 ; 15-Apr-2012: Written by Josh Sixsmith
 ; 13-May-2012: Alain: Correcting a sigm pb; Preparing for putting in GDL CVS ...
+; 15-May-2012: Josh: Form now properly reflects (x - mu)/sigma. 
+;                    Corrects the sign error as noted by Alain.
 ;
 ; LICENCE:
 ; Copyright (C) 2012, Josh Sixsmith
@@ -66,11 +68,11 @@ result = dbl ? dblarr(dims) : fltarr(dims)
 ;                             
 ; Uses the form for population (x - mu)/sigma
 ; Unsure whether the form should be for a sample:
-; (xbar - mu)/(sigma/sqrt(n))
+; (x - xbar)/(sigma/sqrt(n))
 ;
 for i=0, dims[0]-1 do begin
    mom = MOMENT(array[i,*], sdev=stdv, Double = dbl)
-   result[i,*] = -(mom[0] - array[i,*])/stdv
+   result[i,*] = (array[i,*] - mom[0])/stdv
 endfor
 ;
 if KEYWORD_SET(test) then STOP
