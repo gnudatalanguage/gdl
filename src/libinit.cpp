@@ -320,7 +320,7 @@ void LibInit()
   new DLibPro(lib::writeu,string("WRITEU"),-1,writeuKey);
   new DLibPro(lib::readu,string("READU"),-1,writeuKey);
 
-  const string resolve_routineWarnKey[]={"EITHER","IS_FUNCTION","NO_RECOMPILE",KLISTEND};
+  const string resolve_routineWarnKey[]={"EITHER","IS_FUNCTION","NO_RECOMPILE","COMPILE_FULL_FILE",KLISTEND};
   const string resolve_routineKey[]={KLISTEND};
   new DLibPro(lib::resolve_routine,string("RESOLVE_ROUTINE"),1,
 	      NULL, resolve_routineWarnKey);
