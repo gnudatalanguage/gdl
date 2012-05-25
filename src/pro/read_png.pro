@@ -1,36 +1,15 @@
-;$Id: read_png.pro,v 1.8 2012-02-15 15:09:52 alaingdl Exp $
-;
-pro READ_PNG, filename, image, red, green, blue, $
-              order=order, verbose=verbose, transparent=transparent, $
-              help=help, test=test
-;
-ON_ERROR, 2
-;
-image=READ_PNG(filename, red, green, blue, $
-              order=order, verbose=verbose, transparent=transparent, $
-              help=help, test=test)
-;
-end
-;
-; ---------------------------------
-;
-function READ_PNG, filename, red, green, blue, $
-                   order=order, verbose=verbose, transparent=transparent, $
-                   help=help, test=test
-;
-ON_ERROR, 2
 ;+
 ;
 ; NAME: READ_PNG
 ;
-;
-; PURPOSE: Reads a PNG file into memory
+; PURPOSE: Reads a PNG file into memory (Function OR Procedure)
 ;
 ; CATEGORY: Images (IO)
 ;
+; CALLING SEQUENCE: 2 ways: Pro or Func
 ;
-; CALLING SEQUENCE: image=READ_PNG(filename,r,g,b)
-;
+;   Function:  image=READ_PNG(filename,r,g,b)
+;   Procedure: READ_PNG, filename, image, r,g,b
 ;
 ; KEYWORD PARAMETERS: 
 ;        ORDER: flip the image in the vertical 
@@ -39,8 +18,6 @@ ON_ERROR, 2
 ;
 ; OUTPUTS: For true color images, data is a three dimensional array
 ; with interleaving set by TRUE keyword
-;
-;
 ;
 ; OPTIONAL OUTPUTS: For pseudocolor only
 ;        red  : the Red colormap vector (for PseudoColor images)
@@ -54,8 +31,7 @@ ON_ERROR, 2
 ;         Use ImageMagick to read the data as requested
 ;
 ; EXAMPLE:
-;         
-;
+;         See "test_read_standard_images.pro" in testsuite/
 ;
 ; MODIFICATION HISTORY:
 ;  Written by: Christopher Lee 2004-05-23
@@ -72,6 +48,9 @@ ON_ERROR, 2
 ;   test_read_standard_images.pro : 2 JPEG and 4 PNG (2 with transparency)
 ;   The transpose for 2D image is no more need.
 ;
+;  2012-May-25, Alain Coulais : fake INTERNAL_READ_PNG to have both
+;   pro/func working transparently without pre-compilation
+;
 ;-
 ; LICENCE:
 ; Copyright (C) 2004, 2011, 2012
@@ -82,13 +61,10 @@ ON_ERROR, 2
 ;
 ;-
 ;
-if KEYWORD_SET(help) then begin
-    print, 'function READ_PNG, filename, red, green, blue, $'
-    print, '                   order=order, verbose=verbose, transparent=transparent, $'
-    print, '                   help=help, test=test'
-    return, -1
-endif
-;
+function INTERNAL_READ_PNG, filename, red, green, blue, $
+                            order=order, transparent=transparent, $
+                            test=test, verbose=verbose
+
 ; Do we have access to ImageMagick functionnalities ??
 ;
 if (MAGICK_EXISTS() EQ 0) then begin
@@ -138,4 +114,47 @@ if KEYWORD_SET(test) then STOP
 return, image
 ;
 end
-
+;
+; ----------------------------- Procedure ------------------------
+;
+pro READ_PNG, filename, image, red, green, blue, $
+              order=order, transparent=transparent, $
+              help=help, test=test, verbose=verbose
+;
+ON_ERROR, 2
+;
+if KEYWORD_SET(help) then begin
+   print, 'pro READ_PNG, filename, red, green, blue, $'
+   print, '              order=order, transparent=transparent, $'
+   print, '              help=help, test=test, verbose=verbose'
+   return
+endif
+;
+image=INTERNAL_READ_PNG(filename, red, green, blue, $
+                        order=order, transparent=transparent, $
+                        test=test, verbose=verbose)
+;
+end
+;
+; ----------------------------- Function ------------------------
+;
+function READ_PNG, filename, red, green, blue, $
+                   order=order, transparent=transparent, $
+                   help=help, test=test, verbose=verbose
+;
+ON_ERROR, 2
+;
+if KEYWORD_SET(help) then begin
+   print, 'function READ_PNG, filename, red, green, blue, $'
+   print, '                   order=order, transparent=transparent, $'
+   print, '                   help=help, test=test, verbose=verbose'
+   return, -1
+endif
+;
+image=INTERNAL_READ_PNG(filename, red, green, blue, $
+                        order=order, transparent=transparent, $
+                        test=test, verbose=verbose)
+;
+return, image
+;
+end
