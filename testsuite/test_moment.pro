@@ -27,6 +27,30 @@ resu2=MOMENT(a)
 e2=ERREUR(expected_resu2, resu2)
 if (e2 GT 1e-5) then nb_pb=nb_pb+1
 ;
+; -----
+;
+a=FINDGEN(3, 2, 3)^2
+expected_resu3=[[[60.0000, 73.0000, 88.0000], [105.000, 124.000, 145.000]], [[5616.00, 7488.00, 9648.00], [12096.0, 14832.0, 17856.0]], [[0.287409, 0.256015, 0.229751], [0.207827, 0.189413, 0.173812]], [[-2.33333, -2.33333, -2.33333], [-2.33333, -2.33333, -2.33333]]]
+resu3=MOMENT(a, DIMENSION=3)
+e3=ERREUR(expected_resu3, resu3)
+if (e3 GT 1e-5) then nb_pb=nb_pb+1
+;
+; -----
+;
+a=[1,4,5,!VALUES.F_NAN]
+expected_resu4=[3.33333, 4.33333, -0.28741, -2.33333]
+resu4=MOMENT(a, /NAN)
+e4=ERREUR(expected_resu4, resu4)
+if (e4 GT 1e-5) then nb_pb=nb_pb+1
+;
+; -----
+;
+a=[[1,4,5,!VALUES.F_NAN],[6,8,!VALUES.F_NAN, 9]]
+expected_resu5=[[3.33333,7.66667],[4.33333,2.33333],[-0.28741,-0.20783],[-2.33333,-2.33333]]
+resu5=MOMENT(a, DIMENSION=1, /NAN)
+e5=ERREUR(expected_resu5, resu5)
+if (e5 GT 1e-5) then nb_pb=nb_pb+1
+;
 if KEYWORD_SET(test) then STOP
 ;
 if (nb_pb EQ 0) then begin 

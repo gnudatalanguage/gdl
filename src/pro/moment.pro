@@ -1,6 +1,8 @@
 function MOMENT, x, mdev=mdev, sdev=sdev, $
                  double=double, NaN=NaN, $
-                 maxmoment=maxmoment
+                 maxmoment=maxmoment, dimension=dimension, $
+                 kurtosis=kurtosis, mean=mean, $
+                 skewness=skewness, variance=variance
 ;+
 ;
 ;
@@ -85,43 +87,73 @@ function MOMENT, x, mdev=mdev, sdev=sdev, $
 ;
 ;
 ;-
-
-on_error, 2
+ON_ERROR, 2
 ;
-if (N_ELEMENTS(x) LE 1) then begin
+IF (N_ELEMENTS(x) LE 1) THEN BEGIN
    MESSAGE, 'Input Array must contain 2 OR more elements.'
-endif
+ENDIF
 ;
 ; we don't reuse code in mean.pro, because we need variable n.
-if KEYWORD_SET(NaN) then begin
-   n = TOTAL(FINITE(x), double=double)
-endif else begin
-   n = N_ELEMENTS(x)
-endelse
+;
+IF KEYWORD_SET(dimension) THEN BEGIN 
+   dim = SIZE(x, /DIMENSION)
+   IF KEYWORD_SET(NaN) THEN BEGIN   
+      n = TOTAL(FINITE(x), dimension)
+   ENDIF ELSE BEGIN
+      n = dim(dimension-1)
+   ENDELSE
+ENDIF ELSE BEGIN
+   IF KEYWORD_SET(NaN) THEN BEGIN
+      n = TOTAL(FINITE(x), DOUBLE=double)
+   ENDIF ELSE BEGIN
+      n = N_ELEMENTS(x)
+   ENDELSE
+ENDELSE
 ;
 ; if input is : print, MOMENT([1,!values.f_nan],/na)
 ;
-if (n LE 1) then begin
+IF (TOTAL(n) LE 1) THEN BEGIN
    MESSAGE, 'Input Array must contain 2 OR more elements.'
-endif
+ENDIF
 ; 
+IF ~KEYWORD_SET(maxmoment) THEN maxmoment = 4
+IF ~KEYWORD_SET(dimension) THEN dimension = 0
+;
+IF dimension EQ 0 THEN BEGIN
+;
 ; get the mean value in the required type (FLOAT or DOUBLE)
 ; subsequent operations will rely on GDL automatic type conversion
+   mean = TOTAL(x, DOUBLE=double, NaN=NaN)/n
+   x0   = x-mean
 ;
-mean = TOTAL(x, double=double, NaN=NaN)/n
-x0   = x-mean
+   variance = maxmoment GE 2 ? TOTAL(x0^2, NaN=NaN)/(n-1)        : !VALUES.F_NAN
+   sdev     = maxmoment GE 2 ? SQRT(variance)                    : !VALUES.F_NAN 
+   skewness = maxmoment GE 3 ? TOTAL(x0^3, NaN=NaN)/sdev^3/n     : !VALUES.F_NAN
+   kurtosis = maxmoment GE 4 ? (TOTAL(x0^4, NaN=NaN)/sdev^4)/n-3 : !VALUES.F_NAN
+   result = [mean, variance, skewness, kurtosis]
+ENDIF ELSE BEGIN
+   IF dimension GT SIZE(x, /N_DIMENSION) || dimension LT 0 THEN BEGIN
+      MESSAGE, "Illegal keyword value for DIMENSION."
+   ENDIF ELSE BEGIN
+      mean = TOTAL(x, dimension, DOUBLE=double, NaN=NaN)/n
+      dim2 = dim
+      dim2(dimension-1) = 1
+      IF KEYWORD_SET(double) THEN nan1 = DBLARR(SIZE(mean, /DIMENSION)) 
+      IF ~KEYWORD_SET(double) THEN nan1=fltarr(size(mean, /DIMENSION))
+      nan1(*) = !VALUES.F_NAN
+      x0 = (x-REBIN(REFORM(mean, dim2), dim))
+      variance = maxmoment GE 2 ? TOTAL((x0)^2, dimension, NaN=NaN)/(n-1)        : nan1
+      sdev     = maxmoment GE 2 ? SQRT(variance)                                 : nan1
+      skewness = maxmoment GE 3 ? TOTAL((x0)^3, dimension, NaN=NaN)/(n*sdev^3)   : nan1
+      kurtosis = maxmoment GE 4 ? TOTAL((x0)^4, dimension, NaN=NaN)/(n*sdev^4)-3 : nan1
+      result = [[[mean]], [[variance]], [[skewness]], [[kurtosis]]]
+   ENDELSE
+ENDELSE
 ;
-if ~KEYWORD_SET(maxmoment) then maxmoment = 4
+IF ARG_PRESENT(mdev) THEN BEGIN
+   mdev = maxmoment GE 2 ? TOTAL(ABS(x0), dimension, NaN=NaN)/n : !VALUES.F_NAN
+ENDIF
 ;
-variance = maxmoment ge 2 ? TOTAL(x0^2, NaN=NaN)/(n-1)        : !VALUES.F_NAN
-sdev     = maxmoment ge 2 ? SQRT(variance)                    : !VALUES.F_NAN 
-skewness = maxmoment ge 3 ? TOTAL(x0^3, NaN=NaN)/sdev^3/n     : !VALUES.F_NAN
-kurtosis = maxmoment ge 4 ? (TOTAL(x0^4, NaN=NaN)/sdev^4)/n-3 : !VALUES.F_NAN
-
-if ARG_PRESENT(mdev) then begin
-   mdev = maxmoment ge 2 ? TOTAL(abs(x0), NaN=NaN)/n          : !VALUES.F_NAN
-endif
-;
-return, [mean, variance, skewness, kurtosis]
+RETURN, result
 ; 
-end
+END
