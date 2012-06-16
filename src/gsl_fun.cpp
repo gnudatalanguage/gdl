@@ -2694,9 +2694,6 @@ res_guard.reset (dres);
     BaseGDL* p0 = e->GetNumericArrayParDefined(0);
     DDoubleGDL* coef = e->GetParAs<DDoubleGDL>(0);
     
-    SizeT resultSize = coef->N_Elements()-1;
-    
- 
     // GSL function
     
     if (ComplexType(p0->Type()))
@@ -2708,13 +2705,12 @@ res_guard.reset (dres);
       {
 	e->Throw("Degree of the polynomial must be strictly greather than zero");
       }
-
+    
     for (int i = 0; i <coef->N_Elements();i++)
-      {if (isnan((*coef)[i]) != 0 || isnanf((*coef)[i]) != 0 || isnanl((*coef)[i]) != 0 || abs(isinf((*coef)[i])) == 1 ||
-	   abs(isinff((*coef)[i])) == 1 || abs(isinfl((*coef)[i])) == 1)
-	  {e->Throw("Not a number and infinity are not supported");}
-      }  
-	
+      {
+	if (!isfinite((*coef)[i])) e->Throw("Not a number and infinity are not supported");
+      }
+    
     gsl_poly_complex_workspace* w = gsl_poly_complex_workspace_alloc (coef->N_Elements()); 
     
     SizeT resultSize = coef->N_Elements()-1;
