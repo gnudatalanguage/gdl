@@ -1186,7 +1186,7 @@ namespace lib {
     }
 
     int debug=0;
-    cout << "min/max : " << minVal << " " << maxVal << endl;
+    if (debug) cout << "min/max : " << minVal << " " << maxVal << endl;
 
     // min
     if (minKW == NULL) 
@@ -2529,6 +2529,7 @@ res_guard.reset (dres);
     DString fun;
     e->AssureScalarPar<DStringGDL>(0, fun);
     fun = StrUpCase(fun);
+    //cout<<fun<<endl;
     if (LibFunIx(fun) != -1)
       e->Throw("only user-defined functions allowed (library-routine name given)");
 
@@ -2619,7 +2620,64 @@ res_guard.reset (dres);
       }
   }
 
+//FZ_ROOT:compute polynomial roots
 
+  BaseGDL* fz_roots_fun(EnvT* e)
+  {
+
+    static int doubleIx = e->KeywordIx("DOUBLE");
+   
+    // Ascending coefficient array
+    BaseGDL* p0 = e->GetNumericArrayParDefined(0);
+    DDoubleGDL* coef = e->GetParAs<DDoubleGDL>(0);
+    
+    SizeT resultSize = coef->N_Elements()-1;
+    
+ 
+    // GSL function
+    
+    if (ComplexType(p0->Type()))
+      {
+	e->Throw("Polynomials with complex coefficients not supported yet (FIXME!)");
+      }
+    
+    if (coef->N_Elements() < 2)
+      {
+	e->Throw("Degree of the polynomial must be strictly greather than zero");
+      }
+
+    for (int i = 0; i <coef->N_Elements();i++)
+      {if (isnan((*coef)[i]) != 0 || isnanf((*coef)[i]) != 0 || isnanl((*coef)[i]) != 0 || abs(isinf((*coef)[i])) == 1 ||
+	   abs(isinff((*coef)[i])) == 1 || abs(isinfl((*coef)[i])) == 1)
+	  {e->Throw("Not a number and infinity are not supported");}
+      }  
+	
+    gsl_poly_complex_workspace* w = gsl_poly_complex_workspace_alloc (coef->N_Elements()); 
+    
+    SizeT resultSize = coef->N_Elements()-1;
+    vector<double> tmp(2 * resultSize);
+	
+    gsl_poly_complex_solve (&(*coef)[0],coef->N_Elements(),w, &(tmp[0]));
+    
+    gsl_poly_complex_workspace_free (w);
+    
+    for (int i = 0; i < resultSize; i++)
+      {
+	printf ("z%d = %+.18f %+.18f\n", 
+		i, tmp[2*i], tmp[2*i+1]);
+      }
+    DComplexDblGDL* result = new DComplexDblGDL(dimension(resultSize), BaseGDL::NOZERO);
+    for (SizeT i = 0; i < resultSize; ++i) 
+      {
+	(*result)[i] = complex<double>(tmp[2 * i], tmp[2 * i + 1]);
+      }
+      
+    return result->Convert2(
+			    e->KeywordSet(doubleIx) || p0->Type() == DOUBLE
+			    ? COMPLEXDBL 
+			    : COMPLEX, 
+			    BaseGDL::CONVERT);
+  }
 
   /*
    * SA: TODO:
@@ -3091,7 +3149,7 @@ res_guard.reset (dres);
     for (SizeT i = 0; i < resultSize; ++i) 
       (*result)[i] = complex<double>(tmp[2 * i], tmp[2 * i + 1]);
     
-    return result->Convert2(
+   return result->Convert2(
       e->KeywordSet(doubleIx) || p0->Type() == DOUBLE
         ? COMPLEXDBL 
         : COMPLEX, 

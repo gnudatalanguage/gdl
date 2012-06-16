@@ -63,6 +63,10 @@ void LibInit_ac()
   const string qromoKey[]={"DOUBLE","EPS","JMAX","K","MIDEXP",
 			   "MIDINF","MIDPNT","MIDSQL","MIDSQU",KLISTEND};
   new DLibFun(lib::qromo_fun,string("QROMO"),3,qromoKey);
+  const string fz_rootsKey[]={"DOUBLE","EPS","NO_POLISH",KLISTEND};
+  new DLibFun(lib::fz_roots_fun,string("FZ_ROOTS"),3,fz_rootsKey);
+  
+
 
 #endif
   

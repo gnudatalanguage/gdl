@@ -552,3 +552,4 @@
 	   - fix in ERASE for background color (preparing Coyote lib. support)
 	   - Initial import of STANDARDIZE and HIST_EQUAL
 	   - improvment in MAGICK related codes, especially MAGICK_PING (pb with ImageMagick (IM) in Ubuntu 12.04; GraphicsMagick can also be used instead of IM)
+	   - FZ_ROOTS: initial import (same way than IMSL_ZEROPOLY using gsl_poly_complex_solve(), only real coefs. for input poly)
