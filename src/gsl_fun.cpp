@@ -2506,6 +2506,7 @@ res_guard.reset (dres);
       }
   }
 
+
   // AC: the library routine is registered in libinit_ac.cpp
   BaseGDL* qromo_fun(EnvT* e)
   {
@@ -2513,25 +2514,53 @@ res_guard.reset (dres);
 
     // sanity check (for number of parameters)
     SizeT nParam = e->NParam();
+    if(e->KeywordSet("MIDEXP"))
+      {
+	if (nParam < 2) e->Throw("Incorrect number of arguments.");
+	if (nParam > 2) e->Throw("Too many arguments.");
+      }
+    else
+      {
+	if (nParam < 3) e->Throw("Incorrect number of arguments.");
+      }
 
     // 2-nd argument : initial bound
-    BaseGDL* p1 = e->GetParDefined(1);
-    BaseGDL* par1 = p1->Convert2(DOUBLE, BaseGDL::COPY);
+    BaseGDL* p1 = NULL;
+    BaseGDL* par1 = NULL;
+    p1 = e->GetParDefined(1);
+    par1 = p1->Convert2(DOUBLE, BaseGDL::COPY);
     auto_ptr<BaseGDL> par1_guard(par1);
 
-    //   if (!e->KeywordSet("MIDEXP")) {
-    // 3-th argument : final bound
-    BaseGDL* p2 = e->GetParDefined(2);
-    BaseGDL* par2 = p2->Convert2(DOUBLE, BaseGDL::COPY);
-    auto_ptr<BaseGDL> par2_guard(par2);
-    
+    BaseGDL* p2 = NULL;
+    BaseGDL* par2 = NULL;
+    if (!e->KeywordSet("MIDEXP"))
+     {
+	// 3-th argument : final bound
+	p2 = e->GetParDefined(2);
+	par2 = p2->Convert2(DOUBLE, BaseGDL::COPY);
+	auto_ptr<BaseGDL> par2_guard(par2);
+     }
+
     // 1-st argument : name of user function defining the system
     DString fun;
     e->AssureScalarPar<DStringGDL>(0, fun);
     fun = StrUpCase(fun);
-    //cout<<fun<<endl;
     if (LibFunIx(fun) != -1)
       e->Throw("only user-defined functions allowed (library-routine name given)");
+
+    gsl_error_handler_t* old_handler = gsl_set_error_handler(&n_b_gslerrhandler);
+    n_b_gslerrhandler(e->GetProName().c_str(), NULL, -1, -1);
+
+    // Check for impossible case
+    bool flag=0;
+    for(SizeT i=4;i<=8;i++) 
+      {
+	if(flag==1 && e->KeywordPresent(i))
+	  {
+	    e->Throw("Incorrect number of arguments.");
+	  }
+	else if (flag==0 && e->KeywordPresent(i)) flag=1;
+      }
 
     // GDL magick
     StackGuard<EnvStackT> guard(e->Interpreter()->CallStack());
@@ -2554,71 +2583,105 @@ res_guard.reset (dres);
     double first, last;
 
     SizeT nEl1=par1->N_Elements();
-    //SizeT nEl2=nEl1;
-    //if (!e->KeywordSet("MIDEXP"))
-    SizeT nEl2=par2->N_Elements();
+    SizeT nEl2=nEl1;
+    if (!e->KeywordSet("MIDEXP")) 
+      SizeT nEl2=par2->N_Elements();
     SizeT nEl=nEl1;
     DDoubleGDL* res;
-
-    if (nEl1 == 1 || nEl2 == 1) {
-      if (nEl1 == 1) {
-	nEl=nEl2;
-	res=new DDoubleGDL(par2->Dim(), BaseGDL::NOZERO);
-      }
-      if (nEl2 == 1) {
-	res=new DDoubleGDL(par1->Dim(), BaseGDL::NOZERO);
-	nEl=nEl1;
-      }
-    } else {
-      if (nEl1 <= nEl2) {
-	res=new DDoubleGDL(par1->Dim(), BaseGDL::NOZERO);      
+    if (!e->KeywordSet("MIDEXP")) {
+      if (nEl1 == 1 || nEl2 == 1) {
+	if (nEl1 == 1) {
+	  nEl=nEl2;
+	  res=new DDoubleGDL(par2->Dim(), BaseGDL::NOZERO);
+	}
+	if (nEl2 == 1) {
+	  res=new DDoubleGDL(par1->Dim(), BaseGDL::NOZERO);
+	  nEl=nEl1;
+	}
       } else {
-	res=new DDoubleGDL(par2->Dim(), BaseGDL::NOZERO);
-	nEl=nEl2;
+	if (nEl1 <= nEl2) {
+	  res=new DDoubleGDL(par1->Dim(), BaseGDL::NOZERO);     
+	} else {
+	  res=new DDoubleGDL(par2->Dim(), BaseGDL::NOZERO);
+	  nEl=nEl2;
+	}
       }
-    }  
+    }
+    else res=new DDoubleGDL(par1->Dim(), BaseGDL::NOZERO);
     
-    gsl_integration_workspace *w = gsl_integration_workspace_alloc (1000);
+    // eps value:
+    double eps;
+    int pos;
+    if(!e->KeywordSet("MIDEXP"))
+	{
+	  if (e->KeywordSet("EPS"))
+	    {
+	      pos = e->KeywordIx("EPS");
+	      e->AssureDoubleScalarKWIfPresent(pos, eps);
+	      if(!isfinite(eps)) eps=1e-6;
+	   }
+	  else if (e->KeywordSet("DOUBLE") || p1->Type() == DOUBLE || p2->Type() == DOUBLE) eps = 1e-12;
+	  else eps = 1e-6;
+	}
+      else if  (e->KeywordSet("EPS"))
+	{
+	  pos = e->KeywordIx("EPS");
+	  e->AssureDoubleScalarKWIfPresent(pos, eps);
+	  if(!isfinite(eps)) eps=1e-6;
+	}
+      else if ((e->KeywordSet("DOUBLE") && e->KeywordSet("MIDEXP")) || p1->Type() == DOUBLE) eps = 1e-12;
+      else eps = 1e-6;
+
+    // Definition of JMAX
+    DLong wsize =static_cast<DLong>(pow(2.0, (20-1)));
+    if(e->KeywordSet("JMAX"))
+      {
+	pos = e->KeywordIx("JMAX");
+	e->AssureLongScalarKWIfPresent(pos, wsize);
+	wsize=static_cast<DLong>(pow(2.0, (wsize-1)));
+      }
+    gsl_integration_workspace *w = gsl_integration_workspace_alloc (wsize);
 
     first=(*static_cast<DDoubleGDL*>(par1))[0];
     if (!e->KeywordSet("MIDEXP")) last =(*static_cast<DDoubleGDL*>(par2))[0];
     
     for( SizeT i=0; i<nEl; i++) {
       if (nEl1 > 1) {first=(*static_cast<DDoubleGDL*>(par1))[i];}
-      if (nEl2 > 1) {last =(*static_cast<DDoubleGDL*>(par2))[i];}
-
+      if ((!e->KeywordSet("MIDEXP")) && (nEl2 > 1)) {last =(*static_cast<DDoubleGDL*>(par2))[i];}
+      
       if (debug) cout << "Boundaries : "<< first << " " << last <<endl;
       
-      // MIDEXP, MIDINF, MIDPNT, MIDSQL, MIDSQU
-
       // intregation on open range [first,+inf[
       if (e->KeywordSet("MIDEXP"))
-	{
-	  gsl_integration_qagiu(&F, first, 0, 1e-7, 1000, w, &result, &error);
+	{	 
+	  gsl_integration_qagiu(&F, first, 0, eps, wsize, w, &result, &error);
 	} 
-      else
-	{	
-	  if (nEl2 > 1) {last =(*static_cast<DDoubleGDL*>(par2))[i];}	  
+      else if (e->KeywordSet("MIDINF") || e->KeywordSet("MIDPNT") || e->KeywordSet("MIDSQL") || e->KeywordSet("MIDSQU") || e->KeywordSet("JMAX") || e->KeywordSet("K"))
+	{
+	  gsl_integration_qag(&F, first, last, 0, eps, GSL_INTEG_GAUSS61, wsize, w, &result, &error);
+	} 
+       else
+	{		  
 	  // intregation on open range ]first,last[
-	  gsl_integration_qags(&F, first, last, 0, 1e-7, 1000, w, &result, &error);
+	  gsl_integration_qag (&F, first, last, 0, eps, GSL_INTEG_GAUSS61, wsize, w, &result, &error);
 	}
-
+   
       if (debug) cout << "Result : " << result << endl;
-      
+     
       (*res)[i]=result;
     }
 
     gsl_integration_workspace_free (w);
- 
-    if (e->KeywordSet("DOUBLE") || p1->Type() == DOUBLE || p2->Type() == DOUBLE)
+
+    if (!e->KeywordSet("MIDEXP"))
       {
-	return res;
+         if (e->KeywordSet("DOUBLE") || p1->Type() == DOUBLE || p2->Type() == DOUBLE) return res;
+	 else return res->Convert2(FLOAT, BaseGDL::CONVERT);
       }
-    else
-      {
-	return res->Convert2(FLOAT, BaseGDL::CONVERT);
-      }
+    else if (e->KeywordSet("DOUBLE")  || p1->Type() == DOUBLE) return res;
+    else return res->Convert2(FLOAT, BaseGDL::CONVERT);
   }
+
 
 //FZ_ROOT:compute polynomial roots
 
