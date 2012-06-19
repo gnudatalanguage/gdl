@@ -18,22 +18,49 @@ common agnesi_param, a
 return, (a^3/(a^2+x^2))^2
 end
 ;
-pro TEST_QROMO_ON_AGNESI, value, param
+pro TEST_QROMO_ON_AGNESI, cumul=cumul, no_exit=no_exit, test=test, verbose=verbose
 ;
 common agnesi_param, a
-if N_ELEMENTS(param) EQ 0 then a=1. else a=param[0]
 ;
-if N_ELEMENTS(param) EQ 0 then debut=2.0 else debut=value[0]
+a=1.
+debut=2.0
+fin=1.
+fin2=12.
 ;
-; hum, not all is solved in QROMO :((
+expected1=0.031382
+expected2=0.6427
+expected3=0.14251
 ;
-print, 'infinite integration:'
-DEFSYSV, '!gdl', exists=isGDL
-if ~isGDL then print, QROMO('AGNESI_SQUARE', debut, /MIDEXP)
-if isGDL then print, QROMO('AGNESI_SQUARE', debut, 0., /MIDEXP)
+comp1=QROMO('AGNESI_SQUARE', debut, /MIDEXP)
+comp2=QROMO('AGNESI_SQUARE', 0, fin)
+comp3=QROMO('AGNESI_SQUARE', fin, fin2)
 ;
-print, 'finite integration:'
-print, QROMO('AGNESI_SQUARE', debut, 4.)
+eps=1e-3
+;
+nb_errors=0
+if (ABS(expected1-comp1) GT eps) then nb_errors=nb_errors+1
+if (ABS(expected2-comp2) GT eps) then nb_errors=nb_errors+1
+if (ABS(expected3-comp3) GT eps) then nb_errors=nb_errors+1
+;
+if KEYWORD_SET(verbose) then begin
+    print, 'AGNESI_SQUARE espec/comp/err: ', expected1, comp1, expected1-comp1
+    print, 'AGNESI_SQUARE espec/comp/err: ', expected2, comp2, expected2-comp2
+    print, 'AGNESI_SQUARE espec/comp/err: ', expected3, comp3, expected3-comp3
+endif
+;
+if (nb_errors GT 0) then begin
+    MESSAGE, /continue, STRING(nb_errors)+' Numerical Errors founded'
+endif else begin
+    MESSAGE, /continue, 'No Numerical Errors founded'
+endelse
+;
+if (nb_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
+;
+if ARG_PRESENT(cumul) then begin
+    if KEYWORD_SET(cumul) then cumul=cumul+nb_errors else cumul=nb_errors
+endif
+;
+if KEYWORD_set(test) then STOP
 ;
 end
 ;
@@ -57,11 +84,12 @@ end
 ;
 ; -------------------------------
 ;
-pro TEST_QROMO_DIM, function_name=function_name
+pro TEST_QROMO_DIM, function_name=function_name, cumul=cumul, $
+                    no_exit=no_exit, test=test, verbose=verbose
 ;
-debut=[1.0]
-fin=[2.0]
-infini=[1.0e30]             
+debut=1.0
+fin=2.0
+infini=1.0e30
 ;
 if (N_ELEMENTS(eps) EQ 0) then eps=1e-6
 nb_errors=0
@@ -104,20 +132,36 @@ if TOTAL((resuQR-resuIN)^2) GT eps then nb_errors=nb_errors+1
 ;
 if (nb_errors GT 0) then begin
     MESSAGE, /continue, STRING(nb_errors)+' Errors founded'
-    if ~KEYWORD_SET(test) then EXIT, status=1
 endif else begin
     MESSAGE, /continue, 'function ' + function_name + ': No Errors founded'
 endelse
+;
+if (nb_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
+;
+if ARG_PRESENT(cumul) then begin
+    if KEYWORD_SET(cumeul) then cumul=cumul+nb_errors else cumul=nb_errors
+endif
 ;
 if KEYWORD_SET(test) then STOP
 ;
 end
 ;
+; ----------------------------------
+;
 pro TEST_QROMO
 ;
-TEST_QROMO_DIM, function_name='EXPON'
-TEST_QROMO_DIM, function_name='INV'
+cumul=0
 ;
-TEST_QROMO_ON_AGNESI
+TEST_QROMO_DIM, function_name='EXPON', cumul=cumul, /no_exit
+TEST_QROMO_DIM, function_name='INV', cumul=cumul, /no_exit
+;
+TEST_QROMO_ON_AGNESI, cumul=cumul, /no_exit
+;
+if (cumul GT 0) then begin
+    MESSAGE, /continue, STRING(cumul)+' Errors founded'
+    EXIT, status=1
+endif else begin
+    MESSAGE, /continue, 'No Errors founded'
+endelse
 ;
 end

@@ -9,7 +9,12 @@ function ERREUR, x1, x2
 return, SQRT(TOTAL((x1-x2)^2))
 end
 ;
-pro TEST_MOMENT, test=test
+pro TEST_MOMENT, help=help, test=test, no_exit=no_exit, verbose=verbose
+;
+if KEYWORD_SET(help) then begin
+    print, 'pro TEST_MOMENT, help=help, test=test, no_exit=no_exit, verbose=verbose'
+    return
+endif
 ;
 nb_pb=0
 ;
@@ -30,7 +35,14 @@ if (e2 GT 1e-5) then nb_pb=nb_pb+1
 ; -----
 ;
 a=FINDGEN(3, 2, 3)^2
-expected_resu3=[[[60.0000, 73.0000, 88.0000], [105.000, 124.000, 145.000]], [[5616.00, 7488.00, 9648.00], [12096.0, 14832.0, 17856.0]], [[0.287409, 0.256015, 0.229751], [0.207827, 0.189413, 0.173812]], [[-2.33333, -2.33333, -2.33333], [-2.33333, -2.33333, -2.33333]]]
+expected_resu3=[[[60.0000, 73.0000, 88.0000], $
+                 [105.000, 124.000, 145.000]], $
+                [[5616.00, 7488.00, 9648.00], $
+                 [12096.0, 14832.0, 17856.0]], $
+                [[0.287409, 0.256015, 0.229751], $
+                 [0.207827, 0.189413, 0.173812]], $
+                [[-2.33333, -2.33333, -2.33333], $
+                 [-2.33333, -2.33333, -2.33333]]]
 resu3=MOMENT(a, DIMENSION=3)
 e3=ERREUR(expected_resu3, resu3)
 if (e3 GT 1e-5) then nb_pb=nb_pb+1
@@ -51,13 +63,16 @@ resu5=MOMENT(a, DIMENSION=1, /NAN)
 e5=ERREUR(expected_resu5, resu5)
 if (e5 GT 1e-5) then nb_pb=nb_pb+1
 ;
-if KEYWORD_SET(test) then STOP
+; -----------------
 ;
 if (nb_pb EQ 0) then begin 
    MESSAGE, 'No problem found in TEST_MOMENT', /continue
 endif else begin
    MESSAGE, STRING(nb_pb)+' problem(s) found in TEST_MOMENT', /continue
-   EXIT, status=1
 endelse
+;
+if KEYWORD_SET(test) then STOP
+;
+if (nb_pb GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
 ;
 end
