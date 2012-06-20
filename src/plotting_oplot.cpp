@@ -182,6 +182,16 @@ namespace lib {
 	clippingD = e->IfDefGetKWAs<DDoubleGDL>( clippingix);
       }
 
+    DFloat xMarginL, xMarginR, yMarginB, yMarginT;
+    get_axis_margin("X",xMarginL, xMarginR); 	 
+    get_axis_margin("Y",yMarginB, yMarginT);
+    // viewport and world coordinates 	 
+    bool okVPWC = SetVP_WC( e, actStream, NULL, clippingD, 	 
+			    xLog, yLog, 	 
+			    xMarginL, xMarginR, yMarginB, yMarginT, 	 
+			    xStart, xEnd, minVal, maxVal); 	 
+    if( !okVPWC) return;
+
     actStream->wid( 0);
     // start drawing. Graphic Keywords accepted:CLIP(NO), COLOR(YES), LINESTYLE(YES), NOCLIP(YES),
     //                                          PSYM(YES), SYMSIZE(YES), T3D(NO), ZVALUE(NO)
