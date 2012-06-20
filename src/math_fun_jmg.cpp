@@ -220,6 +220,51 @@ namespace lib {
        do_it(static_cast<T*>(src), kwNaN, kwInfinity);
    };
 
+   template< typename T, bool> struct finite_helper_sign
+   {
+     inline static BaseGDL* do_it(T* src, bool kwNaN, bool kwInfinity, DLong kwSign)
+     {
+       DByteGDL* res = new DByteGDL( src->Dim(), BaseGDL::NOZERO);
+       SizeT nEl = src->N_Elements();
+
+       for ( SizeT i=0; i<nEl; ++i)
+	 {
+	   (*res)[i]=0;
+	   if ((kwInfinity && isinf((*src)[ i]) || kwNaN && isnan((*src)[ i])) && signbit((*src)[ i])==0 && kwSign > 0) (*res)[i]=1;
+	   else if ((kwInfinity && isinf((*src)[ i]) || kwNaN && isnan((*src)[ i])) && signbit((*src)[ i])==1 && kwSign < 0) (*res)[i]=1;
+	 }
+       
+       return res;
+     }
+   };
+
+   // partial specialization for COMPLEX, DCOMPLEX
+   template< typename T> struct finite_helper_sign<T, true>
+   {
+     inline static BaseGDL* do_it(T* src, bool kwNaN, bool kwInfinity, DLong kwSign)
+     {
+       DByteGDL* res = new DByteGDL( src->Dim(), BaseGDL::NOZERO);
+       SizeT nEl = src->N_Elements();
+       
+       for ( SizeT i=0; i<nEl; ++i)
+	 {
+	   (*res)[i]=0;
+	   if      ((kwInfinity && isinf((*src)[ i].real()) || kwNaN && isnan((*src)[ i].real())) && signbit((*src)[ i].real())==0 && kwSign > 0) (*res)[i]=1;
+	   else if ((kwInfinity && isinf((*src)[ i].imag()) || kwNaN && isnan((*src)[ i].imag())) && signbit((*src)[ i].imag())==0 && kwSign > 0) (*res)[i]=1;
+	   else if ((kwInfinity && isinf((*src)[ i].real()) || kwNaN && isnan((*src)[ i].real())) && signbit((*src)[ i].real())==1 && kwSign < 0) (*res)[i]=1;
+	   else if ((kwInfinity && isinf((*src)[ i].imag()) || kwNaN && isnan((*src)[ i].imag())) && signbit((*src)[ i].imag())==1 && kwSign < 0) (*res)[i]=1;	 
+	 }
+       return res;
+     }
+   };
+
+   template< typename T, bool IS_COMPLEX>
+   inline BaseGDL* finite_template( BaseGDL* src, bool kwNaN, bool kwInfinity, DLong kwSign)
+   {
+     return finite_helper_sign<T, IS_COMPLEX>::
+       do_it(static_cast<T*>(src), kwNaN, kwInfinity, kwSign);
+   };
+
    BaseGDL* finite_fun( EnvT* e)
    {
      e->NParam( 1);
@@ -233,52 +278,107 @@ namespace lib {
      static int infinityIx = e->KeywordIx( "INFINITY");
      bool kwInfinity = e->KeywordSet( infinityIx);
 
+     static int signIx = e->KeywordIx( "SIGN");
+     DLong kwSign = 0;
+     e->AssureLongScalarKWIfPresent( signIx, kwSign); 
+
      if( kwNaN && kwInfinity)
        e->Throw("Conflicting keywords.");
-
-     switch (p0->Type()) 
+     
+     if(kwSign==0 || (kwInfinity==0 && kwNaN==0))
        {
-       case FLOAT: 
-	 {
-	   return finite_template<DFloatGDL, false>(p0, kwNaN, kwInfinity);
-	 }
-       case DOUBLE:
-	 {
-	   return finite_template<DDoubleGDL, false>(p0, kwNaN, kwInfinity);
-	 }
-       case COMPLEX:
-	 {
-	   return finite_template<DComplexGDL, true>(p0, kwNaN, kwInfinity);
-	 }
-       case COMPLEXDBL:
-	 {
-	   return finite_template<DComplexDblGDL, true>(p0, kwNaN, kwInfinity);
-	 }
-       case STRING:
-	 {
-	   DFloatGDL* p0F = 
-	     static_cast<DFloatGDL*>(p0->Convert2(FLOAT,BaseGDL::COPY));
-	   guard.reset( p0F);
-	   return finite_template<DFloatGDL, false>(p0F, kwNaN, kwInfinity);
-	 }
-       case STRUCT:
-       case PTR:
-       case OBJECT:
-	 {
-	   e->Throw( p0->TypeStr() + " not allowed in this context: " +
-		     e->GetParString( 0));
-	 }
-       default: // integer types
-	 {
-	   if( kwNaN || kwInfinity)
-	     return new DByteGDL( p0->Dim()); // zero
-
+	 switch (p0->Type()) 
+	   {
+	   case FLOAT: 
+	     {
+	       return finite_template<DFloatGDL, false>(p0, kwNaN, kwInfinity);
+	     }
+	   case DOUBLE:
+	     {
+	       return finite_template<DDoubleGDL, false>(p0, kwNaN, kwInfinity);
+	     }
+	   case COMPLEX:
+	     {
+	       return finite_template<DComplexGDL, true>(p0, kwNaN, kwInfinity);
+	     }
+	   case COMPLEXDBL:
+	     {
+	       return finite_template<DComplexDblGDL, true>(p0, kwNaN, kwInfinity);
+	     }
+	   case STRING:
+	     {
+	       DFloatGDL* p0F = 
+		 static_cast<DFloatGDL*>(p0->Convert2(FLOAT,BaseGDL::COPY));
+	       guard.reset( p0F);
+	       return finite_template<DFloatGDL, false>(p0F, kwNaN, kwInfinity);
+	     }
+	   case STRUCT:
+	   case PTR:
+	   case OBJECT:
+	     {
+	       e->Throw( p0->TypeStr() + " not allowed in this context: " +
+			 e->GetParString( 0));
+	     }
+	   default: // integer types
+	     {
+	       if( kwNaN || kwInfinity)
+		 return new DByteGDL( p0->Dim()); // zero
+	       
 	   DByteGDL* res = new DByteGDL( p0->Dim(), BaseGDL::NOZERO); 
 	   SizeT nEl = p0->N_Elements();
 	   for (SizeT i=0; i<nEl; i++)
 	     (*res)[i] = 1;
 	   return res;
-	 }
+	     }
+	   }
+       }
+     // Sign
+     else
+       {
+	 switch (p0->Type()) 
+	   {
+	   case FLOAT: 
+	     {
+	       return finite_template<DFloatGDL, false>(p0, kwNaN, kwInfinity, kwSign);
+	     }
+	   case DOUBLE:
+	     {
+	       return finite_template<DDoubleGDL, false>(p0, kwNaN, kwInfinity, kwSign);
+	     }
+	   case COMPLEX:
+	     {
+	       return finite_template<DComplexGDL, true>(p0, kwNaN, kwInfinity, kwSign);
+	     }
+	   case COMPLEXDBL:
+	     {
+	       return finite_template<DComplexDblGDL, true>(p0, kwNaN, kwInfinity, kwSign);
+	     }
+	   case STRING:
+	     {
+	       DFloatGDL* p0F = 
+		 static_cast<DFloatGDL*>(p0->Convert2(FLOAT,BaseGDL::COPY));
+	       guard.reset( p0F);
+	       return finite_template<DFloatGDL, false>(p0F, kwNaN, kwInfinity, kwSign);
+	     }
+	   case STRUCT:
+	   case PTR:
+	   case OBJECT:
+	     {
+	       e->Throw( p0->TypeStr() + " not allowed in this context: " +
+			 e->GetParString( 0));
+	     }
+	   default: // integer types
+	     {
+	       if( kwNaN || kwInfinity)
+		 return new DByteGDL( p0->Dim()); // zero
+	       
+	       DByteGDL* res = new DByteGDL( p0->Dim(), BaseGDL::NOZERO); 
+	       SizeT nEl = p0->N_Elements();
+	       for (SizeT i=0; i<nEl; i++)
+		 (*res)[i] = 0;
+	       return res;
+	     }
+	   }
        }
    }
 

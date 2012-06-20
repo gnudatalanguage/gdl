@@ -133,7 +133,7 @@ void LibInit_jmg()
   new DLibFun(lib::convert_coord,string("CONVERT_COORD"),3,convert_coordKey);
 
 
-  const string finiteKey[]={"INFINITY","NAN",KLISTEND};
+  const string finiteKey[]={"INFINITY","NAN","SIGN",KLISTEND};
   new DLibFun(lib::finite_fun,string("FINITE"),1,finiteKey);
 
   const string radonKey[]={"BACKPROJECT","DOUBLE","DRHO","DX","DY",
