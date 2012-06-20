@@ -16,6 +16,17 @@ if KEYWORD_SET(help) then begin
     return
 endif
 ;
+; IDL before version 8 cannot manage DIMENSION keyword
+;
+DEFSYSV, '!gdl', exists=isGDL
+if (isGDL) then begin
+    check_dim=1
+endif else begin
+    ;; when IDL, which major version ? we assume "." is the separator !
+    version=!version.release
+    if (FIX(STRMID(version,0, STRPOS(version,'.'))) LT 8) then check_dim=0
+endelse
+;
 nb_pb=0
 ;
 a=FINDGEN(100)/10.
@@ -43,9 +54,11 @@ expected_resu3=[[[60.0000, 73.0000, 88.0000], $
                  [0.207827, 0.189413, 0.173812]], $
                 [[-2.33333, -2.33333, -2.33333], $
                  [-2.33333, -2.33333, -2.33333]]]
-resu3=MOMENT(a, DIMENSION=3)
-e3=ERREUR(expected_resu3, resu3)
-if (e3 GT 1e-5) then nb_pb=nb_pb+1
+if (check_dim) then begin
+    resu3=MOMENT(a, DIMENSION=3)
+    e3=ERREUR(expected_resu3, resu3)
+    if (e3 GT 1e-5) then nb_pb=nb_pb+1
+endif else MESSAGE, /continue, 'skipping /DIM test'
 ;
 ; -----
 ;
@@ -61,9 +74,11 @@ a=[[1,4,5,!VALUES.F_NAN],[6,8,!VALUES.F_NAN, 9]]
 expected_resu5=[[3.33333,7.66667], $
                 [4.33333,2.33333],[-0.28741,-0.20783], $
                 [-2.33333,-2.33333]]
-resu5=MOMENT(a, DIMENSION=1, /NAN)
-e5=ERREUR(expected_resu5, resu5)
-if (e5 GT 1e-5) then nb_pb=nb_pb+1
+if (check_dim) then begin
+    resu5=MOMENT(a, DIMENSION=1, /NAN)
+    e5=ERREUR(expected_resu5, resu5)
+    if (e5 GT 1e-5) then nb_pb=nb_pb+1
+endif else MESSAGE, /continue, 'skipping /DIM test'
 ;
 ; -----------------
 ;
