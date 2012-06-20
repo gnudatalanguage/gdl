@@ -58,7 +58,9 @@ if (e4 GT 1e-5) then nb_pb=nb_pb+1
 ; -----
 ;
 a=[[1,4,5,!VALUES.F_NAN],[6,8,!VALUES.F_NAN, 9]]
-expected_resu5=[[3.33333,7.66667],[4.33333,2.33333],[-0.28741,-0.20783],[-2.33333,-2.33333]]
+expected_resu5=[[3.33333,7.66667], $
+                [4.33333,2.33333],[-0.28741,-0.20783], $
+                [-2.33333,-2.33333]]
 resu5=MOMENT(a, DIMENSION=1, /NAN)
 e5=ERREUR(expected_resu5, resu5)
 if (e5 GT 1e-5) then nb_pb=nb_pb+1
