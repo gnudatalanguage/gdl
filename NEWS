@@ -553,4 +553,5 @@
 	   - Initial import of STANDARDIZE and HIST_EQUAL
 	   - improvment in MAGICK related codes, especially MAGICK_PING (pb with ImageMagick (IM) in Ubuntu 12.04; GraphicsMagick can also be used instead of IM)
 	   - FZ_ROOTS: initial import (same way than IMSL_ZEROPOLY using gsl_poly_complex_solve(), only real coefs. for input poly)
-           - improvment in MOMENT (with requested DIM keyword)
+           - keyword DIM in MOMENT (requested DIM and other improvments)
+           - keyword SIGN in FINITE
