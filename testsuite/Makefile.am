@@ -47,9 +47,10 @@ TESTS = \
   test_bug_3300626.pro \
   test_bug_3313522.pro \
   test_bug_3376577.pro \
-  test_bug_3441031.pro \
   test_bug_3453775.pro \
   test_bug_3488003.pro \
+  test_call_function.pro \
+  test_call_procedure.pro \
   test_ce.pro \
   test_clip.pro \
   test_common.pro \
@@ -72,6 +73,8 @@ TESTS = \
   test_finite.pro \
   test_fix.pro \
   test_fixprint.pro \
+  test_fx_root.pro \
+  test_fz_roots.pro \
   test_gc.pro \
   test_get_screen_size.pro \
   test_grib.pro \
