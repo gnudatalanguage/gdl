@@ -65,6 +65,8 @@ void LibInit_ac()
   new DLibFun(lib::qromo_fun,string("QROMO"),3,qromoKey);
   const string fz_rootsKey[]={"DOUBLE","EPS","NO_POLISH",KLISTEND};
   new DLibFun(lib::fz_roots_fun,string("FZ_ROOTS"),3,fz_rootsKey);
+  const string fx_rootKey[]={"DOUBLE","ITMAX","STOP","TOL",KLISTEND};
+  new DLibFun(lib::fx_root_fun,string("FX_ROOT"),2,fx_rootKey);
   
 
 

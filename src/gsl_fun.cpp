@@ -85,6 +85,11 @@
 #include <gsl/gsl_errno.h>
 #include "interp_multid.h"
 
+//fx_root
+#include <stdio.h>
+#include <iostream>
+#include <complex>
+
 #define LOG10E 0.434294
 
 namespace lib {
@@ -2737,6 +2742,182 @@ res_guard.reset (dres);
 			    : COMPLEX, 
 			    BaseGDL::CONVERT);
   }
+
+//FX_ROOT
+
+class fx_root_param
+{ 
+public: 
+EnvT* envt; 
+EnvUDT* nenvt;
+DComplexDblGDL* arg;  
+};
+
+complex<double> fx_root_function(complex<double> x,void* params)
+{
+  fx_root_param *p = static_cast<fx_root_param*>(params);
+  (*(p->arg))[0] = x;
+  BaseGDL* res;
+  res = p->envt->Interpreter()->call_fun(static_cast<DSubUD*>(p->nenvt->GetPro())->GetTree());
+  return (*static_cast<DComplexDblGDL*>(res))[0]; 
+}
+ 
+BaseGDL* fx_root_fun(EnvT* e)
+{       
+  //Sanity check
+  //SizeT nParam = e->NParam();
+  //cout << nParam << endl;
+  
+  //1-st argument: a 2-element real or complex initial guess array
+  BaseGDL* p0 = e->GetNumericArrayParDefined(0);
+  DComplexDblGDL* init = e->GetParAs<DComplexDblGDL>(0);
+  BaseGDL* par0 = p0->Convert2(COMPLEXDBL, BaseGDL::COPY);
+  auto_ptr<BaseGDL> par0_guard(par0);
+ 
+  // 2-nd argument : function name 
+  DString fun;
+  e->AssureScalarPar<DStringGDL>(1, fun);
+  fun = StrUpCase(fun);
+  cout<<fun<<endl;
+  if (LibFunIx(fun) != -1)
+    e->Throw("only user-defined functions allowed (library-routine name given)");
+  
+  // GDL magick
+  StackGuard<EnvStackT> guard(e->Interpreter()->CallStack());
+  EnvUDT* newEnv = new EnvUDT(e, funList[GDLInterpreter::GetFunIx(fun)], NULL);
+  newEnv->SetNextPar(&par0);
+  e->Interpreter()->CallStack().push_back(newEnv);
+  
+  // Function parameter initialization  
+  fx_root_param param;
+  param.envt = e;
+  param.nenvt = newEnv;
+  param.arg = static_cast<DComplexDblGDL*>(par0);
+  
+  //3-rd argument : number of iteration
+  DLong max_iter =100;
+  if (e->KeywordSet("ITMAX"))
+    { 
+      int pos = e->KeywordIx("ITMAX");
+      e->AssureLongScalarKWIfPresent(pos, max_iter);
+    }
+  
+  //4-th argument : stopping criterion
+  DLong stop = 0;
+  if (e->KeywordSet("STOP"))
+    {
+      int pos = e->KeywordIx("STOP");
+      e->AssureLongScalarKWIfPresent(pos, stop);
+    }
+  
+  if (stop != 0 || stop != 1 || isfinite(stop) == 0)
+    {
+      DLong stop = 0;
+    }
+  
+  //5-th argument : tolerance criterion
+  DDouble tol = 0.0001;
+  if (e->KeywordSet("TOL"))
+    {
+      int pos = e->KeywordIx("TOL");
+      e->AssureDoubleScalarKWIfPresent(pos, tol);
+    }
+  if (isfinite(tol) == 0)
+    {
+      DDouble tol = 0.0001;
+    }
+     
+  //Müller method
+  //Initialization and interpolation 
+  
+  complex<double> x0((*init)[0].real(),(*init)[0].imag());
+  complex<double> x1((*init)[1].real(),(*init)[1].imag());
+  complex<double> x2((*init)[2].real(),(*init)[2].imag());
+  
+  //Security tests
+  if ( (x0.real() == x1.real() && x0.imag() == x1.imag()) || (x0.real() == x2.real() && x0.imag() == x2.imag()) || (x1.real() == x2.real() && x1.imag() == x2.imag()) )
+    {
+      e->Throw("Initial parameters must be different");
+    }
+  
+  if ((isfinite(x0.real()) == 0 || isfinite(x0.imag()) == 0) || (isfinite(x1.real()) == 0 || isfinite(x1.imag()) == 0) || (isfinite(x2.real()) == 0 || isfinite(x2.imag()) == 0))
+    {
+      e->Throw("Not a number and Infinity are not supported");
+    }
+  
+  complex<double> fx0 = fx_root_function(x0,&param);
+  complex<double> fx1 = fx_root_function(x1,&param);
+  complex<double> fx2 = fx_root_function(x2,&param);
+  complex<double> den = (x0-x2)*(x1-x2)*(x0-x1);
+  complex<double> a = ((x1-x2)*(fx0-fx2)-(x0-x2)*(fx1-fx2))/den;
+  complex<double> b = (pow(x0-x2,2)*(fx1-fx2)-pow(x1-x2,2)*(fx0-fx2))/den;
+  complex<double> c = fx2;
+  complex<double> op;
+     
+  int iter = 0;
+  double stopcri;
+  DComplexDblGDL* res;
+  res=new DComplexDblGDL(1, BaseGDL::NOZERO);
+  
+  do
+    {
+      iter++;
+      
+      if (stop == 1)
+		     {
+		       stopcri =abs(fx_root_function(x2,&param));
+		     }
+      else
+        {
+          stopcri = abs(x1-x2);
+        }
+      
+      cout << iter << endl;
+      //cout << "Iteration " << iter << endl;
+      //cout << setprecision(15) << x0 << endl;
+      //cout << setprecision(15) << x1 << endl;
+      //cout << setprecision(15) << x2 << endl;
+      
+      complex<double> a4(4*a.real(),4*a.imag());
+      complex<double> c2(2*c.real(),2*c.imag());
+      
+      complex<double> discm = b-sqrt(pow(b,2)-a4*c);
+      complex<double> discp = b+sqrt(pow(b,2)-a4*c);
+        
+      if (abs(discm) < abs(discp))
+	{
+	  op = c2/discp;
+	}
+      else
+	{
+	  op = c2/discm;
+	}
+       
+      x0 = x1;
+      x1 = x2;
+      x2 = x2 - op;
+      fx0 = fx_root_function(x0,&param);
+      fx1 = fx_root_function(x1,&param);
+      fx2 = fx_root_function(x2,&param);
+      den = (x0-x2)*(x1-x2)*(x0-x1);
+      a = ((x1-x2)*(fx0-fx2)-(x0-x2)*(fx1-fx2))/den;
+      b = (pow(x0-x2,2)*(fx1-fx2)-pow(x1-x2,2)*(fx0-fx2))/den;
+      c = fx2;
+      (*res)[0] = x1;
+         
+    }
+  while ( (isfinite(x2.real()) == 1 && isfinite(x2.imag()) == 1) && stopcri >= tol && iter < max_iter);
+    
+  if (e->KeywordSet("DOUBLE") || p0->Type() == COMPLEXDBL)
+    {
+      return res->Convert2(COMPLEXDBL, BaseGDL::CONVERT);
+    }
+  else
+    {
+      return res->Convert2(COMPLEX, BaseGDL::CONVERT);
+    }
+        
+}
 
   /*
    * SA: TODO:

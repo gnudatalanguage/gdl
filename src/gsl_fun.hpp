@@ -53,6 +53,7 @@ namespace lib {
   BaseGDL* qromb_fun(EnvT* e);
   BaseGDL* qromo_fun(EnvT* e);
   BaseGDL* fz_roots_fun(EnvT* e);
+  BaseGDL* fx_root_fun(EnvT* e);
 
   // the following by SA
   BaseGDL* newton_broyden(EnvT* e);
