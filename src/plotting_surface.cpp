@@ -460,7 +460,8 @@ namespace lib {
 	  xVec1[i] = (*xVal)[j*xEl+i];
 	  yVec1[i] = (*yVal)[j*xEl+i];
 	}
-	lib::mesh_nr(xVec1, yVec1, z1, (long int) xEl, 1,1);
+	//lib::mesh_nr(xVec1, yVec1, z1, (long int) xEl, 1,1);
+        plmesh(xVec1, yVec1, z1, (long int) xEl, 1,1); 
       }
       delete[] z1;
       delete[] xVec1;
@@ -477,7 +478,8 @@ namespace lib {
 	  xVec2[i] = (*xVal)[i*xEl+j];
 	  yVec2[i] = (*yVal)[i*xEl+j];
 	}
-	lib::mesh_nr(xVec2, yVec2, z2, 1, (long int) yEl, 2);
+	//lib::mesh_nr(xVec2, yVec2, z2, 1, (long int) yEl, 2);
+        plmesh(xVec2, yVec2, z2, 1, (long int) yEl, 2); 
       }
       delete[] z2;
       delete[] xVec2;
