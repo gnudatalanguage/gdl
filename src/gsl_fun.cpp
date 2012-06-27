@@ -2778,7 +2778,7 @@ BaseGDL* fx_root_fun(EnvT* e)
   DString fun;
   e->AssureScalarPar<DStringGDL>(1, fun);
   fun = StrUpCase(fun);
-  cout<<fun<<endl;
+  //cout<<fun<<endl;
   if (LibFunIx(fun) != -1)
     e->Throw("only user-defined functions allowed (library-routine name given)");
   
@@ -2872,7 +2872,7 @@ BaseGDL* fx_root_fun(EnvT* e)
           stopcri = abs(x1-x2);
         }
       
-      cout << iter << endl;
+      //cout << iter << endl;
       //cout << "Iteration " << iter << endl;
       //cout << setprecision(15) << x0 << endl;
       //cout << setprecision(15) << x1 << endl;
