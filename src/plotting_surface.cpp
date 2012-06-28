@@ -461,7 +461,7 @@ namespace lib {
 	  yVec1[i] = (*yVal)[j*xEl+i];
 	}
 	//lib::mesh_nr(xVec1, yVec1, z1, (long int) xEl, 1,1);
-        plmesh(xVec1, yVec1, z1, (long int) xEl, 1,1); 
+        actStream->mesh(xVec1, yVec1, z1, (long int) xEl, 1,1); 
       }
       delete[] z1;
       delete[] xVec1;
@@ -479,7 +479,7 @@ namespace lib {
 	  yVec2[i] = (*yVal)[i*xEl+j];
 	}
 	//lib::mesh_nr(xVec2, yVec2, z2, 1, (long int) yEl, 2);
-        plmesh(xVec2, yVec2, z2, 1, (long int) yEl, 2); 
+        actStream->mesh(xVec2, yVec2, z2, 1, (long int) yEl, 2); 
       }
       delete[] z2;
       delete[] xVec2;
