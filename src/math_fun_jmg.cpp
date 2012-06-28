@@ -224,34 +224,41 @@ namespace lib {
    {
      inline static BaseGDL* do_it(T* src, bool kwNaN, bool kwInfinity, DLong kwSign)
      {
+
+// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+
        DByteGDL* res = new DByteGDL( src->Dim(), BaseGDL::NOZERO); // ::ZERO is not working
        SizeT nEl = src->N_Elements();
 
-       for ( SizeT i=0; i<nEl; ++i) (*res)[i]=0;
+       //       for ( SizeT i=0; i<nEl; ++i) (*res)[i]=0;
 
        if (kwInfinity) {
 	 if (kwSign > 0) {
+// #pragma omp for
 	   for ( SizeT i=0; i<nEl; ++i) {
-	     if (isinf((*src)[ i]) && (signbit((*src)[ i]) == 0)) {(*res)[i]=1;}
+	     if (isinf((*src)[ i]) && (signbit((*src)[ i]) == 0)) (*res)[i]=1; else (*res)[i]=0;
 	   }
 	 } else {
+// #pragma omp for
 	   for ( SizeT i=0; i<nEl; ++i) {
-	     if (isinf((*src)[ i]) && (signbit((*src)[ i]) != 0)) {(*res)[i]=1;}
+	     if (isinf((*src)[ i]) && (signbit((*src)[ i]) != 0)) (*res)[i]=1; else (*res)[i]=0;
 	   }
 	 }
 	 return res;	 
        }
        if (kwNaN) {
 	 if (kwSign > 0) {
+// #pragma omp for
 	   for ( SizeT i=0; i<nEl; ++i) {
-	     if (isnan((*src)[ i]) && (signbit((*src)[ i]) == 0)) {(*res)[i]=1;}
+	     if (isnan((*src)[ i]) && (signbit((*src)[ i]) == 0)) (*res)[i]=1; else (*res)[i]=0;
 	   }
 	 } else {
+// #pragma omp for
 	   for ( SizeT i=0; i<nEl; ++i) {
-	     if (isnan((*src)[ i]) && (signbit((*src)[ i]) != 0)) {(*res)[i]=1;}
+	     if (isnan((*src)[ i]) && (signbit((*src)[ i]) != 0)) (*res)[i]=1; else (*res)[i]=0;
 	   }
 	 }
-	 return res;	 
+	 return res;
        }
      }
    };
