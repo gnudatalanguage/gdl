@@ -224,17 +224,35 @@ namespace lib {
    {
      inline static BaseGDL* do_it(T* src, bool kwNaN, bool kwInfinity, DLong kwSign)
      {
-       DByteGDL* res = new DByteGDL( src->Dim(), BaseGDL::NOZERO);
+       DByteGDL* res = new DByteGDL( src->Dim(), BaseGDL::NOZERO); // ::ZERO is not working
        SizeT nEl = src->N_Elements();
 
-       for ( SizeT i=0; i<nEl; ++i)
-	 {
-	   (*res)[i]=0;
-	   if ((kwInfinity && isinf((*src)[ i]) || kwNaN && isnan((*src)[ i])) && signbit((*src)[ i])==0 && kwSign > 0) (*res)[i]=1;
-	   else if ((kwInfinity && isinf((*src)[ i]) || kwNaN && isnan((*src)[ i])) && signbit((*src)[ i])==1 && kwSign < 0) (*res)[i]=1;
+       for ( SizeT i=0; i<nEl; ++i) (*res)[i]=0;
+
+       if (kwInfinity) {
+	 if (kwSign > 0) {
+	   for ( SizeT i=0; i<nEl; ++i) {
+	     if (isinf((*src)[ i]) && (signbit((*src)[ i]) == 0)) {(*res)[i]=1;}
+	   }
+	 } else {
+	   for ( SizeT i=0; i<nEl; ++i) {
+	     if (isinf((*src)[ i]) && (signbit((*src)[ i]) != 0)) {(*res)[i]=1;}
+	   }
 	 }
-       
-       return res;
+	 return res;	 
+       }
+       if (kwNaN) {
+	 if (kwSign > 0) {
+	   for ( SizeT i=0; i<nEl; ++i) {
+	     if (isnan((*src)[ i]) && (signbit((*src)[ i]) == 0)) {(*res)[i]=1;}
+	   }
+	 } else {
+	   for ( SizeT i=0; i<nEl; ++i) {
+	     if (isnan((*src)[ i]) && (signbit((*src)[ i]) != 0)) {(*res)[i]=1;}
+	   }
+	 }
+	 return res;	 
+       }
      }
    };
 
@@ -372,10 +390,10 @@ namespace lib {
 	       if( kwNaN || kwInfinity)
 		 return new DByteGDL( p0->Dim()); // zero
 	       
-	       DByteGDL* res = new DByteGDL( p0->Dim(), BaseGDL::NOZERO); 
+	       DByteGDL* res = new DByteGDL( p0->Dim(), BaseGDL::NOZERO);
 	       SizeT nEl = p0->N_Elements();
 	       for (SizeT i=0; i<nEl; i++)
-		 (*res)[i] = 0;
+	       (*res)[i] = 0;
 	       return res;
 	     }
 	   }
