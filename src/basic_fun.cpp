@@ -828,16 +828,23 @@ namespace lib {
       }
  */ }
 
-  // never called 
-  // done directly in FCALL_LIB_N_ELEMENTSNode::Eval();
-  // needed for LibInit() for correct parametrization
+  // only called from CALL_FUNCTION 
+  // otherwise done directly in FCALL_LIB_N_ELEMENTSNode::Eval();
+  // (but must be defined anyway for LibInit() for correct parametrization)
   // N_ELEMENTS is special because on error it just returns 0L
   // (the error is just caught and dropped)
   BaseGDL* n_elements( EnvT* e)
   {
-    assert( 0);
-    e->Throw("Internal error: lib::n_elements called.");
-    return NULL; // get rid of compiler warning
+    SizeT nParam=e->NParam(1);
+
+    BaseGDL* p0=e->GetPar( 0);
+
+    if( p0 == NULL) return new DLongGDL( 0);
+    return new DLongGDL( p0->N_Elements()); 
+    
+//     assert( 0);
+//     e->Throw("Internal error: lib::n_elements called.");
+//     return NULL; // get rid of compiler warning
   }
 
   template< typename ComplexGDL, typename Complex, typename Float>
@@ -1239,13 +1246,27 @@ namespace lib {
 // 	e->PushNewEnv( libFunList[ funIx], 1);
 	// make the call
 // 	EnvT* newEnv = static_cast<EnvT*>(e->Interpreter()->CallStack().back());
+
+	// handle direct call functions 
+	if( libFunList[ funIx]->DirectCall())
+	{
+	  BaseGDL* directCallParameter = e->GetParDefined(1);
+	  BaseGDL* res = 
+	  static_cast<DLibFunDirect*>(libFunList[ funIx])->FunDirect()(directCallParameter, true /*isReference*/);
+	  return res;
+	}
+	else
+	{
 	EnvT* newEnv = e->NewEnv( libFunList[ funIx], 1);
 	auto_ptr<EnvT> guard( newEnv);
 	return static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
+	}
       }
     else
       {
-    StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
+	// no direct call here
+	
+	StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
 
 	funIx = GDLInterpreter::GetFunIx( callF);
 	

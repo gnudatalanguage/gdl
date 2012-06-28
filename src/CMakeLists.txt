@@ -183,7 +183,6 @@ objects.cpp
 objects.hpp
 ofmt.cpp
 ofmt.hpp
-plot3d_nr.cpp
 plotting_axis.cpp
 plotting_contour.cpp
 plotting_convert_coord.cpp

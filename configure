@@ -628,6 +628,7 @@ PYTHON_PREFIX
 PYTHON_VERSION
 PYTHON
 nc_config
+GraphicsMagickConfig
 XMKMF
 MagickConfig
 wxConfig
@@ -770,6 +771,7 @@ enable_oldplplot
 with_wxWidgets
 with_Magick
 with_x
+with_GraphicsMagick
 with_netcdf
 with_hdf
 with_hdf5
@@ -1449,6 +1451,7 @@ Optional Packages:
   --with-wxWidgets=DIR    use wxWidgets (with optional path DIR)
   --with-Magick=DIR       use ImageMagick package (with optional path DIR)
   --with-x                use the X Window System
+  --with-GraphicsMagick=DIR  use GraphicsMagick package (with optional path DIR)
   --with-netcdf=DIR       use netCDF package (with optional path DIR)
   --with-hdf=DIR          use HDF package (with optional path DIR)
   --with-hdf5=DIR         use HDF5 package (with optional path DIR)
@@ -2483,6 +2486,7 @@ if test "x$with_wxWidgets"   = "x"; then with_wxWidgets=yes;   fi
 if test "x$with_udunits"     = "x"; then with_udunits=no;      fi
 if test "x$with_grib"        = "x"; then with_grib=no;         fi
 if test "x$with_Magick"      = "x"; then with_Magick=yes;      fi
+if test "x$with_GraphicsMagick" = "x"; then with_GraphicsMagick=no;      fi
 if test "x$with_netcdf"      = "x"; then with_netcdf=yes;      fi
 if test "x$with_hdf"         = "x"; then with_hdf=yes;         fi
 if test "x$with_hdf5"        = "x"; then with_hdf5=yes;        fi
@@ -16580,8 +16584,416 @@ else
         echo "       Check the README or use configure --help for other libraries needed"
         echo "       (--with-xxxdir = mandatory, --with-xxx = optional (--with-xxx=no to disable))"
         echo ""
-        echo "       (suitable Debian/Ubuntu package: libmagick-dev)"
+        echo "       (suitable Debian/Ubuntu package: libmagick++-dev)"
         echo "       (suitable Fedora package: ImageMagick-c++-devel)"
+        exit -1
+
+fi
+
+
+
+fi
+
+fi
+
+
+# Check whether --with-GraphicsMagick was given.
+if test "${with_GraphicsMagick+set}" = set; then :
+  withval=$with_GraphicsMagick; with_GraphicsMagick="$withval"
+fi
+
+
+if test "x$with_GraphicsMagick" != "xno"; then
+  if test "x$with_GraphicsMagick" = "xyes"; then
+    # Extract the first word of "GraphicsMagick++-config", so it can be a program name with args.
+set dummy GraphicsMagick++-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_GraphicsMagickConfig+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $GraphicsMagickConfig in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_GraphicsMagickConfig="$GraphicsMagickConfig" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_GraphicsMagickConfig="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_GraphicsMagickConfig" && ac_cv_path_GraphicsMagickConfig="no"
+  ;;
+esac
+fi
+GraphicsMagickConfig=$ac_cv_path_GraphicsMagickConfig
+if test -n "$GraphicsMagickConfig"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GraphicsMagickConfig" >&5
+$as_echo "$GraphicsMagickConfig" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+  else
+    # Extract the first word of "GraphicsMagick++-config", so it can be a program name with args.
+set dummy GraphicsMagick++-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_GraphicsMagickConfig+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $GraphicsMagickConfig in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_GraphicsMagickConfig="$GraphicsMagickConfig" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in "$with_GraphicsMagick/bin"
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_GraphicsMagickConfig="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_GraphicsMagickConfig" && ac_cv_path_GraphicsMagickConfig="no"
+  ;;
+esac
+fi
+GraphicsMagickConfig=$ac_cv_path_GraphicsMagickConfig
+if test -n "$GraphicsMagickConfig"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GraphicsMagickConfig" >&5
+$as_echo "$GraphicsMagickConfig" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+  fi
+
+  if test "x$GraphicsMagickConfig" = "xno"; then
+    as_fn_error $? "GraphicsMagick is required but was not found (GraphicsMagick++-config program not found)
+      Use --with-GraphicsMagick=DIR to specify the GraphicsMagick directory tree
+      Use --with-GraphicsMagick=no  to not use it
+
+      (suitable Debian/Ubuntu package: libmagick++-dev)
+      (suitable Fedora package: GraphicsMagick-c++-devel)
+    " "$LINENO" 5
+  else
+    LIBS="$LIBS `$GraphicsMagickConfig --libs`"
+    INCLUDES="$INCLUDES `$GraphicsMagickConfig --cppflags`"
+    LDFLAGS="$LDFLAGS `$GraphicsMagickConfig --ldflags`"
+  fi
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for GetMagickVersion in -lGraphicsMagick++" >&5
+$as_echo_n "checking for GetMagickVersion in -lGraphicsMagick++... " >&6; }
+if ${ac_cv_lib_GraphicsMagickpp_GetMagickVersion+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lGraphicsMagick++  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char GetMagickVersion ();
+int
+main ()
+{
+return GetMagickVersion ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"; then :
+  ac_cv_lib_GraphicsMagickpp_GetMagickVersion=yes
+else
+  ac_cv_lib_GraphicsMagickpp_GetMagickVersion=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_GraphicsMagickpp_GetMagickVersion" >&5
+$as_echo "$ac_cv_lib_GraphicsMagickpp_GetMagickVersion" >&6; }
+if test "x$ac_cv_lib_GraphicsMagickpp_GetMagickVersion" = xyes; then :
+
+$as_echo "#define USE_MAGICK 1" >>confdefs.h
+
+else
+
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking if adding X library path helps" >&5
+$as_echo_n "checking if adding X library path helps... " >&6; }
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: ?" >&5
+$as_echo "?" >&6; }
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for X" >&5
+$as_echo_n "checking for X... " >&6; }
+
+
+# Check whether --with-x was given.
+if test "${with_x+set}" = set; then :
+  withval=$with_x;
+fi
+
+# $have_x is `yes', `no', `disabled', or empty when we do not yet know.
+if test "x$with_x" = xno; then
+  # The user explicitly disabled X.
+  have_x=disabled
+else
+  case $x_includes,$x_libraries in #(
+    *\'*) as_fn_error $? "cannot use X directory names containing '" "$LINENO" 5;; #(
+    *,NONE | NONE,*) if ${ac_cv_have_x+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  # One or both of the vars are not set, and there is no cached value.
+ac_x_includes=no ac_x_libraries=no
+rm -f -r conftest.dir
+if mkdir conftest.dir; then
+  cd conftest.dir
+  cat >Imakefile <<'_ACEOF'
+incroot:
+	@echo incroot='${INCROOT}'
+usrlibdir:
+	@echo usrlibdir='${USRLIBDIR}'
+libdir:
+	@echo libdir='${LIBDIR}'
+_ACEOF
+  if (export CC; ${XMKMF-xmkmf}) >/dev/null 2>/dev/null && test -f Makefile; then
+    # GNU make sometimes prints "make[1]: Entering ...", which would confuse us.
+    for ac_var in incroot usrlibdir libdir; do
+      eval "ac_im_$ac_var=\`\${MAKE-make} $ac_var 2>/dev/null | sed -n 's/^$ac_var=//p'\`"
+    done
+    # Open Windows xmkmf reportedly sets LIBDIR instead of USRLIBDIR.
+    for ac_extension in a so sl dylib la dll; do
+      if test ! -f "$ac_im_usrlibdir/libX11.$ac_extension" &&
+	 test -f "$ac_im_libdir/libX11.$ac_extension"; then
+	ac_im_usrlibdir=$ac_im_libdir; break
+      fi
+    done
+    # Screen out bogus values from the imake configuration.  They are
+    # bogus both because they are the default anyway, and because
+    # using them would break gcc on systems where it needs fixed includes.
+    case $ac_im_incroot in
+	/usr/include) ac_x_includes= ;;
+	*) test -f "$ac_im_incroot/X11/Xos.h" && ac_x_includes=$ac_im_incroot;;
+    esac
+    case $ac_im_usrlibdir in
+	/usr/lib | /usr/lib64 | /lib | /lib64) ;;
+	*) test -d "$ac_im_usrlibdir" && ac_x_libraries=$ac_im_usrlibdir ;;
+    esac
+  fi
+  cd ..
+  rm -f -r conftest.dir
+fi
+
+# Standard set of common directories for X headers.
+# Check X11 before X11Rn because it is often a symlink to the current release.
+ac_x_header_dirs='
+/usr/X11/include
+/usr/X11R7/include
+/usr/X11R6/include
+/usr/X11R5/include
+/usr/X11R4/include
+
+/usr/include/X11
+/usr/include/X11R7
+/usr/include/X11R6
+/usr/include/X11R5
+/usr/include/X11R4
+
+/usr/local/X11/include
+/usr/local/X11R7/include
+/usr/local/X11R6/include
+/usr/local/X11R5/include
+/usr/local/X11R4/include
+
+/usr/local/include/X11
+/usr/local/include/X11R7
+/usr/local/include/X11R6
+/usr/local/include/X11R5
+/usr/local/include/X11R4
+
+/usr/X386/include
+/usr/x386/include
+/usr/XFree86/include/X11
+
+/usr/include
+/usr/local/include
+/usr/unsupported/include
+/usr/athena/include
+/usr/local/x11r5/include
+/usr/lpp/Xamples/include
+
+/usr/openwin/include
+/usr/openwin/share/include'
+
+if test "$ac_x_includes" = no; then
+  # Guess where to find include files, by looking for Xlib.h.
+  # First, try using that file with no special directory specified.
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <X11/Xlib.h>
+_ACEOF
+if ac_fn_cxx_try_cpp "$LINENO"; then :
+  # We can compile using X headers with no special include directory.
+ac_x_includes=
+else
+  for ac_dir in $ac_x_header_dirs; do
+  if test -r "$ac_dir/X11/Xlib.h"; then
+    ac_x_includes=$ac_dir
+    break
+  fi
+done
+fi
+rm -f conftest.err conftest.i conftest.$ac_ext
+fi # $ac_x_includes = no
+
+if test "$ac_x_libraries" = no; then
+  # Check for the libraries.
+  # See if we find them without any special options.
+  # Don't add to $LIBS permanently.
+  ac_save_LIBS=$LIBS
+  LIBS="-lX11 $LIBS"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <X11/Xlib.h>
+int
+main ()
+{
+XrmInitialize ()
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"; then :
+  LIBS=$ac_save_LIBS
+# We can link X programs with no special library path.
+ac_x_libraries=
+else
+  LIBS=$ac_save_LIBS
+for ac_dir in `$as_echo "$ac_x_includes $ac_x_header_dirs" | sed s/include/lib/g`
+do
+  # Don't even attempt the hair of trying to link an X program!
+  for ac_extension in a so sl dylib la dll; do
+    if test -r "$ac_dir/libX11.$ac_extension"; then
+      ac_x_libraries=$ac_dir
+      break 2
+    fi
+  done
+done
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+fi # $ac_x_libraries = no
+
+case $ac_x_includes,$ac_x_libraries in #(
+  no,* | *,no | *\'*)
+    # Didn't find X, or a directory has "'" in its name.
+    ac_cv_have_x="have_x=no";; #(
+  *)
+    # Record where we found X for the cache.
+    ac_cv_have_x="have_x=yes\
+	ac_x_includes='$ac_x_includes'\
+	ac_x_libraries='$ac_x_libraries'"
+esac
+fi
+;; #(
+    *) have_x=yes;;
+  esac
+  eval "$ac_cv_have_x"
+fi # $with_x != no
+
+if test "$have_x" != yes; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $have_x" >&5
+$as_echo "$have_x" >&6; }
+  no_x=yes
+else
+  # If each of the values was on the command line, it overrides each guess.
+  test "x$x_includes" = xNONE && x_includes=$ac_x_includes
+  test "x$x_libraries" = xNONE && x_libraries=$ac_x_libraries
+  # Update the cache value to reflect the command line values.
+  ac_cv_have_x="have_x=yes\
+	ac_x_includes='$x_includes'\
+	ac_x_libraries='$x_libraries'"
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: libraries $x_libraries, headers $x_includes" >&5
+$as_echo "libraries $x_libraries, headers $x_includes" >&6; }
+fi
+
+      LDFLAGS="$LDFLAGS -L$x_libraries"
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for GetMagickReleaseDate in -lGraphicsMagick++" >&5
+$as_echo_n "checking for GetMagickReleaseDate in -lGraphicsMagick++... " >&6; }
+if ${ac_cv_lib_GraphicsMagickpp_GetMagickReleaseDate+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lGraphicsMagick++  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char GetMagickReleaseDate ();
+int
+main ()
+{
+return GetMagickReleaseDate ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"; then :
+  ac_cv_lib_GraphicsMagickpp_GetMagickReleaseDate=yes
+else
+  ac_cv_lib_GraphicsMagickpp_GetMagickReleaseDate=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_GraphicsMagickpp_GetMagickReleaseDate" >&5
+$as_echo "$ac_cv_lib_GraphicsMagickpp_GetMagickReleaseDate" >&6; }
+if test "x$ac_cv_lib_GraphicsMagickpp_GetMagickReleaseDate" = xyes; then :
+  $as_echo "#define USE_MAGICK 1" >>confdefs.h
+
+else
+
+        echo ""
+        echo "Error! GraphicsMagick version 1.3 or later is required but was not found"
+        echo "       Use --with-GraphicsMagick=DIR to specify the GraphicsMagick directory tree"
+        echo "       Use --with-GraphicsMagick=no  to not use it"
+        echo "       Check the README or use configure --help for other libraries needed"
+        echo "       (--with-xxxdir = mandatory, --with-xxx = optional (--with-xxx=no to disable))"
+        echo ""
+        echo "       (suitable Debian/Ubuntu package: libgraphicsmagick++-dev)"
+        echo "       (suitable Fedora package: graphicsMagick-c++-devel)"
         exit -1
 
 fi
@@ -21418,6 +21830,8 @@ echo "
     then echo 'no'; else echo yes; fi`
   Magick:              `if test no = $with_Magick;
     then echo 'no'; else echo yes; fi`
+  GraphicsMagick:      `if test no = $with_GraphicsMagick;
+    then echo 'no'; else echo yes; fi`
   NetCDF:              `if test no = $with_netcdf;
     then echo 'no'; else echo yes; fi`
   HDF4:                `if test no = $with_hdf;
@@ -21455,5 +21869,14 @@ echo "
   echo '  ------------------------------------------------------'; fi`
   use 'make' to build and 'make install' to install GDL
   (optional 'make check' tests the build - experimental)
+"
+echo "
+*********************** WARNING ******************************
+We plan to drop support for Autotools-based configuration
+(i.e. the configure script) and switch to CMake. If possible,
+please try to compile GDL with CMake (e.g. by typing \"cmake .\"
+instead of \"./configure\") and please do report any problems.
+Consult INSTALL.CMake for help on passing options to CMake.
+**************************************************************
 "
 

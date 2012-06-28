@@ -42,7 +42,7 @@ namespace lib {
   T* fftw_template(BaseGDL* p0,
 		   SizeT nEl, SizeT dbl, SizeT overwrite, double direct)
   {
-    int dim[8];
+    int dim[MAXRANK];
 
     T* res;
 
