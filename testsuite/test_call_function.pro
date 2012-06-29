@@ -3,15 +3,14 @@
 ;
 ; More systematic tests on EXECUTE, CALL_FUNCTION and CALL_PROCEDURE
 ;
-pro PRO_MY_PRO, x, y
+; ----------------------------------------------
+; we add a keyword to test also keyword, because of bug report 3490415 
 ;
-y=x+5
+function FUNC_MY_FUNC, x, add_one=add_one
 ;
-end
-;
-function FUNC_MY_FUNC, x
-;
-return, x+5
+resultat=x+5
+if KEYWORD_SET(add_one) then resultat=resultat+1
+return, resultat
 ;
 end
 ;
@@ -46,6 +45,14 @@ if KEYWORD_SET(verbose) then print, result, expected
 ;
 expected=0.
 result=CALL_FUNCTION('FUNC_MY_FUNC', -5.)
+;
+if (ABS(result-expected) GT tolerance)  then nb_errors=nb_errors+1
+if KEYWORD_SET(verbose) then print, result, expected
+;
+; external function, single element, one keyword
+;
+expected=1.
+result=CALL_FUNCTION('FUNC_MY_FUNC', -5., /add_one)
 ;
 if (ABS(result-expected) GT tolerance)  then nb_errors=nb_errors+1
 if KEYWORD_SET(verbose) then print, result, expected
