@@ -112,6 +112,7 @@ public:
 
   // for CLEANUP calls due to reference counting
   void PushNewEmptyEnvUD(  DSub* newPro, BaseGDL** newObj = NULL);
+  void PushNewEmptyEnvUDWithExtra(  DSub* newPro, BaseGDL** newObj = NULL);
   
   void AddEnv( DPtrListT& ptrAccessible, DPtrListT& objAccessible);
   void AddToDestroy( DPtrListT& ptrAccessible, DPtrListT& objAccessible);

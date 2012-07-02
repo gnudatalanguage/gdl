@@ -1841,15 +1841,15 @@ BaseGDL* interpolate_fun(EnvT* e){
   // 1D Interpolation
   if (nParam == 2) {
  //   res=interpolate_1dim(e,p0D,p1D,cubic,use_missing,missing);
-    if (nnbor)   res=interpolate_1dim(e,gdl_interp1d_nearest,p0D,p1D,use_missing,missing,NULL);
+    if (nnbor)   res=interpolate_1dim(e,gdl_interp1d_nearest,p0D,p1D,use_missing,missing,0.0);
     else if (cubic)   res=interpolate_1dim(e,gdl_interp1d_cubic,p0D,p1D,use_missing,missing,gamma);
-    else         res=interpolate_1dim(e,gdl_interp1d_linear,p0D,p1D,use_missing,missing,NULL);
+    else         res=interpolate_1dim(e,gdl_interp1d_linear,p0D,p1D,use_missing,missing,0.0);
   }
  
   if (nParam == 3) {
-    if (nnbor)        res=interpolate_2dim(e,gdl_interp2d_binearest,p0D,p1D,p2D,grid,use_missing,missing,NULL);
+    if (nnbor)        res=interpolate_2dim(e,gdl_interp2d_binearest,p0D,p1D,p2D,grid,use_missing,missing,0.0);
     else if (cubic)   res=interpolate_2dim(e,gdl_interp2d_bicubic,p0D,p1D,p2D,grid,use_missing,missing,gamma);
-    else              res=interpolate_2dim(e,gdl_interp2d_bilinear,p0D,p1D,p2D,grid,use_missing,missing,NULL);
+    else              res=interpolate_2dim(e,gdl_interp2d_bilinear,p0D,p1D,p2D,grid,use_missing,missing,0.0);
   }
   if (nParam == 4) {
     res=interpolate_3dim(e,gdl_interp3d_trilinear,p0D,p1D,p2D,p3D,grid,use_missing,missing);

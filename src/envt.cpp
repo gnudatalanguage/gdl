@@ -965,12 +965,14 @@ void EnvT::PushNewEnvUD(  DSub* newPro, SizeT skipP, BaseGDL** newObj)
       newEnv->SetNextPar( &GetPar( p)); // pass as global
     }
 
-  interpreter->CallStack().push_back( newEnv); 
+  // interpreter->CallStack().push_back( newEnv); // problem with call_function if done here s. b.
 
   // _REF_EXTRA is set to the keyword string array
   newEnv->extra = new ExtraT( newEnv);
   newEnv->extra->Set( &env[0]);
-  newEnv->extra->Resolve();
+  newEnv->extra->Resolve(); // s. a. problem caused here due to a call to EnvBaseT::Caller() in Resolve()
+
+  interpreter->CallStack().push_back( newEnv); 
 }
 // used by obj_new (basic_fun.cpp)
 // and obj_destroy (basic_pro.cpp)
