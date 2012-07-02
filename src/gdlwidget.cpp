@@ -626,7 +626,7 @@ GDLWidgetDropList::GDLWidgetDropList( WidgetIDT p, BaseGDL *uV, BaseGDL *value,
     wxString *choices = new wxString[n];
     for( SizeT i=0; i<n; ++i) choices[i] = wxString((*val)[i].c_str(), wxConvUTF8);
 
-    combo = new wxComboBox( panel, widgetID, wxString( choices[0].c_str(), wxConvUTF8),
+    combo = new wxComboBox( panel, widgetID, wxString( (const wchar_t*) choices[0].c_str(), wxConvUTF8),
 			    wxDefaultPosition, wxDefaultSize,
 			    n, choices, style);
 
