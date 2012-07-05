@@ -2849,7 +2849,7 @@ BaseGDL* fx_root_fun(EnvT* e)
     {
       e->Throw("Not a number and Infinity are not supported");
     }
-  
+
   complex<double> fx0 = fx_root_function(x0,&param);
   complex<double> fx1 = fx_root_function(x1,&param);
   complex<double> fx2 = fx_root_function(x2,&param);
@@ -2858,60 +2858,67 @@ BaseGDL* fx_root_fun(EnvT* e)
   complex<double> b = (pow(x0-x2,2)*(fx1-fx2)-pow(x1-x2,2)*(fx0-fx2))/den;
   complex<double> c = fx2;
   complex<double> op;
-     
+  
   int iter = 0;
   double stopcri;
   DComplexDblGDL* res;
   res=new DComplexDblGDL(1, BaseGDL::NOZERO);
-  
-  do
-    {
-      iter++;
-      
-      if (stop == 1)
-		     {
-		       stopcri =abs(fx_root_function(x2,&param));
-		     }
-      else
-        {
+
+  // before going further, we check whether the "x_i" are roots ?!
+
+  int done=0;
+  if (abs(fx0) < tol) {(*res)[0] = x0; done=1;}
+  if (abs(fx1) < tol) {(*res)[0] = x1; done=1;}
+  if (abs(fx2) < tol) {(*res)[0] = x2; done=1;}
+
+  if (done ==0) {
+    complex<double> tmpdisc;
+    complex<double> discm;
+    complex<double> discp;    
+    int debug=0;
+    
+    do
+      {
+	iter++;
+	
+	if (stop == 1) {
+	  stopcri =abs(fx_root_function(x2,&param));
+	} else {
           stopcri = abs(x1-x2);
-        }
-      
-      //cout << iter << endl;
-      //cout << "Iteration " << iter << endl;
-      //cout << setprecision(15) << x0 << endl;
-      //cout << setprecision(15) << x1 << endl;
-      //cout << setprecision(15) << x2 << endl;
-      
-      complex<double> a4(4*a.real(),4*a.imag());
-      complex<double> c2(2*c.real(),2*c.imag());
-      
-      complex<double> discm = b-sqrt(pow(b,2)-a4*c);
-      complex<double> discp = b+sqrt(pow(b,2)-a4*c);
-        
-      if (abs(discm) < abs(discp))
-	{
-	  op = c2/discp;
 	}
-      else
-	{
-	  op = c2/discm;
+	
+	tmpdisc=sqrt(pow(b,2)-4.*a*c);
+	
+	if (debug) {
+	  cout << "Iteration " << iter << endl;
+	  cout << "x0: " << setprecision(15) << x0 << endl;
+	  cout << "x1: " <<setprecision(15) << x1 << endl;
+	  cout << "x2: " <<setprecision(15) << x2 << endl;
+	  cout << "tmpdisc "<< tmpdisc << endl;
 	}
-       
-      x0 = x1;
-      x1 = x2;
-      x2 = x2 - op;
-      fx0 = fx_root_function(x0,&param);
-      fx1 = fx_root_function(x1,&param);
-      fx2 = fx_root_function(x2,&param);
-      den = (x0-x2)*(x1-x2)*(x0-x1);
-      a = ((x1-x2)*(fx0-fx2)-(x0-x2)*(fx1-fx2))/den;
-      b = (pow(x0-x2,2)*(fx1-fx2)-pow(x1-x2,2)*(fx0-fx2))/den;
-      c = fx2;
-      (*res)[0] = x1;
-         
+
+	discm=b-tmpdisc;
+	discp=b+tmpdisc;
+	
+	if (abs(discm) < abs(discp)) {op = 2.*c/discp;} else {op = 2.*c/discm;}
+	
+	x0 = x1;
+	x1 = x2;
+	x2 = x2 - op;
+	fx0 = fx1;
+	fx1 = fx2;
+	fx2 = fx_root_function(x2,&param);
+	den = (x0-x2)*(x1-x2)*(x0-x1);
+	a = ((x1-x2)*(fx0-fx2)-(x0-x2)*(fx1-fx2))/den;
+	b = (pow(x0-x2,2)*(fx1-fx2)-pow(x1-x2,2)*(fx0-fx2))/den;
+	c = fx2;
+	(*res)[0] = x1;
     }
-  while ( (isfinite(x2.real()) == 1 && isfinite(x2.imag()) == 1) && stopcri >= tol && iter < max_iter);
+    while (stopcri >= tol &&
+	   (isfinite(x2.real()) == 1 &&
+	    isfinite(x2.imag()) == 1) &&
+	   iter < max_iter);
+  }
     
   if ((*res)[0].imag() == 0)
     {
@@ -2919,7 +2926,9 @@ BaseGDL* fx_root_fun(EnvT* e)
       resreal = new DDoubleGDL(1, BaseGDL::NOZERO);
       (*resreal)[0] = (*res)[0].real();
       
-      if (e->KeywordSet("DOUBLE") || p0->Type() == COMPLEXDBL || p0->Type() == DOUBLE)
+      if (e->KeywordSet("DOUBLE") || 
+	  p0->Type() == COMPLEXDBL ||
+	  p0->Type() == DOUBLE)
 	{
 	  return resreal->Convert2(DOUBLE, BaseGDL::CONVERT);
 	}
@@ -2927,9 +2936,10 @@ BaseGDL* fx_root_fun(EnvT* e)
 	{
 	  return resreal->Convert2(FLOAT, BaseGDL::CONVERT);
 	}
-    }      
+    }
   
-  if (e->KeywordSet("DOUBLE") || p0->Type() == COMPLEXDBL)
+  if (e->KeywordSet("DOUBLE") ||
+      p0->Type() == COMPLEXDBL)
     {
       return res->Convert2(COMPLEXDBL, BaseGDL::CONVERT);
     }
@@ -2937,9 +2947,8 @@ BaseGDL* fx_root_fun(EnvT* e)
     {
       return res->Convert2(COMPLEX, BaseGDL::CONVERT);
     }
-        
 }
-
+  
   /*
    * SA: TODO:
    * constants: Catalan

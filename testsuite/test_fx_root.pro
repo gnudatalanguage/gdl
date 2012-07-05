@@ -2,6 +2,8 @@
 ; under GNU GPL v2 or later
 ; Benjamin Laurent, 18-June-2012
 ; long term contact : Alain Coulais
+;
+; 06-July-2012: we change Func1 to a better one !
 ; 
 ; -------------------------------------------------
 ; usage: in GDL CLI:
@@ -9,9 +11,13 @@
 ;
 ; -------------------------------------------------
 ;
-; from IDL doc
-function FUNC1, X  
+; AC 06/07/2012 the example in IDL doc is stupid !
+function FUNC1_STUPID, X  
   return, EXP(SIN(X)^2 + COS(X)^2 - 1) - 1.
+end
+; alternative example found in Matlab Tuto
+function FUNC1, X  
+  return, COS(x)-x
 end
 ;
 ; from GDL doc
@@ -45,13 +51,17 @@ nb_errors=0
 ;
 ;return one root
 resuFX=FX_ROOT(init,function_name,ITMAX=iter,/DOUBLE,STOP=1,TOL=0.00001)
-;  
-print, resuFX
+resuNW=NEWTON(4.,function_name) 
+;;  
+print, 'FX_ROOT : ',  resuFX
+print, 'FX_NEWTON : ', resuNW
 ;
-;comparing
+; comparing
 ;
-if abs(CALL_FUNCTION(function_name,resuFX)) GT eps then nb_errors=nb_errors+1
-
+if ABS(CALL_FUNCTION(function_name,resuFX)) GT eps then nb_errors=nb_errors+1
+;
+if ABS(resuFX-resuNW) GT eps then nb_errors=nb_errors+1
+;
 if (nb_errors GT 0) then begin
     MESSAGE, /continue, STRING(nb_errors)+' Errors founded'
     if ~KEYWORD_SET(test) then EXIT, status=1
