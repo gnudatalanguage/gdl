@@ -4,7 +4,7 @@
     begin                : Jan 20 2004
     copyright            : (C) 2004 by Joel Gales
     email                : jomoga@users.sourceforge.net
- ***************************************************************************/
+***************************************************************************/
 
 /***************************************************************************
  *                                                                         *
@@ -108,8 +108,8 @@ namespace lib {
     double det;
     long singular=0;
 
-//     if( nParam == 0)
-//       e->Throw( "Incorrect number of arguments.");
+    //     if( nParam == 0)
+    //       e->Throw( "Incorrect number of arguments.");
 
     BaseGDL* p0 = e->GetParDefined( 0);
 
@@ -126,8 +126,8 @@ namespace lib {
     }
 
     // status 
-	// check here, if not done, res would be pending in case of SetPar() throws
-	// SetPar() only throws in AssureGlobalPar()
+    // check here, if not done, res would be pending in case of SetPar() throws
+    // SetPar() only throws in AssureGlobalPar()
     if (nParam == 2) e->AssureGlobalPar( 1);
 
     // only one element matrix
@@ -144,7 +144,7 @@ namespace lib {
 	  singular=1;
 	  (*res)[0]= DComplexDbl(0., 0.);
 	} else {
-	(*res)[0]= DComplexDbl(a/deno, -b/deno);
+	  (*res)[0]= DComplexDbl(a/deno, -b/deno);
 	}
 	if (nParam == 2) e->SetPar(1,new DLongGDL( singular)); 
 	return res;
@@ -187,7 +187,7 @@ namespace lib {
       } else {
 	(*res)[0]= 1.0 / ((*res)[0]);
       }
-	if (nParam == 2) e->SetPar(1,new DLongGDL( singular)); 
+      if (nParam == 2) e->SetPar(1,new DLongGDL( singular)); 
       return res;
     }
     
@@ -314,9 +314,9 @@ namespace lib {
 	DByteGDL* p0B = static_cast<DByteGDL*>( p0);
 
 	//	if (p0->Type() == STRING) {
-	  DFloatGDL* p0SS = static_cast<DFloatGDL*>
-	    (p0->Convert2( FLOAT, BaseGDL::COPY));
-	  //}
+	DFloatGDL* p0SS = static_cast<DFloatGDL*>
+	  (p0->Convert2( FLOAT, BaseGDL::COPY));
+	//}
 
 	DFloatGDL* res = new DFloatGDL( p0->Dim(), BaseGDL::NOZERO);
 
@@ -384,7 +384,7 @@ namespace lib {
 
   template< typename T>
   int cp2data_template( BaseGDL* p0, T* data, SizeT nEl, 
-			 SizeT offset, SizeT stride_in, SizeT stride_out)
+			SizeT offset, SizeT stride_in, SizeT stride_out)
   {
     switch ( p0->Type()) {
     case DOUBLE: 
@@ -552,74 +552,145 @@ namespace lib {
     }
   }
 
-
   template < typename T>
   T* fft_template(BaseGDL* p0,
 		  SizeT nEl, SizeT dbl, SizeT overwrite, 
 		  double direct, DLong dimension)
   {
     SizeT offset;
-    SizeT stride;
-
+    SizeT stride=1;
+    
     T* res;
-
+    T* tabtemp=new T(p0->Dim());
+    
     if (overwrite == 0)
-      if (dimension == 0)
+      {
 	res = new T( p0->Dim(), BaseGDL::ZERO);
-      else
-	res = new T( p0->Dim(dimension-1), BaseGDL::ZERO);
+      } 
     else
       res = (T*) p0;
+    
+    DComplexGDL* tabfft = new DComplexGDL(p0->Dim()) ;
+    DComplexGDL* p0C = static_cast<DComplexGDL*>
+      (p0->Convert2( COMPLEX, BaseGDL::COPY));
+            
+    int dec=0;
+    int temp=0;
+    int flag=0;
+    int l=0;
+        
+    int tab[tabfft->Rank()];
+    for (int y=0;y<tabfft->Rank();y++)
+      tab[y]=0;
+    
+    // Debut demontage tab
 
-
-    if( p0->Rank() == 1 || dimension > 0) {
-	offset=0;
-	stride=1;
-
-	fft_1d( p0, &(*res)[0], nEl, offset, stride, 
-		direct, dbl, dimension);
-
-    } else if ( p0->Rank() == 2) {
-      stride=p0->Dim(0);
-      for( SizeT i=0; i<p0->Dim(0); ++i) {
-	fft_1d( p0, &(*res)[0], p0->Dim(1), i, stride, 
-		direct, dbl, dimension);
-      }
-      for( SizeT i=0; i<p0->Dim(1); ++i) {
-	fft_1d( res, &(*res)[0], 
-		p0->Dim(0), i*p0->Dim(0), 1, 
-		direct, dbl, dimension);
-      }
-    } else if( p0->Rank() >= 3) {
-      unsigned char *used = new unsigned char [nEl];
-
-      stride = nEl;
-      for( SizeT i=p0->Rank(); i<nEl; ++i) used[i] = 0;
-
-      for (SizeT k=p0->Rank(); k>0; --k) {
-	for( SizeT i=0; i<nEl; ++i) used[i] = 0;
-	stride /= p0->Dim(k-1);
-
-	SizeT cnt=1;
-	offset = 0;
-	while(cnt <= nEl/p0->Dim(k-1)) {
-	  if (used[offset] != 1) {
-	    cnt++;
-	    for( SizeT i=0; i<p0->Dim(k-1); ++i) 
-	      used[offset+i*stride] = 1;
-	    if (k == p0->Rank())
-	      fft_1d( p0, &(*res)[0], p0->Dim(k-1), offset, stride, 
-		      direct, dbl, dimension);
-	    else
-	      fft_1d( res, &(*res)[0], p0->Dim(k-1), offset, stride, 
-		      direct, dbl, dimension);
+    l=0;
+    for(int j=0;j<nEl/tabfft->Dim(dimension);j++)
+      {
+	dec=0;		  
+	flag=0;
+	for(int n=0;n<tabfft->Rank();n++)
+	  {
+	    if(tab[n]!=tabfft->Dim(n)-1 && flag==0 && n!=dimension && l!=0)
+	      {
+		tab[n]++;
+		//cout << "tab[" << n << "] = " << tab[n] << endl;
+		flag=1;
+	      }
+	    else if(tab[n]==tabfft->Dim(n)-1 && flag==0 && n!=dimension && l!=0)
+	      tab[n]=0;
+	    
+	    temp=1;
+	    if(n!=0)
+	      {
+		for(int m=n-1;m>=0;m--)
+		  {
+		    temp=temp*tabfft->Dim(m);
+		  }
+	      }
+	    //cout << "temp = " << temp << endl;
+	    dec=dec+tab[n]*temp;
+	    //cout << "dec = " << dec << endl;
 	  }
-	  offset++;
-	}
+	
+	temp=1;
+	for(int y=dimension-1;y>=0;y--)
+	  {
+	    temp=temp*tabfft->Dim(y);
+	  }
+	for(int i=0; i<tabfft->Dim(dimension);i++)
+	  {
+	    (*tabfft)[l]=(*p0C)[dec+i*temp];
+	    //cout << l << "=" << dec+i*temp << endl;
+	    l++;
+	  }
       }
-      delete used;
-    }
+    
+    // Fin demontage tab - Debut res
 
+    temp=1;
+    for(int y=0;y<tabfft->Rank();y++)
+      {
+	if(y!=dimension)
+	  temp=temp*tabfft->Dim(y);
+      }
+    
+    for(int i=0;i<temp;i++)
+      {
+	
+	offset=i*tabfft->Dim(dimension);
+	fft_1d(tabfft, &(*tabtemp)[0], tabfft->Dim(dimension), offset, stride, 
+	       direct, dbl,1);
+      }
+    
+    // Fin res - Debut remontage
+    
+    for (int y=0;y<tabfft->Rank();y++)
+      tab[y]=0;
+    
+    l=0;
+    for(int j=0;j<nEl/tabfft->Dim(dimension);j++)
+      {
+	dec=0;		  
+	flag=0;
+	for(int n=0;n<tabfft->Rank();n++)
+	  {
+	    if(tab[n]!=tabfft->Dim(n)-1 && flag==0 && n!=dimension && l!=0)
+	      {
+		tab[n]++;
+		//cout << "tab[" << n << "] = " << tab[n] << endl;
+		flag=1;
+	      }
+	    else if(tab[n]==tabfft->Dim(n)-1 && flag==0 && n!=dimension && l!=0)
+	      tab[n]=0;
+	    
+	    temp=1;
+	    if(n!=0)
+	      {
+		for(int m=n-1;m>=0;m--)
+		  {
+		    temp=temp*tabfft->Dim(m);
+		  }
+	      }
+	    //cout << "temp = " << temp << endl;
+	    dec=dec+tab[n]*temp;
+	    //cout << "dec = " << dec << endl;
+	  }
+	
+	temp=1;
+	for(int y=dimension-1;y>=0;y--)
+	  {
+	    temp=temp*tabfft->Dim(y);
+	  }
+	for(int i=0; i<tabfft->Dim(dimension);i++)
+	  {
+	    (*res)[dec+i*temp]=(*tabtemp)[l];
+	    //cout << l << "=" << dec+i*temp << endl;
+	    l++;
+	  }
+      }
+        
     return res;
   }
 
@@ -630,11 +701,11 @@ namespace lib {
       Program Flow
       ------------
       fft_fun
-         fft_template
-	    fft_1d
-	       (real/complex)_fft_transform_template
-	          cp2data_template (real only)
-		     cp2data_2_template (real only)
+      fft_template
+      fft_1d
+      (real/complex)_fft_transform_template
+      cp2data_template (real only)
+      cp2data_2_template (real only)
     */
 
     SizeT nParam=e->NParam();
@@ -647,7 +718,7 @@ namespace lib {
 
     if( nParam == 0)
       e->Throw( 
-			  "Incorrect number of arguments.");
+	       "Incorrect number of arguments.");
 
 
     //BaseGDL* p0 = e->GetNumericArrayParDefined( 0); 
@@ -656,15 +727,15 @@ namespace lib {
     SizeT nEl = p0->N_Elements();
     if( nEl == 0)
       e->Throw( 
-			  "Variable is undefined: "+e->GetParString(0));
+	       "Variable is undefined: "+e->GetParString(0));
   
 
     if( nParam == 2) {
       BaseGDL* p1 = e->GetPar( 1);
       if (p1->N_Elements() > 1)
 	e->Throw( 
-			    "Expression must be a scalar or 1 element array: "
-			    +e->GetParString(1));
+		 "Expression must be a scalar or 1 element array: "
+		 +e->GetParString(1));
 
 
 
@@ -680,12 +751,10 @@ namespace lib {
 
     // Check for dimension keyword
     DLong dimension=0;
-    if(e->KeywordSet(3)) {
+    if(e->KeywordSet(3)) 
       e->AssureLongScalarKW( 3, dimension);
-      for( SizeT i=0; i<p0->Rank(); ++i)
-	if (i != (dimension-1)) nEl /= p0->Dim(i);
-      overwrite = 0;  // Disable overwrite
-    }
+    dimension--;
+     
 
     if( p0->Type() == COMPLEXDBL || p0->Type() == DOUBLE || dbl) {
 
@@ -697,7 +766,7 @@ namespace lib {
       return fft_template< DComplexDblGDL> (p0, nEl, dbl, overwrite,
 					    direct, dimension);
 
-    }
+    }  
     else if( p0->Type() == COMPLEX) {
 
 	//cout << "if 2" << endl;
@@ -885,7 +954,6 @@ namespace lib {
 	return 0;
       }
   }
-
 
   template< typename T1, typename T2>
   int random_template( EnvT* e, T1* res, gsl_rng *r, 
