@@ -2773,7 +2773,12 @@ BaseGDL* fx_root_fun(EnvT* e)
   DComplexDblGDL* init = e->GetParAs<DComplexDblGDL>(0);
   BaseGDL* par0 = p0->Convert2(COMPLEXDBL, BaseGDL::COPY);
   auto_ptr<BaseGDL> par0_guard(par0);
- 
+
+  if (init->N_Elements() != 3)
+    {
+      e->Throw("Initial guess vector must be a 3-element vector");
+    }
+  
   // 2-nd argument : function name 
   DString fun;
   e->AssureScalarPar<DStringGDL>(1, fun);
@@ -2908,6 +2913,22 @@ BaseGDL* fx_root_fun(EnvT* e)
     }
   while ( (isfinite(x2.real()) == 1 && isfinite(x2.imag()) == 1) && stopcri >= tol && iter < max_iter);
     
+  if ((*res)[0].imag() == 0)
+    {
+      DDoubleGDL* resreal;
+      resreal = new DDoubleGDL(1, BaseGDL::NOZERO);
+      (*resreal)[0] = (*res)[0].real();
+      
+      if (e->KeywordSet("DOUBLE") || p0->Type() == COMPLEXDBL || p0->Type() == DOUBLE)
+	{
+	  return resreal->Convert2(DOUBLE, BaseGDL::CONVERT);
+	}
+      else
+	{
+	  return resreal->Convert2(FLOAT, BaseGDL::CONVERT);
+	}
+    }      
+  
   if (e->KeywordSet("DOUBLE") || p0->Type() == COMPLEXDBL)
     {
       return res->Convert2(COMPLEXDBL, BaseGDL::CONVERT);
