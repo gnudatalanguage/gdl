@@ -2662,7 +2662,8 @@ void Data_<Sp>::AssignAtIx( RangeT ixR, BaseGDL* srcIn)
   
 	if( srcIn->Type() != this->Type())
     {
-      Data_* rConv = static_cast<Data_*>(srcIn->Convert2( this->Type(), BaseGDL::COPY));
+      Data_* rConv = static_cast<Data_*>(srcIn->Convert2( this->Type(), BaseGDL::COPY_BYTE_AS_INT));
+//      Data_* rConv = static_cast<Data_*>(srcIn->Convert2( this->Type(), BaseGDL::COPY));
       auto_ptr<Data_> conv_guard( rConv);
       (*this)[ix] = (*rConv)[0];
     }
@@ -2673,7 +2674,8 @@ void Data_<Sp>::AssignAtIx( RangeT ixR, BaseGDL* srcIn)
 	} // ixR >= 0
   if( srcIn->Type() != this->Type())
     {
-      Data_* rConv = static_cast<Data_*>(srcIn->Convert2( this->Type(), BaseGDL::COPY));
+      Data_* rConv = static_cast<Data_*>(srcIn->Convert2( this->Type(), BaseGDL::COPY_BYTE_AS_INT));
+//       Data_* rConv = static_cast<Data_*>(srcIn->Convert2( this->Type(), BaseGDL::COPY));
       auto_ptr<Data_> conv_guard( rConv);
       (*this)[ixR] = (*rConv)[0];
     }

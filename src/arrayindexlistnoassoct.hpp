@@ -682,7 +682,7 @@ public:
 	  throw GDLException(NULL,"Scalar subscript out of range [<].4",true,false);
 	if( s >= var->Size())
 	  throw GDLException(NULL,"Scalar subscript out of range [>].4",true,false);
-	var->AssignAtIx( s, right);
+	var->AssignAtIx( s, right); // must use COPY_BYTE_AS_INT
 	return;
       }
     

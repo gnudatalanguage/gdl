@@ -234,13 +234,13 @@ template<> BaseGDL* Data_<SpDByte>::Convert2( DType destTy, BaseGDL::Convert2Mod
 	if( mode == BaseGDL::COPY_BYTE_AS_INT)
 	  {
 	    Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-#pragma omp for
+// TRACEOMP( __FILE__, __LINE__)
+// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+// {
+// #pragma omp for
 	    for( SizeT i=0; i < nEl; ++i)
-	      (*dest)[i]=i2s((*this)[i],4);
-}
+	      (*dest)[i]=i2s(static_cast<int>((*this)[i]),4);
+// }
 	    if( (mode & BaseGDL::CONVERT) != 0) delete this;
 	    return dest;
 	  }
