@@ -19,6 +19,7 @@
 ;                 better managment of (missing/void) inputs
 ;   11-Aug-2011 : Alain Coulais : solving conflits due to
 ;                 /preserve_null and /regex; curing bugs in special cases
+;   11-Jul-2012 : When /extract, we must return STRARR even for 1-element
 ;
 ; LICENCE:
 ; Copyright (C)
@@ -139,7 +140,9 @@ if ((short_cut EQ 0) AND (N_PARAMS() EQ 2)) then begin
       resu=0
       beg=0
       ;;
-      for ii=0, STRLEN(input2)-1 do resu=[resu, STRMULTIPOS(local_input1, STRMID(input2, ii, 1))]
+      for ii=0, STRLEN(input2)-1 do begin
+         resu=[resu, STRMULTIPOS(local_input1, STRMID(input2, ii, 1))]
+      endfor
       ;;
       resu=resu[WHERE(resu GE 0)]
       tst=resu[WHERE(resu EQ 0)]
@@ -162,13 +165,13 @@ if ((short_cut EQ 0) AND (N_PARAMS() EQ 2)) then begin
             endif else begin
                sresu[0]=STRMID(local_input1, resu[0]+1, resu[1]-resu[0]-1)
             endelse
-
+            
             for ii=1, N_ELEMENTS(resu)-2 do begin
                ;;print, resu[ii]+1,resu[ii+1]-resu[ii]-1                    
                sresu[ii]=STRMID(local_input1, resu[ii]+1,resu[ii+1]-resu[ii]-1)
             endfor
             sresu[N_ELEMENTS(resu)-1]=STRMID(local_input1, resu[N_ELEMENTS(resu)-1]+1)
-                                ;stop
+            ;;stop
             resu=sresu
          endelse
          ;;
@@ -212,7 +215,17 @@ if ARG_PRESENT(length) then length=STRLEN(resu)
 ;
 if KEYWORD_SET(test) then STOP
 ;
-if (SIZE(resu,/type) NE 7) then resu=LONG(resu)
+if (SIZE(resu,/type) NE 7) then begin
+   resu=LONG(resu)
+endif else begin
+   ;; when we have a non null (not '') string singleton
+   ;; we must return an array
+   if ((SIZE(resu,/n_dim) EQ 0) AND (STRLEN(resu) GT 0)) then begin
+      resu=REFORM(resu,1)
+   endif
+endelse
+;
+if KEYWORD_SET(test) then STOP
 ;
 return, resu
 ;
