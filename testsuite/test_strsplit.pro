@@ -244,6 +244,27 @@ if (ARRAY_EQUAL(tab,res, /NO_TYPECONV) eq 0) then begin
    nb_pbs=nb_pbs+1
 endif
 ;
+; we must return a STRARR except for ''
+;
+tab=STRSPLIT('eeee','e',/extract)
+if (SIZE(tab, /n_dim) NE 0) then begin
+   if KEYWORD_SET(verbose) then MESSAGE, 'bad size for void string', /continue
+   nb_pbs=nb_pbs+1
+endif
+tab=STRSPLIT('eeABCee','e',/extract)
+if (SIZE(tab, /n_dim) NE 1) then begin
+   if KEYWORD_SET(verbose) then MESSAGE, 'bad size for 1D STRARR', /continue
+   nb_pbs=nb_pbs+1
+endif
+if (tab NE 'ABC') then begin
+   if KEYWORD_SET(verbose) then MESSAGE, 'bad value in STRARR', /continue
+   nb_pbs=nb_pbs+1
+endif
+tab=STRSPLIT('eeABCeeABCee','e',/extract)
+if (SIZE(tab, /n_dim) NE 1) then begin
+   if KEYWORD_SET(verbose) then MESSAGE, 'bad size for 2 elements STRARR', /continue
+   nb_pbs=nb_pbs+1
+endif
 ;
 vide=''
 if (EXECUTE('res=TEXTOIDL(vide)') EQ 0) then begin
