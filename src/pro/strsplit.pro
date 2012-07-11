@@ -220,8 +220,8 @@ if (SIZE(resu,/type) NE 7) then begin
 endif else begin
    ;; when we have a non null (not '') string singleton
    ;; we must return an array
-   if ((SIZE(resu,/n_dim) EQ 0) AND (STRLEN(resu) GT 0)) then begin
-      resu=REFORM(resu,1)
+   if (SIZE(resu,/n_dim) EQ 0) then begin
+      if (STRLEN(resu) GT 0) then resu=REFORM(resu,1)
    endif
 endelse
 ;
