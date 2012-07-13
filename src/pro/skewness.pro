@@ -1,27 +1,24 @@
-;$Id: skewness.pro,v 1.2 2005-07-25 07:33:25 m_schellens Exp $
-function skewness, x, double=double, NaN=NaN
-
+;$Id: skewness.pro,v 1.3 2012-07-13 22:28:02 alaingdl Exp $
+;
+function skewness, x, double=double, NaN=NaN, dimension=dimension
+;
 ;+
 ;
-;
-;
-; NAME: 
-;       skewness
+; NAME: SKEWNESS
 ;
 ; PURPOSE: 
 ;     Calculates the skewness of the input data
 ;       
-;
 ; CATEGORY:
 ;     Mathematics: Statistics
 ;
-; CALLING SEQUENCE:
-;     Result=skewness(x)
-;
+; CALLING SEQUENCE:  Result=SKEWNESS(x [, /nan][,/double][, dim=])
 ;
 ; KEYWORD PARAMETERS: 
 ;     DOUBLE : Keyword for double precision calculation
 ;     NAN    : Flag to treat IEEE Special Floating-Point values as missing data
+;     DIMENSION : if absent or equal to zero, compute the variance over the
+;                 whole data. otherwise, compute along the related dimension.
 ;
 ; OUTPUTS:
 ;    Result is the mean of input data
@@ -36,17 +33,19 @@ function skewness, x, double=double, NaN=NaN
 ;     Uses the MOMENT function
 ;
 ; EXAMPLE:
-;     a=findgen(100)
-;     result=mean(a)
+;     a=FINDGEN(100)
+;     result=SKEWNESS(a)
 ;     print, result
 ;     0.0000
 ;
 ; MODIFICATION HISTORY:
 ;   20-Mar-2004 : Written by Christopher Lee
 ;   18-Jul-2005 : PC, moment.pro update
+;   13-Jul-2012 : Alain Coulais : adding DIMENSION keyword, using MOMENT()
 ;
 ; LICENCE:
-; Copyright (C) 2004,
+; Copyright (C) 2004, Christopher Lee, 2005 P. Chanial, 2012 Alain Coulais
+;
 ; This program is free software; you can redistribute it and/or modify  
 ; it under the terms of the GNU General Public License as published by  
 ; the Free Software Foundation; either version 2 of the License, or     
@@ -54,10 +53,12 @@ function skewness, x, double=double, NaN=NaN
 ;
 ;
 ;-
-
- on_error, 2
- 
- m = moment(x, double=double, NaN=NaN)
- return, m[2]
-
+;
+ON_ERROR, 2
+;
+tmp = MOMENT(x, skewness=skewness, double=double, NaN=NaN, $
+             dimension=dimension, maxmoment=3)
+;
+return, skewness
+;
 end

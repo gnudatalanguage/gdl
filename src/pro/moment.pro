@@ -5,22 +5,16 @@ function MOMENT, x, mdev=mdev, sdev=sdev, $
                  skewness=skewness, variance=variance
 ;+
 ;
-;
-;
-; NAME: 
-;       MOMENT
+; NAME: MOMENT
 ;
 ; PURPOSE: 
 ;     Calculates the following from the input data; mean, variance,
 ;     skewness, kurtosis, mean absolute deviation, standard deviation
 ;       
-;
 ; CATEGORY:
 ;     Mathematics: Statistics
 ;
-; CALLING SEQUENCE:
-;     Result=moment(x)
-;
+; CALLING SEQUENCE: Result=MOMENT(x)
 ;
 ; KEYWORD PARAMETERS: 
 ;     DOUBLE    : Keyword for double precision calculation
@@ -30,6 +24,10 @@ function MOMENT, x, mdev=mdev, sdev=sdev, $
 ;                 2 - calculate mean, variance, mean absolute deviation and standard dev.
 ;                 3 - calculate all but kurtosis
 ;                 4 or 0 (keyword not present) - calculate all moments
+;     DIMENSION : if absent or equal to zero, compute the values
+;                 (moment, stddev, variance, skewness and kurtosis)
+;                 over the whole data. otherwise, compute along the related
+;                 dimension.
 ;
 ; OUTPUTS:
 ;    Result is a 4 element array, with
@@ -38,7 +36,7 @@ function MOMENT, x, mdev=mdev, sdev=sdev, $
 ; OPTIONAL OUTPUTS:
 ;     MDEV   : Named variable which will contain the mean absolute deviation
 ;     SDEV   : Named variable which will contain the standard deviation
-;
+;     KURTOSIS, MEAN, SKEWNESS, VARIANCE: as named !
 ;
 ; RESTRICTIONS:
 ;    The input x needs to be an array of numbers (i.e not strings,
@@ -60,8 +58,8 @@ function MOMENT, x, mdev=mdev, sdev=sdev, $
 ;     standard deviation = sqrt(variance)
 ;
 ; EXAMPLE:
-;     a=findgen(100)
-;     result=moment(a)
+;     a=FINDGEN(100)
+;     result=MOMENT(a)
 ;     print, result
 ;     49.5000    841.667     0.0000   1.73395
 ;
@@ -73,18 +71,18 @@ function MOMENT, x, mdev=mdev, sdev=sdev, $
 ;   18-Jul-2005 : Rewritten by Pierre Chanial
 ;   10-Aug-2009 : MAXMOMENT keyword added by Sylwester Arabas
 ;   14-Oct-2010 : Correcting Bug in Kurtosis (by Alain C.)
-;
+;   16-Jun-2012 : Dimension Keyword (by Mathieu Pinter)
 ;
 ; LICENCE:
 ; Copyright (C) 2004, Christopher Lee
 ;               2005, Pierre Chanial
 ;               2009, Sylwester Arabas
 ;               2010, Alain Coulais
+;               2012, Mathieu Pinter and Alain Coulais
 ; This program is free software; you can redistribute it and/or modify  
 ; it under the terms of the GNU General Public License as published by  
 ; the Free Software Foundation; either version 2 of the License, or     
 ; (at your option) any later version.                                   
-;
 ;
 ;-
 ON_ERROR, 2
@@ -120,12 +118,12 @@ IF ~KEYWORD_SET(maxmoment) THEN maxmoment = 4
 IF ~KEYWORD_SET(dimension) THEN dimension = 0
 ;
 IF dimension EQ 0 THEN BEGIN
-;
-; get the mean value in the required type (FLOAT or DOUBLE)
-; subsequent operations will rely on GDL automatic type conversion
+   ;;
+   ;; get the mean value in the required type (FLOAT or DOUBLE)
+   ;; subsequent operations will rely on GDL automatic type conversion
    mean = TOTAL(x, DOUBLE=double, NaN=NaN)/n
    x0   = x-mean
-;
+   ;;
    variance = maxmoment GE 2 ? TOTAL(x0^2, NaN=NaN)/(n-1)        : !VALUES.F_NAN
    sdev     = maxmoment GE 2 ? SQRT(variance)                    : !VALUES.F_NAN 
    skewness = maxmoment GE 3 ? TOTAL(x0^3, NaN=NaN)/sdev^3/n     : !VALUES.F_NAN
