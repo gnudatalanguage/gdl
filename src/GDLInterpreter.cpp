@@ -2277,6 +2277,7 @@ void GDLInterpreter::l_dot_array_expr(ProgNodeP _t,
 	aD->Root(structR); 
 	}
 		}
+	return;
 	//	_retTree = _t;
 	
 	

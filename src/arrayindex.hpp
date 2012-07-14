@@ -525,6 +525,7 @@ public:
     //SizeT nElem = ix_->N_Elements();
     //    ix = new SizeT[ nElem]; // allocate array
 
+  //DEBUG if( ix != NULL)    
     assert( ix == NULL);
 
     //     ix = new AllIxMultiT( nElem);

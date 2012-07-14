@@ -1914,6 +1914,7 @@ l_dot_array_expr [DotAccessDescT* aD] // 1st
                 aD->Root(structR); 
             }
 	}
+    return;
 //	_retTree = _t;
 }
     : #(ARRAYEXPR rP=l_indexable_expr aL=arrayindex_list)   
