@@ -32,6 +32,8 @@ endif
 ;
 DEFSYSV, '!gdl', exists=isGDL
 ;
+check_dim=0
+;
 if (isGDL) then begin
    check_dim=1
    if KEYWORD_SET(verbose) then begin
@@ -41,7 +43,7 @@ if (isGDL) then begin
 endif else begin
    ;; when IDL, which major version ? we assume "." is the separator !
    version=!version.release
-   if (FIX(STRMID(version,0, STRPOS(version,'.'))) LT 8) then check_dim=0
+   if (FIX(STRMID(version,0, STRPOS(version,'.'))) GE 8) then check_dim=1
    if KEYWORD_SET(verbose) then begin
       if (check_dim EQ 0) then begin
          MESSAGE,/cont, 'in IDL, before 8.0, dimension keyword not available !'
