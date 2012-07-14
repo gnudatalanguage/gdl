@@ -2793,6 +2793,7 @@ res_guard.reset (dres);
     
     gsl_poly_complex_workspace_free (w);
     
+    int debug =0;
     if (debug) {
       for (int i = 0; i < resultSize; i++)
       {
@@ -2961,8 +2962,8 @@ BaseGDL* fx_root_fun(EnvT* e)
 	if (debug) {
 	  cout << "Iteration " << iter << endl;
 	  cout << "x0: " << setprecision(15) << x0 << endl;
-	  cout << "x1: " <<setprecision(15) << x1 << endl;
-	  cout << "x2: " <<setprecision(15) << x2 << endl;
+	  cout << "x1: " << setprecision(15) << x1 << endl;
+	  cout << "x2: " << setprecision(15) << x2 << endl;
 	  cout << "tmpdisc "<< tmpdisc << endl;
 	}
 
