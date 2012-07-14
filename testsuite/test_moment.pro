@@ -5,27 +5,124 @@
 ;
 ; ToDo: testing /NaN ?!
 ;
+; Since 16 June 2012, we also have DIMENSION for MOMENT() (Mathieu Pinter)
+; Since 14 July 2012, we also have DIMENSION for related codes:
+;                     MEAN(), STDDEV(), VARIANCE(), SKEWNESS(), KURTOSIS()
+;
+; -------------------------------------------------------------
+;
 function ERREUR, x1, x2
 return, SQRT(TOTAL((x1-x2)^2))
 end
 ;
-pro TEST_MOMENT, help=help, test=test, no_exit=no_exit, verbose=verbose
+; -------------------------------------------------------------
 ;
-if KEYWORD_SET(help) then begin
-    print, 'pro TEST_MOMENT, help=help, test=test, no_exit=no_exit, verbose=verbose'
-    return
-endif
+function CHECK_DIMENSION_CAPABILITY, verbose=verbose
 ;
 ; IDL before version 8 cannot manage DIMENSION keyword
 ;
+; Since 16 June 2012, we also have DIMENSION for MOMENT()
+; Since 14 July 2012, we also have DIMENSION for related codes:
+;    MEAN(), STDDEV(), VARIANCE(), SKEWNESS(), KURTOSIS()
+;
+if KEYWORD_SET(verbose) then begin
+   txt1='dimension keyword is available in MOMENT() and related codes:'
+   txt2='MEAN(), STDDEV(), VARIANCE(), SKEWNESS(), KURTOSIS()'
+endif
+;
 DEFSYSV, '!gdl', exists=isGDL
+;
 if (isGDL) then begin
-    check_dim=1
+   check_dim=1
+   if KEYWORD_SET(verbose) then begin
+      MESSAGE,/cont, 'in GDL, '+txt1
+      MESSAGE,/cont, txt2
+   endif
 endif else begin
-    ;; when IDL, which major version ? we assume "." is the separator !
-    version=!version.release
-    if (FIX(STRMID(version,0, STRPOS(version,'.'))) LT 8) then check_dim=0
+   ;; when IDL, which major version ? we assume "." is the separator !
+   version=!version.release
+   if (FIX(STRMID(version,0, STRPOS(version,'.'))) LT 8) then check_dim=0
+   if KEYWORD_SET(verbose) then begin
+      if (check_dim EQ 0) then begin
+         MESSAGE,/cont, 'in IDL, before 8.0, dimension keyword not available !'
+      endif else begin
+         MESSAGE,/cont, 'in IDL, since 8.0, '+txt1
+         MESSAGE,/cont, txt2
+      endelse
+   endif
 endelse
+;
+return, check_dim
+;
+end
+;
+; -------------------------------------------------------------
+;
+pro CHECK_VISUAL_MOMENT, data, force_dim=force_dim, no_exit=no_exit, $
+                         help=help, test=test, verbose=verbose
+;
+if KEYWORD_SET(help) then begin
+   print, 'pro CHECK_VISUAL_MOMENT, data, force_dim=force_dim, no_exit=no_exit, $'
+   print, '                         help=help, test=test, verbose=verbose'
+   return
+endif
+;
+; do we have the dimension keyword capability ?
+;
+if ~KEYWORD_SET(force_dim) then begin
+   check_dim=CHECK_DIMENSION_CAPABILITY()
+endif else check_dim=1
+;
+if (check_dim EQ 0) then begin
+   MESSAGE, 'this test requires Dimension keyword capability'
+endif
+;
+if N_PARAMS() EQ 0 then data=DIST(115, 128)
+;
+nb_nan=N_ELEMENTS(data)/10
+pos=FIX(RANDOMU(seed,nb_nan)*N_ELEMENTS(data))
+data_NaN=data
+data_NaN[pos]=!values.f_nan
+;
+for ii=0,1 do begin
+   if ii EQ 0 then begin
+      tmp=data 
+      title='no NaN'
+   endif else begin
+      tmp=data_NaN
+      title='with 10% NaN'
+   endelse
+   WINDOW, ii, xsize=400, ysize=750, title=title
+   !p.multi=[0,2,4]
+   ;;
+   plot, MEAN(tmp, dim=1,/nan), title='MEAN, dim=1'
+   plot, MEAN(tmp, dim=2,/nan), title='MEAN, dim=1'
+   plot, STDDEV(tmp, dim=1,/nan), title='STDDEV, dim=1'
+   plot, STDDEV(tmp, dim=2,/nan), title='STDDEV, dim=2'
+   plot, SKEWNESS(tmp, dim=1,/nan), title='SKEWNESS, dim=1'
+   plot, SKEWNESS(tmp, dim=2,/nan), title='SKEWNESS, dim=2'
+   plot, KURTOSIS(tmp, dim=1,/nan), title='KURTOSIS, dim=1'
+   plot, KURTOSIS(tmp, dim=2,/nan), title='KURTOSIS, dim=2'
+endfor
+;
+!p.multi=0
+;
+end
+;
+pro TEST_NUMERICAL_MOMENT, force_dim=force_dim, no_exit=no_exit, $
+                           help=help, test=test, verbose=verbose
+;
+if KEYWORD_SET(help) then begin
+    print, 'pro TEST_NUMERICAL_MOMENT, force_dim=force_dim, no_exit=no_exit, $'
+    print, '                           help=help, test=test, verbose=verbose'
+    return
+endif
+;
+; do we have the dimension keyword capability ?
+;
+if ~KEYWORD_SET(force_dim) then begin
+   check_dim=CHECK_DIMENSION_CAPABILITY(/verbose)
+endif else check_dim=1
 ;
 nb_pb=0
 ;
@@ -93,3 +190,17 @@ if KEYWORD_SET(test) then STOP
 if (nb_pb GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
 ;
 end
+;
+; ------------------------------------
+;
+pro TEST_MOMENT, force_dim=force_dim, $
+                 help=help, test=test, no_exit=no_exit, verbose=verbose
+;
+TEST_NUMERICAL_MOMENT, force_dim=force_dim, help=help, $
+                       test=test, no_exit=no_exit, verbose=verbose
+;
+CHECK_VISUAL_MOMENT, force_dim=force_dim, help=help, $
+                     test=test, no_exit=no_exit, verbose=verbose
+;
+end
+

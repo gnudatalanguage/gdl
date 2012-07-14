@@ -2793,11 +2793,12 @@ res_guard.reset (dres);
     
     gsl_poly_complex_workspace_free (w);
     
-    for (int i = 0; i < resultSize; i++)
+    if (debug) {
+      for (int i = 0; i < resultSize; i++)
       {
-	printf ("z%d = %+.18f %+.18f\n", 
-		i, tmp[2*i], tmp[2*i+1]);
+	printf ("z%d = %+.18f %+.18f\n", i, tmp[2*i], tmp[2*i+1]);
       }
+    }
     DComplexDblGDL* result = new DComplexDblGDL(dimension(resultSize), BaseGDL::NOZERO);
     for (SizeT i = 0; i < resultSize; ++i) 
       {

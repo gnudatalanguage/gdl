@@ -72,6 +72,7 @@ function MOMENT, x, mdev=mdev, sdev=sdev, $
 ;   10-Aug-2009 : MAXMOMENT keyword added by Sylwester Arabas
 ;   14-Oct-2010 : Correcting Bug in Kurtosis (by Alain C.)
 ;   16-Jun-2012 : Dimension Keyword (by Mathieu Pinter)
+;   14-Jul-2012 : check ASAP whether Dimension value is OK ... (by Alain C.)
 ;
 ; LICENCE:
 ; Copyright (C) 2004, Christopher Lee
@@ -87,37 +88,41 @@ function MOMENT, x, mdev=mdev, sdev=sdev, $
 ;-
 ON_ERROR, 2
 ;
-IF (N_ELEMENTS(x) LE 1) THEN BEGIN
+if (N_ELEMENTS(x) LE 1) then begin
    MESSAGE, 'Input Array must contain 2 OR more elements.'
-ENDIF
+endif
 ;
 ; we don't reuse code in mean.pro, because we need variable n.
 ;
-IF KEYWORD_SET(dimension) THEN BEGIN 
+if KEYWORD_SET(dimension) then begin
+   ;; we check asap whether "dimension" in the good range
+   if ((dimension GT SIZE(x, /N_DIMENSION)) || (dimension LT 0)) then begin
+      MESSAGE, "Illegal keyword value for DIMENSION."
+   endif
    dim = SIZE(x, /DIMENSION)
-   IF KEYWORD_SET(NaN) THEN BEGIN   
+   if KEYWORD_SET(NaN) then begin 
       n = TOTAL(FINITE(x), dimension)
-   ENDIF ELSE BEGIN
+   endif else begin
       n = dim(dimension-1)
-   ENDELSE
-ENDIF ELSE BEGIN
-   IF KEYWORD_SET(NaN) THEN BEGIN
+   endelse
+endif else begin
+   dimension = 0
+   if KEYWORD_SET(NaN) THEN BEGIN
       n = TOTAL(FINITE(x), DOUBLE=double)
-   ENDIF ELSE BEGIN
+   endif ELSE BEGIN
       n = N_ELEMENTS(x)
-   ENDELSE
-ENDELSE
+   endelse
+endelse
 ;
 ; if input is : print, MOMENT([1,!values.f_nan],/na)
 ;
-IF (TOTAL(n) LE 1) THEN BEGIN
+if (TOTAL(n) LE 1) THEN BEGIN
    MESSAGE, 'Input Array must contain 2 OR more elements.'
-ENDIF
+endif
 ; 
-IF ~KEYWORD_SET(maxmoment) THEN maxmoment = 4
-IF ~KEYWORD_SET(dimension) THEN dimension = 0
+if ~KEYWORD_SET(maxmoment) THEN maxmoment = 4
 ;
-IF dimension EQ 0 THEN BEGIN
+if dimension EQ 0 THEN BEGIN
    ;;
    ;; get the mean value in the required type (FLOAT or DOUBLE)
    ;; subsequent operations will rely on GDL automatic type conversion
@@ -129,29 +134,25 @@ IF dimension EQ 0 THEN BEGIN
    skewness = maxmoment GE 3 ? TOTAL(x0^3, NaN=NaN)/sdev^3/n     : !VALUES.F_NAN
    kurtosis = maxmoment GE 4 ? (TOTAL(x0^4, NaN=NaN)/sdev^4)/n-3 : !VALUES.F_NAN
    result = [mean, variance, skewness, kurtosis]
-ENDIF ELSE BEGIN
-   IF dimension GT SIZE(x, /N_DIMENSION) || dimension LT 0 THEN BEGIN
-      MESSAGE, "Illegal keyword value for DIMENSION."
-   ENDIF ELSE BEGIN
-      mean = TOTAL(x, dimension, DOUBLE=double, NaN=NaN)/n
-      dim2 = dim
-      dim2(dimension-1) = 1
-      IF KEYWORD_SET(double) THEN nan1 = DBLARR(SIZE(mean, /DIMENSION)) 
-      IF ~KEYWORD_SET(double) THEN nan1=fltarr(size(mean, /DIMENSION))
-      nan1(*) = !VALUES.F_NAN
-      x0 = (x-REBIN(REFORM(mean, dim2), dim))
-      variance = maxmoment GE 2 ? TOTAL((x0)^2, dimension, NaN=NaN)/(n-1)        : nan1
-      sdev     = maxmoment GE 2 ? SQRT(variance)                                 : nan1
-      skewness = maxmoment GE 3 ? TOTAL((x0)^3, dimension, NaN=NaN)/(n*sdev^3)   : nan1
-      kurtosis = maxmoment GE 4 ? TOTAL((x0)^4, dimension, NaN=NaN)/(n*sdev^4)-3 : nan1
-      result = [[[mean]], [[variance]], [[skewness]], [[kurtosis]]]
-   ENDELSE
-ENDELSE
+endif ELSE BEGIN
+   mean = TOTAL(x, dimension, DOUBLE=double, NaN=NaN)/n
+   dim2 = dim
+   dim2(dimension-1) = 1
+   if KEYWORD_SET(double) then nan1 = DBLARR(SIZE(mean, /DIMENSION)) 
+   if ~KEYWORD_SET(double) then nan1= FLTARR(SIZE(mean, /DIMENSION))
+   nan1(*) = !VALUES.F_NAN
+   x0 = (x-REBIN(REFORM(mean, dim2), dim))
+   variance = maxmoment GE 2 ? TOTAL((x0)^2, dimension, NaN=NaN)/(n-1)        : nan1
+   sdev     = maxmoment GE 2 ? SQRT(variance)                                 : nan1
+   skewness = maxmoment GE 3 ? TOTAL((x0)^3, dimension, NaN=NaN)/(n*sdev^3)   : nan1
+   kurtosis = maxmoment GE 4 ? TOTAL((x0)^4, dimension, NaN=NaN)/(n*sdev^4)-3 : nan1
+   result = [[[mean]], [[variance]], [[skewness]], [[kurtosis]]]
+endelse
 ;
-IF ARG_PRESENT(mdev) THEN BEGIN
+if ARG_PRESENT(mdev) THEN BEGIN
    mdev = maxmoment GE 2 ? TOTAL(ABS(x0), dimension, NaN=NaN)/n : !VALUES.F_NAN
-ENDIF
+endif
 ;
-RETURN, result
+return, result
 ; 
-END
+end
