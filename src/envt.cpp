@@ -907,9 +907,9 @@ void EnvBaseT::SetKeyword( const string& k, BaseGDL** const val) // reference
 }
 
 // called after parameter definition
-void EnvBaseT::Extra()
+void EnvBaseT::ResolveExtra()
 {
-  if( extra != NULL) extra->Resolve();
+  if( extra != NULL) extra->ResolveExtra( NULL);
 }
 
 EnvBaseT* EnvBaseT::Caller()
@@ -970,7 +970,7 @@ void EnvT::PushNewEnvUD(  DSub* newPro, SizeT skipP, BaseGDL** newObj)
   // _REF_EXTRA is set to the keyword string array
   newEnv->extra = new ExtraT( newEnv);
   newEnv->extra->Set( &env[0]);
-  newEnv->extra->Resolve(); // s. a. problem caused here due to a call to EnvBaseT::Caller() in Resolve()
+  newEnv->extra->ResolveExtra( this); // s. a. problem caused here due to a call to EnvBaseT::Caller() in Resolve()
 
   interpreter->CallStack().push_back( newEnv); 
 }
@@ -994,7 +994,7 @@ EnvT* EnvT::NewEnv(  DSub* newPro, SizeT skipP, BaseGDL** newObj)
   // _REF_EXTRA is set to the keyword string array
   newEnv->extra = new ExtraT( newEnv);
   newEnv->extra->Set( &env[0]);
-  newEnv->extra->Resolve();
+  newEnv->extra->ResolveExtra( this);
 
   return newEnv;
 }

@@ -3393,7 +3393,7 @@ parameter_def [EnvBaseT* actEnv]
                         while(_retTree != NULL) 
                             static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
                     }    
-                actEnv->Extra(); // expand _EXTRA        
+                actEnv->ResolveExtra(); // expand _EXTRA        
             }
     } 
     catch( GDLException& e)
@@ -3439,7 +3439,7 @@ parameter_def_nocheck [EnvBaseT* actEnv]
                 while(_retTree != NULL) 
                      static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
 
-                actEnv->Extra(); // expand _EXTRA        
+                actEnv->ResolveExtra(); // expand _EXTRA        
             }
     } 
     catch( GDLException& e)

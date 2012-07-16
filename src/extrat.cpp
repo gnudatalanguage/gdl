@@ -23,7 +23,7 @@
 
 using namespace std;
 
-void ExtraT::Resolve()
+void ExtraT::ResolveExtra(EnvBaseT* callerIn)
 {
   // if the subroutine has _REF_EXTRA, explicit keywords override
   // if the subroutine has _EXTRA, _EXTRA keywords override
@@ -35,6 +35,9 @@ void ExtraT::Resolve()
   DSub* pro=thisEnv->pro;
 
   DSub::ExtraType extraType= pro->Extra();
+
+//   EnvBaseT* callerDebug=thisEnv->Caller();
+//   DSub::ExtraType extraTypeDebug= callerDebug->pro->Extra();
 
   DStructGDL* extraStruct= dynamic_cast<DStructGDL*>(thisExtra);
   if( extraStruct != NULL) // _EXTRA
@@ -63,8 +66,8 @@ void ExtraT::Resolve()
           listName.push_back(tName);
           listEnv.push_back(extraStruct->Get(t)); // always local
         }
-        else if (strict)
-        { // pro has no (_REF)_EXTRA) and _STRICT_EXTRA -> error
+        else if (strict || callerIn == NULL) // always strict if callerIn is set
+        { // pro has no (_REF)_EXTRA and _STRICT_EXTRA -> error
           // ... unless keyword is a warnkey!
           // search warn keyword
           IDList::iterator wf=find_if(pro->warnKey.begin(),
@@ -85,7 +88,11 @@ void ExtraT::Resolve()
       DStringGDL* extraString= dynamic_cast<DStringGDL*>(thisExtra);
       if( extraString != NULL)
 	{
-	  EnvBaseT* caller=thisEnv->Caller();
+	  EnvBaseT* caller;
+	  if( callerIn == NULL)
+	    caller = thisEnv->Caller();
+	  else
+	    caller = callerIn;
 
 	  // STRING only works, if the *caller* has _REF_EXTRA
 	  if( caller->pro->Extra() == DSub::REFEXTRA)

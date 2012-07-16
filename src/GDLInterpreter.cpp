@@ -3882,7 +3882,7 @@ void GDLInterpreter::parameter_def(ProgNodeP _t,
 	while(_retTree != NULL) 
 	static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
 	}    
-	actEnv->Extra(); // expand _EXTRA        
+	actEnv->ResolveExtra(); // expand _EXTRA        
 	}
 	} 
 	catch( GDLException& e)
@@ -5098,7 +5098,7 @@ void GDLInterpreter::parameter_def_nocheck(ProgNodeP _t,
 	while(_retTree != NULL) 
 	static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
 	
-	actEnv->Extra(); // expand _EXTRA        
+	actEnv->ResolveExtra(); // expand _EXTRA        
 	}
 	} 
 	catch( GDLException& e)

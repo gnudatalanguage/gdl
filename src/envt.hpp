@@ -180,7 +180,7 @@ proUD->SetCompileOpt( cOpt);
   void RemoveLoc( BaseGDL* p) { env.RemoveLoc( p);}
 
   // called after parameter definition
-  void Extra();
+  void ResolveExtra();
   friend class ExtraT;
 
   // used by compiler and from EnvT (for variable number of paramters)

@@ -114,7 +114,7 @@ public:
   // 2. if pro has (_REF)_EXTRA:
   // combine additional keywords and the (remaining) _EXTRA data to pro's 
   // (_REF)_EXTRA value
-  void Resolve();
+  void ResolveExtra(EnvBaseT* caller);
 };
 
 #endif
