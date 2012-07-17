@@ -420,8 +420,10 @@ RefDNode DCompiler::ByReference(RefDNode nIn)
   t=n->getType();
 
   // only var, common block var and deref ptr are passed by reference
+  // note: trinary op is REF_CHECK 
   // *** see AssignReplace(...)
-  if( !assignReplace && t != VAR && t != VARPTR && t != DEREF) return null; 
+  if( !assignReplace && t != VAR && t != VARPTR && t != DEREF) // && t != QUESTION) 
+    return null; 
 
 // #ifdef GDL_DEBUG
 //   cout << "ByReference: out:" << endl;

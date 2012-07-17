@@ -367,7 +367,7 @@ public:
   inline void     Purge()                    { dim.Purge();}
   inline SizeT    Rank()          const      { return dim.Rank();}
   inline void     SetDim(const dimension& d) { dim=d;}
-
+  inline void     MakeArrayFromScalar()      { dim.MakeArrayFromScalar();} 
 
   friend std::istream& operator>>(std::istream& i, BaseGDL& data_)
   {

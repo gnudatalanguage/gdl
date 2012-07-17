@@ -258,7 +258,7 @@ public:
   BaseGDL* Index( BaseGDL* var, IxExprListT& ix_)
   {
     Init( ix_, NULL);
-    if( ix->NIter( var->Size()) == 1)// && var->Type() != STRUCT) 
+    if( ix->Scalar()) // ix->NIter( var->Size()) == 1)// && var->Type() != STRUCT) 
 //     if( !var->IsAssoc() && ix->NIter( var->Size()) == 1)// && var->Type() != STRUCT) 
       {
 	return var->NewIx( ix->GetIx0());
@@ -944,7 +944,7 @@ public:
       }
   }
 
-  // optimized for one dimensional access
+  
   BaseGDL* Index( BaseGDL* var, IxExprListT& ix)
   {
     //    Init();
@@ -1843,7 +1843,9 @@ if( dynamic_cast<ArrayIndexIndexed*>(ixList[ixList.size()-1]) ||
     SetVariable( var);
     if( nIx == 1)// && !var->IsAssoc())
     {
-      return var->NewIx( baseIx);
+      BaseGDL* res = var->NewIx( baseIx);
+      res->MakeArrayFromScalar();
+      return res;
     }
     return var->Index( this);
   }

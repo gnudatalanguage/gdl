@@ -560,6 +560,7 @@ void KEYDEF_REFNode::Parameter( EnvBaseT* actEnv)
 //   ProgNodeP knameR = _t;
   // 			match(antlr::RefAST(_t),IDENTIFIER);
 //   _t = _t->getNextSibling();
+  
   BaseGDL** kvalRef=_t->getNextSibling()->LEval();
   //ProgNode::interpreter->ref_parameter(_t->getNextSibling(), actEnv);
 
@@ -608,6 +609,31 @@ void KEYDEF_REF_CHECKNode::Parameter( EnvBaseT* actEnv)
 //   ProgNodeP knameCk = _t;
   // 			match(antlr::RefAST(_t),IDENTIFIER);
 //   _t = _t->getNextSibling();
+  ProgNodeP p = this->getFirstChild()->getNextSibling();
+
+  if( p->getType() == GDLTokenTypes::QUESTION)
+  {
+    QUESTIONNode* q = static_cast<QUESTIONNode*>( p);
+    ProgNodeP branch = q->AsParameter();
+    
+    while( branch->getType() == GDLTokenTypes::QUESTION)
+    {
+      QUESTIONNode* qRecursive = static_cast<QUESTIONNode*>( branch);
+      branch = qRecursive->AsParameter();
+    }
+    
+    BaseGDL** lVal = branch->LEval(); // right->down
+    if( lVal != NULL)
+    {   // pass reference
+      actEnv->SetKeyword(this->getFirstChild()->getText(), lVal); 
+    }
+    else
+    {   // pass value
+      actEnv->SetKeyword(this->getFirstChild()->getText(), branch->Eval()); 
+    }
+  }
+  else
+  {
   BaseGDL* kval=ProgNode::interpreter->
     lib_function_call(this->getFirstChild()->getNextSibling());
 			
@@ -620,7 +646,7 @@ void KEYDEF_REF_CHECKNode::Parameter( EnvBaseT* actEnv)
     {   // pass value
       actEnv->SetKeyword(this->getFirstChild()->getText(), kval); 
     }
-			
+  }
   ProgNode::interpreter->_retTree = this->getNextSibling();
 }
 
@@ -687,46 +713,107 @@ void REF_EXPRVNNode::Parameter( EnvBaseT* actEnv)
 // returns true if reference, false else
 bool REF_CHECKNode::ParameterDirect( BaseGDL*& pval)
 {
-  pval=ProgNode::interpreter->lib_function_call(this->getFirstChild());		
+  ProgNodeP p = this->getFirstChild();
+  if( p->getType() == GDLTokenTypes::QUESTION)
+  {
+    // for the trinary operator we just use pass by value which should be ok, 
+    // as direct functions cannot modify their (single) parameter anyway.
+    // LEval might save a copy operation here, but considering that direct functions are
+    // probably very seldom called with the trinary operator we leave it like this for now. 
+    pval = p->Eval();
+    return false; // pass value
+  }
+  pval=ProgNode::interpreter->lib_function_call(p);
   BaseGDL** pvalRef = ProgNode::interpreter->callStack.back()->GetPtrTo( pval);
   return (pvalRef != NULL);
-  if( pvalRef != NULL)
-    {   // pass reference
-      return true;
-    }
-  else 
-    {   // pass value
-      return false;
-    }
+//   if( pvalRef != NULL)
+//     {   // pass reference
+//       return true;
+//     }
+//   else 
+//     {   // pass value
+//       return false;
+//     }
 }
 void REF_CHECKNode::Parameter( EnvBaseT* actEnv)
 {
-  BaseGDL* pval=ProgNode::interpreter->lib_function_call(this->getFirstChild());
-			
-  BaseGDL** pvalRef = ProgNode::interpreter->callStack.back()->GetPtrTo( pval);
-  if( pvalRef != NULL)
+  ProgNodeP p = this->getFirstChild();
+
+  if( p->getType() == GDLTokenTypes::QUESTION)
+  {
+    QUESTIONNode* q = static_cast<QUESTIONNode*>( p);
+    ProgNodeP branch = q->AsParameter();
+    
+    while( branch->getType() == GDLTokenTypes::QUESTION)
+    {
+      QUESTIONNode* qRecursive = static_cast<QUESTIONNode*>( branch);
+      branch = qRecursive->AsParameter();
+    }
+    
+    BaseGDL** lVal = branch->LEval(); // right->down
+    if( lVal != NULL)
     {   // pass reference
-      actEnv->SetNextParUnchecked( pvalRef); 
+      actEnv->SetNextParUnchecked( lVal); 
     }
-  else 
+    else
     {   // pass value
-      actEnv->SetNextParUnchecked( pval); 
+      actEnv->SetNextParUnchecked( branch->Eval()); 
     }
-			
+  }
+  else
+  {  
+    BaseGDL* pval=ProgNode::interpreter->lib_function_call(this->getFirstChild());
+			  
+    BaseGDL** pvalRef = ProgNode::interpreter->callStack.back()->GetPtrTo( pval);
+    if( pvalRef != NULL)
+      {   // pass reference
+	actEnv->SetNextParUnchecked( pvalRef); 
+      }
+    else 
+      {   // pass value
+	actEnv->SetNextParUnchecked( pval); 
+      }
+  }
   ProgNode::interpreter->_retTree = this->getNextSibling();
 }
 void REF_CHECKVNNode::Parameter( EnvBaseT* actEnv)
 {
-  BaseGDL* pval=ProgNode::interpreter->lib_function_call(this->getFirstChild());
-  BaseGDL** pvalRef = ProgNode::interpreter->callStack.back()->GetPtrTo( pval);
-  if( pvalRef != NULL)
+  ProgNodeP p = this->getFirstChild();
+
+  if( p->getType() == GDLTokenTypes::QUESTION)
+  {
+    QUESTIONNode* q = static_cast<QUESTIONNode*>( p);
+    ProgNodeP branch = q->AsParameter();
+    
+    while( branch->getType() == GDLTokenTypes::QUESTION)
+    {
+      QUESTIONNode* qRecursive = static_cast<QUESTIONNode*>( branch);
+      branch = qRecursive->AsParameter();
+    }
+    
+    BaseGDL** lVal = branch->LEval(); // right->down
+    if( lVal != NULL)
     {   // pass reference
-      actEnv->SetNextParUncheckedVarNum( pvalRef); 
+      actEnv->SetNextParUncheckedVarNum( lVal); 
     }
-  else 
+    else
     {   // pass value
-      actEnv->SetNextParUncheckedVarNum( pval); 
+      actEnv->SetNextParUncheckedVarNum( branch->Eval()); 
     }
+  }
+  else
+  {
+    BaseGDL* pval=ProgNode::interpreter->lib_function_call(this->getFirstChild());
+    BaseGDL** pvalRef = ProgNode::interpreter->callStack.back()->GetPtrTo( pval);
+    if( pvalRef != NULL)
+      {   // pass reference
+	actEnv->SetNextParUncheckedVarNum( pvalRef); 
+      }
+    else 
+      {   // pass value
+	actEnv->SetNextParUncheckedVarNum( pval); 
+      }
+  }
   ProgNode::interpreter->_retTree = this->getNextSibling();
 }
 

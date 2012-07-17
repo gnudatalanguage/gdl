@@ -71,9 +71,10 @@ BaseGDL* ProgNode::EvalNC()
 
 BaseGDL** ProgNode::LEval()
 {
-  throw GDLException( this,
-		      "Internal error. "
-		      "ProgNode::LEval() called.",true,false);
+  return NULL; // ok, called QUESTIONNode::AsParameter()
+//   throw GDLException( this,
+// 		      "Internal error. "
+// 		      "ProgNode::LEval() called.",true,false);
 }
 
 RetCode   ProgNode::Run()
@@ -428,6 +429,27 @@ BaseGDL* QUESTIONNode::Eval()
       return op2->Eval(); // right->down
     }
   return op3->Eval(); // right->right
+}
+
+ProgNodeP QUESTIONNode::AsParameter()
+{
+  auto_ptr<BaseGDL> e1_guard;
+  BaseGDL* e1;
+  if( NonCopyNode( op1->getType()))
+  {
+	e1 = op1->EvalNC();
+  }
+  else
+  {
+	e1 = op1->Eval();
+    e1_guard.reset(e1);
+  }
+//  auto_ptr<BaseGDL> e1( op1->Eval());
+  if( e1->True())
+    {
+      return op2;
+    }
+  return op3;
 }
 
 // unary operators

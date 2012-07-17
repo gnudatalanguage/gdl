@@ -289,6 +289,7 @@ class QUESTIONNode: public TrinaryExpr
 { public:
   QUESTIONNode( const RefDNode& refNode): TrinaryExpr( refNode){}
   BaseGDL* Eval();
+  ProgNodeP AsParameter(); // as parameter or keyword
   BaseGDL** LExpr(BaseGDL* right);
 //   BaseGDL** LExprGrab(BaseGDL* right);
 };

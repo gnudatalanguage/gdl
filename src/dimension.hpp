@@ -390,6 +390,14 @@ public:
     stride[0] = 0;
   }
 
+  void MakeArrayFromScalar()
+  {
+    assert( rank == 0);
+    assert( stride[0] == 0);
+    dim[0]=1;
+    rank=1;
+  }
+
 /*  // multidim index to one dim index
   SizeT LongIndex(const dimension& ix) const
   {
