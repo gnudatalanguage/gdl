@@ -224,7 +224,7 @@ bool CopyArgFromPython( vector<BaseGDL*>& parRef,
 	}
     }
   
-  e.Extra(); // expand _EXTRA
+  e.ResolveExtra(); // expand _EXTRA
 
   return true;
 }
@@ -383,8 +383,13 @@ PyObject *GDLSub( PyObject *self, PyObject *argTuple, PyObject *kwDict,
 
     // make the call
     StackSizeGuard<EnvStackT> guard( GDLInterpreter::CallStack());
-    GDLInterpreter::CallStack().push_back( e);
-
+    
+    if( !libCall)
+    {
+      GDLInterpreter::CallStack().push_back( static_cast<EnvUDT*>(e));
+      e_guard.release();
+    }
+    
     BaseGDL* retValGDL = NULL;
     auto_ptr<BaseGDL> retValGDL_guard;
     if( functionCall)
