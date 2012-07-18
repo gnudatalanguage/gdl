@@ -327,6 +327,9 @@ public:
     Init( ix_, NULL);
     if( !var->IsAssoc() && ix->Scalar()) //ix->NIter( var->Size()) == 1)// && var->Type() != STRUCT) 
       {
+	SizeT assertValue = ix->NIter( var->Size());
+	assert( assertValue == 1);
+
 	return var->NewIx( ix->GetIx0());
       }
     // normal case

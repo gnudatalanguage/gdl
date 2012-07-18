@@ -258,9 +258,12 @@ public:
   BaseGDL* Index( BaseGDL* var, IxExprListT& ix_)
   {
     Init( ix_, NULL);
-    if( ix->Scalar()) // ix->NIter( var->Size()) == 1)// && var->Type() != STRUCT) 
+    if( ix->Scalar())// && ix->NIter( var->Size()) == 1)// && var->Type() != STRUCT) 
 //     if( !var->IsAssoc() && ix->NIter( var->Size()) == 1)// && var->Type() != STRUCT) 
       {
+	SizeT assertValue = ix->NIter( var->Size());
+	assert( assertValue == 1);
+
 	return var->NewIx( ix->GetIx0());
       }
     // normal case
