@@ -18,6 +18,7 @@
 #include "includefirst.hpp"
 
 #include "basegdl.hpp"
+#include "nullgdl.hpp"
 
 using namespace std;
 
@@ -739,3 +740,10 @@ char* MemStats::StartOfMemory = reinterpret_cast<char*>(::sbrk(0));
 #endif
 
 // ---
+
+void GDLDelete( BaseGDL* toDelete)
+{
+  if( toDelete != NullGDL::GetSingleInstance())
+    delete toDelete;
+}
+

@@ -382,7 +382,7 @@ namespace lib {
 
       // Setup output return variable
       outputKW = &e->GetKW( outputIx);
-      delete (*outputKW);
+      GDLDelete((*outputKW));
       dimension dim(&nlines, (size_t) 1);
       *outputKW = new DStringGDL(dim, BaseGDL::NOZERO);
     }
@@ -895,7 +895,7 @@ namespace lib {
 
     BaseGDL** retLun = &e->GetPar( 0);
     
-    delete (*retLun); 
+    GDLDelete((*retLun)); 
     //            if( *retLun != e->Caller()->Object()) delete (*retLun); 
     
     *retLun = new DLongGDL( lun);
@@ -1025,7 +1025,7 @@ namespace lib {
       
       BaseGDL** err = &e->GetKW( errorIx);
       
-      delete (*err); 
+      GDLDelete((*err)); 
 //    if( *err != e->Caller()->Object()) delete (*err); 
       
       *err = new DLongGDL( 1);
@@ -1037,7 +1037,7 @@ namespace lib {
 	BaseGDL** err = &e->GetKW( errorIx);
       
 // 	if( *err != e->Caller()->Object()) delete (*err); 
-	delete (*err); 
+	GDLDelete((*err)); 
       
 	*err = new DLongGDL( 0);
       }
@@ -1138,7 +1138,7 @@ namespace lib {
       
       BaseGDL** err = &e->GetKW( errorIx);
       
-      delete (*err); 
+      GDLDelete((*err)); 
 //    if( *err != e->Caller()->Object()) delete (*err); 
       
       *err = new DLongGDL( 1);
@@ -1150,7 +1150,7 @@ namespace lib {
 	BaseGDL** err = &e->GetKW( errorIx);
       
 // 	if( *err != e->Caller()->Object()) delete (*err); 
-	delete (*err); 
+	GDLDelete((*err)); 
       
 	*err = new DLongGDL( 0);
       }
@@ -1616,7 +1616,7 @@ TRACEOMP( __FILE__, __LINE__)
     else
       {
 	// not read only
-	delete oldVar;
+	GDLDelete(oldVar);
 	sysVar->Data() = newVar->Dup();
 
 	// only on first definition

@@ -166,7 +166,7 @@ BaseGDL** SYSVARNode::LExpr( BaseGDL* right)
 #define LEXPR \
 	{	BaseGDL** res=this->LEval(); \
 	if( right != NULL && right != (*res)) \
-	{	delete *res; *res = right->Dup();} \
+	{	GDLDelete(*res); *res = right->Dup();} \
 	return res;}
 	
 BaseGDL** FCALLNode::LExpr( BaseGDL* right)
@@ -239,7 +239,7 @@ BaseGDL** ASSIGNNode::LExpr( BaseGDL* right)
 	  BaseGDL*       e1=interpreter->lib_function_call(_t);
 	  _t = interpreter->GetRetTree();
 	  if( !interpreter->CallStackBack()->Contains( e1))
-		  delete e1; // guard if no global data
+		  GDLDelete(e1); // guard if no global data
   }
   else
   {
@@ -265,7 +265,7 @@ BaseGDL** ASSIGNNode::LExpr( BaseGDL* right)
     //       case QUESTION:
     BaseGDL*       e1=interpreter->indexable_tmp_expr(_t);
     _t = interpreter->GetRetTree();
-    delete e1;
+    GDLDelete(e1);
   }
   //SetRetTree( tIn->getNextSibling());
   return _t->LExpr( right); //l_expr(_t, right);
@@ -286,7 +286,7 @@ BaseGDL** ASSIGN_ARRAYEXPR_MFCALLNode::LExpr( BaseGDL* right)
     BaseGDL*       e1=interpreter->lib_function_call(_t);
     _t = interpreter->GetRetTree();
     if( !interpreter->CallStackBack()->Contains( e1))
-      delete e1; // guard if no global data
+      GDLDelete(e1); // guard if no global data
   }
   else
   {
@@ -312,7 +312,7 @@ BaseGDL** ASSIGN_ARRAYEXPR_MFCALLNode::LExpr( BaseGDL* right)
     //       case QUESTION:
     BaseGDL*       e1=interpreter->indexable_tmp_expr(_t);
     _t = interpreter->GetRetTree();
-    delete e1;
+    GDLDelete(e1);
   }
   ProgNodeP l = _t;
   BaseGDL** res;
@@ -322,7 +322,7 @@ BaseGDL** ASSIGN_ARRAYEXPR_MFCALLNode::LExpr( BaseGDL* right)
     res=interpreter->l_arrayexpr_mfcall_as_mfcall( l);
     if( right != (*res))
     {
-      delete *res;
+      GDLDelete(*res);
       *res = right->Dup();
     }
   }
@@ -353,7 +353,7 @@ BaseGDL** ASSIGN_REPLACENode::LExpr( BaseGDL* right)
 	  BaseGDL* e1=interpreter->lib_function_call(_t);
 	  _t = interpreter->GetRetTree();
 	  if( !interpreter->CallStackBack()->Contains( e1))
-	    delete e1;
+	    GDLDelete(e1);
   }
   else
   {
@@ -384,7 +384,7 @@ BaseGDL** ASSIGN_REPLACENode::LExpr( BaseGDL* right)
   //     case QUESTION:
   BaseGDL* e1=interpreter->tmp_expr(_t);
   _t = interpreter->GetRetTree();
-  delete e1;
+  GDLDelete(e1);
   }
 
   // switch ( _t->getType()) {
@@ -416,7 +416,7 @@ BaseGDL** ASSIGN_REPLACENode::LExpr( BaseGDL* right)
   // }
   if( right != (*res))
   {
-    delete *res;
+    GDLDelete(*res);
     assert( right != NULL);
     *res = right->Dup();
   }

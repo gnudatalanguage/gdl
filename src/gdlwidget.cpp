@@ -327,8 +327,8 @@ GDLWidget::~GDLWidget()
       assert( base != NULL);
       base->RemoveChild( widgetID);
     }
-  delete uValue;
-  delete vValue;
+  GDLDelete(uValue);
+  GDLDelete(vValue);
   WidgetRemove( widgetID);
 }
 

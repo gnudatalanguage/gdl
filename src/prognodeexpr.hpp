@@ -60,6 +60,8 @@ public:
 
   void AdjustTypesNC( std::auto_ptr<BaseGDL>& g1, BaseGDL*& e1, 
 		      std::auto_ptr<BaseGDL>& g2, BaseGDL*& e2);
+  void AdjustTypesNCNull( std::auto_ptr<BaseGDL>& g1, BaseGDL*& e1, 
+		      std::auto_ptr<BaseGDL>& g2, BaseGDL*& e2);
 
   //  int getType() { return GDLTokenTypes::EXPR;}
 };
@@ -196,6 +198,7 @@ public:
   {}
   BaseGDL** LEval();
   BaseGDL* EvalNC();
+  BaseGDL* EvalNCNull();
   BaseGDL* Eval();
   BaseGDL** LExpr( BaseGDL* right);  
 //   BaseGDL** LExprGrab( BaseGDL* right);  
@@ -207,6 +210,7 @@ public:
   {}
   BaseGDL** LEval();
   BaseGDL* EvalNC();
+  BaseGDL* EvalNCNull();
   BaseGDL* Eval();
   BaseGDL** LExpr( BaseGDL* right);
 //   BaseGDL** LExprGrab( BaseGDL* right);  

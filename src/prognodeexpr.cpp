@@ -28,6 +28,7 @@
 #include "arrayindexlistt.hpp"
 #include "envt.hpp"
 #include "gdlexception.hpp"
+#include "nullgdl.hpp"
 
 using namespace std;
 
@@ -67,6 +68,10 @@ BaseGDL* ProgNode::EvalNC()
   throw GDLException( this,
 		      "Internal error. "
 		      "ProgNode::EvalNC() called.",true,false);
+}
+BaseGDL* ProgNode::EvalNCNull()
+{
+  return this->EvalNC();
 }
 
 BaseGDL** ProgNode::LEval()
@@ -204,6 +209,94 @@ void BinaryExprNC::AdjustTypesNC(auto_ptr<BaseGDL>& g1, BaseGDL*& e1,
     }
 }
 
+// only called from EqOp and NeOp
+void BinaryExprNC::AdjustTypesNCNull(auto_ptr<BaseGDL>& g1, BaseGDL*& e1,
+				 auto_ptr<BaseGDL>& g2, BaseGDL*& e2)
+{
+  if( op1NC)
+    {
+      e1 = op1->EvalNCNull();
+    }
+  else
+    {
+      e1 = op1->Eval();
+      g1.reset( e1);
+    }
+  if( op2NC)
+    {
+      e2 = op2->EvalNCNull();
+    }
+  else
+    {
+      e2 = op2->Eval();
+      g2.reset( e2);
+    }
+    
+  if( e1 == NULL && e2 == NULL)
+  {
+    // provoke error
+    e1 = op1->EvalNC();
+    e2 = op2->EvalNC();
+    assert( false); // code should never reach here
+  }
+  
+  // if at least one is !NULL make sure this is e1 
+  if( e1 == NullGDL::GetSingleInstance())
+    return;
+  if( e2 == NullGDL::GetSingleInstance())
+  {
+    // e1 is not !NULL (but might be NULL)
+    BaseGDL* tmp = e1;
+    e1 = e2;
+    e2 = tmp;
+    return;
+  }
+  
+  DType aTy=e1->Type();
+  DType bTy=e2->Type();
+  if( aTy == bTy) return;
+
+  // Will be checked by Convert2() function
+//   if( DTypeOrder[aTy] > 100 || DTypeOrder[bTy] > 100) // STRUCT, PTR, OBJ
+//     {
+//       throw GDLException( "Expressions of this type cannot be converted.");
+//     }
+
+  // Change > to >= JMG
+  if( DTypeOrder[aTy] >= DTypeOrder[bTy])
+    {
+  // COMPLEX op DOUBLE = COMPLEXDBL
+  if( (aTy == COMPLEX && bTy == DOUBLE))
+    {
+      e2 = e2->Convert2( COMPLEXDBL, BaseGDL::COPY);
+      g2.reset( e2); // delete former e2
+      e1 = e1->Convert2( COMPLEXDBL, BaseGDL::COPY);
+      g1.reset( e1); // delete former e1
+      return;
+    }
+
+      // convert e2 to e1
+      e2 = e2->Convert2( aTy, BaseGDL::COPY);
+      g2.reset( e2); // delete former e2
+    }
+  else
+    {
+  // COMPLEX op DOUBLE = COMPLEXDBL
+  if( (bTy == COMPLEX && aTy == DOUBLE))
+    {
+      e2 = e2->Convert2( COMPLEXDBL, BaseGDL::COPY);
+      g2.reset( e2); // delete former e2
+      e1 = e1->Convert2( COMPLEXDBL, BaseGDL::COPY);
+      g1.reset( e1); // delete former e1
+      return;
+    }
+
+      // convert e1 to e2
+      e1 = e1->Convert2( bTy, BaseGDL::COPY);
+      g1.reset( e1); // delete former e1
+    }
+}
+
 BaseGDL* VARNode::Eval()
 {
     BaseGDL* vData = this->EvalNC();
@@ -224,7 +317,7 @@ BaseGDL* VARPTRNode::Eval()
 }
 BaseGDL* SYSVARNode::Eval()
 {
-	return this->EvalNC()->Dup();	
+	return this->EvalNC()->Dup();
 }
 
 BaseGDL* VARNode::EvalNC()
@@ -234,6 +327,14 @@ BaseGDL* VARNode::EvalNC()
 	if ( res == NULL )
 		throw GDLException ( this, "Variable is undefined: "+
 		                     callStack.back()->GetString ( this->varIx ),true,false );
+	return res;
+}
+BaseGDL* VARNode::EvalNCNull()
+{
+	EnvStackT& callStack=interpreter->CallStack();
+	BaseGDL* res=static_cast<EnvUDT*> ( callStack.back() )->GetKW ( this->varIx );
+// 	if ( res == NULL )
+// 	  res = NullGDL::GetSingleInstance();
 	return res;
 }
 
@@ -246,6 +347,13 @@ BaseGDL* VARPTRNode::EvalNC()
 	  throw GDLException( this, "Variable is undefined: "+
 			      callStack.back()->GetString( res),true,false);
 	}
+      return res;
+}
+BaseGDL* VARPTRNode::EvalNCNull()
+{
+      BaseGDL* res=this->var->Data();
+//       if( res == NULL)
+// 	  res = NullGDL::GetSingleInstance();
       return res;
 }
 
@@ -1213,7 +1321,7 @@ BaseGDL* EQ_OPNCNode::Eval()
   auto_ptr<BaseGDL> g1;
   auto_ptr<BaseGDL> g2;
   BaseGDL *e1, *e2;
-  AdjustTypesNC( g1, e1, g2, e2);
+  AdjustTypesNCNull( g1, e1, g2, e2);
   res=e1->EqOp(e2);
   return res;
 }
@@ -1222,7 +1330,7 @@ BaseGDL* NE_OPNCNode::Eval()
   auto_ptr<BaseGDL> g1;
   auto_ptr<BaseGDL> g2;
   BaseGDL *e1, *e2;
-  AdjustTypesNC( g1, e1, g2, e2);
+  AdjustTypesNCNull( g1, e1, g2, e2);
   res=e1->NeOp(e2);
   return res;
 }

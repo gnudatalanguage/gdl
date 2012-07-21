@@ -195,9 +195,10 @@ public:
   DataListT(): env() {}
   ~DataListT()
   {
-	ListT::iterator pEnd = env.end();
-	for( ListT::iterator p = env.begin(); p!=pEnd;++p)
-		delete p->P();
+    // cleanup passed by value parameters and local variables
+    ListT::iterator pEnd = env.end();
+    for( ListT::iterator p = env.begin(); p!=pEnd;++p)
+      GDLDelete( p->P());
 //     for( SizeT i=0; i<env.size(); i++)
 //       delete env[i];
 //       delete env[i].p;
@@ -266,7 +267,7 @@ public:
   {
     if( env[ ix].IsP()) // implies pp == NULL
     {
-		delete env[ ix].P();
+		GDLDelete(env[ ix].P());
 		env[ ix].SetP( p);
 		return;
     }
@@ -277,7 +278,7 @@ public:
   {
     if( env[ ix].IsP())
     {
-		delete env[ ix].P();
+		GDLDelete(env[ ix].P());
  		env[ ix].NullP();
     }
     // !IsP -> p == NULL

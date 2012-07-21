@@ -288,7 +288,7 @@ namespace lib {
           break;
         }
       }
-      delete e->GetParGlobal(nParam - 1);
+      GDLDelete(e->GetParGlobal(nParam - 1));
       e->GetParGlobal(nParam - 1) = temp;
     }
 

@@ -20,6 +20,11 @@
 #include <map>
 #include <cmath>
 
+//fx_root
+#include <stdio.h>
+#include <iostream>
+#include <complex>
+
 #include "datatypes.hpp"
 #include "envt.hpp"
 #include "basic_fun.hpp"
@@ -83,12 +88,9 @@
 
 //interpolate
 #include <gsl/gsl_errno.h>
+
 #include "interp_multid.h"
 
-//fx_root
-#include <stdio.h>
-#include <iostream>
-#include <complex>
 
 #define LOG10E 0.434294
 
@@ -98,6 +100,28 @@ namespace lib {
 
   const int szdbl=sizeof(double);
   const int szflt=sizeof(float);
+
+  
+  class SetTemporaryGSLErrorHandlerT
+  {
+    gsl_error_handler_t* oldHandler;
+    
+  public:
+    SetTemporaryGSLErrorHandlerT( gsl_error_handler_t* handler)
+    {
+      oldHandler = gsl_set_error_handler( handler);
+    }
+    ~SetTemporaryGSLErrorHandlerT()
+    {
+      gsl_set_error_handler( oldHandler);
+    }
+    
+  };
+
+  void GenericGSLErrorHandler(const char* reason, const char* file, int line, int gsl_errno)
+  {
+    throw GDLException( "GSL Error #" + i2s(gsl_errno) + ": " + string(reason));// + "  file: " + file + "  line: " + i2s(line));
+  }
 
   BaseGDL* invert_fun( EnvT* e)
   {
@@ -193,6 +217,9 @@ namespace lib {
     
     // more than one element matrix
 
+    // GSL error handling
+    SetTemporaryGSLErrorHandlerT setTemporaryGSLErrorHandler( GenericGSLErrorHandler);
+
     if( p0->Type() == COMPLEX)
       {
 	DComplexGDL* p0C = static_cast<DComplexGDL*>( p0);
@@ -203,9 +230,12 @@ namespace lib {
 
 	gsl_matrix_complex *mat = 
 	  gsl_matrix_complex_alloc(p0->Dim(0), p0->Dim(1));
+	GSLGuard<gsl_matrix_complex> g1( mat, gsl_matrix_complex_free);
 	gsl_matrix_complex *inverse = 
 	  gsl_matrix_complex_calloc(p0->Dim(0), p0->Dim(1));
+	GSLGuard<gsl_matrix_complex> g2( inverse, gsl_matrix_complex_free);
 	gsl_permutation *perm = gsl_permutation_alloc(p0->Dim(0));
+	GSLGuard<gsl_permutation> g3( perm, gsl_permutation_free);
 
 	for( SizeT i=0; i<nEl; ++i) {
 	  memcpy(f32_2, &(*p0C)[i], szdbl);
@@ -232,9 +262,9 @@ namespace lib {
 	  memcpy(&(*res)[i], &f32_2[0], szflt*2);
 	}
 
-	gsl_permutation_free(perm);
-	gsl_matrix_complex_free(mat);
-	gsl_matrix_complex_free(inverse);
+// 	gsl_permutation_free(perm);
+// 	gsl_matrix_complex_free(mat);
+// 	gsl_matrix_complex_free(inverse);
 
 	if (nParam == 2) e->SetPar(1,new DLongGDL( singular)); 
 	return res;
@@ -246,9 +276,12 @@ namespace lib {
 
 	gsl_matrix_complex *mat = 
 	  gsl_matrix_complex_alloc(p0->Dim(0), p0->Dim(1));
+	GSLGuard<gsl_matrix_complex> g1( mat, gsl_matrix_complex_free);
 	gsl_matrix_complex *inverse = 
 	  gsl_matrix_complex_calloc(p0->Dim(0), p0->Dim(1));
+	GSLGuard<gsl_matrix_complex> g2( inverse, gsl_matrix_complex_free);
 	gsl_permutation *perm = gsl_permutation_alloc(p0->Dim(0));
+	GSLGuard<gsl_permutation> g3( perm, gsl_permutation_free);
 
 	memcpy(mat->data, &(*p0C)[0], nEl*szdbl*2);
 
@@ -262,9 +295,9 @@ namespace lib {
 
 	memcpy(&(*res)[0], inverse->data, nEl*szdbl*2);
 
-	gsl_permutation_free(perm);
-	gsl_matrix_complex_free(mat);
-	gsl_matrix_complex_free(inverse);
+// 	gsl_permutation_free(perm);
+// 	gsl_matrix_complex_free(mat);
+// 	gsl_matrix_complex_free(inverse);
 
 	if (nParam == 2) e->SetPar(1,new DLongGDL( singular)); 
 	return res;
@@ -275,8 +308,11 @@ namespace lib {
 	DDoubleGDL* res = new DDoubleGDL( p0->Dim(), BaseGDL::NOZERO);
 
 	gsl_matrix *mat = gsl_matrix_alloc(p0->Dim(0), p0->Dim(1));
+	GSLGuard<gsl_matrix> g1( mat, gsl_matrix_free);
 	gsl_matrix *inverse = gsl_matrix_calloc(p0->Dim(0), p0->Dim(1));
+	GSLGuard<gsl_matrix> g2( inverse, gsl_matrix_free);
 	gsl_permutation *perm = gsl_permutation_alloc(p0->Dim(0));
+	GSLGuard<gsl_permutation> g3( perm, gsl_permutation_free);
 
 	memcpy(mat->data, &(*p0D)[0], nEl*szdbl);
 
@@ -290,9 +326,9 @@ namespace lib {
 
 	memcpy(&(*res)[0], inverse->data, nEl*szdbl);
 
-	gsl_permutation_free(perm);
-	gsl_matrix_free(mat);
-	gsl_matrix_free(inverse);
+// 	gsl_permutation_free(perm);
+// 	gsl_matrix_free(mat);
+// 	gsl_matrix_free(inverse);
 
 	if (nParam == 2) e->SetPar(1,new DLongGDL( singular)); 
 	return res;
@@ -321,8 +357,11 @@ namespace lib {
 	DFloatGDL* res = new DFloatGDL( p0->Dim(), BaseGDL::NOZERO);
 
 	gsl_matrix *mat = gsl_matrix_alloc(p0->Dim(0), p0->Dim(1));
+	GSLGuard<gsl_matrix> g1( mat, gsl_matrix_free);
 	gsl_matrix *inverse = gsl_matrix_calloc(p0->Dim(0), p0->Dim(1));
+	GSLGuard<gsl_matrix> g2( inverse, gsl_matrix_free);
 	gsl_permutation *perm = gsl_permutation_alloc(p0->Dim(0));
+	GSLGuard<gsl_permutation> g3( perm, gsl_permutation_free);
 
 	for( SizeT i=0; i<nEl; ++i) {
 	  switch ( p0->Type()) {
@@ -350,9 +389,9 @@ namespace lib {
 	  memcpy(&(*res)[i], &f32, 4);
 	}
 
-	gsl_permutation_free(perm);
-	gsl_matrix_free(mat);
-	gsl_matrix_free(inverse);
+// 	gsl_permutation_free(perm);
+// 	gsl_matrix_free(mat);
+// 	gsl_matrix_free(inverse);
 
 	if (nParam == 2) e->SetPar(1,new DLongGDL( singular)); 
 	return res;
@@ -487,14 +526,16 @@ namespace lib {
       T2 *work;
       
       work = (*workspace_alloc) (nEl);
+      GSLGuard<T2> g1( work, workspace_free);
       wave = (*wavetable_alloc) (nEl);
+      GSLGuard<T1> g2( wave, wavetable_free);
 
       (*real_transform) (&dptr[2*offset], 2*stride_out, nEl, wave, work);
 
       unpack_real_mxradix_template< T>( dptr, nEl, direct, offset, stride_out);
 
-      (*workspace_free) (work);
-      (*wavetable_free) (wave);
+//       (*workspace_free) (work);
+//       (*wavetable_free) (wave);
     }
   }
 
@@ -534,7 +575,9 @@ namespace lib {
       T2 *work;
       
       work = (*workspace_alloc) (nEl);
+      GSLGuard<T2> g1( work, workspace_free);
       wave = (*wavetable_alloc) (nEl);
+      GSLGuard<T1> g2( wave, wavetable_free);
 
       if (direct == -1) {
 	(*complex_forward_transform) (&dptr[2*offset], stride, nEl, 
@@ -547,8 +590,8 @@ namespace lib {
 				       wave, work);
       }
 
-      (*workspace_free) (work);
-      (*wavetable_free) (wave);
+//       (*workspace_free) (work);
+//       (*wavetable_free) (wave);
     }
   }
 
@@ -1089,6 +1132,7 @@ namespace lib {
 	seed0 = (*seed)[0];
 
 	r = gsl_rng_alloc (gsl_rng_mt19937);
+	GSLGuard<gsl_rng> g1( r, gsl_rng_free);
 	gsl_rng_set (r, seed0);
 
 	seed0 += dim.NDimElements() * seedMul; // avoid repetition in next call
@@ -1101,7 +1145,7 @@ namespace lib {
       SizeT nEl = res->N_Elements();
       for( SizeT i=0; i<nEl; ++i) (*res)[ i] =
 				    (DLong) (gsl_rng_uniform (r) * 2147483646);
-      gsl_rng_free (r);
+//       gsl_rng_free (r);
       //      *p0L = new DULongGDL( (DULong) (4294967296.0 * (*res)[0]) );
       return res;
     }
@@ -1126,7 +1170,7 @@ namespace lib {
       random_template< DDoubleGDL, double>( e, res, r, dim, 
 					    binomialKey, poissonKey);
 
-      gsl_rng_free (r);
+//       gsl_rng_free (r);
       //      *p0L = new DULongGDL( (DULong) (4294967296.0 * (*res)[0]) );
       return res;
     } else {
@@ -1135,7 +1179,7 @@ namespace lib {
       random_template< DFloatGDL, float>( e, res, r, dim, 
 					  binomialKey, poissonKey);
 
-      gsl_rng_free (r);
+//       gsl_rng_free (r);
       //      *p0L = new DULongGDL( (DULong) (4294967296.0 * (*res)[0]) );
       return res;
     }
@@ -1328,7 +1372,11 @@ namespace lib {
       || (binsizeKW == NULL && maxKW == NULL && nbinsKW != NULL)
     ) b = a + nbins * bsize;
  
+    // GSL error handling
+    SetTemporaryGSLErrorHandlerT setTemporaryGSLErrorHandler( GenericGSLErrorHandler);
+
     gsl_histogram* hh = gsl_histogram_alloc( nbins);
+    GSLGuard<gsl_histogram> hhGuard( hh, gsl_histogram_free);
     gsl_histogram_set_ranges_uniform( hh, a, b);
 
     // Set maxVal from keyword if present
@@ -1441,7 +1489,7 @@ namespace lib {
     // LOCATIONS
     if( e->KeywordPresent(e->KeywordIx("LOCATIONS"))) {
       BaseGDL** locationsKW = &e->GetKW(e->KeywordIx("LOCATIONS"));
-      delete (*locationsKW);
+      GDLDelete((*locationsKW));
 
       dimension dim( nbins);
       if( p0->Type() == DOUBLE) {
@@ -1509,7 +1557,7 @@ namespace lib {
       }
 
     }
-    gsl_histogram_free (hh);
+    //gsl_histogram_free (hh);
 
     return(res);
   }
@@ -1554,8 +1602,10 @@ DDoubleGDL* interpolate_1dim(EnvT* e, const gdl_interp1d_type* interp_type, DDou
 
     // Setup interpolation arrays
     gsl_interp_accel *accx = gsl_interp_accel_alloc();
+    GSLGuard<gsl_interp_accel> g1( accx, gsl_interp_accel_free);
     gdl_interp1d* interpolant = gdl_interp1d_alloc(interp_type, nxa);
-
+    GSLGuard<gdl_interp1d> g2( interpolant, gdl_interp1d_free);
+    
     // output locations tables:
     double *xval = new double[chunksize];
     for (SizeT count = 0; count < chunksize; ++count)
@@ -1578,8 +1628,8 @@ DDoubleGDL* interpolate_1dim(EnvT* e, const gdl_interp1d_type* interp_type, DDou
       }
     }
 
-    gsl_interp_accel_free(accx);
-    gdl_interp1d_free(interpolant);
+//     gsl_interp_accel_free(accx);
+//     gdl_interp1d_free(interpolant);
     return res;
  }
 
@@ -1650,8 +1700,11 @@ DDoubleGDL* interpolate_2dim(EnvT* e, const gdl_interp2d_type* interp_type, DDou
 
     // Setup interpolation arrays
     gsl_interp_accel *accx = gsl_interp_accel_alloc();
+    GSLGuard<gsl_interp_accel> g1( accx, gsl_interp_accel_free);
     gsl_interp_accel *accy = gsl_interp_accel_alloc();
+    GSLGuard<gsl_interp_accel> g2( accy, gsl_interp_accel_free);
     gdl_interp2d* interpolant = gdl_interp2d_alloc(interp_type, nxa, nya);
+    GSLGuard<gdl_interp2d> g3( interpolant, gdl_interp2d_free);
 
     // output locations tables:
     double *xval = new double[chunksize];
@@ -1693,9 +1746,9 @@ DDoubleGDL* interpolate_2dim(EnvT* e, const gdl_interp2d_type* interp_type, DDou
       }
     }
 
-    gsl_interp_accel_free(accx);
-    gsl_interp_accel_free(accy);
-    gdl_interp2d_free(interpolant);
+//     gsl_interp_accel_free(accx);
+//     gsl_interp_accel_free(accy);
+//     gdl_interp2d_free(interpolant);
     return res;
  }
 
@@ -1773,9 +1826,13 @@ DDoubleGDL* interpolate_3dim(EnvT* e, const gdl_interp3d_type* interp_type, DDou
     if (nxa<gdl_interp3d_type_min_size(interp_type)||nya<gdl_interp3d_type_min_size(interp_type)||nza<gdl_interp3d_type_min_size(interp_type)) e->Throw("Array(s) dimensions too small for this interpolation type.");
     // Setup interpolation arrays
     gsl_interp_accel *accx = gsl_interp_accel_alloc();
+    GSLGuard<gsl_interp_accel> g1( accx, gsl_interp_accel_free);
     gsl_interp_accel *accy = gsl_interp_accel_alloc();
+    GSLGuard<gsl_interp_accel> g2( accy, gsl_interp_accel_free);
     gsl_interp_accel *accz = gsl_interp_accel_alloc();
+    GSLGuard<gsl_interp_accel> g3( accz, gsl_interp_accel_free);
     gdl_interp3d* interpolant = gdl_interp3d_alloc(interp_type, nxa, nya, nza);
+    GSLGuard<gdl_interp3d> g4( interpolant, gdl_interp3d_free);
 
     // output locations tables:
     double *xval = new double[chunksize];
@@ -1824,10 +1881,10 @@ DDoubleGDL* interpolate_3dim(EnvT* e, const gdl_interp3d_type* interp_type, DDou
       }
     }
 
-    gsl_interp_accel_free(accx);
-    gsl_interp_accel_free(accy);
-    gsl_interp_accel_free(accz);
-    gdl_interp3d_free(interpolant);
+//     gsl_interp_accel_free(accx);
+//     gsl_interp_accel_free(accy);
+//     gsl_interp_accel_free(accz);
+//     gdl_interp3d_free(interpolant);
     return res;
  }
 
@@ -2040,19 +2097,19 @@ BaseGDL* interpolate_fun(EnvT* e){
 	DLong dims[2] = {p0->Dim(0), p0->Dim(0)};
 	dimension dim0(dims, (SizeT) 2);
 	BaseGDL** p0Co = &e->GetPar( 0);
-	delete (*p0Co);
+	GDLDelete((*p0Co));
 	*p0Co = new DComplexGDL(dim0, BaseGDL::NOZERO);
 
 	DLong n = p0->Dim(0);
 	dimension dim1(&n, (SizeT) 1);
 	BaseGDL** p1F = &e->GetPar( 1);
-	delete (*p1F);
+	GDLDelete((*p1F));
 	*p1F = new DFloatGDL(dim1, BaseGDL::NOZERO);
 
 	n--;
 	dimension dim2(&n, (SizeT) 1);
 	BaseGDL** p2F = &e->GetPar( 2);
- 	delete (*p2F);
+ 	GDLDelete((*p2F));
  	*p2F = new DFloatGDL(dim2, BaseGDL::NOZERO);
 
  	for( SizeT i=0; i<p0->Dim(0)*p0->Dim(0); i++) {
@@ -2100,19 +2157,19 @@ BaseGDL* interpolate_fun(EnvT* e){
 	DLong dims[2] = {p0->Dim(0), p0->Dim(0)};
 	dimension dim0(dims, (SizeT) 2);
 	BaseGDL** p0Co = &e->GetPar( 0);
-	delete (*p0Co);
+	GDLDelete((*p0Co));
 	*p0Co = new DComplexDblGDL(dim0, BaseGDL::NOZERO);
 
 	DLong n = p0->Dim(0);
 	dimension dim1(&n, (SizeT) 1);
 	BaseGDL** p1D = &e->GetPar( 1);
-	delete (*p1D);
+	GDLDelete((*p1D));
 	*p1D = new DDoubleGDL(dim1, BaseGDL::NOZERO);
 
 	n--;
 	dimension dim2(&n, (SizeT) 1);
 	BaseGDL** p2D = &e->GetPar( 2);
- 	delete (*p2D);
+ 	GDLDelete((*p2D));
  	*p2D = new DDoubleGDL(dim2, BaseGDL::NOZERO);
 
 	memcpy(&(*(DComplexDblGDL*) *p0Co)[0], Q->data, 
@@ -2146,19 +2203,19 @@ BaseGDL* interpolate_fun(EnvT* e){
 	DLong dims[2] = {p0->Dim(0), p0->Dim(0)};
 	dimension dim0(dims, (SizeT) 2);
 	BaseGDL** p0Do = &e->GetPar( 0);
-	delete (*p0Do);
+	GDLDelete((*p0Do));
 	*p0Do = new DDoubleGDL(dim0, BaseGDL::NOZERO);
 
 	DLong n = p0->Dim(0);
 	dimension dim1(&n, (SizeT) 1);
 	BaseGDL** p1D = &e->GetPar( 1);
-	delete (*p1D);
+	GDLDelete((*p1D));
 	*p1D = new DDoubleGDL(dim1, BaseGDL::NOZERO);
 
 	n--;
 	dimension dim2(&n, (SizeT) 1);
 	BaseGDL** p2D = &e->GetPar( 2);
- 	delete (*p2D);
+ 	GDLDelete((*p2D));
  	*p2D = new DDoubleGDL(dim2, BaseGDL::NOZERO);
 
 	memcpy(&(*(DDoubleGDL*) *p0Do)[0], Q->data, 
@@ -2212,19 +2269,19 @@ BaseGDL* interpolate_fun(EnvT* e){
 	DLong dims[2] = {p0->Dim(0), p0->Dim(0)};
 	dimension dim0(dims, (SizeT) 2);
 	BaseGDL** p0Fo = &e->GetPar( 0);
-	delete (*p0Fo);
+	GDLDelete((*p0Fo));
 	*p0Fo = new DFloatGDL(dim0, BaseGDL::NOZERO);
 
 	DLong n = p0->Dim(0);
 	dimension dim1(&n, (SizeT) 1);
 	BaseGDL** p1F = &e->GetPar( 1);
-	delete (*p1F);
+	GDLDelete((*p1F));
 	*p1F = new DFloatGDL(dim1, BaseGDL::NOZERO);
 
 	n--;
 	dimension dim2(&n, (SizeT) 1);
 	BaseGDL** p2F = &e->GetPar( 2);
- 	delete (*p2F);
+ 	GDLDelete((*p2F));
  	*p2F = new DFloatGDL(dim2, BaseGDL::NOZERO);
 
  	for( SizeT i=0; i<p0->Dim(0)*p0->Dim(0); i++) {
@@ -3301,23 +3358,23 @@ BaseGDL* fx_root_fun(EnvT* e)
     return res->Convert2(e->KeywordSet(doubleIx) ? DOUBLE : FLOAT, BaseGDL::CONVERT);
   }
 
-  // SA: helper routines/classes for WTN
-  // an auto_ptr-like class for guarding wavelets
-  class gsl_wavelet_guard
-  {
-    gsl_wavelet* wavelet;
-    public:
-    gsl_wavelet_guard(gsl_wavelet* wavelet_) { wavelet = wavelet_; }
-    ~gsl_wavelet_guard() { gsl_wavelet_free(wavelet); }
-  };
-  // as auto_ptr-like class for guarding wavelet_workspaces
-  class gsl_wavelet_workspace_guard
-  {
-    gsl_wavelet_workspace* workspace;
-    public:
-    gsl_wavelet_workspace_guard(gsl_wavelet_workspace* workspace_) { workspace = workspace_; }
-    ~gsl_wavelet_workspace_guard() { gsl_wavelet_workspace_free(workspace); }
-  };
+//   // SA: helper routines/classes for WTN
+//   // an auto_ptr-like class for guarding wavelets
+//   class gsl_wavelet_guard
+//   {
+//     gsl_wavelet* wavelet;
+//     public:
+//     gsl_wavelet_guard(gsl_wavelet* wavelet_) { wavelet = wavelet_; }
+//     ~gsl_wavelet_guard() { gsl_wavelet_free(wavelet); }
+//   };
+//   // as auto_ptr-like class for guarding wavelet_workspaces
+//   class gsl_wavelet_workspace_guard
+//   {
+//     gsl_wavelet_workspace* workspace;
+//     public:
+//     gsl_wavelet_workspace_guard(gsl_wavelet_workspace* workspace_) { workspace = workspace_; }
+//     ~gsl_wavelet_workspace_guard() { gsl_wavelet_workspace_free(workspace); }
+//   };
   // a simple error handler for GSL issuing GDL warning messages
   // an initial call (with file=NULL, line=-1 and gsl_errno=-1) sets a prefix to "reason: "
   // TODO: merge with the code of NEWTON/BROYDEN/IMSL_HYBRID
@@ -3383,12 +3440,14 @@ BaseGDL* fx_root_fun(EnvT* e)
     // initializing wavelet ceofficients
     gsl_wavelet *wavelet = gsl_wavelet_alloc(gsl_wavelet_daubechies, p1);
     if (wavelet == NULL) e->Throw("Failed to initialize the wavelet filter coefficients");
-    gsl_wavelet_guard wavelet_guard = gsl_wavelet_guard(wavelet);
+    GSLGuard<gsl_wavelet> wavelet_guard(wavelet, gsl_wavelet_free);
+    //gsl_wavelet_guard wavelet_guard = gsl_wavelet_guard(wavelet);
 
     // initializing workspace (N -> N, NxN -> N, 1xN -> N)
     gsl_wavelet_workspace *workspace = gsl_wavelet_workspace_alloc(max(ret->Dim(0), ret->Dim(1)));
     if (workspace == NULL) e->Throw("Failed to allocate scratch memory");
-    gsl_wavelet_workspace_guard workspace_guard = gsl_wavelet_workspace_guard(workspace);
+    GSLGuard<gsl_wavelet_workspace> workspace_guard( workspace, gsl_wavelet_workspace_free);
+    //gsl_wavelet_workspace_guard workspace_guard = gsl_wavelet_workspace_guard(workspace);
     
     // 1D (or 1xN) case
     if (ret->Rank() == 1 || (ret->Rank() == 2 && ret->Dim(0) == 1))
@@ -3428,7 +3487,7 @@ BaseGDL* fx_root_fun(EnvT* e)
         DDoubleGDL* tmp;
         tmp = ret;
         ret = static_cast<DDoubleGDL*>(ret->Transpose(NULL));
-        delete tmp;
+        GDLDelete(tmp);
       }
     }
 

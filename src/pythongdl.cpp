@@ -78,12 +78,12 @@ bool GetScript( PyObject *argTuple, DString& name)
   if( proGDL->Type() != STRING)
     {
       PyErr_SetString( gdlError, "Script must be a tuple of strings.");
-      delete proGDL;
+      GDLDelete(proGDL);
       return false;
     }
 
   name = StrUpCase((*(static_cast< DStringGDL*>( proGDL)))[ 0]);
-  delete proGDL;
+  GDLDelete(proGDL);
   
   return true;
 }
@@ -108,12 +108,12 @@ bool GetFirstString( PyObject *argTuple, DString& name)
   if( proGDL->Type() != STRING || proGDL->N_Elements() != 1)
     {
       PyErr_SetString( gdlError, "First argument must be a scalar string");
-      delete proGDL;
+      GDLDelete(proGDL);
       return false;
     }
 
   name = (*(static_cast< DStringGDL*>( proGDL)))[ 0];
-  delete proGDL;
+  GDLDelete(proGDL);
   
   return true;
 }

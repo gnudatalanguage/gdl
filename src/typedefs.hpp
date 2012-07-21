@@ -743,5 +743,29 @@ const int ExprListDefaultLength = 64;
 typedef PreAllocPListT<BaseGDL*, ExprListDefaultLength> ExprListT;
 typedef ExprListT::iterator ExprListIterT;
 
+// exception save usage of GSL types
+// you need to pass the gsl-object to guard and the gsl-clenaup (free) function
+// example usage (for gsl_matrix):
+//
+// gsl_matrix *matrix = gsl_matrix_alloc(p0->Dim(0), p0->Dim(0));
+//
+// GSLGuard< gsl_matrix> gsl_matrix_guard( matrix, gsl_matrix_free);
+// (of course no explicit call to the gsl-cleanup function must be done anymore)
+template< typename GSLType>
+class GSLGuard
+{
+  GSLType* gslObject;
+  
+  void (*gslDestructor)(GSLType*);
+  
+  GSLGuard() {}
+  
+public:
+  GSLGuard( GSLType* o, void (*d)(GSLType*)): gslObject( o), gslDestructor(d) {}
+  ~GSLGuard()
+  {
+    (*gslDestructor)( gslObject);
+  }
+};
 
 #endif

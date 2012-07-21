@@ -18,7 +18,9 @@
 #include "includefirst.hpp"
 
 #include <algorithm>
+
 #include "dvar.hpp"
+#include "nullgdl.hpp"
 
 using namespace std;
 
@@ -31,8 +33,12 @@ DVar::DVar() : name(), d(0)
 
 DVar::~DVar() 
 {
-  if( d != NULL) delete d;
-}	
+  // Note: !NULL would be naturally destroyed from here at program end
+  // we explicitely preventing the deltion to be able to flag possible
+  // other destructions of !NULL (which are bugs)
+  //if( d != NullGDL::GetSingleInstance()) 
+    GDLDelete(d);
+}
 
 DVar* FindInVarList(VarListT& v, const string& s)
 {

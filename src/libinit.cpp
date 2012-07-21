@@ -417,7 +417,7 @@ void LibInit()
   new DLibFunRetNew(lib::strpos,string("STRPOS"),3,strposKey,NULL,true);
   new DLibPro(lib::strput,string("STRPUT"),3);
   
-  const string whereKey[]={"COMPLEMENT","NCOMPLEMENT",KLISTEND};
+  const string whereKey[]={"COMPLEMENT","NCOMPLEMENT","NULL",KLISTEND};
   new DLibFunRetNew(lib::where,string("WHERE"),2,whereKey);
 
   const string totalKey[]={"CUMULATIVE","DOUBLE","NAN","INTEGER","PRESERVE_TYPE",KLISTEND};

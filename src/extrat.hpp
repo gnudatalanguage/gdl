@@ -50,7 +50,7 @@ public:
 
   ~ExtraT() 
   {
-    delete loc;
+    GDLDelete(loc);
   }
 
   void SetStrict( bool s)
@@ -64,7 +64,7 @@ public:
 	val->Type() != STRING)
       throw GDLException("Invalid value for _EXTRA keyword.");
     
-    delete loc;
+    GDLDelete(loc);
     
     loc=val;
   }

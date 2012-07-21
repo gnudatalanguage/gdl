@@ -100,7 +100,7 @@ DNode::~DNode()
     // delete cData in case this node is a constant
     if( (getType() == GDLTokenTypes::CONSTANT) && cData != NULL)
       {
-	delete cData;
+	GDLDelete(cData);
       }
     if( (getType() == GDLTokenTypes::ARRAYIX))
       {

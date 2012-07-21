@@ -99,7 +99,7 @@ namespace lib {
     dimension dim0(dims, (SizeT) 2);
 
     BaseGDL** p0Do = &e->GetPar( 0);
-    delete (*p0Do);
+    GDLDelete((*p0Do));
     *p0Do = new DDoubleGDL(dim0, BaseGDL::NOZERO);  
     memcpy(&(*(DDoubleGDL*) *p0Do)[0], mat->data,
 	   p0->Dim(0)*p0->Dim(0)*szdbl);
@@ -117,7 +117,7 @@ namespace lib {
     DLong n = p0->Dim(0);
     dimension dim1(&n, (SizeT) 1);
     BaseGDL** p1D = &e->GetPar( 1);
-    delete (*p1D);
+    GDLDelete((*p1D));
     *p1D = new DLongGDL(dim1, BaseGDL::NOZERO);
     memcpy(&(*(DLongGDL*) *p1D)[0], p->data, 
 	   p0->Dim(0)*szlng);

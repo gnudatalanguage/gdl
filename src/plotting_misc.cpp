@@ -83,7 +83,7 @@ namespace lib {
 	    for( SizeT i=start,ii=0; i<ctSize; ++i,++ii)
 	      actCT->Get( i, (*rgb)[ ii], (*rgb)[ ii+nCol], (*rgb)[ ii+2*nCol]);
 
-	    delete p0;
+	    GDLDelete(p0);
 	    p0 = rgb;
 	  }
 	else
@@ -152,9 +152,9 @@ namespace lib {
 	    for( SizeT i=start,ii=0; i<ctSize; ++i,++ii)
 	      actCT->Get( i, (*r)[ ii], (*g)[ ii], (*b)[ ii]);
 
-	    delete p0; p0 = r;
-	    delete p1; p1 = g;
-	    delete p2; p2 = b;
+	    GDLDelete(p0); p0 = r;
+	    GDLDelete(p1); p1 = g;
+	    GDLDelete(p2); p2 = b;
 	  }
 	else
 	  {

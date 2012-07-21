@@ -179,6 +179,8 @@ ncdf_var_cl.cpp
 new.cpp
 new.hpp
 newprognode.cpp
+nullgdl.cpp
+nullgdl.hpp
 objects.cpp
 objects.hpp
 ofmt.cpp

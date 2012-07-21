@@ -1511,6 +1511,12 @@ RefDNode mark;
 	| CONSTANT
 	| dummy=array_def
 	| struct_def
+    | g:GDLNULL
+        {
+            #g->setType(SYSVAR);
+            #g->setText("NULL");
+            comp.SysVar(#g); // sets var to NULL
+        }
 	;
 
 op_expr

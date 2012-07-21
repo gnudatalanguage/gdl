@@ -823,7 +823,7 @@ namespace lib {
 
     if ( getuvalue) {
       BaseGDL** uvalueKW = &e->GetKW( getuvalueIx);
-      delete (*uvalueKW);
+      GDLDelete((*uvalueKW));
 
       BaseGDL *widval = widget->GetUvalue();
       //      *uvalueKW = widget->GetUvalue();
@@ -932,7 +932,7 @@ namespace lib {
 
     if ( getvalue) {
       BaseGDL** valueKW = &e->GetKW( getvalueIx);
-      delete (*valueKW);
+      GDLDelete((*valueKW));
 
       DString getFuncName = widget->GetFuncValue();
       if ( getFuncName != "") {
@@ -959,7 +959,7 @@ namespace lib {
       } else {
 	// "Regular" getvalue
 	BaseGDL** valueKW = &e->GetKW( getvalueIx);
-	delete (*valueKW);
+	GDLDelete((*valueKW));
 
 	*valueKW = widget->GetVvalue();
 	if ( *valueKW != NULL) {

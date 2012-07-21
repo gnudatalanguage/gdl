@@ -118,7 +118,7 @@ namespace lib {
   template <typename T> 
   void ncdf_var_handle_error(EnvT *e, int status, const char *function, T *data)
   {
-    if (data != NULL and status != NC_NOERR) delete data;
+    if (data != NULL and status != NC_NOERR) GDLDelete(data);
     ncdf_handle_error(e, status, function);
   }
   
@@ -303,7 +303,7 @@ namespace lib {
 				index,
 				&dvar);
 
-      	  delete e->GetParGlobal(2);
+      	  GDLDelete(e->GetParGlobal(2));
       e->GetParGlobal(2)=new DDoubleGDL(dvar);
     }
     else if(var_type == NC_FLOAT){
@@ -315,7 +315,7 @@ namespace lib {
 				index,
 				&fvar);
 
-	  delete e->GetParGlobal(2);
+	  GDLDelete(e->GetParGlobal(2));
 	e->GetParGlobal(2)=new DFloatGDL(fvar);
     }
     /*    This shouldn't get called?
@@ -328,7 +328,7 @@ else if(var_type == NC_LONG)
 				varid,
 				index,
 				&lvar);
-	  delete e->GetParGlobal(2);
+	  GDLDelete(e->GetParGlobal(2));
 	e->GetParGlobal(2) = new DLongGDL((lvar));
 
 	}*/
@@ -340,7 +340,7 @@ else if(var_type == NC_LONG)
 				varid,
 				index,
 				&ivar);
-	  delete e->GetParGlobal(2);
+	  GDLDelete(e->GetParGlobal(2));
 	e->GetParGlobal(2) = new DLongGDL((ivar));
       }
     else if(var_type == NC_SHORT)
@@ -351,14 +351,14 @@ else if(var_type == NC_LONG)
 				varid,
 				index,
 				&svar);
-	  delete e->GetParGlobal(2);
+	  GDLDelete(e->GetParGlobal(2));
 	e->GetParGlobal(2) = new DIntGDL((svar));
       }
     else if(var_type == NC_CHAR)
     {
       char cvar;
       status=nc_get_var1_text(cdfid, varid, index, &cvar);
-      delete e->GetParGlobal(2);
+      GDLDelete(e->GetParGlobal(2));
       e->GetParGlobal(2) = new DByteGDL(cvar);
     }
     else if(var_type == NC_BYTE){
@@ -368,7 +368,7 @@ else if(var_type == NC_LONG)
 			       index,
 			       &bvar);
 
-      delete e->GetParGlobal(2);
+      GDLDelete(e->GetParGlobal(2));
       e->GetParGlobal(2) = new DByteGDL((bvar));
     }
     
@@ -458,7 +458,7 @@ else if(var_type == NC_LONG)
         DDoubleGDL *temp = new DDoubleGDL(dim,BaseGDL::NOZERO);
         status=nc_get_var_double(cdfid, varid, &(*temp)[0]);
         ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
-        delete e->GetParGlobal(2);
+        GDLDelete(e->GetParGlobal(2));
         e->GetParGlobal(2)=temp;      	
       } 
       else if (var_type == NC_FLOAT)
@@ -466,7 +466,7 @@ else if(var_type == NC_LONG)
         DFloatGDL *temp = new DFloatGDL(dim, BaseGDL::NOZERO);
         status = nc_get_var_float(cdfid, varid, &(*temp)[0]);
         ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
-        delete e->GetParGlobal(2);
+        GDLDelete(e->GetParGlobal(2));
         e->GetParGlobal(2)=temp;
       } 
       else if (var_type == NC_SHORT)
@@ -474,7 +474,7 @@ else if(var_type == NC_LONG)
         DIntGDL * temp=new DIntGDL(dim,BaseGDL::NOZERO);
         status=nc_get_var_short(cdfid, varid,&(*temp)[0]);
         ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
-        delete e->GetParGlobal(2);
+        GDLDelete(e->GetParGlobal(2));
         e->GetParGlobal(2)=temp;      	
       } 
       else if (var_type == NC_INT)
@@ -482,7 +482,7 @@ else if(var_type == NC_LONG)
         DLongGDL* temp=new DLongGDL(dim,BaseGDL::NOZERO);
         status=nc_get_var_int(cdfid, varid,&(*temp)[0]);
         ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
-        delete e->GetParGlobal(2);
+        GDLDelete(e->GetParGlobal(2));
         e->GetParGlobal(2)=temp;      	
       } 
       else if (var_type == NC_BYTE)
@@ -490,7 +490,7 @@ else if(var_type == NC_LONG)
         DByteGDL* temp=new DByteGDL(dim,BaseGDL::NOZERO);
         status=nc_get_var_uchar(cdfid, varid, &(*temp)[0]);
         ncdf_var_handle_error(e,status,"NCDF_VARGET", temp);
-        delete e->GetParGlobal(2);  
+        GDLDelete(e->GetParGlobal(2));  
         e->GetParGlobal(2)=temp;      	
       } 
       else if (var_type == NC_CHAR)
@@ -498,7 +498,7 @@ else if(var_type == NC_LONG)
         DByteGDL* temp = new DByteGDL(dim, BaseGDL::NOZERO);
         status = nc_get_var_uchar(cdfid, varid, &(*temp)[0]);
         ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
-        delete e->GetParGlobal(2);
+        GDLDelete(e->GetParGlobal(2));
         e->GetParGlobal(2) = temp;
       }
       //done read all.
@@ -580,7 +580,7 @@ else if(var_type == NC_LONG)
           DDoubleGDL *temp = new DDoubleGDL(dim, BaseGDL::NOZERO);
           status=nc_get_vara_double(cdfid, varid, off, cou, &(*temp)[0]);
           ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
-          delete e->GetParGlobal(2);
+          GDLDelete(e->GetParGlobal(2));
           e->GetParGlobal(2) = temp;      	
         }
         else if (var_type == NC_FLOAT)
@@ -588,7 +588,7 @@ else if(var_type == NC_LONG)
           DFloatGDL *temp = new DFloatGDL(dim, BaseGDL::NOZERO);
           status = nc_get_vara_float(cdfid, varid, off,cou,&(*temp)[0]);
           ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
-          delete e->GetParGlobal(2);
+          GDLDelete(e->GetParGlobal(2));
           e->GetParGlobal(2) = temp;
         }
         else if (var_type == NC_SHORT)
@@ -596,7 +596,7 @@ else if(var_type == NC_LONG)
           DIntGDL *temp = new DIntGDL(dim, BaseGDL::NOZERO);
           status = nc_get_vara_short(cdfid, varid, off, cou, &(*temp)[0]);
           ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
-          delete e->GetParGlobal(2);
+          GDLDelete(e->GetParGlobal(2));
           e->GetParGlobal(2) = temp;      	
         }
         else if(var_type == NC_INT)
@@ -604,7 +604,7 @@ else if(var_type == NC_LONG)
           DLongGDL *temp = new DLongGDL(dim,BaseGDL::NOZERO);
           status = nc_get_vara_int(cdfid, varid, off, cou, &(*temp)[0]);
           ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
-          delete e->GetParGlobal(2);
+          GDLDelete(e->GetParGlobal(2));
           e->GetParGlobal(2) = temp;    
         }
         else if (var_type == NC_BYTE)
@@ -612,7 +612,7 @@ else if(var_type == NC_LONG)
           DByteGDL *temp=new DByteGDL(dim,BaseGDL::NOZERO);
           status = nc_get_vara_uchar(cdfid, varid, off, cou, &(*temp)[0]);
           ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
-          delete e->GetParGlobal(2);
+          GDLDelete(e->GetParGlobal(2));
           e->GetParGlobal(2) = temp;      	
         }
         else if (var_type == NC_CHAR)
@@ -620,7 +620,7 @@ else if(var_type == NC_LONG)
           DByteGDL *temp = new DByteGDL(dim, BaseGDL::NOZERO);
           status = nc_get_vara_uchar(cdfid, varid, off, cou, &(*temp)[0]);
           ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
-          delete e->GetParGlobal(2);
+          GDLDelete(e->GetParGlobal(2));
           e->GetParGlobal(2) = temp;
         }
       } 
@@ -696,7 +696,7 @@ else if(var_type == NC_LONG)
           DDoubleGDL *temp = new DDoubleGDL(dim, BaseGDL::NOZERO);
           status=nc_get_vars_double(cdfid, varid, off, cou, stri, &(*temp)[0]);
           ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
-          delete e->GetParGlobal(2);
+          GDLDelete(e->GetParGlobal(2));
           e->GetParGlobal(2) = temp; 
         }
         else if(var_type == NC_FLOAT)
@@ -704,7 +704,7 @@ else if(var_type == NC_LONG)
           DFloatGDL *temp = new DFloatGDL(dim,BaseGDL::NOZERO);
           status = nc_get_vars_float(cdfid, varid, off, cou, stri, &(*temp)[0]);
           ncdf_var_handle_error(e,status,"NCDF_VARGET", temp);
-          delete e->GetParGlobal(2);
+          GDLDelete(e->GetParGlobal(2));
           e->GetParGlobal(2) = temp; 
         }
         else if (var_type == NC_SHORT)
@@ -712,7 +712,7 @@ else if(var_type == NC_LONG)
           DIntGDL *temp = new DIntGDL(dim, BaseGDL::NOZERO);
           status = nc_get_vars_short(cdfid, varid, off, cou, stri, &(*temp)[0]);
           ncdf_var_handle_error(e,status,"NCDF_VARGET", temp);
-          delete e->GetParGlobal(2);
+          GDLDelete(e->GetParGlobal(2));
           e->GetParGlobal(2) = temp;      	
         }
         else if(var_type == NC_INT)
@@ -720,7 +720,7 @@ else if(var_type == NC_LONG)
           DLongGDL *temp = new DLongGDL(dim, BaseGDL::NOZERO);
           status = nc_get_vars_int(cdfid, varid, off,cou, stri, &(*temp)[0]);
           ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
-          delete e->GetParGlobal(2);
+          GDLDelete(e->GetParGlobal(2));
           e->GetParGlobal(2) = temp;  
         }
         else if(var_type == NC_BYTE)
@@ -728,7 +728,7 @@ else if(var_type == NC_LONG)
           DByteGDL *temp=new DByteGDL(dim, BaseGDL::NOZERO);
           status = nc_get_vars_uchar(cdfid, varid, off, cou, stri, &(*temp)[0]);
           ncdf_var_handle_error(e,status,"NCDF_VARGET", temp);
-          delete e->GetParGlobal(2);
+          GDLDelete(e->GetParGlobal(2));
           e->GetParGlobal(2) = temp;      	
         }
         else if (var_type == NC_CHAR)
@@ -736,7 +736,7 @@ else if(var_type == NC_LONG)
           DByteGDL *temp = new DByteGDL(dim, BaseGDL::NOZERO);
           status = nc_get_vars_uchar(cdfid, varid, off, cou, stri, &(*temp)[0]);
           ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
-          delete e->GetParGlobal(2);
+          GDLDelete(e->GetParGlobal(2));
           e->GetParGlobal(2) = temp;      	
         }
       }

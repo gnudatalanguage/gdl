@@ -433,7 +433,7 @@ namespace lib {
     if((e->KeywordSet(2) || e->KeywordSet(3)) &&e->KeywordPresent(6))
       {
 	e->AssureGlobalKW(6);
-	delete e->GetKW(6);
+	GDLDelete(e->GetKW(6));
 	e->GetKW(6)=new DLongGDL(omode);
       }
 

@@ -108,6 +108,7 @@ tokens {
  	FCALL_LIB_DIRECT; // direct call
  	FCALL_LIB_N_ELEMENTS; // N_ELEMENTS
 	FCALL_LIB_RETNEW; // library function call always return newly allocated data
+    GDLNULL;
     IF_ELSE;
 	KEYDECL;
 	KEYDEF;
@@ -1626,6 +1627,14 @@ primary_expr
 	| numeric_constant
 	| array_def
 	| struct_def
+    | ! ls:LSQUARE !RSQUARE
+		{ #primary_expr=#[GDLNULL,"GDLNULL[]"];
+            #primary_expr->SetLine( #ls->getLine());
+		}  
+    | ! lc:LCURLY !RCURLY
+		{ #primary_expr=#[GDLNULL,"GDLNULL{}"];
+            #primary_expr->SetLine( #lc->getLine());
+		}  
 	;
 
 // only one INC/DEC allowed per target

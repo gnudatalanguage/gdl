@@ -82,11 +82,11 @@ namespace lib {
 
     //fill in the return variables
     //name
-    delete e->GetParGlobal(2);
+    GDLDelete(e->GetParGlobal(2));
     e->GetParGlobal(2)=new DStringGDL(dim_name);
 
     //size
-    delete e->GetParGlobal(3);
+    GDLDelete(e->GetParGlobal(3));
     e->GetParGlobal(3)=new DLongGDL(dim_size);
     return;
 

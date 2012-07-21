@@ -1428,16 +1428,32 @@ istream& Data_<Sp>::Read( istream& os, bool swapEndian,
       char* cData = reinterpret_cast<char*>(&(*this)[0]);
       SizeT cCount = count * sizeof(Ty);
 
-      char swap[ sizeof(Ty)];
-      for( SizeT i=0; i<cCount; i += sizeof(Ty))
-	{
-	  os.read(swap,sizeof(Ty));
+      if( !Data_<Sp>::IS_COMPLEX)
+      {
+	char swapBuf[ sizeof(Ty)];
+	for( SizeT i=0; i<cCount; i += sizeof(Ty))
+	  {
+	    os.read(swapBuf,sizeof(Ty));
 
-	  SizeT src = i+sizeof(Ty)-1;
+	    SizeT src = i+sizeof(Ty)-1;
 
-	  for( SizeT dst=0; dst<sizeof(Ty); dst++)
-	    cData[ src--] = swap[dst];
-	}
+	    for( SizeT dst=0; dst<sizeof(Ty); dst++)
+	      cData[ src--] = swapBuf[dst];
+	  }
+      }
+      else
+      {
+	char swapBuf[ sizeof(Ty)/2];
+	for( SizeT i=0; i<cCount; i += sizeof(Ty)/2)
+	  {
+	    os.read(swapBuf,sizeof(Ty)/2);
+
+	    SizeT src = i+sizeof(Ty)/2-1;
+
+	    for( SizeT dst=0; dst<sizeof(Ty)/2; dst++)
+	      cData[ src--] = swapBuf[dst];
+	  }
+      }
     }
   else if (xdrs != NULL)
     {

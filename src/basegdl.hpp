@@ -353,7 +353,7 @@ public:
   
   // FIRST VIRTUAL FUNCTION'S OBJECT FILE CONTAINS ALSO THE VTABLE
   // therefore it must be defined non-inline (g++)
-  virtual ~BaseGDL(); // defined in datatypes.cpp
+  virtual ~BaseGDL(); // defined in basegdl.cpp
 
   BaseGDL();//: dim() {} 
   BaseGDL(const dimension& dim_);//: dim(dim_) {} 
@@ -361,7 +361,7 @@ public:
 
   // provide access to dim member
   inline const dimension& Dim()   const      { return dim;}
-   inline SizeT    Dim(SizeT d)    const      { return dim[d];}
+  inline SizeT    Dim(SizeT d)    const      { return dim[d];}
 //   inline SizeT*   Dim0Address()              { return dim.Dim0Address();}
   inline SizeT    Stride(SizeT d) const      { return dim.Stride(d);}
   inline void     Purge()                    { dim.Purge();}
@@ -376,10 +376,10 @@ public:
   }
 
 //  private:
- virtual BaseGDL& operator=(const BaseGDL& right);
+  virtual BaseGDL& operator=(const BaseGDL& right);
 //  public:
  
- virtual void InitFrom(const BaseGDL& right); // for structs
+  virtual void InitFrom(const BaseGDL& right); // for structs
 
   // virtual functions
   virtual bool IsAssoc() const;
@@ -722,6 +722,8 @@ struct ForLoopInfoT
 		loopStepVar = NULL;
 	}
 };
+
+void GDLDelete( BaseGDL* toDelete);
 
 #endif
 

@@ -58,7 +58,7 @@ namespace lib {
     if (lun < 0) {
       BaseGDL** retPos = &e->GetPar( 1);
 
-      delete *retPos;
+      GDLDelete(*retPos);
       *retPos = new DLongGDL( actUnit.Tell());
       return;
 

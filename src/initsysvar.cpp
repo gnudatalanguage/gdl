@@ -27,6 +27,8 @@
 #include <omp.h> // for !CPU
 #endif
 
+#include "nullgdl.hpp"
+
 #include "objects.hpp"
 #include "dstructgdl.hpp"
 #include "graphics.hpp"
@@ -39,7 +41,7 @@ namespace SysVar
   using namespace std;
 
   // the index of some system variables
-  UInt pathIx, promptIx, edit_inputIx, quietIx, 
+  UInt nullIx, pathIx, promptIx, edit_inputIx, quietIx, 
     dIx, pIx, xIx, yIx, zIx, vIx, gdlIx, cIx, MouseIx,
     errorStateIx, errorIx, errIx, err_stringIx, valuesIx,
     journalIx, exceptIx, mapIx, cpuIx, dirIx, stimeIx, warnIx, usersymIx;
@@ -284,6 +286,12 @@ namespace SysVar
     // for very sensitive compilers (which need a SizeT for dimension())
     const SizeT one=1;
 
+    // !NULL
+    NullGDL* nullInstance = NullGDL::GetSingleInstance();
+    DVar *nullVar = new DVar( "NULL", nullInstance);
+    nullIx=sysVarList.size();
+    sysVarList.push_back(nullVar);
+   
     // !PATH
     //    DString initPath(""); // set here the initial path
     DStringGDL* pathData=new DStringGDL( "");

@@ -1065,7 +1065,7 @@ void EnvT::Catch()
 			  "in this context: " + GetParString(0));
     caller->catchNode = callingNode->getNextSibling();
     caller->catchVar = &GetPar( 0);
-    delete *caller->catchVar;
+    GDLDelete(*caller->catchVar);
     *caller->catchVar = new DLongGDL( 0);
   }
 
@@ -1561,7 +1561,7 @@ void EnvT::SetKW( SizeT ix, BaseGDL* newVal)
   // can't use Guard here as data has to be released
   auto_ptr<BaseGDL> guard( newVal);
   AssureGlobalKW( ix);
-  delete GetKW( ix);
+  GDLDelete(GetKW( ix));
   GetKW( ix) = guard.release();
 }
 void EnvT::SetPar( SizeT ix, BaseGDL* newVal)
@@ -1569,7 +1569,7 @@ void EnvT::SetPar( SizeT ix, BaseGDL* newVal)
   // can't use Guard here as data has to be released
   auto_ptr<BaseGDL> guard( newVal);
   AssureGlobalPar( ix);
-  delete GetPar( ix);
+  GDLDelete(GetPar( ix));
   GetPar( ix) = guard.release();
 }
 

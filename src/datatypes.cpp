@@ -2416,12 +2416,12 @@ bool Data_<Sp>::Equal( BaseGDL* r) const
 {
   if( !r->Scalar())
     {
-      delete r;
+      GDLDelete(r);
       throw GDLException("Expression must be a scalar in this context.");
     }
   Data_* rr=static_cast<Data_*>(r->Convert2( this->t));
   bool ret= ((*this)[0] == (*rr)[0]);
-  delete rr;
+  GDLDelete(rr);
   return ret;
 }
 
@@ -2436,10 +2436,10 @@ bool Data_<Sp>::EqualNoDelete( const BaseGDL* r) const
   bool ret;
   if( r->Type() != this->t)
   {
-  const Data_* rr=static_cast<const Data_*>(const_cast<BaseGDL*>(r)->Convert2( this->t, BaseGDL::COPY));
+  Data_* rr=static_cast<Data_*>(const_cast<BaseGDL*>(r)->Convert2( this->t, BaseGDL::COPY));
   ret= ((*this)[0] == (*rr)[0]);
-  delete rr;
-	}
+  GDLDelete(rr);
+  }
 else
 {
   const Data_* rr=static_cast<const Data_*>(r);
@@ -2450,7 +2450,7 @@ else
 
 bool DStructGDL::Equal( BaseGDL* r) const
 {
-  delete r;
+  GDLDelete(r);
   throw GDLException("Struct expression not allowed in this context.");
   return false;
 }
@@ -4698,7 +4698,7 @@ BaseGDL* Data_<Sp>::Rebin( const dimension& newDim, bool sample)
 	Data_* act = Rebin1( actIn, actDim, d, newDim[d], sample);
 	actDim = act->Dim();
 	
-	if( actIn != this) delete actIn;
+	if( actIn != this) GDLDelete(actIn);
 	actIn = act;
       }
 
@@ -4710,7 +4710,7 @@ BaseGDL* Data_<Sp>::Rebin( const dimension& newDim, bool sample)
 	Data_* act = Rebin1( actIn, actDim, d, newDim[d], sample);
 	actDim = act->Dim();
 	
-	if( actIn != this) delete actIn;
+	if( actIn != this) GDLDelete(actIn);
 	actIn = act;
       }
   
@@ -4742,7 +4742,7 @@ BaseGDL* Data_<SpDByte>::Rebin( const dimension& newDim, bool sample)
 	Data_* act = Rebin1Int<DByteGDL, DULong64>( actIn, actDim, d, newDim[d], sample);
 	actDim = act->Dim();
 	
-	if( actIn != this) delete actIn;
+	if( actIn != this) GDLDelete(actIn);
 	actIn = act;
       }
 
@@ -4754,7 +4754,7 @@ BaseGDL* Data_<SpDByte>::Rebin( const dimension& newDim, bool sample)
 	Data_* act = Rebin1Int<DByteGDL, DULong64>( actIn, actDim, d, newDim[d], sample);
 	actDim = act->Dim();
 	
-	if( actIn != this) delete actIn;
+	if( actIn != this) GDLDelete(actIn);
 	actIn = act;
       }
   
@@ -4784,7 +4784,7 @@ BaseGDL* Data_<SpDInt>::Rebin( const dimension& newDim, bool sample)
 	Data_* act = Rebin1Int<DIntGDL, DLong64>( actIn, actDim, d, newDim[d], sample);
 	actDim = act->Dim();
 	
-	if( actIn != this) delete actIn;
+	if( actIn != this) GDLDelete(actIn);
 	actIn = act;
       }
 
@@ -4796,7 +4796,7 @@ BaseGDL* Data_<SpDInt>::Rebin( const dimension& newDim, bool sample)
 	Data_* act = Rebin1Int<DIntGDL, DLong64>( actIn, actDim, d, newDim[d], sample);
 	actDim = act->Dim();
 	
-	if( actIn != this) delete actIn;
+	if( actIn != this) GDLDelete(actIn);
 	actIn = act;
       }
   
@@ -4826,7 +4826,7 @@ BaseGDL* Data_<SpDUInt>::Rebin( const dimension& newDim, bool sample)
 	Data_* act = Rebin1Int<DUIntGDL, DULong64>( actIn, actDim, d, newDim[d], sample);
 	actDim = act->Dim();
 	
-	if( actIn != this) delete actIn;
+	if( actIn != this) GDLDelete(actIn);
 	actIn = act;
       }
 
@@ -4838,7 +4838,7 @@ BaseGDL* Data_<SpDUInt>::Rebin( const dimension& newDim, bool sample)
 	Data_* act = Rebin1Int<DUIntGDL, DULong64>( actIn, actDim, d, newDim[d], sample);
 	actDim = act->Dim();
 	
-	if( actIn != this) delete actIn;
+	if( actIn != this) GDLDelete(actIn);
 	actIn = act;
       }
   
@@ -4868,7 +4868,7 @@ BaseGDL* Data_<SpDLong>::Rebin( const dimension& newDim, bool sample)
 	Data_* act = Rebin1Int<DLongGDL, DLong64>( actIn, actDim, d, newDim[d], sample);
 	actDim = act->Dim();
 	
-	if( actIn != this) delete actIn;
+	if( actIn != this) GDLDelete(actIn);
 	actIn = act;
       }
 
@@ -4880,7 +4880,7 @@ BaseGDL* Data_<SpDLong>::Rebin( const dimension& newDim, bool sample)
 	Data_* act = Rebin1Int<DLongGDL, DLong64>( actIn, actDim, d, newDim[d], sample);
 	actDim = act->Dim();
 	
-	if( actIn != this) delete actIn;
+	if( actIn != this) GDLDelete(actIn);
 	actIn = act;
       }
   
@@ -4910,7 +4910,7 @@ BaseGDL* Data_<SpDULong>::Rebin( const dimension& newDim, bool sample)
 	Data_* act = Rebin1Int<DULongGDL, DULong64>( actIn, actDim, d, newDim[d], sample);
 	actDim = act->Dim();
 	
-	if( actIn != this) delete actIn;
+	if( actIn != this) GDLDelete(actIn);
 	actIn = act;
       }
 
@@ -4922,7 +4922,7 @@ BaseGDL* Data_<SpDULong>::Rebin( const dimension& newDim, bool sample)
 	Data_* act = Rebin1Int<DULongGDL, DULong64>( actIn, actDim, d, newDim[d], sample);
 	actDim = act->Dim();
 	
-	if( actIn != this) delete actIn;
+	if( actIn != this) GDLDelete(actIn);
 	actIn = act;
       }
   

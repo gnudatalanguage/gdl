@@ -241,11 +241,11 @@ BaseGDL* SpDComplexDbl::GetEmptyInstance() const { return new Data_<SpDComplexDb
 
 SpDByte::SpDByte(): BaseGDL() {}
 SpDByte::SpDByte( const dimension& dim_): BaseGDL(dim_) {}
-SpDByte::~SpDByte() {};
+SpDByte::~SpDByte() {}
 
 SpDInt::SpDInt(): BaseGDL() {}
 SpDInt::SpDInt( const dimension& dim_): BaseGDL(dim_) {}
-SpDInt::~SpDInt() {};
+SpDInt::~SpDInt() {}
 
 SpDUInt::SpDUInt(): BaseGDL() {}
 SpDUInt::SpDUInt( const dimension& dim_): BaseGDL(dim_) {}

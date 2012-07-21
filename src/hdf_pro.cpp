@@ -263,13 +263,13 @@ namespace lib {
 
     if (nParam >= 2) {
       BaseGDL** p1L = &e->GetPar( 1);
-      delete (*p1L); 
+      GDLDelete((*p1L)); 
       *p1L = new DLongGDL( num_datasets);
     }
 
     if (nParam == 3) {
       BaseGDL** p2L = &e->GetPar( 2);
-      delete (*p2L); 
+      GDLDelete((*p2L)); 
       *p2L = new DLongGDL( num_global_attrs);
     }
   }
@@ -298,7 +298,7 @@ namespace lib {
 
     if( e->KeywordPresent( 0)) {
       BaseGDL** dimKW = &e->GetKW( 0);
-      delete (*dimKW);
+      GDLDelete((*dimKW));
       dimension dim((DLong *) &rank, (SizeT) 1);
       *dimKW = new DLongGDL(dim, BaseGDL::NOZERO);
 
@@ -314,7 +314,7 @@ namespace lib {
 
     if( e->KeywordPresent( 1)) {
       BaseGDL** hdftypeKW = &e->GetKW( 1);
-      delete (*hdftypeKW); 
+      GDLDelete((*hdftypeKW)); 
       *hdftypeKW = new DLongGDL( dtype);
     }
 
@@ -326,13 +326,13 @@ namespace lib {
 
     if( e->KeywordPresent( 3)) {
       BaseGDL** nattrsKW = &e->GetKW( 3);
-      delete (*nattrsKW); 
+      GDLDelete((*nattrsKW)); 
       *nattrsKW = new DLongGDL( nattrs);
     }
 
     if( e->KeywordPresent( 4)) {
       BaseGDL** ndimsKW = &e->GetKW( 4);
-      delete (*ndimsKW); 
+      GDLDelete((*ndimsKW)); 
       *ndimsKW = new DLongGDL( rank);
     }
 
@@ -398,7 +398,7 @@ namespace lib {
 
     if( e->KeywordPresent( 0)) {
       BaseGDL** countKW = &e->GetKW( 0);
-      delete (*countKW); 
+      GDLDelete((*countKW)); 
       *countKW = new DLongGDL( count);
     }
 
@@ -406,7 +406,7 @@ namespace lib {
       dimension dim((DLong *) &count, 1);
 
       BaseGDL** dataKW = &e->GetKW( 1);
-      delete (*dataKW);
+      GDLDelete((*dataKW));
 
       switch ( num_type) {
 
@@ -458,7 +458,7 @@ namespace lib {
 
     if( e->KeywordPresent( 2)) {
       BaseGDL** hdftypeKW = &e->GetKW( 2);
-      delete (*hdftypeKW); 
+      GDLDelete((*hdftypeKW)); 
       *hdftypeKW = new DLongGDL( num_type);
     }
 
@@ -497,7 +497,7 @@ namespace lib {
     if( e->KeywordPresent( 2)) {
       Vinquire(vg_id, &nentries, groupname);
       BaseGDL** nentriesKW = &e->GetKW( 2);
-      delete (*nentriesKW); 
+      GDLDelete((*nentriesKW)); 
       *nentriesKW = new DLongGDL( nentries);
     }
   }
@@ -530,7 +530,7 @@ namespace lib {
     if( e->KeywordPresent( 2)) {
       nentries = VSelts(vd_id);
       BaseGDL** nentriesKW = &e->GetKW( 2);
-      delete (*nentriesKW); 
+      GDLDelete((*nentriesKW)); 
       *nentriesKW = new DLongGDL( nentries);
     }
   }
@@ -551,11 +551,11 @@ namespace lib {
 
 
     BaseGDL** p1L = &e->GetPar( 1);
-    delete (*p1L);
+    GDLDelete((*p1L));
     *p1L = new DLongGDL(dim, BaseGDL::NOZERO);
 
     BaseGDL** p2L = &e->GetPar( 2);
-    delete (*p2L);
+    GDLDelete((*p2L));
     *p2L = new DLongGDL(dim, BaseGDL::NOZERO);
 
     Vgettagrefs(vg_id, 

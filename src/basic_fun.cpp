@@ -42,6 +42,7 @@
 extern "C" char **environ;
 #endif
 
+#include "nullgdl.hpp"
 #include "datatypes.hpp"
 #include "envt.hpp"
 #include "dpro.hpp"
@@ -567,14 +568,14 @@ namespace lib {
 	
 	  if( res == NULL || (!res->Scalar()) || res->False())
 	    {
-	      delete res;
+	      GDLDelete(res);
 	      return new DObjGDL( 0);
 	    }
-	  delete res;
+	  GDLDelete(res);
 	}
     } catch(...) {
       e->FreeObjHeap( objID); // newObj might be changed
-      delete newObj;
+      GDLDelete(newObj);
       throw;
     }
 
@@ -1020,7 +1021,7 @@ namespace lib {
       
     if( offs < 0 || (offs+nByteCreate) > nByteSource)
       {
-	delete res;
+	GDLDelete(res);
 	e->Throw( "Specified offset to"
 		  " expression is out of range: "+e->GetParString(0));
       }
@@ -1175,7 +1176,7 @@ namespace lib {
 		SizeT nEl = sP->N_Elements();
 		for( SizeT e=0; e<nEl; ++e)
 		  s += (*sP)[ e];
-		delete sP;
+		GDLDelete(sP);
 	      }
 	    // IDL here breaks the string into tty-width substrings
 	    return new DStringGDL( s);
@@ -1681,7 +1682,7 @@ namespace lib {
 
 	mode = (*p1L)[ 0];
 
-	delete p1L;
+	GDLDelete(p1L);
 
 	if( mode < 0 || mode > 2)
 	  {
@@ -2107,6 +2108,9 @@ TRACEOMP( __FILE__, __LINE__)
     SizeT nEl = p0->N_Elements();
 
     SizeT count;
+    
+    static int nullIx = e->KeywordIx("NULL");
+    bool nullKW = e->KeywordSet(nullIx);
 
     DLong* ixList = p0->Where( e->KeywordPresent( 0), count);
     ArrayGuard<DLong> guard( ixList);
@@ -2116,7 +2120,10 @@ TRACEOMP( __FILE__, __LINE__)
       {
 	if( nCount == 0)
 	  {
-	    e->SetKW( 0, new DLongGDL( -1));
+	    if( nullKW)
+	      e->SetKW( 0, NullGDL::GetSingleInstance());
+	    else
+	      e->SetKW( 0, new DLongGDL( -1));
 	  }
 	else
 	  {
@@ -2145,8 +2152,13 @@ TRACEOMP( __FILE__, __LINE__)
 	e->SetPar( 1, new DLongGDL( count));
       }
 
-    if( count == 0) return new DLongGDL( -1);
-
+    if( count == 0) 
+    {
+      if( nullKW)
+	return NullGDL::GetSingleInstance();
+      return new DLongGDL( -1);
+    }
+    
     return new DLongGDL( ixList, count);
 
     //     DLongGDL* res = new DLongGDL( dimension( &count, 1), 
@@ -3339,7 +3351,7 @@ TRACEOMP( __FILE__, __LINE__)
       if (maxSet) // MAX keyword given
       {
         e->AssureGlobalKW( 0);
-        delete e->GetKW( 0);
+        GDLDelete(e->GetKW( 0));
         DLong maxEl;
         searchArr->MinMax( &minEl, &maxEl, &res, &e->GetKW( 0), omitNaN);
         if (subMax) e->SetKW(subIx, new DLongGDL(maxEl));
@@ -3448,7 +3460,7 @@ TRACEOMP( __FILE__, __LINE__)
       if (minSet) // MIN keyword given
       {
         e->AssureGlobalKW( 0);
-        delete e->GetKW( 0);
+        GDLDelete(e->GetKW( 0));
         DLong minEl;
         searchArr->MinMax( &minEl, &maxEl, &e->GetKW( 0), &res, omitNaN);
 	if (subMin) e->SetKW(subIx, new DLongGDL(minEl));
@@ -3498,7 +3510,7 @@ BaseGDL* transpose( EnvT* e)
 	DUIntGDL* p1L = static_cast<DUIntGDL*>
 	  (p1->Convert2( UINT, BaseGDL::COPY));
 	for( SizeT i=0; i<rank; ++i) perm[i] = (*p1L)[ i];
-	delete p1L;
+	GDLDelete(p1L);
 
 	// check permutation vector
 	for( SizeT i=0; i<rank; ++i) 
@@ -5410,14 +5422,14 @@ BaseGDL* transpose( EnvT* e)
         DStringGDL *pnames = new DStringGDL(dimension(np));
         for (SizeT p = 0; p < np; ++p) (*pnames)[p] = routine->GetVarName(nk + p); 
         stru->InitTag("ARGS", *pnames);
-        delete pnames;
+        GDLDelete(pnames);
       }
       if (nk > 0)
       {
         DStringGDL *knames = new DStringGDL(dimension(nk));
         for (SizeT k = 0; k < nk; ++k) (*knames)[k] = routine->GetKWName(k); 
         stru->InitTag("KW_ARGS", *knames);
-        delete knames;
+        GDLDelete(knames);
       }
 
       // returning

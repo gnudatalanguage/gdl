@@ -164,6 +164,7 @@ public:
   virtual BaseGDL** LEval();
   virtual BaseGDL* Eval(); // caller receives ownership
   virtual BaseGDL* EvalNC(); // non-copy used by all operators (and in other places)
+  virtual BaseGDL* EvalNCNull(); // non-copy might return NULL
   virtual RetCode    Run();
 
 //   RetCode  (*RunP)();
