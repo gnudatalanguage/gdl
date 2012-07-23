@@ -76,10 +76,14 @@ BaseGDL* ProgNode::EvalNCNull()
 
 BaseGDL** ProgNode::LEval()
 {
-  return NULL; // ok, called QUESTIONNode::AsParameter()
-//   throw GDLException( this,
-// 		      "Internal error. "
-// 		      "ProgNode::LEval() called.",true,false);
+  throw GDLException( this,
+		      "Internal error. "
+		      "ProgNode::LEval() called.",true,false);
+}
+BaseGDL** ProgNode::EvalRefCheck( BaseGDL*& rEval)
+{
+  rEval = this->Eval();
+  return NULL;
 }
 
 RetCode   ProgNode::Run()

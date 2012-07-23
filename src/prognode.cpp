@@ -629,14 +629,15 @@ void KEYDEF_REF_CHECKNode::Parameter( EnvBaseT* actEnv)
       branch = qRecursive->AsParameter();
     }
     
-    BaseGDL** lVal = branch->LEval(); // right->down
+    BaseGDL* rVal;
+    BaseGDL** lVal = branch->EvalRefCheck( rVal);
     if( lVal != NULL)
     {   // pass reference
       actEnv->SetKeyword(this->getFirstChild()->getText(), lVal); 
     }
     else
     {   // pass value
-      actEnv->SetKeyword(this->getFirstChild()->getText(), branch->Eval()); 
+      actEnv->SetKeyword(this->getFirstChild()->getText(), rVal); 
     }
   }
   else
@@ -757,14 +758,15 @@ void REF_CHECKNode::Parameter( EnvBaseT* actEnv)
       branch = qRecursive->AsParameter();
     }
     
-    BaseGDL** lVal = branch->LEval(); // right->down
+    BaseGDL* rVal;
+    BaseGDL** lVal = branch->EvalRefCheck( rVal);
     if( lVal != NULL)
     {   // pass reference
       actEnv->SetNextParUnchecked( lVal); 
     }
     else
     {   // pass value
-      actEnv->SetNextParUnchecked( branch->Eval()); 
+      actEnv->SetNextParUnchecked( rVal); 
     }
   }
   else
@@ -798,14 +800,15 @@ void REF_CHECKVNNode::Parameter( EnvBaseT* actEnv)
       branch = qRecursive->AsParameter();
     }
     
-    BaseGDL** lVal = branch->LEval(); // right->down
+    BaseGDL* rVal;
+    BaseGDL** lVal = branch->EvalRefCheck( rVal);
     if( lVal != NULL)
     {   // pass reference
       actEnv->SetNextParUncheckedVarNum( lVal); 
     }
     else
     {   // pass value
-      actEnv->SetNextParUncheckedVarNum( branch->Eval()); 
+      actEnv->SetNextParUncheckedVarNum( rVal); 
     }
   }
   else

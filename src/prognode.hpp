@@ -162,6 +162,7 @@ public:
   virtual BaseGDL** LExpr( BaseGDL* right);
 //   virtual BaseGDL** LExprGrab( BaseGDL* right); // take ownership of right
   virtual BaseGDL** LEval();
+  virtual BaseGDL** EvalRefCheck( BaseGDL*& rEval); // returns NULL if r-value with rEval set
   virtual BaseGDL* Eval(); // caller receives ownership
   virtual BaseGDL* EvalNC(); // non-copy used by all operators (and in other places)
   virtual BaseGDL* EvalNCNull(); // non-copy might return NULL
