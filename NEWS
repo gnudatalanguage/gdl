@@ -556,3 +556,4 @@
 	   - FX_ROOT: initial import. in c++
            - keyword DIM in MOMENT(), MEAN(), STDDEV(), VARIANCE(), SKEWNESS(), KURTOSIS() (requested DIM and other improvments)
            - keyword SIGN in FINITE
+	   - support for empty arrays and !NULL system variable

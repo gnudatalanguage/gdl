@@ -34,7 +34,6 @@ easier than putting the code into CVS.
 This hacking guide isn't far from complete yet and intended to be extended.
 Please send questions.
 
-
 For now just some basic instructions:
 
 Base class for all GDL data types is declared in basegdl.hpp.
@@ -56,6 +55,13 @@ if the max. number of args is -1 an arbitrary number is allowed (like for
 the PRINT procedure)
 (new DLibFun( subroutine name ...) for functions)
 For the keyword list look at libinit.cpp for examples.
+
+
+Using GSL (the Gnu Scinetific Library)
+Since 0.9.3: When you write routines utilizing the GSL, all GSL objects allocated with the
+paricular gsl_..._alloc(...) functions should be guarded, using GSLGuard. Please look
+in src/gsl_fun.cpp for examples. GDL sets its own error handler for GSL. This way, errors in GSL
+functions are properly handled and do not crash (via a call to abort()) GDL anymore.
 
 
 

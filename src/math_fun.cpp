@@ -119,20 +119,24 @@ namespace lib {
 	DDoubleGDL* AA = static_cast<DDoubleGDL*>( A);
 
 	gsl_matrix *aGSL = gsl_matrix_alloc( m, n);
+	GSLGuard<gsl_matrix> g1( aGSL, gsl_matrix_free);
 	if( !columnKW)
 	  memcpy(aGSL->data, &(*AA)[0], nEl*sizeof( double));
 	else
 	  TransposeFromToGSL< DDouble, double>( &(*AA)[0], aGSL->data, AA->Dim( 0), nEl);
 
 	gsl_matrix *vGSL = gsl_matrix_alloc( n, n);
+	GSLGuard<gsl_matrix> g2( vGSL, gsl_matrix_free);
 	gsl_vector *wGSL = gsl_vector_alloc( n);
+	GSLGuard<gsl_vector> g3( wGSL, gsl_vector_free);
 
 	gsl_vector *work = gsl_vector_alloc( n);
+	GSLGuard<gsl_vector> g4( work, gsl_vector_free);
 	gsl_linalg_SV_decomp( aGSL, vGSL, wGSL, work);
-	gsl_vector_free( work);
+// 	gsl_vector_free( work);
 
 	// aGSL -> uGSL
-	gsl_matrix *uGSL = aGSL;
+	gsl_matrix *uGSL = aGSL; // why?
 
 	// U
 	DDoubleGDL* U = new DDoubleGDL( AA->Dim(), BaseGDL::NOZERO);
@@ -140,7 +144,7 @@ namespace lib {
 	  memcpy( &(*U)[0], uGSL->data, nEl*sizeof( double));
 	else
 	  TransposeFromToGSL< double, DDouble>( uGSL->data, &(*U)[0], U->Dim( 1), nEl);
-	gsl_matrix_free( uGSL);
+// 	gsl_matrix_free( uGSL);
 	e->SetPar( 2, U);
 
 	// V
@@ -149,13 +153,13 @@ namespace lib {
 	  memcpy( &(*V)[0], vGSL->data, n*n*sizeof( double));
 	else
 	  TransposeFromToGSL< double, DDouble>( vGSL->data, &(*V)[0], n, n*n);
-	gsl_matrix_free( vGSL);
+// 	gsl_matrix_free( vGSL);
 	e->SetPar( 3, V);
 
 	// W
 	DDoubleGDL* W = new DDoubleGDL( dimension( n), BaseGDL::NOZERO);
 	memcpy( &(*W)[0], wGSL->data, n*sizeof( double));
-	gsl_vector_free( wGSL);
+// 	gsl_vector_free( wGSL);
 	e->SetPar( 1, W);
       }
     else // float
@@ -163,20 +167,24 @@ namespace lib {
 	DFloatGDL* AA = static_cast<DFloatGDL*>( A);
 
 	gsl_matrix *aGSL = gsl_matrix_alloc( m, n);
+	GSLGuard<gsl_matrix> g1( aGSL, gsl_matrix_free);
 	if( !columnKW)
 	  FromToGSL< DFloat, double>( &(*AA)[0], aGSL->data, nEl);
 	else
 	  TransposeFromToGSL< DFloat, double>( &(*AA)[0], aGSL->data, AA->Dim( 0), nEl);
 
 	gsl_matrix *vGSL = gsl_matrix_alloc( n, n);
+	GSLGuard<gsl_matrix> g2( vGSL, gsl_matrix_free);
 	gsl_vector *wGSL = gsl_vector_alloc( n);
+	GSLGuard<gsl_vector> g3( wGSL, gsl_vector_free);
 
 	gsl_vector *work = gsl_vector_alloc( n);
+	GSLGuard<gsl_vector> g4( work, gsl_vector_free);
 	gsl_linalg_SV_decomp( aGSL, vGSL, wGSL, work);
-	gsl_vector_free( work);
+// 	gsl_vector_free( work);
 
 	// aGSL -> uGSL
-	gsl_matrix *uGSL = aGSL;
+	gsl_matrix *uGSL = aGSL; // why?
 
 	// U
 	DFloatGDL* U = new DFloatGDL( AA->Dim(), BaseGDL::NOZERO);
@@ -184,7 +192,7 @@ namespace lib {
 	  FromToGSL< double, DFloat>( uGSL->data, &(*U)[0], nEl);
 	else
 	  TransposeFromToGSL< double, DFloat>( uGSL->data, &(*U)[0], U->Dim( 1), nEl);
-	gsl_matrix_free( uGSL);
+// 	gsl_matrix_free( uGSL);
 	e->SetPar( 2, U);
 
 	// V
@@ -193,13 +201,13 @@ namespace lib {
 	  FromToGSL< double, DFloat>( vGSL->data, &(*V)[0], n*n);
 	else
 	  TransposeFromToGSL< double, DFloat>( vGSL->data, &(*V)[0], n, n*n);
-	gsl_matrix_free( vGSL);
+// 	gsl_matrix_free( vGSL);
 	e->SetPar( 3, V);
 
 	// W
 	DFloatGDL* W = new DFloatGDL( dimension( n), BaseGDL::NOZERO);
 	FromToGSL< double, DFloat>( wGSL->data, &(*W)[0], n);
-	gsl_vector_free( wGSL);
+// 	gsl_vector_free( wGSL);
 	e->SetPar( 1, W);
       }
   }

@@ -118,11 +118,16 @@ namespace lib {
     
   };
 
-  void GenericGSLErrorHandler(const char* reason, const char* file, int line, int gsl_errno)
+  void GDLGenericGSLErrorHandler(const char* reason, const char* file, int line, int gsl_errno)
   {
     throw GDLException( "GSL Error #" + i2s(gsl_errno) + ": " + string(reason));// + "  file: " + file + "  line: " + i2s(line));
   }
 
+  void SetGDLGenericGSLErrorHandler()
+  {
+    gsl_set_error_handler( GDLGenericGSLErrorHandler);
+  }
+  
   BaseGDL* invert_fun( EnvT* e)
   {
     SizeT nParam=e->NParam(1);
@@ -218,7 +223,7 @@ namespace lib {
     // more than one element matrix
 
     // GSL error handling
-    SetTemporaryGSLErrorHandlerT setTemporaryGSLErrorHandler( GenericGSLErrorHandler);
+    SetTemporaryGSLErrorHandlerT setTemporaryGSLErrorHandler( GDLGenericGSLErrorHandler);
 
     if( p0->Type() == COMPLEX)
       {
@@ -1373,7 +1378,7 @@ namespace lib {
     ) b = a + nbins * bsize;
  
     // GSL error handling
-    SetTemporaryGSLErrorHandlerT setTemporaryGSLErrorHandler( GenericGSLErrorHandler);
+    SetTemporaryGSLErrorHandlerT setTemporaryGSLErrorHandler( GDLGenericGSLErrorHandler);
 
     gsl_histogram* hh = gsl_histogram_alloc( nbins);
     GSLGuard<gsl_histogram> hhGuard( hh, gsl_histogram_free);
@@ -2076,11 +2081,16 @@ BaseGDL* interpolate_fun(EnvT* e){
 
 	gsl_matrix_complex *mat = 
 	  gsl_matrix_complex_alloc(p0->Dim(0), p0->Dim(0));
+	GSLGuard<gsl_matrix_complex> g1( mat, gsl_matrix_complex_free);
 	gsl_matrix_complex *Q = 
 	  gsl_matrix_complex_alloc(p0->Dim(0), p0->Dim(0));
+	GSLGuard<gsl_matrix_complex> g2( Q, gsl_matrix_complex_free);
 	gsl_vector_complex *tau = gsl_vector_complex_alloc(p0->Dim(0)-1);
+	GSLGuard<gsl_vector_complex> g3(tau, gsl_vector_complex_free);
 	gsl_vector *diag = gsl_vector_alloc(p0->Dim(0));
+	GSLGuard<gsl_vector> g4( diag, gsl_vector_free);
 	gsl_vector *subdiag = gsl_vector_alloc(p0->Dim(0)-1);
+	GSLGuard<gsl_vector> g5( subdiag, gsl_vector_free);
 
 	for( SizeT i=0; i<nEl; ++i) {
 	  memcpy(f32_2, &(*p0C)[i], szdbl);
@@ -2131,11 +2141,11 @@ BaseGDL* interpolate_fun(EnvT* e){
  	  memcpy(&(*(DFloatGDL*) *p2F)[i], &f32, szflt);
 	}
 
-	gsl_matrix_complex_free(mat);
-	gsl_matrix_complex_free(Q);
-	gsl_vector_complex_free(tau);
-	gsl_vector_free(diag);
-	gsl_vector_free(subdiag);
+// 	gsl_matrix_complex_free(mat);
+// 	gsl_matrix_complex_free(Q);
+// 	gsl_vector_complex_free(tau);
+// 	gsl_vector_free(diag);
+// 	gsl_vector_free(subdiag);
       }
     else if( p0->Type() == COMPLEXDBL)
       {
@@ -2143,11 +2153,16 @@ BaseGDL* interpolate_fun(EnvT* e){
 
 	gsl_matrix_complex *mat = 
 	  gsl_matrix_complex_alloc(p0->Dim(0), p0->Dim(0));
+	GSLGuard<gsl_matrix_complex> g1( mat, gsl_matrix_complex_free);
 	gsl_matrix_complex *Q = 
 	  gsl_matrix_complex_alloc(p0->Dim(0), p0->Dim(0));
+	GSLGuard<gsl_matrix_complex> g2( Q, gsl_matrix_complex_free);
 	gsl_vector_complex *tau = gsl_vector_complex_alloc(p0->Dim(0)-1);
+	GSLGuard<gsl_vector_complex> g3(tau, gsl_vector_complex_free);
 	gsl_vector *diag = gsl_vector_alloc(p0->Dim(0));
+	GSLGuard<gsl_vector> g4( diag, gsl_vector_free);
 	gsl_vector *subdiag = gsl_vector_alloc(p0->Dim(0)-1);
+	GSLGuard<gsl_vector> g5( subdiag, gsl_vector_free);
 
 	memcpy(mat->data, &(*p0C)[0], nEl*szdbl*2);
 
@@ -2179,21 +2194,26 @@ BaseGDL* interpolate_fun(EnvT* e){
 	memcpy(&(*(DDoubleGDL*) *p2D)[0], subdiag->data, 
 	       (p0->Dim(0)-1)*szdbl);
 
-	gsl_matrix_complex_free(mat);
-	gsl_matrix_complex_free(Q);
-	gsl_vector_complex_free(tau);
-	gsl_vector_free(diag);
-	gsl_vector_free(subdiag);
+// 	gsl_matrix_complex_free(mat);
+// 	gsl_matrix_complex_free(Q);
+// 	gsl_vector_complex_free(tau);
+// 	gsl_vector_free(diag);
+// 	gsl_vector_free(subdiag);
       }
     else if( p0->Type() == DOUBLE)
       {
 	DDoubleGDL* p0D = static_cast<DDoubleGDL*>( p0);
 
 	gsl_matrix *mat = gsl_matrix_alloc(p0->Dim(0), p0->Dim(0));
+	GSLGuard<gsl_matrix> g1( mat, gsl_matrix_free);
 	gsl_matrix *Q = gsl_matrix_alloc(p0->Dim(0), p0->Dim(0));
+	GSLGuard<gsl_matrix> g2( Q, gsl_matrix_free);
 	gsl_vector *tau = gsl_vector_alloc(p0->Dim(0)-1);
+	GSLGuard<gsl_vector> g3( tau, gsl_vector_free);
 	gsl_vector *diag = gsl_vector_alloc(p0->Dim(0));
+	GSLGuard<gsl_vector> g4( diag, gsl_vector_free);
 	gsl_vector *subdiag = gsl_vector_alloc(p0->Dim(0)-1);
+	GSLGuard<gsl_vector> g5( subdiag, gsl_vector_free);
 
 	memcpy(mat->data, &(*p0D)[0], nEl*szdbl);
 
@@ -2225,11 +2245,11 @@ BaseGDL* interpolate_fun(EnvT* e){
 	memcpy(&(*(DDoubleGDL*) *p2D)[0], subdiag->data, 
 	       (p0->Dim(0)-1)*szdbl);
 
-	gsl_matrix_free(mat);
-	gsl_matrix_free(Q);
-	gsl_vector_free(tau);
-	gsl_vector_free(diag);
-	gsl_vector_free(subdiag);
+// 	gsl_matrix_free(mat);
+// 	gsl_matrix_free(Q);
+// 	gsl_vector_free(tau);
+// 	gsl_vector_free(diag);
+// 	gsl_vector_free(subdiag);
       }
     else if( p0->Type() == FLOAT ||
 	     p0->Type() == LONG ||
@@ -2246,10 +2266,15 @@ BaseGDL* interpolate_fun(EnvT* e){
 	DByteGDL* p0B = static_cast<DByteGDL*>( p0);
 
 	gsl_matrix *mat = gsl_matrix_alloc(p0->Dim(0), p0->Dim(0));
+	GSLGuard<gsl_matrix> g1( mat, gsl_matrix_free);
 	gsl_matrix *Q = gsl_matrix_alloc(p0->Dim(0), p0->Dim(0));
+	GSLGuard<gsl_matrix> g2( Q, gsl_matrix_free);
 	gsl_vector *tau = gsl_vector_alloc(p0->Dim(0)-1);
+	GSLGuard<gsl_vector> g3( tau, gsl_vector_free);
 	gsl_vector *diag = gsl_vector_alloc(p0->Dim(0));
+	GSLGuard<gsl_vector> g4( diag, gsl_vector_free);
 	gsl_vector *subdiag = gsl_vector_alloc(p0->Dim(0)-1);
+	GSLGuard<gsl_vector> g5( subdiag, gsl_vector_free);
 
 	for( SizeT i=0; i<nEl; ++i) {
 	  switch ( p0->Type()) {
@@ -2302,11 +2327,11 @@ BaseGDL* interpolate_fun(EnvT* e){
  	  memcpy(&(*(DFloatGDL*) *p2F)[i], &f32, szflt);
 	}
 
-	gsl_matrix_free(mat);
-	gsl_matrix_free(Q);
-	gsl_vector_free(tau);
-	gsl_vector_free(diag);
-	gsl_vector_free(subdiag);
+// 	gsl_matrix_free(mat);
+// 	gsl_matrix_free(Q);
+// 	gsl_vector_free(tau);
+// 	gsl_vector_free(diag);
+// 	gsl_vector_free(subdiag);
       }
     else 
       {
@@ -2383,20 +2408,21 @@ res_guard.reset (dres);
   // a guard object ensuring freeing of GSL-allocated memory
   class n_b_gslguard {
     private:
-    gsl_vector* x;
-    gsl_multiroot_fsolver* solver;
+//     gsl_vector* x;
+//     gsl_multiroot_fsolver* solver;
     gsl_error_handler_t* old_handler;
     public:
-    n_b_gslguard(gsl_vector* x_, gsl_multiroot_fsolver* solver_, gsl_error_handler_t* old_handler_)
+//     n_b_gslguard(gsl_vector* x_, gsl_multiroot_fsolver* solver_, gsl_error_handler_t* old_handler_)
+    n_b_gslguard(gsl_error_handler_t* old_handler_)
     {
-      x = x_;
-      solver = solver_;
+//       x = x_;
+//       solver = solver_;
       old_handler = old_handler_;
     }
     ~n_b_gslguard() 
     {
-      gsl_multiroot_fsolver_free(solver);
-      gsl_vector_free(x);
+//       gsl_multiroot_fsolver_free(solver);
+//       gsl_vector_free(x);
       gsl_set_error_handler(old_handler);
     }
   };
@@ -2442,10 +2468,13 @@ res_guard.reset (dres);
 
     // GSL error handling
     gsl_error_handler_t* old_handler = gsl_set_error_handler(&n_b_gslerrhandler);
+    // now: reinstall previous error handler (was: GSL ensuring memory de-allocation)
+    n_b_gslguard gslguard = n_b_gslguard(old_handler);
     n_b_gslerrhandler(e->GetProName().c_str(), NULL, -1, -1);
 
     // GSL vector initialization
     gsl_vector *x = gsl_vector_alloc(F.n);
+    GSLGuard<gsl_vector> g1( x, gsl_vector_free);
     for (size_t i = 0; i < F.n; i++) gsl_vector_set(x, i, (*(DDoubleGDL*) par)[i]);
 
     // GSL solver initialization
@@ -2458,10 +2487,8 @@ res_guard.reset (dres);
       else assert(false);
       solver = gsl_multiroot_fsolver_alloc(T, F.n);
     }
+    GSLGuard<gsl_multiroot_fsolver> g2( solver, gsl_multiroot_fsolver_free);
     gsl_multiroot_fsolver_set(solver, &F, x);
-
-    // GSL ensuring memory de-allocation
-    n_b_gslguard gslguard = n_b_gslguard(x, solver, old_handler);
 
     // GDL handling fine-tuning keywords
     // (intentionally not making keyword indices static here (NEWTON vs. BROYDEN))
@@ -2606,6 +2633,7 @@ res_guard.reset (dres);
     }  
     
     gsl_integration_workspace *w = gsl_integration_workspace_alloc (1000);
+    GSLGuard<gsl_integration_workspace> g1( w, gsl_integration_workspace_free);
 
     first=(*static_cast<DDoubleGDL*>(par1))[0];
     last =(*static_cast<DDoubleGDL*>(par2))[0];
@@ -2624,7 +2652,7 @@ res_guard.reset (dres);
       (*res)[i]=result;
     }
 
-    gsl_integration_workspace_free (w);
+//     gsl_integration_workspace_free (w);
  
     if (e->KeywordSet("DOUBLE") || p1->Type() == DOUBLE || p2->Type() == DOUBLE)
       {
@@ -2771,6 +2799,7 @@ res_guard.reset (dres);
 	wsize=static_cast<DLong>(pow(2.0, (wsize-1)));
       }
     gsl_integration_workspace *w = gsl_integration_workspace_alloc (wsize);
+    GSLGuard<gsl_integration_workspace> g1( w, gsl_integration_workspace_free);
 
     first=(*static_cast<DDoubleGDL*>(par1))[0];
     if (!e->KeywordSet("MIDEXP")) last =(*static_cast<DDoubleGDL*>(par2))[0];
@@ -2801,7 +2830,7 @@ res_guard.reset (dres);
       (*res)[i]=result;
     }
 
-    gsl_integration_workspace_free (w);
+//     gsl_integration_workspace_free (w);
 
     if (!e->KeywordSet("MIDEXP"))
       {
@@ -2842,13 +2871,14 @@ res_guard.reset (dres);
       }
     
     gsl_poly_complex_workspace* w = gsl_poly_complex_workspace_alloc (coef->N_Elements()); 
-    
+    GSLGuard<gsl_poly_complex_workspace> g1( w, gsl_poly_complex_workspace_free);
+
     SizeT resultSize = coef->N_Elements()-1;
     vector<double> tmp(2 * resultSize);
 	
     gsl_poly_complex_solve (&(*coef)[0],coef->N_Elements(),w, &(tmp[0]));
     
-    gsl_poly_complex_workspace_free (w);
+//     gsl_poly_complex_workspace_free (w);
     
     int debug =0;
     if (debug) {
@@ -3504,13 +3534,13 @@ BaseGDL* fx_root_fun(EnvT* e)
 
   // SA: helper class for zeropoly
   // an auto_ptr-like class for guarding the poly_complex_workspace
-  class gsl_poly_complex_workspace_guard
-  {
-    gsl_poly_complex_workspace* workspace;
-    public:
-    gsl_poly_complex_workspace_guard(gsl_poly_complex_workspace* workspace_) { workspace = workspace_; }
-    ~gsl_poly_complex_workspace_guard() { gsl_poly_complex_workspace_free(workspace); }
-  };
+//   class gsl_poly_complex_workspace_guard
+//   {
+//     gsl_poly_complex_workspace* workspace;
+//     public:
+//     gsl_poly_complex_workspace_guard(gsl_poly_complex_workspace* workspace_) { workspace = workspace_; }
+//     ~gsl_poly_complex_workspace_guard() { gsl_poly_complex_workspace_free(workspace); }
+//   };
   BaseGDL* zeropoly(EnvT* e) 
   {
     static int doubleIx = e->KeywordIx("DOUBLE");
@@ -3534,7 +3564,8 @@ BaseGDL* fx_root_fun(EnvT* e)
 
     // initializing complex polynomial workspace
     gsl_poly_complex_workspace* w = gsl_poly_complex_workspace_alloc(coef->N_Elements());
-    gsl_poly_complex_workspace_guard w_guard(w);
+    GSLGuard<gsl_poly_complex_workspace> g1( w, gsl_poly_complex_workspace_free);
+//     gsl_poly_complex_workspace_guard w_guard(w);
 
     SizeT resultSize = coef->N_Elements()-1;
     vector<double> tmp(2 * resultSize);

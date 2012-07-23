@@ -42,7 +42,7 @@ using namespace std;
 
 DCompiler::DCompiler(const string& f, EnvBaseT* e, const std::string& sub)
   : actualFile(f), subRoutine( sub), env(e), pro(NULL), 
-    activeProCompiled( false), tree( NULL)
+    activeProCompiled( false), nCompileErrors(0), tree( NULL)
 {
   // interactive mode?
   if( env != NULL) pro=dynamic_cast<DSubUD*>(env->GetPro());

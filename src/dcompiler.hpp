@@ -42,6 +42,7 @@ class DCompiler: public GDLTokenTypes
   DSubUD *pro;                    // actual processed pro/function
 
   bool            activeProCompiled;
+  int             nCompileErrors; // number of compilation errors
 
   //  std::map<std::string,std::deque<RefDNode> > labelList; // resolving goto/label
   CommonListT   ownCommonList; // common blocks not yet added to commonList
@@ -89,6 +90,7 @@ public:
   int  NDefLabel();
   bool IsActivePro( DSub* p);
   bool ActiveProCompiled() const { return activeProCompiled;}
+  int NCompileErrors() const { return nCompileErrors;}
   EnvBaseT* GetEnv() const { return env;}
   void SetEnv( EnvBaseT* e) { env = e;}
 };

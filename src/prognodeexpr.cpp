@@ -492,7 +492,7 @@ BaseGDL** DEREFNode::LEval()
   DPtrGDL* ptr=static_cast<DPtrGDL*>(e1);
 
   DPtr sc; 
-  if( !ptr->Scalar(sc))
+  if( !ptr->StrictScalar(sc))
   throw GDLException( this, "Expression must be a "
   "scalar in this context: "+interpreter->Name(e1),true,false);
   if( sc == 0)

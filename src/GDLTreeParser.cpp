@@ -431,6 +431,9 @@ void GDLTreeParser::procedure_def(RefDNode _t) {
 	}
 	}
 	
+	if( NCompileErrors() > 0)
+	throw GDLException( i2s(NCompileErrors()) + " compilation error(s) in module " + name->getText() + ".");
+	
 	comp.EndPro();
 	
 	currentAST = __currentAST19;
@@ -670,6 +673,9 @@ void GDLTreeParser::function_def(RefDNode _t) {
 	}
 	}
 	}
+	
+	if( NCompileErrors() > 0)
+	throw GDLException( i2s(NCompileErrors()) + " compilation error(s) in module " + name->getText() + ".");
 	
 	comp.EndFun();
 	

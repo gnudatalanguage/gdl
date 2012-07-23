@@ -2113,26 +2113,3 @@ void image_del(image_t * d)
   }
 
 } // namespace
-
-/*
-
-	gsl_matrix *mat = gsl_matrix_alloc(4,4);
-	gsl_matrix *inverse = gsl_matrix_calloc(4, 4);
-	gsl_permutation *perm = gsl_permutation_alloc(4);
-
-	memcpy(mat->data, &(*p0D)[0], nEl*szdbl);
-
-	gsl_linalg_LU_decomp (mat, perm, &s);
-	det = gsl_linalg_LU_lndet(mat);
-	if (gsl_isinf(det) == 0) {
-	  gsl_linalg_LU_invert (mat, perm, inverse);
-	}
-	else singular = 1;
-
-	memcpy(&(*res)[0], inverse->data, nEl*szdbl);
-
-	gsl_permutation_free(perm);
-	gsl_matrix_free(mat);
-	gsl_matrix_free(inverse);
-
-*/

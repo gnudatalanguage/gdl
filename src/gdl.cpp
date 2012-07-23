@@ -61,6 +61,10 @@ static void StartupMessage()
 
 void LibInit(); // defined in libinit.cpp
 
+namespace lib {
+void SetGDLGenericGSLErrorHandler(); // defined in gsl_fun.cpp
+}
+
 void AtExit()
 {
 //   cerr << "AtExit()" << endl;
@@ -105,6 +109,7 @@ void InitGDL()
   signal(SIGINT,ControlCHandler);
   signal(SIGFPE,SigFPEHandler);
   
+  lib::SetGDLGenericGSLErrorHandler();
 }
 
 // SA: for use in COMMAND_LINE_ARGS()

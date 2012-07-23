@@ -1922,6 +1922,7 @@ void Data_<Sp>::SetBufferSize( SizeT s)
 // Data_<Sp>* Data_<Sp>::Dup() 
 // { return new Data_(*this);}
 
+
 template< class Sp>
 Data_<Sp>* Data_<Sp>::New( const dimension& dim_, BaseGDL::InitType noZero) const
 {
@@ -1939,6 +1940,7 @@ Data_<Sp>* Data_<Sp>::New( const dimension& dim_, BaseGDL::InitType noZero) cons
     }
   return new Data_(dim_); // zero data
 }
+
 
 template< class Sp>
 Data_<Sp>* Data_<Sp>::NewResult() const 

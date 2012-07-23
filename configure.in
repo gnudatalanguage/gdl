@@ -313,7 +313,7 @@ AC_CHECK_LIB(plplotcxxd, plsexit, [AC_DEFINE([HAVE_LIBPLPLOTCXXD], [1], [plplot 
 	[
 	echo ""
 	echo "Error! plplot library is required but was not found"
-	echo "       Use --with-plplot=DIR to specify the plplot directory tree"
+	echo "       Use --with-plplotdir=DIR to specify the plplot directory tree"
         echo ""
         echo "       (suitable Debian/Ubuntu packages: libplplot-dev, [plplot9-driver-xwin])"
         echo "       (suitable Fedora package: plplot-devel)"

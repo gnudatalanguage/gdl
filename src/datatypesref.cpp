@@ -19,6 +19,47 @@
 #ifdef INCLUDE_DATATYPESREF_CPP
 #undef INCLUDE_DATATYPESREF_CPP
 
+// reference counting for INIT
+template<>
+Data_<SpDPtr>* Data_<SpDPtr>::New( const dimension& dim_, BaseGDL::InitType noZero) const
+{
+  if( noZero == BaseGDL::NOZERO) return new Data_(dim_, BaseGDL::NOZERO);
+  if( noZero == BaseGDL::INIT)
+    {
+      Data_* res =  new Data_(dim_, BaseGDL::NOZERO);
+      SizeT nEl = res->dd.size();
+/*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for*/
+      for( SizeT i=0; i<nEl; ++i) (*res)[ i] = (*this)[ 0]; // set all to scalar
+//}
+      GDLInterpreter::AddRef((*this)[ 0], nEl);
+      
+      return res;
+    }
+  return new Data_(dim_); // zero data
+}
+// reference counting for INIT
+template<>
+Data_<SpDObj>* Data_<SpDObj>::New( const dimension& dim_, BaseGDL::InitType noZero) const
+{
+  if( noZero == BaseGDL::NOZERO) return new Data_(dim_, BaseGDL::NOZERO);
+  if( noZero == BaseGDL::INIT)
+    {
+      Data_* res =  new Data_(dim_, BaseGDL::NOZERO);
+      SizeT nEl = res->dd.size();
+/*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+{
+#pragma omp for*/
+      for( SizeT i=0; i<nEl; ++i) (*res)[ i] = (*this)[ 0]; // set all to scalar
+//}
+      GDLInterpreter::AddRefObj((*this)[ 0], nEl);
+      
+      return res;
+    }
+  return new Data_(dim_); // zero data
+}
+
 template<>
 void Data_<SpDPtr>::InsAt( Data_* srcIn, ArrayIndexListT* ixList, SizeT offset)
 {

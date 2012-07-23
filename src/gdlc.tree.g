@@ -158,6 +158,7 @@ options {
     }
 
   bool ActiveProCompiled() const { return comp.ActiveProCompiled();} 
+  int NCompileErrors() const { return comp.NCompileErrors();} 
 }
 
 // file parsing
@@ -292,11 +293,14 @@ procedure_def!
             ) 
             (parameter_declaration)?
             (statement_list
-                {
+                {      
                     comp.SetTree( returnAST);
                 }
             )?
             {
+                if( NCompileErrors() > 0)
+                    throw GDLException( i2s(NCompileErrors()) + " compilation error(s) in module " + name->getText() + ".");
+               
                 comp.EndPro();
             }
         )
@@ -321,6 +325,9 @@ function_def!
                 }
             )?
             {
+                if( NCompileErrors() > 0)
+                    throw GDLException( i2s(NCompileErrors()) + " compilation error(s) in module " + name->getText() + ".");
+               
                 comp.EndFun();
             }
         )

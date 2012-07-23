@@ -105,6 +105,7 @@ class CUSTOM_API GDLTreeParser : public antlr::TreeParser, public GDLTreeParserT
     }
 
   bool ActiveProCompiled() const { return comp.ActiveProCompiled();} 
+  int NCompileErrors() const { return comp.NCompileErrors();} 
 public:
 	GDLTreeParser();
 	static void initializeASTFactory( antlr::ASTFactory& factory );

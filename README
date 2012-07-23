@@ -33,6 +33,7 @@ FOREACH loop
 negative array indices
 garbage collection pointers and objects
 call methods on an object using "." (e. g. object.aMemberProcedure,arg1)
+empty arrays and !NULL system variable
 
 Not yet supported:
 
@@ -40,7 +41,6 @@ Operator overloading
 LIST and HASH types
 simplified property access on objects (e. g. object.aProperty = value & print,object.aProperty)
 automatic promotion of FOR loop variable types
-empty arrays (!NULL)
 
 
 GUI support (widgets) is now officially provided (not complete yet).
@@ -150,7 +150,10 @@ The current solution is to disable dynamic drivers for plplot
 Current ubuntu/debian distributions are using dynamic drivers, so plplot
 needs to be compiled from source there.
 
-Furthermore you need the GNU Scientific Library.
+Furthermore you need the GNU Scientific Library (GSL).
+Please see file HACKING if you want to write functions extending GDL (i. e.
+add a library subroutine) which use GSL for proper handling of GSL
+obects in GDL.
 (Minimal version is 1.7, which is now checked via "gsl.m4".
 Note that version 1.1.1 was reported to NOT work with GDL)
 You find it at:

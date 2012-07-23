@@ -414,8 +414,8 @@ void LibInit()
   new DLibFunRetNew(lib::strmid,string("STRMID"),3,strmidKey,NULL,true);
   new DLibFunRetNew(lib::strtrim,string("STRTRIM"),2,NULL,NULL,true);
   const string strposKey[]={"REVERSE_OFFSET","REVERSE_SEARCH",KLISTEND};
-  new DLibFunRetNew(lib::strpos,string("STRPOS"),3,strposKey,NULL,true);
-  new DLibPro(lib::strput,string("STRPUT"),3);
+  new DLibFunRetNew(lib::strpos,string("STRPOS"),3,strposKey,NULL,true,2);
+  new DLibPro(lib::strput,string("STRPUT"),3,NULL,NULL,2);
   
   const string whereKey[]={"COMPLEMENT","NCOMPLEMENT","NULL",KLISTEND};
   new DLibFunRetNew(lib::where,string("WHERE"),2,whereKey);
