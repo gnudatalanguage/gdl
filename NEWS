@@ -542,6 +542,7 @@
 	   - activities on speed improvements continuing
 	   - Initial import of STRMATCH()
 	   - Initial import of USERSYM
+	   - SCOPE_VARFETCH (only LEVEL keyword supported)
 	   - keyword /NaN for HISTOGRAM
 	   - Initial import of LUDC, LUSOL and DETERM, OK now only for DOUBLE
 	   - Initial import of CONGRID and BILINEAR
@@ -557,4 +558,3 @@
            - keyword DIM in MOMENT(), MEAN(), STDDEV(), VARIANCE(), SKEWNESS(), KURTOSIS() (requested DIM and other improvments)
            - keyword SIGN in FINITE
 	   - support for empty arrays and !NULL system variable
-	   - SCOPE_VARFETCH (only LEVEL keyword supported)
