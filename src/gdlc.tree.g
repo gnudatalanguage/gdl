@@ -747,7 +747,7 @@ key_parameter!//
         )
     ;
 
-pos_parameter! [bool varNum]
+pos_parameter! [bool varNum] // varNum: is variable number of parameters subroutine (e. g. PRINT)
 {
     RefDNode variable;
 }

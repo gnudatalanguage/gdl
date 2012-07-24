@@ -1539,6 +1539,7 @@ class EXPRNode: public DefaultNode
 {
 public:
  EXPRNode( const RefDNode& refNode): DefaultNode( refNode) {}
+ BaseGDL** EvalRefCheck( BaseGDL*& rEval); // calls LEval()
  BaseGDL** LEval();
 };
 
