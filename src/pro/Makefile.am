@@ -81,7 +81,6 @@ prolib_DATA = \
   restore.pro \
   rstrpos.pro \
   save.pro \
-  scope_varfetch.pro \
   showfont.pro \
   skewness.pro \
   skip_lun.pro \
