@@ -557,3 +557,4 @@
            - keyword DIM in MOMENT(), MEAN(), STDDEV(), VARIANCE(), SKEWNESS(), KURTOSIS() (requested DIM and other improvments)
            - keyword SIGN in FINITE
 	   - support for empty arrays and !NULL system variable
+	   - SCOPE_VARFETCH (only LEVEL keyword supported)
