@@ -12,7 +12,7 @@ function INTERPOL, p0, p1, p2, lsquadratic=lsquadratic, $
                    quadratic=quadratic, spline=spline, $
                    test=test, help=help, debug=debug
 ;
-;ON_ERROR, 2
+ON_ERROR, 2
 ;
 if KEYWORD_SET(help) then begin
    print, 'function INTERPOL, p0, p1, p2, lsquadratic=lsquadratic, $'
@@ -90,7 +90,6 @@ if KEYWORD_SET(spline) then begin
    result=FIX(TEMPORARY(y), type=SIZE(p0, /type))
 endif else begin
    ;; linear interpolation case
-    stop
    if (nbp_inside GT 0) then result=INTERPOLATE(isint ? FLOAT(p0) : p0, ind)
    if (nbp_outside GT 0) then begin
       tmp=p2
