@@ -6479,8 +6479,8 @@ BaseGDL* transpose( EnvT* e)
       desiredlevnum = (*level)[0];
 
     if (desiredlevnum <= 0) desiredlevnum += curlevnum;
-    if (desiredlevnum < 1) return new DLongGDL(0);
-    if (desiredlevnum > curlevnum) desiredlevnum = curlevnum;
+    if (desiredlevnum < 1) desiredlevnum = curlevnum;
+    else if (desiredlevnum > curlevnum) desiredlevnum = curlevnum;
 
     DSubUD* pro = static_cast<DSubUD*>(callStack[desiredlevnum-1]->GetPro());
 
@@ -6528,8 +6528,8 @@ BaseGDL* transpose( EnvT* e)
       desiredlevnum = (*level)[0];
 
     if (desiredlevnum <= 0) desiredlevnum += curlevnum;
-    if (desiredlevnum < 1) NULL;
-    if (desiredlevnum > curlevnum) desiredlevnum = curlevnum;
+    if (desiredlevnum < 1) desiredlevnum = curlevnum;
+    else if (desiredlevnum > curlevnum) desiredlevnum = curlevnum;
 
     DSubUD* pro = static_cast<DSubUD*>(callStack[desiredlevnum-1]->GetPro());
 
@@ -6551,7 +6551,7 @@ BaseGDL* transpose( EnvT* e)
       return &par;
     }
 	
-    e->Throw( "Variable not found: " + varName);
+    e->Throw( "Variable not found2: " + varName);
     return NULL; // compiler shut-up
   }
   
