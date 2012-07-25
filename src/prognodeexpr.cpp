@@ -2769,28 +2769,20 @@ if( e1->StrictScalar())
 //     // push id.pro onto call stack
 //     ProgNode::interpreter->CallStack().push_back(newEnv);
     // make the call
-    BaseGDL* libRes =	static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
+    static DSub* scopeVarfetchPro = libFunList[ LibFunIx("SCOPE_VARFETCH")];
+    if( scopeVarfetchPro == newEnv->GetPro())
+    {
+      BaseGDL**  sV = lib::scope_varfetch_reference( newEnv);
+      if( sV != NULL)
+	return sV;
+      // should never happen
+      throw GDLException( this, "SCOPE_VARFETCH returned no l-value: "+this->getText());
+    }
+    BaseGDL* libRes = static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
     BaseGDL** res = ProgNode::interpreter->CallStackBack()->GetPtrTo( libRes);
     if( res == NULL)
     {
-      // note as the regualr scope_varfetch_value always returns a new value we always
-      // get this "second change" here
-      static DSub* scopeVarfetchPro = libFunList[ LibFunIx("SCOPE_VARFETCH")];
-      if( scopeVarfetchPro == newEnv->GetPro())
-      {
-	BaseGDL**  sV = lib::scope_varfetch_reference( newEnv);
-	if( sV != NULL)
-	  return sV;
-// 	// search whole callStack if it is SCOPE_VARFETCH
-// 	EnvStackT::reverse_iterator i = ProgNode::interpreter->CallStack().rbegin();
-// 	++i; // searched already back
-// 	for(; i != ProgNode::interpreter->CallStack().rend(); ++i)
-// 	{
-// 	  BaseGDL** res = (*i)->GetPtrTo( libRes);
-// 	  if( res != NULL)
-// 	    return res;
-// 	}
-      }
+      GDLDelete( libRes);
       
       throw GDLException( this, "Library function must return a "
 	    "l-value in this context: "+this->getText());

@@ -6458,7 +6458,9 @@ BaseGDL* transpose( EnvT* e)
     return new DStringGDL("");
   }
 
-    // note: changes here MUST be reflected in scope_varfetch_reference() as well
+  // note: changes here MUST be reflected in scope_varfetch_reference() as well
+  // because DLibFun of this function is used for scope_varfetch_reference() the keyword
+  // indices must match
   BaseGDL* scope_varfetch_value( EnvT* e) 
   {
     SizeT nParam=e->NParam();
