@@ -81,6 +81,9 @@ void LibInit()
   LibInit_ng(); 
   const char KLISTEND[] = "";
 
+  const string scope_varfetchKey[]={"LEVEL", KLISTEND};
+  new DLibFun(lib::scope_varfetch_value,string("SCOPE_VARFETCH"),-1,scope_varfetchKey);
+
   const string cpuKey[]={ "RESET","RESTORE","TPOOL_MAX_ELTS", "TPOOL_MIN_ELTS",
 					"TPOOL_NTHREADS","VECTOR_ENABLE",KLISTEND};
   new DLibPro(lib::cpu,string("CPU"),0,cpuKey);

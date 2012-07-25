@@ -68,9 +68,6 @@ void LibInit_jmg()
 				   KLISTEND};
   new DLibFun(lib::routine_names,string("ROUTINE_NAMES"),-1,routine_namesKey);
 
-  const string scope_varfetchKey[]={"LEVEL", KLISTEND};
-  new DLibFun(lib::scope_varfetch,string("SCOPE_VARFETCH"),-1,scope_varfetchKey);
-
 #if defined(HAVE_LIBGSL) && defined(HAVE_LIBGSLCBLAS)
   const string invertKey[]={"DOUBLE",KLISTEND};
   new DLibFun(lib::invert_fun,string("INVERT"),2,invertKey);

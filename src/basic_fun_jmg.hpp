@@ -25,7 +25,6 @@ namespace lib {
   BaseGDL* make_array( EnvT* e);
   BaseGDL* reform( EnvT* e);
   BaseGDL* routine_names( EnvT* e);
-  BaseGDL* scope_varfetch( EnvT* e);
 
 } // namespace
 

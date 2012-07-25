@@ -2412,22 +2412,57 @@ int Data_<SpDObj>::Sgn() // -1,0,1
   return 0;
 } 
 
-// Equal (deletes r)
+// Equal (deletes r) only used in ForCheck(...)
 template<class Sp>
 bool Data_<Sp>::Equal( BaseGDL* r) const
 {
-  if( !r->Scalar())
-    {
-      GDLDelete(r);
-      throw GDLException("Expression must be a scalar in this context.");
-    }
-  Data_* rr=static_cast<Data_*>(r->Convert2( this->t));
+  assert( r->StrictScalar());
+//   if( !r->Scalar())
+//     {
+//       GDLDelete(r);
+//       throw GDLException("Expression must be a scalar in this context.");
+//     }
+  assert( r->Type() == this->t);
+  Data_* rr=static_cast<Data_*>(r);
+//  Data_* rr=static_cast<Data_*>(r->Convert2( this->t));
   bool ret= ((*this)[0] == (*rr)[0]);
   GDLDelete(rr);
   return ret;
 }
+template<>
+bool Data_<SpDFloat>::Equal( BaseGDL* r) const
+{
+  assert( r->StrictScalar());
+//   if( !r->Scalar())
+//     {
+//       GDLDelete(r);
+//       throw GDLException("Expression must be a scalar in this context.");
+//     }
+  assert( r->Type() == this->t);
+  Data_* rr=static_cast<Data_*>(r);
+//  Data_* rr=static_cast<Data_*>(r->Convert2( this->t));
+  bool ret= fabs((*this)[0] - (*rr)[0]) < 1.0f;
+  GDLDelete(rr);
+  return ret;
+}
+template<>
+bool Data_<SpDDouble>::Equal( BaseGDL* r) const
+{
+  assert( r->StrictScalar());
+//   if( !r->Scalar())
+//     {
+//       GDLDelete(r);
+//       throw GDLException("Expression must be a scalar in this context.");
+//     }
+  assert( r->Type() == this->t);
+  Data_* rr=static_cast<Data_*>(r);
+//  Data_* rr=static_cast<Data_*>(r->Convert2( this->t));
+  bool ret= fabs((*this)[0] - (*rr)[0]) < 1.0;
+  GDLDelete(rr);
+  return ret;
+}
 
-// Equal (deletes r)
+// Equal (does not delete r)
 template<class Sp>
 bool Data_<Sp>::EqualNoDelete( const BaseGDL* r) const
 {
@@ -2500,13 +2535,13 @@ template<class Sp>
 void Data_<Sp>::ForCheck( BaseGDL** lEnd, BaseGDL** lStep)
 {
   // all scalars?
-  if( !Scalar())
+  if( !StrictScalar())
     throw GDLException("Loop INIT must be a scalar in this context.");
 
-  if( !(*lEnd)->Scalar())
+  if( !(*lEnd)->StrictScalar())
     throw GDLException("Loop LIMIT must be a scalar in this context.");
 
-  if( lStep != NULL && !(*lStep)->Scalar())
+  if( lStep != NULL && !(*lStep)->StrictScalar())
     throw GDLException("Loop INCREMENT must be a scalar in this context.");
   
   // only proper types?
@@ -2521,8 +2556,64 @@ void Data_<Sp>::ForCheck( BaseGDL** lEnd, BaseGDL** lStep)
   if( this->t== STRING)
     throw GDLException("String expression not allowed in this context.");
 
-  // check here if loop limit is COMPLEX, but *only* if loop init is INT
+//   // check here if loop limit is COMPLEX, but *only* if loop init is INT or LONG
+//   if( this->t == INT || this->t == LONG)
+//   {
+//     if( (*lEnd)->Type() == COMPLEX || (*lEnd)->Type() == COMPLEXDBL)
+//       throw GDLException("Complex expression not allowed in this context.");    
+//   }
 
+//   // to be moved into basegdl.hpp
+//   const int DTypeForPromotionOrder[]={
+//   0, 	//UNDEF
+//   2, 	//BYTE
+//   3, 	//INT
+//   4, 	//LONG,	
+//   8, 	//FLOAT,	
+//   9, 	//DOUBLE,	
+//   0, 	//COMPLEX,	
+//   0, 	//STRING,	
+//   0, 	//STRUCT,	
+//   0, 	//COMPLEXDBL,	
+//   0, 	//PTR,		
+//   0, 	//OBJECT,
+//   3, 	//UINT,	
+//   4, 	//ULONG,
+//   5, 	//LONG64,
+//   5 	//ULONG64
+//   };
+
+  // check for promotion of this (only INT and LONG)
+  if( this->t == INT)
+  {
+    if( (*lEnd)->Type() == COMPLEX || (*lEnd)->Type() == COMPLEXDBL)
+      throw GDLException("Complex expression not allowed in this context.");    
+//     DLongGDL* checkVal = (*lEnd)->Convert2( LONG, BaseGDL::COPY);
+//     auto_ptr<DLongGDL> checkGuard( checkVal);
+//     if( (*checkVal)[0] > std::numeric_limits< Ty>::max())
+//     {
+//       if( NumericType( (*lEnd)->Type())
+//       {
+// 	// convert to numeric type if limit is numeric type
+//       }
+// //       else if( (*checkVal)[0] > std::numeric_limits< DLong>::max())
+// //       {   
+// // 	// convert to DLong64 if type is STRING and larger than max DLong
+// //       }    
+//       else
+//       {
+// 	// convert to DLongGDL if type is STRING and smaller than max DLong
+//       }
+//       return;
+//     }    
+  }
+  else if( this->t == LONG)
+  {
+    if( (*lEnd)->Type() == COMPLEX || (*lEnd)->Type() == COMPLEXDBL)
+      throw GDLException("Complex expression not allowed in this context.");        
+  }
+  
+  // no promotion happened
   *lEnd=(*lEnd)->Convert2( this->t);
   if( lStep != NULL) *lStep=(*lStep)->Convert2( this->t);
 }
