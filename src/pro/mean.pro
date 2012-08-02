@@ -1,4 +1,4 @@
-;$Id: mean.pro,v 1.3 2012-07-13 22:28:02 alaingdl Exp $
+;$Id: mean.pro,v 1.4 2012-08-02 15:55:13 gilles-duvert Exp $
 ;
 function MEAN, x, double=double, NaN=NaN, dimension=dimension
 ;
@@ -41,6 +41,7 @@ function MEAN, x, double=double, NaN=NaN, dimension=dimension
 ;   20-Mar-2004 : Written by Christopher Lee
 ;   18-Jul-2005 : Rewritten by Pierre Chanial
 ;   13-Jul-2012 : Alain Coulais : adding DIMENSION keyword, using MOMENT()
+;   02-Aug-2012 : Gilles Duvert : avoid using MOMENT when DIMENSION is not present.
 ;
 ; LICENCE:
 ; Copyright (C) 2004, Christopher Lee, 2005 P. Chanial, 2012 Alain Coulais
@@ -54,20 +55,23 @@ function MEAN, x, double=double, NaN=NaN, dimension=dimension
 ;
 ON_ERROR, 2
 ;
-; old version by PC, without Dimension
-; ; we don't call moment.pro, since it requires 2 or more elements
-; if keyword_set(NaN) then begin
-;    n = total(finite(x), double=double)
-; endif else begin
-;    n = n_elements(x)
-; endelse
-; 
-; mean = total(x, double=double, NaN=NaN)/n
-; return, mean
+; old version by PC, to be used without Dimension keyword:
+if ~KEYWORD_SET(dimension) then begin
+ ; we don't call moment.pro, since it requires 2 or more elements
+ ; and MEAN(x) should work even if dimension(x)==0 
+ if keyword_set(NaN) then begin
+    n = total(finite(x), double=double)
+ endif else begin
+    n = n_elements(x)
+ endelse
+ mean = total(x, double=double, NaN=NaN)/n
+ return, mean
+endif else begin
 ;
 tmp=MOMENT(x, mean=mean, double=double, NaN=NaN, $
-           dimension=dimension, maxmoment=2)
+           dimension=dimension, maxmoment=1)
 ;
 return, mean
 ;
+endelse
 end
