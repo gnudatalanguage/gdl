@@ -2529,6 +2529,35 @@ bool DStructGDL::ArrayEqual( BaseGDL* r)
   return false;
 }
 
+
+template<class Sp>
+bool Data_<Sp>::OutOfRangeOfInt() const 
+{
+  assert( this->StrictScalar());
+  return (*this)[0] > std::numeric_limits< DInt>::max() || (*this)[0] < std::numeric_limits< DInt>::min();
+}
+
+template<>
+bool Data_<SpDString>::OutOfRangeOfInt() const 
+{
+  return false;
+}
+template<>
+bool Data_<SpDByte>::OutOfRangeOfInt() const 
+{
+  return false;
+}
+template<>
+bool Data_<SpDComplex>::OutOfRangeOfInt() const 
+{
+  return false;
+}
+template<>
+bool Data_<SpDComplexDbl>::OutOfRangeOfInt() const 
+{
+  return false;
+}
+
 // for statement compliance (int types , float types scalar only)
 // (convert strings to floats here (not for first argument)
 template<class Sp>
@@ -2556,60 +2585,35 @@ void Data_<Sp>::ForCheck( BaseGDL** lEnd, BaseGDL** lStep)
   if( this->t== STRING)
     throw GDLException("String expression not allowed in this context.");
 
-//   // check here if loop limit is COMPLEX, but *only* if loop init is INT or LONG
-//   if( this->t == INT || this->t == LONG)
-//   {
-//     if( (*lEnd)->Type() == COMPLEX || (*lEnd)->Type() == COMPLEXDBL)
-//       throw GDLException("Complex expression not allowed in this context.");    
-//   }
-
-//   // to be moved into basegdl.hpp
-//   const int DTypeForPromotionOrder[]={
-//   0, 	//UNDEF
-//   2, 	//BYTE
-//   3, 	//INT
-//   4, 	//LONG,	
-//   8, 	//FLOAT,	
-//   9, 	//DOUBLE,	
-//   0, 	//COMPLEX,	
-//   0, 	//STRING,	
-//   0, 	//STRUCT,	
-//   0, 	//COMPLEXDBL,	
-//   0, 	//PTR,		
-//   0, 	//OBJECT,
-//   3, 	//UINT,	
-//   4, 	//ULONG,
-//   5, 	//LONG64,
-//   5 	//ULONG64
-//   };
-
-  // check for promotion of this (only INT and LONG)
-  if( this->t == INT)
+  // check for promotion of this (only INT) // and LONG ???
+  DType lType = (*lEnd)->Type();
+  if( this->t == INT && lType != INT)
   {
-    if( (*lEnd)->Type() == COMPLEX || (*lEnd)->Type() == COMPLEXDBL)
-      throw GDLException("Complex expression not allowed in this context.");    
-//     DLongGDL* checkVal = (*lEnd)->Convert2( LONG, BaseGDL::COPY);
-//     auto_ptr<DLongGDL> checkGuard( checkVal);
-//     if( (*checkVal)[0] > std::numeric_limits< Ty>::max())
-//     {
-//       if( NumericType( (*lEnd)->Type())
-//       {
-// 	// convert to numeric type if limit is numeric type
-//       }
-// //       else if( (*checkVal)[0] > std::numeric_limits< DLong>::max())
-// //       {   
-// // 	// convert to DLong64 if type is STRING and larger than max DLong
-// //       }    
-//       else
-//       {
-// 	// convert to DLongGDL if type is STRING and smaller than max DLong
-//       }
-//       return;
-//     }    
+    if( lType == COMPLEX || lType == COMPLEXDBL)
+      throw GDLException("Complex expression not allowed in this context.");  
+    
+    if( lType == STRING)
+    {
+      *lEnd=(*lEnd)->Convert2( LONG);  // try with long
+      if( !(*lEnd)->OutOfRangeOfInt())
+      {
+	*lEnd=(*lEnd)->Convert2( INT); // back to INT if within range     
+      }
+    }
+    else if( !(*lEnd)->OutOfRangeOfInt())
+      {
+	*lEnd=(*lEnd)->Convert2( INT);  // regular conversion    
+      }  
+
+    // if the INT range is exceeded, lEnd is NOT changed
+      
+    if( lStep != NULL) *lStep=(*lStep)->Convert2( (*lEnd)->Type());
+    return; // finished for INT
   }
-  else if( this->t == LONG)
+  
+  if( this->t == LONG)
   {
-    if( (*lEnd)->Type() == COMPLEX || (*lEnd)->Type() == COMPLEXDBL)
+    if( lType == COMPLEX || lType == COMPLEXDBL)
       throw GDLException("Complex expression not allowed in this context.");        
   }
   

@@ -348,6 +348,19 @@ template<>
 Data_<SpDByte>* Data_<SpDComplexDbl>::LogNeg();
 
 // datatypes.cpp
+
+
+// template<class Sp>
+// bool Data_<Sp>::OutOfRangeOfInt() const 
+template<>
+bool Data_<SpDString>::OutOfRangeOfInt() const; 
+template<>
+bool Data_<SpDByte>::OutOfRangeOfInt() const;
+template<>
+bool Data_<SpDComplex>::OutOfRangeOfInt() const;
+template<>
+bool Data_<SpDComplexDbl>::OutOfRangeOfInt() const; 
+
 /*template<> 
 void* Data_<SpDString>::DataAddr();//SizeT);*/
 // patch [1561592]

@@ -139,6 +139,8 @@ std::istream& BaseGDL::FromStream(std::istream& i)
   return i;
 }
 
+bool BaseGDL::OutOfRangeOfInt() const { return false;}
+
 bool BaseGDL::Scalar() const { return false;}
 bool BaseGDL::StrictScalar() const { return false;}
 DType   BaseGDL::Type() const { return UNDEF;}

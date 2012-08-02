@@ -419,6 +419,8 @@ public:
   virtual BaseGDL* CShift( DLong d) const; // circular shift
   virtual BaseGDL* CShift( DLong d[MAXRANK]) const; // circular shift multi dim
 
+  virtual bool OutOfRangeOfInt() const;
+
   virtual bool Scalar() const;
   virtual bool StrictScalar() const;
   virtual DType   Type() const;

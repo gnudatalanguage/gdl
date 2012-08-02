@@ -34,13 +34,13 @@ negative array indices
 garbage collection pointers and objects
 call methods on an object using "." (e. g. object.aMemberProcedure,arg1)
 empty arrays and !NULL system variable
+automatic promotion of FOR loop variable types
 
 Not yet supported:
 
 Operator overloading
 LIST and HASH types
 simplified property access on objects (e. g. object.aProperty = value & print,object.aProperty)
-automatic promotion of FOR loop variable types
 
 
 GUI support (widgets) is now officially provided (not complete yet).

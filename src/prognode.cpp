@@ -1284,6 +1284,12 @@ RetCode   FORNode::Run()//for_statement(ProgNodeP _t) {
   
   s->ForCheck( &loopInfo.endLoopVar);
   
+  if( loopInfo.endLoopVar->Type() != s->Type()) // promote s
+    {
+      BaseGDL* sPromote = s->Convert2(loopInfo.endLoopVar->Type(), BaseGDL::COPY);
+      s_guard.reset( sPromote);
+    }
+  
   // ASSIGNMENT used here also
   GDLDelete((*v));
   (*v)= s_guard.release(); // s held in *v after this
@@ -1362,6 +1368,13 @@ RetCode   FOR_STEPNode::Run()//for_statement(ProgNodeP _t) {
 //   loopInfo.loopStepVar=ProgNode::interpreter->expr(this->GetFirstChild()->GetNextSibling()->GetNextSibling());
 
   s->ForCheck( &loopInfo.endLoopVar, &loopInfo.loopStepVar);
+
+  if( loopInfo.endLoopVar->Type() != s->Type()) // promote s
+    {
+      BaseGDL* sPromote = s->Convert2(loopInfo.endLoopVar->Type(), BaseGDL::COPY);
+      s_guard.reset( sPromote);
+      assert( loopInfo.loopStepVar->Type() == s_guard.get()->Type());
+    }
 
   // ASSIGNMENT used here also
   GDLDelete((*v));

@@ -166,6 +166,8 @@ static	void operator delete( void *ptr);
 //   // make a duplicate at loc
 //   Data_* Dup( void* loc) const { return ::new ( loc) Data_(*this);}
 
+  bool OutOfRangeOfInt() const;
+  
   bool Scalar() const { return (dd.size() == 1);}
   bool StrictScalar() const { return (this->Rank() == 0);}
 
