@@ -10,7 +10,6 @@ Please indicate what you are doing and starting time
 !a_correlate.pro
 !amoeba.pro
 !bar_plot.pro
-!bilinear.pro
 !binomial.pro
 !c_correlate.pro
 !chebyshev.pro
@@ -18,12 +17,10 @@ Please indicate what you are doing and starting time
 !chisqr_pdf.pro
 !comfit.pro
 !complexround.pro
-!congrid.pro
 !coord2to3.pro
 !cramer.pro
 !crvlength.pro
 !curvefit.pro
-!determ.pro
 !eigenvec.pro
 !errplot.pro
 !f_cvf.pro
@@ -54,7 +51,6 @@ Please indicate what you are doing and starting time
 !r_correlate.pro
 !r_test.pro
 !regress.pro
-!rot.pro
 !s_test.pro
 !sfit.pro
 !spline_p.pro

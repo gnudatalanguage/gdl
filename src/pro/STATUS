@@ -22,7 +22,7 @@ Codes:
  ascii_template.pro
 !bar_plot.pro
 #beta.pro
-!bilinear.pro
+~bilinear.pro
  binary_template.pro
  bin_date.pro
 !binomial.pro
@@ -41,7 +41,7 @@ Codes:
 !comfit.pro
 !complexround.pro
  cond.pro
-!congrid.pro
+~congrid.pro
 !coord2to3.pro
 !correlate.pro
 !cramer.pro
@@ -74,7 +74,7 @@ Codes:
  defroi.pro
 +deriv.pro
  derivsig.pro
-!determ.pro
+#determ.pro
  dialog_read_image.pro
  dialog_write_image.pro
  digital_filter.pro
@@ -106,14 +106,14 @@ Codes:
 !f_pdf.pro
  funct.pro
  fv_test.pro
-!fx_root.pro
+#fx_root.pro
  gamma_ct.pro
 #gamma.pro
 !gauss2dfit.pro
 #gauss_cvf.pro
 !gaussfit.pro
 #gauss_pdf.pro
- get_screen_size.pro
+#get_screen_size.pro
 -graphics_times2.pro
 -graphics_times3.pro
 -graphics_times.pro
@@ -143,7 +143,7 @@ Codes:
 !int_3d.pro
 !int_tabulated_2d.pro
 !int_tabulated.pro
-!interpol.pro
+~interpol.pro
  julday.pro
  krig2d.pro
 =kurtosis.pro
@@ -243,7 +243,7 @@ Codes:
 !regress.pro
  resolve_all.pro
 ~reverse.pro                  ; OVERWRITE keyword missing (implemented in C++)
-!rot.pro
+~rot.pro
  rs_test.pro
 !s_test.pro
  savgol.pro
@@ -307,7 +307,7 @@ Codes:
 =variance.pro
  vector_field.pro
  velovect.pro
- vel.pro
+ vel.pro              ; Alain C.: I have a wrtten authorisation by the original author to put in in CVS. To Do ASAP !!
  vert_t3d.pro
 !voronoi.pro
  warp_tri.pro

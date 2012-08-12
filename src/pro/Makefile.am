@@ -79,6 +79,7 @@ prolib_DATA = \
   read_xwd.pro \
   real_part.pro \
   restore.pro \
+  rot.pro \
   rstrpos.pro \
   save.pro \
   showfont.pro \

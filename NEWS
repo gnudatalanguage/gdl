@@ -545,7 +545,7 @@
 	   - SCOPE_VARFETCH (only LEVEL keyword supported)
 	   - keyword /NaN for HISTOGRAM
 	   - Initial import of LUDC, LUSOL and DETERM, OK now only for DOUBLE
-	   - Initial import of CONGRID and BILINEAR
+	   - Initial import of ROT, CONGRID and BILINEAR
 	   - Initial import of TV for PS output
 	   - fix in RANDOMN/RANDOMU (Binomial OK, conflicting keywords detected ...)
            - Initial import for QROMB(), QSIMP() (based on QROMB) and QROMO()
