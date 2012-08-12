@@ -559,3 +559,4 @@
            - keyword SIGN in FINITE
 	   - support for empty arrays and !NULL system variable
 	   - promotion of FOR loop index variable type
+	   - various improvments on READ_JPEG, READ_PNG, WRITE_JPEG, WRITE_PNG
