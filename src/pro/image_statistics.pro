@@ -53,7 +53,7 @@
 ; MODIFICATION HISTORY:
 ; -- first draft created by Alain Coulais, 10-Nov-2011
 ; -- 15-Nov-2011 : AC : better managmenet of output types
-;
+; -- 02-Jul-2012 : Josh Sixsmith : Added the labeled keyword
 ;-
 ;
 pro ImSt_MESS, keyword_name
@@ -68,6 +68,7 @@ pro IMAGE_STATISTICS, input_data, mask=mask, count=count, $
                       variance=variance_, $
                       lut=lut, vector=vector, $
                       weight_sum=weight_sum, weighted=weighted, $
+                      labeled=labeled, $
                       help=help, test=test, verbose=verbose
 ;
 if N_PARAMS() NE 1 then MESSAGE, 'Incorrect number of arguments.'
@@ -82,6 +83,7 @@ if KEYWORD_SET(help) then begin
    print, '                variance=variance_, $'
    print, '                lut=lut, vector=vector, $'
    print, '                weight_sum=weight_sum, weighted=weighted, $'
+   print, '                labeled=labeled, $'
    print, '                help=help, test=test, verbose=verbose'
    return
 endif
@@ -93,21 +95,60 @@ if KEYWORD_SET(weighted) then ImSt_MESS, 'weighted'
 ;
 image=input_data
 if KEYWORD_SET(mask) then begin
-   OK=WHERE(mask NE 0, nbp_ok)
-   if (nbp_ok GT 0) then image=input_data[OK]
+   if KEYWORD_SET(labeled) then begin
+   hist=HISTOGRAM(mask, reverse_indices=ri)
+   n=N_ELEMENTS(hist)
+   mean_=FLTARR(n, /nozero)
+   maximum=FLTARR(n, /nozero)
+   minimum=FLTARR(n, /nozero)
+   count=ULONARR(n, /nozero)
+   data_sum=FLTARR(n, /nozero)
+   sum_of_squares=FLTARR(n, /nozero)
+   for i=0L, n-1 do begin
+      if ri[i] NE ri[i+1] then begin
+         data=image[ri[ri[i]:ri[i+1]-1]]
+         mean_[i] = MEAN(data,/double)
+         maximum[i] = MAX(data, min=min_i)
+         minimum[i] = min_i
+         count[i] = N_ELEMENTS(data)
+         data_sum[i] = TOTAL(data, /double)
+         sum_of_squares[i] = FLOAT(TOTAL(data^2D, /double))
+      endif
+   endfor
+   endif else begin
+      OK=WHERE(mask NE 0, nbp_ok)
+      if (nbp_ok GT 0) then image=input_data[OK]
+   endelse
 endif
 ;
-count=ULONG(N_ELEMENTS(image))
-data_sum=FLOAT(TOTAL(image,/double))
-mean_=FLOAT(MEAN(image,/double))
-maximum=MAX(image, min=minimum)
-maximum=FLOAT(maximum)
-minimum=FLOAT(minimum)
-sum_of_squares=FLOAT(TOTAL(image^2.D,/double))
+if KEYWORD_SET(labeled) then begin
+   ; basically do nothing, just allows us to create a block for the non-labeled
+   ; calculations
+endif else begin
+   count=ULONG(N_ELEMENTS(image))
+   data_sum=FLOAT(TOTAL(image,/double))
+   mean_=FLOAT(MEAN(image,/double))
+   maximum=MAX(image, min=minimum)
+   maximum=FLOAT(maximum)
+   minimum=FLOAT(minimum)
+   sum_of_squares=FLOAT(TOTAL(image^2.D,/double))
+endelse
 ;
 if N_ELEMENTS(image) GT 1 then begin
-   stddev_=FLOAT(STDDEV(image,/double))
-   variance_=FLOAT(VARIANCE(image,/double))
+   if KEYWORD_SET(labeled) then begin
+      stddev_=FLTARR(n, /nozero)
+      variance_=FLTARR(n, /nozero)
+      for i=0L, n-1 do begin
+         if ri[i] NE ri[i+1] then begin
+         data=image[ri[ri[i]:ri[i+1]-1]]
+         stddev_[i] = STDDEV(data, /double)
+         variance_[i] = VARIANCE(data, /double)
+         endif
+      endfor
+   endif else begin
+      stddev_=FLOAT(STDDEV(image,/double))
+      variance_=FLOAT(VARIANCE(image,/double))
+   endelse
 endif else begin
    stddev_=0.0
    variance_=0.0
