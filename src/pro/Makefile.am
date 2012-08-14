@@ -1,4 +1,4 @@
-SUBDIRS = dicom
+SUBDIRS = dicom envi
 prolibdir = $(GDLDATADIR)/lib
 prolib_DATA = \
   appleman.pro \
