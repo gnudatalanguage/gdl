@@ -77,6 +77,7 @@ if ~((N_PARAMS() EQ 1) OR (N_PARAMS() EQ 4)) then $
    MESSAGE, "Only 1 or 4 arguments allowed."
 ;
 if (SIZE(filename,/type) NE 7) then MESSAGE, "String expression required in this context: filename"
+if (N_ELEMENTS(filename) GT 1) then MESSAGE, "Only one file at once !"
 if (STRLEN(filename) EQ 0) then MESSAGE, "Null filename not allowed."
 if ((FILE_INFO(filename)).exists EQ 0) then MESSAGE, "Error opening file. File: "+filename
 if (FILE_TEST(filename, /regular) EQ 0) then MESSAGE, "Not a regular File: "+filename

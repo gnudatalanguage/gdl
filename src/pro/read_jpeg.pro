@@ -1,4 +1,4 @@
-;$Id: read_jpeg.pro,v 1.13 2012-02-07 23:23:25 alaingdl Exp $
+;$Id: read_jpeg.pro,v 1.14 2012-08-14 14:21:37 alaingdl Exp $
 
 pro READ_JPEG, filename, unit=unit, image, colortable, buffer=buffer, $
                colors=colors, dither=dither, grayscale=grayscale, order=order, $
@@ -87,7 +87,9 @@ endif
 ; AC 2011-Aug-18: this test will be wrong when UNIT will be available
 if (N_PARAMS() EQ 0) then MESSAGE, "Incorrect number of arguments."
 ;
+if (N_ELEMENTS(filename) GT 1) then MESSAGE, "Only one file at once !"
 if (STRLEN(filename) EQ 0) then MESSAGE, "Null filename not allowed."
+;
 if ((FILE_INFO(filename)).exists EQ 0) then MESSAGE, "Error opening file. File: "+filename
 if (FILE_TEST(filename, /regular) EQ 0) then MESSAGE, "Not a regular File: "+filename
 ;

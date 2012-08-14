@@ -1,4 +1,4 @@
-;$Id: read_bmp.pro,v 1.2 2010-01-20 11:41:59 slayoo Exp $
+;$Id: read_bmp.pro,v 1.3 2012-08-14 14:21:37 alaingdl Exp $
 
 function read_bmp, filename, red, green, blue, rgb=rgb
   on_error, 2
@@ -67,6 +67,7 @@ function read_bmp, filename, red, green, blue, rgb=rgb
 ;
 ;-
 
+if (N_ELEMENTS(filename) GT 1) then MESSAGE, "Only one file at once !"
 
 mid=magick_open(filename)
 

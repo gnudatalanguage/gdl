@@ -1,4 +1,4 @@
-;$Id: read_tiff.pro,v 1.2 2010-01-20 11:41:59 slayoo Exp $
+;$Id: read_tiff.pro,v 1.3 2012-08-14 14:21:37 alaingdl Exp $
 
 function read_tiff, filename, red,green,blue,channels=channels,geotiff=geotiff,image_index=image_index,interleave=interleave,orientation=orientation,planarconfig=planarconfig,sub_rect=sub_rect,verbose=verbose
   on_error, 2
@@ -80,6 +80,9 @@ function read_tiff, filename, red,green,blue,channels=channels,geotiff=geotiff,i
 ;
 ;
 ;-
+
+if (N_ELEMENTS(filename) GT 1) then MESSAGE, "Only one file at once !"
+
 f=filename
 if(keyword_set(IMAGE_INDEX)) then f=filename+"["+string(IMAGE_INDEX)+"]"
 mid=magick_open(f)

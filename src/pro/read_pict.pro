@@ -1,4 +1,4 @@
-;$Id: read_pict.pro,v 1.3 2010-01-20 11:41:59 slayoo Exp $
+;$Id: read_pict.pro,v 1.4 2012-08-14 14:21:37 alaingdl Exp $
 
 pro read_pict, filename, image,red, green, blue
   on_error, 2
@@ -59,6 +59,7 @@ pro read_pict, filename, image,red, green, blue
 ;
 ;-
 
+if (N_ELEMENTS(filename) GT 1) then MESSAGE, "Only one file at once !"
 
 mid=magick_open(filename)
 

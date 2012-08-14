@@ -20,11 +20,13 @@
 ;   11-Aug-2011 : Alain Coulais : solving conflits due to
 ;                 /preserve_null and /regex; curing bugs in special cases
 ;   11-Jul-2012 : When /extract, we must return STRARR even for 1-element
+;   14-Aug-2012 : Now GDL enforces scalar type in FOR loop ... take care
+;   of STRLEN ! We ensure to work on pure STRING = '', not STRING = Array[1]
 ;
 ; LICENCE:
 ; Copyright (C)
 ; 2004, Pierre Chanial
-; 2010, Alain Coulais and Lea Noreskal
+; 2010, Alain Coulais and Lea Noreskal; 2012 :AC
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
 ; the Free Software Foundation; either version 2 of the License, or
@@ -33,7 +35,9 @@
 ;-
 ;
 function STRMULTIPOS, str, single_char, test=test
+;
 ON_ERROR, 2
+;
 if (SIZE(str, /type) NE 7) OR (SIZE(single_char, /type) NE 7) then begin
    MESSAGE, 'Invalid input string.'
    return, -1
@@ -43,10 +47,12 @@ if (STRLEN(single_char) NE 1) then begin
    return, -1
 endif
 ;
+inside_str=str[0]
+;
 resu=-1
 ;
-for ii=0, STRLEN(str)-1 do begin
-   sub_str=STRMID(str,ii,1)
+for ii=0, STRLEN(inside_str)-1 do begin
+   sub_str=STRMID(inside_str,ii,1)
    if (sub_str EQ single_char) then resu=[resu,ii]
 endfor
 ;
@@ -109,6 +115,9 @@ endif else begin
    local_input1=input1
 endelse
 ;
+; we explicitely change String [1] array into pure String.
+local_input1=local_input1[0]
+;
 ; When no Pattern is provided, default pattern is white space (' ')
 ;
 short_cut=0
@@ -121,7 +130,9 @@ if (N_PARAMS() EQ 2) then begin
    if (STRLEN(input2) EQ 0) then begin
       short_cut=1
       if KEYWORD_SET(extract) then resu='' else resu=0
-   endif
+   endif else begin
+      local_input2=input2[0]
+   endelse
 endif
 ;
 ; When no Pattern is provided, default pattern is white space (' ')
@@ -134,14 +145,14 @@ if ((short_cut EQ 0) AND (N_PARAMS() EQ 2)) then begin
    ;;
    ;; AC 14-Oct-2010: may be not fully OK
    if KEYWORD_SET(regex) then begin
-      resu=STRTOK(local_input1, input2, extract=extract,$
+      resu=STRTOK(local_input1, local_input2, extract=extract,$
                   REGEX=regex, preserve_null=preserve_null)
    endif else begin
       resu=0
       beg=0
       ;;
-      for ii=0, STRLEN(input2)-1 do begin
-         resu=[resu, STRMULTIPOS(local_input1, STRMID(input2, ii, 1))]
+      for ii=0, STRLEN(local_input2)-1 do begin
+         resu=[resu, STRMULTIPOS(local_input1, STRMID(local_input2, ii, 1))]
       endfor
       ;;
       resu=resu[WHERE(resu GE 0)]

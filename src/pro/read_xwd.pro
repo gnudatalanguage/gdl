@@ -57,6 +57,7 @@ if (MAGICK_EXISTS() EQ 0) then begin
 endif
 ;
 if (N_PARAMS() EQ 0) then MESSAGE, "Incorrect number of arguments."
+if (N_ELEMENTS(filename) GT 1) then MESSAGE, "Only one file at once !"
 if (STRLEN(filename) EQ 0) then MESSAGE, "Null filename not allowed."
 if ((FILE_INFO(filename)).exists EQ 0) then MESSAGE, "Error opening file. File: "+filename
 if (FILE_TEST(filename, /regular) EQ 0) then MESSAGE, "Not a regular File: "+filename
