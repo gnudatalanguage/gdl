@@ -51,6 +51,8 @@ public:
   void Clear( DLong bColor);
   void Raise();
   void Lower();
+  void Iconic();
+  void DeIconic();
 };
 
 #endif

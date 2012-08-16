@@ -194,4 +194,22 @@ void GDLXStream::Lower()
   XLowerWindow(dev->xwd->display, dev->window);
 }
 
+// note by AC on 2012-Aug-16    Help/suggestions welcome
+// I don't know how to find the sub-window number (third parametre
+// in call XIconifyWindow())
+
+void GDLXStream::Iconic()
+{
+  XwDev *dev = (XwDev *) pls->dev;
+  XwDisplay *xwd = (XwDisplay *) dev->xwd;
+  XIconifyWindow(dev->xwd->display, dev->window,0);
+}
+
+void GDLXStream::DeIconic()
+{
+  XwDev *dev = (XwDev *) pls->dev;
+  XwDisplay *xwd = (XwDisplay *) dev->xwd;
+  XMapWindow(dev->xwd->display, dev->window);
+}
+
 #endif

@@ -265,6 +265,15 @@ SizeT nOp = kxLimit * kyLimit;
     if (wIx >= 0 && wIx < winList.size()) winList[ wIx]->Lower();
   }
 
+  void IconicWin( int wIx)
+  {
+    if (wIx >= 0 && wIx < winList.size()) winList[ wIx]->Iconic();
+  }
+  void DeIconicWin( int wIx)
+  {
+    if (wIx >= 0 && wIx < winList.size()) winList[ wIx]->DeIconic();
+  }
+
   // process user deleted windows
   // should be done in a thread
   void ProcessDeleted()
@@ -518,8 +527,9 @@ public:
     int wLSize = winList.size();
     if (ix >= wLSize || ix < 0 || winList[ ix] == NULL) return false;
  
-    if (show) RaiseWin(ix);
-    else LowerWin(ix);
+    if (show) RaiseWin(ix); else LowerWin(ix);
+    
+    if (iconic) IconicWin(ix); else DeIconicWin(ix);
 
     return true;
   }

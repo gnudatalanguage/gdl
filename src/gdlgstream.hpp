@@ -116,6 +116,8 @@ public:
 
   virtual void Raise()         {}
   virtual void Lower()        {}
+  virtual void Iconic()        {}
+  virtual void DeIconic()        {}
   virtual void Clear()         {}
   virtual void Clear( DLong bColor)          {}
 

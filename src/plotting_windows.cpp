@@ -127,13 +127,26 @@ namespace lib {
     DLong wIx = 0;
     if (nParam != 0) e->AssureLongScalarPar( 0, wIx);
     else wIx = actDevice->ActWin();
+
+    // note by AC on 2012-Aug-16
+    // On the system I tested (Ubuntu 10.4), I was not able to have
+    // the expected SHOW behavior, with IDL 7.0 and GDL :(
+    // Help/suggestions welcome
     bool show = true;
     if (nParam == 2) { 
       DIntGDL *showval = e->GetParAs<DIntGDL>(1);
       show = (*showval)[0] != 0;
     }
-    // TODO: iconify
-    if (!actDevice->WShow( wIx, show, false)) 
+
+    // note by AC on 2012-Aug-16
+    // I don't know how to find the sub-window number (third parametre
+    // in call XIconifyWindow())
+    // Help/suggestions welcome
+
+    bool iconic = false;
+    if( e->KeywordSet("ICONIC")) iconic=true;
+
+    if (!actDevice->WShow( wIx, show, iconic)) 
       e->Throw( "Window is closed and unavailable.");
   }
 
