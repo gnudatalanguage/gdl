@@ -300,7 +300,7 @@ void DNode::Text2ULong64(int base)
 void DNode::Text2Float()
 {
   const char* cStr=text.c_str();
-  DFloat val=strtod(cStr,NULL);
+  DFloat val=strtof(cStr,NULL);
   cData=new DFloatGDL(val);
 }
 void DNode::Text2Double()

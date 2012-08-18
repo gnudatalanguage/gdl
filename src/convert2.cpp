@@ -53,6 +53,39 @@ inline string float2string( DFloat f)
   return os.str();
 }
 
+// for string -> float/double
+template <typename real_t>
+inline real_t string2real_helper(const char* cStart, char** cEnd);
+
+template <>
+inline float string2real_helper<float>(const char* cStart, char** cEnd)
+{
+  return strtof(cStart, cEnd);
+}
+
+template <>
+inline double string2real_helper<double>(const char* cStart, char** cEnd)
+{
+  return strtod(cStart, cEnd);
+}
+
+template <typename real_t>
+inline real_t string2real(const char* cStart, char** cEnd)
+{
+  const char* d = strpbrk(cStart, "Dd");
+  if (d == NULL) 
+    return string2real_helper<real_t>(cStart, cEnd);
+  else
+  {
+    string tmps(cStart);
+    tmps[d - cStart] = 'E';
+    char* tmpcp;
+    real_t tmpf = string2real_helper<real_t>(tmps.c_str(), &tmpcp);
+    *cEnd = const_cast<char*>(cStart) + (tmpcp - tmps.c_str());
+    return tmpf;
+  }
+}
+
 // every type need this function which defines its conversion to all other types
 // so for every new type each of this functions has to be extended
 // and a new function has to be 'specialized'
@@ -1662,8 +1695,8 @@ TRACEOMP( __FILE__, __LINE__)
       	  {
       	    const char* cStart=(*this)[i].c_str();
       	    char* cEnd;
-      	    (*dest)[i] = strtod(cStart,&cEnd);
-      	    if( cEnd == cStart && (*this)[i] != "")
+      	    (*dest)[i] = string2real<float>(cStart, &cEnd);
+      	    if((cEnd == cStart && (*this)[i] != "") || (cEnd - cStart) != strlen(cStart))
       	      {
 StringConversionError( errorFlag, mode, "Type conversion error: "
 				       "Unable to convert given STRING: '"+
@@ -1691,8 +1724,8 @@ TRACEOMP( __FILE__, __LINE__)
       	  {
       	    const char* cStart=(*this)[i].c_str();
 	    char* cEnd;
-	    (*dest)[i] = strtod( cStart, &cEnd);
-	    if( cEnd == cStart && (*this)[i] != "")
+	    (*dest)[i] = string2real<double>( cStart, &cEnd);
+	    if( (cEnd == cStart && (*this)[i] != "") || (cEnd - cStart) != strlen(cStart))
 	      {
 StringConversionError( errorFlag, mode, "Type conversion error: "
 				       "Unable to convert given STRING: '"+
@@ -1721,8 +1754,8 @@ TRACEOMP( __FILE__, __LINE__)
       	  {
       	    const char* cStart=(*this)[i].c_str();
       	    char* cEnd;
-      	    (*dest)[i]=strtod(cStart,&cEnd);
-      	    if( cEnd == cStart && (*this)[i] != "")
+      	    (*dest)[i]=string2real<float>(cStart,&cEnd);
+      	    if((cEnd == cStart && (*this)[i] != "") || (cEnd - cStart) != strlen(cStart))
       	      {
 StringConversionError( errorFlag, mode, "Type conversion error: "
 				       "Unable to convert given STRING: '"+
@@ -1751,8 +1784,8 @@ TRACEOMP( __FILE__, __LINE__)
       	  {
       	    const char* cStart=(*this)[i].c_str();
       	    char* cEnd;
-      	    (*dest)[i]=strtod(cStart,&cEnd);
-      	    if( cEnd == cStart && (*this)[i] != "")
+      	    (*dest)[i]=string2real<double>(cStart,&cEnd);
+      	    if((cEnd == cStart && (*this)[i] != "") || (cEnd - cStart) != strlen(cStart))
       	      {
 StringConversionError( errorFlag, mode, "Type conversion error: "
 				       "Unable to convert given STRING: '"+
