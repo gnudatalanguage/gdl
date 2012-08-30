@@ -339,7 +339,6 @@ void LibInit()
   new DLibFun(lib::string_fun,string("STRING"),-1,stringKey,NULL);
   new DLibFun(lib::byte_fun,string("BYTE"),10,NULL,NULL);
 
-  const string fixKey[]={"TYPE","PRINT",KLISTEND};
 /*
   new DLibFunRetNew(lib::fix_fun,string("FIX"),10,fixKey,NULL,true);
   new DLibFunRetNew(lib::uint_fun,string("UINT"),10,NULL,NULL,true);
@@ -353,7 +352,9 @@ void LibInit()
   new DLibFunRetNew(lib::dcomplex_fun,string("DCOMPLEX"),MAXRANK+2,NULL,NULL,true);
 */
 // that's apparently the desired bahaviour, see bug no. 3151760
+  const string fixKey[]={"TYPE","PRINT",KLISTEND};
   new DLibFun(lib::fix_fun,string("FIX"),10,fixKey,NULL);
+
   new DLibFun(lib::uint_fun,string("UINT"),10,NULL,NULL);
   new DLibFun(lib::long_fun,string("LONG"),10,NULL,NULL);
   new DLibFun(lib::ulong_fun,string("ULONG"),10,NULL,NULL);
@@ -361,7 +362,9 @@ void LibInit()
   new DLibFun(lib::ulong64_fun,string("ULONG64"),10,NULL,NULL);
   new DLibFun(lib::float_fun,string("FLOAT"),10,NULL,NULL);
   new DLibFun(lib::double_fun,string("DOUBLE"),10,NULL,NULL);
-  new DLibFun(lib::complex_fun,string("COMPLEX"),MAXRANK+2,NULL,NULL);
+
+  const string complexKey[]={"DOUBLE",KLISTEND};
+  new DLibFun(lib::complex_fun,string("COMPLEX"),MAXRANK+2,complexKey,NULL);
   new DLibFun(lib::dcomplex_fun,string("DCOMPLEX"),MAXRANK+2,NULL,NULL);
 
   new DLibFunRetNew(lib::gdl_logical_and,string("LOGICAL_AND"),2,NULL,NULL,true);
