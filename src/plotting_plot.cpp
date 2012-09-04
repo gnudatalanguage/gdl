@@ -181,6 +181,9 @@ private:
 
   private: void old_body( EnvT* e, GDLGStream* actStream) // {{{
   {
+    //ISOTROPIC
+    DLong iso=0;
+    e->AssureLongScalarKWIfPresent( "ISOTROPIC", iso);
 
     // [XY]STYLE
     DLong xStyle=0, yStyle=0; 
@@ -302,7 +305,7 @@ private:
     bool okVPWC = SetVP_WC( e, actStream, pos, clippingD, 
 			    xLog, yLog,
 			    xMarginL, xMarginR, yMarginB, yMarginT,
-			    xStart, xEnd, yStart, yEnd);
+			    xStart, xEnd, yStart, yEnd, iso);
     if( !okVPWC) return;
 
 

@@ -343,6 +343,10 @@ namespace lib {
     //cout << "MIN_VALUE" << minVal << endl;
     //cout << "MAX_VALUE" << maxVal << endl;
 
+    //ISOTROPIC
+    DLong iso=0;
+    e->AssureLongScalarKWIfPresent( "ISOTROPIC", iso);
+
     DLong xTicks=0, yTicks=0, zTicks=0;
     e->AssureLongScalarKWIfPresent( "XTICKS", xTicks);
     e->AssureLongScalarKWIfPresent( "YTICKS", yTicks);
@@ -493,7 +497,7 @@ namespace lib {
       bool okVPWC = SetVP_WC( e, actStream, overplot?NULL:pos, clippingD,
                             xLog, yLog,
                             xMarginL, xMarginR, yMarginB, yMarginF,
-                            xStart, xEnd, yStart, yEnd);
+                            xStart, xEnd, yStart, yEnd, iso);
       if( !okVPWC) return;
     } else {
       // not using SetVP_WC as it seem to always select full window for plotting (FIXME)

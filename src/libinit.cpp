@@ -514,7 +514,7 @@ void LibInit()
   const string plotKey[]=
     {
      "BACKGROUND","CHARSIZE","CHARTHICK","CLIP",
-     "COLOR",     "DATA",    "DEVICE", 
+     "COLOR",     "DATA",    "DEVICE", "ISOTROPIC",
      "LINESTYLE", "NOCLIP",  "NODATA",   "NOERASE", 
      "NORMAL",    "POSITION","PSYM",     "SUBTITLE",
      "SYMSIZE",   "THICK",    "TICKLEN", "TITLE",
@@ -531,7 +531,7 @@ void LibInit()
     };
   //
   const string plotWarnKey[]= {
-    "ISOTROPIC", "FONT", "T3D", "YTICKUNITS", "XTICKLAYOUT", "YTICKLAYOUT", 
+    "FONT", "T3D", "YTICKUNITS", "XTICKLAYOUT", "YTICKLAYOUT", 
     "ZTICKLAYOUT", "XGRIDSTYLE", "YGRIDSTYLE", "XTICKUNITS", "XTICKV", "XTICK_GET", "YTICKV",
     "YTICK_GET", "XTICKNAME", "ZTICKNAME", "ZTICKUNITS", "ZTICKV",  "ZTICK_GET",
     "XTICKINTERVAL", "YTICKINTERVAL", "YTICKNAME", "ZTICKINTERVAL", 

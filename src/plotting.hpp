@@ -157,7 +157,7 @@ namespace lib {
     string& xTickformat, string& yTickformat, DLong xLog, DLong yLog);
   bool SetVP_WC( EnvT* e, GDLGStream* actStream, DFloatGDL* pos, DDoubleGDL* clippingD, bool xLog, bool yLog,
                  DFloat xMarginL, DFloat xMarginR, DFloat yMarginB, DFloat yMarginT, // input/output
-                 DDouble xStart, DDouble xEnd, DDouble minVal, DDouble maxVal);
+                 DDouble xStart, DDouble xEnd, DDouble minVal, DDouble maxVal, DLong iso);
   void GetMinMaxVal( DDoubleGDL* val, double* minVal, double* maxVal);
   void GetAxisData( DStructGDL* xStruct,
                     DLong& style, DString& title, DFloat& charSize,

@@ -380,7 +380,8 @@ namespace lib {
 		 DDouble xStart,
 		 DDouble xEnd,
 		 DDouble yStart,
-		 DDouble yEnd)
+		 DDouble yEnd,
+         DLong iso   )
   {
     //    cout << "xStart " << xStart << "  xEnd "<<xEnd<<endl;
     //    cout << "yStart " << yStart << "  yEnd "<<yEnd<<endl;
@@ -399,7 +400,9 @@ namespace lib {
 		 xMR, xML, yMB, yMT);
 
     // viewport - POSITION overrides
-    static bool kwP;
+    static bool kwP=FALSE;
+    static bool do_iso=FALSE;
+    static PLFLT aspect=1.0;
     static PLFLT positionP[ 4]={0,0,0,0};
     static PLFLT position[ 4];
     DStructGDL* pStruct = SysVar::P();
@@ -412,61 +415,80 @@ namespace lib {
 	  (*static_cast<DFloatGDL*>(pStruct->GetTag( positionTag, 0)))[i];
     }
 
-    // If pos == NULL (oplot)
-
-  if (pos == NULL)
-  {
-
-    // If position keyword previously set
-    if (kwP)
+    // If pos == NULL (oplot, /OVERPLOT etc. Reuse previous values)
+    if (pos == NULL)
     {
-      actStream->vpor(position[0], position[2], position[1], position[3]);
-    }
-    else
-    {
-      // If !P.position not set
-      if (positionP[0] == 0 && positionP[1] == 0 &&
-          positionP[2] == 0 && positionP[3] == 0)
-        actStream->vpor(position[0], position[2], position[1], position[3]);
+      // If position keyword previously set
+      if (kwP)
+      {
+// Creates a viewport with the specified normalized subpage coordinates.
+        if (do_iso) actStream->vpas(position[0], position[2], position[1], position[3], aspect);
+        else actStream->vpor(position[0], position[2], position[1], position[3]);
+      }
       else
       {
-        // !P.position set
-        actStream->vpor(positionP[0], positionP[2], positionP[1], positionP[3]);
+        // If !P.position not set
+        if (positionP[0] == 0 && positionP[1] == 0 &&
+            positionP[2] == 0 && positionP[3] == 0)
+        {
+          if (do_iso) actStream->vpas(position[0], position[2], position[1], position[3], aspect);
+          else actStream->vpor(position[0], position[2], position[1], position[3]);
+        }
+        else
+        {
+          // !P.position set
+          if (do_iso) actStream->vpas(positionP[0], positionP[2], positionP[1], positionP[3], aspect);
+          else actStream->vpor(positionP[0], positionP[2], positionP[1], positionP[3]);
+        }
       }
     }
-    // New plot
-  }
-  else if (pos == (DFloatGDL*) 0xF)
-  {
-    kwP = false;
-
-    // If !P.position not set use default values
-    if (positionP[0] == 0 && positionP[1] == 0 &&
-        positionP[2] == 0 && positionP[3] == 0)
+    else //New Plot
     {
+      if (iso == 1) // Check ISOTROPIC first
+      {
+        do_iso = TRUE;
+        aspect = abs(yEnd - yStart) / abs(xEnd - xStart);
+      }
+      else
+      {
+        do_iso = FALSE;
+        aspect = 1;
+      }
 
-      // Set to default values
-      position[0] = xML;
-      position[1] = yMB;
-      position[2] = 1.0 - xMR;
-      position[3] = 1.0 - yMT;
-      actStream->vpor(position[0], position[2], position[1], position[3]);
-    }
-    else
-    {
-      // !P.position values
-      actStream->vpor(positionP[0], positionP[2], positionP[1], positionP[3]);
-    }
-    // Position keyword set
-  }
-  else
-  {
-    kwP = true;
-    for (SizeT i = 0; i < 4 && i < pos->N_Elements(); ++i)
-      position[ i] = (*pos)[ i];
-    actStream->vpor(position[0], position[2], position[1], position[3]);
-  }
+      // New plot without POSITION=[] as argument
+      if (pos == (DFloatGDL*) 0xF)
+      {
+        kwP = false;
+        //compute isotropic ratio & save values
 
+        // If !P.position not set use default values
+        if (positionP[0] == 0 && positionP[1] == 0 &&
+            positionP[2] == 0 && positionP[3] == 0)
+        {
+
+          // Set to default values
+          position[0] = xML;
+          position[1] = yMB;
+          position[2] = 1.0 - xMR;
+          position[3] = 1.0 - yMT;
+          if (do_iso) actStream->vpas(position[0], position[2], position[1], position[3], aspect);
+          else actStream->vpor(position[0], position[2], position[1], position[3]);
+        }
+        else
+        {
+          // Use !P.position values
+          if (do_iso) actStream->vpas(positionP[0], positionP[2], positionP[1], positionP[3], aspect);
+          else actStream->vpor(positionP[0], positionP[2], positionP[1], positionP[3]);
+        }
+      }
+      else       // Position keyword set
+      {
+        kwP = true;
+        for (SizeT i = 0; i < 4 && i < pos->N_Elements(); ++i) position[ i] = (*pos)[ i];
+        if (do_iso) actStream->vpas(position[0], position[2], position[1], position[3], aspect);
+        else actStream->vpor(position[0], position[2], position[1], position[3]);
+      }
+    }
 
     // CLIPPING
     if( clippingD != NULL)

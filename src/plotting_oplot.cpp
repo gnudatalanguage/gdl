@@ -189,7 +189,7 @@ namespace lib {
     bool okVPWC = SetVP_WC( e, actStream, NULL, clippingD, 	 
 			    xLog, yLog, 	 
 			    xMarginL, xMarginR, yMarginB, yMarginT, 	 
-			    xStart, xEnd, minVal, maxVal); 	 
+			    xStart, xEnd, minVal, maxVal, (DLong) 0);
     if( !okVPWC) return;
 
     actStream->wid( 0);
