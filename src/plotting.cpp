@@ -366,6 +366,41 @@ namespace lib {
 //
 //    xStart=wcxs; xEnd=wcxe; minVal=wcys; maxVal=wcye;
 //  }
+  void setIsoPort(GDLGStream* actStream,
+  PLFLT x1,
+  PLFLT x2,
+  PLFLT y1,
+  PLFLT y2,
+  PLFLT aspect)
+  {
+    PLFLT X1, X2, Y1, Y2, X1s, X2s, Y1s, Y2s, displacx,displacy, scalex,scaley,offsetx,offsety;
+    if (aspect <= 0.0)
+    {
+      actStream->vpor(x1, x2, y1, y2);
+      return;
+    }
+    // here we need too compensate for the change of aspect due to eventual !P.MULTI plots
+     actStream->vpor(x1, x2, y1, y2); //ask for non-iso window
+     actStream->gvpd(X1, X2, Y1, Y2); //get viewport values
+     //compute relation desiredViewport-page viewport x=scalex*X+offsetx:
+     scalex=(x2-x1)/(X2-X1);
+     offsetx=(x1*X2-x2*X1)/(X2-X1);
+     scaley=(y2-y1)/(Y2-Y1);
+     offsety=(y1*Y2-y2*Y1)/(Y2-Y1);
+     //ask for wiewport scaled to isotropic by plplot
+     actStream->vpas(x1, x2, y1, y2, aspect);
+     //retrieve values
+     actStream->gvpd(X1s, X2s, Y1s, Y2s);
+     //measure displacement
+     displacx=X1s-X1;
+     displacy=Y1s-Y1;
+     //set wiewport scaled by plplot, displaced, as vpor using above linear transformation
+     x1=(X1s-displacx)*scalex+offsetx;
+     x2=(X2s-displacx)*scalex+offsetx;
+     y1=(Y1s-displacy)*scaley+offsety;
+     y2=(Y2s-displacy)*scaley+offsety;
+     actStream->vpor(x1, x2, y1, y2);
+}
 
   bool SetVP_WC( EnvT* e,
 		 GDLGStream* actStream,
@@ -402,7 +437,7 @@ namespace lib {
     // viewport - POSITION overrides
     static bool kwP=FALSE;
     static bool do_iso=FALSE;
-    static PLFLT aspect=1.0;
+    static PLFLT aspect=0.0;
     static PLFLT positionP[ 4]={0,0,0,0};
     static PLFLT position[ 4];
     DStructGDL* pStruct = SysVar::P();
@@ -422,7 +457,7 @@ namespace lib {
       if (kwP)
       {
 // Creates a viewport with the specified normalized subpage coordinates.
-        if (do_iso) actStream->vpas(position[0], position[2], position[1], position[3], aspect);
+        if (do_iso) setIsoPort(actStream,position[0], position[2], position[1], position[3], aspect);
         else actStream->vpor(position[0], position[2], position[1], position[3]);
       }
       else
@@ -431,13 +466,13 @@ namespace lib {
         if (positionP[0] == 0 && positionP[1] == 0 &&
             positionP[2] == 0 && positionP[3] == 0)
         {
-          if (do_iso) actStream->vpas(position[0], position[2], position[1], position[3], aspect);
+          if (do_iso) setIsoPort(actStream,position[0], position[2], position[1], position[3], aspect);
           else actStream->vpor(position[0], position[2], position[1], position[3]);
-        }
+      }
         else
         {
           // !P.position set
-          if (do_iso) actStream->vpas(positionP[0], positionP[2], positionP[1], positionP[3], aspect);
+          if (do_iso) setIsoPort(actStream,positionP[0], positionP[2], positionP[1], positionP[3], aspect);
           else actStream->vpor(positionP[0], positionP[2], positionP[1], positionP[3]);
         }
       }
@@ -452,7 +487,7 @@ namespace lib {
       else
       {
         do_iso = FALSE;
-        aspect = 1;
+        aspect = 0.0; // vpas with aspect=0.0 equals vpor.
       }
 
       // New plot without POSITION=[] as argument
@@ -471,13 +506,13 @@ namespace lib {
           position[1] = yMB;
           position[2] = 1.0 - xMR;
           position[3] = 1.0 - yMT;
-          if (do_iso) actStream->vpas(position[0], position[2], position[1], position[3], aspect);
+          if (do_iso) setIsoPort(actStream,position[0], position[2], position[1], position[3], aspect);
           else actStream->vpor(position[0], position[2], position[1], position[3]);
-        }
+         }
         else
         {
           // Use !P.position values
-          if (do_iso) actStream->vpas(positionP[0], positionP[2], positionP[1], positionP[3], aspect);
+          if (do_iso) setIsoPort(actStream,positionP[0], positionP[2], positionP[1], positionP[3], aspect);
           else actStream->vpor(positionP[0], positionP[2], positionP[1], positionP[3]);
         }
       }
@@ -485,7 +520,7 @@ namespace lib {
       {
         kwP = true;
         for (SizeT i = 0; i < 4 && i < pos->N_Elements(); ++i) position[ i] = (*pos)[ i];
-        if (do_iso) actStream->vpas(position[0], position[2], position[1], position[3], aspect);
+        if (do_iso) setIsoPort(actStream,position[0], position[2], position[1], position[3], aspect);
         else actStream->vpor(position[0], position[2], position[1], position[3]);
       }
     }
