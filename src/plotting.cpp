@@ -482,7 +482,19 @@ namespace lib {
       if (iso == 1) // Check ISOTROPIC first
       {
         do_iso = TRUE;
-        aspect = abs(yEnd - yStart) / abs(xEnd - xStart);
+        if ((xLog) && (yLog))
+        {
+          aspect = abs(log10(yEnd/yStart) / log10(xEnd/xStart));
+        } else if (xLog)
+        {
+          aspect = abs((yEnd-yStart) / log10(xEnd/xStart));
+        } else if (yLog)
+        {
+          aspect = abs( log10(yEnd/yStart) / (xEnd-xStart));
+        } else
+        {
+           aspect = abs((yEnd-yStart)/(xEnd-xStart));
+        }
       }
       else
       {
