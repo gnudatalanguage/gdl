@@ -1346,7 +1346,8 @@ bool EnvT::KeywordSet( SizeT ix)
 {
   BaseGDL* keyword=env[ix];
   if( keyword == NULL) return false;
-  if( !keyword->Scalar()) return false;
+  if( !keyword->Scalar()) return true;
+  if( keyword->Type() == STRUCT) return true;
   return keyword->LogTrue();
 }
 
