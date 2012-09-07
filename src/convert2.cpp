@@ -1696,7 +1696,7 @@ TRACEOMP( __FILE__, __LINE__)
       	    const char* cStart=(*this)[i].c_str();
       	    char* cEnd;
       	    (*dest)[i] = string2real<float>(cStart, &cEnd);
-      	    if((cEnd == cStart && (*this)[i] != "") || (cEnd - cStart) != strlen(cStart))
+      	    if((cEnd == cStart && (*this)[i] != "")) //  || (cEnd - cStart) != strlen(cStart)) // reports error for "16 "
       	      {
 StringConversionError( errorFlag, mode, "Type conversion error: "
 				       "Unable to convert given STRING: '"+
@@ -1725,7 +1725,7 @@ TRACEOMP( __FILE__, __LINE__)
       	    const char* cStart=(*this)[i].c_str();
 	    char* cEnd;
 	    (*dest)[i] = string2real<double>( cStart, &cEnd);
-	    if( (cEnd == cStart && (*this)[i] != "") || (cEnd - cStart) != strlen(cStart))
+	    if( (cEnd == cStart && (*this)[i] != "")) // || (cEnd - cStart) != strlen(cStart)) // reports error for "16 "
 	      {
 StringConversionError( errorFlag, mode, "Type conversion error: "
 				       "Unable to convert given STRING: '"+
@@ -1755,7 +1755,7 @@ TRACEOMP( __FILE__, __LINE__)
       	    const char* cStart=(*this)[i].c_str();
       	    char* cEnd;
       	    (*dest)[i]=string2real<float>(cStart,&cEnd);
-      	    if((cEnd == cStart && (*this)[i] != "") || (cEnd - cStart) != strlen(cStart))
+      	    if((cEnd == cStart && (*this)[i] != "")) // || (cEnd - cStart) != strlen(cStart)) // reports error for "16 "
       	      {
 StringConversionError( errorFlag, mode, "Type conversion error: "
 				       "Unable to convert given STRING: '"+
@@ -1785,7 +1785,7 @@ TRACEOMP( __FILE__, __LINE__)
       	    const char* cStart=(*this)[i].c_str();
       	    char* cEnd;
       	    (*dest)[i]=string2real<double>(cStart,&cEnd);
-      	    if((cEnd == cStart && (*this)[i] != "") || (cEnd - cStart) != strlen(cStart))
+      	    if((cEnd == cStart && (*this)[i] != "")) // || (cEnd - cStart) != strlen(cStart)) // reports error for "16 "
       	      {
 StringConversionError( errorFlag, mode, "Type conversion error: "
 				       "Unable to convert given STRING: '"+
