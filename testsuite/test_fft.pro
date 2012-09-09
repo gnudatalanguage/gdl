@@ -20,12 +20,13 @@
 ;
 ; expected types for outputs from FFT are "6" (complex) or "9" (Dcomplex)
 ;
-pro TEST_FFT_ALL_TYPES, test=test, help=help, $
+pro TEST_FFT_ALL_TYPES, test=test, help=help, no_exit=no_exit, $
                         verbose=verbose, quiet=quiet
 ;
 if KEYWORD_SET(help) then begin
-   print, 'pro TEST_FFT_ALL_TYPES, test=test, help=help, $'
+   print, 'pro TEST_FFT_ALL_TYPES, test=test, help=help, no_exit=no_exit, $'
    print, '                        verbose=verbose, quiet=quiet'
+   return
 endif
 ;
 print, 'Running TEST_FFT_ALL_TYPES (for 13 input types)'
@@ -52,7 +53,7 @@ endfor
 ;
 if (nb_pb GT 0) then begin
    MESSAGE, STRING(nb_pb)+' problem(s) found in TEST_FFT_ALL_TYPES',/continue
-   EXIT, status=1
+   if ~KEYWORD_SET(no_exit) then EXIT, status=1
 endif else begin
    MESSAGE, 'No problem found in TEST_FFT_ALL_TYPES',/continue
 endelse
@@ -64,12 +65,12 @@ end
 ; -------------------------------------------
 ;
 pro TEST_FFT_GO_AND_BACK, dimension=dimension, nbp=nbp, $
-                          verbose=verbose, quiet=quiet, $
+                          verbose=verbose, quiet=quiet, no_exit=no_exit, $
                           test=test, help=help, debug=debug
 ;
 if KEYWORD_SET(help) then begin
    print, 'pro TEST_FFT_GO_AND_BACK, dimension=dimension, nbp=nbp, $'
-   print, '                          verbose=verbose, quiet=quiet, $'
+   print, '                          verbose=verbose, quiet=quiet, no_exit=no_exit, $'
    print, '                          test=test, help=help, debug=debug'
    return
 end
@@ -125,7 +126,7 @@ endfor
 ;
 if (nb_pb GT 0) then begin
    MESSAGE, STRING(nb_pb)+' problem(s) found in TEST_FFT_GO_AND_BACK', /continue
-   EXIT, status=1
+   if ~KEYWORD_SET(no_exit) then EXIT, status=1
 endif else begin
    MESSAGE, 'No problem found in TEST_FFT_GO_AND_BACK', /continue
 endelse
@@ -136,14 +137,25 @@ end
 ;
 ; -------------------------------------------
 ;
-pro TEST_FFT, quiet=quiet, verbose=verbose
+pro TEST_FFT, help=help, no_exit=no_exit, test=test, $
+              quiet=quiet, verbose=verbose
+;
+if KEYWORD_SET(help) then begin
+   print, 'pro TEST_FFT, help=help, no_exit=no_exit, quiet=quiet, verbose=verbose'
+   return
+endif
 ;
 if NOT(KEYWORD_SET(quiet)) AND NOT(KEYWORD_SET(verbose)) then quiet=1
 ;
-TEST_FFT_ALL_TYPES, quiet=quiet, verbose=verbose
-TEST_FFT_GO_AND_BACK, quiet=quiet, verbose=verbose
-TEST_FFT_GO_AND_BACK, dim=[1024,1024], quiet=quiet, verbose=verbose
-TEST_FFT_GO_AND_BACK, dim=[512,2048], quiet=quiet, verbose=verbose
-TEST_FFT_GO_AND_BACK, dim=[128,64,128], quiet=quiet, verbose=verbose
+TEST_FFT_ALL_TYPES, quiet=quiet, verbose=verbose, no_exit=no_exit
+TEST_FFT_GO_AND_BACK, quiet=quiet, verbose=verbose, no_exit=no_exit
+TEST_FFT_GO_AND_BACK, dim=[1024,1024], $
+                      quiet=quiet, verbose=verbose, no_exit=no_exit
+TEST_FFT_GO_AND_BACK, dim=[512,2048], $
+                      quiet=quiet, verbose=verbose, no_exit=no_exit
+TEST_FFT_GO_AND_BACK, dim=[128,64,128], $
+                      quiet=quiet, verbose=verbose, no_exit=no_exit
+;
+if KEYWORD_SET(test) then STOP
 ;
 end

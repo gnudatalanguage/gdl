@@ -880,6 +880,9 @@ namespace lib {
       if( overwrite)
 	e->StealLocalPar(0); // only steals if local par
       // 		e->StealLocalParUndefGlobal(0);
+
+      // AC 10-09-2012: temporary fix
+      dbl=1;
     
       return fft_template< DComplexDblGDL> (p0, nEl, dbl, overwrite,
 					    direct, dimension);
