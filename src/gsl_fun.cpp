@@ -856,24 +856,22 @@ namespace lib {
     if( e->KeywordSet(2)) overwrite = 1;
 
     // Check for dimension keyword
-    DLong dimension=0;
+    DLong dimension=0;  // the general case
 
     static int DimEnvIx = e->KeywordIx("DIMENSION");
-    if(e->KeywordSet(DimEnvIx)) 
+    if (e->KeywordSet(DimEnvIx)) {
+
+      BaseGDL* DimOfDim = e->GetKW(DimEnvIx);
+      if (DimOfDim->N_Elements() > 1)
+	e->Throw("Expression must be a scalar or 1 element array in this context:");
+      
       e->AssureLongScalarKW(DimEnvIx, dimension);      
-    if ((dimension < 0) || (dimension > p0->Rank())) {
-      e->Throw("Illegal keyword value for DIMENSION.");
-    }
-
-    cout << "dim : " << dimension << endl;
-
-    // Mathieu fait comme cela,
-    dimension--;
-
-    BaseGDL* zRange = e->GetKW(DimEnvIx);
-    cout << "hello"<< endl;
-    if (zRange->N_Elements() > 1) {
-      e->Throw("Expression must be a scalar or 1 element array in this context:");
+      if ((dimension < 0) || (dimension > p0->Rank())) {
+	e->Throw("Illegal keyword value for DIMENSION.");
+      }
+      // AC 07/09/2012: Mathieu did it like that and we checked !
+      // in fact, here dimension should always be >=0
+      dimension--;
     }
 
     if( p0->Type() == COMPLEXDBL || p0->Type() == DOUBLE || dbl) {

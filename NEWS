@@ -561,3 +561,4 @@
 	   - promotion of FOR loop index variable type
 	   - various improvments on READ_JPEG, READ_PNG, WRITE_JPEG, WRITE_PNG
 	   - keyword ICONIC in WSHOW
+	   - keyword ISOTROPIC in PLOT, CONTOUR
