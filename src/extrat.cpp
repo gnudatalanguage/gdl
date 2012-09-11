@@ -20,6 +20,7 @@
 #include "objects.hpp"
 #include "extrat.hpp"
 #include "envt.hpp"
+#include "nullgdl.hpp"
 
 using namespace std;
 
@@ -160,9 +161,11 @@ void ExtraT::ResolveExtra(EnvBaseT* callerIn)
 	  for( SizeT i=0; i<nEl; i++)
 	    (*extraString)[i] = listName[i];
 
-	  assert( thisEnv->env.Loc(static_cast<SizeT>(pro->extraIx)) == NULL);
-	  assert( thisEnv->env.Env(static_cast<SizeT>(pro->extraIx)) == NULL);
+// 	  assert( thisEnv->env.Loc(static_cast<SizeT>(pro->extraIx)) == NULL /*|| thisEnv->env.Loc(static_cast<SizeT>(pro->extraIx)) == NullGDL::GetSingleInstance()*/);
+// 	  assert( thisEnv->env.Env(static_cast<SizeT>(pro->extraIx)) == NULL );
 
+	  delete thisEnv->env.Loc(static_cast<SizeT>(pro->extraIx));
+	  
  	  thisEnv->env.Set( static_cast<SizeT>(pro->extraIx), 
  			      static_cast<BaseGDL*>(extraString));
 // 	  thisEnv->env.Reset( static_cast<SizeT>(pro->extraIx), 

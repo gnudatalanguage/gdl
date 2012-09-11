@@ -25,6 +25,7 @@ class NullGDL: public BaseGDL
 { 
   private:
     static NullGDL* instance;
+    static char buf[];
     
     NullGDL(): BaseGDL() {} 
 
@@ -32,10 +33,26 @@ class NullGDL: public BaseGDL
 
   public:
 
+    void* operator new( size_t bytes, char* cP)
+    {
+	assert( bytes == sizeof( NullGDL));
+	return NullGDL::buf;
+    }
+    void* operator new( size_t bytes)
+    {
+	assert( bytes == sizeof( NullGDL));
+	return NullGDL::buf;
+    }
+
+    void operator delete( void *ptr)
+    {
+	// do nothing
+    }
+    
     static NullGDL* GetSingleInstance()
     {
       if( instance == NULL)
-	instance = new NullGDL();
+	instance = new (NullGDL::buf) NullGDL();
       return instance;
     }
     

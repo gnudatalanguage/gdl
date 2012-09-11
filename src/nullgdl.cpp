@@ -23,6 +23,8 @@
 
 using namespace std;
 
+char NullGDL::buf[sizeof(NullGDL)];
+
 NullGDL* NullGDL::instance = NULL;
 
 NullGDL::~NullGDL()

@@ -918,9 +918,13 @@ EnvBaseT* EnvBaseT::Caller()
 
   //if( callStack.size() <= 1) return NULL;
 
+  
+  
   // library environments are no longer on the call stack
   assert( callStack.back() != this);
 
+  
+  
   return callStack.back();
   
 //   if( callStack.back() != this) 
@@ -965,10 +969,11 @@ void EnvT::PushNewEnvUD(  DSub* newPro, SizeT skipP, BaseGDL** newObj)
       newEnv->SetNextPar( &GetPar( p)); // pass as global
     }
 
-  // interpreter->CallStack().push_back( newEnv); // problem with call_function if done here s. b.
+//   interpreter->CallStack().push_back( newEnv); // problem with call_function if done here s. b.
 
   // _REF_EXTRA is set to the keyword string array
-  newEnv->extra = new ExtraT( newEnv);
+//   newEnv->extra = new ExtraT( newEnv);
+  newEnv->extra = new ExtraT( this);
   newEnv->extra->Set( &env[0]);
   newEnv->extra->ResolveExtra( this); // s. a. problem caused here due to a call to EnvBaseT::Caller() in Resolve()
 

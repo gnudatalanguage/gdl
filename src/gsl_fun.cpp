@@ -612,6 +612,7 @@ namespace lib {
     
     T* res;
     T* tabtemp=new T(p0->Dim());
+    auto_ptr<T> tabtempGuard( tabtemp);
     
     if (overwrite == 0)
       {
@@ -620,16 +621,19 @@ namespace lib {
     else
       res = (T*) p0;
     
-    DComplexGDL* tabfft = new DComplexGDL(p0->Dim()) ;
+    DComplexGDL* tabfft = new DComplexGDL(p0->Dim());
+    auto_ptr<DComplexGDL> tabfftGuard( tabfft);
+    
     DComplexGDL* p0C = static_cast<DComplexGDL*>
       (p0->Convert2( COMPLEX, BaseGDL::COPY));
-            
+    auto_ptr<DComplexGDL> p0CGuard( p0C);
+      
     int dec=0;
     int temp=0;
     int flag=0;
     int l=0;
         
-    int tab[tabfft->Rank()];
+    int tab[MAXRANK];
     for (int y=0;y<tabfft->Rank();y++)
       tab[y]=0;
 
@@ -768,6 +772,7 @@ namespace lib {
 	  }
 	} else if( p0->Rank() >= 3) {
 	  unsigned char *used = new unsigned char [nEl];
+	  ArrayGuard<unsigned char> usedGuard( used);
 	  
 	  stride = nEl;
 	  for( SizeT i=p0->Rank(); i<nEl; ++i) used[i] = 0;
@@ -793,7 +798,7 @@ namespace lib {
 	      offset++;
 	    }
 	  }
-	  delete used;
+// 	  delete used;
 	}
       }
     

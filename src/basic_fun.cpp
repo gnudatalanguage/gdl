@@ -1279,8 +1279,7 @@ BaseGDL* dcomplex_fun( EnvT* e)
 	
 	// make the call
 	EnvUDT* newEnv = static_cast<EnvUDT*>(e->Interpreter()->CallStack().back());
-	return e->Interpreter()->
-	  call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+	return e->Interpreter()->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
       }
   }
 

@@ -725,6 +725,8 @@ struct ForLoopInfoT
 	}
 };
 
+// before NullGDL instance must not be deleted, now this is fine (overloaded operators new and delete)
+// inline void GDLDelete( BaseGDL* toDelete) { delete toDelete;}
 void GDLDelete( BaseGDL* toDelete);
 
 #endif
