@@ -357,6 +357,7 @@ namespace lib {
 	//	if (p0->Type() == STRING) {
 	DFloatGDL* p0SS = static_cast<DFloatGDL*>
 	  (p0->Convert2( FLOAT, BaseGDL::COPY));
+	auto_ptr<DFloatGDL> p0SSGuard( p0SS);
 	//}
 
 	DFloatGDL* res = new DFloatGDL( p0->Dim(), BaseGDL::NOZERO);
