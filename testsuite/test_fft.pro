@@ -110,8 +110,10 @@ for ii=0, 15 do begin
    input=MAKE_ARRAY(dimension,type=ii)
    input[glitch_index]=1
    ;;
+   sub_t0=SYSTIME(1)
    result1=FFT(input,1)
    result2=FFT(result1,-1)
+   sub_t0=SYSTIME(1)-sub_t0
    error=TOTAL(ABS(input-result2))
    message=', OK'
    if (error GT 1e-3) then begin
@@ -119,8 +121,8 @@ for ii=0, 15 do begin
       nb_pb=nb_pb+1
    endif
    if NOT(KEYWORD_SET(quiet)) OR KEYWORD_SET(verbose) then begin
-      print, format='(A,i4,A,i4,A,G10.4,A)', 'Input type :', ii, $
-             ', Output type :', SIZE(result2,/type), ', error: ', error, message
+      print, format='(A,i4,A,i4,A,G10.4,A,G10.4)', 'Input type :', ii, $
+             ', Output type :', SIZE(result2,/type), ', error: ', error, message+'; time : ', sub_t0
    endif
 endfor
 ;
