@@ -614,7 +614,7 @@ namespace lib {
     T* res;
     T* tabtemp=new T(p0->Dim());
     auto_ptr<T> tabtempGuard( tabtemp);
-    
+
     if (overwrite == 0)
       {
 	res = new T( p0->Dim(), BaseGDL::ZERO);
@@ -750,7 +750,6 @@ namespace lib {
       }
     else 
       {
-	
 	dimension=0;
 	
 	if( p0->Rank() == 1) {
@@ -875,11 +874,11 @@ namespace lib {
       if ((dimension < 0) || (dimension > p0->Rank())) {
 	e->Throw("Illegal keyword value for DIMENSION.");
       }
-      // AC 07/09/2012: Mathieu did it like that and we checked !
-      // in fact, here dimension should always be >=0
-      dimension--;
     }
-
+    // AC 07/09/2012: Mathieu did it like that and we checked !
+    // in fact, here dimension should always be >=0
+    dimension--;
+    
     if( p0->Type() == COMPLEXDBL || p0->Type() == DOUBLE || dbl) {
 
       //cout << "if 1" << endl;
