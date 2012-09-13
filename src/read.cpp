@@ -4,7 +4,7 @@
     begin                : July 22 2002
     copyright            : (C) 2002 by Marc Schellens
     email                : m_schellens@users.sf.net
- ***************************************************************************/
+***************************************************************************/
 
 /***************************************************************************
  *                                                                         *
@@ -18,6 +18,7 @@
 
 #include "includefirst.hpp"
 
+#include <string>
 #include <iostream>
 
 #include "datatypes.hpp"
@@ -27,6 +28,8 @@
 #include "objects.hpp"
 #include "FMTIn.hpp"
 #include "dinterpreter.hpp"
+
+//#include "format.g"
 
 namespace lib {
   
@@ -63,9 +66,9 @@ namespace lib {
        	if (sockNum == -1) {
 	  // *** File Read *** //
 	  if( fileUnits[ lun-1].Compress())
-		is = &fileUnits[ lun-1].IgzStream();
+	    is = &fileUnits[ lun-1].IgzStream();
 	  else
-		is = &fileUnits[ lun-1].IStream();
+	    is = &fileUnits[ lun-1].IStream();
 
 	} else {
 	  //  *** Socket Read *** //
@@ -126,7 +129,10 @@ namespace lib {
     if( prompt != NULL && !prompt->Scalar())
       throw GDLException( e->CallingNode(),
 			  "PROMPT keyword expression must be a scalar in this context.");
-  
+
+    bool lastParIsString = true;
+    streampos posBeforeLast;
+    
     // FORMAT keyword
     if( e->GetKW( 0) != NULL)
       {
@@ -153,38 +159,38 @@ namespace lib {
             if( (*par) != NULL)
 	      {
                 if( e->GlobalPar( i))
-				{ // defined global
+		  { // defined global
                     parIn = *par;
-				}
+		  }
                 else
-				{ // defined local
-					if( prompt != NULL)
-					{ // prompt keyword there -> error
-								throw GDLException( e->CallingNode(),
-								"Expression must be named variable "
-								"in this context: "+e->GetParString( i));
-					}
-					else
-					{ // prompt not there -> put out or ignore
-					if( is == &cin)
-						{
-							(*par)->ToStream( oss);
-							actualPrompt = oss.str();
+		  { // defined local
+		    if( prompt != NULL)
+		      { // prompt keyword there -> error
+			throw GDLException( e->CallingNode(),
+					    "Expression must be named variable "
+					    "in this context: "+e->GetParString( i));
+		      }
+		    else
+		      { // prompt not there -> put out or ignore
+			if( is == &cin)
+			  {
+			    (*par)->ToStream( oss);
+			    actualPrompt = oss.str();
 #ifdef HAVE_LIBREADLINE
-							cout << flush;
+			    cout << flush;
 #else
-							cout << oss.str() << flush;
+			    cout << oss.str() << flush;
 #endif
-							noPrompt = false;
-						}
-					continue;
-					}
-				}
+			    noPrompt = false;
+			  }
+			continue;
+		      }
+		  }
 	      }
             else
 	      { // undefined
                 if( e->LocalPar( i))
-					throw GDLException( e->CallingNode(),
+		  throw GDLException( e->CallingNode(),
 				      "Internal error: Input: UNDEF is local.");
 
                 (*par) = new DFloatGDL( 0.0);
@@ -192,72 +198,84 @@ namespace lib {
 	      }
 
 	    if( is == &cin && noPrompt)
-			if( prompt != NULL)
-			{
-				prompt->ToStream( oss);
-			    actualPrompt = oss.str();
+	      if( prompt != NULL)
+		{
+		  prompt->ToStream( oss);
+		  actualPrompt = oss.str();
 #ifdef HAVE_LIBREADLINE
-				cout << flush;
+		  cout << flush;
 #else
- 				cout << oss.str() << flush;
+		  cout << oss.str() << flush;
 #endif
-			}
-			else
-			{
-				actualPrompt = ": ";
+		}
+	      else
+		{
+		  actualPrompt = ": ";
 #ifdef HAVE_LIBREADLINE
-				cout << flush;
+		  cout << flush;
 #else
- 				cout << ": " << flush;
+		  cout << ": " << flush;
 #endif
-			}
+		}
 		
 #ifdef HAVE_LIBREADLINE
-		if( is == &cin  && isatty(0))
-		{
-			string line;
-			string strTrimLine;
+	    if( is == &cin  && isatty(0))
+	      {
+		string line;
+		string strTrimLine;
 
-			int edit_input = SysVar::Edit_Input();// && isatty(0);
+		int edit_input = SysVar::Edit_Input();// && isatty(0);
 
- 			do {
-				char *cline;
+		do {
+		  char *cline;
 
-				lineEdit = true;
+		  lineEdit = true;
 
-				if( edit_input != 0)
-					cline = readline(actualPrompt.c_str());
-				else
-					cline = e->Interpreter()->NoReadline(actualPrompt.c_str());
+		  if( edit_input != 0)
+		    cline = readline(actualPrompt.c_str());
+		  else
+		    cline = e->Interpreter()->NoReadline(actualPrompt.c_str());
 
-				lineEdit = false;
+		  lineEdit = false;
 
-				if( !cline)
-					{
-// 						if (isatty(0))
-						cout << endl;
-						e->Throw("Error encountered reading from: Unit: 0, <stdin> (redirected).");
-					}
-				else
-					// make a string
-					line = cline;
+		  if( !cline)
+		    {
+		      // 						if (isatty(0))
+		      cout << endl;
+		      e->Throw("Error encountered reading from: Unit: 0, <stdin> (redirected).");
+		    }
+		  else
+		    // make a string
+		    line = cline;
 
-				free(cline);        // done here for compatibility with readline
+		  free(cline);        // done here for compatibility with readline
 
-				strTrimLine = line;
-				StrTrim(strTrimLine); 
- 			} while( strTrimLine == "" && parIn->Type() != STRING);
+		  strTrimLine = line;
+		  StrTrim(strTrimLine); 
+		} while( strTrimLine == "" && parIn->Type() != STRING);
 			
-			istringstream iss( line + "\n");
-			parIn->FromStream( iss);
+		istringstream iss( line + "\n");
+		parIn->FromStream( iss);
 				
-			if( sigControlC)
-				return;
-		}
-		else
+		if( sigControlC)
+		  return;
+	      }
+	    else
 #endif
-			parIn->FromStream( *is);
+
+	      posBeforeLast = is->tellg();
+
+	      parIn->FromStream( *is);
+	      
+	      lastParIsString = parIn->Type() == STRING;
 	  }
+      }
+      if( !lastParIsString && !is->eof()) // && is->peek() != '\n' && is->peek() != '\r')
+      {
+	is->seekg( posBeforeLast);
+	
+	DStringGDL gdlString("");
+	gdlString.FromStream( *is);
       }
   }
 
