@@ -130,7 +130,7 @@ namespace lib {
       throw GDLException( e->CallingNode(),
 			  "PROMPT keyword expression must be a scalar in this context.");
 
-    bool lastParIsString = true;
+    bool lastParIsString = true; // default set to 'true' so that nothing is done 
     streampos posBeforeLast;
     
     // FORMAT keyword
