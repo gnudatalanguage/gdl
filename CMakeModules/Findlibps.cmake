@@ -5,9 +5,9 @@ if(LIBPSPKG)
 	include(FindPkgConfig)
 	pkg_check_modules(LIBPS libps)
 	if(LIBPS_FOUND)
-		find_package_handle_standard_args(LIBPS DEFAULT_MSG LIBPS_LIBRARIES)
+		find_package_handle_standard_args(LIBPS DEFAULT_MSG LIBPS_LIBRARIES LIBPS_INCLUDE_DIRS)
 	endif(LIBPS_FOUND)
-else(LIBPSPKG) # no netcdf.pc file
+else(LIBPSPKG) # no libps.pc file
 	find_library(LIBPS_LIBRARIES NAMES libps)
 	find_path(LIBPS_INCLUDE_DIRS NAMES pslib.h)	
 	find_package_handle_standard_args(LIBPS DEFAULT_MSG LIBPS_LIBRARIES LIBPS_INCLUDE_DIRS)
