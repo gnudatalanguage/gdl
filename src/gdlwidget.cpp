@@ -605,6 +605,160 @@ void GDLWidgetButton::SetSelectOff()
    (s->GetTag(s->Desc()->TagIndex("SELECT"), 0)))[0] = 0;
 }
 
+GDLWidgetBGroup::GDLWidgetBGroup(WidgetIDT p, DStringGDL* names,
+																 BaseGDL *uV, DStringGDL buttonuvalue,
+																 DLong xSize, DLong ySize,
+																 DString labeltop, DLong rows, DLong cols,
+																 BGroupMode mode, BGroupReturn ret
+																 ):
+	GDLWidget( p, uV, NULL, 0, 0, 0, 0, 0)
+{
+	GDLWidget* gdlParent = GetWidget( p);
+  wxWindow *wxParent = static_cast< wxWindow*>(
+															gdlParent->WxWidget());
+
+	if (gdlParent->GetMap()) {
+		wxPanel *panel = gdlParent->GetPanel();
+
+		wxBoxSizer *boxSizer = (wxBoxSizer *) gdlParent->GetSizer();
+
+    //DStringGDL* buttonval = static_cast<DStringGDL*>( buttonvalue);
+
+		DLong n = names->N_Elements();
+    wxString *choices = new wxString[n];
+    for( SizeT i=0; i<n; ++i) choices[i] = wxString((*names)[i].c_str(),wxConvUTF8);
+
+		wxStaticText* label = new wxStaticText( panel, wxID_ANY,
+																						wxString(labeltop.c_str(), wxConvUTF8),
+																						wxPoint(10, 10),
+																						wxDefaultSize, wxALIGN_CENTRE);
+
+    boxSizer->Add( label, 0, wxEXPAND | wxALL, 5);
+
+		// define grid dimension
+		if(rows == -1 && cols == -1){
+			cols = 1;
+			rows = n;
+		}else{
+			if(rows == -1){
+				rows = 1;
+				cols = n;
+			}
+			if(cols == -1){
+				cols = 1;
+				rows = n;
+			}
+		}
+
+		// define grid object
+		wxFlexGridSizer *buttonSizer = new wxFlexGridSizer( rows, cols );
+		switch(mode)
+			{
+			case NORMAL:
+				{
+					for( SizeT i=0; i<n; ++i) {
+						wxButton* button = new wxButton(panel, widgetID, choices[i]);
+						buttonSizer->Add( button, 0, wxEXPAND | wxALL, 5);
+					}
+				}
+				break;
+			case EXCLUSIVE:
+				{
+					wxRadioButton* radio = new wxRadioButton(panel, widgetID,
+																									 choices[0],
+																									 wxDefaultPosition,
+																									 wxDefaultSize,
+																									 wxRB_GROUP
+																									 );
+					buttonSizer->Add( radio, 0, wxEXPAND | wxALL, 5);
+					for( SizeT i=1; i<n; ++i) {
+						radio = new wxRadioButton(panel, widgetID, choices[i]);
+						buttonSizer->Add( radio, 0, wxEXPAND | wxALL, 5);
+					}
+				}
+				break;
+			case NONEXCLUSIVE:
+				{
+					wxCheckBox* check;
+					for( SizeT i=0; i<n; ++i) {
+						check = new wxCheckBox(panel, widgetID, choices[i]);
+						buttonSizer->Add( check, 0, wxEXPAND | wxALL, 5);
+					}
+				}
+			}
+
+		boxSizer->Add( buttonSizer,
+									 0,                // make vertically unstretchable
+									 wxALIGN_CENTER ); // no border and centre horizontally
+
+    if ( wxParent != NULL) {
+      boxSizer->SetSizeHints( wxParent);
+    }
+	} // get map
+	// Generate event structure
+	// event = {ID:0L, TOP:0L, HANDLER:0L, SELECT:0, VALUE:0 }  
+  DStructGDL*  widgbgroup = new DStructGDL( "WIDGET_BGROUP");
+  widgbgroup->InitTag("ID", DLongGDL( widgetID));
+  widgbgroup->InitTag("TOP", DLongGDL( p));
+  widgbgroup->InitTag("HANDLER", DLongGDL( 0));
+  widgbgroup->InitTag("SELECT", DLongGDL( 0));
+	widgbgroup->InitTag("VALUE", DLongGDL( 0));
+
+  // Push event structure into event variable list
+  std::ostringstream varname;
+  varname << "WBGROUP" << this->WidgetID();
+  DVar *v = new DVar( varname.rdbuf()->str().c_str(), widgbgroup);
+  eventVarList.push_back(v);
+
+}
+
+
+
+GDLWidgetList::GDLWidgetList( WidgetIDT p, BaseGDL *uV, BaseGDL *value,
+															DLong xSize, DLong ySize,	DLong style):
+	GDLWidget( p, uV, NULL, 0, 0, 0, 0, 0)
+{
+	GDLWidget* gdlParent = GetWidget( p);
+  wxWindow *wxParent = static_cast< wxWindow*>(
+															gdlParent->WxWidget());
+	wxListBox *list;
+	if (gdlParent->GetMap()) {
+    wxPanel *panel = gdlParent->GetPanel();
+
+    DStringGDL* val = static_cast<DStringGDL*>( value);
+
+		DLong n= val->N_Elements();
+    wxString *choices = new wxString[n];
+    for( SizeT i=0; i<n; ++i) choices[i] = wxString((*val)[i].c_str(), wxConvUTF8);
+
+		wxSize fontSize = wxNORMAL_FONT->GetPixelSize();
+
+		list = new wxListBox( panel, widgetID, wxDefaultPosition,
+													wxSize( xSize*fontSize.GetWidth(),
+																	ySize*fontSize.GetHeight()),
+													n, choices, style
+													);
+		wxBoxSizer *boxSizer = (wxBoxSizer *) gdlParent->GetSizer();
+    boxSizer->Add( list, 0, wxEXPAND | wxALL, 5);
+
+    if ( wxParent != NULL) {
+      boxSizer->SetSizeHints( wxParent);
+    }
+	} // get map
+	// Generate event structure
+  DStructGDL*  widglist = new DStructGDL( "WIDGET_LIST");
+  widglist->InitTag("ID", DLongGDL( widgetID));
+  widglist->InitTag("TOP", DLongGDL( p));
+  widglist->InitTag("HANDLER", DLongGDL( 0));
+  widglist->InitTag("SELECT", DLongGDL( 0));
+
+  // Push event structure into event variable list
+  std::ostringstream varname;
+  varname << "WLIST" << this->WidgetID();
+  DVar *v = new DVar( varname.rdbuf()->str().c_str(), widglist);
+  eventVarList.push_back(v);
+}
+
 //GDLWidgetDropList::GDLWidgetDropList( WidgetIDT p, BaseGDL *uV, DStringGDL *value,
 GDLWidgetDropList::GDLWidgetDropList( WidgetIDT p, BaseGDL *uV, BaseGDL *value,
 				      DString title, DLong xSize, DLong style):
@@ -655,7 +809,7 @@ GDLWidgetDropList::GDLWidgetDropList( WidgetIDT p, BaseGDL *uV, BaseGDL *value,
 
 
 GDLWidgetText::GDLWidgetText( WidgetIDT p, BaseGDL *uV, DString value,
-			      DLong xSize):
+															DLong xSize, bool editable):
   GDLWidget( p, uV, NULL, 0, 0, 0, 0, 0)
 {
   //  std::cout << "In Text: " << widgetID << " " << p << std::endl;
@@ -666,8 +820,10 @@ GDLWidgetText::GDLWidgetText( WidgetIDT p, BaseGDL *uV, DString value,
 
   if (gdlParent->GetMap()) {
     wxPanel *panel = gdlParent->GetPanel();
+		DLong style = editable ? 0 : wxTE_READONLY;
     text = new wxTextCtrl( panel, widgetID, wxString( value.c_str(), wxConvUTF8),
-			   wxDefaultPosition, wxSize( xSize*5, wxDefaultCoord) );
+													 wxDefaultPosition, wxSize( xSize*5,
+																											wxDefaultCoord), style );
 
     wxBoxSizer *boxSizer = (wxBoxSizer *) gdlParent->GetSizer();
     boxSizer->Add( text, 0, wxEXPAND | wxALL, 5);

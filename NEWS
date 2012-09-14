@@ -562,3 +562,5 @@
 	   - various improvments on READ_JPEG, READ_PNG, WRITE_JPEG, WRITE_PNG
 	   - keyword ICONIC in WSHOW
 	   - keyword ISOTROPIC in PLOT, CONTOUR
+           - new widget features incl. WIDGET_LIST and CW_GROUP
+           - various fix in FFT: DIM keyword, memory leak when using GSL

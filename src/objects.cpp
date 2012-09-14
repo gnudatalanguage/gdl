@@ -237,6 +237,23 @@ void InitStructs()
   // insert into structList
   structList.push_back( widgdlist);
 
+  DStructDesc* widglist = new DStructDesc( "WIDGET_LIST");
+  widglist->AddTag("ID", &aLong);
+  widglist->AddTag("TOP", &aLong);
+  widglist->AddTag("HANDLER", &aLong);
+  widglist->AddTag("SELECT", &aLong);
+  // insert into structList
+  structList.push_back( widglist);
+
+  DStructDesc* widgbgroup =  new DStructDesc( "WIDGET_BGROUP");
+  widgbgroup->AddTag("ID", &aLong);
+  widgbgroup->AddTag("TOP", &aLong);
+  widgbgroup->AddTag("HANDLER", &aLong);
+  widgbgroup->AddTag("SELECT", &aLong);
+  widgbgroup->AddTag("VALUE", &aLong);
+  // insert into structList
+  structList.push_back(widgbgroup);
+
   DStructDesc* widgtxt = new DStructDesc( "WIDGET_TEXT");
   widgtxt->AddTag("ID", &aLong);
   widgtxt->AddTag("TOP", &aLong);
