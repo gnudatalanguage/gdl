@@ -691,8 +691,14 @@ namespace lib {
       x=x_buff[jj];
       y1=y_buff[jj-1];
       y=y_buff[jj];
-      if (xLog) val=(x1+x)/2.0;
-      else val=log10((pow(10.0,x1)+pow(10.0,x))/2.0);
+      // cf patch 3567803
+      if (xLog) {
+	//  val=log10((pow(10.0,x1)+pow(10.0,x))/2.0);
+	val=x1+log10(0.5+0.5*(pow(10.0,x-x1)));
+      }
+      else {
+	val=(x1+x)/2.0;
+      }
       a->join(x1,y1,val,y1);
       a->join(val,y1,val,y);
       a->join(val,y,x,y);
