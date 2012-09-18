@@ -14,7 +14,7 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-
+#include "includefirst.hpp"
 
 #include "arrayindex.hpp"
 #include "allix.hpp"

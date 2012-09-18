@@ -15,10 +15,10 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+#include "includefirst.hpp"
 
 
 #include "voigt.cpp"
-#include "includefirst.hpp"
 #include "math_fun_ng.hpp"
 
 using namespace std;

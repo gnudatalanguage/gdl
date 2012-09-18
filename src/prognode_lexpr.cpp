@@ -15,6 +15,8 @@ email                : m_schellens@users.sf.net
  *                                                                         *
  ***************************************************************************/
 
+#include "includefirst.hpp"
+
 // from GDLInterpreter::l_expr
 #include <cassert>
 
