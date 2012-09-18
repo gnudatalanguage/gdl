@@ -30,7 +30,10 @@ tolerance=1e-5
 expected=-1.
 result=CALL_FUNCTION('COS', !pi)
 ;
-if (ABS(result-expected) GT tolerance)  then nb_errors=nb_errors+1
+if (ABS(result-expected) GT tolerance)  then begin
+    MESSAGE, /continue, 'Error at ARRAY call level'
+    nb_errors=nb_errors+1
+endif
 if KEYWORD_SET(verbose) then print, result, expected
 ;
 ; internal intrinsic function, array
@@ -38,7 +41,10 @@ if KEYWORD_SET(verbose) then print, result, expected
 expected=REPLICATE(-1.,10)
 result=CALL_FUNCTION('COS', REPLICATE(!pi,10))
 ;
-if (TOTAL(ABS(result-expected)) GT tolerance)  then nb_errors=nb_errors+1
+if (TOTAL(ABS(result-expected)) GT tolerance)  then begin
+    MESSAGE, /continue, 'Error at Intrinsic Function call level'
+    nb_errors=nb_errors+1
+endif
 if KEYWORD_SET(verbose) then print, result, expected
 ;
 ; external function, single element
@@ -46,7 +52,10 @@ if KEYWORD_SET(verbose) then print, result, expected
 expected=0.
 result=CALL_FUNCTION('FUNC_MY_FUNC', -5.)
 ;
-if (ABS(result-expected) GT tolerance)  then nb_errors=nb_errors+1
+if (ABS(result-expected) GT tolerance)  then begin
+    MESSAGE, /continue, 'Error at basic Self Defined Function call level'
+    nb_errors=nb_errors+1
+endif
 if KEYWORD_SET(verbose) then print, result, expected
 ;
 ; external function, single element, one keyword
@@ -54,7 +63,10 @@ if KEYWORD_SET(verbose) then print, result, expected
 expected=1.
 result=CALL_FUNCTION('FUNC_MY_FUNC', -5., /add_one)
 ;
-if (ABS(result-expected) GT tolerance)  then nb_errors=nb_errors+1
+if (ABS(result-expected) GT tolerance)  then begin
+    MESSAGE, /continue, 'Error at /KEYWORD (Self Defined Function) call level'
+    nb_errors=nb_errors+1
+endif
 if KEYWORD_SET(verbose) then print, result, expected
 ;
 ; external function, value 2D array
@@ -62,7 +74,10 @@ if KEYWORD_SET(verbose) then print, result, expected
 expected=0.
 result=CALL_FUNCTION('FUNC_MY_FUNC', REPLICATE(-5,12,3))
 ;
-if (TOTAL(ABS(result-expected)) GT tolerance)  then nb_errors=nb_errors+1
+if (TOTAL(ABS(result-expected)) GT tolerance)  then begin
+    MESSAGE, /continue, 'Error at ARRAY (Self Defined Function) call level'
+    nb_errors=nb_errors+1
+endif
 if KEYWORD_SET(verbose) then print, result, expected
 ;
 ;
