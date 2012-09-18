@@ -119,18 +119,18 @@ void ProgNode::AdjustTypes(auto_ptr<BaseGDL>& a, auto_ptr<BaseGDL>& b)
   if( aTy == bTy) return;
 
   // Will be checked by Convert2() function
-//   if( DTypeOrder[aTy] > 100 || DTypeOrder[bTy] > 100) // STRUCT, PTR, OBJ
+//   if( DTypeOrder[aTy] > 100 || DTypeOrder[bTy] > 100) // GDL_STRUCT, GDL_PTR, OBJ
 //     {
 //       //exception
 //       throw GDLException( "Expressions of this type cannot be converted.");
 //     }
   
-  // COMPLEX op DOUBLE = COMPLEXDBL
-  if( (aTy == COMPLEX && bTy == DOUBLE) ||
-      (bTy == COMPLEX && aTy == DOUBLE))
+  // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+  if( (aTy == GDL_COMPLEX && bTy == GDL_DOUBLE) ||
+      (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
     {
-      a.reset( a.release()->Convert2( COMPLEXDBL));
-      b.reset( b.release()->Convert2( COMPLEXDBL));
+      a.reset( a.release()->Convert2( GDL_COMPLEXDBL));
+      b.reset( b.release()->Convert2( GDL_COMPLEXDBL));
       return;
     }
 
@@ -174,7 +174,7 @@ void BinaryExprNC::AdjustTypesNC(auto_ptr<BaseGDL>& g1, BaseGDL*& e1,
   if( aTy == bTy) return;
 
   // Will be checked by Convert2() function
-//   if( DTypeOrder[aTy] > 100 || DTypeOrder[bTy] > 100) // STRUCT, PTR, OBJ
+//   if( DTypeOrder[aTy] > 100 || DTypeOrder[bTy] > 100) // GDL_STRUCT, GDL_PTR, OBJ
 //     {
 //       throw GDLException( "Expressions of this type cannot be converted.");
 //     }
@@ -182,12 +182,12 @@ void BinaryExprNC::AdjustTypesNC(auto_ptr<BaseGDL>& g1, BaseGDL*& e1,
   // Change > to >= JMG
   if( DTypeOrder[aTy] >= DTypeOrder[bTy])
     {
-  // COMPLEX op DOUBLE = COMPLEXDBL
-  if( (aTy == COMPLEX && bTy == DOUBLE))
+  // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+  if( (aTy == GDL_COMPLEX && bTy == GDL_DOUBLE))
     {
-      e2 = e2->Convert2( COMPLEXDBL, BaseGDL::COPY);
+      e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
       g2.reset( e2); // delete former e2
-      e1 = e1->Convert2( COMPLEXDBL, BaseGDL::COPY);
+      e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
       g1.reset( e1); // delete former e1
       return;
     }
@@ -198,12 +198,12 @@ void BinaryExprNC::AdjustTypesNC(auto_ptr<BaseGDL>& g1, BaseGDL*& e1,
     }
   else
     {
-  // COMPLEX op DOUBLE = COMPLEXDBL
-  if( (bTy == COMPLEX && aTy == DOUBLE))
+  // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+  if( (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
     {
-      e2 = e2->Convert2( COMPLEXDBL, BaseGDL::COPY);
+      e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
       g2.reset( e2); // delete former e2
-      e1 = e1->Convert2( COMPLEXDBL, BaseGDL::COPY);
+      e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
       g1.reset( e1); // delete former e1
       return;
     }
@@ -262,7 +262,7 @@ void BinaryExprNC::AdjustTypesNCNull(auto_ptr<BaseGDL>& g1, BaseGDL*& e1,
   if( aTy == bTy) return;
 
   // Will be checked by Convert2() function
-//   if( DTypeOrder[aTy] > 100 || DTypeOrder[bTy] > 100) // STRUCT, PTR, OBJ
+//   if( DTypeOrder[aTy] > 100 || DTypeOrder[bTy] > 100) // GDL_STRUCT, GDL_PTR, OBJ
 //     {
 //       throw GDLException( "Expressions of this type cannot be converted.");
 //     }
@@ -270,12 +270,12 @@ void BinaryExprNC::AdjustTypesNCNull(auto_ptr<BaseGDL>& g1, BaseGDL*& e1,
   // Change > to >= JMG
   if( DTypeOrder[aTy] >= DTypeOrder[bTy])
     {
-  // COMPLEX op DOUBLE = COMPLEXDBL
-  if( (aTy == COMPLEX && bTy == DOUBLE))
+  // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+  if( (aTy == GDL_COMPLEX && bTy == GDL_DOUBLE))
     {
-      e2 = e2->Convert2( COMPLEXDBL, BaseGDL::COPY);
+      e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
       g2.reset( e2); // delete former e2
-      e1 = e1->Convert2( COMPLEXDBL, BaseGDL::COPY);
+      e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
       g1.reset( e1); // delete former e1
       return;
     }
@@ -286,12 +286,12 @@ void BinaryExprNC::AdjustTypesNCNull(auto_ptr<BaseGDL>& g1, BaseGDL*& e1,
     }
   else
     {
-  // COMPLEX op DOUBLE = COMPLEXDBL
-  if( (bTy == COMPLEX && aTy == DOUBLE))
+  // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+  if( (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
     {
-      e2 = e2->Convert2( COMPLEXDBL, BaseGDL::COPY);
+      e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
       g2.reset( e2); // delete former e2
-      e1 = e1->Convert2( COMPLEXDBL, BaseGDL::COPY);
+      e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
       g1.reset( e1); // delete former e1
       return;
     }
@@ -439,7 +439,7 @@ BaseGDL* DEREFNode::EvalNC()
     e1_guard.reset(e1);
   }
 
-  if( e1 == NULL || e1->Type() != PTR)
+  if( e1 == NULL || e1->Type() != GDL_PTR)
     throw GDLException( this, "Pointer type required"
 			" in this context: "+interpreter->Name(e1),true,false);
   DPtrGDL* ptr=static_cast<DPtrGDL*>(e1);
@@ -500,7 +500,7 @@ BaseGDL** DEREFNode::LEval()
       actEnv->Guard( e1); 
     }
 
-  if( e1 == NULL || e1->Type() != PTR)
+  if( e1 == NULL || e1->Type() != GDL_PTR)
   throw GDLException( evalExpr, "Pointer type required"
 		      " in this context: "+interpreter->Name(e1),true,false);
 
@@ -579,7 +579,7 @@ ProgNodeP QUESTIONNode::AsParameter()
 BaseGDL* UMINUSNode::Eval()
 {
   BaseGDL* e1 = down->Eval();
-  return e1->UMinus(); // might delete e1 (STRING)
+  return e1->UMinus(); // might delete e1 (GDL_STRING)
 }
 BaseGDL* NOT_OPNode::Eval()
 {
@@ -890,10 +890,10 @@ BaseGDL* MATRIX_OP1Node::Eval()
   DType maxTy=(DTypeOrder[aTy] >= DTypeOrder[bTy])? aTy: bTy;
 
   DType cTy=maxTy;
-  if( maxTy == BYTE || maxTy == INT)
-    cTy=LONG;
-  else if( maxTy == UINT)
-    cTy=ULONG;
+  if( maxTy == GDL_BYTE || maxTy == GDL_INT)
+    cTy=GDL_LONG;
+  else if( maxTy == GDL_UINT)
+    cTy=GDL_ULONG;
 
   if( aTy != cTy)
     e1.reset( e1.release()->Convert2( cTy));
@@ -911,10 +911,10 @@ BaseGDL* MATRIX_OP2Node::Eval()
   DType maxTy=(DTypeOrder[aTy] >= DTypeOrder[bTy])? aTy: bTy;
 
   DType cTy=maxTy;
-  if( maxTy == BYTE || maxTy == INT)
-    cTy=LONG;
-  else if( maxTy == UINT)
-    cTy=ULONG;
+  if( maxTy == GDL_BYTE || maxTy == GDL_INT)
+    cTy=GDL_LONG;
+  else if( maxTy == GDL_UINT)
+    cTy=GDL_ULONG;
 
   if( aTy != cTy) 
     e1.reset( e1.release()->Convert2( cTy));
@@ -991,34 +991,34 @@ BaseGDL* POWNode::Eval()
   // special handling for aTy == complex && bTy != complex
   DType aTy=e1->Type();
   DType bTy=e2->Type();
- if( aTy == STRING)
+ if( aTy == GDL_STRING)
    {
-     e1.reset( e1->Convert2( FLOAT, BaseGDL::COPY));
-     aTy = FLOAT;
+     e1.reset( e1->Convert2( GDL_FLOAT, BaseGDL::COPY));
+     aTy = GDL_FLOAT;
    }
- if( bTy == STRING)
+ if( bTy == GDL_STRING)
    {
-     e2.reset( e2->Convert2( FLOAT, BaseGDL::COPY));
-     bTy = FLOAT;
+     e2.reset( e2->Convert2( GDL_FLOAT, BaseGDL::COPY));
+     bTy = GDL_FLOAT;
    }
   if( ComplexType( aTy))
     {
       if( IntType( bTy))
 	{
-	  e2.reset( e2.release()->Convert2( LONG));
+	  e2.reset( e2.release()->Convert2( GDL_LONG));
 	  res = e1->Pow( e2.get());
 	  if( res == e1.get())
 	    e1.release();
 	  return res;
 	}
-      if( aTy == COMPLEX)
+      if( aTy == GDL_COMPLEX)
 	{
-	  if( bTy == DOUBLE)
+	  if( bTy == GDL_DOUBLE)
 	    {
-	      e1.reset( e1.release()->Convert2( COMPLEXDBL));
-	      aTy = COMPLEXDBL;
+	      e1.reset( e1.release()->Convert2( GDL_COMPLEXDBL));
+	      aTy = GDL_COMPLEXDBL;
 	    }
-	  else if( bTy == FLOAT)
+	  else if( bTy == GDL_FLOAT)
 	    {
 	      res = e1->Pow( e2.get());
 	      if( res == e1.get())
@@ -1026,14 +1026,14 @@ BaseGDL* POWNode::Eval()
 	      return res;
 	    }
 	}
-      if( aTy == COMPLEXDBL)
+      if( aTy == GDL_COMPLEXDBL)
 	{
-	  if( bTy == FLOAT)
+	  if( bTy == GDL_FLOAT)
 	    {
-	      e2.reset( e2.release()->Convert2( DOUBLE));
-	      bTy = DOUBLE;
+	      e2.reset( e2.release()->Convert2( GDL_DOUBLE));
+	      bTy = GDL_DOUBLE;
 	    }
-	  if( bTy == DOUBLE)
+	  if( bTy == GDL_DOUBLE)
 	    {
 	      res = e1->Pow( e2.get());
 	      if( res == e1.get())
@@ -1045,7 +1045,7 @@ BaseGDL* POWNode::Eval()
 
   if( IntType( bTy) && FloatType( aTy))
     {
-      e2.reset( e2.release()->Convert2( LONG));
+      e2.reset( e2.release()->Convert2( GDL_LONG));
 
       res = e1->PowInt( e2.get());
       if( res == e1.get())
@@ -1061,7 +1061,7 @@ BaseGDL* POWNode::Eval()
 //   if( IntType( bTy) && (DTypeOrder[ bTy] > DTypeOrder[ aTy]))
     convertBackT = aTy;
   else
-    convertBackT = UNDEF;
+    convertBackT = GDL_UNDEF;
   
   //  first operand determines type JMG
   //  AdjustTypes(e2,e1); // order crucial here (for converting back)
@@ -1089,7 +1089,7 @@ BaseGDL* POWNode::Eval()
 	  res= e2->PowInv(e1.get()); // smaller + larger
 	  e2.release();
 	}
-  if( convertBackT != UNDEF)
+  if( convertBackT != GDL_UNDEF)
     {
       res = res->Convert2( convertBackT, BaseGDL::CONVERT);
     }
@@ -1414,12 +1414,12 @@ BaseGDL* PLUSNC12Node::Eval()
   auto_ptr<BaseGDL> g2;
   if( DTypeOrder[aTy] >= DTypeOrder[bTy])
     {
-      // COMPLEX op DOUBLE = COMPLEXDBL
-      if(aTy == COMPLEX && bTy == DOUBLE)
+      // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+      if(aTy == GDL_COMPLEX && bTy == GDL_DOUBLE)
       {
-	  e2 = e2->Convert2( COMPLEXDBL, BaseGDL::COPY);
+	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
 	  g2.reset( e2);
-	  e1 = e1->Convert2( COMPLEXDBL, BaseGDL::COPY);
+	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
 	  g1.reset( e1);
       }
       else
@@ -1431,12 +1431,12 @@ BaseGDL* PLUSNC12Node::Eval()
     }
   else
     {
-      // COMPLEX op DOUBLE = COMPLEXDBL
-      if( (bTy == COMPLEX && aTy == DOUBLE))
+      // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+      if( (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
 	{
-	  e2 = e2->Convert2( COMPLEXDBL, BaseGDL::COPY);
+	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
 	  g2.reset( e2);
-	  e1 = e1->Convert2( COMPLEXDBL, BaseGDL::COPY);
+	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
 	  g1.reset( e1);
 	}
       else
@@ -1613,12 +1613,12 @@ BaseGDL* MINUSNC12Node::Eval()
   auto_ptr<BaseGDL> g2;
   if( DTypeOrder[aTy] >= DTypeOrder[bTy])
     {
-      // COMPLEX op DOUBLE = COMPLEXDBL
-      if( aTy == COMPLEX && bTy == DOUBLE)
+      // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+      if( aTy == GDL_COMPLEX && bTy == GDL_DOUBLE)
       {
-	  e2 = e2->Convert2( COMPLEXDBL, BaseGDL::COPY);
+	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
 	  g2.reset( e2);
-	  e1 = e1->Convert2( COMPLEXDBL, BaseGDL::COPY);
+	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
 	  g1.reset( e1);
       }
       else
@@ -1630,12 +1630,12 @@ BaseGDL* MINUSNC12Node::Eval()
     }
   else
     {
-      // COMPLEX op DOUBLE = COMPLEXDBL
-      if( (bTy == COMPLEX && aTy == DOUBLE))
+      // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+      if( (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
 	{
-	  e2 = e2->Convert2( COMPLEXDBL, BaseGDL::COPY);
+	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
 	  g2.reset( e2);
-	  e1 = e1->Convert2( COMPLEXDBL, BaseGDL::COPY);
+	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
 	  g1.reset( e1);
 	}
       else
@@ -1881,12 +1881,12 @@ BaseGDL* ASTERIXNC12Node::Eval()
   auto_ptr<BaseGDL> g2;
   if( DTypeOrder[aTy] >= DTypeOrder[bTy])
     {
-      // COMPLEX op DOUBLE = COMPLEXDBL
-      if( aTy == COMPLEX && bTy == DOUBLE)
+      // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+      if( aTy == GDL_COMPLEX && bTy == GDL_DOUBLE)
       {
-	  e2 = e2->Convert2( COMPLEXDBL, BaseGDL::COPY);
+	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
 	  g2.reset( e2);
-	  e1 = e1->Convert2( COMPLEXDBL, BaseGDL::COPY);
+	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
 	  g1.reset( e1);
       }
       else
@@ -1898,12 +1898,12 @@ BaseGDL* ASTERIXNC12Node::Eval()
     }
   else
     {
-      // COMPLEX op DOUBLE = COMPLEXDBL
-      if( (bTy == COMPLEX && aTy == DOUBLE))
+      // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+      if( (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
 	{
-	  e2 = e2->Convert2( COMPLEXDBL, BaseGDL::COPY);
+	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
 	  g2.reset( e2);
-	  e1 = e1->Convert2( COMPLEXDBL, BaseGDL::COPY);
+	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
 	  g1.reset( e1);
 	}
       else
@@ -2099,10 +2099,10 @@ BaseGDL* MATRIX_OP1NCNode::Eval()
    }
 
  DType cTy=maxTy;
- if( maxTy == BYTE || maxTy == INT)
-   cTy=LONG;
- else if( maxTy == UINT)
-   cTy=ULONG;
+ if( maxTy == GDL_BYTE || maxTy == GDL_INT)
+   cTy=GDL_LONG;
+ else if( maxTy == GDL_UINT)
+   cTy=GDL_ULONG;
 
  if( aTy != cTy)
    {
@@ -2151,10 +2151,10 @@ BaseGDL* MATRIX_OP2NCNode::Eval()
    }
 
  DType cTy=maxTy;
- if( maxTy == BYTE || maxTy == INT)
-   cTy=LONG;
- else if( maxTy == UINT)
-   cTy=ULONG;
+ if( maxTy == GDL_BYTE || maxTy == GDL_INT)
+   cTy=GDL_LONG;
+ else if( maxTy == GDL_UINT)
+   cTy=GDL_ULONG;
 
  if( aTy != cTy)
    {
@@ -2201,12 +2201,12 @@ BaseGDL* SLASHNC12Node::Eval()
   auto_ptr<BaseGDL> g2;
   if( DTypeOrder[aTy] >= DTypeOrder[bTy])
     {
-      // COMPLEX op DOUBLE = COMPLEXDBL
-      if( aTy == COMPLEX && bTy == DOUBLE)
+      // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+      if( aTy == GDL_COMPLEX && bTy == GDL_DOUBLE)
       {
-	  e2 = e2->Convert2( COMPLEXDBL, BaseGDL::COPY);
+	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
 	  g2.reset( e2);
-	  e1 = e1->Convert2( COMPLEXDBL, BaseGDL::COPY);
+	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
 	  g1.reset( e1);
       }
       else
@@ -2218,12 +2218,12 @@ BaseGDL* SLASHNC12Node::Eval()
     }
   else
     {
-      // COMPLEX op DOUBLE = COMPLEXDBL
-      if( (bTy == COMPLEX && aTy == DOUBLE))
+      // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+      if( (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
 	{
-	  e2 = e2->Convert2( COMPLEXDBL, BaseGDL::COPY);
+	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
 	  g2.reset( e2);
-	  e1 = e1->Convert2( COMPLEXDBL, BaseGDL::COPY);
+	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
 	  g1.reset( e1);
 	}
       else
@@ -2416,26 +2416,26 @@ BaseGDL* POWNCNode::Eval()
   DType aTy=e1->Type();
   DType bTy=e2->Type();
 
-  if( aTy == STRING)
+  if( aTy == GDL_STRING)
     {
-      e1 = e1->Convert2( FLOAT, BaseGDL::COPY);
+      e1 = e1->Convert2( GDL_FLOAT, BaseGDL::COPY);
       g1.reset( e1); // deletes old e1
-      aTy = FLOAT;
+      aTy = GDL_FLOAT;
     }
-  if( bTy == STRING)
+  if( bTy == GDL_STRING)
     {
-      e2 = e2->Convert2( FLOAT, BaseGDL::COPY);
+      e2 = e2->Convert2( GDL_FLOAT, BaseGDL::COPY);
       g2.reset( e2); // deletes old e2
-      bTy = FLOAT;
+      bTy = GDL_FLOAT;
     }
 
   if( ComplexType(aTy))
     {
       if( IntType( bTy))
 	{
-	  if( bTy != LONG)
+	  if( bTy != GDL_LONG)
 	    {
-	      e2 = e2->Convert2( LONG, BaseGDL::COPY);
+	      e2 = e2->Convert2( GDL_LONG, BaseGDL::COPY);
 	      g2.reset( e2);
 	    }
 	  if( g1.get() == NULL) 
@@ -2450,15 +2450,15 @@ BaseGDL* POWNCNode::Eval()
 	      return res;
 	    }
 	}
-      if( aTy == COMPLEX)
+      if( aTy == GDL_COMPLEX)
 	{
-	  if( bTy == DOUBLE)
+	  if( bTy == GDL_DOUBLE)
 	    {
-	      e1 = e1->Convert2( COMPLEXDBL, BaseGDL::COPY);
+	      e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
 	      g1.reset( e1); 
-	      aTy = COMPLEXDBL;
+	      aTy = GDL_COMPLEXDBL;
 	    }
-	  else if( bTy == FLOAT)
+	  else if( bTy == GDL_FLOAT)
 	    {
 	      if( g1.get() == NULL) 
 		{
@@ -2473,15 +2473,15 @@ BaseGDL* POWNCNode::Eval()
 		}
 	    }
 	}
-      if( aTy == COMPLEXDBL)
+      if( aTy == GDL_COMPLEXDBL)
 	{
-	  if( bTy == FLOAT)
+	  if( bTy == GDL_FLOAT)
 	    {
-	      e2 = e2->Convert2( DOUBLE, BaseGDL::COPY);
+	      e2 = e2->Convert2( GDL_DOUBLE, BaseGDL::COPY);
 	      g2.reset( e2);
-	      bTy = DOUBLE;
+	      bTy = GDL_DOUBLE;
 	    }
-	  if( bTy == DOUBLE)
+	  if( bTy == GDL_DOUBLE)
 	    {
 	      if( g1.get() == NULL) 
 		{
@@ -2500,9 +2500,9 @@ BaseGDL* POWNCNode::Eval()
 
   if( IntType( bTy) && FloatType( aTy))
     {
-      if( bTy != LONG)
+      if( bTy != GDL_LONG)
 	{
-	  e2 = e2->Convert2( LONG, BaseGDL::COPY);
+	  e2 = e2->Convert2( GDL_LONG, BaseGDL::COPY);
 	  g2.reset( e2);
 	}
       if( g1.get() == NULL)
@@ -2522,7 +2522,7 @@ BaseGDL* POWNCNode::Eval()
   if( IntType( bTy) && (DTypeOrder[ bTy] > DTypeOrder[ aTy]))
     convertBackT = aTy;
   else
-    convertBackT = UNDEF;
+    convertBackT = GDL_UNDEF;
 
   if( aTy != bTy) 
     {
@@ -2611,7 +2611,7 @@ if( e1->StrictScalar())
 		res= e2->PowInv(e1); // smaller + larger
 	}	 
       }
-  if( convertBackT != UNDEF)
+  if( convertBackT != GDL_UNDEF)
     {
       res = res->Convert2( convertBackT, BaseGDL::CONVERT);
     }
@@ -3328,7 +3328,7 @@ BaseGDL* DOTNode::Eval()
     // check here for object and get struct
     //structR=dynamic_cast<DStructGDL*>(r);
     // this is much faster than a dynamic_cast
-    if( r->Type() != STRUCT)
+    if( r->Type() != GDL_STRUCT)
 // 		else
 // 			structR = NULL;
 // 		if( structR == NULL)
@@ -3370,7 +3370,7 @@ BaseGDL* DOTNode::Eval()
 
 	  // check here for object and get struct
 	  // this is much faster than a dynamic_cast
-	  if( r->Type() != STRUCT)
+	  if( r->Type() != GDL_STRUCT)
 // 		else
 // 			structR = NULL;
 // 		if( structR == NULL)

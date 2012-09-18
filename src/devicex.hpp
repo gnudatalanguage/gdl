@@ -842,7 +842,7 @@ public:
 
     //DByteGDL* p0B = e->GetParAs<DByteGDL>( 0);
     DByteGDL* p0B;
-    p0B =static_cast<DByteGDL*>(p0->Convert2(BYTE,BaseGDL::COPY));
+    p0B =static_cast<DByteGDL*>(p0->Convert2(GDL_BYTE,BaseGDL::COPY));
     e->Guard( p0B);
     
     int width, height;

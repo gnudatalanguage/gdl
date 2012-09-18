@@ -21,22 +21,22 @@
 using namespace std;
 
 const int pyType[] = {
-  NPY_NOTYPE,     //UNDEF***
-  NPY_UINT8,   //BYTE
-  NPY_INT16,   //INT
-  NPY_INT32,   //LONG,	
-  NPY_FLOAT32, //FLOAT,	
-  NPY_FLOAT64, //DOUBLE,	
-  NPY_COMPLEX64,  //COMPLEX,	
-  NPY_NOTYPE,        //STRING***	
-  NPY_NOTYPE,        //STRUCT***	
-  NPY_COMPLEX128,  //COMPLEXDBL,	
-  NPY_NOTYPE,        //PTR***		
-  NPY_NOTYPE,        //OBJECT***
-  NPY_UINT32,     //UINT*
-  NPY_UINT32,     //ULONG*
-  NPY_INT64,      //LONG64*
-  NPY_UINT64      //ULONG64*
+  NPY_NOTYPE,     //GDL_UNDEF***
+  NPY_UINT8,   //GDL_BYTE
+  NPY_INT16,   //GDL_INT
+  NPY_INT32,   //GDL_LONG,	
+  NPY_FLOAT32, //GDL_FLOAT,	
+  NPY_FLOAT64, //GDL_DOUBLE,	
+  NPY_COMPLEX64,  //GDL_COMPLEX,	
+  NPY_NOTYPE,        //GDL_STRING***	
+  NPY_NOTYPE,        //GDL_STRUCT***	
+  NPY_COMPLEX128,  //GDL_COMPLEXDBL,	
+  NPY_NOTYPE,        //GDL_PTR***		
+  NPY_NOTYPE,        //GDL_OBJECT***
+  NPY_UINT32,     //GDL_UINT*
+  NPY_UINT32,     //GDL_ULONG*
+  NPY_INT64,      //GDL_LONG64*
+  NPY_UINT64      //GDL_ULONG64*
 };	
 
 template < typename Sp>

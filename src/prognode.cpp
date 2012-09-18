@@ -260,7 +260,7 @@ BaseGDL* ASSIGN_REPLACENode::Eval()
 BaseGDL* ARRAYDEFNode::Eval()
 {
   // GDLInterpreter::
-  DType  cType=UNDEF; // conversion type
+  DType  cType=GDL_UNDEF; // conversion type
   SizeT maxRank=0;
   ExprListT            exprList;
   BaseGDL*           cTypeData;
@@ -282,12 +282,12 @@ BaseGDL* ARRAYDEFNode::Eval()
     exprList.push_back(e);
 			
     DType ty=e->Type();
-    if( ty == UNDEF)
+    if( ty == GDL_UNDEF)
       {
 	throw GDLException( _t, "Variable is undefined: "+
 			    ProgNode::interpreter->Name(e),true,false);
       }
-    if( cType == UNDEF) 
+    if( cType == GDL_UNDEF) 
       {
 	cType=ty;
 	cTypeData=e;
@@ -310,7 +310,7 @@ BaseGDL* ARRAYDEFNode::Eval()
 		cTypeData=e;
 	      }
 	  }
-	if( ty == STRUCT)
+	if( ty == GDL_STRUCT)
 	  {
 	    // check for struct compatibility
 	    DStructDesc* newS=

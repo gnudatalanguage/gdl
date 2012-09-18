@@ -33,11 +33,11 @@ namespace lib {
       e->Throw(" function VOIGT takes 2 params: 'Result = VOIGT(A,U)'  ");
 
     DFloatGDL* A = e->GetParAs<DFloatGDL>(0);
-    if(e->GetParDefined(0)->Type() == COMPLEX || e->GetParDefined(0)->Type() == COMPLEXDBL)
+    if(e->GetParDefined(0)->Type() == GDL_COMPLEX || e->GetParDefined(0)->Type() == GDL_COMPLEXDBL)
       e->Throw(" no complex : ");
     
     DFloatGDL* U = e->GetParAs<DFloatGDL>(1);
-    if(e->GetParDefined(1)->Type() == COMPLEX || e->GetParDefined(1)->Type() == COMPLEXDBL)
+    if(e->GetParDefined(1)->Type() == GDL_COMPLEX || e->GetParDefined(1)->Type() == GDL_COMPLEXDBL)
       e->Throw(" no complex : ");
 
     // Use to define NaN which is returned if one parameter of humlik function is Not A Number 
@@ -154,8 +154,8 @@ namespace lib {
 	  }		
       }
 
-    if( e->GetParDefined(0)->Type() == DOUBLE ||e->GetParDefined(1)->Type() == DOUBLE ) 
-      return res->Convert2(DOUBLE,BaseGDL::CONVERT);
+    if( e->GetParDefined(0)->Type() == GDL_DOUBLE ||e->GetParDefined(1)->Type() == GDL_DOUBLE ) 
+      return res->Convert2(GDL_DOUBLE,BaseGDL::CONVERT);
     
     return res;
 
@@ -189,31 +189,31 @@ namespace lib {
     //"Y" input array a vector of values for Y at X value
     //DDoubleGDL* Yvals = new DDoubleGDL(e->GetParAs<DDoubleGDL>(0)->N_Elements(),BaseGDL::NOZERO);
     DDoubleGDL* Yvals = e->GetParAs<DDoubleGDL>(0);
-    if(e->GetParDefined(0)->Type() == COMPLEX || e->GetParDefined(0)->Type() == COMPLEXDBL)
+    if(e->GetParDefined(0)->Type() == GDL_COMPLEX || e->GetParDefined(0)->Type() == GDL_COMPLEXDBL)
       cout<<" If RK4 is complex then only the real part is used for the computation "<< endl;
 
     //"dydx" input value or array 
     //DDoubleGDL* dydxvals = new DDoubleGDL(e->GetParAs<DDoubleGDL>(1)->N_Elements(),BaseGDL::NOZERO);
     DDoubleGDL* dydxvals = e->GetParAs<DDoubleGDL>(1);
-    if(e->GetParDefined(1)->Type() == COMPLEX || e->GetParDefined(1)->Type() == COMPLEXDBL)
+    if(e->GetParDefined(1)->Type() == GDL_COMPLEX || e->GetParDefined(1)->Type() == GDL_COMPLEXDBL)
       cout<<" If RK4 is complex then only the real part is used for the computation "<< endl;
 
     if(dydxvals->N_Elements()!=Yvals->N_Elements())e->Throw(" Y and DYDX dimensions have to match "); 
 
     // "X" input value  
     DDoubleGDL* X = e->GetParAs<DDoubleGDL>(2);
-    if(e->GetParDefined(2)->Type() == COMPLEX || e->GetParDefined(2)->Type() == COMPLEXDBL)
+    if(e->GetParDefined(2)->Type() == GDL_COMPLEX || e->GetParDefined(2)->Type() == GDL_COMPLEXDBL)
       cout<<" If RK4 is complex then only the real part is used for the computation "<< endl;
 
     // "H" input value  
     DDoubleGDL* H = e->GetParAs<DDoubleGDL>(3);
-    if(e->GetParDefined(3)->Type() == COMPLEX || e->GetParDefined(3)->Type() == COMPLEXDBL)
+    if(e->GetParDefined(3)->Type() == GDL_COMPLEX || e->GetParDefined(3)->Type() == GDL_COMPLEXDBL)
       cout<<" If RK4 is complex then only the real part is used for the computation "<< endl;
 	
 
     // Differentiate User's Function string name 
     DStringGDL* init = e->GetParAs<DStringGDL>(4);
-    if(e->GetParDefined(4)->Type() != STRING )
+    if(e->GetParDefined(4)->Type() != GDL_STRING )
       e->Throw(" Fifth value must be a function name string ");
 
 
@@ -277,7 +277,7 @@ namespace lib {
 	BaseGDL* Steptwo = e->Interpreter()->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree()); 
 	  
 	//Conversion BaseGDL*-> DDoubleGDL* in order to use the RK_Diff function result.
-	dyt= static_cast<DDoubleGDL*>(Steptwo->Convert2(DOUBLE,BaseGDL::CONVERT));
+	dyt= static_cast<DDoubleGDL*>(Steptwo->Convert2(GDL_DOUBLE,BaseGDL::CONVERT));
 	  
 	  
 
@@ -294,7 +294,7 @@ namespace lib {
 	BaseGDL* Stepthree = e->Interpreter()->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 	
 	//Conversion BaseGDL*-> DDoubleGDL* in order to use the RK_Diff function result.
-	dym = static_cast<DDoubleGDL*>(Stepthree->Convert2(DOUBLE,BaseGDL::CONVERT));
+	dym = static_cast<DDoubleGDL*>(Stepthree->Convert2(GDL_DOUBLE,BaseGDL::CONVERT));
 	  
 	  
 	//--------------THIRD STEP-------------------//
@@ -312,7 +312,7 @@ namespace lib {
 
 	BaseGDL* Stepfour = e->Interpreter()->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 
-	dyt= static_cast<DDoubleGDL*>(Stepfour->Convert2(DOUBLE,BaseGDL::CONVERT));
+	dyt= static_cast<DDoubleGDL*>(Stepfour->Convert2(GDL_DOUBLE,BaseGDL::CONVERT));
 	  
 	//--------------FOURTH STEP-------------------//
 	for (i=0;i<Yvals->N_Elements();++i)
@@ -322,7 +322,7 @@ namespace lib {
 
 	//if need, convert things back
 	if( !e->KeywordSet(doubleKWIx))
-	  return Yout->Convert2(FLOAT,BaseGDL::CONVERT);
+	  return Yout->Convert2(GDL_FLOAT,BaseGDL::CONVERT);
 	else
 	  return Yout;
       }

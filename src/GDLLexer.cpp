@@ -389,7 +389,7 @@ tryAgain:;
 
 void GDLLexer::mSTRING(bool _createToken) {
 	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
-	_ttype = STRING;
+	_ttype = GDL_STRING;
 	std::string::size_type _saveIndex;
 	
 	{ // ( ... )*

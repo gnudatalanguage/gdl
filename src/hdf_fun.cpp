@@ -303,59 +303,59 @@ namespace lib {
     BaseGDL* p2 = e->GetPar( 2);
     SizeT ndim = p2->N_Elements();
     DLongGDL* dims = static_cast<DLongGDL*>
-      (p2->Convert2( LONG, BaseGDL::COPY));
+      (p2->Convert2( GDL_LONG, BaseGDL::COPY));
 
     DLong hdfType=0;
     e->AssureLongScalarKWIfPresent( "HDF_TYPE", hdfType);
 
     DLong sds_id;
 
-    // BYTE
+    // GDL_BYTE
     if (e->KeywordSet(0) || e->KeywordSet(1) || e->KeywordSet(2) ||
 	hdfType == DFNT_INT8 || hdfType == DFNT_UINT8) {
 
       sds_id = SDcreate(sd_id, sdsname.c_str(), DFNT_UINT8, 
 			ndim, (int32 *) &(*dims)[0]);
 
-      //INT
+      //GDL_INT
     } else if (e->KeywordSet(3) || e->KeywordSet(4) || e->KeywordSet(5) ||
 	       hdfType == DFNT_INT16) {
 
       sds_id = SDcreate(sd_id, sdsname.c_str(), DFNT_INT16, 
 			ndim, (int32 *) &(*dims)[0]);
 
-      // UINT
+      // GDL_UINT
     } else if (e->KeywordSet(6) || hdfType == DFNT_UINT16) {
 
       sds_id = SDcreate(sd_id, sdsname.c_str(), DFNT_UINT16, 
 			ndim, (int32 *) &(*dims)[0]);
 
-      // LONG
+      // GDL_LONG
     } else if (e->KeywordSet(7) || e->KeywordSet(8) ||
 	       hdfType == DFNT_INT32) {
 
       sds_id = SDcreate(sd_id, sdsname.c_str(), DFNT_INT32, 
 			ndim, (int32 *) &(*dims)[0]);
 
-      // ULONG
+      // GDL_ULONG
     } else if (e->KeywordSet(9) || hdfType == DFNT_UINT32) {
 
       sds_id = SDcreate(sd_id, sdsname.c_str(), DFNT_UINT32, 
 			ndim, (int32 *) &(*dims)[0]);
 
-      // FLOAT
+      // GDL_FLOAT
     } else if (e->KeywordSet(10) || hdfType == DFNT_FLOAT32) {
 
       sds_id = SDcreate(sd_id, sdsname.c_str(), DFNT_FLOAT32, 
 			ndim, (int32 *) &(*dims)[0]);
 
-      // DOUBLE
+      // GDL_DOUBLE
     } else if (e->KeywordSet(11) || hdfType == DFNT_FLOAT64) {
 
       sds_id = SDcreate(sd_id, sdsname.c_str(), DFNT_FLOAT64, 
 			ndim, (int32 *) &(*dims)[0]);
 
-      // STRING
+      // GDL_STRING
     } else if (e->KeywordSet(12) || e->KeywordSet(13) ||
 	       hdfType == DFNT_CHAR) {
 

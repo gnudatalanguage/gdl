@@ -40,7 +40,7 @@ struct CUSTOM_API FMTTokenTypes {
 		COMMA = 29,
 		RBRACE = 30,
 		SLASH = 31,
-		STRING = 32,
+		GDL_STRING = 32,
 		TL = 33,
 		TR = 34,
 		TERM = 35,

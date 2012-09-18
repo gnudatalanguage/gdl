@@ -239,7 +239,7 @@ namespace lib {
   {
     DString image, entry;
     SizeT myAlign      = defaultAlign;
-    DType myReturnType = UNDEF;
+    DType myReturnType = GDL_UNDEF;
 
     SizeT nParam=e->NParam(2);
 
@@ -263,7 +263,7 @@ namespace lib {
 	if (strcmp(TypeKW[i].c_str(), "") == 0) {continue;}
 	int kwIxType = e->KeywordIx(TypeKW[i]);
 	if (e->KeywordSet(kwIxType)) {
-	    if (myReturnType != UNDEF) {
+	    if (myReturnType != GDL_UNDEF) {
 		e->Throw("Multiple requests of return type not allowed: "
 			 + TypeKW[i] );
 	    }
@@ -271,8 +271,8 @@ namespace lib {
 	}
     }
 
-    if (myReturnType == UNDEF) {
-	myReturnType = LONG;
+    if (myReturnType == GDL_UNDEF) {
+	myReturnType = GDL_LONG;
     }
 
     // STRUCT_ALIGN_BYTES
@@ -352,7 +352,7 @@ namespace lib {
 		}
 		memcpy(argv+i-2, (void*) par->DataAddr(), par->Sizeof());
 	    }
-	    else if (pType == STRING) {
+	    else if (pType == GDL_STRING) {
 		argv[i-2] = (void*) (*(DStringGDL*)(par))[0].c_str();
 	    }
 	    else {
@@ -365,13 +365,13 @@ namespace lib {
 	    argv[i-2] = (void*) par;
 	}
 	else {					// By reference (default)
-	    if (IsNumericType[pType] || pType == PTR || pType == OBJECT ) {
+	    if (IsNumericType[pType] || pType == GDL_PTR || pType == GDL_OBJECT ) {
 		argv[i-2] = (void*) par->DataAddr();
 	    }
-	    else if (pType == STRING) {
+	    else if (pType == GDL_STRING) {
 		argv[i-2] = (void*) ce_StringGDLtoIDL(e, par);
 	    }
-	    else if (pType == STRUCT) {
+	    else if (pType == GDL_STRUCT) {
 		argv[i-2] = ce_StructGDLtoIDL(e, par, NULL, myAlign);
 	    }
 	    else {
@@ -407,25 +407,25 @@ namespace lib {
     } ret;
 
     switch (myReturnType) {
-	case BYTE:    ret.d_byte    = ((DByte(*)   (int, void**))func)(argc, argv);
+	case GDL_BYTE:    ret.d_byte    = ((DByte(*)   (int, void**))func)(argc, argv);
 		      break;
-	case INT:     ret.d_int     = ((DInt(*)    (int, void**))func)(argc, argv);
+	case GDL_INT:     ret.d_int     = ((DInt(*)    (int, void**))func)(argc, argv);
 		      break;
-	case LONG:    ret.d_long    = ((DLong(*)   (int, void**))func)(argc, argv);
+	case GDL_LONG:    ret.d_long    = ((DLong(*)   (int, void**))func)(argc, argv);
 		      break;
-	case FLOAT:   ret.d_float   = ((DFloat(*)  (int, void**))func)(argc, argv);
+	case GDL_FLOAT:   ret.d_float   = ((DFloat(*)  (int, void**))func)(argc, argv);
 		      break;
-	case DOUBLE:  ret.d_double  = ((DDouble(*) (int, void**))func)(argc, argv);
+	case GDL_DOUBLE:  ret.d_double  = ((DDouble(*) (int, void**))func)(argc, argv);
 		      break;
-	case UINT:    ret.d_uint    = ((DUInt(*)   (int, void**))func)(argc, argv);
+	case GDL_UINT:    ret.d_uint    = ((DUInt(*)   (int, void**))func)(argc, argv);
 		      break;
-	case ULONG:   ret.d_ulong   = ((DULong(*)  (int, void**))func)(argc, argv);
+	case GDL_ULONG:   ret.d_ulong   = ((DULong(*)  (int, void**))func)(argc, argv);
 		      break;
-	case LONG64:  ret.d_long64  = ((DLong64(*) (int, void**))func)(argc, argv);
+	case GDL_LONG64:  ret.d_long64  = ((DLong64(*) (int, void**))func)(argc, argv);
 		      break;
-	case ULONG64: ret.d_ulong64 = ((DULong64(*)(int, void**))func)(argc, argv);
+	case GDL_ULONG64: ret.d_ulong64 = ((DULong64(*)(int, void**))func)(argc, argv);
 		      break;
-	case STRING:  ret.d_string  = ((char*(*)   (int, void**))func)(argc, argv);
+	case GDL_STRING:  ret.d_string  = ((char*(*)   (int, void**))func)(argc, argv);
 		      break;
 	default:      e->Throw("Return type not supported: " + myReturnType );
 		      break;
@@ -441,10 +441,10 @@ namespace lib {
 	if (byValue[i-2] != 0) {continue;}
 	BaseGDL* par = e->GetParDefined(i);
 	SizeT pType  = par->Type();
-	if (pType == STRING) {
+	if (pType == GDL_STRING) {
 	    ce_StringIDLtoGDL((EXTERN_STRING*) argv[i-2], par, 1);
 	}
-	else if (pType == STRUCT) {
+	else if (pType == GDL_STRUCT) {
 	    ce_StructIDLtoGDL( e, argv[i-2], par, 1, myAlign);
 	}
     }
@@ -454,25 +454,25 @@ namespace lib {
     // Return the return value
 
     switch (myReturnType) {
-        case BYTE:      return new DByteGDL(ret.d_byte);
+        case GDL_BYTE:      return new DByteGDL(ret.d_byte);
 			break;
-        case INT:       return new DIntGDL(ret.d_int);
+        case GDL_INT:       return new DIntGDL(ret.d_int);
 			break;
-        case LONG:      return new DLongGDL(ret.d_long);
+        case GDL_LONG:      return new DLongGDL(ret.d_long);
 			break;
-        case FLOAT:     return new DFloatGDL(ret.d_float);
+        case GDL_FLOAT:     return new DFloatGDL(ret.d_float);
 			break;
-        case DOUBLE:    return new DDoubleGDL(ret.d_double);
+        case GDL_DOUBLE:    return new DDoubleGDL(ret.d_double);
 			break;
-        case UINT:      return new DUIntGDL(ret.d_uint);
+        case GDL_UINT:      return new DUIntGDL(ret.d_uint);
 			break;
-        case ULONG:     return new DULongGDL(ret.d_ulong);
+        case GDL_ULONG:     return new DULongGDL(ret.d_ulong);
 			break;
-        case LONG64:    return new DLong64GDL(ret.d_long64);
+        case GDL_LONG64:    return new DLong64GDL(ret.d_long64);
 			break;
-        case ULONG64:   return new DULong64GDL(ret.d_ulong64);
+        case GDL_ULONG64:   return new DULong64GDL(ret.d_ulong64);
 			break;
-        case STRING:    return new DStringGDL(ret.d_string);
+        case GDL_STRING:    return new DStringGDL(ret.d_string);
 			break;
     }
 	    
@@ -550,18 +550,18 @@ namespace lib {
 		SizeT sizeOf;
 		void* source;
 		int   doFree = 0;
-		if (IsNumericType[pType] || pType == PTR || pType == OBJECT) {
+		if (IsNumericType[pType] || pType == GDL_PTR || pType == GDL_OBJECT) {
 		    source = (void*) member->DataAddr();
 		    length = member->NBytes();
 		    sizeOf = member->Sizeof();
 		}
-		else if (pType == STRING) {
+		else if (pType == GDL_STRING) {
 		    source = (void*) ce_StringGDLtoIDL(e, member);
 		    length = member->N_Elements() * sizeof(EXTERN_STRING);
 		    sizeOf = 8;
 		    doFree = 1;
 		}
-		else if (pType == STRUCT) {
+		else if (pType == GDL_STRUCT) {
 		    source = ce_StructGDLtoIDL( e, member, &length, myAlign );
 		    length *= member->N_Elements();
 		    sizeOf = 8;
@@ -614,16 +614,16 @@ namespace lib {
 		    p += space;
 		}
 
-		if (IsNumericType[pType] || pType == PTR || pType == OBJECT) {
+		if (IsNumericType[pType] || pType == GDL_PTR || pType == GDL_OBJECT) {
 		    length = member->NBytes();
 		    dest   = (void*) member->DataAddr();
 		    memcpy(dest, p, length);
 		}
-		else if (pType == STRING) {
+		else if (pType == GDL_STRING) {
 		    ce_StringIDLtoGDL((EXTERN_STRING*) p, member, 0);
 		    length = member->N_Elements() * sizeof(EXTERN_STRING);
 		}
-		else if (pType == STRUCT) {
+		else if (pType == GDL_STRUCT) {
 		    ce_StructIDLtoGDL( e, (void*)p, member, 0, myAlign );
 		    length = member->N_Elements() * ce_LengthOfIDLStruct(e, member, myAlign);
 		}
@@ -653,15 +653,15 @@ namespace lib {
 	for (SizeT iTag=0; iTag < nTags; iTag++) {
 	    BaseGDL* member = s->GetTag(iTag);
 	    DType    pType  = member->Type();
-	    if (IsNumericType[pType] || pType == PTR || pType == OBJECT) {
+	    if (IsNumericType[pType] || pType == GDL_PTR || pType == GDL_OBJECT) {
 		totalSize += member->NBytes();
 		sizeOf    =  member->Sizeof();
 	    }
-	    else if (pType == STRING) {
+	    else if (pType == GDL_STRING) {
 		totalSize += member->N_Elements() * sizeof(EXTERN_STRING);
 		sizeOf    =  8;
 	    }
-	    else if (pType == STRUCT) {
+	    else if (pType == GDL_STRUCT) {
 		totalSize += member->N_Elements() * ce_LengthOfIDLStruct( e, member, myAlign);
 		sizeOf    =  8;
 	    }

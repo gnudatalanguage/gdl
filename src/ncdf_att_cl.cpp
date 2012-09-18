@@ -81,7 +81,7 @@ namespace lib {
     {
       // Check type of varid
       BaseGDL* p1 = e->GetParDefined( 1);
-      if (p1->Type() != STRING) 
+      if (p1->Type() != GDL_STRING) 
       {
         // Numeric
         e->AssureLongScalarPar(1, varid);
@@ -139,7 +139,7 @@ namespace lib {
 	  } else {
 	    // Check type of varid
 	    BaseGDL* p1 = e->GetParDefined( 1);
-            if (p1->Type() != STRING) {
+            if (p1->Type() != GDL_STRING) {
               // Numeric
 	      e->AssureLongScalarPar(1, varid);
             } else {
@@ -204,7 +204,7 @@ namespace lib {
     } else {
       // Check type of varid
       BaseGDL* p1 = e->GetParDefined( 1);
-      if (p1->Type() != STRING) {
+      if (p1->Type() != GDL_STRING) {
         // Numeric
         e->AssureLongScalarPar(1, varid);
       } else {
@@ -320,7 +320,7 @@ namespace lib {
       } else {
 	// Check type of varid
 	BaseGDL* p1 = e->GetParDefined( 1);
-	if (p1->Type() != STRING) {
+	if (p1->Type() != GDL_STRING) {
 	  // Numeric
 	  e->AssureLongScalarPar(1, varid);
 	} else {
@@ -340,30 +340,30 @@ namespace lib {
 
     //determine default data type
     xtype = NC_FLOAT;
-    if (val->Type() == BYTE) xtype=NC_BYTE;
-    if (val->Type() == STRING) xtype=NC_CHAR;
-    if (val->Type() == INT) xtype=NC_SHORT;
-    if (val->Type() == LONG) xtype=NC_INT;
-    if (val->Type() == FLOAT) xtype=NC_FLOAT;
-    if (val->Type() == DOUBLE) xtype=NC_DOUBLE;
-    // SA: TODO: UINT, ULONG, COMPLEX, PTR... 
+    if (val->Type() == GDL_BYTE) xtype=NC_BYTE;
+    if (val->Type() == GDL_STRING) xtype=NC_CHAR;
+    if (val->Type() == GDL_INT) xtype=NC_SHORT;
+    if (val->Type() == GDL_LONG) xtype=NC_INT;
+    if (val->Type() == GDL_FLOAT) xtype=NC_FLOAT;
+    if (val->Type() == GDL_DOUBLE) xtype=NC_DOUBLE;
+    // SA: TODO: GDL_UINT, GDL_ULONG, GDL_COMPLEX, GDL_PTR... 
 
-    if(e->KeywordSet(2)) //BYTE
+    if(e->KeywordSet(2)) //GDL_BYTE
       xtype=NC_BYTE;
     else if(e->KeywordSet(3)) //CHAR
       xtype=NC_CHAR;
-    else if(e->KeywordSet(4)) //DOUBLE
+    else if(e->KeywordSet(4)) //GDL_DOUBLE
       xtype=NC_DOUBLE;
-    else if(e->KeywordSet(5)) //FLOAT
+    else if(e->KeywordSet(5)) //GDL_FLOAT
       xtype=NC_FLOAT;
-    else if(e->KeywordSet(6)) //LONG
+    else if(e->KeywordSet(6)) //GDL_LONG
       xtype=NC_INT;
     else if(e->KeywordSet(7)) //SHORT
       xtype=NC_SHORT;
 
     // LENGTH keyword support 
     DLong length;
-    if (val->Type() != STRING)
+    if (val->Type() != GDL_STRING)
     {
       length = val->N_Elements(); 
       e->AssureLongScalarKWIfPresent(1, length);
@@ -372,7 +372,7 @@ namespace lib {
     }
 
 
-    if(val->Type() == BYTE)
+    if(val->Type() == GDL_BYTE)
       {
 
 	DByteGDL * bvar=static_cast<DByteGDL*>(val);
@@ -381,7 +381,7 @@ namespace lib {
 				(size_t)length,
 				(const unsigned char *)&(*bvar)[0]);
       }
-    else if(val->Type() == STRING)
+    else if(val->Type() == GDL_STRING)
       {
 	DString cvar;
 	e->AssureScalarPar<DStringGDL>(val_num,cvar);
@@ -395,28 +395,28 @@ namespace lib {
 	status=nc_put_att_text(cdfid,varid, attname.c_str(),
 				cvar.length(), (char *)cvar.c_str());
       }
-    else if(val->Type() == INT)
+    else if(val->Type() == GDL_INT)
       {
 	DIntGDL * ivar=static_cast<DIntGDL*>(val);
 	status=nc_put_att_short(cdfid,varid,
 				  attname.c_str(), xtype,
 				  (size_t)length, &(*ivar)[0]);
       }
-    else if(val->Type() == LONG)
+    else if(val->Type() == GDL_LONG)
       {
       DLongGDL * lvar=static_cast<DLongGDL*>(val);
       status=nc_put_att_int(cdfid,varid,
 			      attname.c_str(),xtype,
 				(size_t)length, &(*lvar)[0]);
       }
-    else if(val->Type() == FLOAT)
+    else if(val->Type() == GDL_FLOAT)
       {
 	DFloatGDL * fvar=static_cast<DFloatGDL*>(val);
 	status=nc_put_att_float(cdfid,varid,
 				  attname.c_str(),xtype,
 				  (size_t)length, &(*fvar)[0]);
       }
-    else if(val->Type() == DOUBLE)
+    else if(val->Type() == GDL_DOUBLE)
       {
 	DDoubleGDL * dvar=static_cast<DDoubleGDL*>(val);
 	status=nc_put_att_double(cdfid,varid,
@@ -466,7 +466,7 @@ return;
 
 	// Check type of varid
 	BaseGDL* p3 = e->GetParDefined( 3);
-	if (p3->Type() != STRING) {
+	if (p3->Type() != GDL_STRING) {
 	  // Numeric
 	  e->AssureLongScalarPar(3, outvar);
 	} else {
@@ -481,7 +481,7 @@ return;
       {
 	// Check type of varid
 	BaseGDL* p1 = e->GetParDefined( 1);
-	if (p1->Type() != STRING) {
+	if (p1->Type() != GDL_STRING) {
 	  // Numeric
 	  e->AssureLongScalarPar(1, invar);
 	} else {
@@ -498,7 +498,7 @@ return;
 
 	// Check type of varid
 	BaseGDL* p1 = e->GetParDefined( 1);
-	if (p1->Type() != STRING) {
+	if (p1->Type() != GDL_STRING) {
 	  // Numeric
 	  e->AssureLongScalarPar(1, invar);
 	} else {
@@ -511,7 +511,7 @@ return;
 
 	// Check type of varid
 	BaseGDL* p4 = e->GetParDefined( 4);
-	if (p4->Type() != STRING) {
+	if (p4->Type() != GDL_STRING) {
 	  // Numeric
 	  e->AssureLongScalarPar(4, outvar);
 	} else {
@@ -581,7 +581,7 @@ return;
 	
       } else {
 	BaseGDL* p1 = e->GetParDefined( 1);
-	if (p1->Type() != STRING) {
+	if (p1->Type() != GDL_STRING) {
 	  // Numeric
 	  e->AssureLongScalarPar(1, varid);
 	} else {
@@ -638,7 +638,7 @@ return;
       } else {
 	// Check type of varid
 	BaseGDL* p1 = e->GetParDefined( 1);
-	if (p1->Type() != STRING) {
+	if (p1->Type() != GDL_STRING) {
 	  // Numeric
 	  e->AssureLongScalarPar(1, varid);
 	} else {

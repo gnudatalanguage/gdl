@@ -150,7 +150,7 @@ namespace lib {
 		if(nParam >= 3)
 		{
 			BaseGDL* v=e->GetParDefined(2);
-			DIntGDL* dim_in=static_cast<DIntGDL*>(v->Convert2(INT, BaseGDL::COPY));
+			DIntGDL* dim_in=static_cast<DIntGDL*>(v->Convert2(GDL_INT, BaseGDL::COPY));
 			auto_ptr<DIntGDL> dim_in_guard( dim_in);
 			int var_ndims=dim_in->N_Elements();
 			if(var_ndims > NC_MAX_VAR_DIMS)
@@ -183,7 +183,7 @@ namespace lib {
 	else if(status==NC_ENOTVAR) 	/* Variable not found */
 	  {
 	    error += "Variable enquiry failed, ";
-            if (e->GetPar(1)->Type() == STRING)
+            if (e->GetPar(1)->Type() == GDL_STRING)
             {
               DString id;
               e->AssureStringScalarPar( 1, id);

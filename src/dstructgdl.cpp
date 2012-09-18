@@ -674,7 +674,7 @@ DStructGDL* DStructGDL::CatArray( ExprListT& exprList,
   SizeT at=0;
   for( i=exprList.begin(); i != exprList.end(); i++)
     {
-      // for STRUCT all types are compatible structs already (array_def in gdlc.i.g)
+      // for GDL_STRUCT all types are compatible structs already (array_def in gdlc.i.g)
       //      if( (*i)->Type() != t) (*i)=(*i)->Convert2( t);
       catArr->CatInsert(static_cast<DStructGDL*>( (*i)),
 			catRankIx,at); // advances 'at'

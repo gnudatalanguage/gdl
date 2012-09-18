@@ -143,7 +143,7 @@ bool BaseGDL::OutOfRangeOfInt() const { return false;}
 
 bool BaseGDL::Scalar() const { return false;}
 bool BaseGDL::StrictScalar() const { return false;}
-DType   BaseGDL::Type() const { return UNDEF;}
+DType   BaseGDL::Type() const { return GDL_UNDEF;}
 const std::string& BaseGDL::TypeStr() const
 { static const std::string s("UNDEFINED"); return s;}
 bool BaseGDL::EqType( const BaseGDL*) const

@@ -247,7 +247,7 @@ namespace lib {
     res = new DDoubleGDL(2, BaseGDL::NOZERO);
     (*res)[0]=screen_width;
     (*res)[1]=screen_height;
-    return res->Convert2(FLOAT, BaseGDL::CONVERT);
+    return res->Convert2(GDL_FLOAT, BaseGDL::CONVERT);
 #endif
   }
 

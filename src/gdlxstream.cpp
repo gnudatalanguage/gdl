@@ -167,7 +167,7 @@ void GDLXStream::Clear( DLong bColor)
   GDLCT* actCT = Graphics::GetCT();
   actCT->Get( bColor, rb, gb, bb);
 
-  // Convert to PLINT from BYTE
+  // Convert to PLINT from GDL_BYTE
   r1 = (PLINT) rb;
   g1 = (PLINT) gb;
   b1 = (PLINT) bb;

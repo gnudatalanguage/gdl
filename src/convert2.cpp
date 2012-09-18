@@ -130,8 +130,8 @@ template<> BaseGDL* Data_<SpDByte>::Convert2( DType destTy, BaseGDL::Convert2Mod
   
   switch( destTy)
     {
-//    case BYTE:
-    case INT:
+//    case GDL_BYTE:
+    case GDL_INT:
       {
       	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
       	SINGLE_ELEMENT_OPTIMIZATION
@@ -144,7 +144,7 @@ template<> BaseGDL* Data_<SpDByte>::Convert2( DType destTy, BaseGDL::Convert2Mod
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case UINT:
+    case GDL_UINT:
       {
       	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -157,7 +157,7 @@ template<> BaseGDL* Data_<SpDByte>::Convert2( DType destTy, BaseGDL::Convert2Mod
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case LONG:
+    case GDL_LONG:
       {
       	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -170,7 +170,7 @@ template<> BaseGDL* Data_<SpDByte>::Convert2( DType destTy, BaseGDL::Convert2Mod
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case ULONG:
+    case GDL_ULONG:
       {
       	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -183,7 +183,7 @@ template<> BaseGDL* Data_<SpDByte>::Convert2( DType destTy, BaseGDL::Convert2Mod
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case LONG64:
+    case GDL_LONG64:
       {
       	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -196,7 +196,7 @@ template<> BaseGDL* Data_<SpDByte>::Convert2( DType destTy, BaseGDL::Convert2Mod
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case ULONG64:
+    case GDL_ULONG64:
       {
       	Data_<SpDULong64>* dest=new Data_<SpDULong64>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -209,7 +209,7 @@ template<> BaseGDL* Data_<SpDByte>::Convert2( DType destTy, BaseGDL::Convert2Mod
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case FLOAT: 
+    case GDL_FLOAT: 
       {
       	Data_<SpDFloat>* dest=new Data_<SpDFloat>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -222,7 +222,7 @@ template<> BaseGDL* Data_<SpDByte>::Convert2( DType destTy, BaseGDL::Convert2Mod
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case DOUBLE: 
+    case GDL_DOUBLE: 
       {
       	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -235,7 +235,7 @@ template<> BaseGDL* Data_<SpDByte>::Convert2( DType destTy, BaseGDL::Convert2Mod
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case COMPLEX: 
+    case GDL_COMPLEX: 
       {
       	Data_<SpDComplex>* dest=new Data_<SpDComplex>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -248,7 +248,7 @@ template<> BaseGDL* Data_<SpDByte>::Convert2( DType destTy, BaseGDL::Convert2Mod
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case COMPLEXDBL: 
+    case GDL_COMPLEXDBL: 
       {
       	Data_<SpDComplexDbl>* dest=
 	  new Data_<SpDComplexDbl>( dim, BaseGDL::NOZERO);
@@ -262,7 +262,7 @@ template<> BaseGDL* Data_<SpDByte>::Convert2( DType destTy, BaseGDL::Convert2Mod
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case STRING: // BYTE to STRING: remove first dim
+    case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
       {
 	if( mode == BaseGDL::COPY_BYTE_AS_INT)
 	  {
@@ -305,16 +305,16 @@ template<> BaseGDL* Data_<SpDByte>::Convert2( DType destTy, BaseGDL::Convert2Mod
 	    return dest;
 	  }
       }
-    case PTR:
-    case OBJECT:
-    case STRUCT:
-    case UNDEF: 
+    case GDL_PTR:
+    case GDL_OBJECT:
+    case GDL_STRUCT:
+    case GDL_UNDEF: 
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
 throw GDLException("Cannot convert to this type.");
     }
 
    return NULL; // get rid of warning
-} // BYTE 
+} // GDL_BYTE 
 
 template<> BaseGDL* Data_<SpDInt>::Convert2( DType destTy, BaseGDL::Convert2Mode mode)
 {
@@ -325,7 +325,7 @@ TRACE_CONVERT2
 
   switch( destTy)
     {
-    case BYTE:
+    case GDL_BYTE:
       {
       	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -338,8 +338,8 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-      //    case INT:
-    case UINT:
+      //    case GDL_INT:
+    case GDL_UINT:
       {
       	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -357,7 +357,7 @@ TRACE_CONVERT2
 // 	return reinterpret_cast<Data_<SpDUInt>*>(this);
 //       else
 // 	return reinterpret_cast<Data_<SpDUInt>*>(this->Dup());
-    case LONG:
+    case GDL_LONG:
       {
       	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -370,7 +370,7 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case ULONG:
+    case GDL_ULONG:
       {
       	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -383,7 +383,7 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case LONG64:
+    case GDL_LONG64:
       {
       	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -397,7 +397,7 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case ULONG64:
+    case GDL_ULONG64:
       {
       	Data_<SpDULong64>* dest=new Data_<SpDULong64>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -410,7 +410,7 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case FLOAT: 
+    case GDL_FLOAT: 
       {
       	Data_<SpDFloat>* dest=new Data_<SpDFloat>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -423,7 +423,7 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case DOUBLE: 
+    case GDL_DOUBLE: 
       {
       	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -436,20 +436,20 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case STRING: 
+    case GDL_STRING: 
       {
       	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
       	  (*dest)[i]=i2s((*this)[i],8);
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case COMPLEX: 
+    case GDL_COMPLEX: 
       {
       	Data_<SpDComplex>* dest=new Data_<SpDComplex>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -462,7 +462,7 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case COMPLEXDBL: 
+    case GDL_COMPLEXDBL: 
       {
       	Data_<SpDComplexDbl>* dest=
 	  new Data_<SpDComplexDbl>( dim, BaseGDL::NOZERO);
@@ -476,17 +476,17 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case PTR:
-    case OBJECT:
-    case STRUCT:
-    case UNDEF: 
+    case GDL_PTR:
+    case GDL_OBJECT:
+    case GDL_STRUCT:
+    case GDL_UNDEF: 
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
 throw GDLException("Cannot convert to this type.");
     }
 
    // get rid of warning
   return NULL; 
-} // INT  
+} // GDL_INT  
 
 template<> BaseGDL* Data_<SpDUInt>::Convert2( DType destTy, BaseGDL::Convert2Mode mode)
 {
@@ -497,7 +497,7 @@ TRACE_CONVERT2
 
   switch( destTy)
     {
-    case BYTE:
+    case GDL_BYTE:
       {
       	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -510,7 +510,7 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case INT:
+    case GDL_INT:
       {
       	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -527,8 +527,8 @@ TRACE_CONVERT2
 // 	return reinterpret_cast<Data_<SpDInt>*>(this);
 //       else
 // 	return reinterpret_cast<Data_<SpDInt>*>(this->Dup());
-      //    case UINT:
-    case LONG:
+      //    case GDL_UINT:
+    case GDL_LONG:
       {
       	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -541,7 +541,7 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case ULONG:
+    case GDL_ULONG:
       {
       	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -554,7 +554,7 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case LONG64:
+    case GDL_LONG64:
       {
       	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -567,7 +567,7 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case ULONG64:
+    case GDL_ULONG64:
       {
       	Data_<SpDULong64>* dest=new Data_<SpDULong64>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -580,7 +580,7 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case FLOAT: 
+    case GDL_FLOAT: 
       {
       	Data_<SpDFloat>* dest=new Data_<SpDFloat>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -593,7 +593,7 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case DOUBLE: 
+    case GDL_DOUBLE: 
       {
       	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -606,20 +606,20 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case STRING: 
+    case GDL_STRING: 
       {
       	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
       	  (*dest)[i]=i2s((*this)[i],8);
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case COMPLEX: 
+    case GDL_COMPLEX: 
       {
       	Data_<SpDComplex>* dest=new Data_<SpDComplex>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -632,7 +632,7 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case COMPLEXDBL: 
+    case GDL_COMPLEXDBL: 
       {
       	Data_<SpDComplexDbl>* dest=
 	  new Data_<SpDComplexDbl>( dim, BaseGDL::NOZERO);
@@ -646,17 +646,17 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case PTR:
-    case OBJECT:
-    case STRUCT:
-    case UNDEF: 
+    case GDL_PTR:
+    case GDL_OBJECT:
+    case GDL_STRUCT:
+    case GDL_UNDEF: 
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
 throw GDLException("Cannot convert to this type.");
     }
 
    // get rid of warning
   return NULL; 
-} // UINT
+} // GDL_UINT
 
 
 
@@ -670,7 +670,7 @@ TRACE_CONVERT2
 
   switch( destTy)
     {
-    case BYTE:
+    case GDL_BYTE:
       {
       	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -683,7 +683,7 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case INT:
+    case GDL_INT:
       {
       	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -696,7 +696,7 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case UINT:
+    case GDL_UINT:
       {
       	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -709,8 +709,8 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-      //    case LONG:
-    case ULONG:
+      //    case GDL_LONG:
+    case GDL_ULONG:
       {
       	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -727,7 +727,7 @@ TRACE_CONVERT2
 // 	return reinterpret_cast<Data_<SpDULong>*>(this);
 //       else
 // 	return reinterpret_cast<Data_<SpDULong>*>(this->Dup());
-    case LONG64:
+    case GDL_LONG64:
       {
       	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -740,7 +740,7 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case ULONG64:
+    case GDL_ULONG64:
       {
       	Data_<SpDULong64>* dest=new Data_<SpDULong64>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -753,7 +753,7 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case FLOAT: 
+    case GDL_FLOAT: 
       {
       	Data_<SpDFloat>* dest=new Data_<SpDFloat>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -766,7 +766,7 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case DOUBLE: 
+    case GDL_DOUBLE: 
       {
       	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -779,20 +779,20 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case STRING: 
+    case GDL_STRING: 
       {
       	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
       	  (*dest)[i]=i2s((*this)[i],12);
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case COMPLEX: 
+    case GDL_COMPLEX: 
       {
       	Data_<SpDComplex>* dest=new Data_<SpDComplex>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -805,7 +805,7 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case COMPLEXDBL: 
+    case GDL_COMPLEXDBL: 
       {
       	Data_<SpDComplexDbl>* dest=
 	  new Data_<SpDComplexDbl>( dim, BaseGDL::NOZERO);
@@ -819,17 +819,17 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case PTR:
-    case OBJECT:
-    case STRUCT:
-    case UNDEF: 
+    case GDL_PTR:
+    case GDL_OBJECT:
+    case GDL_STRUCT:
+    case GDL_UNDEF: 
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
 throw GDLException("Cannot convert to this type.");
     }
 
    // get rid of warning
   return NULL; 
-} // LONG  
+} // GDL_LONG  
 
 
 
@@ -843,7 +843,7 @@ TRACE_CONVERT2
 
   switch( destTy)
     {
-    case BYTE:
+    case GDL_BYTE:
       {
       	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -856,7 +856,7 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case INT:
+    case GDL_INT:
       {
       	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -869,7 +869,7 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case UINT:
+    case GDL_UINT:
       {
       	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -882,7 +882,7 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case LONG:
+    case GDL_LONG:
       {
       	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -899,8 +899,8 @@ TRACE_CONVERT2
 // 	return reinterpret_cast<Data_<SpDLong>*>(this);
 //       else
 // 	return reinterpret_cast<Data_<SpDLong>*>(this->Dup());
-      //    case ULONG:
-    case LONG64:
+      //    case GDL_ULONG:
+    case GDL_LONG64:
       {
       	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -913,7 +913,7 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case ULONG64:
+    case GDL_ULONG64:
       {
       	Data_<SpDULong64>* dest=new Data_<SpDULong64>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -926,7 +926,7 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case FLOAT: 
+    case GDL_FLOAT: 
       {
       	Data_<SpDFloat>* dest=new Data_<SpDFloat>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -939,7 +939,7 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case DOUBLE: 
+    case GDL_DOUBLE: 
       {
       	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -952,20 +952,20 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case STRING: 
+    case GDL_STRING: 
       {
       	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
       	  (*dest)[i]=i2s((*this)[i],12);
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case COMPLEX: 
+    case GDL_COMPLEX: 
       {
       	Data_<SpDComplex>* dest=new Data_<SpDComplex>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -978,7 +978,7 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case COMPLEXDBL: 
+    case GDL_COMPLEXDBL: 
       {
       	Data_<SpDComplexDbl>* dest=
 	  new Data_<SpDComplexDbl>( dim, BaseGDL::NOZERO);
@@ -992,17 +992,17 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case PTR:
-    case OBJECT:
-    case STRUCT:
-    case UNDEF: 
+    case GDL_PTR:
+    case GDL_OBJECT:
+    case GDL_STRUCT:
+    case GDL_UNDEF: 
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
 throw GDLException("Cannot convert to this type.");
     }
 
    // get rid of warning
   return NULL; 
-} // ULONG   
+} // GDL_ULONG   
 
 
 
@@ -1015,7 +1015,7 @@ TRACE_CONVERT2
 
   switch( destTy)
     {
-    case BYTE:
+    case GDL_BYTE:
       {
       	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
@@ -1030,13 +1030,13 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
 	  (*dest)[i]=Real2DByte<float>((*this)[i]); 
 }	//(*dest)[i]=Real2DByte((*this)[i]); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case INT:
+    case GDL_INT:
       {
       	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
@@ -1051,13 +1051,13 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DInt,float>((*this)[i]); 
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case UINT:
+    case GDL_UINT:
       {
       	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
@@ -1077,7 +1077,7 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case LONG:
+    case GDL_LONG:
       {
       	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
@@ -1092,13 +1092,13 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DLong,float>((*this)[i]); 
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case ULONG:
+    case GDL_ULONG:
       {
       	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
@@ -1119,7 +1119,7 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case LONG64:
+    case GDL_LONG64:
       {
       	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
@@ -1135,13 +1135,13 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DLong64,float>((*this)[i]); 
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case ULONG64:
+    case GDL_ULONG64:
       {
       	Data_<SpDULong64>* dest=new Data_<SpDULong64>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
@@ -1162,8 +1162,8 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-      //    case FLOAT: 
-    case DOUBLE: 
+      //    case GDL_FLOAT: 
+    case GDL_DOUBLE: 
       {
       	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -1176,20 +1176,20 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case STRING: 
+    case GDL_STRING: 
       {
       	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
       	  (*dest)[i]=float2string((*this)[i]);
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case COMPLEX: 
+    case GDL_COMPLEX: 
       {
       	Data_<SpDComplex>* dest=new Data_<SpDComplex>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -1202,7 +1202,7 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case COMPLEXDBL: 
+    case GDL_COMPLEXDBL: 
       {
       	Data_<SpDComplexDbl>* dest=
 	  new Data_<SpDComplexDbl>( dim, BaseGDL::NOZERO);
@@ -1215,10 +1215,10 @@ TRACEOMP( __FILE__, __LINE__)
 }	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case PTR:
-    case OBJECT:
-    case STRUCT:
-    case UNDEF: 
+    case GDL_PTR:
+    case GDL_OBJECT:
+    case GDL_STRUCT:
+    case GDL_UNDEF: 
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
 throw GDLException("Cannot convert to this type.");
     }
@@ -1239,7 +1239,7 @@ TRACE_CONVERT2
 
   switch( destTy)
     {
-    case BYTE:
+    case GDL_BYTE:
       {
       	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
@@ -1255,14 +1255,14 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
 	  (*dest)[i]=Real2DByte<double>((*this)[i]); 
 	  //(*dest)[i]=Double2DByte((*this)[i]); 
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case INT:
+    case GDL_INT:
       {
       	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
@@ -1278,13 +1278,13 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DInt,double>((*this)[i]); 
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case UINT:
+    case GDL_UINT:
       {
       	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
@@ -1305,7 +1305,7 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case LONG:
+    case GDL_LONG:
       {
       	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
@@ -1321,13 +1321,13 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DLong,double>((*this)[i]); 
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case ULONG:
+    case GDL_ULONG:
       {
       	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
@@ -1348,7 +1348,7 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case LONG64:
+    case GDL_LONG64:
       {
       	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
@@ -1364,13 +1364,13 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DLong64,double>((*this)[i]); 
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case ULONG64:
+    case GDL_ULONG64:
       {
       	Data_<SpDULong64>* dest=new Data_<SpDULong64>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
@@ -1391,7 +1391,7 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case FLOAT: 
+    case GDL_FLOAT: 
       {
       	Data_<SpDFloat>* dest=new Data_<SpDFloat>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -1404,21 +1404,21 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-      //    case DOUBLE: 
-    case STRING: 
+      //    case GDL_DOUBLE: 
+    case GDL_STRING: 
       {
       	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
       	  (*dest)[i]=double2string((*this)[i]);
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case COMPLEX: 
+    case GDL_COMPLEX: 
       {
       	Data_<SpDComplex>* dest=new Data_<SpDComplex>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -1431,7 +1431,7 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case COMPLEXDBL: 
+    case GDL_COMPLEXDBL: 
       {
       	Data_<SpDComplexDbl>* dest=
 	  new Data_<SpDComplexDbl>( dim, BaseGDL::NOZERO);
@@ -1445,10 +1445,10 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case PTR:
-    case OBJECT:
-    case STRUCT:
-    case UNDEF: 
+    case GDL_PTR:
+    case GDL_OBJECT:
+    case GDL_STRUCT:
+    case GDL_UNDEF: 
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
 throw GDLException("Cannot convert to this type.");
     }
@@ -1484,7 +1484,7 @@ TRACE_CONVERT2
 
   switch( destTy)
     {
-    case BYTE: // STRING to BYTE: add first dim
+    case GDL_BYTE: // GDL_STRING to GDL_BYTE: add first dim
       {
 	SizeT maxLen = 1; // empty string is converted to 0b
       	for( SizeT i=0; i < nEl; ++i)
@@ -1498,7 +1498,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
 	  {
 	    SizeT basePtr = i*maxLen;
 
@@ -1510,14 +1510,14 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
 	return dest;
       }
-    case INT:
+    case GDL_INT:
       {
       	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( errorFlag, mode)
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
       	  {
       	    const char* cStart=(*this)[i].c_str();
       	    char* cEnd;
@@ -1539,14 +1539,14 @@ StringConversionError( errorFlag, mode, "Type conversion error: "
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
 	return dest;
       }
-    case UINT: 
+    case GDL_UINT: 
       {
       	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( errorFlag, mode)
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
       	  {
       	    const char* cStart=(*this)[i].c_str();
       	    char* cEnd;
@@ -1568,14 +1568,14 @@ StringConversionError( errorFlag, mode, "Type conversion error: "
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case LONG: 
+    case GDL_LONG: 
       {
       	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( errorFlag, mode)
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
       	  {
       	    const char* cStart=(*this)[i].c_str();
       	    char* cEnd;
@@ -1597,14 +1597,14 @@ StringConversionError( errorFlag, mode, "Type conversion error: "
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case ULONG: 
+    case GDL_ULONG: 
       {
       	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( errorFlag, mode)
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
       	  {
       	    const char* cStart=(*this)[i].c_str();
       	    char* cEnd;
@@ -1626,14 +1626,14 @@ StringConversionError( errorFlag, mode, "Type conversion error: "
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case LONG64: 
+    case GDL_LONG64: 
       {
       	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( errorFlag, mode)
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
       	  {
       	    const char* cStart=(*this)[i].c_str();
       	    char* cEnd;
@@ -1655,14 +1655,14 @@ StringConversionError( errorFlag, mode, "Type conversion error: "
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case ULONG64: 
+    case GDL_ULONG64: 
       {
       	Data_<SpDULong64>* dest=new Data_<SpDULong64>( dim, BaseGDL::NOZERO);
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( errorFlag, mode)
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
       	  {
       	    const char* cStart=(*this)[i].c_str();
       	    char* cEnd;
@@ -1684,14 +1684,14 @@ StringConversionError( errorFlag, mode, "Type conversion error: "
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case FLOAT: 
+    case GDL_FLOAT: 
       {
       	Data_<SpDFloat>* dest=new Data_<SpDFloat>( dim, BaseGDL::NOZERO);
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( errorFlag, mode)
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
       	  {
       	    const char* cStart=(*this)[i].c_str();
       	    char* cEnd;
@@ -1713,14 +1713,14 @@ StringConversionError( errorFlag, mode, "Type conversion error: "
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case DOUBLE: 
+    case GDL_DOUBLE: 
       {
       	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( errorFlag, mode)
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
       	  {
       	    const char* cStart=(*this)[i].c_str();
 	    char* cEnd;
@@ -1742,15 +1742,15 @@ StringConversionError( errorFlag, mode, "Type conversion error: "
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-      //    case STRING: 
-    case COMPLEX: 
+      //    case GDL_STRING: 
+    case GDL_COMPLEX: 
       {
       	Data_<SpDComplex>* dest=new Data_<SpDComplex>( dim, BaseGDL::NOZERO);
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( errorFlag, mode)
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
       	  {
       	    const char* cStart=(*this)[i].c_str();
       	    char* cEnd;
@@ -1772,7 +1772,7 @@ StringConversionError( errorFlag, mode, "Type conversion error: "
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case COMPLEXDBL: 
+    case GDL_COMPLEXDBL: 
       {
       	Data_<SpDComplexDbl>* dest=
 	  new Data_<SpDComplexDbl>( dim, BaseGDL::NOZERO);
@@ -1780,7 +1780,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( errorFlag, mode)
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
       	  {
       	    const char* cStart=(*this)[i].c_str();
       	    char* cEnd;
@@ -1802,10 +1802,10 @@ StringConversionError( errorFlag, mode, "Type conversion error: "
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case PTR:
-    case OBJECT:
-    case STRUCT:
-    case UNDEF: 
+    case GDL_PTR:
+    case GDL_OBJECT:
+    case GDL_STRUCT:
+    case GDL_UNDEF: 
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
 throw GDLException("Cannot convert to this type.");
     }
@@ -1826,7 +1826,7 @@ TRACE_CONVERT2
 
   switch( destTy)
     {
-    case BYTE:
+    case GDL_BYTE:
       {
       	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
@@ -1842,13 +1842,13 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2DByte<float>(real((*this)[i])); 
 }	//(*dest)[i]=Real2DByte(real((*this)[i])); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case INT:
+    case GDL_INT:
       {
       	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
@@ -1864,13 +1864,13 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-    	for( SizeT i=0; i < nEl; ++i)
+    	for( int i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DInt,float>(real((*this)[i])); 
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case UINT:
+    case GDL_UINT:
       {
       	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
@@ -1891,7 +1891,7 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case LONG:
+    case GDL_LONG:
       {
       	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
@@ -1907,13 +1907,13 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DLong,float>(real((*this)[i])); 
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case ULONG:
+    case GDL_ULONG:
       {
       	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
@@ -1934,7 +1934,7 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case LONG64:
+    case GDL_LONG64:
       {
       	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
@@ -1950,13 +1950,13 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DLong64,float>(real((*this)[i])); 
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case ULONG64:
+    case GDL_ULONG64:
       {
       	Data_<SpDULong64>* dest=new Data_<SpDULong64>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
@@ -1977,7 +1977,7 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case FLOAT: 
+    case GDL_FLOAT: 
       {
 	Data_<SpDFloat>* dest=new Data_<SpDFloat>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
@@ -1998,7 +1998,7 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
 	return dest;
       }
-    case DOUBLE: 
+    case GDL_DOUBLE: 
       {
       	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
@@ -2019,21 +2019,21 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case STRING: 
+    case GDL_STRING: 
       {
       	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
       	  (*dest)[i]="("+i2s(real((*this)[i]))+","+i2s(imag((*this)[i]))+")";
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-      //    case COMPLEX: 
-    case COMPLEXDBL: 
+      //    case GDL_COMPLEX: 
+    case GDL_COMPLEXDBL: 
       {
       	Data_<SpDComplexDbl>* dest=new Data_<SpDComplexDbl>( dim, 
 							     BaseGDL::NOZERO);
@@ -2047,10 +2047,10 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case PTR:
-    case OBJECT:
-    case STRUCT:
-    case UNDEF: 
+    case GDL_PTR:
+    case GDL_OBJECT:
+    case GDL_STRUCT:
+    case GDL_UNDEF: 
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
 throw GDLException("Cannot convert to this type.");
     }
@@ -2070,7 +2070,7 @@ TRACE_CONVERT2
 
   switch( destTy)
     {
-    case BYTE:
+    case GDL_BYTE:
       {
       	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
@@ -2086,13 +2086,13 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2DByte<double>(real((*this)[i])); 
 }      	  //(*dest)[i]=Double2DByte(real((*this)[i])); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case INT:
+    case GDL_INT:
       {
       	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
@@ -2108,13 +2108,13 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DInt,double>(real((*this)[i])); 
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case UINT:
+    case GDL_UINT:
       {
       	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
@@ -2135,7 +2135,7 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case LONG:
+    case GDL_LONG:
       {
       	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
@@ -2151,13 +2151,13 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DLong,double>(real((*this)[i])); 
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case ULONG:
+    case GDL_ULONG:
       {
       	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
@@ -2178,7 +2178,7 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case LONG64:
+    case GDL_LONG64:
       {
       	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
@@ -2194,13 +2194,13 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
       	  (*dest)[i]=Real2Int<DLong64,double>(real((*this)[i])); 
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
 }
       	return dest;
       }
-    case ULONG64:
+    case GDL_ULONG64:
       {
       	Data_<SpDULong64>* dest=new Data_<SpDULong64>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
@@ -2221,7 +2221,7 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case FLOAT: 
+    case GDL_FLOAT: 
       {
 	Data_<SpDFloat>* dest=new Data_<SpDFloat>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
@@ -2242,7 +2242,7 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
 	return dest;
       }
-    case DOUBLE: 
+    case GDL_DOUBLE: 
       {
       	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
@@ -2263,20 +2263,20 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case STRING: 
+    case GDL_STRING: 
       {
       	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
       	  (*dest)[i]="("+i2s(real((*this)[i]))+","+i2s(imag((*this)[i]))+")";
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case COMPLEX: 
+    case GDL_COMPLEX: 
       {
       	Data_<SpDComplex>* dest=new Data_<SpDComplex>( dim, BaseGDL::NOZERO);
 #ifdef SINGLE_ELEMENT_OPTIMIZATION
@@ -2300,11 +2300,11 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-      //    case COMPLEXDBL: 
-    case PTR:
-    case OBJECT:
-    case STRUCT:
-    case UNDEF: 
+      //    case GDL_COMPLEXDBL: 
+    case GDL_PTR:
+    case GDL_OBJECT:
+    case GDL_STRUCT:
+    case GDL_UNDEF: 
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
 throw GDLException("Cannot convert to this type.");
     }
@@ -2325,7 +2325,7 @@ TRACE_CONVERT2
 
   switch( destTy)
     {
-    case BYTE:
+    case GDL_BYTE:
       {
       	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -2338,7 +2338,7 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case INT:
+    case GDL_INT:
       {
       	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -2351,7 +2351,7 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case UINT:
+    case GDL_UINT:
       {
       	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -2364,7 +2364,7 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case LONG:
+    case GDL_LONG:
       {
       	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -2377,7 +2377,7 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case ULONG:
+    case GDL_ULONG:
       {
       	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -2390,8 +2390,8 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-      //    case LONG64:
-    case ULONG64:
+      //    case GDL_LONG64:
+    case GDL_ULONG64:
       {
       	Data_<SpDULong64>* dest=new Data_<SpDULong64>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -2408,7 +2408,7 @@ TRACE_CONVERT2
 // 	return reinterpret_cast<Data_<SpDULong64>*>(this);
 //       else
 // 	return reinterpret_cast<Data_<SpDULong64>*>(this->Dup());
-    case FLOAT: 
+    case GDL_FLOAT: 
       {
       	Data_<SpDFloat>* dest=new Data_<SpDFloat>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -2421,7 +2421,7 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case DOUBLE: 
+    case GDL_DOUBLE: 
       {
       	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -2434,20 +2434,20 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case STRING: 
+    case GDL_STRING: 
       {
       	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
       	  (*dest)[i]=i2s((*this)[i],22);
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case COMPLEX: 
+    case GDL_COMPLEX: 
       {
       	Data_<SpDComplex>* dest=new Data_<SpDComplex>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -2460,7 +2460,7 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case COMPLEXDBL: 
+    case GDL_COMPLEXDBL: 
       {
       	Data_<SpDComplexDbl>* dest=
 	  new Data_<SpDComplexDbl>( dim, BaseGDL::NOZERO);
@@ -2474,10 +2474,10 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case PTR:
-    case OBJECT:
-    case STRUCT:
-    case UNDEF: 
+    case GDL_PTR:
+    case GDL_OBJECT:
+    case GDL_STRUCT:
+    case GDL_UNDEF: 
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
 throw GDLException("Cannot convert to this type.");
     }
@@ -2497,7 +2497,7 @@ TRACE_CONVERT2
 
   switch( destTy)
     {
-    case BYTE:
+    case GDL_BYTE:
       {
       	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -2510,7 +2510,7 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case INT:
+    case GDL_INT:
       {
       	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -2523,7 +2523,7 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case UINT:
+    case GDL_UINT:
       {
       	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -2536,7 +2536,7 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case LONG:
+    case GDL_LONG:
       {
       	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -2549,7 +2549,7 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case ULONG:
+    case GDL_ULONG:
       {
       	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -2562,7 +2562,7 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case LONG64:
+    case GDL_LONG64:
       {
       	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -2579,8 +2579,8 @@ TRACE_CONVERT2
 // 	return reinterpret_cast<Data_<SpDLong64>*>(this);
 //       else
 // 	return reinterpret_cast<Data_<SpDLong64>*>(this->Dup());
-//  case ULONG64:
-    case FLOAT: 
+//  case GDL_ULONG64:
+    case GDL_FLOAT: 
       {
       	Data_<SpDFloat>* dest=new Data_<SpDFloat>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -2593,7 +2593,7 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case DOUBLE: 
+    case GDL_DOUBLE: 
       {
       	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -2606,20 +2606,20 @@ TRACE_CONVERT2
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case STRING: 
+    case GDL_STRING: 
       {
       	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
 TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
+      	for( int i=0; i < nEl; ++i)
       	  (*dest)[i]=i2s((*this)[i],22);
 }
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case COMPLEX: 
+    case GDL_COMPLEX: 
       {
       	Data_<SpDComplex>* dest=new Data_<SpDComplex>( dim, BaseGDL::NOZERO);
 	SINGLE_ELEMENT_OPTIMIZATION
@@ -2632,7 +2632,7 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case COMPLEXDBL: 
+    case GDL_COMPLEXDBL: 
       {
       	Data_<SpDComplexDbl>* dest=
 	  new Data_<SpDComplexDbl>( dim, BaseGDL::NOZERO);
@@ -2646,10 +2646,10 @@ TRACEOMP( __FILE__, __LINE__)
 	if( (mode & BaseGDL::CONVERT) != 0) delete this;
       	return dest;
       }
-    case PTR:
-    case OBJECT:
-    case STRUCT:
-    case UNDEF: 
+    case GDL_PTR:
+    case GDL_OBJECT:
+    case GDL_STRUCT:
+    case GDL_UNDEF: 
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
 throw GDLException("Cannot convert to this type.");
     }

@@ -58,7 +58,7 @@ namespace lib {
     DComplexDblGDL* p0C = static_cast<DComplexDblGDL*>( p0);
     DComplexGDL* p0CF = static_cast<DComplexGDL*>( p0);
 
-    if( p0->Type() == COMPLEXDBL) {
+    if( p0->Type() == GDL_COMPLEXDBL) {
       double *dptr;
       dptr = (double*) &(*res)[0];
 
@@ -77,7 +77,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-	for( SizeT i=0; i<nEl; ++i) {
+	for( int i=0; i<nEl; ++i) {
 	  out[i][0] /= nEl;
 	  out[i][1] /= nEl;
 	}
@@ -89,7 +89,7 @@ TRACEOMP( __FILE__, __LINE__)
       fftw_destroy_plan(p); // 1 
 
     }
-    else if( p0->Type() == COMPLEX) {
+    else if( p0->Type() == GDL_COMPLEX) {
       float *dptrf;
       dptrf = (float*) &(*res)[0];
       
@@ -108,7 +108,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-	for( SizeT i=0; i<nEl; ++i) {
+	for( int i=0; i<nEl; ++i) {
 	  out_f[i][0] /= nEl;
 	  out_f[i][1] /= nEl;
 	}
@@ -158,7 +158,7 @@ TRACEOMP( __FILE__, __LINE__)
 			    +e->GetParString(1));
 
       DDoubleGDL* direction = 
-	static_cast<DDoubleGDL*>(p1->Convert2( DOUBLE, BaseGDL::COPY));
+	static_cast<DDoubleGDL*>(p1->Convert2( GDL_DOUBLE, BaseGDL::COPY));
       direct = GSL_SIGN((*direction)[0]);
     }
 
@@ -172,14 +172,14 @@ TRACEOMP( __FILE__, __LINE__)
     // If double keyword no overwrite
     if( dbl) overwrite = 0;
 
-    if( p0->Type() == COMPLEXDBL || p0->Type() == DOUBLE || dbl) { 
+    if( p0->Type() == GDL_COMPLEXDBL || p0->Type() == GDL_DOUBLE || dbl) { 
 
       DComplexDblGDL *p0C;
 
       auto_ptr<BaseGDL> guard_p0C;
 
-      if( p0->Type() != COMPLEXDBL) {
-	p0C = static_cast<DComplexDblGDL*>(p0->Convert2( COMPLEXDBL, BaseGDL::COPY));
+      if( p0->Type() != GDL_COMPLEXDBL) {
+	p0C = static_cast<DComplexDblGDL*>(p0->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY));
         guard_p0C.reset(p0C); 
       } else
       {
@@ -194,7 +194,7 @@ TRACEOMP( __FILE__, __LINE__)
       return fftw_template< DComplexDblGDL> (p0C, nEl, dbl, overwrite, direct);
 
     }
-    else if( p0->Type() == COMPLEX) {
+    else if( p0->Type() == GDL_COMPLEX) {
 
       //      DComplexGDL* res;
 	  if( overwrite)
@@ -208,7 +208,7 @@ TRACEOMP( __FILE__, __LINE__)
       overwrite = 0;
 
       DComplexGDL* p0C = static_cast<DComplexGDL*>
-	(p0->Convert2( COMPLEX, BaseGDL::COPY));
+	(p0->Convert2( GDL_COMPLEX, BaseGDL::COPY));
       auto_ptr<BaseGDL> guard_p0C( p0C); 
       return fftw_template< DComplexGDL> (p0C, nEl, dbl, overwrite, direct);
 

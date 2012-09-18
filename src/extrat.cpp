@@ -95,7 +95,7 @@ void ExtraT::ResolveExtra(EnvBaseT* callerIn)
 	  else
 	    caller = callerIn;
 
-	  // STRING only works, if the *caller* has _REF_EXTRA
+	  // GDL_STRING only works, if the *caller* has _REF_EXTRA
 	  if( caller->pro->Extra() == DSub::REFEXTRA)
 	    {
 	      // caller's extra member holds the actual data

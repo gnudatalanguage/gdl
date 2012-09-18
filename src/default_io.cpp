@@ -1242,7 +1242,7 @@ ostream& DStructGDL::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 // 	  if( actEl == NULL)
 // 	    throw 
 // 	      GDLException("Internal error: Output of UNDEF struct element.");
-	  if( actEl->Type() == STRING)
+	  if( actEl->Type() == GDL_STRING)
 	    o << CheckNL( w, actPosPtr, 1) << " ";
 	    
 	  bool isArr = (actEl->Dim().Rank() != 0);
@@ -1265,7 +1265,7 @@ ostream& DStructGDL::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 //    if( actEl == NULL)
 //      throw 
 //        GDLException("Internal error: Output of UNDEF struct element.");
-      if( actEl->Type() == STRING)
+      if( actEl->Type() == GDL_STRING)
 	o << CheckNL( w, actPosPtr, 1) << " ";
       
       actEl->ToStream( o, w, actPosPtr);

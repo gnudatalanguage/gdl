@@ -45,7 +45,7 @@ namespace lib {
     if (e->GetKW(0) == NULL && e->NParam() > 1 + *parOffset)
     { 
       BaseGDL* par = e->GetParDefined(*parOffset);
-      if (par->Type() == STRING && par->Scalar() && 
+      if (par->Type() == GDL_STRING && par->Scalar() && 
         (*static_cast<DStringGDL*>(par))[0].compare(0,2,"$(") == 0) 
       {
         e->SetKeyword("FORMAT", 
@@ -172,7 +172,7 @@ namespace lib {
 	SizeT actPos = 0;
 	for( SizeT i=parOffset; i<nParam; i++)
 	  {
-	    if( i > parOffset) lastParScalar = /*par->Type() == STRING &&*/ par->Scalar();
+	    if( i > parOffset) lastParScalar = /*par->Type() == GDL_STRING &&*/ par->Scalar();
 	    par=e->GetParDefined( i);
             if (lastParScalar && anyArrayBefore && par->Rank() != 0) (*os) << endl; // e.g. print,[1],1,[1] 
             anyArrayBefore |= par->Rank() != 0;
@@ -180,12 +180,12 @@ namespace lib {
 // debug	  
 // 		(*os) << flush;
 	  }
-        bool singleNullChar = (par->Type() == STRING &&
+        bool singleNullChar = (par->Type() == GDL_STRING &&
 				!lastParScalar &&
 				(nParam-parOffset)>1 &&
 			       (*static_cast<DStringGDL*>(par))[0] == "");
 // 	}
-	if( (par->Dim().Rank() == 0  && !singleNullChar) || par->Type() == STRUCT)
+	if( (par->Dim().Rank() == 0  && !singleNullChar) || par->Type() == GDL_STRUCT)
 	{
 		(*os) << endl;
 	}
@@ -236,7 +236,7 @@ namespace lib {
       } 
       else 
       {
-        if (e->GetParDefined(i)->Type() == STRUCT)
+        if (e->GetParDefined(i)->Type() == GDL_STRUCT)
           e->Throw("Transposing arrays of structures is undefined");
         par = e->GetParDefined(i)->Transpose(NULL);
         static_cast<DLibPro*>(env->GetPro())->Pro()(static_cast<EnvT*>(env));

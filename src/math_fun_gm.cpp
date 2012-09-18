@@ -57,21 +57,21 @@
   Type Code | Type Name | Data Type
   -------------------------------------------------
   0     | UNDEFINED | Undefined
-  1     | BYTE      | Byte
-  2     | INT       | Integer
-  3     | LONG      | Longword integer
-  4     | FLOAT     | Floating point
-  5     | DOUBLE    | Double-precision floating
-  6     | COMPLEX   | Complex floating
-  7     | STRING    | String
-  8     | STRUCT    | Structure
+  1     | GDL_BYTE      | Byte
+  2     | GDL_INT       | Integer
+  3     | GDL_LONG      | Longword integer
+  4     | GDL_FLOAT     | Floating point
+  5     | GDL_DOUBLE    | Double-precision floating
+  6     | GDL_COMPLEX   | Complex floating
+  7     | GDL_STRING    | String
+  8     | GDL_STRUCT    | Structure
   9     | DCOMPLEX  | Double-precision complex
   10     | POINTER   | Pointer
   11     | OBJREF    | Object reference
-  12     | UINT      | Unsigned Integer
-  13     | ULONG     | Unsigned Longword Integer
-  14     | LONG64    | 64-bit Integer
-  15     | ULONG64   | Unsigned 64-bit Integer
+  12     | GDL_UINT      | Unsigned Integer
+  13     | GDL_ULONG     | Unsigned Longword Integer
+  14     | GDL_LONG64    | 64-bit Integer
+  15     | GDL_ULONG64   | Unsigned 64-bit Integer
 */
 
 // Macros GM_xPy(a): - x must be replaced by the desired type code in the table above (set it to 2 if you want to get an int, etc.);
@@ -91,7 +91,7 @@
     throw GDLException(e->CallingNode(), "Variable is undefined: "+e->GetParString(0));	\
 									\
   DType t0 = e->GetParDefined(0)->Type();				\
-                     if (t0 == COMPLEX || t0 == COMPLEXDBL)		\
+                     if (t0 == GDL_COMPLEX || t0 == GDL_COMPLEXDBL)		\
 		       e->Throw("Complex not implemented (GSL limitation). ");
 
 #define GM_5P0(a)							\
@@ -104,7 +104,7 @@
     throw GDLException(e->CallingNode(), "Variable is undefined: "+e->GetParString(0));	\
 									\
   DType t0 = e->GetParDefined(0)->Type();				\
-  if (t0 == COMPLEX || t0 == COMPLEXDBL)				\
+  if (t0 == GDL_COMPLEX || t0 == GDL_COMPLEXDBL)				\
     e->Throw("Complex not implemented (GSL limitation). ");
 
 #define GM_5P1()							\
@@ -115,7 +115,7 @@
     throw GDLException(e->CallingNode(), "Variable is undefined: "+e->GetParString(1));	\
   									\
   DType t1 = e->GetParDefined(1)->Type();				\
-  if (t1 == COMPLEX || t1 == COMPLEXDBL)				\
+  if (t1 == GDL_COMPLEX || t1 == GDL_COMPLEXDBL)				\
     e->Throw("Complex not implemented (GSL limitation). ");
 
 
@@ -160,8 +160,8 @@
 #define GM_CV1() \
   static DInt doubleKWIx = e->KeywordIx("DOUBLE");			\
   									\
-  if (t0 != DOUBLE && !e->KeywordSet(doubleKWIx))			\
-    return res->Convert2(FLOAT, BaseGDL::CONVERT);			\
+  if (t0 != GDL_DOUBLE && !e->KeywordSet(doubleKWIx))			\
+    return res->Convert2(GDL_FLOAT, BaseGDL::CONVERT);			\
   else									\
     return res;								\
   									\
@@ -171,8 +171,8 @@
 #define GM_CV2() \
   static DInt doubleKWIx = e->KeywordIx("DOUBLE");			\
   									\
-  if (t0 != DOUBLE && t1 != DOUBLE && !e->KeywordSet(doubleKWIx))	\
-    return res->Convert2(FLOAT, BaseGDL::CONVERT);			\
+  if (t0 != GDL_DOUBLE && t1 != GDL_DOUBLE && !e->KeywordSet(doubleKWIx))	\
+    return res->Convert2(GDL_FLOAT, BaseGDL::CONVERT);			\
   else									\
     return res;								\
   									\

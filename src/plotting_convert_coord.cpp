@@ -36,10 +36,10 @@ namespace lib {
     }
 
     DType aTy;
-    if (p0->Type() == DOUBLE || e->KeywordSet("DOUBLE"))
-      aTy = DOUBLE;
+    if (p0->Type() == GDL_DOUBLE || e->KeywordSet("DOUBLE"))
+      aTy = GDL_DOUBLE;
     else
-      aTy = FLOAT;
+      aTy = GDL_FLOAT;
 
     T1* res;
     SizeT nrows;
@@ -355,7 +355,7 @@ namespace lib {
     DLong yv = (*static_cast<DLongGDL*>( dStruct->GetTag( yvTag, 0)))[0];
     */
 
-    if (p0->Type() == DOUBLE || e->KeywordSet("DOUBLE")) {
+    if (p0->Type() == GDL_DOUBLE || e->KeywordSet("DOUBLE")) {
       return convert_coord_template<DDoubleGDL, DDouble>
 	( e, p0, p1, p2, sx, sy, sz, xv, yv, xt, yt);
     } else {

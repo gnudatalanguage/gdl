@@ -118,47 +118,47 @@ Esko G. Cate & David W. Twigg
 //     i1c = kmi;
 
 //     switch (type) {
-//     case BYTE:
+//     case GDL_BYTE:
 //       *(DByte *) b = *(DByte *) &array[sz*i1];
 //       *(DByte *) c = *(DByte *) &array[sz*i1c];
 //       break;
 
-//     case INT:
+//     case GDL_INT:
 //       *(DInt *) b = *(DInt *) &array[sz*i1];
 //       *(DInt *) c = *(DInt *) &array[sz*i1c];
 //       break;
 
-//     case UINT:
+//     case GDL_UINT:
 //       *(DUInt *) b = *(DUInt *) &array[sz*i1];
 //       *(DUInt *) c = *(DUInt *) &array[sz*i1c];
 //       break;
 
-//     case LONG:
+//     case GDL_LONG:
 //       *(DLong *) b = *(DLong *) &array[sz*i1];
 //       *(DLong *) c = *(DLong *) &array[sz*i1c];
 //       break;
 
-//     case ULONG:
+//     case GDL_ULONG:
 //       *(DULong *) b = *(DULong *) &array[sz*i1];
 //       *(DULong *) c = *(DULong *) &array[sz*i1c];
 //       break;
 
-//     case FLOAT:
+//     case GDL_FLOAT:
 //       *(DFloat *) b = *(DFloat *) &array[sz*i1];
 //       *(DFloat *) c = *(DFloat *) &array[sz*i1c];
 //       break;
 
-//     case DOUBLE:
+//     case GDL_DOUBLE:
 //       *(DDouble *) b = *(DDouble *) &array[sz*i1];
 //       *(DDouble *) c = *(DDouble *) &array[sz*i1c];
 //       break;
 
-//     case COMPLEX:
+//     case GDL_COMPLEX:
 //       *(DComplex *) b = *(DComplex *) &array[sz*i1];
 //       *(DComplex *) c = *(DComplex *) &array[sz*i1c];
 //       break;
 
-//     case COMPLEXDBL:
+//     case GDL_COMPLEXDBL:
 //       *(DComplexDbl *) b = *(DComplexDbl *) &array[sz*i1];
 //       *(DComplexDbl *) c = *(DComplexDbl *) &array[sz*i1c];
 //       break;
@@ -175,47 +175,47 @@ Esko G. Cate & David W. Twigg
 //     if (i2 == kmi) goto lbl_100;
 
 //     switch (type) {
-//     case BYTE:
+//     case GDL_BYTE:
 //       *(DByte *) &array[sz*i1] = *(DByte *) &array[sz*i2];
 //       *(DByte *) &array[sz*i1c] = *(DByte *) &array[sz*i2c];
 //       break;
 
-//     case INT:
+//     case GDL_INT:
 //       *(DInt *) &array[sz*i1] = *(DInt *) &array[sz*i2];
 //       *(DInt *) &array[sz*i1c] = *(DInt *) &array[sz*i2c];
 //       break;
 
-//     case UINT:
+//     case GDL_UINT:
 //       *(DUInt *) &array[sz*i1] = *(DUInt *) &array[sz*i2];
 //       *(DUInt *) &array[sz*i1c] = *(DUInt *) &array[sz*i2c];
 //       break;
 
-//     case LONG:
+//     case GDL_LONG:
 //       *(DLong *) &array[sz*i1] = *(DLong *) &array[sz*i2];
 //       *(DLong *) &array[sz*i1c] = *(DLong *) &array[sz*i2c];
 //       break;
 
-//     case ULONG:
+//     case GDL_ULONG:
 //       *(DULong *) &array[sz*i1] = *(DULong *) &array[sz*i2];
 //       *(DULong *) &array[sz*i1c] = *(DULong *) &array[sz*i2c];
 //       break;
 
-//     case FLOAT:
+//     case GDL_FLOAT:
 //       *(DFloat *) &array[sz*i1] = *(DFloat *) &array[sz*i2];
 //       *(DFloat *) &array[sz*i1c] = *(DFloat *) &array[sz*i2c];
 //       break;
 
-//     case DOUBLE:
+//     case GDL_DOUBLE:
 //       *(DDouble *) &array[sz*i1] = *(DDouble *) &array[sz*i2];
 //       *(DDouble *) &array[sz*i1c] = *(DDouble *) &array[sz*i2c];
 //       break;
 
-//     case COMPLEX:
+//     case GDL_COMPLEX:
 //       *(DComplex *) &array[sz*i1] = *(DComplex *) &array[sz*i2];
 //       *(DComplex *) &array[sz*i1c] = *(DComplex *) &array[sz*i2c];
 //       break;
 
-//     case COMPLEXDBL:
+//     case GDL_COMPLEXDBL:
 //       *(DComplexDbl *) &array[sz*i1] = *(DComplexDbl *) &array[sz*i2];
 //       *(DComplexDbl *) &array[sz*i1c] = *(DComplexDbl *) &array[sz*i2c];
 //       break;
@@ -249,55 +249,55 @@ Esko G. Cate & David W. Twigg
 // 	i2 = j + (i-1) * m;
 
 // 	switch (type) {
-// 	case BYTE:
+// 	case GDL_BYTE:
 // 	  *(DByte *) b = *(DByte *) &array[sz * (i1-1)];
 // 	  *(DByte *) &array[sz * (i1-1)] = *(DByte *) &array[sz * (i2-1)];
 // 	  *(DByte *) &array[sz * (i2-1)] = *(DByte *) b;
 // 	  break;
 
-// 	case INT:
+// 	case GDL_INT:
 // 	  *(DInt *) b = *(DInt *) &array[sz * (i1-1)];
 // 	  *(DInt *) &array[sz * (i1-1)] = *(DInt *) &array[sz * (i2-1)];
 // 	  *(DInt *) &array[sz * (i2-1)] = *(DInt *) b;
 // 	  break;
 
-// 	case UINT:
+// 	case GDL_UINT:
 // 	  *(DUInt *) b = *(DUInt *) &array[sz * (i1-1)];
 // 	  *(DUInt *) &array[sz * (i1-1)] = *(DUInt *) &array[sz * (i2-1)];
 // 	  *(DUInt *) &array[sz * (i2-1)] = *(DUInt *) b;
 // 	  break;
 
-// 	case LONG:
+// 	case GDL_LONG:
 // 	  *(DLong *) b = *(DLong *) &array[sz * (i1-1)];
 // 	  *(DLong *) &array[sz * (i1-1)] = *(DLong *) &array[sz * (i2-1)];
 // 	  *(DLong *) &array[sz * (i2-1)] = *(DLong *) b;
 // 	  break;
 
-// 	case ULONG:
+// 	case GDL_ULONG:
 // 	  *(DULong *) b = *(DULong *) &array[sz * (i1-1)];
 // 	  *(DULong *) &array[sz * (i1-1)] = *(DULong *) &array[sz * (i2-1)];
 // 	  *(DULong *) &array[sz * (i2-1)] = *(DULong *) b;
 // 	  break;
 
-// 	case FLOAT:
+// 	case GDL_FLOAT:
 // 	  *(DFloat *) b = *(DFloat *) &array[sz * (i1-1)];
 // 	  *(DFloat *) &array[sz * (i1-1)] = *(DFloat *) &array[sz * (i2-1)];
 // 	  *(DFloat *) &array[sz * (i2-1)] = *(DFloat *) b;
 // 	  break;
 
-// 	case DOUBLE:
+// 	case GDL_DOUBLE:
 // 	  *(DDouble *) b = *(DDouble *) &array[sz * (i1-1)];
 // 	  *(DDouble *) &array[sz * (i1-1)] = *(DDouble *) &array[sz * (i2-1)];
 // 	  *(DDouble *) &array[sz * (i2-1)] = *(DDouble *) b;
 // 	  break;
 
-// 	case COMPLEX:
+// 	case GDL_COMPLEX:
 // 	  *(DComplex *) b = *(DComplex *) &array[sz * (i1-1)];
 // 	  *(DComplex *) &array[sz * (i1-1)] = *(DComplex *) &array[sz * (i2-1)];
 // 	  *(DComplex *) &array[sz * (i2-1)] = *(DComplex *) b;
 // 	  break;
 
-// 	case COMPLEXDBL:
+// 	case GDL_COMPLEXDBL:
 // 	  *(DComplexDbl *) b = *(DComplexDbl *) &array[sz * (i1-1)];
 // 	  *(DComplexDbl *) &array[sz * (i1-1)] = *(DComplexDbl *) &array[sz * (i2-1)];
 // 	  *(DComplexDbl *) &array[sz * (i2-1)] = *(DComplexDbl *) b;

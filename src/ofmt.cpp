@@ -128,7 +128,7 @@ template<class Sp> SizeT
 Data_<Sp>::OFmtA( ostream* os, SizeT offs, SizeT r, int w) 
 {
   DStringGDL* stringVal = static_cast<DStringGDL*>
-    ( this->Convert2( STRING, BaseGDL::COPY));
+    ( this->Convert2( GDL_STRING, BaseGDL::COPY));
   SizeT retVal = stringVal->OFmtA( os, offs, r, w);
   delete stringVal;
   return retVal;
@@ -303,7 +303,7 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
        BaseGDL::IOMode oMode) 
 {
   DDoubleGDL* cVal = static_cast<DDoubleGDL*>
-    ( this->Convert2( DOUBLE, BaseGDL::COPY));
+    ( this->Convert2( GDL_DOUBLE, BaseGDL::COPY));
   SizeT retVal = cVal->OFmtF( os, offs, r, w, d, f, oMode);
   delete cVal;
   return retVal;
@@ -597,23 +597,23 @@ void ZeroPad( ostream* os, int w, int d, char f, longT dd)
   (*os) << ossF.str().substr(skip);
 }
 
-const int iFmtWidth[] =    { -1,  7,  7, 12, 12, 12, 12, 12,  // UNDEF-STRING
-			     -1, 12, -1, -1,  7, 12, 22, 22}; // STRUCT-ULONG64
-const int iFmtWidthBIN[] = { -1,  8, 16, 32, 32, 32, 32, 32,  // UNDEF-STRING
-			     -1, 32, -1, -1, 16, 32, 64, 64}; // STRUCT-ULONG64
+const int iFmtWidth[] =    { -1,  7,  7, 12, 12, 12, 12, 12,  // GDL_UNDEF-GDL_STRING
+			     -1, 12, -1, -1,  7, 12, 22, 22}; // GDL_STRUCT-GDL_ULONG64
+const int iFmtWidthBIN[] = { -1,  8, 16, 32, 32, 32, 32, 32,  // GDL_UNDEF-GDL_STRING
+			     -1, 32, -1, -1, 16, 32, 64, 64}; // GDL_STRUCT-GDL_ULONG64
 
 template<class Sp> SizeT Data_<Sp>::
 OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
        BaseGDL::IOMode oMode) 
 {
   DLongGDL* cVal = static_cast<DLongGDL*>
-    ( this->Convert2( LONG, BaseGDL::COPY));
+    ( this->Convert2( GDL_LONG, BaseGDL::COPY));
   if( w < 0) w = (oMode == BaseGDL::BIN ? iFmtWidthBIN[ this->t] : iFmtWidth[ this->t]); 
   SizeT retVal = cVal->OFmtI( os, offs, r, w, d, f, oMode);
   delete cVal;
   return retVal;
 }
-// LONG
+// GDL_LONG
 template<> SizeT Data_<SpDLong>::
 OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
        BaseGDL::IOMode oMode) 
@@ -646,7 +646,7 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
 
   return tCount;
 }
-// ULONG
+// GDL_ULONG
 template<> SizeT Data_<SpDULong>::
 OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
        BaseGDL::IOMode oMode) 
@@ -679,7 +679,7 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
 
   return tCount;
 }
-// LONG64
+// GDL_LONG64
 template<> SizeT Data_<SpDLong64>::
 OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
        BaseGDL::IOMode oMode) 
@@ -715,7 +715,7 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
 
   return tCount;
 }
-// ULONG64
+// GDL_ULONG64
 template<> SizeT Data_<SpDULong64>::
 OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
        BaseGDL::IOMode oMode) 

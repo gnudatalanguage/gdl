@@ -26,9 +26,9 @@ extern "C" BaseGDL* two_fun( EnvT* e)
 
   BaseGDL* p0 = e->GetPar( 0);//, "TWO");
 
-  if( p0->Type() == DOUBLE)
+  if( p0->Type() == GDL_DOUBLE)
     return two_fun_template< DDoubleGDL>( p0);
-  else if( p0->Type() == FLOAT)
+  else if( p0->Type() == GDL_FLOAT)
     return two_fun_template< DFloatGDL>( p0);
   else 
     {

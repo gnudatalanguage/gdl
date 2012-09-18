@@ -90,7 +90,7 @@ namespace lib {
     if(color_arr != NULL)
       {
 	l_color_arr=static_cast<DLongGDL*>
-	  (color_arr->Convert2(LONG, BaseGDL::COPY));
+	  (color_arr->Convert2(GDL_LONG, BaseGDL::COPY));
 	if(color_arr->N_Elements() < minEl && color_arr->N_Elements() > 1)
 	  e->Throw( "Array "+e->GetParString(cix)+
 		    " does not have enough elements for COLOR keyword.");
@@ -216,7 +216,7 @@ actStream->wid( 0);
     if(orient != NULL)
       {
 	d_orient=static_cast<DDoubleGDL*>
-	  (orient->Convert2(DOUBLE, BaseGDL::COPY));
+	  (orient->Convert2(GDL_DOUBLE, BaseGDL::COPY));
 	if(orient->N_Elements() < minEl && orient->N_Elements() > 1)
 	  e->Throw( "Array "+e->GetParString(oix)+
 		    " does not have enough elements for ORIENTATION keyword.");

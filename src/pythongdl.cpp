@@ -75,7 +75,7 @@ bool GetScript( PyObject *argTuple, DString& name)
 
   PyObject* proPy = PyTuple_GetItem(argTuple, 0);
   BaseGDL* proGDL = FromPython( proPy); // throws
-  if( proGDL->Type() != STRING)
+  if( proGDL->Type() != GDL_STRING)
     {
       PyErr_SetString( gdlError, "Script must be a tuple of strings.");
       GDLDelete(proGDL);
@@ -105,7 +105,7 @@ bool GetFirstString( PyObject *argTuple, DString& name)
 
   PyObject* proPy = PyTuple_GetItem(argTuple, 0);
   BaseGDL* proGDL = FromPython( proPy); // throws
-  if( proGDL->Type() != STRING || proGDL->N_Elements() != 1)
+  if( proGDL->Type() != GDL_STRING || proGDL->N_Elements() != 1)
     {
       PyErr_SetString( gdlError, "First argument must be a scalar string");
       GDLDelete(proGDL);

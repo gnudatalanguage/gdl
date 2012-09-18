@@ -145,7 +145,7 @@ public:
   // assignment. 
   DStructGDL& operator=(const BaseGDL& r)
   {
-    assert( r.Type() == STRUCT);
+    assert( r.Type() == GDL_STRUCT);
     const DStructGDL& right = static_cast<const DStructGDL&>( r);
 
     assert( *Desc() == *right.Desc());
@@ -168,7 +168,7 @@ public:
   
   void InitFrom(const BaseGDL& r)
   {
-    assert( r.Type() == STRUCT);
+    assert( r.Type() == GDL_STRUCT);
     const DStructGDL& right = static_cast<const DStructGDL&>( r);
 
     assert( *Desc() == *right.Desc());

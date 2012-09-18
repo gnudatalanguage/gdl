@@ -125,7 +125,7 @@ namespace lib {
       //1 parameter, 
       //      1->current UTC time seconds
       //      default
-      DIntGDL* v = static_cast<DIntGDL*>(e->GetParDefined(0)->Convert2(INT,BaseGDL::COPY));
+      DIntGDL* v = static_cast<DIntGDL*>(e->GetParDefined(0)->Convert2(GDL_INT,BaseGDL::COPY));
       v_guard.reset( v); //  e->Guard(v);
 
       if ( (*v)[0] == 1) //->EqualNoDelete( static_cDIntGDL(1)))
@@ -136,9 +136,9 @@ namespace lib {
       //2 parameters
       //if the first param is 0, return the date of the second arg
       //if the first param is 1, return the 'double' of the second arg
-      DIntGDL* v1 = static_cast<DIntGDL*>(e->GetParDefined(0)->Convert2(INT,BaseGDL::COPY));
+      DIntGDL* v1 = static_cast<DIntGDL*>(e->GetParDefined(0)->Convert2(GDL_INT,BaseGDL::COPY));
       v_guard.reset( v1); //  e->Guard(v1);
-      DDoubleGDL* v2 = static_cast<DDoubleGDL*>(e->GetParDefined(1)->Convert2(DOUBLE,BaseGDL::COPY));
+      DDoubleGDL* v2 = static_cast<DDoubleGDL*>(e->GetParDefined(1)->Convert2(GDL_DOUBLE,BaseGDL::COPY));
 
       if( (*v1)[0] == 0) { //v1->EqualNoDelete( DIntGDL(0))) { //0, read the second argument as time_t;
         tval.tv_sec = static_cast<long int>((*v2)[0]);
@@ -253,24 +253,24 @@ namespace lib {
     if(nEl < nmin and nEl > 1) 	nmin=nEl;    
     if(nEm < nmin and nEm > 1) 	nmin=nEm;
     
-    if (xvals->Type() == STRING) {
+    if (xvals->Type() == GDL_STRING) {
       e->Throw( 
 	       "String expression not allowed in this context: "
 	       +e->GetParString(0));
-    } else if (xvals->Type() == PTR) {
+    } else if (xvals->Type() == GDL_PTR) {
       e->Throw( 
 	       "Pointer expression not allowed in this context: "
 	       +e->GetParString(0));
-    } else if (xvals->Type() == OBJECT) {
+    } else if (xvals->Type() == GDL_OBJECT) {
       e->Throw( 
 	       "Object expression not allowed in this context: "
 	       +e->GetParString(0));
-    } else if (xvals->Type() == STRUCT) {
+    } else if (xvals->Type() == GDL_STRUCT) {
       e->Throw( 
 	       "Struct expression not allowed in this context: "
 	       +e->GetParString(0));
-    } else if(xvals->Type() == COMPLEX ||
-	      xvals->Type() == COMPLEXDBL) {
+    } else if(xvals->Type() == GDL_COMPLEX ||
+	      xvals->Type() == GDL_COMPLEXDBL) {
       e->Throw( 
 	       "Complex Legendre not implemented: ");
     }        else      {
@@ -280,69 +280,69 @@ namespace lib {
       DDoubleGDL* x_cast;
       DIntGDL* l_cast,*m_cast;
 
-      if(xvals->Type() == DOUBLE) 
+      if(xvals->Type() == GDL_DOUBLE) 
 	x_cast=  static_cast<DDoubleGDL*>(xvals);
       else
 	{
-	x_cast=  static_cast<DDoubleGDL*>(xvals->Convert2(DOUBLE,BaseGDL::COPY));
+	x_cast=  static_cast<DDoubleGDL*>(xvals->Convert2(GDL_DOUBLE,BaseGDL::COPY));
 	x_guard.reset(x_cast);//e->Guard( x_cast);
 	}
 
       //lval check
-      if (lvals->Type() == STRING)
+      if (lvals->Type() == GDL_STRING)
 	e->Throw( 
 		 "String expression not allowed in this context: "
 		 +e->GetParString(1));
-      else if (lvals->Type() == PTR)
+      else if (lvals->Type() == GDL_PTR)
 	e->Throw( 
 		 "Pointer expression not allowed in this context: "
 		 +e->GetParString(1));
-      else if (lvals->Type() == OBJECT) 
+      else if (lvals->Type() == GDL_OBJECT) 
 	e->Throw( 
 		 "Object expression not allowed in this context: "
 		 +e->GetParString(1));
-      else if (lvals->Type() == STRUCT) 
+      else if (lvals->Type() == GDL_STRUCT) 
 	e->Throw( 
 		 "Struct expression not allowed in this context: "
 		 +e->GetParString(1));
-      else if(lvals->Type() == COMPLEX ||
-	      lvals->Type() == COMPLEXDBL) 
+      else if(lvals->Type() == GDL_COMPLEX ||
+	      lvals->Type() == GDL_COMPLEXDBL) 
 	e->Throw( 
 		 "Complex Legendre not implemented: ");
-      else if(lvals->Type() == INT)
+      else if(lvals->Type() == GDL_INT)
 	l_cast=static_cast<DIntGDL*>(lvals);
       else
 	{
-	  l_cast=static_cast<DIntGDL*>(lvals->Convert2(INT,BaseGDL::COPY));
+	  l_cast=static_cast<DIntGDL*>(lvals->Convert2(GDL_INT,BaseGDL::COPY));
 	  l_guard.reset(l_cast);//e->Guard( l_cast);
 	}
 
       //mval check
-      if (mvals->Type() == STRING)
+      if (mvals->Type() == GDL_STRING)
 	e->Throw( 
 		 "String expression not allowed in this context: "
 		 +e->GetParString(2));
-      else if (mvals->Type() == PTR)
+      else if (mvals->Type() == GDL_PTR)
 	e->Throw( 
 		 "Pointer expression not allowed in this context: "
 		 +e->GetParString(2));
-      else if (mvals->Type() == OBJECT) 
+      else if (mvals->Type() == GDL_OBJECT) 
 	e->Throw( 
 		 "Object expression not allowed in this context: "
 		 +e->GetParString(2));
-      else if (mvals->Type() == STRUCT) 
+      else if (mvals->Type() == GDL_STRUCT) 
 	e->Throw( 
 		 "Struct expression not allowed in this context: "
 		 +e->GetParString(2));
-      else if(mvals->Type() == COMPLEX ||
-	      mvals->Type() == COMPLEXDBL) 
+      else if(mvals->Type() == GDL_COMPLEX ||
+	      mvals->Type() == GDL_COMPLEXDBL) 
 	e->Throw( 
 		 "Complex Legendre not implemented: ");
-      else if(mvals->Type() == INT)
+      else if(mvals->Type() == GDL_INT)
 	m_cast=static_cast<DIntGDL*>(mvals);
       else
 	{
-	  m_cast=static_cast<DIntGDL*>(mvals->Convert2(INT,BaseGDL::COPY));
+	  m_cast=static_cast<DIntGDL*>(mvals->Convert2(GDL_INT,BaseGDL::COPY));
 	  //e->Guard( m_cast);
 	  m_guard.reset(m_cast);
 	}
@@ -392,9 +392,9 @@ namespace lib {
 	}
 	
       //convert things back
-      if(xvals->Type() != DOUBLE && !e->KeywordSet("DOUBLE"))
+      if(xvals->Type() != GDL_DOUBLE && !e->KeywordSet("DOUBLE"))
 	{
-	  return res->Convert2(FLOAT,BaseGDL::CONVERT);
+	  return res->Convert2(GDL_FLOAT,BaseGDL::CONVERT);
 	}
       else
 	{
@@ -420,19 +420,19 @@ namespace lib {
 
     size_t nEl = v->N_Elements();
     size_t i;
-    if (v->Type() == STRING) {
+    if (v->Type() == GDL_STRING) {
       e->Throw( 
 		  "String expression not allowed in this context: "
 			  +e->GetParString(0));
-    } else if (v->Type() == PTR) {
+    } else if (v->Type() == GDL_PTR) {
       e->Throw( 
 		  "Pointer expression not allowed in this context: "
 			  +e->GetParString(0));
-    } else if (v->Type() == OBJECT) {
+    } else if (v->Type() == GDL_OBJECT) {
       e->Throw( 
 		  "Object expression not allowed in this context: "
 			  +e->GetParString(0));
-    } else if (v->Type() == STRUCT) {
+    } else if (v->Type() == GDL_STRUCT) {
       e->Throw( 
 		  "Struct expression not allowed in this context: "
 			  +e->GetParString(0));		  
@@ -441,9 +441,9 @@ namespace lib {
       DDoubleGDL* dr = new DDoubleGDL(v->Dim(), BaseGDL::NOZERO);
       //      e->Guard( dr);
 
-      if(v->Type() == COMPLEX) {
+      if(v->Type() == GDL_COMPLEX) {
 	DComplexDblGDL* cd=
-	  static_cast<DComplexDblGDL*>(v->Convert2(COMPLEXDBL, BaseGDL::COPY));
+	  static_cast<DComplexDblGDL*>(v->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY));
 	cd_guard.reset(cd);//e->Guard( cd);
 
 	DComplexDblGDL* cdr =
@@ -460,11 +460,11 @@ namespace lib {
 	      DComplex((gsl_sf_exp((*cd)[i].real())*cos((*cd)[i].imag())),
 		       (gsl_sf_exp((*cd)[i].real())*sin((*cd)[i].imag())));
 
-	return static_cast<DComplexGDL*>(cdr->Convert2(COMPLEX,BaseGDL::COPY));
+	return static_cast<DComplexGDL*>(cdr->Convert2(GDL_COMPLEX,BaseGDL::COPY));
 
-      } else if(v->Type() == COMPLEXDBL) {
+      } else if(v->Type() == GDL_COMPLEXDBL) {
 	DComplexDblGDL* cd=
-	  static_cast<DComplexDblGDL*>(v->Convert2(COMPLEXDBL, BaseGDL::COPY));
+	  static_cast<DComplexDblGDL*>(v->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY));
 	cd_guard.reset(cd);//e->Guard( cd);
 
 	DComplexDblGDL* cdr =
@@ -482,9 +482,9 @@ namespace lib {
 	
 	return cdr;
 	
-      } else if(v->Type() == DOUBLE) {
+      } else if(v->Type() == GDL_DOUBLE) {
 	
-	DDoubleGDL* d=static_cast<DDoubleGDL*>(v->Convert2(DOUBLE, 
+	DDoubleGDL* d=static_cast<DDoubleGDL*>(v->Convert2(GDL_DOUBLE, 
 							   BaseGDL::COPY));
 	d_guard.reset(d);//e->Guard( d);
 	if(nEl == 1) 
@@ -493,14 +493,14 @@ namespace lib {
 	  for (i=0;i<nEl;++i) (*dr)[i]=gsl_sf_exp((*d)[i]);
 	
 	return dr;
-      } else if(v->Type() == FLOAT || 
-		v->Type() == INT ||
-		v->Type() == LONG) {
+      } else if(v->Type() == GDL_FLOAT || 
+		v->Type() == GDL_INT ||
+		v->Type() == GDL_LONG) {
 	
 	DFloatGDL *fr=new DFloatGDL(v->Dim(), BaseGDL::NOZERO);
 	fr_guard.reset(fr);//e->Guard( fr);
 
-	DDoubleGDL* d=static_cast<DDoubleGDL*>(v->Convert2(DOUBLE, 
+	DDoubleGDL* d=static_cast<DDoubleGDL*>(v->Convert2(GDL_DOUBLE, 
 							   BaseGDL::COPY));
 	d_guard.reset(d);//e->Guard( d);
 
@@ -509,7 +509,7 @@ namespace lib {
 	else
 	  for (i=0;i<nEl;++i) (*dr)[i]=gsl_sf_exp((*d)[i]);
 
-	return static_cast<DFloatGDL*>(dr->Convert2(FLOAT,BaseGDL::COPY));
+	return static_cast<DFloatGDL*>(dr->Convert2(GDL_FLOAT,BaseGDL::COPY));
       }
 
     }

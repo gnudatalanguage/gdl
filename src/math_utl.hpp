@@ -44,7 +44,7 @@ namespace lib {
 		  long int *maxexp, double *eps, double *epsneg, double *xmin, double *xmax );
 
 #ifdef USE_LIBPROJ4
-#define COMPLEX COMPLEX2
+#define GDL_COMPLEX COMPLEX2
 
 #ifdef USE_LIBPROJ4_NEW
 #define PROJTYPE PROJ
@@ -70,7 +70,7 @@ extern "C" {
   static PROJTYPE *ref;
   static PROJTYPE *prev_ref;
 
-#define COMPLEX2 COMPLEX
+#define COMPLEX2 GDL_COMPLEX
 #endif
 
 } // namespace

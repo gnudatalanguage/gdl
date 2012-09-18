@@ -252,7 +252,7 @@ namespace lib {
 
 		  strTrimLine = line;
 		  StrTrim(strTrimLine); 
-		} while( strTrimLine == "" && parIn->Type() != STRING);
+		} while( strTrimLine == "" && parIn->Type() != GDL_STRING);
 			
 		istringstream iss( line + "\n");
 		parIn->FromStream( iss);
@@ -267,7 +267,7 @@ namespace lib {
 
 	      parIn->FromStream( *is);
 	      
-	      lastParIsString = parIn->Type() == STRING;
+	      lastParIsString = parIn->Type() == GDL_STRING;
 	  }
       }
       if( !lastParIsString && !is->eof()) // && is->peek() != '\n' && is->peek() != '\r')
@@ -298,7 +298,7 @@ namespace lib {
     DStringGDL* iStr = dynamic_cast<DStringGDL*>(p);
     if( iStr == NULL)
       {
-	iStr = static_cast<DStringGDL*>(p->Convert2( STRING, BaseGDL::COPY));
+	iStr = static_cast<DStringGDL*>(p->Convert2( GDL_STRING, BaseGDL::COPY));
 
 	SizeT nStr = iStr->N_Elements();
 	for( SizeT i = 0; i < nStr; i++)

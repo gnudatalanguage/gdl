@@ -66,11 +66,11 @@ Assoc_< Parent_>::Assoc_( int lun_, Parent_* assoc_, SizeT fileOffset_):
     Parent_( assoc_->Dim(), BaseGDL::NOZERO),
     lun( lun_-1), fileOffset( fileOffset_), sliceSize( assoc_->NBytes())
 {
-  if( assoc_->Type() == STRING)
+  if( assoc_->Type() == GDL_STRING)
     throw GDLException( "Expression containing string data not allowed in this context.");
-  if( assoc_->Type() == PTR)
+  if( assoc_->Type() == GDL_PTR)
     throw GDLException( "Expression containing pointers not allowed in this context.");
-  if( assoc_->Type() == OBJECT)
+  if( assoc_->Type() == GDL_OBJECT)
     throw GDLException( "Expression containing object references not allowed in this context.");
 }
 

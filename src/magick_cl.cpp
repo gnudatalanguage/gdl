@@ -577,7 +577,7 @@ namespace lib {
 	if(e->GetKW(1) != NULL)//SUB_RECT
 	  {
 	    BaseGDL* sr=e->GetKW(1);
-	    DULongGDL * subrect=static_cast<DULongGDL*>(sr->Convert2(ULONG,BaseGDL::COPY));
+	    DULongGDL * subrect=static_cast<DULongGDL*>(sr->Convert2(GDL_ULONG,BaseGDL::COPY));
 	    if(subrect->N_Elements() != 4)
 	      e->Throw("Not enough elements in SUB_RECT, expected 4.");
 	    lx=(*subrect)[0];//guaranteed to be >0
@@ -667,13 +667,13 @@ namespace lib {
 		    {*/
 
 		DByteGDL * bImage=
-		  static_cast<DByteGDL*>(GDLimage->Convert2(BYTE,BaseGDL::COPY));
+		  static_cast<DByteGDL*>(GDLimage->Convert2(GDL_BYTE,BaseGDL::COPY));
 		image.read(columns,rows,map, CharPixel,&(*bImage)[0]);
 		/*	      }
 	    else if(image.depth() == 16)
 	      {
 		DUIntGDL * iImage=
-		  static_cast<DUIntGDL*>(GDLimage->Convert2(UINT,BaseGDL::COPY));
+		  static_cast<DUIntGDL*>(GDLimage->Convert2(GDL_UINT,BaseGDL::COPY));
 
 		image.read(columns,rows,map, ShortPixel,&(*iImage)[0]);
 	      }
@@ -1019,7 +1019,7 @@ namespace lib {
     DUInt mid;
     e->AssureScalarPar<DUIntGDL>(0,mid);    
     BaseGDL* GDLimage=e->GetParDefined(1);
-    DByteGDL * bImage=static_cast<DByteGDL*>(GDLimage->Convert2(BYTE,BaseGDL::COPY));
+    DByteGDL * bImage=static_cast<DByteGDL*>(GDLimage->Convert2(GDL_BYTE,BaseGDL::COPY));
 
     Image image=magick_image(e,mid);
 
@@ -1062,15 +1062,15 @@ SizeT nEl = columns*rows;
     Image image=magick_image(e,mid);
 
     BaseGDL* GDLCol=e->GetParDefined(1);
-    DByteGDL * Red=static_cast<DByteGDL*>(GDLCol->Convert2(BYTE,BaseGDL::COPY));
+    DByteGDL * Red=static_cast<DByteGDL*>(GDLCol->Convert2(GDL_BYTE,BaseGDL::COPY));
     //e->Guard( Red);
     auto_ptr<BaseGDL> r_guard( Red);
     GDLCol=e->GetParDefined(2);
-    DByteGDL * Green=static_cast<DByteGDL*>(GDLCol->Convert2(BYTE,BaseGDL::COPY));
+    DByteGDL * Green=static_cast<DByteGDL*>(GDLCol->Convert2(GDL_BYTE,BaseGDL::COPY));
     //e->Guard( Green);
     auto_ptr<BaseGDL> g_guard( Green);
     GDLCol=e->GetParDefined(3);
-    DByteGDL *Blue= static_cast<DByteGDL*>(GDLCol->Convert2(BYTE,BaseGDL::COPY));
+    DByteGDL *Blue= static_cast<DByteGDL*>(GDLCol->Convert2(GDL_BYTE,BaseGDL::COPY));
     //e->Guard( Blue);
     auto_ptr<BaseGDL> b_guard( Blue);
 

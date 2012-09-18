@@ -43,139 +43,139 @@
 
 // GDL typecodes
 enum DType {  // Object types (IDL type numbers)
-  UNDEF=0,    // 0 Undefined value, the default for new symbols
-  BYTE=1,     // 1 byte
-  INT,	      // 2 Integer scalar 
-  LONG,	      // 3 long Integer scalar
-  FLOAT,      // 4 Real scalar
-  DOUBLE,     // 5 Double scalar
-  COMPLEX,    // 6 Complex scalar
-  STRING,     // 7 String
-  STRUCT,     // 8 Struct
-  COMPLEXDBL, // 9 Complex double
-  PTR,	      // 10 Pointer
-  OBJECT,     // 11 Object reference
-  UINT,       // 12 unsigned int
-  ULONG,      // 13 unsigned long int
-  LONG64,     // 14 64 bit integer
-  ULONG64     // 15 unsigned 64 bit integer
+  GDL_UNDEF=0,    // 0 Undefined value, the default for new symbols
+  GDL_BYTE=1,     // 1 byte
+  GDL_INT,	      // 2 Integer scalar 
+  GDL_LONG,	      // 3 long Integer scalar
+  GDL_FLOAT,      // 4 Real scalar
+  GDL_DOUBLE,     // 5 Double scalar
+  GDL_COMPLEX,    // 6 Complex scalar
+  GDL_STRING,     // 7 String
+  GDL_STRUCT,     // 8 Struct
+  GDL_COMPLEXDBL, // 9 Complex double
+  GDL_PTR,	      // 10 Pointer
+  GDL_OBJECT,     // 11 Object reference
+  GDL_UINT,       // 12 unsigned int
+  GDL_ULONG,      // 13 unsigned long int
+  GDL_LONG64,     // 14 64 bit integer
+  GDL_ULONG64     // 15 unsigned 64 bit integer
 };
 
 // order of conversion precedence if two types are the same,
 // the first type is used // used also by ArrayIndexT
 const int DTypeOrder[]={
-  -1, 	//UNDEF
-  2, 	//BYTE
-  3, 	//INT
-  4, 	//LONG,	
-  8, 	//FLOAT,	
-  9, 	//DOUBLE,	
-  10, 	//COMPLEX,	
-  1, 	//STRING,	
-  101, 	//STRUCT,	
-  11, 	//COMPLEXDBL,	
-  102, 	//PTR,		
-  103, 	//OBJECT,
-  3, 	//UINT,	
-  4, 	//ULONG,
-  5, 	//LONG64,
-  5 	//ULONG64
+  -1, 	//GDL_UNDEF
+  2, 	//GDL_BYTE
+  3, 	//GDL_INT
+  4, 	//GDL_LONG,	
+  8, 	//GDL_FLOAT,	
+  9, 	//GDL_DOUBLE,	
+  10, 	//GDL_COMPLEX,	
+  1, 	//GDL_STRING,	
+  101, 	//GDL_STRUCT,	
+  11, 	//GDL_COMPLEXDBL,	
+  102, 	//GDL_PTR,		
+  103, 	//GDL_OBJECT,
+  3, 	//GDL_UINT,	
+  4, 	//GDL_ULONG,
+  5, 	//GDL_LONG64,
+  5 	//GDL_ULONG64
 };	
 const bool IsConvertableType[]={
-  false, 	//UNDEF
-  true, 	//BYTE
-  true, 	//INT
-  true, 	//LONG,	
-  true, 	//FLOAT,	
-  true, 	//DOUBLE,	
-  true, 	//COMPLEX,	
-  true, 	//STRING,	
-  false, 	//STRUCT,	
-  true, 	//COMPLEXDBL,	
-  false, 	//PTR,		
-  false, 	//OBJECT,
-  true, 	//UINT,	
-  true, 	//ULONG,
-  true, 	//LONG64,
-  true  	//ULONG64
+  false, 	//GDL_UNDEF
+  true, 	//GDL_BYTE
+  true, 	//GDL_INT
+  true, 	//GDL_LONG,	
+  true, 	//GDL_FLOAT,	
+  true, 	//GDL_DOUBLE,	
+  true, 	//GDL_COMPLEX,	
+  true, 	//GDL_STRING,	
+  false, 	//GDL_STRUCT,	
+  true, 	//GDL_COMPLEXDBL,	
+  false, 	//GDL_PTR,		
+  false, 	//GDL_OBJECT,
+  true, 	//GDL_UINT,	
+  true, 	//GDL_ULONG,
+  true, 	//GDL_LONG64,
+  true  	//GDL_ULONG64
 };	
 const bool IsNumericType[]={
-  false, 	//UNDEF
-  true, 	//BYTE
-  true, 	//INT
-  true, 	//LONG,	
-  true, 	//FLOAT,	
-  true, 	//DOUBLE,	
-  true, 	//COMPLEX,	
-  false, 	//STRING,	
-  false, 	//STRUCT,	
-  true, 	//COMPLEXDBL,	
-  false, 	//PTR,		
-  false, 	//OBJECT,
-  true, 	//UINT,	
-  true, 	//ULONG,
-  true, 	//LONG64,
-  true  	//ULONG64
+  false, 	//GDL_UNDEF
+  true, 	//GDL_BYTE
+  true, 	//GDL_INT
+  true, 	//GDL_LONG,	
+  true, 	//GDL_FLOAT,	
+  true, 	//GDL_DOUBLE,	
+  true, 	//GDL_COMPLEX,	
+  false, 	//GDL_STRING,	
+  false, 	//GDL_STRUCT,	
+  true, 	//GDL_COMPLEXDBL,	
+  false, 	//GDL_PTR,		
+  false, 	//GDL_OBJECT,
+  true, 	//GDL_UINT,	
+  true, 	//GDL_ULONG,
+  true, 	//GDL_LONG64,
+  true  	//GDL_ULONG64
 };	
 const bool IsIntType[]={
-  false, 	//UNDEF
-  true, 	//BYTE
-  true, 	//INT
-  true, 	//LONG,	
-  false, 	//FLOAT,	
-  false, 	//DOUBLE,	
-  false, 	//COMPLEX,	
-  false, 	//STRING,	
-  false, 	//STRUCT,	
-  false, 	//COMPLEXDBL,	
-  false, 	//PTR,		
-  false, 	//OBJECT,
-  true, 	//UINT,	
-  true, 	//ULONG,
-  true, 	//LONG64,
-  true  	//ULONG64
+  false, 	//GDL_UNDEF
+  true, 	//GDL_BYTE
+  true, 	//GDL_INT
+  true, 	//GDL_LONG,	
+  false, 	//GDL_FLOAT,	
+  false, 	//GDL_DOUBLE,	
+  false, 	//GDL_COMPLEX,	
+  false, 	//GDL_STRING,	
+  false, 	//GDL_STRUCT,	
+  false, 	//GDL_COMPLEXDBL,	
+  false, 	//GDL_PTR,		
+  false, 	//GDL_OBJECT,
+  true, 	//GDL_UINT,	
+  true, 	//GDL_ULONG,
+  true, 	//GDL_LONG64,
+  true  	//GDL_ULONG64
 };	
 const bool IsRealType[]={
-  false, 	//UNDEF
-  true, 	//BYTE
-  true, 	//INT
-  true, 	//LONG,	
-  true, 	//FLOAT,	
-  true, 	//DOUBLE,	
-  false, 	//COMPLEX,	
-  false, 	//STRING,	
-  false, 	//STRUCT,	
-  false, 	//COMPLEXDBL,	
-  false, 	//PTR,		
-  false, 	//OBJECT,
-  true, 	//UINT,	
-  true, 	//ULONG,
-  true, 	//LONG64,
-  true  	//ULONG64
+  false, 	//GDL_UNDEF
+  true, 	//GDL_BYTE
+  true, 	//GDL_INT
+  true, 	//GDL_LONG,	
+  true, 	//GDL_FLOAT,	
+  true, 	//GDL_DOUBLE,	
+  false, 	//GDL_COMPLEX,	
+  false, 	//GDL_STRING,	
+  false, 	//GDL_STRUCT,	
+  false, 	//GDL_COMPLEXDBL,	
+  false, 	//GDL_PTR,		
+  false, 	//GDL_OBJECT,
+  true, 	//GDL_UINT,	
+  true, 	//GDL_ULONG,
+  true, 	//GDL_LONG64,
+  true  	//GDL_ULONG64
 };	
 const bool IsNonPODType[]={
-  false, 	//UNDEF
-  false, 	//BYTE
-  false, 	//INT
-  false, 	//LONG,	
-  false, 	//FLOAT,	
-  false, 	//DOUBLE,	
-  true, 	//COMPLEX,	
-  true, 	//STRING,	
-  true, 	//STRUCT,	
-  true, 	//COMPLEXDBL,	
-  true, 	//PTR, nonPOD due to reference counting
-  true, 	//OBJECT, nonPOD due to reference counting
-  false, 	//UINT,	
-  false, 	//ULONG,
-  false, 	//LONG64,
-  false 	//ULONG64
+  false, 	//GDL_UNDEF
+  false, 	//GDL_BYTE
+  false, 	//GDL_INT
+  false, 	//GDL_LONG,	
+  false, 	//GDL_FLOAT,	
+  false, 	//GDL_DOUBLE,	
+  true, 	//GDL_COMPLEX,	
+  true, 	//GDL_STRING,	
+  true, 	//GDL_STRUCT,	
+  true, 	//GDL_COMPLEXDBL,	
+  true, 	//GDL_PTR, nonPOD due to reference counting
+  true, 	//GDL_OBJECT, nonPOD due to reference counting
+  false, 	//GDL_UINT,	
+  false, 	//GDL_ULONG,
+  false, 	//GDL_LONG64,
+  false 	//GDL_ULONG64
 };	
 
 inline bool NonPODType( DType t)
 {
   return IsNonPODType[ t];
-//   return (t == COMPLEX) || (t == COMPLEXDBL) || (t == STRING) || (t == STRUCT);
+//   return (t == GDL_COMPLEX) || (t == GDL_COMPLEXDBL) || (t == GDL_STRING) || (t == GDL_STRUCT);
 }
 inline bool IntType( DType t)
 {
@@ -185,7 +185,7 @@ inline bool IntType( DType t)
 }
 inline bool FloatType( DType t)
 {
-  return (t == FLOAT || t == DOUBLE);
+  return (t == GDL_FLOAT || t == GDL_DOUBLE);
 }
 inline bool RealType( DType t) // Float or Int
 {
@@ -195,7 +195,7 @@ inline bool RealType( DType t) // Float or Int
 }
 inline bool ComplexType( DType t)
 {
-  return (t == COMPLEX || t == COMPLEXDBL);
+  return (t == GDL_COMPLEX || t == GDL_COMPLEXDBL);
 }
 inline bool NumericType( DType t) // Float or Int or Complex
 {
@@ -334,7 +334,7 @@ public:
   enum Convert2Mode {
     CONVERT=1,
     COPY=2,
-    COPY_BYTE_AS_INT=(4|2),    // for STRING function
+    COPY_BYTE_AS_INT=(4|2),    // for GDL_STRING function
     THROWIOERROR=8,            // for DStringGDL::Convert2()
     COPY_THROWIOERROR=(8|2),   // for DStringGDL::Convert2()
     CONVERT_THROWIOERROR=(8|1) // for DStringGDL::Convert2() (SA: used in NEWTON())
@@ -351,7 +351,7 @@ public:
     AUTO
   };
   
-  // FIRST VIRTUAL FUNCTION'S OBJECT FILE CONTAINS ALSO THE VTABLE
+  // FIRST VIRTUAL FUNCTION'S GDL_OBJECT FILE CONTAINS ALSO THE VTABLE
   // therefore it must be defined non-inline (g++)
   virtual ~BaseGDL(); // defined in basegdl.cpp
 

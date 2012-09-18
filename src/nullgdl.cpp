@@ -143,7 +143,7 @@ std::istream& NullGDL::FromStream(std::istream& i)
 
 bool NullGDL::Scalar() const { return false;}
 bool NullGDL::StrictScalar() const { return false;}
-DType   NullGDL::Type() const { return UNDEF;}
+DType   NullGDL::Type() const { return GDL_UNDEF;}
 const std::string& NullGDL::TypeStr() const
 { static const std::string s("UNDEFINED"); return s;}
 bool NullGDL::EqType( const BaseGDL*) const
@@ -177,7 +177,7 @@ BaseGDL* NullGDL::Dup() const
 
 BaseGDL* NullGDL::Convert2( DType destTy, Convert2Mode mode)
 {
-  if( destTy == STRING)
+  if( destTy == GDL_STRING)
     return new DStringGDL( "!NULL");
   throw GDLException("Variable is undefined: !NULL");  
 }
@@ -365,14 +365,14 @@ BaseGDL* NullGDL::EqOp( BaseGDL* r)
   }
   // check for null opject and pointer
   DType rTy= r->Type();
-  if( rTy == PTR)
+  if( rTy == GDL_PTR)
   {
     DPtrGDL* rP = static_cast<DPtrGDL*>(r);
     DPtr pVal;
     if( rP->Scalar( pVal) && pVal == 0)
       return new Data_<SpDByte>( 1);
   }
-  else if( rTy == OBJECT)
+  else if( rTy == GDL_OBJECT)
   {
     DObjGDL* rP = static_cast<DObjGDL*>(r);
     DObj pVal;
@@ -390,14 +390,14 @@ BaseGDL* NullGDL::NeOp( BaseGDL* r)
   }
   // check for null opject and pointer
   DType rTy= r->Type();
-  if( rTy == PTR)
+  if( rTy == GDL_PTR)
   {
     DPtrGDL* rP = static_cast<DPtrGDL*>(r);
     DPtr pVal;
     if( rP->Scalar( pVal) && pVal == 0)
       return new Data_<SpDByte>( 0);
   }
-  else if( rTy == OBJECT)
+  else if( rTy == GDL_OBJECT)
   {
     DObjGDL* rP = static_cast<DObjGDL*>(r);
     DObj pVal;

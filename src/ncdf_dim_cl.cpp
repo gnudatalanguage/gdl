@@ -63,7 +63,7 @@ namespace lib {
     e->AssureLongScalarPar(0, cdfid);
 
     BaseGDL* p1 = e->GetParDefined( 1); 
-    if (p1->Type() != STRING) {
+    if (p1->Type() != GDL_STRING) {
       // Numeric
       e->AssureLongScalarPar(1, dimid);
     } else {
@@ -143,43 +143,43 @@ namespace lib {
 
 	BaseGDL* s=e->GetParDefined(2);
 	size_t ds;
-	if(s->Type() == LONG)
+	if(s->Type() == GDL_LONG)
 	  {
 	    DLong lvar;
 	    e->AssureScalarPar<DLongGDL>(2, lvar);
 	    ds=static_cast<size_t>(lvar);
 	    
 	  }
-	else if(s->Type() == INT)
+	else if(s->Type() == GDL_INT)
 	  {
 	    DInt ivar;
 	    e->AssureScalarPar<DIntGDL>(2, ivar);
 	    ds=static_cast<size_t>(ivar);
 	  
-}	else if(s->Type() == FLOAT)
+}	else if(s->Type() == GDL_FLOAT)
 	  {
 	    DFloat fvar;
 	    e->AssureScalarPar<DFloatGDL>(2, fvar);
 	    ds=static_cast<size_t>(fvar);
 	  }
-	else if(s->Type() == DOUBLE)
+	else if(s->Type() == GDL_DOUBLE)
 	  {
 	    DDouble dvar;
 	    e->AssureScalarPar<DDoubleGDL>(2, dvar);
 	    ds=static_cast<size_t>(dvar);
 	  }
-	else if(s->Type() == BYTE)
+	else if(s->Type() == GDL_BYTE)
 	  {
 	    DByte bvar;
 	    e->AssureScalarPar<DByteGDL>(2, bvar);
 	    ds=static_cast<size_t>(bvar);
 	  }
-	else if(s->Type() == STRING)
+	else if(s->Type() == GDL_STRING)
 	  {
 	    DLongGDL* lsvar;
 	    DString sv;
 	    e->AssureScalarPar<DStringGDL>(2, sv);
-	    lsvar=static_cast<DLongGDL*>(s->Convert2(LONG,BaseGDL::COPY));
+	    lsvar=static_cast<DLongGDL*>(s->Convert2(GDL_LONG,BaseGDL::COPY));
 	    ds=static_cast<size_t>((*lsvar)[0]);
 	  }
 
@@ -207,7 +207,7 @@ namespace lib {
     e->AssureLongScalarPar(0, cdfid);
 
     BaseGDL* p1 = e->GetParDefined( 1);
-    if (p1->Type() != STRING) {
+    if (p1->Type() != GDL_STRING) {
       // Numeric
       e->AssureLongScalarPar(1, dimid);
     } else {

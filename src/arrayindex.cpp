@@ -120,7 +120,7 @@ void ArrayIndexScalar::Init()
 BaseGDL* ArrayIndexListOneScalarT::Index( BaseGDL* var, IxExprListT& ix_)
   {
     // Init() not called
-    if( !var->IsAssoc())// && var->Type() != STRUCT)
+    if( !var->IsAssoc())// && var->Type() != GDL_STRUCT)
       {
 	sInit = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
 	  
@@ -149,7 +149,7 @@ BaseGDL* ArrayIndexListOneScalarT::Index( BaseGDL* var, IxExprListT& ix_)
 BaseGDL* ArrayIndexListOneScalarNoAssocT::Index( BaseGDL* var, IxExprListT& ix_)
   {
     // Init() not called
-//     if( !var->IsAssoc())// && var->Type() != STRUCT)
+//     if( !var->IsAssoc())// && var->Type() != GDL_STRUCT)
 //       {
 	sInit = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
 	  
@@ -178,7 +178,7 @@ BaseGDL* ArrayIndexListOneScalarNoAssocT::Index( BaseGDL* var, IxExprListT& ix_)
 BaseGDL* ArrayIndexListOneScalarVPT::Index( BaseGDL* var, IxExprListT& ix_)
   {
     // Init() not called
-    if( !var->IsAssoc())// && var->Type() != STRUCT)
+    if( !var->IsAssoc())// && var->Type() != GDL_STRUCT)
       {
 	sInit = varPtr->Data()->LoopIndex();
 	if( sInit < 0)
@@ -206,7 +206,7 @@ BaseGDL* ArrayIndexListOneScalarVPT::Index( BaseGDL* var, IxExprListT& ix_)
 BaseGDL* ArrayIndexListOneScalarVPNoAssocT::Index( BaseGDL* var, IxExprListT& ix_)
   {
     // Init() not called
-//     if( !var->IsAssoc())// && var->Type() != STRUCT)
+//     if( !var->IsAssoc())// && var->Type() != GDL_STRUCT)
 //       {
 	sInit = varPtr->Data()->LoopIndex();
 	if( sInit < 0)
@@ -287,7 +287,7 @@ void ArrayIndexListOneScalarT::AssignAt( BaseGDL* var, BaseGDL* right)
   {
     // Init() was already called
     // scalar case
-    if( right->N_Elements() == 1 && !var->IsAssoc())// && var->Type() != STRUCT) 
+    if( right->N_Elements() == 1 && !var->IsAssoc())// && var->Type() != GDL_STRUCT) 
       {
 	sInit = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
 	if( sInit < 0)
@@ -319,7 +319,7 @@ void ArrayIndexListOneScalarNoAssocT::AssignAt( BaseGDL* var, BaseGDL* right)
   {
     // Init() was already called
     // scalar case
-    if( right->N_Elements() == 1)// && !var->IsAssoc())// && var->Type() != STRUCT) 
+    if( right->N_Elements() == 1)// && !var->IsAssoc())// && var->Type() != GDL_STRUCT) 
       {
 	sInit = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
 	if( sInit < 0)

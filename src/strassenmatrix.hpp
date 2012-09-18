@@ -2066,11 +2066,11 @@ void SM1( SizeT mSz, SizeT l, SizeT m, SizeT n, T *A, T *B, T *C)
   assert( yLim2 <= n_2);
 
 // #pragma omp parallel
-#pragma omp taskq
+#pragma intel omp taskq
 {
   /* p1 = (a11 + a22) x (b11 + b22) */
 // #pragma omp task private( subBuf, a_cum, b_cum) default(shared)
-#pragma omp task default(shared)
+#pragma intel omp task default(shared)
 {
   T* subBuf = new T[ 5 * n_22];
   T* a_cum = subBuf + 3 * n_22;
@@ -2095,7 +2095,7 @@ void SM1( SizeT mSz, SizeT l, SizeT m, SizeT n, T *A, T *B, T *C)
 
   /* p4 = a22 x (b21 - b11) */
 // #pragma omp task private( subBuf, a_cum, b_cum) default(shared)
-#pragma omp task default(shared)
+#pragma intel omp task default(shared)
 {
   T* subBuf = new T[ 5 * n_22];
   T* a_cum = subBuf + 3 * n_22;
@@ -2116,7 +2116,7 @@ void SM1( SizeT mSz, SizeT l, SizeT m, SizeT n, T *A, T *B, T *C)
 
   /* p5 = (a11 + a12) x b22 */
 // #pragma omp task private( subBuf, a_cum, b_cum) default(shared)
-#pragma omp task default(shared)
+#pragma intel omp task default(shared)
 {
   T* subBuf = new T[ 5 * n_22];
   T* a_cum = subBuf + 3 * n_22;
@@ -2137,7 +2137,7 @@ void SM1( SizeT mSz, SizeT l, SizeT m, SizeT n, T *A, T *B, T *C)
 	    
   /* p7 = (a12 - a22) x (b21 + b22) */
 // #pragma omp task private( subBuf, a_cum, b_cum) default(shared)
-#pragma omp task default(shared)
+#pragma intel omp task default(shared)
 {
   T* subBuf = new T[ 5 * n_22];
   T* a_cum = subBuf + 3 * n_22;
@@ -2161,7 +2161,7 @@ void SM1( SizeT mSz, SizeT l, SizeT m, SizeT n, T *A, T *B, T *C)
 
   /* p2 = (a21 + a22) x b11 */
 // #pragma omp task private( subBuf, a_cum, b_cum) default(shared)
-#pragma omp task default(shared)
+#pragma intel omp task default(shared)
 {
   T* subBuf = new T[ 5 * n_22];
   T* a_cum = subBuf + 3 * n_22;
@@ -2182,7 +2182,7 @@ void SM1( SizeT mSz, SizeT l, SizeT m, SizeT n, T *A, T *B, T *C)
 	    
   /* p3 = a11 x (b12 - b22) */
 // #pragma omp task private( subBuf, a_cum, b_cum) default(shared)
-#pragma omp task default(shared)
+#pragma intel omp task default(shared)
 {
   T* subBuf = new T[ 5 * n_22];
   T* a_cum = subBuf + 3 * n_22;
@@ -2203,7 +2203,7 @@ void SM1( SizeT mSz, SizeT l, SizeT m, SizeT n, T *A, T *B, T *C)
 
   /* p6 = (a21 - a11) x (b11 + b12) */
 // #pragma omp task private( subBuf, a_cum, b_cum) default(shared)
-#pragma omp task default(shared)
+#pragma intel omp task default(shared)
 {
   T* subBuf = new T[ 5 * n_22];
   T* a_cum = subBuf + 3 * n_22;
@@ -2225,7 +2225,7 @@ void SM1( SizeT mSz, SizeT l, SizeT m, SizeT n, T *A, T *B, T *C)
   delete[] subBuf;
 }
 
-#pragma omp taskwait
+#pragma intel omp taskwait
 } // task
 
   /* c11 = p1 + p4 - p5 + p7 */

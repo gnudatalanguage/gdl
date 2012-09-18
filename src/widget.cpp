@@ -956,11 +956,11 @@ namespace lib {
 
       /*
       if ( *uvalueKW != NULL) {
-	if( (*uvalueKW)->Type() == STRING)
+	if( (*uvalueKW)->Type() == GDL_STRING)
 	  *uvalueKW = new DStringGDL( (*( DStringGDL*) (*uvalueKW))[0]);
-	if( (*uvalueKW)->Type() == LONG)
+	if( (*uvalueKW)->Type() == GDL_LONG)
 	  *uvalueKW = new DLongGDL( (*( DLongGDL*) (*uvalueKW))[0]);
-	if( (*uvalueKW)->Type() == STRUCT) {
+	if( (*uvalueKW)->Type() == GDL_STRUCT) {
 	  DStructGDL* s = static_cast<DStructGDL*>( *uvalueKW);
 	  //	  DStructGDL* parStruct = dynamic_cast<DStructGDL*>( *uvalueKW);
 	  cout << s->Desc()->Name() << endl;
@@ -972,7 +972,7 @@ namespace lib {
 
     if ( setuvalue) {
       BaseGDL* uvalue = e->GetKW( setuvalueIx);
-      if( uvalue->Type() == STRUCT) {
+      if( uvalue->Type() == GDL_STRUCT) {
 	//	cout << "Structure uvalue" << endl;
 	//DStructGDL* s1 = static_cast<DStructGDL*>( uvalue);
 	//cout << s1->Desc()->Name() << endl;
@@ -1088,9 +1088,9 @@ namespace lib {
 
 	*valueKW = widget->GetVvalue();
 	if ( *valueKW != NULL) {
-	  if( (*valueKW)->Type() == STRING)
+	  if( (*valueKW)->Type() == GDL_STRING)
 	    *valueKW = new DStringGDL( (*( DStringGDL*) (*valueKW))[0]);
-	  if( (*valueKW)->Type() == LONG)
+	  if( (*valueKW)->Type() == GDL_LONG)
 	    *valueKW = new DLongGDL( (*( DLongGDL*) (*valueKW))[0]);
 	} else {
 	  DLongGDL* res = new DLongGDL( 0);

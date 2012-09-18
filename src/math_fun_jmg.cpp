@@ -32,7 +32,7 @@
 //#define GDL_DEBUG
 #undef GDL_DEBUG
 
-#define COMPLEX2 COMPLEX
+#define COMPLEX2 GDL_COMPLEX
 
 using namespace std;
 
@@ -103,9 +103,9 @@ namespace lib {
 //     SizeT nEl = p0->N_Elements();
 //     for( SizeT i=0; i<nEl; ++i)
 //       {
-// 	if( p0->Type() == COMPLEX) {
+// 	if( p0->Type() == GDL_COMPLEX) {
 // 	  float* dptr = (float*) &(*p0C)[0];
-// 	 } else if( p0->Type() == COMPLEXDBL) {
+// 	 } else if( p0->Type() == GDL_COMPLEXDBL) {
 // 	    int a=0;
 // 	} else {
 // 	  int out = isfinite((*p0C)[ i]); 
@@ -131,7 +131,7 @@ namespace lib {
 
 //     DByteGDL* res = new DByteGDL( p0->Dim(), BaseGDL::NOZERO);
 
-//     if( p0->Type() == COMPLEX) {
+//     if( p0->Type() == GDL_COMPLEX) {
 //       DComplexGDL* p0C = static_cast<DComplexGDL*>( p0);
 //       for( SizeT i=0; i<nEl; ++i) {
 // // 	float* dptr = (float*) &(*p0C)[ i];
@@ -142,7 +142,7 @@ namespace lib {
 // 	if (isfinite(r_part) == 0 || isfinite(i_part) == 0) 
 // 	  (*res)[ i] = 0; else (*res)[ i] = 1;
 //       }
-//     } else if ( p0->Type() == COMPLEXDBL) {
+//     } else if ( p0->Type() == GDL_COMPLEXDBL) {
 //       DComplexDblGDL* p0C = static_cast<DComplexDblGDL*>( p0);
 //       for( SizeT i=0; i<nEl; ++i) {
 // //         double* dptr = (double*) &(*p0C)[ i];
@@ -153,17 +153,17 @@ namespace lib {
 // 	if (isfinite(r_part) == 0 || isfinite(i_part) == 0) 
 // 	  (*res)[ i] = 0; else (*res)[ i] = 1;
 //       }
-//     } else if( p0->Type() == DOUBLE) {
+//     } else if( p0->Type() == GDL_DOUBLE) {
 //       DDoubleGDL* p0D = static_cast<DDoubleGDL*>( p0);
 //       for( SizeT i=0; i<nEl; ++i)
 // 	if (isfinite((*p0D)[ i]) == 0) (*res)[ i] = 0; else (*res)[ i] = 1;
-//     } else if( p0->Type() == FLOAT) {
+//     } else if( p0->Type() == GDL_FLOAT) {
 //       DFloatGDL* p0F = static_cast<DFloatGDL*>( p0);
 //       for( SizeT i=0; i<nEl; ++i)
 // 	if (isfinite((*p0F)[ i]) == 0) (*res)[ i] = 0; else (*res)[ i] = 1;
 //     } else {
 //       DFloatGDL* p0F = static_cast<DFloatGDL*>
-// 	(p0->Convert2( FLOAT, BaseGDL::COPY));
+// 	(p0->Convert2( GDL_FLOAT, BaseGDL::COPY));
 //       for( SizeT i=0; i<nEl; ++i)
 // 	if (isfinite((*p0F)[ i]) == 0) (*res)[ i] = 0; else (*res)[ i] = 1;
 //     }
@@ -192,7 +192,7 @@ namespace lib {
      }
    };
 
-   // partial specialization for COMPLEX, DCOMPLEX
+   // partial specialization for GDL_COMPLEX, DCOMPLEX
    template< typename T> struct finite_helper<T, true>
    {
      inline static BaseGDL* do_it(T* src, bool kwNaN, bool kwInfinity)
@@ -263,7 +263,7 @@ namespace lib {
      }
    };
 
-   // partial specialization for COMPLEX, DCOMPLEX
+   // partial specialization for GDL_COMPLEX, DCOMPLEX
    template< typename T> struct finite_helper_sign<T, true>
    {
      inline static BaseGDL* do_it(T* src, bool kwNaN, bool kwInfinity, DLong kwSign)
@@ -314,32 +314,32 @@ namespace lib {
        {
 	 switch (p0->Type()) 
 	   {
-	   case FLOAT: 
+	   case GDL_FLOAT: 
 	     {
 	       return finite_template<DFloatGDL, false>(p0, kwNaN, kwInfinity);
 	     }
-	   case DOUBLE:
+	   case GDL_DOUBLE:
 	     {
 	       return finite_template<DDoubleGDL, false>(p0, kwNaN, kwInfinity);
 	     }
-	   case COMPLEX:
+	   case GDL_COMPLEX:
 	     {
 	       return finite_template<DComplexGDL, true>(p0, kwNaN, kwInfinity);
 	     }
-	   case COMPLEXDBL:
+	   case GDL_COMPLEXDBL:
 	     {
 	       return finite_template<DComplexDblGDL, true>(p0, kwNaN, kwInfinity);
 	     }
-	   case STRING:
+	   case GDL_STRING:
 	     {
 	       DFloatGDL* p0F = 
-		 static_cast<DFloatGDL*>(p0->Convert2(FLOAT,BaseGDL::COPY));
+		 static_cast<DFloatGDL*>(p0->Convert2(GDL_FLOAT,BaseGDL::COPY));
 	       guard.reset( p0F);
 	       return finite_template<DFloatGDL, false>(p0F, kwNaN, kwInfinity);
 	     }
-	   case STRUCT:
-	   case PTR:
-	   case OBJECT:
+	   case GDL_STRUCT:
+	   case GDL_PTR:
+	   case GDL_OBJECT:
 	     {
 	       e->Throw( p0->TypeStr() + " not allowed in this context: " +
 			 e->GetParString( 0));
@@ -362,32 +362,32 @@ namespace lib {
        {
 	 switch (p0->Type()) 
 	   {
-	   case FLOAT: 
+	   case GDL_FLOAT: 
 	     {
 	       return finite_template<DFloatGDL, false>(p0, kwNaN, kwInfinity, kwSign);
 	     }
-	   case DOUBLE:
+	   case GDL_DOUBLE:
 	     {
 	       return finite_template<DDoubleGDL, false>(p0, kwNaN, kwInfinity, kwSign);
 	     }
-	   case COMPLEX:
+	   case GDL_COMPLEX:
 	     {
 	       return finite_template<DComplexGDL, true>(p0, kwNaN, kwInfinity, kwSign);
 	     }
-	   case COMPLEXDBL:
+	   case GDL_COMPLEXDBL:
 	     {
 	       return finite_template<DComplexDblGDL, true>(p0, kwNaN, kwInfinity, kwSign);
 	     }
-	   case STRING:
+	   case GDL_STRING:
 	     {
 	       DFloatGDL* p0F = 
-		 static_cast<DFloatGDL*>(p0->Convert2(FLOAT,BaseGDL::COPY));
+		 static_cast<DFloatGDL*>(p0->Convert2(GDL_FLOAT,BaseGDL::COPY));
 	       guard.reset( p0F);
 	       return finite_template<DFloatGDL, false>(p0F, kwNaN, kwInfinity, kwSign);
 	     }
-	   case STRUCT:
-	   case PTR:
-	   case OBJECT:
+	   case GDL_STRUCT:
+	   case GDL_PTR:
+	   case GDL_OBJECT:
 	     {
 	       e->Throw( p0->TypeStr() + " not allowed in this context: " +
 			 e->GetParString( 0));
@@ -523,7 +523,7 @@ namespace lib {
       e->Throw( "Array must have 2 dimensions: "+e->GetParString(0));
 
     DFloatGDL* p0F = static_cast<DFloatGDL*>
-      (p0->Convert2( FLOAT, BaseGDL::COPY));
+      (p0->Convert2( GDL_FLOAT, BaseGDL::COPY));
 
     DFloat fpi=4*atan(1.0);
 
@@ -783,7 +783,7 @@ namespace lib {
 	e->Throw( "Array must have 2 elements: "
 		  +e->GetParString(4));
       GS = static_cast<DDoubleGDL*>
-	(p4->Convert2( DOUBLE, BaseGDL::COPY));
+	(p4->Convert2( GDL_DOUBLE, BaseGDL::COPY));
 
       if( nParam == 6) {
 	BaseGDL* p5 = e->GetParDefined( 5);
@@ -794,7 +794,7 @@ namespace lib {
 	  e->Throw( "Array must have 4 elements: "
 		    +e->GetParString(5));
 	limits = static_cast<DDoubleGDL*>
-	  (p5->Convert2( DOUBLE, BaseGDL::COPY));
+	  (p5->Convert2( GDL_DOUBLE, BaseGDL::COPY));
       }
     }
 
@@ -842,13 +842,13 @@ namespace lib {
     }
 
     DDoubleGDL* x_tri = static_cast<DDoubleGDL*>
-      (p0->Convert2( DOUBLE, BaseGDL::COPY));
+      (p0->Convert2( GDL_DOUBLE, BaseGDL::COPY));
     DDoubleGDL* y_tri = static_cast<DDoubleGDL*>
-      (p1->Convert2( DOUBLE, BaseGDL::COPY));
+      (p1->Convert2( GDL_DOUBLE, BaseGDL::COPY));
     DDoubleGDL* z = static_cast<DDoubleGDL*>
-      (p2->Convert2( DOUBLE, BaseGDL::COPY));
+      (p2->Convert2( GDL_DOUBLE, BaseGDL::COPY));
     DLongGDL* triangles = static_cast<DLongGDL*>
-      (p3->Convert2( LONG, BaseGDL::COPY));
+      (p3->Convert2( GDL_LONG, BaseGDL::COPY));
 
 
     //    bool sphere=false;
@@ -876,7 +876,7 @@ namespace lib {
 		   "must have 4 elements.");
 	auto_ptr<DDoubleGDL> guard;
 	DDoubleGDL* mapD = static_cast<DDoubleGDL*>
-	  ( Map->Convert2( DOUBLE, BaseGDL::COPY));
+	  ( Map->Convert2( GDL_DOUBLE, BaseGDL::COPY));
 	guard.reset( mapD);
 	xvsx[0] = (*mapD)[0];
 	xvsx[1] = (*mapD)[1];
@@ -1198,10 +1198,10 @@ namespace lib {
     DLong nc = (nDegree + 1) * (nDegree + 1);
 
     DDoubleGDL* P = static_cast<DDoubleGDL*>
-      (p1->Convert2( DOUBLE, BaseGDL::COPY));
+      (p1->Convert2( GDL_DOUBLE, BaseGDL::COPY));
 
     DDoubleGDL* Q = static_cast<DDoubleGDL*>
-      (p2->Convert2( DOUBLE, BaseGDL::COPY));
+      (p2->Convert2( GDL_DOUBLE, BaseGDL::COPY));
 
     char kernel_name[32];
     kernel_name[0] = 0;
@@ -1223,39 +1223,39 @@ namespace lib {
 	if (((int) (*P)[0] == 0) && ((int) (*Q)[0] == 0)) {
 	  return p0->Dup();
 	} else {
-	  if (p0->Type() == BYTE) {
+	  if (p0->Type() == GDL_BYTE) {
 	    return poly_2d_shift_template< DByteGDL, DByte>( p0, nCol, nRow,  
 							     (int) (*Q)[0], 
 							     (int) (*P)[0],missing);
-	  } else if (p0->Type() == INT) {
+	  } else if (p0->Type() == GDL_INT) {
 	    return poly_2d_shift_template< DIntGDL, DInt>( p0, nCol, nRow,  
 							    (int) (*Q)[0], 
 							    (int) (*P)[0],missing);
-	  } else if (p0->Type() == UINT) {
+	  } else if (p0->Type() == GDL_UINT) {
 	    return poly_2d_shift_template< DUIntGDL, DUInt>( p0, nCol, nRow,  
 							     (int) (*Q)[0], 
 							     (int) (*P)[0],missing);
-	  } else if (p0->Type() == LONG) {
+	  } else if (p0->Type() == GDL_LONG) {
 	    return poly_2d_shift_template< DLongGDL, DLong>( p0, nCol, nRow,  
 							     (int) (*Q)[0], 
 							     (int) (*P)[0],missing);
-	  } else if (p0->Type() == ULONG) {
+	  } else if (p0->Type() == GDL_ULONG) {
 	    return poly_2d_shift_template< DULongGDL, DULong>( p0, nCol, nRow,  
 							       (int) (*Q)[0], 
 							       (int) (*P)[0],missing);
-	  } else if (p0->Type() == LONG64) {
+	  } else if (p0->Type() == GDL_LONG64) {
 	    return poly_2d_shift_template< DLong64GDL, DLong64>( p0, nCol, nRow,  
 								 (int) (*Q)[0], 
 								 (int) (*P)[0],missing);
-	  } else if (p0->Type() == ULONG64) {
+	  } else if (p0->Type() == GDL_ULONG64) {
 	    return poly_2d_shift_template< DULong64GDL, DULong64>( p0, nCol, nRow,  
 								   (int) (*Q)[0], 
 								   (int) (*P)[0],missing);
-	  } else if (p0->Type() == FLOAT) {
+	  } else if (p0->Type() == GDL_FLOAT) {
 	    return poly_2d_shift_template< DFloatGDL, DFloat>( p0, nCol, nRow,  
 							       (int) (*Q)[0], 
 							       (int) (*P)[0],missing);
-	  } else if (p0->Type() == DOUBLE) {
+	  } else if (p0->Type() == GDL_DOUBLE) {
 	    return poly_2d_shift_template< DDoubleGDL, DDouble>( p0, nCol, nRow,  
 								 (int) (*Q)[0], 
 								 (int) (*P)[0],missing);
@@ -1318,27 +1318,27 @@ namespace lib {
       free(poly_v);
     }
 
-    if (p0->Type() == BYTE) {
+    if (p0->Type() == GDL_BYTE) {
       for ( SizeT i=0; i<nCol*nRow; ++i) {
 	if (warped->data[i] < 0)   warped->data[i] = 0;
 	if (warped->data[i] > 255) warped->data[i] = 255;
       }
       return poly_2d_fun_template< DByteGDL, DByte>( nCol, nRow, warped);
-    } else if (p0->Type() == INT) {
+    } else if (p0->Type() == GDL_INT) {
       return poly_2d_fun_template< DIntGDL, DInt>( nCol, nRow, warped);
-    } else if (p0->Type() == UINT) {
+    } else if (p0->Type() == GDL_UINT) {
       return poly_2d_fun_template< DUIntGDL, DUInt>( nCol, nRow, warped);
-    } else if (p0->Type() == LONG) {
+    } else if (p0->Type() == GDL_LONG) {
       return poly_2d_fun_template< DLongGDL, DLong>( nCol, nRow, warped);
-    } else if (p0->Type() == ULONG) {
+    } else if (p0->Type() == GDL_ULONG) {
       return poly_2d_fun_template< DULongGDL, DULong>( nCol, nRow, warped);
-    } else if (p0->Type() == LONG64) {
+    } else if (p0->Type() == GDL_LONG64) {
       return poly_2d_fun_template< DLong64GDL, DLong64>( nCol, nRow, warped);
-    } else if (p0->Type() == ULONG64) {
+    } else if (p0->Type() == GDL_ULONG64) {
       return poly_2d_fun_template< DULong64GDL, DULong64>( nCol, nRow, warped);
-    } else if (p0->Type() == FLOAT) {
+    } else if (p0->Type() == GDL_FLOAT) {
       return poly_2d_fun_template< DFloatGDL, DFloat>( nCol, nRow, warped);
-    } else if (p0->Type() == DOUBLE) {
+    } else if (p0->Type() == GDL_DOUBLE) {
       return poly_2d_fun_template< DDoubleGDL, DDouble>( nCol, nRow, warped);
     }
   }
@@ -1676,47 +1676,47 @@ image_t * image_warp (
 
 	      int row = (pos+leaps[k]) / lx;
 	      int col = (pos+leaps[k]) - row*lx;
-	      if (type == BYTE) {
+	      if (type == GDL_BYTE) {
 		memcpy(&data_b, &ptr[sizeof(char)*(col*ly+row)], 
 		       sizeof(char));
 		neighbors[k] = (double) data_b;
 	      } 
-	      if (type == INT) {
+	      if (type == GDL_INT) {
 		memcpy(&data_i, &ptr[sizeof(DInt)*(col*ly+row)], 
 		       sizeof(DInt));
 		neighbors[k] = (double) data_i;
 	      } 
-	      if (type == UINT) {
+	      if (type == GDL_UINT) {
 		memcpy(&data_ui, &ptr[sizeof(DUInt)*(col*ly+row)], 
 		       sizeof(DUInt));
 		neighbors[k] = (double) data_ui;
 	      } 
-	      if (type == LONG) {
+	      if (type == GDL_LONG) {
 		memcpy(&data_l, &ptr[sizeof(DLong)*(col*ly+row)], 
 		       sizeof(DLong));
 		neighbors[k] = (double) data_l;
 	      } 
-	      if (type == ULONG) {
+	      if (type == GDL_ULONG) {
 		memcpy(&data_ul, &ptr[sizeof(DULong)*(col*ly+row)], 
 		       sizeof(DULong));
 		neighbors[k] = (double) data_ul;
 	      } 
-	      if (type == LONG64) {
+	      if (type == GDL_LONG64) {
 		memcpy(&data_l64, &ptr[sizeof(DLong64)*(col*ly+row)], 
 		       sizeof(DLong64));
 		neighbors[k] = (double) data_l64;
 	      } 
-	      if (type == ULONG64) {
+	      if (type == GDL_ULONG64) {
 		memcpy(&data_ul64, &ptr[sizeof(DULong64)*(col*ly+row)], 
 		       sizeof(DULong64));
 		neighbors[k] = (double) data_ul64;
 	      } 
-	      if (type == FLOAT) {
+	      if (type == GDL_FLOAT) {
 		memcpy(&data_f, &ptr[sizeof(float)*(col*ly+row)], 
 		       sizeof(float));
 		neighbors[k] = (double) data_f;
 	      } 
-	      if (type == DOUBLE) {
+	      if (type == GDL_DOUBLE) {
 		memcpy(&data_d, &ptr[sizeof(double)*(col*ly+row)], 
 		       sizeof(double));
 		neighbors[k] = data_d;
@@ -1919,7 +1919,7 @@ void image_del(image_t * d)
     DString tag = time_str;
 
     SizeT nParam = e->NParam(5);
-    // Result = RK4( Y, Dydx, X, H, Derivs [, /DOUBLE] )
+    // Result = RK4( Y, Dydx, X, H, Derivs [, /GDL_DOUBLE] )
 
     BaseGDL* par = e->GetParDefined( 0);
 
@@ -1928,7 +1928,7 @@ void image_del(image_t * d)
     //    cout << "nEy: " << nEy << endl;
 
     bool doubleFlag = false;
-    if ( par->Type() == DOUBLE) doubleFlag = true;
+    if ( par->Type() == GDL_DOUBLE) doubleFlag = true;
     if ( e->KeywordSet( "DOUBLE")) doubleFlag = true;
 
     DString retTypeString;

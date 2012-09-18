@@ -60,8 +60,8 @@ public:
 
   void Set( BaseGDL* const val)
   {
-    if( val->Type() != STRUCT && 
-	val->Type() != STRING)
+    if( val->Type() != GDL_STRUCT && 
+	val->Type() != GDL_STRING)
       throw GDLException("Invalid value for _EXTRA keyword.");
     
     GDLDelete(loc);
@@ -71,8 +71,8 @@ public:
   void Set( BaseGDL** const val)
   {
     if( *val != NULL && 
-	(*val)->Type() != STRUCT && 
-	(*val)->Type() != STRING)
+	(*val)->Type() != GDL_STRUCT && 
+	(*val)->Type() != GDL_STRING)
       throw GDLException("Invalid value for _EXTRA keyword.");
     
     env=val;

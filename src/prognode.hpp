@@ -1344,8 +1344,8 @@ public:
   }
 };
 
-//#undef UNDEF
-//#ifdef UNDEF
+//#undef GDL_UNDEF
+//#ifdef GDL_UNDEF
 class EnvBaseT;
 
 class ParameterNode: public DefaultNode

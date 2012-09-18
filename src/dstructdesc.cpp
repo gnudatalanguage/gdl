@@ -53,10 +53,10 @@ DStructDesc* FindInStructList(StructListT v, const string& s)
   {
    for( SizeT t=0; t<tags.size(); ++t)
 	{
-		if( tags[t]->Type() == STRING) return true;
-		if( tags[t]->Type() == PTR) return true;
-		if( tags[t]->Type() == OBJECT) return true;
-		if( tags[t]->Type() == STRUCT)
+		if( tags[t]->Type() == GDL_STRING) return true;
+		if( tags[t]->Type() == GDL_PTR) return true;
+		if( tags[t]->Type() == GDL_OBJECT) return true;
+		if( tags[t]->Type() == GDL_STRUCT)
 		{
 			if( static_cast<DStructGDL*>( tags[t])->Desc()->ContainsStringPtrObject()) return true;
 		} 
@@ -121,7 +121,7 @@ void DStructDesc::AssureIdentical( DStructDesc* d)
 	  throw GDLException( "STRUCT: "+name+": "+TagName(i)+
 			      " tag type differs in redefinition.");
 	}
-      if( tags[i]->Type() == STRUCT)
+      if( tags[i]->Type() == GDL_STRUCT)
 	{
 	  SpDStruct* castLeft= 
 	    dynamic_cast<SpDStruct*>(tags[i]);
@@ -165,7 +165,7 @@ bool operator==(const DStructDesc& left,
       //      if( left.TagName(i) != right.TagName(i)) return false;
       if( left.tags[i]->Dim() != right.tags[i]->Dim()) return false;
       if( left.tags[i]->Type() != right.tags[i]->Type()) return false;
-      if( left.tags[i]->Type() == STRUCT)
+      if( left.tags[i]->Type() == GDL_STRUCT)
 	{
 	  SpDStruct* castLeft= 
 	    dynamic_cast<SpDStruct*>(left.tags[i]);

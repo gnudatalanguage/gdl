@@ -125,23 +125,23 @@ BaseGDL* FromPython( PyObject* pyObj)
 
   switch( array->descr->type_num) 
     {
-    case NPY_UINT8:   //BYTE
+    case NPY_UINT8:   //GDL_BYTE
       return NewFromPyArrayObject< DByteGDL>( dim, array);
-    case NPY_INT16:   //INT
+    case NPY_INT16:   //GDL_INT
       return NewFromPyArrayObject< DIntGDL>( dim, array);
-    case NPY_INT32:     //LONG	
+    case NPY_INT32:     //GDL_LONG	
       return NewFromPyArrayObject< DLongGDL>( dim, array);
-    case NPY_FLOAT32:   //FLOAT	
+    case NPY_FLOAT32:   //GDL_FLOAT	
       return NewFromPyArrayObject< DFloatGDL>( dim, array);
-    case NPY_FLOAT64:  //DOUBLE	
+    case NPY_FLOAT64:  //GDL_DOUBLE	
       return NewFromPyArrayObject< DDoubleGDL>( dim, array);
-    case NPY_COMPLEX64:  //COMPLEX	
+    case NPY_COMPLEX64:  //GDL_COMPLEX	
       return NewFromPyArrayObject< DComplexGDL>( dim, array);
-    case NPY_COMPLEX128: //COMPLEXDBL	
+    case NPY_COMPLEX128: //GDL_COMPLEXDBL	
       return NewFromPyArrayObject< DComplexDblGDL>( dim, array);
-    case NPY_UINT16:         //UINT*
+    case NPY_UINT16:         //GDL_UINT*
       return NewFromPyArrayObject< DUIntGDL>( dim, array);
-    case NPY_UINT32:         //ULONG*
+    case NPY_UINT32:         //GDL_ULONG*
       return NewFromPyArrayObject< DULongGDL>( dim, array);
     default:
       Py_DECREF(array); // must be decremented

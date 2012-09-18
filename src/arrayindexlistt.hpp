@@ -300,7 +300,7 @@ public:
   {
     // scalar case
     if( right->N_Elements() == 1 && !var->IsAssoc() &&
-	ix->NIter( var->Size()) == 1)// && var->Type() != STRUCT) 
+	ix->NIter( var->Size()) == 1)// && var->Type() != GDL_STRUCT) 
       {
 	var->AssignAtIx( ix->GetIx0(), right);
 	return;
@@ -325,7 +325,7 @@ public:
   BaseGDL* Index( BaseGDL* var, IxExprListT& ix_)
   {
     Init( ix_, NULL);
-    if( !var->IsAssoc() && ix->Scalar()) //ix->NIter( var->Size()) == 1)// && var->Type() != STRUCT) 
+    if( !var->IsAssoc() && ix->Scalar()) //ix->NIter( var->Size()) == 1)// && var->Type() != GDL_STRUCT) 
       {
 	SizeT assertValue = ix->NIter( var->Size());
 	assert( assertValue == 1);
@@ -592,7 +592,7 @@ public:
   {
     // Init() was already called
     // scalar case
-    if( right->N_Elements() == 1 && !var->IsAssoc()) // && var->Type() != STRUCT) 
+    if( right->N_Elements() == 1 && !var->IsAssoc()) // && var->Type() != GDL_STRUCT) 
       {
 	s = varPtr->Data()->LoopIndex();
 	if( s >= var->Size())
@@ -743,7 +743,7 @@ public:
 
     // Init() was already called
     // scalar case
-    if( right->N_Elements() == 1 && !var->IsAssoc())// && var->Type() != STRUCT) 
+    if( right->N_Elements() == 1 && !var->IsAssoc())// && var->Type() != GDL_STRUCT) 
       {
 	if( sInit < 0)
 	  s = sInit + var->Size();
@@ -773,7 +773,7 @@ public:
   BaseGDL* Index( BaseGDL* var, IxExprListT& ix_)
   {
     // Init() not called
-    if( !var->IsAssoc())// && var->Type() != STRUCT)
+    if( !var->IsAssoc())// && var->Type() != GDL_STRUCT)
       {
 	if( sInit < 0)
 	  s = sInit + var->Size();
@@ -1131,7 +1131,7 @@ protected:
 
   enum AccessType
   {
-	  UNDEF=0,      // for init access type
+	  GDL_UNDEF=0,      // for init access type
 	  INDEXED_ONE,  // all indexed OR one
 	  NORMAL,       // mixed
 	  ALLINDEXED,

@@ -360,7 +360,7 @@ public:
 /*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
 {
 #pragma omp for*/
-    for( SizeT i=0; i<sz; ++i)
+    for( int i=0; i<sz; ++i)
       buf[ i] = val;
 // }
   }
@@ -442,7 +442,7 @@ GDLArray& operator= ( const GDLArray& right )
 			/*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
 			{
 			#pragma omp for*/
-			for ( SizeT i=0; i<sz; ++i )
+			for ( int i=0; i<sz; ++i )
 				buf[ i] = right.buf[ i];
 			return *this;
 // }
@@ -456,7 +456,7 @@ GDLArray& operator= ( const GDLArray& right )
 			/*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
 			{
 			#pragma omp for*/
-			for ( SizeT i=0; i<sz; ++i )
+			for ( int i=0; i<sz; ++i )
 				buf[ i] = right.buf[ i];
 			return *this;
 		}
@@ -469,7 +469,7 @@ GDLArray& operator= ( const GDLArray& right )
 /*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
 {
 #pragma omp for*/
-    for( SizeT i=0; i<sz; ++i)
+    for( int i=0; i<sz; ++i)
       buf[ i] += right.buf[ i];
 // }
     return *this;
@@ -479,7 +479,7 @@ GDLArray& operator= ( const GDLArray& right )
 /*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
 {
 #pragma omp for*/
-    for( SizeT i=0; i<sz; ++i)
+    for( int i=0; i<sz; ++i)
       buf[ i] -= right.buf[ i];
 // }
     return *this;
@@ -503,7 +503,7 @@ GDLArray& operator= ( const GDLArray& right )
 /*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
 {
 #pragma omp for*/
-    for( SizeT i=0; i<sz; ++i)
+    for( int i=0; i<sz; ++i)
       buf[ i] += right;
 // }
     return *this;
@@ -513,7 +513,7 @@ GDLArray& operator= ( const GDLArray& right )
 /*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
 {
 #pragma omp for*/
-    for( SizeT i=0; i<sz; ++i)
+    for( int i=0; i<sz; ++i)
       buf[ i] -= right;
 // }
     return *this;
@@ -634,7 +634,7 @@ inline GDLArray<DString>::GDLArray( const GDLArray& cp) : sz( cp.size())
 /*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
 {
 #pragma omp for*/
-     for( SizeT i=0; i<sz; ++i)
+     for( int i=0; i<sz; ++i)
        buf[ i] = cp.buf[ i];
 // }
   }
@@ -648,7 +648,7 @@ inline GDLArray<DString>::GDLArray( const Ty* arr, SizeT s) : sz( s)
 /*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
 {
 #pragma omp for*/
-     for( SizeT i=0; i<sz; ++i)
+     for( int i=0; i<sz; ++i)
        buf[ i] = arr[ i];
 // }
   }

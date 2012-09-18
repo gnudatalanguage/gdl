@@ -167,7 +167,7 @@ namespace lib {
     if( !doIndentation) os << "= ";
 
     // Data display
-    if( par->Type() == STRUCT)
+    if( par->Type() == GDL_STRUCT)
       {
         DStructGDL* s = static_cast<DStructGDL*>( par);
         os << "-> ";
@@ -176,7 +176,7 @@ namespace lib {
       }
     else if( par->Dim( 0) == 0)
       {
-        if (par->Type() == STRING)
+        if (par->Type() == GDL_STRING)
 	  {
             // trim string larger than 45 characters
             DString dataString = (*static_cast<DStringGDL*>(par))[0];
@@ -361,7 +361,7 @@ namespace lib {
 	  {
 	    BaseGDL*& par=e->GetPar( i);
 	    DString parString = e->Caller()->GetString( par, true);
-	    if( !par || !isKWSetStructures || par->Type() != STRUCT) {
+	    if( !par || !isKWSetStructures || par->Type() != GDL_STRUCT) {
 	      nlines++;
 	    } else {
 	      DStructGDL* s = static_cast<DStructGDL*>( par);
@@ -534,7 +534,7 @@ namespace lib {
 	BaseGDL*& par=e->GetPar( i);
 	DString parString = e->Caller()->GetString( par, true);
 	// NON-STRUCTURES
-	if( !par || !isKWSetStructures || par->Type() != STRUCT)
+	if( !par || !isKWSetStructures || par->Type() != GDL_STRUCT)
           {
 	    // If no OUTPUT keyword send to stdout
 	    if (outputKW == NULL) {
@@ -754,7 +754,7 @@ namespace lib {
       e->Throw( "Expression must be a scalar in this context: "+
 		e->GetString( status));
 
-    DLongGDL* statusL=static_cast<DLongGDL*>(status->Convert2( LONG, 
+    DLongGDL* statusL=static_cast<DLongGDL*>(status->Convert2( GDL_LONG, 
 							       BaseGDL::COPY));
     
     DLong exit_status;
@@ -1079,19 +1079,19 @@ namespace lib {
 
     DUInt port;
     BaseGDL* p2 = e->GetParDefined( 2);
-    if (p2->Type() == STRING) {
+    if (p2->Type() == GDL_STRING) {
       // look up /etc/services
-    } else if (p2->Type() == UINT) {
+    } else if (p2->Type() == GDL_UINT) {
       e->AssureScalarPar<DUIntGDL>( 2, port);
-    } else if (p2->Type() == INT) {
+    } else if (p2->Type() == GDL_INT) {
       DInt p;
       e->AssureScalarPar<DIntGDL>( 2, p);
       port = p;
-    } else if (p2->Type() == LONG) {
+    } else if (p2->Type() == GDL_LONG) {
       DLong p;
       e->AssureScalarPar<DLongGDL>( 2, p);
       port = p;
-    } else if (p2->Type() == ULONG) {
+    } else if (p2->Type() == GDL_ULONG) {
       DULong p;
       e->AssureScalarPar<DULongGDL>( 2, p);
       port = p;
@@ -1512,7 +1512,7 @@ TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
 #pragma omp for
-    for( SizeT i=0; i<nEl; ++i)
+    for( int i=0; i<nEl; ++i)
 	StrPut((*dest)[ i], source, pos);
 }
   }
@@ -1678,7 +1678,7 @@ TRACEOMP( __FILE__, __LINE__)
 
   void byteorderDo( EnvT* e, BaseGDL* pIn, SizeT swapSz, DLong p)
 {
-	if( pIn->Type() == STRUCT)
+	if( pIn->Type() == GDL_STRUCT)
 	{
 		DStructGDL* dS=static_cast<DStructGDL*>( pIn);
 		if( dS->Desc()->ContainsStringPtrObject())
@@ -1687,7 +1687,7 @@ TRACEOMP( __FILE__, __LINE__)
 		{
 			BaseGDL* par = dS->GetTag( t);
 			
-			if( par->Type() == STRUCT && par->N_Elements() == 1)
+			if( par->Type() == GDL_STRUCT && par->N_Elements() == 1)
 			{
 				// do tag by tag for scalar struct as memory might not be contigous (
 				byteorderDo( e, par, swapSz, p);
@@ -1718,11 +1718,11 @@ TRACEOMP( __FILE__, __LINE__)
 	}
 	else
 	{
-		if( pIn->Type() == STRING)
+		if( pIn->Type() == GDL_STRING)
 		e->Throw( "STRING type not allowed in this context: "+e->GetParString(p));		    
-		if( pIn->Type() == OBJECT)
+		if( pIn->Type() == GDL_OBJECT)
 		e->Throw( "Object type not allowed in this context: "+e->GetParString(p));		    
-		if( pIn->Type() == PTR)
+		if( pIn->Type() == GDL_PTR)
 		e->Throw( "PTR type not allowed in this context: "+e->GetParString(p));		    
 	
 		BaseGDL*& par = pIn;
@@ -1802,13 +1802,13 @@ TRACEOMP( __FILE__, __LINE__)
 
  	byteorderDo( e, par, swapSz, p);
 
-/*	if( par->Type() == STRING)
+/*	if( par->Type() == GDL_STRING)
 	  e->Throw( "STRING type not allowed in this context: "+e->GetParString(p));		    
-	if( par->Type() == OBJECT)
+	if( par->Type() == GDL_OBJECT)
 	  e->Throw( "Object type not allowed in this context: "+e->GetParString(p));		    
-	if( par->Type() == PTR)
+	if( par->Type() == GDL_PTR)
 	  e->Throw( "PTR type not allowed in this context: "+e->GetParString(p));		    
-	if( par->Type() == STRUCT)
+	if( par->Type() == GDL_STRUCT)
 	{
 		if( static_cast<DStructGDL*>( par)->Desc()->ContainsStringPtrObject())
 		  e->Throw( "Structs must not contain PTR, OBJECT or STRING tags: "+e->GetParString(p));		    
@@ -2381,7 +2381,7 @@ TRACEOMP( __FILE__, __LINE__)
       if 
       (
         *ret[i] == NULL || 
-        (*ret[i])->Type() != (i < 5 ? LONG : DOUBLE) || 
+        (*ret[i])->Type() != (i < 5 ? GDL_LONG : GDL_DOUBLE) || 
         (*ret[i])->N_Elements() != nEl 
       )
       {

@@ -515,7 +515,7 @@ public:
     // type INDEXED
     DType dType = ix_->Type();
 
-    assert( dType != UNDEF);
+    assert( dType != GDL_UNDEF);
     //     assert( maxVal == 0);
 
     int typeCheck = DTypeOrder[ dType];

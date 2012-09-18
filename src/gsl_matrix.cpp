@@ -71,7 +71,7 @@ namespace lib {
 
     // only one element matrix
 
-    if (p0->Type() == COMPLEXDBL || p0->Type() == COMPLEX){
+    if (p0->Type() == GDL_COMPLEXDBL || p0->Type() == GDL_COMPLEX){
       e->Throw( "Input type cannot be COMPLEX, please use LA_LUDC (not ready)");
     }
     
@@ -107,13 +107,13 @@ namespace lib {
 	   p0->Dim(0)*p0->Dim(0)*szdbl);
 
     int double_flag=0;
-    if (p0->Type() == DOUBLE) double_flag=1;
+    if (p0->Type() == GDL_DOUBLE) double_flag=1;
     if (e->KeywordSet("DOUBLE")) double_flag=1;
     
-    // this code will always return DOUBLE because I don't know how to do :(
+    // this code will always return GDL_DOUBLE because I don't know how to do :(
     // AC 13-Feb-2012 : this is not working and I don't know how to do :(
     // if (double_flag == 0)
-    // { p0->Convert2(FLOAT, BaseGDL::CONVERT); }
+    // { p0->Convert2(GDL_FLOAT, BaseGDL::CONVERT); }
 
     // copying over p1 the permutation vector
     DLong n = p0->Dim(0);
@@ -180,7 +180,7 @@ namespace lib {
     if (p2->Rank() > 2)
       e->Throw( "Input must be a Vector:" + e->GetParString(2));
     
-    if (p0->Type() == COMPLEXDBL || p0->Type() == COMPLEX){
+    if (p0->Type() == GDL_COMPLEXDBL || p0->Type() == GDL_COMPLEX){
       e->Throw( "Input type cannot be COMPLEX, please use LA_LUDC (not ready)");
     }
   
@@ -228,13 +228,13 @@ namespace lib {
 //     b ???    
 
     int double_flag=0;
-    if (p0->Type() == DOUBLE || p2->Type() == DOUBLE) double_flag=1;
+    if (p0->Type() == GDL_DOUBLE || p2->Type() == GDL_DOUBLE) double_flag=1;
     if (e->KeywordSet("DOUBLE")) double_flag=1;
 
     if (double_flag)
       {	return res; }
     else
-      { return res->Convert2(FLOAT, BaseGDL::CONVERT); }
+      { return res->Convert2(GDL_FLOAT, BaseGDL::CONVERT); }
   }
 
   BaseGDL* determ_fun( EnvT* e) {
@@ -256,7 +256,7 @@ namespace lib {
         e->Throw( "Input must be a square matrix:" + e->GetParString(0));
     }
     
-    if (p0->Type() == COMPLEXDBL || p0->Type() == COMPLEX){
+    if (p0->Type() == GDL_COMPLEXDBL || p0->Type() == GDL_COMPLEX){
       e->Throw( "Input type cannot be COMPLEX, please use LA_DETERM (not ready)");
     }
     
@@ -287,13 +287,13 @@ namespace lib {
     (*res)[0]=determ;
 
     int double_flag=0;
-    if (p0->Type() == DOUBLE) double_flag=1;
+    if (p0->Type() == GDL_DOUBLE) double_flag=1;
     if (e->KeywordSet("DOUBLE")) double_flag=1;
 
     if (double_flag)
       {	return res; }
     else
-      { return res->Convert2(FLOAT, BaseGDL::CONVERT); }
+      { return res->Convert2(GDL_FLOAT, BaseGDL::CONVERT); }
   }
   
   BaseGDL* trisol_fun( EnvT* e) {
@@ -323,10 +323,10 @@ namespace lib {
     if (nEl3 != nEl) e->Throw( "Argument: " + e->GetParString(3)+" does not have correct size");
     
     int complex_flag=0;
-    if (p0->Type() == COMPLEXDBL || p0->Type() == COMPLEX) complex_flag=1;
-    if (p1->Type() == COMPLEXDBL || p1->Type() == COMPLEX) complex_flag=1;
-    if (p2->Type() == COMPLEXDBL || p2->Type() == COMPLEX) complex_flag=1;
-    if (p3->Type() == COMPLEXDBL || p3->Type() == COMPLEX) complex_flag=1;
+    if (p0->Type() == GDL_COMPLEXDBL || p0->Type() == GDL_COMPLEX) complex_flag=1;
+    if (p1->Type() == GDL_COMPLEXDBL || p1->Type() == GDL_COMPLEX) complex_flag=1;
+    if (p2->Type() == GDL_COMPLEXDBL || p2->Type() == GDL_COMPLEX) complex_flag=1;
+    if (p3->Type() == GDL_COMPLEXDBL || p3->Type() == GDL_COMPLEX) complex_flag=1;
     if (complex_flag) {
       e->Throw( "Input type cannot be COMPLEX, please use LA_TRISOL (not ready)");
     }
@@ -379,8 +379,8 @@ namespace lib {
 //     x ???
 
     int double_flag=0;
-    if (p0->Type() == DOUBLE || p1->Type() == DOUBLE) double_flag=1;
-    if (p2->Type() == DOUBLE || p2->Type() == DOUBLE) double_flag=1;
+    if (p0->Type() == GDL_DOUBLE || p1->Type() == GDL_DOUBLE) double_flag=1;
+    if (p2->Type() == GDL_DOUBLE || p2->Type() == GDL_DOUBLE) double_flag=1;
     if (e->KeywordSet("DOUBLE")) double_flag=1;
     
     DDoubleGDL* res = new DDoubleGDL(nEl, BaseGDL::NOZERO);
@@ -389,7 +389,7 @@ namespace lib {
     if (double_flag)
       {	return res; }
     else
-      { return res->Convert2(FLOAT, BaseGDL::CONVERT); }
+      { return res->Convert2(GDL_FLOAT, BaseGDL::CONVERT); }
   }
 }
 

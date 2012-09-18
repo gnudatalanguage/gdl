@@ -38,7 +38,7 @@ namespace lib {
     
       BaseGDL* p0 = e->GetNumericArrayParDefined( 0)->Transpose( NULL);
       auto_ptr<BaseGDL> p0_guard;
-      zVal = static_cast<DDoubleGDL*> (p0->Convert2( DOUBLE, BaseGDL::COPY));
+      zVal = static_cast<DDoubleGDL*> (p0->Convert2( GDL_DOUBLE, BaseGDL::COPY));
       p0_guard.reset( p0); // delete upon exit
 
       if(zVal->Dim(0) == 1)
@@ -148,7 +148,7 @@ namespace lib {
 		    " must have from 1 to 2 elements.");
 	auto_ptr<DFloatGDL> guard;
 	DFloatGDL* xMarginFl = static_cast<DFloatGDL*>
-	  ( xMargin->Convert2( FLOAT, BaseGDL::COPY));
+	  ( xMargin->Convert2( GDL_FLOAT, BaseGDL::COPY));
 	guard.reset( xMarginFl);
 	xMarginL = (*xMarginFl)[0];
 	if( xMarginFl->N_Elements() > 1)
@@ -161,7 +161,7 @@ namespace lib {
 		    " must have from 1 to 2 elements.");
 	auto_ptr<DFloatGDL> guard;
 	DFloatGDL* yMarginFl = static_cast<DFloatGDL*>
-	  ( yMargin->Convert2( FLOAT, BaseGDL::COPY));
+	  ( yMargin->Convert2( GDL_FLOAT, BaseGDL::COPY));
 	guard.reset( yMarginFl);
 	yMarginB = (*yMarginFl)[0];
 	if( yMarginFl->N_Elements() > 1)
@@ -174,7 +174,7 @@ namespace lib {
 		    " must have from 1 to 2 elements.");
 	auto_ptr<DFloatGDL> guard;
 	DFloatGDL* zMarginFl = static_cast<DFloatGDL*>
-	  ( zMargin->Convert2( FLOAT, BaseGDL::COPY));
+	  ( zMargin->Convert2( GDL_FLOAT, BaseGDL::COPY));
 	guard.reset( zMarginFl);
 	zMarginB = (*zMarginFl)[0];
 	if( zMarginFl->N_Elements() > 1)
@@ -217,7 +217,7 @@ namespace lib {
 		   " must have 2 elements.");
 	auto_ptr<DFloatGDL> guard;
 	DFloatGDL* xRangeF = static_cast<DFloatGDL*>
-	  ( xRange->Convert2( FLOAT, BaseGDL::COPY));
+	  ( xRange->Convert2( GDL_FLOAT, BaseGDL::COPY));
 	guard.reset( xRangeF);
 	xStart = (*xRangeF)[0];
 	xEnd = (*xRangeF)[1];
@@ -230,7 +230,7 @@ namespace lib {
 		   " must have 2 elements.");
 	auto_ptr<DFloatGDL> guard;
 	DFloatGDL* yRangeF = static_cast<DFloatGDL*>
-	  ( yRange->Convert2( FLOAT, BaseGDL::COPY));
+	  ( yRange->Convert2( GDL_FLOAT, BaseGDL::COPY));
 	guard.reset( yRangeF);
 	yStart = (*yRangeF)[0];
 	yEnd = (*yRangeF)[1];
@@ -242,7 +242,7 @@ namespace lib {
 		   " must have 2 elements.");
 	auto_ptr<DFloatGDL> guard;
 	DFloatGDL* zRangeF = static_cast<DFloatGDL*>
-	  ( zRange->Convert2( FLOAT, BaseGDL::COPY));
+	  ( zRange->Convert2( GDL_FLOAT, BaseGDL::COPY));
 	guard.reset( zRangeF);
 	zStart = (*zRangeF)[0];
 	zEnd = (*zRangeF)[1];

@@ -41,14 +41,14 @@ namespace lib {
 
   BaseGDL* size( EnvT* e) 
   {
-    e->NParam( 1); // might be UNDEF, but must be given
+    e->NParam( 1); // might be GDL_UNDEF, but must be given
 
     // BaseGDL* p0 = e->GetParDefined( 0); //, "SIZE");
     BaseGDL* p0 = e->GetPar( 0); //, "SIZE");
 
     SizeT nEl = 0;
     SizeT Rank = 0;
-    SizeT vType = UNDEF;
+    SizeT vType = GDL_UNDEF;
 
     if (p0 != NULL) {
       nEl = p0->N_Elements();
@@ -107,7 +107,7 @@ namespace lib {
 
       DString tname;
       DString sname;
-      if (vType == STRUCT) {
+      if (vType == GDL_STRUCT) {
 	tname = "STRUCT";
 	DStructGDL* s = static_cast<DStructGDL*>( p0);
 	if (s->Desc()->IsUnnamed())
@@ -369,7 +369,7 @@ namespace lib {
 	    
       }
 
-    if( type < 0 || type > ULONG64 || type == STRUCT)
+    if( type < 0 || type > GDL_ULONG64 || type == GDL_STRUCT)
       {
 	e->Throw("Invalid type specified for result.");
       }
@@ -379,9 +379,9 @@ namespace lib {
 
     if (e->KeywordSet(indexix))
     {
-      if (type == PTR || e->KeywordSet(18)) 
+      if (type == GDL_PTR || e->KeywordSet(18)) 
         e->Throw("Index initialization of pointer array is invalid.");
-      if (type == OBJECT || e->KeywordSet(19)) 
+      if (type == GDL_OBJECT || e->KeywordSet(19)) 
         e->Throw("Index initialization of object reference array is invalid..");
     }
 
@@ -403,57 +403,57 @@ namespace lib {
       }
 
     // BYTEDComplexDblGDL
-    if (e->KeywordSet(6) || type == BYTE) {
+    if (e->KeywordSet(6) || type == GDL_BYTE) {
 
       return make_array_template< DByteGDL>( e, dimKey, value);
 
-      //INT
-    } else if (e->KeywordSet(7) || type == INT) {
+      //GDL_INT
+    } else if (e->KeywordSet(7) || type == GDL_INT) {
 
       return make_array_template< DIntGDL>( e, dimKey, value);
 
-      // UINT
-    } else if (e->KeywordSet(8) || type == UINT) {
+      // GDL_UINT
+    } else if (e->KeywordSet(8) || type == GDL_UINT) {
 
       return make_array_template< DUIntGDL>( e, dimKey, value);
 
-      // LONG
-    } else if (e->KeywordSet(9) || type == LONG) {
+      // GDL_LONG
+    } else if (e->KeywordSet(9) || type == GDL_LONG) {
 
       return make_array_template< DLongGDL>( e, dimKey, value);
 
-      // ULONG
-    } else if (e->KeywordSet(10) || type == ULONG) {
+      // GDL_ULONG
+    } else if (e->KeywordSet(10) || type == GDL_ULONG) {
 
       return make_array_template< DULongGDL>( e, dimKey, value);
 
-      // LONG64
-    } else if (e->KeywordSet(11) || type == LONG64) {
+      // GDL_LONG64
+    } else if (e->KeywordSet(11) || type == GDL_LONG64) {
 
       return make_array_template< DLong64GDL>( e, dimKey, value);
 
-      // ULONG64
-    } else if (e->KeywordSet(12) || type == ULONG64) {
+      // GDL_ULONG64
+    } else if (e->KeywordSet(12) || type == GDL_ULONG64) {
 
       return make_array_template< DULong64GDL>( e, dimKey, value);
       
-      // DOUBLE
-    } else if (e->KeywordSet(14) || type == DOUBLE) {
+      // GDL_DOUBLE
+    } else if (e->KeywordSet(14) || type == GDL_DOUBLE) {
 
       return make_array_template< DDoubleGDL>( e, dimKey, value);
 
-      // COMPLEX
-    } else if (e->KeywordSet(15) || type == COMPLEX) {
+      // GDL_COMPLEX
+    } else if (e->KeywordSet(15) || type == GDL_COMPLEX) {
 
       return make_array_template< DComplexGDL>( e, dimKey, value);
 
       // DCOMPLEX
-    } else if (e->KeywordSet(16) || type == COMPLEXDBL) {
+    } else if (e->KeywordSet(16) || type == GDL_COMPLEXDBL) {
 
       return make_array_template< DComplexDblGDL>( e, dimKey, value);
 
-      // STRING (added by MS 29.10.2005)
-    } else if (e->KeywordSet(17) || type == STRING) {
+      // GDL_STRING (added by MS 29.10.2005)
+    } else if (e->KeywordSet(17) || type == GDL_STRING) {
 
       if (!e->KeywordSet(indexix))
 		return make_array_template< DStringGDL>( e, dimKey, value);
@@ -464,7 +464,7 @@ namespace lib {
 //       {
 
 	  BaseGDL* ret = make_array_template< DULongGDL>( e, dimKey, value); //, true);
-      return ret->Convert2( STRING);
+      return ret->Convert2( GDL_STRING);
 
 //         for (DLong i = 0; i < ret->N_Elements(); ++i)
 //         {
@@ -475,18 +475,18 @@ namespace lib {
 //       }
 //       return ret;
 
-      // PTR (added by SA 15.08.2009)
-    } else if (e->KeywordSet(18) || type == PTR) {
+      // GDL_PTR (added by SA 15.08.2009)
+    } else if (e->KeywordSet(18) || type == GDL_PTR) {
 
       return make_array_template< DPtrGDL>( e, dimKey, value);
 
       // OBJ (added by SA 15.08.2009)
-    } else if (e->KeywordSet(19) || type == OBJECT) {
+    } else if (e->KeywordSet(19) || type == GDL_OBJECT) {
 
       return make_array_template< DObjGDL>( e, dimKey, value);
 
-      // STRUCT
-    } else if ( type == STRUCT) {
+      // GDL_STRUCT
+    } else if ( type == GDL_STRUCT) {
       
       assert( value != NULL);
 
@@ -587,48 +587,48 @@ namespace lib {
     res->SetDim(dim);
     return res;
 
-//     // BYTE
-//     if (Type == BYTE) {
+//     // GDL_BYTE
+//     if (Type == GDL_BYTE) {
     
 //       return reform_template< DByteGDL>( e, dim);
     
-//       //INT
-//     } else if (Type || Type == INT) {
+//       //GDL_INT
+//     } else if (Type || Type == GDL_INT) {
     
 //       return reform_template< DIntGDL>( e, dim);
     
-//       // UINT
-//     } else if (Type == UINT) {
+//       // GDL_UINT
+//     } else if (Type == GDL_UINT) {
     
 //       return reform_template< DUIntGDL>( e, dim);
     
-//       // LONG
-//     } else if (Type == LONG) {
+//       // GDL_LONG
+//     } else if (Type == GDL_LONG) {
     
 //       return reform_template< DLongGDL>( e, dim);
     
-//       // ULONG
-//     } else if (Type == ULONG) {
+//       // GDL_ULONG
+//     } else if (Type == GDL_ULONG) {
     
 //       return reform_template< DULongGDL>( e, dim);
     
-//       // LONG64
-//     } else if (Type == LONG64) {
+//       // GDL_LONG64
+//     } else if (Type == GDL_LONG64) {
     
 //       return reform_template< DLong64GDL>( e, dim);
     
-//       // ULONG64
-//     } else if (Type == ULONG64) {
+//       // GDL_ULONG64
+//     } else if (Type == GDL_ULONG64) {
     
 //       return reform_template< DULong64GDL>( e, dim);
       
-//       // FLOAT
-//     } else if (Type == FLOAT) {
+//       // GDL_FLOAT
+//     } else if (Type == GDL_FLOAT) {
     
 //       return reform_template< DFloatGDL>( e, dim);
     
-//       // DOUBLE
-//     } else if (Type == DOUBLE) {
+//       // GDL_DOUBLE
+//     } else if (Type == GDL_DOUBLE) {
     
 //       return reform_template< DDoubleGDL>( e, dim);
     
