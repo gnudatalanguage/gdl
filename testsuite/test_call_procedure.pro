@@ -44,7 +44,10 @@ if KEYWORD_SET(verbose) then print, txt1, txt2
 expected=17.
 CALL_PROCEDURE, 'PRO_MY_PRO', 12, result
 ;
-if (ABS(result-expected) GT tolerance)  then nb_errors=nb_errors+1
+if (ABS(result-expected) GT tolerance)  then begin
+   MESSAGE, /continue, 'Error at basic call level'
+   nb_errors=nb_errors+1
+endif
 if KEYWORD_SET(verbose) then print, result, expected
 ;
 ; external function, single element, keyword
@@ -52,7 +55,10 @@ if KEYWORD_SET(verbose) then print, result, expected
 expected=17.+1.
 CALL_PROCEDURE, 'PRO_MY_PRO', 12, result, /add_one
 ;
-if (ABS(result-expected) GT tolerance)  then nb_errors=nb_errors+1
+if (ABS(result-expected) GT tolerance)  then begin
+   MESSAGE, /continue, 'Error at /keyword call level'
+   nb_errors=nb_errors+1
+endif
 if KEYWORD_SET(verbose) then print, result, expected
 ;
 ; external function, value 2D array
@@ -61,9 +67,11 @@ data_in=REPLICATE(-5,12,3)
 PRO_MY_PRO, data_in, data_out1
 CALL_PROCEDURE, 'PRO_MY_PRO', data_in, data_out2
 ;
-if (TOTAL(ABS(data_out1-data_out2)) GT tolerance)  then nb_errors=nb_errors+1
+if (TOTAL(ABS(data_out1-data_out2)) GT tolerance)  then begin
+   MESSAGE, /continue, 'Error at ARRAY call level'
+   nb_errors=nb_errors+1
+endif
 if KEYWORD_SET(verbose) then print, data_out1-data_out2
-;
 ;
 ;
 if (nb_errors GT 0) then begin
