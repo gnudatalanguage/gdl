@@ -1,6 +1,39 @@
 GDL HACKING HOWTO
 =================
 
+A NOTE ON EXCEPTION SAVE PROGRAMMING
+====================================
+
+Exception save programming takes into account, that in C++ exceptions can be
+thrown anytime. The purpose of exception save programming is to keep a 
+program always in a consistent state even if an exception occurs.
+Most often this is about avoiding memory leaks. They occur when a object is 
+allocated on the heap and an exception is thrown. Then the allocated heap
+memory is never returned. The local pointer to the heap memory is destroyed 
+when the function it was defined in goes out of scope. 
+In GDL this happens always when there is some error in a GDL program, as
+this errors lead to the throw of an exception.
+A way to avoid such memory leaks is to define for every such allocated memory 
+a "guard". This is a local object which is destroyed when the function is
+left. In it's destructor it frees the heap memory of the heap object or more 
+general, it performs a proper cleanup of the newly created object.
+Of course the guard must be informed when some other entity takes care of the
+new heap object (e. g. it is returned from a function).
+GDL provides serveral kinds of such guards:
+for normal objects auto_ptr is used (to set the guarded object free
+release() must be called). For array objects (destroyed by "delete[]" instead
+of "delete") GDL provides the ArrayGuard class. For GSL objects there is
+GSLGuard. Please see the source code for examples.
+
+As this is not a proper place to discuss exception save programming in detail,
+here are just some rules of thumb, when this might concern a code contributor:
+- you need almost always a guard when using (operator) new somwhere in 
+  your code
+- objects returned from Convert2(..., COPY) methods are to be guarded as well
+- same goes for objects created with Dup() methods.
+
+
+
 General:
 One of the main ideas of this project is to be able to eventually
 use the huge code base written in IDL.
