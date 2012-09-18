@@ -131,12 +131,14 @@ void LibInit()
   const string convolKey[]={"CENTER","EDGE_TRUNCATE","EDGE_WRAP",KLISTEND};
   new DLibFunRetNew(lib::convol,string("CONVOL"),3,convolKey);
 
+#ifndef _MSC_VER
   const string file_searchKey[]={"COUNT","EXPAND_ENVIRONMENT","EXPAND_TILDE",
 				 "FOLD_CASE","ISSUE_ACCESS_ERROR",
 				 "MARK_DIRECTORY","NOSORT","QUOTE",
 				 "MATCH_INITIAL_DOT",
 				 "MATCH_ALL_INITIAL_DOT","FULLY_QUALIFY_PATH",KLISTEND};
-  //new DLibFunRetNew(lib::file_search,string("FILE_SEARCH"),2,file_searchKey);
+  new DLibFunRetNew(lib::file_search,string("FILE_SEARCH"),2,file_searchKey);
+#endif
 
   const string expand_pathKey[]={"ARRAY","ALL_DIRS","COUNT",KLISTEND};
   new DLibFunRetNew(lib::expand_path,string("EXPAND_PATH"),1,expand_pathKey);

@@ -833,7 +833,8 @@ DString makeInsensitive(const DString &s)
 		}
 	return insen;
 }
-/*
+
+#ifndef _MSC_VER
   void FileSearch( FileListT& fL, const DString& s, 
 		   bool environment,
 		   bool tilde,
@@ -1082,7 +1083,8 @@ DString makeInsensitive(const DString &s)
 
     return res;
   }
-  */
+#endif
+
   BaseGDL* file_same( EnvT* e)
   {
     // assuring right number of parameters
