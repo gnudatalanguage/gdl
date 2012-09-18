@@ -34,6 +34,20 @@
 
 #define COMPLEX2 GDL_COMPLEX
 
+#ifdef _MSC_VER
+#define fetestexcept(e) false
+#define feclearexcept(e)
+#define FE_DIVBYZERO
+#define FE_UNDERFLOW
+#define FE_OVERFLOW
+#define FE_INVALID
+#define round(f) floor(f+0.5)
+#define isnan _isnan
+#define isinf !_finite
+#define isfinite _finite
+#define signbit(d) (d < 0.0)? 1:0
+#endif
+
 using namespace std;
 
 namespace lib {

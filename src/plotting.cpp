@@ -28,6 +28,11 @@
 #include "plotting.hpp"
 #include "math_utl.hpp"
 
+#ifdef _MSC_VER
+#define isfinite _finite
+#define isnan _isnan
+#endif
+
 namespace lib {
 
   using namespace std;

@@ -37,6 +37,10 @@
 //#define GDL_DEBUG
 #undef GDL_DEBUG
 
+#ifdef _MSC_VER
+#define round(f) floor(f+0.5)
+#endif
+
 namespace lib {
 
   using namespace std;

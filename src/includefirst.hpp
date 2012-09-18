@@ -25,6 +25,10 @@
 //#error "config.h required. Compile with -DHAVE_CONFIG_H"
 //#endif
 
+#ifdef _MSC_VER
+#define NOMINMAX
+#endif
+
 // Python.h must be included before everything else
 #if defined(USE_PYTHON) || defined(PYTHON_MODULE)
 

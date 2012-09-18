@@ -103,6 +103,7 @@ namespace lib {
           zEl=size;
         }
       }
+      return false;
     } 
 
   private: void old_body( EnvT* e, GDLGStream* actStream) // {{{

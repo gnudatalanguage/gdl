@@ -219,7 +219,11 @@ if(OPENMP)
 	find_package(OpenMP QUIET)
 	if(OPENMP_FOUND)
 		add_definitions(${OpenMP_CXX_FLAGS})
-		set(LIBRARIES ${LIBRARIES} ${OpenMP_CXX_FLAGS})
+		if(WIN32 AND NOT CYGWIN)
+			set(LIBRARIES ${LIBRARIES} vcomp)
+		else(WIN32 AND NOT CYGWIN)
+			set(LIBRARIES ${LIBRARIES} ${OpenMP_CXX_FLAGS})
+		endif(WIN32 AND NOT CYGWIN)
 	endif(OPENMP_FOUND)
 endif(OPENMP)
 
@@ -238,6 +242,31 @@ else(GSL_FOUND)
         "(suitable Debian/Ubuntu package: libgsl0-dev)\n"
         "(suitable Fedora package: gsl-devel)")
 endif(GSL_FOUND)
+
+if(WIN32 AND NOT CYGWIN)
+set(CMAKE_PREFIX_PATH ${XDRDIR})
+find_package(xdr)
+set(HAVE_LIBXDR ${XDR_FOUND})
+if(XDR_FOUND)
+	set(LIBRARIES ${LIBRARIES} ${XDR_LIBRARIES})
+	include_directories(${XDR_INCLUDE_DIR})
+else(XDR_FOUND)
+	message(FATAL_ERROR "bsd-xdr library is required but was not found.\n"
+	"Use -DXDRDIR=DIR to specify the bsd-xdr directory tree.")
+endif(XDR_FOUND)
+
+set(CMAKE_PREFIX_PATH ${PCREDIR})
+find_package(pcre)
+set(HAVE_LIBPCRE ${PCRE_FOUND})
+if(PCRE_FOUND)
+	set(LIBRARIES ${LIBRARIES} ${PCRE_LIBRARIES})
+	include_directories(${PCRE_INCLUDE_DIR})
+else(PCRE_FOUND)
+	message(FATAL_ERROR "pcre library is required but was not found.\n"
+	"Use -DPCREDIR=DIR to specify the pcre directory tree.")
+endif(PCRE_FOUND)
+LINK_LIBRARIES(shlwapi)
+endif(WIN32 AND NOT CYGWIN)
 
 # PLplot MANDATORY
 # -DOLDPLPLOT=ON|OFF
@@ -644,9 +673,14 @@ install(FILES ${CMAKE_SOURCE_DIR}/doc/gdl.1 DESTINATION ${CMAKE_INSTALL_PREFIX}/
 configure_file(${CMAKE_SOURCE_DIR}/config.h.cmake ${CMAKE_BINARY_DIR}/config.h)
 
 # create a link src/gdl -> ${BUILD}/.../gdl
+# for windows, just copy the file
 if(NOT PYTHON_MODULE)
 	get_target_property(GDLLOCATION gdl LOCATION)
+	if(WIN32)
+	add_custom_target(copy_gdl ALL ${CMAKE_COMMAND} -E copy ${GDLLOCATION} ${CMAKE_SOURCE_DIR}/src/gdl DEPENDS gdl)
+	else(WIN32)
 	add_custom_target(symlink_gdl ALL ${CMAKE_COMMAND} -E create_symlink ${GDLLOCATION} ${CMAKE_SOURCE_DIR}/src/gdl DEPENDS gdl)
+	endif(WIN32)
 endif(NOT PYTHON_MODULE)
 
 # display macro
@@ -672,6 +706,14 @@ IF(NOT CMAKE_BUILD_TYPE)
     "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
     FORCE)
 ENDIF(NOT CMAKE_BUILD_TYPE)
+
+if(WIN32 AND NOT CYGWIN)
+SET(MACHINE_ARCH ${MSVC_C_ARCHITECTURE_ID})
+IF(NOT MACHINE_ARCH)
+  SET(MACHINE_ARCH ${MSVC_CXX_ARCHITECTURE_ID})
+ENDIF(NOT MACHINE_ARCH)
+set_target_properties(gdl PROPERTIES LINK_FLAGS "/machine:${MACHINE_ARCH}")
+endif(WIN32 AND NOT CYGWIN)
 
 # AC, 12-oct-2011, solved by Marc 
 # set_target_properties(gdl PROPERTIES LINK_FLAGS "-Wl,-z,muldefs")

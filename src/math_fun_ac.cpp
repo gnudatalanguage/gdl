@@ -157,6 +157,11 @@
 #include "math_fun_ac.hpp"
 #include <gsl/gsl_sf_bessel.h>
 
+#ifdef _MSC_VER
+#define isfinite _finite
+#define isinf !_finite
+#endif
+
 using namespace std;
 
 namespace lib {
@@ -696,7 +701,7 @@ namespace lib {
 
   BaseGDL* sobel_fun( EnvT* e){
     e->Throw( "sorry, SOBEL not ready.");
-    //return 1;
+    return NULL;
   }
 
   BaseGDL* roberts_fun( EnvT* e){
@@ -727,6 +732,7 @@ namespace lib {
   
   BaseGDL* prewitt_fun( EnvT* e){
     e->Throw( "sorry, PREWITT not ready.");
+    return NULL;
   }
 
 } // namespace

@@ -19,6 +19,10 @@
 #include "plotting.hpp"
 #include "math_utl.hpp"
 
+#ifdef _MSC_VER
+#define isinf !_finite
+#endif
+
 namespace lib {
 
   using namespace std;

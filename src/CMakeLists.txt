@@ -227,6 +227,14 @@ typetraits.hpp
 widget.cpp
 )
 
+if(WIN32 AND NOT CYGWIN)
+set(SOURCES
+${SOURCES}
+gtdhelper.cpp
+gtdhelper.hpp
+)
+endif(WIN32 AND NOT CYGWIN)
+
 add_subdirectory(antlr)
 
 include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/antlr ${CMAKE_BINARY_DIR})

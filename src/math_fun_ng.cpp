@@ -21,6 +21,10 @@
 #include "voigt.cpp"
 #include "math_fun_ng.hpp"
 
+#ifdef _MSC_VER
+#define isfinite _finite
+#endif
+
 using namespace std;
 
 namespace lib {

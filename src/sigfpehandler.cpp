@@ -24,6 +24,11 @@
 
 //#include "sigfpehandler.hpp"
 
+#ifdef _MSC_VER
+#define sigjmp_buf jmp_buf
+#define siglongjmp longjmp
+#endif
+
 sigjmp_buf sigFPEJmpBuf;
 
 // this is only called from integer division by zero

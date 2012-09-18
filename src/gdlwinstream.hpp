@@ -29,7 +29,7 @@ class GDLWINStream: public GDLGStream
 
 public:
   GDLWINStream( int nx, int ny):
-    GDLGStream( nx, ny, "win3")
+    GDLGStream( nx, ny, "wingcc")
   {
   }
 

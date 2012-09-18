@@ -20,7 +20,12 @@
 #endif
 #include "includefirst.hpp"
 
+#ifdef _MSC_VER
+#define sem_trywait(sem) (WaitForSingleObject(sem, 0) == WAIT_OBJECT_0 ? 0 : -1) 
+#define sem_post(sem) (ReleaseSemaphore(sem, 1, NULL) ? 0 : -1) 
+#else
 #include <semaphore.h>
+#endif
 #include <fcntl.h>
 #include <map>
 #include <cerrno>
@@ -32,7 +37,11 @@ namespace lib {
 
   // map: semaphore_name -> semaphore_data
   typedef struct {
+#ifdef _MSC_VER
+    HANDLE sem;
+#else
     sem_t *sem;
+#endif
     DByte deletable;
     DByte owner;
     DByte locked;
@@ -115,7 +124,11 @@ namespace lib {
     {
       if (sem_is_deletable(it->second))
       {
+#ifdef _MSC_VER
+        CloseHandle(it->second.sem);
+#else
         sem_unlink(it->first.c_str());
+#endif
       }
     }
     // don't bother with invalid semaphores because we're exiting
@@ -139,6 +152,13 @@ namespace lib {
     }
 
     bool owner = true;
+#ifdef _MSC_VER
+    HANDLE sem = CreateSemaphore(NULL,1,1,name.c_str());
+    if (sem == NULL) {
+	owner = false;
+	return new DIntGDL(0);
+    }
+#else
     sem_t *sem = sem_open(name.c_str(), O_CREAT | O_EXCL, 0666, 1);
     if (sem == SEM_FAILED)
     {
@@ -152,6 +172,7 @@ namespace lib {
         return new DIntGDL(0);
       }
     }
+#endif
 
     // Behavior for different values of DESTROY_SEMAPHORE:
     // DESTROY_SEMAPHORE | owner    | other (== !owner)
@@ -179,12 +200,16 @@ namespace lib {
     e->AssureStringScalarPar(0, name);
 
     const sem_data_t &data = sem_get_data(name, e);
+#ifdef _MSC_VER
+    CloseHandle(data.sem);
+#else
     sem_close(data.sem);
 
     if (sem_is_deletable(data))
     {
       sem_unlink(name.c_str());
     }
+#endif
 
     sem_remove(name);
   }

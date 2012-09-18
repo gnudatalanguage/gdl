@@ -30,6 +30,10 @@
 //#define GDL_DEBUG
 #undef GDL_DEBUG
 
+#ifdef _MSC_VER
+#include "gtdhelper.hpp"
+#endif
+
 namespace lib {
 
   using namespace std;
@@ -73,8 +77,12 @@ namespace lib {
   void linkimage( EnvT* e) 
   {
 
+#ifdef _MSC_VER
+    HMODULE module[MAXNDLL];
+#else
     const char *error;
     void *module[MAXNDLL];
+#endif
     static int count_pro=0;
     static int count_fun=0;
     int count;
@@ -109,7 +117,23 @@ namespace lib {
     e->AssureScalarPar<DStringGDL>( 3, entryName);
 
     /* Load dynamically loaded library */
+#ifdef _MSC_VER
+    #ifdef _UNICODE
+    TCHAR u_shrdimgName[255];
+    MultiByteToWideChar(CP_ACP, 0, shrdimgName.c_str(), shrdimgName.length(), u_shrdimgName, 255);
+    module[count] = LoadLibrary(u_shrdimgName);
+    #else
+    module[count] = LoadLibrary(shrdimgName.c_str());
+    #endif
+
+    if (!module[count]) {
+      fprintf(stderr, "Couldn't open %s\n", 
+	      shrdimgName.c_str());
+      return;
+    }
+#else
     module[count] = dlopen(shrdimgName.c_str(), RTLD_LAZY);
+
     if (!module[count]) {
       fprintf(stderr, "Couldn't open %s: %s\n", 
 	      shrdimgName.c_str(), dlerror());
@@ -118,7 +142,21 @@ namespace lib {
 
     /* Get symbol */
     dlerror();
+#endif
 
+#ifdef _MSC_VER
+    if (funcType == 0) {
+      (void* &) dynPro[count_pro] = 
+	(void *) GetProcAddress(module[count], entryName.c_str());
+    } else if (funcType == 1) {
+      (BaseGDL* &) dynFun[count_fun] = 
+	(BaseGDL*) GetProcAddress(module[count], entryName.c_str());
+    } else {
+      printf("Improper function type: %d\n", funcType);
+      FreeLibrary(module[count]);
+      return;
+    }
+#else
     if (funcType == 0) {
       (void* &) dynPro[count_pro] = 
 	(void *) dlsym(module[count], entryName.c_str());
@@ -135,7 +173,7 @@ namespace lib {
       fprintf(stderr, "Couldn't find %s: %s\n", entryName.c_str(), error);
       return;
     }
-
+#endif
     if (funcType == 0){
       new DLibPro(lib::dynPro[count_pro], upCasefuncName.c_str(), 16);
       count_pro++;
@@ -185,11 +223,15 @@ namespace lib {
     // AC 2010-09-16 this version should used much less CPU !
     if (old_version == 0) {
       //cout << floor(waittime) << " " <<  waittime-floor(waittime) << endl;
+#ifdef _MSC_VER
+      Sleep(floor(waittime*1e3));
+#else
       struct timespec tv;
       tv.tv_sec = floor(waittime);
       tv.tv_nsec = (waittime-floor(waittime))*1e9;
       int retval;
       retval=nanosleep(&tv,NULL);
+#endif
     }
   }
 
@@ -382,13 +424,23 @@ namespace lib {
 
     // Load shared object, call function
 
+#ifdef _MSC_VER
+    HMODULE handle =  LoadLibrary((LPCSTR)image.c_str());
+#else
     void* handle =  dlopen(image.c_str(),  RTLD_NOW || RTLD_GLOBAL);
+#endif
     if (handle == NULL) {
+#ifndef _MSC_VER
 	cout << dlerror() << endl;
+#endif
 	e->Throw("Error opening shared object: " + image);
     }
 
+#ifdef _MSC_VER
+    void* func = GetProcAddress(handle,entry.c_str());
+#else
     void* func = dlsym(handle,entry.c_str());
+#endif
     if (func == NULL) {
 	e->Throw("Entry not found: " + entry);
     }
@@ -432,7 +484,11 @@ namespace lib {
     }
 
     if (flagUnload) {
+#ifdef _MSC_VER
+	while (! FreeLibrary(handle) ) {}
+#else
 	while (! dlclose(handle) ) {}
+#endif
     }
 
     // Copy strings and structures back to GDL, free memory

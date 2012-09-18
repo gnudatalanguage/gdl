@@ -18,6 +18,10 @@
 #include "includefirst.hpp"
 #include "plotting.hpp"
 
+#ifdef _MSC_VER
+#define isnan _isnan
+#endif
+
 namespace lib {
 
   using namespace std;

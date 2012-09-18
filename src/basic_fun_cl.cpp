@@ -29,8 +29,6 @@
 #include <fstream>
 #include <memory>
 
-#include <sys/time.h>
-
 #include <gsl/gsl_sys.h>
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_sf.h>
@@ -47,6 +45,11 @@
 
 #define MAX_DATE_STRING_LENGTH 80
 
+#ifdef _MSC_VER
+#include "gtdhelper.hpp"
+#else
+#include <sys/time.h>
+#endif
 
 namespace lib {
 
@@ -250,8 +253,8 @@ namespace lib {
 
     
     nmin=nEx;
-    if(nEl < nmin and nEl > 1) 	nmin=nEl;    
-    if(nEm < nmin and nEm > 1) 	nmin=nEm;
+    if(nEl < nmin && nEl > 1) 	nmin=nEl;    
+    if(nEm < nmin && nEm > 1) 	nmin=nEm;
     
     if (xvals->Type() == GDL_STRING) {
       e->Throw( 

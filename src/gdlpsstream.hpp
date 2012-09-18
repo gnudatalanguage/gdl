@@ -28,7 +28,11 @@ private:
   bool encapsulated;
 public:
   GDLPSStream( int nx, int ny, int pfont, bool encaps):
+#ifdef _MSC_VER
+    GDLGStream( nx, ny, pfont == 1 ? "psttf" : "ps")
+#else
     GDLGStream::GDLGStream( nx, ny, pfont == 1 ? "psttf" : "ps")
+#endif
   {
     encapsulated = encaps;
   }

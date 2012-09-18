@@ -102,7 +102,7 @@ void LibInit()
 
   const string spawnKey[]={ "COUNT","EXIT_STATUS","PID",
 			    "SH","NOSHELL","UNIT",KLISTEND};
-  new DLibPro(lib::spawn_pro,string("SPAWN"),3,spawnKey);
+  //new DLibPro(lib::spawn_pro,string("SPAWN"),3,spawnKey);
 
   const string bytsclKey[]={"MIN","MAX","TOP","NAN",KLISTEND};
   new DLibFun(lib::bytscl,string("BYTSCL"),3,bytsclKey);
@@ -134,7 +134,7 @@ void LibInit()
 				 "MARK_DIRECTORY","NOSORT","QUOTE",
 				 "MATCH_INITIAL_DOT",
 				 "MATCH_ALL_INITIAL_DOT","FULLY_QUALIFY_PATH",KLISTEND};
-  new DLibFunRetNew(lib::file_search,string("FILE_SEARCH"),2,file_searchKey);
+  //new DLibFunRetNew(lib::file_search,string("FILE_SEARCH"),2,file_searchKey);
 
   const string expand_pathKey[]={"ARRAY","ALL_DIRS","COUNT",KLISTEND};
   new DLibFunRetNew(lib::expand_path,string("EXPAND_PATH"),1,expand_pathKey);

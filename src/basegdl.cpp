@@ -219,13 +219,20 @@ SizeT BaseGDL::GetAsIndexStrict( SizeT i) const
 { 
   throw GDLException("BaseGDL::GetAsIndexStrict called.");
 }
-
+#ifdef _MSC_VER
+bool BaseGDL::True()
+#else
 bool BaseGDL::BaseGDL::True()
+#endif
 {
   throw GDLException("Operation not defined for UNDEF 3.");
 }
 
+#ifdef _MSC_VER
+bool BaseGDL::False()
+#else
 bool BaseGDL::BaseGDL::False()
+#endif
 {
   throw GDLException("Operation not defined for UNDEF 4.");
 }

@@ -21,8 +21,10 @@
 #include "includefirst.hpp"
 
 #include <list>
-#include <rpc/rpc.h>
+#include <rpc/xdr.h>
+#ifndef _MSC_VER
 #include <algorithm>
+#endif
 
 #include "dimension.hpp"
 #include "gdlexception.hpp"

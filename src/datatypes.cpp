@@ -50,6 +50,10 @@ extern "C" {
 #endif
 #endif
 
+#ifdef _MSC_VER
+#define isfinite _finite
+#endif
+
 using namespace std;
 
 // this (ugly) including of other sourcefiles has to be done, because
@@ -86,6 +90,11 @@ using namespace std;
 #    define INCLUDE_PYTHONGDL_CPP 1
 #    include "pythongdl.cpp"
 #  endif
+#endif
+
+#ifdef _MSC_VER
+#define isnan _isnan
+#define isinfinite _isinfinite
 #endif
 
 template<class Sp>

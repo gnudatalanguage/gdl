@@ -27,17 +27,21 @@
 
 #include <sys/stat.h>
 #include <sys/types.h>
+#ifndef _MSC_VER
 #include <sys/wait.h>
+#endif
 
 #ifdef __APPLE__
 # include <crt_externs.h>
 # define environ (*_NSGetEnviron())
 #else
+#ifdef _MSC_VER
+#define R_OK    4       /* Test for read permission.  */
+#define W_OK    2       /* Test for write permission.  */
+#define F_OK    0       /* Test for existence.  */
+#else
 #include <unistd.h>
 #endif
-
-#ifdef HAVE_LIBWXWIDGETS
-#include <wx/wx.h>
 #endif
 
 #ifdef _OPENMP
@@ -56,6 +60,10 @@
 #  include <ext/stdio_filebuf.h> // TODO: is it portable across compilers?
 #endif
 #include <signal.h>
+
+#ifdef HAVE_LIBWXWIDGETS
+#include <wx/wx.h>
+#endif
 
 namespace lib {
  
@@ -713,7 +721,11 @@ namespace lib {
 			AppendIfNeeded(pathToGDL_history, "/");
 			pathToGDL_history += ".gdl";
 			// Create eventially the ".gdl" path in Home
+#ifdef _MSC_VER
+			result = mkdir(pathToGDL_history.c_str());
+#else
 			result = mkdir(pathToGDL_history.c_str(), 0700);
+#endif
 			if (debug)
 			{
 				if (result == 0) cout << "Creation of ~/.gdl PATH "<< endl;
@@ -1860,7 +1872,7 @@ TRACEOMP( __FILE__, __LINE__)
       DString strArg = strEnv.substr(pos+1, len - pos - 1);
       strEnv = strEnv.substr(0, pos);
       // putenv() is POSIX unlike setenv()
-      #if defined(__hpux__)
+      #if defined(__hpux__) || defined(_MSC_VER)
       int ret = putenv((strEnv+"="+strArg).c_str());
       #else
       int ret = setenv(strEnv.c_str(), strArg.c_str(), 1);
@@ -1933,7 +1945,7 @@ TRACEOMP( __FILE__, __LINE__)
 		     " tag " + sourceTagName + ". Not copied.");
       }
   }
-
+  /*
   // helper function for spawn_pro
   static void child_sighandler(int x){
     pid_t pid;
@@ -2109,7 +2121,7 @@ TRACEOMP( __FILE__, __LINE__)
              e->Throw( "SPAWN: Failed to open new LUN: Unit already open. Unit: "+i2s( unit_lun));
            fileUnits[ unit_lun-1].PutVarLenVMS( false);
  
-           // Here we invoke the black arts of converting from a C FILE*/fd to an fstream object
+           // Here we invoke the black arts of converting from a C FILE*fd to an fstream object
            __gnu_cxx::stdio_filebuf<char> *frb_p;
            frb_p = new __gnu_cxx::stdio_filebuf<char>(coutF, std::ios_base::in);
  
@@ -2208,7 +2220,7 @@ TRACEOMP( __FILE__, __LINE__)
         }
       }
   }
-
+  */
   void replicate_inplace_pro( EnvT* e)
   {
     SizeT nParam = e->NParam( 2);
@@ -2373,7 +2385,9 @@ TRACEOMP( __FILE__, __LINE__)
       e->Throw("Value of Julian date (" + i2s((*p0)[i]) + ") is out of allowed range.");
 
     // preparing output (loop order important when all parameters point the same variable)
-    BaseGDL** ret[nParam - 1];
+    //BaseGDL** ret[nParam - 1];
+    BaseGDL*** ret;
+    ret = (BaseGDL***)malloc((nParam-1)*sizeof(BaseGDL**));
     for (int i = nParam - 2; i >= 0; i--) if (global[i]) 
     {
       ret[i] = &e->GetPar(i + 1);
@@ -2453,7 +2467,7 @@ TRACEOMP( __FILE__, __LINE__)
       if (global[6 - 1]) 
         (*static_cast<DDoubleGDL*>(*ret[6 - 1]))[i] = F * 86400;
     }
-    
+    free((void *)ret);
   }
   
 } // namespace

@@ -66,8 +66,12 @@ namespace lib {
     e->AssureLongScalarKWIfPresent( "YPOS", yPos);
 
     DLong xSize, ySize;
+#ifdef HAVE_X
     DeviceX::DefaultXYSize(&xSize, &ySize);
-
+#else
+    xSize = 640;
+    ySize = 512;
+#endif
     e->AssureLongScalarKWIfPresent( "XSIZE", xSize);
     e->AssureLongScalarKWIfPresent( "YSIZE", ySize);
 
@@ -106,7 +110,12 @@ namespace lib {
 	if( actDevice->ActWin() == -1)
 	  {
             DLong xSize, ySize;
-            DeviceX::DefaultXYSize(&xSize, &ySize);
+            #ifdef HAVE_X
+                DeviceX::DefaultXYSize(&xSize, &ySize);
+            #else
+                xSize = 640;
+                ySize = 512;
+            #endif
 	    bool success = actDevice->WOpen( 0, "GDL 0", xSize, ySize, 0, 0);
 	    if( !success)
 	      e->Throw( "Unable to create window.");
@@ -183,6 +192,7 @@ namespace lib {
   {
 #ifndef HAVE_X
     e->Throw("GDL was compiled without support for X-windows");
+    return NULL;
 #else
     SizeT nParam=e->NParam(); 
     

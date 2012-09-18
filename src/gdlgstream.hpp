@@ -30,6 +30,10 @@
 #include "typedefs.hpp"
 #include "gdlexception.hpp"
 
+#ifdef _MSC_VER
+#include <algorithm>
+#endif
+
 using namespace std;
 
 class GDLGStream: public plstream

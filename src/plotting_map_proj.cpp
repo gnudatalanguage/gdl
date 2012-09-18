@@ -105,6 +105,7 @@ namespace lib {
     }
 #else
     e->Throw("GDL was compiled without support for map projections");
+    return NULL;
 #endif
   }
 
@@ -189,6 +190,7 @@ namespace lib {
     }
 #else
     e->Throw("GDL was compiled without support for map projections");
+    return NULL;
 #endif
   }
 

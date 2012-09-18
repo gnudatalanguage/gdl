@@ -50,14 +50,14 @@ class DeviceWIN: public Graphics
 	PLINT xleng; PLINT yleng;
 	PLINT xoff; PLINT yoff;
 	winList[ wIx]->gpage( xp, yp, xleng, yleng, xoff, yoff);
-	(*static_cast<DLongGDL*>( dStruct->Get( xSTag, 0)))[0] = xleng;
-	(*static_cast<DLongGDL*>( dStruct->Get( ySTag, 0)))[0] = yleng;
-	(*static_cast<DLongGDL*>( dStruct->Get( xVSTag, 0)))[0] = xleng;
-	(*static_cast<DLongGDL*>( dStruct->Get( yVSTag, 0)))[0] = yleng;
+	(*static_cast<DLongGDL*>( dStruct->Get( xSTag)))[0] = xleng;
+	(*static_cast<DLongGDL*>( dStruct->Get( ySTag)))[0] = yleng;
+	(*static_cast<DLongGDL*>( dStruct->Get( xVSTag)))[0] = xleng;
+	(*static_cast<DLongGDL*>( dStruct->Get( yVSTag)))[0] = yleng;
       }	
 
     // window number
-    (*static_cast<DLongGDL*>( dStruct->Get( wTag, 0)))[0] = wIx;
+    (*static_cast<DLongGDL*>( dStruct->Get( wTag)))[0] = wIx;
 
     actWin = wIx;
   }
@@ -100,6 +100,11 @@ public:
   {
     name = "WIN";
 
+    DLongGDL origin( dimension( 2));
+    DLongGDL zoom( dimension( 2));
+    zoom[0] = 1;
+    zoom[1] = 1;
+
     dStruct = new DStructGDL( "!DEVICE");
     dStruct->InitTag("NAME",       DStringGDL( name)); 
     dStruct->InitTag("X_SIZE",     DLongGDL( 640)); 
@@ -116,15 +121,15 @@ public:
     dStruct->InitTag("WINDOW",     DLongGDL( -1)); 
     dStruct->InitTag("UNIT",       DLongGDL( 0)); 
     dStruct->InitTag("FLAGS",      DLongGDL( 328124)); 
-    dStruct->InitTag("ORIGIN",     DLongGDL( 0)); 
-    dStruct->InitTag("ZOOM",       DLongGDL( 0)); 
+    dStruct->InitTag("ORIGIN",     origin); 
+    dStruct->InitTag("ZOOM",       zoom); 
 
     winList.resize( maxWin);
     for( int i=0; i < maxWin; i++) winList[ i] = NULL;
     oList.resize( maxWin);
     for( int i=0; i < maxWin; i++) oList[ i] = 0;
 
-    GDLGStream::SetErrorHandlers();
+    //GDLGStream::SetErrorHandlers();
   }
   
   ~DeviceWIN()
@@ -223,7 +228,7 @@ public:
     winList[ wIx]->SETOPT( "plwindow", buf);
 
     // we want color (and the driver options need to be overwritten)
-    winList[ wIx]->SETOPT( "drvopt","color=1");
+    // winList[ wIx]->SETOPT( "drvopt","color=1");
 
     // set color map
     PLINT r[ctSize], g[ctSize], b[ctSize];
@@ -235,7 +240,7 @@ public:
     
     // load font
     winList[ wIx]->font( 1);
-    actStream->DefaultCharSize();
+    //actStream->DefaultCharSize();
 
     //    (*pMulti)[ 0] = nx*ny;
 
@@ -280,7 +285,23 @@ public:
   GDLGStream* GetStream( bool open=true)
   {
     ProcessDeleted();
-    if( actWin == -1) return NULL;
+    if( actWin == -1)
+      {
+	if( !open) return NULL;
+
+	DString title = "GDL 0";
+        DLong xSize, ySize;
+        //DefaultXYSize(&xSize, &ySize);
+		xSize = 640; ySize = 480;
+	bool success = WOpen( 0, title, xSize, ySize, 0, 0);
+	if( !success)
+	  return NULL;
+	if( actWin == -1)
+	  {
+	    std::cerr << "Internal error: plstream not set." << std::endl;
+	    exit( EXIT_FAILURE);
+	  }
+      }
     return winList[ actWin];
   }
 

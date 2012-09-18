@@ -23,8 +23,10 @@
 
 // get_kbrd patch
 // http://sourceforge.net/forum/forum.php?thread_id=3292183&forum_id=338691
+#ifndef _MSC_VER
 #include <termios.h> 
 #include <unistd.h> 
+#endif
 #include <limits>
 #include <string>
 #include <fstream>
@@ -34,8 +36,6 @@
 #ifdef __APPLE__
 # include <crt_externs.h>
 # define environ (*_NSGetEnviron())
-#else
-#include <unistd.h>
 #endif
 
 #if defined(__FreeBSD__) || defined(__sun__) || defined(__OpenBSD__)
@@ -55,10 +55,31 @@ extern "C" char **environ;
 #ifdef HAVE_LOCALE_H
 # include <locale.h>
 #endif
-#include <sys/utsname.h>
 
 /* max regexp error message length */
 #define MAX_REGEXPERR_LENGTH 80
+
+#ifdef _MSC_VER
+#define isfinite _finite
+#define isnan _isnan
+#define round(f) floor(f+0.5)
+int strncasecmp(const char *s1, const char *s2, size_t n)
+{
+  if (n == 0)
+    return 0;
+  while (n-- != 0 && tolower(*s1) == tolower(*s2))
+    {
+      if (n == 0 || *s1 == '\0' || *s2 == '\0')
+    break;
+      s1++;
+      s2++;
+    }
+
+  return tolower(*(unsigned char *) s1) - tolower(*(unsigned char *) s2);
+}
+#else
+#include <sys/utsname.h>
+#endif
 
 namespace lib {
 
@@ -5533,26 +5554,33 @@ BaseGDL* transpose( EnvT* e)
     char c='\0'; //initialize is never a bad idea...
 
     int fd=fileno(stdin);
+#ifndef _MSC_VER
     struct termios orig, get; 
-    
+#endif
     // Get terminal setup to revert to it at end. 
+#ifndef _MSC_VER
     (void)tcgetattr(fd, &orig); 
     // New terminal setup, non-canonical.
     get.c_lflag = ISIG; 
+#endif
     if (doWait)
     {
      // will wait for a character
+#ifndef _MSC_VER
      get.c_cc[VTIME]=0;
      get.c_cc[VMIN]=1;
      (void)tcsetattr(fd, TCSANOW, &get); 
+#endif
      cin.get(c);
     }
     else 
     {
      // will not wait, but return EOF or next character in terminal buffer if present
+#ifndef _MSC_VER
      get.c_cc[VTIME]=0;
      get.c_cc[VMIN]=0;
      (void)tcsetattr(fd, TCSANOW, &get); 
+#endif
      //the trick is *not to use C++ functions here. cin.get would wait.*
      c=std::fgetc(stdin);
      //and to convert EOF to null (otherwise GDL may exit if not compiled with
@@ -5561,7 +5589,9 @@ BaseGDL* transpose( EnvT* e)
     }
     
     // Restore original terminal settings. 
+#ifndef _MSC_VER
     (void)tcsetattr(fd, TCSANOW, &orig); 
+#endif
 #if defined(HAVE_LIBREADLINE)
     rl_deprep_terminal ();
 #endif
@@ -6406,11 +6436,30 @@ BaseGDL* transpose( EnvT* e)
   BaseGDL* get_login_info( EnvT* e)
   {
     // getting the info 
+#ifdef _MSC_VER
+    #define MAX_TCHAR_BUF 256
+
+    char login[MAX_TCHAR_BUF];
+    char info[MAX_TCHAR_BUF];
+
+    DWORD N_TCHAR = MAX_TCHAR_BUF;
+
+    #ifdef _UNICODE
+    TCHAR t_buf[MAX_TCHAR_BUF];
+    GetUserName(t_buf, &N_TCHAR);
+    WideCharToMultiByte(CP_ACP, 0, t_buf, N_TCHAR, login, N_TCHAR, NULL, NULL);
+    GetComputerName( t_buf, &N_TCHAR );
+    WideCharToMultiByte(CP_ACP, 0, t_buf, N_TCHAR, info, N_TCHAR, NULL, NULL);
+    #else
+    GetUserName(login, &N_TCHAR);
+    GetComputerName(info, &N_TCHAR);
+    #endif
+#else
     char* login = getlogin();
     if (login == NULL) e->Throw("Failed to get user name from the OS"); 
     struct utsname info;
     if (0 != uname(&info)) e->Throw("Failed to get machine name from the OS");
-
+#endif
     // creating the output anonymous structure
     DStructDesc* stru_desc = new DStructDesc("$truct");
     SpDString aString;
@@ -6420,7 +6469,11 @@ BaseGDL* transpose( EnvT* e)
 
     // returning the info 
     stru->InitTag("USER_NAME", DStringGDL(login));
+#ifdef _MSC_VER
+    stru->InitTag("MACHINE_NAME", DStringGDL(info));
+#else
     stru->InitTag("MACHINE_NAME", DStringGDL(info.nodename));
+#endif
     return stru;
   }
 

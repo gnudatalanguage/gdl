@@ -27,7 +27,12 @@
 #include <string>
 #include <csignal>
 #include <cstdlib>
+#ifdef _MSC_VER
+#include <io.h>
+#define isatty _isatty
+#else
 #include <unistd.h> // isatty
+#endif
 #include <climits> // PATH_MAX
 
 //#include <fenv.h>

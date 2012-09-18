@@ -19,7 +19,9 @@
 
 #include "includefirst.hpp"
 
+#ifndef _MSC_VER
 #include <unistd.h>
+#endif
 
 #include <fstream>
 #include <sys/stat.h>
@@ -116,7 +118,7 @@ namespace lib
       }
       if (host == "") {
 	//char *gethost;
-	int GDL_HOST_NAME_MAX=255;
+#define GDL_HOST_NAME_MAX 255
 	char gethost[GDL_HOST_NAME_MAX];
 	size_t lgethost=GDL_HOST_NAME_MAX;
 	// don't know if this primitive is available on Mac OS X

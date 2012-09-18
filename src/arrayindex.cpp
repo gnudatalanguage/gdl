@@ -352,7 +352,7 @@ void ArrayIndexListOneScalarNoAssocT::AssignAt( BaseGDL* var, BaseGDL* right)
 // vtable
 ArrayIndexListT::~ArrayIndexListT() {}
 
-AllIxBaseT* ArrayIndexListT::BuildIx() {}
+AllIxBaseT* ArrayIndexListT::BuildIx() {return NULL;}
 
 // called from compiler after structure is fixed
 // the ArrayIndexListT factory

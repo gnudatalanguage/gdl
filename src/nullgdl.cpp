@@ -222,12 +222,20 @@ SizeT NullGDL::GetAsIndexStrict( SizeT i) const
   throw GDLException("NullGDL::GetAsIndexStrict called.");
 }
 
+#ifdef _MSC_VER
+bool NullGDL::True()
+#else
 bool NullGDL::NullGDL::True()
+#endif
 {
   throw GDLException("Operation not defined for !NULL 3.");
 }
 
+#ifdef _MSC_VER
+bool NullGDL::False()
+#else
 bool NullGDL::NullGDL::False()
+#endif
 {
   throw GDLException("Operation not defined for !NULL 4.");
 }

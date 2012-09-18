@@ -19,7 +19,9 @@
 #ifndef BASIC_PRO_JMG_HPP_
 #define BASIC_PRO_JMG_HPP_
 
+#ifndef _MSC_VER
 #include <dlfcn.h>
+#endif
 #include <time.h>
 
 namespace lib {

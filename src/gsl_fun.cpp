@@ -94,6 +94,11 @@
 
 #define LOG10E 0.434294
 
+#ifdef _MSC_VER
+#define isnan _isnan
+#define isfinite _finite
+#endif
+
 namespace lib {
 
   using namespace std;
@@ -461,6 +466,7 @@ namespace lib {
 				       stride_in, stride_out);
       break;
     }
+    return 0;
   }
 
 
@@ -495,6 +501,7 @@ namespace lib {
       for( SizeT i=1; i<nEl; ++i) 
 	dptr[2*(i*stride+offset)+1] = -dptr[2*(i*stride+offset)+1];
     }
+    return 0;
   }
 
   template< typename T, typename T1, typename T2>
@@ -543,6 +550,7 @@ namespace lib {
       //       (*workspace_free) (work);
       //       (*wavetable_free) (wave);
     }
+    return 0;
   }
 
 
@@ -601,6 +609,7 @@ namespace lib {
       //       (*workspace_free) (work);
       //       (*wavetable_free) (wave);
     }
+    return 0;
   }
 
   template < typename T>

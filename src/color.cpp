@@ -18,6 +18,11 @@
 #include "color.hpp"
 
 #include <iostream>
+
+#ifdef _MSC_VER
+#define round(f) floor(f+0.5)
+#endif
+
 using namespace std;
 
 const DFloat maxDByte = 255.0;

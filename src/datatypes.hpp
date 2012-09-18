@@ -188,6 +188,7 @@ static	void operator delete( void *ptr);
 		     BaseGDL::Convert2Mode=BaseGDL::CONVERT);
 
   // not all compilers can handle template friend member functions
+#ifndef _MSC_VER
 #if defined( TEMPLATE_FRIEND_OK_) || (__GNUC__ >= 4)
   // make all other Convert2 functions friends
   template<class Sp2>  
@@ -210,6 +211,7 @@ static	void operator delete( void *ptr);
   friend BaseGDL* Data_<SpDComplex>::Convert2( DType destTy, BaseGDL::Convert2Mode);
   friend BaseGDL* Data_<SpDComplexDbl>::Convert2( DType destTy, BaseGDL::Convert2Mode);
 
+#endif
 #endif
 
   bool True();

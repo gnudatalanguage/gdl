@@ -18,7 +18,13 @@
 #include "includefirst.hpp"
 
 #include <iostream>
+#ifdef _MSC_VER
+#include <io.h> // isatty, windows
+#define feclearexcept(e)
+#define FE_ALL_EXCEPT
+#else
 #include <unistd.h> // isatty
+#endif
 
 //#include <wordexp.h>
 
@@ -1046,7 +1052,9 @@ string DInterpreter::GetLine()
     // make a string
     line = cline;
     
+#ifndef _MSC_VER
     free(cline);        // done here for compatibility with readline
+#endif
   
     StrTrim(line);
   } while( line == "");

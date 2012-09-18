@@ -50,7 +50,11 @@ class DevicePS: public Graphics
   float	           scale;
 
   static const int dpi = 72;
+#ifdef _MSC_VER
+#define cm2in .01 / GSL_CONST_MKSA_INCH; // This is not good, but works
+#else
   static const float cm2in = .01 / GSL_CONST_MKSA_INCH;
+#endif
 
   void InitStream()
   {

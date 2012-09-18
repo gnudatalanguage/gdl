@@ -38,6 +38,8 @@
 #  define FE_INVALID		FP_X_INV
 #  define FE_OVERFLOW		FP_X_OFL
 #  define FE_UNDERFLOW		FP_X_UFL
+#elif defined(_MSC_VER)
+#  include <float.h>
 #else
 #  include <fenv.h>
 #endif

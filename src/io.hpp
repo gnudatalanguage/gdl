@@ -26,11 +26,15 @@
 #include <cassert>
 
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <unistd.h>
-#include <arpa/inet.h>
+#ifdef _MSC_VER
+	#include <winsock2.h>
+#else
+	#include <sys/socket.h>
+	#include <netinet/in.h>
+	#include <netdb.h>
+	#include <arpa/inet.h>
+	#include <unistd.h>
+#endif
 
 #include <string.h>  // for memcpy
 #include "gzstream.hpp"

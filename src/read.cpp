@@ -31,6 +31,11 @@
 
 //#include "format.g"
 
+#ifdef _MSC_VER
+#include <io.h>
+#define isatty _isatty
+#endif
+
 namespace lib {
   
   using namespace std;

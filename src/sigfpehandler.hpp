@@ -20,7 +20,12 @@
 
 #include <csetjmp>
 
+#ifdef _MSC_VER
+extern jmp_buf sigFPEJmpBuf;
+#define sigsetjmp(x,s) setjmp(x)
+#else
 extern sigjmp_buf sigFPEJmpBuf;
+#endif
 
 void SigFPEHandler( int signo); 
 

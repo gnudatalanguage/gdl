@@ -165,12 +165,13 @@ void Graphics::Init()
 #  endif
 #endif
 #  ifndef HAVE_X
+    {}
 #  else
     {
     cerr << "Error initializing graphics." << endl;
     exit( EXIT_FAILURE);
     }
-#  endif
+#  endif 
 }
 
 void Graphics::DestroyDevices()

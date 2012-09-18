@@ -60,7 +60,11 @@ inline real_t string2real_helper(const char* cStart, char** cEnd);
 template <>
 inline float string2real_helper<float>(const char* cStart, char** cEnd)
 {
+#ifdef _MSC_VER
+  return strtod(cStart, cEnd);
+#else
   return strtof(cStart, cEnd);
+#endif
 }
 
 template <>

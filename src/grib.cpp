@@ -50,6 +50,7 @@ namespace lib {
   {
 #ifndef USE_GRIB
     e->Throw("GDL was compiled without support for GRIB");
+    return NULL;
 #else
     {
       SizeT nParam = e->NParam(1);
@@ -93,6 +94,7 @@ namespace lib {
   {
 #ifndef USE_GRIB
     e->Throw("GDL was compiled without support for GRIB");
+    return NULL;
 #else
     {
       SizeT nParam = e->NParam(1);
@@ -118,6 +120,7 @@ namespace lib {
   {
 #ifndef USE_GRIB
     e->Throw("GDL was compiled without support for GRIB");
+    return NULL;
 #else
     {
       SizeT nParam = e->NParam(1);
@@ -146,6 +149,7 @@ namespace lib {
   {
 #ifndef USE_GRIB
     e->Throw("GDL was compiled without support for GRIB");
+    return NULL;
 #else
     {
       SizeT nParam = e->NParam(1);
@@ -219,6 +223,7 @@ namespace lib {
   {
 #ifndef USE_GRIB
     e->Throw("GDL was compiled without support for GRIB");
+    return NULL;
 #else
     {
       SizeT nParam = e->NParam(2);

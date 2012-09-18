@@ -341,7 +341,7 @@ public:
   // requires special handling
   // used by Assoc_<> returns last index in lastIx, removes it
   // and returns true is the list is empty
-  bool ToAssocIndex( SizeT& lastIx) { assert( false);}
+  bool ToAssocIndex( SizeT& lastIx) { assert( false); return false;}
 
   // set the root variable which is indexed by this ArrayIndexListT
   void SetVariable( BaseGDL* var);
@@ -1369,6 +1369,7 @@ if( dynamic_cast<ArrayIndexIndexed*>(ixList[ixList.size()-1]) ||
   bool ToAssocIndex( SizeT& lastIx)
   {
     assert( false);
+    return FALSE;
   }
 
   // set the root variable which is indexed by this ArrayIndexListMultiT

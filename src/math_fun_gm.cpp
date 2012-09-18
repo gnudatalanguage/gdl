@@ -189,6 +189,11 @@
 #include <gsl/gsl_sf_gamma.h>
 #include <gsl/gsl_sf_psi.h>
 
+#ifdef _MSC_VER
+#define isnan _isnan
+#define isfinite _finite
+#endif
+
 using namespace std;
 
 namespace lib

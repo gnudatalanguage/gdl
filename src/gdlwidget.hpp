@@ -112,12 +112,12 @@ public:
   BaseGDL* GetVvalue() { return vValue;}
 
   virtual void Realize( bool) {} 
-  virtual DLong GetChild( DLong) {};
+  virtual DLong GetChild( DLong) {return 0;};
   virtual void SetXmanagerActiveCommand() {};
-  virtual bool GetXmanagerActiveCommand() {};
+  virtual bool GetXmanagerActiveCommand() {return false;};
 
   virtual void SetEventPro( DString) {};
-  virtual DString GetEventPro() {};
+  virtual DString GetEventPro() {return NULL;};
 
   static bool GetXmanagerBlock();
   static bool PollEvents( DLong *, DLong *, DLong *, DLong *);
