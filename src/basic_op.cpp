@@ -3449,12 +3449,12 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModInv( BaseGDL* r)
 }
 // in basic_op.cpp
 // double modulo division: left=left % right
-// inline DDouble Modulo( const DDouble& l, const DDouble& r)
-// {
-//   DDouble t=abs(l/r);
-//   if( l < 0.0) return t=(floor(t)-t)*abs(r);
-//   return (t-floor(t))*abs(r);
-// }
+inline DDouble DModulo( const DDouble& l, const DDouble& r)
+ {
+   DDouble t=abs(l/r);
+   if( l < 0.0) return t=(floor(t)-t)*abs(r);
+   return (t-floor(t))*abs(r);
+ }
 template<>
 Data_<SpDDouble>* Data_<SpDDouble>::Mod( BaseGDL* r)
 {
@@ -3470,7 +3470,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::Mod( BaseGDL* r)
     {
 #pragma omp for
       for( int i=0; i < nEl; ++i)
-	(*this)[i] = Modulo((*this)[i],(*right)[i]);
+	(*this)[i] = DModulo((*this)[i],(*right)[i]);
     }  //C delete right;
   return this;
 }
@@ -3490,7 +3490,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModInv( BaseGDL* r)
     {
 #pragma omp for
       for( int i=0; i < nEl; ++i)
-	(*this)[i] = Modulo((*right)[i],(*this)[i]);
+	(*this)[i] = DModulo((*right)[i],(*this)[i]);
     }  //C delete right;
   return this;
 }
@@ -3724,7 +3724,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModS( BaseGDL* r)
     {
 #pragma omp for
       for( int i=0; i < nEl; ++i)
-	(*this)[i] = Modulo((*this)[i],s);
+	(*this)[i] = DModulo((*this)[i],s);
     }  //C delete right;
   return this;
 }
@@ -3743,7 +3743,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModInvS( BaseGDL* r)
     {
 #pragma omp for
       for( int i=0; i < nEl; ++i)
-	(*this)[i] = Modulo(s,(*this)[i]);
+	(*this)[i] = DModulo(s,(*this)[i]);
     }  //C delete right;
   return this;
 }
