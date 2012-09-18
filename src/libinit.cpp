@@ -100,9 +100,11 @@ void LibInit()
 				  "PARAMETERS", KLISTEND};
   new DLibFun(lib::routine_info,string("ROUTINE_INFO"),1,routine_infoKey);
 
+#ifndef _MSC_VER
   const string spawnKey[]={ "COUNT","EXIT_STATUS","PID",
 			    "SH","NOSHELL","UNIT",KLISTEND};
-  //new DLibPro(lib::spawn_pro,string("SPAWN"),3,spawnKey);
+  new DLibPro(lib::spawn_pro,string("SPAWN"),3,spawnKey);
+#endif
 
   const string bytsclKey[]={"MIN","MAX","TOP","NAN",KLISTEND};
   new DLibFun(lib::bytscl,string("BYTSCL"),3,bytsclKey);

@@ -1945,7 +1945,9 @@ TRACEOMP( __FILE__, __LINE__)
 		     " tag " + sourceTagName + ". Not copied.");
       }
   }
-  /*
+
+#ifndef _MSC_VER
+ 
   // helper function for spawn_pro
   static void child_sighandler(int x){
     pid_t pid;
@@ -2220,7 +2222,8 @@ TRACEOMP( __FILE__, __LINE__)
         }
       }
   }
-  */
+#endif
+
   void replicate_inplace_pro( EnvT* e)
   {
     SizeT nParam = e->NParam( 2);
