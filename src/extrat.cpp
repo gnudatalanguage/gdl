@@ -67,7 +67,7 @@ void ExtraT::ResolveExtra(EnvBaseT* callerIn)
           listName.push_back(tName);
           listEnv.push_back(extraStruct->Get(t)); // always local
         }
-        else if (strict || callerIn == NULL) // always strict if callerIn is set
+        else if (strict || callerIn != NULL) // always strict if callerIn is set
         { // pro has no (_REF)_EXTRA and _STRICT_EXTRA -> error
           // ... unless keyword is a warnkey!
           // search warn keyword
