@@ -223,7 +223,7 @@ struct CUSTOM_API GDLTreeParserTokenTypes {
 		LOG_AND = 212,
 		LOG_OR = 213,
 		QUESTION = 214,
-		GDL_STRING = 215,
+		STRING = 215,
 		INCLUDE = 216,
 		EOL = 217,
 		W = 218,

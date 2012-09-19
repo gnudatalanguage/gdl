@@ -31,7 +31,7 @@ void ExtraT::ResolveExtra(EnvBaseT* callerIn)
 
   // 1. extract own keywords from _EXTRA data (override explicit ones)
   // put all others to extra data
-  BaseGDL* thisExtra= (env != NULL)? *env : loc;
+  BaseGDL* extraVal= (envExtraVal != NULL)? *envExtraVal : locExtraVal;
 
   DSub* pro=thisEnv->pro;
 
@@ -40,7 +40,7 @@ void ExtraT::ResolveExtra(EnvBaseT* callerIn)
 //   EnvBaseT* callerDebug=thisEnv->Caller();
 //   DSub::ExtraType extraTypeDebug= callerDebug->pro->Extra();
 
-  DStructGDL* extraStruct= dynamic_cast<DStructGDL*>(thisExtra);
+  DStructGDL* extraStruct= dynamic_cast<DStructGDL*>(extraVal);
   if( extraStruct != NULL) // _EXTRA
     {
       DStructDesc* desc=extraStruct->Desc();
@@ -86,7 +86,7 @@ void ExtraT::ResolveExtra(EnvBaseT* callerIn)
     }
   else // _REF_EXTRA
     {
-      DStringGDL* extraString= dynamic_cast<DStringGDL*>(thisExtra);
+      DStringGDL* extraString= dynamic_cast<DStringGDL*>(extraVal);
       if( extraString != NULL)
 	{
 	  EnvBaseT* caller;
@@ -100,6 +100,7 @@ void ExtraT::ResolveExtra(EnvBaseT* callerIn)
 	    {
 	      // caller's extra member holds the actual data
 	      assert( caller->extra != NULL);
+
 	      ExtraT& cExtra=*caller->extra;
 
 	      SizeT nStr=extraString->N_Elements();

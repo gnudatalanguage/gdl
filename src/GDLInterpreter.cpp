@@ -803,7 +803,7 @@ BaseGDL**  GDLInterpreter::l_deref(ProgNodeP _t) {
 	//          e1_guard.reset(e1);
 	}
 	
-	if( e1 == NULL || e1->Type() != GDL_PTR)
+	if( e1 == NULL || e1->Type() != PTR)
 	throw GDLException( evalExpr, "Pointer type required"
 	" in this context: "+Name(e1),true,false);
 	
@@ -5089,27 +5089,27 @@ void GDLInterpreter::parameter_def_nocheck(ProgNodeP _t,
 	
 	try{
 	
-	  if( _t != NULL)
-	    {
-	    _retTree = _t;
-	    // _retTree != NULL, save one check // 'if' is needed already for Extra()
-	    static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
-	    // Parameter does no checking
-	    while(_retTree != NULL) 
-	    static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
-	    
-	    actEnv->ResolveExtra(); // expand _EXTRA        
-	    }
+	if( _t != NULL)
+	{
+	_retTree = _t;
+	// _retTree != NULL, save one check // 'if' is needed already for Extra()
+	static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
+	// Parameter does no checking
+	while(_retTree != NULL) 
+	static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
+	
+	actEnv->ResolveExtra(); // expand _EXTRA        
+	}
 	} 
 	catch( GDLException& e)
 	{
-	  callerEnv->SetNewEnv( oldNewEnv);
-	  // update line number, currently set to caller->CallingNode()
-	  // because actEnv is not on the stack yet, 
-	  // report caller->Pro()'s name is ok, because we are not inside
-	  // the call yet
-	  e.SetErrorNodeP( actEnv->CallingNode());
-	  throw e;
+	callerEnv->SetNewEnv( oldNewEnv);
+	// update line number, currently set to caller->CallingNode()
+	// because actEnv is not on the stack yet, 
+	// report caller->Pro()'s name is ok, because we are not inside
+	// the call yet
+	e.SetErrorNodeP( actEnv->CallingNode());
+	throw e;
 	}
 	callerEnv->SetNewEnv( oldNewEnv);
 	

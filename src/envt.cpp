@@ -958,6 +958,8 @@ void EnvBaseT::PushNewEmptyEnvUD(  DSub* newPro, BaseGDL** newObj)
 
 // used by obj_new (basic_fun.cpp)
 // and obj_destroy (basic_pro.cpp)
+// and call_function (basic_fun.cpp)
+// and call_procedure (basic_pro.cpp)
 void EnvT::PushNewEnvUD(  DSub* newPro, SizeT skipP, BaseGDL** newObj)
 {
   EnvUDT* newEnv= new EnvUDT( this, newPro, newObj);
@@ -972,8 +974,7 @@ void EnvT::PushNewEnvUD(  DSub* newPro, SizeT skipP, BaseGDL** newObj)
 //   interpreter->CallStack().push_back( newEnv); // problem with call_function if done here s. b.
 
   // _REF_EXTRA is set to the keyword string array
-//   newEnv->extra = new ExtraT( newEnv);
-  newEnv->extra = new ExtraT( this);
+  newEnv->extra = new ExtraT( newEnv);
   newEnv->extra->Set( &env[0]);
   newEnv->extra->ResolveExtra( this); // s. a. problem caused here due to a call to EnvBaseT::Caller() in Resolve()
 

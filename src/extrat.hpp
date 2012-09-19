@@ -37,8 +37,8 @@ class ExtraT
   DataListT         listEnv; // for (_REF)_EXTRA
 
   // the _EXTRA keyword
-  BaseGDL*          loc; // extra keywords value
-  BaseGDL**         env; // extra keywords value
+  BaseGDL*          locExtraVal; // extra keywords value
+  BaseGDL**         envExtraVal; // extra keywords value
 
   bool              strict; // _STRICT_EXTRA
 
@@ -46,11 +46,11 @@ class ExtraT
   ExtraT() {}
 
 public:
-  ExtraT( EnvBaseT* e): thisEnv(e), loc(NULL), env(NULL), strict(false) {}
+  ExtraT( EnvBaseT* e): thisEnv(e), locExtraVal(NULL), envExtraVal(NULL), strict(false) {}
 
   ~ExtraT() 
   {
-    GDLDelete(loc);
+    GDLDelete(locExtraVal);
   }
 
   void SetStrict( bool s)
@@ -64,9 +64,9 @@ public:
 	val->Type() != GDL_STRING)
       throw GDLException("Invalid value for _EXTRA keyword.");
     
-    GDLDelete(loc);
+    GDLDelete(locExtraVal);
     
-    loc=val;
+    locExtraVal=val;
   }
   void Set( BaseGDL** const val)
   {
@@ -75,7 +75,7 @@ public:
 	(*val)->Type() != GDL_STRING)
       throw GDLException("Invalid value for _EXTRA keyword.");
     
-    env=val;
+    envExtraVal=val;
   }
   void Add( const std::string& k, BaseGDL* const val)
   {
