@@ -1258,7 +1258,7 @@ l_deref returns [BaseGDL** res]
             //          e1_guard.reset(e1);
         }
 
-    if( e1 == NULL || e1->Type() != PTR)
+    if( e1 == NULL || e1->Type() != GDL_PTR)
         throw GDLException( evalExpr, "Pointer type required"
                             " in this context: "+Name(e1),true,false);
 
