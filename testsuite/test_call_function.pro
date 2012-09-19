@@ -85,7 +85,7 @@ if KEYWORD_SET(verbose) then print, result, expected
 if (nb_errors GT 0) then begin
     MESSAGE, STRING(nb_errors)+' Errors founded when testing CALL_FUNCTION', /continue
 endif else begin
-    MESSAGE, 'testing CALL_FUNCTION: No Errors founded', /continue
+    MESSAGE, 'testing CALL_FUNCTION: No Errors found', /continue
 endelse
 ;
 if KEYWORD_SET(test) then STOP

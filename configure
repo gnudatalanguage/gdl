@@ -19153,7 +19153,7 @@ esac
 
 
 
-ac_config_files="$ac_config_files Makefile src/Makefile src/antlr/Makefile src/pro/Makefile src/pro/dicom/Makefile testsuite/Makefile doc/Makefile"
+ac_config_files="$ac_config_files Makefile src/Makefile src/antlr/Makefile src/pro/Makefile src/pro/dicom/Makefile src/pro/envi/Makefile testsuite/Makefile doc/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -20281,6 +20281,7 @@ do
     "src/antlr/Makefile") CONFIG_FILES="$CONFIG_FILES src/antlr/Makefile" ;;
     "src/pro/Makefile") CONFIG_FILES="$CONFIG_FILES src/pro/Makefile" ;;
     "src/pro/dicom/Makefile") CONFIG_FILES="$CONFIG_FILES src/pro/dicom/Makefile" ;;
+    "src/pro/envi/Makefile") CONFIG_FILES="$CONFIG_FILES src/pro/envi/Makefile" ;;
     "testsuite/Makefile") CONFIG_FILES="$CONFIG_FILES testsuite/Makefile" ;;
     "doc/Makefile") CONFIG_FILES="$CONFIG_FILES doc/Makefile" ;;
 
