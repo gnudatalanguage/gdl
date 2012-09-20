@@ -101,7 +101,6 @@ CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
-DLLTOOL = @DLLTOOL@
 DSYMUTIL = @DSYMUTIL@
 DUMPBIN = @DUMPBIN@
 ECHO_C = @ECHO_C@
@@ -131,7 +130,6 @@ LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
-MANIFEST_TOOL = @MANIFEST_TOOL@
 MKDIR_P = @MKDIR_P@
 MagickConfig = @MagickConfig@
 NM = @NM@
@@ -164,7 +162,6 @@ abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
-ac_ct_AR = @ac_ct_AR@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
 ac_ct_DUMPBIN = @ac_ct_DUMPBIN@
@@ -198,6 +195,7 @@ libdir = @libdir@
 libexecdir = @libexecdir@
 localedir = @localedir@
 localstatedir = @localstatedir@
+lt_ECHO = @lt_ECHO@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
 nc_config = @nc_config@
@@ -268,7 +266,9 @@ TESTS = \
   test_bug_3313522.pro \
   test_bug_3376577.pro \
   test_bug_3453775.pro \
+  test_bug_3483402.pro \
   test_bug_3488003.pro \
+  test_bug_3559291.pro \
   test_call_function.pro \
   test_call_procedure.pro \
   test_ce.pro \
@@ -282,7 +282,9 @@ TESTS = \
   test_dicom.pro \
   test_erfinv.pro \
   test_execute.pro \
+  test_extra_keywords.pro \
   test_fft.pro \
+  test_fft_dim.pro \
   test_fft_leak.pro \
   test_file_basename.pro \
   test_file_copy.pro \
@@ -340,6 +342,7 @@ TESTS = \
   test_systime.pro \
   test_trisol.pro \
   test_url.pro \
+  test_wait.pro \
   test_wavelet.pro \
   test_zeropoly.pro \
   test_zip.pro \

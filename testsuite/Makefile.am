@@ -64,7 +64,9 @@ TESTS = \
   test_dicom.pro \
   test_erfinv.pro \
   test_execute.pro \
+  test_extra_keywords.pro \
   test_fft.pro \
+  test_fft_dim.pro \
   test_fft_leak.pro \
   test_file_basename.pro \
   test_file_copy.pro \
@@ -122,6 +124,7 @@ TESTS = \
   test_systime.pro \
   test_trisol.pro \
   test_url.pro \
+  test_wait.pro \
   test_wavelet.pro \
   test_zeropoly.pro \
   test_zip.pro \
