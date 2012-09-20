@@ -4,12 +4,19 @@
 ; More systematic tests on EXECUTE, CALL_FUNCTION and CALL_PROCEDURE
 ;
 ; ----------------------------------------------
-; we add a keyword to test also keyword, because of bug report 3490415 
+; we add a keyword (add_one) to test also keyword,
+; because of bug report 3490415 
+; we add a keyword (via_keyword) to test also value transmited by
+; keyword, because of bug report 3569697
 ;
-function FUNC_MY_FUNC, x, add_one=add_one
+function FUNC_MY_FUNC, x, add_one=add_one, via_keyword=via_key_keyword
 ;
 resultat=x+5
 if KEYWORD_SET(add_one) then resultat=resultat+1
+;
+; transmitting outside value via keyword
+via_key_keyword=-1
+;
 return, resultat
 ;
 end
@@ -69,6 +76,42 @@ if (ABS(result-expected) GT tolerance)  then begin
 endif
 if KEYWORD_SET(verbose) then print, result, expected
 ;
+; external function, single element, one keyword by value
+;
+expected=0.
+key_expected=-1.
+result=CALL_FUNCTION('FUNC_MY_FUNC', -5., via_keyword=via_keyword)
+;
+if (ABS(result-expected) GT tolerance) then begin
+    MESSAGE, /continue, 'Error 1 at KEYWORD BY VALUE (Self Defined Function) call level'
+    nb_errors=nb_errors+1
+endif
+if KEYWORD_SET(verbose) then print, result, expected
+;
+if (ABS(via_keyword-key_expected) GT tolerance) then begin
+    MESSAGE, /continue, 'Error 2 at KEYWORD BY VALUE (Self Defined Function) call level'
+    nb_errors=nb_errors+1
+endif
+if KEYWORD_SET(verbose) then print, via_keyword, key_expected
+;
+; external function, single element, two keywords
+;
+expected=1.
+key_expected=-1.
+result=CALL_FUNCTION('FUNC_MY_FUNC', -5., via_keyword=via_keyword,/add_one)
+;
+if (ABS(result-expected) GT tolerance) then begin
+    MESSAGE, /continue, 'Error 1 at KEYWORD BY VALUE (Self Defined Function) call level'
+    nb_errors=nb_errors+1
+endif
+if KEYWORD_SET(verbose) then print, result, expected
+;
+if (ABS(via_keyword-key_expected) GT tolerance) then begin
+    MESSAGE, /continue, 'Error 2 at KEYWORD BY VALUE (Self Defined Function) call level'
+    nb_errors=nb_errors+1
+endif
+if KEYWORD_SET(verbose) then print, via_keyword, key_expected
+;;
 ; external function, value 2D array
 ;
 expected=0.

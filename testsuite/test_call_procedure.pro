@@ -4,13 +4,19 @@
 ; More systematic tests on EXECUTE, CALL_FUNCTION and CALL_PROCEDURE
 ;
 ; ----------------------------------------------
-; we add a keyword to test also keyword, because of bug report 3490415 
+; we add a keyword (add_one) to test also keyword, 
+; because of bug report 3490415 
+; we add a keyword (via_keyword) to test also value transmited by
+; keyword, because of bug report 3569697
 ;
-pro PRO_MY_PRO, x, y, add_one=add_one
+pro PRO_MY_PRO, x, y, add_one=add_one, via_keyword=via_key_keyword
 ;
 y=x+5
 ;
 if KEYWORD_SET(add_one) then y=y+1.
+;
+; transmitting outside value via keyword
+via_key_keyword=-1
 ;
 end
 ;
@@ -39,7 +45,7 @@ if KEYWORD_SET(verbose) then print, txt1, txt2
 ;
 ; no idea now, help welcome
 ;
-; external function, single element
+; external procedure, single element
 ;
 expected=17.
 CALL_PROCEDURE, 'PRO_MY_PRO', 12, result
@@ -50,7 +56,7 @@ if (ABS(result-expected) GT tolerance)  then begin
 endif
 if KEYWORD_SET(verbose) then print, result, expected
 ;
-; external function, single element, keyword
+; external procedure, single element, keyword
 ;
 expected=17.+1.
 CALL_PROCEDURE, 'PRO_MY_PRO', 12, result, /add_one
@@ -60,6 +66,42 @@ if (ABS(result-expected) GT tolerance)  then begin
    nb_errors=nb_errors+1
 endif
 if KEYWORD_SET(verbose) then print, result, expected
+;
+; external procedure, single element, one keyword by value
+;
+expected=17.
+key_expected=-1.
+CALL_PROCEDURE, 'PRO_MY_PRO', 12, result, via_keyword=via_keyword
+;
+if (ABS(result-expected) GT tolerance) then begin
+    MESSAGE, /continue, 'Error 1 at KEYWORD BY VALUE (Self Defined Pro) call level'
+    nb_errors=nb_errors+1
+endif
+if KEYWORD_SET(verbose) then print, result, expected
+;
+if (ABS(via_keyword-key_expected) GT tolerance) then begin
+    MESSAGE, /continue, 'Error 2 at KEYWORD BY VALUE (Self Defined Pro) call level'
+    nb_errors=nb_errors+1
+endif
+if KEYWORD_SET(verbose) then print, via_keyword, key_expected
+;
+; external function, single element, two keywords
+;
+expected=17+1.
+key_expected=-1.
+CALL_PROCEDURE, 'PRO_MY_PRO', 12, result, via_keyword=via_keyword, /add_one
+;
+if (ABS(result-expected) GT tolerance) then begin
+    MESSAGE, /continue, 'Error 1 at KEYWORD BY VALUE (Self Defined Pro) call level'
+    nb_errors=nb_errors+1
+endif
+if KEYWORD_SET(verbose) then print, result, expected
+;
+if (ABS(via_keyword-key_expected) GT tolerance) then begin
+    MESSAGE, /continue, 'Error 2 at KEYWORD BY VALUE (Self Defined pro) call level'
+    nb_errors=nb_errors+1
+endif
+if KEYWORD_SET(verbose) then print, via_keyword, key_expected
 ;
 ; external function, value 2D array
 ;
