@@ -1848,7 +1848,8 @@ if( dynamic_cast<ArrayIndexIndexed*>(ixList[ixList.size()-1]) ||
     if( nIx == 1)// && !var->IsAssoc())
     {
       BaseGDL* res = var->NewIx( baseIx);
-      res->MakeArrayFromScalar();
+      if( accessType != ALLONE)
+	res->MakeArrayFromScalar();
       return res;
     }
     return var->Index( this);
@@ -2283,7 +2284,7 @@ public:
 	
 	if( i == acRank) // counted up to acRank -> all scalar
 	{
-		accessType = ALLONE; // needed for GetDim()
+		accessType = ALLONE; // needed for GetDim() and Index (to return scalar instead of array)
 		const dimension& varDim  = var->Dim();
 		SizeT            varRank = varDim.Rank();
 
