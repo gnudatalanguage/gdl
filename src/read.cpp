@@ -258,21 +258,23 @@ namespace lib {
 		  strTrimLine = line;
 		  StrTrim(strTrimLine); 
 		} while( strTrimLine == "" && parIn->Type() != GDL_STRING);
-			
+
 		istringstream iss( line + "\n");
+
 		parIn->FromStream( iss);
-				
+
 		if( sigControlC)
 		  return;
 	      }
 	    else
 #endif
+	      {
+		posBeforeLast = is->tellg();
 
-	      posBeforeLast = is->tellg();
+		parIn->FromStream( *is);
 
-	      parIn->FromStream( *is);
-	      
-	      lastParIsString = parIn->Type() == GDL_STRING;
+		lastParIsString = parIn->Type() == GDL_STRING;
+	      }
 	  }
       }
       if( !lastParIsString && !is->eof()) // && is->peek() != '\n' && is->peek() != '\r')
