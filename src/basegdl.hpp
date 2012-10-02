@@ -21,7 +21,7 @@
 #include "includefirst.hpp"
 
 #include <list>
-#include <rpc/xdr.h>
+#include <rpc/rpc.h>
 #ifndef _MSC_VER
 #include <algorithm>
 #endif
