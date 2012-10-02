@@ -20,10 +20,12 @@
 
 #include "includefirst.hpp"
 
-#include <list>
-#include <rpc/rpc.h>
+//#include <list>
 #ifndef _MSC_VER
-#include <algorithm>
+#  include <rpc/rpc.h>
+#  include <algorithm>
+#else
+#  include <rpc/xdr.h>
 #endif
 
 #include "dimension.hpp"
