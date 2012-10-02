@@ -1,7 +1,7 @@
 #ifndef INC_CFMTTokenTypes_hpp_
 #define INC_CFMTTokenTypes_hpp_
 
-/* $ANTLR 2.7.7 (20091222): "cformat.g" -> "CFMTTokenTypes.hpp"$ */
+/* $ANTLR 2.7.7 (20110618): "cformat.g" -> "CFMTTokenTypes.hpp"$ */
 
 #ifndef CUSTOM_API
 # define CUSTOM_API

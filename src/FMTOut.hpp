@@ -3,7 +3,7 @@
 
 #include <antlr/config.hpp>
 #include "FMTOutTokenTypes.hpp"
-/* $ANTLR 2.7.7 (20091222): "format.out.g" -> "FMTOut.hpp"$ */
+/* $ANTLR 2.7.7 (20110618): "format.out.g" -> "FMTOut.hpp"$ */
 #include <antlr/TreeParser.hpp>
 
 

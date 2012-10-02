@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.7 (20091222): "cformat.g" -> "CFMTLexer.cpp"$ */
+/* $ANTLR 2.7.7 (20110618): "cformat.g" -> "CFMTLexer.cpp"$ */
 
 #include "includefirst.hpp"
 

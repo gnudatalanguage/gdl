@@ -1,7 +1,7 @@
 #ifndef INC_FMTOutTokenTypes_hpp_
 #define INC_FMTOutTokenTypes_hpp_
 
-/* $ANTLR 2.7.7 (20091222): "format.out.g" -> "FMTOutTokenTypes.hpp"$ */
+/* $ANTLR 2.7.7 (20110618): "format.out.g" -> "FMTOutTokenTypes.hpp"$ */
 
 #ifndef CUSTOM_API
 # define CUSTOM_API
@@ -40,7 +40,7 @@ struct CUSTOM_API FMTOutTokenTypes {
 		COMMA = 29,
 		RBRACE = 30,
 		SLASH = 31,
-		GDL_STRING = 32,
+		STRING = 32,
 		TL = 33,
 		TR = 34,
 		TERM = 35,

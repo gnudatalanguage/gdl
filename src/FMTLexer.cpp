@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.7 (20101124): "format.g" -> "FMTLexer.cpp"$ */
+/* $ANTLR 2.7.7 (20110618): "format.g" -> "FMTLexer.cpp"$ */
 
 #include "includefirst.hpp"
 
@@ -321,7 +321,7 @@ tryAgain:;
 
 void FMTLexer::mSTRING(bool _createToken) {
 	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
-	_ttype = GDL_STRING;
+	_ttype = STRING;
 	std::string::size_type _saveIndex;
 	
 	switch ( LA(1)) {
@@ -1399,7 +1399,7 @@ void FMTLexer::mNUMBER(bool _createToken) {
 	{
 	if ((LA(1) == 0x48 /* 'H' */ )) {
 		
-		_ttype = GDL_STRING; 
+		_ttype = STRING; 
 		std::istringstream s(num->getText());
 		s >> n;
 		{ text.erase(_begin); text += ""; }; // clear string (remove number)

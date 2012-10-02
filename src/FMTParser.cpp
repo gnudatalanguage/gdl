@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.7 (20101124): "format.g" -> "FMTParser.cpp"$ */
+/* $ANTLR 2.7.7 (20110618): "format.g" -> "FMTParser.cpp"$ */
 
 #include "includefirst.hpp"
 
@@ -94,7 +94,7 @@ void FMTParser::qfq() {
 	case CZ:
 	case CNUMBER:
 	case LBRACE:
-	case GDL_STRING:
+	case STRING:
 	case TL:
 	case TR:
 	case TERM:
@@ -243,7 +243,7 @@ void FMTParser::f() {
 	case CX:
 	case CZ:
 	case CNUMBER:
-	case GDL_STRING:
+	case STRING:
 	case TL:
 	case TR:
 	{
@@ -342,12 +342,12 @@ void FMTParser::f_csubcode() {
 	
 	
 	switch ( LA(1)) {
-	case GDL_STRING:
+	case STRING:
 	{
 		RefFMTNode tmp8_AST = RefFMTNode(antlr::nullAST);
 		tmp8_AST = astFactory->create(LT(1));
 		astFactory->addASTChild(currentAST, antlr::RefAST(tmp8_AST));
-		match(GDL_STRING);
+		match(STRING);
 		f_csubcode_AST = RefFMTNode(currentAST.root);
 		break;
 	}
@@ -418,7 +418,7 @@ void FMTParser::cstring() {
 			s_AST = astFactory->create(s);
 			astFactory->addASTChild(currentAST, antlr::RefAST(s_AST));
 			match(CSTR);
-			s_AST->setType( GDL_STRING);
+			s_AST->setType( STRING);
 			break;
 		}
 		case CD:
@@ -1449,7 +1449,7 @@ void FMTParser::csubcode() {
 	case CX:
 	case CZ:
 	case CNUMBER:
-	case GDL_STRING:
+	case STRING:
 	case TL:
 	case TR:
 	{

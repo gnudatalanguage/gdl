@@ -1,4 +1,4 @@
-/* $ANTLR 2.7.7 (20101124): "format.out.g" -> "FMTOut.cpp"$ */
+/* $ANTLR 2.7.7 (20110618): "format.out.g" -> "FMTOut.cpp"$ */
 
 #include "includefirst.hpp"
 
@@ -65,8 +65,6 @@ void FMTOut::format(RefFMTNode _t) {
 	
 	switch ( _t->getType()) {
 	case FORMAT:
-	case GDL_STRING:
-	case CSTRING:
 	case TL:
 	case TR:
 	case TERM:
@@ -75,8 +73,14 @@ void FMTOut::format(RefFMTNode _t) {
 	case F: case D: case E: case G:
 	case I: case O: case B: case Z: case ZZ: case C:
 	{
-	f(_t);
 	if( actPar == NULL && termFlag) goto endFMT;
+	// no break
+	}
+	case STRING:
+	case CSTRING:
+	{
+	f(_t);
+	//                                if( actPar == NULL && termFlag) goto endFMT;
 	_t = _retTree;
 	q(_t);
 	_t = _retTree;
@@ -121,7 +125,7 @@ void FMTOut::q(RefFMTNode _t) {
 	}
 	case 3:
 	case FORMAT:
-	case GDL_STRING:
+	case STRING:
 	case TL:
 	case TR:
 	case TERM:
@@ -203,7 +207,7 @@ void FMTOut::f(RefFMTNode _t) {
 		
 		break;
 	}
-	case GDL_STRING:
+	case STRING:
 	case TL:
 	case TR:
 	{
@@ -490,7 +494,7 @@ void FMTOut::format_reversion(RefFMTNode _t) {
 	
 	switch ( _t->getType()) {
 	case FORMAT:
-	case GDL_STRING:
+	case STRING:
 	case CSTRING:
 	case TL:
 	case TR:
@@ -525,10 +529,10 @@ void FMTOut::f_csubcode(RefFMTNode _t) {
 	if (_t == RefFMTNode(antlr::nullAST) )
 		_t = ASTNULL;
 	switch ( _t->getType()) {
-	case GDL_STRING:
+	case STRING:
 	{
 		s = _t;
-		match(antlr::RefAST(_t),GDL_STRING);
+		match(antlr::RefAST(_t),STRING);
 		_t = _t->getNextSibling();
 		(*os) << s->getText();
 		break;
@@ -737,7 +741,7 @@ void FMTOut::csubcode(RefFMTNode _t) {
 		_t = _retTree;
 		break;
 	}
-	case GDL_STRING:
+	case STRING:
 	case TL:
 	case TR:
 	{
@@ -839,10 +843,10 @@ const char* FMTOut::tokenNames[] = {
 };
 
 const unsigned long FMTOut::_tokenSet_0_data_[] = { 134217728UL, 523263UL, 0UL, 0UL };
-// FORMAT GDL_STRING "tl" "tr" TERM NONL Q T X A F E G I O B Z ZZ C 
+// FORMAT STRING "tl" "tr" TERM NONL Q T X A F E G I O B Z ZZ C 
 const antlr::BitSet FMTOut::_tokenSet_0(_tokenSet_0_data_,4);
 const unsigned long FMTOut::_tokenSet_1_data_[] = { 0UL, 4294443143UL, 15UL, 0UL, 0UL, 0UL, 0UL, 0UL };
-// GDL_STRING "tl" "tr" X CMOA CMoA CmoA CHI ChI CDWA CDwA CdwA CAPA CApA CapA 
+// STRING "tl" "tr" X CMOA CMoA CmoA CHI ChI CDWA CDwA CdwA CAPA CApA CapA 
 // "cmoi" "cdi" "cyi" "cmi" "csi" "csf" 
 const antlr::BitSet FMTOut::_tokenSet_1(_tokenSet_1_data_,8);
 

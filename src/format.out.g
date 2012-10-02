@@ -188,8 +188,6 @@ format
 
                         switch ( _t->getType()) {
                         case FORMAT:
-                        case STRING:
-                        case CSTRING:
                         case TL:
                         case TR:
                         case TERM:
@@ -198,8 +196,14 @@ format
                         case F: case D: case E: case G:
                         case I: case O: case B: case Z: case ZZ: case C:
                             {
-                                f(_t);
                                 if( actPar == NULL && termFlag) goto endFMT;
+                                // no break
+                            }
+                        case STRING:
+                        case CSTRING:
+                            {
+                                f(_t);
+//                                if( actPar == NULL && termFlag) goto endFMT;
                                 _t = _retTree;
                                 q(_t);
                                 _t = _retTree;

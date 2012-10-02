@@ -2,7 +2,7 @@
 #define INC_CFMTLexer_hpp_
 
 #include <antlr/config.hpp>
-/* $ANTLR 2.7.7 (20091222): "cformat.g" -> "CFMTLexer.hpp"$ */
+/* $ANTLR 2.7.7 (20110618): "cformat.g" -> "CFMTLexer.hpp"$ */
 #include <antlr/CommonToken.hpp>
 #include <antlr/InputBuffer.hpp>
 #include <antlr/BitSet.hpp>
