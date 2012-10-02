@@ -1097,6 +1097,8 @@ namespace lib {
   {
     int debug=0;
 
+    if (debug) cout << "inside random_template" << endl;
+
     // testing Exclusive Keywords ...
     int exclusiveKW= e->KeywordPresent(e->KeywordIx("GAMMA"));
     exclusiveKW=exclusiveKW+ e->KeywordPresent(e->KeywordIx("NORMAL"));
@@ -1107,6 +1109,9 @@ namespace lib {
     if (exclusiveKW > 1) e->Throw("Conflicting keywords.");
 
     SizeT nEl = res->N_Elements();
+
+    if (debug) cout << "dim : " << dim << endl;
+    if (debug) cout << "nEl : " << nEl << endl;
 
     if (e->KeywordPresent(e->KeywordIx("GAMMA"))) {
       DLong n;
@@ -1172,6 +1177,8 @@ namespace lib {
   {
     const unsigned long seedMul = 65535;
 
+    int debug=0;
+
     SizeT nParam = e->NParam( 1);
 
     dimension dim;
@@ -1182,7 +1189,7 @@ namespace lib {
     static DLong seed0 = 0;
 
     gsl_rng *r;
-
+ 
     if( e->GlobalPar( 0))
       {
 	DLongGDL* p0L = e->IfDefGetParAs< DLongGDL>( 0);
@@ -1220,16 +1227,20 @@ namespace lib {
       } 
     else // local (always defined) -> just use it
       {
+	if (debug) cout << "the way to crash RANDOM" << endl;
+
 	seed = e->GetParAs< DLongGDL>( 0);
 	seed0 = (*seed)[0];
 
 	r = gsl_rng_alloc (gsl_rng_mt19937);
-	GSLGuard<gsl_rng> g1( r, gsl_rng_free);
+
+	// AC 2012/10/02  need to comment that to avoid crash when "seed" is set outside
+	// GSLGuard<gsl_rng> g1( r, gsl_rng_free);
 	gsl_rng_set (r, seed0);
 
 	seed0 += dim.NDimElements() * seedMul; // avoid repetition in next call
 	// if called with undefined global
-      }
+     }
     
     if( e->KeywordSet(2)) { // GDL_LONG
 
@@ -1250,6 +1261,10 @@ namespace lib {
 	SizeT nBinomialKey = binomialKey->N_Elements();
 	if (nBinomialKey != 2)
 	  e->Throw("Keyword array parameter BINOMIAL must have 2 elements.");
+
+	if ((*binomialKey)[0] < 1.0) 
+	  e->Throw(" Value of BINOMIAL[0] is out of allowed range: n = 1, 2, 3, ...");
+	
 	if (((*binomialKey)[1] < 0.0) || ((*binomialKey)[1] > 1.0))
 	  e->Throw(" Value of BINOMIAL[1] is out of allowed range: 0.0 <= p <= 1.0");
       }
@@ -1266,6 +1281,7 @@ namespace lib {
       //      *p0L = new DULongGDL( (DULong) (4294967296.0 * (*res)[0]) );
       return res;
     } else {
+      if (debug) cout << "the way to crash RANDOM (just before crash)" << endl;
       DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
       
       random_template< DFloatGDL, float>( e, res, r, dim, 
@@ -1654,7 +1670,9 @@ namespace lib {
     return(res);
   }
  
-  DDoubleGDL* interpolate_1dim(EnvT* e, const gdl_interp1d_type* interp_type, DDoubleGDL* array, DDoubleGDL* x, bool use_missing, DDouble missing, DDouble gamma)
+  DDoubleGDL* interpolate_1dim(EnvT* e, const gdl_interp1d_type* interp_type, 
+			       DDoubleGDL* array, DDoubleGDL* x, bool use_missing,
+			       DDouble missing, DDouble gamma)
   {
 
     SizeT nx = x->N_Elements();
