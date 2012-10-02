@@ -6549,10 +6549,12 @@ BaseGDL* transpose( EnvT* e)
 
     e->AssureScalarPar<DStringGDL>( 0, varName);
     varName = StrUpCase( varName);
+
     int xI = pro->FindVar( varName);
     if (xI != -1) 
     {
-      BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI);
+//       BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI);
+      BaseGDL*& par = callStack[desiredlevnum-1]->GetKW( xI);
 
       if( par == NULL)
 	e->Throw( "Variable is undefined: " + varName);
@@ -6601,10 +6603,11 @@ BaseGDL* transpose( EnvT* e)
     int xI = pro->FindVar( varName);
     if (xI != -1) 
     {
-      BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI);
+//       BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI);
+      BaseGDL*& par = callStack[desiredlevnum-1]->GetKW( xI);
 
-      if( par == NULL)
-	e->Throw( "Variable is undefined: " + varName);
+//       if( par == NULL)
+// 	e->Throw( "Variable is undefined: " + varName);
 
       return &par;
     }

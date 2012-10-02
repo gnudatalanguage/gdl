@@ -163,13 +163,17 @@ inline std::string i2s( T i, SizeT w = 0)
   return os.str();
 }
 
+// debug 
+#include <iostream>
+
 // searches IDList idL for std::string s, returns its position, -1 if not found
 inline int FindInIDList(IDList& idL,const std::string& s)
 {
-  int ix=0;
-  for(IDList::iterator i=idL.begin();
-      i != idL.end(); ++i, ++ix) if( *i==s) {
-	return ix;
+//   int ix=0;
+  for(IDList::iterator i=idL.begin(); i != idL.end(); ++i)//, ++ix) 
+    if( *i==s) 
+      {
+	return i - idL.begin();
       }
 
   return -1;

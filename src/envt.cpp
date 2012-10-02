@@ -1357,7 +1357,7 @@ bool EnvT::KeywordSet( SizeT ix)
   return keyword->LogTrue();
 }
 
-// returns the ix'th parameter
+// returns the ix'th parameter (for library function API only)
 BaseGDL*& EnvT::GetPar(SizeT i)
 {
   static BaseGDL* null=NULL;
