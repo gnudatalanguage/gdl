@@ -93,6 +93,7 @@ TESTS = \
   test_moment.pro \
   test_mpfit.pro \
   test_multiroots.pro \
+  test_nans_in_sort_and_median.pro \
   test_nestedloop.pro \
   test_plotting_ranges.pro \
   test_pmulti.pro \
