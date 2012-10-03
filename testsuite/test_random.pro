@@ -78,7 +78,6 @@ if KEYWORD_SET(test) then stop
 ;
 if (error GT 0) then begin
     MESSAGE, /continue, 'Error detected'
-    stop
     if ~KEYWORD_SET(no_exit) then EXIT, status=1
 endif else begin
     MESSAGE, /continue, 'success'

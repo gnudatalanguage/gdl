@@ -20,8 +20,9 @@ if KEYWORD_SET(help) then begin
 endif
 ;
 ; on CentOS, tol_error below 1.2e-3 is not OK
+; on Suse, tol_error below 5e-3 is not OK
 ;
-if ~KEYWORD_SET(tol_error) then tol_error=2e-3
+if ~KEYWORD_SET(tol_error) then tol_error=5e-3
 nb_errors=0
 ;
 if ~KEYWORD_SET(delay) then delay=[0.1, 0.25, 0.5, 1.0]
