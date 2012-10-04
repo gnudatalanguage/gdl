@@ -753,22 +753,36 @@ typedef ExprListT::iterator ExprListIterT;
 //
 // gsl_matrix *matrix = gsl_matrix_alloc(p0->Dim(0), p0->Dim(0));
 //
-// GSLGuard< gsl_matrix> gsl_matrix_guard( matrix, gsl_matrix_free);
+// GDLGuard< gsl_matrix> gsl_matrix_guard( matrix, gsl_matrix_free);
 // (of course no explicit call to the gsl-cleanup function must be done anymore)
 template< typename GSLType>
-class GSLGuard
+class GDLGuard
 {
   GSLType* gslObject;
   
   void (*gslDestructor)(GSLType*);
   
-  GSLGuard() {}
+  GDLGuard() {}
   
 public:
-  GSLGuard( GSLType* o, void (*d)(GSLType*)): gslObject( o), gslDestructor(d) {}
-  ~GSLGuard()
+  GDLGuard( GSLType* o, void (*d)(GSLType*)): gslObject( o), gslDestructor(d) {}
+  ~GDLGuard()
   {
     (*gslDestructor)( gslObject);
+  }
+};
+
+class FILEGuard
+{
+  FILE* fp;
+  
+  FILEGuard() {}
+  
+public:
+  FILEGuard( FILE* f): fp( f) {}
+  ~FILEGuard()
+  {
+    fclose( fp);
   }
 };
 

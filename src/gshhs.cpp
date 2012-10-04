@@ -154,7 +154,8 @@ namespace lib {
       FILE *fp = NULL;
       if ((fp = fopen (files[i].c_str(), "rb")) == NULL ) 
         e->Throw("GSHHS: Could not open file: " + files[i]); 
-
+      FILEGuard fpGuard( fp);
+      
       struct GSHHS h;
       int n_read = fread((void *)&h, (size_t)sizeof (struct GSHHS), (size_t)1, fp);
       int version = (h.flag >> 8) & 255;
@@ -280,7 +281,7 @@ namespace lib {
         n_read = fread((void *)&h, (size_t)sizeof (struct GSHHS), (size_t)1, fp);
       }
 		
-      fclose(fp);
+//       fclose(fp);
     }
 
     actStream->lsty(1); //reset linestyle

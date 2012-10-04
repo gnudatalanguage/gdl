@@ -51,7 +51,7 @@ class DevicePS: public Graphics
 
   static const int dpi = 72;
 #ifdef _MSC_VER
-#define cm2in .01 / GSL_CONST_MKSA_INCH; // This is not good, but works
+#define cm2in (.01 / GSL_CONST_MKSA_INCH); // This is not good, but works
 #else
   static const float cm2in = .01 / GSL_CONST_MKSA_INCH;
 #endif
@@ -78,9 +78,11 @@ class DevicePS: public Graphics
     // as setting the offsets and sizes with plPlot is (extremely) tricky, and some of these setting
     // are hardcoded into plplot (like EPS header, and offsets in older versions of plplot)
     // here we only specify the aspect ratio - size an offset are handled by pslib when device,/close is called
-    char as[32];
-    sprintf(as, "%f", XPageSize / YPageSize);
-    actStream->SETOPT( "a", as);
+//     char as[32];
+//     sprintf(as, "%f", XPageSize / YPageSize);
+//     actStream->SETOPT( "a", as);
+    std::string as = i2s( XPageSize / YPageSize);
+    actStream->SETOPT( "a", as.c_str());
 
     // plot orientation
     actStream->sori(orient_portrait ? 1 : 2);
@@ -115,7 +117,7 @@ class DevicePS: public Graphics
     //    (*pMulti)[ 0] = 0;
     actStream->adv(0);
   }
-
+    
 private:
   void pslibHacks()
   {
@@ -124,16 +126,21 @@ private:
     Warning("         keywords: [X,Y]SIZE, [X,Y]OFFSET, SCALE_FACTOR, LANDSCAPE, PORTRAIT, ENCAPSULATED");
 #  else
     PSDoc *ps = PS_new(); 
+    GDLGuard<PSDoc> psGuard( ps, PS_delete);
+    
     if (ps == NULL)
     {
       Warning("Warning: pslib failed to allocate memory.");
       return;
     }
+    
     FILE *fp = tmpfile(); // this creates a file which should be deleted automaticaly when it is closed
+    FILEGuard fpGuard( fp);
+    
     if (fp == NULL) 
     {
       Warning("Warning: failed to create temporary PostScript file.");
-      PS_delete(ps);
+//       PS_delete(ps);
       return;
     }
     if (PS_open_fp(ps, fp) == -1) 
@@ -189,6 +196,7 @@ private:
     {
       rewind(fp);
       FILE *fp_plplot = fopen(fileName.c_str(), "w");
+      FILEGuard fp_plplotGuard( fp_plplot);
       if (fp_plplot == NULL)
       {
         Warning("Warning: failed to open plPlot-generated file");
@@ -205,12 +213,12 @@ private:
           Warning("Warning: failed to overwrite the plPlot-generated file with pslib output");
         }
       }
-      fclose(fp_plplot);
+//       fclose(fp_plplot);
     }
 
     cleanup:
-    PS_delete(ps);
-    fclose(fp); // this deletes the temporary file as well
+//    PS_delete(ps);
+//     fclose(fp); // this deletes the temporary file as well
     // PSlib changes locale - bug no. 3428043
 #    ifdef HAVE_LOCALE_H
     setlocale(LC_ALL, "C");
