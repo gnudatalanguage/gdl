@@ -234,6 +234,7 @@ namespace lib {
       {
 	DComplexGDL* p0C = static_cast<DComplexGDL*>( p0);
 	DComplexGDL* res = new DComplexGDL( p0C->Dim(), BaseGDL::NOZERO);
+	auto_ptr<DComplexGDL> resGuard( res);
 
 	float f32_2[2];
 	double f64_2[2];
@@ -277,12 +278,14 @@ namespace lib {
 	// 	gsl_matrix_complex_free(inverse);
 
 	if (nParam == 2) e->SetPar(1,new DLongGDL( singular)); 
+	resGuard.release();
 	return res;
       }
     else if( p0->Type() == GDL_COMPLEXDBL)
       {
 	DComplexDblGDL* p0C = static_cast<DComplexDblGDL*>( p0);
 	DComplexDblGDL* res = new DComplexDblGDL( p0C->Dim(), BaseGDL::NOZERO);
+	auto_ptr<DComplexDblGDL> resGuard( res);
 
 	gsl_matrix_complex *mat = 
 	  gsl_matrix_complex_alloc(p0->Dim(0), p0->Dim(1));
@@ -310,12 +313,14 @@ namespace lib {
 	// 	gsl_matrix_complex_free(inverse);
 
 	if (nParam == 2) e->SetPar(1,new DLongGDL( singular)); 
+	resGuard.release();
 	return res;
       }
     else if( p0->Type() == GDL_DOUBLE)
       {
 	DDoubleGDL* p0D = static_cast<DDoubleGDL*>( p0);
 	DDoubleGDL* res = new DDoubleGDL( p0->Dim(), BaseGDL::NOZERO);
+	auto_ptr<DDoubleGDL> resGuard( res);
 
 	gsl_matrix *mat = gsl_matrix_alloc(p0->Dim(0), p0->Dim(1));
 	GDLGuard<gsl_matrix> g1( mat, gsl_matrix_free);
@@ -341,6 +346,7 @@ namespace lib {
 	// 	gsl_matrix_free(inverse);
 
 	if (nParam == 2) e->SetPar(1,new DLongGDL( singular)); 
+	resGuard.release();
 	return res;
       }
     else if( p0->Type() == GDL_FLOAT ||
@@ -366,6 +372,7 @@ namespace lib {
 	//}
 
 	DFloatGDL* res = new DFloatGDL( p0->Dim(), BaseGDL::NOZERO);
+	auto_ptr<DFloatGDL> resGuard( res);
 
 	gsl_matrix *mat = gsl_matrix_alloc(p0->Dim(0), p0->Dim(1));
 	GDLGuard<gsl_matrix> g1( mat, gsl_matrix_free);
@@ -405,6 +412,7 @@ namespace lib {
 	// 	gsl_matrix_free(inverse);
 
 	if (nParam == 2) e->SetPar(1,new DLongGDL( singular)); 
+	resGuard.release();
 	return res;
       }
     else 
@@ -624,9 +632,11 @@ namespace lib {
     T* tabtemp=new T(p0->Dim());
     auto_ptr<T> tabtempGuard( tabtemp);
 
+    auto_ptr<T> resGuard;
     if (overwrite == 0)
       {
 	res = new T( p0->Dim(), BaseGDL::ZERO);
+	resGuard.reset( res);
       } 
     else
       res = (T*) p0;
@@ -811,6 +821,7 @@ namespace lib {
 	}
       }
     
+    resGuard.release();
     return res;
   }
 
@@ -1177,7 +1188,7 @@ namespace lib {
   {
     const unsigned long seedMul = 65535;
 
-    int debug=0;
+    const int debug=0;
 
     SizeT nParam = e->NParam( 1);
 
@@ -1189,6 +1200,7 @@ namespace lib {
     static DLong seed0 = 0;
 
     gsl_rng *r;
+    GDLGuard<gsl_rng> rGuard( gsl_rng_free);
  
     if( e->GlobalPar( 0))
       {
@@ -1198,6 +1210,7 @@ namespace lib {
 	    seed0 = (*p0L)[ 0];	    
 
 	    r = gsl_rng_alloc (gsl_rng_mt19937);
+	    rGuard.Set( r);
 	    gsl_rng_set (r, seed0);
 
 	    seed0 += dim.NDimElements() * seedMul; // avoid repetition in next call
@@ -1216,6 +1229,7 @@ namespace lib {
 	      }
 
 	    r = gsl_rng_alloc (gsl_rng_mt19937);
+	    rGuard.Set( r);
 	    gsl_rng_set (r, seed0);
 
 	    seed0 += dim.NDimElements() * seedMul; // avoid repetition in next call
@@ -1233,6 +1247,7 @@ namespace lib {
 	seed0 = (*seed)[0];
 
 	r = gsl_rng_alloc (gsl_rng_mt19937);
+	rGuard.Set( r);
 
 	// AC 2012/10/02  need to comment that to avoid crash when "seed" is set outside
 	// GDLGuard<gsl_rng> g1( r, gsl_rng_free);
@@ -1678,19 +1693,26 @@ namespace lib {
     SizeT nx = x->N_Elements();
 
     // Determine number and value of input points along x-axis and y-axis
+    if (array->Rank() < 1) e->Throw("Number of parameters must agree with dimensions of argument.");
     SizeT rankLeft = array->Rank()-1;
-    if (rankLeft < 0) e->Throw("Number of parameters must agree with dimensions of argument.");
 
     //initialize output array with correct dimensions
-    DLong dims[MAXRANK] = {0, 0, 0, 0, 0, 0, 0, 0};
-    SizeT resRank;
+    DLong dims[MAXRANK]; // initialization does not honor MAXRANK: = {0, 0, 0, 0, 0, 0, 0, 0}
+    // sub-optimal:
+//     for( int i=0;i<MAXRANK;++i) 
+//       dims[i] = 0;
+    SizeT i = 0;
+    for (; i < rankLeft; ++i) dims[i] = array->Dim(i);
+    for (; i < MAXRANK; ++i) dims[i] = 0; // see above
+
+    SizeT resRank = rankLeft;
     SizeT chunksize;
-    for (SizeT i = 0; i < rankLeft; ++i) dims[i] = array->Dim(i);
-    resRank = rankLeft;
 
     for (SizeT i = 0; i < x->Rank(); ++i)
       {
-	dims[resRank++] = x->Dim(i); if (resRank>MAXRANK) e->Throw("Rank of resulting array is currently limited to 8.");
+	dims[resRank++] = x->Dim(i); 
+	if (resRank>MAXRANK) 
+	  e->Throw("Rank of resulting array is currently limited to " + i2s(MAXRANK) + ".");
       }
     chunksize=nx;
 
@@ -1708,6 +1730,7 @@ namespace lib {
     // Seems however to be the case only for 1D interpolation.
     SizeT nxa = array->Dim(rankLeft)+1;
     double *xa = new double[nxa];
+    ArrayGuard<double> xaGuard(xa);
     for (SizeT i = 0; i < nxa; ++i) xa[i] = (double)i;
 
     // Setup interpolation arrays
@@ -1718,12 +1741,15 @@ namespace lib {
     
     // output locations tables:
     double *xval = new double[chunksize];
+    ArrayGuard<double> xvalGuard(xval);
     for (SizeT count = 0; count < chunksize; ++count)
       {
         xval[count] = (*x)[count]; 
       }
     //construct 1d intermediate array, subset of array with stride ninterp
     double *temp = new double[nxa];
+    ArrayGuard<double> tempGuard(temp);
+
     // Interpolate iteratively ninterp times:
     // loop could be multihreaded easily
     for (SizeT iterate = 0; iterate < ninterp; ++iterate)
@@ -1753,9 +1779,8 @@ namespace lib {
     if (nx == 1 && ny == 1)  grid = false;
 
     // Determine number and value of input points along x-axis and y-axis
+    if (array->Rank() < 2) e->Throw("Number of parameters must agree with dimensions of argument.");
     SizeT rankLeft = array->Rank()-2;
-
-    if (rankLeft < 0) e->Throw("Number of parameters must agree with dimensions of argument.");
 
     // If not GRID then check that rank and dims match
     if  (!grid)
@@ -1773,15 +1798,21 @@ namespace lib {
       }
 
     //initialize output array with correct dimensions
-    DLong dims[MAXRANK] = {0, 0, 0, 0, 0, 0, 0, 0};
-    SizeT resRank;
+    DLong dims[MAXRANK]; // initialization does not honor MAXRANK: = {0, 0, 0, 0, 0, 0, 0, 0}
+    // sub-optimal:
+//     for( int i=0;i<MAXRANK;++i) 
+//       dims[i] = 0;
+    SizeT i = 0;
+    for (; i < rankLeft; ++i) dims[i] = array->Dim(i);
+    for (; i < MAXRANK; ++i) dims[i] = 0; // see above
+
+    SizeT resRank = rankLeft;
     SizeT chunksize;
-    for (SizeT i = 0; i < rankLeft; ++i) dims[i] = array->Dim(i);
-    resRank = rankLeft;
     if (grid)
       {
 	dims[resRank++] = nx;
-	if (resRank>MAXRANK-1) e->Throw("Rank of resulting array is currently limited to 8.");
+	if (resRank>MAXRANK-1) 
+	  e->Throw("Rank of resulting array is currently limited to " + i2s(MAXRANK) + ".");
 	dims[resRank++] = ny;
 	chunksize=nx*ny;
       }
@@ -1789,7 +1820,9 @@ namespace lib {
       {
 	for (SizeT i = 0; i < x->Rank(); ++i)
 	  {
-	    dims[resRank++] = x->Dim(i); if (resRank>MAXRANK) e->Throw("Rank of resulting array is currently limited to 8.");
+	    dims[resRank++] = x->Dim(i); 
+	    if (resRank>MAXRANK) 
+	      e->Throw("Rank of resulting array is currently limited to " + i2s(MAXRANK) + ".");
 	  }
 	chunksize=nx;
       }
@@ -1803,9 +1836,11 @@ namespace lib {
 
     SizeT nxa = array->Dim(rankLeft);
     double *xa = new double[nxa];
+    ArrayGuard<double> xaGuard( xa);
     for (SizeT i = 0; i < nxa; ++i) xa[i] = (double)i;
     SizeT nya = array->Dim(rankLeft+1);
     double *ya = new double[nya];
+    ArrayGuard<double> yaGuard( ya);
     for (SizeT i = 0; i < nya; ++i) ya[i] = (double)i;
 
     // Setup interpolation arrays
@@ -1818,7 +1853,9 @@ namespace lib {
 
     // output locations tables:
     double *xval = new double[chunksize];
+    ArrayGuard<double> xvalGuard( xval);
     double *yval = new double[chunksize];
+    ArrayGuard<double> yvalGuard( yval);
     if (grid)
       {
 	for (SizeT i = 0, count = 0; i < nx; i++)
@@ -1841,6 +1878,7 @@ namespace lib {
       }
     //construct 2d intermediate array, subset of array with stride ninterp
     double *temp = new double[nxa*nya];
+    ArrayGuard<double> tempGuard( temp);
     // Interpolate iteratively ninterp times:
     // loop could be multihreaded easily
     for (SizeT iterate = 0; iterate < ninterp; ++iterate)
@@ -1872,8 +1910,8 @@ namespace lib {
     if (nx == 1 && ny == 1 && nz == 1)  grid = false;
 
     // Determine number and value of input points along x-axis and y-axis
+    if (array->Rank() < 3) e->Throw("Number of parameters must agree with dimensions of argument.");
     SizeT rankLeft = array->Rank()-3;
-    if (rankLeft < 0) e->Throw("Number of parameters must agree with dimensions of argument.");
 
     // If not GRID then check that rank and dims match
     if  (!grid)
@@ -1899,7 +1937,7 @@ namespace lib {
     if (grid)
       {
 	dims[resRank++] = nx;
-	if (resRank>MAXRANK-2) e->Throw("Rank of resulting array is currently limited to 8.");
+	if (resRank>MAXRANK-2) e->Throw("Rank of resulting array is currently limited to " + i2s(MAXRANK) + ".");
 	dims[resRank++] = ny;
 	dims[resRank++] = nz;
 	chunksize=nx*ny*nz;
@@ -1908,7 +1946,7 @@ namespace lib {
       {
 	for (SizeT i = 0; i < x->Rank(); ++i)
 	  {
-	    dims[resRank++] = x->Dim(i); if (resRank>MAXRANK) e->Throw("Rank of resulting array is currently limited to 8.");
+	    dims[resRank++] = x->Dim(i); if (resRank>MAXRANK) e->Throw("Rank of resulting array is currently limited to " + i2s(MAXRANK) + ".");
 	  }
 	chunksize=nx;
       }
@@ -1922,18 +1960,22 @@ namespace lib {
 
     SizeT nxa = array->Dim(rankLeft);
     double *xa = new double[nxa];
+    ArrayGuard<double> xaGuard( xa);
     for (SizeT i = 0; i < nxa; ++i) xa[i] = (double)i;
 
     SizeT nya = array->Dim(rankLeft+1);
     double *ya = new double[nya];
+    ArrayGuard<double> yaGuard( ya);
     for (SizeT i = 0; i < nya; ++i) ya[i] = (double)i;
 
     SizeT nza = array->Dim(rankLeft+2);
     double *za = new double[nza];
+    ArrayGuard<double> zaGuard( za);
     for (SizeT i = 0; i < nza; ++i) za[i] = (double)i;
 
     // test if interp_type kernel trace is statisfied by nxa,nya,nza:
-    if (nxa<gdl_interp3d_type_min_size(interp_type)||nya<gdl_interp3d_type_min_size(interp_type)||nza<gdl_interp3d_type_min_size(interp_type)) e->Throw("Array(s) dimensions too small for this interpolation type.");
+    if (nxa<gdl_interp3d_type_min_size(interp_type)||nya<gdl_interp3d_type_min_size(interp_type)||nza<gdl_interp3d_type_min_size(interp_type)) 
+      e->Throw("Array(s) dimensions too small for this interpolation type.");
     // Setup interpolation arrays
     gsl_interp_accel *accx = gsl_interp_accel_alloc();
     GDLGuard<gsl_interp_accel> g1( accx, gsl_interp_accel_free);
@@ -1946,8 +1988,11 @@ namespace lib {
 
     // output locations tables:
     double *xval = new double[chunksize];
+    ArrayGuard<double> xvalGuard( xval);
     double *yval = new double[chunksize];
+    ArrayGuard<double> yvalGuard( yval);
     double *zval = new double[chunksize];
+    ArrayGuard<double> zvalGuard( zval);
     if (grid)
       {
 	for (SizeT i = 0, count = 0; i < nx; ++i)
@@ -1975,6 +2020,7 @@ namespace lib {
       }
     //construct 3d intermediate array, subset of array with stride ninterp
     double *temp = new double[nxa*nya*nza];
+    ArrayGuard<double> tempGuard( temp);
 
     // Interpolate iteratively ninterp times:
     // this outer loop could be multihreaded easily

@@ -197,6 +197,10 @@ public:
     delete guarded;
     guarded = newGuarded;
   }  
+  void Release()
+  {
+    guarded = NULL;
+  }  
 
   ~ArrayGuard()
   {
@@ -765,10 +769,16 @@ class GDLGuard
   GDLGuard() {}
   
 public:
+  GDLGuard( void (*d)(GSLType*)): gslObject( NULL), gslDestructor(d) {}
   GDLGuard( GSLType* o, void (*d)(GSLType*)): gslObject( o), gslDestructor(d) {}
   ~GDLGuard()
   {
     (*gslDestructor)( gslObject);
+  }
+  void Set( GSLType* o)
+  {
+    assert( gslObject == NULL);
+    gslObject = o;
   }
 };
 
