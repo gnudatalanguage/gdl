@@ -56,7 +56,7 @@
 #include <vector>
 #include <valarray>
 #include <cassert>
-
+#include <cstdio>
 
 // undef for releases (should not give diagnostics)
 // define for the CVS (where the default sizes can easily be adjusted)
