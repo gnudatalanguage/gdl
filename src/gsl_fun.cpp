@@ -2894,7 +2894,7 @@ namespace lib {
     SizeT nEl1=par1->N_Elements();
     SizeT nEl2=nEl1;
     if (!e->KeywordSet("MIDEXP")) 
-      SizeT nEl2=par2->N_Elements();
+      nEl2=par2->N_Elements();
     SizeT nEl=nEl1;
     DDoubleGDL* res;
     if (!e->KeywordSet("MIDEXP")) {
