@@ -154,7 +154,7 @@ namespace lib {
       FILE *fp = NULL;
       if ((fp = fopen (files[i].c_str(), "rb")) == NULL ) 
         e->Throw("GSHHS: Could not open file: " + files[i]); 
-      FILEGuard fpGuard( fp);
+      FILEGuard fpGuard( fp, fclose);
       
       struct GSHHS h;
       int n_read = fread((void *)&h, (size_t)sizeof (struct GSHHS), (size_t)1, fp);

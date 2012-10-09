@@ -135,7 +135,7 @@ private:
     }
     
     FILE *fp = tmpfile(); // this creates a file which should be deleted automaticaly when it is closed
-    FILEGuard fpGuard( fp);
+    FILEGuard fpGuard( fp, fclose);
     
     if (fp == NULL) 
     {
@@ -196,7 +196,7 @@ private:
     {
       rewind(fp);
       FILE *fp_plplot = fopen(fileName.c_str(), "w");
-      FILEGuard fp_plplotGuard( fp_plplot);
+      FILEGuard fp_plplotGuard( fp_plplot, fclose);
       if (fp_plplot == NULL)
       {
         Warning("Warning: failed to open plPlot-generated file");

@@ -22,8 +22,9 @@ new heap object (e. g. it is returned from a function).
 GDL provides serveral kinds of such guards:
 for normal objects auto_ptr is used (to set the guarded object free
 release() must be called). For array objects (destroyed by "delete[]" instead
-of "delete") GDL provides the ArrayGuard class. For GSL objects there is
-GSLGuard. Please see the source code for examples.
+of "delete") GDL provides the ArrayGuard class. For objects with a cleanup 
+function (e. g. GSL objects) the use of use GDLGuard is recommended.
+Please see the source code for examples.
 
 As this is not a proper place to discuss exception save programming in detail,
 here are just some rules of thumb, when this might concern a code contributor:

@@ -56,7 +56,7 @@
 #include <vector>
 #include <valarray>
 #include <cassert>
-#include <cstdio>
+// #include <cstdio>
 
 // undef for releases (should not give diagnostics)
 // define for the CVS (where the default sizes can easily be adjusted)
@@ -759,18 +759,18 @@ typedef ExprListT::iterator ExprListIterT;
 //
 // GDLGuard< gsl_matrix> gsl_matrix_guard( matrix, gsl_matrix_free);
 // (of course no explicit call to the gsl-cleanup function must be done anymore)
-template< typename GSLType>
+template< typename GSLType, typename cleanupReturnType=void>
 class GDLGuard
 {
   GSLType* gslObject;
   
-  void (*gslDestructor)(GSLType*);
+  cleanupReturnType (*gslDestructor)(GSLType*);
   
   GDLGuard() {}
   
 public:
   GDLGuard( void (*d)(GSLType*)): gslObject( NULL), gslDestructor(d) {}
-  GDLGuard( GSLType* o, void (*d)(GSLType*)): gslObject( o), gslDestructor(d) {}
+  GDLGuard( GSLType* o, cleanupReturnType (*d)(GSLType*)): gslObject( o), gslDestructor(d) {}
   ~GDLGuard()
   {
     (*gslDestructor)( gslObject);
@@ -782,18 +782,20 @@ public:
   }
 };
 
-class FILEGuard
-{
-  FILE* fp;
-  
-  FILEGuard() {}
-  
-public:
-  FILEGuard( FILE* f): fp( f) {}
-  ~FILEGuard()
-  {
-    fclose( fp);
-  }
-};
+typedef GDLGuard< FILE, int> FILEGuard;
+
+// class FILEGuard
+// {
+//   FILE* fp;
+//   
+//   FILEGuard() {}
+//   
+// public:
+//   FILEGuard( FILE* f): fp( f) {}
+//   ~FILEGuard()
+//   {
+//     fclose( fp);
+//   }
+// };
 
 #endif
