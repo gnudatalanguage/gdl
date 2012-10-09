@@ -2957,23 +2957,31 @@ namespace lib {
     
     for( SizeT i=0; i<nEl; i++) {
       if (nEl1 > 1) {first=(*static_cast<DDoubleGDL*>(par1))[i];}
-      if ((!e->KeywordSet("MIDEXP")) && (nEl2 > 1)) {last =(*static_cast<DDoubleGDL*>(par2))[i];}
+      if ((!e->KeywordSet("MIDEXP")) && (nEl2 > 1))
+	{last =(*static_cast<DDoubleGDL*>(par2))[i];}
       
       if (debug) cout << "Boundaries : "<< first << " " << last <<endl;
       
       // intregation on open range [first,+inf[
       if (e->KeywordSet("MIDEXP"))
 	{	 
-	  gsl_integration_qagiu(&F, first, 0, eps, wsize, w, &result, &error);
+	  gsl_integration_qagiu(&F, first, 0, eps, 
+				wsize, w, &result, &error);
 	} 
-      else if (e->KeywordSet("MIDINF") || e->KeywordSet("MIDPNT") || e->KeywordSet("MIDSQL") || e->KeywordSet("MIDSQU") || e->KeywordSet("JMAX") || e->KeywordSet("K"))
+      else if (e->KeywordSet("MIDINF") || e->KeywordSet("MIDPNT") ||
+	       e->KeywordSet("MIDSQL") || e->KeywordSet("MIDSQU") ||
+	       e->KeywordSet("JMAX") || e->KeywordSet("K"))
 	{
-	  gsl_integration_qag(&F, first, last, 0, eps, GSL_INTEG_GAUSS61, wsize, w, &result, &error);
+	  gsl_integration_qag(&F, first, last, 0, eps,
+			      GSL_INTEG_GAUSS61, wsize, w, &result, &error);
 	} 
       else
-	{		  
+	{
+	  // AC 2012-10-10: ToDo: checks on values at the boundaries.
+	  // if no problem, using QAG, else QAGS
 	  // intregation on open range ]first,last[
-	  gsl_integration_qag (&F, first, last, 0, eps, GSL_INTEG_GAUSS61, wsize, w, &result, &error);
+	  gsl_integration_qags(&F, first, last, 0, eps,
+			       wsize, w, &result, &error);
 	}
    
       if (debug) cout << "Result : " << result << endl;

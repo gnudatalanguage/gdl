@@ -9,7 +9,13 @@
 ; well know integrales.
 ; We also check that the dimensions of the outputs are OK
 ;
-; You can also provide a known function TOTO but also TOTO_INTEGRAL ...
+; You can also provide a known function TOTO but also TOTO_INTEGRAL
+; ...
+;
+; AC 2012-10-10
+; Thanks to extensive tests of Planck Sky Model software
+; http://www.apc.univ-paris7.fr/~delabrou/PSM/psm.html
+; we gain new case with problems for QROMO. See ALGEBRAIC_LOG case ...
 ; -------------------------------------------------
 ;
 ; http://www.mathcurve.com/courbes2d/agnesi/agnesi.shtml
@@ -82,6 +88,63 @@ function INV_INTEGRAL, x
 return, atan(x)-exp(-x)
 end
 ;
+function ALGEBRAIC_LOG, x
+alpha=1.0
+return, ALOG(alpha*x)/SQRT(x)
+end
+; http://www.wolframalpha.com/input/?i=ln%28x%29+%2Fsqrt%28x%29
+function ALGEBRAIC_LOG_INTEGRAL, x
+alpha=1.0
+if ABS(x) LT 1.e-10 then begin
+   return, 0.0
+endif else begin
+   return, 2*SQRT(x)*(ALOG(alpha*x)-2.)
+endelse
+end
+;
+; -------------------------------
+;
+pro TEST_QROMO_RANGE, function_name=function_name, range=range, cumul=cumul, $
+                      no_exit=no_exit, test=test, verbose=verbose
+;
+if (N_ELEMENTS(range) NE 2) then begin
+   print, 'No range provided ! (2 elements expected)'
+   return
+endif else begin
+   debut=range[0]
+   fin=range[1]
+endelse
+;
+if (N_ELEMENTS(eps) EQ 0) then eps=1e-6
+nb_errors=0
+;
+resuQR=QROMO(function_name, debut, fin)
+resuIN=CALL_FUNCTION(function_name+'_INTEGRAL', fin)
+resuIN=resuIN-CALL_FUNCTION(function_name+'_INTEGRAL', debut)
+if TOTAL((resuQR-resuIN)^2) GT eps then nb_errors=nb_errors+1
+;
+resuQR=QROMO(function_name, debut, fin,/double)
+resuIN=CALL_FUNCTION(function_name+'_INTEGRAL', fin)
+resuIN=resuIN-CALL_FUNCTION(function_name+'_INTEGRAL', debut)
+if TOTAL((resuQR-resuIN)^2) GT eps then nb_errors=nb_errors+1
+;
+mess='function ' + function_name+ ' : '
+if (nb_errors GT 0) then begin
+    MESSAGE, /continue, mess+STRING(nb_errors)+' Errors founded'
+endif else begin
+    MESSAGE, /continue, mess+'No Errors founded'
+endelse
+;
+if (nb_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
+;
+if ARG_PRESENT(cumul) then begin
+    if KEYWORD_SET(cumeul) then cumul=cumul+nb_errors else cumul=nb_errors
+endif
+;
+if KEYWORD_SET(test) then STOP
+;
+end
+;
 ; -------------------------------
 ;
 pro TEST_QROMO_DIM, function_name=function_name, cumul=cumul, $
@@ -130,16 +193,17 @@ resuQR=QROMO(function_name, debut, fin, K=6)
 resuIN=CALL_FUNCTION(function_name+'_INTEGRAL', fin)-CALL_FUNCTION(function_name+'_INTEGRAL', debut)
 if TOTAL((resuQR-resuIN)^2) GT eps then nb_errors=nb_errors+1
 ;
+mess='function ' + function_name+ ' : '
 if (nb_errors GT 0) then begin
-    MESSAGE, /continue, STRING(nb_errors)+' Errors founded'
+    MESSAGE, /continue, mess+STRING(nb_errors)+' Errors founded'
 endif else begin
-    MESSAGE, /continue, 'function ' + function_name + ': No Errors founded'
+    MESSAGE, /continue, mess+'No Errors founded'
 endelse
 ;
 if (nb_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
 ;
 if ARG_PRESENT(cumul) then begin
-    if KEYWORD_SET(cumeul) then cumul=cumul+nb_errors else cumul=nb_errors
+    if KEYWORD_SET(cumul) then cumul=cumul+nb_errors else cumul=nb_errors
 endif
 ;
 if KEYWORD_SET(test) then STOP
@@ -154,6 +218,9 @@ cumul=0
 ;
 TEST_QROMO_DIM, function_name='EXPON', cumul=cumul, /no_exit
 TEST_QROMO_DIM, function_name='INV', cumul=cumul, /no_exit
+;
+TEST_QROMO_RANGE, function_name='ALGEBRAIC_LOG', range=[0,1], $
+                  cumul=cumul, /no_exit
 ;
 TEST_QROMO_ON_AGNESI, cumul=cumul, /no_exit
 ;
