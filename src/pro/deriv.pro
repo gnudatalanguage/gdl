@@ -136,15 +136,26 @@ if (nbp_x LT 3) then begin
    if (flag_message EQ 1) then MESSAGE, txt else print, name_proc+txt
    return, -1
 endif
-if (SIZE(x,/type) EQ 6) then begin
-   txt='No COMPLEX vector allowed !'
-   if (flag_message EQ 1) then MESSAGE, txt else print, name_proc+txt
-   return, -1
-endif
+;
 if (SIZE(x,/type) EQ 7) then begin
    txt='No STRING vector allowed !'
    if (flag_message EQ 1) then MESSAGE, txt else print, name_proc+txt
    return, -1
+endif
+;
+; We check whether X and Y arrays have same size !
+if (N_PARAMS() EQ 2) then begin
+    nbp_y=N_ELEMENTS(y)
+    if (nbp_x NE nbp_y) then begin
+        txt='X and Y vectors must have same size !'
+        if (flag_message EQ 1) then MESSAGE, txt else print, name_proc+txt
+        return, -1
+    endif
+    if (SIZE(y,/type) EQ 7) then begin
+        txt='No STRING vector allowed !'
+        if (flag_message EQ 1) then MESSAGE, txt else print, name_proc+txt
+        return, -1
+    endif
 endif
 ;
 ; First case : we only have Data, no Position.
@@ -170,28 +181,6 @@ endif
 ;
 if (N_PARAMS() EQ 2) then begin
    if KEYWORD_SET(check) then begin
-      ;;
-      ;; First of all, we check wether X and Y arrays have same size !
-      ;;
-      nbp_y=N_ELEMENTS(y)
-      if (nbp_x NE nbp_y) then begin
-         txt='X and Y vectors must have same size !'
-         if (flag_message EQ 1) then MESSAGE, txt else print, name_proc+txt
-         return, -1
-      endif
-      ;;
-      ;; We check the array TYPE (no String, no Complex allowed)
-      ;;
-      if (SIZE(y,/type) EQ 6) then begin
-         txt='No COMPLEX vector allowed !'
-         if (flag_message EQ 1) then MESSAGE, txt else print, name_proc+txt
-         return, -1
-      endif
-      if (SIZE(y,/type) EQ 7) then begin
-         txt='No STRING vector allowed !'
-         if (flag_message EQ 1) then MESSAGE, txt else print, name_proc+txt
-         return, -1
-      endif
       ;; some checks : sorting, no-nul steps, no-constant steps, ...
       ;;
       dx=x-SHIFT(x,1)
