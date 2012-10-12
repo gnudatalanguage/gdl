@@ -166,7 +166,7 @@ namespace lib {
     // Type display
     if( !par)
       {
-        os << "UNDEFINED = <Undefined>" << endl;
+        os << "UNDEFINED = !NULL" << endl;
         return;
       }
     os.width(10);
@@ -787,20 +787,137 @@ namespace lib {
 
     e->HeapGC( doPtr, doObj, verbose);
   }
+  
+  void HeapFreeObj( EnvT* env, BaseGDL* var, bool verbose)
+  {
+    if( var == NULL)
+      return;
+    if( var->Type() == GDL_STRUCT)
+    {
+      DStructGDL* varStruct = static_cast<DStructGDL*>( var);
+      DStructDesc* desc = varStruct->Desc();
+      for( SizeT e=0; e<varStruct->N_Elements(); ++e)
+	for( SizeT t=0; t<desc->NTags(); ++t)
+	{
+	    BaseGDL* actElementTag = varStruct->GetTag( t, e);
+	    HeapFreeObj( env, actElementTag, verbose);
+	}
+    }
+    else if( var->Type() == GDL_PTR)
+    {
+      // descent into pointer
+      DPtrGDL* varPtr = static_cast<DPtrGDL*>( var);
+      for( SizeT e=0; e<varPtr->N_Elements(); ++e)
+      {
+	DPtr actPtrID = (*varPtr)[e];
+	if( actPtrID == 0)
+	  continue;
+	
+	BaseGDL* derefPtr = DInterpreter::GetHeap( actPtrID);
+	HeapFreeObj( env, derefPtr, verbose);
+      }
+    }
+    else if( var->Type() == GDL_OBJECT)
+    {
+      DObjGDL* varObj = static_cast<DObjGDL*>( var);
+      for( SizeT e=0; e<varObj->N_Elements(); ++e)
+      {
+	DObj actID = (*varObj)[e];
+	if( actID == 0)
+	  continue;
+	
+	if( verbose)
+	{
+	  BaseGDL* derefObj = DInterpreter::GetObjHeap( actID);
+	  help_item( cout, 
+		      derefObj, DString( "<ObjHeapVar")+
+		      i2s(actID)+">",
+		      false);
+	}
+	// 2. free object
+	env->ObjCleanup( actID);
+      }
+    }
+  }
+  
+  void HeapFreePtr( BaseGDL* var, bool verbose)
+  {
+    if( var == NULL)
+      return;
+    if( var->Type() == GDL_STRUCT)
+    {
+      DStructGDL* varStruct = static_cast<DStructGDL*>( var);
+      DStructDesc* desc = varStruct->Desc();
+      for( SizeT e=0; e<varStruct->N_Elements(); ++e)
+	for( SizeT t=0; t<desc->NTags(); ++t)
+	{
+	    BaseGDL* actElementTag = varStruct->GetTag( t, e);
+	    HeapFreePtr( actElementTag, verbose);  // recursive call
+	}
+    }
+    else if( var->Type() == GDL_PTR)
+    {
+      // 1. descent into pointer
+      DPtrGDL* varPtr = static_cast<DPtrGDL*>( var);
+      for( SizeT e=0; e<varPtr->N_Elements(); ++e)
+      {
+	DPtr actPtrID = (*varPtr)[e];
+	if( actPtrID == 0)
+	  continue;
+	
+	BaseGDL* derefPtr = DInterpreter::GetHeap( actPtrID);
+	if( verbose)
+	{
+	  help_item( cout, 
+		      derefPtr, DString( "<PtrHeapVar")+
+		      i2s(actPtrID)+">",
+		      false);
+	}
+	HeapFreePtr( derefPtr, verbose); // recursive call
+      }
+      // 2. free pointer
+      DInterpreter::FreeHeap( varPtr);
+    }
+  }
+  
+  void heap_free( EnvT* e)
+  {
+    static SizeT objIx = e->KeywordIx( "OBJ");
+    static SizeT ptrIx = e->KeywordIx( "PTR");
+    static SizeT verboseIx = e->KeywordIx( "VERBOSE");
+    bool doObj = e->KeywordSet( objIx);
+    bool doPtr = e->KeywordSet( ptrIx);
+    bool verbose =  e->KeywordSet( verboseIx);
+    if( !doObj && !doPtr)
+      doObj = doPtr = true;
+
+    e->NParam( 1);
+    BaseGDL* p0 = e->GetParDefined(0);
+   
+    if( doObj) // do first objects as they may in turn free some pointers
+      HeapFreeObj( e, p0, verbose);
+    if( doPtr)
+      HeapFreePtr( p0, verbose);
+  }
 
   void ptr_free( EnvT* e)
   {
     SizeT nParam=e->NParam();
     for( SizeT i=0; i<nParam; i++)
       {
-	DPtrGDL* par=dynamic_cast<DPtrGDL*>(e->GetPar( i));
-	if( par != NULL) 
-	  {
-	    e->FreeHeap( par);
-	  }
-	else
+	BaseGDL* p = e->GetPar( i);
+	if( p == NULL)
+	{
 	  e->Throw( "Pointer type required"
-		    " in this context: "+e->GetParString(i));
+		    " in this context: "+e->GetParString(i));	  
+	}
+	if( p->Type() != GDL_PTR)
+	{
+	  e->Throw( "Pointer type required"
+		    " in this context: "+e->GetParString(i));	  
+	}
+	DPtrGDL* par=static_cast<DPtrGDL*>(e->GetPar( i));
+	e->FreeHeap( par);
       }
   }
 

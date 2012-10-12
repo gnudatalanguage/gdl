@@ -234,6 +234,7 @@ void LibInit()
 
   const string heap_gcKey[]={"PTR","OBJ","VERBOSE",KLISTEND};
   new DLibPro(lib::heap_gc,string("HEAP_GC"),0,heap_gcKey); 
+  new DLibPro(lib::heap_free,string("HEAP_FREE"),1,heap_gcKey); 
 
 
   new DLibPro(lib::ptr_free,string("PTR_FREE"),-1);
