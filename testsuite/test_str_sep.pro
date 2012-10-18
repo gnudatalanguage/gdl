@@ -46,6 +46,51 @@ if units[1] NE '2' then begin
     nb_errors++
 endif
 ;
+; conversions of no-string input: when Separator is a simple char,
+; we do not convert into STRING before comparisons ...
+;
+res_single=STR_SEP(2e3, '0')
+res_nosingle=STR_SEP(2e3, '00')
+res_nosingle_str=STR_SEP(STRING(2e3), '00')
+;
+; first case
+;
+if (N_elEments(res_single) NE 1) then begin
+    txt='problem 3a: output should be converted'
+    MESSAGE, txt, /continue
+    nb_errors++
+endif
+if (N_ELEMENTS(res_single) NE 1) then begin
+    txt='problem 3a-bis: output should be converted'
+    MESSAGE, txt, /continue
+    nb_errors++
+endif else begin
+    if (STRLEN(res_single) NE 13) then begin
+        txt='problem 3a: output should be converted into string'
+        MESSAGE, txt, /continue
+        nb_errors++
+    endif
+    if (res_single NE STRING(2e3)) then begin
+        txt='problem 3a-bis: output should be converted into string'
+        MESSAGE, txt, /continue
+        nb_errors++
+    endif
+endelse
+;
+; second case
+if N_ELEMENTS(res_nosingle) NE 3 then  begin
+    txt='problem 3b: bad Elements in output'
+    MESSAGE, txt, /continue
+    nb_errors++
+endif
+;
+; third one
+if (ARRAY_EQUAL(res_nosingle,res_nosingle_str) eq 0) then begin
+    txt='problem 3c: result differs from reference'
+    MESSAGE, txt, /continue
+    nb_errors++
+endif
+;
 ; do we triggered errors ?
 ;
 MESSAGE, /continue, 'Final diagnostic :'
