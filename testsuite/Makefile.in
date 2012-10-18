@@ -298,6 +298,7 @@ TESTS = \
   test_fx_root.pro \
   test_fz_roots.pro \
   test_gc.pro \
+  test_get_lun.pro \
   test_get_screen_size.pro \
   test_grib.pro \
   test_hist_2d.pro \
