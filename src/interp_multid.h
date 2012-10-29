@@ -138,16 +138,16 @@ extern "C" {
     int status;
     switch (interp->mode) {
       case missing_NONE:
-        if (xx < interp->xmin || xx > interp->xmax) {
+        if (xx < interp->xmin || xx >= interp->xmax) {
           GSL_ERROR_VAL("interpolation error", GSL_EDOM, GSL_NAN);
         }
         break;
       case missing_NEAREST:
         if (xx < interp->xmin) xx = interp->xmin;
-        if (xx > interp->xmax) xx = interp->xmax;
+        if (xx >= interp->xmax) xx = interp->xmax;
         break;
       case missing_GIVEN:
-        if ((xx < interp->xmin) || (xx > interp->xmax)) {
+        if ((xx < interp->xmin) || (xx >= interp->xmax)) {
           return interp->missing;
         }
         break;
