@@ -2,7 +2,7 @@
  * Project led by Terence Parr at http://www.jGuru.com
  * Software rights: http://www.antlr.org/license.html
  *
- * $Id: LLkParser.cpp,v 1.3 2010-04-07 14:59:09 m_schellens Exp $
+ * $Id: LLkParser.cpp,v 1.4 2012-11-06 18:04:16 m_schellens Exp $
  */
 
 #include "antlr/LLkParser.hpp"
@@ -40,18 +40,19 @@ LLkParser::LLkParser(TokenStream& lexer, int k_)
 
 void LLkParser::trace(const char* ee, const char* rname)
 {
-	if(inputState->guessing>0) return;
+	//if(inputState->guessing>0) return;
 	
 	traceIndent();
 
-	cout << ee << rname << ((inputState->guessing>0)?";                                        [guessing]":";        <<<");
+	cout << ee << rname << ((inputState->guessing>0)?";                  ?: ":";          <: ");
 
 	for (int i = 1; i <= k+3; i++)
 	{
 		if (i != 1) {
-			cout << ", ";
+			//cout << ", ";
+			cout << " ";
 		}
-		cout << "LA(" << i << ")==";
+		//cout << "LA(" << i << ")==";
 
 		string temp;
 
@@ -64,7 +65,10 @@ void LLkParser::trace(const char* ee, const char* rname)
 			temp += ae.toString();
 			temp += ']';
 		}
-		cout << temp;
+		if( temp == "\n")
+		  cout << "\\n";
+		else
+		  cout << temp;
 	}
 
 	cout << endl;

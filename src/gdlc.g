@@ -1544,10 +1544,13 @@ primary_expr
         // ambiguity (arrayexpr or fcall)
         (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE)=>
 		(
+
 			// already known function 
 			// (could be reordered, but this is conform to original)
 			{ IsFun(LT(1))}? formal_function_call
 			{ 
+//             std::cout << "+++(IDENTIFIER LBRACE expr (COMMA expr)* RBRACE) 1" << std::endl;
+
 //                 if( StrUpCase(#i->getText) == "N_ELEMENTS")
 //                     #primary_expr = #([FCALL_LIB_N_ELEMENTS, "fcall_n_elements"], #primary_expr);
 //                 else
@@ -1556,7 +1559,10 @@ primary_expr
 		| 
             // still ambiguity (arrayexpr or fcall)
             var arrayindex_list     // array_expr_fn
-            { #primary_expr = #([ARRAYEXPR_FN,"arrayexpr_fn"], #primary_expr);}
+            { 
+//             std::cout << "***(IDENTIFIER LBRACE expr (COMMA expr)* RBRACE) 2" << std::endl;
+
+                #primary_expr = #([ARRAYEXPR_FN,"arrayexpr_fn"], #primary_expr);}
 // 	  		( parent=member_function_call
 // 				{ 
 //                     if( parent)
@@ -1590,8 +1596,10 @@ primary_expr
 		)
 		
 	|   // not the above => keyword parameter (or no args) => function call
-		(formal_function_call)=> formal_function_call
-		{ #primary_expr = #([FCALL, "fcall"], #primary_expr);}
+	 	(formal_function_call)=> formal_function_call
+	 	{ #primary_expr = #([FCALL, "fcall"], #primary_expr);}
+
+
 	|   // a member function call starts with a deref_expr 
         // deref_dot_expr already failed
  		(deref_expr)=>
@@ -1618,6 +1626,7 @@ primary_expr
 //                 }
         | // empty -> array expression
         )
+
 	|! sl:STRING_LITERAL // also a CONSTANT
 		{ #primary_expr=#[CONSTANT,sl->getText()];
             #primary_expr->Text2String();	
