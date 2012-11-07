@@ -20,14 +20,21 @@
 </ul>
 
 <p>
-  The ADASS talk has a corresponding paper in the ASP Conference Series (and&nbsp;in&nbsp;arXiv), and this is currently
-    the best way to cite GDL:
+  The ADASS talks have corresponding papers in the ASP Conference Series (and&nbsp;in&nbsp;arXiv), and this is currently the best way to cite GDL:
 </p>
 <ul>
-  <li><a href="http://www.aspbooks.org/a/volumes/article_details/?paper_id=32122">Coulais et al. 2010 @ ACP CS 434 (ISBN: 978-1-58381-748-3)</a></li>
-  <li><a href="http://arxiv.org/abs/1101.0679">Coulais et al. 2011 article @ arXiv</a></li>
+
+<li><a href="http://www.aspbooks.org/a/volumes/article_details?paper_id=34743">Coulais et al. 2012 @ ACP CS 461
+ (ISBN: 978-1-58381-804-6)</a>
+(no definitive version of the <a href="http://aramis.obspm.fr/~coulais/IDL_et_GDL/Adass2011/O11_ADASS2011_GDL_Coulais.pdf">corresponding paper</a>)
+<a href="http://cdsads.u-strasbg.fr/abs/2012ASPC..461..615C">ADS link</a> with abstract</li>
+</li>
+  <li><a href="http://www.aspbooks.org/a/volumes/article_details/?paper_id=32122">Coulais et al. 2010 @ ACP CS 434
+(ISBN: 978-1-58381-748-3)</a>
+(no definitive version of the <a href="http://arxiv.org/abs/1101.0679">corresponding paper</a>) 
+<a href="http://cdsads.u-strasbg.fr/abs/2010ASPC..434..187C">ADS link</a> with abstract</li>
 </ul>
-			
+
 <p>
   Alain Coulais maintains:
 </p>
