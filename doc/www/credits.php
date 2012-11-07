@@ -13,7 +13,7 @@ Compiler, Interpreter, Library routines...
 </li></ul>
 
 <p>
-As of 2011 the core team consists additionally of:
+As of 2012 the core team consists additionally of (in alphabetical order):
 </p>
 
 <ul>
@@ -27,6 +27,12 @@ Library routines, testing, documentation, portability issues
 <a href="mailto:alaingdl@users.sourceforge.net">Alain Coulais</a> 
 <br/>
 Library routines, testing, documentation, presentations 
+</li>
+
+<li>
+<a href="mailto:gilles-duvert@users.sourceforge.net">Gilles Duvert</a> 
+<br/>
+Library routines, plotting, testing
 </li>
 
 <li>
