@@ -53,12 +53,14 @@ Among many good folks who provided patches and valuable feedback (in alphabetica
 <a>Nicolas&nbsp;Galmiche</a>, 
 <a>Greg&nbsp;Huey</a>, 
 <a>Gaurav&nbsp;Khanna</a>, 
-<a>Christopher&nbsp;Lee</a>., 
+<a>Benjamin&nbsp;Laurent</a>, 
+<a>Christopher&nbsp;Lee</a>, 
 <a>Maxime&nbsp;Lenoir</a>, 
 <a>Peter&nbsp;Messmer</a>, 
 <a>Gregory&nbsp;Marchal</a>, 
 <a>Thibaut&nbsp;Mermet</a>, 
-<a>Lea&nbsp;Noreskal</a>, 
+<a>L&eacute;a&nbsp;Noreskal</a>, 
+<a>Mathieu&nbsp;Pinter</a>, 
 <a>Orion&nbsp;Poplawski</a>, 
 <a>Rene&nbsp;Preusker</a>,
 <a>Mateusz&nbsp;Turcza</a>, 
@@ -96,8 +98,8 @@ GDL contains snippets of code borrowed from other free and open-source projects 
 <a>Orlando&nbsp;Garcia&nbsp;Feal</a>,
 <a>Gaurav&nbsp;Khanna</a>, 
 <a>Justin&nbsp;Lecher</a>, 
-<a>Sebastien&nbsp;Maret</a>,
-<a>Lea&nbsp;Noreskal</a>, 
+<a>S&eacute;bastien&nbsp;Maret</a>,
+<a>L&eacute;a&nbsp;Noreskal</a>, 
 <a>Orion&nbsp;Poplawski</a>,
 <a>Marius&nbsp;Schamschula</a>,
 <a>G&uuml;rkan&nbsp;Seng&uuml;n</a>,
@@ -106,7 +108,8 @@ GDL contains snippets of code borrowed from other free and open-source projects 
 </p>
 
 <p>
-GDL is written in C++ using the <a>Terence Parr's</a> ANTLR language-recognition framework.
+GDL is written in C++ using the <a>Terence Parr's</a>
+ANTLR language-recognition framework.
 Most of the library routines are implemented as interfaces to open-source packages
   such as <a>GNU Scientific Library</a>, <a>PLPlot</a>, <a>FFTW</a>, <a>ImageMagick</a>, and many many more.
 </p>
