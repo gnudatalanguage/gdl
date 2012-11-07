@@ -34,17 +34,7 @@ dnl ========================================================
 
 AM_CONFIG_HEADER(config.h)
 
-dnl checking for Automake version is tricky:
-dnl (http://www.mail-archive.com/automake@gnu.org/msg15292.html)
-dnl color-tests require AM >=1.11 and AM 1.11 requires AC >=2.62
-AC_MSG_CHECKING([autoconf version])
-m4_version_prereq([2.62], [
-  AC_MSG_RESULT([>=2.62])
-  AM_INIT_AUTOMAKE(color-tests)
-],[
-  AC_MSG_RESULT([<2.62])
-  AM_INIT_AUTOMAKE
-]) 
+AM_INIT_AUTOMAKE
 
 AC_LANG(C++)
 AC_PROG_CXX
@@ -264,6 +254,7 @@ AC_CHECK_LIB(gsl, gsl_ran_binomial_knuth, [], [
         echo ""
         echo "       (suitable Debian/Ubuntu package: libgsl0-dev)"
         echo "       (suitable Fedora package: gsl-dev)"
+	echo "       (suitable Gentoo package: sci-libs/gsl)"
         exit -1
 	])
 AC_CHECK_LIB(gslcblas, cblas_drot, [], [
@@ -317,6 +308,7 @@ AC_CHECK_LIB(plplotcxxd, plsexit, [AC_DEFINE([HAVE_LIBPLPLOTCXXD], [1], [plplot 
         echo ""
         echo "       (suitable Debian/Ubuntu packages: libplplot-dev, [plplot9-driver-xwin])"
         echo "       (suitable Fedora package: plplot-devel)"
+        echo "       (suitable Gentoo package: sci-libs/plplot)"
 	exit -1
 	])
 
@@ -359,6 +351,7 @@ if test "x$with_wxWidgets" != "xno"; then
     echo ""
     echo "       (suitable Debian/Ubuntu package: libwxgtk2.8-dev)"
     echo "       (suitable Fedora package: wxGTK-devel)"
+    echo "       (suitable Gentoo package: x11-libs/wxGTK)"
     exit -1
   else
     LIBS="$LIBS `wx-config --libs`"
@@ -435,6 +428,7 @@ if test "x$with_Magick" != "xno"; then
         echo ""
         echo "       (suitable Debian/Ubuntu package: libmagick++-dev)"
         echo "       (suitable Fedora package: ImageMagick-c++-devel)"
+        echo "       (suitable Fedora package: media-gfx/imagemagick)"
         exit -1
       ])
     ]
@@ -486,6 +480,7 @@ if test "x$with_GraphicsMagick" != "xno"; then
         echo ""
         echo "       (suitable Debian/Ubuntu package: libgraphicsmagick++-dev)"
         echo "       (suitable Fedora package: graphicsMagick-c++-devel)"
+        echo "       (suitable Fedora package: media-gfx/igraphicsmagick)"
         exit -1
       ])
     ]
@@ -532,6 +527,7 @@ if test "x$with_netcdf" != "xno"; then
     echo ""
     echo "       (suitable Debian/Ubuntu package: libnetcdf-dev)"
     echo "       (suitable Fedora package: netcdf-devel)"
+    echo "       (suitable Fedora package: sci-libs/netcdf-cxx )"
     exit -1
     ])
 
