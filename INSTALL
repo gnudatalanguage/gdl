@@ -4,12 +4,14 @@ QUICK INSTALLATION:
 (If you encounter any problems, please read on further, also have a
 look at the REQUIREMENTS section in the README file.)
 
-* unpack the tarball under any directory (tar xfvz gdl-0.9.tar.gz)
-* change to the new subdirectory gdl-0.9 
+* unpack the tarball under any directory (tar xfvz gdl-VERION.tar.gz)
+* change to the new subdirectory gdl-VERSION 
 * type "./configure"  (use './configure --help' for a list of options)
 * type "make"         (use 'make -j N' to run N parallel processes)
 * optionally type "make check" to test the build 
 * type "make install" to deploy GDL binary (gdl), libraries, manpage, etc
+
+See INSTALL.CMake on instructions how to configure GDL using CMake.
 
 If you know IDL, you should feel very familiar with GDL.
 A list of command-line options is available both in the manpage and
@@ -25,6 +27,10 @@ for an explanation.
 
 If you have an old Plplot version (before 5.9.0) you must say it using
 --enable-oldplplot
+
+If you are compiling GDL source from the repository (i.e. not a release),
+and not using CMake, first you have to generate the "configure" script
+and other related files by invoking "autoreconf -i".
 
 BUILDING GDL AS A PYTHON MODULE:
 ================================
@@ -233,17 +239,3 @@ operates.
      script, and exit.
 
 `configure' also accepts some other, not widely useful, options.
-
-Libtool version mismatch
-========================
-
-On systems that use libtool, sometimes a mismatched version error arises at compile time, e.g.:
-libtool: Version mismatch error.  This is libtool 2.4 Debian-2.4-2ubuntu1, but the
-libtool: definition of this LT_INIT comes from libtool 2.2.6b.
-libtool: You should recreate aclocal.m4 with macros from libtool 2.4 Debian-2.4-2ubuntu1
-libtool: and run autoconf again.
-
-In that case it seems that the following set of commands solves the problem:
-> rm libtool aclocal.m4
-> autoreconf -vfi
-> make

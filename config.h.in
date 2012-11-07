@@ -157,7 +157,7 @@
 /* Define if you want to use new LIBPROJ4 */
 #undef USE_LIBPROJ4_NEW
 
-/* Define if you want to use ImageMagick */
+/* Define if you want to use GraphicsMagick */
 #undef USE_MAGICK
 
 /* Define if you want to use MPI */
