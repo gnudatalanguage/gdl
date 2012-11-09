@@ -232,13 +232,13 @@ actStream->wid( 0);
     DDouble alignment = 0.0;
     e->AssureDoubleScalarKWIfPresent( "ALIGNMENT", alignment);
 
+    // !P.MULTI vs. POSITION
+    handle_pmulti_position(e, actStream);
+
     //CHARSIZE Note that SIZE is apparently used in some old implementations and
     //seems to be supported silently with *DL. So we support it also:
     DFloat charsize;
     gkw_charsize_xyouts(e, actStream, charsize);
-
-    // !P.MULTI vs. POSITION
-    handle_pmulti_position(e, actStream);
 
     // WIDTH keyword
     static int widthIx = e->KeywordIx( "WIDTH");
@@ -250,6 +250,8 @@ actStream->wid( 0);
     //     getting character height so it can be later used to move the 
     //     "reference point" half character height lower (tracker item no. 2982623)
     PLFLT charheight;
+
+#ifdef HAVE_PLPLOT_BEFORE_5994    
     {
       PLFLT nullf, htmm;
       plgchr(&nullf, &htmm); // height of a letter in millimetres
@@ -261,6 +263,12 @@ actStream->wid( 0);
       plcalc_world(0., 0., &nullf, &wy0, &nulli); // wy = height of a letter in world coordinates
       charheight = wy - wy0;
     }
+#else HAVE_PLPLOT_BEFORE_5994
+    cout << "Warning : charheight not changeable" << endl;
+    cout << "Warning : no more useful symbols in plplot 5.9.9-4" << endl;
+    charheight=1.
+#endif HAVE_PLPLOT_BEFORE_5994
+
 
     if(minEl == 1)
       {
@@ -285,7 +293,9 @@ actStream->wid( 0);
 
 	out=(*strVal)[0];
 	actStream->ptex(x,y,p_orient_x, p_orient_y,alignment,out.c_str());
+#ifdef HAVE_PLPLOT_BEFORE_5994
         if (kwWidth) width = plstrl(out.c_str());
+#endif
       }
     else
       {
@@ -325,7 +335,10 @@ actStream->wid( 0);
 	    out=(*strVal)[i];
             y += .5 * charheight;
 	    actStream->ptex(x,y,p_orient_x, p_orient_y,alignment,out.c_str());
+
+#ifdef HAVE_PLPLOT_BEFORE_5994
             if (kwWidth) width = max(plstrl(out.c_str()), width);
+#endif
 	  }
       }
     
@@ -336,9 +349,12 @@ actStream->wid( 0);
       //     width contains output from plstrl() expressed in millimetres
       //     plP_mmpcx() converts it into physical coordinates
       //     plP_gphy() gives "physical device limits in physical coordinates"
+
+#ifdef HAVE_PLPLOT_BEFORE_5994
       PLINT p_ixmin, p_ixmax, p_iymin, p_iymax;
       plP_gphy(&p_ixmin, &p_ixmax, &p_iymin, &p_iymax);
       e->SetKW(widthIx, new DFloatGDL(plP_mmpcx(width)/double(p_ixmax - p_ixmin)));
+#endif
     }
   } // }}}
 
