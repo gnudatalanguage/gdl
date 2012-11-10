@@ -284,6 +284,14 @@ else(PLPLOT_FOUND)
         "(suitable Debian/Ubuntu packages: libplplot-dev, [plplot9-driver-xwin])"
         "(suitable Fedora package: plplot-devel)")
 endif(PLPLOT_FOUND)
+
+check_library_exists("${PLPLOT_LIBRARIES}" plP_mmpcx "" HAVE_PLPLOT_BEFORE_5994)
+if(HAVE_PLPLOT_BEFORE_5994)
+  message(STATUS "OK for XYOUTS in plplot")
+else(HAVE_PLPLOT_BEFORE_5994)
+  message(STATUS "warning for XYOUTS in plplot")
+endif(HAVE_PLPLOT_BEFORE_5994)
+
 if(MAGICK) # support Magick
 	check_library_exists("${PLPLOT_LIBRARIES}" plGetDrvDir "" HAVE_PLGETDRVDIR)
 	if(HAVE_PLGETDRVDIR)
