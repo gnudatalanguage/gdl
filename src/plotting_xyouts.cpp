@@ -251,7 +251,7 @@ actStream->wid( 0);
     //     "reference point" half character height lower (tracker item no. 2982623)
     PLFLT charheight;
 
-#ifdef HAVE_PLPLOT_BEFORE_5994    
+#if HAVE_PLPLOT_BEFORE_5994 == 1
     {
       PLFLT nullf, htmm;
       plgchr(&nullf, &htmm); // height of a letter in millimetres
@@ -263,11 +263,11 @@ actStream->wid( 0);
       plcalc_world(0., 0., &nullf, &wy0, &nulli); // wy = height of a letter in world coordinates
       charheight = wy - wy0;
     }
-#else HAVE_PLPLOT_BEFORE_5994
+#else // HAVE_PLPLOT_BEFORE_5994
     cout << "Warning : charheight not changeable" << endl;
     cout << "Warning : no more useful symbols in plplot 5.9.9-4" << endl;
-    charheight=1.
-#endif HAVE_PLPLOT_BEFORE_5994
+    charheight=1.;
+#endif // HAVE_PLPLOT_BEFORE_5994
 
 
     if(minEl == 1)
