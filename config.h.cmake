@@ -27,6 +27,7 @@
 #cmakedefine HAVE_MEMORY_H 1
 #cmakedefine HAVE_NEXTTOWARD 1
 #cmakedefine HAVE_OLDPLPLOT 1
+#cmakedefine HAVE_PLPLOT_BEFORE_5994 1
 #ifndef HAVE_STDINT_H
 #cmakedefine HAVE_STDINT_H 1
 #endif
