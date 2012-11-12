@@ -236,15 +236,7 @@ void BinaryExprNC::AdjustTypesNCNull(auto_ptr<BaseGDL>& g1, BaseGDL*& e1,
       e2 = op2->Eval();
       g2.reset( e2);
     }
-    
-  if( e1 == NULL && e2 == NULL)
-  {
-    // provoke error
-    e1 = op1->EvalNC();
-    e2 = op2->EvalNC();
-    assert( false); // code should never reach here
-  }
-  
+      
   // if at least one is !NULL make sure this is e1 
   if( e1 == NullGDL::GetSingleInstance())
     return;
@@ -255,6 +247,19 @@ void BinaryExprNC::AdjustTypesNCNull(auto_ptr<BaseGDL>& g1, BaseGDL*& e1,
     e1 = e2;
     e2 = tmp;
     return;
+  }
+
+  if( e1 == NULL)
+  {
+    // provoke error
+    e1 = op1->EvalNC();
+    assert( false); // code should never reach here
+  }
+  else if(  e2 == NULL)
+  {
+    // provoke error
+    e2 = op2->EvalNC();
+    assert( false); // code should never reach here
   }
   
   DType aTy=e1->Type();

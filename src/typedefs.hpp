@@ -155,16 +155,24 @@ extern DLong CpuTPOOL_MAX_ELTS;
 
 // convert something to string
 template <typename T>
-inline std::string i2s( T i, SizeT w = 0)      
+inline std::string i2s( T i, SizeT w)// = 0)      
 {
   std::ostringstream os;
   os.width(w);
   os << i;
   return os.str();
 }
+template <typename T>
+inline std::string i2s( T i)      
+{
+  std::ostringstream os;
+  assert( os.width() == 0);
+  os << i;
+  return os.str();
+}
 
 // debug 
-#include <iostream>
+//#include <iostream>
 
 // searches IDList idL for std::string s, returns its position, -1 if not found
 inline int FindInIDList(IDList& idL,const std::string& s)
@@ -178,6 +186,35 @@ inline int FindInIDList(IDList& idL,const std::string& s)
 
   return -1;
 }
+
+// as auto_ptr is obsoleted Guard offers an alternative
+template <class T>
+class Guard
+{
+private:
+  T*      guarded;
+  
+public:
+  Guard(): guarded( NULL)
+  {}
+  Guard( T* c): guarded( c)
+  {}
+  
+  void Reset( T* newGuarded)
+  {
+    delete guarded;
+    guarded = newGuarded;
+  }  
+  void Release()
+  {
+    guarded = NULL;
+  }  
+
+  ~Guard()
+  {
+    delete guarded;
+  }
+};
 
 // like auto_ptr but for arrays (delete[] is used upon destruction)
 template <class T>
@@ -213,8 +250,8 @@ template <class T>
 class StackGuard
 {
 private:
-  T&     container;
-  SizeT  cSize;
+  T& container;
+  typename T::size_type cSize;
   
 public:
   StackGuard( T& c): container( c)
@@ -224,7 +261,7 @@ public:
   
   ~StackGuard()
   {
-    for( SizeT s=container.size(); s > cSize; s--)
+    for( typename T::size_type s=container.size(); s > cSize; s--)
       {
 	delete container.back();
 	container.pop_back();
@@ -233,6 +270,7 @@ public:
 };
 
 // needed for exceptions
+// does not delete elements 
 template <class T>
 class StackSizeGuard
 {
@@ -368,7 +406,7 @@ public:
 /*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
 {
 #pragma omp for*/
-    for( int i=0; i<sz; ++i)
+    for( SizeT i=0; i<sz; ++i)
       buf[ i] = val;
 // }
   }
@@ -450,7 +488,7 @@ GDLArray& operator= ( const GDLArray& right )
 			/*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
 			{
 			#pragma omp for*/
-			for ( int i=0; i<sz; ++i )
+			for ( SizeT i=0; i<sz; ++i )
 				buf[ i] = right.buf[ i];
 			return *this;
 // }
@@ -464,7 +502,7 @@ GDLArray& operator= ( const GDLArray& right )
 			/*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
 			{
 			#pragma omp for*/
-			for ( int i=0; i<sz; ++i )
+			for ( SizeT i=0; i<sz; ++i )
 				buf[ i] = right.buf[ i];
 			return *this;
 		}
@@ -477,7 +515,7 @@ GDLArray& operator= ( const GDLArray& right )
 /*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
 {
 #pragma omp for*/
-    for( int i=0; i<sz; ++i)
+    for( SizeT i=0; i<sz; ++i)
       buf[ i] += right.buf[ i];
 // }
     return *this;
@@ -487,7 +525,7 @@ GDLArray& operator= ( const GDLArray& right )
 /*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
 {
 #pragma omp for*/
-    for( int i=0; i<sz; ++i)
+    for( SizeT i=0; i<sz; ++i)
       buf[ i] -= right.buf[ i];
 // }
     return *this;
@@ -511,7 +549,7 @@ GDLArray& operator= ( const GDLArray& right )
 /*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
 {
 #pragma omp for*/
-    for( int i=0; i<sz; ++i)
+    for( SizeT i=0; i<sz; ++i)
       buf[ i] += right;
 // }
     return *this;
@@ -521,7 +559,7 @@ GDLArray& operator= ( const GDLArray& right )
 /*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
 {
 #pragma omp for*/
-    for( int i=0; i<sz; ++i)
+    for( SizeT i=0; i<sz; ++i)
       buf[ i] -= right;
 // }
     return *this;
@@ -642,7 +680,7 @@ inline GDLArray<DString>::GDLArray( const GDLArray& cp) : sz( cp.size())
 /*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
 {
 #pragma omp for*/
-     for( int i=0; i<sz; ++i)
+     for( SizeT i=0; i<sz; ++i)
        buf[ i] = cp.buf[ i];
 // }
   }
@@ -656,7 +694,7 @@ inline GDLArray<DString>::GDLArray( const Ty* arr, SizeT s) : sz( s)
 /*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
 {
 #pragma omp for*/
-     for( int i=0; i<sz; ++i)
+     for( SizeT i=0; i<sz; ++i)
        buf[ i] = arr[ i];
 // }
   }
@@ -782,6 +820,7 @@ public:
   }
 };
 
+// int fclose(...);
 typedef GDLGuard< FILE, int> FILEGuard;
 
 // class FILEGuard
