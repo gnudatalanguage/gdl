@@ -525,6 +525,9 @@ GDLInterpreter::GDLInterpreter()
 		
 		if( interruptEnable)
 		{
+		if( e.getLine() == 0 && last != NULL)
+		e.SetLine( last->getLine());
+		
 		// tell where we are
 		ReportError(e, "Execution halted at:", targetEnv == NULL); 
 		
