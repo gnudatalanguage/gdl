@@ -37,7 +37,6 @@ GDLParser::GDLParser(const antlr::ParserSharedInputState& state)
 }
 
 void GDLParser::identifier() {
-	Tracer traceInOut(this, "identifier");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode identifier_AST = RefDNode(antlr::nullAST);
@@ -719,7 +718,6 @@ void GDLParser::identifier() {
 }
 
 void GDLParser::translation_unit() {
-	Tracer traceInOut(this, "translation_unit");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode translation_unit_AST = RefDNode(antlr::nullAST);
@@ -921,7 +919,6 @@ void GDLParser::translation_unit() {
 }
 
 void GDLParser::end_unit() {
-	Tracer traceInOut(this, "end_unit");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode end_unit_AST = RefDNode(antlr::nullAST);
@@ -948,7 +945,6 @@ void GDLParser::end_unit() {
 }
 
 void GDLParser::forward_function() {
-	Tracer traceInOut(this, "forward_function");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode forward_function_AST = RefDNode(antlr::nullAST);
@@ -968,7 +964,6 @@ void GDLParser::forward_function() {
 }
 
 void GDLParser::procedure_def() {
-	Tracer traceInOut(this, "procedure_def");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode procedure_def_AST = RefDNode(antlr::nullAST);
@@ -1086,7 +1081,6 @@ void GDLParser::procedure_def() {
 }
 
 void GDLParser::function_def() {
-	Tracer traceInOut(this, "function_def");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode function_def_AST = RefDNode(antlr::nullAST);
@@ -1204,7 +1198,6 @@ void GDLParser::function_def() {
 }
 
 void GDLParser::common_block() {
-	Tracer traceInOut(this, "common_block");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode common_block_AST = RefDNode(antlr::nullAST);
@@ -1289,7 +1282,6 @@ void GDLParser::common_block() {
 }
 
 void GDLParser::statement_list() {
-	Tracer traceInOut(this, "statement_list");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode statement_list_AST = RefDNode(antlr::nullAST);
@@ -1336,7 +1328,6 @@ void GDLParser::statement_list() {
 }
 
 void GDLParser::interactive_compile() {
-	Tracer traceInOut(this, "interactive_compile");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode interactive_compile_AST = RefDNode(antlr::nullAST);
@@ -1432,7 +1423,6 @@ void GDLParser::interactive_compile() {
 }
 
 void GDLParser::parameter_declaration() {
-	Tracer traceInOut(this, "parameter_declaration");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode parameter_declaration_AST = RefDNode(antlr::nullAST);
@@ -1506,7 +1496,6 @@ void GDLParser::parameter_declaration() {
 }
 
 void GDLParser::interactive() {
-	Tracer traceInOut(this, "interactive");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode interactive_AST = RefDNode(antlr::nullAST);
@@ -1687,7 +1676,6 @@ void GDLParser::interactive() {
 }
 
 void GDLParser::end_mark() {
-	Tracer traceInOut(this, "end_mark");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode end_mark_AST = RefDNode(antlr::nullAST);
@@ -1783,7 +1771,6 @@ void GDLParser::end_mark() {
 }
 
 void GDLParser::interactive_statement() {
-	Tracer traceInOut(this, "interactive_statement");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode interactive_statement_AST = RefDNode(antlr::nullAST);
@@ -1817,7 +1804,6 @@ void GDLParser::interactive_statement() {
 }
 
 void GDLParser::statement() {
-	Tracer traceInOut(this, "statement");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode statement_AST = RefDNode(antlr::nullAST);
@@ -2634,7 +2620,6 @@ void GDLParser::statement() {
 }
 
 void GDLParser::switch_statement() {
-	Tracer traceInOut(this, "switch_statement");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode switch_statement_AST = RefDNode(antlr::nullAST);
@@ -2761,7 +2746,6 @@ void GDLParser::switch_statement() {
 }
 
 void GDLParser::expr() {
-	Tracer traceInOut(this, "expr");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode expr_AST = RefDNode(antlr::nullAST);
@@ -2817,7 +2801,6 @@ void GDLParser::expr() {
 }
 
 void GDLParser::switch_body() {
-	Tracer traceInOut(this, "switch_body");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode switch_body_AST = RefDNode(antlr::nullAST);
@@ -3032,7 +3015,6 @@ void GDLParser::switch_body() {
 }
 
 void GDLParser::endswitch_mark() {
-	Tracer traceInOut(this, "endswitch_mark");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode endswitch_mark_AST = RefDNode(antlr::nullAST);
@@ -3065,7 +3047,6 @@ void GDLParser::endswitch_mark() {
 }
 
 void GDLParser::endswitchelse_mark() {
-	Tracer traceInOut(this, "endswitchelse_mark");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode endswitchelse_mark_AST = RefDNode(antlr::nullAST);
@@ -3095,7 +3076,6 @@ void GDLParser::endswitchelse_mark() {
 }
 
 void GDLParser::case_statement() {
-	Tracer traceInOut(this, "case_statement");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode case_statement_AST = RefDNode(antlr::nullAST);
@@ -3222,7 +3202,6 @@ void GDLParser::case_statement() {
 }
 
 void GDLParser::case_body() {
-	Tracer traceInOut(this, "case_body");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode case_body_AST = RefDNode(antlr::nullAST);
@@ -3437,7 +3416,6 @@ void GDLParser::case_body() {
 }
 
 void GDLParser::endcase_mark() {
-	Tracer traceInOut(this, "endcase_mark");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode endcase_mark_AST = RefDNode(antlr::nullAST);
@@ -3470,7 +3448,6 @@ void GDLParser::endcase_mark() {
 }
 
 void GDLParser::endcaseelse_mark() {
-	Tracer traceInOut(this, "endcaseelse_mark");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode endcaseelse_mark_AST = RefDNode(antlr::nullAST);
@@ -3500,7 +3477,6 @@ void GDLParser::endcaseelse_mark() {
 }
 
 void GDLParser::identifier_list() {
-	Tracer traceInOut(this, "identifier_list");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode identifier_list_AST = RefDNode(antlr::nullAST);
@@ -3534,7 +3510,6 @@ void GDLParser::identifier_list() {
 }
 
 void GDLParser::keyword_declaration() {
-	Tracer traceInOut(this, "keyword_declaration");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode keyword_declaration_AST = RefDNode(antlr::nullAST);
@@ -3569,7 +3544,6 @@ void GDLParser::keyword_declaration() {
 }
 
 std::string  GDLParser::object_name() {
-	Tracer traceInOut(this, "object_name");
 	std::string name;
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
@@ -3615,7 +3589,6 @@ std::string  GDLParser::object_name() {
 }
 
 void GDLParser::compile_opt() {
-	Tracer traceInOut(this, "compile_opt");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode compile_opt_AST = RefDNode(antlr::nullAST);
@@ -3669,7 +3642,6 @@ void GDLParser::compile_opt() {
 }
 
 void GDLParser::endforeach_mark() {
-	Tracer traceInOut(this, "endforeach_mark");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode endforeach_mark_AST = RefDNode(antlr::nullAST);
@@ -3702,7 +3674,6 @@ void GDLParser::endforeach_mark() {
 }
 
 void GDLParser::endfor_mark() {
-	Tracer traceInOut(this, "endfor_mark");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode endfor_mark_AST = RefDNode(antlr::nullAST);
@@ -3735,7 +3706,6 @@ void GDLParser::endfor_mark() {
 }
 
 void GDLParser::endrep_mark() {
-	Tracer traceInOut(this, "endrep_mark");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode endrep_mark_AST = RefDNode(antlr::nullAST);
@@ -3768,7 +3738,6 @@ void GDLParser::endrep_mark() {
 }
 
 void GDLParser::endwhile_mark() {
-	Tracer traceInOut(this, "endwhile_mark");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode endwhile_mark_AST = RefDNode(antlr::nullAST);
@@ -3801,7 +3770,6 @@ void GDLParser::endwhile_mark() {
 }
 
 void GDLParser::endif_mark() {
-	Tracer traceInOut(this, "endif_mark");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode endif_mark_AST = RefDNode(antlr::nullAST);
@@ -3834,7 +3802,6 @@ void GDLParser::endif_mark() {
 }
 
 void GDLParser::endelse_mark() {
-	Tracer traceInOut(this, "endelse_mark");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode endelse_mark_AST = RefDNode(antlr::nullAST);
@@ -3867,7 +3834,6 @@ void GDLParser::endelse_mark() {
 }
 
 void GDLParser::compound_statement() {
-	Tracer traceInOut(this, "compound_statement");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode compound_statement_AST = RefDNode(antlr::nullAST);
@@ -3934,7 +3900,6 @@ void GDLParser::compound_statement() {
 }
 
 void GDLParser::label_statement() {
-	Tracer traceInOut(this, "label_statement");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode label_statement_AST = RefDNode(antlr::nullAST);
@@ -4000,7 +3965,6 @@ void GDLParser::label_statement() {
 }
 
 void GDLParser::label() {
-	Tracer traceInOut(this, "label");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode label_AST = RefDNode(antlr::nullAST);
@@ -4022,7 +3986,6 @@ void GDLParser::label() {
 }
 
 void GDLParser::baseclass_method() {
-	Tracer traceInOut(this, "baseclass_method");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode baseclass_method_AST = RefDNode(antlr::nullAST);
@@ -4039,7 +4002,6 @@ void GDLParser::baseclass_method() {
 }
 
 void GDLParser::assign_expr() {
-	Tracer traceInOut(this, "assign_expr");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode assign_expr_AST = RefDNode(antlr::nullAST);
@@ -4071,7 +4033,6 @@ void GDLParser::assign_expr() {
 }
 
 void GDLParser::deref_dot_expr_keeplast() {
-	Tracer traceInOut(this, "deref_dot_expr_keeplast");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode deref_dot_expr_keeplast_AST = RefDNode(antlr::nullAST);
@@ -4151,7 +4112,6 @@ void GDLParser::deref_dot_expr_keeplast() {
 }
 
 void GDLParser::formal_procedure_call() {
-	Tracer traceInOut(this, "formal_procedure_call");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode formal_procedure_call_AST = RefDNode(antlr::nullAST);
@@ -4190,7 +4150,6 @@ void GDLParser::formal_procedure_call() {
 }
 
 void GDLParser::deref_expr() {
-	Tracer traceInOut(this, "deref_expr");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode deref_expr_AST = RefDNode(antlr::nullAST);
@@ -4350,7 +4309,6 @@ void GDLParser::deref_expr() {
 }
 
 void GDLParser::procedure_call() {
-	Tracer traceInOut(this, "procedure_call");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode procedure_call_AST = RefDNode(antlr::nullAST);
@@ -4484,7 +4442,6 @@ void GDLParser::procedure_call() {
 }
 
 void GDLParser::for_statement() {
-	Tracer traceInOut(this, "for_statement");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode for_statement_AST = RefDNode(antlr::nullAST);
@@ -4542,7 +4499,6 @@ void GDLParser::for_statement() {
 }
 
 void GDLParser::foreach_statement() {
-	Tracer traceInOut(this, "foreach_statement");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode foreach_statement_AST = RefDNode(antlr::nullAST);
@@ -4597,7 +4553,6 @@ void GDLParser::foreach_statement() {
 }
 
 void GDLParser::repeat_statement() {
-	Tracer traceInOut(this, "repeat_statement");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode repeat_statement_AST = RefDNode(antlr::nullAST);
@@ -4622,7 +4577,6 @@ void GDLParser::repeat_statement() {
 }
 
 void GDLParser::while_statement() {
-	Tracer traceInOut(this, "while_statement");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode while_statement_AST = RefDNode(antlr::nullAST);
@@ -4647,7 +4601,6 @@ void GDLParser::while_statement() {
 }
 
 void GDLParser::jump_statement() {
-	Tracer traceInOut(this, "jump_statement");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode jump_statement_AST = RefDNode(antlr::nullAST);
@@ -4698,7 +4651,6 @@ void GDLParser::jump_statement() {
 }
 
 void GDLParser::if_statement() {
-	Tracer traceInOut(this, "if_statement");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode if_statement_AST = RefDNode(antlr::nullAST);
@@ -4738,7 +4690,6 @@ void GDLParser::if_statement() {
 }
 
 void GDLParser::repeat_block() {
-	Tracer traceInOut(this, "repeat_block");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode repeat_block_AST = RefDNode(antlr::nullAST);
@@ -4820,7 +4771,6 @@ void GDLParser::repeat_block() {
 }
 
 void GDLParser::while_block() {
-	Tracer traceInOut(this, "while_block");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode while_block_AST = RefDNode(antlr::nullAST);
@@ -4887,7 +4837,6 @@ void GDLParser::while_block() {
 }
 
 void GDLParser::for_block() {
-	Tracer traceInOut(this, "for_block");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode for_block_AST = RefDNode(antlr::nullAST);
@@ -4969,7 +4918,6 @@ void GDLParser::for_block() {
 }
 
 void GDLParser::foreach_block() {
-	Tracer traceInOut(this, "foreach_block");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode foreach_block_AST = RefDNode(antlr::nullAST);
@@ -5051,7 +4999,6 @@ void GDLParser::foreach_block() {
 }
 
 void GDLParser::if_block() {
-	Tracer traceInOut(this, "if_block");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode if_block_AST = RefDNode(antlr::nullAST);
@@ -5118,7 +5065,6 @@ void GDLParser::if_block() {
 }
 
 void GDLParser::else_block() {
-	Tracer traceInOut(this, "else_block");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode else_block_AST = RefDNode(antlr::nullAST);
@@ -5185,7 +5131,6 @@ void GDLParser::else_block() {
 }
 
 void GDLParser::parameter_def_list() {
-	Tracer traceInOut(this, "parameter_def_list");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode parameter_def_list_AST = RefDNode(antlr::nullAST);
@@ -5215,7 +5160,6 @@ void GDLParser::parameter_def_list() {
 }
 
 void GDLParser::formal_function_call() {
-	Tracer traceInOut(this, "formal_function_call");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode formal_function_call_AST = RefDNode(antlr::nullAST);
@@ -5344,7 +5288,6 @@ void GDLParser::formal_function_call() {
 }
 
 void GDLParser::parameter_def() {
-	Tracer traceInOut(this, "parameter_def");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode parameter_def_AST = RefDNode(antlr::nullAST);
@@ -5414,7 +5357,6 @@ void GDLParser::parameter_def() {
 }
 
 void GDLParser::array_def() {
-	Tracer traceInOut(this, "array_def");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode array_def_AST = RefDNode(antlr::nullAST);
@@ -5477,7 +5419,6 @@ void GDLParser::array_def() {
 }
 
 void GDLParser::struct_identifier() {
-	Tracer traceInOut(this, "struct_identifier");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode struct_identifier_AST = RefDNode(antlr::nullAST);
@@ -5550,7 +5491,6 @@ void GDLParser::struct_identifier() {
 }
 
 void GDLParser::struct_def() {
-	Tracer traceInOut(this, "struct_def");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode struct_def_AST = RefDNode(antlr::nullAST);
@@ -5626,7 +5566,6 @@ void GDLParser::struct_def() {
 }
 
 void GDLParser::named_tag_def_list() {
-	Tracer traceInOut(this, "named_tag_def_list");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode named_tag_def_list_AST = RefDNode(antlr::nullAST);
@@ -5656,7 +5595,6 @@ void GDLParser::named_tag_def_list() {
 }
 
 void GDLParser::tag_def_list() {
-	Tracer traceInOut(this, "tag_def_list");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode tag_def_list_AST = RefDNode(antlr::nullAST);
@@ -5686,7 +5624,6 @@ void GDLParser::tag_def_list() {
 }
 
 void GDLParser::tag_def() {
-	Tracer traceInOut(this, "tag_def");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode tag_def_AST = RefDNode(antlr::nullAST);
@@ -5705,7 +5642,6 @@ void GDLParser::tag_def() {
 }
 
 void GDLParser::ntag_def() {
-	Tracer traceInOut(this, "ntag_def");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode ntag_def_AST = RefDNode(antlr::nullAST);
@@ -5732,7 +5668,6 @@ void GDLParser::ntag_def() {
 }
 
 void GDLParser::ntag_defs() {
-	Tracer traceInOut(this, "ntag_defs");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode ntag_defs_AST = RefDNode(antlr::nullAST);
@@ -5762,7 +5697,6 @@ void GDLParser::ntag_defs() {
 }
 
 void GDLParser::named_tag_def_entry() {
-	Tracer traceInOut(this, "named_tag_def_entry");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode named_tag_def_entry_AST = RefDNode(antlr::nullAST);
@@ -5812,7 +5746,6 @@ void GDLParser::named_tag_def_entry() {
 }
 
 void GDLParser::numeric_constant() {
-	Tracer traceInOut(this, "numeric_constant");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode numeric_constant_AST = RefDNode(antlr::nullAST);
@@ -6801,7 +6734,6 @@ void GDLParser::numeric_constant() {
 }
 
 void GDLParser::arrayindex_list() {
-	Tracer traceInOut(this, "arrayindex_list");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode arrayindex_list_AST = RefDNode(antlr::nullAST);
@@ -6870,7 +6802,6 @@ void GDLParser::arrayindex_list() {
 }
 
 void GDLParser::arrayindex() {
-	Tracer traceInOut(this, "arrayindex");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode arrayindex_AST = RefDNode(antlr::nullAST);
@@ -7108,7 +7039,6 @@ void GDLParser::arrayindex() {
 }
 
 void GDLParser::all() {
-	Tracer traceInOut(this, "all");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode all_AST = RefDNode(antlr::nullAST);
@@ -7133,7 +7063,6 @@ void GDLParser::all() {
 }
 
 void GDLParser::sysvar() {
-	Tracer traceInOut(this, "sysvar");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode sysvar_AST = RefDNode(antlr::nullAST);
@@ -7160,7 +7089,6 @@ void GDLParser::sysvar() {
 }
 
 void GDLParser::var() {
-	Tracer traceInOut(this, "var");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode var_AST = RefDNode(antlr::nullAST);
@@ -7226,7 +7154,6 @@ void GDLParser::var() {
 }
 
 void GDLParser::brace_expr() {
-	Tracer traceInOut(this, "brace_expr");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode brace_expr_AST = RefDNode(antlr::nullAST);
@@ -7254,7 +7181,6 @@ void GDLParser::brace_expr() {
 }
 
 void GDLParser::array_expr_1st_sub() {
-	Tracer traceInOut(this, "array_expr_1st_sub");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode array_expr_1st_sub_AST = RefDNode(antlr::nullAST);
@@ -7297,7 +7223,6 @@ void GDLParser::array_expr_1st_sub() {
 }
 
 void GDLParser::array_expr_1st() {
-	Tracer traceInOut(this, "array_expr_1st");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode array_expr_1st_AST = RefDNode(antlr::nullAST);
@@ -7413,7 +7338,6 @@ void GDLParser::array_expr_1st() {
 }
 
 void GDLParser::array_expr_nth_sub() {
-	Tracer traceInOut(this, "array_expr_nth_sub");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode array_expr_nth_sub_AST = RefDNode(antlr::nullAST);
@@ -7448,7 +7372,6 @@ void GDLParser::array_expr_nth_sub() {
 }
 
 void GDLParser::array_expr_nth() {
-	Tracer traceInOut(this, "array_expr_nth");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode array_expr_nth_AST = RefDNode(antlr::nullAST);
@@ -7507,7 +7430,6 @@ void GDLParser::array_expr_nth() {
 }
 
 void GDLParser::tag_array_expr_nth_sub() {
-	Tracer traceInOut(this, "tag_array_expr_nth_sub");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode tag_array_expr_nth_sub_AST = RefDNode(antlr::nullAST);
@@ -7574,7 +7496,6 @@ void GDLParser::tag_array_expr_nth_sub() {
 }
 
 void GDLParser::tag_array_expr_nth() {
-	Tracer traceInOut(this, "tag_array_expr_nth");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode tag_array_expr_nth_AST = RefDNode(antlr::nullAST);
@@ -7690,7 +7611,6 @@ void GDLParser::tag_array_expr_nth() {
 }
 
 int  GDLParser::tag_access_keeplast() {
-	Tracer traceInOut(this, "tag_access_keeplast");
 	int nDot;
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
@@ -7711,7 +7631,7 @@ int  GDLParser::tag_access_keeplast() {
 		try {
 			{
 			tag_array_expr_nth();
-			tag_access_keeplast();
+			match(DOT);
 			}
 		}
 		catch (antlr::RecognitionException& pe) {
@@ -7748,7 +7668,6 @@ int  GDLParser::tag_access_keeplast() {
 }
 
 SizeT  GDLParser::tag_access() {
-	Tracer traceInOut(this, "tag_access");
 	SizeT nDot;
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
@@ -7784,7 +7703,6 @@ SizeT  GDLParser::tag_access() {
 }
 
 void GDLParser::deref_dot_expr() {
-	Tracer traceInOut(this, "deref_dot_expr");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode deref_dot_expr_AST = RefDNode(antlr::nullAST);
@@ -7863,7 +7781,6 @@ void GDLParser::deref_dot_expr() {
 }
 
 bool  GDLParser::member_function_call() {
-	Tracer traceInOut(this, "member_function_call");
 	bool parent;
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
@@ -7903,7 +7820,6 @@ bool  GDLParser::member_function_call() {
 }
 
 void GDLParser::member_function_call_dot() {
-	Tracer traceInOut(this, "member_function_call_dot");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode member_function_call_dot_AST = RefDNode(antlr::nullAST);
@@ -7927,7 +7843,6 @@ void GDLParser::member_function_call_dot() {
 }
 
 void GDLParser::primary_expr() {
-	Tracer traceInOut(this, "primary_expr");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode primary_expr_AST = RefDNode(antlr::nullAST);
@@ -8565,7 +8480,6 @@ void GDLParser::primary_expr() {
 }
 
 void GDLParser::decinc_expr() {
-	Tracer traceInOut(this, "decinc_expr");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode decinc_expr_AST = RefDNode(antlr::nullAST);
@@ -8739,7 +8653,6 @@ void GDLParser::decinc_expr() {
 }
 
 void GDLParser::exponential_expr() {
-	Tracer traceInOut(this, "exponential_expr");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode exponential_expr_AST = RefDNode(antlr::nullAST);
@@ -8774,7 +8687,6 @@ void GDLParser::exponential_expr() {
 }
 
 void GDLParser::multiplicative_expr() {
-	Tracer traceInOut(this, "multiplicative_expr");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode multiplicative_expr_AST = RefDNode(antlr::nullAST);
@@ -8861,7 +8773,6 @@ void GDLParser::multiplicative_expr() {
 }
 
 void GDLParser::signed_multiplicative_expr() {
-	Tracer traceInOut(this, "signed_multiplicative_expr");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode signed_multiplicative_expr_AST = RefDNode(antlr::nullAST);
@@ -8965,7 +8876,6 @@ void GDLParser::signed_multiplicative_expr() {
 }
 
 void GDLParser::additive_expr() {
-	Tracer traceInOut(this, "additive_expr");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode additive_expr_AST = RefDNode(antlr::nullAST);
@@ -9180,7 +9090,6 @@ void GDLParser::additive_expr() {
 }
 
 void GDLParser::neg_expr() {
-	Tracer traceInOut(this, "neg_expr");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode neg_expr_AST = RefDNode(antlr::nullAST);
@@ -9225,7 +9134,6 @@ void GDLParser::neg_expr() {
 }
 
 void GDLParser::relational_expr() {
-	Tracer traceInOut(this, "relational_expr");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode relational_expr_AST = RefDNode(antlr::nullAST);
@@ -9322,7 +9230,6 @@ void GDLParser::relational_expr() {
 }
 
 void GDLParser::boolean_expr() {
-	Tracer traceInOut(this, "boolean_expr");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode boolean_expr_AST = RefDNode(antlr::nullAST);
@@ -9389,7 +9296,6 @@ void GDLParser::boolean_expr() {
 }
 
 void GDLParser::logical_expr() {
-	Tracer traceInOut(this, "logical_expr");
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode logical_expr_AST = RefDNode(antlr::nullAST);

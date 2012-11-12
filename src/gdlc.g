@@ -1328,7 +1328,8 @@ tag_access_keeplast returns [int nDot]
 }
 	: DOT!
         (
-            (tag_array_expr_nth tag_access_keeplast)=>
+            (tag_array_expr_nth DOT)=>
+// not working: (tag_array_expr_nth tag_access_keeplast)=>
                     (tag_array_expr_nth t=tag_access_keeplast { nDot += t;})
         |   //(tag_array_expr_nth DOT tag_array_expr_nth)=> 
             //        (tag_array_expr_nth)

@@ -1066,6 +1066,14 @@ end
 
 pro expr_test
 
+; BUG tracker ID: 3579499
+str_template={value:1.0}
+str_array=replicate(str_template,10)
+str={data:str_array}
+tmp=cos(str_template.value) 
+tmp=cos(str_array(0).value) 
+tmp=cos(str.data(0).value) 
+
   a=0
   a++
   a *= 2
