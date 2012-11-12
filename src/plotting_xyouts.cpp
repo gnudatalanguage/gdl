@@ -251,7 +251,7 @@ actStream->wid( 0);
     //     "reference point" half character height lower (tracker item no. 2982623)
     PLFLT charheight;
 
-#if HAVE_PLPLOT_BEFORE_5994 == 1
+#ifdef HAVE_PLPLOT_BEFORE_5994
     {
       PLFLT nullf, htmm;
       plgchr(&nullf, &htmm); // height of a letter in millimetres

@@ -315,13 +315,12 @@ AC_CHECK_LIB(plplotcxxd, plsexit, [AC_DEFINE([HAVE_LIBPLPLOTCXXD], [1], [plplot 
 dnl recent plplot (5.9.9-4) in Debian unstable version have hidden symbols
 
 AC_CHECK_LIB(plplotcxxd, plP_mmpcx, 
-     	[AC_DEFINE([HAVE_PLPLOT_BEFORE_5994], [1], [plplot 5994 library])], [
-	AC_DEFINE([HAVE_PLPLOT_BEFORE_5994], [0], [older than plplot 5994 library])
+     	[AC_DEFINE([HAVE_PLPLOT_BEFORE_5994], [1], [plplot 5994 library])],
+	[
 	echo ""
-	echo "Warning ! too new plplot lib without XYOUTS in GDL ..."
+	echo "Warning ! limited features in XYOUTS in GDL due to private symbols in plplot lib ..."
 	echo ""        
 	])
-
 
 if test "x$with_Magick" != "xno"; then
   # https://sourceforge.net/tracker/index.php?func=detail&aid=2974380&group_id=97659&atid=618683
