@@ -2,7 +2,7 @@
  * Project led by Terence Parr at http://www.jGuru.com
  * Software rights: http://www.antlr.org/license.html
  *
- * $Id: LLkParser.cpp,v 1.5 2012-11-07 09:12:03 alaingdl Exp $
+ * $Id: LLkParser.cpp,v 1.6 2012-11-13 14:30:14 m_schellens Exp $
  */
 
 #include "antlr/LLkParser.hpp"
@@ -40,10 +40,7 @@ LLkParser::LLkParser(TokenStream& lexer, int k_)
 
 void LLkParser::trace(const char* ee, const char* rname)
 {
-	//if(inputState->guessing>0) return;
-
-  // AC 2012-11-07
-  return;
+  //if(inputState->guessing>0) return;
 	
   traceIndent();
   

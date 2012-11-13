@@ -5,7 +5,7 @@
  * Project led by Terence Parr at http://www.jGuru.com
  * Software rights: http://www.antlr.org/license.html
  *
- * $Id: Parser.hpp,v 1.1.1.1 2004-12-09 15:10:20 m_schellens Exp $
+ * $Id: Parser.hpp,v 1.2 2012-11-13 14:30:14 m_schellens Exp $
  */
 
 #include <antlr/config.hpp>
@@ -215,7 +215,7 @@ protected:
 		{
 #ifdef ANTLR_CXX_SUPPORTS_UNCAUGHT_EXCEPTION
 			// Only give trace if there's no uncaught exception..
-			if(!ANTLR_USE_NAMESPACE(std)uncaught_exception())
+//			if(!ANTLR_USE_NAMESPACE(std)uncaught_exception())
 #endif
 				parser->traceOut(text);
 		}

@@ -2,7 +2,7 @@
  * Project led by Terence Parr at http://www.jGuru.com
  * Software rights: http://www.antlr.org/license.html
  *
- * $Id: Parser.cpp,v 1.4 2010-04-07 14:59:09 m_schellens Exp $
+ * $Id: Parser.cpp,v 1.5 2012-11-13 14:30:14 m_schellens Exp $
  */
 
 // g++-4.3 needs this
@@ -188,7 +188,7 @@ void Parser::reportWarning(const ANTLR_USE_NAMESPACE(std)string& s)
 void Parser::traceIndent()
 {
 	for( int i = 0; i < traceDepth; i++ )
-		ANTLR_USE_NAMESPACE(std)cout << "  ";
+		ANTLR_USE_NAMESPACE(std)cout << " ";
 	ANTLR_USE_NAMESPACE(std)cout << ANTLR_USE_NAMESPACE(std)setw(3) << traceDepth << " ";
 }
 
