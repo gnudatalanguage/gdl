@@ -108,6 +108,7 @@ prolib_DATA = \
   write_jpeg.pro \
   write_pict.pro \
   write_png.pro \
+  zenity.pro \
   README.txt \
   STATUS
 EXTRA_DIST = $(prolib_DATA)
