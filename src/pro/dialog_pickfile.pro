@@ -7,10 +7,10 @@
 ; behavior using "zenity".
 ;
 ; zenity, under GNU GPL, is available on most Linux distributions 
-; and also on OSX
+; and also on OSX (tested) and MSwin (not tested ?) It is better to
+; have zenity version >= 2.23.1.
 ;
 ; CATEGORY:
-;
 ;
 ; CALLING SEQUENCE:  resu_list=DIALOG_PICKFILE()
 ;
@@ -65,7 +65,8 @@
 ;	PATH: Set this keyword to a string that contains the initial path from
 ; which to select files. Relative paths are appended to current working directory.
 ; If this keyword is not set, current working directory is used.
-;	READ: Set this keyword to make the title of the dialog "Please Select a File|Directory for Reading". 
+;	READ: Set this keyword to make the title of the dialog 
+;             "Please Select a File|Directory for Reading". 
 ;	RESOURCE_NAME: X name
 ;	TITLE: Set this keyword to a scalar string to be used for the dialog title.
 ; If it is not specified, the default title is "Please Select a File|Directory". 
@@ -82,20 +83,15 @@
 ;	HELP: Display a help message and return
 ;	DEBUG: Display bebug messages
 ;	VERBOSE: Switch on verbose mode
-;	
-			
+;
 ;
 ; OUTPUTS:
 ;
 ; OPTIONAL OUTPUTS:
 ;
-;
-;
 ; COMMON BLOCKS: none
 ;
 ; SIDE EFFECTS:
-;
-;
 ;
 ; RESTRICTIONS: 
 ;               - need Zenity v2.23.1 or higher to use filters.
@@ -103,9 +99,7 @@
 ;
 ; PROCEDURE:  straithforward
 ;
-; EXAMPLE:
-;		files=DIALOG_PICKFILE(FILTER=['*.c','*.cpp'],/MULTIPLE_FILES)
-;
+; EXAMPLE:     files=DIALOG_PICKFILE(FILTER=['*.c','*.cpp'],/MULTIPLE_FILES)
 ;
 ; MODIFICATION HISTORY:
 ;
@@ -117,16 +111,17 @@
 ;              a new parameter (ZENITY_SEP) and move to "|" as
 ;              default.
 ;              - if keyword DEBUG set to a number > 1 then the zenity command
-;              is printed, if > 2 then we exit 
+;              is printed, if > 2 then we exit
+;
+; 14-NOV-2012: - large part of code, common with DIALOG_MESSAGE,
+;                related to Zenity, moved into ZENITY_CHECK()
 ;
 ;-
 ;
-; This function try to reproduce the IDL's DIALOG_PICKFILE
-; behavior using "zenity".
+; This function try to reproduce the IDL's DIALOG_PICKFILE behavior using "zenity".
 ;
 ; zenity, under GNU GPL, is available in package on most Linux
-; distributions (available and tested on CentOS 5.4, Mandriva 2010 and Ubuntu
-; 9.04)
+; distributions (available and tested on CentOS 5.4, Mandriva 2010 and Ubuntu 9.04)
 ; Also on OSX: http://www.macports.org/ports.php?by=name&substr=zenity
 ;
 ; Since the implementation use Zenity as File Selector, 
@@ -180,81 +175,16 @@ if KEYWORD_SET(help) then begin
     print, '           HELP=help, test=test, debug=debug, verbose=verbose'
     return, ''
 endif
-; name
-if (N_ELEMENTS(zenity_name) EQ 0) then ZenityName='zenity' else ZenityName=zenity_name
-; path
-ZenityPath=''
-alt_ZenityPath=GETENV('ZENITY_PATH')
-if (N_ELEMENTS(zenity_path) GT 0) and (alt_ZenityPath NE '') then begin
-    if ~STRCMP(zenity_path,alt_ZenityPath) then begin
-        MESSAGE, /continue, 'You setup 2 different PATH to Zenity, please fix it !'
-        return, ''
-    endif
-    ;; the two paths are the same ...
-    ZenityPath=zenity_path
-endif else begin
-    ;; zero or one is provided ... if zero, no change to ZenityPath=''
-    if (N_ELEMENTS(zenity_path) GT 0) then ZenityPath=zenity_path
-    if (alt_ZenityPath NE '') then ZenityPath=alt_ZenityPath
-endelse
 ;
-if KEYWORD_SET(debug) then begin
-    MESSAGE, /continue, 'Name of <<zenity>> : '+ZenityName
-    MESSAGE, /continue, 'Path to <<zenity>> : '+ZenityPath
-endif
-;
-if (ZenityPath eq '') then begin
-    ;; No path provided, use shell variable PATH
-    ZenityFullName=ZenityName
-endif else begin
-    ZenityFullName=ZenityPath+PATH_SEP()+ZenityName
-endelse
-;
-; Check if zenity exists in current paths and which version we have
-;
-SPAWN, ZenityFullName+' --version', stdout, stderr, exit_status=exit_status
-;
-; Search with other PATHs; 
-if (exit_status EQ 0) then begin
-    zen=ZenityFullName
-endif else begin
-    if (ZenityPath EQ '') then begin ; No path provided (no ZENITY_PATH shell variable or GDL keyword)
-        MESSAGE,/continue, 'No Zenity found in PATH, looking in alternate places'
-    endif else begin
-        MESSAGE,/continue, 'No Zenity found in the ZENITY_PATH you provide'
-        MESSAGE,/continue, '($ZENITY_PATH) or keyword ZENITY_PATH=), looking in alternate places'
-    endelse
-    ;;
-    paths=['/bin', '/usr/bin', '/usr/local/bin', '/opt/local/bin']+'/'
-    list_zenity=FILE_SEARCH(paths+zenityName)
-    ;;
-    if N_ELEMENTS(list_zenity) GT 1 then begin
-        MESSAGE, /continue, 'Multiple zenity found !'
-        MESSAGE, /continue, 'Please select the good one using shell variables'
-        MESSAGE, /continue, '($PATH or $ZENITY_PATH) or keyword ZENITY_PATH='
-        return, ''
-    endif
-    if (list_zenity eq '') then begin
-        MESSAGE, /continue, 'Zenity not found ! Zenity must be installed or in your PATH.'
-        MESSAGE, /continue, 'Your current path is : '+GETENV('PATH')
-        MESSAGE, /continue, 'You can give a path to Zenity with keyword ZENITY_PATH='
-        MESSAGE, /continue, 'or using shell $ZENITY_PATH'
-        if (STRLOWCASE(!version.OS) EQ 'darwin') then begin
-            MESSAGE, /continue, ' '
-            MESSAGE, /continue, 'How to install "zenity" on OSX ? Please have a look here:'
-            MESSAGE, /continue, 'http://www.macports.org/ports.php?by=name&substr=zenity'
-        endif
-        return, ''
-    endif
-    ;; here we have one and only one no-null path-to-zenity !
-    zen=list_zenity
-endelse
+zenity=ZENITY_CHECK( zenity_name=zenity_name,  zenity_path=zenity_path, $
+                     zenity_version=zenity_version, $
+                     help=help, test=test, debug=debug, verbose=verbose)
 ;
 ; Check default_extension
 if KEYWORD_SET(default_extension) then default_extension=STRING(default_extension[0])
 ;
 ; Zenity file selection mode
-cmd=zen+' --file-selection '
+cmd=zenity+' --file-selection '
 get_path=''
 ;
 ; Only display directories
@@ -294,10 +224,7 @@ endif
 ; Set the filters (Zenity version >= 2.23.1)
 ;
 if KEYWORD_SET(filter) then begin
-   SPAWN, zen+' --version', ver ; Get current Zenity version
-   version=STRSPLIT(ver, '.', /extract)
-   version=UINT(version[0])*10000+UINT(version[1])*100+UINT(version[2])
-   if version lt 22301 then begin
+   if (zenity_version lt 22301) then begin
       MESSAGE, 'Zenity version need to be >= 2.23.1 to support filters', /cont
    endif else begin
       ;; Check if zenity ver < 2.23.1
@@ -326,7 +253,6 @@ endif
 ; Set multiple files option
 ;
 if N_ELEMENTS(zenity_sep) EQ 0 then zenity_sep='|'
-
 ;
 if KEYWORD_SET(multiple_files) then begin
    if KEYWORD_SET(directory) then begin
@@ -411,7 +337,7 @@ if KEYWORD_SET(overwrite_prompt) && KEYWORD_SET(write) then begin
     over=BYTARR(rsize)
     for i=0, rsize-1 do begin   ; for each selected files
         if FILE_TEST(results[i]) then begin ; check if it already exists
-            SPAWN, zen+' --question --title='+readtitle+'--text="'+results[i]+' already exists.\nDo you want to replace it ?"', exit_status=ex
+            SPAWN, zenity+' --question --title='+readtitle+'--text="'+results[i]+' already exists.\nDo you want to replace it ?"', exit_status=ex
             over[i]=~ex ; As Zenity can't pop-up question dialog, if user don't want to overwrite the file, just pop it from the list
         endif
     endfor
