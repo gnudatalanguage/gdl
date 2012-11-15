@@ -66,7 +66,7 @@ void LibInit_jmg()
   const string routine_namesKey[]={"LEVEL","VARIABLES","FETCH","ARG_NAME",
 				   "STORE","S_FUNCTIONS","S_PROCEDURES",
 				   KLISTEND};
-  new DLibFun(lib::routine_names,string("ROUTINE_NAMES"),-1,routine_namesKey);
+  new DLibFun(lib::routine_names_value,string("ROUTINE_NAMES"),-1,routine_namesKey);
 
 #if defined(HAVE_LIBGSL) && defined(HAVE_LIBGSLCBLAS)
   const string invertKey[]={"DOUBLE",KLISTEND};

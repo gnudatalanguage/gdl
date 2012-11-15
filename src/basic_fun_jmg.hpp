@@ -24,7 +24,8 @@ namespace lib {
   BaseGDL* fstat( EnvT* e); 
   BaseGDL* make_array( EnvT* e);
   BaseGDL* reform( EnvT* e);
-  BaseGDL* routine_names( EnvT* e);
+  BaseGDL* routine_names_value( EnvT* e);
+  BaseGDL** routine_names_reference( EnvT* e);
 
 } // namespace
 

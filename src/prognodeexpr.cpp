@@ -30,6 +30,7 @@
 #include "gdlexception.hpp"
 #include "nullgdl.hpp"
 #include "basic_fun.hpp"
+#include "basic_fun_jmg.hpp"
 
 using namespace std;
 
@@ -2782,6 +2783,15 @@ if( e1->StrictScalar())
 	return sV;
       // should never happen
       throw GDLException( this, "SCOPE_VARFETCH returned no l-value: "+this->getText());
+    }
+    static DSub* routine_namesPro = libFunList[ LibFunIx("ROUTINE_NAMES")];
+    if( routine_namesPro == newEnv->GetPro())
+    {
+      BaseGDL**  sV = lib::routine_names_reference( newEnv);
+      if( sV != NULL)
+	return sV;
+      // should never happen
+      throw GDLException( this, "ROUTINE_NAMES returned no l-value: "+this->getText());
     }
     BaseGDL* libRes = static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
     BaseGDL** res = ProgNode::interpreter->CallStackBack()->GetPtrTo( libRes);

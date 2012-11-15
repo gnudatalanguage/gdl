@@ -636,8 +636,11 @@ namespace lib {
     
   }
 
-
-  BaseGDL* routine_names( EnvT* e) 
+  
+  // note: changes here MUST be reflected in routine_names_reference() as well
+  // because DLibFun of this function is used for scope_varfetch_reference() the keyword
+  // indices must match
+  BaseGDL* routine_names_value( EnvT* e) 
   {
     SizeT nParam=e->NParam();
 
@@ -750,13 +753,13 @@ namespace lib {
 	int xI = pro->FindVar( varName);
 	//	cout << xI << endl;
 	if (xI != -1) {
-	  BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI);
+	  BaseGDL* par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI);
 
 	  if( par == NULL)
  		e->Throw( "Variable is undefined: " + varName);
 // 		return NULL;
 	  //	  char* addr = static_cast<char*>(par->DataAddr());
-	  return par; //->Dup(); ok, no retnew function
+	  return par->Dup(); // no retnew function BUT: ret value is not from current environment
 	}
 	
  	e->Throw( "Variable not found: " + varName);
@@ -873,6 +876,142 @@ namespace lib {
       return res;
     }
   }
+
+  
+  
+    BaseGDL** routine_names_reference( EnvT* e) 
+  {
+    SizeT nParam=e->NParam();
+
+    EnvStackT& callStack = e->Interpreter()->CallStack();
+//     DLong curlevnum = callStack.size()-1;
+	// 'e' is not on the stack
+	DLong curlevnum = callStack.size();
+
+    if (e->KeywordSet( "S_FUNCTIONS")) {
+return NULL;
+    }
+
+    if (e->KeywordSet( "S_PROCEDURES")) {
+return NULL;
+    }
+
+    if (e->KeywordSet( "LEVEL")) {
+return NULL;
+    }
+
+    static int variablesIx = e->KeywordIx( "VARIABLES" );
+    static int fetchIx = e->KeywordIx( "FETCH" );
+    static int arg_namesIx = e->KeywordIx( "ARG_NAME" );
+    static int storeIx = e->KeywordIx( "STORE" );
+    bool var=false, fetch=false, arg=false, store=false;
+
+    DLongGDL* level;
+    level = e->IfDefGetKWAs<DLongGDL>( variablesIx);
+    if (level != NULL) {
+      var = true;
+    } else {
+      level = e->IfDefGetKWAs<DLongGDL>( fetchIx);
+      if (level != NULL) {
+	fetch = true;
+      } else {
+	level = e->IfDefGetKWAs<DLongGDL>( arg_namesIx);
+	if (level != NULL) {
+	  arg = true;
+	} else {
+	  level = e->IfDefGetKWAs<DLongGDL>( storeIx);
+	  if (level != NULL) {
+	    store = true;
+	  }
+	}
+      }
+    }
+
+    DString varName;
+
+    if (level != NULL) {
+      DLong desiredlevnum = (*level)[0];
+      if (desiredlevnum <= 0) desiredlevnum += curlevnum;
+      if (desiredlevnum < 1) return NULL;
+      if (desiredlevnum > curlevnum) desiredlevnum = curlevnum;
+
+      DSubUD* pro = static_cast<DSubUD*>(callStack[desiredlevnum-1]->GetPro());
+
+      SizeT nVar = pro->Size(); // # var in GDL for desired level 
+      int nKey = pro->NKey();
+      //cout << "nKey:" << nKey << endl;
+      //cout << "nVar:" << nVar << endl;
+      //cout << pro->Name() << endl;
+
+      if (fetch) { // FETCH
+
+	e->AssureScalarPar<DStringGDL>( 0, varName);
+	varName = StrUpCase( varName);
+	int xI = pro->FindVar( varName);
+	//	cout << xI << endl;
+	if (xI != -1) {
+	  BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI);
+	  return &par; // <-  HERE IS THE DIFFERENCE
+	}
+	
+ 	e->Throw( "Variable not found: " + varName);
+ 	return NULL;
+	
+      } else if (var) { // ARG_NAME
+
+	return NULL;
+
+      } else if (arg) { // ARG_NAME
+
+	return NULL;
+	
+      } else { // STORE
+
+// 	if( nParam != 2)
+// 	  throw GDLException( e->CallingNode(),
+// 			      "ROUTINE_NAMES: Incorrect number of arguments.");
+// 
+// 	// "res" points to variables to be restored
+// 	BaseGDL* res = e->GetParDefined( 1);
+// 
+// 	SizeT s;
+// 	e->AssureScalarPar<DStringGDL>( 0, varName); 
+// 	int xI = pro->FindVar(StrUpCase( varName));
+// 	// cout << "varName: " << StrUpCase( varName) << " xI: " << xI << endl;
+// 	if (xI == -1) {
+// 
+// 	  SizeT u = pro->AddVar(StrUpCase(varName));
+//  	  s = callStack[desiredlevnum-1]->AddEnv();
+// 	  //cout << "AddVar u: " << u << endl;
+// 	  //cout << "AddEnv s: " << s << endl;
+// 
+// 	} else {
+// 	  s = xI;
+// 	  //cout << "FindVar s: " << s << endl;
+// 	}
+// 
+// // 	BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( s-nKey);
+// 
+//  	((EnvT*)(callStack[desiredlevnum-1]))->GetPar( s-nKey) = res->Dup();
+// 
+// 	//	cout << "par: " << &par << endl << endl;
+// // 	memcpy(&par, &res, sizeof(par)); 
+
+	return NULL;
+      }
+    } else {
+	// Get Compiled Procedures & Functions 
+	return NULL;
+    }
+  }
+
+  
+  
+  
+  
+  
+  
+  
   
   
 } // namespace

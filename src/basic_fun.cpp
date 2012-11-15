@@ -6612,7 +6612,7 @@ BaseGDL* transpose( EnvT* e)
       return &par;
     }
 	
-    e->Throw( "Variable not found2: " + varName);
+    e->Throw( "LVariable not found: " + varName);
     return NULL; // compiler shut-up
   }
   
