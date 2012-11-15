@@ -11,10 +11,12 @@
 ;
 ; CATEGORY:
 ;
-; CALLING SEQUENCE:  resu_list=DIALOG_MESSAGE( Message_Text
-;                                  [, /CANCEL] [, /CENTER] [, /DEFAULT_CANCEL | , /DEFAULT_NO]
-;                                  [,DIALOG_PARENT=widget_id] [, DISPLAY_NAME=string] [, /ERROR | ,
-;                                  /INFORMATION | , /QUESTION] [, RESOURCE_NAME=string] [, TITLE=string] )
+; CALLING SEQUENCE:
+;
+;    resu_list=DIALOG_MESSAGE( Message_Text [, TITLE=string]
+;               [, /ERROR | , /INFORMATION | , /QUESTION]   <<-- the main options
+;               [, /CANCEL] [, /CENTER] [, /DEFAULT_CANCEL | , /DEFAULT_NO]
+;               [,DIALOG_PARENT=widget_id] [, DISPLAY_NAME=string] [, RESOURCE_NAME=string])
 ;
 ; INPUTS:
 ;	Message_Text: A scalar string or string array that contains the text of
@@ -86,12 +88,18 @@
 ; EXAMPLE:    resu_list=DIALOG_MESSAGE('hola')
 ;             resu_list=DIALOG_MESSAGE('would you like to continue ?', /question)
 ;
+; TESTABILITY: please test using interactive TEST_DIALOG_MESSAGE in testsuite/
+;              and add new test cases in this file
+;
 ; MODIFICATION HISTORY:
 ;
-;  Implemented by Pedro Corona (23 Febrary 2011) from DIALOG_PICKFILE written by Maxime Lenoir.
-;  Included the capability of manage more than one line of text (2 March 2011)
-;  older zenity Version management (no custom filters before v2.23.1)
-;  by Alain Coulais
+; 23-Feb-2011: Implemented by Pedro Corona from DIALOG_PICKFILE written by Maxime Lenoir.
+;  2-Mar-2011: Alain Coulais: Included the capability of manage more than one line of text
+;              older zenity Version management (no custom filters before v2.23.1)
+; 15-Nov-2012: AC: complete revision, some codes exported into common ZENITY_CHECK()
+;              for better maintainability, better stick to orignal,
+;              using --list when need (old Zenity or/and /cancel)
+; 
 ;-
 ;
 ; This function try to reproduce the IDL's DIALOG_MESSAGE behavior using "zenity".
@@ -104,16 +112,8 @@
 ; some functionalities are different from the original one
 ; but this function works well for general purpose.
 ;
-; Make sure that you have Zenity in your PATH 
-; You need to have Zenity v2.23.1 or higher to use filters. 
-;
-; If you try to get existing files w/ /WRITE and /OVERWRITE_PROMPT, 
-; you'll be prompted when the main dialog get closed.
-; Each cancelation leads to the removal of the associated file 
-; from the returned file list.
-;
-; Default extension also applies to selected files 
-; (and not only to file names typed into the dialog)
+; Make sure that you have Zenity in your PATH
+; You need to have Zenity v2.23.1 or higher to use filters and /Cancel renaming.
 ;
 ;-
 ; LICENCE:
@@ -183,7 +183,7 @@ if STRLEN(title) GT 0 then cmd+='--title="'+title+'" '
 ;
 if KEYWORD_SET(question) then begin
     if KEYWORD_SET(cancel) then begin
-        kindof='--list --column="selection" "Yes" "Cancel" "no"'
+        kindof='--list --column="selection" "Yes" "Cancel" "No"'
     endif else begin
         if (zenity_version GE 22301) then begin
             kindof='--question --cancel-label="No" --ok-label="Yes"'
@@ -214,35 +214,38 @@ endif
 cmd+=kindof
 ;
 ; Call Zenity
-SPAWN, cmd, result, errr, exit_status=ex
+SPAWN, cmd, result, error, exit_status=exit_status
 ;
 if KEYWORD_SET(debug) then begin
-    print, 'result      : ',result
-    print, 'exit status : ', ex
+    print, 'Zenity result      : ', result
+    print, 'Zenity error       : ', error
+    print, 'Zenity exit status : ', exit_status
 endif
-if errr ne '' then message, 'Zenity error: '+errr
 ;
-reponse='to do'
+reponse='Failed'
 
 if ~KEYWORD_SET(question) AND ~KEYWORD_SET(cancel) then reponse='OK'
 if ~KEYWORD_SET(question) AND KEYWORD_SET(cancel) then begin
-    if (ex eq 0) then reponse='OK' else reponse='Cancel'
+    if (exit_status eq 0) then reponse='OK' else reponse='Cancel'
 endif
-print, 'Reponse :', reponse
-
-return, reponse
+;
+if KEYWORD_SET(question) then begin
+   if ~KEYWORD_SET(cancel) then begin
+      if (exit_status eq 0) then reponse='Yes' else reponse='No'
+   endif else begin
+      ;; this is directly the result from Zenity ! (result is is {Yes|Cancel|No})
+      reponse=result
+   endelse
+endif
+;
+; due to strange logic maybe unexpected case remaining ?
+if reponse EQ 'Failed' then begin
+   MESSAGE,/continue, 'You triggered an unexpected case'
+   MESSAGE,/continue, 'Please report the case (bug) to GDL team on sf.net !'
+endif
+;
 if KEYWORD_SET(test) then STOP
 ;
-;if ~KEYWORD_SET(question) then begin
-;    if KEY
-;    reponse=
-
-
-
-if (ex ne 0) && KEYWORD_SET(question) && ~KEYWORD_SET(cancel) then return, 'No'
-if (ex ne 0) && KEYWORD_SET(question) && KEYWORD_SET(cancel) then return, 'Cancel'
-if (ex eq 0) && KEYWORD_SET(question) then return, 'Yes'
-if (ex eq 0) && ~KEYWORD_SET(question) then return, 'OK'
-if (ex ne 0) && ~KEYWORD_SET(question) then return, 'Cancel'
-
+return, reponse
+;
 end
