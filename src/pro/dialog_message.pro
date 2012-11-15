@@ -125,32 +125,26 @@
 ; (at your option) any later version.
 ; 
 ;-
-function DIALOG_MESSAGE,  Message_Text, $
-                          CANCEL=cancel, $
-                          CENTER=center, $
-                          DEFAULT_CANCEL=defaul_cancel, $
-                          DEFAULT_NO=default_no, $
-                          DIALOG_PARENT=dialog_parent, $
-                          DISPLAY_NAME=display_name, $
-                          ERROR=error, $
-                          INFORMATION=information, $
-                          QUESTION=question, $
-                          RESOURCE_NAME=resuorce_name, $
-                          TITLE=title, $
-                          HELP=help, test=test, $
-                          ZENITY_NAME=zenity_name, $
-                          ZENITY_PATH=zenity_path
-
+function DIALOG_MESSAGE, Message_Text, TITLE=title, CANCEL=cancel, $
+                         ERROR=error, INFORMATION=information, QUESTION=question, $
+                         DEFAULT_CANCEL=defaul_cancel, DEFAULT_NO=default_no, $
+                         CENTER=center, DIALOG_PARENT=dialog_parent, $
+                         DISPLAY_NAME=display_name, RESOURCE_NAME=resource_name, $
+                         HELP=help, test=test, debug=debug, $
+                         ZENITY_NAME=zenity_name, ZENITY_PATH=zenity_path
+;
 if KEYWORD_SET(help) then begin
-    print, 'DIALOG_MESSAGE,  Message_Text, CANCEL=cancel, CENTER=center, $'
-    print, '                 DEFAULT_CANCEL=defaul_cancel, DEFAULT_NO=default_no, $'
-    print, '                 DIALOG_PARENT=dialog_parent, DISPLAY_NAME=display_name, $'
-    print, '                 ERROR=error, INFORMATION=information, $'
-    print, '                 QUESTION=question, RESOURCE_NAME=resuorce_name, $'
-    print, '                 TITLE=title, HELP=help, test=test, ZENITY_NAME=zenity_name, $'
-    print, '                 ZENITY_PATH=zenity_path'
-    return, ''
+    print, 'function DIALOG_MESSAGE, Message_Text, TITLE=title, CANCEL=cancel, $'
+    print, '                         ERROR=error, INFORMATION=information, QUESTION=question, $'
+    print, '                         DEFAULT_CANCEL=defaul_cancel, DEFAULT_NO=default_no, $'
+    print, '                         CENTER=center, DIALOG_PARENT=dialog_parent, $'
+    print, '                         DISPLAY_NAME=display_name, RESOURCE_NAME=resource_name, $'
+    print, '                         HELP=help, test=test, debug=debug, $'
+    print, '                         ZENITY_NAME=zenity_name, ZENITY_PATH=zenity_path'
+    return, -1
 endif
+;
+if (N_params() NE 1) then MESSAGE, 'Incorrect number of arguments.'
 ;
 zenity=ZENITY_CHECK( zenity_name=zenity_name,  zenity_path=zenity_path, $
                      zenity_version=zenity_version, $
@@ -162,48 +156,89 @@ for i=1, N_ELEMENTS(Message_Text)-1 do zenity_message_text+='\n'+Message_Text[i]
 ;
 cmd=zenity+' --text="'+zenity_message_text+'" '
 ;
+; Set the X Window display
+if KEYWORD_SET(display_name) then cmd+='--display="'+STRING(display_name)+'" '
+if KEYWORD_SET(resource_name) then cmd+='--name="'+STRING(resource_name)+'" '
+;
 ; TITLE or INFORMATIONAL or ERROR
+; default title (if nothing provided, is "Warning")
 title=''
-if KEYWORD_SET(error) then title='ERROR'
-if KEYWORD_SET(information) then title='INFORMATION'
+if KEYWORD_SET(error) then title='Error'
+if KEYWORD_SET(question) then title='Question'
+if KEYWORD_SET(error) AND KEYWORD_SET(question) then title='Information'
+if KEYWORD_SET(information) then title='Information'
 if KEYWORD_SET(title) then title=STRING(title[0])
 if STRLEN(title) GT 0 then cmd+='--title="'+title+'" '
 ;
 ;temporal string to store the kind of zenity in.
 ;default option INFORMATION
 ;kindof='--info'
-
-; Set the X Window display
-if KEYWORD_SET(display_name) then cmd+='--display="'+STRING(display_name)+'" '
-if KEYWORD_SET(resource_name) then cmd+='--name="'+STRING(resource_name)+'" '
-
-
-;the order in the next statments follows the order in IDL DIALOG_MESSAGE function.
+; ERROR
+;if KEYWORD_SET(error) then kindof='--warning'
 
 ; QUESTION
-if KEYWORD_SET(question) && ~KEYWORD_SET(information) && ~KEYWORD_SET(error) then begin
-    if (zenity_version GE 22301) then begin
-        if KEYWORD_SET(cancel) then begin
-            kindof='--question --cancel-label="Cancel" --ok-label="OK"'
+;if KEYWORD_SET(question) && ~KEYWORD_SET(information) && ~KEYWORD_SET(error) then begin
+
+; even with new zenity, we cannot have directly 3 buttons ...
+;
+if KEYWORD_SET(question) then begin
+    if KEYWORD_SET(cancel) then begin
+        kindof='--list --column="selection" "Yes" "Cancel" "no"'
+    endif else begin
+        if (zenity_version GE 22301) then begin
+            kindof='--question --cancel-label="No" --ok-label="Yes"'
         endif else begin
-            kindof='--question --cancel-label="No" --ok-label="OK"'            
+            ;; old zenity: names of buttons cannot be changed ...
+            kindof='--question'
+        endelse
+    endelse    
+endif else begin
+
+;if KEYWORD_SET(error) OR KEYWORD_SET(information) then begin
+    if KEYWORD_SET(cancel) then begin
+        if (zenity_version GE 22301) then begin
+            kindof='--question --cancel-label="Cancel" --ok-label="Yes"'
+        endif else begin
+            kindof='--list --column="selection" "Cancel" "Yes"'
         endelse
     endif else begin
-        kindof='--question'
+        kindof='--error'
     endelse
+endelse
+;
+if KEYWORD_SET(debug) then begin
+    print, 'commande :', cmd
+    print, 'option   :', kindof
 endif
-
-; ERROR
-if KEYWORD_SET(error) then kindof='--warning'
-
+;
 cmd+=kindof
-
+;
 ; Call Zenity
 SPAWN, cmd, result, errr, exit_status=ex
+;
+if KEYWORD_SET(debug) then begin
+    print, 'result      : ',result
+    print, 'exit status : ', ex
+endif
 if errr ne '' then message, 'Zenity error: '+errr
 ;
+reponse='to do'
+
+if ~KEYWORD_SET(question) AND ~KEYWORD_SET(cancel) then reponse='OK'
+if ~KEYWORD_SET(question) AND KEYWORD_SET(cancel) then begin
+    if (ex eq 0) then reponse='OK' else reponse='Cancel'
+endif
+print, 'Reponse :', reponse
+
+return, reponse
 if KEYWORD_SET(test) then STOP
 ;
+;if ~KEYWORD_SET(question) then begin
+;    if KEY
+;    reponse=
+
+
+
 if (ex ne 0) && KEYWORD_SET(question) && ~KEYWORD_SET(cancel) then return, 'No'
 if (ex ne 0) && KEYWORD_SET(question) && KEYWORD_SET(cancel) then return, 'Cancel'
 if (ex eq 0) && KEYWORD_SET(question) then return, 'Yes'

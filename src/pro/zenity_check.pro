@@ -39,7 +39,8 @@
 ; MODIFICATION HISTORY:
 ;
 ; 14-Nov-2012, Alain Coulais : "creation": common part from
-; DIALOG_PICKFILE and DIALOG_MESSAGE moved here
+;              DIALOG_PICKFILE and DIALOG_MESSAGE moved here
+; 15-Nov-2012, AC: adding a !zenity sys var to desactivate warning
 ;
 ; the apparition of keywords are mentioned in NEWS file into Zenity package. 
 ; We used http://mcs.une.edu.au/doc/zenity-3.2.0/NEWS may be out of date ...
@@ -54,14 +55,20 @@
 ;
 ;-
 function ZENITY_CHECK, zenity_name=zenity_name,  zenity_path=zenity_path, $
-                       zenity_version=zenity_version, $
+                       zenity_version=zenity_version, reset=reset, $
                        help=help, test=test, debug=debug, verbose=verbose
 ;
 if KEYWORD_SET(help) then begin
     print, 'function ZENITY_CHECK, zenity_name=zenity_name,  zenity_path=zenity_path, $'
-    print, '                       zenity_version=zenity_version, $'
+    print, '                       zenity_version=zenity_version, reset=reset, $'
     print, '                       help=help, test=test, debug=debug, verbose=verbose'
     return, -1
+endif
+;
+DEFSYSV, '!zenity', exists=preset_zenity
+if preset_zenity AND ~KEYWORD_SET(reset) then begin
+    zenity_version=!zenity.version
+    return, !zenity.name
 endif
 ;
 ; Alternative name can by provided. Maybe other equivalent codes may work
@@ -145,6 +152,9 @@ version=STRSPLIT(zen_version, '.', /extract)
 if N_ELEMENTS(version) EQ 1 then zenity_version=LONG(version[0])*10000
 if N_ELEMENTS(version) EQ 2 then zenity_version=LONG(version[0])*10000+LONG(version[1])*100
 if N_ELEMENTS(version) EQ 3 then zenity_version=LONG(version[0])*10000+LONG(version[1])*100+LONG(version[2])
+;
+zenity_version=zenity_version[0]
+;
 if (zenity_version LT 22301) then begin
     MESSAGE, 'Zenity version need to be >= 2.23.1 to support filters', /cont
     MESSAGE, 'Since you have an old Zenity version, maybe the questions/buttons will not be adequate', /cont
@@ -155,7 +165,10 @@ if KEYWORD_SET(debug) then begin
     MESSAGE, /continue, 'Effective Path to <<zenity>> : '+ZenityPath
     MESSAGE, /continue, 'Effective Version of <<zenity>> : '+Zen_version
 endif
- 
+;
+zenity_struct={name: ZenityFullName, version: Zenity_version}
+DEFSYSV, '!zenity', zenity_struct
+; 
 if KEYWORD_SET(test) then STOP
 ;
 return, ZenityFullName
