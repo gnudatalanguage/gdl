@@ -115,6 +115,10 @@
 ; Make sure that you have Zenity in your PATH
 ; You need to have Zenity v2.23.1 or higher to use filters and /Cancel renaming.
 ;
+; Note: this code was tested, in conjonction with TEST_DIALOG_MESSAGE
+;       with Zenity 2.16, 2.24 and 2.30. Please report output of
+;       "zenity --version" and error code from TEST_DIALOG_MESSAGE if problem.
+;
 ;-
 ; LICENCE:
 ; Copyright (C) 2011, Pedro Corona and Maxime Lenoir (main author),
@@ -193,13 +197,11 @@ if KEYWORD_SET(question) then begin
         endelse
     endelse    
 endif else begin
-
-;if KEYWORD_SET(error) OR KEYWORD_SET(information) then begin
     if KEYWORD_SET(cancel) then begin
         if (zenity_version GE 22301) then begin
             kindof='--question --cancel-label="Cancel" --ok-label="Yes"'
         endif else begin
-            kindof='--list --column="selection" "Cancel" "Yes"'
+            kindof='--list --column="selection" "Cancel" "OK"'
         endelse
     endif else begin
         kindof='--error'
@@ -213,7 +215,7 @@ endif
 ;
 cmd+=kindof
 ;
-; Call Zenity
+; effective call to external Zenity
 SPAWN, cmd, result, error, exit_status=exit_status
 ;
 if KEYWORD_SET(debug) then begin
@@ -226,7 +228,12 @@ reponse='Failed'
 
 if ~KEYWORD_SET(question) AND ~KEYWORD_SET(cancel) then reponse='OK'
 if ~KEYWORD_SET(question) AND KEYWORD_SET(cancel) then begin
-    if (exit_status eq 0) then reponse='OK' else reponse='Cancel'
+    if (zenity_version GE 22301) then begin
+        if (exit_status eq 0) then reponse='OK' else reponse='Cancel'
+    endif else begin
+        ;; because we needed to use the "--list"
+        reponse=result
+    endelse
 endif
 ;
 if KEYWORD_SET(question) then begin
