@@ -102,6 +102,7 @@ prolib_DATA = \
   uniq.pro \
   value_locate.pro \
   variance.pro \
+  wmenu.pro \
   write_bmp.pro \
   write_gif.pro \
   write_image.pro \
