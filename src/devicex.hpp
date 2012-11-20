@@ -614,7 +614,8 @@ public:
     Graphics* actDevice = Graphics::GetDevice();
     wIx = actDevice->ActWin();
     bool success = actDevice->WSet( wIx);
-    cout << "wIx :" << wIx << " " << success << endl;
+    int debug=0;
+    if (debug) cout << "wIx :" << wIx << " " << success << endl;
 
     //everywhere we use XGetImage we need to set an error handler, since GTK crashes on every puny
     //BadMatch error, and if you read the XGetImage doc you'll see that such errors are prone to happen
@@ -691,7 +692,7 @@ public:
       Channelu=(*Channel)[0];
     }
 
-    int debug =1;
+    int debug =0;
     if (debug) {
       cout << "hello"<<endl;
       //     cout << (*x0)[0] <<" "<< (*x1)[0] <<" "<< (*Nx)[0] <<" "<< (*Ny)[0] <<" "<< (*Channel)[0] <<endl;
@@ -771,7 +772,7 @@ public:
 	  dims[0] = 3;
 	  dims[1] = Nxu;
 	  dims[2] = Nyu;
-	  cout << dims[1] << " " << dims[2] <<endl;
+	  //cout << dims[1] << " " << dims[2] <<endl;
 	  dimension dim(dims, (SizeT) 3);
 	  res = new DByteGDL(dim, BaseGDL::NOZERO);
 	  if (ximg == NULL) return res;
