@@ -506,7 +506,7 @@ void LibInit()
   const string deviceWarnKey[] = {"RETAIN", "SET_FONT", "HELVETICA", 
     "AVANTGARDE", "BKMAN", "COURIER", "PALATINO", 
     "SCHOOLBOOK", "TIMES", "ZAPFCHANCERY", "ZAPFDINGBATS", "BITS_PER_PIXEL", 
-    "ITALIC", "BOLD", KLISTEND};
+    "ITALIC", "BOLD", "TRUE_COLOR", KLISTEND};
   new DLibPro(lib::device,string("DEVICE"),0, deviceKey, deviceWarnKey);
 
   const string usersymKey[]= 
