@@ -165,6 +165,9 @@ namespace lib {
       DString filename;
       e->AssureScalarPar<DStringGDL>(0, filename);
       if (filename.length() == 0) return new DLongGDL(0);
+
+      WordExp( filename);
+
       Image a;
       try 
       {
@@ -708,6 +711,8 @@ namespace lib {
 	
 	DString filename;
 	e->AssureScalarPar<DStringGDL>(1,filename);    
+	WordExp( filename);
+
 	if(nParam==3)
 	  {
 	    DString imagetype;
