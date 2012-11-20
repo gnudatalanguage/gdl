@@ -187,6 +187,7 @@ namespace lib {
         e->AssureStringScalarKW( fileNameIx, fName);
         if( fName == "")
 	  e->Throw( "Null filename not allowed.");
+	WordExp(fName);
         bool success = actDevice->SetFileName( fName);
         if( !success)
           e->Throw( "Current device does not support keyword FILENAME.");
