@@ -692,7 +692,6 @@ public:
       Channelu=(*Channel)[0];
     }
 
-    int debug =0;
     if (debug) {
       cout << "hello"<<endl;
       //     cout << (*x0)[0] <<" "<< (*x1)[0] <<" "<< (*Nx)[0] <<" "<< (*Ny)[0] <<" "<< (*Channel)[0] <<endl;
