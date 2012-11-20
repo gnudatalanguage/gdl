@@ -95,11 +95,60 @@ void InitStructs()
   SpDLong   aLong;
   SpDString aString;
   SpDByte   aByte;
+  SpDULong  aULong;
   SpDLong64 aLong64;
   SpDFloat  aFloat;
   SpDDouble aDouble;
   SpDLong   aLongArr8( dimension(8));
+  SpDPtr    aPtrRef;
+  SpDObj    aObjRef;
 
+//   // OBJECTS 
+// 
+//   DStructDesc* gdl_object = new DStructDesc( "GDL_OBJECT");
+//   gdl_object->AddTag("GDL_OBJECT_TOP", &aLong64);
+//   gdl_object->AddTag("__OBJ__", &aObjRef);
+//   gdl_object->AddTag("GDL_OBJECT_BOTTOM", &aLong64);
+//   // insert into structList
+//   structList.push_back(gdl_object);
+//   
+//   DStructDesc* gdlList = new DStructDesc( "LIST");
+//   gdlList->AddTag("GDL_CONTAINER_TOP", &aLong64);
+//   gdlList->AddTag("GDLCONTAINERVERSION", &aInt);
+//   gdlList->AddTag("PHEAD", &aPtrRef);
+//   gdlList->AddTag("PTAIL", &aPtrRef);
+//   gdlList->AddTag("NLIST", &aLong);
+//   gdlList->AddTag("GDL_CONTAINER_BOTTOM", &aLong64);
+//   // insert into structList
+//   structList.push_back(gdlList);
+// 
+//   DStructDesc* gdlContainerNode = new DStructDesc( "GDL_CONTAINER_NODE");
+//   gdlContainerNode->AddTag("PNEXT", &aPtrRef);
+//   gdlContainerNode->AddTag("OOBJ", &aObjRef);
+//   gdlContainerNode->AddTag("FLAGS", &aLong);
+//   // insert into structList
+//   structList.push_back(gdlContainerNode);
+// 
+//   DStructDesc* gdlHash = new DStructDesc( "HASH");
+//   gdlHash->AddTag("TABLE_BITS", &aULong);
+//   gdlHash->AddTag("TABLE_SIZE", &aULong);
+//   gdlHash->AddTag("TABLE_COUNT", &aULong);
+//   gdlHash->AddTag("TABLE_REMOVE", &aULong);
+//   gdlHash->AddTag("TABLE_FOREACH", &aULong);
+//   gdlHash->AddTag("TABLE_DATA", &aPtrRef);
+//   // insert into structList
+//   structList.push_back(gdlHash);
+// 
+//   DStructDesc* gdlHashTE = new DStructDesc( "GDL_HASHTABLEENTRY");
+//   gdlHashTE->AddTag("PKEY", &aPtrRef);
+//   gdlHashTE->AddTag("PVALUE", &aPtrRef);
+//   // insert into structList
+//   structList.push_back(gdlHashTE);
+//   
+//   // OBJECTS END
+
+  
+  
   DStructDesc* gdl_size = new DStructDesc( "IDL_SIZE");
   gdl_size->AddTag("TYPE_NAME", &aString);
   gdl_size->AddTag("STRUCTURE_NAME", &aString);
@@ -111,6 +160,7 @@ void InitStructs()
   gdl_size->AddTag("DIMENSIONS",  &aLongArr8);
   // insert into structList
   structList.push_back(gdl_size);
+
 
   for (int big = 1; big >= 0; --big) 
   {
@@ -272,7 +322,6 @@ void InitStructs()
 
 void InitObjects()
 {
-  
 
   sigControlC = false;
   debugMode   = 0;
