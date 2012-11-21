@@ -452,6 +452,8 @@ void GDLStream::Free()
 
   delete recvBuf;
   recvBuf = NULL;
+  
+  getLunLock = false;
 }
  
 igzstream& GDLStream::IgzStream()

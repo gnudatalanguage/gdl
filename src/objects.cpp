@@ -348,8 +348,11 @@ void InitObjects()
 DLong GetLUN()
 {
   for( DLong lun=maxUserLun+1; lun <= fileUnits.size(); lun++)
-    if( !fileUnits[ lun-1].InUse())
+    if( !fileUnits[ lun-1].InUse() && !fileUnits[ lun-1].GetGetLunLock())
+    {
+      fileUnits[ lun-1].SetGetLunLock( true);
       return lun;
+    }
   
   return 0;
 }

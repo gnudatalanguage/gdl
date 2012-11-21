@@ -64,6 +64,7 @@ public:
   std::fstream* fStream;
   igzstream* igzStream; // for gzip compressed input
   ogzstream* ogzStream; // for gzip compressed output
+
 //public:
   AnyStream()
     : fStream(NULL) 
@@ -285,6 +286,8 @@ public:
 
 class GDLStream
 {
+  bool getLunLock;
+   
   std::string name;
   std::ios_base::openmode mode;
 
@@ -328,6 +331,7 @@ class GDLStream
 
 public:
   GDLStream(): 
+    getLunLock(false),
     name(), 
     mode(), 
     anyStream(NULL), 
@@ -433,6 +437,9 @@ public:
   { return (IsOpen() && (mode & std::ios::out));} 
   
   void Free(); 
+
+  void SetGetLunLock( bool b) { getLunLock = b;}
+  bool GetGetLunLock() { return getLunLock;}
 
   const std::string& Name() { return name;}
   
