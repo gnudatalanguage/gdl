@@ -1064,7 +1064,7 @@ case "${host}" in
     dnl LINKIMAGE support
     dnl (-ltermcap was reported to solve problems with readline)
     dnl LDFLAGS="$LDFLAGS -ltermcap -rdynamic -z muldefs"
-    LDFLAGS="$LDFLAGS -rdynamic -z muldefs"
+    LDFLAGS="$LDFLAGS -rdynamic -Wl,-z,muldefs"
     ;;
 
   *solaris* )
