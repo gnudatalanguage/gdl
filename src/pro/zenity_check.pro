@@ -22,8 +22,6 @@
 ;
 ; OPTIONAL OUTPUTS: zenity_version= an u
 ;
-;
-;
 ; COMMON BLOCKS: none
 ;
 ; SIDE EFFECTS: none
@@ -47,7 +45,8 @@
 ;
 ;-
 ; LICENCE:
-; Copyright (C) 2010-2012, Maxime Lenoir (main author) and Alain Coulais (idea, contact)
+; Copyright (C) 2010-2012, Maxime Lenoir (main author) 
+;                          and Alain Coulais (idea, contact)
 ; This program is free software; you can redistribute it and/or modify  
 ; it under the terms of the GNU General Public License as published by  
 ; the Free Software Foundation; either version 2 of the License, or     
@@ -136,7 +135,9 @@ endif else begin
             MESSAGE, /continue, ' '
             MESSAGE, /continue, 'How to install "zenity" on OSX ? Please have a look here:'
             MESSAGE, /continue, 'http://www.macports.org/ports.php?by=name&substr=zenity'
-        endif
+         endif
+        zenity_struct={name: '', version: -1}
+        DEFSYSV, '!zenity', zenity_struct
         return, ''
     endif
     ;; here we have one and only one no-null path-to-zenity !
@@ -166,8 +167,13 @@ if KEYWORD_SET(debug) then begin
     MESSAGE, /continue, 'Effective Version of <<zenity>> : '+Zen_version
 endif
 ;
-zenity_struct={name: ZenityFullName, version: Zenity_version}
-DEFSYSV, '!zenity', zenity_struct
+if preset_zenity then begin
+   !zenity.name=ZenityFullName
+   !zenity.version=Zenity_version
+endif else begin
+   zenity_struct={name: ZenityFullName, version: Zenity_version}
+   DEFSYSV, '!zenity', zenity_struct
+endelse
 ; 
 if KEYWORD_SET(test) then STOP
 ;
