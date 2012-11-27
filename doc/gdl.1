@@ -21,6 +21,9 @@ value
 \-e statement
 ]
 .RI [ 
+\-pref=/path/to/preferenceFile
+]
+.RI [ 
 batch_file ... 
 ]
 .SH DESCRIPTION
@@ -76,6 +79,10 @@ Tells COMMAND_LINE_ARGS() to report all following arguments
 Execute given statement and exit (last occurance taken into account
 only, executed after startup file, may not be specified together with
 batch files)
+.TP
+.B \-pref=/path/to/PreferenceFile
+(only partially working now) setting using external text file few
+variables including default preferences (e.g. X11 Windows Size)
 .TP
 The \-demo, \-em, \-novm, \-queue, \-rt, \-ulicense and \-vm options
 are ignored for compatibility with IDL.

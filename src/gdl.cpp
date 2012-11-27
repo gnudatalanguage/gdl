@@ -152,6 +152,7 @@ int main(int argc, char *argv[])
           cout << "             all following arguments" << endl;
           cout << "  -e value   execute given statement and exit (last occurance taken into account only," << endl;
           cout << "             executed after startup file, may not be specified together with batch files)" << endl;
+	  cout << "  -pref=/path/to/params_file  loads the specified preference file" << endl;
 	  cout << "  -quiet (--quiet, -q) suppress welcome messages" << endl;
 	  cout << endl;
 	  cout << "Homepage: http://gnudatalanguage.sf.net" << endl;
@@ -177,22 +178,39 @@ int main(int argc, char *argv[])
         break;
       }
       else if (string(argv[a])=="-quiet" | string(argv[a])=="--quiet" | string(argv[a])=="-q") 
-      {
-        quiet = true;
-      }
+	{
+	  quiet = true;
+	}
+      else if (string(argv[a]).find("-pref=") ==0)
+	{
+	  cout << "This option is not operational now" << endl;
+	  string tmp;
+	  tmp=string(argv[a]);
+	  string params_file(tmp.begin()+6,tmp.end());
+	  //cout << "(not ready) to be processed file >>" << params_file << "<<" << endl;
+	  WordExp(params_file);
+	  ifstream file_params;
+	  file_params.open(params_file.c_str());
+	  if (!file_params.is_open()) {
+	    cerr << "Error opening file. File: "<< params_file << endl;
+	    cerr << "No such file or directory"<< endl;
+	    return 0;
+	  }
+	  file_params.close();
+	}
       else if (string(argv[a]) == "-e")
-      {
-        if (a == argc - 1)
-        {
-          cerr << "gdl: -e must be followed by a user argument." << endl;
-          return 0;
-        }
-        statement = string(argv[++a]);
-        statement.append("\n"); // apparently not needed but this way the empty-string case is covered
-                                // (e.g. $ gdl -e "")
-      }
+	{
+	  if (a == argc - 1)
+	    {
+	      cerr << "gdl: -e must be followed by a user argument." << endl;
+	      return 0;
+	    }
+	  statement = string(argv[++a]);
+	  statement.append("\n"); // apparently not needed but this way the empty-string case is covered
+	  // (e.g. $ gdl -e "")
+	}
       else if (
-        string(argv[a]) == "-demo" || 
+	       string(argv[a]) == "-demo" || 
         string(argv[a]) == "-em" || 
         string(argv[a]) == "-novm" ||
         string(argv[a]) == "-queue" ||
