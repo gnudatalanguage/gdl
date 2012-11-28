@@ -201,7 +201,7 @@ void LibInit()
   const string helpKey[]={"STRUCTURES","ROUTINES","BRIEF",
 			  "OUTPUT","PROCEDURES","FUNCTIONS",
 			  "INFO","LIB","CALLS","RECALL_COMMANDS",
-                          "MEMORY", KLISTEND};
+                          "MEMORY","PREFERENCES", KLISTEND};
   new DLibPro(lib::help,string("HELP"),-1,helpKey);
 
   const string memoryKey[]={"CURRENT","HIGHWATER","NUM_ALLOC",

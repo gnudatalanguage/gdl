@@ -334,6 +334,10 @@ namespace lib {
     if (isKWSetMemory && (isKWSetProcedures || isKWSetFunctions))
       e->Throw( "Conflicting keywords.");
 
+    bool isKWSetPreferences  = e->KeywordSet( "PREFERENCES");
+    if (isKWSetPreferences && (isKWSetProcedures || isKWSetFunctions))
+      e->Throw( "Conflicting keywords.");
+
     // using this way, we don't need to manage HAVE_READLINE at this level ...
     if (isKWSetRecall) {
       DStringGDL *previous_commands;
@@ -535,7 +539,26 @@ namespace lib {
         ostr.str("");
       }
       return;
-    }
+    } 
+
+    // Excluding keywords which are exclusive is not finished ...
+    if (isKWSetPreferences)
+      {	
+	//cout << "ici 1 " << isKWSetPreferences << endl;
+	std::ostream* ostrp = outputKW == NULL ? &cout : &ostr;
+	*ostrp << "Preferences";
+	// this is not ready ...
+	//*ostrp << GDL_GR_X_QSCREEN::GetValue();
+	if (outputKW == NULL) cout << endl;
+	else
+	  {
+	    (*(DStringGDL *) *outputKW)[nOut++] = ostr.rdbuf()->str();
+	    ostr.str("");
+	  }
+	return;	
+      }
+    
+    //    cout << "ici 2" << isKWSetPreferences << endl;
 
     for( SizeT i=0; i<nParam; i++)
       {

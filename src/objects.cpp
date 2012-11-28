@@ -27,6 +27,7 @@
 
 #include "objects.hpp"
 #include "graphics.hpp"
+#include "preferences.hpp"
 
 //#include "dinterpreter.hpp"
 
@@ -337,6 +338,9 @@ void InitObjects()
   // graphic devices must be initialized after system variables
   // !D must already exist
   Graphics::Init();
+
+  // preferences
+  //  Preferences::Init();
 
 #ifdef HAVE_LIBWXWIDGETS
   // initialize widget system
