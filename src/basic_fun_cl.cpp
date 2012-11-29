@@ -264,7 +264,7 @@ namespace lib {
       e->Throw( 
 	       "Pointer expression not allowed in this context: "
 	       +e->GetParString(0));
-    } else if (xvals->Type() == GDL_OBJECT) {
+    } else if (xvals->Type() == GDL_OBJ) {
       e->Throw( 
 	       "Object expression not allowed in this context: "
 	       +e->GetParString(0));
@@ -300,7 +300,7 @@ namespace lib {
 	e->Throw( 
 		 "Pointer expression not allowed in this context: "
 		 +e->GetParString(1));
-      else if (lvals->Type() == GDL_OBJECT) 
+      else if (lvals->Type() == GDL_OBJ) 
 	e->Throw( 
 		 "Object expression not allowed in this context: "
 		 +e->GetParString(1));
@@ -329,7 +329,7 @@ namespace lib {
 	e->Throw( 
 		 "Pointer expression not allowed in this context: "
 		 +e->GetParString(2));
-      else if (mvals->Type() == GDL_OBJECT) 
+      else if (mvals->Type() == GDL_OBJ) 
 	e->Throw( 
 		 "Object expression not allowed in this context: "
 		 +e->GetParString(2));
@@ -431,7 +431,7 @@ namespace lib {
       e->Throw( 
 		  "Pointer expression not allowed in this context: "
 			  +e->GetParString(0));
-    } else if (v->Type() == GDL_OBJECT) {
+    } else if (v->Type() == GDL_OBJ) {
       e->Throw( 
 		  "Object expression not allowed in this context: "
 			  +e->GetParString(0));

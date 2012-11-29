@@ -94,7 +94,7 @@ void LibInit()
   const string svdcKey[]={"COLUMN","ITMAX","DOUBLE",KLISTEND};
   new DLibPro(lib::svdc,string("SVDC"),4,svdcKey);
 
-  new DLibFun(lib::temporary,string("TEMPORARY"),1);
+  new DLibFunRetNew(lib::temporary,string("TEMPORARY"),1);
 
   const string routine_infoKey[]={"FUNCTIONS","SYSTEM","DISABLED","ENABLED",
 				  "PARAMETERS", KLISTEND};

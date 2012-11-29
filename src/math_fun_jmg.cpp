@@ -353,7 +353,7 @@ namespace lib {
 	     }
 	   case GDL_STRUCT:
 	   case GDL_PTR:
-	   case GDL_OBJECT:
+	   case GDL_OBJ:
 	     {
 	       e->Throw( p0->TypeStr() + " not allowed in this context: " +
 			 e->GetParString( 0));
@@ -401,7 +401,7 @@ namespace lib {
 	     }
 	   case GDL_STRUCT:
 	   case GDL_PTR:
-	   case GDL_OBJECT:
+	   case GDL_OBJ:
 	     {
 	       e->Throw( p0->TypeStr() + " not allowed in this context: " +
 			 e->GetParString( 0));

@@ -2589,7 +2589,7 @@ void Data_<Sp>::ForCheck( BaseGDL** lEnd, BaseGDL** lStep)
     throw GDLException("Complex expression not allowed in this context.");
   if( this->t== GDL_PTR)
     throw GDLException("Pointer expression not allowed in this context.");
-  if( this->t== GDL_OBJECT)
+  if( this->t== GDL_OBJ)
     throw GDLException("Object expression not allowed in this context.");
   if( this->t== GDL_STRING)
     throw GDLException("String expression not allowed in this context.");

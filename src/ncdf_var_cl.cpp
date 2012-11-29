@@ -1085,7 +1085,7 @@ else if(var_type == NC_LONG)
       case GDL_PTR :
         e->Throw("Pointer expression not allowed in this context: " 
           + e->GetParString(2));
-      case GDL_OBJECT : 
+      case GDL_OBJ : 
         e->Throw("Object reference expression not allowed in this context: " 
           + e->GetParString(2));
     }

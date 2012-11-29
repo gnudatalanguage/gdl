@@ -40,7 +40,17 @@ DStructBase::~DStructBase()
 // {}
 
 DStructDesc::~DStructDesc()
-{}
+{
+  assert( !isUnnamed || (operatorList == NULL));
+  if( !isUnnamed) // only named structs have members and overloaded operators
+  {
+    delete operatorList;
+    for(FunListT::iterator i = this->fun.begin(); i != this->fun.end(); ++i) 
+      { delete *i;}
+    for(ProListT::iterator i = this->pro.begin(); i != this->pro.end(); ++i) 
+      { delete *i;}
+  }
+}
 
 DStructDesc* FindInStructList(StructListT v, const string& s)
 {
@@ -55,7 +65,7 @@ DStructDesc* FindInStructList(StructListT v, const string& s)
 	{
 		if( tags[t]->Type() == GDL_STRING) return true;
 		if( tags[t]->Type() == GDL_PTR) return true;
-		if( tags[t]->Type() == GDL_OBJECT) return true;
+		if( tags[t]->Type() == GDL_OBJ) return true;
 		if( tags[t]->Type() == GDL_STRUCT)
 		{
 			if( static_cast<DStructGDL*>( tags[t])->Desc()->ContainsStringPtrObject()) return true;
@@ -81,6 +91,12 @@ void DStructDesc::AddParent( DStructDesc* p)
   for( SizeT t=0; t < nTags; t++)
     AddTag( p->TagName(t), (*p)[t]);
   parent.push_back(p);
+  OperatorList* parentOperatorList = p->GetOperatorList(); 
+  if( parentOperatorList != NULL)
+  {
+    assert( operatorList == NULL); // GDL_OBJECT can only be inherited once
+    operatorList = new OperatorList(*parentOperatorList);
+  }
 }
 
 // more sophisticated error messages than operator==

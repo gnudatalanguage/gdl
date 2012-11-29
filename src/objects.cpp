@@ -107,9 +107,9 @@ void InitStructs()
 //   // OBJECTS 
 // 
 //   DStructDesc* gdl_object = new DStructDesc( "GDL_OBJECT");
-//   gdl_object->AddTag("GDL_OBJECT_TOP", &aLong64);
+//   gdl_object->AddTag("GDL_OBJ_TOP", &aLong64);
 //   gdl_object->AddTag("__OBJ__", &aObjRef);
-//   gdl_object->AddTag("GDL_OBJECT_BOTTOM", &aLong64);
+//   gdl_object->AddTag("GDL_OBJ_BOTTOM", &aLong64);
 //   // insert into structList
 //   structList.push_back(gdl_object);
 //   

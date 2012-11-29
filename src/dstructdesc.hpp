@@ -26,6 +26,7 @@
 #include "basegdl.hpp"
 #include "dpro.hpp"
 #include "typedefs.hpp"
+#include "overload.hpp"
 
 class DStructBase
 {
@@ -94,6 +95,7 @@ typedef std::deque<DStructDesc*> StructListT;
 
 // descriptor of structs layout ************************************************
 // unnamed struct
+// this is never used directly, only DStructDesc (see below)
 class DUStructDesc: public DStructBase
 {
 private:
@@ -131,7 +133,13 @@ private:
 
   SizeT refCount;
 
-
+  bool isUnnamed;
+  
+  // operatorList != NULL means inherited from GDL_OBJECT
+  OperatorList* operatorList;
+  // avoid extra allocation
+//   char operatorListBuffer[ sizeof(operatorList)];
+  
 private:
 
   std::string              name;
@@ -145,29 +153,27 @@ private:
  
 
 public:
-  DStructDesc( const std::string n): DUStructDesc(), refCount( 1)
+  DStructDesc( const std::string& n): DUStructDesc(), refCount( 1), operatorList( NULL), name(n)
   {
-    name=n;
+//     name=n;
+    // if this is to be changed, see also:
+    // DStructGDL::DStructGDL( const string& name_) // (dstructgdl.cpp)
+    isUnnamed = (name[0] == '$');
   }
 
-private:
-  // this is only used for unnamed structs -> only copy name from 'this'
-  DStructDesc( const DStructDesc* d_): 
-    DUStructDesc( d_), 
-    name( d_->name) // must be "$..."
-  {}
-
-public:
+// private:
+//   // this is only used for unnamed structs -> only copy name from 'this'
+//   DStructDesc( const DStructDesc* d_): 
+//     DUStructDesc( d_), 
+//     name( d_->name) // must be "$..."
+//   {}
+// public:
   ~DStructDesc();
 
   friend bool operator==(const DStructDesc& left, const DStructDesc& right);
   friend bool operator!=(const DStructDesc& left, const DStructDesc& right);
 
   const std::string& Name() const { return name;}
-
-  // if this is to be changed, see also:
-  // DStructGDL::DStructGDL( const string& name_) // (dstructgdl.cpp)
-  bool IsUnnamed() const { return (name[0] == '$');}
 
   FunListT& FunList()
   {
@@ -198,6 +204,16 @@ public:
   DFun* GetFun( const std::string& pName);
   DFun* GetFun( const std::string& pName, const std::string& parentName);
 
+  // if this is to be changed, see also:
+  // DStructGDL::DStructGDL( const string& name_) // (dstructgdl.cpp)
+  bool IsUnnamed() const { return isUnnamed;}
+
+//   bool InheritsGDL_OBJECT() const { return (operatorList != NULL);}
+  OperatorList* GetOperatorList() const { return operatorList;}
+  
+  DSubUD* GetOperator( SizeT i) const
+  { if( operatorList == NULL) return NULL; return (*operatorList)[ i];}
+  
   bool IsParent( const std::string& p)
   {
     if( p == name) return true;
@@ -224,6 +240,7 @@ public:
   void AssureIdentical( DStructDesc* d);
   //  DStructDesc* FindEqual( const StructListT& sL);
 
+  // for unnamed structs (typetraits.cpp)
   void AddRef()
   {
     ++refCount;

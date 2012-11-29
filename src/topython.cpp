@@ -32,7 +32,7 @@ const int pyType[] = {
   NPY_NOTYPE,        //GDL_STRUCT***	
   NPY_COMPLEX128,  //GDL_COMPLEXDBL,	
   NPY_NOTYPE,        //GDL_PTR***		
-  NPY_NOTYPE,        //GDL_OBJECT***
+  NPY_NOTYPE,        //GDL_OBJ***
   NPY_UINT32,     //GDL_UINT*
   NPY_UINT32,     //GDL_ULONG*
   NPY_INT64,      //GDL_LONG64*

@@ -3786,7 +3786,7 @@ BaseGDL* transpose( EnvT* e)
 	if( p0->Type() == GDL_PTR)
 	  e->Throw( "Pointer expression not allowed in this context: "+
 		    e->GetParString(0));
-	if( p0->Type() == GDL_OBJECT)
+	if( p0->Type() == GDL_OBJ)
 	  e->Throw( "Object expression not allowed in this context: "+
 		    e->GetParString(0));
 	if( p0->Type() == GDL_STRUCT)
@@ -4517,7 +4517,7 @@ BaseGDL* transpose( EnvT* e)
 		DLong s1;
 		e->AssureLongScalarPar( 1, s1);
 
-		// IncRef[Obj] done for GDL_PTR and GDL_OBJECT
+		// IncRef[Obj] done for GDL_PTR and GDL_OBJ
 		return p0->CShift( s1);
       }
     
@@ -4528,7 +4528,7 @@ BaseGDL* transpose( EnvT* e)
     for( SizeT i=0; i< nShift; i++)
       e->AssureLongScalarPar( i+1, sIx[ i]);
 
-	if( p0->Type() == GDL_OBJECT)
+	if( p0->Type() == GDL_OBJ)
 		GDLInterpreter::IncRefObj( static_cast<DObjGDL*>(p0));
 	else if( p0->Type() == GDL_PTR)
 		GDLInterpreter::IncRef( static_cast<DPtrGDL*>(p0));
@@ -4750,7 +4750,7 @@ BaseGDL* transpose( EnvT* e)
       {
 	BaseGDL* p0 = e->GetParDefined( 0);
 
-	if( p0->Type() != GDL_STRING && p0->Type() != GDL_OBJECT)
+	if( p0->Type() != GDL_STRING && p0->Type() != GDL_OBJ)
 	  e->Throw( "Argument must be a scalar object reference or string: "+
 		    e->GetParString(0));
 
@@ -4774,7 +4774,7 @@ BaseGDL* transpose( EnvT* e)
 		return new DStringGDL( "");
 	      }
 	  }
-	else // GDL_OBJECT
+	else // GDL_OBJ
 	  {
 	    DObj objRef;
 	    e->AssureScalarPar<DObjGDL>( 0, objRef);
@@ -4852,7 +4852,7 @@ BaseGDL* transpose( EnvT* e)
     SizeT nParam = e->NParam( 2);
 
     BaseGDL* p0 = e->GetPar( 0);
-    if( p0 == NULL || p0->Type() != GDL_OBJECT)
+    if( p0 == NULL || p0->Type() != GDL_OBJ)
       e->Throw( "Object reference type required in this context: "+
 		e->GetParString(0));
 

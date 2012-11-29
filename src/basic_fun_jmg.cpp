@@ -381,7 +381,7 @@ namespace lib {
     {
       if (type == GDL_PTR || e->KeywordSet(18)) 
         e->Throw("Index initialization of pointer array is invalid.");
-      if (type == GDL_OBJECT || e->KeywordSet(19)) 
+      if (type == GDL_OBJ || e->KeywordSet(19)) 
         e->Throw("Index initialization of object reference array is invalid..");
     }
 
@@ -481,7 +481,7 @@ namespace lib {
       return make_array_template< DPtrGDL>( e, dimKey, value);
 
       // OBJ (added by SA 15.08.2009)
-    } else if (e->KeywordSet(19) || type == GDL_OBJECT) {
+    } else if (e->KeywordSet(19) || type == GDL_OBJ) {
 
       return make_array_template< DObjGDL>( e, dimKey, value);
 

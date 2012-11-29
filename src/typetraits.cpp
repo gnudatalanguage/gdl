@@ -161,7 +161,7 @@ BaseGDL* SpDPtr::GetTag() const { return new SpDPtr(*this);}
 DType   SpDPtr::Type()    const { return t;}
 const std::string& SpDPtr::TypeStr() const { return str;}
 
-const DType   SpDObj::t=GDL_OBJECT;   // type ID
+const DType   SpDObj::t=GDL_OBJ;   // type ID
 const string  SpDObj::str("OBJREF"); // type string
 const DObj    SpDObj::zero=0;  // zero ptr/obj
 const bool SpDObj::IS_INTEGER=false;

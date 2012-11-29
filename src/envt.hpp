@@ -534,7 +534,7 @@ public:
   // throws if not defined (ie. never returns NULL)
   BaseGDL*& GetParDefined(SizeT i); //, const std::string& subName = "");
 
-  // throw for GDL_STRING, GDL_STRUCT, GDL_PTR and GDL_OBJECT
+  // throw for GDL_STRING, GDL_STRUCT, GDL_PTR and GDL_OBJ
   BaseGDL*& GetNumericParDefined( SizeT ix)
   {
     BaseGDL*& p0 = GetParDefined( ix);
@@ -547,7 +547,7 @@ public:
       Throw( "Struct expression not allowed in this context: "+GetParString(ix));
     if( p0->Type() == GDL_PTR)
       Throw( "Pointer expression not allowed in this context: "+GetParString(ix));
-    if( p0->Type() == GDL_OBJECT)
+    if( p0->Type() == GDL_OBJ)
       Throw( "Object reference not allowed in this context: "+GetParString(ix));
 
     assert( false);

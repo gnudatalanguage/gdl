@@ -310,7 +310,7 @@ template<> BaseGDL* Data_<SpDByte>::Convert2( DType destTy, BaseGDL::Convert2Mod
 	  }
       }
     case GDL_PTR:
-    case GDL_OBJECT:
+    case GDL_OBJ:
     case GDL_STRUCT:
     case GDL_UNDEF: 
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
@@ -481,7 +481,7 @@ TRACEOMP( __FILE__, __LINE__)
       	return dest;
       }
     case GDL_PTR:
-    case GDL_OBJECT:
+    case GDL_OBJ:
     case GDL_STRUCT:
     case GDL_UNDEF: 
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
@@ -651,7 +651,7 @@ TRACEOMP( __FILE__, __LINE__)
       	return dest;
       }
     case GDL_PTR:
-    case GDL_OBJECT:
+    case GDL_OBJ:
     case GDL_STRUCT:
     case GDL_UNDEF: 
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
@@ -824,7 +824,7 @@ TRACEOMP( __FILE__, __LINE__)
       	return dest;
       }
     case GDL_PTR:
-    case GDL_OBJECT:
+    case GDL_OBJ:
     case GDL_STRUCT:
     case GDL_UNDEF: 
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
@@ -997,7 +997,7 @@ TRACEOMP( __FILE__, __LINE__)
       	return dest;
       }
     case GDL_PTR:
-    case GDL_OBJECT:
+    case GDL_OBJ:
     case GDL_STRUCT:
     case GDL_UNDEF: 
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
@@ -1220,7 +1220,7 @@ TRACEOMP( __FILE__, __LINE__)
       	return dest;
       }
     case GDL_PTR:
-    case GDL_OBJECT:
+    case GDL_OBJ:
     case GDL_STRUCT:
     case GDL_UNDEF: 
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
@@ -1450,7 +1450,7 @@ TRACEOMP( __FILE__, __LINE__)
       	return dest;
       }
     case GDL_PTR:
-    case GDL_OBJECT:
+    case GDL_OBJ:
     case GDL_STRUCT:
     case GDL_UNDEF: 
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
@@ -1807,7 +1807,7 @@ StringConversionError( errorFlag, mode, "Type conversion error: "
       	return dest;
       }
     case GDL_PTR:
-    case GDL_OBJECT:
+    case GDL_OBJ:
     case GDL_STRUCT:
     case GDL_UNDEF: 
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
@@ -2052,7 +2052,7 @@ TRACEOMP( __FILE__, __LINE__)
       	return dest;
       }
     case GDL_PTR:
-    case GDL_OBJECT:
+    case GDL_OBJ:
     case GDL_STRUCT:
     case GDL_UNDEF: 
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
@@ -2306,7 +2306,7 @@ TRACEOMP( __FILE__, __LINE__)
       }
       //    case GDL_COMPLEXDBL: 
     case GDL_PTR:
-    case GDL_OBJECT:
+    case GDL_OBJ:
     case GDL_STRUCT:
     case GDL_UNDEF: 
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
@@ -2479,7 +2479,7 @@ TRACEOMP( __FILE__, __LINE__)
       	return dest;
       }
     case GDL_PTR:
-    case GDL_OBJECT:
+    case GDL_OBJ:
     case GDL_STRUCT:
     case GDL_UNDEF: 
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
@@ -2651,7 +2651,7 @@ TRACEOMP( __FILE__, __LINE__)
       	return dest;
       }
     case GDL_PTR:
-    case GDL_OBJECT:
+    case GDL_OBJ:
     case GDL_STRUCT:
     case GDL_UNDEF: 
 if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");

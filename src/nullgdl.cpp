@@ -380,7 +380,7 @@ BaseGDL* NullGDL::EqOp( BaseGDL* r)
     if( rP->Scalar( pVal) && pVal == 0)
       return new Data_<SpDByte>( 1);
   }
-  else if( rTy == GDL_OBJECT)
+  else if( rTy == GDL_OBJ)
   {
     DObjGDL* rP = static_cast<DObjGDL*>(r);
     DObj pVal;
@@ -405,7 +405,7 @@ BaseGDL* NullGDL::NeOp( BaseGDL* r)
     if( rP->Scalar( pVal) && pVal == 0)
       return new Data_<SpDByte>( 0);
   }
-  else if( rTy == GDL_OBJECT)
+  else if( rTy == GDL_OBJ)
   {
     DObjGDL* rP = static_cast<DObjGDL*>(r);
     DObj pVal;

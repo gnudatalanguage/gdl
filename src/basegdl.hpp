@@ -58,7 +58,7 @@ enum DType {  // Object types (IDL type numbers)
   GDL_STRUCT,     // 8 Struct
   GDL_COMPLEXDBL, // 9 Complex double
   GDL_PTR,	      // 10 Pointer
-  GDL_OBJECT,     // 11 Object reference
+  GDL_OBJ,     // 11 Object reference
   GDL_UINT,       // 12 unsigned int
   GDL_ULONG,      // 13 unsigned long int
   GDL_LONG64,     // 14 64 bit integer
@@ -79,7 +79,7 @@ const int DTypeOrder[]={
   101, 	//GDL_STRUCT,	
   11, 	//GDL_COMPLEXDBL,	
   102, 	//GDL_PTR,		
-  103, 	//GDL_OBJECT,
+  103, 	//GDL_OBJ,
   3, 	//GDL_UINT,	
   4, 	//GDL_ULONG,
   5, 	//GDL_LONG64,
@@ -97,7 +97,7 @@ const bool IsConvertableType[]={
   false, 	//GDL_STRUCT,	
   true, 	//GDL_COMPLEXDBL,	
   false, 	//GDL_PTR,		
-  false, 	//GDL_OBJECT,
+  false, 	//GDL_OBJ,
   true, 	//GDL_UINT,	
   true, 	//GDL_ULONG,
   true, 	//GDL_LONG64,
@@ -115,7 +115,7 @@ const bool IsNumericType[]={
   false, 	//GDL_STRUCT,	
   true, 	//GDL_COMPLEXDBL,	
   false, 	//GDL_PTR,		
-  false, 	//GDL_OBJECT,
+  false, 	//GDL_OBJ,
   true, 	//GDL_UINT,	
   true, 	//GDL_ULONG,
   true, 	//GDL_LONG64,
@@ -133,7 +133,7 @@ const bool IsIntType[]={
   false, 	//GDL_STRUCT,	
   false, 	//GDL_COMPLEXDBL,	
   false, 	//GDL_PTR,		
-  false, 	//GDL_OBJECT,
+  false, 	//GDL_OBJ,
   true, 	//GDL_UINT,	
   true, 	//GDL_ULONG,
   true, 	//GDL_LONG64,
@@ -151,7 +151,7 @@ const bool IsRealType[]={
   false, 	//GDL_STRUCT,	
   false, 	//GDL_COMPLEXDBL,	
   false, 	//GDL_PTR,		
-  false, 	//GDL_OBJECT,
+  false, 	//GDL_OBJ,
   true, 	//GDL_UINT,	
   true, 	//GDL_ULONG,
   true, 	//GDL_LONG64,
@@ -169,7 +169,7 @@ const bool IsNonPODType[]={
   true, 	//GDL_STRUCT,	
   true, 	//GDL_COMPLEXDBL,	
   true, 	//GDL_PTR, nonPOD due to reference counting
-  true, 	//GDL_OBJECT, nonPOD due to reference counting
+  true, 	//GDL_OBJ, nonPOD due to reference counting
   false, 	//GDL_UINT,	
   false, 	//GDL_ULONG,
   false, 	//GDL_LONG64,
@@ -355,7 +355,7 @@ public:
     AUTO
   };
   
-  // FIRST VIRTUAL FUNCTION'S GDL_OBJECT FILE CONTAINS ALSO THE VTABLE
+  // FIRST VIRTUAL FUNCTION'S GDL_OBJ FILE CONTAINS ALSO THE VTABLE
   // therefore it must be defined non-inline (g++)
   virtual ~BaseGDL(); // defined in basegdl.cpp
 

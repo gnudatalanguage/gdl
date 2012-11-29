@@ -1828,7 +1828,7 @@ TRACEOMP( __FILE__, __LINE__)
       throw GDLException( "Struct expression not allowed in this context.");
     if( t == GDL_PTR)
       throw GDLException( "Pointer expression not allowed in this context.");
-    if( t == GDL_OBJECT)
+    if( t == GDL_OBJ)
       throw GDLException( "Object reference not allowed in this context.");
     
     // all other types (return array of zeros)
@@ -1901,7 +1901,7 @@ TRACEOMP( __FILE__, __LINE__)
       }
     else if( t == GDL_PTR)
       throw GDLException( "Pointer not allowed in this context.");
-    else if( t == GDL_OBJECT)
+    else if( t == GDL_OBJ)
       throw GDLException( "Object references not allowed in this context.");
     else if( t == GDL_STRUCT)
       throw GDLException( "Struct expression not allowed in this context.");

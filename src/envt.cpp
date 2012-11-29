@@ -338,7 +338,7 @@ void EnvBaseT::AddStruct( DPtrListT& ptrAccessible,
 	      AddStruct( ptrAccessible, objAccessible, ptr);
 	    }
 	}
-     else if( (*desc)[ t]->Type() == GDL_OBJECT)
+     else if( (*desc)[ t]->Type() == GDL_OBJ)
 	{
 	  for( SizeT e = 0; e<nEl; ++e)
 	    {

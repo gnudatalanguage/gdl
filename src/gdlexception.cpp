@@ -101,6 +101,8 @@ if( decorate && interpreter!=NULL && interpreter->CallStack().size()>0)
 {
   EnvBaseT* e = interpreter->CallStack().back();
   msg = e->GetProName();
+  cout << msg << endl;
+  exit(1);
   if( msg != "$MAIN$") msg +=  ": "+ s; else msg = s;
 }
 else

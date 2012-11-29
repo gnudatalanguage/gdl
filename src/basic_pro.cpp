@@ -840,7 +840,7 @@ namespace lib {
 	HeapFreeObj( env, derefPtr, verbose);
       }
     }
-    else if( var->Type() == GDL_OBJECT)
+    else if( var->Type() == GDL_OBJ)
     {
       DObjGDL* varObj = static_cast<DObjGDL*>( var);
       for( SizeT e=0; e<varObj->N_Elements(); ++e)
@@ -1872,7 +1872,7 @@ TRACEOMP( __FILE__, __LINE__)
 	{
 		if( pIn->Type() == GDL_STRING)
 		e->Throw( "STRING type not allowed in this context: "+e->GetParString(p));		    
-		if( pIn->Type() == GDL_OBJECT)
+		if( pIn->Type() == GDL_OBJ)
 		e->Throw( "Object type not allowed in this context: "+e->GetParString(p));		    
 		if( pIn->Type() == GDL_PTR)
 		e->Throw( "PTR type not allowed in this context: "+e->GetParString(p));		    
@@ -1956,7 +1956,7 @@ TRACEOMP( __FILE__, __LINE__)
 
 /*	if( par->Type() == GDL_STRING)
 	  e->Throw( "STRING type not allowed in this context: "+e->GetParString(p));		    
-	if( par->Type() == GDL_OBJECT)
+	if( par->Type() == GDL_OBJ)
 	  e->Throw( "Object type not allowed in this context: "+e->GetParString(p));		    
 	if( par->Type() == GDL_PTR)
 	  e->Throw( "PTR type not allowed in this context: "+e->GetParString(p));		    

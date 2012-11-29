@@ -357,8 +357,8 @@ public:
     SetupDim();
 
     BaseGDL* newData;
-    // no zeroing, here the new variable is created TODO: zero only for GDL_PTR and GDL_OBJECT
-    if( top->Type() == GDL_PTR || top->Type() == GDL_OBJECT)
+    // no zeroing, here the new variable is created TODO: zero only for GDL_PTR and GDL_OBJ
+    if( top->Type() == GDL_PTR || top->Type() == GDL_OBJ)
 		newData=top->New( dim);//, BaseGDL::NOZERO);
     else
 		newData=top->New( dim, BaseGDL::NOZERO);

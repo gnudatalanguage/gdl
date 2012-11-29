@@ -2879,10 +2879,10 @@ if( e1->StrictScalar())
     
     _t = _t->getNextSibling();
     
-    ProgNode::interpreter->parameter_def(_t, newEnv);
+    ProgNode::interpreter->parameter_def(_t, newEnv); // temporary owns newEnv (-> no guard necessary)
   	
     // push environment onto call stack
-    ProgNode::interpreter->CallStack().push_back(newEnv);
+    ProgNode::interpreter->CallStack().push_back(newEnv); // now guarded by "guard"
     
     // make the call
     rEval=ProgNode::interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());

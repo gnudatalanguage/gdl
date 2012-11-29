@@ -407,7 +407,7 @@ namespace lib {
 	    argv[i-2] = (void*) par;
 	}
 	else {					// By reference (default)
-	    if (IsNumericType[pType] || pType == GDL_PTR || pType == GDL_OBJECT ) {
+	    if (IsNumericType[pType] || pType == GDL_PTR || pType == GDL_OBJ ) {
 		argv[i-2] = (void*) par->DataAddr();
 	    }
 	    else if (pType == GDL_STRING) {
@@ -606,7 +606,7 @@ namespace lib {
 		SizeT sizeOf;
 		void* source;
 		int   doFree = 0;
-		if (IsNumericType[pType] || pType == GDL_PTR || pType == GDL_OBJECT) {
+		if (IsNumericType[pType] || pType == GDL_PTR || pType == GDL_OBJ) {
 		    source = (void*) member->DataAddr();
 		    length = member->NBytes();
 		    sizeOf = member->Sizeof();
@@ -670,7 +670,7 @@ namespace lib {
 		    p += space;
 		}
 
-		if (IsNumericType[pType] || pType == GDL_PTR || pType == GDL_OBJECT) {
+		if (IsNumericType[pType] || pType == GDL_PTR || pType == GDL_OBJ) {
 		    length = member->NBytes();
 		    dest   = (void*) member->DataAddr();
 		    memcpy(dest, p, length);
@@ -709,7 +709,7 @@ namespace lib {
 	for (SizeT iTag=0; iTag < nTags; iTag++) {
 	    BaseGDL* member = s->GetTag(iTag);
 	    DType    pType  = member->Type();
-	    if (IsNumericType[pType] || pType == GDL_PTR || pType == GDL_OBJECT) {
+	    if (IsNumericType[pType] || pType == GDL_PTR || pType == GDL_OBJ) {
 		totalSize += member->NBytes();
 		sizeOf    =  member->Sizeof();
 	    }

@@ -70,7 +70,7 @@ Assoc_< Parent_>::Assoc_( int lun_, Parent_* assoc_, SizeT fileOffset_):
     throw GDLException( "Expression containing string data not allowed in this context.");
   if( assoc_->Type() == GDL_PTR)
     throw GDLException( "Expression containing pointers not allowed in this context.");
-  if( assoc_->Type() == GDL_OBJECT)
+  if( assoc_->Type() == GDL_OBJ)
     throw GDLException( "Expression containing object references not allowed in this context.");
 }
 
