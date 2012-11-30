@@ -424,7 +424,7 @@ BaseGDL* NSTRUCNode::Eval()
     } 
   else
     {   // NTags() == 0
-	// not completely defined (only name in list)
+	// not completely defined yet (only name in list)
       nStructDesc= oStructDesc;
     }
 	
@@ -465,7 +465,17 @@ BaseGDL* NSTRUCNode::Eval()
 	    DStructDesc* inherit=ProgNode::interpreter->GetStruct( ii->getText(), _t);
 			
 	    //   nStructDesc->AddParent( inherit);
-	    instance->AddParent( inherit);
+	    instance->AddParent( inherit); // adds operatorList if GDL_OBJECT
+	    
+	    // set up operators form member functions
+	    // they were set when the struct was not derived from GDL_OBJECT and hence ignored
+	    if( nStructDesc == oStructDesc && inherit->Name() == "GDL_OBJECT")
+	    {
+	      // operatorList should have been set in instance->AddParent( inherit); 
+	      assert( nStructDesc->GetOperatorList() != NULL);
+	      // find operators in member subroutines
+	      nStructDesc->SetupOperators();
+	    }
 			
 	    break;
 	  }

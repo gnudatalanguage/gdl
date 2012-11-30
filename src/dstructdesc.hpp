@@ -139,6 +139,9 @@ private:
   OperatorList* operatorList;
   // avoid extra allocation
 //   char operatorListBuffer[ sizeof(operatorList)];
+  // ONLY FOR GDL_OBJECT
+  void InitOperatorList() { assert( operatorList == NULL); operatorList = new OperatorList();}
+  friend void InitStructs(); // restrict usage to definition of GDL_OBECT
   
 private:
 
@@ -150,7 +153,6 @@ private:
   ProListT                 pro; // member procedures
 
   DStructDesc( const DStructDesc&) {} // disabeld
- 
 
 public:
   DStructDesc( const std::string& n): DUStructDesc(), refCount( 1), operatorList( NULL), name(n)
@@ -213,6 +215,12 @@ public:
   
   DSubUD* GetOperator( SizeT i) const
   { if( operatorList == NULL) return NULL; return (*operatorList)[ i];}
+  
+  void SetOperator( SizeT i, DSubUD* op)
+  { if( operatorList == NULL) return; operatorList->SetOperator( i, op);}
+  
+  // copy appropiate member subroutines from fun and pro lists
+  void SetupOperators();
   
   bool IsParent( const std::string& p)
   {

@@ -930,9 +930,18 @@ struct_identifier
         // the appropriate node (ie. there is no ambiguity in the parser output)
     ;
 
+struct_name
+	:   s:struct_identifier
+        // here we translate IDL_OBECT to GDL_OBJECT for source code compatibility
+        {
+            if( #s->getText() == "IDL_OBJECT")
+                #s->setText( "GDL_OBJECT");
+        }
+    ;
+
 struct_def
 	: LCURLY! 
-        (struct_identifier (COMMA! named_tag_def_list)? RCURLY!
+        (struct_name (COMMA! named_tag_def_list)? RCURLY!
 			{ #struct_def = 
 				#([NSTRUC_REF, "nstruct_ref"], #struct_def);}
 		| tag_def_list RCURLY!
@@ -959,7 +968,7 @@ ntag_defs
 	;	
 
 named_tag_def_entry
-    :   ( (INHERITS) => INHERITS struct_identifier
+    :   ( (INHERITS) => INHERITS struct_name
         | ntag_def
         )
     ;

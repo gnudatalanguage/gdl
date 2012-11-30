@@ -42,7 +42,8 @@ DStructBase::~DStructBase()
 DStructDesc::~DStructDesc()
 {
   assert( !isUnnamed || (operatorList == NULL));
-  if( !isUnnamed) // only named structs have members and overloaded operators
+  if( !isUnnamed) // only named structs have members and overloaded operators 
+  // (usually they are never deleted only with .RESET_SESSION and .FULL_RESET_SESSION dot commands)
   {
     delete operatorList;
     for(FunListT::iterator i = this->fun.begin(); i != this->fun.end(); ++i) 
@@ -94,8 +95,26 @@ void DStructDesc::AddParent( DStructDesc* p)
   OperatorList* parentOperatorList = p->GetOperatorList(); 
   if( parentOperatorList != NULL)
   {
-    assert( operatorList == NULL); // GDL_OBJECT can only be inherited once
+    assert( this->operatorList == NULL); // GDL_OBJECT can only be inherited once
     operatorList = new OperatorList(*parentOperatorList);
+  }
+}
+
+// copy appropiate member subroutines from fun and pro lists
+void DStructDesc::SetupOperators()
+{
+  assert( this->operatorList != NULL);
+  for( FunListT::iterator f = this->fun.begin(); f != this->fun.end(); ++f)
+  {
+    int ix = OverloadOperatorIndexFun( (*f)->Name());
+    if( ix != -1)
+      operatorList->SetOperator(ix,*f);      
+  }
+  for( ProListT::iterator p = this->pro.begin(); p != this->pro.end(); ++p)
+  {
+    int ix = OverloadOperatorIndexPro( (*p)->Name());
+    if( ix != -1)
+      operatorList->SetOperator(ix,*p);      
   }
 }
 

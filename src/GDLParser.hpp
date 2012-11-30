@@ -168,6 +168,7 @@ public:
 	public: void parameter_def();
 	public: void array_def();
 	public: void struct_identifier();
+	public: void struct_name();
 	public: void struct_def();
 	public: void named_tag_def_list();
 	public: void tag_def_list();

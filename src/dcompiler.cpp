@@ -27,6 +27,7 @@
 #include "str.hpp"
 #include "dcommon.hpp"
 #include "GDLInterpreter.hpp"
+#include "overload.hpp"
 
 // print out AST tree
 //#define GDL_DEBUG
@@ -193,7 +194,6 @@ void DCompiler::EndPro() // inserts in proList
 
   if( name != "$MAIN$" || o != "")
     {
-      
       ProListT *searchList;
       if( o == "")
 	searchList= &proList;
@@ -207,8 +207,19 @@ void DCompiler::EndPro() // inserts in proList
 	      structList.push_back( dStruct);
 	    }
 	  searchList = &dStruct->ProList();
+	  
+	  // operator overlaoding
+	  // consider only PRO operators
+	  int operatorIndex = OverloadOperatorIndexPro( name);
+	  // insert in operator list if operator
+	  if( operatorIndex != -1)
+	  {
+	    // will do nothing if not derived from GDL_OBJECT
+	    dStruct->SetOperator( operatorIndex, pro);
+	  }
 	}
       
+	  
       // search/replace in proList
       ProListT::iterator p=find_if((*searchList).begin(),(*searchList).end(),
 				   Is_eq<DPro>(name));
@@ -229,7 +240,7 @@ void DCompiler::EndPro() // inserts in proList
       else
       {
 	(*searchList).push_back(static_cast<DPro*>(pro));
-        WarnAboutObsoleteRoutine(pro->ObjectName());
+	WarnAboutObsoleteRoutine(pro->ObjectName());
       }
     }
 
@@ -263,6 +274,16 @@ void DCompiler::EndFun() // inserts in funList
 	  structList.push_back( dStruct);
 	}
       searchList = &dStruct->FunList();
+
+      // operator overlaoding
+      // consider only FUNCTION operators
+      int operatorIndex = OverloadOperatorIndexFun( name);
+      // insert in operator list if operator
+      if( operatorIndex != -1)
+      {
+	// will do nothing if not derived from GDL_OBJECT
+	dStruct->SetOperator( operatorIndex, pro);
+      }
     }
 
   // search/replace in funList

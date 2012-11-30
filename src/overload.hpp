@@ -57,7 +57,8 @@ enum OverloadOperators
 , NumberOfOverloadOperators
 };
 
-int OverloadOperatorIndex( std::string subName);
+int OverloadOperatorIndexFun( std::string subName);
+int OverloadOperatorIndexPro( std::string subName);
 
 class OperatorList
 {
@@ -85,5 +86,7 @@ public:
   DSubUD* operator[]( SizeT i) const { return operators[i];}
   void SetOperator( SizeT op, DSubUD* opSub) { delete operators[op]; operators[op] = opSub;}
 };
+
+
 
 #endif

@@ -15,6 +15,8 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "includefirst.hpp"
+
 #include "overload.hpp"
 
 std::string overloadOperatorNames[] = 
@@ -50,10 +52,17 @@ std::string overloadOperatorNames[] =
 , "_OVERLOADSIZE"
 };
 
-int OverloadOperatorIndex( std::string subName)
+// except _OVERLOADBRACKETSLEFTSIDE all are functions
+int OverloadOperatorIndexFun( std::string subName)
 {
-  for( int i=0; i < NumberOfOverloadOperators; ++i)
+  for( int i=1; i < NumberOfOverloadOperators; ++i)
     if( subName == overloadOperatorNames[ i])
       return i;
+  return -1;
+}
+int OverloadOperatorIndexPro( std::string subName)
+{
+  if( subName == overloadOperatorNames[ 0])
+    return 0;
   return -1;
 }

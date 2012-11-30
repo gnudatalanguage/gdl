@@ -80,8 +80,9 @@ void ResetObjects()
   Purge(sysVarList);
   Purge(funList);
   Purge(proList);
+  Purge(structList); // now deletes member subroutines (and they in turn common block references
+  // hence delete common blocks after structList
   Purge(commonList);
-  Purge(structList);
   // no purging of library
 
 #ifdef USE_PYTHON
@@ -104,15 +105,17 @@ void InitStructs()
   SpDPtr    aPtrRef;
   SpDObj    aObjRef;
 
-//   // OBJECTS 
-// 
-//   DStructDesc* gdl_object = new DStructDesc( "GDL_OBJECT");
-//   gdl_object->AddTag("GDL_OBJ_TOP", &aLong64);
-//   gdl_object->AddTag("__OBJ__", &aObjRef);
-//   gdl_object->AddTag("GDL_OBJ_BOTTOM", &aLong64);
-//   // insert into structList
-//   structList.push_back(gdl_object);
-//   
+  // OBJECTS 
+
+  DStructDesc* gdl_object = new DStructDesc( "GDL_OBJECT");
+  gdl_object->AddTag("GDL_OBJ_TOP", &aLong64);
+  gdl_object->AddTag("__OBJ__", &aObjRef);
+  gdl_object->AddTag("GDL_OBJ_BOTTOM", &aLong64);
+  // special for GDL_OBJECT ony
+  gdl_object->InitOperatorList();
+  // insert into structList
+  structList.push_back(gdl_object);
+  
 //   DStructDesc* gdlList = new DStructDesc( "LIST");
 //   gdlList->AddTag("GDL_CONTAINER_TOP", &aLong64);
 //   gdlList->AddTag("GDLCONTAINERVERSION", &aInt);
