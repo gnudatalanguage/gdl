@@ -469,7 +469,7 @@ BaseGDL* NSTRUCNode::Eval()
 	    
 	    // set up operators form member functions
 	    // they were set when the struct was not derived from GDL_OBJECT and hence ignored
-	    if( nStructDesc == oStructDesc && inherit->Name() == "GDL_OBJECT")
+	    if( nStructDesc == oStructDesc && inherit->Name() == GDL_OBJECT_NAME)
 	    {
 	      // operatorList should have been set in instance->AddParent( inherit); 
 	      assert( nStructDesc->GetOperatorList() != NULL);

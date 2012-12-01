@@ -935,7 +935,7 @@ struct_name
         // here we translate IDL_OBECT to GDL_OBJECT for source code compatibility
         {
             if( #s->getText() == "IDL_OBJECT")
-                #s->setText( "GDL_OBJECT");
+                #s->setText(GDL_OBJECT_NAME);
         }
     ;
 

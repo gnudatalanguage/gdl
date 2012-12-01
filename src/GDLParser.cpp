@@ -5504,7 +5504,7 @@ void GDLParser::struct_name() {
 	if ( inputState->guessing==0 ) {
 		
 		if( s_AST->getText() == "IDL_OBJECT")
-		s_AST->setText( "GDL_OBJECT");
+		s_AST->setText(GDL_OBJECT_NAME);
 		
 	}
 	struct_name_AST = RefDNode(currentAST.root);

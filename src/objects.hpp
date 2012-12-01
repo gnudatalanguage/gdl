@@ -36,6 +36,8 @@
 // class DInterpreter;
 // extern DInterpreter* interpreter;
 
+const std::string GDL_OBJECT_NAME("GDL_OBJECT");
+
 extern VarListT      sysVarList;
 extern VarListT      sysVarRdOnlyList;
 
