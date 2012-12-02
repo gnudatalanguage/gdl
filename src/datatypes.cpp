@@ -2394,7 +2394,7 @@ bool Data_<SpDObj>::True()
   // make the call
   BaseGDL* res=interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 
-  if( NullGDL::IsNULL( res))
+  if( NullGDL::IsNULLorNullGDL( res))
   {
     throw GDLException( "_overloadIsTrue returned an undefined value.",true,false);
   }

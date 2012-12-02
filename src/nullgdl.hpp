@@ -56,7 +56,7 @@ class NullGDL: public BaseGDL
       return instance;
     }
     
-    static bool IsNULL( BaseGDL* p)
+    static bool IsNULLorNullGDL( BaseGDL* p)
     {
       // works for uninitialized !NULL as well
       // if not instantiated yet, instance is NULL
