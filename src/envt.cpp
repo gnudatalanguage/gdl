@@ -282,8 +282,10 @@ EnvT::EnvT( EnvT* pEnv, DSub* newPro, BaseGDL** self):
 
 
 
-EnvUDT::EnvUDT( EnvBaseT* pEnv, DSub* newPro, BaseGDL** self):
-  EnvBaseT( pEnv->CallingNode(), newPro),
+//EnvUDT::EnvUDT( EnvBaseT* pEnv, DSub* newPro, BaseGDL** self):
+EnvUDT::EnvUDT( ProgNodeP callingNode_, DSub* newPro, BaseGDL** self):
+//   EnvBaseT( pEnv->CallingNode(), newPro),
+  EnvBaseT( callingNode_, newPro),
   ioError(NULL), 
   onError( -1), 
   catchVar(NULL), 
@@ -552,50 +554,50 @@ void EnvBaseT::ObjCleanup( DObj actID)
     {
       DStructGDL* actObj;
       try{
-// 		actObj=GetObjHeap( actID);
- 		GDLInterpreter::ObjHeapT::iterator it;
-		actObj=GDLInterpreter::GetObjHeap( actID, it);
-      }
+	actObj=GetObjHeap( actID);
+// 	GDLInterpreter::ObjHeapT::iterator it;
+// 	actObj=GDLInterpreter::GetObjHeap( actID, it);
+    }
       catch( GDLInterpreter::HeapException){
 		actObj=NULL;
       }
 	    
     if( actObj != NULL)
-		{
-		try{
-				// call CLEANUP function
-				DPro* objCLEANUP= actObj->Desc()->GetPro( "CLEANUP");
-			
-				if( objCLEANUP != NULL)
-				{
-					BaseGDL* actObjGDL = new DObjGDL( actID);
-					auto_ptr<BaseGDL> actObjGDL_guard( actObjGDL);
-					GDLInterpreter::IncRefObj( actID); // set refcount to 1
-				
-					PushNewEmptyEnvUD( objCLEANUP, &actObjGDL);
-				
-					inProgress.insert( actID);
-				
-					interpreter->call_pro( objCLEANUP->GetTree());
-				
-					inProgress.erase( actID);
+	    {
+	      try{
+		  // call CLEANUP function
+		  DPro* objCLEANUP= actObj->Desc()->GetPro( "CLEANUP");
+	  
+		  if( objCLEANUP != NULL)
+		  {
+		    BaseGDL* actObjGDL = new DObjGDL( actID);
+		    auto_ptr<BaseGDL> actObjGDL_guard( actObjGDL);
+		    GDLInterpreter::IncRefObj( actID); // set refcount to 1
+	    
+		    PushNewEmptyEnvUD( objCLEANUP, &actObjGDL);
+	    
+		    inProgress.insert( actID);
+	    
+		    interpreter->call_pro( objCLEANUP->GetTree());
+	    
+		    inProgress.erase( actID);
 
-					EnvBaseT* callStackBack =  interpreter->CallStack().back();
-					interpreter->CallStack().pop_back();
-					delete callStackBack;
+		    EnvBaseT* callStackBack =  interpreter->CallStack().back();
+		    interpreter->CallStack().pop_back();
+		    delete callStackBack;
 
-					FreeObjHeap( actID); // make sure actObj is freed
-					// actObjGDL goes out of scope -> refcount is (would be) decreased
-				}
-			}
-		catch( ...)
-			{
-				FreeObjHeap( actID); // make sure actObj is freed
-				throw; // rethrow
-			}		
-		}
-	else		
-		FreeObjHeap( actID); // the actual freeing
+		    FreeObjHeap( actID); // make sure actObj is freed
+		    // actObjGDL goes out of scope -> refcount is (would be) decreased
+		  }
+	      }
+	    catch( ...)
+	      {
+		FreeObjHeap( actID); // make sure actObj is freed
+		throw; // rethrow
+	      }		
+	    }
+    else		
+	FreeObjHeap( actID); // the actual freeing
     }
 }
 
@@ -607,9 +609,9 @@ void EnvT::ObjCleanup( DObj actID)
     {
       DStructGDL* actObj;
       try{
-// 		actObj=GetObjHeap( actID);
- 		GDLInterpreter::ObjHeapT::iterator it;
-		actObj=GDLInterpreter::GetObjHeap( actID, it);
+ 		actObj=GetObjHeap( actID);
+//  		GDLInterpreter::ObjHeapT::iterator it;
+// 		actObj=GDLInterpreter::GetObjHeap( actID, it);
       }
       catch( GDLInterpreter::HeapException){
 		actObj=NULL;
@@ -939,7 +941,7 @@ EnvBaseT* EnvBaseT::Caller()
 // and obj_destroy (basic_pro.cpp)
 void EnvBaseT::PushNewEmptyEnvUD(  DSub* newPro, BaseGDL** newObj)
 {
-  EnvUDT* newEnv= new EnvUDT( this, newPro, newObj);
+  EnvUDT* newEnv= new EnvUDT( this->CallingNode(), newPro, newObj);
 
   // pass the parameters, skip the first 'skipP'
 //   SizeT nParam = NParam();
@@ -962,7 +964,7 @@ void EnvBaseT::PushNewEmptyEnvUD(  DSub* newPro, BaseGDL** newObj)
 // and call_procedure (basic_pro.cpp)
 void EnvT::PushNewEnvUD(  DSub* newPro, SizeT skipP, BaseGDL** newObj)
 {
-  EnvUDT* newEnv= new EnvUDT( this, newPro, newObj);
+  EnvUDT* newEnv= new EnvUDT( this->CallingNode(), newPro, newObj);
 
   // pass the parameters, skip the first 'skipP'
   SizeT nParam = NParam();

@@ -473,6 +473,10 @@ bool Data_<SpDComplex>::LogTrue();
 template<> 
 bool Data_<SpDComplexDbl>::LogTrue();
 template<> 
+bool Data_<SpDPtr>::LogTrue();
+template<> 
+bool Data_<SpDObj>::LogTrue();
+template<> 
 bool Data_<SpDFloat>::LogTrue(SizeT i);
 template<> 
 bool Data_<SpDDouble>::LogTrue(SizeT i);
@@ -482,6 +486,10 @@ template<>
 bool Data_<SpDComplex>::LogTrue(SizeT i);
 template<> 
 bool Data_<SpDComplexDbl>::LogTrue(SizeT i);
+template<> 
+bool Data_<SpDPtr>::LogTrue(SizeT i);
+template<> 
+bool Data_<SpDObj>::LogTrue(SizeT i);
 template<> 
 DLong* Data_<SpDFloat>::Where( bool, SizeT&);
 template<> 

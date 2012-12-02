@@ -2601,7 +2601,7 @@ namespace lib {
 
     // GDL magick
     StackGuard<EnvStackT> guard(e->Interpreter()->CallStack());
-    EnvUDT* newEnv = new EnvUDT(e, funList[GDLInterpreter::GetFunIx(fun)], NULL);
+    EnvUDT* newEnv = new EnvUDT(e->CallingNode(), funList[GDLInterpreter::GetFunIx(fun)], (BaseGDL**)NULL);
     newEnv->SetNextPar(&par);
     e->Interpreter()->CallStack().push_back(newEnv);
 
@@ -2742,7 +2742,7 @@ namespace lib {
 
     // GDL magick
     StackGuard<EnvStackT> guard(e->Interpreter()->CallStack());
-    EnvUDT* newEnv = new EnvUDT(e, funList[GDLInterpreter::GetFunIx(fun)], NULL);
+    EnvUDT* newEnv = new EnvUDT(e->CallingNode(), funList[GDLInterpreter::GetFunIx(fun)], (BaseGDL**)NULL);
     newEnv->SetNextPar(&par1);
     e->Interpreter()->CallStack().push_back(newEnv);
 
@@ -2873,7 +2873,7 @@ namespace lib {
 
     // GDL magick
     StackGuard<EnvStackT> guard(e->Interpreter()->CallStack());
-    EnvUDT* newEnv = new EnvUDT(e, funList[GDLInterpreter::GetFunIx(fun)], NULL);
+    EnvUDT* newEnv = new EnvUDT(e->CallingNode(), funList[GDLInterpreter::GetFunIx(fun)], (BaseGDL**)NULL);
     newEnv->SetNextPar(&par1);
     e->Interpreter()->CallStack().push_back(newEnv);
 
@@ -3105,7 +3105,7 @@ namespace lib {
   
     // GDL magick
     StackGuard<EnvStackT> guard(e->Interpreter()->CallStack());
-    EnvUDT* newEnv = new EnvUDT(e, funList[GDLInterpreter::GetFunIx(fun)], NULL);
+    EnvUDT* newEnv = new EnvUDT(e->CallingNode(), funList[GDLInterpreter::GetFunIx(fun)], (BaseGDL**)NULL);
     newEnv->SetNextPar(&par0);
     e->Interpreter()->CallStack().push_back(newEnv);
   

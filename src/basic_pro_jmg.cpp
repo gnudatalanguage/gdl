@@ -252,7 +252,7 @@ namespace lib {
 
 	SizeT funIx = GDLInterpreter::GetFunIx( callF);
 	
-	EnvUDT* newEnv= new EnvUDT( e, funList[ funIx], NULL);
+	EnvUDT* newEnv= new EnvUDT( e->CallingNode(), funList[ funIx], (BaseGDL**)NULL);
 
 	// add parameter
 	SizeT widgetID = 999;

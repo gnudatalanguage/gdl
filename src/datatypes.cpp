@@ -24,6 +24,7 @@
 #include <iomanip>
 
 //#include "datatypes.hpp" // included from arrayindex.hpp
+#include "nullgdl.hpp"
 #include "dstructgdl.hpp"
 #include "arrayindexlistt.hpp"
 #include "assocdata.hpp"
@@ -2340,7 +2341,7 @@ bool Data_<SpDComplex>::True()
   Ty s;
   if( !Scalar( s))
     throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
-  return (real(s) != 0.0);
+  return (real(s) != 0.0 || imag(s) != 0.0);
 }
 template<>
 bool Data_<SpDComplexDbl>::True()
@@ -2348,19 +2349,68 @@ bool Data_<SpDComplexDbl>::True()
   Ty s;
   if( !Scalar( s))
     throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
-  return (real(s) != 0.0);
+  return (real(s) != 0.0 || imag(s) != 0.0);
 }
 
 template<>
 bool Data_<SpDPtr>::True()
 {
-  throw GDLException("Ptr expression not allowed in this context.");
+  Ty s;
+  if( !Scalar( s))
+    throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
+  return (s != 0);
 }
 
 template<>
 bool Data_<SpDObj>::True()
 {
-  throw GDLException("Object expression not allowed in this context.");
+  Ty s;
+  if( !Scalar( s))
+    throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
+  if( s == 0)
+    return false; // on overloads for null object
+
+  DStructGDL* oStructGDL= GDLInterpreter::GetObjHeapNoThrow( s);
+  if( oStructGDL == NULL) // object not valid -> default behaviour
+    return true; // true is ok here: Default behaviour is to just checks for null object
+
+  DStructDesc* desc = oStructGDL->Desc();
+  
+  DFun* isTrueOverload = static_cast<DFun*>(desc->GetOperator( OOIsTrue));
+  if( isTrueOverload == NULL) 
+    return true; // not overloaded, false case for default already returned (s. a.)
+  
+  ProgNodeP callingNode = interpreter->GetRetTree();
+    
+  BaseGDL* thisPtr = this;
+  EnvUDT* newEnv= new EnvUDT( callingNode, isTrueOverload, &thisPtr);
+  // no parameters
+  
+  // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
+  StackGuard<EnvStackT> guard(interpreter->CallStack());
+
+  interpreter->CallStack().push_back( newEnv); 
+  
+  // make the call
+  BaseGDL* res=interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+
+  if( NullGDL::IsNULL( res))
+  {
+    throw GDLException( "_overloadIsTrue returned an undefined value.",true,false);
+  }
+  
+  Guard<BaseGDL> resGuard( res);
+  
+  // prevent recursion
+  if( res->Type() == GDL_OBJ)
+    {
+      ostringstream os;
+      res->ToStream(os);
+      throw GDLException( "Object reference expression not allowed in this context: " +
+      os.str(),true,false);
+    }
+  
+  return res->LogTrue();
 }
 
 // False
@@ -3602,7 +3652,7 @@ void Data_<Sp>::CatInsert( const Data_* srcArr, const SizeT atDim, SizeT& at)
 }
 
 // Logical True
-// integers, also ptr and object
+// integers
 template<class Sp>
 bool Data_<Sp>::LogTrue()
 {
@@ -3651,10 +3701,23 @@ bool Data_<SpDComplexDbl>::LogTrue()
     throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
   return (real(s) != 0.0 || imag(s) != 0.0);
 }
+template<>
+bool Data_<SpDPtr>::LogTrue()
+{
+  Ty s;
+  if( !Scalar( s))
+    throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
+  return (s != 0);
+}
+template<>
+bool Data_<SpDObj>::LogTrue()
+{
+  return this->True();
+}
 // structs are not allowed
 
 // indexed version
-// integers, also ptr and object
+// integers
 template<class Sp>
 bool Data_<Sp>::LogTrue(SizeT i)
 {
@@ -3684,6 +3747,16 @@ template<>
 bool Data_<SpDComplexDbl>::LogTrue(SizeT i)
 {
   return ((*this)[i].real() != 0.0 || (*this)[i].imag() != 0.0);
+}
+template<>
+bool Data_<SpDPtr>::LogTrue(SizeT i)
+{
+  return (*this)[i] != 0;
+}
+template<>
+bool Data_<SpDObj>::LogTrue(SizeT i)
+{
+  return (*this)[i] != 0;
 }
 // structs are not allowed
 

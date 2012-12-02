@@ -499,13 +499,21 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
         if( it == objHeap.end()) throw HeapException();
         return it->second.get();
     }
-    static DStructGDL*& GetObjHeap( DObj ID, ObjHeapT::iterator& it)
+
+    // for overload functions
+    static DStructGDL* GetObjHeapNoThrow( DObj ID)
     {
-//         ObjHeapT::iterator it=objHeap.find( ID);
-        it=objHeap.find( ID);
-        if( it == objHeap.end()) throw HeapException();
+        ObjHeapT::iterator it=objHeap.find( ID);
+        if( it == objHeap.end()) return NULL;
         return it->second.get();
     }
+//     static DStructGDL*& GetObjHeap( DObj ID, ObjHeapT::iterator& it)
+//     {
+// //         ObjHeapT::iterator it=objHeap.find( ID);
+//         it=objHeap.find( ID);
+//         if( it == objHeap.end()) throw HeapException();
+//         return it->second.get();
+//     }
 
     static bool PtrValid( DPtr ID)
     {

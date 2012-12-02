@@ -172,7 +172,7 @@ namespace lib {
   void PushNewEnvRK( EnvT*e, DSub* newPro, BaseGDL** a,BaseGDL** b)
   {
 
-    EnvUDT* newEnv= new EnvUDT( e, newPro, NULL);
+    EnvUDT* newEnv= new EnvUDT( e->CallingNode(), newPro, (BaseGDL**)NULL);
 
     newEnv->SetNextPar(a); // pass as global
     newEnv->SetNextPar(b); // pass as global

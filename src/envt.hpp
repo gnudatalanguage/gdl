@@ -417,7 +417,8 @@ public:
 
 
   // for obj_new and obj_destroy
-  EnvUDT( EnvBaseT* pEnv, DSub* newPro, BaseGDL** self); 
+  //EnvUDT( EnvBaseT* pEnv, DSub* newPro, BaseGDL** self); 
+  EnvUDT( ProgNodeP callindNode_, DSub* newPro, BaseGDL** self); 
 
   DLong GetOnError() const { return onError;}
 

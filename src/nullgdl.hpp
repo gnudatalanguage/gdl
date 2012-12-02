@@ -56,6 +56,14 @@ class NullGDL: public BaseGDL
       return instance;
     }
     
+    static bool IsNULL( BaseGDL* p)
+    {
+      // works for uninitialized !NULL as well
+      // if not instantiated yet, instance is NULL
+      // if p is !NULL, instance must be initialized
+      // even then we save one comparison (for instance == NULL)
+      return (p == NULL) || (p == instance);
+    }
 //  private:
   /*virtual*/ BaseGDL& operator=(const BaseGDL& right);
 //  public:

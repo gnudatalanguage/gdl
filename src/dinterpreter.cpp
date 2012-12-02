@@ -115,11 +115,13 @@ RetCode GDLInterpreter::NewInterpreterInstance( SizeT lineOffset)
 
 DStructGDL* GDLInterpreter::ObjectStruct( BaseGDL* self, ProgNodeP mp)
 {
-  DObjGDL* obj=dynamic_cast<DObjGDL*>(self);
-  if( obj == NULL) 
+  DType selfType = self->Type();
+  if( selfType != GDL_OBJ) 
     throw GDLException( mp, "Object reference type"
 			" required in this context: "+Name(self));
-  
+
+  DObjGDL* obj=static_cast<DObjGDL*>(self);
+
   SizeT o;
   if( !obj->Scalar( o))
     throw GDLException( mp, "Object reference"
