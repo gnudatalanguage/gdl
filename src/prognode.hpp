@@ -4,7 +4,7 @@
     begin                : July 22 2002
     copyright            : (C) 2002 by Marc Schellens
     email                : m_schellens@users.sf.net
- ***************************************************************************/
+***************************************************************************/
 
 /***************************************************************************
  *                                                                         *
@@ -22,13 +22,13 @@
 
 //#include "GDLInterpreter.hpp"
 
-    enum RetCode {
-        RC_OK=0,
-        RC_BREAK,
-        RC_CONTINUE,
-        RC_RETURN, 
-        RC_ABORT, // checked as retCode >= RC_RETURN
-    };
+enum RetCode {
+  RC_OK=0,
+  RC_BREAK,
+  RC_CONTINUE,
+  RC_RETURN, 
+  RC_ABORT, // checked as retCode >= RC_RETURN
+};
 
 class ProgNode;
 typedef ProgNode* ProgNodeP;
@@ -51,18 +51,18 @@ inline bool NonCopyNode( int type)
 {
   static bool* nonCopyNodeLookupArray = GetNonCopyNodeLookupArray();
   return nonCopyNodeLookupArray[ type];
-//   return 
-//     (type == GDLTokenTypes::VAR) ||
-//     (type == GDLTokenTypes::VARPTR) ||
-//     (type == GDLTokenTypes::DEREF) ||
-//     (type == GDLTokenTypes::CONSTANT) ||
-//     (type == GDLTokenTypes::SYSVAR) ;
+  //   return 
+  //     (type == GDLTokenTypes::VAR) ||
+  //     (type == GDLTokenTypes::VARPTR) ||
+  //     (type == GDLTokenTypes::DEREF) ||
+  //     (type == GDLTokenTypes::CONSTANT) ||
+  //     (type == GDLTokenTypes::SYSVAR) ;
 
-// are always copy nodes:
-//     (type == GDLTokenTypes::ARRAYDEF)
-//     (type == GDLTokenTypes::STRUC)
-//     (type == GDLTokenTypes::NSTRUC)
-//     (type == GDLTokenTypes::NSTRUC_REF)
+  // are always copy nodes:
+  //     (type == GDLTokenTypes::ARRAYDEF)
+  //     (type == GDLTokenTypes::STRUC)
+  //     (type == GDLTokenTypes::NSTRUC)
+  //     (type == GDLTokenTypes::NSTRUC_REF)
 }
 
 class BreakableNode;
@@ -130,37 +130,37 @@ public:
 
   ProgNode( const RefDNode& refNode);
 
-	// tree translation takes place here
-	// see newprognode.cpp
+  // tree translation takes place here
+  // see newprognode.cpp
   static ProgNodeP NewProgNode( const RefDNode& refNode);
   static int NumberForLoops( ProgNodeP tree, int offset = 0)
   {
-	if( tree == NULL)
-		return offset;
+    if( tree == NULL)
+      return offset;
 		
-	return tree->NumberForLoops( offset);
+    return tree->NumberForLoops( offset);
   }
 
   virtual int NumberForLoops( int actNum)
   {
-	if( down != NULL && !keepDown)
-		{
-			actNum = down->NumberForLoops( actNum);
-		}
+    if( down != NULL && !keepDown)
+      {
+	actNum = down->NumberForLoops( actNum);
+      }
 		
-	if( right != NULL && !keepRight)
-		{
-			actNum = right->NumberForLoops( actNum);
-		}
-	return actNum;
- }
+    if( right != NULL && !keepRight)
+      {
+	actNum = right->NumberForLoops( actNum);
+      }
+    return actNum;
+  }
   
   virtual ~ProgNode();
   
   void SetRightDown( const ProgNodeP right, const ProgNodeP down);
 
   virtual BaseGDL** LExpr( BaseGDL* right);
-//   virtual BaseGDL** LExprGrab( BaseGDL* right); // take ownership of right
+  //   virtual BaseGDL** LExprGrab( BaseGDL* right); // take ownership of right
   virtual BaseGDL** LEval();
   virtual BaseGDL** EvalRefCheck( BaseGDL*& rEval); // returns NULL if r-value with rEval set
   virtual BaseGDL* Eval(); // caller receives ownership
@@ -168,7 +168,7 @@ public:
   virtual BaseGDL* EvalNCNull(); // non-copy might return NULL
   virtual RetCode    Run();
 
-//   RetCode  (*RunP)();
+  //   RetCode  (*RunP)();
 
   bool ConstantNode();
 
@@ -190,8 +190,8 @@ public:
   }
   ProgNodeP GetLastSibling() const
   {
-	ProgNodeP act = const_cast<ProgNodeP>(this);
-	while(!act->KeepRight() && act->GetNextSibling() != NULL) act = act->GetNextSibling();
+    ProgNodeP act = const_cast<ProgNodeP>(this);
+    while(!act->KeepRight() && act->GetNextSibling() != NULL) act = act->GetNextSibling();
     return act;
   }
   ProgNodeP GetNextSibling() const
@@ -221,45 +221,45 @@ public:
   
   void KeepDown( ProgNodeP d)
   {
-	down = d;
-	keepDown = true;
+    down = d;
+    keepDown = true;
   }
   virtual void KeepRight( ProgNodeP r)
   {
-	right = r;
-	keepRight = true;
+    right = r;
+    keepRight = true;
   }
 
-   void SetRight( ProgNodeP r)
-   {
- 	right = r;
-// 	keepRight = false;
-   }
+  void SetRight( ProgNodeP r)
+  {
+    right = r;
+    // 	keepRight = false;
+  }
   
-	virtual void SetAllBreak( ProgNodeP target)
-	{
-		if( down != NULL && !keepDown)
-				{
-					down->SetAllBreak( target);
-				}
+  virtual void SetAllBreak( ProgNodeP target)
+  {
+    if( down != NULL && !keepDown)
+      {
+	down->SetAllBreak( target);
+      }
 		
-		if( right != NULL && !keepRight)
-		{
-			right->SetAllBreak( target);
-		}
-	}
-	virtual void SetAllContinue( ProgNodeP target)
-	{
-		if( down != NULL && !keepDown)
-				{
-					down->SetAllContinue( target);
-				}
+    if( right != NULL && !keepRight)
+      {
+	right->SetAllBreak( target);
+      }
+  }
+  virtual void SetAllContinue( ProgNodeP target)
+  {
+    if( down != NULL && !keepDown)
+      {
+	down->SetAllContinue( target);
+      }
 		
-		if( right != NULL && !keepRight)
-		{
-			right->SetAllContinue( target);
-		}
-	}
+    if( right != NULL && !keepRight)
+      {
+	right->SetAllContinue( target);
+      }
+  }
 
   int getType() { return ttype;}
   void setType( int t) { ttype=t;}
@@ -275,32 +275,32 @@ public:
   
   bool LabelInRange( const int lIx)
   {
-// 	std::cout << "LabelInRange: " << ((lIx >= labelStart) && (lIx < labelEnd)) << "     " << lIx << "   [" << labelStart << "," << labelEnd << ")" << std::endl;
-	return (lIx >= labelStart) && (lIx < labelEnd);
+    // 	std::cout << "LabelInRange: " << ((lIx >= labelStart) && (lIx < labelEnd)) << "     " << lIx << "   [" << labelStart << "," << labelEnd << ")" << std::endl;
+    return (lIx >= labelStart) && (lIx < labelEnd);
   }
   
-	friend class GDLInterpreter;
-	friend class DInterpreter;
+  friend class GDLInterpreter;
+  friend class DInterpreter;
 
-	friend class NSTRUCNode;
-	friend class ASSIGNNode;
-	friend class ASSIGN_REPLACENode;
-	friend class PCALL_LIBNode;//: public CommandNode
-	friend class MPCALLNode;//: public CommandNode
-	friend class MPCALL_PARENTNode;//: public CommandNode
-	friend class PCALLNode;//: public CommandNode
-	friend class ARRAYEXPR_MFCALLNode;
-	friend class KEYDEF_Node;
-	friend class KEYDEF_REFNode;
-	friend class KEYDEF_REF_CHECKNode;
-	friend class KEYDEF_REF_EXPRNode;
-	friend class REFNode;
-	friend class REF_CHECKNode;
-	friend class REF_EXPRNode;
-	friend class ParameterNode;
-	friend class ARRAYEXPRNode;
-	friend class EXPRNode;
-	friend class SYSVARNode;
+  friend class NSTRUCNode;
+  friend class ASSIGNNode;
+  friend class ASSIGN_REPLACENode;
+  friend class PCALL_LIBNode;//: public CommandNode
+  friend class MPCALLNode;//: public CommandNode
+  friend class MPCALL_PARENTNode;//: public CommandNode
+  friend class PCALLNode;//: public CommandNode
+  friend class ARRAYEXPR_MFCALLNode;
+  friend class KEYDEF_Node;
+  friend class KEYDEF_REFNode;
+  friend class KEYDEF_REF_CHECKNode;
+  friend class KEYDEF_REF_EXPRNode;
+  friend class REFNode;
+  friend class REF_CHECKNode;
+  friend class REF_EXPRNode;
+  friend class ParameterNode;
+  friend class ARRAYEXPRNode;
+  friend class EXPRNode;
+  friend class SYSVARNode;
 };
 
 
@@ -314,11 +314,11 @@ public:
   {
     if( refNode->GetFirstChild() != RefDNode(antlr::nullAST))
       {
-		down = NewProgNode( refNode->GetFirstChild());
+	down = NewProgNode( refNode->GetFirstChild());
       }
     if( refNode->GetNextSibling() != RefDNode(antlr::nullAST))
       {
-		right = NewProgNode( refNode->GetNextSibling());
+	right = NewProgNode( refNode->GetNextSibling());
       }
   }
 };
@@ -326,151 +326,151 @@ public:
 class RETPNode: public DefaultNode
 {
 public:
-	RetCode      Run();
+  RetCode      Run();
 	
 public:
-    RETPNode(): DefaultNode()  {}
+  RETPNode(): DefaultNode()  {}
 	
-	RETPNode( const RefDNode& refNode): DefaultNode( refNode)
-	{}
+  RETPNode( const RefDNode& refNode): DefaultNode( refNode)
+  {}
 };
 class RETFNode: public DefaultNode
 {
 public:
- RetCode      Run();
+  RetCode      Run();
 	
 public:
-    RETFNode(): DefaultNode()  {}
+  RETFNode(): DefaultNode()  {}
 	
-	RETFNode( const RefDNode& refNode): DefaultNode( refNode)
-	{}
+  RETFNode( const RefDNode& refNode): DefaultNode( refNode)
+  {}
 };
 class GOTONode: public DefaultNode
 {
 public:
- RetCode      Run();
+  RetCode      Run();
 	
-	void SetAllBreak( ProgNodeP target)
-	{
-// 		breakTarget = target;
+  void SetAllBreak( ProgNodeP target)
+  {
+    // 		breakTarget = target;
 		
-		if( right != NULL && !keepRight)
-		{
-			right->SetAllBreak( target);
-		}
-	}
+    if( right != NULL && !keepRight)
+      {
+	right->SetAllBreak( target);
+      }
+  }
 public:
-    GOTONode(): DefaultNode()  {}
+  GOTONode(): DefaultNode()  {}
 	
-	GOTONode( const RefDNode& refNode): DefaultNode( refNode)
-	{}
+  GOTONode( const RefDNode& refNode): DefaultNode( refNode)
+  {}
 };
 class CONTINUENode: public DefaultNode
 {
 public:
- RetCode      Run();
+  RetCode      Run();
 	
 
-	void SetAllContinue( ProgNodeP target)
-	{
-		assert( target != NULL);
-		breakTarget = target;
+  void SetAllContinue( ProgNodeP target)
+  {
+    assert( target != NULL);
+    breakTarget = target;
 		
-		if( right != NULL && !keepRight)
-		{
-			right->SetAllContinue( target);
-		}
-	}
+    if( right != NULL && !keepRight)
+      {
+	right->SetAllContinue( target);
+      }
+  }
 public:
-    CONTINUENode(): DefaultNode()  {}
+  CONTINUENode(): DefaultNode()  {}
 	
-	CONTINUENode( const RefDNode& refNode): DefaultNode( refNode)
-	{}
+  CONTINUENode( const RefDNode& refNode): DefaultNode( refNode)
+  {}
 };
 class BREAKNode: public DefaultNode
 {
 private:
-	bool breakTargetSet;
+  bool breakTargetSet;
 
 public:
-	RetCode      Run();
+  RetCode      Run();
 	
 
-	void SetAllBreak( ProgNodeP target)
-	{
-		breakTarget = target;
-		breakTargetSet = true;
+  void SetAllBreak( ProgNodeP target)
+  {
+    breakTarget = target;
+    breakTargetSet = true;
 		
-		if( right != NULL && !keepRight)
-		{
-			right->SetAllBreak( target);
-		}
-	}
+    if( right != NULL && !keepRight)
+      {
+	right->SetAllBreak( target);
+      }
+  }
 public:
-    BREAKNode(): DefaultNode(), breakTargetSet(false)  {}
+  BREAKNode(): DefaultNode(), breakTargetSet(false)  {}
 	
-	BREAKNode( const RefDNode& refNode): DefaultNode( refNode), breakTargetSet(false)
-	{}
+  BREAKNode( const RefDNode& refNode): DefaultNode( refNode), breakTargetSet(false)
+  {}
 };
 class LABELNode: public DefaultNode
 {
 public:
- RetCode      Run();
+  RetCode      Run();
 	
 
 public:
-    LABELNode(): DefaultNode()  {}
+  LABELNode(): DefaultNode()  {}
 	
-	LABELNode( const RefDNode& refNode): DefaultNode( refNode)
-	{}
+  LABELNode( const RefDNode& refNode): DefaultNode( refNode)
+  {}
 };
 class ON_IOERROR_NULLNode: public DefaultNode
 {
 public:
- RetCode      Run();
+  RetCode      Run();
 	
 
 public:
-    ON_IOERROR_NULLNode(): DefaultNode()  {}
+  ON_IOERROR_NULLNode(): DefaultNode()  {}
 	
-	ON_IOERROR_NULLNode( const RefDNode& refNode): DefaultNode( refNode)
-	{}
+  ON_IOERROR_NULLNode( const RefDNode& refNode): DefaultNode( refNode)
+  {}
 };
 class ON_IOERRORNode: public DefaultNode
 {
 public:
- RetCode      Run();
+  RetCode      Run();
 	
 
 public:
-    ON_IOERRORNode(): DefaultNode()  {}
+  ON_IOERRORNode(): DefaultNode()  {}
 	
-	ON_IOERRORNode( const RefDNode& refNode): DefaultNode( refNode)
-	{}
+  ON_IOERRORNode( const RefDNode& refNode): DefaultNode( refNode)
+  {}
 };
 
 
 class BreakableNode: public ProgNode
 {
 public:
-	void SetAllBreak( ProgNodeP target)
-	{
-		// down: do NOT descent into own loop tree here
+  void SetAllBreak( ProgNodeP target)
+  {
+    // down: do NOT descent into own loop tree here
 		
-		if( right != NULL && !keepRight)
-		{
-			right->SetAllBreak( target);
-		}
-	}
-	void SetAllContinue( ProgNodeP target)
-	{
-		// down: do NOT descent into own loop tree here
+    if( right != NULL && !keepRight)
+      {
+	right->SetAllBreak( target);
+      }
+  }
+  void SetAllContinue( ProgNodeP target)
+  {
+    // down: do NOT descent into own loop tree here
 		
-		if( right != NULL && !keepRight)
-		{
-			right->SetAllContinue( target);
-		}
-	}
+    if( right != NULL && !keepRight)
+      {
+	right->SetAllContinue( target);
+      }
+  }
 
 public:
   BreakableNode(): ProgNode()  {}
@@ -479,11 +479,11 @@ public:
   {
     if( refNode->GetFirstChild() != RefDNode(antlr::nullAST))
       {
-		down = NewProgNode( refNode->GetFirstChild());
+	down = NewProgNode( refNode->GetFirstChild());
       }
     if( refNode->GetNextSibling() != RefDNode(antlr::nullAST))
       {
-		right = NewProgNode( refNode->GetNextSibling());
+	right = NewProgNode( refNode->GetNextSibling());
       }
   }
 };
@@ -493,62 +493,67 @@ public:
 
 class FOR_LOOPNode: public BreakableNode
 {
-  public:
- RetCode      Run();
+public:
+  RetCode      Run();
 
-	ProgNodeP statementList;
+  ProgNodeP statementList;
 	
-	ProgNodeP GetStatementList()
-	{
-		return down->GetNextSibling();//->GetNextSibling()->GetNextSibling();
-	}
+  ProgNodeP GetStatementList()
+  {
+    return down->GetNextSibling();//->GetNextSibling()->GetNextSibling();
+  }
 	
-  public:
-	void KeepRight( ProgNodeP r)
-	{
-		right = r;
-		keepRight = true;
-		assert( this->GetStatementList() != NULL);
-// 		if( this->GetStatementList() != NULL)
-			this->GetStatementList()->SetAllBreak( right);
-	}
+public:
+  void KeepRight( ProgNodeP r)
+  {
+    right = r;
+    keepRight = true;
+    assert( this->GetStatementList() != NULL);
+    // 		if( this->GetStatementList() != NULL)
+    this->GetStatementList()->SetAllBreak( right);
+  }
   
   int NumberForLoops( int actNum)
   {
-	this->forLoopIx = actNum;
-	actNum++;
-	ProgNodeP statementList = this->GetStatementList();
-	if( statementList != NULL && !down->KeepRight())
-		{
-			actNum = statementList->NumberForLoops( actNum);
-		}
-	if( right != NULL && !keepRight)
-		{
-			actNum = right->NumberForLoops( actNum);
-		}
-	return actNum;
- }
+    this->forLoopIx = actNum;
+    actNum++;
+    ProgNodeP statementList = this->GetStatementList();
+    if( statementList != NULL && !down->KeepRight())
+      {
+	actNum = statementList->NumberForLoops( actNum);
+      }
+    if( right != NULL && !keepRight)
+      {
+	actNum = right->NumberForLoops( actNum);
+      }
+    return actNum;
+  }
   
-  public:
+public:
   FOR_LOOPNode( ProgNodeP r, ProgNodeP d): BreakableNode()
   {
     SetType( GDLTokenTypes::FOR_LOOP, "for_loop");
-	SetRightDown( r, d);
+    SetRightDown( r, d);
 
-	assert( down != NULL);
+    assert( down != NULL);
 	
-	statementList = this->GetStatementList();
-	if( statementList != NULL)
-		{
-			statementList->SetAllContinue( this);
-			statementList->GetLastSibling()->KeepRight( this);
-			if( right != NULL) statementList->SetAllBreak( right);
-		}
-	else
-		{
-			down->KeepRight( this);
-			statementList = this;
-		}
+    statementList = this->GetStatementList();
+    if( statementList != NULL)
+      {
+	statementList->SetAllContinue( this);
+	statementList->GetLastSibling()->KeepRight( this);
+	// also NULL is fine for "right" when the FOR statement
+	// is the last in the subroutine
+	// it is important, that breakTargetSet is set hence
+	// this call must be done even with right == NULL
+	statementList->SetAllBreak( right);
+	// 			if( right != NULL) statementList->SetAllBreak( right);
+      }
+    else
+      {
+	down->KeepRight( this);
+	statementList = this;
+      }
   }
 
 };
@@ -556,101 +561,106 @@ class FOR_LOOPNode: public BreakableNode
 
 class FORNode: public BreakableNode
 {
-  public:
- RetCode      Run();
+public:
+  RetCode      Run();
 	
   void KeepRight( ProgNodeP r);
 	
   int NumberForLoops( int actNum)
   {
-	this->forLoopIx = actNum;
+    this->forLoopIx = actNum;
 	
-// 	assert( down == NULL);
+    // 	assert( down == NULL);
 		
-	assert( right != NULL && !keepRight);
+    assert( right != NULL && !keepRight);
 			
-	actNum = right->NumberForLoops( actNum);
+    actNum = right->NumberForLoops( actNum);
 	
-	return actNum;
- }
+    return actNum;
+  }
   
-  public:
+public:
   FORNode(): BreakableNode()  {}
 
   FORNode( const RefDNode& refNode): BreakableNode( refNode)
-	{
-	ProgNodeP keep = down->GetNextSibling();
-	down->SetRight( down->GetNextSibling()->GetNextSibling()->GetNextSibling());
+  {
+    ProgNodeP keep = down->GetNextSibling();
+    down->SetRight( down->GetNextSibling()->GetNextSibling()->GetNextSibling());
 
-	keep->GetNextSibling()->SetRight( NULL);
+    keep->GetNextSibling()->SetRight( NULL);
 	
     FOR_LOOPNode* forLoop = new FOR_LOOPNode( right, down);
-	forLoop->setLine( getLine());
+    forLoop->setLine( getLine());
 
-	down = keep;
+    down = keep;
 	
-	right = forLoop;
-//   		if( this->GetStatementList() != NULL && right != NULL)
-// 			this->GetStatementList()->GetLastSibling()->KeepRight( right);
-	}
+    right = forLoop;
+    //   		if( this->GetStatementList() != NULL && right != NULL)
+    // 			this->GetStatementList()->GetLastSibling()->KeepRight( right);
+  }
 };
 
 
 
 class FOR_STEP_LOOPNode: public BreakableNode
 {
-  public:
- RetCode      Run();
+public:
+  RetCode      Run();
 	
-	ProgNodeP GetStatementList()
-	{
-		return down->GetNextSibling();//->GetNextSibling()->GetNextSibling()->GetNextSibling();
-	}
+  ProgNodeP GetStatementList()
+  {
+    return down->GetNextSibling();//->GetNextSibling()->GetNextSibling()->GetNextSibling();
+  }
 	
-  public:
-	void KeepRight( ProgNodeP r)
-	{
-		right = r;
-		keepRight = true;
-		if( this->GetStatementList() != NULL)
-			this->GetStatementList()->SetAllBreak( right);
-	}
+public:
+  void KeepRight( ProgNodeP r)
+  {
+    right = r;
+    keepRight = true;
+    if( this->GetStatementList() != NULL)
+      this->GetStatementList()->SetAllBreak( right);
+  }
   
   int NumberForLoops( int actNum)
   {
-	this->forLoopIx = actNum;
-	actNum++;
-	ProgNodeP statementList = this->GetStatementList();
-	if( statementList != NULL && !down->KeepRight())
-		{
-			actNum = statementList->NumberForLoops( actNum);
-		}
-	if( right != NULL && !keepRight)
-		{
-			actNum = right->NumberForLoops( actNum);
-		}
-	return actNum;
- }
+    this->forLoopIx = actNum;
+    actNum++;
+    ProgNodeP statementList = this->GetStatementList();
+    if( statementList != NULL && !down->KeepRight())
+      {
+	actNum = statementList->NumberForLoops( actNum);
+      }
+    if( right != NULL && !keepRight)
+      {
+	actNum = right->NumberForLoops( actNum);
+      }
+    return actNum;
+  }
   
-  public:
+public:
   FOR_STEP_LOOPNode( ProgNodeP r, ProgNodeP d): BreakableNode()
   {
     SetType( GDLTokenTypes::FOR_STEP_LOOP, "for_step_loop");
-	SetRightDown( r, d);
+    SetRightDown( r, d);
 
-	assert( down != NULL);
+    assert( down != NULL);
 	
-	ProgNodeP statementList = this->GetStatementList();
-	if( statementList != NULL)
-		{
-			statementList->SetAllContinue( this);
-			statementList->GetLastSibling()->KeepRight( this);
-			if( right != NULL) statementList->SetAllBreak( right);
-		}
-	else
-		{
-			down->KeepRight( this);
-		}
+    ProgNodeP statementList = this->GetStatementList();
+    if( statementList != NULL)
+      {
+	statementList->SetAllContinue( this);
+	statementList->GetLastSibling()->KeepRight( this);
+	// also NULL is fine for "right" when the FOR statement
+	// is the last in the subroutine
+	// it is important, that breakTargetSet is set hence
+	// this call must be done even with right == NULL
+	statementList->SetAllBreak( right);
+	// 			if( right != NULL) statementList->SetAllBreak( right);
+      }
+    else
+      {
+	down->KeepRight( this);
+      }
   }
 
 };
@@ -659,100 +669,102 @@ class FOR_STEP_LOOPNode: public BreakableNode
 
 class FOR_STEPNode: public BreakableNode
 {
-  public:
- RetCode      Run();
+public:
+  RetCode      Run();
 	
-	void KeepRight( ProgNodeP r);
+  void KeepRight( ProgNodeP r);
 	
   int NumberForLoops( int actNum)
   {
-	this->forLoopIx = actNum;
+    this->forLoopIx = actNum;
 	
-	//assert( down == NULL);
+    //assert( down == NULL);
 		
-	assert( right != NULL && !keepRight);
+    assert( right != NULL && !keepRight);
 			
-	actNum = right->NumberForLoops( actNum);
+    actNum = right->NumberForLoops( actNum);
 	
-	return actNum;
- }
+    return actNum;
+  }
   
-  public:
+public:
   FOR_STEPNode(): BreakableNode()  {}
 
   FOR_STEPNode( const RefDNode& refNode): BreakableNode( refNode)
-	{
-	ProgNodeP keep = down->GetNextSibling();
-	down->SetRight( down->GetNextSibling()->GetNextSibling()->GetNextSibling()->GetNextSibling());
+  {
+    ProgNodeP keep = down->GetNextSibling();
+    down->SetRight( down->GetNextSibling()->GetNextSibling()->GetNextSibling()->GetNextSibling());
 
-	keep->GetNextSibling()->GetNextSibling()->SetRight( NULL);
+    keep->GetNextSibling()->GetNextSibling()->SetRight( NULL);
 	
     FOR_STEP_LOOPNode* forLoop = new FOR_STEP_LOOPNode( right, down);
-	forLoop->setLine( getLine());
+    forLoop->setLine( getLine());
 
-	down = keep;
+    down = keep;
 	
-	right = forLoop;
+    right = forLoop;
 
-//   		if( this->GetStatementList() != NULL && right != NULL)
-// 			this->GetStatementList()->GetLastSibling()->KeepRight( right);
-	}
+    //   		if( this->GetStatementList() != NULL && right != NULL)
+    // 			this->GetStatementList()->GetLastSibling()->KeepRight( right);
+  }
 };
 
 class FOREACH_LOOPNode: public BreakableNode
 {
-  public:
- RetCode      Run();
+public:
+  RetCode      Run();
 	
-	ProgNodeP GetStatementList()
-	{
-		return down->GetNextSibling();
-	}
+  ProgNodeP GetStatementList()
+  {
+    return down->GetNextSibling();
+  }
 	
-  public:
-	void KeepRight( ProgNodeP r)
-	{
-		right = r;
-		keepRight = true;
-		if( this->GetStatementList() != NULL)
-			this->GetStatementList()->SetAllBreak( right);
-	}
+public:
+  void KeepRight( ProgNodeP r)
+  {
+    right = r;
+    keepRight = true;
+    if( this->GetStatementList() != NULL)
+      this->GetStatementList()->SetAllBreak( right);
+  }
   
   int NumberForLoops( int actNum)
   {
-	this->forLoopIx = actNum;
-	actNum++;
-	ProgNodeP statementList = this->GetStatementList();
-	if( statementList != NULL && !down->KeepRight())
-		{
-			actNum = statementList->NumberForLoops( actNum);
-		}
-	if( right != NULL && !keepRight)
-		{
-			actNum = right->NumberForLoops( actNum);
-		}
-	return actNum;
- }
+    this->forLoopIx = actNum;
+    actNum++;
+    ProgNodeP statementList = this->GetStatementList();
+    if( statementList != NULL && !down->KeepRight())
+      {
+	actNum = statementList->NumberForLoops( actNum);
+      }
+    if( right != NULL && !keepRight)
+      {
+	actNum = right->NumberForLoops( actNum);
+      }
+    return actNum;
+  }
   
-  public:
+public:
   FOREACH_LOOPNode( ProgNodeP r, ProgNodeP d): BreakableNode()
   {
     SetType( GDLTokenTypes::FOREACH_LOOP, "foreach_loop");
-	SetRightDown( r, d);
+    SetRightDown( r, d);
 
-	assert( down != NULL);
+    assert( down != NULL);
 	
-	ProgNodeP statementList = this->GetStatementList();
-	if( statementList != NULL)
-		{
-			statementList->SetAllContinue( this);
-			statementList->GetLastSibling()->KeepRight( this);
-			if( right != NULL) statementList->SetAllBreak( right);
-		}
-	else
-		{
-			down->KeepRight( this);
-		}
+    ProgNodeP statementList = this->GetStatementList();
+    if( statementList != NULL)
+      {
+	statementList->SetAllContinue( this);
+	statementList->GetLastSibling()->KeepRight( this);
+	// must be called even with right == NULL, see FOR_LOOPNode
+	statementList->SetAllBreak( right);
+	// 			if( right != NULL) statementList->SetAllBreak( right);
+      }
+    else
+      {
+	down->KeepRight( this);
+      }
   }
 
 };
@@ -761,99 +773,101 @@ class FOREACH_LOOPNode: public BreakableNode
 
 class FOREACHNode: public BreakableNode
 {
-  public:
- RetCode      Run();
+public:
+  RetCode      Run();
 	
-	void KeepRight( ProgNodeP r);
+  void KeepRight( ProgNodeP r);
 	
   int NumberForLoops( int actNum)
   {
-	this->forLoopIx = actNum;
+    this->forLoopIx = actNum;
 	
-// 	assert( down == NULL);
+    // 	assert( down == NULL);
 		
-	assert( right != NULL && !keepRight);
+    assert( right != NULL && !keepRight);
 			
-	actNum = right->NumberForLoops( actNum);
+    actNum = right->NumberForLoops( actNum);
 	
-	return actNum;
- }
+    return actNum;
+  }
   
-  public:
+public:
   FOREACHNode(): BreakableNode()  {}
 
   FOREACHNode( const RefDNode& refNode): BreakableNode( refNode)
   {
-	ProgNodeP keep = down->GetNextSibling();
-	down->SetRight( down->GetNextSibling()->GetNextSibling());
+    ProgNodeP keep = down->GetNextSibling();
+    down->SetRight( down->GetNextSibling()->GetNextSibling());
 
-	keep->SetRight( NULL);
+    keep->SetRight( NULL);
 
-	FOREACH_LOOPNode* forLoop = new FOREACH_LOOPNode( right, down);
-	forLoop->setLine( getLine());
+    FOREACH_LOOPNode* forLoop = new FOREACH_LOOPNode( right, down);
+    forLoop->setLine( getLine());
 
-	down = keep;
+    down = keep;
 
-	right = forLoop;
- }
+    right = forLoop;
+  }
 };
 
 
 
 class FOREACH_INDEX_LOOPNode: public BreakableNode
 {
-  public:
- RetCode      Run();
+public:
+  RetCode      Run();
 	
-	ProgNodeP GetStatementList()
-	{
-		return down->GetNextSibling();
-	}
+  ProgNodeP GetStatementList()
+  {
+    return down->GetNextSibling();
+  }
 	
-  public:
-	void KeepRight( ProgNodeP r)
-	{
-		right = r;
-		keepRight = true;
-		if( this->GetStatementList() != NULL)
-			this->GetStatementList()->SetAllBreak( right);
-	}
+public:
+  void KeepRight( ProgNodeP r)
+  {
+    right = r;
+    keepRight = true;
+    if( this->GetStatementList() != NULL)
+      this->GetStatementList()->SetAllBreak( right);
+  }
   
   int NumberForLoops( int actNum)
   {
-	this->forLoopIx = actNum;
-	actNum++;
-	ProgNodeP statementList = this->GetStatementList();
-	if( statementList != NULL && !down->KeepRight())
-		{
-			actNum = statementList->NumberForLoops( actNum);
-		}
-	if( right != NULL && !keepRight)
-		{
-			actNum = right->NumberForLoops( actNum);
-		}
-	return actNum;
- }
+    this->forLoopIx = actNum;
+    actNum++;
+    ProgNodeP statementList = this->GetStatementList();
+    if( statementList != NULL && !down->KeepRight())
+      {
+	actNum = statementList->NumberForLoops( actNum);
+      }
+    if( right != NULL && !keepRight)
+      {
+	actNum = right->NumberForLoops( actNum);
+      }
+    return actNum;
+  }
   
-  public:
+public:
   FOREACH_INDEX_LOOPNode( ProgNodeP r, ProgNodeP d): BreakableNode()
   {
     SetType( GDLTokenTypes::FOREACH_INDEX_LOOP, "foreach_index_loop");
-	SetRightDown( r, d);
+    SetRightDown( r, d);
 
-	assert( down != NULL);
+    assert( down != NULL);
 	
-	ProgNodeP statementList = this->GetStatementList();
-	if( statementList != NULL)
-		{
-			statementList->SetAllContinue( this);
-			statementList->GetLastSibling()->KeepRight( this);
-			if( right != NULL) statementList->SetAllBreak( right);
-		}
-	else
-		{
-			down->KeepRight( this);
-		}
+    ProgNodeP statementList = this->GetStatementList();
+    if( statementList != NULL)
+      {
+	statementList->SetAllContinue( this);
+	statementList->GetLastSibling()->KeepRight( this);
+	// must be called even with right == NULL, see FOR_LOOPNode
+	statementList->SetAllBreak( right);
+	// 			if( right != NULL) statementList->SetAllBreak( right);
+      }
+    else
+      {
+	down->KeepRight( this);
+      }
   }
 
 };
@@ -862,84 +876,86 @@ class FOREACH_INDEX_LOOPNode: public BreakableNode
 
 class FOREACH_INDEXNode: public BreakableNode
 {
-  public:
- RetCode      Run();
+public:
+  RetCode      Run();
 	
   void KeepRight( ProgNodeP r);
 	
   int NumberForLoops( int actNum)
   {
-	this->forLoopIx = actNum;
+    this->forLoopIx = actNum;
 	
-// 	assert( down == NULL);
+    // 	assert( down == NULL);
 		
-	assert( right != NULL && !keepRight);
+    assert( right != NULL && !keepRight);
 			
-	actNum = right->NumberForLoops( actNum);
+    actNum = right->NumberForLoops( actNum);
 	
-	return actNum;
- }
+    return actNum;
+  }
   
-  public:
+public:
   FOREACH_INDEXNode(): BreakableNode()  {}
 
   FOREACH_INDEXNode( const RefDNode& refNode): BreakableNode( refNode)
   {
     // down is variable,array,variable
-	ProgNodeP keep = down->GetNextSibling(); // the array to loop over
+    ProgNodeP keep = down->GetNextSibling(); // the array to loop over
 
-	ProgNodeP index = down->GetNextSibling()->GetNextSibling(); // the index variable
+    ProgNodeP index = down->GetNextSibling()->GetNextSibling(); // the index variable
 
-	down->SetRight( index); // jump over array
+    down->SetRight( index); // jump over array
 
-	// cut away everything after the array from keep
-	keep->SetRight( NULL);
+    // cut away everything after the array from keep
+    keep->SetRight( NULL);
 
-	FOREACH_INDEX_LOOPNode* forLoop = new FOREACH_INDEX_LOOPNode( right, down);
-	forLoop->setLine( getLine());
+    FOREACH_INDEX_LOOPNode* forLoop = new FOREACH_INDEX_LOOPNode( right, down);
+    forLoop->setLine( getLine());
 
-	down = keep;
+    down = keep;
 
-	right = forLoop;
- }
+    right = forLoop;
+  }
 };
 
 
 
 class WHILENode: public BreakableNode
 {
-  public:
- RetCode      Run();
+public:
+  RetCode      Run();
 	
-	ProgNodeP GetStatementList()
-	{
-		return down->GetNextSibling();
-	}
+  ProgNodeP GetStatementList()
+  {
+    return down->GetNextSibling();
+  }
 	
-	void KeepRight( ProgNodeP r)
-	{
-		right = r;
-		keepRight = true;
-		if( this->GetStatementList() != NULL)
-			this->GetStatementList()->SetAllBreak( right);
-	}
+  void KeepRight( ProgNodeP r)
+  {
+    right = r;
+    keepRight = true;
+    if( this->GetStatementList() != NULL)
+      this->GetStatementList()->SetAllBreak( right);
+  }
   
-  public:
+public:
   WHILENode(): BreakableNode()  {}
 
   WHILENode( const RefDNode& refNode): BreakableNode( refNode)
   {
-	assert( down != NULL);
+    assert( down != NULL);
   
-// 	down->GetLastSibling()->KeepRight( this); // for empty body
+    // 	down->GetLastSibling()->KeepRight( this); // for empty body
 	
-	ProgNodeP statementList = this->GetStatementList();
-	if( statementList != NULL)
-		{
-			statementList->SetAllContinue( this);
-			if( right != NULL) statementList->SetAllBreak( right);
-			statementList->GetLastSibling()->KeepRight( this); // for empty body
-		}
+    ProgNodeP statementList = this->GetStatementList();
+    if( statementList != NULL)
+      {
+	statementList->SetAllContinue( this);
+	// must be called even with right == NULL, see FOR_LOOPNode
+	statementList->SetAllBreak( right);
+	// 			if( right != NULL) statementList->SetAllBreak( right);
+	statementList->GetLastSibling()->KeepRight( this); // for empty body
+      }
   }
 };
 
@@ -947,38 +963,40 @@ class WHILENode: public BreakableNode
 
 class REPEAT_LOOPNode: public BreakableNode
 {
-  public:
- RetCode      Run();
+public:
+  RetCode      Run();
 	
-	ProgNodeP GetStatementList()
-	{
-		return down->GetNextSibling();
-	}
+  ProgNodeP GetStatementList()
+  {
+    return down->GetNextSibling();
+  }
 	
-  public:
-	void KeepRight( ProgNodeP r)
-	{
-		right = r;
-		keepRight = true;
-		if( this->GetStatementList() != NULL)
-			this->GetStatementList()->SetAllBreak( right);
-	}
+public:
+  void KeepRight( ProgNodeP r)
+  {
+    right = r;
+    keepRight = true;
+    if( this->GetStatementList() != NULL)
+      this->GetStatementList()->SetAllBreak( right);
+  }
   
-  public:
+public:
   REPEAT_LOOPNode( ProgNodeP r, ProgNodeP d): BreakableNode()
   {
     SetType( GDLTokenTypes::REPEAT_LOOP, "repeat_loop");
-	SetRightDown( r, d);
+    SetRightDown( r, d);
 
-	assert( down != NULL);
+    assert( down != NULL);
 	
-	ProgNodeP statementList = this->GetStatementList();
-	if( statementList != NULL)
-		{
-			statementList->SetAllContinue( this);
-			statementList->GetLastSibling()->KeepRight( this);
-			if( right != NULL) statementList->SetAllBreak( right);
-		}
+    ProgNodeP statementList = this->GetStatementList();
+    if( statementList != NULL)
+      {
+	statementList->SetAllContinue( this);
+	statementList->GetLastSibling()->KeepRight( this);
+	// must be called even with right == NULL, see FOR_LOOPNode
+	statementList->SetAllBreak( right);
+	// 			if( right != NULL) statementList->SetAllBreak( right);
+      }
   }
 
 };
@@ -987,15 +1005,15 @@ class REPEAT_LOOPNode: public BreakableNode
 
 class REPEATNode: public BreakableNode
 {
-  public:
- RetCode      Run();
+public:
+  RetCode      Run();
 	
-	void KeepRight( ProgNodeP r)
-	{
-		right = r;
-		keepRight = true;
-		down->KeepRight( right); // REPEAT_LOOP
-	}
+  void KeepRight( ProgNodeP r)
+  {
+    right = r;
+    keepRight = true;
+    down->KeepRight( right); // REPEAT_LOOP
+  }
 
 public:
   REPEATNode(): BreakableNode()  {}
@@ -1003,10 +1021,10 @@ public:
   REPEATNode( const RefDNode& refNode): BreakableNode( refNode)
   {
     REPEAT_LOOPNode* repeatLoop = new REPEAT_LOOPNode( NULL, down);
-	repeatLoop->KeepRight( right);
-	repeatLoop->setLine( getLine());
+    repeatLoop->KeepRight( right);
+    repeatLoop->setLine( getLine());
 	
-	down = repeatLoop;
+    down = repeatLoop;
   }
 };
 
@@ -1014,44 +1032,44 @@ public:
 
 class CASENode: public BreakableNode
 {
-  public:
- RetCode      Run();
+public:
+  RetCode      Run();
   
-	ProgNodeP GetStatementList()
-	{
-		return down->GetNextSibling();
-	}
+  ProgNodeP GetStatementList()
+  {
+    return down->GetNextSibling();
+  }
 	
-	void KeepRight( ProgNodeP r)
-	{
-		assert( down != NULL);
-		right = r;
-		keepRight = true;
-		// down is expr
-		ProgNodeP csBlock = GetStatementList();
-		while( csBlock != NULL)
-		{
-			if( csBlock->getType() == GDLTokenTypes::ELSEBLK)
-				{
-					ProgNodeP statementList = csBlock->GetFirstChild();
-					if( statementList != NULL)
-					{
-							statementList->GetLastSibling()->KeepRight( right);
-					}
-				}
-			else
-				{
-					// keep expr in case of empty statement
-					ProgNodeP statementList = csBlock->GetFirstChild()->GetNextSibling();
-					if( statementList != NULL)
-					{
-							statementList->GetLastSibling()->KeepRight( right);
-					}
-				}
-			csBlock = csBlock->GetNextSibling();
-		}
-		GetStatementList()->SetAllBreak( right);
-	}
+  void KeepRight( ProgNodeP r)
+  {
+    assert( down != NULL);
+    right = r;
+    keepRight = true;
+    // down is expr
+    ProgNodeP csBlock = GetStatementList();
+    while( csBlock != NULL)
+      {
+	if( csBlock->getType() == GDLTokenTypes::ELSEBLK)
+	  {
+	    ProgNodeP statementList = csBlock->GetFirstChild();
+	    if( statementList != NULL)
+	      {
+		statementList->GetLastSibling()->KeepRight( right);
+	      }
+	  }
+	else
+	  {
+	    // keep expr in case of empty statement
+	    ProgNodeP statementList = csBlock->GetFirstChild()->GetNextSibling();
+	    if( statementList != NULL)
+	      {
+		statementList->GetLastSibling()->KeepRight( right);
+	      }
+	  }
+	csBlock = csBlock->GetNextSibling();
+      }
+    GetStatementList()->SetAllBreak( right);
+  }
 
 public:
   CASENode(): BreakableNode()  {}
@@ -1060,40 +1078,40 @@ public:
   {
     assert( down != NULL);
 	
-	ProgNodeP statementList = this->GetStatementList();
-	statementList->SetAllBreak( right);
+    ProgNodeP statementList = this->GetStatementList();
+    statementList->SetAllBreak( right);
 
     // down is expr
     ProgNodeP csBlock = GetStatementList();
 
-	while( csBlock != NULL)
-	{
-		if( csBlock->getType() == GDLTokenTypes::ELSEBLK)
-			{
-				ProgNodeP statementList = csBlock->GetFirstChild();
-				if( statementList != NULL)
-				{
-						statementList->GetLastSibling()->KeepRight( right);
-				}
-			}
-		else
-			{
-				// keep expr in case of empty statement
-				ProgNodeP statementList = csBlock->GetFirstChild()->GetNextSibling();
-				if( statementList != NULL)
-				{
-						statementList->GetLastSibling()->KeepRight( right);
-				}
-			}
+    while( csBlock != NULL)
+      {
+	if( csBlock->getType() == GDLTokenTypes::ELSEBLK)
+	  {
+	    ProgNodeP statementList = csBlock->GetFirstChild();
+	    if( statementList != NULL)
+	      {
+		statementList->GetLastSibling()->KeepRight( right);
+	      }
+	  }
+	else
+	  {
+	    // keep expr in case of empty statement
+	    ProgNodeP statementList = csBlock->GetFirstChild()->GetNextSibling();
+	    if( statementList != NULL)
+	      {
+		statementList->GetLastSibling()->KeepRight( right);
+	      }
+	  }
 		
-// 		if( csBlock->GetNextSibling() == NULL)
-// 		{
-// 				csBlock->KeepRight( right);
-// 				break;
-// 		}
+	// 		if( csBlock->GetNextSibling() == NULL)
+	// 		{
+	// 				csBlock->KeepRight( right);
+	// 				break;
+	// 		}
 		
-		csBlock = csBlock->GetNextSibling();
-	}
+	csBlock = csBlock->GetNextSibling();
+      }
   }
 };
 
@@ -1101,45 +1119,45 @@ public:
 
 class SWITCHNode: public BreakableNode
 {
-  public:
- RetCode      Run();
+public:
+  RetCode      Run();
   
-	ProgNodeP GetStatementList()
-	{
-		return down->GetNextSibling();
-	}
+  ProgNodeP GetStatementList()
+  {
+    return down->GetNextSibling();
+  }
 
   void KeepRight( ProgNodeP r)
   {
-	right = r;
-	keepRight = true;
+    right = r;
+    keepRight = true;
     ProgNodeP csBlock = GetStatementList();
-	ProgNodeP lastStatementList = NULL;
-	while( csBlock != NULL)
-	{
-		if( csBlock->getType() == GDLTokenTypes::ELSEBLK)
-			{
-				ProgNodeP statementList = csBlock->GetFirstChild();
-				if( statementList != NULL)
-				{
-					lastStatementList = statementList;
-				}
-			}
-		else
-			{
-				// keep expr in case of empty statement
-				ProgNodeP statementList = csBlock->GetFirstChild()->GetNextSibling();
-				if( statementList != NULL)
-				{
-					lastStatementList = statementList;
-				}
-			}
-		csBlock = csBlock->GetNextSibling();
-	}
-	if( lastStatementList != NULL)
-		lastStatementList->GetLastSibling()->KeepRight( right);
-	GetStatementList()->SetAllBreak( right);
- } 
+    ProgNodeP lastStatementList = NULL;
+    while( csBlock != NULL)
+      {
+	if( csBlock->getType() == GDLTokenTypes::ELSEBLK)
+	  {
+	    ProgNodeP statementList = csBlock->GetFirstChild();
+	    if( statementList != NULL)
+	      {
+		lastStatementList = statementList;
+	      }
+	  }
+	else
+	  {
+	    // keep expr in case of empty statement
+	    ProgNodeP statementList = csBlock->GetFirstChild()->GetNextSibling();
+	    if( statementList != NULL)
+	      {
+		lastStatementList = statementList;
+	      }
+	  }
+	csBlock = csBlock->GetNextSibling();
+      }
+    if( lastStatementList != NULL)
+      lastStatementList->GetLastSibling()->KeepRight( right);
+    GetStatementList()->SetAllBreak( right);
+  } 
 	
 public:
   SWITCHNode(): BreakableNode()  {}
@@ -1148,47 +1166,47 @@ public:
   {
     assert( down != NULL);
 
-	ProgNodeP statementList = this->GetStatementList();
-	statementList->SetAllBreak( right);
+    ProgNodeP statementList = this->GetStatementList();
+    statementList->SetAllBreak( right);
  
     // down is expr
     ProgNodeP csBlock = GetStatementList();
 
-	ProgNodeP lastStatementList = NULL;
+    ProgNodeP lastStatementList = NULL;
 
-	while( csBlock != NULL)
-	{
-		if( csBlock->getType() == GDLTokenTypes::ELSEBLK)
-			{
-				ProgNodeP statementList = csBlock->GetFirstChild();
-				if( statementList != NULL)
-				{
-					if( lastStatementList != NULL)
-						lastStatementList->GetLastSibling()->KeepRight( statementList);
+    while( csBlock != NULL)
+      {
+	if( csBlock->getType() == GDLTokenTypes::ELSEBLK)
+	  {
+	    ProgNodeP statementList = csBlock->GetFirstChild();
+	    if( statementList != NULL)
+	      {
+		if( lastStatementList != NULL)
+		  lastStatementList->GetLastSibling()->KeepRight( statementList);
 						
-					lastStatementList = statementList;
-				}
-			}
-		else
-			{
-				// keep expr in case of empty statement
-				ProgNodeP statementList = csBlock->GetFirstChild()->GetNextSibling();
-				if( statementList != NULL)
-				{
-					if( lastStatementList != NULL)
-						lastStatementList->GetLastSibling()->KeepRight( statementList);
+		lastStatementList = statementList;
+	      }
+	  }
+	else
+	  {
+	    // keep expr in case of empty statement
+	    ProgNodeP statementList = csBlock->GetFirstChild()->GetNextSibling();
+	    if( statementList != NULL)
+	      {
+		if( lastStatementList != NULL)
+		  lastStatementList->GetLastSibling()->KeepRight( statementList);
 						
-					lastStatementList = statementList;
-				}
-			}
-		if( csBlock->GetNextSibling() == NULL)
-		{
-				if( lastStatementList != NULL)
-					lastStatementList->GetLastSibling()->KeepRight( right);
-				break;
-		}
-		csBlock = csBlock->GetNextSibling();
-	}
+		lastStatementList = statementList;
+	      }
+	  }
+	if( csBlock->GetNextSibling() == NULL)
+	  {
+	    if( lastStatementList != NULL)
+	      lastStatementList->GetLastSibling()->KeepRight( right);
+	    break;
+	  }
+	csBlock = csBlock->GetNextSibling();
+      }
   }
 
 };
@@ -1197,19 +1215,19 @@ public:
 
 class BLOCKNode: public ProgNode
 {
-  public:
- RetCode      Run();
+public:
+  RetCode      Run();
 	
   void KeepRight( ProgNodeP r)
   {
-	right = r;
-	keepRight = true;
-	// 	must recursively set dependents here
-     if( down != NULL && !KeepDown())
-		down->GetLastSibling()->KeepRight( right);
-	else
-		this->KeepDown( right);
- }
+    right = r;
+    keepRight = true;
+    // 	must recursively set dependents here
+    if( down != NULL && !KeepDown())
+      down->GetLastSibling()->KeepRight( right);
+    else
+      this->KeepDown( right);
+  }
 
 public:
   BLOCKNode(): ProgNode()  {}
@@ -1218,17 +1236,17 @@ public:
   {
     if( refNode->GetFirstChild() != RefDNode(antlr::nullAST))
       {
-		down = NewProgNode( refNode->GetFirstChild());
+	down = NewProgNode( refNode->GetFirstChild());
       }
     if( refNode->GetNextSibling() != RefDNode(antlr::nullAST))
       {
-		right = NewProgNode( refNode->GetNextSibling());
+	right = NewProgNode( refNode->GetNextSibling());
      
-		// first statement
-		if( down != NULL)
-			down->GetLastSibling()->KeepRight( right);
-		else
-			this->KeepDown( right);
+	// first statement
+	if( down != NULL)
+	  down->GetLastSibling()->KeepRight( right);
+	else
+	  this->KeepDown( right);
       }
   }
 
@@ -1238,38 +1256,38 @@ public:
 
 class IFNode: public ProgNode
 {
-  public:
- RetCode      Run();
+public:
+  RetCode      Run();
   
   void KeepRight( ProgNodeP r)
   {
     assert( down != NULL);
-	right = r;
-	keepRight = true;
-	down->GetLastSibling()->KeepRight( right);
+    right = r;
+    keepRight = true;
+    down->GetLastSibling()->KeepRight( right);
   }
 public:
   IFNode(): ProgNode()  {}
 
   IFNode( const RefDNode& refNode): ProgNode( refNode)
   {
-		if( refNode->GetFirstChild() != RefDNode(antlr::nullAST))
-		{
-			down = NewProgNode( refNode->GetFirstChild());
-		}
-		if( refNode->GetNextSibling() != RefDNode(antlr::nullAST))
-		{
-			right = NewProgNode( refNode->GetNextSibling());
-		}
+    if( refNode->GetFirstChild() != RefDNode(antlr::nullAST))
+      {
+	down = NewProgNode( refNode->GetFirstChild());
+      }
+    if( refNode->GetNextSibling() != RefDNode(antlr::nullAST))
+      {
+	right = NewProgNode( refNode->GetNextSibling());
+      }
 
-		assert( down != NULL);
+    assert( down != NULL);
 
-        // first alternative
-        if( right != NULL)
-        {
-			ProgNodeP s1 = down->GetNextSibling(); // skip expr
-			s1->GetLastSibling()->KeepRight( right);
-        }
+    // first alternative
+    if( right != NULL)
+      {
+	ProgNodeP s1 = down->GetNextSibling(); // skip expr
+	s1->GetLastSibling()->KeepRight( right);
+      }
   }
 };
 
@@ -1277,30 +1295,30 @@ public:
 
 class IF_ELSENode: public ProgNode
 {
-  public:
- RetCode      Run();
+public:
+  RetCode      Run();
   
   void KeepRight( ProgNodeP r)
   {
     // 	must recursively set dependents here
     assert( down != NULL);
      
-	right = r;
-	keepRight = true;
+    right = r;
+    keepRight = true;
         
-	ProgNodeP s1 = down->GetNextSibling(); // skip expr
-	if( s1->GetFirstChild() == NULL || s1->KeepDown())
-			{
-				s1->KeepDown( right);
-			}
-	else
-			{
-				s1->GetFirstChild()->GetLastSibling()->KeepRight( right);
-			}
+    ProgNodeP s1 = down->GetNextSibling(); // skip expr
+    if( s1->GetFirstChild() == NULL || s1->KeepDown())
+      {
+	s1->KeepDown( right);
+      }
+    else
+      {
+	s1->GetFirstChild()->GetLastSibling()->KeepRight( right);
+      }
 		
-	// 2nd alternative
-	ProgNodeP s2 = s1->GetNextSibling();
-	s2->GetLastSibling()->KeepRight( right); 
+    // 2nd alternative
+    ProgNodeP s2 = s1->GetNextSibling();
+    s2->GetLastSibling()->KeepRight( right); 
   }
 
 public:
@@ -1308,39 +1326,39 @@ public:
 
   IF_ELSENode( const RefDNode& refNode): ProgNode( refNode)
   {
-// 	std::cout << "IF_ELSENode" << std::endl;
+    // 	std::cout << "IF_ELSENode" << std::endl;
     if( refNode->GetFirstChild() != RefDNode(antlr::nullAST))
       {
-		down = NewProgNode( refNode->GetFirstChild());
+	down = NewProgNode( refNode->GetFirstChild());
       }
     if( refNode->GetNextSibling() != RefDNode(antlr::nullAST))
       {
-		right = NewProgNode( refNode->GetNextSibling());
+	right = NewProgNode( refNode->GetNextSibling());
       }
 
     assert( down != NULL);
 
-		// IF expr s1 s2
-		// first alternative
-		// s1 is always a BLOCK (gdlc.tree.g, if_statement)
-	// right MUST be set here even if NULL as it IS set to 2nd alternative
-	ProgNodeP s1 = down->GetNextSibling(); // skip expr
-	if( s1->GetFirstChild() == NULL || s1->KeepDown())
-		{
-			s1->KeepDown( right);
-		}
-	else
-		{
-			s1->GetFirstChild()->GetLastSibling()->KeepRight( right);
-		}
+    // IF expr s1 s2
+    // first alternative
+    // s1 is always a BLOCK (gdlc.tree.g, if_statement)
+    // right MUST be set here even if NULL as it IS set to 2nd alternative
+    ProgNodeP s1 = down->GetNextSibling(); // skip expr
+    if( s1->GetFirstChild() == NULL || s1->KeepDown())
+      {
+	s1->KeepDown( right);
+      }
+    else
+      {
+	s1->GetFirstChild()->GetLastSibling()->KeepRight( right);
+      }
 		
     if( right != NULL)
-    {
-		// 2nd alternative
-		ProgNodeP s2 = s1->GetNextSibling();
+      {
+	// 2nd alternative
+	ProgNodeP s2 = s1->GetNextSibling();
 
-		s2->GetLastSibling()->KeepRight( right); // disconnect s2
-	}
+	s2->GetLastSibling()->KeepRight( right); // disconnect s2
+      }
   }
 };
 
@@ -1354,7 +1372,7 @@ public:
   ParameterNode( const RefDNode& refNode): DefaultNode( refNode) {}
   virtual void Parameter( EnvBaseT* actEnv);
   virtual bool ParameterDirect( BaseGDL*& paramP);
-//   virtual void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
+  //   virtual void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
 };
 
 class ParameterVNNode: public ParameterNode
@@ -1362,7 +1380,7 @@ class ParameterVNNode: public ParameterNode
 public:
   ParameterVNNode( const RefDNode& refNode): ParameterNode( refNode) {}
   void Parameter( EnvBaseT* actEnv);
-//   virtual void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
+  //   virtual void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
 };
 
 class KEYDEF_REFNode: public ParameterNode
@@ -1370,7 +1388,7 @@ class KEYDEF_REFNode: public ParameterNode
 public:
   KEYDEF_REFNode( const RefDNode& refNode): ParameterNode( refNode) {}
   void Parameter( EnvBaseT* actEnv);
-//   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
+  //   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
 };
 
 class KEYDEF_REF_EXPRNode: public ParameterNode
@@ -1378,7 +1396,7 @@ class KEYDEF_REF_EXPRNode: public ParameterNode
 public:
   KEYDEF_REF_EXPRNode( const RefDNode& refNode): ParameterNode( refNode) {}
   void Parameter( EnvBaseT* actEnv);
-//   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
+  //   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
 };
 
 class KEYDEF_REF_CHECKNode: public ParameterNode
@@ -1386,7 +1404,7 @@ class KEYDEF_REF_CHECKNode: public ParameterNode
 public:
   KEYDEF_REF_CHECKNode( const RefDNode& refNode): ParameterNode( refNode) {}
   void Parameter( EnvBaseT* actEnv);
-//   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
+  //   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
 };
 
 class KEYDEFNode: public ParameterNode
@@ -1394,7 +1412,7 @@ class KEYDEFNode: public ParameterNode
 public:
   KEYDEFNode( const RefDNode& refNode): ParameterNode( refNode) {}
   void Parameter( EnvBaseT* actEnv);
-//   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
+  //   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
 };
 
 class REF_EXPRNode: public ParameterNode
@@ -1403,14 +1421,14 @@ public:
   REF_EXPRNode( const RefDNode& refNode): ParameterNode( refNode) {}
   void Parameter( EnvBaseT* actEnv);
   bool ParameterDirect( BaseGDL*& paramP);
-//   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
+  //   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
 };
 class REF_EXPRVNNode: public ParameterNode
 {
 public:
   REF_EXPRVNNode( const RefDNode& refNode): ParameterNode( refNode) {}
   void Parameter( EnvBaseT* actEnv);
-//   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
+  //   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
 };
 
 class REF_CHECKNode: public ParameterNode
@@ -1419,14 +1437,14 @@ public:
   REF_CHECKNode( const RefDNode& refNode): ParameterNode( refNode) {}
   void Parameter( EnvBaseT* actEnv);
   bool ParameterDirect( BaseGDL*& paramP);
-//   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
+  //   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
 };
 class REF_CHECKVNNode: public ParameterNode
 {
 public:
   REF_CHECKVNNode( const RefDNode& refNode): ParameterNode( refNode) {}
   void Parameter( EnvBaseT* actEnv);
-//   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
+  //   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
 };
 
 class REFNode: public ParameterNode
@@ -1435,14 +1453,14 @@ public:
   REFNode( const RefDNode& refNode): ParameterNode( refNode) {}
   void Parameter( EnvBaseT* actEnv);
   bool ParameterDirect( BaseGDL*& paramP);
-//   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
+  //   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
 };
 class REFVNNode: public ParameterNode
 {
 public:
   REFVNNode( const RefDNode& refNode): ParameterNode( refNode) {}
   void Parameter( EnvBaseT* actEnv);
-//   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
+  //   void ParameterVarNum( EnvBaseT* actEnv); // for variable number of parameters
 };
 
 
@@ -1458,7 +1476,7 @@ public:
   ASSIGNNode( const RefDNode& refNode): CommandNode( refNode) {}
   RetCode Run();
   BaseGDL** LExpr( BaseGDL* right);
-//   BaseGDL** LExprGrab( BaseGDL* right);
+  //   BaseGDL** LExprGrab( BaseGDL* right);
   BaseGDL* Eval();
 };
 class ASSIGN_ARRAYEXPR_MFCALLNode: public CommandNode
@@ -1467,7 +1485,7 @@ public:
   ASSIGN_ARRAYEXPR_MFCALLNode( const RefDNode& refNode): CommandNode( refNode) {}
   RetCode Run();
   BaseGDL** LExpr( BaseGDL* right);
-//   BaseGDL** LExprGrab( BaseGDL* right);
+  //   BaseGDL** LExprGrab( BaseGDL* right);
   BaseGDL* Eval();
 };
 class ASSIGN_REPLACENode: public CommandNode
@@ -1476,7 +1494,7 @@ public:
   ASSIGN_REPLACENode( const RefDNode& refNode): CommandNode( refNode) {}
   RetCode Run();
   BaseGDL** LExpr( BaseGDL* right);
-//   BaseGDL** LExprGrab( BaseGDL* right);
+  //   BaseGDL** LExprGrab( BaseGDL* right);
   BaseGDL* Eval();
 };
 class PCALL_LIBNode: public CommandNode
@@ -1529,26 +1547,26 @@ class POSTINCNode: public INCNode
 class ARRAYEXPRNode: public DefaultNode
 {
 public:
- ARRAYEXPRNode( const RefDNode& refNode): DefaultNode( refNode) {}
- BaseGDL* Eval(); // caller receives ownership
- BaseGDL** LExpr(BaseGDL* r);
- //BaseGDL** LEval(); 
+  ARRAYEXPRNode( const RefDNode& refNode): DefaultNode( refNode) {}
+  BaseGDL* Eval(); // caller receives ownership
+  BaseGDL** LExpr(BaseGDL* r);
+  //BaseGDL** LEval(); 
 };
 
 class EXPRNode: public DefaultNode
 {
 public:
- EXPRNode( const RefDNode& refNode): DefaultNode( refNode) {}
- BaseGDL** EvalRefCheck( BaseGDL*& rEval); // calls LEval()
- BaseGDL** LEval();
+  EXPRNode( const RefDNode& refNode): DefaultNode( refNode) {}
+  BaseGDL** EvalRefCheck( BaseGDL*& rEval); // calls LEval()
+  BaseGDL** LEval();
 };
 
 class DOTNode: public DefaultNode
 {
 public:
- DOTNode( const RefDNode& refNode): DefaultNode( refNode) {}
- BaseGDL* Eval();
- BaseGDL** LExpr( BaseGDL* right);
+  DOTNode( const RefDNode& refNode): DefaultNode( refNode) {}
+  BaseGDL* Eval();
+  BaseGDL** LExpr( BaseGDL* right);
 
 };
 
