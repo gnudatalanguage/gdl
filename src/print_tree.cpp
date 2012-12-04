@@ -132,8 +132,11 @@ void print_tree::pr_leaves( ProgNodeP top )
 	pr_top( t );
       else
 	pr_name( t );
-      if( t->KeepRight())
+      if( t->getNextSibling() != NULL && t->KeepRight())
+      {
+	printf("^");
 	break;
+      }
     }
 } // pr_leaves
 
@@ -182,8 +185,11 @@ void print_tree::pr_top( ProgNodeP top )
       {    
 	if (is_nonleaf( t ))
 	  first = false;
-	if( t->KeepRight())
+	if( t->getNextSibling() != NULL && t->KeepRight())
+	{
+	  printf("^");
 	  break;
+	}
       }
     pr_leaves( top );
   }
@@ -218,8 +224,11 @@ void print_tree::pr_tree( ProgNodeP top )
     indent_level = 0;
     pr_top( t );
     printf("\n");
-    if( t->KeepRight())
+    if( t->getNextSibling() != NULL && t->KeepRight())
+    {
+      printf("^");
       break;
+    }
   }
 } // pr_tree
 
