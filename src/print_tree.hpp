@@ -25,7 +25,7 @@ namespace antlr {
 class print_tree {
 private:
   typedef enum { INDENT = 2 } bogus;
-  unsigned indent_level;
+  unsigned long indent_level;
 
 private:
   void pr_name( RefAST node );

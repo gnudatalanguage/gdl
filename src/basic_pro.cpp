@@ -289,31 +289,76 @@ namespace lib {
 	cout << endl;
       }
 
-    if( e->KeywordSet( "LIB"))
+    bool kwLib = e->KeywordSet( "LIB"); 
+    if( kwLib)
       {
 	kw = true;
 
 	deque<DString> subList;
 	SizeT nPro = libProList.size();
-	cout << "Library procedures (" << nPro <<"):" << endl;
 	for( SizeT i = 0; i<nPro; ++i)
-	  subList.push_back(libProList[ i]->ToString());
-
+	{
+	  if( !libProList[ i]->GetHideHelp())
+	    subList.push_back(libProList[ i]->ToString());
+	}
 	sort( subList.begin(), subList.end());
 
-	for( SizeT i = 0; i<nPro; ++i)
+	SizeT nProList = subList.size();
+	cout << "Library procedures (" << nProList <<"):" << endl;
+	for( SizeT i = 0; i<nProList; ++i)
 	  cout << subList[ i] << endl;
 
 	subList.clear();
 
 	SizeT nFun = libFunList.size();
-	cout << "Library functions (" << nFun <<"):" << endl;
 	for( SizeT i = 0; i<nFun; ++i)
-	  subList.push_back(libFunList[ i]->ToString());
-
+	{
+	  if( !libFunList[ i]->GetHideHelp())
+	    subList.push_back(libFunList[ i]->ToString());
+	}
 	sort( subList.begin(), subList.end());
 
+	SizeT nFunList = subList.size();
+	cout << "Library functions (" << nFunList <<"):" << endl;
+	for( SizeT i = 0; i<nFunList; ++i)
+	  cout << subList[ i] << endl;
+      }
+
+    // internal library functions
+    bool kwLibInternal = e->KeywordSet( "LIB_GDL_INTERNAL"); 
+    if( kwLibInternal)
+      {
+	kw = true;
+
+	deque<DString> subList;
+	SizeT nPro = libProList.size();
+	for( SizeT i = 0; i<nPro; ++i)
+	{
+	  if( libProList[ i]->GetHideHelp()) // difference here
+	    subList.push_back(libProList[ i]->ToString());
+	}
+	sort( subList.begin(), subList.end());
+
+	SizeT nProList = subList.size();
+	cout << "NOTE: Internal subroutines are subject to change without notice." << endl;
+	cout << "They should never be called directly from a GDL program." << endl;
+	cout << "Internal library procedures (" << nProList <<"):" << endl;
+	for( SizeT i = 0; i<nProList; ++i)
+	  cout << subList[ i] << endl;
+
+	subList.clear();
+
+	SizeT nFun = libFunList.size();
 	for( SizeT i = 0; i<nFun; ++i)
+	{
+	  if( libFunList[ i]->GetHideHelp()) // difference here
+	    subList.push_back(libFunList[ i]->ToString());
+	}
+	sort( subList.begin(), subList.end());
+
+	SizeT nFunList = subList.size();
+	cout << "Internal library functions (" << nFunList <<"):" << endl;
+	for( SizeT i = 0; i<nFunList; ++i)
 	  cout << subList[ i] << endl;
       }
 

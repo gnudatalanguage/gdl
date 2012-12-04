@@ -188,12 +188,17 @@ typedef BaseGDL* (*LibFunDirect)(BaseGDL* param,bool canGrab);
 // library procedure/function (in cases both are handled the same way)
 class DLib: public DSub
 {
+  bool hideHelp; // if set HELP,/LIB will not list this subroutine
+  
 public:
   DLib( const std::string& n, const std::string& o, const int nPar_,
 	const std::string keyNames[],
 	const std::string warnKeyNames[], const int nParMin_);
 
   virtual const std::string ToString() = 0;
+  
+  bool GetHideHelp() const { return hideHelp;}
+  void SetHideHelp( bool v) { hideHelp = v;}
 };
 
 // library procedure

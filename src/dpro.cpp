@@ -44,8 +44,9 @@ DSub::~DSub() {}
 // DLib ******************************************************
 DLib::DLib( const string& n, const string& o, const int nPar_, 
 	    const string keyNames[],
-	    const string warnKeyNames[], const int nParMin_): 
-  DSub(n,o)
+	    const string warnKeyNames[], const int nParMin_)
+ : DSub(n,o)
+ , hideHelp( false)
 {
   nPar=nPar_;
   nParMin = nParMin_;
