@@ -2711,9 +2711,14 @@ namespace lib {
     (*(p->arg))[0]=x;
     BaseGDL* res;
     res = p->envt->Interpreter()->call_fun(static_cast<DSubUD*>(p->nenvt->GetPro())->GetTree());
-    Guard<BaseGDL> guard(res);
     
-    return (*static_cast<DDoubleGDL*>(res))[0]; 
+    // res can be of any type!
+//     return (*static_cast<DDoubleGDL*>(res))[0]; 
+    DDoubleGDL* resDouble = static_cast<DDoubleGDL*>(res->Convert2(GDL_DOUBLE, BaseGDL::CONVERT));
+//    Guard<DDoubleGDL> guard(resDouble);
+    double retRes = (*resDouble)[0];
+    delete resDouble; // direct delete should be faster than setting up a guard
+    return retRes;
   }
 
   // AC: the library routine is registered in libinit_ac.cpp
