@@ -857,7 +857,20 @@ void ParameterVNNode::Parameter( EnvBaseT* actEnv)
   ProgNode::interpreter->_retTree = this->getNextSibling();
 }
 
-
+RetCode  WRAPPED_FUNNode::Run()
+{
+  EnvUDT* env = static_cast<EnvUDT*>( ProgNode::interpreter->callStack.back());
+  BaseGDL* res = (*this->fun)( env);
+  GDLDelete(ProgNode::interpreter->returnValue);
+  ProgNode::interpreter->returnValue = res;
+  return RC_OK;
+}
+RetCode  WRAPPED_PRONode::Run()
+{
+  EnvUDT* env = static_cast<EnvUDT*>( ProgNode::interpreter->callStack.back());
+  (*this->pro)( env);
+  return RC_OK;
+}
 
 RetCode  ASSIGNNode::Run()
 {

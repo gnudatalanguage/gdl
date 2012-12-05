@@ -310,6 +310,7 @@ public:
 
   void Reset();
   void DelTree();
+  void SetTree( ProgNodeP t) { tree = t;}
 
   void AddCommon(DCommonBase* c) { common.push_back(c);}
   

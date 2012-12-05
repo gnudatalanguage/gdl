@@ -28,8 +28,8 @@
 #include "GDLParser.hpp" // SA: GDLParser::CompileOpt for isObsolete()/isHidden()
 
 // print out AST tree
-//#define GDL_DEBUG
-#undef GDL_DEBUG
+#define GDL_DEBUG
+//#undef GDL_DEBUG
 
 #ifdef GDL_DEBUG
 #include "print_tree.hpp"

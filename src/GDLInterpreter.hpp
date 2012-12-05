@@ -79,6 +79,8 @@ private:
     friend class REF_CHECKVNNode;
     friend class REF_EXPRVNNode;
     friend class ParameterVNNode;
+    friend class WRAPPED_FUNNode;
+    friend class WRAPPED_PRONode;
 
 public: 
 

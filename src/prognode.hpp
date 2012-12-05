@@ -1467,9 +1467,28 @@ public:
 
 class CommandNode: public DefaultNode
 {
+protected:
+  CommandNode(): DefaultNode() {}
 public:
   CommandNode( const RefDNode& refNode): DefaultNode( refNode) {}
 };
+
+class EnvUDT;
+class WRAPPED_FUNNode: public CommandNode
+{
+  BaseGDL* (*fun)( EnvUDT*);
+public:
+  WRAPPED_FUNNode( BaseGDL* (*fun_)( EnvUDT*)): CommandNode() {}
+  RetCode Run();
+};
+class WRAPPED_PRONode: public CommandNode
+{
+  void (*pro)( EnvUDT*);
+public:
+  WRAPPED_PRONode( BaseGDL* (*pro_)( EnvUDT*)): CommandNode() {}
+  RetCode Run();
+};
+
 class ASSIGNNode: public CommandNode
 {
 public:

@@ -17,7 +17,9 @@
 
 #include "includefirst.hpp"
 
+#include "objects.hpp"
 #include "overload.hpp"
+#include "prognodeexpr.hpp"
 
 std::string overloadOperatorNames[] = 
 {
@@ -55,6 +57,9 @@ std::string overloadOperatorNames[] =
 // except _OVERLOADBRACKETSLEFTSIDE all are functions
 int OverloadOperatorIndexFun( std::string subName)
 {
+  assert( !subName.empty());
+  if( subName[0] != '_') // optimization, true in most cases
+    return -1;
   for( int i=1; i < NumberOfOverloadOperators; ++i)
     if( subName == overloadOperatorNames[ i])
       return i;
@@ -65,4 +70,26 @@ int OverloadOperatorIndexPro( std::string subName)
   if( subName == overloadOperatorNames[ 0])
     return 0;
   return -1;
+}
+
+BaseGDL* _GDL_OBJECT_OverloadIsTrue( EnvUDT* e)
+{
+  return new DIntGDL(1);
+}
+
+// set up the _overload... subroutines for GDL_OBJECT
+void SetupOverloadSubroutines()
+{
+//   // The call
+//   BaseGDL* res=interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+//   in call_fun eventually (in GDLInterpreter::statement) tree->Run() is called
+//   GDLInterpreter::returnValue must be set as the return value
+
+  // _overloadisTrue
+  //adds "SELF" parameter
+  DFun *_overloadisTrue = new DFun("_OVERLOADISTRUE",GDL_OBJECT_NAME,"*INTERNAL*");
+  WRAPPED_FUNNode *tree = new WRAPPED_FUNNode(_GDL_OBJECT_OverloadIsTrue);
+  _overloadisTrue->SetTree( tree);
+ 
+ 
 }
