@@ -2711,7 +2711,8 @@ namespace lib {
     (*(p->arg))[0]=x;
     BaseGDL* res;
     res = p->envt->Interpreter()->call_fun(static_cast<DSubUD*>(p->nenvt->GetPro())->GetTree());
-
+    Guard<BaseGDL> guard(res);
+    
     return (*static_cast<DDoubleGDL*>(res))[0]; 
   }
 
