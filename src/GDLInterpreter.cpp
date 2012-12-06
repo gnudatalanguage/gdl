@@ -617,7 +617,7 @@ GDLInterpreter::GDLInterpreter()
 	
 	
 	res = NULL;
-	returnValue = NULL;
+	assert(returnValue == NULL);
 	RetCode retCode;
 	
 		for (; _t != NULL;) {
@@ -681,7 +681,7 @@ GDLInterpreter::GDLInterpreter()
 	ProgNodeP call_lfun_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	res = NULL;
-	returnValueL = NULL;
+	assert(returnValueL == NULL);
 	RetCode retCode;
 	
 		ProgNodeP in = _t;

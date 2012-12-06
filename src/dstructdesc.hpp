@@ -184,9 +184,9 @@ public:
 
   DFun* FindInFunList( const std::string& n)
   {
-  FunListT::iterator p=std::find_if(fun.begin(),fun.end(),Is_eq<DFun>(n));
-  if( p != fun.end()) return *p;
-  return NULL;
+    FunListT::iterator p=std::find_if(fun.begin(),fun.end(),Is_eq<DFun>(n));
+    if( p != fun.end()) return *p;
+    return NULL;
   }
   
   ProListT& ProList()

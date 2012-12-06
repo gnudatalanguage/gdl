@@ -72,9 +72,13 @@ int OverloadOperatorIndexPro( std::string subName)
   return -1;
 }
 
+#include <iostream>
 BaseGDL* _GDL_OBJECT_OverloadIsTrue( EnvUDT* e)
 {
-  return new DIntGDL(1);
+//   // debug/check
+//   std::cout << "_GDL_OBJECT_OverloadIsTrue called" << std::endl;
+  // default behavior: Implict: Another object cannot be the null object
+  return new DIntGDL(1); // if we reach here, defaul is to return 'TRUE'
 }
 
 // set up the _overload... subroutines for GDL_OBJECT
@@ -83,13 +87,17 @@ void SetupOverloadSubroutines()
 //   // The call
 //   BaseGDL* res=interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 //   in call_fun eventually (in GDLInterpreter::statement) tree->Run() is called
-//   GDLInterpreter::returnValue must be set as the return value
 
-  // _overloadisTrue
-  //adds "SELF" parameter
-  DFun *_overloadisTrue = new DFun("_OVERLOADISTRUE",GDL_OBJECT_NAME,"*INTERNAL*");
+  // _overloadIsTrue
+  // automatically adds "SELF" parameter (obejct name is != "")
+  DFun *_overloadIsTrue = new DFun("_OVERLOADISTRUE",GDL_OBJECT_NAME,"*INTERNAL*");
   WRAPPED_FUNNode *tree = new WRAPPED_FUNNode(_GDL_OBJECT_OverloadIsTrue);
-  _overloadisTrue->SetTree( tree);
+  _overloadIsTrue->SetTree( tree);
  
- 
+  DStructDesc* gdlObjectDesc = FindInStructList(structList, GDL_OBJECT_NAME);
+  assert( gdlObjectDesc != NULL);
+  
+  gdlObjectDesc->SetOperator(OOIsTrue,_overloadIsTrue);
+  gdlObjectDesc->FunList().push_back(_overloadIsTrue);
+
 }

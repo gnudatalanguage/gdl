@@ -1478,14 +1478,14 @@ class WRAPPED_FUNNode: public CommandNode
 {
   BaseGDL* (*fun)( EnvUDT*);
 public:
-  WRAPPED_FUNNode( BaseGDL* (*fun_)( EnvUDT*)): CommandNode() {}
+  WRAPPED_FUNNode( BaseGDL* (*fun_)( EnvUDT*)): CommandNode(), fun(fun_) {}
   RetCode Run();
 };
 class WRAPPED_PRONode: public CommandNode
 {
   void (*pro)( EnvUDT*);
 public:
-  WRAPPED_PRONode( BaseGDL* (*pro_)( EnvUDT*)): CommandNode() {}
+  WRAPPED_PRONode( void (*pro_)( EnvUDT*)): CommandNode(), pro(pro_) {}
   RetCode Run();
 };
 

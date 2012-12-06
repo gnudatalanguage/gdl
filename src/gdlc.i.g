@@ -826,7 +826,7 @@ call_fun returns[ BaseGDL* res]
 {
 
     res = NULL;
-    returnValue = NULL;
+    assert(returnValue == NULL);
     RetCode retCode;
 
 	for (; _t != NULL;) {
@@ -872,7 +872,7 @@ call_fun returns[ BaseGDL* res]
 call_lfun returns[ BaseGDL** res]
 {
     res = NULL;
-    returnValueL = NULL;
+    assert(returnValueL == NULL);
     RetCode retCode;
 
 	ProgNodeP in = _t;

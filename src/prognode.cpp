@@ -861,15 +861,18 @@ RetCode  WRAPPED_FUNNode::Run()
 {
   EnvUDT* env = static_cast<EnvUDT*>( ProgNode::interpreter->callStack.back());
   BaseGDL* res = (*this->fun)( env);
-  GDLDelete(ProgNode::interpreter->returnValue);
+  interpreter->SetRetTree( this->getNextSibling()); // ???
+  assert( ProgNode::interpreter->returnValue == NULL);
+//   GDLDelete(ProgNode::interpreter->returnValue);
   ProgNode::interpreter->returnValue = res;
-  return RC_OK;
+  return RC_RETURN;
 }
 RetCode  WRAPPED_PRONode::Run()
 {
   EnvUDT* env = static_cast<EnvUDT*>( ProgNode::interpreter->callStack.back());
   (*this->pro)( env);
-  return RC_OK;
+  interpreter->SetRetTree( this->getNextSibling()); // ???
+  return RC_RETURN;
 }
 
 RetCode  ASSIGNNode::Run()
@@ -1940,7 +1943,8 @@ RetCode   RETFNode::Run()
 		{
 			BaseGDL* e=_t->Eval(); //ProgNode::interpreter->expr(_t);
 			interpreter->SetRetTree( _t->getNextSibling()); // ???
-			GDLDelete(ProgNode::interpreter->returnValue);
+			assert(ProgNode::interpreter->returnValue == NULL);
+// 			GDLDelete(ProgNode::interpreter->returnValue);
 			ProgNode::interpreter->returnValue=e;
 
 			GDLInterpreter::CallStack().back()->RemoveLoc( e); // steal e from local list
@@ -1949,6 +1953,7 @@ RetCode   RETFNode::Run()
 		{
 			BaseGDL** eL=ProgNode::interpreter->l_ret_expr(_t);
 			// returnValueL is otherwise owned
+			assert(ProgNode::interpreter->returnValueL == NULL);
 			ProgNode::interpreter->returnValueL=eL;
 		}
 	//if( !(interruptEnable && sigControlC) && ( debugMode == DEBUG_CLEAR))

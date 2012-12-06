@@ -127,7 +127,7 @@ protected:
 
 public:
   DSub( const std::string& n, const std::string& o=""): 
-    name(n), object(o), nPar(0), nParMin(0), extra(NONE), extraIx(-1) 
+    name(n), object(o), key(), nPar(0), nParMin(0), extra(NONE), extraIx(-1), warnKey() 
   {}
 
   virtual ~DSub(); // polymorphism

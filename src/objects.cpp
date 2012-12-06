@@ -28,6 +28,7 @@
 #include "objects.hpp"
 #include "graphics.hpp"
 #include "preferences.hpp"
+#include "overload.hpp"
 
 //#include "dinterpreter.hpp"
 
@@ -337,7 +338,9 @@ void InitObjects()
 
   // initialize struct descriptors which are not system variables
   InitStructs();
-
+  // add internal memeber subroutines
+  SetupOverloadSubroutines();
+  
   // graphic devices must be initialized after system variables
   // !D must already exist
   Graphics::Init();
