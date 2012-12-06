@@ -97,7 +97,7 @@ void SetupOverloadSubroutines()
   DStructDesc* gdlObjectDesc = FindInStructList(structList, GDL_OBJECT_NAME);
   assert( gdlObjectDesc != NULL);
   
-  gdlObjectDesc->SetOperator(OOIsTrue,_overloadIsTrue);
   gdlObjectDesc->FunList().push_back(_overloadIsTrue);
+  gdlObjectDesc->SetOperator(OOIsTrue,_overloadIsTrue);
 
 }

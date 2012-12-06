@@ -20,7 +20,13 @@
 
 #include <sstream>
 #include <bitset> // for binary output
-#define binstr(v,w) bitset<32>(v).to_string<char,char_traits<char>,allocator<char> >().substr(32-(w),w)
+
+template< typename T>
+std::string binstr( T v, int w)
+{
+  return bitset<32>(v).to_string<char,char_traits<char>,allocator<char> >().substr(32-w,w);
+}
+//#define binstr(v,w) bitset<32>(v).to_string<char,char_traits<char>,allocator<char> >().substr(32-(w),w)
 
 //#include "datatypes.hpp"
 //#include "dstructgdl.hpp"
@@ -669,7 +675,8 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
       (*os) << oct << setw(w) << setfill(f) << (*this)[ i];
   else if ( oMode == BIN)
     for( SizeT i=offs; i<endEl; ++i)
-      (*os) << binstr((std::bitset<32>)i, w);
+      (*os) << binstr((*this)[ i], w);
+//       (*os) << binstr((std::bitset<32>)i, w);
   else if ( oMode == HEX)
     for( SizeT i=offs; i<endEl; ++i)
       (*os) << uppercase << hex << setw(w) << setfill(f) << (*this)[ i];
@@ -703,8 +710,11 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, char f,
   else if ( oMode == BIN)
     for( SizeT i=offs; i<endEl; ++i)
     {
-      if (w > 32) (*os) << binstr((std::bitset<32>)i >> 32, w - 32);
-      (*os) << binstr((std::bitset<32>)i, w <= 32 ? w : 32);
+//       if (w > 32) 
+// 	(*os) << binstr((std::bitset<32>)i >> 32, w - 32);
+//       (*os) << binstr((std::bitset<32>)i, w <= 32 ? w : 32);
+      if (w > 32) (*os) << binstr((*this)[ i] >> 32, w - 32);
+      (*os) << binstr((*this)[ i], w <= 32 ? w : 32);
     }
   else if ( oMode == HEX)
     for( SizeT i=offs; i<endEl; ++i)
