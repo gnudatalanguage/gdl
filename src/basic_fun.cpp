@@ -3775,43 +3775,51 @@ BaseGDL* transpose( EnvT* e)
   }
 
   // uses MergeSort
-  BaseGDL* median( EnvT* e)
-  {
+  // 2 parts in the code: without "width" or with "width" (limited to 1D and 2D)
+  BaseGDL* median( EnvT* e) {
+    
+    BaseGDL* p0 = e->GetParDefined( 0);
+
+    if( p0->Type() == GDL_PTR)
+      e->Throw( "Pointer expression not allowed in this context: "+ e->GetParString(0));
+    if( p0->Type() == GDL_OBJ)
+      e->Throw( "Object expression not allowed in this context: "+ e->GetParString(0));
+    if( p0->Type() == GDL_STRUCT)
+      e->Throw( "Struct expression not allowed in this context: "+ e->GetParString(0));
+
+    if( p0->Rank() == 0)
+      e->Throw( "Expression must be an array in this context: "+ e->GetParString(0));
+
     SizeT nParam = e->NParam( 1);
+    SizeT nEl = p0->N_Elements();
     
-    if( !(nParam > 1))
-      {
-	BaseGDL* p0 = e->GetParDefined( 0);
-
-	if( p0->Type() == GDL_PTR)
-	  e->Throw( "Pointer expression not allowed in this context: "+
-		    e->GetParString(0));
-	if( p0->Type() == GDL_OBJ)
-	  e->Throw( "Object expression not allowed in this context: "+
-		    e->GetParString(0));
-	if( p0->Type() == GDL_STRUCT)
-	  e->Throw( "Struct expression not allowed in this context: "+
-		    e->GetParString(0));
-
-	if( p0->Rank() == 0)
-	  e->Throw( "Expression must be an array in this context: "+
-		    e->GetParString(0));
+    // "f_nan" and "d_nan" used by both parts ...
+    static DStructGDL *Values = SysVar::Values();
+    DFloat f_nan=(*static_cast<DFloatGDL*>(Values->GetTag(Values->Desc()->TagIndex("F_NAN"), 0)))[0];
+    DDouble d_nan=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_NAN"), 0)))[0];
     
-	SizeT nEl = p0->N_Elements();
-	
+    // --------------------------------------------------------
+    // begin of the part 1: without "width" param
+    if( nParam == 1) {
+      
 	static int evenIx = e->KeywordIx( "EVEN");
+	
+	// TYPE
 	bool dbl = 
           p0->Type() == GDL_DOUBLE || 
           p0->Type() == GDL_COMPLEXDBL || 
           e->KeywordSet(e->KeywordIx("DOUBLE"));
-    DType type = dbl ? GDL_DOUBLE : GDL_FLOAT;
-    bool noconv = (dbl && p0->Type() == GDL_DOUBLE) || (!dbl && p0->Type() == GDL_FLOAT);
+	DType type = dbl ? GDL_DOUBLE : GDL_FLOAT;
+	bool noconv = (dbl && p0->Type() == GDL_DOUBLE) ||
+	  (!dbl && p0->Type() == GDL_FLOAT);
 
 	// DIMENSION keyword
 	DLong dim = 0;
 	DLong nmed = 1;
 	BaseGDL *res;
 	e->AssureLongScalarKWIfPresent( "DIMENSION", dim);
+
+	//	cout << "dim : "<< dim << endl;
 	
 	if (dim > p0->Rank())
 	  e->Throw( "Illegal keyword value for DIMENSION.");
@@ -3826,17 +3834,23 @@ BaseGDL* transpose( EnvT* e)
 	    }
 	  dimension dimRes((DLong *) dims, p0->Rank()-1);
 	  res = dbl 
-            ? static_cast<BaseGDL*>(new DDoubleGDL(dimRes, BaseGDL::NOZERO)) 
+            ? static_cast<BaseGDL*>(new DDoubleGDL(dimRes, BaseGDL::NOZERO))
             : static_cast<BaseGDL*>(new DFloatGDL(dimRes, BaseGDL::NOZERO));
 	} else {
 	  res = dbl 
-            ? static_cast<BaseGDL*>(new DDoubleGDL(1)) 
+            ? static_cast<BaseGDL*>(new DDoubleGDL(1))
             : static_cast<BaseGDL*>(new DFloatGDL(1));
 	}
-	
+
+	// conversion of Complex types
+	if (p0->Type() == GDL_COMPLEX) p0 = p0->Convert2(GDL_FLOAT, BaseGDL::COPY);
+	if (p0->Type() == GDL_COMPLEXDBL) p0 = p0->Convert2(GDL_DOUBLE, BaseGDL::COPY);
+
 	// helper arrays
 	if (nmed > 1) nEl = p0->N_Elements() / nmed;
 	
+	//	cout << "hello2" << endl;
+
 	DLong *hh = new DLong[ nEl];
 	DLong* h1 = new DLong[ nEl/2];
 	DLong* h2 = new DLong[ (nEl+1)/2];
@@ -3844,182 +3858,202 @@ BaseGDL* transpose( EnvT* e)
 	DLong accumStride = 1;
 	if (nmed > 1)
 	  for( DLong i=0; i<dim-1; ++i) accumStride *= p0->Dim(i);
-	
+
 	BaseGDL *op1, *op2, *op3;
         if (dbl) op3 = new DDoubleGDL(2);
         else op3 = new DFloatGDL(2);
 
+	// nEl_extern is used to store "nEl" initial value
+	DLong nanIx, nEl_extern;
+	nEl_extern=nEl;
+	//	if (nmed > 1) nEl_extern = p0->N_Elements() / nmed;
+	//else nEl_extern = p0->N_Elements();
+
+	//	cout << "hello type" << p0->Type() << endl;
+	
 	// Loop over all subarray medians
 	for (SizeT k=0; k<nmed; ++k) {
 	  
-	  if (nmed == 1) { 
+	  //	  nEl=nEl_extern;
+
+	  if (nmed == 1) {
+	    //cout << "hello inside 1D" << endl;
 	    for( DLong i=0; i<nEl; ++i) hh[i] = i;
+	    nanIx = nEl;
 
-		DLong nanIx = nEl;
-		if( p0->Type() == GDL_FLOAT)
-		{
-			DFloatGDL* p0F = static_cast<DFloatGDL*>(p0);
-			for( DLong i=nEl-1; i >= 0; --i)
-			{
-				if( isnan((*p0F)[ i]) )//|| !isfinite((*p0F)[ i]))
-					{
-						--nanIx;
-						hh[i] = hh[nanIx];
-						hh[ nanIx] = i;
-
-	// cout << "swap " << i << " with " << nanIx << endl;
-	// cout << "now:     ";
-	// 		for( DLong ii=0; ii < nEl; ++ii)
-	// 		{
-	// 		cout << hh[ii] << " ";
-	// 		}
-	// cout  << endl;
-					}
-			}
+	    if (p0->Type() == GDL_DOUBLE) {
+	      DDoubleGDL* p0F = static_cast<DDoubleGDL*>(p0);
+	      for( DLong i=nEl-1; i >= 0; --i) {
+		if( isnan((*p0F)[i])) {
+		  --nanIx;
+		  hh[i] = hh[nanIx];
+		  hh[ nanIx] = i;
 		}
-		else if( p0->Type() == GDL_DOUBLE)
-		{
-			DDoubleGDL* p0F = static_cast<DDoubleGDL*>(p0);
-			for( DLong i=nEl-1; i >= 0; --i)
-			{
-				if( isnan((*p0F)[ i]))// || !isfinite((*p0F)[ i]))
-					{
-						--nanIx;
-						hh[i] = hh[nanIx];
-						hh[ nanIx] = i;
-					}
-			}
+	      }
+	    }
+	    
+	    if (p0->Type() == GDL_FLOAT) {
+	      DFloatGDL* p0F = static_cast<DFloatGDL*>(p0);
+	      for( DLong i=nEl-1; i >= 0; --i) {
+		if( isnan((*p0F)[i])) {
+		  --nanIx;
+		  hh[i] = hh[nanIx];
+		  hh[ nanIx] = i;
 		}
-		else if( p0->Type() == GDL_COMPLEX)
-		{
-			DComplexGDL* p0F = static_cast<DComplexGDL*>(p0);
-			for( DLong i=nEl-1; i >= 0; --i)
-			{
-				if( isnan((*p0F)[ i].real()) || //!isfinite((*p0F)[ i].real()) ||
-					isnan((*p0F)[ i].imag()))// || !isfinite((*p0F)[ i].imag()) )
-					{
-						--nanIx;
-						hh[i] = hh[nanIx];
-						hh[ nanIx] = i;
-					}
-			}
-		}
-		else if( p0->Type() == GDL_COMPLEXDBL)
-		{
-			DComplexDblGDL* p0F = static_cast<DComplexDblGDL*>(p0);
-			for( DLong i=nEl-1; i >= 0; --i)
-			{
-				if( isnan((*p0F)[ i].real()) || //!isfinite((*p0F)[ i].real()) ||
-					isnan((*p0F)[ i].imag()))// || !isfinite((*p0F)[ i].imag()) )
-					{
-						--nanIx;
-						hh[i] = hh[nanIx];
-						hh[ nanIx] = i;
-					}
-			}
-		}
-
-		// cout << "nEl " << nEl << " nanIx " << nanIx << endl;
-		nEl = nanIx;
-
-	  } else {
-	    // Starting Element
-	    DLong start = accumStride * p0->Dim(dim-1) * (k / accumStride) + 
-	      (k % accumStride);
-	    for( DLong i=0; i<nEl; ++i) hh[i] = start + i * accumStride;
+	      }
+	    }
+	    
+	    //cout << "nEl " << nEl << " nanIx " << nanIx << endl;
+	    nEl = nanIx;
 	  }
+	  else
+	    {
+	      nanIx = nEl;
+	      nEl=nEl_extern; 
+
+	      //	      DLong nanIx = nEl;
+	      // Starting Element
+	      DLong start = accumStride * p0->Dim(dim-1) * (k / accumStride) + 
+		(k % accumStride);
+	      for( DLong i=0; i<nEl; ++i) hh[i] = start + i * accumStride;
+	      DLong jj;
+	      nanIx = nEl;
+
+	      if (p0->Type() == GDL_FLOAT) {
+		DFloatGDL* p0F = static_cast<DFloatGDL*>(p0);
+		for( DLong i=nEl-1; i >= 0; --i) {
+		  jj=start + i * accumStride;
+		  if( isnan((*p0F)[ jj]) ) {
+		    --nanIx;
+		    hh[i] = hh[nanIx];
+		    hh[ nanIx] = i;
+		  }
+		}
+		nEl = nanIx;
+	      }
+
+	      if (p0->Type() == GDL_DOUBLE) {
+		DDoubleGDL* p0F = static_cast<DDoubleGDL*>(p0);
+		for( DLong i=nEl-1; i >= 0; --i) {
+		  jj=start + i * accumStride;
+		  if( isnan((*p0F)[ jj]) ) {
+		    --nanIx;
+		    hh[i] = hh[nanIx];
+		    hh[ nanIx] = i;
+		  }
+		}
+		//cout << "nanIx :" << nanIx << "nEl :" << nEl << endl;
+		nEl = nanIx;
+	      }
+	    }
+	  DLong medEl, medEl_1;
 
 	  // call the sort routine
-	  MergeSortOpt<DLong>( p0, hh, h1, h2, nEl);
-	  DLong medEl = hh[ nEl/2];
-	  DLong medEl_1 = hh[ nEl/2 - 1];
-	  
-	  if( (nEl % 2) == 1 || !e->KeywordSet( evenIx)) {
-	    if (nmed == 1)
-	      res = p0->NewIx(medEl)->Convert2(type, BaseGDL::CONVERT); 
-	    else {
-              if (noconv) 
-              {
-                if (dbl) (*static_cast<DDoubleGDL*>(res))[k] = (*static_cast<DDoubleGDL*>(p0))[medEl];
-                else (*static_cast<DFloatGDL*>(res))[k] = (*static_cast<DFloatGDL*>(p0))[medEl];
-              }
-              else 
-              {
-	        op1 = p0->NewIx(medEl)->Convert2(type, BaseGDL::CONVERT);
-	        if (dbl) (*static_cast<DDoubleGDL*>(res))[k] = (*static_cast<DDoubleGDL*>(op1))[0];
-                else (*static_cast<DFloatGDL*>(res))[k] = (*static_cast<DFloatGDL*>(op1))[0];
-                delete(op1);
-              }
-	    }
+	  if (nEl > 1) {
+	    MergeSortOpt<DLong>( p0, hh, h1, h2, nEl);
+	    medEl = hh[ nEl/2];
+	    medEl_1 = hh[ nEl/2 - 1];
 	  } else {
-            if (noconv) 
-            {
-              if (dbl) (*static_cast<DDoubleGDL*>(res))[k] = .5 * (
-                (*static_cast<DDoubleGDL*>(p0))[medEl] + 
-                (*static_cast<DDoubleGDL*>(p0))[medEl_1]
-              );
-              else (*static_cast<DFloatGDL*>(res))[k] = .5 * (
-                (*static_cast<DFloatGDL*>(p0))[medEl] +
-                (*static_cast<DFloatGDL*>(p0))[medEl_1]
-              );
-            }
-            else 
-            {
-	      op1 = p0->NewIx(medEl)->Convert2(type, BaseGDL::CONVERT); 
-	      op2 = p0->NewIx(medEl_1)->Convert2(type, BaseGDL::CONVERT);
-	      if (nmed == 1) res = op2->Add(op1)->Div(op3); // TODO: leak with res?
-	      else 
-              {
-                if (dbl) (*static_cast<DDoubleGDL*>(res))[k] = 
-                  (*static_cast<DDoubleGDL*>((op2->Add(op1)->Div(op3))))[0];
-                else (*static_cast<DFloatGDL*>(res))[k] =
-                  (*static_cast<DFloatGDL*>((op2->Add(op1)->Div(op3))))[0];
-	        delete(op2);
-              }
-	      delete(op1);
-            }
+	    if (nEl == 1) {
+	      medEl = hh[0];
+	      medEl_1 = hh[0];
+	    } else
+	      { // normal case, more than one element, nothing to do
+		//cout << "gasp : no result ! " << endl;
+	      }
+	  }
+
+	  if (nEl <= 0) { // we have a NaN
+	    if (dbl) (*static_cast<DDoubleGDL*>(res))[k] = d_nan;
+	    else (*static_cast<DFloatGDL*>(res))[k] = f_nan;
+	  } else {
+	    //cout << k << "" << (*static_cast<DFloatGDL*>(p0))[medEl] << " " 
+	    //	 << (*static_cast<DFloatGDL*>(p0))[medEl_1] << endl;
+	    //cout << "k :" << k << endl;
+	    if( (nEl % 2) == 1 || !e->KeywordSet( evenIx)) {
+	      if (nmed == 1)
+		res = p0->NewIx(medEl)->Convert2(type, BaseGDL::CONVERT); 
+	      else {
+		if (noconv) 
+		  {
+		    if (dbl) (*static_cast<DDoubleGDL*>(res))[k] = (*static_cast<DDoubleGDL*>(p0))[medEl];
+		    else (*static_cast<DFloatGDL*>(res))[k] = (*static_cast<DFloatGDL*>(p0))[medEl];
+		  }
+		else 
+		  {
+		    op1 = p0->NewIx(medEl)->Convert2(type, BaseGDL::CONVERT);
+		    if (dbl) (*static_cast<DDoubleGDL*>(res))[k] = (*static_cast<DDoubleGDL*>(op1))[0];
+		    else (*static_cast<DFloatGDL*>(res))[k] = (*static_cast<DFloatGDL*>(op1))[0];
+		    delete(op1);
+		  }
+	      }
+	    } else {
+	      if (noconv) 
+		{
+		  if (dbl) (*static_cast<DDoubleGDL*>(res))[k] = .5 * (
+								       (*static_cast<DDoubleGDL*>(p0))[medEl] + 
+								       (*static_cast<DDoubleGDL*>(p0))[medEl_1]
+								       );
+		  else (*static_cast<DFloatGDL*>(res))[k] = .5 * (
+								  (*static_cast<DFloatGDL*>(p0))[medEl] +
+								  (*static_cast<DFloatGDL*>(p0))[medEl_1]
+								  );
+		}
+	      else
+		{
+		  op1 = p0->NewIx(medEl)->Convert2(type, BaseGDL::CONVERT); 
+		  op2 = p0->NewIx(medEl_1)->Convert2(type, BaseGDL::CONVERT);
+		  if (nmed == 1) res = op2->Add(op1)->Div(op3); // TODO: leak with res?
+		  else 
+		    {
+		      if (dbl) (*static_cast<DDoubleGDL*>(res))[k] =
+				 (*static_cast<DDoubleGDL*>((op2->Add(op1)->Div(op3))))[0];
+		      else (*static_cast<DFloatGDL*>(res))[k] =
+			     (*static_cast<DFloatGDL*>((op2->Add(op1)->Div(op3))))[0];
+		      delete(op2);
+		    }
+		  delete(op1);
+		}
+	    }
 	  }
 	}
         delete(op3);
 	delete[] h1;
 	delete[] h2;
 	delete[] hh;
-	
+
 	return res;
-      }
-    else 
+    }
+
+    // begin of the part 2: with "width" param
+    if( nParam == 2) {
       // with parameter Width : median filtering with no optimisation,
       //  such as histogram algorithms.
       // Copyright: (C) 2008 by Nicolas Galmiche
-      {
-	// basic checks on "vector/array" input	
-	DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>( 0);	
 
-    	if( p0->Type() == GDL_STRUCT)
-	  e->Throw( "Struct expression not allowed in this context: "+ e->GetParString(0));	
-   	if( p0->Rank() == 0)
-	  e->Throw( "Expression must be an array in this context: "+ e->GetParString(0));
-   	
-	if( p0->Rank() > 2)
-	  e->Throw( "Only 1 or 2 dimensions allowed: "+ e->GetParString(0));
-   	
-	// basic checks on "width" input		
- 	DDoubleGDL* p1d = e->GetParAs<DDoubleGDL>(1);
+      // basic checks on "vector/array" input	
+      DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>( 0);	
+
+      if( p0->Rank() > 2)
+	e->Throw( "Only 1 or 2 dimensions allowed: "+ e->GetParString(0));
+      
+      // basic checks on "width" input		
+      DDoubleGDL* p1d = e->GetParAs<DDoubleGDL>(1);
  	
-	if (p1d->N_Elements() > 1 || (*p1d)[0] <=0 ) 
-	  e->Throw( "Width must be a positive scalar or 1 (positive) element array in this context: "+ e->GetParString(0));
-	DLong MaxAllowedWidth=0;
-	if (p0->Rank() == 1) MaxAllowedWidth=p0->N_Elements();
-	if (p0->Rank() == 2) {
-	  MaxAllowedWidth=p0->Dim(0);
-	  if (p0->Dim(1) < MaxAllowedWidth) MaxAllowedWidth=p0->Dim(1);	   
-	}
-	const int debug =0;
-	if (debug == 1) {
-	  cout << "X dim " << p0->Dim(0) <<endl;
-	  cout << "y dim " << p0->Dim(1) <<endl;	  
-	  cout << "MaxAllowedWidth " << MaxAllowedWidth <<endl;
-	}
+      if (p1d->N_Elements() > 1 || (*p1d)[0] <=0 ) 
+	e->Throw( "Width must be a positive scalar or 1 (positive) element array in this context: "+ e->GetParString(0));
+      DLong MaxAllowedWidth=0;
+      if (p0->Rank() == 1) MaxAllowedWidth=p0->N_Elements();
+      if (p0->Rank() == 2) {
+	MaxAllowedWidth=p0->Dim(0);
+	if (p0->Dim(1) < MaxAllowedWidth) MaxAllowedWidth=p0->Dim(1);	   
+      }
+      const int debug =0;
+      if (debug == 1) {
+	cout << "X dim " << p0->Dim(0) <<endl;
+	cout << "y dim " << p0->Dim(1) <<endl;	  
+	cout << "MaxAllowedWidth " << MaxAllowedWidth <<endl;
+      }
 	if (!isfinite( (*p1d)[0]))
 	  e->Throw("Width must be > 1, and < dimension of array (NaN or Inf)");
 	
@@ -4039,9 +4073,9 @@ BaseGDL* transpose( EnvT* e)
 
 	
 	static int evenIx = e->KeywordIx( "EVEN");
-    static int doubleIx = e->KeywordIx( "DOUBLE");
+	static int doubleIx = e->KeywordIx( "DOUBLE");
 	static DStructGDL *Values =  SysVar::Values();                                                
-    DDouble d_nan=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_NAN"), 0)))[0];
+	DDouble d_nan=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_NAN"), 0)))[0];
 	DDouble d_infinity= (*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_INFINITY"), 0)))[0]; 
  
 	//------------------------------ Init variables and allocation ---------------------------------------
@@ -4269,23 +4303,23 @@ BaseGDL* transpose( EnvT* e)
 			    if(ctl_NaN==width)(*tamp)[col]= d_nan;
 			    else 
 			      {
-					DLong*	hhbis = new DLong[ width-ctl_NaN];
-					DLong*	h1bis = new DLong[ width-ctl_NaN/2];
-					DLong*	h2bis= new DLong[(width-ctl_NaN+1)/2];
-					DDoubleGDL *Mask1Dbis = new DDoubleGDL(width-ctl_NaN,BaseGDL::NOZERO);
-					for( DLong t=0; t<width-ctl_NaN; ++t) hhbis[t] = t;
-					for( DLong ii=0; ii<width-ctl_NaN; ++ii)(*Mask1Dbis)[ii]=(*Mask1D)[ii];
-					BaseGDL* besort=static_cast<BaseGDL*>(Mask1Dbis);	
-					MergeSortOpt<DLong>( besort, hhbis, h1bis, h2bis,(width - ctl_NaN));
-					if (e->KeywordSet( evenIx)&& (width - ctl_NaN) % 2 == 0)
-					(*tamp)[col]=((*Mask1Dbis)[hhbis[ (width-ctl_NaN)/2]]+(*Mask1Dbis
-												)[hhbis	[ (width - ctl_NaN-1)/2]])/2;
-					else
-					(*tamp)[col]=(*Mask1Dbis)[hhbis[ (width- ctl_NaN)/2]];
-					delete[]hhbis;
-					delete[]h2bis;
-					delete[]h1bis;
-					}
+				DLong*	hhbis = new DLong[ width-ctl_NaN];
+				DLong*	h1bis = new DLong[ width-ctl_NaN/2];
+				DLong*	h2bis= new DLong[(width-ctl_NaN+1)/2];
+				DDoubleGDL *Mask1Dbis = new DDoubleGDL(width-ctl_NaN,BaseGDL::NOZERO);
+				for( DLong t=0; t<width-ctl_NaN; ++t) hhbis[t] = t;
+				for( DLong ii=0; ii<width-ctl_NaN; ++ii)(*Mask1Dbis)[ii]=(*Mask1D)[ii];
+				BaseGDL* besort=static_cast<BaseGDL*>(Mask1Dbis);	
+				MergeSortOpt<DLong>( besort, hhbis, h1bis, h2bis,(width - ctl_NaN));
+				if (e->KeywordSet( evenIx)&& (width - ctl_NaN) % 2 == 0)
+				  (*tamp)[col]=((*Mask1Dbis)[hhbis[ (width-ctl_NaN)/2]]+(*Mask1Dbis
+											 )[hhbis	[ (width - ctl_NaN-1)/2]])/2;
+				else
+				  (*tamp)[col]=(*Mask1Dbis)[hhbis[ (width- ctl_NaN)/2]];
+				delete[]hhbis;
+				delete[]h2bis;
+				delete[]h1bis;
+			      }
 			  }	
 			else
 			  {
@@ -4456,26 +4490,26 @@ BaseGDL* transpose( EnvT* e)
 			 
 			    if (ctl_NaN!=0)
 			      {	
-					if(ctl_NaN==N_MaskElem)
-						(*tamp)[j]= d_nan;
-					else {
-						DLong*	hhb = new DLong[ N_MaskElem-ctl_NaN];
-						DLong*	h1b = new DLong[ (N_MaskElem-ctl_NaN)/2];
-						DLong*	h2b= new DLong[(N_MaskElem-ctl_NaN+1)/2];
-						DDoubleGDL*Maskb = new DDoubleGDL(N_MaskElem-ctl_NaN,BaseGDL::NOZERO);
-						for( DLong t=0; t<N_MaskElem-ctl_NaN; ++t) hhb[t] = t;
-						for( DLong ii=0; ii<N_MaskElem-ctl_NaN; ++ii)(*Maskb)[ii]=(*Mask)[ii];
-						BaseGDL* besort=static_cast<BaseGDL*>(Maskb);
-						MergeSortOpt<DLong>( besort, hhb, h1b, h2b,(N_MaskElem - ctl_NaN));
-						if ((N_MaskElem - ctl_NaN) % 2 == 0 && e->KeywordSet( evenIx))
-							(*tamp)[j]=((*Maskb)[hhb[ (N_MaskElem-ctl_NaN)/2]]+(*Maskb)[hhb
-														[ (N_MaskElem - 
-														ctl_NaN-1)/2]])/2;
-						else(*tamp)[j]=(*Maskb)[hhb[(N_MaskElem- ctl_NaN)/2]];
-						delete[]hhb;
-						delete[]h2b;
-						delete[]h1b;
-					}
+				if(ctl_NaN==N_MaskElem)
+				  (*tamp)[j]= d_nan;
+				else {
+				  DLong*	hhb = new DLong[ N_MaskElem-ctl_NaN];
+				  DLong*	h1b = new DLong[ (N_MaskElem-ctl_NaN)/2];
+				  DLong*	h2b= new DLong[(N_MaskElem-ctl_NaN+1)/2];
+				  DDoubleGDL*Maskb = new DDoubleGDL(N_MaskElem-ctl_NaN,BaseGDL::NOZERO);
+				  for( DLong t=0; t<N_MaskElem-ctl_NaN; ++t) hhb[t] = t;
+				  for( DLong ii=0; ii<N_MaskElem-ctl_NaN; ++ii)(*Maskb)[ii]=(*Mask)[ii];
+				  BaseGDL* besort=static_cast<BaseGDL*>(Maskb);
+				  MergeSortOpt<DLong>( besort, hhb, h1b, h2b,(N_MaskElem - ctl_NaN));
+				  if ((N_MaskElem - ctl_NaN) % 2 == 0 && e->KeywordSet( evenIx))
+				    (*tamp)[j]=((*Maskb)[hhb[ (N_MaskElem-ctl_NaN)/2]]+(*Maskb)[hhb
+												[ (N_MaskElem - 
+												   ctl_NaN-1)/2]])/2;
+				  else(*tamp)[j]=(*Maskb)[hhb[(N_MaskElem- ctl_NaN)/2]];
+				  delete[]hhb;
+				  delete[]h2b;
+				  delete[]h1b;
+				}
 			      }	
 			    else
 			      {
