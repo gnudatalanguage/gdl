@@ -896,7 +896,6 @@ tag_def
 arrayindex! [ArrayIndexVectorT* ixList]
 {
     BaseGDL *c1, *c2, *c3, *c4;
-antlr::print_tree pt;
 }
 	: ( #(ARRAYIX  
                 ( ALL
@@ -904,48 +903,51 @@ antlr::print_tree pt;
                          ixList->push_back( new ArrayIndexAll());
                      }
                 | ( e1:expr // 0 or 2
-                        ( // empty  
-                            {
-                                bool    constantOK = false;
+                    ( // empty  
+                    {
+                        bool    constantOK = false;
 
-// cout << e1->getText() << endl;
-// pt.pr_tree(static_cast<antlr::RefAST>(#e1));
+                        c1 = comp.ConstantIndex( #e1);
 
-                                c1 = comp.ConstantIndex( #e1); 
-                                if( c1 != NULL)
-                                    {   
+                        if( c1 != NULL)
+                            {   
+                                DType dType = c1->Type();
+                                int typeCheck = DTypeOrder[ dType];
+                                if( dType == GDL_STRING || typeCheck >= 100)
+                                    {
+                                        delete c1;
+                                    }
+                                else
+                                    {
                                         try {
                                             if( c1->Rank() == 0)
-                                                ixList->
-                                                    push_back( new 
-                                                               CArrayIndexScalar( c1));
+                                                ixList->push_back( new CArrayIndexScalar( c1));
                                             else
-                                                ixList->
-                                                    push_back( new 
-                                                               CArrayIndexIndexed( c1));
+                                                ixList->push_back( new CArrayIndexIndexed( c1));
                                             constantOK = true;
                                         }
-                                        catch( GDLException& e)
-                                        {
-                                            //constantOK = false;
+                                        catch( GDLException& e) {
+                                            delete c1;
                                         }  
                                     }
-                                if( !constantOK)
+                            }
+
+                        if( !constantOK)
+                            {
+                                if( LoopVar( #e1))
                                     {
-                                        if( LoopVar( #e1))
-                                            {
-                                            if( #e1->getType() == VAR)
-                                                ixList->push_back( new ArrayIndexScalar( #e1));
-                                            else
-                                                ixList->push_back( new ArrayIndexScalarVP( #e1));
-                                            }
+                                        if( #e1->getType() == VAR)
+                                            ixList->push_back( new ArrayIndexScalar( #e1));
                                         else
-                                            {
-                                                ## = #e1;
-                                                ixList->push_back( new ArrayIndexIndexed());
-                                            }
+                                            ixList->push_back( new ArrayIndexScalarVP( #e1));
+                                    }
+                                else
+                                    {
+                                        ## = #e1;
+                                        ixList->push_back( new ArrayIndexIndexed());
                                     }
                             }
+                    }
                         | ALL
                             ( // empty
                             {
@@ -971,6 +973,8 @@ antlr::print_tree pt;
                                     }
                                     else
                                     {
+                                        delete c1;
+                                        delete c2;
                                         ## = #( NULL, e1, e2);
                                         ixList->push_back( new 
                                             ArrayIndexORangeS());
@@ -989,6 +993,8 @@ antlr::print_tree pt;
                                     }
                                     else
                                     {
+                                        delete c1;
+                                        delete c3;
                                         ## = #( NULL, e1, e3);
                                         ixList->push_back( new ArrayIndexRange());
                                     }
@@ -1004,6 +1010,9 @@ antlr::print_tree pt;
                                     }
                                     else
                                     {
+                                        delete c1;
+                                        delete c3;
+                                        delete c4;
                                         ## = #( NULL, e1, e3, e4);
                                         ixList->push_back( new ArrayIndexRangeS());
                                     }

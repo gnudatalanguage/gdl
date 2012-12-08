@@ -1156,6 +1156,14 @@ pro recursion_test
 end
 
 pro index_test
+  
+  x=[1,2,3]
+  l=3
+  y=x[0:l-1]
+  if y[2] ne 3 then begin
+    message, "***INDEX: ERROR0", /conti
+    exit, status=1
+  endif
 
   b=byte( "abcdefg")
   d=bytarr(20)

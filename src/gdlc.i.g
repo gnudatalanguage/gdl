@@ -3520,6 +3520,7 @@ arrayindex_list returns [ArrayIndexListT* aL]
                 cleanupList.push_back( s);
             }
 			
+        assert( s != NULL);
         ixExprList.push_back( s);
         if( ixExprList.size() == nExpr)
             break; // allows some manual tuning

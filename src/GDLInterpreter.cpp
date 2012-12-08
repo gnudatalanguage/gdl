@@ -2044,6 +2044,7 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t) {
 	cleanupList.push_back( s);
 	}
 				
+	assert( s != NULL);
 	ixExprList.push_back( s);
 	if( ixExprList.size() == nExpr)
 	break; // allows some manual tuning

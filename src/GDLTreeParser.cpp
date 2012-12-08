@@ -4553,7 +4553,6 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 	RefDNode e4 = RefDNode(antlr::nullAST);
 	
 	BaseGDL *c1, *c2, *c3, *c4;
-	antlr::print_tree pt;
 	
 	
 	{
@@ -4666,28 +4665,31 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 			
 			bool    constantOK = false;
 			
-			// cout << e1->getText() << endl;
-			// pt.pr_tree(static_cast<antlr::RefAST>(#e1));
+			c1 = comp.ConstantIndex( e1_AST);
 			
-			c1 = comp.ConstantIndex( e1_AST); 
 			if( c1 != NULL)
 			{   
+			DType dType = c1->Type();
+			int typeCheck = DTypeOrder[ dType];
+			if( dType == GDL_STRING || typeCheck >= 100)
+			{
+			delete c1;
+			}
+			else
+			{
 			try {
 			if( c1->Rank() == 0)
-			ixList->
-			push_back( new 
-			CArrayIndexScalar( c1));
+			ixList->push_back( new CArrayIndexScalar( c1));
 			else
-			ixList->
-			push_back( new 
-			CArrayIndexIndexed( c1));
+			ixList->push_back( new CArrayIndexIndexed( c1));
 			constantOK = true;
 			}
-			catch( GDLException& e)
-			{
-			//constantOK = false;
+			catch( GDLException& e) {
+			delete c1;
 			}  
 			}
+			}
+			
 			if( !constantOK)
 			{
 			if( LoopVar( e1_AST))
@@ -4831,6 +4833,8 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 				}
 				else
 				{
+				delete c1;
+				delete c2;
 				arrayindex_AST = RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(NULL))->add(antlr::RefAST(e1_AST))->add(antlr::RefAST(e2_AST))));
 				ixList->push_back( new 
 				ArrayIndexORangeS());
@@ -4941,6 +4945,8 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 				}
 				else
 				{
+				delete c1;
+				delete c3;
 				arrayindex_AST = RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(NULL))->add(antlr::RefAST(e1_AST))->add(antlr::RefAST(e3_AST))));
 				ixList->push_back( new ArrayIndexRange());
 				}
@@ -5036,6 +5042,9 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 				}
 				else
 				{
+				delete c1;
+				delete c3;
+				delete c4;
 				arrayindex_AST = RefDNode(astFactory->make((new antlr::ASTArray(4))->add(antlr::RefAST(NULL))->add(antlr::RefAST(e1_AST))->add(antlr::RefAST(e3_AST))->add(antlr::RefAST(e4_AST))));
 				ixList->push_back( new ArrayIndexRangeS());
 				}

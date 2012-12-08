@@ -78,12 +78,11 @@ public:
   
   void Clear()
   {
-//     delete allIx;
+  //     delete allIx;
     allIx = NULL;
-//     allIxMulti.Clear();
-    
+  //     allIxMulti.Clear();
     ix->Clear();
-	cleanupIx.Cleanup();
+    cleanupIx.Cleanup();
   }
 
   ArrayIndexListT* Clone() { return new ArrayIndexListOneNoAssocT( *this);}
@@ -1292,10 +1291,6 @@ public:
 	    CArrayIndexScalarID == ixList[ixList.size()-1]->Type()) nScalar++;
     else if( ArrayIndexIndexedID == ixList[ixList.size()-1]->Type() ||
 	    CArrayIndexIndexedID == ixList[ixList.size()-1]->Type()) nIndexed++;
-/*    if( dynamic_cast< ArrayIndexScalar*>(ixList[ixList.size()-1]) ||
-    dynamic_cast< CArrayIndexScalar*>(ixList[ixList.size()-1])) nScalar++;
-if( dynamic_cast<ArrayIndexIndexed*>(ixList[ixList.size()-1]) ||
-    dynamic_cast<CArrayIndexIndexed*>(ixList[ixList.size()-1]) ) nIndexed++;*/
     
     if( nScalar == ixList.size())
       accessTypeInit = ALLONE;
@@ -1324,14 +1319,53 @@ if( dynamic_cast<ArrayIndexIndexed*>(ixList[ixList.size()-1]) ||
 
   ArrayIndexListT* Clone() { return new ArrayIndexListMultiNoAssocT( *this);}
 
+  void InitAsOverloadIndex( IxExprListT& ix, IxExprListT* cleanupIxIn, IxExprListT& ixOut) 
+  { 
+    assert( allIx == NULL);
+    assert( ix.size() == nParam);
+
+    if( cleanupIxIn != NULL)
+      cleanupIx = *cleanupIxIn;
+
+    DLongGDL* isRange = new DLongGDL( dimension(ixList.size(), BaseGDL::NOZERO));
+    
+    SizeT pIX = 0;
+    for( SizeT i=0; i<ixList.size(); ++i)
+      {
+	SizeT ixNParam = ixList[ i]->NParam();
+	if( ixNParam == 0)    
+	  {
+	    ixList[ i]->Init();
+	    continue;
+	  }
+	if( ixNParam == 1) 
+	  {
+	    ixList[ i]->Init( ix[ pIX]);
+	    pIX += 1;
+	    continue;
+	  }
+	if( ixNParam == 2) 
+	  {
+	    ixList[ i]->Init( ix[ pIX], ix[ pIX+1]);
+	    pIX += 2;
+	    continue;
+	  }
+	if( ixNParam == 3) 
+	  {
+	    ixList[ i]->Init( ix[ pIX], ix[ pIX+1], ix[ pIX+2]);
+	    pIX += 3;
+	    continue;
+	  }
+      }
+  }
 
   void Init( IxExprListT& ix, IxExprListT* cleanupIxIn)
   {
     assert( allIx == NULL);
     assert( ix.size() == nParam);
-    	
-	if( cleanupIxIn != NULL)
-		cleanupIx = *cleanupIxIn;
+
+    if( cleanupIxIn != NULL)
+      cleanupIx = *cleanupIxIn;
 
     SizeT pIX = 0;
     for( SizeT i=0; i<ixList.size(); ++i)

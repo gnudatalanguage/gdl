@@ -43,6 +43,10 @@ public:
 
   virtual ArrayIndexListT* Clone() { assert( 0); return NULL;}
 
+  virtual void InitAsOverloadIndex( IxExprListT& ixInOut, IxExprListT* cleanupIx, IxExprListT& ixOut) 
+  { 
+    throw GDLException( NULL,"Internal error: ArrayIndexListT::InitAsOverladIndex( IxExprListT& ixInOut) called.",true,false);    
+  }
   virtual void Init( IxExprListT& ix, IxExprListT* cleanupIx) 
   { 
     assert( 0);
@@ -1237,10 +1241,6 @@ public:
 	    CArrayIndexScalarID == ixList[ixList.size()-1]->Type()) nScalar++;
     else if( ArrayIndexIndexedID == ixList[ixList.size()-1]->Type() ||
 	    CArrayIndexIndexedID == ixList[ixList.size()-1]->Type()) nIndexed++;
-/*    if( dynamic_cast< ArrayIndexScalar*>(ixList[ixList.size()-1]) ||
-    dynamic_cast< CArrayIndexScalar*>(ixList[ixList.size()-1])) nScalar++;
-if( dynamic_cast<ArrayIndexIndexed*>(ixList[ixList.size()-1]) ||
-    dynamic_cast<CArrayIndexIndexed*>(ixList[ixList.size()-1]) ) nIndexed++;*/
     
     if( nScalar == ixList.size())
       accessTypeInit = ALLONE;

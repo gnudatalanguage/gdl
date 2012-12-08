@@ -102,6 +102,8 @@ BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right)
 			interpreter->arrayindex_list_overload( this->getFirstChild()->getNextSibling());
 		     
 		      // TODO build EnvUDT from indexlist and call the overload
+
+		      assert( false); // in progress
 		    }
 		  }
 	      }
