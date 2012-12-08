@@ -3608,3 +3608,71 @@ arrayindex_list_noassoc returns [ArrayIndexListT* aL]
         )
     ;
 
+// for _overloadBracketsLeftSide/_overloadBracketsRightSide
+arrayindex_list_overload returns [IxExprListT* indexList]
+{
+    ArrayIndexListT* aL;
+    IxExprListT      cleanupList; // for cleanup
+    IxExprListT      ixExprList;
+    SizeT nExpr;
+    BaseGDL* s;
+	
+//	ProgNodeP retTree = _t->getNextSibling();
+	ProgNodeP ax = _t;
+// 	match(antlr::RefAST(_t),ARRAYIX);
+	_t = _t->getFirstChild();
+	
+	aL = ax->arrIxListNoAssoc;
+	assert( aL != NULL);
+	
+	nExpr = aL->NParam();
+	if( nExpr == 0)
+	{
+        aL->Init();
+        _retTree = ax->getNextSibling();//retTree;
+        return indexList;
+	}
+	
+	while( true) {
+        assert( _t != NULL);
+        if( NonCopyNode( _t->getType()))
+            {
+                s= _t->EvalNC(); //indexable_expr(_t);
+                //_t = _retTree;
+            }
+        else if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)
+            {
+                s=lib_function_call(_t);
+                //_t = _retTree;
+                if( !callStack.back()->Contains( s)) 
+                    cleanupList.push_back( s);
+            }				
+        else
+            {
+                s=_t->Eval(); //indexable_tmp_expr(_t);
+                //_t = _retTree;
+                cleanupList.push_back( s);
+            }
+			
+        ixExprList.push_back( s);
+        if( ixExprList.size() == nExpr)
+            break; // allows some manual tuning
+
+        _t = _t->getNextSibling();
+	}
+
+	aL->Init( ixExprList, &cleanupList);
+	
+	_retTree = ax->getNextSibling();//retTree;
+	return indexList;
+}
+	: #(ARRAYIX
+            (
+                ( s=indexable_expr
+                | s=lib_function_call
+                | s=indexable_tmp_expr
+                )
+            )*
+        )
+    ;
+

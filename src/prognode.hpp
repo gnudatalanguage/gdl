@@ -203,6 +203,17 @@ public:
     right = r;
   }
 
+  BaseGDL* StealCData()
+  {
+    BaseGDL* d = cData;
+    cData = NULL;
+    return d;
+  }
+  BaseGDL* CData()
+  {
+    return cData;
+  }
+  
   ProgNodeP StealNextSibling()
   {
     ProgNodeP n = right;
@@ -1473,6 +1484,14 @@ public:
   CommandNode( const RefDNode& refNode): DefaultNode( refNode) {}
 };
 
+// call C++ function as GDL FUNCTION
+// for internal member functions (like GDL_OBJECT::_overload...)
+// this has some overhead compared to calling library subroutines,
+// but this way, only one list of functions has to be searched.
+// Otherwise we would need an additional list for library member functions
+// For member calls this search must be done a runtime (as the object
+// definition is not available at compile time).
+// While library subroutine calls are resolved at compile time.
 class EnvUDT;
 class WRAPPED_FUNNode: public CommandNode
 {
@@ -1481,6 +1500,7 @@ public:
   WRAPPED_FUNNode( BaseGDL* (*fun_)( EnvUDT*)): CommandNode(), fun(fun_) {}
   RetCode Run();
 };
+// call C++ function as GDL PRO
 class WRAPPED_PRONode: public CommandNode
 {
   void (*pro)( EnvUDT*);

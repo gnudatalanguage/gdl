@@ -42,10 +42,10 @@
 extern "C" {
 #endif
 #define      isnan( x )         ( ( sizeof ( x ) == sizeof(double) ) ?  \
-                              __isnand ( x ) :                          \
-                                ( sizeof ( x ) == sizeof( float) ) ?    \
-                              __isnanf ( x ) :                          \
-                              __isnan  ( x ) )
+				  __isnand ( x ) :			\
+				  ( sizeof ( x ) == sizeof( float) ) ?	\
+				  __isnanf ( x ) :			\
+				  __isnan  ( x ) )
 #ifdef __cplusplus
 }
 #endif
@@ -107,11 +107,11 @@ deque< void*> Data_<Sp>::freeList;
 
 inline void TraceCache( SizeT& cacheSize, SizeT sz, bool cacheIsNull, SizeT smallArraySize)
 {
-// 	if( cacheSize > smallArraySize && cacheSize == sz  && !cacheIsNull)
-// 			std::cout << "+++ CACHE HIT\tID: ("  << &cacheSize  << ")   sz: " << cacheSize << std::endl;
-// 	else
-	if( sz > smallArraySize)
-		std::cout << "+ New\t\tID: ("  << &cacheSize  << ")   sz: " << sz << "   cache size: " <<  cacheSize <<std::endl;
+  // 	if( cacheSize > smallArraySize && cacheSize == sz  && !cacheIsNull)
+  // 			std::cout << "+++ CACHE HIT\tID: ("  << &cacheSize  << ")   sz: " << cacheSize << std::endl;
+  // 	else
+  if( sz > smallArraySize)
+    std::cout << "+ New\t\tID: ("  << &cacheSize  << ")   sz: " << sz << "   cache size: " <<  cacheSize <<std::endl;
 }
 		
 #else
@@ -120,112 +120,112 @@ inline void TraceCache( SizeT& cacheSize, SizeT sz, bool cacheIsNull, SizeT smal
 
 #endif
 
-	template<class Sp>
-			SizeT GDLArray<Sp>::cacheSize = 0;
+template<class Sp>
+SizeT GDLArray<Sp>::cacheSize = 0;
 
-	template<>
-			SizeT GDLArray<char>::cacheSize = 0;
+template<>
+SizeT GDLArray<char>::cacheSize = 0;
 
-	template<class Sp>
-	typename	GDLArray<Sp>::Ty* GDLArray<Sp>::cache = NULL;
+template<class Sp>
+typename	GDLArray<Sp>::Ty* GDLArray<Sp>::cache = NULL;
 
-	template<class Sp>
-	typename GDLArray<Sp>::Ty* GDLArray<Sp>::Cached( SizeT newSize)
-	{
-		assert( newSize > smallArraySize);
-		if( cache != NULL && cacheSize == newSize)
-		{
+template<class Sp>
+typename GDLArray<Sp>::Ty* GDLArray<Sp>::Cached( SizeT newSize)
+{
+  assert( newSize > smallArraySize);
+  if( cache != NULL && cacheSize == newSize)
+    {
 #ifdef GDLARRAY_DEBUG
-			std::cout << "*** CACHE HIT\tID: ("  << &cacheSize << ")   sz: " << cacheSize << "   ***" << std::endl;
+      std::cout << "*** CACHE HIT\tID: ("  << &cacheSize << ")   sz: " << cacheSize << "   ***" << std::endl;
 #endif
-			Ty* hit = cache;
-			cache = NULL;
-			return hit;
-		}
-		return new Ty[ newSize];
-	}
+      Ty* hit = cache;
+      cache = NULL;
+      return hit;
+    }
+  return new Ty[ newSize];
+}
 
 template<class Sp>GDLArray<Sp>::GDLArray( const GDLArray<Sp>& cp) : sz( cp.size())
-  {
-	  TraceCache( cacheSize, sz, cache==NULL, smallArraySize);
+{
+  TraceCache( cacheSize, sz, cache==NULL, smallArraySize);
 	  
-	  try {
-		  buf = (sz > smallArraySize) ? Cached( sz) /* new Ty[ cp.size()]*/  : scalar;
-	  } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
+  try {
+    buf = (sz > smallArraySize) ? Cached( sz) /* new Ty[ cp.size()]*/  : scalar;
+  } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
 	  
-	  std::memcpy(buf,cp.buf,sz*sizeof(Ty));
-  }
+  std::memcpy(buf,cp.buf,sz*sizeof(Ty));
+}
 
 template<class Sp>GDLArray<Sp>::	GDLArray( SizeT s, bool b) : sz( s)
-  {
-	  TraceCache( cacheSize, sz, cache==NULL, smallArraySize);
+{
+  TraceCache( cacheSize, sz, cache==NULL, smallArraySize);
 
-	  try {
-		  buf = (sz > smallArraySize) ? Cached( sz) /* new Ty[ sz]*/  : scalar;
-	  } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
-  }
+  try {
+    buf = (sz > smallArraySize) ? Cached( sz) /* new Ty[ sz]*/  : scalar;
+  } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
+}
 
 template<class Sp>GDLArray<Sp>::	GDLArray( Ty val, SizeT s) : sz( s)
-  {
-	  TraceCache( cacheSize, sz, cache==NULL, smallArraySize);
+{
+  TraceCache( cacheSize, sz, cache==NULL, smallArraySize);
 
-	  try {
-		  buf = (sz > smallArraySize) ? Cached( sz) /* new Ty[ sz]*/  : scalar;
-	  } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
-	  for( SizeT i=0; i<sz; ++i)
-		  buf[ i] = val;
-  }
+  try {
+    buf = (sz > smallArraySize) ? Cached( sz) /* new Ty[ sz]*/  : scalar;
+  } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
+  for( SizeT i=0; i<sz; ++i)
+    buf[ i] = val;
+}
 
 template<class Sp>GDLArray<Sp>::	GDLArray( const Ty* arr, SizeT s) : sz( s)
-  {
-	  TraceCache( cacheSize, sz, cache==NULL, smallArraySize);
+{
+  TraceCache( cacheSize, sz, cache==NULL, smallArraySize);
 	  
-	  try {
-		  buf = (sz > smallArraySize) ? Cached( sz) /* new Ty[ sz]*/  : scalar;
-	  } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
-	  std::memcpy(buf,arr,sz*sizeof(Ty));
-  }
+  try {
+    buf = (sz > smallArraySize) ? Cached( sz) /* new Ty[ sz]*/  : scalar;
+  } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
+  std::memcpy(buf,arr,sz*sizeof(Ty));
+}
 
 template<class Sp>GDLArray<Sp>::~GDLArray() throw()
 {
 #ifdef GDLARRAY_DEBUG
-	if( buf == cache)
-			std::cout << "~~~ recycled cache\tID: ("  << &cacheSize << ")   sz: " << sz << "\tcacheSize: " << cacheSize << std::endl;
+  if( buf == cache)
+    std::cout << "~~~ recycled cache\tID: ("  << &cacheSize << ")   sz: " << sz << "\tcacheSize: " << cacheSize << std::endl;
 #endif			
 
-	assert( buf != cache || sz == cacheSize);
+  assert( buf != cache || sz == cacheSize);
 	
-	if ( buf != NULL && buf != scalar &&
-			buf != cache // note: assumes cacheSize never changes for a given cache
-	   )
-	{		
-		assert( sz > smallArraySize);
-		if ( sz <= maxCache )
-		{
+  if ( buf != NULL && buf != scalar &&
+       buf != cache // note: assumes cacheSize never changes for a given cache
+       )
+    {		
+      assert( sz > smallArraySize);
+      if ( sz <= maxCache )
+	{
 			
 #ifdef GDLARRAY_DEBUG
-			std::cout << "--- free cache\tID: ("  << &cacheSize << ")   sz: " << cacheSize << "\tnew: " << sz << std::endl;
+	  std::cout << "--- free cache\tID: ("  << &cacheSize << ")   sz: " << cacheSize << "\tnew: " << sz << std::endl;
 #endif			
-			delete cache;
-			cache = buf;
-			cacheSize = sz;
-		}
-		else
-		{
-			delete[] buf;
-		}
+	  delete cache;
+	  cache = buf;
+	  cacheSize = sz;
 	}
+      else
+	{
+	  delete[] buf;
+	}
+    }
 }
 // as strings may occupy arbitrary memory (regardless of the array size), better not cache them
 // note: Structs are ok, since GDL cleans up the strings they may contain and uses GDLArray as raw memory
 template<>
-		GDLArray<DString>::~GDLArray() throw()
-	{
-		if ( buf != scalar )
-		{
-			delete[] buf;
-		}
-	}
+GDLArray<DString>::~GDLArray() throw()
+{
+  if ( buf != scalar )
+    {
+      delete[] buf;
+    }
+}
 
 
 template class GDLArray<char>;
@@ -237,32 +237,32 @@ template class GDLArray<char>;
 
 template<class Sp> void* Data_<Sp>::operator new( size_t bytes)
 {
-	assert( bytes == sizeof( Data_));
+  assert( bytes == sizeof( Data_));
 
-	if( freeList.size() > 0)
-	{
-		void* res = freeList.back();
-		freeList.pop_back();
-		return res;	
-	}
+  if( freeList.size() > 0)
+    {
+      void* res = freeList.back();
+      freeList.pop_back();
+      return res;	
+    }
 
-	const size_t newSize = multiAlloc - 1;
+  const size_t newSize = multiAlloc - 1;
 
-	freeList.resize( newSize);
-	char* res = static_cast< char*>( malloc( sizeof( Data_) * multiAlloc)); // one more than newSize
-	for( size_t i=0; i<newSize; ++i)
-	{
-		freeList[ i] = res;
-		res += sizeof( Data_);
-	} 
+  freeList.resize( newSize);
+  char* res = static_cast< char*>( malloc( sizeof( Data_) * multiAlloc)); // one more than newSize
+  for( size_t i=0; i<newSize; ++i)
+    {
+      freeList[ i] = res;
+      res += sizeof( Data_);
+    } 
 
-	// the one more
-	return res;
+  // the one more
+  return res;
 }
 
 template<class Sp> void Data_<Sp>::operator delete( void *ptr)
 {
-	freeList.push_back( ptr);
+  freeList.push_back( ptr);
 }
 
 
@@ -271,13 +271,13 @@ template<class Sp> void Data_<Sp>::operator delete( void *ptr)
 template<class Sp> Data_<Sp>::~Data_() {}
 template<> Data_<SpDPtr>::~Data_()
 {
-	if( this->dd.GetBuffer() != NULL)
-		GDLInterpreter::DecRef( this);
+  if( this->dd.GetBuffer() != NULL)
+    GDLInterpreter::DecRef( this);
 }
 template<> Data_<SpDObj>::~Data_()
 {
-	if( this->dd.GetBuffer() != NULL)
-		GDLInterpreter::DecRefObj( this);
+  if( this->dd.GetBuffer() != NULL)
+    GDLInterpreter::DecRefObj( this);
 }
 
 // default
@@ -321,83 +321,83 @@ template<class Sp> Data_<Sp>::Data_(const dimension& dim_, BaseGDL::InitType iT)
   if( iT == BaseGDL::INDGEN)
     {
       SizeT sz=dd.size();
-//       Ty val=Sp::zero;
-// #pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-{
-// #pragma omp for
-      for( SizeT i=0; i<sz; i++)
-	{
-	  (*this)[i]=i;//val;
-	}
-// 	  val += 1; // no increment operator for floats
-	}
+      //       Ty val=Sp::zero;
+      // #pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS)// && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+      {
+	// #pragma omp for
+	for( SizeT i=0; i<sz; i++)
+	  {
+	    (*this)[i]=i;//val;
+	  }
+	// 	  val += 1; // no increment operator for floats
+      }
     }
 }
 /*// INDGEN seems to be more precise for large arrays
-template<> Data_<SpDFloat>::Data_(const dimension& dim_,
-				    BaseGDL::InitType iT): 
+  template<> Data_<SpDFloat>::Data_(const dimension& dim_,
+  BaseGDL::InitType iT): 
   SpDFloat( dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.N_Elements(), false)
-{
+  {
   this->dim.Purge();
 
   if( iT == BaseGDL::INDGEN)
-    {
-      SizeT sz=dd.size();
+  {
+  SizeT sz=dd.size();
 
-      for( SizeT i=0; i<sz; ++i)
-	{
-	  (*this)[i] = i;
-	}
-    }
-}
-template<> Data_<SpDComplex>::Data_(const dimension& dim_,
-				    BaseGDL::InitType iT): 
+  for( SizeT i=0; i<sz; ++i)
+  {
+  (*this)[i] = i;
+  }
+  }
+  }
+  template<> Data_<SpDComplex>::Data_(const dimension& dim_,
+  BaseGDL::InitType iT): 
   SpDComplex( dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.N_Elements(), false)
-{
+  {
   this->dim.Purge();
 
   if( iT == BaseGDL::INDGEN)
-    {
-      SizeT sz=dd.size();
+  {
+  SizeT sz=dd.size();
 
-      for( SizeT i=0; i<sz; ++i)
-	{
-	  (*this)[i] = i;
-	}
-    }
-}
-template<> Data_<SpDDouble>::Data_(const dimension& dim_,
-				    BaseGDL::InitType iT): 
+  for( SizeT i=0; i<sz; ++i)
+  {
+  (*this)[i] = i;
+  }
+  }
+  }
+  template<> Data_<SpDDouble>::Data_(const dimension& dim_,
+  BaseGDL::InitType iT): 
   SpDDouble( dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.N_Elements(), false)
-{
+  {
   this->dim.Purge();
 
   if( iT == BaseGDL::INDGEN)
-    {
-      SizeT sz=dd.size();
+  {
+  SizeT sz=dd.size();
 
-      for( SizeT i=0; i<sz; ++i)
-	{
-	  (*this)[i] = i;
-	}
-    }
-}
-template<> Data_<SpDComplexDbl>::Data_(const dimension& dim_,
-				    BaseGDL::InitType iT): 
+  for( SizeT i=0; i<sz; ++i)
+  {
+  (*this)[i] = i;
+  }
+  }
+  }
+  template<> Data_<SpDComplexDbl>::Data_(const dimension& dim_,
+  BaseGDL::InitType iT): 
   SpDComplexDbl( dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.N_Elements(), false)
-{
+  {
   this->dim.Purge();
 
   if( iT == BaseGDL::INDGEN)
-    {
-      SizeT sz=dd.size();
+  {
+  SizeT sz=dd.size();
 
-      for( SizeT i=0; i<sz; ++i)
-	{
-	  (*this)[i] = i;
-	}
-    }
-}*/
+  for( SizeT i=0; i<sz; ++i)
+  {
+  (*this)[i] = i;
+  }
+  }
+  }*/
 // string, ptr, obj (cannot be INDGEN, 
 // need not to be zeroed if all intialized later)
 // struct (as a separate class) as well
@@ -418,18 +418,18 @@ template<> Data_<SpDPtr>::Data_(const dimension& dim_,  BaseGDL::InitType iT):
     throw GDLException("DPtrGDL(dim,InitType=INDGEN) called.");
 
   if( iT != BaseGDL::NOALLOC && iT != BaseGDL::NOZERO)
+    {
+      SizeT sz = dd.size();
+      /*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
 	{
-	SizeT sz = dd.size();
-/*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-{
-#pragma omp for*/
+	#pragma omp for*/
       for( int i=0; i<sz; ++i)
-		{
-			(*this)[i]=0;
-		}
-// 	  val += 1; // no increment operator for floats
-// 	}
+	{
+	  (*this)[i]=0;
 	}
+      // 	  val += 1; // no increment operator for floats
+      // 	}
+    }
 }
 template<> Data_<SpDObj>::Data_(const dimension& dim_, BaseGDL::InitType iT):
   SpDObj(dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false)
@@ -440,33 +440,33 @@ template<> Data_<SpDObj>::Data_(const dimension& dim_, BaseGDL::InitType iT):
     throw GDLException("DObjGDL(dim,InitType=INDGEN) called.");
 
   if( iT != BaseGDL::NOALLOC && iT != BaseGDL::NOZERO)
+    {
+      SizeT sz = dd.size();
+      /*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
 	{
-	SizeT sz = dd.size();
-/*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-{
-#pragma omp for*/
+	#pragma omp for*/
       for( int i=0; i<sz; i++)
 	{
 	  (*this)[i]=0;
 	}
-// 	  val += 1; // no increment operator for floats
-// 	}
-	}
+      // 	  val += 1; // no increment operator for floats
+      // 	}
+    }
 }
 
 // c-i
 template<class Sp>
-  Data_<Sp>::Data_(const Data_& d_): Sp(d_.dim), dd(d_.dd) {}
+Data_<Sp>::Data_(const Data_& d_): Sp(d_.dim), dd(d_.dd) {}
 template<>
-  Data_<SpDPtr>::Data_(const Data_& d_): SpDPtr(d_.dim), dd(d_.dd)
-  {
-    GDLInterpreter::IncRef( this);
-  }
+Data_<SpDPtr>::Data_(const Data_& d_): SpDPtr(d_.dim), dd(d_.dd)
+{
+  GDLInterpreter::IncRef( this);
+}
 template<>
-  Data_<SpDObj>::Data_(const Data_& d_): SpDObj(d_.dim), dd(d_.dd)
-  {
-    GDLInterpreter::IncRefObj( this);
-  }
+Data_<SpDObj>::Data_(const Data_& d_): SpDObj(d_.dim), dd(d_.dd)
+{
+  GDLInterpreter::IncRefObj( this);
+}
 
 
 template<class Sp>
@@ -502,17 +502,17 @@ BaseGDL* Data_<SpDFloat>::Log()
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
   if( nEl == 1)
-  {
-    (*n)[ 0] = log( (*this)[ 0]);
-    return n;
-  }
-TRACEOMP( __FILE__, __LINE__)
+    {
+      (*n)[ 0] = log( (*this)[ 0]);
+      return n;
+    }
+  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
+    {
 #pragma omp for
-  for( int i=0; i<nEl; ++i)
-    (*n)[ i] = log( (*this)[ i]);
-}
+      for( int i=0; i<nEl; ++i)
+	(*n)[ i] = log( (*this)[ i]);
+    }
   return n;
 }
 template<>
@@ -521,14 +521,14 @@ BaseGDL* Data_<SpDDouble>::Log()
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
   if( nEl == 1)
-  {
-    (*n)[ 0] = log( (*this)[ 0]);
-    return n;
-  }
-TRACEOMP( __FILE__, __LINE__)
+    {
+      (*n)[ 0] = log( (*this)[ 0]);
+      return n;
+    }
+  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-  for( int i=0; i<nEl; ++i)
-    (*n)[ i] = log( (*this)[ i]);
+    for( int i=0; i<nEl; ++i)
+      (*n)[ i] = log( (*this)[ i]);
   return n;
 }
 template<>
@@ -537,14 +537,14 @@ BaseGDL* Data_<SpDComplex>::Log()
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
   if( nEl == 1)
-  {
-    (*n)[ 0] = log( (*this)[ 0]);
-    return n;
-  }
-TRACEOMP( __FILE__, __LINE__)
+    {
+      (*n)[ 0] = log( (*this)[ 0]);
+      return n;
+    }
+  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-  for( int i=0; i<nEl; ++i)
-    (*n)[ i] = log( (*this)[ i]);
+    for( int i=0; i<nEl; ++i)
+      (*n)[ i] = log( (*this)[ i]);
   return n;
 }
 template<>
@@ -553,14 +553,14 @@ BaseGDL* Data_<SpDComplexDbl>::Log()
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
   if( nEl == 1)
-  {
-    (*n)[ 0] = log( (*this)[ 0]);
-    return n;
-  }
-TRACEOMP( __FILE__, __LINE__)
+    {
+      (*n)[ 0] = log( (*this)[ 0]);
+      return n;
+    }
+  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-for( int i=0; i<nEl; ++i)
-    (*n)[ i] = log( (*this)[ i]);
+    for( int i=0; i<nEl; ++i)
+      (*n)[ i] = log( (*this)[ i]);
   return n;
 }
 
@@ -581,75 +581,75 @@ BaseGDL* Data_<SpDFloat>::LogThis()
 { 
   SizeT nEl = N_Elements();
   if( nEl == 1)
-  {
-    (*this)[ 0] = log( (*this)[ 0]);
-return this;
-  }
-TRACEOMP( __FILE__, __LINE__)
+    {
+      (*this)[ 0] = log( (*this)[ 0]);
+      return this;
+    }
+  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-  for( int i=0; i<nEl; ++i)
-    (*this)[ i] = log( (*this)[ i]);
-return this;
+    for( int i=0; i<nEl; ++i)
+      (*this)[ i] = log( (*this)[ i]);
+  return this;
 }
 template<>
 BaseGDL* Data_<SpDDouble>::LogThis()              
 { 
-//#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+  //#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   SizeT nEl = N_Elements();
   if( nEl == 1)
-  {
-    (*this)[ 0] = log( (*this)[ 0]);
-return this;
-  }
-TRACEOMP( __FILE__, __LINE__)
+    {
+      (*this)[ 0] = log( (*this)[ 0]);
+      return this;
+    }
+  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-  for( int i=0; i<nEl; ++i)
-    (*this)[ i] = log( (*this)[ i]);
-/*#else
-  dd = log(dd);
-#endif*/
-return this;
+    for( int i=0; i<nEl; ++i)
+      (*this)[ i] = log( (*this)[ i]);
+  /*#else
+    dd = log(dd);
+    #endif*/
+  return this;
 }
 template<>
 BaseGDL* Data_<SpDComplex>::LogThis()              
 { 
-//#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+  //#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   SizeT nEl = N_Elements();
   if( nEl == 1)
-  {
-    (*this)[ 0] = log( (*this)[ 0]);
-return this;
-  }
-TRACEOMP( __FILE__, __LINE__)
+    {
+      (*this)[ 0] = log( (*this)[ 0]);
+      return this;
+    }
+  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-for( int i=0; i<nEl; ++i)
-    (*this)[ i] = log( (*this)[ i]);
-/*#else
-  dd = log(dd);
-#endif*/
-return this;
+    for( int i=0; i<nEl; ++i)
+      (*this)[ i] = log( (*this)[ i]);
+  /*#else
+    dd = log(dd);
+    #endif*/
+  return this;
 }
 template<>
 BaseGDL* Data_<SpDComplexDbl>::LogThis()              
 { 
-//#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+  //#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   SizeT nEl = N_Elements();
   if( nEl == 1)
-  {
-    (*this)[ 0] = log( (*this)[ 0]);
-return this;
-  }
-TRACEOMP( __FILE__, __LINE__)
+    {
+      (*this)[ 0] = log( (*this)[ 0]);
+      return this;
+    }
+  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-  for( int i=0; i<nEl; ++i)
-    (*this)[ i] = log( (*this)[ i]);
-/*#else
-  dd = log(dd);
-#endif*/
-return this;
+    for( int i=0; i<nEl; ++i)
+      (*this)[ i] = log( (*this)[ i]);
+  /*#else
+    dd = log(dd);
+    #endif*/
+  return this;
 }
 
 template<class Sp>
@@ -663,86 +663,86 @@ BaseGDL* Data_<Sp>::Log10()
 template<>
 BaseGDL* Data_<SpDFloat>::Log10()              
 { 
-//#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+  //#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
   if( nEl == 1)
-  {
-    (*n)[ 0] = log10( (*this)[ 0]);
-    return n;
-  }
-TRACEOMP( __FILE__, __LINE__)
+    {
+      (*n)[ 0] = log10( (*this)[ 0]);
+      return n;
+    }
+  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-  for( int i=0; i<nEl; ++i)
-    (*n)[ i] = log10( (*this)[ i]);
+    for( int i=0; i<nEl; ++i)
+      (*n)[ i] = log10( (*this)[ i]);
   return n;
-/*#else
-  return new Data_(this->dim, log10(dd));
-#endif*/
+  /*#else
+    return new Data_(this->dim, log10(dd));
+    #endif*/
 }
 template<>
 BaseGDL* Data_<SpDDouble>::Log10()              
 { 
-//#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+  //#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
   if( nEl == 1)
-  {
-    (*n)[ 0] = log10( (*this)[ 0]);
-    return n;
-  }
-TRACEOMP( __FILE__, __LINE__)
+    {
+      (*n)[ 0] = log10( (*this)[ 0]);
+      return n;
+    }
+  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-  for( int i=0; i<nEl; ++i)
-    (*n)[ i] = log10( (*this)[ i]);
+    for( int i=0; i<nEl; ++i)
+      (*n)[ i] = log10( (*this)[ i]);
   return n;
-/*#else
-  return new Data_(this->dim, log10(dd));
-#endif*/
+  /*#else
+    return new Data_(this->dim, log10(dd));
+    #endif*/
 }
 template<>
 BaseGDL* Data_<SpDComplex>::Log10()              
 { 
-//#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+  //#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
   if( nEl == 1)
-  {
-    (*n)[ 0] = log10( (*this)[ 0]);
-    return n;
-  }
-TRACEOMP( __FILE__, __LINE__)
+    {
+      (*n)[ 0] = log10( (*this)[ 0]);
+      return n;
+    }
+  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-  for( int i=0; i<nEl; ++i)
-    (*n)[ i] = log10( (*this)[ i]);
+    for( int i=0; i<nEl; ++i)
+      (*n)[ i] = log10( (*this)[ i]);
   return n;
-/*#else
-  return new Data_(this->dim, log10(dd));
-#endif*/
+  /*#else
+    return new Data_(this->dim, log10(dd));
+    #endif*/
 }
 template<>
 BaseGDL* Data_<SpDComplexDbl>::Log10()              
 { 
-//#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
+  //#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
 
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
   if( nEl == 1)
-  {
-    (*n)[ 0] = log10( (*this)[ 0]);
-    return n;
-  }
-TRACEOMP( __FILE__, __LINE__)
+    {
+      (*n)[ 0] = log10( (*this)[ 0]);
+      return n;
+    }
+  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-  for( int i=0; i<nEl; ++i)
-    (*n)[ i] = log10( (*this)[ i]);
+    for( int i=0; i<nEl; ++i)
+      (*n)[ i] = log10( (*this)[ i]);
   return n;
-/*#else
-  return new Data_(this->dim, log10(dd));
-#endif*/
+  /*#else
+    return new Data_(this->dim, log10(dd));
+    #endif*/
 }
 
 // see comment at void Data_<Sp>::LogThis()              
@@ -761,18 +761,18 @@ BaseGDL* Data_<SpDFloat>::Log10This()
 
   SizeT nEl = N_Elements();
   if( nEl == 1)
-  {
-    (*this)[ 0] = log10( (*this)[ 0]);
-    return this;
-  }
-TRACEOMP( __FILE__, __LINE__)
+    {
+      (*this)[ 0] = log10( (*this)[ 0]);
+      return this;
+    }
+  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-  for( int i=0; i<nEl; ++i)
-    (*this)[ i] = log10( (*this)[ i]);
+    for( int i=0; i<nEl; ++i)
+      (*this)[ i] = log10( (*this)[ i]);
 #else
   dd = log10(dd);
 #endif
-    return this;
+  return this;
 }
 template<>
 BaseGDL* Data_<SpDDouble>::Log10This()              
@@ -781,18 +781,18 @@ BaseGDL* Data_<SpDDouble>::Log10This()
 
   SizeT nEl = N_Elements();
   if( nEl == 1)
-  {
-    (*this)[ 0] = log10( (*this)[ 0]);
-    return this;
-  }
-TRACEOMP( __FILE__, __LINE__)
+    {
+      (*this)[ 0] = log10( (*this)[ 0]);
+      return this;
+    }
+  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-  for( int i=0; i<nEl; ++i)
-    (*this)[ i] = log10( (*this)[ i]);
+    for( int i=0; i<nEl; ++i)
+      (*this)[ i] = log10( (*this)[ i]);
 #else
   dd = log10(dd);
 #endif
-    return this;
+  return this;
 }
 template<>
 BaseGDL* Data_<SpDComplex>::Log10This()              
@@ -801,18 +801,18 @@ BaseGDL* Data_<SpDComplex>::Log10This()
 
   SizeT nEl = N_Elements();
   if( nEl == 1)
-  {
-    (*this)[ 0] = log10( (*this)[ 0]);
-    return this;
-  }
-TRACEOMP( __FILE__, __LINE__)
+    {
+      (*this)[ 0] = log10( (*this)[ 0]);
+      return this;
+    }
+  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-  for( int i=0; i<nEl; ++i)
-    (*this)[ i] = log10( (*this)[ i]);
+    for( int i=0; i<nEl; ++i)
+      (*this)[ i] = log10( (*this)[ i]);
 #else
   dd = log10(dd);
 #endif
-    return this;
+  return this;
 }
 template<>
 BaseGDL* Data_<SpDComplexDbl>::Log10This()              
@@ -821,18 +821,18 @@ BaseGDL* Data_<SpDComplexDbl>::Log10This()
 
   SizeT nEl = N_Elements();
   if( nEl == 1)
-  {
-    (*this)[ 0] = log10( (*this)[ 0]);
-    return this;
-  }
-TRACEOMP( __FILE__, __LINE__)
+    {
+      (*this)[ 0] = log10( (*this)[ 0]);
+      return this;
+    }
+  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-  for( int i=0; i<nEl; ++i)
-    (*this)[ i] = log10( (*this)[ i]);
+    for( int i=0; i<nEl; ++i)
+      (*this)[ i] = log10( (*this)[ i]);
 #else
   dd = log10(dd);
 #endif
-    return this;
+  return this;
 }
 
 
@@ -864,126 +864,126 @@ inline bool Data_<Sp>::Equal(SizeT i1, SizeT i2) const
 // calculates the shift to be applied to the destination index
 inline SizeT CShiftNormalize( DLong s, SizeT this_dim)
 {
-if ( s >= 0 )
-	return s % this_dim;
-// s < 0
-long dstIx = -(-s % this_dim);
-if( dstIx == 0) // if this_dim == 1
-	return 0;
-assert( dstIx + this_dim > 0);
-return dstIx + this_dim;
+  if ( s >= 0 )
+    return s % this_dim;
+  // s < 0
+  long dstIx = -(-s % this_dim);
+  if( dstIx == 0) // if this_dim == 1
+    return 0;
+  assert( dstIx + this_dim > 0);
+  return dstIx + this_dim;
 }
 
 template<class Sp>
 BaseGDL* Data_<Sp>::CShift( DLong d) const
 {
-	SizeT nEl = dd.size();
-	SizeT shift = CShiftNormalize( d, nEl);
+  SizeT nEl = dd.size();
+  SizeT shift = CShiftNormalize( d, nEl);
 
-	if( shift == 0)
-	  return this->Dup();
+  if( shift == 0)
+    return this->Dup();
 
-	Data_* sh = new Data_( this->dim, BaseGDL::NOZERO);
+  Data_* sh = new Data_( this->dim, BaseGDL::NOZERO);
 
-	SizeT firstChunk = nEl - shift;
+  SizeT firstChunk = nEl - shift;
 
-	memcpy( &sh->dd[ shift], &dd[0], firstChunk * sizeof(Ty));
-	memcpy( &sh->dd[ 0], &dd[firstChunk], shift * sizeof(Ty));
+  memcpy( &sh->dd[ shift], &dd[0], firstChunk * sizeof(Ty));
+  memcpy( &sh->dd[ 0], &dd[firstChunk], shift * sizeof(Ty));
 	
-	return sh;
+  return sh;
 }
 
 template<>
 BaseGDL* Data_<SpDString>::CShift( DLong d) const
 {
-	SizeT nEl = dd.size();
-	SizeT shift = CShiftNormalize( d, nEl);
+  SizeT nEl = dd.size();
+  SizeT shift = CShiftNormalize( d, nEl);
 
-	if( shift == 0)
-	  return this->Dup();
+  if( shift == 0)
+    return this->Dup();
 
-	Data_* sh = new Data_( this->dim, BaseGDL::NOZERO);
+  Data_* sh = new Data_( this->dim, BaseGDL::NOZERO);
 
-	SizeT firstChunk = nEl - shift;
+  SizeT firstChunk = nEl - shift;
 
-	SizeT i=0;
-	for( ; i<firstChunk; ++i)
-		sh->dd[shift++] = dd[ i];
+  SizeT i=0;
+  for( ; i<firstChunk; ++i)
+    sh->dd[shift++] = dd[ i];
 
-	shift = 0;
+  shift = 0;
 
-	for( ; i<nEl; ++i)
-		sh->dd[shift++] = dd[ i];
+  for( ; i<nEl; ++i)
+    sh->dd[shift++] = dd[ i];
 
-	return sh;
+  return sh;
 }
 template<>
 BaseGDL* Data_<SpDPtr>::CShift( DLong d) const
 {
-	SizeT nEl = dd.size();
-	SizeT shift = CShiftNormalize( d, nEl);
+  SizeT nEl = dd.size();
+  SizeT shift = CShiftNormalize( d, nEl);
 
-	if( shift == 0)
-	  return this->Dup(); // does IncRef
+  if( shift == 0)
+    return this->Dup(); // does IncRef
 
-	Data_* sh = new Data_( this->dim, BaseGDL::NOZERO);
+  Data_* sh = new Data_( this->dim, BaseGDL::NOZERO);
 
-	SizeT firstChunk = nEl - shift;
+  SizeT firstChunk = nEl - shift;
 
-	SizeT i=0;
-	for( ; i<firstChunk; ++i)
-		sh->dd[shift++] = dd[ i];
+  SizeT i=0;
+  for( ; i<firstChunk; ++i)
+    sh->dd[shift++] = dd[ i];
 
-	shift = 0;
+  shift = 0;
 
-	for( ; i<nEl; ++i)
-		sh->dd[shift++] = dd[ i];
+  for( ; i<nEl; ++i)
+    sh->dd[shift++] = dd[ i];
 
-	GDLInterpreter::IncRef( sh);
-	return sh;
+  GDLInterpreter::IncRef( sh);
+  return sh;
 }
 template<>
 BaseGDL* Data_<SpDObj>::CShift( DLong d) const
 {
-	SizeT nEl = dd.size();
-	SizeT shift = CShiftNormalize( d, nEl);
+  SizeT nEl = dd.size();
+  SizeT shift = CShiftNormalize( d, nEl);
 
-	if( shift == 0)
-	  return this->Dup(); // does IncRefObj
+  if( shift == 0)
+    return this->Dup(); // does IncRefObj
 
-	Data_* sh = new Data_( this->dim, BaseGDL::NOZERO);
+  Data_* sh = new Data_( this->dim, BaseGDL::NOZERO);
 
-	SizeT firstChunk = nEl - shift;
+  SizeT firstChunk = nEl - shift;
 
-	SizeT i=0;
-	for( ; i<firstChunk; ++i)
-		sh->dd[shift++] = dd[ i];
+  SizeT i=0;
+  for( ; i<firstChunk; ++i)
+    sh->dd[shift++] = dd[ i];
 
-	shift = 0;
+  shift = 0;
 
-	for( ; i<nEl; ++i)
-		sh->dd[shift++] = dd[ i];
+  for( ; i<nEl; ++i)
+    sh->dd[shift++] = dd[ i];
 
-	GDLInterpreter::IncRefObj( sh);
-	return sh;
+  GDLInterpreter::IncRefObj( sh);
+  return sh;
 }
 
 template<typename Ty>
 inline void CShift1( Ty* dst, SizeT& dstLonIx, const Ty* src, SizeT& srcLonIx,
-	SizeT stride_1, SizeT chunk0, SizeT chunk1)
-	{
-		memcpy(  &dst[ dstLonIx], &src[ srcLonIx], chunk0 * sizeof(Ty));
-		dstLonIx += chunk0;
-		srcLonIx += chunk0;
+		     SizeT stride_1, SizeT chunk0, SizeT chunk1)
+{
+  memcpy(  &dst[ dstLonIx], &src[ srcLonIx], chunk0 * sizeof(Ty));
+  dstLonIx += chunk0;
+  srcLonIx += chunk0;
 
-		dstLonIx -= stride_1;
+  dstLonIx -= stride_1;
 
-		memcpy( &dst[ dstLonIx], &src[ srcLonIx], chunk1 * sizeof(Ty));
-		dstLonIx += chunk1 ;
-		srcLonIx += chunk1;
+  memcpy( &dst[ dstLonIx], &src[ srcLonIx], chunk1 * sizeof(Ty));
+  dstLonIx += chunk1 ;
+  srcLonIx += chunk1;
 
-		dstLonIx += stride_1;
-	}
+  dstLonIx += stride_1;
+}
 
 #undef TEST_GOOD_OL_VERSION
 
@@ -1006,69 +1006,69 @@ BaseGDL* Data_<Sp>::CShift( DLong s[ MAXRANK]) const
   Ty* shP = &(*sh)[0];
 
   if( nDim == 2)
-  {
-	this_dim[ 0] = this->dim[ 0];
-	this_dim[ 1] = this->dim[ 1];
-	dstIx[ 0] = CShiftNormalize( s[ 0], this_dim[ 0] );
-	dstIx[ 1] = CShiftNormalize( s[ 1], this_dim[ 1] );
-	SizeT dstLonIx = dstIx[ 0] + dstIx[ 1] * stride[ 1];
-	SizeT freeDstIx_0 = this_dim[ 0] - dstIx[ 0] ;
-	SizeT freeDstIx_1 = this_dim[ 1] - dstIx[ 1] ;
+    {
+      this_dim[ 0] = this->dim[ 0];
+      this_dim[ 1] = this->dim[ 1];
+      dstIx[ 0] = CShiftNormalize( s[ 0], this_dim[ 0] );
+      dstIx[ 1] = CShiftNormalize( s[ 1], this_dim[ 1] );
+      SizeT dstLonIx = dstIx[ 0] + dstIx[ 1] * stride[ 1];
+      SizeT freeDstIx_0 = this_dim[ 0] - dstIx[ 0] ;
+      SizeT freeDstIx_1 = this_dim[ 1] - dstIx[ 1] ;
 		
-	if( Sp::t != GDL_STRING) // strings are not POD all others are
+      if( Sp::t != GDL_STRING) // strings are not POD all others are
 	{
-		SizeT srcLonIx=0;
-		SizeT t=0;
+	  SizeT srcLonIx=0;
+	  SizeT t=0;
 	
-		for( ; t< freeDstIx_1; ++t)
-		{
- 			CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
-		}
-		dstLonIx -= stride[ 2];
-		for( ; t< this_dim[ 1]; ++t)
-		{
-	 		CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
-		}
+	  for( ; t< freeDstIx_1; ++t)
+	    {
+	      CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
+	    }
+	  dstLonIx -= stride[ 2];
+	  for( ; t< this_dim[ 1]; ++t)
+	    {
+	      CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
+	    }
 	}
-	else  // Sp::t == GDL_STRING
+      else  // Sp::t == GDL_STRING
 	{	
-		SizeT a=0;
-		SizeT t=0;
-		for( ; t< freeDstIx_1; ++t)
+	  SizeT a=0;
+	  SizeT t=0;
+	  for( ; t< freeDstIx_1; ++t)
+	    {
+	      SizeT s=0;
+	      for( ; s< freeDstIx_0; ++s)
 		{
-			SizeT s=0;
-			for( ; s< freeDstIx_0; ++s)
-			{
-				shP[ dstLonIx++] = ddP[ a++];
-			}
-			dstLonIx -= stride[ 1];
-			for( ; s<this_dim[ 0]; ++s)
-			{
-				shP[ dstLonIx++] = ddP[ a++];
-			}
-			dstLonIx += stride[ 1];
+		  shP[ dstLonIx++] = ddP[ a++];
 		}
-		dstLonIx -= stride[ 2];
-		for( ; t< this_dim[ 1]; ++t)
+	      dstLonIx -= stride[ 1];
+	      for( ; s<this_dim[ 0]; ++s)
 		{
-			SizeT s=0;
-			for( ; s< freeDstIx_0; ++s)
-			{
-				shP[ dstLonIx++] = ddP[ a++];
-			}
-			dstLonIx -= stride[ 1];
-			for( ; s<this_dim[ 0]; ++s)
-			{
-				shP[ dstLonIx++] = ddP[ a++];
-			}
-			dstLonIx += stride[ 1];
+		  shP[ dstLonIx++] = ddP[ a++];
 		}
-		//	dstLonIx += stride[ 2];
-		assert( a == nEl);
+	      dstLonIx += stride[ 1];
+	    }
+	  dstLonIx -= stride[ 2];
+	  for( ; t< this_dim[ 1]; ++t)
+	    {
+	      SizeT s=0;
+	      for( ; s< freeDstIx_0; ++s)
+		{
+		  shP[ dstLonIx++] = ddP[ a++];
+		}
+	      dstLonIx -= stride[ 1];
+	      for( ; s<this_dim[ 0]; ++s)
+		{
+		  shP[ dstLonIx++] = ddP[ a++];
+		}
+	      dstLonIx += stride[ 1];
+	    }
+	  //	dstLonIx += stride[ 2];
+	  assert( a == nEl);
 	} // if( Sp::t != GDL_STRING) else
 	
-	return sh;
-  }
+      return sh;
+    }
 
   assert( nDim > 2);
 
@@ -1079,122 +1079,122 @@ BaseGDL* Data_<Sp>::CShift( DLong s[ MAXRANK]) const
       this_dim[ aSp] = this->dim[ aSp];
       srcIx[ aSp] = 0;
       dstIx[ aSp] = CShiftNormalize( s[ aSp], this_dim[ aSp]);
-//       dim_stride[ aSp] = this_dim[ aSp] * stride[ aSp];
+      //       dim_stride[ aSp] = this_dim[ aSp] * stride[ aSp];
     }
-//   srcIx[ nDim] = dstIx[ nDim] = 0;
+  //   srcIx[ nDim] = dstIx[ nDim] = 0;
   SizeT dstLonIx = dstIx[ 0];
   for( SizeT rSp=1; rSp<nDim; ++rSp)
-	dstLonIx += dstIx[ rSp] * stride[ rSp];
+    dstLonIx += dstIx[ rSp] * stride[ rSp];
 
   if( Sp::t != GDL_STRING)
-  {
-	if( nDim == 3)
+    {
+      if( nDim == 3)
 	{
-		SizeT freeDstIx_0 = this_dim[ 0] - dstIx[ 0] ;
-		SizeT freeDstIx_1 = this_dim[ 1] - dstIx[ 1] ;
-		SizeT freeDstIx_2 = this_dim[ 2] - dstIx[ 2] ;
+	  SizeT freeDstIx_0 = this_dim[ 0] - dstIx[ 0] ;
+	  SizeT freeDstIx_1 = this_dim[ 1] - dstIx[ 1] ;
+	  SizeT freeDstIx_2 = this_dim[ 2] - dstIx[ 2] ;
 			
-		SizeT srcLonIx=0;
-		SizeT d2=0;
-		for( ; d2< freeDstIx_2; ++d2)
+	  SizeT srcLonIx=0;
+	  SizeT d2=0;
+	  for( ; d2< freeDstIx_2; ++d2)
+	    {
+	      SizeT d1=0;
+	      for( ; d1< freeDstIx_1; ++d1)
 		{
-			SizeT d1=0;
-			for( ; d1< freeDstIx_1; ++d1)
-			{
-				CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
-			}
-			dstLonIx -= stride[ 2];
-			for( ; d1< this_dim[ 1]; ++d1)
-			{
-				CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
-			}
-			dstLonIx += stride[ 2];
+		  CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
 		}
-		dstLonIx -= stride[ 3];
-		for( ; d2< this_dim[ 2]; ++d2)
+	      dstLonIx -= stride[ 2];
+	      for( ; d1< this_dim[ 1]; ++d1)
 		{
-			SizeT d1=0;
-			for( ; d1< freeDstIx_1; ++d1)
-			{
-				CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
-			}
-			dstLonIx -= stride[ 2];
-			for( ; d1< this_dim[ 1]; ++d1)
-			{
-				CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
-			}
-			dstLonIx += stride[ 2];
+		  CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
 		}
-		assert(srcLonIx == nEl);
-		return sh;
+	      dstLonIx += stride[ 2];
+	    }
+	  dstLonIx -= stride[ 3];
+	  for( ; d2< this_dim[ 2]; ++d2)
+	    {
+	      SizeT d1=0;
+	      for( ; d1< freeDstIx_1; ++d1)
+		{
+		  CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
+		}
+	      dstLonIx -= stride[ 2];
+	      for( ; d1< this_dim[ 1]; ++d1)
+		{
+		  CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
+		}
+	      dstLonIx += stride[ 2];
+	    }
+	  assert(srcLonIx == nEl);
+	  return sh;
 	} // nDim == 3
-	if( nDim == 4)
+      if( nDim == 4)
 	{
-		SizeT freeDstIx_0 = this_dim[ 0] - dstIx[ 0] ;
-		SizeT freeDstIx_1 = this_dim[ 1] - dstIx[ 1] ;
-		SizeT freeDstIx_2 = this_dim[ 2] - dstIx[ 2] ;
-		SizeT freeDstIx_3 = this_dim[ 3] - dstIx[ 3] ;
+	  SizeT freeDstIx_0 = this_dim[ 0] - dstIx[ 0] ;
+	  SizeT freeDstIx_1 = this_dim[ 1] - dstIx[ 1] ;
+	  SizeT freeDstIx_2 = this_dim[ 2] - dstIx[ 2] ;
+	  SizeT freeDstIx_3 = this_dim[ 3] - dstIx[ 3] ;
 			
-		SizeT srcLonIx=0;
+	  SizeT srcLonIx=0;
 		
-		SizeT d3=0;
-		for( ; d3< freeDstIx_3; ++d3)
+	  SizeT d3=0;
+	  for( ; d3< freeDstIx_3; ++d3)
+	    {
+	      SizeT d2=0;
+	      for( ; d2< freeDstIx_2; ++d2)
 		{
-		SizeT d2=0;
-		for( ; d2< freeDstIx_2; ++d2)
-			{
-				SizeT d1=0;
-				for( ; d1< freeDstIx_1; ++d1)
-					CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
-				dstLonIx -= stride[ 2];
-				for( ; d1< this_dim[ 1]; ++d1)
-					CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
-				dstLonIx += stride[ 2];
-			}
-			dstLonIx -= stride[ 3];
-			for( ; d2< this_dim[ 2]; ++d2)
-			{
-				SizeT d1=0;
-				for( ; d1< freeDstIx_1; ++d1)
-					CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
-				dstLonIx -= stride[ 2];
-				for( ; d1< this_dim[ 1]; ++d1)
-					CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
-				dstLonIx += stride[ 2];
-			}
-			dstLonIx += stride[ 3];
+		  SizeT d1=0;
+		  for( ; d1< freeDstIx_1; ++d1)
+		    CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
+		  dstLonIx -= stride[ 2];
+		  for( ; d1< this_dim[ 1]; ++d1)
+		    CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
+		  dstLonIx += stride[ 2];
 		}
-		dstLonIx -= stride[ 4];
-		for( ; d3< this_dim[ 3]; ++d3)
+	      dstLonIx -= stride[ 3];
+	      for( ; d2< this_dim[ 2]; ++d2)
 		{
-			SizeT d2=0;
-			for( ; d2< freeDstIx_2; ++d2)
-			{
-				SizeT d1=0;
-				for( ; d1< freeDstIx_1; ++d1)
-					CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
-				dstLonIx -= stride[ 2];
-				for( ; d1< this_dim[ 1]; ++d1)
-					CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
-				dstLonIx += stride[ 2];
-			}
-			dstLonIx -= stride[ 3];
-			for( ; d2< this_dim[ 2]; ++d2)
-			{
-				SizeT d1=0;
-				for( ; d1< freeDstIx_1; ++d1)
-					CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
-				dstLonIx -= stride[ 2];
-				for( ; d1< this_dim[ 1]; ++d1)
-					CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
-				dstLonIx += stride[ 2];
-			}
-			dstLonIx += stride[ 3];
+		  SizeT d1=0;
+		  for( ; d1< freeDstIx_1; ++d1)
+		    CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
+		  dstLonIx -= stride[ 2];
+		  for( ; d1< this_dim[ 1]; ++d1)
+		    CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
+		  dstLonIx += stride[ 2];
 		}
-		assert(srcLonIx == nEl);
-		return sh;
+	      dstLonIx += stride[ 3];
+	    }
+	  dstLonIx -= stride[ 4];
+	  for( ; d3< this_dim[ 3]; ++d3)
+	    {
+	      SizeT d2=0;
+	      for( ; d2< freeDstIx_2; ++d2)
+		{
+		  SizeT d1=0;
+		  for( ; d1< freeDstIx_1; ++d1)
+		    CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
+		  dstLonIx -= stride[ 2];
+		  for( ; d1< this_dim[ 1]; ++d1)
+		    CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
+		  dstLonIx += stride[ 2];
+		}
+	      dstLonIx -= stride[ 3];
+	      for( ; d2< this_dim[ 2]; ++d2)
+		{
+		  SizeT d1=0;
+		  for( ; d1< freeDstIx_1; ++d1)
+		    CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
+		  dstLonIx -= stride[ 2];
+		  for( ; d1< this_dim[ 1]; ++d1)
+		    CShift1<Ty>( shP, dstLonIx, ddP, srcLonIx, stride[ 1], freeDstIx_0, dstIx[0]);
+		  dstLonIx += stride[ 2];
+		}
+	      dstLonIx += stride[ 3];
+	    }
+	  assert(srcLonIx == nEl);
+	  return sh;
 	} // nDim == 4
-  }  // if( Sp::t != GDL_STRING)
+    }  // if( Sp::t != GDL_STRING)
 
 #else
 
@@ -1207,52 +1207,52 @@ BaseGDL* Data_<Sp>::CShift( DLong s[ MAXRANK]) const
     }
   SizeT dstLonIx = dstIx[ 0];
   for( SizeT rSp=1; rSp<nDim; ++rSp)
-	dstLonIx += dstIx[ rSp] * stride[ rSp];
+    dstLonIx += dstIx[ rSp] * stride[ rSp];
 
 #endif // TEST_GOOD_OL_VERSION
   
-// good 'ol version RELOADED
-  	SizeT* dim_stride = &stride[1];
-	SizeT freeDstIx_0 = this_dim[ 0] - dstIx[ 0] ; // how many elements till array border is reached (dim 0)
-//   for( SizeT a=0; a<nEl; ++srcIx[0],++dstIx[0])
+  // good 'ol version RELOADED
+  SizeT* dim_stride = &stride[1];
+  SizeT freeDstIx_0 = this_dim[ 0] - dstIx[ 0] ; // how many elements till array border is reached (dim 0)
+  //   for( SizeT a=0; a<nEl; ++srcIx[0],++dstIx[0])
   for( SizeT a=0; a<nEl; ++srcIx[1],++dstIx[1])
     {
-//     for( SizeT aSp=0; aSp<nDim;)
-    for( SizeT aSp=1; aSp<nDim;)
-		{
-			if( dstIx[ aSp] >= this_dim[ aSp])
-				{
-				// dstIx[ aSp] -= dim[ aSp];
-				dstIx[ aSp] = 0;
-				dstLonIx -= dim_stride[ aSp];
-				}
-			if( srcIx[ aSp] < this_dim[ aSp]) break;
+      //     for( SizeT aSp=0; aSp<nDim;)
+      for( SizeT aSp=1; aSp<nDim;)
+	{
+	  if( dstIx[ aSp] >= this_dim[ aSp])
+	    {
+	      // dstIx[ aSp] -= dim[ aSp];
+	      dstIx[ aSp] = 0;
+	      dstLonIx -= dim_stride[ aSp];
+	    }
+	  if( srcIx[ aSp] < this_dim[ aSp]) break;
 
-			srcIx[ aSp] = 0;
-			if( ++aSp >= nDim) break; // ??
+	  srcIx[ aSp] = 0;
+	  if( ++aSp >= nDim) break; // ??
 
 			
-			++srcIx[ aSp];
-			++dstIx[ aSp];
-			dstLonIx += stride[ aSp];
-		}
-
-	// code from new version (to avoid the worst :-)
-	// copy one line
-	SizeT s=0;
-	for( ; s< freeDstIx_0; ++s)
-	{
-		shP[ dstLonIx++] = ddP[ a++];
+	  ++srcIx[ aSp];
+	  ++dstIx[ aSp];
+	  dstLonIx += stride[ aSp];
 	}
-	dstLonIx -= stride[ 1];
-	for( ; s<this_dim[ 0]; ++s)
-	{
-		shP[ dstLonIx++] = ddP[ a++];
-	}
-	dstLonIx += stride[ 1];	
 
-	// copy one element
-	//shP[ dstLonIx++] = ddP[ a++];
+      // code from new version (to avoid the worst :-)
+      // copy one line
+      SizeT s=0;
+      for( ; s< freeDstIx_0; ++s)
+	{
+	  shP[ dstLonIx++] = ddP[ a++];
+	}
+      dstLonIx -= stride[ 1];
+      for( ; s<this_dim[ 0]; ++s)
+	{
+	  shP[ dstLonIx++] = ddP[ a++];
+	}
+      dstLonIx += stride[ 1];	
+
+      // copy one element
+      //shP[ dstLonIx++] = ddP[ a++];
     }
   
   return sh;
@@ -1295,42 +1295,42 @@ BaseGDL* Data_<Sp>::Transpose( DUInt* perm)
     {
       if( rank == 2)
 	{
-	SizeT srcDim0 = this->dim[0]; 
-	SizeT srcDim1 = this->dim[1];
-	Data_* res = new Data_( dimension( srcDim1, srcDim0), BaseGDL::NOZERO);
+	  SizeT srcDim0 = this->dim[0]; 
+	  SizeT srcDim1 = this->dim[1];
+	  Data_* res = new Data_( dimension( srcDim1, srcDim0), BaseGDL::NOZERO);
 
-	SizeT srcIx = 0;
-	for(SizeT srcIx1 = 0; srcIx1<srcDim1; ++srcIx1) // src dim 1
-	{
-		SizeT resIx = srcIx1;
-		SizeT srcLim = srcIx + srcDim0; // src dim 0
-		for(; srcIx<srcLim; ++srcIx)
+	  SizeT srcIx = 0;
+	  for(SizeT srcIx1 = 0; srcIx1<srcDim1; ++srcIx1) // src dim 1
+	    {
+	      SizeT resIx = srcIx1;
+	      SizeT srcLim = srcIx + srcDim0; // src dim 0
+	      for(; srcIx<srcLim; ++srcIx)
 		{
-			(*res)[ resIx] = (*this)[ srcIx];
-			resIx += srcDim1;
+		  (*res)[ resIx] = (*this)[ srcIx];
+		  resIx += srcDim1;
 		}
-	}
+	    }
 	
-// 	SizeT srcStride1 = this->dim[0]; //.Stride( 1);
-// 	SizeT nElem = dd.size();
-// 	SizeT srcDim0 = 0;
-// 	SizeT e = 0;
-// 	SizeT resDim0 = this->dim[1];
-// 	for(; srcDim0<srcStride1; srcDim0++)
-// 	{
-// 		SizeT s = srcDim0;
-// 		SizeT eLim = e + resDim0;
-// 		for(; e<eLim; ++e, s += srcStride1)
-// 		{
-// 			(*res)[ e] = (*this)[ s];
-// 		}
-// 	}
+	  // 	SizeT srcStride1 = this->dim[0]; //.Stride( 1);
+	  // 	SizeT nElem = dd.size();
+	  // 	SizeT srcDim0 = 0;
+	  // 	SizeT e = 0;
+	  // 	SizeT resDim0 = this->dim[1];
+	  // 	for(; srcDim0<srcStride1; srcDim0++)
+	  // 	{
+	  // 		SizeT s = srcDim0;
+	  // 		SizeT eLim = e + resDim0;
+	  // 		for(; e<eLim; ++e, s += srcStride1)
+	  // 		{
+	  // 			(*res)[ e] = (*this)[ s];
+	  // 		}
+	  // 	}
 
-// 	  for( SizeT e = 0; e<nElem;)
-// 	    {
-// 		for( SizeT s=srcDim0++; s<nElem; s+= srcStride1)
-// 			(*res)[ e++] = (*this)[ s];
-// 	    }
+	  // 	  for( SizeT e = 0; e<nElem;)
+	  // 	    {
+	  // 		for( SizeT s=srcDim0++; s<nElem; s+= srcStride1)
+	  // 			(*res)[ e++] = (*this)[ s];
+	  // 	    }
 	  return res;
 	}
 
@@ -1342,7 +1342,7 @@ BaseGDL* Data_<Sp>::Transpose( DUInt* perm)
   for( SizeT d=0; d<rank; ++d)
     {
       this_dim[ d] = this->dim[ perm[ d]];
-//    newDim.Set( d, this_dim[ d]);
+      //    newDim.Set( d, this_dim[ d]);
     }
   
   Data_* res = new Data_( dimension( this_dim, rank), BaseGDL::NOZERO);
@@ -1417,21 +1417,21 @@ BaseGDL* Data_<Sp>::DupReverse( DLong dim)
   SizeT outerStride = this->dim.Stride(dim + 1);
   SizeT revLimit = this->dim[dim] * revStride;
   for (SizeT o = 0; o < nEl; o += outerStride)
-  {
-    for (SizeT i = 0; i < revStride; ++i) 
     {
-      SizeT oi = o + i; 
-      SizeT last_plus_oi = revLimit + oi - revStride + oi;
-      SizeT half = ((revLimit / revStride) / 2) * revStride + oi;
-      for (SizeT s = oi; s < half+1; s += revStride) 
-      {
-        SizeT opp = last_plus_oi - s;
-	//	cout << s <<" "<< opp << " " << (*this)[s] << " " << (*this)[opp] << endl;
-	(*res)[s] = (*this)[opp];
-        (*res)[opp] = (*this)[s];
-      }
+      for (SizeT i = 0; i < revStride; ++i) 
+	{
+	  SizeT oi = o + i; 
+	  SizeT last_plus_oi = revLimit + oi - revStride + oi;
+	  SizeT half = ((revLimit / revStride) / 2) * revStride + oi;
+	  for (SizeT s = oi; s < half+1; s += revStride) 
+	    {
+	      SizeT opp = last_plus_oi - s;
+	      //	cout << s <<" "<< opp << " " << (*this)[s] << " " << (*this)[opp] << endl;
+	      (*res)[s] = (*this)[opp];
+	      (*res)[opp] = (*this)[s];
+	    }
+	}
     }
-  }
   return res_guard.release();
 }
 template<>
@@ -1445,20 +1445,20 @@ BaseGDL* Data_<SpDPtr>::DupReverse( DLong dim)
   SizeT outerStride = this->dim.Stride(dim + 1);
   SizeT revLimit = this->dim[dim] * revStride;
   for (SizeT o = 0; o < nEl; o += outerStride)
-  {
-    for (SizeT i = 0; i < revStride; ++i) 
     {
-      SizeT oi = o + i; 
-      SizeT last_plus_oi = revLimit + oi - revStride + oi;
-      SizeT half = ((revLimit / revStride) / 2) * revStride + oi;
-      for (SizeT s = oi; s < half+1; s += revStride) 
-      {
-        SizeT opp = last_plus_oi - s;
-        (*res)[s] = (*this)[opp];
-        (*res)[opp] = (*this)[s];
-      }
+      for (SizeT i = 0; i < revStride; ++i) 
+	{
+	  SizeT oi = o + i; 
+	  SizeT last_plus_oi = revLimit + oi - revStride + oi;
+	  SizeT half = ((revLimit / revStride) / 2) * revStride + oi;
+	  for (SizeT s = oi; s < half+1; s += revStride) 
+	    {
+	      SizeT opp = last_plus_oi - s;
+	      (*res)[s] = (*this)[opp];
+	      (*res)[opp] = (*this)[s];
+	    }
+	}
     }
-  }
   GDLInterpreter::IncRef( res);
   return res_guard.release();
 }
@@ -1473,20 +1473,20 @@ BaseGDL* Data_<SpDObj>::DupReverse( DLong dim)
   SizeT outerStride = this->dim.Stride(dim + 1);
   SizeT revLimit = this->dim[dim] * revStride;
   for (SizeT o = 0; o < nEl; o += outerStride)
-  {
-    for (SizeT i = 0; i < revStride; ++i) 
     {
-      SizeT oi = o + i; 
-      SizeT last_plus_oi = revLimit + oi - revStride + oi;
-      SizeT half = ((revLimit / revStride) / 2) * revStride + oi;
-      for (SizeT s = oi; s < half+1; s += revStride) 
-      {
-        SizeT opp = last_plus_oi - s;
-        (*res)[s] = (*this)[opp];
-        (*res)[opp] = (*this)[s];
-      }
+      for (SizeT i = 0; i < revStride; ++i) 
+	{
+	  SizeT oi = o + i; 
+	  SizeT last_plus_oi = revLimit + oi - revStride + oi;
+	  SizeT half = ((revLimit / revStride) / 2) * revStride + oi;
+	  for (SizeT s = oi; s < half+1; s += revStride) 
+	    {
+	      SizeT opp = last_plus_oi - s;
+	      (*res)[s] = (*this)[opp];
+	      (*res)[opp] = (*this)[s];
+	    }
+	}
     }
-  }
   GDLInterpreter::IncRefObj( res);
   return res_guard.release();
 }
@@ -1503,12 +1503,12 @@ BaseGDL* Data_<Sp>::Rotate( DLong dir)
       Data_* res = new Data_( this->dim, BaseGDL::NOZERO);
       SizeT nEl = N_Elements();
       
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      for( SizeT i=0; i<nEl; ++i)
-	(*res)[i] = (*this)[ nEl-1-i];
-}
+      // #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      {
+	// #pragma omp for
+	for( SizeT i=0; i<nEl; ++i)
+	  (*res)[i] = (*this)[ nEl-1-i];
+      }
       return res;
     }
 
@@ -1524,23 +1524,23 @@ BaseGDL* Data_<Sp>::Rotate( DLong dir)
 	{
 	  Data_* res = new Data_( this->dim, BaseGDL::NOZERO);
 	  SizeT nEl = N_Elements();
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-	  for( SizeT i=0; i<nEl; ++i)
-	    (*res)[ i] = (*this)[ nEl-1-i];
-}
+	  // #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	  {
+	    // #pragma omp for
+	    for( SizeT i=0; i<nEl; ++i)
+	      (*res)[ i] = (*this)[ nEl-1-i];
+	  }
 	  return res;
 	}
       // 3 || 6
       Data_* res = new Data_( dimension( 1, N_Elements()), BaseGDL::NOZERO);
       SizeT nEl = N_Elements();
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      for( SizeT i=0; i<nEl; ++i)
-	(*res)[ i] = (*this)[ nEl-1-i];
-}
+      // #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      {
+	// #pragma omp for
+	for( SizeT i=0; i<nEl; ++i)
+	  (*res)[ i] = (*this)[ nEl-1-i];
+      }
       return res;
     }
 
@@ -1581,52 +1581,52 @@ BaseGDL* Data_<Sp>::Rotate( DLong dir)
 template<class Sp> 
 typename Data_<Sp>::Ty Data_<Sp>::Sum() const 
 {
-Ty s= dd[ 0];
-SizeT nEl = dd.size();
-TRACEOMP( __FILE__, __LINE__)
+  Ty s= dd[ 0];
+  SizeT nEl = dd.size();
+  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( s)
-{
+    {
 #pragma omp for reduction(+:s)
-for( int i=1; i<nEl; ++i)
-{
-	s += dd[ i];
-}
-}
- return s;
+      for( int i=1; i<nEl; ++i)
+	{
+	  s += dd[ i];
+	}
+    }
+  return s;
 }
 
 template<> 
 Data_<SpDString>::Ty Data_<SpDString>::Sum() const 
 {
-Ty s= dd[ 0];
-SizeT nEl = dd.size();
-for( SizeT i=1; i<nEl; ++i)
-{
-	s += dd[ i];
-}
- return s;
+  Ty s= dd[ 0];
+  SizeT nEl = dd.size();
+  for( SizeT i=1; i<nEl; ++i)
+    {
+      s += dd[ i];
+    }
+  return s;
 }
 template<> 
 Data_<SpDComplexDbl>::Ty Data_<SpDComplexDbl>::Sum() const 
 {
-Ty s= dd[ 0];
-SizeT nEl = dd.size();
-for( SizeT i=1; i<nEl; ++i)
-{
-	s += dd[ i];
-}
- return s;
+  Ty s= dd[ 0];
+  SizeT nEl = dd.size();
+  for( SizeT i=1; i<nEl; ++i)
+    {
+      s += dd[ i];
+    }
+  return s;
 }
 template<> 
 Data_<SpDComplex>::Ty Data_<SpDComplex>::Sum() const 
 {
-Ty s= dd[ 0];
-SizeT nEl = dd.size();
-for( SizeT i=1; i<nEl; ++i)
-{
-	s += dd[ i];
-}
- return s;
+  Ty s= dd[ 0];
+  SizeT nEl = dd.size();
+  for( SizeT i=1; i<nEl; ++i)
+    {
+      s += dd[ i];
+    }
+  return s;
 }
 
 // template<class Sp> 
@@ -1655,7 +1655,7 @@ Data_<Sp>&  Data_<Sp>::operator=(const BaseGDL& r)
   assert( r.Type() == this->Type());
   const Data_<Sp>& right = static_cast<const Data_<Sp>&>( r);
   assert( &right != this);
-//   if( &right == this) return *this; // self assignment
+  //   if( &right == this) return *this; // self assignment
   this->dim = right.dim;
   dd = right.dd;
   return *this;
@@ -1667,7 +1667,7 @@ Data_<SpDPtr>& Data_<SpDPtr>::operator=(const BaseGDL& r)
   assert( r.Type() == this->Type());
   const Data_& right = static_cast<const Data_&>( r);
   assert( &right != this);
-//   if( &right == this) return *this; // self assignment
+  //   if( &right == this) return *this; // self assignment
   this->dim = right.dim;
   GDLInterpreter::DecRef( this);
   dd = right.dd;
@@ -1681,7 +1681,7 @@ Data_<SpDObj>& Data_<SpDObj>::operator=(const BaseGDL& r)
   assert( r.Type() == this->Type());
   const Data_& right = static_cast<const Data_&>( r);
   assert( &right != this);
-//   if( &right == this) return *this; // self assignment
+  //   if( &right == this) return *this; // self assignment
   this->dim = right.dim;
   GDLInterpreter::DecRefObj( this);
   dd = right.dd;
@@ -1696,10 +1696,10 @@ void Data_<Sp>::InitFrom(const BaseGDL& r)
   assert( r.Type() == this->Type());
   const Data_<Sp>& right = static_cast<const Data_<Sp>&>( r);
   assert( &right != this);
-//   if( &right == this) return *this; // self assignment
+  //   if( &right == this) return *this; // self assignment
   this->dim = right.dim;
   dd.InitFrom( right.dd);
-//   return *this;
+  //   return *this;
 }
 // only used from DStructGDL::DStructGDL(const DStructGDL& d_)
 template<>
@@ -1708,12 +1708,12 @@ void Data_<SpDPtr>::InitFrom(const BaseGDL& r)
   assert( r.Type() == this->Type());
   const Data_& right = static_cast<const Data_&>( r);
   assert( &right != this);
-//   if( &right == this) return *this; // self assignment
+  //   if( &right == this) return *this; // self assignment
   this->dim = right.dim;
-//   GDLInterpreter::DecRef( this);
+  //   GDLInterpreter::DecRef( this);
   dd.InitFrom( right.dd);
   GDLInterpreter::IncRef( this);
-//   return *this;
+  //   return *this;
 }
 // only used from DStructGDL::DStructGDL(const DStructGDL& d_)
 template<>
@@ -1722,12 +1722,12 @@ void Data_<SpDObj>::InitFrom(const BaseGDL& r)
   assert( r.Type() == this->Type());
   const Data_& right = static_cast<const Data_&>( r);
   assert( &right != this);
-//   if( &right == this) return *this; // self assignment
+  //   if( &right == this) return *this; // self assignment
   this->dim = right.dim;
-//   GDLInterpreter::DecRefObj( this);
+  //   GDLInterpreter::DecRefObj( this);
   dd.InitFrom( right.dd);
   GDLInterpreter::IncRefObj( this);
-//   return *this;
+  //   return *this;
 }
 
 template< class Sp>
@@ -1770,11 +1770,11 @@ SizeT Data_<Sp>::Sizeof() const
 template< class Sp>
 void Data_<Sp>::Clear() 
 { 
-SizeT nEl = dd.size(); 
-/*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-#pragma omp for*/
-for( int i = 0; i<nEl; ++i) (*this)[ i] = Sp::zero;
+  SizeT nEl = dd.size(); 
+  /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+    #pragma omp for*/
+  for( int i = 0; i<nEl; ++i) (*this)[ i] = Sp::zero;
 }//}
 
 // first time initialization (construction)
@@ -1784,21 +1784,21 @@ void Data_<Sp>::Construct()
 template<>
 void Data_<SpDPtr>::Construct() 
 {
-SizeT nEl = dd.size(); 
-//  for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty;
-/*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-#pragma omp for*/
+  SizeT nEl = dd.size(); 
+  //  for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty;
+  /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+    #pragma omp for*/
   for( int i = 0; i<nEl; ++i) dd[ i] = 0;
 }//}
 template<>
 void Data_<SpDObj>::Construct()
 {
-SizeT nEl = dd.size(); 
-//  for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty;
-/*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-#pragma omp for*/
+  SizeT nEl = dd.size(); 
+  //  for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty;
+  /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+    #pragma omp for*/
   for( int i = 0; i<nEl; ++i) dd[ i] = 0;
 }//}
 // non POD - use placement new
@@ -1806,28 +1806,28 @@ template<>
 void Data_< SpDString>::Construct() 
 { 
   SizeT nEl = dd.size(); 
-//  for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty;
-/*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-#pragma omp for*/
+  //  for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty;
+  /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+    #pragma omp for*/
   for( int i = 0; i<nEl; ++i) new (&(dd[ i])) Ty;
 }//}
 template<>
 void Data_< SpDComplex>::Construct() 
 { 
   SizeT nEl = dd.size(); 
-/*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-#pragma omp for*/
+  /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+    #pragma omp for*/
   for( int i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty;
 }//}
 template<>
 void Data_< SpDComplexDbl>::Construct() 
 { 
   SizeT nEl = dd.size(); 
-/*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-#pragma omp for*/
+  /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+    #pragma omp for*/
   for( int i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty;
 }//}
 
@@ -1835,38 +1835,38 @@ void Data_< SpDComplexDbl>::Construct()
 template< class Sp>
 void Data_<Sp>::ConstructTo0() 
 { 
-SizeT nEl = dd.size(); 
-/*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-#pragma omp for*/
-for( int i = 0; i<nEl; ++i) (*this)[ i] = Sp::zero;
+  SizeT nEl = dd.size(); 
+  /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+    #pragma omp for*/
+  for( int i = 0; i<nEl; ++i) (*this)[ i] = Sp::zero;
 }//}
 // non POD - use placement new
 template<>
 void Data_< SpDString>::ConstructTo0() 
 { 
   SizeT nEl = dd.size(); 
-/*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-#pragma omp for*/
+  /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+    #pragma omp for*/
   for( int i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty( zero);
 }//}
 template<>
 void Data_< SpDComplex>::ConstructTo0() 
 { 
   SizeT nEl = dd.size(); 
-/*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-#pragma omp for*/
+  /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+    #pragma omp for*/
   for( int i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty( zero);
 }//}
 template<>
 void Data_< SpDComplexDbl>::ConstructTo0() 
 { 
   SizeT nEl = dd.size(); 
-/*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-#pragma omp for*/
+  /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+    #pragma omp for*/
   for( int i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty( zero);
 }//}
 
@@ -1878,20 +1878,20 @@ void Data_<Sp>::Destruct()
 template<>
 void Data_< SpDPtr>::Destruct()
 {
-	GDLInterpreter::DecRef( this);
+  GDLInterpreter::DecRef( this);
 }
 template<>
 void Data_< SpDObj>::Destruct()
 {
-	GDLInterpreter::DecRefObj( this);
+  GDLInterpreter::DecRefObj( this);
 }
 template<>
 void Data_< SpDString>::Destruct() 
 {
   SizeT nEl = dd.size(); 
-/*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-#pragma omp for*/
+  /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+    #pragma omp for*/
   for( int i = 0; i<nEl; ++i) 
     (*this)[ i].~DString();
 }//}
@@ -1899,9 +1899,9 @@ template<>
 void Data_< SpDComplex>::Destruct() 
 {
   SizeT nEl = dd.size(); 
-/*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-#pragma omp for*/
+  /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+    #pragma omp for*/
   for( int i = 0; i<nEl; ++i) 
     (*this)[ i].~DComplex();
 }//}
@@ -1909,9 +1909,9 @@ template<>
 void Data_< SpDComplexDbl>::Destruct() 
 {
   SizeT nEl = dd.size(); 
-/*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-#pragma omp for*/
+  /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+    #pragma omp for*/
   for( int i = 0; i<nEl; ++i) 
     (*this)[ i].~DComplexDbl();
 }//}
@@ -1941,11 +1941,11 @@ Data_<Sp>* Data_<Sp>::New( const dimension& dim_, BaseGDL::InitType noZero) cons
     {
       Data_* res =  new Data_(dim_, BaseGDL::NOZERO);
       SizeT nEl = res->dd.size();
-/*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-#pragma omp for*/
+      /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
+	#pragma omp for*/
       for( int i=0; i<nEl; ++i) (*res)[ i] = (*this)[ 0]; // set all to scalar
-//}
+      //}
       return res;
     }
   return new Data_(dim_); // zero data
@@ -1983,12 +1983,12 @@ template<> SizeT Data_<SpDString>::NBytes() const
 {
   SizeT nEl = dd.size();
   SizeT nB = 0;
-/*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-#pragma omp for*/
+  /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+    #pragma omp for*/
   for( int i=0; i<nEl; ++i)
     nB += (*this)[i].size();
-//}
+  //}
   return nB;
 }
 // template<> SizeT Data_<SpDObj>::NBytes() const
@@ -2220,30 +2220,30 @@ RangeT Data_<Sp>::LoopIndex() const
   // for maintainability. And as any modern C++ compiler will optimize
   // away the superflous (for unsigned data) statement anyway, it is 
   // better to keep the code this way here.
-//   if( (*this)[0] < 0)
-//     throw GDLException( "Index variable <0.");
+  //   if( (*this)[0] < 0)
+  //     throw GDLException( "Index variable <0.");
 
   return static_cast<RangeT>((*this)[0]);
 }
 template<> 
 RangeT Data_<SpDFloat>::LoopIndex() const
 {
-//   if( (*this)[0] < 0.0f)
-//     //if( (*this)[0] <= 1.0f)
-//       throw GDLException( "Index variable <0.");
-    //else
-    //  return 0;
+  //   if( (*this)[0] < 0.0f)
+  //     //if( (*this)[0] <= 1.0f)
+  //       throw GDLException( "Index variable <0.");
+  //else
+  //  return 0;
 
   return static_cast<RangeT>((*this)[0]);
 }
 template<> 
 RangeT Data_<SpDDouble>::LoopIndex() const
 {
-//   if( (*this)[0] < 0.0)
-//     //if( (*this)[0] <= 1.0)
-//       throw GDLException( "Index variable <0.");
-    //else
-    //  return 0;
+  //   if( (*this)[0] < 0.0)
+  //     //if( (*this)[0] <= 1.0)
+  //       throw GDLException( "Index variable <0.");
+  //else
+  //  return 0;
 
   return static_cast<RangeT>((*this)[0]);
 }
@@ -2262,19 +2262,19 @@ RangeT Data_<SpDComplexDbl>::LoopIndex() const
 template<> 
 RangeT Data_<SpDString>::LoopIndex() const
 {
-    if( (*this)[0] == "")
-	    return 0;
+  if( (*this)[0] == "")
+    return 0;
 	
-    const char* cStart=(*this)[0].c_str();
-    char* cEnd;
-    RangeT ix=strtol(cStart,&cEnd,10);
-    if( cEnd == cStart)
-		{
-		Warning( "Type conversion error: "
-				       "Unable to convert given STRING: '"+
-				       (*this)[0]+"' to index.");
-      	return 0;
-      	}
+  const char* cStart=(*this)[0].c_str();
+  char* cEnd;
+  RangeT ix=strtol(cStart,&cEnd,10);
+  if( cEnd == cStart)
+    {
+      Warning( "Type conversion error: "
+	       "Unable to convert given STRING: '"+
+	       (*this)[0]+"' to index.");
+      return 0;
+    }
   return ix;
 }
 RangeT DStructGDL::LoopIndex() const
@@ -2395,9 +2395,9 @@ bool Data_<SpDObj>::True()
   BaseGDL* res=interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 
   if( NullGDL::IsNULLorNullGDL( res))
-  {
-    throw GDLException( "_overloadIsTrue returned an undefined value.",true,false);
-  }
+    {
+      throw GDLException( "_overloadIsTrue returned an undefined value.",true,false);
+    }
   
   Guard<BaseGDL> resGuard( res);
   
@@ -2407,7 +2407,7 @@ bool Data_<SpDObj>::True()
       ostringstream os;
       res->ToStream(os);
       throw GDLException( "Object reference expression not allowed in this context: " +
-      os.str(),true,false);
+			  os.str(),true,false);
     }
   
   return res->LogTrue();
@@ -2476,14 +2476,14 @@ template<class Sp>
 bool Data_<Sp>::Equal( BaseGDL* r) const
 {
   assert( r->StrictScalar());
-//   if( !r->Scalar())
-//     {
-//       GDLDelete(r);
-//       throw GDLException("Expression must be a scalar in this context.");
-//     }
+  //   if( !r->Scalar())
+  //     {
+  //       GDLDelete(r);
+  //       throw GDLException("Expression must be a scalar in this context.");
+  //     }
   assert( r->Type() == this->t);
   Data_* rr=static_cast<Data_*>(r);
-//  Data_* rr=static_cast<Data_*>(r->Convert2( this->t));
+  //  Data_* rr=static_cast<Data_*>(r->Convert2( this->t));
   bool ret= ((*this)[0] == (*rr)[0]);
   GDLDelete(rr);
   return ret;
@@ -2492,14 +2492,14 @@ template<>
 bool Data_<SpDFloat>::Equal( BaseGDL* r) const
 {
   assert( r->StrictScalar());
-//   if( !r->Scalar())
-//     {
-//       GDLDelete(r);
-//       throw GDLException("Expression must be a scalar in this context.");
-//     }
+  //   if( !r->Scalar())
+  //     {
+  //       GDLDelete(r);
+  //       throw GDLException("Expression must be a scalar in this context.");
+  //     }
   assert( r->Type() == this->t);
   Data_* rr=static_cast<Data_*>(r);
-//  Data_* rr=static_cast<Data_*>(r->Convert2( this->t));
+  //  Data_* rr=static_cast<Data_*>(r->Convert2( this->t));
   bool ret= fabs((*this)[0] - (*rr)[0]) < 1.0f;
   GDLDelete(rr);
   return ret;
@@ -2508,14 +2508,14 @@ template<>
 bool Data_<SpDDouble>::Equal( BaseGDL* r) const
 {
   assert( r->StrictScalar());
-//   if( !r->Scalar())
-//     {
-//       GDLDelete(r);
-//       throw GDLException("Expression must be a scalar in this context.");
-//     }
+  //   if( !r->Scalar())
+  //     {
+  //       GDLDelete(r);
+  //       throw GDLException("Expression must be a scalar in this context.");
+  //     }
   assert( r->Type() == this->t);
   Data_* rr=static_cast<Data_*>(r);
-//  Data_* rr=static_cast<Data_*>(r->Convert2( this->t));
+  //  Data_* rr=static_cast<Data_*>(r->Convert2( this->t));
   bool ret= fabs((*this)[0] - (*rr)[0]) < 1.0;
   GDLDelete(rr);
   return ret;
@@ -2531,16 +2531,16 @@ bool Data_<Sp>::EqualNoDelete( const BaseGDL* r) const
     }
   bool ret;
   if( r->Type() != this->t)
-  {
-  Data_* rr=static_cast<Data_*>(const_cast<BaseGDL*>(r)->Convert2( this->t, BaseGDL::COPY));
-  ret= ((*this)[0] == (*rr)[0]);
-  GDLDelete(rr);
-  }
-else
-{
-  const Data_* rr=static_cast<const Data_*>(r);
-  ret= ((*this)[0] == (*rr)[0]);
-}
+    {
+      Data_* rr=static_cast<Data_*>(const_cast<BaseGDL*>(r)->Convert2( this->t, BaseGDL::COPY));
+      ret= ((*this)[0] == (*rr)[0]);
+      GDLDelete(rr);
+    }
+  else
+    {
+      const Data_* rr=static_cast<const Data_*>(r);
+      ret= ((*this)[0] == (*rr)[0]);
+    }
   return ret;
 }
 
@@ -2647,34 +2647,34 @@ void Data_<Sp>::ForCheck( BaseGDL** lEnd, BaseGDL** lStep)
   // check for promotion of this (only GDL_INT) // and GDL_LONG ???
   DType lType = (*lEnd)->Type();
   if( this->t == GDL_INT && lType != GDL_INT)
-  {
-    if( lType == GDL_COMPLEX || lType == GDL_COMPLEXDBL)
-      throw GDLException("Complex expression not allowed in this context.");  
-    
-    if( lType == GDL_STRING)
     {
-      *lEnd=(*lEnd)->Convert2( GDL_LONG);  // try with long
-      if( !(*lEnd)->OutOfRangeOfInt())
-      {
-	*lEnd=(*lEnd)->Convert2( GDL_INT); // back to GDL_INT if within range     
-      }
-    }
-    else if( !(*lEnd)->OutOfRangeOfInt())
-      {
-	*lEnd=(*lEnd)->Convert2( GDL_INT);  // regular conversion    
-      }  
+      if( lType == GDL_COMPLEX || lType == GDL_COMPLEXDBL)
+	throw GDLException("Complex expression not allowed in this context.");  
+    
+      if( lType == GDL_STRING)
+	{
+	  *lEnd=(*lEnd)->Convert2( GDL_LONG);  // try with long
+	  if( !(*lEnd)->OutOfRangeOfInt())
+	    {
+	      *lEnd=(*lEnd)->Convert2( GDL_INT); // back to GDL_INT if within range     
+	    }
+	}
+      else if( !(*lEnd)->OutOfRangeOfInt())
+	{
+	  *lEnd=(*lEnd)->Convert2( GDL_INT);  // regular conversion    
+	}  
 
-    // if the GDL_INT range is exceeded, lEnd is NOT changed
+      // if the GDL_INT range is exceeded, lEnd is NOT changed
       
-    if( lStep != NULL) *lStep=(*lStep)->Convert2( (*lEnd)->Type());
-    return; // finished for GDL_INT
-  }
+      if( lStep != NULL) *lStep=(*lStep)->Convert2( (*lEnd)->Type());
+      return; // finished for GDL_INT
+    }
   
   if( this->t == GDL_LONG)
-  {
-    if( lType == GDL_COMPLEX || lType == GDL_COMPLEXDBL)
-      throw GDLException("Complex expression not allowed in this context.");        
-  }
+    {
+      if( lType == GDL_COMPLEX || lType == GDL_COMPLEXDBL)
+	throw GDLException("Complex expression not allowed in this context.");        
+    }
   
   // no promotion happened
   *lEnd=(*lEnd)->Convert2( this->t);
@@ -2692,91 +2692,91 @@ bool Data_<Sp>::ForAddCondUp( BaseGDL* endLoopVar)
 // bool Data_<Sp>::ForAddCondUp( ForLoopInfoT& loopInfo)
 {
   (*this)[0] += 1;
-//   Data_* lEnd=static_cast<Data_*>(lEndIn);
+  //   Data_* lEnd=static_cast<Data_*>(lEndIn);
   if( endLoopVar->Type() != this->t)
     throw GDLException("Type of FOR index variable changed.");
   Data_* lEnd=static_cast<Data_*>(endLoopVar);
-/*  Data_* lEnd=dynamic_cast<Data_*>(endLoopVar);
-  if( lEnd == NULL)
-    throw GDLException("Type of FOR index variable changed.");*/
+  /*  Data_* lEnd=dynamic_cast<Data_*>(endLoopVar);
+      if( lEnd == NULL)
+      throw GDLException("Type of FOR index variable changed.");*/
   return (*this)[0] <= (*lEnd)[0]; 
 }
 // ForCheck must have been called before
 template<class Sp>
 bool Data_<Sp>::ForCondUp( BaseGDL* lEndIn)
 {
-//   Data_* lEnd=static_cast<Data_*>(lEndIn);
+  //   Data_* lEnd=static_cast<Data_*>(lEndIn);
   if( lEndIn->Type() != this->t)
     throw GDLException("Type of FOR index variable changed.");
   Data_* lEnd=static_cast<Data_*>(lEndIn);
-/*  Data_* lEnd=dynamic_cast<Data_*>(lEndIn);
-  if( lEnd == NULL)
-    throw GDLException("Type of FOR index variable changed.");*/
+  /*  Data_* lEnd=dynamic_cast<Data_*>(lEndIn);
+      if( lEnd == NULL)
+      throw GDLException("Type of FOR index variable changed.");*/
   return (*this)[0] <= (*lEnd)[0];
 }
 template<class Sp>
 bool Data_<Sp>::ForCondDown( BaseGDL* lEndIn)
 {
-//   Data_* lEnd=static_cast<Data_*>(lEndIn);
+  //   Data_* lEnd=static_cast<Data_*>(lEndIn);
   if( lEndIn->Type() != this->t)
     throw GDLException("Type of FOR index variable changed.");
   Data_* lEnd=static_cast<Data_*>(lEndIn);
-/*  Data_* lEnd=dynamic_cast<Data_*>(lEndIn);
-  if( lEnd == NULL)
-    throw GDLException("Type of FOR index variable changed.");*/
+  /*  Data_* lEnd=dynamic_cast<Data_*>(lEndIn);
+      if( lEnd == NULL)
+      throw GDLException("Type of FOR index variable changed.");*/
   return (*this)[0] >= (*lEnd)[0];
 }
 
 // error if the type of the loop variable changed
 bool DStructGDL::ForCondUp( BaseGDL*)
 { 
-    throw GDLException("Type of FOR index variable changed to STRUCT.");
-    return false; 
+  throw GDLException("Type of FOR index variable changed to STRUCT.");
+  return false; 
 }
 bool DStructGDL::ForCondDown( BaseGDL*)
 { 
-    throw GDLException("Type of FOR index variable changed to STRUCT.");
-    return false; 
+  throw GDLException("Type of FOR index variable changed to STRUCT.");
+  return false; 
 }
 template<>
 bool Data_<SpDComplex>::ForCondUp( BaseGDL*)
 { 
-    throw GDLException("Type of FOR index variable changed to COMPLEX.");
-    return false; 
+  throw GDLException("Type of FOR index variable changed to COMPLEX.");
+  return false; 
 }
 
 template<>
 bool Data_<SpDComplex>::ForAddCondUp( BaseGDL* loopInfo)
 // bool Data_<SpDComplex>::ForAddCondUp( ForLoopInfoT& loopInfo)
 { 
-    throw GDLException("Type of FOR index variable changed to COMPLEX.");
-    return false; 
+  throw GDLException("Type of FOR index variable changed to COMPLEX.");
+  return false; 
 }
 template<>
 bool Data_<SpDComplex>::ForCondDown( BaseGDL*)
 { 
-    throw GDLException("Type of FOR index variable changed to COMPLEX.");
-    return false; 
+  throw GDLException("Type of FOR index variable changed to COMPLEX.");
+  return false; 
 }
 
 template<>
 bool Data_<SpDComplexDbl>::ForAddCondUp( BaseGDL* loopInfo)
 // bool Data_<SpDComplexDbl>::ForAddCondUp( ForLoopInfoT& loopInfo)
 { 
-    throw GDLException("Type of FOR index variable changed to DCOMPLEX.");
-    return false; 
+  throw GDLException("Type of FOR index variable changed to DCOMPLEX.");
+  return false; 
 }
 template<>
 bool Data_<SpDComplexDbl>::ForCondUp( BaseGDL*)
 { 
-    throw GDLException("Type of FOR index variable changed to DCOMPLEX.");
-    return false; 
+  throw GDLException("Type of FOR index variable changed to DCOMPLEX.");
+  return false; 
 }
 template<>
 bool Data_<SpDComplexDbl>::ForCondDown( BaseGDL*)
 { 
-    throw GDLException("Type of FOR index variable changed to DCOMPLEX.");
-    return false; 
+  throw GDLException("Type of FOR index variable changed to DCOMPLEX.");
+  return false; 
 }
 
 // ForCheck must have been called before
@@ -2807,31 +2807,31 @@ void DStructGDL::ForAdd() {}
 template<class Sp>
 void Data_<Sp>::AssignAtIx( RangeT ixR, BaseGDL* srcIn)
 {
-	if( ixR < 0)
-	{
-	SizeT nEl = this->N_Elements();
-	
-	if( -ixR > nEl)
-		throw GDLException("Subscript out of range: " + i2s(ixR));
-
-	SizeT ix = nEl + ixR;
-  
-	if( srcIn->Type() != this->Type())
+  if( ixR < 0)
     {
-      Data_* rConv = static_cast<Data_*>(srcIn->Convert2( this->Type(), BaseGDL::COPY_BYTE_AS_INT));
-//      Data_* rConv = static_cast<Data_*>(srcIn->Convert2( this->Type(), BaseGDL::COPY));
-      auto_ptr<Data_> conv_guard( rConv);
-      (*this)[ix] = (*rConv)[0];
-    }
-	else
-		(*this)[ix] = (*static_cast<Data_*>(srcIn))[0];
+      SizeT nEl = this->N_Elements();
+	
+      if( -ixR > nEl)
+	throw GDLException("Subscript out of range: " + i2s(ixR));
 
-	return;
-	} // ixR >= 0
+      SizeT ix = nEl + ixR;
+  
+      if( srcIn->Type() != this->Type())
+	{
+	  Data_* rConv = static_cast<Data_*>(srcIn->Convert2( this->Type(), BaseGDL::COPY_BYTE_AS_INT));
+	  //      Data_* rConv = static_cast<Data_*>(srcIn->Convert2( this->Type(), BaseGDL::COPY));
+	  auto_ptr<Data_> conv_guard( rConv);
+	  (*this)[ix] = (*rConv)[0];
+	}
+      else
+	(*this)[ix] = (*static_cast<Data_*>(srcIn))[0];
+
+      return;
+    } // ixR >= 0
   if( srcIn->Type() != this->Type())
     {
       Data_* rConv = static_cast<Data_*>(srcIn->Convert2( this->Type(), BaseGDL::COPY_BYTE_AS_INT));
-//       Data_* rConv = static_cast<Data_*>(srcIn->Convert2( this->Type(), BaseGDL::COPY));
+      //       Data_* rConv = static_cast<Data_*>(srcIn->Convert2( this->Type(), BaseGDL::COPY));
       auto_ptr<Data_> conv_guard( rConv);
       (*this)[ixR] = (*rConv)[0];
     }
@@ -2860,25 +2860,25 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT offset)
 	{
 	  SizeT nCp=Data_::N_Elements();
 
-/*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-{
-#pragma omp for*/
+	  /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	    {
+	    #pragma omp for*/
 	  for( int c=0; c<nCp; ++c)
 	    (*this)[ c]=scalar;
-// }
+	  // }
 	}
       else
 	{
 	  SizeT nCp=ixList->N_Elements();
 	  
 	  AllIxBaseT* allIx = ixList->BuildIx();
-/*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-{
-#pragma omp for*/
-      (*this)[ allIx->InitSeqAccess()]=scalar;
+	  /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	    {
+	    #pragma omp for*/
+	  (*this)[ allIx->InitSeqAccess()]=scalar;
 	  for( SizeT c=1; c<nCp; ++c)
 	    (*this)[ allIx->SeqAccess()]=scalar;
-//}	  //	    (*this)[ ixList->GetIx( c)]=scalar;
+	  //}	  //	    (*this)[ ixList->GetIx( c)]=scalar;
  	}
     }
   else
@@ -2894,12 +2894,12 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT offset)
 	    else
 	      throw GDLException("Source expression contains not enough elements.");
 
-/*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-{
-#pragma omp for*/
+	  /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	    {
+	    #pragma omp for*/
 	  for( int c=0; c<nCp; ++c)
 	    (*this)[ c]=(*src)[c+offset];
-}//}
+	}//}
       else
 	{
  	  // crucial part
@@ -2907,12 +2907,12 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT offset)
 
 	  if( nCp == 1)
 	    {
-		SizeT destStart = ixList->LongIx();
-		//  len = 1;
-		SizeT rStride = srcIn->Stride(this->Rank());
-		(*this)[ destStart] = (*src)[ offset/rStride];
+	      SizeT destStart = ixList->LongIx();
+	      //  len = 1;
+	      SizeT rStride = srcIn->Stride(this->Rank());
+	      (*this)[ destStart] = (*src)[ offset/rStride];
 
-//	      InsAt( src, ixList, offset);
+	      //	      InsAt( src, ixList, offset);
 	    }
 	  else
 	    {
@@ -2923,13 +2923,13 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT offset)
 				       " source expression.");
 		  
 		  AllIxBaseT* allIx = ixList->BuildIx();
-/*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-{
-#pragma omp for*/
- 	      (*this)[ allIx->InitSeqAccess()]=(*src)[0];
+		  /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+		    {
+		    #pragma omp for*/
+		  (*this)[ allIx->InitSeqAccess()]=(*src)[0];
 		  for( SizeT c=1; c<nCp; ++c)
 		    (*this)[ allIx->SeqAccess()]=(*src)[c];
-// }		  //		(*this)[ ixList->GetIx( c)]=(*src)[c+offset];
+		  // }		  //		(*this)[ ixList->GetIx( c)]=(*src)[c+offset];
 		}
 	      else
 		{
@@ -2938,13 +2938,13 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT offset)
 				       " source expression.");
 		  
 		  AllIxBaseT* allIx = ixList->BuildIx();
-/*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-{
-#pragma omp for*/
-  	      (*this)[ allIx->InitSeqAccess()]=(*src)[offset];
+		  /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+		    {
+		    #pragma omp for*/
+		  (*this)[ allIx->InitSeqAccess()]=(*src)[offset];
 		  for( SizeT c=1; c<nCp; ++c)
 		    (*this)[ allIx->SeqAccess()]=(*src)[c+offset];
-// }		  //		(*this)[ ixList->GetIx( c)]=(*src)[c+offset];
+		  // }		  //		(*this)[ ixList->GetIx( c)]=(*src)[c+offset];
 		}
 	    }
 	}
@@ -2973,15 +2973,15 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList)
 	  Ty scalar=(*src)[0];
 	  AllIxBaseT* allIx = ixList->BuildIx();
 	  (*this)[ allIx->InitSeqAccess()]=scalar;
-/*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-{
-#pragma omp for*/
+	  /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	    {
+	    #pragma omp for*/
 	  for( int c=1; c<nCp; ++c)
 	    (*this)[ allIx->SeqAccess()]=scalar;
-// 	    (*this)[ (*allIx)[ c]]=scalar;
+	  // 	    (*this)[ (*allIx)[ c]]=scalar;
 
 
-// }	  //	    (*this)[ ixList->GetIx( c)]=scalar;
+	  // }	  //	    (*this)[ ixList->GetIx( c)]=scalar;
 	}
     }
   else
@@ -3001,13 +3001,13 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList)
 	  
 	  AllIxBaseT* allIx = ixList->BuildIx();
 	  (*this)[ allIx->InitSeqAccess()]=(*src)[0];
-/*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-{
-#pragma omp for*/
+	  /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	    {
+	    #pragma omp for*/
 	  for( int c=1; c<nCp; ++c)
 	    (*this)[ allIx->SeqAccess()]=(*src)[c];
-// 	    (*this)[ (*allIx)[ c]]=(*src)[c];
-// }	  //		(*this)[ ixList->GetIx( c)]=(*src)[c+offset];
+	  // 	    (*this)[ (*allIx)[ c]]=(*src)[c];
+	  // }	  //		(*this)[ ixList->GetIx( c)]=(*src)[c+offset];
 	}
     }
 }
@@ -3023,16 +3023,16 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn)
     { // src is scalar
       Ty scalar=(*src)[0];
 
-/*      dd = scalar;*/
+      /*      dd = scalar;*/
       SizeT nCp=Data_::N_Elements();
       
       
-/*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-{
-#pragma omp for*/
+      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	{
+	#pragma omp for*/
       for( int c=0; c<nCp; ++c)
 	(*this)[ c]=scalar;
-// }      
+      // }      
       //       SizeT nCp=Data_::N_Elements();
 
       //       for( SizeT c=0; c<nCp; ++c)
@@ -3045,12 +3045,12 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn)
       // if (non-indexed) src is smaller -> just copy its number of elements
       if( nCp > srcElem) nCp=srcElem;
       
-/*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-{
-#pragma omp for*/
+      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	{
+	#pragma omp for*/
       for( int c=0; c<nCp; ++c)
 	(*this)[ c]=(*src)[c];
-// }
+      // }
     }
 }
 
@@ -3072,13 +3072,13 @@ void Data_<Sp>::DecAt( ArrayIndexListT* ixList)
       SizeT nCp=ixList->N_Elements();
 
       AllIxBaseT* allIx = ixList->BuildIx();
-/*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-{
-#pragma omp for*/
-	(*this)[ allIx->InitSeqAccess()]--;
-    for( SizeT c=1; c<nCp; ++c)
-		(*this)[ allIx->SeqAccess()]--;
-}//    }
+      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	{
+	#pragma omp for*/
+      (*this)[ allIx->InitSeqAccess()]--;
+      for( SizeT c=1; c<nCp; ++c)
+	(*this)[ allIx->SeqAccess()]--;
+    }//    }
 }
 template<class Sp>
 void Data_<Sp>::IncAt( ArrayIndexListT* ixList) 
@@ -3096,13 +3096,13 @@ void Data_<Sp>::IncAt( ArrayIndexListT* ixList)
       SizeT nCp=ixList->N_Elements();
       
       AllIxBaseT* allIx = ixList->BuildIx();
-/*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-{
-#pragma omp for*/
-	(*this)[ allIx->InitSeqAccess()]++;
-    for( SizeT c=1; c<nCp; ++c)
-		(*this)[ allIx->SeqAccess()]++;
-	}//    }
+      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	{
+	#pragma omp for*/
+      (*this)[ allIx->InitSeqAccess()]++;
+      for( SizeT c=1; c<nCp; ++c)
+	(*this)[ allIx->SeqAccess()]++;
+    }//    }
 }
 // float, double
 template<>
@@ -3122,13 +3122,13 @@ void Data_<SpDFloat>::DecAt( ArrayIndexListT* ixList)
       SizeT nCp=ixList->N_Elements();
 
       AllIxBaseT* allIx = ixList->BuildIx();
-/*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-{
-#pragma omp for*/
-	(*this)[ allIx->InitSeqAccess()] -= 1.0f;
-    for( SizeT c=1; c<nCp; ++c)
-		(*this)[ allIx->SeqAccess()] -=1.0f;
-}//    }
+      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	{
+	#pragma omp for*/
+      (*this)[ allIx->InitSeqAccess()] -= 1.0f;
+      for( SizeT c=1; c<nCp; ++c)
+	(*this)[ allIx->SeqAccess()] -=1.0f;
+    }//    }
 }
 template<>
 void Data_<SpDFloat>::IncAt( ArrayIndexListT* ixList) 
@@ -3147,13 +3147,13 @@ void Data_<SpDFloat>::IncAt( ArrayIndexListT* ixList)
       SizeT nCp=ixList->N_Elements();
       
       AllIxBaseT* allIx = ixList->BuildIx();
-/*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-{
-#pragma omp for*/
-	(*this)[ allIx->InitSeqAccess()] += 1.0f;
-    for( SizeT c=1; c<nCp; ++c)
-		(*this)[ allIx->SeqAccess()] +=1.0f;
-}//    }
+      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	{
+	#pragma omp for*/
+      (*this)[ allIx->InitSeqAccess()] += 1.0f;
+      for( SizeT c=1; c<nCp; ++c)
+	(*this)[ allIx->SeqAccess()] +=1.0f;
+    }//    }
 }
 template<>
 void Data_<SpDDouble>::DecAt( ArrayIndexListT* ixList) 
@@ -3172,13 +3172,13 @@ void Data_<SpDDouble>::DecAt( ArrayIndexListT* ixList)
       SizeT nCp=ixList->N_Elements();
       
       AllIxBaseT* allIx = ixList->BuildIx();
-/*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-{
-#pragma omp for*/
-	(*this)[ allIx->InitSeqAccess()] -= 1.0;
-    for( SizeT c=1; c<nCp; ++c)
-		(*this)[ allIx->SeqAccess()] -=1.0;
-}//    }
+      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	{
+	#pragma omp for*/
+      (*this)[ allIx->InitSeqAccess()] -= 1.0;
+      for( SizeT c=1; c<nCp; ++c)
+	(*this)[ allIx->SeqAccess()] -=1.0;
+    }//    }
 }
 template<>
 void Data_<SpDDouble>::IncAt( ArrayIndexListT* ixList) 
@@ -3197,13 +3197,13 @@ void Data_<SpDDouble>::IncAt( ArrayIndexListT* ixList)
       SizeT nCp=ixList->N_Elements();
       
       AllIxBaseT* allIx = ixList->BuildIx();
-/*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-{
-#pragma omp for*/
-	(*this)[ allIx->InitSeqAccess()] += 1.0f;
-    for( SizeT c=1; c<nCp; ++c)
-		(*this)[ allIx->SeqAccess()] +=1.0f;
-}//    }
+      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	{
+	#pragma omp for*/
+      (*this)[ allIx->InitSeqAccess()] += 1.0f;
+      for( SizeT c=1; c<nCp; ++c)
+	(*this)[ allIx->SeqAccess()] +=1.0f;
+    }//    }
 }
 // complex
 template<>
@@ -3211,120 +3211,120 @@ void Data_<SpDComplex>::DecAt( ArrayIndexListT* ixList)
 {
   if( ixList == NULL)
     {
-//       dd -= 1.0f;
+      //       dd -= 1.0f;
 
-		SizeT nCp=Data_::N_Elements();
+      SizeT nCp=Data_::N_Elements();
       
-/*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-{
-#pragma omp for*/
-        for( int c=0; c<nCp; ++c)
-			(*this)[ c] -= 1.0;
-}//    }
+      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	{
+	#pragma omp for*/
+      for( int c=0; c<nCp; ++c)
+	(*this)[ c] -= 1.0;
+    }//    }
   else
     {
       SizeT nCp=ixList->N_Elements();
       
       AllIxBaseT* allIx = ixList->BuildIx();
-/*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-{
-#pragma omp for*/
-	(*this)[ allIx->InitSeqAccess()] -= 1.0;
-    for( SizeT c=1; c<nCp; ++c)
-		(*this)[ allIx->SeqAccess()] -=1.0;
-//       for( SizeT c=0; c<nCp; ++c)
-// 	(*this)[ (*allIx)[ c]] -= 1.0;
-}//    }
+      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	{
+	#pragma omp for*/
+      (*this)[ allIx->InitSeqAccess()] -= 1.0;
+      for( SizeT c=1; c<nCp; ++c)
+	(*this)[ allIx->SeqAccess()] -=1.0;
+      //       for( SizeT c=0; c<nCp; ++c)
+      // 	(*this)[ (*allIx)[ c]] -= 1.0;
+    }//    }
 }
 template<>
 void Data_<SpDComplex>::IncAt( ArrayIndexListT* ixList) 
 {
   if( ixList == NULL)
     {
-//       dd += 1.0f;
+      //       dd += 1.0f;
 
-            SizeT nCp=Data_::N_Elements();
+      SizeT nCp=Data_::N_Elements();
       
-/*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-{
-#pragma omp for*/
-            for( int c=0; c<nCp; ++c)
+      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	{
+	#pragma omp for*/
+      for( int c=0; c<nCp; ++c)
       	(*this)[ c] += 1.0;
-}//    }
+    }//    }
   else
     {
       SizeT nCp=ixList->N_Elements();
       
       AllIxBaseT* allIx = ixList->BuildIx();
-/*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-{
-#pragma omp for*/
-	(*this)[ allIx->InitSeqAccess()] += 1.0;
-    for( SizeT c=1; c<nCp; ++c)
-		(*this)[ allIx->SeqAccess()] +=1.0;
-//       for( SizeT c=0; c<nCp; ++c)
-// 	(*this)[ (*allIx)[ c]] += 1.0;
-}//    }
+      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	{
+	#pragma omp for*/
+      (*this)[ allIx->InitSeqAccess()] += 1.0;
+      for( SizeT c=1; c<nCp; ++c)
+	(*this)[ allIx->SeqAccess()] +=1.0;
+      //       for( SizeT c=0; c<nCp; ++c)
+      // 	(*this)[ (*allIx)[ c]] += 1.0;
+    }//    }
 }
 template<>
 void Data_<SpDComplexDbl>::DecAt( ArrayIndexListT* ixList) 
 {
   if( ixList == NULL)
     {
-//       dd -= 1.0;
+      //       dd -= 1.0;
 
-            SizeT nCp=Data_::N_Elements();
+      SizeT nCp=Data_::N_Elements();
       
-/*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-{
-#pragma omp for*/
-            for( int c=0; c<nCp; ++c)
+      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	{
+	#pragma omp for*/
+      for( int c=0; c<nCp; ++c)
       	(*this)[ c] -= 1.0;
-}//    }
+    }//    }
   else
     {
       SizeT nCp=ixList->N_Elements();
       
       AllIxBaseT* allIx = ixList->BuildIx();
-/*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-{
-#pragma omp for*/
-	(*this)[ allIx->InitSeqAccess()] -= 1.0;
-    for( SizeT c=1; c<nCp; ++c)
-		(*this)[ allIx->SeqAccess()] -=1.0;
-//       for( SizeT c=0; c<nCp; ++c)
-// 	(*this)[ (*allIx)[ c]] -= 1.0;
-} //   }
+      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	{
+	#pragma omp for*/
+      (*this)[ allIx->InitSeqAccess()] -= 1.0;
+      for( SizeT c=1; c<nCp; ++c)
+	(*this)[ allIx->SeqAccess()] -=1.0;
+      //       for( SizeT c=0; c<nCp; ++c)
+      // 	(*this)[ (*allIx)[ c]] -= 1.0;
+    } //   }
 }
 template<>
 void Data_<SpDComplexDbl>::IncAt( ArrayIndexListT* ixList) 
 {
   if( ixList == NULL)
     {
-//       dd += 1.0;
+      //       dd += 1.0;
 
-            SizeT nCp=Data_::N_Elements();
+      SizeT nCp=Data_::N_Elements();
       
-/*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-{
-#pragma omp for*/
-            for( int c=0; c<nCp; ++c)
+      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	{
+	#pragma omp for*/
+      for( int c=0; c<nCp; ++c)
       	(*this)[ c] += 1.0;
-}//    }
+    }//    }
   else
     {
       SizeT nCp=ixList->N_Elements();
       
       AllIxBaseT* allIx = ixList->BuildIx();
-/*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-{
-#pragma omp for*/
-	(*this)[ allIx->InitSeqAccess()] += 1.0;
-    for( SizeT c=1; c<nCp; ++c)
-		(*this)[ allIx->SeqAccess()] +=1.0;
-//       for( SizeT c=0; c<nCp; ++c)
-// 	(*this)[ (*allIx)[ c]] += 1.0;
-}//    }
+      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	{
+	#pragma omp for*/
+      (*this)[ allIx->InitSeqAccess()] += 1.0;
+      for( SizeT c=1; c<nCp; ++c)
+	(*this)[ allIx->SeqAccess()] +=1.0;
+      //       for( SizeT c=0; c<nCp; ++c)
+      // 	(*this)[ (*allIx)[ c]] += 1.0;
+    }//    }
 }
 // forbidden types
 template<>
@@ -3371,24 +3371,24 @@ void Data_<Sp>::InsertAt( SizeT offset, BaseGDL* srcIn,
     {
       SizeT nCp=src->N_Elements();
 
-/*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-{
-#pragma omp for*/
+      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	{
+	#pragma omp for*/
       for( int c=0; c<nCp; ++c)
 	(*this)[ c+offset]=(*src)[c];
-}//    }
+    }//    }
   else
     {
       SizeT nCp=ixList->N_Elements();
 
       AllIxBaseT* allIx = ixList->BuildIx();
-/*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-{
-#pragma omp for*/
-	(*this)[ offset]=(*src)[ allIx->InitSeqAccess()];
-    for( SizeT c=1; c<nCp; ++c)
-		(*this)[ c+offset]=(*src)[ allIx->SeqAccess()];
-//}      //	(*this)[ c+offset]=(*src)[ ixList->GetIx( c)];
+      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	{
+	#pragma omp for*/
+      (*this)[ offset]=(*src)[ allIx->InitSeqAccess()];
+      for( SizeT c=1; c<nCp; ++c)
+	(*this)[ c+offset]=(*src)[ allIx->SeqAccess()];
+      //}      //	(*this)[ c+offset]=(*src)[ ixList->GetIx( c)];
     }
 }
 
@@ -3464,21 +3464,21 @@ Data_<Sp>* Data_<Sp>::Index( ArrayIndexListT* ixList)
   AllIxBaseT* allIx = ixList->BuildIx();
 
   if( nCp == 1)
-  {
-    (*res)[0]=(*this)[ (*allIx)[ 0]];
-    return res;
-  }
-//   else
-//   {
-/*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-{
-#pragma omp for*/
+    {
+      (*res)[0]=(*this)[ (*allIx)[ 0]];
+      return res;
+    }
+  //   else
+  //   {
+  /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+    {
+    #pragma omp for*/
   (*res)[0]=(*this)[ allIx->InitSeqAccess()];
   for( SizeT c=1; c<nCp; ++c)
     (*res)[c]=(*this)[ allIx->SeqAccess()];
-//}  //    res_(*this)[c]=(*this)[ (*allIx)[ c]];
+  //}  //    res_(*this)[c]=(*this)[ (*allIx)[ c]];
   //    (*res)[c]=(*this)[ ixList->GetIx(c)];
-//   }
+  //   }
   return res;
 }
 
@@ -3618,22 +3618,22 @@ void Data_<Sp>::CatInsert( const Data_* srcArr, const SizeT atDim, SizeT& at)
   // number of elements to skip
   SizeT gap=this->dim.Stride(atDim+1);    // dest array
 
-// #ifdef _OPENMP
-// SizeT nEl = srcArr->N_Elements();
-// #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-//   for( SizeT c=0; c<nCp; ++c)
-//     {
-//       set new destination pointer
-//       SizeT eIx = c*gap;
-//       SizeT sIx = eIx  + destStart;
-//       eIx += destEnd;
-// 
-//       copy one segment
-//       SizeT srcIx = c*len;
-//       for( SizeT destIx=sIx; destIx< eIx; ++destIx)
-// 	(*this)[destIx] = (*srcArr)[ srcIx+destIx-sIx];
-//     }
-// #else
+  // #ifdef _OPENMP
+  // SizeT nEl = srcArr->N_Elements();
+  // #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+  //   for( SizeT c=0; c<nCp; ++c)
+  //     {
+  //       set new destination pointer
+  //       SizeT eIx = c*gap;
+  //       SizeT sIx = eIx  + destStart;
+  //       eIx += destEnd;
+  // 
+  //       copy one segment
+  //       SizeT srcIx = c*len;
+  //       for( SizeT destIx=sIx; destIx< eIx; ++destIx)
+  // 	(*this)[destIx] = (*srcArr)[ srcIx+destIx-sIx];
+  //     }
+  // #else
   SizeT srcIx=0;
   for( SizeT c=0; c<nCp; ++c)
     {
@@ -3645,7 +3645,7 @@ void Data_<Sp>::CatInsert( const Data_* srcArr, const SizeT atDim, SizeT& at)
       destStart += gap;
       destEnd   += gap;
     }
-// #endif
+  // #endif
 
   SizeT add=srcArr->dim[atDim]; // update 'at'
   at += (add > 1)? add : 1;
@@ -3967,10 +3967,10 @@ void Data_<Sp>::MinMax( DLong* minE, DLong* maxE,
         if ((*this)[i] > maxV) maxV = (*this)[maxEl = i];
       if (maxE != NULL) *maxE = maxEl;
       if (maxVal != NULL) 
-      { 
-        if (valIx == -1) *maxVal = new Data_( maxV);
-        else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
-      }
+	{ 
+	  if (valIx == -1) *maxVal = new Data_( maxV);
+	  else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
+	}
       return;
     }
   if (maxE == NULL && maxVal == NULL)
@@ -3981,10 +3981,10 @@ void Data_<Sp>::MinMax( DLong* minE, DLong* maxE,
         if ((*this)[i] < minV) minV = (*this)[minEl = i];
       if (minE != NULL) *minE = minEl;
       if (minVal != NULL) 
-      {
-        if (valIx == -1) *minVal = new Data_( minV);
-        else (*static_cast<Data_*>(*minVal))[valIx] = minV;
-      }
+	{
+	  if (valIx == -1) *minVal = new Data_( minV);
+	  else (*static_cast<Data_*>(*minVal))[valIx] = minV;
+	}
       return;
     }
 
@@ -4001,17 +4001,17 @@ void Data_<Sp>::MinMax( DLong* minE, DLong* maxE,
     }
   if (maxE != NULL) *maxE = maxEl;
   if (maxVal != NULL) 
-  {
-    if (valIx == -1) *maxVal = new Data_( maxV);
-    else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
-  }
+    {
+      if (valIx == -1) *maxVal = new Data_( maxV);
+      else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
+    }
 
   if (minE != NULL) *minE = minEl;
   if (minVal != NULL) 
-  {
-    if (valIx == -1) *minVal = new Data_( minV);
-    else (*static_cast<Data_*>(*minVal))[valIx] = minV;
-  }
+    {
+      if (valIx == -1) *minVal = new Data_( minV);
+      else (*static_cast<Data_*>(*minVal))[valIx] = minV;
+    }
 }
 
 // the code for <SpDFloat>::MinMax is a "template" for Double, Complex and DoubleComplex ...
@@ -4053,10 +4053,10 @@ void Data_<SpDFloat>::MinMax( DLong* minE, DLong* maxE,
       }
       if (maxE != NULL) *maxE = maxEl;
       if (maxVal != NULL) 
-      {
-        if (valIx == -1) *maxVal = new Data_( maxV);
-        else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
-      }
+	{
+	  if (valIx == -1) *maxVal = new Data_( maxV);
+	  else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
+	}
       return;
     }
   if (maxE == NULL && maxVal == NULL)
@@ -4085,17 +4085,17 @@ void Data_<SpDFloat>::MinMax( DLong* minE, DLong* maxE,
       }
       if (minE != NULL) *minE = minEl;
       if (minVal != NULL) 
-      {
-        if (valIx == -1) *minVal = new Data_( minV);
-        else (*static_cast<Data_*>(*minVal))[valIx] = minV;
-      }
+	{
+	  if (valIx == -1) *minVal = new Data_( minV);
+	  else (*static_cast<Data_*>(*minVal))[valIx] = minV;
+	}
       return;
     }
   
-    DLong maxEl, minEl;
-    Ty maxV, minV;
-    maxV = minV = (*this)[maxEl = minEl = start];
-    DLong i, i_min = start + step;
+  DLong maxEl, minEl;
+  Ty maxV, minV;
+  maxV = minV = (*this)[maxEl = minEl = start];
+  DLong i, i_min = start + step;
   
   if (omitNaN) {
     i = start;
@@ -4118,17 +4118,17 @@ void Data_<SpDFloat>::MinMax( DLong* minE, DLong* maxE,
   }
   if (maxE != NULL) *maxE = maxEl;
   if (maxVal != NULL) 
-  {
-    if (valIx == -1) *maxVal = new Data_( maxV);
-    else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
-  }
+    {
+      if (valIx == -1) *maxVal = new Data_( maxV);
+      else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
+    }
   
   if (minE != NULL) *minE = minEl;
   if (minVal != NULL) 
-  {
-    if (valIx == -1) *minVal = new Data_( minV);
-    else (*static_cast<Data_*>(*minVal))[valIx] = minV;
-  }
+    {
+      if (valIx == -1) *minVal = new Data_( minV);
+      else (*static_cast<Data_*>(*minVal))[valIx] = minV;
+    }
 }
 
 
@@ -4166,10 +4166,10 @@ void Data_<SpDDouble>::MinMax( DLong* minE, DLong* maxE,
       }
       if (maxE != NULL) *maxE = maxEl;
       if (maxVal != NULL) 
-      {
-        if (valIx == -1) *maxVal = new Data_( maxV);
-        else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
-      }
+	{
+	  if (valIx == -1) *maxVal = new Data_( maxV);
+	  else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
+	}
       return;
     }
   if (maxE == NULL && maxVal == NULL)
@@ -4198,17 +4198,17 @@ void Data_<SpDDouble>::MinMax( DLong* minE, DLong* maxE,
       }
       if (minE != NULL) *minE = minEl;
       if (minVal != NULL) 
-      {
-        if (valIx == -1) *minVal = new Data_( minV);
-        else (*static_cast<Data_*>(*minVal))[valIx] = minV;
-      }
+	{
+	  if (valIx == -1) *minVal = new Data_( minV);
+	  else (*static_cast<Data_*>(*minVal))[valIx] = minV;
+	}
       return;
     }
   
-    DLong maxEl, minEl;
-    Ty maxV, minV;
-    maxV = minV = (*this)[maxEl = minEl = start];
-    DLong i, i_min = start + step;
+  DLong maxEl, minEl;
+  Ty maxV, minV;
+  maxV = minV = (*this)[maxEl = minEl = start];
+  DLong i, i_min = start + step;
   
   if (omitNaN) {
     i = start;
@@ -4231,17 +4231,17 @@ void Data_<SpDDouble>::MinMax( DLong* minE, DLong* maxE,
   }
   if (maxE != NULL) *maxE = maxEl;
   if( maxVal != NULL) 
-  {
-    if (valIx == -1) *maxVal = new Data_( maxV);
-    else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
-  }
+    {
+      if (valIx == -1) *maxVal = new Data_( maxV);
+      else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
+    }
   
   if (minE != NULL) *minE = minEl;
   if (minVal != NULL) 
-  {
-    if (valIx == -1) *minVal = new Data_( minV);
-    else (*static_cast<Data_*>(*minVal))[valIx] = minV;
-  }
+    {
+      if (valIx == -1) *minVal = new Data_( minV);
+      else (*static_cast<Data_*>(*minVal))[valIx] = minV;
+    }
 }
 
 template<>
@@ -4260,10 +4260,10 @@ void Data_<SpDString>::MinMax( DLong* minE, DLong* maxE,
         if ((*this)[i] > maxV) maxV = (*this)[maxEl = i];
       if (maxE != NULL) *maxE = maxEl;
       if (maxVal != NULL) 
-      {
-        if (valIx == -1) *maxVal = new Data_( maxV);
-        else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
-      }
+	{
+	  if (valIx == -1) *maxVal = new Data_( maxV);
+	  else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
+	}
       return;
     }
   if( maxE == NULL && maxVal == NULL)
@@ -4274,10 +4274,10 @@ void Data_<SpDString>::MinMax( DLong* minE, DLong* maxE,
         if ((*this)[i] < minV) minV = (*this)[minEl = i];
       if (minE != NULL) *minE = minEl;
       if (minVal != NULL) 
-      {
-        if (valIx == -1) *minVal = new Data_( minV);
-        else (*static_cast<Data_*>(*minVal))[valIx] = minV;
-      }
+	{
+	  if (valIx == -1) *minVal = new Data_( minV);
+	  else (*static_cast<Data_*>(*minVal))[valIx] = minV;
+	}
       return;
     }
 
@@ -4292,17 +4292,17 @@ void Data_<SpDString>::MinMax( DLong* minE, DLong* maxE,
     }
   if (maxE != NULL) *maxE = maxEl;
   if (maxVal != NULL) 
-  {
-    if (valIx == -1) *maxVal = new Data_( maxV);
-    else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
-  }
+    {
+      if (valIx == -1) *maxVal = new Data_( maxV);
+      else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
+    }
 
   if (minE != NULL) *minE = minEl;
   if (minVal != NULL) 
-  {
-    if (valIx == -1) *minVal = new Data_( minV);
-    else (*static_cast<Data_*>(*minVal))[valIx] = minV;
-  }
+    {
+      if (valIx == -1) *minVal = new Data_( minV);
+      else (*static_cast<Data_*>(*minVal))[valIx] = minV;
+    }
 }
 
 template<>
@@ -4339,10 +4339,10 @@ void Data_<SpDComplex>::MinMax( DLong* minE, DLong* maxE,
       }
       if (maxE != NULL) *maxE = maxEl;
       if (maxVal != NULL) 
-      {
-        if (valIx == -1) *maxVal = new Data_( (*this)[ maxEl]);
-        else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
-      }
+	{
+	  if (valIx == -1) *maxVal = new Data_( (*this)[ maxEl]);
+	  else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
+	}
       return;
     }
   if (maxE == NULL && maxVal == NULL)
@@ -4371,10 +4371,10 @@ void Data_<SpDComplex>::MinMax( DLong* minE, DLong* maxE,
       }
       if (minE != NULL) *minE = minEl;
       if (minVal != NULL) 
-      {
-        if (valIx == -1) *minVal = new Data_( (*this)[ minEl]);
-        else (*static_cast<Data_*>(*minVal))[valIx] = minV;
-      }
+	{
+	  if (valIx == -1) *minVal = new Data_( (*this)[ minEl]);
+	  else (*static_cast<Data_*>(*minVal))[valIx] = minV;
+	}
       return;
     }
   
@@ -4404,17 +4404,17 @@ void Data_<SpDComplex>::MinMax( DLong* minE, DLong* maxE,
   }
   if (maxE != NULL) *maxE = maxEl;
   if (maxVal != NULL) 
-  {
-    if (valIx == -1) *maxVal = new Data_( (*this)[ maxEl]);
-    else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
-  }
+    {
+      if (valIx == -1) *maxVal = new Data_( (*this)[ maxEl]);
+      else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
+    }
   
   if (minE != NULL) *minE = minEl;
   if (minVal != NULL)
-  {
-    if (valIx == -1) *minVal = new Data_( (*this)[ minEl]);
-    else (*static_cast<Data_*>(*minVal))[valIx] = minV;
-  }
+    {
+      if (valIx == -1) *minVal = new Data_( (*this)[ minEl]);
+      else (*static_cast<Data_*>(*minVal))[valIx] = minV;
+    }
 
 }
 
@@ -4452,10 +4452,10 @@ void Data_<SpDComplexDbl>::MinMax( DLong* minE, DLong* maxE,
       }
       if (maxE != NULL) *maxE = maxEl;
       if (maxVal != NULL) 
-      {
-        if (valIx == -1) *maxVal = new Data_( (*this)[ maxEl]);
-        else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
-      }
+	{
+	  if (valIx == -1) *maxVal = new Data_( (*this)[ maxEl]);
+	  else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
+	}
       return;
     }
   if( maxE == NULL && maxVal == NULL)
@@ -4484,10 +4484,10 @@ void Data_<SpDComplexDbl>::MinMax( DLong* minE, DLong* maxE,
       }
       if (minE != NULL) *minE = minEl;
       if (minVal != NULL) 
-      {
-        if (valIx == -1) *minVal = new Data_( (*this)[ minEl]);
-        else (*static_cast<Data_*>(*minVal))[valIx] = minV;
-      }
+	{
+	  if (valIx == -1) *minVal = new Data_( (*this)[ minEl]);
+	  else (*static_cast<Data_*>(*minVal))[valIx] = minV;
+	}
       return;
     }
   
@@ -4517,17 +4517,17 @@ void Data_<SpDComplexDbl>::MinMax( DLong* minE, DLong* maxE,
   }
   if (maxE != NULL) *maxE = maxEl;
   if (maxVal != NULL) 
-  {
-    if (valIx == -1) *maxVal = new Data_( (*this)[ maxEl]);
-    else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
-  }
+    {
+      if (valIx == -1) *maxVal = new Data_( (*this)[ maxEl]);
+      else (*static_cast<Data_*>(*maxVal))[valIx] = maxV;
+    }
   
   if (minE != NULL) *minE = minEl;
   if (minVal != NULL) 
-  {
-    if (valIx == -1) *minVal = new Data_( (*this)[ minEl]);
-    else (*static_cast<Data_*>(*minVal))[valIx] = minV;
-  }
+    {
+      if (valIx == -1) *minVal = new Data_( (*this)[ minEl]);
+      else (*static_cast<Data_*>(*minVal))[valIx] = minV;
+    }
 
 }
 
@@ -4646,12 +4646,12 @@ T* Rebin1( T* src,
 	      }
       
 	  SizeT resEl = res->N_Elements();
-/*#pragma omp parallel if (resEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= resEl))
-{
-#pragma omp for*/
+	  /*#pragma omp parallel if (resEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= resEl))
+	    {
+	    #pragma omp for*/
 	  for( int r=0; r < resEl; ++r)
 	    (*res)[ r] /= ratio;
-// }
+	  // }
 	  return res;
 	}
     }
@@ -5123,13 +5123,13 @@ void Data_<Sp>::Assign( BaseGDL* src, SizeT nEl)
       srcTGuard.reset( srcT);
     }
 
-/*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-#pragma omp for*/
+  /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+    #pragma omp for*/
   for(long k=0; k < nEl; ++k)
     {
       (*this)[ k] = (*srcT)[ k];
-}//    }
+    }//    }
 }
 
 
@@ -5147,12 +5147,12 @@ Data_<Sp>* Data_<Sp>::NewIx( AllIxBaseT* ix, const dimension* dIn)
 {
   SizeT nCp = ix->size();
   Data_* res=Data_::New( *dIn, BaseGDL::NOZERO);
-/*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-{
-#pragma omp for*/
+  /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+    {
+    #pragma omp for*/
   for( int c=0; c<nCp; ++c)
     (*res)[c]=(*this)[ (*ix)[ c]];
-// }
+  // }
   return res;
 }
 template<class Sp>
@@ -5160,12 +5160,12 @@ Data_<Sp>* Data_<Sp>::NewIxFrom( SizeT s)
 {
   SizeT nCp = dd.size() - s;
   Data_* res=Data_::New( dimension( nCp), BaseGDL::NOZERO);
-/*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-{
-#pragma omp for*/
+  /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+    {
+    #pragma omp for*/
   for( int c=0; c<nCp; ++c)
     (*res)[c]=(*this)[ s+c];
-// }
+  // }
   return res;
 }
 template<class Sp>
@@ -5173,12 +5173,12 @@ Data_<Sp>* Data_<Sp>::NewIxFrom( SizeT s, SizeT e)
 {
   SizeT nCp = e - s + 1;
   Data_* res=Data_::New( dimension( nCp), BaseGDL::NOZERO);
-/*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-{
-#pragma omp for*/
+  /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+    {
+    #pragma omp for*/
   for( int c=0; c<nCp; ++c)
     (*res)[c]=(*this)[ s+c];
-// }
+  // }
   return res;
 }
 template<class Sp>
@@ -5205,200 +5205,200 @@ Data_<Sp>* Data_<Sp>::NewIxFromStride( SizeT s, SizeT e, SizeT stride)
 template<class Sp>
 Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
 {
- 	assert( ix->Type() != GDL_UNDEF);
+  assert( ix->Type() != GDL_UNDEF);
 
-// no type checking needed here: GetAsIndex() will fail with grace
-//     int typeCheck = DTypeOrder[ dType];
-// 	if( typeCheck >= 100)
-// 	  throw GDLException("Type "+ix->TypeStr()+" not allowed as subscript.");
+  // no type checking needed here: GetAsIndex() will fail with grace
+  //     int typeCheck = DTypeOrder[ dType];
+  // 	if( typeCheck >= 100)
+  // 	  throw GDLException("Type "+ix->TypeStr()+" not allowed as subscript.");
   
-	SizeT nElem = ix->N_Elements();
+  SizeT nElem = ix->N_Elements();
 
-	Data_* res = New( ix->Dim(), BaseGDL::NOZERO);
-	auto_ptr<Data_> guard( res);
+  Data_* res = New( ix->Dim(), BaseGDL::NOZERO);
+  auto_ptr<Data_> guard( res);
 
-	SizeT upper = dd.size() - 1;
-	Ty    upperVal = (*this)[ upper];
-	if( strict)
+  SizeT upper = dd.size() - 1;
+  Ty    upperVal = (*this)[ upper];
+  if( strict)
+    {
+      for(SizeT i = 0 ; i < nElem; ++i)
 	{
-		for(SizeT i = 0 ; i < nElem; ++i)
-		{
-			SizeT actIx = ix->GetAsIndexStrict( i);
-			if( actIx > upper)
-				throw GDLException("Array used to subscript array "
-						"contains out of range (>) subscript (at index: "+i2s(i)+").");
-			(*res)[i]= (*this)[ actIx];
-		}
+	  SizeT actIx = ix->GetAsIndexStrict( i);
+	  if( actIx > upper)
+	    throw GDLException("Array used to subscript array "
+			       "contains out of range (>) subscript (at index: "+i2s(i)+").");
+	  (*res)[i]= (*this)[ actIx];
 	}
-	else // not strict
+    }
+  else // not strict
+    {
+      for(SizeT i = 0 ; i < nElem; ++i)
 	{
-		for(SizeT i = 0 ; i < nElem; ++i)
-		{
-			SizeT actIx = ix->GetAsIndex( i);
-			if( actIx >= upper)
-				(*res)[i] = upperVal;
-			else
-				(*res)[i]= (*this)[ actIx];
-		}
+	  SizeT actIx = ix->GetAsIndex( i);
+	  if( actIx >= upper)
+	    (*res)[i] = upperVal;
+	  else
+	    (*res)[i]= (*this)[ actIx];
 	}
-	return guard.release();
+    }
+  return guard.release();
 }
 
 
 // unsigned types
 template<class Sp> SizeT Data_<Sp>::GetAsIndex( SizeT i) const
 {
-return (*this)[ i];
+  return (*this)[ i];
 }
 template<class Sp> SizeT Data_<Sp>::GetAsIndexStrict( SizeT i) const
 {
-return (*this)[ i]; // good for unsigned types
+  return (*this)[ i]; // good for unsigned types
 }
 
 template<>
 SizeT Data_<SpDInt>::GetAsIndex( SizeT i) const
 {
-    if( (*this)[i] < 0)
-		return 0;
-	return (*this)[i];
+  if( (*this)[i] < 0)
+    return 0;
+  return (*this)[i];
 }	
 template<>
 SizeT Data_<SpDInt>::GetAsIndexStrict( SizeT i) const
 {
-    if( (*this)[i] < 0)
-		  throw GDLException(NULL,"Array used to subscript array "
-				     "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
-	return (*this)[i];
+  if( (*this)[i] < 0)
+    throw GDLException(NULL,"Array used to subscript array "
+		       "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
+  return (*this)[i];
 }	
 template<>
 SizeT Data_<SpDLong>::GetAsIndex( SizeT i) const
 {
-    if( (*this)[i] < 0)
-		return 0;
-	return (*this)[i];
+  if( (*this)[i] < 0)
+    return 0;
+  return (*this)[i];
 }	
 template<>
 SizeT Data_<SpDLong>::GetAsIndexStrict( SizeT i) const
 {
-    if( (*this)[i] < 0)
-		  throw GDLException(NULL,"Array used to subscript array "
-				     "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
-	return (*this)[i];
+  if( (*this)[i] < 0)
+    throw GDLException(NULL,"Array used to subscript array "
+		       "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
+  return (*this)[i];
 }	
 template<>
 SizeT Data_<SpDLong64>::GetAsIndex( SizeT i) const
 {
-    if( (*this)[i] < 0)
-		return 0;
-	return (*this)[i];
+  if( (*this)[i] < 0)
+    return 0;
+  return (*this)[i];
 }	
 template<>
 SizeT Data_<SpDLong64>::GetAsIndexStrict( SizeT i) const
 {
-    if( (*this)[i] < 0)
-		  throw GDLException(NULL,"Array used to subscript array "
-				     "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
-	return (*this)[i];
+  if( (*this)[i] < 0)
+    throw GDLException(NULL,"Array used to subscript array "
+		       "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
+  return (*this)[i];
 }	
 template<>
 SizeT Data_<SpDFloat>::GetAsIndex( SizeT i) const
 {
-    if( (*this)[i] <= 0.0)
-		return 0;
-	return Real2Int<SizeT,float>((*this)[i]);
+  if( (*this)[i] <= 0.0)
+    return 0;
+  return Real2Int<SizeT,float>((*this)[i]);
 }	
 template<>
 SizeT Data_<SpDFloat>::GetAsIndexStrict( SizeT i) const
 {
-    if( (*this)[i] <= -1.0)
-		  throw GDLException(NULL,"Array used to subscript array "
-				     "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
-    if( (*this)[i] <= 0.0)
-		return 0;
-	return Real2Int<SizeT,float>((*this)[i]);
+  if( (*this)[i] <= -1.0)
+    throw GDLException(NULL,"Array used to subscript array "
+		       "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
+  if( (*this)[i] <= 0.0)
+    return 0;
+  return Real2Int<SizeT,float>((*this)[i]);
 }	
 template<>
 SizeT Data_<SpDDouble>::GetAsIndex( SizeT i) const
 {
-    if( (*this)[i] <= 0.0)
-		return 0;
-	return Real2Int<SizeT,double>((*this)[i]);
+  if( (*this)[i] <= 0.0)
+    return 0;
+  return Real2Int<SizeT,double>((*this)[i]);
 }	
 template<>
 SizeT Data_<SpDDouble>::GetAsIndexStrict( SizeT i) const
 {
-    if( (*this)[i] <= -1.0)
-		  throw GDLException(NULL,"Array used to subscript array "
-				     "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
-    if( (*this)[i] <= 0.0)
-		return 0;
-	return Real2Int<SizeT,double>((*this)[i]);
+  if( (*this)[i] <= -1.0)
+    throw GDLException(NULL,"Array used to subscript array "
+		       "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
+  if( (*this)[i] <= 0.0)
+    return 0;
+  return Real2Int<SizeT,double>((*this)[i]);
 }	
 template<>
 SizeT Data_<SpDString>::GetAsIndex( SizeT i) const
 {
-	const char* cStart=(*this)[i].c_str();
-	char* cEnd;
-	long l=strtol(cStart,&cEnd,10);
-	if( cEnd == cStart)
-	{
-		Warning("Type conversion error: Unable to convert given STRING to LONG (at index: " + i2s(i) + ")");
-		return 0;
-	}
-	if( l < 0)
-		return 0;
-	return l;
+  const char* cStart=(*this)[i].c_str();
+  char* cEnd;
+  long l=strtol(cStart,&cEnd,10);
+  if( cEnd == cStart)
+    {
+      Warning("Type conversion error: Unable to convert given STRING to LONG (at index: " + i2s(i) + ")");
+      return 0;
+    }
+  if( l < 0)
+    return 0;
+  return l;
 }	
 template<>
 SizeT Data_<SpDString>::GetAsIndexStrict( SizeT i) const
 {
-	const char* cStart=(*this)[i].c_str();
-	char* cEnd;
-	long l=strtol(cStart,&cEnd,10);
-	if( cEnd == cStart)
-	{
-		Warning("Type conversion error: Unable to convert given STRING to LONG (at index: " + i2s(i) + ")");
-		return 0;
-	}
-	if( l < 0)
-		throw GDLException(NULL,"Array used to subscript array "
-					"contains out of range (<0) subscript.",true,false);
-	return l;
+  const char* cStart=(*this)[i].c_str();
+  char* cEnd;
+  long l=strtol(cStart,&cEnd,10);
+  if( cEnd == cStart)
+    {
+      Warning("Type conversion error: Unable to convert given STRING to LONG (at index: " + i2s(i) + ")");
+      return 0;
+    }
+  if( l < 0)
+    throw GDLException(NULL,"Array used to subscript array "
+		       "contains out of range (<0) subscript.",true,false);
+  return l;
 }	
 
 template<>
 SizeT Data_<SpDComplex>::GetAsIndex( SizeT i) const
 {
-    if( real((*this)[i]) <= 0.0)
-		return 0;
-	return Real2Int<SizeT,float>(real((*this)[i]));
+  if( real((*this)[i]) <= 0.0)
+    return 0;
+  return Real2Int<SizeT,float>(real((*this)[i]));
 }	
 template<>
 SizeT Data_<SpDComplex>::GetAsIndexStrict( SizeT i) const
 {
-    if( real((*this)[i]) <= -1.0)
-		  throw GDLException(NULL,"Array used to subscript array "
-				     "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
-    if( real((*this)[i]) <= 0.0)
-		return 0;
-	return Real2Int<SizeT,float>(real((*this)[i]));
+  if( real((*this)[i]) <= -1.0)
+    throw GDLException(NULL,"Array used to subscript array "
+		       "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
+  if( real((*this)[i]) <= 0.0)
+    return 0;
+  return Real2Int<SizeT,float>(real((*this)[i]));
 }	
 template<>
 SizeT Data_<SpDComplexDbl>::GetAsIndex( SizeT i) const
 {
-    if( real((*this)[i]) <= 0.0)
-		return 0;
-	return Real2Int<SizeT,double>(real((*this)[i]));
+  if( real((*this)[i]) <= 0.0)
+    return 0;
+  return Real2Int<SizeT,double>(real((*this)[i]));
 }	
 template<>
 SizeT Data_<SpDComplexDbl>::GetAsIndexStrict( SizeT i) const
 {
-    if( real((*this)[i]) <= -1.0)
-		  throw GDLException(NULL,"Array used to subscript array "
-				     "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
-    if( real((*this)[i]) <= 0.0)
-		return 0;
-	return Real2Int<SizeT,double>(real((*this)[i]));
+  if( real((*this)[i]) <= -1.0)
+    throw GDLException(NULL,"Array used to subscript array "
+		       "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
+  if( real((*this)[i]) <= 0.0)
+    return 0;
+  return Real2Int<SizeT,double>(real((*this)[i]));
 }	
 
 //#include "instantiate_templates.hpp"

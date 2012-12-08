@@ -149,12 +149,12 @@ public:
       }
     else if( ix->Indexed())
       {
-		return static_cast<ArrayIndexIndexed*>(ix)->GetDim();
+	return static_cast<ArrayIndexIndexed*>(ix)->GetDim();
 	// gets structure of indexing array
       }
     else
       {
-		return dimension( nIx); // one dimensional if not indexed
+	return dimension( nIx); // one dimensional if not indexed
       }
   }
 

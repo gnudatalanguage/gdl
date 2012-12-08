@@ -349,6 +349,7 @@ private:
   int labelEnd; // for loops to determine if to bail out
 
   friend class ProgNode;
+  friend class DCompiler;
 
 // private:
 //   // forbid usage of these

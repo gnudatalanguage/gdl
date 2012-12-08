@@ -262,7 +262,9 @@ public:
 };
 class ARRAYDEFNode: public DefaultNode
 { public:
-  ARRAYDEFNode( const RefDNode& refNode): DefaultNode( refNode){}
+  ARRAYDEFNode( const RefDNode& refNode): DefaultNode( refNode)
+  {}
+  
   BaseGDL* Eval();
   bool ConstantArray()
   {

@@ -82,7 +82,32 @@ BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right)
 	if( (*res)->IsAssoc())
 	  aL=interpreter->arrayindex_list( this->getFirstChild()->getNextSibling());
 	else
-	  aL=interpreter->arrayindex_list_noassoc( this->getFirstChild()->getNextSibling());	  
+	{
+	  if( (*res)->Type() == GDL_OBJ && (*res)->StrictScalar())
+	  {
+	      // check for _overloadBracketsLeftSide
+	      DObjGDL* resObj = static_cast<DObjGDL*>(*res);
+	      DObj s = (*resObj)[0]; // is StrictScalar()
+	      if( s != 0)  // no overloads for null object
+	      {
+		DStructGDL* oStructGDL= GDLInterpreter::GetObjHeapNoThrow( s);
+		if( oStructGDL != NULL) // if object not valid -> default behaviour
+		  {
+		    DStructDesc* desc = oStructGDL->Desc();
+		    DPro* bracketsLeftSideOverload = static_cast<DPro*>(desc->GetOperator( OOBracketsLeftSide));
+		    if( bracketsLeftSideOverload != NULL)
+		    {
+		      // _overloadBracketsLeftSide
+		      IxExprListT* indexList = 
+			interpreter->arrayindex_list_overload( this->getFirstChild()->getNextSibling());
+		     
+		      // TODO build EnvUDT from indexlist and call the overload
+		    }
+		  }
+	      }
+	  }
+	  aL=interpreter->arrayindex_list_noassoc( this->getFirstChild()->getNextSibling());  
+	}
 	guard.reset(aL);
 
 	try {

@@ -2484,7 +2484,7 @@ TRACEOMP( __FILE__, __LINE__)
 	ArrayIndexListT* ixL;
 	MakeArrayIndex( ixList, &ixL);
 	auto_ptr< ArrayIndexListT> ixL_guard( ixL);
-	ixL->AssignAt( p0, p1);	
+	ixL->AssignAt( p0, p1);
 	return;
       }
   }

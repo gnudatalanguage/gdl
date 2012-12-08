@@ -4553,6 +4553,7 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 	RefDNode e4 = RefDNode(antlr::nullAST);
 	
 	BaseGDL *c1, *c2, *c3, *c4;
+	antlr::print_tree pt;
 	
 	
 	{
@@ -4663,11 +4664,16 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 		{
 			arrayindex_AST = RefDNode(currentAST.root);
 			
-			c1 = comp.Constant( e1); 
+			bool    constantOK = false;
+			
+			// cout << e1->getText() << endl;
+			// pt.pr_tree(static_cast<antlr::RefAST>(#e1));
+			
+			c1 = comp.ConstantIndex( e1_AST); 
 			if( c1 != NULL)
 			{   
+			try {
 			if( c1->Rank() == 0)
-			
 			ixList->
 			push_back( new 
 			CArrayIndexScalar( c1));
@@ -4675,21 +4681,26 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 			ixList->
 			push_back( new 
 			CArrayIndexIndexed( c1));
+			constantOK = true;
+			}
+			catch( GDLException& e)
+			{
+			//constantOK = false;
+			}  
+			}
+			if( !constantOK)
+			{
+			if( LoopVar( e1_AST))
+			{
+			if( e1_AST->getType() == VAR)
+			ixList->push_back( new ArrayIndexScalar( e1_AST));
+			else
+			ixList->push_back( new ArrayIndexScalarVP( e1_AST));
 			}
 			else
 			{
-			if( LoopVar( e1_AST))
-			if( e1_AST->getType() == VAR)
-			ixList->push_back( new 
-			ArrayIndexScalar( e1_AST));
-			else
-			ixList->push_back( new 
-			ArrayIndexScalarVP( e1_AST));
-			else
-			{
 			arrayindex_AST = e1_AST;
-			ixList->push_back( new 
-			ArrayIndexIndexed());
+			ixList->push_back( new ArrayIndexIndexed());
 			}
 			}
 			
@@ -4718,7 +4729,7 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 			{
 				arrayindex_AST = RefDNode(currentAST.root);
 				
-				c1 = comp.Constant( e1); 
+				c1 = comp.ConstantIndex( e1_AST); 
 				if( c1 != NULL)
 				{
 				ixList->push_back( new CArrayIndexORange( c1));
@@ -4811,8 +4822,8 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 				e2_AST = returnAST;
 				arrayindex_AST = RefDNode(currentAST.root);
 				
-				c1 = comp.Constant( e1); 
-				c2 = comp.Constant( e2); 
+				c1 = comp.ConstantIndex( e1_AST); 
+				c2 = comp.ConstantIndex( e2_AST); 
 				if( c1 != NULL && c2 != NULL)
 				{
 				ixList->push_back( new 
@@ -4921,8 +4932,8 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 			{
 				arrayindex_AST = RefDNode(currentAST.root);
 				
-				c1 = comp.Constant( e1); 
-				c3 = comp.Constant( e3); 
+				c1 = comp.ConstantIndex( e1_AST); 
+				c3 = comp.ConstantIndex( e3_AST); 
 				if( c1 != NULL && c3 != NULL)
 				{
 				ixList->push_back( new 
@@ -5016,9 +5027,9 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 				e4_AST = returnAST;
 				arrayindex_AST = RefDNode(currentAST.root);
 				
-				c1 = comp.Constant( e1); 
-				c3 = comp.Constant( e3); 
-				c4 = comp.Constant( e4); 
+				c1 = comp.ConstantIndex( e1_AST); 
+				c3 = comp.ConstantIndex( e3_AST); 
+				c4 = comp.ConstantIndex( e4_AST); 
 				if( c1 != NULL && c3 != NULL && c4 != NULL)
 				{
 				ixList->push_back( new CArrayIndexRangeS( c1, c3, c4));

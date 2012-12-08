@@ -896,6 +896,7 @@ tag_def
 arrayindex! [ArrayIndexVectorT* ixList]
 {
     BaseGDL *c1, *c2, *c3, *c4;
+antlr::print_tree pt;
 }
 	: ( #(ARRAYIX  
                 ( ALL
@@ -905,40 +906,50 @@ arrayindex! [ArrayIndexVectorT* ixList]
                 | ( e1:expr // 0 or 2
                         ( // empty  
                             {
-                                c1 = comp.Constant( e1); 
+                                bool    constantOK = false;
+
+// cout << e1->getText() << endl;
+// pt.pr_tree(static_cast<antlr::RefAST>(#e1));
+
+                                c1 = comp.ConstantIndex( #e1); 
                                 if( c1 != NULL)
                                     {   
-                                        if( c1->Rank() == 0)
-                                            
-                                            ixList->
-                                                push_back( new 
-                                                           CArrayIndexScalar( c1));
-                                        else
-                                            ixList->
-                                                push_back( new 
-                                                           CArrayIndexIndexed( c1));
+                                        try {
+                                            if( c1->Rank() == 0)
+                                                ixList->
+                                                    push_back( new 
+                                                               CArrayIndexScalar( c1));
+                                            else
+                                                ixList->
+                                                    push_back( new 
+                                                               CArrayIndexIndexed( c1));
+                                            constantOK = true;
+                                        }
+                                        catch( GDLException& e)
+                                        {
+                                            //constantOK = false;
+                                        }  
                                     }
-                                else
+                                if( !constantOK)
                                     {
                                         if( LoopVar( #e1))
-if( #e1->getType() == VAR)
-                                            ixList->push_back( new 
-                                                ArrayIndexScalar( #e1));
-else
-                                            ixList->push_back( new 
-                                                ArrayIndexScalarVP( #e1));
+                                            {
+                                            if( #e1->getType() == VAR)
+                                                ixList->push_back( new ArrayIndexScalar( #e1));
+                                            else
+                                                ixList->push_back( new ArrayIndexScalarVP( #e1));
+                                            }
                                         else
-                                    {
-                                        ## = #e1;
-                                        ixList->push_back( new 
-                                            ArrayIndexIndexed());
-                                    }
+                                            {
+                                                ## = #e1;
+                                                ixList->push_back( new ArrayIndexIndexed());
+                                            }
                                     }
                             }
                         | ALL
                             ( // empty
                             {
-                                    c1 = comp.Constant( e1); 
+                                    c1 = comp.ConstantIndex( #e1); 
                                     if( c1 != NULL)
                                     {
                                         ixList->push_back( new CArrayIndexORange( c1));
@@ -951,8 +962,8 @@ else
                                 }
                             | e2:expr
                                 { 
-                                    c1 = comp.Constant( e1); 
-                                    c2 = comp.Constant( e2); 
+                                    c1 = comp.ConstantIndex( #e1); 
+                                    c2 = comp.ConstantIndex( #e2); 
                                     if( c1 != NULL && c2 != NULL)
                                     {
                                         ixList->push_back( new 
@@ -969,8 +980,8 @@ else
                         | e3:expr
                             ( // empty
                                 { 
-                                    c1 = comp.Constant( e1); 
-                                    c3 = comp.Constant( e3); 
+                                    c1 = comp.ConstantIndex( #e1); 
+                                    c3 = comp.ConstantIndex( #e3); 
                                     if( c1 != NULL && c3 != NULL)
                                     {
                                         ixList->push_back( new 
@@ -984,9 +995,9 @@ else
                                 }
                             | e4:expr
                                 { 
-                                    c1 = comp.Constant( e1); 
-                                    c3 = comp.Constant( e3); 
-                                    c4 = comp.Constant( e4); 
+                                    c1 = comp.ConstantIndex( #e1); 
+                                    c3 = comp.ConstantIndex( #e3); 
+                                    c4 = comp.ConstantIndex( #e4); 
                                     if( c1 != NULL && c3 != NULL && c4 != NULL)
                                     {
                                         ixList->push_back( new CArrayIndexRangeS( c1, c3, c4));

@@ -817,6 +817,7 @@ public:
 		EnvBaseT* actEnv
 	);
 	public: ArrayIndexListT*  arrayindex_list_noassoc(ProgNodeP _t);
+	public: IxExprListT*  arrayindex_list_overload(ProgNodeP _t);
 public:
 	antlr::RefAST getAST()
 	{

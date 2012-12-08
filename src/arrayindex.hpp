@@ -285,6 +285,7 @@ class CArrayIndexScalar: public ArrayIndexT
 {
 private:
   SizeT s;
+  BaseGDL* rawData; // for overloaded object indexing
 
 public:
  IndexType Type() { return CArrayIndexScalarID;}
@@ -306,19 +307,50 @@ public:
   RangeT GetS() { return s;}
 
   ~CArrayIndexScalar() 
-  {}
-
-  CArrayIndexScalar( BaseGDL* c)
   {
-    s = c->LoopIndex();
+    delete rawData;
   }
 
-  CArrayIndexScalar( SizeT s_): s( s_) 
+  // grabs c
+  CArrayIndexScalar( BaseGDL* c)
+  : rawData(c)
+  {
+    if( c->Type() == GDL_STRING)
+    {
+      DStringGDL* cString = static_cast<DStringGDL*>(c);
+      if( (*cString)[0] == "")
+      {
+	s = 0;
+      }
+      else
+      {
+	const char* cStart=(*cString)[0].c_str();
+	char* cEnd;
+	RangeT ix=strtol(cStart,&cEnd,10);
+	if( cEnd == cStart)
+	  {
+	    // in LoopIndex() just a warning is printed
+	    throw GDLException();
+	  }
+	s = ix;
+      }
+    }
+    else
+      s = c->LoopIndex();
+  }
+
+  CArrayIndexScalar( SizeT s_): s( s_), rawData(NULL)  
   {}
+
+  CArrayIndexScalar( const CArrayIndexScalar& c): s( c.s) 
+  {
+    assert( c.rawData != NULL);
+    rawData = c.rawData->Dup();
+  }
 
   ArrayIndexT* Dup() const
   {
-    return new CArrayIndexScalar( s);
+    return new CArrayIndexScalar( *this);
   }
  
   void Clear()
@@ -391,7 +423,7 @@ public:
 
   bool Indexed() { return (ix != NULL);}
 
-  const dimension& GetDim() { return *ixDim;}
+  const dimension& GetDim() { assert(ixDim != NULL); return *ixDim;}
 
   RangeT GetIx0()
   {
@@ -445,54 +477,6 @@ public:
   }
 
 
-//   BaseGDL* Index( BaseGDL* var, IxExprListT& ixL)
-//   {
-//     int ret = ixL[0]->Scalar2RangeT(s);
-// 
-//     if( ret == 0) // more than one element
-//       return var->NewIx( ixL[0], strictArrSubs);
-// 
-//     // scalar (-1,1) or one-element array (-2,2)
-//     //if( ret >= 1) // type ONE
-//     if( ret == 1) // type ONE
-//     {
-// 	    if( s < 0) //&& s >= var->Size())
-// 	    {
-// 		    RangeT ix = var->Size() + s;
-// 		    if( ix < 0)
-// 			    throw GDLException(NULL,"Subscript out of range [-i].",true,false);
-// 		    //if( strictArrSubs || ret == 1)
-// 		    //return var->NewIx( var->Size()-1);
-// 		    return var->NewIx( ix);
-// 	    }
-// 	    if( s >= var->Size())
-// 	    {
-// 		    throw GDLException(NULL,"Subscript out of range [i].",true,false);
-// 	    }
-// 	    return var->NewIx( s);
-//     }
-// 	    // ret == 2 (one dim array)
-//     if( s < 0) //&& s >= var->Size())
-//     {
-// 	    if( strictArrSubs)
-// 		    throw GDLException(NULL,"Subscript out of range [-i].",true,false);
-// 	    BaseGDL* res = var->NewIx( 0);
-// 	    res->SetDim( dimension( 1));
-// 	    return res;
-//     }
-//     if( s >= var->Size())
-//     {
-// 	    if( strictArrSubs)
-// 		    throw GDLException(NULL,"Subscript out of range [i].",true,false);
-// 	    BaseGDL* res = var->NewIx( var->Size()-1);
-// 	    res->SetDim( dimension( 1));
-// 	    return res;
-//     }
-// 
-//     BaseGDL* res = var->NewIx( s);
-//     res->SetDim( dimension( 1));
-//     return res;
-//   }
 
   void Init( BaseGDL* ix_)   
   {
@@ -568,35 +552,45 @@ class CArrayIndexIndexed: public ArrayIndexIndexed
 protected:
   AllIxIndicesT*    ixOri;
   char ixOriBuf[ AllIxMaxSize];
-
+  BaseGDL*  rawData; // owned, for overloaded object indexing
+  
 //  SizeT      maxIx;
 
 public:
  IndexType Type() { return CArrayIndexIndexedID;}
 
-  ~CArrayIndexIndexed() { /*delete ixOri;*/}
-
-  CArrayIndexIndexed( BaseGDL* c, bool strictArrSubs_ = false): 
-    ArrayIndexIndexed( strictArrSubs_)//, ixOri( NULL) //, maxIx( 0)
-  {
-    ArrayIndexIndexed::Init( c);
-    ixOri = ix;
-    ix = NULL;
-//     if( ixOri != NULL) maxIx = ixOri->max();
+  ~CArrayIndexIndexed() 
+  { 
+    delete rawData;
   }
 
-  CArrayIndexIndexed( const CArrayIndexIndexed& cp):
-    ArrayIndexIndexed( cp.strictArrSubs), ixOri( NULL) //, maxIx( cp.maxIx)
+  // grabs c
+  CArrayIndexIndexed( BaseGDL* c, bool strictArrSubs_ = false)
+  : ArrayIndexIndexed( strictArrSubs_)//, ixOri( NULL) //, maxIx( 0)
+  , rawData( c)
+  {
+    ArrayIndexIndexed::Init( c);
+    ixOri = ix; 
+    ix = NULL; // prevent from being deleted
+  }
+
+  CArrayIndexIndexed( const CArrayIndexIndexed& cp)
+  : ArrayIndexIndexed( cp.strictArrSubs)
+  , ixOri( NULL) //, maxIx( cp.maxIx)
   {
     assert( cp.ix == NULL);
+    assert( ix == NULL);
 
+    assert( cp.rawData != NULL);
+    rawData = cp.rawData->Dup();
+    
     s = cp.s;
-//    maxVal = cp.maxVal;
-//     maxIx  = cp.maxIx;
 
     if( cp.ixOri != NULL)
       ixOri = cp.ixOri->CloneAt( ixOriBuf);
-//       ixOri = new AllIxT( *cp.ixOri);
+
+    assert( rawData != NULL);
+    ixDim = &rawData->Dim();
   }
 
   ArrayIndexT* Dup() const
@@ -607,8 +601,7 @@ public:
   SizeT NParam() { return 0;} // number of parameter to Init(...)
   void Clear()
   {
-//   delete ix;
-  ix=NULL;
+    ix = NULL;
   } // note that ixDim is untouched
 
   // make the following work even before call to NIter(...)
@@ -624,43 +617,6 @@ public:
     return (ixOri->size() == 1);
   }
   bool Indexed() { return (ixOri != NULL);}
-
-//   BaseGDL* Index( BaseGDL* var, IxExprListT& ix_)
-//   {
-//     if( ixOri == NULL) // ONE
-//       {
-// 		if( s >= var->Size())
-// 			throw GDLException(NULL,"Subscript out of range [i].",true,false);
-// 		return var->NewIx( s);
-//       }
-// 
-// 	ixOri->SetUpper(var->Size()-1);
-// 
-// //     if( maxIx >= var->Size())
-// //       {
-// // 		if( strictArrSubs)
-// // 		{ // strictArrSubs -> exception if out of bounds
-// // 			throw GDLException(NULL,"Array used to subscript array "
-// // 					"contains out of range subscript.",true,false);
-// // 		}
-// // 
-// // 		SizeT ix_size = ix->size();
-// // 		ix = new AllIxMultiT( ixOri->size()); // make copy as changed (see below)
-// // 		SizeT upper = var->Size()-1;
-// // 		for( SizeT i=0; i < ix_size; ++i)
-// // 		{
-// // 			if( (*ixOri)[i] > upper)
-// // 					static_cast<AllIxMultiT*>(ix)->SetIx( i, upper);
-// // 		      (*ix)[i] = upper;
-// // 			else
-// // 					static_cast<AllIxMultiT*>(ix)->SetIx( i, (*ixOri)[i]);
-// // 		      (*ix)[i] = (*ixOri)[i];
-// // 		}
-// // 		return var->NewIx( ix, ixDim);
-// //       }
-// //     else
-//       return var->NewIx( ixOri, ixDim);
-//   }
 
   // old (before ixOri): special here no stealing is allowed
   //  AllIxT* StealIx() { return new AllIxT( *ix);} 

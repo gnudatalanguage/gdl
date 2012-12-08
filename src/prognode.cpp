@@ -56,7 +56,8 @@ ProgNode::ProgNode( const RefDNode& refNode):
   down( NULL), 
   right( NULL),
   lineNumber( refNode->getLine()),
-  cData( refNode->StealCData()),
+  cData( refNode->StealCData()), // stealing is crucial here because references might exist
+  // as arrayindices
   libPro( refNode->libPro),
   libFun( refNode->libFun),
   var( refNode->var),
@@ -86,7 +87,6 @@ ProgNode::~ProgNode()
   if( !keepDown) delete down;
   if( !keepRight) delete right;
 }
-
 
 
 ProgNodeP ProgNode::GetNULLProgNodeP()

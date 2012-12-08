@@ -28,14 +28,15 @@
 #include "dcommon.hpp"
 #include "GDLInterpreter.hpp"
 #include "overload.hpp"
+#include "prognodeexpr.hpp"
 
 // print out AST tree
 //#define GDL_DEBUG
 //#undef GDL_DEBUG
 
-#ifdef GDL_DEBUG
+//#ifdef GDL_DEBUG
 #include "print_tree.hpp"
-#endif
+//#endif
 
 #include <assert.h>
 
@@ -392,10 +393,30 @@ void DCompiler::CommonDecl(const string& N)
   pro->AddCommon(c);
 }
 
-BaseGDL* DCompiler::Constant( RefDNode n)
+BaseGDL* DCompiler::ConstantIndex( RefDNode n)
 {
   if( n->getType() == CONSTANT)
-    return n->CData();
+    return n->StealCData();
+  if( n->getType() == ARRAYDEF_CONST)
+  {
+//   cout << "RefDNode:" << endl;
+//   antlr::print_tree pt;
+//   pt.pr_tree(static_cast<antlr::RefAST>( n));
+//   cout << endl;
+
+	// must be compiled here
+  	ARRAYDEFNode* c = new ARRAYDEFNode( n);
+	auto_ptr< ARRAYDEFNode> guard( c);
+	assert( c->ConstantArray());
+
+//   cout << "ProgNodeP:" << endl;
+//   pt.pr_tree(c);
+//   cout << endl;
+
+	BaseGDL* cData = c->Eval();
+
+    return cData;
+  }
   return NULL;
 }
 
