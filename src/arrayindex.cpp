@@ -91,6 +91,12 @@ void ArrayIndexScalar::Init()
   sInit = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
   s = sInit;
 }
+BaseGDL* ArrayIndexScalar::OverloadIndexNew()
+{ 
+  BaseGDL* v = GDLInterpreter::CallStackBack()->GetKW( varIx);
+  if( v == NULL) return NULL;
+  return v->Dup();
+}
 
 
 // // void ArrayIndexListOneScalarT::Init( IxExprListT& ix_)

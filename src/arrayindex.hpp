@@ -77,6 +77,7 @@ public:
   virtual void Init( BaseGDL*, BaseGDL*) { assert( false);}
   virtual void Init( BaseGDL*, BaseGDL*, BaseGDL*) { assert( false);}
 
+  virtual bool IsRange() { return false;} // default for non-ranges
   virtual BaseGDL* OverloadIndexNew() { assert( false);}
   virtual BaseGDL* OverloadIndexNew( BaseGDL*) { assert( false);}
   virtual BaseGDL* OverloadIndexNew( BaseGDL*, BaseGDL*) { assert( false);}
@@ -170,6 +171,7 @@ public:
 // 	assert( ix != NULL);
 //     return (*ix)[ i];
 //   }
+  BaseGDL* OverloadIndexNew(); 
 
   SizeT GetVarIx() const { return varIx;}
 
@@ -229,6 +231,13 @@ protected:
 
 public:
  IndexType Type() { return ArrayIndexScalarVPID;}
+
+ BaseGDL* OverloadIndexNew() 
+  { 
+    BaseGDL* v = varPtr->Data();
+    if( v == NULL) return NULL;
+    return v->Dup();
+  }
 
   DVar* GetVarPtr() const { return varPtr;}
 
@@ -301,6 +310,12 @@ private:
 
 public:
   IndexType Type() { return CArrayIndexScalarID;}
+
+  BaseGDL* OverloadIndexNew() 
+  { 
+    assert( rawData != NULL);
+    return rawData->Dup();
+  }
 
   SizeT NParam() { return 0;} // number of parameter to Init(...)
 
@@ -422,6 +437,12 @@ protected:
 
 public:
   IndexType Type() { return ArrayIndexIndexedID;}
+
+  BaseGDL* OverloadIndexNew( BaseGDL* p1) 
+  { 
+    if( p1 == NULL) return NULL;
+    return p1->Dup();
+  }
 
   SizeT NParam() { return 1;} // number of parameter to Init(...)
 
@@ -583,6 +604,12 @@ private:
 public:
   IndexType Type() { return CArrayIndexIndexedID;}
 
+  BaseGDL* OverloadIndexNew() 
+  { 
+    assert( rawData != NULL);
+    return rawData->Dup();
+  }
+
   SizeT NParam() { return 0;} // number of parameter to Init(...)
 
   RangeT GetS() 
@@ -698,120 +725,6 @@ public:
 }; //class CArrayIndexIndexed: public ArrayIndexIndexed
 
 
-// // constant version
-// class CArrayIndexIndexed: public ArrayIndexIndexed
-// {
-// protected:
-// //   AllIxIndicesT*    ixOri;
-// //   char ixOriBuf[ AllIxMaxSize];
-//   BaseGDL*  rawData; // owned, for overloaded object indexing
-//   
-// //  SizeT      maxIx;
-// 
-// public:
-//  IndexType Type() { return CArrayIndexIndexedID;}
-// 
-//   ~CArrayIndexIndexed() 
-//   { 
-//     delete rawData;
-//   }
-// 
-//   // grabs c
-//   CArrayIndexIndexed( BaseGDL* c, bool strictArrSubs_ = false)
-//   : ArrayIndexIndexed( strictArrSubs_)//, ixOri( NULL) //, maxIx( 0)
-//   , rawData( c)
-//   {
-//     // the 'trick': in this class, Init( c) is only called once
-//     ArrayIndexIndexed::Init( rawData);
-// //     ixOri = ix; 
-// //     ix = NULL; // prevent from being deleted
-//   }
-// 
-//   CArrayIndexIndexed( const CArrayIndexIndexed& cp)
-//   : ArrayIndexIndexed( cp.strictArrSubs)
-// //   , ixOri( NULL) //, maxIx( cp.maxIx)
-//   {
-//     assert( cp.rawData != NULL);
-//     rawData = cp.rawData->Dup();
-//     
-//     ArrayIndexIndexed::Init( rawData);
-// //     assert( cp.ix == NULL);
-// //     assert( ix == NULL);
-// 
-//     
-//     s = cp.s;
-// 
-//     if( cp.ixOri != NULL)
-//       ixOri = cp.ixOri->CloneAt( ixOriBuf);
-// 
-//     assert( rawData != NULL);
-//     ixDim = &rawData->Dim();
-//   }
-// 
-//   ArrayIndexT* Dup() const
-//   {
-//     return new CArrayIndexIndexed( *this);
-//   }
-// 
-//   void Init( BaseGDL* ix_)   
-//   {
-//     assert( false);
-//   }
-//     
-//   SizeT NParam() { return 0;} // number of parameter to Init(...)
-// 
-//   void Clear()
-//   {
-//     ix = NULL;
-//   } // note that ixDim is untouched
-// 
-//   // make the following work even before call to NIter(...)
-//   bool Scalar() const { return (ixOri == NULL);}
-//   bool Scalar( RangeT& s_) const
-//   { 
-//     if( ixOri == NULL)
-//       {
-// 	s_ = s;
-// 	return true;
-//       }
-//     s_ = (*ixOri)[0];
-//     return (ixOri->size() == 1);
-//   }
-//   bool Indexed() { return (ixOri != NULL);}
-// 
-//   // old (before ixOri): special here no stealing is allowed
-//   //  AllIxT* StealIx() { return new AllIxT( *ix);} 
-// 
-//   // number of iterations
-//   // also checks/adjusts range 
-//   SizeT NIter( SizeT varDim) 
-//   {
-//     if( ixOri == NULL) // ONE
-//       {
-// 	if( sInit < 0)
-// 	  s = sInit + varDim;
-// 	else
-// 	  s = sInit;
-// 	if( s < 0)
-// 	  throw GDLException(NULL,"Subscript out of range [-i].",true,false);
-// 	if( s >= varDim && s > 0)
-// 	  throw GDLException(NULL,"Subscript out of range [i].",true,false);
-// 	return 1;
-//       }
-// 
-//     // INDEXED
-//     assert( ix == NULL);
-//     ix = ixOri->CloneAt(ixBuf); //new AllIxMultiT( ixOri->size()); // make copy as changed (see below)
-// 
-//     ix->SetUpper( varDim-1);
-//     
-//     return ix->size(); 
-//   }
-// }; //class CArrayIndexIndexed: public ArrayIndexIndexed
-
-
-
-
 
 // [*]
 class ArrayIndexAll: public ArrayIndexT
@@ -819,6 +732,14 @@ class ArrayIndexAll: public ArrayIndexT
 public:
  IndexType Type() { return ArrayIndexAllID;}
 
+ bool IsRange() { return true;}
+ 
+ BaseGDL* OverloadIndexNew()
+  {
+    const DLong arr[3] = {0,-1,1};
+    return new DLongGDL( arr, 3);
+  }
+ 
   SizeT NParam() { return 0;} // number of parameter to Init(...)
 
   void Init() {};
@@ -829,14 +750,6 @@ public:
   {
     return new ArrayIndexAll();
   }
-
-//   BaseGDL* Index( BaseGDL* var, IxExprListT& ix)
-//   {
-//     // make index 1-dim
-//     BaseGDL* clone =  var->Dup();
-//     clone->SetDim( dimension( clone->N_Elements()));
-//     return clone;
-//   }
 
   // number of iterations
   // also checks/adjusts range 
@@ -858,6 +771,15 @@ protected:
 public:
  IndexType Type() { return ArrayIndexORangeID;}
 
+  bool IsRange() { return true;}
+
+  BaseGDL* OverloadIndexNew( BaseGDL* s_) 
+  {
+    Init( s_);
+    DLong arr[3] = {sInit,-1,1};
+    return new DLongGDL( arr, 3);
+  }
+  
   SizeT NParam() { return 1;} // number of parameter to Init(...)
 
   RangeT GetS() { return s;}
@@ -896,27 +818,6 @@ public:
 //       }
   }
 
-//   BaseGDL* Index( BaseGDL* var, IxExprListT& ix)
-//   {
-//     Init( ix[0]);
-// 
-// 	SizeT varSize = var->Size();
-//     
-// 	if( s < 0)
-// 		{
-// 			RangeT i = s + varSize;
-// 			if( i < 0)
-// 				throw GDLException(NULL,"Subscript out of range [-s:*].",true,false);
-//     
-// 			return var->NewIxFrom( i);
-// 		}
-// 	
-//     if( s >= varSize)
-//       throw GDLException(NULL,"Subscript out of range [s:*].",true,false);
-// 
-//     return var->NewIxFrom( s);
-//   }
-
   SizeT NIter( SizeT varDim)
   {
     if( sInit >= varDim) // && s > 0)
@@ -941,6 +842,14 @@ class CArrayIndexORange: public ArrayIndexORange
 public:
  IndexType Type() { return CArrayIndexORangeID;}
 
+  bool IsRange() { return true;}
+
+  BaseGDL* OverloadIndexNew()
+  {
+    DLong arr[3] = {sInit,-1,1};
+    return new DLongGDL( arr, 3);
+  }
+
   SizeT NParam() { return 0;} // number of parameter to Init(...)
 
   CArrayIndexORange( BaseGDL* c): ArrayIndexORange()
@@ -958,24 +867,6 @@ public:
     return d;
   }
 
-//   BaseGDL* Index( BaseGDL* var, IxExprListT& ix)
-//   {
-// 	SizeT varSize = var->Size();
-//     
-// 	if( s < 0)
-// 		{
-// 			RangeT i = s + varSize;
-// 			if( i < 0)
-// 				throw GDLException(NULL,"Subscript out of range [-s:*].",true,false);
-//     
-// 			return var->NewIxFrom( i);
-// 		}
-//     
-//     if( s >= varSize)
-//       throw GDLException(NULL,"Subscript out of range [s:*].",true,false);
-// 
-//     return var->NewIxFrom( s);
-//   }
 };
 
 
@@ -990,44 +881,19 @@ protected:
 public:
  IndexType Type() { return ArrayIndexRangeID;}
 
+  bool IsRange() { return true;}
+  
+  BaseGDL* OverloadIndexNew( BaseGDL* s_, BaseGDL* e_) 
+  {
+    Init( s_, e_);
+    DLong arr[3] = {sInit,eInit,1};
+    return new DLongGDL( arr, 3);
+  }
+
   SizeT NParam() { return 2;} // number of parameter to Init(...)
 
   RangeT GetS() { return s;}
   RangeT GetIx0() { return s;}
-
-//   BaseGDL* Index( BaseGDL* var, IxExprListT& ix)
-//   {
-//     Init( ix[0], ix[1]);
-//     
-// 	SizeT varSize = var->Size();
-// 	
-//     RangeT sl,el;
-// 	if( s < 0)
-// 		{
-// 			sl = s + varSize;
-// 			if( sl < 0)
-// 				throw GDLException(NULL,"Subscript out of range [-S:e].",true,false);
-// 		}
-// 	else
-// 		sl = s;
-// 	if( e < 0)
-// 		{
-// 			el = e + varSize;
-// 			if( el < 0)
-// 				throw GDLException(NULL,"Subscript out of range [s:-E].",true,false);
-// 		}
-// 	else
-// 		el = e;
-//     
-//     if( sl > el)
-// 		throw 
-// 			GDLException(NULL,"Subscript range values of the form low:high "
-// 				"must be < size, with low <= high",true,false);
-//     if( el >= var->Size())
-//       throw GDLException(NULL,"Subscript out of range [s:e].",true,false);
-// 
-//     return var->NewIxFrom( sl, el);
-//   }
 
   ArrayIndexT* Dup() const
   {
@@ -1070,26 +936,6 @@ public:
 	  throw 
 	    GDLException(NULL,"Expression must be a scalar in this context.",true,false); 
       }
-//     if( retMsg == -1) // index < 0
-//       {
-// 	throw 
-// 	  GDLException(NULL,"Subscript range values of the form low:high " 
-// 			"must be >= 0, < size, with low <= high.",true,false);
-//       }
-
-// checked later at NIter()
-//     if( eInit>=0 && sInit>=0 && eInit < sInit)
-//       {
-// 	throw 
-// 	  GDLException(NULL,"Subscript range values of the form low:high "
-// 		  "must be < size, with low <= high",true,false);
-//       }
-//     if( eInit<0 && sInit<0 && eInit < sInit)
-//       {
-// 	throw 
-// 	  GDLException(NULL,"Subscript range values of the form -low:-high "
-// 		  "must be < size, with low <= high",true,false);
-//       }
   }
 
   // number of iterations
@@ -1131,6 +977,14 @@ class CArrayIndexRange: public ArrayIndexRange
 public:
  IndexType Type() { return CArrayIndexRangeID;}
 
+  bool IsRange() { return true;}
+
+  BaseGDL* OverloadIndexNew()
+  {
+    DLong arr[3] = {sInit,eInit,1};
+    return new DLongGDL( arr, 3);
+  }
+
   SizeT NParam() { return 0;} // number of parameter to Init(...)
 
   CArrayIndexRange( BaseGDL* c1, BaseGDL* c2): ArrayIndexRange()
@@ -1150,37 +1004,6 @@ public:
     return d;
   }
 
-//    BaseGDL* Index( BaseGDL* var, IxExprListT& ix)
-//    {
-// 	SizeT varSize = var->Size();
-// 	
-//     RangeT sl,el;
-// 	if( s < 0)
-// 		{
-// 			sl = s + varSize;
-// 			if( sl < 0)
-// 				throw GDLException(NULL,"Subscript out of range [-S:e].",true,false);
-// 		}
-// 	else
-// 		sl = s;
-// 	if( e < 0)
-// 		{
-// 			el = e + varSize;
-// 			if( el < 0)
-// 				throw GDLException(NULL,"Subscript out of range [s:-E].",true,false);
-// 		}
-// 	else
-// 		el = e;
-//     
-//     if( sl > el)
-// 		throw 
-// 			GDLException(NULL,"Subscript range values of the form low:high "
-// 				"must be < size, with low <= high",true,false);
-//     if( el >= var->Size())
-//       throw GDLException(NULL,"Subscript out of range [s:e].",true,false);
-// 
-//     return var->NewIxFrom( sl, el);
-//    }
 };
 
 
@@ -1195,6 +1018,15 @@ protected:
 
 public:
  IndexType Type() { return ArrayIndexORangeSID;}
+
+  bool IsRange() { return true;}
+
+  BaseGDL* OverloadIndexNew( BaseGDL* s_, BaseGDL* stride_) 
+  {
+    Init( s_, stride_);
+    DLong arr[3] = {sInit,-1,stride};
+    return new DLongGDL( arr, 3);
+  }
 
   SizeT NParam() { return 2;} // number of parameter to Init(...)
 
@@ -1251,27 +1083,6 @@ public:
       }
   }
 
-//   BaseGDL* Index( BaseGDL* var, IxExprListT& ix)
-//   {
-//     Init( ix[0], ix[1]);
-// 	
-// 	SizeT varSize = var->Size();
-// 
-// 	if( s < 0)
-// 		{
-// 			RangeT sl = s + varSize;
-// 			if( sl < 0)
-// 				throw GDLException(NULL,"Subscript out of range [-S:*:stride].",true,false);
-// 
-// 			return var->NewIxFromStride( sl, stride);
-// 		}
-// 
-//     if( s >= var->Size())
-//       throw GDLException(NULL,"Subscript out of range [s:*:stride].",true,false);
-// 
-//     return var->NewIxFromStride( s, stride);
-//   }
-
   // number of iterations
   // also checks/adjusts range 
   SizeT NIter( SizeT varDim)
@@ -1297,6 +1108,14 @@ class CArrayIndexORangeS: public ArrayIndexORangeS
 public:
  IndexType Type() { return CArrayIndexORangeSID;}
 
+  bool IsRange() { return true;}
+
+  BaseGDL* OverloadIndexNew()
+  {
+    DLong arr[3] = {sInit,-1,stride};
+    return new DLongGDL( arr, 3);
+  }
+
   SizeT NParam() { return 0;} // number of parameter to Init(...)
 
   CArrayIndexORangeS( BaseGDL* c1, BaseGDL* c2): ArrayIndexORangeS()
@@ -1304,7 +1123,7 @@ public:
     ArrayIndexORangeS::Init( c1, c2);
   }
 
-CArrayIndexORangeS(){}
+  CArrayIndexORangeS(){}
 
   ArrayIndexT* Dup() const
   {
@@ -1315,24 +1134,6 @@ CArrayIndexORangeS(){}
     return d;
   }
 
-//   BaseGDL* Index( BaseGDL* var, IxExprListT& ix)
-//   {
-// 	SizeT varSize = var->Size();
-// 
-// 	if( s < 0)
-// 		{
-// 			RangeT sl = s + varSize;
-// 			if( sl < 0)
-// 				throw GDLException(NULL,"Subscript out of range [-S:*:stride].",true,false);
-// 
-// 			return var->NewIxFromStride( sl, stride);
-// 		}
-// 
-//     if( s >= var->Size())
-//       throw GDLException(NULL,"Subscript out of range [s:*:stride].",true,false);
-// 
-//     return var->NewIxFromStride( s, stride);
-//   }
 };
 
 // [s:e:st]
@@ -1345,6 +1146,15 @@ protected:
 
 public:
  IndexType Type() { return ArrayIndexRangeSID;}
+
+  bool IsRange() { return true;}
+
+  BaseGDL* OverloadIndexNew( BaseGDL* s_, BaseGDL* e_, BaseGDL* stride_)
+  {
+    Init( s_, e_, stride_);
+    DLong arr[3] = {sInit,eInit,stride};
+    return new DLongGDL( arr, 3);
+  }
 
   SizeT NParam() { return 3;} // number of parameter to Init(...)
 
@@ -1392,26 +1202,6 @@ public:
 	  throw 
 	    GDLException(  "Expression must be a scalar in this context.",true,false); 
       }
-//     if( retMsg == -1) // index < 0
-//       {
-// 	throw 
-// 	  GDLException(  "Subscript range values of the form low:high " 
-// 			"must be >= 0, < size, with low <= high.",true,false);
-//       }
-
-// checked later at NIter()
-//     if( eInit>=0 && sInit>=0 && eInit < sInit)
-//       {
-// 	throw 
-// 	  GDLException(NULL,"Subscript range values of the form low:high "
-// 		  "must be < size, with low <= high",true,false);
-//       }
-//     if( eInit<0 && sInit<0 && eInit < sInit)
-//       {
-// 	throw 
-// 	  GDLException(NULL,"Subscript range values of the form -low:-high "
-// 		  "must be < size, with low <= high",true,false);
-//       }
                             
     // stride
     retMsg=stride_->Scalar2index(stride);
@@ -1432,43 +1222,6 @@ public:
 	  GDLException(  "Range subscript stride must be >= 1.",true,false);
       }
   }
-
-//   BaseGDL* Index( BaseGDL* var, IxExprListT& ix)
-//   {
-//     Init( ix[0], ix[1], ix[2]);
-// 
-// 	SizeT varSize = var->Size();
-// 	
-//     RangeT sl,el;
-// 	if( s < 0)
-// 		{
-// 			sl = s + varSize;
-// 			if( sl < 0)
-// 				throw GDLException(NULL,"Subscript out of range [-S:e:stride].",true,false);
-// 		}
-// 	else
-// 		sl = s;
-// 	if( e < 0)
-// 		{
-// 			el = e + varSize;
-// 			if( el < 0)
-// 				throw GDLException(NULL,"Subscript out of range [s:-E:stride].",true,false);
-// 		}
-// 	else
-// 		el = e;
-//     
-//     if( sl > el)
-// 		throw 
-// 			GDLException(NULL,"Subscript range values of the form low:high "
-// 				"must be < size, with low <= high",true,false);
-//     
-//     if( el >= var->Size())
-//       {
-// 	throw GDLException(NULL,"Subscript out of range [s:e:st].",true,false);
-//       }
-// 
-//     return var->NewIxFromStride( sl, el, stride);
-//   }
 
   // number of iterations
   // also checks/adjusts range 
@@ -1510,6 +1263,14 @@ class CArrayIndexRangeS: public ArrayIndexRangeS
 public:
   IndexType Type() { return CArrayIndexRangeSID;}
 
+  bool IsRange() { return true;}
+
+  BaseGDL* OverloadIndexNew()
+  {
+    DLong arr[3] = {sInit,eInit,stride};
+    return new DLongGDL( arr, 3);
+  }
+
   SizeT NParam() { return 0;} // number of parameter to Init(...)
 
   CArrayIndexRangeS( BaseGDL* c1, BaseGDL* c2, BaseGDL* c3): 
@@ -1531,40 +1292,6 @@ public:
     return d;
   }
 
-//   BaseGDL* Index( BaseGDL* var, IxExprListT& ix)
-//   {
-// 	SizeT varSize = var->Size();
-// 	
-//     RangeT sl,el;
-// 	if( s < 0)
-// 		{
-// 			sl = s + varSize;
-// 			if( sl < 0)
-// 				throw GDLException(NULL,"Subscript out of range [-S:e:stride].",true,false);
-// 		}
-// 	else
-// 		sl = s;
-// 	if( e < 0)
-// 		{
-// 			el = e + varSize;
-// 			if( el < 0)
-// 				throw GDLException(NULL,"Subscript out of range [s:-E:stride].",true,false);
-// 		}
-// 	else
-// 		el = e;
-//     
-//     if( sl > el)
-// 		throw 
-// 			GDLException(NULL,"Subscript range values of the form low:high "
-// 				"must be < size, with low <= high",true,false);
-//     
-//     if( el >= var->Size())
-//       {
-// 		throw GDLException(NULL,"Subscript out of range [s:e:st].",true,false);
-//       }
-// 
-//     return var->NewIxFromStride( sl, el, stride);
-//   }
 };
 
 #endif

@@ -77,10 +77,10 @@ print, 'not ready', STREGEX(str, '^f[^o]*t$', /EXTRACT, /FOLD_CASE)
 
 ; res: Feet FAST ferret  
 if (nb_errors GT 0) then begin
-    MESSAGE, /continue, STRING(nb_errors)+' Errors founded'
+    MESSAGE, /continue, STRING(nb_errors)+' Errors found'
     if ~KEYWORD_SET(test) then EXIT, status=1
 endif else begin
-    MESSAGE, /continue, 'No Errors founded'
+    MESSAGE, /continue, 'No Errors found'
 endelse
 ;
 if KEYWORD_SET(test) then STOP
