@@ -3610,7 +3610,7 @@ arrayindex_list_noassoc returns [ArrayIndexListT* aL]
     ;
 
 // for _overloadBracketsLeftSide/_overloadBracketsRightSide
-arrayindex_list_overload returns [IxExprListT* indexList]
+arrayindex_list_overload [IxExprListT& indexList]
 {
     ArrayIndexListT* aL;
     IxExprListT      cleanupList; // for cleanup
@@ -3629,9 +3629,9 @@ arrayindex_list_overload returns [IxExprListT* indexList]
 	nExpr = aL->NParam();
 	if( nExpr == 0)
 	{
-        aL->Init();
+        aL->InitAsOverloadIndex( ixExprList, NULL, indexList);
         _retTree = ax->getNextSibling();//retTree;
-        return indexList;
+        return;
 	}
 	
 	while( true) {
@@ -3662,10 +3662,10 @@ arrayindex_list_overload returns [IxExprListT* indexList]
         _t = _t->getNextSibling();
 	}
 
-	aL->Init( ixExprList, &cleanupList);
+    aL->InitAsOverloadIndex( ixExprList, &cleanupList, indexList);
 	
 	_retTree = ax->getNextSibling();//retTree;
-	return indexList;
+	return;
 }
 	: #(ARRAYIX
             (

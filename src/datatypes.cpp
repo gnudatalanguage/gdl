@@ -2382,8 +2382,8 @@ bool Data_<SpDObj>::True()
   
   ProgNodeP callingNode = interpreter->GetRetTree();
     
-  BaseGDL* thisPtr = this;
-  EnvUDT* newEnv= new EnvUDT( callingNode, isTrueOverload, &thisPtr);
+  BaseGDL* self = this;
+  EnvUDT* newEnv= new EnvUDT( callingNode, isTrueOverload, &self);
   // no parameters
   
   // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack

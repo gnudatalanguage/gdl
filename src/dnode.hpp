@@ -350,6 +350,7 @@ private:
 
   friend class ProgNode;
   friend class DCompiler;
+  friend class GDLTreeParser;
 
 // private:
 //   // forbid usage of these

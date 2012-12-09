@@ -251,12 +251,17 @@ class CONSTANTNode: public LeafNode
 public:
   CONSTANTNode( ProgNodeP r, BaseGDL* c): LeafNode()
   { 
+if( c == NULL)
+    assert( c != NULL);
     setType( GDLTokenTypes::CONSTANT);
     cData = c;
     right = r;
   }
   CONSTANTNode( const RefDNode& refNode): LeafNode( refNode)
-  {}
+  {
+if( cData == NULL)
+    assert( cData != NULL);
+  }
   BaseGDL* EvalNC();
   BaseGDL* Eval();
 };

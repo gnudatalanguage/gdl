@@ -28,6 +28,15 @@
 #include "envt.hpp"
 #include "gdlexception.hpp"
 
+// print out AST tree
+#define GDL_DEBUG
+//#undef GDL_DEBUG
+
+#ifdef GDL_DEBUG
+#include "print_tree.hpp"
+#endif
+
+
 using namespace std;
 
 // helper function for NewProgNode( const RefDNode& refNode)
@@ -664,6 +673,20 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
       }
     case GDLTokenTypes::CONSTANT:
       {
+//   cout << "CONSTANT RefDNode:" << endl;
+//   antlr::print_tree pt;
+//   pt.pr_tree(static_cast<antlr::RefAST>( refNode));
+//   cout << "1st cData: " << refNode->getType() << " "<< refNode->getText() << " " << refNode->CData() << endl;
+//   cout << endl;
+// 	  
+//       ProgNodeP c = new CONSTANTNode( refNode);
+//       
+//   cout << "CONSTANT ProgNodeP:" << endl;
+//   pt.pr_tree(c);
+//   cout << endl;
+//       
+//       return c;
+  
 	return new CONSTANTNode( refNode);
       }
     case GDLTokenTypes::ARRAYDEF:
@@ -684,8 +707,18 @@ ProgNodeP ProgNode::NewProgNode( const RefDNode& refNode)
       }
     case GDLTokenTypes::ARRAYDEF_CONST:
       {
+//   cout << "ARRAYDEF_CONST RefDNode:" << endl;
+//   antlr::print_tree pt;
+//   pt.pr_tree(static_cast<antlr::RefAST>( refNode));
+//   cout << endl;
 
-	ProgNodeP c = new ARRAYDEFNode( refNode);
+	ARRAYDEFNode* c = new ARRAYDEFNode( refNode);
+
+//   cout << "ARRAYDEF_CONST ProgNodeP:" << endl;
+//   pt.pr_tree(c);
+//   cout << endl;
+	assert( c->ConstantArray());
+
 	auto_ptr< ProgNode> guard( c);
 
 	BaseGDL* cData = c->Eval();

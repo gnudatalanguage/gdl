@@ -34,9 +34,9 @@
 //#define GDL_DEBUG
 //#undef GDL_DEBUG
 
-//#ifdef GDL_DEBUG
+#ifdef GDL_DEBUG
 #include "print_tree.hpp"
-//#endif
+#endif
 
 #include <assert.h>
 
@@ -397,8 +397,10 @@ void DCompiler::CommonDecl(const string& N)
 BaseGDL* DCompiler::ConstantIndex( RefDNode n)
 {
   if( n->getType() == CONSTANT)
+  {
+    assert( n->CData() != NULL);
     return n->CData()->Dup();
-  
+  }
   if( n->getType() == ARRAYDEF_CONST)
   {
 //   cout << "RefDNode:" << endl;
@@ -416,6 +418,7 @@ BaseGDL* DCompiler::ConstantIndex( RefDNode n)
 //   cout << endl;
 
     BaseGDL* cData = c->Eval();
+    assert( cData != NULL);
     return cData;
   }
   

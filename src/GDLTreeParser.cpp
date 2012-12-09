@@ -4655,6 +4655,20 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 		expr(_t);
 		_t = _retTree;
 		e1_AST = returnAST;
+		
+		// in ConstantIndex the cData of all nodes is stolen
+		// (in case it succeeds)
+		// therefore we build here the new constant node with
+		// proper cData. See below (e2)
+		c1 = comp.ConstantIndex( e1_AST);
+		if( c1 != NULL)
+		{    
+		int e1Line = e1_AST->getLine();
+		e1_AST = astFactory->create(CONSTANT,"CONST_IX");
+		e1_AST->ResetCData( c1);
+		e1_AST->SetLine( e1Line);
+		}
+		
 		{
 		if (_t == RefDNode(antlr::nullAST) )
 			_t = ASTNULL;
@@ -4665,27 +4679,32 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 			
 			bool    constantOK = false;
 			
-			c1 = comp.ConstantIndex( e1_AST);
-			
 			if( c1 != NULL)
-			{   
+			{    
 			DType dType = c1->Type();
 			int typeCheck = DTypeOrder[ dType];
 			if( dType == GDL_STRING || typeCheck >= 100)
 			{
-			delete c1;
+			//delete c1;
 			}
 			else
 			{
+			
 			try {
+			// ATTENTION: These two grab c1 (all others don't)
+			// a bit unclean, but for maximum efficiency
 			if( c1->Rank() == 0)
 			ixList->push_back( new CArrayIndexScalar( c1));
 			else
 			ixList->push_back( new CArrayIndexIndexed( c1));
+			
+			// prevent c1 from being deleted
+			e1_AST->StealCData(); // ok, as #e1 is not used anymore
+			
 			constantOK = true;
 			}
 			catch( GDLException& e) {
-			delete c1;
+			//delete c1; // owned by #e1
 			}  
 			}
 			}
@@ -4731,7 +4750,7 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 			{
 				arrayindex_AST = RefDNode(currentAST.root);
 				
-				c1 = comp.ConstantIndex( e1_AST); 
+				//c1 = comp.ConstantIndex( #e1); 
 				if( c1 != NULL)
 				{
 				ixList->push_back( new CArrayIndexORange( c1));
@@ -4822,10 +4841,25 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 				expr(_t);
 				_t = _retTree;
 				e2_AST = returnAST;
+				
+				// in ConstantIndex the cData of all nodes is stolen
+				// (in case it succeeds)
+				// therefore we build here the new constant node with
+				// proper cData. This is crucial because if e. g. only e1 but not e2
+				// is constant, #e1 is put to the output tree (with stolen cData) -> crash
+				c2 = comp.ConstantIndex( e2_AST);
+				if( c2 != NULL)
+				{    
+				int e2Line = e2_AST->getLine();
+				e2_AST = astFactory->create(CONSTANT,"CONST_IX");
+				e2_AST->ResetCData( c2);
+				e2_AST->SetLine( e2Line);
+				}
+				
 				arrayindex_AST = RefDNode(currentAST.root);
 				
-				c1 = comp.ConstantIndex( e1_AST); 
-				c2 = comp.ConstantIndex( e2_AST); 
+				//c1 = comp.ConstantIndex( #e1); 
+				//c2 = comp.ConstantIndex( #e2); 
 				if( c1 != NULL && c2 != NULL)
 				{
 				ixList->push_back( new 
@@ -4833,8 +4867,8 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 				}
 				else
 				{
-				delete c1;
-				delete c2;
+				//delete c1;
+				//delete c2;
 				arrayindex_AST = RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(NULL))->add(antlr::RefAST(e1_AST))->add(antlr::RefAST(e2_AST))));
 				ixList->push_back( new 
 				ArrayIndexORangeS());
@@ -4928,6 +4962,17 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 			expr(_t);
 			_t = _retTree;
 			e3_AST = returnAST;
+			
+			// see above (#e2)
+			c3 = comp.ConstantIndex( e3_AST);
+			if( c3 != NULL)
+			{    
+			int e3Line = e3_AST->getLine();
+			e3_AST = astFactory->create(CONSTANT,"CONST_IX");
+			e3_AST->ResetCData( c3);
+			e3_AST->SetLine( e3Line);
+			}
+			
 			{
 			if (_t == RefDNode(antlr::nullAST) )
 				_t = ASTNULL;
@@ -4936,8 +4981,8 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 			{
 				arrayindex_AST = RefDNode(currentAST.root);
 				
-				c1 = comp.ConstantIndex( e1_AST); 
-				c3 = comp.ConstantIndex( e3_AST); 
+				//c1 = comp.ConstantIndex( #e1); 
+				//c3 = comp.ConstantIndex( #e3); 
 				if( c1 != NULL && c3 != NULL)
 				{
 				ixList->push_back( new 
@@ -4945,8 +4990,8 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 				}
 				else
 				{
-				delete c1;
-				delete c3;
+				//delete c1;
+				//delete c3;
 				arrayindex_AST = RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(NULL))->add(antlr::RefAST(e1_AST))->add(antlr::RefAST(e3_AST))));
 				ixList->push_back( new ArrayIndexRange());
 				}
@@ -5031,20 +5076,31 @@ void GDLTreeParser::arrayindex(RefDNode _t,
 				expr(_t);
 				_t = _retTree;
 				e4_AST = returnAST;
+				
+				// see above (#e2)
+				c4 = comp.ConstantIndex( e4_AST);
+				if( c4 != NULL)
+				{    
+				int e4Line = e4_AST->getLine();
+				e4_AST = astFactory->create(CONSTANT,"CONST_IX");
+				e4_AST->ResetCData( c4);
+				e4_AST->SetLine( e4Line);
+				}
+				
 				arrayindex_AST = RefDNode(currentAST.root);
 				
-				c1 = comp.ConstantIndex( e1_AST); 
-				c3 = comp.ConstantIndex( e3_AST); 
-				c4 = comp.ConstantIndex( e4_AST); 
+				//c1 = comp.ConstantIndex( #e1); 
+				//c3 = comp.ConstantIndex( #e3); 
+				//c4 = comp.ConstantIndex( #e4); 
 				if( c1 != NULL && c3 != NULL && c4 != NULL)
 				{
 				ixList->push_back( new CArrayIndexRangeS( c1, c3, c4));
 				}
 				else
 				{
-				delete c1;
-				delete c3;
-				delete c4;
+				//delete c1;
+				//delete c3;
+				//delete c4;
 				arrayindex_AST = RefDNode(astFactory->make((new antlr::ASTArray(4))->add(antlr::RefAST(NULL))->add(antlr::RefAST(e1_AST))->add(antlr::RefAST(e3_AST))->add(antlr::RefAST(e4_AST))));
 				ixList->push_back( new ArrayIndexRangeS());
 				}

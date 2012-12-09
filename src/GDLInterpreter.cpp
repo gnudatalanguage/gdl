@@ -5269,8 +5269,9 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list_noassoc(ProgNodeP _t) {
 	return aL;
 }
 
-IxExprListT*  GDLInterpreter::arrayindex_list_overload(ProgNodeP _t) {
-	IxExprListT* indexList;
+void GDLInterpreter::arrayindex_list_overload(ProgNodeP _t,
+	IxExprListT& indexList
+) {
 	ProgNodeP arrayindex_list_overload_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	ArrayIndexListT* aL;
@@ -5290,9 +5291,9 @@ IxExprListT*  GDLInterpreter::arrayindex_list_overload(ProgNodeP _t) {
 		nExpr = aL->NParam();
 		if( nExpr == 0)
 		{
-	aL->Init();
+	aL->InitAsOverloadIndex( ixExprList, NULL, indexList);
 	_retTree = ax->getNextSibling();//retTree;
-	return indexList;
+	return;
 		}
 		
 		while( true) {
@@ -5323,10 +5324,10 @@ IxExprListT*  GDLInterpreter::arrayindex_list_overload(ProgNodeP _t) {
 	_t = _t->getNextSibling();
 		}
 	
-		aL->Init( ixExprList, &cleanupList);
+	aL->InitAsOverloadIndex( ixExprList, &cleanupList, indexList);
 		
 		_retTree = ax->getNextSibling();//retTree;
-		return indexList;
+		return;
 	
 	
 	ProgNodeP __t153 = _t;
@@ -5400,7 +5401,6 @@ IxExprListT*  GDLInterpreter::arrayindex_list_overload(ProgNodeP _t) {
 	_t = __t153;
 	_t = _t->getNextSibling();
 	_retTree = _t;
-	return indexList;
 }
 
 void GDLInterpreter::initializeASTFactory( antlr::ASTFactory& )

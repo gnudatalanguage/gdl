@@ -86,8 +86,8 @@ BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right)
 	  if( (*res)->Type() == GDL_OBJ && (*res)->StrictScalar())
 	  {
 	      // check for _overloadBracketsLeftSide
-	      DObjGDL* resObj = static_cast<DObjGDL*>(*res);
-	      DObj s = (*resObj)[0]; // is StrictScalar()
+	      DObjGDL* self = static_cast<DObjGDL*>(*res);
+	      DObj s = (*self)[0]; // is StrictScalar()
 	      if( s != 0)  // no overloads for null object
 	      {
 		DStructGDL* oStructGDL= GDLInterpreter::GetObjHeapNoThrow( s);
@@ -98,10 +98,30 @@ BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right)
 		    if( bracketsLeftSideOverload != NULL)
 		    {
 		      // _overloadBracketsLeftSide
-		      IxExprListT* indexList = 
-			interpreter->arrayindex_list_overload( this->getFirstChild()->getNextSibling());
+		      IxExprListT indexList;
+		      interpreter->arrayindex_list_overload( this->getFirstChild()->getNextSibling(), indexList);
 		     
-		      // TODO build EnvUDT from indexlist and call the overload
+		      int nParSub = bracketsLeftSideOverload->NPar();
+		      if( (indexList.size() + 1) < nParSub)
+		      {
+			indexList.Cleanup();
+			throw GDLException( this, bracketsLeftSideOverload->ObjectName() +
+                                        ": Incorrect number of arguments.",
+                                        false, false);
+		      }
+		      
+		      EnvUDT* newEnv= new EnvUDT( this, bracketsLeftSideOverload, &self);
+
+		      // parameters
+		      newEnv->SetNextParUnchecked( res);
+		      for( SizeT p=0; p<indexList.size(); ++p)
+			newEnv->SetNextParUnchecked( indexList[p]); // takes ownership
+  
+		      StackGuard<EnvStackT> guard(interpreter->CallStack());
+		      interpreter->CallStack().push_back( newEnv); 
+  
+		      // make the call
+		      interpreter->call_pro(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 
 		      assert( false); // in progress
 		    }

@@ -903,31 +903,50 @@ arrayindex! [ArrayIndexVectorT* ixList]
                          ixList->push_back( new ArrayIndexAll());
                      }
                 | ( e1:expr // 0 or 2
+                {
+                    // in ConstantIndex the cData of all nodes is stolen
+                    // (in case it succeeds)
+                    // therefore we build here the new constant node with
+                    // proper cData. See below (e2)
+                    c1 = comp.ConstantIndex( #e1);
+                    if( c1 != NULL)
+                        {    
+                            int e1Line = #e1->getLine();
+                            #e1 = #[CONSTANT,"CONST_IX"];
+                            #e1->ResetCData( c1);
+                            #e1->SetLine( e1Line);
+                        }
+                }
                     ( // empty  
                     {
                         bool    constantOK = false;
 
-                        c1 = comp.ConstantIndex( #e1);
-
                         if( c1 != NULL)
-                            {   
+                            {    
                                 DType dType = c1->Type();
                                 int typeCheck = DTypeOrder[ dType];
                                 if( dType == GDL_STRING || typeCheck >= 100)
                                     {
-                                        delete c1;
+                                        //delete c1;
                                     }
                                 else
                                     {
+
                                         try {
+                                            // ATTENTION: These two grab c1 (all others don't)
+                                            // a bit unclean, but for maximum efficiency
                                             if( c1->Rank() == 0)
                                                 ixList->push_back( new CArrayIndexScalar( c1));
                                             else
                                                 ixList->push_back( new CArrayIndexIndexed( c1));
+
+                                            // prevent c1 from being deleted
+                                            #e1->StealCData(); // ok, as #e1 is not used anymore
+
                                             constantOK = true;
                                         }
                                         catch( GDLException& e) {
-                                            delete c1;
+                                            //delete c1; // owned by #e1
                                         }  
                                     }
                             }
@@ -951,7 +970,7 @@ arrayindex! [ArrayIndexVectorT* ixList]
                         | ALL
                             ( // empty
                             {
-                                    c1 = comp.ConstantIndex( #e1); 
+                                    //c1 = comp.ConstantIndex( #e1); 
                                     if( c1 != NULL)
                                     {
                                         ixList->push_back( new CArrayIndexORange( c1));
@@ -963,9 +982,24 @@ arrayindex! [ArrayIndexVectorT* ixList]
                                     }
                                 }
                             | e2:expr
+                {
+                    // in ConstantIndex the cData of all nodes is stolen
+                    // (in case it succeeds)
+                    // therefore we build here the new constant node with
+                    // proper cData. This is crucial because if e. g. only e1 but not e2
+                    // is constant, #e1 is put to the output tree (with stolen cData) -> crash
+                    c2 = comp.ConstantIndex( #e2);
+                    if( c2 != NULL)
+                        {    
+                            int e2Line = #e2->getLine();
+                            #e2 = #[CONSTANT,"CONST_IX"];
+                            #e2->ResetCData( c2);
+                            #e2->SetLine( e2Line);
+                        }
+                }
                                 { 
-                                    c1 = comp.ConstantIndex( #e1); 
-                                    c2 = comp.ConstantIndex( #e2); 
+                                    //c1 = comp.ConstantIndex( #e1); 
+                                    //c2 = comp.ConstantIndex( #e2); 
                                     if( c1 != NULL && c2 != NULL)
                                     {
                                         ixList->push_back( new 
@@ -973,8 +1007,8 @@ arrayindex! [ArrayIndexVectorT* ixList]
                                     }
                                     else
                                     {
-                                        delete c1;
-                                        delete c2;
+                                        //delete c1;
+                                        //delete c2;
                                         ## = #( NULL, e1, e2);
                                         ixList->push_back( new 
                                             ArrayIndexORangeS());
@@ -982,10 +1016,21 @@ arrayindex! [ArrayIndexVectorT* ixList]
                                 }
                             )
                         | e3:expr
+                {
+                    // see above (#e2)
+                    c3 = comp.ConstantIndex( #e3);
+                    if( c3 != NULL)
+                        {    
+                            int e3Line = #e3->getLine();
+                            #e3 = #[CONSTANT,"CONST_IX"];
+                            #e3->ResetCData( c3);
+                            #e3->SetLine( e3Line);
+                        }
+                }
                             ( // empty
                                 { 
-                                    c1 = comp.ConstantIndex( #e1); 
-                                    c3 = comp.ConstantIndex( #e3); 
+                                    //c1 = comp.ConstantIndex( #e1); 
+                                    //c3 = comp.ConstantIndex( #e3); 
                                     if( c1 != NULL && c3 != NULL)
                                     {
                                         ixList->push_back( new 
@@ -993,26 +1038,37 @@ arrayindex! [ArrayIndexVectorT* ixList]
                                     }
                                     else
                                     {
-                                        delete c1;
-                                        delete c3;
+                                        //delete c1;
+                                        //delete c3;
                                         ## = #( NULL, e1, e3);
                                         ixList->push_back( new ArrayIndexRange());
                                     }
                                 }
                             | e4:expr
+                {
+                    // see above (#e2)
+                    c4 = comp.ConstantIndex( #e4);
+                    if( c4 != NULL)
+                        {    
+                            int e4Line = #e4->getLine();
+                            #e4 = #[CONSTANT,"CONST_IX"];
+                            #e4->ResetCData( c4);
+                            #e4->SetLine( e4Line);
+                        }
+                }
                                 { 
-                                    c1 = comp.ConstantIndex( #e1); 
-                                    c3 = comp.ConstantIndex( #e3); 
-                                    c4 = comp.ConstantIndex( #e4); 
+                                    //c1 = comp.ConstantIndex( #e1); 
+                                    //c3 = comp.ConstantIndex( #e3); 
+                                    //c4 = comp.ConstantIndex( #e4); 
                                     if( c1 != NULL && c3 != NULL && c4 != NULL)
                                     {
                                         ixList->push_back( new CArrayIndexRangeS( c1, c3, c4));
                                     }
                                     else
                                     {
-                                        delete c1;
-                                        delete c3;
-                                        delete c4;
+                                        //delete c1;
+                                        //delete c3;
+                                        //delete c4;
                                         ## = #( NULL, e1, e3, e4);
                                         ixList->push_back( new ArrayIndexRangeS());
                                     }
