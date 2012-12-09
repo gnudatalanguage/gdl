@@ -5300,7 +5300,7 @@ void GDLInterpreter::arrayindex_list_overload(ProgNodeP _t,
 	assert( _t != NULL);
 	if( NonCopyNode( _t->getType()))
 	{
-	s= _t->EvalNC(); //indexable_expr(_t);
+	s= _t->EvalNCNull(); // in this case (overload) NULL is ok
 	//_t = _retTree;
 	}
 	else if( _t->getType() ==  GDLTokenTypes::FCALL_LIB)

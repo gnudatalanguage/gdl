@@ -67,7 +67,7 @@ BaseGDL** QUESTIONNode::LExpr( BaseGDL* right)
 	//return res;
 	}
 
-BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right)	
+BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right) // 'right' is not owned
 	//case ARRAYEXPR:
 	{
 	//res=l_array_expr(_t, right);
@@ -86,8 +86,9 @@ BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right)
 	  if( (*res)->Type() == GDL_OBJ && (*res)->StrictScalar())
 	  {
 	      // check for _overloadBracketsLeftSide
-	      DObjGDL* self = static_cast<DObjGDL*>(*res);
-	      DObj s = (*self)[0]; // is StrictScalar()
+	      BaseGDL* self = (*res)->Dup(); // res should be not changeable via SELF
+	      Guard<BaseGDL> selfGuard( self);
+	      DObj s = (*static_cast<DObjGDL*>(self))[0]; // is StrictScalar()
 	      if( s != 0)  // no overloads for null object
 	      {
 		DStructGDL* oStructGDL= GDLInterpreter::GetObjHeapNoThrow( s);
@@ -101,8 +102,12 @@ BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right)
 		      IxExprListT indexList;
 		      interpreter->arrayindex_list_overload( this->getFirstChild()->getNextSibling(), indexList);
 		     
+		      // hidden SELF is counted as well
 		      int nParSub = bracketsLeftSideOverload->NPar();
-		      if( (indexList.size() + 1) < nParSub)
+		      assert( nParSub >= 1); // SELF
+//  		      int indexListSizeDebug = indexList.size();
+		      // indexList.size() + OBJREF + RVALUE > regular paramters (w/o SELF)
+		      if( (indexList.size() + 2) > nParSub - 1)
 		      {
 			indexList.Cleanup();
 			throw GDLException( this, bracketsLeftSideOverload->ObjectName() +
@@ -110,10 +115,12 @@ BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right)
                                         false, false);
 		      }
 		      
+		      // adds already SELF parameter
 		      EnvUDT* newEnv= new EnvUDT( this, bracketsLeftSideOverload, &self);
 
 		      // parameters
-		      newEnv->SetNextParUnchecked( res);
+		      newEnv->SetNextParUnchecked( res); // OBJREF  parameter
+		      newEnv->SetNextParUnchecked( right->Dup()); // RVALUE  parameter, right is not owned
 		      for( SizeT p=0; p<indexList.size(); ++p)
 			newEnv->SetNextParUnchecked( indexList[p]); // takes ownership
   
@@ -123,7 +130,7 @@ BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right)
 		      // make the call
 		      interpreter->call_pro(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 
-		      assert( false); // in progress
+		      return res;
 		    }
 		  }
 	      }
