@@ -43,7 +43,7 @@ public:
 
   virtual ArrayIndexListT* Clone() { assert( 0); return NULL;}
 
-  virtual void InitAsOverloadIndex( IxExprListT& ixInOut, IxExprListT* cleanupIx, IxExprListT& ixOut) 
+  virtual void InitAsOverloadIndex( IxExprListT& ixIn, IxExprListT* cleanupIx, IxExprListT& ixOut) 
   { 
     throw GDLException( NULL,"Internal error: ArrayIndexListT::InitAsOverladIndex( IxExprListT& ixInOut) called.",true,false);    
   }

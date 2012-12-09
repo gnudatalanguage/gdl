@@ -118,9 +118,9 @@ BaseGDL* ArrayIndexScalar::OverloadIndexNew()
 //   //  s = varPtr->Data()->LoopIndex();
 // }
 
-  // vtable
-  ArrayIndexListOneScalarNoAssocT::~ArrayIndexListOneScalarNoAssocT()
-  {}
+//   // vtable
+//   ArrayIndexListOneScalarNoAssocT::~ArrayIndexListOneScalarNoAssocT()
+//   {}
 
 // optimized for one dimensional access
 BaseGDL* ArrayIndexListOneScalarT::Index( BaseGDL* var, IxExprListT& ix_)
@@ -181,8 +181,37 @@ BaseGDL* ArrayIndexListOneScalarNoAssocT::Index( BaseGDL* var, IxExprListT& ix_)
 //     SetVariable( var);
 //     return var->Index( this);
   }
+  
+void ArrayIndexListOneScalarNoAssocT::InitAsOverloadIndex( IxExprListT& ix_, IxExprListT* cleanupIxIn, IxExprListT& ixOut) 
+  { 
+    assert( 0 == nParam);
+
+    DLongGDL* isRange = new DLongGDL( 0);
+    ixOut.push_back(isRange);
+
+    BaseGDL* oIx = GDLInterpreter::CallStackBack()->GetKW( varIx);
+    if( oIx != NULL)
+      oIx = oIx->Dup();
+    ixOut.push_back(oIx);
+  }
+
+void ArrayIndexListOneScalarVPNoAssocT::InitAsOverloadIndex( IxExprListT& ix_, IxExprListT* cleanupIxIn, IxExprListT& ixOut) 
+  { 
+    assert( varPtr != NULL);
+    assert( 0 == nParam);
+
+    DLongGDL* isRange = new DLongGDL( 0);
+    ixOut.push_back(isRange);
+
+    BaseGDL* oIx = varPtr->Data();
+    if( oIx != NULL)
+      oIx = oIx->Dup();
+    ixOut.push_back(oIx);
+  }
+
 BaseGDL* ArrayIndexListOneScalarVPT::Index( BaseGDL* var, IxExprListT& ix_)
   {
+    assert( varPtr != NULL);
     // Init() not called
     if( !var->IsAssoc())// && var->Type() != GDL_STRUCT)
       {
@@ -360,7 +389,7 @@ ArrayIndexListT::~ArrayIndexListT() {}
 
 AllIxBaseT* ArrayIndexListT::BuildIx() {return NULL;}
 
-// called from compiler after structure is fixed
+// called from compiler after (array) structure is fixed
 // the ArrayIndexListT factory
 void MakeArrayIndex( ArrayIndexVectorT* ixList, 
 				  ArrayIndexListT** arrayIndexOut, 
@@ -393,10 +422,10 @@ void MakeArrayIndex( ArrayIndexVectorT* ixList,
 		return;
       }
       
-	if( arrayIndexNoAssocOut != NULL)
-    *arrayIndexNoAssocOut = new ArrayIndexListOneNoAssocT( ixList);
-    *arrayIndexOut = new ArrayIndexListOneT( ixList);
-    return;
+      if( arrayIndexNoAssocOut != NULL)
+	*arrayIndexNoAssocOut = new ArrayIndexListOneNoAssocT( ixList);
+      *arrayIndexOut = new ArrayIndexListOneT( ixList);
+      return;
     }
   
   SizeT nScalar  = 0;

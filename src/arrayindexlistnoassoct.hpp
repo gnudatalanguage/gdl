@@ -87,6 +87,44 @@ public:
 
   ArrayIndexListT* Clone() { return new ArrayIndexListOneNoAssocT( *this);}
 
+  void InitAsOverloadIndex( IxExprListT& ix_, IxExprListT* cleanupIxIn, IxExprListT& ixOut) 
+  { 
+    assert( allIx == NULL);
+    assert( ix_.size() == nParam);
+
+    if( cleanupIxIn != NULL)
+      cleanupIx = *cleanupIxIn;
+
+    DLongGDL* isRange = new DLongGDL( dimension(1, BaseGDL::NOZERO));
+    ixOut.push_back(isRange);
+    
+    (*isRange)[ 0] = (ix->IsRange()) ? 1 : 0;
+    if( nParam == 0)    
+      {
+	BaseGDL* oIx = ix->OverloadIndexNew();
+	ixOut.push_back(oIx);
+	return;
+      }
+    if( nParam == 1) 
+      {
+	BaseGDL* oIx = ix->OverloadIndexNew( ix_[ 0]);
+	ixOut.push_back(oIx);
+	return;
+      }
+    if( nParam == 2) 
+      {
+	BaseGDL* oIx = ix->OverloadIndexNew( ix_[ 0], ix_[ 1]);
+	ixOut.push_back(oIx);
+	return;
+      }
+    if( nParam == 3) 
+      {
+	BaseGDL* oIx = ix->OverloadIndexNew( ix_[ 0], ix_[ 1], ix_[ 2]);
+	ixOut.push_back(oIx);
+	return;
+      }
+  }
+  
   void Init( IxExprListT& ix_, IxExprListT* cleanupIxIn)
   {
     assert( allIx == NULL);
@@ -95,20 +133,26 @@ public:
     if( cleanupIxIn != NULL)
       cleanupIx = *cleanupIxIn;
     
-    if( nParam == 0) return;
+    if( nParam == 0) //return;
+      {
+	ix->Init();
+	return;
+      }
     if( nParam == 1) 
       {
-		ix->Init( ix_[ 0]);
+	ix->Init( ix_[ 0]);
+	return;
       }
-    else if( nParam == 2) 
+    if( nParam == 2) 
       {
-		ix->Init( ix_[ 0], ix_[ 1]);
-		return;
+	ix->Init( ix_[ 0], ix_[ 1]);
+	return;
       }
     else // nParam == 3
       {
-		ix->Init( ix_[ 0], ix_[ 1], ix_[ 2]);
-		return;
+	assert( nParam == 3);
+	ix->Init( ix_[ 0], ix_[ 1], ix_[ 2]);
+	return;
       }
   }
 
@@ -301,7 +345,7 @@ protected:
 
 public:    
   
-  ~ArrayIndexListOneScalarNoAssocT();
+  ~ArrayIndexListOneScalarNoAssocT() {}
 
   // constructor
   ArrayIndexListOneScalarNoAssocT()
@@ -335,6 +379,8 @@ public:
 
   ArrayIndexListT* Clone() { return new ArrayIndexListOneScalarNoAssocT( *this);}
 
+  void InitAsOverloadIndex( IxExprListT& ix_, IxExprListT* cleanupIxIn, IxExprListT& ixOut); 
+  
   void Init() {}
 
   // requires special handling
@@ -453,6 +499,8 @@ public:
   {}
 
   ArrayIndexListT* Clone() { return new ArrayIndexListOneScalarVPNoAssocT( *this);}
+
+  void InitAsOverloadIndex( IxExprListT& ix_, IxExprListT* cleanupIxIn, IxExprListT& ixOut); 
 
   void Init() {}
 
@@ -573,17 +621,18 @@ class ArrayIndexListOneConstScalarNoAssocT: public ArrayIndexListT
   RangeT sInit;
   RangeT s;
   AllIxT allIx;
-//   AllIxT* allIx;
+  BaseGDL* rawData;
 
 public:    
   
   ~ArrayIndexListOneConstScalarNoAssocT() 
   {
-//     delete allIx;
+    delete rawData;
   }
 
   // constructor
   ArrayIndexListOneConstScalarNoAssocT()
+  : rawData( NULL)
 // 	: allIx( NULL)
   {
     nParam = 0;
@@ -595,6 +644,8 @@ public:
     , s( cp.s)
 //     , allIx( NULL)
   {
+    assert( cp.rawData != NULL);
+    rawData = cp.rawData->Dup();
 //     assert( cp.allIx == NULL); // all copying should be done before using.
   }
 
@@ -602,7 +653,10 @@ public:
   ArrayIndexListOneConstScalarNoAssocT( ArrayIndexVectorT* aIV)
 //     : allIx( NULL)
   {
-    sInit = (*aIV)[0]->GetS();
+    assert( CArrayIndexScalarID == (*aIV)[0]->Type()); // see MakeArrayIndex (arrayindex.cpp)
+    CArrayIndexScalar* arrayIndex = static_cast<CArrayIndexScalar*>( (*aIV)[0]);
+    rawData = arrayIndex->StealRawData();
+    sInit = arrayIndex->GetS();
     if( sInit >= 0)
       s = sInit;
     nParam = 0;
@@ -610,6 +664,18 @@ public:
    // ArrayIndexListOneConstScalarT will do the cleanup
 //     delete (*aIV)[0];
   }    
+
+  void InitAsOverloadIndex( IxExprListT& ix_, IxExprListT* cleanupIxIn, IxExprListT& ixOut) 
+  { 
+    assert( 0 == nParam);
+    assert( rawData != NULL);
+    
+    DLongGDL* isRange = new DLongGDL( 0);
+    ixOut.push_back(isRange);
+
+    ixOut.push_back(rawData->Dup());
+  }
+
   
   void Clear()
   {}
@@ -819,31 +885,26 @@ public:
     acRank = ixList.size();
 
     nParam = 0;
-//     for( SizeT i=0; i<ixList.size(); ++i)
-//       {
-// 		SizeT actNParam = ixList[i]->NParam();
-// 		if( actNParam == 1) 
-// 		{
-// // 			paramPresent.push_back( i);
-// 			nParam++;
-// 		}
-//       }
   }    
+
+  void InitAsOverloadIndex( IxExprListT& ix, IxExprListT* cleanupIxIn, IxExprListT& ixOut) 
+  { 
+    assert( ix.size() == 0);
+
+    DLongGDL* isRange = new DLongGDL( dimension(ixList.size(), BaseGDL::ZERO));
+    ixOut.push_back(isRange);
+    
+    for( SizeT i=0; i<ixList.size(); ++i)
+      {
+	assert( ixList[ i]->NParam() == 0);
+	BaseGDL* oIx = ixList[ i]->OverloadIndexNew();
+	ixOut.push_back(oIx);
+      }
+  }
   
   void Clear()
   {
   }
-
-//   void Init( IxExprListT& ix)
-//   {
-//     assert( allIx == NULL);
-//     assert( ix.size() == nParam);
-    
-//     for( SizeT i=0; i<nParam; ++i)
-//       {
-// 	ixList[ /*paramPresent*/[i]]->Init( ix[ i]);
-//       }
-//   }
 
   ArrayIndexListT* Clone() { return new ArrayIndexListScalarNoAssocT( *this);}
 
@@ -949,29 +1010,6 @@ public:
   
   BaseGDL* Index( BaseGDL* var, IxExprListT& ix)
   {
-    //    Init();
-    // SetVariable( var);
-//     // set acRank
-//     acRank = ixList.size();
-    // for assoc variables last index is the record
-//     if( var->IsAssoc()) 
-//       {
-// 	acRank--;
-// 	varStride = var->Dim().Stride();
-// 	// ArrayIndexScalar[VP] need this call to read their actual data
-// 	// as their are not initalized (nParam == 0)
-// 	ixList[0]->NIter( var->Dim(0)); // check boundary
-// 	for( SizeT i=1; i < acRank; ++i)
-// 	{
-// 	  ixList[i]->NIter( var->Dim(i)); // check boundary
-// 	}
-// //     return dStart;
-// //     for( SizeT i=0; i<acRank; ++i)
-// //       ixList[i]->NIter( var->Dim(i)); // check boundary
-// //    	return var->NewIx( dStart); //this->LongIx());
-// 	return var->Index( this);
-//       }
-
     varStride = var->Dim().Stride();
     // ArrayIndexScalar[VP] need this call to read their actual data
     // as their are not initalized (nParam == 0)
@@ -982,11 +1020,7 @@ public:
       ixList[i]->NIter( var->Dim(i)); // check boundary
       dStart += ixList[i]->GetS() * varStride[ i];    
     }
-//     return dStart;
-//     for( SizeT i=0; i<acRank; ++i)
-//       ixList[i]->NIter( var->Dim(i)); // check boundary
     return var->NewIx( dStart); //this->LongIx());
-//    return var->Index( this);
   }
 
   // returns multi-dim index for 1st element
@@ -1060,6 +1094,21 @@ public:
     assert( ixList.size() == 2); // must be, from compiler
     nParam = 0;
   }    
+  
+  void InitAsOverloadIndex( IxExprListT& ix, IxExprListT* cleanupIxIn, IxExprListT& ixOut) 
+  { 
+    assert( ix.size() == 0);
+
+    DLongGDL* isRange = new DLongGDL( dimension(ixList.size(), BaseGDL::ZERO));
+    ixOut.push_back(isRange);
+    
+    for( SizeT i=0; i<ixList.size(); ++i)
+      {
+	assert( ixList[ i]->NParam() == 0);
+	BaseGDL* oIx = ixList[ i]->OverloadIndexNew();
+	ixOut.push_back(oIx);
+      }
+  }
   
   void Clear()
   {
@@ -1328,31 +1377,37 @@ public:
       cleanupIx = *cleanupIxIn;
 
     DLongGDL* isRange = new DLongGDL( dimension(ixList.size(), BaseGDL::NOZERO));
+    ixOut.push_back(isRange);
     
     SizeT pIX = 0;
     for( SizeT i=0; i<ixList.size(); ++i)
       {
 	SizeT ixNParam = ixList[ i]->NParam();
+	(*isRange)[ i] = (ixList[ i]->IsRange()) ? 1 : 0;
 	if( ixNParam == 0)    
 	  {
-	    ixList[ i]->Init();
+	    BaseGDL* oIx = ixList[ i]->OverloadIndexNew();
+	    ixOut.push_back(oIx);
 	    continue;
 	  }
 	if( ixNParam == 1) 
 	  {
-	    ixList[ i]->Init( ix[ pIX]);
+	    BaseGDL* oIx = ixList[ i]->OverloadIndexNew( ix[ pIX]);
+	    ixOut.push_back(oIx);
 	    pIX += 1;
 	    continue;
 	  }
 	if( ixNParam == 2) 
 	  {
-	    ixList[ i]->Init( ix[ pIX], ix[ pIX+1]);
+	    BaseGDL* oIx = ixList[ i]->OverloadIndexNew( ix[ pIX], ix[ pIX+1]);
+	    ixOut.push_back(oIx);
 	    pIX += 2;
 	    continue;
 	  }
 	if( ixNParam == 3) 
 	  {
-	    ixList[ i]->Init( ix[ pIX], ix[ pIX+1], ix[ pIX+2]);
+	    BaseGDL* oIx = ixList[ i]->OverloadIndexNew( ix[ pIX], ix[ pIX+1], ix[ pIX+2]);
+	    ixOut.push_back(oIx);
 	    pIX += 3;
 	    continue;
 	  }
@@ -1659,79 +1714,12 @@ public:
 	    return allIx;
     }
     assert( acRank > 1);
-//     if( acRank == 1) // assoc already recognized
-//     {
-// 	ArrayIndexT* ix = ixList[0];
-// 	if(  ix->Indexed())
-// 	{
-// 	    allIx = static_cast< ArrayIndexIndexed*>(ix)->GetAllIx();
-// 	    return allIx;
-// 	}
-// 	if( nIx == 1)
-// 	{
-// 	    allIx = new (allIxInstance) AllIxT( ix->GetS());
-// 	    return allIx;
-// 	}
-// 	SizeT s = ix->GetS();
-// 	SizeT ixStride = ix->GetStride();
-// 	if( ixStride <= 1) 
-// 	if( s != 0)
-// 	    {
-// 	    allIx = new (allIxInstance) AllIxRangeT( nIx, s);
-// 	    }
-// 	else
-// 	    {
-// 	    allIx = new (allIxInstance) AllIxRange0T( nIx);
-// 	    }
-// 	else
-// 	if( s != 0)
-// 	    {
-// 	    allIx = new (allIxInstance) AllIxRangeStrideT( nIx, s, ixStride);
-// 	    }
-// 	else
-// 	    {
-// 	    allIx = new (allIxInstance) AllIxRange0StrideT( nIx, ixStride);
-// 	    }
-// 	return allIx;
-//     }
 
     // NORMAL
     // loop only over specified indices
     // higher indices of variable are implicitely zero,
     // therefore they are not checked in 'SetRoot'
 
-// 	SizeT nIterLimitGt1 = 0;
-// 	SizeT baseIx = 0;
-// 	RankT gt1Rank;
-// 	bool indexed;
-// 	for( SizeT l=0; l<acRank; ++l)
-// 	{
-// 		if( nIterLimit[l] > 1)
-// 		{
-// 			++nIterLimitGt1;
-// 			gt1Rank = l;
-// 			if( !ixList[l]->Indexed())
-// 			{
-// 				baseIx += ixList[l]->GetS() * varStride[l];
-// 				indexed = false;
-// 			}
-// 			else
-// 			{
-// 				indexed = true;
-// 			}
-// 		}
-// 		else
-// 		{
-// 			if( ixList[l]->Indexed())
-// 			{
-// 				baseIx += static_cast< ArrayIndexIndexed*>( ixList[l])->GetIx( 0) * varStride[l];
-// 			}
-// 			else
-// 			{
-// 				baseIx += ixList[l]->GetS()  * varStride[l];
-// 			}
-// 		}
-// 	}
     if( nIterLimitGt1 == 1) // only one variable dimension
     {
       if( indexed)
@@ -1748,103 +1736,6 @@ public:
     allIx = new (allIxInstance) AllIxNewMultiT( &ixList, acRank, nIx, varStride, nIterLimit, stride);
     return allIx;
 }
-//     // init allIx from first index
-//     if( ixList[0]->Indexed())
-//       {
-// 		AllIxMultiT* tmpIx = static_cast< ArrayIndexIndexed*>(ixList[0])->StealIx();
-// 
-// 		for( SizeT i=0; i<nIx; ++i)
-// 		{
-// 		static_cast<AllIxMultiT*>(allIx)->SetIx( i, tmpIx->GetIx( i %  nIterLimit[0]));
-// 	// 	  	    (*allIx)[ i] = (*tmpIx)[ i %  nIterLimit[0]];
-// 		}
-// 
-// 		delete tmpIx;
-//       }
-//     else
-//       {
-// 		SizeT s = ixList.FrontGetS(); //ixList[0]->GetS();
-// 		SizeT ixStride = ixList[0]->GetStride();
-// 		
-// 		if( ixStride <= 1)
-// 			if( s != 0)
-// 				for( SizeT i=0; i<nIx; ++i)
-// 				{
-// 					static_cast<AllIxMultiT*>(allIx)->SetIx( i,  (i %  nIterLimit[0]) + s);
-// 		// 		(*allIx)[i] = (i %  nIterLimit[0]) + s; // stride[0], varStride[0] == 1
-// 				}
-// 			else
-// 				for( SizeT i=0; i<nIx; ++i)
-// 				{
-// 					static_cast<AllIxMultiT*>(allIx)->SetIx( i, (i %  nIterLimit[0]));
-// 		// 		(*allIx)[i] = (i %  nIterLimit[0]); // stride[0], varStride[0] == 1
-// 				}
-// 		else
-// 			if( s != 0)
-// 				for( SizeT i=0; i<nIx; ++i)
-// 				{
-// 					static_cast<AllIxMultiT*>(allIx)->SetIx( i, (i %  nIterLimit[0]) * ixStride + s);
-// 		// 		(*allIx)[i] = (i %  nIterLimit[0]) * ixStride + s; // stride[0], varStride[0] == 1
-// 				}
-// 			else
-// 				for( SizeT i=0; i<nIx; ++i)
-// 				{
-// 					static_cast<AllIxMultiT*>(allIx)->SetIx( i, (i %  nIterLimit[0]) * ixStride);
-// 		// 		(*allIx)[i] = (i %  nIterLimit[0]) * ixStride; // stride[0], varStride[0] == 1
-// 				}
-//       }
-// 
-//     for( SizeT l=1; l < acRank; ++l)
-//     {
-// 		if( ixList[l]->Indexed())
-// 		{
-// 				AllIxMultiT* tmpIx = static_cast< ArrayIndexIndexed*>(ixList[l])->StealIx();
-// 				//	    SizeT* tmpIx = ixList[l]->StealIx();
-// 			
-// 				for( SizeT i=0; i<nIx; ++i)
-// 				{
-// 					static_cast<AllIxMultiT*>(allIx)->AddToIx( i,  tmpIx->GetIx( (i / stride[l]) %  nIterLimit[l]) * varStride[l]);
-// 			// 		(*allIx)[ i] += (*tmpIx)[ (i / stride[l]) %  nIterLimit[l]] * varStride[l];
-// 				}
-// 			
-// 				delete tmpIx;
-// 		}
-// 		else
-// 		{
-// 				SizeT s = ixList[l]->GetS();
-// 				SizeT ixStride = ixList[l]->GetStride();
-// 			
-// 				if( ixStride <= 1)
-// 				if( s != 0)
-// 				for( SizeT i=0; i<nIx; ++i)
-// 				{
-// 					static_cast<AllIxMultiT*>(allIx)->AddToIx( i, ((i / stride[l]) %  nIterLimit[l] + s) * varStride[l]);
-// 		// 		  (*allIx)[i] += ((i / stride[l]) %  nIterLimit[l] + s) * varStride[l];
-// 				}
-// 				else
-// 				for( SizeT i=0; i<nIx; ++i)
-// 				{
-// 					static_cast<AllIxMultiT*>(allIx)->AddToIx( i, ((i / stride[l]) %  nIterLimit[l]) * varStride[l]);
-// 		// 		  (*allIx)[i] += ((i / stride[l]) %  nIterLimit[l]) * varStride[l];
-// 				}
-// 				else // ixStride > 1
-// 				if( s != 0)
-// 				for( SizeT i=0; i<nIx; ++i)
-// 				{
-// 					static_cast<AllIxMultiT*>(allIx)->AddToIx( i, (((i / stride[l]) %  nIterLimit[l]) * ixStride + s) * varStride[l]);
-// 		// 		  (*allIx)[i] += (((i / stride[l]) %  nIterLimit[l]) * ixStride + s) * varStride[l];
-// 				}
-// 				else
-// 				for( SizeT i=0; i<nIx; ++i)
-// 				{
-// 					static_cast<AllIxMultiT*>(allIx)->AddToIx( i, ((i * ixStride / stride[l]) %  nIterLimit[l]) * ixStride * varStride[l]);
-// 		// 		  (*allIx)[i] += ((i * ixStride / stride[l]) %  nIterLimit[l]) * ixStride * varStride[l];
-// 				}
-// 		}
-// 	}
-//     
-//     return allIx;
-//   }
 
   // returns one dim long ix in case of one element array index
   // used by AssignAt and Index functions
@@ -2098,37 +1989,8 @@ class ArrayIndexListMultiNoneIndexedNoAssocT: public ArrayIndexListMultiNoAssocT
 	}
 	  
 	assert( acRank > 1);  
-// 	if( acRank == 1) // assoc already recognized
-// 	{
-// 		ArrayIndexT* ix = ixList[0];
-// 		if( nIx == 1)
-// 		{
-// 			allIx = new (allIxInstance) AllIxT( ix->GetS());
-// 			return allIx;
-// 		}
-// 		SizeT s = ix->GetS();
-// 		SizeT ixStride = ix->GetStride();
-// 		if( ixStride <= 1) 
-// 		if( s != 0)
-// 			{
-// 			allIx = new (allIxInstance) AllIxRangeT( nIx, s);
-// 			}
-// 		else
-// 			{
-// 			allIx = new (allIxInstance) AllIxRange0T( nIx);
-// 			}
-// 		else
-// 		if( s != 0)
-// 			{
-// 			allIx = new (allIxInstance) AllIxRangeStrideT( nIx, s, ixStride);
-// 			}
-// 		else
-// 			{
-// 			allIx = new (allIxInstance) AllIxRange0StrideT( nIx, ixStride);
-// 			}
-// 		return allIx;
-//  	}
 
+	
 	// NORMAL
 	// loop only over specified indices
 	// higher indices of variable are implicitely zero,
@@ -2249,17 +2111,6 @@ public:
     return allIx;
   }
 }; // ArrayIndexListMultiNoneIndexed2DT
-
-
-
-
-
-
-
-
-
-
-
 
 
 

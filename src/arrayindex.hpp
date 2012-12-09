@@ -319,6 +319,8 @@ public:
 
   SizeT NParam() { return 0;} // number of parameter to Init(...)
 
+  BaseGDL* StealRawData() { BaseGDL* r = rawData; rawData = NULL; return r;}
+  
   bool Scalar() const { return true;}
   bool Scalar( RangeT& s_) const
   { 
