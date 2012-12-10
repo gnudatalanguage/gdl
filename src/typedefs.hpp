@@ -209,6 +209,10 @@ public:
   {
     guarded = NULL;
   }  
+  T* Get()
+  {
+    return guarded;
+  }  
 
   ~Guard()
   {

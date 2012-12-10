@@ -2291,6 +2291,7 @@ private:
   ArrayIndexListT* aL;
 public:
   ArrayIndexListGuard(): aL( NULL) {}
+  ArrayIndexListGuard(ArrayIndexListT* aLToGuard): aL( aLToGuard) {}
   ~ArrayIndexListGuard() 
   {
     if( aL != NULL)

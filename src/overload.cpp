@@ -162,6 +162,15 @@ void _GDL_OBJECT_OverloadBracketsLeftSide( EnvUDT* e)
 //     e->Throw("Parameter 3 (ISRANGE) must have one element for each index parameter (#4 - #11).");
 }
 
+BaseGDL* _GDL_OBJECT_OverloadBracketsRightSide( EnvUDT* e)
+{
+//   // debug/check
+//   std::cout << "_GDL_OBJECT_OverloadIsTrue called" << std::endl;
+// TODO
+// default behavior: Implict: Another object cannot be the null object
+  return new DIntGDL(1); // if we reach here, defaul is to return 'TRUE'
+}
+
 // set up the _overload... subroutines for GDL_OBJECT
 void SetupOverloadSubroutines()
 {
@@ -171,7 +180,6 @@ void SetupOverloadSubroutines()
   DStructDesc* gdlObjectDesc = FindInStructList(structList, GDL_OBJECT_NAME);
   assert( gdlObjectDesc != NULL);
   
-  // _overloadIsTrue
   // automatically adds "SELF" parameter (object name is != "")
   DFun *_overloadIsTrue = new DFun("_OVERLOADISTRUE",GDL_OBJECT_NAME,"*INTERNAL*");
   WRAPPED_FUNNode *tree1 = new WRAPPED_FUNNode(_GDL_OBJECT_OverloadIsTrue);
@@ -179,7 +187,6 @@ void SetupOverloadSubroutines()
   gdlObjectDesc->FunList().push_back(_overloadIsTrue);
   gdlObjectDesc->SetOperator(OOIsTrue,_overloadIsTrue);
 
-  
   DPro *_overloadBracketsLeftSide = new DPro("_OVERLOADBRACKETSLEFTSIDE",GDL_OBJECT_NAME,"*INTERNAL*");
   _overloadBracketsLeftSide->AddPar("OBJREF")->AddPar("RVALUE")->AddPar("ISRANGE");
   _overloadBracketsLeftSide->AddPar("SUB1")->AddPar("SUB2")->AddPar("SUB3")->AddPar("SUB4");
@@ -188,5 +195,14 @@ void SetupOverloadSubroutines()
   _overloadBracketsLeftSide->SetTree( tree2); 
   gdlObjectDesc->ProList().push_back(_overloadBracketsLeftSide);
   gdlObjectDesc->SetOperator(OOBracketsLeftSide,_overloadBracketsLeftSide);
+
+  DFun *_overloadBracketsRightSide = new DFun("_OVERLOADBRACKETSRIGHTSIDE",GDL_OBJECT_NAME,"*INTERNAL*");
+  _overloadBracketsRightSide->AddPar("ISRANGE");
+  _overloadBracketsRightSide->AddPar("SUB1")->AddPar("SUB2")->AddPar("SUB3")->AddPar("SUB4");
+  _overloadBracketsRightSide->AddPar("SUB5")->AddPar("SUB6")->AddPar("SUB7")->AddPar("SUB8");
+  WRAPPED_FUNNode *tree3 = new WRAPPED_FUNNode(_GDL_OBJECT_OverloadBracketsRightSide);
+  _overloadBracketsRightSide->SetTree( tree3);
+  gdlObjectDesc->FunList().push_back(_overloadBracketsRightSide);
+  gdlObjectDesc->SetOperator(OOBracketsRightSide,_overloadBracketsRightSide);
 
 }

@@ -26,6 +26,7 @@ email                : m_schellens@users.sf.net
 #include "arrayindexlistt.hpp"
 //#include "envt.hpp"
 #include "gdlexception.hpp"
+#include "nullgdl.hpp"
 
 // illegal
 BaseGDL** ProgNode::LExpr( BaseGDL* right)
@@ -101,6 +102,7 @@ BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right) // 'right' is not owned
 		      // _overloadBracketsLeftSide
 		      IxExprListT indexList;
 		      interpreter->arrayindex_list_overload( this->getFirstChild()->getNextSibling(), indexList);
+		      ArrayIndexListGuard guard(this->getFirstChild()->getNextSibling()->arrIxListNoAssoc);
 		     
 		      // hidden SELF is counted as well
 		      int nParSub = bracketsLeftSideOverload->NPar();
@@ -134,18 +136,23 @@ BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right) // 'right' is not owned
 		      for( SizeT p=0; p<indexList.size(); ++p)
 			newEnv->SetNextParUnchecked( indexList[p]); // takes ownership
   
-		      StackGuard<EnvStackT> guard(interpreter->CallStack());
+		      StackGuard<EnvStackT> stackGuard(interpreter->CallStack());
 		      interpreter->CallStack().push_back( newEnv); 
 		      
 		      // make the call
 		      interpreter->call_pro(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 
-// 		      // in case an assignment was made to rightCopy
-// 		      if( rightCopy != right)
-// 		      {
-// 			Warning( bracketsLeftSideOverload->ObjectName() + 
-// 			": Assignment to RVALUE (parameter #2) detected.");
-// 		      }
+		      if( self != selfGuard.Get())
+		      {
+			// always put out warning first, in case of a later crash
+			Warning( "WARNING: " + bracketsLeftSideOverload->ObjectName() + 
+			      ": Assignment to SELF detected.");
+			// assignment to SELF -> self was deleted and points to new variable
+			// which it owns
+			selfGuard.Release();
+			if( self != NullGDL::GetSingleInstance())
+			  selfGuard.Reset(self);
+		      }
 		      
 		      return res;
 		    }
