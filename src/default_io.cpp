@@ -826,6 +826,13 @@ ostream& Data_<SpDPtr>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   return o;
 }
 // obj
+inline void ObjHeapVarString(ostream& o, DObj obj)
+{
+  if( obj != 0)
+    o << "<ObjHeapVar" << obj << ">";
+  else
+    o << "<NullObject>";
+}
 template<> 
 ostream& Data_<SpDObj>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr) 
 {
@@ -837,7 +844,9 @@ ostream& Data_<SpDObj>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
 
   if( this->dim.Rank() == 0)
     {
-      o << CheckNL( w, actPosPtr, 15) << "<ObjHeapVar" << (*this)[0] << ">";
+      o << CheckNL( w, actPosPtr, 15);
+      ObjHeapVarString( o, (*this)[0]);
+//       o << CheckNL( w, actPosPtr, 15) << "<ObjHeapVar" << (*this)[0] << ">";
       return o;
     }
 
@@ -854,7 +863,11 @@ ostream& Data_<SpDObj>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
       for( SizeT i1=0; i1<d1; i1++)
 	{
 	  for( SizeT i0=0; i0<d0; i0++)
-	    o << CheckNL( w, actPosPtr, 15) << "<ObjHeapVar" << (*this)[eIx++] << ">";
+	  {
+	    o << CheckNL( w, actPosPtr, 15);
+	    ObjHeapVarString( o, (*this)[eIx++]);
+// 	    o << CheckNL( w, actPosPtr, 15) << "<ObjHeapVar" << (*this)[eIx++] << ">";
+	  }
 	  InsNL( o, actPosPtr);
 	}
       InsNL( o, actPosPtr);
@@ -864,7 +877,11 @@ ostream& Data_<SpDObj>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   for( SizeT i1=0; i1<d1; i1++)
     {
       for( SizeT i0=0; i0<d0; i0++)
-	o << CheckNL( w, actPosPtr, 15) << "<ObjHeapVar" << (*this)[eIx++] << ">";
+      {
+	o << CheckNL( w, actPosPtr, 15);
+	ObjHeapVarString( o, (*this)[eIx++]);
+// 	o << CheckNL( w, actPosPtr, 15) << "<ObjHeapVar" << (*this)[eIx++] << ">";
+      }
       //      if( (i1+1) < d1) InsNL( o, actPosPtr);
       InsNL( o, actPosPtr);
     }

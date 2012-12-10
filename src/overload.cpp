@@ -20,6 +20,9 @@
 #include "objects.hpp"
 #include "overload.hpp"
 #include "prognodeexpr.hpp"
+#include "dinterpreter.hpp"
+
+using namespace std;
 
 std::string overloadOperatorNames[] = 
 {
@@ -80,6 +83,82 @@ BaseGDL* _GDL_OBJECT_OverloadIsTrue( EnvUDT* e)
   // default behavior: Implict: Another object cannot be the null object
   return new DIntGDL(1); // if we reach here, defaul is to return 'TRUE'
 }
+void _GDL_OBJECT_OverloadBracketsLeftSide( EnvUDT* e)
+{
+  assert( GDLException::Interpreter()->CallStack().back() == e);
+  
+  //   // debug/check
+  //   std::cout << "_GDL_OBJECT_OverloadBracketsLeftSide called" << std::endl;
+
+  // this is only called on scalar object references
+  // IDL's default behavior is to just replace SELF (via OBJREF) then by RVALUE
+  int envSize = e->EnvSize();
+  if( envSize < 3) // consider implicit SELF
+    return; // RVALUE not given -> ignore
+
+  BaseGDL* objRef = e->GetKW(1);
+  BaseGDL** objRefP = e->GetPtrTo( objRef);
+  if( objRefP == NULL)
+  {
+    ProgNodeP callingNode = e->CallingNode();
+    string objectName =e->GetPro()->ObjectName();
+    delete e;
+    GDLException::Interpreter()->CallStack().pop_back();
+    throw GDLException( callingNode, objectName+
+    " (internal): Parameter 1 (OBJREF) must be a passed as reference in this context.", false, false);
+  }
+  BaseGDL* rValue = e->GetKW(2);
+  if( rValue == NULL)
+  {
+    ProgNodeP callingNode = e->CallingNode();
+    string objectName =e->GetPro()->ObjectName();
+    delete e;
+    GDLException::Interpreter()->CallStack().pop_back();
+    throw GDLException( callingNode, objectName+
+    " (internal): Parameter 2 (RVALUE) is undefined.", false, false);
+  }
+  if( rValue->Type() != GDL_OBJ)
+  {
+    ProgNodeP callingNode = e->CallingNode();
+    string objectName =e->GetPro()->ObjectName();
+    delete e;
+    GDLException::Interpreter()->CallStack().pop_back();
+    throw GDLException( callingNode, objectName+
+    " (internal): Parameter 2 (RVALUE) must be an OBJECT in this context.", false, false);
+  }
+  
+  GDLDelete( *objRefP);
+  *objRefP = rValue->Dup();
+  
+//   int envSize = e->EnvSize();
+//   if( envSize < 5) // consider implicit SELF
+//     e->Throw("At least 4 parameters are needed: OBJREF, RVALUE, ISRANGE, SUB1 [, ...].");
+//   BaseGDL* objRef = e->GetKW(1);
+//   BaseGDL** objRefP = e->GetPtrTo( objRef);
+//   if( objRefP == NULL)
+//     e->Throw("Parameter 1 (OBJREF) must be a passed as reference in this context.");
+//   BaseGDL* rValue = e->GetKW(2);
+//   if( rValue == NULL)
+//     e->Throw("Parameter 2 (RVALUE) is undefined.");
+//   if( rValue->Type() != GDL_OBJ)
+//     e->Throw("Parameter 2 (RVALUE) must be an OBJECT in this context.");
+//   BaseGDL* isRange = e->GetKW(3);
+//   if( isRange == NULL)
+//     e->Throw("Parameter 3 (ISRANGE) is undefined.");
+//   Guard<DLongGDL> isRangeLongGuard;
+//   DLongGDL* isRangeLong;
+//   if( isRange->Type() == GDL_LONG)
+//     isRangeLong = static_cast<DLongGDL*>( isRange);
+//   else
+//   {
+//     isRangeLong = isRange->Convert2( GDL_LONG, BaseGDL::COPY);
+//     isRangeLongGuard.Reset( isRangeLong);
+//   }
+//   SizeT nIsRange = isRangeLong->N_Elements();
+//   SizeT nSub = envSize - 4; // >= 1 s. a.
+//   if( nIsRange != nSub)
+//     e->Throw("Parameter 3 (ISRANGE) must have one element for each index parameter (#4 - #11).");
+}
 
 // set up the _overload... subroutines for GDL_OBJECT
 void SetupOverloadSubroutines()
@@ -87,17 +166,33 @@ void SetupOverloadSubroutines()
 //   // The call
 //   BaseGDL* res=interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 //   in call_fun eventually (in GDLInterpreter::statement) tree->Run() is called
-
-  // _overloadIsTrue
-  // automatically adds "SELF" parameter (obejct name is != "")
-  DFun *_overloadIsTrue = new DFun("_OVERLOADISTRUE",GDL_OBJECT_NAME,"*INTERNAL*");
-  WRAPPED_FUNNode *tree = new WRAPPED_FUNNode(_GDL_OBJECT_OverloadIsTrue);
-  _overloadIsTrue->SetTree( tree);
- 
   DStructDesc* gdlObjectDesc = FindInStructList(structList, GDL_OBJECT_NAME);
   assert( gdlObjectDesc != NULL);
   
+  // _overloadIsTrue
+  // automatically adds "SELF" parameter (obejct name is != "")
+  DFun *_overloadIsTrue = new DFun("_OVERLOADISTRUE",GDL_OBJECT_NAME,"*INTERNAL*");
+  WRAPPED_FUNNode *tree1 = new WRAPPED_FUNNode(_GDL_OBJECT_OverloadIsTrue);
+  _overloadIsTrue->SetTree( tree1);
   gdlObjectDesc->FunList().push_back(_overloadIsTrue);
   gdlObjectDesc->SetOperator(OOIsTrue,_overloadIsTrue);
+
+  
+  DPro *_overloadBracketsLeftSide = new DPro("_OVERLOADBRACKETSLEFTSIDE",GDL_OBJECT_NAME,"*INTERNAL*");
+  _overloadBracketsLeftSide->AddPar("OBJREF");
+  _overloadBracketsLeftSide->AddPar("RVALUE");
+  _overloadBracketsLeftSide->AddPar("ISRANGE");
+  _overloadBracketsLeftSide->AddPar("SUB1");
+  _overloadBracketsLeftSide->AddPar("SUB2");
+  _overloadBracketsLeftSide->AddPar("SUB3");
+  _overloadBracketsLeftSide->AddPar("SUB4");
+  _overloadBracketsLeftSide->AddPar("SUB5");
+  _overloadBracketsLeftSide->AddPar("SUB6");
+  _overloadBracketsLeftSide->AddPar("SUB7");
+  _overloadBracketsLeftSide->AddPar("SUB8");
+  WRAPPED_PRONode *tree2 = new WRAPPED_PRONode(_GDL_OBJECT_OverloadBracketsLeftSide);
+  _overloadBracketsLeftSide->SetTree( tree2); 
+  gdlObjectDesc->ProList().push_back(_overloadBracketsLeftSide);
+  gdlObjectDesc->SetOperator(OOBracketsLeftSide,_overloadBracketsLeftSide);
 
 }

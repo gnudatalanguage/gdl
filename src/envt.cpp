@@ -914,19 +914,23 @@ void EnvBaseT::ResolveExtra()
   if( extra != NULL) extra->ResolveExtra( NULL);
 }
 
+// // for internal non-library routines (e.g. operator overloads) ('this' is on the stack)
+// EnvUDT* EnvUDT::CallingEnv()
+// {
+//   EnvStackT& callStack=interpreter->CallStack();
+//   assert( callStack.size() >= 2); // must be: "$MAIN$" and the EnvUDT of the internal routine
+//   return callStack[callStack.size()-2];
+// }
+
+// for library subroutines, get the EnvUDT from which they are called
 EnvBaseT* EnvBaseT::Caller()
 {
   EnvStackT& callStack=interpreter->CallStack();
 
   //if( callStack.size() <= 1) return NULL;
-
-  
-  
   // library environments are no longer on the call stack
   assert( callStack.back() != this);
 
-  
-  
   return callStack.back();
   
 //   if( callStack.back() != this) 

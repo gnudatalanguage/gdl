@@ -176,6 +176,7 @@ public:
   friend class EnvBaseT;
   friend class EnvT;
   friend class ExtraT;
+  friend void SetupOverloadSubroutines(); // overload base class methods
 };
 
 // Lib pro/fun ********************************************************

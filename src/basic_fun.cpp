@@ -568,6 +568,8 @@ namespace lib {
 
     // this is a struct name -> convert to UPPERCASE
     objName=StrUpCase(objName);
+    if( objName == "IDL_OBJECT")
+      objName = GDL_OBJECT_NAME; // replacement also done in GDLParser
 
     DStructDesc* objDesc=e->Interpreter()->GetStruct( objName, e->CallingNode());
 

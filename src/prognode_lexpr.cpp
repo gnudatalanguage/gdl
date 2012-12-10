@@ -117,7 +117,8 @@ BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right) // 'right' is not owned
 		      
 		      // adds already SELF parameter
 		      EnvUDT* newEnv= new EnvUDT( this, bracketsLeftSideOverload, &self);
-
+// 		      Guard<EnvUDT> newEnvGuard( newEnv);
+		      
 		      // parameters
 		      newEnv->SetNextParUnchecked( res); // OBJREF  parameter
 		      // Dup() here is not optimal
@@ -135,7 +136,7 @@ BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right) // 'right' is not owned
   
 		      StackGuard<EnvStackT> guard(interpreter->CallStack());
 		      interpreter->CallStack().push_back( newEnv); 
-  
+		      
 		      // make the call
 		      interpreter->call_pro(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 

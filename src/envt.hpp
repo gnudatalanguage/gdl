@@ -200,12 +200,13 @@ public:
   // a EnvT must have always a /*EnvUDT*/ caller
   // i.e. library functions never call each other
   // with a new EnvT environment
+  // for library subroutines, get the EnvUDT from which they are called
   EnvBaseT* Caller();
 
   // returns environment data, by value (but that by C++ reference)
   BaseGDL*& GetKW(SizeT ix) { return env[ix];}
 
-  // used by HELP and SetNextPar(...)
+  // used by HELP, SetNextPar(...), and internal overload routines
   SizeT EnvSize() const { return env.size();}
 
   // next four are used by Parameter...(...) functions
@@ -447,6 +448,9 @@ public:
     DSubUD* subUD=static_cast<DSubUD*>( pro);
     return subUD->GetFilename();
   }
+
+//   // for internal non-library routines (e.g. operator overloads) ('this' is on the stack)
+//   EnvUDT* CallingEnv();
 
   friend class DInterpreter;
   friend class EnvT;
