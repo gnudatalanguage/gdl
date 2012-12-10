@@ -80,18 +80,20 @@ BaseGDL* _GDL_OBJECT_OverloadIsTrue( EnvUDT* e)
 {
 //   // debug/check
 //   std::cout << "_GDL_OBJECT_OverloadIsTrue called" << std::endl;
-  // default behavior: Implict: Another object cannot be the null object
+
+// default behavior: Implict: Another object cannot be the null object
   return new DIntGDL(1); // if we reach here, defaul is to return 'TRUE'
 }
+
 void _GDL_OBJECT_OverloadBracketsLeftSide( EnvUDT* e)
 {
   assert( GDLException::Interpreter()->CallStack().back() == e);
-  
   //   // debug/check
   //   std::cout << "_GDL_OBJECT_OverloadBracketsLeftSide called" << std::endl;
 
   // this is only called on scalar object references
-  // IDL's default behavior is to just replace SELF (via OBJREF) then by RVALUE
+  // IDL's default behavior is to just replace SELF (via OBJREF) by RVALUE
+  // no index checking is done.
   int envSize = e->EnvSize();
   if( envSize < 3) // consider implicit SELF
     return; // RVALUE not given -> ignore
@@ -170,7 +172,7 @@ void SetupOverloadSubroutines()
   assert( gdlObjectDesc != NULL);
   
   // _overloadIsTrue
-  // automatically adds "SELF" parameter (obejct name is != "")
+  // automatically adds "SELF" parameter (object name is != "")
   DFun *_overloadIsTrue = new DFun("_OVERLOADISTRUE",GDL_OBJECT_NAME,"*INTERNAL*");
   WRAPPED_FUNNode *tree1 = new WRAPPED_FUNNode(_GDL_OBJECT_OverloadIsTrue);
   _overloadIsTrue->SetTree( tree1);
@@ -179,17 +181,9 @@ void SetupOverloadSubroutines()
 
   
   DPro *_overloadBracketsLeftSide = new DPro("_OVERLOADBRACKETSLEFTSIDE",GDL_OBJECT_NAME,"*INTERNAL*");
-  _overloadBracketsLeftSide->AddPar("OBJREF");
-  _overloadBracketsLeftSide->AddPar("RVALUE");
-  _overloadBracketsLeftSide->AddPar("ISRANGE");
-  _overloadBracketsLeftSide->AddPar("SUB1");
-  _overloadBracketsLeftSide->AddPar("SUB2");
-  _overloadBracketsLeftSide->AddPar("SUB3");
-  _overloadBracketsLeftSide->AddPar("SUB4");
-  _overloadBracketsLeftSide->AddPar("SUB5");
-  _overloadBracketsLeftSide->AddPar("SUB6");
-  _overloadBracketsLeftSide->AddPar("SUB7");
-  _overloadBracketsLeftSide->AddPar("SUB8");
+  _overloadBracketsLeftSide->AddPar("OBJREF")->AddPar("RVALUE")->AddPar("ISRANGE");
+  _overloadBracketsLeftSide->AddPar("SUB1")->AddPar("SUB2")->AddPar("SUB3")->AddPar("SUB4");
+  _overloadBracketsLeftSide->AddPar("SUB5")->AddPar("SUB6")->AddPar("SUB7")->AddPar("SUB8");
   WRAPPED_PRONode *tree2 = new WRAPPED_PRONode(_GDL_OBJECT_OverloadBracketsLeftSide);
   _overloadBracketsLeftSide->SetTree( tree2); 
   gdlObjectDesc->ProList().push_back(_overloadBracketsLeftSide);

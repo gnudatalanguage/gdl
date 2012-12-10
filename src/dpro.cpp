@@ -234,10 +234,11 @@ void DSubUD::DelTree()
   nForLoops = 0;
 }
 
-void DSubUD::AddPar(const string& p)
+DSubUD* DSubUD::AddPar(const string& p)
 {
   var.push_back(p);
   nPar++;
+  return this;
 }
 
 unsigned DSubUD::AddVar(const string& v)

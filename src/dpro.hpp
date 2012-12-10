@@ -332,7 +332,7 @@ public:
   }
 
   // add variables
-  void     AddPar(const std::string&); // add paramter
+  DSubUD*  AddPar(const std::string&); // add paramter
   unsigned AddVar(const std::string&); // add local variable
   void     AddKey(const std::string&, const std::string&); // add keyword=value
 
