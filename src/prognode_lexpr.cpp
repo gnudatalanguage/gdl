@@ -146,7 +146,7 @@ BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right) // 'right' is not owned
 		      {
 			// always put out warning first, in case of a later crash
 			Warning( "WARNING: " + bracketsLeftSideOverload->ObjectName() + 
-			      ": Assignment to SELF detected.");
+			      ": Assignment to SELF detected (GDL session still ok).");
 			// assignment to SELF -> self was deleted and points to new variable
 			// which it owns
 			selfGuard.Release();

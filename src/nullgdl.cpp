@@ -30,7 +30,7 @@ NullGDL* NullGDL::instance = NULL;
 NullGDL::~NullGDL()
 {
   //throw GDLException("Attempt to destroy !NULL."); 
-  cerr << "Internal error: !NULL destructor called (GDL session still healthy).\nPlease report at http://sourceforge.net/tracker/?group_id=97659&atid=618683" << endl;
+  cerr << "Internal error: !NULL destructor called (GDL session still ok).\nPlease report at http://sourceforge.net/tracker/?group_id=97659&atid=618683" << endl;
 }
 
 bool NullGDL::IsAssoc() const { return false;}
