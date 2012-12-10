@@ -2378,6 +2378,7 @@ l_simple_var returns [BaseGDL** res]
 // // 		match(antlr::RefAST(_t),VARPTR);
 // 	}
 // 	return res;
+
 }
     : VAR // DNode.varIx is index into functions/procedures environment
     | VARPTR // DNode.var   is ptr to common block variable

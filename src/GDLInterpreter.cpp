@@ -3817,6 +3817,7 @@ BaseGDL**  GDLInterpreter::l_simple_var(ProgNodeP _t) {
 	// 	return res;
 	
 	
+	
 	if (_t == ProgNodeP(antlr::nullAST) )
 		_t = ASTNULL;
 	switch ( _t->getType()) {

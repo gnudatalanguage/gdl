@@ -159,6 +159,8 @@ public:
   
   void SetRightDown( const ProgNodeP right, const ProgNodeP down);
 
+  virtual bool IsWrappedNode() { return false;} // internally defined UD subroutine (overloads)
+  
   virtual BaseGDL** LExpr( BaseGDL* right);
   //   virtual BaseGDL** LExprGrab( BaseGDL* right); // take ownership of right
   virtual BaseGDL** LEval();
@@ -1497,6 +1499,7 @@ class WRAPPED_FUNNode: public CommandNode
 {
   BaseGDL* (*fun)( EnvUDT*);
 public:
+  bool IsWrappedNode() { return true;}
   WRAPPED_FUNNode( BaseGDL* (*fun_)( EnvUDT*)): CommandNode(), fun(fun_) {}
   RetCode Run();
 };
@@ -1505,6 +1508,7 @@ class WRAPPED_PRONode: public CommandNode
 {
   void (*pro)( EnvUDT*);
 public:
+  bool IsWrappedNode() { return true;}
   WRAPPED_PRONode( void (*pro_)( EnvUDT*)): CommandNode(), pro(pro_) {}
   RetCode Run();
 };

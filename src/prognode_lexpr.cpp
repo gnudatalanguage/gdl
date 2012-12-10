@@ -106,7 +106,7 @@ BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right) // 'right' is not owned
 		      int nParSub = bracketsLeftSideOverload->NPar();
 		      assert( nParSub >= 1); // SELF
 //  		      int indexListSizeDebug = indexList.size();
-		      // indexList.size() + OBJREF + RVALUE > regular paramters (w/o SELF)
+		      // indexList.size() + OBJREF + RVALUE > regular paramters w/o SELF
 		      if( (indexList.size() + 2) > nParSub - 1)
 		      {
 			indexList.Cleanup();
@@ -120,7 +120,16 @@ BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right) // 'right' is not owned
 
 		      // parameters
 		      newEnv->SetNextParUnchecked( res); // OBJREF  parameter
-		      newEnv->SetNextParUnchecked( right->Dup()); // RVALUE  parameter, right is not owned
+		      // Dup() here is not optimal
+		      // avoid at least for internal overload routines (which do/must not change RVALUE)
+		      if( bracketsLeftSideOverload->GetTree()->IsWrappedNode())  
+			newEnv->SetNextParUnchecked( &right); // RVALUE  parameter, as reference to prevent cleanup in newEnv
+		      else
+			newEnv->SetNextParUnchecked( right->Dup()); // RVALUE parameter, as value
+		      // pass as reference would be more efficient, but as the data might
+		      // be deleted in bracketsLeftSideOverload it is not possible.
+		      // BaseGDL* rightCopy = right;  
+		      // newEnv->SetNextParUnchecked( &rightCopy); // RVALUE  parameter
 		      for( SizeT p=0; p<indexList.size(); ++p)
 			newEnv->SetNextParUnchecked( indexList[p]); // takes ownership
   
@@ -130,6 +139,13 @@ BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right) // 'right' is not owned
 		      // make the call
 		      interpreter->call_pro(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 
+// 		      // in case an assignment was made to rightCopy
+// 		      if( rightCopy != right)
+// 		      {
+// 			Warning( bracketsLeftSideOverload->ObjectName() + 
+// 			": Assignment to RVALUE (parameter #2) detected.");
+// 		      }
+		      
 		      return res;
 		    }
 		  }
