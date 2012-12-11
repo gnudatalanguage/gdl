@@ -1146,6 +1146,18 @@ protected:
   RangeT s,e;
   SizeT stride;
 
+  void Init( DLong s_, DLong e_, DLong stride_)
+  {
+    sInit = s_;
+    eInit = e_;
+    if( stride_ <= 0)
+      {
+	throw 
+	  GDLException(  "Range subscript stride must be >= 1.",true,false);
+      }
+    stride = stride_;
+  }
+
 public:
  IndexType Type() { return ArrayIndexRangeSID;}
 
@@ -1279,6 +1291,13 @@ public:
     ArrayIndexRangeS()
   {
     ArrayIndexRangeS::Init( c1, c2, c3);
+  }
+
+  // for internal routines to ease definition
+  CArrayIndexRangeS( DLong s_, DLong e_, DLong stride_): 
+    ArrayIndexRangeS()
+  {
+    ArrayIndexRangeS::Init( s_, e_, stride_);
   }
 
   CArrayIndexRangeS(){}

@@ -206,7 +206,7 @@ public:
   // returns environment data, by value (but that by C++ reference)
   BaseGDL*& GetKW(SizeT ix) { return env[ix];}
 
-  // used by HELP, SetNextPar(...), and internal overload routines
+  // used by HELP, SetNextPar(...)
   SizeT EnvSize() const { return env.size();}
 
   // next four are used by Parameter...(...) functions

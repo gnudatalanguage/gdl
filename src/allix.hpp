@@ -638,21 +638,23 @@ private:
   ArrayIndexT* arrayIndexIndexed;
 		  
 public:
-  AllIxNewMultiOneVariableIndexIndexedT( RankT gt1Rank, SizeT add_,
-								  ArrayIndexVectorT* ixList_, SizeT acRank_, SizeT nIx_, const SizeT* varStride_, SizeT* nIterLimit_, SizeT* stride_)
-	: ixList( ixList_)
+  AllIxNewMultiOneVariableIndexIndexedT( RankT gt1Rank, SizeT add_, ArrayIndexVectorT* ixList_, 
+					 SizeT acRank_, SizeT nIx_, const SizeT* varStride_, 
+					 SizeT* nIterLimit_, SizeT* stride_)
+    : ixList( ixList_)
     , acRank( acRank_)
     , nIx( nIx_)
     , varStride( varStride_)
     , nIterLimit( nIterLimit_)
     , stride( stride_)
-	, add( add_)
-	, variableIndex( gt1Rank)
-	{
-		arrayIndexIndexed = (*ixList)[variableIndex];
-		ixListStride = varStride[variableIndex];
-		assert( ixListStride >= 1);
-	}
+    , add( add_)
+    , variableIndex( gt1Rank)
+    {
+	    arrayIndexIndexed = (*ixList)[variableIndex];
+	    ixListStride = varStride[variableIndex];
+	    if( ixListStride < 1) // debug
+	      assert( ixListStride >= 1);
+    }
   ~AllIxNewMultiOneVariableIndexIndexedT() {}
 
   AllIxNewMultiOneVariableIndexIndexedT* Clone()

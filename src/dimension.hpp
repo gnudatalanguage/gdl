@@ -4,7 +4,7 @@
     begin                : July 22 2002
     copyright            : (C) 2002 by Marc Schellens
     email                : m_schellens@users.sf.net
- ***************************************************************************/
+***************************************************************************/
 
 /***************************************************************************
  *                                                                         *
@@ -44,7 +44,7 @@ public:
   // structors
   dimension(): rank(0)
   {
-	stride[0] = 0; // mark as not set
+    stride[0] = 0; // mark as not set
   }
 
   // c-i
@@ -77,14 +77,13 @@ public:
   dimension(const SizeT d0)
   {
     assert( d0 != 0);
-//     if( d0 == 0) 
-//       {
-// 	rank = 0; return;
-//       }
+    //     if( d0 == 0) 
+    //       {
+    // 	rank = 0; return;
+    //       }
     dim[0] = d0;
     rank = 1;
-    stride[0] = 1; // set
-    stride[1] = d0;
+    stride[0] = 0; // not set
   }
   dimension(const SizeT d0, const SizeT d1)
   {
@@ -93,23 +92,21 @@ public:
     assert( d1 != 0);
     dim[1] = d1;
     rank = 2;
-    stride[0] = 1; // set
-    stride[1] = d0; // set
-    stride[1] = d0 * d1;
+    stride[0] = 0; // not set
   }
-//   dimension(const SizeT d0, const SizeT d1, const SizeT d2)
-//   {
-//     assert( d0 != 0);
-//     dim[0] = d0;
-//     assert( d1 != 0);
-//     dim[1] = d1;
-//     assert( d2 != 0);
-//     dim[2] = d2;
-//     rank = 3;
-// //     stride[0] = 1; // set
-// //     stride[1] = d0; // set
-// //     stride[1] = d0 * d1; // set
-//   }
+  //   dimension(const SizeT d0, const SizeT d1, const SizeT d2)
+  //   {
+  //     assert( d0 != 0);
+  //     dim[0] = d0;
+  //     assert( d1 != 0);
+  //     dim[1] = d1;
+  //     assert( d2 != 0);
+  //     dim[2] = d2;
+  //     rank = 3;
+  // //     stride[0] = 1; // set
+  // //     stride[1] = d0; // set
+  // //     stride[1] = d0 * d1; // set
+  //   }
 
   // operators
   // assignment
@@ -117,8 +114,9 @@ public:
   { 
     if( &dim_ == this) return *this; // self assignment
     rank = dim_.rank;
-    for(unsigned i=0; i<rank; ++i) dim[i]=dim_.dim[i];
-     stride[0] = 0; // not set
+    for(unsigned i=0; i<rank; ++i) 
+      dim[i]=dim_.dim[i];
+    stride[0] = 0; // not set
     return *this;
   }
 
@@ -181,7 +179,7 @@ public:
     // shift dim by addRank
     for( int i=thisRank-1; i>=0; i--)
       {
-		dim[i+addRank]=dim[i];
+	dim[i+addRank]=dim[i];
       }
 
     // insert add on the left
@@ -191,26 +189,13 @@ public:
     stride[0] = 0; // not set
   }
 
-//   SizeT* Dim0Address()
-// {
-// return &dim[ 0];
-// }
-//   SizeT RemoveFirst()
-//   {
-//     SizeT res = dim[0];
-//     for( SizeT i=0; i<MAXRANK-1; ++i)
-//       dim[i]=dim[i+1];
-//     dim[MAXRANK-1]=0;
-//     return res;
-//   }
-
   // remove dimesion ix (used by total function)
   SizeT Remove( SizeT ix)
   {
     if( rank == 0) 
       {
-		assert( ix == 0);
-		return 0;
+	assert( ix == 0);
+	return 0;
       }
     SizeT res = dim[ix];
     rank--;
@@ -248,8 +233,8 @@ public:
   }
 
   friend bool
-    operator==(const dimension& left,
-               const dimension& right)
+  operator==(const dimension& left,
+	     const dimension& right)
   {
     if( left.rank != right.rank) return false;
     for( SizeT i=0; i<left.rank; ++i)
@@ -258,8 +243,8 @@ public:
   }
 
   friend bool
-    operator!=(const dimension& left,
-               const dimension& right)
+  operator!=(const dimension& left,
+	     const dimension& right)
   {
     if( left.rank != right.rank) return true;
     for( SizeT i=0; i<left.rank; ++i)
@@ -279,11 +264,11 @@ public:
   // number of elements
   SizeT NDimElements() 
   {
-	if( stride[0] == 0) InitStride();
-	return stride[ rank];
-//     SizeT res=1;
-//     for(unsigned i=0; i<rank; ++i) res *= dim[i];
-//     return res;
+    if( stride[0] == 0) InitStride();
+    return stride[ rank];
+    //     SizeT res=1;
+    //     for(unsigned i=0; i<rank; ++i) res *= dim[i];
+    //     return res;
   }
   SizeT NDimElementsConst() const
   {
@@ -292,7 +277,7 @@ public:
     return res;
   }
 
-// used by some lib routines, not time critical
+  // used by some lib routines, not time critical
   void SetOneDim(const SizeT ix, const SizeT d)
   {
     if( ix >= rank) rank = ix+1;
@@ -303,66 +288,84 @@ public:
 
   SizeT Stride(const SizeT i) const
   {
-	if( stride[0] == 0)
-		this->InitStride();
-// 		const_cast<dimension*>(this)->InitStride();
-	return stride[ (i<rank)?i:rank];
+    if( stride[0] == 0)
+      this->InitStride();
+    // 		const_cast<dimension*>(this)->InitStride();
+    return stride[ (i<rank)?i:rank];
 
-// 	SizeT ret=1;
-//     SizeT l = (i<rank)?i:rank;
-//     for(unsigned m=1; m<=l; ++m)
-//       ret *= dim[m-1];
-//     return ret;
+    // 	SizeT ret=1;
+    //     SizeT l = (i<rank)?i:rank;
+    //     for(unsigned m=1; m<=l; ++m)
+    //       ret *= dim[m-1];
+    //     return ret;
   }
 
   const SizeT* Stride() const
   {
-	if( stride[0] == 0)
-		this->InitStride();
-	return stride;
+    if( stride[0] == 0)
+      this->InitStride();
+    return stride;
   }
 	
   void Stride( SizeT s[], SizeT upto) const
   {
     assert( upto >= 1);
-    s[0]=1; // upto must be at least 1
-    if( stride[0] == 0) // stride not set yet
-    {
-		unsigned m=1;
-		if( upto <= rank)
-			for(; m<=upto; ++m)
-				s[m] = s[m-1] * dim[m-1];
-		else
-		{
-			for(; m<=rank; ++m)
-			s[m] = s[m-1] * dim[m-1];
-			for(; m<=upto; ++m)
-			s[m] = s[m-1];
-		}
-    }
-    else // stride already calculated -> copy
-    {
-		unsigned m=1;
-		if( upto <= rank)
-			for(; m<=upto; ++m)
-				s[m] = stride[m];
-		else
-		{
-			for(; m<=rank; ++m)
-				s[m] = stride[m];
-			for(; m<=upto; ++m)
-				s[m] = s[m-1];
-		}
-    }
-    
+    if( stride[0] == 0)
+      this->InitStride();
+    // copy
+    for(int m=0; m<=upto; ++m)
+      s[m] = stride[m];
+    //     s[0]=1; // upto must be at least 1
+    //     if( stride[0] == 0) // stride not set yet
+    //     {
+    // 		unsigned m=1;
+    // 		if( upto <= rank)
+    // 			for(; m<=upto; ++m)
+    // 				s[m] = s[m-1] * dim[m-1];
+    // 		else
+    // 		{
+    // 			for(; m<=rank; ++m)
+    // 			s[m] = s[m-1] * dim[m-1];
+    // 			for(; m<=upto; ++m)
+    // 			s[m] = s[m-1];
+    // 		}
+    //     }
+    //     else // stride already calculated -> copy
+    //     {
+    // 		unsigned m=1;
+    // 		if( upto <= rank)
+    // 			for(; m<=upto; ++m)
+    // 				s[m] = stride[m];
+    // 		else
+    // 		{
+    // 			for(; m<=rank; ++m)
+    // 				s[m] = stride[m];
+    // 			for(; m<=upto; ++m)
+    // 				s[m] = s[m-1];
+    // 		}
+    //     }
   }
   
+  // we must do a full stride calculation here because
+  // variables might be indexed with more dimensions they actually have
+  // (which indices then must all be zero)
   void InitStride() const
   {
-    stride[0]=1; 
-    stride[1]=dim[0]; 
-    for(int m=2; m<=rank; ++m)
-		stride[m] = stride[m-1] * dim[m-1];
+    if( rank == 0)
+      {
+	for(int m=0; m<=MAXRANK; ++m)
+	  stride[m] = 1;      
+      }
+    else
+      {
+	stride[0]=1; 
+	stride[1]=dim[0]; 
+	int m=1;
+	for(; m<rank; ++m)
+	  stride[m+1] = stride[m] * dim[m];
+	for(; m<MAXRANK; ++m)
+	  stride[m+1] = stride[rank];
+      }
   }
 
   // actual rank (0->scalar .. MAXRANK)
@@ -387,7 +390,8 @@ public:
       throw GDLException("Maximum "+MAXRANK_STR+" dimensions are allowed.");
     for( SizeT i=rNow; i<r; ++i) dim[i]=1;
     rank = r;
-    stride[0] = 0;
+    // as we always InitStride() to MAXRANK+1 stride is still valid
+    //     stride[0] = 0;
   }
 
   void MakeArrayFromScalar()
@@ -398,28 +402,6 @@ public:
     rank=1;
   }
 
-/*  // multidim index to one dim index
-  SizeT LongIndex(const dimension& ix) const
-  {
-    // SizeT s[MAXRANK+1];    // multiplier for dimension
-    // Stride[ c, MAXRANK];
-    SizeT s = 1; 
-
-    SizeT res=0;
-    unsigned i;
-    for( i=0; i<rank; ++i)
-      {
-	if( ix.dim[i] >= dim[i])
-	  throw GDLException("Array index out of range (1)");
-
-	res += ix.dim[i] * s;
-	s *= dim[ i];
-      }
-    for(; i<ix.rank; ++i)
-      if( ix.dim[i] > 0)
-	throw GDLException("Array index out of range (2)");
-    return res;
-  }*/
 };
 
 #endif
