@@ -269,7 +269,7 @@ BaseGDL* _GDL_OBJECT_OverloadBracketsRightSide( EnvUDT* e)
   
   ArrayIndexListT* aL;
   MakeArrayIndex( &ixList, &aL, NULL); // important to get the non-NoAssoc ArrayIndexListT
-  // because only they clean up ixList
+  // because only they clean up ixList on destruction
   Guard< ArrayIndexListT> aLGuard( aL);
 
   IxExprListT ixL;
