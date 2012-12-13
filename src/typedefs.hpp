@@ -200,6 +200,11 @@ public:
   Guard( T* c): guarded( c)
   {}
   
+  void Init( T* iniGuarded) // saves a call to delete
+  {
+    assert( guarded == NULL);
+    guarded = iniGuarded;
+  }  
   void Reset( T* newGuarded)
   {
     delete guarded;
@@ -462,7 +467,8 @@ public:
   }
   const T& operator[]( SizeT ix) const throw()
   {
-	assert( ix < sz);
+//     if( ix >= sz) // debug 
+      assert( ix < sz);
     return buf[ ix];
   }
 

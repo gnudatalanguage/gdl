@@ -2368,25 +2368,27 @@ bool Data_<SpDObj>::True()
   if( !Scalar( s))
     throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
   if( s == 0)
-    return false; // on overloads for null object
+    return false; // on overloads for null object -> default is 'false'
 
-  DStructGDL* oStructGDL= GDLInterpreter::GetObjHeapNoThrow( s);
-  if( oStructGDL == NULL) // object not valid -> default behaviour
-    return true; // true is ok here: Default behaviour is to just checks for null object
+//   DStructGDL* oStructGDL= GDLInterpreter::GetObjHeapNoThrow( s);
+//   if( oStructGDL == NULL) // object not valid -> default behaviour
+//     return true; // true is ok here: Default behaviour is to just checks for null object
+// 
+//   DStructDesc* desc = oStructGDL->Desc();
+//   
+//   DFun* isTrueOverload = static_cast<DFun*>(desc->GetOperator( OOIsTrue));
 
-  DStructDesc* desc = oStructGDL->Desc();
-  
-  DFun* isTrueOverload = static_cast<DFun*>(desc->GetOperator( OOIsTrue));
+  DFun* isTrueOverload = static_cast<DFun*>(GDLInterpreter::GetObjHeapOperator( s, OOIsTrue));
   if( isTrueOverload == NULL) 
     return true; // not overloaded, false case for default already returned (s. a.)
   
   ProgNodeP callingNode = interpreter->GetRetTree();
     
-  BaseGDL* self = this;
+  BaseGDL* self = this->Dup();
+  Guard<BaseGDL> selfGuard( self);
   EnvUDT* newEnv= new EnvUDT( callingNode, isTrueOverload, &self);
   // no parameters
   
-  // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
   StackGuard<EnvStackT> guard(interpreter->CallStack());
 
   interpreter->CallStack().push_back( newEnv); 
@@ -2394,9 +2396,20 @@ bool Data_<SpDObj>::True()
   // make the call
   BaseGDL* res=interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 
+  if( self != selfGuard.Get())
+  {
+    // always put out warning first, in case of a later crash
+    Warning( "WARNING: " + isTrueOverload->ObjectName() + 
+	  ": Assignment to SELF detected (GDL session still ok).");
+    // assignment to SELF -> self was deleted and points to new variable
+    // which it owns
+    selfGuard.Release();
+    if( self != NullGDL::GetSingleInstance())
+      selfGuard.Reset(self);
+  }
   if( NullGDL::IsNULLorNullGDL( res))
     {
-      throw GDLException( "_overloadIsTrue returned an undefined value.",true,false);
+      throw GDLException( isTrueOverload->ObjectName() + " returned an undefined value.",true,false);
     }
   
   Guard<BaseGDL> resGuard( res);
@@ -2406,7 +2419,7 @@ bool Data_<SpDObj>::True()
     {
       ostringstream os;
       res->ToStream(os);
-      throw GDLException( "Object reference expression not allowed in this context: " +
+      throw GDLException( isTrueOverload->ObjectName() + ": Object reference expression not allowed in this context: " +
 			  os.str(),true,false);
     }
   

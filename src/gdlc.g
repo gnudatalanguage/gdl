@@ -470,6 +470,12 @@ keyword_declaration
 object_name! returns [std::string name] // !//
   	: i1:IDENTIFIER m:METHOD i2:IDENTIFIER
 		{ 
+        // here we translate IDL_OBECT to GDL_OBJECT for source code compatibility
+        {
+            if( #i1->getText() == "IDL_OBJECT")
+                #i1->setText(GDL_OBJECT_NAME);
+        }
+
             #object_name = #(NULL, i2, m, i1); // NULL -> no root
             name= std::string( i1->getText()+"__"+i2->getText());
         }
@@ -608,7 +614,12 @@ compound_statement
 	;
 
 baseclass_method
-	: IDENTIFIER METHOD!
+	: s:IDENTIFIER METHOD!
+        // here we translate IDL_OBECT to GDL_OBJECT for source code compatibility
+        {
+            if( #s->getText() == "IDL_OBJECT")
+                #s->setText(GDL_OBJECT_NAME);
+        }
 	;
 
 statement
@@ -1492,10 +1503,24 @@ deref_expr
 
 member_function_call returns [bool parent]
 	: { parent = false;} MEMBER! 
-        (IDENTIFIER METHOD! { parent = true;} )? formal_function_call
+        (s:IDENTIFIER METHOD! 
+            { 
+        // here we translate IDL_OBECT to GDL_OBJECT for source code compatibility
+        {
+            if( #s->getText() == "IDL_OBJECT")
+                #s->setText(GDL_OBJECT_NAME);
+        }
+                parent = true;
+            } )? formal_function_call
   	;
 member_function_call_dot
-	:  DOT! (IDENTIFIER METHOD!) formal_function_call
+	:  DOT! (s:IDENTIFIER METHOD!
+        // here we translate IDL_OBECT to GDL_OBJECT for source code compatibility
+        {
+            if( #s->getText() == "IDL_OBJECT")
+                #s->setText(GDL_OBJECT_NAME);
+        }
+        ) formal_function_call
   	;
 
 assign_expr

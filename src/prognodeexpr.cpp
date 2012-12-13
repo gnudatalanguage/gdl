@@ -113,6 +113,7 @@ BaseGDL* ProgNode::Eval()
 
 
 // converts inferior type to superior type
+// for not (yet) overloaded operators
 void ProgNode::AdjustTypes(auto_ptr<BaseGDL>& a, auto_ptr<BaseGDL>& b)
 {
   DType aTy=a->Type();
@@ -147,7 +148,48 @@ void ProgNode::AdjustTypes(auto_ptr<BaseGDL>& a, auto_ptr<BaseGDL>& b)
       a.reset( a.release()->Convert2( bTy));
     }
 }
+// converts inferior type to superior type
+// handles overloaded operators
+void ProgNode::AdjustTypesObj(auto_ptr<BaseGDL>& a, auto_ptr<BaseGDL>& b)
+{
+  DType aTy=a->Type();
+  DType bTy=b->Type();
+  if( aTy == bTy) return;
 
+  // Will be checked by Convert2() function
+//   if( DTypeOrder[aTy] > 100 || DTypeOrder[bTy] > 100) // GDL_STRUCT, GDL_PTR, OBJ
+//     {
+//       //exception
+//       throw GDLException( "Expressions of this type cannot be converted.");
+//     }
+  
+  // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+  if( (aTy == GDL_COMPLEX && bTy == GDL_DOUBLE) ||
+      (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
+    {
+      a.reset( a.release()->Convert2( GDL_COMPLEXDBL));
+      b.reset( b.release()->Convert2( GDL_COMPLEXDBL));
+      return;
+    }
+
+  // Change > to >= JMG
+  if( DTypeOrder[aTy] >= DTypeOrder[bTy])
+    {
+      // convert b to a
+      if( aTy == GDL_OBJ) // only check for aTy is ok because GDL_OBJ has highest order
+	return; // for operator overloading, do not convert other type then
+      b.reset( b.release()->Convert2( aTy));
+    }
+  else
+    {
+      // convert a to b
+      if( bTy == GDL_OBJ) // only check for bTy is ok because GDL_OBJ has highest order
+	return; // for operator overloading, do not convert other type then
+      a.reset( a.release()->Convert2( bTy));
+    }
+}
+
+// for not (yet) overloaded operators
 void BinaryExprNC::AdjustTypesNC(auto_ptr<BaseGDL>& g1, BaseGDL*& e1,
 				 auto_ptr<BaseGDL>& g2, BaseGDL*& e2)
 {
@@ -183,15 +225,15 @@ void BinaryExprNC::AdjustTypesNC(auto_ptr<BaseGDL>& g1, BaseGDL*& e1,
   // Change > to >= JMG
   if( DTypeOrder[aTy] >= DTypeOrder[bTy])
     {
-  // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
-  if( (aTy == GDL_COMPLEX && bTy == GDL_DOUBLE))
-    {
-      e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-      g2.reset( e2); // delete former e2
-      e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-      g1.reset( e1); // delete former e1
-      return;
-    }
+      // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+      if( (aTy == GDL_COMPLEX && bTy == GDL_DOUBLE))
+	{
+	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+	  g2.reset( e2); // delete former e2
+	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+	  g1.reset( e1); // delete former e1
+	  return;
+	}
 
       // convert e2 to e1
       e2 = e2->Convert2( aTy, BaseGDL::COPY);
@@ -199,15 +241,15 @@ void BinaryExprNC::AdjustTypesNC(auto_ptr<BaseGDL>& g1, BaseGDL*& e1,
     }
   else
     {
-  // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
-  if( (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
-    {
-      e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-      g2.reset( e2); // delete former e2
-      e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-      g1.reset( e1); // delete former e1
-      return;
-    }
+      // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+      if( (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
+	{
+	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+	  g2.reset( e2); // delete former e2
+	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+	  g1.reset( e1); // delete former e1
+	  return;
+	}
 
       // convert e1 to e2
       e1 = e1->Convert2( bTy, BaseGDL::COPY);
@@ -215,13 +257,13 @@ void BinaryExprNC::AdjustTypesNC(auto_ptr<BaseGDL>& g1, BaseGDL*& e1,
     }
 }
 
-// only called from EqOp and NeOp
-void BinaryExprNC::AdjustTypesNCNull(auto_ptr<BaseGDL>& g1, BaseGDL*& e1,
+// handles overloaded operators
+void BinaryExprNC::AdjustTypesNCObj(auto_ptr<BaseGDL>& g1, BaseGDL*& e1,
 				 auto_ptr<BaseGDL>& g2, BaseGDL*& e2)
 {
   if( op1NC)
     {
-      e1 = op1->EvalNCNull();
+      e1 = op1->EvalNC();
     }
   else
     {
@@ -230,12 +272,86 @@ void BinaryExprNC::AdjustTypesNCNull(auto_ptr<BaseGDL>& g1, BaseGDL*& e1,
     }
   if( op2NC)
     {
-      e2 = op2->EvalNCNull();
+      e2 = op2->EvalNC();
     }
   else
     {
       e2 = op2->Eval();
       g2.reset( e2);
+    }
+
+  DType aTy=e1->Type();
+  DType bTy=e2->Type();
+  if( aTy == bTy) return;
+
+  // Will be checked by Convert2() function
+//   if( DTypeOrder[aTy] > 100 || DTypeOrder[bTy] > 100) // GDL_STRUCT, GDL_PTR, OBJ
+//     {
+//       throw GDLException( "Expressions of this type cannot be converted.");
+//     }
+
+  // Change > to >= JMG
+  if( DTypeOrder[aTy] >= DTypeOrder[bTy])
+    {
+      // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+      if( (aTy == GDL_COMPLEX && bTy == GDL_DOUBLE))
+	{
+	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+	  g2.reset( e2); // delete former e2
+	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+	  g1.reset( e1); // delete former e1
+	  return;
+	}
+
+      if( aTy == GDL_OBJ) // only check for aTy is ok because GDL_OBJ has highest order
+	return; // for operator overloading, do not convert other type then
+      // convert e2 to e1
+      e2 = e2->Convert2( aTy, BaseGDL::COPY);
+      g2.reset( e2); // delete former e2
+    }
+  else
+    {
+      // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+      if( (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
+	{
+	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+	  g2.reset( e2); // delete former e2
+	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+	  g1.reset( e1); // delete former e1
+	  return;
+	}
+
+      if( bTy == GDL_OBJ) // only check for bTy is ok because GDL_OBJ has highest order
+	return; // for operator overloading, do not convert other type then
+      // convert e1 to e2
+      e1 = e1->Convert2( bTy, BaseGDL::COPY);
+      g1.reset( e1); // delete former e1
+    }
+}
+
+
+// only called from EqOp and NeOp
+// also handles overloaded operators
+void BinaryExprNC::AdjustTypesNCNull(Guard<BaseGDL>& g1, BaseGDL*& e1,
+				 Guard<BaseGDL>& g2, BaseGDL*& e2)
+{
+  if( op1NC)
+    {
+      e1 = op1->EvalNCNull();
+    }
+  else
+    {
+      e1 = op1->Eval();
+      g1.Init( e1);
+    }
+  if( op2NC)
+    {
+      e2 = op2->EvalNCNull();
+    }
+  else
+    {
+      e2 = op2->Eval();
+      g2.Init( e2);
     }
       
   // if at least one is !NULL make sure this is e1 
@@ -276,35 +392,43 @@ void BinaryExprNC::AdjustTypesNCNull(auto_ptr<BaseGDL>& g1, BaseGDL*& e1,
   // Change > to >= JMG
   if( DTypeOrder[aTy] >= DTypeOrder[bTy])
     {
-  // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
-  if( (aTy == GDL_COMPLEX && bTy == GDL_DOUBLE))
-    {
-      e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-      g2.reset( e2); // delete former e2
-      e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-      g1.reset( e1); // delete former e1
-      return;
-    }
+      // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+      if( (aTy == GDL_COMPLEX && bTy == GDL_DOUBLE))
+	{
+	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+	  g2.Reset( e2); // delete former e2
+	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+	  g1.Reset( e1); // delete former e1
+	  return;
+	}
+
+      // no conversion because of operator overloads
+      if( aTy == GDL_OBJ) // only check for aTy is ok because GDL_OBJ has highest order
+	return;
 
       // convert e2 to e1
       e2 = e2->Convert2( aTy, BaseGDL::COPY);
-      g2.reset( e2); // delete former e2
+      g2.Reset( e2); // delete former e2
     }
   else
     {
-  // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
-  if( (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
-    {
-      e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-      g2.reset( e2); // delete former e2
-      e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-      g1.reset( e1); // delete former e1
-      return;
-    }
+      // GDL_COMPLEX op GDL_DOUBLE = GDL_COMPLEXDBL
+      if( (bTy == GDL_COMPLEX && aTy == GDL_DOUBLE))
+	{
+	  e2 = e2->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+	  g2.Reset( e2); // delete former e2
+	  e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
+	  g1.Reset( e1); // delete former e1
+	  return;
+	}
+
+      // no conversion because of operator overloads
+      if( bTy == GDL_OBJ) // only check for bTy is ok because GDL_OBJ has highest order
+	return;
 
       // convert e1 to e2
       e1 = e1->Convert2( bTy, BaseGDL::COPY);
-      g1.reset( e1); // delete former e1
+      g1.Reset( e1); // delete former e1
     }
 }
 
@@ -692,19 +816,39 @@ BaseGDL* LOG_ORNode::Eval()
 }
 
 BaseGDL* EQ_OPNode::Eval()
-{ BaseGDL* res;
+{ 
   auto_ptr<BaseGDL> e1( op1->Eval());
   auto_ptr<BaseGDL> e2( op2->Eval());
-  AdjustTypes(e1,e2);
-  res=e1->EqOp(e2.get());
+  AdjustTypesObj(e1,e2);
+  if( e2->Type() == GDL_OBJ) 
+  {
+    if( e1->Type() != GDL_OBJ) 
+    {
+      // order is critical: overload might just be defined for one of the object types
+      // use e2 only if e1 is no object
+      BaseGDL* res=e2->EqOp(e1.get());
+      return res;
+    }
+  }
+  BaseGDL* res=e1->EqOp(e2.get());
   return res;
 }
 BaseGDL* NE_OPNode::Eval()
-{ BaseGDL* res;
+{ 
   auto_ptr<BaseGDL> e1( op1->Eval());
   auto_ptr<BaseGDL> e2( op2->Eval());
-  AdjustTypes(e1,e2);
-  res=e1->NeOp(e2.get());
+  AdjustTypesObj(e1,e2);
+  if( e2->Type() == GDL_OBJ) 
+  {
+    if( e1->Type() != GDL_OBJ) 
+    {
+      // order is critical: overload might just be defined for one of the object types
+      // use e2 only if e1 is no object
+      BaseGDL* res=e2->NeOp(e1.get());
+      return res;
+    }
+  }
+  BaseGDL* res=e1->NeOp(e2.get());
   return res;
 }
 BaseGDL* LE_OPNode::Eval()
@@ -1339,19 +1483,39 @@ BaseGDL* LOG_ORNCNode::Eval()
 
 BaseGDL* EQ_OPNCNode::Eval()
 { BaseGDL* res;
-  auto_ptr<BaseGDL> g1;
-  auto_ptr<BaseGDL> g2;
+  Guard<BaseGDL> g1;
+  Guard<BaseGDL> g2;
   BaseGDL *e1, *e2;
   AdjustTypesNCNull( g1, e1, g2, e2);
+  if( e2->Type() == GDL_OBJ) 
+  {
+    if( e1->Type() != GDL_OBJ) 
+    {
+      // order is critical: overload might just be defined for one of the object types
+      // use e2 only if e1 is no object
+      BaseGDL* res=e2->EqOp(e1);
+      return res;
+    }
+  }     
   res=e1->EqOp(e2);
   return res;
 }
 BaseGDL* NE_OPNCNode::Eval()
 { BaseGDL* res;
-  auto_ptr<BaseGDL> g1;
-  auto_ptr<BaseGDL> g2;
+  Guard<BaseGDL> g1;
+  Guard<BaseGDL> g2;
   BaseGDL *e1, *e2;
   AdjustTypesNCNull( g1, e1, g2, e2);
+  if( e2->Type() == GDL_OBJ) 
+  {
+    if( e1->Type() != GDL_OBJ) 
+    {
+      // order is critical: overload might just be defined for one of the object types
+      // use e2 only if e1 is no object
+      BaseGDL* res=e2->NeOp(e1);
+      return res;
+    }
+  }
   res=e1->NeOp(e2);
   return res;
 }
@@ -3463,25 +3627,28 @@ BaseGDL* ARRAYEXPRNode::Eval()
   if( r->Type() == GDL_OBJ && r->StrictScalar())
   {
       // check for _overloadBracketsRightSide
-      BaseGDL* self = rGuard.Get();
-      if( self == NULL)
-      {
-	self = r->Dup(); // not set -> not owner
-	rGuard.Reset( self);
-      }
-      // we are now the proud owner of 'self'
       
-      DObj s = (*static_cast<DObjGDL*>(self))[0]; // is StrictScalar()
-      if( s != 0)  // no overloads for null object
-      {
-	DStructGDL* oStructGDL= GDLInterpreter::GetObjHeapNoThrow( s);
-	if( oStructGDL != NULL) // if object not valid -> default behaviour
-	  {
-	    DStructDesc* desc = oStructGDL->Desc();
-	    DFun* bracketsRightSideOverload = static_cast<DFun*>(desc->GetOperator( OOBracketsRightSide));
+      DObj s = (*static_cast<DObjGDL*>(r))[0]; // is StrictScalar()
+//       if( s != 0)  // no overloads for null object
+//       {
+// 	DStructGDL* oStructGDL= GDLInterpreter::GetObjHeapNoThrow( s);
+// 	if( oStructGDL != NULL) // if object not valid -> default behaviour
+// 	  {
+// 	    DStructDesc* desc = oStructGDL->Desc();
+// 
+// 	    DFun* bracketsRightSideOverload = static_cast<DFun*>(desc->GetOperator( OOBracketsRightSide));
+	    DFun* bracketsRightSideOverload = static_cast<DFun*>(GDLInterpreter::GetObjHeapOperator( s, OOBracketsRightSide));
 	    if( bracketsRightSideOverload != NULL)
 	      {
-		// _overloadBracketsLeftSide
+		// _overloadBracketsRightSide
+		BaseGDL* self = rGuard.Get();
+		if( self == NULL)
+		{
+		  self = r->Dup(); // not set -> not owner
+		  rGuard.Reset( self);
+		}
+      // we are now the proud owner of 'self'
+
 		IxExprListT indexList;
 		// uses arrIxListNoAssoc
 		interpreter->arrayindex_list_overload( ixListNode, indexList);
@@ -3495,8 +3662,8 @@ BaseGDL* ARRAYEXPRNode::Eval()
 		{
 		  indexList.Cleanup();
 		  throw GDLException( this, bracketsRightSideOverload->ObjectName() +
-				  ": Incorrect number of arguments.",
-				  false, false);
+				      ": Incorrect number of arguments.",
+				      false, false);
 		}
 
 		// adds already SELF parameter
@@ -3517,7 +3684,7 @@ BaseGDL* ARRAYEXPRNode::Eval()
 		{
 		  // always put out warning first, in case of a later crash
 		  Warning( "WARNING: " + bracketsRightSideOverload->ObjectName() + 
-			": Assignment to SELF detected (GDL session still ok).");
+			   ": Assignment to SELF detected (GDL session still ok).");
 		  // assignment to SELF -> self was deleted and points to new variable
 		  // which it owns
 		  rGuard.Release();
@@ -3527,8 +3694,8 @@ BaseGDL* ARRAYEXPRNode::Eval()
 
 		return res;
 	      }
-	  }
-      }
+// 	  }
+//       }
   }
   
   // first use NoAssoc case

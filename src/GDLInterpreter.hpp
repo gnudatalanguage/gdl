@@ -450,12 +450,19 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
     }
 
     // for overload functions
-    static DStructGDL* GetObjHeapNoThrow( DObj ID)
+    static DSubUD* GetObjHeapOperator( DObj ID, int opIx)
     {
+        if( ID == 0) return NULL;
         ObjHeapT::iterator it=objHeap.find( ID);
         if( it == objHeap.end()) return NULL;
-        return it->second.get();
+        return it->second.get()->Desc()->GetOperator( opIx);
     }
+    // static DStructGDL* GetObjHeapNoThrow( DObj ID)
+    // {
+    //     ObjHeapT::iterator it=objHeap.find( ID);
+    //     if( it == objHeap.end()) return NULL;
+    //     return it->second.get();
+    // }
 //     static DStructGDL*& GetObjHeap( DObj ID, ObjHeapT::iterator& it)
 //     {
 // //         ObjHeapT::iterator it=objHeap.find( ID);

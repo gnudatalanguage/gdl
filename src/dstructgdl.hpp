@@ -637,12 +637,12 @@ DStructGDL* NewResult() const
 
 
   
-  Data_<SpDByte>* EqOp( BaseGDL* r);
-  Data_<SpDByte>* NeOp( BaseGDL* r);
-  Data_<SpDByte>* GtOp( BaseGDL* r);
-  Data_<SpDByte>* GeOp( BaseGDL* r);
-  Data_<SpDByte>* LtOp( BaseGDL* r);
-  Data_<SpDByte>* LeOp( BaseGDL* r);
+  BaseGDL* EqOp( BaseGDL* r);
+  BaseGDL* NeOp( BaseGDL* r);
+  BaseGDL* GtOp( BaseGDL* r);
+  BaseGDL* GeOp( BaseGDL* r);
+  BaseGDL* LtOp( BaseGDL* r);
+  BaseGDL* LeOp( BaseGDL* r);
 
   // assigns srcIn to this at ixList, if ixList is NULL does linear copy
   // assumes: ixList has this already set as variable

@@ -75,6 +75,16 @@ int OverloadOperatorIndexPro( std::string subName)
   return -1;
 }
 
+// for proper error repoerting we need to unwind the stack when throwing from internal subroutines
+void ThrowFromInternalUDSub( EnvUDT* e, const string& s)
+  {
+    ProgNodeP callingNode = e->CallingNode();
+    string objectName =e->GetPro()->ObjectName();
+    delete e;
+    GDLException::Interpreter()->CallStack().pop_back();
+    throw GDLException( callingNode, objectName+" (internal): " + s, false, false);
+  }
+
 // #include <iostream>
 BaseGDL* _GDL_OBJECT_OverloadIsTrue( EnvUDT* e)
 {
@@ -85,18 +95,8 @@ BaseGDL* _GDL_OBJECT_OverloadIsTrue( EnvUDT* e)
   return new DIntGDL(1); // if we reach here, defaul is to return 'TRUE'
 }
 
-void ThrowFromInternalUDSub( EnvUDT* e, const string& s)
-  {
-    ProgNodeP callingNode = e->CallingNode();
-    string objectName =e->GetPro()->ObjectName();
-    delete e;
-    GDLException::Interpreter()->CallStack().pop_back();
-    throw GDLException( callingNode, objectName+" (internal): " + s, false, false);
-  }
-
 void _GDL_OBJECT_OverloadBracketsLeftSide( EnvUDT* e)
 {
-  assert( GDLException::Interpreter()->CallStack().back() == e);
   //   // debug/check
   //   std::cout << "_GDL_OBJECT_OverloadBracketsLeftSide called" << std::endl;
 
@@ -104,7 +104,6 @@ void _GDL_OBJECT_OverloadBracketsLeftSide( EnvUDT* e)
   // IDL's default behavior is to just replace SELF (via OBJREF) by RVALUE
   // no index checking is done.
   SizeT nParam = e->NParam();
-//   int envSize = e->EnvSize();
   if( nParam < 3) // consider implicit SELF
     return; // RVALUE not given -> ignore
 
@@ -113,66 +112,19 @@ void _GDL_OBJECT_OverloadBracketsLeftSide( EnvUDT* e)
   if( objRefP == NULL)
   {
     ThrowFromInternalUDSub( e, "Parameter 1 (OBJREF) must be a passed as reference in this context.");
-//     ProgNodeP callingNode = e->CallingNode();
-//     string objectName =e->GetPro()->ObjectName();
-//     delete e;
-//     GDLException::Interpreter()->CallStack().pop_back();
-//     throw GDLException( callingNode, objectName+
-//     " (internal): Parameter 1 (OBJREF) must be a passed as reference in this context.", false, false);
   }
   BaseGDL* rValue = e->GetKW(2);
   if( rValue == NULL)
   {
     ThrowFromInternalUDSub( e, "Parameter 2 (RVALUE) is undefined.");
-//     ProgNodeP callingNode = e->CallingNode();
-//     string objectName =e->GetPro()->ObjectName();
-//     delete e;
-//     GDLException::Interpreter()->CallStack().pop_back();
-//     throw GDLException( callingNode, objectName+
-//     " (internal): Parameter 2 (RVALUE) is undefined.", false, false);
   }
   if( rValue->Type() != GDL_OBJ)
   {
     ThrowFromInternalUDSub( e, "Parameter 2 (RVALUE) must be an OBJECT in this context.");
-//     ProgNodeP callingNode = e->CallingNode();
-//     string objectName =e->GetPro()->ObjectName();
-//     delete e;
-//     GDLException::Interpreter()->CallStack().pop_back();
-//     throw GDLException( callingNode, objectName+
-//     " (internal): Parameter 2 (RVALUE) must be an OBJECT in this context.", false, false);
   }
   
   GDLDelete( *objRefP);
   *objRefP = rValue->Dup();
-  
-//   int envSize = e->EnvSize();
-//   if( envSize < 5) // consider implicit SELF
-//     e->Throw("At least 4 parameters are needed: OBJREF, RVALUE, ISRANGE, SUB1 [, ...].");
-//   BaseGDL* objRef = e->GetKW(1);
-//   BaseGDL** objRefP = e->GetPtrTo( objRef);
-//   if( objRefP == NULL)
-//     e->Throw("Parameter 1 (OBJREF) must be a passed as reference in this context.");
-//   BaseGDL* rValue = e->GetKW(2);
-//   if( rValue == NULL)
-//     e->Throw("Parameter 2 (RVALUE) is undefined.");
-//   if( rValue->Type() != GDL_OBJ)
-//     e->Throw("Parameter 2 (RVALUE) must be an OBJECT in this context.");
-//   BaseGDL* isRange = e->GetKW(3);
-//   if( isRange == NULL)
-//     e->Throw("Parameter 3 (ISRANGE) is undefined.");
-//   Guard<DLongGDL> isRangeLongGuard;
-//   DLongGDL* isRangeLong;
-//   if( isRange->Type() == GDL_LONG)
-//     isRangeLong = static_cast<DLongGDL*>( isRange);
-//   else
-//   {
-//     isRangeLong = isRange->Convert2( GDL_LONG, BaseGDL::COPY);
-//     isRangeLongGuard.Reset( isRangeLong);
-//   }
-//   SizeT nIsRange = isRangeLong->N_Elements();
-//   SizeT nSub = envSize - 4; // >= 1 s. a.
-//   if( nIsRange != nSub)
-//     e->Throw("Parameter 3 (ISRANGE) must have one element for each index parameter (#4 - #11).");
 }
 
 BaseGDL* _GDL_OBJECT_OverloadBracketsRightSide( EnvUDT* e)
@@ -276,6 +228,190 @@ BaseGDL* _GDL_OBJECT_OverloadBracketsRightSide( EnvUDT* e)
   return aL->Index( e->GetKW( 0), ixL); // index SELF
 }
 
+BaseGDL* _GDL_OBJECT_OverloadEQOp( EnvUDT* e)
+{
+  SizeT nParam = e->NParam(); // number of parameters actually given
+//   int envSize = e->EnvSize(); // number of parameters + keywords 'e' (pro) has defined
+  if( nParam < 2) // consider implicit SELF
+    ThrowFromInternalUDSub( e, "2 parameters are needed: LEFT, RIGHT.");
+
+  // default behavior: Exact like scalar indexing
+  BaseGDL* l = e->GetKW(1);
+  if( l->Type() != GDL_OBJ)
+    ThrowFromInternalUDSub( e, "Unable to convert parameter #1 to type object reference.");
+
+  BaseGDL* r = e->GetKW(2);
+  if( r->Type() != GDL_OBJ)
+    ThrowFromInternalUDSub( e, "Unable to convert parameter #2 to type object reference.");
+  
+  DObjGDL* left = static_cast<DObjGDL*>(left);
+  DObjGDL* right = static_cast<DObjGDL*>(right);
+  
+  ULong rEl=right->N_Elements();
+  ULong nEl=left->N_Elements();
+  //   if( nEl == 0)
+  // 	 nEl=N_Elements();
+  assert( rEl);
+  assert( nEl);
+  //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
+
+  Data_<SpDByte>* res;
+
+  DObj s;
+  if( right->StrictScalar(s)) 
+    {
+      res= new Data_<SpDByte>( left->Dim(), BaseGDL::NOZERO);
+      if( nEl == 1)
+	{
+	  (*res)[0] = (s == (*left)[0]);
+	  return res;
+	}
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
+#pragma omp for
+	  for( int i=0; i < nEl; ++i)
+	    (*res)[i] = ((*left)[i] == s);
+	}    }
+  else if( left->StrictScalar(s)) 
+    {
+      res= new Data_<SpDByte>( right->Dim(), BaseGDL::NOZERO);
+      if( rEl == 1)
+	{
+	  (*res)[0] = ((*right)[0] == s);
+	  return res;
+	}
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
+	{
+#pragma omp for
+	  for( int i=0; i < rEl; ++i)
+	    (*res)[i] = ((*right)[i] == s);
+	}    }
+  else if( rEl < nEl) 
+    {
+      res= new Data_<SpDByte>( right->Dim(), BaseGDL::NOZERO);
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
+	{
+#pragma omp for
+	  for( int i=0; i < rEl; ++i)
+	    (*res)[i] = ((*right)[i] == (*left)[i]);
+	}    }
+  else // ( rEl >= nEl)
+    {
+      res= new Data_<SpDByte>( left->Dim(), BaseGDL::NOZERO);
+      if( rEl == 1)
+	{
+	  (*res)[0] = ((*right)[0] == (*left)[0]);
+	  return res;
+	}
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
+#pragma omp for
+	  for( int i=0; i < nEl; ++i)
+	    (*res)[i] = ((*right)[i] == (*left)[i]);
+	}    }
+  return res;
+}
+
+BaseGDL* _GDL_OBJECT_OverloadNEOp( EnvUDT* e)
+{
+  SizeT nParam = e->NParam(); // number of parameters actually given
+//   int envSize = e->EnvSize(); // number of parameters + keywords 'e' (pro) has defined
+  if( nParam < 2) // consider implicit SELF
+    ThrowFromInternalUDSub( e, "Two parameters are needed: LEFT, RIGHT.");
+
+  // default behavior: Exact like scalar indexing
+  BaseGDL* l = e->GetKW(1);
+  if( l->Type() != GDL_OBJ)
+    ThrowFromInternalUDSub( e, "Unable to convert parameter #1 to type object reference.");
+
+  BaseGDL* r = e->GetKW(2);
+  if( r->Type() != GDL_OBJ)
+    ThrowFromInternalUDSub( e, "Unable to convert parameter #2 to type object reference.");
+  
+  DObjGDL* left = static_cast<DObjGDL*>(left);
+  DObjGDL* right = static_cast<DObjGDL*>(right);
+  
+  ULong rEl=right->N_Elements();
+  ULong nEl=left->N_Elements();
+  //   if( nEl == 0)
+  // 	 nEl=N_Elements();
+  assert( rEl);
+  assert( nEl);
+  //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
+
+  Data_<SpDByte>* res;
+
+  DObj s;
+  if( right->StrictScalar(s)) 
+    {
+      res= new Data_<SpDByte>( left->Dim(), BaseGDL::NOZERO);
+      if( nEl == 1)
+	{
+	  (*res)[0] = (s != (*left)[0]);
+	  return res;
+	}
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
+#pragma omp for
+	  for( int i=0; i < nEl; ++i)
+	    (*res)[i] = ((*left)[i] != s);
+	}    }
+  else if( left->StrictScalar(s)) 
+    {
+      res= new Data_<SpDByte>( right->Dim(), BaseGDL::NOZERO);
+      if( rEl == 1)
+	{
+	  (*res)[0] = ((*right)[0] != s);
+	  return res;
+	}
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
+	{
+#pragma omp for
+	  for( int i=0; i < rEl; ++i)
+	    (*res)[i] = ((*right)[i] != s);
+	}    }
+  else if( rEl < nEl) 
+    {
+      res= new Data_<SpDByte>( right->Dim(), BaseGDL::NOZERO);
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl))
+	{
+#pragma omp for
+	  for( int i=0; i < rEl; ++i)
+	    (*res)[i] = ((*right)[i] != (*left)[i]);
+	}    }
+  else // ( rEl >= nEl)
+    {
+      res= new Data_<SpDByte>( left->Dim(), BaseGDL::NOZERO);
+      if( rEl == 1)
+	{
+	  (*res)[0] = ((*right)[0] != (*left)[0]);
+	  return res;
+	}
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	{
+#pragma omp for
+	  for( int i=0; i < nEl; ++i)
+	    (*res)[i] = ((*right)[i] != (*left)[i]);
+	}    }
+  return res;
+}
+
+// for GDL_OBJECT all other overloads are illegal operations as default
+// however, they need to be accessible for (nonsense) parent method calls.
+// But we can use just this one function for all of them
+BaseGDL* _GDL_OBJECT_OverloadReportIllegalOperation( EnvUDT* e)
+{
+  ThrowFromInternalUDSub( e, "Operation illegal with object reference types.");
+}
+
 // set up the _overload... subroutines for GDL_OBJECT
 void SetupOverloadSubroutines()
 {
@@ -289,8 +425,11 @@ void SetupOverloadSubroutines()
   DFun *_overloadIsTrue = new DFun("_OVERLOADISTRUE",GDL_OBJECT_NAME,"*INTERNAL*");
   WRAPPED_FUNNode *tree1 = new WRAPPED_FUNNode(_GDL_OBJECT_OverloadIsTrue);
   _overloadIsTrue->SetTree( tree1);
+// we are NOT setting the operator to have (faster) default behavior
+// the functions must be there nevertheless for expicit callingNode
+// that's why we add them to the functions list  
   gdlObjectDesc->FunList().push_back(_overloadIsTrue);
-  gdlObjectDesc->SetOperator(OOIsTrue,_overloadIsTrue);
+//   gdlObjectDesc->SetOperator(OOIsTrue,_overloadIsTrue);
 
   DPro *_overloadBracketsLeftSide = new DPro("_OVERLOADBRACKETSLEFTSIDE",GDL_OBJECT_NAME,"*INTERNAL*");
   _overloadBracketsLeftSide->AddPar("OBJREF")->AddPar("RVALUE")->AddPar("ISRANGE");
@@ -299,7 +438,7 @@ void SetupOverloadSubroutines()
   WRAPPED_PRONode *tree2 = new WRAPPED_PRONode(_GDL_OBJECT_OverloadBracketsLeftSide);
   _overloadBracketsLeftSide->SetTree( tree2); 
   gdlObjectDesc->ProList().push_back(_overloadBracketsLeftSide);
-  gdlObjectDesc->SetOperator(OOBracketsLeftSide,_overloadBracketsLeftSide);
+//   gdlObjectDesc->SetOperator(OOBracketsLeftSide,_overloadBracketsLeftSide);
 
   DFun *_overloadBracketsRightSide = new DFun("_OVERLOADBRACKETSRIGHTSIDE",GDL_OBJECT_NAME,"*INTERNAL*");
   _overloadBracketsRightSide->AddPar("ISRANGE");
@@ -308,6 +447,20 @@ void SetupOverloadSubroutines()
   WRAPPED_FUNNode *tree3 = new WRAPPED_FUNNode(_GDL_OBJECT_OverloadBracketsRightSide);
   _overloadBracketsRightSide->SetTree( tree3);
   gdlObjectDesc->FunList().push_back(_overloadBracketsRightSide);
-  gdlObjectDesc->SetOperator(OOBracketsRightSide,_overloadBracketsRightSide);
+//   gdlObjectDesc->SetOperator(OOBracketsRightSide,_overloadBracketsRightSide);
+
+  DFun *_overloadEQ = new DFun("_OVERLOADEQ",GDL_OBJECT_NAME,"*INTERNAL*");
+  _overloadEQ->AddPar("LEFT")->AddPar("RIGHT");
+  WRAPPED_FUNNode *tree4 = new WRAPPED_FUNNode(_GDL_OBJECT_OverloadEQOp);
+  _overloadEQ->SetTree( tree4);
+  gdlObjectDesc->FunList().push_back(_overloadEQ);
+//   gdlObjectDesc->SetOperator(OOEQ,_overloadEQ);
+
+  DFun *_overloadNE = new DFun("_OVERLOADNE",GDL_OBJECT_NAME,"*INTERNAL*");
+  _overloadNE->AddPar("LEFT")->AddPar("RIGHT");
+  WRAPPED_FUNNode *tree5 = new WRAPPED_FUNNode(_GDL_OBJECT_OverloadNEOp);
+  _overloadNE->SetTree( tree5);
+  gdlObjectDesc->FunList().push_back(_overloadNE);
+//   gdlObjectDesc->SetOperator(OONE,_overloadNE);
 
 }

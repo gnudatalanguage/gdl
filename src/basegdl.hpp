@@ -79,7 +79,7 @@ const int DTypeOrder[]={
   101, 	//GDL_STRUCT,	
   11, 	//GDL_COMPLEXDBL,	
   102, 	//GDL_PTR,		
-  103, 	//GDL_OBJ,
+  103, 	//GDL_OBJ, // must be highest number (see AdjustTypes... functions)
   3, 	//GDL_UINT,	
   4, 	//GDL_ULONG,
   5, 	//GDL_LONG64,

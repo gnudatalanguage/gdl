@@ -351,12 +351,12 @@ static	void operator delete( void *ptr);
   Data_* PowInvSNew( BaseGDL* r);
 
 
-  Data_<SpDByte>* EqOp( BaseGDL* r);
-  Data_<SpDByte>* NeOp( BaseGDL* r);
-  Data_<SpDByte>* GtOp( BaseGDL* r);
-  Data_<SpDByte>* GeOp( BaseGDL* r);
-  Data_<SpDByte>* LtOp( BaseGDL* r);
-  Data_<SpDByte>* LeOp( BaseGDL* r);
+  BaseGDL* EqOp( BaseGDL* r);
+  BaseGDL* NeOp( BaseGDL* r);
+  BaseGDL* GtOp( BaseGDL* r);
+  BaseGDL* GeOp( BaseGDL* r);
+  BaseGDL* LtOp( BaseGDL* r);
+  BaseGDL* LeOp( BaseGDL* r);
 
   // used by interpreter, calls CatInsert
   Data_* CatArray( ExprListT& exprList, const SizeT catRank, 

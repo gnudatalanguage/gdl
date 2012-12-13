@@ -87,19 +87,20 @@ BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right) // 'right' is not owned
 	  if( (*res)->Type() == GDL_OBJ && (*res)->StrictScalar())
 	  {
 	      // check for _overloadBracketsLeftSide
-	      BaseGDL* self = (*res)->Dup(); // res should be not changeable via SELF
-	      Guard<BaseGDL> selfGuard( self);
-	      DObj s = (*static_cast<DObjGDL*>(self))[0]; // is StrictScalar()
-	      if( s != 0)  // no overloads for null object
-	      {
-		DStructGDL* oStructGDL= GDLInterpreter::GetObjHeapNoThrow( s);
-		if( oStructGDL != NULL) // if object not valid -> default behaviour
-		  {
-		    DStructDesc* desc = oStructGDL->Desc();
-		    DPro* bracketsLeftSideOverload = static_cast<DPro*>(desc->GetOperator( OOBracketsLeftSide));
+	      DObj s = (*static_cast<DObjGDL*>(*res))[0]; // is StrictScalar()
+// 	      if( s != 0)  // no overloads for null object
+// 	      {
+// 		DStructGDL* oStructGDL= GDLInterpreter::GetObjHeapNoThrow( s);
+// 		if( oStructGDL != NULL) // if object not valid -> default behaviour
+// 		  {
+// 		    DStructDesc* desc = oStructGDL->Desc();
+// 		    DPro* bracketsLeftSideOverload = static_cast<DPro*>(desc->GetOperator( OOBracketsLeftSide));
+		    DPro* bracketsLeftSideOverload = static_cast<DPro*>(GDLInterpreter::GetObjHeapOperator( s, OOBracketsLeftSide));
 		    if( bracketsLeftSideOverload != NULL)
 		    {
-		      // _overloadBracketsLeftSide
+		      bool internalDSubUD = bracketsLeftSideOverload->GetTree()->IsWrappedNode();  
+
+			// _overloadBracketsLeftSide
 		      IxExprListT indexList;
 		      interpreter->arrayindex_list_overload( this->getFirstChild()->getNextSibling(), indexList);
 		      ArrayIndexListGuard guard(this->getFirstChild()->getNextSibling()->arrIxListNoAssoc);
@@ -116,6 +117,18 @@ BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right) // 'right' is not owned
                                         ": Incorrect number of arguments.",
                                         false, false);
 		      }
+
+		      BaseGDL* self;
+		      Guard<BaseGDL> selfGuard;
+		      if( internalDSubUD)
+		      {
+			self = (*res); // internal subroutines behave well
+		      }
+		      else
+		      {
+			self = (*res)->Dup(); // res should be not changeable via SELF
+			selfGuard.Reset( self);
+		      }
 		      
 		      // adds already SELF parameter
 		      EnvUDT* newEnv= new EnvUDT( this, bracketsLeftSideOverload, &self);
@@ -125,7 +138,7 @@ BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right) // 'right' is not owned
 		      newEnv->SetNextParUnchecked( res); // OBJREF  parameter
 		      // Dup() here is not optimal
 		      // avoid at least for internal overload routines (which do/must not change RVALUE)
-		      if( bracketsLeftSideOverload->GetTree()->IsWrappedNode())  
+		      if( internalDSubUD)  
 			newEnv->SetNextParUnchecked( &right); // RVALUE  parameter, as reference to prevent cleanup in newEnv
 		      else
 			newEnv->SetNextParUnchecked( right->Dup()); // RVALUE parameter, as value
@@ -142,7 +155,7 @@ BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right) // 'right' is not owned
 		      // make the call
 		      interpreter->call_pro(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 
-		      if( self != selfGuard.Get())
+		      if( !internalDSubUD && self != selfGuard.Get())
 		      {
 			// always put out warning first, in case of a later crash
 			Warning( "WARNING: " + bracketsLeftSideOverload->ObjectName() + 
@@ -156,8 +169,8 @@ BaseGDL** ARRAYEXPRNode::LExpr( BaseGDL* right) // 'right' is not owned
 		      
 		      return res;
 		    }
-		  }
-	      }
+// 		  }
+// 	      }
 	  }
 	  aL=interpreter->arrayindex_list_noassoc( this->getFirstChild()->getNextSibling());  
 	}

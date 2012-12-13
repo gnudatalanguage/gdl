@@ -248,32 +248,32 @@ static	void operator delete( void *ptr);
     throw GDLException("File expression not allowed in this context.");
   }
 
-  Data_<SpDByte>* EqOp( BaseGDL* r)    
+  BaseGDL* EqOp( BaseGDL* r)    
   {
     throw GDLException("File expression not allowed in this context.");
   }
 
-  Data_<SpDByte>* NeOp( BaseGDL* r)    
+  BaseGDL* NeOp( BaseGDL* r)    
   {
     throw GDLException("File expression not allowed in this context.");
   }
 
-  Data_<SpDByte>* LeOp( BaseGDL* r)    
+  BaseGDL* LeOp( BaseGDL* r)    
   {
     throw GDLException("File expression not allowed in this context.");
   }
 
-  Data_<SpDByte>* GeOp( BaseGDL* r)    
+  BaseGDL* GeOp( BaseGDL* r)    
   {
     throw GDLException("File expression not allowed in this context.");
   }
 
-  Data_<SpDByte>* LtOp( BaseGDL* r)    
+  BaseGDL* LtOp( BaseGDL* r)    
   {
     throw GDLException("File expression not allowed in this context.");
   }
 
-  Data_<SpDByte>* GtOp( BaseGDL* r)    
+  BaseGDL* GtOp( BaseGDL* r)    
   {
     throw GDLException("File expression not allowed in this context.");
   }
